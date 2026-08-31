@@ -31,6 +31,11 @@ private Q_SLOTS:
     void tonalAdjustmentRecordsPreserveDefaultsAndCopyState();
     void colorAdjustmentRecordsPreserveDefaultsAndCopyState();
     void channelMixerValueInitializesAndCopiesChannels();
+    void typeFaceFixedStringsPreserveSignedMetadataAndCopyState();
+    void typeStyleDefaultsAndSignedMetricsCopyIndependently();
+    void typeLineDefaultsAndSignedCodesCopyIndependently();
+    void typeToolTransformAndPlacementValuesCopyIndependently();
+    void typeShapeSettersAndValueCopiesRemainIndependent();
 };
 
 void PsdFormatValuesContractTest::fileLimitsAndStorageEnumsRemainStable()
@@ -662,6 +667,293 @@ void PsdFormatValuesContractTest::channelMixerValueInitializesAndCopiesChannels(
     QCOMPARE(int(mixer.blue_yellow[3]), -107);
     QCOMPARE(int(mixer.black[3]), 109);
     QCOMPARE(int(mixer.constant[3]), -113);
+}
+
+void PsdFormatValuesContractTest::typeFaceFixedStringsPreserveSignedMetadataAndCopyState()
+{
+    const psd_layer_type_face empty{};
+    QCOMPARE(int(empty.mark), 0);
+    QCOMPARE(empty.font_type, 0);
+    QCOMPARE(int(empty.font_name[0]), 0);
+    QCOMPARE(int(empty.font_name[255]), 0);
+    QCOMPARE(int(empty.font_family_name[0]), 0);
+    QCOMPARE(int(empty.font_family_name[255]), 0);
+    QCOMPARE(int(empty.font_style_name[0]), 0);
+    QCOMPARE(int(empty.font_style_name[255]), 0);
+    QCOMPARE(int(empty.script), 0);
+    QCOMPARE(empty.number_axes_vector, 0);
+
+    psd_layer_type_face face{};
+    face.mark = -7;
+    face.font_type = -123456;
+    face.font_name[0] = 17;
+    face.font_name[255] = -19;
+    face.font_family_name[0] = 23;
+    face.font_family_name[255] = -29;
+    face.font_style_name[0] = 31;
+    face.font_style_name[255] = -37;
+    face.script = -41;
+    face.number_axes_vector = 43;
+
+    psd_layer_type_face copy = face;
+    QCOMPARE(int(copy.mark), -7);
+    QCOMPARE(copy.font_type, -123456);
+    QCOMPARE(int(copy.font_name[0]), 17);
+    QCOMPARE(int(copy.font_name[255]), -19);
+    QCOMPARE(int(copy.font_family_name[0]), 23);
+    QCOMPARE(int(copy.font_family_name[255]), -29);
+    QCOMPARE(int(copy.font_style_name[0]), 31);
+    QCOMPARE(int(copy.font_style_name[255]), -37);
+    QCOMPARE(int(copy.script), -41);
+    QCOMPARE(copy.number_axes_vector, 43);
+
+    copy.mark = 47;
+    copy.font_type = 654321;
+    copy.font_name[0] = -53;
+    copy.font_name[255] = 59;
+    copy.font_family_name[0] = -61;
+    copy.font_family_name[255] = 67;
+    copy.font_style_name[0] = -71;
+    copy.font_style_name[255] = 73;
+    copy.script = 79;
+    copy.number_axes_vector = 83;
+
+    QCOMPARE(int(face.mark), -7);
+    QCOMPARE(face.font_type, -123456);
+    QCOMPARE(int(face.font_name[0]), 17);
+    QCOMPARE(int(face.font_name[255]), -19);
+    QCOMPARE(int(face.font_family_name[0]), 23);
+    QCOMPARE(int(face.font_family_name[255]), -29);
+    QCOMPARE(int(face.font_style_name[0]), 31);
+    QCOMPARE(int(face.font_style_name[255]), -37);
+    QCOMPARE(int(face.script), -41);
+    QCOMPARE(face.number_axes_vector, 43);
+}
+
+void PsdFormatValuesContractTest::typeStyleDefaultsAndSignedMetricsCopyIndependently()
+{
+    const psd_layer_type_style empty{};
+    QCOMPARE(int(empty.mark), 0);
+    QCOMPARE(int(empty.face_mark), 0);
+    QCOMPARE(empty.size, 0);
+    QCOMPARE(empty.tracking, 0);
+    QCOMPARE(empty.kerning, 0);
+    QCOMPARE(empty.leading, 0);
+    QCOMPARE(empty.base_shift, 0);
+    QVERIFY(!empty.auto_kern);
+    QVERIFY(!empty.rotate);
+
+    psd_layer_type_style style{};
+    style.mark = -5;
+    style.face_mark = 7;
+    style.size = 72000;
+    style.tracking = -125;
+    style.kerning = -250;
+    style.leading = 144000;
+    style.base_shift = -36000;
+    style.auto_kern = true;
+    style.rotate = true;
+
+    psd_layer_type_style copy = style;
+    QCOMPARE(int(copy.mark), -5);
+    QCOMPARE(int(copy.face_mark), 7);
+    QCOMPARE(copy.size, 72000);
+    QCOMPARE(copy.tracking, -125);
+    QCOMPARE(copy.kerning, -250);
+    QCOMPARE(copy.leading, 144000);
+    QCOMPARE(copy.base_shift, -36000);
+    QVERIFY(copy.auto_kern);
+    QVERIFY(copy.rotate);
+
+    copy.mark = 11;
+    copy.face_mark = -13;
+    copy.size = 18000;
+    copy.tracking = 375;
+    copy.kerning = 500;
+    copy.leading = 90000;
+    copy.base_shift = 12000;
+    copy.auto_kern = false;
+    copy.rotate = false;
+
+    QCOMPARE(int(style.mark), -5);
+    QCOMPARE(int(style.face_mark), 7);
+    QCOMPARE(style.size, 72000);
+    QCOMPARE(style.tracking, -125);
+    QCOMPARE(style.kerning, -250);
+    QCOMPARE(style.leading, 144000);
+    QCOMPARE(style.base_shift, -36000);
+    QVERIFY(style.auto_kern);
+    QVERIFY(style.rotate);
+}
+
+void PsdFormatValuesContractTest::typeLineDefaultsAndSignedCodesCopyIndependently()
+{
+    const psd_layer_type_line empty{};
+    QCOMPARE(empty.char_count, 0);
+    QCOMPARE(int(empty.orientation), 0);
+    QCOMPARE(int(empty.alignment), 0);
+    QCOMPARE(int(empty.actual_char), 0);
+    QCOMPARE(int(empty.style), 0);
+
+    psd_layer_type_line line{};
+    line.char_count = 257;
+    line.orientation = -3;
+    line.alignment = 5;
+    line.actual_char = -7;
+    line.style = 11;
+
+    psd_layer_type_line copy = line;
+    QCOMPARE(copy.char_count, 257);
+    QCOMPARE(int(copy.orientation), -3);
+    QCOMPARE(int(copy.alignment), 5);
+    QCOMPARE(int(copy.actual_char), -7);
+    QCOMPARE(int(copy.style), 11);
+
+    copy.char_count = 509;
+    copy.orientation = 13;
+    copy.alignment = -17;
+    copy.actual_char = 19;
+    copy.style = -23;
+
+    QCOMPARE(line.char_count, 257);
+    QCOMPARE(int(line.orientation), -3);
+    QCOMPARE(int(line.alignment), 5);
+    QCOMPARE(int(line.actual_char), -7);
+    QCOMPARE(int(line.style), 11);
+}
+
+void PsdFormatValuesContractTest::typeToolTransformAndPlacementValuesCopyIndependently()
+{
+    const psd_layer_type_tool empty{};
+    QCOMPARE(empty.transform_info[0], 0.0);
+    QCOMPARE(empty.transform_info[5], 0.0);
+    QCOMPARE(int(empty.faces_count), 0);
+    QCOMPARE(int(empty.styles_count), 0);
+    QCOMPARE(int(empty.type), 0);
+    QCOMPARE(empty.scaling_factor, 0);
+    QCOMPARE(empty.character_count, 0);
+    QCOMPARE(empty.horz_place, 0);
+    QCOMPARE(empty.vert_place, 0);
+    QCOMPARE(empty.select_start, 0);
+    QCOMPARE(empty.select_end, 0);
+    QCOMPARE(int(empty.lines_count), 0);
+    QVERIFY(!empty.color.isValid());
+    QVERIFY(!empty.anti_alias);
+
+    psd_layer_type_tool tool{};
+    tool.transform_info[0] = -1.25;
+    tool.transform_info[5] = 3.75;
+    tool.faces_count = 3;
+    tool.styles_count = 5;
+    tool.type = -7;
+    tool.scaling_factor = -65536;
+    tool.character_count = 1024;
+    tool.horz_place = -2048;
+    tool.vert_place = 4096;
+    tool.select_start = -11;
+    tool.select_end = 997;
+    tool.lines_count = 13;
+    tool.color = QColor(17, 23, 31, 47);
+    tool.anti_alias = true;
+
+    psd_layer_type_tool copy = tool;
+    QCOMPARE(copy.transform_info[0], -1.25);
+    QCOMPARE(copy.transform_info[5], 3.75);
+    QCOMPARE(int(copy.faces_count), 3);
+    QCOMPARE(int(copy.styles_count), 5);
+    QCOMPARE(int(copy.type), -7);
+    QCOMPARE(copy.scaling_factor, -65536);
+    QCOMPARE(copy.character_count, 1024);
+    QCOMPARE(copy.horz_place, -2048);
+    QCOMPARE(copy.vert_place, 4096);
+    QCOMPARE(copy.select_start, -11);
+    QCOMPARE(copy.select_end, 997);
+    QCOMPARE(int(copy.lines_count), 13);
+    QCOMPARE(copy.color, QColor(17, 23, 31, 47));
+    QVERIFY(copy.anti_alias);
+
+    copy.transform_info[0] = 5.5;
+    copy.transform_info[5] = -7.25;
+    copy.faces_count = 17;
+    copy.styles_count = 19;
+    copy.type = 23;
+    copy.scaling_factor = 32768;
+    copy.character_count = 2048;
+    copy.horz_place = 8192;
+    copy.vert_place = -16384;
+    copy.select_start = 29;
+    copy.select_end = 31;
+    copy.lines_count = 37;
+    copy.color = QColor(53, 59, 61, 67);
+    copy.anti_alias = false;
+
+    QCOMPARE(tool.transform_info[0], -1.25);
+    QCOMPARE(tool.transform_info[5], 3.75);
+    QCOMPARE(int(tool.faces_count), 3);
+    QCOMPARE(int(tool.styles_count), 5);
+    QCOMPARE(int(tool.type), -7);
+    QCOMPARE(tool.scaling_factor, -65536);
+    QCOMPARE(tool.character_count, 1024);
+    QCOMPARE(tool.horz_place, -2048);
+    QCOMPARE(tool.vert_place, 4096);
+    QCOMPARE(tool.select_start, -11);
+    QCOMPARE(tool.select_end, 997);
+    QCOMPARE(int(tool.lines_count), 13);
+    QCOMPARE(tool.color, QColor(17, 23, 31, 47));
+    QVERIFY(tool.anti_alias);
+}
+
+void PsdFormatValuesContractTest::typeShapeSettersAndValueCopiesRemainIndependent()
+{
+    const psd_layer_type_shape empty{};
+    QCOMPARE(empty.transform, QTransform());
+    QVERIFY(empty.engineData.isEmpty());
+    QCOMPARE(empty.bounds, QRectF());
+    QCOMPARE(empty.boundingBox, QRectF());
+    QCOMPARE(empty.textIndex, 0);
+    QVERIFY(empty.text.isEmpty());
+    QVERIFY(empty.isHorizontal);
+
+    psd_layer_type_shape shape{};
+    shape.transform.translate(-13.5, 17.25);
+    shape.engineData.insert(QStringLiteral("language"), QStringLiteral("ja"));
+    shape.boundingBox = QRectF(-5.0, -7.0, 19.0, 23.0);
+    shape.text = QStringLiteral("LibrePaint text");
+    shape.setIndex(-29);
+    shape.setLeft(-31.5f);
+    shape.setTop(-37.25f);
+    shape.setRight(41.75f);
+    shape.setBottom(43.5f);
+    shape.setWritingMode(QStringLiteral("Vrtc"));
+    QVERIFY(!shape.isHorizontal);
+    shape.setWritingMode(QStringLiteral("Hrzn"));
+    QVERIFY(shape.isHorizontal);
+    shape.setWritingMode(QStringLiteral("Vrtc"));
+
+    psd_layer_type_shape copy = shape;
+    QCOMPARE(copy.transform, shape.transform);
+    QCOMPARE(copy.engineData.value(QStringLiteral("language")).toString(), QStringLiteral("ja"));
+    QCOMPARE(copy.bounds, QRectF(-31.5, -37.25, 73.25, 80.75));
+    QCOMPARE(copy.boundingBox, QRectF(-5.0, -7.0, 19.0, 23.0));
+    QCOMPARE(copy.textIndex, -29);
+    QCOMPARE(copy.text, QStringLiteral("LibrePaint text"));
+    QVERIFY(!copy.isHorizontal);
+
+    copy.transform.scale(2.0, 3.0);
+    copy.engineData.insert(QStringLiteral("language"), QStringLiteral("fr"));
+    copy.bounds = QRectF(1.0, 2.0, 3.0, 4.0);
+    copy.boundingBox = QRectF(5.0, 6.0, 7.0, 8.0);
+    copy.textIndex = 47;
+    copy.text = QStringLiteral("Changed copy");
+    copy.setWritingMode(QStringLiteral("Hrzn"));
+
+    QCOMPARE(shape.engineData.value(QStringLiteral("language")).toString(), QStringLiteral("ja"));
+    QCOMPARE(shape.bounds, QRectF(-31.5, -37.25, 73.25, 80.75));
+    QCOMPARE(shape.boundingBox, QRectF(-5.0, -7.0, 19.0, 23.0));
+    QCOMPARE(shape.textIndex, -29);
+    QCOMPARE(shape.text, QStringLiteral("LibrePaint text"));
+    QVERIFY(!shape.isHorizontal);
+    QVERIFY(copy.transform != shape.transform);
 }
 
 QTEST_GUILESS_MAIN(PsdFormatValuesContractTest)
