@@ -2,12 +2,30 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 08:23 JST
+- 更新日時: 2026-09-01 08:25 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
+
+### 第104並列便の監査計画
+
+- 共通基点は`9da5edba2c`、入力は`build/tdd-macos/public-api-missing-g104.json`である。3担当は`auditing`の読み取り専用とし、製品・試験・CMake・
+  台帳・文書を変更せず、構築、テスト、Git操作、追加委任も行わない。一つの公開責務から25 API以上を最大5契約枠へ固定し、既存限定対象、header-only値面、
+  または公開headerを変えない一sourceのOBJECT一対一移動で製品shared libraryと`kritatestsdk`へ接続せず閉じる候補を優先する。
+- `g104-psd-record-values-audit`は`libs/psd/psd_layer_record.h` 60 APIを主候補とし、`libs/psdutils/psd.h` 197 API、
+  `libs/psd/psd_resource_block.h` 163 APIの未対応面と比較する。layer記録の既定値・符号付き寸法・channel・mask・section値、または単一の直列化値責務を選び、
+  実image、paint device、色空間・resource registry、ASL、filesystem、生pointer所有に接続しない。第103便までのPSD契約と重なるAPIは採用しない。
+- `g104-transform-grid-values-audit`は`plugins/tools/tool_transform2/tool_transform_args.h` 100 API、`libs/ui/canvas/kis_grid_config.h` 79 API、
+  `libs/libkis/GridConfig.h` 54 APIを比較し、変換引数またはgrid設定の一つの値責務を選ぶ。実image、paint device、画面、resource registry、設定filesystemを使わず、
+  値構築・copy・列挙・純粋計算で観測できる範囲と既存限定対象を示す。三headerのAPIを一契約へ混在させない。
+- `g104-widget-action-values-audit`は`libs/widgetutils/config/kstandardaction.h` 74 API、`libs/widgetutils/xmlgui/kactioncollection.h` 48 API、
+  `libs/widgetutils/kis_cursor.h` 44 APIを比較し、標準action識別値・metadata、action collectionの局所モデル、またはcursor値生成の最良一責務を選ぶ。
+  実window、application、plugin、設定filesystem、大域action collectionに接続せず、Qt Core・Gui・Test中心の限定対象へ閉じる候補を優先する。
+- 各報告は完全なAPI識別子、観測する現行挙動、最大5契約枠、最寄りCTest、所有CMake、直接依存、変更なし閉包、予測閉包と停止線、開始pathから
+  移動先pathへの対応、許可path、固有停止条件を含む。候補がない場合は最接近候補と棄却根拠を数値で示す。3監査後にpath、CMake、試験source、生成物が
+  重ならない候補だけを担当票へ進め、実装前に限定対象の構築範囲を再確認する。
 
 ### 第103並列便の監査計画
 
