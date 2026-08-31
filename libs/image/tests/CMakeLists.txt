@@ -1706,6 +1706,25 @@ target_include_directories(KisPostExecutionUndoAdapterContractTest PRIVATE
 target_compile_definitions(KisPostExecutionUndoAdapterContractTest PRIVATE kritaimage_EXPORTS)
 
 kis_add_test(
+    KisDoNothingProcessingVisitorContractTest.cpp
+    LINK_LIBRARIES
+        kritaimagedonothingprocessingvisitorobjects
+        kritaglobalsharedobjects
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KisDoNothingProcessingVisitorContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+)
+target_compile_definitions(KisDoNothingProcessingVisitorContractTest PRIVATE
+    kritaglobal_EXPORTS
+    kritaimage_EXPORTS
+)
+
+kis_add_test(
     KisQueuesProgressUpdaterContractTest.cpp
     LINK_LIBRARIES
         kritaimagequeuesprogressupdaterobjects
