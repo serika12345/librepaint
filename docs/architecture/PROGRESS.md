@@ -2,12 +2,25 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 01:54 JST
+- 更新日時: 2026-09-01 01:56 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
+
+### 第95並列便の監査計画
+
+- 共通基点は`88e4b97ff75cf46b4d0722090ac490f01c491566`、入力は`build/tdd-macos/public-api-missing-g95.json`である。3担当は読み取り専用で、
+  製品・試験・CMake・台帳・文書を変更せず、構築、テスト、Git操作、追加委任も行わない。
+- `g95-image-audit`は`libs/image`から第92便から第94便までの対象を除き、既存限定CTestまたは既存専用OBJECTで12 API以上を値、境界、配送、
+  寿命の最大5枠へ固定できる候補を選ぶ。新たな製品source移動が必要な場合は一つのsourceの一対一移動までとし、製品への一重集約を示す。
+- `g95-input-canvas-audit`は`libs/input`と`libs/canvas`から、既存軽量対象の拡張または一つのsource移動で10 API以上を固定できる候補を選ぶ。
+  入力機器、画面、GPU、実画像、色空間、大域application状態を要する候補は、固定値または既存の決定的な試験面で隔離できない限り採用しない。
+- `g95-flake-widgets-audit`は`libs/flake`、`libs/widgets`、`libs/widgetutils`から、既存限定対象または一つの専用OBJECTで12 API以上を固定できる
+  値・状態候補を選ぶ。UI event loopを使わない値契約を優先し、製品shared library、Qt Widgets動的library、`kritatestsdk`への接続は採用しない。
+- 各報告は完全なAPI識別子、最大5契約枠、最寄りCTest、所有CMake、直接依存、変更なし閉包、予測閉包と停止線、許可path、固有停止条件を含む。
+  実装担当は公開header、製品source、試験source、CMake所有を重複させず、主環境の共有compiler cacheと担当固有の構築木を使う。
 
 ### 第94便の先行監査計画
 
