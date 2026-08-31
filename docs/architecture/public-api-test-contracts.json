@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 20949
+    "expectedMissingApis": 20927
   },
   "contracts": [
     {
@@ -29127,6 +29127,136 @@
       "classification": "maintained",
       "apis": [
         "method:KisModelIndexConverterBase::indexFromAddedDummy(KisNodeDummy * parentDummy,int index,const QString & newNodeMetaObjectType,QModelIndex & parentIndex,int & row)"
+      ]
+    },
+    {
+      "target": "KoPathPointMoveCommandContractTest",
+      "source": "libs/flake/tests/KoPathPointMoveCommandContractTest.cpp",
+      "test": "KoPathPointMoveCommandContractTest::constructorsCopyOffsetsAndKeepFirstDuplicate",
+      "behavior": "path point移動commandは単一offsetと点別offsetを値として保存し、重複pointでは最初のoffsetを保持し、親commandと入力shapeを借用する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoPathPointMoveCommand",
+        "method:KoPathPointMoveCommand::KoPathPointMoveCommand(const QList<KoPathPointData> & pointData,const QList<QPointF> & offsets,KUndo2Command * parent=0)",
+        "method:KoPathPointMoveCommand::KoPathPointMoveCommand(const QList<KoPathPointData> & pointData,const QPointF & offset,KUndo2Command * parent=0)"
+      ]
+    },
+    {
+      "target": "KoPathPointMoveCommandContractTest",
+      "source": "libs/flake/tests/KoPathPointMoveCommandContractTest.cpp",
+      "test": "KoPathPointMoveCommandContractTest::redoAndUndoDispatchBaseBeforeSignedOffsetBatch",
+      "behavior": "path point移動commandは基底処理後、再実行で係数+1.0、取消で係数-1.0を、保存済みpoint・offset・path集合とともに一括配送する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoPathPointMoveCommand::redo()",
+        "method:KoPathPointMoveCommand::undo()"
+      ]
+    },
+    {
+      "target": "KoPathPointMoveCommandContractTest",
+      "source": "libs/flake/tests/KoPathPointMoveCommandContractTest.cpp",
+      "test": "KoPathPointMoveCommandContractTest::idAndMergeRequireSamePointSetAndAccumulateOffsets",
+      "behavior": "path point移動commandは既存の識別子を返し、同じpath・point集合だけを入力順に依存せず統合して対応offsetを累積する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoPathPointMoveCommand::id() const",
+        "method:KoPathPointMoveCommand::mergeWith(const KUndo2Command * command)"
+      ]
+    },
+    {
+      "target": "KoPathPointMoveCommandContractTest",
+      "source": "libs/flake/tests/KoPathPointMoveCommandContractTest.cpp",
+      "test": "KoPathPointMoveCommandContractTest::keepsShapesBorrowedAndSupportsEmptyInput",
+      "behavior": "path point移動commandは基底pointerから仮想破棄でき、借用shapeを所有せず、空入力の再実行と取消も空の一括配送として完了する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoPathPointMoveCommand::~KoPathPointMoveCommand()"
+      ]
+    },
+    {
+      "target": "KisRandomSubAccessorContractTest",
+      "source": "libs/image/tests/KisRandomSubAccessorContractTest.cpp",
+      "test": "KisRandomSubAccessorContractTest::defaultPositionRetainsDeviceAndSamplesFourNeighbors",
+      "behavior": "subpixel random accessorはpaint deviceを強所有し、既定位置(0,0)から順序付き4近傍の現在画素を混合へ配送する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisRandomSubAccessor",
+        "method:KisRandomSubAccessor::KisRandomSubAccessor(KisPaintDeviceSP device)"
+      ]
+    },
+    {
+      "target": "KisRandomSubAccessorContractTest",
+      "source": "libs/image/tests/KisRandomSubAccessorContractTest.cpp",
+      "test": "KisRandomSubAccessorContractTest::moveOverloadsUseFloorCoordinatesAndBilinearWeights",
+      "behavior": "subpixel random accessorの二つの移動入口は正負の小数座標を保持し、floorで定めた4近傍と双線形重みを混合へ配送する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisRandomSubAccessor::moveTo(const QPointF & p)",
+        "method:KisRandomSubAccessor::moveTo(qreal x,qreal y)"
+      ]
+    },
+    {
+      "target": "KisRandomSubAccessorContractTest",
+      "source": "libs/image/tests/KisRandomSubAccessorContractTest.cpp",
+      "test": "KisRandomSubAccessorContractTest::oldAndCurrentSamplingUseSeparatePixelViews",
+      "behavior": "subpixel random accessorは旧画素と現在画素の4 pointerを別の取得経路から同じ色混合境界へ配送する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisRandomSubAccessor::sampledOldRawData(quint8 * dst)",
+        "method:KisRandomSubAccessor::sampledRawData(quint8 * dst)"
+      ]
+    },
+    {
+      "target": "KisRandomSubAccessorContractTest",
+      "source": "libs/image/tests/KisRandomSubAccessorContractTest.cpp",
+      "test": "KisRandomSubAccessorContractTest::finalReleaseDestroysAccessorAndReleasesDevice",
+      "behavior": "subpixel random accessorは最終共有所有の解放時に内部random accessorを仮想破棄してからpaint device参照を解放する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisRandomSubAccessor::~KisRandomSubAccessor()"
+      ]
+    },
+    {
+      "target": "KisCompositeOpOptionDataContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisCompositeOpOptionDataContractTest.cpp",
+      "test": "KisCompositeOpOptionDataContractTest::defaultValuesAndMemberTypesRemainStable",
+      "behavior": "合成方法option dataは文字列の合成IDとboolの消しゴム状態を持ち、既定値normalとfalseを設定する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisCompositeOpOptionData::compositeOpId",
+        "member:KisCompositeOpOptionData::eraserMode",
+        "method:KisCompositeOpOptionData::KisCompositeOpOptionData()",
+        "struct:KisCompositeOpOptionData"
+      ]
+    },
+    {
+      "target": "KisCompositeOpOptionDataContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisCompositeOpOptionDataContractTest.cpp",
+      "test": "KisCompositeOpOptionDataContractTest::readMapsMissingAndUnicodeConfiguration",
+      "behavior": "合成方法option dataは設定のCompositeOpとEraserModeを読み取り、欠落時の既定値と無関係な設定を保持して成功を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCompositeOpOptionData::read(const KisPropertiesConfiguration * setting)"
+      ]
+    },
+    {
+      "target": "KisCompositeOpOptionDataContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisCompositeOpOptionDataContractTest.cpp",
+      "test": "KisCompositeOpOptionDataContractTest::writeMapsBothMembersAndPreservesOtherProperties",
+      "behavior": "合成方法option dataは二つのmemberをCompositeOpとEraserModeへ書き込み、無関係な設定と自身の値を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCompositeOpOptionData::write(KisPropertiesConfiguration * setting) const"
+      ]
+    },
+    {
+      "target": "KisCompositeOpOptionDataContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisCompositeOpOptionDataContractTest.cpp",
+      "test": "KisCompositeOpOptionDataContractTest::equalityDependsOnBothMembersIndependently",
+      "behavior": "合成方法option dataの等価判定は合成IDと消しゴム状態の両方が一致する場合だけ真となり、各差を独立して検出する。",
+      "classification": "maintained",
+      "apis": [
+        "function:operator ==(const KisCompositeOpOptionData & lhs,const KisCompositeOpOptionData & rhs)"
       ]
     }
   ]
