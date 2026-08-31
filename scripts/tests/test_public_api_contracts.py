@@ -22,6 +22,47 @@ SPEC.loader.exec_module(check_public_api_contracts)
 
 
 class PublicApiContractTests(unittest.TestCase):
+    def test_excludes_separately_defined_non_public_nested_records(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            header = root / "NestedRecords.h"
+            header.write_text(
+                """
+class Owner
+{
+private:
+    class Hidden;
+    union HiddenUnion;
+protected:
+    struct Protected;
+public:
+    class Visible;
+    friend class IgnoredFriend;
+};
+class Owner::Hidden { public: int hiddenValue; };
+union Owner::HiddenUnion { int hiddenUnionValue; double alternative; };
+struct Owner::Protected { public: int protectedValue; };
+class Owner::Visible { public: int visibleValue; };
+namespace Private { struct PublicValue { int value; }; }
+enum class ForwardEnum;
+typedef struct AliasForward AliasForward;
+""",
+                encoding="utf-8",
+            )
+
+            apis = check_public_api_contracts.collect_public_apis(
+                root, ["NestedRecords.h"]
+            )
+            ids = [api["id"] for api in apis]
+
+            self.assertFalse(any("Owner::Hidden" in api_id for api_id in ids))
+            self.assertFalse(any("Owner::HiddenUnion" in api_id for api_id in ids))
+            self.assertFalse(any("Owner::Protected" in api_id for api_id in ids))
+            self.assertIn("class:Owner::Visible", ids)
+            self.assertIn("member:Owner::Visible::visibleValue", ids)
+            self.assertIn("struct:Private::PublicValue", ids)
+            self.assertIn("member:Private::PublicValue::value", ids)
+
     def test_qt_registration_macros_do_not_consume_following_declarations(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
             root = Path(temporary_directory)

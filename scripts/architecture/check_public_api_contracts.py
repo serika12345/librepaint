@@ -166,6 +166,8 @@ def extract_public_apis(
             continue
         if access in {"private", "protected"}:
             continue
+        if kind in RECORD_KINDS and _qualified_name(tag) in non_public_scopes:
+            continue
         if _string(tag, "scopeKind") in ROUTINE_SCOPE_KINDS:
             continue
         if _is_below_non_public_scope(_string(tag, "scope"), non_public_scopes):
@@ -311,11 +313,61 @@ def _collect_friend_declaration_tags(
         return _run_ctags(temporary_root, transformed_headers)
 
 
+def _record_forward_declarations_with_empty_bodies(text: str) -> str:
+    masked_text = _mask_cpp_comments_and_literals(text)
+    semicolons: list[int] = []
+    pattern = re.compile(r"\b(?:class|struct|union)\s+[A-Za-z_]\w*\s*(;)")
+    for match in pattern.finditer(masked_text):
+        prefix = masked_text[max(0, match.start() - 32) : match.start()]
+        if re.search(r"\b(?:enum|friend|typedef)\s*$", prefix):
+            continue
+        semicolons.append(match.start(1))
+
+    transformed = text
+    for index in reversed(semicolons):
+        transformed = transformed[:index] + " {};" + transformed[index + 1 :]
+    return transformed
+
+
+def _collect_non_public_record_forward_declaration_tags(
+    repository_root: Path, public_headers: list[str]
+) -> list[dict[str, Any]]:
+    with tempfile.TemporaryDirectory(
+        prefix="librepaint-public-api-record-forwards-"
+    ) as temporary_directory:
+        temporary_root = Path(temporary_directory)
+        transformed_headers: list[str] = []
+        for header in public_headers:
+            source = repository_root / header
+            text = source.read_text(encoding="utf-8")
+            transformed = _record_forward_declarations_with_empty_bodies(text)
+            if transformed == text:
+                continue
+            destination = temporary_root / header
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            destination.write_text(transformed, encoding="utf-8")
+            transformed_headers.append(header)
+
+        if not transformed_headers:
+            return []
+        return [
+            tag
+            for tag in _run_ctags(temporary_root, transformed_headers)
+            if tag.get("kind") in RECORD_KINDS
+            and _string(tag, "access") in {"private", "protected"}
+        ]
+
+
 def collect_ctags(
     repository_root: Path, public_headers: list[str]
 ) -> list[dict[str, Any]]:
     tags = _run_ctags(repository_root, public_headers)
     tags.extend(_collect_friend_declaration_tags(repository_root, public_headers))
+    tags.extend(
+        _collect_non_public_record_forward_declaration_tags(
+            repository_root, public_headers
+        )
+    )
     return tags
 
 
