@@ -2,12 +2,32 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 06:36 JST
+- 更新日時: 2026-09-01 06:40 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
+
+### 第102並列便の監査計画
+
+- 共通基点は`3103cff58e990f528e6237e8f28494527e0617da`、入力は`build/tdd-macos/public-api-missing-g102.json`である。3担当は`auditing`で、
+  読み取り専用とし、製品・試験・CMake・台帳・文書を変更せず、構築、テスト、Git操作、追加委任も行わない。一つの公開責務から25 API以上を
+  最大5契約枠へ固定し、既存限定対象、header-only値面、一sourceのOBJECT一対一移動、または挙動不変の小さな責務分割で製品shared libraryと
+  `kritatestsdk`へ接続せず閉じられる候補を優先する。
+- `g102-psd-additional-values-audit`は`libs/psd/psd_additional_layer_info_block.h`の残り183 APIから、第100・101便と重ならない連続した値記録を選ぶ。
+  既定値、符号付き値、固定配列、Qt値型、copy独立性をメモリー内だけで観測し、生pointer所有、paint device、色空間・模様registry、COS/ASL、
+  filesystemを必要とする経路は採用しない。
+- `g102-global-algebra-values-audit`は`libs/global/kis_algebra_2d.h`の残り58 APIから、線・多角形交差、数値最小化、VectorPath操作、弾性点変換のうち一つの
+  純粋幾何責務を選ぶ。既存限定OBJECTを再利用し、GUI、画像、乱数、大域状態、外部入力を避け、一つの開始sourceだけの分割で25 API以上を固定できる
+  範囲を示す。
+- `g102-image-value-owners-audit`は`libs/image/kis_properties_configuration.h` 44 API、`libs/image/kis_distance_information.h` 43 API、
+  `libs/image/brushengine/kis_paint_information.h` 61 APIを比較し、設定値、距離初期値、描画入力値のいずれか一責務を選ぶ。実image・paint device、
+  color space・resource registry、filesystem、大域状態へ接続せず、最大2sourceの既存具体所有者を限定OBJECTへ移して25 API以上を固定できる候補だけを
+  採用する。複数候補を混ぜず、最良一件と他候補の棄却根拠を報告する。
+- 各報告は完全なAPI識別子、観測する現行挙動、最大5契約枠、最寄りCTest、所有CMake、直接依存、変更なし閉包、予測閉包と停止線、開始pathから
+  移動先pathへの対応、許可path、固有停止条件を含む。候補がない場合は最接近候補と棄却根拠を数値で報告する。3監査後にpath、CMake、試験source、
+  生成物が重ならない候補だけを実装担当票へ進める。
 
 ### 第101並列便の監査計画
 
