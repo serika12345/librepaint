@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 06:12 JST
+- 更新日時: 2026-09-01 06:24 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -43,7 +43,7 @@
 ### 第101並列便の担当計画
 
 - 実装共通基点は`c3cfab72ed3bc2e63ab07d18836dd72fbf048900`、構築許可は`granted`、Git権限は許可pathだけの`transport-commit`である。
-- `g101-psd-text-values`は`in_progress`で、専用作業ツリーは`/Users/masato/Documents/librepaint-g101-psd-text-values`である。対象は
+- `g101-psd-text-values`は`integrated`で、削除済みの専用作業ツリーは`/Users/masato/Documents/librepaint-g101-psd-text-values`であった。対象は
   `libs/psd/psd_additional_layer_info_block.h`の`psd_layer_type_face` 8 API、`psd_layer_type_style` 10 API、`psd_layer_type_line` 6 API、
   `psd_layer_type_tool` 14 API、`psd_layer_type_shape` 14 APIの合計52 APIである。許可pathは既存
   `libs/psdutils/tests/PsdFormatValuesContractTest.cpp`だけで、5枠を追加する。予測4工程・9入力、停止5工程・12入力、製品`kritapsd`不変とする。
@@ -64,6 +64,17 @@
 - 許可path外、新規公開API、製品source二重収容、停止線超過、製品shared library、`kritatestsdk`、実画像・canvas・application設定・registry・
   filesystem、未分類の生pointer所有へ到達した担当は停止する。担当は追加委任せず、許可pathだけをcommitして完全なAPI対応、初期診断、閉包、検証、
   容量を報告する。統合後は局所構築木を含む担当作業ツリーと旧不足一覧を直ちに削除する。
+
+### 第101並列便の統合結果
+
+- `g101-psd-text-values`は受渡しcommit `e70c44222fce`を統合commit `5f41024641`として取り込んだ。変更は既存
+  `libs/psdutils/tests/PsdFormatValuesContractTest.cpp`だけで、製品header、source、CMakeを変更していない。
+- PSDテキストレイヤーのface、style、line、tool、shape値記録について、固定長文字列、符号付き書式値、変換・配置・色、setter、値copyの全52 APIを
+  5契約枠へ追加した。所有不明の生pointerとCOS/ASL経路は参照せず残した。限定対象は4工程・9入力、製品`kritapsd`は不変である。
+- 担当環境と主環境で追加5枠、全対象CTest、20回反復、`PsdByteIoContractTest`近傍、無作業再構築、動的接続、変更source構文、公開API契約検査、
+  `verify-quick`に成功した。対応済みは10,138件、未対応は19,700件、契約枠は2,396件となった。
+- 新しい`build/tdd-macos/public-api-missing-g101-psd.json`生成後、旧不足一覧4.8 MB、局所構築木261 MBを含む担当作業ツリー831 MB、担当branchを
+  削除した。主増分構築木、共有compiler cache、残るXCF・矩形代数担当作業ツリー、最新不足一覧だけを保持する。
 
 ### 第100並列便の監査計画
 

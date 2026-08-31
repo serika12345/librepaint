@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 19752
+    "expectedMissingApis": 19700
   },
   "contracts": [
     {
@@ -32259,6 +32259,103 @@
       "apis": [
         "function:KisBezierMeshDetails::loadValue(const QDomElement & parent,BaseMeshNode * node)",
         "function:KisBezierMeshDetails::saveValue(QDomElement * parent,const QString & tag,const BaseMeshNode & node)"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::typeFaceFixedStringsPreserveSignedMetadataAndCopyState",
+      "behavior": "PSDテキスト書体記録は固定長のfamily・name・style文字列、符号付き書体情報、軸数を値初期化し、copy後も独立して保持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:psd_layer_type_face::font_family_name",
+        "member:psd_layer_type_face::font_name",
+        "member:psd_layer_type_face::font_style_name",
+        "member:psd_layer_type_face::font_type",
+        "member:psd_layer_type_face::mark",
+        "member:psd_layer_type_face::number_axes_vector",
+        "member:psd_layer_type_face::script",
+        "struct:psd_layer_type_face"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::typeStyleDefaultsAndSignedMetricsCopyIndependently",
+      "behavior": "PSDテキスト書式記録は自動kerning・回転と符号付きの基線・kerning・tracking等を独立したcopy値として保持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:psd_layer_type_style::auto_kern",
+        "member:psd_layer_type_style::base_shift",
+        "member:psd_layer_type_style::face_mark",
+        "member:psd_layer_type_style::kerning",
+        "member:psd_layer_type_style::leading",
+        "member:psd_layer_type_style::mark",
+        "member:psd_layer_type_style::rotate",
+        "member:psd_layer_type_style::size",
+        "member:psd_layer_type_style::tracking",
+        "struct:psd_layer_type_style"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::typeLineDefaultsAndSignedCodesCopyIndependently",
+      "behavior": "PSDテキスト行記録は文字数、文字・配置・方向・書式の符号付きcodeを値初期化し、copy後も独立して保持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:psd_layer_type_line::actual_char",
+        "member:psd_layer_type_line::alignment",
+        "member:psd_layer_type_line::char_count",
+        "member:psd_layer_type_line::orientation",
+        "member:psd_layer_type_line::style",
+        "struct:psd_layer_type_line"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::typeToolTransformAndPlacementValuesCopyIndependently",
+      "behavior": "PSDテキストtool記録は6要素変換、件数、配置・選択範囲、倍率、色、anti-aliasを値初期化し、copy後も独立して保持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:psd_layer_type_tool::anti_alias",
+        "member:psd_layer_type_tool::character_count",
+        "member:psd_layer_type_tool::color",
+        "member:psd_layer_type_tool::faces_count",
+        "member:psd_layer_type_tool::horz_place",
+        "member:psd_layer_type_tool::lines_count",
+        "member:psd_layer_type_tool::scaling_factor",
+        "member:psd_layer_type_tool::select_end",
+        "member:psd_layer_type_tool::select_start",
+        "member:psd_layer_type_tool::styles_count",
+        "member:psd_layer_type_tool::transform_info",
+        "member:psd_layer_type_tool::type",
+        "member:psd_layer_type_tool::vert_place",
+        "struct:psd_layer_type_tool"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::typeShapeSettersAndValueCopiesRemainIndependent",
+      "behavior": "PSDテキストshape記録はidentity変換と水平書字を既定とし、矩形辺・index・書字方向setterとQt値型をcopy後も独立して保持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:psd_layer_type_shape::boundingBox",
+        "member:psd_layer_type_shape::bounds",
+        "member:psd_layer_type_shape::engineData",
+        "member:psd_layer_type_shape::isHorizontal",
+        "member:psd_layer_type_shape::text",
+        "member:psd_layer_type_shape::textIndex",
+        "member:psd_layer_type_shape::transform",
+        "method:psd_layer_type_shape::setBottom(float val)",
+        "method:psd_layer_type_shape::setIndex(int val)",
+        "method:psd_layer_type_shape::setLeft(float val)",
+        "method:psd_layer_type_shape::setRight(float val)",
+        "method:psd_layer_type_shape::setTop(float val)",
+        "method:psd_layer_type_shape::setWritingMode(const QString val)",
+        "struct:psd_layer_type_shape"
       ]
     }
   ]
