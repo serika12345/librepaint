@@ -2,12 +2,71 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-31 20:41 JST
+- 更新日時: 2026-08-31 20:57 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
+
+### 第88並列便の担当票
+
+- `g88-flake-parameter-private`は`planned`である。基準commitは
+  `266f9f1ea9182670b3fddbb159121d401c1d51a7`、作業ツリーは
+  `/Users/masato/Documents/librepaint-r2-g19b-g88-flake-parameter-private`、担当ブランチは
+  `work/r2-g19b-g88-flake-parameter-private`である。対象は`libs/flake/KoParameterShape_p.h`の
+  `class:KoParameterShape::Private`、`member:KoParameterShape::Private::handles`、
+  `member:KoParameterShape::Private::parametric`、`method:KoParameterShape::Private::Private()`、
+  `method:KoParameterShape::Private::Private(const KoParameterShape::Private & rhs)`、
+  `method:KoParameterShape::Private::~Private()`の6 APIである。空handle列とparametric有効の既定値、複数点と順序を保つ
+  copy、copy後のhandle列とparametric値の独立変更、元個体破棄後のcopy寿命を3契約枠で固定する。開始ファイル
+  `libs/flake/KoParameterShape.cpp`冒頭のPrivate構築2定義を新規
+  `libs/flake/KoParameterShapePrivate.cpp`へ移し、`kritaflakeparametershapeprivateobjects`へ収容して製品
+  `kritaflake`へ一度だけ再集約する。本体実装は元ファイルに残す。最寄り契約は`KoPathPointDataContractTest`である。
+  許可範囲は`libs/flake/CMakeLists.txt`、開始実装、新規Private実装、`libs/flake/tests/CMakeLists.txt`、新規
+  `libs/flake/tests/KoParameterShapePrivateContractTest.cpp`である。予測閉包は4工程・9入力、停止条件は5工程・11入力超過、
+  実shape、Qt Widgets、製品共有library、`kritatestsdk`、公開API変更、許可外変更、二重定義である。製品閉包は
+  612工程・1,256入力から613工程・1,258入力までを許容する。この1工程・2入力は重量本体から外部利用値状態を独立した
+  コンパイル単位へ移して限定試験を可能にする必要コストであり、これを超える増加で停止する。
+- `g88-image-layer-style-filter`は`planned`である。基準commitは同じ、作業ツリーは
+  `/Users/masato/Documents/librepaint-r2-g19b-g88-image-layer-style-filter`、担当ブランチは
+  `work/r2-g19b-g88-image-layer-style-filter`である。対象は`libs/image/layerstyles/kis_layer_style_filter.h`の
+  `class:KisLayerStyleFilter`、`method:KisLayerStyleFilter::KisLayerStyleFilter(const KoID & id)`、
+  `method:KisLayerStyleFilter::~KisLayerStyleFilter()`、`method:KisLayerStyleFilter::id() const`、
+  `method:KisLayerStyleFilter::clone() const`、
+  `method:KisLayerStyleFilter::processDirectly(KisPaintDeviceSP src,KisMultipleProjection * dst,KisLayerStyleKnockoutBlower * blower,const QRect & applyRect,KisPSDLayerStyleSP style,KisLayerStyleFilterEnvironment * env) const`、
+  `method:KisLayerStyleFilter::neededRect(const QRect & rect,KisPSDLayerStyleSP style,KisLayerStyleFilterEnvironment * env) const`、
+  `method:KisLayerStyleFilter::changedRect(const QRect & rect,KisPSDLayerStyleSP style,KisLayerStyleFilterEnvironment * env) const`の
+  8 APIである。識別子の所有、protected copyを用いるcloneの独立個体と寿命、3抽象操作の引数同一性・回数・矩形返値を
+  3契約枠で固定する。開始ファイル`libs/image/layerstyles/kis_layer_style_filter.cpp`を`kritaimage_LIB_SRCS`の直接収容から
+  `kritaimagelayerstylefilterobjects`へ移し、製品`kritaimage`へ一度だけ再集約する。最寄り契約は
+  `KisImageTypesContractTest`と`KisFilterCategoryIdsContractTest`である。許可範囲は`libs/image/CMakeLists.txt`、
+  `libs/image/tests/CMakeLists.txt`、新規`libs/image/tests/KisLayerStyleFilterContractTest.cpp`であり、開始headerとsourceは
+  変更しない。予測閉包は12工程・22入力、停止条件は13工程・25入力超過、製品1,184工程・2,392入力からの増加、実PSD・
+  paint device・node object、製品共有library、Qt Widgets、`kritatestsdk`、opaque token参照、公開API変更、許可外変更である。
+- `g88-paintop-scatter`は`planned`である。基準commitは同じ、作業ツリーは
+  `/Users/masato/Documents/librepaint-r2-g19b-g88-paintop-scatter`、担当ブランチは
+  `work/r2-g19b-g88-paintop-scatter`である。対象は`plugins/paintops/libpaintop/KisScatterOptionData.h`の
+  `alias:KisScatterOptionMixIn`、`struct:KisScatterOptionData`、`struct:KisScatterOptionMixInImpl`、
+  `member:KisScatterOptionMixInImpl::axisX`、`member:KisScatterOptionMixInImpl::axisY`、
+  `method:KisScatterOptionData::KisScatterOptionData(const QString & prefix="")`、
+  `method:KisScatterOptionMixInImpl::read(const KisPropertiesConfiguration * setting)`、
+  `method:KisScatterOptionMixInImpl::write(KisPropertiesConfiguration * setting) const`、
+  `function:operator ==(const KisScatterOptionMixInImpl & lhs,const KisScatterOptionMixInImpl & rhs)`の9 APIである。公開型、
+  両軸有効の既定値、接頭辞、0..5の値範囲、軸値の独立した読書き、旧`Scattering/Amount`移行、`ScatterValue`優先、
+  等価判定を5契約枠で固定する。開始ファイル`plugins/paintops/libpaintop/KisScatterOptionData.cpp`を製品とruntimeの二つの
+  直接source一覧から外して`kritapaintopscatteroptiondataobjects`へ移し、`kritapaintopruntime`へ一度だけ再集約する。
+  同開始実装の未使用`kis_paintop_settings.h` includeを除く。最寄り契約は`KisSharpnessOptionDataContractTest`と
+  `KisCurveOptionDataContractTest`である。許可範囲は`plugins/paintops/libpaintop/CMakeLists.txt`、開始実装、同tests CMake、
+  新規`plugins/paintops/libpaintop/tests/KisScatterOptionDataContractTest.cpp`である。予測閉包は11工程・24入力、停止条件は
+  12工程・27入力超過、runtime 1,281工程・2,582入力またはlibpaintop 2,097工程・4,192入力からの増加、実製品設定object、
+  OpenEXR・Imath動的library、製品共有library、Qt Widgets、`kritatestsdk`、二重収容、公開API変更、許可外変更である。
+- 3担当の対象プラットフォームはmacOS、共有コンパイラーcacheは
+  `/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`、構築実行許可は`granted`、Git操作権限は
+  `transport-commit`、追加委任は`forbidden`である。統合順はflake、image、paintopとする。担当ごとに独立作業ツリーと
+  `build/tdd-macos`を所有し、`./scripts/run-shared-test-env`から作業ツリー側のscriptを実行する。未登録targetの初回診断、
+  編集前計画と直接依存、限定対象、全契約枠、20回反復、軽量近傍、無作業再構築、動的依存、開始sourceの構文、担当内
+  `verify-quick`を確認する。中央文書、公開API対応表、不足一覧は調整担当だけが更新する。
 
 ### 第87並列便の完了結果
 
@@ -402,8 +461,8 @@
 
 ### 次の操作
 
-- 第88便は最新不足一覧から所有が重ならない3候補を監査し、各候補の直接依存、限定構築計画、製品閉包、観測可能な挙動、
-  停止条件を確定してから独立作業ツリーを作成する。
+- 第88便の3担当を独立作業ツリーで実装し、対象限定構築、全契約枠、20回反復、軽量近傍、無作業再構築、動的依存、
+  開始sourceの構文、公開API検査、`verify-quick`を確認して受渡しcommitを作成する。
 
 ## 再開環境
 
