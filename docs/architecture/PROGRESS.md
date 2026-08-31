@@ -2,16 +2,19 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-31 17:47 JST
+- 更新日時: 2026-08-31 17:50 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
 
-### 第84並列便の計画
+### 第84並列便の担当票
 
-- path segment種別command担当は`planned`である。対象は
+- path segment種別command担当は`implementing`である。基点は
+  `2dddd2313cf8862be139397424b5f68ad02f3175`、作業ツリーは
+  `/Users/masato/Documents/librepaint-r2-g84-path-segment-type`、ブランチは`r2-g84-path-segment-type`、統合順は1である。
+  対象は
   `libs/flake/commands/KoPathSegmentTypeCommand.h`の9 APIである。開始ファイル
   `libs/flake/commands/KoPathSegmentTypeCommand.cpp`を`kritaflake_SRCS`の直接収容から
   `kritaflakepathsegmenttypecommandobjects`へ移し、製品`kritaflake`へ一度だけ再集約する。新規
@@ -21,7 +24,10 @@
   5工程・11実入力、停止条件6工程・14実入力、製品閉包612工程・1,256入力不変を要求する。既存
   `TestSegmentTypeCommand` 616工程・1,263入力は実path shape統合経路の補完として維持する。許可範囲は
   `libs/flake/CMakeLists.txt`、開始実装、`libs/flake/tests/CMakeLists.txt`、新規試験である。
-- runnable stroke strategy担当は`planned`である。対象は`libs/image/KisRunnableBasedStrokeStrategy.h`の6 APIである。
+- runnable stroke strategy担当は`implementing`である。基点は
+  `2dddd2313cf8862be139397424b5f68ad02f3175`、作業ツリーは
+  `/Users/masato/Documents/librepaint-r2-g84-runnable-stroke`、ブランチは`r2-g84-runnable-stroke`、統合順は2である。
+  対象は`libs/image/KisRunnableBasedStrokeStrategy.h`の6 APIである。
   開始ファイル`libs/image/KisRunnableBasedStrokeStrategy.cpp`を`kritaimage_LIB_SRCS`の直接収容から
   `kritaimagerunnablebasedstrokestrategyobjects`へ移し、製品`kritaimage`へ一度だけ再集約する。新規
   `libs/image/tests/KisRunnableBasedStrokeStrategyContractTest.cpp`が構築時の識別値とjobs interface、複製後の独立した
@@ -29,7 +35,9 @@
   runnable data、jobs interface、stroke strategy OBJECTを直接再利用し、製品sourceと公開headerの内容は変更しない。
   予測閉包10工程・22実入力、停止条件11工程・24実入力、製品閉包1,184工程・2,392入力不変を要求する。許可範囲は
   `libs/image/CMakeLists.txt`、`libs/image/tests/CMakeLists.txt`、新規試験である。
-- store device担当は`planned`である。対象は`libs/resources/storage/KoStoreDevice.h`の10 APIである。開始ファイル
+- store device担当は`implementing`である。基点は`2dddd2313cf8862be139397424b5f68ad02f3175`、作業ツリーは
+  `/Users/masato/Documents/librepaint-r2-g84-store-device`、ブランチは`r2-g84-store-device`、統合順は3である。対象は
+  `libs/resources/storage/KoStoreDevice.h`の10 APIである。開始ファイル
   `libs/resources/storage/KoStoreDevice.cpp`を`kritaresourcestorage`の直接収容から
   `kritaresourcestoragedeviceobjects`へ移し、製品へ一度だけ再集約する。公開headerは製品source一覧へ残して既存の
   meta-object所有を維持する。新規`libs/resources/storage/tests/KoStoreDeviceContractTest.cpp`が構築時のmodeと借用寿命、
@@ -41,6 +49,8 @@
   構築実行許可は`granted`、追加委任は`forbidden`とする。各担当は新対象のunknown-targetを初期診断とし、変更前の
   計画、直接依存、最寄り契約と製品閉包を基準に停止条件を判定する。製品OBJECTは構築せず、変更した開始sourceは
   コンパイル指令の`-fsyntax-only`で確認する。中央進捗文書、公開API対応表、不足一覧は調整担当だけが更新する。
+  統合順はpath segment種別command、runnable stroke strategy、store deviceであり、各統合直後に担当作業ツリー、
+  局所構築木、担当ブランチを削除する。
 - 第84便は合計25 APIを対応付け、対応済み9,126件、未対応20,863件を目標とする。
 
 ### 第83並列便の完了結果
