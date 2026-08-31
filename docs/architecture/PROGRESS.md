@@ -27,17 +27,17 @@
 - `g95-flake-widgets-audit`は条件を満たす候補なしで完了した。最接近の`KoPathPointTypeCommand.h` 12 APIは開始sourceをOBJECTへ移せるが、点索引、
   座標変換、cubic変換、control/property変異、再描画が実`KoPathShape`へ密結合する。既存対象621工程・1,268入力で、限定化には実shapeまたは製品
   意味論の試験内模倣を要する。ほかのflake候補も実shape・描画、widgets候補はQt Widgets動的libraryを避けられない。
-- `g95-paintops-audit`は`planned`の追加読み取り監査である。`plugins/paintops`から、第90便から第92便の対象を除き、既存限定対象または一つの
+- `g95-paintops-audit`は`in_progress`の追加読み取り監査である。`plugins/paintops`から、第90便から第92便の対象を除き、既存限定対象または一つの
   source移動で10 API以上を最大5枠へ固定できる候補を選ぶ。実brush、paint device、色空間、大域resource登録簿は接続しない。
-- `g95-lightweight-audit`は`planned`の追加読み取り監査である。`libs/global`、`libs/pigment`、`libs/resources`、`libs/painting`から第91便から第94便の
+- `g95-lightweight-audit`は`in_progress`の追加読み取り監査である。`libs/global`、`libs/pigment`、`libs/resources`、`libs/painting`から第91便から第94便の
   対象を除き、既存軽量対象の拡張だけで10 API以上を固定できる候補を選ぶ。製品source変更、DB、filesystem、実色空間、製品意味論模倣は採用しない。
   両追加監査の基点と入力、報告要件、禁止依存、操作権限は第95便の共通条件と同じである。
 
 ### 第95並列便の担当計画
 
 - 実装共通基点は`d1258b4092fd4093e6892ad444c22daba7ab6156`である。
-- `g95-canvas-surface-color-space`は`planned`で、専用作業ツリーは
-  `/Users/masato/Documents/librepaint-g95-canvas-surface-color-space`とする。対象headerは`libs/canvas/color/KisSurfaceColorSpaceWrapper.h`のclass、
+- `g95-canvas-surface-color-space`は`in_progress`で、専用作業ツリーは
+  `/Users/masato/Documents/librepaint-g95-canvas-surface-color-space`である。対象headerは`libs/canvas/color/KisSurfaceColorSpaceWrapper.h`のclass、
   enumと4 enumerator、既定・列挙・copy・move構築、copy・move代入、3 factory、wrapper等価、列挙との左右等価・非等価、Qt色空間からの変換と
   Qt色空間への変換の全24 APIである。実装はheader-onlyで製品変更はない。許可pathは`libs/canvas/tests/CMakeLists.txt`、既存
   `libs/canvas/tests/KisSurfaceColorSpaceWrapperTest.cpp`と同`.h`である。広域`kis_add_tests`から専用`kis_add_test`へ移し、`simpletest.h`をQt Test起動へ
