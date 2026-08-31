@@ -105,7 +105,6 @@ kis_add_tests(
     kis_cage_transform_worker_test.cpp
     KisRandomGenerator2DTest.cpp
     kis_keyframing_test.cpp
-    kis_time_span_test.cpp
     kis_filter_mask_test.cpp
     kis_asl_layer_style_serializer_test.cpp
     TestAslStorage.cpp
@@ -125,6 +124,30 @@ kis_add_tests(
     KisGridInterpolationToolsTest.cpp
     LINK_LIBRARIES kritaimage kritatestsdk kritaresourcestorage
     )
+
+kis_add_test(
+    KisTimeSpanContractTest.cpp
+    LINK_LIBRARIES
+        kritaimagetimespanvalueobjects
+        kritaglobaldomutilsobjects
+        kritaglobaldebugobjects
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Xml
+        Qt${QT_MAJOR_VERSION}::Test
+        KF${KF_MAJOR}::I18n
+        Boost::boost
+)
+target_include_directories(KisTimeSpanContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+)
+target_compile_definitions(KisTimeSpanContractTest PRIVATE
+    kritaglobal_EXPORTS
+    kritaimage_EXPORTS
+)
 
 kis_add_test(
     kis_image_commands_test.cpp
