@@ -6,10 +6,11 @@
 
 #include "kis_convolution_kernel.h"
 
+#include "KisConvolutionKernelMaskAccess_p.h"
+
 #include <math.h>
 
 #include <QImage>
-#include <kis_mask_generator.h>
 
 struct Q_DECL_HIDDEN KisConvolutionKernel::Private {
     qreal offset;
@@ -95,8 +96,8 @@ KisConvolutionKernelSP KisConvolutionKernel::fromMaskGenerator(KisMaskGenerator*
 {
     Q_UNUSED(angle);
 
-    qint32 width = (int)(kmg->width() + 0.5);
-    qint32 height = (int)(kmg->height() + 0.5);
+    qint32 width = (int)(KisConvolutionKernelMaskAccess::width(kmg) + 0.5);
+    qint32 height = (int)(KisConvolutionKernelMaskAccess::height(kmg) + 0.5);
 
     KisConvolutionKernelSP kernel = new KisConvolutionKernel(width, height, 0, 0);
 
@@ -116,7 +117,7 @@ KisConvolutionKernelSP KisConvolutionKernel::fromMaskGenerator(KisMaskGenerator*
             qreal x = cosa * x_ - sina * y_;
             qreal y = sina * x_ + cosa * y_;
 //             dbgImage << ppVar(x) << ppVar(y) << ppVar(x_) << ppVar(y_) << ppVar( kmg->interpolatedValueAt( x,y) );
-            uint value = 255 - kmg->valueAt(x, y);
+            uint value = 255 - KisConvolutionKernelMaskAccess::valueAt(kmg, x, y);
             data(r, c) = value;
             factor += value;
         }

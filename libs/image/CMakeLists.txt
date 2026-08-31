@@ -833,6 +833,32 @@ set_target_properties(kritaimagecubiccurveobjects PROPERTIES
    POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaimageconvolutionkernelobjects OBJECT
+   kis_convolution_kernel.cc
+)
+target_compile_definitions(kritaimageconvolutionkernelobjects PRIVATE
+   kritaglobal_EXPORTS
+   kritaimage_EXPORTS
+)
+target_include_directories(kritaimageconvolutionkernelobjects
+   PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritaimageconvolutionkernelobjects
+   PUBLIC
+      Qt${QT_MAJOR_VERSION}::Core
+      Qt${QT_MAJOR_VERSION}::Gui
+      Boost::boost
+      Eigen3::Eigen
+)
+set_target_properties(kritaimageconvolutionkernelobjects PROPERTIES
+   AUTOMOC OFF
+   POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaimagespatialcontainerobjects OBJECT
    KisSpatialContainer.cpp
 )
@@ -1755,7 +1781,6 @@ set(kritaimage_LIB_SRCS
    KisBatchNodeUpdate.cpp
    kis_clone_layer.cpp
    kis_config_widget.cpp
-   kis_convolution_kernel.cc
    kis_convolution_painter.cc
    kis_gaussian_kernel.cpp
    kis_edge_detection_kernel.cpp
@@ -1944,6 +1969,7 @@ kis_add_library(kritaimage SHARED
    $<TARGET_OBJECTS:kritaimageoptimizedbytearrayobjects>
    $<TARGET_OBJECTS:kritaimagelevelscurveobjects>
    $<TARGET_OBJECTS:kritaimagecubiccurveobjects>
+   $<TARGET_OBJECTS:kritaimageconvolutionkernelobjects>
    $<TARGET_OBJECTS:kritaimagespatialcontainerobjects>
    $<TARGET_OBJECTS:kritaimagestrokejobobjects>
    $<TARGET_OBJECTS:kritaimagebehaviorinterfaceobjects>
