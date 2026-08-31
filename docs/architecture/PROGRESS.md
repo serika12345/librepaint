@@ -2,12 +2,32 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-31 18:24 JST
+- 更新日時: 2026-08-31 18:38 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
+
+### 第85並列便の計画
+
+- flake領域は`libs/flake/commands/KoShapeDeleteCommand.h`の6 APIを選ぶ。開始ファイル
+  `libs/flake/commands/KoShapeDeleteCommand.cpp`を製品source一覧の直接収容から専用OBJECTへ移し、製品へ一度だけ
+  再集約する。親の読取、除去、再追加、所有削除だけを試験限定配送へ通し、shapeの実装を接続せずに二つの構築入口、
+  null controller、redo・undo、command破棄時の所有削除を固定する。予測閉包は5工程・11実入力、停止条件は6工程・
+  14実入力、製品閉包は612工程・1,256入力不変とする。
+- image領域は`libs/image/kis_undo_adapter.h`の11 APIを選ぶ。開始ファイル`libs/image/kis_undo_adapter.cpp`を
+  製品source一覧の直接収容から専用OBJECTへ移し、公開headerのmeta-objectを同OBJECTで生成して製品へ一度だけ
+  再集約する。製品実装と公開headerは変更せず、不透明なundo store、派生probe、Qt signal観測により構築と借用、
+  store差替え、5抽象操作の仮想配送、selection通知と仮想寿命を固定する。予測閉包は5工程・11実入力、停止条件は
+  6工程・14実入力、製品閉包は1,184工程・2,392入力不変とする。
+- UI領域は`libs/ui/operations/kis_operation_configuration.h`の6 APIを選ぶ。開始ファイル
+  `libs/ui/operations/kis_operation_configuration.cpp`を製品source一覧の直接収容から専用OBJECTへ移し、製品へ一度だけ
+  再集約する。試験内の最小property協調定義により製品画像・UI共有ライブラリーを接続せず、型と共有所有、既定ID、
+  明示ID、property更新、仮想寿命を固定する。予測閉包は5工程・16実入力、停止条件は6工程・18実入力、製品閉包は
+  1,957工程・3,914入力不変とする。
+- 3候補は公開header、製品source、試験source、CMake所有が重ならない。第85便は合計23 APIを対応付け、対応済み
+  9,150件、未対応20,839件を目標とする。
 
 ### 第84並列便の完了結果
 
@@ -315,8 +335,8 @@
 
 ### 次の操作
 
-- 第85便不足一覧から公開header、製品source、試験source、CMake所有が重ならない3候補を監査する。各候補の直接依存、
-  変更なし計画、空構築閉包を測定し、停止条件内の候補だけを次の並列担当票へ確定する。
+- 第85便の3候補を担当票へ展開し、同じ基準commitから独立作業ツリーを作成する。各担当は変更前のunknown-target診断、
+  計画、直接依存、空構築閉包を再確認してから実装を開始する。
 
 ## 再開環境
 
