@@ -17,7 +17,6 @@ kis_add_tests(
     TestPointTypeCommand.cpp
     TestPointRemoveCommand.cpp
     TestRemoveSubpathCommand.cpp
-    TestPathSegment.cpp
     TestSegmentTypeCommand.cpp
     TestKoDrag.cpp
     TestKoMarkerCollection.cpp
@@ -27,6 +26,30 @@ kis_add_tests(
 
     LINK_LIBRARIES kritaflake kritatestsdk kritaxmlserialization
     )
+
+kis_add_test(
+    TestPathSegment.cpp
+    LINK_LIBRARIES
+        kritaflakepathsegmentobjects
+        kritaflakepathpointobjects
+        kritaglobalbeziercurvelengthobjects
+        kritaglobalbezierutilsobjects
+        Boost::boost
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Xml
+)
+target_include_directories(TestPathSegment PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+)
+target_compile_definitions(TestPathSegment PRIVATE
+    kritaflake_EXPORTS
+    kritaglobal_EXPORTS
+)
 
 kis_add_test(
     TestXsimdPainting.cpp

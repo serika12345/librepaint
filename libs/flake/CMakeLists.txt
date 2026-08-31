@@ -106,6 +106,33 @@ set_target_properties(kritaflakepathpointobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaflakepathsegmentobjects OBJECT
+    KoPathSegment.cpp
+)
+target_compile_definitions(kritaflakepathsegmentobjects PRIVATE kritaflake_EXPORTS)
+target_include_directories(kritaflakepathsegmentobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        ${CMAKE_SOURCE_DIR}/libs/global
+        ${CMAKE_BINARY_DIR}/libs/global
+)
+target_link_libraries(kritaflakepathsegmentobjects
+    PUBLIC
+        kritaflakepathpointobjects
+        kritaglobalbeziercurvelengthobjects
+        kritaglobalbezierutilsobjects
+        Boost::boost
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Xml
+)
+set_target_properties(kritaflakepathsegmentobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaflakecolorbackgroundobjects OBJECT
     KoColorBackground.cpp
 )
@@ -1254,7 +1281,6 @@ set(kritaflake_SRCS
     KoCanvasResourceProvider.cpp
     KoDocumentResourceManager.cpp
     KoPathShape.cpp
-    KoPathSegment.cpp
     KoSelection.cpp
     KoSelectedShapesProxySimple.cpp
     KoShape.cpp
@@ -1410,6 +1436,7 @@ set(kritaflake_SRCS
     $<TARGET_OBJECTS:kritaflakeshapebackgroundobjects>
     $<TARGET_OBJECTS:kritaflakeshapecontainermodelobjects>
     $<TARGET_OBJECTS:kritaflakepathpointobjects>
+    $<TARGET_OBJECTS:kritaflakepathsegmentobjects>
     $<TARGET_OBJECTS:kritaflakecolorbackgroundobjects>
     $<TARGET_OBJECTS:kritaflakeshapebackgroundcommandobjects>
     $<TARGET_OBJECTS:kritaflakeabstractcanvasresourceinterfaceobjects>
