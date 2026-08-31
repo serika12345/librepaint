@@ -918,8 +918,24 @@ set_target_properties(kritaimagestrokestrategyobjects PROPERTIES
    POSITION_INDEPENDENT_CODE ON
 )
 
-add_library(kritaimagestrokejobobjects OBJECT
+add_library(kritaimagejobstrategyobjects OBJECT
    kis_stroke_job_strategy.cpp
+)
+target_compile_definitions(kritaimagejobstrategyobjects PRIVATE kritaimage_EXPORTS)
+target_include_directories(kritaimagejobstrategyobjects
+   PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritaimagejobstrategyobjects PUBLIC Qt${QT_MAJOR_VERSION}::Core)
+set_target_properties(kritaimagejobstrategyobjects PROPERTIES
+   AUTOMOC OFF
+   POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritaimagestrokejobobjects OBJECT
    KisRunnableStrokeJobDataBase.cpp
    KisRunnableStrokeJobData.cpp
    KisRunnableStrokeJobsInterface.cpp
@@ -936,6 +952,30 @@ target_include_directories(kritaimagestrokejobobjects
 )
 target_link_libraries(kritaimagestrokejobobjects PUBLIC Qt${QT_MAJOR_VERSION}::Core)
 set_target_properties(kritaimagestrokejobobjects PROPERTIES
+   AUTOMOC OFF
+   POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritaimagesimplestrokestrategyobjects OBJECT
+   kis_simple_stroke_strategy.cpp
+)
+target_compile_definitions(kritaimagesimplestrokestrategyobjects PRIVATE kritaimage_EXPORTS)
+target_include_directories(kritaimagesimplestrokestrategyobjects
+   PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/painting/undo>
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/painting/undo>
+)
+target_link_libraries(kritaimagesimplestrokestrategyobjects
+   PUBLIC
+      KF${KF_MAJOR}::I18n
+      Qt${QT_MAJOR_VERSION}::Core
+      Boost::boost
+)
+set_target_properties(kritaimagesimplestrokestrategyobjects PROPERTIES
    AUTOMOC OFF
    POSITION_INDEPENDENT_CODE ON
 )
@@ -1826,7 +1866,6 @@ set(kritaimage_LIB_SRCS
    kis_updater_context.cpp
    kis_update_job_item.cpp
    kis_stroke_strategy_undo_command_based.cpp
-   kis_simple_stroke_strategy.cpp
    KisRunnableBasedStrokeStrategy.cpp
    kis_stroke.cpp
    kis_strokes_queue.cpp
@@ -1995,7 +2034,9 @@ kis_add_library(kritaimage SHARED
    $<TARGET_OBJECTS:kritaimageconvolutionkernelobjects>
    $<TARGET_OBJECTS:kritaimagespatialcontainerobjects>
    $<TARGET_OBJECTS:kritaimagestrokestrategyobjects>
+   $<TARGET_OBJECTS:kritaimagejobstrategyobjects>
    $<TARGET_OBJECTS:kritaimagestrokejobobjects>
+   $<TARGET_OBJECTS:kritaimagesimplestrokestrategyobjects>
    $<TARGET_OBJECTS:kritaimagebehaviorinterfaceobjects>
    $<TARGET_OBJECTS:kritaimagepaintopsettingsidsobjects>
    $<TARGET_OBJECTS:kritaimagegreencoordinatesobjects>
