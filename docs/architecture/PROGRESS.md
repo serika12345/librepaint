@@ -41,6 +41,47 @@
   `KisPropertiesConfigurationValueContractTest`の5枠、予測7工程・16入力、停止10工程・23入力とする。色変換、XML出力、診断、factoryは旧sourceに残す。
   距離情報は孤立値面が12 API、描画入力値は距離・乱数・backtraceまで閉包が広がるため棄却した。
 
+### 第102並列便の担当計画
+
+- 実装共通基点は`d4a868b09ce93ce8eeafadb77e095c7f4c1f31e6`、構築許可は`granted`、Git権限は許可pathだけの
+  `transport-commit`である。3担当はmacOSの専用Git worktreeとworktree-local `build/tdd-macos`を使い、lane内の
+  `./scripts/run-shared-test-env`から主環境とcompiler cacheを共有する。
+- `g102-psd-vector-values`は`planned`で、専用作業ツリーは`/Users/masato/Documents/librepaint-g102-psd-vector-values`である。
+  対象は`libs/psd/psd_additional_layer_info_block.h`の`psd_path_node` 5 API、`psd_path_sub_path` 3 API、`psd_path` 5 API、
+  `psd_vector_mask` 5 API、`psd_vector_origination_data` 26 APIの全44 APIである。`psd_path_node`/`psd_path_sub_path`の型と全member、
+  `psd_path`の型と`clipBoardBounds`・`clipBoardResolution`・`initialFillRecord`・`subPaths`、`psd_vector_mask`の型と
+  `disable`・`invert`・`notLink`・`path`、`psd_vector_origination_data`の型と全public member、9 setter、
+  `OriginalSizeAndAngle`・`canMakeParametricShape`・`shapeName`を5枠で固定する。許可pathは
+  `libs/psdutils/tests/PsdFormatValuesContractTest.cpp`だけで、最寄りCTestは`PsdFormatValuesContractTest`、軽量近傍は
+  `PsdByteIoContractTest`である。予測4工程・9入力、停止5工程・12入力、製品`kritapsd`不変とする。
+- `g102-global-planar-geometry-values`は`planned`で、専用作業ツリーは
+  `/Users/masato/Documents/librepaint-g102-global-planar-geometry-values`である。対象は`libs/global/kis_algebra_2d.h`の
+  `intersectLineRect` 2 overload、`intersectLineConvexPolygon`、`cropLineToRect`、`cropLineToConvexPolygon`、`intersectLines` 2 overload、
+  `isOnLine`、`getParallelLines`、`findNearestPointOnLine`、`pointToLineDistSquared`、`movePointInTheDirection`、`movePointAlongTheLine`、
+  `quadraticEquation`、`findTrianglePoint`、`findTrianglePointNearest`、翼点版`moveElasticPoint`、`transformAsBase`、`fuzzyPointCompare` 3 overload、
+  `isPolygonTrulyConvex`、`polygonDirection`、`findMinimumGoldenSection`、`findMinimumTernarySection`の全25 APIである。開始
+  `libs/global/kis_algebra_2d.cpp`から該当out-of-line本文を新規`libs/global/kis_algebra_2d_planar_geometry.cpp`へ移し、
+  `kritaglobalalgebraplanargeometryobjects`として製品へ一回だけ再集約する。許可pathは両source、
+  `libs/global/CMakeLists.txt`、`libs/global/tests/KisAlgebraGeometryPrimitivesContractTest.cpp`、`libs/global/tests/CMakeLists.txt`である。
+  最寄りCTestは`KisAlgebraGeometryPrimitivesContractTest`、軽量近傍は`KisBezierUtilsContractTest`、予測7工程・15入力、
+  停止8工程・18入力、製品予測70工程・140入力、停止71工程・143入力とする。
+- `g102-image-properties-values`は`planned`で、専用作業ツリーは`/Users/masato/Documents/librepaint-g102-image-properties-values`である。
+  対象は`libs/image/kis_properties_configuration.h`のclass、既定・copy構築、破棄、代入、`clearProperties`、`getProperties`、
+  `getPropertiesKeys`、`getProperty` 2 overload、`hasProperty`、`removeProperty`、`setProperty(QString,QVariant)`、`getBool`、`getDouble`、
+  `getFloat`、`getInt`、`getString`、`getPropertyLazy` 3 overload、`extractedPrefixKey`、`getPrefixedProperties` 2 overload、
+  `setPrefixedProperties` 2 overload、`setProperty(QString,QStringList)`、`getStringList`、`fromXML` 2 overload、`escapeString`、`unescapeString`、
+  `compareTo`の全33 APIである。開始`libs/image/kis_properties_configuration.cc`から値処理を新規
+  `libs/image/KisPropertiesConfigurationValue.cpp`へ移し、private状態を新規`libs/image/KisPropertiesConfiguration_p.h`で共有する。
+  許可pathは以上の3source、`libs/image/CMakeLists.txt`、`libs/image/tests/CMakeLists.txt`、新規
+  `libs/image/tests/KisPropertiesConfigurationValueContractTest.cpp`である。最寄りCTestは同新規対象、軽量近傍は
+  `KisTimeSpanContractTest`、予測7工程・16入力、停止10工程・23入力とする。
+- 3担当は変更なし計画と直接依存を先に測定し、未知対象または未知試験の初期診断、追加枠、全対象CTest、20回反復、軽量近傍、
+  無作業再構築、動的接続、変更source構文、一重収容、公開API検査、`verify-quick`まで実行する。台帳と進捗は調整担当が所有し、
+  統合順はPSD vector値、平面幾何値、画像設定値とする。許可path外、新規公開API、製品sourceの二重収容、個別停止線超過、製品shared library、
+  `kritatestsdk`、公開header変更、PSDのCOS/ASL・実pointer所有、平面幾何のGSL・debug/assert・Eigen新規依存・QPainterPath、画像設定の
+  pigment・resource・filesystem・色変換・XML出力・factoryへ到達した担当は停止する。担当は追加委任せず、許可pathだけをcommitしてAPI対応、
+  初期診断、閉包、検証、容量を報告する。
+
 ### 第101並列便の監査計画
 
 - 共通基点は`95031353ffcfa2ac28a5f30292cb71a248bd7340`、入力は`build/tdd-macos/public-api-missing-g101.json`である。3担当は`auditing`で、
