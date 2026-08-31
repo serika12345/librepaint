@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 08:25 JST
+- 更新日時: 2026-09-01 08:33 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -26,6 +26,35 @@
 - 各報告は完全なAPI識別子、観測する現行挙動、最大5契約枠、最寄りCTest、所有CMake、直接依存、変更なし閉包、予測閉包と停止線、開始pathから
   移動先pathへの対応、許可path、固有停止条件を含む。候補がない場合は最接近候補と棄却根拠を数値で示す。3監査後にpath、CMake、試験source、生成物が
   重ならない候補だけを担当票へ進め、実装前に限定対象の構築範囲を再確認する。
+- `g104-psd-record-values-audit`は`libs/psd/psd_resource_block.h`のgrid・guide、global angle・altitudeの文書空間メタデータ26 APIを採用した。
+  既存`PsdFormatValuesContractTest`へ既定・copy、grid block往復・診断、angle値、altitude値、lighting block往復の5枠を追加し、inline診断が使う既存
+  `kritaglobaldebugobjects`だけを静的収容する。予測5工程・12入力、停止6工程・15入力、製品`kritapsd` 1,976工程・3,950入力不変とする。
+  `psd_layer_record.h`の安全な値面は21 API、`psd.h`は24 API以下または色空間registry・生pointer所有へ到達するため棄却した。
+- `g104-transform-grid-values-audit`は候補なしとした。`KisGridConfig`の列挙と`TrigoCache`は18 APIだが、残りは既定構築から`KisConfig`設定I/Oへ入る。
+  `ToolTransformArgs`の安全なheader面は9 APIで、全constructorが共有設定とfilter registryへ接続する。libkis `GridConfig`も内部grid構築を通じて同じ境界を越える。
+- `g104-widget-action-values-audit`は候補なしとした。`KisCursor`のQt既定形状は18 APIだが、残りはcursor cache、資源filesystem、QApplicationへ入る。
+  `KStandardAction`の非UI metadataは5 APIで、残りはaction・icon生成を要求する。`KActionCollection`は構築・破棄から大域collection登録へ必ず接続する。
+
+### 第104並列便の担当計画
+
+- 実装基点は`eec42f47d6`、`g104-psd-document-space-values`の構築許可は`granted`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。
+  専用worktree `/Users/masato/Documents/librepaint-g104-psd-document-space-values`は翻訳catalogを疎な取得から除外し、worktree-local `build/tdd-macos`と
+  `./scripts/run-shared-test-env`を使って主環境・compiler cacheを共有する。
+- 対象は`GRID_GUIDE_1032`のstruct、constructor、6 member、block生成・解釈、妥当性・診断、`GLOBAL_ANGLE_1037`と`GLOBAL_ALT_1049`のstruct、constructor、
+  member、block生成・解釈、妥当性・診断の全26 APIである。許可pathは`libs/psdutils/tests/PsdFormatValuesContractTest.cpp`と
+  `libs/psdutils/tests/CMakeLists.txt`だけとし、既存`kritaglobaldebugobjects`を試験へ静的収容する。予測5工程・12入力、停止6工程・15入力、製品不変とする。
+- 変更なし計画、直接依存、初期未充足の後、5枠、全対象CTest、20回反復、`PsdByteIoContractTest`、無作業再構築、動的接続、source構文、公開API検査、
+  `verify-quick`を実行する。`psd_resource_block.cpp`、raw `resource`所有、RESN・ICC非inline経路、実QIODevice filesystem、製品shared、`kritatestsdk`、
+  色・resource registry、ASL、停止線超過に到達した場合は編集を止める。
+
+### 第104並列便の追加監査計画
+
+- `g104-image-bounds-values-audit`は`libs/image/kis_default_bounds.h` 47 API、`libs/image/kis_base_rects_walker.h` 58 API、
+  `libs/image/kis_selection_filters.h` 49 APIを比較し、fake派生で固定できる境界・矩形歩行方針または純粋選択幾何の一責務を選ぶ。実image、paint device、projection、
+  scheduler、色空間、registryを使わず、値と仮想配送だけで25 API以上を閉じる候補を優先する。
+- `g104-utility-model-values-audit`は`libs/image/krita_utils.h` 47 API、`libs/tools/ui/kis_categories_mapper.h` 42 API、
+  `libs/widgets/KisWidgetConnectionUtils.h` 46 APIを比較し、純粋utility、局所Qtモデル、またはproperty接続の一責務を選ぶ。実document・image・widget画面、設定I/O、
+  大域状態へ接続せず、既存限定対象または一source OBJECTで25 API以上を閉じる。両監査は共通基点`eec42f47d6`と同じ不足報告を読み、編集・構築・試験・Git・委譲を行わない。
 
 ### 第103並列便の監査計画
 
