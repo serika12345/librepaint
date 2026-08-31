@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-31 09:54 JST
+- 更新日時: 2026-08-31 09:56 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -11,30 +11,30 @@
 
 ### 第72並列便の担当票
 
-- path区間担当は`preparing`である。基点は`e01359e3144e0506738638c218d087d123db6971`、予定作業ツリーは
-  `/Users/masato/Documents/librepaint-r2-g72-path-segment`、予定ブランチは`r2-g72-path-segment`、統合順は1である。
+- path区間担当は`implementing`である。基点は`e6765f6c3e77f0afb894fead5dce6632a11fc827`、作業ツリーは
+  `/Users/masato/Documents/librepaint-r2-g72-path-segment`、ブランチは`r2-g72-path-segment`、統合順は1である。
   対象は`libs/flake/KoPathSegment.h`の31 APIである。開始ファイル`libs/flake/KoPathSegment.cpp`を
   `kritaflake_SRCS`の直接収容から`kritaflakepathsegmentobjects`へ移し、製品`kritaflake`へ一度だけ再集約する。
   開始試験`libs/flake/tests/TestPathSegment.{h,cpp}`を広域試験一覧から同名の専用Qt Test対象へ移し、構築・複製・
   所有、直線・二次・三次曲線の評価、写像・変換・分割、長さとparameter、交点・最近点、平坦性と方向を
-  6契約枠で固定する。31 APIを`maintained`へ分類する。限定構築は計画承認まで待機し、予測閉包8工程・19入力、
+  6契約枠で固定する。31 APIを`maintained`へ分類する。限定構築を許可し、予測閉包8工程・19入力、
   停止条件9工程・22入力、製品閉包612工程・1,256入力不変を要求する。許可範囲は
   `libs/flake/CMakeLists.txt`、`libs/flake/tests/CMakeLists.txt`、開始試験2ファイルだけである。
-- cubic曲線担当は`preparing`である。基点は`e01359e3144e0506738638c218d087d123db6971`、予定作業ツリーは
-  `/Users/masato/Documents/librepaint-r2-g72-cubic-curve`、予定ブランチは`r2-g72-cubic-curve`、統合順は2である。
+- cubic曲線担当は`implementing`である。基点は`e6765f6c3e77f0afb894fead5dce6632a11fc827`、作業ツリーは
+  `/Users/masato/Documents/librepaint-r2-g72-cubic-curve`、ブランチは`r2-g72-cubic-curve`、統合順は2である。
   対象は`libs/image/kis_cubic_curve.h`の48 APIである。開始ファイル`libs/image/kis_cubic_curve.cpp`を
   `kritaimage_LIB_SRCS`の直接収容から`kritaimagecubiccurveobjects`へ移し、製品`kritaimage`へ一度だけ再集約する。
   新規`libs/image/tests/KisCubicCurveContractTest.cpp`が曲線点値、構築と整列、編集、複製・名前・判定、評価・
-  転送表、文字列直列化を6契約枠で固定する。非推奨互換経路を含む48 APIを`maintained`へ分類する。限定構築は
-  計画承認まで待機し、予測閉包5工程・12入力、停止条件6工程・14入力、製品閉包1,184工程・2,392入力不変を
+  転送表、文字列直列化を6契約枠で固定する。非推奨互換経路を含む48 APIを`maintained`へ分類する。限定構築を
+  許可し、予測閉包5工程・12入力、停止条件6工程・14入力、製品閉包1,184工程・2,392入力不変を
   要求する。許可範囲は`libs/image/CMakeLists.txt`、`libs/image/tests/CMakeLists.txt`、新規試験だけである。
-- 合成演算担当は`preparing`である。基点は`e01359e3144e0506738638c218d087d123db6971`、予定作業ツリーは
-  `/Users/masato/Documents/librepaint-r2-g72-composite-functions`、予定ブランチは`r2-g72-composite-functions`、
+- 合成演算担当は`implementing`である。基点は`e6765f6c3e77f0afb894fead5dce6632a11fc827`、作業ツリーは
+  `/Users/masato/Documents/librepaint-r2-g72-composite-functions`、ブランチは`r2-g72-composite-functions`、
   統合順は3である。対象はheader内実装だけで完結する
   `libs/pigment/compositeops/KoCompositeOpFunctions.h`の146 APIであり、製品sourceの開始先と移動先は該当しない。
   新規`libs/pigment/tests/KoCompositeOpFunctionsContractTest.cpp`が値域補正、47自由関数、alpha付き加算、
   33単一channel演算、HSY系RGB演算、normal・照明・tint演算を6契約枠で固定する。146 APIを`maintained`へ
-  分類する。限定構築は計画承認まで待機し、予測閉包4工程・8入力、停止条件5工程・11入力、製品閉包
+  分類する。限定構築を許可し、予測閉包4工程・8入力、停止条件5工程・11入力、製品閉包
   360工程・750入力不変を要求する。許可範囲は`libs/pigment/tests/CMakeLists.txt`と新規試験だけである。
 - 3担当はgit commitで受渡しし、再委任しない。中央進捗文書、公開API対応表、不足一覧は調整担当だけが
   更新する。担当差分の統合直後に担当作業ツリー、局所構築木、担当ブランチを削除する。旧不足一覧は
@@ -76,8 +76,8 @@
 
 ### 次の操作
 
-- 第72並列便の担当票を高速検査で固定してコミットする。3担当作業ツリーを同じ計画コミットから作成し、
-  基点と清浄状態を確認した後に実装許可を記録して、限定構築と挙動契約の実装へ進む。
+- 第72並列便の3担当は、各停止条件内で対象限定の構築計画を測り、最小の挙動契約を実装して担当コミットを渡す。
+  調整担当は統合順に差分を確認し、統合直後に各担当の作業ツリー、局所構築木、ブランチを削除する。
 
 ## 再開環境
 
