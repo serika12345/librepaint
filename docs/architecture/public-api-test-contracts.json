@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 19802
+    "expectedMissingApis": 19781
   },
   "contracts": [
     {
@@ -32128,6 +32128,63 @@
       "apis": [
         "method:KisMirrorAxisConfig::loadFromXml(const QDomElement & parent)",
         "method:KisMirrorAxisConfig::saveToXml(QDomDocument & doc,const QString & tag) const"
+      ]
+    },
+    {
+      "target": "KisTimeSpanContractTest",
+      "source": "libs/image/tests/KisTimeSpanContractTest.cpp",
+      "test": "KisTimeSpanContractTest::constructionAndFiniteInfiniteStateRemainStable",
+      "behavior": "時間範囲は無効・有限・無限の構築結果、開始・終了・長さ、有効性、無限性、等価性を安定して公開する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisTimeSpan",
+        "method:KisTimeSpan::KisTimeSpan()",
+        "method:KisTimeSpan::duration() const",
+        "method:KisTimeSpan::end() const",
+        "method:KisTimeSpan::fromTimeToTime(int start,int end)",
+        "method:KisTimeSpan::fromTimeWithDuration(int start,int duration)",
+        "method:KisTimeSpan::infinite(int start)",
+        "method:KisTimeSpan::isInfinite() const",
+        "method:KisTimeSpan::isValid() const",
+        "method:KisTimeSpan::operator ==(const KisTimeSpan & rhs) const",
+        "method:KisTimeSpan::start() const"
+      ]
+    },
+    {
+      "target": "KisTimeSpanContractTest",
+      "source": "libs/image/tests/KisTimeSpanContractTest.cpp",
+      "test": "KisTimeSpanContractTest::containmentExpansionAndOverlapRemainStable",
+      "behavior": "時間範囲は有限・無限区間の端点包含、有限区間の拡張、接触を含む重複判定を一貫して行う。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTimeSpan::contains(int time) const",
+        "method:KisTimeSpan::include(int time)",
+        "method:KisTimeSpan::overlaps(const KisTimeSpan & other) const"
+      ]
+    },
+    {
+      "target": "KisTimeSpanContractTest",
+      "source": "libs/image/tests/KisTimeSpanContractTest.cpp",
+      "test": "KisTimeSpanContractTest::unionAndIntersectionRemainStable",
+      "behavior": "時間範囲の和と積は無効・有限・無限区間を処理し、代入演算は同じ個体へ結果を反映して参照を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTimeSpan::operator &(const KisTimeSpan & rhs) const",
+        "method:KisTimeSpan::operator &=(const KisTimeSpan & rhs)",
+        "method:KisTimeSpan::operator |(const KisTimeSpan & rhs) const",
+        "method:KisTimeSpan::operator |=(const KisTimeSpan & rhs)"
+      ]
+    },
+    {
+      "target": "KisTimeSpanContractTest",
+      "source": "libs/image/tests/KisTimeSpanContractTest.cpp",
+      "test": "KisTimeSpanContractTest::domRoundTripAndDiagnosticRemainStable",
+      "behavior": "時間範囲は有限・無限・無効状態をDOMへ保存して復元し、欠落・型不一致を拒否し、有限範囲を安定した診断表現へ出力する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisDomUtils::loadValue(const QDomElement & parent,const QString & tag,KisTimeSpan * range)",
+        "function:KisDomUtils::saveValue(QDomElement * parent,const QString & tag,const KisTimeSpan & range)",
+        "function:operator <<(QDebug dbg,const KisTimeSpan & r)"
       ]
     }
   ]

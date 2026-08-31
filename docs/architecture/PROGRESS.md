@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 05:32 JST
+- 更新日時: 2026-09-01 05:44 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -49,7 +49,7 @@
   `libs/psd/psd_additional_layer_info_block.h`先頭12構造体の全67 APIで、許可pathは既存
   `libs/psdutils/tests/PsdFormatValuesContractTest.cpp`だけである。level、curve、明暗・色相、色補正、channel mixerを5枠で追加する。変更前・予測
   4工程・9入力、停止5工程・12入力、製品`kritapsd` 1,970工程・3,938入力不変とする。
-- `g100-image-time-span-values`は`in_progress`で、専用作業ツリーは`/Users/masato/Documents/librepaint-g100-image-time-span-values`である。開始
+- `g100-image-time-span-values`は`integrated`で、削除済みの専用作業ツリーは`/Users/masato/Documents/librepaint-g100-image-time-span-values`であった。開始
   `libs/image/kis_time_span.cpp`からnode計算4メソッドを新規`libs/image/KisNodeTimeSpan.cpp`へ本文を変えず移し、値・DOM・診断を残すsourceとnode
   sourceをAUTOMOC不要・PIC対応OBJECTへ分け、製品`kritaimage`へ各一回だけ再集約する。既存`libs/image/tests/kis_time_span_test.cpp`と同header・
   一括登録を削除し、新規`libs/image/tests/KisTimeSpanContractTest.cpp`の専用対象へ値・DOM・診断21 APIを4枠で移行する。許可pathは以上のsource、
@@ -78,6 +78,17 @@
   10,036件、未対応は19,802件、契約枠は2,382件となった。
 - 新しい`build/tdd-macos/public-api-missing-g100-psd.json`生成後、旧不足一覧4.9 MB、局所構築木264 MBを含む担当作業ツリー835 MB、担当branchを
   削除した。主増分構築木、共有compiler cache、残る時間範囲・Bezier mesh担当作業ツリー、最新不足一覧だけを保持する。
+- `g100-image-time-span-values`は受渡しcommit `d8d5a2cb204a`を統合commit `9a69b934ee`として取り込んだ。開始
+  `libs/image/kis_time_span.cpp`の値・DOM・診断処理は同pathへ保持し、同source内のnode計算4メソッドだけを
+  `libs/image/KisNodeTimeSpan.cpp`へ移した。旧`libs/image/tests/kis_time_span_test.cpp`と同headerは
+  `libs/image/tests/KisTimeSpanContractTest.cpp`へ置き換え、共有試験群から限定対象へ移した。
+- 値処理とnode処理を`kritaimagetimespanvalueobjects`と`kritaimagenodetimespanobjects`へ分け、製品`kritaimage`へそれぞれ一回だけ再集約した。
+  限定対象は7工程・16入力、製品は1,187工程・2,398入力である。有限・無限・無効範囲の構築、包含・拡張・重複、和積、DOM往復、診断の全21 APIを
+  4契約枠へ固定した。node再帰計算4 APIは実node・keyframe所有と影響範囲の挙動分類が必要なため、別作業として残す。
+- 担当環境と主環境で追加4枠、全限定対象CTest、20回反復、`KisDomUtilsContractTest`近傍、node OBJECT単独コンパイル、無作業再構築、動的接続、
+  変更source構文、公開API契約検査、`verify-quick`に成功した。対応済みは10,057件、未対応は19,781件、契約枠は2,386件となった。
+- 新しい`build/tdd-macos/public-api-missing-g100-time.json`生成後、旧不足一覧4.8 MB、局所構築木268 MBを含む担当作業ツリー838 MB、担当branchを
+  削除した。主増分構築木、共有compiler cache、残るBezier mesh担当作業ツリー、最新不足一覧だけを保持する。
 
 ### 第99並列便の監査計画
 
