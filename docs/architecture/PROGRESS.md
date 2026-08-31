@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-31 20:10 JST
+- 更新日時: 2026-08-31 20:20 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -11,7 +11,7 @@
 
 ### 第87並列便の担当票
 
-- `g87-flake-unclip`は`implementing`である。基準commitは`1c10959fa837db5ec4f15b65c1ebd21f508acb5e`、作業ツリーは
+- `g87-flake-unclip`は`blocked`である。基準commitは`1c10959fa837db5ec4f15b65c1ebd21f508acb5e`、作業ツリーは
   `/Users/masato/Documents/librepaint-r2-g19b-g87-flake-unclip`である。対象は
   `libs/flake/commands/KoShapeUnclipCommand.h`の`class:KoShapeUnclipCommand`、
   `method:KoShapeUnclipCommand::KoShapeUnclipCommand(KoShapeControllerBase * controller,KoShape * shape,KUndo2Command * parent=0)`、
@@ -25,6 +25,24 @@
   `libs/flake/tests/CMakeLists.txt`、新規`libs/flake/tests/KoShapeUnclipCommandContractTest.cpp`である。予測閉包は5工程・
   12入力、停止条件は6工程・15入力超過、製品612工程・1,256入力からの増加、実shapeまたはclip objectの要求、
   clone・filter・transform意味論の試験側再実装、製品共有library、Qt Widgets、`kritatestsdk`、公開API変更、許可外変更である。
+  編集前に必要配送を精査すると動的型判定を含む15操作以上が必要で、filter、変形、Z順、親移送の製品意味論を試験側で
+  再構成する停止条件に到達した。許可ファイルは変更せず、構成木273 MB、作業ツリー、担当ブランチを削除した。
+- `g87-pigment-multiple-conversion`は`implementing`である。基準commitは同じ、作業ツリーは
+  `/Users/masato/Documents/librepaint-r2-g19b-g87-pigment-multiple-conversion`である。対象は
+  `libs/pigment/KoMultipleColorConversionTransformation.h`の`class:KoMultipleColorConversionTransformation`、
+  `method:KoMultipleColorConversionTransformation::KoMultipleColorConversionTransformation(const KoColorSpace * srcCs,const KoColorSpace * dstCs,KoColorConversionTransformation::Intent,KoColorConversionTransformation::ConversionFlags conversionFlags)`、
+  `method:KoMultipleColorConversionTransformation::appendTransfo(KoColorConversionTransformation * transfo)`、
+  `method:KoMultipleColorConversionTransformation::transform(const quint8 * src,quint8 * dst,qint32 nPixels) const`、
+  `method:KoMultipleColorConversionTransformation::~KoMultipleColorConversionTransformation()`の5 APIである。構築引数と
+  借用色空間、変換の追加順と所有、2段・3段変換のbyte値・呼出順・中間buffer分離、入力順の破棄を固定する。開始ファイル
+  `libs/pigment/KoColorConversionTransformation.cpp`を`kritapigmentcolorconversiontransformationobjects`へ、
+  `libs/pigment/KoMultipleColorConversionTransformation.cpp`を`kritapigmentmultiplecolorconversiontransformationobjects`へ
+  1対1で移し、製品`kritapigment`へ各一度だけ再集約する。最寄り契約は`KoColorTransformationContractTest`である。
+  許可範囲は`libs/pigment/CMakeLists.txt`、multiple開始実装、`libs/pigment/tests/CMakeLists.txt`、新規
+  `libs/pigment/tests/KoMultipleColorConversionTransformationContractTest.cpp`であり、基底source内容は変更しない。
+  予測閉包は6工程・14入力、停止条件は7工程・17入力超過、製品360工程・750入力からの増加、実KoColorSpaceまたは
+  仮想関数表、pixel size以外の試験配送、基底OBJECTの未割当色管理記号、製品共有library、Qt Widgets、`kritatestsdk`、
+  公開API変更、許可外変更である。
 - `g87-image-post-undo`は`implementing`である。基準commitは同じ、作業ツリーは
   `/Users/masato/Documents/librepaint-r2-g19b-g87-image-post-undo`である。対象は
   `libs/image/kis_post_execution_undo_adapter.h`の`class:KisPostExecutionUndoAdapter`、
@@ -61,9 +79,9 @@
   予測閉包は11工程・24入力、停止条件は12工程・27入力超過、runtime 1,281工程・2,582入力またはlibpaintop
   2,097工程・4,192入力からの増加、実製品設定object、OpenEXR・Imath動的library、製品共有library、Qt Widgets、
   `kritatestsdk`、二重収容、公開API変更、許可外変更である。
-- 3担当の対象プラットフォームはmacOS、共有コンパイラーcacheは
+- 実装中3担当の対象プラットフォームはmacOS、共有コンパイラーcacheは
   `/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`、構築実行許可は`granted`、Git操作権限は
-  `transport-commit`、追加委任は`forbidden`である。統合順はflake、image、paintopとする。各担当は未登録targetの
+  `transport-commit`、追加委任は`forbidden`である。統合順はpigment、image、paintopとする。各担当は未登録targetの
   初回診断、変更前計画と直接依存、限定対象、全契約枠、20回反復、軽量近傍、無作業再構築、動的依存、開始sourceの
   構文、担当内`verify-quick`を確認する。中央文書、公開API対応表、不足一覧は調整担当だけが更新する。
 
