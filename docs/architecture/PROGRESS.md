@@ -2,12 +2,44 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-31 15:02 JST
+- 更新日時: 2026-08-31 15:05 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
+
+### 第81並列便の担当票
+
+- path marker command担当は`planned`である。対象は`libs/flake/commands/KoPathShapeMarkerCommand.h`の7 APIである。
+  開始ファイル`libs/flake/commands/KoPathShapeMarkerCommand.cpp`を`kritaflake_SRCS`の直接収容から
+  `kritaflakepathshapemarkercommandobjects`へ移し、製品`kritaflake`へ一度だけ再集約する。新規
+  `libs/flake/tests/KoPathShapeMarkerCommandContractTest.cpp`が構築時のshape順・旧marker・自動補完値・所有、
+  redo・undoの順序付き一括配送、識別子とmerge条件、空入力とnull markerを4契約枠で固定する。marker読取、
+  自動補完値読取、一括適用は開始実装の`BUILD_TESTING`限定配送を介し、既定配送は実path shapeの読取、lock、
+  marker設定、自動補完設定、一括更新の順序を保つ。予測閉包5工程・11実入力、停止条件6工程・14実入力、
+  製品閉包612工程・1,256入力不変を要求する。許可範囲は`libs/flake/CMakeLists.txt`、開始実装、
+  `libs/flake/tests/CMakeLists.txt`、新規試験である。
+- random accessor境界担当は`planned`である。対象は`libs/image/kis_random_accessor_ng.h`の10 APIである。開始ファイル
+  `libs/image/kis_random_accessor_ng.cpp`を`kritaimage_LIB_SRCS`の直接収容から
+  `kritaimagerandomaccessorobjects`へ移し、製品`kritaimage`へ一度だけ再集約する。既存開始ファイル
+  `libs/image/kis_base_accessor.cpp`の`kritaimagebaseaccessorobjects`は変更せず再利用する。新規
+  `libs/image/tests/KisRandomAccessorNGContractTest.cpp`がconst境界の座標配送、連続列・行・stride照会、可変とconst面、
+  両基底の仮想寿命を4契約枠で固定する。予測閉包7工程・15実入力、停止条件8工程・18実入力、製品閉包
+  1,184工程・2,392入力不変を要求する。許可範囲は`libs/image/CMakeLists.txt`、
+  `libs/image/tests/CMakeLists.txt`、新規試験であり、製品sourceと公開headerの内容は変更しない。
+- model index converter基底担当は`planned`である。対象は`libs/ui/nodes/kis_model_index_converter_base.h`の7 APIである。
+  開始ファイル`libs/ui/nodes/kis_model_index_converter_base.cpp`を`kritaui_LIB_SRCS`の直接収容から
+  `kritauimodelindexconverterbaseobjects`へ移し、製品`kritaapplicationui`へ一度だけ再集約する。新規
+  `libs/ui/tests/KisModelIndexConverterBaseContractTest.cpp`が抽象基底と仮想寿命、row・indexからdummyへの配送、
+  dummyからindex・row countへの配送、追加dummyの入力順と出力参照を4契約枠で固定する。予測閉包5工程・11実入力、
+  停止条件6工程・14実入力、製品閉包1,957工程・3,914入力不変を要求する。許可範囲は`libs/ui/CMakeLists.txt`、
+  `libs/ui/tests/CMakeLists.txt`、新規試験であり、製品sourceと公開headerの内容は変更しない。
+- 3担当はgit commitで受渡しし、再委任しない。中央進捗文書、公開API対応表、不足一覧は調整担当だけが更新する。
+  各担当差分の統合直後に担当作業ツリー、局所構築木、担当ブランチを削除する。旧不足一覧は新しい一覧の件数確認
+  直後に削除し、再生成可能な一覧を常に最新1世代へ限定する。製品objectをNinjaで直接指定せず、製品開始ファイルが
+  変更される担当だけ既存コンパイル指令の`-fsyntax-only`検査を使う。
+- 第81便は合計24 APIを対応付け、対応済み9,040件、未対応20,949件を目標とする。
 
 ### 第80並列便の完了結果
 
@@ -208,9 +240,8 @@
 
 ### 次の操作
 
-- 第81並列便はread-only監査済みの`libs/flake/commands/KoPathShapeMarkerCommand.h` 7 APIと
-  `libs/ui/nodes/kis_model_index_converter_base.h` 7 APIに、image担当の小閉包候補を加えて担当票を確定する。
-  各担当の作業ツリーと局所構築木は統合直後に削除し、不足一覧は最新版1件だけを保持する。
+- 第81並列便の3担当作業ツリーを計画commitから作成し、限定構築と挙動契約の実装を開始する。完了担当から順に
+  差分と検証証拠を確認して統合し、担当作業ツリー、局所構築木、担当ブランチを直ちに削除する。
 
 ## 再開環境
 
