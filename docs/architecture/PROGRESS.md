@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 05:09 JST
+- 更新日時: 2026-09-01 05:15 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -37,25 +37,35 @@
   単体・再帰計算4メソッドを`libs/image/KisNodeTimeSpan.cpp`へ移すことで、値sourceを製品と新規限定対象へ一回ずつ収容できる。既存
   `kis_time_span_test`は1,190工程で製品共有ライブラリーと`kritatestsdk`へ接続するため、4枠の新規限定対象へ置き換える。node 4 APIは実node・
   keyframe所有者の限定境界がなく約1,191工程となり、再帰影響範囲が現状では名称と異なり同一範囲を和算するため、挙動分類を別作業で行う。
+- `g100-global-bezier-mesh-audit`は`libs/global/KisBezierMesh.h`の残り全29 APIを採用した。既存値対象へmesh投影・診断、細分化・整形、hit test、
+  smart move、DOMの5枠を追加する。開始`KisBezierMesh.cpp`を専用OBJECTへ移し、Bezier数値OBJECTが必要とする二つの`intersectLines`実装を
+  `kis_algebra_2d.cpp`から既存`kis_algebra_2d_direction.cpp`へ本文を変えず移すことで、試験内の製品意味論模倣を除く。予測11工程・26入力、製品
+  `kritaglobal` 68工程・136入力を維持する。境界row・column削除は現実装の範囲外参照、制御点索引診断の座標重複は既知不具合として今回の対象外にする。
 
 ### 第100並列便の担当計画
 
 - 実装共通基点は`1dbeb60317b2321b44fd41380a691b7f9ff04949`、構築許可は`granted`、Git権限は許可pathだけの`transport-commit`である。
-- `g100-psd-adjustment-values`は`planned`で、専用作業ツリーを`/Users/masato/Documents/librepaint-g100-psd-adjustment-values`へ作成する。対象は
+- `g100-psd-adjustment-values`は`in_progress`で、専用作業ツリーは`/Users/masato/Documents/librepaint-g100-psd-adjustment-values`である。対象は
   `libs/psd/psd_additional_layer_info_block.h`先頭12構造体の全67 APIで、許可pathは既存
   `libs/psdutils/tests/PsdFormatValuesContractTest.cpp`だけである。level、curve、明暗・色相、色補正、channel mixerを5枠で追加する。変更前・予測
   4工程・9入力、停止5工程・12入力、製品`kritapsd` 1,970工程・3,938入力不変とする。
-- `g100-image-time-span-values`は`planned`で、専用作業ツリーを`/Users/masato/Documents/librepaint-g100-image-time-span-values`へ作成する。開始
+- `g100-image-time-span-values`は`in_progress`で、専用作業ツリーは`/Users/masato/Documents/librepaint-g100-image-time-span-values`である。開始
   `libs/image/kis_time_span.cpp`からnode計算4メソッドを新規`libs/image/KisNodeTimeSpan.cpp`へ本文を変えず移し、値・DOM・診断を残すsourceとnode
   sourceをAUTOMOC不要・PIC対応OBJECTへ分け、製品`kritaimage`へ各一回だけ再集約する。既存`libs/image/tests/kis_time_span_test.cpp`と同header・
   一括登録を削除し、新規`libs/image/tests/KisTimeSpanContractTest.cpp`の専用対象へ値・DOM・診断21 APIを4枠で移行する。許可pathは以上のsource、
   `libs/image/CMakeLists.txt`、`libs/image/tests/CMakeLists.txt`だけで、公開headerは変更しない。予測7工程、停止10工程・23入力とし、node計算の本文・
   公開API・製品挙動、製品sourceの一重収容を維持する。
+- `g100-global-bezier-mesh-values`は`planned`で、専用作業ツリーを`/Users/masato/Documents/librepaint-g100-global-bezier-mesh-values`へ作成する。
+  開始`libs/global/KisBezierMesh.cpp`を新規`kritaglobalbeziermeshobjects`へ一対一移動して製品へ再集約し、二つの`intersectLines`本文を
+  `libs/global/kis_algebra_2d.cpp`から既存`libs/global/kis_algebra_2d_direction.cpp`へ移す。既存
+  `libs/global/tests/KisBezierMeshValuesContractTest.cpp`へ残り29 APIを5枠追加する。許可pathは以上4 sourceと`libs/global/CMakeLists.txt`、
+  `libs/global/tests/CMakeLists.txt`だけで、公開headerは変更しない。予測11工程・26入力、停止12工程・29入力、製品`kritaglobal`
+  68工程・136入力不変とし、製品sourceを試験内で模倣または二重収容しない。
 - 両担当の対象プラットフォームはmacOSである。専用Git worktreeと局所`build/tdd-macos`を使い、主作業ツリーの`run-shared-test-env`から環境と共有
   compiler cacheを再利用する。変更なし計画と直接依存を先に測定し、期待する初期診断、追加枠、全対象CTest、20回反復、軽量近傍、無作業再構築、
   動的接続、変更source構文、公開API検査、`verify-quick`まで実行する。台帳と進捗は統合担当が所有し、統合順はPSD調整値、画像時間範囲値とする。
   許可path外、新規公開API、製品source二重収容、停止線超過、製品shared library、`kritatestsdk`、実画像・node・registry・filesystem、未分類のnode
-  再帰挙動へ到達した場合は停止する。
+  再帰挙動へ到達した場合は停止する。Bezier mesh担当を追加した後の統合順はPSD調整値、画像時間範囲値、Bezier mesh値とする。
 
 ### 第99並列便の監査計画
 
