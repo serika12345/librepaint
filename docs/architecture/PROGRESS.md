@@ -2,12 +2,28 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 03:53 JST
+- 更新日時: 2026-09-01 03:55 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
+
+### 第98並列便の監査計画
+
+- 共通基点は`bcfaa4e444306ef3cfe3c7b8ad38a094f10f5be2`、入力は`build/tdd-macos/public-api-missing-g98.json`である。3担当は読み取り専用で、
+  製品・試験・CMake・台帳・文書を変更せず、構築、テスト、Git操作、追加委任も行わない。既存の主増分構築計画とCMake File APIは参照できる。
+  一つのheaderまたは同一形式・値責務の密接なheader集合から20 API以上を最大5契約枠へ固定し、header-onlyまたは一つのsourceのOBJECT一対一移動で
+  製品shared library、`kritatestsdk`、実文書・画像・字体・資源登録器・filesystemへ接続せず閉じられる候補を優先する。
+- `g98-psd-format-audit`は`libs/psd`と`libs/psdutils`から、公開構造体の既定値、独立更新、copy、列挙・固定識別値、メモリー上のbyte往復を固定できる
+  候補を選ぶ。実paint device、node、画像符号化器、ファイル入出力を必要とする関数を試験内で模倣しない。
+- `g98-flake-text-svg-audit`は`libs/flake/text`と`libs/flake/svg`から、公開値構造体、列挙、単位変換、文字列・幾何変換を固定できる候補を選ぶ。実字体、
+  glyph配置、shape描画、文書、資源、大域registryを必要とする経路は採用しない。
+- `g98-resource-values-audit`は`libs/resources`と`libs/pigment/resources`から、資源識別値、tag・model列挙、gradient・色集合の値状態を固定できる候補を
+  選ぶ。実storage、database、filesystem、network、色空間registry、modelへの大域接続を必要とする経路は採用しない。
+- 各報告は完全なAPI識別子、観測する現行挙動、最大5契約枠、最寄りCTest、所有CMake、直接依存、変更なし閉包、予測閉包と停止線、許可path、
+  固有停止条件を含む。候補がない場合は最接近候補と棄却根拠を数値で報告する。3監査の完了後、互いにpath・CMake・生成物が重ならない候補だけを
+  担当票として確定する。
 
 ### 第97並列便の監査計画
 
