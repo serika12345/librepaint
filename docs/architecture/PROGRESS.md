@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 01:12 JST
+- 更新日時: 2026-09-01 01:20 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -35,6 +35,32 @@
 - 各報告は完全なAPI識別子、最大5契約枠、最寄りCTest、所有CMake、直接依存、変更なし閉包、予測閉包と停止線、許可path、固有停止条件を含む。
   統合担当は互いに公開header、製品source、試験source、CMake所有が重ならず、製品shared library、Qt Widgets、`kritatestsdk`へ接続しない
   候補だけを実装担当へ移す。
+
+### 第94並列便の担当計画
+
+- 実装共通基点は`5350b6c2d35e7803e479b0a352fb5f6708a5e25f`である。
+- `g94-image-bspline2d`は`planned`で、専用作業ツリーは`/Users/masato/Documents/librepaint-g94-image-bspline2d`とする。対象headerは
+  `libs/image/bsplines/kis_bspline_2d.h`の`KisBSpline2D` class、構築・破棄、範囲、軸別境界条件、初期化、値、再標本化と、
+  `ConvertSplineOp` struct、構築、借用member、呼出しの全14 APIである。開始ファイル`libs/image/bsplines/kis_bspline_2d.cpp`は既に
+  `kritaimagebspline2dobjects`から`kritaimage`へ一重集約済みで、製品・公開headerは変更しない。許可pathは
+  `libs/image/tests/CMakeLists.txt`と新規`libs/image/tests/KisBSpline2DContractTest.cpp`だけである。範囲・寿命、16点のx-major採取、アフィン面、
+  変換協調者の借用配送、再標本化の5枠とする。直接閉包予測7工程・15入力、停止8工程・18入力、製品`kritaimage` 1,184工程・2,392入力不変とする。
+- `g94-pigment-color-conversion`は`planned`で、専用作業ツリーは
+  `/Users/masato/Documents/librepaint-g94-pigment-color-conversion`とする。対象headerは`libs/pigment/KoColorConversionTransformation.h`のclass、
+  2 enum、13 enumerator、flag alias、構築・破棄、静的方針、入力・出力色空間、intent・flags、妥当性、変換と別buffer用in-place変換の全31 APIである。
+  開始ファイル`libs/pigment/KoColorConversionTransformation.cpp`は既に`kritapigmentcolorconversiontransformationobjects`から`kritapigment`へ
+  一重集約済みで、変更は既存`libs/pigment/tests/KoMultipleColorConversionTransformationContractTest.cpp`だけに限定する。型・列挙・方針、所有寿命、
+  二段、三段、別buffer配送の5枠とする。直接閉包6工程・14入力、停止7工程・17入力、製品`kritapigment` 360工程・750入力不変とする。
+- `g94-psd-writer-values`は`planned`で、専用作業ツリーは`/Users/masato/Documents/librepaint-g94-psd-writer-values`とする。対象headerは
+  `libs/psdutils/asl/kis_asl_writer_utils.h`の`ASLWriteException` structと構築、`OffsetStreamPusher` classと構築・破棄、alignment、rect、Unicode、
+  可変長、Pascal、固定長文字列書込みの11 APIである。`getPatternUuidLazy`は実`KoPattern`と未固定UUID生成を要するため本担当には含めない。header-onlyの
+  ため製品source変更はなく、許可pathは`libs/psdutils/tests/CMakeLists.txt`と新規`libs/psdutils/tests/KisAslWriterUtilsContractTest.cpp`だけである。
+  例外診断、alignment境界、rect固定byte列、文字列固定byte列、内部・外部size tagとpaddingの5枠とする。直接閉包予測4工程・9入力、停止7工程・
+  16入力、製品`kritapsdutils` 629工程・1,288入力不変とする。
+- 3担当の対象プラットフォームはmacOSである。担当作業ツリーは主作業ツリーの環境を`./scripts/run-shared-test-env`で共有し、構築権限は対象、
+  全追加枠、20回反復、軽量近傍、無作業計画、動的接続、変更source構文、公開API検査、`verify-quick`に限定する。Git権限は許可pathだけの担当commitで、
+  台帳と進捗は統合担当が所有する。許可path外、新規公開API、製品sourceまたは製品閉包の変更、未割当て依存、停止線超過、製品shared library、
+  Qt Widgets、`kritatestsdk`、実画像・色空間・資源、未固定乱数、製品意味論の試験内模倣が必要なら停止する。統合順はB-spline、色変換、PSD writerとする。
 
 ### 第93並列便の監査計画
 
