@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 06:30 JST
+- 更新日時: 2026-09-01 06:36 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -51,7 +51,7 @@
   `plugins/impex/xcf/3rdparty/xcftools/xcftools.h`の`rect` 5 API、`tileDimensions` 7 API、`xcfTiles` 4 API、`xcfLayer` 14 API、`xcfImage` 9 APIの
   合計39 APIである。許可pathは`plugins/impex/xcf/tests/CMakeLists.txt`と新規`plugins/impex/xcf/tests/XcfToolsValueContractTest.cpp`だけで、Qt Core・Testと
   対象header面だけの新規4枠を作る。予測4工程・8入力、停止5工程・11入力、製品`xcftools`と`kritaxcfimport`不変とする。
-- `g101-global-algebra-rect-values`は`in_progress`で、専用作業ツリーは`/Users/masato/Documents/librepaint-g101-global-algebra-rect-values`である。対象は
+- `g101-global-algebra-rect-values`は`integrated`で、削除済みの専用作業ツリーは`/Users/masato/Documents/librepaint-g101-global-algebra-rect-values`であった。対象は
   `libs/global/kis_algebra_2d.h`の矩形蓄積10 API、寸法・制限6 API、標本化・近似5 API、切断・写像3 API、許容差判定5 APIの合計29 APIである。開始
   `libs/global/kis_algebra_2d.cpp`から該当実装だけを新規`libs/global/kis_algebra_2d_rect.cpp`へ本文を変えず移し、
   `kritaglobalalgebrarectobjects`として製品へ一回再集約する。許可pathは両source、`libs/global/CMakeLists.txt`、
@@ -84,6 +84,18 @@
   対応済みは10,177件、未対応は19,661件、契約枠は2,400件となった。
 - 新しい`build/tdd-macos/public-api-missing-g101-xcf.json`生成後、旧不足一覧4.8 MB、局所構築木259 MBを含む担当作業ツリー829 MB、担当branchを
   削除した。主増分構築木、共有compiler cache、残る矩形代数担当作業ツリー、最新不足一覧だけを保持する。
+- `g101-global-algebra-rect-values`は受渡しcommit `62770c9a7f3c`を統合commit `4a0d3a8e17`として取り込んだ。開始
+  `libs/global/kis_algebra_2d.cpp`から矩形の制限、標本化、近似、切断、写像、行列比較を新規`libs/global/kis_algebra_2d_rect.cpp`へ移し、
+  `kritaglobalalgebrarectobjects`として製品へ一回だけ再集約した。既存`libs/global/tests/KisAlgebraGeometryPrimitivesContractTest.cpp`へ5枠を追加した。
+- 点型と矩形蓄積、寸法拡張と座標制限、標本化と近似、半平面切断と単位写像、許容差と画素整列判定の全29 APIを固定した。限定対象は5工程・11入力から
+  6工程・13入力、製品`kritaglobal`は68工程・136入力から69工程・138入力となり、各停止線内である。試験の動的接続に製品shared library、
+  `kritatestsdk`、Qt Widgetsを含まない。
+- 担当環境と主環境で追加5枠、全対象CTest、20回反復、`KisBezierUtilsContractTest`近傍、無作業再構築、一重収容、動的接続、変更source構文、
+  公開API契約検査、`verify-quick`に成功した。
+- 第101並列便はPSDテキスト値52 API、XCF記録値39 API、矩形代数値29 APIの合計120 APIを14契約枠へ追加した。公開面は1,549ヘッダー、29,838 API、
+  対応済み10,206件、未対応19,632件、契約枠2,405件となった。新しい`build/tdd-macos/public-api-missing-g102.json`生成後、旧不足一覧4.8 MB、
+  局所構築木273 MBを含む担当作業ツリー843 MB、担当branchを削除した。担当作業ツリーは残しておらず、再利用する主増分構築木5.2 GB、共有compiler
+  cache 897 MB、最新不足一覧4.8 MBだけを保持する。
 
 ### 第100並列便の監査計画
 

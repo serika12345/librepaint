@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 19661
+    "expectedMissingApis": 19632
   },
   "contracts": [
     {
@@ -32431,6 +32431,80 @@
         "member:xcfLayer::propptr",
         "member:xcfLayer::type",
         "member:xcfTiles::hierarchy"
+      ]
+    },
+    {
+      "target": "KisAlgebraGeometryPrimitivesContractTest",
+      "source": "libs/global/tests/KisAlgebraGeometryPrimitivesContractTest.cpp",
+      "test": "KisAlgebraGeometryPrimitivesContractTest::rectanglePointTraitsAndBoundsAccumulateExtrema",
+      "behavior": "二次元代数の点特性は整数・浮動小数点の値型と矩形型を対応付け、空矩形、単一点、点列から四方の極値を蓄積する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisAlgebra2D::PointTypeTraits::calculation_type",
+        "alias:KisAlgebra2D::PointTypeTraits::rect_type",
+        "alias:KisAlgebra2D::PointTypeTraits::value_type",
+        "function:KisAlgebra2D::Private::resetEmptyRectangle(const QPoint & pt,QRect * rc)",
+        "function:KisAlgebra2D::Private::resetEmptyRectangle(const QPointF & pt,QRectF * rc)",
+        "function:KisAlgebra2D::accumulateBounds(const Container<Point> & points)",
+        "function:KisAlgebra2D::accumulateBounds(const Container<Point> & points,Rect * bounds)",
+        "function:KisAlgebra2D::accumulateBounds(const Point & pt,Rect * bounds)",
+        "function:KisAlgebra2D::accumulateBoundsNonEmpty(const Point & pt,Rect * bounds)",
+        "struct:KisAlgebra2D::PointTypeTraits"
+      ]
+    },
+    {
+      "target": "KisAlgebraGeometryPrimitivesContractTest",
+      "source": "libs/global/tests/KisAlgebraGeometryPrimitivesContractTest.cpp",
+      "test": "KisAlgebraGeometryPrimitivesContractTest::rectangleSizingAndClampingPreserveCoordinateSemantics",
+      "behavior": "二次元代数の矩形寸法拡張は左上を保ち、整数・浮動小数点の座標制限は各矩形の右下定義に従って点を範囲内へ収める。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisAlgebra2D::Size",
+        "alias:KisAlgebra2D::ValueType",
+        "function:KisAlgebra2D::ensureInRect(QPoint pt,const QRect & bounds)",
+        "function:KisAlgebra2D::ensureInRect(QPointF pt,const QRectF & bounds)",
+        "variable:KisAlgebra2D::height",
+        "variable:KisAlgebra2D::width"
+      ]
+    },
+    {
+      "target": "KisAlgebraGeometryPrimitivesContractTest",
+      "source": "libs/global/tests/KisAlgebraGeometryPrimitivesContractTest.cpp",
+      "test": "KisAlgebraGeometryPrimitivesContractTest::rectangleSamplingAndApproximationCaptureExtrema",
+      "behavior": "二次元代数の矩形標本化は四隅・辺中点・中心を安定順で返し、点列と決定的変換の極値を覆う近似矩形を生成する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisAlgebra2D::approximateRectFromPoints(const QVector<QPoint> & points)",
+        "function:KisAlgebra2D::approximateRectFromPoints(const QVector<QPointF> & points)",
+        "function:KisAlgebra2D::approximateRectWithPointTransform(const QRect & rect,std::function<QPointF (QPointF)> func)",
+        "function:KisAlgebra2D::sampleRectWithPoints(const QRect & rect)",
+        "function:KisAlgebra2D::sampleRectWithPoints(const QRectF & rect)"
+      ]
+    },
+    {
+      "target": "KisAlgebraGeometryPrimitivesContractTest",
+      "source": "libs/global/tests/KisAlgebraGeometryPrimitivesContractTest.cpp",
+      "test": "KisAlgebraGeometryPrimitivesContractTest::rectangleClippingAndUnitMappingsPreserveArea",
+      "behavior": "二次元代数は矩形を右半平面で切断し、単位矩形と対象矩形の間を往復変換し、幅0の逆変換を安定して扱う。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisAlgebra2D::cutOffRect(const QRectF & rc,const KisAlgebra2D::RightHalfPlane & p)",
+        "function:KisAlgebra2D::mapToRect(const QRectF & rect)",
+        "function:KisAlgebra2D::mapToRectInverse(const QRectF & rect)"
+      ]
+    },
+    {
+      "target": "KisAlgebraGeometryPrimitivesContractTest",
+      "source": "libs/global/tests/KisAlgebraGeometryPrimitivesContractTest.cpp",
+      "test": "KisAlgebraGeometryPrimitivesContractTest::rectangleComparisonsRecognizeToleranceAndPixelAlignment",
+      "behavior": "二次元代数は座標絶対値、矩形・変換行列の許容差、軸平行矩形polygon、整数画素整列を一貫して判定する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisAlgebra2D::abs(const Point & pt)",
+        "function:KisAlgebra2D::fuzzyCompareRects(const Rect & r1,const Rect & r2,Difference tolerance)",
+        "function:KisAlgebra2D::fuzzyMatrixCompare(const QTransform & t1,const QTransform & t2,qreal delta)",
+        "function:KisAlgebra2D::isPolygonPixelAlignedRect(const Polygon & poly,Difference tolerance)",
+        "function:KisAlgebra2D::isPolygonRect(const Polygon & poly,Difference tolerance)"
       ]
     }
   ]
