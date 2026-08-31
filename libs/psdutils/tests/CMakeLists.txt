@@ -22,6 +22,7 @@ target_compile_definitions(compression_test PRIVATE kritapsdutils_EXPORTS)
 kis_add_test(
     PsdFormatValuesContractTest.cpp
     LINK_LIBRARIES
+        kritaglobaldebugobjects
         Qt${QT_MAJOR_VERSION}::Gui
         Qt${QT_MAJOR_VERSION}::Test
         Qt${QT_MAJOR_VERSION}::Xml

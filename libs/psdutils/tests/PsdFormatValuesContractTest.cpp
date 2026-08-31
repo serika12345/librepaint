@@ -6,7 +6,10 @@
 #include "psd.h"
 #include "psd_additional_layer_info_block.h"
 #include "psd_layer_record.h"
+#include "psd_resource_block.h"
 
+#include <QBuffer>
+#include <QDataStream>
 #include <QTest>
 
 #include <type_traits>
@@ -46,6 +49,11 @@ private Q_SLOTS:
     void vectorStrokePenMetricsTogglePixelUnits();
     void vectorStrokeCapAndJoinNamesMapKnownCodes();
     void vectorStrokeDashValuesClampAndDetachOnCopy();
+    void gridGuideDefaultsAndCopiesPreserveSpatialValues();
+    void gridGuideBlocksRoundTripAndDescribeOrientation();
+    void globalAngleDefaultsCopyAndDescribeSignedValues();
+    void globalAltitudeDefaultsCopyAndDescribeSignedValues();
+    void globalLightingBlocksRoundTripSignedValues();
 };
 
 void PsdFormatValuesContractTest::fileLimitsAndStorageEnumsRemainStable()
@@ -1381,6 +1389,151 @@ void PsdFormatValuesContractTest::vectorStrokeDashValuesClampAndDetachOnCopy()
     copy.appendToDashPattern(7.25);
     QCOMPARE(data.dashPattern, QVector<double>({1e-6, 1e-6, 1e-6, 2.75}));
     QCOMPARE(copy.dashPattern, QVector<double>({5.5, 1e-6, 1e-6, 2.75, 7.25}));
+}
+
+void PsdFormatValuesContractTest::gridGuideDefaultsAndCopiesPreserveSpatialValues()
+{
+    const GRID_GUIDE_1032 empty{};
+    QCOMPARE(empty.documentMultiplier, 32);
+    QCOMPARE(empty.version, quint32(1));
+    QCOMPARE(empty.gridHorizontal, qint32(0));
+    QCOMPARE(empty.gridVertical, qint32(0));
+    QVERIFY(empty.horizontalGuides.isEmpty());
+    QVERIFY(empty.verticalGuides.isEmpty());
+
+    GRID_GUIDE_1032 guides;
+    guides.version = 3;
+    guides.gridHorizontal = -64;
+    guides.gridVertical = -96;
+    guides.horizontalGuides = {2, 5};
+    guides.verticalGuides = {7, 11};
+
+    GRID_GUIDE_1032 copy = guides;
+    QCOMPARE(copy.documentMultiplier, 32);
+    QCOMPARE(copy.version, quint32(3));
+    QCOMPARE(copy.gridHorizontal, qint32(-64));
+    QCOMPARE(copy.gridVertical, qint32(-96));
+    QCOMPARE(copy.horizontalGuides, QList<quint32>({2, 5}));
+    QCOMPARE(copy.verticalGuides, QList<quint32>({7, 11}));
+
+    copy.version = 4;
+    copy.gridHorizontal = 13;
+    copy.gridVertical = 17;
+    copy.horizontalGuides[0] = 19;
+    copy.verticalGuides[0] = 23;
+    QCOMPARE(guides.version, quint32(3));
+    QCOMPARE(guides.gridHorizontal, qint32(-64));
+    QCOMPARE(guides.gridVertical, qint32(-96));
+    QCOMPARE(guides.horizontalGuides, QList<quint32>({2, 5}));
+    QCOMPARE(guides.verticalGuides, QList<quint32>({7, 11}));
+}
+
+void PsdFormatValuesContractTest::gridGuideBlocksRoundTripAndDescribeOrientation()
+{
+    GRID_GUIDE_1032 guides;
+    guides.version = 4;
+    guides.gridHorizontal = -64;
+    guides.gridVertical = -96;
+    guides.horizontalGuides = {5, 11};
+    guides.verticalGuides = {3, 7};
+
+    QByteArray block;
+    QVERIFY(guides.createBlock(block));
+    QCOMPARE(block.size(), 48);
+    QCOMPARE(block.left(4), QByteArray("8BIM", 4));
+
+    GRID_GUIDE_1032 parsed;
+    QVERIFY(parsed.interpretBlock(block.mid(12)));
+    QCOMPARE(parsed.version, quint32(4));
+    QCOMPARE(parsed.gridHorizontal, qint32(-64));
+    QCOMPARE(parsed.gridVertical, qint32(-96));
+    QCOMPARE(parsed.horizontalGuides, QList<quint32>({5, 11}));
+    QCOMPARE(parsed.verticalGuides, QList<quint32>({3, 7}));
+    QVERIFY(parsed.valid());
+    QCOMPARE(parsed.displayText(),
+             QStringLiteral("Grids and Guides version: 4\n"
+                            "Grids vertical: -96, horizontal: -64\n"
+                            "Vertical guides: 3, 7\n"
+                            "Horizontal guides: 5, 11"));
+}
+
+void PsdFormatValuesContractTest::globalAngleDefaultsCopyAndDescribeSignedValues()
+{
+    const GLOBAL_ANGLE_1037 empty{};
+    QCOMPARE(empty.angle, qint32(30));
+
+    GLOBAL_ANGLE_1037 angle;
+    angle.angle = -135;
+    GLOBAL_ANGLE_1037 copy = angle;
+    QCOMPARE(copy.angle, qint32(-135));
+    QVERIFY(copy.valid());
+    QCOMPARE(copy.displayText(), QStringLiteral("Global Angle: -135"));
+
+    copy.angle = 225;
+    QCOMPARE(angle.angle, qint32(-135));
+}
+
+void PsdFormatValuesContractTest::globalAltitudeDefaultsCopyAndDescribeSignedValues()
+{
+    const GLOBAL_ALT_1049 empty{};
+    QCOMPARE(empty.altitude, qint32(30));
+
+    GLOBAL_ALT_1049 altitude;
+    altitude.altitude = -45;
+    GLOBAL_ALT_1049 copy = altitude;
+    QCOMPARE(copy.altitude, qint32(-45));
+    QVERIFY(copy.valid());
+    QCOMPARE(copy.displayText(), QStringLiteral("Global Altitude: -45"));
+
+    copy.altitude = 75;
+    QCOMPARE(altitude.altitude, qint32(-45));
+}
+
+void PsdFormatValuesContractTest::globalLightingBlocksRoundTripSignedValues()
+{
+    GLOBAL_ANGLE_1037 angle;
+    angle.angle = -135;
+    QByteArray angleBlock;
+    QVERIFY(angle.createBlock(angleBlock));
+    QCOMPARE(angleBlock.size(), 16);
+
+    QBuffer angleBuffer(&angleBlock);
+    QVERIFY(angleBuffer.open(QIODevice::ReadOnly));
+    QCOMPARE(angleBuffer.read(4), QByteArray("8BIM", 4));
+    QDataStream angleHeader(&angleBuffer);
+    angleHeader.setByteOrder(QDataStream::BigEndian);
+    quint16 angleId = 0;
+    quint16 angleNameLength = 1;
+    quint32 angleSize = 0;
+    angleHeader >> angleId >> angleNameLength >> angleSize;
+    QCOMPARE(angleId, quint16(PSDImageResourceSection::GLOBAL_ANGLE));
+    QCOMPARE(angleNameLength, quint16(0));
+    QCOMPARE(angleSize, quint32(4));
+    GLOBAL_ANGLE_1037 parsedAngle;
+    QVERIFY(parsedAngle.interpretBlock(angleBuffer.readAll()));
+    QCOMPARE(parsedAngle.angle, qint32(-135));
+
+    GLOBAL_ALT_1049 altitude;
+    altitude.altitude = -45;
+    QByteArray altitudeBlock;
+    QVERIFY(altitude.createBlock(altitudeBlock));
+    QCOMPARE(altitudeBlock.size(), 16);
+
+    QBuffer altitudeBuffer(&altitudeBlock);
+    QVERIFY(altitudeBuffer.open(QIODevice::ReadOnly));
+    QCOMPARE(altitudeBuffer.read(4), QByteArray("8BIM", 4));
+    QDataStream altitudeHeader(&altitudeBuffer);
+    altitudeHeader.setByteOrder(QDataStream::BigEndian);
+    quint16 altitudeId = 0;
+    quint16 altitudeNameLength = 1;
+    quint32 altitudeSize = 0;
+    altitudeHeader >> altitudeId >> altitudeNameLength >> altitudeSize;
+    QCOMPARE(altitudeId, quint16(PSDImageResourceSection::GLOBAL_ALT));
+    QCOMPARE(altitudeNameLength, quint16(0));
+    QCOMPARE(altitudeSize, quint32(4));
+    GLOBAL_ALT_1049 parsedAltitude;
+    QVERIFY(parsedAltitude.interpretBlock(altitudeBuffer.readAll()));
+    QCOMPARE(parsedAltitude.altitude, qint32(-45));
 }
 
 QTEST_GUILESS_MAIN(PsdFormatValuesContractTest)
