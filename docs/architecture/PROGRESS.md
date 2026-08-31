@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 08:17 JST
+- 更新日時: 2026-09-01 08:23 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -48,7 +48,7 @@
 
 ### 第103並列便の担当計画
 
-- 実装共通基点は`dcca74a9dbb2a20d7b4cbab06c3631f14ec89231`で、PSD・単位管理担当は`integrated`、色profile担当の構築許可は`granted`である。
+- 実装共通基点は`dcca74a9dbb2a20d7b4cbab06c3631f14ec89231`で、PSD・単位管理担当は`integrated`、色profile担当は`rejected`である。
   Git権限は許可pathだけの`transport-commit`とする。作成済みworktreeはworktree-local `build/tdd-macos`を使い、
   lane内の`./scripts/run-shared-test-env`から主環境とcompiler cacheを共有する。構築入力でない翻訳catalog `po/` 210 MBは疎なチェックアウトの対象外とし、
   各source worktreeを570 MBから360 MBへ縮小した。
@@ -64,7 +64,7 @@
   開始`libs/widgetutils/kis_spin_box_unit_manager.cpp`からfactoryのstatic builder状態と3本文を新規`libs/widgetutils/KisSpinBoxUnitManagerFactory.cpp`へ本文不変で移し、
   元sourceを`kritawidgetutilsspinboxunitmanagerobjects`へ移管する。許可pathは両source、`libs/widgetutils/CMakeLists.txt`、`libs/widgetutils/tests/CMakeLists.txt`、新規
   `libs/widgetutils/tests/KisSpinBoxUnitManagerContractTest.cpp`である。新試5枠、予測8工程・18入力、停止10工程・23入力、製品は現状比+3工程・+6入力を停止線とする。
-- `g103-pigment-color-profile-values`は`in_progress`で、worktreeは`/Users/masato/Documents/librepaint-g103-pigment-color-profile-values`である。対象は
+- `g103-pigment-color-profile-values`は`rejected`で、削除済みのworktreeは`/Users/masato/Documents/librepaint-g103-pigment-color-profile-values`であった。対象は
   `libs/pigment/KoColorProfile.h`の`getColorPrimaries()`を除く47 APIで、メタデータ・非I/O既定値14、copy・clone・識別6、能力flag 13、色基準値・名称6、
   transfer特性・値変換8を5枠へ固定する。開始`libs/pigment/KoColorProfile.cpp`から`KoColorProfile::Private`定義を新規内部header
   `libs/pigment/KoColorProfile_p.h`へ一度だけ移し、`getColorPrimaries()`を新規`libs/pigment/KoColorProfilePrimaries.cpp`へ本文不変で移す。残る元sourceを
@@ -76,7 +76,7 @@
   単位管理のfactory大域状態・実Widget・application設定・document・画面・filesystem、色profileの`getColorPrimaries`・registry・実色空間・pixel buffer・filesystemに到達した担当は停止する。
   台帳と進捗は調整担当が所有し、担当は追加委任せず許可pathだけをcommitしてAPI対応、初期診断、閉包、検証、容量を報告する。
 
-### 第103並列便の途中結果
+### 第103並列便の統合結果
 
 - `g103-psd-vector-stroke-values`は受渡しcommit `10a383824978`を統合commit `71f92f51c8`として取り込んだ。変更は既存
   `libs/psdutils/tests/PsdFormatValuesContractTest.cpp`だけで、vector strokeの既定・copy、scalar setter、pen寸法・単位、cap・join、dash追加の
@@ -90,9 +90,11 @@
   両対象の無作業再構築、動的接続、factory source構文を確認した。製品shared library、`kritatestsdk`、単位管理試験のQt Widgets依存はない。
   台帳は10,340件対応、19,498件未対応へ進み、次入力は`build/tdd-macos/public-api-missing-g104.json`である。旧第103便報告4.8 MB、
   PSD担当644 MB、単位管理担当648 MBと両branchは差分同一性確認後に削除した。到達不能なNix保管物601経路38.2 GiBも回収し、主Ninja木と共有cacheを保持した。
-- `g103-pigment-color-profile-values`のsource worktreeは翻訳catalogを除外して361 MBで作成した。次は変更前閉包を再確認し、色profileの47 APIを
-  5枠へ固定して同じ限定検証を行う。編集前監査で`getColorPrimaries()`が元source内だけの`KoColorProfile::Private`定義を共有する必要を検出したため、
-  private定義を二つの翻訳単位へ複製せず、内部headerへ一度だけ移す担当範囲へ更新した。
+- `g103-pigment-color-profile-values`は`KoColorProfile::Private`を内部headerへ一重移動し、`getColorPrimaries()`を製品専用sourceへ移すところまで限定構築した。
+  しかし基底vtableが対象外の`getColorPrimaries()`定義も要求し、そのsourceは`kis_safe_assert_recoverable`を通じてQt Widgets、利用記録、application状態を持つ
+  `kis_assert.cpp`へ接続する。既存のassert限定所有者はなく、global側の新たな責務分割または試験専用symbol置換が必要になるため停止線に該当した。
+  未コミット6 path、局所buildを含む担当worktree 647 MB、担当branchは削除した。第103便は65 API・10枠の追加で確定し、次は
+  `build/tdd-macos/public-api-missing-g104.json`から第104便の非重複候補を監査する。
 
 ### 第102並列便の監査計画
 
