@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 21457
+    "expectedMissingApis": 21289
   },
   "contracts": [
     {
@@ -27593,6 +27593,300 @@
         "struct:CFReorientedNormalMapCombine",
         "struct:CFTangentNormalmap",
         "struct:CFTint"
+      ]
+    },
+    {
+      "target": "KoAddRemoveShapeCommandsContractTest",
+      "source": "libs/flake/tests/KoAddRemoveShapeCommandsContractTest.cpp",
+      "test": "KoAddRemoveShapeCommandsContractTest::basePhasesAddRemoveAndReturnToBorrowedState",
+      "behavior": "形状追加・除去commandの基底phaseは借用したshapeとcontainerへadd・remove・addを順に配送し、親commandを保持して借用状態で寿命を終える。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoAddRemoveShapeCommandImpl::KoAddRemoveShapeCommandImpl(KoShape * shape,KoShapeContainer * parent,State state,KUndo2Command * parentCommand)",
+        "method:KoAddRemoveShapeCommandImpl::partA()",
+        "method:KoAddRemoveShapeCommandImpl::partB()",
+        "method:KoAddRemoveShapeCommandImpl::~KoAddRemoveShapeCommandImpl()",
+        "struct:KoAddRemoveShapeCommandImpl"
+      ]
+    },
+    {
+      "target": "KoAddRemoveShapeCommandsContractTest",
+      "source": "libs/flake/tests/KoAddRemoveShapeCommandsContractTest.cpp",
+      "test": "KoAddRemoveShapeCommandsContractTest::addCommandSelectsInitializingState",
+      "behavior": "形状追加commandは初期化状態と親commandを基底へ渡し、追加から始まるphase列を選ぶ。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoAddShapeCommand::KoAddShapeCommand(KoShape * shape,KoShapeContainer * parent,KUndo2Command * parentCommand=0)",
+        "struct:KoAddShapeCommand"
+      ]
+    },
+    {
+      "target": "KoAddRemoveShapeCommandsContractTest",
+      "source": "libs/flake/tests/KoAddRemoveShapeCommandsContractTest.cpp",
+      "test": "KoAddRemoveShapeCommandsContractTest::removeCommandSelectsFinalizingState",
+      "behavior": "形状除去commandは終了状態と親commandを基底へ渡し、除去から始まるphase列を選ぶ。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoRemoveShapeCommand::KoRemoveShapeCommand(KoShape * shape,KoShapeContainer * parent,KUndo2Command * parentCommand=0)",
+        "struct:KoRemoveShapeCommand"
+      ]
+    },
+    {
+      "target": "KisOptimizedBrushOutlineContractTest",
+      "source": "libs/image/tests/KisOptimizedBrushOutlineContractTest.cpp",
+      "test": "KisOptimizedBrushOutlineContractTest::emptyStateAndIteratorsPreservePolygonOrder",
+      "behavior": "最適化描画輪郭は空状態と終端を一貫して表し、反復子が複数多角形を入力順と値で走査する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisOptimizedBrushOutline",
+        "class:KisOptimizedBrushOutline::const_iterator",
+        "method:KisOptimizedBrushOutline::KisOptimizedBrushOutline()",
+        "method:KisOptimizedBrushOutline::begin() const",
+        "method:KisOptimizedBrushOutline::const_iterator::const_iterator()",
+        "method:KisOptimizedBrushOutline::const_iterator::const_iterator(const KisOptimizedBrushOutline * outline,int index)",
+        "method:KisOptimizedBrushOutline::end() const",
+        "method:KisOptimizedBrushOutline::isEmpty() const"
+      ]
+    },
+    {
+      "target": "KisOptimizedBrushOutlineContractTest",
+      "source": "libs/image/tests/KisOptimizedBrushOutlineContractTest.cpp",
+      "test": "KisOptimizedBrushOutlineContractTest::pathPolygonConstructionAndBoundsOwnValues",
+      "behavior": "最適化描画輪郭は経路と多角形列を値として所有し、明示境界を形状境界との和集合の初期値として保持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisOptimizedBrushOutline::KisOptimizedBrushOutline(const QPainterPath & path,const std::optional<QRectF> & bounds=std::nullopt)",
+        "method:KisOptimizedBrushOutline::KisOptimizedBrushOutline(const QVector<QPolygonF> & subpaths,const std::optional<QRectF> & bounds=std::nullopt)",
+        "method:KisOptimizedBrushOutline::boundingRect() const"
+      ]
+    },
+    {
+      "target": "KisOptimizedBrushOutlineContractTest",
+      "source": "libs/image/tests/KisOptimizedBrushOutlineContractTest.cpp",
+      "test": "KisOptimizedBrushOutlineContractTest::additionsInvalidateBoundsAndOwnAppendedGeometry",
+      "behavior": "矩形・楕円・経路・別輪郭の追加は形状順と値所有を保ち、追加後の境界cacheを現在の全形状へ更新する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisOptimizedBrushOutline::addEllipse(const QPointF & center,qreal rx,qreal ry)",
+        "method:KisOptimizedBrushOutline::addPath(const KisOptimizedBrushOutline & path)",
+        "method:KisOptimizedBrushOutline::addPath(const QPainterPath & path)",
+        "method:KisOptimizedBrushOutline::addRect(const QRectF & rc)"
+      ]
+    },
+    {
+      "target": "KisOptimizedBrushOutlineContractTest",
+      "source": "libs/image/tests/KisOptimizedBrushOutlineContractTest.cpp",
+      "test": "KisOptimizedBrushOutlineContractTest::translationsMapsAndMappedPreserveValueSemantics",
+      "behavior": "最適化描画輪郭の2種類の平行移動と写像は点列・境界を更新し、値を返す写像は元輪郭を変更しない。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisOptimizedBrushOutline::map(const QTransform & t)",
+        "method:KisOptimizedBrushOutline::mapped(const QTransform & t) const",
+        "method:KisOptimizedBrushOutline::translate(const QPointF & offset)",
+        "method:KisOptimizedBrushOutline::translate(qreal tx,qreal ty)"
+      ]
+    },
+    {
+      "target": "TestKoColorSpaceMaths",
+      "source": "libs/pigment/tests/TestKoColorSpaceMaths.cpp",
+      "test": "TestKoColorSpaceMaths::numericTraitsAndLutsExposeStableDomains",
+      "behavior": "色空間数値特性は各channel型の合成型、値域、半値、epsilon、bit数を公開し、整数から浮動小数へのLUTが端点と中間値を安定して変換する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KoColorSpaceMathsTraits::compositetype",
+        "alias:KoColorSpaceMathsTraits::mixtype",
+        "class:KoColorSpaceMathsTraits",
+        "member:KoColorSpaceMathsTraits::bits",
+        "member:KoColorSpaceMathsTraits::channelValueType",
+        "member:KoColorSpaceMathsTraits::epsilon",
+        "member:KoColorSpaceMathsTraits::halfValue",
+        "member:KoColorSpaceMathsTraits::max",
+        "member:KoColorSpaceMathsTraits::min",
+        "member:KoColorSpaceMathsTraits::unitValue",
+        "member:KoColorSpaceMathsTraits::zeroValue",
+        "member:KoLuts::Uint16ToFloat",
+        "member:KoLuts::Uint8ToFloat",
+        "method:KoIntegerToFloat::operator ()(_T_ f) const",
+        "struct:KoIntegerToFloat",
+        "struct:KoLuts"
+      ]
+    },
+    {
+      "target": "TestKoColorSpaceMaths",
+      "source": "libs/pigment/tests/TestKoColorSpaceMaths.cpp",
+      "test": "TestKoColorSpaceMaths::coreMathPreservesConversionsAndSpecializedRounding",
+      "behavior": "色空間の中核演算は整数・浮動小数・半精度の積、商、反転、補間、型変換を固定値と専門化された丸め規則で返す。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoColorSpaceMaths",
+        "function:float2int(double x)",
+        "function:float2int(float x)",
+        "method:KoColorSpaceMaths::blend(_T a,_T b,_T alpha)",
+        "method:KoColorSpaceMaths::blend(float a,float b,float alpha)",
+        "method:KoColorSpaceMaths::blend(half a,half b,half alpha)",
+        "method:KoColorSpaceMaths::blend(quint8 a,quint8 b,quint8 c)",
+        "method:KoColorSpaceMaths::divide(_T a,_Tdst b)",
+        "method:KoColorSpaceMaths::divide(quint16 a,quint16 b)",
+        "method:KoColorSpaceMaths::divide(quint8 a,quint8 b)",
+        "method:KoColorSpaceMaths::invert(_T a)",
+        "method:KoColorSpaceMaths::invert(quint16 a)",
+        "method:KoColorSpaceMaths::invert(quint8 a)",
+        "method:KoColorSpaceMaths::multiply(_T a,_Tdst b)",
+        "method:KoColorSpaceMaths::multiply(_T a,_Tdst b,_Tdst c)",
+        "method:KoColorSpaceMaths::multiply(quint16 a,quint16 b)",
+        "method:KoColorSpaceMaths::multiply(quint8 a,quint8 b)",
+        "method:KoColorSpaceMaths::multiply(quint8 a,quint8 b,quint8 c)",
+        "method:KoColorSpaceMaths::scaleToA(_T a)",
+        "method:KoColorSpaceMaths::scaleToA(double a)",
+        "method:KoColorSpaceMaths::scaleToA(float a)",
+        "method:KoColorSpaceMaths::scaleToA(half a)",
+        "method:KoColorSpaceMaths::scaleToA(quint16 a)",
+        "method:KoColorSpaceMaths::scaleToA(quint8 a)"
+      ]
+    },
+    {
+      "target": "TestKoColorSpaceMaths",
+      "source": "libs/pigment/tests/TestKoColorSpaceMaths.cpp",
+      "test": "TestKoColorSpaceMaths::boundsCompositeAndFuzzyPoliciesPreserveThresholds",
+      "behavior": "色空間数学はSDR・型値域の補正、合成空間演算、modulus・論理演算、整数の厳密判定と浮動小数の近似閾値を保つ。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoColorSpaceMaths::and(_T a,_Tdst b)",
+        "method:KoColorSpaceMaths::clamp(double a)",
+        "method:KoColorSpaceMaths::clamp(dst_compositetype val)",
+        "method:KoColorSpaceMaths::clamp(float a)",
+        "method:KoColorSpaceMaths::clampAfterScale(dst_compositetype val)",
+        "method:KoColorSpaceMaths::clampChannelToSDR(_T val)",
+        "method:KoColorSpaceMaths::clampChannelToSDRBottom(_T val)",
+        "method:KoColorSpaceMaths::clampToSDR(dst_compositetype val)",
+        "method:KoColorSpaceMaths::clampToSDRBottom(dst_compositetype val)",
+        "method:KoColorSpaceMaths::clampToSDRTop(dst_compositetype val)",
+        "method:KoColorSpaceMaths::divideInCompositeSpace(dst_compositetype a,dst_compositetype b)",
+        "method:KoColorSpaceMaths::isHalfValueFuzzy(_T v)",
+        "method:KoColorSpaceMaths::isHalfValueFuzzy(double value)",
+        "method:KoColorSpaceMaths::isHalfValueFuzzy(float value)",
+        "method:KoColorSpaceMaths::isHalfValueFuzzy(half value)",
+        "method:KoColorSpaceMaths::isUnitValueClampedFuzzy(_T v)",
+        "method:KoColorSpaceMaths::isUnitValueClampedFuzzy(double d)",
+        "method:KoColorSpaceMaths::isUnitValueClampedFuzzy(float f)",
+        "method:KoColorSpaceMaths::isUnitValueClampedFuzzy(half f)",
+        "method:KoColorSpaceMaths::isUnitValueFuzzy(_T value)",
+        "method:KoColorSpaceMaths::isUnitValueFuzzy(double value)",
+        "method:KoColorSpaceMaths::isUnitValueFuzzy(float value)",
+        "method:KoColorSpaceMaths::isUnitValueFuzzy(half value)",
+        "method:KoColorSpaceMaths::isUnsafeAsDivisor(_T value)",
+        "method:KoColorSpaceMaths::isUnsafeAsDivisor(double value)",
+        "method:KoColorSpaceMaths::isUnsafeAsDivisor(float value)",
+        "method:KoColorSpaceMaths::isUnsafeAsDivisor(half value)",
+        "method:KoColorSpaceMaths::isZeroValueClampedFuzzy(_T v)",
+        "method:KoColorSpaceMaths::isZeroValueClampedFuzzy(double d)",
+        "method:KoColorSpaceMaths::isZeroValueClampedFuzzy(float f)",
+        "method:KoColorSpaceMaths::isZeroValueClampedFuzzy(half f)",
+        "method:KoColorSpaceMaths::isZeroValueFuzzy(_T value)",
+        "method:KoColorSpaceMaths::isZeroValueFuzzy(double value)",
+        "method:KoColorSpaceMaths::isZeroValueFuzzy(float value)",
+        "method:KoColorSpaceMaths::isZeroValueFuzzy(half value)",
+        "method:KoColorSpaceMaths::modulus(_T a,_Tdst b)",
+        "method:KoColorSpaceMaths::multiplyInCompositeSpace(dst_compositetype a,dst_compositetype b)",
+        "method:KoColorSpaceMaths::or(_T a,_Tdst b)",
+        "method:KoColorSpaceMaths::xor(_T a,_Tdst b)"
+      ]
+    },
+    {
+      "target": "TestKoColorSpaceMaths",
+      "source": "libs/pigment/tests/TestKoColorSpaceMaths.cpp",
+      "test": "TestKoColorSpaceMaths::arithmeticFacadePreservesDelegationAndBounds",
+      "behavior": "Arithmetic接続面は下位色空間演算へ代表値を配送し、厳密・近似・補正判定、値域、透明度和、合成補間を同じ結果で公開する。",
+      "classification": "maintained",
+      "apis": [
+        "function:Arithmetic::and(T a,T b)",
+        "function:Arithmetic::blend(T src,T srcAlpha,T dst,T dstAlpha,T cfValue)",
+        "function:Arithmetic::clamp(typename KoColorSpaceMathsTraits<T>::compositetype a)",
+        "function:Arithmetic::clampChannelToSDR(T a)",
+        "function:Arithmetic::clampChannelToSDRBottom(T a)",
+        "function:Arithmetic::clampToSDR(typename KoColorSpaceMathsTraits<T>::compositetype a)",
+        "function:Arithmetic::clampToSDRBottom(typename KoColorSpaceMathsTraits<T>::compositetype a)",
+        "function:Arithmetic::clampToSDRTop(typename KoColorSpaceMathsTraits<T>::compositetype a)",
+        "function:Arithmetic::div(T a,T b)",
+        "function:Arithmetic::divideInCompositeSpace(composite_type a,composite_type b)",
+        "function:Arithmetic::epsilon()",
+        "function:Arithmetic::halfValue()",
+        "function:Arithmetic::inv(T a)",
+        "function:Arithmetic::isHalfValueFuzzy(T v)",
+        "function:Arithmetic::isUnitValueClampedFuzzy(T v)",
+        "function:Arithmetic::isUnitValueClampedStrict(T value)",
+        "function:Arithmetic::isUnitValueFuzzy(T v)",
+        "function:Arithmetic::isUnitValueStrict(T value)",
+        "function:Arithmetic::isUnsafeAsDivisor(T value)",
+        "function:Arithmetic::isZeroValueClampedFuzzy(T v)",
+        "function:Arithmetic::isZeroValueClampedStrict(T value)",
+        "function:Arithmetic::isZeroValueFuzzy(T v)",
+        "function:Arithmetic::isZeroValueStrict(T value)",
+        "function:Arithmetic::lerp(T a,T b,T alpha)",
+        "function:Arithmetic::max(T a,T b,T c)",
+        "function:Arithmetic::min(T a,T b,T c)",
+        "function:Arithmetic::mod(T a,T b)",
+        "function:Arithmetic::mul(T a,T b)",
+        "function:Arithmetic::mul(T a,T b,T c)",
+        "function:Arithmetic::multiplyInCompositeSpace(composite_type a,composite_type b)",
+        "function:Arithmetic::or(T a,T b)",
+        "function:Arithmetic::scale(T a)",
+        "function:Arithmetic::unionShapeOpacity(T a,T b)",
+        "function:Arithmetic::unitValue()",
+        "function:Arithmetic::xor(T a,T b)",
+        "function:Arithmetic::zeroValue()",
+        "variable:Arithmetic::pi"
+      ]
+    },
+    {
+      "target": "TestKoColorSpaceMaths",
+      "source": "libs/pigment/tests/TestKoColorSpaceMaths.cpp",
+      "test": "TestKoColorSpaceMaths::colorModelPoliciesPreserveLightnessAndSaturation",
+      "behavior": "HSY・HSI・HSL・HSV方針は固定RGB値から各模型の明度・彩度と明度平均方針を決定する。",
+      "classification": "maintained",
+      "apis": [
+        "member:HSIType::lightnessIsAverage",
+        "member:HSLType::lightnessIsAverage",
+        "member:HSVType::lightnessIsAverage",
+        "member:HSYType::lightnessIsAverage",
+        "method:HSIType::getLightness(TReal r,TReal g,TReal b)",
+        "method:HSIType::getSaturation(TReal r,TReal g,TReal b)",
+        "method:HSLType::getLightness(TReal r,TReal g,TReal b)",
+        "method:HSLType::getSaturation(TReal r,TReal g,TReal b)",
+        "method:HSVType::getLightness(TReal r,TReal g,TReal b)",
+        "method:HSVType::getSaturation(TReal r,TReal g,TReal b)",
+        "method:HSYType::getLightness(TReal r,TReal g,TReal b)",
+        "method:HSYType::getSaturation(TReal r,TReal g,TReal b)",
+        "struct:HSIType",
+        "struct:HSLType",
+        "struct:HSVType",
+        "struct:HSYType"
+      ]
+    },
+    {
+      "target": "TestKoColorSpaceMaths",
+      "source": "libs/pigment/tests/TestKoColorSpaceMaths.cpp",
+      "test": "TestKoColorSpaceMaths::hueAndRgbPreservePrimarySectors",
+      "behavior": "色相変換は赤・緑・青を三つの主sectorへ対応付けてRGBへ戻し、無彩色と負色相の現在の境界値を保つ。",
+      "classification": "maintained",
+      "apis": [
+        "function:getHue(TReal r,TReal g,TReal b)",
+        "function:getRGB(TReal & r,TReal & g,TReal & b,TReal hue)"
+      ]
+    },
+    {
+      "target": "TestKoColorSpaceMaths",
+      "source": "libs/pigment/tests/TestKoColorSpaceMaths.cpp",
+      "test": "TestKoColorSpaceMaths::toneAndComponentAdjustmentsPreserveMappedValues",
+      "behavior": "tone mappingと明度・彩度の取得・加算・設定は固定RGB値を指定模型の値域と目標成分へ写す。",
+      "classification": "maintained",
+      "apis": [
+        "function:ToneMapping(TReal & r,TReal & g,TReal & b)",
+        "function:addLightness(TReal & r,TReal & g,TReal & b,TReal light)",
+        "function:getLightness(TReal r,TReal g,TReal b)",
+        "function:getSaturation(TReal r,TReal g,TReal b)",
+        "function:setLightness(TReal & r,TReal & g,TReal & b,TReal light)",
+        "function:setSaturation(TReal & r,TReal & g,TReal & b,TReal sat)"
       ]
     }
   ]
