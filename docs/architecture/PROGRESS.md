@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 00:00 JST
+- 更新日時: 2026-09-01 00:15 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -19,6 +19,9 @@
   値・状態遷移契約を選ぶ。既存targetを優先し、新規targetなら7工程・16入力以内を目安として対象APIと観測枠を提示する。
 - `g92-global-resources-audit`は`libs/global`、`libs/resources`、`libs/painting`、`plugins/paintops`から、第91便と公開header・試験・CMakeが
   重ならない高密度候補を選ぶ。公開宣言だけの型数え上げではなく、境界値、往復、配送、寿命のいずれかを観測できる候補を優先する。
+- `g92-pigment-audit`は`in_progress`の追加読み取り監査である。`libs/pigment`から第91便の`KoStreamedMath.h`を除き、既存軽量対象を
+  拡張するか一つの製品sourceをOBJECTへ一対一移動するだけで、8 API以上を7工程・16入力以内に固定できる公開headerを探す。編集、構築、
+  Git操作は行わず、製品shared library、Qt Widgets、`kritatestsdk`、OpenEXR・Imath動的libraryを要する候補は採用しない。
 - 統合担当は3報告を照合し、製品shared libraryとQt Widgetsへの接続を避け、予測閉包が小さく、公開header・試験source・CMake所有が互いに
   重ならない最大3担当を選ぶ。停止上限と製品閉包を確定して進捗へ記録してから専用作業ツリーを作る。
 
