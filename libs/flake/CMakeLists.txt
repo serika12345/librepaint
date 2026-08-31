@@ -343,6 +343,36 @@ set_target_properties(kritaflakeshapemovecommandobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaflakepathpointmovecommandobjects OBJECT
+    commands/KoPathPointMoveCommand.cpp
+)
+target_compile_definitions(kritaflakepathpointmovecommandobjects PRIVATE kritaflake_EXPORTS)
+if(BUILD_TESTING)
+    target_compile_definitions(kritaflakepathpointmovecommandobjects PRIVATE KRITAFLAKE_PATH_POINT_MOVE_COMMAND_CONTRACT_TESTING)
+endif()
+target_include_directories(kritaflakepathpointmovecommandobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/commands>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/painting/undo>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/painting/undo>
+)
+target_link_libraries(kritaflakepathpointmovecommandobjects
+    PUBLIC
+        Boost::boost
+        KF${KF_MAJOR}::I18n
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Xml
+)
+set_target_properties(kritaflakepathpointmovecommandobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaflakeshapetransformcommandobjects OBJECT
     commands/KoShapeTransformCommand.cpp
 )
@@ -1598,7 +1628,6 @@ set(kritaflake_SRCS
     commands/KoShapeUngroupCommand.cpp
     commands/KoShapeReorderCommand.cpp
     commands/KoPathBaseCommand.cpp
-    commands/KoPathPointMoveCommand.cpp
     commands/KoPathControlPointMoveCommand.cpp
     commands/KoPathPointTypeCommand.cpp
     commands/KoPathPointRemoveCommand.cpp
@@ -1704,6 +1733,7 @@ set(kritaflake_SRCS
     $<TARGET_OBJECTS:kritaflakeshapestrokemodelobjects>
     $<TARGET_OBJECTS:kritaflakeshapestrokecommandobjects>
     $<TARGET_OBJECTS:kritaflakeshapemovecommandobjects>
+    $<TARGET_OBJECTS:kritaflakepathpointmovecommandobjects>
     $<TARGET_OBJECTS:kritaflakeshapetransformcommandobjects>
     $<TARGET_OBJECTS:kritaflakeshapealigncommandobjects>
     $<TARGET_OBJECTS:kritaflakeshapedistributecommandobjects>

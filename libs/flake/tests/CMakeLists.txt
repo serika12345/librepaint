@@ -77,6 +77,26 @@ target_compile_definitions(KoShapeMoveCommandContractTest PRIVATE
 )
 
 kis_add_test(
+    KoPathPointMoveCommandContractTest.cpp
+    LINK_LIBRARIES
+        kritaflakepathpointmovecommandobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KoPathPointMoveCommandContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_CURRENT_SOURCE_DIR}/../commands
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+    ${CMAKE_SOURCE_DIR}/libs/painting/undo
+    ${CMAKE_BINARY_DIR}/libs/painting/undo
+)
+target_compile_definitions(KoPathPointMoveCommandContractTest PRIVATE
+    kritaflake_EXPORTS
+    kritapaintingundo_EXPORTS
+)
+
+kis_add_test(
     KoShapeTransformCommandContractTest.cpp
     LINK_LIBRARIES
         kritaflakeshapetransformcommandobjects
