@@ -89,9 +89,22 @@ kis_add_tests(
 
 kis_add_tests(
     kis_display_color_transform_test.cpp
-    KisSurfaceColorSpaceWrapperTest.cpp
     LINK_LIBRARIES kritacanvas kritatestsdk
 )
+
+kis_add_test(
+    KisSurfaceColorSpaceWrapperTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_sources(KisSurfaceColorSpaceWrapperTest PRIVATE KisSurfaceColorSpaceWrapperTest.h)
+target_include_directories(KisSurfaceColorSpaceWrapperTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+)
+target_compile_definitions(KisSurfaceColorSpaceWrapperTest PRIVATE kritacanvas_EXPORTS)
 
 kis_add_tests(
     kis_frame_cache_store_test.cpp
