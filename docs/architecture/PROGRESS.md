@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-31 18:38 JST
+- 更新日時: 2026-08-31 18:52 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -32,8 +32,9 @@
   `/Users/masato/Documents/librepaint-r2-g85-undo-adapter`、ブランチは`r2-g85-undo-adapter`、統合順は2である。対象headerは
   `libs/image/kis_undo_adapter.h`であり、対象APIはclass、constructor、`setUndoStore()`、5抽象操作、
   `emitSelectionChanged()`、`selectionChanged()`、destructorの11件である。開始ファイル
-  `libs/image/kis_undo_adapter.cpp`を`kritaimage_LIB_SRCS`の直接収容から`kritaimageundoadapterobjects`へ移し、公開headerの
-  meta-objectを同OBJECTで生成して製品`kritaimage`へ一度だけ再集約する。新規
+  `libs/image/kis_undo_adapter.cpp`を`kritaimage_LIB_SRCS`の直接収容からAUTOMOCを無効にした
+  `kritaimageundoadapterobjects`へ移し、製品`kritaimage`へ一度だけ再集約する。公開headerは製品source一覧へ明示的に
+  残して既存のmeta-object所有を維持し、試験targetは同headerから自身のmeta-objectだけを生成する。新規
   `libs/image/tests/KisUndoAdapterContractTest.cpp`が構築時の借用storeとQObject親、store差替え、5抽象操作の仮想配送、
   selection通知と仮想寿命を4契約枠で固定する。製品sourceと公開headerの内容は変更しない。対象API識別子は
   `class:KisUndoAdapter`、`method:KisUndoAdapter::KisUndoAdapter(KisUndoStore * undoStore,QObject * parent=0)`、
@@ -66,6 +67,9 @@
   直接依存、最寄り契約、製品閉包を再測定する。製品OBJECTは構築せず、変更した開始sourceはコンパイル指令の
   `-fsyntax-only`で確認する。公開API追加、許可外変更、停止条件超過、製品共有ライブラリーへの接続、意味を模倣する
   大きな試験協調定義が必要になった時点で停止する。中央文書、公開API対応表、不足一覧は調整担当だけが更新する。
+- undo adapterの最初の構造案は公開headerのmeta-objectを専用OBJECTへ移したため、対象閉包7工程・14入力と製品閉包
+  1,186工程・2,396入力になり停止した。未構築・未コミットの担当作業ツリーと255 MBの局所構築木を削除した。
+  改訂案は製品と試験が各自のmeta-objectを所有し、AUTOMOCを無効にした開始source OBJECTだけを共有する。
 - 第85便は合計23 APIを対応付け、対応済み9,150件、未対応20,839件を目標とする。
 
 ### 第84並列便の完了結果
