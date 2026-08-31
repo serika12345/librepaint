@@ -1556,9 +1556,30 @@ set_target_properties(kritauispinboxsplineunitconverterobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritauimodelindexconverterbaseobjects OBJECT
+    nodes/kis_model_index_converter_base.cpp
+)
+target_compile_definitions(kritauimodelindexconverterbaseobjects PRIVATE
+    kritaapplicationui_EXPORTS
+)
+target_include_directories(kritauimodelindexconverterbaseobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/application>
+)
+target_link_libraries(kritauimodelindexconverterbaseobjects PUBLIC
+    Qt${QT_MAJOR_VERSION}::Core
+)
+set_target_properties(kritauimodelindexconverterbaseobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_subdirectory( tests )
 
 set(kritaui_LIB_SRCS
+    $<TARGET_OBJECTS:kritauimodelindexconverterbaseobjects>
     $<TARGET_OBJECTS:kritauispinboxsplineunitconverterobjects>
     $<TARGET_OBJECTS:kritauiexposuregammacorrectionobjects>
     $<TARGET_OBJECTS:kritauisizegroupobjects>
@@ -1706,7 +1727,6 @@ set(kritaui_LIB_SRCS
     canvas/KisNodeDisplayModeAdapter.cpp
     nodes/kis_node_model.cpp
     nodes/kis_node_filter_proxy_model.cpp
-    nodes/kis_model_index_converter_base.cpp
     nodes/kis_model_index_converter.cpp
     nodes/kis_model_index_converter_show_all.cpp
     canvas/KisMultiSurfaceStateManager.cpp

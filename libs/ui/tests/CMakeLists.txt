@@ -816,6 +816,18 @@ target_compile_definitions(KisNodeModelIndexMappingContractTest PRIVATE
 )
 
 kis_add_test(
+    KisModelIndexConverterBaseContractTest.cpp
+    TEST_NAME KisModelIndexConverterBaseContractTest
+    LINK_LIBRARIES
+        kritauimodelindexconverterbaseobjects
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(KisModelIndexConverterBaseContractTest PRIVATE
+    kritaapplicationui_EXPORTS
+)
+
+kis_add_test(
     KisNodeModelIsolationMembershipContractTest.cpp
     TEST_NAME KisNodeModelIsolationMembershipContractTest
     LINK_LIBRARIES
