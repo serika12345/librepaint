@@ -46,6 +46,36 @@
   予測6工程・13入力、停止7工程・16入力、製品予測363工程・756入力、停止364工程・759入力とする。`KoColor`は構築からregistryを必要とし、
   `KoCompositeOp`はregistry・pixel処理なしで最大20 APIのため棄却した。
 
+### 第103並列便の担当計画
+
+- 実装共通基点は`dcca74a9dbb2a20d7b4cbab06c3631f14ec89231`、PSD・単位管理担当の構築許可は`granted`、色profile担当は容量回収まで
+  `queued`である。Git権限は許可pathだけの`transport-commit`とする。作成済みworktreeはworktree-local `build/tdd-macos`を使い、
+  lane内の`./scripts/run-shared-test-env`から主環境とcompiler cacheを共有する。構築入力でない翻訳catalog `po/` 210 MBは疎なチェックアウトの対象外とし、
+  各source worktreeを570 MBから360 MBへ縮小した。
+- `g103-psd-vector-stroke-values`は`planned`で、worktreeは`/Users/masato/Documents/librepaint-g103-psd-vector-stroke-values`である。対象は
+  `libs/psd/psd_additional_layer_info_block.h`の`psd_vector_stroke_data`のstructとpublic member 11件、`setVersion`・`setStrokeEnabled`・
+  `setFillEnabled`・`setScaleLock`・`setStrokeAdjust`・`setOpacityFromPercentage`・`setResolution`、`setStrokeDashOffset`・`setStrokeMiterLimit`・
+  `setStrokePixel`・`setStrokeWidth`、`setLineCapType`・`setLineJoinType`、`appendToDashPattern`の全26 APIである。許可pathは
+  `libs/psdutils/tests/PsdFormatValuesContractTest.cpp`だけとし、既定・copy、scalar setter、pen寸法・単位、cap・join、dash追加の5枠を追加する。
+  最寄りCTestは`PsdFormatValuesContractTest`、軽量近傍は`PsdByteIoContractTest`、予測4工程・9入力、停止5工程・12入力、製品不変とする。
+- `g103-widget-unit-manager-values`は`planned`で、worktreeは`/Users/masato/Documents/librepaint-g103-widget-unit-manager-values`である。対象は
+  `libs/widgetutils/kis_spin_box_unit_manager.h`の`KisSpinBoxUnitManager`、`UnitDimension`・`Constrain`・`Constrains`、全列挙子、`referenceUnitSymbols`、構築・破棄、
+  `isUnitId`、単位次元・記号・ID・小数桁・一覧・換算のgetter、`rowCount`・`data`、次元・記号・index選択、manager同期・解除、全public signalの全39 APIである。
+  開始`libs/widgetutils/kis_spin_box_unit_manager.cpp`からfactoryのstatic builder状態と3本文を新規`libs/widgetutils/KisSpinBoxUnitManagerFactory.cpp`へ本文不変で移し、
+  元sourceを`kritawidgetutilsspinboxunitmanagerobjects`へ移管する。許可pathは両source、`libs/widgetutils/CMakeLists.txt`、`libs/widgetutils/tests/CMakeLists.txt`、新規
+  `libs/widgetutils/tests/KisSpinBoxUnitManagerContractTest.cpp`である。新試5枠、予測8工程・18入力、停止10工程・23入力、製品は現状比+3工程・+6入力を停止線とする。
+- `g103-pigment-color-profile-values`は`queued`で、PSDまたは単位管理worktreeの統合・削除後に同基点からworktreeを作る。対象は
+  `libs/pigment/KoColorProfile.h`の`getColorPrimaries()`を除く47 APIで、メタデータ・非I/O既定値14、copy・clone・識別6、能力flag 13、色基準値・名称6、
+  transfer特性・値変換8を5枠へ固定する。開始`libs/pigment/KoColorProfile.cpp`から`getColorPrimaries()`を新規
+  `libs/pigment/KoColorProfilePrimaries.cpp`へ本文不変で移し、残る元sourceを`kritapigmentcolorprofileobjects`へ移管する。許可pathは両source、
+  `libs/pigment/CMakeLists.txt`、`libs/pigment/tests/CMakeLists.txt`、新規`libs/pigment/tests/KoColorProfileValuesContractTest.cpp`である。予測6工程・13入力、停止7工程・16入力、
+  製品予測363工程・756入力、停止364工程・759入力とする。
+- 構築許可を持つ担当は変更なし計画と直接依存を先に測定し、未知対象または未知試験の初期診断、追加枠、全対象CTest、20回反復、軽量近傍、
+  無作業再構築、動的接続、変更source構文、一重収容、公開API契約検査、`verify-quick`まで実行する。統合順はPSD vector stroke、単位管理、色profileとする。
+  許可path外、新規公開API、製品source・mocの二重収容、個別停止線超過、製品shared library、`kritatestsdk`、公開header変更、PSDのASL・shape stroke・生pointer・描画、
+  単位管理のfactory大域状態・実Widget・application設定・document・画面・filesystem、色profileの`getColorPrimaries`・registry・実色空間・pixel buffer・filesystemに到達した担当は停止する。
+  台帳と進捗は調整担当が所有し、担当は追加委任せず許可pathだけをcommitしてAPI対応、初期診断、閉包、検証、容量を報告する。
+
 ### 第102並列便の監査計画
 
 - 共通基点は`3103cff58e990f528e6237e8f28494527e0617da`、入力は`build/tdd-macos/public-api-missing-g102.json`である。3担当は`auditing`で、
