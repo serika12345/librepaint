@@ -295,6 +295,23 @@ set_target_properties(kritapigmentcolortransformationfactoryobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritapigmentcolorspaceengineobjects OBJECT
+    KoColorSpaceEngine.cpp
+)
+target_compile_definitions(kritapigmentcolorspaceengineobjects PRIVATE kritapigment_EXPORTS)
+target_include_directories(kritapigmentcolorspaceengineobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritapigmentcolorspaceengineobjects PUBLIC Qt${QT_MAJOR_VERSION}::Core)
+set_target_properties(kritapigmentcolorspaceengineobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritapigmentcolorspaceblendingpolicyobjects OBJECT
     compositeops/KoColorSpaceBlendingPolicy.cpp
 )
@@ -319,6 +336,7 @@ set_target_properties(kritapigmentcolorspaceblendingpolicyobjects PROPERTIES
 set(kritapigment_SRCS
     $<TARGET_OBJECTS:kritapigmentcolortransformationobjects>
     $<TARGET_OBJECTS:kritapigmentcolortransformationfactoryobjects>
+    $<TARGET_OBJECTS:kritapigmentcolorspaceengineobjects>
     $<TARGET_OBJECTS:kritapigmentcolorspaceblendingpolicyobjects>
     $<TARGET_OBJECTS:kritapigmentoptimizedpixelscalerbaseobjects>
     ${kritapigmentoptimizedpixelscalerfactory_product_objects}
@@ -333,7 +351,6 @@ set(kritapigment_SRCS
     KoColorConversionTransformationFactory.cpp
     KoColorProfile.cpp
     KoColorSpace.cpp
-    KoColorSpaceEngine.cpp
     KoColorSpaceFactory.cpp
     KoColorProfileQuery.h
     KoColorSpaceRegistry.cpp
