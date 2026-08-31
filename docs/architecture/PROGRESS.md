@@ -2,12 +2,19 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 00:36 JST
+- 更新日時: 2026-09-01 00:49 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
+
+### 第94便の先行監査計画
+
+- `g94-brush-audit`は`in_progress`の読み取り専用監査である。基点は`2cef0808b6686f6e335862e08cdfbacc65266976`、入力は
+  `build/tdd-macos/public-api-missing-g93.json`、範囲は`libs/brush`である。既存軽量対象の拡張または一つのsourceのOBJECT一対一移動だけで、
+  12 API以上を状態、値、往復、寿命の最大5枠へ固定できる候補を選ぶ。製品shared library、Qt Widgets、`kritatestsdk`、実画像・色空間、
+  filesystem、乱数未固定の候補は採用しない。編集、構築、テスト、Git操作、追加委任は行わない。
 
 ### 第93並列便の監査計画
 
