@@ -1239,6 +1239,26 @@ target_compile_definitions(KoSvgTextFlipShapeContourTypeCommandContractTest PRIV
     kritapaintingundo_EXPORTS
 )
 
+kis_add_test(
+    KoPathShapeMarkerCommandContractTest.cpp
+    LINK_LIBRARIES
+        kritaflakepathshapemarkercommandobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KoPathShapeMarkerCommandContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_CURRENT_SOURCE_DIR}/../commands
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+    ${CMAKE_SOURCE_DIR}/libs/painting/undo
+    ${CMAKE_BINARY_DIR}/libs/painting/undo
+)
+target_compile_definitions(KoPathShapeMarkerCommandContractTest PRIVATE
+    kritaflake_EXPORTS
+    kritapaintingundo_EXPORTS
+)
+
 ############## broken tests ###############
 
 kis_add_test(TestPointMergeCommand.cpp

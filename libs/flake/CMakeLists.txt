@@ -1390,6 +1390,36 @@ set_target_properties(kritaflakesvgtextflipshapecontourtypecommandobjects PROPER
     AUTOMOC OFF
     POSITION_INDEPENDENT_CODE ON
 )
+
+add_library(kritaflakepathshapemarkercommandobjects OBJECT
+    commands/KoPathShapeMarkerCommand.cpp
+)
+target_compile_definitions(kritaflakepathshapemarkercommandobjects PRIVATE kritaflake_EXPORTS)
+if(BUILD_TESTING)
+    target_compile_definitions(kritaflakepathshapemarkercommandobjects PRIVATE KRITAFLAKE_PATH_SHAPE_MARKER_COMMAND_CONTRACT_TESTING)
+endif()
+target_include_directories(kritaflakepathshapemarkercommandobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/commands>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/painting/undo>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/painting/undo>
+)
+target_link_libraries(kritaflakepathshapemarkercommandobjects
+    PUBLIC
+        Boost::boost
+        KF${KF_MAJOR}::I18n
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Xml
+)
+set_target_properties(kritaflakepathshapemarkercommandobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
 target_compile_definitions(kritaflakebehaviorinterfaceobjects PRIVATE kritaflake_EXPORTS)
 target_include_directories(kritaflakebehaviorinterfaceobjects
     PUBLIC
@@ -1583,7 +1613,6 @@ set(kritaflake_SRCS
     commands/KoPathPointMergeCommand.cpp
     commands/KoShapeClipCommand.cpp
     commands/KoShapeUnclipCommand.cpp
-    commands/KoPathShapeMarkerCommand.cpp
     commands/KoMultiPathPointMergeCommand.cpp
     commands/KoMultiPathPointJoinCommand.cpp
     commands/KoPathMergeUtils.cpp
@@ -1721,6 +1750,7 @@ set(kritaflake_SRCS
     $<TARGET_OBJECTS:kritaflakekeepshapesselectedcommandobjects>
     $<TARGET_OBJECTS:kritaflakeaddremoveshapecommandobjects>
     $<TARGET_OBJECTS:kritaflakesvgtextflipshapecontourtypecommandobjects>
+    $<TARGET_OBJECTS:kritaflakepathshapemarkercommandobjects>
     $<TARGET_OBJECTS:kritaflakeclipmaskpainterobjects>
 
 )
