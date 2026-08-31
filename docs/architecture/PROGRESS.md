@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-31 15:05 JST
+- 更新日時: 2026-08-31 15:07 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -11,7 +11,9 @@
 
 ### 第81並列便の担当票
 
-- path marker command担当は`planned`である。対象は`libs/flake/commands/KoPathShapeMarkerCommand.h`の7 APIである。
+- path marker command担当は`implementing`である。基点は`70d15bcc2a3e7c88e098a18ee802bd674ed4e760`、作業ツリーは
+  `/Users/masato/Documents/librepaint-r2-g81-path-marker`、ブランチは`r2-g81-path-marker`、統合順は1である。
+  対象は`libs/flake/commands/KoPathShapeMarkerCommand.h`の7 APIである。
   開始ファイル`libs/flake/commands/KoPathShapeMarkerCommand.cpp`を`kritaflake_SRCS`の直接収容から
   `kritaflakepathshapemarkercommandobjects`へ移し、製品`kritaflake`へ一度だけ再集約する。新規
   `libs/flake/tests/KoPathShapeMarkerCommandContractTest.cpp`が構築時のshape順・旧marker・自動補完値・所有、
@@ -20,7 +22,9 @@
   marker設定、自動補完設定、一括更新の順序を保つ。予測閉包5工程・11実入力、停止条件6工程・14実入力、
   製品閉包612工程・1,256入力不変を要求する。許可範囲は`libs/flake/CMakeLists.txt`、開始実装、
   `libs/flake/tests/CMakeLists.txt`、新規試験である。
-- random accessor境界担当は`planned`である。対象は`libs/image/kis_random_accessor_ng.h`の10 APIである。開始ファイル
+- random accessor境界担当は`implementing`である。基点は`70d15bcc2a3e7c88e098a18ee802bd674ed4e760`、作業ツリーは
+  `/Users/masato/Documents/librepaint-r2-g81-random-accessor`、ブランチは`r2-g81-random-accessor`、統合順は2である。
+  対象は`libs/image/kis_random_accessor_ng.h`の10 APIである。開始ファイル
   `libs/image/kis_random_accessor_ng.cpp`を`kritaimage_LIB_SRCS`の直接収容から
   `kritaimagerandomaccessorobjects`へ移し、製品`kritaimage`へ一度だけ再集約する。既存開始ファイル
   `libs/image/kis_base_accessor.cpp`の`kritaimagebaseaccessorobjects`は変更せず再利用する。新規
@@ -28,7 +32,9 @@
   両基底の仮想寿命を4契約枠で固定する。予測閉包7工程・15実入力、停止条件8工程・18実入力、製品閉包
   1,184工程・2,392入力不変を要求する。許可範囲は`libs/image/CMakeLists.txt`、
   `libs/image/tests/CMakeLists.txt`、新規試験であり、製品sourceと公開headerの内容は変更しない。
-- model index converter基底担当は`planned`である。対象は`libs/ui/nodes/kis_model_index_converter_base.h`の7 APIである。
+- model index converter基底担当は`implementing`である。基点は`70d15bcc2a3e7c88e098a18ee802bd674ed4e760`、作業ツリーは
+  `/Users/masato/Documents/librepaint-r2-g81-model-index-converter`、ブランチは`r2-g81-model-index-converter`、統合順は
+  3である。対象は`libs/ui/nodes/kis_model_index_converter_base.h`の7 APIである。
   開始ファイル`libs/ui/nodes/kis_model_index_converter_base.cpp`を`kritaui_LIB_SRCS`の直接収容から
   `kritauimodelindexconverterbaseobjects`へ移し、製品`kritaapplicationui`へ一度だけ再集約する。新規
   `libs/ui/tests/KisModelIndexConverterBaseContractTest.cpp`が抽象基底と仮想寿命、row・indexからdummyへの配送、
