@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 20973
+    "expectedMissingApis": 20949
   },
   "contracts": [
     {
@@ -28991,6 +28991,142 @@
       "classification": "maintained",
       "apis": [
         "method:KisDrawingAngleSensorModel::~KisDrawingAngleSensorModel()"
+      ]
+    },
+    {
+      "target": "KoPathShapeMarkerCommandContractTest",
+      "source": "libs/flake/tests/KoPathShapeMarkerCommandContractTest.cpp",
+      "test": "KoPathShapeMarkerCommandContractTest::capturesCurrentMarkersAutoFillAndBorrowedShapeOrder",
+      "behavior": "path marker commandはshape順、位置別の旧marker、自動補完値を構築時に捕捉し、shapeを借用したまま新旧markerを所有する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoPathShapeMarkerCommand",
+        "method:KoPathShapeMarkerCommand::KoPathShapeMarkerCommand(const QList<KoPathShape * > & shapes,KoMarker * marker,KoFlake::MarkerPosition position,KUndo2Command * parent=0)",
+        "method:KoPathShapeMarkerCommand::~KoPathShapeMarkerCommand()"
+      ]
+    },
+    {
+      "target": "KoPathShapeMarkerCommandContractTest",
+      "source": "libs/flake/tests/KoPathShapeMarkerCommandContractTest.cpp",
+      "test": "KoPathShapeMarkerCommandContractTest::redoAndUndoDispatchBaseBeforeOrderedMarkerBatch",
+      "behavior": "path marker commandは基底処理後、再実行で新markerと自動補完を、取消でshape別の旧値を入力順に一括適用する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoPathShapeMarkerCommand::redo()",
+        "method:KoPathShapeMarkerCommand::undo()"
+      ]
+    },
+    {
+      "target": "KoPathShapeMarkerCommandContractTest",
+      "source": "libs/flake/tests/KoPathShapeMarkerCommandContractTest.cpp",
+      "test": "KoPathShapeMarkerCommandContractTest::idAndMergeRequireIdenticalShapeSequenceAndPosition",
+      "behavior": "path marker commandは既存の識別子を返し、同じshape順とmarker位置の命令だけを統合して最新markerを採用する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoPathShapeMarkerCommand::id() const",
+        "method:KoPathShapeMarkerCommand::mergeWith(const KUndo2Command * command)"
+      ]
+    },
+    {
+      "target": "KoPathShapeMarkerCommandContractTest",
+      "source": "libs/flake/tests/KoPathShapeMarkerCommandContractTest.cpp",
+      "test": "KoPathShapeMarkerCommandContractTest::emptyShapesAndNullMarkerRemainSafe",
+      "behavior": "path marker commandは空のshape列とnull markerを構築、再実行、取消、破棄まで安全に処理する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoPathShapeMarkerCommand::KoPathShapeMarkerCommand(const QList<KoPathShape * > & shapes,KoMarker * marker,KoFlake::MarkerPosition position,KUndo2Command * parent=0)",
+        "method:KoPathShapeMarkerCommand::redo()",
+        "method:KoPathShapeMarkerCommand::undo()",
+        "method:KoPathShapeMarkerCommand::~KoPathShapeMarkerCommand()"
+      ]
+    },
+    {
+      "target": "KisRandomAccessorNGContractTest",
+      "source": "libs/image/tests/KisRandomAccessorNGContractTest.cpp",
+      "test": "KisRandomAccessorNGContractTest::constAccessorRoutesCoordinatesAndBaseViews",
+      "behavior": "定数random accessor境界は既定構築され、負値を含む座標移動を基底の現在位置と派生配送へ同じ値で反映する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisRandomConstAccessorNG",
+        "method:KisRandomConstAccessorNG::KisRandomConstAccessorNG()",
+        "method:KisRandomConstAccessorNG::moveTo(qint32 x,qint32 y)"
+      ]
+    },
+    {
+      "target": "KisRandomAccessorNGContractTest",
+      "source": "libs/image/tests/KisRandomAccessorNGContractTest.cpp",
+      "test": "KisRandomAccessorNGContractTest::constAccessorRoutesContiguousShapeAndStride",
+      "behavior": "定数random accessor境界は連続列数、連続行数、行strideの照会引数と返値を独立して配送する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisRandomConstAccessorNG::numContiguousColumns(qint32 x) const",
+        "method:KisRandomConstAccessorNG::numContiguousRows(qint32 y) const",
+        "method:KisRandomConstAccessorNG::rowStride(qint32 x,qint32 y) const"
+      ]
+    },
+    {
+      "target": "KisRandomAccessorNGContractTest",
+      "source": "libs/image/tests/KisRandomAccessorNGContractTest.cpp",
+      "test": "KisRandomAccessorNGContractTest::writableAccessorExposesMutableAndConstViews",
+      "behavior": "可変random accessor境界は既定構築され、同じ個体から可変画素面と継承した定数面を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisRandomAccessorNG",
+        "method:KisRandomAccessorNG::KisRandomAccessorNG()"
+      ]
+    },
+    {
+      "target": "KisRandomAccessorNGContractTest",
+      "source": "libs/image/tests/KisRandomAccessorNGContractTest.cpp",
+      "test": "KisRandomAccessorNGContractTest::randomAccessorBasesPreserveVirtualLifetime",
+      "behavior": "定数・可変random accessor境界は各基底pointerからの破棄で派生個体を一度だけ解放する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisRandomAccessorNG::~KisRandomAccessorNG()",
+        "method:KisRandomConstAccessorNG::~KisRandomConstAccessorNG()"
+      ]
+    },
+    {
+      "target": "KisModelIndexConverterBaseContractTest",
+      "source": "libs/ui/tests/KisModelIndexConverterBaseContractTest.cpp",
+      "test": "KisModelIndexConverterBaseContractTest::abstractBasePreservesVirtualLifetime",
+      "behavior": "model index converter基底は抽象境界を保ち、基底pointerからの破棄で派生個体を一度だけ解放する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisModelIndexConverterBase",
+        "method:KisModelIndexConverterBase::~KisModelIndexConverterBase()"
+      ]
+    },
+    {
+      "target": "KisModelIndexConverterBaseContractTest",
+      "source": "libs/ui/tests/KisModelIndexConverterBaseContractTest.cpp",
+      "test": "KisModelIndexConverterBaseContractTest::rowAndIndexRequestsPreserveInputsAndResults",
+      "behavior": "model index converter基底はrow・親indexと直接indexの入力を保持し、対応するdummy pointerを返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisModelIndexConverterBase::dummyFromIndex(QModelIndex index)",
+        "method:KisModelIndexConverterBase::dummyFromRow(int row,QModelIndex parent)"
+      ]
+    },
+    {
+      "target": "KisModelIndexConverterBaseContractTest",
+      "source": "libs/ui/tests/KisModelIndexConverterBaseContractTest.cpp",
+      "test": "KisModelIndexConverterBaseContractTest::dummyAndParentRequestsPreserveInputsAndResults",
+      "behavior": "model index converter基底はdummyからindexへの変換と親indexのrow数照会を独立して配送する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisModelIndexConverterBase::indexFromDummy(KisNodeDummy * dummy)",
+        "method:KisModelIndexConverterBase::rowCount(QModelIndex parent)"
+      ]
+    },
+    {
+      "target": "KisModelIndexConverterBaseContractTest",
+      "source": "libs/ui/tests/KisModelIndexConverterBaseContractTest.cpp",
+      "test": "KisModelIndexConverterBaseContractTest::addedDummyRequestPreservesOrderedInputsAndOutputs",
+      "behavior": "model index converter基底は追加dummyの親、位置、Unicode型名を順序どおり受け取り、親index、row、成否を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisModelIndexConverterBase::indexFromAddedDummy(KisNodeDummy * parentDummy,int index,const QString & newNodeMetaObjectType,QModelIndex & parentIndex,int & row)"
       ]
     }
   ]

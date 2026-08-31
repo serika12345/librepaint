@@ -2,50 +2,41 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-31 15:07 JST
+- 更新日時: 2026-08-31 15:30 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
 
-### 第81並列便の担当票
+### 第81並列便の完了結果
 
-- path marker command担当は`implementing`である。基点は`70d15bcc2a3e7c88e098a18ee802bd674ed4e760`、作業ツリーは
-  `/Users/masato/Documents/librepaint-r2-g81-path-marker`、ブランチは`r2-g81-path-marker`、統合順は1である。
-  対象は`libs/flake/commands/KoPathShapeMarkerCommand.h`の7 APIである。
+- path marker command担当は`integrated`である。受渡しcommitは
+  `43f4c57e3054ec1fe3e9eef6174f544d93b255bd`、統合commitは`79874aa80a`であり、担当作業ツリー、局所構築木、
+  担当ブランチは削除済みである。対象は`libs/flake/commands/KoPathShapeMarkerCommand.h`の7 APIである。
   開始ファイル`libs/flake/commands/KoPathShapeMarkerCommand.cpp`を`kritaflake_SRCS`の直接収容から
-  `kritaflakepathshapemarkercommandobjects`へ移し、製品`kritaflake`へ一度だけ再集約する。新規
+  `kritaflakepathshapemarkercommandobjects`へ移し、製品`kritaflake`へ一度だけ再集約した。新規
   `libs/flake/tests/KoPathShapeMarkerCommandContractTest.cpp`が構築時のshape順・旧marker・自動補完値・所有、
   redo・undoの順序付き一括配送、識別子とmerge条件、空入力とnull markerを4契約枠で固定する。marker読取、
   自動補完値読取、一括適用は開始実装の`BUILD_TESTING`限定配送を介し、既定配送は実path shapeの読取、lock、
-  marker設定、自動補完設定、一括更新の順序を保つ。予測閉包5工程・11実入力、停止条件6工程・14実入力、
-  製品閉包612工程・1,256入力不変を要求する。許可範囲は`libs/flake/CMakeLists.txt`、開始実装、
-  `libs/flake/tests/CMakeLists.txt`、新規試験である。
-- random accessor境界担当は`implementing`である。基点は`70d15bcc2a3e7c88e098a18ee802bd674ed4e760`、作業ツリーは
-  `/Users/masato/Documents/librepaint-r2-g81-random-accessor`、ブランチは`r2-g81-random-accessor`、統合順は2である。
-  対象は`libs/image/kis_random_accessor_ng.h`の10 APIである。開始ファイル
+  marker設定、自動補完設定、一括更新の順序を保つ。
+- random accessor境界担当は`integrated`である。受渡しcommitは
+  `405736fe676db0831063d51f020b71fabf559b6e`、統合commitは`571ffad328`であり、担当作業ツリー、局所構築木、
+  担当ブランチは削除済みである。対象は`libs/image/kis_random_accessor_ng.h`の10 APIである。開始ファイル
   `libs/image/kis_random_accessor_ng.cpp`を`kritaimage_LIB_SRCS`の直接収容から
-  `kritaimagerandomaccessorobjects`へ移し、製品`kritaimage`へ一度だけ再集約する。既存開始ファイル
+  `kritaimagerandomaccessorobjects`へ移し、製品`kritaimage`へ一度だけ再集約した。既存開始ファイル
   `libs/image/kis_base_accessor.cpp`の`kritaimagebaseaccessorobjects`は変更せず再利用する。新規
   `libs/image/tests/KisRandomAccessorNGContractTest.cpp`がconst境界の座標配送、連続列・行・stride照会、可変とconst面、
-  両基底の仮想寿命を4契約枠で固定する。予測閉包7工程・15実入力、停止条件8工程・18実入力、製品閉包
-  1,184工程・2,392入力不変を要求する。許可範囲は`libs/image/CMakeLists.txt`、
-  `libs/image/tests/CMakeLists.txt`、新規試験であり、製品sourceと公開headerの内容は変更しない。
-- model index converter基底担当は`implementing`である。基点は`70d15bcc2a3e7c88e098a18ee802bd674ed4e760`、作業ツリーは
-  `/Users/masato/Documents/librepaint-r2-g81-model-index-converter`、ブランチは`r2-g81-model-index-converter`、統合順は
-  3である。対象は`libs/ui/nodes/kis_model_index_converter_base.h`の7 APIである。
+  両基底の仮想寿命を4契約枠で固定する。製品sourceと公開headerの内容は変更していない。
+- model index converter基底担当は`integrated`である。受渡しcommitは
+  `1df159e419065b28aedcbc79923b51594d860e57`、統合commitは`230188d6b5`であり、担当作業ツリー、局所構築木、
+  担当ブランチは削除済みである。対象は`libs/ui/nodes/kis_model_index_converter_base.h`の7 APIである。
   開始ファイル`libs/ui/nodes/kis_model_index_converter_base.cpp`を`kritaui_LIB_SRCS`の直接収容から
-  `kritauimodelindexconverterbaseobjects`へ移し、製品`kritaapplicationui`へ一度だけ再集約する。新規
+  `kritauimodelindexconverterbaseobjects`へ移し、製品`kritaapplicationui`へ一度だけ再集約した。新規
   `libs/ui/tests/KisModelIndexConverterBaseContractTest.cpp`が抽象基底と仮想寿命、row・indexからdummyへの配送、
-  dummyからindex・row countへの配送、追加dummyの入力順と出力参照を4契約枠で固定する。予測閉包5工程・11実入力、
-  停止条件6工程・14実入力、製品閉包1,957工程・3,914入力不変を要求する。許可範囲は`libs/ui/CMakeLists.txt`、
-  `libs/ui/tests/CMakeLists.txt`、新規試験であり、製品sourceと公開headerの内容は変更しない。
-- 3担当はgit commitで受渡しし、再委任しない。中央進捗文書、公開API対応表、不足一覧は調整担当だけが更新する。
-  各担当差分の統合直後に担当作業ツリー、局所構築木、担当ブランチを削除する。旧不足一覧は新しい一覧の件数確認
-  直後に削除し、再生成可能な一覧を常に最新1世代へ限定する。製品objectをNinjaで直接指定せず、製品開始ファイルが
-  変更される担当だけ既存コンパイル指令の`-fsyntax-only`検査を使う。
-- 第81便は合計24 APIを対応付け、対応済み9,040件、未対応20,949件を目標とする。
+  dummyからindex・row countへの配送、追加dummyの入力順と出力参照を4契約枠で固定する。製品sourceと公開headerの
+  内容は変更していない。
+- 第81便は合計24 APIを対応付け、対応済み9,040件、未対応20,949件を達成した。
 
 ### 第80並列便の完了結果
 
@@ -211,43 +202,39 @@
 
 ### 現在の結果
 
-- 第80並列便はtext輪郭種別反転command 5 API、node filter境界7 API、描画角度sensor model 9 APIの合計21 APIを
-  挙動契約へ対応付けた。公開面は1,549ヘッダー、29,989 API、対応済み9,016件、未対応20,973件である。
-- 開始ファイル`libs/flake/commands/KoSvgTextFlipShapeContourTypeCommand.cpp`は
-  `kritaflakesvgtextflipshapecontourtypecommandobjects`へ移り、製品`kritaflake`へ一度だけ再集約される。新規
-  `libs/flake/tests/KoSvgTextFlipShapeContourTypeCommandContractTest.cpp`が初期所属の捕捉、借用寿命、redo・undoを
-  2契約枠で固定する。
-- 開始ファイル`libs/image/kis_node_filter_interface.cpp`は`kritaimagenodefilterinterfaceobjects`へ移り、製品
-  `kritaimage`へ一度だけ再集約される。filter設定の操作は新規非公開
-  `libs/image/KisNodeFilterInterfaceFilterAccess_p.h`を介して開始元`libs/image/filter/kis_filter_configuration.cc`へ
-  委譲し、既存の参照回数診断と公開面の指紋を維持する。新規
-  `libs/image/tests/KisNodeFilterInterfaceContractTest.cpp`が強所有、clone、設定置換、色空間変更、仮想寿命を
+- 第81並列便はpath marker command 7 API、random accessor境界10 API、model index converter基底7 APIの合計24 APIを
+  挙動契約へ対応付けた。公開面は1,549ヘッダー、29,989 API、対応済み9,040件、未対応20,949件である。
+- 開始ファイル`libs/flake/commands/KoPathShapeMarkerCommand.cpp`は
+  `kritaflakepathshapemarkercommandobjects`へ移り、製品`kritaflake`へ一度だけ再集約される。新規
+  `libs/flake/tests/KoPathShapeMarkerCommandContractTest.cpp`が構築値と所有、redo・undo、識別子とmerge、空入力を
   4契約枠で固定する。
-- 開始ファイル`plugins/paintops/libpaintop/KisDrawingAngleSensorModel.cpp`と開始元
-  `plugins/paintops/libpaintop/KisSensorWithLengthModel.cpp`は`kritapaintopsensormodelobjects`へ集約され、製品
-  `kritalibpaintop`へ一度だけ収容される。新規
-  `plugins/paintops/libpaintop/tests/KisDrawingAngleSensorModelContractTest.cpp`が注入state、5 Qt property、変更通知、
-  独立更新、QObject親寿命を4契約枠で固定する。
-- 統合後の限定閉包は`KoSvgTextFlipShapeContourTypeCommandContractTest` 5工程・11実入力、
-  `KisNodeFilterInterfaceContractTest` 5工程・10実入力、`KisDrawingAngleSensorModelContractTest`
-  10工程・21実入力である。製品閉包は`kritaflake` 612工程・1,256入力、`kritaimage` 1,184工程・2,392入力、
-  `kritapaintopruntime` 1,281工程・2,582入力、`kritalibpaintop` 2,097工程・4,192入力で不変である。
-- 主作業ツリーの3限定対象と7軽量近傍はCTest 10/10に成功し、3対象は各20回反復、全10契約枠の個別実行、
-  再構築時の無作業確認に成功した。公開API契約検査は9,016/29,989件で成功した。3対象の動的依存にLibrePaint
-  製品共有ライブラリー、Qt Widgets、`kritatestsdk`は含まれない。製品全体の構築・リンクとLinux検証は限定閉包を
-  越えるため実施していない。
-- node filter担当が製品側の単一objectをNinjaで指定した際、順序依存が843工程へ展開したため表示455工程で中断した。
-  基準障害はなく、製品側開始ファイルは既存のコンパイル指令を`-fsyntax-only`へ変換した1 source検査で確認した。
-  主統合では3限定対象以外を構築していない。
-- 担当作業ツリー3本、282～627 MBの局所構築木、担当ブランチは各統合直後に削除した。旧第80便不足一覧を削除し、
-  最新の第81便不足一覧`build/tdd-macos/public-api-missing-g81.json` 5.1 MBだけを保持する。主増分構築木は5.1 GBを
-  維持した。検証中に作られた無参照・無rootの旧Nix sourceコピー8件を削除し、空き容量を20 GiBから28 GiBへ
-  回復した。
+- 開始ファイル`libs/image/kis_random_accessor_ng.cpp`は`kritaimagerandomaccessorobjects`へ移り、製品`kritaimage`へ
+  一度だけ再集約される。既存`libs/image/kis_base_accessor.cpp`の`kritaimagebaseaccessorobjects`を変更なしで再利用する。
+  新規`libs/image/tests/KisRandomAccessorNGContractTest.cpp`が座標配送、連続領域照会、可変・定数面、仮想寿命を
+  4契約枠で固定する。
+- 開始ファイル`libs/ui/nodes/kis_model_index_converter_base.cpp`は`kritauimodelindexconverterbaseobjects`へ移り、
+  製品`kritaapplicationui`へ一度だけ再集約される。新規
+  `libs/ui/tests/KisModelIndexConverterBaseContractTest.cpp`が抽象境界と仮想寿命、row・index・dummy間の配送、
+  追加dummyの入出力を4契約枠で固定する。
+- 統合後の限定閉包は`KoPathShapeMarkerCommandContractTest` 5工程・11実入力、
+  `KisRandomAccessorNGContractTest` 7工程・14実入力、`KisModelIndexConverterBaseContractTest`
+  5工程・10実入力である。製品閉包は`kritaflake` 612工程・1,256入力、`kritaimage` 1,184工程・2,392入力、
+  `kritaapplicationui` 1,957工程・3,914入力で不変である。
+- 主作業ツリーの3限定対象と5軽量近傍はCTest 8/8に成功し、3対象は各20回反復、全12契約枠の個別実行、
+  再構築時の無作業確認に成功した。macOSのパッケージ境界は1,626対象、公開API契約検査は9,040/29,989件で
+  成功した。3対象の動的依存にLibrePaint製品共有ライブラリー、Qt Widgets、`kritatestsdk`は含まれない。
+  既存広域`KisModelIndexConverterTest`は未構築の`libkritaresourceui`を起動前に要求して失敗した。これは限定対象と
+  独立した既存基準であり、製品共有ライブラリーを追加構築していない。製品全体の構築・リンクとLinux検証は
+  限定閉包を越えるため実施していない。
+- 担当作業ツリー3本、263～275 MBの局所構築木、担当ブランチは各統合直後に削除した。旧第81便不足一覧を削除し、
+  最新の第82便不足一覧`build/tdd-macos/public-api-missing-g82.json` 5.1 MBだけを保持する。主増分構築木は5.1 GBを
+  維持する。
 
 ### 次の操作
 
-- 第81並列便の3担当作業ツリーを計画commitから作成し、限定構築と挙動契約の実装を開始する。完了担当から順に
-  差分と検証証拠を確認して統合し、担当作業ツリー、局所構築木、担当ブランチを直ちに削除する。
+- 第82並列便はread-only監査済みの`libs/image/kis_random_sub_accessor.h` 7 APIと
+  `plugins/paintops/libpaintop/KisCompositeOpOptionData.h` 7 APIに、flake担当の小閉包候補を加えて担当票を確定する。
+  各担当の作業ツリーと局所構築木は統合直後に削除し、不足一覧は最新版1件だけを保持する。
 
 ## 再開環境
 
