@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 04:52 JST
+- 更新日時: 2026-09-01 05:00 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -21,6 +21,9 @@
   実canvas・paint device・liquify実行・mesh演算なしで固定できる範囲を選ぶ。現在のsource所有が広い場合は、挙動を変えない最小の分割境界も報告する。
 - `g100-image-time-span-audit`は`libs/image/kis_time_span.h`の全25 APIについて、有限・無限範囲、包含・重複・和積、DOM・診断、node再帰計算を一つの
   限定対象へ収められるか監査する。node依存が値演算の閉包を広げる場合は、開始sourceから値処理を分ける具体的な所有境界と残るnode契約を示す。
+- `g100-global-bezier-mesh-audit`は追加読み取り監査として、`libs/global/KisBezierMesh.h`の残り29 APIを既存
+  `KisBezierMeshValuesContractTest`へ追加できるか確認する。meshの細分化・整形・hit test・smart move、列挙、DOM・診断を固定し、画像、描画、資源、
+  filesystemへ接続しない。非inlineのnode DOM処理が必要なら、開始source一つのOBJECT一対一移動で閉じる範囲を示す。
 - 各報告は完全なAPI識別子、観測する現行挙動、最大5契約枠、最寄りCTest、所有CMake、直接依存、変更なし閉包、予測閉包と停止線、開始pathから
   移動先pathへの対応、許可path、固有停止条件を含む。候補がない場合は最接近候補と棄却根拠を数値で報告し、path・CMake・生成物が重ならない
   実装候補だけを担当票へ進める。
