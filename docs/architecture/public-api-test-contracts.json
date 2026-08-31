@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 20187
+    "expectedMissingApis": 20161
   },
   "contracts": [
     {
@@ -31313,6 +31313,77 @@
         "method:PerspectiveBasedAssistantHelper::distanceInGrid(const CacheData & cache,const QPointF & point)",
         "method:PerspectiveBasedAssistantHelper::getVanishingPointsOptional(const QPolygonF & poly,boost::optional<QPointF> & vp1,boost::optional<QPointF> & vp2)",
         "method:PerspectiveBasedAssistantHelper::updateCacheData(CacheData & cache,const QPolygonF & poly)"
+      ]
+    },
+    {
+      "target": "KisMediaEncoderFormatAndSettingsContractTest",
+      "source": "libs/impex/tests/KisMediaEncoderFormatAndSettingsContractTest.cpp",
+      "test": "KisMediaEncoderFormatAndSettingsContractTest::formatIdentityPreservesStableMetadata",
+      "behavior": "媒体符号化形式は安定した2種別とUnicode識別情報、拡張子、音声対応を仮想配送し、基底所有から派生個体を破棄する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisMediaEncoderFormat",
+        "enum:KisMediaEncoderFormat::Type",
+        "enumerator:KisMediaEncoderFormat::Type::AndroidMediaEncoder",
+        "enumerator:KisMediaEncoderFormat::Type::LibavMediaEncoder",
+        "method:KisMediaEncoderFormat::extension() const",
+        "method:KisMediaEncoderFormat::key() const",
+        "method:KisMediaEncoderFormat::supportsAudio() const",
+        "method:KisMediaEncoderFormat::title() const",
+        "method:KisMediaEncoderFormat::type() const",
+        "method:KisMediaEncoderFormat::~KisMediaEncoderFormat()"
+      ]
+    },
+    {
+      "target": "KisMediaEncoderFormatAndSettingsContractTest",
+      "source": "libs/impex/tests/KisMediaEncoderFormatAndSettingsContractTest.cpp",
+      "test": "KisMediaEncoderFormatAndSettingsContractTest::preferencesPreserveBorrowedWidgetAndMapDelivery",
+      "behavior": "媒体符号化形式の設定UI協調面は設定map、未参照の借用widget token、返却map、reset要求を同一値として配送する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMediaEncoderFormat::createPreferencesWidget(const QVariantMap & preferences) const",
+        "method:KisMediaEncoderFormat::getPreferencesFromWidget(QWidget * widget) const",
+        "method:KisMediaEncoderFormat::resetPreferencesWidget(QWidget * widget) const"
+      ]
+    },
+    {
+      "target": "KisMediaEncoderFormatAndSettingsContractTest",
+      "source": "libs/impex/tests/KisMediaEncoderFormatAndSettingsContractTest.cpp",
+      "test": "KisMediaEncoderFormatAndSettingsContractTest::settingsPreserveTextAndInputOrder",
+      "behavior": "媒体符号化設定はUnicodeの出力・音声経路、入力frame列の順序、拡縮filterを独立した値として保持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisMediaEncoderWrapperSettings::audioFile",
+        "member:KisMediaEncoderWrapperSettings::inputFiles",
+        "member:KisMediaEncoderWrapperSettings::outputFile",
+        "member:KisMediaEncoderWrapperSettings::scaleFilter",
+        "struct:KisMediaEncoderWrapperSettings"
+      ]
+    },
+    {
+      "target": "KisMediaEncoderFormatAndSettingsContractTest",
+      "source": "libs/impex/tests/KisMediaEncoderFormatAndSettingsContractTest.cpp",
+      "test": "KisMediaEncoderFormatAndSettingsContractTest::settingsPreserveFormatMapAndDimensions",
+      "behavior": "媒体符号化設定は借用形式pointer、入れ子値を含む設定map、出力寸法をそのまま保持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisMediaEncoderWrapperSettings::format",
+        "member:KisMediaEncoderWrapperSettings::formatPreferences",
+        "member:KisMediaEncoderWrapperSettings::outputSize"
+      ]
+    },
+    {
+      "target": "KisMediaEncoderFormatAndSettingsContractTest",
+      "source": "libs/impex/tests/KisMediaEncoderFormatAndSettingsContractTest.cpp",
+      "test": "KisMediaEncoderFormatAndSettingsContractTest::settingsPreserveTimelineAndCopyIndependence",
+      "behavior": "媒体符号化設定は入力・出力fps、開始・終了秒、音声seek frameをコピー後も独立した値として保持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisMediaEncoderWrapperSettings::audioSeekFrame",
+        "member:KisMediaEncoderWrapperSettings::firstFrameSec",
+        "member:KisMediaEncoderWrapperSettings::inputFps",
+        "member:KisMediaEncoderWrapperSettings::lastFrameSec",
+        "member:KisMediaEncoderWrapperSettings::outputFps"
       ]
     }
   ]

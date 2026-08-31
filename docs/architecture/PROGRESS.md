@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 02:52 JST
+- 更新日時: 2026-09-01 02:57 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -56,8 +56,8 @@
   `kritaassistanttool_static`へ一回だけ再集約する。許可pathは同source、`plugins/assistants/Assistants/CMakeLists.txt`、同`tests/CMakeLists.txt`、
   新規`tests/PerspectiveBasedAssistantHelperContractTest.cpp`だけである。既定cache、射影尺度、3種四角形の消失点・正規化距離の3枠とする。
   予測6工程・13入力、停止7工程・15入力、製品1,978工程・3,955入力不変とする。
-- `g96-impex-media-encoder-values`は`in_progress`で、専用作業ツリーは
-  `/Users/masato/Documents/librepaint-g96-impex-media-encoder-values`である。対象は`libs/impex/animation/KisMediaEncoderWrapper.h`の
+- `g96-impex-media-encoder-values`は`integrated`で、削除済みの専用作業ツリーは
+  `/Users/masato/Documents/librepaint-g96-impex-media-encoder-values`であった。対象は`libs/impex/animation/KisMediaEncoderWrapper.h`の
   `KisMediaEncoderFormat` class・virtual destructor、`Type` enum・`AndroidMediaEncoder`・`LibavMediaEncoder`、`type`・`key`・`title`・`extension`・
   `supportsAudio`・`createPreferencesWidget`・`resetPreferencesWidget`・`getPreferencesFromWidget`と、`KisMediaEncoderWrapperSettings` struct、
   `outputFile`・`inputFiles`・`audioFile`・`format`・`formatPreferences`・`scaleFilter`・`outputSize`・`inputFps`・`outputFps`・`firstFrameSec`・
@@ -91,6 +91,18 @@
   `kritatestsdk`へ接続しない。対応済みは9,651件、未対応は20,187件、契約枠は2,335件となった。
 - 新しい`build/tdd-macos/public-api-missing-g96-assistant.json`生成後、旧第96不足一覧、局所構築木268 MBを含む担当作業ツリー838 MB、担当branchを
   削除して空きを約0.8 GB回復した。主増分構築木、共有compiler cache、残る2担当作業ツリー、最新不足一覧だけを保持する。
+- `g96-impex-media-encoder-values`は受渡しcommit `31d269026f10d1a5571fa0a4f949f8c2dcba49bb`を統合commit `683d26ac31`として取り込んだ。
+  header-onlyの開始面`libs/impex/animation/KisMediaEncoderWrapper.h`と製品所有は変更せず、`libs/impex/tests/CMakeLists.txt`から新規
+  `libs/impex/tests/KisMediaEncoderFormatAndSettingsContractTest.cpp`をQt Core・Testと生成済みexport headerへ直接接続した。
+- 5契約枠で形式種別・Unicode識別情報・音声対応・仮想寿命、未参照widget tokenと設定mapの配送、入出力文字列順序、借用形式・設定map・寸法、
+  fps・時間・音声seek値とcopy独立性を固定し、安全な26 APIを追加した。同headerの実frame・外部process・取消・非同期signalを含む21 APIは
+  別の効果境界契約へ残す。限定対象4工程・8入力、製品`kritaapplicationui`は担当基点1,957工程・3,914入力で前後不変であり、中央基準との差は
+  既知の環境ラッパー5工程・5入力である。
+- 担当環境と主環境で全5枠、対象CTest、20回反復、主環境の`kis_import_export_utils_values_test`近傍、両対象の無作業再構築、動的接続、
+  変更source構文、公開API契約検査、`verify-quick`に成功した。限定対象はQt Core・Testだけへ動的接続し、製品shared library、Qt Widgets、
+  OpenEXR、Imath、`kritatestsdk`へ接続しない。対応済みは9,677件、未対応は20,161件、契約枠は2,340件となった。
+- 新しい`build/tdd-macos/public-api-missing-g96-impex.json`生成後、直前の不足一覧、局所構築木264 MBを含む担当作業ツリー834 MB、担当branchを
+  削除して空きを約0.9 GB回復した。主増分構築木、共有compiler cache、macOS値担当作業ツリー、最新不足一覧だけを保持する。
 
 ### 第95並列便の監査計画
 
