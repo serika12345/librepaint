@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 05:44 JST
+- 更新日時: 2026-09-01 05:51 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -55,7 +55,7 @@
   一括登録を削除し、新規`libs/image/tests/KisTimeSpanContractTest.cpp`の専用対象へ値・DOM・診断21 APIを4枠で移行する。許可pathは以上のsource、
   `libs/image/CMakeLists.txt`、`libs/image/tests/CMakeLists.txt`だけで、公開headerは変更しない。予測7工程、停止10工程・23入力とし、node計算の本文・
   公開API・製品挙動、製品sourceの一重収容を維持する。
-- `g100-global-bezier-mesh-values`は`in_progress`で、専用作業ツリーは`/Users/masato/Documents/librepaint-g100-global-bezier-mesh-values`である。
+- `g100-global-bezier-mesh-values`は`integrated`で、削除済みの専用作業ツリーは`/Users/masato/Documents/librepaint-g100-global-bezier-mesh-values`であった。
   開始`libs/global/KisBezierMesh.cpp`を新規`kritaglobalbeziermeshobjects`へ一対一移動して製品へ再集約し、二つの`intersectLines`本文を
   `libs/global/kis_algebra_2d.cpp`から既存`libs/global/kis_algebra_2d_direction.cpp`へ移す。既存
   `libs/global/tests/KisBezierMeshValuesContractTest.cpp`へ残り29 APIを5枠追加する。許可pathは以上4 sourceと`libs/global/CMakeLists.txt`、
@@ -89,6 +89,20 @@
   変更source構文、公開API契約検査、`verify-quick`に成功した。対応済みは10,057件、未対応は19,781件、契約枠は2,386件となった。
 - 新しい`build/tdd-macos/public-api-missing-g100-time.json`生成後、旧不足一覧4.8 MB、局所構築木268 MBを含む担当作業ツリー838 MB、担当branchを
   削除した。主増分構築木、共有compiler cache、残るBezier mesh担当作業ツリー、最新不足一覧だけを保持する。
+- `g100-global-bezier-mesh-values`は受渡しcommit `6d51fffdc19c`を統合commit `6b19b23f35`として取り込んだ。開始
+  `libs/global/KisBezierMesh.cpp`の物理pathは保ち、`kritaglobal_LIB_SRCS`の直接収容から`kritaglobalbeziermeshobjects`へ所有を移して製品へ一回だけ
+  再集約した。二つの`intersectLines`本文は`libs/global/kis_algebra_2d.cpp`から`libs/global/kis_algebra_2d_direction.cpp`へ挙動を変えず移し、既存
+  `libs/global/tests/KisBezierMeshValuesContractTest.cpp`を拡張した。
+- patch投影・外接矩形・診断、細分化・削除・再整形、hit test、拘束付き移動、node DOM往復の全29 APIを5契約枠へ固定した。制御点索引の診断が
+  Y座標にX座標を反復する現行不具合を観測する枠だけを`known_defect`とした。限定対象は11工程・26入力、製品`kritaglobal`は68工程・136入力を
+  維持し、動的接続に製品shared libraryと`kritatestsdk`を含まない。
+- 担当環境と主環境で追加5枠、全限定対象CTest、20回反復、`KisBezierUtilsContractTest`、`KisBezierPatchContractTest`、
+  `KisDomUtilsContractTest`近傍、無作業再構築、動的接続、変更source構文、公開API契約検査、`verify-quick`に成功した。担当内でraw Ninjaの物体名が
+  23工程へ過剰展開した時点で中断し、製品`kritaglobal`はリンクしなかった。そこで生成されたlane内共有library 2件も担当作業ツリーと同時に削除した。
+- 第100並列便はPSD調整値67 API、時間範囲値21 API、Bézier mesh値29 APIの合計117 APIを14契約枠へ追加した。公開面は1,549ヘッダー、
+  29,838 API、対応済み10,086件、未対応19,752件、契約枠2,391件となった。新しい
+  `build/tdd-macos/public-api-missing-g101.json`生成後、旧不足一覧4.8 MB、局所構築木284 MBを含む担当作業ツリー855 MB、担当branchを削除した。
+  担当作業ツリーは残しておらず、再利用する主増分構築木5.2 GB、共有compiler cache 893 MB、最新不足一覧4.8 MBだけを保持する。
 
 ### 第99並列便の監査計画
 

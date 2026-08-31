@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 19781
+    "expectedMissingApis": 19752
   },
   "contracts": [
     {
@@ -32185,6 +32185,80 @@
         "function:KisDomUtils::loadValue(const QDomElement & parent,const QString & tag,KisTimeSpan * range)",
         "function:KisDomUtils::saveValue(QDomElement * parent,const QString & tag,const KisTimeSpan & range)",
         "function:operator <<(QDebug dbg,const KisTimeSpan & r)"
+      ]
+    },
+    {
+      "target": "KisBezierMeshValuesContractTest",
+      "source": "libs/global/tests/KisBezierMeshValuesContractTest.cpp",
+      "test": "KisBezierMeshValuesContractTest::patchProjectionBoundsAndDiagnosticsRemainStable",
+      "behavior": "Bézier meshはpatch投影と全制御点の外接矩形を返し、node・meshを識別可能な診断へ出力する。制御点索引の診断はY座標にX座標を反復する現行不具合を保持する。",
+      "classification": "known_defect",
+      "apis": [
+        "function:KisBezierMeshDetails::assignPatchData(KisBezierPatch * patch,const QRectF & srcRect,const BaseMeshNode & tl,const BaseMeshNode & tr,const BaseMeshNode & bl,const BaseMeshNode & br)",
+        "function:KisBezierMeshDetails::operator <<(QDebug dbg,const BaseMeshNode & n)",
+        "function:KisBezierMeshDetails::operator <<(QDebug dbg,const Mesh<Node,Patch> & mesh)",
+        "method:KisBezierMeshDetails::Mesh::dstBoundingRect() const",
+        "method:KisBezierMeshDetails::Mesh::makePatch(const PatchIndex & index) const",
+        "method:KisBezierMeshDetails::Mesh::makePatch(int col,int row) const",
+        "method:KisBezierMeshDetails::Mesh::operator <<(QDebug dbg,const Mesh::ControlPointIndex & index)"
+      ]
+    },
+    {
+      "target": "KisBezierMeshValuesContractTest",
+      "source": "libs/global/tests/KisBezierMeshValuesContractTest.cpp",
+      "test": "KisBezierMeshValuesContractTest::subdivisionRemovalAndReshapePreserveGridContinuity",
+      "behavior": "Bézier meshの列・行・線分の細分化、内部列・行の削除、水平・垂直再整形は格子寸法、挿入位置、端点、元矩形を一貫して保つ。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisBezierMeshDetails::lerpNodeData(const BaseMeshNode & left,const BaseMeshNode & right,qreal t,BaseMeshNode & dst)",
+        "method:KisBezierMeshDetails::Mesh::removeColumn(int column)",
+        "method:KisBezierMeshDetails::Mesh::removeColumnOrRow(NodeIndex index,bool row)",
+        "method:KisBezierMeshDetails::Mesh::removeRow(int row)",
+        "method:KisBezierMeshDetails::Mesh::reshapeMeshHorizontally(int numColumns)",
+        "method:KisBezierMeshDetails::Mesh::reshapeMeshVertically(int numRows)",
+        "method:KisBezierMeshDetails::Mesh::subdivideColumn(int leftColumn,qreal relProportionalT)",
+        "method:KisBezierMeshDetails::Mesh::subdivideColumn(qreal proportionalT)",
+        "method:KisBezierMeshDetails::Mesh::subdivideRow(int topRow,qreal relProportionalT)",
+        "method:KisBezierMeshDetails::Mesh::subdivideRow(qreal proportionalT)",
+        "method:KisBezierMeshDetails::Mesh::subdivideSegment(SegmentIndex index,qreal proportionalT)"
+      ]
+    },
+    {
+      "target": "KisBezierMeshValuesContractTest",
+      "source": "libs/global/tests/KisBezierMeshValuesContractTest.cpp",
+      "test": "KisBezierMeshValuesContractTest::hitTestsSeparateNodesControlsAndSegments",
+      "behavior": "Bézier meshのhit testはnode、制御点、線分を距離閾値で区別し、線分上の比例位置と未検出値を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisBezierMeshDetails::Mesh::hitTestControlPoint(const QPointF & pt,qreal distanceThreshold) const",
+        "method:KisBezierMeshDetails::Mesh::hitTestNode(const QPointF & pt,qreal distanceThreshold) const",
+        "method:KisBezierMeshDetails::Mesh::hitTestSegment(const QPointF & pt,qreal distanceThreshold,qreal * t=0) const"
+      ]
+    },
+    {
+      "target": "KisBezierMeshValuesContractTest",
+      "source": "libs/global/tests/KisBezierMeshValuesContractTest.cpp",
+      "test": "KisBezierMeshValuesContractTest::smartMoveModesPreserveHandleConstraints",
+      "behavior": "Bézier meshの移動方式は自由・対称固定・回転固定を安定値で区別し、node、handle、隣接線分へ各方式の拘束を適用する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisSmartMoveMeshControlMode",
+        "enum:KisBezierMeshDetails::SmartMoveMeshControlMode",
+        "enumerator:KisBezierMeshDetails::SmartMoveMeshControlMode::MoveFree",
+        "enumerator:KisBezierMeshDetails::SmartMoveMeshControlMode::MoveRotationLock",
+        "enumerator:KisBezierMeshDetails::SmartMoveMeshControlMode::MoveSymmetricLock",
+        "function:KisBezierMeshDetails::smartMoveControl(Mesh<NodeArg,PatchArg> & mesh,typename Mesh<NodeArg,PatchArg>::ControlPointIndex index,const QPointF & move,SmartMoveMeshControlMode mode,bool scaleNodeMoves)"
+      ]
+    },
+    {
+      "target": "KisBezierMeshValuesContractTest",
+      "source": "libs/global/tests/KisBezierMeshValuesContractTest.cpp",
+      "test": "KisBezierMeshValuesContractTest::nodeDomRoundTripRejectsWrongOuterType",
+      "behavior": "Bézier mesh nodeは5座標をmesh-node型のDOMへ保存して完全に復元し、異なる外周型を出力値を変えず拒否する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisBezierMeshDetails::loadValue(const QDomElement & parent,BaseMeshNode * node)",
+        "function:KisBezierMeshDetails::saveValue(QDomElement * parent,const QString & tag,const BaseMeshNode & node)"
       ]
     }
   ]
