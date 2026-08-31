@@ -79,6 +79,20 @@ target_compile_definitions(KisColorOptionDataContractTest PRIVATE
 )
 
 kis_add_test(
+    KisColorSourceOptionDataContractTest.cpp
+    LINK_LIBRARIES
+        kritapaintopcolorsourceoptiondataobjects
+        kritaglobalidobjects
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(KisColorSourceOptionDataContractTest PRIVATE
+    kritaimage_EXPORTS
+    kritalibpaintop_EXPORTS
+    kritapigment_EXPORTS
+)
+
+kis_add_test(
     KisCurveOptionDataCommonContractTest.cpp
     LINK_LIBRARIES
         kritapaintopcurveoptiondatacommonobjects
