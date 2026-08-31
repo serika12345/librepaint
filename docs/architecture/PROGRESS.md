@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 00:22 JST
+- 更新日時: 2026-09-01 00:34 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -33,8 +33,7 @@
   予定種別・barrier・exclusive、描画詳細度、取消可能性、所有job判定の12 APIを4契約枠で固定する。DataはJob所有、Strategyは借用として寿命を
   実測し、null Dataの既定値、Dataの上書き、同一Dataを使う実行配送を観測する。既存対象14工程・24入力、停止15工程・27入力、製品
   `kritaimage` 1,189工程・2,397入力不変とする。header内の3 friend自由関数は製品定義を持たない試験補助宣言なので本便では仕様化しない。
-- `g92-paintop-curve-model`は`in_progress`で、専用作業ツリーは
-  `/Users/masato/Documents/librepaint-g92-paintop-curve-model`である。対象headerは`plugins/paintops/libpaintop/KisCurveOptionModel.h`の未対応29 API、許可pathは
+- `g92-paintop-curve-model`は`integrated`である。対象headerは`plugins/paintops/libpaintop/KisCurveOptionModel.h`の未対応29 API、許可pathは
   同package `CMakeLists.txt`、tests `CMakeLists.txt`、既存`tests/KisCurveOptionModelTest.cpp`と退役対象の同名`.h`だけである。開始ファイル
   `KisCurveOptionModel.cpp`を`kritalibpaintop_LIB_SRCS`から新規`kritapaintopcurveoptionmodelobjects`へ一対一移動し、共有libraryへ1回だけ
   再集約する。空の広域試験を、型と所有、選択有効状態、強度変換と焼込み、曲線配送、label・sensor長の5契約枠へ置換する。現在の同名対象
@@ -60,6 +59,16 @@
 - `g92-pigment-audit`は条件を満たす候補なしで完了した。最接近の`KoColorConversionTransformationFactory.h` 9 APIは、構築時に大域色空間登録簿を
   必ず参照し、専用OBJECTへ移しても実色空間群または製品意味論を模倣する試験定義を要する。ほかの8 API以上の候補も実色空間、色変換、資源基底、
   OpenEXR・Imath動的library、または純粋仮想面の試験内再実装を必要とするため、第92便の第三実装担当は立てない。
+- `g92-paintop-curve-model`は受渡しcommit `cce56ac13241d09697e3d5b9bfd8e79e232ac573`を統合commit `7905da2d99`として取り込んだ。
+  開始ファイル`plugins/paintops/libpaintop/KisCurveOptionModel.cpp`を`kritalibpaintop_LIB_SRCS`から新規
+  `kritapaintopcurveoptionmodelobjects`へ移し、`kritalibpaintop`へ1回だけ再集約した。製品MOC所有は同headerを共有libraryのsourceとして明示して維持し、
+  試験だけが固有MOCを生成する。空1枠だった`plugins/paintops/libpaintop/tests/KisCurveOptionModelTest.cpp`を、型・所有、実効選択状態、強度変換、
+  曲線配送、label・sensor長の5契約枠へ置換し、同名`.h`を退役した。対象閉包は2,101工程・4,199入力から12工程・26入力へ縮小し、製品runtime
+  1,281工程・2,582入力と共有library 2,097工程・4,192入力は不変である。主環境で対象・近傍2件、20回反復、無作業再構築、動的接続、
+  公開API検査に成功した。差分同一性とcleanを確認後、297 MBの局所構築木を含む867 MBの作業ツリーと担当branchを削除した。
+- 第92便は合計41 APIを9契約枠へ追加し、公開面は1,549ヘッダー、29,838 API、対応済み9,522件、未対応20,316件、契約枠2,308件となった。
+  全担当作業ツリーと直前の不足一覧を削除した。5.2 GBの主増分構築木と共有compiler cache、最新
+  `build/tdd-macos/public-api-missing-g93.json`だけを保持する。次はこの一覧から第93便の限定構築候補を並列監査する。
 
 ### 第91並列便の監査計画
 

@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 20345
+    "expectedMissingApis": 20316
   },
   "contracts": [
     {
@@ -30225,6 +30225,80 @@
       "apis": [
         "method:KisCurveOptionData::sensorStruct()",
         "method:KisCurveOptionData::sensorStruct() const"
+      ]
+    },
+    {
+      "target": "KisCurveOptionModelTest",
+      "source": "plugins/paintops/libpaintop/tests/KisCurveOptionModelTest.cpp",
+      "test": "KisCurveOptionModelTest::typesConstructorAndRangeFactoryPreserveOwnership",
+      "behavior": "curve設定modelは公開状態型と入力cursorを保持し、範囲model factoryへ曲線・範囲・sensor識別子・長さを配送して返却modelを所有する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:LabelsState",
+        "alias:RangeState",
+        "alias:StrengthState",
+        "class:KisCurveOptionModel",
+        "member:KisCurveOptionModel::activeSensorIdData",
+        "member:KisCurveOptionModel::optionData",
+        "member:KisCurveOptionModel::rangeModel",
+        "member:KisCurveOptionModel::strengthRangeNorm",
+        "method:KisCurveOptionModel::KisCurveOptionModel(lager::cursor<KisCurveOptionDataCommon> optionData,lager::reader<bool> externallyEnabled,std::optional<lager::reader<RangeState>> strengthRangeOverride,qreal strengthDisplayMultiplier,KisCurveRangeModelFactory rangeModelFactory)",
+        "method:KisCurveOptionModel::~KisCurveOptionModel()"
+      ]
+    },
+    {
+      "target": "KisCurveOptionModelTest",
+      "source": "plugins/paintops/libpaintop/tests/KisCurveOptionModelTest.cpp",
+      "test": "KisCurveOptionModelTest::checkabilityAndExternalEnablementDriveEffectiveState",
+      "behavior": "curve設定modelは検査可能性と選択cursorを公開し、選択状態と外部有効状態の論理積を実効状態として同期する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCurveOptionModel::LAGER_QT_CURSOR(bool,isChecked)",
+        "method:KisCurveOptionModel::LAGER_QT_READER(bool,effectiveIsChecked)",
+        "method:KisCurveOptionModel::LAGER_QT_READER(bool,isCheckable)"
+      ]
+    },
+    {
+      "target": "KisCurveOptionModelTest",
+      "source": "plugins/paintops/libpaintop/tests/KisCurveOptionModelTest.cpp",
+      "test": "KisCurveOptionModelTest::strengthRangeClampsScalesAndBakes",
+      "behavior": "curve設定modelは上書き強度範囲で実効値を制限し、表示倍率との変換を往復させ、焼込み値へ実効範囲・強度・選択状態を反映する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCurveOptionModel::LAGER_QT_CURSOR(qreal,strengthValueDenorm)",
+        "method:KisCurveOptionModel::LAGER_QT_READER(StrengthState,effectiveStrengthStateDenorm)",
+        "method:KisCurveOptionModel::LAGER_QT_READER(qreal,effectiveStrengthValueNorm)",
+        "method:KisCurveOptionModel::bakedOptionData() const"
+      ]
+    },
+    {
+      "target": "KisCurveOptionModelTest",
+      "source": "plugins/paintops/libpaintop/tests/KisCurveOptionModelTest.cpp",
+      "test": "KisCurveOptionModelTest::curveControlsRouteCommonAndPerSensorState",
+      "behavior": "curve設定modelはcurve利用・共通利用・modeを元状態へ書き戻し、共通またはsensor固有の表示曲線を選んで範囲model経由で更新する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCurveOptionModel::LAGER_QT_CURSOR(QString,activeCurve)",
+        "method:KisCurveOptionModel::LAGER_QT_CURSOR(QString,displayedCurve)",
+        "method:KisCurveOptionModel::LAGER_QT_CURSOR(bool,useCurve)",
+        "method:KisCurveOptionModel::LAGER_QT_CURSOR(bool,useSameCurve)",
+        "method:KisCurveOptionModel::LAGER_QT_CURSOR(int,curveMode)"
+      ]
+    },
+    {
+      "target": "KisCurveOptionModelTest",
+      "source": "plugins/paintops/libpaintop/tests/KisCurveOptionModelTest.cpp",
+      "test": "KisCurveOptionModelTest::labelsAndLengthFollowInjectedRangeAndActiveSensor",
+      "behavior": "curve設定modelは注入範囲modelのUnicode軸labelを公開し、選択sensor識別子に対応する長さ・label組・固有曲線を同期する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCurveOptionModel::LAGER_QT_CURSOR(QString,activeSensorId)",
+        "method:KisCurveOptionModel::LAGER_QT_READER(LabelsState,labelsState)",
+        "method:KisCurveOptionModel::LAGER_QT_READER(QString,curveXMaxLabel)",
+        "method:KisCurveOptionModel::LAGER_QT_READER(QString,curveXMinLabel)",
+        "method:KisCurveOptionModel::LAGER_QT_READER(QString,curveYMaxLabel)",
+        "method:KisCurveOptionModel::LAGER_QT_READER(QString,curveYMinLabel)",
+        "method:KisCurveOptionModel::LAGER_QT_READER(int,activeSensorLength)"
       ]
     },
     {
