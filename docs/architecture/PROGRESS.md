@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 00:49 JST
+- 更新日時: 2026-09-01 01:03 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -32,7 +32,7 @@
 ### 第93並列便の担当計画
 
 - 実装共通基点は`3f8517c447d97535a5f1d8fe846d136758ec96e4`である。
-- `g93-image-do-nothing-visitor`は`in_progress`で、専用作業ツリーは
+- `g93-image-do-nothing-visitor`は`integrated`で、専用作業ツリーは
   `/Users/masato/Documents/librepaint-g93-image-do-nothing-visitor`である。対象headerは`libs/image/processing/kis_do_nothing_processing_visitor.h`のclass、destructor、
   12 `visit` overloadの全14 APIである。開始ファイル`libs/image/processing/kis_do_nothing_processing_visitor.cpp`を`kritaimage_LIB_SRCS`から新規
   `kritaimagedonothingprocessingvisitorobjects`へ一対一移動し、`kritaimage`へ1回だけ再集約する。許可pathは`libs/image/CMakeLists.txt`、
@@ -52,6 +52,17 @@
 - `g93-global-audit`は条件を満たす候補なしで完了した。`kis_acs_types.h`全10 APIは色配送に実`KoColor`製品実装を要し、残るBezier直列化は
   Qt Widgetsへ接続するDomUtils OBJECTを要する。残る代数関数は広い実装sourceへ混在し、使用記録はfilesystem・画面・大域状態、Android値は
   macOSで実行不能であるため、第93便のglobal実装担当は立てない。
+
+### 第93並列便の統合結果
+
+- `g93-image-do-nothing-visitor`は受渡しcommit `9f28c291255c4800969db9883448eba9540b7879`を統合commit `179bd94518`として取り込んだ。
+  開始ファイル`libs/image/processing/kis_do_nothing_processing_visitor.cpp`を`kritaimage_LIB_SRCS`から
+  `kritaimagedonothingprocessingvisitorobjects`へ移し、`kritaimage`へ1回だけ再集約した。製品headerと公開APIは変更していない。新規
+  `libs/image/tests/KisDoNothingProcessingVisitorContractTest.cpp`の4契約枠で、基底nodeとlayer群、生成・外部layer群、mask群へのnull入力の
+  無作用と、処理visitor基底からの仮想破棄を固定した。14 APIを追加し、対象11工程・18入力、製品`kritaimage` 1,189工程・2,397入力を
+  維持した。主環境で対象と`KisImageInterfacesContractTest`、対象20回反復、無作業再構築、動的接続、公開API検査に成功し、対応済みは
+  9,536件、未対応は20,302件となった。受渡し差分同一性と担当作業ツリーのcleanを確認した。担当作業ツリー835 MBの削除後、次に
+  `g93-painting-async-update`を統合する。
 
 ### 第92並列便の監査計画
 

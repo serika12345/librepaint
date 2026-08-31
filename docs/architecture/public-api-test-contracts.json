@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 20316
+    "expectedMissingApis": 20302
   },
   "contracts": [
     {
@@ -30938,6 +30938,56 @@
       "classification": "maintained",
       "apis": [
         "function:operator ==(const KisSpacingOptionMixInImpl & lhs,const KisSpacingOptionMixInImpl & rhs)"
+      ]
+    },
+    {
+      "target": "KisDoNothingProcessingVisitorContractTest",
+      "source": "libs/image/tests/KisDoNothingProcessingVisitorContractTest.cpp",
+      "test": "KisDoNothingProcessingVisitorContractTest::nodeAndPaintContainersAcceptNullInputs",
+      "behavior": "無処理visitorは基底node、描画layer、group layerへのnull対象とnull undo adapterを受理し、外部状態を要求せず復帰する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDoNothingProcessingVisitor::visit(KisGroupLayer * layer,KisUndoAdapter * undoAdapter)",
+        "method:KisDoNothingProcessingVisitor::visit(KisNode * node,KisUndoAdapter * undoAdapter)",
+        "method:KisDoNothingProcessingVisitor::visit(KisPaintLayer * layer,KisUndoAdapter * undoAdapter)"
+      ]
+    },
+    {
+      "target": "KisDoNothingProcessingVisitorContractTest",
+      "source": "libs/image/tests/KisDoNothingProcessingVisitorContractTest.cpp",
+      "test": "KisDoNothingProcessingVisitorContractTest::generatedAndExternalLayersAcceptNullInputs",
+      "behavior": "無処理visitorは調整、外部、生成、複製layerへのnull対象とnull undo adapterを受理し、外部状態を要求せず復帰する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDoNothingProcessingVisitor::visit(KisAdjustmentLayer * layer,KisUndoAdapter * undoAdapter)",
+        "method:KisDoNothingProcessingVisitor::visit(KisCloneLayer * layer,KisUndoAdapter * undoAdapter)",
+        "method:KisDoNothingProcessingVisitor::visit(KisExternalLayer * layer,KisUndoAdapter * undoAdapter)",
+        "method:KisDoNothingProcessingVisitor::visit(KisGeneratorLayer * layer,KisUndoAdapter * undoAdapter)"
+      ]
+    },
+    {
+      "target": "KisDoNothingProcessingVisitorContractTest",
+      "source": "libs/image/tests/KisDoNothingProcessingVisitorContractTest.cpp",
+      "test": "KisDoNothingProcessingVisitorContractTest::maskKindsAcceptNullInputs",
+      "behavior": "無処理visitorはfilter、transform、transparency、selection、colorize maskへのnull対象とnull undo adapterを受理し、外部状態を要求せず復帰する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDoNothingProcessingVisitor::visit(KisColorizeMask * mask,KisUndoAdapter * undoAdapter)",
+        "method:KisDoNothingProcessingVisitor::visit(KisFilterMask * mask,KisUndoAdapter * undoAdapter)",
+        "method:KisDoNothingProcessingVisitor::visit(KisSelectionMask * mask,KisUndoAdapter * undoAdapter)",
+        "method:KisDoNothingProcessingVisitor::visit(KisTransformMask * mask,KisUndoAdapter * undoAdapter)",
+        "method:KisDoNothingProcessingVisitor::visit(KisTransparencyMask * mask,KisUndoAdapter * undoAdapter)"
+      ]
+    },
+    {
+      "target": "KisDoNothingProcessingVisitorContractTest",
+      "source": "libs/image/tests/KisDoNothingProcessingVisitorContractTest.cpp",
+      "test": "KisDoNothingProcessingVisitorContractTest::virtualLifetimeDeletesThroughProcessingVisitor",
+      "behavior": "無処理visitorは処理visitor基底から破棄でき、派生型の破棄処理を一度だけ実行する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisDoNothingProcessingVisitor",
+        "method:KisDoNothingProcessingVisitor::~KisDoNothingProcessingVisitor()"
       ]
     }
   ]
