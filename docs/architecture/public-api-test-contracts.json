@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 20927
+    "expectedMissingApis": 20888
   },
   "contracts": [
     {
@@ -29257,6 +29257,180 @@
       "classification": "maintained",
       "apis": [
         "function:operator ==(const KisCompositeOpOptionData & lhs,const KisCompositeOpOptionData & rhs)"
+      ]
+    },
+    {
+      "target": "KoShapeResizeCommandContractTest",
+      "source": "libs/flake/tests/KoShapeResizeCommandContractTest.cpp",
+      "test": "KoShapeResizeCommandContractTest::capturesOriginalStateParentAndBorrowedLifetime",
+      "behavior": "shape寸法変更commandは構築時に各shapeの元寸法と変換を値として保存し、親commandへ子として登録され、借用shapeを所有せず基底pointerから破棄できる。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoShapeResizeCommand",
+        "method:KoShapeResizeCommand::KoShapeResizeCommand(const QList<KoShape * > & shapes,qreal scaleX,qreal scaleY,const QPointF & absoluteStillPoint,bool useGLobalMode,bool usePostScaling,const QTransform & postScalingCoveringTransform,KUndo2Command * parent=0)",
+        "method:KoShapeResizeCommand::~KoShapeResizeCommand()"
+      ]
+    },
+    {
+      "target": "KoShapeResizeCommandContractTest",
+      "source": "libs/flake/tests/KoShapeResizeCommandContractTest.cpp",
+      "test": "KoShapeResizeCommandContractTest::redoAndUndoUseSingleLocksAndOrderedStates",
+      "behavior": "shape寸法変更commandは再実行で保存済みscaleと基準点を配送し、取消で構築時の寸法と変換を復元し、各操作を単一lockから一括更新までの順序で完了する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShapeResizeCommand::redoImpl()",
+        "method:KoShapeResizeCommand::undoImpl()"
+      ]
+    },
+    {
+      "target": "KoShapeResizeCommandContractTest",
+      "source": "libs/flake/tests/KoShapeResizeCommandContractTest.cpp",
+      "test": "KoShapeResizeCommandContractTest::replaceRestoresThenAppliesInsideOneLock",
+      "behavior": "shape寸法変更commandの置換は一つのlock内で元状態を復元してから新しいscaleと基準点を適用し、既存の後段scale設定を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShapeResizeCommand::replaceResizeAction(qreal scaleX,qreal scaleY,const QPointF & absoluteStillPoint)"
+      ]
+    },
+    {
+      "target": "KoShapeResizeCommandContractTest",
+      "source": "libs/flake/tests/KoShapeResizeCommandContractTest.cpp",
+      "test": "KoShapeResizeCommandContractTest::mergeRequiresCompatibleModeAndMultipliesScales",
+      "behavior": "shape寸法変更commandはshape列、基準点、方式、主要scale方向が一致する同型commandだけを統合し、X・Yのscaleをそれぞれ乗算する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShapeResizeCommand::mergeWith(const KUndo2Command * command)"
+      ]
+    },
+    {
+      "target": "KoShapeResizeCommandContractTest",
+      "source": "libs/flake/tests/KoShapeResizeCommandContractTest.cpp",
+      "test": "KoShapeResizeCommandContractTest::reportsResizeIdentity",
+      "behavior": "shape寸法変更commandは既存の寸法変更command識別子を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShapeResizeCommand::id() const"
+      ]
+    },
+    {
+      "target": "KisImageAnimSettingCommandContractTest",
+      "source": "libs/image/tests/KisImageAnimSettingCommandContractTest.cpp",
+      "test": "KisImageAnimSettingCommandContractTest::settingsDefaultsAndConstructionRestrictionsAreStable",
+      "behavior": "画像animation設定commandの設定値はFPS 0、開始frame 0、終了frame 24を既定値とし、command本体は既定構築、複製構築、代入を許可しない。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisImageAnimSettingCommand::Settings::FPS",
+        "member:KisImageAnimSettingCommand::Settings::endFrame",
+        "member:KisImageAnimSettingCommand::Settings::startFrame",
+        "method:KisImageAnimSettingCommand::KisImageAnimSettingCommand()",
+        "method:KisImageAnimSettingCommand::KisImageAnimSettingCommand(const KisImageAnimSettingCommand &)",
+        "method:KisImageAnimSettingCommand::operator =(const KisImageAnimSettingCommand &)",
+        "struct:KisImageAnimSettingCommand::Settings"
+      ]
+    },
+    {
+      "target": "KisImageAnimSettingCommandContractTest",
+      "source": "libs/image/tests/KisImageAnimSettingCommandContractTest.cpp",
+      "test": "KisImageAnimSettingCommandContractTest::constructionCapturesBeforeValuesAndParent",
+      "behavior": "画像animation設定commandは構築時のFPSと再生範囲を変更前値として採取し、変更後値を値で保持して親commandへ子として登録される。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisImageAnimSettingCommand",
+        "method:KisImageAnimSettingCommand::KisImageAnimSettingCommand(KisImageAnimationInterface * const p_animInterface,Settings p_after,KUndo2Command * parent=nullptr)"
+      ]
+    },
+    {
+      "target": "KisImageAnimSettingCommandContractTest",
+      "source": "libs/image/tests/KisImageAnimSettingCommandContractTest.cpp",
+      "test": "KisImageAnimSettingCommandContractTest::redoAndUndoDispatchAfterAndBeforeInOrder",
+      "behavior": "画像animation設定commandは再実行で変更後値、取消で構築時の変更前値を、基底処理後にFPSから再生範囲の順で配送する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisImageAnimSettingCommand::redo()",
+        "method:KisImageAnimSettingCommand::undo()"
+      ]
+    },
+    {
+      "target": "KisImageAnimSettingCommandContractTest",
+      "source": "libs/image/tests/KisImageAnimSettingCommandContractTest.cpp",
+      "test": "KisImageAnimSettingCommandContractTest::idAndMergeCompatibilityAreStable",
+      "behavior": "画像animation設定commandは既存識別子を返し、同じ具体型を統合可能と判定して異なるcommand型を拒否する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisImageAnimSettingCommand::canMergeWith(const KUndo2Command * command) const",
+        "method:KisImageAnimSettingCommand::id() const"
+      ]
+    },
+    {
+      "target": "KisImageAnimSettingCommandContractTest",
+      "source": "libs/image/tests/KisImageAnimSettingCommandContractTest.cpp",
+      "test": "KisImageAnimSettingCommandContractTest::mergeRetainsFirstBeforeAndUsesLastAfter",
+      "behavior": "画像animation設定commandの統合は最初の変更前値を保持し、最後のcommandの変更後値を採用する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisImageAnimSettingCommand::mergeWith(const KUndo2Command * p_next)"
+      ]
+    },
+    {
+      "target": "KoAlphaDarkenParamsWrapperContractTest",
+      "source": "libs/pigment/tests/KoAlphaDarkenParamsWrapperContractTest.cpp",
+      "test": "KoAlphaDarkenParamsWrapperContractTest::hardWrapperMapsFlowWeightedParameters",
+      "behavior": "硬質alpha darken引数束は入力のopacityへflowを乗じ、flowと直前の平均opacityを個別memberへ写す。",
+      "classification": "maintained",
+      "apis": [
+        "member:KoAlphaDarkenParamsWrapperHard::averageOpacity",
+        "member:KoAlphaDarkenParamsWrapperHard::flow",
+        "member:KoAlphaDarkenParamsWrapperHard::opacity",
+        "method:KoAlphaDarkenParamsWrapperHard::KoAlphaDarkenParamsWrapperHard(const KoCompositeOp::ParameterInfo & params)",
+        "struct:KoAlphaDarkenParamsWrapperHard"
+      ]
+    },
+    {
+      "target": "KoAlphaDarkenParamsWrapperContractTest",
+      "source": "libs/pigment/tests/KoAlphaDarkenParamsWrapperContractTest.cpp",
+      "test": "KoAlphaDarkenParamsWrapperContractTest::creamyWrapperPreservesParameters",
+      "behavior": "クリーミーalpha darken引数束は入力のopacity、flow、直前の平均opacityを変更せず個別memberへ写す。",
+      "classification": "maintained",
+      "apis": [
+        "member:KoAlphaDarkenParamsWrapperCreamy::averageOpacity",
+        "member:KoAlphaDarkenParamsWrapperCreamy::flow",
+        "member:KoAlphaDarkenParamsWrapperCreamy::opacity",
+        "method:KoAlphaDarkenParamsWrapperCreamy::KoAlphaDarkenParamsWrapperCreamy(const KoCompositeOp::ParameterInfo & params)",
+        "struct:KoAlphaDarkenParamsWrapperCreamy"
+      ]
+    },
+    {
+      "target": "KoAlphaDarkenParamsWrapperContractTest",
+      "source": "libs/pigment/tests/KoAlphaDarkenParamsWrapperContractTest.cpp",
+      "test": "KoAlphaDarkenParamsWrapperContractTest::hardZeroFlowCombinesSourceAndDestination",
+      "behavior": "硬質alpha darken方式の3入口はsourceとdestinationの透明度を同じzero-flow合成則で結合し、正規化済み浮動小数と旧整数表現の境界値を保つ。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoAlphaDarkenParamsWrapperHard::calculateZeroFlowAlpha(T srcAlpha,T dstAlpha)",
+        "method:KoAlphaDarkenParamsWrapperHard::calculateZeroFlowAlpha(T srcAlpha,T dstAlpha,T normCoeff)",
+        "method:KoAlphaDarkenParamsWrapperHard::calculateZeroFlowAlphaLegacy(channels_type srcAlpha,channels_type dstAlpha)"
+      ]
+    },
+    {
+      "target": "KoAlphaDarkenParamsWrapperContractTest",
+      "source": "libs/pigment/tests/KoAlphaDarkenParamsWrapperContractTest.cpp",
+      "test": "KoAlphaDarkenParamsWrapperContractTest::creamyZeroFlowPreservesDestination",
+      "behavior": "クリーミーalpha darken方式の3入口はzero-flow時にdestinationの透明度を保持し、正規化係数と数値表現に依存しない。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoAlphaDarkenParamsWrapperCreamy::calculateZeroFlowAlpha(T srcAlpha,T dstAlpha)",
+        "method:KoAlphaDarkenParamsWrapperCreamy::calculateZeroFlowAlpha(T srcAlpha,T dstAlpha,T normCoeff)",
+        "method:KoAlphaDarkenParamsWrapperCreamy::calculateZeroFlowAlphaLegacy(channels_type srcAlpha,channels_type dstAlpha)"
+      ]
+    },
+    {
+      "target": "KoAlphaDarkenParamsWrapperContractTest",
+      "source": "libs/pigment/tests/KoAlphaDarkenParamsWrapperContractTest.cpp",
+      "test": "KoAlphaDarkenParamsWrapperContractTest::configurationIsReadOnce",
+      "behavior": "alpha darken方式選択は隔離済み設定の互換値falseを初回に読み取り、同じプロセス内ではその結果を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:useCreamyAlphaDarken()"
       ]
     }
   ]

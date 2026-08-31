@@ -2,55 +2,42 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-31 17:08 JST
+- 更新日時: 2026-08-31 17:34 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
 
-### 第83並列便の担当票
+### 第83並列便の完了結果
 
-- shape寸法変更command担当は`implementing`である。基点は`dae71478f9b1c023082fff7407cfa14d7f088165`、作業ツリーは
-  `/Users/masato/Documents/librepaint-r2-g83-shape-resize`、ブランチは`r2-g83-shape-resize`、統合順は1である。
-  対象は`libs/flake/commands/KoShapeResizeCommand.h`の8 APIである。
-  開始ファイル`libs/flake/commands/KoShapeResizeCommand.cpp`を`kritaflake_SRCS`の直接収容から
-  `kritaflakeshaperesizecommandobjects`へ移し、製品`kritaflake`へ一度だけ再集約する。新規
+- shape寸法変更command担当は`integrated`である。受渡しcommitは
+  `90d5cd3fdd0fcf4166ac51eca92c3f66799b1613`、統合commitは`64b9501b8c`であり、担当作業ツリー、局所構築木、
+  担当ブランチは削除済みである。対象は`libs/flake/commands/KoShapeResizeCommand.h`の8 APIである。開始ファイル
+  `libs/flake/commands/KoShapeResizeCommand.cpp`を`kritaflake_SRCS`の直接収容から
+  `kritaflakeshaperesizecommandobjects`へ移し、製品`kritaflake`へ一度だけ再集約した。新規
   `libs/flake/tests/KoShapeResizeCommandContractTest.cpp`が構築時の元寸法・変換・借用shape、redo・undoの単一lock配送、
   replace時の復元から再適用までの順序、merge条件とscale累積、識別子を5契約枠で固定する。寸法・変換の読取、
-  寸法変更、元状態復元、scale方向判定は開始実装の`BUILD_TESTING`限定配送を介し、既定配送は実shapeの現行処理と
-  一括更新順を保つ。予測閉包5工程・11実入力、停止条件6工程・14実入力、製品閉包612工程・1,256入力不変を要求する。
-  許可範囲は`libs/flake/CMakeLists.txt`、開始実装、`libs/flake/tests/CMakeLists.txt`、新規試験である。
-- 画像animation設定command担当は`implementing`である。基点は`dae71478f9b1c023082fff7407cfa14d7f088165`、作業ツリーは
-  `/Users/masato/Documents/librepaint-r2-g83-image-anim-settings`、ブランチは`r2-g83-image-anim-settings`、統合順は2である。
-  対象は
-  `libs/image/commands_new/KisImageAnimSettingCommand.h`の14 APIである。開始ファイル
-  `libs/image/commands_new/KisImageAnimSettingCommand.cpp`を`kritaimage_LIB_SRCS`の直接収容から
-  `kritaimageanimsettingcommandobjects`へ移し、製品`kritaimage`へ一度だけ再集約する。新規非公開
-  `libs/image/commands_new/KisImageAnimSettingCommandAnimationAccess_p.h`のFPS・再生範囲の読取と設定を開始元
+  寸法変更、元状態復元、scale方向判定は開始実装の試験限定配送を介し、既定配送は実shapeの現行処理と一括更新順を
+  保つ。
+- 画像animation設定command担当は`integrated`である。受渡しcommitは
+  `fa73320c6fb7f63b22a1456a8b177b5ebdaf1285`、統合commitは`6939f5748d`であり、担当作業ツリー、局所構築木、
+  担当ブランチは削除済みである。対象は`libs/image/commands_new/KisImageAnimSettingCommand.h`の14 APIである。
+  開始ファイル`libs/image/commands_new/KisImageAnimSettingCommand.cpp`を`kritaimage_LIB_SRCS`の直接収容から
+  `kritaimageanimsettingcommandobjects`へ移し、製品`kritaimage`へ一度だけ再集約した。FPS・再生範囲の読取と設定は
+  新規非公開`libs/image/commands_new/KisImageAnimSettingCommandAnimationAccess_p.h`から開始元
   `libs/image/kis_image_animation_interface.cpp`の現行処理へ委譲する。新規
-  `libs/image/tests/KisImageAnimSettingCommandContractTest.cpp`がSettings既定値・型と削除済み操作、構築時の変更前値、
-  redo・undoのFPSから範囲への配送順、識別子と型別merge可否、最初の変更前値と最後の変更後値の統合を5契約枠で
-  固定する。予測閉包11工程・24実入力、停止条件12工程・27実入力、製品閉包1,184工程・2,392入力不変を要求する。
-  許可範囲は`libs/image/CMakeLists.txt`、開始実装、新規非公開header、開始元interface実装、
-  `libs/image/tests/CMakeLists.txt`、新規試験である。
-- alpha darken引数束担当は`implementing`である。基点は`dae71478f9b1c023082fff7407cfa14d7f088165`、作業ツリーは
-  `/Users/masato/Documents/librepaint-r2-g83-alpha-darken`、ブランチは`r2-g83-alpha-darken`、統合順は3である。
-  対象は
-  `libs/pigment/compositeops/KoAlphaDarkenParamsWrapper.h`の17 APIである。開始ファイル
-  `libs/pigment/compositeops/KoAlphaDarkenParamsWrapper.cpp`を`kritapigment_SRCS`の直接収容から
-  `kritapigmentalphadarkenparamswrapperobjects`へ移し、製品`kritapigment`へ一度だけ再集約する。新規
+  `libs/image/tests/KisImageAnimSettingCommandContractTest.cpp`がSettings既定値と構築制約、構築時の変更前値、
+  redo・undoの配送順、識別子と型別merge可否、最初の変更前値と最後の変更後値の統合を5契約枠で固定する。
+- alpha darken引数束担当は`integrated`である。受渡しcommitは
+  `2c046b33db5396453446ef0c46edfdb6afde7b7b`、統合commitは`68e31a73b8`であり、担当作業ツリー、局所構築木、
+  担当ブランチは削除済みである。対象は`libs/pigment/compositeops/KoAlphaDarkenParamsWrapper.h`の17 APIである。
+  開始ファイル`libs/pigment/compositeops/KoAlphaDarkenParamsWrapper.cpp`を`kritapigment_SRCS`の直接収容から
+  `kritapigmentalphadarkenparamswrapperobjects`へ移し、製品`kritapigment`へ一度だけ再集約した。新規
   `libs/pigment/tests/KoAlphaDarkenParamsWrapperContractTest.cpp`が硬質方式とクリーミー方式への3値配送、両方式の
   3種zero-flow合成則、隔離した設定領域からの方式選択と初回読取cacheを5契約枠で固定する。製品sourceと公開headerの
-  内容は変更しない。予測閉包5工程・11実入力、停止条件6工程・14実入力、製品閉包360工程・750入力不変を要求する。
-  許可範囲は`libs/pigment/CMakeLists.txt`、`libs/pigment/tests/CMakeLists.txt`、新規試験である。
-- 3担当は同じ基準commitから専用作業ツリーを作り、Git操作権限は`transport-commit`、追加委任は`forbidden`、
-  対象プラットフォームはmacOS、共有コンパイラーキャッシュは主作業ツリーの既定位置、構築実行許可は`granted`とする。
-  統合順はshape寸法変更command、画像animation設定command、alpha darken引数束である。中央進捗文書、公開API対応表、
-  不足一覧は調整担当だけが更新する。各担当差分の統合直後に担当作業ツリー、局所構築木、担当ブランチを削除する。
-  旧不足一覧は新しい一覧の件数確認直後に削除し、再生成可能な一覧を常に最新1世代へ限定する。製品objectをNinjaで
-  直接指定せず、変更した製品開始ファイルは既存コンパイル指令の`-fsyntax-only`検査を使う。
-- 第83便は合計39 APIを対応付け、対応済み9,101件、未対応20,888件を目標とする。
+  内容は変更していない。
+- 第83便は合計39 APIを対応付け、対応済み9,101件、未対応20,888件を達成した。
 
 ### 第82並列便の完了結果
 
@@ -274,39 +261,37 @@
 
 ### 現在の結果
 
-- 第82並列便はpath point移動command 8 API、subpixel random accessor 7 API、composite operation option data
-  7 APIの合計22 APIを挙動契約へ対応付けた。公開面は1,549ヘッダー、29,989 API、対応済み9,062件、
-  未対応20,927件である。
-- 開始ファイル`libs/flake/commands/KoPathPointMoveCommand.cpp`は
-  `kritaflakepathpointmovecommandobjects`へ移り、製品`kritaflake`へ一度だけ再集約される。新規
-  `libs/flake/tests/KoPathPointMoveCommandContractTest.cpp`が構築値、redo・undo、識別子とmerge、借用寿命を
-  4契約枠で固定する。
-- 開始ファイル`libs/image/kis_random_sub_accessor.cpp`は`kritaimagerandomsubaccessorobjects`へ移り、製品
-  `kritaimage`へ一度だけ再集約される。random accessor生成と色混合は非公開
-  `libs/image/KisRandomSubAccessorPaintDeviceAccess_p.h`から開始元`libs/image/kis_paint_device.cc`へ委譲される。
-  新規`libs/image/tests/KisRandomSubAccessorContractTest.cpp`が強所有、移動と双線形重み、旧・現在画素、共有寿命を
-  4契約枠で固定する。
-- 開始ファイル`plugins/paintops/libpaintop/KisCompositeOpOptionData.cpp`は
-  `kritapaintopcompositeopoptiondataobjects`へ移り、製品`kritalibpaintop`へ一度だけ再集約される。既定値の直接定数を
-  使用して不要なregistry依存を除き、新規`plugins/paintops/libpaintop/tests/KisCompositeOpOptionDataContractTest.cpp`が
-  既定値と型、設定read・write、等価判定を4契約枠で固定する。
-- 統合後の限定閉包は`KoPathPointMoveCommandContractTest` 5工程・11実入力、
-  `KisRandomSubAccessorContractTest` 8工程・17実入力、`KisCompositeOpOptionDataContractTest` 5工程・11実入力である。
-  製品閉包は`kritaflake` 612工程・1,256入力、`kritaimage` 1,184工程・2,392入力、`kritalibpaintop`
-  2,097工程・4,192入力、`kritapaintopruntime` 1,281工程・2,582入力で不変である。
+- 第83並列便はshape寸法変更command 8 API、画像animation設定command 14 API、alpha darken引数束17 APIの
+  合計39 APIを挙動契約へ対応付けた。公開面は1,549ヘッダー、29,989 API、対応済み9,101件、未対応20,888件である。
+- 開始ファイル`libs/flake/commands/KoShapeResizeCommand.cpp`は`kritaflakeshaperesizecommandobjects`へ移り、
+  製品`kritaflake`へ一度だけ再集約される。新規`libs/flake/tests/KoShapeResizeCommandContractTest.cpp`が構築状態と
+  借用寿命、redo・undo、replace、merge、識別子を5契約枠で固定する。
+- 開始ファイル`libs/image/commands_new/KisImageAnimSettingCommand.cpp`は
+  `kritaimageanimsettingcommandobjects`へ移り、製品`kritaimage`へ一度だけ再集約される。FPS・再生範囲の4操作は
+  非公開配送面から開始元`libs/image/kis_image_animation_interface.cpp`へ委譲される。新規
+  `libs/image/tests/KisImageAnimSettingCommandContractTest.cpp`が設定値、構築時採取、redo・undo、識別子とmergeを
+  5契約枠で固定する。
+- 開始ファイル`libs/pigment/compositeops/KoAlphaDarkenParamsWrapper.cpp`は
+  `kritapigmentalphadarkenparamswrapperobjects`へ移り、製品`kritapigment`へ一度だけ再集約される。新規
+  `libs/pigment/tests/KoAlphaDarkenParamsWrapperContractTest.cpp`が二つの引数束、zero-flow合成、方式選択cacheを
+  5契約枠で固定する。
+- 統合後の限定閉包は`KoShapeResizeCommandContractTest` 5工程・11実入力、
+  `KisImageAnimSettingCommandContractTest` 11工程・24実入力、`KoAlphaDarkenParamsWrapperContractTest`
+  5工程・11実入力である。製品閉包は`kritaflake` 612工程・1,256入力、`kritaimage` 1,184工程・2,392入力、
+  `kritapigment` 360工程・750入力で不変である。
 - 主作業ツリーはCMake構成を一度だけ同期し、3限定対象だけを一つの命令で構築した。3対象と9軽量近傍はCTest
-  12/12に成功し、3対象は各20回反復、全12契約枠の指定実行、再構築時の無作業確認に成功した。macOSの
-  パッケージ境界は1,632対象、公開API契約検査は9,062/29,989件で成功した。3対象の動的依存にLibrePaint製品共有
-  ライブラリー、Qt Widgets、`kritatestsdk`は含まれない。製品全体の構築・リンクとLinux検証は限定閉包を越えるため
-  実施していない。
-- 担当作業ツリー3本、合計852 MBの局所構築木、担当ブランチは各統合直後に削除した。旧第82便不足一覧を削除し、
-  最新の第83便不足一覧`build/tdd-macos/public-api-missing-g83.json` 5.1 MBだけを保持する。主増分構築木は5.1 GBを
+  12/12に成功し、3対象は各20回反復、全15契約枠の指定実行、再構築時の無作業確認に成功した。macOSの
+  パッケージ境界は1,638対象、公開API契約検査は9,101/29,989件で成功した。動的依存にはLibrePaint製品共有
+  ライブラリーと`kritatestsdk`を含まず、画像対象のQt Widgetsはundo commandの直接依存、Qt Xmlは時間範囲の公開値型が
+  必要とする直接依存である。製品全体の構築・リンクとLinux検証は限定閉包を越えるため実施していない。
+- 担当作業ツリー3本、合計817 MBの局所構築木、担当ブランチは各統合直後に削除した。旧第83便不足一覧を削除し、
+  最新の第84便不足一覧`build/tdd-macos/public-api-missing-g84.json` 5.1 MBだけを保持する。主増分構築木は5.2 GBを
   維持する。
 
 ### 次の操作
 
-- 第83並列便の3担当作業ツリーを計画commitから作成し、限定構築と挙動契約の実装を開始する。完了担当から順に
-  差分と検証証拠を確認して統合し、担当作業ツリー、局所構築木、担当ブランチを直ちに削除する。
+- 第84便不足一覧から公開header、製品source、試験source、CMake所有が重ならない3候補を監査する。各候補の直接依存、
+  変更なし計画、空構築閉包を測定し、停止条件内の候補だけを次の並列担当票へ確定する。
 
 ## 再開環境
 
