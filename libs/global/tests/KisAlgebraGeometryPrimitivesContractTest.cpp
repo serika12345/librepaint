@@ -36,6 +36,11 @@ private Q_SLOTS:
     void unitNormalsPreserveOrientation();
     void anglesReportRotationDirectionAndCoincidentDefault();
     void signHelpersDefineZeroAndCopiedSign();
+    void interpolationAndRoundingPreserveScalarAndPointValues();
+    void floorDivisionAndRangeHelpersHandleBoundaries();
+    void wrappingNormalizesIntegralFloatingAndShiftedRanges();
+    void rectangleAndDimensionHelpersPreserveGeometry();
+    void relativeAndAbsoluteConversionsRoundTripValues();
 };
 
 void KisAlgebraGeometryPrimitivesContractTest::rightHalfPlaneReportsSignedDistanceAndLine()
@@ -163,6 +168,67 @@ void KisAlgebraGeometryPrimitivesContractTest::signHelpersDefineZeroAndCopiedSig
     const qreal positiveFromNegativeZero = KisAlgebra2D::copysign(negativeZero, -2.0);
     QCOMPARE(positiveFromNegativeZero, 0.0);
     QVERIFY(!std::signbit(positiveFromNegativeZero));
+}
+
+void KisAlgebraGeometryPrimitivesContractTest::interpolationAndRoundingPreserveScalarAndPointValues()
+{
+    QCOMPARE(KisAlgebra2D::lerp(QPointF(2.0, -4.0), QPointF(10.0, 8.0), 0.25), QPointF(4.0, -1.0));
+    QCOMPARE(KisAlgebra2D::linearReshapeFunc(4.0, 2.0, 6.0, 10.0, 30.0), 20.0);
+    QCOMPARE(KisAlgebra2D::lazyRound<int>(2.49), 2);
+    QCOMPARE(KisAlgebra2D::lazyRound<int>(-2.5), -3);
+    QCOMPARE(KisAlgebra2D::lazyRound<qreal>(2.49), 2.49);
+}
+
+void KisAlgebraGeometryPrimitivesContractTest::floorDivisionAndRangeHelpersHandleBoundaries()
+{
+    QCOMPARE(KisAlgebra2D::divideFloor(7, 3), 2);
+    QCOMPARE(KisAlgebra2D::divideFloor(-7, 3), -3);
+    QCOMPARE(KisAlgebra2D::divideFloor(7, -3), -3);
+    QCOMPARE(KisAlgebra2D::divideFloor(-7, -3), 2);
+    QVERIFY(KisAlgebra2D::isInRange(5, 2, 5));
+    QVERIFY(KisAlgebra2D::isInRange(3, 5, 2));
+    QVERIFY(!KisAlgebra2D::isInRange(6, 2, 5));
+    QCOMPARE(KisAlgebra2D::clampPoint(QPoint(-4, 20), QRect(1, 2, 7, 9)), QPoint(1, 10));
+}
+
+void KisAlgebraGeometryPrimitivesContractTest::wrappingNormalizesIntegralFloatingAndShiftedRanges()
+{
+    QCOMPARE(KisAlgebra2D::wrapValue(-1, 8), 7);
+    QCOMPARE(KisAlgebra2D::wrapValue(17, 8), 1);
+    QVERIFY(closeReal(KisAlgebra2D::wrapValue(-0.5, 2.0), 1.5));
+    QCOMPARE(KisAlgebra2D::wrapValue(12, 3, 8), 7);
+    QCOMPARE(KisAlgebra2D::wrapValue(2, 3, 8), 7);
+}
+
+void KisAlgebraGeometryPrimitivesContractTest::rectangleAndDimensionHelpersPreserveGeometry()
+{
+    QCOMPARE(KisAlgebra2D::createRectFromCorners(QPoint(8, 3), QPoint(2, 11)), QRect(2, 3, 6, 8));
+    QCOMPARE(KisAlgebra2D::createRectFromCorners(QLineF(QPointF(8.0, 3.0), QPointF(2.0, 11.0))),
+             QRectF(2.0, 3.0, 6.0, 8.0));
+    QCOMPARE(KisAlgebra2D::blowRect(QRectF(10.0, 20.0, 4.0, 6.0), 0.5), QRectF(8.0, 17.0, 8.0, 12.0));
+    QCOMPARE(KisAlgebra2D::ensureSizeNotSmaller(QSize(-2, 9), QSize(5, 7)), QSize(-5, 9));
+    QCOMPARE(KisAlgebra2D::maxDimension(QSize(4, 9)), 9);
+    QCOMPARE(KisAlgebra2D::minDimension(QSize(4, 9)), 4);
+}
+
+void KisAlgebraGeometryPrimitivesContractTest::relativeAndAbsoluteConversionsRoundTripValues()
+{
+    const QRectF bounds(10.0, 20.0, 40.0, 20.0);
+    const QPointF relativePoint(0.25, 0.75);
+    const QRectF relativeRect(0.1, 0.2, 0.4, 0.5);
+    const qreal relativeValue = 0.5;
+
+    const QPointF absolutePoint = KisAlgebra2D::relativeToAbsolute(relativePoint, bounds);
+    QCOMPARE(absolutePoint, QPointF(20.0, 35.0));
+    QVERIFY(closePoint(KisAlgebra2D::absoluteToRelative(absolutePoint, bounds), relativePoint));
+
+    const QRectF absoluteRect = KisAlgebra2D::relativeToAbsolute(relativeRect, bounds);
+    QCOMPARE(absoluteRect, QRectF(14.0, 24.0, 16.0, 10.0));
+    QCOMPARE(KisAlgebra2D::absoluteToRelative(absoluteRect, bounds), relativeRect);
+
+    const qreal absoluteValue = KisAlgebra2D::relativeToAbsolute(relativeValue, bounds);
+    QVERIFY(closeReal(absoluteValue, 5.0 * std::sqrt(10.0)));
+    QVERIFY(closeReal(KisAlgebra2D::absoluteToRelative(absoluteValue, bounds), relativeValue));
 }
 
 QTEST_GUILESS_MAIN(KisAlgebraGeometryPrimitivesContractTest)
