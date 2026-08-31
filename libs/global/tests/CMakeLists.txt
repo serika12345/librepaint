@@ -57,9 +57,19 @@ target_compile_definitions(KisGlobalValuesContractTest PRIVATE kritaglobal_EXPOR
 kis_add_test(
     KisBezierMeshValuesContractTest.cpp
     LINK_LIBRARIES
+        kritaglobalalgebradirectionobjects
+        kritaglobalbeziercurvelengthobjects
+        kritaglobalbeziermeshobjects
+        kritaglobalbezierpatchobjects
+        kritaglobalbezierutilsobjects
+        kritaglobaldebugobjects
+        kritaglobaldomutilsobjects
         Qt${QT_MAJOR_VERSION}::Core
         Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Widgets
+        Qt${QT_MAJOR_VERSION}::Xml
         Qt${QT_MAJOR_VERSION}::Test
+        KF${KF_MAJOR}::I18n
         Boost::boost
 )
 target_include_directories(KisBezierMeshValuesContractTest PRIVATE

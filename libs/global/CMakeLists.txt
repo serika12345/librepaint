@@ -21,6 +21,8 @@ target_link_libraries(kritaglobalalgebradirectionobjects
     PUBLIC
         Qt${QT_MAJOR_VERSION}::Core
         Qt${QT_MAJOR_VERSION}::Gui
+    PRIVATE
+        Eigen3::Eigen
 )
 set_target_properties(kritaglobalalgebradirectionobjects PROPERTIES
     AUTOMOC OFF
@@ -380,6 +382,31 @@ set_target_properties(kritaglobaldomutilsobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaglobalbeziermeshobjects OBJECT
+    KisBezierMesh.cpp
+)
+target_compile_definitions(kritaglobalbeziermeshobjects PRIVATE kritaglobal_EXPORTS)
+target_include_directories(kritaglobalbeziermeshobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaglobalbeziermeshobjects
+    PUBLIC
+        kritaglobaldebugobjects
+        kritaglobaldomutilsobjects
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Widgets
+        Qt${QT_MAJOR_VERSION}::Xml
+        KF${KF_MAJOR}::I18n
+        Boost::boost
+)
+set_target_properties(kritaglobalbeziermeshobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaglobalconfignotifierobjects OBJECT
     kis_config_notifier.cpp
     kis_config_notifier.h
@@ -694,7 +721,6 @@ set(kritaglobal_LIB_SRCS
     kis_assert.cpp
     kis_algebra_2d.cpp
     KisUsageLogger.cpp
-    KisBezierMesh.cpp
     KisNodeAdditionFlags.h
     KisMessageBoxWrapper.cpp
 )
@@ -735,6 +761,7 @@ kis_add_library(kritaglobal SHARED
     $<TARGET_OBJECTS:kritaglobalmemoryleaktrackerobjects>
     $<TARGET_OBJECTS:kritaglobaldebugobjects>
     $<TARGET_OBJECTS:kritaglobaldomutilsobjects>
+    $<TARGET_OBJECTS:kritaglobalbeziermeshobjects>
     $<TARGET_OBJECTS:kritaglobalconfignotifierobjects>
     $<TARGET_OBJECTS:kritaglobalpaintingtweaksobjects>
     $<TARGET_OBJECTS:kritaglobalhandlestyleobjects>
