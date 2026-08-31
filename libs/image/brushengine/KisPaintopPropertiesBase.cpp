@@ -5,20 +5,15 @@
  */
 
 #include "KisPaintopPropertiesBase.h"
-#include <KisResourcesInterface.h>
-
 
 KisPaintopPropertiesResourcesBase::~KisPaintopPropertiesResourcesBase()
 {
-
 }
 
 KisPaintopPropertiesBase::~KisPaintopPropertiesBase()
 {
 }
 
-
 KisPaintopPropertiesCanvasResourcesBase::~KisPaintopPropertiesCanvasResourcesBase()
 {
-
 }

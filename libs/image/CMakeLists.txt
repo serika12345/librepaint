@@ -649,6 +649,23 @@ set_target_properties(kritaimagebaseaccessorobjects PROPERTIES
    POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaimagepaintoppropertiesbaseobjects OBJECT
+   brushengine/KisPaintopPropertiesBase.cpp
+)
+target_compile_definitions(kritaimagepaintoppropertiesbaseobjects PRIVATE kritaimage_EXPORTS)
+target_include_directories(kritaimagepaintoppropertiesbaseobjects
+   PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritaimagepaintoppropertiesbaseobjects PUBLIC Qt${QT_MAJOR_VERSION}::Core)
+set_target_properties(kritaimagepaintoppropertiesbaseobjects PROPERTIES
+   AUTOMOC OFF
+   POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaimageselectioncomponentobjects OBJECT
    kis_selection_component.cc
 )
@@ -1567,7 +1584,6 @@ set(kritaimage_LIB_SRCS
    brushengine/kis_paintop_preset.cpp
    brushengine/kis_paintop_registry.cc
    brushengine/kis_paintop_settings.cpp
-   brushengine/KisPaintopPropertiesBase.cpp
    brushengine/kis_paintop_utils.cpp
    brushengine/kis_no_size_paintop_settings.cpp
    brushengine/kis_locked_properties.cc
@@ -1839,6 +1855,7 @@ kis_add_library(kritaimage SHARED
    $<TARGET_OBJECTS:kritaimageprojectionupdatesfilterobjects>
    $<TARGET_OBJECTS:kritaimagedefaultboundsbaseobjects>
    $<TARGET_OBJECTS:kritaimagebaseaccessorobjects>
+   $<TARGET_OBJECTS:kritaimagepaintoppropertiesbaseobjects>
    $<TARGET_OBJECTS:kritaimageselectioncomponentobjects>
    $<TARGET_OBJECTS:kritaimageprojectionplaneobjects>
    $<TARGET_OBJECTS:kritaimagetransformmaskparamsinterfaceobjects>
