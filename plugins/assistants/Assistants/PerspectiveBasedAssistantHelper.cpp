@@ -4,19 +4,11 @@
 
 #include "PerspectiveBasedAssistantHelper.h"
 
-#include <klocalizedstring.h>
-#include <QPainter>
-#include <QPainterPath>
-#include <QLinearGradient>
 #include <QTransform>
 
-#include <kis_canvas2.h>
-#include <kis_coordinates_converter.h>
 #include "kis_algebra_2d.h"
-#include <Eigen/Eigenvalues>
 
 #include <math.h>
-#include<QDebug>
 #include <QtMath>
 
 
@@ -281,5 +273,4 @@ qreal PerspectiveBasedAssistantHelper::pdot(const QPointF &a, const QPointF &b)
 {
     return a.x() * b.y() - a.y() * b.x();
 }
-
 
