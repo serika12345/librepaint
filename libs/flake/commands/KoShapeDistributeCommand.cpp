@@ -7,17 +7,57 @@
 
 #include "KoShapeDistributeCommand.h"
 
-#include "commands/KoShapeMoveCommand.h"
 #include "KoShape.h"
+#include "commands/KoShapeMoveCommand.h"
 #include <QMap>
 
 #include <klocalizedstring.h>
 
+namespace
+{
+using PositionReader = QPointF (*)(const KoShape *shape);
+using OutlineRectReader = QRectF (*)(const KoShape *shape);
+
+QPointF readPosition(const KoShape *shape)
+{
+    return shape->absolutePosition();
+}
+
+QRectF readOutlineRect(const KoShape *shape)
+{
+    return shape->absoluteOutlineRect();
+}
+
+PositionReader activePositionReader = readPosition;
+OutlineRectReader activeOutlineRectReader = readOutlineRect;
+} // namespace
+
+#if defined(KRITAFLAKE_SHAPE_DISTRIBUTE_COMMAND_CONTRACT_TESTING)
+namespace KoShapeDistributeCommandTesting
+{
+Q_DECL_HIDDEN void setShapeGeometryForTesting(PositionReader positionReader, OutlineRectReader outlineRectReader)
+{
+    activePositionReader = positionReader;
+    activeOutlineRectReader = outlineRectReader;
+}
+
+Q_DECL_HIDDEN void resetShapeGeometryForTesting()
+{
+    activePositionReader = readPosition;
+    activeOutlineRectReader = readOutlineRect;
+}
+} // namespace KoShapeDistributeCommandTesting
+#endif
+
 class Q_DECL_HIDDEN KoShapeDistributeCommand::Private
 {
 public:
-    Private() : command(0) {}
-    ~Private() {
+    Private()
+        : command(0)
+    {
+    }
+    ~Private()
+    {
         delete command;
     }
 
@@ -27,17 +67,20 @@ public:
     KoShapeMoveCommand *command;
 };
 
-KoShapeDistributeCommand::KoShapeDistributeCommand(const QList<KoShape*> &shapes, Distribute distribute, const QRectF &boundingRect, KUndo2Command *parent)
-        : KUndo2Command(parent),
-        d(new Private())
+KoShapeDistributeCommand::KoShapeDistributeCommand(const QList<KoShape *> &shapes,
+                                                   Distribute distribute,
+                                                   const QRectF &boundingRect,
+                                                   KUndo2Command *parent)
+    : KUndo2Command(parent)
+    , d(new Private())
 {
     d->distribute = distribute;
-    QMap<qreal, KoShape*> sortedPos;
+    QMap<qreal, KoShape *> sortedPos;
     QRectF bRect;
     qreal extent = 0.0;
     // sort by position and calculate sum of objects width/height
     Q_FOREACH (KoShape *shape, shapes) {
-        bRect = shape->absoluteOutlineRect();
+        bRect = activeOutlineRectReader(shape);
         switch (d->distribute) {
         case HorizontalCenterDistribution:
             sortedPos[bRect.center().x()] = shape;
@@ -63,8 +106,8 @@ KoShapeDistributeCommand::KoShapeDistributeCommand(const QList<KoShape*> &shapes
             break;
         }
     }
-    KoShape* first = sortedPos.begin().value();
-    KoShape* last = (--sortedPos.end()).value();
+    KoShape *first = sortedPos.begin().value();
+    KoShape *last = (--sortedPos.end()).value();
 
     // determine the available space to distribute
     qreal space = d->getAvailableSpace(first, last, extent, boundingRect);
@@ -74,16 +117,18 @@ KoShapeDistributeCommand::KoShapeDistributeCommand(const QList<KoShape*> &shapes
     QList<QPointF> newPositions;
     QPointF position;
     QPointF delta;
-    QMapIterator<qreal, KoShape*> it(sortedPos);
+    QMapIterator<qreal, KoShape *> it(sortedPos);
     while (it.hasNext()) {
         it.next();
-        position = it.value()->absolutePosition();
-        previousPositions  << position;
+        position = activePositionReader(it.value());
+        previousPositions << position;
 
-        bRect = it.value()->absoluteOutlineRect();
-        switch (d->distribute)        {
+        bRect = activeOutlineRectReader(it.value());
+        switch (d->distribute) {
         case HorizontalCenterDistribution:
-            delta = QPointF(boundingRect.x() + first->absoluteOutlineRect().width() / 2 + pos - bRect.width() / 2, bRect.y()) - bRect.topLeft();
+            delta = QPointF(boundingRect.x() + activeOutlineRectReader(first).width() / 2 + pos - bRect.width() / 2,
+                            bRect.y())
+                - bRect.topLeft();
             break;
         case HorizontalGapsDistribution:
             delta = QPointF(boundingRect.left() + pos, bRect.y()) - bRect.topLeft();
@@ -93,23 +138,29 @@ KoShapeDistributeCommand::KoShapeDistributeCommand(const QList<KoShape*> &shapes
             delta = QPointF(boundingRect.left() + pos, bRect.y()) - bRect.topLeft();
             break;
         case HorizontalRightDistribution:
-            delta = QPointF(boundingRect.left() + first->absoluteOutlineRect().width() + pos - bRect.width(), bRect.y()) - bRect.topLeft();
+            delta =
+                QPointF(boundingRect.left() + activeOutlineRectReader(first).width() + pos - bRect.width(), bRect.y())
+                - bRect.topLeft();
             break;
         case VerticalCenterDistribution:
-            delta = QPointF(bRect.x(), boundingRect.y() + first->absoluteOutlineRect().height() / 2 + pos - bRect.height() / 2) - bRect.topLeft();
+            delta = QPointF(bRect.x(),
+                            boundingRect.y() + activeOutlineRectReader(first).height() / 2 + pos - bRect.height() / 2)
+                - bRect.topLeft();
             break;
         case VerticalGapsDistribution:
             delta = QPointF(bRect.x(), boundingRect.top() + pos) - bRect.topLeft();
             pos += bRect.height();
             break;
         case VerticalBottomDistribution:
-            delta = QPointF(bRect.x(), boundingRect.top() + first->absoluteOutlineRect().height() + pos - bRect.height()) - bRect.topLeft();
+            delta =
+                QPointF(bRect.x(), boundingRect.top() + activeOutlineRectReader(first).height() + pos - bRect.height())
+                - bRect.topLeft();
             break;
         case VerticalTopDistribution:
             delta = QPointF(bRect.x(), boundingRect.top() + pos) - bRect.topLeft();
             break;
         };
-        newPositions  << position + delta;
+        newPositions << position + delta;
         pos += step;
     }
     d->command = new KoShapeMoveCommand(sortedPos.values(), previousPositions, newPositions);
@@ -134,32 +185,37 @@ void KoShapeDistributeCommand::undo()
     d->command->undo();
 }
 
-qreal KoShapeDistributeCommand::Private::getAvailableSpace(KoShape *first, KoShape *last, qreal extent, const QRectF &boundingRect)
+qreal KoShapeDistributeCommand::Private::getAvailableSpace(KoShape *first,
+                                                           KoShape *last,
+                                                           qreal extent,
+                                                           const QRectF &boundingRect)
 {
     switch (distribute) {
     case HorizontalCenterDistribution:
-        return boundingRect.width() - last->absoluteOutlineRect().width() / 2 - first->absoluteOutlineRect().width() / 2;
+        return boundingRect.width() - activeOutlineRectReader(last).width() / 2
+            - activeOutlineRectReader(first).width() / 2;
         break;
     case HorizontalGapsDistribution:
         return boundingRect.width() - extent;
         break;
     case HorizontalLeftDistribution:
-        return boundingRect.width() - last->absoluteOutlineRect().width();
+        return boundingRect.width() - activeOutlineRectReader(last).width();
         break;
     case HorizontalRightDistribution:
-        return boundingRect.width() - first->absoluteOutlineRect().width();
+        return boundingRect.width() - activeOutlineRectReader(first).width();
         break;
     case VerticalCenterDistribution:
-        return boundingRect.height() - last->absoluteOutlineRect().height() / 2 - first->absoluteOutlineRect().height() / 2;
+        return boundingRect.height() - activeOutlineRectReader(last).height() / 2
+            - activeOutlineRectReader(first).height() / 2;
         break;
     case VerticalGapsDistribution:
         return boundingRect.height() - extent;
         break;
     case VerticalBottomDistribution:
-        return boundingRect.height() - first->absoluteOutlineRect().height();
+        return boundingRect.height() - activeOutlineRectReader(first).height();
         break;
     case VerticalTopDistribution:
-        return boundingRect.height() - last->absoluteOutlineRect().height();
+        return boundingRect.height() - activeOutlineRectReader(last).height();
         break;
     }
     return 0.0;

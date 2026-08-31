@@ -373,6 +373,36 @@ set_target_properties(kritaflakeshapealigncommandobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaflakeshapedistributecommandobjects OBJECT
+    commands/KoShapeDistributeCommand.cpp
+)
+target_compile_definitions(kritaflakeshapedistributecommandobjects PRIVATE kritaflake_EXPORTS)
+if(BUILD_TESTING)
+    target_compile_definitions(kritaflakeshapedistributecommandobjects PRIVATE KRITAFLAKE_SHAPE_DISTRIBUTE_COMMAND_CONTRACT_TESTING)
+endif()
+target_include_directories(kritaflakeshapedistributecommandobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/commands>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/painting/undo>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/painting/undo>
+)
+target_link_libraries(kritaflakeshapedistributecommandobjects
+    PUBLIC
+        Boost::boost
+        KF${KF_MAJOR}::I18n
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Xml
+)
+set_target_properties(kritaflakeshapedistributecommandobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaflakeinteractionstrategyfactoryobjects OBJECT
     tools/KoInteractionStrategyFactory.cpp
 )
@@ -1473,7 +1503,6 @@ set(kritaflake_SRCS
     commands/KoShapeGroupCommand.cpp
     commands/KoShapeCreateCommand.cpp
     commands/KoShapeDeleteCommand.cpp
-    commands/KoShapeDistributeCommand.cpp
     commands/KoShapeLockCommand.cpp
     commands/KoShapeResizeCommand.cpp
     commands/KoShapeUngroupCommand.cpp
@@ -1589,6 +1618,7 @@ set(kritaflake_SRCS
     $<TARGET_OBJECTS:kritaflakeshapestrokecommandobjects>
     $<TARGET_OBJECTS:kritaflakeshapemovecommandobjects>
     $<TARGET_OBJECTS:kritaflakeshapealigncommandobjects>
+    $<TARGET_OBJECTS:kritaflakeshapedistributecommandobjects>
     $<TARGET_OBJECTS:kritaflakeinteractionstrategyfactoryobjects>
     $<TARGET_OBJECTS:kritaflakeselectedshapesproxyobjects>
     $<TARGET_OBJECTS:kritaflakeactivecanvasresourcedependencyobjects>
