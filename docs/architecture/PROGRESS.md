@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 03:15 JST
+- 更新日時: 2026-09-01 03:24 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -40,13 +40,15 @@
   読込みである。開始`libs/ui/canvas/KisMirrorAxisConfig.cpp`を`kritaapplicationui_LIB_SRCS`直接収容から新規AUTOMOC不要・PIC対応
   `kritauimirroraxisconfigobjects`へ一対一移動し、製品`kritaapplicationui`へ一回だけ再集約する。許可pathは`libs/ui/CMakeLists.txt`、
   `libs/ui/tests/CMakeLists.txt`、新規`libs/ui/tests/KisMirrorAxisConfigContractTest.cpp`だけである。4枠、予測7工程・16入力、停止8工程・19入力、製品
-  1,957工程・3,914入力不変とする。
+  1,957工程・3,914入力不変とする。既存DOM OBJECTと等価演算子が参照する`kis_assert_exception`と`kis_safe_assert_recoverable`は、契約から到達した
+  場合に即時失敗する試験source限定の`qFatal`診断定義を許可し、製品shared libraryへ接続しない。
 - `g97-widgets-ko-dialog`は`in_progress`で、専用作業ツリーは`/Users/masato/Documents/librepaint-g97-widgets-ko-dialog`である。対象は
   `build/tdd-macos/public-api-missing-g97.json`でheaderが`libs/widgets/KoDialog.h`の全67 APIである。開始`libs/widgets/KoDialog.cpp`を
   `kritawidgets_LIB_SRCS`直接収容から新規AUTOMOC・PIC対応`kritawidgetsdialogobjects`へ一対一移動し、製品`kritawidgets`へ一回だけ再集約する。
   許可pathは`libs/widgets/CMakeLists.txt`、`libs/widgets/tests/CMakeLists.txt`、既存`libs/widgets/tests/KoDialogEnumContractTest.cpp`だけである。構築・
-  caption・寸法、button状態・表示、activation signal、main・details・help、表示・layout・遅延破棄の5枠を既存enum枠へ追加する。予測6工程・14入力、
-  停止7工程・17入力、製品798工程・1,625入力不変とする。
+  caption・寸法、button状態・表示、activation signal、main・details・help、表示・layout・遅延破棄の5枠を既存enum枠へ追加する。実測7工程・19入力、
+  停止8工程・21入力、製品800工程・1,629入力とする。開始source末尾の手動MOC includeにより専用OBJECTの独立meta-object生成2工程・4入力が
+  必要であり、広域製品接続を除く代わりの明示的な所有コストとして基準798工程・1,625入力からの増加を許容する。
 - `g97-transform-liquify-properties`は`in_progress`で、専用作業ツリーは
   `/Users/masato/Documents/librepaint-g97-transform-liquify-properties`である。対象は`build/tdd-macos/public-api-missing-g97.json`でheaderが
   `plugins/tools/tool_transform2/kis_liquify_properties.h`の全38 APIである。開始`kis_liquify_properties.cpp`を`kritatooltransform_static_SRCS`
@@ -55,7 +57,7 @@
   9状態、copy・代入・診断、XML、不正値・隔離設定modeの5枠とする。予測7工程・16入力、停止8工程・19入力、製品1,981工程・3,961入力不変とする。
 - 3担当の対象プラットフォームはmacOSである。担当作業ツリーは主環境を`./scripts/run-shared-test-env`で共有し、構築権限は対象、全追加枠、20回反復、
   指定近傍、無作業計画、動的接続、変更source構文、公開API検査、`verify-quick`に限定する。Git権限は許可pathだけの担当commitで、台帳と進捗は
-  統合担当が所有する。許可path外、新規公開API、source・MOC二重収容、製品閉包増加、停止線超過、製品shared library、`kritatestsdk`、実canvas・image・
+  統合担当が所有する。許可path外、新規公開API、source・MOC二重収容、担当票の製品閉包上限超過、停止線超過、製品shared library、`kritatestsdk`、実canvas・image・
   document・resource・filesystem・外部help、未隔離の大域設定が必要なら停止する。統合順は鏡像軸設定、dialog、liquify設定とする。
 
 ### 第96並列便の監査計画
