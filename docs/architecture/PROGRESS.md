@@ -2,12 +2,28 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 02:18 JST
+- 更新日時: 2026-09-01 02:22 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
+
+### 第96並列便の監査計画
+
+- 共通基点は`71082029e56eeee742cdfd9662316bf0bcf3737b`、入力は`build/tdd-macos/public-api-missing-g96.json`である。3担当は読み取り専用で、
+  製品・試験・CMake・台帳・文書を変更せず、構築、テスト、Git操作、追加委任も行わない。第95便で棄却したimage、flake、widgets、paintops、
+  global、pigment、resources、painting候補は再監査しない。
+- `g96-application-libkis-audit`は`libs/application`と`libs/libkis`から、既存限定CTestの拡張または一つのsourceのOBJECT一対一移動で12 API以上を
+  値、状態、変換、寿命の最大5枠へ固定できる候補を選ぶ。画面、文書、Python実行、大域application singleton、filesystem、製品shared library、
+  Qt Widgets動的library、`kritatestsdk`を必要とする候補は採用しない。
+- `g96-plugin-ui-edge-audit`は`plugins/color`、`plugins/assistants`、`plugins/metadata`、`plugins/extensions`、`plugins/filters`から、既存軽量対象の拡張
+  または一つのsource移動で10 API以上を固定できる値・幾何・配送候補を選ぶ。実画像、色空間、資源、画面、GPU、filesystem、Qt Widgetsを
+  必要とする候補は、既存の決定的な限定面で隔離できない限り採用しない。
+- `g96-impex-audit`は`libs/impex`と`plugins/impex`から、設定値、列挙、固定byte列、引数配送、寿命をfilesystemや外部processなしで12 API以上
+  固定できる候補を選ぶ。第三者由来headerはLibrePaintが保守する公開契約かを確認し、codecや文書の製品意味論を試験内で模倣しない。
+- 各報告は完全なAPI識別子、最大5契約枠、最寄りCTest、所有CMake、直接依存、変更なし閉包、予測閉包と停止線、許可path、固有停止条件を含む。
+  実装候補は公開header、製品source、試験source、CMake所有を重複させず、主環境の共有compiler cacheと担当固有の構築木を使えるものに限定する。
 
 ### 第95並列便の監査計画
 
