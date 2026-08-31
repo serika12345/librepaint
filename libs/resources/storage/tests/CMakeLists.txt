@@ -22,3 +22,16 @@ target_include_directories(StoreDebugContractTest PRIVATE
     ${CMAKE_CURRENT_BINARY_DIR}/..
 )
 target_compile_definitions(StoreDebugContractTest PRIVATE kritaresourcestorage_EXPORTS)
+
+kis_add_test(
+    KoStoreDeviceContractTest.cpp
+    LINK_LIBRARIES
+        kritaresourcestoragedeviceobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_sources(KoStoreDeviceContractTest PRIVATE ../KoStoreDevice.h)
+target_include_directories(KoStoreDeviceContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+)
+target_compile_definitions(KoStoreDeviceContractTest PRIVATE kritaresourcestorage_EXPORTS)

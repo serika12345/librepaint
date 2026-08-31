@@ -15,9 +15,24 @@ set_target_properties(kritaresourcestoragelogobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaresourcestoragedeviceobjects OBJECT
+    KoStoreDevice.cpp
+)
+target_compile_definitions(kritaresourcestoragedeviceobjects PRIVATE kritaresourcestorage_EXPORTS)
+target_include_directories(kritaresourcestoragedeviceobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaresourcestoragedeviceobjects PUBLIC Qt${QT_MAJOR_VERSION}::Core)
+set_target_properties(kritaresourcestoragedeviceobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 set(kritaresourcestorage_LIB_SRCS
     KoDirectoryStore.cpp
-    KoStoreDevice.cpp
+    KoStoreDevice.h
     KoStore.cpp
     KoQuaZipStore.cpp
 )
@@ -25,6 +40,7 @@ set(kritaresourcestorage_LIB_SRCS
 kis_add_library(kritaresourcestorage SHARED
     ${kritaresourcestorage_LIB_SRCS}
     $<TARGET_OBJECTS:kritaresourcestoragelogobjects>
+    $<TARGET_OBJECTS:kritaresourcestoragedeviceobjects>
 )
 generate_export_header(kritaresourcestorage BASE_NAME kritaresourcestorage)
 
