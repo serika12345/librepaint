@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 20839
+    "expectedMissingApis": 20817
   },
   "contracts": [
     {
@@ -29749,6 +29749,167 @@
       "apis": [
         "method:KisCurveOptionData::sensorStruct()",
         "method:KisCurveOptionData::sensorStruct() const"
+      ]
+    },
+    {
+      "target": "KoShapeClipCommandContractTest",
+      "source": "libs/flake/tests/KoShapeClipCommandContractTest.cpp",
+      "test": "KoShapeClipCommandContractTest::constructorsCaptureClipAndParentsAndAllocatePerTarget",
+      "behavior": "shape clip commandの複数対象入口は対象とclip sourceを入力順に読み、各対象の旧clipを保持し、対象ごとに異なる新clipを生成して同じ順序で対応付ける。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoShapeClipCommand",
+        "method:KoShapeClipCommand::KoShapeClipCommand(KoShapeControllerBase * controller,const QList<KoShape * > & shapes,const QList<KoPathShape * > & clipPathShapes,KUndo2Command * parent=0)"
+      ]
+    },
+    {
+      "target": "KoShapeClipCommandContractTest",
+      "source": "libs/flake/tests/KoShapeClipCommandContractTest.cpp",
+      "test": "KoShapeClipCommandContractTest::redoInstallsNewClipsThenDetachesSources",
+      "behavior": "shape clip commandの単一対象入口からの再実行は対応する新clipを対象へ設定して更新し、元親から同一clip pathを外した後に基底処理を行う。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShapeClipCommand::KoShapeClipCommand(KoShapeControllerBase * controller,KoShape * shape,const QList<KoPathShape * > & clipPathShapes,KUndo2Command * parent=0)",
+        "method:KoShapeClipCommand::redo()"
+      ]
+    },
+    {
+      "target": "KoShapeClipCommandContractTest",
+      "source": "libs/flake/tests/KoShapeClipCommandContractTest.cpp",
+      "test": "KoShapeClipCommandContractTest::undoRestoresOldClipsThenReattachesSources",
+      "behavior": "shape clip commandの取消は基底処理後に同一対象へ構築時の旧clipを戻して更新し、同一clip pathを元親へ再接続する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShapeClipCommand::undo()"
+      ]
+    },
+    {
+      "target": "KoShapeClipCommandContractTest",
+      "source": "libs/flake/tests/KoShapeClipCommandContractTest.cpp",
+      "test": "KoShapeClipCommandContractTest::destructionDeletesOnlyCurrentlyOwnedClipSet",
+      "behavior": "shape clip commandの破棄は未実行時と取消後に新clipだけを、再実行後に旧clipだけを一度削除する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShapeClipCommand::~KoShapeClipCommand()"
+      ]
+    },
+    {
+      "target": "KoShapeClipCommandContractTest",
+      "source": "libs/flake/tests/KoShapeClipCommandContractTest.cpp",
+      "test": "KoShapeClipCommandContractTest::nullParentsAndEmptyListsAreStable",
+      "behavior": "shape clip commandは空対象では基底処理だけを行い、clip pathの元親がnullなら設定と更新を保ったまま親の除去と再接続を省く。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShapeClipCommand::redo()",
+        "method:KoShapeClipCommand::undo()"
+      ]
+    },
+    {
+      "target": "KisQueuesProgressUpdaterContractTest",
+      "source": "libs/image/tests/KisQueuesProgressUpdaterContractTest.cpp",
+      "test": "KisQueuesProgressUpdaterContractTest::constructionKeepsBorrowedProxyAndQObjectParent",
+      "behavior": "queue進捗更新器はprogress proxyを借用し、指定QObject親へ接続され、更新器の破棄でproxyへ操作せず所有も解放しない。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisQueuesProgressUpdater",
+        "method:KisQueuesProgressUpdater::KisQueuesProgressUpdater(KoProgressProxy * progressProxy,QObject * parent=0)",
+        "method:KisQueuesProgressUpdater::~KisQueuesProgressUpdater()"
+      ]
+    },
+    {
+      "target": "KisQueuesProgressUpdaterContractTest",
+      "source": "libs/image/tests/KisQueuesProgressUpdaterContractTest.cpp",
+      "test": "KisQueuesProgressUpdaterContractTest::firstQueuedWorkStartsTickingOnlyOnce",
+      "behavior": "queue進捗更新器は最初の正数queue入力で開始signalを一度だけ送出し、処理名や規模を更新しても停止前は開始signalを重複送出しない。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisQueuesProgressUpdater::sigStartTicking()",
+        "method:KisQueuesProgressUpdater::updateProgress(int queueSizeMetric,const QString & jobName)"
+      ]
+    },
+    {
+      "target": "KisQueuesProgressUpdaterContractTest",
+      "source": "libs/image/tests/KisQueuesProgressUpdaterContractTest.cpp",
+      "test": "KisQueuesProgressUpdaterContractTest::zeroAndHideStopAndAllowRestart",
+      "behavior": "queue進捗更新器はqueue値0とhideを停止へ写し、停止を重複通知せず、停止後の新しい正数入力で開始通知を再開する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisQueuesProgressUpdater::hide()",
+        "method:KisQueuesProgressUpdater::sigStopTicking()"
+      ]
+    },
+    {
+      "target": "KisQueuesProgressUpdaterContractTest",
+      "source": "libs/image/tests/KisQueuesProgressUpdaterContractTest.cpp",
+      "test": "KisQueuesProgressUpdaterContractTest::queuedStopResetsBorrowedProgressProxy",
+      "behavior": "queue進捗更新器の待機不要な停止処理は借用proxyへrange 0..100、value 100、format %p%の順に配送する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisQueuesProgressUpdater::hide()",
+        "method:KisQueuesProgressUpdater::updateProgress(int queueSizeMetric,const QString & jobName)"
+      ]
+    },
+    {
+      "target": "KisMirrorOptionDataContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisMirrorOptionDataContractTest.cpp",
+      "test": "KisMirrorOptionDataContractTest::typesDefaultsAndConstructor",
+      "behavior": "mirror option dataの公開型は安定し、引数省略構築は空prefixと水平・垂直とも無効を、prefix付き構築は同じprefixとMirror IDを保持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisMirrorOptionMixIn",
+        "member:KisMirrorOptionMixInImpl::enableHorizontalMirror",
+        "member:KisMirrorOptionMixInImpl::enableVerticalMirror",
+        "method:KisMirrorOptionData::KisMirrorOptionData(const QString & prefix=\"\")",
+        "struct:KisMirrorOptionData",
+        "struct:KisMirrorOptionMixInImpl"
+      ]
+    },
+    {
+      "target": "KisMirrorOptionDataContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisMirrorOptionDataContractTest.cpp",
+      "test": "KisMirrorOptionDataContractTest::readMapsBothKeys",
+      "behavior": "mirror option mix-inは水平・垂直の永続化keyを各memberへ独立して読み、key欠落時は既存値をfalseへ戻す。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisMirrorOptionMixInImpl::enableHorizontalMirror",
+        "member:KisMirrorOptionMixInImpl::enableVerticalMirror",
+        "method:KisMirrorOptionMixInImpl::read(const KisPropertiesConfiguration * setting)"
+      ]
+    },
+    {
+      "target": "KisMirrorOptionDataContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisMirrorOptionDataContractTest.cpp",
+      "test": "KisMirrorOptionDataContractTest::writeMapsBothKeys",
+      "behavior": "mirror option mix-inは異なる水平・垂直値を対応する二つの永続化keyへ正確に書き、無関係な設定値を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisMirrorOptionMixInImpl::enableHorizontalMirror",
+        "member:KisMirrorOptionMixInImpl::enableVerticalMirror",
+        "method:KisMirrorOptionMixInImpl::write(KisPropertiesConfiguration * setting) const"
+      ]
+    },
+    {
+      "target": "KisMirrorOptionDataContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisMirrorOptionDataContractTest.cpp",
+      "test": "KisMirrorOptionDataContractTest::equalityUsesBothMembers",
+      "behavior": "mirror option mix-inの等価判定は水平値と垂直値がともに一致する場合だけ真になる。",
+      "classification": "maintained",
+      "apis": [
+        "function:operator ==(const KisMirrorOptionMixInImpl & lhs,const KisMirrorOptionMixInImpl & rhs)",
+        "member:KisMirrorOptionMixInImpl::enableHorizontalMirror",
+        "member:KisMirrorOptionMixInImpl::enableVerticalMirror"
+      ]
+    },
+    {
+      "target": "KisMirrorOptionDataContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisMirrorOptionDataContractTest.cpp",
+      "test": "KisMirrorOptionDataContractTest::prefixRoundTrip",
+      "behavior": "prefix付きmirror option dataは同じprefixを水平・垂直keyの読書きへ適用する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMirrorOptionData::KisMirrorOptionData(const QString & prefix=\"\")",
+        "method:KisMirrorOptionMixInImpl::read(const KisPropertiesConfiguration * setting)",
+        "method:KisMirrorOptionMixInImpl::write(KisPropertiesConfiguration * setting) const"
       ]
     }
   ]
