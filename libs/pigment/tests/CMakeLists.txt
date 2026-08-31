@@ -219,6 +219,26 @@ target_include_directories(KoCompositeOpIdsContractTest PRIVATE
 )
 
 kis_add_test(
+    KoCompositeOpFunctionsContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Test
+        Imath::ImathConfig
+)
+target_sources(KoCompositeOpFunctionsContractTest PRIVATE
+    $<TARGET_OBJECTS:kritapigmentmathsobjects>
+)
+target_include_directories(KoCompositeOpFunctionsContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_SOURCE_DIR}/../compositeops
+    ${CMAKE_BINARY_DIR}/libs/pigment
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+)
+target_compile_definitions(KoCompositeOpFunctionsContractTest PRIVATE kritapigment_EXPORTS)
+
+kis_add_test(
     KoColorSpaceBlendingPolicyContractTest.cpp
     LINK_LIBRARIES
         kritapigmentcolorspaceblendingpolicyobjects
