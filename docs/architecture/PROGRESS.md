@@ -2,12 +2,22 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-31 23:14 JST
+- 更新日時: 2026-08-31 23:17 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
+
+### 第91並列便の監査計画
+
+- 共通基点は`12eb94ae1c`、入力は`build/tdd-macos/public-api-missing-g91.json`である。
+- `g91-bezier-audit`は既存4工程・8入力の`KisBezierMeshValuesContractTest`で追加固定できる
+  `libs/global/KisBezierMesh.h`のメッシュ構築、索引、反復、変換APIを監査する。
+- `g91-paintop-audit`は既存6工程・19入力の`KisTextureOptionDataIOContractTest`で追加固定できる
+  `KisEmbeddedTextureData`の残りAPIと、`KisSizeOptionData.cpp`の製品・runtime重複収容を専用OBJECTへ移す必要性を監査する。
+- `g91-lightweight-audit`はglobal、brush、pigment、resourcesから、製品共有library、Qt Widgets、`kritatestsdk`なしで
+  一つの公開headerを高密度に固定できる候補を監査する。3監査は読み取り専用で、ファイル編集、構築、Git操作を行わない。
 
 ### 第90並列便の完了結果
 
