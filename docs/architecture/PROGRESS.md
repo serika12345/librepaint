@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 06:40 JST
+- 更新日時: 2026-09-01 06:50 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -28,6 +28,18 @@
 - 各報告は完全なAPI識別子、観測する現行挙動、最大5契約枠、最寄りCTest、所有CMake、直接依存、変更なし閉包、予測閉包と停止線、開始pathから
   移動先pathへの対応、許可path、固有停止条件を含む。候補がない場合は最接近候補と棄却根拠を数値で報告する。3監査後にpath、CMake、試験source、
   生成物が重ならない候補だけを実装担当票へ進める。
+- `g102-psd-additional-values-audit`はvector path、sub-path、vector mask、vector originationの全44 APIを採用した。既存
+  `PsdFormatValuesContractTest`だけを変更し、幾何値のcopy独立性、mask状態、origination値の設定・追加・形状分類を5枠で固定できる。
+  予測4工程・9入力、停止5工程・12入力とし、生pointer所有、COS/ASL、実paint deviceは対象外とする。
+- `g102-global-algebra-values-audit`は線分の切断・交差・射影、距離保存移動、三角形・弾性点、多角形判定、一次元最小化の全25 APIを採用した。
+  開始`libs/global/kis_algebra_2d.cpp`から該当するout-of-line実装を新規`libs/global/kis_algebra_2d_planar_geometry.cpp`へ本文を変えず移し、
+  `kritaglobalalgebraplanargeometryobjects`として製品へ一回だけ再集約する。既存`KisAlgebraGeometryPrimitivesContractTest`へ5枠を追加し、
+  予測7工程・15入力、停止8工程・18入力、製品予測70工程・140入力、停止71工程・143入力とする。
+- `g102-image-value-owners-audit`は`KisPropertiesConfiguration`のproperty map、原始値変換、prefixとstring list、汎用XML入力、escapeと構造比較の
+  全33 APIを採用した。開始`libs/image/kis_properties_configuration.cc`から該当実装を新規
+  `libs/image/KisPropertiesConfigurationValue.cpp`へ移し、private状態を新規`libs/image/KisPropertiesConfiguration_p.h`で共有する。新規
+  `KisPropertiesConfigurationValueContractTest`の5枠、予測7工程・16入力、停止10工程・23入力とする。色変換、XML出力、診断、factoryは旧sourceに残す。
+  距離情報は孤立値面が12 API、描画入力値は距離・乱数・backtraceまで閉包が広がるため棄却した。
 
 ### 第101並列便の監査計画
 
