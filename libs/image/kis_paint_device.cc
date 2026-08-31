@@ -9,6 +9,7 @@
 #include "kis_paint_device.h"
 
 #include "KisProcessingInformationPaintDeviceOwnership_p.h"
+#include "KisRandomSubAccessorPaintDeviceAccess_p.h"
 
 #include <QRect>
 #include <QImage>
@@ -76,6 +77,21 @@ bool kisSharedPtrRelease(KisPaintDevice *device)
         return false;
     }
     return true;
+}
+
+KisRandomConstAccessorSP kisRandomSubAccessorCreateRandomConstAccessor(const KisPaintDevice *device)
+{
+    return device->createRandomConstAccessorNG();
+}
+
+void kisRandomSubAccessorMixColors(const KisPaintDevice *device,
+                                   const quint8 **pixels,
+                                   const qint16 *weights,
+                                   int numColors,
+                                   quint8 *destination,
+                                   int weightSum)
+{
+    device->colorSpace()->mixColorsOp()->mixColors(pixels, weights, numColors, destination, weightSum);
 }
 
 struct KisPaintDevice::Private

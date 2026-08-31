@@ -753,6 +753,23 @@ set_target_properties(kritaimagerandomaccessorobjects PROPERTIES
    POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaimagerandomsubaccessorobjects OBJECT
+   kis_random_sub_accessor.cpp
+)
+target_compile_definitions(kritaimagerandomsubaccessorobjects PRIVATE kritaimage_EXPORTS)
+target_include_directories(kritaimagerandomsubaccessorobjects
+   PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritaimagerandomsubaccessorobjects PUBLIC Qt${QT_MAJOR_VERSION}::Core)
+set_target_properties(kritaimagerandomsubaccessorobjects PROPERTIES
+   AUTOMOC OFF
+   POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaimagepaintoppropertiesbaseobjects OBJECT
    brushengine/KisPaintopPropertiesBase.cpp
 )
@@ -1994,7 +2011,6 @@ set(kritaimage_LIB_SRCS
    kis_paint_layer.cc
    kis_pixel_selection.cpp
    kis_properties_configuration.cc
-   kis_random_sub_accessor.cpp
    kis_wrapped_random_accessor.cpp
    kis_selection.cc
    KisSelectionUpdateCompressor.cpp
@@ -2102,6 +2118,7 @@ kis_add_library(kritaimage SHARED
    $<TARGET_OBJECTS:kritaimagedefaultboundsbaseobjects>
    $<TARGET_OBJECTS:kritaimagebaseaccessorobjects>
    $<TARGET_OBJECTS:kritaimagerandomaccessorobjects>
+   $<TARGET_OBJECTS:kritaimagerandomsubaccessorobjects>
    $<TARGET_OBJECTS:kritaimagepaintoppropertiesbaseobjects>
    $<TARGET_OBJECTS:kritaimageselectioncomponentobjects>
    $<TARGET_OBJECTS:kritaimageprojectionplaneobjects>

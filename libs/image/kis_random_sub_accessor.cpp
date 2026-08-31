@@ -7,18 +7,15 @@
  */
 
 #include "kis_random_sub_accessor.h"
-#include <QtGlobal>
 
-#include <KoColorSpace.h>
-#include <KoMixColorsOp.h>
+#include "KisRandomSubAccessorPaintDeviceAccess_p.h"
+
 #include <QtMath>
 
-#include "kis_paint_device.h"
-
 KisRandomSubAccessor::KisRandomSubAccessor(KisPaintDeviceSP device)
-        : m_device(device)
-        , m_currentPoint(0, 0)
-        , m_randomAccessor(device->createRandomConstAccessorNG())
+    : m_device(device)
+    , m_currentPoint(0, 0)
+    , m_randomAccessor(kisRandomSubAccessorCreateRandomConstAccessor(device.data()))
 {
 }
 
@@ -63,7 +60,7 @@ void KisRandomSubAccessor::sampledOldRawData(quint8* dst)
     m_randomAccessor->moveTo(x + 1, y + 1);
     pixels[3] = m_randomAccessor->oldRawData();
 
-    m_device->colorSpace()->mixColorsOp()->mixColors(pixels, weights, 4, dst, sumOfWeights);
+    kisRandomSubAccessorMixColors(m_device.data(), pixels, weights, 4, dst, sumOfWeights);
 }
 
 
@@ -101,5 +98,5 @@ void KisRandomSubAccessor::sampledRawData(quint8* dst)
     sumOfWeights += weights[3];
     m_randomAccessor->moveTo(x + 1, y + 1);
     pixels[3] = m_randomAccessor->rawDataConst();
-    m_device->colorSpace()->mixColorsOp()->mixColors(pixels, weights, 4, dst, sumOfWeights);
+    kisRandomSubAccessorMixColors(m_device.data(), pixels, weights, 4, dst, sumOfWeights);
 }
