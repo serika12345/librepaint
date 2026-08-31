@@ -4,6 +4,7 @@
  */
 
 #include "psd.h"
+#include "psd_additional_layer_info_block.h"
 #include "psd_layer_record.h"
 
 #include <QTest>
@@ -25,6 +26,11 @@ private Q_SLOTS:
     void layerTypeValuesPreserveSerializedOrdering();
     void channelInfoDefaultsDescribeAnEmptyChannel();
     void channelInfoCopiesKeepIndependentChannelState();
+    void levelRecordsValueInitializeAndCopyNumericState();
+    void curveRecordsValueInitializeAndCopyTableState();
+    void tonalAdjustmentRecordsPreserveDefaultsAndCopyState();
+    void colorAdjustmentRecordsPreserveDefaultsAndCopyState();
+    void channelMixerValueInitializesAndCopiesChannels();
 };
 
 void PsdFormatValuesContractTest::fileLimitsAndStorageEnumsRemainStable()
@@ -317,6 +323,345 @@ void PsdFormatValuesContractTest::channelInfoCopiesKeepIndependentChannelState()
     QCOMPARE(channel.rleRowLengths, QVector<quint32>({3, 5, 8}));
     QCOMPARE(channel.channelOffset, 23);
     QCOMPARE(channel.channelInfoPosition, 29);
+}
+
+void PsdFormatValuesContractTest::levelRecordsValueInitializeAndCopyNumericState()
+{
+    const psd_layer_level_record emptyRecord{};
+    QCOMPARE(emptyRecord.input_floor, 0);
+    QCOMPARE(emptyRecord.input_ceiling, 2);
+    QCOMPARE(emptyRecord.output_floor, 0);
+    QCOMPARE(emptyRecord.output_ceiling, 0);
+    QCOMPARE(emptyRecord.gamma, 0.0f);
+
+    psd_layer_level_record record{};
+    record.input_floor = 17;
+    record.input_ceiling = 211;
+    record.output_floor = 23;
+    record.output_ceiling = 197;
+    record.gamma = 2.25f;
+    psd_layer_level_record recordCopy = record;
+    QCOMPARE(recordCopy.input_floor, 17);
+    QCOMPARE(recordCopy.input_ceiling, 211);
+    QCOMPARE(recordCopy.output_floor, 23);
+    QCOMPARE(recordCopy.output_ceiling, 197);
+    QCOMPARE(recordCopy.gamma, 2.25f);
+    recordCopy.input_floor = 31;
+    recordCopy.input_ceiling = 191;
+    recordCopy.output_floor = 37;
+    recordCopy.output_ceiling = 181;
+    recordCopy.gamma = 0.75f;
+    QCOMPARE(record.input_floor, 17);
+    QCOMPARE(record.input_ceiling, 211);
+    QCOMPARE(record.output_floor, 23);
+    QCOMPARE(record.output_ceiling, 197);
+    QCOMPARE(record.gamma, 2.25f);
+
+    const psd_layer_levels emptyLevels{};
+    QCOMPARE(emptyLevels.record[0].input_ceiling, 2);
+    QCOMPARE(emptyLevels.record[28].input_ceiling, 2);
+    QCOMPARE(emptyLevels.extra_level_count, 0);
+    QCOMPARE(emptyLevels.extra_record, nullptr);
+    QCOMPARE(emptyLevels.lookup_table[0][0], 0);
+    QCOMPARE(emptyLevels.lookup_table[2][255], 0);
+
+    psd_layer_level_record extraRecords[2]{};
+    extraRecords[0].gamma = 1.5f;
+    psd_layer_levels levels{};
+    levels.record[28].input_floor = 43;
+    levels.extra_level_count = 2;
+    levels.extra_record = extraRecords;
+    levels.lookup_table[2][255] = 239;
+    psd_layer_levels levelsCopy = levels;
+    QCOMPARE(levelsCopy.record[28].input_floor, 43);
+    QCOMPARE(levelsCopy.extra_level_count, 2);
+    QCOMPARE(levelsCopy.extra_record, extraRecords);
+    QCOMPARE(levelsCopy.extra_record[0].gamma, 1.5f);
+    QCOMPARE(levelsCopy.lookup_table[2][255], 239);
+    levelsCopy.record[28].input_floor = 47;
+    levelsCopy.lookup_table[2][255] = 241;
+    QCOMPARE(levels.record[28].input_floor, 43);
+    QCOMPARE(levels.lookup_table[2][255], 239);
+}
+
+void PsdFormatValuesContractTest::curveRecordsValueInitializeAndCopyTableState()
+{
+    const psd_layer_curves_data emptyData{};
+    QCOMPARE(emptyData.channel_index, 0);
+    QCOMPARE(emptyData.point_count, 0);
+    QCOMPARE(emptyData.output_value[0], 0);
+    QCOMPARE(emptyData.output_value[18], 0);
+    QCOMPARE(emptyData.input_value[0], 0);
+    QCOMPARE(emptyData.input_value[18], 0);
+
+    psd_layer_curves_data data{};
+    data.channel_index = 7;
+    data.point_count = 19;
+    data.output_value[18] = 251;
+    data.input_value[18] = 239;
+    psd_layer_curves_data dataCopy = data;
+    QCOMPARE(dataCopy.channel_index, 7);
+    QCOMPARE(dataCopy.point_count, 19);
+    QCOMPARE(dataCopy.output_value[18], 251);
+    QCOMPARE(dataCopy.input_value[18], 239);
+    dataCopy.output_value[18] = 227;
+    dataCopy.input_value[18] = 223;
+    QCOMPARE(data.channel_index, 7);
+    QCOMPARE(data.point_count, 19);
+    QCOMPARE(data.output_value[18], 251);
+    QCOMPARE(data.input_value[18], 239);
+
+    const psd_layer_curves emptyCurves{};
+    QCOMPARE(emptyCurves.curve_count, 0);
+    QCOMPARE(emptyCurves.curve, nullptr);
+    QCOMPARE(emptyCurves.lookup_table[0][0], 0);
+    QCOMPARE(emptyCurves.lookup_table[2][255], 0);
+
+    psd_layer_curves_data curveRecords[2]{};
+    curveRecords[1].point_count = 5;
+    psd_layer_curves curves{};
+    curves.curve_count = 2;
+    curves.curve = curveRecords;
+    curves.lookup_table[1][127] = 131;
+    psd_layer_curves curvesCopy = curves;
+    QCOMPARE(curvesCopy.curve_count, 2);
+    QCOMPARE(curvesCopy.curve, curveRecords);
+    QCOMPARE(curvesCopy.curve[1].point_count, 5);
+    QCOMPARE(curvesCopy.lookup_table[1][127], 131);
+    curvesCopy.lookup_table[1][127] = 137;
+    QCOMPARE(curves.curve_count, 2);
+    QCOMPARE(curves.lookup_table[1][127], 131);
+}
+
+void PsdFormatValuesContractTest::tonalAdjustmentRecordsPreserveDefaultsAndCopyState()
+{
+    const psd_layer_brightness_contrast emptyBrightness{};
+    QCOMPARE(int(emptyBrightness.brightness), 0);
+    QCOMPARE(int(emptyBrightness.contrast), 0);
+    QCOMPARE(int(emptyBrightness.mean_value), 0);
+    QCOMPARE(int(emptyBrightness.Lab_color), 0);
+    QCOMPARE(emptyBrightness.lookup_table[255], 0);
+
+    psd_layer_brightness_contrast brightness{};
+    brightness.brightness = -63;
+    brightness.contrast = 71;
+    brightness.mean_value = -17;
+    brightness.Lab_color = 1;
+    brightness.lookup_table[255] = 253;
+    psd_layer_brightness_contrast brightnessCopy = brightness;
+    QCOMPARE(int(brightnessCopy.brightness), -63);
+    QCOMPARE(int(brightnessCopy.contrast), 71);
+    QCOMPARE(int(brightnessCopy.mean_value), -17);
+    QCOMPARE(int(brightnessCopy.Lab_color), 1);
+    QCOMPARE(brightnessCopy.lookup_table[255], 253);
+    brightnessCopy.brightness = 19;
+    brightnessCopy.lookup_table[255] = 251;
+    QCOMPARE(int(brightness.brightness), -63);
+    QCOMPARE(int(brightness.contrast), 71);
+    QCOMPARE(int(brightness.mean_value), -17);
+    QCOMPARE(int(brightness.Lab_color), 1);
+    QCOMPARE(brightness.lookup_table[255], 253);
+
+    const psd_layer_hue_saturation emptyHue{};
+    QCOMPARE(emptyHue.hue_or_colorization, 0);
+    QCOMPARE(int(emptyHue.colorization_hue), 0);
+    QCOMPARE(int(emptyHue.colorization_saturation), 0);
+    QCOMPARE(int(emptyHue.colorization_lightness), 0);
+    QCOMPARE(int(emptyHue.master_hue), 0);
+    QCOMPARE(int(emptyHue.master_saturation), 0);
+    QCOMPARE(int(emptyHue.master_lightness), 0);
+    QCOMPARE(int(emptyHue.range_values[5][3]), 0);
+    QCOMPARE(int(emptyHue.setting_values[5][2]), 0);
+    QCOMPARE(emptyHue.lookup_table[5][359], 0);
+
+    psd_layer_hue_saturation hue{};
+    hue.hue_or_colorization = 1;
+    hue.colorization_hue = -91;
+    hue.colorization_saturation = 77;
+    hue.colorization_lightness = -43;
+    hue.master_hue = 29;
+    hue.master_saturation = -31;
+    hue.master_lightness = 37;
+    hue.range_values[5][3] = -59;
+    hue.setting_values[5][2] = 61;
+    hue.lookup_table[5][359] = 251;
+    psd_layer_hue_saturation hueCopy = hue;
+    QCOMPARE(hueCopy.hue_or_colorization, 1);
+    QCOMPARE(int(hueCopy.colorization_hue), -91);
+    QCOMPARE(int(hueCopy.colorization_saturation), 77);
+    QCOMPARE(int(hueCopy.colorization_lightness), -43);
+    QCOMPARE(int(hueCopy.master_hue), 29);
+    QCOMPARE(int(hueCopy.master_saturation), -31);
+    QCOMPARE(int(hueCopy.master_lightness), 37);
+    QCOMPARE(int(hueCopy.range_values[5][3]), -59);
+    QCOMPARE(int(hueCopy.setting_values[5][2]), 61);
+    QCOMPARE(hueCopy.lookup_table[5][359], 251);
+    hueCopy.range_values[5][3] = 67;
+    hueCopy.setting_values[5][2] = -71;
+    hueCopy.lookup_table[5][359] = 241;
+    QCOMPARE(hue.hue_or_colorization, 1);
+    QCOMPARE(int(hue.colorization_hue), -91);
+    QCOMPARE(int(hue.colorization_saturation), 77);
+    QCOMPARE(int(hue.colorization_lightness), -43);
+    QCOMPARE(int(hue.master_hue), 29);
+    QCOMPARE(int(hue.master_saturation), -31);
+    QCOMPARE(int(hue.master_lightness), 37);
+    QCOMPARE(int(hue.range_values[5][3]), -59);
+    QCOMPARE(int(hue.setting_values[5][2]), 61);
+    QCOMPARE(hue.lookup_table[5][359], 251);
+
+    const psd_layer_threshold emptyThreshold{};
+    QCOMPARE(emptyThreshold.level, 1);
+    psd_layer_threshold threshold{};
+    threshold.level = 127;
+    psd_layer_threshold thresholdCopy = threshold;
+    QCOMPARE(thresholdCopy.level, 127);
+    thresholdCopy.level = 191;
+    QCOMPARE(threshold.level, 127);
+    const psd_layer_posterize emptyPosterize{};
+    QCOMPARE(emptyPosterize.levels, 2);
+    QCOMPARE(emptyPosterize.lookup_table[255], 0);
+
+    psd_layer_posterize posterize{};
+    posterize.levels = 17;
+    posterize.lookup_table[255] = 199;
+    psd_layer_posterize posterizeCopy = posterize;
+    QCOMPARE(posterizeCopy.levels, 17);
+    QCOMPARE(posterizeCopy.lookup_table[255], 199);
+    posterizeCopy.levels = 23;
+    posterizeCopy.lookup_table[255] = 197;
+    QCOMPARE(posterize.levels, 17);
+    QCOMPARE(posterize.lookup_table[255], 199);
+}
+
+void PsdFormatValuesContractTest::colorAdjustmentRecordsPreserveDefaultsAndCopyState()
+{
+    const psd_layer_color_balance emptyBalance{};
+    QCOMPARE(int(emptyBalance.cyan_red[2]), 0);
+    QCOMPARE(int(emptyBalance.magenta_green[2]), 0);
+    QCOMPARE(int(emptyBalance.yellow_blue[2]), 0);
+    QVERIFY(!emptyBalance.preserve_luminosity);
+    QCOMPARE(emptyBalance.lookup_table[2][255], 0);
+
+    psd_layer_color_balance balance{};
+    balance.cyan_red[2] = -79;
+    balance.magenta_green[2] = 83;
+    balance.yellow_blue[2] = -89;
+    balance.preserve_luminosity = true;
+    balance.lookup_table[2][255] = 251;
+    psd_layer_color_balance balanceCopy = balance;
+    QCOMPARE(int(balanceCopy.cyan_red[2]), -79);
+    QCOMPARE(int(balanceCopy.magenta_green[2]), 83);
+    QCOMPARE(int(balanceCopy.yellow_blue[2]), -89);
+    QVERIFY(balanceCopy.preserve_luminosity);
+    QCOMPARE(balanceCopy.lookup_table[2][255], 251);
+    balanceCopy.cyan_red[2] = 73;
+    balanceCopy.magenta_green[2] = -71;
+    balanceCopy.yellow_blue[2] = 67;
+    balanceCopy.preserve_luminosity = false;
+    balanceCopy.lookup_table[2][255] = 241;
+    QCOMPARE(int(balance.cyan_red[2]), -79);
+    QCOMPARE(int(balance.magenta_green[2]), 83);
+    QCOMPARE(int(balance.yellow_blue[2]), -89);
+    QVERIFY(balance.preserve_luminosity);
+    QCOMPARE(balance.lookup_table[2][255], 251);
+
+    const psd_layer_selective_color emptySelective{};
+    QCOMPARE(emptySelective.correction_method, 0);
+    QCOMPARE(int(emptySelective.cyan_correction[9]), 0);
+    QCOMPARE(int(emptySelective.magenta_correction[9]), 0);
+    QCOMPARE(int(emptySelective.yellow_correction[9]), 0);
+    QCOMPARE(int(emptySelective.black_correction[9]), 0);
+
+    psd_layer_selective_color selective{};
+    selective.correction_method = 1;
+    selective.cyan_correction[9] = -97;
+    selective.magenta_correction[9] = 89;
+    selective.yellow_correction[9] = -83;
+    selective.black_correction[9] = 79;
+    psd_layer_selective_color selectiveCopy = selective;
+    QCOMPARE(selectiveCopy.correction_method, 1);
+    QCOMPARE(int(selectiveCopy.cyan_correction[9]), -97);
+    QCOMPARE(int(selectiveCopy.magenta_correction[9]), 89);
+    QCOMPARE(int(selectiveCopy.yellow_correction[9]), -83);
+    QCOMPARE(int(selectiveCopy.black_correction[9]), 79);
+    selectiveCopy.cyan_correction[9] = 73;
+    selectiveCopy.magenta_correction[9] = -71;
+    selectiveCopy.yellow_correction[9] = 67;
+    selectiveCopy.black_correction[9] = -61;
+    QCOMPARE(selective.correction_method, 1);
+    QCOMPARE(int(selective.cyan_correction[9]), -97);
+    QCOMPARE(int(selective.magenta_correction[9]), 89);
+    QCOMPARE(int(selective.yellow_correction[9]), -83);
+    QCOMPARE(int(selective.black_correction[9]), 79);
+
+    const psd_layer_photo_filter emptyPhoto{};
+    QCOMPARE(emptyPhoto.x_color, 0);
+    QCOMPARE(emptyPhoto.y_color, 0);
+    QCOMPARE(emptyPhoto.z_color, 0);
+    QCOMPARE(emptyPhoto.density, 0);
+    QVERIFY(emptyPhoto.preserve_luminosity);
+
+    psd_layer_photo_filter photo{};
+    photo.x_color = -100000;
+    photo.y_color = 200000;
+    photo.z_color = -300000;
+    photo.density = 85;
+    photo.preserve_luminosity = false;
+    psd_layer_photo_filter photoCopy = photo;
+    QCOMPARE(photoCopy.x_color, -100000);
+    QCOMPARE(photoCopy.y_color, 200000);
+    QCOMPARE(photoCopy.z_color, -300000);
+    QCOMPARE(photoCopy.density, 85);
+    QVERIFY(!photoCopy.preserve_luminosity);
+    photoCopy.x_color = 400000;
+    photoCopy.y_color = -500000;
+    photoCopy.z_color = 600000;
+    photoCopy.density = 25;
+    photoCopy.preserve_luminosity = true;
+    QCOMPARE(photo.x_color, -100000);
+    QCOMPARE(photo.y_color, 200000);
+    QCOMPARE(photo.z_color, -300000);
+    QCOMPARE(photo.density, 85);
+    QVERIFY(!photo.preserve_luminosity);
+}
+
+void PsdFormatValuesContractTest::channelMixerValueInitializesAndCopiesChannels()
+{
+    const psd_layer_channel_mixer empty{};
+    QVERIFY(!empty.monochrome);
+    QCOMPARE(int(empty.red_cyan[3]), 0);
+    QCOMPARE(int(empty.green_magenta[3]), 0);
+    QCOMPARE(int(empty.blue_yellow[3]), 0);
+    QCOMPARE(int(empty.black[3]), 0);
+    QCOMPARE(int(empty.constant[3]), 0);
+
+    psd_layer_channel_mixer mixer{};
+    mixer.monochrome = true;
+    mixer.red_cyan[3] = -101;
+    mixer.green_magenta[3] = 103;
+    mixer.blue_yellow[3] = -107;
+    mixer.black[3] = 109;
+    mixer.constant[3] = -113;
+    psd_layer_channel_mixer copy = mixer;
+    QVERIFY(copy.monochrome);
+    QCOMPARE(int(copy.red_cyan[3]), -101);
+    QCOMPARE(int(copy.green_magenta[3]), 103);
+    QCOMPARE(int(copy.blue_yellow[3]), -107);
+    QCOMPARE(int(copy.black[3]), 109);
+    QCOMPARE(int(copy.constant[3]), -113);
+    copy.monochrome = false;
+    copy.red_cyan[3] = 97;
+    copy.green_magenta[3] = -89;
+    copy.blue_yellow[3] = 83;
+    copy.black[3] = -79;
+    copy.constant[3] = 73;
+    QVERIFY(mixer.monochrome);
+    QCOMPARE(int(mixer.red_cyan[3]), -101);
+    QCOMPARE(int(mixer.green_magenta[3]), 103);
+    QCOMPARE(int(mixer.blue_yellow[3]), -107);
+    QCOMPARE(int(mixer.black[3]), 109);
+    QCOMPARE(int(mixer.constant[3]), -113);
 }
 
 QTEST_GUILESS_MAIN(PsdFormatValuesContractTest)
