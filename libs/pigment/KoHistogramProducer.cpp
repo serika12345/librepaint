@@ -6,13 +6,8 @@
 
 #include "KoHistogramProducer.h"
 
-#include <QList>
 #include <QGlobalStatic>
-
-#include <KoID.h>
-
-
-#include "KoColorSpace.h"
+#include <QList>
 
 Q_GLOBAL_STATIC(KoHistogramProducerFactoryRegistry, s_instance)
 
@@ -25,13 +20,13 @@ KoHistogramProducerFactoryRegistry::~KoHistogramProducerFactoryRegistry()
     qDeleteAll(values());
 }
 
-KoHistogramProducerFactoryRegistry* KoHistogramProducerFactoryRegistry::instance()
+KoHistogramProducerFactoryRegistry *KoHistogramProducerFactoryRegistry::instance()
 {
     return s_instance;
-
 }
 
-QList<QString> KoHistogramProducerFactoryRegistry::keysCompatibleWith(const KoColorSpace* colorSpace, bool isStrict) const
+QList<QString> KoHistogramProducerFactoryRegistry::keysCompatibleWith(const KoColorSpace *colorSpace,
+                                                                      bool isStrict) const
 {
     QList<QString> list;
     QList<float> preferredList;

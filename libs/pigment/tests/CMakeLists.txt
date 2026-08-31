@@ -187,6 +187,18 @@ target_include_directories(KoColorProfileConstantsContractTest PRIVATE
 )
 
 kis_add_test(
+    KoHistogramProducerContractTest.cpp
+    LINK_LIBRARIES
+        kritapigmenthistogramproducerobjects
+        kritaglobalidobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(KoHistogramProducerContractTest PRIVATE
+    kritaglobal_EXPORTS
+    kritapigment_EXPORTS
+)
+
+kis_add_test(
     KoColorTransferFunctionsContractTest.cpp
     LINK_LIBRARIES
         kritamultiarch

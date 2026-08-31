@@ -126,6 +126,28 @@ set_target_properties(kritapigmentstandardidsobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritapigmenthistogramproducerobjects OBJECT
+    KoHistogramProducer.cpp
+)
+target_compile_definitions(kritapigmenthistogramproducerobjects PRIVATE kritapigment_EXPORTS)
+target_include_directories(kritapigmenthistogramproducerobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritapigmenthistogramproducerobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        KF${KF_MAJOR}::I18n
+        Boost::boost
+)
+set_target_properties(kritapigmenthistogramproducerobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritapigmentcolorimetryobjects OBJECT
     KoColorimetryUtils.cpp
 )
@@ -321,7 +343,6 @@ set(kritapigment_SRCS
     KoCompositeOpRegistry.cpp
     KoCopyColorConversionTransformation.cpp
     KoFallBackColorTransformation.cpp
-    KoHistogramProducer.cpp
     KoMultipleColorConversionTransformation.cpp
     colorspaces/KoLabColorSpace.cpp
     colorspaces/KoRgbU16ColorSpace.cpp
@@ -386,6 +407,7 @@ kis_add_library(kritapigment SHARED
     $<TARGET_OBJECTS:kritapigmentcmykmathsobjects>
     $<TARGET_OBJECTS:kritapigmentlabmathsobjects>
     $<TARGET_OBJECTS:kritapigmentstandardidsobjects>
+    $<TARGET_OBJECTS:kritapigmenthistogramproducerobjects>
     $<TARGET_OBJECTS:kritapigmentcolorimetryobjects>
     $<TARGET_OBJECTS:kritaalphacolorspaceobjects>
     $<TARGET_OBJECTS:kritapigmentdebugobjects>
