@@ -2,12 +2,49 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-31 16:56 JST
+- 更新日時: 2026-08-31 17:08 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
+
+### 第83並列便の担当票
+
+- shape寸法変更command担当は`planned`である。対象は`libs/flake/commands/KoShapeResizeCommand.h`の8 APIである。
+  開始ファイル`libs/flake/commands/KoShapeResizeCommand.cpp`を`kritaflake_SRCS`の直接収容から
+  `kritaflakeshaperesizecommandobjects`へ移し、製品`kritaflake`へ一度だけ再集約する。新規
+  `libs/flake/tests/KoShapeResizeCommandContractTest.cpp`が構築時の元寸法・変換・借用shape、redo・undoの単一lock配送、
+  replace時の復元から再適用までの順序、merge条件とscale累積、識別子を5契約枠で固定する。寸法・変換の読取、
+  寸法変更、元状態復元、scale方向判定は開始実装の`BUILD_TESTING`限定配送を介し、既定配送は実shapeの現行処理と
+  一括更新順を保つ。予測閉包5工程・11実入力、停止条件6工程・14実入力、製品閉包612工程・1,256入力不変を要求する。
+  許可範囲は`libs/flake/CMakeLists.txt`、開始実装、`libs/flake/tests/CMakeLists.txt`、新規試験である。
+- 画像animation設定command担当は`planned`である。対象は
+  `libs/image/commands_new/KisImageAnimSettingCommand.h`の14 APIである。開始ファイル
+  `libs/image/commands_new/KisImageAnimSettingCommand.cpp`を`kritaimage_LIB_SRCS`の直接収容から
+  `kritaimageanimsettingcommandobjects`へ移し、製品`kritaimage`へ一度だけ再集約する。新規非公開
+  `libs/image/commands_new/KisImageAnimSettingCommandAnimationAccess_p.h`のFPS・再生範囲の読取と設定を開始元
+  `libs/image/kis_image_animation_interface.cpp`の現行処理へ委譲する。新規
+  `libs/image/tests/KisImageAnimSettingCommandContractTest.cpp`がSettings既定値・型と削除済み操作、構築時の変更前値、
+  redo・undoのFPSから範囲への配送順、識別子と型別merge可否、最初の変更前値と最後の変更後値の統合を5契約枠で
+  固定する。予測閉包11工程・24実入力、停止条件12工程・27実入力、製品閉包1,184工程・2,392入力不変を要求する。
+  許可範囲は`libs/image/CMakeLists.txt`、開始実装、新規非公開header、開始元interface実装、
+  `libs/image/tests/CMakeLists.txt`、新規試験である。
+- alpha darken引数束担当は`planned`である。対象は
+  `libs/pigment/compositeops/KoAlphaDarkenParamsWrapper.h`の17 APIである。開始ファイル
+  `libs/pigment/compositeops/KoAlphaDarkenParamsWrapper.cpp`を`kritapigment_SRCS`の直接収容から
+  `kritapigmentalphadarkenparamswrapperobjects`へ移し、製品`kritapigment`へ一度だけ再集約する。新規
+  `libs/pigment/tests/KoAlphaDarkenParamsWrapperContractTest.cpp`が硬質方式とクリーミー方式への3値配送、両方式の
+  3種zero-flow合成則、隔離した設定領域からの方式選択と初回読取cacheを5契約枠で固定する。製品sourceと公開headerの
+  内容は変更しない。予測閉包5工程・11実入力、停止条件6工程・14実入力、製品閉包360工程・750入力不変を要求する。
+  許可範囲は`libs/pigment/CMakeLists.txt`、`libs/pigment/tests/CMakeLists.txt`、新規試験である。
+- 3担当は同じ基準commitから専用作業ツリーを作り、Git操作権限は`transport-commit`、追加委任は`forbidden`、
+  対象プラットフォームはmacOS、共有コンパイラーキャッシュは主作業ツリーの既定位置、構築実行許可は`waiting`とする。
+  統合順はshape寸法変更command、画像animation設定command、alpha darken引数束である。中央進捗文書、公開API対応表、
+  不足一覧は調整担当だけが更新する。各担当差分の統合直後に担当作業ツリー、局所構築木、担当ブランチを削除する。
+  旧不足一覧は新しい一覧の件数確認直後に削除し、再生成可能な一覧を常に最新1世代へ限定する。製品objectをNinjaで
+  直接指定せず、変更した製品開始ファイルは既存コンパイル指令の`-fsyntax-only`検査を使う。
+- 第83便は合計39 APIを対応付け、対応済み9,101件、未対応20,888件を目標とする。
 
 ### 第82並列便の完了結果
 
@@ -262,10 +299,8 @@
 
 ### 次の操作
 
-- 第83並列便はread-only監査済みの`libs/flake/commands/KoShapeResizeCommand.h` 8 API、
-  `libs/image/commands_new/KisImageAnimSettingCommand.h` 14 API、
-  `libs/pigment/compositeops/KoAlphaDarkenParamsWrapper.h` 17 APIの担当票を確定する。各担当の作業ツリーと局所構築木は
-  統合直後に削除し、不足一覧は最新版1件だけを保持する。
+- 第83並列便の3担当作業ツリーを計画commitから作成し、限定構築と挙動契約の実装を開始する。完了担当から順に
+  差分と検証証拠を確認して統合し、担当作業ツリー、局所構築木、担当ブランチを直ちに削除する。
 
 ## 再開環境
 
