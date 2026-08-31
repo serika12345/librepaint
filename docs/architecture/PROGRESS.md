@@ -2,12 +2,33 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 07:29 JST
+- 更新日時: 2026-09-01 07:35 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
+
+### 第103並列便の監査計画
+
+- 共通基点は`780656f79574376d04463211d4be81a5d4413cf1`、入力は`build/tdd-macos/public-api-missing-g103.json`である。3担当は`auditing`で、
+  読み取り専用とし、製品・試験・CMake・台帳・文書を変更せず、構築、テスト、Git操作、追加委任も行わない。一つの公開責務から25 API以上を
+  最大5契約枠へ固定し、既存限定対象、header-only値面、または一sourceのOBJECT一対一移動で製品shared libraryと`kritatestsdk`へ接続せず閉じられる
+  候補を優先する。新規公開APIや試験だけを理由とする抽象化は提案しない。
+- `g103-psd-core-values-audit`は`libs/psdutils/psd.h` 197 API、`libs/psd/psd_resource_block.h` 163 API、
+  `libs/psd/psd_additional_layer_info_block.h` 139 APIを比較し、第99〜102便と重ならない列挙・値記録・既定値・符号付き寸法・copyの最良一責務を選ぶ。
+  実image、paint device、色空間・pattern registry、ASL、filesystem、所有不明の生pointerを必要とする経路は採用しない。三headerを混在させず、最良候補と他候補の
+  棄却根拠を報告する。
+- `g103-widget-unit-manager-audit`は`libs/widgetutils/kis_spin_box_unit_manager.h`の残り46 APIについて、単位次元・制約値、基準・表示単位、換算係数・定数、
+  list model、単位選択、manager同期を一つのQtモデル契約へ収められるか監査する。factoryの大域builder所有は分離し、実Widget、application設定、document、画面、
+  filesystemに接続しない。現sourceが広い場合は公開headerを変えない一source所有移動とQt Core/Test中心の限定対象を示す。
+- `g103-pigment-profile-values-audit`は`libs/pigment/KoColorProfile.h` 48 API、`libs/pigment/KoColor.h` 45 API、
+  `libs/pigment/KoCompositeOp.h` 41 APIを比較し、profileメタデータ・色基準名・transfer特性、色値、composite operation属性のうち、実色空間、registry、pixel処理、
+  filesystemなしで25 API以上を固定できる最良一責務を選ぶ。具体的なfake派生で純粋仮想面を観測できる場合は許可するが、製品代替の新抽象は追加しない。
+  三headerを混在させず、他候補の棄却根拠を報告する。
+- 各報告は完全なAPI識別子、観測する現行挙動、最大5契約枠、最寄りCTest、所有CMake、直接依存、変更なし閉包、予測閉包と停止線、開始pathから
+  移動先pathへの対応、許可path、固有停止条件を含む。候補がない場合は最接近候補と棄却根拠を数値で報告する。3監査後にpath、CMake、試験source、
+  生成物が重ならない候補だけを実装担当票へ進める。第103便用不足一覧の生成後、第102便の最終不足一覧4.8 MBは削除済みである。
 
 ### 第102並列便の監査計画
 
