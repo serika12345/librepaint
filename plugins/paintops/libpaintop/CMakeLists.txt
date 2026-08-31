@@ -12,7 +12,6 @@ set(kritalibpaintop_LIB_SRCS
     kis_color_source_option.cpp
     KisCurveOptionDataUniformProperty.cpp
     KisSensorData.cpp
-    KisCurveOptionData.cpp
     KisCurveOptionInputControlsStrategy.cpp
     KisCurveRangeModel.cpp
     KisCurveOptionModel.cpp
@@ -99,7 +98,6 @@ set(kritalibpaintop_LIB_SRCS
 # settings UI.
 set(kritapaintopruntime_LIB_SRCS
     KisCurveOption.cpp
-    KisCurveOptionData.cpp
     KisCurveOptionDataUniformProperty.cpp
     KisDabCacheUtils.cpp
     KisDarkenOption.cpp
@@ -310,6 +308,34 @@ set_target_properties(kritapaintopcolorsourceoptiondataobjects PROPERTIES
 
 add_library(kritapaintopcurveoptiondatacommonobjects OBJECT
     KisCurveOptionDataCommon.cpp
+)
+
+add_library(kritapaintopcurveoptiondataobjects OBJECT
+    KisCurveOptionData.cpp
+)
+target_compile_definitions(kritapaintopcurveoptiondataobjects PRIVATE
+    kritaglobal_EXPORTS
+    kritaimage_EXPORTS
+    kritalibpaintop_EXPORTS
+    kritapigment_EXPORTS
+)
+target_include_directories(kritapaintopcurveoptiondataobjects PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/image>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/image>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/pigment>
+)
+target_link_libraries(kritapaintopcurveoptiondataobjects PUBLIC
+    kritapaintopcurveoptiondatacommonobjects
+    kritapaintopkritasensorpackobjects
+)
+set_target_properties(kritapaintopcurveoptiondataobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
 )
 target_compile_definitions(kritapaintopcurveoptiondatacommonobjects PRIVATE
     kritaglobal_EXPORTS
@@ -778,6 +804,7 @@ kis_add_library(kritapaintopruntime OBJECT
     $<TARGET_OBJECTS:kritapaintopairbrushoptiondataobjects>
     $<TARGET_OBJECTS:kritapaintopcolorsourceoptiondataobjects>
     $<TARGET_OBJECTS:kritapaintopcurveoptiondatacommonobjects>
+    $<TARGET_OBJECTS:kritapaintopcurveoptiondataobjects>
     $<TARGET_OBJECTS:kritapaintopkritasensorpackobjects>
     $<TARGET_OBJECTS:kritapaintoppaintingmodeoptiondataobjects>
     $<TARGET_OBJECTS:kritapaintopprecisionoptionobjects>

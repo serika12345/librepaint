@@ -338,6 +338,24 @@ kis_add_test(
         Qt${QT_MAJOR_VERSION}::Xml
         Qt${QT_MAJOR_VERSION}::Test
 )
+
+kis_add_test(
+    KisCurveOptionDataContractTest.cpp
+    LINK_LIBRARIES
+        kritapaintopcurveoptiondataobjects
+        kritapaintopcurveoptiondatacommonobjects
+        kritapaintopkritasensorpackobjects
+        kritapaintopsensordataobjects
+        kritapaintopsensorpackinterfaceobjects
+        kritaglobalidobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(KisCurveOptionDataContractTest PRIVATE
+    kritaglobal_EXPORTS
+    kritaimage_EXPORTS
+    kritalibpaintop_EXPORTS
+    kritapigment_EXPORTS
+)
 target_compile_definitions(KisKritaSensorPackContractTest PRIVATE
     kritaglobal_EXPORTS
     kritaimage_EXPORTS
