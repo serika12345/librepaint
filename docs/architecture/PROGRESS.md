@@ -2,12 +2,25 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-31 23:57 JST
+- 更新日時: 2026-09-01 00:00 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
+
+### 第92並列便の監査計画
+
+- 共通基点は`9fd6543fe0c07c5f41ca2c1edf22d3f5c025421e`、入力は
+  `build/tdd-macos/public-api-missing-g92.json`である。3担当は読み取り専用で、製品・試験・CMake・台帳を変更せず、構築も実行しない。
+- `g92-image-brush-audit`は`libs/image`と`libs/brush`から、未対応API密度が高く、既存の値契約または一つの専用OBJECTで固定できる
+  一つの公開headerを選ぶ。候補ごとに最寄りCTest、直接CMake依存、変更なし計画、予測される空構築閉包、製品収容の一意性を報告する。
+- `g92-flake-widgets-audit`は`libs/flake`、`libs/widgets`、`libs/widgetutils`から、Qt Widgets、製品共有library、`kritatestsdk`を避けられる
+  値・状態遷移契約を選ぶ。既存targetを優先し、新規targetなら7工程・16入力以内を目安として対象APIと観測枠を提示する。
+- `g92-global-resources-audit`は`libs/global`、`libs/resources`、`libs/painting`、`plugins/paintops`から、第91便と公開header・試験・CMakeが
+  重ならない高密度候補を選ぶ。公開宣言だけの型数え上げではなく、境界値、往復、配送、寿命のいずれかを観測できる候補を優先する。
+- 統合担当は3報告を照合し、製品shared libraryとQt Widgetsへの接続を避け、予測閉包が小さく、公開header・試験source・CMake所有が互いに
+  重ならない最大3担当を選ぶ。停止上限と製品閉包を確定して進捗へ記録してから専用作業ツリーを作る。
 
 ### 第91並列便の監査計画
 
