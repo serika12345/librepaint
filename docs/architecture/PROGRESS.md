@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 07:44 JST
+- 更新日時: 2026-09-01 07:55 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -52,13 +52,13 @@
   `queued`である。Git権限は許可pathだけの`transport-commit`とする。作成済みworktreeはworktree-local `build/tdd-macos`を使い、
   lane内の`./scripts/run-shared-test-env`から主環境とcompiler cacheを共有する。構築入力でない翻訳catalog `po/` 210 MBは疎なチェックアウトの対象外とし、
   各source worktreeを570 MBから360 MBへ縮小した。
-- `g103-psd-vector-stroke-values`は`planned`で、worktreeは`/Users/masato/Documents/librepaint-g103-psd-vector-stroke-values`である。対象は
+- `g103-psd-vector-stroke-values`は`in_progress`で、worktreeは`/Users/masato/Documents/librepaint-g103-psd-vector-stroke-values`である。対象は
   `libs/psd/psd_additional_layer_info_block.h`の`psd_vector_stroke_data`のstructとpublic member 11件、`setVersion`・`setStrokeEnabled`・
   `setFillEnabled`・`setScaleLock`・`setStrokeAdjust`・`setOpacityFromPercentage`・`setResolution`、`setStrokeDashOffset`・`setStrokeMiterLimit`・
   `setStrokePixel`・`setStrokeWidth`、`setLineCapType`・`setLineJoinType`、`appendToDashPattern`の全26 APIである。許可pathは
   `libs/psdutils/tests/PsdFormatValuesContractTest.cpp`だけとし、既定・copy、scalar setter、pen寸法・単位、cap・join、dash追加の5枠を追加する。
   最寄りCTestは`PsdFormatValuesContractTest`、軽量近傍は`PsdByteIoContractTest`、予測4工程・9入力、停止5工程・12入力、製品不変とする。
-- `g103-widget-unit-manager-values`は`planned`で、worktreeは`/Users/masato/Documents/librepaint-g103-widget-unit-manager-values`である。対象は
+- `g103-widget-unit-manager-values`は`in_progress`で、worktreeは`/Users/masato/Documents/librepaint-g103-widget-unit-manager-values`である。対象は
   `libs/widgetutils/kis_spin_box_unit_manager.h`の`KisSpinBoxUnitManager`、`UnitDimension`・`Constrain`・`Constrains`、全列挙子、`referenceUnitSymbols`、構築・破棄、
   `isUnitId`、単位次元・記号・ID・小数桁・一覧・換算のgetter、`rowCount`・`data`、次元・記号・index選択、manager同期・解除、全public signalの全39 APIである。
   開始`libs/widgetutils/kis_spin_box_unit_manager.cpp`からfactoryのstatic builder状態と3本文を新規`libs/widgetutils/KisSpinBoxUnitManagerFactory.cpp`へ本文不変で移し、
