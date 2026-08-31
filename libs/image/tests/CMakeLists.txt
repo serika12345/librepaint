@@ -721,6 +721,26 @@ target_compile_definitions(KisLevelsCurveContractTest PRIVATE
 )
 
 kis_add_test(
+    KisCubicCurveContractTest.cpp
+    LINK_LIBRARIES
+        kritaimagecubiccurveobjects
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+        Boost::boost
+        Eigen3::Eigen
+)
+target_include_directories(KisCubicCurveContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+)
+target_compile_definitions(KisCubicCurveContractTest PRIVATE
+    kritaglobal_EXPORTS
+    kritaimage_EXPORTS
+)
+
+kis_add_test(
     KisSpatialContainerContractTest.cpp
     LINK_LIBRARIES
         kritaimagespatialcontainerobjects
