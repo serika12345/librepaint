@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-31 11:11 JST
+- 更新日時: 2026-08-31 11:15 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -20,9 +20,10 @@
   `kritaflakeshapepaintordercommandobjects`へ移し、製品`kritaflake`へ一度だけ再集約する。新規
   `libs/flake/tests/KoShapePaintOrderCommandContractTest.cpp`が構築時の順序・元値・借用寿命、
   redo・undoの設定順、同一形状列のmerge、空列とcommand識別子を4契約枠で固定し、7 APIを
-  `maintained`へ分類する。限定構築を許可し、予測閉包5工程・12入力、停止条件
-  6工程・14入力、製品閉包612工程・1,256入力不変を要求する。許可範囲は`libs/flake/CMakeLists.txt`、
-  `libs/flake/tests/CMakeLists.txt`、新規試験だけである。
+  `maintained`へ分類する。仮想paint-order APIは不透明shape tokenから直接呼べないため、開始実装に
+  `BUILD_TESTING`限定の配送設定を置き、既定配送は実shape APIへ委譲する。限定構築を許可し、予測閉包
+  5工程・12入力、停止条件6工程・14入力、製品閉包612工程・1,256入力不変を要求する。許可範囲は
+  `libs/flake/CMakeLists.txt`、開始実装、`libs/flake/tests/CMakeLists.txt`、新規試験だけである。
 - 抽象tile圧縮器担当は`implementing`である。基点は`ab3e732e112218aff50634e44337c5fdca3d6de0`、
   作業ツリーは`/Users/masato/Documents/librepaint-r2-g74-tile-compressor`、ブランチは
   `r2-g74-tile-compressor`、統合順は2である。対象は
