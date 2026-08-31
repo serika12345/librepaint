@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 06:08 JST
+- 更新日時: 2026-09-01 06:12 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -43,15 +43,15 @@
 ### 第101並列便の担当計画
 
 - 実装共通基点は`c3cfab72ed3bc2e63ab07d18836dd72fbf048900`、構築許可は`granted`、Git権限は許可pathだけの`transport-commit`である。
-- `g101-psd-text-values`は`planned`で、専用作業ツリーを`/Users/masato/Documents/librepaint-g101-psd-text-values`とする。対象は
+- `g101-psd-text-values`は`in_progress`で、専用作業ツリーは`/Users/masato/Documents/librepaint-g101-psd-text-values`である。対象は
   `libs/psd/psd_additional_layer_info_block.h`の`psd_layer_type_face` 8 API、`psd_layer_type_style` 10 API、`psd_layer_type_line` 6 API、
   `psd_layer_type_tool` 14 API、`psd_layer_type_shape` 14 APIの合計52 APIである。許可pathは既存
   `libs/psdutils/tests/PsdFormatValuesContractTest.cpp`だけで、5枠を追加する。予測4工程・9入力、停止5工程・12入力、製品`kritapsd`不変とする。
-- `g101-xcf-record-values`は`planned`で、専用作業ツリーを`/Users/masato/Documents/librepaint-g101-xcf-record-values`とする。対象は
+- `g101-xcf-record-values`は`in_progress`で、専用作業ツリーは`/Users/masato/Documents/librepaint-g101-xcf-record-values`である。対象は
   `plugins/impex/xcf/3rdparty/xcftools/xcftools.h`の`rect` 5 API、`tileDimensions` 7 API、`xcfTiles` 4 API、`xcfLayer` 14 API、`xcfImage` 9 APIの
   合計39 APIである。許可pathは`plugins/impex/xcf/tests/CMakeLists.txt`と新規`plugins/impex/xcf/tests/XcfToolsValueContractTest.cpp`だけで、Qt Core・Testと
   対象header面だけの新規4枠を作る。予測4工程・8入力、停止5工程・11入力、製品`xcftools`と`kritaxcfimport`不変とする。
-- `g101-global-algebra-rect-values`は`planned`で、専用作業ツリーを`/Users/masato/Documents/librepaint-g101-global-algebra-rect-values`とする。対象は
+- `g101-global-algebra-rect-values`は`in_progress`で、専用作業ツリーは`/Users/masato/Documents/librepaint-g101-global-algebra-rect-values`である。対象は
   `libs/global/kis_algebra_2d.h`の矩形蓄積10 API、寸法・制限6 API、標本化・近似5 API、切断・写像3 API、許容差判定5 APIの合計29 APIである。開始
   `libs/global/kis_algebra_2d.cpp`から該当実装だけを新規`libs/global/kis_algebra_2d_rect.cpp`へ本文を変えず移し、
   `kritaglobalalgebrarectobjects`として製品へ一回再集約する。許可pathは両source、`libs/global/CMakeLists.txt`、
