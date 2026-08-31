@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 20411
+    "expectedMissingApis": 20360
   },
   "contracts": [
     {
@@ -27928,6 +27928,93 @@
         "struct:CFReorientedNormalMapCombine",
         "struct:CFTangentNormalmap",
         "struct:CFTint"
+      ]
+    },
+    {
+      "target": "KoStreamedMathContractTest",
+      "source": "libs/pigment/tests/KoStreamedMathContractTest.cpp",
+      "test": "KoStreamedMathContractTest::scalarAndSimdRoundAndDivisionPreserveValues",
+      "behavior": "流式画素演算のスカラー・SIMD型は現在の処理系に対応し、符号付き丸めとスカラー・ベクトル除算の代表値を保つ。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KoStreamedMath::float_v",
+        "alias:KoStreamedMath::int_v",
+        "alias:KoStreamedMath::uint_v",
+        "alias:OptiDiv::float_v",
+        "alias:PixelStateRecoverHelper::float_m",
+        "alias:PixelStateRecoverHelper::float_v",
+        "alias:PixelWrapper::float_v",
+        "alias:PixelWrapper::int_v",
+        "alias:PixelWrapper::uint_v",
+        "method:OptiDiv::divScalar(const float & divident,const float & divisor)",
+        "method:OptiDiv::divVector(const float_v & divident,const float_v & divisor)",
+        "method:OptiRound::roundScalar(const float value)",
+        "struct:KoStreamedMath",
+        "struct:OptiDiv",
+        "struct:OptiRound",
+        "struct:PixelStateRecoverHelper",
+        "struct:PixelWrapper",
+        "struct:PixelWrapper::Pixel"
+      ]
+    },
+    {
+      "target": "KoStreamedMathContractTest",
+      "source": "libs/pigment/tests/KoStreamedMathContractTest.cpp",
+      "test": "KoStreamedMathContractTest::maskAlphaAndChannelsRoundTripExactBytes",
+      "behavior": "流式画素演算は固定長画素の複製・消去、8 bitマスクとARGBチャネルの取得、丸め・補間、整列・非整列書込みを正確なバイト列として保つ。",
+      "classification": "maintained",
+      "apis": [
+        "function:KoStreamedMathFunctions::clearPixel(quint8 * dst)",
+        "function:KoStreamedMathFunctions::copyPixel(const quint8 * src,quint8 * dst)",
+        "method:KoStreamedMath::fetch_alpha_32(const void * data)",
+        "method:KoStreamedMath::fetch_colors_32(const void * data,float_v & c1,float_v & c2,float_v & c3)",
+        "method:KoStreamedMath::fetch_mask_8(const quint8 * data)",
+        "method:KoStreamedMath::lerp_mixed_u8_float(quint8 a,quint8 b,float alpha)",
+        "method:KoStreamedMath::round_float_to_u8(float x)",
+        "method:KoStreamedMath::write_channels_32(void * data,const float_v alpha,const float_v c1,const float_v c2,const float_v c3)",
+        "method:KoStreamedMath::write_channels_32_unaligned(void * data,const float_v alpha,const float_v c1,const float_v c2,const float_v c3)"
+      ]
+    },
+    {
+      "target": "KoStreamedMathContractTest",
+      "source": "libs/pigment/tests/KoStreamedMathContractTest.cpp",
+      "test": "KoStreamedMathContractTest::pixelWrappersPreserveChannelPolicies",
+      "behavior": "8 bit・16 bit・浮動小数画素の方針は値域定数、補間、丸め、アルファ正規化、4チャネル読書き、複製と消去を型ごとの現在値で保つ。",
+      "classification": "maintained",
+      "apis": [
+        "member:PixelWrapper::Pixel::alpha",
+        "member:PixelWrapper::Pixel::blue",
+        "member:PixelWrapper::Pixel::green",
+        "member:PixelWrapper::Pixel::red",
+        "member:PixelWrapper::mask",
+        "member:PixelWrapper::uint16Max",
+        "member:PixelWrapper::uint16Rec1",
+        "member:PixelWrapper::uint8Max",
+        "member:PixelWrapper::uint8Rec1",
+        "method:PixelWrapper::PixelWrapper()",
+        "method:PixelWrapper::clearPixels(quint8 * dataDst)",
+        "method:PixelWrapper::copyPixels(const quint8 * dataSrc,quint8 * dataDst)",
+        "method:PixelWrapper::denormalizeAlpha(float & alpha)",
+        "method:PixelWrapper::lerpMixedUintFloat(float a,float b,float alpha)",
+        "method:PixelWrapper::lerpMixedUintFloat(quint16 a,quint16 b,float alpha)",
+        "method:PixelWrapper::lerpMixedUintFloat(quint8 a,quint8 b,float alpha)",
+        "method:PixelWrapper::normalizeAlpha(float & alpha)",
+        "method:PixelWrapper::read(const void * src,float_v & dst_c1,float_v & dst_c2,float_v & dst_c3,float_v & dst_alpha)",
+        "method:PixelWrapper::roundFloatToUint(float x)",
+        "method:PixelWrapper::write(quint8 * dataDst,const float_v & c1,const float_v & c2,const float_v & c3,const float_v & a)",
+        "method:PixelWrapper::write(void * dst,const float_v & c1,const float_v & c2,const float_v & c3,const float_v & a)",
+        "method:PixelWrapper::write(void * dst,const float_v & src_c1,const float_v & src_c2,const float_v & src_c3,const float_v & src_alpha)"
+      ]
+    },
+    {
+      "target": "KoStreamedMathContractTest",
+      "source": "libs/pigment/tests/KoStreamedMathContractTest.cpp",
+      "test": "KoStreamedMathContractTest::pixelRecoveryRestoresOnlySelectedFloatLanes",
+      "behavior": "画素状態復元は浮動小数画素の選択レーンだけを保存値へ戻し、8 bit画素方針では入力値を変更しない。",
+      "classification": "maintained",
+      "apis": [
+        "method:PixelStateRecoverHelper::PixelStateRecoverHelper(const float_v & c1,const float_v & c2,const float_v & c3)",
+        "method:PixelStateRecoverHelper::recoverPixels(const float_m & mask,float_v & c1,float_v & c2,float_v & c3) const"
       ]
     },
     {

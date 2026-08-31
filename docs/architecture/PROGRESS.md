@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-31 23:45 JST
+- 更新日時: 2026-08-31 23:51 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -31,8 +31,7 @@
   68工程・136入力を不変とする。patch iteratorは非inline `assignPatchData`を呼ばない距離・比較だけ、変換元矩形は平行移動と拡大だけを扱う。
   有効入力にもコンパイルされる安全表明の`kis_assert_exception`と`kis_safe_assert_recoverable`だけは、製品共有libraryを避けるため、
   到達時に即失敗する試験内診断定義を同じ許可sourceへ置く。
-- `g91-pigment-streamed-math`は`in_progress`であり、専用作業ツリーは
-  `/Users/masato/Documents/librepaint-g91-pigment-streamed-math`である。対象headerは`libs/pigment/compositeops/KoStreamedMath.h`、許可pathは新規
+- `g91-pigment-streamed-math`は`integrated`である。対象headerは`libs/pigment/compositeops/KoStreamedMath.h`、許可pathは新規
   `libs/pigment/tests/KoStreamedMathContractTest.cpp`と`libs/pigment/tests/CMakeLists.txt`だけである。最初の59 API案のうち、8 `genericComposite`
   overloadは非自明な`QBitArray`を持つ`KoCompositeOp::ParameterInfo`の製品側constructorを必要とし、軽量試験では製品OBJECTまたは意味論再実装に
   なるため本便から除外する。改定対象は9 alias、`clearPixel`と`copyPixel`、PixelとPixelWrapperの9 member、KoStreamedMathのfetch 3、
@@ -60,6 +59,13 @@
   製品`kritaglobal` 68工程・136入力を維持した。主環境で対象と軽量近傍、20回反復、公開API検査に成功し、対応済みは9,427件、
   未対応は20,411件となった。差分同一性と担当作業ツリーのcleanを確認後、担当構築木を含む280 MBの作業ツリーと担当branchを削除した。
   旧不足一覧を削除し、`build/tdd-macos/public-api-missing-g91-bezier.json`だけを保持する。
+- `g91-pigment-streamed-math`は受渡しcommit `4f441922d7537acd2b8751a12d1c28d5a17265bb`を統合commit `6ed87b514b`として取り込んだ。
+  `libs/pigment/compositeops/KoStreamedMath.h`のSIMD型、丸め・除算、マスク・チャネル読書き、8 bit・16 bit・浮動小数画素方針、
+  選択レーン復元の51 APIを、新規`libs/pigment/tests/KoStreamedMathContractTest.cpp`の4契約枠へ追加した。新対象は4工程・8入力、製品
+  `kritapigment`は360工程・750入力で不変である。主環境で対象と軽量近傍、20回反復、公開API検査に成功し、対応済みは9,478件、
+  未対応は20,360件となった。`genericComposite` 8 APIは非自明な製品側入力構築を要求するため本便の限定対象から除外した。差分同一性と
+  cleanを確認後、277 MBの担当構築木を含む847 MBの作業ツリーと担当branchを削除した。旧不足一覧を削除し、
+  `build/tdd-macos/public-api-missing-g91-streamed.json`だけを保持する。
 
 ### 第90並列便の完了結果
 
