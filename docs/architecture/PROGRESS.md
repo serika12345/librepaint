@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 01:34 JST
+- 更新日時: 2026-09-01 01:39 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -45,7 +45,7 @@
   `kritaimagebspline2dobjects`から`kritaimage`へ一重集約済みで、製品・公開headerは変更しない。許可pathは
   `libs/image/tests/CMakeLists.txt`と新規`libs/image/tests/KisBSpline2DContractTest.cpp`だけである。範囲・寿命、16点のx-major採取、アフィン面、
   変換協調者の借用配送、再標本化の5枠とする。直接閉包予測7工程・15入力、停止8工程・18入力、製品`kritaimage` 1,184工程・2,392入力不変とする。
-- `g94-pigment-color-conversion`は`in_progress`で、専用作業ツリーは
+- `g94-pigment-color-conversion`は`integrated`で、専用作業ツリーは
   `/Users/masato/Documents/librepaint-g94-pigment-color-conversion`である。対象headerは`libs/pigment/KoColorConversionTransformation.h`のclass、
   2 enum、13 enumerator、flag alias、構築・破棄、静的方針、入力・出力色空間、intent・flags、妥当性、変換と別buffer用in-place変換の全31 APIである。
   開始ファイル`libs/pigment/KoColorConversionTransformation.cpp`は既に`kritapigmentcolorconversiontransformationobjects`から`kritapigment`へ
@@ -70,7 +70,17 @@
   矩形範囲と軸別境界、16点のx優先標本取得、アフィン面の標本・内点・端点補間、変換協調者の借用配送、再標本化の所有と値を固定した。14 APIを
   追加し、対象7工程・15入力、製品`kritaimage` 1,184工程・2,392入力を維持した。主環境で対象、近傍2件、対象20回反復、無作業再構築、
   動的接続、公開API検査に成功し、対応済みは9,565件、未対応は20,273件となった。受渡し差分同一性とcleanを確認後、局所構築木259 MBを含む
-  担当作業ツリー829 MBと担当branchを削除する。
+  担当作業ツリー829 MBと担当branchを削除した。
+- `g94-pigment-color-conversion`は受渡しcommit `bea5c589275263d4c1ca20dbd1477d5aa2066f93`を統合commit `0363edb073`として取り込んだ。
+  既存の開始ファイル`libs/pigment/KoColorConversionTransformation.cpp`から`kritapigmentcolorconversiontransformationobjects`、製品
+  `kritapigment`への一重収容は変更せず、既存`libs/pigment/tests/KoMultipleColorConversionTransformationContractTest.cpp`だけを強化した。
+  既存4枠へ公開型、全列挙値、内部・調整用方針、妥当性、基底寿命、仮想変換配送を追加し、別buffer用in-place配送を1枠追加した。31 APIを
+  追加し、対象6工程・14入力、製品`kritapigment` 360工程・750入力を維持した。主環境で対象、近傍、対象20回反復、無作業再構築、動的接続、
+  公開API検査に成功し、対応済みは9,596件、未対応は20,242件となった。同一buffer分岐は実色空間の画素寸法を要するため本担当の別buffer契約に
+  含めていない。受渡し差分同一性とcleanを確認後、容量上限を回避するため局所構築木267 MBを含む担当作業ツリー837 MBと担当branchを削除した。
+- dirty作業ツリーでの過去の直接`nix develop`評価が作成した、参照のない`librepaint-source` 15世代と対応するmacOS派生定義15件をNix storeから
+  削除し、8,040 MiBを回収した。iOS成果物のGC rootから参照されるsource世代は保持した。以後の担当・主作業ツリー検査は既存の
+  `./scripts/run-shared-test-env`を利用し、作業差分ごとの大容量source snapshotを作成しない。
 
 ### 第93並列便の監査計画
 

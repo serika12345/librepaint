@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 20273
+    "expectedMissingApis": 20242
   },
   "contracts": [
     {
@@ -30497,10 +30497,38 @@
       "target": "KoMultipleColorConversionTransformationContractTest",
       "source": "libs/pigment/tests/KoMultipleColorConversionTransformationContractTest.cpp",
       "test": "KoMultipleColorConversionTransformationContractTest::constructionPreservesConversionIdentity",
-      "behavior": "複数段色変換は構築時に指定された入力色空間、出力色空間、描画意図、変換フラグを同一値として保持する。",
+      "behavior": "色変換の公開型、描画意図、変換フラグ、内部・調整用方針は安定し、複数段色変換は構築時に指定された入力色空間、出力色空間、描画意図、変換フラグを保持して妥当となる。",
       "classification": "maintained",
       "apis": [
+        "alias:KoColorConversionTransformation::ConversionFlags",
+        "class:KoColorConversionTransformation",
         "class:KoMultipleColorConversionTransformation",
+        "enum:KoColorConversionTransformation::ConversionFlag",
+        "enum:KoColorConversionTransformation::Intent",
+        "enumerator:KoColorConversionTransformation::ConversionFlag::BlackpointCompensation",
+        "enumerator:KoColorConversionTransformation::ConversionFlag::CopyAlpha",
+        "enumerator:KoColorConversionTransformation::ConversionFlag::Empty",
+        "enumerator:KoColorConversionTransformation::ConversionFlag::GamutCheck",
+        "enumerator:KoColorConversionTransformation::ConversionFlag::HighQuality",
+        "enumerator:KoColorConversionTransformation::ConversionFlag::LowQuality",
+        "enumerator:KoColorConversionTransformation::ConversionFlag::NoAdaptationAbsoluteIntent",
+        "enumerator:KoColorConversionTransformation::ConversionFlag::NoOptimization",
+        "enumerator:KoColorConversionTransformation::ConversionFlag::NoWhiteOnWhiteFixup",
+        "enumerator:KoColorConversionTransformation::ConversionFlag::SoftProofing",
+        "enumerator:KoColorConversionTransformation::Intent::IntentAbsoluteColorimetric",
+        "enumerator:KoColorConversionTransformation::Intent::IntentPerceptual",
+        "enumerator:KoColorConversionTransformation::Intent::IntentRelativeColorimetric",
+        "enumerator:KoColorConversionTransformation::Intent::IntentSaturation",
+        "method:KoColorConversionTransformation::KoColorConversionTransformation(const KoColorSpace * srcCs,const KoColorSpace * dstCs,Intent renderingIntent,ConversionFlags conversionFlags)",
+        "method:KoColorConversionTransformation::adjustmentConversionFlags()",
+        "method:KoColorConversionTransformation::adjustmentRenderingIntent()",
+        "method:KoColorConversionTransformation::conversionFlags() const",
+        "method:KoColorConversionTransformation::dstColorSpace() const",
+        "method:KoColorConversionTransformation::internalConversionFlags()",
+        "method:KoColorConversionTransformation::internalRenderingIntent()",
+        "method:KoColorConversionTransformation::isValid() const",
+        "method:KoColorConversionTransformation::renderingIntent() const",
+        "method:KoColorConversionTransformation::srcColorSpace() const",
         "method:KoMultipleColorConversionTransformation::KoMultipleColorConversionTransformation(const KoColorSpace * srcCs,const KoColorSpace * dstCs,KoColorConversionTransformation::Intent,KoColorConversionTransformation::ConversionFlags conversionFlags)"
       ]
     },
@@ -30511,6 +30539,7 @@
       "behavior": "複数段色変換は追加された変換を入力順に所有し、自身の破棄時に各変換を同じ順序で一度ずつ破棄する。",
       "classification": "maintained",
       "apis": [
+        "method:KoColorConversionTransformation::~KoColorConversionTransformation()",
         "method:KoMultipleColorConversionTransformation::appendTransfo(KoColorConversionTransformation * transfo)",
         "method:KoMultipleColorConversionTransformation::~KoMultipleColorConversionTransformation()"
       ]
@@ -30522,6 +30551,7 @@
       "behavior": "2段色変換は指定画素数を各段へ順に渡し、入力と異なる一つの中間バッファーを介して各段の変換結果を出力する。",
       "classification": "maintained",
       "apis": [
+        "method:KoColorConversionTransformation::transform(const quint8 * src,quint8 * dst,qint32 nPixels) const",
         "method:KoMultipleColorConversionTransformation::transform(const quint8 * src,quint8 * dst,qint32 nPixels) const"
       ]
     },
@@ -30532,7 +30562,18 @@
       "behavior": "3段色変換は二つの異なる中間バッファーを交互に受け渡し、指定画素数と段順を維持して最終結果を出力する。",
       "classification": "maintained",
       "apis": [
+        "method:KoColorConversionTransformation::transform(const quint8 * src,quint8 * dst,qint32 nPixels) const",
         "method:KoMultipleColorConversionTransformation::transform(const quint8 * src,quint8 * dst,qint32 nPixels) const"
+      ]
+    },
+    {
+      "target": "KoMultipleColorConversionTransformationContractTest",
+      "source": "libs/pigment/tests/KoMultipleColorConversionTransformationContractTest.cpp",
+      "test": "KoMultipleColorConversionTransformationContractTest::distinctBufferTransformInPlacePreservesDispatch",
+      "behavior": "別の入力・出力bufferを指定したin-place色変換は同じbuffer、画素数、結果を派生変換へそのまま配送する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoColorConversionTransformation::transformInPlace(const quint8 * src,quint8 * dst,qint32 nPixels) const"
       ]
     },
     {
