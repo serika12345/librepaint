@@ -1075,6 +1075,30 @@ set_target_properties(kritaimagesimplestrokestrategyobjects PROPERTIES
    POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaimagerunnablebasedstrokestrategyobjects OBJECT
+   KisRunnableBasedStrokeStrategy.cpp
+)
+target_compile_definitions(kritaimagerunnablebasedstrokestrategyobjects PRIVATE kritaimage_EXPORTS)
+target_include_directories(kritaimagerunnablebasedstrokestrategyobjects
+   PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/painting/undo>
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/painting/undo>
+)
+target_link_libraries(kritaimagerunnablebasedstrokestrategyobjects
+   PUBLIC
+      KF${KF_MAJOR}::I18n
+      Qt${QT_MAJOR_VERSION}::Core
+      Boost::boost
+)
+set_target_properties(kritaimagerunnablebasedstrokestrategyobjects PROPERTIES
+   AUTOMOC OFF
+   POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaimagebehaviorinterfaceobjects OBJECT
    KisCroppedOriginalLayerInterface.cpp
    KisDecoratedNodeInterface.cpp
@@ -1985,7 +2009,6 @@ set(kritaimage_LIB_SRCS
    kis_updater_context.cpp
    kis_update_job_item.cpp
    kis_stroke_strategy_undo_command_based.cpp
-   KisRunnableBasedStrokeStrategy.cpp
    kis_stroke.cpp
    kis_strokes_queue.cpp
    kis_simple_update_queue.cpp
@@ -2159,6 +2182,7 @@ kis_add_library(kritaimage SHARED
    $<TARGET_OBJECTS:kritaimagejobstrategyobjects>
    $<TARGET_OBJECTS:kritaimagestrokejobobjects>
    $<TARGET_OBJECTS:kritaimagesimplestrokestrategyobjects>
+   $<TARGET_OBJECTS:kritaimagerunnablebasedstrokestrategyobjects>
    $<TARGET_OBJECTS:kritaimagebehaviorinterfaceobjects>
    $<TARGET_OBJECTS:kritaimagepaintopsettingsidsobjects>
    $<TARGET_OBJECTS:kritaimagegreencoordinatesobjects>

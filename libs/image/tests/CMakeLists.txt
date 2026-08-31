@@ -1448,6 +1448,33 @@ target_compile_definitions(KisSimpleStrokeStrategyContractTest PRIVATE
 )
 
 kis_add_test(
+    KisRunnableBasedStrokeStrategyContractTest.cpp
+    ../../painting/undo/kundo2magicstring.cpp
+    TEST_NAME KisRunnableBasedStrokeStrategyContractTest
+    LINK_LIBRARIES
+        kritaimagestrokestrategyobjects
+        kritaimagejobstrategyobjects
+        kritaimagesimplestrokestrategyobjects
+        kritaimagerunnablebasedstrokestrategyobjects
+        KF${KF_MAJOR}::I18n
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+        Boost::boost
+)
+target_include_directories(KisRunnableBasedStrokeStrategyContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+    ${CMAKE_SOURCE_DIR}/libs/painting/undo
+    ${CMAKE_BINARY_DIR}/libs/painting/undo
+)
+target_compile_definitions(KisRunnableBasedStrokeStrategyContractTest PRIVATE
+    kritaimage_EXPORTS
+    kritapaintingundo_EXPORTS
+)
+
+kis_add_test(
     KisBehaviorInterfacesContractTest.cpp
     LINK_LIBRARIES
         kritaimagebehaviorinterfaceobjects
