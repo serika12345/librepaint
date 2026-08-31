@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 21076
+    "expectedMissingApis": 21030
   },
   "contracts": [
     {
@@ -28550,6 +28550,178 @@
       "classification": "maintained",
       "apis": [
         "function:operator ==(const KisCurveOptionDataCommon & lhs,const KisCurveOptionDataCommon & rhs)"
+      ]
+    },
+    {
+      "target": "KoShapeDistributeCommandContractTest",
+      "source": "libs/flake/tests/KoShapeDistributeCommandContractTest.cpp",
+      "test": "KoShapeDistributeCommandContractTest::distributionValuesRemainStable",
+      "behavior": "形状分配commandは変更命令として仮想寿命を持ち、水平・垂直の8分配分類を安定した公開enumとして保持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoShapeDistributeCommand",
+        "enum:KoShapeDistributeCommand::Distribute"
+      ]
+    },
+    {
+      "target": "KoShapeDistributeCommandContractTest",
+      "source": "libs/flake/tests/KoShapeDistributeCommandContractTest.cpp",
+      "test": "KoShapeDistributeCommandContractTest::horizontalCenterLeftAndRightDistributionsUseSortedOutlineEdges",
+      "behavior": "形状分配commandの水平3分類は外接矩形の中央、左端、右端の順にshapeを並べ、対象矩形の両端間へ等間隔で配置する。",
+      "classification": "maintained",
+      "apis": [
+        "enumerator:KoShapeDistributeCommand::Distribute::HorizontalCenterDistribution",
+        "enumerator:KoShapeDistributeCommand::Distribute::HorizontalLeftDistribution",
+        "enumerator:KoShapeDistributeCommand::Distribute::HorizontalRightDistribution",
+        "method:KoShapeDistributeCommand::KoShapeDistributeCommand(const QList<KoShape * > & shapes,Distribute distribute,const QRectF & boundingRect,KUndo2Command * parent=0)"
+      ]
+    },
+    {
+      "target": "KoShapeDistributeCommandContractTest",
+      "source": "libs/flake/tests/KoShapeDistributeCommandContractTest.cpp",
+      "test": "KoShapeDistributeCommandContractTest::horizontalGapDistributionAccountsForEveryWidth",
+      "behavior": "形状分配commandの水平gap分類は全shape幅を対象範囲から差し引き、外接矩形間の空間を均等に配置する。",
+      "classification": "maintained",
+      "apis": [
+        "enumerator:KoShapeDistributeCommand::Distribute::HorizontalGapsDistribution"
+      ]
+    },
+    {
+      "target": "KoShapeDistributeCommandContractTest",
+      "source": "libs/flake/tests/KoShapeDistributeCommandContractTest.cpp",
+      "test": "KoShapeDistributeCommandContractTest::verticalCenterTopAndBottomDistributionsUseSortedOutlineEdges",
+      "behavior": "形状分配commandの垂直3分類は外接矩形の中央、上端、下端の順にshapeを並べ、対象矩形の両端間へ等間隔で配置する。",
+      "classification": "maintained",
+      "apis": [
+        "enumerator:KoShapeDistributeCommand::Distribute::VerticalBottomDistribution",
+        "enumerator:KoShapeDistributeCommand::Distribute::VerticalCenterDistribution",
+        "enumerator:KoShapeDistributeCommand::Distribute::VerticalTopDistribution"
+      ]
+    },
+    {
+      "target": "KoShapeDistributeCommandContractTest",
+      "source": "libs/flake/tests/KoShapeDistributeCommandContractTest.cpp",
+      "test": "KoShapeDistributeCommandContractTest::verticalGapDistributionAccountsForEveryHeight",
+      "behavior": "形状分配commandの垂直gap分類は全shape高を対象範囲から差し引き、外接矩形間の空間を均等に配置する。",
+      "classification": "maintained",
+      "apis": [
+        "enumerator:KoShapeDistributeCommand::Distribute::VerticalGapsDistribution"
+      ]
+    },
+    {
+      "target": "KoShapeDistributeCommandContractTest",
+      "source": "libs/flake/tests/KoShapeDistributeCommandContractTest.cpp",
+      "test": "KoShapeDistributeCommandContractTest::redoUndoDelegateThroughMoveCommandAndKeepBorrowedLifetime",
+      "behavior": "形状分配commandのredoとundoは内部移動commandへ基底処理後の位置一括配送を委譲し、shapeを借用したまま元位置への復元と仮想寿命を保つ。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShapeDistributeCommand::redo()",
+        "method:KoShapeDistributeCommand::undo()",
+        "method:KoShapeDistributeCommand::~KoShapeDistributeCommand()"
+      ]
+    },
+    {
+      "target": "KisBatchNodeUpdateContractTest",
+      "source": "libs/image/tests/KisBatchNodeUpdateContractTest.cpp",
+      "test": "KisBatchNodeUpdateContractTest::constructionCopyMoveAndAssignmentPreserveOrderedValues",
+      "behavior": "node更新束は既定値と順序付き更新列を構築し、copy、move、代入を通してnodeと矩形の値を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisBatchNodeUpdate",
+        "method:KisBatchNodeUpdate::KisBatchNodeUpdate()",
+        "method:KisBatchNodeUpdate::KisBatchNodeUpdate(KisBatchNodeUpdate && rhs)",
+        "method:KisBatchNodeUpdate::KisBatchNodeUpdate(const KisBatchNodeUpdate & rhs)",
+        "method:KisBatchNodeUpdate::KisBatchNodeUpdate(const std::vector<std::pair<KisNodeSP,QRect>> & rhs)",
+        "method:KisBatchNodeUpdate::operator =(const KisBatchNodeUpdate & rhs)"
+      ]
+    },
+    {
+      "target": "KisBatchNodeUpdateContractTest",
+      "source": "libs/image/tests/KisBatchNodeUpdateContractTest.cpp",
+      "test": "KisBatchNodeUpdateContractTest::addAndUnionMergeRectanglesByNodeIdentity",
+      "behavior": "node更新束への追加と和集合は同じnodeの矩形を統合し、異なるnodeの入力順と矩形を保つ。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisBatchNodeUpdate::addUpdate(KisNodeSP node,const QRect & rc)",
+        "method:KisBatchNodeUpdate::operator |=(const KisBatchNodeUpdate & rhs)"
+      ]
+    },
+    {
+      "target": "KisBatchNodeUpdateContractTest",
+      "source": "libs/image/tests/KisBatchNodeUpdateContractTest.cpp",
+      "test": "KisBatchNodeUpdateContractTest::compressionUnitesDescendantUpdatesWithoutMutatingSource",
+      "behavior": "node更新束の圧縮は親子関係にある更新を祖先nodeへ統合し、圧縮済みcopyを求めても開始元を変更しない。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisBatchNodeUpdate::compress()",
+        "method:KisBatchNodeUpdate::compressed() const"
+      ]
+    },
+    {
+      "target": "KisBatchNodeUpdateContractTest",
+      "source": "libs/image/tests/KisBatchNodeUpdateContractTest.cpp",
+      "test": "KisBatchNodeUpdateContractTest::debugAndSharedAliasesPreserveStructureAndLifetime",
+      "behavior": "node更新束の診断出力は順序付き構造を示し、shared・weak aliasは同じ束の共有寿命と失効を表す。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisBatchNodeUpdateSP",
+        "alias:KisBatchNodeUpdateWSP",
+        "function:operator <<(QDebug dbg,const KisBatchNodeUpdate & update)"
+      ]
+    },
+    {
+      "target": "KisPrecisionOptionContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisPrecisionOptionContractTest.cpp",
+      "test": "KisPrecisionOptionContractTest::persistenceKeysAndDefaultDataRemainStable",
+      "behavior": "精度optionは既存設定と互換な4個の永続化keyを公開し、dataの精度段階と自動精度を安定した既定値で構築する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisPrecisionOption",
+        "member:KisBrushModel::PrecisionData::precisionLevel",
+        "member:KisBrushModel::PrecisionData::useAutoPrecision",
+        "struct:KisBrushModel::PrecisionData",
+        "variable:AUTO_PRECISION_ENABLED",
+        "variable:DELTA_VALUE",
+        "variable:PRECISION_LEVEL",
+        "variable:STARTING_SIZE"
+      ]
+    },
+    {
+      "target": "KisPrecisionOptionContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisPrecisionOptionContractTest.cpp",
+      "test": "KisPrecisionOptionContractTest::precisionDataReadsWritesAndComparesIndependently",
+      "behavior": "精度dataは精度段階と自動精度を独立して読み書きし、両値を等価判定へ反映する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisBrushModel::operator ==(const PrecisionData & lhs,const PrecisionData & rhs)",
+        "method:KisBrushModel::PrecisionData::read(const KisPropertiesConfiguration * config)",
+        "method:KisBrushModel::PrecisionData::write(KisPropertiesConfiguration * config) const"
+      ]
+    },
+    {
+      "target": "KisPrecisionOptionContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisPrecisionOptionContractTest.cpp",
+      "test": "KisPrecisionOptionContractTest::optionConstructionAndMutatorsPreserveIndependentState",
+      "behavior": "精度optionは設定から精度段階と自動精度を構築し、不正確な位置optionの有無を含む3状態を独立して変更、取得する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPrecisionOption::KisPrecisionOption(const KisPropertiesConfiguration * setting)",
+        "method:KisPrecisionOption::autoPrecisionEnabled()",
+        "method:KisPrecisionOption::hasImprecisePositionOptions() const",
+        "method:KisPrecisionOption::precisionLevel() const",
+        "method:KisPrecisionOption::setAutoPrecisionEnabled(int)",
+        "method:KisPrecisionOption::setHasImprecisePositionOptions(bool value)",
+        "method:KisPrecisionOption::setPrecisionLevel(int precisionLevel)"
+      ]
+    },
+    {
+      "target": "KisPrecisionOptionContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisPrecisionOptionContractTest.cpp",
+      "test": "KisPrecisionOptionContractTest::effectivePrecisionUsesAutoModeAndExactThreshold",
+      "behavior": "精度optionは手動時に設定段階を返し、自動時は描点寸法30.0の境界を含む既存しきい値から有効精度段階を選ぶ。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPrecisionOption::effectivePrecisionLevel(qreal effectiveDabSize) const"
       ]
     }
   ]
