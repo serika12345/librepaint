@@ -141,6 +141,7 @@ list(REMOVE_ITEM kritalibpaintop_LIB_SRCS
     ${kritapaintopruntime_LIB_SRCS}
     KisAirbrushOptionData.cpp
     KisColorSourceOptionData.cpp
+    KisDrawingAngleSensorModel.cpp
     KisFilterOptionData.cpp
     KisPaintingModeOptionData.cpp
     KisSensorData.cpp
@@ -517,14 +518,15 @@ set_target_properties(kritapaintopcoloroptionmodelobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
-add_library(kritapaintopsensorwithlengthmodelobjects OBJECT
+add_library(kritapaintopsensormodelobjects OBJECT
+    KisDrawingAngleSensorModel.cpp
     KisSensorWithLengthModel.cpp
 )
-target_compile_definitions(kritapaintopsensorwithlengthmodelobjects PRIVATE
+target_compile_definitions(kritapaintopsensormodelobjects PRIVATE
     kritaimage_EXPORTS
     kritalibpaintop_EXPORTS
 )
-target_include_directories(kritapaintopsensorwithlengthmodelobjects
+target_include_directories(kritapaintopsensormodelobjects
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
@@ -533,7 +535,7 @@ target_include_directories(kritapaintopsensorwithlengthmodelobjects
         ${CMAKE_SOURCE_DIR}/libs/image
         ${CMAKE_BINARY_DIR}/libs/image
 )
-target_link_libraries(kritapaintopsensorwithlengthmodelobjects
+target_link_libraries(kritapaintopsensormodelobjects
     PUBLIC
         Boost::boost
         Eigen3::Eigen
@@ -541,8 +543,9 @@ target_link_libraries(kritapaintopsensorwithlengthmodelobjects
         Qt${QT_MAJOR_VERSION}::Core
         Qt${QT_MAJOR_VERSION}::Xml
         lager
+        zug
 )
-set_target_properties(kritapaintopsensorwithlengthmodelobjects PROPERTIES
+set_target_properties(kritapaintopsensormodelobjects PROPERTIES
     AUTOMOC ON
     POSITION_INDEPENDENT_CODE ON
 )
@@ -775,7 +778,7 @@ kis_add_library(kritalibpaintop SHARED
     $<TARGET_OBJECTS:kritapaintopcurvecontrolinterfaceobjects>
     $<TARGET_OBJECTS:kritapaintopcurverangemodelinterfaceobjects>
     $<TARGET_OBJECTS:kritapaintopmirroroptionmodelobjects>
-    $<TARGET_OBJECTS:kritapaintopsensorwithlengthmodelobjects>
+    $<TARGET_OBJECTS:kritapaintopsensormodelobjects>
     $<TARGET_OBJECTS:kritapaintopsensordataobjects>
     $<TARGET_OBJECTS:kritapaintoptextureoptionioobjects>
 )

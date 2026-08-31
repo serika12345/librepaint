@@ -241,7 +241,7 @@ target_compile_definitions(KisColorOptionModelContractTest PRIVATE
 kis_add_test(
     KisSensorWithLengthModelContractTest.cpp
     LINK_LIBRARIES
-        kritapaintopsensorwithlengthmodelobjects
+        kritapaintopsensormodelobjects
         kritapaintopsensordataobjects
         kritaglobalidobjects
         Boost::boost
@@ -250,6 +250,23 @@ kis_add_test(
         lager
 )
 target_compile_definitions(KisSensorWithLengthModelContractTest PRIVATE
+    kritaglobal_EXPORTS
+    kritaimage_EXPORTS
+    kritalibpaintop_EXPORTS
+)
+
+kis_add_test(
+    KisDrawingAngleSensorModelContractTest.cpp
+    LINK_LIBRARIES
+        kritapaintopsensormodelobjects
+        kritapaintopsensordataobjects
+        kritaglobalidobjects
+        Boost::boost
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+        lager
+)
+target_compile_definitions(KisDrawingAngleSensorModelContractTest PRIVATE
     kritaglobal_EXPORTS
     kritaimage_EXPORTS
     kritalibpaintop_EXPORTS
