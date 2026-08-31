@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 06:59 JST
+- 更新日時: 2026-09-01 07:07 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -65,6 +65,9 @@
   `libs/global/CMakeLists.txt`、`libs/global/tests/KisAlgebraGeometryPrimitivesContractTest.cpp`、`libs/global/tests/CMakeLists.txt`である。
   最寄りCTestは`KisAlgebraGeometryPrimitivesContractTest`、軽量近傍は`KisBezierUtilsContractTest`、予測7工程・15入力、
   停止8工程・18入力、製品予測70工程・140入力、停止71工程・143入力とする。
+  実装照合で`intersectLineConvexPolygon`本文のEigen使用が判明した。開始sourceの所有者`kritaglobal`が既に
+  `Eigen3::Eigen`をprivate接続しており、製品・公開依存を広げず使用本文の新所有者へ依存を局所化するため、新OBJECTの
+  private接続を許可する。工程・入力の停止線は維持する。
 - `g102-image-properties-values`は`in_progress`で、専用作業ツリーは`/Users/masato/Documents/librepaint-g102-image-properties-values`である。
   対象は`libs/image/kis_properties_configuration.h`のclass、既定・copy構築、破棄、代入、`clearProperties`、`getProperties`、
   `getPropertiesKeys`、`getProperty` 2 overload、`hasProperty`、`removeProperty`、`setProperty(QString,QVariant)`、`getBool`、`getDouble`、
@@ -78,7 +81,7 @@
 - 3担当は変更なし計画と直接依存を先に測定し、未知対象または未知試験の初期診断、追加枠、全対象CTest、20回反復、軽量近傍、
   無作業再構築、動的接続、変更source構文、一重収容、公開API検査、`verify-quick`まで実行する。台帳と進捗は調整担当が所有し、
   統合順はPSD vector値、平面幾何値、画像設定値とする。許可path外、新規公開API、製品sourceの二重収容、個別停止線超過、製品shared library、
-  `kritatestsdk`、公開header変更、PSDのCOS/ASL・実pointer所有、平面幾何のGSL・debug/assert・Eigen新規依存・QPainterPath、画像設定の
+  `kritatestsdk`、公開header変更、PSDのCOS/ASL・実pointer所有、平面幾何のGSL・debug/assert・製品既存Eigen以外の新規依存・QPainterPath、画像設定の
   pigment・resource・filesystem・色変換・XML出力・factoryへ到達した担当は停止する。担当は追加委任せず、許可pathだけをcommitしてAPI対応、
   初期診断、閉包、検証、容量を報告する。
 
