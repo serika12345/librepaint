@@ -1192,6 +1192,7 @@ set_target_properties(kritaflakepathreversecommandobjects PROPERTIES
 add_library(kritaflakeshapesizecommandobjects OBJECT
     commands/KoShapeSizeCommand.cpp
 )
+
 target_compile_definitions(kritaflakeshapesizecommandobjects PRIVATE kritaflake_EXPORTS)
 if(BUILD_TESTING)
     target_compile_definitions(kritaflakeshapesizecommandobjects PRIVATE KRITAFLAKE_SHAPE_SIZE_COMMAND_CONTRACT_TESTING)
@@ -1218,6 +1219,25 @@ set_target_properties(kritaflakeshapesizecommandobjects PROPERTIES
     AUTOMOC OFF
     POSITION_INDEPENDENT_CODE ON
 )
+
+add_library(kritaflakeshaperesizecommandobjects OBJECT
+    commands/KoShapeResizeCommand.cpp
+)
+target_compile_definitions(kritaflakeshaperesizecommandobjects PRIVATE kritaflake_EXPORTS)
+if(BUILD_TESTING)
+    target_compile_definitions(kritaflakeshaperesizecommandobjects PRIVATE KRITAFLAKE_SHAPE_RESIZE_COMMAND_CONTRACT_TESTING)
+endif()
+target_include_directories(kritaflakeshaperesizecommandobjects PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/commands>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/painting/undo>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/painting/undo>
+)
+target_link_libraries(kritaflakeshaperesizecommandobjects PUBLIC Boost::boost KF${KF_MAJOR}::I18n Qt${QT_MAJOR_VERSION}::Core Qt${QT_MAJOR_VERSION}::Gui Qt${QT_MAJOR_VERSION}::Xml)
+set_target_properties(kritaflakeshaperesizecommandobjects PROPERTIES AUTOMOC OFF POSITION_INDEPENDENT_CODE ON)
 
 add_library(kritaflakeshapeshearcommandobjects OBJECT
     commands/KoShapeShearCommand.cpp
@@ -1624,7 +1644,6 @@ set(kritaflake_SRCS
     commands/KoShapeCreateCommand.cpp
     commands/KoShapeDeleteCommand.cpp
     commands/KoShapeLockCommand.cpp
-    commands/KoShapeResizeCommand.cpp
     commands/KoShapeUngroupCommand.cpp
     commands/KoShapeReorderCommand.cpp
     commands/KoPathBaseCommand.cpp
@@ -1773,6 +1792,7 @@ set(kritaflake_SRCS
     $<TARGET_OBJECTS:kritaflakeshapekeepaspectratiocommandobjects>
     $<TARGET_OBJECTS:kritaflakepathreversecommandobjects>
     $<TARGET_OBJECTS:kritaflakeshapesizecommandobjects>
+    $<TARGET_OBJECTS:kritaflakeshaperesizecommandobjects>
     $<TARGET_OBJECTS:kritaflakeshapeshearcommandobjects>
     $<TARGET_OBJECTS:kritaflakeshapetransparencycommandobjects>
     $<TARGET_OBJECTS:kritaflakeshapepaintordercommandobjects>

@@ -1093,6 +1093,18 @@ kis_add_test(
         Qt${QT_MAJOR_VERSION}::Gui
         Qt${QT_MAJOR_VERSION}::Test
 )
+
+kis_add_test(
+    KoShapeResizeCommandContractTest.cpp
+    LINK_LIBRARIES kritaflakeshaperesizecommandobjects Boost::boost KF${KF_MAJOR}::I18n
+        Qt${QT_MAJOR_VERSION}::Core Qt${QT_MAJOR_VERSION}::Gui Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KoShapeResizeCommandContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/.. ${CMAKE_CURRENT_BINARY_DIR}/.. ${CMAKE_CURRENT_SOURCE_DIR}/../commands
+    ${CMAKE_SOURCE_DIR}/libs/global ${CMAKE_BINARY_DIR}/libs/global
+    ${CMAKE_SOURCE_DIR}/libs/painting/undo ${CMAKE_BINARY_DIR}/libs/painting/undo
+)
+target_compile_definitions(KoShapeResizeCommandContractTest PRIVATE kritaflake_EXPORTS kritapaintingundo_EXPORTS)
 target_include_directories(KoShapeSizeCommandContractTest PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/..
     ${CMAKE_CURRENT_BINARY_DIR}/..
