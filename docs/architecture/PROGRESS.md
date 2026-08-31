@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 03:31 JST
+- 更新日時: 2026-09-01 03:48 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -42,7 +42,7 @@
   `libs/ui/tests/CMakeLists.txt`、新規`libs/ui/tests/KisMirrorAxisConfigContractTest.cpp`だけである。4枠、予測7工程・16入力、停止8工程・19入力、製品
   1,957工程・3,914入力不変とする。既存DOM OBJECTと等価演算子が参照する`kis_assert_exception`と`kis_safe_assert_recoverable`は、契約から到達した
   場合に即時失敗する試験source限定の`qFatal`診断定義を許可し、製品shared libraryへ接続しない。
-- `g97-widgets-ko-dialog`は`in_progress`で、専用作業ツリーは`/Users/masato/Documents/librepaint-g97-widgets-ko-dialog`である。対象は
+- `g97-widgets-ko-dialog`は`integrated`で、削除済みの専用作業ツリーは`/Users/masato/Documents/librepaint-g97-widgets-ko-dialog`であった。対象は
   `build/tdd-macos/public-api-missing-g97.json`でheaderが`libs/widgets/KoDialog.h`の全67 APIである。開始`libs/widgets/KoDialog.cpp`を
   `kritawidgets_LIB_SRCS`直接収容から新規AUTOMOC・PIC対応`kritawidgetsdialogobjects`へ一対一移動し、製品`kritawidgets`へ一回だけ再集約する。
   許可pathは`libs/widgets/CMakeLists.txt`、`libs/widgets/tests/CMakeLists.txt`、既存`libs/widgets/tests/KoDialogEnumContractTest.cpp`だけである。構築・
@@ -75,6 +75,18 @@
   製品shared library、`kritatestsdk`へ接続しない。対応済みは9,714件、未対応は20,124件、契約枠は2,346件となった。
 - 新しい`build/tdd-macos/public-api-missing-g97-mirror.json`生成後、旧第97不足一覧、局所構築木265 MBを含む担当作業ツリー830 MB、担当branchを
   削除した。主増分構築木、共有compiler cache、残る2担当作業ツリー、最新不足一覧だけを保持する。
+- `g97-widgets-ko-dialog`は受渡しcommit `cd14479f8d3fb07a2e42a9bcc8af7f938ce9d907`を統合commit `84a47eff9d`として取り込んだ。
+  開始ファイル`libs/widgets/KoDialog.cpp`を`libs/widgets/CMakeLists.txt`の`kritawidgets_LIB_SRCS`直接収容からAUTOMOC・PIC対応
+  `kritawidgetsdialogobjects`へ移し、製品`kritawidgets`へ一回だけ再集約した。ボタン生成・対応付け・信号配送に必要な既存
+  `kritaglobalsignalmapperobjects`を直接接続し、公開headerと製品source本文を変更していない。
+- 既存`libs/widgets/tests/KoDialogEnumContractTest.cpp`へ5契約枠を追加し、構築・親所有・題名・寸法、標準ボタン状態と表示情報、全ボタンの個別・共通
+  信号、主内容・詳細内容・ヘルプ状態、配置・非表示・終了・遅延破棄の全67 APIを固定した。外部help起動は試験限定の即時失敗センサーで遮断し、実行時に
+  到達しなかった。限定対象10工程・25入力、製品`kritawidgets` 800工程・1,629入力で確定上限内を維持した。
+- 担当環境と主環境で追加5枠、既存列挙3枠を含む対象CTest、20回反復、`KoSliderComboContractTest`近傍、無作業再構築、動的接続、変更source構文、
+  公開API契約検査、`verify-quick`に成功した。限定対象の動的接続はQtとKFだけで、製品shared libraryと`kritatestsdk`を含まない。対応済みは
+  9,781件、未対応は20,057件、契約枠は2,351件となった。
+- 新しい`build/tdd-macos/public-api-missing-g97-dialog.json`生成後、直前の不足一覧、局所構築木265 MBを含む担当作業ツリー835 MB、担当branchを
+  削除した。主増分構築木、共有compiler cache、残る液状変形設定担当の作業ツリー、最新不足一覧だけを保持する。
 
 ### 第96並列便の監査計画
 

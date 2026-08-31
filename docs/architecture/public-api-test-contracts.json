@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 20124
+    "expectedMissingApis": 20057
   },
   "contracts": [
     {
@@ -8451,6 +8451,118 @@
         "enumerator:KoDialog::CaptionFlag::HIGCompliantCaption",
         "enumerator:KoDialog::CaptionFlag::ModifiedCaption",
         "enumerator:KoDialog::CaptionFlag::NoCaptionFlags"
+      ]
+    },
+    {
+      "target": "KoDialogEnumContractTest",
+      "source": "libs/widgets/tests/KoDialogEnumContractTest.cpp",
+      "test": "KoDialogEnumContractTest::constructionLayoutCaptionAndLifetimeRemainStable",
+      "behavior": "標準ダイアログは親所有と破棄を保ち、題名、初期寸法、配置間隔から安定した表示寸法を導く。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoDialog",
+        "method:KoDialog::KoDialog(QWidget * parent=0,Qt::WindowFlags f=Qt::WindowFlags ())",
+        "method:KoDialog::groupSpacingHint()",
+        "method:KoDialog::incrementInitialSize(const QSize & size)",
+        "method:KoDialog::makeStandardCaption(const QString & userCaption,QWidget * window=0,CaptionFlags flags=HIGCompliantCaption)",
+        "method:KoDialog::marginHint()",
+        "method:KoDialog::minimumSizeHint() const",
+        "method:KoDialog::setCaption(const QString & caption)",
+        "method:KoDialog::setCaption(const QString & caption,bool modified)",
+        "method:KoDialog::setInitialSize(const QSize & size)",
+        "method:KoDialog::setPlainCaption(const QString & caption)",
+        "method:KoDialog::sizeHint() const",
+        "method:KoDialog::spacingHint()",
+        "method:KoDialog::~KoDialog()"
+      ]
+    },
+    {
+      "target": "KoDialogEnumContractTest",
+      "source": "libs/widgets/tests/KoDialogEnumContractTest.cpp",
+      "test": "KoDialogEnumContractTest::buttonStateAndPresentationRoundTrip",
+      "behavior": "標準ボタンは生成、既定・取消選択、有効性、可視性、文字、図像、説明を独立して更新し照会できる。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoDialog::button(ButtonCode id) const",
+        "method:KoDialog::buttonIcon(ButtonCode id) const",
+        "method:KoDialog::buttonText(ButtonCode id) const",
+        "method:KoDialog::buttonToolTip(ButtonCode id) const",
+        "method:KoDialog::buttonWhatsThis(ButtonCode id) const",
+        "method:KoDialog::defaultButton() const",
+        "method:KoDialog::enableButton(ButtonCode id,bool state)",
+        "method:KoDialog::enableButtonApply(bool state)",
+        "method:KoDialog::enableButtonCancel(bool state)",
+        "method:KoDialog::enableButtonOk(bool state)",
+        "method:KoDialog::isButtonEnabled(ButtonCode id) const",
+        "method:KoDialog::setButtonFocus(ButtonCode id)",
+        "method:KoDialog::setButtonGuiItem(ButtonCode id,const KGuiItem & item)",
+        "method:KoDialog::setButtonIcon(ButtonCode id,const QIcon & icon)",
+        "method:KoDialog::setButtonText(ButtonCode id,const QString & text)",
+        "method:KoDialog::setButtonToolTip(ButtonCode id,const QString & text)",
+        "method:KoDialog::setButtonWhatsThis(ButtonCode id,const QString & text)",
+        "method:KoDialog::setButtons(ButtonCodes buttonMask)",
+        "method:KoDialog::setButtonsOrientation(Qt::Orientation orientation)",
+        "method:KoDialog::setDefaultButton(ButtonCode id)",
+        "method:KoDialog::setEscapeButton(ButtonCode id)",
+        "method:KoDialog::showButton(ButtonCode id,bool state)",
+        "method:KoDialog::showButtonSeparator(bool state)"
+      ]
+    },
+    {
+      "target": "KoDialogEnumContractTest",
+      "source": "libs/widgets/tests/KoDialogEnumContractTest.cpp",
+      "test": "KoDialogEnumContractTest::buttonActivationDispatchesStableSignals",
+      "behavior": "各標準ボタンの作動は対応する個別通知と、同じ識別子を持つ共通通知を一回ずつ配送する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoDialog::applyClicked()",
+        "method:KoDialog::buttonClicked(KoDialog::ButtonCode button)",
+        "method:KoDialog::cancelClicked()",
+        "method:KoDialog::closeClicked()",
+        "method:KoDialog::defaultClicked()",
+        "method:KoDialog::helpClicked()",
+        "method:KoDialog::noClicked()",
+        "method:KoDialog::okClicked()",
+        "method:KoDialog::resetClicked()",
+        "method:KoDialog::tryClicked()",
+        "method:KoDialog::user1Clicked()",
+        "method:KoDialog::user2Clicked()",
+        "method:KoDialog::user3Clicked()",
+        "method:KoDialog::yesClicked()"
+      ]
+    },
+    {
+      "target": "KoDialogEnumContractTest",
+      "source": "libs/widgets/tests/KoDialogEnumContractTest.cpp",
+      "test": "KoDialogEnumContractTest::mainDetailsAndHelpStateRemainIndependent",
+      "behavior": "主内容、詳細内容、連結ヘルプの状態は個別に所有・更新され、詳細表示時には表示直前通知が配送される。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoDialog::aboutToShowDetails()",
+        "method:KoDialog::enableLinkedHelp(bool state)",
+        "method:KoDialog::helpLinkText() const",
+        "method:KoDialog::isDetailsWidgetVisible() const",
+        "method:KoDialog::mainWidget()",
+        "method:KoDialog::setDetailsWidget(QWidget * detailsWidget)",
+        "method:KoDialog::setDetailsWidgetVisible(bool visible)",
+        "method:KoDialog::setHelp(const QString & anchor,const QString & appname=QString ())",
+        "method:KoDialog::setHelpLinkText(const QString & text)",
+        "method:KoDialog::setMainWidget(QWidget * widget)"
+      ]
+    },
+    {
+      "target": "KoDialogEnumContractTest",
+      "source": "libs/widgets/tests/KoDialogEnumContractTest.cpp",
+      "test": "KoDialogEnumContractTest::visibilityLayoutAndDeferredLifetimeTransitions",
+      "behavior": "内容配置の余白と間隔は指定値へ更新され、非表示と終了を通知した後の遅延破棄で所有対象が解放される。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoDialog::delayedDestruct()",
+        "method:KoDialog::finished()",
+        "method:KoDialog::hidden()",
+        "method:KoDialog::layoutHintChanged()",
+        "method:KoDialog::resizeLayout(QLayout * lay,int margin,int spacing)",
+        "method:KoDialog::resizeLayout(QWidget * widget,int margin,int spacing)"
       ]
     },
     {
