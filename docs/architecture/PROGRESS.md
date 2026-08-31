@@ -22,6 +22,28 @@
 - 各報告は完全なAPI識別子、最大5契約枠、最寄りCTest、所有CMake、直接依存、変更なし閉包、予測閉包と停止線、許可path、固有停止条件を含む。
   統合担当は製品shared library、Qt Widgets、`kritatestsdk`、製品意味論を模倣する試験定義を要する候補を採用しない。
 
+### 第93並列便の担当計画
+
+- 実装共通基点は`3f8517c447d97535a5f1d8fe846d136758ec96e4`である。
+- `g93-image-do-nothing-visitor`は`preparing`である。対象headerは`libs/image/processing/kis_do_nothing_processing_visitor.h`のclass、destructor、
+  12 `visit` overloadの全14 APIである。開始ファイル`libs/image/processing/kis_do_nothing_processing_visitor.cpp`を`kritaimage_LIB_SRCS`から新規
+  `kritaimagedonothingprocessingvisitorobjects`へ一対一移動し、`kritaimage`へ1回だけ再集約する。許可pathは`libs/image/CMakeLists.txt`、
+  開始source、`libs/image/tests/CMakeLists.txt`、新規`libs/image/tests/KisDoNothingProcessingVisitorContractTest.cpp`である。node・layer群、生成・外部layer群、
+  mask群、仮想寿命の4枠で無作用を固定する。予測10工程・16入力、停止11工程・19入力、製品`kritaimage` 1,189工程・2,397入力不変とする。
+- `g93-painting-async-update`は`preparing`である。対象headerは`libs/painting/KisAsynchronousStrokeUpdateHelper.h`のUpdateData値・複製、helper寿命、
+  低水準開始、独自factory、終了・取消の全15 APIである。開始ファイル`libs/painting/KisAsynchronousStrokeUpdateHelper.cpp`を
+  `kritapainting_LIB_SRCS`から新規`kritapaintingasyncstrokeupdatehelperobjects`へ一対一移動し、`kritapainting`へ1回だけ再集約する。許可pathは
+  `libs/painting/CMakeLists.txt`、`libs/painting/tests/CMakeLists.txt`、新規
+  `libs/painting/tests/KisAsynchronousStrokeUpdateHelperContractTest.cpp`である。予測6工程・14入力、停止7工程・17入力、製品`kritapainting`
+  1,206工程・2,434入力不変とする。80 ms周期は上限内の1回以上だけを観測し、独自factory配送はmeta-objectの直接呼出しでも決定的に確認する。
+- 両担当の対象プラットフォームはmacOS、構築権限は対象、全追加枠、20回反復、軽量近傍、無作業計画、動的接続、変更source構文、公開API検査、
+  `verify-quick`に限定する。Git権限は許可pathだけの担当commitで、台帳と進捗は統合担当が所有する。製品shared library、Qt Gui・Widgets、
+  `kritatestsdk`、実node・layer・mask・stroke・image、未構築pointer、製品意味論の試験内模倣、source・MOC二重収容、停止線超過なら停止する。
+  統合順はdo-nothing visitor、async updateとする。
+- `g93-global-audit`は条件を満たす候補なしで完了した。`kis_acs_types.h`全10 APIは色配送に実`KoColor`製品実装を要し、残るBezier直列化は
+  Qt Widgetsへ接続するDomUtils OBJECTを要する。残る代数関数は広い実装sourceへ混在し、使用記録はfilesystem・画面・大域状態、Android値は
+  macOSで実行不能であるため、第93便のglobal実装担当は立てない。
+
 ### 第92並列便の監査計画
 
 - 共通基点は`9fd6543fe0c07c5f41ca2c1edf22d3f5c025421e`、入力は
