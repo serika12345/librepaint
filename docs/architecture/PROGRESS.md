@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 08:33 JST
+- 更新日時: 2026-09-01 08:41 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -46,6 +46,16 @@
 - 変更なし計画、直接依存、初期未充足の後、5枠、全対象CTest、20回反復、`PsdByteIoContractTest`、無作業再構築、動的接続、source構文、公開API検査、
   `verify-quick`を実行する。`psd_resource_block.cpp`、raw `resource`所有、RESN・ICC非inline経路、実QIODevice filesystem、製品shared、`kritatestsdk`、
   色・resource registry、ASL、停止線超過に到達した場合は編集を止める。
+- `g104-image-rects-walker-policy`は`planned`、実装基点は`05f93c6aa4`、worktreeは
+  `/Users/masato/Documents/librepaint-g104-image-rects-walker-policy`とする。`libs/image/kis_base_rects_walker.h`の更新種別6、node位置12、subtree flag 6、
+  `JobItem`・`LeafStack` 6、walker・clone通知型5の全35 APIを新規`KisBaseRectsWalkerPolicyContractTest`の5枠へ固定する。許可pathは新規試験sourceと
+  `libs/image/tests/CMakeLists.txt`だけ、予測4工程・8入力、停止5工程・11入力、製品不変とする。fake walkerは型成立だけを確認して実体化せず、製品source、
+  node・projection・image、製品shared、`kritatestsdk`へ接続しない。
+- `g104-tools-categories-mapper`は`planned`、実装基点は`05f93c6aa4`、worktreeは
+  `/Users/masato/Documents/librepaint-g104-tools-categories-mapper`とする。`libs/tools/ui/kis_categories_mapper.h`の構築・項目識別11、状態・通知14、category・entry追加検索7、
+  行写像・削除・展開5、行signal 5の全42 APIを新規`KisCategoriesMapperContractTest`の5枠へ固定する。許可pathは新規試験sourceと
+  `libs/tools/ui/tests/CMakeLists.txt`だけとし、既存`kritatoolsuicategorizedmodelobjects`を再利用する。予測8工程・17入力、停止9工程・20入力、製品不変とする。
+  Qt Widgets・Gui、実view、製品shared、`kritatestsdk`、設定I/O・大域状態へ接続せず、現行のcheckedからtoggledへの片方向遷移を修正せず固定する。
 
 ### 第104並列便の追加監査計画
 
@@ -55,6 +65,12 @@
 - `g104-utility-model-values-audit`は`libs/image/krita_utils.h` 47 API、`libs/tools/ui/kis_categories_mapper.h` 42 API、
   `libs/widgets/KisWidgetConnectionUtils.h` 46 APIを比較し、純粋utility、局所Qtモデル、またはproperty接続の一責務を選ぶ。実document・image・widget画面、設定I/O、
   大域状態へ接続せず、既存限定対象または一source OBJECTで25 API以上を閉じる。両監査は共通基点`eec42f47d6`と同じ不足報告を読み、編集・構築・試験・Git・委譲を行わない。
+- `g104-image-bounds-values-audit`は`KisBaseRectsWalker`の列挙、flag、`JobItem`、clone通知型の35 APIを採用した。製品sourceを収容せず、Qt Core/Testだけの
+  header限定契約へ閉じる。残る23 APIはbase vtable、node巡回、projectionへ接続するため除外した。`KisDefaultBounds`はimage・paint deviceへ入り、
+  selection filterは具象vtableからpixel処理へ入るため棄却した。
+- `g104-utility-model-values-audit`は`KisCategoriesMapper`の全42 APIを採用した。既存`kritatoolsuicategorizedmodelobjects`は4工程・9入力でQt Coreだけに閉じ、
+  新契約は8工程・17入力を予測する。`KisWidgetConnectionUtils`はheader-only値面25 APIまで閉じるが実property接続を含まず、`krita_utils`は単一の純粋責務が
+  25 API未満のため次点・棄却とした。
 
 ### 第103並列便の監査計画
 
