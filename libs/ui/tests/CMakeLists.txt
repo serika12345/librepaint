@@ -1147,3 +1147,14 @@ target_compile_options(KisMirrorAxisConfigContractTest PRIVATE
     -include QObject
     SHELL:-include\ QPointF
 )
+
+kis_add_test(
+    KisStoryboardItemContractTest.cpp
+    LINK_LIBRARIES
+        kritauistoryboarditemobjects
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Xml
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(KisStoryboardItemContractTest PRIVATE kritaui_EXPORTS)

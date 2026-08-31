@@ -1938,10 +1938,29 @@ set(kritaui_LIB_SRCS
 
     canvas/KisDecorationsWrapperLayer.cpp
 
-    document/StoryboardItem.cpp
-
     nodes/KisNodeActivationActionCreatorVisitor.cpp
 )
+
+add_library(kritauistoryboarditemobjects OBJECT
+    document/StoryboardItem.cpp
+)
+target_compile_definitions(kritauistoryboarditemobjects PRIVATE kritaui_EXPORTS)
+target_include_directories(kritauistoryboarditemobjects PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_BINARY_DIR}
+    ${CMAKE_BINARY_DIR}/libs/application
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+    ${CMAKE_SOURCE_DIR}/libs/image
+    ${CMAKE_BINARY_DIR}/libs/image
+)
+target_link_libraries(kritauistoryboarditemobjects PUBLIC
+    Qt${QT_MAJOR_VERSION}::Core
+    Qt${QT_MAJOR_VERSION}::Gui
+    Qt${QT_MAJOR_VERSION}::Xml
+)
+set_target_properties(kritauistoryboarditemobjects PROPERTIES AUTOMOC OFF POSITION_INDEPENDENT_CODE ON)
+list(APPEND kritaui_LIB_SRCS $<TARGET_OBJECTS:kritauistoryboarditemobjects>)
 
 if (KSeExpr_FOUND)
     set(kritaui_LIB_SRCS ${kritaui_LIB_SRCS}
