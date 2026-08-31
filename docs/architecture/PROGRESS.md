@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 08:13 JST
+- 更新日時: 2026-09-01 08:17 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -66,10 +66,10 @@
   `libs/widgetutils/tests/KisSpinBoxUnitManagerContractTest.cpp`である。新試5枠、予測8工程・18入力、停止10工程・23入力、製品は現状比+3工程・+6入力を停止線とする。
 - `g103-pigment-color-profile-values`は`in_progress`で、worktreeは`/Users/masato/Documents/librepaint-g103-pigment-color-profile-values`である。対象は
   `libs/pigment/KoColorProfile.h`の`getColorPrimaries()`を除く47 APIで、メタデータ・非I/O既定値14、copy・clone・識別6、能力flag 13、色基準値・名称6、
-  transfer特性・値変換8を5枠へ固定する。開始`libs/pigment/KoColorProfile.cpp`から`getColorPrimaries()`を新規
-  `libs/pigment/KoColorProfilePrimaries.cpp`へ本文不変で移し、残る元sourceを`kritapigmentcolorprofileobjects`へ移管する。許可pathは両source、
-  `libs/pigment/CMakeLists.txt`、`libs/pigment/tests/CMakeLists.txt`、新規`libs/pigment/tests/KoColorProfileValuesContractTest.cpp`である。予測6工程・13入力、停止7工程・16入力、
-  製品予測363工程・756入力、停止364工程・759入力とする。
+  transfer特性・値変換8を5枠へ固定する。開始`libs/pigment/KoColorProfile.cpp`から`KoColorProfile::Private`定義を新規内部header
+  `libs/pigment/KoColorProfile_p.h`へ一度だけ移し、`getColorPrimaries()`を新規`libs/pigment/KoColorProfilePrimaries.cpp`へ本文不変で移す。残る元sourceを
+  `kritapigmentcolorprofileobjects`へ移管する。許可pathは両source、内部header、`libs/pigment/CMakeLists.txt`、`libs/pigment/tests/CMakeLists.txt`、新規
+  `libs/pigment/tests/KoColorProfileValuesContractTest.cpp`である。予測6工程・14入力、停止7工程・16入力、製品予測363工程・757入力、停止364工程・759入力とする。
 - 構築許可を持つ担当は変更なし計画と直接依存を先に測定し、未知対象または未知試験の初期診断、追加枠、全対象CTest、20回反復、軽量近傍、
   無作業再構築、動的接続、変更source構文、一重収容、公開API契約検査、`verify-quick`まで実行する。統合順はPSD vector stroke、単位管理、色profileとする。
   許可path外、新規公開API、製品source・mocの二重収容、個別停止線超過、製品shared library、`kritatestsdk`、公開header変更、PSDのASL・shape stroke・生pointer・描画、
@@ -91,7 +91,8 @@
   台帳は10,340件対応、19,498件未対応へ進み、次入力は`build/tdd-macos/public-api-missing-g104.json`である。旧第103便報告4.8 MB、
   PSD担当644 MB、単位管理担当648 MBと両branchは差分同一性確認後に削除した。到達不能なNix保管物601経路38.2 GiBも回収し、主Ninja木と共有cacheを保持した。
 - `g103-pigment-color-profile-values`のsource worktreeは翻訳catalogを除外して361 MBで作成した。次は変更前閉包を再確認し、色profileの47 APIを
-  5枠へ固定して同じ限定検証を行う。
+  5枠へ固定して同じ限定検証を行う。編集前監査で`getColorPrimaries()`が元source内だけの`KoColorProfile::Private`定義を共有する必要を検出したため、
+  private定義を二つの翻訳単位へ複製せず、内部headerへ一度だけ移す担当範囲へ更新した。
 
 ### 第102並列便の監査計画
 
