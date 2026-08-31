@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 03:24 JST
+- 更新日時: 2026-09-01 03:27 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -46,9 +46,10 @@
   `build/tdd-macos/public-api-missing-g97.json`でheaderが`libs/widgets/KoDialog.h`の全67 APIである。開始`libs/widgets/KoDialog.cpp`を
   `kritawidgets_LIB_SRCS`直接収容から新規AUTOMOC・PIC対応`kritawidgetsdialogobjects`へ一対一移動し、製品`kritawidgets`へ一回だけ再集約する。
   許可pathは`libs/widgets/CMakeLists.txt`、`libs/widgets/tests/CMakeLists.txt`、既存`libs/widgets/tests/KoDialogEnumContractTest.cpp`だけである。構築・
-  caption・寸法、button状態・表示、activation signal、main・details・help、表示・layout・遅延破棄の5枠を既存enum枠へ追加する。実測7工程・19入力、
-  停止8工程・21入力、製品800工程・1,629入力とする。開始source末尾の手動MOC includeにより専用OBJECTの独立meta-object生成2工程・4入力が
-  必要であり、広域製品接続を除く代わりの明示的な所有コストとして基準798工程・1,625入力からの増加を許容する。
+  caption・寸法、button状態・表示、activation signal、main・details・help、表示・layout・遅延破棄の5枠を既存enum枠へ追加する。実測10工程・25入力、
+  停止11工程・26入力、製品800工程・1,629入力とする。開始source末尾の手動MOC includeによる専用meta-object生成2工程・4入力と、buttonの対応付け・
+  配送を所有する`kritaglobalsignalmapperobjects`への直接依存が必要である。広域製品接続と試験内意味論模倣を除くための明示的な所有コストとして、
+  基準798工程・1,625入力からの増加を許容する。
 - `g97-transform-liquify-properties`は`in_progress`で、専用作業ツリーは
   `/Users/masato/Documents/librepaint-g97-transform-liquify-properties`である。対象は`build/tdd-macos/public-api-missing-g97.json`でheaderが
   `plugins/tools/tool_transform2/kis_liquify_properties.h`の全38 APIである。開始`kis_liquify_properties.cpp`を`kritatooltransform_static_SRCS`
