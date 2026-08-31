@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-31 23:51 JST
+- 更新日時: 2026-08-31 23:57 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -39,8 +39,7 @@
   4契約枠でscalar・SIMD丸めと除算、mask・alpha・channel読書き、画素正規化・復元・複製、mask選択状態復元を固定する。直接依存は
   Qt Core・Test、xsimdと色合成header面だけとする。最寄り5工程・11入力、新規予測4工程・9入力、停止上限7工程・16入力、製品
   `kritapigment` 360工程・750入力不変とする。処理系差は整数境界と許容幅で分類し、追加の未解決製品記号が出たら停止する。
-- `g91-paintop-size-option`は`in_progress`であり、専用作業ツリーは
-  `/Users/masato/Documents/librepaint-g91-paintop-size-option`である。対象headerは`plugins/paintops/libpaintop/KisSizeOptionData.h`のstruct、constructor、
+- `g91-paintop-size-option`は`integrated`である。対象headerは`plugins/paintops/libpaintop/KisSizeOptionData.h`のstruct、constructor、
   `lodLimitations`の全3 APIである。開始ファイル`plugins/paintops/libpaintop/KisSizeOptionData.cpp`を
   `kritalibpaintop_LIB_SRCS`と`kritapaintopruntime_LIB_SRCS`の両初期一覧から外し、新規`kritapaintopsizeoptiondataobjects`へ移して
   runtimeへ一度だけ再集約する。許可pathは同package `CMakeLists.txt`、tests `CMakeLists.txt`、新規
@@ -57,7 +56,7 @@
   `libs/global/KisBezierMesh.h`の構築、索引、反復、等価・恒等判定、入力・出力空間変換の57 APIを、既存
   `libs/global/tests/KisBezierMeshValuesContractTest.cpp`の5契約枠へ追加した。製品header、source、CMakeは変更せず、中央対象4工程・8入力と
   製品`kritaglobal` 68工程・136入力を維持した。主環境で対象と軽量近傍、20回反復、公開API検査に成功し、対応済みは9,427件、
-  未対応は20,411件となった。差分同一性と担当作業ツリーのcleanを確認後、担当構築木を含む280 MBの作業ツリーと担当branchを削除した。
+  未対応は20,411件となった。差分同一性と担当作業ツリーのcleanを確認後、280 MBの担当構築木を含む作業ツリーと担当branchを削除した。
   旧不足一覧を削除し、`build/tdd-macos/public-api-missing-g91-bezier.json`だけを保持する。
 - `g91-pigment-streamed-math`は受渡しcommit `4f441922d7537acd2b8751a12d1c28d5a17265bb`を統合commit `6ed87b514b`として取り込んだ。
   `libs/pigment/compositeops/KoStreamedMath.h`のSIMD型、丸め・除算、マスク・チャネル読書き、8 bit・16 bit・浮動小数画素方針、
@@ -66,6 +65,16 @@
   未対応は20,360件となった。`genericComposite` 8 APIは非自明な製品側入力構築を要求するため本便の限定対象から除外した。差分同一性と
   cleanを確認後、277 MBの担当構築木を含む847 MBの作業ツリーと担当branchを削除した。旧不足一覧を削除し、
   `build/tdd-macos/public-api-missing-g91-streamed.json`だけを保持する。
+- `g91-paintop-size-option`は受渡しcommit `c69a4d99580be815a8a4c699108b495efbb42095`を統合commit `1569fb22dc`として取り込んだ。
+  開始ファイル`plugins/paintops/libpaintop/KisSizeOptionData.cpp`を、同packageの製品・runtime両初期一覧から新規
+  `kritapaintopsizeoptiondataobjects`へ移し、`kritapaintopruntime`へ1回だけ再集約した。新規
+  `plugins/paintops/libpaintop/tests/KisSizeOptionDataContractTest.cpp`の3枠で、`KisSizeOptionData.h`の全3 APIについて識別子・接頭辞・既定値と
+  センサー別の描画詳細度制限を固定した。対象は11工程・24入力、製品runtime 1,281工程・2,582入力、共有library 2,097工程・4,192入力で
+  不変である。主環境で対象と軽量近傍、20回反復、無作業再構築、動的接続、公開API検査に成功した。製品共有library、Qt Widgets、
+  `kritatestsdk`への接続はない。差分同一性とcleanを確認後、285 MBの担当構築木を含む837 MBの作業ツリーと担当branchを削除した。
+- 第91便は合計111 APIを12契約枠へ追加し、公開面は1,549ヘッダー、29,838 API、対応済み9,481件、未対応20,357件、契約枠2,299件となった。
+  全担当作業ツリーと直前の不足一覧を削除した。5.2 GBの主増分構築木と共有compiler cache、最新
+  `build/tdd-macos/public-api-missing-g92.json`だけを保持する。次はこの一覧から第92便の限定構築候補を並列監査する。
 
 ### 第90並列便の完了結果
 

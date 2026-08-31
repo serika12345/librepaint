@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 20360
+    "expectedMissingApis": 20357
   },
   "contracts": [
     {
@@ -30171,6 +30171,37 @@
       "apis": [
         "method:KisCurveOptionData::sensorStruct()",
         "method:KisCurveOptionData::sensorStruct() const"
+      ]
+    },
+    {
+      "target": "KisSizeOptionDataContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisSizeOptionDataContractTest.cpp",
+      "test": "KisSizeOptionDataContractTest::constructorPreservesSizeIdentityAndPrefix",
+      "behavior": "寸法設定の構築はSize識別子、表示名、Unicode接頭辞、変更可能・未選択状態、0から1の強度範囲を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSizeOptionData::KisSizeOptionData(const QString & prefix=QString ())",
+        "struct:KisSizeOptionData"
+      ]
+    },
+    {
+      "target": "KisSizeOptionDataContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisSizeOptionDataContractTest.cpp",
+      "test": "KisSizeOptionDataContractTest::uncheckedSizeHasNoPreviewRestrictions",
+      "behavior": "未選択の寸法設定は描画詳細度プレビューの制限も阻害条件も返さない。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSizeOptionData::lodLimitations() const"
+      ]
+    },
+    {
+      "target": "KisSizeOptionDataContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisSizeOptionDataContractTest.cpp",
+      "test": "KisSizeOptionDataContractTest::activeSensorsReportCurrentRestrictionIds",
+      "behavior": "寸法設定はdabごとの曖昧さをsize-fade制限、fadeをsize-fuzzy阻害条件として配送し、両センサーと常時有効方式の組合せを保つ。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSizeOptionData::lodLimitations() const"
       ]
     },
     {
