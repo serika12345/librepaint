@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 20153
+    "expectedMissingApis": 20124
   },
   "contracts": [
     {
@@ -31410,6 +31410,71 @@
         "enum:KisMacosSecurityBookmarkManager::SecurityBookmarkType",
         "enumerator:KisMacosSecurityBookmarkManager::SecurityBookmarkType::Directory",
         "enumerator:KisMacosSecurityBookmarkManager::SecurityBookmarkType::File"
+      ]
+    },
+    {
+      "target": "KisMirrorAxisConfigContractTest",
+      "source": "libs/ui/tests/KisMirrorAxisConfigContractTest.cpp",
+      "test": "KisMirrorAxisConfigContractTest::defaultsExposeStableDecorationState",
+      "behavior": "鏡像軸設定は全切替無効、既定handle寸法・位置、原点の軸位置を持ち、既定判定と仮想寿命を一貫して公開する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisMirrorAxisConfig",
+        "method:KisMirrorAxisConfig::KisMirrorAxisConfig()",
+        "method:KisMirrorAxisConfig::axisPosition() const",
+        "method:KisMirrorAxisConfig::handleSize() const",
+        "method:KisMirrorAxisConfig::hideHorizontalDecoration() const",
+        "method:KisMirrorAxisConfig::hideVerticalDecoration() const",
+        "method:KisMirrorAxisConfig::horizontalHandlePosition() const",
+        "method:KisMirrorAxisConfig::isDefault() const",
+        "method:KisMirrorAxisConfig::lockHorizontal() const",
+        "method:KisMirrorAxisConfig::lockVertical() const",
+        "method:KisMirrorAxisConfig::mirrorHorizontal() const",
+        "method:KisMirrorAxisConfig::mirrorVertical() const",
+        "method:KisMirrorAxisConfig::verticalHandlePosition() const",
+        "method:KisMirrorAxisConfig::~KisMirrorAxisConfig()"
+      ]
+    },
+    {
+      "target": "KisMirrorAxisConfigContractTest",
+      "source": "libs/ui/tests/KisMirrorAxisConfigContractTest.cpp",
+      "test": "KisMirrorAxisConfigContractTest::settersUpdateIndependentValues",
+      "behavior": "鏡像軸設定の6切替、handle寸法・水平垂直位置、軸位置は各setterから独立に更新され、対応getterへ同じ値を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMirrorAxisConfig::setAxisPosition(QPointF position)",
+        "method:KisMirrorAxisConfig::setHandleSize(float size)",
+        "method:KisMirrorAxisConfig::setHideHorizontalDecoration(bool state)",
+        "method:KisMirrorAxisConfig::setHideVerticalDecoration(bool state)",
+        "method:KisMirrorAxisConfig::setHorizontalHandlePosition(float position)",
+        "method:KisMirrorAxisConfig::setLockHorizontal(bool state)",
+        "method:KisMirrorAxisConfig::setLockVertical(bool state)",
+        "method:KisMirrorAxisConfig::setMirrorHorizontal(bool state)",
+        "method:KisMirrorAxisConfig::setMirrorVertical(bool state)",
+        "method:KisMirrorAxisConfig::setVerticalHandlePosition(float position)"
+      ]
+    },
+    {
+      "target": "KisMirrorAxisConfigContractTest",
+      "source": "libs/ui/tests/KisMirrorAxisConfigContractTest.cpp",
+      "test": "KisMirrorAxisConfigContractTest::copiesAssignmentsAndEqualityPreserveValueSemantics",
+      "behavior": "鏡像軸設定のコピー構築と代入は全値を複製し、複製後の元値変更から独立した等価性を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMirrorAxisConfig::KisMirrorAxisConfig(const KisMirrorAxisConfig & rhs)",
+        "method:KisMirrorAxisConfig::operator =(const KisMirrorAxisConfig & rhs)",
+        "method:KisMirrorAxisConfig::operator ==(const KisMirrorAxisConfig & rhs) const"
+      ]
+    },
+    {
+      "target": "KisMirrorAxisConfigContractTest",
+      "source": "libs/ui/tests/KisMirrorAxisConfigContractTest.cpp",
+      "test": "KisMirrorAxisConfigContractTest::xmlRoundTripPreservesConfiguration",
+      "behavior": "鏡像軸設定は指定tagのXMLへ全値を保存し、新しい個体へ読込んで同じ設定を復元する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMirrorAxisConfig::loadFromXml(const QDomElement & parent)",
+        "method:KisMirrorAxisConfig::saveToXml(QDomDocument & doc,const QString & tag) const"
       ]
     }
   ]

@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 03:27 JST
+- 更新日時: 2026-09-01 03:31 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -34,7 +34,7 @@
 ### 第97並列便の担当計画
 
 - 実装共通基点は`59566a67b7da6a2deb4fc330c1838c3fcbfda6c3`である。
-- `g97-ui-mirror-axis-config`は`in_progress`で、専用作業ツリーは`/Users/masato/Documents/librepaint-g97-ui-mirror-axis-config`である。対象は
+- `g97-ui-mirror-axis-config`は`integrated`で、削除済みの専用作業ツリーは`/Users/masato/Documents/librepaint-g97-ui-mirror-axis-config`であった。対象は
   `build/tdd-macos/public-api-missing-g97.json`でheaderが`libs/ui/canvas/KisMirrorAxisConfig.h`の全29 API、すなわちclass、既定・copy構築、破棄、
   代入・等価・既定判定、mirror・lock・hide decorationの6 getter/setter、handle size・水平/垂直handle位置・axis位置の4 getter/setter、XML保存・
   読込みである。開始`libs/ui/canvas/KisMirrorAxisConfig.cpp`を`kritaapplicationui_LIB_SRCS`直接収容から新規AUTOMOC不要・PIC対応
@@ -60,6 +60,21 @@
   指定近傍、無作業計画、動的接続、変更source構文、公開API検査、`verify-quick`に限定する。Git権限は許可pathだけの担当commitで、台帳と進捗は
   統合担当が所有する。許可path外、新規公開API、source・MOC二重収容、担当票の製品閉包上限超過、停止線超過、製品shared library、`kritatestsdk`、実canvas・image・
   document・resource・filesystem・外部help、未隔離の大域設定が必要なら停止する。統合順は鏡像軸設定、dialog、liquify設定とする。
+
+### 第97並列便の統合結果
+
+- `g97-ui-mirror-axis-config`は受渡しcommit `6e5ebc761916ba5481dfda54ddabb91677503ba4`を統合commit `45ce65dbfd`として取り込んだ。
+  開始ファイル`libs/ui/canvas/KisMirrorAxisConfig.cpp`を`libs/ui/CMakeLists.txt`の`kritaapplicationui_LIB_SRCS`直接収容から新規AUTOMOC不要・
+  PIC対応`kritauimirroraxisconfigobjects`へ移し、製品`kritaapplicationui`へ一回だけ再集約した。Q_OBJECT headerは製品source一覧に残し、試験対象も
+  同headerから独自meta-objectを生成することで、各成果物内の定義を一義に保った。公開headerと製品source本文は変更していない。
+- 新規`libs/ui/tests/KisMirrorAxisConfigContractTest.cpp`の4契約枠で既定装飾状態、全setterの独立更新、copy・代入・等価、XML往復を固定し、全29 APIを
+  追加した。既存assert記号は到達時に即時失敗する試験限定診断で解決し、実行時に到達しなかった。限定対象7工程・16入力、製品
+  `kritaapplicationui` 1,957工程・3,914入力を維持した。
+- 担当環境と主環境で全4枠、対象CTest、20回反復、`KisDomUtilsContractTest`近傍、無作業再構築、動的接続、meta-object記号、変更source構文、
+  公開API契約検査、`verify-quick`に成功した。限定対象はQt Core・Gui・Xml・Test・WidgetsとKF I18nへ接続し、WidgetsはDOM OBJECTからの推移依存である。
+  製品shared library、`kritatestsdk`へ接続しない。対応済みは9,714件、未対応は20,124件、契約枠は2,346件となった。
+- 新しい`build/tdd-macos/public-api-missing-g97-mirror.json`生成後、旧第97不足一覧、局所構築木265 MBを含む担当作業ツリー830 MB、担当branchを
+  削除した。主増分構築木、共有compiler cache、残る2担当作業ツリー、最新不足一覧だけを保持する。
 
 ### 第96並列便の監査計画
 
