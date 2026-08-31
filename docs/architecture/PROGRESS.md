@@ -2,12 +2,50 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-31 10:20 JST
-- 状態: `planned`
+- 更新日時: 2026-08-31 10:34 JST
+- 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
+
+### 第73並列便の担当票
+
+- 形状追加・除去command担当は`preparing`である。基点は
+  `ed076c541238fa375e64bd60398ed222c4fb4bf5`、予定作業ツリーは
+  `/Users/masato/Documents/librepaint-r2-g73-add-remove-shape`、予定ブランチは
+  `r2-g73-add-remove-shape`、統合順は1である。対象は
+  `libs/flake/commands/KoAddRemoveShapeCommands.h`の9 APIである。開始ファイル
+  `libs/flake/commands/KoAddRemoveShapeCommands.cpp`を`kritaflake_SRCS`の直接収容から
+  `kritaflakeaddremoveshapecommandobjects`へ移し、製品`kritaflake`へ一度だけ再集約する。新規
+  `libs/flake/tests/KoAddRemoveShapeCommandsContractTest.cpp`が基底phase、追加command初期状態、
+  除去command初期状態を3契約枠で固定し、9 APIを`maintained`へ分類する。限定構築は計画承認まで
+  待機し、予測閉包5工程・12入力、停止条件6工程・14入力、製品閉包612工程・1,256入力不変を要求する。
+  許可範囲は`libs/flake/CMakeLists.txt`、`libs/flake/tests/CMakeLists.txt`、新規試験だけである。
+- 描画輪郭担当は`preparing`である。基点は`ed076c541238fa375e64bd60398ed222c4fb4bf5`、
+  予定作業ツリーは`/Users/masato/Documents/librepaint-r2-g73-brush-outline`、予定ブランチは
+  `r2-g73-brush-outline`、統合順は2である。対象は
+  `libs/image/brushengine/KisOptimizedBrushOutline.h`の19 APIである。開始ファイル
+  `libs/image/brushengine/KisOptimizedBrushOutline.cpp`を`kritaimage_LIB_SRCS`の直接収容から
+  `kritaimageoptimizedbrushoutlineobjects`へ移し、製品`kritaimage`へ一度だけ再集約する。新規
+  `libs/image/tests/KisOptimizedBrushOutlineContractTest.cpp`が空状態と反復子、経路・多角形と境界、
+  装飾追加とcache無効化、変換と値意味論を4契約枠で固定し、19 APIを`maintained`へ分類する。限定構築は
+  計画承認まで待機し、予測閉包5工程・11入力、停止条件6工程・14入力、製品閉包1,184工程・2,392入力不変を
+  要求する。許可範囲は`libs/image/CMakeLists.txt`、`libs/image/tests/CMakeLists.txt`、新規試験だけである。
+- 色空間数学担当は`preparing`である。基点は`ed076c541238fa375e64bd60398ed222c4fb4bf5`、
+  予定作業ツリーは`/Users/masato/Documents/librepaint-r2-g73-color-space-maths`、予定ブランチは
+  `r2-g73-color-space-maths`、統合順は3である。対象は`libs/pigment/KoColorSpaceMaths.h`の140 APIである。
+  製品実装`libs/pigment/KoColorSpaceMaths.cpp`は既に`kritapigmentmathsobjects`から製品`kritapigment`へ
+  一度だけ集約され、製品sourceの移動は不要である。開始試験
+  `libs/pigment/tests/TestKoColorSpaceMaths.{h,cpp}`を広域試験一覧から同名専用Qt Testへ移し、数値特性とLUT、
+  中核演算、値域・合成・近似方針、Arithmetic接続面、4色模型、hue・RGB、tone・成分調整を7契約枠で固定する。
+  140 APIを`maintained`へ分類する。限定構築は計画承認まで待機し、予測閉包5工程・12入力、停止条件
+  6工程・14入力、製品閉包360工程・750入力不変を要求する。許可範囲は
+  `libs/pigment/tests/CMakeLists.txt`と開始試験2ファイルだけである。
+- 3担当はgit commitで受渡しし、再委任しない。中央進捗文書、公開API対応表、不足一覧は調整担当だけが
+  更新する。担当差分の統合直後に担当作業ツリー、局所構築木、担当ブランチを削除する。旧不足一覧は
+  新しい一覧の件数確認直後に削除し、再生成可能な一覧を常に最新1世代へ限定する。
+- 第73便は合計168 APIを対応付け、対応済み8,700件、未対応21,289件を目標とする。
 
 ### 現在の結果
 
@@ -41,9 +79,8 @@
 
 ### 次の操作
 
-- 第73並列便は最新不足一覧を用い、先行監査済みの`libs/flake/KoPointerEvent.h` 39 APIと
-  `libs/image/brushengine/KisOptimizedBrushOutline.h` 19 APIを第三の非重複候補と比較する。Qt 5限定APIの
-  実行可能性とQt meta-object移動による製品閉包差を含め、担当票を固定するまで作業ツリーと局所構築木を作らない。
+- 第73並列便の担当票を高速検査で固定してコミットする。3担当作業ツリーを同じ計画コミットから作成し、
+  基点と清浄状態を確認した後に実装許可を記録して、限定構築と挙動契約の実装へ進む。
 
 ## 再開環境
 
