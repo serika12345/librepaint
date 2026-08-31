@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-31 18:52 JST
+- 更新日時: 2026-08-31 18:58 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -59,8 +59,9 @@
   `method:KisOperationConfiguration::KisOperationConfiguration(const QString & id)`、
   `method:KisOperationConfiguration::id() const`、`method:KisOperationConfiguration::~KisOperationConfiguration()`である。
   許可パスは`libs/ui/CMakeLists.txt`、`libs/ui/tests/CMakeLists.txt`、新規試験である。最寄りの最小property協調契約は
-  `KisPaintingModeOptionDataContractTest`である。予測閉包5工程・16実入力、停止条件6工程・18実入力、製品閉包
-  1,957工程・3,914入力不変を要求する。
+  `KisPaintingModeOptionDataContractTest`である。公開基底のheader経路が必要とするKF I18nは直接依存として宣言し、
+  製品設定や共有ライブラリーを接続しない。予測閉包5工程・10実入力、停止条件6工程・18実入力、製品閉包
+  1,957工程・3,914入力不変を要求する。外部動的依存は対象の公開headerをコンパイルするための直接依存に限定する。
 - 3担当はmacOSの主作業ツリー環境と共有コンパイラーキャッシュ
   `/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を使用する。Git操作権限は`transport-commit`、
   構築実行許可は`granted`、追加委任は`forbidden`である。新targetのunknown-targetを初期診断とし、変更前の計画、
@@ -70,6 +71,8 @@
 - undo adapterの最初の構造案は公開headerのmeta-objectを専用OBJECTへ移したため、対象閉包7工程・14入力と製品閉包
   1,186工程・2,396入力になり停止した。未構築・未コミットの担当作業ツリーと255 MBの局所構築木を削除した。
   改訂案は製品と試験が各自のmeta-objectを所有し、AUTOMOCを無効にした開始source OBJECTだけを共有する。
+- operation設定の初期監査はKF I18nを不要と見積もったが、公開基底から色値型と識別値型を経由するheader依存として
+  必須だった。対象と製品のNinja閉包は増加しないため、外部headerの正しい直接依存を宣言して同じ担当を継続する。
 - 第85便は合計23 APIを対応付け、対応済み9,150件、未対応20,839件を目標とする。
 
 ### 第84並列便の完了結果
