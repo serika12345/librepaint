@@ -2,12 +2,31 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 05:51 JST
+- 更新日時: 2026-09-01 05:54 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
+
+### 第101並列便の監査計画
+
+- 共通基点は`95031353ffcfa2ac28a5f30292cb71a248bd7340`、入力は`build/tdd-macos/public-api-missing-g101.json`である。3担当は`auditing`で、
+  読み取り専用とし、製品・試験・CMake・台帳・文書を変更せず、構築、テスト、Git操作、追加委任も行わない。既存の主増分構築計画とCMake File APIは
+  参照できる。一つの公開責務から25 API以上を最大5契約枠へ固定し、既存限定対象、header-only値面、一つのsourceのOBJECT一対一移動、または挙動を
+  変えない小さな責務分割で製品shared libraryと`kritatestsdk`へ接続せず閉じられる候補を優先する。
+- `g101-psd-additional-values-audit`は`libs/psd/psd_additional_layer_info_block.h`の残り235 APIから、第100便の調整値12構造体と重ならない連続した
+  値記録を選ぶ。既定値、列挙、符号付き値、固定配列、copy独立性をメモリー内だけで観測し、実paint device、色空間・模様registry、ASL codec、
+  filesystem、所有不明の生pointer経路を採用しない。
+- `g101-ui-guides-config-audit`は`libs/ui/canvas/kis_guides_config.h`の残り39 APIについて、guide一覧、表示・固定・snap、線種・色・単位、変換、XML往復を
+  一つの限定対象へ収められるか監査する。大域設定を読み書きするstatic経路は値・XML契約から分離し、実canvas、document、application、画面、
+  filesystemへ接続しない。現sourceが広い場合は開始pathからの一source所有移動を示す。
+- `g101-global-algebra-values-audit`は`libs/global/kis_algebra_2d.h`の残り87 APIから、矩形蓄積、線・多角形交差、数値最小化、座標変換、VectorPath操作のうち
+  一つの純粋幾何責務を選ぶ。既存の限定OBJECTと契約対象を再利用し、GUI、画像、乱数、大域状態、外部入力を必要とせず25 API以上を固定できる範囲を
+  示す。複数の大きなsource所有者を同時に分割する候補は採用しない。
+- 各報告は完全なAPI識別子、観測する現行挙動、最大5契約枠、最寄りCTest、所有CMake、直接依存、変更なし閉包、予測閉包と停止線、開始pathから
+  移動先pathへの対応、許可path、固有停止条件を含む。候補がない場合は最接近候補と棄却根拠を数値で報告する。3監査後にpath、CMake、試験source、
+  生成物が重ならない候補だけを実装担当票へ進める。
 
 ### 第100並列便の監査計画
 
