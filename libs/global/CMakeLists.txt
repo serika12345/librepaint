@@ -50,6 +50,28 @@ set_target_properties(kritaglobalalgebrarectobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaglobalalgebraplanargeometryobjects OBJECT
+    kis_algebra_2d_planar_geometry.cpp
+)
+target_compile_definitions(kritaglobalalgebraplanargeometryobjects PRIVATE kritaglobal_EXPORTS)
+target_include_directories(kritaglobalalgebraplanargeometryobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaglobalalgebraplanargeometryobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+    PRIVATE
+        Boost::boost
+        Eigen3::Eigen
+)
+set_target_properties(kritaglobalalgebraplanargeometryobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaglobalfileutilsobjects OBJECT
     KisFileUtils.cpp
 )
@@ -763,6 +785,7 @@ kis_add_library(kritaglobal SHARED
     ${kritaglobal_LIB_SRCS}
     $<TARGET_OBJECTS:kritaglobalalgebradirectionobjects>
     $<TARGET_OBJECTS:kritaglobalalgebrarectobjects>
+    $<TARGET_OBJECTS:kritaglobalalgebraplanargeometryobjects>
     $<TARGET_OBJECTS:kritaglobalfileutilsobjects>
     $<TARGET_OBJECTS:kritaglobalcumulativeundodataobjects>
     $<TARGET_OBJECTS:kritaglobaltemporaryfileconfigurationobjects>

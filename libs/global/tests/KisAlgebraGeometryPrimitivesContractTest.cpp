@@ -7,6 +7,7 @@
 
 #include <QTest>
 
+#include <algorithm>
 #include <cmath>
 #include <type_traits>
 
@@ -18,9 +19,9 @@ bool closeReal(qreal actual, qreal expected, qreal tolerance = 1e-12)
     return qAbs(actual - expected) < tolerance;
 }
 
-bool closePoint(const QPointF &actual, const QPointF &expected)
+bool closePoint(const QPointF &actual, const QPointF &expected, qreal tolerance = 1e-12)
 {
-    return closeReal(actual.x(), expected.x()) && closeReal(actual.y(), expected.y());
+    return closeReal(actual.x(), expected.x(), tolerance) && closeReal(actual.y(), expected.y(), tolerance);
 }
 
 } // namespace
@@ -51,6 +52,11 @@ private Q_SLOTS:
     void rectangleSamplingAndApproximationCaptureExtrema();
     void rectangleClippingAndUnitMappingsPreserveArea();
     void rectangleComparisonsRecognizeToleranceAndPixelAlignment();
+    void lineClippingAndIntersectionRespectExtentPolicies();
+    void lineProjectionAndMovementPreserveMetricGeometry();
+    void triangleConstructionAndElasticMovementPreserveConstraints();
+    void polygonPredicatesAndPointComparisonsRespectTolerance();
+    void scalarMinimizersConvergeWithinBounds();
 };
 
 void KisAlgebraGeometryPrimitivesContractTest::rightHalfPlaneReportsSignedDistanceAndLine()
@@ -452,6 +458,172 @@ void KisAlgebraGeometryPrimitivesContractTest::rectangleComparisonsRecognizeTole
     };
     QVERIFY(KisAlgebra2D::isPolygonRect(fractionalRectangle, 1e-12));
     QVERIFY(!KisAlgebra2D::isPolygonPixelAlignedRect(fractionalRectangle, 1e-12));
+}
+
+void KisAlgebraGeometryPrimitivesContractTest::lineClippingAndIntersectionRespectExtentPolicies()
+{
+    const QRect bounds(0, 0, 10, 10);
+    QLineF crossingLine(QPointF(-5.0, 5.0), QPointF(15.0, 5.0));
+    QVERIFY(KisAlgebra2D::intersectLineRect(crossingLine, bounds, false));
+    QCOMPARE(crossingLine, QLineF(QPointF(0.0, 5.0), QPointF(10.0, 5.0)));
+
+    QLineF firstEndExtended(QPointF(2.0, 5.0), QPointF(8.0, 5.0));
+    QVERIFY(KisAlgebra2D::intersectLineRect(firstEndExtended, bounds, true, false));
+    QVERIFY(closePoint(firstEndExtended.p1(), QPointF(0.0, 5.0), 1e-6));
+    QCOMPARE(firstEndExtended.p2(), QPointF(8.0, 5.0));
+
+    QLineF lineOutsideBounds(QPointF(-5.0, -2.0), QPointF(15.0, -2.0));
+    QVERIFY(!KisAlgebra2D::intersectLineRect(lineOutsideBounds, bounds, false));
+    KisAlgebra2D::cropLineToRect(lineOutsideBounds, bounds, false, false);
+    QCOMPARE(lineOutsideBounds, QLineF());
+
+    const QPolygonF polygon {
+        QPointF(0.0, 0.0), QPointF(10.0, 0.0),
+        QPointF(10.0, 10.0), QPointF(0.0, 10.0),
+    };
+    QLineF crossingPolygon(QPointF(-5.0, 5.0), QPointF(15.0, 5.0));
+    QVERIFY(KisAlgebra2D::intersectLineConvexPolygon(crossingPolygon, polygon, false, false));
+    QCOMPARE(crossingPolygon, QLineF(QPointF(0.0, 5.0), QPointF(10.0, 5.0)));
+
+    QLineF lineOutsidePolygon(QPointF(-5.0, -2.0), QPointF(15.0, -2.0));
+    KisAlgebra2D::cropLineToConvexPolygon(lineOutsidePolygon, polygon, false, false);
+    QCOMPARE(lineOutsidePolygon, QLineF());
+
+    const QLineF boundedLine(QPointF(0.0, 0.0), QPointF(10.0, 0.0));
+    const auto intersection = KisAlgebra2D::intersectLines(
+        boundedLine, QLineF(QPointF(5.0, -2.0), QPointF(5.0, 2.0)));
+    QVERIFY(intersection.has_value());
+    QCOMPARE(*intersection, QPointF(5.0, 0.0));
+    QVERIFY(!KisAlgebra2D::intersectLines(
+        boundedLine, QLineF(QPointF(12.0, -2.0), QPointF(12.0, 2.0))).has_value());
+
+    const auto pointIntersection = KisAlgebra2D::intersectLines(
+        QPointF(0.0, 0.0), QPointF(10.0, 0.0),
+        QPointF(3.0, -2.0), QPointF(3.0, 2.0));
+    QVERIFY(pointIntersection.has_value());
+    QVERIFY(closePoint(*pointIntersection, QPointF(3.0, 0.0), 1e-6));
+
+    QVERIFY(KisAlgebra2D::isOnLine(boundedLine, QPointF(4.0, 0.0), 1e-12, true, true, false));
+    QVERIFY(!KisAlgebra2D::isOnLine(boundedLine, QPointF(0.0, 0.0), 1e-12, true, true, false));
+    QVERIFY(KisAlgebra2D::isOnLine(boundedLine, QPointF(0.0, 0.0), 1e-12, false, true, false));
+    QVERIFY(!KisAlgebra2D::isOnLine(boundedLine, QPointF(12.0, 0.0), 1e-12, true, true, true));
+    QVERIFY(KisAlgebra2D::isOnLine(boundedLine, QPointF(12.0, 0.0), 1e-12, true, false, true));
+}
+
+void KisAlgebraGeometryPrimitivesContractTest::lineProjectionAndMovementPreserveMetricGeometry()
+{
+    const QLineF horizontal(QPointF(0.0, 0.0), QPointF(10.0, 0.0));
+    const QList<QLineF> parallelLines = KisAlgebra2D::getParallelLines(horizontal, 2.0);
+    QCOMPARE(parallelLines.size(), 2);
+    QCOMPARE(parallelLines[0], QLineF(QPointF(0.0, -2.0), QPointF(10.0, -2.0)));
+    QCOMPARE(parallelLines[1], QLineF(QPointF(0.0, 2.0), QPointF(10.0, 2.0)));
+    QVERIFY(KisAlgebra2D::getParallelLines(QLineF(QPointF(1.0, 1.0), QPointF(1.0, 1.0)), 2.0).isEmpty());
+
+    QCOMPARE(KisAlgebra2D::findNearestPointOnLine(QPointF(3.0, 4.0), horizontal, false), QPointF(3.0, 0.0));
+    QCOMPARE(KisAlgebra2D::findNearestPointOnLine(QPointF(12.0, 4.0), horizontal, false), QPointF(10.0, 0.0));
+    QCOMPARE(KisAlgebra2D::findNearestPointOnLine(QPointF(12.0, 4.0), horizontal, true), QPointF(12.0, 0.0));
+    QCOMPARE(KisAlgebra2D::pointToLineDistSquared(QPointF(3.0, 4.0), horizontal), 16.0);
+
+    QCOMPARE(KisAlgebra2D::movePointInTheDirection(QPointF(1.0, 2.0), QPointF(3.0, 4.0), 10.0),
+             QPointF(7.0, 10.0));
+    QCOMPARE(KisAlgebra2D::movePointInTheDirection(QPointF(1.0, 2.0), QPointF(), 10.0),
+             QPointF(1.0, 2.0));
+    QCOMPARE(KisAlgebra2D::movePointAlongTheLine(QPointF(3.0, 4.0), horizontal, 2.0, true),
+             QPointF(5.0, 0.0));
+    QCOMPARE(KisAlgebra2D::movePointAlongTheLine(QPointF(3.0, 4.0), horizontal, 2.0, false),
+             QPointF(5.0, 4.0));
+}
+
+void KisAlgebraGeometryPrimitivesContractTest::triangleConstructionAndElasticMovementPreserveConstraints()
+{
+    qreal firstRoot = 0.0;
+    qreal secondRoot = 0.0;
+    QCOMPARE(KisAlgebra2D::quadraticEquation(1.0, -3.0, 2.0, &firstRoot, &secondRoot), 2);
+    QCOMPARE(firstRoot, 2.0);
+    QCOMPARE(secondRoot, 1.0);
+    QCOMPARE(KisAlgebra2D::quadraticEquation(1.0, -2.0, 1.0, &firstRoot, &secondRoot), 1);
+    QCOMPARE(firstRoot, 1.0);
+    QCOMPARE(KisAlgebra2D::quadraticEquation(1.0, 0.0, 1.0, &firstRoot, &secondRoot), 0);
+
+    const QVector<QPointF> trianglePoints = KisAlgebra2D::findTrianglePoint(
+        QPointF(0.0, 0.0), QPointF(4.0, 0.0), std::sqrt(5.0), std::sqrt(5.0));
+    QCOMPARE(trianglePoints, QVector<QPointF>({QPointF(2.0, 1.0), QPointF(2.0, -1.0)}));
+    const auto nearestTrianglePoint = KisAlgebra2D::findTrianglePointNearest(
+        QPointF(0.0, 0.0), QPointF(4.0, 0.0), std::sqrt(5.0), std::sqrt(5.0), QPointF(2.0, -5.0));
+    QVERIFY(nearestTrianglePoint.has_value());
+    QVERIFY(closePoint(*nearestTrianglePoint, QPointF(2.0, -1.0)));
+
+    const QPointF elasticPoint = KisAlgebra2D::moveElasticPoint(
+        QPointF(0.0, 0.0), QPointF(0.0, 2.0), QPointF(0.0, 2.0),
+        QPointF(-2.0, -1.0), QPointF(3.0, -1.0));
+    QVERIFY(closePoint(elasticPoint, QPointF(0.0, 0.0)));
+
+    QVERIFY(closePoint(KisAlgebra2D::transformAsBase(
+                           QPointF(1.0, 0.0), QPointF(1.0, 0.0), QPointF(0.0, 2.0)),
+                       QPointF(0.0, 2.0)));
+    QCOMPARE(KisAlgebra2D::transformAsBase(
+                 QPointF(3.0, 4.0), QPointF(1e-8, 0.0), QPointF(2.0, 0.0)),
+             QPointF(3.0, 4.0));
+    QCOMPARE(KisAlgebra2D::transformAsBase(
+                 QPointF(3.0, 4.0), QPointF(2.0, 0.0), QPointF()),
+             QPointF());
+}
+
+void KisAlgebraGeometryPrimitivesContractTest::polygonPredicatesAndPointComparisonsRespectTolerance()
+{
+    QVERIFY(KisAlgebra2D::fuzzyPointCompare(QPointF(2.0, 3.0), QPointF(2.0, 3.0)));
+    QVERIFY(!KisAlgebra2D::fuzzyPointCompare(QPointF(2.0, 3.0), QPointF(2.1, 3.0)));
+    QVERIFY(KisAlgebra2D::fuzzyPointCompare(QPointF(2.0, 3.0), QPointF(2.05, 2.95), 0.1));
+    QVERIFY(!KisAlgebra2D::fuzzyPointCompare(QPointF(2.0, 3.0), QPointF(2.1, 3.0), 0.1));
+
+    const QVector<QPointF> firstPoints {QPointF(1.0, 2.0), QPointF(3.0, 4.0)};
+    const QVector<QPointF> closePoints {QPointF(1.05, 1.95), QPointF(3.0, 4.0)};
+    QVERIFY(KisAlgebra2D::fuzzyPointCompare(firstPoints, closePoints, 0.1));
+    QVector<QPointF> extraPoint = closePoints;
+    extraPoint << QPointF(5.0, 6.0);
+    QVERIFY(!KisAlgebra2D::fuzzyPointCompare(firstPoints, extraPoint, 0.1));
+
+    const QVector<QPointF> counterClockwise {
+        QPointF(0.0, 0.0), QPointF(4.0, 0.0),
+        QPointF(4.0, 3.0), QPointF(0.0, 3.0),
+    };
+    QVector<QPointF> clockwise = counterClockwise;
+    std::reverse(clockwise.begin(), clockwise.end());
+    QCOMPARE(KisAlgebra2D::polygonDirection(counterClockwise), -1);
+    QCOMPARE(KisAlgebra2D::polygonDirection(clockwise), 1);
+    QVERIFY(KisAlgebra2D::isPolygonTrulyConvex(counterClockwise));
+
+    const QVector<QPointF> concave {
+        QPointF(0.0, 0.0), QPointF(4.0, 0.0), QPointF(2.0, 1.0),
+        QPointF(4.0, 3.0), QPointF(0.0, 3.0),
+    };
+    QVERIFY(!KisAlgebra2D::isPolygonTrulyConvex(concave));
+
+    const QVector<QPointF> repeatedLoop {
+        QPointF(0.0, 0.0), QPointF(4.0, 0.0), QPointF(4.0, 3.0), QPointF(0.0, 3.0),
+        QPointF(0.0, 0.0), QPointF(4.0, 0.0), QPointF(4.0, 3.0), QPointF(0.0, 3.0),
+    };
+    QVERIFY(!KisAlgebra2D::isPolygonTrulyConvex(repeatedLoop, true));
+    QVERIFY(KisAlgebra2D::isPolygonTrulyConvex(repeatedLoop, false));
+}
+
+void KisAlgebraGeometryPrimitivesContractTest::scalarMinimizersConvergeWithinBounds()
+{
+    const qreal goldenMinimum = KisAlgebra2D::findMinimumGoldenSection(
+        [] (qreal value) { return (value - 3.0) * (value - 3.0); },
+        0.0, 10.0, 1e-7, 100);
+    QVERIFY(closeReal(goldenMinimum, 3.0, 1e-4));
+
+    const qreal ternaryMinimum = KisAlgebra2D::findMinimumTernarySection(
+        [] (qreal value) { return (value + 2.0) * (value + 2.0); },
+        5.0, -10.0, 1e-7, 100);
+    QVERIFY(closeReal(ternaryMinimum, -2.0, 1e-4));
+
+    const qreal iterationLimited = KisAlgebra2D::findMinimumGoldenSection(
+        [] (qreal value) { return (value - 3.0) * (value - 3.0); },
+        0.0, 10.0, 1e-12, 0);
+    QVERIFY(iterationLimited >= 0.0);
+    QVERIFY(iterationLimited <= 10.0);
 }
 
 QTEST_GUILESS_MAIN(KisAlgebraGeometryPrimitivesContractTest)

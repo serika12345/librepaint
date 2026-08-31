@@ -83,6 +83,7 @@ kis_add_test(
     LINK_LIBRARIES
         kritaglobalalgebradirectionobjects
         kritaglobalalgebrarectobjects
+        kritaglobalalgebraplanargeometryobjects
         Qt${QT_MAJOR_VERSION}::Core
         Qt${QT_MAJOR_VERSION}::Gui
         Qt${QT_MAJOR_VERSION}::Test
