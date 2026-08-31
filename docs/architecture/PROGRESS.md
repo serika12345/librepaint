@@ -2,12 +2,49 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-31 15:30 JST
+- 更新日時: 2026-08-31 15:56 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
+
+### 第82並列便の担当票
+
+- path point移動command担当は`planned`である。対象は`libs/flake/commands/KoPathPointMoveCommand.h`の8 APIである。
+  開始ファイル`libs/flake/commands/KoPathPointMoveCommand.cpp`を`kritaflake_SRCS`の直接収容から
+  `kritaflakepathpointmovecommandobjects`へ移し、製品`kritaflake`へ一度だけ再集約する。新規
+  `libs/flake/tests/KoPathPointMoveCommandContractTest.cpp`が単一offsetと点別offsetの構築値、重複点の先勝ち、
+  redo・undoの符号付き一括適用、識別子、merge時の点集合条件とoffset累積、仮想寿命を4契約枠で固定する。
+  点別offset読取と一括適用は開始実装の`BUILD_TESTING`限定配送を介し、既定配送は実path pointの座標変換、lock、
+  point写像、normalize、一括更新の順序を保つ。予測閉包5工程・11実入力、停止条件6工程・14実入力、製品閉包
+  612工程・1,256入力不変を要求する。許可範囲は`libs/flake/CMakeLists.txt`、開始実装、
+  `libs/flake/tests/CMakeLists.txt`、新規試験である。
+- subpixel random accessor担当は`planned`である。対象は`libs/image/kis_random_sub_accessor.h`の7 APIである。
+  開始ファイル`libs/image/kis_random_sub_accessor.cpp`を`kritaimage_LIB_SRCS`の直接収容から
+  `kritaimagerandomsubaccessorobjects`へ移し、製品`kritaimage`へ一度だけ再集約する。既存random accessorと
+  base accessorのOBJECT対象を変更なしで再利用する。新規`libs/image/tests/KisRandomSubAccessorContractTest.cpp`が
+  既定位置とpaint device所有、二つの移動入口とbilinear重み、旧画素と現在画素の取得経路、仮想寿命を4契約枠で
+  固定する。paint device accessは新規非公開境界を介して開始元`libs/image/kis_paint_device.cc`の現行処理へ委譲する。
+  予測閉包8工程・17実入力、停止条件9工程・20実入力、製品閉包1,184工程・2,392入力不変を要求する。許可範囲は
+  `libs/image/CMakeLists.txt`、開始実装、新規非公開header、`libs/image/kis_paint_device.cc`、
+  `libs/image/tests/CMakeLists.txt`、新規試験である。
+- composite operation option data担当は`planned`である。対象は
+  `plugins/paintops/libpaintop/KisCompositeOpOptionData.h`の7 APIである。開始ファイル
+  `plugins/paintops/libpaintop/KisCompositeOpOptionData.cpp`を`kritalibpaintop_LIB_SRCS`の直接収容から
+  `kritapaintopcompositeopoptiondataobjects`へ移し、製品`kritalibpaintop`へ一度だけ再集約する。開始実装の既定値は
+  registry参照から`KoCompositeOpIds.h`の`COMPOSITE_OVER`へ置き換え、現行の`normal`を保ったまま不要な依存を除く。
+  新規`plugins/paintops/libpaintop/tests/KisCompositeOpOptionDataContractTest.cpp`が既定値と型、設定read、設定write、
+  等価判定を4契約枠で固定する。予測閉包5工程・11実入力、停止条件6工程・14実入力、製品閉包
+  `kritalibpaintop` 2,097工程・4,192入力と`kritapaintopruntime` 1,281工程・2,582入力不変を要求する。許可範囲は
+  `plugins/paintops/libpaintop/CMakeLists.txt`、開始実装、同tests CMake、新規試験である。
+- 3担当は同じ基準commitから専用作業ツリーを作り、Git操作権限は`transport-commit`、追加委任は`forbidden`、
+  対象プラットフォームはmacOS、共有コンパイラーキャッシュは主作業ツリーの既定位置、構築実行許可は`waiting`とする。
+  統合順はpath point移動command、subpixel random accessor、composite operation option dataである。中央進捗文書、
+  公開API対応表、不足一覧は調整担当だけが更新する。各担当差分の統合直後に担当作業ツリー、局所構築木、担当ブランチを
+  削除する。旧不足一覧は新しい一覧の件数確認直後に削除し、再生成可能な一覧を常に最新1世代へ限定する。製品objectを
+  Ninjaで直接指定せず、変更した製品開始ファイルは既存コンパイル指令の`-fsyntax-only`検査を使う。
+- 第82便は合計22 APIを対応付け、対応済み9,062件、未対応20,927件を目標とする。
 
 ### 第81並列便の完了結果
 
@@ -232,9 +269,8 @@
 
 ### 次の操作
 
-- 第82並列便はread-only監査済みの`libs/image/kis_random_sub_accessor.h` 7 APIと
-  `plugins/paintops/libpaintop/KisCompositeOpOptionData.h` 7 APIに、flake担当の小閉包候補を加えて担当票を確定する。
-  各担当の作業ツリーと局所構築木は統合直後に削除し、不足一覧は最新版1件だけを保持する。
+- 第82並列便の3担当作業ツリーを計画commitから作成し、限定構築と挙動契約の実装を開始する。完了担当から順に
+  差分と検証証拠を確認して統合し、担当作業ツリー、局所構築木、担当ブランチを直ちに削除する。
 
 ## 再開環境
 
