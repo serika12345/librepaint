@@ -133,6 +133,34 @@ set_target_properties(kritaflakepathsegmentobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaflakesvgtextreordershapeinsidecommandobjects OBJECT
+    commands/KoSvgTextReorderShapeInsideCommand.cpp
+)
+target_compile_definitions(kritaflakesvgtextreordershapeinsidecommandobjects PRIVATE kritaflake_EXPORTS)
+if(BUILD_TESTING)
+    target_compile_definitions(kritaflakesvgtextreordershapeinsidecommandobjects PRIVATE KRITAFLAKE_SVG_TEXT_REORDER_SHAPE_INSIDE_COMMAND_CONTRACT_TESTING)
+endif()
+target_include_directories(kritaflakesvgtextreordershapeinsidecommandobjects PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/commands>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/painting/undo>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/painting/undo>
+)
+target_link_libraries(kritaflakesvgtextreordershapeinsidecommandobjects PUBLIC
+    Boost::boost
+    KF${KF_MAJOR}::I18n
+    Qt${QT_MAJOR_VERSION}::Core
+    Qt${QT_MAJOR_VERSION}::Gui
+    Qt${QT_MAJOR_VERSION}::Xml
+)
+set_target_properties(kritaflakesvgtextreordershapeinsidecommandobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaflakecolorbackgroundobjects OBJECT
     KoColorBackground.cpp
 )
@@ -1667,7 +1695,6 @@ set(kritaflake_SRCS
     commands/KoShapeMergeTextPropertiesCommand.cpp
     commands/KoSvgConvertTextTypeCommand.cpp
     commands/KoSvgTextAddRemoveShapeCommands.cpp
-    commands/KoSvgTextReorderShapeInsideCommand.cpp
     commands/KoSvgTextPathInfoChangeCommand.cpp
 
     html/HtmlSavingContext.cpp
@@ -1742,6 +1769,7 @@ set(kritaflake_SRCS
     $<TARGET_OBJECTS:kritaflakeshapecontainermodelobjects>
     $<TARGET_OBJECTS:kritaflakepathpointobjects>
     $<TARGET_OBJECTS:kritaflakepathsegmentobjects>
+    $<TARGET_OBJECTS:kritaflakesvgtextreordershapeinsidecommandobjects>
     $<TARGET_OBJECTS:kritaflakecolorbackgroundobjects>
     $<TARGET_OBJECTS:kritaflakeshapebackgroundcommandobjects>
     $<TARGET_OBJECTS:kritaflakeabstractcanvasresourceinterfaceobjects>
