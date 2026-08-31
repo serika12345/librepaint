@@ -8,6 +8,7 @@
 #include "KisRunnableStrokeJobDataBase.h"
 #include "KisRunnableStrokeJobUtils.h"
 #include "KisRunnableStrokeJobsInterface.h"
+#include "kis_stroke_job.h"
 #include "kis_stroke_job_strategy.h"
 
 #include <QByteArray>
@@ -62,6 +63,24 @@ public:
     }
 
     ~DestructionJobData() override
+    {
+        ++*m_destructionCount;
+    }
+
+private:
+    int *m_destructionCount;
+};
+
+class OwnedJobData : public KisStrokeJobData
+{
+public:
+    OwnedJobData(int *destructionCount, Sequentiality sequentiality = SEQUENTIAL, Exclusivity exclusivity = NORMAL)
+        : KisStrokeJobData(sequentiality, exclusivity)
+        , m_destructionCount(destructionCount)
+    {
+    }
+
+    ~OwnedJobData() override
     {
         ++*m_destructionCount;
     }
@@ -235,6 +254,10 @@ private Q_SLOTS:
     void defaultFakeExecutorReportsUnsupportedJobs();
     void runnableJobBuildersAddConfiguredExecutableJobs_data();
     void runnableJobBuildersAddConfiguredExecutableJobs();
+    void constructionOwnsDataAndBorrowsStrategy();
+    void nullDataUsesDocumentedSchedulingDefaults();
+    void dataOverridesSchedulingLodAndCancellation();
+    void runAndDebugNameDelegateToBorrowedStrategy();
 };
 
 void KisStrokeJobContractTest::defaultJobDataHasSequentialNormalDefaults()
@@ -291,6 +314,93 @@ void KisStrokeJobContractTest::jobDataDeletesThroughBase()
 
     delete data;
     QCOMPARE(destructionCount, 1);
+}
+
+void KisStrokeJobContractTest::constructionOwnsDataAndBorrowsStrategy()
+{
+    int runCount = 0;
+    int strategyDestructionCount = 0;
+    int dataDestructionCount = 0;
+    auto *strategy = new RecordingStrategy(&runCount, &strategyDestructionCount);
+
+    {
+        KisStrokeJob job(strategy, new OwnedJobData(&dataDestructionCount), 3, true);
+        QVERIFY(job.isOwnJob());
+        QCOMPARE(dataDestructionCount, 0);
+        QCOMPARE(strategyDestructionCount, 0);
+    }
+
+    QCOMPARE(dataDestructionCount, 1);
+    QCOMPARE(strategyDestructionCount, 0);
+    delete strategy;
+    QCOMPARE(strategyDestructionCount, 1);
+}
+
+void KisStrokeJobContractTest::nullDataUsesDocumentedSchedulingDefaults()
+{
+    int runCount = 0;
+    int strategyDestructionCount = 0;
+    RecordingStrategy strategy(&runCount, &strategyDestructionCount);
+    KisStrokeJob ownJob(&strategy, nullptr, 3, true);
+    KisStrokeJob borrowedJob(&strategy, nullptr, 5, false);
+
+    QCOMPARE(ownJob.sequentiality(), KisStrokeJobData::SEQUENTIAL);
+    QVERIFY(ownJob.isSequential());
+    QVERIFY(!ownJob.isBarrier());
+    QVERIFY(!ownJob.isExclusive());
+    QCOMPARE(ownJob.levelOfDetail(), 3);
+    QVERIFY(ownJob.isCancellable());
+    QVERIFY(ownJob.isOwnJob());
+
+    QCOMPARE(borrowedJob.levelOfDetail(), 5);
+    QVERIFY(!borrowedJob.isCancellable());
+    QVERIFY(!borrowedJob.isOwnJob());
+}
+
+void KisStrokeJobContractTest::dataOverridesSchedulingLodAndCancellation()
+{
+    int runCount = 0;
+    int strategyDestructionCount = 0;
+    int dataDestructionCount = 0;
+    RecordingStrategy strategy(&runCount, &strategyDestructionCount);
+    auto *data = new OwnedJobData(&dataDestructionCount, KisStrokeJobData::BARRIER, KisStrokeJobData::EXCLUSIVE);
+    data->setCancellable(false);
+    data->setLevelOfDetailOverride(7);
+
+    {
+        KisStrokeJob job(&strategy, data, 3, true);
+        QCOMPARE(job.sequentiality(), KisStrokeJobData::BARRIER);
+        QVERIFY(!job.isSequential());
+        QVERIFY(job.isBarrier());
+        QVERIFY(job.isExclusive());
+        QCOMPARE(job.levelOfDetail(), 7);
+        QVERIFY(!job.isCancellable());
+    }
+
+    QCOMPARE(dataDestructionCount, 1);
+}
+
+void KisStrokeJobContractTest::runAndDebugNameDelegateToBorrowedStrategy()
+{
+    int runCount = 0;
+    int strategyDestructionCount = 0;
+    int dataDestructionCount = 0;
+    RecordingStrategy strategy(&runCount, &strategyDestructionCount);
+    auto *data = new OwnedJobData(&dataDestructionCount);
+
+    {
+        KisStrokeJob job(&strategy, data, 2, true);
+        QCOMPARE(job.debugName(), QStringLiteral("recording-strategy"));
+        job.run();
+        QCOMPARE(runCount, 1);
+        QCOMPARE(strategy.lastData(), data);
+        job.run();
+        QCOMPARE(runCount, 2);
+        QCOMPARE(strategy.lastData(), data);
+    }
+
+    QCOMPARE(dataDestructionCount, 1);
+    QCOMPARE(strategyDestructionCount, 0);
 }
 
 void KisStrokeJobContractTest::strategyRunsNamedJobsAndDeletesThroughBase()
