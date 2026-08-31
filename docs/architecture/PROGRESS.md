@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 01:56 JST
+- 更新日時: 2026-09-01 02:03 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -21,6 +21,32 @@
   値・状態候補を選ぶ。UI event loopを使わない値契約を優先し、製品shared library、Qt Widgets動的library、`kritatestsdk`への接続は採用しない。
 - 各報告は完全なAPI識別子、最大5契約枠、最寄りCTest、所有CMake、直接依存、変更なし閉包、予測閉包と停止線、許可path、固有停止条件を含む。
   実装担当は公開header、製品source、試験source、CMake所有を重複させず、主環境の共有compiler cacheと担当固有の構築木を使う。
+- `g95-image-audit`は条件を満たす候補なしで完了した。最接近の`kis_surrogate_undo_adapter.h`全12 APIは製品sourceをOBJECTへ移せるが、実保存機構の
+  `KUndo2Stack`がQt Widgetsを必要とし、最寄り`KisUndoStoresContractTest` 14工程・29入力、新対象予測16工程・33入力で停止線12工程・25入力を
+  超える。`KisCountVisitor`、Bezier gradient mesh、image resolution proxy、perspective workerも実node、Qt Widgets、実画像またはpaint deviceを要する。
+- `g95-flake-widgets-audit`は条件を満たす候補なしで完了した。最接近の`KoPathPointTypeCommand.h` 12 APIは開始sourceをOBJECTへ移せるが、点索引、
+  座標変換、cubic変換、control/property変異、再描画が実`KoPathShape`へ密結合する。既存対象621工程・1,268入力で、限定化には実shapeまたは製品
+  意味論の試験内模倣を要する。ほかのflake候補も実shape・描画、widgets候補はQt Widgets動的libraryを避けられない。
+- `g95-paintops-audit`は`planned`の追加読み取り監査である。`plugins/paintops`から、第90便から第92便の対象を除き、既存限定対象または一つの
+  source移動で10 API以上を最大5枠へ固定できる候補を選ぶ。実brush、paint device、色空間、大域resource登録簿は接続しない。
+- `g95-lightweight-audit`は`planned`の追加読み取り監査である。`libs/global`、`libs/pigment`、`libs/resources`、`libs/painting`から第91便から第94便の
+  対象を除き、既存軽量対象の拡張だけで10 API以上を固定できる候補を選ぶ。製品source変更、DB、filesystem、実色空間、製品意味論模倣は採用しない。
+  両追加監査の基点と入力、報告要件、禁止依存、操作権限は第95便の共通条件と同じである。
+
+### 第95並列便の担当計画
+
+- 実装共通基点は`d1258b4092fd4093e6892ad444c22daba7ab6156`である。
+- `g95-canvas-surface-color-space`は`planned`で、専用作業ツリーは
+  `/Users/masato/Documents/librepaint-g95-canvas-surface-color-space`とする。対象headerは`libs/canvas/color/KisSurfaceColorSpaceWrapper.h`のclass、
+  enumと4 enumerator、既定・列挙・copy・move構築、copy・move代入、3 factory、wrapper等価、列挙との左右等価・非等価、Qt色空間からの変換と
+  Qt色空間への変換の全24 APIである。実装はheader-onlyで製品変更はない。許可pathは`libs/canvas/tests/CMakeLists.txt`、既存
+  `libs/canvas/tests/KisSurfaceColorSpaceWrapperTest.cpp`と同`.h`である。広域`kis_add_tests`から専用`kis_add_test`へ移し、`simpletest.h`をQt Test起動へ
+  置換する。列挙・factory、copy・move、既知Qt色空間往復、比較方向と未対応値fallbackの4枠とする。現行1,217工程・2,448入力から予測9工程・
+  13入力へ縮小し、停止10工程・16入力、製品`kritacanvas` 1,213工程・2,441入力不変とする。
+- 対象プラットフォームはmacOS、構築権限は対象、全4枠、20回反復、`KisOcioConfigurationContractTest`近傍、無作業計画、動的接続、変更source構文、
+  公開API検査、`verify-quick`に限定する。Git権限は許可pathだけの担当commitで、台帳と進捗は統合担当が所有する。Qt版別の公開面は既存の条件分岐を
+  維持し、各対応構成で同じ契約を検査する。製品shared library、Qt Widgets、`kritatestsdk`、実画像・色空間、大域application状態、停止線超過、
+  公開header変更が必要なら停止する。
 
 ### 第94便の先行監査計画
 
