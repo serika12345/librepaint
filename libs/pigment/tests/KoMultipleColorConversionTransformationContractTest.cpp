@@ -4,6 +4,8 @@
 #include <QHash>
 #include <QTest>
 
+#include <type_traits>
+
 KoColorTransformation::~KoColorTransformation() = default;
 QList<QString> KoColorTransformation::parameters() const
 {
@@ -99,10 +101,36 @@ private Q_SLOTS:
     void appendOwnsTransformationsInInputOrder();
     void twoStageConversionUsesOneDistinctIntermediateBuffer();
     void threeStageConversionAlternatesDistinctIntermediateBuffers();
+    void distinctBufferTransformInPlacePreservesDispatch();
 };
 
 void KoMultipleColorConversionTransformationContractTest::constructionPreservesConversionIdentity()
 {
+    using Transformation = KoColorConversionTransformation;
+    static_assert(std::is_same_v<Transformation::ConversionFlags, QFlags<Transformation::ConversionFlag>>);
+
+    QCOMPARE(int(Transformation::IntentPerceptual), 0);
+    QCOMPARE(int(Transformation::IntentRelativeColorimetric), 1);
+    QCOMPARE(int(Transformation::IntentSaturation), 2);
+    QCOMPARE(int(Transformation::IntentAbsoluteColorimetric), 3);
+    QCOMPARE(int(Transformation::Empty), 0x0);
+    QCOMPARE(int(Transformation::NoOptimization), 0x0100);
+    QCOMPARE(int(Transformation::GamutCheck), 0x1000);
+    QCOMPARE(int(Transformation::SoftProofing), 0x4000);
+    QCOMPARE(int(Transformation::BlackpointCompensation), 0x2000);
+    QCOMPARE(int(Transformation::NoWhiteOnWhiteFixup), 0x0004);
+    QCOMPARE(int(Transformation::HighQuality), 0x0400);
+    QCOMPARE(int(Transformation::LowQuality), 0x0800);
+    QCOMPARE(int(Transformation::CopyAlpha), 0x04000000);
+    QCOMPARE(int(Transformation::NoAdaptationAbsoluteIntent), 01000000);
+    QCOMPARE(Transformation::internalRenderingIntent(), Transformation::IntentPerceptual);
+    QCOMPARE(Transformation::internalConversionFlags(),
+             Transformation::ConversionFlags(Transformation::BlackpointCompensation));
+    QCOMPARE(Transformation::adjustmentRenderingIntent(), Transformation::IntentPerceptual);
+    QCOMPARE(
+        Transformation::adjustmentConversionFlags(),
+        Transformation::ConversionFlags(Transformation::BlackpointCompensation | Transformation::NoWhiteOnWhiteFixup));
+
     Scope scope;
     Token a{}, b{};
     widths[space(a)] = 1;
@@ -118,6 +146,7 @@ void KoMultipleColorConversionTransformationContractTest::constructionPreservesC
     QCOMPARE(t.conversionFlags(),
              KoColorConversionTransformation::ConversionFlags(KoColorConversionTransformation::GamutCheck
                                                               | KoColorConversionTransformation::HighQuality));
+    QVERIFY(t.isValid());
 }
 void KoMultipleColorConversionTransformationContractTest::appendOwnsTransformationsInInputOrder()
 {
@@ -181,6 +210,23 @@ void KoMultipleColorConversionTransformationContractTest::threeStageConversionAl
     QCOMPARE(calls[1].src, calls[0].dst);
     QCOMPARE(calls[2].src, calls[1].dst);
     QCOMPARE(calls[2].dst, output);
+}
+void KoMultipleColorConversionTransformationContractTest::distinctBufferTransformInPlacePreservesDispatch()
+{
+    Scope scope;
+    Token a{}, b{};
+    Step step(space(a), space(b), 5, "in-place");
+    quint8 src[]{1, 4, 9};
+    quint8 output[3]{};
+
+    step.transformInPlace(src, output, 3);
+
+    QCOMPARE(QList<quint8>({output[0], output[1], output[2]}), QList<quint8>({6, 9, 14}));
+    QCOMPARE(events, QStringList({"in-place"}));
+    QCOMPARE(calls.size(), 1);
+    QCOMPARE(calls[0].src, src);
+    QCOMPARE(calls[0].dst, output);
+    QCOMPARE(calls[0].pixels, 3);
 }
 QTEST_GUILESS_MAIN(KoMultipleColorConversionTransformationContractTest)
 #include "KoMultipleColorConversionTransformationContractTest.moc"
