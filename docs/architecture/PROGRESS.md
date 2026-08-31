@@ -11,7 +11,9 @@
 
 ### 第82並列便の担当票
 
-- path point移動command担当は`planned`である。対象は`libs/flake/commands/KoPathPointMoveCommand.h`の8 APIである。
+- path point移動command担当は`implementing`である。基点は`d65efa15ba1d7639f347e66475dd58bc3ac38e3a`、作業ツリーは
+  `/Users/masato/Documents/librepaint-r2-g82-path-point-move`、ブランチは`r2-g82-path-point-move`、統合順は1である。
+  対象は`libs/flake/commands/KoPathPointMoveCommand.h`の8 APIである。
   開始ファイル`libs/flake/commands/KoPathPointMoveCommand.cpp`を`kritaflake_SRCS`の直接収容から
   `kritaflakepathpointmovecommandobjects`へ移し、製品`kritaflake`へ一度だけ再集約する。新規
   `libs/flake/tests/KoPathPointMoveCommandContractTest.cpp`が単一offsetと点別offsetの構築値、重複点の先勝ち、
@@ -20,7 +22,9 @@
   point写像、normalize、一括更新の順序を保つ。予測閉包5工程・11実入力、停止条件6工程・14実入力、製品閉包
   612工程・1,256入力不変を要求する。許可範囲は`libs/flake/CMakeLists.txt`、開始実装、
   `libs/flake/tests/CMakeLists.txt`、新規試験である。
-- subpixel random accessor担当は`planned`である。対象は`libs/image/kis_random_sub_accessor.h`の7 APIである。
+- subpixel random accessor担当は`implementing`である。基点は`d65efa15ba1d7639f347e66475dd58bc3ac38e3a`、作業ツリーは
+  `/Users/masato/Documents/librepaint-r2-g82-random-sub-accessor`、ブランチは`r2-g82-random-sub-accessor`、統合順は2である。
+  対象は`libs/image/kis_random_sub_accessor.h`の7 APIである。
   開始ファイル`libs/image/kis_random_sub_accessor.cpp`を`kritaimage_LIB_SRCS`の直接収容から
   `kritaimagerandomsubaccessorobjects`へ移し、製品`kritaimage`へ一度だけ再集約する。既存random accessorと
   base accessorのOBJECT対象を変更なしで再利用する。新規`libs/image/tests/KisRandomSubAccessorContractTest.cpp`が
@@ -29,7 +33,9 @@
   予測閉包8工程・17実入力、停止条件9工程・20実入力、製品閉包1,184工程・2,392入力不変を要求する。許可範囲は
   `libs/image/CMakeLists.txt`、開始実装、新規非公開header、`libs/image/kis_paint_device.cc`、
   `libs/image/tests/CMakeLists.txt`、新規試験である。
-- composite operation option data担当は`planned`である。対象は
+- composite operation option data担当は`implementing`である。基点は`d65efa15ba1d7639f347e66475dd58bc3ac38e3a`、作業ツリーは
+  `/Users/masato/Documents/librepaint-r2-g82-composite-op-option`、ブランチは`r2-g82-composite-op-option`、統合順は3である。
+  対象は
   `plugins/paintops/libpaintop/KisCompositeOpOptionData.h`の7 APIである。開始ファイル
   `plugins/paintops/libpaintop/KisCompositeOpOptionData.cpp`を`kritalibpaintop_LIB_SRCS`の直接収容から
   `kritapaintopcompositeopoptiondataobjects`へ移し、製品`kritalibpaintop`へ一度だけ再集約する。開始実装の既定値は
@@ -39,7 +45,7 @@
   `kritalibpaintop` 2,097工程・4,192入力と`kritapaintopruntime` 1,281工程・2,582入力不変を要求する。許可範囲は
   `plugins/paintops/libpaintop/CMakeLists.txt`、開始実装、同tests CMake、新規試験である。
 - 3担当は同じ基準commitから専用作業ツリーを作り、Git操作権限は`transport-commit`、追加委任は`forbidden`、
-  対象プラットフォームはmacOS、共有コンパイラーキャッシュは主作業ツリーの既定位置、構築実行許可は`waiting`とする。
+  対象プラットフォームはmacOS、共有コンパイラーキャッシュは主作業ツリーの既定位置、構築実行許可は`granted`とする。
   統合順はpath point移動command、subpixel random accessor、composite operation option dataである。中央進捗文書、
   公開API対応表、不足一覧は調整担当だけが更新する。各担当差分の統合直後に担当作業ツリー、局所構築木、担当ブランチを
   削除する。旧不足一覧は新しい一覧の件数確認直後に削除し、再生成可能な一覧を常に最新1世代へ限定する。製品objectを
