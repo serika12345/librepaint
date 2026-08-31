@@ -37,11 +37,12 @@
   `/Users/masato/Documents/librepaint-g90-paintop-standard-values`である。対象headerは
   `plugins/paintops/libpaintop/KisStandardOptionData.h`であり、`Kis{Opacity,Flow,Ratio,Softness,Rotation,Darken,Mix,Hue,
   Saturation,Value,Rate,Strength,LightnessStrength}OptionData`の13 structと13 constructor、合計26 APIを5契約枠以内で固定する。
-  表示部品を生成する19関数は対象外である。許可pathは新規
-  `plugins/paintops/libpaintop/tests/KisStandardOptionDataValuesContractTest.cpp`と同testsの`CMakeLists.txt`だけで、製品headerとsource、
-  package CMakeは変更しない。既存`KisCurveOptionDataContractTest`の直接依存と10工程・22入力を最寄り基準として再利用し、
-  新規対象の停止上限11工程・24入力、製品`kritapaintopruntime` 1,281工程・2,582入力と`kritalibpaintop` 2,097工程・4,192入力を
-  不変条件とする。検証権限とGit権限はBezier担当と同じである。
+  表示部品を生成する19関数は対象外である。最初の新規対象案は中央換算10工程・22入力、製品閉包不変でコンパイルまで成功したが、
+  同じ翻訳単位にある未使用設定I/Oが設定協調記号を要求した。製品共有library、機能を模倣する試験定義、製品翻訳単位の増加を避けるため、
+  この未コミット案を退役し、設定協調実装を既に所有する`plugins/paintops/libpaintop/tests/KisCurveOptionDataContractTest.cpp`へ
+  5契約枠を追加する。改定後の許可pathは同既存試験sourceだけで、CMakeと製品コードは変更しない。直接依存は既存のまま、中央閉包
+  10工程・22入力、担当作業ツリー15工程・27入力、製品`kritapaintopruntime` 1,281工程・2,582入力と`kritalibpaintop`
+  2,097工程・4,192入力を不変条件とする。検証権限とGit権限はBezier担当と同じである。
 - 3担当は個別Git worktreeと局所Ninja木を使い、`./scripts/run-shared-test-env`から共有試験環境へ入る。担当間の許可pathは重複しない。
   統合順はBezier値、変換分解、標準設定値とし、各担当は許可path外、新規公開API、未割当て依存、停止上限超過、意味論の曖昧さを検出した時点で
   停止して報告する。統合担当は各成果を一件ずつ検査・取り込みし、担当作業ツリー、局所構築木、担当branchを直ちに削除する。
