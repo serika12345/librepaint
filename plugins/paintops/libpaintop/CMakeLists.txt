@@ -47,7 +47,6 @@ set(kritalibpaintop_LIB_SRCS
     KisEmbeddedTextureData.cpp
     KisTextureOptionModel.cpp
     KisTextureOptionWidget.cpp
-    KisSizeOptionData.cpp
     KisSizeOptionWidget.cpp
     KisStandardOptionData.cpp
     KisStandardOptions.cpp
@@ -105,7 +104,6 @@ set(kritapaintopruntime_LIB_SRCS
     KisRotationOption.cpp
     KisScatterOption.cpp
     KisSharpnessOption.cpp
-    KisSizeOptionData.cpp
     KisSpacingOption.cpp
     KisTextureMaskInfo.cpp
     kis_brush_based_paintop.cpp
@@ -305,6 +303,24 @@ add_library(kritapaintopcurveoptiondatacommonobjects OBJECT
 add_library(kritapaintopcurveoptiondataobjects OBJECT
     KisCurveOptionData.cpp
 )
+
+add_library(kritapaintopsizeoptiondataobjects OBJECT KisSizeOptionData.cpp)
+target_compile_definitions(kritapaintopsizeoptiondataobjects PRIVATE
+    kritaglobal_EXPORTS kritaimage_EXPORTS kritalibpaintop_EXPORTS kritapigment_EXPORTS)
+target_include_directories(kritapaintopsizeoptiondataobjects PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/image>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/image>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/image/brushengine>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/pigment>)
+target_link_libraries(kritapaintopsizeoptiondataobjects PUBLIC
+    kritapaintopcurveoptiondataobjects kritapaintopcurveoptiondatacommonobjects
+    kritapaintopkritasensorpackobjects)
+set_target_properties(kritapaintopsizeoptiondataobjects PROPERTIES AUTOMOC OFF POSITION_INDEPENDENT_CODE ON)
 
 add_library(kritapaintopmirroroptiondataobjects OBJECT KisMirrorOptionData.cpp)
 target_compile_definitions(kritapaintopmirroroptiondataobjects PRIVATE
@@ -847,6 +863,7 @@ kis_add_library(kritapaintopruntime OBJECT
     $<TARGET_OBJECTS:kritapaintopsharpnessoptiondataobjects>
     $<TARGET_OBJECTS:kritapaintopscatteroptiondataobjects>
     $<TARGET_OBJECTS:kritapaintopspacingoptiondataobjects>
+    $<TARGET_OBJECTS:kritapaintopsizeoptiondataobjects>
     $<TARGET_OBJECTS:kritapaintopkritasensorpackobjects>
     $<TARGET_OBJECTS:kritapaintoppaintingmodeoptiondataobjects>
     $<TARGET_OBJECTS:kritapaintopprecisionoptionobjects>
