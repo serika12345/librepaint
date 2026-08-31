@@ -28,6 +28,7 @@ target_compile_definitions(ImageLzfCompressionContractTest PRIVATE kritaimage_EX
 kis_add_test(
     KisTileCompressorFactoryContractTest.cpp
     LINK_LIBRARIES
+        kritaimageabstracttilecompressorobjects
         kritaglobalsharedobjects
         Qt${QT_MAJOR_VERSION}::Core
         Qt${QT_MAJOR_VERSION}::Test
