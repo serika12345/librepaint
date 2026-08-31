@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-31 21:46 JST
+- 更新日時: 2026-08-31 21:52 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -11,7 +11,7 @@
 
 ### 第89並列便の担当票
 
-- `g89-global-algebra-values`は`planned`である。基準commitは`026971b8d4`、作業ツリーは
+- `g89-global-algebra-values`は`in_progress`である。基準commitは`026971b8d4`、作業ツリーは
   `/Users/masato/Documents/librepaint-r2-g19b-g89-global-algebra-values`、担当ブランチは
   `work/r2-g19b-g89-global-algebra-values`である。対象headerは`libs/global/kis_algebra_2d.h`、対象は
   `function:KisAlgebra2D::absoluteToRelative(const QPointF & pt,const QRectF & rc)`、
@@ -35,9 +35,10 @@
   補間と丸め、負数の床除算と範囲境界、整数・浮動小数・点の循環、矩形と寸法、相対・絶対座標往復を5契約枠で固定する。
   許可範囲は既存`libs/global/tests/KisAlgebraGeometryPrimitivesContractTest.cpp`だけで、製品header、source、CMakeは変更しない。
   直接依存は既存`kritaglobalalgebradirectionobjects`とQt Core・Gui・Test、最寄り契約は同targetの既存7契約枠である。
-  編集前閉包は5工程・11入力、製品`kritaglobal`は68工程・136入力である。停止条件は閉包増加、新規依存、製品共有library、
-  Qt Widgets、`kritatestsdk`、公開API変更、許可外変更である。
-- `g89-brush-model-values`は`planned`である。基準commitは同じ、作業ツリーは
+  中央の編集前閉包は5工程・11入力、製品`kritaglobal`は68工程・136入力である。独立作業ツリーでは環境ラッパーの固定差
+  5工程・5入力を含む10工程・16入力と73工程・141入力を編集前基準とし、編集後に各基準から増えないことを検査する。
+  停止条件は閉包増加、新規依存、製品共有library、Qt Widgets、`kritatestsdk`、公開API変更、許可外変更である。
+- `g89-brush-model-values`は`in_progress`である。基準commitは同じ、作業ツリーは
   `/Users/masato/Documents/librepaint-r2-g19b-g89-brush-model-values`、担当ブランチは
   `work/r2-g19b-g89-brush-model-values`である。対象headerは`libs/brush/KisBrushModel.h`であり、
   `enum:KisBrushModel::AutoBrushGeneratorShape`、`enum:KisBrushModel::AutoBrushGeneratorType`、
@@ -58,7 +59,7 @@
   最寄り契約`KisDabShapeContractTest`は4工程・8入力、新規対象予測は4工程・9入力、停止上限は5工程・12入力である。
   製品`kritalibbrush`は1,210工程・2,442入力からの増加を認めない。製品共有library、Qt Widgets、`kritatestsdk`、resources実体、
   公開API変更、許可外変更が必要なら停止する。
-- `g89-paintop-spacing`は`planned`である。基準commitは同じ、作業ツリーは
+- `g89-paintop-spacing`は`in_progress`である。基準commitは同じ、作業ツリーは
   `/Users/masato/Documents/librepaint-r2-g19b-g89-paintop-spacing`、担当ブランチは
   `work/r2-g19b-g89-paintop-spacing`である。対象headerは`plugins/paintops/libpaintop/KisSpacingOptionData.h`、対象は
   `alias:KisSpacingOptionMixIn`、`struct:KisSpacingOptionData`、`struct:KisSpacingOptionMixInImpl`、
