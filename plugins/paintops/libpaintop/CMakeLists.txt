@@ -12,7 +12,6 @@ set(kritalibpaintop_LIB_SRCS
     kis_color_source_option.cpp
     KisCurveOptionDataUniformProperty.cpp
     KisSensorData.cpp
-    KisCurveOptionDataCommon.cpp
     KisCurveOptionData.cpp
     KisCurveOptionInputControlsStrategy.cpp
     KisCurveRangeModel.cpp
@@ -104,7 +103,6 @@ set(kritapaintopruntime_LIB_SRCS
     KisColorSourceOptionData.cpp
     KisCurveOption.cpp
     KisCurveOptionData.cpp
-    KisCurveOptionDataCommon.cpp
     KisCurveOptionDataUniformProperty.cpp
     KisDabCacheUtils.cpp
     KisDarkenOption.cpp
@@ -241,6 +239,42 @@ target_link_libraries(kritapaintopcoloroptiondataobjects
         ${LINK_OPENEXR_LIB}
 )
 set_target_properties(kritapaintopcoloroptiondataobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritapaintopcurveoptiondatacommonobjects OBJECT
+    KisCurveOptionDataCommon.cpp
+)
+target_compile_definitions(kritapaintopcurveoptiondatacommonobjects PRIVATE
+    kritaglobal_EXPORTS
+    kritaimage_EXPORTS
+    kritalibpaintop_EXPORTS
+    kritapigment_EXPORTS
+)
+target_include_directories(kritapaintopcurveoptiondatacommonobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/image>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/image>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/pigment>
+        $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Gui,INTERFACE_INCLUDE_DIRECTORIES>
+)
+target_link_libraries(kritapaintopcurveoptiondatacommonobjects
+    PUBLIC
+        Boost::boost
+        Eigen3::Eigen
+        Imath::ImathConfig
+        KF${KF_MAJOR}::I18n
+        Qt${QT_MAJOR_VERSION}::Core
+        kritaglobalidobjects
+        kritapaintopsensorpackinterfaceobjects
+)
+set_target_properties(kritapaintopcurveoptiondatacommonobjects PROPERTIES
     AUTOMOC OFF
     POSITION_INDEPENDENT_CODE ON
 )
@@ -642,6 +676,7 @@ set_target_properties(kritapaintopdynamicsensorfactoryobjects PROPERTIES
 kis_add_library(kritapaintopruntime OBJECT
     ${kritapaintopruntime_LIB_SRCS}
     $<TARGET_OBJECTS:kritapaintopairbrushoptiondataobjects>
+    $<TARGET_OBJECTS:kritapaintopcurveoptiondatacommonobjects>
     $<TARGET_OBJECTS:kritapaintopkritasensorpackobjects>
     $<TARGET_OBJECTS:kritapaintoppaintingmodeoptiondataobjects>
     $<TARGET_OBJECTS:kritapaintopsensorpackinterfaceobjects>

@@ -79,6 +79,26 @@ target_compile_definitions(KisColorOptionDataContractTest PRIVATE
 )
 
 kis_add_test(
+    KisCurveOptionDataCommonContractTest.cpp
+    LINK_LIBRARIES
+        kritapaintopcurveoptiondatacommonobjects
+        kritapaintopsensorpackinterfaceobjects
+        kritaglobalidobjects
+        Boost::boost
+        Eigen3::Eigen
+        Imath::ImathConfig
+        KF${KF_MAJOR}::I18n
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(KisCurveOptionDataCommonContractTest PRIVATE
+    kritaglobal_EXPORTS
+    kritaimage_EXPORTS
+    kritalibpaintop_EXPORTS
+    kritapigment_EXPORTS
+)
+
+kis_add_test(
     KisPaintingModeOptionDataContractTest.cpp
     LINK_LIBRARIES
         kritapaintoppaintingmodeoptiondataobjects
