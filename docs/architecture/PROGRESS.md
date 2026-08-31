@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 06:24 JST
+- 更新日時: 2026-09-01 06:30 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -47,7 +47,7 @@
   `libs/psd/psd_additional_layer_info_block.h`の`psd_layer_type_face` 8 API、`psd_layer_type_style` 10 API、`psd_layer_type_line` 6 API、
   `psd_layer_type_tool` 14 API、`psd_layer_type_shape` 14 APIの合計52 APIである。許可pathは既存
   `libs/psdutils/tests/PsdFormatValuesContractTest.cpp`だけで、5枠を追加する。予測4工程・9入力、停止5工程・12入力、製品`kritapsd`不変とする。
-- `g101-xcf-record-values`は`in_progress`で、専用作業ツリーは`/Users/masato/Documents/librepaint-g101-xcf-record-values`である。対象は
+- `g101-xcf-record-values`は`integrated`で、削除済みの専用作業ツリーは`/Users/masato/Documents/librepaint-g101-xcf-record-values`であった。対象は
   `plugins/impex/xcf/3rdparty/xcftools/xcftools.h`の`rect` 5 API、`tileDimensions` 7 API、`xcfTiles` 4 API、`xcfLayer` 14 API、`xcfImage` 9 APIの
   合計39 APIである。許可pathは`plugins/impex/xcf/tests/CMakeLists.txt`と新規`plugins/impex/xcf/tests/XcfToolsValueContractTest.cpp`だけで、Qt Core・Testと
   対象header面だけの新規4枠を作る。予測4工程・8入力、停止5工程・11入力、製品`xcftools`と`kritaxcfimport`不変とする。
@@ -75,6 +75,15 @@
   `verify-quick`に成功した。対応済みは10,138件、未対応は19,700件、契約枠は2,396件となった。
 - 新しい`build/tdd-macos/public-api-missing-g101-psd.json`生成後、旧不足一覧4.8 MB、局所構築木261 MBを含む担当作業ツリー831 MB、担当branchを
   削除した。主増分構築木、共有compiler cache、残るXCF・矩形代数担当作業ツリー、最新不足一覧だけを保持する。
+- `g101-xcf-record-values`は受渡しcommit `cf95fe047572`を統合commit `afddbd9860`として取り込んだ。新規
+  `plugins/impex/xcf/tests/XcfToolsValueContractTest.cpp`と同`CMakeLists.txt`だけを変更し、製品`xcftools`と`kritaxcfimport`を変更していない。
+- XCFの`rect`、`tileDimensions`、`xcfTiles`、`xcfLayer`、`xcfImage`について、値初期化、符号付き座標と寸法、借用pointer値、copy後の数値独立性の
+  全39 APIを4契約枠へ追加した。pointerはアドレス値だけを比較し、参照・解放していない。限定対象は4工程・8入力で、Qt Core・Testだけへ接続する。
+  既存`kis_xcf_test`は1,964工程・3,927入力で製品と`kritatestsdk`へ接続するため、近傍構築から除外した。
+- 担当環境と主環境で追加4枠、全対象CTest、20回反復、無作業再構築、動的接続、変更source構文、公開API契約検査、`verify-quick`に成功した。
+  対応済みは10,177件、未対応は19,661件、契約枠は2,400件となった。
+- 新しい`build/tdd-macos/public-api-missing-g101-xcf.json`生成後、旧不足一覧4.8 MB、局所構築木259 MBを含む担当作業ツリー829 MB、担当branchを
+  削除した。主増分構築木、共有compiler cache、残る矩形代数担当作業ツリー、最新不足一覧だけを保持する。
 
 ### 第100並列便の監査計画
 

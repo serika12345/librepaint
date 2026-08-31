@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 19700
+    "expectedMissingApis": 19661
   },
   "contracts": [
     {
@@ -32356,6 +32356,81 @@
         "method:psd_layer_type_shape::setTop(float val)",
         "method:psd_layer_type_shape::setWritingMode(const QString val)",
         "struct:psd_layer_type_shape"
+      ]
+    },
+    {
+      "target": "XcfToolsValueContractTest",
+      "source": "plugins/impex/xcf/tests/XcfToolsValueContractTest.cpp",
+      "test": "XcfToolsValueContractTest::valueInitializationRemainsZeroed",
+      "behavior": "XCFの矩形・tile寸法・tile参照・layer・image記録は値初期化により全数値を0、全pointerをnullとして開始する。",
+      "classification": "maintained",
+      "apis": [
+        "struct:rect",
+        "struct:tileDimensions",
+        "struct:xcfImage",
+        "struct:xcfLayer",
+        "struct:xcfTiles"
+      ]
+    },
+    {
+      "target": "XcfToolsValueContractTest",
+      "source": "plugins/impex/xcf/tests/XcfToolsValueContractTest.cpp",
+      "test": "XcfToolsValueContractTest::signedAndDimensionValuesRemainIndependent",
+      "behavior": "XCFの矩形座標、tile寸法、layer寸法、image寸法は負座標と境界を含む値を各記録で独立して保持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:rect::b",
+        "member:rect::l",
+        "member:rect::r",
+        "member:rect::t",
+        "member:tileDimensions::c",
+        "member:tileDimensions::height",
+        "member:tileDimensions::ntiles",
+        "member:tileDimensions::tilesx",
+        "member:tileDimensions::tilesy",
+        "member:tileDimensions::width",
+        "member:xcfImage::height",
+        "member:xcfImage::width",
+        "member:xcfLayer::dim"
+      ]
+    },
+    {
+      "target": "XcfToolsValueContractTest",
+      "source": "plugins/impex/xcf/tests/XcfToolsValueContractTest.cpp",
+      "test": "XcfToolsValueContractTest::borrowedPointerValuesRemainShallowOnCopy",
+      "behavior": "XCFの変換条件、tile位置、layer名・path・tile記録、image layer列への借用pointerはcopy後も同じアドレス値を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:xcfImage::layers",
+        "member:xcfLayer::mask",
+        "member:xcfLayer::name",
+        "member:xcfLayer::path",
+        "member:xcfLayer::pixels",
+        "member:xcfTiles::params",
+        "member:xcfTiles::tileptrs"
+      ]
+    },
+    {
+      "target": "XcfToolsValueContractTest",
+      "source": "plugins/impex/xcf/tests/XcfToolsValueContractTest.cpp",
+      "test": "XcfToolsValueContractTest::copiesSharePointersAndKeepScalarStateIndependent",
+      "behavior": "XCFのtile階層、layer属性、image属性はcopy後の数値変更から独立し、借用pointerは同じアドレス値を共有する。",
+      "classification": "maintained",
+      "apis": [
+        "member:xcfImage::colormapptr",
+        "member:xcfImage::compression",
+        "member:xcfImage::numLayers",
+        "member:xcfImage::type",
+        "member:xcfImage::version",
+        "member:xcfLayer::hasMask",
+        "member:xcfLayer::isGroup",
+        "member:xcfLayer::isVisible",
+        "member:xcfLayer::mode",
+        "member:xcfLayer::opacity",
+        "member:xcfLayer::pathLength",
+        "member:xcfLayer::propptr",
+        "member:xcfLayer::type",
+        "member:xcfTiles::hierarchy"
       ]
     }
   ]
