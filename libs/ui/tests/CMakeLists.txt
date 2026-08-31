@@ -123,6 +123,8 @@ target_include_directories(KisAnimationFrameCacheFwdContractTest PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/..
     ${CMAKE_SOURCE_DIR}/libs/global
     ${CMAKE_BINARY_DIR}/libs/global
+    ${CMAKE_SOURCE_DIR}/libs/application
+    ${CMAKE_BINARY_DIR}/libs/application
 )
 
 kis_add_test(
@@ -1116,3 +1118,32 @@ if (${INSTALL_BENCHMARKS})
         data/DA_RGBA\ bluegreen_small1.png
         DESTINATION ${CMAKE_INSTALL_BINDIR}/data)
 endif()
+kis_add_test(
+    KisMirrorAxisConfigContractTest.cpp
+    LINK_LIBRARIES
+        kritauimirroraxisconfigobjects
+        kritaglobaldomutilsobjects
+        kritaglobaldebugobjects
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Xml
+        Qt${QT_MAJOR_VERSION}::Test
+        KF${KF_MAJOR}::I18n
+)
+target_sources(KisMirrorAxisConfigContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/../canvas/KisMirrorAxisConfig.h
+)
+target_include_directories(KisMirrorAxisConfigContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+)
+target_compile_definitions(KisMirrorAxisConfigContractTest PRIVATE
+    kritaapplicationui_EXPORTS
+    kritaglobal_EXPORTS
+)
+target_compile_options(KisMirrorAxisConfigContractTest PRIVATE
+    -include QObject
+    SHELL:-include\ QPointF
+)

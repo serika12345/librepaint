@@ -1656,7 +1656,8 @@ set(kritaui_LIB_SRCS
     canvas/kis_snap_line_strategy.cpp
     canvas/KisSnapPointStrategy.cpp
     canvas/KisSnapPixelStrategy.cpp
-    canvas/KisMirrorAxisConfig.cpp
+    canvas/KisMirrorAxisConfig.h
+    $<TARGET_OBJECTS:kritauimirroraxisconfigobjects>
     canvas/KoCanvasControllerWidget.cpp
     canvas/KoCanvasControllerWidgetViewport_p.cpp
 
@@ -2262,3 +2263,26 @@ target_include_directories(kritaapplicationui
 if (APPLE AND NOT IOS)
     install(FILES platform/osx.stylesheet DESTINATION ${KDE_INSTALL_DATADIR}/krita)
 endif ()
+add_library(kritauimirroraxisconfigobjects OBJECT
+    canvas/KisMirrorAxisConfig.cpp
+)
+target_compile_definitions(kritauimirroraxisconfigobjects PRIVATE kritaapplicationui_EXPORTS)
+target_include_directories(kritauimirroraxisconfigobjects PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/application>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/application>
+)
+target_link_libraries(kritauimirroraxisconfigobjects PUBLIC
+    kritaglobaldomutilsobjects
+    kritaglobaldebugobjects
+    Qt${QT_MAJOR_VERSION}::Core
+    Qt${QT_MAJOR_VERSION}::Gui
+    Qt${QT_MAJOR_VERSION}::Xml
+)
+set_target_properties(kritauimirroraxisconfigobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
