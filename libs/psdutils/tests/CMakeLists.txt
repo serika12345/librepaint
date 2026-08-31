@@ -24,6 +24,7 @@ kis_add_test(
     LINK_LIBRARIES
         Qt${QT_MAJOR_VERSION}::Gui
         Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Xml
         KF6::I18n
 )
 target_include_directories(PsdFormatValuesContractTest PRIVATE
@@ -38,7 +39,14 @@ target_include_directories(PsdFormatValuesContractTest PRIVATE
     ${CMAKE_BINARY_DIR}/libs/global
     ${CMAKE_SOURCE_DIR}/libs/flake
     ${CMAKE_BINARY_DIR}/libs/flake
+    ${CMAKE_SOURCE_DIR}/libs/image
+    ${CMAKE_BINARY_DIR}/libs/image
+    ${CMAKE_SOURCE_DIR}/libs/image/generator
+    ${CMAKE_SOURCE_DIR}/libs/image/filter
+    ${CMAKE_SOURCE_DIR}/libs/psd
+    ${CMAKE_BINARY_DIR}/libs/psd
     $<TARGET_PROPERTY:Imath::Imath,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:Eigen3::Eigen,INTERFACE_INCLUDE_DIRECTORIES>
 )
 target_compile_definitions(PsdFormatValuesContractTest PRIVATE kritapsdutils_EXPORTS)
 

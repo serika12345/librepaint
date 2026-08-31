@@ -4,6 +4,7 @@
  */
 
 #include "psd.h"
+#include "psd_layer_record.h"
 
 #include <QTest>
 
@@ -21,6 +22,9 @@ private Q_SLOTS:
     void transparencyStopsPreserveSignedValues();
     void patternDefaultsMatchTheEmptyRecord();
     void patternMembersCopyAndChangeIndependently();
+    void layerTypeValuesPreserveSerializedOrdering();
+    void channelInfoDefaultsDescribeAnEmptyChannel();
+    void channelInfoCopiesKeepIndependentChannelState();
 };
 
 void PsdFormatValuesContractTest::fileLimitsAndStorageEnumsRemainStable()
@@ -242,6 +246,77 @@ void PsdFormatValuesContractTest::patternMembersCopyAndChangeIndependently()
     QCOMPARE(pattern.max_channel, 4);
     QCOMPARE(pattern.channel_number, 3);
     QCOMPARE(pattern.color_table[0], qRgb(1, 2, 3));
+}
+
+void PsdFormatValuesContractTest::layerTypeValuesPreserveSerializedOrdering()
+{
+    QCOMPARE(int(psd_layer_type_normal), 0);
+    QCOMPARE(int(psd_layer_type_hidden), 1);
+    QCOMPARE(int(psd_layer_type_folder), 2);
+    QCOMPARE(int(psd_layer_type_solid_color), 3);
+    QCOMPARE(int(psd_layer_type_gradient_fill), 4);
+    QCOMPARE(int(psd_layer_type_pattern_fill), 5);
+    QCOMPARE(int(psd_layer_type_levels), 6);
+    QCOMPARE(int(psd_layer_type_curves), 7);
+    QCOMPARE(int(psd_layer_type_brightness_contrast), 8);
+    QCOMPARE(int(psd_layer_type_color_balance), 9);
+    QCOMPARE(int(psd_layer_type_hue_saturation), 10);
+    QCOMPARE(int(psd_layer_type_selective_color), 11);
+    QCOMPARE(int(psd_layer_type_threshold), 12);
+    QCOMPARE(int(psd_layer_type_invert), 13);
+    QCOMPARE(int(psd_layer_type_posterize), 14);
+    QCOMPARE(int(psd_layer_type_channel_mixer), 15);
+    QCOMPARE(int(psd_layer_type_gradient_map), 16);
+    QCOMPARE(int(psd_layer_type_photo_filter), 17);
+}
+
+void PsdFormatValuesContractTest::channelInfoDefaultsDescribeAnEmptyChannel()
+{
+    const ChannelInfo channel;
+    QCOMPARE(channel.channelId, 0);
+    QCOMPARE(channel.compressionType, psd_compression_type::Unknown);
+    QCOMPARE(channel.channelDataStart, 0);
+    QCOMPARE(channel.channelDataLength, 0);
+    QVERIFY(channel.rleRowLengths.isEmpty());
+    QCOMPARE(channel.channelOffset, 0);
+    QCOMPARE(channel.channelInfoPosition, 0);
+}
+
+void PsdFormatValuesContractTest::channelInfoCopiesKeepIndependentChannelState()
+{
+    ChannelInfo channel;
+    channel.channelId = -2;
+    channel.compressionType = psd_compression_type::RLE;
+    channel.channelDataStart = quint64(1) << 40;
+    channel.channelDataLength = (quint64(1) << 39) + 17;
+    channel.rleRowLengths = {3, 5, 8};
+    channel.channelOffset = 23;
+    channel.channelInfoPosition = 29;
+
+    ChannelInfo copy = channel;
+    QCOMPARE(copy.channelId, -2);
+    QCOMPARE(copy.compressionType, psd_compression_type::RLE);
+    QCOMPARE(copy.channelDataStart, quint64(1) << 40);
+    QCOMPARE(copy.channelDataLength, (quint64(1) << 39) + 17);
+    QCOMPARE(copy.rleRowLengths, QVector<quint32>({3, 5, 8}));
+    QCOMPARE(copy.channelOffset, 23);
+    QCOMPARE(copy.channelInfoPosition, 29);
+
+    copy.channelId = 4;
+    copy.compressionType = psd_compression_type::ZIP;
+    copy.channelDataStart = 31;
+    copy.channelDataLength = 37;
+    copy.rleRowLengths[0] = 41;
+    copy.channelOffset = 43;
+    copy.channelInfoPosition = 47;
+
+    QCOMPARE(channel.channelId, -2);
+    QCOMPARE(channel.compressionType, psd_compression_type::RLE);
+    QCOMPARE(channel.channelDataStart, quint64(1) << 40);
+    QCOMPARE(channel.channelDataLength, (quint64(1) << 39) + 17);
+    QCOMPARE(channel.rleRowLengths, QVector<quint32>({3, 5, 8}));
+    QCOMPARE(channel.channelOffset, 23);
+    QCOMPARE(channel.channelInfoPosition, 29);
 }
 
 QTEST_GUILESS_MAIN(PsdFormatValuesContractTest)
