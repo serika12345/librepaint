@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 19897
+    "expectedMissingApis": 19869
   },
   "contracts": [
     {
@@ -7431,6 +7431,68 @@
         "member:psd_pattern::uuid",
         "member:psd_pattern::version",
         "member:psd_pattern::width"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::layerTypeValuesPreserveSerializedOrdering",
+      "behavior": "PSDレイヤー種別は通常から写真フィルターまでの18種を0から17の連続した直列化識別値として保持する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:psd_layer_type",
+        "enumerator:psd_layer_type::psd_layer_type_brightness_contrast",
+        "enumerator:psd_layer_type::psd_layer_type_channel_mixer",
+        "enumerator:psd_layer_type::psd_layer_type_color_balance",
+        "enumerator:psd_layer_type::psd_layer_type_curves",
+        "enumerator:psd_layer_type::psd_layer_type_folder",
+        "enumerator:psd_layer_type::psd_layer_type_gradient_fill",
+        "enumerator:psd_layer_type::psd_layer_type_gradient_map",
+        "enumerator:psd_layer_type::psd_layer_type_hidden",
+        "enumerator:psd_layer_type::psd_layer_type_hue_saturation",
+        "enumerator:psd_layer_type::psd_layer_type_invert",
+        "enumerator:psd_layer_type::psd_layer_type_levels",
+        "enumerator:psd_layer_type::psd_layer_type_normal",
+        "enumerator:psd_layer_type::psd_layer_type_pattern_fill",
+        "enumerator:psd_layer_type::psd_layer_type_photo_filter",
+        "enumerator:psd_layer_type::psd_layer_type_posterize",
+        "enumerator:psd_layer_type::psd_layer_type_selective_color",
+        "enumerator:psd_layer_type::psd_layer_type_solid_color",
+        "enumerator:psd_layer_type::psd_layer_type_threshold"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::channelInfoDefaultsDescribeAnEmptyChannel",
+      "behavior": "PSDチャンネル情報は識別子、データ位置・長さ、offset、情報位置が零、圧縮方式が未指定、RLE行長が空の記録として既定構築される。",
+      "classification": "maintained",
+      "apis": [
+        "member:ChannelInfo::channelDataLength",
+        "member:ChannelInfo::channelDataStart",
+        "member:ChannelInfo::channelId",
+        "member:ChannelInfo::channelInfoPosition",
+        "member:ChannelInfo::channelOffset",
+        "member:ChannelInfo::compressionType",
+        "member:ChannelInfo::rleRowLengths",
+        "method:ChannelInfo::ChannelInfo()",
+        "struct:ChannelInfo"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::channelInfoCopiesKeepIndependentChannelState",
+      "behavior": "PSDチャンネル情報は負の識別子、圧縮方式、64 bit位置・長さ、RLE行長、offset、情報位置を複製し、複製後の全member変更から原本を独立させる。",
+      "classification": "maintained",
+      "apis": [
+        "member:ChannelInfo::channelDataLength",
+        "member:ChannelInfo::channelDataStart",
+        "member:ChannelInfo::channelId",
+        "member:ChannelInfo::channelInfoPosition",
+        "member:ChannelInfo::channelOffset",
+        "member:ChannelInfo::compressionType",
+        "member:ChannelInfo::rleRowLengths"
       ]
     },
     {

@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 04:43 JST
+- 更新日時: 2026-09-01 04:49 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -45,7 +45,7 @@
   `VectorPath::Segment` 9 API、外側class 1 APIの合計25 APIである。許可pathは既存
   `libs/global/tests/KisAlgebraGeometryPrimitivesContractTest.cpp`だけとし、型・構築・factory・区間投影の4枠を追加する。予測5工程・11入力、停止
   6工程・13入力、製品`kritaglobal` 68工程・136入力不変とする。
-- `g99-psd-layer-values`は`ready`で、専用作業ツリーは`/Users/masato/Documents/librepaint-g99-psd-layer-values`である。対象は同不足一覧でheaderが
+- `g99-psd-layer-values`は`integrated`で、削除済みの専用作業ツリーは`/Users/masato/Documents/librepaint-g99-psd-layer-values`であった。対象は同不足一覧でheaderが
   `libs/psd/psd_layer_record.h`の`psd_layer_type` 19 APIと`ChannelInfo` 9 APIの合計28 APIである。許可pathは
   `libs/psdutils/tests/CMakeLists.txt`と`libs/psdutils/tests/PsdFormatValuesContractTest.cpp`だけとし、種別値・既定チャンネル・copy独立性の3枠を
   追加する。予測4工程・9入力、停止5工程・12入力、製品`kritapsd` 1,970工程・3,938入力不変とする。
@@ -65,6 +65,17 @@
   契約検査、`verify-quick`に成功した。対応済みは9,941件、未対応は19,897件、契約枠は2,374件となった。
 - 新しい`build/tdd-macos/public-api-missing-g99-global.json`生成後、旧不足一覧4.9 MB、局所構築木266 MBを含む担当作業ツリー836 MB、担当branchを
   削除した。主増分構築木、共有compiler cache、残るPSD担当作業ツリー、最新不足一覧だけを保持する。
+- `g99-psd-layer-values`は受渡しcommit `36e052258dcf65158db3e4d6e0bddb2b74d7418b`を統合commit `e0dd5eca4e`として
+  取り込んだ。既存`libs/psdutils/tests/PsdFormatValuesContractTest.cpp`へ3契約枠を追加し、同`CMakeLists.txt`には公開header解決用の探索面と
+  Qt Xmlだけを追加した。製品header、source、CMakeを変更していない。
+- `psd_layer_type`の直列化順18種と`ChannelInfo`の空記録既定値、符号付き識別子・64 bit位置・RLE行長を含むcopy独立性について、全28 APIを固定した。
+  限定対象4工程・9入力、製品`kritapsd` 1,970工程・3,938入力を維持した。
+- 担当環境と主環境で追加3枠、全12試験、20回反復、`PsdByteIoContractTest`近傍、無作業再構築、動的接続、変更source構文、公開API契約検査に成功した。
+  動的接続はQt、KF I18n、macOS system frameworkだけで、製品shared library、`kritatestsdk`、Imath、OpenEXRを含まない。
+- 第99便は二次元代数経路値25 APIとPSDレイヤー値28 APIの合計53 APIを新規7契約枠へ追加した。公開面は1,549ヘッダー、29,838 API、対応済み
+  9,969件、未対応19,869件、契約枠2,377件となった。新しい`build/tdd-macos/public-api-missing-g100.json`生成後、中間不足一覧4.9 MB、局所構築木
+  259 MBを含む担当作業ツリー830 MB、担当branchを削除した。担当作業ツリーは残しておらず、再利用する主増分構築木5.2 GB、共有compiler cache
+  882 MB、最新不足一覧だけを保持する。
 
 ### 第98並列便の監査計画
 
