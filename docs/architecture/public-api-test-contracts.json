@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 21141
+    "expectedMissingApis": 21076
   },
   "contracts": [
     {
@@ -28368,6 +28368,188 @@
       "classification": "maintained",
       "apis": [
         "function:operator ==(const KisColorOptionData & lhs,const KisColorOptionData & rhs)"
+      ]
+    },
+    {
+      "target": "KoShapeAlignCommandContractTest",
+      "source": "libs/flake/tests/KoShapeAlignCommandContractTest.cpp",
+      "test": "KoShapeAlignCommandContractTest::alignmentValuesRemainStable",
+      "behavior": "形状整列commandは変更命令として仮想寿命を持ち、水平・垂直の整列分類を安定した公開enumとして保持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoShapeAlignCommand",
+        "enum:KoShapeAlignCommand::Align"
+      ]
+    },
+    {
+      "target": "KoShapeAlignCommandContractTest",
+      "source": "libs/flake/tests/KoShapeAlignCommandContractTest.cpp",
+      "test": "KoShapeAlignCommandContractTest::horizontalAlignmentsUseOutlineEdgesAndPreserveVerticalPosition",
+      "behavior": "形状整列commandの水平3分類は入力shape順に外接矩形の左端、中央、右端を対象矩形へ合わせ、現在位置の垂直成分を保つ。",
+      "classification": "maintained",
+      "apis": [
+        "enumerator:KoShapeAlignCommand::Align::HorizontalCenterAlignment",
+        "enumerator:KoShapeAlignCommand::Align::HorizontalLeftAlignment",
+        "enumerator:KoShapeAlignCommand::Align::HorizontalRightAlignment",
+        "method:KoShapeAlignCommand::KoShapeAlignCommand(const QList<KoShape * > & shapes,Align align,const QRectF & boundingRect,KUndo2Command * parent=0)"
+      ]
+    },
+    {
+      "target": "KoShapeAlignCommandContractTest",
+      "source": "libs/flake/tests/KoShapeAlignCommandContractTest.cpp",
+      "test": "KoShapeAlignCommandContractTest::verticalAlignmentsUseOutlineEdgesAndPreserveHorizontalPosition",
+      "behavior": "形状整列commandの垂直3分類は入力shape順に外接矩形の上端、中央、下端を対象矩形へ合わせ、現在位置の水平成分を保つ。",
+      "classification": "maintained",
+      "apis": [
+        "enumerator:KoShapeAlignCommand::Align::VerticalBottomAlignment",
+        "enumerator:KoShapeAlignCommand::Align::VerticalCenterAlignment",
+        "enumerator:KoShapeAlignCommand::Align::VerticalTopAlignment"
+      ]
+    },
+    {
+      "target": "KoShapeAlignCommandContractTest",
+      "source": "libs/flake/tests/KoShapeAlignCommandContractTest.cpp",
+      "test": "KoShapeAlignCommandContractTest::redoUndoDelegateThroughMoveCommandAndKeepBorrowedLifetime",
+      "behavior": "形状整列commandのredoとundoは内部移動commandへ基底処理後の位置一括配送を委譲し、shapeを借用したまま親commandと内部commandの寿命を保つ。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShapeAlignCommand::redo()",
+        "method:KoShapeAlignCommand::undo()",
+        "method:KoShapeAlignCommand::~KoShapeAlignCommand()"
+      ]
+    },
+    {
+      "target": "KisSimpleStrokeStrategyContractTest",
+      "source": "libs/image/tests/KisSimpleStrokeStrategyContractTest.cpp",
+      "test": "KisSimpleStrokeStrategyContractTest::jobTypesAndIdentityRemainStable",
+      "behavior": "simple stroke strategyは識別値と表示名を保持し、6 jobと終端値の順序および各jobの診断文字列を安定して公開する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisSimpleStrokeStrategy",
+        "enum:KisSimpleStrokeStrategy::JobType",
+        "enumerator:KisSimpleStrokeStrategy::JobType::JOB_CANCEL",
+        "enumerator:KisSimpleStrokeStrategy::JobType::JOB_DOSTROKE",
+        "enumerator:KisSimpleStrokeStrategy::JobType::JOB_FINISH",
+        "enumerator:KisSimpleStrokeStrategy::JobType::JOB_INIT",
+        "enumerator:KisSimpleStrokeStrategy::JobType::JOB_RESUME",
+        "enumerator:KisSimpleStrokeStrategy::JobType::JOB_SUSPEND",
+        "enumerator:KisSimpleStrokeStrategy::JobType::NJOBS",
+        "method:KisSimpleStrokeStrategy::KisSimpleStrokeStrategy(const QLatin1String & id,const KUndo2MagicString & name=KUndo2MagicString ())",
+        "method:KisSimpleStrokeStrategy::jobTypeToString(JobType type)"
+      ]
+    },
+    {
+      "target": "KisSimpleStrokeStrategyContractTest",
+      "source": "libs/image/tests/KisSimpleStrokeStrategyContractTest.cpp",
+      "test": "KisSimpleStrokeStrategyContractTest::disabledJobsReturnNoStrategiesAndDefaultData",
+      "behavior": "simple stroke strategyは無効な6 jobの実行strategyを生成せず、基底callbackを安全な無操作として保つ。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSimpleStrokeStrategy::createCancelStrategy()",
+        "method:KisSimpleStrokeStrategy::createDabStrategy()",
+        "method:KisSimpleStrokeStrategy::createFinishStrategy()",
+        "method:KisSimpleStrokeStrategy::createInitStrategy()",
+        "method:KisSimpleStrokeStrategy::createResumeStrategy()",
+        "method:KisSimpleStrokeStrategy::createSuspendStrategy()"
+      ]
+    },
+    {
+      "target": "KisSimpleStrokeStrategyContractTest",
+      "source": "libs/image/tests/KisSimpleStrokeStrategyContractTest.cpp",
+      "test": "KisSimpleStrokeStrategyContractTest::dataFactoriesPreservePerJobScheduling",
+      "behavior": "simple stroke strategyの5 lifecycle data生成器はjobごとに設定した逐次性と排他性を保持した呼出側所有dataを返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSimpleStrokeStrategy::createCancelData()",
+        "method:KisSimpleStrokeStrategy::createFinishData()",
+        "method:KisSimpleStrokeStrategy::createInitData()",
+        "method:KisSimpleStrokeStrategy::createResumeData()",
+        "method:KisSimpleStrokeStrategy::createSuspendData()"
+      ]
+    },
+    {
+      "target": "KisSimpleStrokeStrategyContractTest",
+      "source": "libs/image/tests/KisSimpleStrokeStrategyContractTest.cpp",
+      "test": "KisSimpleStrokeStrategyContractTest::enabledJobStrategiesDispatchCallbacksAndBorrowParent",
+      "behavior": "有効な6 job strategyは親simple strategyを借用し、run時に対応するcallbackへ順序とDAB data pointerを保って配送する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSimpleStrokeStrategy::cancelStrokeCallback()",
+        "method:KisSimpleStrokeStrategy::doStrokeCallback(KisStrokeJobData * data)",
+        "method:KisSimpleStrokeStrategy::finishStrokeCallback()",
+        "method:KisSimpleStrokeStrategy::initStrokeCallback()",
+        "method:KisSimpleStrokeStrategy::resumeStrokeCallback()",
+        "method:KisSimpleStrokeStrategy::suspendStrokeCallback()"
+      ]
+    },
+    {
+      "target": "KisCurveOptionDataCommonContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisCurveOptionDataCommonContractTest.cpp",
+      "test": "KisCurveOptionDataCommonContractTest::capabilityAliasesAndConstructionPreserveValues",
+      "behavior": "curve option共通dataはprefix能力、補正callback型、識別値、範囲、curve既定値、sensor pack所有を構築経路ごとに保持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisCurveOptionDataCommon::ValueFixUpReadCallback",
+        "alias:KisCurveOptionDataCommon::ValueFixUpWriteCallback",
+        "member:KisCurveOptionDataCommon::commonCurve",
+        "member:KisCurveOptionDataCommon::curveMode",
+        "member:KisCurveOptionDataCommon::id",
+        "member:KisCurveOptionDataCommon::isCheckable",
+        "member:KisCurveOptionDataCommon::isChecked",
+        "member:KisCurveOptionDataCommon::prefix",
+        "member:KisCurveOptionDataCommon::sensorData",
+        "member:KisCurveOptionDataCommon::strengthMaxValue",
+        "member:KisCurveOptionDataCommon::strengthMinValue",
+        "member:KisCurveOptionDataCommon::strengthValue",
+        "member:KisCurveOptionDataCommon::supports_prefix",
+        "member:KisCurveOptionDataCommon::useCurve",
+        "member:KisCurveOptionDataCommon::useSameCurve",
+        "member:KisCurveOptionDataCommon::valueFixUpReadCallback",
+        "member:KisCurveOptionDataCommon::valueFixUpWriteCallback",
+        "method:KisCurveOptionDataCommon::KisCurveOptionDataCommon(const KoID & id,bool isCheckable,bool isChecked,qreal minValue,qreal maxValue,KisSensorPackInterface * sensorInterface)",
+        "method:KisCurveOptionDataCommon::KisCurveOptionDataCommon(const QString & prefix,const KoID & id,bool isCheckable,bool isChecked,qreal minValue,qreal maxValue,KisSensorPackInterface * sensorInterface)",
+        "struct:KisCurveOptionDataCommon"
+      ]
+    },
+    {
+      "target": "KisCurveOptionDataCommonContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisCurveOptionDataCommonContractTest.cpp",
+      "test": "KisCurveOptionDataCommonContractTest::sensorViewsDelegateInOrderAndPreservePointers",
+      "behavior": "curve option共通dataの可変・定数sensor viewは所有sensor packへ一度ずつ委譲し、sensor順とpointerを保持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCurveOptionDataCommon::sensors()",
+        "method:KisCurveOptionDataCommon::sensors() const"
+      ]
+    },
+    {
+      "target": "KisCurveOptionDataCommonContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisCurveOptionDataCommonContractTest.cpp",
+      "test": "KisCurveOptionDataCommonContractTest::readRejectsNullAndDelegatesDirectSetting",
+      "behavior": "curve option共通dataはnull設定のreadを変更なしで拒否し、空prefixでは自身と同じ設定pointerをsensor packへ配送して返値を透過する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCurveOptionDataCommon::read(const KisPropertiesConfiguration * setting)"
+      ]
+    },
+    {
+      "target": "KisCurveOptionDataCommonContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisCurveOptionDataCommonContractTest.cpp",
+      "test": "KisCurveOptionDataCommonContractTest::prefixedReadWriteRouteThroughTemporaryConfiguration",
+      "behavior": "prefix付きcurve option共通dataは一時設定へ値を抽出してsensor packへ読み書きし、無関係な親設定を保ったまま同じprefixで結果を反映する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCurveOptionDataCommon::write(KisPropertiesConfiguration * setting) const"
+      ]
+    },
+    {
+      "target": "KisCurveOptionDataCommonContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisCurveOptionDataCommonContractTest.cpp",
+      "test": "KisCurveOptionDataCommonContractTest::equalityIncludesValueAndSensorStateButIgnoresCallbacks",
+      "behavior": "curve option共通dataの等価判定は11個の値とsensor pack状態を比較し、補正callbackの違いを比較対象から除く。",
+      "classification": "maintained",
+      "apis": [
+        "function:operator ==(const KisCurveOptionDataCommon & lhs,const KisCurveOptionDataCommon & rhs)"
       ]
     }
   ]
