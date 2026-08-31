@@ -938,6 +938,26 @@ target_include_directories(KisSafeTransformContractTest PRIVATE
 )
 
 kis_add_test(
+    KisOptimizedBrushOutlineContractTest.cpp
+    LINK_LIBRARIES
+        kritaimageoptimizedbrushoutlineobjects
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Test
+        Boost::boost
+)
+target_compile_definitions(KisOptimizedBrushOutlineContractTest PRIVATE
+    kritaglobal_EXPORTS
+    kritaimage_EXPORTS
+)
+target_include_directories(KisOptimizedBrushOutlineContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+)
+
+kis_add_test(
     KisBSpline1DContractTest.cpp
     LINK_LIBRARIES
         kritaimagebspline1dobjects

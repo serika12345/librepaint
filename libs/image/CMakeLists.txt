@@ -401,6 +401,32 @@ set_target_properties(kritaimagesafetransformobjects PROPERTIES
    POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaimageoptimizedbrushoutlineobjects OBJECT
+   brushengine/KisOptimizedBrushOutline.cpp
+)
+target_compile_definitions(kritaimageoptimizedbrushoutlineobjects PRIVATE
+   kritaglobal_EXPORTS
+   kritaimage_EXPORTS
+)
+target_include_directories(kritaimageoptimizedbrushoutlineobjects
+   PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/brushengine>
+      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritaimageoptimizedbrushoutlineobjects
+   PUBLIC
+      Qt${QT_MAJOR_VERSION}::Core
+      Qt${QT_MAJOR_VERSION}::Gui
+      Boost::boost
+)
+set_target_properties(kritaimageoptimizedbrushoutlineobjects PROPERTIES
+   AUTOMOC OFF
+   POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaimagebspline1dobjects OBJECT
    bsplines/kis_bspline_1d.cpp
 )
@@ -1625,7 +1651,6 @@ set(kritaimage_LIB_SRCS
    brushengine/kis_combo_based_paintop_property.cpp
    brushengine/kis_slider_based_paintop_property.cpp
    brushengine/kis_standard_uniform_properties_factory.cpp
-   brushengine/KisOptimizedBrushOutline.cpp
    brushengine/kis_paintop_lod_limitations.cpp
    commands/kis_deselect_global_selection_command.cpp
    commands/KisDeselectActiveSelectionCommand.cpp
@@ -1873,6 +1898,7 @@ kis_add_library(kritaimage SHARED
    $<TARGET_OBJECTS:kritaimagefastmathobjects>
    $<TARGET_OBJECTS:kritaimageperspectivemathobjects>
    $<TARGET_OBJECTS:kritaimagesafetransformobjects>
+   $<TARGET_OBJECTS:kritaimageoptimizedbrushoutlineobjects>
    $<TARGET_OBJECTS:kritaimagebspline1dobjects>
    $<TARGET_OBJECTS:kritaimageuniformbsplineengineobjects>
    $<TARGET_OBJECTS:kritaimagenubspline2dobjects>
