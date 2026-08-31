@@ -2,14 +2,14 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-31 21:24 JST
+- 更新日時: 2026-08-31 21:34 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
 
-### 第88並列便の担当票
+### 第88並列便の完了結果
 
 - `g88-flake-parameter-private`は`rejected`である。`KoParameterShape::Private`の定義はexport指定を持つ一方、名前自体は
   `libs/flake/KoParameterShape.h`の`private:`配下で宣言され、外部利用者は参照できない。試験が
@@ -27,46 +27,21 @@
   `KoParameterShape_p.h` 6件、`KoShapeContainer_p.h` 6件、`KoShape_p.h` 37件、`KoSvgTextShape_p.h` 91件、
   `kis_fill_interval_map_p.h` 11件のprivate・protected入れ子recordとその下位宣言だけである。公開API母数は29,989件から
   29,838件へ縮小し、対応済み9,193件を維持して未対応20,645件となった。
-- `g88-image-layer-style-filter`は`planned`である。基準commitは同じ、作業ツリーは
-  `/Users/masato/Documents/librepaint-r2-g19b-g88-image-layer-style-filter`、担当ブランチは
-  `work/r2-g19b-g88-image-layer-style-filter`である。対象は`libs/image/layerstyles/kis_layer_style_filter.h`の
-  `class:KisLayerStyleFilter`、`method:KisLayerStyleFilter::KisLayerStyleFilter(const KoID & id)`、
-  `method:KisLayerStyleFilter::~KisLayerStyleFilter()`、`method:KisLayerStyleFilter::id() const`、
-  `method:KisLayerStyleFilter::clone() const`、
-  `method:KisLayerStyleFilter::processDirectly(KisPaintDeviceSP src,KisMultipleProjection * dst,KisLayerStyleKnockoutBlower * blower,const QRect & applyRect,KisPSDLayerStyleSP style,KisLayerStyleFilterEnvironment * env) const`、
-  `method:KisLayerStyleFilter::neededRect(const QRect & rect,KisPSDLayerStyleSP style,KisLayerStyleFilterEnvironment * env) const`、
-  `method:KisLayerStyleFilter::changedRect(const QRect & rect,KisPSDLayerStyleSP style,KisLayerStyleFilterEnvironment * env) const`の
-  8 APIである。識別子の所有、protected copyを用いるcloneの独立個体と寿命、3抽象操作の引数同一性・回数・矩形返値を
-  3契約枠で固定する。開始ファイル`libs/image/layerstyles/kis_layer_style_filter.cpp`を`kritaimage_LIB_SRCS`の直接収容から
-  `kritaimagelayerstylefilterobjects`へ移し、製品`kritaimage`へ一度だけ再集約する。最寄り契約は
-  `KisImageTypesContractTest`と`KisFilterCategoryIdsContractTest`である。許可範囲は`libs/image/CMakeLists.txt`、
-  `libs/image/tests/CMakeLists.txt`、新規`libs/image/tests/KisLayerStyleFilterContractTest.cpp`であり、開始headerとsourceは
-  変更しない。予測閉包は12工程・22入力、停止条件は13工程・25入力超過、製品1,184工程・2,392入力からの増加、実PSD・
-  paint device・node object、製品共有library、Qt Widgets、`kritatestsdk`、opaque token参照、公開API変更、許可外変更である。
-- `g88-paintop-scatter`は`planned`である。基準commitは同じ、作業ツリーは
-  `/Users/masato/Documents/librepaint-r2-g19b-g88-paintop-scatter`、担当ブランチは
-  `work/r2-g19b-g88-paintop-scatter`である。対象は`plugins/paintops/libpaintop/KisScatterOptionData.h`の
-  `alias:KisScatterOptionMixIn`、`struct:KisScatterOptionData`、`struct:KisScatterOptionMixInImpl`、
-  `member:KisScatterOptionMixInImpl::axisX`、`member:KisScatterOptionMixInImpl::axisY`、
-  `method:KisScatterOptionData::KisScatterOptionData(const QString & prefix="")`、
-  `method:KisScatterOptionMixInImpl::read(const KisPropertiesConfiguration * setting)`、
-  `method:KisScatterOptionMixInImpl::write(KisPropertiesConfiguration * setting) const`、
-  `function:operator ==(const KisScatterOptionMixInImpl & lhs,const KisScatterOptionMixInImpl & rhs)`の9 APIである。公開型、
-  両軸有効の既定値、接頭辞、0..5の値範囲、軸値の独立した読書き、旧`Scattering/Amount`移行、`ScatterValue`優先、
-  等価判定を5契約枠で固定する。開始ファイル`plugins/paintops/libpaintop/KisScatterOptionData.cpp`を製品とruntimeの二つの
-  直接source一覧から外して`kritapaintopscatteroptiondataobjects`へ移し、`kritapaintopruntime`へ一度だけ再集約する。
-  同開始実装の未使用`kis_paintop_settings.h` includeを除く。最寄り契約は`KisSharpnessOptionDataContractTest`と
-  `KisCurveOptionDataContractTest`である。許可範囲は`plugins/paintops/libpaintop/CMakeLists.txt`、開始実装、同tests CMake、
-  新規`plugins/paintops/libpaintop/tests/KisScatterOptionDataContractTest.cpp`である。予測閉包は11工程・24入力、停止条件は
-  12工程・27入力超過、runtime 1,281工程・2,582入力またはlibpaintop 2,097工程・4,192入力からの増加、実製品設定object、
-  OpenEXR・Imath動的library、製品共有library、Qt Widgets、`kritatestsdk`、二重収容、公開API変更、許可外変更である。
-- 実装3担当の対象プラットフォームはmacOS、共有コンパイラーcacheは
-  `/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`、構築実行許可は`granted`、Git操作権限は
-  `transport-commit`、追加委任は`forbidden`である。統合順は公開API抽出、image、paintopとする。担当ごとに独立作業ツリーを
-  所有し、C++担当はさらに作業ツリー内`build/tdd-macos`を所有して`./scripts/run-shared-test-env`から作業ツリー側のscriptを
-  実行する。C++担当は未登録targetの初回診断、編集前計画と直接依存、限定対象、全契約枠、20回反復、軽量近傍、無作業
-  再構築、動的依存、開始sourceの構文、担当内`verify-quick`を確認する。中央文書、公開API対応表、不足一覧は調整担当だけが
-  更新する。
+- `g88-image-layer-style-filter`は`integrated`である。受渡しcommitは
+  `8b35b319021c2ba3cb7ccad6e56366ff40106f90`、統合commitは`3276474808`であり、担当作業ツリー、局所構築木287 MB、
+  担当ブランチを削除した。開始ファイル`libs/image/layerstyles/kis_layer_style_filter.cpp`を
+  `kritaimagelayerstylefilterobjects`へ移し、製品`kritaimage`へ一度だけ再集約した。公開headerと開始sourceの内容は
+  変更していない。新規`libs/image/tests/KisLayerStyleFilterContractTest.cpp`は識別子の所有、複製した独立個体と仮想寿命、
+  三つの抽象操作の引数同一性・呼出回数・矩形返値を3契約枠で固定し、8 APIを`maintained`へ分類する。
+- `g88-paintop-scatter`は`integrated`である。受渡しcommitは
+  `bb2c6a2bae41e35e2563a50f4615c0d384fc90dd`、統合commitは`6b1ec1b710`であり、担当作業ツリー、局所構築木275 MB、
+  担当ブランチを削除した。開始ファイル`plugins/paintops/libpaintop/KisScatterOptionData.cpp`を製品とruntimeの二つの
+  直接source一覧から外して`kritapaintopscatteroptiondataobjects`へ移し、`kritapaintopruntime`へ一度だけ再集約した。
+  開始実装から未使用includeも除去した。新規`plugins/paintops/libpaintop/tests/KisScatterOptionDataContractTest.cpp`は公開型、
+  両軸有効の既定値、接頭辞、0から5の値範囲、軸値の独立した読書き、旧Amount値の移行、現行値優先、等価判定を5契約枠で
+  固定し、9 APIを`maintained`へ分類する。
+- 第88便は公開API抽出、image、paintopの順に統合した。公開API集合から151件の非公開宣言を除き、実公開API 17件を
+  8契約枠へ追加した結果、公開面は1,549ヘッダー、29,838 API、対応済み9,210件、未対応20,628件となった。
 
 ### 第87並列便の完了結果
 
@@ -431,38 +406,32 @@
 
 ### 現在の結果
 
-- 第87並列便は複数段色変換5 API、実行後取り消しアダプター7 API、鮮鋭度設定9 APIの合計21 APIを挙動契約へ
-  対応付けた。公開面は1,549ヘッダー、29,989 API、対応済み9,193件、未対応20,796件である。
-- 開始ファイル`libs/pigment/KoColorConversionTransformation.cpp`と
-  `libs/pigment/KoMultipleColorConversionTransformation.cpp`は各専用OBJECTへ移り、製品`kritapigment`へ各一度だけ
-  再集約される。新規`libs/pigment/tests/KoMultipleColorConversionTransformationContractTest.cpp`が変換条件、入力順所有、
-  2段・3段処理、中間バッファー分離、破棄順を4契約枠で固定する。
-- 開始ファイル`libs/image/kis_post_execution_undo_adapter.cpp`は`kritaimagepostexecutionundoadapterobjects`へ移り、製品
-  `kritaimage`へ一度だけ再集約される。非公開配送面の製品定義は既存
-  `libs/image/commands_new/kis_saved_commands.cpp`が所有し、新規
-  `libs/image/tests/KisPostExecutionUndoAdapterContractTest.cpp`が借用関係、共有命令、格納先差替え、macro配送を4契約枠で
-  固定する。
-- 開始ファイル`plugins/paintops/libpaintop/KisSharpnessOptionData.cpp`は
-  `kritapaintopsharpnessoptiondataobjects`へ移り、`kritapaintopruntime`へ一度だけ再集約されて既存経路から製品
-  `kritalibpaintop`へ収容される。新規`plugins/paintops/libpaintop/tests/KisSharpnessOptionDataContractTest.cpp`が公開型、
-  既定値、接頭辞、現行・旧設定、永続化、等価判定を5契約枠で固定する。
-- 統合後の限定閉包は`KoMultipleColorConversionTransformationContractTest` 6工程・14入力、
-  `KisPostExecutionUndoAdapterContractTest` 5工程・11入力、`KisSharpnessOptionDataContractTest` 11工程・24入力である。
-  製品閉包は`kritapigment` 360工程・750入力、`kritaimage` 1,184工程・2,392入力、`kritapaintopruntime`
-  1,281工程・2,582入力、`kritalibpaintop` 2,097工程・4,192入力で不変である。
-- 主作業ツリーはCMake構成を一度だけ同期し、3限定対象だけを一つの命令で17工程構築した。3対象と5軽量近傍はCTest
-  8/8に成功し、3対象は各20回反復、全13契約枠の指定実行、再構築時の無作業確認に成功した。macOSのパッケージ境界は
-  1,663対象、公開API契約検査は9,193/29,989件で成功した。動的依存にはLibrePaint製品共有ライブラリー、
-  `kritatestsdk`、Qt Widgetsを含まず、鮮鋭度設定対象にはOpenEXRとImathの動的libraryも含まない。担当内と中央の
-  `verify-quick`は公開面、パッケージ境界、文書を含めて成功した。製品全体の構築・リンクとLinux検証は限定閉包を
-  越えるため実施していない。
-- 統合済み担当の局所構築木858 MBと選外候補の構成木273 MB、各作業ツリー、担当ブランチを削除した。旧第87便不足一覧を
-  削除し、最新の第88便不足一覧`build/tdd-macos/public-api-missing-g88.json`だけを保持する。主増分構築木は5.2 GBを維持する。
+- 第88並列便は、公開API抽出で誤検出していた非公開・派生限定の入れ子宣言151件を母数から除き、レイヤースタイル
+  フィルター8 APIと散布設定9 APIの合計17実公開APIを挙動契約へ対応付けた。公開面は1,549ヘッダー、29,838 API、
+  対応済み9,210件、未対応20,628件であり、契約枠は2,257件である。
+- 開始ファイル`libs/image/layerstyles/kis_layer_style_filter.cpp`は`kritaimagelayerstylefilterobjects`へ移り、製品
+  `kritaimage`へ一度だけ再集約される。新規`libs/image/tests/KisLayerStyleFilterContractTest.cpp`が識別子の値所有、
+  複製の独立寿命、三つの抽象操作の配送と返値を3契約枠で固定する。
+- 開始ファイル`plugins/paintops/libpaintop/KisScatterOptionData.cpp`は製品とruntimeの直接source一覧から
+  `kritapaintopscatteroptiondataobjects`へ移り、`kritapaintopruntime`へ一度だけ再集約される。新規
+  `plugins/paintops/libpaintop/tests/KisScatterOptionDataContractTest.cpp`が公開型、既定値、接頭辞、値範囲、現行・旧設定、
+  永続化、等価判定を5契約枠で固定する。
+- 統合後の限定閉包は`KisLayerStyleFilterContractTest` 7工程・16入力、`KisScatterOptionDataContractTest` 11工程・24入力である。
+  製品閉包は`kritaimage` 1,184工程・2,392入力、`kritapaintopruntime` 1,281工程・2,582入力、`kritalibpaintop`
+  2,097工程・4,192入力で不変である。
+- 主作業ツリーはCMake構成を一度だけ同期し、2限定対象だけを一つの命令で11工程構築した。2対象と4軽量近傍はCTest
+  6/6に成功し、2対象は各20回反復、全8契約枠の指定実行、再構築時の無作業確認に成功した。macOSのパッケージ境界は
+  1,667対象、公開API契約検査は9,210/29,838件で成功した。動的依存にはLibrePaint製品共有ライブラリー、
+  `kritatestsdk`、Qt Widgetsを含まず、散布設定対象にはOpenEXRとImathの動的libraryも含まない。担当内では開始sourceの
+  構文検査に成功し、担当内と中央の`verify-quick`は52運用試験、公開面、パッケージ境界、文書を含めて成功した。
+  製品全体の構築・リンクとLinux検証は限定閉包を越えるため実施していない。
+- 統合済みC++担当の局所構築木562 MBと選外候補の構成木269 MB、各作業ツリー、担当ブランチを削除した。旧第88便不足一覧を
+  削除し、最新の第89便不足一覧`build/tdd-macos/public-api-missing-g89.json`だけを保持する。主増分構築木は5.2 GBを維持する。
 
 ### 次の操作
 
-- 第88便の3担当を独立作業ツリーで実装し、対象限定構築、全契約枠、20回反復、軽量近傍、無作業再構築、動的依存、
-  開始sourceの構文、公開API検査、`verify-quick`を確認して受渡しcommitを作成する。
+- 第89便では最新不足一覧から非公開誤検出を先に監査し、実公開APIだけを非重複の担当票へ割り当てる。各候補は編集前に
+  対象限定計画、直接依存、清浄木の命令閉包を測り、既存契約より広い場合は先に構築範囲を縮小する。
 
 ## 再開環境
 

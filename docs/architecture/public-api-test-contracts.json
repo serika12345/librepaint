@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 20645
+    "expectedMissingApis": 20628
   },
   "contracts": [
     {
@@ -30057,6 +30057,102 @@
         "function:operator ==(const KisSharpnessOptionMixInImpl & lhs,const KisSharpnessOptionMixInImpl & rhs)",
         "member:KisSharpnessOptionMixInImpl::alignOutlinePixels",
         "member:KisSharpnessOptionMixInImpl::softness"
+      ]
+    },
+    {
+      "target": "KisLayerStyleFilterContractTest",
+      "source": "libs/image/tests/KisLayerStyleFilterContractTest.cpp",
+      "test": "KisLayerStyleFilterContractTest::identifierIsCopiedAndOwned",
+      "behavior": "レイヤースタイルフィルターは構築時の識別値を自身で保持し、構築元の変更後も同じ識別値を返す。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisLayerStyleFilter",
+        "method:KisLayerStyleFilter::KisLayerStyleFilter(const KoID & id)",
+        "method:KisLayerStyleFilter::id() const"
+      ]
+    },
+    {
+      "target": "KisLayerStyleFilterContractTest",
+      "source": "libs/image/tests/KisLayerStyleFilterContractTest.cpp",
+      "test": "KisLayerStyleFilterContractTest::clonePreservesIdentifierAndVirtualLifetime",
+      "behavior": "レイヤースタイルフィルターの複製は同じ識別値を持つ独立個体を返し、元個体の破棄後も仮想寿命を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisLayerStyleFilter::clone() const",
+        "method:KisLayerStyleFilter::~KisLayerStyleFilter()"
+      ]
+    },
+    {
+      "target": "KisLayerStyleFilterContractTest",
+      "source": "libs/image/tests/KisLayerStyleFilterContractTest.cpp",
+      "test": "KisLayerStyleFilterContractTest::virtualOperationsForwardArgumentsAndReturnRects",
+      "behavior": "レイヤースタイルフィルターの三つの抽象操作は指定された対象と矩形を一度ずつ同一値で配送し、必要範囲と変更範囲の実装結果をそのまま返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisLayerStyleFilter::changedRect(const QRect & rect,KisPSDLayerStyleSP style,KisLayerStyleFilterEnvironment * env) const",
+        "method:KisLayerStyleFilter::neededRect(const QRect & rect,KisPSDLayerStyleSP style,KisLayerStyleFilterEnvironment * env) const",
+        "method:KisLayerStyleFilter::processDirectly(KisPaintDeviceSP src,KisMultipleProjection * dst,KisLayerStyleKnockoutBlower * blower,const QRect & applyRect,KisPSDLayerStyleSP style,KisLayerStyleFilterEnvironment * env) const"
+      ]
+    },
+    {
+      "target": "KisScatterOptionDataContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisScatterOptionDataContractTest.cpp",
+      "test": "KisScatterOptionDataContractTest::typesDefaultsAndConstructor",
+      "behavior": "散布設定の公開型は安定し、引数省略構築は空接頭辞と両軸有効を、接頭辞付き構築は同じ接頭辞、Scatter識別子、0から5の強度範囲を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisScatterOptionMixIn",
+        "member:KisScatterOptionMixInImpl::axisX",
+        "member:KisScatterOptionMixInImpl::axisY",
+        "method:KisScatterOptionData::KisScatterOptionData(const QString & prefix=\"\")",
+        "struct:KisScatterOptionData",
+        "struct:KisScatterOptionMixInImpl"
+      ]
+    },
+    {
+      "target": "KisScatterOptionDataContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisScatterOptionDataContractTest.cpp",
+      "test": "KisScatterOptionDataContractTest::readMapsCurrentAndEmptySettings",
+      "behavior": "散布設定は現行の水平軸値と垂直軸値を各公開メンバーへ読み、値がない設定を両軸有効の既定値へ写す。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisScatterOptionMixInImpl::axisX",
+        "member:KisScatterOptionMixInImpl::axisY",
+        "method:KisScatterOptionMixInImpl::read(const KisPropertiesConfiguration * setting)"
+      ]
+    },
+    {
+      "target": "KisScatterOptionDataContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisScatterOptionDataContractTest.cpp",
+      "test": "KisScatterOptionDataContractTest::legacyFactorAndModernValuePrecedence",
+      "behavior": "散布設定は旧Amount値を強度へ移行し、現行ScatterValueが存在する場合は旧値より現行値を優先する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisScatterOptionMixInImpl::read(const KisPropertiesConfiguration * setting)"
+      ]
+    },
+    {
+      "target": "KisScatterOptionDataContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisScatterOptionDataContractTest.cpp",
+      "test": "KisScatterOptionDataContractTest::writeMapsBothKeys",
+      "behavior": "散布設定は水平軸値と垂直軸値を対応する現行キーへ正確に書き、無関係な設定値を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisScatterOptionMixInImpl::axisX",
+        "member:KisScatterOptionMixInImpl::axisY",
+        "method:KisScatterOptionMixInImpl::write(KisPropertiesConfiguration * setting) const"
+      ]
+    },
+    {
+      "target": "KisScatterOptionDataContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisScatterOptionDataContractTest.cpp",
+      "test": "KisScatterOptionDataContractTest::equalityUsesBothMembers",
+      "behavior": "散布設定の等価判定は水平軸値と垂直軸値がともに一致する場合だけ真になる。",
+      "classification": "maintained",
+      "apis": [
+        "function:operator ==(const KisScatterOptionMixInImpl & lhs,const KisScatterOptionMixInImpl & rhs)",
+        "member:KisScatterOptionMixInImpl::axisX",
+        "member:KisScatterOptionMixInImpl::axisY"
       ]
     }
   ]
