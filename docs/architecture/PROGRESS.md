@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 03:48 JST
+- 更新日時: 2026-09-01 03:53 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -50,8 +50,8 @@
   停止11工程・26入力、製品800工程・1,629入力とする。開始source末尾の手動MOC includeによる専用meta-object生成2工程・4入力と、buttonの対応付け・
   配送を所有する`kritaglobalsignalmapperobjects`への直接依存が必要である。広域製品接続と試験内意味論模倣を除くための明示的な所有コストとして、
   基準798工程・1,625入力からの増加を許容する。
-- `g97-transform-liquify-properties`は`in_progress`で、専用作業ツリーは
-  `/Users/masato/Documents/librepaint-g97-transform-liquify-properties`である。対象は`build/tdd-macos/public-api-missing-g97.json`でheaderが
+- `g97-transform-liquify-properties`は`integrated`で、削除済みの専用作業ツリーは
+  `/Users/masato/Documents/librepaint-g97-transform-liquify-properties`であった。対象は`build/tdd-macos/public-api-missing-g97.json`でheaderが
   `plugins/tools/tool_transform2/kis_liquify_properties.h`の全38 APIである。開始`kis_liquify_properties.cpp`を`kritatooltransform_static_SRCS`
   直接収容から新規AUTOMOC不要・PIC対応`kritatooltransformliquifypropertiesobjects`へ一対一移動し、製品`kritatooltransform_static`へ一回だけ
   再集約する。許可pathは同`CMakeLists.txt`、同`tests/CMakeLists.txt`、新規`tests/KisLiquifyPropertiesContractTest.cpp`だけである。列挙・既定値、
@@ -87,6 +87,20 @@
   9,781件、未対応は20,057件、契約枠は2,351件となった。
 - 新しい`build/tdd-macos/public-api-missing-g97-dialog.json`生成後、直前の不足一覧、局所構築木265 MBを含む担当作業ツリー835 MB、担当branchを
   削除した。主増分構築木、共有compiler cache、残る液状変形設定担当の作業ツリー、最新不足一覧だけを保持する。
+- `g97-transform-liquify-properties`は受渡しcommit `56dd72e8a16c1989126d6e9c442e8d0b035943b1`を統合commit `9b1cae65a1`として
+  取り込んだ。開始ファイル`plugins/tools/tool_transform2/kis_liquify_properties.cpp`を同`CMakeLists.txt`の
+  `kritatooltransform_static_SRCS`直接収容からAUTOMOC不要・PIC対応`kritatooltransformliquifypropertiesobjects`へ移し、製品
+  `kritatooltransform_static`へ一回だけ再集約した。公開headerと製品source本文を変更していない。
+- 新規`plugins/tools/tool_transform2/tests/KisLiquifyPropertiesContractTest.cpp`の5契約枠で列挙・既定値、9設定値と等価、copy・代入・診断、
+  XML往復と不正modeの部分復旧、隔離した設定領域のmode保存・読込みを固定し、全38 APIを追加した。限定対象7工程・17入力、製品
+  `kritatooltransform_static` 1,981工程・3,961入力を維持した。
+- 担当環境と主環境で全5枠、対象CTest、20回反復、`KisDomUtilsContractTest`近傍、無作業再構築、動的接続、変更source構文、公開API契約検査、
+  `verify-quick`に成功した。限定対象はOpenEXR、Imath、製品shared library、`kritatestsdk`へ接続しない。設定は固有organization・application、
+  `QStandardPaths`試験mode、実行前後のgroup削除で隔離した。
+- 第97便は鏡像軸設定29 API、標準ダイアログ67 API、液状変形設定38 APIの合計134 APIを新規14契約枠へ追加した。公開面は1,549ヘッダー、
+  29,838 API、対応済み9,819件、未対応20,019件、契約枠2,356件となった。新しい
+  `build/tdd-macos/public-api-missing-g98.json`生成後、直前の不足一覧、局所構築木270 MBを含む担当作業ツリー840 MB、担当branchを削除した。
+  主増分構築木、共有compiler cache、最新不足一覧だけを保持し、担当作業ツリーは残していない。
 
 ### 第96並列便の監査計画
 

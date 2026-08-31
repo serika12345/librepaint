@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 20057
+    "expectedMissingApis": 20019
   },
   "contracts": [
     {
@@ -8563,6 +8563,89 @@
         "method:KoDialog::layoutHintChanged()",
         "method:KoDialog::resizeLayout(QLayout * lay,int margin,int spacing)",
         "method:KoDialog::resizeLayout(QWidget * widget,int margin,int spacing)"
+      ]
+    },
+    {
+      "target": "KisLiquifyPropertiesContractTest",
+      "source": "plugins/tools/tool_transform2/tests/KisLiquifyPropertiesContractTest.cpp",
+      "test": "KisLiquifyPropertiesContractTest::defaultsAndModesPreserveStableValues",
+      "behavior": "液状変形設定は5操作と終端値の宣言順、既定の移動操作、寸法、量、間隔、筆圧、方向、洗浄、流量と寸法範囲を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisLiquifyProperties",
+        "enum:KisLiquifyProperties::LiquifyMode",
+        "enumerator:KisLiquifyProperties::LiquifyMode::MOVE",
+        "enumerator:KisLiquifyProperties::LiquifyMode::N_MODES",
+        "enumerator:KisLiquifyProperties::LiquifyMode::OFFSET",
+        "enumerator:KisLiquifyProperties::LiquifyMode::ROTATE",
+        "enumerator:KisLiquifyProperties::LiquifyMode::SCALE",
+        "enumerator:KisLiquifyProperties::LiquifyMode::UNDO",
+        "method:KisLiquifyProperties::KisLiquifyProperties()",
+        "method:KisLiquifyProperties::amount() const",
+        "method:KisLiquifyProperties::amountHasPressure() const",
+        "method:KisLiquifyProperties::flow() const",
+        "method:KisLiquifyProperties::maxSize()",
+        "method:KisLiquifyProperties::minSize()",
+        "method:KisLiquifyProperties::mode() const",
+        "method:KisLiquifyProperties::reverseDirection() const",
+        "method:KisLiquifyProperties::size() const",
+        "method:KisLiquifyProperties::sizeHasPressure() const",
+        "method:KisLiquifyProperties::spacing() const",
+        "method:KisLiquifyProperties::useWashMode() const"
+      ]
+    },
+    {
+      "target": "KisLiquifyPropertiesContractTest",
+      "source": "plugins/tools/tool_transform2/tests/KisLiquifyPropertiesContractTest.cpp",
+      "test": "KisLiquifyPropertiesContractTest::settersAndEqualityPreserveIndependentState",
+      "behavior": "液状変形の9設定値は互いを変えずに更新でき、全値が同じ場合だけ等価となる。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisLiquifyProperties::operator ==(const KisLiquifyProperties & other) const",
+        "method:KisLiquifyProperties::setAmount(qreal value)",
+        "method:KisLiquifyProperties::setAmountHasPressure(bool value)",
+        "method:KisLiquifyProperties::setFlow(qreal value)",
+        "method:KisLiquifyProperties::setMode(LiquifyMode value)",
+        "method:KisLiquifyProperties::setReverseDirection(bool value)",
+        "method:KisLiquifyProperties::setSize(qreal value)",
+        "method:KisLiquifyProperties::setSizeHasPressure(bool value)",
+        "method:KisLiquifyProperties::setSpacing(qreal value)",
+        "method:KisLiquifyProperties::setUseWashMode(bool value)"
+      ]
+    },
+    {
+      "target": "KisLiquifyPropertiesContractTest",
+      "source": "plugins/tools/tool_transform2/tests/KisLiquifyPropertiesContractTest.cpp",
+      "test": "KisLiquifyPropertiesContractTest::copiesAssignmentAndDebugPreserveValues",
+      "behavior": "液状変形設定の複製と代入は全値を独立して保持し、診断表示は型名と主要値を含む。",
+      "classification": "maintained",
+      "apis": [
+        "function:operator <<(QDebug dbg,const KisLiquifyProperties & properties)",
+        "method:KisLiquifyProperties::KisLiquifyProperties(const KisLiquifyProperties & rhs)",
+        "method:KisLiquifyProperties::operator =(const KisLiquifyProperties & rhs)"
+      ]
+    },
+    {
+      "target": "KisLiquifyPropertiesContractTest",
+      "source": "plugins/tools/tool_transform2/tests/KisLiquifyPropertiesContractTest.cpp",
+      "test": "KisLiquifyPropertiesContractTest::xmlRoundTripPreservesValuesAndRejectsInvalidMode",
+      "behavior": "XML往復は全設定値を保持し、不正な操作値だけを移動操作へ戻して正常な他値を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisLiquifyProperties::fromXML(const QDomElement & e)",
+        "method:KisLiquifyProperties::toXML(QDomElement * e) const"
+      ]
+    },
+    {
+      "target": "KisLiquifyPropertiesContractTest",
+      "source": "plugins/tools/tool_transform2/tests/KisLiquifyPropertiesContractTest.cpp",
+      "test": "KisLiquifyPropertiesContractTest::configurationRoundTripPreservesModeScopedValues",
+      "behavior": "操作別の隔離設定領域への保存と読込みは選択操作と全設定値を往復し、再設定読込みも保存値を復元する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisLiquifyProperties::loadAndResetMode()",
+        "method:KisLiquifyProperties::loadMode()",
+        "method:KisLiquifyProperties::saveMode() const"
       ]
     },
     {
