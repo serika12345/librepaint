@@ -313,6 +313,36 @@ set_target_properties(kritaflakeshapestrokecommandobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaflakeshapemovecommandobjects OBJECT
+    commands/KoShapeMoveCommand.cpp
+)
+target_compile_definitions(kritaflakeshapemovecommandobjects PRIVATE kritaflake_EXPORTS)
+if(BUILD_TESTING)
+    target_compile_definitions(kritaflakeshapemovecommandobjects PRIVATE KRITAFLAKE_SHAPE_MOVE_COMMAND_CONTRACT_TESTING)
+endif()
+target_include_directories(kritaflakeshapemovecommandobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/commands>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/painting/undo>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/painting/undo>
+)
+target_link_libraries(kritaflakeshapemovecommandobjects
+    PUBLIC
+        Boost::boost
+        KF${KF_MAJOR}::I18n
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Xml
+)
+set_target_properties(kritaflakeshapemovecommandobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaflakeinteractionstrategyfactoryobjects OBJECT
     tools/KoInteractionStrategyFactory.cpp
 )
@@ -1416,7 +1446,6 @@ set(kritaflake_SRCS
     commands/KoShapeDeleteCommand.cpp
     commands/KoShapeDistributeCommand.cpp
     commands/KoShapeLockCommand.cpp
-    commands/KoShapeMoveCommand.cpp
     commands/KoShapeResizeCommand.cpp
     commands/KoShapeUngroupCommand.cpp
     commands/KoShapeReorderCommand.cpp
@@ -1529,6 +1558,7 @@ set(kritaflake_SRCS
     $<TARGET_OBJECTS:kritaflakedockregistryobjects>
     $<TARGET_OBJECTS:kritaflakeshapestrokemodelobjects>
     $<TARGET_OBJECTS:kritaflakeshapestrokecommandobjects>
+    $<TARGET_OBJECTS:kritaflakeshapemovecommandobjects>
     $<TARGET_OBJECTS:kritaflakeinteractionstrategyfactoryobjects>
     $<TARGET_OBJECTS:kritaflakeselectedshapesproxyobjects>
     $<TARGET_OBJECTS:kritaflakeactivecanvasresourcedependencyobjects>
