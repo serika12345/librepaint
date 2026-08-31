@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 03:55 JST
+- 更新日時: 2026-09-01 04:00 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -24,6 +24,35 @@
 - 各報告は完全なAPI識別子、観測する現行挙動、最大5契約枠、最寄りCTest、所有CMake、直接依存、変更なし閉包、予測閉包と停止線、許可path、
   固有停止条件を含む。候補がない場合は最接近候補と棄却根拠を数値で報告する。3監査の完了後、互いにpath・CMake・生成物が重ならない候補だけを
   担当票として確定する。
+- `g98-psd-format-audit`は`libs/psdutils/psd.h`の`PsdResource`、`psd_gradient_transparency_stop`、`psd_pattern`の全23 APIを採用した。既存
+  `PsdFormatValuesContractTest`へ既定値、独立更新、copyを4枠追加でき、header-onlyのため製品sourceを変更しない。現4工程・8入力、予測
+  4工程・9入力、停止5工程・12入力、製品`kritapsdutils` 629工程・1,288入力不変である。
+- `g98-flake-text-svg-audit`は`libs/flake/text/KoSvgText.h`の`AutoValue`、`AutoLengthPercentage`、`CssFontStyleData`、`TextTransformInfo`、
+  `TextIndentInfo`の全31 APIを採用した。既存`KoSvgTextEnumContractTest`へauto値、長さ単位、斜体比較条件、文字変換値、字下げ値の5枠を追加でき、
+  header-onlyである。現・予測4工程・8入力、停止5工程・10入力、製品`kritaflake` 612工程・1,256入力不変である。
+- `g98-resource-values-audit`は条件を満たす候補なしで完了した。最接近の`libs/pigment/resources/KisSwatchGroup.h` 22 APIは既存対象364工程・757入力で
+  `kritapigment`、`kritatestsdk`、実色空間registryへ接続する。開始source一つの分離では`KisSwatch`と`KoColor`が未解決となり、二source分離後も
+  具体色空間所有者が必要なため採用しない。`KoResourcePaths.h` 20 APIはfilesystem、`KisResourceIterator.h` 21 APIは実model接続を中心とする。
+- `g98-ui-document-values-audit`は`in_progress`の追加読み取り監査である。`libs/ui/document`と`libs/document`から、公開値構造体、列挙、文書情報の
+  独立状態を20 API以上、最大5枠へ固定できる候補を選ぶ。実文書、画像、UI、filesystem、資源、大域application、製品shared library、
+  `kritatestsdk`へ接続しない。基点、入力、報告要件と禁止事項は第98便の共通条件を継承する。
+
+### 第98並列便の担当計画
+
+- 実装共通基点は`32c249d8065feccb4aa60fc65503d425aed4b2d7`である。
+- `g98-psd-format-values`は`planned`で、専用作業ツリーを`/Users/masato/Documents/librepaint-g98-psd-format-values`へ作成する。対象は
+  `build/tdd-macos/public-api-missing-g98.json`でheaderが`libs/psdutils/psd.h`の`PsdResource` 5 API、`psd_gradient_transparency_stop` 4 API、
+  `psd_pattern` 14 APIの合計23 APIである。既定・独立更新・copyの4枠を既存`PsdFormatValuesContractTest`へ追加する。許可pathは
+  `libs/psdutils/tests/CMakeLists.txt`と`libs/psdutils/tests/PsdFormatValuesContractTest.cpp`だけである。予測4工程・9入力、停止5工程・12入力、製品
+  `kritapsdutils` 629工程・1,288入力不変とする。
+- `g98-flake-svg-text-values`は`planned`で、専用作業ツリーを`/Users/masato/Documents/librepaint-g98-flake-svg-text-values`へ作成する。対象は同不足一覧で
+  headerが`libs/flake/text/KoSvgText.h`の`AutoValue` 6 API、`AutoLengthPercentage` 7 API、`CssFontStyleData` 6 API、`TextTransformInfo` 6 API、
+  `TextIndentInfo` 6 APIの合計31 APIである。5枠を既存`KoSvgTextEnumContractTest`へ追加する。許可pathは
+  `libs/flake/tests/KoSvgTextEnumContractTest.cpp`だけである。予測4工程・8入力、停止5工程・10入力、製品`kritaflake` 612工程・1,256入力不変とする。
+- 2担当の対象プラットフォームはmacOSである。担当は専用Git worktreeと局所`build/tdd-macos`を使い、主環境を主作業ツリーの
+  `scripts/run-shared-test-env`から共有する。構築権限は対象、追加枠、20回反復、軽量近傍、無作業再構築、動的接続、公開API検査、`verify-quick`に
+  限定する。Git権限は許可pathだけの担当commitで、台帳と進捗は統合担当が所有する。上限超過、非inline記号、製品shared library、`kritatestsdk`、
+  実字体・shape・文書・画像・資源・色空間registry・filesystemが必要なら停止する。統合順はSVG文字値、PSD形式値とする。
 
 ### 第97並列便の監査計画
 
