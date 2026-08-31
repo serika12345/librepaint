@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 20559
+    "expectedMissingApis": 20468
   },
   "contracts": [
     {
@@ -14218,6 +14218,11 @@
       "behavior": "有効なブラシテクスチャ設定は埋込み参照4項目と描画設定16項目を保存して読戻し、埋込み本体と最大オフセットを永続化しない。",
       "classification": "maintained",
       "apis": [
+        "member:KisEmbeddedTextureData::fileName",
+        "member:KisEmbeddedTextureData::md5Base64",
+        "member:KisEmbeddedTextureData::md5sum",
+        "member:KisEmbeddedTextureData::name",
+        "member:KisEmbeddedTextureData::patternBase64",
         "method:KisTextureOptionData::read(const KisPropertiesConfiguration * setting)",
         "method:KisTextureOptionData::write(KisPropertiesConfiguration * setting) const"
       ]
@@ -14239,6 +14244,8 @@
       "behavior": "欠落したテクスチャ項目の読込は現行既定値を復元して成功を返し、最大オフセットは読込前の値を保持する。",
       "classification": "maintained",
       "apis": [
+        "class:KisEmbeddedTextureData",
+        "function:operator ==(const KisEmbeddedTextureData & lhs,const KisEmbeddedTextureData & rhs)",
         "method:KisTextureOptionData::read(const KisPropertiesConfiguration * setting)"
       ]
     },
@@ -14250,6 +14257,232 @@
       "classification": "maintained",
       "apis": [
         "method:KisTextureOptionData::read(const KisPropertiesConfiguration * setting)"
+      ]
+    },
+    {
+      "target": "KisBezierMeshValuesContractTest",
+      "source": "libs/global/tests/KisBezierMeshValuesContractTest.cpp",
+      "test": "KisBezierMeshValuesContractTest::nodeConstructionInitializesEveryPoint",
+      "behavior": "Bezierメッシュ節点の既定構築は全5点を原点に置き、位置指定構築は全5点を指定位置へ揃える。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisBezierMeshDetails::BaseMeshNode::bottomControl",
+        "member:KisBezierMeshDetails::BaseMeshNode::leftControl",
+        "member:KisBezierMeshDetails::BaseMeshNode::node",
+        "member:KisBezierMeshDetails::BaseMeshNode::rightControl",
+        "member:KisBezierMeshDetails::BaseMeshNode::topControl",
+        "method:KisBezierMeshDetails::BaseMeshNode::BaseMeshNode()",
+        "method:KisBezierMeshDetails::BaseMeshNode::BaseMeshNode(const QPointF & _node)",
+        "struct:KisBezierMeshDetails::BaseMeshNode"
+      ]
+    },
+    {
+      "target": "KisBezierMeshValuesContractTest",
+      "source": "libs/global/tests/KisBezierMeshValuesContractTest.cpp",
+      "test": "KisBezierMeshValuesContractTest::relativeControlsConvertToAndFromAbsolutePoints",
+      "behavior": "Bezier節点の左右上下制御点は節点相対値から正確な絶対座標へ変換され、同じ相対値を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisBezierMeshDetails::BaseMeshNode::bottomControlRelative() const",
+        "method:KisBezierMeshDetails::BaseMeshNode::leftControlRelative() const",
+        "method:KisBezierMeshDetails::BaseMeshNode::rightControlRelative() const",
+        "method:KisBezierMeshDetails::BaseMeshNode::setBottomControlRelative(const QPointF & value)",
+        "method:KisBezierMeshDetails::BaseMeshNode::setLeftControlRelative(const QPointF & value)",
+        "method:KisBezierMeshDetails::BaseMeshNode::setRightControlRelative(const QPointF & value)",
+        "method:KisBezierMeshDetails::BaseMeshNode::setTopControlRelative(const QPointF & value)",
+        "method:KisBezierMeshDetails::BaseMeshNode::topControlRelative() const"
+      ]
+    },
+    {
+      "target": "KisBezierMeshValuesContractTest",
+      "source": "libs/global/tests/KisBezierMeshValuesContractTest.cpp",
+      "test": "KisBezierMeshValuesContractTest::equalityTranslationAndTransformPreserveIndependentValues",
+      "behavior": "Bezier節点の等価判定は各点の差を識別し、平行移動と行列変換は全5点へ同じ変換を適用して元値を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisBezierMeshDetails::BaseMeshNode::operator ==(const BaseMeshNode & rhs) const",
+        "method:KisBezierMeshDetails::BaseMeshNode::transform(const QTransform & t)",
+        "method:KisBezierMeshDetails::BaseMeshNode::translate(const QPointF & offset)"
+      ]
+    },
+    {
+      "target": "KisBezierMeshValuesContractTest",
+      "source": "libs/global/tests/KisBezierMeshValuesContractTest.cpp",
+      "test": "KisBezierMeshValuesContractTest::controlPointIndicesClassifyAndSelectExactMembers",
+      "behavior": "制御点索引は5種の安定値、節点座標と種類の同一性、節点と制御点の分類を保持し、指定した点への変更可能な参照を返す。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KisBezierMeshDetails::Mesh::ControlPointIndex::ControlType",
+        "enumerator:KisBezierMeshDetails::Mesh::ControlPointIndex::ControlType::BottomControl",
+        "enumerator:KisBezierMeshDetails::Mesh::ControlPointIndex::ControlType::LeftControl",
+        "enumerator:KisBezierMeshDetails::Mesh::ControlPointIndex::ControlType::Node",
+        "enumerator:KisBezierMeshDetails::Mesh::ControlPointIndex::ControlType::RightControl",
+        "enumerator:KisBezierMeshDetails::Mesh::ControlPointIndex::ControlType::TopControl",
+        "member:KisBezierMeshDetails::Mesh::ControlPointIndex::controlType",
+        "member:KisBezierMeshDetails::Mesh::ControlPointIndex::nodeIndex",
+        "method:KisBezierMeshDetails::Mesh::ControlPointIndex::ControlPointIndex()",
+        "method:KisBezierMeshDetails::Mesh::ControlPointIndex::ControlPointIndex(NodeIndex _nodeIndex,ControlType _controlType)",
+        "method:KisBezierMeshDetails::Mesh::ControlPointIndex::controlPoint(Mesh::Node & node)",
+        "method:KisBezierMeshDetails::Mesh::ControlPointIndex::controlPoint(NodeType & node,ControlType controlType)",
+        "method:KisBezierMeshDetails::Mesh::ControlPointIndex::isControlPoint() const",
+        "method:KisBezierMeshDetails::Mesh::ControlPointIndex::isNode() const",
+        "method:KisBezierMeshDetails::Mesh::operator ==(const ControlPointIndex & lhs,const ControlPointIndex & rhs)",
+        "struct:KisBezierMeshDetails::Mesh::ControlPointIndex"
+      ]
+    },
+    {
+      "target": "KisBezierMeshValuesContractTest",
+      "source": "libs/global/tests/KisBezierMeshValuesContractTest.cpp",
+      "test": "KisBezierMeshValuesContractTest::nodeAndPatchIndicesApplyPointOffsets",
+      "behavior": "Bezierメッシュの節点索引と区画索引は正負の二次元差分を自身へ加減算し、変更対象自身を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisBezierMeshDetails::Mesh::NodeIndex::operator +=(const QPoint & rhs)",
+        "method:KisBezierMeshDetails::Mesh::NodeIndex::operator -=(const QPoint & rhs)",
+        "method:KisBezierMeshDetails::Mesh::PatchIndex::operator +=(const QPoint & rhs)",
+        "method:KisBezierMeshDetails::Mesh::PatchIndex::operator -=(const QPoint & rhs)",
+        "struct:KisBezierMeshDetails::Mesh::NodeIndex",
+        "struct:KisBezierMeshDetails::Mesh::PatchIndex"
+      ]
+    },
+    {
+      "target": "KisTransformComponentsContractTest",
+      "source": "libs/global/tests/KisTransformComponentsContractTest.cpp",
+      "test": "KisTransformComponentsContractTest::decomposedMatrixDefaultsToValidIdentity",
+      "behavior": "既定の分解行列は有効な恒等変換として、単位拡大率、零の剪断・回転・移動・射影と恒等の各部分変換を返す。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisAlgebra2D::DecomposedMatrix::angle",
+        "member:KisAlgebra2D::DecomposedMatrix::dx",
+        "member:KisAlgebra2D::DecomposedMatrix::dy",
+        "member:KisAlgebra2D::DecomposedMatrix::proj",
+        "member:KisAlgebra2D::DecomposedMatrix::scaleX",
+        "member:KisAlgebra2D::DecomposedMatrix::scaleY",
+        "member:KisAlgebra2D::DecomposedMatrix::shearXY",
+        "method:KisAlgebra2D::DecomposedMatrix::DecomposedMatrix()",
+        "struct:KisAlgebra2D::DecomposedMatrix"
+      ]
+    },
+    {
+      "target": "KisTransformComponentsContractTest",
+      "source": "libs/global/tests/KisTransformComponentsContractTest.cpp",
+      "test": "KisTransformComponentsContractTest::affineDecompositionExposesEveryComponent",
+      "behavior": "アフィン行列の分解は拡大率、剪断角、回転角、移動量、恒等射影を元の構成値として公開する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAlgebra2D::DecomposedMatrix::DecomposedMatrix(const QTransform & t0)",
+        "method:KisAlgebra2D::DecomposedMatrix::isValid() const"
+      ]
+    },
+    {
+      "target": "KisTransformComponentsContractTest",
+      "source": "libs/global/tests/KisTransformComponentsContractTest.cpp",
+      "test": "KisTransformComponentsContractTest::partialTransformsRecomposeTheAffineInput",
+      "behavior": "分解行列の拡大、剪断、回転、移動、射影の各部分変換は入力成分と一致し、全体変換は元のアフィン行列を再構成する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAlgebra2D::DecomposedMatrix::projectTransform() const",
+        "method:KisAlgebra2D::DecomposedMatrix::rotateTransform() const",
+        "method:KisAlgebra2D::DecomposedMatrix::scaleTransform() const",
+        "method:KisAlgebra2D::DecomposedMatrix::shearTransform() const",
+        "method:KisAlgebra2D::DecomposedMatrix::transform() const",
+        "method:KisAlgebra2D::DecomposedMatrix::translateTransform() const"
+      ]
+    },
+    {
+      "target": "KisTransformComponentsContractTest",
+      "source": "libs/global/tests/KisTransformComponentsContractTest.cpp",
+      "test": "KisTransformComponentsContractTest::projectiveDecompositionPreservesPerspective",
+      "behavior": "射影を含む行列の分解はアフィン成分と透視成分を保ち、部分射影と全体変換から元の行列を再現する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAlgebra2D::DecomposedMatrix::DecomposedMatrix(const QTransform & t0)",
+        "method:KisAlgebra2D::DecomposedMatrix::isValid() const",
+        "method:KisAlgebra2D::DecomposedMatrix::projectTransform() const",
+        "method:KisAlgebra2D::DecomposedMatrix::transform() const"
+      ]
+    },
+    {
+      "target": "KisTransformComponentsContractTest",
+      "source": "libs/global/tests/KisTransformComponentsContractTest.cpp",
+      "test": "KisTransformComponentsContractTest::identityAndDegenerateInputsDefineValidityBoundary",
+      "behavior": "恒等行列は有効に再構成され、零行列式または零の射影分母を持つ行列は無効と判定される。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAlgebra2D::DecomposedMatrix::DecomposedMatrix(const QTransform & t0)",
+        "method:KisAlgebra2D::DecomposedMatrix::isValid() const",
+        "method:KisAlgebra2D::DecomposedMatrix::transform() const"
+      ]
+    },
+    {
+      "target": "KisCurveOptionDataContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisCurveOptionDataContractTest.cpp",
+      "test": "KisCurveOptionDataContractTest::opacityAndFlowRemainFixedCurves",
+      "behavior": "不透明度と流量の標準設定値は独立した型と識別子を持ち、Unicode接頭辞を保ち、固定有効で0から1の値域を使う。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisFlowOptionData::KisFlowOptionData(const QString & prefix=QString ())",
+        "method:KisOpacityOptionData::KisOpacityOptionData(const QString & prefix=QString ())",
+        "struct:KisFlowOptionData",
+        "struct:KisOpacityOptionData"
+      ]
+    },
+    {
+      "target": "KisCurveOptionDataContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisCurveOptionDataContractTest.cpp",
+      "test": "KisCurveOptionDataContractTest::ratioAndRotationForwardPrefixes",
+      "behavior": "縦横比と回転の標準設定値は独立した識別子を持ち、Unicode接頭辞、検査可能な無効状態、0から1の値域を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisRatioOptionData::KisRatioOptionData(const QString & prefix=QString ())",
+        "method:KisRotationOptionData::KisRotationOptionData(const QString & prefix=QString ())",
+        "struct:KisRatioOptionData",
+        "struct:KisRotationOptionData"
+      ]
+    },
+    {
+      "target": "KisCurveOptionDataContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisCurveOptionDataContractTest.cpp",
+      "test": "KisCurveOptionDataContractTest::softnessKeepsItsRestrictedRange",
+      "behavior": "柔らかさの標準設定値はSoftness識別子、空接頭辞、検査可能な無効状態と0.1から1の限定値域を持つ。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSoftnessOptionData::KisSoftnessOptionData()",
+        "struct:KisSoftnessOptionData"
+      ]
+    },
+    {
+      "target": "KisCurveOptionDataContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisCurveOptionDataContractTest.cpp",
+      "test": "KisCurveOptionDataContractTest::colorAdjustmentTypesKeepIndependentIds",
+      "behavior": "暗化、混色、色相、彩度、明度の各標準設定値は型と識別子を分離し、検査可能な無効状態と0から1の値域を共有する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDarkenOptionData::KisDarkenOptionData()",
+        "method:KisHueOptionData::KisHueOptionData()",
+        "method:KisMixOptionData::KisMixOptionData()",
+        "method:KisSaturationOptionData::KisSaturationOptionData()",
+        "method:KisValueOptionData::KisValueOptionData()",
+        "struct:KisDarkenOptionData",
+        "struct:KisHueOptionData",
+        "struct:KisMixOptionData",
+        "struct:KisSaturationOptionData",
+        "struct:KisValueOptionData"
+      ]
+    },
+    {
+      "target": "KisCurveOptionDataContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisCurveOptionDataContractTest.cpp",
+      "test": "KisCurveOptionDataContractTest::rateAndStrengthTypesKeepIndependentIds",
+      "behavior": "比率、テクスチャ強度、明度強度の各標準設定値は独立した型と識別子を持ち、検査可能な無効状態と0から1の値域を共有する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisLightnessStrengthOptionData::KisLightnessStrengthOptionData()",
+        "method:KisRateOptionData::KisRateOptionData()",
+        "method:KisStrengthOptionData::KisStrengthOptionData()",
+        "struct:KisLightnessStrengthOptionData",
+        "struct:KisRateOptionData",
+        "struct:KisStrengthOptionData"
       ]
     },
     {
