@@ -13,7 +13,6 @@ set(kritatooltransform_static_SRCS
     kis_liquify_transform_strategy.cpp
     kis_liquify_paint_helper.cpp
     kis_liquify_paintop.cpp
-    kis_liquify_properties.cpp
     kis_mesh_transform_strategy.cpp
     kis_free_transform_strategy.cpp
     kis_free_transform_strategy_gsl_helpers.cpp
@@ -22,6 +21,38 @@ set(kritatooltransform_static_SRCS
     strokes/transform_stroke_strategy.cpp
     strokes/inplace_transform_stroke_strategy.cpp
     )
+
+add_library(kritatooltransformliquifypropertiesobjects OBJECT
+    kis_liquify_properties.cpp
+)
+target_compile_definitions(kritatooltransformliquifypropertiesobjects PRIVATE kritatooltransform_EXPORTS)
+target_include_directories(kritatooltransformliquifypropertiesobjects
+    PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}
+        ${CMAKE_CURRENT_BINARY_DIR}
+        ${CMAKE_SOURCE_DIR}/libs/global
+        ${CMAKE_BINARY_DIR}/libs/global
+)
+target_link_libraries(kritatooltransformliquifypropertiesobjects
+    PUBLIC
+        kritaglobaldomutilsobjects
+        kritaglobaldebugobjects
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Widgets
+        Qt${QT_MAJOR_VERSION}::Xml
+        KF${KF_MAJOR}::ConfigCore
+        KF${KF_MAJOR}::I18n
+        Boost::boost
+)
+set_target_properties(kritatooltransformliquifypropertiesobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+list(APPEND kritatooltransform_static_SRCS
+    $<TARGET_OBJECTS:kritatooltransformliquifypropertiesobjects>
+)
 
 ki18n_wrap_ui(kritatooltransform_static_SRCS wdg_tool_transform.ui)
 
