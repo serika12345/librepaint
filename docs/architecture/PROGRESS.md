@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-31 13:34 JST
+- 更新日時: 2026-08-31 13:37 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -11,36 +11,36 @@
 
 ### 第78並列便の担当票
 
-- 形状分配command担当は`preparing`である。基点は`1b2472475fbc81861272d4ae5f21dbab9d86b3a8`、予定作業ツリーは
-  `/Users/masato/Documents/librepaint-r2-g78-shape-distribute`、予定ブランチは`r2-g78-shape-distribute`、
+- 形状分配command担当は`implementing`である。基点は`9285f84636ec2eac4af47ab1de769bf589eb1893`、作業ツリーは
+  `/Users/masato/Documents/librepaint-r2-g78-shape-distribute`、ブランチは`r2-g78-shape-distribute`、
   統合順は1である。対象は`libs/flake/commands/KoShapeDistributeCommand.h`の14 APIである。開始ファイル
   `libs/flake/commands/KoShapeDistributeCommand.cpp`を`kritaflake_SRCS`の直接収容から
   `kritaflakeshapedistributecommandobjects`へ移し、製品`kritaflake`へ一度だけ再集約する。新規
   `libs/flake/tests/KoShapeDistributeCommandContractTest.cpp`が8分配値、水平3基準とgap、垂直3基準とgap、内部
   移動commandへのredo・undo配送と借用寿命を6契約枠で固定する。位置と外接矩形の読取は開始実装の
   `BUILD_TESTING`限定配送設定を介し、既定配送は実shape APIを保つ。既存
-  `kritaflakeshapemovecommandobjects`の変更なし再利用を要求する。限定構築は計画承認まで待機し、予測閉包
+  `kritaflakeshapemovecommandobjects`の変更なし再利用を要求する。限定構築を許可し、予測閉包
   6工程・13入力、停止条件7工程・16入力、製品閉包612工程・1,256入力不変を要求する。許可範囲は
   `libs/flake/CMakeLists.txt`、開始実装、`libs/flake/tests/CMakeLists.txt`、新規試験である。
-- node更新束担当は`preparing`である。基点は`1b2472475fbc81861272d4ae5f21dbab9d86b3a8`、予定作業ツリーは
-  `/Users/masato/Documents/librepaint-r2-g78-batch-node-update`、予定ブランチは`r2-g78-batch-node-update`、
+- node更新束担当は`implementing`である。基点は`9285f84636ec2eac4af47ab1de769bf589eb1893`、作業ツリーは
+  `/Users/masato/Documents/librepaint-r2-g78-batch-node-update`、ブランチは`r2-g78-batch-node-update`、
   統合順は2である。対象は`libs/image/KisBatchNodeUpdate.h`の13 APIである。開始ファイル
   `libs/image/KisBatchNodeUpdate.cpp`を`kritaimage_LIB_SRCS`の直接収容から
   `kritaimagebatchnodeupdateobjects`へ移し、製品`kritaimage`へ一度だけ再集約する。親子圧縮の2操作を新規非公開
   `libs/image/KisBatchNodeUpdateNodeAccess_p.h`へ限定し、製品定義を開始元`libs/image/kis_layer_utils.cpp`から現行
   処理へ委譲する。新規`libs/image/tests/KisBatchNodeUpdateContractTest.cpp`が値構築とcopy・move・代入、node別
-  矩形統合、親子圧縮、debug構造とshared・weak alias寿命を4契約枠で固定する。限定構築は計画承認まで待機し、
+  矩形統合、親子圧縮、debug構造とshared・weak alias寿命を4契約枠で固定する。限定構築を許可し、
   予測閉包5工程・11入力、停止条件6工程・14入力、製品閉包1,184工程・2,392入力不変を要求する。許可範囲は
   `libs/image/CMakeLists.txt`、開始実装、新規非公開header、`libs/image/kis_layer_utils.cpp`、
   `libs/image/tests/CMakeLists.txt`、新規試験である。
-- 精度option担当は`preparing`である。基点は`1b2472475fbc81861272d4ae5f21dbab9d86b3a8`、予定作業ツリーは
-  `/Users/masato/Documents/librepaint-r2-g78-precision-option`、予定ブランチは`r2-g78-precision-option`、
+- 精度option担当は`implementing`である。基点は`9285f84636ec2eac4af47ab1de769bf589eb1893`、作業ツリーは
+  `/Users/masato/Documents/librepaint-r2-g78-precision-option`、ブランチは`r2-g78-precision-option`、
   統合順は3である。対象は`plugins/paintops/libpaintop/kis_precision_option.h`の19 APIである。開始ファイル
   `plugins/paintops/libpaintop/kis_precision_option.cpp`を有効所有者`kritapaintopruntime`の直接収容から
   `kritapaintopprecisionoptionobjects`へ移し、runtimeを介して製品`kritalibpaintop`へ一度だけ集約する。新規
   `plugins/paintops/libpaintop/tests/KisPrecisionOptionContractTest.cpp`が永続化keyと既定値、設定read・writeと
   等価判定、構築値と独立setter、auto精度の30.0境界を4契約枠で固定する。製品sourceとpublic headerの内容は
-  変更しない。限定構築は計画承認まで待機し、予測閉包5工程・11入力、停止条件6工程・14入力、製品閉包
+  変更しない。限定構築を許可し、予測閉包5工程・11入力、停止条件6工程・14入力、製品閉包
   `kritapaintopruntime` 1,281工程・2,582入力と`kritalibpaintop` 2,097工程・4,192入力不変を要求する。許可範囲は
   `plugins/paintops/libpaintop/CMakeLists.txt`、同tests CMake、新規試験である。
 - 3担当はgit commitで受渡しし、再委任しない。中央進捗文書、公開API対応表、不足一覧は調整担当だけが更新する。
@@ -158,8 +158,8 @@
 
 ### 次の操作
 
-- 第78並列便の担当票を高速検査で固定してcommitする。3担当作業ツリーを同じ計画commitから作成し、基点と
-  清浄状態を確認した後に実装許可を記録して、限定構築と挙動契約の実装へ進む。
+- 第78並列便の3担当が限定構築と挙動契約を実装する。完了担当からcommitを受け取り、差分と検証証拠を確認して
+  統合し、担当作業ツリー、局所構築木、担当ブランチを直ちに削除する。
 
 ## 再開環境
 
