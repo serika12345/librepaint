@@ -39,7 +39,6 @@ set(kritalibpaintop_LIB_SRCS
     KisAirbrushOptionData.cpp
     KisAirbrushOptionModel.cpp
     KisAirbrushOptionWidget.cpp
-    KisCompositeOpOptionData.cpp
     KisCompositeOpOptionModel.cpp
     KisCompositeOpOptionWidget.cpp
     KisPaintingModeOptionData.cpp
@@ -238,6 +237,39 @@ target_link_libraries(kritapaintopcoloroptiondataobjects
         ${LINK_OPENEXR_LIB}
 )
 set_target_properties(kritapaintopcoloroptiondataobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritapaintopcompositeopoptiondataobjects OBJECT
+    KisCompositeOpOptionData.cpp
+)
+target_compile_definitions(kritapaintopcompositeopoptiondataobjects PRIVATE
+    kritaimage_EXPORTS
+    kritalibpaintop_EXPORTS
+    kritapigment_EXPORTS
+)
+target_include_directories(kritapaintopcompositeopoptiondataobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/image>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/image>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/pigment>
+        $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
+        $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Gui,INTERFACE_INCLUDE_DIRECTORIES>
+)
+target_link_libraries(kritapaintopcompositeopoptiondataobjects
+    PUBLIC
+        Boost::boost
+        Eigen3::Eigen
+        Imath::ImathConfig
+        Qt${QT_MAJOR_VERSION}::Core
+)
+set_target_properties(kritapaintopcompositeopoptiondataobjects PROPERTIES
     AUTOMOC OFF
     POSITION_INDEPENDENT_CODE ON
 )
@@ -771,6 +803,7 @@ target_link_libraries(kritapaintopruntime
 kis_add_library(kritalibpaintop SHARED
     ${kritalibpaintop_LIB_SRCS}
     $<TARGET_OBJECTS:kritapaintopcoloroptiondataobjects>
+    $<TARGET_OBJECTS:kritapaintopcompositeopoptiondataobjects>
     $<TARGET_OBJECTS:kritapaintopdynamicsensorfactoryobjects>
     $<TARGET_OBJECTS:kritapaintopfilteroptiondataobjects>
     $<TARGET_OBJECTS:kritapaintopruntime>

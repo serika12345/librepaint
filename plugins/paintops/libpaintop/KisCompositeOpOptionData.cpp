@@ -4,17 +4,17 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisCompositeOpOptionData.h"
-#include <KoCompositeOpRegistry.h>
+#include <KoCompositeOpIds.h>
 #include <kis_properties_configuration.h>
 
 KisCompositeOpOptionData::KisCompositeOpOptionData()
-    : compositeOpId(KoCompositeOpRegistry::instance().getDefaultCompositeOp().id())
+    : compositeOpId(COMPOSITE_OVER)
 {
 }
 
 bool KisCompositeOpOptionData::read(const KisPropertiesConfiguration *setting)
 {
-    compositeOpId = setting->getString("CompositeOp", KoCompositeOpRegistry::instance().getDefaultCompositeOp().id());
+    compositeOpId = setting->getString("CompositeOp", COMPOSITE_OVER);
     eraserMode = setting->getBool("EraserMode", false);
 
     return true;
