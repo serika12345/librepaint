@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-31 11:47 JST
+- 更新日時: 2026-08-31 11:49 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -11,38 +11,38 @@
 
 ### 第75並列便の担当票
 
-- 形状stroke command担当は`preparing`である。基点は
-  `69861ba8c939c29969270dd8d72f224904abc68b`、予定作業ツリーは
-  `/Users/masato/Documents/librepaint-r2-g75-shape-stroke`、予定ブランチは`r2-g75-shape-stroke`、
+- 形状stroke command担当は`implementing`である。基点は
+  `36524eb4aea47c8a93daa62ef53e23cf50876409`、作業ツリーは
+  `/Users/masato/Documents/librepaint-r2-g75-shape-stroke`、ブランチは`r2-g75-shape-stroke`、
   統合順は1である。対象は`libs/flake/commands/KoShapeStrokeCommand.h`の9 APIである。開始ファイル
   `libs/flake/commands/KoShapeStrokeCommand.cpp`を`kritaflake_SRCS`の直接収容から
   `kritaflakeshapestrokecommandobjects`へ移し、製品`kritaflake`へ一度だけ再集約する。開始試験
   `libs/flake/tests/TestShapeStrokeCommand.{h,cpp}`を広域試験一覧から同名専用Qt Testへ移し、3構築経路、
   shape・stroke対応、redo・undo配送、識別子・merge、空入力・共有所有を5契約枠で固定し、9 APIを
   `maintained`へ分類する。仮想stroke APIと一括更新は開始実装の`BUILD_TESTING`限定配送設定を介して
-  不透明shape tokenへ接続し、既定配送は実shape APIと一括更新の従来順序を保つ。限定構築は計画承認まで
-  待機し、予測閉包5工程・13入力、停止条件6工程・15入力、製品閉包612工程・1,256入力不変を要求する。
+  不透明shape tokenへ接続し、既定配送は実shape APIと一括更新の従来順序を保つ。限定構築を許可し、
+  予測閉包5工程・13入力、停止条件6工程・15入力、製品閉包612工程・1,256入力不変を要求する。
   許可範囲は`libs/flake/CMakeLists.txt`、開始実装、`libs/flake/tests/CMakeLists.txt`、開始試験2ファイルである。
-- 畳み込みkernel担当は`preparing`である。基点は`69861ba8c939c29969270dd8d72f224904abc68b`、
-  予定作業ツリーは`/Users/masato/Documents/librepaint-r2-g75-convolution-kernel`、予定ブランチは
+- 畳み込みkernel担当は`implementing`である。基点は`36524eb4aea47c8a93daa62ef53e23cf50876409`、
+  作業ツリーは`/Users/masato/Documents/librepaint-r2-g75-convolution-kernel`、ブランチは
   `r2-g75-convolution-kernel`、統合順は2である。対象は`libs/image/kis_convolution_kernel.h`の15 APIである。
   開始ファイル`libs/image/kis_convolution_kernel.cc`を`kritaimage_LIB_SRCS`の直接収容から
   `kritaimageconvolutionkernelobjects`へ移し、製品`kritaimage`へ一度だけ再集約する。mask生成器の
   width・height・値取得は新規非公開`libs/image/KisConvolutionKernelMaskAccess_p.h`へ宣言し、製品定義を
   既存所有元`libs/image/kis_base_mask_generator.cpp`、試験定義を新規
   `libs/image/tests/KisConvolutionKernelContractTest.cpp`へ置く。構築・変形、matrix・画像・mask各生成、
-  仮想寿命、診断出力を5契約枠で固定し、15 APIを`maintained`へ分類する。限定構築は計画承認まで待機し、
-  予測閉包6工程・13入力、停止条件7工程・15入力、製品閉包1,184工程・2,392入力不変を要求する。許可範囲は
+  仮想寿命、診断出力を5契約枠で固定し、15 APIを`maintained`へ分類する。限定構築を許可し、予測閉包
+  6工程・13入力、停止条件7工程・15入力、製品閉包1,184工程・2,392入力不変を要求する。許可範囲は
   `libs/image/CMakeLists.txt`、開始実装、新規非公開header、既存mask生成器実装、`libs/image/tests/CMakeLists.txt`、
   新規試験である。
-- 色空間engine担当は`preparing`である。基点は`69861ba8c939c29969270dd8d72f224904abc68b`、
-  予定作業ツリーは`/Users/masato/Documents/librepaint-r2-g75-color-space-engine`、予定ブランチは
+- 色空間engine担当は`implementing`である。基点は`36524eb4aea47c8a93daa62ef53e23cf50876409`、
+  作業ツリーは`/Users/masato/Documents/librepaint-r2-g75-color-space-engine`、ブランチは
   `r2-g75-color-space-engine`、統合順は3である。対象は`libs/pigment/KoColorSpaceEngine.h`の14 APIである。
   開始ファイル`libs/pigment/KoColorSpaceEngine.cpp`を`kritapigment_SRCS`の直接収容から
   `kritapigmentcolorspaceengineobjects`へ移し、製品`kritapigment`へ一度だけ再集約する。新規
   `libs/pigment/tests/KoColorSpaceEngineContractTest.cpp`がUnicode識別値と寿命、profile操作の仮想配送、
   色空間対応判定、局所registry所有とsingleton同一性を4契約枠で固定し、14 APIを`maintained`へ分類する。
-  限定構築は計画承認まで待機し、予測閉包5工程・11入力、停止条件6工程・14入力、製品閉包360工程・750入力
+  限定構築を許可し、予測閉包5工程・11入力、停止条件6工程・14入力、製品閉包360工程・750入力
   不変を要求する。許可範囲は`libs/pigment/CMakeLists.txt`、`libs/pigment/tests/CMakeLists.txt`、新規試験だけである。
 - 3担当はgit commitで受渡しし、再委任しない。中央進捗文書、公開API対応表、不足一覧は調整担当だけが
   更新する。担当差分の統合直後に担当作業ツリー、局所構築木、担当ブランチを削除する。旧不足一覧は
@@ -84,8 +84,8 @@
 
 ### 次の操作
 
-- 第75並列便の担当票を高速検査で固定してコミットする。3担当作業ツリーを同じ計画コミットから作成し、
-  基点と清浄状態を確認した後に実装許可を記録して、限定構築と挙動契約の実装へ進む。
+- 第75並列便の3担当は、各停止条件内で対象限定の構築計画を測り、最小の挙動契約を実装して担当コミットを渡す。
+  調整担当は統合順に差分を確認し、統合直後に各担当の作業ツリー、局所構築木、ブランチを削除する。
 
 ## 再開環境
 
