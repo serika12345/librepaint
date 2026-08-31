@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 21289
+    "expectedMissingApis": 21241
   },
   "contracts": [
     {
@@ -27887,6 +27887,153 @@
         "function:getSaturation(TReal r,TReal g,TReal b)",
         "function:setLightness(TReal & r,TReal & g,TReal & b,TReal light)",
         "function:setSaturation(TReal & r,TReal & g,TReal & b,TReal sat)"
+      ]
+    },
+    {
+      "target": "KoShapePaintOrderCommandContractTest",
+      "source": "libs/flake/tests/KoShapePaintOrderCommandContractTest.cpp",
+      "test": "KoShapePaintOrderCommandContractTest::capturesOriginalOrderInheritanceParentAndBorrowedLifetime",
+      "behavior": "形状描画順commandは入力形状の順序、各形状の元描画順と継承状態、親commandを構築時に保持し、形状を借用したまま仮想寿命を終える。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoShapePaintOrderCommand",
+        "method:KoShapePaintOrderCommand::KoShapePaintOrderCommand(const QList<KoShape * > & shapes,KoShape::PaintOrder first,KoShape::PaintOrder second,KUndo2Command * parent=nullptr)",
+        "method:KoShapePaintOrderCommand::~KoShapePaintOrderCommand()"
+      ]
+    },
+    {
+      "target": "KoShapePaintOrderCommandContractTest",
+      "source": "libs/flake/tests/KoShapePaintOrderCommandContractTest.cpp",
+      "test": "KoShapePaintOrderCommandContractTest::redoAndUndoApplyOrdersInShapeSequence",
+      "behavior": "形状描画順commandのredoは新しい二つの順序を入力形状順に設定し、undoは構築時の二つの順序と継承状態を同じ順序で復元する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShapePaintOrderCommand::redo()",
+        "method:KoShapePaintOrderCommand::undo()"
+      ]
+    },
+    {
+      "target": "KoShapePaintOrderCommandContractTest",
+      "source": "libs/flake/tests/KoShapePaintOrderCommandContractTest.cpp",
+      "test": "KoShapePaintOrderCommandContractTest::mergeAdoptsOnlyMatchingShapeSequence",
+      "behavior": "形状描画順commandの統合は同じ形状列だけを受理し、元のundo値を保ったまま後続commandの新描画順を次のredoへ採用する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShapePaintOrderCommand::mergeWith(const KUndo2Command * command)"
+      ]
+    },
+    {
+      "target": "KoShapePaintOrderCommandContractTest",
+      "source": "libs/flake/tests/KoShapePaintOrderCommandContractTest.cpp",
+      "test": "KoShapePaintOrderCommandContractTest::emptySequenceIsStableAndReportsCommandId",
+      "behavior": "空の形状列はredoとundoで基底commandだけを配送し、形状描画順変更の安定したcommand識別子を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShapePaintOrderCommand::id() const"
+      ]
+    },
+    {
+      "target": "KisTileCompressorFactoryContractTest",
+      "source": "libs/image/tiles3/tests/KisTileCompressorFactoryContractTest.cpp",
+      "test": "KisTileCompressorFactoryContractTest::abstractTypeAndSharedOwnershipHaveVirtualLifetime",
+      "behavior": "抽象tile圧縮器は抽象多態型として共有所有され、最後の共有参照が解放された時に派生個体を一度だけ仮想破棄する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisAbstractTileCompressorSP",
+        "class:KisAbstractTileCompressor",
+        "method:KisAbstractTileCompressor::KisAbstractTileCompressor()",
+        "method:KisAbstractTileCompressor::~KisAbstractTileCompressor()"
+      ]
+    },
+    {
+      "target": "KisTileCompressorFactoryContractTest",
+      "source": "libs/image/tiles3/tests/KisTileCompressorFactoryContractTest.cpp",
+      "test": "KisTileCompressorFactoryContractTest::streamOperationsPreserveArgumentsAndDispatchResults",
+      "behavior": "抽象tile圧縮器のstream操作はtile、writer、入力装置、data managerを同一の借用値として派生実装へ配送し、その成功値を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAbstractTileCompressor::readTile(QIODevice * stream,KisTiledDataManager * dm)",
+        "method:KisAbstractTileCompressor::writeTile(KisTileSP tile,KisPaintDeviceWriter & store)"
+      ]
+    },
+    {
+      "target": "KisTileCompressorFactoryContractTest",
+      "source": "libs/image/tiles3/tests/KisTileCompressorFactoryContractTest.cpp",
+      "test": "KisTileCompressorFactoryContractTest::bufferOperationsPreserveStorageSizesAndOutParameters",
+      "behavior": "抽象tile圧縮器のbuffer操作はtile data、buffer、容量を派生実装へ保って配送し、書込量の出力値、展開結果、必要容量を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAbstractTileCompressor::compressTileData(KisTileData * tileData,quint8 * buffer,qint32 bufferSize,qint32 & bytesWritten)",
+        "method:KisAbstractTileCompressor::decompressTileData(quint8 * buffer,qint32 bufferSize,KisTileData * tileData)",
+        "method:KisAbstractTileCompressor::tileDataBufferSize(KisTileData * tileData)"
+      ]
+    },
+    {
+      "target": "KoHistogramProducerContractTest",
+      "source": "libs/pigment/tests/KoHistogramProducerContractTest.cpp",
+      "test": "KoHistogramProducerContractTest::producerDefaultsAndLifetimePreserveExclusionState",
+      "behavior": "histogram生成器は透明画素と未選択画素を除外する既定状態を持ち、二つの設定を独立して変更して派生個体を仮想破棄する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoHistogramProducer",
+        "method:KoHistogramProducer::KoHistogramProducer()",
+        "method:KoHistogramProducer::setSkipTransparent(bool set)",
+        "method:KoHistogramProducer::setSkipUnselected(bool set)",
+        "method:KoHistogramProducer::~KoHistogramProducer()"
+      ]
+    },
+    {
+      "target": "KoHistogramProducerContractTest",
+      "source": "libs/pigment/tests/KoHistogramProducerContractTest.cpp",
+      "test": "KoHistogramProducerContractTest::producerVirtualDispatchPreservesArgumentsAndResults",
+      "behavior": "histogram生成器は画素・選択mask・色空間、表示範囲、channelとbin位置を派生実装へ保って配送し、識別子、channel列、bin情報、表示情報を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoHistogramProducer::addRegionToBin(const quint8 * pixels,const quint8 * selectionMask,quint32 nPixels,const KoColorSpace * colorSpace)",
+        "method:KoHistogramProducer::channels()",
+        "method:KoHistogramProducer::clear()",
+        "method:KoHistogramProducer::count()",
+        "method:KoHistogramProducer::getBinAt(qint32 channel,qint32 position)",
+        "method:KoHistogramProducer::id() const",
+        "method:KoHistogramProducer::maximalZoom() const",
+        "method:KoHistogramProducer::numberOfBins()",
+        "method:KoHistogramProducer::outOfViewLeft(qint32 channel)",
+        "method:KoHistogramProducer::outOfViewRight(qint32 channel)",
+        "method:KoHistogramProducer::positionToString(qreal pos) const",
+        "method:KoHistogramProducer::setView(qreal from,qreal width)",
+        "method:KoHistogramProducer::viewFrom() const",
+        "method:KoHistogramProducer::viewWidth() const"
+      ]
+    },
+    {
+      "target": "KoHistogramProducerContractTest",
+      "source": "libs/pigment/tests/KoHistogramProducerContractTest.cpp",
+      "test": "KoHistogramProducerContractTest::factoryValuesAndVirtualDispatchPreserveTokens",
+      "behavior": "histogram生成器factoryはUnicode識別子と表示名を値として保持し、生成、色空間互換性、厳密条件、優先度を派生実装へ配送する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoHistogramProducerFactory",
+        "method:KoHistogramProducerFactory::KoHistogramProducerFactory(const KoID & id)",
+        "method:KoHistogramProducerFactory::generate()",
+        "method:KoHistogramProducerFactory::id() const",
+        "method:KoHistogramProducerFactory::isCompatibleWith(const KoColorSpace * colorSpace,bool strict=false) const",
+        "method:KoHistogramProducerFactory::name() const",
+        "method:KoHistogramProducerFactory::preferrednessLevelWith(const KoColorSpace * colorSpace) const",
+        "method:KoHistogramProducerFactory::~KoHistogramProducerFactory()"
+      ]
+    },
+    {
+      "target": "KoHistogramProducerContractTest",
+      "source": "libs/pigment/tests/KoHistogramProducerContractTest.cpp",
+      "test": "KoHistogramProducerContractTest::registryFiltersSortsAndOwnsFactories",
+      "behavior": "histogram factory registryは登録factoryを所有し、色空間互換性と厳密条件で選別して異なる優先度の降順に識別子を返し、singleton個体を一貫して公開する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoHistogramProducerFactoryRegistry",
+        "method:KoHistogramProducerFactoryRegistry::KoHistogramProducerFactoryRegistry()",
+        "method:KoHistogramProducerFactoryRegistry::instance()",
+        "method:KoHistogramProducerFactoryRegistry::keysCompatibleWith(const KoColorSpace * colorSpace,bool isStrict=false) const",
+        "method:KoHistogramProducerFactoryRegistry::~KoHistogramProducerFactoryRegistry()"
       ]
     }
   ]
