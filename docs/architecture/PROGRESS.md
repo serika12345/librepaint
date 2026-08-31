@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 06:02 JST
+- 更新日時: 2026-09-01 06:08 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -39,6 +39,31 @@
 - 調整担当の追加読み取り監査は`plugins/impex/xcf/3rdparty/xcftools/xcftools.h`の`rect`、`tileDimensions`、`xcfTiles`、`xcfLayer`、`xcfImage`に属する
   structとmember全39 APIを代替候補として採用した。値初期化、符号・寸法・入れ子値、借用pointer値、copy独立性を4枠で観測できる。製品sourceを使わず、
   新規`XcfToolsValueContractTest`をQt Testだけに接続する予測4工程・8入力、停止5工程・11入力とする。関数、外部変数、OS由来の型別名は対象外に残す。
+
+### 第101並列便の担当計画
+
+- 実装共通基点は`c3cfab72ed3bc2e63ab07d18836dd72fbf048900`、構築許可は`granted`、Git権限は許可pathだけの`transport-commit`である。
+- `g101-psd-text-values`は`planned`で、専用作業ツリーを`/Users/masato/Documents/librepaint-g101-psd-text-values`とする。対象は
+  `libs/psd/psd_additional_layer_info_block.h`の`psd_layer_type_face` 8 API、`psd_layer_type_style` 10 API、`psd_layer_type_line` 6 API、
+  `psd_layer_type_tool` 14 API、`psd_layer_type_shape` 14 APIの合計52 APIである。許可pathは既存
+  `libs/psdutils/tests/PsdFormatValuesContractTest.cpp`だけで、5枠を追加する。予測4工程・9入力、停止5工程・12入力、製品`kritapsd`不変とする。
+- `g101-xcf-record-values`は`planned`で、専用作業ツリーを`/Users/masato/Documents/librepaint-g101-xcf-record-values`とする。対象は
+  `plugins/impex/xcf/3rdparty/xcftools/xcftools.h`の`rect` 5 API、`tileDimensions` 7 API、`xcfTiles` 4 API、`xcfLayer` 14 API、`xcfImage` 9 APIの
+  合計39 APIである。許可pathは`plugins/impex/xcf/tests/CMakeLists.txt`と新規`plugins/impex/xcf/tests/XcfToolsValueContractTest.cpp`だけで、Qt Core・Testと
+  対象header面だけの新規4枠を作る。予測4工程・8入力、停止5工程・11入力、製品`xcftools`と`kritaxcfimport`不変とする。
+- `g101-global-algebra-rect-values`は`planned`で、専用作業ツリーを`/Users/masato/Documents/librepaint-g101-global-algebra-rect-values`とする。対象は
+  `libs/global/kis_algebra_2d.h`の矩形蓄積10 API、寸法・制限6 API、標本化・近似5 API、切断・写像3 API、許容差判定5 APIの合計29 APIである。開始
+  `libs/global/kis_algebra_2d.cpp`から該当実装だけを新規`libs/global/kis_algebra_2d_rect.cpp`へ本文を変えず移し、
+  `kritaglobalalgebrarectobjects`として製品へ一回再集約する。許可pathは両source、`libs/global/CMakeLists.txt`、
+  `libs/global/tests/KisAlgebraGeometryPrimitivesContractTest.cpp`、`libs/global/tests/CMakeLists.txt`である。予測対象6工程・13入力、停止7工程・16入力、
+  予測製品69工程・138入力、停止70工程・141入力とする。収集器由来の局所識別子4件を検査器が拒否する場合は除外し、残る25 APIで続ける。
+- 3担当の対象プラットフォームはmacOSである。専用Git worktreeとworktree-local `build/tdd-macos`を使い、各lane内の
+  `./scripts/run-shared-test-env`から主環境とcompiler cacheを共有する。変更なし計画と直接依存を先に測定し、未知対象または未知試験の初期診断、追加枠、
+  全対象CTest、20回反復、軽量近傍、無作業再構築、動的接続、変更source構文、公開API検査、`verify-quick`まで実行する。台帳と進捗は調整担当が所有し、
+  統合順はPSDテキスト値、XCF記録値、矩形代数値とする。
+- 許可path外、新規公開API、製品source二重収容、停止線超過、製品shared library、`kritatestsdk`、実画像・canvas・application設定・registry・
+  filesystem、未分類の生pointer所有へ到達した担当は停止する。担当は追加委任せず、許可pathだけをcommitして完全なAPI対応、初期診断、閉包、検証、
+  容量を報告する。統合後は局所構築木を含む担当作業ツリーと旧不足一覧を直ちに削除する。
 
 ### 第100並列便の監査計画
 
