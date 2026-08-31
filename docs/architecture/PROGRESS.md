@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 01:03 JST
+- 更新日時: 2026-09-01 01:08 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -11,10 +11,13 @@
 
 ### 第94便の先行監査計画
 
-- `g94-brush-audit`は`in_progress`の読み取り専用監査である。基点は`2cef0808b6686f6e335862e08cdfbacc65266976`、入力は
+- `g94-brush-audit`は`completed`の読み取り専用監査である。基点は`2cef0808b6686f6e335862e08cdfbacc65266976`、入力は
   `build/tdd-macos/public-api-missing-g93.json`、範囲は`libs/brush`である。既存軽量対象の拡張または一つのsourceのOBJECT一対一移動だけで、
   12 API以上を状態、値、往復、寿命の最大5枠へ固定できる候補を選ぶ。製品shared library、Qt Widgets、`kritatestsdk`、実画像・色空間、
   filesystem、乱数未固定の候補は採用しない。編集、構築、テスト、Git操作、追加委任は行わない。
+- 条件を満たすbrush候補はなかった。最も近い`KisBrushModel.h`の残り28 APIは`KoResourceSignature.cpp`の軽量OBJECTに加えて、登録簿、設定、
+  XML、翻訳処理が混在する`KisBrushModel.cpp`の責任分割を先に要し、一つのsource移動を超える。ほかの候補は実画像、色空間、filesystem、
+  Qt Widgets、またはImathへ接続するため、第94便のbrush実装担当は立てない。
 
 ### 第93並列便の監査計画
 
@@ -38,7 +41,7 @@
   `kritaimagedonothingprocessingvisitorobjects`へ一対一移動し、`kritaimage`へ1回だけ再集約する。許可pathは`libs/image/CMakeLists.txt`、
   開始source、`libs/image/tests/CMakeLists.txt`、新規`libs/image/tests/KisDoNothingProcessingVisitorContractTest.cpp`である。node・layer群、生成・外部layer群、
   mask群、仮想寿命の4枠で無作用を固定する。予測10工程・16入力、停止11工程・19入力、製品`kritaimage` 1,189工程・2,397入力不変とする。
-- `g93-painting-async-update`は`in_progress`で、専用作業ツリーは
+- `g93-painting-async-update`は`integrated`で、専用作業ツリーは
   `/Users/masato/Documents/librepaint-g93-painting-async-update`である。対象headerは`libs/painting/KisAsynchronousStrokeUpdateHelper.h`のUpdateData値・複製、helper寿命、
   低水準開始、独自factory、終了・取消の全15 APIである。開始ファイル`libs/painting/KisAsynchronousStrokeUpdateHelper.cpp`を
   `kritapainting_LIB_SRCS`から新規`kritapaintingasyncstrokeupdatehelperobjects`へ一対一移動し、`kritapainting`へ1回だけ再集約する。許可pathは
@@ -61,8 +64,18 @@
   `libs/image/tests/KisDoNothingProcessingVisitorContractTest.cpp`の4契約枠で、基底nodeとlayer群、生成・外部layer群、mask群へのnull入力の
   無作用と、処理visitor基底からの仮想破棄を固定した。14 APIを追加し、対象11工程・18入力、製品`kritaimage` 1,189工程・2,397入力を
   維持した。主環境で対象と`KisImageInterfacesContractTest`、対象20回反復、無作業再構築、動的接続、公開API検査に成功し、対応済みは
-  9,536件、未対応は20,302件となった。受渡し差分同一性と担当作業ツリーのcleanを確認した。担当作業ツリー835 MBの削除後、次に
-  `g93-painting-async-update`を統合する。
+  9,536件、未対応は20,302件となった。受渡し差分同一性と担当作業ツリーのcleanを確認後、局所構築木264 MBを含む担当作業ツリー
+  835 MBと担当branchを削除した。
+- `g93-painting-async-update`は受渡しcommit `077e74a66af99845295b445893982c564e5a3f3a`を統合commit `9f1c9cb233`として取り込んだ。
+  開始ファイル`libs/painting/KisAsynchronousStrokeUpdateHelper.cpp`を`kritapainting_LIB_SRCS`から
+  `kritapaintingasyncstrokeupdatehelperobjects`へ移し、`kritapainting`へ1回だけ再集約した。製品MOCは同headerを共有libraryのsourceとして明示し、
+  試験MOCは新対象だけが所有する。新規`libs/painting/tests/KisAsynchronousStrokeUpdateHelperContractTest.cpp`の5契約枠で、更新dataの値と複製、
+  helperの初期状態と寿命、低水準開始の周期配送、一括開始と独自factory、終了の最終強制更新と取消を固定した。15 APIを追加し、対象6工程・
+  13入力、製品`kritapainting` 1,206工程・2,434入力を維持した。主環境で対象と`KisStrokeJobContractTest`、対象20回反復、無作業再構築、
+  動的接続、公開API検査に成功した。受渡し差分同一性と担当作業ツリーのcleanを確認した。
+- 第93便は合計29 APIを9契約枠へ追加し、公開面は1,549ヘッダー、29,838 API、対応済み9,551件、未対応20,287件、契約枠2,317件となった。
+  非同期更新担当の局所構築木263 MBを含む担当作業ツリー834 MBと担当branch、直前の不足一覧を削除する。5.2 GBの主増分構築木と共有
+  compiler cache、最新`build/tdd-macos/public-api-missing-g94.json`だけを保持する。次は第94便のbrush以外の限定構築候補を並列監査する。
 
 ### 第92並列便の監査計画
 

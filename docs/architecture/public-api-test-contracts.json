@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 20302
+    "expectedMissingApis": 20287
   },
   "contracts": [
     {
@@ -30988,6 +30988,66 @@
       "apis": [
         "class:KisDoNothingProcessingVisitor",
         "method:KisDoNothingProcessingVisitor::~KisDoNothingProcessingVisitor()"
+      ]
+    },
+    {
+      "target": "KisAsynchronousStrokeUpdateHelperContractTest",
+      "source": "libs/painting/tests/KisAsynchronousStrokeUpdateHelperContractTest.cpp",
+      "test": "KisAsynchronousStrokeUpdateHelperContractTest::updateDataPreservesSchedulingAndForceAcrossClone",
+      "behavior": "非同期更新dataは既定または指定した順序性、排他性、強制更新値を保持し、描画詳細度cloneへ同じ値を独立した所有物として引き継ぐ。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisAsynchronousStrokeUpdateHelper::UpdateDataFactory",
+        "class:KisAsynchronousStrokeUpdateHelper::UpdateData",
+        "member:KisAsynchronousStrokeUpdateHelper::UpdateData::forceUpdate",
+        "method:KisAsynchronousStrokeUpdateHelper::UpdateData::UpdateData(bool _forceUpdate,Sequentiality sequentiality=SEQUENTIAL,Exclusivity exclusivity=NORMAL)",
+        "method:KisAsynchronousStrokeUpdateHelper::UpdateData::createLodClone(int levelOfDetail)"
+      ]
+    },
+    {
+      "target": "KisAsynchronousStrokeUpdateHelperContractTest",
+      "source": "libs/painting/tests/KisAsynchronousStrokeUpdateHelperContractTest.cpp",
+      "test": "KisAsynchronousStrokeUpdateHelperContractTest::constructionStartsInactiveAndQObjectLifetimeIsVirtual",
+      "behavior": "非同期更新helperは停止状態で構築され、QObject基底からの破棄で対象を一度だけ消滅させる。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisAsynchronousStrokeUpdateHelper",
+        "method:KisAsynchronousStrokeUpdateHelper::KisAsynchronousStrokeUpdateHelper()",
+        "method:KisAsynchronousStrokeUpdateHelper::isActive() const",
+        "method:KisAsynchronousStrokeUpdateHelper::~KisAsynchronousStrokeUpdateHelper()"
+      ]
+    },
+    {
+      "target": "KisAsynchronousStrokeUpdateHelperContractTest",
+      "source": "libs/painting/tests/KisAsynchronousStrokeUpdateHelperContractTest.cpp",
+      "test": "KisAsynchronousStrokeUpdateHelperContractTest::lowLevelInitializationAndStartDeliverPeriodicUpdates",
+      "behavior": "低水準初期化は借用stroke配送先と弱参照識別子を保持してactiveとなり、低水準開始後は同じ識別子へ非強制更新dataを周期配送する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAsynchronousStrokeUpdateHelper::initUpdateStreamLowLevel(KisStrokesFacade * strokesFacade,KisStrokeId strokeId)",
+        "method:KisAsynchronousStrokeUpdateHelper::startUpdateStreamLowLevel()"
+      ]
+    },
+    {
+      "target": "KisAsynchronousStrokeUpdateHelperContractTest",
+      "source": "libs/painting/tests/KisAsynchronousStrokeUpdateHelperContractTest.cpp",
+      "test": "KisAsynchronousStrokeUpdateHelperContractTest::convenienceStartAndCustomFactoryForwardBorrowedState",
+      "behavior": "一括開始は初期化と周期開始を行い、独自factoryへ更新種別を渡して生成したdataを同じ借用配送先とstroke識別子へ送る。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAsynchronousStrokeUpdateHelper::setCustomUpdateDataFactory(UpdateDataFactory factory)",
+        "method:KisAsynchronousStrokeUpdateHelper::startUpdateStream(KisStrokesFacade * strokesFacade,KisStrokeId strokeId)"
+      ]
+    },
+    {
+      "target": "KisAsynchronousStrokeUpdateHelperContractTest",
+      "source": "libs/painting/tests/KisAsynchronousStrokeUpdateHelperContractTest.cpp",
+      "test": "KisAsynchronousStrokeUpdateHelperContractTest::endForcesFinalUpdateAndCancelClearsState",
+      "behavior": "終了は強制更新dataを一件配送して状態を消去し、取消は追加配送せず状態を消去する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAsynchronousStrokeUpdateHelper::cancelUpdateStream()",
+        "method:KisAsynchronousStrokeUpdateHelper::endUpdateStream()"
       ]
     }
   ]
