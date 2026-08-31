@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-31 20:57 JST
+- 更新日時: 2026-08-31 21:12 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -11,23 +11,22 @@
 
 ### 第88並列便の担当票
 
-- `g88-flake-parameter-private`は`planned`である。基準commitは
-  `266f9f1ea9182670b3fddbb159121d401c1d51a7`、作業ツリーは
-  `/Users/masato/Documents/librepaint-r2-g19b-g88-flake-parameter-private`、担当ブランチは
-  `work/r2-g19b-g88-flake-parameter-private`である。対象は`libs/flake/KoParameterShape_p.h`の
-  `class:KoParameterShape::Private`、`member:KoParameterShape::Private::handles`、
-  `member:KoParameterShape::Private::parametric`、`method:KoParameterShape::Private::Private()`、
-  `method:KoParameterShape::Private::Private(const KoParameterShape::Private & rhs)`、
-  `method:KoParameterShape::Private::~Private()`の6 APIである。空handle列とparametric有効の既定値、複数点と順序を保つ
-  copy、copy後のhandle列とparametric値の独立変更、元個体破棄後のcopy寿命を3契約枠で固定する。開始ファイル
-  `libs/flake/KoParameterShape.cpp`冒頭のPrivate構築2定義を新規
-  `libs/flake/KoParameterShapePrivate.cpp`へ移し、`kritaflakeparametershapeprivateobjects`へ収容して製品
-  `kritaflake`へ一度だけ再集約する。本体実装は元ファイルに残す。最寄り契約は`KoPathPointDataContractTest`である。
-  許可範囲は`libs/flake/CMakeLists.txt`、開始実装、新規Private実装、`libs/flake/tests/CMakeLists.txt`、新規
-  `libs/flake/tests/KoParameterShapePrivateContractTest.cpp`である。予測閉包は4工程・9入力、停止条件は5工程・11入力超過、
-  実shape、Qt Widgets、製品共有library、`kritatestsdk`、公開API変更、許可外変更、二重定義である。製品閉包は
-  612工程・1,256入力から613工程・1,258入力までを許容する。この1工程・2入力は重量本体から外部利用値状態を独立した
-  コンパイル単位へ移して限定試験を可能にする必要コストであり、これを超える増加で停止する。
+- `g88-flake-parameter-private`は`rejected`である。`KoParameterShape::Private`の定義はexport指定を持つ一方、名前自体は
+  `libs/flake/KoParameterShape.h`の`private:`配下で宣言され、外部利用者は参照できない。試験が
+  `#define private public`を必要としたため公開挙動契約の対象ではなく、公開API抽出の誤検出と判定した。未コミット差分、
+  局所構築木269 MB、作業ツリー、担当ブランチを削除した。
+- `g88-public-api-private-scope`は`planned`である。基準commitは
+  `4998833a7d352a3f65c03c92bc879f66e1b12b1d`、作業ツリーは
+  `/Users/masato/Documents/librepaint-r2-g19b-g88-public-api-private-scope`、担当ブランチは
+  `work/r2-g19b-g88-public-api-private-scope`である。公開header内の非公開・派生限定の入れ子record前方宣言をctagsが
+  出力せず、別headerの完全定義とそのpublic memberを公開APIへ誤分類する問題を修正する。許可範囲は
+  `scripts/architecture/check_public_api_contracts.py`と`scripts/tests/test_public_api_contracts.py`である。試験fixtureは
+  private・protected・publicの入れ子recordを別定義し、前二者とその下位宣言だけが除外され、public入れ子recordと
+  `Private`という名前のnamespaceは維持されることを固定する。変換は前方record宣言を空定義へ一時変換してctagsのaccess
+  情報を取得し、private・protected tagだけを既存非公開scope集合へ加える。公開headerや製品source、中央台帳、公開APIの
+  個別例外一覧は変更しない。対象単体試験と全script単体試験を成功させ、新旧API集合差分を全件報告する。中央台帳同期前の
+  公開API検査と`verify-quick`はinventory driftだけを期待診断とし、それ以外の失敗、公開宣言の除去、namespace誤除外、
+  許可外変更で停止する。
 - `g88-image-layer-style-filter`は`planned`である。基準commitは同じ、作業ツリーは
   `/Users/masato/Documents/librepaint-r2-g19b-g88-image-layer-style-filter`、担当ブランチは
   `work/r2-g19b-g88-image-layer-style-filter`である。対象は`libs/image/layerstyles/kis_layer_style_filter.h`の
@@ -61,12 +60,13 @@
   新規`plugins/paintops/libpaintop/tests/KisScatterOptionDataContractTest.cpp`である。予測閉包は11工程・24入力、停止条件は
   12工程・27入力超過、runtime 1,281工程・2,582入力またはlibpaintop 2,097工程・4,192入力からの増加、実製品設定object、
   OpenEXR・Imath動的library、製品共有library、Qt Widgets、`kritatestsdk`、二重収容、公開API変更、許可外変更である。
-- 3担当の対象プラットフォームはmacOS、共有コンパイラーcacheは
+- 実装3担当の対象プラットフォームはmacOS、共有コンパイラーcacheは
   `/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`、構築実行許可は`granted`、Git操作権限は
-  `transport-commit`、追加委任は`forbidden`である。統合順はflake、image、paintopとする。担当ごとに独立作業ツリーと
-  `build/tdd-macos`を所有し、`./scripts/run-shared-test-env`から作業ツリー側のscriptを実行する。未登録targetの初回診断、
-  編集前計画と直接依存、限定対象、全契約枠、20回反復、軽量近傍、無作業再構築、動的依存、開始sourceの構文、担当内
-  `verify-quick`を確認する。中央文書、公開API対応表、不足一覧は調整担当だけが更新する。
+  `transport-commit`、追加委任は`forbidden`である。統合順は公開API抽出、image、paintopとする。担当ごとに独立作業ツリーを
+  所有し、C++担当はさらに作業ツリー内`build/tdd-macos`を所有して`./scripts/run-shared-test-env`から作業ツリー側のscriptを
+  実行する。C++担当は未登録targetの初回診断、編集前計画と直接依存、限定対象、全契約枠、20回反復、軽量近傍、無作業
+  再構築、動的依存、開始sourceの構文、担当内`verify-quick`を確認する。中央文書、公開API対応表、不足一覧は調整担当だけが
+  更新する。
 
 ### 第87並列便の完了結果
 
