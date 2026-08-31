@@ -23,6 +23,11 @@ private Q_SLOTS:
     void flagAliasesPreserveIndependentOptions();
     void fontKeywordTablesRemainStable();
     void propertyIdentifiersRemainContiguous();
+    void autoValuesDistinguishAutomaticAndNumericValues();
+    void autoLengthsPreserveUnitsAndValueSemantics();
+    void fontStylesCompareSlantOnlyForOblique();
+    void textTransformsOwnIndependentFlags();
+    void textIndentOwnsLengthAndLineFlags();
 };
 
 void KoSvgTextEnumContractTest::layoutEnumsRemainOrdered()
@@ -220,20 +225,17 @@ void KoSvgTextEnumContractTest::flagAliasesPreserveIndependentOptions()
     static_assert(std::is_same_v<KoSvgText::TextSpaceTrims, QFlags<KoSvgText::TextSpaceTrim>>);
     static_assert(std::is_same_v<KoSvgText::HangingPunctuations, QFlags<KoSvgText::HangingPunctuation>>);
 
-    const KoSvgText::TextDecorations decorations =
-        KoSvgText::DecorationUnderline | KoSvgText::DecorationLineThrough;
+    const KoSvgText::TextDecorations decorations = KoSvgText::DecorationUnderline | KoSvgText::DecorationLineThrough;
     QVERIFY(decorations.testFlag(KoSvgText::DecorationUnderline));
     QVERIFY(!decorations.testFlag(KoSvgText::DecorationOverline));
     QVERIFY(decorations.testFlag(KoSvgText::DecorationLineThrough));
 
-    const KoSvgText::TextSpaceTrims trims =
-        KoSvgText::DiscardBefore | KoSvgText::DiscardAfter;
+    const KoSvgText::TextSpaceTrims trims = KoSvgText::DiscardBefore | KoSvgText::DiscardAfter;
     QVERIFY(!trims.testFlag(KoSvgText::TrimInner));
     QVERIFY(trims.testFlag(KoSvgText::DiscardBefore));
     QVERIFY(trims.testFlag(KoSvgText::DiscardAfter));
 
-    const KoSvgText::HangingPunctuations hanging =
-        KoSvgText::HangFirst | KoSvgText::HangEnd | KoSvgText::HangForce;
+    const KoSvgText::HangingPunctuations hanging = KoSvgText::HangFirst | KoSvgText::HangEnd | KoSvgText::HangForce;
     QVERIFY(hanging.testFlag(KoSvgText::HangFirst));
     QVERIFY(!hanging.testFlag(KoSvgText::HangLast));
     QVERIFY(hanging.testFlag(KoSvgText::HangEnd));
@@ -333,6 +335,110 @@ void KoSvgTextEnumContractTest::propertyIdentifiersRemainContiguous()
     for (size_t i = 0; i < identifiers.size(); ++i) {
         QCOMPARE(identifiers[i], int(i));
     }
+}
+
+void KoSvgTextEnumContractTest::autoValuesDistinguishAutomaticAndNumericValues()
+{
+    KoSvgText::AutoValue automatic;
+    QVERIFY(automatic.isAuto);
+    QCOMPARE(automatic.customValue, 0.0);
+
+    KoSvgText::AutoValue anotherAutomatic;
+    anotherAutomatic.customValue = 91.0;
+    QVERIFY(automatic == anotherAutomatic);
+
+    const KoSvgText::AutoValue numeric(7.5);
+    QVERIFY(!numeric.isAuto);
+    QCOMPARE(numeric.customValue, 7.5);
+    QVERIFY(numeric != automatic);
+    QVERIFY(numeric == KoSvgText::AutoValue(7.5));
+}
+
+void KoSvgTextEnumContractTest::autoLengthsPreserveUnitsAndValueSemantics()
+{
+    const KoSvgText::AutoLengthPercentage automatic;
+    QVERIFY(automatic.isAuto);
+    QCOMPARE(automatic.length.value, 0.0);
+    QCOMPARE(int(automatic.length.unit), int(KoSvgText::CssLengthPercentage::Absolute));
+
+    const KoSvgText::CssLengthPercentage percentage(0.25, KoSvgText::CssLengthPercentage::Percentage);
+    const KoSvgText::AutoLengthPercentage copiedLength(percentage);
+    QVERIFY(!copiedLength.isAuto);
+    QVERIFY(copiedLength.length == percentage);
+
+    const KoSvgText::AutoLengthPercentage emLength(2.5, KoSvgText::CssLengthPercentage::Em);
+    QCOMPARE(emLength.length.value, 2.5);
+    QCOMPARE(int(emLength.length.unit), int(KoSvgText::CssLengthPercentage::Em));
+    QVERIFY(emLength == KoSvgText::AutoLengthPercentage(2.5, KoSvgText::CssLengthPercentage::Em));
+    QVERIFY(emLength != copiedLength);
+}
+
+void KoSvgTextEnumContractTest::fontStylesCompareSlantOnlyForOblique()
+{
+    KoSvgText::CssFontStyleData normal;
+    QCOMPARE(int(normal.style), int(QFont::StyleNormal));
+    QVERIFY(normal.slantValue.isAuto);
+
+    KoSvgText::CssFontStyleData anotherNormal;
+    anotherNormal.slantValue = KoSvgText::AutoValue(12.0);
+    QVERIFY(normal == anotherNormal);
+
+    KoSvgText::CssFontStyleData italic(QFont::StyleItalic);
+    QCOMPARE(int(italic.style), int(QFont::StyleItalic));
+    QVERIFY(italic != normal);
+
+    KoSvgText::CssFontStyleData oblique(QFont::StyleOblique);
+    oblique.slantValue = KoSvgText::AutoValue(8.0);
+    KoSvgText::CssFontStyleData otherOblique(QFont::StyleOblique);
+    otherOblique.slantValue = KoSvgText::AutoValue(9.0);
+    QVERIFY(oblique != otherOblique);
+    otherOblique.slantValue = KoSvgText::AutoValue(8.0);
+    QVERIFY(oblique == otherOblique);
+}
+
+void KoSvgTextEnumContractTest::textTransformsOwnIndependentFlags()
+{
+    const KoSvgText::TextTransformInfo defaults;
+    QCOMPARE(int(defaults.capitals), int(KoSvgText::TextTransformNone));
+    QVERIFY(!defaults.fullWidth);
+    QVERIFY(!defaults.fullSizeKana);
+
+    KoSvgText::TextTransformInfo transformed;
+    transformed.capitals = KoSvgText::TextTransformUppercase;
+    transformed.fullWidth = true;
+    transformed.fullSizeKana = true;
+    QCOMPARE(int(transformed.capitals), int(KoSvgText::TextTransformUppercase));
+    QVERIFY(transformed.fullWidth);
+    QVERIFY(transformed.fullSizeKana);
+    QVERIFY(transformed != defaults);
+
+    KoSvgText::TextTransformInfo copy = transformed;
+    QVERIFY(copy == transformed);
+    copy.fullWidth = false;
+    QVERIFY(copy != transformed);
+}
+
+void KoSvgTextEnumContractTest::textIndentOwnsLengthAndLineFlags()
+{
+    const KoSvgText::TextIndentInfo defaults;
+    QVERIFY(defaults.length == KoSvgText::CssLengthPercentage());
+    QVERIFY(!defaults.hanging);
+    QVERIFY(!defaults.eachLine);
+
+    KoSvgText::TextIndentInfo indent;
+    indent.length = KoSvgText::CssLengthPercentage(1.75, KoSvgText::CssLengthPercentage::Em);
+    indent.hanging = true;
+    indent.eachLine = true;
+    QCOMPARE(indent.length.value, 1.75);
+    QCOMPARE(int(indent.length.unit), int(KoSvgText::CssLengthPercentage::Em));
+    QVERIFY(indent.hanging);
+    QVERIFY(indent.eachLine);
+    QVERIFY(indent != defaults);
+
+    KoSvgText::TextIndentInfo copy = indent;
+    QVERIFY(copy == indent);
+    copy.eachLine = false;
+    QVERIFY(copy != indent);
 }
 
 QTEST_GUILESS_MAIN(KoSvgTextEnumContractTest)
