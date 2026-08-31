@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 05:54 JST
+- 更新日時: 2026-09-01 06:02 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -27,6 +27,18 @@
 - 各報告は完全なAPI識別子、観測する現行挙動、最大5契約枠、最寄りCTest、所有CMake、直接依存、変更なし閉包、予測閉包と停止線、開始pathから
   移動先pathへの対応、許可path、固有停止条件を含む。候補がない場合は最接近候補と棄却根拠を数値で報告する。3監査後にpath、CMake、試験source、
   生成物が重ならない候補だけを実装担当票へ進める。
+- `g101-psd-additional-values-audit`はテキストレイヤーのface、style、line、tool、shape値記録から、生pointerとCOS/ASL経路を除く全52 APIを採用した。
+  固定文字列、符号付き書式値、行値、変換・配置・色、shape setterと値copyを5枠で固定できる。既存`PsdFormatValuesContractTest`だけを変更し、
+  4工程・9入力、停止5工程・12入力、製品`kritapsd`不変とする。
+- `g101-ui-guides-config-audit`は条件を満たす候補なしで完了した。`KisGuidesConfig`の既定構築が`KisConfig`から大域設定を読み、XML読込と既定値判定も
+  同経路へ接続するため、値面の生成だけでapplication設定と外部状態を要求する。挙動を変えない一source移動では分離できず、単独で固定できる線種列挙
+  4 APIは最低数に届かない。
+- `g101-global-algebra-values-audit`は矩形の蓄積・標本化・近似・切断・座標写像・許容差判定の29 APIを採用した。開始
+  `libs/global/kis_algebra_2d.cpp`から矩形実装だけを新規`libs/global/kis_algebra_2d_rect.cpp`へ移し、専用OBJECTとして一回再集約する。既存
+  `KisAlgebraGeometryPrimitivesContractTest`へ5枠を追加し、予測6工程・13入力、停止7工程・16入力、製品`kritaglobal`は予測69工程・138入力とする。
+- 調整担当の追加読み取り監査は`plugins/impex/xcf/3rdparty/xcftools/xcftools.h`の`rect`、`tileDimensions`、`xcfTiles`、`xcfLayer`、`xcfImage`に属する
+  structとmember全39 APIを代替候補として採用した。値初期化、符号・寸法・入れ子値、借用pointer値、copy独立性を4枠で観測できる。製品sourceを使わず、
+  新規`XcfToolsValueContractTest`をQt Testだけに接続する予測4工程・8入力、停止5工程・11入力とする。関数、外部変数、OS由来の型別名は対象外に残す。
 
 ### 第100並列便の監査計画
 
