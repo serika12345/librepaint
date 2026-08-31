@@ -82,6 +82,7 @@ kis_add_test(
     KisAlgebraGeometryPrimitivesContractTest.cpp
     LINK_LIBRARIES
         kritaglobalalgebradirectionobjects
+        kritaglobalalgebrarectobjects
         Qt${QT_MAJOR_VERSION}::Core
         Qt${QT_MAJOR_VERSION}::Gui
         Qt${QT_MAJOR_VERSION}::Test

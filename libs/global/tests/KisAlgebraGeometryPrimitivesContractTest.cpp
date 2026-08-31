@@ -8,6 +8,7 @@
 #include <QTest>
 
 #include <cmath>
+#include <type_traits>
 
 namespace
 {
@@ -45,6 +46,11 @@ private Q_SLOTS:
     void vectorPathPointConstructionOwnsGeometry();
     void vectorPathPointFactoriesAssignTypesAndControls();
     void segmentsProjectEndpointGeometryAndOwnValues();
+    void rectanglePointTraitsAndBoundsAccumulateExtrema();
+    void rectangleSizingAndClampingPreserveCoordinateSemantics();
+    void rectangleSamplingAndApproximationCaptureExtrema();
+    void rectangleClippingAndUnitMappingsPreserveArea();
+    void rectangleComparisonsRecognizeToleranceAndPixelAlignment();
 };
 
 void KisAlgebraGeometryPrimitivesContractTest::rightHalfPlaneReportsSignedDistanceAndLine()
@@ -313,6 +319,139 @@ void KisAlgebraGeometryPrimitivesContractTest::segmentsProjectEndpointGeometryAn
     QCOMPARE(segment.controlPoint1, QPointF(4.0, 5.0));
     QCOMPARE(segment.controlPoint2, QPointF(6.0, 7.0));
     QCOMPARE(int(segment.type), int(Point::BezierTo));
+}
+
+void KisAlgebraGeometryPrimitivesContractTest::rectanglePointTraitsAndBoundsAccumulateExtrema()
+{
+    static_assert(std::is_same_v<KisAlgebra2D::PointTypeTraits<QPoint>::value_type, int>);
+    static_assert(std::is_same_v<KisAlgebra2D::PointTypeTraits<QPoint>::calculation_type, qreal>);
+    static_assert(std::is_same_v<KisAlgebra2D::PointTypeTraits<QPoint>::rect_type, QRect>);
+    static_assert(std::is_same_v<KisAlgebra2D::PointTypeTraits<QPointF>::value_type, qreal>);
+    static_assert(std::is_same_v<KisAlgebra2D::PointTypeTraits<QPointF>::calculation_type, qreal>);
+    static_assert(std::is_same_v<KisAlgebra2D::PointTypeTraits<QPointF>::rect_type, QRectF>);
+
+    QRect integerBounds;
+    KisAlgebra2D::Private::resetEmptyRectangle(QPoint(3, -2), &integerBounds);
+    QCOMPARE(integerBounds, QRect(3, -2, 1, 1));
+    KisAlgebra2D::accumulateBounds(QPoint(-4, 8), &integerBounds);
+    QCOMPARE(integerBounds, QRect(QPoint(-4, -2), QPoint(3, 8)));
+    KisAlgebra2D::accumulateBoundsNonEmpty(QPoint(9, -6), &integerBounds);
+    QCOMPARE(integerBounds, QRect(QPoint(-4, -6), QPoint(9, 8)));
+
+    QRectF floatingBounds;
+    KisAlgebra2D::Private::resetEmptyRectangle(QPointF(1.5, -2.5), &floatingBounds);
+    QCOMPARE(floatingBounds.topLeft(), QPointF(1.5, -2.5));
+    QCOMPARE(floatingBounds.size(), QSizeF(1e-10, 1e-10));
+
+    const QVector<QPointF> points {
+        QPointF(-2.5, 4.0),
+        QPointF(7.0, -3.0),
+        QPointF(1.0, 8.0),
+    };
+    KisAlgebra2D::accumulateBounds(points, &floatingBounds);
+    QCOMPARE(floatingBounds, QRectF(QPointF(-2.5, -3.0), QPointF(7.0, 8.0)));
+    QCOMPARE(KisAlgebra2D::accumulateBounds(points),
+             QRectF(QPointF(-2.5, -3.0), QPointF(7.0, 8.0)));
+}
+
+void KisAlgebraGeometryPrimitivesContractTest::rectangleSizingAndClampingPreserveCoordinateSemantics()
+{
+    QCOMPARE(KisAlgebra2D::ensureRectNotSmaller(QRectF(3.0, 4.0, 2.0, 5.0), QSizeF(7.0, 3.0)),
+             QRectF(3.0, 4.0, 7.0, 5.0));
+    QCOMPARE(KisAlgebra2D::ensureRectNotSmaller(QRect(3, 4, 9, 8), QSize(7, 3)),
+             QRect(3, 4, 9, 8));
+
+    const QRect integerBounds(10, 20, 5, 7);
+    QCOMPARE(KisAlgebra2D::ensureInRect(QPoint(6, 30), integerBounds), QPoint(10, 26));
+    QCOMPARE(KisAlgebra2D::ensureInRect(QPoint(12, 23), integerBounds), QPoint(12, 23));
+
+    const QRectF floatingBounds(10.0, 20.0, 5.0, 7.0);
+    QCOMPARE(KisAlgebra2D::ensureInRect(QPointF(6.0, 30.0), floatingBounds), QPointF(10.0, 27.0));
+    QCOMPARE(KisAlgebra2D::ensureInRect(QPointF(12.5, 23.5), floatingBounds), QPointF(12.5, 23.5));
+}
+
+void KisAlgebraGeometryPrimitivesContractTest::rectangleSamplingAndApproximationCaptureExtrema()
+{
+    const QVector<QPoint> expectedIntegerSamples {
+        QPoint(0, 0), QPoint(4, 0), QPoint(8, 0),
+        QPoint(0, 2), QPoint(4, 2), QPoint(8, 2),
+        QPoint(0, 4), QPoint(4, 4), QPoint(8, 4),
+    };
+    QCOMPARE(KisAlgebra2D::sampleRectWithPoints(QRect(0, 0, 9, 5)), expectedIntegerSamples);
+
+    const QVector<QPointF> expectedFloatingSamples {
+        QPointF(0.0, 0.0), QPointF(4.0, 0.0), QPointF(8.0, 0.0),
+        QPointF(0.0, 2.0), QPointF(4.0, 2.0), QPointF(8.0, 2.0),
+        QPointF(0.0, 4.0), QPointF(4.0, 4.0), QPointF(8.0, 4.0),
+    };
+    QCOMPARE(KisAlgebra2D::sampleRectWithPoints(QRectF(0.0, 0.0, 8.0, 4.0)), expectedFloatingSamples);
+
+    const QVector<QPoint> integerPoints {QPoint(-2, -3), QPoint(4, 6), QPoint(1, 2)};
+    QCOMPARE(KisAlgebra2D::approximateRectFromPoints(integerPoints),
+             QRect(QPoint(-2, -3), QPoint(4, 6)));
+
+    const QVector<QPointF> floatingPoints {
+        QPointF(-2.5, -3.25), QPointF(4.75, 6.5), QPointF(1.0, 2.0),
+    };
+    QCOMPARE(KisAlgebra2D::approximateRectFromPoints(floatingPoints),
+             QRectF(QPointF(-2.5, -3.25), QPointF(4.75, 6.5)));
+
+    const QRect transformedBounds = KisAlgebra2D::approximateRectWithPointTransform(
+        QRect(0, 0, 9, 5),
+        [] (QPointF point) {
+            return point == QPointF(4.0, 2.0) ? QPointF(-20.0, 30.0) : point;
+        });
+    QCOMPARE(transformedBounds, QRect(QPoint(-20, 0), QPoint(8, 30)));
+}
+
+void KisAlgebraGeometryPrimitivesContractTest::rectangleClippingAndUnitMappingsPreserveArea()
+{
+    const QRectF rectangle(0.0, 0.0, 10.0, 10.0);
+    const KisAlgebra2D::RightHalfPlane rightOfCenter(QPointF(5.0, 10.0), QPointF(5.0, 0.0));
+    QCOMPARE(KisAlgebra2D::cutOffRect(rectangle, rightOfCenter), QRectF(5.0, 0.0, 5.0, 10.0));
+
+    const QRectF destination(10.0, 20.0, 40.0, 30.0);
+    const QTransform toDestination = KisAlgebra2D::mapToRect(destination);
+    QCOMPARE(toDestination.map(QPointF(0.0, 0.0)), destination.topLeft());
+    QCOMPARE(toDestination.map(QPointF(1.0, 1.0)), destination.bottomRight());
+
+    const QTransform fromDestination = KisAlgebra2D::mapToRectInverse(destination);
+    QVERIFY(closePoint(fromDestination.map(destination.topLeft()), QPointF(0.0, 0.0)));
+    QVERIFY(closePoint(fromDestination.map(destination.bottomRight()), QPointF(1.0, 1.0)));
+    QCOMPARE(KisAlgebra2D::mapToRectInverse(QRectF(4.0, 6.0, 0.0, 2.0)).map(QPointF(4.0, 8.0)),
+             QPointF(0.0, 1.0));
+}
+
+void KisAlgebraGeometryPrimitivesContractTest::rectangleComparisonsRecognizeToleranceAndPixelAlignment()
+{
+    QCOMPARE(KisAlgebra2D::abs(QPointF(-2.5, 3.0)), QPointF(2.5, 3.0));
+
+    const QRectF reference(1.0, 2.0, 8.0, 6.0);
+    QVERIFY(KisAlgebra2D::fuzzyCompareRects(reference, reference.translated(0.05, -0.05), 0.1));
+    QVERIFY(!KisAlgebra2D::fuzzyCompareRects(reference, reference.translated(0.1, 0.0), 0.1));
+
+    const QTransform matrix(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0);
+    const QTransform closeMatrix(1.05, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0);
+    const QTransform farMatrix(1.1, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0);
+    QVERIFY(KisAlgebra2D::fuzzyMatrixCompare(matrix, closeMatrix, 0.1));
+    QVERIFY(!KisAlgebra2D::fuzzyMatrixCompare(matrix, farMatrix, 0.1));
+
+    const QPolygonF rectangle {
+        QPointF(1.0, 2.0), QPointF(1.0, 8.0),
+        QPointF(9.0, 8.0), QPointF(9.0, 2.0),
+    };
+    QVERIFY(KisAlgebra2D::isPolygonRect(rectangle, 1e-12));
+    QPolygonF closedRectangle = rectangle;
+    closedRectangle << rectangle.first();
+    QVERIFY(KisAlgebra2D::isPolygonRect(closedRectangle, 1e-12));
+    QVERIFY(KisAlgebra2D::isPolygonPixelAlignedRect(rectangle, 1e-12));
+
+    const QPolygonF fractionalRectangle {
+        QPointF(1.25, 2.0), QPointF(1.25, 8.0),
+        QPointF(9.25, 8.0), QPointF(9.25, 2.0),
+    };
+    QVERIFY(KisAlgebra2D::isPolygonRect(fractionalRectangle, 1e-12));
+    QVERIFY(!KisAlgebra2D::isPolygonPixelAlignedRect(fractionalRectangle, 1e-12));
 }
 
 QTEST_GUILESS_MAIN(KisAlgebraGeometryPrimitivesContractTest)
