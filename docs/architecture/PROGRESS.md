@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 07:35 JST
+- 更新日時: 2026-09-01 07:44 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -29,6 +29,22 @@
 - 各報告は完全なAPI識別子、観測する現行挙動、最大5契約枠、最寄りCTest、所有CMake、直接依存、変更なし閉包、予測閉包と停止線、開始pathから
   移動先pathへの対応、許可path、固有停止条件を含む。候補がない場合は最接近候補と棄却根拠を数値で報告する。3監査後にpath、CMake、試験source、
   生成物が重ならない候補だけを実装担当票へ進める。第103便用不足一覧の生成後、第102便の最終不足一覧4.8 MBは削除済みである。
+- `g103-psd-core-values-audit`は`libs/psd/psd_additional_layer_info_block.h`の`psd_vector_stroke_data`値面全26 APIを採用した。既定値・copy、
+  scalar setter、QPen寸法・単位切替、cap・join名変換、dash値の下限・追加を既存`PsdFormatValuesContractTest`の5枠で固定できる。
+  試験sourceだけを変更し、予測4工程・9入力、停止5工程・12入力、製品`kritapsd` 1,973工程・3,944入力不変とする。ASL、shape stroke、
+  catcher・生pointer、実描画の4 APIは除外する。`psd.h`は単一責務の軽量面が24 API以下または色空間registryを要求し、`psd_resource_block.h`は
+  単一resourceが12 APIであるため棄却した。
+- `g103-widget-unit-manager-audit`は`KisSpinBoxUnitManager`の単位次元・制約18 API、list model 6 API、換算6 API、選択・signal 7 API、同期2 APIの
+  全39 APIを採用した。開始`libs/widgetutils/kis_spin_box_unit_manager.cpp`からfactoryのstatic builder状態と3本文を新規
+  `libs/widgetutils/KisSpinBoxUnitManagerFactory.cpp`へ移し、元sourceを`kritawidgetutilsspinboxunitmanagerobjects`の一対一所有とする。製品は新OBJECTを一回再集約し、
+  Q_OBJECTとmocの二重生成を避ける。新規`KisSpinBoxUnitManagerContractTest`の5枠、予測8工程・18入力、停止10工程・23入力、製品予測273工程・
+  579入力、停止は現状比+3工程・+6入力とする。factory・builderの大域所有7 APIは対象外とする。
+- `g103-pigment-profile-values-audit`は`KoColorProfile`の48 API中、assert経路の`getColorPrimaries()`を除く47 APIを採用した。メタデータ・非I/O既定値14 API、
+  copy・clone・識別6 API、能力flag 13 API、色基準値・名称6 API、transfer特性・値変換8 APIを試験内の具体fake派生と5枠に固定できる。開始
+  `libs/pigment/KoColorProfile.cpp`から`getColorPrimaries()`本文だけを新規`libs/pigment/KoColorProfilePrimaries.cpp`へ移し、残る元sourceを
+  `kritapigmentcolorprofileobjects`の所有とする。製品は両方を一回、新規`KoColorProfileValuesContractTest`はprofileと既存colorimetry OBJECTだけを収容する。
+  予測6工程・13入力、停止7工程・16入力、製品予測363工程・756入力、停止364工程・759入力とする。`KoColor`は構築からregistryを必要とし、
+  `KoCompositeOp`はregistry・pixel処理なしで最大20 APIのため棄却した。
 
 ### 第102並列便の監査計画
 
