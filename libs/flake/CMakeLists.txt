@@ -343,6 +343,36 @@ set_target_properties(kritaflakeshapemovecommandobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaflakeshapetransformcommandobjects OBJECT
+    commands/KoShapeTransformCommand.cpp
+)
+target_compile_definitions(kritaflakeshapetransformcommandobjects PRIVATE kritaflake_EXPORTS)
+if(BUILD_TESTING)
+    target_compile_definitions(kritaflakeshapetransformcommandobjects PRIVATE KRITAFLAKE_SHAPE_TRANSFORM_COMMAND_CONTRACT_TESTING)
+endif()
+target_include_directories(kritaflakeshapetransformcommandobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/commands>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/painting/undo>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/painting/undo>
+)
+target_link_libraries(kritaflakeshapetransformcommandobjects
+    PUBLIC
+        Boost::boost
+        KF${KF_MAJOR}::I18n
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Xml
+)
+set_target_properties(kritaflakeshapetransformcommandobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaflakeshapealigncommandobjects OBJECT
     commands/KoShapeAlignCommand.cpp
 )
@@ -1520,7 +1550,6 @@ set(kritaflake_SRCS
     commands/KoSubpathJoinCommand.cpp
     commands/KoParameterHandleMoveCommand.cpp
     commands/KoParameterToPathCommand.cpp
-    commands/KoShapeTransformCommand.cpp
     commands/KoPathPointMergeCommand.cpp
     commands/KoShapeClipCommand.cpp
     commands/KoShapeUnclipCommand.cpp
@@ -1617,6 +1646,7 @@ set(kritaflake_SRCS
     $<TARGET_OBJECTS:kritaflakeshapestrokemodelobjects>
     $<TARGET_OBJECTS:kritaflakeshapestrokecommandobjects>
     $<TARGET_OBJECTS:kritaflakeshapemovecommandobjects>
+    $<TARGET_OBJECTS:kritaflakeshapetransformcommandobjects>
     $<TARGET_OBJECTS:kritaflakeshapealigncommandobjects>
     $<TARGET_OBJECTS:kritaflakeshapedistributecommandobjects>
     $<TARGET_OBJECTS:kritaflakeinteractionstrategyfactoryobjects>
