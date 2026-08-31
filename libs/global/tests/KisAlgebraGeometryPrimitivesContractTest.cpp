@@ -41,6 +41,10 @@ private Q_SLOTS:
     void wrappingNormalizesIntegralFloatingAndShiftedRanges();
     void rectangleAndDimensionHelpersPreserveGeometry();
     void relativeAndAbsoluteConversionsRoundTripValues();
+    void vectorPathPointTypesAndDefaultsRemainStable();
+    void vectorPathPointConstructionOwnsGeometry();
+    void vectorPathPointFactoriesAssignTypesAndControls();
+    void segmentsProjectEndpointGeometryAndOwnValues();
 };
 
 void KisAlgebraGeometryPrimitivesContractTest::rightHalfPlaneReportsSignedDistanceAndLine()
@@ -229,6 +233,86 @@ void KisAlgebraGeometryPrimitivesContractTest::relativeAndAbsoluteConversionsRou
     const qreal absoluteValue = KisAlgebra2D::relativeToAbsolute(relativeValue, bounds);
     QVERIFY(closeReal(absoluteValue, 5.0 * std::sqrt(10.0)));
     QVERIFY(closeReal(KisAlgebra2D::absoluteToRelative(absoluteValue, bounds), relativeValue));
+}
+
+void KisAlgebraGeometryPrimitivesContractTest::vectorPathPointTypesAndDefaultsRemainStable()
+{
+    using Point = KisAlgebra2D::VectorPath::VectorPathPoint;
+    using Type = Point::Type;
+
+    QCOMPARE(int(Point::MoveTo), 0);
+    QCOMPARE(int(Point::LineTo), 1);
+    QCOMPARE(int(Point::BezierTo), 2);
+
+    const Point point;
+    QCOMPARE(int(point.type), int(Type::MoveTo));
+    QCOMPARE(point.endPoint, QPointF());
+    QCOMPARE(point.controlPoint1, QPointF());
+    QCOMPARE(point.controlPoint2, QPointF());
+}
+
+void KisAlgebraGeometryPrimitivesContractTest::vectorPathPointConstructionOwnsGeometry()
+{
+    using Point = KisAlgebra2D::VectorPath::VectorPathPoint;
+    QPointF end(8.0, 5.0);
+    QPointF control1(2.0, 3.0);
+    QPointF control2(6.0, 7.0);
+    const Point point(Point::BezierTo, end, control1, control2);
+
+    end = QPointF(-1.0, -1.0);
+    control1 = QPointF(-2.0, -2.0);
+    control2 = QPointF(-3.0, -3.0);
+
+    QCOMPARE(int(point.type), int(Point::BezierTo));
+    QCOMPARE(point.endPoint, QPointF(8.0, 5.0));
+    QCOMPARE(point.controlPoint1, QPointF(2.0, 3.0));
+    QCOMPARE(point.controlPoint2, QPointF(6.0, 7.0));
+}
+
+void KisAlgebraGeometryPrimitivesContractTest::vectorPathPointFactoriesAssignTypesAndControls()
+{
+    using Point = KisAlgebra2D::VectorPath::VectorPathPoint;
+
+    const Point move = Point::moveTo(QPointF(1.0, 2.0));
+    QCOMPARE(int(move.type), int(Point::MoveTo));
+    QCOMPARE(move.endPoint, QPointF(1.0, 2.0));
+    QCOMPARE(move.controlPoint1, QPointF());
+    QCOMPARE(move.controlPoint2, QPointF());
+
+    const Point line = Point::lineTo(QPointF(3.0, 4.0));
+    QCOMPARE(int(line.type), int(Point::LineTo));
+    QCOMPARE(line.endPoint, QPointF(3.0, 4.0));
+    QCOMPARE(line.controlPoint1, QPointF());
+    QCOMPARE(line.controlPoint2, QPointF());
+
+    const Point bezier = Point::bezierTo(QPointF(9.0, 8.0), QPointF(4.0, 5.0), QPointF(6.0, 7.0));
+    QCOMPARE(int(bezier.type), int(Point::BezierTo));
+    QCOMPARE(bezier.endPoint, QPointF(9.0, 8.0));
+    QCOMPARE(bezier.controlPoint1, QPointF(4.0, 5.0));
+    QCOMPARE(bezier.controlPoint2, QPointF(6.0, 7.0));
+}
+
+void KisAlgebraGeometryPrimitivesContractTest::segmentsProjectEndpointGeometryAndOwnValues()
+{
+    using Point = KisAlgebra2D::VectorPath::VectorPathPoint;
+    using Segment = KisAlgebra2D::VectorPath::Segment;
+
+    Point start = Point::moveTo(QPointF(1.0, 2.0));
+    Point end = Point::bezierTo(QPointF(9.0, 8.0), QPointF(4.0, 5.0), QPointF(6.0, 7.0));
+    const Segment segment(start, end);
+
+    start.endPoint = QPointF(-1.0, -2.0);
+    end.endPoint = QPointF(-9.0, -8.0);
+
+    QCOMPARE(int(segment.start.type), int(Point::MoveTo));
+    QCOMPARE(segment.start.endPoint, QPointF(1.0, 2.0));
+    QCOMPARE(int(segment.end.type), int(Point::BezierTo));
+    QCOMPARE(segment.end.endPoint, QPointF(9.0, 8.0));
+    QCOMPARE(segment.startPoint, QPointF(1.0, 2.0));
+    QCOMPARE(segment.endPoint, QPointF(9.0, 8.0));
+    QCOMPARE(segment.controlPoint1, QPointF(4.0, 5.0));
+    QCOMPARE(segment.controlPoint2, QPointF(6.0, 7.0));
+    QCOMPARE(int(segment.type), int(Point::BezierTo));
 }
 
 QTEST_GUILESS_MAIN(KisAlgebraGeometryPrimitivesContractTest)
