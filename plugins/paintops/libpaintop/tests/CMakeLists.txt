@@ -67,6 +67,18 @@ target_compile_definitions(KisAirbrushOptionDataContractTest PRIVATE
 )
 
 kis_add_test(
+    KisColorOptionDataContractTest.cpp
+    LINK_LIBRARIES
+        kritapaintopcoloroptiondataobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(KisColorOptionDataContractTest PRIVATE
+    kritaimage_EXPORTS
+    kritalibpaintop_EXPORTS
+    kritapigment_EXPORTS
+)
+
+kis_add_test(
     KisPaintingModeOptionDataContractTest.cpp
     LINK_LIBRARIES
         kritapaintoppaintingmodeoptiondataobjects

@@ -7,7 +7,6 @@ set(kritalibpaintop_LIB_SRCS
     kis_brush_option_widget.cpp
     kis_brush_option.cpp
     kis_brush_selection_widget.cpp
-    KisColorOptionData.cpp
     KisColorOptionWidget.cpp
     kis_color_source.cpp
     kis_color_source_option.cpp
@@ -209,6 +208,39 @@ target_link_libraries(kritapaintopairbrushoptiondataobjects
         ${LINK_OPENEXR_LIB}
 )
 set_target_properties(kritapaintopairbrushoptiondataobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritapaintopcoloroptiondataobjects OBJECT
+    KisColorOptionData.cpp
+)
+target_compile_definitions(kritapaintopcoloroptiondataobjects PRIVATE
+    kritaimage_EXPORTS
+    kritalibpaintop_EXPORTS
+    kritapigment_EXPORTS
+)
+target_include_directories(kritapaintopcoloroptiondataobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/image>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/image>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/pigment>
+)
+target_link_libraries(kritapaintopcoloroptiondataobjects
+    PUBLIC
+        Boost::boost
+        KF${KF_MAJOR}::I18n
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Eigen3::Eigen
+        ${LINK_OPENEXR_LIB}
+)
+set_target_properties(kritapaintopcoloroptiondataobjects PROPERTIES
     AUTOMOC OFF
     POSITION_INDEPENDENT_CODE ON
 )
@@ -633,6 +665,7 @@ target_link_libraries(kritapaintopruntime
 
 kis_add_library(kritalibpaintop SHARED
     ${kritalibpaintop_LIB_SRCS}
+    $<TARGET_OBJECTS:kritapaintopcoloroptiondataobjects>
     $<TARGET_OBJECTS:kritapaintopdynamicsensorfactoryobjects>
     $<TARGET_OBJECTS:kritapaintopfilteroptiondataobjects>
     $<TARGET_OBJECTS:kritapaintopruntime>
