@@ -79,6 +79,23 @@ kis_add_tests(
 )
 target_compile_definitions(kis_animation_render_dimensions_test PRIVATE kritaapplicationui_EXPORTS)
 
+kis_add_test(
+    KisMediaEncoderFormatAndSettingsContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KisMediaEncoderFormatAndSettingsContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/../animation
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_BINARY_DIR}/libs/application
+    ${CMAKE_BINARY_DIR}/libs/impex
+)
+target_compile_definitions(KisMediaEncoderFormatAndSettingsContractTest PRIVATE
+    kritaapplicationui_EXPORTS
+    kritaimpex_EXPORTS
+)
+
 kis_add_tests(
     kis_remote_file_fetcher_test.cpp
     TEST_NAMES_VAR remote_file_fetcher_test_names
