@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 02:43 JST
+- 更新日時: 2026-09-01 02:52 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -46,8 +46,8 @@
 ### 第96並列便の担当計画
 
 - 実装共通基点は`0c8271fa24d3995d1a4421d8662407e9c81dedc7`である。
-- `g96-assistant-perspective-helper`は`in_progress`で、専用作業ツリーは
-  `/Users/masato/Documents/librepaint-g96-assistant-perspective-helper`である。対象は
+- `g96-assistant-perspective-helper`は`integrated`で、削除済みの専用作業ツリーは
+  `/Users/masato/Documents/librepaint-g96-assistant-perspective-helper`であった。対象は
   `plugins/assistants/Assistants/PerspectiveBasedAssistantHelper.h`の`PerspectiveBasedAssistantHelper`、`CacheData`、`PerspectiveType` alias・enum・
   `None`・`OneVp`・`TwoVps`、`vanishingPoint1`・`vanishingPoint2`・`distancesFromPoints`・`maxDistanceFromPoint`・`horizon`・`polygon`・`type`、
   `pdot`、`localScale`、`inverseMaxLocalScale`、`getVanishingPointsOptional`、`updateCacheData`、`distanceInGrid(const CacheData &,const QPointF &)`の
@@ -76,6 +76,21 @@
   担当commitで、台帳と進捗は統合担当が所有する。許可path外、新規公開API、製品閉包増加、未割当て依存、停止線超過、製品shared library、
   Qt Widgets、`kritatestsdk`、実画面・画像・資源・filesystem・外部process、OS権限実体、製品意味論の試験内模倣が必要なら停止する。統合順は
   透視補助、媒体設定、macOS値とする。
+
+### 第96並列便の統合結果
+
+- `g96-assistant-perspective-helper`は受渡しcommit `69675cc980759025442cbef40a0ed5ed8f5d2886`を統合commit `fd82098898`として取り込んだ。
+  開始ファイル`plugins/assistants/Assistants/PerspectiveBasedAssistantHelper.cpp`を同`CMakeLists.txt`の`kritaassistanttool_SOURCES`直接収容から
+  新規AUTOMOC不要・PIC対応`kritaassistantperspectivehelperobjects`へ移し、製品`kritaassistanttool_static`へ一回だけ再集約した。開始sourceから
+  未使用の翻訳、描画、canvas、座標変換、Eigen、診断includeを除き、公開headerと製品意味論は変更していない。
+- 新規`plugins/assistants/Assistants/tests/PerspectiveBasedAssistantHelperContractTest.cpp`の3契約枠でcache既定値と3分類、垂直積と射影尺度、
+  平行四辺形・1消失点・2消失点のcache更新と距離正規化を固定し、純粋幾何20 APIを追加した。handle版3 APIは完成済み空一覧でのSIGSEGVと
+  `KisPaintingAssistantHandle`実体依存を分離する別担当へ残す。限定対象6工程・13入力、製品`kritaassistanttool_static` 1,978工程・3,955入力を維持した。
+- 担当環境と主環境で全3枠、対象CTest、20回反復、`KisAlgebraGeometryPrimitivesContractTest`近傍、無作業再構築、動的接続、開始source構文、
+  公開API契約検査、`verify-quick`に成功した。限定対象はQt Core・Gui・TestとmacOS system frameworkだけへ接続し、製品shared library、Qt Widgets、
+  `kritatestsdk`へ接続しない。対応済みは9,651件、未対応は20,187件、契約枠は2,335件となった。
+- 新しい`build/tdd-macos/public-api-missing-g96-assistant.json`生成後、旧第96不足一覧、局所構築木268 MBを含む担当作業ツリー838 MB、担当branchを
+  削除して空きを約0.8 GB回復した。主増分構築木、共有compiler cache、残る2担当作業ツリー、最新不足一覧だけを保持する。
 
 ### 第95並列便の監査計画
 

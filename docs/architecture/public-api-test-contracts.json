@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 20207
+    "expectedMissingApis": 20187
   },
   "contracts": [
     {
@@ -31266,6 +31266,53 @@
       "apis": [
         "method:KisSurfaceColorSpaceWrapper::fromQtColorSpace(const QColorSpace & colorSpace)",
         "method:KisSurfaceColorSpaceWrapper::operator QColorSpace() const"
+      ]
+    },
+    {
+      "target": "PerspectiveBasedAssistantHelperContractTest",
+      "source": "plugins/assistants/Assistants/tests/PerspectiveBasedAssistantHelperContractTest.cpp",
+      "test": "PerspectiveBasedAssistantHelperContractTest::cacheDefaultsRepresentNoPerspective",
+      "behavior": "透視補助cacheは消失点なし、空の距離・地平線・多角形、最大距離0、透視なしの安定した既定値を持ち、3分類値を区別する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:PerspectiveBasedAssistantHelper::CacheData::PerspectiveType",
+        "class:PerspectiveBasedAssistantHelper",
+        "class:PerspectiveBasedAssistantHelper::CacheData",
+        "enum:PerspectiveBasedAssistantHelper::CacheData::PerspectiveType",
+        "enumerator:PerspectiveBasedAssistantHelper::CacheData::PerspectiveType::None",
+        "enumerator:PerspectiveBasedAssistantHelper::CacheData::PerspectiveType::OneVp",
+        "enumerator:PerspectiveBasedAssistantHelper::CacheData::PerspectiveType::TwoVps",
+        "member:PerspectiveBasedAssistantHelper::CacheData::distancesFromPoints",
+        "member:PerspectiveBasedAssistantHelper::CacheData::horizon",
+        "member:PerspectiveBasedAssistantHelper::CacheData::maxDistanceFromPoint",
+        "member:PerspectiveBasedAssistantHelper::CacheData::polygon",
+        "member:PerspectiveBasedAssistantHelper::CacheData::type",
+        "member:PerspectiveBasedAssistantHelper::CacheData::vanishingPoint1",
+        "member:PerspectiveBasedAssistantHelper::CacheData::vanishingPoint2"
+      ]
+    },
+    {
+      "target": "PerspectiveBasedAssistantHelperContractTest",
+      "source": "plugins/assistants/Assistants/tests/PerspectiveBasedAssistantHelperContractTest.cpp",
+      "test": "PerspectiveBasedAssistantHelperContractTest::projectiveScaleAndPerpendicularProductUseFixedGeometry",
+      "behavior": "透視補助の垂直積と局所射影尺度は固定ベクトル、恒等変換、固定射影変換に対して決定的な数値を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:PerspectiveBasedAssistantHelper::inverseMaxLocalScale(const QTransform & transform)",
+        "method:PerspectiveBasedAssistantHelper::localScale(const QTransform & transform,QPointF pt)",
+        "method:PerspectiveBasedAssistantHelper::pdot(const QPointF & a,const QPointF & b)"
+      ]
+    },
+    {
+      "target": "PerspectiveBasedAssistantHelperContractTest",
+      "source": "plugins/assistants/Assistants/tests/PerspectiveBasedAssistantHelperContractTest.cpp",
+      "test": "PerspectiveBasedAssistantHelperContractTest::vanishingPointsPopulateCacheAndNormalizeDistance",
+      "behavior": "透視補助は平行四辺形・1消失点・2消失点の固定多角形を分類してcacheへ反映し、地平線からの距離を最大頂点距離で正規化する。",
+      "classification": "maintained",
+      "apis": [
+        "method:PerspectiveBasedAssistantHelper::distanceInGrid(const CacheData & cache,const QPointF & point)",
+        "method:PerspectiveBasedAssistantHelper::getVanishingPointsOptional(const QPolygonF & poly,boost::optional<QPointF> & vp1,boost::optional<QPointF> & vp2)",
+        "method:PerspectiveBasedAssistantHelper::updateCacheData(CacheData & cache,const QPolygonF & poly)"
       ]
     }
   ]
