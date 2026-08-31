@@ -357,7 +357,23 @@ set_target_properties(kritapigmentalphadarkenparamswrapperobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritapigmentcolorconversiontransformationobjects OBJECT KoColorConversionTransformation.cpp)
+target_include_directories(kritapigmentcolorconversiontransformationobjects PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_SOURCE_DIR}/libs/global ${CMAKE_BINARY_DIR}/libs/global)
+target_link_libraries(kritapigmentcolorconversiontransformationobjects PUBLIC KF${KF_MAJOR}::I18n Qt${QT_MAJOR_VERSION}::Core Qt${QT_MAJOR_VERSION}::Gui)
+set_target_properties(kritapigmentcolorconversiontransformationobjects PROPERTIES AUTOMOC OFF POSITION_INDEPENDENT_CODE ON)
+
+add_library(kritapigmentmultiplecolorconversiontransformationobjects OBJECT KoMultipleColorConversionTransformation.cpp)
+target_compile_definitions(kritapigmentmultiplecolorconversiontransformationobjects PRIVATE kritapigment_EXPORTS)
+if(BUILD_TESTING)
+    target_compile_definitions(kritapigmentmultiplecolorconversiontransformationobjects PRIVATE KRITAPIGMENT_MULTIPLE_CONVERSION_CONTRACT_TESTING)
+endif()
+target_include_directories(kritapigmentmultiplecolorconversiontransformationobjects PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
+target_link_libraries(kritapigmentmultiplecolorconversiontransformationobjects PUBLIC kritapigmentcolorconversiontransformationobjects KF${KF_MAJOR}::I18n Qt${QT_MAJOR_VERSION}::Core Qt${QT_MAJOR_VERSION}::Gui)
+set_target_properties(kritapigmentmultiplecolorconversiontransformationobjects PROPERTIES AUTOMOC OFF POSITION_INDEPENDENT_CODE ON)
+
 set(kritapigment_SRCS
+    $<TARGET_OBJECTS:kritapigmentcolorconversiontransformationobjects>
+    $<TARGET_OBJECTS:kritapigmentmultiplecolorconversiontransformationobjects>
     $<TARGET_OBJECTS:kritapigmentcolortransformationobjects>
     $<TARGET_OBJECTS:kritapigmentcolortransformationfactoryobjects>
     $<TARGET_OBJECTS:kritapigmentcolorspaceengineobjects>
@@ -371,7 +387,6 @@ set(kritapigment_SRCS
     KoColorConversionAlphaTransformation.cpp
     KoColorConversionCache.cpp
     KoColorConversionSystem.cpp
-    KoColorConversionTransformation.cpp
     KoColorProofingConversionTransformation.cpp
     KoColorConversionTransformationFactory.cpp
     KoColorProfile.cpp
@@ -385,7 +400,6 @@ set(kritapigment_SRCS
     KoCompositeOpRegistry.cpp
     KoCopyColorConversionTransformation.cpp
     KoFallBackColorTransformation.cpp
-    KoMultipleColorConversionTransformation.cpp
     colorspaces/KoLabColorSpace.cpp
     colorspaces/KoRgbU16ColorSpace.cpp
     colorspaces/KoRgbU8ColorSpace.cpp

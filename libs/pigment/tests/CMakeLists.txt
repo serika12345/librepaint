@@ -3,6 +3,23 @@ target_link_libraries(CCSGraph kritapigment KF${KF_MAJOR}::I18n)
 ecm_mark_as_test(CCSGraph)
 
 kis_add_test(
+    KoMultipleColorConversionTransformationContractTest.cpp
+    LINK_LIBRARIES
+        kritapigmentmultiplecolorconversiontransformationobjects
+        kritapigmentcolorconversiontransformationobjects
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KoMultipleColorConversionTransformationContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+)
+target_compile_definitions(KoMultipleColorConversionTransformationContractTest PRIVATE kritapigment_EXPORTS)
+
+kis_add_test(
     KoColorModelStandardIdsContractTest.cpp
     LINK_LIBRARIES
         kritapigmentstandardidsobjects
