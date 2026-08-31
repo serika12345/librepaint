@@ -2,12 +2,46 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-31 17:34 JST
+- 更新日時: 2026-08-31 17:47 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
+
+### 第84並列便の計画
+
+- path segment種別command担当は`planned`である。対象は
+  `libs/flake/commands/KoPathSegmentTypeCommand.h`の9 APIである。開始ファイル
+  `libs/flake/commands/KoPathSegmentTypeCommand.cpp`を`kritaflake_SRCS`の直接収容から
+  `kritaflakepathsegmenttypecommandobjects`へ移し、製品`kritaflake`へ一度だけ再集約する。新規
+  `libs/flake/tests/KoPathSegmentTypeCommandContractTest.cpp`が列挙値と二つの構築入口・借用寿命、無効または同型の
+  segment除外、curveへのredo、lineへのredo、control位置とpoint propertyのundoを5契約枠で固定する。segment状態の
+  読取と変更は開始実装の試験限定配送を介し、計算、入力選別、capture、処理順はcommandが所有する。予測閉包
+  5工程・11実入力、停止条件6工程・14実入力、製品閉包612工程・1,256入力不変を要求する。既存
+  `TestSegmentTypeCommand` 616工程・1,263入力は実path shape統合経路の補完として維持する。許可範囲は
+  `libs/flake/CMakeLists.txt`、開始実装、`libs/flake/tests/CMakeLists.txt`、新規試験である。
+- runnable stroke strategy担当は`planned`である。対象は`libs/image/KisRunnableBasedStrokeStrategy.h`の6 APIである。
+  開始ファイル`libs/image/KisRunnableBasedStrokeStrategy.cpp`を`kritaimage_LIB_SRCS`の直接収容から
+  `kritaimagerunnablebasedstrokestrategyobjects`へ移し、製品`kritaimage`へ一度だけ再集約する。新規
+  `libs/image/tests/KisRunnableBasedStrokeStrategyContractTest.cpp`が構築時の識別値とjobs interface、複製後の独立した
+  interface再結合、runnable dataだけの実行、job列の順序付き配送、基底破棄と所有寿命を5契約枠で固定する。既存の
+  runnable data、jobs interface、stroke strategy OBJECTを直接再利用し、製品sourceと公開headerの内容は変更しない。
+  予測閉包10工程・22実入力、停止条件11工程・24実入力、製品閉包1,184工程・2,392入力不変を要求する。許可範囲は
+  `libs/image/CMakeLists.txt`、`libs/image/tests/CMakeLists.txt`、新規試験である。
+- store device担当は`planned`である。対象は`libs/resources/storage/KoStoreDevice.h`の10 APIである。開始ファイル
+  `libs/resources/storage/KoStoreDevice.cpp`を`kritaresourcestorage`の直接収容から
+  `kritaresourcestoragedeviceobjects`へ移し、製品へ一度だけ再集約する。公開headerは製品source一覧へ残して既存の
+  meta-object所有を維持する。新規`libs/resources/storage/tests/KoStoreDeviceContractTest.cpp`が構築時のmodeと借用寿命、
+  openのmode整合と失敗時状態、size・sequential・close、pos・atEnd、seek配送を5契約枠で固定する。試験実行ファイル内の
+  記録用storeはwrapperが用いる最小のKoStore操作だけを定義し、製品storeや保存形式を模倣しない。予測閉包5工程・
+  11実入力、停止条件6工程・14実入力、製品閉包9工程・20入力不変を要求する。許可範囲は
+  `libs/resources/storage/CMakeLists.txt`、同tests CMake、新規試験である。
+- 3担当はmacOSの主作業ツリー環境と共有コンパイラーキャッシュを使用し、Git操作権限は`transport-commit`、
+  構築実行許可は`granted`、追加委任は`forbidden`とする。各担当は新対象のunknown-targetを初期診断とし、変更前の
+  計画、直接依存、最寄り契約と製品閉包を基準に停止条件を判定する。製品OBJECTは構築せず、変更した開始sourceは
+  コンパイル指令の`-fsyntax-only`で確認する。中央進捗文書、公開API対応表、不足一覧は調整担当だけが更新する。
+- 第84便は合計25 APIを対応付け、対応済み9,126件、未対応20,863件を目標とする。
 
 ### 第83並列便の完了結果
 
