@@ -26,7 +26,6 @@ set(kritalibpaintop_LIB_SRCS
     KisSpacingOption.cpp
     KisMirrorOptionWidget.cpp
     KisMirrorOption.cpp
-    KisSharpnessOptionData.cpp
     KisSharpnessOptionModel.cpp
     KisSharpnessOptionWidget.cpp
     KisSharpnessOption.cpp
@@ -109,7 +108,6 @@ set(kritapaintopruntime_LIB_SRCS
     KisScatterOption.cpp
     KisScatterOptionData.cpp
     KisSharpnessOption.cpp
-    KisSharpnessOptionData.cpp
     KisSizeOptionData.cpp
     KisSpacingOption.cpp
     KisSpacingOptionData.cpp
@@ -324,6 +322,18 @@ target_link_libraries(kritapaintopmirroroptiondataobjects PUBLIC
     kritapaintopcurveoptiondataobjects kritapaintopcurveoptiondatacommonobjects
     kritapaintopkritasensorpackobjects)
 set_target_properties(kritapaintopmirroroptiondataobjects PROPERTIES AUTOMOC OFF POSITION_INDEPENDENT_CODE ON)
+
+add_library(kritapaintopsharpnessoptiondataobjects OBJECT KisSharpnessOptionData.cpp)
+target_compile_definitions(kritapaintopsharpnessoptiondataobjects PRIVATE
+    kritaglobal_EXPORTS kritaimage_EXPORTS kritalibpaintop_EXPORTS kritapigment_EXPORTS)
+target_include_directories(kritapaintopsharpnessoptiondataobjects PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}> $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global> $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/image> $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/image>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment> $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/pigment>)
+target_link_libraries(kritapaintopsharpnessoptiondataobjects PUBLIC
+    kritapaintopcurveoptiondataobjects kritapaintopcurveoptiondatacommonobjects kritapaintopkritasensorpackobjects)
+set_target_properties(kritapaintopsharpnessoptiondataobjects PROPERTIES AUTOMOC OFF POSITION_INDEPENDENT_CODE ON)
 target_compile_definitions(kritapaintopcurveoptiondataobjects PRIVATE
     kritaglobal_EXPORTS
     kritaimage_EXPORTS
@@ -817,6 +827,7 @@ kis_add_library(kritapaintopruntime OBJECT
     $<TARGET_OBJECTS:kritapaintopcurveoptiondatacommonobjects>
     $<TARGET_OBJECTS:kritapaintopcurveoptiondataobjects>
     $<TARGET_OBJECTS:kritapaintopmirroroptiondataobjects>
+    $<TARGET_OBJECTS:kritapaintopsharpnessoptiondataobjects>
     $<TARGET_OBJECTS:kritapaintopkritasensorpackobjects>
     $<TARGET_OBJECTS:kritapaintoppaintingmodeoptiondataobjects>
     $<TARGET_OBJECTS:kritapaintopprecisionoptionobjects>

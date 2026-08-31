@@ -358,6 +358,13 @@ kis_add_test(KisMirrorOptionDataContractTest.cpp LINK_LIBRARIES
     kritaglobalidobjects Qt${QT_MAJOR_VERSION}::Test)
 target_compile_definitions(KisMirrorOptionDataContractTest PRIVATE
     kritaglobal_EXPORTS kritaimage_EXPORTS kritalibpaintop_EXPORTS kritapigment_EXPORTS)
+
+kis_add_test(KisSharpnessOptionDataContractTest.cpp LINK_LIBRARIES
+    kritapaintopsharpnessoptiondataobjects kritapaintopcurveoptiondataobjects
+    kritapaintopcurveoptiondatacommonobjects kritapaintopkritasensorpackobjects
+    kritapaintopsensordataobjects kritapaintopsensorpackinterfaceobjects kritaglobalidobjects Qt${QT_MAJOR_VERSION}::Test)
+target_compile_definitions(KisSharpnessOptionDataContractTest PRIVATE
+    kritaglobal_EXPORTS kritaimage_EXPORTS kritalibpaintop_EXPORTS kritapigment_EXPORTS)
 target_compile_definitions(KisCurveOptionDataContractTest PRIVATE
     kritaglobal_EXPORTS
     kritaimage_EXPORTS
