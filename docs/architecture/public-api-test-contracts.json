@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 21777
+    "expectedMissingApis": 21682
   },
   "contracts": [
     {
@@ -26930,6 +26930,282 @@
       "apis": [
         "class:KisSensorWithLengthModel",
         "method:KisSensorWithLengthModel::KisSensorWithLengthModel(lager::cursor<KisSensorWithLengthData> data,QObject * parent)"
+      ]
+    },
+    {
+      "target": "KoPathPointContractTest",
+      "source": "libs/flake/tests/KoPathPointContractTest.cpp",
+      "test": "KoPathPointContractTest::enumerationsExposeStableBitMasks",
+      "behavior": "path形状点は点属性と描画部位の列挙値およびflags組合せを安定したbit maskとして公開する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KoPathPoint::PointProperties",
+        "alias:KoPathPoint::PointTypes",
+        "enum:KoPathPoint::PointProperty",
+        "enum:KoPathPoint::PointType",
+        "enumerator:KoPathPoint::PointProperty::CloseSubpath",
+        "enumerator:KoPathPoint::PointProperty::IsSmooth",
+        "enumerator:KoPathPoint::PointProperty::IsSymmetric",
+        "enumerator:KoPathPoint::PointProperty::Normal",
+        "enumerator:KoPathPoint::PointProperty::StartSubpath",
+        "enumerator:KoPathPoint::PointProperty::StopSubpath",
+        "enumerator:KoPathPoint::PointType::All",
+        "enumerator:KoPathPoint::PointType::ControlPoint1",
+        "enumerator:KoPathPoint::PointType::ControlPoint2",
+        "enumerator:KoPathPoint::PointType::Node",
+        "enumerator:KoPathPoint::PointType::None"
+      ]
+    },
+    {
+      "target": "KoPathPointContractTest",
+      "source": "libs/flake/tests/KoPathPointContractTest.cpp",
+      "test": "KoPathPointContractTest::constructionCopyAssignmentAndParentRules",
+      "behavior": "path形状点は既定値と指定値を保持し、通常複製で親を外し、親指定複製と代入で指定の親pointerを保持し、等価比較から親を除外する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoPathPoint",
+        "method:KoPathPoint::KoPathPoint()",
+        "method:KoPathPoint::KoPathPoint(KoPathShape * path,const QPointF & point,PointProperties properties=Normal)",
+        "method:KoPathPoint::KoPathPoint(const KoPathPoint & pathPoint)",
+        "method:KoPathPoint::KoPathPoint(const KoPathPoint & pathPoint,KoPathShape * newParent)",
+        "method:KoPathPoint::operator =(const KoPathPoint & other)",
+        "method:KoPathPoint::operator ==(const KoPathPoint & other) const",
+        "method:KoPathPoint::parent() const",
+        "method:KoPathPoint::setParent(KoPathShape * parent)",
+        "method:KoPathPoint::~KoPathPoint()"
+      ]
+    },
+    {
+      "target": "KoPathPointContractTest",
+      "source": "libs/flake/tests/KoPathPointContractTest.cpp",
+      "test": "KoPathPointContractTest::controlPointsAndPropertiesEnforceActivationRules",
+      "behavior": "path形状点は節点・制御点と活性状態を保持し、非数値入力を拒否し、部分path属性と平滑・対称属性の相互制約を適用する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoPathPoint::activeControlPoint1() const",
+        "method:KoPathPoint::activeControlPoint2() const",
+        "method:KoPathPoint::controlPoint1() const",
+        "method:KoPathPoint::controlPoint2() const",
+        "method:KoPathPoint::point() const",
+        "method:KoPathPoint::properties() const",
+        "method:KoPathPoint::removeControlPoint1()",
+        "method:KoPathPoint::removeControlPoint2()",
+        "method:KoPathPoint::setControlPoint1(const QPointF & point)",
+        "method:KoPathPoint::setControlPoint2(const QPointF & point)",
+        "method:KoPathPoint::setPoint(const QPointF & point)",
+        "method:KoPathPoint::setProperties(PointProperties properties)",
+        "method:KoPathPoint::setProperty(PointProperty property)",
+        "method:KoPathPoint::unsetProperty(PointProperty property)"
+      ]
+    },
+    {
+      "target": "KoPathPointContractTest",
+      "source": "libs/flake/tests/KoPathPointContractTest.cpp",
+      "test": "KoPathPointContractTest::mapsReversesAndExposesInvertedBoundingControlInclusion",
+      "behavior": "path形状点は節点と両制御点へ同じ変換を適用し、反転時に制御点と活性状態を交換する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoPathPoint::map(const QTransform & matrix)",
+        "method:KoPathPoint::reverse()"
+      ]
+    },
+    {
+      "target": "KoPathPointContractTest",
+      "source": "libs/flake/tests/KoPathPointContractTest.cpp",
+      "test": "KoPathPointContractTest::mapsReversesAndExposesInvertedBoundingControlInclusion",
+      "behavior": "path形状点の境界計算は公開説明と逆にactive=trueで節点だけを含み、falseで活性制御点も含む現行不具合を保持する。",
+      "classification": "known_defect",
+      "apis": [
+        "method:KoPathPoint::boundingRect(bool active=true) const"
+      ]
+    },
+    {
+      "target": "KoPathPointContractTest",
+      "source": "libs/flake/tests/KoPathPointContractTest.cpp",
+      "test": "KoPathPointContractTest::smoothnessUsesActiveOrNeighborTangents",
+      "behavior": "path形状点の平滑判定は活性制御点を優先し、不足する接線を前後の制御点または節点から補い、欠落・零長接線の現行結果を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoPathPoint::isSmooth(KoPathPoint * previous,KoPathPoint * next) const"
+      ]
+    },
+    {
+      "target": "KoPathPointContractTest",
+      "source": "libs/flake/tests/KoPathPointContractTest.cpp",
+      "test": "KoPathPointContractTest::paintSelectsNodeAndActiveControlHandles",
+      "behavior": "path形状点は通常・平滑・対称の節点handleを区別し、指定部位と活性状態に応じて制御点と接続線の描画を選択する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoPathPoint::paint(KisHandlePainterHelper & handlesHelper,PointTypes types,bool active=true)"
+      ]
+    },
+    {
+      "target": "KisPaintopPropertiesBaseContractTest",
+      "source": "libs/image/tests/KisPaintopPropertiesBaseContractTest.cpp",
+      "test": "KisPaintopPropertiesBaseContractTest::basicWrapperForwardsRawAndSharedSettings",
+      "behavior": "描画option設定基底は生pointerと共有pointerから同じ設定個体を取り出し、読込み・書込み実装へ一度配送する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisPaintopPropertiesBase",
+        "method:KisPaintopPropertiesBase::readOptionSetting(KisPropertiesConfigurationPointer settings)",
+        "method:KisPaintopPropertiesBase::writeOptionSetting(KisPropertiesConfigurationPointer settings) const"
+      ]
+    },
+    {
+      "target": "KisPaintopPropertiesBaseContractTest",
+      "source": "libs/image/tests/KisPaintopPropertiesBaseContractTest.cpp",
+      "test": "KisPaintopPropertiesBaseContractTest::resourcesWrapperForwardsSettingsOwnerAndResults",
+      "behavior": "資源付き描画option設定基底は設定と資源所有者を正確に配送し、linked資源とembedded資源の結果を区別して返す。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisPaintopPropertiesResourcesBase",
+        "method:KisPaintopPropertiesResourcesBase::prepareEmbeddedResources(const KisPropertiesConfigurationPointer settings,KisResourcesInterfaceSP resourcesInterface) const",
+        "method:KisPaintopPropertiesResourcesBase::prepareLinkedResources(const KisPropertiesConfigurationPointer settings,KisResourcesInterfaceSP resourcesInterface) const",
+        "method:KisPaintopPropertiesResourcesBase::readOptionSetting(KisPropertiesConfigurationPointer settings,KisResourcesInterfaceSP resourcesInterface)",
+        "method:KisPaintopPropertiesResourcesBase::writeOptionSetting(KisPropertiesConfigurationPointer settings) const"
+      ]
+    },
+    {
+      "target": "KisPaintopPropertiesBaseContractTest",
+      "source": "libs/image/tests/KisPaintopPropertiesBaseContractTest.cpp",
+      "test": "KisPaintopPropertiesBaseContractTest::canvasWrapperForwardsCollaboratorsAndResults",
+      "behavior": "canvas資源付き描画option設定基底は設定、資源所有者、canvas資源所有者を正確に配送し、linked資源とembedded資源の結果を区別して返す。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisPaintopPropertiesCanvasResourcesBase",
+        "method:KisPaintopPropertiesCanvasResourcesBase::prepareEmbeddedResources(const KisPropertiesConfigurationPointer settings,KisResourcesInterfaceSP resourcesInterface) const",
+        "method:KisPaintopPropertiesCanvasResourcesBase::prepareLinkedResources(const KisPropertiesConfigurationPointer settings,KisResourcesInterfaceSP resourcesInterface) const",
+        "method:KisPaintopPropertiesCanvasResourcesBase::readOptionSetting(KisPropertiesConfigurationPointer settings,KisResourcesInterfaceSP resourcesInterface,KoCanvasResourcesInterfaceSP canvasResourcesInterface)",
+        "method:KisPaintopPropertiesCanvasResourcesBase::writeOptionSetting(KisPropertiesConfigurationPointer settings) const"
+      ]
+    },
+    {
+      "target": "KisPaintopPropertiesBaseContractTest",
+      "source": "libs/image/tests/KisPaintopPropertiesBaseContractTest.cpp",
+      "test": "KisPaintopPropertiesBaseContractTest::basePointersPreserveVirtualLifetimes",
+      "behavior": "3種類の描画option設定基底は基底所有から派生destructorを通り、それぞれの個体寿命を一度終了する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPaintopPropertiesBase::~KisPaintopPropertiesBase()",
+        "method:KisPaintopPropertiesCanvasResourcesBase::~KisPaintopPropertiesCanvasResourcesBase()",
+        "method:KisPaintopPropertiesResourcesBase::~KisPaintopPropertiesResourcesBase()"
+      ]
+    },
+    {
+      "target": "KisKritaSensorPackContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisKritaSensorPackContractTest.cpp",
+      "test": "KisKritaSensorPackContractTest::defaultsEnumeratorsAndMemberIdentity",
+      "behavior": "描画sensor packは3段階の検査可能性、16 sensorの安定した識別子と既定長、pressureだけが活性な既定状態を構築する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisKritaSensorPack",
+        "enum:KisKritaSensorPack::Checkability",
+        "enumerator:KisKritaSensorPack::Checkability::Checkable",
+        "enumerator:KisKritaSensorPack::Checkability::CheckableIfHasPrefix",
+        "enumerator:KisKritaSensorPack::Checkability::NotCheckable",
+        "member:KisKritaSensorData::sensorDistance",
+        "member:KisKritaSensorData::sensorDrawingAngle",
+        "member:KisKritaSensorData::sensorFade",
+        "member:KisKritaSensorData::sensorFuzzyPerDab",
+        "member:KisKritaSensorData::sensorFuzzyPerStroke",
+        "member:KisKritaSensorData::sensorPerspective",
+        "member:KisKritaSensorData::sensorPressure",
+        "member:KisKritaSensorData::sensorPressureIn",
+        "member:KisKritaSensorData::sensorRotation",
+        "member:KisKritaSensorData::sensorSpeed",
+        "member:KisKritaSensorData::sensorTangentialPressure",
+        "member:KisKritaSensorData::sensorTiltDirection",
+        "member:KisKritaSensorData::sensorTiltElevation",
+        "member:KisKritaSensorData::sensorTime",
+        "member:KisKritaSensorData::sensorXTilt",
+        "member:KisKritaSensorData::sensorYTilt",
+        "method:KisKritaSensorData::KisKritaSensorData()",
+        "method:KisKritaSensorPack::KisKritaSensorPack(Checkability checkability)",
+        "struct:KisKritaSensorData"
+      ]
+    },
+    {
+      "target": "KisKritaSensorPackContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisKritaSensorPackContractTest.cpp",
+      "test": "KisKritaSensorPackContractTest::equalityCoversEverySensorMember",
+      "behavior": "描画sensor dataの等価性は16 sensor memberすべてへ独立して依存し、いずれか一つの差を不等価として返す。",
+      "classification": "maintained",
+      "apis": [
+        "function:operator ==(const KisKritaSensorData & lhs,const KisKritaSensorData & rhs)",
+        "member:KisKritaSensorData::sensorDistance",
+        "member:KisKritaSensorData::sensorDrawingAngle",
+        "member:KisKritaSensorData::sensorFade",
+        "member:KisKritaSensorData::sensorFuzzyPerDab",
+        "member:KisKritaSensorData::sensorFuzzyPerStroke",
+        "member:KisKritaSensorData::sensorPerspective",
+        "member:KisKritaSensorData::sensorPressure",
+        "member:KisKritaSensorData::sensorPressureIn",
+        "member:KisKritaSensorData::sensorRotation",
+        "member:KisKritaSensorData::sensorSpeed",
+        "member:KisKritaSensorData::sensorTangentialPressure",
+        "member:KisKritaSensorData::sensorTiltDirection",
+        "member:KisKritaSensorData::sensorTiltElevation",
+        "member:KisKritaSensorData::sensorTime",
+        "member:KisKritaSensorData::sensorXTilt",
+        "member:KisKritaSensorData::sensorYTilt"
+      ]
+    },
+    {
+      "target": "KisKritaSensorPackContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisKritaSensorPackContractTest.cpp",
+      "test": "KisKritaSensorPackContractTest::sensorViewsPreserveOrderAndPointers",
+      "behavior": "描画sensor packの可変・不変一覧と構造参照は同じ16個体を安定した順序で公開し、可変参照の変更を共有する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisKritaSensorPack::constSensors() const",
+        "method:KisKritaSensorPack::constSensorsStruct() const",
+        "method:KisKritaSensorPack::sensors()",
+        "method:KisKritaSensorPack::sensorsStruct()"
+      ]
+    },
+    {
+      "target": "KisKritaSensorPackContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisKritaSensorPackContractTest.cpp",
+      "test": "KisKritaSensorPackContractTest::copyCloneAndCompareRemainIndependent",
+      "behavior": "描画sensor packの複製とcloneは等価な別個体を作り、変更を元個体へ伝播せず、同型・異型と検査可能性を比較する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisKritaSensorPack::KisKritaSensorPack(const KisKritaSensorPack & rhs)",
+        "method:KisKritaSensorPack::clone() const",
+        "method:KisKritaSensorPack::compare(const KisSensorPackInterface * rhs) const"
+      ]
+    },
+    {
+      "target": "KisKritaSensorPackContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisKritaSensorPackContractTest.cpp",
+      "test": "KisKritaSensorPackContractTest::activeLengthUsesOnlyLengthSensors",
+      "behavior": "描画sensor packはfade・distance・timeの現在長だけを識別子から返し、他のsensorと未知識別子へ-1を返す。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisKritaSensorData::sensorDistance",
+        "member:KisKritaSensorData::sensorFade",
+        "member:KisKritaSensorData::sensorTime",
+        "method:KisKritaSensorPack::calcActiveSensorLength(const QString & activeSensorId) const"
+      ]
+    },
+    {
+      "target": "KisKritaSensorPackContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisKritaSensorPackContractTest.cpp",
+      "test": "KisKritaSensorPackContractTest::readMapsCheckabilityAndSensorConfiguration",
+      "behavior": "描画sensor packは検査可能性とprefixからchecked状態を決め、単独・複数sensor設定を活性状態、順序、curve、強度、modeへ復元する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisKritaSensorPack::read(KisCurveOptionDataCommon & data,const KisPropertiesConfiguration * setting) const"
+      ]
+    },
+    {
+      "target": "KisKritaSensorPackContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisKritaSensorPackContractTest.cpp",
+      "test": "KisKritaSensorPackContractTest::writePreservesConfigurationAndSensorOrder",
+      "behavior": "描画sensor packはchecked状態、単独・複数sensorの順序付きXML、curve使用、強度、mode、共通curveを書込み、補正処理と無関係設定を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisKritaSensorPack::write(const KisCurveOptionDataCommon & data,KisPropertiesConfiguration * setting) const"
       ]
     }
   ]

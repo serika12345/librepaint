@@ -2,85 +2,51 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-31 09:18 JST
-- 状態: `in_progress`
+- 更新日時: 2026-08-31 09:43 JST
+- 状態: `planned`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
 
-### 第71並列便の担当票
-
-- 形状点担当は`implementing`である。基点は`e48c5492c92e2697dd8e355922c850af5306e64d`、作業ツリーは
-  `/Users/masato/Documents/librepaint-r2-g71-path-point`、ブランチは`r2-g71-path-point`、統合順は1である。
-  対象は`libs/flake/KoPathPoint.h`の44 APIであり、開始ファイル`libs/flake/KoPathPoint.cpp`を
-  `kritaflake_SRCS`の直接収容から`kritaflakepathpointobjects`へ移し、製品`kritaflake`へ一度だけ再集約する。
-  `libs/flake/tests/KoPathPointContractTest.cpp`を追加し、列挙値、構築・複製・親pointer、制御点と属性、
-  写像・反転・境界、平滑判定、handle描画を固定する。`boundingRect`のactive引数と実際の制御点包含が
-  公開説明と逆である現行挙動だけを`known_defect`、残りを`maintained`へ分類する。限定構築を許可し、
-  予測閉包9工程・20入力、停止条件10工程・22入力、製品閉包612工程・1,256入力不変を要求する。
-  許可範囲は`libs/flake/CMakeLists.txt`、`libs/flake/tests/CMakeLists.txt`、新規試験だけである。
-- 画像設定ラッパー担当は`implementing`である。基点は`e48c5492c92e2697dd8e355922c850af5306e64d`、
-  作業ツリーは`/Users/masato/Documents/librepaint-r2-g71-paintop-properties`、ブランチは
-  `r2-g71-paintop-properties`、統合順は2である。対象は
-  `libs/image/brushengine/KisPaintopPropertiesBase.h`の16 APIであり、開始ファイル
-  `libs/image/brushengine/KisPaintopPropertiesBase.cpp`を`kritaimage_LIB_SRCS`の直接収容から
-  `kritaimagepaintoppropertiesbaseobjects`へ移し、製品`kritaimage`へ一度だけ再集約する。開始実装から
-  未使用の実資源includeを除き、新規`libs/image/tests/KisPaintopPropertiesBaseContractTest.cpp`が3基底の
-  設定pointer、資源所有者、linked・embedded戻り値、仮想寿命を固定する。限定構築を許可し、
-  予測閉包5工程・11入力、停止条件6工程・13入力、製品閉包1,184工程・2,392入力不変を要求する。
-  許可範囲は`libs/image/CMakeLists.txt`、開始実装、`libs/image/tests/CMakeLists.txt`、新規試験だけである。
-- 描画sensor pack担当は`implementing`である。基点は`e48c5492c92e2697dd8e355922c850af5306e64d`、
-  作業ツリーは`/Users/masato/Documents/librepaint-r2-g71-sensor-pack`、ブランチは
-  `r2-g71-sensor-pack`、統合順は3である。対象は`plugins/paintops/libpaintop/KisKritaSensorPack.h`の
-  35 APIであり、開始ファイル`plugins/paintops/libpaintop/KisKritaSensorPack.cpp`を製品source一覧と
-  runtime source一覧の重複した所有記述から`kritapaintopkritasensorpackobjects`へ移し、
-  `kritapaintopruntime`を経由して製品`kritalibpaintop`へ一度だけ再集約する。新規
-  `plugins/paintops/libpaintop/tests/KisKritaSensorPackContractTest.cpp`が既定sensor、全memberの等価比較、
-  pointer列挙順、複製・比較、長さ取得、設定読込み・書込みを固定する。限定構築を許可し、
-  予測閉包8工程・18入力、停止条件10工程・22入力、製品閉包2,097工程・4,192入力とruntime閉包
-  1,281工程・2,582入力の不変を要求する。許可範囲は`plugins/paintops/libpaintop/CMakeLists.txt`、
-  同`tests/CMakeLists.txt`、新規試験だけである。
-- 3担当はgit commitで受渡しし、再委任しない。中央進捗文書、公開API対応表、不足一覧は調整担当だけが
-  更新する。担当差分の統合直後に担当作業ツリー、局所構築木、担当ブランチを削除する。
-- 第71便は合計95 APIを対応付け、対応済み8,307件、未対応21,682件を目標とする。
-
 ### 現在の結果
 
-- 第70並列便は、形状コンテナー模型17 API、画像accessor基底11 API、長さ付き描画sensor模型5 APIの
-  合計33 APIを挙動契約へ対応付けた。公開面は1,549ヘッダー、29,989 API、対応済み8,212件、
-  未対応21,777件である。
-- 開始ファイル`libs/flake/KoShapeContainerModel.cpp`は`kritaflake_SRCS`の直接収容から
-  `kritaflakeshapecontainermodelobjects`へ移り、製品`kritaflake`へ一度だけ再集約される。新規
-  `libs/flake/tests/KoShapeContainerModelContractTest.cpp`が空模型、格納・属性と階層通知の仮想配送、
-  基底所有からの寿命を固定する。
-- 開始ファイル`libs/image/kis_base_accessor.cpp`は`kritaimage_LIB_SRCS`の直接収容から
-  `kritaimagebaseaccessorobjects`へ移り、製品`kritaimage`へ一度だけ再集約される。新規
-  `libs/image/tests/KisBaseAccessorContractTest.cpp`が旧値・現在値のpointerと座標、書込み反映、
-  単独所有・共有所有の寿命を固定する。
-- 開始ファイル`plugins/paintops/libpaintop/KisSensorWithLengthModel.cpp`は`kritalibpaintop_LIB_SRCS`の
-  直接収容から`kritapaintopsensorwithlengthmodelobjects`へ移り、製品`kritalibpaintop`へ一度だけ再集約される。
-  新規`plugins/paintops/libpaintop/tests/KisSensorWithLengthModelContractTest.cpp`がcursor状態、Qt property、
-  外部更新・setter同期、親子寿命を固定する。
-- 統合後の限定閉包は`KoShapeContainerModelContractTest` 5工程・11入力、`KisBaseAccessorContractTest`
-  6工程・13入力、`KisSensorWithLengthModelContractTest` 9工程・20入力である。製品閉包は`kritaflake`
-  612工程・1,256入力、`kritaimage` 1,184工程・2,392入力で不変である。`kritalibpaintop`はQt meta-objectの
-  自動生成を専用objectへ移したため2工程・4入力だけ増えて2,097工程・4,192入力となり、実行時製品
-  `kritapaintopruntime`は1,281工程・2,582入力で不変である。
-- 主作業ツリーの3限定対象と4軽量近傍はCTest 7/7に成功し、3対象は各20回反復、全11新規契約枠、
-  再構築時の無作業確認に成功した。macOSのパッケージ境界は1,566対象、公開API契約検査は
-  8,212/29,989件で成功した。3対象の動的依存にLibrePaint製品共有ライブラリーは含まれない。
-  非空形状の実所有破棄と実階層伝播、具体paint deviceの画素意味論、描画sensorの製品UI接続は残余範囲である。
+- 第71並列便は、path形状点44 API、描画option設定ラッパー16 API、具体描画sensor pack35 APIの
+  合計95 APIを挙動契約へ対応付けた。公開面は1,549ヘッダー、29,989 API、対応済み8,307件、
+  未対応21,682件である。
+- 開始ファイル`libs/flake/KoPathPoint.cpp`は`kritaflake_SRCS`の直接収容から
+  `kritaflakepathpointobjects`へ移り、製品`kritaflake`へ一度だけ再集約される。新規
+  `libs/flake/tests/KoPathPointContractTest.cpp`が列挙値、構築・複製・親pointer、制御点と属性、
+  写像・反転・境界、平滑判定、handle描画を固定する。`boundingRect`のactive引数と制御点包含が
+  公開説明と逆である現行挙動だけを既知不具合に分類し、残る43 APIを維持契約に分類した。
+- 開始ファイル`libs/image/brushengine/KisPaintopPropertiesBase.cpp`は`kritaimage_LIB_SRCS`の直接収容から
+  `kritaimagepaintoppropertiesbaseobjects`へ移り、製品`kritaimage`へ一度だけ再集約される。未使用の
+  実資源includeを除去し、新規`libs/image/tests/KisPaintopPropertiesBaseContractTest.cpp`が3基底の
+  設定pointer、資源所有者、linked・embedded戻り値、仮想寿命を固定する。
+- 開始ファイル`plugins/paintops/libpaintop/KisKritaSensorPack.cpp`は製品source一覧とruntime source一覧の
+  重複した所有記述から`kritapaintopkritasensorpackobjects`へ移り、`kritapaintopruntime`を経由して製品
+  `kritalibpaintop`へ一度だけ再集約される。新規
+  `plugins/paintops/libpaintop/tests/KisKritaSensorPackContractTest.cpp`が既定sensor、全memberの等価比較、
+  pointer列挙順、複製・比較、長さ取得、設定読込み・書込みを固定する。
+- 統合後の限定閉包は`KoPathPointContractTest` 9工程・19入力、`KisPaintopPropertiesBaseContractTest`
+  5工程・11入力、`KisKritaSensorPackContractTest` 8工程・18入力である。製品閉包は`kritaflake`
+  612工程・1,256入力、`kritaimage` 1,184工程・2,392入力、`kritalibpaintop` 2,097工程・4,192入力、
+  `kritapaintopruntime` 1,281工程・2,582入力で不変である。
+- 主作業ツリーの3限定対象と7軽量近傍はCTest 10/10に成功し、3対象は各20回反復、全17新規契約枠、
+  再構築時の無作業確認に成功した。macOSのパッケージ境界は1,572対象、公開API契約検査は
+  8,307/29,989件で成功した。3対象の動的依存にLibrePaint製品共有ライブラリーとQt Widgetsは含まれない。
+  実path階層への通知・文書座標変換、実資源・設定のpayload、異常sensor XMLと実UI接続は残余範囲である。
   製品全体の構築・リンクとLinux検証は限定閉包を越えるため対象外とした。
-- 担当作業ツリー3本、局所構築木、担当ブランチは各統合の直後に削除し、合計約2.51 GBの一時生成物を
-  回収した。旧第70便不足一覧を削除し、最新の第71便不足一覧
-  `build/tdd-macos/public-api-missing-g71.json` 5.3 MBだけを保持する。次便で再利用する主増分構築木は
-  5.0 GB、共有nativeコンパイラーcacheは673 MBである。
+- 担当作業ツリー3本、局所構築木、担当ブランチは各統合の直後に削除し、合計約2.49 GBの一時生成物を
+  回収した。旧第71便不足一覧を削除し、最新の第72便不足一覧
+  `build/tdd-macos/public-api-missing-g72.json` 5.3 MBだけを保持する。次便で再利用する主増分構築木は
+  5.1 GB、共有nativeコンパイラーcacheは682 MBである。
 
 ### 次の操作
 
-- 第71並列便の3担当は、各停止条件内で対象限定の構築計画を測り、最小の挙動契約を実装して担当コミットを渡す。
-  調整担当は統合順に差分を確認し、統合直後に各担当の作業ツリー、局所構築木、ブランチを削除する。
+- 第72並列便は最新不足一覧から互いに重ならない公開面を読取り監査し、公開API件数、最小の観測可能契約、
+  直接CMake依存、既存対象との清浄木閉包差を測る。計画前は作業ツリーや局所構築木を作らず、広域閉包を
+  専用objectへ分離できる候補だけを採用する。
 
 ## 再開環境
 
