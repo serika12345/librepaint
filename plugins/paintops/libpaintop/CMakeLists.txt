@@ -70,7 +70,6 @@ set(kritalibpaintop_LIB_SRCS
     KisDabCacheUtils.cpp
     kis_dab_cache_base.cpp
     kis_dab_cache.cpp
-    kis_precision_option.cpp
     kis_current_outline_fetcher.cpp
     kis_text_brush_chooser.cpp
     kis_brush_based_paintop_options_widget.cpp
@@ -129,7 +128,6 @@ set(kritapaintopruntime_LIB_SRCS
     kis_current_outline_fetcher.cpp
     kis_dab_cache.cpp
     kis_dab_cache_base.cpp
-    kis_precision_option.cpp
     kis_texture_option.cpp
     sensors/KisDynamicSensor.cpp
     sensors/KisDynamicSensorDistance.cpp
@@ -308,6 +306,39 @@ target_link_libraries(kritapaintoppaintingmodeoptiondataobjects
         ${LINK_OPENEXR_LIB}
 )
 set_target_properties(kritapaintoppaintingmodeoptiondataobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritapaintopprecisionoptionobjects OBJECT
+    kis_precision_option.cpp
+)
+target_compile_definitions(kritapaintopprecisionoptionobjects PRIVATE
+    kritaimage_EXPORTS
+    kritalibpaintop_EXPORTS
+    kritapigment_EXPORTS
+)
+target_include_directories(kritapaintopprecisionoptionobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/image>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/image>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/pigment>
+        $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
+        $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Gui,INTERFACE_INCLUDE_DIRECTORIES>
+)
+target_link_libraries(kritapaintopprecisionoptionobjects
+    PUBLIC
+        Boost::boost
+        Eigen3::Eigen
+        Imath::ImathConfig
+        Qt${QT_MAJOR_VERSION}::Core
+)
+set_target_properties(kritapaintopprecisionoptionobjects PROPERTIES
     AUTOMOC OFF
     POSITION_INDEPENDENT_CODE ON
 )
@@ -679,6 +710,7 @@ kis_add_library(kritapaintopruntime OBJECT
     $<TARGET_OBJECTS:kritapaintopcurveoptiondatacommonobjects>
     $<TARGET_OBJECTS:kritapaintopkritasensorpackobjects>
     $<TARGET_OBJECTS:kritapaintoppaintingmodeoptiondataobjects>
+    $<TARGET_OBJECTS:kritapaintopprecisionoptionobjects>
     $<TARGET_OBJECTS:kritapaintopsensorpackinterfaceobjects>
     $<TARGET_OBJECTS:kritapaintoptexturelodobjects>
 )

@@ -111,6 +111,22 @@ target_compile_definitions(KisPaintingModeOptionDataContractTest PRIVATE
 )
 
 kis_add_test(
+    KisPrecisionOptionContractTest.cpp
+    LINK_LIBRARIES
+        kritapaintopprecisionoptionobjects
+        Boost::boost
+        Eigen3::Eigen
+        Imath::ImathConfig
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(KisPrecisionOptionContractTest PRIVATE
+    kritaimage_EXPORTS
+    kritalibpaintop_EXPORTS
+    kritapigment_EXPORTS
+)
+
+kis_add_test(
     KisFilterOptionDataContractTest.cpp
     LINK_LIBRARIES
         kritapaintopfilteroptiondataobjects
