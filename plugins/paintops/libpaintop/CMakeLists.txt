@@ -13,7 +13,6 @@ set(kritalibpaintop_LIB_SRCS
     kis_color_source_option.cpp
     KisCurveOptionDataUniformProperty.cpp
     KisSensorData.cpp
-    KisKritaSensorPack.cpp
     KisCurveOptionDataCommon.cpp
     KisCurveOptionData.cpp
     KisCurveOptionInputControlsStrategy.cpp
@@ -113,7 +112,6 @@ set(kritapaintopruntime_LIB_SRCS
     KisEmbeddedTextureData.cpp
     KisFlowOpacityOption.cpp
     KisHSVOption.cpp
-    KisKritaSensorPack.cpp
     KisMirrorOption.cpp
     KisMirrorOptionData.cpp
     KisOpacityOption.cpp
@@ -538,6 +536,44 @@ set_target_properties(kritapaintopsensorpackinterfaceobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritapaintopkritasensorpackobjects OBJECT
+    KisKritaSensorPack.cpp
+)
+target_compile_definitions(kritapaintopkritasensorpackobjects PRIVATE
+    kritaglobal_EXPORTS
+    kritaimage_EXPORTS
+    kritalibpaintop_EXPORTS
+    kritapigment_EXPORTS
+)
+target_include_directories(kritapaintopkritasensorpackobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/image>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/image>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/pigment>
+)
+target_link_libraries(kritapaintopkritasensorpackobjects
+    PUBLIC
+        Boost::boost
+        Eigen3::Eigen
+        Imath::ImathConfig
+        KF${KF_MAJOR}::I18n
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Xml
+        kritaglobalidobjects
+        kritapaintopsensordataobjects
+        kritapaintopsensorpackinterfaceobjects
+)
+set_target_properties(kritapaintopkritasensorpackobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritapaintopdynamicsensorfactoryobjects OBJECT
     KisDynamicSensorFactory.cpp
     KisSimpleDynamicSensorFactory.cpp
@@ -574,6 +610,7 @@ set_target_properties(kritapaintopdynamicsensorfactoryobjects PROPERTIES
 kis_add_library(kritapaintopruntime OBJECT
     ${kritapaintopruntime_LIB_SRCS}
     $<TARGET_OBJECTS:kritapaintopairbrushoptiondataobjects>
+    $<TARGET_OBJECTS:kritapaintopkritasensorpackobjects>
     $<TARGET_OBJECTS:kritapaintoppaintingmodeoptiondataobjects>
     $<TARGET_OBJECTS:kritapaintopsensorpackinterfaceobjects>
     $<TARGET_OBJECTS:kritapaintoptexturelodobjects>
