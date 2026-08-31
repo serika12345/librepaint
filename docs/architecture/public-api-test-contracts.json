@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 20161
+    "expectedMissingApis": 20153
   },
   "contracts": [
     {
@@ -31384,6 +31384,32 @@
         "member:KisMediaEncoderWrapperSettings::inputFps",
         "member:KisMediaEncoderWrapperSettings::lastFrameSec",
         "member:KisMediaEncoderWrapperSettings::outputFps"
+      ]
+    },
+    {
+      "target": "KisMacosValuesContractTest",
+      "source": "libs/macosutils/KisMacosValuesContractTest.cpp",
+      "test": "KisMacosValuesContractTest::entitlementValuesRemainStable",
+      "behavior": "macOS権限識別値はsandbox、application bookmark、document bookmarkを連続値0・1・2、その他を予約値99として区別する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KisMacosEntitlements::Entitlements",
+        "enumerator:KisMacosEntitlements::Entitlements::BookmarkScopeApp",
+        "enumerator:KisMacosEntitlements::Entitlements::BookmarkScopeDocument",
+        "enumerator:KisMacosEntitlements::Entitlements::Other",
+        "enumerator:KisMacosEntitlements::Entitlements::Sandbox"
+      ]
+    },
+    {
+      "target": "KisMacosValuesContractTest",
+      "source": "libs/macosutils/KisMacosValuesContractTest.cpp",
+      "test": "KisMacosValuesContractTest::securityBookmarkTypeValuesRemainStable",
+      "behavior": "macOS security bookmark種別はfileを0、directoryを1とする重複しない安定値を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KisMacosSecurityBookmarkManager::SecurityBookmarkType",
+        "enumerator:KisMacosSecurityBookmarkManager::SecurityBookmarkType::Directory",
+        "enumerator:KisMacosSecurityBookmarkManager::SecurityBookmarkType::File"
       ]
     }
   ]

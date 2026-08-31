@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 02:57 JST
+- 更新日時: 2026-09-01 03:06 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -65,7 +65,7 @@
   `libs/impex/tests/KisMediaEncoderFormatAndSettingsContractTest.cpp`だけである。識別情報、widget token配送と仮想寿命、入出力文字列、形式・構造値、
   時刻・fpsとcopy独立性の5枠とする。Qt Core・Testと生成済みexport headerだけに接続し、予測4工程・8入力、停止5工程・11入力、製品
   `kritaapplicationui` 1,962工程・3,919入力不変とする。
-- `g96-macos-values`は`in_progress`で、専用作業ツリーは`/Users/masato/Documents/librepaint-g96-macos-values`である。対象は
+- `g96-macos-values`は`integrated`で、削除済みの専用作業ツリーは`/Users/masato/Documents/librepaint-g96-macos-values`であった。対象は
   `libs/macosutils/KisMacosEntitlements.h`の`Entitlements` enum、`Sandbox`・`BookmarkScopeApp`・`BookmarkScopeDocument`・`Other`と、
   `libs/macosutils/KisMacosSecurityBookmarkManager.h`の`SecurityBookmarkType` enum、`File`・`Directory`の全8 APIである。製品sourceと
   Objective-C++実体を変更せず、許可pathは`libs/macosutils/CMakeLists.txt`と新規`libs/macosutils/KisMacosValuesContractTest.cpp`だけである。
@@ -103,6 +103,19 @@
   OpenEXR、Imath、`kritatestsdk`へ接続しない。対応済みは9,677件、未対応は20,161件、契約枠は2,340件となった。
 - 新しい`build/tdd-macos/public-api-missing-g96-impex.json`生成後、直前の不足一覧、局所構築木264 MBを含む担当作業ツリー834 MB、担当branchを
   削除して空きを約0.9 GB回復した。主増分構築木、共有compiler cache、macOS値担当作業ツリー、最新不足一覧だけを保持する。
+- `g96-macos-values`は受渡しcommit `61609bbc93f5ddde64a479530b760d76649eed01`を統合commit `a6dfa2cc66`として取り込んだ。
+  `libs/macosutils/CMakeLists.txt`のmacOS・`BUILD_TESTING`条件内から新規`libs/macosutils/KisMacosValuesContractTest.cpp`をQt Core・Testだけへ
+  接続し、製品source、Objective-C++実体、公開header、他プラットフォームの構築面を変更していない。
+- 2契約枠でsandbox・application bookmark・document bookmark・otherの権限識別値とfile・directoryのbookmark種別値を固定し、8 APIを
+  追加した。担当環境の表示閉包9工程・13入力から既知の作業木ラッパー5工程・5入力を除く直接閉包は4工程・8入力で、製品`kritamacosutils`は
+  表示12工程・19入力、正規化7工程・14入力のまま維持した。
+- 担当環境と主環境で全2枠、対象CTest、20回反復、無作業再構築、動的接続、変更source構文、公開API契約検査、`verify-quick`に成功した。
+  限定対象はQt Core・TestとQtから伝播するmacOS system frameworkだけへ接続し、製品dylib、Qt Widgets、OS権限実体へ接続しない。
+- 第96便は純粋な透視補助幾何20 API、媒体符号化形式・設定26 API、macOS識別値8 APIの合計54 APIを新規10契約枠へ追加した。公開面は
+  1,549ヘッダー、29,838 API、対応済み9,685件、未対応20,153件、契約枠2,342件となった。新しい
+  `build/tdd-macos/public-api-missing-g97.json`生成後、直前の不足一覧、局所構築木253 MBを含む最後の担当作業ツリー824 MB、担当branchを削除した。
+  全担当作業ツリーを除去して空きを9.7 GiBへ戻し、5.2 GBの主増分構築木、共有compiler cache、参照中のNix source 1世代、最新第97不足一覧だけを
+  保持する。次は第96便で未監査の所有領域から第97便候補を並列監査する。
 
 ### 第95並列便の監査計画
 
