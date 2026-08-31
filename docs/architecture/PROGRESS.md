@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 01:08 JST
+- 更新日時: 2026-09-01 01:12 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -18,6 +18,23 @@
 - 条件を満たすbrush候補はなかった。最も近い`KisBrushModel.h`の残り28 APIは`KoResourceSignature.cpp`の軽量OBJECTに加えて、登録簿、設定、
   XML、翻訳処理が混在する`KisBrushModel.cpp`の責任分割を先に要し、一つのsource移動を超える。ほかの候補は実画像、色空間、filesystem、
   Qt Widgets、またはImathへ接続するため、第94便のbrush実装担当は立てない。
+
+### 第94並列便の監査計画
+
+- 共通基点は`9899f700f6d3956f1a93ee0c356293dadd198a5c`、入力は`build/tdd-macos/public-api-missing-g94.json`である。3担当は読み取り専用で、
+  製品・試験・CMake・台帳・文書を変更せず、構築、テスト、Git操作、追加委任も行わない。
+- `g94-image-audit`は`libs/image`から第92便のstroke jobと第93便の無処理visitorを除き、既存限定対象の拡張または一つのsourceのOBJECT一対一移動で
+  12 API以上を値、境界、配送、寿命の最大5枠へ固定できる候補を選ぶ。実画像、色空間、乱数、並行実行を要する候補は固定入力と実行条件を
+  示せない限り採用しない。
+- `g94-psd-audit`は`libs/psd`と`libs/psdutils`から、公開値型、列挙、固定byte列の往復を製品shared library、Qt Widgets、filesystemなしで
+  12 API以上固定できる一つのheaderを選ぶ。直列化sourceが必要なら一つのsourceだけを専用OBJECTへ移し、製品へ一度だけ再集約できることを
+  条件とする。
+- `g94-lightweight-audit`は`libs/global`、`libs/pigment`、`libs/resources`、`libs/painting`から、第91便から第93便までの対象を除き、既存軽量対象の
+  拡張または一つのsource移動で10 API以上を固定できる候補を選ぶ。大域登録簿、DB、filesystem、実色空間、製品意味論を模倣する試験定義を
+  要する候補は採用しない。
+- 各報告は完全なAPI識別子、最大5契約枠、最寄りCTest、所有CMake、直接依存、変更なし閉包、予測閉包と停止線、許可path、固有停止条件を含む。
+  統合担当は互いに公開header、製品source、試験source、CMake所有が重ならず、製品shared library、Qt Widgets、`kritatestsdk`へ接続しない
+  候補だけを実装担当へ移す。
 
 ### 第93並列便の監査計画
 
