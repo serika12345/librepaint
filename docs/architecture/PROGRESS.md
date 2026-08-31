@@ -2,12 +2,27 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 03:06 JST
+- 更新日時: 2026-09-01 03:08 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
+
+### 第97並列便の監査計画
+
+- 共通基点は`c6705d24f92c178ee489b155a619794434b4d85b`、入力は`build/tdd-macos/public-api-missing-g97.json`である。3担当は読み取り専用で、
+  製品・試験・CMake・台帳・文書を変更せず、構築、テスト、Git操作、追加委任も行わない。UI公開面を前進させるためQt Widgetsの直接依存は
+  許容するが、製品shared library、`kritatestsdk`、実canvas・image・document・resource・GPU・filesystem・大域application状態は接続しない。
+- `g97-ui-values-audit`は`libs/ui`から、第93便から第96便の対象と既に棄却したnode・grid・painting assistant実体を除き、既存限定CTestの拡張または
+  一つのsourceのOBJECT一対一移動で12 API以上を値、状態、信号、寿命の最大5枠へ固定できる候補を選ぶ。Qt Widgets eventはGUI-lessまたは
+  offscreenで決定的に実行できるものに限る。
+- `g97-widget-boundaries-audit`は`libs/widgets`、`libs/widgetutils`、`libs/basicflakes`から、既存軽量対象または一つのsource移動で12 API以上を
+  固定できる表示値・model・abstract配送候補を選ぶ。OS font・style差へ依存する画素値を避け、Qt Widgetsへ接続する場合も製品libraryを経由しない。
+- `g97-plugin-presentation-audit`は`plugins/dockers`と`plugins/tools`から、既存限定対象または一つのsource移動で12 API以上を固定できる値・model・
+  command候補を選ぶ。実timeline、canvas、shape、paint device、resource、plugin登録簿を必要とする候補は採用しない。
+- 各報告は完全なAPI識別子、最大5契約枠、最寄りCTest、所有CMake、直接依存、変更なし閉包、予測閉包と停止線、許可path、固有停止条件を含む。
+  実装候補は公開header、製品source、試験source、CMake所有を重複させず、対象閉包12工程・26入力以内を初期上限とする。
 
 ### 第96並列便の監査計画
 
