@@ -2,12 +2,44 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-31 09:43 JST
-- 状態: `planned`
+- 更新日時: 2026-08-31 09:54 JST
+- 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
+
+### 第72並列便の担当票
+
+- path区間担当は`preparing`である。基点は`e01359e3144e0506738638c218d087d123db6971`、予定作業ツリーは
+  `/Users/masato/Documents/librepaint-r2-g72-path-segment`、予定ブランチは`r2-g72-path-segment`、統合順は1である。
+  対象は`libs/flake/KoPathSegment.h`の31 APIである。開始ファイル`libs/flake/KoPathSegment.cpp`を
+  `kritaflake_SRCS`の直接収容から`kritaflakepathsegmentobjects`へ移し、製品`kritaflake`へ一度だけ再集約する。
+  開始試験`libs/flake/tests/TestPathSegment.{h,cpp}`を広域試験一覧から同名の専用Qt Test対象へ移し、構築・複製・
+  所有、直線・二次・三次曲線の評価、写像・変換・分割、長さとparameter、交点・最近点、平坦性と方向を
+  6契約枠で固定する。31 APIを`maintained`へ分類する。限定構築は計画承認まで待機し、予測閉包8工程・19入力、
+  停止条件9工程・22入力、製品閉包612工程・1,256入力不変を要求する。許可範囲は
+  `libs/flake/CMakeLists.txt`、`libs/flake/tests/CMakeLists.txt`、開始試験2ファイルだけである。
+- cubic曲線担当は`preparing`である。基点は`e01359e3144e0506738638c218d087d123db6971`、予定作業ツリーは
+  `/Users/masato/Documents/librepaint-r2-g72-cubic-curve`、予定ブランチは`r2-g72-cubic-curve`、統合順は2である。
+  対象は`libs/image/kis_cubic_curve.h`の48 APIである。開始ファイル`libs/image/kis_cubic_curve.cpp`を
+  `kritaimage_LIB_SRCS`の直接収容から`kritaimagecubiccurveobjects`へ移し、製品`kritaimage`へ一度だけ再集約する。
+  新規`libs/image/tests/KisCubicCurveContractTest.cpp`が曲線点値、構築と整列、編集、複製・名前・判定、評価・
+  転送表、文字列直列化を6契約枠で固定する。非推奨互換経路を含む48 APIを`maintained`へ分類する。限定構築は
+  計画承認まで待機し、予測閉包5工程・12入力、停止条件6工程・14入力、製品閉包1,184工程・2,392入力不変を
+  要求する。許可範囲は`libs/image/CMakeLists.txt`、`libs/image/tests/CMakeLists.txt`、新規試験だけである。
+- 合成演算担当は`preparing`である。基点は`e01359e3144e0506738638c218d087d123db6971`、予定作業ツリーは
+  `/Users/masato/Documents/librepaint-r2-g72-composite-functions`、予定ブランチは`r2-g72-composite-functions`、
+  統合順は3である。対象はheader内実装だけで完結する
+  `libs/pigment/compositeops/KoCompositeOpFunctions.h`の146 APIであり、製品sourceの開始先と移動先は該当しない。
+  新規`libs/pigment/tests/KoCompositeOpFunctionsContractTest.cpp`が値域補正、47自由関数、alpha付き加算、
+  33単一channel演算、HSY系RGB演算、normal・照明・tint演算を6契約枠で固定する。146 APIを`maintained`へ
+  分類する。限定構築は計画承認まで待機し、予測閉包4工程・8入力、停止条件5工程・11入力、製品閉包
+  360工程・750入力不変を要求する。許可範囲は`libs/pigment/tests/CMakeLists.txt`と新規試験だけである。
+- 3担当はgit commitで受渡しし、再委任しない。中央進捗文書、公開API対応表、不足一覧は調整担当だけが
+  更新する。担当差分の統合直後に担当作業ツリー、局所構築木、担当ブランチを削除する。旧不足一覧は
+  新しい一覧の件数確認直後に削除し、再生成可能な一覧を常に最新1世代へ限定する。
+- 第72便は合計225 APIを対応付け、対応済み8,532件、未対応21,457件を目標とする。
 
 ### 現在の結果
 
@@ -44,9 +76,8 @@
 
 ### 次の操作
 
-- 第72並列便は最新不足一覧から互いに重ならない公開面を読取り監査し、公開API件数、最小の観測可能契約、
-  直接CMake依存、既存対象との清浄木閉包差を測る。計画前は作業ツリーや局所構築木を作らず、広域閉包を
-  専用objectへ分離できる候補だけを採用する。
+- 第72並列便の担当票を高速検査で固定してコミットする。3担当作業ツリーを同じ計画コミットから作成し、
+  基点と清浄状態を確認した後に実装許可を記録して、限定構築と挙動契約の実装へ進む。
 
 ## 再開環境
 
