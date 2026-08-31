@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 19869
+    "expectedMissingApis": 19802
   },
   "contracts": [
     {
@@ -7493,6 +7493,118 @@
         "member:ChannelInfo::channelOffset",
         "member:ChannelInfo::compressionType",
         "member:ChannelInfo::rleRowLengths"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::levelRecordsValueInitializeAndCopyNumericState",
+      "behavior": "PSD level記録は規定の入力上限と零の数値・表・追加記録状態で値初期化され、設定した記録と固定表を複製後も独立して保持し、追加記録pointerを借用値として複製する。",
+      "classification": "maintained",
+      "apis": [
+        "member:psd_layer_level_record::gamma",
+        "member:psd_layer_level_record::input_ceiling",
+        "member:psd_layer_level_record::input_floor",
+        "member:psd_layer_level_record::output_ceiling",
+        "member:psd_layer_level_record::output_floor",
+        "member:psd_layer_levels::extra_level_count",
+        "member:psd_layer_levels::extra_record",
+        "member:psd_layer_levels::lookup_table",
+        "member:psd_layer_levels::record",
+        "struct:psd_layer_level_record",
+        "struct:psd_layer_levels"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::curveRecordsValueInitializeAndCopyTableState",
+      "behavior": "PSD curve記録は零の索引・点・座標・曲線数・表と空pointerで値初期化され、固定配列を独立して複製し、曲線記録pointerを借用値として複製する。",
+      "classification": "maintained",
+      "apis": [
+        "member:psd_layer_curves::curve",
+        "member:psd_layer_curves::curve_count",
+        "member:psd_layer_curves::lookup_table",
+        "member:psd_layer_curves_data::channel_index",
+        "member:psd_layer_curves_data::input_value",
+        "member:psd_layer_curves_data::output_value",
+        "member:psd_layer_curves_data::point_count",
+        "struct:psd_layer_curves",
+        "struct:psd_layer_curves_data"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::tonalAdjustmentRecordsPreserveDefaultsAndCopyState",
+      "behavior": "PSDの明暗・色相・threshold・posterize記録は各既定値を持ち、符号付き調整値と全固定表を複製後も原本から独立して保持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:psd_layer_brightness_contrast::Lab_color",
+        "member:psd_layer_brightness_contrast::brightness",
+        "member:psd_layer_brightness_contrast::contrast",
+        "member:psd_layer_brightness_contrast::lookup_table",
+        "member:psd_layer_brightness_contrast::mean_value",
+        "member:psd_layer_hue_saturation::colorization_hue",
+        "member:psd_layer_hue_saturation::colorization_lightness",
+        "member:psd_layer_hue_saturation::colorization_saturation",
+        "member:psd_layer_hue_saturation::hue_or_colorization",
+        "member:psd_layer_hue_saturation::lookup_table",
+        "member:psd_layer_hue_saturation::master_hue",
+        "member:psd_layer_hue_saturation::master_lightness",
+        "member:psd_layer_hue_saturation::master_saturation",
+        "member:psd_layer_hue_saturation::range_values",
+        "member:psd_layer_hue_saturation::setting_values",
+        "member:psd_layer_posterize::levels",
+        "member:psd_layer_posterize::lookup_table",
+        "member:psd_layer_threshold::level",
+        "struct:psd_layer_brightness_contrast",
+        "struct:psd_layer_hue_saturation",
+        "struct:psd_layer_posterize",
+        "struct:psd_layer_threshold"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::colorAdjustmentRecordsPreserveDefaultsAndCopyState",
+      "behavior": "PSDのcolor balance・selective color・photo filter記録は零補正と各輝度維持既定値を持ち、正負の色補正値と固定表を複製後も独立して保持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:psd_layer_color_balance::cyan_red",
+        "member:psd_layer_color_balance::lookup_table",
+        "member:psd_layer_color_balance::magenta_green",
+        "member:psd_layer_color_balance::preserve_luminosity",
+        "member:psd_layer_color_balance::yellow_blue",
+        "member:psd_layer_photo_filter::density",
+        "member:psd_layer_photo_filter::preserve_luminosity",
+        "member:psd_layer_photo_filter::x_color",
+        "member:psd_layer_photo_filter::y_color",
+        "member:psd_layer_photo_filter::z_color",
+        "member:psd_layer_selective_color::black_correction",
+        "member:psd_layer_selective_color::correction_method",
+        "member:psd_layer_selective_color::cyan_correction",
+        "member:psd_layer_selective_color::magenta_correction",
+        "member:psd_layer_selective_color::yellow_correction",
+        "struct:psd_layer_color_balance",
+        "struct:psd_layer_photo_filter",
+        "struct:psd_layer_selective_color"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::channelMixerValueInitializesAndCopiesChannels",
+      "behavior": "PSD channel mixer記録は非monochromeと零の全channel係数で値初期化され、正負の係数を複製後も原本から独立して保持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:psd_layer_channel_mixer::black",
+        "member:psd_layer_channel_mixer::blue_yellow",
+        "member:psd_layer_channel_mixer::constant",
+        "member:psd_layer_channel_mixer::green_magenta",
+        "member:psd_layer_channel_mixer::monochrome",
+        "member:psd_layer_channel_mixer::red_cyan",
+        "struct:psd_layer_channel_mixer"
       ]
     },
     {

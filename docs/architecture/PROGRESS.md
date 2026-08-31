@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 05:15 JST
+- 更新日時: 2026-09-01 05:32 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -45,7 +45,7 @@
 ### 第100並列便の担当計画
 
 - 実装共通基点は`1dbeb60317b2321b44fd41380a691b7f9ff04949`、構築許可は`granted`、Git権限は許可pathだけの`transport-commit`である。
-- `g100-psd-adjustment-values`は`in_progress`で、専用作業ツリーは`/Users/masato/Documents/librepaint-g100-psd-adjustment-values`である。対象は
+- `g100-psd-adjustment-values`は`integrated`で、削除済みの専用作業ツリーは`/Users/masato/Documents/librepaint-g100-psd-adjustment-values`であった。対象は
   `libs/psd/psd_additional_layer_info_block.h`先頭12構造体の全67 APIで、許可pathは既存
   `libs/psdutils/tests/PsdFormatValuesContractTest.cpp`だけである。level、curve、明暗・色相、色補正、channel mixerを5枠で追加する。変更前・予測
   4工程・9入力、停止5工程・12入力、製品`kritapsd` 1,970工程・3,938入力不変とする。
@@ -55,7 +55,7 @@
   一括登録を削除し、新規`libs/image/tests/KisTimeSpanContractTest.cpp`の専用対象へ値・DOM・診断21 APIを4枠で移行する。許可pathは以上のsource、
   `libs/image/CMakeLists.txt`、`libs/image/tests/CMakeLists.txt`だけで、公開headerは変更しない。予測7工程、停止10工程・23入力とし、node計算の本文・
   公開API・製品挙動、製品sourceの一重収容を維持する。
-- `g100-global-bezier-mesh-values`は`planned`で、専用作業ツリーを`/Users/masato/Documents/librepaint-g100-global-bezier-mesh-values`へ作成する。
+- `g100-global-bezier-mesh-values`は`in_progress`で、専用作業ツリーは`/Users/masato/Documents/librepaint-g100-global-bezier-mesh-values`である。
   開始`libs/global/KisBezierMesh.cpp`を新規`kritaglobalbeziermeshobjects`へ一対一移動して製品へ再集約し、二つの`intersectLines`本文を
   `libs/global/kis_algebra_2d.cpp`から既存`libs/global/kis_algebra_2d_direction.cpp`へ移す。既存
   `libs/global/tests/KisBezierMeshValuesContractTest.cpp`へ残り29 APIを5枠追加する。許可pathは以上4 sourceと`libs/global/CMakeLists.txt`、
@@ -66,6 +66,18 @@
   動的接続、変更source構文、公開API検査、`verify-quick`まで実行する。台帳と進捗は統合担当が所有し、統合順はPSD調整値、画像時間範囲値とする。
   許可path外、新規公開API、製品source二重収容、停止線超過、製品shared library、`kritatestsdk`、実画像・node・registry・filesystem、未分類のnode
   再帰挙動へ到達した場合は停止する。Bezier mesh担当を追加した後の統合順はPSD調整値、画像時間範囲値、Bezier mesh値とする。
+
+### 第100並列便の統合結果
+
+- `g100-psd-adjustment-values`は受渡しcommit `b89cce33485`を統合commit `c2c3a377e5`として取り込んだ。変更は既存
+  `libs/psdutils/tests/PsdFormatValuesContractTest.cpp`だけで、製品header、source、CMakeを変更していない。
+- 調整レイヤー設定値12構造体の既定値、符号付き補正値、固定配列copy、借用pointer copyについて全67 APIを5契約枠へ追加した。限定対象
+  4工程・9入力、製品`kritapsd` 1,970工程・3,938入力を維持した。
+- 担当環境と主環境で追加5枠、全17試験、20回反復、`PsdByteIoContractTest`近傍、無作業再構築、動的接続、変更source構文、公開API契約検査、
+  `verify-quick`に成功した。動的接続はQt、KF I18n、macOS system frameworkだけで、製品shared libraryと`kritatestsdk`を含まない。対応済みは
+  10,036件、未対応は19,802件、契約枠は2,382件となった。
+- 新しい`build/tdd-macos/public-api-missing-g100-psd.json`生成後、旧不足一覧4.9 MB、局所構築木264 MBを含む担当作業ツリー835 MB、担当branchを
+  削除した。主増分構築木、共有compiler cache、残る時間範囲・Bezier mesh担当作業ツリー、最新不足一覧だけを保持する。
 
 ### 第99並列便の監査計画
 
