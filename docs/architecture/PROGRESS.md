@@ -2,56 +2,39 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-31 18:00 JST
+- 更新日時: 2026-08-31 18:24 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
 
-### 第84並列便の担当票
+### 第84並列便の完了結果
 
-- text内shape並べ替えcommand担当は`implementing`である。基点は
-  `2dddd2313cf8862be139397424b5f68ad02f3175`、作業ツリーは
-  `/Users/masato/Documents/librepaint-r2-g84-svg-text-reorder`、ブランチは`r2-g84-svg-text-reorder`、統合順は1である。
-  対象は
-  `libs/flake/commands/KoSvgTextReorderShapeInsideCommand.h`の10 APIである。開始ファイル
-  `libs/flake/commands/KoSvgTextReorderShapeInsideCommand.cpp`を`kritaflake_SRCS`の直接収容から
-  `kritaflakesvgtextreordershapeinsidecommandobjects`へ移し、製品`kritaflake`へ一度だけ再集約する。新規
-  `libs/flake/tests/KoSvgTextReorderShapeInsideCommandContractTest.cpp`が4方向の列挙値と構築時のinside順・借用寿命、
-  前面移動、前方1段移動、後方1段と背面移動の逆順配送、方向別undoとmemento復元を5契約枠で固定する。memento読取、
-  inside shape読取、index移動、memento復元は開始実装の試験限定配送を介し、sort、index計算、境界、処理順はcommandが
-  所有する。予測閉包5工程・11実入力、停止条件6工程・14実入力、製品閉包612工程・1,256入力不変を要求する。既存
-  `TestSvgTextShape::testReorderShapesInside`の8 data rowは実text shape統合経路の補完として維持する。許可範囲は
-  `libs/flake/CMakeLists.txt`、開始実装、`libs/flake/tests/CMakeLists.txt`、新規試験である。
-- runnable stroke strategy担当は`implementing`である。基点は
-  `2dddd2313cf8862be139397424b5f68ad02f3175`、作業ツリーは
-  `/Users/masato/Documents/librepaint-r2-g84-runnable-stroke`、ブランチは`r2-g84-runnable-stroke`、統合順は2である。
-  対象は`libs/image/KisRunnableBasedStrokeStrategy.h`の6 APIである。
-  開始ファイル`libs/image/KisRunnableBasedStrokeStrategy.cpp`を`kritaimage_LIB_SRCS`の直接収容から
-  `kritaimagerunnablebasedstrokestrategyobjects`へ移し、製品`kritaimage`へ一度だけ再集約する。新規
-  `libs/image/tests/KisRunnableBasedStrokeStrategyContractTest.cpp`が構築時の識別値とjobs interface、複製後の独立した
-  interface再結合、runnable dataだけの実行、job列の順序付き配送、基底破棄と所有寿命を5契約枠で固定する。既存の
-  runnable data、jobs interface、stroke strategy OBJECTを直接再利用し、製品sourceと公開headerの内容は変更しない。
-  予測閉包10工程・22実入力、停止条件11工程・24実入力、製品閉包1,184工程・2,392入力不変を要求する。許可範囲は
-  `libs/image/CMakeLists.txt`、`libs/image/tests/CMakeLists.txt`、新規試験である。
-- store device担当は`implementing`である。基点は`2dddd2313cf8862be139397424b5f68ad02f3175`、作業ツリーは
-  `/Users/masato/Documents/librepaint-r2-g84-store-device`、ブランチは`r2-g84-store-device`、統合順は3である。対象は
-  `libs/resources/storage/KoStoreDevice.h`の10 APIである。開始ファイル
+- text内shape並べ替えcommand担当は`integrated`である。受渡しcommitは
+  `5fcce0266e3886e7b1c85819dd6fb718a4714968`、統合commitは`00e7ff167d`であり、担当作業ツリー、局所構築木、
+  担当ブランチは削除済みである。対象は`libs/flake/commands/KoSvgTextReorderShapeInsideCommand.h`の10 APIである。
+  開始ファイル`libs/flake/commands/KoSvgTextReorderShapeInsideCommand.cpp`を`kritaflake_SRCS`の直接収容から
+  `kritaflakesvgtextreordershapeinsidecommandobjects`へ移し、製品`kritaflake`へ一度だけ再集約した。新規
+  `libs/flake/tests/KoSvgTextReorderShapeInsideCommandContractTest.cpp`が4方向の列挙値と構築時状態、前面と前方1段の移動、
+  後方1段と背面移動の逆順配送、undoとmemento復元を5契約枠で固定する。実shapeへの4操作は試験限定配送を介するが、
+  sort、索引計算、境界、処理順はcommandが所有する。
+- runnable stroke strategy担当は`integrated`である。受渡しcommitは
+  `1fada1ed57b4ad12140e85907a9572a3f9e4ae8f`、統合commitは`0cf2484861`であり、担当作業ツリー、局所構築木、
+  担当ブランチは削除済みである。対象は`libs/image/KisRunnableBasedStrokeStrategy.h`の6 APIである。開始ファイル
+  `libs/image/KisRunnableBasedStrokeStrategy.cpp`を`kritaimage_LIB_SRCS`の直接収容から
+  `kritaimagerunnablebasedstrokestrategyobjects`へ移し、製品`kritaimage`へ一度だけ再集約した。新規
+  `libs/image/tests/KisRunnableBasedStrokeStrategyContractTest.cpp`が識別値とjob配送窓口、複製時の独立再結合、
+  runnable dataだけの実行、job列の順序付き配送、基底破棄と所有寿命を5契約枠で固定する。製品sourceと公開headerの
+  内容は変更していない。
+- store device担当は`integrated`である。受渡しcommitは
+  `96f2937a5da1224093e9b9c3252274deeac9a7f0`、統合commitは`15e367a982`であり、担当作業ツリー、局所構築木、
+  担当ブランチは削除済みである。対象は`libs/resources/storage/KoStoreDevice.h`の10 APIである。開始ファイル
   `libs/resources/storage/KoStoreDevice.cpp`を`kritaresourcestorage`の直接収容から
-  `kritaresourcestoragedeviceobjects`へ移し、製品へ一度だけ再集約する。公開headerは製品source一覧へ残して既存の
+  `kritaresourcestoragedeviceobjects`へ移し、製品へ一度だけ再集約した。公開headerは製品source一覧に残して既存の
   meta-object所有を維持する。新規`libs/resources/storage/tests/KoStoreDeviceContractTest.cpp`が構築時のmodeと借用寿命、
-  openのmode整合と失敗時状態、size・sequential・close、pos・atEnd、seek配送を5契約枠で固定する。試験実行ファイル内の
-  記録用storeはwrapperが用いる最小のKoStore操作だけを定義し、製品storeや保存形式を模倣しない。予測閉包5工程・
-  11実入力、停止条件6工程・14実入力、製品閉包9工程・20入力不変を要求する。許可範囲は
-  `libs/resources/storage/CMakeLists.txt`、同tests CMake、新規試験である。
-- 3担当はmacOSの主作業ツリー環境と共有コンパイラーキャッシュを使用し、Git操作権限は`transport-commit`、
-  構築実行許可は`granted`、追加委任は`forbidden`とする。各担当は新対象のunknown-targetを初期診断とし、変更前の
-  計画、直接依存、最寄り契約と製品閉包を基準に停止条件を判定する。製品OBJECTは構築せず、変更した開始sourceは
-  コンパイル指令の`-fsyntax-only`で確認する。中央進捗文書、公開API対応表、不足一覧は調整担当だけが更新する。
-  統合順はtext内shape並べ替えcommand、runnable stroke strategy、store deviceであり、各統合直後に担当作業ツリー、
-  局所構築木、担当ブランチを削除する。
-- 第84便は合計26 APIを対応付け、対応済み9,127件、未対応20,862件を目標とする。
+  openのmode整合と失敗時状態、size・sequential・close、pos・atEnd、seek配送を5契約枠で固定する。
+- 第84便は合計26 APIを対応付け、対応済み9,127件、未対応20,862件を達成した。
 
 ### 第83並列便の完了結果
 
@@ -305,36 +288,34 @@
 
 ### 現在の結果
 
-- 第83並列便はshape寸法変更command 8 API、画像animation設定command 14 API、alpha darken引数束17 APIの
-  合計39 APIを挙動契約へ対応付けた。公開面は1,549ヘッダー、29,989 API、対応済み9,101件、未対応20,888件である。
-- 開始ファイル`libs/flake/commands/KoShapeResizeCommand.cpp`は`kritaflakeshaperesizecommandobjects`へ移り、
-  製品`kritaflake`へ一度だけ再集約される。新規`libs/flake/tests/KoShapeResizeCommandContractTest.cpp`が構築状態と
-  借用寿命、redo・undo、replace、merge、識別子を5契約枠で固定する。
-- 開始ファイル`libs/image/commands_new/KisImageAnimSettingCommand.cpp`は
-  `kritaimageanimsettingcommandobjects`へ移り、製品`kritaimage`へ一度だけ再集約される。FPS・再生範囲の4操作は
-  非公開配送面から開始元`libs/image/kis_image_animation_interface.cpp`へ委譲される。新規
-  `libs/image/tests/KisImageAnimSettingCommandContractTest.cpp`が設定値、構築時採取、redo・undo、識別子とmergeを
+- 第84並列便はtext内shape並べ替えcommand 10 API、runnable stroke strategy 6 API、store device 10 APIの
+  合計26 APIを挙動契約へ対応付けた。公開面は1,549ヘッダー、29,989 API、対応済み9,127件、未対応20,862件である。
+- 開始ファイル`libs/flake/commands/KoSvgTextReorderShapeInsideCommand.cpp`は
+  `kritaflakesvgtextreordershapeinsidecommandobjects`へ移り、製品`kritaflake`へ一度だけ再集約される。新規
+  `libs/flake/tests/KoSvgTextReorderShapeInsideCommandContractTest.cpp`が方式値、構築時状態、4方向のredo、undoを
   5契約枠で固定する。
-- 開始ファイル`libs/pigment/compositeops/KoAlphaDarkenParamsWrapper.cpp`は
-  `kritapigmentalphadarkenparamswrapperobjects`へ移り、製品`kritapigment`へ一度だけ再集約される。新規
-  `libs/pigment/tests/KoAlphaDarkenParamsWrapperContractTest.cpp`が二つの引数束、zero-flow合成、方式選択cacheを
+- 開始ファイル`libs/image/KisRunnableBasedStrokeStrategy.cpp`は
+  `kritaimagerunnablebasedstrokestrategyobjects`へ移り、製品`kritaimage`へ一度だけ再集約される。新規
+  `libs/image/tests/KisRunnableBasedStrokeStrategyContractTest.cpp`が構築、複製、runnable配送、job列配送、所有寿命を
   5契約枠で固定する。
-- 統合後の限定閉包は`KoShapeResizeCommandContractTest` 5工程・11実入力、
-  `KisImageAnimSettingCommandContractTest` 11工程・24実入力、`KoAlphaDarkenParamsWrapperContractTest`
-  5工程・11実入力である。製品閉包は`kritaflake` 612工程・1,256入力、`kritaimage` 1,184工程・2,392入力、
-  `kritapigment` 360工程・750入力で不変である。
-- 主作業ツリーはCMake構成を一度だけ同期し、3限定対象だけを一つの命令で構築した。3対象と9軽量近傍はCTest
-  12/12に成功し、3対象は各20回反復、全15契約枠の指定実行、再構築時の無作業確認に成功した。macOSの
-  パッケージ境界は1,638対象、公開API契約検査は9,101/29,989件で成功した。動的依存にはLibrePaint製品共有
-  ライブラリーと`kritatestsdk`を含まず、画像対象のQt Widgetsはundo commandの直接依存、Qt Xmlは時間範囲の公開値型が
-  必要とする直接依存である。製品全体の構築・リンクとLinux検証は限定閉包を越えるため実施していない。
-- 担当作業ツリー3本、合計817 MBの局所構築木、担当ブランチは各統合直後に削除した。旧第83便不足一覧を削除し、
-  最新の第84便不足一覧`build/tdd-macos/public-api-missing-g84.json` 5.1 MBだけを保持する。主増分構築木は5.2 GBを
-  維持する。
+- 開始ファイル`libs/resources/storage/KoStoreDevice.cpp`は`kritaresourcestoragedeviceobjects`へ移り、製品
+  `kritaresourcestorage`へ一度だけ再集約される。新規
+  `libs/resources/storage/tests/KoStoreDeviceContractTest.cpp`がmodeと借用寿命、open、sizeとclose、位置と終端、seekを
+  5契約枠で固定する。
+- 統合後の限定閉包は`KoSvgTextReorderShapeInsideCommandContractTest` 5工程・11実入力、
+  `KisRunnableBasedStrokeStrategyContractTest` 10工程・22実入力、`KoStoreDeviceContractTest` 5工程・10実入力である。
+  製品閉包は`kritaflake` 612工程・1,256入力、`kritaimage` 1,184工程・2,392入力、`kritaresourcestorage`
+  9工程・20入力で不変である。
+- 主作業ツリーはCMake構成を一度だけ同期し、3限定対象だけを一つの命令で17工程構築した。3対象と5軽量近傍はCTest
+  8/8に成功し、3対象は各20回反復、全15契約枠の指定実行、再構築時の無作業確認に成功した。macOSの
+  パッケージ境界は1,644対象、公開API契約検査は9,127/29,989件で成功した。動的依存にはLibrePaint製品共有
+  ライブラリーと`kritatestsdk`を含まない。製品全体の構築・リンクとLinux検証は限定閉包を越えるため実施していない。
+- 担当作業ツリー3本、合計824 MBの局所構築木、担当ブランチは各統合直後に削除した。旧第84便不足一覧を削除し、
+  最新の第85便不足一覧`build/tdd-macos/public-api-missing-g85.json`だけを保持する。主増分構築木は5.2 GBを維持する。
 
 ### 次の操作
 
-- 第84便不足一覧から公開header、製品source、試験source、CMake所有が重ならない3候補を監査する。各候補の直接依存、
+- 第85便不足一覧から公開header、製品source、試験source、CMake所有が重ならない3候補を監査する。各候補の直接依存、
   変更なし計画、空構築閉包を測定し、停止条件内の候補だけを次の並列担当票へ確定する。
 
 ## 再開環境

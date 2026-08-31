@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 20888
+    "expectedMissingApis": 20862
   },
   "contracts": [
     {
@@ -29431,6 +29431,169 @@
       "classification": "maintained",
       "apis": [
         "function:useCreamyAlphaDarken()"
+      ]
+    },
+    {
+      "target": "KoSvgTextReorderShapeInsideCommandContractTest",
+      "source": "libs/flake/tests/KoSvgTextReorderShapeInsideCommandContractTest.cpp",
+      "test": "KoSvgTextReorderShapeInsideCommandContractTest::exposesMoveTypesAndCapturesBorrowedShapes",
+      "behavior": "SVG文字内shape並替commandは4方式の識別値を公開し、文字shapeと対象shapeを借用して構築時状態を採取し、親commandとの所有関係を保つ。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoSvgTextReorderShapeInsideCommand",
+        "enum:KoSvgTextReorderShapeInsideCommand::MoveShapeType",
+        "enumerator:KoSvgTextReorderShapeInsideCommand::MoveShapeType::BringToFront",
+        "enumerator:KoSvgTextReorderShapeInsideCommand::MoveShapeType::MoveEarlier",
+        "enumerator:KoSvgTextReorderShapeInsideCommand::MoveShapeType::MoveLater",
+        "enumerator:KoSvgTextReorderShapeInsideCommand::MoveShapeType::SendToBack",
+        "method:KoSvgTextReorderShapeInsideCommand::KoSvgTextReorderShapeInsideCommand(KoSvgTextShape * textShape,QList<KoShape * > shape,MoveShapeType type,KUndo2Command * parent=nullptr)",
+        "method:KoSvgTextReorderShapeInsideCommand::~KoSvgTextReorderShapeInsideCommand()"
+      ]
+    },
+    {
+      "target": "KoSvgTextReorderShapeInsideCommandContractTest",
+      "source": "libs/flake/tests/KoSvgTextReorderShapeInsideCommandContractTest.cpp",
+      "test": "KoSvgTextReorderShapeInsideCommandContractTest::bringToFrontMovesTargetsInInsideOrder",
+      "behavior": "SVG文字内shape並替commandの再実行は最前面方式で対象の内部順を保ち、先頭から連続する位置へ移動する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoSvgTextReorderShapeInsideCommand::redo()"
+      ]
+    },
+    {
+      "target": "KoSvgTextReorderShapeInsideCommandContractTest",
+      "source": "libs/flake/tests/KoSvgTextReorderShapeInsideCommandContractTest.cpp",
+      "test": "KoSvgTextReorderShapeInsideCommandContractTest::moveEarlierUsesFirstTargetBoundary",
+      "behavior": "SVG文字内shape並替commandの再実行は一段手前方式で先頭境界の対象を留め、後続対象を境界位置へ移動する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoSvgTextReorderShapeInsideCommand::redo()"
+      ]
+    },
+    {
+      "target": "KoSvgTextReorderShapeInsideCommandContractTest",
+      "source": "libs/flake/tests/KoSvgTextReorderShapeInsideCommandContractTest.cpp",
+      "test": "KoSvgTextReorderShapeInsideCommandContractTest::laterAndBackDispatchInReverseOrder",
+      "behavior": "SVG文字内shape並替commandの再実行は一段奥と最背面の方式で対象を逆順に配送し、相対順序を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoSvgTextReorderShapeInsideCommand::redo()"
+      ]
+    },
+    {
+      "target": "KoSvgTextReorderShapeInsideCommandContractTest",
+      "source": "libs/flake/tests/KoSvgTextReorderShapeInsideCommandContractTest.cpp",
+      "test": "KoSvgTextReorderShapeInsideCommandContractTest::undoRestoresIndicesAndMemento",
+      "behavior": "SVG文字内shape並替commandの取消は対象を元の索引へ逆順に戻した後、構築時の文字shape状態を復元する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoSvgTextReorderShapeInsideCommand::undo()"
+      ]
+    },
+    {
+      "target": "KisRunnableBasedStrokeStrategyContractTest",
+      "source": "libs/image/tests/KisRunnableBasedStrokeStrategyContractTest.cpp",
+      "test": "KisRunnableBasedStrokeStrategyContractTest::constructionPreservesIdentityAndCreatesJobsInterface",
+      "behavior": "実行可能job型stroke方針は構築時の識別子と表示名を保持し、専用job配送窓口を直ちに所有する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisRunnableBasedStrokeStrategy",
+        "method:KisRunnableBasedStrokeStrategy::KisRunnableBasedStrokeStrategy(const QLatin1String & id,const KUndo2MagicString & name=KUndo2MagicString ())"
+      ]
+    },
+    {
+      "target": "KisRunnableBasedStrokeStrategyContractTest",
+      "source": "libs/image/tests/KisRunnableBasedStrokeStrategyContractTest.cpp",
+      "test": "KisRunnableBasedStrokeStrategyContractTest::copyRebindsIndependentJobsInterface",
+      "behavior": "実行可能job型stroke方針の複製は識別子と表示名を引き継ぎ、複製元とは独立したjob配送窓口を所有する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisRunnableBasedStrokeStrategy::KisRunnableBasedStrokeStrategy(const KisRunnableBasedStrokeStrategy & rhs)"
+      ]
+    },
+    {
+      "target": "KisRunnableBasedStrokeStrategyContractTest",
+      "source": "libs/image/tests/KisRunnableBasedStrokeStrategyContractTest.cpp",
+      "test": "KisRunnableBasedStrokeStrategyContractTest::strokeCallbackRunsOnlyRunnableData",
+      "behavior": "実行可能job型stroke方針のstroke入口はnullと通常jobを無視し、実行可能jobだけを一度実行する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisRunnableBasedStrokeStrategy::doStrokeCallback(KisStrokeJobData * data)"
+      ]
+    },
+    {
+      "target": "KisRunnableBasedStrokeStrategyContractTest",
+      "source": "libs/image/tests/KisRunnableBasedStrokeStrategyContractTest.cpp",
+      "test": "KisRunnableBasedStrokeStrategyContractTest::jobsInterfaceForwardsListsInOrder",
+      "behavior": "実行可能job型stroke方針のjob配送窓口は対象strokeと実行可能job列を保持順のまま変異job窓口へ一度配送し、配送時にはjobを実行しない。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisRunnableBasedStrokeStrategy::runnableJobsInterface() const"
+      ]
+    },
+    {
+      "target": "KisRunnableBasedStrokeStrategyContractTest",
+      "source": "libs/image/tests/KisRunnableBasedStrokeStrategyContractTest.cpp",
+      "test": "KisRunnableBasedStrokeStrategyContractTest::strategyDeletesThroughBaseAndOwnsItsInterface",
+      "behavior": "実行可能job型stroke方針は基底方針経由で安全に破棄でき、所有するjob配送窓口の寿命も方針本体に従う。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisRunnableBasedStrokeStrategy::~KisRunnableBasedStrokeStrategy()"
+      ]
+    },
+    {
+      "target": "KoStoreDeviceContractTest",
+      "source": "libs/resources/storage/tests/KoStoreDeviceContractTest.cpp",
+      "test": "KoStoreDeviceContractTest::constructionMapsModeAndBorrowsStore",
+      "behavior": "格納庫deviceは借用した格納庫の読書方式をQtの開放方式へ写し、device破棄後も格納庫の寿命を変更しない。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoStoreDevice",
+        "method:KoStoreDevice::KoStoreDevice(KoStore * store)",
+        "method:KoStoreDevice::~KoStoreDevice()"
+      ]
+    },
+    {
+      "target": "KoStoreDeviceContractTest",
+      "source": "libs/resources/storage/tests/KoStoreDeviceContractTest.cpp",
+      "test": "KoStoreDeviceContractTest::openValidatesStoreModeAfterUpdatingDeviceMode",
+      "behavior": "格納庫deviceの開放入口は要求方式をdeviceへ先に反映し、借用格納庫の読書方式と一致する場合だけ成功を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoStoreDevice::open(OpenMode m)"
+      ]
+    },
+    {
+      "target": "KoStoreDeviceContractTest",
+      "source": "libs/resources/storage/tests/KoStoreDeviceContractTest.cpp",
+      "test": "KoStoreDeviceContractTest::sizeSequentialAndClosePreserveCompatibilityBehavior",
+      "behavior": "格納庫deviceは常に逐次deviceとして振る舞い、読込時は格納庫寸法、書込時は既存の最大互換値を返し、閉鎖要求では開放状態を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoStoreDevice::close()",
+        "method:KoStoreDevice::isSequential() const",
+        "method:KoStoreDevice::size() const"
+      ]
+    },
+    {
+      "target": "KoStoreDeviceContractTest",
+      "source": "libs/resources/storage/tests/KoStoreDeviceContractTest.cpp",
+      "test": "KoStoreDeviceContractTest::positionAndEndStateFollowTheBorrowedStore",
+      "behavior": "格納庫deviceの現在位置と終端状態は借用格納庫の変化をそのまま返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoStoreDevice::atEnd() const",
+        "method:KoStoreDevice::pos() const"
+      ]
+    },
+    {
+      "target": "KoStoreDeviceContractTest",
+      "source": "libs/resources/storage/tests/KoStoreDeviceContractTest.cpp",
+      "test": "KoStoreDeviceContractTest::seekForwardsPositionAndResultExactlyOnce",
+      "behavior": "格納庫deviceの移動入口は正負の位置を借用格納庫へ一度だけ渡し、その成功結果を変更せず返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoStoreDevice::seek(qint64 pos)"
       ]
     }
   ]
