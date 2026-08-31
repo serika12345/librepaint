@@ -2,12 +2,53 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-31 14:19 JST
-- 状態: `planned`
+- 更新日時: 2026-08-31 14:23 JST
+- 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
+
+### 第80並列便の担当票
+
+- text輪郭種別反転command担当は`preparing`である。基点は`e01a00c8496b83c6c96c6307dc76bac2a403654d`、予定作業ツリーは
+  `/Users/masato/Documents/librepaint-r2-g80-svg-text-contour`、予定ブランチは`r2-g80-svg-text-contour`、統合順は
+  1である。対象は`libs/flake/commands/KoSvgTextFlipShapeContourTypeCommand.h`の5 APIである。開始ファイル
+  `libs/flake/commands/KoSvgTextFlipShapeContourTypeCommand.cpp`を`kritaflake_SRCS`の直接収容から
+  `kritaflakesvgtextflipshapecontourtypecommandobjects`へ移し、製品`kritaflake`へ一度だけ再集約する。新規
+  `libs/flake/tests/KoSvgTextFlipShapeContourTypeCommandContractTest.cpp`が初期内包状態と借用寿命、redoによる反転と
+  undoによる復元を2契約枠で固定する。内包読取と一括適用は開始実装の`BUILD_TESTING`限定配送を介し、既定配送は
+  実text shapeの読取、lock、輪郭追加、一括更新を保つ。限定構築は計画承認まで待機し、予測閉包5工程・11入力、
+  停止条件6工程・14入力、製品閉包612工程・1,256入力不変を要求する。許可範囲は`libs/flake/CMakeLists.txt`、
+  開始実装、`libs/flake/tests/CMakeLists.txt`、新規試験である。
+- node filter境界担当は`preparing`である。基点は`e01a00c8496b83c6c96c6307dc76bac2a403654d`、予定作業ツリーは
+  `/Users/masato/Documents/librepaint-r2-g80-node-filter`、予定ブランチは`r2-g80-node-filter`、統合順は2である。
+  対象は`libs/image/kis_node_filter_interface.h`の7 APIである。開始ファイル
+  `libs/image/kis_node_filter_interface.cpp`を`kritaimage_LIB_SRCS`の直接収容から
+  `kritaimagenodefilterinterfaceobjects`へ移し、製品`kritaimage`へ一度だけ再集約する。filter設定の参照取得、解放、
+  snapshot照会、cloneだけを新規非公開`libs/image/KisNodeFilterInterfaceFilterAccess_p.h`へ限定し、製品定義を開始元
+  `libs/image/filter/kis_filter_configuration.cc`から現行処理へ委譲する。新規
+  `libs/image/tests/KisNodeFilterInterfaceContractTest.cpp`が構築と強所有、copy時の独立clone、設定置換、色空間変更時の
+  cloneと仮想寿命を4契約枠で固定する。限定構築は計画承認まで待機し、予測閉包5工程・11入力、停止条件
+  6工程・14入力、製品閉包1,184工程・2,392入力不変を要求する。許可範囲は`libs/image/CMakeLists.txt`、開始実装、
+  新規非公開header、`libs/image/filter/kis_filter_configuration.cc`、`libs/image/tests/CMakeLists.txt`、新規試験である。
+- 描画角度sensor model担当は`preparing`である。基点は`e01a00c8496b83c6c96c6307dc76bac2a403654d`、予定作業ツリーは
+  `/Users/masato/Documents/librepaint-r2-g80-drawing-angle-sensor`、予定ブランチは
+  `r2-g80-drawing-angle-sensor`、統合順は3である。対象は
+  `plugins/paintops/libpaintop/KisDrawingAngleSensorModel.h`の9 APIである。開始ファイル
+  `plugins/paintops/libpaintop/KisDrawingAngleSensorModel.cpp`を`kritalibpaintop_LIB_SRCS`の直接収容から、既存
+  `kritapaintopsensorwithlengthmodelobjects`を責務名へ改称した`kritapaintopsensormodelobjects`へ移し、既存
+  `KisSensorWithLengthModel.cpp`とともに製品`kritalibpaintop`へ一度だけ集約する。新規
+  `plugins/paintops/libpaintop/tests/KisDrawingAngleSensorModelContractTest.cpp`が注入stateと5 Qt property、外部state更新と
+  通知、setter・propertyの独立更新と反転角度、QObject親寿命を4契約枠で固定する。新しいAUTOMOC対象は作らない。
+  限定構築は計画承認まで待機し、予測閉包10工程・22入力、停止条件11工程・25入力、既存sensor model契約も
+  10工程・22入力、製品閉包`kritalibpaintop` 2,097工程・4,192入力と`kritapaintopruntime`
+  1,281工程・2,582入力不変を要求する。許可範囲は`plugins/paintops/libpaintop/CMakeLists.txt`、同tests CMake、
+  新規試験である。
+- 3担当はgit commitで受渡しし、再委任しない。中央進捗文書、公開API対応表、不足一覧は調整担当だけが更新する。
+  各担当差分の統合直後に担当作業ツリー、局所構築木、担当ブランチを削除する。旧不足一覧は新しい一覧の件数確認
+  直後に削除し、再生成可能な一覧を常に最新1世代へ限定する。
+- 第80便は合計21 APIを対応付け、対応済み9,016件、未対応20,973件を目標とする。
 
 ### 第79並列便の完了結果
 
@@ -173,9 +214,8 @@
 
 ### 次の操作
 
-- 第80便の輪郭種別反転command 5 API、node filter境界7 API、描画角度sensor model 9 APIについて、読取り専用監査で
-  確定した最小契約、専用OBJECT、限定閉包、停止条件を担当票へ記録する。計画commitまでは作業ツリーと局所構築木を
-  作成しない。
+- 第80並列便の担当票を高速検査で固定してcommitする。3担当作業ツリーを同じ計画commitから作成し、基点と
+  清浄状態を確認した後に実装許可を記録して、限定構築と挙動契約の実装へ進む。
 
 ## 再開環境
 
