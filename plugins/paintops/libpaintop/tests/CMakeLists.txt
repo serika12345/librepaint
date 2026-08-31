@@ -2,8 +2,30 @@
 
 
 kis_add_tests(KisCurveOptionDataTest.cpp
-    KisCurveOptionModelTest.cpp
     LINK_LIBRARIES kritaimage kritalibpaintop kritatestsdk)
+
+kis_add_test(
+    KisCurveOptionModelTest.cpp
+    LINK_LIBRARIES
+        kritapaintopcurveoptionmodelobjects
+        kritapaintopcurveoptiondataobjects
+        kritapaintopcurveoptiondatacommonobjects
+        kritapaintopkritasensorpackobjects
+        kritapaintopsensordataobjects
+        kritapaintopsensorpackinterfaceobjects
+        kritapaintopcurverangemodelinterfaceobjects
+        kritaglobalidobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(KisCurveOptionModelTest PRIVATE
+    kritaglobal_EXPORTS
+    kritaimage_EXPORTS
+    kritalibpaintop_EXPORTS
+    kritapigment_EXPORTS
+)
+target_sources(KisCurveOptionModelTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/../KisCurveOptionModel.h
+)
 
 kis_add_tests(kis_linked_pattern_manager_test.cpp
     LINK_LIBRARIES kritaimage kritalibpaintop kritatestsdk)

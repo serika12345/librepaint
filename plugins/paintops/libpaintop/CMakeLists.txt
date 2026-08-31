@@ -14,7 +14,6 @@ set(kritalibpaintop_LIB_SRCS
     KisSensorData.cpp
     KisCurveOptionInputControlsStrategy.cpp
     KisCurveRangeModel.cpp
-    KisCurveOptionModel.cpp
     KisCurveOptionWidget.cpp
     KisCurveOption.cpp
     KisMultiSensorsSelector.cpp
@@ -630,6 +629,43 @@ set_target_properties(kritapaintopcoloroptionmodelobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritapaintopcurveoptionmodelobjects OBJECT
+    KisCurveOptionModel.cpp
+)
+target_compile_definitions(kritapaintopcurveoptionmodelobjects PRIVATE
+    kritaglobal_EXPORTS
+    kritaimage_EXPORTS
+    kritalibpaintop_EXPORTS
+    kritapigment_EXPORTS
+)
+target_include_directories(kritapaintopcurveoptionmodelobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        ${CMAKE_SOURCE_DIR}/libs/global
+        ${CMAKE_BINARY_DIR}/libs/global
+        ${CMAKE_SOURCE_DIR}/libs/image
+        ${CMAKE_BINARY_DIR}/libs/image
+        ${CMAKE_SOURCE_DIR}/libs/pigment
+        ${CMAKE_BINARY_DIR}/libs/pigment
+)
+target_link_libraries(kritapaintopcurveoptionmodelobjects
+    PUBLIC
+        Boost::boost
+        Eigen3::Eigen
+        Imath::ImathConfig
+        KF${KF_MAJOR}::I18n
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Xml
+        lager
+        zug
+)
+set_target_properties(kritapaintopcurveoptionmodelobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritapaintopsensormodelobjects OBJECT
     KisDrawingAngleSensorModel.cpp
     KisSensorWithLengthModel.cpp
@@ -888,12 +924,14 @@ target_link_libraries(kritapaintopruntime
 
 kis_add_library(kritalibpaintop SHARED
     ${kritalibpaintop_LIB_SRCS}
+    KisCurveOptionModel.h
     $<TARGET_OBJECTS:kritapaintopcoloroptiondataobjects>
     $<TARGET_OBJECTS:kritapaintopcompositeopoptiondataobjects>
     $<TARGET_OBJECTS:kritapaintopdynamicsensorfactoryobjects>
     $<TARGET_OBJECTS:kritapaintopfilteroptiondataobjects>
     $<TARGET_OBJECTS:kritapaintopruntime>
     $<TARGET_OBJECTS:kritapaintopcoloroptionmodelobjects>
+    $<TARGET_OBJECTS:kritapaintopcurveoptionmodelobjects>
     $<TARGET_OBJECTS:kritapaintopcurvecontrolinterfaceobjects>
     $<TARGET_OBJECTS:kritapaintopcurverangemodelinterfaceobjects>
     $<TARGET_OBJECTS:kritapaintopmirroroptionmodelobjects>
