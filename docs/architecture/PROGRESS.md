@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-31 11:09 JST
+- 更新日時: 2026-08-31 11:11 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -11,37 +11,37 @@
 
 ### 第74並列便の担当票
 
-- 形状描画順command担当は`preparing`である。基点は
-  `65095adfcf03f7735dab6e29a6e3e992429982a1`、予定作業ツリーは
-  `/Users/masato/Documents/librepaint-r2-g74-shape-paint-order`、予定ブランチは
+- 形状描画順command担当は`implementing`である。基点は
+  `ab3e732e112218aff50634e44337c5fdca3d6de0`、作業ツリーは
+  `/Users/masato/Documents/librepaint-r2-g74-shape-paint-order`、ブランチは
   `r2-g74-shape-paint-order`、統合順は1である。対象は
   `libs/flake/commands/KoShapePaintOrderCommand.h`の7 APIである。開始ファイル
   `libs/flake/commands/KoShapePaintOrderCommand.cpp`を`kritaflake_SRCS`の直接収容から
   `kritaflakeshapepaintordercommandobjects`へ移し、製品`kritaflake`へ一度だけ再集約する。新規
   `libs/flake/tests/KoShapePaintOrderCommandContractTest.cpp`が構築時の順序・元値・借用寿命、
   redo・undoの設定順、同一形状列のmerge、空列とcommand識別子を4契約枠で固定し、7 APIを
-  `maintained`へ分類する。限定構築は計画承認まで待機し、予測閉包5工程・12入力、停止条件
+  `maintained`へ分類する。限定構築を許可し、予測閉包5工程・12入力、停止条件
   6工程・14入力、製品閉包612工程・1,256入力不変を要求する。許可範囲は`libs/flake/CMakeLists.txt`、
   `libs/flake/tests/CMakeLists.txt`、新規試験だけである。
-- 抽象tile圧縮器担当は`preparing`である。基点は`65095adfcf03f7735dab6e29a6e3e992429982a1`、
-  予定作業ツリーは`/Users/masato/Documents/librepaint-r2-g74-tile-compressor`、予定ブランチは
+- 抽象tile圧縮器担当は`implementing`である。基点は`ab3e732e112218aff50634e44337c5fdca3d6de0`、
+  作業ツリーは`/Users/masato/Documents/librepaint-r2-g74-tile-compressor`、ブランチは
   `r2-g74-tile-compressor`、統合順は2である。対象は
   `libs/image/tiles3/swap/kis_abstract_tile_compressor.h`の9 APIである。開始ファイル
   `libs/image/tiles3/swap/kis_abstract_tile_compressor.cpp`を`kritaimage_LIB_SRCS`の直接収容から
   `kritaimageabstracttilecompressorobjects`へ移し、製品`kritaimage`へ一度だけ再集約する。開始試験
   `libs/image/tiles3/tests/KisTileCompressorFactoryContractTest.cpp`から基底construct・destructの試験内定義を
   除き、同objectへ接続する。仮想寿命と共有所有、stream配送、buffer配送を3契約枠で追加し、9 APIを
-  `maintained`へ分類する。限定構築は計画承認まで待機し、予測閉包6工程・12入力、停止条件
+  `maintained`へ分類する。限定構築を許可し、予測閉包6工程・12入力、停止条件
   7工程・14入力、製品閉包1,184工程・2,392入力不変を要求する。許可範囲は`libs/image/CMakeLists.txt`、
   `libs/image/tiles3/tests/CMakeLists.txt`、開始試験だけである。
-- histogram生成器担当は`preparing`である。基点は`65095adfcf03f7735dab6e29a6e3e992429982a1`、
-  予定作業ツリーは`/Users/masato/Documents/librepaint-r2-g74-histogram-producer`、予定ブランチは
+- histogram生成器担当は`implementing`である。基点は`ab3e732e112218aff50634e44337c5fdca3d6de0`、
+  作業ツリーは`/Users/masato/Documents/librepaint-r2-g74-histogram-producer`、ブランチは
   `r2-g74-histogram-producer`、統合順は3である。対象は`libs/pigment/KoHistogramProducer.h`の32 APIである。
   開始ファイル`libs/pigment/KoHistogramProducer.cpp`を`kritapigment_SRCS`の直接収容から
   `kritapigmenthistogramproducerobjects`へ移し、製品`kritapigment`へ一度だけ再集約する。新規
   `libs/pigment/tests/KoHistogramProducerContractTest.cpp`が生成器の既定状態と寿命、仮想配送、factoryの
-  値と配送、registryの選別・順序・所有を4契約枠で固定し、32 APIを`maintained`へ分類する。限定構築は
-  計画承認まで待機し、予測閉包6工程・13入力、停止条件7工程・16入力、製品閉包360工程・750入力不変を
+  値と配送、registryの選別・順序・所有を4契約枠で固定し、32 APIを`maintained`へ分類する。限定構築を
+  許可し、予測閉包6工程・13入力、停止条件7工程・16入力、製品閉包360工程・750入力不変を
   要求する。許可範囲は`libs/pigment/CMakeLists.txt`、開始実装、`libs/pigment/tests/CMakeLists.txt`、
   新規試験だけである。
 - 3担当はgit commitで受渡しし、再委任しない。中央進捗文書、公開API対応表、不足一覧は調整担当だけが
@@ -84,8 +84,8 @@
 
 ### 次の操作
 
-- 第74並列便の担当票を高速検査で固定してコミットする。3担当作業ツリーを同じ計画コミットから作成し、
-  基点と清浄状態を確認した後に実装許可を記録して、限定構築と挙動契約の実装へ進む。
+- 第74並列便の3担当は、各停止条件内で対象限定の構築計画を測り、最小の挙動契約を実装して担当コミットを渡す。
+  調整担当は統合順に差分を確認し、統合直後に各担当の作業ツリー、局所構築木、ブランチを削除する。
 
 ## 再開環境
 
