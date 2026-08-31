@@ -54,6 +54,7 @@
 #include "kis_image_config.h"
 #include "KisFutureUtils.h"
 #include "KisBatchUpdateLayerModificationCommand.h"
+#include "KisBatchNodeUpdateNodeAccess_p.h"
 #include "commands_new/KisChangeCloneLayersCommand.h"
 
 
@@ -2608,3 +2609,18 @@ namespace Private {
     }
 
 }
+
+namespace KisBatchNodeUpdateNodeAccess
+{
+
+KisNodeList sortAndFilterMergeableNodes(KisNodeList nodes)
+{
+    return KisLayerUtils::sortAndFilterMergeableInternalNodes(nodes, true);
+}
+
+bool isChildOf(KisNodeSP node, KisNodeSP parent)
+{
+    return KisLayerUtils::checkIsChildOf(node, {parent});
+}
+
+} // namespace KisBatchNodeUpdateNodeAccess

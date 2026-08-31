@@ -6,13 +6,13 @@
 
 #include "KisBatchNodeUpdate.h"
 
-#include "kis_node.h"
-#include "kis_layer_utils.h"
+#include <algorithm>
+
+#include "KisBatchNodeUpdateNodeAccess_p.h"
 
 KisBatchNodeUpdate::KisBatchNodeUpdate(const std::vector<std::pair<KisNodeSP, QRect>> &rhs)
     : std::vector<std::pair<KisNodeSP, QRect>>(rhs)
 {
-
 }
 
 void KisBatchNodeUpdate::addUpdate(KisNodeSP node, const QRect &rc)
@@ -31,16 +31,17 @@ KisBatchNodeUpdate KisBatchNodeUpdate::compressed() const
 
     KisNodeList rootNodes;
 
-    std::transform(begin(), end(), std::back_inserter(rootNodes),
-              [] (const std::pair<KisNodeSP, QRect> &update) {return update.first; });
+    std::transform(begin(), end(), std::back_inserter(rootNodes), [](const std::pair<KisNodeSP, QRect> &update) {
+        return update.first;
+    });
 
-    rootNodes = KisLayerUtils::sortAndFilterMergeableInternalNodes(rootNodes, true);
+    rootNodes = KisBatchNodeUpdateNodeAccess::sortAndFilterMergeableNodes(rootNodes);
 
     Q_FOREACH (KisNodeSP root, rootNodes) {
         QRect dirtyRect;
 
         for (auto it = begin(); it != end(); ++it) {
-            if (it->first == root || KisLayerUtils::checkIsChildOf(it->first, {root})) {
+            if (it->first == root || KisBatchNodeUpdateNodeAccess::isChildOf(it->first, root)) {
                 dirtyRect |= it->second;
             }
         }
@@ -59,7 +60,9 @@ KisBatchNodeUpdate &KisBatchNodeUpdate::operator|=(const KisBatchNodeUpdate &rhs
     reserve(size() + rhs.size());
 
     std::copy(rhs.begin(), rhs.end(), std::back_inserter(*this));
-    std::sort(begin(), end(), [](const std::pair<KisNodeSP, QRect> &lhs, const std::pair<KisNodeSP, QRect> &rhs) { return lhs.first.data() < rhs.first.data(); });
+    std::sort(begin(), end(), [](const std::pair<KisNodeSP, QRect> &lhs, const std::pair<KisNodeSP, QRect> &rhs) {
+        return lhs.first.data() < rhs.first.data();
+    });
 
     if (size() <= 1)
         return *this;

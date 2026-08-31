@@ -272,6 +272,25 @@ target_compile_definitions(KisNodeUuidInfoContractTest PRIVATE
 )
 
 kis_add_test(
+    KisBatchNodeUpdateContractTest.cpp
+    LINK_LIBRARIES
+        kritaimagebatchnodeupdateobjects
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+        Boost::boost
+)
+target_include_directories(KisBatchNodeUpdateContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+)
+target_compile_definitions(KisBatchNodeUpdateContractTest PRIVATE
+    kritaglobal_EXPORTS
+    kritaimage_EXPORTS
+)
+
+kis_add_test(
     KisUpdateOutlineJobContractTest.cpp
     LINK_LIBRARIES
         kritaimageupdateoutlinejobobjects

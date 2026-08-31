@@ -49,6 +49,27 @@ set_target_properties(kritaimagefilterstrategyobjects PROPERTIES
    POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaimagebatchnodeupdateobjects OBJECT
+   KisBatchNodeUpdate.cpp
+)
+target_compile_definitions(kritaimagebatchnodeupdateobjects PRIVATE kritaimage_EXPORTS)
+target_include_directories(kritaimagebatchnodeupdateobjects
+   PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritaimagebatchnodeupdateobjects
+   PUBLIC
+      Qt${QT_MAJOR_VERSION}::Core
+      Boost::boost
+)
+set_target_properties(kritaimagebatchnodeupdateobjects PROPERTIES
+   AUTOMOC OFF
+   POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaimagegradientshapestrategyobjects OBJECT
    kis_gradient_shape_strategy.cpp
 )
@@ -1843,7 +1864,6 @@ set(kritaimage_LIB_SRCS
    kis_base_node.cpp
    kis_base_processor.cpp
    kis_bookmarked_configuration_manager.cc
-   KisBatchNodeUpdate.cpp
    kis_clone_layer.cpp
    kis_config_widget.cpp
    kis_convolution_painter.cc
@@ -1994,6 +2014,7 @@ kis_add_library(kritaimage SHARED
    ${kritaimage_LIB_SRCS}
    ${einspline_SRCS}
    $<TARGET_OBJECTS:kritaimagefilterstrategyobjects>
+   $<TARGET_OBJECTS:kritaimagebatchnodeupdateobjects>
    $<TARGET_OBJECTS:kritaimagegradientshapestrategyobjects>
    $<TARGET_OBJECTS:kritaimagecachedgradientshapestrategyobjects>
    $<TARGET_OBJECTS:kritaimagepolygonalgradientshapestrategyobjects>
