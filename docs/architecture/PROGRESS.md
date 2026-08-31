@@ -2,18 +2,18 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-31 21:52 JST
+- 更新日時: 2026-08-31 22:17 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
 
-### 第89並列便の担当票
+### 第89並列便の完了結果
 
-- `g89-global-algebra-values`は`in_progress`である。基準commitは`026971b8d4`、作業ツリーは
-  `/Users/masato/Documents/librepaint-r2-g19b-g89-global-algebra-values`、担当ブランチは
-  `work/r2-g19b-g89-global-algebra-values`である。対象headerは`libs/global/kis_algebra_2d.h`、対象は
+- `g89-global-algebra-values`は`integrated`である。受渡しcommitは
+  `4185950a2485227bed4ffb11bd55d78450f5c941`、統合commitは`03d284aa66`であり、担当作業ツリー、局所構築木279 MB、
+  担当ブランチを削除した。対象headerは`libs/global/kis_algebra_2d.h`、対象は
   `function:KisAlgebra2D::absoluteToRelative(const QPointF & pt,const QRectF & rc)`、
   `function:KisAlgebra2D::absoluteToRelative(const QRectF & rel,const QRectF & rc)`、
   `function:KisAlgebra2D::absoluteToRelative(const qreal value,const QRectF & rc)`、
@@ -21,8 +21,6 @@
   `function:KisAlgebra2D::clampPoint(Point pt,const Rect & bounds)`、
   `function:KisAlgebra2D::createRectFromCorners(Point corner1,Point corner2)`、
   `function:KisAlgebra2D::createRectFromCorners(QLineF line)`、`function:KisAlgebra2D::divideFloor(T a,T b)`、
-  `function:KisAlgebra2D::ensureInRect(QPoint pt,const QRect & bounds)`、
-  `function:KisAlgebra2D::ensureInRect(QPointF pt,const QRectF & bounds)`、
   `function:KisAlgebra2D::ensureSizeNotSmaller(const Size & size,const Size & bounds)`、
   `function:KisAlgebra2D::isInRange(T x,T a,T b)`、`function:KisAlgebra2D::lazyRound(qreal value)`、
   `function:KisAlgebra2D::lerp(const Point & pt1,const Point & pt2,qreal t)`、
@@ -31,16 +29,17 @@
   `function:KisAlgebra2D::relativeToAbsolute(const QPointF & pt,const QRectF & rc)`、
   `function:KisAlgebra2D::relativeToAbsolute(const QRectF & rel,const QRectF & rc)`、
   `function:KisAlgebra2D::relativeToAbsolute(qreal value,const QRectF & rc)`、
-  `function:KisAlgebra2D::wrapValue(T value,T min,T max)`、`function:KisAlgebra2D::wrapValue(T value,T wrapBounds)`の22 APIである。
-  補間と丸め、負数の床除算と範囲境界、整数・浮動小数・点の循環、矩形と寸法、相対・絶対座標往復を5契約枠で固定する。
-  許可範囲は既存`libs/global/tests/KisAlgebraGeometryPrimitivesContractTest.cpp`だけで、製品header、source、CMakeは変更しない。
+  `function:KisAlgebra2D::wrapValue(T value,T min,T max)`、`function:KisAlgebra2D::wrapValue(T value,T wrapBounds)`の20 APIである。
+  補間と丸め、負数の床除算と範囲境界、整数・浮動小数・点の循環、矩形と寸法、相対・絶対座標往復を5契約枠で固定した。
+  変更は既存`libs/global/tests/KisAlgebraGeometryPrimitivesContractTest.cpp`だけで、製品header、source、CMakeは変更していない。
   直接依存は既存`kritaglobalalgebradirectionobjects`とQt Core・Gui・Test、最寄り契約は同targetの既存7契約枠である。
   中央の編集前閉包は5工程・11入力、製品`kritaglobal`は68工程・136入力である。独立作業ツリーでは環境ラッパーの固定差
   5工程・5入力を含む10工程・16入力と73工程・141入力を編集前基準とし、編集後に各基準から増えないことを検査する。
-  停止条件は閉包増加、新規依存、製品共有library、Qt Widgets、`kritatestsdk`、公開API変更、許可外変更である。
-- `g89-brush-model-values`は`in_progress`である。基準commitは同じ、作業ツリーは
-  `/Users/masato/Documents/librepaint-r2-g19b-g89-brush-model-values`、担当ブランチは
-  `work/r2-g19b-g89-brush-model-values`である。対象headerは`libs/brush/KisBrushModel.h`であり、
+  最初の22 API案は`ensureInRect` 2 overloadが広い`kis_algebra_2d.cpp`への新規直接依存を要求して限定linkに失敗したため、
+  その2 APIを別便へ残した。試験側の意味論模倣やCMake依存追加は行っていない。
+- `g89-brush-model-values`は`integrated`である。受渡しcommitは
+  `f873207b945f0361f2716720ad9847c8ab81ba9a`、統合commitは`27f0ac78e3`であり、担当作業ツリー、局所構築木280 MB、
+  担当ブランチを削除した。対象headerは`libs/brush/KisBrushModel.h`であり、
   `enum:KisBrushModel::AutoBrushGeneratorShape`、`enum:KisBrushModel::AutoBrushGeneratorType`、
   `enum:KisBrushModel::BrushType`、列挙子`KisBrushModel::AutoBrushGeneratorShape::{Circle,Rectangle}`、
   `KisBrushModel::AutoBrushGeneratorType::{Default,Soft,Gaussian}`、`KisBrushModel::BrushType::{Auto,Predefined,Text}`、
@@ -53,35 +52,29 @@
   `function:KisBrushModel::operator ==(const AutoBrushGeneratorData & lhs,const AutoBrushGeneratorData & rhs)`、
   `function:KisBrushModel::operator ==(const AutoBrushData & lhs,const AutoBrushData & rhs)`、
   `function:KisBrushModel::operator ==(const TextBrushData & lhs,const TextBrushData & rhs)`の合計40 APIである。列挙値、4値型の既定値、全memberの独立した
-  等価判定を5契約枠で固定し、fontは同一processの`QGuiApplication::font().toString()`との一致を観測する。許可範囲は
-  `libs/brush/tests/CMakeLists.txt`と新規`libs/brush/tests/KisBrushModelValuesContractTest.cpp`で、製品headerとsourceは変更しない。
+  等価判定を5契約枠で固定し、fontは同一processの`QGuiApplication::font().toString()`との一致を観測する。変更は
+  `libs/brush/tests/CMakeLists.txt`と新規`libs/brush/tests/KisBrushModelValuesContractTest.cpp`だけで、製品headerとsourceは変更していない。
   直接依存はQt Core・Gui・Test、Boost、lagerのheader面だけであり、`KoResourceSignature`を持つ未対象型は構築しない。
   最寄り契約`KisDabShapeContractTest`は4工程・8入力、新規対象予測は4工程・9入力、停止上限は5工程・12入力である。
-  製品`kritalibbrush`は1,210工程・2,442入力からの増加を認めない。製品共有library、Qt Widgets、`kritatestsdk`、resources実体、
-  公開API変更、許可外変更が必要なら停止する。
-- `g89-paintop-spacing`は`in_progress`である。基準commitは同じ、作業ツリーは
-  `/Users/masato/Documents/librepaint-r2-g19b-g89-paintop-spacing`、担当ブランチは
-  `work/r2-g19b-g89-paintop-spacing`である。対象headerは`plugins/paintops/libpaintop/KisSpacingOptionData.h`、対象は
+  新規対象は4工程・8入力、製品`kritalibbrush`は1,210工程・2,442入力で不変である。製品共有library、Qt Widgets、
+  `kritatestsdk`、resources実体を接続していない。
+- `g89-paintop-spacing`は`integrated`である。受渡しcommitは
+  `738df123eb113a7975bf39a7a0e60d6dbd09ef3d`、統合commitは`340baa5592`であり、担当作業ツリー、局所構築木294 MB、
+  担当ブランチを削除した。対象headerは`plugins/paintops/libpaintop/KisSpacingOptionData.h`、対象は
   `alias:KisSpacingOptionMixIn`、`struct:KisSpacingOptionData`、`struct:KisSpacingOptionMixInImpl`、
   `member:KisSpacingOptionMixInImpl::isotropicSpacing`、`member:KisSpacingOptionMixInImpl::useSpacingUpdates`、
   `method:KisSpacingOptionData::KisSpacingOptionData(const QString & prefix="")`、
   `method:KisSpacingOptionMixInImpl::read(const KisPropertiesConfiguration * setting)`、
   `method:KisSpacingOptionMixInImpl::write(KisPropertiesConfiguration * setting) const`、
   `function:operator ==(const KisSpacingOptionMixInImpl & lhs,const KisSpacingOptionMixInImpl & rhs)`の9 APIである。公開型、両値falseの
-  既定値、Unicode接頭辞、Spacing識別子、二つの設定keyの独立読書き、空設定、等価判定を5契約枠で固定する。開始ファイル
+  既定値、Unicode接頭辞、Spacing識別子、二つの設定keyの独立読書き、空設定、等価判定を5契約枠で固定した。開始ファイル
   `plugins/paintops/libpaintop/KisSpacingOptionData.cpp`を製品とruntimeの直接source一覧から
-  `kritapaintopspacingoptiondataobjects`へ移し、`kritapaintopruntime`へ一度だけ再集約する。許可範囲は同開始source、
-  `plugins/paintops/libpaintop/CMakeLists.txt`、同tests CMake、新規`KisSpacingOptionDataContractTest.cpp`である。
-  `kis_paintop_settings.h`は`SPACING_USE_UPDATES`定数の所有headerとして維持する。最寄り契約はScatter・Sharpness・Curveで、
-  予測閉包は11工程・24入力、停止上限12工程・27入力である。製品runtime 1,281工程・2,582入力とlibpaintop
-  2,097工程・4,192入力からの増加、二重収容、brushengine OBJECT、製品共有library、Qt Widgets、`kritatestsdk`、
-  OpenEXR・Imath動的library、公開API変更、許可外変更が必要なら停止する。
-- 3担当の対象プラットフォームはmacOS、共有コンパイラーcacheは
-  `/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`、構築実行許可は`granted`、Git操作権限は
-  `transport-commit`、追加委任は`forbidden`である。統合順はglobal、brush、paintopとする。各担当は独立作業ツリーと
-  作業ツリー内`build/tdd-macos`を所有し、`./scripts/run-shared-test-env`から作業ツリー側scriptを実行する。未登録または
-  未追加の契約枠を最初の診断として確認し、対象限定構築、全契約枠、20回反復、軽量近傍、無作業再構築、動的依存、
-  変更sourceの構文、公開API検査、担当内`verify-quick`を実施する。中央文書、公開API対応表、不足一覧は調整担当だけが更新する。
+  `kritapaintopspacingoptiondataobjects`へ移し、`kritapaintopruntime`へ一度だけ再集約した。`kis_paintop_settings.h`は
+  `SPACING_USE_UPDATES`定数の所有headerとして維持し、その検索経路だけをOBJECTの`PRIVATE` includeへ限定した。対象は
+  11工程・24入力、製品runtimeは1,281工程・2,582入力、libpaintopは2,097工程・4,192入力で不変である。
+- 第89便はglobal、brush、paintopの順に統合し、合計69 APIを15契約枠へ追加した。公開面は1,549ヘッダー、29,838 API、
+  対応済み9,279件、未対応20,559件、契約枠2,272件となった。3担当の局所構築木合計853 MB、全作業ツリー、担当ブランチを
+  統合後に削除した。
 
 ### 第88並列便の完了結果
 
@@ -480,32 +473,33 @@
 
 ### 現在の結果
 
-- 第88並列便は、公開API抽出で誤検出していた非公開・派生限定の入れ子宣言151件を母数から除き、レイヤースタイル
-  フィルター8 APIと散布設定9 APIの合計17実公開APIを挙動契約へ対応付けた。公開面は1,549ヘッダー、29,838 API、
-  対応済み9,210件、未対応20,628件であり、契約枠は2,257件である。
-- 開始ファイル`libs/image/layerstyles/kis_layer_style_filter.cpp`は`kritaimagelayerstylefilterobjects`へ移り、製品
-  `kritaimage`へ一度だけ再集約される。新規`libs/image/tests/KisLayerStyleFilterContractTest.cpp`が識別子の値所有、
-  複製の独立寿命、三つの抽象操作の配送と返値を3契約枠で固定する。
-- 開始ファイル`plugins/paintops/libpaintop/KisScatterOptionData.cpp`は製品とruntimeの直接source一覧から
-  `kritapaintopscatteroptiondataobjects`へ移り、`kritapaintopruntime`へ一度だけ再集約される。新規
-  `plugins/paintops/libpaintop/tests/KisScatterOptionDataContractTest.cpp`が公開型、既定値、接頭辞、値範囲、現行・旧設定、
-  永続化、等価判定を5契約枠で固定する。
-- 統合後の限定閉包は`KisLayerStyleFilterContractTest` 7工程・16入力、`KisScatterOptionDataContractTest` 11工程・24入力である。
-  製品閉包は`kritaimage` 1,184工程・2,392入力、`kritapaintopruntime` 1,281工程・2,582入力、`kritalibpaintop`
+- 第89並列便は代数値と矩形の20 API、ブラシ値型40 API、散布間隔設定9 APIの合計69 APIを挙動契約へ対応付けた。
+  公開面は1,549ヘッダー、29,838 API、対応済み9,279件、未対応20,559件であり、契約枠は2,272件である。
+- `libs/global/tests/KisAlgebraGeometryPrimitivesContractTest.cpp`は既存の軽量対象を維持したまま、補間、丸め、床除算、範囲、
+  循環値、矩形、寸法、相対・絶対座標変換を5契約枠で固定する。`ensureInRect` 2 overloadは大きな製品sourceへの新規依存を
+  要したため別便に残し、試験側の意味論模倣とCMake依存追加を避けた。
+- 新規`libs/brush/tests/KisBrushModelValuesContractTest.cpp`はQt Core・Gui・Testとheader面だけで、3列挙、4値型、21 member、
+  4等価演算の既定値と独立性を5契約枠で固定する。製品共有library、Qt Widgets、resources実体を接続していない。
+- 開始ファイル`plugins/paintops/libpaintop/KisSpacingOptionData.cpp`は製品とruntimeの直接source一覧から
+  `kritapaintopspacingoptiondataobjects`へ移り、`kritapaintopruntime`へ一度だけ再集約される。新規
+  `plugins/paintops/libpaintop/tests/KisSpacingOptionDataContractTest.cpp`は公開型、既定値、接頭辞、現行設定、永続化、等価判定を
+  5契約枠で固定する。
+- 統合後の限定閉包は`KisAlgebraGeometryPrimitivesContractTest` 5工程・11入力、`KisBrushModelValuesContractTest`
+  4工程・8入力、`KisSpacingOptionDataContractTest` 11工程・24入力である。製品閉包は`kritaglobal` 68工程・136入力、
+  `kritalibbrush` 1,210工程・2,442入力、`kritapaintopruntime` 1,281工程・2,582入力、`kritalibpaintop`
   2,097工程・4,192入力で不変である。
-- 主作業ツリーはCMake構成を一度だけ同期し、2限定対象だけを一つの命令で11工程構築した。2対象と4軽量近傍はCTest
-  6/6に成功し、2対象は各20回反復、全8契約枠の指定実行、再構築時の無作業確認に成功した。macOSのパッケージ境界は
-  1,667対象、公開API契約検査は9,210/29,838件で成功した。動的依存にはLibrePaint製品共有ライブラリー、
-  `kritatestsdk`、Qt Widgetsを含まず、散布設定対象にはOpenEXRとImathの動的libraryも含まない。担当内では開始sourceの
-  構文検査に成功し、担当内と中央の`verify-quick`は52運用試験、公開面、パッケージ境界、文書を含めて成功した。
-  製品全体の構築・リンクとLinux検証は限定閉包を越えるため実施していない。
-- 統合済みC++担当の局所構築木562 MBと選外候補の構成木269 MB、各作業ツリー、担当ブランチを削除した。旧第88便不足一覧を
-  削除し、最新の第89便不足一覧`build/tdd-macos/public-api-missing-g89.json`だけを保持する。主増分構築木は5.2 GBを維持する。
+- 主作業ツリーではglobal対象を4工程、CMake構成を一度同期した後にbrush・paintop対象を10工程だけ構築した。3対象と4軽量近傍は
+  CTest 7/7に成功し、3対象は各20回反復、全15契約枠の指定実行、再構築時の無作業確認に成功した。動的依存にはLibrePaint
+  製品共有ライブラリー、`kritatestsdk`、Qt Widgetsを含まず、散布間隔対象にはOpenEXRとImathの動的libraryも含まない。
+  担当内では変更sourceの構文検査に成功し、担当内と中央の`verify-quick`は52運用試験、公開面、パッケージ境界、文書を
+  含めて成功した。製品全体の構築・リンクとLinux検証は限定閉包を越えるため実施していない。
+- 統合済み担当の局所構築木853 MB、全作業ツリー、担当ブランチを削除した。旧第89便不足一覧を削除し、最新の第90便不足一覧
+  `build/tdd-macos/public-api-missing-g90.json`だけを保持する。主増分構築木は5.2 GBを維持する。
 
 ### 次の操作
 
-- 第89便の3担当を独立作業ツリーで実装し、対象限定構築、全契約枠、20回反復、軽量近傍、無作業再構築、動的依存、
-  変更sourceの構文、公開API検査、`verify-quick`を確認して受渡しcommitを作成する。
+- 第90便では最新不足一覧から実公開APIと既存契約の台帳登録漏れを先に監査し、製品依存を増やさない候補を優先して
+  非重複の担当票へ割り当てる。
 
 ## 再開環境
 

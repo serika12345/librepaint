@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 20628
+    "expectedMissingApis": 20559
   },
   "contracts": [
     {
@@ -30153,6 +30153,210 @@
         "function:operator ==(const KisScatterOptionMixInImpl & lhs,const KisScatterOptionMixInImpl & rhs)",
         "member:KisScatterOptionMixInImpl::axisX",
         "member:KisScatterOptionMixInImpl::axisY"
+      ]
+    },
+    {
+      "target": "KisAlgebraGeometryPrimitivesContractTest",
+      "source": "libs/global/tests/KisAlgebraGeometryPrimitivesContractTest.cpp",
+      "test": "KisAlgebraGeometryPrimitivesContractTest::interpolationAndRoundingPreserveScalarAndPointValues",
+      "behavior": "代数補助は点の線形補間、区間の線形写像、整数への丸めと実数の値維持を入力値どおりに行う。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisAlgebra2D::lazyRound(qreal value)",
+        "function:KisAlgebra2D::lerp(const Point & pt1,const Point & pt2,qreal t)",
+        "function:KisAlgebra2D::linearReshapeFunc(T x,T x0,T x1,T y0,T y1)"
+      ]
+    },
+    {
+      "target": "KisAlgebraGeometryPrimitivesContractTest",
+      "source": "libs/global/tests/KisAlgebraGeometryPrimitivesContractTest.cpp",
+      "test": "KisAlgebraGeometryPrimitivesContractTest::floorDivisionAndRangeHelpersHandleBoundaries",
+      "behavior": "代数補助は符号の組合せに対して床除算を行い、順序によらない閉区間判定と矩形境界への点制限を返す。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisAlgebra2D::clampPoint(Point pt,const Rect & bounds)",
+        "function:KisAlgebra2D::divideFloor(T a,T b)",
+        "function:KisAlgebra2D::isInRange(T x,T a,T b)"
+      ]
+    },
+    {
+      "target": "KisAlgebraGeometryPrimitivesContractTest",
+      "source": "libs/global/tests/KisAlgebraGeometryPrimitivesContractTest.cpp",
+      "test": "KisAlgebraGeometryPrimitivesContractTest::wrappingNormalizesIntegralFloatingAndShiftedRanges",
+      "behavior": "循環値補助は整数と浮動小数の負値・上限超過値を半開区間へ正規化し、任意の下限を持つ区間へ同じ規則を適用する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisAlgebra2D::wrapValue(T value,T min,T max)",
+        "function:KisAlgebra2D::wrapValue(T value,T wrapBounds)"
+      ]
+    },
+    {
+      "target": "KisAlgebraGeometryPrimitivesContractTest",
+      "source": "libs/global/tests/KisAlgebraGeometryPrimitivesContractTest.cpp",
+      "test": "KisAlgebraGeometryPrimitivesContractTest::rectangleAndDimensionHelpersPreserveGeometry",
+      "behavior": "矩形と寸法の補助は角の順序、中心を保つ膨張、符号付き寸法の最小値、長辺と短辺を一貫して計算する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisAlgebra2D::blowRect(const Rect & rect,qreal coeff)",
+        "function:KisAlgebra2D::createRectFromCorners(Point corner1,Point corner2)",
+        "function:KisAlgebra2D::createRectFromCorners(QLineF line)",
+        "function:KisAlgebra2D::ensureSizeNotSmaller(const Size & size,const Size & bounds)",
+        "function:KisAlgebra2D::maxDimension(Size size)",
+        "function:KisAlgebra2D::minDimension(Size size)"
+      ]
+    },
+    {
+      "target": "KisAlgebraGeometryPrimitivesContractTest",
+      "source": "libs/global/tests/KisAlgebraGeometryPrimitivesContractTest.cpp",
+      "test": "KisAlgebraGeometryPrimitivesContractTest::relativeAndAbsoluteConversionsRoundTripValues",
+      "behavior": "点、矩形、等方値の相対・絶対座標変換は指定境界を用いて期待値へ写し、逆変換で元値へ戻る。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisAlgebra2D::absoluteToRelative(const QPointF & pt,const QRectF & rc)",
+        "function:KisAlgebra2D::absoluteToRelative(const QRectF & rel,const QRectF & rc)",
+        "function:KisAlgebra2D::absoluteToRelative(const qreal value,const QRectF & rc)",
+        "function:KisAlgebra2D::relativeToAbsolute(const QPointF & pt,const QRectF & rc)",
+        "function:KisAlgebra2D::relativeToAbsolute(const QRectF & rel,const QRectF & rc)",
+        "function:KisAlgebra2D::relativeToAbsolute(qreal value,const QRectF & rc)"
+      ]
+    },
+    {
+      "target": "KisBrushModelValuesContractTest",
+      "source": "libs/brush/tests/KisBrushModelValuesContractTest.cpp",
+      "test": "KisBrushModelValuesContractTest::enumValuesAreStable",
+      "behavior": "ブラシモデルの生成形状、生成方式、ブラシ種別は既存の整数値と宣言順を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KisBrushModel::AutoBrushGeneratorShape",
+        "enum:KisBrushModel::AutoBrushGeneratorType",
+        "enum:KisBrushModel::BrushType",
+        "enumerator:KisBrushModel::AutoBrushGeneratorShape::Circle",
+        "enumerator:KisBrushModel::AutoBrushGeneratorShape::Rectangle",
+        "enumerator:KisBrushModel::AutoBrushGeneratorType::Default",
+        "enumerator:KisBrushModel::AutoBrushGeneratorType::Gaussian",
+        "enumerator:KisBrushModel::AutoBrushGeneratorType::Soft",
+        "enumerator:KisBrushModel::BrushType::Auto",
+        "enumerator:KisBrushModel::BrushType::Predefined",
+        "enumerator:KisBrushModel::BrushType::Text"
+      ]
+    },
+    {
+      "target": "KisBrushModelValuesContractTest",
+      "source": "libs/brush/tests/KisBrushModelValuesContractTest.cpp",
+      "test": "KisBrushModelValuesContractTest::commonDataDefaultsAndMembersAreIndependent",
+      "behavior": "ブラシ共通値は角度0、間隔0.05、自動間隔無効、係数1を既定値とし、等価判定は各公開値を独立して比較する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisBrushModel::operator ==(const CommonData & lhs,const CommonData & rhs)",
+        "member:KisBrushModel::CommonData::angle",
+        "member:KisBrushModel::CommonData::autoSpacingCoeff",
+        "member:KisBrushModel::CommonData::spacing",
+        "member:KisBrushModel::CommonData::useAutoSpacing",
+        "struct:KisBrushModel::CommonData"
+      ]
+    },
+    {
+      "target": "KisBrushModelValuesContractTest",
+      "source": "libs/brush/tests/KisBrushModelValuesContractTest.cpp",
+      "test": "KisBrushModelValuesContractTest::autoBrushGeneratorDefaultsAndMembersAreIndependent",
+      "behavior": "自動ブラシ生成値は既存の形状既定値を保持し、等価判定は九つの公開値をそれぞれ独立して比較する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisBrushModel::operator ==(const AutoBrushGeneratorData & lhs,const AutoBrushGeneratorData & rhs)",
+        "member:KisBrushModel::AutoBrushGeneratorData::antialiasEdges",
+        "member:KisBrushModel::AutoBrushGeneratorData::curveString",
+        "member:KisBrushModel::AutoBrushGeneratorData::diameter",
+        "member:KisBrushModel::AutoBrushGeneratorData::horizontalFade",
+        "member:KisBrushModel::AutoBrushGeneratorData::ratio",
+        "member:KisBrushModel::AutoBrushGeneratorData::shape",
+        "member:KisBrushModel::AutoBrushGeneratorData::spikes",
+        "member:KisBrushModel::AutoBrushGeneratorData::type",
+        "member:KisBrushModel::AutoBrushGeneratorData::verticalFade",
+        "struct:KisBrushModel::AutoBrushGeneratorData"
+      ]
+    },
+    {
+      "target": "KisBrushModelValuesContractTest",
+      "source": "libs/brush/tests/KisBrushModelValuesContractTest.cpp",
+      "test": "KisBrushModelValuesContractTest::autoBrushDefaultsAndNestedGeneratorAreIndependent",
+      "behavior": "自動ブラシ値は乱雑度0、密度1、既定生成値を保持し、等価判定は両数値と入れ子生成値を独立して比較する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisBrushModel::operator ==(const AutoBrushData & lhs,const AutoBrushData & rhs)",
+        "member:KisBrushModel::AutoBrushData::density",
+        "member:KisBrushModel::AutoBrushData::generator",
+        "member:KisBrushModel::AutoBrushData::randomness",
+        "struct:KisBrushModel::AutoBrushData"
+      ]
+    },
+    {
+      "target": "KisBrushModelValuesContractTest",
+      "source": "libs/brush/tests/KisBrushModelValuesContractTest.cpp",
+      "test": "KisBrushModelValuesContractTest::textBrushDefaultsAndMembersAreIndependent",
+      "behavior": "文字ブラシ値は既定寸法、倍率、文章、現在のQt既定font、pipe無効を保持し、等価判定は各公開値を独立して比較する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisBrushModel::operator ==(const TextBrushData & lhs,const TextBrushData & rhs)",
+        "member:KisBrushModel::TextBrushData::baseSize",
+        "member:KisBrushModel::TextBrushData::font",
+        "member:KisBrushModel::TextBrushData::scale",
+        "member:KisBrushModel::TextBrushData::text",
+        "member:KisBrushModel::TextBrushData::usePipeMode",
+        "struct:KisBrushModel::TextBrushData"
+      ]
+    },
+    {
+      "target": "KisSpacingOptionDataContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisSpacingOptionDataContractTest.cpp",
+      "test": "KisSpacingOptionDataContractTest::typesAndDefaults",
+      "behavior": "散布間隔設定の公開型は安定し、引数省略構築は空接頭辞と等方間隔・間隔更新の両方が無効な既定値を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisSpacingOptionMixIn",
+        "member:KisSpacingOptionMixInImpl::isotropicSpacing",
+        "member:KisSpacingOptionMixInImpl::useSpacingUpdates",
+        "struct:KisSpacingOptionData",
+        "struct:KisSpacingOptionMixInImpl"
+      ]
+    },
+    {
+      "target": "KisSpacingOptionDataContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisSpacingOptionDataContractTest.cpp",
+      "test": "KisSpacingOptionDataContractTest::constructorForwardsPrefixesAndId",
+      "behavior": "接頭辞付き散布間隔設定は同じUnicode接頭辞を二つの構成値へ渡し、Spacing識別子を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSpacingOptionData::KisSpacingOptionData(const QString & prefix=\"\")"
+      ]
+    },
+    {
+      "target": "KisSpacingOptionDataContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisSpacingOptionDataContractTest.cpp",
+      "test": "KisSpacingOptionDataContractTest::readMapsCurrentAndEmptySettings",
+      "behavior": "散布間隔設定は等方間隔と間隔更新の現行キーを独立して読み、値がない設定を両方無効へ戻す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSpacingOptionMixInImpl::read(const KisPropertiesConfiguration * setting)"
+      ]
+    },
+    {
+      "target": "KisSpacingOptionDataContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisSpacingOptionDataContractTest.cpp",
+      "test": "KisSpacingOptionDataContractTest::writeMapsBothKeys",
+      "behavior": "散布間隔設定は等方間隔と間隔更新の値を対応する二つの現行キーへ正確に書き、無関係な値を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSpacingOptionMixInImpl::write(KisPropertiesConfiguration * setting) const"
+      ]
+    },
+    {
+      "target": "KisSpacingOptionDataContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisSpacingOptionDataContractTest.cpp",
+      "test": "KisSpacingOptionDataContractTest::equalityUsesBothMembers",
+      "behavior": "散布間隔設定の等価判定は等方間隔と間隔更新の両方が一致する場合だけ真になる。",
+      "classification": "maintained",
+      "apis": [
+        "function:operator ==(const KisSpacingOptionMixInImpl & lhs,const KisSpacingOptionMixInImpl & rhs)"
       ]
     }
   ]
