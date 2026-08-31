@@ -8,6 +8,8 @@
 
 #include "kis_paint_device.h"
 
+#include "KisProcessingInformationPaintDeviceOwnership_p.h"
+
 #include <QRect>
 #include <QImage>
 #include <QList>
@@ -60,6 +62,20 @@
 
 KIS_DECLARE_STATIC_INITIALIZER {
     qRegisterMetaType<KisPaintDeviceSP>("KisPaintDeviceSP");
+}
+
+void kisSharedPtrAddReference(KisPaintDevice *device)
+{
+    device->ref();
+}
+
+bool kisSharedPtrRelease(KisPaintDevice *device)
+{
+    if (!device->deref()) {
+        delete device;
+        return false;
+    }
+    return true;
 }
 
 struct KisPaintDevice::Private
