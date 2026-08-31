@@ -57,6 +57,17 @@ target_compile_definitions(KisPaintOpsModelContractTest PRIVATE
 )
 
 kis_add_test(
+    KisCategoriesMapperContractTest.cpp
+    LINK_LIBRARIES
+        kritatoolsuicategorizedmodelobjects
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(KisCategoriesMapperContractTest PRIVATE
+    kritatoolsui_EXPORTS
+)
+
+kis_add_test(
     kis_categorized_list_model_test.cpp
     ../../../ui/tests/modeltest.cpp
     TEST_NAME KisCategorizedListModelTest
