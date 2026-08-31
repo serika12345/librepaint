@@ -1010,6 +1010,26 @@ target_compile_definitions(KoShapeTransparencyCommandContractTest PRIVATE
 )
 
 kis_add_test(
+    KoShapePaintOrderCommandContractTest.cpp
+    LINK_LIBRARIES
+        kritaflakeshapepaintordercommandobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KoShapePaintOrderCommandContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_CURRENT_SOURCE_DIR}/../commands
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+    ${CMAKE_SOURCE_DIR}/libs/painting/undo
+    ${CMAKE_BINARY_DIR}/libs/painting/undo
+)
+target_compile_definitions(KoShapePaintOrderCommandContractTest PRIVATE
+    kritaflake_EXPORTS
+    kritapaintingundo_EXPORTS
+)
+
+kis_add_test(
     KoShapeBackgroundCommandContractTest.cpp
     LINK_LIBRARIES
         kritaflakeshapebackgroundcommandobjects

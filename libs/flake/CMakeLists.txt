@@ -1099,6 +1099,36 @@ set_target_properties(kritaflakeshapetransparencycommandobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaflakeshapepaintordercommandobjects OBJECT
+    commands/KoShapePaintOrderCommand.cpp
+)
+target_compile_definitions(kritaflakeshapepaintordercommandobjects PRIVATE kritaflake_EXPORTS)
+if(BUILD_TESTING)
+    target_compile_definitions(kritaflakeshapepaintordercommandobjects PRIVATE KRITAFLAKE_SHAPE_PAINT_ORDER_COMMAND_CONTRACT_TESTING)
+endif()
+target_include_directories(kritaflakeshapepaintordercommandobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/commands>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/painting/undo>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/painting/undo>
+)
+target_link_libraries(kritaflakeshapepaintordercommandobjects
+    PUBLIC
+        Boost::boost
+        KF${KF_MAJOR}::I18n
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Xml
+)
+set_target_properties(kritaflakeshapepaintordercommandobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaflakesubpathremovecommandobjects OBJECT
     commands/KoSubpathRemoveCommand.cpp
 )
@@ -1382,7 +1412,6 @@ set(kritaflake_SRCS
     commands/KoMultiPathPointMergeCommand.cpp
     commands/KoMultiPathPointJoinCommand.cpp
     commands/KoPathMergeUtils.cpp
-    commands/KoShapePaintOrderCommand.cpp
     commands/KoShapeMergeTextPropertiesCommand.cpp
     commands/KoSvgConvertTextTypeCommand.cpp
     commands/KoSvgTextAddRemoveShapeCommands.cpp
@@ -1508,6 +1537,7 @@ set(kritaflake_SRCS
     $<TARGET_OBJECTS:kritaflakeshapesizecommandobjects>
     $<TARGET_OBJECTS:kritaflakeshapeshearcommandobjects>
     $<TARGET_OBJECTS:kritaflakeshapetransparencycommandobjects>
+    $<TARGET_OBJECTS:kritaflakeshapepaintordercommandobjects>
     $<TARGET_OBJECTS:kritaflakesubpathremovecommandobjects>
     $<TARGET_OBJECTS:kritaflakekeepshapesselectedcommandobjects>
     $<TARGET_OBJECTS:kritaflakeaddremoveshapecommandobjects>
