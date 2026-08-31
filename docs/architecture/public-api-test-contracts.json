@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 21241
+    "expectedMissingApis": 21203
   },
   "contracts": [
     {
@@ -28034,6 +28034,170 @@
         "method:KoHistogramProducerFactoryRegistry::instance()",
         "method:KoHistogramProducerFactoryRegistry::keysCompatibleWith(const KoColorSpace * colorSpace,bool isStrict=false) const",
         "method:KoHistogramProducerFactoryRegistry::~KoHistogramProducerFactoryRegistry()"
+      ]
+    },
+    {
+      "target": "TestShapeStrokeCommand",
+      "source": "libs/flake/tests/TestShapeStrokeCommand.cpp",
+      "test": "TestShapeStrokeCommand::uniformAndSingleConstructorsCapturePreviousStrokes",
+      "behavior": "形状stroke commandの単体と一様stroke構築経路は入力形状順に元strokeを一度だけ取得し、同じ新strokeを各形状へ対応付ける。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoShapeStrokeCommand",
+        "method:KoShapeStrokeCommand::KoShapeStrokeCommand(KoShape * shape,KoShapeStrokeModelSP stroke,KUndo2Command * parent=0)",
+        "method:KoShapeStrokeCommand::KoShapeStrokeCommand(const QList<KoShape * > & shapes,KoShapeStrokeModelSP stroke,KUndo2Command * parent=0)"
+      ]
+    },
+    {
+      "target": "TestShapeStrokeCommand",
+      "source": "libs/flake/tests/TestShapeStrokeCommand.cpp",
+      "test": "TestShapeStrokeCommand::perShapeConstructorPreservesStrokePairing",
+      "behavior": "形状別stroke構築経路は入力形状と新strokeの位置対応を保ち、各形状から取得した元strokeをundo用に保持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShapeStrokeCommand::KoShapeStrokeCommand(const QList<KoShape * > & shapes,const QList<KoShapeStrokeModelSP> & strokes,KUndo2Command * parent=0)"
+      ]
+    },
+    {
+      "target": "TestShapeStrokeCommand",
+      "source": "libs/flake/tests/TestShapeStrokeCommand.cpp",
+      "test": "TestShapeStrokeCommand::redoAndUndoDispatchBaseBeforeStrokeBatch",
+      "behavior": "形状stroke commandのredoとundoは基底commandを先に配送し、入力順を保った一回の一括適用で新strokeと元strokeを切り替える。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShapeStrokeCommand::redo()",
+        "method:KoShapeStrokeCommand::undo()"
+      ]
+    },
+    {
+      "target": "TestShapeStrokeCommand",
+      "source": "libs/flake/tests/TestShapeStrokeCommand.cpp",
+      "test": "TestShapeStrokeCommand::idAndMergeAcceptOnlyIdenticalShapeSequences",
+      "behavior": "形状stroke commandは安定した変更識別子を返し、同じ形状列の後続commandだけを統合して元strokeを維持したまま新stroke列を採用する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShapeStrokeCommand::id() const",
+        "method:KoShapeStrokeCommand::mergeWith(const KUndo2Command * command)"
+      ]
+    },
+    {
+      "target": "TestShapeStrokeCommand",
+      "source": "libs/flake/tests/TestShapeStrokeCommand.cpp",
+      "test": "TestShapeStrokeCommand::emptyInputsAndSharedOwnershipRemainSafe",
+      "behavior": "空入力は形状処理を行わず、commandは形状を借用しながら新旧strokeの共有所有と親commandを寿命中保持して仮想破棄される。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShapeStrokeCommand::~KoShapeStrokeCommand()"
+      ]
+    },
+    {
+      "target": "KisConvolutionKernelContractTest",
+      "source": "libs/image/tests/KisConvolutionKernelContractTest.cpp",
+      "test": "KisConvolutionKernelContractTest::constructionMutationAndReshapePreserveKernelValues",
+      "behavior": "畳み込みkernelは寸法、offset、factor、行列値を所有し、可変・定数data参照と同じ要素数の形状変更を一貫して公開する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisConvolutionKernel",
+        "method:KisConvolutionKernel::KisConvolutionKernel(quint32 width,quint32 height,qreal offset,qreal factor)",
+        "method:KisConvolutionKernel::data()",
+        "method:KisConvolutionKernel::data() const",
+        "method:KisConvolutionKernel::factor() const",
+        "method:KisConvolutionKernel::height() const",
+        "method:KisConvolutionKernel::offset() const",
+        "method:KisConvolutionKernel::setFactor(qreal)",
+        "method:KisConvolutionKernel::setSize(quint32 width,quint32 height)",
+        "method:KisConvolutionKernel::width() const"
+      ]
+    },
+    {
+      "target": "KisConvolutionKernelContractTest",
+      "source": "libs/image/tests/KisConvolutionKernelContractTest.cpp",
+      "test": "KisConvolutionKernelContractTest::matrixFactoryOwnsInputAndDeletesVirtually",
+      "behavior": "行列から生成した畳み込みkernelは入力行列、offset、factorを値として所有し、最後の共有参照解放時に派生個体を一度だけ仮想破棄する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisConvolutionKernel::fromMatrix(Eigen::Matrix<qreal,Eigen::Dynamic,Eigen::Dynamic> matrix,qreal offset,qreal factor)",
+        "method:KisConvolutionKernel::~KisConvolutionKernel()"
+      ]
+    },
+    {
+      "target": "KisConvolutionKernelContractTest",
+      "source": "libs/image/tests/KisConvolutionKernelContractTest.cpp",
+      "test": "KisConvolutionKernelContractTest::imageFactoryConvertsFixedRgbaPixels",
+      "behavior": "RGBA画像からの生成は固定画素を反転RGB平均の行列へ変換し、全kernel値の和をfactorとして保持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisConvolutionKernel::fromQImage(const QImage & image)"
+      ]
+    },
+    {
+      "target": "KisConvolutionKernelContractTest",
+      "source": "libs/image/tests/KisConvolutionKernelContractTest.cpp",
+      "test": "KisConvolutionKernelContractTest::maskFactorySamplesCoordinatesAndAccumulatesFactor",
+      "behavior": "mask生成器からの生成は丸めた寸法と指定角度で座標を行優先に標本化し、反転alpha値とその総和をkernelへ保持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisConvolutionKernel::fromMaskGenerator(KisMaskGenerator *,qreal angle=0.0)"
+      ]
+    },
+    {
+      "target": "KisConvolutionKernelContractTest",
+      "source": "libs/image/tests/KisConvolutionKernelContractTest.cpp",
+      "test": "KisConvolutionKernelContractTest::debugStreamReportsDimensionsValuesFactorAndOffset",
+      "behavior": "畳み込みkernelの診断出力は寸法、列順の行列値、factor、offsetを判別可能な順序で報告する。",
+      "classification": "maintained",
+      "apis": [
+        "function:operator <<(QDebug debug,const KisConvolutionKernel & c)"
+      ]
+    },
+    {
+      "target": "KoColorSpaceEngineContractTest",
+      "source": "libs/pigment/tests/KoColorSpaceEngineContractTest.cpp",
+      "test": "KoColorSpaceEngineContractTest::unicodeIdentityAndVirtualLifetimeArePreserved",
+      "behavior": "色空間engineはUnicode識別子と表示名を値として保持し、同じ参照を公開して基底pointer経由で派生個体を仮想破棄する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoColorSpaceEngine",
+        "method:KoColorSpaceEngine::KoColorSpaceEngine(const QString & id,const QString & name)",
+        "method:KoColorSpaceEngine::id() const",
+        "method:KoColorSpaceEngine::name() const",
+        "method:KoColorSpaceEngine::~KoColorSpaceEngine()"
+      ]
+    },
+    {
+      "target": "KoColorSpaceEngineContractTest",
+      "source": "libs/pigment/tests/KoColorSpaceEngineContractTest.cpp",
+      "test": "KoColorSpaceEngineContractTest::profileOperationsPreserveArgumentsAndResults",
+      "behavior": "色空間engineのprofile操作はfilename、byte列、query参照を派生実装へ保って配送し、生成profile pointerと成否を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoColorSpaceEngine::addProfile(const QByteArray & data)",
+        "method:KoColorSpaceEngine::addProfile(const QString & filename)",
+        "method:KoColorSpaceEngine::getProfile(const KoColorProfileQuery & query)",
+        "method:KoColorSpaceEngine::removeProfile(const QString & filename)"
+      ]
+    },
+    {
+      "target": "KoColorSpaceEngineContractTest",
+      "source": "libs/pigment/tests/KoColorSpaceEngineContractTest.cpp",
+      "test": "KoColorSpaceEngineContractTest::defaultCompatibilityAcceptsEveryToken",
+      "behavior": "色空間engineの既定対応判定は色模型、深度、profile pointerの値にかかわらず対応可能を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoColorSpaceEngine::supportsColorSpace(const QString & colorModelId,const QString & colorDepthId,const KoColorProfile * profile) const"
+      ]
+    },
+    {
+      "target": "KoColorSpaceEngineContractTest",
+      "source": "libs/pigment/tests/KoColorSpaceEngineContractTest.cpp",
+      "test": "KoColorSpaceEngineContractTest::localRegistryOwnsEnginesAndSingletonIsStable",
+      "behavior": "色空間engine registryは局所登録engineを所有して一度だけ破棄し、製品singletonの同一個体を繰り返し公開する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoColorSpaceEngineRegistry",
+        "method:KoColorSpaceEngineRegistry::KoColorSpaceEngineRegistry()",
+        "method:KoColorSpaceEngineRegistry::instance()",
+        "method:KoColorSpaceEngineRegistry::~KoColorSpaceEngineRegistry()"
       ]
     }
   ]

@@ -2,90 +2,50 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-31 11:49 JST
-- 状態: `in_progress`
+- 更新日時: 2026-08-31 12:12 JST
+- 状態: `planned`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
 
-### 第75並列便の担当票
-
-- 形状stroke command担当は`implementing`である。基点は
-  `36524eb4aea47c8a93daa62ef53e23cf50876409`、作業ツリーは
-  `/Users/masato/Documents/librepaint-r2-g75-shape-stroke`、ブランチは`r2-g75-shape-stroke`、
-  統合順は1である。対象は`libs/flake/commands/KoShapeStrokeCommand.h`の9 APIである。開始ファイル
-  `libs/flake/commands/KoShapeStrokeCommand.cpp`を`kritaflake_SRCS`の直接収容から
-  `kritaflakeshapestrokecommandobjects`へ移し、製品`kritaflake`へ一度だけ再集約する。開始試験
-  `libs/flake/tests/TestShapeStrokeCommand.{h,cpp}`を広域試験一覧から同名専用Qt Testへ移し、3構築経路、
-  shape・stroke対応、redo・undo配送、識別子・merge、空入力・共有所有を5契約枠で固定し、9 APIを
-  `maintained`へ分類する。仮想stroke APIと一括更新は開始実装の`BUILD_TESTING`限定配送設定を介して
-  不透明shape tokenへ接続し、既定配送は実shape APIと一括更新の従来順序を保つ。限定構築を許可し、
-  予測閉包5工程・13入力、停止条件6工程・15入力、製品閉包612工程・1,256入力不変を要求する。
-  許可範囲は`libs/flake/CMakeLists.txt`、開始実装、`libs/flake/tests/CMakeLists.txt`、開始試験2ファイルである。
-- 畳み込みkernel担当は`implementing`である。基点は`36524eb4aea47c8a93daa62ef53e23cf50876409`、
-  作業ツリーは`/Users/masato/Documents/librepaint-r2-g75-convolution-kernel`、ブランチは
-  `r2-g75-convolution-kernel`、統合順は2である。対象は`libs/image/kis_convolution_kernel.h`の15 APIである。
-  開始ファイル`libs/image/kis_convolution_kernel.cc`を`kritaimage_LIB_SRCS`の直接収容から
-  `kritaimageconvolutionkernelobjects`へ移し、製品`kritaimage`へ一度だけ再集約する。mask生成器の
-  width・height・値取得は新規非公開`libs/image/KisConvolutionKernelMaskAccess_p.h`へ宣言し、製品定義を
-  既存所有元`libs/image/kis_base_mask_generator.cpp`、試験定義を新規
-  `libs/image/tests/KisConvolutionKernelContractTest.cpp`へ置く。構築・変形、matrix・画像・mask各生成、
-  仮想寿命、診断出力を5契約枠で固定し、15 APIを`maintained`へ分類する。限定構築を許可し、予測閉包
-  6工程・13入力、停止条件7工程・15入力、製品閉包1,184工程・2,392入力不変を要求する。許可範囲は
-  `libs/image/CMakeLists.txt`、開始実装、新規非公開header、既存mask生成器実装、`libs/image/tests/CMakeLists.txt`、
-  新規試験である。
-- 色空間engine担当は`implementing`である。基点は`36524eb4aea47c8a93daa62ef53e23cf50876409`、
-  作業ツリーは`/Users/masato/Documents/librepaint-r2-g75-color-space-engine`、ブランチは
-  `r2-g75-color-space-engine`、統合順は3である。対象は`libs/pigment/KoColorSpaceEngine.h`の14 APIである。
-  開始ファイル`libs/pigment/KoColorSpaceEngine.cpp`を`kritapigment_SRCS`の直接収容から
-  `kritapigmentcolorspaceengineobjects`へ移し、製品`kritapigment`へ一度だけ再集約する。新規
-  `libs/pigment/tests/KoColorSpaceEngineContractTest.cpp`がUnicode識別値と寿命、profile操作の仮想配送、
-  色空間対応判定、局所registry所有とsingleton同一性を4契約枠で固定し、14 APIを`maintained`へ分類する。
-  限定構築を許可し、予測閉包5工程・11入力、停止条件6工程・14入力、製品閉包360工程・750入力
-  不変を要求する。許可範囲は`libs/pigment/CMakeLists.txt`、`libs/pigment/tests/CMakeLists.txt`、新規試験だけである。
-- 3担当はgit commitで受渡しし、再委任しない。中央進捗文書、公開API対応表、不足一覧は調整担当だけが
-  更新する。担当差分の統合直後に担当作業ツリー、局所構築木、担当ブランチを削除する。旧不足一覧は
-  新しい一覧の件数確認直後に削除し、再生成可能な一覧を常に最新1世代へ限定する。
-- 第75便は合計38 APIを対応付け、対応済み8,786件、未対応21,203件を目標とする。
-
 ### 現在の結果
 
-- 第74並列便は、形状描画順command 7 API、抽象tile圧縮器9 API、histogram生成器32 APIの合計48 APIを
-  挙動契約へ対応付けた。公開面は1,549ヘッダー、29,989 API、対応済み8,748件、未対応21,241件である。
-- 開始ファイル`libs/flake/commands/KoShapePaintOrderCommand.cpp`は`kritaflake_SRCS`の直接収容から
-  `kritaflakeshapepaintordercommandobjects`へ移り、製品`kritaflake`へ一度だけ再集約される。新規
-  `libs/flake/tests/KoShapePaintOrderCommandContractTest.cpp`が構築時の元値・借用寿命、redo・undoの配送順、
-  同一形状列のmerge、空列とcommand識別子を4契約枠で固定する。仮想paint-order APIは開始実装の
-  `BUILD_TESTING`限定配送設定を介して不透明shape tokenへ接続し、既定配送は実shape APIと従来の順序を保つ。
-- 開始ファイル`libs/image/tiles3/swap/kis_abstract_tile_compressor.cpp`は`kritaimage_LIB_SRCS`の直接収容から
-  `kritaimageabstracttilecompressorobjects`へ移り、製品`kritaimage`へ一度だけ再集約される。開始試験
-  `libs/image/tiles3/tests/KisTileCompressorFactoryContractTest.cpp`は試験内の基底construct・destruct定義を
-  実objectへ置換し、仮想寿命と共有所有、stream配送、buffer配送を3契約枠で追加する。
-- 開始ファイル`libs/pigment/KoHistogramProducer.cpp`は`kritapigment_SRCS`の直接収容から
-  `kritapigmenthistogramproducerobjects`へ移り、製品`kritapigment`へ一度だけ再集約される。不要な色空間と
-  重複ID includeを除き、新規`libs/pigment/tests/KoHistogramProducerContractTest.cpp`が生成器の既定状態と寿命、
-  仮想配送、factoryの値と配送、registryの選別・順序・所有を4契約枠で固定する。
-- 統合後の限定閉包は`KoShapePaintOrderCommandContractTest` 5工程・12入力、
-  `KisTileCompressorFactoryContractTest` 6工程・13入力、`KoHistogramProducerContractTest` 6工程・14入力である。
-  製品閉包は`kritaflake` 612工程・1,256入力、`kritaimage` 1,184工程・2,392入力、
-  `kritapigment` 360工程・750入力で不変である。
-- 主作業ツリーの3限定対象と4軽量近傍はCTest 7/7に成功し、3対象は各20回反復、全11契約枠の個別実行、
-  再構築時の無作業確認に成功した。macOSのパッケージ境界は1,585対象、公開API契約検査は
-  8,748/29,989件で成功した。3対象の動的依存にLibrePaint製品共有ライブラリー、Qt Widgets、
-  `kritatestsdk`は含まれず、histogram試験にはQt Gui・OpenGL・SQLとOpenEXRも含まれない。形状描画順試験は
-  最初の不透明tokenへの仮想呼出しでSIGSEGVを再現し、限定配送設定の導入後に成功した。実shapeの第三描画順・
-  継承解決・描画結果、実tile内容と具体圧縮、実色空間・画素集計・製品singleton登録・同優先度registry順序は
+- 第75並列便は、形状stroke command 9 API、畳み込みkernel 15 API、色空間engine 14 APIの合計38 APIを
+  挙動契約へ対応付けた。公開面は1,549ヘッダー、29,989 API、対応済み8,786件、未対応21,203件である。
+- 開始ファイル`libs/flake/commands/KoShapeStrokeCommand.cpp`は`kritaflake_SRCS`の直接収容から
+  `kritaflakeshapestrokecommandobjects`へ移り、製品`kritaflake`へ一度だけ再集約される。開始試験
+  `libs/flake/tests/TestShapeStrokeCommand.{h,cpp}`は616工程・1,263入力の広域試験一覧から同名専用Qt Testへ
+  移り、3構築経路、shape・stroke対応、redo・undo配送、識別子・merge、空入力・共有所有を5契約枠で固定する。
+  仮想stroke APIと一括更新は`BUILD_TESTING`限定配送設定を介し、既定配送は実shape APIと従来の一括更新を保つ。
+- 開始ファイル`libs/image/kis_convolution_kernel.cc`は`kritaimage_LIB_SRCS`の直接収容から
+  `kritaimageconvolutionkernelobjects`へ移り、製品`kritaimage`へ一度だけ再集約される。mask生成器アクセスは
+  新規非公開`libs/image/KisConvolutionKernelMaskAccess_p.h`へ分離し、製品定義を開始元
+  `libs/image/kis_base_mask_generator.cpp`、限定試験定義を新規
+  `libs/image/tests/KisConvolutionKernelContractTest.cpp`へ置く。構築・変形、matrix・画像・mask各生成、
+  仮想寿命、診断出力を5契約枠で固定する。
+- 開始ファイル`libs/pigment/KoColorSpaceEngine.cpp`は`kritapigment_SRCS`の直接収容から
+  `kritapigmentcolorspaceengineobjects`へ移り、製品`kritapigment`へ一度だけ再集約される。新規
+  `libs/pigment/tests/KoColorSpaceEngineContractTest.cpp`がUnicode識別値と寿命、profile操作の仮想配送、
+  色空間対応判定、局所registry所有とsingleton同一性を4契約枠で固定する。
+- 統合後の限定閉包は`TestShapeStrokeCommand` 5工程・12入力、`KisConvolutionKernelContractTest` 6工程・13入力、
+  `KoColorSpaceEngineContractTest` 5工程・11入力である。製品閉包は`kritaflake` 612工程・1,256入力、
+  `kritaimage` 1,184工程・2,392入力、`kritapigment` 360工程・750入力で不変である。
+- 主作業ツリーの3限定対象と6軽量近傍はCTest 9/9に成功し、3対象は各20回反復、全14契約枠の個別実行、
+  再構築時の無作業確認に成功した。macOSのパッケージ境界は1,590対象、公開API契約検査は
+  8,786/29,989件で成功した。3対象の動的依存にLibrePaint製品共有ライブラリーとQt Widgetsは含まれず、
+  shape試験に`kritatestsdk`、色空間engine試験にQt Gui・OpenGL・SQL、KF、OpenEXRも含まれない。実shape・
+  一括更新、実mask生成器との統合、無効画像・null mask、具体profile生成・query意味論・製品singleton登録は
   残余範囲である。製品全体の構築・リンクとLinux検証は限定閉包を越えるため対象外とした。
 - 担当作業ツリー3本、局所構築木、担当ブランチは各統合の直後に削除し、合計約2.49 GBの一時生成物を
-  回収した。旧第74便不足一覧を削除し、最新の第75便不足一覧
-  `build/tdd-macos/public-api-missing-g75.json` 5.2 MBだけを保持する。次便で再利用する主増分構築木は
-  5.1 GB、共有nativeコンパイラーcacheは0.7 GBである。
+  回収した。契約検査が取得したroot・参照元なしのNix sourceも削除し、185 MBの物理容量を回収した。旧第75便
+  不足一覧を削除し、最新の第76便不足一覧`build/tdd-macos/public-api-missing-g76.json` 5.2 MBだけを保持する。
+  次便で再利用する主増分構築木は5.1 GB、共有nativeコンパイラーcacheは0.7 GBである。
 
 ### 次の操作
 
-- 第75並列便の3担当は、各停止条件内で対象限定の構築計画を測り、最小の挙動契約を実装して担当コミットを渡す。
-  調整担当は統合順に差分を確認し、統合直後に各担当の作業ツリー、局所構築木、ブランチを削除する。
+- 最新の第76便不足一覧から3件を読み取り専用で監査し、各候補の公開API範囲、最小契約、直接依存、限定閉包、
+  製品への一度だけの集約、残余危険を確定する。計画確定までは作業ツリーと局所構築木を作成しない。
 
 ## 再開環境
 
