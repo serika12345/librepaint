@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-31 23:17 JST
+- 更新日時: 2026-08-31 23:26 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -18,6 +18,34 @@
   `KisEmbeddedTextureData`の残りAPIと、`KisSizeOptionData.cpp`の製品・runtime重複収容を専用OBJECTへ移す必要性を監査する。
 - `g91-lightweight-audit`はglobal、brush、pigment、resourcesから、製品共有library、Qt Widgets、`kritatestsdk`なしで
   一つの公開headerを高密度に固定できる候補を監査する。3監査は読み取り専用で、ファイル編集、構築、Git操作を行わない。
+
+### 第91並列便の担当計画
+
+- `g91-global-bezier-mesh`は`planned`である。対象headerは`libs/global/KisBezierMesh.h`、許可pathは既存
+  `libs/global/tests/KisBezierMeshValuesContractTest.cpp`だけである。5契約枠で次の57 APIを固定する。構築枠はclass、root aliases
+  `KisBezierMesh`、`KisBezierMeshBase`、`Mesh::{Node,Patch}`、2 constructor、`size`、`originalRect`、4 `node` overloadの13 API、
+  索引枠はaliases `SegmentIndex`、`ControlType`、`isIndexValid`とControlPointIndex、NodeIndex、PatchIndex、SegmentIndexごとのmutable
+  `find`、const `find`、`constFind`の15 API、反復枠は6 iterator aliasesとpatch、control point、segmentごとのmutable/const
+  `begin`、`end`、`constBegin`、`constEnd`の24 API、変換枠はMeshの等価演算子、`isIdentity`、`translate`、`transform`の4 API、
+  両空間変換枠は`transformSrcAndDst` 1 APIである。CMakeと製品コードは変更しない。対象4工程・8入力、製品`kritaglobal`
+  68工程・136入力を不変とする。patch iteratorは非inline `assignPatchData`を呼ばない距離・比較だけ、変換元矩形は平行移動と拡大だけを扱う。
+- `g91-pigment-streamed-math`は`planned`である。対象headerは`libs/pigment/compositeops/KoStreamedMath.h`、許可pathは新規
+  `libs/pigment/tests/KoStreamedMathContractTest.cpp`と`libs/pigment/tests/CMakeLists.txt`だけである。対象は9 alias、
+  `clearPixel`と`copyPixel`、PixelとPixelWrapperの9 member、KoStreamedMathのfetch 3、generic composite 8、round・lerp・write 4、
+  OptiDiv 2、OptiRound 1、PixelStateRecoverHelper 2、PixelWrapper 13 method、6 structの合計59 APIである。5契約枠でscalar・SIMD丸めと除算、
+  mask・alpha・channel読書き、画素正規化・復元・複製、mask選択状態復元、32・64・128 bit generic compositeのstride・mask・flow・呼出順を固定する。
+  直接依存はQt Core・Test、xsimdと色合成header面だけとし、製品共有libraryを接続しない。最寄り5工程・11入力、新規予測4工程・9入力、
+  停止上限7工程・16入力、製品`kritapigment` 360工程・750入力不変とする。処理系差は整数境界と許容幅で分類し、未解決製品記号が出たら停止する。
+- `g91-paintop-size-option`は`planned`である。対象headerは`plugins/paintops/libpaintop/KisSizeOptionData.h`のstruct、constructor、
+  `lodLimitations`の全3 APIである。開始ファイル`plugins/paintops/libpaintop/KisSizeOptionData.cpp`を
+  `kritalibpaintop_LIB_SRCS`と`kritapaintopruntime_LIB_SRCS`の両初期一覧から外し、新規`kritapaintopsizeoptiondataobjects`へ移して
+  runtimeへ一度だけ再集約する。許可pathは同package `CMakeLists.txt`、tests `CMakeLists.txt`、新規
+  `tests/KisSizeOptionDataContractTest.cpp`で、製品headerとsource内容は変更しない。Unicode接頭辞とSize識別子、既定の制限なし、
+  Fuzzy per DabとFade sensorによる`size-fade` limitationと`size-fuzzy` blockerを3契約枠以内で固定する。予測11工程・24入力、
+  停止上限12工程・27入力、`kritapaintopruntime` 1,281工程・2,582入力、`kritalibpaintop` 2,097工程・4,192入力不変とする。
+- 3担当の構築権限はmacOSの限定対象、全追加枠、20回反復、軽量近傍、無作業計画、動的接続、変更source構文、公開API検査、
+  `verify-quick`に限定する。Git権限は担当commitだけで、中央台帳と進捗は統合担当が所有する。許可path外、新規公開API、未割当て依存、
+  停止上限超過、製品共有library、Qt Widgets、`kritatestsdk`を検出した時点で停止する。統合順はBezier、streamed math、size optionとする。
 
 ### 第90並列便の完了結果
 
