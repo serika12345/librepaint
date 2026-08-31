@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 20019
+    "expectedMissingApis": 19988
   },
   "contracts": [
     {
@@ -6700,6 +6700,82 @@
         "enumerator:KoSvgTextProperties::PropertyId::WordBreakId",
         "enumerator:KoSvgTextProperties::PropertyId::WordSpacingId",
         "enumerator:KoSvgTextProperties::PropertyId::WritingModeId"
+      ]
+    },
+    {
+      "target": "KoSvgTextEnumContractTest",
+      "source": "libs/flake/tests/KoSvgTextEnumContractTest.cpp",
+      "test": "KoSvgTextEnumContractTest::autoValuesDistinguishAutomaticAndNumericValues",
+      "behavior": "自動値は既定で自動状態となり、数値構築で明示値へ変わり、自動状態では未使用数値を等価性から除外する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KoSvgText::AutoValue::customValue",
+        "member:KoSvgText::AutoValue::isAuto",
+        "method:KoSvgText::AutoValue::AutoValue()",
+        "method:KoSvgText::AutoValue::AutoValue(qreal _customValue)",
+        "method:KoSvgText::AutoValue::operator ==(const AutoValue & other) const",
+        "struct:KoSvgText::AutoValue"
+      ]
+    },
+    {
+      "target": "KoSvgTextEnumContractTest",
+      "source": "libs/flake/tests/KoSvgTextEnumContractTest.cpp",
+      "test": "KoSvgTextEnumContractTest::autoLengthsPreserveUnitsAndValueSemantics",
+      "behavior": "自動長さは既定の自動状態と、絶対値・百分率の数値および単位を区別して保持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KoSvgText::AutoLengthPercentage::isAuto",
+        "member:KoSvgText::AutoLengthPercentage::length",
+        "method:KoSvgText::AutoLengthPercentage::AutoLengthPercentage()",
+        "method:KoSvgText::AutoLengthPercentage::AutoLengthPercentage(CssLengthPercentage _length)",
+        "method:KoSvgText::AutoLengthPercentage::AutoLengthPercentage(qreal _customValue,CssLengthPercentage::UnitType unit=CssLengthPercentage::Absolute)",
+        "method:KoSvgText::AutoLengthPercentage::operator ==(const AutoLengthPercentage & other) const",
+        "struct:KoSvgText::AutoLengthPercentage"
+      ]
+    },
+    {
+      "target": "KoSvgTextEnumContractTest",
+      "source": "libs/flake/tests/KoSvgTextEnumContractTest.cpp",
+      "test": "KoSvgTextEnumContractTest::fontStylesCompareSlantOnlyForOblique",
+      "behavior": "字体様式は通常・斜体では傾斜角を等価性から除外し、斜め字体だけ傾斜角を比較する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KoSvgText::CssFontStyleData::slantValue",
+        "member:KoSvgText::CssFontStyleData::style",
+        "method:KoSvgText::CssFontStyleData::CssFontStyleData()",
+        "method:KoSvgText::CssFontStyleData::CssFontStyleData(QFont::Style _style)",
+        "method:KoSvgText::CssFontStyleData::operator ==(const CssFontStyleData & other) const",
+        "struct:KoSvgText::CssFontStyleData"
+      ]
+    },
+    {
+      "target": "KoSvgTextEnumContractTest",
+      "source": "libs/flake/tests/KoSvgTextEnumContractTest.cpp",
+      "test": "KoSvgTextEnumContractTest::textTransformsOwnIndependentFlags",
+      "behavior": "大文字化、全角化、仮名拡大の文字変換値は既定値から独立して更新され、全値で等価性を決める。",
+      "classification": "maintained",
+      "apis": [
+        "member:KoSvgText::TextTransformInfo::capitals",
+        "member:KoSvgText::TextTransformInfo::fullSizeKana",
+        "member:KoSvgText::TextTransformInfo::fullWidth",
+        "method:KoSvgText::TextTransformInfo::TextTransformInfo()",
+        "method:KoSvgText::TextTransformInfo::operator ==(const TextTransformInfo & rhs) const",
+        "struct:KoSvgText::TextTransformInfo"
+      ]
+    },
+    {
+      "target": "KoSvgTextEnumContractTest",
+      "source": "libs/flake/tests/KoSvgTextEnumContractTest.cpp",
+      "test": "KoSvgTextEnumContractTest::textIndentOwnsLengthAndLineFlags",
+      "behavior": "字下げ値は長さ、ぶら下げ、各行適用を独立して保持し、全値で等価性を決める。",
+      "classification": "maintained",
+      "apis": [
+        "member:KoSvgText::TextIndentInfo::eachLine",
+        "member:KoSvgText::TextIndentInfo::hanging",
+        "member:KoSvgText::TextIndentInfo::length",
+        "method:KoSvgText::TextIndentInfo::TextIndentInfo()",
+        "method:KoSvgText::TextIndentInfo::operator ==(const TextIndentInfo & rhs) const",
+        "struct:KoSvgText::TextIndentInfo"
       ]
     },
     {

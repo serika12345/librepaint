@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 04:06 JST
+- 更新日時: 2026-09-01 04:12 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -48,11 +48,11 @@
   `psd_pattern` 14 APIの合計23 APIである。既定・独立更新・copyの4枠を既存`PsdFormatValuesContractTest`へ追加する。許可pathは
   `libs/psdutils/tests/CMakeLists.txt`と`libs/psdutils/tests/PsdFormatValuesContractTest.cpp`だけである。予測4工程・9入力、停止5工程・12入力、製品
   `kritapsdutils` 629工程・1,288入力不変とする。
-- `g98-flake-svg-text-values`は`in_progress`で、専用作業ツリーは`/Users/masato/Documents/librepaint-g98-flake-svg-text-values`である。対象は同不足一覧で
+- `g98-flake-svg-text-values`は`integrated`で、削除済みの専用作業ツリーは`/Users/masato/Documents/librepaint-g98-flake-svg-text-values`であった。対象は同不足一覧で
   headerが`libs/flake/text/KoSvgText.h`の`AutoValue` 6 API、`AutoLengthPercentage` 7 API、`CssFontStyleData` 6 API、`TextTransformInfo` 6 API、
   `TextIndentInfo` 6 APIの合計31 APIである。5枠を既存`KoSvgTextEnumContractTest`へ追加する。許可pathは
   `libs/flake/tests/KoSvgTextEnumContractTest.cpp`だけである。予測4工程・8入力、停止5工程・10入力、製品`kritaflake` 612工程・1,256入力不変とする。
-- `g98-ui-storyboard-item`は`planned`で、専用作業ツリーを`/Users/masato/Documents/librepaint-g98-ui-storyboard-item`へ作成する。対象は同不足一覧で
+- `g98-ui-storyboard-item`は`in_progress`で、専用作業ツリーは`/Users/masato/Documents/librepaint-g98-ui-storyboard-item`である。対象は同不足一覧で
   headerが`libs/ui/document/StoryboardItem.h`の`StoryboardComment`、`CommentBox`、`ThumbnailData`、`StoryboardChild`、`StoryboardItem`と
   `childType`の全43 APIである。開始`libs/ui/document/StoryboardItem.cpp`を`kritaui_LIB_SRCS`直接収容から新規AUTOMOC不要・PIC対応
   `kritauistoryboarditemobjects`へ一対一移動し、製品`kritaapplicationui`へ一回だけ再集約する。許可pathは`libs/ui/CMakeLists.txt`、
@@ -62,6 +62,19 @@
   `scripts/run-shared-test-env`から共有する。構築権限は対象、追加枠、20回反復、軽量近傍、無作業再構築、動的接続、公開API検査、`verify-quick`に
   限定する。Git権限は許可pathだけの担当commitで、台帳と進捗は統合担当が所有する。上限超過、非inline記号、製品shared library、`kritatestsdk`、
   実字体・shape・文書・画像・資源・色空間registry・filesystemが必要なら停止する。統合順はSVG文字値、PSD形式値、storyboard値とする。
+
+### 第98並列便の統合結果
+
+- `g98-flake-svg-text-values`は受渡しcommit `c237d16d8dd0d4e655bb64f89349fd377a9712fb`を統合commit `a4997b376b`として取り込んだ。
+  既存`libs/flake/tests/KoSvgTextEnumContractTest.cpp`だけを拡張し、製品source、公開header、CMake所有を変更していない。
+- 自動値6 API、自動長さ7 API、字体様式6 API、文字変換6 API、字下げ6 APIの合計31 APIを5契約枠へ追加した。初回リンクで`QCOMPARE`の診断生成が
+  非inlineのdebug出力とmeta-object記号を要求したため、値型は公開inline等価演算、列挙は整数値比較へ狭め、製品意味論と非inline記号への依存を
+  追加せず固定した。限定対象4工程・8入力、製品`kritaflake` 612工程・1,256入力を維持した。
+- 担当環境と主環境で追加5枠、対象CTest、20回反復、`KoShapeEnumContractTest`近傍、無作業再構築、動的接続、変更source構文、公開API契約検査、
+  `verify-quick`に成功した。限定対象の動的接続はQt Core・Gui・Test・Xmlだけで、製品shared libraryと`kritatestsdk`を含まない。対応済みは
+  9,850件、未対応は19,988件、契約枠は2,361件となった。
+- 新しい`build/tdd-macos/public-api-missing-g98-svg.json`生成後、直前の不足一覧、局所構築木263 MBを含む担当作業ツリー833 MB、担当branchを
+  削除した。主増分構築木、共有compiler cache、残る2担当作業ツリー、最新不足一覧だけを保持する。
 
 ### 第97並列便の監査計画
 
