@@ -2,12 +2,51 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-31 12:50 JST
-- 状態: `planned`
+- 更新日時: 2026-08-31 13:02 JST
+- 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
+
+### 第77並列便の担当票
+
+- 形状整列command担当は`preparing`である。基点は`82e2a6221ea8bc8f3a6a0a595a551a5d0f663ef7`、予定作業ツリーは
+  `/Users/masato/Documents/librepaint-r2-g77-shape-align`、予定ブランチは`r2-g77-shape-align`、統合順は1である。
+  対象は`libs/flake/commands/KoShapeAlignCommand.h`の12 APIである。開始ファイル
+  `libs/flake/commands/KoShapeAlignCommand.cpp`を`kritaflake_SRCS`の直接収容から
+  `kritaflakeshapealigncommandobjects`へ移し、製品`kritaflake`へ一度だけ再集約する。新規
+  `libs/flake/tests/KoShapeAlignCommandContractTest.cpp`が6整列値、水平・垂直位置計算、内部移動commandへの
+  redo・undo配送と借用寿命を4契約枠で固定する。位置と外接矩形の読取は開始実装の`BUILD_TESTING`限定配送設定を
+  介し、既定配送は実shape APIを保つ。既存`kritaflakeshapemovecommandobjects`の変更なし再利用を要求する。
+  限定構築は計画承認まで待機し、予測閉包6工程・13入力、停止条件7工程・16入力、製品閉包612工程・1,256入力
+  不変を要求する。許可範囲は`libs/flake/CMakeLists.txt`、開始実装、`libs/flake/tests/CMakeLists.txt`、新規試験である。
+- simple stroke strategy担当は`preparing`である。基点は`82e2a6221ea8bc8f3a6a0a595a551a5d0f663ef7`、
+  予定作業ツリーは`/Users/masato/Documents/librepaint-r2-g77-simple-stroke`、予定ブランチは
+  `r2-g77-simple-stroke`、統合順は2である。対象は`libs/image/kis_simple_stroke_strategy.h`の28 APIである。
+  開始ファイル`libs/image/kis_simple_stroke_strategy.cpp`を`kritaimage_LIB_SRCS`から
+  `kritaimagesimplestrokestrategyobjects`へ移す。`libs/image/kis_stroke_job_strategy.cpp`を既存5 sourceの
+  `kritaimagestrokejobobjects`から`kritaimagejobstrategyobjects`へ分け、両OBJECTを製品`kritaimage`へ一度ずつ
+  再集約する。新規`libs/image/tests/KisSimpleStrokeStrategyContractTest.cpp`がjob識別値と文字列、無効jobの
+  既定生成物、job別schedule値、有効jobから6 callbackへの配送と借用寿命を4契約枠で固定する。製品sourceと
+  headerの内容変更は行わない。限定構築は計画承認まで待機し、予測閉包9工程・20入力、停止条件10工程・23入力、
+  既存`KisStrokeJobContractTest` 9工程・19入力と製品閉包1,184工程・2,392入力不変を要求する。許可範囲は
+  `libs/image/CMakeLists.txt`、`libs/image/tests/CMakeLists.txt`、新規試験である。
+- curve option data担当は`preparing`である。基点は`82e2a6221ea8bc8f3a6a0a595a551a5d0f663ef7`、
+  予定作業ツリーは`/Users/masato/Documents/librepaint-r2-g77-curve-option-data`、予定ブランチは
+  `r2-g77-curve-option-data`、統合順は3である。対象は
+  `plugins/paintops/libpaintop/KisCurveOptionDataCommon.h`の25 APIである。開始ファイル
+  `plugins/paintops/libpaintop/KisCurveOptionDataCommon.cpp`を有効所有者`kritapaintopruntime`の直接収容から
+  `kritapaintopcurveoptiondatacommonobjects`へ移し、runtimeを介して製品`kritalibpaintop`へ一度だけ集約する。
+  新規`plugins/paintops/libpaintop/tests/KisCurveOptionDataCommonContractTest.cpp`が構築値と能力、sensor view、
+  直接設定read、prefix付き一時設定のread・write、値とsensor状態の等価判定を5契約枠で固定する。製品source、
+  public header、製品配送面の変更は行わない。限定構築は計画承認まで待機し、予測閉包7工程・16入力、停止条件
+  8工程・20入力、製品閉包`kritapaintopruntime` 1,281工程・2,582入力と`kritalibpaintop` 2,097工程・4,192入力
+  不変を要求する。許可範囲は`plugins/paintops/libpaintop/CMakeLists.txt`、同tests CMake、新規試験である。
+- 3担当はgit commitで受渡しし、再委任しない。中央進捗文書、公開API対応表、不足一覧は調整担当だけが更新する。
+  各担当差分の統合直後に担当作業ツリー、局所構築木、担当ブランチを削除する。旧不足一覧は新しい一覧の件数確認
+  直後に削除し、再生成可能な一覧を常に最新1世代へ限定する。
+- 第77便は合計65 APIを対応付け、対応済み8,913件、未対応21,076件を目標とする。
 
 ### 第76並列便の完了結果
 
@@ -79,8 +118,8 @@
 
 ### 次の操作
 
-- 最新の第77便不足一覧から3件を読み取り専用で監査し、各候補の公開API範囲、最小契約、直接依存、限定閉包、
-  製品への一度だけの集約、残余危険を確定する。計画確定までは作業ツリーと局所構築木を作成しない。
+- 第77並列便の担当票を高速検査で固定してcommitする。3担当作業ツリーを同じ計画commitから作成し、基点と
+  清浄状態を確認した後に実装許可を記録して、限定構築と挙動契約の実装へ進む。
 
 ## 再開環境
 
