@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 20817
+    "expectedMissingApis": 20796
   },
   "contracts": [
     {
@@ -29910,6 +29910,153 @@
         "method:KisMirrorOptionData::KisMirrorOptionData(const QString & prefix=\"\")",
         "method:KisMirrorOptionMixInImpl::read(const KisPropertiesConfiguration * setting)",
         "method:KisMirrorOptionMixInImpl::write(KisPropertiesConfiguration * setting) const"
+      ]
+    },
+    {
+      "target": "KoMultipleColorConversionTransformationContractTest",
+      "source": "libs/pigment/tests/KoMultipleColorConversionTransformationContractTest.cpp",
+      "test": "KoMultipleColorConversionTransformationContractTest::constructionPreservesConversionIdentity",
+      "behavior": "複数段色変換は構築時に指定された入力色空間、出力色空間、描画意図、変換フラグを同一値として保持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoMultipleColorConversionTransformation",
+        "method:KoMultipleColorConversionTransformation::KoMultipleColorConversionTransformation(const KoColorSpace * srcCs,const KoColorSpace * dstCs,KoColorConversionTransformation::Intent,KoColorConversionTransformation::ConversionFlags conversionFlags)"
+      ]
+    },
+    {
+      "target": "KoMultipleColorConversionTransformationContractTest",
+      "source": "libs/pigment/tests/KoMultipleColorConversionTransformationContractTest.cpp",
+      "test": "KoMultipleColorConversionTransformationContractTest::appendOwnsTransformationsInInputOrder",
+      "behavior": "複数段色変換は追加された変換を入力順に所有し、自身の破棄時に各変換を同じ順序で一度ずつ破棄する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoMultipleColorConversionTransformation::appendTransfo(KoColorConversionTransformation * transfo)",
+        "method:KoMultipleColorConversionTransformation::~KoMultipleColorConversionTransformation()"
+      ]
+    },
+    {
+      "target": "KoMultipleColorConversionTransformationContractTest",
+      "source": "libs/pigment/tests/KoMultipleColorConversionTransformationContractTest.cpp",
+      "test": "KoMultipleColorConversionTransformationContractTest::twoStageConversionUsesOneDistinctIntermediateBuffer",
+      "behavior": "2段色変換は指定画素数を各段へ順に渡し、入力と異なる一つの中間バッファーを介して各段の変換結果を出力する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoMultipleColorConversionTransformation::transform(const quint8 * src,quint8 * dst,qint32 nPixels) const"
+      ]
+    },
+    {
+      "target": "KoMultipleColorConversionTransformationContractTest",
+      "source": "libs/pigment/tests/KoMultipleColorConversionTransformationContractTest.cpp",
+      "test": "KoMultipleColorConversionTransformationContractTest::threeStageConversionAlternatesDistinctIntermediateBuffers",
+      "behavior": "3段色変換は二つの異なる中間バッファーを交互に受け渡し、指定画素数と段順を維持して最終結果を出力する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoMultipleColorConversionTransformation::transform(const quint8 * src,quint8 * dst,qint32 nPixels) const"
+      ]
+    },
+    {
+      "target": "KisPostExecutionUndoAdapterContractTest",
+      "source": "libs/image/tests/KisPostExecutionUndoAdapterContractTest.cpp",
+      "test": "KisPostExecutionUndoAdapterContractTest::constructionKeepsBorrowedStoreAndFacade",
+      "behavior": "実行後取り消しアダプターは指定された取り消し格納先とストローク窓口を借用し、同じストローク窓口を返す。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisPostExecutionUndoAdapter",
+        "method:KisPostExecutionUndoAdapter::KisPostExecutionUndoAdapter(KisUndoStore * undoStore,KisStrokesFacade * strokesFacade)",
+        "method:KisPostExecutionUndoAdapter::strokesFacade() const"
+      ]
+    },
+    {
+      "target": "KisPostExecutionUndoAdapterContractTest",
+      "source": "libs/image/tests/KisPostExecutionUndoAdapterContractTest.cpp",
+      "test": "KisPostExecutionUndoAdapterContractTest::addCommandWrapsSharedOwnershipAndForwardsOnce",
+      "behavior": "共有所有された命令の追加は同じ命令を実行済み命令へ一度だけ包み、現在の取り消し格納先へ一度だけ配送する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPostExecutionUndoAdapter::addCommand(KUndo2CommandSP command)"
+      ]
+    },
+    {
+      "target": "KisPostExecutionUndoAdapterContractTest",
+      "source": "libs/image/tests/KisPostExecutionUndoAdapterContractTest.cpp",
+      "test": "KisPostExecutionUndoAdapterContractTest::setUndoStoreRedirectsSubsequentCommands",
+      "behavior": "取り消し格納先の差し替えは以後に追加された命令だけを新しい格納先へ配送する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPostExecutionUndoAdapter::setUndoStore(KisUndoStore * undoStore)"
+      ]
+    },
+    {
+      "target": "KisPostExecutionUndoAdapterContractTest",
+      "source": "libs/image/tests/KisPostExecutionUndoAdapterContractTest.cpp",
+      "test": "KisPostExecutionUndoAdapterContractTest::createAndAddMacroPreserveNameFacadeAndPointer",
+      "behavior": "マクロ生成は指定名と借用ストローク窓口を保持する個体を返し、その追加は同一個体を現在の取り消し格納先へ配送する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPostExecutionUndoAdapter::addMacro(KisSavedMacroCommand * macro)",
+        "method:KisPostExecutionUndoAdapter::createMacro(const KUndo2MagicString & macroName)"
+      ]
+    },
+    {
+      "target": "KisSharpnessOptionDataContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisSharpnessOptionDataContractTest.cpp",
+      "test": "KisSharpnessOptionDataContractTest::typesDefaultsAndConstructor",
+      "behavior": "鮮鋭度設定の公開型は安定し、引数省略構築は空接頭辞、輪郭画素整列無効、柔らかさ0を、接頭辞付き構築は同じ接頭辞とSharpness識別子を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisSharpnessOptionMixIn",
+        "member:KisSharpnessOptionMixInImpl::alignOutlinePixels",
+        "member:KisSharpnessOptionMixInImpl::softness",
+        "method:KisSharpnessOptionData::KisSharpnessOptionData(const QString & prefix=\"\")",
+        "struct:KisSharpnessOptionData",
+        "struct:KisSharpnessOptionMixInImpl"
+      ]
+    },
+    {
+      "target": "KisSharpnessOptionDataContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisSharpnessOptionDataContractTest.cpp",
+      "test": "KisSharpnessOptionDataContractTest::readMapsCurrentAndEmptySettings",
+      "behavior": "鮮鋭度設定は現行の輪郭画素整列値と柔らかさ値を各公開memberへ読み、値がない設定を各既定値へ写す。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisSharpnessOptionMixInImpl::alignOutlinePixels",
+        "member:KisSharpnessOptionMixInImpl::softness",
+        "method:KisSharpnessOptionMixInImpl::read(const KisPropertiesConfiguration * setting)"
+      ]
+    },
+    {
+      "target": "KisSharpnessOptionDataContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisSharpnessOptionDataContractTest.cpp",
+      "test": "KisSharpnessOptionDataContractTest::legacyFactorAndModernValuePrecedence",
+      "behavior": "鮮鋭度設定は旧係数を整数の柔らかさへ移行して強度を通知し、現行値が存在する場合は旧係数より現行値を優先する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisSharpnessOptionMixInImpl::softness",
+        "method:KisSharpnessOptionMixInImpl::read(const KisPropertiesConfiguration * setting)"
+      ]
+    },
+    {
+      "target": "KisSharpnessOptionDataContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisSharpnessOptionDataContractTest.cpp",
+      "test": "KisSharpnessOptionDataContractTest::writeMapsBothKeys",
+      "behavior": "鮮鋭度設定は輪郭画素整列値と柔らかさ値を対応する現行キーへ正確に書き、無関係な設定値を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisSharpnessOptionMixInImpl::alignOutlinePixels",
+        "member:KisSharpnessOptionMixInImpl::softness",
+        "method:KisSharpnessOptionMixInImpl::write(KisPropertiesConfiguration * setting) const"
+      ]
+    },
+    {
+      "target": "KisSharpnessOptionDataContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisSharpnessOptionDataContractTest.cpp",
+      "test": "KisSharpnessOptionDataContractTest::equalityUsesBothMembers",
+      "behavior": "鮮鋭度設定の等価判定は輪郭画素整列値と柔らかさ値がともに一致する場合だけ真になる。",
+      "classification": "maintained",
+      "apis": [
+        "function:operator ==(const KisSharpnessOptionMixInImpl & lhs,const KisSharpnessOptionMixInImpl & rhs)",
+        "member:KisSharpnessOptionMixInImpl::alignOutlinePixels",
+        "member:KisSharpnessOptionMixInImpl::softness"
       ]
     }
   ]

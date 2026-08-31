@@ -2,88 +2,41 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-31 20:20 JST
+- 更新日時: 2026-08-31 20:41 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
 
-### 第87並列便の担当票
+### 第87並列便の完了結果
 
-- `g87-flake-unclip`は`blocked`である。基準commitは`1c10959fa837db5ec4f15b65c1ebd21f508acb5e`、作業ツリーは
-  `/Users/masato/Documents/librepaint-r2-g19b-g87-flake-unclip`である。対象は
-  `libs/flake/commands/KoShapeUnclipCommand.h`の`class:KoShapeUnclipCommand`、
-  `method:KoShapeUnclipCommand::KoShapeUnclipCommand(KoShapeControllerBase * controller,KoShape * shape,KUndo2Command * parent=0)`、
-  `method:KoShapeUnclipCommand::KoShapeUnclipCommand(KoShapeControllerBase * controller,const QList<KoShape * > & shapes,KUndo2Command * parent=0)`、
-  `method:KoShapeUnclipCommand::redo()`、`method:KoShapeUnclipCommand::undo()`、
-  `method:KoShapeUnclipCommand::~KoShapeUnclipCommand()`の6 APIである。構築時の旧clip、
-  最初のredoにおけるpath clone・非path除外・変形・Z順・親接続、後続redoのclone再利用、undoの旧clip復元、3状態の
-  破棄責任をidentityと順序で固定する。開始ファイル`libs/flake/commands/KoShapeUnclipCommand.cpp`を
-  `kritaflake_SRCS`の直接収容から`kritaflakeshapeunclipcommandobjects`へ移し、製品`kritaflake`へ一度だけ再集約する。
-  最寄り契約は`KoShapeClipCommandContractTest`である。許可範囲は`libs/flake/CMakeLists.txt`、開始実装、
-  `libs/flake/tests/CMakeLists.txt`、新規`libs/flake/tests/KoShapeUnclipCommandContractTest.cpp`である。予測閉包は5工程・
-  12入力、停止条件は6工程・15入力超過、製品612工程・1,256入力からの増加、実shapeまたはclip objectの要求、
-  clone・filter・transform意味論の試験側再実装、製品共有library、Qt Widgets、`kritatestsdk`、公開API変更、許可外変更である。
-  編集前に必要配送を精査すると動的型判定を含む15操作以上が必要で、filter、変形、Z順、親移送の製品意味論を試験側で
-  再構成する停止条件に到達した。許可ファイルは変更せず、構成木273 MB、作業ツリー、担当ブランチを削除した。
-- `g87-pigment-multiple-conversion`は`implementing`である。基準commitは同じ、作業ツリーは
-  `/Users/masato/Documents/librepaint-r2-g19b-g87-pigment-multiple-conversion`である。対象は
-  `libs/pigment/KoMultipleColorConversionTransformation.h`の`class:KoMultipleColorConversionTransformation`、
-  `method:KoMultipleColorConversionTransformation::KoMultipleColorConversionTransformation(const KoColorSpace * srcCs,const KoColorSpace * dstCs,KoColorConversionTransformation::Intent,KoColorConversionTransformation::ConversionFlags conversionFlags)`、
-  `method:KoMultipleColorConversionTransformation::appendTransfo(KoColorConversionTransformation * transfo)`、
-  `method:KoMultipleColorConversionTransformation::transform(const quint8 * src,quint8 * dst,qint32 nPixels) const`、
-  `method:KoMultipleColorConversionTransformation::~KoMultipleColorConversionTransformation()`の5 APIである。構築引数と
-  借用色空間、変換の追加順と所有、2段・3段変換のbyte値・呼出順・中間buffer分離、入力順の破棄を固定する。開始ファイル
-  `libs/pigment/KoColorConversionTransformation.cpp`を`kritapigmentcolorconversiontransformationobjects`へ、
-  `libs/pigment/KoMultipleColorConversionTransformation.cpp`を`kritapigmentmultiplecolorconversiontransformationobjects`へ
-  1対1で移し、製品`kritapigment`へ各一度だけ再集約する。最寄り契約は`KoColorTransformationContractTest`である。
-  許可範囲は`libs/pigment/CMakeLists.txt`、multiple開始実装、`libs/pigment/tests/CMakeLists.txt`、新規
-  `libs/pigment/tests/KoMultipleColorConversionTransformationContractTest.cpp`であり、基底source内容は変更しない。
-  予測閉包は6工程・14入力、停止条件は7工程・17入力超過、製品360工程・750入力からの増加、実KoColorSpaceまたは
-  仮想関数表、pixel size以外の試験配送、基底OBJECTの未割当色管理記号、製品共有library、Qt Widgets、`kritatestsdk`、
-  公開API変更、許可外変更である。
-- `g87-image-post-undo`は`implementing`である。基準commitは同じ、作業ツリーは
-  `/Users/masato/Documents/librepaint-r2-g19b-g87-image-post-undo`である。対象は
-  `libs/image/kis_post_execution_undo_adapter.h`の`class:KisPostExecutionUndoAdapter`、
-  `method:KisPostExecutionUndoAdapter::KisPostExecutionUndoAdapter(KisUndoStore * undoStore,KisStrokesFacade * strokesFacade)`、
-  `method:KisPostExecutionUndoAdapter::addCommand(KUndo2CommandSP command)`、
-  `method:KisPostExecutionUndoAdapter::addMacro(KisSavedMacroCommand * macro)`、
-  `method:KisPostExecutionUndoAdapter::createMacro(const KUndo2MagicString & macroName)`、
-  `method:KisPostExecutionUndoAdapter::setUndoStore(KisUndoStore * undoStore)`、
-  `method:KisPostExecutionUndoAdapter::strokesFacade() const`の7 APIである。借用store・facade、共有commandの
-  wrapper生成と一度だけの配送、store差替え、macro名・facade・pointerの維持を固定する。開始ファイル
-  `libs/image/kis_post_execution_undo_adapter.cpp`を`kritaimage_LIB_SRCS`の直接収容から
-  `kritaimagepostexecutionundoadapterobjects`へ移し、製品`kritaimage`へ一度だけ再集約する。saved command生成とstore配送を
-  新規非公開`libs/image/KisPostExecutionUndoAdapterDelivery_p.h`へ限定し、製品定義を既存開始元
-  `libs/image/commands_new/kis_saved_commands.cpp`から現行処理へ委譲する。最寄り契約は`KisUndoAdapterContractTest`である。
-  許可範囲は`libs/image/CMakeLists.txt`、adapter開始実装、新規非公開header、saved commands開始実装、
-  `libs/image/tests/CMakeLists.txt`、新規`libs/image/tests/KisPostExecutionUndoAdapterContractTest.cpp`である。予測閉包は
-  5工程・11入力、停止条件は6工程・14入力超過、製品1,184工程・2,392入力からの増加、実saved command・store・facade、
-  既存saved commandsの再収容、製品共有library、Qt Widgets、`kritatestsdk`、公開API変更、許可外変更である。
-- `g87-paintop-sharpness`は`implementing`である。基準commitは同じ、作業ツリーは
-  `/Users/masato/Documents/librepaint-r2-g19b-g87-paintop-sharpness`である。対象は
-  `plugins/paintops/libpaintop/KisSharpnessOptionData.h`の`alias:KisSharpnessOptionMixIn`、
-  `struct:KisSharpnessOptionData`、`struct:KisSharpnessOptionMixInImpl`、
-  `member:KisSharpnessOptionMixInImpl::alignOutlinePixels`、`member:KisSharpnessOptionMixInImpl::softness`、
-  `method:KisSharpnessOptionData::KisSharpnessOptionData(const QString & prefix="")`、
-  `method:KisSharpnessOptionMixInImpl::read(const KisPropertiesConfiguration * setting)`、
-  `method:KisSharpnessOptionMixInImpl::write(KisPropertiesConfiguration * setting) const`、
-  `function:operator ==(const KisSharpnessOptionMixInImpl & lhs,const KisSharpnessOptionMixInImpl & rhs)`の9 APIである。
-  公開型と既定値、prefix、現行設定、旧factor移行、
-  `SharpnessValue`優先、永続化、等価判定を固定する。開始ファイル
-  `plugins/paintops/libpaintop/KisSharpnessOptionData.cpp`を製品とruntimeの二つの直接source一覧から外して
-  `kritapaintopsharpnessoptiondataobjects`へ移し、`kritapaintopruntime`へ一度だけ再集約する。最寄り契約は
-  `KisMirrorOptionDataContractTest`である。許可範囲は`plugins/paintops/libpaintop/CMakeLists.txt`、同tests CMake、新規
-  `plugins/paintops/libpaintop/tests/KisSharpnessOptionDataContractTest.cpp`であり、製品headerとsource内容は変更しない。
-  予測閉包は11工程・24入力、停止条件は12工程・27入力超過、runtime 1,281工程・2,582入力またはlibpaintop
-  2,097工程・4,192入力からの増加、実製品設定object、OpenEXR・Imath動的library、製品共有library、Qt Widgets、
-  `kritatestsdk`、二重収容、公開API変更、許可外変更である。
-- 実装中3担当の対象プラットフォームはmacOS、共有コンパイラーcacheは
-  `/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`、構築実行許可は`granted`、Git操作権限は
-  `transport-commit`、追加委任は`forbidden`である。統合順はpigment、image、paintopとする。各担当は未登録targetの
-  初回診断、変更前計画と直接依存、限定対象、全契約枠、20回反復、軽量近傍、無作業再構築、動的依存、開始sourceの
-  構文、担当内`verify-quick`を確認する。中央文書、公開API対応表、不足一覧は調整担当だけが更新する。
+- 複数段色変換担当は`integrated`である。受渡しcommitは
+  `e3a0579b38721791de519d3a6a92d13b1ce5f559`、統合commitは`b56fe5f058`であり、担当作業ツリー、局所構築木、担当ブランチは
+  削除済みである。`libs/pigment/KoColorConversionTransformation.cpp`を
+  `kritapigmentcolorconversiontransformationobjects`へ、
+  `libs/pigment/KoMultipleColorConversionTransformation.cpp`を
+  `kritapigmentmultiplecolorconversiontransformationobjects`へ移し、製品`kritapigment`へ各一度だけ再集約した。新規
+  `libs/pigment/tests/KoMultipleColorConversionTransformationContractTest.cpp`が構築時の色空間と変換条件、変換の
+  入力順所有、2段・3段処理の画素値・呼出順・中間バッファー分離、入力順の破棄を4契約枠で固定し、5 APIを
+  `maintained`へ分類する。
+- 実行後取り消し担当は`integrated`である。受渡しcommitは
+  `105cec1d25e1b9b41316a566889147ef1dbcad66`、統合commitは`227b358112`であり、担当作業ツリー、局所構築木、担当ブランチは
+  削除済みである。`libs/image/kis_post_execution_undo_adapter.cpp`を
+  `kritaimagepostexecutionundoadapterobjects`へ移し、製品`kritaimage`へ一度だけ再集約した。新規非公開
+  `libs/image/KisPostExecutionUndoAdapterDelivery_p.h`の配送定義は既存
+  `libs/image/commands_new/kis_saved_commands.cpp`が所有する。新規
+  `libs/image/tests/KisPostExecutionUndoAdapterContractTest.cpp`が借用store・facade、共有命令の一度だけの配送、store差替え、
+  macro名・facade・pointerの維持を4契約枠で固定し、7 APIを`maintained`へ分類する。
+- 鮮鋭度設定担当は`integrated`である。受渡しcommitは
+  `09901e10b7d3905a62d75b5efe5f24b066c6fccd`、統合commitは`59f4b29267`であり、担当作業ツリー、局所構築木、担当ブランチは
+  削除済みである。`plugins/paintops/libpaintop/KisSharpnessOptionData.cpp`を製品とruntimeの直接source一覧から外して
+  `kritapaintopsharpnessoptiondataobjects`へ移し、`kritapaintopruntime`へ一度だけ再集約した。新規
+  `plugins/paintops/libpaintop/tests/KisSharpnessOptionDataContractTest.cpp`が公開型、既定値と接頭辞、現行設定、旧係数移行、
+  現行値優先、永続化、等価判定を5契約枠で固定し、9 APIを`maintained`へ分類する。
+- shape unclip候補は編集前の配送精査で、動的型判定を含む15操作以上とfilter、変形、Z順、親移送の意味論を試験側へ
+  再構成する必要があると判定したため選外とした。許可ファイルは変更せず、構成木273 MB、作業ツリー、担当ブランチを削除した。
+- 第87便は合計21 APIを対応付け、対応済み9,193件、未対応20,796件を達成した。
 
 ### 第86並列便の完了結果
 
@@ -419,36 +372,38 @@
 
 ### 現在の結果
 
-- 第86並列便はshape clip command 6 API、queue進捗更新器7 API、mirror option data 9 APIの合計22 APIを挙動契約へ
-  対応付けた。公開面は1,549ヘッダー、29,989 API、対応済み9,172件、未対応20,817件である。
-- 開始ファイル`libs/flake/commands/KoShapeClipCommand.cpp`は`kritaflakeshapeclipcommandobjects`へ移り、製品
-  `kritaflake`へ一度だけ再集約される。新規`libs/flake/tests/KoShapeClipCommandContractTest.cpp`が構築時の新旧clipと
-  親の同一性、redo・undo順、3状態の破棄責任、空入力とnull親を5契約枠で固定する。
-- 開始ファイル`libs/image/kis_queues_progress_updater.cpp`はAUTOMOCを無効にした
-  `kritaimagequeuesprogressupdaterobjects`へ移り、製品`kritaimage`へ一度だけ再集約される。公開headerは製品source一覧に
-  残して製品のmeta-object所有を維持し、新規`libs/image/tests/KisQueuesProgressUpdaterContractTest.cpp`がQObject親と
-  借用proxy、開始・停止通知、停止後の再開、hide、待機不要の停止処理を4契約枠で固定する。
-- 開始ファイル`plugins/paintops/libpaintop/KisMirrorOptionData.cpp`は`kritapaintopmirroroptiondataobjects`へ移り、
-  `kritapaintopruntime`へ一度だけ再集約されて既存経路から製品`kritalibpaintop`へ収容される。新規
-  `plugins/paintops/libpaintop/tests/KisMirrorOptionDataContractTest.cpp`が公開型、既定値、prefix、二つの永続値、
-  等価判定を5契約枠で固定する。
-- 統合後の限定閉包は`KoShapeClipCommandContractTest` 5工程・12実入力、`KisQueuesProgressUpdaterContractTest`
-  5工程・11実入力、`KisMirrorOptionDataContractTest` 11工程・24実入力である。製品閉包は`kritaflake`
-  612工程・1,256入力、`kritaimage` 1,184工程・2,392入力、`kritapaintopruntime` 1,281工程・2,582入力、`kritalibpaintop`
-  2,097工程・4,192入力で不変である。
-- 主作業ツリーはCMake構成を一度だけ同期し、3限定対象だけを一つの命令で16工程構築した。3対象と5軽量近傍はCTest
-  8/8に成功し、3対象は各20回反復、全14契約枠の指定実行、再構築時の無作業確認に成功した。macOSのパッケージ境界は
-  1,656対象、公開API契約検査は9,172/29,989件で成功した。動的依存にはLibrePaint製品共有ライブラリー、
-  `kritatestsdk`、Qt Widgetsを含まず、mirror option data対象にはOpenEXRとImathの動的libraryも含まない。queue進捗
-  更新器のmeta-objectは試験と既存製品で各一つである。`verify-quick`は51単体検査、公開面、パッケージ境界、文書を
-  含めて成功した。製品全体の構築・リンクとLinux検証は限定閉包を越えるため実施していない。
-- 統合済み担当の局所構築木851 MB、担当作業ツリー、担当ブランチを各統合直後に削除した。旧第86便不足一覧を削除し、
-  最新の第87便不足一覧`build/tdd-macos/public-api-missing-g87.json`だけを保持する。主増分構築木は5.2 GBを維持する。
+- 第87並列便は複数段色変換5 API、実行後取り消しアダプター7 API、鮮鋭度設定9 APIの合計21 APIを挙動契約へ
+  対応付けた。公開面は1,549ヘッダー、29,989 API、対応済み9,193件、未対応20,796件である。
+- 開始ファイル`libs/pigment/KoColorConversionTransformation.cpp`と
+  `libs/pigment/KoMultipleColorConversionTransformation.cpp`は各専用OBJECTへ移り、製品`kritapigment`へ各一度だけ
+  再集約される。新規`libs/pigment/tests/KoMultipleColorConversionTransformationContractTest.cpp`が変換条件、入力順所有、
+  2段・3段処理、中間バッファー分離、破棄順を4契約枠で固定する。
+- 開始ファイル`libs/image/kis_post_execution_undo_adapter.cpp`は`kritaimagepostexecutionundoadapterobjects`へ移り、製品
+  `kritaimage`へ一度だけ再集約される。非公開配送面の製品定義は既存
+  `libs/image/commands_new/kis_saved_commands.cpp`が所有し、新規
+  `libs/image/tests/KisPostExecutionUndoAdapterContractTest.cpp`が借用関係、共有命令、格納先差替え、macro配送を4契約枠で
+  固定する。
+- 開始ファイル`plugins/paintops/libpaintop/KisSharpnessOptionData.cpp`は
+  `kritapaintopsharpnessoptiondataobjects`へ移り、`kritapaintopruntime`へ一度だけ再集約されて既存経路から製品
+  `kritalibpaintop`へ収容される。新規`plugins/paintops/libpaintop/tests/KisSharpnessOptionDataContractTest.cpp`が公開型、
+  既定値、接頭辞、現行・旧設定、永続化、等価判定を5契約枠で固定する。
+- 統合後の限定閉包は`KoMultipleColorConversionTransformationContractTest` 6工程・14入力、
+  `KisPostExecutionUndoAdapterContractTest` 5工程・11入力、`KisSharpnessOptionDataContractTest` 11工程・24入力である。
+  製品閉包は`kritapigment` 360工程・750入力、`kritaimage` 1,184工程・2,392入力、`kritapaintopruntime`
+  1,281工程・2,582入力、`kritalibpaintop` 2,097工程・4,192入力で不変である。
+- 主作業ツリーはCMake構成を一度だけ同期し、3限定対象だけを一つの命令で17工程構築した。3対象と5軽量近傍はCTest
+  8/8に成功し、3対象は各20回反復、全13契約枠の指定実行、再構築時の無作業確認に成功した。macOSのパッケージ境界は
+  1,663対象、公開API契約検査は9,193/29,989件で成功した。動的依存にはLibrePaint製品共有ライブラリー、
+  `kritatestsdk`、Qt Widgetsを含まず、鮮鋭度設定対象にはOpenEXRとImathの動的libraryも含まない。担当内と中央の
+  `verify-quick`は公開面、パッケージ境界、文書を含めて成功した。製品全体の構築・リンクとLinux検証は限定閉包を
+  越えるため実施していない。
+- 統合済み担当の局所構築木858 MBと選外候補の構成木273 MB、各作業ツリー、担当ブランチを削除した。旧第87便不足一覧を
+  削除し、最新の第88便不足一覧`build/tdd-macos/public-api-missing-g88.json`だけを保持する。主増分構築木は5.2 GBを維持する。
 
 ### 次の操作
 
-- 第87便の3担当を独立作業ツリーで実装し、対象限定構築、全契約枠、20回反復、軽量近傍、無作業再構築、動的依存、
-  開始sourceの構文、公開API検査、`verify-quick`を確認して受渡しcommitを作成する。
+- 第88便は最新不足一覧から所有が重ならない3候補を監査し、各候補の直接依存、限定構築計画、製品閉包、観測可能な挙動、
+  停止条件を確定してから独立作業ツリーを作成する。
 
 ## 再開環境
 
