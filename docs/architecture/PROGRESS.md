@@ -11,7 +11,9 @@
 
 ### 第83並列便の担当票
 
-- shape寸法変更command担当は`planned`である。対象は`libs/flake/commands/KoShapeResizeCommand.h`の8 APIである。
+- shape寸法変更command担当は`implementing`である。基点は`dae71478f9b1c023082fff7407cfa14d7f088165`、作業ツリーは
+  `/Users/masato/Documents/librepaint-r2-g83-shape-resize`、ブランチは`r2-g83-shape-resize`、統合順は1である。
+  対象は`libs/flake/commands/KoShapeResizeCommand.h`の8 APIである。
   開始ファイル`libs/flake/commands/KoShapeResizeCommand.cpp`を`kritaflake_SRCS`の直接収容から
   `kritaflakeshaperesizecommandobjects`へ移し、製品`kritaflake`へ一度だけ再集約する。新規
   `libs/flake/tests/KoShapeResizeCommandContractTest.cpp`が構築時の元寸法・変換・借用shape、redo・undoの単一lock配送、
@@ -19,7 +21,9 @@
   寸法変更、元状態復元、scale方向判定は開始実装の`BUILD_TESTING`限定配送を介し、既定配送は実shapeの現行処理と
   一括更新順を保つ。予測閉包5工程・11実入力、停止条件6工程・14実入力、製品閉包612工程・1,256入力不変を要求する。
   許可範囲は`libs/flake/CMakeLists.txt`、開始実装、`libs/flake/tests/CMakeLists.txt`、新規試験である。
-- 画像animation設定command担当は`planned`である。対象は
+- 画像animation設定command担当は`implementing`である。基点は`dae71478f9b1c023082fff7407cfa14d7f088165`、作業ツリーは
+  `/Users/masato/Documents/librepaint-r2-g83-image-anim-settings`、ブランチは`r2-g83-image-anim-settings`、統合順は2である。
+  対象は
   `libs/image/commands_new/KisImageAnimSettingCommand.h`の14 APIである。開始ファイル
   `libs/image/commands_new/KisImageAnimSettingCommand.cpp`を`kritaimage_LIB_SRCS`の直接収容から
   `kritaimageanimsettingcommandobjects`へ移し、製品`kritaimage`へ一度だけ再集約する。新規非公開
@@ -30,7 +34,9 @@
   固定する。予測閉包11工程・24実入力、停止条件12工程・27実入力、製品閉包1,184工程・2,392入力不変を要求する。
   許可範囲は`libs/image/CMakeLists.txt`、開始実装、新規非公開header、開始元interface実装、
   `libs/image/tests/CMakeLists.txt`、新規試験である。
-- alpha darken引数束担当は`planned`である。対象は
+- alpha darken引数束担当は`implementing`である。基点は`dae71478f9b1c023082fff7407cfa14d7f088165`、作業ツリーは
+  `/Users/masato/Documents/librepaint-r2-g83-alpha-darken`、ブランチは`r2-g83-alpha-darken`、統合順は3である。
+  対象は
   `libs/pigment/compositeops/KoAlphaDarkenParamsWrapper.h`の17 APIである。開始ファイル
   `libs/pigment/compositeops/KoAlphaDarkenParamsWrapper.cpp`を`kritapigment_SRCS`の直接収容から
   `kritapigmentalphadarkenparamswrapperobjects`へ移し、製品`kritapigment`へ一度だけ再集約する。新規
@@ -39,7 +45,7 @@
   内容は変更しない。予測閉包5工程・11実入力、停止条件6工程・14実入力、製品閉包360工程・750入力不変を要求する。
   許可範囲は`libs/pigment/CMakeLists.txt`、`libs/pigment/tests/CMakeLists.txt`、新規試験である。
 - 3担当は同じ基準commitから専用作業ツリーを作り、Git操作権限は`transport-commit`、追加委任は`forbidden`、
-  対象プラットフォームはmacOS、共有コンパイラーキャッシュは主作業ツリーの既定位置、構築実行許可は`waiting`とする。
+  対象プラットフォームはmacOS、共有コンパイラーキャッシュは主作業ツリーの既定位置、構築実行許可は`granted`とする。
   統合順はshape寸法変更command、画像animation設定command、alpha darken引数束である。中央進捗文書、公開API対応表、
   不足一覧は調整担当だけが更新する。各担当差分の統合直後に担当作業ツリー、局所構築木、担当ブランチを削除する。
   旧不足一覧は新しい一覧の件数確認直後に削除し、再生成可能な一覧を常に最新1世代へ限定する。製品objectをNinjaで
