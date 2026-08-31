@@ -5,6 +5,21 @@ kis_add_tests(
 )
 
 kis_add_test(
+    KisAsynchronousStrokeUpdateHelperContractTest.cpp
+    LINK_LIBRARIES
+        kritapaintingasyncstrokeupdatehelperobjects
+        kritaimagejobstrategyobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_sources(KisAsynchronousStrokeUpdateHelperContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/../KisAsynchronousStrokeUpdateHelper.h
+)
+target_compile_definitions(KisAsynchronousStrokeUpdateHelperContractTest PRIVATE
+    kritaimage_EXPORTS
+    kritapainting_EXPORTS
+)
+
+kis_add_test(
     KisFigurePaintingOptionsContractTest.cpp
     LINK_LIBRARIES Qt${QT_MAJOR_VERSION}::Test
 )

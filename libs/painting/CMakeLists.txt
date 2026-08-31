@@ -2,7 +2,6 @@ add_subdirectory(undo)
 add_subdirectory(metadata)
 
 set(kritapainting_LIB_SRCS
-    KisAsynchronousStrokeUpdateHelper.cpp
     KisColorSamplerStroke.cpp
     KisStrokeCompatibilityInfo.cpp
     KisStrokeSpeedMonitor.cpp
@@ -23,7 +22,37 @@ set(kritapainting_LIB_SRCS
     strokes/KisNodeSelectionRecipe.cpp
 )
 
-kis_add_library(kritapainting SHARED ${kritapainting_LIB_SRCS})
+add_library(kritapaintingasyncstrokeupdatehelperobjects OBJECT
+    KisAsynchronousStrokeUpdateHelper.cpp
+)
+target_compile_definitions(kritapaintingasyncstrokeupdatehelperobjects PRIVATE
+    kritaimage_EXPORTS
+    kritapainting_EXPORTS
+)
+target_include_directories(kritapaintingasyncstrokeupdatehelperobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        ${CMAKE_SOURCE_DIR}/libs/global
+        ${CMAKE_BINARY_DIR}/libs/global
+        ${CMAKE_SOURCE_DIR}/libs/image
+        ${CMAKE_BINARY_DIR}/libs/image
+)
+target_link_libraries(kritapaintingasyncstrokeupdatehelperobjects
+    PUBLIC
+        kritaimagejobstrategyobjects
+        Qt${QT_MAJOR_VERSION}::Core
+)
+set_target_properties(kritapaintingasyncstrokeupdatehelperobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+kis_add_library(kritapainting SHARED
+    ${kritapainting_LIB_SRCS}
+    KisAsynchronousStrokeUpdateHelper.h
+    $<TARGET_OBJECTS:kritapaintingasyncstrokeupdatehelperobjects>
+)
 generate_export_header(kritapainting BASE_NAME kritapainting)
 
 target_link_libraries(kritapainting
