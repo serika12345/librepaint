@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 19563
+    "expectedMissingApis": 19498
   },
   "contracts": [
     {
@@ -32664,6 +32664,161 @@
       "apis": [
         "function:KisAlgebra2D::findMinimumGoldenSection(std::function<qreal (qreal)> f,qreal xA,qreal xB,qreal eps,int maxIter)",
         "function:KisAlgebra2D::findMinimumTernarySection(std::function<qreal (qreal)> f,qreal xA,qreal xB,qreal eps,int maxIter)"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::vectorStrokeDefaultsAndCopiesRemainIndependent",
+      "behavior": "PSD vector stroke値は版2、線無効、塗り有効、不透明度1、解像度72などで初期化され、pen・dash列を含む全公開値をcopy後も独立して保持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:psd_vector_stroke_data::dashPattern",
+        "member:psd_vector_stroke_data::fillEnabled",
+        "member:psd_vector_stroke_data::gradient",
+        "member:psd_vector_stroke_data::opacity",
+        "member:psd_vector_stroke_data::pen",
+        "member:psd_vector_stroke_data::pixelWidth",
+        "member:psd_vector_stroke_data::resolution",
+        "member:psd_vector_stroke_data::scaleLock",
+        "member:psd_vector_stroke_data::strokeAdjust",
+        "member:psd_vector_stroke_data::strokeEnabled",
+        "member:psd_vector_stroke_data::strokeVersion",
+        "struct:psd_vector_stroke_data"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::vectorStrokeScalarSettersPreserveSignedValues",
+      "behavior": "PSD vector strokeのscalar setterは各flagを独立して切り替え、負の版・解像度と百分率から変換した不透明度をそのまま保持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:psd_vector_stroke_data::setFillEnabled(bool enabled)",
+        "method:psd_vector_stroke_data::setOpacityFromPercentage(double o)",
+        "method:psd_vector_stroke_data::setResolution(double res)",
+        "method:psd_vector_stroke_data::setScaleLock(bool enabled)",
+        "method:psd_vector_stroke_data::setStrokeAdjust(bool enabled)",
+        "method:psd_vector_stroke_data::setStrokeEnabled(bool enabled)",
+        "method:psd_vector_stroke_data::setVersion(int version)"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::vectorStrokePenMetricsTogglePixelUnits",
+      "behavior": "PSD vector strokeの線幅setterは文書単位とpixel単位を切り替え、dash offsetとmiter上限をQPenへ保持し、copy後のpenを独立させる。",
+      "classification": "maintained",
+      "apis": [
+        "method:psd_vector_stroke_data::setStrokeDashOffset(double dashOffset)",
+        "method:psd_vector_stroke_data::setStrokeMiterLimit(double limit)",
+        "method:psd_vector_stroke_data::setStrokePixel(double width)",
+        "method:psd_vector_stroke_data::setStrokeWidth(double width)"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::vectorStrokeCapAndJoinNamesMapKnownCodes",
+      "behavior": "PSD vector strokeは既知のcap・join名称を対応するQt線種へ写像し、未知名称では直前の線種を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:psd_vector_stroke_data::setLineCapType(const QString val)",
+        "method:psd_vector_stroke_data::setLineJoinType(const QString val)"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::vectorStrokeDashValuesClampAndDetachOnCopy",
+      "behavior": "PSD vector strokeのdash追加は零以下を1e-6へ制限して順序を保ち、copy後のdash列を独立させる。",
+      "classification": "maintained",
+      "apis": [
+        "method:psd_vector_stroke_data::appendToDashPattern(double val)"
+      ]
+    },
+    {
+      "target": "KisSpinBoxUnitManagerContractTest",
+      "source": "libs/widgetutils/tests/KisSpinBoxUnitManagerContractTest.cpp",
+      "test": "KisSpinBoxUnitManagerContractTest::dimensionsConstraintsAndInitialStateRemainStable",
+      "behavior": "単位管理モデルは次元・制約の数値、基準記号、長さ単位の既定状態とQObject親子寿命を維持し、現行のID判定では画像長次元を拒否する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisSpinBoxUnitManager::Constrains",
+        "class:KisSpinBoxUnitManager",
+        "enum:KisSpinBoxUnitManager::Constrain",
+        "enum:KisSpinBoxUnitManager::UnitDimension",
+        "enumerator:KisSpinBoxUnitManager::Constrain::NOCONSTR",
+        "enumerator:KisSpinBoxUnitManager::Constrain::REFISINT",
+        "enumerator:KisSpinBoxUnitManager::Constrain::VALISINT",
+        "enumerator:KisSpinBoxUnitManager::UnitDimension::ANGLE",
+        "enumerator:KisSpinBoxUnitManager::UnitDimension::IMLENGTH",
+        "enumerator:KisSpinBoxUnitManager::UnitDimension::LENGTH",
+        "enumerator:KisSpinBoxUnitManager::UnitDimension::TIME",
+        "member:KisSpinBoxUnitManager::referenceUnitSymbols",
+        "method:KisSpinBoxUnitManager::KisSpinBoxUnitManager(QObject * parent=0)",
+        "method:KisSpinBoxUnitManager::getApparentUnitSymbol() const",
+        "method:KisSpinBoxUnitManager::getReferenceUnitSymbol() const",
+        "method:KisSpinBoxUnitManager::getUnitDimensionType() const",
+        "method:KisSpinBoxUnitManager::isUnitId(int code)",
+        "method:KisSpinBoxUnitManager::~KisSpinBoxUnitManager()"
+      ]
+    },
+    {
+      "target": "KisSpinBoxUnitManagerContractTest",
+      "source": "libs/widgetutils/tests/KisSpinBoxUnitManagerContractTest.cpp",
+      "test": "KisSpinBoxUnitManagerContractTest::unitListsAndModelRolesRemainStable",
+      "behavior": "単位管理モデルは各次元の記号・表示名・小数桁とQt model roleを返し、現行の一覧cache、未発火signal、時間単位IDの挙動を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSpinBoxUnitManager::data(const QModelIndex & index,int role=Qt::DisplayRole) const",
+        "method:KisSpinBoxUnitManager::getApparentUnitId() const",
+        "method:KisSpinBoxUnitManager::getApparentUnitRecommendedDecimals() const",
+        "method:KisSpinBoxUnitManager::getsUnitSymbolList(bool withName=false) const",
+        "method:KisSpinBoxUnitManager::rowCount(const QModelIndex & parent=QModelIndex ()) const",
+        "method:KisSpinBoxUnitManager::unitListChanged()"
+      ]
+    },
+    {
+      "target": "KisSpinBoxUnitManagerContractTest",
+      "source": "libs/widgetutils/tests/KisSpinBoxUnitManagerContractTest.cpp",
+      "test": "KisSpinBoxUnitManagerContractTest::conversionFactorsConstantsAndValuesRemainStable",
+      "behavior": "単位管理モデルは長さ・画像長・角度・時間の換算係数と定数を返し、基準値と表示値を往復して係数変更signalを通知する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSpinBoxUnitManager::conversionConstantChanged(qreal newConversionFactor,qreal oldConversionFactor) const",
+        "method:KisSpinBoxUnitManager::conversionFactorChanged(qreal newConversionFactor,qreal oldConversionFactor) const",
+        "method:KisSpinBoxUnitManager::getApparentValue(double refValue) const",
+        "method:KisSpinBoxUnitManager::getConversionConstant(int dim,QString symbol) const",
+        "method:KisSpinBoxUnitManager::getConversionFactor(int dim,QString symbol) const",
+        "method:KisSpinBoxUnitManager::getReferenceValue(double apparentValue) const"
+      ]
+    },
+    {
+      "target": "KisSpinBoxUnitManagerContractTest",
+      "source": "libs/widgetutils/tests/KisSpinBoxUnitManagerContractTest.cpp",
+      "test": "KisSpinBoxUnitManagerContractTest::unitSelectionAndSignalsRemainStable",
+      "behavior": "単位管理モデルは次元・記号・索引の選択を状態とsignalへ反映し、無効な記号では変更前signalだけを通知して現単位を保つ。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSpinBoxUnitManager::selectApparentUnitFromIndex(int index)",
+        "method:KisSpinBoxUnitManager::setApparentUnitFromSymbol(QString pSymbol)",
+        "method:KisSpinBoxUnitManager::setUnitDimension(UnitDimension dimension)",
+        "method:KisSpinBoxUnitManager::unitAboutToChange()",
+        "method:KisSpinBoxUnitManager::unitChanged(QString symbol)",
+        "method:KisSpinBoxUnitManager::unitChanged(int index)",
+        "method:KisSpinBoxUnitManager::unitDimensionChanged(int dimCode)"
+      ]
+    },
+    {
+      "target": "KisSpinBoxUnitManagerContractTest",
+      "source": "libs/widgetutils/tests/KisSpinBoxUnitManagerContractTest.cpp",
+      "test": "KisSpinBoxUnitManagerContractTest::managerSynchronizationAndDisconnectRemainStable",
+      "behavior": "同次元の単位管理モデルは単位選択を重複なく双方向同期し、同期解除後と異次元の相手から状態を独立させる。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSpinBoxUnitManager::clearSyncWithOtherUnitManager(KisSpinBoxUnitManager * other)",
+        "method:KisSpinBoxUnitManager::syncWithOtherUnitManager(KisSpinBoxUnitManager * other)"
       ]
     }
   ]
