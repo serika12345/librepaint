@@ -12,19 +12,62 @@
 #include <klocalizedstring.h>
 // #include <FlakeDebug.h>
 
+namespace
+{
+using PositionReader = QPointF (*)(const KoShape *shape);
+using OutlineRectReader = QRectF (*)(const KoShape *shape);
+
+QPointF readPosition(const KoShape *shape)
+{
+    return shape->absolutePosition();
+}
+
+QRectF readOutlineRect(const KoShape *shape)
+{
+    return shape->absoluteOutlineRect();
+}
+
+PositionReader activePositionReader = readPosition;
+OutlineRectReader activeOutlineRectReader = readOutlineRect;
+} // namespace
+
+#if defined(KRITAFLAKE_SHAPE_ALIGN_COMMAND_CONTRACT_TESTING)
+namespace KoShapeAlignCommandTesting
+{
+Q_DECL_HIDDEN void setShapeGeometryForTesting(PositionReader positionReader, OutlineRectReader outlineRectReader)
+{
+    activePositionReader = positionReader;
+    activeOutlineRectReader = outlineRectReader;
+}
+
+Q_DECL_HIDDEN void resetShapeGeometryForTesting()
+{
+    activePositionReader = readPosition;
+    activeOutlineRectReader = readOutlineRect;
+}
+} // namespace KoShapeAlignCommandTesting
+#endif
+
 class Q_DECL_HIDDEN KoShapeAlignCommand::Private
 {
 public:
-    Private() : command(0) {}
-    ~Private() {
+    Private()
+        : command(0)
+    {
+    }
+    ~Private()
+    {
         delete command;
     }
     KoShapeMoveCommand *command;
 };
 
-KoShapeAlignCommand::KoShapeAlignCommand(const QList<KoShape*> &shapes, Align align, const QRectF &boundingRect, KUndo2Command *parent)
-        : KUndo2Command(parent),
-        d(new Private())
+KoShapeAlignCommand::KoShapeAlignCommand(const QList<KoShape *> &shapes,
+                                         Align align,
+                                         const QRectF &boundingRect,
+                                         KUndo2Command *parent)
+    : KUndo2Command(parent)
+    , d(new Private())
 {
     QList<QPointF> previousPositions;
     QList<QPointF> newPositions;
@@ -32,15 +75,15 @@ KoShapeAlignCommand::KoShapeAlignCommand(const QList<KoShape*> &shapes, Align al
     QPointF delta;
     QRectF bRect;
     Q_FOREACH (KoShape *shape, shapes) {
-//   if (dynamic_cast<KoShapeGroup*> (shape))
-//       debugFlake <<"Found Group";
-//   else if (dynamic_cast<KoShapeContainer*> (shape))
-//       debugFlake <<"Found Container";
-//   else
-//       debugFlake <<"Found shape";
-        position = shape->absolutePosition();
-        previousPositions  << position;
-        bRect = shape->absoluteOutlineRect();
+        //   if (dynamic_cast<KoShapeGroup*> (shape))
+        //       debugFlake <<"Found Group";
+        //   else if (dynamic_cast<KoShapeContainer*> (shape))
+        //       debugFlake <<"Found Container";
+        //   else
+        //       debugFlake <<"Found shape";
+        position = activePositionReader(shape);
+        previousPositions << position;
+        bRect = activeOutlineRectReader(shape);
         switch (align) {
         case HorizontalLeftAlignment:
             delta = QPointF(boundingRect.left(), bRect.y()) - bRect.topLeft();
@@ -61,9 +104,9 @@ KoShapeAlignCommand::KoShapeAlignCommand(const QList<KoShape*> &shapes, Align al
             delta = QPointF(bRect.x(), boundingRect.bottom() - bRect.height()) - bRect.topLeft();
             break;
         };
-        newPositions  << position + delta;
-//debugFlake <<"-> moving" <<  position.x() <<"," << position.y() <<" to" <<
-//        (position + delta).x() << ", " << (position+delta).y() << Qt::endl;
+        newPositions << position + delta;
+        // debugFlake <<"-> moving" <<  position.x() <<"," << position.y() <<" to" <<
+        //         (position + delta).x() << ", " << (position+delta).y() << Qt::endl;
     }
     d->command = new KoShapeMoveCommand(shapes, previousPositions, newPositions);
 
