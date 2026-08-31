@@ -4,6 +4,7 @@
  */
 
 #include "KisCurveOptionData.h"
+#include "KisStandardOptionData.h"
 
 #include <kis_properties_configuration.h>
 
@@ -29,6 +30,31 @@ PropertyStore &properties(KisPropertiesConfiguration *value)
 const PropertyStore &properties(const KisPropertiesConfiguration *value)
 {
     return stores()[value];
+}
+
+template<typename Data>
+void verifyStandardCurve(const Data &data, const QString &id)
+{
+    QCOMPARE(data.id.id(), id);
+    QVERIFY(!data.id.name().isEmpty());
+    QVERIFY(data.prefix.isEmpty());
+    QVERIFY(data.isCheckable);
+    QVERIFY(!data.isChecked);
+    QCOMPARE(data.strengthMinValue, 0.0);
+    QCOMPARE(data.strengthMaxValue, 1.0);
+}
+
+template<typename Data>
+void verifyPrefixedStandardCurve(const QString &id)
+{
+    const Data data(QStringLiteral("前置/"));
+    QCOMPARE(data.id.id(), id);
+    QVERIFY(!data.id.name().isEmpty());
+    QCOMPARE(data.prefix, QStringLiteral("前置/"));
+    QVERIFY(data.isCheckable);
+    QVERIFY(!data.isChecked);
+    QCOMPARE(data.strengthMinValue, 0.0);
+    QCOMPARE(data.strengthMaxValue, 1.0);
 }
 } // namespace
 
@@ -183,6 +209,11 @@ private Q_SLOTS:
     void explicitCheckedStateOverridesDeduction();
     void valueRangeIsForwardedByBothConstructors();
     void sensorViewsExposeTheOwnedPackState();
+    void opacityAndFlowRemainFixedCurves();
+    void ratioAndRotationForwardPrefixes();
+    void softnessKeepsItsRestrictedRange();
+    void colorAdjustmentTypesKeepIndependentIds();
+    void rateAndStrengthTypesKeepIndependentIds();
 };
 
 void KisCurveOptionDataContractTest::publicTypeAndDefaultConstructorValues()
@@ -249,6 +280,72 @@ void KisCurveOptionDataContractTest::sensorViewsExposeTheOwnedPackState()
     QCOMPARE(&mutableView, &constView);
     QVERIFY(constView.sensorPressure.isActive);
     QCOMPARE(data.sensors().size(), size_t(16));
+}
+
+void KisCurveOptionDataContractTest::opacityAndFlowRemainFixedCurves()
+{
+    static_assert(!std::is_same_v<KisOpacityOptionData, KisFlowOptionData>);
+
+    const KisOpacityOptionData opacity(QStringLiteral("前置/"));
+    QCOMPARE(opacity.id.id(), QStringLiteral("Opacity"));
+    QVERIFY(!opacity.id.name().isEmpty());
+    QCOMPARE(opacity.prefix, QStringLiteral("前置/"));
+    QVERIFY(!opacity.isCheckable);
+    QVERIFY(opacity.isChecked);
+    QCOMPARE(opacity.strengthMinValue, 0.0);
+    QCOMPARE(opacity.strengthMaxValue, 1.0);
+
+    const KisFlowOptionData flow(QStringLiteral("流量/"));
+    QCOMPARE(flow.id.id(), QStringLiteral("Flow"));
+    QVERIFY(!flow.id.name().isEmpty());
+    QCOMPARE(flow.prefix, QStringLiteral("流量/"));
+    QVERIFY(!flow.isCheckable);
+    QVERIFY(flow.isChecked);
+    QCOMPARE(flow.strengthMinValue, 0.0);
+    QCOMPARE(flow.strengthMaxValue, 1.0);
+}
+
+void KisCurveOptionDataContractTest::ratioAndRotationForwardPrefixes()
+{
+    static_assert(!std::is_same_v<KisRatioOptionData, KisRotationOptionData>);
+    verifyPrefixedStandardCurve<KisRatioOptionData>(QStringLiteral("Ratio"));
+    verifyPrefixedStandardCurve<KisRotationOptionData>(QStringLiteral("Rotation"));
+}
+
+void KisCurveOptionDataContractTest::softnessKeepsItsRestrictedRange()
+{
+    const KisSoftnessOptionData softness;
+    QCOMPARE(softness.id.id(), QStringLiteral("Softness"));
+    QVERIFY(!softness.id.name().isEmpty());
+    QVERIFY(softness.prefix.isEmpty());
+    QVERIFY(softness.isCheckable);
+    QVERIFY(!softness.isChecked);
+    QCOMPARE(softness.strengthMinValue, 0.1);
+    QCOMPARE(softness.strengthMaxValue, 1.0);
+}
+
+void KisCurveOptionDataContractTest::colorAdjustmentTypesKeepIndependentIds()
+{
+    static_assert(!std::is_same_v<KisDarkenOptionData, KisMixOptionData>);
+    static_assert(!std::is_same_v<KisMixOptionData, KisHueOptionData>);
+    static_assert(!std::is_same_v<KisHueOptionData, KisSaturationOptionData>);
+    static_assert(!std::is_same_v<KisSaturationOptionData, KisValueOptionData>);
+
+    verifyStandardCurve(KisDarkenOptionData(), QStringLiteral("Darken"));
+    verifyStandardCurve(KisMixOptionData(), QStringLiteral("Mix"));
+    verifyStandardCurve(KisHueOptionData(), QStringLiteral("h"));
+    verifyStandardCurve(KisSaturationOptionData(), QStringLiteral("s"));
+    verifyStandardCurve(KisValueOptionData(), QStringLiteral("v"));
+}
+
+void KisCurveOptionDataContractTest::rateAndStrengthTypesKeepIndependentIds()
+{
+    static_assert(!std::is_same_v<KisRateOptionData, KisStrengthOptionData>);
+    static_assert(!std::is_same_v<KisStrengthOptionData, KisLightnessStrengthOptionData>);
+
+    verifyStandardCurve(KisRateOptionData(), QStringLiteral("Rate"));
+    verifyStandardCurve(KisStrengthOptionData(), QStringLiteral("Texture/Strength/"));
+    verifyStandardCurve(KisLightnessStrengthOptionData(), QStringLiteral("LightnessStrength"));
 }
 
 QTEST_MAIN(KisCurveOptionDataContractTest)
