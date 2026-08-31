@@ -12,11 +12,11 @@
     ],
     "publicHeaderCount": 1549,
     "publicHeaderFingerprint": "f9bb686b01e8043483c842e2f180558c86b434cfd739b076f28825a42ff236d7",
-    "publicApiCount": 29989,
-    "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
+    "publicApiCount": 29838,
+    "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 20796
+    "expectedMissingApis": 20645
   },
   "contracts": [
     {

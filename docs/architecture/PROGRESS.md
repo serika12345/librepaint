@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-31 21:12 JST
+- 更新日時: 2026-08-31 21:24 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -15,18 +15,18 @@
   `libs/flake/KoParameterShape.h`の`private:`配下で宣言され、外部利用者は参照できない。試験が
   `#define private public`を必要としたため公開挙動契約の対象ではなく、公開API抽出の誤検出と判定した。未コミット差分、
   局所構築木269 MB、作業ツリー、担当ブランチを削除した。
-- `g88-public-api-private-scope`は`planned`である。基準commitは
-  `4998833a7d352a3f65c03c92bc879f66e1b12b1d`、作業ツリーは
-  `/Users/masato/Documents/librepaint-r2-g19b-g88-public-api-private-scope`、担当ブランチは
-  `work/r2-g19b-g88-public-api-private-scope`である。公開header内の非公開・派生限定の入れ子record前方宣言をctagsが
+- `g88-public-api-private-scope`は`integrated`である。受渡しcommitは
+  `a037fea9ebe8656e039ff5056e83dabd1f8e4c35`、統合commitは`02bd1ccc5f`であり、担当作業ツリーと担当ブランチは削除済みである。
+  公開header内の非公開・派生限定の入れ子record前方宣言をctagsが
   出力せず、別headerの完全定義とそのpublic memberを公開APIへ誤分類する問題を修正する。許可範囲は
   `scripts/architecture/check_public_api_contracts.py`と`scripts/tests/test_public_api_contracts.py`である。試験fixtureは
   private・protected・publicの入れ子recordを別定義し、前二者とその下位宣言だけが除外され、public入れ子recordと
   `Private`という名前のnamespaceは維持されることを固定する。変換は前方record宣言を空定義へ一時変換してctagsのaccess
   情報を取得し、private・protected tagだけを既存非公開scope集合へ加える。公開headerや製品source、中央台帳、公開APIの
-  個別例外一覧は変更しない。対象単体試験と全script単体試験を成功させ、新旧API集合差分を全件報告する。中央台帳同期前の
-  公開API検査と`verify-quick`はinventory driftだけを期待診断とし、それ以外の失敗、公開宣言の除去、namespace誤除外、
-  許可外変更で停止する。
+  個別例外一覧は変更しない。対象14試験と全script単体試験52/52に成功した。新旧API集合差分は追加0、削除151件で、
+  `KoParameterShape_p.h` 6件、`KoShapeContainer_p.h` 6件、`KoShape_p.h` 37件、`KoSvgTextShape_p.h` 91件、
+  `kis_fill_interval_map_p.h` 11件のprivate・protected入れ子recordとその下位宣言だけである。公開API母数は29,989件から
+  29,838件へ縮小し、対応済み9,193件を維持して未対応20,645件となった。
 - `g88-image-layer-style-filter`は`planned`である。基準commitは同じ、作業ツリーは
   `/Users/masato/Documents/librepaint-r2-g19b-g88-image-layer-style-filter`、担当ブランチは
   `work/r2-g19b-g88-image-layer-style-filter`である。対象は`libs/image/layerstyles/kis_layer_style_filter.h`の
