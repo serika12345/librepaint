@@ -6,6 +6,8 @@
 
 #include "filter/kis_filter_configuration.h"
 
+#include "KisNodeFilterInterfaceFilterAccess_p.h"
+
 #include <kis_debug.h>
 #include <QDomDocument>
 #include <QString>
@@ -61,6 +63,40 @@ KisFilterConfiguration::KisFilterConfiguration(const KisFilterConfiguration & rh
 KisFilterConfiguration::~KisFilterConfiguration()
 {
     delete d;
+}
+
+void kisSharedPtrAddReference(KisFilterConfiguration *configuration)
+{
+    configuration->ref();
+}
+
+bool kisSharedPtrRelease(KisFilterConfiguration *configuration)
+{
+    if (!configuration->deref()) {
+        delete configuration;
+        return false;
+    }
+    return true;
+}
+
+void kisNodeFilterInterfaceAcquireFilter(KisFilterConfiguration *configuration)
+{
+    configuration->sanityRefUsageCounter();
+}
+
+bool kisNodeFilterInterfaceReleaseFilter(KisFilterConfiguration *configuration)
+{
+    return configuration->sanityDerefUsageCounter();
+}
+
+bool kisNodeFilterInterfaceHasLocalResourcesSnapshot(const KisFilterConfiguration *configuration)
+{
+    return configuration->hasLocalResourcesSnapshot();
+}
+
+KisFilterConfigurationSP kisNodeFilterInterfaceCloneFilter(const KisFilterConfiguration *configuration)
+{
+    return configuration->clone();
 }
 
 void KisFilterConfiguration::fromLegacyXML(const QDomElement& root)

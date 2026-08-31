@@ -167,6 +167,8 @@ public:
 #ifdef SANITY_CHECK_FILTER_CONFIGURATION_OWNER
 private:
     friend class KisNodeFilterInterface;
+    friend void kisNodeFilterInterfaceAcquireFilter(KisFilterConfiguration *configuration);
+    friend bool kisNodeFilterInterfaceReleaseFilter(KisFilterConfiguration *configuration);
     int sanityRefUsageCounter();
     int sanityDerefUsageCounter();
 

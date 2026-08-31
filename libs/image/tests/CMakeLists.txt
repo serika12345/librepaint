@@ -1112,6 +1112,24 @@ target_compile_definitions(KisProcessingInformationContractTest PRIVATE
 )
 
 kis_add_test(
+    KisNodeFilterInterfaceContractTest.cpp
+    LINK_LIBRARIES
+        kritaimagenodefilterinterfaceobjects
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KisNodeFilterInterfaceContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+)
+target_compile_definitions(KisNodeFilterInterfaceContractTest PRIVATE
+    kritaglobal_EXPORTS
+    kritaimage_EXPORTS
+)
+
+kis_add_test(
     KisAbstractProjectionPlaneContractTest.cpp
     LINK_LIBRARIES
         kritaimageprojectionplaneobjects
