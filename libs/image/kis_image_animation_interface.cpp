@@ -5,6 +5,7 @@
  */
 
 #include "kis_image_animation_interface.h"
+#include "commands_new/KisImageAnimSettingCommandAnimationAccess_p.h"
 
 #include <QMutex>
 
@@ -229,6 +230,26 @@ void KisImageAnimationInterface::setFramerate(int fps)
         m_d->framerate = fps;
         Q_EMIT sigFramerateChanged();
     }
+}
+
+int kisImageAnimSettingCommandFramerate(const KisImageAnimationInterface *interface)
+{
+    return interface->framerate();
+}
+
+KisTimeSpan kisImageAnimSettingCommandDocumentRange(const KisImageAnimationInterface *interface)
+{
+    return interface->documentPlaybackRange();
+}
+
+void kisImageAnimSettingCommandSetFramerate(KisImageAnimationInterface *interface, int fps)
+{
+    interface->setFramerate(fps);
+}
+
+void kisImageAnimSettingCommandSetDocumentRange(KisImageAnimationInterface *interface, const KisTimeSpan &range)
+{
+    interface->setDocumentRange(range);
 }
 
 KisImageWSP KisImageAnimationInterface::image() const

@@ -1825,6 +1825,33 @@ set_target_properties(kritaimageproofingconfigurationobjects PROPERTIES
    POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaimageanimsettingcommandobjects OBJECT
+   commands_new/KisImageAnimSettingCommand.cpp
+)
+target_compile_definitions(kritaimageanimsettingcommandobjects PRIVATE kritaimage_EXPORTS)
+target_include_directories(kritaimageanimsettingcommandobjects
+   PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/commands_new>
+      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/painting/undo>
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/painting/undo>
+)
+target_link_libraries(kritaimageanimsettingcommandobjects
+   PUBLIC
+      Qt${QT_MAJOR_VERSION}::Core
+      Qt${QT_MAJOR_VERSION}::Widgets
+      Qt${QT_MAJOR_VERSION}::Xml
+      KF${KF_MAJOR}::I18n
+      Boost::boost
+)
+set_target_properties(kritaimageanimsettingcommandobjects PROPERTIES
+   AUTOMOC OFF
+   POSITION_INDEPENDENT_CODE ON
+)
+
 set(kritaimage_LIB_SRCS
    tiles3/kis_tile.cc
    tiles3/kis_tile_data.cc
@@ -1896,7 +1923,6 @@ set(kritaimage_LIB_SRCS
    commands_new/kis_change_projection_color_command.cpp
    commands_new/kis_activate_selection_mask_command.cpp
    commands_new/KisHoldUIUpdatesCommand.cpp
-   commands_new/KisImageAnimSettingCommand.cpp
    commands_new/KisChangeChannelFlagsCommand.cpp
    commands_new/KisChangeChannelLockFlagsCommand.cpp
    commands_new/KisMergeLabeledLayersCommand.cpp
@@ -2084,6 +2110,7 @@ kis_add_library(kritaimage SHARED
    ${kritaimage_LIB_SRCS}
    ${einspline_SRCS}
    $<TARGET_OBJECTS:kritaimagefilterstrategyobjects>
+   $<TARGET_OBJECTS:kritaimageanimsettingcommandobjects>
    $<TARGET_OBJECTS:kritaimagebatchnodeupdateobjects>
    $<TARGET_OBJECTS:kritaimageprocessinginformationobjects>
    $<TARGET_OBJECTS:kritaimagenodefilterinterfaceobjects>
