@@ -11,33 +11,33 @@
 
 ### 第71並列便の担当票
 
-- 形状点担当は`preparing`である。基点は`50bd808b64ceef025d8ea8c00a5d739e0431bb81`、予定作業ツリーは
-  `/Users/masato/Documents/librepaint-r2-g71-path-point`、予定ブランチは`r2-g71-path-point`、統合順は1である。
+- 形状点担当は`implementing`である。基点は`e48c5492c92e2697dd8e355922c850af5306e64d`、作業ツリーは
+  `/Users/masato/Documents/librepaint-r2-g71-path-point`、ブランチは`r2-g71-path-point`、統合順は1である。
   対象は`libs/flake/KoPathPoint.h`の44 APIであり、開始ファイル`libs/flake/KoPathPoint.cpp`を
   `kritaflake_SRCS`の直接収容から`kritaflakepathpointobjects`へ移し、製品`kritaflake`へ一度だけ再集約する。
   `libs/flake/tests/KoPathPointContractTest.cpp`を追加し、列挙値、構築・複製・親pointer、制御点と属性、
   写像・反転・境界、平滑判定、handle描画を固定する。`boundingRect`のactive引数と実際の制御点包含が
-  公開説明と逆である現行挙動だけを`known_defect`、残りを`maintained`へ分類する。限定構築は計画承認まで
-  待機し、予測閉包9工程・20入力、停止条件10工程・22入力、製品閉包612工程・1,256入力不変を要求する。
+  公開説明と逆である現行挙動だけを`known_defect`、残りを`maintained`へ分類する。限定構築を許可し、
+  予測閉包9工程・20入力、停止条件10工程・22入力、製品閉包612工程・1,256入力不変を要求する。
   許可範囲は`libs/flake/CMakeLists.txt`、`libs/flake/tests/CMakeLists.txt`、新規試験だけである。
-- 画像設定ラッパー担当は`preparing`である。基点は`50bd808b64ceef025d8ea8c00a5d739e0431bb81`、
-  予定作業ツリーは`/Users/masato/Documents/librepaint-r2-g71-paintop-properties`、予定ブランチは
+- 画像設定ラッパー担当は`implementing`である。基点は`e48c5492c92e2697dd8e355922c850af5306e64d`、
+  作業ツリーは`/Users/masato/Documents/librepaint-r2-g71-paintop-properties`、ブランチは
   `r2-g71-paintop-properties`、統合順は2である。対象は
   `libs/image/brushengine/KisPaintopPropertiesBase.h`の16 APIであり、開始ファイル
   `libs/image/brushengine/KisPaintopPropertiesBase.cpp`を`kritaimage_LIB_SRCS`の直接収容から
   `kritaimagepaintoppropertiesbaseobjects`へ移し、製品`kritaimage`へ一度だけ再集約する。開始実装から
   未使用の実資源includeを除き、新規`libs/image/tests/KisPaintopPropertiesBaseContractTest.cpp`が3基底の
-  設定pointer、資源所有者、linked・embedded戻り値、仮想寿命を固定する。限定構築は計画承認まで待機し、
+  設定pointer、資源所有者、linked・embedded戻り値、仮想寿命を固定する。限定構築を許可し、
   予測閉包5工程・11入力、停止条件6工程・13入力、製品閉包1,184工程・2,392入力不変を要求する。
   許可範囲は`libs/image/CMakeLists.txt`、開始実装、`libs/image/tests/CMakeLists.txt`、新規試験だけである。
-- 描画sensor pack担当は`preparing`である。基点は`50bd808b64ceef025d8ea8c00a5d739e0431bb81`、
-  予定作業ツリーは`/Users/masato/Documents/librepaint-r2-g71-sensor-pack`、予定ブランチは
+- 描画sensor pack担当は`implementing`である。基点は`e48c5492c92e2697dd8e355922c850af5306e64d`、
+  作業ツリーは`/Users/masato/Documents/librepaint-r2-g71-sensor-pack`、ブランチは
   `r2-g71-sensor-pack`、統合順は3である。対象は`plugins/paintops/libpaintop/KisKritaSensorPack.h`の
   35 APIであり、開始ファイル`plugins/paintops/libpaintop/KisKritaSensorPack.cpp`を製品source一覧と
   runtime source一覧の重複した所有記述から`kritapaintopkritasensorpackobjects`へ移し、
   `kritapaintopruntime`を経由して製品`kritalibpaintop`へ一度だけ再集約する。新規
   `plugins/paintops/libpaintop/tests/KisKritaSensorPackContractTest.cpp`が既定sensor、全memberの等価比較、
-  pointer列挙順、複製・比較、長さ取得、設定読込み・書込みを固定する。限定構築は計画承認まで待機し、
+  pointer列挙順、複製・比較、長さ取得、設定読込み・書込みを固定する。限定構築を許可し、
   予測閉包8工程・18入力、停止条件10工程・22入力、製品閉包2,097工程・4,192入力とruntime閉包
   1,281工程・2,582入力の不変を要求する。許可範囲は`plugins/paintops/libpaintop/CMakeLists.txt`、
   同`tests/CMakeLists.txt`、新規試験だけである。
@@ -79,8 +79,8 @@
 
 ### 次の操作
 
-- 第71並列便の担当票を高速検査で固定してコミットする。3担当作業ツリーを同じ計画コミットから作成し、
-  基点と清浄状態を確認した後に実装許可を記録して、限定構築と挙動契約の実装へ進む。
+- 第71並列便の3担当は、各停止条件内で対象限定の構築計画を測り、最小の挙動契約を実装して担当コミットを渡す。
+  調整担当は統合順に差分を確認し、統合直後に各担当の作業ツリー、局所構築木、ブランチを削除する。
 
 ## 再開環境
 
