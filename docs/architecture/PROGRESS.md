@@ -39,19 +39,19 @@
 ### 第94並列便の担当計画
 
 - 実装共通基点は`5350b6c2d35e7803e479b0a352fb5f6708a5e25f`である。
-- `g94-image-bspline2d`は`planned`で、専用作業ツリーは`/Users/masato/Documents/librepaint-g94-image-bspline2d`とする。対象headerは
+- `g94-image-bspline2d`は`in_progress`で、専用作業ツリーは`/Users/masato/Documents/librepaint-g94-image-bspline2d`である。対象headerは
   `libs/image/bsplines/kis_bspline_2d.h`の`KisBSpline2D` class、構築・破棄、範囲、軸別境界条件、初期化、値、再標本化と、
   `ConvertSplineOp` struct、構築、借用member、呼出しの全14 APIである。開始ファイル`libs/image/bsplines/kis_bspline_2d.cpp`は既に
   `kritaimagebspline2dobjects`から`kritaimage`へ一重集約済みで、製品・公開headerは変更しない。許可pathは
   `libs/image/tests/CMakeLists.txt`と新規`libs/image/tests/KisBSpline2DContractTest.cpp`だけである。範囲・寿命、16点のx-major採取、アフィン面、
   変換協調者の借用配送、再標本化の5枠とする。直接閉包予測7工程・15入力、停止8工程・18入力、製品`kritaimage` 1,184工程・2,392入力不変とする。
-- `g94-pigment-color-conversion`は`planned`で、専用作業ツリーは
-  `/Users/masato/Documents/librepaint-g94-pigment-color-conversion`とする。対象headerは`libs/pigment/KoColorConversionTransformation.h`のclass、
+- `g94-pigment-color-conversion`は`in_progress`で、専用作業ツリーは
+  `/Users/masato/Documents/librepaint-g94-pigment-color-conversion`である。対象headerは`libs/pigment/KoColorConversionTransformation.h`のclass、
   2 enum、13 enumerator、flag alias、構築・破棄、静的方針、入力・出力色空間、intent・flags、妥当性、変換と別buffer用in-place変換の全31 APIである。
   開始ファイル`libs/pigment/KoColorConversionTransformation.cpp`は既に`kritapigmentcolorconversiontransformationobjects`から`kritapigment`へ
   一重集約済みで、変更は既存`libs/pigment/tests/KoMultipleColorConversionTransformationContractTest.cpp`だけに限定する。型・列挙・方針、所有寿命、
   二段、三段、別buffer配送の5枠とする。直接閉包6工程・14入力、停止7工程・17入力、製品`kritapigment` 360工程・750入力不変とする。
-- `g94-psd-writer-values`は`planned`で、専用作業ツリーは`/Users/masato/Documents/librepaint-g94-psd-writer-values`とする。対象headerは
+- `g94-psd-writer-values`は`in_progress`で、専用作業ツリーは`/Users/masato/Documents/librepaint-g94-psd-writer-values`である。対象headerは
   `libs/psdutils/asl/kis_asl_writer_utils.h`の`ASLWriteException` structと構築、`OffsetStreamPusher` classと構築・破棄、alignment、rect、Unicode、
   可変長、Pascal、固定長文字列書込みの11 APIである。`getPatternUuidLazy`は実`KoPattern`と未固定UUID生成を要するため本担当には含めない。header-onlyの
   ため製品source変更はなく、許可pathは`libs/psdutils/tests/CMakeLists.txt`と新規`libs/psdutils/tests/KisAslWriterUtilsContractTest.cpp`だけである。
