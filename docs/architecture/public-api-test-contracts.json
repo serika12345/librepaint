@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 20287
+    "expectedMissingApis": 20273
   },
   "contracts": [
     {
@@ -31048,6 +31048,65 @@
       "apis": [
         "method:KisAsynchronousStrokeUpdateHelper::cancelUpdateStream()",
         "method:KisAsynchronousStrokeUpdateHelper::endUpdateStream()"
+      ]
+    },
+    {
+      "target": "KisBSpline2DContractTest",
+      "source": "libs/image/tests/KisBSpline2DContractTest.cpp",
+      "test": "KisBSpline2DContractTest::constructionPreservesBoundsBoundaryConditionsAndLifetime",
+      "behavior": "二次元一様B-splineは入力した矩形範囲と軸別境界条件を保持し、未初期化状態でも安全に破棄できる。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisBSplines::KisBSpline2D",
+        "method:KisBSplines::KisBSpline2D::KisBSpline2D(float xStart,float xEnd,int numSamplesX,BorderCondition bcX,float yStart,float yEnd,int numSamplesY,BorderCondition bcY)",
+        "method:KisBSplines::KisBSpline2D::borderConditionX() const",
+        "method:KisBSplines::KisBSpline2D::borderConditionY() const",
+        "method:KisBSplines::KisBSpline2D::bottomRight() const",
+        "method:KisBSplines::KisBSpline2D::topLeft() const",
+        "method:KisBSplines::KisBSpline2D::~KisBSpline2D()"
+      ]
+    },
+    {
+      "target": "KisBSpline2DContractTest",
+      "source": "libs/image/tests/KisBSpline2DContractTest.cpp",
+      "test": "KisBSpline2DContractTest::initializationSamplesGridInXMajorOrder",
+      "behavior": "二次元一様B-spline初期化は矩形範囲を軸ごとの等間隔標本へ分け、x優先順で全標本値を入力関数から取得する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisBSplines::KisBSpline2D::initializeSpline(const FunctionOp & op)"
+      ]
+    },
+    {
+      "target": "KisBSpline2DContractTest",
+      "source": "libs/image/tests/KisBSpline2DContractTest.cpp",
+      "test": "KisBSpline2DContractTest::affineSurfaceReturnsSamplesInteriorAndExactEnd",
+      "behavior": "初期化済み二次元一様B-splineは標本点、内点、右下端のアフィン面値を安定して補間する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisBSplines::KisBSpline2D::value(float x,float y) const"
+      ]
+    },
+    {
+      "target": "KisBSpline2DContractTest",
+      "source": "libs/image/tests/KisBSpline2DContractTest.cpp",
+      "test": "KisBSpline2DContractTest::convertSplineOpBorrowsAndDispatchesToSource",
+      "behavior": "spline変換協調者は入力splineを借用参照として保持し、同じ二次元座標をその値照会へ渡して返値を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisBSplines::ConvertSplineOp::m_spline",
+        "method:KisBSplines::ConvertSplineOp::ConvertSplineOp(const Spline & spline)",
+        "method:KisBSplines::ConvertSplineOp::operator () (float x,float y) const",
+        "struct:KisBSplines::ConvertSplineOp"
+      ]
+    },
+    {
+      "target": "KisBSpline2DContractTest",
+      "source": "libs/image/tests/KisBSpline2DContractTest.cpp",
+      "test": "KisBSpline2DContractTest::resamplingPreservesBoundsConditionsAndValues",
+      "behavior": "二次元spline再標本化は入力splineの範囲、軸別境界条件、値面を新しい所有個体へ維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisBSplines::KisBSpline2D::createResampledSpline(const Spline & other,int xSamples,int ySamples)"
       ]
     }
   ]

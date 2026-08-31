@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 01:20 JST
+- 更新日時: 2026-09-01 01:34 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -39,7 +39,7 @@
 ### 第94並列便の担当計画
 
 - 実装共通基点は`5350b6c2d35e7803e479b0a352fb5f6708a5e25f`である。
-- `g94-image-bspline2d`は`in_progress`で、専用作業ツリーは`/Users/masato/Documents/librepaint-g94-image-bspline2d`である。対象headerは
+- `g94-image-bspline2d`は`integrated`で、専用作業ツリーは`/Users/masato/Documents/librepaint-g94-image-bspline2d`である。対象headerは
   `libs/image/bsplines/kis_bspline_2d.h`の`KisBSpline2D` class、構築・破棄、範囲、軸別境界条件、初期化、値、再標本化と、
   `ConvertSplineOp` struct、構築、借用member、呼出しの全14 APIである。開始ファイル`libs/image/bsplines/kis_bspline_2d.cpp`は既に
   `kritaimagebspline2dobjects`から`kritaimage`へ一重集約済みで、製品・公開headerは変更しない。許可pathは
@@ -61,6 +61,16 @@
   全追加枠、20回反復、軽量近傍、無作業計画、動的接続、変更source構文、公開API検査、`verify-quick`に限定する。Git権限は許可pathだけの担当commitで、
   台帳と進捗は統合担当が所有する。許可path外、新規公開API、製品sourceまたは製品閉包の変更、未割当て依存、停止線超過、製品shared library、
   Qt Widgets、`kritatestsdk`、実画像・色空間・資源、未固定乱数、製品意味論の試験内模倣が必要なら停止する。統合順はB-spline、色変換、PSD writerとする。
+
+### 第94並列便の統合結果
+
+- `g94-image-bspline2d`は受渡しcommit `9679dfb3e632e8ea89d42866374908fee8429ac8`を統合commit `d489437f07`として取り込んだ。
+  既存の開始ファイル`libs/image/bsplines/kis_bspline_2d.cpp`から`kritaimagebspline2dobjects`、製品`kritaimage`への一重収容は変更せず、
+  `libs/image/tests/CMakeLists.txt`から新規`libs/image/tests/KisBSpline2DContractTest.cpp`を二次元splineと一様補間OBJECTへ直接接続した。5契約枠で
+  矩形範囲と軸別境界、16点のx優先標本取得、アフィン面の標本・内点・端点補間、変換協調者の借用配送、再標本化の所有と値を固定した。14 APIを
+  追加し、対象7工程・15入力、製品`kritaimage` 1,184工程・2,392入力を維持した。主環境で対象、近傍2件、対象20回反復、無作業再構築、
+  動的接続、公開API検査に成功し、対応済みは9,565件、未対応は20,273件となった。受渡し差分同一性とcleanを確認後、局所構築木259 MBを含む
+  担当作業ツリー829 MBと担当branchを削除する。
 
 ### 第93並列便の監査計画
 
