@@ -186,6 +186,7 @@ kis_add_test(
         kritaglobalsharedobjects
         Qt${QT_MAJOR_VERSION}::Core
         Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Gui
         Qt${QT_MAJOR_VERSION}::Test
 )
 target_include_directories(kis_lod_capable_layer_offset_test PRIVATE
@@ -193,6 +194,14 @@ target_include_directories(kis_lod_capable_layer_offset_test PRIVATE
     ${CMAKE_CURRENT_BINARY_DIR}/..
     ${CMAKE_SOURCE_DIR}/libs/global
     ${CMAKE_BINARY_DIR}/libs/global
+    ${CMAKE_SOURCE_DIR}/libs/pigment
+    ${CMAKE_BINARY_DIR}/libs/pigment
+    ${CMAKE_SOURCE_DIR}/libs/pigment/resources
+    ${CMAKE_SOURCE_DIR}/libs/psdutils
+    ${CMAKE_BINARY_DIR}/libs/psdutils
+    ${CMAKE_SOURCE_DIR}/libs/resources
+    ${CMAKE_BINARY_DIR}/libs/resources
+    $<TARGET_PROPERTY:Imath::Imath,INTERFACE_INCLUDE_DIRECTORIES>
 )
 target_compile_definitions(kis_lod_capable_layer_offset_test PRIVATE
     kritaglobal_EXPORTS
@@ -1319,6 +1328,29 @@ target_include_directories(KisPaintopPropertiesBaseContractTest PRIVATE
     ${CMAKE_BINARY_DIR}/libs/global
 )
 target_compile_definitions(KisPaintopPropertiesBaseContractTest PRIVATE
+    kritaimage_EXPORTS
+)
+
+kis_add_test(
+    KisLayerStyleFilterContractTest.cpp
+    LINK_LIBRARIES
+        kritaimagelayerstylefilterobjects
+        kritaglobalidobjects
+        kritaglobalsharedobjects
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+        KF${KF_MAJOR}::I18n
+        Boost::boost
+)
+target_include_directories(KisLayerStyleFilterContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_CURRENT_SOURCE_DIR}/../layerstyles
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+)
+target_compile_definitions(KisLayerStyleFilterContractTest PRIVATE
+    kritaglobal_EXPORTS
     kritaimage_EXPORTS
 )
 

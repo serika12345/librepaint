@@ -235,6 +235,43 @@ set_target_properties(kritaimagefiltercategoryidsobjects PROPERTIES
    POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaimagelayerstylefilterobjects OBJECT
+   layerstyles/kis_layer_style_filter.cpp
+)
+target_compile_definitions(kritaimagelayerstylefilterobjects PRIVATE
+   kritaglobal_EXPORTS
+   kritaimage_EXPORTS
+)
+target_include_directories(kritaimagelayerstylefilterobjects
+   PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/layerstyles>
+      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment>
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/pigment>
+      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment/resources>
+      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/psdutils>
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/psdutils>
+      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/resources>
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/resources>
+      $<TARGET_PROPERTY:Imath::Imath,INTERFACE_INCLUDE_DIRECTORIES>
+)
+target_link_libraries(kritaimagelayerstylefilterobjects
+   PUBLIC
+      kritaglobalidobjects
+      kritaglobalsharedobjects
+      Qt${QT_MAJOR_VERSION}::Core
+      Qt${QT_MAJOR_VERSION}::Gui
+      KF${KF_MAJOR}::I18n
+      Boost::boost
+)
+set_target_properties(kritaimagelayerstylefilterobjects PROPERTIES
+   AUTOMOC OFF
+   POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaimageperstrokerandomsourceobjects OBJECT
    brushengine/KisPerStrokeRandomSource.cpp
 )
@@ -2097,7 +2134,6 @@ set(kritaimage_LIB_SRCS
    kis_layer_properties_icons.cpp
 
    layerstyles/kis_multiple_projection.cpp
-   layerstyles/kis_layer_style_filter.cpp
    layerstyles/kis_layer_style_filter_environment.cpp
    layerstyles/kis_layer_style_filter_projection_plane.cpp
    layerstyles/kis_layer_style_projection_plane.cpp
@@ -2202,6 +2238,7 @@ kis_add_library(kritaimage SHARED
    $<TARGET_OBJECTS:kritaimagepaintoppresetupdateproxyobjects>
    $<TARGET_OBJECTS:kritaimageserializableconfigurationobjects>
    $<TARGET_OBJECTS:kritaimagefiltercategoryidsobjects>
+   $<TARGET_OBJECTS:kritaimagelayerstylefilterobjects>
    $<TARGET_OBJECTS:kritaimageperstrokerandomsourceobjects>
    $<TARGET_OBJECTS:kritaimagestrokerandomsourceobjects>
    $<TARGET_OBJECTS:kritaimagestrokespeedmeasurerobjects>
