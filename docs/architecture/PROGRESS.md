@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 02:35 JST
+- 更新日時: 2026-09-01 02:43 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -30,6 +30,9 @@
 - `g96-plugin-ui-edge-audit`は`plugins/assistants/Assistants/PerspectiveBasedAssistantHelper.h`の全23 APIを採用した。点、多角形、射影変換、
   `CacheData`値と空handle境界を4枠で固定でき、開始source一つをOBJECTへ移して製品へ一重再集約できる。実handle、assistant、canvas、画面、
   GPU、filesystem、製品shared library、Qt Widgets、`kritatestsdk`は不要である。
+- 実装時に完成済みとして空handle一覧を渡す境界を実行すると、要素数を検査せず四角形要素へ進む現行経路がSIGSEGVとなった。通常の空一覧破棄も
+  未接続の`KisPaintingAssistantHandle`実装を要求する。UI実体または試験内代替を追加せず、handle版`getTetragon`、`getAllConnectedTetragon`、
+  `distanceInGrid`の3 APIを既知不具合を隔離する別担当へ戻し、純粋幾何20 APIだけを第96便の実装範囲とする。
 - `g96-impex-audit`は`libs/impex/animation/KisMediaEncoderWrapper.h`内の`KisMediaEncoderFormat`と`KisMediaEncoderWrapperSettings`の26 APIを
   採用した。header-onlyの形式協調面と設定値を5枠で固定でき、製品sourceと製品閉包を変更しない。同headerの残る21 APIは実frame読込み、
   外部process、取消状態、非同期signalを含むため、効果境界を固定する別担当へ残す。第三者XCF codec面はLibrePaint保守契約の根拠がなく除外した。
@@ -47,11 +50,11 @@
   `/Users/masato/Documents/librepaint-g96-assistant-perspective-helper`である。対象は
   `plugins/assistants/Assistants/PerspectiveBasedAssistantHelper.h`の`PerspectiveBasedAssistantHelper`、`CacheData`、`PerspectiveType` alias・enum・
   `None`・`OneVp`・`TwoVps`、`vanishingPoint1`・`vanishingPoint2`・`distancesFromPoints`・`maxDistanceFromPoint`・`horizon`・`polygon`・`type`、
-  `pdot`、`localScale`、`inverseMaxLocalScale`、`getVanishingPointsOptional`、`updateCacheData`、`distanceInGrid`の2 overload、`getTetragon`、
-  `getAllConnectedTetragon`の全23 APIである。開始ファイル`plugins/assistants/Assistants/PerspectiveBasedAssistantHelper.cpp`を同CMakeの
+  `pdot`、`localScale`、`inverseMaxLocalScale`、`getVanishingPointsOptional`、`updateCacheData`、`distanceInGrid(const CacheData &,const QPointF &)`の
+  全20 APIである。開始ファイル`plugins/assistants/Assistants/PerspectiveBasedAssistantHelper.cpp`を同CMakeの
   `kritaassistanttool_SOURCES`直接収容から新規AUTOMOC不要・PIC対応`kritaassistantperspectivehelperobjects`へ一対一移動し、製品
   `kritaassistanttool_static`へ一回だけ再集約する。許可pathは同source、`plugins/assistants/Assistants/CMakeLists.txt`、同`tests/CMakeLists.txt`、
-  新規`tests/PerspectiveBasedAssistantHelperContractTest.cpp`だけである。既定cache、射影尺度、3種四角形の消失点・正規化距離、空handle境界の4枠とする。
+  新規`tests/PerspectiveBasedAssistantHelperContractTest.cpp`だけである。既定cache、射影尺度、3種四角形の消失点・正規化距離の3枠とする。
   予測6工程・13入力、停止7工程・15入力、製品1,978工程・3,955入力不変とする。
 - `g96-impex-media-encoder-values`は`in_progress`で、専用作業ツリーは
   `/Users/masato/Documents/librepaint-g96-impex-media-encoder-values`である。対象は`libs/impex/animation/KisMediaEncoderWrapper.h`の
