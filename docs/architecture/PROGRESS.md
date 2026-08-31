@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 02:22 JST
+- 更新日時: 2026-09-01 02:29 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -24,6 +24,45 @@
   固定できる候補を選ぶ。第三者由来headerはLibrePaintが保守する公開契約かを確認し、codecや文書の製品意味論を試験内で模倣しない。
 - 各報告は完全なAPI識別子、最大5契約枠、最寄りCTest、所有CMake、直接依存、変更なし閉包、予測閉包と停止線、許可path、固有停止条件を含む。
   実装候補は公開header、製品source、試験source、CMake所有を重複させず、主環境の共有compiler cacheと担当固有の構築木を使えるものに限定する。
+- `g96-application-libkis-audit`は条件を満たす候補なしで完了した。最接近の`libs/libkis/GridConfig.h` 54 APIは開始sourceが別所有者
+  `libs/ui/canvas/kis_grid_config.cpp`の非inline状態・XML実装へほぼ全面委譲し、一つのsource移動では閉じない。最寄り
+  `KisSnapConfigContractTest`も10工程・23入力で停止線7工程・16入力を超え、実体接続は`kritaui`とQt Widgetsへ波及するため採用しない。
+- `g96-plugin-ui-edge-audit`は`plugins/assistants/Assistants/PerspectiveBasedAssistantHelper.h`の全23 APIを採用した。点、多角形、射影変換、
+  `CacheData`値と空handle境界を4枠で固定でき、開始source一つをOBJECTへ移して製品へ一重再集約できる。実handle、assistant、canvas、画面、
+  GPU、filesystem、製品shared library、Qt Widgets、`kritatestsdk`は不要である。
+- `g96-impex-audit`は`libs/impex/animation/KisMediaEncoderWrapper.h`内の`KisMediaEncoderFormat`と`KisMediaEncoderWrapperSettings`の26 APIを
+  採用した。header-onlyの形式協調面と設定値を5枠で固定でき、製品sourceと製品閉包を変更しない。同headerの残る21 APIは実frame読込み、
+  外部process、取消状態、非同期signalを含むため、効果境界を固定する別担当へ残す。第三者XCF codec面はLibrePaint保守契約の根拠がなく除外した。
+- `g96-color-document-platform-audit`は`planned`の追加読み取り監査である。`libs/color`、`libs/document`、`libs/macosutils`に残る37 APIから、
+  既存CTestが既に観測するsignal・寿命またはmacOS値境界を合計8 API以上明示契約へ追加できる候補を選ぶ。編集、構築、テスト、Git操作、追加委任は
+  行わず、Qt WidgetsやOS権限実体を新たに接続しない。基点、入力、報告要件は第96便の共通条件と同じである。
+
+### 第96並列便の担当計画
+
+- 実装共通基点は`0c8271fa24d3995d1a4421d8662407e9c81dedc7`である。
+- `g96-assistant-perspective-helper`は`in_progress`で、専用作業ツリーは
+  `/Users/masato/Documents/librepaint-g96-assistant-perspective-helper`である。対象は
+  `plugins/assistants/Assistants/PerspectiveBasedAssistantHelper.h`の`PerspectiveBasedAssistantHelper`、`CacheData`、`PerspectiveType` alias・enum・
+  `None`・`OneVp`・`TwoVps`、`vanishingPoint1`・`vanishingPoint2`・`distancesFromPoints`・`maxDistanceFromPoint`・`horizon`・`polygon`・`type`、
+  `pdot`、`localScale`、`inverseMaxLocalScale`、`getVanishingPointsOptional`、`updateCacheData`、`distanceInGrid`の2 overload、`getTetragon`、
+  `getAllConnectedTetragon`の全23 APIである。開始ファイル`plugins/assistants/Assistants/PerspectiveBasedAssistantHelper.cpp`を同CMakeの
+  `kritaassistanttool_SOURCES`直接収容から新規AUTOMOC不要・PIC対応`kritaassistantperspectivehelperobjects`へ一対一移動し、製品
+  `kritaassistanttool_static`へ一回だけ再集約する。許可pathは同source、`plugins/assistants/Assistants/CMakeLists.txt`、同`tests/CMakeLists.txt`、
+  新規`tests/PerspectiveBasedAssistantHelperContractTest.cpp`だけである。既定cache、射影尺度、3種四角形の消失点・正規化距離、空handle境界の4枠とする。
+  予測6工程・13入力、停止7工程・15入力、製品1,978工程・3,955入力不変とする。
+- `g96-impex-media-encoder-values`は`in_progress`で、専用作業ツリーは
+  `/Users/masato/Documents/librepaint-g96-impex-media-encoder-values`である。対象は`libs/impex/animation/KisMediaEncoderWrapper.h`の
+  `KisMediaEncoderFormat` class・virtual destructor、`Type` enum・`AndroidMediaEncoder`・`LibavMediaEncoder`、`type`・`key`・`title`・`extension`・
+  `supportsAudio`・`createPreferencesWidget`・`resetPreferencesWidget`・`getPreferencesFromWidget`と、`KisMediaEncoderWrapperSettings` struct、
+  `outputFile`・`inputFiles`・`audioFile`・`format`・`formatPreferences`・`scaleFilter`・`outputSize`・`inputFps`・`outputFps`・`firstFrameSec`・
+  `lastFrameSec`・`audioSeekFrame`の全26 APIである。header-onlyのため製品所有を変更せず、許可pathは`libs/impex/tests/CMakeLists.txt`と新規
+  `libs/impex/tests/KisMediaEncoderFormatAndSettingsContractTest.cpp`だけである。識別情報、widget token配送と仮想寿命、入出力文字列、形式・構造値、
+  時刻・fpsとcopy独立性の5枠とする。Qt Core・Testと生成済みexport headerだけに接続し、予測4工程・8入力、停止5工程・11入力、製品
+  `kritaapplicationui` 1,962工程・3,919入力不変とする。
+- 両実装担当の対象プラットフォームはmacOSである。担当作業ツリーは主作業ツリーの環境を`./scripts/run-shared-test-env`で共有し、構築権限は
+  対象、全追加枠、20回反復、指定軽量近傍、無作業計画、動的接続、変更source構文、公開API検査、`verify-quick`に限定する。Git権限は許可pathだけの
+  担当commitで、台帳と進捗は統合担当が所有する。許可path外、新規公開API、製品閉包増加、未割当て依存、停止線超過、製品shared library、
+  Qt Widgets、`kritatestsdk`、実画面・画像・資源・filesystem・外部process、製品意味論の試験内模倣が必要なら停止する。統合順は透視補助、媒体設定とする。
 
 ### 第95並列便の監査計画
 
