@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 21810
+    "expectedMissingApis": 21777
   },
   "contracts": [
     {
@@ -26791,6 +26791,145 @@
       "classification": "maintained",
       "apis": [
         "method:KisMaskingBrushCompositeOpBase::~KisMaskingBrushCompositeOpBase()"
+      ]
+    },
+    {
+      "target": "KoShapeContainerModelContractTest",
+      "source": "libs/flake/tests/KoShapeContainerModelContractTest.cpp",
+      "test": "KoShapeContainerModelContractTest::emptyModelPreservesMoveAndDeletesNothing",
+      "behavior": "形状コンテナー模型は空のとき移動提案の値を変えず、所有形状の削除を安全に完了して空状態を保つ。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoShapeContainerModel",
+        "method:KoShapeContainerModel::KoShapeContainerModel()",
+        "method:KoShapeContainerModel::deleteOwnedShapes()",
+        "method:KoShapeContainerModel::proposeMove(KoShape * shape,QPointF & move)"
+      ]
+    },
+    {
+      "target": "KoShapeContainerModelContractTest",
+      "source": "libs/flake/tests/KoShapeContainerModelContractTest.cpp",
+      "test": "KoShapeContainerModelContractTest::dispatchesStorageAndFlagsThroughAbstractSurface",
+      "behavior": "形状コンテナー模型の抽象接続面は形状の追加・除去・列挙と切抜き・変換継承の引数、戻り値、呼出順を派生実装へ保持して配送する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShapeContainerModel::add(KoShape * shape)",
+        "method:KoShapeContainerModel::count() const",
+        "method:KoShapeContainerModel::inheritsTransform(const KoShape * shape) const",
+        "method:KoShapeContainerModel::isClipped(const KoShape * shape) const",
+        "method:KoShapeContainerModel::remove(KoShape * shape)",
+        "method:KoShapeContainerModel::setClipped(const KoShape * shape,bool clipping)",
+        "method:KoShapeContainerModel::setInheritsTransform(const KoShape * shape,bool inherit)",
+        "method:KoShapeContainerModel::shapes() const"
+      ]
+    },
+    {
+      "target": "KoShapeContainerModelContractTest",
+      "source": "libs/flake/tests/KoShapeContainerModelContractTest.cpp",
+      "test": "KoShapeContainerModelContractTest::dispatchesContainerAndHierarchyNotifications",
+      "behavior": "形状コンテナー模型の抽象接続面はコンテナー・子形状の変更種別と階層追加・除去の形状および部分木を呼出順どおり派生実装へ配送する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShapeContainerModel::childChanged(KoShape * shape,KoShape::ChangeType type)",
+        "method:KoShapeContainerModel::containerChanged(KoShapeContainer * container,KoShape::ChangeType type)",
+        "method:KoShapeContainerModel::shapeHasBeenAddedToHierarchy(KoShape * shape,KoShapeContainer * addedToSubtree)",
+        "method:KoShapeContainerModel::shapeToBeRemovedFromHierarchy(KoShape * shape,KoShapeContainer * removedFromSubtree)"
+      ]
+    },
+    {
+      "target": "KoShapeContainerModelContractTest",
+      "source": "libs/flake/tests/KoShapeContainerModelContractTest.cpp",
+      "test": "KoShapeContainerModelContractTest::destroysDerivedModelThroughBase",
+      "behavior": "形状コンテナー模型は基底pointerからの解放で派生destructorを通り、個体寿命を一度終了する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShapeContainerModel::~KoShapeContainerModel()"
+      ]
+    },
+    {
+      "target": "KisBaseAccessorContractTest",
+      "source": "libs/image/tests/KisBaseAccessorContractTest.cpp",
+      "test": "KisBaseAccessorContractTest::constAccessorReportsSnapshotPointersAndCoordinates",
+      "behavior": "読取り画像accessor基底は旧値と現在値の別記憶領域を正確に返し、現在座標を符号を含めて保持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisBaseConstAccessor",
+        "method:KisBaseConstAccessor::KisBaseConstAccessor()",
+        "method:KisBaseConstAccessor::oldRawData() const",
+        "method:KisBaseConstAccessor::rawDataConst() const",
+        "method:KisBaseConstAccessor::x() const",
+        "method:KisBaseConstAccessor::y() const"
+      ]
+    },
+    {
+      "target": "KisBaseAccessorContractTest",
+      "source": "libs/image/tests/KisBaseAccessorContractTest.cpp",
+      "test": "KisBaseAccessorContractTest::writableAccessorExposesLiveStorage",
+      "behavior": "書込み画像accessor基底は同じ可変記憶領域を返し、返却pointer経由の変更を元の画素byteへ反映する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisBaseAccessor",
+        "method:KisBaseAccessor::KisBaseAccessor()",
+        "method:KisBaseAccessor::rawData()"
+      ]
+    },
+    {
+      "target": "KisBaseAccessorContractTest",
+      "source": "libs/image/tests/KisBaseAccessorContractTest.cpp",
+      "test": "KisBaseAccessorContractTest::baseOwnershipPreservesVirtualLifetime",
+      "behavior": "両画像accessor基底は基底所有から派生destructorを一度通り、共有所有側は最終参照の解放まで個体寿命を保つ。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisBaseAccessor::~KisBaseAccessor()",
+        "method:KisBaseConstAccessor::~KisBaseConstAccessor()"
+      ]
+    },
+    {
+      "target": "KisSensorWithLengthModelContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisSensorWithLengthModelContractTest.cpp",
+      "test": "KisSensorWithLengthModelContractTest::injectedCursorParentAndPropertiesRemainStable",
+      "behavior": "長さ付き描画sensor模型は注入したcursorとQObject親を保持し、長さと周期性を型付きの読書き可能な通知propertyとして公開する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisSensorWithLengthModel",
+        "member:KisSensorWithLengthModel::m_data",
+        "method:KisSensorWithLengthModel::KisSensorWithLengthModel(lager::cursor<KisSensorWithLengthData> data,QObject * parent)",
+        "method:KisSensorWithLengthModel::LAGER_QT_CURSOR(bool,isPeriodic)",
+        "method:KisSensorWithLengthModel::LAGER_QT_CURSOR(int,length)"
+      ]
+    },
+    {
+      "target": "KisSensorWithLengthModelContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisSensorWithLengthModelContractTest.cpp",
+      "test": "KisSensorWithLengthModelContractTest::externalStateUpdatesGettersAndSignals",
+      "behavior": "長さ付き描画sensor模型は外部cursorの長さと周期性の更新をgetterへ反映し、各変更通知を一度発行する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisSensorWithLengthModel::m_data",
+        "method:KisSensorWithLengthModel::LAGER_QT_CURSOR(bool,isPeriodic)",
+        "method:KisSensorWithLengthModel::LAGER_QT_CURSOR(int,length)"
+      ]
+    },
+    {
+      "target": "KisSensorWithLengthModelContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisSensorWithLengthModelContractTest.cpp",
+      "test": "KisSensorWithLengthModelContractTest::settersAndPropertiesUpdateFieldsIndependently",
+      "behavior": "長さ付き描画sensor模型のsetterとQt property書込みは元のcursorへ反映し、長さと周期性を互いに変えず個別更新する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSensorWithLengthModel::LAGER_QT_CURSOR(bool,isPeriodic)",
+        "method:KisSensorWithLengthModel::LAGER_QT_CURSOR(int,length)"
+      ]
+    },
+    {
+      "target": "KisSensorWithLengthModelContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisSensorWithLengthModelContractTest.cpp",
+      "test": "KisSensorWithLengthModelContractTest::parentOwnsModelLifetime",
+      "behavior": "長さ付き描画sensor模型はQObject親の寿命終了とともに解放され、外部の監視pointerを無効化する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisSensorWithLengthModel",
+        "method:KisSensorWithLengthModel::KisSensorWithLengthModel(lager::cursor<KisSensorWithLengthData> data,QObject * parent)"
       ]
     }
   ]
