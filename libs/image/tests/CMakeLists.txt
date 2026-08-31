@@ -1054,6 +1054,28 @@ target_include_directories(KisBSpline1DContractTest PRIVATE
 )
 
 kis_add_test(
+    KisBSpline2DContractTest.cpp
+    LINK_LIBRARIES
+        kritaimagebspline2dobjects
+        kritaimageuniformbsplineengineobjects
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+        Boost::boost
+)
+target_compile_definitions(KisBSpline2DContractTest PRIVATE
+    kritaglobal_EXPORTS
+    kritaimage_EXPORTS
+)
+target_include_directories(KisBSpline2DContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_CURRENT_SOURCE_DIR}/../3rdparty
+    ${CMAKE_CURRENT_SOURCE_DIR}/../bsplines
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+)
+
+kis_add_test(
     KisNUBSpline2DContractTest.cpp
     LINK_LIBRARIES
         kritaimagenubspline2dobjects
