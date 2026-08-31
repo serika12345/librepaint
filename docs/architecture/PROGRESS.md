@@ -2,12 +2,25 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 00:34 JST
+- 更新日時: 2026-09-01 00:36 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
+
+### 第93並列便の監査計画
+
+- 共通基点は`168e1ef5afb11a6942ac48a15350e91a15b2a8fd`、入力は`build/tdd-macos/public-api-missing-g93.json`である。
+  3担当は読み取り専用で、製品・試験・CMake・文書を変更せず、構築・テスト・Git操作も行わない。
+- `g93-image-audit`は`libs/image`から第92便の`kis_stroke_job.h`を除き、既存限定対象の拡張または一つのsourceのOBJECT移動で12 API以上を
+  固定できる候補を選ぶ。画像・乱数・並行処理を扱う場合は固定入力と実行条件を明示し、製品shared library、Qt Widgets、`kritatestsdk`を避ける。
+- `g93-global-audit`は`libs/global`の残り候補を監査し、特に`kis_algebra_2d.h`の未固定関数、ACS値型、使用記録値から、境界値または往復を既存軽量
+  対象で観測できる一つのheaderを選ぶ。新規対象は7工程・16入力以内、既存対象拡張は製品閉包不変を条件とする。
+- `g93-resources-painting-audit`は`libs/resources`と`libs/painting`から、DB・filesystem・大域resource登録簿を接続せず、値、寿命、配送を10 API以上
+  固定できる候補を選ぶ。`KisStrokeCompatibilityInfo`とmetadata値型を優先確認し、一つの製品sourceをOBJECTへ移す場合は一重収容を条件とする。
+- 各報告は完全なAPI識別子、最大5契約枠、最寄りCTest、所有CMake、直接依存、変更なし閉包、予測閉包と停止線、許可path、固有停止条件を含む。
+  統合担当は製品shared library、Qt Widgets、`kritatestsdk`、製品意味論を模倣する試験定義を要する候補を採用しない。
 
 ### 第92並列便の監査計画
 
