@@ -2,12 +2,46 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-31 22:17 JST
+- 更新日時: 2026-08-31 22:32 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
+
+### 第90並列便の担当計画
+
+- 共通基点は`c976cd22af`である。既存試験の直接観測を読み取り監査した結果、画像の候補は各1,193工程・2,404入力、
+  flakeの候補は各616工程・1,263入力であり、少数APIの中央台帳追加に対して構築範囲が過大なので本便では採用しない。
+  `KisTextureOptionDataIOContractTest`だけは6工程・19入力で、既存2契約枠が
+  `plugins/paintops/libpaintop/KisEmbeddedTextureData.h`のclass、等価演算子、`fileName`、`md5Base64`、`md5sum`、`name`、
+  `patternBase64`の7 APIを具体値で直接検査済みである。統合担当が試験を変更せず中央台帳を補完する。
+- `g90-global-bezier-values`は`planned`である。対象headerは`libs/global/KisBezierMesh.h`であり、
+  `BaseMeshNode`のstruct、5 member、2 constructor、等価演算子、4相対制御点getter、4 setter、`translate`、`transform`の19 API、
+  `Mesh::ControlPointIndex`のstruct、`ControlType` enumと5 enumerator、2 member、2 constructor、`isNode`、`isControlPoint`、
+  2 `controlPoint`、等価演算子の16 API、`Mesh::{NodeIndex,PatchIndex}`の2 structと4加減算代入演算子の6 API、合計41 APIを
+  5契約枠以内で固定する。許可pathは新規`libs/global/tests/KisBezierMeshValuesContractTest.cpp`と
+  `libs/global/tests/CMakeLists.txt`だけで、製品headerとsourceは変更しない。新規対象はQt Core・Gui・TestとBoostのheader面だけへ接続し、
+  最寄り`KisGlobalValuesContractTest`の4工程・8入力を基準、予測4工程・8入力、停止上限5工程・10入力とする。
+  製品`kritaglobal`の68工程・136入力を増やさない。macOS限定対象の構築・CTest・20回反復・軽量近傍・無作業計画・動的接続・
+  source単位構文検査・公開API検査・`verify-quick`を許可する。中央台帳、進捗文書、Git統合は担当外で、担当commit作成だけを許可する。
+- `g90-global-decomposed-matrix`は`planned`である。対象headerは`libs/global/kis_algebra_2d.h`であり、
+  `DecomposedMatrix`のstruct、7 member、2 constructor、`isValid`、`projectTransform`、`rotateTransform`、`scaleTransform`、
+  `shearTransform`、`transform`、`translateTransform`の17 APIを既存`libs/global/tests/KisTransformComponentsContractTest.cpp`の
+  5契約枠以内へ追加する。許可pathは同試験sourceだけで、CMakeと製品コードは変更しない。既存対象の直接依存は
+  `kritaglobaldecomposedmatrixobjects`、`kritaglobaltransformcomponentsobjects`、Qt Core・Gui・Test、閉包は6工程・13入力、
+  製品`kritaglobal`は68工程・136入力である。編集後に両閉包を増やさない。検証権限とGit権限はBezier担当と同じである。
+- `g90-paintop-standard-values`は`planned`である。対象headerは
+  `plugins/paintops/libpaintop/KisStandardOptionData.h`であり、`Kis{Opacity,Flow,Ratio,Softness,Rotation,Darken,Mix,Hue,
+  Saturation,Value,Rate,Strength,LightnessStrength}OptionData`の13 structと13 constructor、合計26 APIを5契約枠以内で固定する。
+  表示部品を生成する19関数は対象外である。許可pathは新規
+  `plugins/paintops/libpaintop/tests/KisStandardOptionDataValuesContractTest.cpp`と同testsの`CMakeLists.txt`だけで、製品headerとsource、
+  package CMakeは変更しない。既存`KisCurveOptionDataContractTest`の直接依存と10工程・22入力を最寄り基準として再利用し、
+  新規対象の停止上限11工程・24入力、製品`kritapaintopruntime` 1,281工程・2,582入力と`kritalibpaintop` 2,097工程・4,192入力を
+  不変条件とする。検証権限とGit権限はBezier担当と同じである。
+- 3担当は個別Git worktreeと局所Ninja木を使い、`./scripts/run-shared-test-env`から共有試験環境へ入る。担当間の許可pathは重複しない。
+  統合順はBezier値、変換分解、標準設定値とし、各担当は許可path外、新規公開API、未割当て依存、停止上限超過、意味論の曖昧さを検出した時点で
+  停止して報告する。統合担当は各成果を一件ずつ検査・取り込みし、担当作業ツリー、局所構築木、担当branchを直ちに削除する。
 
 ### 第89並列便の完了結果
 
