@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 04:30 JST
+- 更新日時: 2026-09-01 04:43 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -32,19 +32,20 @@
 - `g99-flake-svg-values-audit`は条件を満たす候補なしで完了した。最接近の`libs/flake/svg/SvgGraphicContext.h` 40 APIは
   `SvgGraphicContext.cpp`に加えて`KoShapeStroke.cpp`と`KoSvgTextProperties.cpp`の少なくとも3 sourceを必要とし、一source所有移動ではリンクできない。
   `SvgUtil.h` 41 APIはXML・文字・描画文脈の複数所有者、`SvgLoadingContext.h` 26 APIはshape・filesystem・profile接続を必要とするため採用しない。
-- `g99-widget-connection-values-audit`は`in_progress`の追加読み取り監査である。`libs/widgetutils/KisWidgetConnectionUtils.h`、`libs/widgets/KisAngleSelector.h`、
-  `libs/widgetutils/kis_cursor.h`から25 API以上を、Qt Widgetsへの直接接続だけで最大5枠へ固定できる候補を選ぶ。製品shared library、`kritatestsdk`、
-  大域設定、OS入力、画面pixel、filesystemを必要とする経路は採用しない。基点、入力、報告要件と禁止事項は第99便の共通条件を継承する。
+- `g99-widget-connection-values-audit`は条件を満たす候補なしで完了した。最接近の`libs/widgets/KisWidgetConnectionUtils.h` 46 APIは、Qt標準controlの
+  状態型と接続を限定対象へ収められる一方、全公開面の固定には五つの製品固有Widgetが必要である。実装が単一sourceに同居するため、部分的なOBJECT
+  移動では製品Widget記号を分離できず、現製品閉包は800工程・1,629入力となる。`KisAngleSelector.h` 50 APIはOS style由来の画面pixel、
+  `kis_cursor.h` 44 APIは資源読込みとOS cursor生成を公開挙動に含むため採用しない。
 
 ### 第99並列便の担当計画
 
 - 実装共通基点は`083e9487642d6146eb204359aed265ccb989d188`である。
-- `g99-global-vector-path-values`は`planned`で、専用作業ツリーを`/Users/masato/Documents/librepaint-g99-global-vector-path-values`へ作成する。対象は
+- `g99-global-vector-path-values`は`integrated`で、削除済みの専用作業ツリーは`/Users/masato/Documents/librepaint-g99-global-vector-path-values`であった。対象は
   `build/tdd-macos/public-api-missing-g99.json`でheaderが`libs/global/kis_algebra_2d.h`の`VectorPath::VectorPathPoint` 15 API、
   `VectorPath::Segment` 9 API、外側class 1 APIの合計25 APIである。許可pathは既存
   `libs/global/tests/KisAlgebraGeometryPrimitivesContractTest.cpp`だけとし、型・構築・factory・区間投影の4枠を追加する。予測5工程・11入力、停止
   6工程・13入力、製品`kritaglobal` 68工程・136入力不変とする。
-- `g99-psd-layer-values`は`planned`で、専用作業ツリーを`/Users/masato/Documents/librepaint-g99-psd-layer-values`へ作成する。対象は同不足一覧でheaderが
+- `g99-psd-layer-values`は`ready`で、専用作業ツリーは`/Users/masato/Documents/librepaint-g99-psd-layer-values`である。対象は同不足一覧でheaderが
   `libs/psd/psd_layer_record.h`の`psd_layer_type` 19 APIと`ChannelInfo` 9 APIの合計28 APIである。許可pathは
   `libs/psdutils/tests/CMakeLists.txt`と`libs/psdutils/tests/PsdFormatValuesContractTest.cpp`だけとし、種別値・既定チャンネル・copy独立性の3枠を
   追加する。予測4工程・9入力、停止5工程・12入力、製品`kritapsd` 1,970工程・3,938入力不変とする。
@@ -52,6 +53,18 @@
   構築権限は対象、追加枠、20回反復、軽量近傍、無作業再構築、動的接続、変更source構文、公開API検査、`verify-quick`に限定する。Git権限は許可path
   だけの担当commitで、台帳と進捗は統合担当が所有する。上限超過、非inline記号、製品shared library、`kritatestsdk`、実GUI・画像・資源・色空間
   registry・filesystemが必要なら停止する。統合順は二次元代数経路値、PSDレイヤー値とする。
+
+### 第99並列便の統合結果
+
+- `g99-global-vector-path-values`は受渡しcommit `07da6880c29c1b2928efc555a9352d9a95ea48f5`を統合commit `aedd2b88d9`として
+  取り込んだ。変更は既存`libs/global/tests/KisAlgebraGeometryPrimitivesContractTest.cpp`だけで、製品header、source、CMakeを変更していない。
+- `VectorPath::VectorPathPoint`の種別・既定値・明示構築・三factoryと、`VectorPath::Segment`の値所有・端点・制御点投影について、全25 APIを
+  4契約枠へ追加した。全経路はheader内の値処理で、非inlineの経路演算へ接続していない。限定対象5工程・11入力、製品`kritaglobal`
+  68工程・136入力を維持した。
+- 担当環境と主環境で追加4枠、全対象CTest、20回反復、`KisGlobalValuesContractTest`近傍、無作業再構築、動的接続、変更source構文、公開API
+  契約検査、`verify-quick`に成功した。対応済みは9,941件、未対応は19,897件、契約枠は2,374件となった。
+- 新しい`build/tdd-macos/public-api-missing-g99-global.json`生成後、旧不足一覧4.9 MB、局所構築木266 MBを含む担当作業ツリー836 MB、担当branchを
+  削除した。主増分構築木、共有compiler cache、残るPSD担当作業ツリー、最新不足一覧だけを保持する。
 
 ### 第98並列便の監査計画
 

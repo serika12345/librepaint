@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 19922
+    "expectedMissingApis": 19897
   },
   "contracts": [
     {
@@ -16160,6 +16160,67 @@
         "function:KisAlgebra2D::copysign(T x,T y)",
         "function:KisAlgebra2D::signPZ(T x)",
         "function:KisAlgebra2D::signZZ(T x)"
+      ]
+    },
+    {
+      "target": "KisAlgebraGeometryPrimitivesContractTest",
+      "source": "libs/global/tests/KisAlgebraGeometryPrimitivesContractTest.cpp",
+      "test": "KisAlgebraGeometryPrimitivesContractTest::vectorPathPointTypesAndDefaultsRemainStable",
+      "behavior": "経路点の種別は移動、直線、Bezierの順序を保ち、既定構築は移動種別と空の終点・制御点を持つ独立値を生成する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisAlgebra2D::VectorPath::VectorPathPoint::Type",
+        "class:KisAlgebra2D::VectorPath",
+        "enum:KisAlgebra2D::VectorPath::VectorPathPoint::Type",
+        "enumerator:KisAlgebra2D::VectorPath::VectorPathPoint::Type::BezierTo",
+        "enumerator:KisAlgebra2D::VectorPath::VectorPathPoint::Type::LineTo",
+        "enumerator:KisAlgebra2D::VectorPath::VectorPathPoint::Type::MoveTo",
+        "member:KisAlgebra2D::VectorPath::VectorPathPoint::controlPoint1",
+        "member:KisAlgebra2D::VectorPath::VectorPathPoint::controlPoint2",
+        "member:KisAlgebra2D::VectorPath::VectorPathPoint::endPoint",
+        "member:KisAlgebra2D::VectorPath::VectorPathPoint::type",
+        "method:KisAlgebra2D::VectorPath::VectorPathPoint::VectorPathPoint()",
+        "struct:KisAlgebra2D::VectorPath::VectorPathPoint"
+      ]
+    },
+    {
+      "target": "KisAlgebraGeometryPrimitivesContractTest",
+      "source": "libs/global/tests/KisAlgebraGeometryPrimitivesContractTest.cpp",
+      "test": "KisAlgebraGeometryPrimitivesContractTest::vectorPathPointConstructionOwnsGeometry",
+      "behavior": "明示構築した経路点は指定した種別、終点、二つの制御点を値として保持し、入力点の後続変更から独立する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAlgebra2D::VectorPath::VectorPathPoint::VectorPathPoint(Type _type,QPointF _endPoint,QPointF c1=QPointF (),QPointF c2=QPointF ())"
+      ]
+    },
+    {
+      "target": "KisAlgebraGeometryPrimitivesContractTest",
+      "source": "libs/global/tests/KisAlgebraGeometryPrimitivesContractTest.cpp",
+      "test": "KisAlgebraGeometryPrimitivesContractTest::vectorPathPointFactoriesAssignTypesAndControls",
+      "behavior": "移動・直線・Bezierのfactoryは対応する種別と終点を設定し、移動・直線では空の制御点、Bezierでは指定した二制御点を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAlgebra2D::VectorPath::VectorPathPoint::bezierTo(QPointF _endPoint,QPointF _controlPoint1,QPointF _controlPoint2)",
+        "method:KisAlgebra2D::VectorPath::VectorPathPoint::lineTo(QPointF _endPoint)",
+        "method:KisAlgebra2D::VectorPath::VectorPathPoint::moveTo(QPointF _endPoint)"
+      ]
+    },
+    {
+      "target": "KisAlgebraGeometryPrimitivesContractTest",
+      "source": "libs/global/tests/KisAlgebraGeometryPrimitivesContractTest.cpp",
+      "test": "KisAlgebraGeometryPrimitivesContractTest::segmentsProjectEndpointGeometryAndOwnValues",
+      "behavior": "区間は始点・終点の経路点を値として所有し、公開する線種別、端点、二制御点へ入力点の幾何を投影して入力の後続変更から独立する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisAlgebra2D::VectorPath::Segment::controlPoint1",
+        "member:KisAlgebra2D::VectorPath::Segment::controlPoint2",
+        "member:KisAlgebra2D::VectorPath::Segment::end",
+        "member:KisAlgebra2D::VectorPath::Segment::endPoint",
+        "member:KisAlgebra2D::VectorPath::Segment::start",
+        "member:KisAlgebra2D::VectorPath::Segment::startPoint",
+        "member:KisAlgebra2D::VectorPath::Segment::type",
+        "method:KisAlgebra2D::VectorPath::Segment::Segment(VectorPathPoint _start,VectorPathPoint _end)",
+        "struct:KisAlgebra2D::VectorPath::Segment"
       ]
     },
     {
