@@ -344,8 +344,34 @@ target_link_libraries(kritawidgetslevelssliderobjects
 )
 set_target_properties(kritawidgetslevelssliderobjects PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
-set(kritawidgets_LIB_SRCS
+add_library(kritawidgetsdialogobjects OBJECT
     KoDialog.cpp
+)
+target_compile_definitions(kritawidgetsdialogobjects PRIVATE kritawidgets_EXPORTS)
+target_include_directories(kritawidgetsdialogobjects PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/widgetutils>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/widgetutils>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/widgetutils/config>
+)
+target_link_libraries(kritawidgetsdialogobjects PUBLIC
+    kritaglobalsignalmapperobjects
+    Qt${QT_MAJOR_VERSION}::Widgets
+    KF${KF_MAJOR}::ConfigCore
+    KF${KF_MAJOR}::ConfigGui
+    KF${KF_MAJOR}::CoreAddons
+    KF${KF_MAJOR}::I18n
+    KF${KF_MAJOR}::WidgetsAddons
+)
+set_target_properties(kritawidgetsdialogobjects PROPERTIES
+    AUTOMOC ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
+set(kritawidgets_LIB_SRCS
     KoZoomWidget.cpp
     KoConfigAuthorPage.cpp
     KoUnitDoubleSpinBox.cpp
@@ -447,6 +473,7 @@ kis_add_library(kritawidgets SHARED
     $<TARGET_OBJECTS:kritawidgetsvboxobjects>
     $<TARGET_OBJECTS:kritawidgetsdebugobjects>
     $<TARGET_OBJECTS:kritawidgetslevelssliderobjects>
+    $<TARGET_OBJECTS:kritawidgetsdialogobjects>
     $<TARGET_OBJECTS:kritawidgetstitledtabobjects>
     $<TARGET_OBJECTS:kritawidgetswarningblockobjects>
     $<TARGET_OBJECTS:kritawidgetsstretchediconbuttonobjects>

@@ -34,6 +34,7 @@ target_compile_definitions(KoPageWidgetItemContractTest PRIVATE kritawidgets_EXP
 kis_add_test(
     KoDialogEnumContractTest.cpp
     LINK_LIBRARIES
+        kritawidgetsdialogobjects
         Qt${QT_MAJOR_VERSION}::Test
         Qt${QT_MAJOR_VERSION}::Widgets
         KF${KF_MAJOR}::ConfigCore
