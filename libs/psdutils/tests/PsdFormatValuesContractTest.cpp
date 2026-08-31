@@ -36,6 +36,11 @@ private Q_SLOTS:
     void typeLineDefaultsAndSignedCodesCopyIndependently();
     void typeToolTransformAndPlacementValuesCopyIndependently();
     void typeShapeSettersAndValueCopiesRemainIndependent();
+    void pathNodesAndSubpathsCopyGeometryIndependently();
+    void pathsAndVectorMasksPreserveNestedValueState();
+    void vectorOriginationDefaultsAndMembersCopyIndependently();
+    void vectorOriginationSettersStoreAndAppendValues();
+    void vectorOriginationQueriesClassifyAndMeasureShapes();
 };
 
 void PsdFormatValuesContractTest::fileLimitsAndStorageEnumsRemainStable()
@@ -954,6 +959,262 @@ void PsdFormatValuesContractTest::typeShapeSettersAndValueCopiesRemainIndependen
     QCOMPARE(shape.text, QStringLiteral("LibrePaint text"));
     QVERIFY(!shape.isHorizontal);
     QVERIFY(copy.transform != shape.transform);
+}
+
+void PsdFormatValuesContractTest::pathNodesAndSubpathsCopyGeometryIndependently()
+{
+    const psd_path_node emptyNode{};
+    QCOMPARE(emptyNode.control1, QPointF());
+    QCOMPARE(emptyNode.node, QPointF());
+    QCOMPARE(emptyNode.control2, QPointF());
+    QVERIFY(!emptyNode.isSmooth);
+
+    psd_path_node node{};
+    node.control1 = QPointF(-13.5, 17.25);
+    node.node = QPointF(19.75, -23.5);
+    node.control2 = QPointF(29.25, 31.5);
+    node.isSmooth = true;
+    psd_path_node nodeCopy = node;
+    QCOMPARE(nodeCopy.control1, QPointF(-13.5, 17.25));
+    QCOMPARE(nodeCopy.node, QPointF(19.75, -23.5));
+    QCOMPARE(nodeCopy.control2, QPointF(29.25, 31.5));
+    QVERIFY(nodeCopy.isSmooth);
+    nodeCopy.control1 = QPointF(37.0, 41.0);
+    nodeCopy.node = QPointF(43.0, 47.0);
+    nodeCopy.control2 = QPointF(53.0, 59.0);
+    nodeCopy.isSmooth = false;
+    QCOMPARE(node.control1, QPointF(-13.5, 17.25));
+    QCOMPARE(node.node, QPointF(19.75, -23.5));
+    QCOMPARE(node.control2, QPointF(29.25, 31.5));
+    QVERIFY(node.isSmooth);
+
+    const psd_path_sub_path emptySubPath{};
+    QVERIFY(emptySubPath.nodes.isEmpty());
+    QVERIFY(!emptySubPath.isClosed);
+
+    psd_path_sub_path subPath{};
+    subPath.nodes.append(node);
+    subPath.isClosed = true;
+    psd_path_sub_path subPathCopy = subPath;
+    QCOMPARE(subPathCopy.nodes.size(), 1);
+    QCOMPARE(subPathCopy.nodes[0].node, QPointF(19.75, -23.5));
+    QVERIFY(subPathCopy.isClosed);
+    subPathCopy.nodes[0].node = QPointF(-61.0, 67.0);
+    subPathCopy.nodes.append(nodeCopy);
+    subPathCopy.isClosed = false;
+    QCOMPARE(subPath.nodes.size(), 1);
+    QCOMPARE(subPath.nodes[0].node, QPointF(19.75, -23.5));
+    QVERIFY(subPath.isClosed);
+}
+
+void PsdFormatValuesContractTest::pathsAndVectorMasksPreserveNestedValueState()
+{
+    const psd_path emptyPath{};
+    QVERIFY(!emptyPath.initialFillRecord);
+    QCOMPARE(emptyPath.clipBoardBounds, QRectF());
+    QCOMPARE(emptyPath.clipBoardResolution, 0.0);
+    QVERIFY(emptyPath.subPaths.isEmpty());
+
+    psd_path_node node{};
+    node.control1 = QPointF(-3.0, 5.0);
+    node.node = QPointF(7.0, -11.0);
+    node.control2 = QPointF(13.0, 17.0);
+    psd_path_sub_path subPath{};
+    subPath.nodes.append(node);
+    subPath.isClosed = true;
+
+    psd_path path{};
+    path.initialFillRecord = true;
+    path.clipBoardBounds = QRectF(-19.0, -23.0, 29.0, 31.0);
+    path.clipBoardResolution = 144.5;
+    path.subPaths.append(subPath);
+    psd_path pathCopy = path;
+    QVERIFY(pathCopy.initialFillRecord);
+    QCOMPARE(pathCopy.clipBoardBounds, QRectF(-19.0, -23.0, 29.0, 31.0));
+    QCOMPARE(pathCopy.clipBoardResolution, 144.5);
+    QCOMPARE(pathCopy.subPaths.size(), 1);
+    pathCopy.initialFillRecord = false;
+    pathCopy.clipBoardBounds = QRectF(37.0, 41.0, 43.0, 47.0);
+    pathCopy.clipBoardResolution = 300.0;
+    pathCopy.subPaths[0].nodes[0].node = QPointF(53.0, 59.0);
+    QVERIFY(path.initialFillRecord);
+    QCOMPARE(path.clipBoardBounds, QRectF(-19.0, -23.0, 29.0, 31.0));
+    QCOMPARE(path.clipBoardResolution, 144.5);
+    QCOMPARE(path.subPaths[0].nodes[0].node, QPointF(7.0, -11.0));
+
+    const psd_vector_mask emptyMask{};
+    QVERIFY(!emptyMask.invert);
+    QVERIFY(!emptyMask.notLink);
+    QVERIFY(!emptyMask.disable);
+    QVERIFY(emptyMask.path.subPaths.isEmpty());
+
+    psd_vector_mask mask{};
+    mask.invert = true;
+    mask.notLink = true;
+    mask.disable = true;
+    mask.path = path;
+    psd_vector_mask maskCopy = mask;
+    QVERIFY(maskCopy.invert);
+    QVERIFY(maskCopy.notLink);
+    QVERIFY(maskCopy.disable);
+    QCOMPARE(maskCopy.path.clipBoardResolution, 144.5);
+    maskCopy.invert = false;
+    maskCopy.notLink = false;
+    maskCopy.disable = false;
+    maskCopy.path.subPaths[0].nodes[0].control1 = QPointF(-61.0, -67.0);
+    QVERIFY(mask.invert);
+    QVERIFY(mask.notLink);
+    QVERIFY(mask.disable);
+    QCOMPARE(mask.path.subPaths[0].nodes[0].control1, QPointF(-3.0, 5.0));
+}
+
+void PsdFormatValuesContractTest::vectorOriginationDefaultsAndMembersCopyIndependently()
+{
+    const psd_vector_origination_data empty{};
+    QCOMPARE(empty.originType, -1);
+    QCOMPARE(empty.originShapeBBox, QRectF());
+    QCOMPARE(empty.originResolution, 72.0);
+    QCOMPARE(empty.transform, QTransform());
+    QCOMPARE(empty.originIndex, 0);
+    QVERIFY(empty.originBoxCorners.isEmpty());
+    QCOMPARE(empty.originPolySides, 0);
+    QCOMPARE(empty.originPolyStarRatio, 100.0);
+    QVERIFY(!empty.isStar);
+    QCOMPARE(empty.originPolyPixelHSF, 1.0);
+    QVERIFY(empty.originPolyPreviousTightBoxCorners.isEmpty());
+    QVERIFY(empty.originPolyTrueRectCorners.isEmpty());
+    QCOMPARE(empty.typeToName.value(1), QStringLiteral("RectangleShape"));
+    QCOMPARE(empty.typeToName.value(5), QStringLiteral("EllipseShape"));
+    QCOMPARE(empty.typeToName.value(7), QStringLiteral("StarShape"));
+    QCOMPARE(empty.typeToName.value(8), QStringLiteral("StarShape"));
+
+    psd_vector_origination_data data{};
+    data.originType = 8;
+    data.originShapeBBox = QRectF(-5.0, -7.0, 11.0, 13.0);
+    data.originResolution = 300.0;
+    data.transform.translate(-17.0, 19.0);
+    data.originIndex = -23;
+    data.originBoxCorners = QPolygonF({QPointF(-29.0, 31.0), QPointF(37.0, -41.0)});
+    data.originPolySides = 7;
+    data.originPolyStarRatio = 43.5;
+    data.isStar = true;
+    data.originPolyPixelHSF = -1.25;
+    data.originPolyPreviousTightBoxCorners = QPolygonF({QPointF(47.0, 53.0)});
+    data.originPolyTrueRectCorners = QPolygonF({QPointF(-59.0, 61.0)});
+
+    psd_vector_origination_data copy = data;
+    QCOMPARE(copy.originType, 8);
+    QCOMPARE(copy.originShapeBBox, QRectF(-5.0, -7.0, 11.0, 13.0));
+    QCOMPARE(copy.originResolution, 300.0);
+    QCOMPARE(copy.transform, data.transform);
+    QCOMPARE(copy.originIndex, -23);
+    QCOMPARE(copy.originBoxCorners, data.originBoxCorners);
+    QCOMPARE(copy.originPolySides, 7);
+    QCOMPARE(copy.originPolyStarRatio, 43.5);
+    QVERIFY(copy.isStar);
+    QCOMPARE(copy.originPolyPixelHSF, -1.25);
+    QCOMPARE(copy.originPolyPreviousTightBoxCorners, data.originPolyPreviousTightBoxCorners);
+    QCOMPARE(copy.originPolyTrueRectCorners, data.originPolyTrueRectCorners);
+    QCOMPARE(copy.typeToName, data.typeToName);
+
+    copy.originType = 5;
+    copy.originShapeBBox = QRectF(67.0, 71.0, 73.0, 79.0);
+    copy.originResolution = 600.0;
+    copy.transform.scale(2.0, 3.0);
+    copy.originIndex = 83;
+    copy.originBoxCorners[0] = QPointF(89.0, 97.0);
+    copy.originPolySides = 9;
+    copy.originPolyStarRatio = 101.0;
+    copy.isStar = false;
+    copy.originPolyPixelHSF = 2.5;
+    copy.originPolyPreviousTightBoxCorners[0] = QPointF(103.0, 107.0);
+    copy.originPolyTrueRectCorners[0] = QPointF(109.0, 113.0);
+
+    QCOMPARE(data.originType, 8);
+    QCOMPARE(data.originShapeBBox, QRectF(-5.0, -7.0, 11.0, 13.0));
+    QCOMPARE(data.originResolution, 300.0);
+    QCOMPARE(data.transform, QTransform::fromTranslate(-17.0, 19.0));
+    QCOMPARE(data.originIndex, -23);
+    QCOMPARE(data.originBoxCorners[0], QPointF(-29.0, 31.0));
+    QCOMPARE(data.originPolySides, 7);
+    QCOMPARE(data.originPolyStarRatio, 43.5);
+    QVERIFY(data.isStar);
+    QCOMPARE(data.originPolyPixelHSF, -1.25);
+    QCOMPARE(data.originPolyPreviousTightBoxCorners[0], QPointF(47.0, 53.0));
+    QCOMPARE(data.originPolyTrueRectCorners[0], QPointF(-59.0, 61.0));
+}
+
+void PsdFormatValuesContractTest::vectorOriginationSettersStoreAndAppendValues()
+{
+    psd_vector_origination_data data{};
+    data.setOriginType(7);
+    data.setOriginResolution(288.0);
+    QTransform transform;
+    transform.translate(-3.0, 5.0);
+    transform.rotate(30.0);
+    data.setTransform(transform);
+    data.setOriginShapeBBox(QRectF(-7.0, -11.0, 13.0, 17.0));
+    data.setOriginBoxCorners(QPointF(-19.0, 23.0));
+    data.setOriginBoxCorners(QPointF(29.0, -31.0));
+    data.setOriginPolyTightBoxCorners(QPointF(37.0, 41.0));
+    data.setOriginPolyTightBoxCorners(QPointF(-43.0, 47.0));
+    data.setOriginPolyTrueRectCorners(QPointF(53.0, -59.0));
+    data.setOriginPolyTrueRectCorners(QPointF(61.0, 67.0));
+    data.setOriginPolySides(9);
+    data.setOriginPolyStarRatio(37.5);
+
+    QCOMPARE(data.originType, 7);
+    QCOMPARE(data.originResolution, 288.0);
+    QCOMPARE(data.transform, transform);
+    QCOMPARE(data.originShapeBBox, QRectF(-7.0, -11.0, 13.0, 17.0));
+    QCOMPARE(data.originBoxCorners,
+             QPolygonF({QPointF(-19.0, 23.0), QPointF(29.0, -31.0)}));
+    QCOMPARE(data.originPolyPreviousTightBoxCorners,
+             QPolygonF({QPointF(37.0, 41.0), QPointF(-43.0, 47.0)}));
+    QCOMPARE(data.originPolyTrueRectCorners,
+             QPolygonF({QPointF(53.0, -59.0), QPointF(61.0, 67.0)}));
+    QCOMPARE(data.originPolySides, 9);
+    QCOMPARE(data.originPolyStarRatio, 37.5);
+    QVERIFY(data.isStar);
+}
+
+void PsdFormatValuesContractTest::vectorOriginationQueriesClassifyAndMeasureShapes()
+{
+    psd_vector_origination_data data{};
+    data.originType = 1;
+    QCOMPARE(data.shapeName(), QStringLiteral("RectangleShape"));
+    QVERIFY(data.canMakeParametricShape());
+    data.originType = 5;
+    QCOMPARE(data.shapeName(), QStringLiteral("EllipseShape"));
+    QVERIFY(data.canMakeParametricShape());
+    data.originType = 7;
+    QCOMPARE(data.shapeName(), QStringLiteral("StarShape"));
+    QVERIFY(data.canMakeParametricShape());
+    data.originType = 8;
+    QCOMPARE(data.shapeName(), QStringLiteral("StarShape"));
+    QVERIFY(data.canMakeParametricShape());
+    data.originType = 99;
+    QVERIFY(data.shapeName().isEmpty());
+    QVERIFY(!data.canMakeParametricShape());
+
+    data.originShapeBBox = QRectF(-10.0, -20.0, 30.0, 40.0);
+    QSizeF size;
+    double angle = -1.0;
+    data.OriginalSizeAndAngle(size, angle);
+    QCOMPARE(size, QSizeF(30.0, 40.0));
+    QCOMPARE(angle, 0.0);
+
+    const QPolygonF originalCorners({QPointF(0.0, 0.0),
+                                     QPointF(30.0, 0.0),
+                                     QPointF(30.0, 40.0),
+                                     QPointF(0.0, 40.0)});
+    data.transform = QTransform::fromTranslate(17.0, -23.0);
+    data.originBoxCorners = data.transform.map(originalCorners);
+    size = QSizeF();
+    angle = -1.0;
+    data.OriginalSizeAndAngle(size, angle);
+    QCOMPARE(size, QSizeF(30.0, 40.0));
+    QCOMPARE(angle, 0.0);
 }
 
 QTEST_GUILESS_MAIN(PsdFormatValuesContractTest)
