@@ -21,6 +21,32 @@ target_include_directories(KisDabShapeContractTest PRIVATE
 )
 
 kis_add_test(
+    KisBrushModelValuesContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Test
+        Boost::boost
+        lager
+)
+target_include_directories(KisBrushModelValuesContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+    ${CMAKE_SOURCE_DIR}/libs/image
+    ${CMAKE_BINARY_DIR}/libs/image
+    ${CMAKE_SOURCE_DIR}/libs/image/brushengine
+    ${CMAKE_SOURCE_DIR}/libs/resources
+    ${CMAKE_BINARY_DIR}/libs/resources
+    $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
+)
+target_compile_definitions(KisBrushModelValuesContractTest PRIVATE
+    kritalibbrush_EXPORTS
+    kritaresources_EXPORTS
+)
+
+kis_add_test(
     KisBrushFactoryContractTest.cpp
     LINK_LIBRARIES
         kritaresourceloadvalueobjects
