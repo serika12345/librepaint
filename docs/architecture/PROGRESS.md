@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 02:29 JST
+- 更新日時: 2026-09-01 02:35 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -33,9 +33,12 @@
 - `g96-impex-audit`は`libs/impex/animation/KisMediaEncoderWrapper.h`内の`KisMediaEncoderFormat`と`KisMediaEncoderWrapperSettings`の26 APIを
   採用した。header-onlyの形式協調面と設定値を5枠で固定でき、製品sourceと製品閉包を変更しない。同headerの残る21 APIは実frame読込み、
   外部process、取消状態、非同期signalを含むため、効果境界を固定する別担当へ残す。第三者XCF codec面はLibrePaint保守契約の根拠がなく除外した。
-- `g96-color-document-platform-audit`は`planned`の追加読み取り監査である。`libs/color`、`libs/document`、`libs/macosutils`に残る37 APIから、
+- `g96-color-document-platform-audit`は`completed`の追加読み取り監査である。`libs/color`、`libs/document`、`libs/macosutils`に残る37 APIから、
   既存CTestが既に観測するsignal・寿命またはmacOS値境界を合計8 API以上明示契約へ追加できる候補を選ぶ。編集、構築、テスト、Git操作、追加委任は
   行わず、Qt WidgetsやOS権限実体を新たに接続しない。基点、入力、報告要件は第96便の共通条件と同じである。
+- 同追加監査は`KisMacosEntitlements.h`の権限enum・4列挙値と`KisMacosSecurityBookmarkManager.h`のbookmark種別enum・2列挙値、合計8 APIを
+  採用した。クラス、QObject反射、singleton、署名情報、security-scoped bookmarkを参照せず、Qt Core・Testだけで2枠に固定できる。
+  Foundation、Security、AppKit、Qt Widgets、製品`kritamacosutils`は接続せず、製品閉包12工程・19入力を維持する。
 
 ### 第96並列便の担当計画
 
@@ -59,10 +62,17 @@
   `libs/impex/tests/KisMediaEncoderFormatAndSettingsContractTest.cpp`だけである。識別情報、widget token配送と仮想寿命、入出力文字列、形式・構造値、
   時刻・fpsとcopy独立性の5枠とする。Qt Core・Testと生成済みexport headerだけに接続し、予測4工程・8入力、停止5工程・11入力、製品
   `kritaapplicationui` 1,962工程・3,919入力不変とする。
-- 両実装担当の対象プラットフォームはmacOSである。担当作業ツリーは主作業ツリーの環境を`./scripts/run-shared-test-env`で共有し、構築権限は
+- `g96-macos-values`は`in_progress`で、専用作業ツリーは`/Users/masato/Documents/librepaint-g96-macos-values`である。対象は
+  `libs/macosutils/KisMacosEntitlements.h`の`Entitlements` enum、`Sandbox`・`BookmarkScopeApp`・`BookmarkScopeDocument`・`Other`と、
+  `libs/macosutils/KisMacosSecurityBookmarkManager.h`の`SecurityBookmarkType` enum、`File`・`Directory`の全8 APIである。製品sourceと
+  Objective-C++実体を変更せず、許可pathは`libs/macosutils/CMakeLists.txt`と新規`libs/macosutils/KisMacosValuesContractTest.cpp`だけである。
+  安定した権限識別値とbookmark種別値の2枠とし、Qt Core・Testだけに接続する。予測4工程・9入力、停止5工程・12入力、製品`kritamacosutils`
+  12工程・19入力不変とする。対象をmacOS条件内へ登録し、他プラットフォームの構築面を変更しない。
+- 3実装担当の対象プラットフォームはmacOSである。担当作業ツリーは主作業ツリーの環境を`./scripts/run-shared-test-env`で共有し、構築権限は
   対象、全追加枠、20回反復、指定軽量近傍、無作業計画、動的接続、変更source構文、公開API検査、`verify-quick`に限定する。Git権限は許可pathだけの
   担当commitで、台帳と進捗は統合担当が所有する。許可path外、新規公開API、製品閉包増加、未割当て依存、停止線超過、製品shared library、
-  Qt Widgets、`kritatestsdk`、実画面・画像・資源・filesystem・外部process、製品意味論の試験内模倣が必要なら停止する。統合順は透視補助、媒体設定とする。
+  Qt Widgets、`kritatestsdk`、実画面・画像・資源・filesystem・外部process、OS権限実体、製品意味論の試験内模倣が必要なら停止する。統合順は
+  透視補助、媒体設定、macOS値とする。
 
 ### 第95並列便の監査計画
 
