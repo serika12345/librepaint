@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 20242
+    "expectedMissingApis": 20231
   },
   "contracts": [
     {
@@ -31148,6 +31148,62 @@
       "classification": "maintained",
       "apis": [
         "method:KisBSplines::KisBSpline2D::createResampledSpline(const Spline & other,int xSamples,int ySamples)"
+      ]
+    },
+    {
+      "target": "KisAslWriterUtilsContractTest",
+      "source": "libs/psdutils/tests/KisAslWriterUtilsContractTest.cpp",
+      "test": "KisAslWriterUtilsContractTest::writeExceptionPreservesDiagnostic",
+      "behavior": "ASL書込み例外は入力した診断文を標準例外のwhat文字列として保持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAslWriterUtils::ASLWriteException::ASLWriteException(const QString & msg)",
+        "struct:KisAslWriterUtils::ASLWriteException"
+      ]
+    },
+    {
+      "target": "KisAslWriterUtilsContractTest",
+      "source": "libs/psdutils/tests/KisAslWriterUtilsContractTest.cpp",
+      "test": "KisAslWriterUtilsContractTest::alignmentRoundsUpAtPowerOfTwoBoundaries",
+      "behavior": "ASL offset整列は整列済み位置を維持し、未整列位置を指定した2の累乗境界へ切り上げる。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisAslWriterUtils::alignOffsetCeil(qint64 pos,qint64 alignment)"
+      ]
+    },
+    {
+      "target": "KisAslWriterUtilsContractTest",
+      "source": "libs/psdutils/tests/KisAslWriterUtilsContractTest.cpp",
+      "test": "KisAslWriterUtilsContractTest::rectanglesUseRequestedByteOrder",
+      "behavior": "ASL矩形書込みは上、左、下、右の座標を指定したbig endianまたはlittle endianの32 bit列へ配置する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisAslWriterUtils::writeRect(const QRect & rect,QIODevice & device)"
+      ]
+    },
+    {
+      "target": "KisAslWriterUtilsContractTest",
+      "source": "libs/psdutils/tests/KisAslWriterUtilsContractTest.cpp",
+      "test": "KisAslWriterUtilsContractTest::stringsPreserveDeclaredBinaryLayouts",
+      "behavior": "ASL文字列書込みはUnicode終端、4文字時の可変長tag省略、Pascal長、固定4文字とbyte orderを宣言どおりのbyte列へ配置する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisAslWriterUtils::writeFixedString(const QString & value,QIODevice & device)",
+        "function:KisAslWriterUtils::writePascalString(const QString & value,QIODevice & device)",
+        "function:KisAslWriterUtils::writeUnicodeString(const QString & value,QIODevice & device)",
+        "function:KisAslWriterUtils::writeVarString(const QString & value,QIODevice & device)"
+      ]
+    },
+    {
+      "target": "KisAslWriterUtilsContractTest",
+      "source": "libs/psdutils/tests/KisAslWriterUtilsContractTest.cpp",
+      "test": "KisAslWriterUtilsContractTest::offsetPusherWritesSizesPaddingAndRestoresPosition",
+      "behavior": "ASL offset範囲管理は内部または外部size tagへpadding込みの範囲長を書き、破棄後に範囲末尾の位置へ復帰する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisAslWriterUtils::OffsetStreamPusher",
+        "method:KisAslWriterUtils::OffsetStreamPusher::OffsetStreamPusher(QIODevice & device,qint64 alignOnExit=0,qint64 externalSizeTagOffset=-1)",
+        "method:KisAslWriterUtils::OffsetStreamPusher::~OffsetStreamPusher()"
       ]
     }
   ]

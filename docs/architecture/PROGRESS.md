@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 01:39 JST
+- 更新日時: 2026-09-01 01:54 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -51,7 +51,7 @@
   開始ファイル`libs/pigment/KoColorConversionTransformation.cpp`は既に`kritapigmentcolorconversiontransformationobjects`から`kritapigment`へ
   一重集約済みで、変更は既存`libs/pigment/tests/KoMultipleColorConversionTransformationContractTest.cpp`だけに限定する。型・列挙・方針、所有寿命、
   二段、三段、別buffer配送の5枠とする。直接閉包6工程・14入力、停止7工程・17入力、製品`kritapigment` 360工程・750入力不変とする。
-- `g94-psd-writer-values`は`in_progress`で、専用作業ツリーは`/Users/masato/Documents/librepaint-g94-psd-writer-values`である。対象headerは
+- `g94-psd-writer-values`は`integrated`で、専用作業ツリーは`/Users/masato/Documents/librepaint-g94-psd-writer-values`である。対象headerは
   `libs/psdutils/asl/kis_asl_writer_utils.h`の`ASLWriteException` structと構築、`OffsetStreamPusher` classと構築・破棄、alignment、rect、Unicode、
   可変長、Pascal、固定長文字列書込みの11 APIである。`getPatternUuidLazy`は実`KoPattern`と未固定UUID生成を要するため本担当には含めない。header-onlyの
   ため製品source変更はなく、許可pathは`libs/psdutils/tests/CMakeLists.txt`と新規`libs/psdutils/tests/KisAslWriterUtilsContractTest.cpp`だけである。
@@ -81,6 +81,17 @@
 - dirty作業ツリーでの過去の直接`nix develop`評価が作成した、参照のない`librepaint-source` 15世代と対応するmacOS派生定義15件をNix storeから
   削除し、8,040 MiBを回収した。iOS成果物のGC rootから参照されるsource世代は保持した。以後の担当・主作業ツリー検査は既存の
   `./scripts/run-shared-test-env`を利用し、作業差分ごとの大容量source snapshotを作成しない。
+- `g94-psd-writer-values`は受渡しcommit `68c7300a3fbb5ae0f9051050f6dab6c7b384b3c5`を統合commit `e2a3600133`として取り込んだ。
+  header-onlyの`libs/psdutils/asl/kis_asl_writer_utils.h`は変更せず、`libs/psdutils/tests/CMakeLists.txt`から新規
+  `libs/psdutils/tests/KisAslWriterUtilsContractTest.cpp`を直接依存へ接続した。5契約枠で書込み例外の診断、2の累乗境界への整列、矩形の両byte order、
+  Unicode・可変長・Pascal・固定文字列のbyte配置、内部・外部size tagとpadding後のseek位置をQBuffer上で固定した。安全な11 APIを追加し、
+  `getPatternUuidLazy`は実`KoPattern`と未固定UUID生成を要するため残した。header宣言面に必要なQt Gui、KF I18n、Imathへ直接接続するが、製品
+  shared library、Qt Widgets、`kritatestsdk`、実資源、filesystemは接続しない。対象5工程・13入力、製品`kritapsdutils` 629工程・1,288入力を
+  維持した。主環境で対象、近傍2件、対象20回反復、無作業再構築、動的接続、公開API検査に成功した。受渡し差分同一性とcleanを確認後、局所
+  構築木261 MBを含む担当作業ツリー832 MBと担当branchを削除する。
+- 第94便は合計56 APIを新規11契約枠へ追加し、公開面は1,549ヘッダー、29,838 API、対応済み9,607件、未対応20,231件、契約枠2,328件となった。
+  全担当作業ツリーと直前の不足一覧を削除し、5.2 GBの主増分構築木、共有compiler cache、最新
+  `build/tdd-macos/public-api-missing-g95.json`だけを保持する。次はこの一覧から第95便の限定構築候補を並列監査する。
 
 ### 第93並列便の監査計画
 
