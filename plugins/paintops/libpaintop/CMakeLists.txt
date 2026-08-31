@@ -21,7 +21,6 @@ set(kritalibpaintop_LIB_SRCS
     KisMultiSensorsModel.cpp
     KisDynamicSensorFactoryRegistry.cpp
     KisSpacingOptionWidget.cpp
-    KisSpacingOptionData.cpp
     KisSpacingOptionModel.cpp
     KisSpacingOption.cpp
     KisMirrorOptionWidget.cpp
@@ -108,7 +107,6 @@ set(kritapaintopruntime_LIB_SRCS
     KisSharpnessOption.cpp
     KisSizeOptionData.cpp
     KisSpacingOption.cpp
-    KisSpacingOptionData.cpp
     KisTextureMaskInfo.cpp
     kis_brush_based_paintop.cpp
     kis_brush_based_paintop_settings.cpp
@@ -337,6 +335,22 @@ target_compile_definitions(kritapaintopscatteroptiondataobjects PRIVATE kritaglo
 target_include_directories(kritapaintopscatteroptiondataobjects PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}> $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}> $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global> $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global> $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/image> $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/image> $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment> $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/pigment>)
 target_link_libraries(kritapaintopscatteroptiondataobjects PUBLIC kritapaintopcurveoptiondataobjects kritapaintopcurveoptiondatacommonobjects kritapaintopkritasensorpackobjects)
 set_target_properties(kritapaintopscatteroptiondataobjects PROPERTIES AUTOMOC OFF POSITION_INDEPENDENT_CODE ON)
+add_library(kritapaintopspacingoptiondataobjects OBJECT KisSpacingOptionData.cpp)
+target_compile_definitions(kritapaintopspacingoptiondataobjects PRIVATE kritaglobal_EXPORTS kritaimage_EXPORTS kritalibpaintop_EXPORTS kritapigment_EXPORTS)
+target_include_directories(kritapaintopspacingoptiondataobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/image>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/image>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/pigment>
+    PRIVATE
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/image/brushengine>)
+target_link_libraries(kritapaintopspacingoptiondataobjects PUBLIC kritapaintopcurveoptiondataobjects kritapaintopcurveoptiondatacommonobjects kritapaintopkritasensorpackobjects)
+set_target_properties(kritapaintopspacingoptiondataobjects PROPERTIES AUTOMOC OFF POSITION_INDEPENDENT_CODE ON)
 target_compile_definitions(kritapaintopcurveoptiondataobjects PRIVATE
     kritaglobal_EXPORTS
     kritaimage_EXPORTS
@@ -832,6 +846,7 @@ kis_add_library(kritapaintopruntime OBJECT
     $<TARGET_OBJECTS:kritapaintopmirroroptiondataobjects>
     $<TARGET_OBJECTS:kritapaintopsharpnessoptiondataobjects>
     $<TARGET_OBJECTS:kritapaintopscatteroptiondataobjects>
+    $<TARGET_OBJECTS:kritapaintopspacingoptiondataobjects>
     $<TARGET_OBJECTS:kritapaintopkritasensorpackobjects>
     $<TARGET_OBJECTS:kritapaintoppaintingmodeoptiondataobjects>
     $<TARGET_OBJECTS:kritapaintopprecisionoptionobjects>
