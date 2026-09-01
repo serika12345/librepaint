@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 16722
+    "expectedMissingApis": 16677
   },
   "contracts": [
     {
@@ -38925,6 +38925,96 @@
       "apis": [
         "method:KoSnapGuide::setSnapDistance(int distance)",
         "method:KoSnapGuide::snapDistance() const"
+      ]
+    },
+    {
+      "target": "KisColorSourceSchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisColorSourceSchemaContractTest.cpp",
+      "test": "KisColorSourceSchemaContractTest::colorSourceHierarchyAndBaseProtocolSignaturesRemainStable",
+      "behavior": "paintop色源は基底と6派生の継承方向、基底の抽象性・仮想破棄、および色選択・変換・色空間・着色protocolの関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisColorSource",
+        "class:KisGradientColorSource",
+        "class:KisPlainColorSource",
+        "class:KisTotalRandomColorSource",
+        "class:KisUniformColorSource",
+        "class:KisUniformRandomColorSource",
+        "class:KoPatternColorSource",
+        "method:KisColorSource::applyColorTransformation(const KoColorTransformation * transfo)",
+        "method:KisColorSource::colorSpace() const",
+        "method:KisColorSource::colorize(KisPaintDeviceSP,const QRect & rect,const QPoint & _offset) const",
+        "method:KisColorSource::selectColor(double mix,const KisPaintInformation & pi)",
+        "method:KisColorSource::~KisColorSource()"
+      ]
+    },
+    {
+      "target": "KisColorSourceSchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisColorSourceSchemaContractTest.cpp",
+      "test": "KisColorSourceSchemaContractTest::uniformColorSourceTransformationSignaturesRemainStable",
+      "behavior": "均一色源は既定構築・仮想破棄と、色変換・色空間・着色・回転・寸法変更・色参照取得の関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisUniformColorSource::KisUniformColorSource()",
+        "method:KisUniformColorSource::applyColorTransformation(const KoColorTransformation * transfo)",
+        "method:KisUniformColorSource::colorSpace() const",
+        "method:KisUniformColorSource::colorize(KisPaintDeviceSP,const QRect & rect,const QPoint & offset) const",
+        "method:KisUniformColorSource::resize(double,double)",
+        "method:KisUniformColorSource::rotate(double)",
+        "method:KisUniformColorSource::uniformColor() const",
+        "method:KisUniformColorSource::~KisUniformColorSource()"
+      ]
+    },
+    {
+      "target": "KisColorSourceSchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisColorSourceSchemaContractTest.cpp",
+      "test": "KisColorSourceSchemaContractTest::selectedColorSourceVariantSignaturesRemainStable",
+      "behavior": "gradient、plain、uniform random色源は各構築引数、仮想破棄、および入力情報から色を選ぶ関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisGradientColorSource::KisGradientColorSource(const KoAbstractGradientSP gradient,const KoColorSpace * workingCS)",
+        "method:KisGradientColorSource::selectColor(double mix,const KisPaintInformation & pi)",
+        "method:KisGradientColorSource::~KisGradientColorSource()",
+        "method:KisPlainColorSource::KisPlainColorSource(const KoColor & backGroundColor,const KoColor & foreGroundColor)",
+        "method:KisPlainColorSource::selectColor(double mix,const KisPaintInformation & pi)",
+        "method:KisPlainColorSource::~KisPlainColorSource()",
+        "method:KisUniformRandomColorSource::KisUniformRandomColorSource()",
+        "method:KisUniformRandomColorSource::selectColor(double mix,const KisPaintInformation & pi)",
+        "method:KisUniformRandomColorSource::~KisUniformRandomColorSource()"
+      ]
+    },
+    {
+      "target": "KisColorSourceSchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisColorSourceSchemaContractTest.cpp",
+      "test": "KisColorSourceSchemaContractTest::totalRandomColorSourceSignaturesRemainStable",
+      "behavior": "全random色源は既定構築・仮想破棄と、色選択・変換・色空間・着色・回転・寸法変更の関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTotalRandomColorSource::KisTotalRandomColorSource()",
+        "method:KisTotalRandomColorSource::applyColorTransformation(const KoColorTransformation * transfo)",
+        "method:KisTotalRandomColorSource::colorSpace() const",
+        "method:KisTotalRandomColorSource::colorize(KisPaintDeviceSP,const QRect & rect,const QPoint & offset) const",
+        "method:KisTotalRandomColorSource::resize(double xs,double ys)",
+        "method:KisTotalRandomColorSource::rotate(double r)",
+        "method:KisTotalRandomColorSource::selectColor(double mix,const KisPaintInformation & pi)",
+        "method:KisTotalRandomColorSource::~KisTotalRandomColorSource()"
+      ]
+    },
+    {
+      "target": "KisColorSourceSchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisColorSourceSchemaContractTest.cpp",
+      "test": "KisColorSourceSchemaContractTest::patternColorSourceSignaturesRemainStable",
+      "behavior": "pattern色源はpaint device・寸法・lockを受け取る構築、仮想破棄、および色選択・変換・色空間・着色・回転・寸法変更の関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoPatternColorSource::KoPatternColorSource(KisPaintDeviceSP _pattern,int _width,int _height,bool _locked)",
+        "method:KoPatternColorSource::applyColorTransformation(const KoColorTransformation * transfo)",
+        "method:KoPatternColorSource::colorSpace() const",
+        "method:KoPatternColorSource::colorize(KisPaintDeviceSP,const QRect & rect,const QPoint & _offset) const",
+        "method:KoPatternColorSource::resize(double xs,double ys)",
+        "method:KoPatternColorSource::rotate(double r)",
+        "method:KoPatternColorSource::selectColor(double mix,const KisPaintInformation & pi)",
+        "method:KoPatternColorSource::~KoPatternColorSource()"
       ]
     }
   ]

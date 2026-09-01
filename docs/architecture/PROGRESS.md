@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 23:30 JST
+- 更新日時: 2026-09-01 23:44 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -70,6 +70,15 @@
   canvas・path・proxy・painter記号、構文・変更行書式、公開API・`verify-quick`を確認する。型特性と未評価式を越えてstrategy・shape・canvas・path・proxy・event・painterを
   生成または呼出し、`KoSnapStrategy.cpp`、製品OBJECT・shared、`kritatestsdk`、Qt Widgets、新link依存、CMake・公開header・製品source変更、製品計画差、停止線超過が
   必要なら止める。
+
+### 第132便の統合結果
+
+- `g132-color-source-schema`は受渡しcommit`aa9045cda44b`を統合commit`cb9e3b0ce2`として取り込んだ。開始
+  `plugins/paintops/libpaintop/kis_color_source.h`から新規`plugins/paintops/libpaintop/tests/KisColorSourceSchemaContractTest.cpp`の5枠へ、色源階層・基底protocol、
+  uniform色変換、選択色源variant、total random色源、pattern色源の45 APIを対応付け、所有CMakeへheader限定対象を追加した。対象4工程・8入力、製品
+  `kritalibpaintop` 2,110工程・4,218入力と各集合は変更前後一致し、色源・color・gradient・paint device・paint information・color space・変換・resource・乱数を
+  生成・実行していない。担当macOS環境と中央環境で対象CTest、担当環境で20回反復、近傍`KisDabCacheUtilsSchemaContractTest`、無作業再構築、動的接続・未解決記号、
+  構文・書式、公開API検査、`verify-quick`に成功した。公開API契約検査は29,838件中13,161件対応、16,677件未対応となった。
 
 ### 第131便の先行監査計画
 
