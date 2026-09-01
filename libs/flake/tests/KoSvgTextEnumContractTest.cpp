@@ -12,6 +12,7 @@
 
 #include <array>
 #include <type_traits>
+#include <utility>
 
 class KoSvgTextEnumContractTest : public QObject
 {
@@ -34,6 +35,11 @@ private Q_SLOTS:
     void lineHeightValueSchemaRemainsStable();
     void tabSizeValueSchemaRemainsStable();
     void lineHeightAndTabSizeConversionSignaturesRemainStable();
+    void characterTransformationValueSchemaRemainsStable();
+    void characterTransformationOperationSignaturesRemainStable();
+    void resolutionHandlerValueSchemaRemainsStable();
+    void resolutionHandlerConversionSignaturesRemainStable();
+    void resolutionHandlerAdjustmentSignaturesRemainStable();
     void graphicsContextStyleOrdinalsRemainStable();
     void graphicsContextFillAndStrokeStateKeepsPublicTypes();
     void graphicsContextClipTransformAndColorStateKeepsPublicTypes();
@@ -610,6 +616,137 @@ void KoSvgTextEnumContractTest::lineHeightAndTabSizeConversionSignaturesRemainSt
                                  TabSizeParserSignature>);
     static_assert(std::is_same_v<decltype(static_cast<TabSizeWriterSignature>(&KoSvgText::writeTabSize)),
                                  TabSizeWriterSignature>);
+}
+
+void KoSvgTextEnumContractTest::characterTransformationValueSchemaRemainsStable()
+{
+    using Transformation = KoSvgText::CharTransformation;
+    using OptionalScalar = boost::optional<qreal>;
+
+    static_assert(std::is_default_constructible_v<Transformation>);
+    static_assert(std::is_copy_constructible_v<Transformation>);
+    static_assert(std::is_copy_assignable_v<Transformation>);
+    static_assert(std::is_same_v<decltype(Transformation::xPos), OptionalScalar>);
+    static_assert(std::is_same_v<decltype(Transformation::yPos), OptionalScalar>);
+    static_assert(std::is_same_v<decltype(Transformation::dxPos), OptionalScalar>);
+    static_assert(std::is_same_v<decltype(Transformation::dyPos), OptionalScalar>);
+    static_assert(std::is_same_v<decltype(Transformation::rotate), OptionalScalar>);
+
+    Transformation empty;
+    QVERIFY(!empty.xPos);
+    QVERIFY(!empty.yPos);
+    QVERIFY(!empty.dxPos);
+    QVERIFY(!empty.dyPos);
+    QVERIFY(!empty.rotate);
+
+    Transformation source;
+    source.xPos = 1.25;
+    source.yPos = -2.5;
+    source.dxPos = 3.75;
+    source.dyPos = -4.5;
+    source.rotate = 0.625;
+
+    const Transformation copied(source);
+    Transformation assigned;
+    assigned = source;
+    source.xPos = 9.0;
+    assigned.dyPos = -11.0;
+
+    QCOMPARE(*copied.xPos, 1.25);
+    QCOMPARE(*copied.yPos, -2.5);
+    QCOMPARE(*copied.dxPos, 3.75);
+    QCOMPARE(*copied.dyPos, -4.5);
+    QCOMPARE(*copied.rotate, 0.625);
+    QCOMPARE(*assigned.xPos, 1.25);
+    QCOMPARE(*assigned.dyPos, -11.0);
+    QCOMPARE(*source.xPos, 9.0);
+    QCOMPARE(*source.dyPos, -4.5);
+}
+
+void KoSvgTextEnumContractTest::characterTransformationOperationSignaturesRemainStable()
+{
+    using Transformation = KoSvgText::CharTransformation;
+    using MergeSignature = void (Transformation::*)(const Transformation &);
+    using PredicateSignature = bool (Transformation::*)() const;
+    using PointSignature = QPointF (Transformation::*)() const;
+    using EqualitySignature = bool (Transformation::*)(const Transformation &) const;
+    using DebugSignature = QDebug (*)(QDebug, const Transformation &);
+
+    static_assert(std::is_same_v<decltype(&Transformation::mergeInParentTransformation), MergeSignature>);
+    static_assert(std::is_same_v<decltype(&Transformation::isNull), PredicateSignature>);
+    static_assert(std::is_same_v<decltype(&Transformation::startsNewChunk), PredicateSignature>);
+    static_assert(std::is_same_v<decltype(&Transformation::hasRelativeOffset), PredicateSignature>);
+    static_assert(std::is_same_v<decltype(&Transformation::absolutePos), PointSignature>);
+    static_assert(std::is_same_v<decltype(&Transformation::relativeOffset), PointSignature>);
+    static_assert(std::is_same_v<decltype(&Transformation::operator==), EqualitySignature>);
+    static_assert(std::is_same_v<decltype(static_cast<DebugSignature>(&KoSvgText::operator<<)), DebugSignature>);
+}
+
+void KoSvgTextEnumContractTest::resolutionHandlerValueSchemaRemainsStable()
+{
+    using Handler = KoSvgText::ResolutionHandler;
+
+    static_assert(std::is_copy_constructible_v<Handler>);
+    static_assert(std::is_same_v<decltype(Handler::xRes), qreal>);
+    static_assert(std::is_same_v<decltype(Handler::yRes), qreal>);
+    static_assert(std::is_same_v<decltype(Handler::roundToPixelHorizontal), bool>);
+    static_assert(std::is_same_v<decltype(Handler::roundToPixelVertical), bool>);
+    static_assert(std::is_same_v<decltype(Handler::freeTypePixel), const qreal>);
+    static_assert(std::is_same_v<decltype(Handler::pointInInch), const qreal>);
+
+    const Handler defaults;
+    QCOMPARE(defaults.xRes, 72.0);
+    QCOMPARE(defaults.yRes, 72.0);
+    QVERIFY(!defaults.roundToPixelHorizontal);
+    QVERIFY(!defaults.roundToPixelVertical);
+    QCOMPARE(defaults.freeTypePixel, 64.0);
+    QCOMPARE(defaults.pointInInch, 72.0);
+
+    Handler configured(144.0, 96.0, true, false);
+    const Handler copied(configured);
+    configured.xRes = 288.0;
+    configured.roundToPixelVertical = true;
+
+    QCOMPARE(copied.xRes, 144.0);
+    QCOMPARE(copied.yRes, 96.0);
+    QVERIFY(copied.roundToPixelHorizontal);
+    QVERIFY(!copied.roundToPixelVertical);
+    QCOMPARE(configured.xRes, 288.0);
+    QVERIFY(configured.roundToPixelVertical);
+}
+
+void KoSvgTextEnumContractTest::resolutionHandlerConversionSignaturesRemainStable()
+{
+    using Handler = KoSvgText::ResolutionHandler;
+    using FactorSignature = qreal (Handler::*)(bool) const;
+    using TransformSignature = QTransform (Handler::*)() const;
+
+    static_assert(std::is_default_constructible_v<Handler>);
+    static_assert(std::is_constructible_v<Handler, qreal, qreal, bool, bool>);
+    static_assert(std::is_same_v<decltype(&Handler::freeTypePixelToPointFactor), FactorSignature>);
+    static_assert(std::is_same_v<decltype(&Handler::freeTypeToPixelTransform), TransformSignature>);
+    static_assert(std::is_same_v<decltype(&Handler::freeTypeToPointTransform), TransformSignature>);
+    static_assert(std::is_same_v<decltype(&Handler::pointToPixelFactor), FactorSignature>);
+    static_assert(std::is_same_v<decltype(&Handler::pointToPixel), TransformSignature>);
+    static_assert(std::is_same_v<decltype(&Handler::pixelToPointFactor), FactorSignature>);
+    static_assert(std::is_same_v<decltype(&Handler::pixelToPoint), TransformSignature>);
+    static_assert(std::is_same_v<decltype(std::declval<const Handler &>().freeTypePixelToPointFactor()), qreal>);
+    static_assert(std::is_same_v<decltype(std::declval<const Handler &>().pointToPixelFactor()), qreal>);
+    static_assert(std::is_same_v<decltype(std::declval<const Handler &>().pixelToPointFactor()), qreal>);
+}
+
+void KoSvgTextEnumContractTest::resolutionHandlerAdjustmentSignaturesRemainStable()
+{
+    using Handler = KoSvgText::ResolutionHandler;
+    using PointSignature = QPointF (Handler::*)(QPointF) const;
+    using RectSignature = QRectF (Handler::*)(QRectF) const;
+    using OffsetSignature = QPointF (Handler::*)(QPointF, QPointF) const;
+
+    static_assert(std::is_same_v<decltype(static_cast<PointSignature>(&Handler::adjust)), PointSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<RectSignature>(&Handler::adjust)), RectSignature>);
+    static_assert(std::is_same_v<decltype(&Handler::adjustFloor), PointSignature>);
+    static_assert(std::is_same_v<decltype(&Handler::adjustCeil), PointSignature>);
+    static_assert(std::is_same_v<decltype(&Handler::adjustWithOffset), OffsetSignature>);
 }
 
 void KoSvgTextEnumContractTest::graphicsContextStyleOrdinalsRemainStable()
