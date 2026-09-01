@@ -2,12 +2,30 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 18:19 JST
+- 更新日時: 2026-09-01 18:21 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
+
+### 第125便の先行監査計画
+
+- 監査共通基点は`38c18c1bdf317fae4b172bc4fbde2d1d77f5b354`、入力は`build/tdd-macos/public-api-missing-g125.json`である。3担当は
+  `auditing`の読み取り専用とし、製品・試験・CMake・script・台帳・文書を変更せず、構築、試験、Git操作、追加委任も行わない。一つの公開責務から25 API以上を
+  最大5枠へ固定し、既存限定対象、header-only値面、または公開headerを変えない一sourceのOBJECT一対一移管で、製品共有ライブラリーと`kritatestsdk`へ接続しない
+  候補だけを採用する。
+- `g125-freehand-schema-audit`は`libs/painting/strokes/freehand_stroke.h`の残り47 APIを主候補とし、`libs/painting/kis_resources_snapshot.h`の45 APIを比較する。
+  strokeのflag、dab種別、job data値、callback署名を、実image、paint device、paintop、resource snapshot、stroke queue、描画、乱数、大域状態なしで25 API以上閉じる
+  一責務を選ぶ。
+- `g125-cursor-schema-audit`は`libs/widgetutils/kis_cursor.h`の残り44 APIを主候補とし、`libs/widgetutils/xmlgui/kxmlguiclient.h`の38 APIと
+  `libs/widgetutils/kis_icon_utils.h`の27 APIを比較する。cursorまたはUI資源の公開schemaを、widget実体、画面、event loop、icon・画像読込、cache、filesystem、
+  大域状態なしで25 API以上閉じる一責務を選ぶ。
+- `g125-psd-fill-schema-audit`は`libs/psd/psd_additional_layer_info_block.h`の残り43 APIを主候補とし、同headerの既存追加layer情報契約と
+  `libs/psd/psd_layer_record.h`の23 APIを比較する。塗り、文字、vector記録の値・公開関数型から一責務を選び、実ASL・PSD入出力、gradient・pattern・shape・resource、
+  filesystemを生成・実行しない。
+- 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから
+  契約先または移動先、許可path、固有停止条件、比較候補の棄却根拠を含む。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
 
 ### 第124便の先行監査計画
 
