@@ -2,12 +2,29 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 09:40 JST
+- 更新日時: 2026-09-01 09:44 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
+
+### 第106並列便の監査計画
+
+- 共通基点は`d97935a4c1`、入力は`build/tdd-macos/public-api-missing-g106.json`である。3担当は`auditing`の読み取り専用とし、製品・試験・CMake・
+  台帳・文書を変更せず、構築、試験、Git操作、追加委任も行わない。一つの公開責務から25 API以上を最大5契約枠へ固定し、既存限定対象、header-only値面、
+  または公開headerを変えない一sourceのOBJECT一対一移管で製品shared libraryと`kritatestsdk`へ接続せず閉じる候補だけを採用する。
+- `g106-svg-layout-result-audit`は`libs/flake/text/KoSvgTextShape_p.h`の`CharacterResult` structと公開member約40 APIを主候補とし、
+  `CursorInfo`・`CursorPos`・`Glyph`値群と比較する。レイアウト結果の既定値・公開型・代入・copy独立性を実shape、font registry、描画なしで閉じる一責務を選ぶ。
+- `g106-opengl-config-values-audit`は`libs/ui/opengl/kis_opengl.h`の4列挙、全列挙子、flag alias、`RendererConfig`型・memberの24 APIを核に、
+  `rendererId`と純粋config文字列変換を含め25 API以上へ拡張できるか監査する。実OpenGL context・driver、大域初期化、`KisConfig` I/Oは使わず、必要なら
+  `libs/ui/opengl/kis_opengl.cpp`から純粋本文だけを一sourceへ移管する。
+- `g106-derived-resource-values-audit`は`libs/ui/resources/kis_derived_resources.h`の60 APIから、size、flow、fade、scatter、brush rotation、
+  preset opacity、brush name等の数値・bool・文字列派生資源変換器を比較する。実preset、資源registry、paint device、大域状態なしで往復・境界・型変換を
+  固定できる25 API以上の一責務を選び、必要なら選択群の本文だけを一source OBJECTへ移管する。
+- 各報告は完全なAPI識別子、最大5枠の観測挙動、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし計画、製品計画、予測工程・入力と停止線、
+  開始pathから追加・移動先pathへの対応、許可path、固有停止条件、比較・除外候補の根拠を含む。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを
+  担当票へ進める。
 
 ### 第105並列便の監査計画
 
