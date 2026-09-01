@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 10:57 JST
+- 更新日時: 2026-09-01 11:06 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -217,6 +217,19 @@
   paint device・shape・font registry・描画・大域乱数へ到達する経路は除外し、必要な本文分離は公開headerを変えない一source一対一移管だけを許容する。
 - 各報告は完全なAPI識別子、最大5枠の観測挙動、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、
   開始pathから追加・移動先path、許可path、固有停止条件、比較・除外候補の根拠を含む。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
+- `g109-config-schema-audit`は`kis_config.h`のキャンバス入力・pointer処理設定schema 40 APIを採用した。移動gesture 12、入力profile・pointer backend・筆圧10、
+  tablet event選別・計測12、手ぶれ補正入力4、選択修飾key 2を既存`KisConfigEnumContractTest`の5枠へ追加する。未評価の関数型と既定引数検査だけを用い、対象
+  4工程・15入力、製品`kritaapplication` 1,223工程・2,464入力を維持する。animationは24 API、文書既定値は22 APIで下限未達、表示性能は25 APIでも
+  複数責務を混在し、Android限定6 APIはmacOS宣言面に存在しないため除外した。
+- `g109-psd-record-values-audit`は`psd_resource_block.h`のimage-resource局所値とmemory内byte変換27 APIを採用した。基底resource既定方針7、
+  解像度recordのschema・既定値・copy 14、解像度byte往復2、ICC byte recordの既定値・copy 2、memory内変換2を既存`PsdFormatValuesContractTest`の5枠へ
+  追加する。開始`libs/psd/psd_resource_block.cpp`から選択4定義だけを新規`libs/psd/psd_resource_value_records.cpp`へ一対一移管する。限定対象は5工程・
+  12入力から6工程・14入力、製品`kritapsd`は1,977工程・3,952入力から1,978工程・3,954入力を予測する。`psd_layer_record.h`の安全面は21 API、
+  additional-layer残余の安全面は24 APIで下限未達であり、生pointer所有、色空間registry、ASLへ広げず除外した。
+- `g109-interaction-values-audit`は`KoSvgText.h`のCSS・SVG列挙値と正規文字列の純粋変換27 APIを採用した。書字方向・双方向制御6、文字方向・anchor・整列7、
+  改行・単語分割・長さ調整6、text-path選択6、描画品質2を新規5枠へ固定する。開始`libs/flake/text/KoSvgText.cpp`から選択27定義だけを新規
+  `libs/flake/text/KoSvgTextEnumConversions.cpp`へ一対一移管し、限定対象5工程・約10入力、製品側3工程・3変更入力を予測する。`ToolTransformArgs`は安全な
+  構築経路が大域設定・filter registryへ到達し、`KisPaintInformation`はPIMPLのprivate header化か複数source再構成を要求するため、この便では棄却した。
 
 ### 第105並列便の監査計画
 
