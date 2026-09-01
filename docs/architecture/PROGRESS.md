@@ -35,6 +35,36 @@
 - 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから
   契約先または移動先、許可path、固有停止条件、比較候補の棄却根拠を含む。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
 
+### 第123便の担当計画
+
+- 実装共通基点はこの担当票commitとする。3担当は`planned`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの
+  `transport-commit`、追加委任は禁止する。専用worktree-local `build/tdd-macos`と`./scripts/run-shared-test-env`で主環境・compiler cacheを共有する。
+  統合順はSVG cursor、slider spin box、libkis gridとし、調整担当だけが台帳、進捗文書、不足報告を変更する。3担当の公開header、所有CMake、試験source、生成物は
+  重ならない。
+- `g123-svg-cursor-schema`は`/Users/masato/Documents/librepaint-g123-svg-cursor-schema`を所有する。開始
+  `plugins/tools/svgtexttool/SvgTextCursor.h`から既存`plugins/tools/svgtexttool/tests/SvgTextCursorEnumContractTest.cpp`の5枠
+  `cursorPositionAndNavigationSignaturesRemainStable`、`cursorSelectionSignaturesRemainStable`、`cursorEditingSignaturesRemainStable`、
+  `cursorInputAndFocusSignaturesRemainStable`、`cursorEditingStateSignaturesRemainStable`へ全28 APIを対応付け、他pathを変更しない。対象4工程・14入力、
+  停止5工程・17入力、製品`krita_tool_svgtext_static` 2,010工程・4,018入力と保留集合の完全一致を確認する。5枠の未知関数診断、対象CTest、20回反復、
+  `KoSvgTextEnumContractTest`、no-work、動的接続、未解決cursor記号、構文・書式・公開API・`verify-quick`を確認する。実cursor、shape、canvas、文字配置、font、undo、
+  clipboard、IME、event、timer、signal、製品OBJECT・shared、`kritatestsdk`、新依存、CMake・公開header・製品source変更、製品計画差、停止線超過が必要なら止める。
+- `g123-slider-spin-schema`は`/Users/masato/Documents/librepaint-g123-slider-spin-schema`を所有する。開始
+  `libs/widgetutils/kis_slider_spin_box.h`から新規`libs/widgetutils/tests/KisSliderSpinBoxSchemaContractTest.cpp`の5枠
+  `sliderSpinValueAndRangeSignaturesRemainStable`、`sliderSpinSoftRangeReadSignaturesRemainStable`、`sliderSpinSoftRangeWriteSignaturesRemainStable`、
+  `sliderSpinStepSignaturesRemainStable`、`sliderSpinExponentSignaturesRemainStable`へ全27 APIを対応付け、`libs/widgetutils/tests/CMakeLists.txt`だけを併せて変更する。
+  最初の期待診断は未知target、予測4工程・8入力、停止5工程・11入力、製品`kritawidgetutils` 273工程・579入力と保留集合の完全一致を確認する。5枠、対象CTest、
+  20回反復、整数・実数parse spin box契約、no-work、動的接続、未解決widget記号、構文・書式・公開API・`verify-quick`を確認する。widget実体、constructor・destructor、
+  method実行、関数address値生成、QApplication、event loop、signal、style、metaobject、製品OBJECT・shared、`kritatestsdk`、新しいKF依存、公開header・製品source・
+  製品CMake変更、製品計画差、停止線超過が必要なら止める。
+- `g123-grid-config-schema`は`/Users/masato/Documents/librepaint-g123-grid-config-schema`を所有する。開始`libs/libkis/GridConfig.h`から新規
+  `libs/libkis/tests/GridConfigSchemaContractTest.cpp`の5枠`gridIdentityAndVisibilityPolicySignaturesRemainStable`、
+  `rectangularGridSpacingAndOffsetSignaturesRemainStable`、`isometricGridGeometrySignaturesRemainStable`、`gridLinePresentationSignaturesRemainStable`、
+  `gridColorPresentationSignaturesRemainStable`へ全49 APIを対応付け、`libs/libkis/tests/CMakeLists.txt`だけを併せて変更する。最初の期待診断は未知target、予測4工程・
+  8入力、停止5工程・10入力、製品`kritalibkis` 2,015工程・4,028入力と保留集合の完全一致を確認する。5枠、対象CTest、20回反復、
+  `KisGridConfigValueContractTest`、no-work、動的接続、未解決grid記号、構文・書式・公開API・`verify-quick`を確認する。`GridConfig`・`KisGridConfig`実体、
+  constructor・destructor、method・metaobject、Document、view、canvas、XML、設定I/O、scripting、製品OBJECT・shared、`kritatestsdk`、Qt Widgets、新依存、公開header・
+  製品source・製品CMake変更、製品計画差、停止線超過が必要なら止める。
+
 ### 第122便の先行監査計画
 
 - 監査共通基点は`14e4030b8858d6526fca3d89bc5c1637dff10175`、入力は`build/tdd-macos/public-api-missing-g122.json`である。3担当は`auditing`の
