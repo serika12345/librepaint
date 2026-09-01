@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 21:36 JST
+- 更新日時: 2026-09-01 21:42 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -25,8 +25,8 @@
   1,226工程・2,470入力を維持する。preferences側は単一の局所責務が最大15 APIで、25 APIへ達するには複数画面の寿命・状態を混在させるため棄却した。
 - `g129-svg-util-schema-audit`は`SvgUtil.h`のSVG view座標・縦横比・数値字句25 APIを採用した。縦横比schema 10、解析・整形・変換4、user space恒等変換5、
   object bounding box変換4、数値字句・list正規化2を新規`SvgUtilViewGeometryContractTest`の具体値5枠へ追加する。`SvgUtil.cpp`から新規
-  `SvgUtilViewGeometry.cpp`へ公開method 14定義と非公開helper 3定義を本文不変で移し、新規OBJECTを製品と限定試験へ一対一収容する。新対象5工程・10入力、
-  停止6工程・13入力、製品`kritaflake` 620工程・1,272入力から621工程・1,274入力、停止622/1,277とする。`KoPointerEvent.h`はeventなしでは39 API中34 APIが
+  `SvgUtilViewGeometry.cpp`へ公開method 15定義と非公開helper 3定義を本文不変で移し、新規OBJECTを製品と限定試験へ一対一収容する。新対象5工程・11入力、
+  停止6工程・14入力、製品`kritaflake` 620工程・1,272入力から621工程・1,274入力、停止622/1,277とする。`KoPointerEvent.h`はeventなしでは39 API中34 APIが
   未評価型検査に留まり、具体観測にはevent・設定大域状態が必要となるため棄却した。
 - `g129-mask-iterator-schema-audit`は`kis_sequential_iterator.h`の全39 APIを採用した。型・alias 9、device policy 6、read/write access policy 11、
   no-progress policy 3、逐次移動10を既存`KisImageTypesContractTest`の未評価型5枠へ追加する。対象4工程・8入力、停止5工程・10入力、製品`kritaimage`
@@ -51,12 +51,12 @@
   書式・公開API・`verify-quick`を確認する。設定・document・image・KConfig・QSettings実体、constructor・destructor・method本文、設定I/O、filesystem、大域状態、画面、
   製品OBJECT・shared、`kritatestsdk`、新依存、許可外変更、製品計画差、停止線超過が必要なら止める。
 - `g129-svg-view-geometry`は`/Users/masato/Documents/librepaint-g129-svg-view-geometry`を所有する。開始`libs/flake/svg/SvgUtil.cpp`から新規
-  `libs/flake/svg/SvgUtilViewGeometry.cpp`へ縦横比、user space、object bounding box、数値字句・list正規化の公開method 14定義と非公開helper 3定義を本文不変で移し、
+  `libs/flake/svg/SvgUtilViewGeometry.cpp`へ縦横比、user space、object bounding box、数値字句・list正規化の公開method 15定義と非公開helper 3定義を本文不変で移し、
   新規`kritaflakesvgutilviewgeometryobjects`を製品と限定試験へ一対一収容する。`libs/flake/svg/SvgUtil.h`から新規
   `libs/flake/tests/SvgUtilViewGeometryContractTest.cpp`の5枠`preserveAspectRatioSchemaAndDefaultsRemainStable`、
   `preserveAspectRatioParsingFormattingAndTransformRemainStable`、`userSpaceIdentityConversionsRemainStable`、`objectBoundingBoxConversionsRemainStable`、
   `numberLexingAndListNormalizationRemainStable`へ25 APIを対応付ける。許可pathは上記3 sourceと`libs/flake/CMakeLists.txt`、`libs/flake/tests/CMakeLists.txt`だけである。
-  新対象`SvgUtilViewGeometryContractTest`は5工程・10入力、停止6工程・13入力、近傍は`SvgTransformParserContractTest`、製品`kritaflake`は620工程・1,272入力から
+  新対象`SvgUtilViewGeometryContractTest`は5工程・11入力、停止6工程・14入力、近傍は`SvgTransformParserContractTest`、製品`kritaflake`は620工程・1,272入力から
   621工程・1,274入力、停止622/1,277とする。未知target、先行未定義link、5枠、対象CTest、20回反復、近傍、no-work、動的接続、25記号の単一定義、構文・書式・
   公開API・`verify-quick`を確認する。本文修正、公開header、追加OBJECT・source、shape・canvas・document・font registry・描画・XML実体・大域状態、製品shared、
   `kritatestsdk`、新依存、説明外の製品計画差、停止線超過が必要なら止める。
