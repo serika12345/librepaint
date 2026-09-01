@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 13:27 JST
+- 更新日時: 2026-09-01 13:29 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -655,6 +655,24 @@
 - 受渡しpatchの同一性と3 worktreeのclean状態を確認後、資源担当851 MB、grid担当849 MB、標準action担当850 MBの作業木とbranchを削除して約2.55 GBを
   回収した。新報告の生成成功後に旧`public-api-missing-g115.json` 4.6 MBも削除した。主`build/tdd-macos`、共有compiler cache、最新不足報告は次便の
   限定構築へ再利用する。
+
+### 第116便の先行監査計画
+
+- 共通基点は`cdd368c1ef7fa00d78d0386a8b4570273af43399`、入力は`build/tdd-macos/public-api-missing-g116.json`である。3担当は`auditing`の
+  読み取り専用とし、製品・試験・CMake・script・台帳・文書を変更せず、構築、試験、Git操作、追加委任も行わない。一つの公開責務から25 API以上を
+  最大5枠へ固定し、既存限定対象、header-only値面、または公開headerを変えない一sourceのOBJECT一対一移管で製品共有ライブラリーと`kritatestsdk`へ
+  接続しない候補だけを採用する。
+- `g116-application-config-audit`は`libs/application/kis_config.h`の残り264 APIを、文書既定値、animation・再生、表示性能、保存・復元等の設定責務に分け、
+  既存`KisConfigEnumContractTest`の未評価関数型検査へ25 API以上を5枠以内で追加できる一責務を選ぶ。`KisConfig`、KConfigGroup、`QSettings`、画面形式を
+  生成・呼出しせず、既存限定対象と製品`kritaapplication`の変更なし計画を維持する。
+- `g116-image-config-audit`は`libs/image/kis_image_config.h`の105 APIを、animation cache・onion skin、memory・swap、描画patch、選択表示等の設定責務に分け、
+  既存の限定契約または新規header限定対象へ25 API以上を5枠以内で固定できる一責務を選ぶ。設定実体、KConfigGroup、filesystem、全体RAM・CPU検出を
+  実行せず、関数型・既定引数・const性だけで閉じる候補を優先する。
+- `g116-psd-record-audit`は`libs/psdutils/psd.h`の残り169 API、`libs/psd/psd_additional_layer_info_block.h`の80 API、
+  `libs/psd/psd_resource_block.h`の残りを比較し、第99〜115便と重ならない列挙、記録値、既定値、符号付き寸法、copyの一責務を選ぶ。実image・paint device、
+  色空間・資源registry、ASL、filesystem、生pointer所有へ到達する経路は採用しない。
+- 各報告は完全なAPI識別子、最大5枠の観測挙動、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから
+  契約先または移動先、許可path、固有停止条件、比較候補の棄却根拠を含む。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
 
 ### 第105並列便の監査計画
 
