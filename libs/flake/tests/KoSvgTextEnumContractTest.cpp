@@ -45,6 +45,11 @@ private Q_SLOTS:
     void graphicsContextClipTransformAndColorStateKeepsPublicTypes();
     void graphicsContextSpatialVisibilityAndResolutionStateKeepsPublicTypes();
     void graphicsContextMarkerTextAndPaintStateKeepsPublicTypes();
+    void textPropertyValueTypeAndLifetimeSchemaRemainsStable();
+    void textPropertyValueMapSchemaRemainsStable();
+    void textPropertyInheritanceAndScalingSchemaRemainsStable();
+    void textPropertyInterchangeAndFontProjectionSchemaRemainsStable();
+    void textPropertyMetricsAndSurfaceSchemaRemainsStable();
 };
 
 void KoSvgTextEnumContractTest::layoutEnumsRemainOrdered()
@@ -808,6 +813,158 @@ void KoSvgTextEnumContractTest::graphicsContextMarkerTextAndPaintStateKeepsPubli
     static_assert(std::is_same_v<decltype(&SvgGraphicsContext::shapeInsideValue), QString SvgGraphicsContext::*>);
     static_assert(std::is_same_v<decltype(&SvgGraphicsContext::shapeSubtractValue), QString SvgGraphicsContext::*>);
     static_assert(std::is_same_v<decltype(&SvgGraphicsContext::paintOrder), QString SvgGraphicsContext::*>);
+}
+
+void KoSvgTextEnumContractTest::textPropertyValueTypeAndLifetimeSchemaRemainsStable()
+{
+    using Properties = KoSvgTextProperties;
+    using AssignmentSignature = Properties &(Properties::*)(const Properties &);
+    using EqualitySignature = bool (Properties::*)(const Properties &) const;
+
+    static_assert(std::is_class_v<Properties>);
+    static_assert(std::is_default_constructible_v<Properties>);
+    static_assert(std::is_copy_constructible_v<Properties>);
+    static_assert(std::is_destructible_v<Properties>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<AssignmentSignature>(&Properties::operator=)), AssignmentSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<EqualitySignature>(&Properties::operator==)), EqualitySignature>);
+
+    QVERIFY(true);
+}
+
+void KoSvgTextEnumContractTest::textPropertyValueMapSchemaRemainsStable()
+{
+    using Properties = KoSvgTextProperties;
+    using PropertyId = Properties::PropertyId;
+    using SetPropertySignature = void (Properties::*)(PropertyId, const QVariant &);
+    using HasPropertySignature = bool (Properties::*)(PropertyId) const;
+    using PropertySignature = QVariant (Properties::*)(PropertyId, const QVariant &) const;
+    using RemovePropertySignature = void (Properties::*)(PropertyId);
+    using PropertyOrDefaultSignature = QVariant (Properties::*)(PropertyId) const;
+    using PropertiesSignature = QList<PropertyId> (Properties::*)() const;
+    using IsEmptySignature = bool (Properties::*)() const;
+    using DefaultPropertiesSignature = const Properties &(*)();
+    using PropertyIsBlockOnlySignature = bool (*)(PropertyId);
+    using PropertyIsInheritableSignature = bool (Properties::*)(PropertyId) const;
+
+    static_assert(
+        std::is_same_v<decltype(static_cast<SetPropertySignature>(&Properties::setProperty)), SetPropertySignature>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<HasPropertySignature>(&Properties::hasProperty)), HasPropertySignature>);
+    static_assert(std::is_same_v<decltype(static_cast<PropertySignature>(&Properties::property)), PropertySignature>);
+    static_assert(
+        std::is_same_v<decltype(std::declval<const Properties &>().property(std::declval<PropertyId>())), QVariant>);
+    static_assert(std::is_same_v<decltype(static_cast<RemovePropertySignature>(&Properties::removeProperty)),
+                                 RemovePropertySignature>);
+    static_assert(std::is_same_v<decltype(static_cast<PropertyOrDefaultSignature>(&Properties::propertyOrDefault)),
+                                 PropertyOrDefaultSignature>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<PropertiesSignature>(&Properties::properties)), PropertiesSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<IsEmptySignature>(&Properties::isEmpty)), IsEmptySignature>);
+    static_assert(std::is_same_v<decltype(static_cast<DefaultPropertiesSignature>(&Properties::defaultProperties)),
+                                 DefaultPropertiesSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<PropertyIsBlockOnlySignature>(&Properties::propertyIsBlockOnly)),
+                                 PropertyIsBlockOnlySignature>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<PropertyIsInheritableSignature>(&Properties::propertyIsInheritable)),
+                       PropertyIsInheritableSignature>);
+
+    QVERIFY(true);
+}
+
+void KoSvgTextEnumContractTest::textPropertyInheritanceAndScalingSchemaRemainsStable()
+{
+    using Properties = KoSvgTextProperties;
+    using PropertyId = Properties::PropertyId;
+    using ResetSignature = void (Properties::*)();
+    using InheritSignature = void (Properties::*)(const Properties &, bool, bool);
+    using ResolveSignature = void (Properties::*)(KoSvgText::FontMetrics, qreal, bool);
+    using InheritsSignature = bool (Properties::*)(PropertyId, const Properties &) const;
+    using PredicateSignature = bool (Properties::*)() const;
+    using SetInheritedSignature = void (Properties::*)(const Properties &);
+    using ScaleSignature = void (Properties::*)(double, double);
+    using OwnPropertiesSignature = Properties (Properties::*)(const Properties &, bool) const;
+
+    static_assert(std::is_same_v<decltype(static_cast<ResetSignature>(&Properties::resetNonInheritableToDefault)),
+                                 ResetSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<InheritSignature>(&Properties::inheritFrom)), InheritSignature>);
+    static_assert(
+        std::is_same_v<decltype(std::declval<Properties &>().inheritFrom(std::declval<const Properties &>())), void>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<ResolveSignature>(&Properties::resolveRelativeValues)), ResolveSignature>);
+    static_assert(std::is_same_v<decltype(std::declval<Properties &>().resolveRelativeValues()), void>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<InheritsSignature>(&Properties::inheritsProperty)), InheritsSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<PredicateSignature>(&Properties::hasNonInheritableProperties)),
+                                 PredicateSignature>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<SetInheritedSignature>(&Properties::setAllButNonInheritableProperties)),
+                       SetInheritedSignature>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<ScaleSignature>(&Properties::scaleAbsoluteValues)), ScaleSignature>);
+    static_assert(std::is_same_v<decltype(std::declval<Properties &>().scaleAbsoluteValues()), void>);
+    static_assert(std::is_same_v<decltype(static_cast<OwnPropertiesSignature>(&Properties::ownProperties)),
+                                 OwnPropertiesSignature>);
+    static_assert(
+        std::is_same_v<decltype(std::declval<const Properties &>().ownProperties(std::declval<const Properties &>())),
+                       Properties>);
+
+    QVERIFY(true);
+}
+
+void KoSvgTextEnumContractTest::textPropertyInterchangeAndFontProjectionSchemaRemainsStable()
+{
+    using Properties = KoSvgTextProperties;
+    using ParseSignature = void (Properties::*)(const SvgLoadingContext &, const QString &, const QString &);
+    using ConvertSignature = QMap<QString, QString> (Properties::*)() const;
+    using SupportedAttributesSignature = QStringList (*)();
+    using FontFeaturesSignature = QStringList (Properties::*)(int, int) const;
+    using CssFontInfoSignature = KoCSSFontInfo (Properties::*)() const;
+    using GenerateFontSignature = QFont (Properties::*)() const;
+
+    static_assert(
+        std::is_same_v<decltype(static_cast<ParseSignature>(&Properties::parseSvgTextAttribute)), ParseSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<ConvertSignature>(&Properties::convertToSvgTextAttributes)),
+                                 ConvertSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<ConvertSignature>(&Properties::convertParagraphProperties)),
+                                 ConvertSignature>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<SupportedAttributesSignature>(&Properties::supportedXmlAttributes)),
+                       SupportedAttributesSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<FontFeaturesSignature>(&Properties::fontFeaturesForText)),
+                                 FontFeaturesSignature>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<CssFontInfoSignature>(&Properties::cssFontInfo)), CssFontInfoSignature>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<GenerateFontSignature>(&Properties::generateFont)), GenerateFontSignature>);
+
+    QVERIFY(true);
+}
+
+void KoSvgTextEnumContractTest::textPropertyMetricsAndSurfaceSchemaRemainsStable()
+{
+    using Properties = KoSvgTextProperties;
+    using XHeightSignature = qreal (Properties::*)() const;
+    using MetricsSignature = KoSvgText::FontMetrics (Properties::*)(bool, bool) const;
+    using ApplyLineHeightSignature = KoSvgText::FontMetrics (Properties::*)(KoSvgText::FontMetrics) const;
+    using BackgroundSignature = QSharedPointer<KoShapeBackground> (Properties::*)() const;
+    using StrokeSignature = KoShapeStrokeModelSP (Properties::*)() const;
+    using FontSizeSignature = KoSvgText::CssLengthPercentage (Properties::*)() const;
+    using SetFontSizeSignature = void (Properties::*)(KoSvgText::CssLengthPercentage);
+
+    static_assert(std::is_same_v<decltype(static_cast<XHeightSignature>(&Properties::xHeight)), XHeightSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<MetricsSignature>(&Properties::metrics)), MetricsSignature>);
+    static_assert(std::is_same_v<decltype(std::declval<const Properties &>().metrics()), KoSvgText::FontMetrics>);
+    static_assert(std::is_same_v<decltype(static_cast<ApplyLineHeightSignature>(&Properties::applyLineHeight)),
+                                 ApplyLineHeightSignature>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<BackgroundSignature>(&Properties::background)), BackgroundSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<StrokeSignature>(&Properties::stroke)), StrokeSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<FontSizeSignature>(&Properties::fontSize)), FontSizeSignature>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<SetFontSizeSignature>(&Properties::setFontSize)), SetFontSizeSignature>);
+
+    QVERIFY(true);
 }
 
 QTEST_GUILESS_MAIN(KoSvgTextEnumContractTest)
