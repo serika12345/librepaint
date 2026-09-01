@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 21:31 JST
+- 更新日時: 2026-09-01 21:34 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -20,6 +20,17 @@
   pointer入力値の一責務を、XML・graphics context・shape・canvas・event・画面・描画・大域状態の実体化なしで25 API以上閉じる。
 - `g129-mask-iterator-schema-audit`は`libs/image/kis_base_mask_generator.h`の残り39 APIを主候補とし、`libs/image/kis_sequential_iterator.h`の39 APIを比較する。
   mask生成schemaまたは逐次pixel反復schemaの一責務を、mask applicator・paint device・pixel buffer・進捗・XML・描画・大域状態の実体化なしで25 API以上閉じる。
+- `g129-config-document-schema-audit`は`kis_config.h`の既定document・保存・undo履歴設定36 APIを採用した。寸法6、色空間6、背景・layer 6、KRA保存8、
+  autosave・undo 10を既存`KisConfigEnumContractTest`の未評価型5枠へ追加する。対象4工程・15入力、停止5工程・18入力、製品`kritaapplication`
+  1,226工程・2,470入力を維持する。preferences側は単一の局所責務が最大15 APIで、25 APIへ達するには複数画面の寿命・状態を混在させるため棄却した。
+- `g129-svg-util-schema-audit`は`SvgUtil.h`のSVG view座標・縦横比・数値字句25 APIを採用した。縦横比schema 10、解析・整形・変換4、user space恒等変換5、
+  object bounding box変換4、数値字句・list正規化2を新規`SvgUtilViewGeometryContractTest`の具体値5枠へ追加する。`SvgUtil.cpp`から新規
+  `SvgUtilViewGeometry.cpp`へ公開method 14定義と非公開helper 3定義を本文不変で移し、新規OBJECTを製品と限定試験へ一対一収容する。新対象5工程・10入力、
+  停止6工程・13入力、製品`kritaflake` 620工程・1,272入力から621工程・1,274入力、停止622/1,277とする。`KoPointerEvent.h`はeventなしでは39 API中34 APIが
+  未評価型検査に留まり、具体観測にはevent・設定大域状態が必要となるため棄却した。
+- `g129-mask-iterator-schema-audit`は`kis_sequential_iterator.h`の全39 APIを採用した。型・alias 9、device policy 6、read/write access policy 11、
+  no-progress policy 3、逐次移動10を既存`KisImageTypesContractTest`の未評価型5枠へ追加する。対象4工程・8入力、停止5工程・10入力、製品`kritaimage`
+  1,195工程・2,414入力を維持する。mask generatorは公開header読込みだけで`KoID`と翻訳記号の大域初期化へ接続し、既存試験も製品全体へ接続するため棄却した。
 - 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから契約先または
   移動先、許可path、固有停止条件、比較候補の棄却根拠を含む。既存`build/tdd-macos`の計画は読み取り専用で測定し、構成や構築を開始しない。3報告後にpath、CMake、
   試験source、生成物が重ならない候補だけを担当票へ進める。
