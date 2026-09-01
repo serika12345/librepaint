@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 16793
+    "expectedMissingApis": 16760
   },
   "contracts": [
     {
@@ -38764,6 +38764,84 @@
         "function:KisDabCacheUtils::correctDabRectWhenFetchedFromCache(const QRect & dabRect,const QSize & realDabSize)",
         "function:KisDabCacheUtils::generateDab(const DabGenerationInfo & di,DabRenderingResources * resources,KisFixedPaintDeviceSP * dab,bool forceImageStamp=false)",
         "function:KisDabCacheUtils::postProcessDab(KisFixedPaintDeviceSP dab,const QPoint & dabTopLeft,const KisPaintInformation & info,DabRenderingResources * resources)"
+      ]
+    },
+    {
+      "target": "KisFrameDataSerializerSchemaContractTest",
+      "source": "libs/canvas/tests/KisFrameDataSerializerSchemaContractTest.cpp",
+      "test": "KisFrameDataSerializerSchemaContractTest::frameTileMemberSchemaRemainsStable",
+      "behavior": "FrameTileは列、行、矩形、tile data bufferの公開member型から成る値schemaを維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisFrameDataSerializer::FrameTile::col",
+        "member:KisFrameDataSerializer::FrameTile::data",
+        "member:KisFrameDataSerializer::FrameTile::rect",
+        "member:KisFrameDataSerializer::FrameTile::row",
+        "struct:KisFrameDataSerializer::FrameTile"
+      ]
+    },
+    {
+      "target": "KisFrameDataSerializerSchemaContractTest",
+      "source": "libs/canvas/tests/KisFrameDataSerializerSchemaContractTest.cpp",
+      "test": "KisFrameDataSerializerSchemaContractTest::frameTileLifecycleAndBufferSignaturesRemainStable",
+      "behavior": "FrameTileはtile poolからの明示的構築、move可能・copy禁止の寿命特性、およびcloneと妥当性検査の関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisFrameDataSerializer::FrameTile::FrameTile(FrameTile && rhs)",
+        "method:KisFrameDataSerializer::FrameTile::FrameTile(KisTileDataPoolSP pool)",
+        "method:KisFrameDataSerializer::FrameTile::FrameTile(const FrameTile & rhs)",
+        "method:KisFrameDataSerializer::FrameTile::clone() const",
+        "method:KisFrameDataSerializer::FrameTile::isValid() const",
+        "method:KisFrameDataSerializer::FrameTile::operator =(FrameTile & rhs)",
+        "method:KisFrameDataSerializer::FrameTile::operator =(FrameTile && rhs)"
+      ]
+    },
+    {
+      "target": "KisFrameDataSerializerSchemaContractTest",
+      "source": "libs/canvas/tests/KisFrameDataSerializerSchemaContractTest.cpp",
+      "test": "KisFrameDataSerializerSchemaContractTest::frameMemberSchemaRemainsStable",
+      "behavior": "Frameはpixel寸法とFrameTile列の公開member型から成る値schemaを維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisFrameDataSerializer::Frame::frameTiles",
+        "member:KisFrameDataSerializer::Frame::pixelSize",
+        "struct:KisFrameDataSerializer::Frame"
+      ]
+    },
+    {
+      "target": "KisFrameDataSerializerSchemaContractTest",
+      "source": "libs/canvas/tests/KisFrameDataSerializerSchemaContractTest.cpp",
+      "test": "KisFrameDataSerializerSchemaContractTest::frameLifecycleAndValiditySignaturesRemainStable",
+      "behavior": "Frameは既定構築、move可能・copy禁止の寿命特性、およびcloneと妥当性検査の関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisFrameDataSerializer::Frame::Frame()",
+        "method:KisFrameDataSerializer::Frame::Frame(Frame && rhs)",
+        "method:KisFrameDataSerializer::Frame::Frame(const Frame & rhs)",
+        "method:KisFrameDataSerializer::Frame::clone() const",
+        "method:KisFrameDataSerializer::Frame::isValid() const",
+        "method:KisFrameDataSerializer::Frame::operator =(Frame & rhs)",
+        "method:KisFrameDataSerializer::Frame::operator =(Frame && rhs)"
+      ]
+    },
+    {
+      "target": "KisFrameDataSerializerSchemaContractTest",
+      "source": "libs/canvas/tests/KisFrameDataSerializerSchemaContractTest.cpp",
+      "test": "KisFrameDataSerializerSchemaContractTest::frameSerializerStorageAndDifferenceSignaturesRemainStable",
+      "behavior": "Frame直列化器は既定・保存先構築と破棄、保存・読込・存在・忘却、およびframe差分推定・減算・加算の関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisFrameDataSerializer",
+        "method:KisFrameDataSerializer::KisFrameDataSerializer()",
+        "method:KisFrameDataSerializer::KisFrameDataSerializer(const QString & frameCachePath)",
+        "method:KisFrameDataSerializer::addFrames(Frame & dst,const Frame & src)",
+        "method:KisFrameDataSerializer::estimateFrameUniqueness(const Frame & lhs,const Frame & rhs,qreal portion)",
+        "method:KisFrameDataSerializer::forgetFrame(int frameId)",
+        "method:KisFrameDataSerializer::hasFrame(int frameId) const",
+        "method:KisFrameDataSerializer::loadFrame(int frameId,KisTileDataPoolSP pool)",
+        "method:KisFrameDataSerializer::saveFrame(const Frame & frame)",
+        "method:KisFrameDataSerializer::subtractFrames(Frame & dst,const Frame & src)",
+        "method:KisFrameDataSerializer::~KisFrameDataSerializer()"
       ]
     }
   ]

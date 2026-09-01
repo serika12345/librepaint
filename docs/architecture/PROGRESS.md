@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 23:06 JST
+- 更新日時: 2026-09-01 23:09 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -77,6 +77,12 @@
   変更前後一致し、Dab・resource・paint device・brush・color source・texture・sharpness・paint informationを生成・実行していない。担当macOS環境と中央環境で対象CTest、
   担当環境で20回反復、近傍`KisTextureOptionDataValueContractTest`、無作業再構築、動的接続・未解決記号、構文・書式、公開API検査、`verify-quick`に成功した。
   公開API契約検査は29,838件中13,045件対応、16,793件未対応となった。
+- `g131-frame-serializer-schema`は受渡しcommit`f55420ffb552`を統合commit`90c0ef8cbc`として取り込んだ。開始
+  `libs/canvas/animation/kis_frame_data_serializer.h`から新規`libs/canvas/tests/KisFrameDataSerializerSchemaContractTest.cpp`の5枠へ、FrameTile member・寿命、Frame member・
+  寿命、serializer保管・差分操作の33 APIを対応付け、所有CMakeへheader限定対象を追加した。対象4工程・8入力、製品`kritacanvas` 1,220工程・2,460入力と各集合は
+  変更前後一致し、serializer・frame・tile buffer・tile pool・filesystemを生成・実行していない。担当macOS環境と中央環境で対象CTest、担当環境で20回反復、近傍
+  `KisTileDataPoolContractTest`、無作業再構築、動的接続・未解決記号、構文・書式、公開API検査、`verify-quick`に成功した。公開API契約検査は29,838件中13,078件対応、
+  16,760件未対応となった。
 
 ### 第130便の先行監査計画
 
