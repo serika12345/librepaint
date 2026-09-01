@@ -8,6 +8,7 @@
 #include "kis_distance_information.h"
 #include "kis_selection_filters.h"
 #include "kis_sequential_iterator.h"
+#include "kis_stroke.h"
 #include "kis_types.h"
 
 #include <QTest>
@@ -67,6 +68,11 @@ private Q_SLOTS:
     void distanceSpacingAndTimingSignaturesRemainStable();
     void distanceStrokeProgressSignaturesRemainStable();
     void distanceDrawingAngleLockSignaturesRemainStable();
+    void strokeTypeAndLifecycleSchemaRemainStable();
+    void strokeJobQueueOperationSignaturesRemainStable();
+    void strokeIdentityAndLifecycleTransitionSignaturesRemainStable();
+    void strokeStateAndStrategyPolicySignaturesRemainStable();
+    void strokeLodAndBalancingSignaturesRemainStable();
     void sequentialIteratorTypeAndAliasSchemaRemainsStable();
     void sequentialIteratorDevicePolicySchemaRemainsStable();
     void sequentialIteratorAccessPolicySchemaRemainsStable();
@@ -713,6 +719,110 @@ void KisImageTypesContractTest::distanceDrawingAngleLockSignaturesRemainStable()
     static_assert(
         std::is_same_v<decltype(static_cast<LockedDrawingAngleSignature>(&Distance::lockedDrawingAngleOptional)),
                        LockedDrawingAngleSignature>);
+
+    QVERIFY(true);
+}
+
+void KisImageTypesContractTest::strokeTypeAndLifecycleSchemaRemainStable()
+{
+    using Stroke = KisStroke;
+    using Type = Stroke::Type;
+
+    static_assert(std::is_class_v<Stroke>);
+    static_assert(std::is_enum_v<Type>);
+    static_assert(std::is_constructible_v<Stroke, KisStrokeStrategy *>);
+    static_assert(std::is_constructible_v<Stroke, KisStrokeStrategy *, Type, int>);
+    static_assert(std::is_destructible_v<Stroke>);
+
+    QCOMPARE(static_cast<int>(Type::LEGACY), 0);
+    QCOMPARE(static_cast<int>(Type::LOD0), 1);
+    QCOMPARE(static_cast<int>(Type::LODN), 2);
+    QCOMPARE(static_cast<int>(Type::SUSPEND), 3);
+    QCOMPARE(static_cast<int>(Type::RESUME), 4);
+}
+
+void KisImageTypesContractTest::strokeJobQueueOperationSignaturesRemainStable()
+{
+    using Stroke = KisStroke;
+    using AddJobSignature = void (Stroke::*)(KisStrokeJobData *);
+    using AddMutatedJobsSignature = void (Stroke::*)(const QVector<KisStrokeJobData *>);
+    using HasJobsSignature = bool (Stroke::*)() const;
+    using NumJobsSignature = qint32 (Stroke::*)() const;
+    using PopOneJobSignature = KisStrokeJob *(Stroke::*)();
+    using NextJobSequentialitySignature = KisStrokeJobData::Sequentiality (Stroke::*)() const;
+    using NextJobLevelOfDetailSignature = int (Stroke::*)() const;
+
+    static_assert(std::is_same_v<decltype(static_cast<AddJobSignature>(&Stroke::addJob)), AddJobSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<AddMutatedJobsSignature>(&Stroke::addMutatedJobs)),
+                                 AddMutatedJobsSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<HasJobsSignature>(&Stroke::hasJobs)), HasJobsSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<NumJobsSignature>(&Stroke::numJobs)), NumJobsSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<PopOneJobSignature>(&Stroke::popOneJob)), PopOneJobSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<NextJobSequentialitySignature>(&Stroke::nextJobSequentiality)),
+                                 NextJobSequentialitySignature>);
+    static_assert(std::is_same_v<decltype(static_cast<NextJobLevelOfDetailSignature>(&Stroke::nextJobLevelOfDetail)),
+                                 NextJobLevelOfDetailSignature>);
+
+    QVERIFY(true);
+}
+
+void KisImageTypesContractTest::strokeIdentityAndLifecycleTransitionSignaturesRemainStable()
+{
+    using Stroke = KisStroke;
+    using NameSignature = KUndo2MagicString (Stroke::*)() const;
+    using IdSignature = QString (Stroke::*)() const;
+    using TransitionSignature = void (Stroke::*)();
+    using CanCancelSignature = bool (Stroke::*)() const;
+    using SupportsSuspensionSignature = bool (Stroke::*)();
+    using SuspendStrokeSignature = void (Stroke::*)(KisStrokeSP);
+
+    static_assert(std::is_same_v<decltype(static_cast<NameSignature>(&Stroke::name)), NameSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<IdSignature>(&Stroke::id)), IdSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<TransitionSignature>(&Stroke::endStroke)), TransitionSignature>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<TransitionSignature>(&Stroke::cancelStroke)), TransitionSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<CanCancelSignature>(&Stroke::canCancel)), CanCancelSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<SupportsSuspensionSignature>(&Stroke::supportsSuspension)),
+                                 SupportsSuspensionSignature>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<SuspendStrokeSignature>(&Stroke::suspendStroke)), SuspendStrokeSignature>);
+
+    QVERIFY(true);
+}
+
+void KisImageTypesContractTest::strokeStateAndStrategyPolicySignaturesRemainStable()
+{
+    using Stroke = KisStroke;
+    using BooleanQuery = bool (Stroke::*)() const;
+
+    static_assert(std::is_same_v<decltype(static_cast<BooleanQuery>(&Stroke::isInitialized)), BooleanQuery>);
+    static_assert(std::is_same_v<decltype(static_cast<BooleanQuery>(&Stroke::isEnded)), BooleanQuery>);
+    static_assert(std::is_same_v<decltype(static_cast<BooleanQuery>(&Stroke::isCancelled)), BooleanQuery>);
+    static_assert(std::is_same_v<decltype(static_cast<BooleanQuery>(&Stroke::isExclusive)), BooleanQuery>);
+    static_assert(std::is_same_v<decltype(static_cast<BooleanQuery>(&Stroke::supportsWrapAroundMode)), BooleanQuery>);
+    static_assert(std::is_same_v<decltype(static_cast<BooleanQuery>(&Stroke::canForgetAboutMe)), BooleanQuery>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<BooleanQuery>(&Stroke::isAsynchronouslyCancellable)), BooleanQuery>);
+    static_assert(std::is_same_v<decltype(static_cast<BooleanQuery>(&Stroke::clearsRedoOnStart)), BooleanQuery>);
+
+    QVERIFY(true);
+}
+
+void KisImageTypesContractTest::strokeLodAndBalancingSignaturesRemainStable()
+{
+    using Stroke = KisStroke;
+    using IntegerQuery = int (Stroke::*)() const;
+    using RatioQuery = qreal (Stroke::*)() const;
+    using SetLodBuddySignature = void (Stroke::*)(KisStrokeSP);
+    using LodBuddyQuery = KisStrokeSP (Stroke::*)() const;
+    using TypeQuery = Stroke::Type (Stroke::*)() const;
+
+    static_assert(std::is_same_v<decltype(static_cast<IntegerQuery>(&Stroke::worksOnLevelOfDetail)), IntegerQuery>);
+    static_assert(std::is_same_v<decltype(static_cast<RatioQuery>(&Stroke::balancingRatioOverride)), RatioQuery>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<SetLodBuddySignature>(&Stroke::setLodBuddy)), SetLodBuddySignature>);
+    static_assert(std::is_same_v<decltype(static_cast<LodBuddyQuery>(&Stroke::lodBuddy)), LodBuddyQuery>);
+    static_assert(std::is_same_v<decltype(static_cast<TypeQuery>(&Stroke::type)), TypeQuery>);
 
     QVERIFY(true);
 }
