@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 16677
+    "expectedMissingApis": 16646
   },
   "contracts": [
     {
@@ -39015,6 +39015,82 @@
         "method:KoPatternColorSource::rotate(double r)",
         "method:KoPatternColorSource::selectColor(double mix,const KisPaintInformation & pi)",
         "method:KoPatternColorSource::~KoPatternColorSource()"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::distanceStateLifecycleSchemaRemainsStable",
+      "behavior": "stroke距離状態はclass型、6構築経路、copy代入・破棄可能性、およびdab sequence番号の既定値を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisDistanceInformation",
+        "method:KisDistanceInformation::KisDistanceInformation()",
+        "method:KisDistanceInformation::KisDistanceInformation(const KisDistanceInformation & rhs)",
+        "method:KisDistanceInformation::KisDistanceInformation(const KisDistanceInformation & rhs,int levelOfDetail)",
+        "method:KisDistanceInformation::KisDistanceInformation(const QPointF & lastPosition,qreal lastAngle)",
+        "method:KisDistanceInformation::KisDistanceInformation(const QPointF & lastPosition,qreal lastAngle,qreal spacingUpdateInterval,qreal timingUpdateInterval,int currentDabSeqNo)",
+        "method:KisDistanceInformation::KisDistanceInformation(qreal spacingUpdateInterval,qreal timingUpdateInterval,int currentDabSeqNo=0)",
+        "method:KisDistanceInformation::operator =(const KisDistanceInformation & rhs)",
+        "method:KisDistanceInformation::~KisDistanceInformation()"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::distanceLastDabObservationSignaturesRemainStable",
+      "behavior": "stroke距離状態は最後のdab・paint有無、開始状態、位置、角度、圧力、paint情報借用参照とsequence番号の返値型・const性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDistanceInformation::currentDabSeqNo() const",
+        "method:KisDistanceInformation::hasLastDabInformation() const",
+        "method:KisDistanceInformation::hasLastPaintInformation() const",
+        "method:KisDistanceInformation::isStarted() const",
+        "method:KisDistanceInformation::lastDrawingAngle() const",
+        "method:KisDistanceInformation::lastPaintInformation() const",
+        "method:KisDistanceInformation::lastPosition() const",
+        "method:KisDistanceInformation::maxPressure() const"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::distanceSpacingAndTimingSignaturesRemainStable",
+      "behavior": "stroke距離状態はspacing・timingの借用参照、更新間隔、更新要否、および更新入力の関数型・const性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDistanceInformation::currentSpacing() const",
+        "method:KisDistanceInformation::currentTiming() const",
+        "method:KisDistanceInformation::getSpacingInterval() const",
+        "method:KisDistanceInformation::getTimingUpdateInterval() const",
+        "method:KisDistanceInformation::needsSpacingUpdate() const",
+        "method:KisDistanceInformation::needsTimingUpdate() const",
+        "method:KisDistanceInformation::updateSpacing(const KisSpacingInformation & spacing)",
+        "method:KisDistanceInformation::updateTiming(const KisTimingInformation & timing)"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::distanceStrokeProgressSignaturesRemainStable",
+      "behavior": "stroke距離状態は点間進行率、最後値上書き、描画dab登録、および累積距離取得の引数・戻り値型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDistanceInformation::getNextPointPosition(const QPointF & start,const QPointF & end,qreal startTime,qreal endTime)",
+        "method:KisDistanceInformation::overrideLastValues(const QPointF & lastPosition,qreal lastAngle)",
+        "method:KisDistanceInformation::registerPaintedDab(const KisPaintInformation & info,const KisSpacingInformation & spacing,const KisTimingInformation & timing)",
+        "method:KisDistanceInformation::scalarDistanceApprox() const"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::distanceDrawingAngleLockSignaturesRemainStable",
+      "behavior": "stroke距離状態は描画角度をconst操作で固定する入力型と、省略可能な固定角度を返す型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDistanceInformation::lockCurrentDrawingAngle(const KisPaintInformation & info) const",
+        "method:KisDistanceInformation::lockedDrawingAngleOptional() const"
       ]
     }
   ]

@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 23:44 JST
+- 更新日時: 2026-09-01 23:47 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -79,6 +79,12 @@
   `kritalibpaintop` 2,110工程・4,218入力と各集合は変更前後一致し、色源・color・gradient・paint device・paint information・color space・変換・resource・乱数を
   生成・実行していない。担当macOS環境と中央環境で対象CTest、担当環境で20回反復、近傍`KisDabCacheUtilsSchemaContractTest`、無作業再構築、動的接続・未解決記号、
   構文・書式、公開API検査、`verify-quick`に成功した。公開API契約検査は29,838件中13,161件対応、16,677件未対応となった。
+- `g132-distance-state-schema`は受渡しcommit`c4c34e811083`を統合commit`a05b4a123c`として取り込んだ。開始`libs/image/kis_distance_information.h`から既存
+  `libs/image/tests/KisImageTypesContractTest.cpp`の5枠へ、runtime距離状態の寿命、最後のdab観測、spacing・timing、stroke進行、描画角度lockの31 APIを対応付けた。
+  対象4工程・8入力、製品`kritaimage` 1,196工程・2,416入力と各集合は変更前後一致し、Distance・PaintInformation・SpacingInformation・TimingInformation、XML、
+  補間・spacing・timing計算を生成・実行していない。担当macOS環境と中央環境で対象CTest、担当環境で20回反復、近傍`KisSpacingInformationContractTest`と
+  `KisTimingInformationContractTest`、無作業再構築、動的接続・未解決記号、構文・書式、公開API検査、`verify-quick`に成功した。公開API契約検査は29,838件中
+  13,192件対応、16,646件未対応となった。
 
 ### 第131便の先行監査計画
 
