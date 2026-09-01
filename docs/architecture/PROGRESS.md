@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 01:37 JST
+- 更新日時: 2026-09-02 01:43 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -90,6 +90,12 @@
   いない。担当macOS環境と中央環境で対象CTest、担当環境で既存枠と新5枠、20回反復、近傍`KisTagModelSchemaContractTest`、無作業再構築、動的接続・未解決記号、構文・
   書式、公開API検査、`verify-quick`に成功した。列挙の基底型は公開宣言が保証しないため固定せず、型と公開値だけを固定した。公開API契約検査は29,838件中
   13,442件対応、16,396件未対応となった。
+- 第134便は3責務15枠へ116 APIを重複なく対応付けた。公開API契約検査は29,838件中13,442件対応、16,396件未対応となり、`verify-quick`は成功した。最新入力は
+  `build/tdd-macos/public-api-missing-g135.json`である。Linux、全native検証、製品全体構築は実行していない。清浄性、受渡しcommit、中央の所有pathとの完全一致を確認後、
+  gradient segment担当860,520 KiB、stroke担当854,632 KiB、storage model担当859,216 KiBの作業tree、専用構築木、3 branchを削除して合計2,574,368 KiB
+  （約2.46 GiB）を回収した。旧`public-api-missing-g134.json`と一時`public-api-missing-g134-stroke-schema.json`も削除した。主`build/tdd-macos` 5.3 GB、共有compiler cache
+  960 MB、最新不足報告だけを第135便へ再利用する。次の永続作業は第135便の不足報告から、pathと所有CMakeが重ならない3責務を先行監査し、限定構築範囲を確認してから
+  担当票を確定することである。
 
 ### 第133便の先行監査計画
 
