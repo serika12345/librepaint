@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 19:54 JST
+- 更新日時: 2026-09-01 20:06 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -23,6 +23,16 @@
 - `g127-paintop-settings-schema-audit`は`libs/image/brushengine/kis_paintop_settings.h`の残り86 APIを主候補とし、`kis_paint_information.h`の61 APIと
   `libs/image/kis_distance_information.h`の43 APIを比較する。paintop設定または入力値の公開schemaを、実paint device、preset、resource、paintop、stroke、描画、
   乱数、設定I/O、大域状態なしで25 API以上閉じる一責務を選ぶ。
+- `g127-config-schema-audit`は`kis_config.h`のanimation再生・timeline・音声同期・media I/O設定26 APIを採用した。再生方針6、timeline移動6、scrubbing・音声6、
+  cache・media backend 4、frame transfer 4を既存`KisConfigEnumContractTest`の未評価型5枠へ追加する。対象4工程・15入力、停止5工程・18入力、製品
+  `kritaapplication` 1,225工程・2,468入力を維持する。`KisApplication.h`は23 APIで下限未達かつlifecycle・resource・platform責務を横断するため棄却した。
+- `g127-svg-text-schema-audit`は`KoSvgText.h`の文字座標変換・解像度換算値34 APIを採用した。`CharTransformation`の値6・操作8、`ResolutionHandler`の値7・
+  換算8・調整5を既存`KoSvgTextEnumContractTest`の5枠へ追加する。対象4工程・8入力、停止5工程・11入力、製品`kritaflake` 619工程・1,270入力を維持する。
+  `KoSvgTextShape.h`の安全な値面は20 APIで、25件へ達するには配置結果、UI通知、shape寿命を混在させるため棄却した。
+- `g127-paintop-settings-schema-audit`は`kis_paint_information.h`の入力標本schema 32 APIを採用した。位置・sensor 10、stroke進行5、canvas姿勢8、導出運動量7、
+  tilt換算2を既存`KisImageTypesContractTest`の未評価型5枠へ追加し、所有CMakeで公開headerの既存Qt Gui・Xml・Boost依存だけを明示する。対象4工程・8入力、
+  停止5工程・10入力、製品`kritaimage` 1,194工程・2,412入力を維持する。paintop settingsのbrush数値面は21 API、distance情報の状態操作は24 APIで、25件へ
+  達するには別責務または寿命を混在させるため棄却した。
 - 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから
   契約先または移動先、許可path、固有停止条件、比較候補の棄却根拠を含む。既存`build/tdd-macos`の計画は読み取り専用で測定し、構成や構築を開始しない。3報告後に
   path、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
