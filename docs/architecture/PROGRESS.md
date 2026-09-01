@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 12:45 JST
+- 更新日時: 2026-09-01 12:47 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -506,7 +506,7 @@
 
 ### 第113便の担当計画
 
-- 実装共通基点は`c5416f411e7d940fb9ac9c840bb4b354a16392fe`である。2担当は`planned`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は
+- 実装共通基点は`c5416f411e7d940fb9ac9c840bb4b354a16392fe`である。2担当は`implementing`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は
   許可pathだけの`transport-commit`、追加委任は禁止する。専用worktree-local `build/tdd-macos`と`./scripts/run-shared-test-env`で主環境・compiler cacheを
   共有する。統合順は設定、PSDとし、調整担当だけが台帳、進捗文書、不足報告を変更する。2担当の試験source、生成物、許可pathは相互に重ならない。
 - `g113-config-canvas-schema`は`/Users/masato/Documents/librepaint-g113-config-canvas-schema`を所有する。開始`libs/application/kis_config.h`から既存
@@ -525,6 +525,16 @@
   16入力である。5枠の未知関数診断、外側recordの未評価member型、nested aggregateの既定値・符号付き値・copy、対象CTest、20回反復、`PsdByteIoContractTest`、
   無作業再構築、動的接続、未解決製品記号、source構文、公開API検査、`verify-quick`を確認する。外側recordの実体化、device・channel pointer参照解決、実image・
   色空間・registry・ASL・filesystem、製品shared、`kritatestsdk`、新依存、公開header・CMake変更、停止線超過が必要なら止める。
+
+### 第114便の先行監査計画
+
+- `g114-resource-value-audit`は共通基点`3691e14048`と`build/tdd-macos/public-api-missing-g113.json`から第113便担当中の75 APIを除外して読む。
+  `libs/resources/KisResourceStorage.h` 116 API、`libs/resources/KisTagResourceModel.h` 58 API、`libs/pigment/resources/KoSegmentGradient.h` 81 APIを比較し、
+  storage値schema、tag-resource模型の公開schema、segment gradient局所値のうち、一責務25 API以上を最大5枠で固定できる候補を一つ選ぶ。読み取り専用とし、
+  編集、構築、試験、Git、追加委任は行わない。
+- 実storage・resource registry、SQL・filesystem、色空間registry、paint device、GUI、大域状態へ到達せず、既存限定対象の未評価型検査、header-only値面、または
+  公開headerを変えない一sourceのOBJECT一対一移管で製品sharedと`kritatestsdk`へ接続しない候補を優先する。報告は完全なAPI識別子、最大5枠、定義閉包、
+  最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから契約先、許可path、比較候補の棄却根拠を含む。
 
 ### 第105並列便の監査計画
 
