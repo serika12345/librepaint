@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 19:43 JST
+- 更新日時: 2026-09-01 19:46 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -40,7 +40,7 @@
 
 ### 第126便の担当計画
 
-- 実装共通基点は`3ca5ac5d5a`である。algebra path topologyとtransform args担当は`integrated`、ruler担当は`ready`、構築許可は指定試験targetと軽量近傍だけの
+- 実装共通基点は`3ca5ac5d5a`である。3担当は`integrated`、構築許可は指定試験targetと軽量近傍だけの
   `granted`、Git権限は許可pathだけの
   `transport-commit`、追加委任は禁止する。専用worktree-local `build/tdd-macos`と主作業treeの
   `/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。統合順はalgebra path topology、transform args、rulerとし、調整担当だけが台帳、
@@ -83,6 +83,10 @@
   `plugins/tools/tool_transform2/tests/ToolTransformArgsGeometrySchemaContractTest.cpp`の5枠へ、mode・精度、warp点列・計算、mesh状態、liquify・編集状態、
   継続・比較・座標写像の57 APIを対応付けた。対象は4工程・9入力、製品`kritatooltransform_static`は1,991工程・3,981入力で変更前後完全一致し、製品実装や
   method本文を実行しない未評価型の契約として閉じた。主macOS環境での統合後検証を続行する。
+- `g126-ruler-schema`は受渡しcommit`9283fc01bb4e`を統合commit`b4a18f628f`として取り込んだ。開始`libs/widgets/KoRuler.h`から新規
+  `libs/widgets/tests/KoRulerSchemaContractTest.cpp`の5枠へ、型・計測、範囲・indent、pointer・guide、tab・popup、hotspotの全48 APIを対応付け、
+  `libs/widgets/tests/CMakeLists.txt`へheader限定対象を追加した。対象は4工程・8入力、製品`kritawidgets`は806工程・1,641入力で変更前後完全一致し、定規・Widget・
+  canvas・unitを実体化していない。主macOS環境での統合後検証を続行する。
 
 ### 第125便の先行監査計画
 

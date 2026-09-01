@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 17277
+    "expectedMissingApis": 17229
   },
   "contracts": [
     {
@@ -37650,6 +37650,99 @@
         "method:ToolTransformArgs::transformSrcAndDst(const QTransform & t)",
         "method:ToolTransformArgs::translateDstSpace(const QPointF & offset)",
         "method:ToolTransformArgs::translateSrcAndDst(const QPointF & offset)"
+      ]
+    },
+    {
+      "target": "KoRulerSchemaContractTest",
+      "source": "libs/widgets/tests/KoRulerSchemaContractTest.cpp",
+      "test": "KoRulerSchemaContractTest::rulerTypeAndMeasurementSchemaRemainsStable",
+      "behavior": "定規はWidget派生の公開型として構築・破棄でき、寸法、単位、方向、長さ、offsetの公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoRuler",
+        "method:KoRuler::KoRuler(QWidget * parent,Qt::Orientation orientation,const KoViewConverter * viewConverter)",
+        "method:KoRuler::minimumSizeHint() const",
+        "method:KoRuler::orientation() const",
+        "method:KoRuler::rulerLength() const",
+        "method:KoRuler::setOffset(int offset)",
+        "method:KoRuler::setRulerLength(qreal length)",
+        "method:KoRuler::setUnit(const KoUnit & unit)",
+        "method:KoRuler::setUnitPixelMultiple2(bool enabled)",
+        "method:KoRuler::sizeHint() const",
+        "method:KoRuler::unit() const",
+        "method:KoRuler::~KoRuler()"
+      ]
+    },
+    {
+      "target": "KoRulerSchemaContractTest",
+      "source": "libs/widgets/tests/KoRulerSchemaContractTest.cpp",
+      "test": "KoRulerSchemaContractTest::rulerRangeAndIndentSchemaRemainsStable",
+      "behavior": "定規は有効範囲、左右方向、indent表示と三つのindent値に関する既存の公開関数型と変更通知署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoRuler::aboutToChange()",
+        "method:KoRuler::endIndent() const",
+        "method:KoRuler::firstLineIndent() const",
+        "method:KoRuler::indentsChanged(bool final)",
+        "method:KoRuler::paragraphIndent() const",
+        "method:KoRuler::setActiveRange(qreal start,qreal end)",
+        "method:KoRuler::setEndIndent(qreal indent)",
+        "method:KoRuler::setFirstLineIndent(qreal indent)",
+        "method:KoRuler::setOverrideActiveRange(qreal start,qreal end)",
+        "method:KoRuler::setParagraphIndent(qreal indent)",
+        "method:KoRuler::setRightToLeft(bool isRightToLeft)",
+        "method:KoRuler::setShowIndents(bool show)"
+      ]
+    },
+    {
+      "target": "KoRulerSchemaContractTest",
+      "source": "libs/widgets/tests/KoRulerSchemaContractTest.cpp",
+      "test": "KoRulerSchemaContractTest::rulerPointerAndGuideSchemaRemainsStable",
+      "behavior": "定規はmouse位置、選択境界、guide接続とguide作成通知に関する座標・方向・借用関係の公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoRuler::createGuideToolConnection(KoCanvasBase * canvas)",
+        "method:KoRuler::guideCreationFinished(Qt::Orientation orientation,const QPoint & globalPos)",
+        "method:KoRuler::guideCreationInProgress(Qt::Orientation orientation,const QPoint & globalPos)",
+        "method:KoRuler::guideLineCreated(Qt::Orientation orientation,qreal viewPosition)",
+        "method:KoRuler::setShowMousePosition(bool show)",
+        "method:KoRuler::setShowSelectionBorders(bool show)",
+        "method:KoRuler::showMousePosition() const",
+        "method:KoRuler::updateMouseCoordinate(int coordinate)",
+        "method:KoRuler::updateSelectionBorders(qreal first,qreal second)"
+      ]
+    },
+    {
+      "target": "KoRulerSchemaContractTest",
+      "source": "libs/widgets/tests/KoRulerSchemaContractTest.cpp",
+      "test": "KoRulerSchemaContractTest::rulerTabAndPopupSchemaRemainsStable",
+      "behavior": "定規のTabは位置0と左揃えを既定値とし、tab表示・更新・選択器・変更通知とpopup action一覧の公開型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KoRuler::Tab::position",
+        "member:KoRuler::Tab::type",
+        "method:KoRuler::popupActionList() const",
+        "method:KoRuler::setPopupActionList(const QList<QAction * > & popupActionList)",
+        "method:KoRuler::setRelativeTabs(bool relative)",
+        "method:KoRuler::setShowTabs(bool show)",
+        "method:KoRuler::tabChanged(int originalTabIndex,KoRuler::Tab * tab)",
+        "method:KoRuler::tabChooser()",
+        "method:KoRuler::tabs() const",
+        "method:KoRuler::updateTabs(const QList<Tab> & tabs,qreal tabDistance)",
+        "struct:KoRuler::Tab"
+      ]
+    },
+    {
+      "target": "KoRulerSchemaContractTest",
+      "source": "libs/widgets/tests/KoRulerSchemaContractTest.cpp",
+      "test": "KoRulerSchemaContractTest::rulerHotSpotSchemaRemainsStable",
+      "behavior": "定規のhotspotは消去、追加・更新、削除、変更通知の公開署名と識別子を省略できる呼出し形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoRuler::clearHotSpots()",
+        "method:KoRuler::hotSpotChanged(int id,qreal newPosition)",
+        "method:KoRuler::removeHotSpot(int id)",
+        "method:KoRuler::setHotSpot(qreal position,int id=-1)"
       ]
     }
   ]
