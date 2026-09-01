@@ -41,6 +41,11 @@ private Q_SLOTS:
     void storageTypeLabelSchemaRemainsStable();
     void storageIdentityQuerySchemaRemainsStable();
     void storageStateQuerySchemaRemainsStable();
+    void storageResourceItemSchemaRemainsStable();
+    void storageResourceIteratorNavigationSchemaRemainsStable();
+    void storageResourceIteratorValueSchemaRemainsStable();
+    void storageTagIteratorSchemaRemainsStable();
+    void storageLookupAndEnumerationSchemaRemainsStable();
 };
 
 void KisResourceModelEnumContractTest::columnValuesRemainStable()
@@ -432,6 +437,71 @@ void KisResourceModelEnumContractTest::storageStateQuerySchemaRemainsStable()
     static_assert(std::is_same_v<decltype(&Storage::timestamp), QDateTime (Storage::*)() const>);
     static_assert(std::is_same_v<decltype(&Storage::timeStampForResource),
                                  QDateTime (Storage::*)(const QString &, const QString &) const>);
+}
+
+void KisResourceModelEnumContractTest::storageResourceItemSchemaRemainsStable()
+{
+    using Item = KisResourceStorage::ResourceItem;
+
+    static_assert(std::is_class_v<Item>);
+    static_assert(std::is_destructible_v<Item>);
+    static_assert(std::has_virtual_destructor_v<Item>);
+    static_assert(std::is_same_v<decltype(&Item::url), QString Item::*>);
+    static_assert(std::is_same_v<decltype(&Item::folder), QString Item::*>);
+    static_assert(std::is_same_v<decltype(&Item::resourceType), QString Item::*>);
+    static_assert(std::is_same_v<decltype(&Item::lastModified), QDateTime Item::*>);
+}
+
+void KisResourceModelEnumContractTest::storageResourceIteratorNavigationSchemaRemainsStable()
+{
+    using Iterator = KisResourceStorage::ResourceIterator;
+
+    static_assert(std::is_class_v<Iterator>);
+    static_assert(std::is_abstract_v<Iterator>);
+    static_assert(std::is_destructible_v<Iterator>);
+    static_assert(std::has_virtual_destructor_v<Iterator>);
+    static_assert(std::is_same_v<decltype(&Iterator::hasNext), bool (Iterator::*)() const>);
+    static_assert(std::is_same_v<decltype(&Iterator::next), void (Iterator::*)()>);
+    static_assert(std::is_same_v<decltype(&Iterator::url), QString (Iterator::*)() const>);
+    static_assert(std::is_same_v<decltype(&Iterator::type), QString (Iterator::*)() const>);
+}
+
+void KisResourceModelEnumContractTest::storageResourceIteratorValueSchemaRemainsStable()
+{
+    using Iterator = KisResourceStorage::ResourceIterator;
+
+    static_assert(std::is_same_v<decltype(&Iterator::lastModified), QDateTime (Iterator::*)() const>);
+    static_assert(std::is_same_v<decltype(&Iterator::guessedVersion), int (Iterator::*)() const>);
+    static_assert(std::is_same_v<decltype(&Iterator::versions), QSharedPointer<Iterator> (Iterator::*)() const>);
+    static_assert(std::is_same_v<decltype(&Iterator::resource), KoResourceSP (Iterator::*)() const>);
+}
+
+void KisResourceModelEnumContractTest::storageTagIteratorSchemaRemainsStable()
+{
+    using Iterator = KisResourceStorage::TagIterator;
+
+    static_assert(std::is_class_v<Iterator>);
+    static_assert(std::is_abstract_v<Iterator>);
+    static_assert(std::is_destructible_v<Iterator>);
+    static_assert(std::has_virtual_destructor_v<Iterator>);
+    static_assert(std::is_same_v<decltype(&Iterator::hasNext), bool (Iterator::*)() const>);
+    static_assert(std::is_same_v<decltype(&Iterator::next), void (Iterator::*)()>);
+    static_assert(std::is_same_v<decltype(&Iterator::tag), KisTagSP (Iterator::*)() const>);
+}
+
+void KisResourceModelEnumContractTest::storageLookupAndEnumerationSchemaRemainsStable()
+{
+    using Storage = KisResourceStorage;
+
+    static_assert(
+        std::is_same_v<decltype(&Storage::resourceItem), Storage::ResourceItem (Storage::*)(const QString &)>);
+    static_assert(std::is_same_v<decltype(&Storage::resource), KoResourceSP (Storage::*)(const QString &)>);
+    static_assert(std::is_same_v<decltype(&Storage::resourceMd5), QString (Storage::*)(const QString &)>);
+    static_assert(std::is_same_v<decltype(&Storage::resourceFilePath), QString (Storage::*)(const QString &)>);
+    static_assert(std::is_same_v<decltype(&Storage::resources),
+                                 QSharedPointer<Storage::ResourceIterator> (Storage::*)(const QString &) const>);
+    static_assert(std::is_same_v<decltype(&Storage::tags),
+                                 QSharedPointer<Storage::TagIterator> (Storage::*)(const QString &) const>);
 }
 
 QTEST_GUILESS_MAIN(KisResourceModelEnumContractTest)
