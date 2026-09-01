@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 17203
+    "expectedMissingApis": 17169
   },
   "contracts": [
     {
@@ -37814,6 +37814,85 @@
         "method:KisConfig::setExportMimeType(const QString & defaultExportMimeType)",
         "method:KisConfig::setTrimFramesImport(bool trim)",
         "method:KisConfig::trimFramesImport(bool defaultValue=false) const"
+      ]
+    },
+    {
+      "target": "KoSvgTextEnumContractTest",
+      "source": "libs/flake/tests/KoSvgTextEnumContractTest.cpp",
+      "test": "KoSvgTextEnumContractTest::characterTransformationValueSchemaRemainsStable",
+      "behavior": "文字座標変換値は絶対・相対位置と回転をoptional実数として保持し、空の既定値と値copyの独立性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KoSvgText::CharTransformation::dxPos",
+        "member:KoSvgText::CharTransformation::dyPos",
+        "member:KoSvgText::CharTransformation::rotate",
+        "member:KoSvgText::CharTransformation::xPos",
+        "member:KoSvgText::CharTransformation::yPos",
+        "struct:KoSvgText::CharTransformation"
+      ]
+    },
+    {
+      "target": "KoSvgTextEnumContractTest",
+      "source": "libs/flake/tests/KoSvgTextEnumContractTest.cpp",
+      "test": "KoSvgTextEnumContractTest::characterTransformationOperationSignaturesRemainStable",
+      "behavior": "文字座標変換値は親変換の統合、chunk・offset判定、絶対・相対位置、等価比較、診断表現の公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KoSvgText::operator <<(QDebug dbg,const KoSvgText::CharTransformation & t)",
+        "method:KoSvgText::CharTransformation::absolutePos() const",
+        "method:KoSvgText::CharTransformation::hasRelativeOffset() const",
+        "method:KoSvgText::CharTransformation::isNull() const",
+        "method:KoSvgText::CharTransformation::mergeInParentTransformation(const CharTransformation & t)",
+        "method:KoSvgText::CharTransformation::operator ==(const CharTransformation & other) const",
+        "method:KoSvgText::CharTransformation::relativeOffset() const",
+        "method:KoSvgText::CharTransformation::startsNewChunk() const"
+      ]
+    },
+    {
+      "target": "KoSvgTextEnumContractTest",
+      "source": "libs/flake/tests/KoSvgTextEnumContractTest.cpp",
+      "test": "KoSvgTextEnumContractTest::resolutionHandlerValueSchemaRemainsStable",
+      "behavior": "文字解像度換算値は水平・垂直解像度、pixel丸め方針、FreeType pixelとpointの換算定数および既定値を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KoSvgText::ResolutionHandler::freeTypePixel",
+        "member:KoSvgText::ResolutionHandler::pointInInch",
+        "member:KoSvgText::ResolutionHandler::roundToPixelHorizontal",
+        "member:KoSvgText::ResolutionHandler::roundToPixelVertical",
+        "member:KoSvgText::ResolutionHandler::xRes",
+        "member:KoSvgText::ResolutionHandler::yRes",
+        "struct:KoSvgText::ResolutionHandler"
+      ]
+    },
+    {
+      "target": "KoSvgTextEnumContractTest",
+      "source": "libs/flake/tests/KoSvgTextEnumContractTest.cpp",
+      "test": "KoSvgTextEnumContractTest::resolutionHandlerConversionSignaturesRemainStable",
+      "behavior": "文字解像度換算値は解像度と丸め方針による構築形式、FreeType・pixel・point間の係数と変換の公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoSvgText::ResolutionHandler::ResolutionHandler(qreal _xRes=72.0,qreal _yRes=72.0,bool _roundToPixelHorizontal=false,bool _roundToPixelVertical=false)",
+        "method:KoSvgText::ResolutionHandler::freeTypePixelToPointFactor(const bool x=true) const",
+        "method:KoSvgText::ResolutionHandler::freeTypeToPixelTransform() const",
+        "method:KoSvgText::ResolutionHandler::freeTypeToPointTransform() const",
+        "method:KoSvgText::ResolutionHandler::pixelToPoint() const",
+        "method:KoSvgText::ResolutionHandler::pixelToPointFactor(const bool x=true) const",
+        "method:KoSvgText::ResolutionHandler::pointToPixel() const",
+        "method:KoSvgText::ResolutionHandler::pointToPixelFactor(const bool x=true) const"
+      ]
+    },
+    {
+      "target": "KoSvgTextEnumContractTest",
+      "source": "libs/flake/tests/KoSvgTextEnumContractTest.cpp",
+      "test": "KoSvgTextEnumContractTest::resolutionHandlerAdjustmentSignaturesRemainStable",
+      "behavior": "文字解像度換算値は点・矩形の調整、切上げ・切下げ、offset付き調整の引数・返値とconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoSvgText::ResolutionHandler::adjust(const QPointF point) const",
+        "method:KoSvgText::ResolutionHandler::adjust(const QRectF rect) const",
+        "method:KoSvgText::ResolutionHandler::adjustCeil(const QPointF point) const",
+        "method:KoSvgText::ResolutionHandler::adjustFloor(const QPointF point) const",
+        "method:KoSvgText::ResolutionHandler::adjustWithOffset(const QPointF point,const QPointF offset) const"
       ]
     }
   ]

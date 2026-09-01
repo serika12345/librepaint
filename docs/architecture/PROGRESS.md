@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 20:22 JST
+- 更新日時: 2026-09-01 20:30 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -39,7 +39,7 @@
 
 ### 第127便の担当計画
 
-- 実装共通基点は`8f1da2d383`である。config animation担当は`integrated`、SVG text coordinates担当は`ready`、paint information担当は`implementing`、
+- 実装共通基点は`8f1da2d383`である。config animationとSVG text coordinates担当は`integrated`、paint information担当は`ready`、
   構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの
   `transport-commit`、追加委任は禁止する。専用worktree-local `build/tdd-macos`と主作業treeの
   `/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。統合順はconfig animation、SVG text coordinates、paint informationとし、
@@ -75,7 +75,12 @@
 - `g127-config-animation-schema`は受渡しcommit`2c6c05ea6f31`を統合commit`51cf24b868`として取り込んだ。開始`libs/application/kis_config.h`から既存
   `libs/application/tests/KisConfigEnumContractTest.cpp`の5枠へ、再生方針、timeline移動、scrubbing・音声、cache・media backend、frame transferの26 APIを
   対応付けた。対象4工程・15入力、製品`kritaapplication` 1,225工程・2,468入力と各集合は変更前後一致し、設定I/O、filesystem、process、cache・timeline・音声、
-  QApplication、画面、大域状態を実行していない。主macOS環境での統合後検証を続行する。
+  QApplication、画面、大域状態を実行していない。主macOS環境で対象CTest、20回反復、近傍`KisActionEnumContractTest`、無作業再構築、公開API検査、
+  `verify-quick`に成功した。
+- `g127-svg-text-coordinates-schema`は受渡しcommit`0f44230a0b0f`を統合commit`96f1a58615`として取り込んだ。開始
+  `libs/flake/text/KoSvgText.h`から既存`libs/flake/tests/KoSvgTextEnumContractTest.cpp`の5枠へ、文字座標変換の値・操作と解像度換算の値・変換・調整の34 APIを
+  対応付けた。対象4工程・8入力、製品`kritaflake` 619工程・1,270入力と各集合は変更前後一致し、shape、layout、font database、描画、画像、XML、資源を
+  生成・実行していない。主macOS環境で対象CTest、20回反復、近傍`KoSvgTextFontMetricsValueContractTest`、無作業再構築、公開API検査、`verify-quick`に成功した。
 
 ### 第126便の先行監査計画
 
