@@ -59,6 +59,11 @@ private Q_SLOTS:
     void gradientFillTypeCodesAndSvgCompatibilityRemainStable();
     void patternFillDefaultsAndCopiesValueState();
     void patternFillSettersPreserveValues();
+    void interpretedResourceDefaultsRemainStable();
+    void resolutionInfoDefaultsAndCopiesRemainIndependent();
+    void resolutionInfoBlocksRoundTripInMemory();
+    void iccProfileDefaultsAndCopiesRemainIndependent();
+    void iccProfileBlocksValidateAndRoundTripInMemory();
 };
 
 void PsdFormatValuesContractTest::fileLimitsAndStorageEnumsRemainStable()
@@ -1724,6 +1729,155 @@ void PsdFormatValuesContractTest::patternFillSettersPreserveValues()
 
     fill.setAlignWithLayer(false);
     QVERIFY(!fill.align_with_layer);
+}
+
+void PsdFormatValuesContractTest::interpretedResourceDefaultsRemainStable()
+{
+    static_assert(std::is_destructible_v<PSDInterpretedResource>);
+
+    PSDInterpretedResource resource;
+    QVERIFY(resource.error.isEmpty());
+
+    QByteArray block("unchanged");
+    QVERIFY(resource.createBlock(block));
+    QCOMPARE(block, QByteArray("unchanged"));
+    QVERIFY(resource.interpretBlock(QByteArray("ignored")));
+    QVERIFY(resource.valid());
+    QVERIFY(resource.displayText().isEmpty());
+}
+
+void PsdFormatValuesContractTest::resolutionInfoDefaultsAndCopiesRemainIndependent()
+{
+    static_assert(std::is_base_of_v<PSDInterpretedResource, RESN_INFO_1005>);
+
+    QCOMPARE(int(RESN_INFO_1005::PSD_UNIT_INCH), 1);
+    QCOMPARE(int(RESN_INFO_1005::PSD_UNIT_CM), 2);
+    QCOMPARE(int(RESN_INFO_1005::PSD_UNIT_POINT), 3);
+    QCOMPARE(int(RESN_INFO_1005::PSD_UNIT_PICA), 4);
+    QCOMPARE(int(RESN_INFO_1005::PSD_UNIT_COLUMN), 5);
+
+    const RESN_INFO_1005 empty;
+    QCOMPARE(empty.hRes, Fixed(300));
+    QCOMPARE(empty.hResUnit, quint16(RESN_INFO_1005::PSD_UNIT_INCH));
+    QCOMPARE(empty.widthUnit, quint16(RESN_INFO_1005::PSD_UNIT_INCH));
+    QCOMPARE(empty.vRes, Fixed(300));
+    QCOMPARE(empty.vResUnit, quint16(RESN_INFO_1005::PSD_UNIT_INCH));
+    QCOMPARE(empty.heightUnit, quint16(RESN_INFO_1005::PSD_UNIT_INCH));
+
+    RESN_INFO_1005 resolution;
+    resolution.hRes = -144;
+    resolution.hResUnit = RESN_INFO_1005::PSD_UNIT_CM;
+    resolution.widthUnit = RESN_INFO_1005::PSD_UNIT_POINT;
+    resolution.vRes = -72;
+    resolution.vResUnit = RESN_INFO_1005::PSD_UNIT_PICA;
+    resolution.heightUnit = RESN_INFO_1005::PSD_UNIT_COLUMN;
+
+    RESN_INFO_1005 copy = resolution;
+    QCOMPARE(copy.hRes, Fixed(-144));
+    QCOMPARE(copy.hResUnit, quint16(RESN_INFO_1005::PSD_UNIT_CM));
+    QCOMPARE(copy.widthUnit, quint16(RESN_INFO_1005::PSD_UNIT_POINT));
+    QCOMPARE(copy.vRes, Fixed(-72));
+    QCOMPARE(copy.vResUnit, quint16(RESN_INFO_1005::PSD_UNIT_PICA));
+    QCOMPARE(copy.heightUnit, quint16(RESN_INFO_1005::PSD_UNIT_COLUMN));
+
+    copy.hRes = 600;
+    copy.hResUnit = RESN_INFO_1005::PSD_UNIT_INCH;
+    copy.widthUnit = RESN_INFO_1005::PSD_UNIT_INCH;
+    copy.vRes = 1200;
+    copy.vResUnit = RESN_INFO_1005::PSD_UNIT_INCH;
+    copy.heightUnit = RESN_INFO_1005::PSD_UNIT_INCH;
+    QCOMPARE(resolution.hRes, Fixed(-144));
+    QCOMPARE(resolution.hResUnit, quint16(RESN_INFO_1005::PSD_UNIT_CM));
+    QCOMPARE(resolution.widthUnit, quint16(RESN_INFO_1005::PSD_UNIT_POINT));
+    QCOMPARE(resolution.vRes, Fixed(-72));
+    QCOMPARE(resolution.vResUnit, quint16(RESN_INFO_1005::PSD_UNIT_PICA));
+    QCOMPARE(resolution.heightUnit, quint16(RESN_INFO_1005::PSD_UNIT_COLUMN));
+}
+
+void PsdFormatValuesContractTest::resolutionInfoBlocksRoundTripInMemory()
+{
+    RESN_INFO_1005 resolution;
+    resolution.hRes = 144;
+    resolution.hResUnit = RESN_INFO_1005::PSD_UNIT_CM;
+    resolution.widthUnit = RESN_INFO_1005::PSD_UNIT_POINT;
+    resolution.vRes = 72;
+    resolution.vResUnit = RESN_INFO_1005::PSD_UNIT_PICA;
+    resolution.heightUnit = RESN_INFO_1005::PSD_UNIT_COLUMN;
+
+    QByteArray block;
+    QVERIFY(resolution.createBlock(block));
+    QCOMPARE(block.size(), 28);
+
+    QBuffer buffer(&block);
+    QVERIFY(buffer.open(QIODevice::ReadOnly));
+    QCOMPARE(buffer.read(4), QByteArray("8BIM", 4));
+    QDataStream header(&buffer);
+    header.setByteOrder(QDataStream::BigEndian);
+    quint16 resourceId = 0;
+    quint16 nameLength = 1;
+    quint32 payloadSize = 0;
+    header >> resourceId >> nameLength >> payloadSize;
+    QCOMPARE(resourceId, quint16(PSDImageResourceSection::RESN_INFO));
+    QCOMPARE(nameLength, quint16(0));
+    QCOMPARE(payloadSize, quint32(16));
+
+    RESN_INFO_1005 parsed;
+    QVERIFY(parsed.interpretBlock(buffer.readAll()));
+    QCOMPARE(parsed.hRes, Fixed(144));
+    QCOMPARE(parsed.hResUnit, quint16(RESN_INFO_1005::PSD_UNIT_CM));
+    QCOMPARE(parsed.widthUnit, quint16(RESN_INFO_1005::PSD_UNIT_POINT));
+    QCOMPARE(parsed.vRes, Fixed(72));
+    QCOMPARE(parsed.vResUnit, quint16(RESN_INFO_1005::PSD_UNIT_PICA));
+    QCOMPARE(parsed.heightUnit, quint16(RESN_INFO_1005::PSD_UNIT_COLUMN));
+}
+
+void PsdFormatValuesContractTest::iccProfileDefaultsAndCopiesRemainIndependent()
+{
+    static_assert(std::is_base_of_v<PSDInterpretedResource, ICC_PROFILE_1039>);
+
+    const ICC_PROFILE_1039 empty;
+    QVERIFY(empty.icc.isEmpty());
+
+    ICC_PROFILE_1039 profile;
+    profile.icc = QByteArray::fromHex("0001027f80ff");
+    ICC_PROFILE_1039 copy = profile;
+    QCOMPARE(copy.icc, QByteArray::fromHex("0001027f80ff"));
+
+    copy.icc[0] = char(0x7f);
+    QCOMPARE(profile.icc, QByteArray::fromHex("0001027f80ff"));
+    QCOMPARE(copy.icc, QByteArray::fromHex("7f01027f80ff"));
+}
+
+void PsdFormatValuesContractTest::iccProfileBlocksValidateAndRoundTripInMemory()
+{
+    ICC_PROFILE_1039 empty;
+    QByteArray untouched("unchanged");
+    QVERIFY(!empty.createBlock(untouched));
+    QCOMPARE(untouched, QByteArray("unchanged"));
+    QCOMPARE(empty.error, QStringLiteral("ICC_PROFILE_1039: Trying to save an empty profile"));
+
+    const QByteArray payload = QByteArray::fromHex("0001027f80ff");
+    ICC_PROFILE_1039 profile;
+    QVERIFY(profile.interpretBlock(payload));
+    QCOMPARE(profile.icc, payload);
+
+    QByteArray block;
+    QVERIFY(profile.createBlock(block));
+    QCOMPARE(block.size(), 18);
+
+    QBuffer buffer(&block);
+    QVERIFY(buffer.open(QIODevice::ReadOnly));
+    QCOMPARE(buffer.read(4), QByteArray("8BIM", 4));
+    QDataStream header(&buffer);
+    header.setByteOrder(QDataStream::BigEndian);
+    quint16 resourceId = 0;
+    quint16 nameLength = 1;
+    quint32 payloadSize = 0;
+    header >> resourceId >> nameLength >> payloadSize;
+    QCOMPARE(resourceId, quint16(PSDImageResourceSection::ICC_PROFILE));
+    QCOMPARE(nameLength, quint16(0));
+    QCOMPARE(payloadSize, quint32(payload.size()));
+    QCOMPARE(buffer.readAll(), payload);
 }
 
 QTEST_GUILESS_MAIN(PsdFormatValuesContractTest)
