@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 17659
+    "expectedMissingApis": 17612
   },
   "contracts": [
     {
@@ -36908,6 +36908,98 @@
         "method:GridConfig::setColorMain(QColor colorMain)",
         "method:GridConfig::setColorSubdivision(QColor colorSubdivision)",
         "method:GridConfig::setColorVertical(QColor colorVertical)"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::defaultBoundsOwnershipAndHierarchySchemaRemainsStable",
+      "behavior": "画像・選択・mask・空選択・wrap境界providerは共有pointer aliasと一方向の公開継承階層を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisDefaultBoundsSP",
+        "alias:KisSelectionDefaultBoundsSP",
+        "alias:KisSelectionEmptyBoundsSP",
+        "alias:KisWrapAroundBoundsWrapperSP",
+        "class:KisDefaultBounds",
+        "class:KisMaskDefaultBounds",
+        "class:KisSelectionDefaultBounds",
+        "class:KisSelectionDefaultBoundsBase",
+        "class:KisSelectionEmptyBounds",
+        "class:KisWrapAroundBoundsWrapper"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::imageDefaultBoundsSignaturesRemainStable",
+      "behavior": "画像境界providerは既定・画像弱参照構築、仮想破棄、領域・wrap・軸・LOD・時刻・外部frame・source cookieのconst公開型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDefaultBounds::KisDefaultBounds()",
+        "method:KisDefaultBounds::KisDefaultBounds(KisImageWSP image)",
+        "method:KisDefaultBounds::bounds() const",
+        "method:KisDefaultBounds::currentLevelOfDetail() const",
+        "method:KisDefaultBounds::currentTime() const",
+        "method:KisDefaultBounds::externalFrameActive() const",
+        "method:KisDefaultBounds::sourceCookie() const",
+        "method:KisDefaultBounds::wrapAroundMode() const",
+        "method:KisDefaultBounds::wrapAroundModeAxis() const",
+        "method:KisDefaultBounds::~KisDefaultBounds()"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::selectionDefaultBoundsSignaturesRemainStable",
+      "behavior": "選択・mask境界providerは親device・node構築、仮想破棄、画像境界とwrap状態のconst公開型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMaskDefaultBounds::KisMaskDefaultBounds(KisNodeSP parentNode)",
+        "method:KisMaskDefaultBounds::~KisMaskDefaultBounds()",
+        "method:KisSelectionDefaultBounds::KisSelectionDefaultBounds(KisPaintDeviceSP parentPaintDevice)",
+        "method:KisSelectionDefaultBounds::~KisSelectionDefaultBounds()",
+        "method:KisSelectionDefaultBoundsBase::KisSelectionDefaultBoundsBase()",
+        "method:KisSelectionDefaultBoundsBase::bounds() const",
+        "method:KisSelectionDefaultBoundsBase::currentLevelOfDetail() const",
+        "method:KisSelectionDefaultBoundsBase::currentTime() const",
+        "method:KisSelectionDefaultBoundsBase::externalFrameActive() const",
+        "method:KisSelectionDefaultBoundsBase::imageBorderRect() const",
+        "method:KisSelectionDefaultBoundsBase::sourceCookie() const",
+        "method:KisSelectionDefaultBoundsBase::wrapAroundMode() const",
+        "method:KisSelectionDefaultBoundsBase::wrapAroundModeAxis() const",
+        "method:KisSelectionDefaultBoundsBase::~KisSelectionDefaultBoundsBase()"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::emptySelectionBoundsSignaturesRemainStable",
+      "behavior": "空選択境界providerは既定・画像弱参照構築、仮想破棄、領域取得の公開型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSelectionEmptyBounds::KisSelectionEmptyBounds()",
+        "method:KisSelectionEmptyBounds::KisSelectionEmptyBounds(KisImageWSP image)",
+        "method:KisSelectionEmptyBounds::bounds() const",
+        "method:KisSelectionEmptyBounds::~KisSelectionEmptyBounds()"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::wrapAroundBoundsSignaturesRemainStable",
+      "behavior": "wrap境界wrapperは基底共有pointerと領域による構築、仮想破棄、領域・wrap・軸・LOD・時刻・外部frame・source cookieのconst公開型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisWrapAroundBoundsWrapper::KisWrapAroundBoundsWrapper(KisDefaultBoundsBaseSP base,QRect bounds)",
+        "method:KisWrapAroundBoundsWrapper::bounds() const",
+        "method:KisWrapAroundBoundsWrapper::currentLevelOfDetail() const",
+        "method:KisWrapAroundBoundsWrapper::currentTime() const",
+        "method:KisWrapAroundBoundsWrapper::externalFrameActive() const",
+        "method:KisWrapAroundBoundsWrapper::sourceCookie() const",
+        "method:KisWrapAroundBoundsWrapper::wrapAroundMode() const",
+        "method:KisWrapAroundBoundsWrapper::wrapAroundModeAxis() const",
+        "method:KisWrapAroundBoundsWrapper::~KisWrapAroundBoundsWrapper()"
       ]
     }
   ]

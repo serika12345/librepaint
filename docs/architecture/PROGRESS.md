@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 17:53 JST
+- 更新日時: 2026-09-01 18:03 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -40,7 +40,8 @@
 
 ### 第124便の担当計画
 
-- 実装共通基点は`a03c1527125c83a157186ffeddb5ef2c8d280440`である。3担当は`implementing`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの
+- 実装共通基点は`a03c1527125c83a157186ffeddb5ef2c8d280440`である。image bounds担当は`integrated`、histogram担当は`implementing`、SVG property model担当は
+  `ready`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの
   `transport-commit`、追加委任は禁止する。専用worktree-local `build/tdd-macos`と`./scripts/run-shared-test-env`で主環境・compiler cacheを共有する。
   統合順はimage bounds、histogram、SVG property modelとし、調整担当だけが台帳、進捗文書、不足報告を変更する。3担当の公開header、所有CMake、試験source、生成物は
   重ならない。
@@ -68,6 +69,13 @@
   no-work、動的接続、未解決property model記号、構文・書式・公開API・`verify-quick`を確認する。property model・子模型・Lager状態・cursorの生成・get・set・watch、
   metaobject・signal、QML、Qt Quick・Widgets、font・配置・shape・document・SVG読込・描画、製品OBJECT・shared、`kritatestsdk`、新依存、公開header・製品source・製品CMake変更、
   製品計画差、停止線超過が必要なら止める。
+
+### 第124便の統合結果
+
+- `g124-image-bounds-schema`は受渡しcommit`43461f2109e0`を統合commit`ba8561d7ba`として取り込んだ。開始`libs/image/kis_default_bounds.h`から既存
+  `libs/image/tests/KisImageTypesContractTest.cpp`の5枠へ、alias・階層、画像境界、選択・mask境界、空選択境界、wrap境界の全47 APIを対応付けた。対象
+  4工程・8入力、製品`kritaimage` 1,193工程・2,410入力と各集合は変更前後一致し、bounds系、probe、image、device、node、selectionを実体化していない。
+  主macOS環境でも対象CTest、20回反復、`KisDefaultBoundsBaseContractTest`を確認した。
 
 ### 第123便の先行監査計画
 
