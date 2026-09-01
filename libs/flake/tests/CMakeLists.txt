@@ -327,6 +327,18 @@ target_include_directories(KoCanvasResourceProviderSchemaContractTest PRIVATE
 target_compile_definitions(KoCanvasResourceProviderSchemaContractTest PRIVATE kritaflake_EXPORTS)
 
 kis_add_test(
+    KoPointerEventSchemaContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KoPointerEventSchemaContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+)
+target_compile_definitions(KoPointerEventSchemaContractTest PRIVATE kritaflake_EXPORTS)
+
+kis_add_test(
     TestSvgParser.cpp
     TEST_NAME TestSvgParser
     LINK_LIBRARIES kritaflake kritatestsdk
