@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 16550
+    "expectedMissingApis": 16512
   },
   "contracts": [
     {
@@ -39322,6 +39322,89 @@
         "method:KisToolInvocationAction::isShortcutRequired(int shortcut) const",
         "method:KisToolInvocationAction::priority() const",
         "method:KisToolInvocationAction::supportsHiResInputEvents(int shortcut) const"
+      ]
+    },
+    {
+      "target": "KisTagModelSchemaContractTest",
+      "source": "libs/resources/tests/KisTagModelSchemaContractTest.cpp",
+      "test": "KisTagModelSchemaContractTest::abstractTagModelOperationSignaturesRemainStable",
+      "behavior": "抽象tag模型は仮想破棄、tagとindex・URLの対応、2形式の追加、有効状態変更、および改名の正確な関数型と既定引数を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAbstractTagModel::addTag(const KisTagSP tag,const bool allowOverwrite,QVector<KoResourceSP> taggedResources=QVector<KoResourceSP> ())",
+        "method:KisAbstractTagModel::addTag(const QString & tagName,const bool allowOverwrite,QVector<KoResourceSP> taggedResources)",
+        "method:KisAbstractTagModel::changeTagActive(const KisTagSP tag,bool active)",
+        "method:KisAbstractTagModel::indexForTag(KisTagSP tag) const",
+        "method:KisAbstractTagModel::renameTag(const KisTagSP tag,const QString & newName,const bool allowOverwrite)",
+        "method:KisAbstractTagModel::setTagActive(const KisTagSP tag)",
+        "method:KisAbstractTagModel::setTagInactive(const KisTagSP tag)",
+        "method:KisAbstractTagModel::tagForIndex(QModelIndex index=QModelIndex ()) const",
+        "method:KisAbstractTagModel::tagForUrl(const QString & url) const",
+        "method:KisAbstractTagModel::~KisAbstractTagModel()"
+      ]
+    },
+    {
+      "target": "KisTagModelSchemaContractTest",
+      "source": "libs/resources/tests/KisTagModelSchemaContractTest.cpp",
+      "test": "KisTagModelSchemaContractTest::allTagsModelViewSignaturesRemainStable",
+      "behavior": "全tag模型は仮想破棄と表形式模型の行・列・data・更新・flag操作について正確な関数型、const性、および既定親indexを維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAllTagsModel::columnCount(const QModelIndex & parent=QModelIndex ()) const",
+        "method:KisAllTagsModel::data(const QModelIndex & index,int role) const",
+        "method:KisAllTagsModel::flags(const QModelIndex & index) const",
+        "method:KisAllTagsModel::rowCount(const QModelIndex & parent=QModelIndex ()) const",
+        "method:KisAllTagsModel::setData(const QModelIndex & index,const QVariant & value,int role)",
+        "method:KisAllTagsModel::~KisAllTagsModel()"
+      ]
+    },
+    {
+      "target": "KisTagModelSchemaContractTest",
+      "source": "libs/resources/tests/KisTagModelSchemaContractTest.cpp",
+      "test": "KisTagModelSchemaContractTest::allTagsModelTagOperationSignaturesRemainStable",
+      "behavior": "全tag模型はtagとindex・URLの対応、2形式の追加、有効状態変更、および改名の正確な関数型と既定引数を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAllTagsModel::addTag(const KisTagSP tag,const bool allowOverwrite,QVector<KoResourceSP> taggedResources=QVector<KoResourceSP> ())",
+        "method:KisAllTagsModel::addTag(const QString & tagName,const bool allowOverwrite,QVector<KoResourceSP> taggedResources)",
+        "method:KisAllTagsModel::changeTagActive(const KisTagSP tag,bool active)",
+        "method:KisAllTagsModel::indexForTag(KisTagSP tag) const",
+        "method:KisAllTagsModel::renameTag(const KisTagSP tag,const QString & newName,const bool allowOverwrite)",
+        "method:KisAllTagsModel::setTagActive(const KisTagSP tag)",
+        "method:KisAllTagsModel::setTagInactive(const KisTagSP tag)",
+        "method:KisAllTagsModel::tagForIndex(QModelIndex index=QModelIndex ()) const",
+        "method:KisAllTagsModel::tagForUrl(const QString & tagUrl) const"
+      ]
+    },
+    {
+      "target": "KisTagModelSchemaContractTest",
+      "source": "libs/resources/tests/KisTagModelSchemaContractTest.cpp",
+      "test": "KisTagModelSchemaContractTest::filteredTagModelTypeFilterAndLookupSignaturesRemainStable",
+      "behavior": "絞込tag模型は資源種別と省略可能な親による構築、仮想破棄、tag・storage絞込み、およびtagとindex・URLの対応について正確な関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTagModel::KisTagModel(const QString & type,QObject * parent=0)",
+        "method:KisTagModel::indexForTag(KisTagSP tag) const",
+        "method:KisTagModel::setStorageFilter(StorageFilter filter)",
+        "method:KisTagModel::setTagFilter(TagFilter filter)",
+        "method:KisTagModel::tagForIndex(QModelIndex index=QModelIndex ()) const",
+        "method:KisTagModel::tagForUrl(const QString & url) const",
+        "method:KisTagModel::~KisTagModel()"
+      ]
+    },
+    {
+      "target": "KisTagModelSchemaContractTest",
+      "source": "libs/resources/tests/KisTagModelSchemaContractTest.cpp",
+      "test": "KisTagModelSchemaContractTest::filteredTagModelMutationSignaturesRemainStable",
+      "behavior": "絞込tag模型は2形式の追加、有効状態変更、および改名について正確な関数型と既定資源一覧を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTagModel::addTag(const KisTagSP tag,const bool allowOverwrite,QVector<KoResourceSP> taggedResources=QVector<KoResourceSP> ())",
+        "method:KisTagModel::addTag(const QString & tagName,const bool allowOverwrite,QVector<KoResourceSP> taggedResources)",
+        "method:KisTagModel::changeTagActive(const KisTagSP tag,bool active)",
+        "method:KisTagModel::renameTag(const KisTagSP tag,const QString & newName,const bool allowOverwrite)",
+        "method:KisTagModel::setTagActive(const KisTagSP tag)",
+        "method:KisTagModel::setTagInactive(const KisTagSP tag)"
       ]
     }
   ]

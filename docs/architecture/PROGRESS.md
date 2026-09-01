@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 00:39 JST
+- 更新日時: 2026-09-02 00:44 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -37,7 +37,7 @@
 
 ### 第133便の担当計画
 
-- 実装共通基点は`12f7411ff92ab2235799f60650d5d117ac6b0c54`である。color valueとtool invocation担当は`integrated`、tag model担当は`ready`、構築許可は指定試験targetと
+- 実装共通基点は`12f7411ff92ab2235799f60650d5d117ac6b0c54`である。color value、tool invocation、tag model担当は`integrated`、構築許可は指定試験targetと
   軽量近傍だけの`granted`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、専用worktree-local
   `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。統合順はcolor value、tool invocation、tag modelとし、
   調整担当だけが`AGENTS.md`、architecture文書、`docs/architecture/public-api-test-contracts.json`、共通不足報告を変更する。3担当の公開header、所有CMake、試験source、
@@ -83,6 +83,11 @@
   1,386工程・2,781入力と各集合は変更前後一致し、action・event・tool・canvas・input manager・resource・大域状態を生成・実行していない。担当macOS環境と中央環境で
   対象CTest、担当環境で5枠個別、20回反復、近傍`KisPopupWidgetInterfaceContractTest`、無作業再構築、動的接続・未解決記号、構文・書式、公開API検査、
   `verify-quick`に成功した。公開API契約検査は29,838件中13,288件対応、16,550件未対応となった。
+- `g133-tag-model-schema`は受渡しcommit`8b07779b7161`を統合commit`6fce9ce053`として取り込んだ。開始`libs/resources/KisTagModel.h`から既存
+  `libs/resources/tests/KisTagModelSchemaContractTest.cpp`の5枠へ、抽象tag操作、全tag模型表示、全tag模型操作、絞込模型のfilter・検索、変更操作の38 APIを対応付けた。
+  対象4工程・9入力、製品`kritaresources` 150工程・327入力と各集合は変更前後一致し、tag model・proxy・resource・database・query・storage・I/O・大域状態を
+  生成・実行していない。担当macOS環境と中央環境で対象CTest、担当環境で既存5枠と新5枠、20回反復、近傍`KisResourceModelEnumContractTest`、無作業再構築、動的接続・
+  未解決記号、構文・書式、公開API検査、`verify-quick`に成功した。公開API契約検査は29,838件中13,326件対応、16,512件未対応となった。
 
 ### 第132便の先行監査計画
 
