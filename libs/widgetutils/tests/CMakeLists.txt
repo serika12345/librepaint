@@ -195,6 +195,18 @@ target_include_directories(KisSliderSpinBoxSchemaContractTest PRIVATE
 target_compile_definitions(KisSliderSpinBoxSchemaContractTest PRIVATE kritawidgetutils_EXPORTS)
 
 kis_add_test(
+    KisCursorSchemaContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Gui
+)
+target_include_directories(KisCursorSchemaContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+)
+target_compile_definitions(KisCursorSchemaContractTest PRIVATE kritawidgetutils_EXPORTS)
+
+kis_add_test(
     KStandardActionEnumContractTest.cpp
     LINK_LIBRARIES
         Qt${QT_MAJOR_VERSION}::Test
