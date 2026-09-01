@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 11:37 JST
+- 更新日時: 2026-09-01 11:42 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -306,7 +306,8 @@
   animation 24 APIと文書既定値22 APIは下限未達、表示性能25 APIは複数責務を混在するため除外した。
 - `g110-psd-resource-values-audit`は`psd_resource_block.h`の認識済みだが未解釈のlegacy resource 48型・96 APIを採用した。1001〜1014、1015〜1030、
   1033〜1045、1046〜1060、path・printの5群を既存`PsdFormatValuesContractTest`へ追加し、空およびNULを含むpayloadを成功扱いで破棄する現行挙動を
-  `known_defect`として固定する。全実装はheader内で、限定対象6工程・14入力、製品`kritapsd` 1,978工程・3,954入力を維持する。`PSDResourceBlock`本体は
+  `known_defect`として固定する。全実装はheader内で、限定対象6工程・14入力、3 laneの共通基点から新規構成した製品`kritapsd` 1,979工程・3,956入力を
+  維持する。前便のPSD単独計画1,978工程・3,954入力との差は、その後に統合したSVG変換OBJECTが製品閉包へ追加した1工程・2入力である。`PSDResourceBlock`本体は
   生pointer所有、layer effect候補は色空間・pattern registry、overlay基底は24 APIで下限未達のため除外した。
 - `g110-svg-conversions-audit`は`KoSvgText.h`のCSS・SVG文字property token正規化25 APIを採用した。font feature 12、font weight・style 3、baseline token 4、
   white-space・XML-space 4、text-transform 2を既存`KoSvgTextEnumConversionContractTest`の5枠へ追加する。開始`KoSvgText.cpp`の選択25定義を既設
@@ -329,7 +330,7 @@
 - `g110-psd-legacy-resources`は`/Users/masato/Documents/librepaint-g110-psd-legacy-resources`を所有する。対象は
   `libs/psd/psd_resource_block.h`のlegacy resource 48 structと各inline `interpretBlock`の全96 APIである。開始headerから既存
   `libs/psdutils/tests/PsdFormatValuesContractTest.cpp`の新規5枠へ対応付け、他pathを変更しない。分類は`known_defect`、変更前後は6工程・14入力、
-  停止7工程・16入力、製品`kritapsd`は1,978工程・3,954入力不変とする。
+  停止7工程・16入力、製品`kritapsd`は変更前後1,979工程・3,956入力とし、1工程または1入力でも増加した場合は止める。
 - PSD担当は48型がpayloadを解析・保存せず成功扱いで破棄すること、変更なし計画と直接依存、5枠、対象CTest、20回反復、`PsdByteIoContractTest`、
   無作業再構築、動的接続、source構文、公開API検査、`verify-quick`を確認する。`PSDResourceBlock`本体、生pointer所有、out-of-line定義、実image・device、
   色空間・資源registry、filesystem、製品sharedへの試験接続、`kritatestsdk`、公開header・製品・CMake、停止線超過が必要なら止める。
