@@ -16,6 +16,25 @@ endforeach()
 add_subdirectory(tests)
 add_subdirectory(benchmarks)
 
+add_library(kritapigmentcompositeparameterinfoobjects OBJECT
+    KoCompositeOpParameterInfo.cpp
+)
+target_compile_definitions(kritapigmentcompositeparameterinfoobjects PRIVATE kritapigment_EXPORTS)
+target_include_directories(kritapigmentcompositeparameterinfoobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritapigmentcompositeparameterinfoobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Boost::boost
+)
+set_target_properties(kritapigmentcompositeparameterinfoobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritapigmentalphamaskapplicatorbaseobjects OBJECT
     KoAlphaMaskApplicatorBase.cpp
 )
@@ -372,6 +391,7 @@ target_link_libraries(kritapigmentmultiplecolorconversiontransformationobjects P
 set_target_properties(kritapigmentmultiplecolorconversiontransformationobjects PROPERTIES AUTOMOC OFF POSITION_INDEPENDENT_CODE ON)
 
 set(kritapigment_SRCS
+    $<TARGET_OBJECTS:kritapigmentcompositeparameterinfoobjects>
     $<TARGET_OBJECTS:kritapigmentcolorconversiontransformationobjects>
     $<TARGET_OBJECTS:kritapigmentmultiplecolorconversiontransformationobjects>
     $<TARGET_OBJECTS:kritapigmentcolortransformationobjects>

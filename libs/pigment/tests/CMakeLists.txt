@@ -313,6 +313,22 @@ target_include_directories(KoCompositeOpIdsContractTest PRIVATE
 )
 
 kis_add_test(
+    KoCompositeOpSchemaContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+        Boost::boost
+)
+target_sources(KoCompositeOpSchemaContractTest PRIVATE
+    $<TARGET_OBJECTS:kritapigmentcompositeparameterinfoobjects>
+)
+target_include_directories(KoCompositeOpSchemaContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+)
+target_compile_definitions(KoCompositeOpSchemaContractTest PRIVATE kritapigment_EXPORTS)
+
+kis_add_test(
     KoCompositeOpFunctionsContractTest.cpp
     LINK_LIBRARIES
         Qt${QT_MAJOR_VERSION}::Core
