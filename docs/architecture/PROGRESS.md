@@ -2,12 +2,30 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 19:51 JST
+- 更新日時: 2026-09-01 19:54 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
+
+### 第127便の先行監査計画
+
+- 監査共通基点は`1644bf0a45e586822d1a3562442560aee59898f4`、入力は`build/tdd-macos/public-api-missing-g127.json`である。3担当は
+  `auditing`の読み取り専用とし、製品・試験・CMake・script・台帳・文書を変更せず、構築、試験、Git操作、追加委任も行わない。一つの公開責務から25 API以上を
+  最大5枠へ固定し、既存限定対象、header-only値面、または公開headerを変えない一sourceのOBJECT一対一移管で、製品共有ライブラリーと`kritatestsdk`へ接続しない
+  候補だけを採用する。
+- `g127-config-schema-audit`は`libs/application/kis_config.h`の残り173 APIを主候補とし、既存`libs/application/tests/KisConfigEnumContractTest.cpp`の観測と
+  `libs/application/ui/orchestration/KisApplication.h`の23 APIを比較する。設定値を読み書きせず、設定保存先、大域状態、画面、platform serviceへ到達しない未評価型と
+  列挙値から、現在の一つの設定責務を選ぶ。
+- `g127-svg-text-schema-audit`は`libs/flake/text/KoSvgTextShape.h`の残り140 APIと`libs/flake/text/KoSvgText.h`の93 APIを比較する。文字形状または文字配置の公開値・
+  関数型を、shape実体、文字layout、font database、描画、画像、XML、資源、大域状態なしで25 API以上閉じる一責務を選ぶ。
+- `g127-paintop-settings-schema-audit`は`libs/image/brushengine/kis_paintop_settings.h`の残り86 APIを主候補とし、`kis_paint_information.h`の61 APIと
+  `libs/image/kis_distance_information.h`の43 APIを比較する。paintop設定または入力値の公開schemaを、実paint device、preset、resource、paintop、stroke、描画、
+  乱数、設定I/O、大域状態なしで25 API以上閉じる一責務を選ぶ。
+- 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから
+  契約先または移動先、許可path、固有停止条件、比較候補の棄却根拠を含む。既存`build/tdd-macos`の計画は読み取り専用で測定し、構成や構築を開始しない。3報告後に
+  path、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
 
 ### 第126便の先行監査計画
 
