@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 17062
+    "expectedMissingApis": 17035
   },
   "contracts": [
     {
@@ -38135,6 +38135,78 @@
       "apis": [
         "method:KoCompositeOp::composite(const ParameterInfo & params) const",
         "method:KoCompositeOp::composite(quint8 * dstRowStart,qint32 dstRowStride,const quint8 * srcRowStart,qint32 srcRowStride,const quint8 * maskRowStart,qint32 maskRowStride,qint32 rows,qint32 numColumns,float opacity,const QBitArray & channelFlags=QBitArray ()) const"
+      ]
+    },
+    {
+      "target": "KisResourceModelEnumContractTest",
+      "source": "libs/resources/tests/KisResourceModelEnumContractTest.cpp",
+      "test": "KisResourceModelEnumContractTest::storageResourceItemSchemaRemainsStable",
+      "behavior": "資源保存域の項目recordはfolder、更新時刻、資源種別、URLの公開型とvirtual lifetimeを維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisResourceStorage::ResourceItem::folder",
+        "member:KisResourceStorage::ResourceItem::lastModified",
+        "member:KisResourceStorage::ResourceItem::resourceType",
+        "member:KisResourceStorage::ResourceItem::url",
+        "method:KisResourceStorage::ResourceItem::~ResourceItem()",
+        "struct:KisResourceStorage::ResourceItem"
+      ]
+    },
+    {
+      "target": "KisResourceModelEnumContractTest",
+      "source": "libs/resources/tests/KisResourceModelEnumContractTest.cpp",
+      "test": "KisResourceModelEnumContractTest::storageResourceIteratorNavigationSchemaRemainsStable",
+      "behavior": "資源反復子は抽象classとvirtual lifetime、次項判定・移動、種別・URL取得の公開型とconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisResourceStorage::ResourceIterator",
+        "method:KisResourceStorage::ResourceIterator::hasNext() const",
+        "method:KisResourceStorage::ResourceIterator::next()",
+        "method:KisResourceStorage::ResourceIterator::type() const",
+        "method:KisResourceStorage::ResourceIterator::url() const",
+        "method:KisResourceStorage::ResourceIterator::~ResourceIterator()"
+      ]
+    },
+    {
+      "target": "KisResourceModelEnumContractTest",
+      "source": "libs/resources/tests/KisResourceModelEnumContractTest.cpp",
+      "test": "KisResourceModelEnumContractTest::storageResourceIteratorValueSchemaRemainsStable",
+      "behavior": "資源反復子は推定version、更新時刻、遅延資源取得、version反復子取得の公開型とconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisResourceStorage::ResourceIterator::guessedVersion() const",
+        "method:KisResourceStorage::ResourceIterator::lastModified() const",
+        "method:KisResourceStorage::ResourceIterator::resource() const",
+        "method:KisResourceStorage::ResourceIterator::versions() const"
+      ]
+    },
+    {
+      "target": "KisResourceModelEnumContractTest",
+      "source": "libs/resources/tests/KisResourceModelEnumContractTest.cpp",
+      "test": "KisResourceModelEnumContractTest::storageTagIteratorSchemaRemainsStable",
+      "behavior": "tag反復子は抽象classとvirtual lifetime、次項判定・移動、tag取得の公開型とconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisResourceStorage::TagIterator",
+        "method:KisResourceStorage::TagIterator::hasNext() const",
+        "method:KisResourceStorage::TagIterator::next()",
+        "method:KisResourceStorage::TagIterator::tag() const",
+        "method:KisResourceStorage::TagIterator::~TagIterator()"
+      ]
+    },
+    {
+      "target": "KisResourceModelEnumContractTest",
+      "source": "libs/resources/tests/KisResourceModelEnumContractTest.cpp",
+      "test": "KisResourceModelEnumContractTest::storageLookupAndEnumerationSchemaRemainsStable",
+      "behavior": "資源保存域はURLによる資源・情報用path・項目・MD5取得と、種別による資源・tag反復子取得の公開型とconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisResourceStorage::resource(const QString & url)",
+        "method:KisResourceStorage::resourceFilePath(const QString & url)",
+        "method:KisResourceStorage::resourceItem(const QString & url)",
+        "method:KisResourceStorage::resourceMd5(const QString & url)",
+        "method:KisResourceStorage::resources(const QString & resourceType) const",
+        "method:KisResourceStorage::tags(const QString & resourceType) const"
       ]
     }
   ]

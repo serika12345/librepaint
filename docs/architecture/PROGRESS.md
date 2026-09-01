@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 21:21 JST
+- 更新日時: 2026-09-01 21:27 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -37,7 +37,7 @@
 
 ### 第128便の担当計画
 
-- 実装共通基点は`5eba25f8a1488dfc543aff5776439b0722d55963`である。properties configurationとcomposite operation担当は`integrated`、resource storage担当は`ready`、
+- 実装共通基点は`5eba25f8a1488dfc543aff5776439b0722d55963`である。properties configuration、composite operation、resource storage担当は`integrated`、
   構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの
   `transport-commit`、追加委任は禁止する。専用worktree-local `build/tdd-macos`と主作業treeの
   `/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。統合順はproperties configuration、composite operation、resource storageとし、
@@ -81,6 +81,11 @@
   identity・呼出型の全41 APIを対応付けた。対象5工程・11入力、製品`kritapigment` 366工程・762入力から367工程・764入力となり、差は一翻訳単位だけである。
   合成処理、pixel buffer、色空間・profile、registry、描画を生成・実行していない。主macOS環境で対象CTest、20回反復、近傍`KoCompositeOpIdsContractTest`、
   無作業再構築、移管記号の単一定義、公開API検査、`verify-quick`に成功した。
+- `g128-resource-storage-schema`は受渡しcommit`096297490cbe`を統合commit`b0b6a2d8d1`として取り込んだ。開始`libs/resources/KisResourceStorage.h`から既存
+  `libs/resources/tests/KisResourceModelEnumContractTest.cpp`の5枠へ、resource item、resource iterator移動・値、tag iterator、storage参照入口の27 APIを
+  対応付けた。対象4工程・9入力、製品`kritaresources` 150工程・327入力と各集合は変更前後一致し、storage・iterator・resource・tag、bundle・database・filesystem・
+  plugin registry、static metadata値を生成・実行・参照していない。主macOS環境で対象CTest、20回反復、近傍`KisTagModelSchemaContractTest`、無作業再構築、
+  公開API検査、`verify-quick`に成功した。
 
 ### 第127便の先行監査計画
 
