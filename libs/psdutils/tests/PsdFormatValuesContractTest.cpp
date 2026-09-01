@@ -19,12 +19,18 @@ namespace
 
 using BevelEmboss = psd_layer_effects_bevel_emboss;
 using ShadowBase = psd_layer_effects_shadow_base;
+using OverlayBase = psd_layer_effects_overlay_base;
+using OverlayStroke = psd_layer_effects_stroke;
 using AdditionalLayerInfo = PsdAdditionalLayerInfoBlock;
 
 #define ASSERT_BEVEL_SIGNATURE(functionName, signatureType)                                                            \
     static_assert(std::is_same_v<decltype(static_cast<signatureType>(&BevelEmboss::functionName)), signatureType>)
 #define ASSERT_SHADOW_SIGNATURE(functionName, signatureType)                                                           \
     static_assert(std::is_same_v<decltype(static_cast<signatureType>(&ShadowBase::functionName)), signatureType>)
+#define ASSERT_OVERLAY_SIGNATURE(functionName, signatureType)                                                          \
+    static_assert(std::is_same_v<decltype(static_cast<signatureType>(&OverlayBase::functionName)), signatureType>)
+#define ASSERT_OVERLAY_STROKE_SIGNATURE(functionName, signatureType)                                                   \
+    static_assert(std::is_same_v<decltype(static_cast<signatureType>(&OverlayStroke::functionName)), signatureType>)
 #define ASSERT_ADDITIONAL_LAYER_INFO_SIGNATURE(functionName, signatureType)                                            \
     static_assert(                                                                                                     \
         std::is_same_v<decltype(static_cast<signatureType>(&AdditionalLayerInfo::functionName)), signatureType>)
@@ -71,6 +77,11 @@ private Q_SLOTS:
     void shadowBaseGeometrySignaturesRemainStable();
     void shadowBaseContourVariationSignaturesRemainStable();
     void shadowBaseFillTechniqueSignaturesRemainStable();
+    void overlayHierarchyConstructionSignaturesRemainStable();
+    void overlayGradientControlSignaturesRemainStable();
+    void overlayGradientGeometrySignaturesRemainStable();
+    void overlayPatternSelectionAndPhaseSignaturesRemainStable();
+    void overlayStrokePositionSignaturesRemainStable();
     void resourceIdentityFieldsAreIndependentValues();
     void transparencyStopsPreserveSignedValues();
     void patternDefaultsMatchTheEmptyRecord();
@@ -401,6 +412,94 @@ void PsdFormatValuesContractTest::shadowBaseFillTechniqueSignaturesRemainStable(
     ASSERT_SHADOW_SIGNATURE(setFillType, FillSetter);
     ASSERT_SHADOW_SIGNATURE(technique, TechniqueGetter);
     ASSERT_SHADOW_SIGNATURE(setTechnique, TechniqueSetter);
+}
+
+void PsdFormatValuesContractTest::overlayHierarchyConstructionSignaturesRemainStable()
+{
+    using ColorOverlay = psd_layer_effects_color_overlay;
+    using GradientOverlay = psd_layer_effects_gradient_overlay;
+    using PatternOverlay = psd_layer_effects_pattern_overlay;
+
+    static_assert(std::is_class_v<OverlayBase>);
+    static_assert(std::is_default_constructible_v<OverlayBase>);
+
+    static_assert(std::is_class_v<ColorOverlay>);
+    static_assert(std::is_base_of_v<OverlayBase, ColorOverlay>);
+    static_assert(std::is_default_constructible_v<ColorOverlay>);
+
+    static_assert(std::is_class_v<GradientOverlay>);
+    static_assert(std::is_base_of_v<OverlayBase, GradientOverlay>);
+    static_assert(std::is_default_constructible_v<GradientOverlay>);
+
+    static_assert(std::is_class_v<PatternOverlay>);
+    static_assert(std::is_base_of_v<OverlayBase, PatternOverlay>);
+    static_assert(std::is_default_constructible_v<PatternOverlay>);
+
+    static_assert(std::is_class_v<OverlayStroke>);
+    static_assert(std::is_base_of_v<OverlayBase, OverlayStroke>);
+    static_assert(std::is_default_constructible_v<OverlayStroke>);
+}
+
+void PsdFormatValuesContractTest::overlayGradientControlSignaturesRemainStable()
+{
+    using IntGetter = int (OverlayBase::*)() const;
+    using IntSetter = void (OverlayBase::*)(int);
+    using BoolGetter = bool (OverlayBase::*)() const;
+    using BoolSetter = void (OverlayBase::*)(bool);
+
+    ASSERT_OVERLAY_SIGNATURE(scale, IntGetter);
+    ASSERT_OVERLAY_SIGNATURE(setScale, IntSetter);
+    ASSERT_OVERLAY_SIGNATURE(alignWithLayer, BoolGetter);
+    ASSERT_OVERLAY_SIGNATURE(setAlignWithLayer, BoolSetter);
+    ASSERT_OVERLAY_SIGNATURE(dither, BoolGetter);
+    ASSERT_OVERLAY_SIGNATURE(setDither, BoolSetter);
+    ASSERT_OVERLAY_SIGNATURE(reverse, BoolGetter);
+    ASSERT_OVERLAY_SIGNATURE(setReverse, BoolSetter);
+}
+
+void PsdFormatValuesContractTest::overlayGradientGeometrySignaturesRemainStable()
+{
+    using StyleGetter = psd_gradient_style (OverlayBase::*)() const;
+    using StyleSetter = void (OverlayBase::*)(psd_gradient_style);
+    using IntGetter = int (OverlayBase::*)() const;
+    using OffsetSetter = void (OverlayBase::*)(const QPointF &);
+    using OffsetGetter = QPointF (OverlayBase::*)() const;
+    using ScaleLinearSizes = void (OverlayBase::*)(qreal);
+
+    ASSERT_OVERLAY_SIGNATURE(style, StyleGetter);
+    ASSERT_OVERLAY_SIGNATURE(setStyle, StyleSetter);
+    ASSERT_OVERLAY_SIGNATURE(gradientXOffset, IntGetter);
+    ASSERT_OVERLAY_SIGNATURE(gradientYOffset, IntGetter);
+    ASSERT_OVERLAY_SIGNATURE(setGradientOffset, OffsetSetter);
+    ASSERT_OVERLAY_SIGNATURE(gradientOffset, OffsetGetter);
+    ASSERT_OVERLAY_SIGNATURE(scaleLinearSizes, ScaleLinearSizes);
+}
+
+void PsdFormatValuesContractTest::overlayPatternSelectionAndPhaseSignaturesRemainStable()
+{
+    using PatternLinkGetter = KoResourceSignature (OverlayBase::*)() const;
+    using PatternGetter = KoPatternSP (OverlayBase::*)(KisResourcesInterfaceSP) const;
+    using PatternSetter = void (OverlayBase::*)(KoPatternSP);
+    using PhaseComponentGetter = int (OverlayBase::*)() const;
+    using PhaseSetter = void (OverlayBase::*)(const QPointF &);
+    using PhaseGetter = QPointF (OverlayBase::*)() const;
+
+    ASSERT_OVERLAY_SIGNATURE(patternLink, PatternLinkGetter);
+    ASSERT_OVERLAY_SIGNATURE(pattern, PatternGetter);
+    ASSERT_OVERLAY_SIGNATURE(setPattern, PatternSetter);
+    ASSERT_OVERLAY_SIGNATURE(horizontalPhase, PhaseComponentGetter);
+    ASSERT_OVERLAY_SIGNATURE(verticalPhase, PhaseComponentGetter);
+    ASSERT_OVERLAY_SIGNATURE(setPatternPhase, PhaseSetter);
+    ASSERT_OVERLAY_SIGNATURE(patternPhase, PhaseGetter);
+}
+
+void PsdFormatValuesContractTest::overlayStrokePositionSignaturesRemainStable()
+{
+    using PositionGetter = psd_stroke_position (OverlayStroke::*)() const;
+    using PositionSetter = void (OverlayStroke::*)(psd_stroke_position);
+
+    ASSERT_OVERLAY_STROKE_SIGNATURE(position, PositionGetter);
+    ASSERT_OVERLAY_STROKE_SIGNATURE(setPosition, PositionSetter);
 }
 
 void PsdFormatValuesContractTest::resourceIdentityFieldsAreIndependentValues()
