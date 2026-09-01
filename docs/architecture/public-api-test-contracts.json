@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 17229
+    "expectedMissingApis": 17203
   },
   "contracts": [
     {
@@ -37743,6 +37743,77 @@
         "method:KoRuler::hotSpotChanged(int id,qreal newPosition)",
         "method:KoRuler::removeHotSpot(int id)",
         "method:KoRuler::setHotSpot(qreal position,int id=-1)"
+      ]
+    },
+    {
+      "target": "KisConfigEnumContractTest",
+      "source": "libs/application/tests/KisConfigEnumContractTest.cpp",
+      "test": "KisConfigEnumContractTest::animationPlaybackPolicySignaturesRemainStable",
+      "behavior": "animation設定は再生方式、frame drop、適応再生範囲の型、const性、設定引数とgetterの引数省略形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisConfig::adaptivePlaybackRange(bool defaultValue=false) const",
+        "method:KisConfig::animationDropFrames(bool defaultValue=false) const",
+        "method:KisConfig::animationPlaybackBackend(bool defaultValue=false) const",
+        "method:KisConfig::setAdaptivePlaybackRange(bool value)",
+        "method:KisConfig::setAnimationDropFrames(bool value)",
+        "method:KisConfig::setAnimationPlaybackBackend(int value)"
+      ]
+    },
+    {
+      "target": "KisConfigEnumContractTest",
+      "source": "libs/application/tests/KisConfigEnumContractTest.cpp",
+      "test": "KisConfigEnumContractTest::animationTimelineNavigationSignaturesRemainStable",
+      "behavior": "animation設定はtimelineの自動pin、自動zoom、zoom値に関する公開関数型とgetterの引数省略形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisConfig::autoPinLayersToTimeline(bool defaultValue=false) const",
+        "method:KisConfig::autoZoomTimelineToPlaybackRange(bool defaultValue=false) const",
+        "method:KisConfig::setAutoPinLayersToTimeline(bool value)",
+        "method:KisConfig::setAutoZoomTimelineToPlaybackRange(bool value)",
+        "method:KisConfig::setTimelineZoom(qreal value)",
+        "method:KisConfig::timelineZoom(bool defaultValue=false) const"
+      ]
+    },
+    {
+      "target": "KisConfigEnumContractTest",
+      "source": "libs/application/tests/KisConfigEnumContractTest.cpp",
+      "test": "KisConfigEnumContractTest::animationScrubbingAndAudioSignaturesRemainStable",
+      "behavior": "animation設定はscrubbingの映像・音声遅延と音声offset許容値の整数型、const性、設定引数とgetterの引数省略形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisConfig::audioOffsetTolerance(bool defaultValue=false) const",
+        "method:KisConfig::scrubbingAudioUpdatesDelay(bool defaultValue=false) const",
+        "method:KisConfig::scrubbingUpdatesDelay(bool defaultValue=false) const",
+        "method:KisConfig::setAudioOffsetTolerance(int value)",
+        "method:KisConfig::setScrubbingAudioUpdatesDelay(int value)",
+        "method:KisConfig::setScrubbingUpdatesDelay(int value)"
+      ]
+    },
+    {
+      "target": "KisConfigEnumContractTest",
+      "source": "libs/application/tests/KisConfigEnumContractTest.cpp",
+      "test": "KisConfigEnumContractTest::animationCacheAndMediaBackendSignaturesRemainStable",
+      "behavior": "animation設定は背景cache計算とFFmpeg場所の型、const性、設定引数とgetterの引数省略形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisConfig::calculateAnimationCacheInBackground(bool defaultValue=false) const",
+        "method:KisConfig::ffmpegLocation(bool defaultValue=false) const",
+        "method:KisConfig::setCalculateAnimationCacheInBackground(bool value)",
+        "method:KisConfig::setFFMpegLocation(const QString & value)"
+      ]
+    },
+    {
+      "target": "KisConfigEnumContractTest",
+      "source": "libs/application/tests/KisConfigEnumContractTest.cpp",
+      "test": "KisConfigEnumContractTest::animationFrameTransferSignaturesRemainStable",
+      "behavior": "animation設定はframe取込trimと書出しMIME型を維持し、trim getterは引数を省略でき、MIME getterはbool引数を必須とする。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisConfig::exportMimeType(bool defaultValue) const",
+        "method:KisConfig::setExportMimeType(const QString & defaultExportMimeType)",
+        "method:KisConfig::setTrimFramesImport(bool trim)",
+        "method:KisConfig::trimFramesImport(bool defaultValue=false) const"
       ]
     }
   ]
