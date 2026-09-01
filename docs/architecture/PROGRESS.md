@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 02:20 JST
+- 更新日時: 2026-09-02 02:40 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -39,7 +39,7 @@
 
 ### 第135便の担当計画
 
-- 実装共通基点は`3e39e36f5923aa4447035a1ea3e3fe2b6076ff1e`である。pattern background担当は`integrated`、histogram担当は`implementing`、tag proxy担当は`ready`、構築許可は指定試験targetと
+- 実装共通基点は`3e39e36f5923aa4447035a1ea3e3fe2b6076ff1e`である。pattern backgroundとhistogram担当は`integrated`、tag proxy担当は`ready`、構築許可は指定試験targetと
   軽量近傍だけの`granted`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、専用worktree-local
   `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。統合順はpattern background、histogram、tag proxyとし、
   調整担当だけが`AGENTS.md`、architecture文書、`docs/architecture/public-api-test-contracts.json`、共通不足報告を変更する。3担当の公開header、所有CMake、試験source、
@@ -80,9 +80,18 @@
   対象CTest、担当環境で5枠個別、両環境で20回反復と近傍`KoSnapGuideSchemaContractTest`、担当環境で無作業再構築、動的接続・未解決記号、構文・書式、公開API検査、
   `verify-quick`に成功した。中央の公開API契約検査は29,838件中13,478件対応、16,360件未対応となり、最新入力を
   `build/tdd-macos/public-api-missing-g136.json`へ生成した。
+- `g135-histogram-schema`は受渡しcommit`d649b4d084b8`を統合commit`d8e19d3b40`として取り込んだ。開始`libs/image/kis_histogram.h`から既存
+  `libs/image/tests/KisImageTypesContractTest.cpp`の5枠へ、histogramの型・寿命、計算値、計算・結果、尺度・producer・channel、選択操作の32 APIを対応付けた。公開header閉包が
+  必要とする`klocalizedstring.h`は、`libs/image/tests/CMakeLists.txt`の対象includeへKF I18nのinterface includeだけを追加して解決し、linkは増やしていない。対象4工程・8入力、
+  製品`kritaimage` 1,196工程・2,416入力と各集合は変更前後一致し、外側histogram・paint device・layer・producer・selection・registryを生成・実行していない。担当macOS環境と
+  中央環境で対象CTest、担当環境で5枠個別、両環境で20回反復と近傍`KisSpacingInformationContractTest`、担当環境で無作業再構築、動的接続・未解決記号、構文・書式、
+  公開API検査、`verify-quick`に成功した。中央の公開API契約検査は29,838件中13,510件対応、16,328件未対応となり、
+  `build/tdd-macos/public-api-missing-g136.json`を更新した。作業tree 855,620 KiBと担当branchは中央試験前に削除した。
 - 中央の対象CTest成功後、反復検査を開始するNix評価は空き420 MiBで容量不足となった。統合済みpattern background担当861,660 KiBと、受渡しcommitが確定している
   tag proxy担当856,180 KiBの専用作業tree・構築木を削除し、空きを2.1 GiBへ回復した。pattern background担当branchは削除済みであり、tag proxy担当branchとcommitは
-  統合まで保持する。主`build/tdd-macos`、共有compiler cache、実装中のhistogram担当作業treeを保持し、回復後の20回反復と近傍試験は成功した。
+  統合まで保持する。回復後の20回反復と近傍試験は成功した。histogram統合後の台帳検査で再び容量不足となったため、Nixが未参照と判定した179 store pathだけを
+  `nix store gc`で削除し、66,306.69 MiBを回収した。空きは約70 GiB、`/nix/store`は約13 GiBとなった。主`build/tdd-macos` 5.3 GiBと共有compiler cache
+  960 MiBは保持し、旧`public-api-missing-g135.json`を削除して最新の`public-api-missing-g136.json`だけを保持する。
 
 ### 第134便の先行監査計画
 

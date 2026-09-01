@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 16360
+    "expectedMissingApis": 16328
   },
   "contracts": [
     {
@@ -39737,6 +39737,83 @@
         "method:KoPatternBackground::setTransform(const QTransform & matrix)",
         "method:KoPatternBackground::tileRepeatOffset() const",
         "method:KoPatternBackground::transform() const"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::histogramTypeAndLifecycleSchemaRemainStable",
+      "behavior": "histogramは公開class、計算尺度の列挙型と安定値、layerまたはpaint deviceを受ける構築、および仮想寿命を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisHistogram",
+        "enum:enumHistogramType",
+        "enumerator:enumHistogramType::LINEAR",
+        "enumerator:enumHistogramType::LOGARITHMIC",
+        "method:KisHistogram::KisHistogram(KisPaintDeviceSP paintdev,const QRect & bounds,KoHistogramProducer * producer,const enumHistogramType type)",
+        "method:KisHistogram::KisHistogram(KisPaintLayerSP layer,KoHistogramProducer * producer,const enumHistogramType type)",
+        "method:KisHistogram::~KisHistogram()"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::histogramCalculationValueSchemaRemainsStable",
+      "behavior": "histogram計算値は既定構築直後の最大・最小・平均・合計と最高・最低・件数をゼロとして返す。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisHistogram::Calculations",
+        "method:KisHistogram::Calculations::Calculations()",
+        "method:KisHistogram::Calculations::getCount()",
+        "method:KisHistogram::Calculations::getHighest()",
+        "method:KisHistogram::Calculations::getLowest()",
+        "method:KisHistogram::Calculations::getMax()",
+        "method:KisHistogram::Calculations::getMean()",
+        "method:KisHistogram::Calculations::getMin()",
+        "method:KisHistogram::Calculations::getTotal()"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::histogramComputationAndResultSignaturesRemainStable",
+      "behavior": "histogramは更新・計算と、全体・選択範囲の計算結果、bin値、計算尺度の取得について正確な関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisHistogram::calculations()",
+        "method:KisHistogram::computeHistogram()",
+        "method:KisHistogram::getHistogramType()",
+        "method:KisHistogram::getValue(quint8 i)",
+        "method:KisHistogram::selectionCalculations()",
+        "method:KisHistogram::updateHistogram()"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::histogramTypeProducerAndChannelSignaturesRemainStable",
+      "behavior": "histogramは計算尺度、借用producer、channelの取得・設定について正確な関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisHistogram::channel()",
+        "method:KisHistogram::producer()",
+        "method:KisHistogram::setChannel(qint32 channel)",
+        "method:KisHistogram::setHistogramType(enumHistogramType type)",
+        "method:KisHistogram::setProducer(KoHistogramProducer * producer)"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::histogramSelectionSignaturesRemainStable",
+      "behavior": "histogramは選択範囲の有無と上下限の取得、および選択範囲の設定・解除について正確な関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisHistogram::hasSelection()",
+        "method:KisHistogram::selectionFrom()",
+        "method:KisHistogram::selectionTo()",
+        "method:KisHistogram::setNoSelection()",
+        "method:KisHistogram::setSelection(double from,double to)"
       ]
     }
   ]
