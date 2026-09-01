@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 21:34 JST
+- 更新日時: 2026-09-01 21:36 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -34,6 +34,40 @@
 - 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから契約先または
   移動先、許可path、固有停止条件、比較候補の棄却根拠を含む。既存`build/tdd-macos`の計画は読み取り専用で測定し、構成や構築を開始しない。3報告後にpath、CMake、
   試験source、生成物が重ならない候補だけを担当票へ進める。
+
+### 第129便の担当計画
+
+- 実装共通基点は`2641bfb605be06cb507c4f59bcd1e4d071f6543a`である。config document、SVG view geometry、sequential iterator担当は`implementing`、
+  構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、専用
+  worktree-local `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。統合順はconfig document、
+  SVG view geometry、sequential iteratorとし、調整担当だけが`AGENTS.md`、architecture文書、公開API台帳、共通不足報告を変更する。3担当の公開header、製品source、
+  所有CMake、試験source、生成物は重ならない。
+- `g129-config-document-schema`は`/Users/masato/Documents/librepaint-g129-config-document-schema`を所有する。開始`libs/application/kis_config.h`から既存
+  `libs/application/tests/KisConfigEnumContractTest.cpp`の5枠`defaultDocumentGeometrySignaturesRemainStable`、
+  `defaultDocumentColorSpaceSignaturesRemainStable`、`defaultDocumentBackgroundAndLayerSignaturesRemainStable`、
+  `nativeDocumentPersistenceSignaturesRemainStable`、`documentAutosaveAndUndoHistorySignaturesRemainStable`へ36 APIを対応付け、他pathを変更しない。担当CMakeは
+  `libs/application/tests/CMakeLists.txt`、対象は`KisConfigEnumContractTest`、最寄り契約は`KisActionEnumContractTest`である。対象4工程・15入力、停止5工程・18入力、
+  製品`kritaapplication` 1,226工程・2,470入力と各集合の完全一致を確認する。5枠の未知関数、対象CTest、20回反復、近傍、no-work、動的接続、未解決設定記号、構文・
+  書式・公開API・`verify-quick`を確認する。設定・document・image・KConfig・QSettings実体、constructor・destructor・method本文、設定I/O、filesystem、大域状態、画面、
+  製品OBJECT・shared、`kritatestsdk`、新依存、許可外変更、製品計画差、停止線超過が必要なら止める。
+- `g129-svg-view-geometry`は`/Users/masato/Documents/librepaint-g129-svg-view-geometry`を所有する。開始`libs/flake/svg/SvgUtil.cpp`から新規
+  `libs/flake/svg/SvgUtilViewGeometry.cpp`へ縦横比、user space、object bounding box、数値字句・list正規化の公開method 14定義と非公開helper 3定義を本文不変で移し、
+  新規`kritaflakesvgutilviewgeometryobjects`を製品と限定試験へ一対一収容する。`libs/flake/svg/SvgUtil.h`から新規
+  `libs/flake/tests/SvgUtilViewGeometryContractTest.cpp`の5枠`preserveAspectRatioSchemaAndDefaultsRemainStable`、
+  `preserveAspectRatioParsingFormattingAndTransformRemainStable`、`userSpaceIdentityConversionsRemainStable`、`objectBoundingBoxConversionsRemainStable`、
+  `numberLexingAndListNormalizationRemainStable`へ25 APIを対応付ける。許可pathは上記3 sourceと`libs/flake/CMakeLists.txt`、`libs/flake/tests/CMakeLists.txt`だけである。
+  新対象`SvgUtilViewGeometryContractTest`は5工程・10入力、停止6工程・13入力、近傍は`SvgTransformParserContractTest`、製品`kritaflake`は620工程・1,272入力から
+  621工程・1,274入力、停止622/1,277とする。未知target、先行未定義link、5枠、対象CTest、20回反復、近傍、no-work、動的接続、25記号の単一定義、構文・書式・
+  公開API・`verify-quick`を確認する。本文修正、公開header、追加OBJECT・source、shape・canvas・document・font registry・描画・XML実体・大域状態、製品shared、
+  `kritatestsdk`、新依存、説明外の製品計画差、停止線超過が必要なら止める。
+- `g129-sequential-iterator-schema`は`/Users/masato/Documents/librepaint-g129-sequential-iterator-schema`を所有する。開始
+  `libs/image/kis_sequential_iterator.h`から既存`libs/image/tests/KisImageTypesContractTest.cpp`の5枠`sequentialIteratorTypeAndAliasSchemaRemainsStable`、
+  `sequentialIteratorDevicePolicySchemaRemainsStable`、`sequentialIteratorAccessPolicySchemaRemainsStable`、
+  `sequentialIteratorNoProgressPolicySchemaRemainsStable`、`sequentialIteratorTraversalSchemaRemainsStable`へ全39 APIを対応付け、他pathを変更しない。担当CMakeは
+  `libs/image/tests/CMakeLists.txt`、対象は`KisImageTypesContractTest`、最寄り契約は`KisPropertiesConfigurationSchemaContractTest`である。対象4工程・8入力、
+  停止5工程・10入力、製品`kritaimage` 1,195工程・2,414入力と各集合の完全一致を確認する。5枠の未知関数、対象CTest、20回反復、近傍、no-work、動的接続、未解決
+  iterator・paint device・progress記号、構文・書式・公開API・`verify-quick`を確認する。template本文実体化、policy・iterator・paint device・pixel buffer・progressの
+  生成または呼出し、raw pointer参照、mask・XML・描画、製品OBJECT・shared、`kritatestsdk`、新依存、許可外変更、製品計画差、停止線超過が必要なら止める。
 
 ### 第128便の先行監査計画
 
