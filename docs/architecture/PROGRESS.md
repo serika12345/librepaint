@@ -2,12 +2,28 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 09:08 JST
+- 更新日時: 2026-09-01 09:12 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
+
+### 第105並列便の監査計画
+
+- 共通基点は`347b1bc680`、入力は`build/tdd-macos/public-api-missing-g105.json`である。3担当は`auditing`の読み取り専用とし、製品・試験・CMake・
+  台帳・文書を変更せず、構築、試験、Git操作、追加委任も行わない。一つの公開責務から25 API以上を最大5契約枠へ固定し、既存限定対象、header-only値面、
+  または公開headerを変えない一sourceのOBJECT一対一移管で製品shared libraryと`kritatestsdk`へ接続せず閉じる候補だけを採用する。
+- `g105-widget-connection-audit`は`libs/widgets/KisWidgetConnectionUtils.h` 46 APIを主候補とし、前便で次点となったheader-only状態値25 APIを再監査する。
+  `libs/widgets/KisAngleSelector.h` 50 APIと`libs/libkis/AngleSelector.h` 36 APIも比較し、実Widget画面、application、設定I/Oなしで閉じる最良一責務を選ぶ。
+- `g105-paintop-value-audit`は`plugins/paintops/libpaintop/KisDabCacheUtils.h` 32 API、`kis_color_source.h` 45 API、
+  `kis_simple_paintop_factory.h` 30 APIを比較し、純粋値・方針・fake可能な一責務を選ぶ。実paint device、色空間・資源registry、乱数大域状態へ到達する経路は採用しない。
+- `g105-svg-value-audit`は`libs/flake/svg/SvgGraphicContext.h` 40 API、`libs/flake/svg/SvgUtil.h` 41 API、
+  `libs/flake/text/KoSvgTextProperties.h` 38 APIを比較し、SVGの値・列挙・純粋変換の一責務を選ぶ。実shape・document・font registry・filesystem・描画へ
+  到達する経路は採用しない。
+- 各報告は完全なAPI識別子、最大5枠の観測挙動、最寄りCTest、所有CMake、既存限定対象、直接依存、変更なし計画、予測工程・入力と停止線、
+  開始pathから追加・移動先pathへの対応、許可path、固有停止条件、比較候補の棄却根拠を含む。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを
+  担当票へ進め、限定構築計画を再確認する。
 
 ### 第104並列便の監査計画
 
