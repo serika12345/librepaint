@@ -1576,9 +1576,43 @@ set_target_properties(kritauimodelindexconverterbaseobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritauiopenglrendererconfigobjects OBJECT
+    opengl/KisOpenGLRendererConfig.cpp
+)
+target_compile_definitions(kritauiopenglrendererconfigobjects PRIVATE
+    kritaapplicationui_EXPORTS
+)
+target_include_directories(kritauiopenglrendererconfigobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/application>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/application>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/pigment>
+        $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
+)
+target_link_libraries(kritauiopenglrendererconfigobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        KF${KF_MAJOR}::ConfigCore
+        Boost::boost
+        Imath::ImathConfig
+)
+set_target_properties(kritauiopenglrendererconfigobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_subdirectory( tests )
 
 set(kritaui_LIB_SRCS
+    $<TARGET_OBJECTS:kritauiopenglrendererconfigobjects>
     $<TARGET_OBJECTS:kritauimodelindexconverterbaseobjects>
     $<TARGET_OBJECTS:kritauispinboxsplineunitconverterobjects>
     $<TARGET_OBJECTS:kritauiexposuregammacorrectionobjects>

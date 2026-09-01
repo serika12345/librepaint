@@ -86,6 +86,16 @@ target_compile_definitions(KisDlgPreferencesEnumContractTest PRIVATE
     kritawidgetutils_EXPORTS
 )
 
+kis_add_test(
+    KisOpenGLRendererConfigContractTest.cpp
+    LINK_LIBRARIES
+        kritauiopenglrendererconfigobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(KisOpenGLRendererConfigContractTest PRIVATE
+    kritaapplicationui_EXPORTS
+)
+
 kis_add_tests(
     kis_doc2_test.cpp
     kis_file_layer_test.cpp
