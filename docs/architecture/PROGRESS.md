@@ -2,12 +2,27 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 03:00 JST
+- 更新日時: 2026-09-02 03:10 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
+
+### 第136便の先行監査計画
+
+- 監査共通基点は`c6b68e74bf934bed030518240563898720216d23`、入力は`build/tdd-macos/public-api-missing-g136.json`である。3担当は`auditing`の読み取り専用とし、
+  製品・試験・CMake・script・台帳・文書を変更せず、構築、試験、Git操作、追加委任も行わない。一つの公開責務から25 API以上を最大5枠へ固定し、既存限定対象、
+  header-only値面、または公開headerを変えない一sourceのOBJECT一対一移管で、製品共有ライブラリーと`kritatestsdk`へ接続しない候補だけを採用する。
+- `g136-shape-stroke-pointer-schema-audit`は`libs/flake/KoShapeStroke.h`の残り32 APIを主候補とし、`libs/flake/KoPointerEvent.h`の39 APIを比較する。shape strokeの線値schema
+  またはpointer eventの型・複製・入力値schemaの一責務を、shape・marker・painter・実Qt event・入力配送・大域状態の実体化なしで25 API以上閉じる。
+- `g136-store-gamut-schema-audit`は`libs/resources/storage/KoStore.h`の残り37 APIを主候補とし、`libs/flake/resources/KoGamutMask.h`の38 APIを比較する。保管入出力の公開schema
+  またはgamut mask資源値schemaの一責務を、実archive・filesystem・device I/O・shape・painter・資源登録・大域状態の実体化なしで25 API以上閉じる。
+- `g136-angle-image-config-schema-audit`は`libs/libkis/AngleSelector.h`の残り36 APIを主候補とし、`libs/image/kis_image_config.h`の37 APIを比較する。角度選択器の公開schema
+  または画像設定の残存schemaの一責務を、widget・GUI event loop・永続設定・proofing・import/export設定・大域状態の実体化なしで25 API以上閉じる。
+- 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから契約先または
+  移動先、許可path、固有停止条件、比較候補の棄却根拠を含む。既存`build/tdd-macos`の計画は読み取り専用で測定し、構成や構築を開始しない。3報告後にpath、CMake、
+  試験source、生成物が重ならない候補だけを担当票へ進める。
 
 ### 第135便の先行監査計画
 
