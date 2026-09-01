@@ -2,12 +2,29 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 19:00 JST
+- 更新日時: 2026-09-01 19:03 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
+
+### 第126便の先行監査計画
+
+- 監査共通基点は`b4550aa7552e43dd8822cc264fd275c9aac3dadc`、入力は`build/tdd-macos/public-api-missing-g126.json`である。3担当は
+  `auditing`の読み取り専用とし、製品・試験・CMake・script・台帳・文書を変更せず、構築、試験、Git操作、追加委任も行わない。一つの公開責務から25 API以上を
+  最大5枠へ固定し、既存限定対象、header-only値面、または公開headerを変えない一sourceのOBJECT一対一移管で、製品共有ライブラリーと`kritatestsdk`へ接続しない
+  候補だけを採用する。
+- `g126-algebra-schema-audit`は`libs/global/kis_algebra_2d.h`の残り33 APIを主候補とし、既存`KisAlgebraGeometryPrimitivesContractTest`の観測と
+  `libs/global/KisUsageLogger.h`の11 APIを比較する。vector path、交差・包含・切断・変換等の計算幾何を、画面、画像、資源、filesystem、大域状態なしで25 API以上
+  具体値または厳密型へ閉じる一責務を選ぶ。
+- `g126-transform-args-schema-audit`は`plugins/tools/tool_transform2/tool_transform_args.h`の残り70 APIを主候補とし、既存
+  `ToolTransformArgsGeometrySchemaContractTest`と`kis_transform_mask_adapter.h`の24 APIを比較する。変形mode、warp・mesh・liquify・精度・点列・状態の公開schemaから
+  一責務を選び、実paint device、transform worker、filter、XML、stroke、描画を生成・実行しない。
+- `g126-ruler-schema-audit`は`libs/widgets/KoRuler.h`の残り48 APIを主候補とし、`KisPaletteModel.h`の35 APIと`KisVisualColorModel.h`の33 APIを比較する。
+  rulerの配置・単位・範囲・offset・tab等の公開schemaを、widget実体、画面、event loop、style、描画、palette・色資源、大域状態なしで25 API以上閉じる一責務を選ぶ。
+- 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから
+  契約先または移動先、許可path、固有停止条件、比較候補の棄却根拠を含む。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
 
 ### 第125便の先行監査計画
 
