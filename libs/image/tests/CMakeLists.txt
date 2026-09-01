@@ -1285,6 +1285,30 @@ target_compile_definitions(KisImageConfigAnimationSchemaContractTest PRIVATE
 )
 
 kis_add_test(
+    KisImageConfigResourceBudgetSchemaContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Test
+        Boost::boost
+)
+target_include_directories(KisImageConfigResourceBudgetSchemaContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+    ${CMAKE_SOURCE_DIR}/libs/pigment
+    ${CMAKE_BINARY_DIR}/libs/pigment
+    $<TARGET_PROPERTY:KF${KF_MAJOR}::ConfigCore,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:Imath::Imath,INTERFACE_INCLUDE_DIRECTORIES>
+)
+target_compile_definitions(KisImageConfigResourceBudgetSchemaContractTest PRIVATE
+    kritaimage_EXPORTS
+    kritapigment_EXPORTS
+)
+
+kis_add_test(
     KisProofingConfigurationContractTest.cpp
     LINK_LIBRARIES
         kritaimageproofingconfigurationobjects
