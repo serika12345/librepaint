@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 16429
+    "expectedMissingApis": 16396
   },
   "contracts": [
     {
@@ -39578,6 +39578,84 @@
         "method:KisStroke::setLodBuddy(KisStrokeSP buddy)",
         "method:KisStroke::type() const",
         "method:KisStroke::worksOnLevelOfDetail() const"
+      ]
+    },
+    {
+      "target": "KisResourceModelEnumContractTest",
+      "source": "libs/resources/tests/KisResourceModelEnumContractTest.cpp",
+      "test": "KisResourceModelEnumContractTest::storageModelTypeAndEnumSchemaRemainsStable",
+      "behavior": "資源storage模型は表模型class、列schema、およびimport方針の公開型と安定した列挙値を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisStorageModel",
+        "enum:KisStorageModel::Columns",
+        "enum:KisStorageModel::StorageImportOption",
+        "enumerator:KisStorageModel::Columns::Active",
+        "enumerator:KisStorageModel::Columns::DisplayName",
+        "enumerator:KisStorageModel::Columns::Id",
+        "enumerator:KisStorageModel::Columns::Location",
+        "enumerator:KisStorageModel::Columns::MetaData",
+        "enumerator:KisStorageModel::Columns::PreInstalled",
+        "enumerator:KisStorageModel::Columns::StorageType",
+        "enumerator:KisStorageModel::Columns::Thumbnail",
+        "enumerator:KisStorageModel::Columns::TimeStamp",
+        "enumerator:KisStorageModel::StorageImportOption::None",
+        "enumerator:KisStorageModel::StorageImportOption::Overwrite",
+        "enumerator:KisStorageModel::StorageImportOption::Rename"
+      ]
+    },
+    {
+      "target": "KisResourceModelEnumContractTest",
+      "source": "libs/resources/tests/KisResourceModelEnumContractTest.cpp",
+      "test": "KisResourceModelEnumContractTest::storageModelTableSchemaRemainsStable",
+      "behavior": "資源storage模型は省略可能な親による構築、仮想破棄、および表形式の行・列・data・header・flag・更新について正確な関数型と既定引数を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisStorageModel::KisStorageModel(QObject * parent=0)",
+        "method:KisStorageModel::columnCount(const QModelIndex & parent=QModelIndex ()) const",
+        "method:KisStorageModel::data(const QModelIndex & index,int role) const",
+        "method:KisStorageModel::flags(const QModelIndex & index) const",
+        "method:KisStorageModel::headerData(int section,Qt::Orientation orientation,int role=Qt::DisplayRole) const",
+        "method:KisStorageModel::rowCount(const QModelIndex & parent=QModelIndex ()) const",
+        "method:KisStorageModel::setData(const QModelIndex & index,const QVariant & value,int role)",
+        "method:KisStorageModel::~KisStorageModel()"
+      ]
+    },
+    {
+      "target": "KisResourceModelEnumContractTest",
+      "source": "libs/resources/tests/KisResourceModelEnumContractTest.cpp",
+      "test": "KisResourceModelEnumContractTest::storageModelLookupSchemaRemainsStable",
+      "behavior": "資源storage模型はsingleton取得とindex・識別子によるstorage検索について正確な関数型とconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisStorageModel::instance()",
+        "method:KisStorageModel::storageForId(const int storageId) const",
+        "method:KisStorageModel::storageForIndex(const QModelIndex & index) const"
+      ]
+    },
+    {
+      "target": "KisResourceModelEnumContractTest",
+      "source": "libs/resources/tests/KisResourceModelEnumContractTest.cpp",
+      "test": "KisResourceModelEnumContractTest::storageModelImportSchemaRemainsStable",
+      "behavior": "資源storage模型はfile・方針・byte dataを受けるimport可否と実行操作について正確な関数型とconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisStorageModel::canImportStorage(const QString & filename) const",
+        "method:KisStorageModel::importStorage(const QString & filename,StorageImportOption importOption) const",
+        "method:KisStorageModel::importStorageData(const QString & filename,StorageImportOption importOption,const QByteArray & data) const"
+      ]
+    },
+    {
+      "target": "KisResourceModelEnumContractTest",
+      "source": "libs/resources/tests/KisResourceModelEnumContractTest.cpp",
+      "test": "KisResourceModelEnumContractTest::storageModelNotificationSchemaRemainsStable",
+      "behavior": "資源storage模型はstorageの有効化・無効化・再同期・一括同期完了通知について正確なsignal関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisStorageModel::storageDisabled(const QString & storage)",
+        "method:KisStorageModel::storageEnabled(const QString & storage)",
+        "method:KisStorageModel::storageResynchronized(const QString & storage,bool isBulkResynchronization)",
+        "method:KisStorageModel::storagesBulkSynchronizationFinished()"
       ]
     }
   ]
