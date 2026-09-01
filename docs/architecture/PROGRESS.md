@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 18:16 JST
+- 更新日時: 2026-09-01 18:19 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -86,6 +86,12 @@
   書字・配置、装飾・baseline、flow・surfaceの全83 APIを対応付け、`libs/flake/tests/CMakeLists.txt`へheader限定対象を追加した。対象4工程・8入力、製品
   `kritaflake` 618工程・1,268入力と各集合は変更前後一致し、property model、子模型、Lager state・cursor、metaobject、signalを生成・実行していない。
   主macOS環境では再構成後に対象CTest、20回反復、`KoSvgTextEnumContractTest`、無作業再構築を確認した。
+- 第124便は3責務15枠へ180 APIを重複なく対応付けた。公開API契約検査は29,838件中12,359件対応、17,479件未対応となり、
+  `verify-quick`は成功した。最新入力は`build/tdd-macos/public-api-missing-g125.json`である。Linux、全native検証、製品全体構築は実行していない。
+  清浄性と受渡しcommitを確認後、image bounds担当654,248 KiB、histogram担当685,112 KiB、SVG property model担当656,912 KiBの
+  作業tree、専用構築木、3 branchを削除して合計1,996,272 KiB（約1.90 GiB）を回収し、旧`public-api-missing-g124.json`も削除した。
+  主`build/tdd-macos` 5.3 GB、共有compiler cache 1.0 GB、最新不足報告だけを第125便へ再利用する。次の永続作業は第125便の不足報告から、
+  pathと所有CMakeが重ならない3責務を先行監査し、限定構築範囲を確認してから担当票を確定することである。
 
 ### 第123便の先行監査計画
 
