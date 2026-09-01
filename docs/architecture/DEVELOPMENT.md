@@ -64,6 +64,10 @@ build-incremental <platform> <operation> [target]
 | `bootstrap [target]` | 同じNinja木へ最初の構築基準を作る |
 | `cache-stats` | 対象プラットフォームのコンパイラーキャッシュ統計を表示する |
 
+ネイティブの`plan`は最初に`build.ninja`だけを対象としてglob検査と必要なCMake再生成を同期し、
+同期済みmanifestの一時ハードリンクを別名で読み込んで対象の実作業を乾式表示する。この処理は
+コンパイルとリンクを実行せず、一時manifestを成功・失敗の両方で削除する。
+
 `native`はホストをmacOSまたはLinuxへ対応付ける。iOSはDarwinホスト、Androidと
 Windowsクロス構築はx86_64 Linuxホストを使用する。
 

@@ -205,6 +205,142 @@ class IncrementalDevelopmentContractTests(unittest.TestCase):
                 / "compile_commands.json",
             )
 
+    def test_native_plan_dry_runs_a_disposable_synchronized_manifest(self):
+        with tempfile.TemporaryDirectory() as temp_directory:
+            temp_root = pathlib.Path(temp_directory)
+            build_dir = temp_root / "native-build"
+            build_dir.mkdir()
+            build_manifest = build_dir / "build.ninja"
+            build_manifest.write_text(
+                "build ExampleTarget: phony\n",
+                encoding="utf-8",
+            )
+            command_log = temp_root / "commands"
+            boundary_log = temp_root / "boundaries"
+            compile_commands_link = temp_root / "compile_commands.json"
+            fake_bin = temp_root / "bin"
+            fake_bin.mkdir()
+
+            fake_ninja = fake_bin / "ninja"
+            fake_ninja.write_text(
+                f"#!{BASH}\n"
+                "printf '%s\\n' \"$*\" >>\"$COMMAND_LOG\"\n"
+                "plan_manifest=''\n"
+                "previous=''\n"
+                "for argument in \"$@\"; do\n"
+                "    if [[ \"$previous\" == '-f' ]]; then\n"
+                "        plan_manifest=\"$argument\"\n"
+                "    fi\n"
+                "    previous=\"$argument\"\n"
+                "done\n"
+                "if [[ -n \"$plan_manifest\" ]]; then\n"
+                "    [[ \"$PLAN_BUILD_DIR/build.ninja\" "
+                "-ef \"$PLAN_BUILD_DIR/$plan_manifest\" ]]\n"
+                "    printf '%s\\n' '[1/102] planned work'\n"
+                "    exit \"${FAKE_NINJA_PLAN_STATUS:-0}\"\n"
+                "fi\n"
+                "exit \"${FAKE_NINJA_SYNC_STATUS:-0}\"\n",
+                encoding="utf-8",
+            )
+            fake_ninja.chmod(0o755)
+
+            fake_cmake = fake_bin / "cmake"
+            fake_cmake.write_text(
+                f"#!{BASH}\nprintf '%s\\n' \"$*\" >>\"$COMMAND_LOG\"\n",
+                encoding="utf-8",
+            )
+            fake_cmake.chmod(0o755)
+            fake_ccache = fake_bin / "ccache"
+            fake_ccache.write_text(f"#!{BASH}\nexit 0\n", encoding="utf-8")
+            fake_ccache.chmod(0o755)
+            fake_python = fake_bin / "python3"
+            fake_python.write_text(
+                f"#!{BASH}\nprintf '%s\\n' \"$*\" >>\"$BOUNDARY_LOG\"\n",
+                encoding="utf-8",
+            )
+            fake_python.chmod(0o755)
+
+            environment = os.environ.copy()
+            environment.update(
+                {
+                    "BOUNDARY_LOG": str(boundary_log),
+                    "COMMAND_LOG": str(command_log),
+                    "LIBREPAINT_COMPILE_COMMANDS_LINK_PATH": str(
+                        compile_commands_link
+                    ),
+                    "LIBREPAINT_NATIVE_BUILD_DIR": str(build_dir),
+                    "LIBREPAINT_NATIVE_MARKER_PATH": str(
+                        temp_root / "native-config"
+                    ),
+                    "LIBREPAINT_TEST_SHELL": "1",
+                    "PATH": f"{fake_bin}:{environment['PATH']}",
+                    "PLAN_BUILD_DIR": str(build_dir),
+                }
+            )
+
+            configure_result = self.run_build_script(
+                "native", "configure", environment=environment
+            )
+            self.assertEqual(configure_result.returncode, 0, configure_result.stderr)
+            command_log.unlink()
+
+            plan_result = self.run_build_script(
+                "native", "plan", "ExampleTarget", environment=environment
+            )
+
+            self.assertEqual(plan_result.returncode, 0, plan_result.stderr)
+            plan_commands = command_log.read_text(encoding="utf-8").splitlines()
+            self.assertEqual(plan_commands[0], f"-C {build_dir} build.ninja")
+            self.assertRegex(
+                plan_commands[1],
+                rf"^-C {build_dir} -f \.librepaint-plan\..+ -n ExampleTarget$",
+            )
+            self.assertIn("[1/102] planned work", plan_result.stdout)
+            self.assertEqual(
+                list(build_dir.glob(".librepaint-plan.*")),
+                [],
+            )
+
+            command_log.unlink()
+            failing_environment = environment.copy()
+            failing_environment["FAKE_NINJA_PLAN_STATUS"] = "7"
+            failing_result = self.run_build_script(
+                "native",
+                "plan",
+                "ExampleTarget",
+                environment=failing_environment,
+            )
+
+            self.assertEqual(
+                failing_result.returncode,
+                7,
+                f"{failing_result.stdout}\n{failing_result.stderr}",
+            )
+            self.assertEqual(
+                list(build_dir.glob(".librepaint-plan.*")),
+                [],
+            )
+
+            command_log.unlink()
+            sync_failing_environment = environment.copy()
+            sync_failing_environment["FAKE_NINJA_SYNC_STATUS"] = "5"
+            sync_failing_result = self.run_build_script(
+                "native",
+                "plan",
+                "ExampleTarget",
+                environment=sync_failing_environment,
+            )
+
+            self.assertEqual(sync_failing_result.returncode, 5)
+            self.assertEqual(
+                command_log.read_text(encoding="utf-8").splitlines(),
+                [f"-C {build_dir} build.ninja"],
+            )
+            self.assertEqual(
+                list(build_dir.glob(".librepaint-plan.*")),
+                [],
+            )
+
     def test_clang_tidy_configuration_matches_the_development_toolchain(self):
         clang_tidy = shutil.which("clang-tidy")
         self.assertIsNotNone(

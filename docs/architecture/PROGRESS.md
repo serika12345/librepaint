@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 12:03 JST
+- 更新日時: 2026-09-01 12:12 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -382,6 +382,20 @@
 - `g111-psd-schema-audit`は`libs/psdutils/psd.h`の未対応197 APIを色mode・圧縮・resource ID・layer ID・固定小数点等の直列化schemaへ分け、header内の列挙・alias・定数・
   局所値だけで25 API以上を最大5枠に固定できる一責務を選ぶ。実image・device、色空間・資源registry、filesystem、製品shared、`kritatestsdk`へ接続しない候補を
   優先し、完全な識別子、枠、直接依存、変更なし計画、停止線、開始headerから契約先、許可path、比較候補の棄却根拠を報告する。
+- `g111-build-plan-audit`は、CMakeの`CONFIGURE_DEPENDS`が生成する常時dirtyのphony glob検査を`ninja -n`が実行できず、`restat`結果を知る前提で
+  `build.ninja`再生成だけを表示することを原因と確定した。開始`scripts/build-incremental`の直接乾式実行を、同file内のglob・CMake限定同期と別名manifestによる
+  乾式実行へ置き換え、開始`scripts/tests/test_incremental_development.py`へ成功、dry-run失敗、同期失敗、一時物削除の契約を追加した。約93 MBのmanifestは
+  copyせず同一構築木のhard linkとし、追加容量をdirectory entryだけに抑えた。
+- 修正後のmacOS実機では`KoSvgTextEnumConversionContractTest`を`no work`、`kritaflake`を残存3工程として正しく表示した。製品artifactの更新時刻は前後不変で、
+  一時manifestは残らない。計画前の同期はglob・必要なCMake再生成と1,712 targetの境界検査だけを行い、コンパイル・リンクを実行しない。専用回帰を含む
+  `scripts/tests/test_incremental_development.py`の17試験、`bash -n`、`shellcheck`は成功した。
+- `g111-config-schema-audit`は`kis_config.h`の描画資源選択面26 APIを採用した。preset一覧・表示8、favorite資源4、palette・preset方針6、brush HUD・palette表示6、
+  scratchpad表示2を既存`KisConfigEnumContractTest`の未評価関数型5枠へ追加する。対象は変更前後4工程・15入力、停止5工程・18入力、製品
+  `kritaapplication`は1,224工程・2,466入力不変とする。animation 24、文書既定値22、保存18 APIは下限未達、表示性能25 APIは複数責務を混在するため棄却した。
+- `g111-psd-schema-audit`は`psd.h`のgradient collection・map直列化record 28 APIを採用した。collection record 8、descriptor・control 9、stop列4、
+  procedural制御4、inline色table 3を既存`PsdFormatValuesContractTest`の5枠へ追加する。aggregateの既定値・正確な型・signed値・浅いpointer copy・256色配列の
+  値copyをpointer参照解決と色空間生成なしで固定する。変更後予測3工程・6変更入力、停止4工程・9入力とし、試験source以外を変更しない。
+- 次の操作は構築計画修正を基点commitとして確定し、設定26 APIとPSD 28 APIの非重複2担当票を記録してから専用worktreeで並列実装することである。
 
 ### 第105並列便の監査計画
 

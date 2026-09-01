@@ -83,10 +83,11 @@ case "$platform" in
         ;;
 esac
 
-build_dir="$repo_root/build/$preset"
+build_dir="${LIBREPAINT_NATIVE_BUILD_DIR:-$repo_root/build/$preset}"
 marker_path="${LIBREPAINT_NATIVE_MARKER_PATH:-$build_dir/.librepaint-incremental-config}"
 compile_commands_link_path="${LIBREPAINT_COMPILE_COMMANDS_LINK_PATH:-$repo_root/compile_commands.json}"
 boundary_checker="$repo_root/scripts/architecture/check_package_boundaries.py"
+native_plan_manifest=""
 native_config_fingerprint="$({
     printf 'schema=1\n'
     printf 'preset=%s\n' "$preset"
@@ -147,6 +148,32 @@ ensure_native_tree() {
     fi
 }
 
+plan_native() {
+    local target="${1:-all}"
+    local plan_manifest_name
+
+    prepare_boundary_query
+    ninja -C "$build_dir" build.ninja
+    check_native_boundaries
+
+    native_plan_manifest="$(mktemp "$build_dir/.librepaint-plan.XXXXXX")"
+    plan_manifest_name="${native_plan_manifest##*/}"
+    cleanup_native_plan() {
+        if [[ -n "$native_plan_manifest" ]]; then
+            rm -f -- "$native_plan_manifest"
+        fi
+    }
+    trap cleanup_native_plan EXIT
+
+    rm -- "$native_plan_manifest"
+    ln -- "$build_dir/build.ninja" "$native_plan_manifest"
+    ninja -C "$build_dir" -f "$plan_manifest_name" -n "$target"
+
+    cleanup_native_plan
+    native_plan_manifest=""
+    trap - EXIT
+}
+
 case "$operation" in
     path)
         (( $# == 0 )) || usage
@@ -159,7 +186,7 @@ case "$operation" in
     plan)
         (( $# <= 1 )) || usage
         ensure_native_tree
-        ninja -C "$build_dir" -n "${1:-all}"
+        plan_native "${1:-all}"
         ;;
     build)
         (( $# <= 1 )) || usage
