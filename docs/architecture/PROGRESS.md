@@ -2,12 +2,30 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 15:42 JST
+- 更新日時: 2026-09-01 15:44 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
+
+### 第121便の先行監査計画
+
+- 監査共通基点は`88fb4bedee20cfeab647b7566b794a9f454a0c0b`、入力は`build/tdd-macos/public-api-missing-g121.json`である。3担当は`auditing`の
+  読み取り専用とし、製品・試験・CMake・script・台帳・文書を変更せず、構築、試験、Git操作、追加委任も行わない。一つの公開責務から25 API以上を
+  最大5枠へ固定し、既存限定対象、header-only値面、または公開headerを変えない一sourceのOBJECT一対一移管で製品共有ライブラリーと
+  `kritatestsdk`へ接続しない候補だけを採用する。
+- `g121-application-config-schema-audit`は`libs/application/kis_config.h`の残り173 APIを主候補とし、`libs/image/kis_image_config.h`の残余と
+  `libs/ui/dialogs/kis_dlg_preferences.h`を比較する。第108・109・116・118・120便と重複しない一つの設定責務から、設定実体、KConfigGroup・QSettings、
+  application、GUI、filesystemを実行せず、未評価型検査だけで25 API以上を閉じる候補を選ぶ。
+- `g121-svg-schema-audit`は`libs/flake/text/KoSvgText.h`の残り120 API、`libs/flake/text/KoSvgTextShape_p.h`の49 API、
+  `libs/flake/text/KoSvgTextShape.h`の140 APIを比較する。第105〜119便と重複しない列挙・値・公開schemaから一責務を選び、実shape、document、font registry、
+  HarfBuzz・FreeType、文字配置、描画、lager大域状態へ到達しない。
+- `g121-psd-schema-audit`は`libs/psdutils/psd.h`の残り57 APIと`libs/psd/psd_additional_layer_info_block.h`の43 APIを比較する。第99〜120便と
+  重複しない列挙・記録値・公開schemaから一責務を選び、実image、paint device、色空間・pattern・gradient registry、ASL、filesystem、生pointer所有へ
+  到達しない。
+- 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから
+  契約先または移動先、許可path、固有停止条件、比較候補の棄却根拠を含む。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
 
 ### 第106並列便の監査計画
 
