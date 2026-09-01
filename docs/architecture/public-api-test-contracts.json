@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 16151
+    "expectedMissingApis": 16118
   },
   "contracts": [
     {
@@ -40216,6 +40216,84 @@
         "method:SliderSpinBox::draggingFinished()",
         "method:SliderSpinBox::isDragging() const",
         "method:SliderSpinBox::setBlockUpdateSignalOnDrag(bool newBlockUpdateSignalOnDrag)"
+      ]
+    },
+    {
+      "target": "KoFFWWSConverterSchemaContractTest",
+      "source": "libs/flake/tests/KoFFWWSConverterSchemaContractTest.cpp",
+      "test": "KoFFWWSConverterSchemaContractTest::fontFileAndFamilyIdentityValuesRemainStable",
+      "behavior": "font file項目とfont family表現は正確なdata member型、空文字・0・未知形式の既定値、およびcopy・代入後の値独立性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KoFFWWSConverter::FontFileEntry::fileName",
+        "member:KoFFWWSConverter::FontFileEntry::fontIndex",
+        "member:KoFontFamilyWWSRepresentation::fontFamilyName",
+        "member:KoFontFamilyWWSRepresentation::type",
+        "member:KoFontFamilyWWSRepresentation::typographicFamilyName",
+        "struct:KoFFWWSConverter::FontFileEntry",
+        "struct:KoFontFamilyWWSRepresentation"
+      ]
+    },
+    {
+      "target": "KoFFWWSConverterSchemaContractTest",
+      "source": "libs/flake/tests/KoFFWWSConverterSchemaContractTest.cpp",
+      "test": "KoFFWWSConverterSchemaContractTest::fontFamilyLocalizationValuesRemainStable",
+      "behavior": "font family表現は地域化名称・style、更新日時、見本文字列、対応言語の正確なQt値型、空・無効な既定値、およびcopy独立性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KoFontFamilyWWSRepresentation::lastModified",
+        "member:KoFontFamilyWWSRepresentation::localizedFontFamilyNames",
+        "member:KoFontFamilyWWSRepresentation::localizedTypographicFamily",
+        "member:KoFontFamilyWWSRepresentation::localizedTypographicStyles",
+        "member:KoFontFamilyWWSRepresentation::sampleStrings",
+        "member:KoFontFamilyWWSRepresentation::supportedLanguages"
+      ]
+    },
+    {
+      "target": "KoFFWWSConverterSchemaContractTest",
+      "source": "libs/flake/tests/KoFFWWSConverterSchemaContractTest.cpp",
+      "test": "KoFFWWSConverterSchemaContractTest::fontFamilyAxesStylesAndColorFlagsRemainStable",
+      "behavior": "font family表現は軸・style容器と可変・色形式flagの正確な型、空・falseの既定値、およびcopy独立性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KoFontFamilyWWSRepresentation::axes",
+        "member:KoFontFamilyWWSRepresentation::colorBitMap",
+        "member:KoFontFamilyWWSRepresentation::colorClrV0",
+        "member:KoFontFamilyWWSRepresentation::colorClrV1",
+        "member:KoFontFamilyWWSRepresentation::colorSVG",
+        "member:KoFontFamilyWWSRepresentation::isVariable",
+        "member:KoFontFamilyWWSRepresentation::styles"
+      ]
+    },
+    {
+      "target": "KoFFWWSConverterSchemaContractTest",
+      "source": "libs/flake/tests/KoFFWWSConverterSchemaContractTest.cpp",
+      "test": "KoFFWWSConverterSchemaContractTest::fontConverterTypeAndIngestionSignaturesRemainStable",
+      "behavior": "font WWS変換器は型・寿命とpattern・file・対応言語・generic family取込について正確な借用pointer、値、参照型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoFFWWSConverter",
+        "method:KoFFWWSConverter::KoFFWWSConverter()",
+        "method:KoFFWWSConverter::addFontFromFile(const QString & filename,const int index,FT_LibrarySP freeTypeLibrary)",
+        "method:KoFFWWSConverter::addFontFromPattern(const FcPattern * pattern,FT_LibrarySP freeTypeLibrary)",
+        "method:KoFFWWSConverter::addGenericFamily(const QString & name)",
+        "method:KoFFWWSConverter::addSupportedLanguagesByFile(const QString & filename,const int index,const QList<QLocale> & supportedLanguages,FcCharSet * set)",
+        "method:KoFFWWSConverter::~KoFFWWSConverter()"
+      ]
+    },
+    {
+      "target": "KoFFWWSConverterSchemaContractTest",
+      "source": "libs/flake/tests/KoFFWWSConverterSchemaContractTest.cpp",
+      "test": "KoFFWWSConverterSchemaContractTest::fontConverterCollectionAndLookupSignaturesRemainStable",
+      "behavior": "font WWS変換器は分類・収集・名称検索・CSS候補・診断について正確な引数、戻り型、const性、および候補検索の既定引数省略可能性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoFFWWSConverter::candidatesForCssValues(const KoCSSFontInfo info,quint32 xRes=72,quint32 yRes=72) const",
+        "method:KoFFWWSConverter::collectFamilies() const",
+        "method:KoFFWWSConverter::debugInfo() const",
+        "method:KoFFWWSConverter::representationByFamilyName(const QString & familyName) const",
+        "method:KoFFWWSConverter::sortIntoWWSFamilies()",
+        "method:KoFFWWSConverter::wwsNameByFamilyName(const QString familyName) const"
       ]
     }
   ]

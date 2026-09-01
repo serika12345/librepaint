@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 04:50 JST
+- 更新日時: 2026-09-02 05:00 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -38,7 +38,7 @@
 
 ### 第137便の担当計画
 
-- 実装共通基点は`acc0e9a8c564e195fd11a95ba425cbeecf096703`である。slider spin box担当は`integrated`、font WWSとLCMS profile担当は`ready`、構築許可は指定試験targetと軽量近傍だけの
+- 実装共通基点は`acc0e9a8c564e195fd11a95ba425cbeecf096703`である。slider spin boxとfont WWS担当は`integrated`、LCMS profile担当は`ready`、構築許可は指定試験targetと軽量近傍だけの
   `granted`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、専用worktree-local `build/tdd-macos`と主作業treeの
   `/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。統合順はslider spin box、font WWS、LCMS profileとし、調整担当だけが`AGENTS.md`、
   architecture文書、`docs/architecture/public-api-test-contracts.json`、共通不足報告を変更する。3担当の公開header、所有CMake、試験source、生成物は重ならない。
@@ -78,6 +78,13 @@
   変更前後一致し、wrapper・内部widget・QObject・GUI event loop・metaobject本文を生成・実行していない。担当macOS環境と中央環境で対象CTest、担当環境で5枠個別、両環境で
   20回反復と近傍`KisSliderSpinBoxSchemaContractTest`、担当環境で無作業再構築、動的接続・未解決記号、構文・書式、公開API検査、`verify-quick`に成功した。中央の公開API契約
   検査は29,838件中13,687件対応、16,151件未対応となる。作業tree 874,132 KiBと担当branchは削除した。
+- `g137-font-wws-schema`は受渡しcommit`1fe1c826e22b`を統合commit`cbec4d184c`として取り込んだ。開始`libs/flake/text/KoFFWWSConverter.h`から新規
+  `libs/flake/tests/KoFFWWSConverterSchemaContractTest.cpp`の5枠へ、font file・family識別値、地域化値、軸・style・色flag、変換器型・取込署名、収集・検索署名の33 APIを
+  対応付け、`libs/flake/tests/CMakeLists.txt`へQt Gui・Test・Xmlと外部font libraryのinterface includeだけを接続する対象を追加した。最初のlinkはenumの`QCOMPARE`が
+  `KoSvgText::staticMetaObject`を要求する診断を出し、製品linkを加えず整数ordinal比較へ限定して解消した。対象4工程・8入力、製品`kritaflake` 621工程・1,274入力と各集合は
+  変更前後一致し、converter・font資源・Fontconfig・FreeType・HarfBuzz・text shape・painterを生成・実行していない。担当macOS環境と中央環境で対象CTest、担当環境で5枠個別、
+  両環境で20回反復と近傍`KoSvgTextFontSelectionValueContractTest`、担当環境で無作業再構築、動的接続・未解決記号、構文・書式、公開API検査、`verify-quick`に成功した。
+  中央の公開API契約検査は29,838件中13,720件対応、16,118件未対応となる。作業tree 873,708 KiBと担当branchは削除した。
 
 ### 第136便の先行監査計画
 
