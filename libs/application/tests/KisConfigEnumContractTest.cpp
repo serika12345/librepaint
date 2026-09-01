@@ -55,6 +55,11 @@ private Q_SLOTS:
     void constructionGridSignaturesRemainStable();
     void guidesPresentationSignaturesRemainStable();
     void mdiCanvasBackgroundSignaturesRemainStable();
+    void workspaceModeAndPrimaryChromeSignaturesRemainStable();
+    void fullscreenWindowChromeSignaturesRemainStable();
+    void fullscreenWorkspaceSurfaceSignaturesRemainStable();
+    void workspaceTransientSurfaceSignaturesRemainStable();
+    void workspaceAuxiliaryChromeSignaturesRemainStable();
 };
 
 void KisConfigEnumContractTest::inputAndSamplerValuesRemainStable()
@@ -607,6 +612,73 @@ void KisConfigEnumContractTest::mdiCanvasBackgroundSignaturesRemainStable()
 
     static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().getMDIBackgroundColor()), QString>);
     static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().getMDIBackgroundImage()), QString>);
+}
+
+void KisConfigEnumContractTest::workspaceModeAndPrimaryChromeSignaturesRemainStable()
+{
+    ASSERT_KIS_CONFIG_SIGNATURE(fullscreenMode, bool (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setFullscreenMode, void (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(showDockers, bool (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setShowDockers, void (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(showStatusBar, bool (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setShowStatusBar, void (KisConfig::*)(bool) const);
+
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().fullscreenMode()), bool>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().showDockers()), bool>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().showStatusBar()), bool>);
+}
+
+void KisConfigEnumContractTest::fullscreenWindowChromeSignaturesRemainStable()
+{
+    ASSERT_KIS_CONFIG_SIGNATURE(hideMenuFullscreen, bool (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setHideMenuFullscreen, void (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(hideStatusbarFullscreen, bool (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setHideStatusbarFullscreen, void (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(hideTitlebarFullscreen, bool (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setHideTitlebarFullscreen, void (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(hideToolbarFullscreen, bool (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setHideToolbarFullscreen, void (KisConfig::*)(bool) const);
+
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().hideMenuFullscreen()), bool>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().hideStatusbarFullscreen()), bool>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().hideTitlebarFullscreen()), bool>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().hideToolbarFullscreen()), bool>);
+}
+
+void KisConfigEnumContractTest::fullscreenWorkspaceSurfaceSignaturesRemainStable()
+{
+    ASSERT_KIS_CONFIG_SIGNATURE(hideDockersFullscreen, bool (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setHideDockersFullscreen, void (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(hideScrollbarsFullscreen, bool (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setHideScrollbarsFullscreen, void (KisConfig::*)(bool) const);
+
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().hideDockersFullscreen()), bool>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().hideScrollbarsFullscreen()), bool>);
+}
+
+void KisConfigEnumContractTest::workspaceTransientSurfaceSignaturesRemainStable()
+{
+    ASSERT_KIS_CONFIG_SIGNATURE(hideScrollbars, bool (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setHideScrollbars, void (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(hidePopups, bool (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setHidePopups, void (KisConfig::*)(bool));
+
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().hideScrollbars()), bool>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().hidePopups()), bool>);
+}
+
+void KisConfigEnumContractTest::workspaceAuxiliaryChromeSignaturesRemainStable()
+{
+    ASSERT_KIS_CONFIG_SIGNATURE(showDockerTitleBars, bool (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setShowDockerTitleBars, void (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(showCanvasMessages, bool (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setShowCanvasMessages, void (KisConfig::*)(bool));
+    ASSERT_KIS_CONFIG_SIGNATURE(showRulers, bool (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setShowRulers, void (KisConfig::*)(bool) const);
+
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().showDockerTitleBars()), bool>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().showCanvasMessages()), bool>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().showRulers()), bool>);
 }
 
 #undef ASSERT_KIS_CONFIG_SIGNATURE
