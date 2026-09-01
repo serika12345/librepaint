@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 02:02 JST
+- 更新日時: 2026-09-02 02:10 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -27,6 +27,9 @@
 - `g135-histogram-data-schema-audit`は`kis_histogram.h`の全32 APIを採用した。型・寿命7、計算値9、計算・結果6、型・producer・channel 5、選択5を既存
   `KisImageTypesContractTest`の具体値・未評価型5枠へ対応付ける。対象4工程・8入力、停止5工程・11入力、製品`kritaimage` 1,196工程・2,416入力を維持する。
   `kis_datamanager.h`はtile・memento・pool・device・planar I/Oへ責務が分散し、inline転送の意味を実体なしでは観測できないため棄却した。
+- `g135-histogram-data-schema-audit`の最初の限定compileは、`kis_histogram.h`から`KoHistogramProducer.h`、`KoID.h`へ至る公開header閉包で
+  `klocalizedstring.h`が見つからない診断を出した。担当は許可source差分を完全に戻して停止した。製品linkを追加せずKF I18nのinterface includeだけを所有CMakeへ明示し、
+  対象4工程・9入力以内、停止5工程・11入力、製品計画不変を再確認する先行の構築範囲修正として担当票を改訂する。
 - `g135-tag-proxy-display-schema-audit`は`KisTagFilterResourceProxyModel.h`の全34 APIを採用した。型・通知6、filter設定11、検索・状態6、転送4、変更7を既存
   `KisResourceModelEnumContractTest`の未評価型5枠へ対応付ける。対象4工程・9入力、停止5工程・11入力、製品`kritaresources` 150工程・327入力を維持する。
   `kis_display_color_transform.h`は既存対象が1,284工程・2,559入力で、軽量な同責務契約がなくpaint device・色空間・画面filterの広いheader閉包を要するため棄却した。
@@ -36,7 +39,7 @@
 
 ### 第135便の担当計画
 
-- 実装共通基点は`3e39e36f5923aa4447035a1ea3e3fe2b6076ff1e`である。pattern background、histogram、tag proxy担当は`ready`、構築許可は指定試験targetと
+- 実装共通基点は`3e39e36f5923aa4447035a1ea3e3fe2b6076ff1e`である。pattern backgroundとtag proxy担当は`ready`、histogram担当は`preparing`、構築許可は指定試験targetと
   軽量近傍だけの`granted`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、専用worktree-local
   `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。統合順はpattern background、histogram、tag proxyとし、
   調整担当だけが`AGENTS.md`、architecture文書、`docs/architecture/public-api-test-contracts.json`、共通不足報告を変更する。3担当の公開header、所有CMake、試験source、
@@ -54,10 +57,11 @@
   全2値、constructor・destructor、計算・結果・producer・channel・選択操作から既存`libs/image/tests/KisImageTypesContractTest.cpp`の5枠
   `histogramTypeAndLifecycleSchemaRemainStable`、`histogramCalculationValueSchemaRemainsStable`、`histogramComputationAndResultSignaturesRemainStable`、
   `histogramTypeProducerAndChannelSignaturesRemainStable`、`histogramSelectionSignaturesRemainStable`へ全32 APIを対応付ける。許可pathはこの試験source1件だけであり、担当CMakeは
-  `libs/image/tests/CMakeLists.txt`だが変更しない。対象`KisImageTypesContractTest`は4工程・8入力、停止5工程・11入力、近傍は`KisSpacingInformationContractTest`、製品
+  `libs/image/tests/CMakeLists.txt`であり、変更許可は試験sourceと、KF I18nのinterface includeだけを追加する所有CMakeの2件である。対象`KisImageTypesContractTest`は
+  4工程・9入力以内、停止5工程・11入力、近傍は`KisSpacingInformationContractTest`、製品
   `kritaimage`は1,196工程・2,416入力と各集合の完全一致を確認する。5枠の未知関数、対象CTest、20回反復、近傍、無作業再構築、動的接続、未解決histogram・producer・
   image記号、構文・変更行書式、公開API・`verify-quick`を確認する。外側histogram・paint device・layer・producer・selection・registryを生成または呼出し、`kis_histogram.cc`、
-  製品source・OBJECT・shared、`kritatestsdk`、新依存、CMake・公開header変更、製品計画差、停止線超過が必要なら止める。
+  製品source・OBJECT・shared、`kritatestsdk`、KF I18n interface include以外の新依存・CMake変更、公開header変更、製品計画差、停止線超過が必要なら止める。
 - `g135-tag-proxy-schema`は`/Users/masato/Documents/librepaint-g135-tag-proxy-schema`を所有する。開始`libs/resources/KisTagFilterResourceProxyModel.h`のclass、constructor・
   destructor、通知・filter設定・検索・状態・転送・変更操作から既存`libs/resources/tests/KisResourceModelEnumContractTest.cpp`の5枠
   `tagFilterProxyTypeAndNotificationSchemaRemainsStable`、`tagFilterProxyConfigurationSchemaRemainsStable`、`tagFilterProxyLookupAndStateSchemaRemainsStable`、
