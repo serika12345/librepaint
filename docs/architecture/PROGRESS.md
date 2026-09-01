@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 19:03 JST
+- 更新日時: 2026-09-01 19:12 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -23,6 +23,18 @@
   一責務を選び、実paint device、transform worker、filter、XML、stroke、描画を生成・実行しない。
 - `g126-ruler-schema-audit`は`libs/widgets/KoRuler.h`の残り48 APIを主候補とし、`KisPaletteModel.h`の35 APIと`KisVisualColorModel.h`の33 APIを比較する。
   rulerの配置・単位・範囲・offset・tab等の公開schemaを、widget実体、画面、event loop、style、描画、palette・色資源、大域状態なしで25 API以上閉じる一責務を選ぶ。
+- `g126-algebra-schema-audit`はpolygon・`VectorPath`の経路構築・位相・変換25 APIを採用した。構築・凸包6、区間・index投影6、順序・単純化5、包含・矩形切断4、
+  gutter・debug表現4を既存`KisAlgebraGeometryPrimitivesContractTest`の新規5枠で具体観測する。開始`libs/global/kis_algebra_2d.cpp`から新規
+  `libs/global/kis_algebra_2d_path_topology.cpp`へ選択25定義と必要な非公開helperを本文不変で移し、新規`kritaglobalalgebrapathtopologyobjects`を製品と限定試験へ一対一収容する。
+  対象7工程・15入力から8工程・17入力、製品`kritaglobal` 70工程・140入力から71工程・142入力を予測し、各停止線は9/20と72/145とする。Bezier交差3 APIは
+  curve length・Eigen・GSLまで閉包を広げ、残る代数8 APIと`KisUsageLogger` 11 APIは責務分散または下限未達のため棄却した。
+- `g126-transform-args-schema-audit`は`ToolTransformArgs`のmode別局所変形状態57 APIを採用した。mode・精度15、warp点列・計算16、mesh状態8、liquify・編集状態7、
+  継続・比較・座標写像11を既存`ToolTransformArgsGeometrySchemaContractTest`の未評価型5枠へ追加する。対象4工程・9入力、停止5工程・12入力、製品
+  `kritatooltransform_static` 1,991工程・3,981入力を維持する。lifecycle・copy 6、device・filter 5、XML 2は別責務へ分離し、transform mask adapterは24 APIで
+  下限未達のため棄却した。
+- `g126-ruler-schema-audit`は`KoRuler.h`の全48 APIを採用した。型・計測12、範囲・indent 12、pointer・guide 9、tab・popup 11、hotspot 4を新規
+  `KoRulerSchemaContractTest`の未評価型5枠へ追加する。新対象は4工程・8入力、停止5工程・11入力、製品`kritawidgets` 806工程・1,641入力を維持する。
+  palette modelはresource・drag-and-drop、visual color modelは色空間・設定・signalを横断するため棄却した。
 - 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから
   契約先または移動先、許可path、固有停止条件、比較候補の棄却根拠を含む。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
 
