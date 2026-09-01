@@ -35,6 +35,11 @@ private Q_SLOTS:
     void sessionAndColorConfigurationValuesRemainStable();
     void selectionActionBarValuesRemainStable();
     void displayAndAssistantValuesRemainStable();
+    void navigationGestureSignaturesRemainStable();
+    void inputProfileAndPointerBackendSignaturesRemainStable();
+    void tabletEventFilteringSignaturesRemainStable();
+    void stabilizerInputSignaturesRemainStable();
+    void selectionModifierSignaturesRemainStable();
 };
 
 void KisConfigEnumContractTest::inputAndSamplerValuesRemainStable()
@@ -284,6 +289,95 @@ void KisConfigEnumContractTest::displayAndAssistantValuesRemainStable()
                                  KisConfig::LayerInfoTextStyle>);
     static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().assistantsDrawMode()),
                                  KisConfig::AssistantsDrawMode>);
+}
+
+void KisConfigEnumContractTest::navigationGestureSignaturesRemainStable()
+{
+    ASSERT_KIS_CONFIG_SIGNATURE(clicklessSpacePan, bool (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setClicklessSpacePan, void (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(kineticScrollingEnabled, bool (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setKineticScrollingEnabled, void (KisConfig::*)(bool));
+    ASSERT_KIS_CONFIG_SIGNATURE(kineticScrollingGesture, int (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setKineticScrollingGesture, void (KisConfig::*)(int));
+    ASSERT_KIS_CONFIG_SIGNATURE(kineticScrollingHiddenScrollbars, bool (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setKineticScrollingHideScrollbars, void (KisConfig::*)(bool));
+    ASSERT_KIS_CONFIG_SIGNATURE(kineticScrollingSensitivity, int (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setKineticScrollingSensitivity, void (KisConfig::*)(int));
+    ASSERT_KIS_CONFIG_SIGNATURE(longPressEnabled, bool (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setLongPressEnabled, void (KisConfig::*)(bool));
+
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().clicklessSpacePan()), bool>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().kineticScrollingEnabled()), bool>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().kineticScrollingGesture()), int>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().kineticScrollingHiddenScrollbars()), bool>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().kineticScrollingSensitivity()), int>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().longPressEnabled()), bool>);
+}
+
+void KisConfigEnumContractTest::inputProfileAndPointerBackendSignaturesRemainStable()
+{
+    ASSERT_KIS_CONFIG_SIGNATURE(currentInputProfile, QString (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setCurrentInputProfile, void (KisConfig::*)(const QString &));
+    ASSERT_KIS_CONFIG_SIGNATURE(pressureTabletCurve, QString (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setPressureTabletCurve, void (KisConfig::*)(const QString &) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(useWin8PointerInput, bool (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setUseWin8PointerInput, void (KisConfig::*)(bool));
+    ASSERT_KIS_CONFIG_SIGNATURE(useWin8PointerInputNoApp, bool (*)(QSettings *, bool));
+    ASSERT_KIS_CONFIG_SIGNATURE(setUseWin8PointerInputNoApp, void (*)(QSettings *, bool));
+    ASSERT_KIS_CONFIG_SIGNATURE(useRightMiddleTabletButtonWorkaround, bool (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setUseRightMiddleTabletButtonWorkaround, void (KisConfig::*)(bool));
+
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().currentInputProfile()), QString>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().pressureTabletCurve()), QString>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().useWin8PointerInput()), bool>);
+    static_assert(
+        std::is_same_v<decltype(KisConfig::useWin8PointerInputNoApp(static_cast<QSettings *>(nullptr))), bool>);
+    static_assert(
+        std::is_same_v<decltype(std::declval<const KisConfig &>().useRightMiddleTabletButtonWorkaround()), bool>);
+}
+
+void KisConfigEnumContractTest::tabletEventFilteringSignaturesRemainStable()
+{
+    ASSERT_KIS_CONFIG_SIGNATURE(tabletEventsDelay, int (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setTabletEventsDelay, void (KisConfig::*)(int));
+    ASSERT_KIS_CONFIG_SIGNATURE(trackTabletEventLatency, bool (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setTrackTabletEventLatency, void (KisConfig::*)(bool));
+    ASSERT_KIS_CONFIG_SIGNATURE(ignoreHighFunctionKeys, bool (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setIgnoreHighFunctionKeys, void (KisConfig::*)(bool));
+    ASSERT_KIS_CONFIG_SIGNATURE(shouldEatDriverShortcuts, bool (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(testingAcceptCompressedTabletEvents, bool (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setTestingAcceptCompressedTabletEvents, void (KisConfig::*)(bool));
+    ASSERT_KIS_CONFIG_SIGNATURE(testingCompressBrushEvents, bool (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setTestingCompressBrushEvents, void (KisConfig::*)(bool));
+    ASSERT_KIS_CONFIG_SIGNATURE(workaroundX11SmoothPressureSteps, int (KisConfig::*)(bool) const);
+
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().tabletEventsDelay()), int>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().trackTabletEventLatency()), bool>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().ignoreHighFunctionKeys()), bool>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().shouldEatDriverShortcuts()), bool>);
+    static_assert(
+        std::is_same_v<decltype(std::declval<const KisConfig &>().testingAcceptCompressedTabletEvents()), bool>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().testingCompressBrushEvents()), bool>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().workaroundX11SmoothPressureSteps()), int>);
+}
+
+void KisConfigEnumContractTest::stabilizerInputSignaturesRemainStable()
+{
+    ASSERT_KIS_CONFIG_SIGNATURE(stabilizerDelayedPaint, bool (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setStabilizerDelayedPaint, void (KisConfig::*)(bool));
+    ASSERT_KIS_CONFIG_SIGNATURE(stabilizerSampleSize, int (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setStabilizerSampleSize, void (KisConfig::*)(int));
+
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().stabilizerDelayedPaint()), bool>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().stabilizerSampleSize()), int>);
+}
+
+void KisConfigEnumContractTest::selectionModifierSignaturesRemainStable()
+{
+    ASSERT_KIS_CONFIG_SIGNATURE(switchSelectionCtrlAlt, bool (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setSwitchSelectionCtrlAlt, void (KisConfig::*)(bool));
+
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().switchSelectionCtrlAlt()), bool>);
 }
 
 #undef ASSERT_KIS_CONFIG_SIGNATURE
