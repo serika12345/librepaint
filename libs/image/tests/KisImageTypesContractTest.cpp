@@ -3,12 +3,30 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "kis_default_bounds.h"
 #include "kis_selection_filters.h"
 #include "kis_types.h"
 
 #include <QTest>
 
 #include <type_traits>
+
+namespace
+{
+
+#define ASSERT_DEFAULT_BOUNDS_SIGNATURE(boundsType, method, signature)                                                 \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&boundsType::method)), signature>)
+
+class SelectionDefaultBoundsConstructorProbe final : public KisSelectionDefaultBoundsBase
+{
+public:
+    SelectionDefaultBoundsConstructorProbe() = default;
+
+protected:
+    KisPaintDeviceSP parentPaintDevice() const override;
+};
+
+} // namespace
 
 class KisImageTypesContractTest : public QObject
 {
@@ -24,6 +42,11 @@ private Q_SLOTS:
     void invertAndAntiAliasSelectionFilterSchemaRemainsStable();
     void borderAndFeatherSelectionFilterSchemaRemainsStable();
     void growthSelectionFilterPolicySchemaRemainsStable();
+    void defaultBoundsOwnershipAndHierarchySchemaRemainsStable();
+    void imageDefaultBoundsSignaturesRemainStable();
+    void selectionDefaultBoundsSignaturesRemainStable();
+    void emptySelectionBoundsSignaturesRemainStable();
+    void wrapAroundBoundsSignaturesRemainStable();
 };
 
 void KisImageTypesContractTest::intrusivePointerAliasesPreserveOwnershipKinds()
@@ -317,6 +340,126 @@ void KisImageTypesContractTest::growthSelectionFilterPolicySchemaRemainsStable()
 
     QVERIFY(true);
 }
+
+void KisImageTypesContractTest::defaultBoundsOwnershipAndHierarchySchemaRemainsStable()
+{
+    static_assert(std::is_same_v<KisDefaultBoundsSP, KisSharedPtr<KisDefaultBounds>>);
+    static_assert(std::is_same_v<KisSelectionDefaultBoundsSP, KisSharedPtr<KisSelectionDefaultBounds>>);
+    static_assert(std::is_same_v<KisSelectionEmptyBoundsSP, KisSharedPtr<KisSelectionEmptyBounds>>);
+    static_assert(std::is_same_v<KisWrapAroundBoundsWrapperSP, KisSharedPtr<KisWrapAroundBoundsWrapper>>);
+
+    static_assert(std::is_class_v<KisDefaultBounds>);
+    static_assert(std::is_class_v<KisSelectionDefaultBoundsBase>);
+    static_assert(std::is_class_v<KisSelectionDefaultBounds>);
+    static_assert(std::is_class_v<KisMaskDefaultBounds>);
+    static_assert(std::is_class_v<KisSelectionEmptyBounds>);
+    static_assert(std::is_class_v<KisWrapAroundBoundsWrapper>);
+
+    static_assert(std::is_base_of_v<KisDefaultBoundsBase, KisDefaultBounds>);
+    static_assert(std::is_base_of_v<KisDefaultBoundsBase, KisSelectionDefaultBoundsBase>);
+    static_assert(std::is_base_of_v<KisSelectionDefaultBoundsBase, KisSelectionDefaultBounds>);
+    static_assert(std::is_base_of_v<KisSelectionDefaultBoundsBase, KisMaskDefaultBounds>);
+    static_assert(std::is_base_of_v<KisDefaultBounds, KisSelectionEmptyBounds>);
+    static_assert(std::is_base_of_v<KisDefaultBoundsBase, KisWrapAroundBoundsWrapper>);
+
+    QVERIFY(true);
+}
+
+void KisImageTypesContractTest::imageDefaultBoundsSignaturesRemainStable()
+{
+    static_assert(std::is_default_constructible_v<KisDefaultBounds>);
+    static_assert(std::is_constructible_v<KisDefaultBounds, KisImageWSP>);
+    static_assert(std::has_virtual_destructor_v<KisDefaultBounds>);
+
+    ASSERT_DEFAULT_BOUNDS_SIGNATURE(KisDefaultBounds, bounds, QRect (KisDefaultBounds::*)() const);
+    ASSERT_DEFAULT_BOUNDS_SIGNATURE(KisDefaultBounds, wrapAroundMode, bool (KisDefaultBounds::*)() const);
+    ASSERT_DEFAULT_BOUNDS_SIGNATURE(KisDefaultBounds, wrapAroundModeAxis, WrapAroundAxis (KisDefaultBounds::*)() const);
+    ASSERT_DEFAULT_BOUNDS_SIGNATURE(KisDefaultBounds, currentLevelOfDetail, int (KisDefaultBounds::*)() const);
+    ASSERT_DEFAULT_BOUNDS_SIGNATURE(KisDefaultBounds, currentTime, int (KisDefaultBounds::*)() const);
+    ASSERT_DEFAULT_BOUNDS_SIGNATURE(KisDefaultBounds, externalFrameActive, bool (KisDefaultBounds::*)() const);
+    ASSERT_DEFAULT_BOUNDS_SIGNATURE(KisDefaultBounds, sourceCookie, void *(KisDefaultBounds::*)() const);
+
+    QVERIFY(true);
+}
+
+void KisImageTypesContractTest::selectionDefaultBoundsSignaturesRemainStable()
+{
+    static_assert(std::is_abstract_v<KisSelectionDefaultBoundsBase>);
+    static_assert(std::is_default_constructible_v<SelectionDefaultBoundsConstructorProbe>);
+    static_assert(std::has_virtual_destructor_v<KisSelectionDefaultBoundsBase>);
+
+    ASSERT_DEFAULT_BOUNDS_SIGNATURE(KisSelectionDefaultBoundsBase,
+                                    bounds,
+                                    QRect (KisSelectionDefaultBoundsBase::*)() const);
+    ASSERT_DEFAULT_BOUNDS_SIGNATURE(KisSelectionDefaultBoundsBase,
+                                    imageBorderRect,
+                                    QRect (KisSelectionDefaultBoundsBase::*)() const);
+    ASSERT_DEFAULT_BOUNDS_SIGNATURE(KisSelectionDefaultBoundsBase,
+                                    wrapAroundMode,
+                                    bool (KisSelectionDefaultBoundsBase::*)() const);
+    ASSERT_DEFAULT_BOUNDS_SIGNATURE(KisSelectionDefaultBoundsBase,
+                                    wrapAroundModeAxis,
+                                    WrapAroundAxis (KisSelectionDefaultBoundsBase::*)() const);
+    ASSERT_DEFAULT_BOUNDS_SIGNATURE(KisSelectionDefaultBoundsBase,
+                                    currentLevelOfDetail,
+                                    int (KisSelectionDefaultBoundsBase::*)() const);
+    ASSERT_DEFAULT_BOUNDS_SIGNATURE(KisSelectionDefaultBoundsBase,
+                                    currentTime,
+                                    int (KisSelectionDefaultBoundsBase::*)() const);
+    ASSERT_DEFAULT_BOUNDS_SIGNATURE(KisSelectionDefaultBoundsBase,
+                                    externalFrameActive,
+                                    bool (KisSelectionDefaultBoundsBase::*)() const);
+    ASSERT_DEFAULT_BOUNDS_SIGNATURE(KisSelectionDefaultBoundsBase,
+                                    sourceCookie,
+                                    void *(KisSelectionDefaultBoundsBase::*)() const);
+
+    static_assert(std::is_constructible_v<KisSelectionDefaultBounds, KisPaintDeviceSP>);
+    static_assert(std::has_virtual_destructor_v<KisSelectionDefaultBounds>);
+    static_assert(std::is_constructible_v<KisMaskDefaultBounds, KisNodeSP>);
+    static_assert(std::has_virtual_destructor_v<KisMaskDefaultBounds>);
+
+    QVERIFY(true);
+}
+
+void KisImageTypesContractTest::emptySelectionBoundsSignaturesRemainStable()
+{
+    static_assert(std::is_default_constructible_v<KisSelectionEmptyBounds>);
+    static_assert(std::is_constructible_v<KisSelectionEmptyBounds, KisImageWSP>);
+    static_assert(std::has_virtual_destructor_v<KisSelectionEmptyBounds>);
+    ASSERT_DEFAULT_BOUNDS_SIGNATURE(KisSelectionEmptyBounds, bounds, QRect (KisSelectionEmptyBounds::*)() const);
+
+    QVERIFY(true);
+}
+
+void KisImageTypesContractTest::wrapAroundBoundsSignaturesRemainStable()
+{
+    static_assert(std::is_constructible_v<KisWrapAroundBoundsWrapper, KisDefaultBoundsBaseSP, QRect>);
+    static_assert(std::has_virtual_destructor_v<KisWrapAroundBoundsWrapper>);
+
+    ASSERT_DEFAULT_BOUNDS_SIGNATURE(KisWrapAroundBoundsWrapper, bounds, QRect (KisWrapAroundBoundsWrapper::*)() const);
+    ASSERT_DEFAULT_BOUNDS_SIGNATURE(KisWrapAroundBoundsWrapper,
+                                    wrapAroundMode,
+                                    bool (KisWrapAroundBoundsWrapper::*)() const);
+    ASSERT_DEFAULT_BOUNDS_SIGNATURE(KisWrapAroundBoundsWrapper,
+                                    wrapAroundModeAxis,
+                                    WrapAroundAxis (KisWrapAroundBoundsWrapper::*)() const);
+    ASSERT_DEFAULT_BOUNDS_SIGNATURE(KisWrapAroundBoundsWrapper,
+                                    currentLevelOfDetail,
+                                    int (KisWrapAroundBoundsWrapper::*)() const);
+    ASSERT_DEFAULT_BOUNDS_SIGNATURE(KisWrapAroundBoundsWrapper,
+                                    currentTime,
+                                    int (KisWrapAroundBoundsWrapper::*)() const);
+    ASSERT_DEFAULT_BOUNDS_SIGNATURE(KisWrapAroundBoundsWrapper,
+                                    externalFrameActive,
+                                    bool (KisWrapAroundBoundsWrapper::*)() const);
+    ASSERT_DEFAULT_BOUNDS_SIGNATURE(KisWrapAroundBoundsWrapper,
+                                    sourceCookie,
+                                    void *(KisWrapAroundBoundsWrapper::*)() const);
+
+    QVERIFY(true);
+}
+
+#undef ASSERT_DEFAULT_BOUNDS_SIGNATURE
 
 QTEST_GUILESS_MAIN(KisImageTypesContractTest)
 
