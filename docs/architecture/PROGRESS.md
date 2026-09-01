@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 12:44 JST
+- 更新日時: 2026-09-01 12:45 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -503,6 +503,28 @@
   nested aggregateだけの既定値・符号付き値・値copyを観測するため、対象6工程・14入力、製品`kritapsd` 1,979工程・3,956入力を維持する。`psd.h`の
   shadow基底は色空間と製品実装、additional-layer-infoの安全面は24 API以下またはASL・registryを要求するため棄却した。
 - 次の操作は設定38 APIとPSD 37 APIのpathが重ならない2担当票を確定し、専用worktreeで並列実装することである。
+
+### 第113便の担当計画
+
+- 実装共通基点は`c5416f411e7d940fb9ac9c840bb4b354a16392fe`である。2担当は`planned`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は
+  許可pathだけの`transport-commit`、追加委任は禁止する。専用worktree-local `build/tdd-macos`と`./scripts/run-shared-test-env`で主環境・compiler cacheを
+  共有する。統合順は設定、PSDとし、調整担当だけが台帳、進捗文書、不足報告を変更する。2担当の試験source、生成物、許可pathは相互に重ならない。
+- `g113-config-canvas-schema`は`/Users/masato/Documents/librepaint-g113-config-canvas-schema`を所有する。開始`libs/application/kis_config.h`から既存
+  `libs/application/tests/KisConfigEnumContractTest.cpp`の5枠へ、checkerboard 10 API `canvasBorderColor`・`checkSize`・`checkersColor1`・`checkersColor2`・
+  `scrollCheckers`のgetter/setter、pixel grid 6 API `pixelGridEnabled`・`getPixelGridColor`・`getPixelGridDrawingThreshold`のgetter/setter、construction grid
+  14 API `getDefaultGridSpacing`とmain・subdivision・iso verticalのstyle・color getter/setter、guides 4 API `guidesLineStyle`・`guidesColor`のgetter/setter、
+  MDI背景4 API `getMDIBackgroundColor`・`getMDIBackgroundImage`のgetter/setter、全38 APIを対応付ける。他pathを変更しない。
+- 設定担当は変更前後の対象4工程・15入力、製品`kritaapplication` 1,224工程・2,466入力の完全一致を新`plan`で乾式確認する。製品は構築しない。停止線は
+  対象5工程・18入力である。5枠の未知関数診断、未評価の型・既定引数検査、対象CTest、20回反復、`KisActionEnumContractTest`、無作業再構築、動的接続、
+  `KisConfig`未解決記号、source構文、公開API検査、`verify-quick`を確認する。設定実体・getter/setterの呼出し、KConfig・`QSettings`、filesystem、GUI、
+  MDI画像実在確認、大域状態、製品shared、`kritatestsdk`、新依存、公開header・CMake変更、停止線超過が必要なら止める。
+- `g113-psd-layer-record-schema`は`/Users/masato/Documents/librepaint-g113-psd-layer-record-schema`を所有する。開始`libs/psd/psd_layer_record.h`から既存
+  `libs/psdutils/tests/PsdFormatValuesContractTest.cpp`の5枠へ、外側`PSDLayerRecord`の直列化field型17、`LayerMaskData`のstruct・矩形4の5、同mask制御8、
+  `LayerBlendingRange`のstruct・配列2の3、`LayerBlendingRanges`のstruct・data・合成灰色範囲・channel範囲の4、全37 APIを対応付ける。他pathを変更しない。
+- PSD担当は変更前後の対象6工程・14入力、製品`kritapsd` 1,979工程・3,956入力の完全一致を新`plan`で乾式確認する。製品は構築しない。停止線は対象7工程・
+  16入力である。5枠の未知関数診断、外側recordの未評価member型、nested aggregateの既定値・符号付き値・copy、対象CTest、20回反復、`PsdByteIoContractTest`、
+  無作業再構築、動的接続、未解決製品記号、source構文、公開API検査、`verify-quick`を確認する。外側recordの実体化、device・channel pointer参照解決、実image・
+  色空間・registry・ASL・filesystem、製品shared、`kritatestsdk`、新依存、公開header・CMake変更、停止線超過が必要なら止める。
 
 ### 第105並列便の監査計画
 
