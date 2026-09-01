@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 18662
+    "expectedMissingApis": 18491
   },
   "contracts": [
     {
@@ -34690,6 +34690,312 @@
         "method:KisTagResourceModel::setResourceActive(const QModelIndex & index,bool value)",
         "method:KisTagResourceModel::setResourceMetaData(KoResourceSP resource,QMap<QString,QVariant> metadata)",
         "method:KisTagResourceModel::updateResource(KoResourceSP resource)"
+      ]
+    },
+    {
+      "target": "KisResourceModelEnumContractTest",
+      "source": "libs/resources/tests/KisResourceModelEnumContractTest.cpp",
+      "test": "KisResourceModelEnumContractTest::resourceModelTypeAndFilterSchemaRemainsStable",
+      "behavior": "資源模型は公開class・仮想破棄、資源型と既定parentを受ける構築、資源・storage・未tag絞込みとroleの公開schemaを維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisResourceModel",
+        "method:KisResourceModel::KisResourceModel(const QString & type,QObject * parent=0)",
+        "method:KisResourceModel::roleNames() const",
+        "method:KisResourceModel::setResourceFilter(ResourceFilter filter)",
+        "method:KisResourceModel::setStorageFilter(StorageFilter filter)",
+        "method:KisResourceModel::showOnlyUntaggedResources(bool showOnlyUntagged)",
+        "method:KisResourceModel::~KisResourceModel()"
+      ]
+    },
+    {
+      "target": "KisResourceModelEnumContractTest",
+      "source": "libs/resources/tests/KisResourceModelEnumContractTest.cpp",
+      "test": "KisResourceModelEnumContractTest::resourceModelLookupSchemaRemainsStable",
+      "behavior": "資源模型は索引・ID・共有所有資源の相互検索と、filename・name・MD5・tagによる複数結果検索の公開関数型と既定索引を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisResourceModel::indexForResource(KoResourceSP resource) const",
+        "method:KisResourceModel::indexForResourceId(int resourceId) const",
+        "method:KisResourceModel::resourceForId(int id) const",
+        "method:KisResourceModel::resourceForIndex(QModelIndex index=QModelIndex ()) const",
+        "method:KisResourceModel::resourcesForFilename(QString fileName) const",
+        "method:KisResourceModel::resourcesForMD5(const QString md5sum) const",
+        "method:KisResourceModel::resourcesForName(QString name) const",
+        "method:KisResourceModel::tagsForResource(int resourceId) const"
+      ]
+    },
+    {
+      "target": "KisResourceModelEnumContractTest",
+      "source": "libs/resources/tests/KisResourceModelEnumContractTest.cpp",
+      "test": "KisResourceModelEnumContractTest::resourceModelTransferSchemaRemainsStable",
+      "behavior": "資源模型はfile・deviceを介する資源の取込、上書き判定、書出しの公開関数型と空storage識別子の既定値を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisResourceModel::exportResource(KoResourceSP resource,QIODevice * device)",
+        "method:KisResourceModel::importResource(const QString & filename,QIODevice * device,const bool allowOverwrite,const QString & storageId=QString (\"\"))",
+        "method:KisResourceModel::importResourceFile(const QString & filename,const bool allowOverwrite,const QString & storageId=QString (\"\"))",
+        "method:KisResourceModel::importWillOverwriteResource(const QString & fileName,const QString & storageLocation=QString ()) const"
+      ]
+    },
+    {
+      "target": "KisResourceModelEnumContractTest",
+      "source": "libs/resources/tests/KisResourceModelEnumContractTest.cpp",
+      "test": "KisResourceModelEnumContractTest::resourceModelPersistenceSchemaRemainsStable",
+      "behavior": "資源模型は共有所有資源の追加・filename重複回避・更新・再読込・改名の公開関数型と空storage識別子の既定値を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisResourceModel::addResource(KoResourceSP resource,const QString & storageId=QString (\"\"))",
+        "method:KisResourceModel::addResourceDeduplicateFileName(KoResourceSP resource,const QString & storageId=QString (\"\"))",
+        "method:KisResourceModel::reloadResource(KoResourceSP resource)",
+        "method:KisResourceModel::renameResource(KoResourceSP resource,const QString & name)",
+        "method:KisResourceModel::updateResource(KoResourceSP resource)"
+      ]
+    },
+    {
+      "target": "KisResourceModelEnumContractTest",
+      "source": "libs/resources/tests/KisResourceModelEnumContractTest.cpp",
+      "test": "KisResourceModelEnumContractTest::resourceModelStateSchemaRemainsStable",
+      "behavior": "資源模型は索引による活性状態更新と、共有所有資源に対するmetadata写像更新の公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisResourceModel::setResourceActive(const QModelIndex & index,bool value)",
+        "method:KisResourceModel::setResourceMetaData(KoResourceSP resource,QMap<QString,QVariant> metadata)"
+      ]
+    },
+    {
+      "target": "KisGridConfigValueContractTest",
+      "source": "libs/ui/tests/KisGridConfigValueContractTest.cpp",
+      "test": "KisGridConfigValueContractTest::typesEnumsAndTrigoCacheValuesRemainStable",
+      "behavior": "grid設定は矩形・旧等角・等角の種別、4線種、三角関数cacheの7実数fieldと値copyの独立性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisGridConfig",
+        "enum:KisGridConfig::GridType",
+        "enum:KisGridConfig::LineTypeInternal",
+        "enumerator:KisGridConfig::GridType::GRID_ISOMETRIC",
+        "enumerator:KisGridConfig::GridType::GRID_ISOMETRIC_LEGACY",
+        "enumerator:KisGridConfig::GridType::GRID_RECTANGULAR",
+        "enumerator:KisGridConfig::LineTypeInternal::LINE_DASHED",
+        "enumerator:KisGridConfig::LineTypeInternal::LINE_DOTTED",
+        "enumerator:KisGridConfig::LineTypeInternal::LINE_NONE",
+        "enumerator:KisGridConfig::LineTypeInternal::LINE_SOLID",
+        "member:KisGridConfig::TrigoCache::correctedAngleLeftCellSize",
+        "member:KisGridConfig::TrigoCache::correctedAngleLeftOffsetX",
+        "member:KisGridConfig::TrigoCache::correctedAngleRightCellSize",
+        "member:KisGridConfig::TrigoCache::correctedAngleRightOffsetX",
+        "member:KisGridConfig::TrigoCache::tanAngleLeft",
+        "member:KisGridConfig::TrigoCache::tanAngleRight",
+        "member:KisGridConfig::TrigoCache::verticalSpace",
+        "struct:KisGridConfig::TrigoCache"
+      ]
+    },
+    {
+      "target": "KisGridConfigValueContractTest",
+      "source": "libs/ui/tests/KisGridConfigValueContractTest.cpp",
+      "test": "KisGridConfigValueContractTest::rectangularGridStateSignaturesRemainStable",
+      "behavior": "矩形gridの表示・吸着、間隔軸、offset、縦横比固定、分割数はgetterとsetterの正確な型とconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisGridConfig::offset() const",
+        "method:KisGridConfig::offsetActive() const",
+        "method:KisGridConfig::offsetAspectLocked() const",
+        "method:KisGridConfig::setOffset(const QPoint & value)",
+        "method:KisGridConfig::setOffsetActive(bool value)",
+        "method:KisGridConfig::setOffsetAspectLocked(bool value)",
+        "method:KisGridConfig::setShowGrid(bool value)",
+        "method:KisGridConfig::setSnapToGrid(bool value)",
+        "method:KisGridConfig::setSpacing(const QPoint & value)",
+        "method:KisGridConfig::setSpacingAspectLocked(bool value)",
+        "method:KisGridConfig::setSubdivision(int value)",
+        "method:KisGridConfig::setXSpacingActive(bool value)",
+        "method:KisGridConfig::setYSpacingActive(bool value)",
+        "method:KisGridConfig::showGrid() const",
+        "method:KisGridConfig::snapToGrid() const",
+        "method:KisGridConfig::spacing() const",
+        "method:KisGridConfig::spacingAspectLocked() const",
+        "method:KisGridConfig::subdivision() const",
+        "method:KisGridConfig::xSpacingActive() const",
+        "method:KisGridConfig::ySpacingActive() const"
+      ]
+    },
+    {
+      "target": "KisGridConfigValueContractTest",
+      "source": "libs/ui/tests/KisGridConfigValueContractTest.cpp",
+      "test": "KisGridConfigValueContractTest::isometricGridStateSignaturesRemainStable",
+      "behavior": "等角gridの左右角度・有効状態・角度比固定・cell間隔・寸法・grid種別はgetterとsetterの正確な型とconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisGridConfig::angleAspectLocked() const",
+        "method:KisGridConfig::angleLeft() const",
+        "method:KisGridConfig::angleLeftActive() const",
+        "method:KisGridConfig::angleRight() const",
+        "method:KisGridConfig::angleRightActive() const",
+        "method:KisGridConfig::cellSize() const",
+        "method:KisGridConfig::cellSpacing() const",
+        "method:KisGridConfig::gridType() const",
+        "method:KisGridConfig::setAngleAspectLocked(bool value)",
+        "method:KisGridConfig::setAngleLeft(qreal angle)",
+        "method:KisGridConfig::setAngleLeftActive(bool value)",
+        "method:KisGridConfig::setAngleRight(qreal angle)",
+        "method:KisGridConfig::setAngleRightActive(bool value)",
+        "method:KisGridConfig::setCellSize(int spacing)",
+        "method:KisGridConfig::setCellSpacing(int spacing)",
+        "method:KisGridConfig::setGridType(GridType type)"
+      ]
+    },
+    {
+      "target": "KisGridConfigValueContractTest",
+      "source": "libs/ui/tests/KisGridConfigValueContractTest.cpp",
+      "test": "KisGridConfigValueContractTest::gridPresentationSignaturesRemainStable",
+      "behavior": "主線・分割線・等角垂直線の線種・色・penと三角関数cacheは正確な公開関数型とconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisGridConfig::colorMain() const",
+        "method:KisGridConfig::colorSubdivision() const",
+        "method:KisGridConfig::colorVertical() const",
+        "method:KisGridConfig::lineTypeMain() const",
+        "method:KisGridConfig::lineTypeSubdivision() const",
+        "method:KisGridConfig::lineTypeVertical() const",
+        "method:KisGridConfig::penMain() const",
+        "method:KisGridConfig::penSubdivision() const",
+        "method:KisGridConfig::penVertical() const",
+        "method:KisGridConfig::setColorMain(const QColor & value)",
+        "method:KisGridConfig::setColorSubdivision(const QColor & value)",
+        "method:KisGridConfig::setColorVertical(const QColor & value)",
+        "method:KisGridConfig::setLineTypeMain(LineTypeInternal value)",
+        "method:KisGridConfig::setLineTypeSubdivision(LineTypeInternal value)",
+        "method:KisGridConfig::setLineTypeVertical(LineTypeInternal value)",
+        "method:KisGridConfig::trigoCache() const"
+      ]
+    },
+    {
+      "target": "KisGridConfigValueContractTest",
+      "source": "libs/ui/tests/KisGridConfigValueContractTest.cpp",
+      "test": "KisGridConfigValueContractTest::gridEqualitySignatureRemainsStable",
+      "behavior": "grid設定の等値比較はconst参照を受けるconst関数の公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisGridConfig::operator ==(const KisGridConfig & rhs) const"
+      ]
+    },
+    {
+      "target": "KStandardActionEnumContractTest",
+      "source": "libs/widgetutils/tests/KStandardActionEnumContractTest.cpp",
+      "test": "KStandardActionEnumContractTest::standardActionIdentityAndFileSignaturesRemainStable",
+      "behavior": "標準actionの識別補助とfile操作は識別子、受信者、slot、parentを受ける正確な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KStandardAction::actionIds()",
+        "function:KStandardAction::close(const QObject * recvr,const char * slot,QObject * parent)",
+        "function:KStandardAction::create(StandardAction id,const QObject * recvr,const char * slot,QObject * parent)",
+        "function:KStandardAction::mail(const QObject * recvr,const char * slot,QObject * parent)",
+        "function:KStandardAction::name(StandardAction id)",
+        "function:KStandardAction::open(const QObject * recvr,const char * slot,QObject * parent)",
+        "function:KStandardAction::openNew(const QObject * recvr,const char * slot,QObject * parent)",
+        "function:KStandardAction::openRecent(const QObject * recvr,const char * slot,QObject * parent)",
+        "function:KStandardAction::print(const QObject * recvr,const char * slot,QObject * parent)",
+        "function:KStandardAction::printPreview(const QObject * recvr,const char * slot,QObject * parent)",
+        "function:KStandardAction::quit(const QObject * recvr,const char * slot,QObject * parent)",
+        "function:KStandardAction::revert(const QObject * recvr,const char * slot,QObject * parent)",
+        "function:KStandardAction::save(const QObject * recvr,const char * slot,QObject * parent)",
+        "function:KStandardAction::saveAs(const QObject * recvr,const char * slot,QObject * parent)",
+        "function:KStandardAction::shortcutForActionId(StandardAction id)",
+        "function:KStandardAction::stdName(StandardAction act_enum)",
+        "function:KStandardAction::stdNames()"
+      ]
+    },
+    {
+      "target": "KStandardActionEnumContractTest",
+      "source": "libs/widgetutils/tests/KStandardActionEnumContractTest.cpp",
+      "test": "KStandardActionEnumContractTest::standardActionEditSignaturesRemainStable",
+      "behavior": "標準編集actionは単純parent形式と受信者・slot形式を含む各生成関数のoverloadと返値を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KStandardAction::clear(QObject * parent)",
+        "function:KStandardAction::clear(const QObject * recvr,const char * slot,QObject * parent)",
+        "function:KStandardAction::copy(QObject * parent)",
+        "function:KStandardAction::copy(const QObject * recvr,const char * slot,QObject * parent)",
+        "function:KStandardAction::cut(QObject * parent)",
+        "function:KStandardAction::cut(const QObject * recvr,const char * slot,QObject * parent)",
+        "function:KStandardAction::deselect(const QObject * recvr,const char * slot,QObject * parent)",
+        "function:KStandardAction::find(const QObject * recvr,const char * slot,QObject * parent)",
+        "function:KStandardAction::findNext(const QObject * recvr,const char * slot,QObject * parent)",
+        "function:KStandardAction::findPrev(const QObject * recvr,const char * slot,QObject * parent)",
+        "function:KStandardAction::paste(QObject * parent)",
+        "function:KStandardAction::paste(const QObject * recvr,const char * slot,QObject * parent)",
+        "function:KStandardAction::pasteText(const QObject * recvr,const char * slot,QObject * parent)",
+        "function:KStandardAction::redo(const QObject * recvr,const char * slot,QObject * parent)",
+        "function:KStandardAction::replace(const QObject * recvr,const char * slot,QObject * parent)",
+        "function:KStandardAction::selectAll(QObject * parent)",
+        "function:KStandardAction::selectAll(const QObject * recvr,const char * slot,QObject * parent)",
+        "function:KStandardAction::undo(const QObject * recvr,const char * slot,QObject * parent)"
+      ]
+    },
+    {
+      "target": "KStandardActionEnumContractTest",
+      "source": "libs/widgetutils/tests/KStandardActionEnumContractTest.cpp",
+      "test": "KStandardActionEnumContractTest::standardActionViewNavigationSignaturesRemainStable",
+      "behavior": "表示倍率、移動、page・line移動、文書履歴、bookmarkの標準actionは受信者・slot・parentを受ける正確な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KStandardAction::actualSize(const QObject * recvr,const char * slot,QObject * parent)",
+        "function:KStandardAction::addBookmark(const QObject * recvr,const char * slot,QObject * parent)",
+        "function:KStandardAction::back(const QObject * recvr,const char * slot,QObject * parent)",
+        "function:KStandardAction::documentBack(const QObject * recvr,const char * slot,QObject * parent)",
+        "function:KStandardAction::documentForward(const QObject * recvr,const char * slot,QObject * parent)",
+        "function:KStandardAction::editBookmarks(const QObject * recvr,const char * slot,QObject * parent)",
+        "function:KStandardAction::firstPage(const QObject * recvr,const char * slot,QObject * parent)",
+        "function:KStandardAction::fitToHeight(const QObject * recvr,const char * slot,QObject * parent)",
+        "function:KStandardAction::fitToPage(const QObject * recvr,const char * slot,QObject * parent)",
+        "function:KStandardAction::fitToWidth(const QObject * recvr,const char * slot,QObject * parent)",
+        "function:KStandardAction::forward(const QObject * recvr,const char * slot,QObject * parent)",
+        "function:KStandardAction::goTo(const QObject * recvr,const char * slot,QObject * parent)",
+        "function:KStandardAction::gotoLine(const QObject * recvr,const char * slot,QObject * parent)",
+        "function:KStandardAction::gotoPage(const QObject * recvr,const char * slot,QObject * parent)",
+        "function:KStandardAction::home(const QObject * recvr,const char * slot,QObject * parent)",
+        "function:KStandardAction::lastPage(const QObject * recvr,const char * slot,QObject * parent)",
+        "function:KStandardAction::next(const QObject * recvr,const char * slot,QObject * parent)",
+        "function:KStandardAction::prior(const QObject * recvr,const char * slot,QObject * parent)",
+        "function:KStandardAction::redisplay(const QObject * recvr,const char * slot,QObject * parent)",
+        "function:KStandardAction::up(const QObject * recvr,const char * slot,QObject * parent)",
+        "function:KStandardAction::zoom(const QObject * recvr,const char * slot,QObject * parent)",
+        "function:KStandardAction::zoomIn(const QObject * recvr,const char * slot,QObject * parent)",
+        "function:KStandardAction::zoomOut(const QObject * recvr,const char * slot,QObject * parent)"
+      ]
+    },
+    {
+      "target": "KStandardActionEnumContractTest",
+      "source": "libs/widgetutils/tests/KStandardActionEnumContractTest.cpp",
+      "test": "KStandardActionEnumContractTest::standardActionToolAndSettingsSignaturesRemainStable",
+      "behavior": "校正・画面表示・設定・通知の標準actionは受信者・slot・parentおよび全画面windowを受ける正確な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KStandardAction::configureNotifications(const QObject * recvr,const char * slot,QObject * parent)",
+        "function:KStandardAction::configureToolbars(const QObject * recvr,const char * slot,QObject * parent)",
+        "function:KStandardAction::fullScreen(const QObject * recvr,const char * slot,QWidget * window,QObject * parent)",
+        "function:KStandardAction::keyBindings(const QObject * recvr,const char * slot,QObject * parent)",
+        "function:KStandardAction::preferences(const QObject * recvr,const char * slot,QObject * parent)",
+        "function:KStandardAction::saveOptions(const QObject * recvr,const char * slot,QObject * parent)",
+        "function:KStandardAction::showMenubar(const QObject * recvr,const char * slot,QObject * parent)",
+        "function:KStandardAction::showStatusbar(const QObject * recvr,const char * slot,QObject * parent)",
+        "function:KStandardAction::spelling(const QObject * recvr,const char * slot,QObject * parent)"
+      ]
+    },
+    {
+      "target": "KStandardActionEnumContractTest",
+      "source": "libs/widgetutils/tests/KStandardActionEnumContractTest.cpp",
+      "test": "KStandardActionEnumContractTest::standardActionHelpSignaturesRemainStable",
+      "behavior": "help・説明・tip・不具合報告・aboutの標準actionは受信者・slot・parentを受ける正確な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KStandardAction::aboutApp(const QObject * recvr,const char * slot,QObject * parent)",
+        "function:KStandardAction::aboutKDE(const QObject * recvr,const char * slot,QObject * parent)",
+        "function:KStandardAction::help(const QObject * recvr,const char * slot,QObject * parent)",
+        "function:KStandardAction::helpContents(const QObject * recvr,const char * slot,QObject * parent)",
+        "function:KStandardAction::reportBug(const QObject * recvr,const char * slot,QObject * parent)",
+        "function:KStandardAction::tipOfDay(const QObject * recvr,const char * slot,QObject * parent)",
+        "function:KStandardAction::whatsThis(const QObject * recvr,const char * slot,QObject * parent)"
       ]
     }
   ]

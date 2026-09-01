@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 13:09 JST
+- 更新日時: 2026-09-01 13:27 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -611,27 +611,50 @@
 
 ### 第115便の担当計画
 
-- 実装共通基点は`f3a14db43341958dde61ba1ccbd090a945b535d7`である。3担当は`planned`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は
+- 実装共通基点は`f3a14db43341958dde61ba1ccbd090a945b535d7`である。3担当は`integrated`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は
   許可pathだけの`transport-commit`、追加委任は禁止する。専用worktree-local `build/tdd-macos`と`./scripts/run-shared-test-env`で主環境・compiler cacheを
   共有する。統合順は資源模型、grid、標準actionとし、調整担当だけが台帳、進捗文書、不足報告を変更する。3担当の許可path、CMake、試験source、生成物は重ならない。
-- `g115-resource-model-schema`は`/Users/masato/Documents/librepaint-g115-resource-model-schema`を所有する。開始`libs/resources/KisResourceModel.h`から既存
+- `g115-resource-model-schema`の削除済みworktreeは`/Users/masato/Documents/librepaint-g115-resource-model-schema`である。開始`libs/resources/KisResourceModel.h`から既存
   `libs/resources/tests/KisResourceModelEnumContractTest.cpp`の5枠へ、具象`KisResourceModel`の型・constructor・destructor・絞込み・role 7、検索8、取込・
   書出4、追加・更新5、活性・metadata 2の全26 APIを対応付け、他pathを変更しない。対象4工程・9入力、停止5工程・11入力、製品`kritaresources`
   149工程・325入力の完全一致を新`plan`で確認する。5枠の未知関数診断、対象CTest、20回反復、`KisTagModelSchemaContractTest`、no-work、動的接続、未解決記号、
   構文・書式・公開API・`verify-quick`を確認する。模型、SQL・storage・registry・filesystem・GUI・大域状態、製品shared、`kritaresourcestorage`、
   `kritatestsdk`、新依存、公開header・CMake変更、停止線超過が必要なら止める。
-- `g115-grid-config-value`は`/Users/masato/Documents/librepaint-g115-grid-config-value`を所有する。開始`libs/ui/canvas/kis_grid_config.h`から新規
+- `g115-grid-config-value`の削除済みworktreeは`/Users/masato/Documents/librepaint-g115-grid-config-value`である。開始`libs/ui/canvas/kis_grid_config.h`から新規
   `libs/ui/tests/KisGridConfigValueContractTest.cpp`の5枠へ、class・列挙・TrigoCache 18、rectangular状態20、isometric状態16、表示16、等値署名1の全71 APIを
   対応付け、`libs/ui/tests/CMakeLists.txt`だけを併せて変更する。最初の期待診断は未知target、新対象は予測4工程・8入力、停止5工程・10入力、製品
   `kritaapplicationui`は1,967工程・3,934入力不変とする。対象CTest、20回反復、`KisAnimationFrameCacheFwdContractTest`、no-work、動的接続、未解決記号、
   構文・書式・公開API・`verify-quick`を確認する。`KisGridConfig`実体、getter/setter、設定I/O、XML、global default、out-of-line記号、製品shared、
   `kritatestsdk`、製品source・公開header変更、新依存、停止線超過が必要なら止める。
-- `g115-standard-action-schema`は`/Users/masato/Documents/librepaint-g115-standard-action-schema`を所有する。開始
+- `g115-standard-action-schema`の削除済みworktreeは`/Users/masato/Documents/librepaint-g115-standard-action-schema`である。開始
   `libs/widgetutils/config/kstandardaction.h`から既存`libs/widgetutils/tests/KStandardActionEnumContractTest.cpp`の5枠へ、識別helper・file 17、edit 18、
   view・移動・bookmark 23、tool・settings 9、help 7の全74 APIを対応付け、他pathを変更しない。対象4工程・10入力、停止5工程・12入力、製品
   `kritawidgetutils` 273工程・579入力の完全一致を新`plan`で確認する。5枠の未知関数診断、対象CTest、20回反復、`KColorSchemeEnumContractTest`、no-work、
   動的接続、未解決記号、構文・書式・公開API・`verify-quick`を確認する。関数address評価・呼出し、action・window実体、Qt Widgets・製品shared・
   `kritatestsdk`接続、`kstandardaction.cpp`、新依存、公開header・CMake変更、停止線超過が必要なら止める。
+
+### 第115便の統合結果
+
+- `g115-resource-model-schema`は受渡しcommit `220425f12036`と同一patchを統合commit `d8764c8783`として取り込んだ。開始
+  `libs/resources/KisResourceModel.h`から既存`libs/resources/tests/KisResourceModelEnumContractTest.cpp`の5枠へ、型・寿命・絞込み・表示7、検索8、
+  取込・書出4、永続化5、活性・metadata 2の全26 APIを対応付けた。模型、SQL、storage、registry、filesystemを実行せず、対象4工程・9入力、製品
+  `kritaresources`は149工程・325入力で不変である。
+- `g115-grid-config-value`は受渡しcommit `f56aa9b77980`と同一patchを統合commit `7f2648fcc6`として取り込んだ。開始
+  `libs/ui/canvas/kis_grid_config.h`から新規`libs/ui/tests/KisGridConfigValueContractTest.cpp`の5枠へ、型・列挙・`TrigoCache`値18、矩形状態20、
+  等角状態16、表示16、等値署名1の全71 APIを対応付け、`libs/ui/tests/CMakeLists.txt`へQt Test・GuiとBoostだけの限定対象を追加した。最初の構築では
+  生成`kritaui_export.h`のinclude経路不足を検出し、`libs/application`のsource・binary include経路だけを追加して解消した。対象4工程・8入力、製品
+  `kritaapplicationui`は1,967工程・3,934入力で不変であり、製品共有ライブラリーへ接続していない。
+- `g115-standard-action-schema`は受渡しcommit `2e0654a7483e`と同一patchを統合commit `13daafdc21`として取り込んだ。開始
+  `libs/widgetutils/config/kstandardaction.h`から既存`libs/widgetutils/tests/KStandardActionEnumContractTest.cpp`の5枠へ、識別補助・file 17、編集18、
+  表示・移動・bookmark 23、tool・設定9、help 7の全74 APIを対応付けた。未評価式だけでoverloadと関数型を固定し、action・window実体と関数呼出しを
+  生成していない。対象4工程・10入力、製品`kritawidgetutils`は273工程・579入力で不変であり、Qt Widgetsと製品共有ライブラリーへ接続していない。
+- 主macOS環境では追加15枠、3対象CTest、各20回反復、近傍`KisTagModelSchemaContractTest`、`KisAnimationFrameCacheFwdContractTest`、
+  `KColorSchemeEnumContractTest`、再構築時の無コンパイル・無リンク、動的接続、未解決製品記号を確認した。公開API契約検査は171 APIを重複なく受理し、
+  29,838件中11,347件対応、18,491件未対応となった。最新入力は`build/tdd-macos/public-api-missing-g116.json`である。Linux、全native検証、
+  製品全体構築は実行していない。
+- 受渡しpatchの同一性と3 worktreeのclean状態を確認後、資源担当851 MB、grid担当849 MB、標準action担当850 MBの作業木とbranchを削除して約2.55 GBを
+  回収した。新報告の生成成功後に旧`public-api-missing-g115.json` 4.6 MBも削除した。主`build/tdd-macos`、共有compiler cache、最新不足報告は次便の
+  限定構築へ再利用する。
 
 ### 第105並列便の監査計画
 
@@ -13091,8 +13114,9 @@
 
 ## 次の操作
 
-`build/tdd-macos/public-api-missing-g110.json`から第110並列便の非重複候補を3担当で監査する。欠陥疑いのfont比較・診断、資源registry、設定I/O、
-生pointer所有へ到達する経路は保留し、別の所有pathから25 API以上を最大5枠、限定対象か一sourceの一対一構築所有で固定できる候補を優先する。
+`build/tdd-macos/public-api-missing-g116.json`から第116並列便の非重複候補を3担当で監査する。第115便の対象を除外し、欠陥疑いの比較・診断、
+資源registry、設定I/O、生pointer所有へ到達する経路は保留する。別の所有pathから25 API以上を最大5枠、限定対象か一sourceの一対一構築所有で
+固定できる候補を優先し、担当票の確定前に変更なし計画、直接依存、予測閉包、製品共有ライブラリー・`kritatestsdk`非接続、許可pathと停止線を照合する。
 監査結果を担当票へ確定する前に、変更なし計画、直接依存、予測閉包、製品shared library・`kritatestsdk`非接続、許可pathと停止線を照合する。
 
 ## R1-G5完了根拠
