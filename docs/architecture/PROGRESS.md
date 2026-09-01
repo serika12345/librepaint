@@ -2,12 +2,28 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 01:43 JST
+- 更新日時: 2026-09-02 01:47 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
+
+### 第135便の先行監査計画
+
+- 監査共通基点は`cac27b003e8f486622be8b287d774e1430c7aaa0`、入力は`build/tdd-macos/public-api-missing-g135.json`である。3担当は`auditing`の読み取り専用とし、
+  製品・試験・CMake・script・台帳・文書を変更せず、構築、試験、Git操作、追加委任も行わない。一つの公開責務から25 API以上を最大5枠へ固定し、既存限定対象、
+  header-only値面、または公開headerを変えない一sourceのOBJECT一対一移管で、製品共有ライブラリーと`kritatestsdk`へ接続しない候補だけを採用する。
+- `g135-shape-stroke-pattern-schema-audit`は`libs/flake/KoShapeStroke.h`の残り32 APIを主候補とし、`libs/flake/KoPatternBackground.h`の37 APIを比較する。shape strokeの
+  線style値またはpattern background配置値の一責務を、shape・painter・marker・image・resource・描画・大域状態の実体化なしで25 API以上閉じる。
+- `g135-histogram-data-schema-audit`は`libs/image/kis_histogram.h`の残り32 APIを主候補とし、`libs/image/kis_datamanager.h`の35 APIを比較する。histogram計算面または
+  pixel data管理面の一責務を、paint device・layer・producer・selection・tile・memento・device I/O・大域状態の実体化なしで25 API以上閉じる。
+- `g135-tag-proxy-display-schema-audit`は`libs/resources/KisTagFilterResourceProxyModel.h`の残り34 APIを主候補とし、
+  `libs/canvas/color/kis_display_color_transform.h`の33 APIを比較する。tag資源proxy操作面または画面色変換操作面の一責務を、resource・tag・model・proxy・DB・I/O・
+  paint device・色変換・画面filter・大域状態の実体化なしで25 API以上閉じる。
+- 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから契約先または
+  移動先、許可path、固有停止条件、比較候補の棄却根拠を含む。既存`build/tdd-macos`の計画は読み取り専用で測定し、構成や構築を開始しない。3報告後にpath、CMake、
+  試験source、生成物が重ならない候補だけを担当票へ進める。
 
 ### 第134便の先行監査計画
 
