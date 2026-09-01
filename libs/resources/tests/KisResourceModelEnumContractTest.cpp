@@ -5,6 +5,7 @@
 
 #include <KisResourceModel.h>
 #include <KisResourceStorage.h>
+#include <KisStorageModel.h>
 #include <KisTagResourceModel.h>
 
 #include <QTest>
@@ -46,6 +47,11 @@ private Q_SLOTS:
     void storageResourceIteratorValueSchemaRemainsStable();
     void storageTagIteratorSchemaRemainsStable();
     void storageLookupAndEnumerationSchemaRemainsStable();
+    void storageModelTypeAndEnumSchemaRemainsStable();
+    void storageModelTableSchemaRemainsStable();
+    void storageModelLookupSchemaRemainsStable();
+    void storageModelImportSchemaRemainsStable();
+    void storageModelNotificationSchemaRemainsStable();
 };
 
 void KisResourceModelEnumContractTest::columnValuesRemainStable()
@@ -502,6 +508,84 @@ void KisResourceModelEnumContractTest::storageLookupAndEnumerationSchemaRemainsS
                                  QSharedPointer<Storage::ResourceIterator> (Storage::*)(const QString &) const>);
     static_assert(std::is_same_v<decltype(&Storage::tags),
                                  QSharedPointer<Storage::TagIterator> (Storage::*)(const QString &) const>);
+}
+
+void KisResourceModelEnumContractTest::storageModelTypeAndEnumSchemaRemainsStable()
+{
+    using Model = KisStorageModel;
+    using Columns = Model::Columns;
+    using ImportOption = Model::StorageImportOption;
+
+    static_assert(std::is_class_v<Model>);
+    static_assert(std::is_base_of_v<QAbstractTableModel, Model>);
+    static_assert(std::is_enum_v<Columns>);
+    static_assert(int(Model::Id) == 0);
+    static_assert(int(Model::StorageType) == 1);
+    static_assert(int(Model::Location) == 2);
+    static_assert(int(Model::TimeStamp) == 3);
+    static_assert(int(Model::PreInstalled) == 4);
+    static_assert(int(Model::Active) == 5);
+    static_assert(int(Model::Thumbnail) == 6);
+    static_assert(int(Model::DisplayName) == 7);
+    static_assert(int(Model::MetaData) == 8);
+
+    static_assert(std::is_enum_v<ImportOption>);
+    static_assert(int(Model::None) == 0);
+    static_assert(int(Model::Overwrite) == 1);
+    static_assert(int(Model::Rename) == 2);
+}
+
+void KisResourceModelEnumContractTest::storageModelTableSchemaRemainsStable()
+{
+    using Model = KisStorageModel;
+
+    static_assert(std::is_constructible_v<Model>);
+    static_assert(std::is_constructible_v<Model, QObject *>);
+    static_assert(std::is_destructible_v<Model>);
+    static_assert(std::has_virtual_destructor_v<Model>);
+    static_assert(std::is_same_v<decltype(&Model::rowCount), int (Model::*)(const QModelIndex &) const>);
+    static_assert(std::is_same_v<decltype(&Model::columnCount), int (Model::*)(const QModelIndex &) const>);
+    static_assert(std::is_same_v<decltype(&Model::data), QVariant (Model::*)(const QModelIndex &, int) const>);
+    static_assert(
+        std::is_same_v<decltype(&Model::setData), bool (Model::*)(const QModelIndex &, const QVariant &, int)>);
+    static_assert(std::is_same_v<decltype(&Model::flags), Qt::ItemFlags (Model::*)(const QModelIndex &) const>);
+    static_assert(std::is_same_v<decltype(&Model::headerData), QVariant (Model::*)(int, Qt::Orientation, int) const>);
+
+    static_assert(std::is_same_v<decltype(std::declval<const Model &>().rowCount()), int>);
+    static_assert(std::is_same_v<decltype(std::declval<const Model &>().columnCount()), int>);
+    static_assert(std::is_same_v<decltype(std::declval<const Model &>().headerData(0, Qt::Horizontal)), QVariant>);
+}
+
+void KisResourceModelEnumContractTest::storageModelLookupSchemaRemainsStable()
+{
+    using Model = KisStorageModel;
+
+    static_assert(std::is_same_v<decltype(&Model::instance), Model *(*)()>);
+    static_assert(
+        std::is_same_v<decltype(&Model::storageForIndex), KisResourceStorageSP (Model::*)(const QModelIndex &) const>);
+    static_assert(std::is_same_v<decltype(&Model::storageForId), KisResourceStorageSP (Model::*)(int) const>);
+}
+
+void KisResourceModelEnumContractTest::storageModelImportSchemaRemainsStable()
+{
+    using Model = KisStorageModel;
+    using ImportOption = Model::StorageImportOption;
+
+    static_assert(
+        std::is_same_v<decltype(&Model::importStorage), bool (Model::*)(const QString &, ImportOption) const>);
+    static_assert(std::is_same_v<decltype(&Model::importStorageData),
+                                 bool (Model::*)(const QString &, ImportOption, const QByteArray &) const>);
+    static_assert(std::is_same_v<decltype(&Model::canImportStorage), bool (Model::*)(const QString &) const>);
+}
+
+void KisResourceModelEnumContractTest::storageModelNotificationSchemaRemainsStable()
+{
+    using Model = KisStorageModel;
+
+    static_assert(std::is_same_v<decltype(&Model::storageEnabled), void (Model::*)(const QString &)>);
+    static_assert(std::is_same_v<decltype(&Model::storageDisabled), void (Model::*)(const QString &)>);
+    static_assert(std::is_same_v<decltype(&Model::storageResynchronized), void (Model::*)(const QString &, bool)>);
+    static_assert(std::is_same_v<decltype(&Model::storagesBulkSynchronizationFinished), void (Model::*)()>);
 }
 
 QTEST_GUILESS_MAIN(KisResourceModelEnumContractTest)
