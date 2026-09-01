@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 18:31 JST
+- 更新日時: 2026-09-01 18:34 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -37,6 +37,37 @@
   下限未達のため分離した。
 - 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから
   契約先または移動先、許可path、固有停止条件、比較候補の棄却根拠を含む。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
+
+### 第125便の担当計画
+
+- 実装共通基点は`81f8a07ec8`である。3担当は`preparing`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの
+  `transport-commit`、追加委任は禁止する。専用worktree-local `build/tdd-macos`と主作業treeの
+  `/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。統合順はfreehand、cursor、PSD fillとし、調整担当だけが台帳、進捗文書、
+  不足報告を変更する。3担当の公開header、所有CMake、試験source、生成物は重ならない。
+- `g125-freehand-schema`は`/Users/masato/Documents/librepaint-g125-freehand-schema`を所有する。開始`libs/painting/strokes/freehand_stroke.h`から新規
+  `libs/painting/tests/FreehandStrokeSchemaContractTest.cpp`の5枠`freehandStrategyFlagSchemaRemainsStable`、`freehandDabTypeSchemaRemainsStable`、
+  `freehandDabPayloadMemberSchemaRemainsStable`、`freehandDabConstructionAndCloneSignaturesRemainStable`、
+  `freehandStrategyLifecycleAndCallbackSignaturesRemainStable`へ全47 APIを対応付け、`libs/painting/tests/CMakeLists.txt`だけを併せて変更する。最初の期待診断は
+  未知target、予測4工程・8入力、停止5工程・11入力、製品`kritapainting` 1,215工程・2,452入力と命令・入力集合の完全一致を確認する。5枠、対象CTest、20回反復、
+  `KisStrokeStrategyContractTest`、no-work、動的接続、未解決stroke記号、構文・書式・公開API・`verify-quick`を確認する。strategy・Data・resource snapshot・image・device・
+  paintop・queue実体、constructor・destructor・callback・clone・inline本文の実行、製品OBJECT・shared、`kritatestsdk`、Qt Widgets、新依存、公開header・製品source・
+  製品CMake変更、製品計画差、停止線超過が必要なら止める。
+- `g125-cursor-schema`は`/Users/masato/Documents/librepaint-g125-cursor-schema`を所有する。開始`libs/widgetutils/kis_cursor.h`から新規
+  `libs/widgetutils/tests/KisCursorSchemaContractTest.cpp`の5枠`cursorTypeAndStandardFactorySchemaRemainsStable`、
+  `cursorNavigationAndTransformFactorySchemaRemainsStable`、`cursorSamplingAndAdjustmentFactorySchemaRemainsStable`、`cursorMeshFactorySchemaRemainsStable`、
+  `cursorLoadingSignatureSchemaRemainsStable`へ全44 APIを対応付け、`libs/widgetutils/tests/CMakeLists.txt`だけを併せて変更する。最初の期待診断は未知target、予測
+  4工程・8入力、停止5工程・11入力、製品`kritawidgetutils` 273工程・579入力と命令・入力集合の完全一致を確認する。5枠、対象CTest、20回反復、
+  `KColorSchemeEnumContractTest`、no-work、動的接続、未解決cursor記号、構文・書式・公開API・`verify-quick`を確認する。`KisCursor`・`QCursor`実体、factory・load本文、
+  widget・画面・event loop、icon・画像読込、cache・filesystem・theme状態、製品OBJECT・shared、`kritatestsdk`、Qt Widgets・QML・Quick、新依存、公開header・製品source・
+  製品CMake変更、製品計画差、停止線超過が必要なら止める。
+- `g125-psd-fill-schema`は`/Users/masato/Documents/librepaint-g125-psd-fill-schema`を所有する。開始`libs/psd/psd_additional_layer_info_block.h`から既存
+  `libs/psdutils/tests/PsdFormatValuesContractTest.cpp`の5枠`gradientFillRepresentationSignaturesRemainStable`、
+  `gradientFillInputAndSerializationSignaturesRemainStable`、`patternFillConversionSignaturesRemainStable`、
+  `solidColorFillValueAndRepresentationSchemaRemainsStable`、`solidColorFillInputAndSerializationSignaturesRemainStable`へfill変換29 APIを対応付け、他pathを変更しない。
+  最初の期待診断は5枠の未知関数、対象6工程・14入力、停止7工程・16入力、製品`kritapsdutils` 635工程・1,300入力と`kritapsd` 1,979工程・3,956入力および
+  各集合の完全一致を確認する。5枠、対象CTest、20回反復、`PsdByteIoContractTest`、no-work、動的接続、未解決fill記号、構文・書式・公開API・`verify-quick`を確認する。
+  fill実体・既定値・copy、method・static function呼出し、返却pointer解決、KoColor・colorspace・gradient・pattern・shape・brush・ASL・resource・PSD I/O・filesystem、
+  製品OBJECT・shared、`kritatestsdk`、新依存、header・CMake・製品source変更、製品計画差、停止線超過が必要なら止める。
 
 ### 第124便の先行監査計画
 
