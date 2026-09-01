@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 15:54 JST
+- 更新日時: 2026-09-01 15:55 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -39,6 +39,31 @@
   1,979工程・3,956入力を維持し、効果実体、色操作、offset・scale、pattern・gradient registry、lookup生pointerを実行しない。
   `psd_additional_layer_info_block.h`のfill群は色空間・gradient・埋込み資源・ASLを混在させ、他の残余は14 API、`psd.h`の非effect残余は9 APIのため棄却した。
 - 3監査は編集、構築、試験、Git操作、追加委任を行っていない。採用した3契約先と所有CMake、生成物は相互に重ならず、合計101 APIを15枠で固定できる。
+
+### 第121便の担当計画
+
+- 実装共通基点はこの担当票commitとする。3担当は`planned`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの
+  `transport-commit`、追加委任は禁止する。専用worktree-local `build/tdd-macos`と`./scripts/run-shared-test-env`で主環境・compiler cacheを共有する。
+  統合順は一般設定schema、SVGスカラー値、PSD layer effectとし、調整担当だけが台帳、進捗文書、不足報告を変更する。3担当の許可path、CMake、試験source、
+  生成物は重ならない。
+- `g121-general-preferences-schema`は`/Users/masato/Documents/librepaint-g121-general-preferences-schema`を所有する。開始
+  `libs/ui/dialogs/kis_dlg_preferences.h`から既存`libs/ui/tests/KisDlgPreferencesEnumContractTest.cpp`の5枠へ、型・構築・共有状態7、cursor・sampler表示14、
+  session・文書方針15、操作・navigation 10、animation表示3の全49 APIを対応付け、他pathを変更しない。対象4工程・17入力、停止5工程・20入力、製品
+  `kritaapplicationui` 1,967工程・3,934入力の完全一致を確認する。5枠の未知関数診断、対象CTest、20回反復、`KisOpenGLRendererConfigContractTest`、
+  no-work、動的接続、未解決記号、構文・書式・公開API・`verify-quick`を確認する。widget・application・画面・event loop・signal、設定I/O、各method本文、
+  製品shared、`kritatestsdk`、新依存、生成UI・公開header・CMake変更、停止線超過が必要なら止める。
+- `g121-svg-scalar-schema`は`/Users/masato/Documents/librepaint-g121-svg-scalar-schema`を所有する。開始`libs/flake/text/KoSvgText.h`から既存
+  `libs/flake/tests/KoSvgTextEnumContractTest.cpp`の5枠へ、長さ値6、解決・書式型3、行高値6、tab幅値6、行高・tab変換型6の全27 APIを対応付け、他pathを
+  変更しない。対象4工程・8入力、停止5工程・11入力、製品`kritaflake` 618工程・1,268入力と既存pending集合の完全一致を確認する。5枠の未知関数診断、
+  対象CTest、20回反復、`KoSvgTextFontMetricsValueContractTest`、no-work、動的接続、未解決記号、構文・書式・公開API・`verify-quick`を確認する。
+  out-of-line parse・write・debug・長さ解決、`SvgLoadingContext`・font処理、実shape・文字配置・描画、製品shared、`kritatestsdk`、新依存、公開header・CMake変更、
+  停止線超過が必要なら止める。
+- `g121-psd-layer-effect-schema`は`/Users/masato/Documents/librepaint-g121-psd-layer-effect-schema`を所有する。開始`libs/psdutils/psd.h`から既存
+  `libs/psdutils/tests/PsdFormatValuesContractTest.cpp`の5枠へ、型階層6、context・subtype方針8、shadow色4、幾何・寸法3、bevel色4の全25 APIを対応付け、
+  他pathを変更しない。対象6工程・14入力、停止7工程・16入力、製品`kritapsdutils` 635工程・1,300入力と`kritapsd` 1,979工程・3,956入力の完全一致を確認する。
+  5枠の未知関数診断、対象CTest、20回反復、`PsdByteIoContractTest`、no-work、動的接続、未解決記号、構文・書式・公開API・`verify-quick`を確認する。
+  効果・context・色の実体とmethod、constructor・destructor、offset・scale、pattern・gradient registry、lookup生pointer、ASL、製品shared、`kritatestsdk`、
+  新依存、公開header・CMake変更、停止線超過が必要なら止める。
 
 ### 第106並列便の監査計画
 
