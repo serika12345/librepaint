@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 05:40 JST
+- 更新日時: 2026-09-02 05:50 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -38,7 +38,7 @@
 
 ### 第138便の担当計画
 
-- 実装共通基点は`8521336b213eaf1bb4fe60fb9dd335c2c66135bc`である。ICC profile、segment gradient、unit spin box担当は`implementing`、構築許可は指定試験targetと軽量近傍だけの
+- 実装共通基点は`8521336b213eaf1bb4fe60fb9dd335c2c66135bc`である。ICC profile担当は`integrated`、segment gradientとunit spin box担当は`ready`、構築許可は指定試験targetと軽量近傍だけの
   `granted`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、専用worktree-local `build/tdd-macos`と主作業treeの
   `/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。統合順はICC profile、segment gradient、unit spin boxとし、調整担当だけが`AGENTS.md`、
   architecture文書、`docs/architecture/public-api-test-contracts.json`、共通不足報告を変更する。3担当の公開header、所有CMake、試験source、生成物は重ならない。
@@ -69,6 +69,16 @@
   無作業再構築、動的接続、未解決spin box・unit manager・KoUnit・metaobject記号、構文・変更行書式、公開API・`verify-quick`を確認する。spin box・widget・unit manager・KoUnitを
   生成または呼出し、GUI event loop・context menu・signal配送、`kis_double_parse_unit_spin_box.cpp`、製品OBJECT・shared、`kritatestsdk`、KF I18n、設定I/O、新link依存、公開header・
   製品source変更、製品計画差、停止線超過が必要なら止める。
+
+### 第138便の統合結果
+
+- `g138-icc-profile-schema`は受渡しcommit`75ed93080b72`を統合commit`fb844807cd`として取り込んだ。開始
+  `plugins/color/lcms2engine/colorprofiles/IccColorProfile.h`から既存`plugins/color/lcms2engine/tests/LcmsColorProfileContainerSchemaContractTest.cpp`の5枠へ、profile data・
+  寿命、container識別・適合性・色彩値、profile識別・永続化・適合性・色彩値・transferの72 APIを対応付けた。CMakeを変更せず対象4工程・8入力、製品
+  `kritalcmsengine_static` 397工程・823入力と`kritalcmsengine` 427工程・856入力の各集合は変更前後一致し、profile・Data・Container・QByteArray処理対象・LCMS handle・
+  load・save・色変換・QVector更新を生成・実行していない。担当macOS環境と中央環境で新旧10枠・対象CTest・20回反復と近傍`KoColorProfileSchemaContractTest`、担当環境で
+  無作業再構築、動的接続・未解決記号、構文・書式、公開API検査、`verify-quick`に成功した。中央の公開API契約検査は29,838件中13,832件対応、16,006件未対応となる。
+  作業tree 871,872 KiBと担当branchは削除した。
 
 ### 第137便の先行監査計画
 

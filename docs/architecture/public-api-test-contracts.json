@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 16078
+    "expectedMissingApis": 16006
   },
   "contracts": [
     {
@@ -40379,6 +40379,123 @@
         "method:LcmsColorProfileContainer::LinearizeFloatValue(QVector<double> & Value) const",
         "method:LcmsColorProfileContainer::LinearizeFloatValueFast(QVector<double> & Value) const",
         "method:LcmsColorProfileContainer::transferFunction(TransferCharacteristics transferFunction)"
+      ]
+    },
+    {
+      "target": "LcmsColorProfileContainerSchemaContractTest",
+      "source": "plugins/color/lcms2engine/tests/LcmsColorProfileContainerSchemaContractTest.cpp",
+      "test": "LcmsColorProfileContainerSchemaContractTest::iccProfileDataAndLifetimeSchemaRemainsStable",
+      "behavior": "ICC profileはprofile・data型、dataの構築・寿命・raw byte操作、profileの構築・複製・寿命、およびLCMS container取得の正確な公開型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:IccColorProfile",
+        "class:IccColorProfile::Data",
+        "method:IccColorProfile::Data::Data()",
+        "method:IccColorProfile::Data::Data(const QByteArray & rawData)",
+        "method:IccColorProfile::Data::rawData()",
+        "method:IccColorProfile::Data::setRawData(const QByteArray &)",
+        "method:IccColorProfile::Data::~Data()",
+        "method:IccColorProfile::IccColorProfile(const IccColorProfile & rhs)",
+        "method:IccColorProfile::IccColorProfile(const KoColorProfileQuery & query)",
+        "method:IccColorProfile::IccColorProfile(const QByteArray & rawData)",
+        "method:IccColorProfile::IccColorProfile(const QString & fileName=QString ())",
+        "method:IccColorProfile::asLcms() const",
+        "method:IccColorProfile::clone() const",
+        "method:IccColorProfile::~IccColorProfile()"
+      ]
+    },
+    {
+      "target": "LcmsColorProfileContainerSchemaContractTest",
+      "source": "plugins/color/lcms2engine/tests/LcmsColorProfileContainerSchemaContractTest.cpp",
+      "test": "LcmsColorProfileContainerSchemaContractTest::iccContainerIdentityAndSuitabilitySchemaRemainsStable",
+      "behavior": "ICC containerは抽象型、公開既定構築、仮想寿命、名称・情報・製造者・著作権・有効性、および5用途の適合性について正確な関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:IccColorProfile::Container",
+        "method:IccColorProfile::Container::Container()",
+        "method:IccColorProfile::Container::copyright() const",
+        "method:IccColorProfile::Container::info() const",
+        "method:IccColorProfile::Container::isSuitableForDisplay() const",
+        "method:IccColorProfile::Container::isSuitableForInput() const",
+        "method:IccColorProfile::Container::isSuitableForOutput() const",
+        "method:IccColorProfile::Container::isSuitableForPrinting() const",
+        "method:IccColorProfile::Container::isSuitableForWorkspace() const",
+        "method:IccColorProfile::Container::manufacturer() const",
+        "method:IccColorProfile::Container::name() const",
+        "method:IccColorProfile::Container::valid() const",
+        "method:IccColorProfile::Container::~Container()"
+      ]
+    },
+    {
+      "target": "LcmsColorProfileContainerSchemaContractTest",
+      "source": "plugins/color/lcms2engine/tests/LcmsColorProfileContainerSchemaContractTest.cpp",
+      "test": "LcmsColorProfileContainerSchemaContractTest::iccContainerColorimetrySchemaRemainsStable",
+      "behavior": "ICC containerはCICP、TRC比較、colorant・白色点・推定TRC・HDR基準白・固有IDについて正確な値型、誤差引数、戻り型、const性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:IccColorProfile::Container::cicpPrimaries() const",
+        "method:IccColorProfile::Container::cicpTransfer() const",
+        "method:IccColorProfile::Container::compareTRC(TransferCharacteristics characteristics,float error) const",
+        "method:IccColorProfile::Container::getColorantsXYZ() const",
+        "method:IccColorProfile::Container::getColorantsxyY() const",
+        "method:IccColorProfile::Container::getEstimatedTRC() const",
+        "method:IccColorProfile::Container::getProfileUniqueId() const",
+        "method:IccColorProfile::Container::getWhitePointXYZ() const",
+        "method:IccColorProfile::Container::getWhitePointxyY() const",
+        "method:IccColorProfile::Container::hasCicpValues() const",
+        "method:IccColorProfile::Container::hasColorants() const",
+        "method:IccColorProfile::Container::hdrReferenceWhite() const"
+      ]
+    },
+    {
+      "target": "LcmsColorProfileContainerSchemaContractTest",
+      "source": "plugins/color/lcms2engine/tests/LcmsColorProfileContainerSchemaContractTest.cpp",
+      "test": "LcmsColorProfileContainerSchemaContractTest::iccProfileIdentityPersistenceAndSuitabilitySchemaRemainsStable",
+      "behavior": "ICC profileは色model・UI範囲・読込保存・比較・raw data・型・固有ID・有効性・版、および5用途の適合性について正確な関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:IccColorProfile::colorModelID() const",
+        "method:IccColorProfile::getFloatUIMinMax(void) const",
+        "method:IccColorProfile::isSuitableForDisplay() const",
+        "method:IccColorProfile::isSuitableForInput() const",
+        "method:IccColorProfile::isSuitableForOutput() const",
+        "method:IccColorProfile::isSuitableForPrinting() const",
+        "method:IccColorProfile::isSuitableForWorkspace() const",
+        "method:IccColorProfile::load()",
+        "method:IccColorProfile::operator ==(const KoColorProfile &) const",
+        "method:IccColorProfile::rawData() const",
+        "method:IccColorProfile::save()",
+        "method:IccColorProfile::type() const",
+        "method:IccColorProfile::uniqueId() const",
+        "method:IccColorProfile::valid() const",
+        "method:IccColorProfile::version() const"
+      ]
+    },
+    {
+      "target": "LcmsColorProfileContainerSchemaContractTest",
+      "source": "plugins/color/lcms2engine/tests/LcmsColorProfileContainerSchemaContractTest.cpp",
+      "test": "LcmsColorProfileContainerSchemaContractTest::iccProfileColorimetryAndTransferSchemaRemainsStable",
+      "behavior": "ICC profileは色彩値、TRC・線形性、4 rendering intent、および通常・高速の線形化と逆線形化について正確な変更参照・戻り型・const性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:IccColorProfile::compareTRC(TransferCharacteristics characteristics,float error) const",
+        "method:IccColorProfile::delinearizeFloatValue(QVector<qreal> & Value) const",
+        "method:IccColorProfile::delinearizeFloatValueFast(QVector<qreal> & Value) const",
+        "method:IccColorProfile::getColorantsXYZ() const",
+        "method:IccColorProfile::getColorantsxyY() const",
+        "method:IccColorProfile::getEstimatedTRC() const",
+        "method:IccColorProfile::getWhitePointXYZ() const",
+        "method:IccColorProfile::getWhitePointxyY() const",
+        "method:IccColorProfile::hasColorants() const",
+        "method:IccColorProfile::hasTRC() const",
+        "method:IccColorProfile::hdrReferenceWhite() const",
+        "method:IccColorProfile::isLinear() const",
+        "method:IccColorProfile::linearizeFloatValue(QVector<qreal> & Value) const",
+        "method:IccColorProfile::linearizeFloatValueFast(QVector<qreal> & Value) const",
+        "method:IccColorProfile::supportsAbsolute() const",
+        "method:IccColorProfile::supportsPerceptual() const",
+        "method:IccColorProfile::supportsRelative() const",
+        "method:IccColorProfile::supportsSaturation() const"
       ]
     }
   ]
