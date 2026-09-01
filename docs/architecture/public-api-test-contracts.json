@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 16893
+    "expectedMissingApis": 16863
   },
   "contracts": [
     {
@@ -38529,6 +38529,81 @@
         "method:KisConfig::setUseEraserBrushSize(bool value)",
         "method:KisConfig::useEraserBrushOpacity(bool defaultValue=false) const",
         "method:KisConfig::useEraserBrushSize(bool defaultValue=false) const"
+      ]
+    },
+    {
+      "target": "KisGuidesConfigSchemaContractTest",
+      "source": "libs/ui/tests/KisGuidesConfigSchemaContractTest.cpp",
+      "test": "KisGuidesConfigSchemaContractTest::guideValueIdentityAndEqualitySchemaRemainStable",
+      "behavior": "guide設定は公開class・線種enum、solid・dashed・dottedの列挙順、および位置・表示状態を比較する等価演算型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisGuidesConfig",
+        "enum:KisGuidesConfig::LineTypeInternal",
+        "enumerator:KisGuidesConfig::LineTypeInternal::LINE_DASHED",
+        "enumerator:KisGuidesConfig::LineTypeInternal::LINE_DOTTED",
+        "enumerator:KisGuidesConfig::LineTypeInternal::LINE_SOLID",
+        "method:KisGuidesConfig::operator ==(const KisGuidesConfig & rhs) const"
+      ]
+    },
+    {
+      "target": "KisGuidesConfigSchemaContractTest",
+      "source": "libs/ui/tests/KisGuidesConfigSchemaContractTest.cpp",
+      "test": "KisGuidesConfigSchemaContractTest::guidePositionCollectionAndTransformSignaturesRemainStable",
+      "behavior": "guide設定は水平・垂直位置集合の参照、追加・全削除、位置比較・有無判定、および座標変換の公開型とconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisGuidesConfig::addGuideLine(Qt::Orientation orientation,qreal position)",
+        "method:KisGuidesConfig::hasGuides() const",
+        "method:KisGuidesConfig::hasSamePositionAs(const KisGuidesConfig & rhs) const",
+        "method:KisGuidesConfig::horizontalGuideLines() const",
+        "method:KisGuidesConfig::removeAllGuides()",
+        "method:KisGuidesConfig::setHorizontalGuideLines(const QList<qreal> & lines)",
+        "method:KisGuidesConfig::setVerticalGuideLines(const QList<qreal> & lines)",
+        "method:KisGuidesConfig::transform(const QTransform & transform)",
+        "method:KisGuidesConfig::verticalGuideLines() const"
+      ]
+    },
+    {
+      "target": "KisGuidesConfigSchemaContractTest",
+      "source": "libs/ui/tests/KisGuidesConfigSchemaContractTest.cpp",
+      "test": "KisGuidesConfigSchemaContractTest::guideVisibilityInteractionSignaturesRemainStable",
+      "behavior": "guide設定は表示、lock、snap、定規倍精度の独立したboolean getter・setter型とconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisGuidesConfig::lockGuides() const",
+        "method:KisGuidesConfig::rulersMultiple2() const",
+        "method:KisGuidesConfig::setLockGuides(bool value)",
+        "method:KisGuidesConfig::setRulersMultiple2(bool value)",
+        "method:KisGuidesConfig::setShowGuides(bool value)",
+        "method:KisGuidesConfig::setSnapToGuides(bool value)",
+        "method:KisGuidesConfig::showGuides() const",
+        "method:KisGuidesConfig::snapToGuides() const"
+      ]
+    },
+    {
+      "target": "KisGuidesConfigSchemaContractTest",
+      "source": "libs/ui/tests/KisGuidesConfigSchemaContractTest.cpp",
+      "test": "KisGuidesConfigSchemaContractTest::guideUnitAndLineTypeSignaturesRemainStable",
+      "behavior": "guide設定は計測単位と線種の値型をgetter・setter境界で維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisGuidesConfig::guidesLineType() const",
+        "method:KisGuidesConfig::setGuidesLineType(LineTypeInternal value)",
+        "method:KisGuidesConfig::setUnitType(KoUnit::Type type)",
+        "method:KisGuidesConfig::unitType() const"
+      ]
+    },
+    {
+      "target": "KisGuidesConfigSchemaContractTest",
+      "source": "libs/ui/tests/KisGuidesConfigSchemaContractTest.cpp",
+      "test": "KisGuidesConfigSchemaContractTest::guideColorAndPenSignaturesRemainStable",
+      "behavior": "guide設定は色と描線penを値で返し、色をconst参照で受け取る公開型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisGuidesConfig::guidesColor() const",
+        "method:KisGuidesConfig::guidesPen() const",
+        "method:KisGuidesConfig::setGuidesColor(const QColor & value)"
       ]
     }
   ]
