@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 22:39 JST
+- 更新日時: 2026-09-01 22:48 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -21,6 +21,16 @@
   25 API以上閉じる。
 - `g131-font-snap-schema-audit`は`libs/flake/text/KoFFWWSConverter.h`の残り33 APIを主候補とし、`libs/flake/KoSnapGuide.h`の38 APIを比較する。font family WWS表現または
   snapping方針の一責務を、font database・FreeType・Fontconfig・shape・canvas・event・描画・resource・大域状態の実体化なしで25 API以上閉じる。
+- `g131-dab-image-utils-schema-audit`は`KisDabCacheUtils.h`の全32 APIを採用した。schema型・factory 4、要求値7、生成値10、描画resource 8、処理関数3を新規
+  `KisDabCacheUtilsSchemaContractTest`の未評価型5枠へ対応付ける。新対象4工程・8入力、停止5工程・11入力、製品`kritalibpaintop` 2,110工程・4,218入力を維持する。
+  `krita_utils.h`は画像幾何の単一責務で23 APIに留まり、25 APIへ達するにはdevice・閾値・描画責務を混在させるため棄却した。
+- `g131-frame-animation-schema-audit`は`kis_frame_data_serializer.h`の全33 APIを採用した。frame tile member 5、tile寿命・buffer 7、frame member 3、frame寿命・妥当性7、
+  serializer保管・差分11を新規`KisFrameDataSerializerSchemaContractTest`の未評価型5枠へ対応付ける。新対象4工程・8入力、停止5工程・11入力、製品`kritacanvas`
+  1,220工程・2,460入力を維持する。`KisAnimUtils.h`は副作用なしで固定できるframe識別面が12 APIに留まり、25 APIへ達するにはimage・node・command・model責務を
+  混在させるため棄却した。
+- `g131-font-snap-schema-audit`は`KoSnapGuide.h`の全38 APIを採用した。型・strategy 14、寿命・interaction 6、strategy方針8、関連付け8、距離2を新規
+  `KoSnapGuideSchemaContractTest`の未評価型5枠へ対応付ける。新対象4工程・8入力、停止5工程・11入力、製品`kritaflake` 621工程・1,274入力を維持する。
+  `KoFFWWSConverter.h`は公開headerの読込みだけでFreeType・Fontconfig・HarfBuzz・大域font環境へ接続し、同じ限定閉包に収まらないため棄却した。
 - 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから契約先または
   移動先、許可path、固有停止条件、比較候補の棄却根拠を含む。既存`build/tdd-macos`の計画は読み取り専用で測定し、構成や構築を開始しない。3報告後にpath、CMake、
   試験source、生成物が重ならない候補だけを担当票へ進める。
