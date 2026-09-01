@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 17:21 JST
+- 更新日時: 2026-09-01 17:27 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -37,7 +37,7 @@
 
 ### 第123便の担当計画
 
-- 実装共通基点は`cabfedd704efe0085aeb64cf64648d821059b36a`である。SVG cursor担当は`integrated`、slider spin boxとlibkis grid担当は`ready`、構築許可は
+- 実装共通基点は`cabfedd704efe0085aeb64cf64648d821059b36a`である。SVG cursorとslider spin box担当は`integrated`、libkis grid担当は`ready`、構築許可は
   指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの
   `transport-commit`、追加委任は禁止する。専用worktree-local `build/tdd-macos`と`./scripts/run-shared-test-env`で主環境・compiler cacheを共有する。
   統合順はSVG cursor、slider spin box、libkis gridとし、調整担当だけが台帳、進捗文書、不足報告を変更する。3担当の公開header、所有CMake、試験source、生成物は
@@ -73,6 +73,11 @@
   入力・focus、編集状態の全28 APIを対応付けた。対象4工程・14入力、製品`krita_tool_svgtext_static` 2,010工程・4,018入力と保留集合は変更前後一致し、実cursor、
   shape、canvas、文字配置、font、undo、clipboard、IME、event、timer、signalを実行していない。主macOS環境でも対象CTest、20回反復、
   `KoSvgTextEnumContractTest`、無作業再構築を確認した。
+- `g123-slider-spin-schema`は受渡しcommit`1fb5fa6ea301`を統合commit`a983c8321b`として取り込んだ。開始
+  `libs/widgetutils/kis_slider_spin_box.h`から新規`libs/widgetutils/tests/KisSliderSpinBoxSchemaContractTest.cpp`の5枠へ、値・hard range、soft range読取・設定、
+  step、指数比の全27 APIを対応付け、`libs/widgetutils/tests/CMakeLists.txt`へheader限定対象を追加した。対象4工程・8入力、製品`kritawidgetutils`
+  273工程・579入力と保留集合は変更前後一致し、widget実体、method本文、event loop、signal、style、metaobjectを実行していない。主macOS環境では再構成後に対象CTest、
+  20回反復、整数・実数parse spin box契約、無作業再構築を確認した。
 
 ### 第122便の先行監査計画
 

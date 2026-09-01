@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 17735
+    "expectedMissingApis": 17708
   },
   "contracts": [
     {
@@ -36742,6 +36742,78 @@
         "method:SvgTextCursor::isAddingCommand() const",
         "method:SvgTextCursor::notifyMarkupChanged()",
         "method:SvgTextCursor::setTypeSettingModeActive(bool activate)"
+      ]
+    },
+    {
+      "target": "KisSliderSpinBoxSchemaContractTest",
+      "source": "libs/widgetutils/tests/KisSliderSpinBoxSchemaContractTest.cpp",
+      "test": "KisSliderSpinBoxSchemaContractTest::sliderSpinValueAndRangeSignaturesRemainStable",
+      "behavior": "整数・実数slider spin boxはparse spin box基底、値・hard range設定の公開関数型、range・最小値・最大値の既定引数を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisDoubleSliderSpinBox",
+        "class:KisSliderSpinBox",
+        "method:KisDoubleSliderSpinBox::setMaximum(qreal newMaximum,bool computeNewFastSliderStep=true)",
+        "method:KisDoubleSliderSpinBox::setMinimum(qreal newMinimum,bool computeNewFastSliderStep=true)",
+        "method:KisDoubleSliderSpinBox::setRange(qreal newMinimum,qreal newMaximum,int newNumberOfDecimals=0,bool computeNewFastSliderStep=true)",
+        "method:KisDoubleSliderSpinBox::setValue(qreal newValue)",
+        "method:KisSliderSpinBox::setMaximum(int newMaximum,bool computeNewFastSliderStep=true)",
+        "method:KisSliderSpinBox::setMinimum(int newMinimum,bool computeNewFastSliderStep=true)",
+        "method:KisSliderSpinBox::setRange(int newMinimum,int newMaximum,bool computeNewFastSliderStep=true)",
+        "method:KisSliderSpinBox::setValue(int newValue)"
+      ]
+    },
+    {
+      "target": "KisSliderSpinBoxSchemaContractTest",
+      "source": "libs/widgetutils/tests/KisSliderSpinBoxSchemaContractTest.cpp",
+      "test": "KisSliderSpinBoxSchemaContractTest::sliderSpinSoftRangeReadSignaturesRemainStable",
+      "behavior": "整数・実数slider spin boxはsoft rangeの最小値・最大値を各数値型で返すconst公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDoubleSliderSpinBox::softMaximum() const",
+        "method:KisDoubleSliderSpinBox::softMinimum() const",
+        "method:KisSliderSpinBox::softMaximum() const",
+        "method:KisSliderSpinBox::softMinimum() const"
+      ]
+    },
+    {
+      "target": "KisSliderSpinBoxSchemaContractTest",
+      "source": "libs/widgetutils/tests/KisSliderSpinBoxSchemaContractTest.cpp",
+      "test": "KisSliderSpinBoxSchemaContractTest::sliderSpinSoftRangeWriteSignaturesRemainStable",
+      "behavior": "整数・実数slider spin boxはsoft range全体・最小値・最大値を各数値型で設定する公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDoubleSliderSpinBox::setSoftMaximum(qreal newSoftMaximum)",
+        "method:KisDoubleSliderSpinBox::setSoftMinimum(qreal newSoftMinimum)",
+        "method:KisDoubleSliderSpinBox::setSoftRange(qreal newSoftMinimum,qreal newSoftMaximum)",
+        "method:KisSliderSpinBox::setSoftMaximum(int newSoftMaximum)",
+        "method:KisSliderSpinBox::setSoftMinimum(int newSoftMinimum)",
+        "method:KisSliderSpinBox::setSoftRange(int newSoftMinimum,int newSoftMaximum)"
+      ]
+    },
+    {
+      "target": "KisSliderSpinBoxSchemaContractTest",
+      "source": "libs/widgetutils/tests/KisSliderSpinBoxSchemaContractTest.cpp",
+      "test": "KisSliderSpinBoxSchemaContractTest::sliderSpinStepSignaturesRemainStable",
+      "behavior": "整数・実数slider spin boxはfast slider stepの取得・設定型と整数版page stepの設定型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDoubleSliderSpinBox::fastSliderStep() const",
+        "method:KisDoubleSliderSpinBox::setFastSliderStep(qreal newFastSliderStep)",
+        "method:KisSliderSpinBox::fastSliderStep() const",
+        "method:KisSliderSpinBox::setFastSliderStep(int newFastSliderStep)",
+        "method:KisSliderSpinBox::setPageStep(int newPageStep)"
+      ]
+    },
+    {
+      "target": "KisSliderSpinBoxSchemaContractTest",
+      "source": "libs/widgetutils/tests/KisSliderSpinBoxSchemaContractTest.cpp",
+      "test": "KisSliderSpinBoxSchemaContractTest::sliderSpinExponentSignaturesRemainStable",
+      "behavior": "整数・実数slider spin boxは指数比を実数で設定する公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDoubleSliderSpinBox::setExponentRatio(qreal newExponentRatio)",
+        "method:KisSliderSpinBox::setExponentRatio(qreal newExponentRatio)"
       ]
     }
   ]
