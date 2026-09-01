@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 23:19 JST
+- 更新日時: 2026-09-01 23:27 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -21,6 +21,17 @@
   25 API以上閉じる。
 - `g132-tag-snap-strategy-schema-audit`は`libs/resources/KisTagModel.h`の残り38 APIを主候補とし、`libs/flake/KoSnapStrategy.h`の38 APIを比較する。tag model操作面または
   snapping strategy継承面の一責務を、resource database・storage・model実体・shape・canvas・path・event・描画・大域状態の実体化なしで25 API以上閉じる。
+- `g132-color-source-schema-audit`は`kis_color_source.h`の全45 APIを採用した。色源階層・基底protocol 12、uniform色変換8、選択色源variant 9、total random色源8、
+  pattern色源8を新規`KisColorSourceSchemaContractTest`の未評価型5枠へ対応付ける。新対象4工程・8入力、停止5工程・11入力、製品`kritalibpaintop`
+  2,110工程・4,218入力を維持する。`KoColor.h`は単一の局所画素値責務で28 APIに留まり、全45 APIへ広げると色空間変換・XML/SVG・metadata・表示責務を混在させるため
+  次点とした。
+- `g132-distance-tile-schema-audit`は`kis_distance_information.h`のruntime stroke距離・spacing・timing状態31 APIを採用した。寿命9、最後のdab観測8、spacing・timing 8、
+  stroke進行4、描画角度lock 2を既存`KisImageTypesContractTest`の未評価型5枠へ対応付ける。対象4工程・8入力、停止5工程・11入力、製品`kritaimage`
+  1,196工程・2,416入力を維持する。`KisDistanceInitInfo` 12 APIはXML初期化責務なので除外し、tile候補は単一31 APIにallocation・COW・swap・memento・大域pool解放を
+  同居させ、軽量な既存契約もないため次点とした。
+- `g132-tag-snap-strategy-schema-audit`は`KoSnapStrategy.h`の全38 APIを採用した。基底型・状態7、基底操作7、point・orthogonal 8、extension・intersection 8、grid・
+  bounding box 8を既存`KoSnapGuideSchemaContractTest`の未評価型5枠へ対応付ける。対象4工程・8入力、停止5工程・11入力、製品`kritaflake` 621工程・1,274入力を維持する。
+  `KisTagModel.h`も38 APIを型検査へ収容できるが、既存対象が4工程・9入力でQt Gui・KF I18n・Boostと三層のmodel階層を含むため次点とした。
 - 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから契約先または
   移動先、許可path、固有停止条件、比較候補の棄却根拠を含む。既存`build/tdd-macos`の計画は読み取り専用で測定し、構成や構築を開始しない。3報告後にpath、CMake、
   試験source、生成物が重ならない候補だけを担当票へ進める。
