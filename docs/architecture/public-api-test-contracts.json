@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 17334
+    "expectedMissingApis": 17277
   },
   "contracts": [
     {
@@ -37548,6 +37548,108 @@
         "function:KisAlgebra2D::operator <<(QDebug debug,const VectorPath & path)",
         "function:KisAlgebra2D::operator <<(QDebug debug,const VectorPath::VectorPathPoint & point)",
         "function:KisAlgebra2D::removeGutterSmart(const QPainterPath & shape1,int index1,const QPainterPath & shape2,int index2,bool isSameShape)"
+      ]
+    },
+    {
+      "target": "ToolTransformArgsGeometrySchemaContractTest",
+      "source": "plugins/tools/tool_transform2/tests/ToolTransformArgsGeometrySchemaContractTest.cpp",
+      "test": "ToolTransformArgsGeometrySchemaContractTest::transformModeAndPrecisionSchemaRemainsStable",
+      "behavior": "変形引数は変形modeの連続した列挙値と、mode・通常精度・preview精度の取得・設定型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:ToolTransformArgs",
+        "enum:ToolTransformArgs::TransformMode",
+        "enumerator:ToolTransformArgs::TransformMode::CAGE",
+        "enumerator:ToolTransformArgs::TransformMode::FREE_TRANSFORM",
+        "enumerator:ToolTransformArgs::TransformMode::LIQUIFY",
+        "enumerator:ToolTransformArgs::TransformMode::MESH",
+        "enumerator:ToolTransformArgs::TransformMode::N_MODES",
+        "enumerator:ToolTransformArgs::TransformMode::PERSPECTIVE_4POINT",
+        "enumerator:ToolTransformArgs::TransformMode::WARP",
+        "method:ToolTransformArgs::mode() const",
+        "method:ToolTransformArgs::pixelPrecision() const",
+        "method:ToolTransformArgs::previewPixelPrecision() const",
+        "method:ToolTransformArgs::setMode(TransformMode mode)",
+        "method:ToolTransformArgs::setPixelPrecision(int precision)",
+        "method:ToolTransformArgs::setPreviewPixelPrecision(int precision)"
+      ]
+    },
+    {
+      "target": "ToolTransformArgsGeometrySchemaContractTest",
+      "source": "plugins/tools/tool_transform2/tests/ToolTransformArgsGeometrySchemaContractTest.cpp",
+      "test": "ToolTransformArgsGeometrySchemaContractTest::warpPointAndCalculationSignaturesRemainStable",
+      "behavior": "warp変形状態はalpha、既定点方針、原点・変形点列の値と参照、計算方式と種別の公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:ToolTransformArgs::alpha() const",
+        "method:ToolTransformArgs::defaultPoints() const",
+        "method:ToolTransformArgs::numPoints() const",
+        "method:ToolTransformArgs::origPoint(int i)",
+        "method:ToolTransformArgs::origPoints() const",
+        "method:ToolTransformArgs::refOriginalPoints()",
+        "method:ToolTransformArgs::refTransformedPoints()",
+        "method:ToolTransformArgs::setAlpha(double alpha)",
+        "method:ToolTransformArgs::setDefaultPoints(bool defaultPoints)",
+        "method:ToolTransformArgs::setPoints(QVector<QPointF> origPoints,QVector<QPointF> transfPoints)",
+        "method:ToolTransformArgs::setWarpCalculation(KisWarpTransformWorker::WarpCalculation warpCalc)",
+        "method:ToolTransformArgs::setWarpType(KisWarpTransformWorker::WarpType warpType)",
+        "method:ToolTransformArgs::transfPoint(int i)",
+        "method:ToolTransformArgs::transfPoints() const",
+        "method:ToolTransformArgs::warpCalculation()",
+        "method:ToolTransformArgs::warpType() const"
+      ]
+    },
+    {
+      "target": "ToolTransformArgsGeometrySchemaContractTest",
+      "source": "plugins/tools/tool_transform2/tests/ToolTransformArgsGeometrySchemaContractTest.cpp",
+      "test": "ToolTransformArgsGeometrySchemaContractTest::meshTransformStateSignaturesRemainStable",
+      "behavior": "mesh変形状態はmesh値の可変・const借用pointerと、三種類のhandle表示方針の取得・設定型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:ToolTransformArgs::meshScaleHandles() const",
+        "method:ToolTransformArgs::meshShowHandles() const",
+        "method:ToolTransformArgs::meshSymmetricalHandles() const",
+        "method:ToolTransformArgs::meshTransform()",
+        "method:ToolTransformArgs::meshTransform() const",
+        "method:ToolTransformArgs::setMeshScaleHandles(bool meshScaleHandles)",
+        "method:ToolTransformArgs::setMeshShowHandles(bool value)",
+        "method:ToolTransformArgs::setMeshSymmetricalHandles(bool meshSymmetricalHandles)"
+      ]
+    },
+    {
+      "target": "ToolTransformArgsGeometrySchemaContractTest",
+      "source": "plugins/tools/tool_transform2/tests/ToolTransformArgsGeometrySchemaContractTest.cpp",
+      "test": "ToolTransformArgsGeometrySchemaContractTest::liquifyAndEditingStateSignaturesRemainStable",
+      "behavior": "liquify変形状態は初期化・保存、編集状態、propertiesとworkerの借用pointerに関する公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:ToolTransformArgs::initLiquifyTransformMode(const QRect & srcRect)",
+        "method:ToolTransformArgs::isEditingTransformPoints() const",
+        "method:ToolTransformArgs::liquifyProperties()",
+        "method:ToolTransformArgs::liquifyProperties() const",
+        "method:ToolTransformArgs::liquifyWorker() const",
+        "method:ToolTransformArgs::saveLiquifyTransformMode() const",
+        "method:ToolTransformArgs::setEditingTransformPoints(bool value)"
+      ]
+    },
+    {
+      "target": "ToolTransformArgsGeometrySchemaContractTest",
+      "source": "plugins/tools/tool_transform2/tests/ToolTransformArgsGeometrySchemaContractTest.cpp",
+      "test": "ToolTransformArgsGeometrySchemaContractTest::transformStateContinuationComparisonAndMappingSignaturesRemainStable",
+      "behavior": "変形引数は継続状態の保存・復元、同一性・mode比較・不変判定と、変形元・先の座標写像に関する公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:ToolTransformArgs::continuedTransform() const",
+        "method:ToolTransformArgs::isIdentity() const",
+        "method:ToolTransformArgs::isSameMode(const ToolTransformArgs & other) const",
+        "method:ToolTransformArgs::isUnchanging() const",
+        "method:ToolTransformArgs::operator ==(const ToolTransformArgs & other) const",
+        "method:ToolTransformArgs::restoreContinuedState()",
+        "method:ToolTransformArgs::saveContinuedState()",
+        "method:ToolTransformArgs::scale3dSrcAndDst(qreal scale)",
+        "method:ToolTransformArgs::transformSrcAndDst(const QTransform & t)",
+        "method:ToolTransformArgs::translateDstSpace(const QPointF & offset)",
+        "method:ToolTransformArgs::translateSrcAndDst(const QPointF & offset)"
       ]
     }
   ]

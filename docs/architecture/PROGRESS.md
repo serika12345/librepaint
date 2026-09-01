@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 19:38 JST
+- 更新日時: 2026-09-01 19:43 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -40,7 +40,7 @@
 
 ### 第126便の担当計画
 
-- 実装共通基点は`3ca5ac5d5a`である。algebra path topology担当は`integrated`、transform argsとruler担当は`ready`、構築許可は指定試験targetと軽量近傍だけの
+- 実装共通基点は`3ca5ac5d5a`である。algebra path topologyとtransform args担当は`integrated`、ruler担当は`ready`、構築許可は指定試験targetと軽量近傍だけの
   `granted`、Git権限は許可pathだけの
   `transport-commit`、追加委任は禁止する。専用worktree-local `build/tdd-macos`と主作業treeの
   `/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。統合順はalgebra path topology、transform args、rulerとし、調整担当だけが台帳、
@@ -78,6 +78,11 @@
   helperを本文不変で移し、新規`kritaglobalalgebrapathtopologyobjects`を製品`kritaglobal`と既存
   `libs/global/tests/KisAlgebraGeometryPrimitivesContractTest.cpp`へ一対一収容した。対象は7工程・15入力から8工程・17入力、製品は70工程・140入力から
   71工程・142入力となり、差は新OBJECTの一翻訳単位だけである。主macOS環境での統合後検証を続行する。
+- `g126-transform-args-schema`は受渡しcommit`6f6015c1dc13`を統合commit`3ed3dfc158`として取り込んだ。開始
+  `plugins/tools/tool_transform2/tool_transform_args.h`から既存
+  `plugins/tools/tool_transform2/tests/ToolTransformArgsGeometrySchemaContractTest.cpp`の5枠へ、mode・精度、warp点列・計算、mesh状態、liquify・編集状態、
+  継続・比較・座標写像の57 APIを対応付けた。対象は4工程・9入力、製品`kritatooltransform_static`は1,991工程・3,981入力で変更前後完全一致し、製品実装や
+  method本文を実行しない未評価型の契約として閉じた。主macOS環境での統合後検証を続行する。
 
 ### 第125便の先行監査計画
 
