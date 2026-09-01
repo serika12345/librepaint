@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 12:01 JST
+- 更新日時: 2026-09-01 12:03 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -368,6 +368,20 @@
   公開headerと失敗sourceは変更していない。製品所有targetを構築範囲の確認に直接使う前に、glob再検査後の実行対象だけを安全に列挙できる計画機能を整備する。
 - 新報告の生成と受渡しpatchの同一性、3 worktreeのclean状態を確認後、旧`public-api-missing-g110.json` 4.7 MB、設定担当642 MB、PSD担当646 MB、
   SVG担当645 MBと3 branchを削除し、約1.93 GBを回収した。主`build/tdd-macos`、共有compiler cache、最新不足報告は次便の限定構築へ再利用する。
+
+### 第111便の実装前監査計画
+
+- 共通基点は`3ae465165f`、公開API入力は`build/tdd-macos/public-api-missing-g111.json`である。3監査は読み取り専用とし、製品・試験・CMake・script・台帳・文書を
+  変更せず、構築、試験、Git操作、追加委任も行わない。公開API実装担当は、構築計画機能の修正と限定検証が完了するまで開始しない。
+- `g111-build-plan-audit`は`scripts/build-incremental`の`plan`、`scripts/tests/test_incremental_development.py`、CMakeの`VerifyGlobs`再検査を調べる。現行の乾式実行が
+  常時dirtyなglob検査からCMake再生成だけを表示し、実際のtarget差分102工程を隠した原因を確定する。構築・linkを行わず、必要なCMake同期だけを実行した後に
+  実際のdirty工程を表示できる最小修正、失敗時の挙動、回帰契約、開始pathから変更先path、許可pathを報告する。
+- `g111-config-schema-audit`は`libs/application/kis_config.h`の未対応328 APIをanimation、文書既定値、表示性能、資源・保存設定へ分け、設定実体・`QSettings`・GUIを
+  生成または呼出しせず、既存`KisConfigEnumContractTest`の未評価関数型検査へ25 API以上を最大5枠で追加できる一責務を選ぶ。完全な識別子、枠、直接依存、
+  変更なし計画、停止線、開始headerから契約先、許可path、比較候補の棄却根拠を報告する。
+- `g111-psd-schema-audit`は`libs/psdutils/psd.h`の未対応197 APIを色mode・圧縮・resource ID・layer ID・固定小数点等の直列化schemaへ分け、header内の列挙・alias・定数・
+  局所値だけで25 API以上を最大5枠に固定できる一責務を選ぶ。実image・device、色空間・資源registry、filesystem、製品shared、`kritatestsdk`へ接続しない候補を
+  優先し、完全な識別子、枠、直接依存、変更なし計画、停止線、開始headerから契約先、許可path、比較候補の棄却根拠を報告する。
 
 ### 第105並列便の監査計画
 
