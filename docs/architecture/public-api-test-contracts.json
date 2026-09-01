@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 16512
+    "expectedMissingApis": 16465
   },
   "contracts": [
     {
@@ -39405,6 +39405,98 @@
         "method:KisTagModel::renameTag(const KisTagSP tag,const QString & newName,const bool allowOverwrite)",
         "method:KisTagModel::setTagActive(const KisTagSP tag)",
         "method:KisTagModel::setTagInactive(const KisTagSP tag)"
+      ]
+    },
+    {
+      "target": "KoGradientSegmentSchemaContractTest",
+      "source": "libs/pigment/tests/KoGradientSegmentSchemaContractTest.cpp",
+      "test": "KoGradientSegmentSchemaContractTest::gradientSegmentInterpolationAndEndpointOrdinalsRemainStable",
+      "behavior": "勾配区間は2種類の補間enumを区別し、補間方式、色補間方式、およびendpoint種別の安定した列挙値を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KoGradientSegmentEndpointType",
+        "enum:__anonaea5989c0103",
+        "enum:__anonaea5989c0203",
+        "enumerator:KoGradientSegmentEndpointType::BACKGROUND_ENDPOINT",
+        "enumerator:KoGradientSegmentEndpointType::BACKGROUND_TRANSPARENT_ENDPOINT",
+        "enumerator:KoGradientSegmentEndpointType::COLOR_ENDPOINT",
+        "enumerator:KoGradientSegmentEndpointType::FOREGROUND_ENDPOINT",
+        "enumerator:KoGradientSegmentEndpointType::FOREGROUND_TRANSPARENT_ENDPOINT",
+        "enumerator:__anonaea5989c0103::INTERP_CURVED",
+        "enumerator:__anonaea5989c0103::INTERP_LINEAR",
+        "enumerator:__anonaea5989c0103::INTERP_SINE",
+        "enumerator:__anonaea5989c0103::INTERP_SPHERE_DECREASING",
+        "enumerator:__anonaea5989c0103::INTERP_SPHERE_INCREASING",
+        "enumerator:__anonaea5989c0203::COLOR_INTERP_HSV_CCW",
+        "enumerator:__anonaea5989c0203::COLOR_INTERP_HSV_CW",
+        "enumerator:__anonaea5989c0203::COLOR_INTERP_RGB"
+      ]
+    },
+    {
+      "target": "KoGradientSegmentSchemaContractTest",
+      "source": "libs/pigment/tests/KoGradientSegmentSchemaContractTest.cpp",
+      "test": "KoGradientSegmentSchemaContractTest::gradientSegmentEndpointRecordSchemaRemainsStable",
+      "behavior": "勾配区間endpointは位置、色、種別を公開memberとして保持し、その3値から構築できるrecord schemaを維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KoGradientSegmentEndpoint::color",
+        "member:KoGradientSegmentEndpoint::offset",
+        "member:KoGradientSegmentEndpoint::type",
+        "method:KoGradientSegmentEndpoint::KoGradientSegmentEndpoint(qreal _off,KoColor _color,KoGradientSegmentEndpointType _type)",
+        "struct:KoGradientSegmentEndpoint"
+      ]
+    },
+    {
+      "target": "KoGradientSegmentSchemaContractTest",
+      "source": "libs/pigment/tests/KoGradientSegmentSchemaContractTest.cpp",
+      "test": "KoGradientSegmentSchemaContractTest::gradientSegmentEndpointStateSignaturesRemainStable",
+      "behavior": "勾配区間は両endpointの色・位置・種別と中間位置について、正確な取得・設定関数型とconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoGradientSegment::endColor() const",
+        "method:KoGradientSegment::endOffset() const",
+        "method:KoGradientSegment::endType() const",
+        "method:KoGradientSegment::middleOffset() const",
+        "method:KoGradientSegment::setEndColor(const KoColor & color)",
+        "method:KoGradientSegment::setEndOffset(qreal t)",
+        "method:KoGradientSegment::setEndType(KoGradientSegmentEndpointType type)",
+        "method:KoGradientSegment::setMiddleOffset(qreal t)",
+        "method:KoGradientSegment::setStartColor(const KoColor & color)",
+        "method:KoGradientSegment::setStartOffset(qreal t)",
+        "method:KoGradientSegment::setStartType(KoGradientSegmentEndpointType type)",
+        "method:KoGradientSegment::startColor() const",
+        "method:KoGradientSegment::startOffset() const",
+        "method:KoGradientSegment::startType() const"
+      ]
+    },
+    {
+      "target": "KoGradientSegmentSchemaContractTest",
+      "source": "libs/pigment/tests/KoGradientSegmentSchemaContractTest.cpp",
+      "test": "KoGradientSegmentSchemaContractTest::gradientSegmentConstructionAndInterpolationSignaturesRemainStable",
+      "behavior": "勾配区間は補間方式、両endpoint、中間位置による構築と、補間・鏡像化・妥当性操作の正確な関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoGradientSegment",
+        "method:KoGradientSegment::KoGradientSegment(int interpolationType,int colorInterpolationType,KoGradientSegmentEndpoint start,KoGradientSegmentEndpoint end,qreal middleOffset)",
+        "method:KoGradientSegment::colorInterpolation() const",
+        "method:KoGradientSegment::interpolation() const",
+        "method:KoGradientSegment::isValid() const",
+        "method:KoGradientSegment::mirrorSegment()",
+        "method:KoGradientSegment::setColorInterpolation(int colorInterpolationType)",
+        "method:KoGradientSegment::setInterpolation(int interpolationType)"
+      ]
+    },
+    {
+      "target": "KoGradientSegmentSchemaContractTest",
+      "source": "libs/pigment/tests/KoGradientSegmentSchemaContractTest.cpp",
+      "test": "KoGradientSegmentSchemaContractTest::gradientSegmentEvaluationAndVariableColorSignaturesRemainStable",
+      "behavior": "勾配区間は位置からの色評価、可変色の設定・照会、および区間長取得について正確な関数型とconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoGradientSegment::colorAt(KoColor &,qreal t) const",
+        "method:KoGradientSegment::hasVariableColors()",
+        "method:KoGradientSegment::length()",
+        "method:KoGradientSegment::setVariableColors(const KoColor & foreground,const KoColor & background)"
       ]
     }
   ]

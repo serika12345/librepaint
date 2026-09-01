@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 01:07 JST
+- 更新日時: 2026-09-02 01:27 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -39,7 +39,7 @@
 
 ### 第134便の担当計画
 
-- 実装共通基点は`832aa7e56018ffe72f34c7b05ae424077be657b7`である。gradient segment、stroke、storage model担当は`ready`、構築許可は指定試験targetと
+- 実装共通基点は`832aa7e56018ffe72f34c7b05ae424077be657b7`である。gradient segment担当は`integrated`、strokeとstorage model担当は`ready`、構築許可は指定試験targetと
   軽量近傍だけの`granted`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、専用worktree-local
   `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。統合順はgradient segment、stroke、storage modelとし、
   調整担当だけが`AGENTS.md`、architecture文書、`docs/architecture/public-api-test-contracts.json`、共通不足報告を変更する。3担当の公開header、所有CMake、試験source、
@@ -70,6 +70,15 @@
   確認する。5枠の未知関数、既存枠、対象CTest、20回反復、近傍、無作業再構築、動的接続、未解決storage model・SQL・DB・import記号、構文・変更行書式、公開API・
   `verify-quick`を確認する。型特性と未評価式を越えて模型・singleton・storage・resource・DB・QSql・query・import・I/O・signal・metaobjectを生成または呼出し、製品source・
   OBJECT・shared、`kritatestsdk`、新依存、CMake・公開header変更、製品計画差、停止線超過が必要なら止める。
+
+### 第134便の統合結果
+
+- `g134-gradient-segment-schema`は受渡しcommit`4b935c18eb86`を統合commit`668490647d`として取り込んだ。開始
+  `libs/pigment/resources/KoSegmentGradient.h`から新規`libs/pigment/tests/KoGradientSegmentSchemaContractTest.cpp`の5枠へ、補間・endpoint列挙、endpoint record・状態、
+  構築・補間、評価・可変色の47 APIを対応付け、所有CMakeへheader限定対象を追加した。対象4工程・8入力、製品`kritapigment` 367工程・764入力と各集合は変更前後一致し、
+  segment・endpoint・KoColor・gradient resource・canvas resource・XML・device・I/O・色変換を生成・実行していない。担当macOS環境と中央環境で対象CTest、担当環境で
+  5枠個別、20回反復、近傍`KoColorValueSchemaContractTest`、無作業再構築、動的接続・未解決記号、構文・書式、公開API検査、`verify-quick`に成功した。
+  公開API契約検査は29,838件中13,373件対応、16,465件未対応となった。
 
 ### 第133便の先行監査計画
 
