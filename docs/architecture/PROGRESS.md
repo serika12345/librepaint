@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 13:57 JST
+- 更新日時: 2026-09-01 14:04 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -747,6 +747,39 @@
   実profile・registry・色変換・filesystem・画素bufferを生成せず限定対象へ閉じる最良一責務を選ぶ。
 - 各報告は完全なAPI識別子、最大5枠の観測挙動、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから契約先または
   移動先、許可path、固有停止条件、比較候補の棄却根拠を含む。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
+- `g117-psd-shadow-audit`は`psd_layer_effects_shadow_base`の安全な公開型面35 APIを採用した。型・活性9、合成・照明8、幾何6、輪郭変動8、塗り・方式4を既存
+  `PsdFormatValuesContractTest`の未評価型5枠へ追加する。対象6工程・14入力、製品`kritapsdutils` 635工程・1,300入力と`kritapsd` 1,979工程・3,956入力を
+  維持する。全48 APIからconstructor・destructor・offset・scale、色、lookup pointer、gradient接続の13 APIを除外した。
+- `g117-action-collection-audit`は`KisKActionCollection`の全48 APIを採用した。識別・寿命・設定schema 13、検索・分類9、所属・変更10、shortcut 7、関連widget・
+  通知9を既存`KStandardActionEnumContractTest`の未評価型5枠へ追加する。対象4工程・10入力、製品`kritawidgetutils` 273工程・579入力を維持する。
+  `KisCursor` 44 APIは新対象が必要で実値面がfilesystemへ達し、slider spin boxは各具象型20・19 APIで下限未達のため棄却した。
+- `g117-color-profile-audit`は`KoColorProfile`の抽象公開schema 46 APIを採用した。identity・寿命15、適合性・intent 9、色度9、伝達関数10、直列化3を新規
+  `KoColorProfileSchemaContractTest`の未評価型5枠へ対応付ける。新対象4工程・8入力、製品`kritapigment` 365工程・760入力不変を予測する。抽象型では宣言存在を
+  正しく識別できない2 constructorは除外した。`KoColorSpace`は複数責務の広いinclude閉包、histogram producerは安全な各責務が25 API未満のため棄却した。
+  3監査は編集、構築、試験、Git操作、追加委任を行っていない。
+
+### 第117便の担当計画
+
+- 実装共通基点はこの担当票commitとする。3担当は`planned`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの
+  `transport-commit`、追加委任は禁止する。専用worktree-local `build/tdd-macos`と`./scripts/run-shared-test-env`で主環境・compiler cacheを共有する。
+  統合順はPSD、action collection、色profileとし、調整担当だけが台帳、進捗文書、不足報告を変更する。3担当の許可path、CMake、試験source、生成物は重ならない。
+- `g117-psd-shadow-schema`は`/Users/masato/Documents/librepaint-g117-psd-shadow-schema`を所有する。開始`libs/psdutils/psd.h`から既存
+  `libs/psdutils/tests/PsdFormatValuesContractTest.cpp`の5枠へ、型・活性9、合成・照明8、幾何6、輪郭変動8、塗り・方式4の全35 APIを対応付け、他pathを変更しない。
+  対象6工程・14入力、停止7工程・16入力、製品`kritapsdutils` 635工程・1,300入力と`kritapsd` 1,979工程・3,956入力の完全一致を確認する。5枠の未知関数診断、
+  対象CTest、20回反復、`PsdByteIoContractTest`、no-work、動的接続、未解決記号、構文・書式・公開API・`verify-quick`を確認する。実体、constructor・destructor、
+  実copy、関数address値、offset・scale、色・lookup pointer・gradient・registry、製品shared、`kritatestsdk`、新依存、公開header・CMake変更、停止線超過で止める。
+- `g117-action-collection-schema`は`/Users/masato/Documents/librepaint-g117-action-collection-schema`を所有する。開始
+  `libs/widgetutils/xmlgui/kactioncollection.h`から既存`libs/widgetutils/tests/KStandardActionEnumContractTest.cpp`の5枠へ、識別・寿命・設定13、検索・分類9、
+  所属・変更10、shortcut 7、関連widget・通知9の全48 APIを対応付け、他pathを変更しない。対象4工程・10入力、停止5工程・12入力、製品
+  `kritawidgetutils` 273工程・579入力の完全一致を確認する。5枠の未知関数診断、対象CTest、20回反復、`KColorSchemeEnumContractTest`、no-work、動的接続、
+  未解決記号、構文・書式・公開API・`verify-quick`を確認する。実action・widget・signal・global collection・設定I/O、template本文実体化、Qt Widgets・製品shared、
+  `kritatestsdk`、新依存、公開header・CMake変更、停止線超過が必要なら止める。
+- `g117-color-profile-schema`は`/Users/masato/Documents/librepaint-g117-color-profile-schema`を所有する。開始`libs/pigment/KoColorProfile.h`から新規
+  `libs/pigment/tests/KoColorProfileSchemaContractTest.cpp`の5枠へ、identity・寿命15、適合性・intent 9、色度9、伝達関数10、直列化3の全46 APIを対応付け、
+  `libs/pigment/tests/CMakeLists.txt`だけを併せて変更する。最初の期待診断は未知target、予測4工程・8入力、停止5工程・10入力、製品`kritapigment`は
+  365工程・760入力不変とする。対象CTest、20回反復、`KoColorProfileConstantsContractTest`、no-work、動的接続、未解決記号、構文・書式・公開API・
+  `verify-quick`を確認する。実profile・派生fake、method評価、load・save・filesystem、registry・色変換・画素buffer、製品OBJECT・shared、`kritatestsdk`、
+  新依存、公開header・製品CMake変更、停止線超過が必要なら止める。
 
 ### 第105並列便の監査計画
 
