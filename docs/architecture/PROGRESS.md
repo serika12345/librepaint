@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 22:02 JST
+- 更新日時: 2026-09-01 22:04 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -94,6 +94,11 @@
   `kritaimage` 1,195工程・2,414入力と各集合を維持した。policy・iterator・paint device・pixel buffer・progressを生成・実行していない。担当macOS環境で対象CTest、
   20回反復、近傍`KisPropertiesConfigurationSchemaContractTest`、無作業再構築、動的接続・未解決記号、構文・書式、公開API検査、`verify-quick`に成功した。
   公開API契約検査は29,838件中12,903件対応、16,935件未対応となった。
+- 第129便は3責務15枠へ100 APIを重複なく対応付けた。公開API契約検査は29,838件中12,903件対応、16,935件未対応となり、`verify-quick`は成功した。最新入力は
+  `build/tdd-macos/public-api-missing-g130.json`である。Linux、全native検証、製品全体構築は実行していない。清浄性と受渡しcommitを確認し、中央の対象契約を再実行後、
+  config document担当870,804 KiB、SVG view geometry担当876,200 KiB、sequential iterator担当874,504 KiBの作業tree、専用構築木、3 branchを削除して合計
+  2,621,508 KiB（約2.50 GiB）を回収し、旧`public-api-missing-g129.json`も削除した。主`build/tdd-macos` 5.3 GB、共有compiler cache 960 MB、最新不足報告だけを
+  第130便へ再利用する。次の永続作業は第130便の不足報告から、pathと所有CMakeが重ならない3責務を先行監査し、限定構築範囲を確認してから担当票を確定することである。
 
 ### 第128便の先行監査計画
 
