@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 16118
+    "expectedMissingApis": 16078
   },
   "contracts": [
     {
@@ -40294,6 +40294,91 @@
         "method:KoFFWWSConverter::representationByFamilyName(const QString & familyName) const",
         "method:KoFFWWSConverter::sortIntoWWSFamilies()",
         "method:KoFFWWSConverter::wwsNameByFamilyName(const QString familyName) const"
+      ]
+    },
+    {
+      "target": "LcmsColorProfileContainerSchemaContractTest",
+      "source": "plugins/color/lcms2engine/tests/LcmsColorProfileContainerSchemaContractTest.cpp",
+      "test": "LcmsColorProfileContainerSchemaContractTest::lcmsProfileTypeAndMetadataSchemaRemainsStable",
+      "behavior": "LCMS profile containerは基底container継承、仮想寿命、有効性、版、名称・情報・製造者・著作権・固有IDの正確な戻り型とconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:LcmsColorProfileContainer",
+        "method:LcmsColorProfileContainer::copyright() const",
+        "method:LcmsColorProfileContainer::getProfileUniqueId() const",
+        "method:LcmsColorProfileContainer::info() const",
+        "method:LcmsColorProfileContainer::manufacturer() const",
+        "method:LcmsColorProfileContainer::name() const",
+        "method:LcmsColorProfileContainer::valid() const",
+        "method:LcmsColorProfileContainer::version() const",
+        "method:LcmsColorProfileContainer::~LcmsColorProfileContainer()"
+      ]
+    },
+    {
+      "target": "LcmsColorProfileContainerSchemaContractTest",
+      "source": "plugins/color/lcms2engine/tests/LcmsColorProfileContainerSchemaContractTest.cpp",
+      "test": "LcmsColorProfileContainerSchemaContractTest::lcmsProfileRepresentationAndSuitabilitySchemaRemainsStable",
+      "behavior": "LCMS profile containerはprofile生成、色空間・装置class・opaque handle、および出力・入力・作業・印刷・表示適合性の正確な関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:LcmsColorProfileContainer::colorSpaceSignature() const",
+        "method:LcmsColorProfileContainer::createFromLcmsProfile(const cmsHPROFILE profile)",
+        "method:LcmsColorProfileContainer::deviceClass() const",
+        "method:LcmsColorProfileContainer::isSuitableForDisplay() const",
+        "method:LcmsColorProfileContainer::isSuitableForInput() const",
+        "method:LcmsColorProfileContainer::isSuitableForOutput() const",
+        "method:LcmsColorProfileContainer::isSuitableForPrinting() const",
+        "method:LcmsColorProfileContainer::isSuitableForWorkspace() const",
+        "method:LcmsColorProfileContainer::lcmsProfile() const"
+      ]
+    },
+    {
+      "target": "LcmsColorProfileContainerSchemaContractTest",
+      "source": "plugins/color/lcms2engine/tests/LcmsColorProfileContainerSchemaContractTest.cpp",
+      "test": "LcmsColorProfileContainerSchemaContractTest::lcmsProfileIntentAndTransferClassificationSchemaRemainsStable",
+      "behavior": "LCMS profile containerはCICP分類、colorant・TRC・線形性、および4 rendering intent対応について正確な戻り型とconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:LcmsColorProfileContainer::cicpPrimaries() const",
+        "method:LcmsColorProfileContainer::cicpTransfer() const",
+        "method:LcmsColorProfileContainer::hasCicpValues() const",
+        "method:LcmsColorProfileContainer::hasColorants() const",
+        "method:LcmsColorProfileContainer::hasTRC() const",
+        "method:LcmsColorProfileContainer::isLinear() const",
+        "method:LcmsColorProfileContainer::supportsAbsolute() const",
+        "method:LcmsColorProfileContainer::supportsPerceptual() const",
+        "method:LcmsColorProfileContainer::supportsRelative() const",
+        "method:LcmsColorProfileContainer::supportsSaturation() const"
+      ]
+    },
+    {
+      "target": "LcmsColorProfileContainerSchemaContractTest",
+      "source": "plugins/color/lcms2engine/tests/LcmsColorProfileContainerSchemaContractTest.cpp",
+      "test": "LcmsColorProfileContainerSchemaContractTest::lcmsProfileColorimetrySchemaRemainsStable",
+      "behavior": "LCMS profile containerはTRC比較、colorant・白色点のXYZ・xyY値、推定TRC、およびHDR基準白について正確な引数・戻り型・const性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:LcmsColorProfileContainer::compareTRC(TransferCharacteristics characteristics,float error) const",
+        "method:LcmsColorProfileContainer::getColorantsXYZ() const",
+        "method:LcmsColorProfileContainer::getColorantsxyY() const",
+        "method:LcmsColorProfileContainer::getEstimatedTRC() const",
+        "method:LcmsColorProfileContainer::getWhitePointXYZ() const",
+        "method:LcmsColorProfileContainer::getWhitePointxyY() const",
+        "method:LcmsColorProfileContainer::hdrReferenceWhite() const"
+      ]
+    },
+    {
+      "target": "LcmsColorProfileContainerSchemaContractTest",
+      "source": "plugins/color/lcms2engine/tests/LcmsColorProfileContainerSchemaContractTest.cpp",
+      "test": "LcmsColorProfileContainerSchemaContractTest::lcmsProfileTransferOperationSchemaRemainsStable",
+      "behavior": "LCMS profile containerは通常・高速の線形化と逆線形化、およびtransfer関数生成について正確な変更参照・const member・静的関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:LcmsColorProfileContainer::DelinearizeFloatValue(QVector<double> & Value) const",
+        "method:LcmsColorProfileContainer::DelinearizeFloatValueFast(QVector<double> & Value) const",
+        "method:LcmsColorProfileContainer::LinearizeFloatValue(QVector<double> & Value) const",
+        "method:LcmsColorProfileContainer::LinearizeFloatValueFast(QVector<double> & Value) const",
+        "method:LcmsColorProfileContainer::transferFunction(TransferCharacteristics transferFunction)"
       ]
     }
   ]
