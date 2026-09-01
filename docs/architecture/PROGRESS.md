@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 06:30 JST
+- 更新日時: 2026-09-02 06:35 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -35,7 +35,7 @@
 
 ### 第139便の担当計画
 
-- 実装共通基点は`8229e7982b496c06b81dbc439d7d64f0d7e7088e`である。color set、layer utils、canvas resource provider担当は`implementing`、構築許可は指定試験targetと
+- 実装共通基点は`8229e7982b496c06b81dbc439d7d64f0d7e7088e`である。color set担当は`integrated`、layer utils担当は`implementing`、canvas resource provider担当は`ready`、構築許可は指定試験targetと
   軽量近傍だけの`granted`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、専用worktree-local `build/tdd-macos`と主作業treeの
   `/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。統合順はcolor set、layer utils、canvas resource providerとし、調整担当だけが`AGENTS.md`、
   architecture文書、`docs/architecture/public-api-test-contracts.json`、共通不足報告を変更する。3担当の公開header、所有CMake、試験source、生成物は重ならない。
@@ -66,6 +66,14 @@
   動的接続、未解決provider・converter・mediator・dependency・resource interface・KoColor・KoUnit・KoShape・metaobject記号、構文・変更行書式、公開API・`verify-quick`を確認する。
   QObject・provider・QVariant資源値・色・単位・shape・共有資源を生成または実行し、signal配送・event loop・registry・view・painter・I/O、製品source・OBJECT・shared、
   `kritatestsdk`、Qt Core/Test以外の新link依存、公開header変更、製品計画差、停止線超過が必要なら止める。
+
+### 第139便の統合結果
+
+- `g139-color-set-schema`は受渡しcommit`3711163e59a4`を統合commit`e61f3777b3`として取り込んだ。開始`libs/pigment/resources/KoColorSet.h`から新規
+  `libs/pigment/tests/KoColorSetSchemaContractTest.cpp`の5枠へ、型・形式・寿命、直列化、状態・配置、検索、変更・通知の82 APIを対応付けた。新対象4工程・8入力、製品
+  `kritapigment` 367工程・764入力の各集合は変更前後一致し、palette・device・byte array処理対象・資源interface・KoColor・swatch・group・undo・thumbnail・signalを生成または
+  実行していない。担当macOS環境と中央環境で5枠・対象CTest・20回反復と近傍`KoGradientSegmentSchemaContractTest`、担当環境で無作業再構築、動的接続・未解決記号、構文・
+  書式、公開API検査、`verify-quick`に成功した。中央の公開API契約検査は台帳同期後に29,838件中13,979件対応、15,859件未対応となる。作業tree 872,156 KiBと担当branchは削除した。
 
 ### 第138便の先行監査計画
 

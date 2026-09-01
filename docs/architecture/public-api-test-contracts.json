@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 15941
+    "expectedMissingApis": 15859
   },
   "contracts": [
     {
@@ -39652,6 +39652,133 @@
         "method:KoSegmentGradient::loadFromDevice(QIODevice * dev,KisResourcesInterfaceSP resourcesInterface)",
         "method:KoSegmentGradient::saveToDevice(QIODevice * dev) const",
         "method:KoSegmentGradient::toXML(QDomDocument & doc,QDomElement & gradientElt) const"
+      ]
+    },
+    {
+      "target": "KoColorSetSchemaContractTest",
+      "source": "libs/pigment/tests/KoColorSetSchemaContractTest.cpp",
+      "test": "KoColorSetSchemaContractTest::colorSetTypeFormatAndLifetimeSchemaRemainsStable",
+      "behavior": "色見本資源は共有ポインター別名、QObject・資源との継承関係、palette形式と列挙値、および構築・複製・破棄・複写代入禁止の公開型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KoColorSetSP",
+        "class:KoColorSet",
+        "enum:KoColorSet::PaletteType",
+        "enumerator:KoColorSet::PaletteType::ACB",
+        "enumerator:KoColorSet::PaletteType::ACO",
+        "enumerator:KoColorSet::PaletteType::ACT",
+        "enumerator:KoColorSet::PaletteType::ASE",
+        "enumerator:KoColorSet::PaletteType::CSS",
+        "enumerator:KoColorSet::PaletteType::GPL",
+        "enumerator:KoColorSet::PaletteType::KPL",
+        "enumerator:KoColorSet::PaletteType::PSP_PAL",
+        "enumerator:KoColorSet::PaletteType::RIFF_PAL",
+        "enumerator:KoColorSet::PaletteType::SBZ",
+        "enumerator:KoColorSet::PaletteType::UNKNOWN",
+        "enumerator:KoColorSet::PaletteType::XML",
+        "method:KoColorSet::KoColorSet(const KoColorSet & rhs)",
+        "method:KoColorSet::KoColorSet(const QString & filename=QString ())",
+        "method:KoColorSet::clone() const",
+        "method:KoColorSet::operator =(const KoColorSet & rhs)",
+        "method:KoColorSet::~KoColorSet()"
+      ]
+    },
+    {
+      "target": "KoColorSetSchemaContractTest",
+      "source": "libs/pigment/tests/KoColorSetSchemaContractTest.cpp",
+      "test": "KoColorSetSchemaContractTest::colorSetSerializationSchemaRemainsStable",
+      "behavior": "色見本資源はKPL直列化要素名の宣言型と、既定拡張子・資源種別・装置およびbyte列の読込・保存について正確な関数型とconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KoColorSet::GLOBAL_GROUP_NAME",
+        "member:KoColorSet::KPL_COLOR_DEPTH_ID_ATTR",
+        "member:KoColorSet::KPL_COLOR_MODEL_ID_ATTR",
+        "member:KoColorSet::KPL_GROUP_NAME_ATTR",
+        "member:KoColorSet::KPL_GROUP_ROW_COUNT_ATTR",
+        "member:KoColorSet::KPL_GROUP_TAG",
+        "member:KoColorSet::KPL_PALETTE_COLUMN_COUNT_ATTR",
+        "member:KoColorSet::KPL_PALETTE_COMMENT_ATTR",
+        "member:KoColorSet::KPL_PALETTE_FILENAME_ATTR",
+        "member:KoColorSet::KPL_PALETTE_NAME_ATTR",
+        "member:KoColorSet::KPL_PALETTE_PROFILE_TAG",
+        "member:KoColorSet::KPL_PALETTE_READONLY_ATTR",
+        "member:KoColorSet::KPL_PALETTE_TAG",
+        "member:KoColorSet::KPL_SWATCH_BITDEPTH_ATTR",
+        "member:KoColorSet::KPL_SWATCH_COL_ATTR",
+        "member:KoColorSet::KPL_SWATCH_ID_ATTR",
+        "member:KoColorSet::KPL_SWATCH_NAME_ATTR",
+        "member:KoColorSet::KPL_SWATCH_POS_TAG",
+        "member:KoColorSet::KPL_SWATCH_ROW_ATTR",
+        "member:KoColorSet::KPL_SWATCH_SPOT_ATTR",
+        "member:KoColorSet::KPL_SWATCH_TAG",
+        "member:KoColorSet::KPL_VERSION_ATTR",
+        "method:KoColorSet::defaultFileExtension() const",
+        "method:KoColorSet::fromByteArray(QByteArray & data,KisResourcesInterfaceSP resourcesInterface)",
+        "method:KoColorSet::loadFromDevice(QIODevice * dev,KisResourcesInterfaceSP resourcesInterface)",
+        "method:KoColorSet::resourceType() const",
+        "method:KoColorSet::saveToDevice(QIODevice * dev) const"
+      ]
+    },
+    {
+      "target": "KoColorSetSchemaContractTest",
+      "source": "libs/pigment/tests/KoColorSetSchemaContractTest.cpp",
+      "test": "KoColorSetSchemaContractTest::colorSetStateAndLayoutSchemaRemainsStable",
+      "behavior": "色見本資源はlock・注記・形式、行列・色・slot数、undo履歴、および消去・thumbnail更新について正確な関数型とconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoColorSet::clear()",
+        "method:KoColorSet::colorCount() const",
+        "method:KoColorSet::columnCount() const",
+        "method:KoColorSet::comment()",
+        "method:KoColorSet::isLocked() const",
+        "method:KoColorSet::paletteType() const",
+        "method:KoColorSet::rowCount() const",
+        "method:KoColorSet::rowCountWithTitles() const",
+        "method:KoColorSet::setColumnCount(int columns)",
+        "method:KoColorSet::setComment(QString comment)",
+        "method:KoColorSet::setLocked(bool lock)",
+        "method:KoColorSet::setPaletteType(PaletteType paletteType)",
+        "method:KoColorSet::slotCount() const",
+        "method:KoColorSet::undoStack() const",
+        "method:KoColorSet::updateThumbnail()"
+      ]
+    },
+    {
+      "target": "KoColorSetSchemaContractTest",
+      "source": "libs/pigment/tests/KoColorSetSchemaContractTest.cpp",
+      "test": "KoColorSetSchemaContractTest::colorSetLookupSchemaRemainsStable",
+      "behavior": "色見本資源は近似色、全体・group内見本、group、表示行位置、およびgroup名一覧の照会について正確な関数型・const性・既定引数を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoColorSet::getClosestSwatchInfo(KoColor compare,bool useGivenColorSpace=true) const",
+        "method:KoColorSet::getColorGlobal(quint32 column,quint32 row) const",
+        "method:KoColorSet::getGlobalGroup() const",
+        "method:KoColorSet::getGroup(const QString & name) const",
+        "method:KoColorSet::getGroup(int row) const",
+        "method:KoColorSet::getSwatchFromGroup(quint32 column,quint32 row,QString groupName=KoColorSet::GLOBAL_GROUP_NAME) const",
+        "method:KoColorSet::isGroupTitleRow(int row) const",
+        "method:KoColorSet::rowNumberInGroup(int rowNumber) const",
+        "method:KoColorSet::startRowForGroup(const QString & groupName) const",
+        "method:KoColorSet::swatchGroupNames() const"
+      ]
+    },
+    {
+      "target": "KoColorSetSchemaContractTest",
+      "source": "libs/pigment/tests/KoColorSetSchemaContractTest.cpp",
+      "test": "KoColorSetSchemaContractTest::colorSetMutationAndNotificationSchemaRemainsStable",
+      "behavior": "色見本資源はgroup・見本の追加・改名・移動・削除と、項目・配置・資源変更通知について正確な関数型と既定引数を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoColorSet::addGroup(const QString & groupName,int columnCount=KisSwatchGroup::DEFAULT_COLUMN_COUNT,int rowCount=KisSwatchGroup::DEFAULT_ROW_COUNT)",
+        "method:KoColorSet::addSwatch(const KisSwatch & swatch,const QString & groupName=GLOBAL_GROUP_NAME,int column=-1,int row=-1)",
+        "method:KoColorSet::changeGroupName(const QString & oldGroupName,const QString & newGroupName)",
+        "method:KoColorSet::entryChanged(int column,int row)",
+        "method:KoColorSet::layoutAboutToChange()",
+        "method:KoColorSet::layoutChanged()",
+        "method:KoColorSet::modified()",
+        "method:KoColorSet::moveGroup(const QString & groupName,const QString & groupNameInsertBefore=GLOBAL_GROUP_NAME)",
+        "method:KoColorSet::removeGroup(const QString & groupName,bool keepColors=true)",
+        "method:KoColorSet::removeSwatch(int column,int row,KisSwatchGroupSP group)"
       ]
     },
     {
