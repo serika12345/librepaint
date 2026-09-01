@@ -20,6 +20,15 @@
   またはPSD形式値の一責務を、外部process・filesystem・動画codec・QProcess・document・画像・stream入出力の実体化なしで25 API以上閉じる。
 - `g140-pointer-event-marker-schema-audit`は`libs/flake/KoPointerEvent.h`の残り39 APIを主候補とし、`libs/flake/KoMarker.h`の29 APIを比較する。図形入力event wrapperまたはmarker資源値の
   一責務を、GUI event loop・event配送・canvas・shape変更・painter・resource I/O・SVG・大域状態の実体化なしで25 API以上閉じる。
+- `g140-resource-storage-locator-schema-audit`は`KisResourceLocator.h`の全31 APIを採用した。型・error・寿命9、初期化・path 5、storage保守7、外部資源flow 6、storage通知4を
+  既存`KisResourceModelEnumContractTest`の未評価型5枠へ対応付ける。CMakeを変更せず対象4工程・9入力、停止5工程・11入力、製品`kritaresources` 150工程・327入力を維持する。
+  `KisResourceStorage.h`は版管理責務だけなら25 APIを閉じられるが4公開型へ分散し、locatorは単一所有classをより多く全件固定できるため優先した。
+- `g140-ffmpeg-psd-schema-audit`は`KisFFMpegWrapper.h`の全43 APIを採用した。設定値12、型・error・寿命8、探索・色変換9、process・probe 7、通知7を新規
+  `KisFFMpegWrapperSchemaContractTest`の5枠へ対応付ける。新対象4工程・8入力、停止5工程・11入力、製品`kritaimpexui` 1,350工程・2,712入力と
+  `kritaapplicationui` 1,970工程・3,940入力を維持する。`psd.h`は単一のlayer effect責務が23 APIに留まり、25 API以上では形式変換または勾配停止点を混在させるため棄却した。
+- `g140-pointer-event-marker-schema-audit`は`KoPointerEvent.h`の全39 APIを採用した。型・寿命・wrapper 12、routing・acceptance 9、位置6、device計測8、deep copy互換4を新規
+  `KoPointerEventSchemaContractTest`の未評価型5枠へ対応付ける。新対象4工程・8入力、停止5工程・11入力、製品`kritaflake` 621工程・1,274入力を維持する。Qt 5互換の
+  `copyQtPointerEvent` 3 overloadは公開headerと同じ条件で契約する。`KoMarker.h`は全29 APIへ広げると値・幾何面へ描画・shape変更責務が混在するため棄却した。
 - 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから契約先または
   移動先、許可path、固有停止条件、比較候補の棄却根拠を含む。既存`build/tdd-macos`の計画は読み取り専用で測定し、構成や構築を開始しない。3報告後にpath、CMake、
   試験source、生成物が重ならない候補だけを担当票へ進める。
