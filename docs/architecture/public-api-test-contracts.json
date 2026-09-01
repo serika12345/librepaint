@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 17359
+    "expectedMissingApis": 17334
   },
   "contracts": [
     {
@@ -37478,6 +37478,76 @@
         "method:psd_layer_solid_color::setColor(const KoColor & color)",
         "method:psd_layer_solid_color::setupCatcher(const QString path,KisAslCallbackObjectCatcher & catcher,psd_layer_solid_color * data)",
         "method:psd_layer_solid_color::writeASL(KisAslXmlWriter & w)"
+      ]
+    },
+    {
+      "target": "KisAlgebraGeometryPrimitivesContractTest",
+      "source": "libs/global/tests/KisAlgebraGeometryPrimitivesContractTest.cpp",
+      "test": "KisAlgebraGeometryPrimitivesContractTest::pathConstructionAndConvexTopologyRemainStable",
+      "behavior": "経路位相はarrowの形状、凸包の点順、PainterPathと点列からの構築、点・区間数を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisAlgebra2D::calculateConvexHull(const QPolygonF & polygon)",
+        "function:KisAlgebra2D::smallArrow()",
+        "method:KisAlgebra2D::VectorPath::VectorPath(const QList<VectorPathPoint> path)",
+        "method:KisAlgebra2D::VectorPath::VectorPath(const QPainterPath & path)",
+        "method:KisAlgebra2D::VectorPath::pointsCount() const",
+        "method:KisAlgebra2D::VectorPath::segmentsCount() const"
+      ]
+    },
+    {
+      "target": "KisAlgebraGeometryPrimitivesContractTest",
+      "source": "libs/global/tests/KisAlgebraGeometryPrimitivesContractTest.cpp",
+      "test": "KisAlgebraGeometryPrimitivesContractTest::vectorPathSegmentAndIndexProjectionRemainStable",
+      "behavior": "VectorPathは区間の端点・制御点・直線投影、範囲外結果、経路indexと区間indexの往復関係を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAlgebra2D::VectorPath::pathIndexToSegmentIndex(int index)",
+        "method:KisAlgebra2D::VectorPath::pointAt(int i) const",
+        "method:KisAlgebra2D::VectorPath::segmentAt(int i) const",
+        "method:KisAlgebra2D::VectorPath::segmentAtAsLine(int i) const",
+        "method:KisAlgebra2D::VectorPath::segmentAtAsSegment(int i) const",
+        "method:KisAlgebra2D::VectorPath::segmentIndexToPathIndex(int index)"
+      ]
+    },
+    {
+      "target": "KisAlgebraGeometryPrimitivesContractTest",
+      "source": "libs/global/tests/KisAlgebraGeometryPrimitivesContractTest.cpp",
+      "test": "KisAlgebraGeometryPrimitivesContractTest::vectorPathOrderingAndSimplificationRemainStable",
+      "behavior": "VectorPathは距離・角度による簡略化、閉じた直線経路の逆順、循環比較の許容差、PainterPath変換を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisAlgebra2D::trySimplifyPath(const QPainterPath & path,qreal lengthThreshold)",
+        "method:KisAlgebra2D::VectorPath::asPainterPath() const",
+        "method:KisAlgebra2D::VectorPath::fuzzyComparePointsCyclic(const VectorPath & path,qreal eps=0.0f) const",
+        "method:KisAlgebra2D::VectorPath::reversed() const",
+        "method:KisAlgebra2D::VectorPath::trulySimplified(qreal epsDegrees=0.5) const"
+      ]
+    },
+    {
+      "target": "KisAlgebraGeometryPrimitivesContractTest",
+      "source": "libs/global/tests/KisAlgebraGeometryPrimitivesContractTest.cpp",
+      "test": "KisAlgebraGeometryPrimitivesContractTest::vectorPathContainmentAndRectangleCutsRemainStable",
+      "behavior": "経路位相はPainterPathとVectorPathの包含判定、矩形を横切る線による切断結果の開始点・終了点・左右順を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisAlgebra2D::getOnePathFromRectangleCutThrough(const QList<QPointF> & points,const QLineF & line,bool left)",
+        "function:KisAlgebra2D::getPathsFromRectangleCutThrough(const QRectF & rect,const QLineF & leftLine,const QLineF & rightLine)",
+        "function:KisAlgebra2D::isInsideShape(const QPainterPath & path,const QPointF & point)",
+        "function:KisAlgebra2D::isInsideShape(const VectorPath & path,const QPointF & point)"
+      ]
+    },
+    {
+      "target": "KisAlgebraGeometryPrimitivesContractTest",
+      "source": "libs/global/tests/KisAlgebraGeometryPrimitivesContractTest.cpp",
+      "test": "KisAlgebraGeometryPrimitivesContractTest::vectorPathGutterAndDebugRepresentationsRemainStable",
+      "behavior": "経路位相は無効なgutter indexの決定結果と、Bezier点・経路の診断表現を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisAlgebra2D::mergeShapesWithGutter(const VectorPath & shape1,const VectorPath & shape2,const VectorPath & oneEnd,const VectorPath & otherEnd,int index1,int index2,bool reverseSecondPoly,bool isSameShape)",
+        "function:KisAlgebra2D::operator <<(QDebug debug,const VectorPath & path)",
+        "function:KisAlgebra2D::operator <<(QDebug debug,const VectorPath::VectorPathPoint & point)",
+        "function:KisAlgebra2D::removeGutterSmart(const QPainterPath & shape1,int index1,const QPainterPath & shape2,int index2,bool isSameShape)"
       ]
     }
   ]

@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 19:17 JST
+- 更新日時: 2026-09-01 19:38 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -40,7 +40,8 @@
 
 ### 第126便の担当計画
 
-- 実装共通基点は`3ca5ac5d5a`である。3担当は`implementing`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの
+- 実装共通基点は`3ca5ac5d5a`である。algebra path topology担当は`integrated`、transform argsとruler担当は`ready`、構築許可は指定試験targetと軽量近傍だけの
+  `granted`、Git権限は許可pathだけの
   `transport-commit`、追加委任は禁止する。専用worktree-local `build/tdd-macos`と主作業treeの
   `/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。統合順はalgebra path topology、transform args、rulerとし、調整担当だけが台帳、
   進捗文書、不足報告を変更する。3担当の公開header、所有CMake、試験source、製品source、生成物は重ならない。
@@ -69,6 +70,14 @@
   各集合の完全一致を確認する。5枠、対象CTest、20回反復、`KisWidgetConnectionStateContractTest`、no-work、動的接続、未解決ruler記号、構文・書式・公開API・
   `verify-quick`を確認する。ruler・widget・canvas・unit実体、QApplication・画面・event loop・style・paint・signal、method本文、popup・guide・palette・色資源・大域状態、
   製品OBJECT・shared、`kritatestsdk`、Qt Test・Widgets以外の新依存、公開header・製品source・製品CMake変更、製品計画差、停止線超過が必要なら止める。
+
+### 第126便の統合結果
+
+- `g126-algebra-path-topology`は受渡しcommit`842d5241f383`を統合commit`302d0620b9`として取り込んだ。開始
+  `libs/global/kis_algebra_2d.cpp`から新規`libs/global/kis_algebra_2d_path_topology.cpp`へ、polygon・`VectorPath`の経路構築・位相・変換25 APIと必要な
+  helperを本文不変で移し、新規`kritaglobalalgebrapathtopologyobjects`を製品`kritaglobal`と既存
+  `libs/global/tests/KisAlgebraGeometryPrimitivesContractTest.cpp`へ一対一収容した。対象は7工程・15入力から8工程・17入力、製品は70工程・140入力から
+  71工程・142入力となり、差は新OBJECTの一翻訳単位だけである。主macOS環境での統合後検証を続行する。
 
 ### 第125便の先行監査計画
 
