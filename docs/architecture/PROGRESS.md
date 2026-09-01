@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 23:50 JST
+- 更新日時: 2026-09-01 23:51 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -38,7 +38,7 @@
 
 ### 第132便の担当計画
 
-- 実装共通基点は`c46e51d79eadbd4c69294aa22208a88e0c05bf36`である。color source、distance state、snap strategy担当は`implementing`、構築許可は指定試験targetと
+- 実装共通基点は`c46e51d79eadbd4c69294aa22208a88e0c05bf36`である。color source、distance state、snap strategy担当は`integrated`、構築許可は指定試験targetと
   軽量近傍だけの`granted`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、専用worktree-local
   `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。統合順はcolor source、distance state、snap strategyとし、
   調整担当だけが`AGENTS.md`、architecture文書、`docs/architecture/public-api-test-contracts.json`、共通不足報告を変更する。3担当の公開header、所有CMake、試験source、
@@ -78,7 +78,8 @@
   uniform色変換、選択色源variant、total random色源、pattern色源の45 APIを対応付け、所有CMakeへheader限定対象を追加した。対象4工程・8入力、製品
   `kritalibpaintop` 2,110工程・4,218入力と各集合は変更前後一致し、色源・color・gradient・paint device・paint information・color space・変換・resource・乱数を
   生成・実行していない。担当macOS環境と中央環境で対象CTest、担当環境で20回反復、近傍`KisDabCacheUtilsSchemaContractTest`、無作業再構築、動的接続・未解決記号、
-  構文・書式、公開API検査、`verify-quick`に成功した。公開API契約検査は29,838件中13,161件対応、16,677件未対応となった。
+  構文・書式、公開API検査、`verify-quick`に成功した。初期計画確認で同一構築木のCMake再生成が二重化し`failed recompaction`を一度出したため、後発処理だけを停止し、
+  残存processがない状態で直列再生成した。その後の計画、限定構築、無作業再構築は正常である。公開API契約検査は29,838件中13,161件対応、16,677件未対応となった。
 - `g132-distance-state-schema`は受渡しcommit`c4c34e811083`を統合commit`a05b4a123c`として取り込んだ。開始`libs/image/kis_distance_information.h`から既存
   `libs/image/tests/KisImageTypesContractTest.cpp`の5枠へ、runtime距離状態の寿命、最後のdab観測、spacing・timing、stroke進行、描画角度lockの31 APIを対応付けた。
   対象4工程・8入力、製品`kritaimage` 1,196工程・2,416入力と各集合は変更前後一致し、Distance・PaintInformation・SpacingInformation・TimingInformation、XML、
@@ -90,6 +91,11 @@
   対応付けた。対象4工程・8入力、製品`kritaflake` 621工程・1,274入力と各集合は変更前後一致し、strategy・shape・canvas・path・proxy・event・painterを生成・実行して
   いない。担当macOS環境と中央環境で既存5枠と新5枠、対象CTest、担当環境で20回反復、近傍`KoSnapDataContractTest`、無作業再構築、動的接続・未解決記号、構文・書式、
   公開API検査、`verify-quick`に成功した。公開API契約検査は29,838件中13,230件対応、16,608件未対応となった。
+- 第132便は3責務15枠へ114 APIを重複なく対応付けた。公開API契約検査は29,838件中13,230件対応、16,608件未対応となり、`verify-quick`は成功した。最新入力は
+  `build/tdd-macos/public-api-missing-g133.json`である。Linux、全native検証、製品全体構築は実行していない。清浄性、受渡しcommit、中央の所有pathとの完全一致を確認後、
+  color source担当857,424 KiB、distance state担当860,524 KiB、snap strategy担当858,728 KiBの作業tree、専用構築木、3 branchを削除して合計2,576,676 KiB
+  （約2.46 GiB）を回収し、旧`public-api-missing-g132.json`も削除した。主`build/tdd-macos` 5.3 GB、共有compiler cache 960 MB、最新不足報告だけを第133便へ再利用する。
+  次の永続作業は第133便の不足報告から、pathと所有CMakeが重ならない3責務を先行監査し、限定構築範囲を確認してから担当票を確定することである。
 
 ### 第131便の先行監査計画
 
