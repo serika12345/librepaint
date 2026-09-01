@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 17708
+    "expectedMissingApis": 17659
   },
   "contracts": [
     {
@@ -36814,6 +36814,100 @@
       "apis": [
         "method:KisDoubleSliderSpinBox::setExponentRatio(qreal newExponentRatio)",
         "method:KisSliderSpinBox::setExponentRatio(qreal newExponentRatio)"
+      ]
+    },
+    {
+      "target": "GridConfigSchemaContractTest",
+      "source": "libs/libkis/tests/GridConfigSchemaContractTest.cpp",
+      "test": "GridConfigSchemaContractTest::gridIdentityAndVisibilityPolicySignaturesRemainStable",
+      "behavior": "libkis文書grid wrapperはQObject派生、等値比較、表示・吸着方針、grid種別の公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:GridConfig",
+        "method:GridConfig::operator !=(const GridConfig & other) const",
+        "method:GridConfig::operator ==(const GridConfig & other) const",
+        "method:GridConfig::setSnap(bool snap)",
+        "method:GridConfig::setType(const QString & gridType)",
+        "method:GridConfig::setVisible(bool visible)",
+        "method:GridConfig::snap() const",
+        "method:GridConfig::type() const",
+        "method:GridConfig::visible() const"
+      ]
+    },
+    {
+      "target": "GridConfigSchemaContractTest",
+      "source": "libs/libkis/tests/GridConfigSchemaContractTest.cpp",
+      "test": "GridConfigSchemaContractTest::rectangularGridSpacingAndOffsetSignaturesRemainStable",
+      "behavior": "矩形gridの間隔・offset、各軸の有効性、縦横比固定、分割数は正確な公開値型とconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:GridConfig::offset() const",
+        "method:GridConfig::offsetAspectLocked() const",
+        "method:GridConfig::setOffset(QPoint offset)",
+        "method:GridConfig::setOffsetAspectLocked(bool offsetAspectLocked)",
+        "method:GridConfig::setSpacing(QPoint spacing)",
+        "method:GridConfig::setSpacingActiveHorizontal(bool active)",
+        "method:GridConfig::setSpacingActiveVertical(bool active)",
+        "method:GridConfig::setSpacingAspectLocked(bool spacingAspectLocked)",
+        "method:GridConfig::setSubdivision(int subdivision)",
+        "method:GridConfig::spacing() const",
+        "method:GridConfig::spacingActiveHorizontal() const",
+        "method:GridConfig::spacingActiveVertical() const",
+        "method:GridConfig::spacingAspectLocked() const",
+        "method:GridConfig::subdivision() const"
+      ]
+    },
+    {
+      "target": "GridConfigSchemaContractTest",
+      "source": "libs/libkis/tests/GridConfigSchemaContractTest.cpp",
+      "test": "GridConfigSchemaContractTest::isometricGridGeometrySignaturesRemainStable",
+      "behavior": "等角gridの左右角度、各角度の有効性、角度比固定、cell寸法は正確な公開値型とconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:GridConfig::angleAspectLocked() const",
+        "method:GridConfig::angleLeft() const",
+        "method:GridConfig::angleLeftActive() const",
+        "method:GridConfig::angleRight() const",
+        "method:GridConfig::angleRightActive() const",
+        "method:GridConfig::cellSize() const",
+        "method:GridConfig::cellSpacing() const",
+        "method:GridConfig::setAngleAspectLocked(bool angleAspectLocked)",
+        "method:GridConfig::setAngleLeft(qreal angleLeft)",
+        "method:GridConfig::setAngleLeftActive(bool active)",
+        "method:GridConfig::setAngleRight(qreal angleRight)",
+        "method:GridConfig::setAngleRightActive(bool active)",
+        "method:GridConfig::setCellSize(int cellSize)",
+        "method:GridConfig::setCellSpacing(int cellSpacing)"
+      ]
+    },
+    {
+      "target": "GridConfigSchemaContractTest",
+      "source": "libs/libkis/tests/GridConfigSchemaContractTest.cpp",
+      "test": "GridConfigSchemaContractTest::gridLinePresentationSignaturesRemainStable",
+      "behavior": "主線・分割線・垂直線は文字列による線種の取得・設定公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:GridConfig::lineTypeMain() const",
+        "method:GridConfig::lineTypeSubdivision() const",
+        "method:GridConfig::lineTypeVertical() const",
+        "method:GridConfig::setLineTypeMain(const QString & lineType)",
+        "method:GridConfig::setLineTypeSubdivision(const QString & lineType)",
+        "method:GridConfig::setLineTypeVertical(const QString & lineType)"
+      ]
+    },
+    {
+      "target": "GridConfigSchemaContractTest",
+      "source": "libs/libkis/tests/GridConfigSchemaContractTest.cpp",
+      "test": "GridConfigSchemaContractTest::gridColorPresentationSignaturesRemainStable",
+      "behavior": "主線・分割線・垂直線は色値による取得・設定公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:GridConfig::colorMain() const",
+        "method:GridConfig::colorSubdivision() const",
+        "method:GridConfig::colorVertical() const",
+        "method:GridConfig::setColorMain(QColor colorMain)",
+        "method:GridConfig::setColorSubdivision(QColor colorSubdivision)",
+        "method:GridConfig::setColorVertical(QColor colorVertical)"
       ]
     }
   ]

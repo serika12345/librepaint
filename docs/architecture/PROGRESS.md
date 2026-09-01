@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 17:27 JST
+- 更新日時: 2026-09-01 17:35 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -37,7 +37,7 @@
 
 ### 第123便の担当計画
 
-- 実装共通基点は`cabfedd704efe0085aeb64cf64648d821059b36a`である。SVG cursorとslider spin box担当は`integrated`、libkis grid担当は`ready`、構築許可は
+- 実装共通基点は`cabfedd704efe0085aeb64cf64648d821059b36a`である。3担当は`integrated`、構築許可は
   指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの
   `transport-commit`、追加委任は禁止する。専用worktree-local `build/tdd-macos`と`./scripts/run-shared-test-env`で主環境・compiler cacheを共有する。
   統合順はSVG cursor、slider spin box、libkis gridとし、調整担当だけが台帳、進捗文書、不足報告を変更する。3担当の公開header、所有CMake、試験source、生成物は
@@ -78,6 +78,17 @@
   step、指数比の全27 APIを対応付け、`libs/widgetutils/tests/CMakeLists.txt`へheader限定対象を追加した。対象4工程・8入力、製品`kritawidgetutils`
   273工程・579入力と保留集合は変更前後一致し、widget実体、method本文、event loop、signal、style、metaobjectを実行していない。主macOS環境では再構成後に対象CTest、
   20回反復、整数・実数parse spin box契約、無作業再構築を確認した。
+- `g123-grid-config-schema`は受渡しcommit`4006fa30e070`を統合commit`6099233eab`として取り込んだ。開始`libs/libkis/GridConfig.h`から新規
+  `libs/libkis/tests/GridConfigSchemaContractTest.cpp`の5枠へ、識別・表示方針、矩形grid、等角grid、線種、色の全49 APIを対応付け、
+  `libs/libkis/tests/CMakeLists.txt`へheader限定対象を追加した。対象4工程・8入力、製品`kritalibkis` 2,015工程・4,028入力と保留集合は変更前後一致し、実
+  `GridConfig`・`KisGridConfig`、Document、view、canvas、XML、設定I/O、scriptingを生成・実行していない。主macOS環境では再構成後に対象CTest、20回反復、
+  `KisGridConfigValueContractTest`、無作業再構築を確認した。
+- 主macOS環境では3対象の全15枠、各対象CTest、各20回反復、軽量近傍、無作業再構築、package境界を確認した。2件のCMake追加後は各回
+  `build-incremental native configure`で再構成した。公開API契約検査は104 APIを重複なく受理し、29,838件中12,179件対応、17,659件未対応となった。最新入力は
+  `build/tdd-macos/public-api-missing-g124.json`である。Linux、全native検証、製品全体構築は実行していない。
+- 新報告の成功後に旧`public-api-missing-g123.json` 4.4 MB、cleanなSVG cursor担当657,508 KiB、slider spin box担当665,160 KiB、libkis grid担当
+  654,408 KiBと3 branchを削除し、約1.93 GBを回収した。主`build/tdd-macos`と共有compiler cacheは第124便の限定構築へ再利用する。次の永続作業は第124便の
+  不足報告から、pathと所有CMakeが重ならない3責務を先行監査し、構築範囲を確認してから担当票を確定することである。
 
 ### 第122便の先行監査計画
 
