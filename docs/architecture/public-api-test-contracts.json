@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 16294
+    "expectedMissingApis": 16262
   },
   "contracts": [
     {
@@ -39893,6 +39893,83 @@
         "method:KisTagFilterResourceProxyModel::tagResources(const KisTagSP tag,const QVector<int> & resourceIds)",
         "method:KisTagFilterResourceProxyModel::untagResources(const KisTagSP tag,const QVector<int> & resourceIds)",
         "method:KisTagFilterResourceProxyModel::updateResource(KoResourceSP resource)"
+      ]
+    },
+    {
+      "target": "KoShapeStrokeSchemaContractTest",
+      "source": "libs/flake/tests/KoShapeStrokeSchemaContractTest.cpp",
+      "test": "KoShapeStrokeSchemaContractTest::shapeStrokeTypeAndLifetimeSchemaRemainStable",
+      "behavior": "図形strokeはstroke模型からの継承、具象性、既定・複製・明示幅構築、既定色引数、複製代入、および仮想寿命を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoShapeStroke",
+        "method:KoShapeStroke::KoShapeStroke()",
+        "method:KoShapeStroke::KoShapeStroke(const KoShapeStroke & other)",
+        "method:KoShapeStroke::KoShapeStroke(qreal lineWidth,const QColor & color=Qt::black)",
+        "method:KoShapeStroke::operator =(const KoShapeStroke & rhs)",
+        "method:KoShapeStroke::~KoShapeStroke()"
+      ]
+    },
+    {
+      "target": "KoShapeStrokeSchemaContractTest",
+      "source": "libs/flake/tests/KoShapeStrokeSchemaContractTest.cpp",
+      "test": "KoShapeStrokeSchemaContractTest::shapeStrokeLineGeometrySignaturesRemainStable",
+      "behavior": "図形strokeは線端、接合、幅、miter限界の取得・設定について正確な引数・戻り型とconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShapeStroke::capStyle() const",
+        "method:KoShapeStroke::joinStyle() const",
+        "method:KoShapeStroke::lineWidth() const",
+        "method:KoShapeStroke::miterLimit() const",
+        "method:KoShapeStroke::setCapStyle(Qt::PenCapStyle style)",
+        "method:KoShapeStroke::setJoinStyle(Qt::PenJoinStyle style)",
+        "method:KoShapeStroke::setLineWidth(qreal lineWidth)",
+        "method:KoShapeStroke::setMiterLimit(qreal miterLimit)"
+      ]
+    },
+    {
+      "target": "KoShapeStrokeSchemaContractTest",
+      "source": "libs/flake/tests/KoShapeStrokeSchemaContractTest.cpp",
+      "test": "KoShapeStrokeSchemaContractTest::shapeStrokeDashPatternSignaturesRemainStable",
+      "behavior": "図形strokeは線種、dash配列、dash offsetの取得・設定について正確な引数・戻り型とconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShapeStroke::dashOffset() const",
+        "method:KoShapeStroke::lineDashes() const",
+        "method:KoShapeStroke::lineStyle() const",
+        "method:KoShapeStroke::setDashOffset(qreal dashOffset)",
+        "method:KoShapeStroke::setLineStyle(Qt::PenStyle style,const QVector<qreal> & dashes)"
+      ]
+    },
+    {
+      "target": "KoShapeStrokeSchemaContractTest",
+      "source": "libs/flake/tests/KoShapeStrokeSchemaContractTest.cpp",
+      "test": "KoShapeStrokeSchemaContractTest::shapeStrokeColorBrushAndPenSignaturesRemainStable",
+      "behavior": "図形strokeは色・brushの取得・設定と結果penの取得について正確な値・const参照型とconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShapeStroke::color() const",
+        "method:KoShapeStroke::lineBrush() const",
+        "method:KoShapeStroke::resultLinePen() const",
+        "method:KoShapeStroke::setColor(const QColor & color)",
+        "method:KoShapeStroke::setLineBrush(const QBrush & brush)"
+      ]
+    },
+    {
+      "target": "KoShapeStrokeSchemaContractTest",
+      "source": "libs/flake/tests/KoShapeStrokeSchemaContractTest.cpp",
+      "test": "KoShapeStrokeSchemaContractTest::shapeStrokeRenderingAndComparisonSignaturesRemainStable",
+      "behavior": "図形strokeはshape余白・描画・marker描画・透明性・可視性・style比較について正確な借用pointer、参照、戻り型、およびconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShapeStroke::compareFillTo(const KoShapeStrokeModel * other)",
+        "method:KoShapeStroke::compareStyleTo(const KoShapeStrokeModel * other)",
+        "method:KoShapeStroke::hasTransparency() const",
+        "method:KoShapeStroke::isVisible() const",
+        "method:KoShapeStroke::paint(const KoShape * shape,QPainter & painter) const",
+        "method:KoShapeStroke::paintMarkers(const KoShape * shape,QPainter & painter) const",
+        "method:KoShapeStroke::strokeInsets(const KoShape * shape,KoInsets & insets) const",
+        "method:KoShapeStroke::strokeMaxMarkersInset(const KoShape * shape) const"
       ]
     }
   ]
