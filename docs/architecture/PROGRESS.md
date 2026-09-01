@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 12:47 JST
+- 更新日時: 2026-09-01 12:52 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -535,6 +535,24 @@
 - 実storage・resource registry、SQL・filesystem、色空間registry、paint device、GUI、大域状態へ到達せず、既存限定対象の未評価型検査、header-only値面、または
   公開headerを変えない一sourceのOBJECT一対一移管で製品sharedと`kritatestsdk`へ接続しない候補を優先する。報告は完全なAPI識別子、最大5枠、定義閉包、
   最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから契約先、許可path、比較候補の棄却根拠を含む。
+- 監査は`KisTagResourceModel.h`の具体模型`KisTagResourceModel`の全33 APIを採用した。型・寿命・表示9、絞込み7、tag関係・資源検索6、取込・書出4、資源変更7を
+  既存`KisResourceModelEnumContractTest`の未評価型5枠へ追加する。対象4工程・9入力、製品`kritaresources` 149工程・325入力を維持する。
+  `KisResourceStorage`は単独責務の最大が21 API、`KoSegmentGradient`は色空間なしで値挙動を観測できる面が約20 APIで下限未達のため棄却した。
+
+### 第114便の担当計画
+
+- `g114-tag-resource-model-schema`は`planned`、実装基点は`c5416f411e7d940fb9ac9c840bb4b354a16392fe`、専用worktreeは
+  `/Users/masato/Documents/librepaint-g114-tag-resource-model-schema`である。構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの
+  `transport-commit`、追加委任は禁止する。worktree-local `build/tdd-macos`と`./scripts/run-shared-test-env`で主環境・compiler cacheを共有し、調整担当だけが
+  台帳、進捗文書、不足報告を変更する。
+- 開始`libs/resources/KisTagResourceModel.h`から既存`libs/resources/tests/KisResourceModelEnumContractTest.cpp`の5枠へ、class・TagFilter・3列挙子・
+  constructor・destructor・header・role 9、資源・storage・tag絞込み7、tag付与・解除・判定と資源索引6、取込・上書き判定・書出4、資源追加・更新・再読込・改名・
+  活性・metadata更新7の全33 APIを対応付ける。許可pathは試験source 1本だけで、公開header、製品source、CMakeを変更しない。
+- 担当は新`plan`で変更なし対象4工程・9入力と製品`kritaresources` 149工程・325入力を乾式確認する。製品は構築しない。変更後停止線は対象5工程・11入力、
+  製品計画は前後完全一致とする。5枠の未知関数診断、未評価の型・overload・既定引数検査とTagFilter値、対象CTest、20回反復、
+  `KisTagModelSchemaContractTest`、無作業再構築、動的接続、`KisTagResourceModel`未解決記号、source構文、公開API検査、`verify-quick`を確認する。模型生成、
+  SQL・storage・registry・filesystem・GUI・大域状態の実行、意味上の重い`TestTagResourceModel`、製品shared、`kritaresourcestorage`、`kritatestsdk`、新依存、
+  公開header・CMake変更、停止線超過が必要なら止める。
 
 ### 第105並列便の監査計画
 
