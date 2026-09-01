@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 17103
+    "expectedMissingApis": 17062
   },
   "contracts": [
     {
@@ -38049,6 +38049,92 @@
         "method:KisPropertiesConfiguration::escapeString(const QString & string)",
         "method:KisPropertiesConfiguration::extractedPrefixKey()",
         "method:KisPropertiesConfiguration::unescapeString(const QString & string)"
+      ]
+    },
+    {
+      "target": "KoCompositeOpSchemaContractTest",
+      "source": "libs/pigment/tests/KoCompositeOpSchemaContractTest.cpp",
+      "test": "KoCompositeOpSchemaContractTest::compositeParameterBufferDefaultsRemainStable",
+      "behavior": "合成入力parameterは各buffer pointerのnull、stride・行列数の0、opacity・flow、直前opacity参照、空channel flagsの既定状態を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KoCompositeOp::ParameterInfo::dstRowStart",
+        "member:KoCompositeOp::ParameterInfo::dstRowStride",
+        "member:KoCompositeOp::ParameterInfo::maskRowStart",
+        "member:KoCompositeOp::ParameterInfo::maskRowStride",
+        "member:KoCompositeOp::ParameterInfo::srcRowStart",
+        "member:KoCompositeOp::ParameterInfo::srcRowStride",
+        "method:KoCompositeOp::ParameterInfo::ParameterInfo()",
+        "struct:KoCompositeOp::ParameterInfo"
+      ]
+    },
+    {
+      "target": "KoCompositeOpSchemaContractTest",
+      "source": "libs/pigment/tests/KoCompositeOpSchemaContractTest.cpp",
+      "test": "KoCompositeOpSchemaContractTest::compositeParameterOpacityAndCopyBehaviorRemainStable",
+      "behavior": "合成入力parameterはcopy・代入時の値独立性と内部opacity pointer再束縛、平均opacityの等値・不等値分岐および増加・移動平均更新を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KoCompositeOp::ParameterInfo::_lastOpacityData",
+        "member:KoCompositeOp::ParameterInfo::channelFlags",
+        "member:KoCompositeOp::ParameterInfo::cols",
+        "member:KoCompositeOp::ParameterInfo::flow",
+        "member:KoCompositeOp::ParameterInfo::lastOpacity",
+        "member:KoCompositeOp::ParameterInfo::opacity",
+        "member:KoCompositeOp::ParameterInfo::rows",
+        "method:KoCompositeOp::ParameterInfo::ParameterInfo(const ParameterInfo & rhs)",
+        "method:KoCompositeOp::ParameterInfo::operator =(const ParameterInfo & rhs)",
+        "method:KoCompositeOp::ParameterInfo::setOpacityAndAverage(float _opacity,float _averageOpacity)",
+        "method:KoCompositeOp::ParameterInfo::updateOpacityAndAverage(float value)"
+      ]
+    },
+    {
+      "target": "KoCompositeOpSchemaContractTest",
+      "source": "libs/pigment/tests/KoCompositeOpSchemaContractTest.cpp",
+      "test": "KoCompositeOpSchemaContractTest::compositeCategorySignaturesRemainStable",
+      "behavior": "合成演算は算術・二値・色成分・明暗等のcategoryを返す公開静的関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoCompositeOp::categoryArithmetic()",
+        "method:KoCompositeOp::categoryBinary()",
+        "method:KoCompositeOp::categoryDark()",
+        "method:KoCompositeOp::categoryHSI()",
+        "method:KoCompositeOp::categoryHSL()",
+        "method:KoCompositeOp::categoryHSV()",
+        "method:KoCompositeOp::categoryHSY()",
+        "method:KoCompositeOp::categoryLight()",
+        "method:KoCompositeOp::categoryMisc()",
+        "method:KoCompositeOp::categoryMix()",
+        "method:KoCompositeOp::categoryModulo()",
+        "method:KoCompositeOp::categoryNegative()",
+        "method:KoCompositeOp::categoryQuadratic()"
+      ]
+    },
+    {
+      "target": "KoCompositeOpSchemaContractTest",
+      "source": "libs/pigment/tests/KoCompositeOpSchemaContractTest.cpp",
+      "test": "KoCompositeOpSchemaContractTest::compositeIdentityAndLifecycleSignaturesRemainStable",
+      "behavior": "合成演算は色空間・識別子・categoryによる構築、virtual lifetime、識別子・説明・色空間・category取得の公開型と既定categoryを維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoCompositeOp",
+        "method:KoCompositeOp::KoCompositeOp(const KoColorSpace * cs,const QString & id,const QString & category=KoCompositeOp::categoryMisc ())",
+        "method:KoCompositeOp::category() const",
+        "method:KoCompositeOp::colorSpace() const",
+        "method:KoCompositeOp::description() const",
+        "method:KoCompositeOp::id() const",
+        "method:KoCompositeOp::~KoCompositeOp()"
+      ]
+    },
+    {
+      "target": "KoCompositeOpSchemaContractTest",
+      "source": "libs/pigment/tests/KoCompositeOpSchemaContractTest.cpp",
+      "test": "KoCompositeOpSchemaContractTest::compositeInvocationSignaturesRemainStable",
+      "behavior": "合成演算はparameter record形式と個別buffer・寸法・opacity形式の両公開overloadおよびchannel flags既定引数を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoCompositeOp::composite(const ParameterInfo & params) const",
+        "method:KoCompositeOp::composite(quint8 * dstRowStart,qint32 dstRowStride,const quint8 * srcRowStart,qint32 srcRowStride,const quint8 * maskRowStart,qint32 maskRowStride,qint32 rows,qint32 numColumns,float opacity,const QBitArray & channelFlags=QBitArray ()) const"
       ]
     }
   ]

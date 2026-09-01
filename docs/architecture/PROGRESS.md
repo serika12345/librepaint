@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 21:15 JST
+- 更新日時: 2026-09-01 21:21 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -37,7 +37,7 @@
 
 ### 第128便の担当計画
 
-- 実装共通基点は`5eba25f8a1488dfc543aff5776439b0722d55963`である。properties configuration担当は`integrated`、composite operationとresource storage担当は`ready`、
+- 実装共通基点は`5eba25f8a1488dfc543aff5776439b0722d55963`である。properties configurationとcomposite operation担当は`integrated`、resource storage担当は`ready`、
   構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの
   `transport-commit`、追加委任は禁止する。専用worktree-local `build/tdd-macos`と主作業treeの
   `/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。統合順はproperties configuration、composite operation、resource storageとし、
@@ -75,6 +75,12 @@
   prefix転送、XML形式、key・文字列変換型の34 APIを対応付け、`libs/image/tests/CMakeLists.txt`へ専用targetを追加した。対象4工程・8入力、製品`kritaimage`
   1,194工程・2,412入力と各集合は変更前後一致し、設定・色・曲線・XML、image・node・device・resource・registryを生成・実行していない。主macOS環境で対象CTest、
   20回反復、近傍`KisImageConfigResourceBudgetSchemaContractTest`、無作業再構築、公開API検査、`verify-quick`に成功した。
+- `g128-composite-op-schema`は受渡しcommit`315a5d39448a`を統合commit`bc586b4e5b`として取り込んだ。開始`libs/pigment/KoCompositeOp.cpp`から新規
+  `libs/pigment/KoCompositeOpParameterInfo.cpp`へparameter値の6定義を本文不変で移し、新規`kritapigmentcompositeparameterinfoobjects`を製品と限定試験へ
+  一対一収容した。`KoCompositeOp.h`から新規`libs/pigment/tests/KoCompositeOpSchemaContractTest.cpp`の5枠へ、parameter既定値・copy・opacity挙動とcategory・
+  identity・呼出型の全41 APIを対応付けた。対象5工程・11入力、製品`kritapigment` 366工程・762入力から367工程・764入力となり、差は一翻訳単位だけである。
+  合成処理、pixel buffer、色空間・profile、registry、描画を生成・実行していない。主macOS環境で対象CTest、20回反復、近傍`KoCompositeOpIdsContractTest`、
+  無作業再構築、移管記号の単一定義、公開API検査、`verify-quick`に成功した。
 
 ### 第127便の先行監査計画
 
