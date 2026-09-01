@@ -6,6 +6,7 @@
 #include <KisResourceModel.h>
 #include <KisResourceStorage.h>
 #include <KisStorageModel.h>
+#include <KisTagFilterResourceProxyModel.h>
 #include <KisTagResourceModel.h>
 
 #include <QTest>
@@ -52,6 +53,11 @@ private Q_SLOTS:
     void storageModelLookupSchemaRemainsStable();
     void storageModelImportSchemaRemainsStable();
     void storageModelNotificationSchemaRemainsStable();
+    void tagFilterProxyTypeAndNotificationSchemaRemainsStable();
+    void tagFilterProxyConfigurationSchemaRemainsStable();
+    void tagFilterProxyLookupAndStateSchemaRemainsStable();
+    void tagFilterProxyTransferSchemaRemainsStable();
+    void tagFilterProxyMutationSchemaRemainsStable();
 };
 
 void KisResourceModelEnumContractTest::columnValuesRemainStable()
@@ -586,6 +592,104 @@ void KisResourceModelEnumContractTest::storageModelNotificationSchemaRemainsStab
     static_assert(std::is_same_v<decltype(&Model::storageDisabled), void (Model::*)(const QString &)>);
     static_assert(std::is_same_v<decltype(&Model::storageResynchronized), void (Model::*)(const QString &, bool)>);
     static_assert(std::is_same_v<decltype(&Model::storagesBulkSynchronizationFinished), void (Model::*)()>);
+}
+
+void KisResourceModelEnumContractTest::tagFilterProxyTypeAndNotificationSchemaRemainsStable()
+{
+    using Model = KisTagFilterResourceProxyModel;
+
+    static_assert(std::is_class_v<Model>);
+    static_assert(std::is_base_of_v<QSortFilterProxyModel, Model>);
+    static_assert(std::is_base_of_v<KisAbstractResourceModel, Model>);
+    static_assert(std::is_base_of_v<KisAbstractResourceFilterInterface, Model>);
+    static_assert(std::is_constructible_v<Model, const QString &>);
+    static_assert(std::is_constructible_v<Model, const QString &, QObject *>);
+    static_assert(std::is_destructible_v<Model>);
+    static_assert(std::has_virtual_destructor_v<Model>);
+    static_assert(std::is_same_v<decltype(&Model::additionalResourceNameChecks),
+                                 bool (Model::*)(const QModelIndex &, const KisResourceSearchBoxFilter *) const>);
+    static_assert(std::is_same_v<decltype(&Model::beforeFilterChanges), void (Model::*)()>);
+    static_assert(std::is_same_v<decltype(&Model::afterFilterChanged), void (Model::*)()>);
+}
+
+void KisResourceModelEnumContractTest::tagFilterProxyConfigurationSchemaRemainsStable()
+{
+    using Model = KisTagFilterResourceProxyModel;
+    using SetResourceFilterEnum = void (Model::*)(Model::ResourceFilter);
+    using SetResourceFilterValue = void (Model::*)(KoResourceSP);
+    using SetStorageFilterEnum = void (Model::*)(Model::StorageFilter);
+    using SetStorageFilterId = void (Model::*)(bool, int);
+
+    static_assert(std::is_same_v<decltype(&Model::currentTagFilter), KisTagSP (Model::*)() const>);
+    static_assert(std::is_same_v<decltype(&Model::filterInCurrentTag), bool (Model::*)() const>);
+    static_assert(std::is_same_v<decltype(&Model::setFilterInCurrentTag), void (Model::*)(bool)>);
+    static_assert(std::is_same_v<decltype(&Model::setMetaDataFilter), void (Model::*)(QMap<QString, QVariant>)>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<SetResourceFilterEnum>(&Model::setResourceFilter)), SetResourceFilterEnum>);
+    static_assert(std::is_same_v<decltype(static_cast<SetResourceFilterValue>(&Model::setResourceFilter)),
+                                 SetResourceFilterValue>);
+    static_assert(std::is_same_v<decltype(&Model::setResourceModel), void (Model::*)(KisResourceModel *)>);
+    static_assert(std::is_same_v<decltype(&Model::setSearchText), void (Model::*)(const QString &)>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<SetStorageFilterEnum>(&Model::setStorageFilter)), SetStorageFilterEnum>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<SetStorageFilterId>(&Model::setStorageFilter)), SetStorageFilterId>);
+    static_assert(std::is_same_v<decltype(&Model::setTagFilter), void (Model::*)(KisTagSP)>);
+}
+
+void KisResourceModelEnumContractTest::tagFilterProxyLookupAndStateSchemaRemainsStable()
+{
+    using Model = KisTagFilterResourceProxyModel;
+
+    static_assert(std::is_same_v<decltype(&Model::resourceForIndex), KoResourceSP (Model::*)(QModelIndex) const>);
+    static_assert(std::is_same_v<decltype(&Model::indexForResource), QModelIndex (Model::*)(KoResourceSP) const>);
+    static_assert(std::is_same_v<decltype(&Model::indexForResourceId), QModelIndex (Model::*)(int) const>);
+    static_assert(std::is_same_v<decltype(&Model::setResourceActive), bool (Model::*)(const QModelIndex &, bool)>);
+    static_assert(
+        std::is_same_v<decltype(&Model::setResourceMetaData), bool (Model::*)(KoResourceSP, QMap<QString, QVariant>)>);
+    static_assert(std::is_same_v<decltype(&Model::isResourceTagged), int (Model::*)(KisTagSP, int)>);
+
+    static_assert(std::is_same_v<decltype(std::declval<const Model &>().resourceForIndex()), KoResourceSP>);
+}
+
+void KisResourceModelEnumContractTest::tagFilterProxyTransferSchemaRemainsStable()
+{
+    using Model = KisTagFilterResourceProxyModel;
+
+    static_assert(std::is_same_v<decltype(&Model::importResourceFile),
+                                 KoResourceSP (Model::*)(const QString &, bool, const QString &)>);
+    static_assert(std::is_same_v<decltype(&Model::importResource),
+                                 KoResourceSP (Model::*)(const QString &, QIODevice *, bool, const QString &)>);
+    static_assert(std::is_same_v<decltype(&Model::importWillOverwriteResource),
+                                 bool (Model::*)(const QString &, const QString &) const>);
+    static_assert(std::is_same_v<decltype(&Model::exportResource), bool (Model::*)(KoResourceSP, QIODevice *)>);
+
+    static_assert(
+        std::is_same_v<decltype(std::declval<Model &>().importResourceFile(std::declval<const QString &>(), false)),
+                       KoResourceSP>);
+    static_assert(std::is_same_v<decltype(std::declval<Model &>().importResource(std::declval<const QString &>(),
+                                                                                 static_cast<QIODevice *>(nullptr),
+                                                                                 false)),
+                                 KoResourceSP>);
+}
+
+void KisResourceModelEnumContractTest::tagFilterProxyMutationSchemaRemainsStable()
+{
+    using Model = KisTagFilterResourceProxyModel;
+
+    static_assert(std::is_same_v<decltype(&Model::addResource), bool (Model::*)(KoResourceSP, const QString &)>);
+    static_assert(std::is_same_v<decltype(&Model::addResourceDeduplicateFileName),
+                                 bool (Model::*)(KoResourceSP, const QString &)>);
+    static_assert(std::is_same_v<decltype(&Model::updateResource), bool (Model::*)(KoResourceSP)>);
+    static_assert(std::is_same_v<decltype(&Model::reloadResource), bool (Model::*)(KoResourceSP)>);
+    static_assert(std::is_same_v<decltype(&Model::renameResource), bool (Model::*)(KoResourceSP, const QString &)>);
+    static_assert(std::is_same_v<decltype(&Model::tagResources), bool (Model::*)(KisTagSP, const QVector<int> &)>);
+    static_assert(std::is_same_v<decltype(&Model::untagResources), bool (Model::*)(KisTagSP, const QVector<int> &)>);
+
+    static_assert(std::is_same_v<decltype(std::declval<Model &>().addResource(std::declval<KoResourceSP>())), bool>);
+    static_assert(
+        std::is_same_v<decltype(std::declval<Model &>().addResourceDeduplicateFileName(std::declval<KoResourceSP>())),
+                       bool>);
 }
 
 QTEST_GUILESS_MAIN(KisResourceModelEnumContractTest)
