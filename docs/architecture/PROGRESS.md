@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 09:12 JST
+- 更新日時: 2026-09-01 09:15 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -24,6 +24,33 @@
 - 各報告は完全なAPI識別子、最大5枠の観測挙動、最寄りCTest、所有CMake、既存限定対象、直接依存、変更なし計画、予測工程・入力と停止線、
   開始pathから追加・移動先pathへの対応、許可path、固有停止条件、比較候補の棄却根拠を含む。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを
   担当票へ進め、限定構築計画を再確認する。
+- `g105-widget-connection-audit`は`KisWidgetConnectionUtils.h`の状態値・変換器25 APIを採用した。接続関数21 APIは除外し、既定値・別名、値と有効状態の変換、
+  combo box状態、spacing状態の往復、spin box状態を5枠へ固定する。header-onlyの新規`KisWidgetConnectionStateContractTest`はQt Testだけへ接続し、
+  最寄り`KisColorSelectorConfigurationContractTest`と同じ4工程・8入力を予測する。`KisAngleSelector`は実Widget・角度計・icon・翻訳、libkis wrapperは
+  `kritalibkis`と`kritatestsdk`へ到達するため棄却した。
+- `g105-svg-value-audit`は`SvgGraphicContext.h`の状態型・列挙37 APIを採用した。`StyleType`と4列挙子、fill・stroke状態、clip・変換・色状態、
+  空間・表示・解像度状態、marker・text・paint状態を既存`KoSvgTextEnumContractTest`の5枠へ追加する。個体を生成せず型と列挙値だけを観測するため、
+  CMake変更なしで既存Qt Gui・Test・Xml限定対象4工程・8入力を維持できる。実装を要求するconstructor・copy constructor・継承fill消去の3 APIは除外した。
+  `SvgUtil`は一source分割とassert・XML・text property実装を要求し、`KoSvgTextProperties`はfont registry・shape・SVG解析へ接続するため棄却した。
+
+### 第105並列便の担当計画
+
+- `g105-widget-connection-state`は`planned`、実装基点は`53153084ed`、専用worktreeは
+  `/Users/masato/Documents/librepaint-g105-widget-connection-state`、構築許可は`granted`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。
+  対象は`libs/widgets/KisWidgetConnectionUtils.h`の`ControlState`・2 alias 4 API、`ToControlState` 2 API、`ComboBoxState` 5 API、spacing状態と変換8 API、
+  spin box状態・2 alias・変換6 APIの全25 APIである。開始headerから新規`libs/widgets/tests/KisWidgetConnectionStateContractTest.cpp`の5枠へ対応付け、
+  `libs/widgets/tests/CMakeLists.txt`だけを併せて変更する。最初の期待診断は未知対象、予測4工程・8入力、停止5工程・11入力、製品不変とする。
+- 担当は変更なし計画と直接依存、未知対象診断、限定構築、5枠、対象CTest、20回反復、`KisColorSelectorConfigurationContractTest`、無作業再構築、
+  動的接続、source構文、公開API検査、`verify-quick`を確認する。製品shared library、`kritatestsdk`、`KisWidgetConnectionUtils.cpp`、製品CMake、
+  公開header、実Widget生成・画面・設定I/O、Qt Core・Test以外の依存、停止線超過に到達した場合は編集を止める。台帳・進捗文書は調整担当が所有する。
+- `g105-svg-graphics-context-state`は`planned`、実装基点は`53153084ed`、専用worktreeは
+  `/Users/masato/Documents/librepaint-g105-svg-graphics-context-state`、構築許可は`granted`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。
+  対象は`libs/flake/svg/SvgGraphicContext.h`のclass・`StyleType`・4列挙子6 API、fill・stroke状態7 API、clip・変換・色状態8 API、
+  空間・表示・解像度状態8 API、marker・text・paint状態8 APIの全37 APIである。開始headerから既存
+  `libs/flake/tests/KoSvgTextEnumContractTest.cpp`の5枠へ対応付け、他pathを変更しない。変更なし対象は4工程・8入力、追加後も同じ上限とし製品不変とする。
+- SVG担当は変更なし計画と直接依存、5枠、対象CTest、20回反復、軽量近傍、無作業再構築、動的接続、source構文、公開API検査、`verify-quick`を確認する。
+  `SvgGraphicContext.cpp`、`KoShapeStroke.cpp`、`KoSvgTextProperties.cpp`、CMake、公開header、製品shared library、`kritatestsdk`、実shape・document・
+  font registry・filesystem・描画、試験用代替実装、Qt限定範囲外の依存に到達した場合は編集を止める。台帳・進捗文書は調整担当が所有する。
 
 ### 第104並列便の監査計画
 
