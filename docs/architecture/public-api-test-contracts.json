@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 16328
+    "expectedMissingApis": 16294
   },
   "contracts": [
     {
@@ -39814,6 +39814,85 @@
         "method:KisHistogram::selectionTo()",
         "method:KisHistogram::setNoSelection()",
         "method:KisHistogram::setSelection(double from,double to)"
+      ]
+    },
+    {
+      "target": "KisResourceModelEnumContractTest",
+      "source": "libs/resources/tests/KisResourceModelEnumContractTest.cpp",
+      "test": "KisResourceModelEnumContractTest::tagFilterProxyTypeAndNotificationSchemaRemainsStable",
+      "behavior": "タグ資源絞り込み模型は公開class階層、省略可能な親による構築、仮想寿命、追加名称検査、および絞り込み変更通知について正確な型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisTagFilterResourceProxyModel",
+        "method:KisTagFilterResourceProxyModel::KisTagFilterResourceProxyModel(const QString & resourceType,QObject * parent=0)",
+        "method:KisTagFilterResourceProxyModel::additionalResourceNameChecks(const QModelIndex & index,const KisResourceSearchBoxFilter * filter) const",
+        "method:KisTagFilterResourceProxyModel::afterFilterChanged()",
+        "method:KisTagFilterResourceProxyModel::beforeFilterChanges()",
+        "method:KisTagFilterResourceProxyModel::~KisTagFilterResourceProxyModel()"
+      ]
+    },
+    {
+      "target": "KisResourceModelEnumContractTest",
+      "source": "libs/resources/tests/KisResourceModelEnumContractTest.cpp",
+      "test": "KisResourceModelEnumContractTest::tagFilterProxyConfigurationSchemaRemainsStable",
+      "behavior": "タグ資源絞り込み模型はtag・storage・資源・metadata・検索文の絞り込み設定と状態取得について正確な関数型とconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTagFilterResourceProxyModel::currentTagFilter() const",
+        "method:KisTagFilterResourceProxyModel::filterInCurrentTag() const",
+        "method:KisTagFilterResourceProxyModel::setFilterInCurrentTag(bool filterInCurrentTag)",
+        "method:KisTagFilterResourceProxyModel::setMetaDataFilter(QMap<QString,QVariant> metaDataMap)",
+        "method:KisTagFilterResourceProxyModel::setResourceFilter(ResourceFilter filter)",
+        "method:KisTagFilterResourceProxyModel::setResourceFilter(const KoResourceSP resource)",
+        "method:KisTagFilterResourceProxyModel::setResourceModel(KisResourceModel * resourceModel)",
+        "method:KisTagFilterResourceProxyModel::setSearchText(const QString & searchText)",
+        "method:KisTagFilterResourceProxyModel::setStorageFilter(StorageFilter filter)",
+        "method:KisTagFilterResourceProxyModel::setStorageFilter(bool useFilter,int storageId)",
+        "method:KisTagFilterResourceProxyModel::setTagFilter(const KisTagSP tag)"
+      ]
+    },
+    {
+      "target": "KisResourceModelEnumContractTest",
+      "source": "libs/resources/tests/KisResourceModelEnumContractTest.cpp",
+      "test": "KisResourceModelEnumContractTest::tagFilterProxyLookupAndStateSchemaRemainsStable",
+      "behavior": "タグ資源絞り込み模型はindexと資源の相互検索、および資源の有効性・metadata・tag状態の操作について正確な関数型と既定indexを維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTagFilterResourceProxyModel::indexForResource(KoResourceSP resource) const",
+        "method:KisTagFilterResourceProxyModel::indexForResourceId(int resourceId) const",
+        "method:KisTagFilterResourceProxyModel::isResourceTagged(const KisTagSP tag,const int resourceId)",
+        "method:KisTagFilterResourceProxyModel::resourceForIndex(QModelIndex index=QModelIndex ()) const",
+        "method:KisTagFilterResourceProxyModel::setResourceActive(const QModelIndex & index,bool value)",
+        "method:KisTagFilterResourceProxyModel::setResourceMetaData(KoResourceSP resource,QMap<QString,QVariant> metadata)"
+      ]
+    },
+    {
+      "target": "KisResourceModelEnumContractTest",
+      "source": "libs/resources/tests/KisResourceModelEnumContractTest.cpp",
+      "test": "KisResourceModelEnumContractTest::tagFilterProxyTransferSchemaRemainsStable",
+      "behavior": "タグ資源絞り込み模型は資源の入出力と上書き判定について正確な引数・戻り型・const性、および既定storage識別子を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTagFilterResourceProxyModel::exportResource(KoResourceSP resource,QIODevice * device)",
+        "method:KisTagFilterResourceProxyModel::importResource(const QString & filename,QIODevice * device,const bool allowOverwrite,const QString & storageId=QString ())",
+        "method:KisTagFilterResourceProxyModel::importResourceFile(const QString & filename,const bool allowOverwrite,const QString & storageId=QString ())",
+        "method:KisTagFilterResourceProxyModel::importWillOverwriteResource(const QString & fileName,const QString & storageLocation) const"
+      ]
+    },
+    {
+      "target": "KisResourceModelEnumContractTest",
+      "source": "libs/resources/tests/KisResourceModelEnumContractTest.cpp",
+      "test": "KisResourceModelEnumContractTest::tagFilterProxyMutationSchemaRemainsStable",
+      "behavior": "タグ資源絞り込み模型は資源の追加・更新・再読込み・名称変更・tag関連付けについて正確な関数型と既定storage識別子を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTagFilterResourceProxyModel::addResource(KoResourceSP resource,const QString & storageId=QString ())",
+        "method:KisTagFilterResourceProxyModel::addResourceDeduplicateFileName(KoResourceSP resource,const QString & storageId=QString ())",
+        "method:KisTagFilterResourceProxyModel::reloadResource(KoResourceSP resource)",
+        "method:KisTagFilterResourceProxyModel::renameResource(KoResourceSP resource,const QString & name)",
+        "method:KisTagFilterResourceProxyModel::tagResources(const KisTagSP tag,const QVector<int> & resourceIds)",
+        "method:KisTagFilterResourceProxyModel::untagResources(const KisTagSP tag,const QVector<int> & resourceIds)",
+        "method:KisTagFilterResourceProxyModel::updateResource(KoResourceSP resource)"
       ]
     }
   ]
