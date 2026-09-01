@@ -2,12 +2,28 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 16:54 JST
+- 更新日時: 2026-09-01 16:57 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
+
+### 第123便の先行監査計画
+
+- 監査共通基点は`551714c5f3`、入力は`build/tdd-macos/public-api-missing-g123.json`である。3担当は`auditing`の読み取り専用とし、製品・試験・CMake・script・
+  台帳・文書を変更せず、構築、試験、Git操作、追加委任も行わない。一つの公開責務から25 API以上を最大5枠へ固定し、既存限定対象、header-only値面、または
+  公開headerを変えない一sourceのOBJECT一対一移管で製品共有ライブラリーと`kritatestsdk`へ接続しない候補だけを採用する。
+- `g123-libkis-grid-schema-audit`は`libs/libkis/GridConfig.h`の残り54 APIを主候補とし、`libs/libkis/SliderSpinBox.h`の38 APIと既存libkis試験を比較する。
+  文書gridの局所設定値、色、間隔、division、offset、表示・吸着方針を、実Document、view、canvas、設定I/O、scripting環境なしで25 API以上閉じる一責務を選ぶ。
+- `g123-svg-cursor-schema-audit`は`plugins/tools/svgtexttool/SvgTextCursor.h`の残り63 APIを主候補とし、既存`SvgTextCursorEnumContractTest`と実
+  `SvgTextCursorTest`を比較する。cursor位置、選択、書字方向、編集状態等の公開schemaを、実shape、canvas、text layout、font処理、undo command、描画なしで
+  25 API以上閉じる一責務を選ぶ。
+- `g123-slider-spin-schema-audit`は`libs/widgetutils/kis_slider_spin_box.h`の残り41 APIを主候補とし、同packageのparse spin box契約と
+  `libs/widgets/KoRuler.h`の残り48 APIを比較する。整数・実数slider spin boxのrange、値、step、倍率等の局所schemaを、widget実体、event loop、signal、style、
+  画面、設定I/Oなしで25 API以上閉じる一責務を選ぶ。
+- 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから
+  契約先または移動先、許可path、固有停止条件、比較候補の棄却根拠を含む。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
 
 ### 第122便の先行監査計画
 
