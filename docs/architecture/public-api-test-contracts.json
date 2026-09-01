@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 16396
+    "expectedMissingApis": 16360
   },
   "contracts": [
     {
@@ -39656,6 +39656,87 @@
         "method:KisStorageModel::storageEnabled(const QString & storage)",
         "method:KisStorageModel::storageResynchronized(const QString & storage,bool isBulkResynchronization)",
         "method:KisStorageModel::storagesBulkSynchronizationFinished()"
+      ]
+    },
+    {
+      "target": "KoPatternBackgroundSchemaContractTest",
+      "source": "libs/flake/tests/KoPatternBackgroundSchemaContractTest.cpp",
+      "test": "KoPatternBackgroundSchemaContractTest::patternBackgroundTypeAndValueLifetimeSchemaRemainStable",
+      "behavior": "pattern背景はshape背景からの継承、既定・複製構築、複製代入、仮想寿命、および同種背景との比較について正確な型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoPatternBackground",
+        "method:KoPatternBackground::KoPatternBackground()",
+        "method:KoPatternBackground::KoPatternBackground(const KoPatternBackground &)",
+        "method:KoPatternBackground::compareTo(const KoShapeBackground * other) const",
+        "method:KoPatternBackground::operator =(const KoPatternBackground &)",
+        "method:KoPatternBackground::~KoPatternBackground()"
+      ]
+    },
+    {
+      "target": "KoPatternBackgroundSchemaContractTest",
+      "source": "libs/flake/tests/KoPatternBackgroundSchemaContractTest.cpp",
+      "test": "KoPatternBackgroundSchemaContractTest::patternBackgroundRepeatAndReferenceOrdinalsRemainStable",
+      "behavior": "pattern背景は反復方式と九つの基準点について公開列挙型と安定した序数を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KoPatternBackground::PatternRepeat",
+        "enum:KoPatternBackground::ReferencePoint",
+        "enumerator:KoPatternBackground::PatternRepeat::Original",
+        "enumerator:KoPatternBackground::PatternRepeat::Stretched",
+        "enumerator:KoPatternBackground::PatternRepeat::Tiled",
+        "enumerator:KoPatternBackground::ReferencePoint::Bottom",
+        "enumerator:KoPatternBackground::ReferencePoint::BottomLeft",
+        "enumerator:KoPatternBackground::ReferencePoint::BottomRight",
+        "enumerator:KoPatternBackground::ReferencePoint::Center",
+        "enumerator:KoPatternBackground::ReferencePoint::Left",
+        "enumerator:KoPatternBackground::ReferencePoint::Right",
+        "enumerator:KoPatternBackground::ReferencePoint::Top",
+        "enumerator:KoPatternBackground::ReferencePoint::TopLeft",
+        "enumerator:KoPatternBackground::ReferencePoint::TopRight"
+      ]
+    },
+    {
+      "target": "KoPatternBackgroundSchemaContractTest",
+      "source": "libs/flake/tests/KoPatternBackgroundSchemaContractTest.cpp",
+      "test": "KoPatternBackgroundSchemaContractTest::patternImageAndDisplayGeometrySignaturesRemainStable",
+      "behavior": "pattern背景は画像、表示・元寸法、塗り寸法からの矩形計算、および反復方式の取得・設定について正確な関数型とconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoPatternBackground::pattern() const",
+        "method:KoPatternBackground::patternDisplaySize() const",
+        "method:KoPatternBackground::patternOriginalSize() const",
+        "method:KoPatternBackground::patternRectFromFillSize(const QSizeF & size)",
+        "method:KoPatternBackground::repeat() const",
+        "method:KoPatternBackground::setPattern(const QImage & pattern)",
+        "method:KoPatternBackground::setPatternDisplaySize(const QSizeF & size)",
+        "method:KoPatternBackground::setRepeat(PatternRepeat repeat)"
+      ]
+    },
+    {
+      "target": "KoPatternBackgroundSchemaContractTest",
+      "source": "libs/flake/tests/KoPatternBackgroundSchemaContractTest.cpp",
+      "test": "KoPatternBackgroundSchemaContractTest::patternReferencePlacementSignaturesRemainStable",
+      "behavior": "pattern背景は基準点と百分率offsetの取得・設定について正確な関数型とconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoPatternBackground::referencePoint() const",
+        "method:KoPatternBackground::referencePointOffset() const",
+        "method:KoPatternBackground::setReferencePoint(ReferencePoint referencePoint)",
+        "method:KoPatternBackground::setReferencePointOffset(const QPointF & offset)"
+      ]
+    },
+    {
+      "target": "KoPatternBackgroundSchemaContractTest",
+      "source": "libs/flake/tests/KoPatternBackgroundSchemaContractTest.cpp",
+      "test": "KoPatternBackgroundSchemaContractTest::patternTileAndTransformSignaturesRemainStable",
+      "behavior": "pattern背景はtile反復offsetと変換の取得・設定について正確な関数型とconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoPatternBackground::setTileRepeatOffset(const QPointF & offset)",
+        "method:KoPatternBackground::setTransform(const QTransform & matrix)",
+        "method:KoPatternBackground::tileRepeatOffset() const",
+        "method:KoPatternBackground::transform() const"
       ]
     }
   ]

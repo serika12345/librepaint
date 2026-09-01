@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 02:10 JST
+- 更新日時: 2026-09-02 02:20 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -39,7 +39,7 @@
 
 ### 第135便の担当計画
 
-- 実装共通基点は`3e39e36f5923aa4447035a1ea3e3fe2b6076ff1e`である。pattern backgroundとtag proxy担当は`ready`、histogram担当は`preparing`、構築許可は指定試験targetと
+- 実装共通基点は`3e39e36f5923aa4447035a1ea3e3fe2b6076ff1e`である。pattern background担当は`integrated`、histogram担当は`implementing`、tag proxy担当は`ready`、構築許可は指定試験targetと
   軽量近傍だけの`granted`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、専用worktree-local
   `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。統合順はpattern background、histogram、tag proxyとし、
   調整担当だけが`AGENTS.md`、architecture文書、`docs/architecture/public-api-test-contracts.json`、共通不足報告を変更する。3担当の公開header、所有CMake、試験source、
@@ -70,6 +70,19 @@
   製品`kritaresources`は150工程・327入力と各集合の完全一致を確認する。5枠の未知関数、既存枠、対象CTest、20回反復、近傍、無作業再構築、動的接続、未解決proxy・
   resource・tag・DB・import記号、構文・変更行書式、公開API・`verify-quick`を確認する。模型・proxy・resource・tag・DB・query・I/O・signal・metaobjectを生成または呼出し、
   製品source・OBJECT・shared、`kritatestsdk`、新依存、CMake・公開header変更、製品計画差、停止線超過が必要なら止める。
+
+### 第135便の統合結果
+
+- `g135-pattern-background-schema`は受渡しcommit`610cf9699314`を統合commit`af987a326b`として取り込んだ。開始
+  `libs/flake/KoPatternBackground.h`から新規`libs/flake/tests/KoPatternBackgroundSchemaContractTest.cpp`の5枠へ、型・値寿命、反復・基準点列挙、pattern・表示幾何、
+  基準点配置、tile offset・変換の36 APIを対応付け、`libs/flake/tests/CMakeLists.txt`へQt Testだけを接続するheader限定対象を追加した。対象4工程・8入力、製品
+  `kritaflake` 621工程・1,274入力と各集合は変更前後一致し、background・shape・image・transform・painter・path・描画を生成・実行していない。担当macOS環境と中央環境で
+  対象CTest、担当環境で5枠個別、両環境で20回反復と近傍`KoSnapGuideSchemaContractTest`、担当環境で無作業再構築、動的接続・未解決記号、構文・書式、公開API検査、
+  `verify-quick`に成功した。中央の公開API契約検査は29,838件中13,478件対応、16,360件未対応となり、最新入力を
+  `build/tdd-macos/public-api-missing-g136.json`へ生成した。
+- 中央の対象CTest成功後、反復検査を開始するNix評価は空き420 MiBで容量不足となった。統合済みpattern background担当861,660 KiBと、受渡しcommitが確定している
+  tag proxy担当856,180 KiBの専用作業tree・構築木を削除し、空きを2.1 GiBへ回復した。pattern background担当branchは削除済みであり、tag proxy担当branchとcommitは
+  統合まで保持する。主`build/tdd-macos`、共有compiler cache、実装中のhistogram担当作業treeを保持し、回復後の20回反復と近傍試験は成功した。
 
 ### 第134便の先行監査計画
 
