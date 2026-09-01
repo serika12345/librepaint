@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "kis_selection_filters.h"
 #include "kis_types.h"
 
 #include <QTest>
@@ -18,6 +19,11 @@ private Q_SLOTS:
     void qtPointerAliasesPreserveOwnershipKinds();
     void collectionAliasesPreserveElementAndIteratorTypes();
     void thumbnailBoundsModesRemainDistinct();
+    void selectionFilterBaseInterfaceSchemaRemainsStable();
+    void morphologicalSelectionFilterSchemaRemainsStable();
+    void invertAndAntiAliasSelectionFilterSchemaRemainsStable();
+    void borderAndFeatherSelectionFilterSchemaRemainsStable();
+    void growthSelectionFilterPolicySchemaRemainsStable();
 };
 
 void KisImageTypesContractTest::intrusivePointerAliasesPreserveOwnershipKinds()
@@ -144,6 +150,172 @@ void KisImageTypesContractTest::thumbnailBoundsModesRemainDistinct()
     static_assert(KisThumbnailBoundsMode::Coarse != KisThumbnailBoundsMode::Precise);
     QCOMPARE(static_cast<int>(KisThumbnailBoundsMode::Coarse), 0);
     QCOMPARE(static_cast<int>(KisThumbnailBoundsMode::Precise), 1);
+}
+
+void KisImageTypesContractTest::selectionFilterBaseInterfaceSchemaRemainsStable()
+{
+    using NameSignature = KUndo2MagicString (KisSelectionFilter::*)();
+    using ChangeRectSignature = QRect (KisSelectionFilter::*)(const QRect &, KisDefaultBoundsBaseSP);
+    using ProcessSignature = void (KisSelectionFilter::*)(KisPixelSelectionSP, const QRect &);
+
+    static_assert(std::is_class_v<KisSelectionFilter>);
+    static_assert(std::is_abstract_v<KisSelectionFilter>);
+    static_assert(std::has_virtual_destructor_v<KisSelectionFilter>);
+    static_assert(std::is_same_v<decltype(static_cast<NameSignature>(&KisSelectionFilter::name)), NameSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<ChangeRectSignature>(&KisSelectionFilter::changeRect)),
+                                 ChangeRectSignature>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<ProcessSignature>(&KisSelectionFilter::process)), ProcessSignature>);
+
+    QVERIFY(true);
+}
+
+void KisImageTypesContractTest::morphologicalSelectionFilterSchemaRemainsStable()
+{
+    using ErodeNameSignature = KUndo2MagicString (KisErodeSelectionFilter::*)();
+    using ErodeChangeRectSignature = QRect (KisErodeSelectionFilter::*)(const QRect &, KisDefaultBoundsBaseSP);
+    using ErodeProcessSignature = void (KisErodeSelectionFilter::*)(KisPixelSelectionSP, const QRect &);
+    using DilateNameSignature = KUndo2MagicString (KisDilateSelectionFilter::*)();
+    using DilateChangeRectSignature = QRect (KisDilateSelectionFilter::*)(const QRect &, KisDefaultBoundsBaseSP);
+    using DilateProcessSignature = void (KisDilateSelectionFilter::*)(KisPixelSelectionSP, const QRect &);
+    using SmoothNameSignature = KUndo2MagicString (KisSmoothSelectionFilter::*)();
+    using SmoothChangeRectSignature = QRect (KisSmoothSelectionFilter::*)(const QRect &, KisDefaultBoundsBaseSP);
+    using SmoothProcessSignature = void (KisSmoothSelectionFilter::*)(KisPixelSelectionSP, const QRect &);
+
+    static_assert(std::is_base_of_v<KisSelectionFilter, KisErodeSelectionFilter>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<ErodeNameSignature>(&KisErodeSelectionFilter::name)), ErodeNameSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<ErodeChangeRectSignature>(&KisErodeSelectionFilter::changeRect)),
+                                 ErodeChangeRectSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<ErodeProcessSignature>(&KisErodeSelectionFilter::process)),
+                                 ErodeProcessSignature>);
+
+    static_assert(std::is_base_of_v<KisSelectionFilter, KisDilateSelectionFilter>);
+    static_assert(std::is_same_v<decltype(static_cast<DilateNameSignature>(&KisDilateSelectionFilter::name)),
+                                 DilateNameSignature>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<DilateChangeRectSignature>(&KisDilateSelectionFilter::changeRect)),
+                       DilateChangeRectSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<DilateProcessSignature>(&KisDilateSelectionFilter::process)),
+                                 DilateProcessSignature>);
+
+    static_assert(std::is_base_of_v<KisSelectionFilter, KisSmoothSelectionFilter>);
+    static_assert(std::is_same_v<decltype(static_cast<SmoothNameSignature>(&KisSmoothSelectionFilter::name)),
+                                 SmoothNameSignature>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<SmoothChangeRectSignature>(&KisSmoothSelectionFilter::changeRect)),
+                       SmoothChangeRectSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<SmoothProcessSignature>(&KisSmoothSelectionFilter::process)),
+                                 SmoothProcessSignature>);
+
+    QVERIFY(true);
+}
+
+void KisImageTypesContractTest::invertAndAntiAliasSelectionFilterSchemaRemainsStable()
+{
+    using InvertNameSignature = KUndo2MagicString (KisInvertSelectionFilter::*)();
+    using InvertChangeRectSignature = QRect (KisInvertSelectionFilter::*)(const QRect &, KisDefaultBoundsBaseSP);
+    using InvertProcessSignature = void (KisInvertSelectionFilter::*)(KisPixelSelectionSP, const QRect &);
+    using AntiAliasNameSignature = KUndo2MagicString (KisAntiAliasSelectionFilter::*)();
+    using AntiAliasProcessSignature = void (KisAntiAliasSelectionFilter::*)(KisPixelSelectionSP, const QRect &);
+
+    static_assert(std::is_base_of_v<KisSelectionFilter, KisInvertSelectionFilter>);
+    static_assert(std::is_same_v<decltype(static_cast<InvertNameSignature>(&KisInvertSelectionFilter::name)),
+                                 InvertNameSignature>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<InvertChangeRectSignature>(&KisInvertSelectionFilter::changeRect)),
+                       InvertChangeRectSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<InvertProcessSignature>(&KisInvertSelectionFilter::process)),
+                                 InvertProcessSignature>);
+
+    static_assert(std::is_base_of_v<KisSelectionFilter, KisAntiAliasSelectionFilter>);
+    static_assert(std::is_same_v<decltype(static_cast<AntiAliasNameSignature>(&KisAntiAliasSelectionFilter::name)),
+                                 AntiAliasNameSignature>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<AntiAliasProcessSignature>(&KisAntiAliasSelectionFilter::process)),
+                       AntiAliasProcessSignature>);
+
+    QVERIFY(true);
+}
+
+void KisImageTypesContractTest::borderAndFeatherSelectionFilterSchemaRemainsStable()
+{
+    using BorderNameSignature = KUndo2MagicString (KisBorderSelectionFilter::*)();
+    using BorderChangeRectSignature = QRect (KisBorderSelectionFilter::*)(const QRect &, KisDefaultBoundsBaseSP);
+    using BorderProcessSignature = void (KisBorderSelectionFilter::*)(KisPixelSelectionSP, const QRect &);
+    using FeatherNameSignature = KUndo2MagicString (KisFeatherSelectionFilter::*)();
+    using FeatherChangeRectSignature = QRect (KisFeatherSelectionFilter::*)(const QRect &, KisDefaultBoundsBaseSP);
+    using FeatherProcessSignature = void (KisFeatherSelectionFilter::*)(KisPixelSelectionSP, const QRect &);
+
+    static_assert(std::is_base_of_v<KisSelectionFilter, KisBorderSelectionFilter>);
+    static_assert(std::is_constructible_v<KisBorderSelectionFilter, qint32, qint32, bool>);
+    static_assert(std::is_same_v<decltype(static_cast<BorderNameSignature>(&KisBorderSelectionFilter::name)),
+                                 BorderNameSignature>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<BorderChangeRectSignature>(&KisBorderSelectionFilter::changeRect)),
+                       BorderChangeRectSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<BorderProcessSignature>(&KisBorderSelectionFilter::process)),
+                                 BorderProcessSignature>);
+
+    static_assert(std::is_base_of_v<KisSelectionFilter, KisFeatherSelectionFilter>);
+    static_assert(std::is_constructible_v<KisFeatherSelectionFilter, qint32>);
+    static_assert(std::is_same_v<decltype(static_cast<FeatherNameSignature>(&KisFeatherSelectionFilter::name)),
+                                 FeatherNameSignature>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<FeatherChangeRectSignature>(&KisFeatherSelectionFilter::changeRect)),
+                       FeatherChangeRectSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<FeatherProcessSignature>(&KisFeatherSelectionFilter::process)),
+                                 FeatherProcessSignature>);
+
+    QVERIFY(true);
+}
+
+void KisImageTypesContractTest::growthSelectionFilterPolicySchemaRemainsStable()
+{
+    using GrowNameSignature = KUndo2MagicString (KisGrowSelectionFilter::*)();
+    using GrowChangeRectSignature = QRect (KisGrowSelectionFilter::*)(const QRect &, KisDefaultBoundsBaseSP);
+    using GrowProcessSignature = void (KisGrowSelectionFilter::*)(KisPixelSelectionSP, const QRect &);
+    using ShrinkNameSignature = KUndo2MagicString (KisShrinkSelectionFilter::*)();
+    using ShrinkChangeRectSignature = QRect (KisShrinkSelectionFilter::*)(const QRect &, KisDefaultBoundsBaseSP);
+    using ShrinkProcessSignature = void (KisShrinkSelectionFilter::*)(KisPixelSelectionSP, const QRect &);
+    using AdaptiveGrowNameSignature = KUndo2MagicString (KisGrowUntilDarkestPixelSelectionFilter::*)();
+    using AdaptiveGrowChangeRectSignature =
+        QRect (KisGrowUntilDarkestPixelSelectionFilter::*)(const QRect &, KisDefaultBoundsBaseSP);
+    using AdaptiveGrowProcessSignature =
+        void (KisGrowUntilDarkestPixelSelectionFilter::*)(KisPixelSelectionSP, const QRect &);
+
+    static_assert(std::is_base_of_v<KisSelectionFilter, KisGrowSelectionFilter>);
+    static_assert(std::is_constructible_v<KisGrowSelectionFilter, qint32, qint32>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<GrowNameSignature>(&KisGrowSelectionFilter::name)), GrowNameSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<GrowChangeRectSignature>(&KisGrowSelectionFilter::changeRect)),
+                                 GrowChangeRectSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<GrowProcessSignature>(&KisGrowSelectionFilter::process)),
+                                 GrowProcessSignature>);
+
+    static_assert(std::is_base_of_v<KisSelectionFilter, KisShrinkSelectionFilter>);
+    static_assert(std::is_constructible_v<KisShrinkSelectionFilter, qint32, qint32, bool>);
+    static_assert(std::is_same_v<decltype(static_cast<ShrinkNameSignature>(&KisShrinkSelectionFilter::name)),
+                                 ShrinkNameSignature>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<ShrinkChangeRectSignature>(&KisShrinkSelectionFilter::changeRect)),
+                       ShrinkChangeRectSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<ShrinkProcessSignature>(&KisShrinkSelectionFilter::process)),
+                                 ShrinkProcessSignature>);
+
+    static_assert(std::is_base_of_v<KisSelectionFilter, KisGrowUntilDarkestPixelSelectionFilter>);
+    static_assert(std::is_constructible_v<KisGrowUntilDarkestPixelSelectionFilter, qint32, KisPaintDeviceSP>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<AdaptiveGrowNameSignature>(&KisGrowUntilDarkestPixelSelectionFilter::name)),
+                       AdaptiveGrowNameSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<AdaptiveGrowChangeRectSignature>(
+                                     &KisGrowUntilDarkestPixelSelectionFilter::changeRect)),
+                                 AdaptiveGrowChangeRectSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<AdaptiveGrowProcessSignature>(
+                                     &KisGrowUntilDarkestPixelSelectionFilter::process)),
+                                 AdaptiveGrowProcessSignature>);
+
+    QVERIFY(true);
 }
 
 QTEST_GUILESS_MAIN(KisImageTypesContractTest)
