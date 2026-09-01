@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 14:44 JST
+- 更新日時: 2026-09-01 14:46 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -877,6 +877,23 @@
 - 受渡しpatchの同一性と3 worktreeのclean状態を確認後、application担当649 MB、image担当643 MB、SVG担当642 MBの作業木とbranchを削除して
   約1.93 GBを回収した。新報告の生成成功後に旧`public-api-missing-g118.json` 4.5 MBも削除した。主`build/tdd-macos`、共有compiler cache、
   最新不足報告は次便の限定構築へ再利用する。
+
+### 第119便の先行監査計画
+
+- 監査対象の実装基点は`8b6898d08c`、入力は`build/tdd-macos/public-api-missing-g119.json`である。3担当は`auditing`の読み取り専用とし、製品・試験・CMake・
+  script・台帳・文書を変更せず、構築、試験、Git操作、追加委任も行わない。一つの公開責務から25 API以上を最大5枠へ固定し、既存限定対象、header-only値面、
+  または公開headerを変えない一sourceのOBJECT一対一移管で製品共有ライブラリーと`kritatestsdk`へ接続しない候補だけを採用する。
+- `g119-resource-storage-schema-audit`は`libs/resources/KisResourceStorage.h`の116 APIを主候補とし、`libs/pigment/resources/KoColorSet.h`の82 API、
+  `KoSegmentGradient.h`の81 APIと比較する。storageの識別・状態・資源操作schemaから、実filesystem、archive、SQL、資源registry、loader、tag模型を生成または
+  実行せず未評価型検査で閉じる一責務を選ぶ。
+- `g119-color-space-schema-audit`は`libs/pigment/KoColorSpace.h`の101 API、`KoBasicHistogramProducers.h`の71 API、pluginの
+  `colorprofiles/IccColorProfile.h`の72 APIを比較する。色空間またはprofile派生型のidentity・変換・画素操作schemaから、実色空間、registry、profile、変換、
+  画素bufferを生成または実行せず限定対象へ閉じる一責務を選ぶ。
+- `g119-psd-values-audit`は`libs/psdutils/psd.h`の残り91 API、`libs/psd/psd_additional_layer_info_block.h`の80 API、
+  `psd_resource_block.h`の残存APIを比較する。第99〜118便と重複しない列挙・記録値・公開schemaから一責務を選び、実image、paint device、色空間・pattern・
+  gradient registry、ASL、filesystem、生pointer所有へ到達しない。
+- 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから契約先または
+  移動先、許可path、固有停止条件、比較候補の棄却根拠を含む。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
 
 ### 第105並列便の監査計画
 
