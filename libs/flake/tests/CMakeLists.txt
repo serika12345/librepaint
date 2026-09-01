@@ -671,6 +671,27 @@ target_include_directories(KoSvgTextFontSelectionValueContractTest PRIVATE
 target_compile_definitions(KoSvgTextFontSelectionValueContractTest PRIVATE kritaflake_EXPORTS)
 
 kis_add_test(
+    KoFFWWSConverterSchemaContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Xml
+)
+target_include_directories(KoFFWWSConverterSchemaContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+    $<TARGET_PROPERTY:Freetype::Freetype,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:HarfBuzz::HarfBuzz,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:Fontconfig::Fontconfig,INTERFACE_INCLUDE_DIRECTORIES>
+)
+target_compile_definitions(KoFFWWSConverterSchemaContractTest PRIVATE
+    kritaflake_EXPORTS
+    kritaglobal_EXPORTS
+)
+
+kis_add_test(
     KoSvgTextFontMetricsValueContractTest.cpp
     LINK_LIBRARIES
         Qt${QT_MAJOR_VERSION}::Gui
