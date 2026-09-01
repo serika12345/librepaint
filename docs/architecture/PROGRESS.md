@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 22:48 JST
+- 更新日時: 2026-09-01 22:52 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -34,6 +34,40 @@
 - 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから契約先または
   移動先、許可path、固有停止条件、比較候補の棄却根拠を含む。既存`build/tdd-macos`の計画は読み取り専用で測定し、構成や構築を開始しない。3報告後にpath、CMake、
   試験source、生成物が重ならない候補だけを担当票へ進める。
+
+### 第131便の担当計画
+
+- 実装共通基点は`be35f28c8101df67874deaab4332222c5f3c6e65`である。Dab cache、frame serializer、snap guide担当は`implementing`、構築許可は指定試験targetと
+  軽量近傍だけの`granted`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、専用worktree-local
+  `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。統合順はDab cache、frame serializer、snap guideとし、
+  調整担当だけが`AGENTS.md`、architecture文書、`docs/architecture/public-api-test-contracts.json`、共通不足報告を変更する。3担当の公開header、所有CMake、試験source、
+  生成物は重ならない。
+- `g131-dab-cache-schema`は`/Users/masato/Documents/librepaint-g131-dab-cache-schema`を所有する。開始
+  `plugins/paintops/libpaintop/KisDabCacheUtils.h`の`DabGenerationInfo`、`DabRenderingResources`、`DabRequestInfo`、`ResourcesFactory`と3公開関数から新規
+  `plugins/paintops/libpaintop/tests/KisDabCacheUtilsSchemaContractTest.cpp`の5枠`dabSchemaTypesAndFactoryRemainStable`、
+  `dabRequestValueSignaturesRemainStable`、`dabGenerationValueSignaturesRemainStable`、`dabRenderingResourceSignaturesRemainStable`、
+  `dabProcessingFunctionSignaturesRemainStable`へ全32 APIを対応付ける。許可pathは新規試験sourceと`plugins/paintops/libpaintop/tests/CMakeLists.txt`だけである。新対象
+  `KisDabCacheUtilsSchemaContractTest`は4工程・8入力、停止5工程・11入力、近傍は`KisTextureOptionDataValueContractTest`、補助近傍は`KisDabShapeContractTest`、製品
+  `kritalibpaintop`は2,110工程・4,218入力と各集合の完全一致を確認する。未知target、5枠、対象CTest、20回反復、近傍、無作業再構築、動的接続、未解決dab・brush・
+  image・pigment記号、構文・変更行書式、公開API・`verify-quick`を確認する。型特性と未評価式を越えてDab・paint device・brush・color source・texture・sharpness・
+  paint informationを生成または呼出し、製品OBJECT・shared、`kritatestsdk`、新link依存、公開header・製品source変更、製品計画差、停止線超過が必要なら止める。
+- `g131-frame-serializer-schema`は`/Users/masato/Documents/librepaint-g131-frame-serializer-schema`を所有する。開始
+  `libs/canvas/animation/kis_frame_data_serializer.h`の`KisFrameDataSerializer`、`FrameTile`、`Frame`と全公開memberから新規
+  `libs/canvas/tests/KisFrameDataSerializerSchemaContractTest.cpp`の5枠`frameTileMemberSchemaRemainsStable`、
+  `frameTileLifecycleAndBufferSignaturesRemainStable`、`frameMemberSchemaRemainsStable`、`frameLifecycleAndValiditySignaturesRemainStable`、
+  `frameSerializerStorageAndDifferenceSignaturesRemainStable`へ全33 APIを対応付ける。許可pathは新規試験sourceと`libs/canvas/tests/CMakeLists.txt`だけである。新対象
+  `KisFrameDataSerializerSchemaContractTest`は4工程・8入力、停止5工程・11入力、近傍は`KisTileDataPoolContractTest`、製品`kritacanvas`は1,220工程・2,460入力と各集合の
+  完全一致を確認する。未知target、5枠、対象CTest、20回反復、近傍、無作業再構築、動的接続、未解決frame・tile pool・filesystem記号、構文・変更行書式、公開API・
+  `verify-quick`を確認する。型特性と未評価式を越えてserializer・frame・tile buffer・tile pool・filesystemを生成または呼出し、製品OBJECT・shared、`kritatestsdk`、
+  新link依存、公開header・製品source変更、製品計画差、停止線超過が必要なら止める。
+- `g131-snap-guide-schema`は`/Users/masato/Documents/librepaint-g131-snap-guide-schema`を所有する。開始`libs/flake/KoSnapGuide.h`の`KoSnapGuide`、`Strategy`全11値、
+  `Strategies`と全公開methodから新規`libs/flake/tests/KoSnapGuideSchemaContractTest.cpp`の5枠`snapGuideTypeAndStrategySchemaRemainsStable`、
+  `snapGuideLifetimeAndInteractionSignaturesRemainStable`、`snapGuideStrategyPolicySignaturesRemainStable`、`snapGuideAssociationSignaturesRemainStable`、
+  `snapGuideDistanceSignaturesRemainStable`へ全38 APIを対応付ける。許可pathは新規試験sourceと`libs/flake/tests/CMakeLists.txt`だけである。新対象
+  `KoSnapGuideSchemaContractTest`は4工程・8入力、停止5工程・11入力、近傍は`KoSnapDataContractTest`、製品`kritaflake`は621工程・1,274入力と各集合の完全一致を確認する。
+  未知target、5枠、対象CTest、20回反復、近傍、無作業再構築、動的接続、未解決snap・shape・canvas・painter記号、構文・変更行書式、公開API・`verify-quick`を確認する。
+  型特性と未評価式を越えてguide・strategy・shape・canvas・event・painter・view converterを生成または呼出し、Qt Widgets、製品OBJECT・shared、`kritatestsdk`、新link依存、
+  公開header・製品source変更、製品計画差、停止線超過が必要なら止める。
 
 ### 第130便の先行監査計画
 
