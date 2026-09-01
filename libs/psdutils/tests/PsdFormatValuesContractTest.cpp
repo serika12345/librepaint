@@ -22,6 +22,9 @@ using ShadowBase = psd_layer_effects_shadow_base;
 using OverlayBase = psd_layer_effects_overlay_base;
 using OverlayStroke = psd_layer_effects_stroke;
 using AdditionalLayerInfo = PsdAdditionalLayerInfoBlock;
+using GradientFill = psd_layer_gradient_fill;
+using PatternFill = psd_layer_pattern_fill;
+using SolidColorFill = psd_layer_solid_color;
 
 #define ASSERT_BEVEL_SIGNATURE(functionName, signatureType)                                                            \
     static_assert(std::is_same_v<decltype(static_cast<signatureType>(&BevelEmboss::functionName)), signatureType>)
@@ -34,6 +37,8 @@ using AdditionalLayerInfo = PsdAdditionalLayerInfoBlock;
 #define ASSERT_ADDITIONAL_LAYER_INFO_SIGNATURE(functionName, signatureType)                                            \
     static_assert(                                                                                                     \
         std::is_same_v<decltype(static_cast<signatureType>(&AdditionalLayerInfo::functionName)), signatureType>)
+#define ASSERT_FILL_SIGNATURE(typeName, functionName, signatureType)                                                   \
+    static_assert(std::is_same_v<decltype(static_cast<signatureType>(&typeName::functionName)), signatureType>)
 
 template<typename Resource>
 void verifyLegacyResourceAcceptsAndIgnoresPayloads()
@@ -139,6 +144,11 @@ private Q_SLOTS:
     void gradientFillTypeCodesAndSvgCompatibilityRemainStable();
     void patternFillDefaultsAndCopiesValueState();
     void patternFillSettersPreserveValues();
+    void gradientFillRepresentationSignaturesRemainStable();
+    void gradientFillInputAndSerializationSignaturesRemainStable();
+    void patternFillConversionSignaturesRemainStable();
+    void solidColorFillValueAndRepresentationSchemaRemainsStable();
+    void solidColorFillInputAndSerializationSignaturesRemainStable();
     void interpretedResourceDefaultsRemainStable();
     void resolutionInfoDefaultsAndCopiesRemainIndependent();
     void resolutionInfoBlocksRoundTripInMemory();
@@ -2649,6 +2659,64 @@ void PsdFormatValuesContractTest::patternFillSettersPreserveValues()
 
     fill.setAlignWithLayer(false);
     QVERIFY(!fill.align_with_layer);
+}
+
+void PsdFormatValuesContractTest::gradientFillRepresentationSignaturesRemainStable()
+{
+    ASSERT_FILL_SIGNATURE(GradientFill, getASLXML, QDomDocument (GradientFill::*)());
+    ASSERT_FILL_SIGNATURE(GradientFill, getBackground, QSharedPointer<KoShapeBackground> (GradientFill::*)());
+    ASSERT_FILL_SIGNATURE(GradientFill, getBrush, QBrush (GradientFill::*)());
+    ASSERT_FILL_SIGNATURE(GradientFill, getFillLayerConfig, QDomDocument (GradientFill::*)());
+    ASSERT_FILL_SIGNATURE(GradientFill, getGradient, QGradient * (GradientFill::*)());
+}
+
+void PsdFormatValuesContractTest::gradientFillInputAndSerializationSignaturesRemainStable()
+{
+    ASSERT_FILL_SIGNATURE(GradientFill, loadFromConfig, bool (GradientFill::*)(KisFilterConfigurationSP));
+    ASSERT_FILL_SIGNATURE(GradientFill, setFromQGradient, void (GradientFill::*)(const QGradient *));
+    ASSERT_FILL_SIGNATURE(GradientFill, setGradient, void (GradientFill::*)(const KoAbstractGradientSP &));
+    ASSERT_FILL_SIGNATURE(GradientFill,
+                          setupCatcher,
+                          void (*)(const QString, KisAslCallbackObjectCatcher &, GradientFill *));
+    ASSERT_FILL_SIGNATURE(GradientFill, writeASL, void (GradientFill::*)(KisAslXmlWriter &));
+}
+
+void PsdFormatValuesContractTest::patternFillConversionSignaturesRemainStable()
+{
+    ASSERT_FILL_SIGNATURE(PatternFill, getASLXML, QDomDocument (PatternFill::*)());
+    ASSERT_FILL_SIGNATURE(PatternFill,
+                          getBackground,
+                          QSharedPointer<KoShapeBackground> (PatternFill::*)(KisEmbeddedResourceStorageProxy &));
+    ASSERT_FILL_SIGNATURE(PatternFill, getBrush, QBrush (PatternFill::*)(KisEmbeddedResourceStorageProxy &));
+    ASSERT_FILL_SIGNATURE(PatternFill, getFillLayerConfig, QDomDocument (PatternFill::*)() const);
+    ASSERT_FILL_SIGNATURE(PatternFill, loadFromConfig, bool (PatternFill::*)(KisFilterConfigurationSP));
+    ASSERT_FILL_SIGNATURE(PatternFill, loadPattern, void (PatternFill::*)(KisEmbeddedResourceStorageProxy &));
+    ASSERT_FILL_SIGNATURE(PatternFill,
+                          setupCatcher,
+                          void (*)(const QString, KisAslCallbackObjectCatcher &, PatternFill *));
+    ASSERT_FILL_SIGNATURE(PatternFill, writeASL, void (PatternFill::*)(KisAslXmlWriter &));
+}
+
+void PsdFormatValuesContractTest::solidColorFillValueAndRepresentationSchemaRemainsStable()
+{
+    static_assert(std::is_class_v<SolidColorFill>);
+    static_assert(std::is_same_v<decltype(SolidColorFill::cs), const KoColorSpace *>);
+    static_assert(std::is_same_v<decltype(SolidColorFill::fill_color), KoColor>);
+
+    ASSERT_FILL_SIGNATURE(SolidColorFill, getASLXML, QDomDocument (SolidColorFill::*)());
+    ASSERT_FILL_SIGNATURE(SolidColorFill, getBackground, QSharedPointer<KoShapeBackground> (SolidColorFill::*)());
+    ASSERT_FILL_SIGNATURE(SolidColorFill, getBrush, QBrush (SolidColorFill::*)());
+    ASSERT_FILL_SIGNATURE(SolidColorFill, getFillLayerConfig, QDomDocument (SolidColorFill::*)());
+}
+
+void PsdFormatValuesContractTest::solidColorFillInputAndSerializationSignaturesRemainStable()
+{
+    ASSERT_FILL_SIGNATURE(SolidColorFill, loadFromConfig, bool (SolidColorFill::*)(KisFilterConfigurationSP));
+    ASSERT_FILL_SIGNATURE(SolidColorFill, setColor, void (SolidColorFill::*)(const KoColor &));
+    ASSERT_FILL_SIGNATURE(SolidColorFill,
+                          setupCatcher,
+                          void (*)(const QString, KisAslCallbackObjectCatcher &, SolidColorFill *));
+    ASSERT_FILL_SIGNATURE(SolidColorFill, writeASL, void (SolidColorFill::*)(KisAslXmlWriter &));
 }
 
 void PsdFormatValuesContractTest::interpretedResourceDefaultsRemainStable()
