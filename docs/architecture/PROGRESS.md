@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 22:15 JST
+- 更新日時: 2026-09-01 22:17 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -33,6 +33,37 @@
 - 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから契約先または
   移動先、許可path、固有停止条件、比較候補の棄却根拠を含む。既存`build/tdd-macos`の計画は読み取り専用で測定し、構成や構築を開始しない。3報告後にpath、CMake、
   試験source、生成物が重ならない候補だけを担当票へ進める。
+
+### 第130便の担当計画
+
+- 実装共通基点は`c78c0133ba5e9eef1845e68f51c4ba3d0e3fd7ff`である。config canvas、guides config、SVG text properties担当は`implementing`、構築許可は
+  指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、専用worktree-local
+  `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。統合順はconfig canvas、guides config、
+  SVG text propertiesとし、調整担当だけが`AGENTS.md`、architecture文書、公開API台帳、共通不足報告を変更する。3担当の公開header、所有CMake、試験source、生成物は重ならない。
+- `g130-config-canvas-schema`は`/Users/masato/Documents/librepaint-g130-config-canvas-schema`を所有する。開始`libs/application/kis_config.h`から既存
+  `libs/application/tests/KisConfigEnumContractTest.cpp`の5枠`canvasNavigationAndZoomSignaturesRemainStable`、
+  `canvasWorkspaceStateAndSplitSignaturesRemainStable`、`pasteWorkflowSignaturesRemainStable`、`toolOptionSurfaceSignaturesRemainStable`、
+  `editingToolBehaviorSignaturesRemainStable`へ42 APIを対応付け、他pathを変更しない。担当CMakeは`libs/application/tests/CMakeLists.txt`、対象は
+  `KisConfigEnumContractTest`、近傍は`KisActionEnumContractTest`である。対象4工程・15入力、停止5工程・18入力、製品`kritaapplication` 1,227工程・2,472入力と各集合の
+  完全一致を確認する。5枠の未知関数、対象CTest、20回反復、近傍、no-work、動的接続、未解決設定記号、構文・変更行書式、公開API・`verify-quick`を確認する。
+  KisConfig・設定・document・image・画面・platform service・大域状態の実体、method本文、製品OBJECT・shared、`kritatestsdk`、新依存、許可外変更、製品計画差、
+  停止線超過が必要なら止める。
+- `g130-guides-config-schema`は`/Users/masato/Documents/librepaint-g130-guides-config-schema`を所有する。開始`libs/ui/canvas/kis_guides_config.h`から新規
+  `libs/ui/tests/KisGuidesConfigSchemaContractTest.cpp`の5枠`guideValueIdentityAndEqualitySchemaRemainStable`、
+  `guidePositionCollectionAndTransformSignaturesRemainStable`、`guideVisibilityInteractionSignaturesRemainStable`、`guideUnitAndLineTypeSignaturesRemainStable`、
+  `guideColorAndPenSignaturesRemainStable`へ30 APIを対応付け、`libs/ui/tests/CMakeLists.txt`へheader限定対象を追加する。新対象4工程・8入力、停止5工程・11入力、近傍は
+  `KisGridConfigValueContractTest`、製品`kritaapplicationui` 1,970工程・3,940入力と各集合の完全一致を確認する。未知target、5枠、対象CTest、20回反復、近傍、no-work、
+  動的接続、未解決guide・設定・単位記号、構文・書式、公開API・`verify-quick`を確認する。guide・色・pen・widget・canvas・document・XML・KisConfig・設定I/O・大域状態の
+  実体、constructor・destructor・method本文または関数address値、Qt Widgets、製品OBJECT・shared、`kritatestsdk`、新たな非header依存、公開header・製品source変更、
+  製品計画差、停止線超過が必要なら止める。
+- `g130-svg-text-properties-schema`は`/Users/masato/Documents/librepaint-g130-svg-text-properties-schema`を所有する。開始
+  `libs/flake/text/KoSvgTextProperties.h`から既存`libs/flake/tests/KoSvgTextEnumContractTest.cpp`の5枠`textPropertyValueTypeAndLifetimeSchemaRemainsStable`、
+  `textPropertyValueMapSchemaRemainsStable`、`textPropertyInheritanceAndScalingSchemaRemainsStable`、
+  `textPropertyInterchangeAndFontProjectionSchemaRemainsStable`、`textPropertyMetricsAndSurfaceSchemaRemainsStable`へ全38 APIを対応付け、他pathを変更しない。担当CMakeは
+  `libs/flake/tests/CMakeLists.txt`、対象は`KoSvgTextEnumContractTest`、近傍は`KoSvgTextPropertiesModelSchemaContractTest`である。対象4工程・8入力、停止5工程・11入力、
+  製品`kritaflake` 621工程・1,274入力と各集合の完全一致を確認する。5枠の未知関数、対象CTest、20回反復、近傍、no-work、動的接続、未解決文字property・shape・font記号、
+  構文・変更行書式、公開API・`verify-quick`を確認する。実constructor・destructor・method本文、静的既定property、XML、loading context、font database、shape・文字配置・
+  resource・描画・大域状態、製品OBJECT・shared、`kritatestsdk`、新依存、許可外変更、製品計画差、停止線超過が必要なら止める。
 
 ### 第129便の先行監査計画
 
