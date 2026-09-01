@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 03:30 JST
+- 更新日時: 2026-09-02 03:40 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -32,6 +32,39 @@
 - 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから契約先または
   移動先、許可path、固有停止条件、比較候補の棄却根拠を含む。既存`build/tdd-macos`の計画は読み取り専用で測定し、構成や構築を開始しない。3報告後にpath、CMake、
   試験source、生成物が重ならない候補だけを担当票へ進める。
+
+### 第136便の担当計画
+
+- 実装共通基点は`d5b4d5e9a9b507466d10f47aa55756bc472642e3`である。shape stroke、store、angle selector担当は`ready`、構築許可は指定試験targetと軽量近傍だけの
+  `granted`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、専用worktree-local `build/tdd-macos`と主作業treeの
+  `/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。統合順はshape stroke、store、angle selectorとし、調整担当だけが`AGENTS.md`、
+  architecture文書、`docs/architecture/public-api-test-contracts.json`、共通不足報告を変更する。3担当の公開header、所有CMake、試験source、生成物は重ならない。
+- `g136-shape-stroke-schema`は`/Users/masato/Documents/librepaint-g136-shape-stroke-schema`を所有する。開始`libs/flake/KoShapeStroke.h`のclass、constructor・copy・代入・
+  destructor、cap・join・幅・miter、dash、色・brush・pen、描画・比較署名から新規`libs/flake/tests/KoShapeStrokeSchemaContractTest.cpp`の5枠
+  `shapeStrokeTypeAndLifetimeSchemaRemainStable`、`shapeStrokeLineGeometrySignaturesRemainStable`、`shapeStrokeDashPatternSignaturesRemainStable`、
+  `shapeStrokeColorBrushAndPenSignaturesRemainStable`、`shapeStrokeRenderingAndComparisonSignaturesRemainStable`へ全32 APIを対応付ける。許可pathは新規試験sourceと
+  `libs/flake/tests/CMakeLists.txt`だけである。新対象`KoShapeStrokeSchemaContractTest`は4工程・8入力、停止5工程・11入力、近傍は
+  `KoPatternBackgroundSchemaContractTest`、製品`kritaflake`は621工程・1,274入力と各集合の完全一致を確認する。未知target、5枠、対象CTest、20回反復、近傍、無作業再構築、
+  動的接続、未解決stroke・shape・marker・painter記号、構文・変更行書式、公開API・`verify-quick`を確認する。stroke・shape・marker・painter・brush・penを生成または呼出し、
+  `KoShapeStroke.cpp`、製品OBJECT・shared、`kritaflakeshapestrokemodelobjects`、`kritatestsdk`、Qt Core・Gui・Test以外の新link依存、公開header・製品source変更、製品計画差、
+  停止線超過が必要なら止める。
+- `g136-store-schema`は`/Users/masato/Documents/librepaint-g136-store-schema`を所有する。開始`libs/resources/storage/KoStore.h`のclass、Mode・Backendと全5値、destructor、
+  factory・開閉、data stream・位置、directory移動、抽出・設定操作から新規`libs/resources/storage/tests/KoStoreSchemaContractTest.cpp`の5枠
+  `storeTypeAndLifetimeSchemaRemainStable`、`storeCreationAndOpenStateSignaturesRemainStable`、`storeDataStreamAndPositionSignaturesRemainStable`、
+  `storeDirectoryNavigationSignaturesRemainStable`、`storeExtractionAndConfigurationSignaturesRemainStable`へ全37 APIを対応付ける。許可pathは新規試験sourceと
+  `libs/resources/storage/tests/CMakeLists.txt`だけである。新対象`KoStoreSchemaContractTest`は4工程・8入力、停止5工程・11入力、近傍は`StoreDebugContractTest`、製品
+  `kritaresourcestorage`は9工程・21入力と各集合の完全一致を確認する。未知target、5枠、対象CTest、20回反復、近傍、無作業再構築、動的接続、未解決store・archive・
+  backend記号、構文・変更行書式、公開API・`verify-quick`を確認する。store・QIODevice・archive・backend・filesystemを生成または呼出し、factory・member本文・RTTI・vtable、
+  `KoStore.cpp`、製品OBJECT・shared、`kritatestsdk`、Qt Core・Test以外の新link依存、公開header・製品source変更、製品計画差、停止線超過が必要なら止める。
+- `g136-angle-selector-schema`は`/Users/masato/Documents/librepaint-g136-angle-selector-schema`を所有する。開始`libs/libkis/AngleSelector.h`のclass、constructor・destructor・
+  widget・通知、主角度、範囲・精度・wrap、表示、角度変換から新規`libs/libkis/tests/AngleSelectorSchemaContractTest.cpp`の5枠
+  `angleSelectorTypeAndViewSchemaRemainsStable`、`angleSelectorPrimaryAngleSchemaRemainsStable`、`angleSelectorRangePrecisionAndWrappingSchemaRemainStable`、
+  `angleSelectorPresentationSchemaRemainsStable`、`angleSelectorTransformSchemaRemainsStable`へ全36 APIを対応付ける。許可pathは新規試験sourceと
+  `libs/libkis/tests/CMakeLists.txt`だけである。新対象`AngleSelectorSchemaContractTest`は4工程・8入力、停止5工程・11入力、近傍は
+  `KisAngleSelectorSchemaContractTest`、製品`kritalibkis`は2,018工程・4,034入力と各集合の完全一致を確認する。未知target、5枠、対象CTest、20回反復、近傍、無作業再構築、
+  動的接続、未解決AngleSelector・KisAngleSelector・metaobject記号、構文・変更行書式、公開API・`verify-quick`を確認する。AngleSelector・KisAngleSelector・QWidgetを
+  生成または呼出し、QApplication・画面・event loop・signal・metaobject・style・icon・翻訳処理、`AngleSelector.cpp`、製品OBJECT・shared、`kritatestsdk`、Qt Core・Gui・
+  Widgets・Test以外の新link依存、公開header・製品source変更、製品計画差、停止線超過が必要なら止める。
 
 ### 第135便の先行監査計画
 
