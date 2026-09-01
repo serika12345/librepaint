@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 10:38 JST
+- 更新日時: 2026-09-01 10:55 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -179,6 +179,27 @@
 - SVG担当は変更なし計画と直接依存、未知対象診断、限定構築、5枠、対象CTest、20回反復、`KoSvgTextEnumContractTest`とfont variant近傍、無作業再構築、
   動的接続、source構文、公開API検査、`verify-quick`を確認する。除外した2 `operator==`・2 `debugInfo`、QDebug・QDataStream、parse・write、metaobject、
   実shape・font registry・HarfBuzz・FreeType・描画、製品OBJECT・shared、`kritatestsdk`、公開header、停止線超過が必要なら止める。
+
+### 第108並列便の統合結果
+
+- `g108-psd-fill-layer-values`は受渡しcommit `afc6df95ba58`と同一patchを統合commit `91f011910d`として取り込んだ。開始
+  `libs/psd/psd_additional_layer_info_block.h`から既存`libs/psdutils/tests/PsdFormatValuesContractTest.cpp`の5枠へ、gradient塗りの既定値・copy・setter・
+  種別code・SVG互換性とpattern塗りの既定値・copy・setterの33 APIを対応付けた。製品sourceとCMakeを変更せず、対象は5工程・12入力、製品
+  `kritapsd`は1,977工程・3,952入力で不変である。
+- `g108-config-schema`は受渡しcommit `178cc9c1c0c1`と同一patchを統合commit `f076642fd5`として取り込んだ。開始
+  `libs/application/kis_config.h`から既存`libs/application/tests/KisConfigEnumContractTest.cpp`の5枠へ、入力・sampler、canvas surface、session・色、
+  選択操作欄、表示・補助線の設定schema 45 APIを対応付けた。未評価の関数型検査だけを用い、`KisConfig`、`QSettings`、`QSurfaceFormat`を生成・呼出しせず、
+  対象4工程・15入力、製品`kritaapplication`は1,223工程・2,464入力で不変である。
+- `g108-svg-font-selection`は受渡しcommit `780aae365882`と同一patchを統合commit `a87afaccab`として取り込んだ。開始
+  `libs/flake/text/KoSvgText.h`から新規`libs/flake/tests/KoSvgTextFontSelectionValueContractTest.cpp`の5枠へ、可変font軸、style候補、合字、数字、
+  東アジア字形の40 APIを対応付け、`libs/flake/tests/CMakeLists.txt`へQt Gui・Test・Xmlだけのheader限定対象を追加した。対象は4工程・8入力で、
+  実shape、font registry、HarfBuzz、FreeType、製品`kritaflake`へ接続していない。
+- 主macOS環境では追加15枠、3対象CTest、各20回反復、近傍`PsdByteIoContractTest`、`KisActionEnumContractTest`、
+  `KoSvgTextEnumContractTest`とfont variant 3対象、再構築時の無コンパイル・無リンク、動的接続、未解決製品記号を確認した。公開API契約検査は118 APIを
+  重複なく受理し、29,838件中10,742件対応、19,096件未対応となった。最新入力は`build/tdd-macos/public-api-missing-g109.json`である。Linux、
+  全native検証、製品全体構築は実行していない。
+- 新報告と受渡しpatchの同一性、3 worktreeのclean状態を確認後、旧`public-api-missing-g108.json` 4.7 MB、PSD担当630 MB、設定担当634 MB、
+  SVG担当639 MBと3 branchを削除し、約1.90 GBを回収した。主`build/tdd-macos`、共有compiler cache、最新不足報告は次便の限定構築へ再利用する。
 
 ### 第105並列便の監査計画
 
@@ -12638,10 +12659,9 @@
 
 ## 次の操作
 
-`build/tdd-macos/public-api-missing-g106.json`から第106並列便の非重複候補を3担当で監査する。第105便で除外した実Widget接続、
-SvgGraphicsContextのout-of-line実装、FontMetricsの演算・変換は依存境界を分離する根拠が得られるまで保留し、別の所有pathから25 API以上を
-最大5枠、限定対象か一sourceの一対一構築所有で固定できる候補を優先する。監査結果を担当票へ確定する前に、変更なし計画、直接依存、
-予測閉包、製品shared library・`kritatestsdk`非接続、許可pathと停止線を照合する。
+`build/tdd-macos/public-api-missing-g109.json`から第109並列便の非重複候補を3担当で監査する。第108便で除外した欠陥疑いのfont比較・診断、
+資源registryや設定I/Oへ到達する経路は保留し、別の所有pathから25 API以上を最大5枠、限定対象か一sourceの一対一構築所有で固定できる候補を優先する。
+監査結果を担当票へ確定する前に、変更なし計画、直接依存、予測閉包、製品shared library・`kritatestsdk`非接続、許可pathと停止線を照合する。
 
 ## R1-G5完了根拠
 

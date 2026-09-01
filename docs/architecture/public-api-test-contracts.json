@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 19214
+    "expectedMissingApis": 19096
   },
   "contracts": [
     {
@@ -8559,6 +8559,7 @@
       "behavior": "タッチ描画方針と色採取プレビュー形状は設定保存で共有する0始まりの宣言順を維持する。",
       "classification": "maintained",
       "apis": [
+        "class:KisConfig",
         "enum:KisConfig::ColorSamplerPreviewStyle",
         "enum:KisConfig::TouchPainting",
         "enumerator:KisConfig::ColorSamplerPreviewStyle::Circle",
@@ -8569,7 +8570,20 @@
         "enumerator:KisConfig::ColorSamplerPreviewStyle::RectangleRight",
         "enumerator:KisConfig::TouchPainting::TOUCH_PAINTING_AUTO",
         "enumerator:KisConfig::TouchPainting::TOUCH_PAINTING_DISABLED",
-        "enumerator:KisConfig::TouchPainting::TOUCH_PAINTING_ENABLED"
+        "enumerator:KisConfig::TouchPainting::TOUCH_PAINTING_ENABLED",
+        "method:KisConfig::colorSamplerPreviewCircleDiameter(bool defaultValue=false) const",
+        "method:KisConfig::colorSamplerPreviewCircleExtraCirclesEnabled(bool defaultValue=false) const",
+        "method:KisConfig::colorSamplerPreviewCircleOutlineEnabled(bool defaultValue=false) const",
+        "method:KisConfig::colorSamplerPreviewCircleThickness(bool defaultValue=false) const",
+        "method:KisConfig::colorSamplerPreviewStyle(bool defaultValue=false) const",
+        "method:KisConfig::disableTouchOnCanvas() const",
+        "method:KisConfig::setColorSamplerPreviewCircleDiameter(int style)",
+        "method:KisConfig::setColorSamplerPreviewCircleExtraCirclesEnabled(bool enabled)",
+        "method:KisConfig::setColorSamplerPreviewCircleOutlineEnabled(bool enabled)",
+        "method:KisConfig::setColorSamplerPreviewCircleThickness(qreal thickness)",
+        "method:KisConfig::setColorSamplerPreviewStyle(ColorSamplerPreviewStyle style)",
+        "method:KisConfig::setTouchPainting(TouchPainting value) const",
+        "method:KisConfig::touchPainting(bool defaultValue=false) const"
       ]
     },
     {
@@ -8588,7 +8602,16 @@
         "enumerator:KisConfig::CanvasSurfaceMode::Rec2020pq",
         "enumerator:KisConfig::CanvasSurfaceMode::Rec709g10",
         "enumerator:KisConfig::CanvasSurfaceMode::Rec709g22",
-        "enumerator:KisConfig::CanvasSurfaceMode::Unmanaged"
+        "enumerator:KisConfig::CanvasSurfaceMode::Unmanaged",
+        "method:KisConfig::canvasSurfaceBitDepthMode(QSettings * settings,bool defaultValue=false)",
+        "method:KisConfig::canvasSurfaceBitDepthMode(bool defaultValue=false) const",
+        "method:KisConfig::canvasSurfaceColorSpaceManagementMode(bool defaultValue=false) const",
+        "method:KisConfig::effectiveCanvasSurfaceBitDepthMode(const QSurfaceFormat & format) const",
+        "method:KisConfig::enableCanvasSurfaceColorSpaceManagement(bool defaultValue=false) const",
+        "method:KisConfig::setCanvasSurfaceBitDepthMode(CanvasSurfaceBitDepthMode value)",
+        "method:KisConfig::setCanvasSurfaceBitDepthMode(QSettings * settings,CanvasSurfaceBitDepthMode value)",
+        "method:KisConfig::setCanvasSurfaceColorSpaceManagementMode(CanvasSurfaceMode value)",
+        "method:KisConfig::setEnableCanvasSurfaceColorSpaceManagement(bool value)"
       ]
     },
     {
@@ -8613,7 +8636,15 @@
         "enumerator:KisConfig::OcioColorManagementMode::OCIO_ENVIRONMENT",
         "enumerator:KisConfig::SessionOnStartup::SOS_BlankSession",
         "enumerator:KisConfig::SessionOnStartup::SOS_PreviousSession",
-        "enumerator:KisConfig::SessionOnStartup::SOS_ShowSessionManager"
+        "enumerator:KisConfig::SessionOnStartup::SOS_ShowSessionManager",
+        "method:KisConfig::defaultBackgroundStyle(bool defaultValue=false) const",
+        "method:KisConfig::iconsInMenu(bool defaultValue=false) const",
+        "method:KisConfig::ocioColorManagementMode(bool defaultValue=false) const",
+        "method:KisConfig::sessionOnStartup(bool defaultValue=false) const",
+        "method:KisConfig::setDefaultBackgroundStyle(BackgroundStyle value)",
+        "method:KisConfig::setIconsInMenu(IconsInMenu value)",
+        "method:KisConfig::setOcioColorManagementMode(OcioColorManagementMode mode) const",
+        "method:KisConfig::setSessionOnStartup(SessionOnStartup value)"
       ]
     },
     {
@@ -8637,7 +8668,13 @@
         "enumerator:KisConfig::SelectionActionsBarPosition::Right",
         "enumerator:KisConfig::SelectionActionsBarPosition::Top",
         "enumerator:KisConfig::SelectionActionsBarPosition::TopLeft",
-        "enumerator:KisConfig::SelectionActionsBarPosition::TopRight"
+        "enumerator:KisConfig::SelectionActionsBarPosition::TopRight",
+        "method:KisConfig::selectionActionBarBehavior(bool defaultValue=false) const",
+        "method:KisConfig::selectionActionBarOrientation(bool defaultValue=false) const",
+        "method:KisConfig::selectionActionBarPosition(bool defaultValue=false) const",
+        "method:KisConfig::setSelectionActionBarBehavior(SelectionActionsBarBehavior value)",
+        "method:KisConfig::setSelectionActionBarOrientation(SelectionActionsBarOrientation value)",
+        "method:KisConfig::setSelectionActionBarPosition(SelectionActionsBarPosition value)"
       ]
     },
     {
@@ -8659,7 +8696,15 @@
         "enumerator:KisConfig::LayerInfoTextStyle::INFOTEXT_SIMPLE",
         "enumerator:KisConfig::RootSurfaceFormat::BT2020_PQ",
         "enumerator:KisConfig::RootSurfaceFormat::BT709_G10",
-        "enumerator:KisConfig::RootSurfaceFormat::BT709_G22"
+        "enumerator:KisConfig::RootSurfaceFormat::BT709_G22",
+        "method:KisConfig::assistantsDrawMode(bool defaultValue=false) const",
+        "method:KisConfig::layerInfoTextStyle(bool defaultValue=false) const",
+        "method:KisConfig::rootSurfaceFormat(QSettings * displayrc,bool defaultValue=false)",
+        "method:KisConfig::rootSurfaceFormat(bool defaultValue=false) const",
+        "method:KisConfig::setAssistantsDrawMode(AssistantsDrawMode value)",
+        "method:KisConfig::setLayerInfoTextStyle(LayerInfoTextStyle value)",
+        "method:KisConfig::setRootSurfaceFormat(QSettings * displayrc,RootSurfaceFormat value)",
+        "method:KisConfig::setRootSurfaceFormat(RootSurfaceFormat value)"
       ]
     },
     {
@@ -33508,6 +33553,169 @@
         "enumerator:KisTagModel::StorageFilter::ShowActiveStorages",
         "enumerator:KisTagModel::StorageFilter::ShowAllStorages",
         "enumerator:KisTagModel::StorageFilter::ShowInactiveStorages"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::gradientFillDefaultsAndCopiesValueState",
+      "behavior": "PSDグラデーション塗りは線形・100%・原点配置の既定値を持ち、画像寸法と所有値を複製元から独立して保持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:psd_layer_gradient_fill::align_with_layer",
+        "member:psd_layer_gradient_fill::angle",
+        "member:psd_layer_gradient_fill::dithered",
+        "member:psd_layer_gradient_fill::gradient",
+        "member:psd_layer_gradient_fill::imageHeight",
+        "member:psd_layer_gradient_fill::imageWidth",
+        "member:psd_layer_gradient_fill::offset",
+        "member:psd_layer_gradient_fill::repeat",
+        "member:psd_layer_gradient_fill::reverse",
+        "member:psd_layer_gradient_fill::scale",
+        "member:psd_layer_gradient_fill::style",
+        "struct:psd_layer_gradient_fill"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::gradientFillScalarSettersPreserveSignedValues",
+      "behavior": "PSDグラデーション塗りの尺度・角度・位置setterは符号付き入力を保存し、配置・反転・dither指定を独立して切り替える。",
+      "classification": "maintained",
+      "apis": [
+        "method:psd_layer_gradient_fill::setAlignWithLayer(bool align)",
+        "method:psd_layer_gradient_fill::setAngle(float Angl)",
+        "method:psd_layer_gradient_fill::setDither(bool Dthr)",
+        "method:psd_layer_gradient_fill::setOffset(QPointF Ofst)",
+        "method:psd_layer_gradient_fill::setReverse(bool Rvrs)",
+        "method:psd_layer_gradient_fill::setScale(float Scl)"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::gradientFillTypeCodesAndSvgCompatibilityRemainStable",
+      "behavior": "PSDグラデーション種別codeは線形・放射・円錐・反射・四角形の様式へ対応し、SVG互換性を線形と放射だけに分類する。",
+      "classification": "maintained",
+      "apis": [
+        "method:psd_layer_gradient_fill::setType(const QString type)",
+        "method:psd_layer_gradient_fill::svgCompatible()"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::patternFillDefaultsAndCopiesValueState",
+      "behavior": "PSDパターン塗りは100%・原点配置の空参照を既定値とし、参照名、識別子、位置、尺度を複製元から独立して保持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:psd_layer_pattern_fill::align_with_layer",
+        "member:psd_layer_pattern_fill::angle",
+        "member:psd_layer_pattern_fill::offset",
+        "member:psd_layer_pattern_fill::pattern",
+        "member:psd_layer_pattern_fill::patternID",
+        "member:psd_layer_pattern_fill::patternName",
+        "member:psd_layer_pattern_fill::scale",
+        "struct:psd_layer_pattern_fill"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::patternFillSettersPreserveValues",
+      "behavior": "PSDパターン塗りのsetterは配置、符号付き角度・尺度・位置、パターン識別子と名前をそのまま保存する。",
+      "classification": "maintained",
+      "apis": [
+        "method:psd_layer_pattern_fill::setAlignWithLayer(bool align)",
+        "method:psd_layer_pattern_fill::setAngle(float Angl)",
+        "method:psd_layer_pattern_fill::setOffset(QPointF phase)",
+        "method:psd_layer_pattern_fill::setPatternRef(const QString Idnt,const QString name)",
+        "method:psd_layer_pattern_fill::setScale(float Scl)"
+      ]
+    },
+    {
+      "target": "KoSvgTextFontSelectionValueContractTest",
+      "source": "libs/flake/tests/KoSvgTextFontSelectionValueContractTest.cpp",
+      "test": "KoSvgTextFontSelectionValueContractTest::fontFamilyAxesPreserveDefaultsFactoriesAndOwnedValues",
+      "behavior": "可変font軸は既定範囲と状態を持ち、weight・width・slant生成値および局所化名を複製元から独立して保持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KoSvgText::FontFamilyAxis::axisHidden",
+        "member:KoSvgText::FontFamilyAxis::defaultValue",
+        "member:KoSvgText::FontFamilyAxis::localizedLabels",
+        "member:KoSvgText::FontFamilyAxis::max",
+        "member:KoSvgText::FontFamilyAxis::min",
+        "member:KoSvgText::FontFamilyAxis::tag",
+        "member:KoSvgText::FontFamilyAxis::value",
+        "member:KoSvgText::FontFamilyAxis::variableAxis",
+        "method:KoSvgText::FontFamilyAxis::FontFamilyAxis()",
+        "method:KoSvgText::FontFamilyAxis::FontFamilyAxis(QString _tag,qreal _value)",
+        "method:KoSvgText::FontFamilyAxis::slantAxis(qreal val)",
+        "method:KoSvgText::FontFamilyAxis::weightAxis(qreal val)",
+        "method:KoSvgText::FontFamilyAxis::widthAxis(qreal val)",
+        "struct:KoSvgText::FontFamilyAxis"
+      ]
+    },
+    {
+      "target": "KoSvgTextFontSelectionValueContractTest",
+      "source": "libs/flake/tests/KoSvgTextFontSelectionValueContractTest.cpp",
+      "test": "KoSvgTextFontSelectionValueContractTest::fontFamilyStylesOwnLabelsCoordinatesAndFlags",
+      "behavior": "font様式情報は局所化名、軸座標、斜体・斜行体状態を空で初期化し、複製元から独立して所有する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KoSvgText::FontFamilyStyleInfo::instanceCoords",
+        "member:KoSvgText::FontFamilyStyleInfo::isItalic",
+        "member:KoSvgText::FontFamilyStyleInfo::isOblique",
+        "member:KoSvgText::FontFamilyStyleInfo::localizedLabels",
+        "struct:KoSvgText::FontFamilyStyleInfo"
+      ]
+    },
+    {
+      "target": "KoSvgTextFontSelectionValueContractTest",
+      "source": "libs/flake/tests/KoSvgTextFontSelectionValueContractTest.cpp",
+      "test": "KoSvgTextFontSelectionValueContractTest::ligaturesGenerateFeaturesFromIndependentFlags",
+      "behavior": "合字指定は共通合字と文脈代替を既定で有効にし、4指定から範囲付きOpenType機能を安定順序で生成する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KoSvgText::FontFeatureLigatures::commonLigatures",
+        "member:KoSvgText::FontFeatureLigatures::contextualAlternates",
+        "member:KoSvgText::FontFeatureLigatures::discretionaryLigatures",
+        "member:KoSvgText::FontFeatureLigatures::historicalLigatures",
+        "method:KoSvgText::FontFeatureLigatures::fontFeatures(const int start,const int end)",
+        "method:KoSvgText::FontFeatureLigatures::operator ==(const FontFeatureLigatures & other) const",
+        "struct:KoSvgText::FontFeatureLigatures"
+      ]
+    },
+    {
+      "target": "KoSvgTextFontSelectionValueContractTest",
+      "source": "libs/flake/tests/KoSvgTextFontSelectionValueContractTest.cpp",
+      "test": "KoSvgTextFontSelectionValueContractTest::numericVariantsGenerateFeaturesInStableOrder",
+      "behavior": "数字異体指定は字形、間隔、分数、序数、斜線付きzeroから範囲付きOpenType機能を安定順序で生成する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KoSvgText::FontFeatureNumeric::fractions",
+        "member:KoSvgText::FontFeatureNumeric::ordinals",
+        "member:KoSvgText::FontFeatureNumeric::slashedZero",
+        "member:KoSvgText::FontFeatureNumeric::spacing",
+        "member:KoSvgText::FontFeatureNumeric::style",
+        "method:KoSvgText::FontFeatureNumeric::fontFeatures(const int start,const int end)",
+        "method:KoSvgText::FontFeatureNumeric::operator ==(const FontFeatureNumeric & other) const",
+        "struct:KoSvgText::FontFeatureNumeric"
+      ]
+    },
+    {
+      "target": "KoSvgTextFontSelectionValueContractTest",
+      "source": "libs/flake/tests/KoSvgTextFontSelectionValueContractTest.cpp",
+      "test": "KoSvgTextFontSelectionValueContractTest::eastAsianVariantsGenerateFeaturesInStableOrder",
+      "behavior": "東アジア字形指定は地域字形、全角・比例幅、ruby指定から範囲付きOpenType機能を安定順序で生成する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KoSvgText::FontFeatureEastAsian::ruby",
+        "member:KoSvgText::FontFeatureEastAsian::variant",
+        "member:KoSvgText::FontFeatureEastAsian::width",
+        "method:KoSvgText::FontFeatureEastAsian::fontFeatures(const int start,const int end)",
+        "method:KoSvgText::FontFeatureEastAsian::operator ==(const FontFeatureEastAsian & other) const",
+        "struct:KoSvgText::FontFeatureEastAsian"
       ]
     }
   ]
