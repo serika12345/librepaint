@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 20:51 JST
+- 更新日時: 2026-09-01 20:54 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -34,6 +34,38 @@
 - 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから
   契約先または移動先、許可path、固有停止条件、比較候補の棄却根拠を含む。既存`build/tdd-macos`の計画は読み取り専用で測定し、構成や構築を開始しない。3報告後に
   path、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
+
+### 第128便の担当計画
+
+- 実装共通基点は`5eba25f8a1488dfc543aff5776439b0722d55963`である。3担当は`preparing`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの
+  `transport-commit`、追加委任は禁止する。専用worktree-local `build/tdd-macos`と主作業treeの
+  `/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。統合順はproperties configuration、composite operation、resource storageとし、
+  調整担当だけが台帳、進捗文書、不足報告を変更する。3担当の公開header、製品source、所有CMake、試験source、生成物は重ならない。
+- `g128-properties-configuration-schema`は`/Users/masato/Documents/librepaint-g128-properties-configuration-schema`を所有する。開始
+  `libs/image/kis_properties_configuration.h`から新規`libs/image/tests/KisPropertiesConfigurationSchemaContractTest.cpp`の5枠
+  `propertyMapSurfaceAndMutationSignaturesRemainStable`、`typedPropertyConversionAndDefaultSignaturesRemainStable`、
+  `prefixedPropertyTransferSignaturesRemainStable`、`propertyXmlSerializationSignaturesRemainStable`、`propertyKeyAndStringEncodingSignaturesRemainStable`へ34 APIを
+  対応付け、`libs/image/tests/CMakeLists.txt`へheader限定対象を追加する。新対象4工程・8入力、停止5工程・10入力、製品`kritaimage` 1,194工程・2,412入力の
+  完全一致を確認する。未知target、5枠、対象CTest、20回反復、`KisImageConfigResourceBudgetSchemaContractTest`、no-work、動的接続、未解決設定・色・曲線・XML記号、
+  構文・書式・公開API・`verify-quick`を確認する。設定・色・曲線・XML実体、constructor・destructor・method・template本文、image・node・device・resource・registry・
+  filesystem・大域状態、製品OBJECT・shared、`kritatestsdk`、Qt Xmlまたは他の新link依存、公開header・製品source/CMake変更、製品計画差、停止線超過が必要なら止める。
+- `g128-composite-op-schema`は`/Users/masato/Documents/librepaint-g128-composite-op-schema`を所有する。開始`libs/pigment/KoCompositeOp.cpp`から新規
+  `libs/pigment/KoCompositeOpParameterInfo.cpp`へ`ParameterInfo`のdefault・copy・assignment・opacity操作と非公開copyを本文不変で移し、新規
+  `kritapigmentcompositeparameterinfoobjects`を製品と限定試験へ一対一収容する。`KoCompositeOp.h`から新規
+  `libs/pigment/tests/KoCompositeOpSchemaContractTest.cpp`の5枠`compositeParameterBufferDefaultsRemainStable`、
+  `compositeParameterOpacityAndCopyBehaviorRemainStable`、`compositeCategorySignaturesRemainStable`、`compositeIdentityAndLifecycleSignaturesRemainStable`、
+  `compositeInvocationSignaturesRemainStable`へ全41 APIを対応付ける。許可pathは上記3 sourceと`libs/pigment/CMakeLists.txt`、`libs/pigment/tests/CMakeLists.txt`だけである。
+  新対象5工程・11入力、停止6工程・14入力、製品`kritapigment` 366工程・762入力から367工程・764入力、停止368/767とする。未知target、先行未定義link、5枠、対象CTest、
+  20回反復、`KoCompositeOpIdsContractTest`、no-work、動的接続、未解決合成・registry記号、移管記号の単一定義、構文・書式・公開API・`verify-quick`を確認する。
+  実合成演算、pixel buffer、色空間・profile、registry、大域状態、描画、pointer参照先、Qt Gui・KF、新たな製品shared・`kritatestsdk`接続、二つ目の移管source、公開header変更、
+  許容した一翻訳単位以外の製品計画差、停止線超過が必要なら止める。
+- `g128-resource-storage-schema`は`/Users/masato/Documents/librepaint-g128-resource-storage-schema`を所有する。開始`libs/resources/KisResourceStorage.h`から既存
+  `libs/resources/tests/KisResourceModelEnumContractTest.cpp`の5枠`storageResourceItemSchemaRemainsStable`、
+  `storageResourceIteratorNavigationSchemaRemainsStable`、`storageResourceIteratorValueSchemaRemainsStable`、`storageTagIteratorSchemaRemainsStable`、
+  `storageLookupAndEnumerationSchemaRemainsStable`へ27 APIを対応付け、他pathを変更しない。対象4工程・9入力、停止5工程・11入力、製品`kritaresources` 150工程・327入力と
+  各集合の完全一致を確認する。5枠の未知関数、対象CTest、20回反復、`KisTagModelSchemaContractTest`、no-work、動的接続、未解決storage・resource・tag記号、構文・書式・
+  公開API・`verify-quick`を確認する。storage・iterator・resource・tag実体、遅延読込、bundle・database・filesystem・plugin registry、static metadata値、GUI・大域状態、
+  製品OBJECT・shared、`kritatestsdk`、新依存、CMake・header・製品source変更、製品計画差、停止線超過が必要なら止める。
 
 ### 第127便の先行監査計画
 
