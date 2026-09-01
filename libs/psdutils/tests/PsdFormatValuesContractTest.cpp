@@ -86,6 +86,11 @@ private Q_SLOTS:
     void gradientMapStopSequencesPreserveCountsAndPointerIdentity();
     void gradientMapProceduralControlsPreserveSignedValues();
     void gradientMapColorTableCopiesInlineValuesIndependently();
+    void layerRecordSerializedFieldTypesRemainStable();
+    void layerMaskRectanglePreservesSignedCoordinates();
+    void layerMaskControlsPreserveDefaultsAndCopyState();
+    void layerBlendingRangePreservesEndpointArrays();
+    void layerBlendingRangesPreserveValueCopies();
     void gradientFillDefaultsAndCopiesValueState();
     void gradientFillScalarSettersPreserveSignedValues();
     void gradientFillTypeCodesAndSvgCompatibilityRemainStable();
@@ -1793,6 +1798,213 @@ void PsdFormatValuesContractTest::gradientMapColorTableCopiesInlineValuesIndepen
     QCOMPARE(gradient.lookup_table[0], QColor(5, 6, 7, 8));
     QCOMPARE(gradient.lookup_table[127], QColor(101, 102, 103, 104));
     QCOMPARE(gradient.lookup_table[255], QColor(201, 202, 203, 204));
+}
+
+void PsdFormatValuesContractTest::layerRecordSerializedFieldTypesRemainStable()
+{
+    using LayerMaskData = PSDLayerRecord::LayerMaskData;
+    using LayerBlendingRanges = PSDLayerRecord::LayerBlendingRanges;
+
+    static_assert(std::is_same_v<decltype(&PSDLayerRecord::top), qint32 PSDLayerRecord::*>);
+    static_assert(std::is_same_v<decltype(&PSDLayerRecord::left), qint32 PSDLayerRecord::*>);
+    static_assert(std::is_same_v<decltype(&PSDLayerRecord::bottom), qint32 PSDLayerRecord::*>);
+    static_assert(std::is_same_v<decltype(&PSDLayerRecord::right), qint32 PSDLayerRecord::*>);
+    static_assert(std::is_same_v<decltype(&PSDLayerRecord::nChannels), quint16 PSDLayerRecord::*>);
+    static_assert(std::is_same_v<decltype(&PSDLayerRecord::blendModeKey), QString PSDLayerRecord::*>);
+    static_assert(std::is_same_v<decltype(&PSDLayerRecord::isPassThrough), bool PSDLayerRecord::*>);
+    static_assert(std::is_same_v<decltype(&PSDLayerRecord::opacity), quint8 PSDLayerRecord::*>);
+    static_assert(std::is_same_v<decltype(&PSDLayerRecord::clipping), quint8 PSDLayerRecord::*>);
+    static_assert(std::is_same_v<decltype(&PSDLayerRecord::transparencyProtected), bool PSDLayerRecord::*>);
+    static_assert(std::is_same_v<decltype(&PSDLayerRecord::visible), bool PSDLayerRecord::*>);
+    static_assert(std::is_same_v<decltype(&PSDLayerRecord::irrelevant), bool PSDLayerRecord::*>);
+    static_assert(std::is_same_v<decltype(&PSDLayerRecord::labelColor), int PSDLayerRecord::*>);
+    static_assert(std::is_same_v<decltype(&PSDLayerRecord::fillType), psd_fill_type PSDLayerRecord::*>);
+    static_assert(std::is_same_v<decltype(&PSDLayerRecord::layerMask), LayerMaskData PSDLayerRecord::*>);
+    static_assert(std::is_same_v<decltype(&PSDLayerRecord::blendingRanges), LayerBlendingRanges PSDLayerRecord::*>);
+    static_assert(std::is_same_v<decltype(&PSDLayerRecord::layerName), QString PSDLayerRecord::*>);
+}
+
+void PsdFormatValuesContractTest::layerMaskRectanglePreservesSignedCoordinates()
+{
+    using LayerMaskData = PSDLayerRecord::LayerMaskData;
+
+    static_assert(std::is_aggregate_v<LayerMaskData>);
+    static_assert(std::is_same_v<decltype(LayerMaskData::top), qint32>);
+    static_assert(std::is_same_v<decltype(LayerMaskData::left), qint32>);
+    static_assert(std::is_same_v<decltype(LayerMaskData::bottom), qint32>);
+    static_assert(std::is_same_v<decltype(LayerMaskData::right), qint32>);
+
+    LayerMaskData mask{};
+    QCOMPARE(mask.top, qint32(0));
+    QCOMPARE(mask.left, qint32(0));
+    QCOMPARE(mask.bottom, qint32(0));
+    QCOMPARE(mask.right, qint32(0));
+
+    mask.top = -4096;
+    mask.left = -2048;
+    mask.bottom = 8192;
+    mask.right = 16384;
+
+    LayerMaskData copy = mask;
+    QCOMPARE(copy.top, qint32(-4096));
+    QCOMPARE(copy.left, qint32(-2048));
+    QCOMPARE(copy.bottom, qint32(8192));
+    QCOMPARE(copy.right, qint32(16384));
+
+    copy.top = -1;
+    copy.left = -2;
+    copy.bottom = 3;
+    copy.right = 4;
+    QCOMPARE(mask.top, qint32(-4096));
+    QCOMPARE(mask.left, qint32(-2048));
+    QCOMPARE(mask.bottom, qint32(8192));
+    QCOMPARE(mask.right, qint32(16384));
+}
+
+void PsdFormatValuesContractTest::layerMaskControlsPreserveDefaultsAndCopyState()
+{
+    using LayerMaskData = PSDLayerRecord::LayerMaskData;
+
+    static_assert(std::is_same_v<decltype(LayerMaskData::defaultColor), quint8>);
+    static_assert(std::is_same_v<decltype(LayerMaskData::positionedRelativeToLayer), bool>);
+    static_assert(std::is_same_v<decltype(LayerMaskData::disabled), bool>);
+    static_assert(std::is_same_v<decltype(LayerMaskData::invertLayerMaskWhenBlending), bool>);
+    static_assert(std::is_same_v<decltype(LayerMaskData::userMaskDensity), quint8>);
+    static_assert(std::is_same_v<decltype(LayerMaskData::userMaskFeather), double>);
+    static_assert(std::is_same_v<decltype(LayerMaskData::vectorMaskDensity), quint8>);
+    static_assert(std::is_same_v<decltype(LayerMaskData::vectorMaskFeather), double>);
+
+    LayerMaskData mask{};
+    QCOMPARE(mask.defaultColor, quint8(255));
+    QVERIFY(!mask.positionedRelativeToLayer);
+    QVERIFY(!mask.disabled);
+    QVERIFY(!mask.invertLayerMaskWhenBlending);
+    QCOMPARE(mask.userMaskDensity, quint8(0));
+    QCOMPARE(mask.userMaskFeather, 0.0);
+    QCOMPARE(mask.vectorMaskDensity, quint8(0));
+    QCOMPARE(mask.vectorMaskFeather, 0.0);
+
+    mask.defaultColor = 0;
+    mask.positionedRelativeToLayer = true;
+    mask.disabled = true;
+    mask.invertLayerMaskWhenBlending = true;
+    mask.userMaskDensity = 201;
+    mask.userMaskFeather = -2.5;
+    mask.vectorMaskDensity = 143;
+    mask.vectorMaskFeather = 6.75;
+
+    LayerMaskData copy = mask;
+    QCOMPARE(copy.defaultColor, quint8(0));
+    QVERIFY(copy.positionedRelativeToLayer);
+    QVERIFY(copy.disabled);
+    QVERIFY(copy.invertLayerMaskWhenBlending);
+    QCOMPARE(copy.userMaskDensity, quint8(201));
+    QCOMPARE(copy.userMaskFeather, -2.5);
+    QCOMPARE(copy.vectorMaskDensity, quint8(143));
+    QCOMPARE(copy.vectorMaskFeather, 6.75);
+
+    copy.defaultColor = 255;
+    copy.positionedRelativeToLayer = false;
+    copy.disabled = false;
+    copy.invertLayerMaskWhenBlending = false;
+    copy.userMaskDensity = 1;
+    copy.userMaskFeather = 1.25;
+    copy.vectorMaskDensity = 2;
+    copy.vectorMaskFeather = 2.25;
+    QCOMPARE(mask.defaultColor, quint8(0));
+    QVERIFY(mask.positionedRelativeToLayer);
+    QVERIFY(mask.disabled);
+    QVERIFY(mask.invertLayerMaskWhenBlending);
+    QCOMPARE(mask.userMaskDensity, quint8(201));
+    QCOMPARE(mask.userMaskFeather, -2.5);
+    QCOMPARE(mask.vectorMaskDensity, quint8(143));
+    QCOMPARE(mask.vectorMaskFeather, 6.75);
+}
+
+void PsdFormatValuesContractTest::layerBlendingRangePreservesEndpointArrays()
+{
+    using LayerBlendingRange = PSDLayerRecord::LayerBlendingRanges::LayerBlendingRange;
+
+    static_assert(std::is_aggregate_v<LayerBlendingRange>);
+    static_assert(std::is_same_v<decltype(LayerBlendingRange::blackValues), std::array<quint8, 2>>);
+    static_assert(std::is_same_v<decltype(LayerBlendingRange::whiteValues), std::array<quint8, 2>>);
+    static_assert(std::tuple_size_v<decltype(LayerBlendingRange::blackValues)> == 2);
+    static_assert(std::tuple_size_v<decltype(LayerBlendingRange::whiteValues)> == 2);
+
+    LayerBlendingRange range{};
+    QCOMPARE(range.blackValues[0], quint8(0));
+    QCOMPARE(range.blackValues[1], quint8(0));
+    QCOMPARE(range.whiteValues[0], quint8(0));
+    QCOMPARE(range.whiteValues[1], quint8(0));
+
+    range.blackValues = {3, 17};
+    range.whiteValues = {211, 249};
+
+    LayerBlendingRange copy = range;
+    QCOMPARE(copy.blackValues[0], quint8(3));
+    QCOMPARE(copy.blackValues[1], quint8(17));
+    QCOMPARE(copy.whiteValues[0], quint8(211));
+    QCOMPARE(copy.whiteValues[1], quint8(249));
+
+    copy.blackValues[0] = 29;
+    copy.blackValues[1] = 31;
+    copy.whiteValues[0] = 223;
+    copy.whiteValues[1] = 227;
+    QCOMPARE(range.blackValues[0], quint8(3));
+    QCOMPARE(range.blackValues[1], quint8(17));
+    QCOMPARE(range.whiteValues[0], quint8(211));
+    QCOMPARE(range.whiteValues[1], quint8(249));
+}
+
+void PsdFormatValuesContractTest::layerBlendingRangesPreserveValueCopies()
+{
+    using LayerBlendingRange = PSDLayerRecord::LayerBlendingRanges::LayerBlendingRange;
+    using LayerBlendingRangePair = QPair<LayerBlendingRange, LayerBlendingRange>;
+    using LayerBlendingRanges = PSDLayerRecord::LayerBlendingRanges;
+
+    static_assert(std::is_aggregate_v<LayerBlendingRanges>);
+    static_assert(std::is_same_v<decltype(LayerBlendingRanges::data), QByteArray>);
+    static_assert(std::is_same_v<decltype(LayerBlendingRanges::compositeGrayRange), LayerBlendingRangePair>);
+    static_assert(
+        std::is_same_v<decltype(LayerBlendingRanges::sourceDestinationRanges), QVector<LayerBlendingRangePair>>);
+
+    LayerBlendingRanges ranges{};
+    QVERIFY(ranges.data.isEmpty());
+    QVERIFY(ranges.sourceDestinationRanges.isEmpty());
+
+    LayerBlendingRange compositeSource{};
+    compositeSource.blackValues = {1, 2};
+    compositeSource.whiteValues = {253, 254};
+    LayerBlendingRange compositeDestination{};
+    compositeDestination.blackValues = {3, 4};
+    compositeDestination.whiteValues = {251, 252};
+    LayerBlendingRange channelSource{};
+    channelSource.blackValues = {5, 6};
+    channelSource.whiteValues = {249, 250};
+    LayerBlendingRange channelDestination{};
+    channelDestination.blackValues = {7, 8};
+    channelDestination.whiteValues = {247, 248};
+
+    ranges.data = QByteArray::fromHex("10203040");
+    ranges.compositeGrayRange = LayerBlendingRangePair(compositeSource, compositeDestination);
+    ranges.sourceDestinationRanges.append(LayerBlendingRangePair(channelSource, channelDestination));
+
+    LayerBlendingRanges copy = ranges;
+    QCOMPARE(copy.data, QByteArray::fromHex("10203040"));
+    QCOMPARE(copy.compositeGrayRange.first.blackValues[0], quint8(1));
+    QCOMPARE(copy.compositeGrayRange.second.whiteValues[1], quint8(252));
+    QCOMPARE(copy.sourceDestinationRanges.size(), 1);
+    QCOMPARE(copy.sourceDestinationRanges[0].first.blackValues[1], quint8(6));
+    QCOMPARE(copy.sourceDestinationRanges[0].second.whiteValues[0], quint8(247));
+
+    copy.data[0] = char(0x7f);
+    copy.compositeGrayRange.first.blackValues[0] = 9;
+    copy.sourceDestinationRanges[0].second.whiteValues[0] = 239;
+    copy.sourceDestinationRanges.append(LayerBlendingRangePair{});
+    QCOMPARE(ranges.data, QByteArray::fromHex("10203040"));
+    QCOMPARE(ranges.compositeGrayRange.first.blackValues[0], quint8(1));
+    QCOMPARE(ranges.sourceDestinationRanges.size(), 1);
+    QCOMPARE(ranges.sourceDestinationRanges[0].second.whiteValues[0], quint8(247));
 }
 
 void PsdFormatValuesContractTest::gradientFillDefaultsAndCopiesValueState()
