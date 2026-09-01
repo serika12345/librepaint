@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 17876
+    "expectedMissingApis": 17763
   },
   "contracts": [
     {
@@ -36421,6 +36421,254 @@
         "method:psd_layer_effects_bevel_emboss::setHighlightColor(KoColor value)",
         "method:psd_layer_effects_bevel_emboss::setShadowColor(KoColor value)",
         "method:psd_layer_effects_bevel_emboss::shadowColor() const"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::selectionFilterBaseInterfaceSchemaRemainsStable",
+      "behavior": "選択フィルター基底は抽象・多態型、仮想デストラクター、名称、変更範囲、処理の公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisSelectionFilter",
+        "method:KisSelectionFilter::changeRect(const QRect & rect,KisDefaultBoundsBaseSP defaultBounds)",
+        "method:KisSelectionFilter::name()",
+        "method:KisSelectionFilter::process(KisPixelSelectionSP pixelSelection,const QRect & rect)",
+        "method:KisSelectionFilter::~KisSelectionFilter()"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::morphologicalSelectionFilterSchemaRemainsStable",
+      "behavior": "侵食、膨張、平滑化の選択フィルターは共通基底との関係と名称、変更範囲、処理の公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisDilateSelectionFilter",
+        "class:KisErodeSelectionFilter",
+        "class:KisSmoothSelectionFilter",
+        "method:KisDilateSelectionFilter::changeRect(const QRect & rect,KisDefaultBoundsBaseSP defaultBounds)",
+        "method:KisDilateSelectionFilter::name()",
+        "method:KisDilateSelectionFilter::process(KisPixelSelectionSP pixelSelection,const QRect & rect)",
+        "method:KisErodeSelectionFilter::changeRect(const QRect & rect,KisDefaultBoundsBaseSP defaultBounds)",
+        "method:KisErodeSelectionFilter::name()",
+        "method:KisErodeSelectionFilter::process(KisPixelSelectionSP pixelSelection,const QRect & rect)",
+        "method:KisSmoothSelectionFilter::changeRect(const QRect & rect,KisDefaultBoundsBaseSP defaultBounds)",
+        "method:KisSmoothSelectionFilter::name()",
+        "method:KisSmoothSelectionFilter::process(KisPixelSelectionSP pixelSelection,const QRect & rect)"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::invertAndAntiAliasSelectionFilterSchemaRemainsStable",
+      "behavior": "反転とアンチエイリアスの選択フィルターは共通基底との関係と各公開処理の正確な関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisAntiAliasSelectionFilter",
+        "class:KisInvertSelectionFilter",
+        "method:KisAntiAliasSelectionFilter::name()",
+        "method:KisAntiAliasSelectionFilter::process(KisPixelSelectionSP pixelSelection,const QRect & rect)",
+        "method:KisInvertSelectionFilter::changeRect(const QRect & rect,KisDefaultBoundsBaseSP defaultBounds)",
+        "method:KisInvertSelectionFilter::name()",
+        "method:KisInvertSelectionFilter::process(KisPixelSelectionSP pixelSelection,const QRect & rect)"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::borderAndFeatherSelectionFilterSchemaRemainsStable",
+      "behavior": "境界とぼかしの選択フィルターは共通基底、構築引数、名称、変更範囲、処理の公開型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisBorderSelectionFilter",
+        "class:KisFeatherSelectionFilter",
+        "method:KisBorderSelectionFilter::KisBorderSelectionFilter(qint32 xRadius,qint32 yRadius,bool fade)",
+        "method:KisBorderSelectionFilter::changeRect(const QRect & rect,KisDefaultBoundsBaseSP defaultBounds)",
+        "method:KisBorderSelectionFilter::name()",
+        "method:KisBorderSelectionFilter::process(KisPixelSelectionSP pixelSelection,const QRect & rect)",
+        "method:KisFeatherSelectionFilter::KisFeatherSelectionFilter(qint32 radius)",
+        "method:KisFeatherSelectionFilter::changeRect(const QRect & rect,KisDefaultBoundsBaseSP defaultBounds)",
+        "method:KisFeatherSelectionFilter::name()",
+        "method:KisFeatherSelectionFilter::process(KisPixelSelectionSP pixelSelection,const QRect & rect)"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::growthSelectionFilterPolicySchemaRemainsStable",
+      "behavior": "通常拡張、縮小、暗部までの適応拡張は共通基底、方針を表す構築引数、名称、変更範囲、処理の公開型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisGrowSelectionFilter",
+        "class:KisGrowUntilDarkestPixelSelectionFilter",
+        "class:KisShrinkSelectionFilter",
+        "method:KisGrowSelectionFilter::KisGrowSelectionFilter(qint32 xRadius,qint32 yRadius)",
+        "method:KisGrowSelectionFilter::changeRect(const QRect & rect,KisDefaultBoundsBaseSP defaultBounds)",
+        "method:KisGrowSelectionFilter::name()",
+        "method:KisGrowSelectionFilter::process(KisPixelSelectionSP pixelSelection,const QRect & rect)",
+        "method:KisGrowUntilDarkestPixelSelectionFilter::KisGrowUntilDarkestPixelSelectionFilter(qint32 radius,KisPaintDeviceSP referenceDevice)",
+        "method:KisGrowUntilDarkestPixelSelectionFilter::changeRect(const QRect & rect,KisDefaultBoundsBaseSP defaultBounds)",
+        "method:KisGrowUntilDarkestPixelSelectionFilter::name()",
+        "method:KisGrowUntilDarkestPixelSelectionFilter::process(KisPixelSelectionSP pixelSelection,const QRect & rect)",
+        "method:KisShrinkSelectionFilter::KisShrinkSelectionFilter(qint32 xRadius,qint32 yRadius,bool edgeLock)",
+        "method:KisShrinkSelectionFilter::changeRect(const QRect & rect,KisDefaultBoundsBaseSP defaultBounds)",
+        "method:KisShrinkSelectionFilter::name()",
+        "method:KisShrinkSelectionFilter::process(KisPixelSelectionSP pixelSelection,const QRect & rect)"
+      ]
+    },
+    {
+      "target": "KisAngleSelectorSchemaContractTest",
+      "source": "libs/widgets/tests/KisAngleSelectorSchemaContractTest.cpp",
+      "test": "KisAngleSelectorSchemaContractTest::angleSelectorFlipPresentationSchemaRemainsStable",
+      "behavior": "角度選択はflip表示方式の型と宣言順、取得・設定関数型、QWidget派生関係を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisAngleSelector",
+        "enum:KisAngleSelector::FlipOptionsMode",
+        "enumerator:KisAngleSelector::FlipOptionsMode::FlipOptionsMode_Buttons",
+        "enumerator:KisAngleSelector::FlipOptionsMode::FlipOptionsMode_ContextMenu",
+        "enumerator:KisAngleSelector::FlipOptionsMode::FlipOptionsMode_MenuButton",
+        "enumerator:KisAngleSelector::FlipOptionsMode::FlipOptionsMode_NoFlipOptions",
+        "method:KisAngleSelector::flipOptionsMode() const",
+        "method:KisAngleSelector::setFlipOptionsMode(FlipOptionsMode newMode)"
+      ]
+    },
+    {
+      "target": "KisAngleSelectorSchemaContractTest",
+      "source": "libs/widgets/tests/KisAngleSelectorSchemaContractTest.cpp",
+      "test": "KisAngleSelectorSchemaContractTest::angleSelectorPrimaryAngleSchemaRemainsStable",
+      "behavior": "角度選択の現在値、吸着角、復帰角はqrealの取得・設定関数型とconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAngleSelector::angle() const",
+        "method:KisAngleSelector::resetAngle() const",
+        "method:KisAngleSelector::setAngle(qreal newAngle)",
+        "method:KisAngleSelector::setResetAngle(qreal newResetAngle)",
+        "method:KisAngleSelector::setSnapAngle(qreal newSnapAngle)",
+        "method:KisAngleSelector::snapAngle() const"
+      ]
+    },
+    {
+      "target": "KisAngleSelectorSchemaContractTest",
+      "source": "libs/widgets/tests/KisAngleSelectorSchemaContractTest.cpp",
+      "test": "KisAngleSelectorSchemaContractTest::angleSelectorRangePrecisionAndWrappingSchemaRemainsStable",
+      "behavior": "角度選択の精度、上下限、一括範囲、循環方針は正確な数値・真偽値の取得・設定関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAngleSelector::decimals() const",
+        "method:KisAngleSelector::maximum() const",
+        "method:KisAngleSelector::minimum() const",
+        "method:KisAngleSelector::setDecimals(int newNumberOfDecimals)",
+        "method:KisAngleSelector::setMaximum(qreal newMaximum)",
+        "method:KisAngleSelector::setMinimum(qreal newMinimum)",
+        "method:KisAngleSelector::setRange(qreal newMinimum,qreal newMaximum)",
+        "method:KisAngleSelector::setWrapping(bool newWrapping)",
+        "method:KisAngleSelector::wrapping() const"
+      ]
+    },
+    {
+      "target": "KisAngleSelectorSchemaContractTest",
+      "source": "libs/widgets/tests/KisAngleSelectorSchemaContractTest.cpp",
+      "test": "KisAngleSelectorSchemaContractTest::angleSelectorLocalPresentationSchemaRemainsStable",
+      "behavior": "角度選択の接頭辞、高さ、増加方向、平坦表示は正確な値型、const参照、取得・設定関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAngleSelector::increasingDirection() const",
+        "method:KisAngleSelector::isUsingFlatSpinBox() const",
+        "method:KisAngleSelector::prefix() const",
+        "method:KisAngleSelector::setIncreasingDirection(KisAngleGauge::IncreasingDirection newIncreasingDirection)",
+        "method:KisAngleSelector::setPrefix(const QString & newPrefix)",
+        "method:KisAngleSelector::setWidgetsHeight(int newHeight)",
+        "method:KisAngleSelector::useFlatSpinBox(bool newUseFlatSpinBox)",
+        "method:KisAngleSelector::widgetsHeight() const"
+      ]
+    },
+    {
+      "target": "KisAngleSelectorSchemaContractTest",
+      "source": "libs/widgets/tests/KisAngleSelectorSchemaContractTest.cpp",
+      "test": "KisAngleSelectorSchemaContractTest::angleSelectorStaticTransformSignaturesRemainStable",
+      "behavior": "角度選択の同終辺角とflip変換は範囲、方向、成否出力を含む静的公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAngleSelector::closestCoterminalAngleInRange(qreal angle,qreal minimum,qreal maximum,bool * ok=nullptr)",
+        "method:KisAngleSelector::flipAngle(qreal angle,Qt::Orientations orientations)",
+        "method:KisAngleSelector::flipAngle(qreal angle,qreal minimum,qreal maximum,Qt::Orientations orientations,bool * ok=nullptr)"
+      ]
+    },
+    {
+      "target": "ToolTransformArgsGeometrySchemaContractTest",
+      "source": "plugins/tools/tool_transform2/tests/ToolTransformArgsGeometrySchemaContractTest.cpp",
+      "test": "ToolTransformArgsGeometrySchemaContractTest::freeTransformCenterSignaturesRemainStable",
+      "behavior": "自由変形の変換中心、元中心、回転中心差分は正確な座標値の取得・設定関数型とconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:ToolTransformArgs::originalCenter() const",
+        "method:ToolTransformArgs::rotationCenterOffset() const",
+        "method:ToolTransformArgs::setOriginalCenter(QPointF originalCenter)",
+        "method:ToolTransformArgs::setRotationCenterOffset(QPointF rotationCenterOffset)",
+        "method:ToolTransformArgs::setTransformedCenter(QPointF transformedCenter)",
+        "method:ToolTransformArgs::transformedCenter() const"
+      ]
+    },
+    {
+      "target": "ToolTransformArgsGeometrySchemaContractTest",
+      "source": "plugins/tools/tool_transform2/tests/ToolTransformArgsGeometrySchemaContractTest.cpp",
+      "test": "ToolTransformArgsGeometrySchemaContractTest::freeTransformRotationSignaturesRemainStable",
+      "behavior": "自由変形の回転中心基準、三軸角度、camera位置は正確な真偽値、数値、三次元座標の取得・設定関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:ToolTransformArgs::aX() const",
+        "method:ToolTransformArgs::aY() const",
+        "method:ToolTransformArgs::aZ() const",
+        "method:ToolTransformArgs::cameraPos() const",
+        "method:ToolTransformArgs::setAX(double aX)",
+        "method:ToolTransformArgs::setAY(double aY)",
+        "method:ToolTransformArgs::setAZ(double aZ)",
+        "method:ToolTransformArgs::setCameraPos(const QVector3D & pos)",
+        "method:ToolTransformArgs::setTransformAroundRotationCenter(bool value)",
+        "method:ToolTransformArgs::transformAroundRotationCenter() const"
+      ]
+    },
+    {
+      "target": "ToolTransformArgsGeometrySchemaContractTest",
+      "source": "plugins/tools/tool_transform2/tests/ToolTransformArgsGeometrySchemaContractTest.cpp",
+      "test": "ToolTransformArgsGeometrySchemaContractTest::freeTransformScaleSignaturesRemainStable",
+      "behavior": "自由変形のXY尺度と縦横比維持方針は正確な数値・真偽値の取得・設定関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:ToolTransformArgs::keepAspectRatio() const",
+        "method:ToolTransformArgs::scaleX() const",
+        "method:ToolTransformArgs::scaleY() const",
+        "method:ToolTransformArgs::setKeepAspectRatio(bool value)",
+        "method:ToolTransformArgs::setScaleX(double scaleX)",
+        "method:ToolTransformArgs::setScaleY(double scaleY)"
+      ]
+    },
+    {
+      "target": "ToolTransformArgsGeometrySchemaContractTest",
+      "source": "plugins/tools/tool_transform2/tests/ToolTransformArgsGeometrySchemaContractTest.cpp",
+      "test": "ToolTransformArgsGeometrySchemaContractTest::freeTransformShearAndBoundsSignaturesRemainStable",
+      "behavior": "自由変形のXY剪断と境界回転は正確な数値の取得・設定関数型とconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:ToolTransformArgs::boundsRotation() const",
+        "method:ToolTransformArgs::setBoundsRotation(double boundsRotation)",
+        "method:ToolTransformArgs::setShearX(double shearX)",
+        "method:ToolTransformArgs::setShearY(double shearY)",
+        "method:ToolTransformArgs::shearX() const",
+        "method:ToolTransformArgs::shearY() const"
+      ]
+    },
+    {
+      "target": "ToolTransformArgsGeometrySchemaContractTest",
+      "source": "plugins/tools/tool_transform2/tests/ToolTransformArgsGeometrySchemaContractTest.cpp",
+      "test": "ToolTransformArgsGeometrySchemaContractTest::freeTransformPerspectiveSignaturesRemainStable",
+      "behavior": "自由変形の平坦化perspective行列は値返却とconst参照設定の公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:ToolTransformArgs::flattenedPerspectiveTransform() const",
+        "method:ToolTransformArgs::setFlattenedPerspectiveTransform(const QTransform & value)"
       ]
     }
   ]

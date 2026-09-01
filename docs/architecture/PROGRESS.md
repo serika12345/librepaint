@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 16:36 JST
+- 更新日時: 2026-09-01 16:54 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -68,6 +68,29 @@
   `KisBezierMeshValuesContractTest`、no-work、動的接続、未解決変形記号、構文・書式・公開API・`verify-quick`を確認する。`tool_transform_args.cc`等の製品source、
   ToolTransformArgs・paint device・tool stateの実体、image、undo、canvas、描画、filesystem、Qt Widgets、製品OBJECT・shared、`kritatestsdk`、新依存、公開header・
   製品CMake、製品計画差、停止線超過が必要なら止める。
+
+### 第122便の統合結果
+
+- 共通実装基点は`aaaff7247717`である。`g122-selection-filter-schema`は受渡しcommit`f812d3e46c6a`を統合commit`81893ede7b`として取り込んだ。開始
+  `libs/image/kis_selection_filters.h`から`libs/image/tests/KisImageTypesContractTest.cpp`の5枠へ、基底interface、形態filter、反転・anti-alias、
+  border・feather、grow方針の全49 APIを対応付けた。対象4工程・8入力、製品`kritaimage` 1,193工程・2,410入力で変更前後一致し、実filter、selection、
+  paint device、default boundsを生成・実行していない。
+- `g122-angle-selector-schema`は受渡しcommit`097ceaf5d995`を統合commit`5b2fa11fea`として取り込んだ。開始`libs/widgets/KisAngleSelector.h`から新規
+  `libs/widgets/tests/KisAngleSelectorSchemaContractTest.cpp`の5枠へ、flip表示、主角度、range・精度・wrap、局所表示、static変換型の全34 APIを対応付け、
+  `libs/widgets/tests/CMakeLists.txt`へheader限定対象を追加した。対象4工程・8入力、製品`kritawidgets` 806工程・1,641入力と`kritawidgetutils`
+  273工程・579入力は保留集合を含め変更前後一致し、widget、event loop、signal、metaobject、変換本文を実行していない。
+- `g122-transform-geometry-schema`は受渡しcommit`bb5786ca30bb`を統合commit`e7b1e646a0`として取り込んだ。開始
+  `plugins/tools/tool_transform2/tool_transform_args.h`から新規`plugins/tools/tool_transform2/tests/ToolTransformArgsGeometrySchemaContractTest.cpp`の5枠へ、
+  中心、回転・camera、尺度、剪断・境界、perspective行列の全30 APIを対応付け、`plugins/tools/tool_transform2/tests/CMakeLists.txt`へheader限定対象を追加した。
+  対象4工程・9入力、製品`kritatooltransform_static` 1,991工程・3,981入力と保留集合は変更前後一致し、`tool_transform_args.cc`、実変形状態、image、device、tool、
+  undo、canvas、filesystemへ接続していない。
+- 主macOS環境では3対象の全15枠、各対象CTest、各20回反復、軽量近傍、無作業再構築、動的接続、未解決記号を確認した。2件のCMake追加後は各回
+  `build-incremental native configure`で再構成とpackage境界を確認した。受渡しと統合patchは一致し、各対象はQt・KF・OS等だけへ接続して製品共有ライブラリーと
+  `kritatestsdk`を含まない。公開API契約検査は113 APIを重複なく受理し、29,838件中12,075件対応、17,763件未対応となった。最新入力は
+  `build/tdd-macos/public-api-missing-g123.json`である。Linux、全native検証、製品全体構築は実行していない。
+- 新報告の成功後に旧`public-api-missing-g122.json` 4.4 MB、cleanな選択filter担当644 MB、角度選択担当645 MB、変形幾何担当653 MBと3 branchを削除し、
+  約1.94 GBを回収した。主`build/tdd-macos`と共有compiler cacheは第123便の限定構築へ再利用する。次の永続作業は第123便の不足報告から、pathと所有CMakeが
+  重ならない3責務を先行監査し、構築範囲を確認してから担当票を確定することである。
 
 ### 第121便の先行監査計画
 
