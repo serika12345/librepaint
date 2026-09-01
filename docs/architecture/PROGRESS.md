@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 21:52 JST
+- 更新日時: 2026-09-01 21:56 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -39,7 +39,7 @@
 
 ### 第129便の担当計画
 
-- 実装共通基点は`2641bfb605be06cb507c4f59bcd1e4d071f6543a`である。config document担当は`integrated`、SVG view geometry、sequential iterator担当は`implementing`、
+- 実装共通基点は`2641bfb605be06cb507c4f59bcd1e4d071f6543a`である。config document、SVG view geometry担当は`integrated`、sequential iterator担当は`implementing`、
   構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、専用
   worktree-local `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。統合順はconfig document、
   SVG view geometry、sequential iteratorとし、調整担当だけが`AGENTS.md`、architecture文書、公開API台帳、共通不足報告を変更する。3担当の公開header、製品source、
@@ -80,6 +80,13 @@
   対象4工程・15入力、製品`kritaapplication` 1,226工程・2,470入力と各集合は変更前後一致し、設定・document・image、KConfig・QSettings、設定I/O、filesystem、
   大域状態を生成・実行していない。担当macOS環境で対象CTest、20回反復、近傍`KisActionEnumContractTest`、無作業再構築、依存・未解決記号、構文・変更行書式、
   公開API検査、`verify-quick`に成功した。公開API契約検査は29,838件中12,839件対応、16,999件未対応となった。
+- `g129-svg-view-geometry`は受渡しcommit`91a8e2d8f705`を統合commit`8839db05e8`として取り込んだ。開始`libs/flake/svg/SvgUtil.cpp`から新規
+  `libs/flake/svg/SvgUtilViewGeometry.cpp`へ表示領域・縦横比・数値字句の公開method 15定義と非公開helper 3定義を本文不変で移し、製品と限定試験へ一対一収容した。
+  開始`libs/flake/svg/SvgUtil.h`から新規`libs/flake/tests/SvgUtilViewGeometryContractTest.cpp`の5枠へ、縦横比schema・解析・変換、user space・object bounding box変換、
+  数値字句・list正規化の25 APIを具体値で対応付けた。対象5工程・11入力、製品`kritaflake` 620工程・1,272入力から621工程・1,274入力となり、差は一翻訳単位だけである。
+  shape・canvas・document・font registry・描画・XML実体・大域状態を生成・実行していない。担当macOS環境で対象CTest、20回反復、近傍
+  `SvgTransformParserContractTest`、無作業再構築、動的接続、移管記号の単一定義、構文・新規行書式、公開API検査、`verify-quick`に成功した。公開API契約検査は
+  29,838件中12,864件対応、16,974件未対応となった。
 
 ### 第128便の先行監査計画
 

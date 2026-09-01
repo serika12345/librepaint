@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 16999
+    "expectedMissingApis": 16974
   },
   "contracts": [
     {
@@ -38288,6 +38288,76 @@
         "method:KisConfig::undoEnabled(bool defaultValue=false) const",
         "method:KisConfig::undoStackLimit(bool defaultValue=false) const",
         "method:KisConfig::useCumulativeUndoRedo(bool defaultValue=false) const"
+      ]
+    },
+    {
+      "target": "SvgUtilViewGeometryContractTest",
+      "source": "libs/flake/tests/SvgUtilViewGeometryContractTest.cpp",
+      "test": "SvgUtilViewGeometryContractTest::preserveAspectRatioSchemaAndDefaultsRemainStable",
+      "behavior": "SVG表示領域の縦横比parserは公開型・field型、alignment列挙順、および無効入力後のignore・minimum配置という既定状態を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:SvgUtil",
+        "enum:SvgUtil::PreserveAspectRatioParser::Alignment",
+        "enumerator:SvgUtil::PreserveAspectRatioParser::Alignment::Max",
+        "enumerator:SvgUtil::PreserveAspectRatioParser::Alignment::Middle",
+        "enumerator:SvgUtil::PreserveAspectRatioParser::Alignment::Min",
+        "member:SvgUtil::PreserveAspectRatioParser::defer",
+        "member:SvgUtil::PreserveAspectRatioParser::mode",
+        "member:SvgUtil::PreserveAspectRatioParser::xAlignment",
+        "member:SvgUtil::PreserveAspectRatioParser::yAlignment",
+        "struct:SvgUtil::PreserveAspectRatioParser"
+      ]
+    },
+    {
+      "target": "SvgUtilViewGeometryContractTest",
+      "source": "libs/flake/tests/SvgUtilViewGeometryContractTest.cpp",
+      "test": "SvgUtilViewGeometryContractTest::preserveAspectRatioParsingFormattingAndTransformRemainStable",
+      "behavior": "SVG表示領域の縦横比指定は大小文字を問わない解析、anchor、既定値の文字列表現、none・meet・sliceの座標変換を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:SvgUtil::PreserveAspectRatioParser::PreserveAspectRatioParser(const QString & str)",
+        "method:SvgUtil::PreserveAspectRatioParser::rectAnchorPoint(const QRectF & rc) const",
+        "method:SvgUtil::PreserveAspectRatioParser::toString() const",
+        "method:SvgUtil::parseAspectRatio(const PreserveAspectRatioParser & p,const QRectF & elementBounds,const QRectF & viewRect,QTransform * _viewTransform)"
+      ]
+    },
+    {
+      "target": "SvgUtilViewGeometryContractTest",
+      "source": "libs/flake/tests/SvgUtilViewGeometryContractTest.cpp",
+      "test": "SvgUtilViewGeometryContractTest::userSpaceIdentityConversionsRemainStable",
+      "behavior": "SVG user space変換はscalar、point、rectangle、sizeの符号と値を保つ現行の恒等変換を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:SvgUtil::fromUserSpace(double value)",
+        "method:SvgUtil::toUserSpace(const QPointF & point)",
+        "method:SvgUtil::toUserSpace(const QRectF & rect)",
+        "method:SvgUtil::toUserSpace(const QSizeF & size)",
+        "method:SvgUtil::toUserSpace(double value)"
+      ]
+    },
+    {
+      "target": "SvgUtilViewGeometryContractTest",
+      "source": "libs/flake/tests/SvgUtilViewGeometryContractTest.cpp",
+      "test": "SvgUtilViewGeometryContractTest::objectBoundingBoxConversionsRemainStable",
+      "behavior": "SVG object bounding box変換は非原点・符号付き範囲でpointとsizeを正逆変換し、幅または高さが0の逆変換成分を0に保つ。",
+      "classification": "maintained",
+      "apis": [
+        "method:SvgUtil::objectToUserSpace(const QPointF & position,const QRectF & objectBound)",
+        "method:SvgUtil::objectToUserSpace(const QSizeF & size,const QRectF & objectBound)",
+        "method:SvgUtil::userSpaceToObject(const QPointF & position,const QRectF & objectBound)",
+        "method:SvgUtil::userSpaceToObject(const QSizeF & size,const QRectF & objectBound)"
+      ]
+    },
+    {
+      "target": "SvgUtilViewGeometryContractTest",
+      "source": "libs/flake/tests/SvgUtilViewGeometryContractTest.cpp",
+      "test": "SvgUtilViewGeometryContractTest::numberLexingAndListNormalizationRemainStable",
+      "behavior": "SVG数値字句は符号・小数・指数と未消費位置を保ち、list文字列はcomma・改行・連続空白を空要素のない語列へ正規化する。",
+      "classification": "maintained",
+      "apis": [
+        "method:SvgUtil::parseNumber(const char * ptr,qreal & number)",
+        "method:SvgUtil::simplifyList(const QString & str)"
       ]
     }
   ]
