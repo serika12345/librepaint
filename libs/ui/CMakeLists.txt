@@ -2119,6 +2119,26 @@ ki18n_wrap_ui(kritaui_UI_HEADERS
     imagesize/wdg_canvassize.ui
 )
 
+if(TARGET KisDlgPreferencesEnumContractTest)
+    set(kis_dlg_preferences_contract_ui_headers
+        ${CMAKE_CURRENT_BINARY_DIR}/ui_wdggeneralsettings.h
+        ${CMAKE_CURRENT_BINARY_DIR}/ui_wdgdisplaysettings.h
+        ${CMAKE_CURRENT_BINARY_DIR}/ui_wdgcolorsettings.h
+        ${CMAKE_CURRENT_BINARY_DIR}/ui_wdgtabletsettings.h
+        ${CMAKE_CURRENT_BINARY_DIR}/ui_wdgperformancesettings.h
+        ${CMAKE_CURRENT_BINARY_DIR}/ui_wdgfullscreensettings.h
+        ${CMAKE_CURRENT_BINARY_DIR}/ui_WdgPopupPaletteSettings.h
+    )
+    set_source_files_properties(
+        ${kis_dlg_preferences_contract_ui_headers}
+        TARGET_DIRECTORY KisDlgPreferencesEnumContractTest
+        PROPERTIES GENERATED TRUE
+    )
+    target_sources(KisDlgPreferencesEnumContractTest PRIVATE
+        ${kis_dlg_preferences_contract_ui_headers}
+    )
+endif()
+
 if(WIN32)
     ki18n_wrap_ui(kritaui_UI_HEADERS
         dialogs/KisDlgCustomTabletResolution.ui
