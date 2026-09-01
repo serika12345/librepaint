@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 04:30 JST
+- 更新日時: 2026-09-02 04:40 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -21,6 +21,17 @@
 - `g137-mask-generator-color-profile-schema-audit`は`libs/image/kis_base_mask_generator.h`の残り39 APIを主候補とし、
   `plugins/color/lcms2engine/colorprofiles/LcmsColorProfileContainer.h`の40 APIを比較する。mask生成器の公開値面またはLCMS profile container値面の一責務を、画素生成・
   paint device・LCMS profile I/O・色変換・大域registryの実体化なしで25 API以上閉じる。
+- `g137-slider-selection-schema-audit`は`SliderSpinBox.h`の全38 APIを採用した。整数・実数wrapperの型・寿命・view 8、hard range 6、soft range・step 14、値・scale 4、
+  drag方針6を新規`SliderSpinBoxSchemaContractTest`の未評価型5枠へ対応付ける。新対象4工程・8入力、停止5工程・11入力、製品`kritalibkis` 2,018工程・4,034入力を維持する。
+  `Selection.h`は寿命・幾何・mask変形・集合演算・node・clipboard・pixel I/Oへ責務が分かれ、具体観測がimage・node・paint device・大域clipboardを要するため棄却した。
+- `g137-css-ffwws-schema-audit`は`KoFFWWSConverter.h`の全33 APIを採用した。font file・family識別値7、地域化値6、軸・style・色flag 7、変換器型・取込署名7、収集・検索署名6を
+  新規`KoFFWWSConverterSchemaContractTest`の5枠へ対応付ける。20 APIは既定値・正確な型・copy独立性を具体観測し、13 APIは未評価型で固定する。新対象4工程・8入力、停止
+  5工程・11入力、製品`kritaflake` 621工程・1,274入力を維持する。`KoCssStylePreset.h`は安全な具体既定値がなく、実値観測が資源I/O・SVG parser・text shape・painter・
+  thumbnailへ到達するため棄却した。
+- `g137-mask-generator-color-profile-schema-audit`は`LcmsColorProfileContainer.h`の全40 APIを採用した。型・metadata 9、表現・適合性9、intent・transfer分類10、色彩値7、
+  transfer操作5を新規`LcmsColorProfileContainerSchemaContractTest`の未評価型5枠へ対応付ける。新対象4工程・8入力、停止5工程・11入力、製品`kritalcmsengine_static`
+  397工程・823入力と`kritalcmsengine` 427工程・856入力を維持する。`kis_base_mask_generator.h`はincludeだけで3個の`KoID`と`ki18n`の動的初期化を各翻訳単位に生成し、
+  これを避けるには公開header変更が必要なため棄却した。
 - 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから契約先または
   移動先、許可path、固有停止条件、比較候補の棄却根拠を含む。既存`build/tdd-macos`の計画は読み取り専用で測定し、構成や構築を開始しない。3報告後にpath、CMake、
   試験source、生成物が重ならない候補だけを担当票へ進める。
