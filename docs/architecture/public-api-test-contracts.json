@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 17763
+    "expectedMissingApis": 17735
   },
   "contracts": [
     {
@@ -36669,6 +36669,79 @@
       "apis": [
         "method:ToolTransformArgs::flattenedPerspectiveTransform() const",
         "method:ToolTransformArgs::setFlattenedPerspectiveTransform(const QTransform & value)"
+      ]
+    },
+    {
+      "target": "SvgTextCursorEnumContractTest",
+      "source": "plugins/tools/svgtexttool/tests/SvgTextCursorEnumContractTest.cpp",
+      "test": "SvgTextCursorEnumContractTest::cursorPositionAndNavigationSignaturesRemainStable",
+      "behavior": "文字カーソルの位置・アンカー・移動方式と、既定の選択追従・視覚移動設定を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:SvgTextCursor::getAnchor()",
+        "method:SvgTextCursor::getPos()",
+        "method:SvgTextCursor::moveCursor(MoveMode mode,bool moveAnchor=true)",
+        "method:SvgTextCursor::notifyCursorPosChanged(int pos,int anchor)",
+        "method:SvgTextCursor::setPos(int pos,int anchor)",
+        "method:SvgTextCursor::setPosToPoint(QPointF point,bool moveAnchor=true)",
+        "method:SvgTextCursor::setVisualMode(const bool visualMode=true)",
+        "method:SvgTextCursor::updateModifiers(const Qt::KeyboardModifiers modifiers)"
+      ]
+    },
+    {
+      "target": "SvgTextCursorEnumContractTest",
+      "source": "plugins/tools/svgtexttool/tests/SvgTextCursorEnumContractTest.cpp",
+      "test": "SvgTextCursorEnumContractTest::cursorSelectionSignaturesRemainStable",
+      "behavior": "選択状態の判定・解除・削除・複写・貼付と選択変更通知の公開型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:SvgTextCursor::copy() const",
+        "method:SvgTextCursor::deselectText()",
+        "method:SvgTextCursor::hasSelection()",
+        "method:SvgTextCursor::paste()",
+        "method:SvgTextCursor::removeSelection()",
+        "method:SvgTextCursor::selectionChanged()"
+      ]
+    },
+    {
+      "target": "SvgTextCursorEnumContractTest",
+      "source": "plugins/tools/svgtexttool/tests/SvgTextCursorEnumContractTest.cpp",
+      "test": "SvgTextCursorEnumContractTest::cursorEditingSignaturesRemainStable",
+      "behavior": "プレーン・リッチテキストの挿入、範囲・符号位置の削除、キー入力処理と既定貼付方式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:SvgTextCursor::insertRichText(KoSvgTextShape * insert,bool inheritPropertiesIfPossible=false)",
+        "method:SvgTextCursor::insertText(QString text)",
+        "method:SvgTextCursor::keyPressEvent(QKeyEvent * event)",
+        "method:SvgTextCursor::removeLastCodePoint()",
+        "method:SvgTextCursor::removeText(MoveMode first,MoveMode second)",
+        "method:SvgTextCursor::setPasteRichTextByDefault(const bool pasteRichText=true)"
+      ]
+    },
+    {
+      "target": "SvgTextCursorEnumContractTest",
+      "source": "plugins/tools/svgtexttool/tests/SvgTextCursorEnumContractTest.cpp",
+      "test": "SvgTextCursorEnumContractTest::cursorInputAndFocusSignaturesRemainStable",
+      "behavior": "入力メソッドの照会・通知、フォーカス遷移、キャレット設定とその既定値を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:SvgTextCursor::focusIn()",
+        "method:SvgTextCursor::focusOut()",
+        "method:SvgTextCursor::inputMethodEvent(QInputMethodEvent * event)",
+        "method:SvgTextCursor::inputMethodQuery(Qt::InputMethodQuery query) const",
+        "method:SvgTextCursor::setCaretSetting(int cursorWidth=1,int cursorFlash=1000,int cursorFlashLimit=5000,bool drawCursorInAdditionToSelection=false)"
+      ]
+    },
+    {
+      "target": "SvgTextCursorEnumContractTest",
+      "source": "plugins/tools/svgtexttool/tests/SvgTextCursorEnumContractTest.cpp",
+      "test": "SvgTextCursorEnumContractTest::cursorEditingStateSignaturesRemainStable",
+      "behavior": "組版編集モード、命令追加状態、マークアップ変更通知の公開型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:SvgTextCursor::isAddingCommand() const",
+        "method:SvgTextCursor::notifyMarkupChanged()",
+        "method:SvgTextCursor::setTypeSettingModeActive(bool activate)"
       ]
     }
   ]

@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 17:10 JST
+- 更新日時: 2026-09-01 17:21 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -37,7 +37,8 @@
 
 ### 第123便の担当計画
 
-- 実装共通基点は`cabfedd704efe0085aeb64cf64648d821059b36a`である。3担当は`implementing`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの
+- 実装共通基点は`cabfedd704efe0085aeb64cf64648d821059b36a`である。SVG cursor担当は`integrated`、slider spin boxとlibkis grid担当は`ready`、構築許可は
+  指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの
   `transport-commit`、追加委任は禁止する。専用worktree-local `build/tdd-macos`と`./scripts/run-shared-test-env`で主環境・compiler cacheを共有する。
   統合順はSVG cursor、slider spin box、libkis gridとし、調整担当だけが台帳、進捗文書、不足報告を変更する。3担当の公開header、所有CMake、試験source、生成物は
   重ならない。
@@ -64,6 +65,14 @@
   `KisGridConfigValueContractTest`、no-work、動的接続、未解決grid記号、構文・書式・公開API・`verify-quick`を確認する。`GridConfig`・`KisGridConfig`実体、
   constructor・destructor、method・metaobject、Document、view、canvas、XML、設定I/O、scripting、製品OBJECT・shared、`kritatestsdk`、Qt Widgets、新依存、公開header・
   製品source・製品CMake変更、製品計画差、停止線超過が必要なら止める。
+
+### 第123便の統合結果
+
+- `g123-svg-cursor-schema`は受渡しcommit`3804276eddb1`を統合commit`844177712a`として取り込んだ。開始
+  `plugins/tools/svgtexttool/SvgTextCursor.h`から既存`plugins/tools/svgtexttool/tests/SvgTextCursorEnumContractTest.cpp`の5枠へ、位置・移動、選択、編集、
+  入力・focus、編集状態の全28 APIを対応付けた。対象4工程・14入力、製品`krita_tool_svgtext_static` 2,010工程・4,018入力と保留集合は変更前後一致し、実cursor、
+  shape、canvas、文字配置、font、undo、clipboard、IME、event、timer、signalを実行していない。主macOS環境でも対象CTest、20回反復、
+  `KoSvgTextEnumContractTest`、無作業再構築を確認した。
 
 ### 第122便の先行監査計画
 
