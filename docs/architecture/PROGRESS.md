@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 01:58 JST
+- 更新日時: 2026-09-02 02:02 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -33,6 +33,39 @@
 - 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから契約先または
   移動先、許可path、固有停止条件、比較候補の棄却根拠を含む。既存`build/tdd-macos`の計画は読み取り専用で測定し、構成や構築を開始しない。3報告後にpath、CMake、
   試験source、生成物が重ならない候補だけを担当票へ進める。
+
+### 第135便の担当計画
+
+- 実装共通基点は`3e39e36f5923aa4447035a1ea3e3fe2b6076ff1e`である。pattern background、histogram、tag proxy担当は`ready`、構築許可は指定試験targetと
+  軽量近傍だけの`granted`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、専用worktree-local
+  `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。統合順はpattern background、histogram、tag proxyとし、
+  調整担当だけが`AGENTS.md`、architecture文書、`docs/architecture/public-api-test-contracts.json`、共通不足報告を変更する。3担当の公開header、所有CMake、試験source、
+  生成物は重ならない。
+- `g135-pattern-background-schema`は`/Users/masato/Documents/librepaint-g135-pattern-background-schema`を所有する。開始`libs/flake/KoPatternBackground.h`のclass、
+  2 enum・全12値、constructor・copy・destructor、pattern寸法・基準点・tile offset・transform操作から新規`libs/flake/tests/KoPatternBackgroundSchemaContractTest.cpp`の5枠
+  `patternBackgroundTypeAndValueLifetimeSchemaRemainStable`、`patternBackgroundRepeatAndReferenceOrdinalsRemainStable`、
+  `patternImageAndDisplayGeometrySignaturesRemainStable`、`patternReferencePlacementSignaturesRemainStable`、`patternTileAndTransformSignaturesRemainStable`へ描画を除く36 APIを
+  対応付ける。許可pathは新規試験sourceと`libs/flake/tests/CMakeLists.txt`だけである。新対象`KoPatternBackgroundSchemaContractTest`は4工程・8入力、停止5工程・11入力、
+  近傍は`KoSnapGuideSchemaContractTest`、製品`kritaflake`は621工程・1,274入力と各集合の完全一致を確認する。未知target、5枠、対象CTest、20回反復、近傍、無作業再構築、
+  動的接続、未解決pattern・shape・image・painter記号、構文・変更行書式、公開API・`verify-quick`を確認する。型特性と未評価式を越えてbackground・shape・image・transform・
+  painter・pathを生成または呼出し、paint・描画、`KoPatternBackground.cpp`、Qt Gui・Widgets・Xml、製品OBJECT・shared、`kritatestsdk`、Qt Test以外の新link依存、公開header・
+  製品source変更、製品計画差、停止線超過が必要なら止める。
+- `g135-histogram-schema`は`/Users/masato/Documents/librepaint-g135-histogram-schema`を所有する。開始`libs/image/kis_histogram.h`のclass、計算値class、histogram enum・
+  全2値、constructor・destructor、計算・結果・producer・channel・選択操作から既存`libs/image/tests/KisImageTypesContractTest.cpp`の5枠
+  `histogramTypeAndLifecycleSchemaRemainStable`、`histogramCalculationValueSchemaRemainsStable`、`histogramComputationAndResultSignaturesRemainStable`、
+  `histogramTypeProducerAndChannelSignaturesRemainStable`、`histogramSelectionSignaturesRemainStable`へ全32 APIを対応付ける。許可pathはこの試験source1件だけであり、担当CMakeは
+  `libs/image/tests/CMakeLists.txt`だが変更しない。対象`KisImageTypesContractTest`は4工程・8入力、停止5工程・11入力、近傍は`KisSpacingInformationContractTest`、製品
+  `kritaimage`は1,196工程・2,416入力と各集合の完全一致を確認する。5枠の未知関数、対象CTest、20回反復、近傍、無作業再構築、動的接続、未解決histogram・producer・
+  image記号、構文・変更行書式、公開API・`verify-quick`を確認する。外側histogram・paint device・layer・producer・selection・registryを生成または呼出し、`kis_histogram.cc`、
+  製品source・OBJECT・shared、`kritatestsdk`、新依存、CMake・公開header変更、製品計画差、停止線超過が必要なら止める。
+- `g135-tag-proxy-schema`は`/Users/masato/Documents/librepaint-g135-tag-proxy-schema`を所有する。開始`libs/resources/KisTagFilterResourceProxyModel.h`のclass、constructor・
+  destructor、通知・filter設定・検索・状態・転送・変更操作から既存`libs/resources/tests/KisResourceModelEnumContractTest.cpp`の5枠
+  `tagFilterProxyTypeAndNotificationSchemaRemainsStable`、`tagFilterProxyConfigurationSchemaRemainsStable`、`tagFilterProxyLookupAndStateSchemaRemainsStable`、
+  `tagFilterProxyTransferSchemaRemainsStable`、`tagFilterProxyMutationSchemaRemainsStable`へ全34 APIを対応付ける。許可pathはこの試験source1件だけであり、担当CMakeは
+  `libs/resources/tests/CMakeLists.txt`だが変更しない。対象`KisResourceModelEnumContractTest`は4工程・9入力、停止5工程・11入力、近傍は`KisTagModelSchemaContractTest`、
+  製品`kritaresources`は150工程・327入力と各集合の完全一致を確認する。5枠の未知関数、既存枠、対象CTest、20回反復、近傍、無作業再構築、動的接続、未解決proxy・
+  resource・tag・DB・import記号、構文・変更行書式、公開API・`verify-quick`を確認する。模型・proxy・resource・tag・DB・query・I/O・signal・metaobjectを生成または呼出し、
+  製品source・OBJECT・shared、`kritatestsdk`、新依存、CMake・公開header変更、製品計画差、停止線超過が必要なら止める。
 
 ### 第134便の先行監査計画
 
