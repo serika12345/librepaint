@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 12:17 JST
+- 更新日時: 2026-09-01 12:29 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -423,6 +423,23 @@
   公開API検査、`verify-quick`を確認する。`psd_gradient_color_stop::actual_color`、pointer参照解決、実色空間・image・device・資源registry、filesystem、製品shared、
   `kritatestsdk`、公開header・製品・CMake変更、新依存、停止線超過が必要なら止める。
 
+### 第111便の統合結果
+
+- `g111-config-resource-schema`は受渡しcommit `490456af8e53`と同一patchを統合commit `4c756339d3`として取り込んだ。開始
+  `libs/application/kis_config.h`から既存`libs/application/tests/KisConfigEnumContractTest.cpp`の5枠へ、preset browser表示8、お気に入り資源4、
+  palette・preset方針6、brush HUD・palette表示6、scratchpad表示2の全26 APIを対応付けた。未評価の関数型と既定引数検査だけを用い、設定実体、GUI、I/Oを
+  呼び出していない。対象は変更前後4工程・15入力、製品`kritaapplication`は1,224工程・2,466入力で不変である。
+- `g111-psd-gradient-schema`は受渡しcommit `565f5ff490a6`と同一patchを統合commit `87c080ae80`として取り込んだ。開始
+  `libs/psdutils/psd.h`から既存`libs/psdutils/tests/PsdFormatValuesContractTest.cpp`の5枠へ、gradient collection record 8、map記述子9、停止列4、
+  procedural制御4、inline色table 3の全28 APIを対応付けた。aggregateと正確な型、zero初期化、負の符号付き値、pointer identityを保つ浅い複製、scalar・
+  256色配列の値複製独立性を固定した。停止点pointerは参照解決せず、`psd_gradient_color_stop::actual_color`と実色空間を構築していない。対象は変更前後
+  6工程・14入力、製品`kritapsd`は1,979工程・3,956入力で不変かつ未構築である。
+- 主macOS環境では追加10枠、2対象CTest、各20回反復、近傍`KisActionEnumContractTest`と`PsdByteIoContractTest`、再構築時の無コンパイル・無リンク、
+  動的接続と未解決製品記号を確認した。公開API契約検査は54 APIを重複なく受理し、29,838件中11,039件対応、18,799件未対応となった。最新入力は
+  `build/tdd-macos/public-api-missing-g112.json`である。Linux、全native検証、製品全体構築は実行していない。
+- 新報告の生成と受渡しpatchの同一性、2 worktreeのclean状態を確認後、旧`public-api-missing-g111.json` 4.6 MB、設定担当642 MB、PSD担当647 MBと
+  2 branchを削除し、約1.29 GBを回収した。主`build/tdd-macos`、共有compiler cache、最新不足報告は次便の限定構築へ再利用する。
+
 ### 第112便の先行監査計画
 
 - `g112-resource-config-audit`は共通基点`23a2fc050c`と`build/tdd-macos/public-api-missing-g111.json`から第111便担当中の54 APIを除外して読む。
@@ -431,6 +448,10 @@
 - 実storage・resource registry、SQL・filesystem、`QSettings`・KConfig I/O、image・paint device、GUI・大域状態へ到達せず、既存限定対象の未評価型検査または
   header-only値面で製品sharedと`kritatestsdk`へ接続しない候補を優先する。完全なAPI識別子、最大5枠、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、
   予測工程・入力と停止線、開始pathから契約先、許可path、比較候補の棄却根拠を報告する。
+- 監査は`KisResourceModel.h`の具体的所有者`KisAllResourcesModel`の全29 APIを採用した。模型・寿命・表schema 9、索引・検索9、取込・書出4、資源永続化5、
+  活性・metadata更新2を既存`KisResourceModelEnumContractTest`の未評価型5枠へ追加する。模型を生成せず全関数を呼ばないため、対象は変更前後4工程・9入力、
+  製品`kritaresources`は149工程・325入力を維持する。`KisResourceStorage`は単独責務の最大がiterator面21 APIで下限未達、image設定42 APIは大域通知対象と
+  複数色管理依存を分離する新規CMake所有を要するため棄却した。次の操作は第112便の担当票を確定し、試験source 1本だけの専用worktreeで実装することである。
 
 ### 第105並列便の監査計画
 

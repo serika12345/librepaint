@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 18853
+    "expectedMissingApis": 18799
   },
   "contracts": [
     {
@@ -34229,6 +34229,150 @@
       "apis": [
         "function:KoSvgText::parseTextTransform(const QString & value)",
         "function:KoSvgText::writeTextTransform(TextTransformInfo textTransform)"
+      ]
+    },
+    {
+      "target": "KisConfigEnumContractTest",
+      "source": "libs/application/tests/KisConfigEnumContractTest.cpp",
+      "test": "KisConfigEnumContractTest::presetBrowserPresentationSignaturesRemainStable",
+      "behavior": "プリセット一覧とpaintop popupの表示設定は、getter・setterの戻り型、引数、const性、既定値指定を公開schemaとして維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisConfig::paintopPopupDetached(bool defaultValue=false) const",
+        "method:KisConfig::presetChooserViewMode(bool defaultValue=false) const",
+        "method:KisConfig::presetIconSize(bool defaultValue=false) const",
+        "method:KisConfig::presetStripVisible(bool defaultValue=false) const",
+        "method:KisConfig::setPaintopPopupDetached(bool detached) const",
+        "method:KisConfig::setPresetChooserViewMode(const int mode) const",
+        "method:KisConfig::setPresetIconSize(const int value) const",
+        "method:KisConfig::setPresetStripVisible(bool visible)"
+      ]
+    },
+    {
+      "target": "KisConfigEnumContractTest",
+      "source": "libs/application/tests/KisConfigEnumContractTest.cpp",
+      "test": "KisConfigEnumContractTest::favoritePaintResourcesSignaturesRemainStable",
+      "behavior": "お気に入り合成方式とプリセット数の設定は、文字列一覧・整数値の取得と更新に関する公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisConfig::favoriteCompositeOps(bool defaultValue=false) const",
+        "method:KisConfig::favoritePresets(bool defaultValue=false) const",
+        "method:KisConfig::setFavoriteCompositeOps(const QStringList & compositeOps) const",
+        "method:KisConfig::setFavoritePresets(const int value)"
+      ]
+    },
+    {
+      "target": "KisConfigEnumContractTest",
+      "source": "libs/application/tests/KisConfigEnumContractTest.cpp",
+      "test": "KisConfigEnumContractTest::paletteAndPresetPolicySignaturesRemainStable",
+      "behavior": "既定palette、palette色の強制、変更済みpreset利用の設定は、文字列・真偽値の公開関数型と既定値指定を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisConfig::defaultPalette(bool defaultValue=false) const",
+        "method:KisConfig::forcePaletteColors(bool defaultValue=false) const",
+        "method:KisConfig::setDefaultPalette(const QString & name) const",
+        "method:KisConfig::setForcePaletteColors(bool forcePaletteColors)",
+        "method:KisConfig::setUseDirtyPresets(bool value)",
+        "method:KisConfig::useDirtyPresets(bool defaultValue=false) const"
+      ]
+    },
+    {
+      "target": "KisConfigEnumContractTest",
+      "source": "libs/application/tests/KisConfigEnumContractTest.cpp",
+      "test": "KisConfigEnumContractTest::brushHudAndPalettePresentationSignaturesRemainStable",
+      "behavior": "brush HUDとpalette下部barの表示設定は、表示状態・HUD設定文字列の公開関数型と既定値指定を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisConfig::brushHudSetting(bool defaultValue=false) const",
+        "method:KisConfig::setBrushHudSetting(const QString & value) const",
+        "method:KisConfig::setShowBrushHud(bool value)",
+        "method:KisConfig::setShowPaletteBottomBar(bool value)",
+        "method:KisConfig::showBrushHud(bool defaultValue=false) const",
+        "method:KisConfig::showPaletteBottomBar(bool defaultValue=false) const"
+      ]
+    },
+    {
+      "target": "KisConfigEnumContractTest",
+      "source": "libs/application/tests/KisConfigEnumContractTest.cpp",
+      "test": "KisConfigEnumContractTest::scratchpadResourceSurfaceSignaturesRemainStable",
+      "behavior": "scratchpad表示設定は、真偽値getter・setterの公開関数型と既定値指定を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisConfig::scratchpadVisible(bool defaultValue=false) const",
+        "method:KisConfig::setScratchpadVisible(bool visible)"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::gradientColorRecordPreservesAggregateSchemaAndCopyState",
+      "behavior": "PSD gradient色recordはaggregate、符号付き寸法、名前・停止点pointerの浅い複製、scalar値の複製独立性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:psd_gradient_color::color_stop",
+        "member:psd_gradient_color::name",
+        "member:psd_gradient_color::name_length",
+        "member:psd_gradient_color::number_color_stops",
+        "member:psd_gradient_color::number_transparency_stops",
+        "member:psd_gradient_color::smoothness",
+        "member:psd_gradient_color::transparency_stop",
+        "struct:psd_gradient_color"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::gradientMapDescriptorPreservesSignedControlValues",
+      "behavior": "PSD gradient map記述子はaggregate、真偽値・符号付き制御値・名前pointerの既定状態と複製規則を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:psd_layer_gradient_map::dithered",
+        "member:psd_layer_gradient_map::expansion_count",
+        "member:psd_layer_gradient_map::interpolation",
+        "member:psd_layer_gradient_map::length",
+        "member:psd_layer_gradient_map::mode",
+        "member:psd_layer_gradient_map::name",
+        "member:psd_layer_gradient_map::name_length",
+        "member:psd_layer_gradient_map::reverse",
+        "struct:psd_layer_gradient_map"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::gradientMapStopSequencesPreserveCountsAndPointerIdentity",
+      "behavior": "PSD gradient mapの色・透明度停止列は、符号付き件数、null既定値、停止点pointerのidentityと浅い複製規則を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:psd_layer_gradient_map::color_stop",
+        "member:psd_layer_gradient_map::number_color_stops",
+        "member:psd_layer_gradient_map::number_transparency_stops",
+        "member:psd_layer_gradient_map::transparency_stop"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::gradientMapProceduralControlsPreserveSignedValues",
+      "behavior": "PSD procedural gradient mapは乱数seed、透明表示、vector色利用、粗さの正確な符号付き型、既定値、複製独立性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:psd_layer_gradient_map::random_number_seed",
+        "member:psd_layer_gradient_map::roughness_factor",
+        "member:psd_layer_gradient_map::showing_transparency_flag",
+        "member:psd_layer_gradient_map::using_vector_color_flag"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::gradientMapColorTableCopiesInlineValuesIndependently",
+      "behavior": "PSD gradient mapの最小色・最大色・256色lookup tableは、正確な型と配列長、値複製後の独立性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:psd_layer_gradient_map::lookup_table",
+        "member:psd_layer_gradient_map::max_color",
+        "member:psd_layer_gradient_map::min_color"
       ]
     }
   ]
