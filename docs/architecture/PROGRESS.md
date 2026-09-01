@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 10:36 JST
+- 更新日時: 2026-09-01 10:38 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -152,6 +152,33 @@
   preferencesの純粋局所値は12 API、image設定のI/Oなし本文は2 APIで下限未達のため棄却した。
 - 到達不能な古いLibrePaint source複製と一時Nix shell派生物101件を回収し、20.43 GiBを解放した。主Ninja木、共有compiler cache、現在の`.direnv`開発profile、
   最新不足報告は保持している。
+
+### 第108並列便の担当計画
+
+- 実装共通基点は`8ebc91b5adcbcba53381db5d70a88472abaa809b`である。3担当は`planned`、構築許可は`granted`、Git権限は許可pathだけの
+  `transport-commit`、追加委任は禁止する。専用worktreeは翻訳catalog `po/`を疎な取得から除外し、worktree-local `build/tdd-macos`と
+  `./scripts/run-shared-test-env`で主環境・compiler cacheを共有する。統合順はPSD、設定schema、SVGとし、調整担当だけが台帳、進捗文書、不足報告を変更する。
+- `g108-psd-fill-layer-values`は`/Users/masato/Documents/librepaint-g108-psd-fill-layer-values`を所有する。対象は
+  `libs/psd/psd_additional_layer_info_block.h`のgradient既定値・copy 12、scalar・bool setter 6、形式コード・SVG判定2、pattern既定値・copy 8、setter 5の
+  全33 APIである。開始headerから既存`libs/psdutils/tests/PsdFormatValuesContractTest.cpp`の5枠へ対応付け、他pathを変更しない。変更前後は5工程・12入力、
+  停止6工程・14入力、製品`kritapsd`は1,977工程・3,952入力不変とする。
+- PSD担当は変更なし計画と直接依存、5枠、対象CTest、20回反復、`PsdByteIoContractTest`、無作業再構築、動的接続、source構文、公開API検査、
+  `verify-quick`を確認する。非null gradient・pattern、registry、ASL、実image・paint device、filesystem、生pointer所有、製品shared、`kritatestsdk`、
+  公開header・製品source・CMake、停止線超過が必要なら止める。
+- `g108-config-schema`は`/Users/masato/Documents/librepaint-g108-config-schema`を所有する。対象は`libs/application/kis_config.h`の入力・sampler 14、
+  canvas surface 9、session・色設定8、選択操作欄6、表示・補助線8の全45 APIである。開始headerから既存
+  `libs/application/tests/KisConfigEnumContractTest.cpp`の5枠へ対応付け、他pathを変更しない。変更前後は4工程・15入力、停止5工程・18入力、製品
+  `kritaapplication`は1,223工程・2,464入力不変とする。
+- 設定担当は変更なし計画と直接依存、5枠、対象CTest、20回反復、軽量近傍、無作業再構築、動的接続、KisConfig未解決記号、source構文、公開API検査、
+  `verify-quick`を確認する。未評価式だけを使い、`KisConfig`・KConfigGroup・`QSettings`・`QSurfaceFormat`の生成・呼出し、filesystem・大域設定、実application・GUI、
+  製品shared、`kritatestsdk`、公開header・製品・CMake、製品計画差、停止線超過が必要なら止める。
+- `g108-svg-font-selection`は`/Users/masato/Documents/librepaint-g108-svg-font-selection`を所有する。対象は`libs/flake/text/KoSvgText.h`の可変font軸14、
+  style候補5、合字機能7、数字機能8、東アジア字形機能6の全40 APIである。開始headerから新規
+  `libs/flake/tests/KoSvgTextFontSelectionValueContractTest.cpp`の5枠へ対応付け、`libs/flake/tests/CMakeLists.txt`だけを併せて変更する。最初の期待診断は
+  未知対象、予測4工程・8入力、停止5工程・11入力、製品`kritaflake`不変とする。
+- SVG担当は変更なし計画と直接依存、未知対象診断、限定構築、5枠、対象CTest、20回反復、`KoSvgTextEnumContractTest`とfont variant近傍、無作業再構築、
+  動的接続、source構文、公開API検査、`verify-quick`を確認する。除外した2 `operator==`・2 `debugInfo`、QDebug・QDataStream、parse・write、metaobject、
+  実shape・font registry・HarfBuzz・FreeType・描画、製品OBJECT・shared、`kritatestsdk`、公開header、停止線超過が必要なら止める。
 
 ### 第105並列便の監査計画
 
