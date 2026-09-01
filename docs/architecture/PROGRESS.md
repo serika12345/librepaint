@@ -36,6 +36,40 @@
   移動先、許可path、固有停止条件、比較候補の棄却根拠を含む。既存`build/tdd-macos`の計画は読み取り専用で測定し、構成や構築を開始しない。3報告後にpath、CMake、
   試験source、生成物が重ならない候補だけを担当票へ進める。
 
+### 第137便の担当計画
+
+- 実装共通基点は`acc0e9a8c564e195fd11a95ba425cbeecf096703`である。slider spin box、font WWS、LCMS profile担当は`implementing`、構築許可は指定試験targetと軽量近傍だけの
+  `granted`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、専用worktree-local `build/tdd-macos`と主作業treeの
+  `/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。統合順はslider spin box、font WWS、LCMS profileとし、調整担当だけが`AGENTS.md`、
+  architecture文書、`docs/architecture/public-api-test-contracts.json`、共通不足報告を変更する。3担当の公開header、所有CMake、試験source、生成物は重ならない。
+- `g137-slider-spinbox-schema`は`/Users/masato/Documents/librepaint-g137-slider-spinbox-schema`を所有する。開始`libs/libkis/SliderSpinBox.h`の`SliderSpinBox`と
+  `DoubleSliderSpinBox`についてclass、constructor・destructor・`widget`、hard range、soft range・step、値・scale、drag状態・方針・通知の全38 APIから新規
+  `libs/libkis/tests/SliderSpinBoxSchemaContractTest.cpp`の5枠`sliderSpinBoxTypeLifetimeAndViewSchemaRemainStable`、`sliderSpinBoxHardRangeSignaturesRemainStable`、
+  `sliderSpinBoxSoftRangeAndStepSignaturesRemainStable`、`sliderSpinBoxValueAndScalingSignaturesRemainStable`、`sliderSpinBoxDraggingPolicySignaturesRemainStable`へ
+  対応付ける。許可pathは新規試験sourceと`libs/libkis/tests/CMakeLists.txt`だけである。新対象`SliderSpinBoxSchemaContractTest`は4工程・8入力、停止5工程・11入力、近傍は
+  `KisSliderSpinBoxSchemaContractTest`、製品`kritalibkis`は2,018工程・4,034入力と各集合の完全一致を確認する。未知target、5枠、対象CTest、20回反復、近傍、無作業再構築、
+  動的接続、未解決wrapper・ParseSpinBox・内部widget・metaobject記号、構文・変更行書式、公開API・`verify-quick`を確認する。wrapper・内部widget・QObject・GUI event loopを
+  生成または呼出し、`SliderSpinBox.cpp`、ParseSpinBox製品source・OBJECT、`kritalibkis`、`kritawidgetutils`、`kritatestsdk`、Qt Core・Gui・Widgets・Test以外の新link依存、
+  公開header・製品source変更、製品計画差、停止線超過が必要なら止める。
+- `g137-font-wws-schema`は`/Users/masato/Documents/librepaint-g137-font-wws-schema`を所有する。開始`libs/flake/text/KoFFWWSConverter.h`の
+  `KoFFWWSConverter::FontFileEntry`、`KoFontFamilyWWSRepresentation`の全17 data member、`KoFFWWSConverter`のclass、constructor・destructor・取込・地域対応・generic family・
+  分類・収集・検索・候補・debugの全33 APIから新規`libs/flake/tests/KoFFWWSConverterSchemaContractTest.cpp`の5枠`fontFileAndFamilyIdentityValuesRemainStable`、
+  `fontFamilyLocalizationValuesRemainStable`、`fontFamilyAxesStylesAndColorFlagsRemainStable`、`fontConverterTypeAndIngestionSignaturesRemainStable`、
+  `fontConverterCollectionAndLookupSignaturesRemainStable`へ対応付ける。許可pathは新規試験sourceと`libs/flake/tests/CMakeLists.txt`だけである。新対象は4工程・8入力、停止
+  5工程・11入力、近傍は`KoSvgTextFontSelectionValueContractTest`、製品`kritaflake`は621工程・1,274入力と各集合の完全一致を確認する。未知target、5枠、対象CTest、
+  20回反復、近傍、無作業再構築、動的接続、未解決converter・Freetype・HarfBuzz・Fontconfig記号、構文・変更行書式、公開API・`verify-quick`を確認する。converter・font資源・
+  external library・text shape・painterを生成または呼出し、関数address値、`KoFFWWSConverter.cpp`、製品OBJECT・shared、`kritatestsdk`、external font libraryへのlink、公開header・
+  製品source変更、製品計画差、停止線超過が必要なら止める。
+- `g137-lcms-profile-schema`は`/Users/masato/Documents/librepaint-g137-lcms-profile-schema`を所有する。開始
+  `plugins/color/lcms2engine/colorprofiles/LcmsColorProfileContainer.h`のclass・destructor、metadata、表現・適合性、intent・transfer分類、色彩値、transfer操作の全40 APIから
+  新規`plugins/color/lcms2engine/tests/LcmsColorProfileContainerSchemaContractTest.cpp`の5枠`lcmsProfileTypeAndMetadataSchemaRemainsStable`、
+  `lcmsProfileRepresentationAndSuitabilitySchemaRemainsStable`、`lcmsProfileIntentAndTransferClassificationSchemaRemainsStable`、`lcmsProfileColorimetrySchemaRemainsStable`、
+  `lcmsProfileTransferOperationSchemaRemainsStable`へ対応付ける。許可pathは新規試験sourceと`plugins/color/lcms2engine/tests/CMakeLists.txt`だけである。新対象は4工程・8入力、
+  停止5工程・11入力、近傍は`KoColorProfileSchemaContractTest`、製品`kritalcmsengine_static`は397工程・823入力、`kritalcmsengine`は427工程・856入力と各集合の完全一致を
+  確認する。未知target、5枠、対象CTest、20回反復、近傍、無作業再構築、動的接続、未解決container・profile・LCMS記号、構文・変更行書式、公開API・`verify-quick`を確認する。
+  container・profile・handle・tone curve・処理対象を生成または呼出し、`LcmsColorProfileContainer.cpp`、製品OBJECT・static・module・shared、`kritatestsdk`、LCMS2へのlink、公開header・
+  製品source変更、製品計画差、停止線超過が必要なら止める。
+
 ### 第136便の先行監査計画
 
 - 監査共通基点は`c6b68e74bf934bed030518240563898720216d23`、入力は`build/tdd-macos/public-api-missing-g136.json`である。3担当は`auditing`の読み取り専用とし、
