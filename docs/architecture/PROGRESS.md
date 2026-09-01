@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 13:02 JST
+- 更新日時: 2026-09-01 13:09 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -598,6 +598,40 @@
   資源registry・filesystemへ到達しない候補を優先する。
 - 各報告は完全なAPI識別子、最大5枠、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから契約先または
   移動先、許可path、固有停止条件、比較・除外候補の根拠を含む。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
+- `g115-resource-model-audit`は`KisResourceModel.h`の具象`KisResourceModel`全26 APIを採用した。型・寿命・絞込み・表示7、検索8、取込・書出4、永続化5、
+  活性・metadata 2を既存`KisResourceModelEnumContractTest`の未評価型5枠へ追加する。対象4工程・9入力、製品`kritaresources` 149工程・325入力を維持する。
+  tag-resourceとtag模型の残りは各抽象・具象二階層を束ねて25 APIになるため次点とした。
+- `g115-canvas-value-audit`は`kis_grid_config.h`の設定値・公開schema 71 APIを採用した。型・列挙・`TrigoCache`値18、rectangular状態20、isometric状態16、
+  表示16、等値署名1を新規`KisGridConfigValueContractTest`の5枠へ対応付ける。`TrigoCache`だけを明示aggregate値として観測し、他は未評価型に限定する。新対象は
+  4工程・8入力、製品`kritaapplicationui`は1,967工程・3,934入力不変を予測する。設定I/Oへ入るconstructor等8 API、Pimpl・実canvasを要する座標変換、
+  描画・registryへ入るassistantは除外した。
+- `g115-format-value-audit`は`kstandardaction.h`の標準action callable識別schema全74 APIを採用した。識別helper・file 17、edit 18、view・移動・bookmark 23、
+  tool・settings 9、help 7を既存`KStandardActionEnumContractTest`の未評価関数pointer 5枠へ追加する。対象4工程・10入力、製品`kritawidgetutils` 273工程・579入力を
+  維持する。SVG cursor・glyph安全値は22 API、PSD shadow基底は色空間と製品実装を要求するため棄却した。
+
+### 第115便の担当計画
+
+- 実装共通基点は`f3a14db43341958dde61ba1ccbd090a945b535d7`である。3担当は`planned`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は
+  許可pathだけの`transport-commit`、追加委任は禁止する。専用worktree-local `build/tdd-macos`と`./scripts/run-shared-test-env`で主環境・compiler cacheを
+  共有する。統合順は資源模型、grid、標準actionとし、調整担当だけが台帳、進捗文書、不足報告を変更する。3担当の許可path、CMake、試験source、生成物は重ならない。
+- `g115-resource-model-schema`は`/Users/masato/Documents/librepaint-g115-resource-model-schema`を所有する。開始`libs/resources/KisResourceModel.h`から既存
+  `libs/resources/tests/KisResourceModelEnumContractTest.cpp`の5枠へ、具象`KisResourceModel`の型・constructor・destructor・絞込み・role 7、検索8、取込・
+  書出4、追加・更新5、活性・metadata 2の全26 APIを対応付け、他pathを変更しない。対象4工程・9入力、停止5工程・11入力、製品`kritaresources`
+  149工程・325入力の完全一致を新`plan`で確認する。5枠の未知関数診断、対象CTest、20回反復、`KisTagModelSchemaContractTest`、no-work、動的接続、未解決記号、
+  構文・書式・公開API・`verify-quick`を確認する。模型、SQL・storage・registry・filesystem・GUI・大域状態、製品shared、`kritaresourcestorage`、
+  `kritatestsdk`、新依存、公開header・CMake変更、停止線超過が必要なら止める。
+- `g115-grid-config-value`は`/Users/masato/Documents/librepaint-g115-grid-config-value`を所有する。開始`libs/ui/canvas/kis_grid_config.h`から新規
+  `libs/ui/tests/KisGridConfigValueContractTest.cpp`の5枠へ、class・列挙・TrigoCache 18、rectangular状態20、isometric状態16、表示16、等値署名1の全71 APIを
+  対応付け、`libs/ui/tests/CMakeLists.txt`だけを併せて変更する。最初の期待診断は未知target、新対象は予測4工程・8入力、停止5工程・10入力、製品
+  `kritaapplicationui`は1,967工程・3,934入力不変とする。対象CTest、20回反復、`KisAnimationFrameCacheFwdContractTest`、no-work、動的接続、未解決記号、
+  構文・書式・公開API・`verify-quick`を確認する。`KisGridConfig`実体、getter/setter、設定I/O、XML、global default、out-of-line記号、製品shared、
+  `kritatestsdk`、製品source・公開header変更、新依存、停止線超過が必要なら止める。
+- `g115-standard-action-schema`は`/Users/masato/Documents/librepaint-g115-standard-action-schema`を所有する。開始
+  `libs/widgetutils/config/kstandardaction.h`から既存`libs/widgetutils/tests/KStandardActionEnumContractTest.cpp`の5枠へ、識別helper・file 17、edit 18、
+  view・移動・bookmark 23、tool・settings 9、help 7の全74 APIを対応付け、他pathを変更しない。対象4工程・10入力、停止5工程・12入力、製品
+  `kritawidgetutils` 273工程・579入力の完全一致を新`plan`で確認する。5枠の未知関数診断、対象CTest、20回反復、`KColorSchemeEnumContractTest`、no-work、
+  動的接続、未解決記号、構文・書式・公開API・`verify-quick`を確認する。関数address評価・呼出し、action・window実体、Qt Widgets・製品shared・
+  `kritatestsdk`接続、`kstandardaction.cpp`、新依存、公開header・CMake変更、停止線超過が必要なら止める。
 
 ### 第105並列便の監査計画
 
