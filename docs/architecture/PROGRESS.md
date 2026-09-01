@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 19:46 JST
+- 更新日時: 2026-09-01 19:51 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -77,16 +77,23 @@
   `libs/global/kis_algebra_2d.cpp`から新規`libs/global/kis_algebra_2d_path_topology.cpp`へ、polygon・`VectorPath`の経路構築・位相・変換25 APIと必要な
   helperを本文不変で移し、新規`kritaglobalalgebrapathtopologyobjects`を製品`kritaglobal`と既存
   `libs/global/tests/KisAlgebraGeometryPrimitivesContractTest.cpp`へ一対一収容した。対象は7工程・15入力から8工程・17入力、製品は70工程・140入力から
-  71工程・142入力となり、差は新OBJECTの一翻訳単位だけである。主macOS環境での統合後検証を続行する。
+  71工程・142入力となり、差は新OBJECTの一翻訳単位だけである。主macOS環境では再構成後に対象CTest、20回反復、`KisBezierUtilsContractTest`、
+  無作業再構築を確認した。
 - `g126-transform-args-schema`は受渡しcommit`6f6015c1dc13`を統合commit`3ed3dfc158`として取り込んだ。開始
   `plugins/tools/tool_transform2/tool_transform_args.h`から既存
   `plugins/tools/tool_transform2/tests/ToolTransformArgsGeometrySchemaContractTest.cpp`の5枠へ、mode・精度、warp点列・計算、mesh状態、liquify・編集状態、
   継続・比較・座標写像の57 APIを対応付けた。対象は4工程・9入力、製品`kritatooltransform_static`は1,991工程・3,981入力で変更前後完全一致し、製品実装や
-  method本文を実行しない未評価型の契約として閉じた。主macOS環境での統合後検証を続行する。
+  method本文を実行しない未評価型の契約として閉じた。主macOS環境では対象CTest、20回反復、`KisBezierMeshValuesContractTest`、無作業再構築を確認した。
 - `g126-ruler-schema`は受渡しcommit`9283fc01bb4e`を統合commit`b4a18f628f`として取り込んだ。開始`libs/widgets/KoRuler.h`から新規
   `libs/widgets/tests/KoRulerSchemaContractTest.cpp`の5枠へ、型・計測、範囲・indent、pointer・guide、tab・popup、hotspotの全48 APIを対応付け、
   `libs/widgets/tests/CMakeLists.txt`へheader限定対象を追加した。対象は4工程・8入力、製品`kritawidgets`は806工程・1,641入力で変更前後完全一致し、定規・Widget・
-  canvas・unitを実体化していない。主macOS環境での統合後検証を続行する。
+  canvas・unitを実体化していない。主macOS環境では再構成後に対象CTest、20回反復、`KisWidgetConnectionStateContractTest`、無作業再構築を確認した。
+- 第126便は3責務15枠へ130 APIを重複なく対応付けた。公開API契約検査は29,838件中12,609件対応、17,229件未対応となり、`verify-quick`は成功した。
+  最新入力は`build/tdd-macos/public-api-missing-g127.json`である。Linux、全native検証、製品全体構築は実行していない。清浄性と受渡しcommitを確認後、
+  algebra path topology担当877,784 KiB、transform args担当867,080 KiB、ruler担当851,164 KiBの作業tree、専用構築木、3 branchを削除して合計
+  2,596,028 KiB（約2.48 GiB）を回収し、旧`public-api-missing-g126.json`も削除した。主`build/tdd-macos` 5.3 GB、共有compiler cache 960 MB、
+  最新不足報告だけを第127便へ再利用する。次の永続作業は第127便の不足報告から、pathと所有CMakeが重ならない3責務を先行監査し、限定構築範囲を確認してから
+  担当票を確定することである。
 
 ### 第125便の先行監査計画
 
