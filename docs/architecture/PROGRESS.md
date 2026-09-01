@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 19:12 JST
+- 更新日時: 2026-09-01 19:15 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -37,6 +37,38 @@
   palette modelはresource・drag-and-drop、visual color modelは色空間・設定・signalを横断するため棄却した。
 - 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから
   契約先または移動先、許可path、固有停止条件、比較候補の棄却根拠を含む。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
+
+### 第126便の担当計画
+
+- 実装共通基点は`3ca5ac5d5a`である。3担当は`preparing`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの
+  `transport-commit`、追加委任は禁止する。専用worktree-local `build/tdd-macos`と主作業treeの
+  `/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。統合順はalgebra path topology、transform args、rulerとし、調整担当だけが台帳、
+  進捗文書、不足報告を変更する。3担当の公開header、所有CMake、試験source、製品source、生成物は重ならない。
+- `g126-algebra-path-topology`は`/Users/masato/Documents/librepaint-g126-algebra-path-topology`を所有する。開始`libs/global/kis_algebra_2d.h`のpolygon・
+  `VectorPath`経路構築・位相・変換25 APIを、既存`libs/global/tests/KisAlgebraGeometryPrimitivesContractTest.cpp`の5枠
+  `pathConstructionAndConvexTopologyRemainStable`、`vectorPathSegmentAndIndexProjectionRemainStable`、`vectorPathOrderingAndSimplificationRemainStable`、
+  `vectorPathContainmentAndRectangleCutsRemainStable`、`vectorPathGutterAndDebugRepresentationsRemainStable`へ対応付ける。開始
+  `libs/global/kis_algebra_2d.cpp`から新規`libs/global/kis_algebra_2d_path_topology.cpp`へ選択25定義と必要な非公開helperを本文不変で移し、
+  `libs/global/CMakeLists.txt`の新規`kritaglobalalgebrapathtopologyobjects`を製品と限定試験へ一対一収容し、`libs/global/tests/CMakeLists.txt`も併せて変更する。
+  基点で対象・`kritaglobal`の計画を再測定し、対象7/15から8/17、停止9/20、製品70/140から71/142、停止72/145と集合差の説明一致を確認する。5枠の未知関数と
+  試験先行時の選択記号undefined、対象CTest、20回反復、`KisBezierUtilsContractTest`、no-work、単一定義、動的接続、構文・書式・公開API・`verify-quick`を確認する。
+  本文修正、公開header、2つ目の新source、Bezier・curve length・Eigen・GSL・debug OBJECT、製品shared・`kritatestsdk`、画面・image・resource・filesystem・大域状態、
+  説明外の製品再構築、停止線超過が必要なら止める。
+- `g126-transform-args-schema`は`/Users/masato/Documents/librepaint-g126-transform-args-schema`を所有する。開始
+  `plugins/tools/tool_transform2/tool_transform_args.h`から既存`plugins/tools/tool_transform2/tests/ToolTransformArgsGeometrySchemaContractTest.cpp`の5枠
+  `transformModeAndPrecisionSchemaRemainsStable`、`warpPointAndCalculationSignaturesRemainStable`、`meshTransformStateSignaturesRemainStable`、
+  `liquifyAndEditingStateSignaturesRemainStable`、`transformStateContinuationComparisonAndMappingSignaturesRemainStable`へ57 APIを対応付け、他pathを変更しない。
+  最初の期待診断は5枠の未知関数、対象4工程・9入力、停止5工程・12入力、製品`kritatooltransform_static` 1,991工程・3,981入力と各集合の完全一致を確認する。5枠、
+  対象CTest、20回反復、`KisBezierMeshValuesContractTest`、no-work、動的接続、未解決transform記号、構文・書式・公開API・`verify-quick`を確認する。引数・関連値実体、
+  method本文、KConfig、filter registry、paint device、worker、XML、stroke、描画、製品OBJECT・shared、`kritatestsdk`、新依存、CMake・header・製品source変更、製品計画差、
+  停止線超過が必要なら止める。
+- `g126-ruler-schema`は`/Users/masato/Documents/librepaint-g126-ruler-schema`を所有する。開始`libs/widgets/KoRuler.h`から新規
+  `libs/widgets/tests/KoRulerSchemaContractTest.cpp`の5枠`rulerTypeAndMeasurementSchemaRemainsStable`、`rulerRangeAndIndentSchemaRemainsStable`、
+  `rulerPointerAndGuideSchemaRemainsStable`、`rulerTabAndPopupSchemaRemainsStable`、`rulerHotSpotSchemaRemainsStable`へ全48 APIを対応付け、
+  `libs/widgets/tests/CMakeLists.txt`だけを併せて変更する。最初の期待診断は未知target、予測4工程・8入力、停止5工程・11入力、製品`kritawidgets` 806工程・1,641入力と
+  各集合の完全一致を確認する。5枠、対象CTest、20回反復、`KisWidgetConnectionStateContractTest`、no-work、動的接続、未解決ruler記号、構文・書式・公開API・
+  `verify-quick`を確認する。ruler・widget・canvas・unit実体、QApplication・画面・event loop・style・paint・signal、method本文、popup・guide・palette・色資源・大域状態、
+  製品OBJECT・shared、`kritatestsdk`、Qt Test・Widgets以外の新依存、公開header・製品source・製品CMake変更、製品計画差、停止線超過が必要なら止める。
 
 ### 第125便の先行監査計画
 
