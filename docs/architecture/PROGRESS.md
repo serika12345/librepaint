@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 09:50 JST
+- 更新日時: 2026-09-01 09:55 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -63,6 +63,15 @@
 - OpenGL担当は変更なし計画と直接依存、未知対象診断、3本文移管、限定構築、5枠、対象CTest、20回反復、`KisDlgPreferencesEnumContractTest`、
   無作業再構築、動的接続、source構文、公開API検査、`verify-quick`を確認する。専用OBJECTは製品へ一度だけ、試験へ直接収容する。製品sharedへの試験link、
   `kritatestsdk`、実OpenGL context・driver・画面、`KisConfig`・`QSettings` I/O、静的初期化、公開header、3本文以外の製品変更、停止線超過が必要なら止める。
+
+### 第107並列便の先行監査計画
+
+- `g107-interaction-value-audit`は共通基点`bfd6b867ee`、入力`build/tdd-macos/public-api-missing-g106.json`から第106便の65 APIを除外して読む。
+  `libs/image/brushengine/kis_paint_information.h` 61 API、`libs/pigment/resources/KoSegmentGradient.h` 81 API、`libs/resources/KisTagModel.h` 63 APIを比較し、
+  入力点の値・補間、segment gradientの局所値、tag modelの局所行状態のうち、単一責務25 API以上を最大5枠で固定できる候補を一つ選ぶ。第106便担当path、
+  台帳、文書、製品・試験・CMakeを変更せず、構築、試験、Git、追加委任も行わない。実image・paint device・色空間・資源registry・filesystem・大域状態を使わず、
+  既存限定OBJECTまたは公開headerを変えない一source移管で製品sharedと`kritatestsdk`へ接続しない候補を採用する。報告には全API識別子、5枠、定義閉包、
+  最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから追加・移動先path、許可path、比較候補の棄却根拠を含める。
 
 ### 第105並列便の監査計画
 
