@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 16262
+    "expectedMissingApis": 16225
   },
   "contracts": [
     {
@@ -39970,6 +39970,88 @@
         "method:KoShapeStroke::paintMarkers(const KoShape * shape,QPainter & painter) const",
         "method:KoShapeStroke::strokeInsets(const KoShape * shape,KoInsets & insets) const",
         "method:KoShapeStroke::strokeMaxMarkersInset(const KoShape * shape) const"
+      ]
+    },
+    {
+      "target": "KoStoreSchemaContractTest",
+      "source": "libs/resources/storage/tests/KoStoreSchemaContractTest.cpp",
+      "test": "KoStoreSchemaContractTest::storeTypeAndLifetimeSchemaRemainStable",
+      "behavior": "保管入出力は型、読み書き方式、自動・圧縮・directory backend、および仮想寿命の公開スキーマを維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoStore",
+        "enum:KoStore::Backend",
+        "enum:KoStore::Mode",
+        "enumerator:KoStore::Backend::Auto",
+        "enumerator:KoStore::Backend::Directory",
+        "enumerator:KoStore::Backend::Zip",
+        "enumerator:KoStore::Mode::Read",
+        "enumerator:KoStore::Mode::Write",
+        "method:KoStore::~KoStore()"
+      ]
+    },
+    {
+      "target": "KoStoreSchemaContractTest",
+      "source": "libs/resources/storage/tests/KoStoreSchemaContractTest.cpp",
+      "test": "KoStoreSchemaContractTest::storeCreationAndOpenStateSignaturesRemainStable",
+      "behavior": "保管入出力はファイル名・装置からの生成と開閉・確定について正確な既定値、引数、戻り型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoStore::close()",
+        "method:KoStore::createStore(QIODevice * device,Mode mode,const QByteArray & appIdentification=QByteArray (),Backend backend=Auto,bool writeMimetype=true)",
+        "method:KoStore::createStore(const QString & fileName,Mode mode,const QByteArray & appIdentification=QByteArray (),Backend backend=Auto,bool writeMimetype=true)",
+        "method:KoStore::finalize()",
+        "method:KoStore::isOpen() const",
+        "method:KoStore::open(const QString & name)"
+      ]
+    },
+    {
+      "target": "KoStoreSchemaContractTest",
+      "source": "libs/resources/storage/tests/KoStoreSchemaContractTest.cpp",
+      "test": "KoStoreSchemaContractTest::storeDataStreamAndPositionSignaturesRemainStable",
+      "behavior": "保管入出力は装置、読み書き、状態、方式、位置、終端について正確な引数、戻り型、const性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoStore::atEnd() const",
+        "method:KoStore::bad() const",
+        "method:KoStore::device() const",
+        "method:KoStore::mode() const",
+        "method:KoStore::pos() const",
+        "method:KoStore::read(char * buffer,qint64 length)",
+        "method:KoStore::read(qint64 max)",
+        "method:KoStore::seek(qint64 pos)",
+        "method:KoStore::size() const",
+        "method:KoStore::write(const QByteArray & data)",
+        "method:KoStore::write(const char * data,qint64 length)"
+      ]
+    },
+    {
+      "target": "KoStoreSchemaContractTest",
+      "source": "libs/resources/storage/tests/KoStoreSchemaContractTest.cpp",
+      "test": "KoStoreSchemaContractTest::storeDirectoryNavigationSignaturesRemainStable",
+      "behavior": "保管入出力はdirectoryの列挙・移動・stack操作・存在判定について正確な引数、戻り型、const性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoStore::currentPath() const",
+        "method:KoStore::directoryList() const",
+        "method:KoStore::enterDirectory(const QString & directory)",
+        "method:KoStore::hasDirectory(const QString & directoryName)",
+        "method:KoStore::hasFile(const QString & fileName) const",
+        "method:KoStore::leaveDirectory()",
+        "method:KoStore::popDirectory()",
+        "method:KoStore::pushDirectory()"
+      ]
+    },
+    {
+      "target": "KoStoreSchemaContractTest",
+      "source": "libs/resources/storage/tests/KoStoreSchemaContractTest.cpp",
+      "test": "KoStoreSchemaContractTest::storeExtractionAndConfigurationSignaturesRemainStable",
+      "behavior": "保管入出力は内容抽出、圧縮切替、名称置換について正確な引数と戻り型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoStore::extractFile(const QString & sourceName,QByteArray & data)",
+        "method:KoStore::setCompressionEnabled(bool e)",
+        "method:KoStore::setSubstitution(const QString & name,const QString & substitution)"
       ]
     }
   ]
