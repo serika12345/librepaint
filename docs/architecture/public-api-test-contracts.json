@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 17432
+    "expectedMissingApis": 17388
   },
   "contracts": [
     {
@@ -37315,6 +37315,95 @@
         "method:FreehandStrokeStrategy::notifyUserEndedStroke()",
         "method:FreehandStrokeStrategy::notifyUserStartedStroke()",
         "method:FreehandStrokeStrategy::~FreehandStrokeStrategy()"
+      ]
+    },
+    {
+      "target": "KisCursorSchemaContractTest",
+      "source": "libs/widgetutils/tests/KisCursorSchemaContractTest.cpp",
+      "test": "KisCursorSchemaContractTest::cursorTypeAndStandardFactorySchemaRemainsStable",
+      "behavior": "KisCursorは既定構築可能な公開classであり、標準形状factoryは引数なしの静的関数としてQCursorを返す署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisCursor",
+        "method:KisCursor::KisCursor()",
+        "method:KisCursor::arrowCursor()",
+        "method:KisCursor::blankCursor()",
+        "method:KisCursor::crossCursor()",
+        "method:KisCursor::ibeamCursor()",
+        "method:KisCursor::pixelBlackCursor()",
+        "method:KisCursor::pixelWhiteCursor()",
+        "method:KisCursor::pointingHandCursor()",
+        "method:KisCursor::roundCursor()",
+        "method:KisCursor::sizeAllCursor()",
+        "method:KisCursor::sizeBDiagCursor()",
+        "method:KisCursor::sizeFDiagCursor()",
+        "method:KisCursor::sizeHorCursor()",
+        "method:KisCursor::sizeVerCursor()",
+        "method:KisCursor::splitHCursor()",
+        "method:KisCursor::splitVCursor()",
+        "method:KisCursor::upArrowCursor()",
+        "method:KisCursor::waitCursor()"
+      ]
+    },
+    {
+      "target": "KisCursorSchemaContractTest",
+      "source": "libs/widgetutils/tests/KisCursorSchemaContractTest.cpp",
+      "test": "KisCursorSchemaContractTest::cursorNavigationAndTransformFactorySchemaRemainsStable",
+      "behavior": "移動・拡大縮小・回転・手操作cursor factoryは引数なしの静的関数としてQCursorを返す署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCursor::closedHandCursor()",
+        "method:KisCursor::handCursor()",
+        "method:KisCursor::moveCursor()",
+        "method:KisCursor::moveSelectionCursor()",
+        "method:KisCursor::openHandCursor()",
+        "method:KisCursor::rotateCanvasDiscreteCursor()",
+        "method:KisCursor::rotateCanvasSmoothCursor()",
+        "method:KisCursor::rotateCursor()",
+        "method:KisCursor::triangleLeftHandedCursor()",
+        "method:KisCursor::triangleRightHandedCursor()",
+        "method:KisCursor::zoomDiscreteCursor()",
+        "method:KisCursor::zoomSmoothCursor()"
+      ]
+    },
+    {
+      "target": "KisCursorSchemaContractTest",
+      "source": "libs/widgetutils/tests/KisCursorSchemaContractTest.cpp",
+      "test": "KisCursorSchemaContractTest::cursorSamplingAndAdjustmentFactorySchemaRemainsStable",
+      "behavior": "sampling・layer選択・露出・gamma・消しゴムcursor factoryは引数なしの静的関数としてQCursorを返す署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCursor::changeExposureCursor()",
+        "method:KisCursor::changeGammaCursor()",
+        "method:KisCursor::eraserCursor()",
+        "method:KisCursor::pickLayerCursor()",
+        "method:KisCursor::samplerCursor()",
+        "method:KisCursor::samplerImageBackgroundCursor()",
+        "method:KisCursor::samplerImageForegroundCursor()",
+        "method:KisCursor::samplerLayerBackgroundCursor()",
+        "method:KisCursor::samplerLayerForegroundCursor()"
+      ]
+    },
+    {
+      "target": "KisCursorSchemaContractTest",
+      "source": "libs/widgetutils/tests/KisCursorSchemaContractTest.cpp",
+      "test": "KisCursorSchemaContractTest::cursorMeshFactorySchemaRemainsStable",
+      "behavior": "mesh編集の自由・固定状態cursor factoryは引数なしの静的関数としてQCursorを返す署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCursor::meshCursorFree()",
+        "method:KisCursor::meshCursorLocked()"
+      ]
+    },
+    {
+      "target": "KisCursorSchemaContractTest",
+      "source": "libs/widgetutils/tests/KisCursorSchemaContractTest.cpp",
+      "test": "KisCursorSchemaContractTest::cursorLoadingSignatureSchemaRemainsStable",
+      "behavior": "cursor読込関数は名称・寸法・hotspotの型を維持し、hotspot既定値による省略呼出しがQCursor型として成立する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCursor::load(const QString & cursorName,int hotspotX=-1,int hotspotY=-1)",
+        "method:KisCursor::loadWithSize(const QString & cursorName,int width,int height,int hotspotX=-1,int hotspotY=-1)"
       ]
     }
   ]
