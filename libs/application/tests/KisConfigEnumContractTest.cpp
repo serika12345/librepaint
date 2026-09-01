@@ -45,6 +45,11 @@ private Q_SLOTS:
     void eraserCursorAppearanceSignaturesRemainStable();
     void paintingOutlineVisibilitySignaturesRemainStable();
     void selectionOutlineRenderingSignaturesRemainStable();
+    void presetBrowserPresentationSignaturesRemainStable();
+    void favoritePaintResourcesSignaturesRemainStable();
+    void paletteAndPresetPolicySignaturesRemainStable();
+    void brushHudAndPalettePresentationSignaturesRemainStable();
+    void scratchpadResourceSurfaceSignaturesRemainStable();
 };
 
 void KisConfigEnumContractTest::inputAndSamplerValuesRemainStable()
@@ -451,6 +456,70 @@ void KisConfigEnumContractTest::selectionOutlineRenderingSignaturesRemainStable(
     ASSERT_KIS_CONFIG_SIGNATURE(setAntialiasSelectionOutline, void (KisConfig::*)(bool) const);
 
     static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().antialiasSelectionOutline()), bool>);
+}
+
+void KisConfigEnumContractTest::presetBrowserPresentationSignaturesRemainStable()
+{
+    ASSERT_KIS_CONFIG_SIGNATURE(presetChooserViewMode, int (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setPresetChooserViewMode, void (KisConfig::*)(int) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(presetIconSize, int (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setPresetIconSize, void (KisConfig::*)(int) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(presetStripVisible, bool (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setPresetStripVisible, void (KisConfig::*)(bool));
+    ASSERT_KIS_CONFIG_SIGNATURE(paintopPopupDetached, bool (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setPaintopPopupDetached, void (KisConfig::*)(bool) const);
+
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().presetChooserViewMode()), int>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().presetIconSize()), int>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().presetStripVisible()), bool>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().paintopPopupDetached()), bool>);
+}
+
+void KisConfigEnumContractTest::favoritePaintResourcesSignaturesRemainStable()
+{
+    ASSERT_KIS_CONFIG_SIGNATURE(favoriteCompositeOps, QStringList (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setFavoriteCompositeOps, void (KisConfig::*)(const QStringList &) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(favoritePresets, int (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setFavoritePresets, void (KisConfig::*)(int));
+
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().favoriteCompositeOps()), QStringList>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().favoritePresets()), int>);
+}
+
+void KisConfigEnumContractTest::paletteAndPresetPolicySignaturesRemainStable()
+{
+    ASSERT_KIS_CONFIG_SIGNATURE(defaultPalette, QString (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setDefaultPalette, void (KisConfig::*)(const QString &) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(forcePaletteColors, bool (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setForcePaletteColors, void (KisConfig::*)(bool));
+    ASSERT_KIS_CONFIG_SIGNATURE(useDirtyPresets, bool (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setUseDirtyPresets, void (KisConfig::*)(bool));
+
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().defaultPalette()), QString>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().forcePaletteColors()), bool>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().useDirtyPresets()), bool>);
+}
+
+void KisConfigEnumContractTest::brushHudAndPalettePresentationSignaturesRemainStable()
+{
+    ASSERT_KIS_CONFIG_SIGNATURE(showBrushHud, bool (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setShowBrushHud, void (KisConfig::*)(bool));
+    ASSERT_KIS_CONFIG_SIGNATURE(brushHudSetting, QString (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setBrushHudSetting, void (KisConfig::*)(const QString &) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(showPaletteBottomBar, bool (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setShowPaletteBottomBar, void (KisConfig::*)(bool));
+
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().showBrushHud()), bool>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().brushHudSetting()), QString>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().showPaletteBottomBar()), bool>);
+}
+
+void KisConfigEnumContractTest::scratchpadResourceSurfaceSignaturesRemainStable()
+{
+    ASSERT_KIS_CONFIG_SIGNATURE(scratchpadVisible, bool (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setScratchpadVisible, void (KisConfig::*)(bool));
+
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().scratchpadVisible()), bool>);
 }
 
 #undef ASSERT_KIS_CONFIG_SIGNATURE
