@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 16825
+    "expectedMissingApis": 16793
   },
   "contracts": [
     {
@@ -38687,6 +38687,83 @@
         "method:KoSvgTextProperties::setFontSize(const KoSvgText::CssLengthPercentage length)",
         "method:KoSvgTextProperties::stroke() const",
         "method:KoSvgTextProperties::xHeight() const"
+      ]
+    },
+    {
+      "target": "KisDabCacheUtilsSchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisDabCacheUtilsSchemaContractTest.cpp",
+      "test": "KisDabCacheUtilsSchemaContractTest::dabSchemaTypesAndFactoryRemainStable",
+      "behavior": "Dab生成要求・生成情報・描画resourceの公開型特性とresource factoryの関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisDabCacheUtils::ResourcesFactory",
+        "struct:KisDabCacheUtils::DabGenerationInfo",
+        "struct:KisDabCacheUtils::DabRenderingResources",
+        "struct:KisDabCacheUtils::DabRequestInfo"
+      ]
+    },
+    {
+      "target": "KisDabCacheUtilsSchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisDabCacheUtilsSchemaContractTest.cpp",
+      "test": "KisDabCacheUtilsSchemaContractTest::dabRequestValueSignaturesRemainStable",
+      "behavior": "Dab要求値は色、位置、形状、入力情報、softnessとlightnessの参照・const・値型、構築引数およびlightness既定値を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisDabCacheUtils::DabRequestInfo::color",
+        "member:KisDabCacheUtils::DabRequestInfo::cursorPoint",
+        "member:KisDabCacheUtils::DabRequestInfo::info",
+        "member:KisDabCacheUtils::DabRequestInfo::lightnessStrength",
+        "member:KisDabCacheUtils::DabRequestInfo::shape",
+        "member:KisDabCacheUtils::DabRequestInfo::softnessFactor",
+        "method:KisDabCacheUtils::DabRequestInfo::DabRequestInfo(const KoColor & _color,const QPointF & _cursorPoint,const KisDabShape & _shape,const KisPaintInformation & _info,qreal _softnessFactor,qreal _lightnessStrength=1.0)"
+      ]
+    },
+    {
+      "target": "KisDabCacheUtilsSchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisDabCacheUtilsSchemaContractTest.cpp",
+      "test": "KisDabCacheUtilsSchemaContractTest::dabGenerationValueSignaturesRemainStable",
+      "behavior": "Dab生成情報は描画矩形、入力情報、明度、鏡像、後処理要否、色、形状、softness、単色塗り、subpixel位置の公開member型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisDabCacheUtils::DabGenerationInfo::dstDabRect",
+        "member:KisDabCacheUtils::DabGenerationInfo::info",
+        "member:KisDabCacheUtils::DabGenerationInfo::lightnessStrength",
+        "member:KisDabCacheUtils::DabGenerationInfo::mirrorProperties",
+        "member:KisDabCacheUtils::DabGenerationInfo::needsPostprocessing",
+        "member:KisDabCacheUtils::DabGenerationInfo::paintColor",
+        "member:KisDabCacheUtils::DabGenerationInfo::shape",
+        "member:KisDabCacheUtils::DabGenerationInfo::softnessFactor",
+        "member:KisDabCacheUtils::DabGenerationInfo::solidColorFill",
+        "member:KisDabCacheUtils::DabGenerationInfo::subPixel"
+      ]
+    },
+    {
+      "target": "KisDabCacheUtilsSchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisDabCacheUtilsSchemaContractTest.cpp",
+      "test": "KisDabCacheUtilsSchemaContractTest::dabRenderingResourceSignaturesRemainStable",
+      "behavior": "Dab描画resourceは仮想破棄と同期関数、およびbrush、色源、sharpness、texture、色源deviceの所有型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisDabCacheUtils::DabRenderingResources::brush",
+        "member:KisDabCacheUtils::DabRenderingResources::colorSource",
+        "member:KisDabCacheUtils::DabRenderingResources::colorSourceDevice",
+        "member:KisDabCacheUtils::DabRenderingResources::sharpnessOption",
+        "member:KisDabCacheUtils::DabRenderingResources::textureOption",
+        "method:KisDabCacheUtils::DabRenderingResources::DabRenderingResources()",
+        "method:KisDabCacheUtils::DabRenderingResources::syncResourcesToSeqNo(int seqNo,const KisPaintInformation & info)",
+        "method:KisDabCacheUtils::DabRenderingResources::~DabRenderingResources()"
+      ]
+    },
+    {
+      "target": "KisDabCacheUtilsSchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisDabCacheUtilsSchemaContractTest.cpp",
+      "test": "KisDabCacheUtilsSchemaContractTest::dabProcessingFunctionSignaturesRemainStable",
+      "behavior": "Dab cache矩形補正、Dab生成、後処理関数は引数・戻り値型と画像stamp強制引数の既定値を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisDabCacheUtils::correctDabRectWhenFetchedFromCache(const QRect & dabRect,const QSize & realDabSize)",
+        "function:KisDabCacheUtils::generateDab(const DabGenerationInfo & di,DabRenderingResources * resources,KisFixedPaintDeviceSP * dab,bool forceImageStamp=false)",
+        "function:KisDabCacheUtils::postProcessDab(KisFixedPaintDeviceSP dab,const QPoint & dabTopLeft,const KisPaintInformation & info,DabRenderingResources * resources)"
       ]
     }
   ]
