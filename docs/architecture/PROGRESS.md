@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 20:30 JST
+- 更新日時: 2026-09-01 20:36 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -39,7 +39,7 @@
 
 ### 第127便の担当計画
 
-- 実装共通基点は`8f1da2d383`である。config animationとSVG text coordinates担当は`integrated`、paint information担当は`ready`、
+- 実装共通基点は`8f1da2d383`である。config animation、SVG text coordinates、paint information担当は`integrated`、
   構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの
   `transport-commit`、追加委任は禁止する。専用worktree-local `build/tdd-macos`と主作業treeの
   `/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。統合順はconfig animation、SVG text coordinates、paint informationとし、
@@ -81,6 +81,11 @@
   `libs/flake/text/KoSvgText.h`から既存`libs/flake/tests/KoSvgTextEnumContractTest.cpp`の5枠へ、文字座標変換の値・操作と解像度換算の値・変換・調整の34 APIを
   対応付けた。対象4工程・8入力、製品`kritaflake` 619工程・1,270入力と各集合は変更前後一致し、shape、layout、font database、描画、画像、XML、資源を
   生成・実行していない。主macOS環境で対象CTest、20回反復、近傍`KoSvgTextFontMetricsValueContractTest`、無作業再構築、公開API検査、`verify-quick`に成功した。
+- `g127-paint-information-schema`は受渡しcommit`cbcb4a16ef86`を統合commit`1638ab802a`として取り込んだ。開始
+  `libs/image/brushengine/kis_paint_information.h`から既存`libs/image/tests/KisImageTypesContractTest.cpp`の5枠へ、位置・sensor、stroke進行、canvas向き、導出motion、
+  傾き換算の32 APIを対応付けた。対象4工程・8入力、製品`kritaimage` 1,194工程・2,412入力と各集合は変更前後一致し、入力標本・距離・乱数・spacing・timing実体、
+  device、preset、resource、paintop、stroke、描画、XML、設定I/O、大域状態を生成・実行していない。主macOS環境で対象CTest、20回反復、近傍
+  `KisImageConfigAnimationSchemaContractTest`、再構築時の無コンパイル・無リンク、公開API検査、`verify-quick`に成功した。
 
 ### 第126便の先行監査計画
 

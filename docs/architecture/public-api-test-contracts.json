@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 17169
+    "expectedMissingApis": 17137
   },
   "contracts": [
     {
@@ -37893,6 +37893,83 @@
         "method:KoSvgText::ResolutionHandler::adjustCeil(const QPointF point) const",
         "method:KoSvgText::ResolutionHandler::adjustFloor(const QPointF point) const",
         "method:KoSvgText::ResolutionHandler::adjustWithOffset(const QPointF point,const QPointF offset) const"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::paintInputPositionAndSensorSignaturesRemainStable",
+      "behavior": "描画入力標本は位置、筆圧、傾き、回転、接線圧、遠近率の公開取得・設定型とclass種別を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisPaintInformation",
+        "method:KisPaintInformation::perspective() const",
+        "method:KisPaintInformation::pos() const",
+        "method:KisPaintInformation::pressure() const",
+        "method:KisPaintInformation::rotation() const",
+        "method:KisPaintInformation::setPos(const QPointF & p)",
+        "method:KisPaintInformation::setPressure(qreal p)",
+        "method:KisPaintInformation::tangentialPressure() const",
+        "method:KisPaintInformation::xTilt() const",
+        "method:KisPaintInformation::yTilt() const"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::paintInputStrokeProgressSignaturesRemainStable",
+      "behavior": "描画入力標本は時刻、dab通番、累積stroke長、hover状態の公開取得・設定型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPaintInformation::currentDabSeqNo() const",
+        "method:KisPaintInformation::currentTime() const",
+        "method:KisPaintInformation::isHoveringMode() const",
+        "method:KisPaintInformation::setCurrentTime(qreal time) const",
+        "method:KisPaintInformation::totalStrokeLength() const"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::paintInputCanvasOrientationSignaturesRemainStable",
+      "behavior": "描画入力標本はcanvas回転、水平・垂直反転、傾き方向offsetの公開取得・設定型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPaintInformation::canvasMirroredH() const",
+        "method:KisPaintInformation::canvasMirroredV() const",
+        "method:KisPaintInformation::canvasRotation() const",
+        "method:KisPaintInformation::setCanvasMirroredH(bool value)",
+        "method:KisPaintInformation::setCanvasMirroredV(bool value)",
+        "method:KisPaintInformation::setCanvasRotation(qreal rotation)",
+        "method:KisPaintInformation::setTiltDirectionOffset(qreal angle)",
+        "method:KisPaintInformation::tiltDirectionOffset() const"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::paintInputDerivedMotionSignaturesRemainStable",
+      "behavior": "描画入力標本は描画角・方向・距離・速度・最大筆圧の導出と描画角上書きの公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPaintInformation::drawingAngle(bool considerLockedAngle=false) const",
+        "method:KisPaintInformation::drawingAngleSafe(const KisDistanceInformation & distance) const",
+        "method:KisPaintInformation::drawingDirectionVector() const",
+        "method:KisPaintInformation::drawingDistance() const",
+        "method:KisPaintInformation::drawingSpeed() const",
+        "method:KisPaintInformation::maxPressure() const",
+        "method:KisPaintInformation::overrideDrawingAngle(qreal angle)"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::paintInputTiltConversionSignaturesRemainStable",
+      "behavior": "描画入力標本は傾き方向・高度を正規化条件と最大傾斜角から換算する公開静的関数型と既定引数を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPaintInformation::tiltDirection(const KisPaintInformation & info,bool normalize=true)",
+        "method:KisPaintInformation::tiltElevation(const KisPaintInformation & info,qreal maxTiltX=60.0,qreal maxTiltY=60.0,bool normalize=true)"
       ]
     }
   ]
