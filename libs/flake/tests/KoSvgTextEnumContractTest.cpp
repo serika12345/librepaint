@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "svg/SvgGraphicContext.h"
 #include "text/KoSvgText.h"
 #include "text/KoSvgTextProperties.h"
 
@@ -28,6 +29,11 @@ private Q_SLOTS:
     void fontStylesCompareSlantOnlyForOblique();
     void textTransformsOwnIndependentFlags();
     void textIndentOwnsLengthAndLineFlags();
+    void graphicsContextStyleOrdinalsRemainStable();
+    void graphicsContextFillAndStrokeStateKeepsPublicTypes();
+    void graphicsContextClipTransformAndColorStateKeepsPublicTypes();
+    void graphicsContextSpatialVisibilityAndResolutionStateKeepsPublicTypes();
+    void graphicsContextMarkerTextAndPaintStateKeepsPublicTypes();
 };
 
 void KoSvgTextEnumContractTest::layoutEnumsRemainOrdered()
@@ -439,6 +445,67 @@ void KoSvgTextEnumContractTest::textIndentOwnsLengthAndLineFlags()
     QVERIFY(copy == indent);
     copy.eachLine = false;
     QVERIFY(copy != indent);
+}
+
+void KoSvgTextEnumContractTest::graphicsContextStyleOrdinalsRemainStable()
+{
+    static_assert(std::is_class_v<SvgGraphicsContext>);
+    static_assert(std::is_enum_v<SvgGraphicsContext::StyleType>);
+
+    QCOMPARE(int(SvgGraphicsContext::None), 0);
+    QCOMPARE(int(SvgGraphicsContext::Solid), 1);
+    QCOMPARE(int(SvgGraphicsContext::Complex), 2);
+    QCOMPARE(int(SvgGraphicsContext::Inherit), 3);
+}
+
+void KoSvgTextEnumContractTest::graphicsContextFillAndStrokeStateKeepsPublicTypes()
+{
+    static_assert(
+        std::is_same_v<decltype(&SvgGraphicsContext::fillType), SvgGraphicsContext::StyleType SvgGraphicsContext::*>);
+    static_assert(std::is_same_v<decltype(&SvgGraphicsContext::fillRule), Qt::FillRule SvgGraphicsContext::*>);
+    static_assert(std::is_same_v<decltype(&SvgGraphicsContext::fillColor), QColor SvgGraphicsContext::*>);
+    static_assert(std::is_same_v<decltype(&SvgGraphicsContext::fillId), QString SvgGraphicsContext::*>);
+    static_assert(
+        std::is_same_v<decltype(&SvgGraphicsContext::strokeType), SvgGraphicsContext::StyleType SvgGraphicsContext::*>);
+    static_assert(std::is_same_v<decltype(&SvgGraphicsContext::strokeId), QString SvgGraphicsContext::*>);
+    static_assert(std::is_same_v<decltype(&SvgGraphicsContext::stroke), KoShapeStrokeSP SvgGraphicsContext::*>);
+}
+
+void KoSvgTextEnumContractTest::graphicsContextClipTransformAndColorStateKeepsPublicTypes()
+{
+    static_assert(std::is_same_v<decltype(&SvgGraphicsContext::filterId), QString SvgGraphicsContext::*>);
+    static_assert(std::is_same_v<decltype(&SvgGraphicsContext::clipPathId), QString SvgGraphicsContext::*>);
+    static_assert(std::is_same_v<decltype(&SvgGraphicsContext::clipMaskId), QString SvgGraphicsContext::*>);
+    static_assert(std::is_same_v<decltype(&SvgGraphicsContext::clipRule), Qt::FillRule SvgGraphicsContext::*>);
+    static_assert(std::is_same_v<decltype(&SvgGraphicsContext::opacity), qreal SvgGraphicsContext::*>);
+    static_assert(std::is_same_v<decltype(&SvgGraphicsContext::matrix), QTransform SvgGraphicsContext::*>);
+    static_assert(std::is_same_v<decltype(&SvgGraphicsContext::currentColor), QColor SvgGraphicsContext::*>);
+    static_assert(std::is_same_v<decltype(&SvgGraphicsContext::xmlBaseDir), QString SvgGraphicsContext::*>);
+}
+
+void KoSvgTextEnumContractTest::graphicsContextSpatialVisibilityAndResolutionStateKeepsPublicTypes()
+{
+    static_assert(std::is_same_v<decltype(&SvgGraphicsContext::preserveWhitespace), bool SvgGraphicsContext::*>);
+    static_assert(std::is_same_v<decltype(&SvgGraphicsContext::currentBoundingBox), QRectF SvgGraphicsContext::*>);
+    static_assert(std::is_same_v<decltype(&SvgGraphicsContext::forcePercentage), bool SvgGraphicsContext::*>);
+    static_assert(std::is_same_v<decltype(&SvgGraphicsContext::viewboxTransform), QTransform SvgGraphicsContext::*>);
+    static_assert(std::is_same_v<decltype(&SvgGraphicsContext::display), bool SvgGraphicsContext::*>);
+    static_assert(std::is_same_v<decltype(&SvgGraphicsContext::visible), bool SvgGraphicsContext::*>);
+    static_assert(std::is_same_v<decltype(&SvgGraphicsContext::isResolutionFrame), bool SvgGraphicsContext::*>);
+    static_assert(std::is_same_v<decltype(&SvgGraphicsContext::pixelsPerInch), qreal SvgGraphicsContext::*>);
+}
+
+void KoSvgTextEnumContractTest::graphicsContextMarkerTextAndPaintStateKeepsPublicTypes()
+{
+    static_assert(std::is_same_v<decltype(&SvgGraphicsContext::markerStartId), QString SvgGraphicsContext::*>);
+    static_assert(std::is_same_v<decltype(&SvgGraphicsContext::markerMidId), QString SvgGraphicsContext::*>);
+    static_assert(std::is_same_v<decltype(&SvgGraphicsContext::markerEndId), QString SvgGraphicsContext::*>);
+    static_assert(std::is_same_v<decltype(&SvgGraphicsContext::autoFillMarkers), bool SvgGraphicsContext::*>);
+    static_assert(
+        std::is_same_v<decltype(&SvgGraphicsContext::textProperties), KoSvgTextProperties SvgGraphicsContext::*>);
+    static_assert(std::is_same_v<decltype(&SvgGraphicsContext::shapeInsideValue), QString SvgGraphicsContext::*>);
+    static_assert(std::is_same_v<decltype(&SvgGraphicsContext::shapeSubtractValue), QString SvgGraphicsContext::*>);
+    static_assert(std::is_same_v<decltype(&SvgGraphicsContext::paintOrder), QString SvgGraphicsContext::*>);
 }
 
 QTEST_GUILESS_MAIN(KoSvgTextEnumContractTest)
