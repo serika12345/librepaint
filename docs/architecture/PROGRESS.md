@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 15:44 JST
+- 更新日時: 2026-09-01 15:54 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -26,6 +26,19 @@
   到達しない。
 - 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから
   契約先または移動先、許可path、固有停止条件、比較候補の棄却根拠を含む。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
+- `g121-application-config-schema-audit`は`kis_dlg_preferences.h`の`GeneralTab`公開schema全49 APIを採用した。型・構築・共有状態7、cursor・sampler表示14、
+  session・文書方針15、操作・navigation 10、animation表示3を既存`KisDlgPreferencesEnumContractTest`の未評価型5枠へ追加する。対象4工程・17入力、製品
+  `kritaapplicationui` 1,967工程・3,934入力を維持し、widget、application、画面、event loop、設定I/Oを実行しない。`KisConfig`のanimationは24、表示性能は23、
+  文書作成既定値と保存・sessionは各20 APIで下限未達、`KisImageConfig`残余は複数の25 API未満の責務と設定I/Oへ分かれるため棄却した。
+- `g121-svg-schema-audit`は`KoSvgText.h`のCSS文字組みスカラー値schema 27 APIを採用した。長さ値6、解決・書式型3、行高値6、tab幅値6、行高・tab変換型6を
+  既存`KoSvgTextEnumContractTest`の5枠へ追加する。header-only値は既定値・copy・等価を実測し、out-of-line APIは未評価型だけを固定する。対象4工程・8入力、
+  製品`kritaflake` 618工程・1,268入力を維持し、`SvgLoadingContext`、font処理、実shape、文字配置、描画を実行しない。`KoSvgTextShape_p.h`と
+  `KoSvgTextShape.h`の安全面は各責務25 API未満、`ResolutionHandler`は20 API、他の値型合算は責務混在となるため棄却した。
+- `g121-psd-schema-audit`は`psd.h`のlayer effect局所schema 25 APIを採用した。型階層6、context・subtype方針8、shadow色4、幾何・寸法3、bevel色4を
+  既存`PsdFormatValuesContractTest`の未評価型5枠へ追加する。対象6工程・14入力、製品`kritapsdutils` 635工程・1,300入力と`kritapsd`
+  1,979工程・3,956入力を維持し、効果実体、色操作、offset・scale、pattern・gradient registry、lookup生pointerを実行しない。
+  `psd_additional_layer_info_block.h`のfill群は色空間・gradient・埋込み資源・ASLを混在させ、他の残余は14 API、`psd.h`の非effect残余は9 APIのため棄却した。
+- 3監査は編集、構築、試験、Git操作、追加委任を行っていない。採用した3契約先と所有CMake、生成物は相互に重ならず、合計101 APIを15枠で固定できる。
 
 ### 第106並列便の監査計画
 
