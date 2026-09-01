@@ -1579,6 +1579,27 @@ set_target_properties(kritaflakecsstextutilsobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaflakesvgtextenumconversionobjects OBJECT
+    text/KoSvgTextEnumConversions.cpp
+)
+target_compile_definitions(kritaflakesvgtextenumconversionobjects PRIVATE kritaflake_EXPORTS)
+target_include_directories(kritaflakesvgtextenumconversionobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/text>
+)
+target_link_libraries(kritaflakesvgtextenumconversionobjects
+    PUBLIC
+        Boost::boost
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Xml
+)
+set_target_properties(kritaflakesvgtextenumconversionobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaflakesvgtextpropertydataobjects OBJECT
     text/KoSvgTextPropertyData.cpp
 )
@@ -1772,6 +1793,7 @@ set(kritaflake_SRCS
     svg/SvgLoadingContext.cpp
     text/KisTofuGlyph.cpp
     text/KoSvgText.cpp
+    $<TARGET_OBJECTS:kritaflakesvgtextenumconversionobjects>
     text/KoSvgTextProperties.cpp
     text/KoSvgTextContentElement.cpp
     text/KoSvgTextShape.cpp
