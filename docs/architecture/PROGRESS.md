@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 13:55 JST
+- 更新日時: 2026-09-01 13:57 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -729,6 +729,24 @@
 - 受渡しpatchの同一性と3 worktreeのclean状態を確認後、application担当646 MB、image担当641 MB、PSD担当645 MBの作業木とbranchを削除して約1.93 GBを
   回収した。新報告の生成成功後に旧`public-api-missing-g116.json` 4.5 MBも削除した。主`build/tdd-macos`、共有compiler cache、最新不足報告は次便の
   限定構築へ再利用する。
+
+### 第117便の先行監査計画
+
+- 共通基点は`124aba6bfdf68dbfe8adc49c2296214813c69f28`、入力は`build/tdd-macos/public-api-missing-g117.json`である。3担当は`auditing`の
+  読み取り専用とし、製品・試験・CMake・script・台帳・文書を変更せず、構築、試験、Git操作、追加委任も行わない。一つの公開責務から25 API以上を最大5枠へ
+  固定し、既存限定対象、header-only値面、または公開headerを変えない一sourceのOBJECT一対一移管で製品共有ライブラリーと`kritatestsdk`へ接続しない候補だけを
+  採用する。
+- `g117-psd-shadow-audit`は`libs/psdutils/psd.h`の残り126 APIを、前便で次点となったshadow基底の安全型面35 APIを主候補として再監査する。bevel契約と重複せず、
+  constructor・destructor・色・lookup pointer・gradient registry・scale実装を生成せず未評価型だけで閉じる責務を選ぶ。additional-layer-infoとresource-blockも
+  比較するが、安全面25未満またはdevice・ASL・生pointer所有へ入る場合は採用しない。
+- `g117-action-collection-audit`は`libs/widgetutils/xmlgui/kactioncollection.h`の48 API、`libs/widgetutils/kis_cursor.h`の44 API、
+  `libs/widgetutils/kis_slider_spin_box.h`の41 APIを比較する。action collectionの識別・検索・分類・shortcut・関連widgetの公開schema、cursor factory、spin box型面から、
+  実action・widget・GUI・設定I/Oを生成せず未評価型検査へ25 API以上を5枠以内で固定できる一責務を選ぶ。
+- `g117-color-profile-audit`は`libs/pigment/KoColorProfile.h`の48 API、`libs/pigment/KoColorSpace.h`の101 API、
+  `libs/pigment/KoBasicHistogramProducers.h`の71 APIを比較する。色profileのidentity・適合性・色度・伝達関数・直列化schema、色空間抽象面、histogram producerから、
+  実profile・registry・色変換・filesystem・画素bufferを生成せず限定対象へ閉じる最良一責務を選ぶ。
+- 各報告は完全なAPI識別子、最大5枠の観測挙動、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから契約先または
+  移動先、許可path、固有停止条件、比較候補の棄却根拠を含む。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
 
 ### 第105並列便の監査計画
 
