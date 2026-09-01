@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 06:10 JST
+- 更新日時: 2026-09-02 06:15 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -32,6 +32,35 @@
 - 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから契約先または
   移動先、許可path、固有停止条件、比較候補の棄却根拠を含む。既存`build/tdd-macos`の計画は読み取り専用で測定し、構成や構築を開始しない。3報告後にpath、CMake、
   試験source、生成物が重ならない候補だけを担当票へ進める。
+
+### 第139便の担当計画
+
+- 実装共通基点は`8229e7982b496c06b81dbc439d7d64f0d7e7088e`である。color set、layer utils、canvas resource provider担当は`implementing`、構築許可は指定試験targetと
+  軽量近傍だけの`granted`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、専用worktree-local `build/tdd-macos`と主作業treeの
+  `/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。統合順はcolor set、layer utils、canvas resource providerとし、調整担当だけが`AGENTS.md`、
+  architecture文書、`docs/architecture/public-api-test-contracts.json`、共通不足報告を変更する。3担当の公開header、所有CMake、試験source、生成物は重ならない。
+- `g139-color-set-schema`は`/Users/masato/Documents/librepaint-g139-color-set-schema`を所有する。開始`libs/pigment/resources/KoColorSet.h`の全82 APIから新規
+  `libs/pigment/tests/KoColorSetSchemaContractTest.cpp`の5枠`colorSetTypeFormatAndLifetimeSchemaRemainsStable`、`colorSetSerializationSchemaRemainsStable`、
+  `colorSetStateAndLayoutSchemaRemainsStable`、`colorSetLookupSchemaRemainsStable`、`colorSetMutationAndNotificationSchemaRemainsStable`へ対応付ける。許可pathは新規試験sourceと
+  `libs/pigment/tests/CMakeLists.txt`だけである。新対象4工程・8入力、停止5工程・11入力、近傍は`KoGradientSegmentSchemaContractTest`、製品`kritapigment`は367工程・764入力と
+  集合の完全一致を確認する。未知target、5枠、対象CTest、20回反復、近傍、無作業再構築、動的接続、未解決palette・KoColor・swatch・group・resource・metaobject記号、構文・
+  変更行書式、公開API・`verify-quick`を確認する。palette・device・byte array処理対象・資源interface・KoColor・swatch・group・undo・thumbnail・signalを生成または実行し、
+  製品source・OBJECT・shared、`kritatestsdk`、KF I18nへのlink、新依存、公開header変更、製品計画差、停止線超過が必要なら止める。
+- `g139-layer-utils-schema`は`/Users/masato/Documents/librepaint-g139-layer-utils-schema`を所有する。開始`libs/image/kis_layer_utils.h`の全74 APIから既存
+  `libs/image/tests/KisImageTypesContractTest.cpp`の5枠`layerMergePolicyAndOrderingSignaturesRemainStable`、`layerMutationAndProjectionCommandSignaturesRemainStable`、
+  `layerHierarchySearchAndTraversalSignaturesRemainStable`、`layerFrameQueryAndJobSchemaRemainStable`、`layerCommandTypesAndLifecycleSchemaRemainStable`へ対応付ける。許可pathは既存試験
+  sourceだけでありCMakeは変更しない。対象4工程・8入力、停止5工程・11入力、近傍は`KisSpacingInformationContractTest`、製品`kritaimage`は1,196工程・2,416入力と集合の完全一致を
+  確認する。未知5枠、既存枠、対象CTest、20回反復、近傍、無作業再構築、動的接続、未解決layer utils・image・node・KUndo2記号、構文・変更行書式、公開API・`verify-quick`を
+  確認する。関数address値・template本文を生成または実行し、command・shared storage・image・node・device・stroke・projectionを実体化し、RTTI・vtable・製品source・OBJECT・
+  shared、`kritatestsdk`、新link依存、CMake・公開header変更、製品計画差、停止線超過が必要なら止める。
+- `g139-canvas-resource-schema`は`/Users/masato/Documents/librepaint-g139-canvas-resource-schema`を所有する。開始`libs/flake/KoCanvasResourceProvider.h`の全45 APIから新規
+  `libs/flake/tests/KoCanvasResourceProviderSchemaContractTest.cpp`の5枠`canvasResourceProviderTypeLifetimeAndApplicationPolicySchemaRemainsStable`、
+  `canvasResourceAccessSignaturesRemainStable`、`canvasPresentationResourceSignaturesRemainStable`、`canvasResourceExtensionPointSignaturesRemainStable`、
+  `canvasResourceInterfaceAndNotificationSignaturesRemainStable`へ対応付ける。許可pathは新規試験sourceと`libs/flake/tests/CMakeLists.txt`だけである。新対象4工程・8入力、停止5工程・
+  11入力、近傍は`KoCanvasResourceIdsContractTest`、製品`kritaflake`は621工程・1,274入力と集合の完全一致を確認する。未知target、5枠、対象CTest、20回反復、近傍、無作業再構築、
+  動的接続、未解決provider・converter・mediator・dependency・resource interface・KoColor・KoUnit・KoShape・metaobject記号、構文・変更行書式、公開API・`verify-quick`を確認する。
+  QObject・provider・QVariant資源値・色・単位・shape・共有資源を生成または実行し、signal配送・event loop・registry・view・painter・I/O、製品source・OBJECT・shared、
+  `kritatestsdk`、Qt Core/Test以外の新link依存、公開header変更、製品計画差、停止線超過が必要なら止める。
 
 ### 第138便の先行監査計画
 
