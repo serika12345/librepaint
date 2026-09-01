@@ -23,6 +23,16 @@ void compareSequentialValues(const std::array<Enum, Size> &values)
         QCOMPARE(int(values[index]), int(index));
     }
 }
+
+template<typename Config, typename = void>
+struct CanReadExportMimeTypeWithoutArgument : std::false_type {
+};
+
+template<typename Config>
+struct CanReadExportMimeTypeWithoutArgument<Config,
+                                            std::void_t<decltype(std::declval<const Config &>().exportMimeType())>>
+    : std::true_type {
+};
 }
 
 class KisConfigEnumContractTest : public QObject
@@ -70,6 +80,11 @@ private Q_SLOTS:
     void colorManagementOcioSignaturesRemainStable();
     void colorManagementPrinterOutputSignaturesRemainStable();
     void colorManagementEngineAndSelectorSignaturesRemainStable();
+    void animationPlaybackPolicySignaturesRemainStable();
+    void animationTimelineNavigationSignaturesRemainStable();
+    void animationScrubbingAndAudioSignaturesRemainStable();
+    void animationCacheAndMediaBackendSignaturesRemainStable();
+    void animationFrameTransferSignaturesRemainStable();
 };
 
 void KisConfigEnumContractTest::inputAndSamplerValuesRemainStable()
@@ -838,6 +853,72 @@ void KisConfigEnumContractTest::colorManagementEngineAndSelectorSignaturesRemain
     static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().allowLCMSOptimization()), bool>);
     static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().customColorSelectorColorSpace()),
                                  const KoColorSpace *>);
+}
+
+void KisConfigEnumContractTest::animationPlaybackPolicySignaturesRemainStable()
+{
+    ASSERT_KIS_CONFIG_SIGNATURE(animationPlaybackBackend, int (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setAnimationPlaybackBackend, void (KisConfig::*)(int));
+    ASSERT_KIS_CONFIG_SIGNATURE(animationDropFrames, bool (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setAnimationDropFrames, void (KisConfig::*)(bool));
+    ASSERT_KIS_CONFIG_SIGNATURE(adaptivePlaybackRange, bool (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setAdaptivePlaybackRange, void (KisConfig::*)(bool));
+
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().animationPlaybackBackend()), int>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().animationDropFrames()), bool>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().adaptivePlaybackRange()), bool>);
+}
+
+void KisConfigEnumContractTest::animationTimelineNavigationSignaturesRemainStable()
+{
+    ASSERT_KIS_CONFIG_SIGNATURE(autoPinLayersToTimeline, bool (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setAutoPinLayersToTimeline, void (KisConfig::*)(bool));
+    ASSERT_KIS_CONFIG_SIGNATURE(autoZoomTimelineToPlaybackRange, bool (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setAutoZoomTimelineToPlaybackRange, void (KisConfig::*)(bool));
+    ASSERT_KIS_CONFIG_SIGNATURE(timelineZoom, qreal (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setTimelineZoom, void (KisConfig::*)(qreal));
+
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().autoPinLayersToTimeline()), bool>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().autoZoomTimelineToPlaybackRange()), bool>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().timelineZoom()), qreal>);
+}
+
+void KisConfigEnumContractTest::animationScrubbingAndAudioSignaturesRemainStable()
+{
+    ASSERT_KIS_CONFIG_SIGNATURE(scrubbingUpdatesDelay, int (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setScrubbingUpdatesDelay, void (KisConfig::*)(int));
+    ASSERT_KIS_CONFIG_SIGNATURE(scrubbingAudioUpdatesDelay, int (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setScrubbingAudioUpdatesDelay, void (KisConfig::*)(int));
+    ASSERT_KIS_CONFIG_SIGNATURE(audioOffsetTolerance, int (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setAudioOffsetTolerance, void (KisConfig::*)(int));
+
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().scrubbingUpdatesDelay()), int>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().scrubbingAudioUpdatesDelay()), int>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().audioOffsetTolerance()), int>);
+}
+
+void KisConfigEnumContractTest::animationCacheAndMediaBackendSignaturesRemainStable()
+{
+    ASSERT_KIS_CONFIG_SIGNATURE(calculateAnimationCacheInBackground, bool (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setCalculateAnimationCacheInBackground, void (KisConfig::*)(bool));
+    ASSERT_KIS_CONFIG_SIGNATURE(ffmpegLocation, QString (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setFFMpegLocation, void (KisConfig::*)(const QString &));
+
+    static_assert(
+        std::is_same_v<decltype(std::declval<const KisConfig &>().calculateAnimationCacheInBackground()), bool>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().ffmpegLocation()), QString>);
+}
+
+void KisConfigEnumContractTest::animationFrameTransferSignaturesRemainStable()
+{
+    ASSERT_KIS_CONFIG_SIGNATURE(trimFramesImport, bool (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setTrimFramesImport, void (KisConfig::*)(bool));
+    ASSERT_KIS_CONFIG_SIGNATURE(exportMimeType, QString (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setExportMimeType, void (KisConfig::*)(const QString &));
+
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().trimFramesImport()), bool>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().exportMimeType(false)), QString>);
+    static_assert(!CanReadExportMimeTypeWithoutArgument<KisConfig>::value);
 }
 
 #undef ASSERT_KIS_CONFIG_SIGNATURE
