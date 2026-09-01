@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 16:57 JST
+- 更新日時: 2026-09-01 17:03 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -22,6 +22,16 @@
 - `g123-slider-spin-schema-audit`は`libs/widgetutils/kis_slider_spin_box.h`の残り41 APIを主候補とし、同packageのparse spin box契約と
   `libs/widgets/KoRuler.h`の残り48 APIを比較する。整数・実数slider spin boxのrange、値、step、倍率等の局所schemaを、widget実体、event loop、signal、style、
   画面、設定I/Oなしで25 API以上閉じる一責務を選ぶ。
+- `g123-libkis-grid-schema-audit`は`GridConfig`の局所grid設定schema 49 APIを採用した。識別・表示方針9、矩形gridの間隔・offset 14、等角gridの幾何14、
+  線種6、色6を新規`GridConfigSchemaContractTest`の未評価型5枠へ追加する。新対象は4工程・8入力、停止5工程・10入力を予測し、製品`kritalibkis`
+  2,015工程・4,028入力を維持する。constructor・destructorとXML入出力5 APIは実体、所有、設定I/Oへ接続するため除外し、実Document、view、canvas、scripting環境を
+  生成・実行しない。
+- `g123-svg-cursor-schema-audit`は`SvgTextCursor`のcursor操作schema 28 APIを採用した。位置・移動8、選択6、編集6、入力・focus 5、編集状態3を既存
+  `SvgTextCursorEnumContractTest`の未評価型5枠へ追加する。対象は4工程・14入力、停止5工程・17入力、製品`krita_tool_svgtext_static`
+  2,010工程・4,018入力を維持する。実`SvgTextCursorTest`はshape、canvas、文字配置、font、undo、clipboard、IME、event、timerへ接続するため棄却した。
+- `g123-slider-spin-schema-audit`は整数・実数slider spin boxの局所設定schema 27 APIを採用した。値・range 10、soft range読取4、soft range設定6、step 5、
+  exponent 2を新規`KisSliderSpinBoxSchemaContractTest`の未評価型5枠へ追加する。新対象は4工程・8入力、停止5工程・11入力を予測し、製品`kritawidgetutils`
+  273工程・579入力を維持する。既存parse spin box契約は各9工程・19入力でより広く、widget実体、event loop、signal、styleを必要とするため棄却した。
 - 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから
   契約先または移動先、許可path、固有停止条件、比較候補の棄却根拠を含む。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
 
