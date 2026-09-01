@@ -607,6 +607,25 @@ target_include_directories(KoSvgTextFontMetricsValueContractTest PRIVATE
 target_compile_definitions(KoSvgTextFontMetricsValueContractTest PRIVATE kritaflake_EXPORTS)
 
 kis_add_test(
+    KoSvgTextCharacterResultValueContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Xml
+)
+target_include_directories(KoSvgTextCharacterResultValueContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+    ${FREETYPE_INCLUDE_DIRS}
+)
+target_compile_definitions(KoSvgTextCharacterResultValueContractTest PRIVATE
+    kritaflake_EXPORTS
+    kritaglobal_EXPORTS
+)
+
+kis_add_test(
     CssLengthPercentageModelContractTest.cpp
     LINK_LIBRARIES
         kritaflakecsslengthpercentagemodelobjects
