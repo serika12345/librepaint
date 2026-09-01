@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 15:55 JST
+- 更新日時: 2026-09-01 16:02 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -48,8 +48,10 @@
   生成物は重ならない。
 - `g121-general-preferences-schema`は`/Users/masato/Documents/librepaint-g121-general-preferences-schema`を所有する。開始
   `libs/ui/dialogs/kis_dlg_preferences.h`から既存`libs/ui/tests/KisDlgPreferencesEnumContractTest.cpp`の5枠へ、型・構築・共有状態7、cursor・sampler表示14、
-  session・文書方針15、操作・navigation 10、animation表示3の全49 APIを対応付け、他pathを変更しない。対象4工程・17入力、停止5工程・20入力、製品
-  `kritaapplicationui` 1,967工程・3,934入力の完全一致を確認する。5枠の未知関数診断、対象CTest、20回反復、`KisOpenGLRendererConfigContractTest`、
+  session・文書方針15、操作・navigation 10、animation表示3の全49 APIを対応付ける。clean laneの変更前限定構築は`ui_wdggeneralsettings.h`を生成する依存辺の
+  欠落を診断した。先に`libs/ui/CMakeLists.txt`で同一custom commandの一headerだけを対象sourceへ加える構築範囲修正を独立commitとし、全UI headerの生成targetへは
+  接続しない。許可pathはこのCMakeと試験sourceだけである。修正後対象は最大5工程・20入力、製品`kritaapplicationui` 1,967工程・3,934入力の完全一致を確認する。
+  5枠の未知関数診断、対象CTest、20回反復、`KisOpenGLRendererConfigContractTest`、
   no-work、動的接続、未解決記号、構文・書式・公開API・`verify-quick`を確認する。widget・application・画面・event loop・signal、設定I/O、各method本文、
   製品shared、`kritatestsdk`、新依存、生成UI・公開header・CMake変更、停止線超過が必要なら止める。
 - `g121-svg-scalar-schema`は`/Users/masato/Documents/librepaint-g121-svg-scalar-schema`を所有する。開始`libs/flake/text/KoSvgText.h`から既存
