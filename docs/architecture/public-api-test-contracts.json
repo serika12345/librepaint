@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 16608
+    "expectedMissingApis": 16580
   },
   "contracts": [
     {
@@ -39174,6 +39174,79 @@
         "method:GridSnapStrategy::GridSnapStrategy()",
         "method:GridSnapStrategy::decoration(const KoViewConverter & converter) const",
         "method:GridSnapStrategy::snap(const QPointF & mousePosition,KoSnapProxy * proxy,qreal maxSnapDistance)"
+      ]
+    },
+    {
+      "target": "KoColorValueSchemaContractTest",
+      "source": "libs/pigment/tests/KoColorValueSchemaContractTest.cpp",
+      "test": "KoColorValueSchemaContractTest::colorValueConstructionAndCopySchemaRemainsStable",
+      "behavior": "KoColorはclassであり、既定・copy・色空間・QColor・native buffer・別色空間copyの6構築経路、copy更新・代入、および等値比較の正確な型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoColor",
+        "method:KoColor::KoColor()",
+        "method:KoColor::KoColor(const KoColor & rhs)",
+        "method:KoColor::KoColor(const KoColor & src,const KoColorSpace * colorSpace)",
+        "method:KoColor::KoColor(const KoColorSpace * colorSpace)",
+        "method:KoColor::KoColor(const QColor & color,const KoColorSpace * colorSpace)",
+        "method:KoColor::KoColor(const quint8 * data,const KoColorSpace * colorSpace)",
+        "method:KoColor::fromKoColor(const KoColor & src)",
+        "method:KoColor::operator =(const KoColor & rhs)",
+        "method:KoColor::operator ==(const KoColor & other) const"
+      ]
+    },
+    {
+      "target": "KoColorValueSchemaContractTest",
+      "source": "libs/pigment/tests/KoColorValueSchemaContractTest.cpp",
+      "test": "KoColorValueSchemaContractTest::colorValueStorageAndAssociationSignaturesRemainStable",
+      "behavior": "KoColorはpixel bufferのmutable・const面、色空間・profile関連付け、透明値factory、および既定色空間を持つsetColorの正確な関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoColor::colorSpace() const",
+        "method:KoColor::createTransparent(const KoColorSpace * cs)",
+        "method:KoColor::data()",
+        "method:KoColor::data() const",
+        "method:KoColor::profile() const",
+        "method:KoColor::setColor(const quint8 * data,const KoColorSpace * colorSpace=0)",
+        "method:KoColor::setProfile(const KoColorProfile * profile)"
+      ]
+    },
+    {
+      "target": "KoColorValueSchemaContractTest",
+      "source": "libs/pigment/tests/KoColorValueSchemaContractTest.cpp",
+      "test": "KoColorValueSchemaContractTest::colorValueQColorInterchangeSignaturesRemainStable",
+      "behavior": "KoColorはQColorとの入力、値返却、および出力pointer変換の正確な関数型とconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoColor::fromQColor(const QColor & c)",
+        "method:KoColor::toQColor() const",
+        "method:KoColor::toQColor(QColor * c) const"
+      ]
+    },
+    {
+      "target": "KoColorValueSchemaContractTest",
+      "source": "libs/pigment/tests/KoColorValueSchemaContractTest.cpp",
+      "test": "KoColorValueSchemaContractTest::colorValueOpacitySignaturesRemainStable",
+      "behavior": "KoColorは浮動小数点・U8のopacity取得と設定overloadの正確な関数型とconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoColor::opacityF() const",
+        "method:KoColor::opacityU8() const",
+        "method:KoColor::setOpacity(qreal alpha)",
+        "method:KoColor::setOpacity(quint8 alpha)"
+      ]
+    },
+    {
+      "target": "KoColorValueSchemaContractTest",
+      "source": "libs/pigment/tests/KoColorValueSchemaContractTest.cpp",
+      "test": "KoColorValueSchemaContractTest::colorValueChannelArithmeticSignaturesRemainStable",
+      "behavior": "KoColorはchannel加減算の状態変更面と値返却面の正確な関数型とconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoColor::add(const KoColor & value)",
+        "method:KoColor::added(const KoColor & value) const",
+        "method:KoColor::subtract(const KoColor & value)",
+        "method:KoColor::subtracted(const KoColor & value) const"
       ]
     }
   ]

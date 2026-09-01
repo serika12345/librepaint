@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 00:16 JST
+- 更新日時: 2026-09-02 00:34 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -37,7 +37,7 @@
 
 ### 第133便の担当計画
 
-- 実装共通基点は`12f7411ff92ab2235799f60650d5d117ac6b0c54`である。color value、tool invocation、tag model担当は`ready`、構築許可は指定試験targetと
+- 実装共通基点は`12f7411ff92ab2235799f60650d5d117ac6b0c54`である。color value担当は`integrated`、tool invocationとtag model担当は`ready`、構築許可は指定試験targetと
   軽量近傍だけの`granted`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、専用worktree-local
   `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。統合順はcolor value、tool invocation、tag modelとし、
   調整担当だけが`AGENTS.md`、architecture文書、`docs/architecture/public-api-test-contracts.json`、共通不足報告を変更する。3担当の公開header、所有CMake、試験source、
@@ -68,6 +68,15 @@
   `KisResourceModelEnumContractTest`、製品`kritaresources`は150工程・327入力と各集合の完全一致を確認する。5枠の未知関数、対象CTest、20回反復、近傍、無作業再構築、
   動的接続、未解決tag model記号、構文・変更行書式、公開API・`verify-quick`を確認する。型特性と未評価式を越えてtag model・proxy・resource・database・query・storage・
   I/O・大域状態を生成または呼出し、製品source・OBJECT・shared、`kritatestsdk`、新link依存、CMake・公開header変更、製品計画差、停止線超過が必要なら止める。
+
+### 第133便の統合結果
+
+- `g133-color-value-schema`は受渡しcommit`e9d944476f94`を統合commit`e7c80a87bf`として取り込んだ。開始`libs/pigment/KoColor.h`から新規
+  `libs/pigment/tests/KoColorValueSchemaContractTest.cpp`の5枠へ、色値の構築・copy、buffer・色空間・profile関連付け、QColor交換、opacity、channel加減算の28 APIを
+  対応付け、所有CMakeへheader限定対象を追加した。対象4工程・8入力、製品`kritapigment` 367工程・764入力と各集合は変更前後一致し、KoColor・QColor・pixel buffer・
+  color space・profile・registry・変換を生成・実行していない。担当macOS環境と中央環境で対象CTest、担当環境で5枠個別、20回反復、近傍
+  `KoColorSpaceSchemaContractTest`、無作業再構築、動的接続・未解決記号、構文・書式、公開API検査、`verify-quick`に成功した。公開headerのImath推移依存は
+  `Imath::Imath`のincludeだけを明示し、新しいlink依存は追加していない。公開API契約検査は29,838件中13,258件対応、16,580件未対応となった。
 
 ### 第132便の先行監査計画
 
