@@ -716,6 +716,28 @@ set_target_properties(kritaflakesvgtransformparserobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaflakesvgutilviewgeometryobjects OBJECT
+    svg/SvgUtilViewGeometry.cpp
+)
+target_compile_definitions(kritaflakesvgutilviewgeometryobjects PRIVATE kritaflake_EXPORTS)
+target_include_directories(kritaflakesvgutilviewgeometryobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritaflakesvgutilviewgeometryobjects
+    PUBLIC
+        Boost::boost
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Xml
+)
+set_target_properties(kritaflakesvgutilviewgeometryobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaflakesvgmeshpatchobjects OBJECT
     svg/SvgMeshPatch.cpp
 )
@@ -1858,6 +1880,7 @@ set(kritaflake_SRCS
     $<TARGET_OBJECTS:kritaflakeinputdeviceobjects>
     $<TARGET_OBJECTS:kritaflakesnapdataobjects>
     $<TARGET_OBJECTS:kritaflakesvgtransformparserobjects>
+    $<TARGET_OBJECTS:kritaflakesvgutilviewgeometryobjects>
     $<TARGET_OBJECTS:kritaflakesvgmeshpatchobjects>
     $<TARGET_OBJECTS:kritaflakesvgmesharrayobjects>
     $<TARGET_OBJECTS:kritaflakesvgmeshgradientobjects>

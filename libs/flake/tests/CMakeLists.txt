@@ -989,6 +989,18 @@ target_include_directories(SvgTransformParserContractTest PRIVATE
 target_compile_definitions(SvgTransformParserContractTest PRIVATE kritaflake_EXPORTS)
 
 kis_add_test(
+    SvgUtilViewGeometryContractTest.cpp
+    LINK_LIBRARIES
+        kritaflakesvgutilviewgeometryobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(SvgUtilViewGeometryContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+)
+target_compile_definitions(SvgUtilViewGeometryContractTest PRIVATE kritaflake_EXPORTS)
+
+kis_add_test(
     SvgMeshPatchContractTest.cpp
     LINK_LIBRARIES
         kritaflakesvgmeshpatchobjects
