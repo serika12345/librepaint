@@ -81,6 +81,11 @@ private Q_SLOTS:
     void globalAngleDefaultsCopyAndDescribeSignedValues();
     void globalAltitudeDefaultsCopyAndDescribeSignedValues();
     void globalLightingBlocksRoundTripSignedValues();
+    void gradientColorRecordPreservesAggregateSchemaAndCopyState();
+    void gradientMapDescriptorPreservesSignedControlValues();
+    void gradientMapStopSequencesPreserveCountsAndPointerIdentity();
+    void gradientMapProceduralControlsPreserveSignedValues();
+    void gradientMapColorTableCopiesInlineValuesIndependently();
     void gradientFillDefaultsAndCopiesValueState();
     void gradientFillScalarSettersPreserveSignedValues();
     void gradientFillTypeCodesAndSvgCompatibilityRemainStable();
@@ -1576,6 +1581,218 @@ void PsdFormatValuesContractTest::globalLightingBlocksRoundTripSignedValues()
     GLOBAL_ALT_1049 parsedAltitude;
     QVERIFY(parsedAltitude.interpretBlock(altitudeBuffer.readAll()));
     QCOMPARE(parsedAltitude.altitude, qint32(-45));
+}
+
+void PsdFormatValuesContractTest::gradientColorRecordPreservesAggregateSchemaAndCopyState()
+{
+    static_assert(std::is_aggregate_v<psd_gradient_color>);
+    static_assert(std::is_same_v<decltype(psd_gradient_color::smoothness), qint32>);
+    static_assert(std::is_same_v<decltype(psd_gradient_color::name_length), qint32>);
+    static_assert(std::is_same_v<decltype(psd_gradient_color::name), quint16 *>);
+    static_assert(std::is_same_v<decltype(psd_gradient_color::number_color_stops), qint8>);
+    static_assert(std::is_same_v<decltype(psd_gradient_color::color_stop), psd_gradient_color_stop *>);
+    static_assert(std::is_same_v<decltype(psd_gradient_color::number_transparency_stops), qint8>);
+    static_assert(std::is_same_v<decltype(psd_gradient_color::transparency_stop), psd_gradient_transparency_stop *>);
+
+    psd_gradient_color gradient{};
+    QCOMPARE(gradient.smoothness, qint32(0));
+    QCOMPARE(gradient.name_length, qint32(0));
+    QVERIFY(gradient.name == nullptr);
+    QCOMPARE(gradient.number_color_stops, qint8(0));
+    QVERIFY(gradient.color_stop == nullptr);
+    QCOMPARE(gradient.number_transparency_stops, qint8(0));
+    QVERIFY(gradient.transparency_stop == nullptr);
+
+    quint16 nameCodeUnit = 0x1234;
+    auto *colorStops = reinterpret_cast<psd_gradient_color_stop *>(quintptr(0x1010));
+    auto *transparencyStops = reinterpret_cast<psd_gradient_transparency_stop *>(quintptr(0x2020));
+    gradient.smoothness = -32768;
+    gradient.name_length = -17;
+    gradient.name = &nameCodeUnit;
+    gradient.number_color_stops = qint8(-5);
+    gradient.color_stop = colorStops;
+    gradient.number_transparency_stops = qint8(-7);
+    gradient.transparency_stop = transparencyStops;
+
+    psd_gradient_color copy = gradient;
+    QCOMPARE(copy.smoothness, qint32(-32768));
+    QCOMPARE(copy.name_length, qint32(-17));
+    QCOMPARE(copy.name, &nameCodeUnit);
+    QCOMPARE(copy.number_color_stops, qint8(-5));
+    QCOMPARE(copy.color_stop, colorStops);
+    QCOMPARE(copy.number_transparency_stops, qint8(-7));
+    QCOMPARE(copy.transparency_stop, transparencyStops);
+
+    copy.smoothness = 4096;
+    copy.name_length = 1;
+    copy.number_color_stops = 2;
+    copy.number_transparency_stops = 3;
+    QCOMPARE(gradient.smoothness, qint32(-32768));
+    QCOMPARE(gradient.name_length, qint32(-17));
+    QCOMPARE(gradient.number_color_stops, qint8(-5));
+    QCOMPARE(gradient.number_transparency_stops, qint8(-7));
+}
+
+void PsdFormatValuesContractTest::gradientMapDescriptorPreservesSignedControlValues()
+{
+    static_assert(std::is_aggregate_v<psd_layer_gradient_map>);
+    static_assert(std::is_same_v<decltype(psd_layer_gradient_map::reverse), bool>);
+    static_assert(std::is_same_v<decltype(psd_layer_gradient_map::dithered), bool>);
+    static_assert(std::is_same_v<decltype(psd_layer_gradient_map::name_length), qint32>);
+    static_assert(std::is_same_v<decltype(psd_layer_gradient_map::name), quint16 *>);
+    static_assert(std::is_same_v<decltype(psd_layer_gradient_map::expansion_count), qint8>);
+    static_assert(std::is_same_v<decltype(psd_layer_gradient_map::interpolation), qint8>);
+    static_assert(std::is_same_v<decltype(psd_layer_gradient_map::length), qint8>);
+    static_assert(std::is_same_v<decltype(psd_layer_gradient_map::mode), qint8>);
+
+    psd_layer_gradient_map gradient{};
+    QVERIFY(!gradient.reverse);
+    QVERIFY(!gradient.dithered);
+    QCOMPARE(gradient.name_length, qint32(0));
+    QVERIFY(gradient.name == nullptr);
+    QCOMPARE(gradient.expansion_count, qint8(0));
+    QCOMPARE(gradient.interpolation, qint8(0));
+    QCOMPARE(gradient.length, qint8(0));
+    QCOMPARE(gradient.mode, qint8(0));
+
+    quint16 nameCodeUnit = 0xabcd;
+    gradient.reverse = true;
+    gradient.dithered = true;
+    gradient.name_length = -23;
+    gradient.name = &nameCodeUnit;
+    gradient.expansion_count = qint8(-2);
+    gradient.interpolation = qint8(-3);
+    gradient.length = qint8(-4);
+    gradient.mode = qint8(-5);
+
+    psd_layer_gradient_map copy = gradient;
+    QVERIFY(copy.reverse);
+    QVERIFY(copy.dithered);
+    QCOMPARE(copy.name_length, qint32(-23));
+    QCOMPARE(copy.name, &nameCodeUnit);
+    QCOMPARE(copy.expansion_count, qint8(-2));
+    QCOMPARE(copy.interpolation, qint8(-3));
+    QCOMPARE(copy.length, qint8(-4));
+    QCOMPARE(copy.mode, qint8(-5));
+
+    copy.reverse = false;
+    copy.dithered = false;
+    copy.name_length = 6;
+    copy.expansion_count = 7;
+    copy.interpolation = 8;
+    copy.length = 9;
+    copy.mode = 10;
+    QVERIFY(gradient.reverse);
+    QVERIFY(gradient.dithered);
+    QCOMPARE(gradient.name_length, qint32(-23));
+    QCOMPARE(gradient.expansion_count, qint8(-2));
+    QCOMPARE(gradient.interpolation, qint8(-3));
+    QCOMPARE(gradient.length, qint8(-4));
+    QCOMPARE(gradient.mode, qint8(-5));
+}
+
+void PsdFormatValuesContractTest::gradientMapStopSequencesPreserveCountsAndPointerIdentity()
+{
+    static_assert(std::is_same_v<decltype(psd_layer_gradient_map::number_color_stops), qint8>);
+    static_assert(std::is_same_v<decltype(psd_layer_gradient_map::color_stop), psd_gradient_color_stop *>);
+    static_assert(std::is_same_v<decltype(psd_layer_gradient_map::number_transparency_stops), qint8>);
+    static_assert(
+        std::is_same_v<decltype(psd_layer_gradient_map::transparency_stop), psd_gradient_transparency_stop *>);
+
+    psd_layer_gradient_map gradient{};
+    QCOMPARE(gradient.number_color_stops, qint8(0));
+    QVERIFY(gradient.color_stop == nullptr);
+    QCOMPARE(gradient.number_transparency_stops, qint8(0));
+    QVERIFY(gradient.transparency_stop == nullptr);
+
+    auto *colorStops = reinterpret_cast<psd_gradient_color_stop *>(quintptr(0x3030));
+    auto *transparencyStops = reinterpret_cast<psd_gradient_transparency_stop *>(quintptr(0x4040));
+    gradient.number_color_stops = qint8(-11);
+    gradient.color_stop = colorStops;
+    gradient.number_transparency_stops = qint8(-13);
+    gradient.transparency_stop = transparencyStops;
+
+    psd_layer_gradient_map copy = gradient;
+    QCOMPARE(copy.number_color_stops, qint8(-11));
+    QCOMPARE(copy.color_stop, colorStops);
+    QCOMPARE(copy.number_transparency_stops, qint8(-13));
+    QCOMPARE(copy.transparency_stop, transparencyStops);
+
+    copy.number_color_stops = 1;
+    copy.color_stop = nullptr;
+    copy.number_transparency_stops = 2;
+    copy.transparency_stop = nullptr;
+    QCOMPARE(gradient.number_color_stops, qint8(-11));
+    QCOMPARE(gradient.color_stop, colorStops);
+    QCOMPARE(gradient.number_transparency_stops, qint8(-13));
+    QCOMPARE(gradient.transparency_stop, transparencyStops);
+}
+
+void PsdFormatValuesContractTest::gradientMapProceduralControlsPreserveSignedValues()
+{
+    static_assert(std::is_same_v<decltype(psd_layer_gradient_map::random_number_seed), qint32>);
+    static_assert(std::is_same_v<decltype(psd_layer_gradient_map::showing_transparency_flag), qint8>);
+    static_assert(std::is_same_v<decltype(psd_layer_gradient_map::using_vector_color_flag), qint8>);
+    static_assert(std::is_same_v<decltype(psd_layer_gradient_map::roughness_factor), qint32>);
+
+    psd_layer_gradient_map gradient{};
+    QCOMPARE(gradient.random_number_seed, qint32(0));
+    QCOMPARE(gradient.showing_transparency_flag, qint8(0));
+    QCOMPARE(gradient.using_vector_color_flag, qint8(0));
+    QCOMPARE(gradient.roughness_factor, qint32(0));
+
+    gradient.random_number_seed = -2147483647;
+    gradient.showing_transparency_flag = qint8(-17);
+    gradient.using_vector_color_flag = qint8(-19);
+    gradient.roughness_factor = -65536;
+
+    psd_layer_gradient_map copy = gradient;
+    QCOMPARE(copy.random_number_seed, qint32(-2147483647));
+    QCOMPARE(copy.showing_transparency_flag, qint8(-17));
+    QCOMPARE(copy.using_vector_color_flag, qint8(-19));
+    QCOMPARE(copy.roughness_factor, qint32(-65536));
+
+    copy.random_number_seed = 1;
+    copy.showing_transparency_flag = 2;
+    copy.using_vector_color_flag = 3;
+    copy.roughness_factor = 4;
+    QCOMPARE(gradient.random_number_seed, qint32(-2147483647));
+    QCOMPARE(gradient.showing_transparency_flag, qint8(-17));
+    QCOMPARE(gradient.using_vector_color_flag, qint8(-19));
+    QCOMPARE(gradient.roughness_factor, qint32(-65536));
+}
+
+void PsdFormatValuesContractTest::gradientMapColorTableCopiesInlineValuesIndependently()
+{
+    static_assert(std::is_same_v<decltype(psd_layer_gradient_map::min_color), QColor>);
+    static_assert(std::is_same_v<decltype(psd_layer_gradient_map::max_color), QColor>);
+    static_assert(std::is_same_v<decltype(psd_layer_gradient_map::lookup_table), QColor[256]>);
+    static_assert(std::extent_v<decltype(psd_layer_gradient_map::lookup_table)> == 256);
+
+    psd_layer_gradient_map gradient{};
+    gradient.min_color = QColor(1, 2, 3, 4);
+    gradient.max_color = QColor(251, 252, 253, 254);
+    gradient.lookup_table[0] = QColor(5, 6, 7, 8);
+    gradient.lookup_table[127] = QColor(101, 102, 103, 104);
+    gradient.lookup_table[255] = QColor(201, 202, 203, 204);
+
+    psd_layer_gradient_map copy = gradient;
+    QCOMPARE(copy.min_color, QColor(1, 2, 3, 4));
+    QCOMPARE(copy.max_color, QColor(251, 252, 253, 254));
+    QCOMPARE(copy.lookup_table[0], QColor(5, 6, 7, 8));
+    QCOMPARE(copy.lookup_table[127], QColor(101, 102, 103, 104));
+    QCOMPARE(copy.lookup_table[255], QColor(201, 202, 203, 204));
+
+    copy.min_color = QColor(11, 12, 13, 14);
+    copy.max_color = QColor(241, 242, 243, 244);
+    copy.lookup_table[0] = QColor(15, 16, 17, 18);
+    copy.lookup_table[127] = QColor(111, 112, 113, 114);
+    copy.lookup_table[255] = QColor(211, 212, 213, 214);
+    QCOMPARE(gradient.min_color, QColor(1, 2, 3, 4));
+    QCOMPARE(gradient.max_color, QColor(251, 252, 253, 254));
+    QCOMPARE(gradient.lookup_table[0], QColor(5, 6, 7, 8));
+    QCOMPARE(gradient.lookup_table[127], QColor(101, 102, 103, 104));
+    QCOMPARE(gradient.lookup_table[255], QColor(201, 202, 203, 204));
 }
 
 void PsdFormatValuesContractTest::gradientFillDefaultsAndCopiesValueState()
