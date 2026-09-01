@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 17562
+    "expectedMissingApis": 17479
   },
   "contracts": [
     {
@@ -37095,6 +37095,134 @@
         "method:KoGenericRGBHistogramProducerFactory::generate()",
         "method:KoGenericRGBHistogramProducerFactory::isCompatibleWith(const KoColorSpace *,bool strict=false) const",
         "method:KoGenericRGBHistogramProducerFactory::preferrednessLevelWith(const KoColorSpace *) const"
+      ]
+    },
+    {
+      "target": "KoSvgTextPropertiesModelSchemaContractTest",
+      "source": "libs/flake/tests/KoSvgTextPropertiesModelSchemaContractTest.cpp",
+      "test": "KoSvgTextPropertiesModelSchemaContractTest::propertyModelFontFoundationCursorSchemaRemainsStable",
+      "behavior": "SVG文字property modelは基礎書体、可変軸、言語、寸法・間隔のcursor値型と状態型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoSvgTextPropertiesModel::LAGER_QT_CURSOR(PropertyState,axisValuesState)",
+        "method:KoSvgTextPropertiesModel::LAGER_QT_CURSOR(PropertyState,fontFamiliesState)",
+        "method:KoSvgTextPropertiesModel::LAGER_QT_CURSOR(PropertyState,fontOpticalSizeLinkState)",
+        "method:KoSvgTextPropertiesModel::LAGER_QT_CURSOR(PropertyState,fontSizeAdjustState)",
+        "method:KoSvgTextPropertiesModel::LAGER_QT_CURSOR(PropertyState,fontSizeState)",
+        "method:KoSvgTextPropertiesModel::LAGER_QT_CURSOR(PropertyState,fontStyleState)",
+        "method:KoSvgTextPropertiesModel::LAGER_QT_CURSOR(PropertyState,fontWeightState)",
+        "method:KoSvgTextPropertiesModel::LAGER_QT_CURSOR(PropertyState,fontWidthState)",
+        "method:KoSvgTextPropertiesModel::LAGER_QT_CURSOR(PropertyState,languageState)",
+        "method:KoSvgTextPropertiesModel::LAGER_QT_CURSOR(PropertyState,letterSpacingState)",
+        "method:KoSvgTextPropertiesModel::LAGER_QT_CURSOR(PropertyState,lineHeightState)",
+        "method:KoSvgTextPropertiesModel::LAGER_QT_CURSOR(PropertyState,wordSpacingState)",
+        "method:KoSvgTextPropertiesModel::LAGER_QT_CURSOR(QString,language)",
+        "method:KoSvgTextPropertiesModel::LAGER_QT_CURSOR(QStringList,fontFamilies)",
+        "method:KoSvgTextPropertiesModel::LAGER_QT_CURSOR(QVariantMap,axisValues)",
+        "method:KoSvgTextPropertiesModel::LAGER_QT_CURSOR(bool,fontOpticalSizeLink)",
+        "method:KoSvgTextPropertiesModel::LAGER_QT_CURSOR(int,fontWeight)",
+        "method:KoSvgTextPropertiesModel::LAGER_QT_CURSOR(int,fontWidth)",
+        "method:KoSvgTextPropertiesModel::LAGER_QT_CURSOR(qreal,fontSizeAdjust)"
+      ]
+    },
+    {
+      "target": "KoSvgTextPropertiesModelSchemaContractTest",
+      "source": "libs/flake/tests/KoSvgTextPropertiesModelSchemaContractTest.cpp",
+      "test": "KoSvgTextPropertiesModelSchemaContractTest::propertyModelFontFeatureCursorSchemaRemainsStable",
+      "behavior": "SVG文字property modelはOpenType機能、カーニング、書体合成、variantのcursor値型と状態型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoSvgTextPropertiesModel::LAGER_QT_CURSOR(PropertyState,fontFeatureSettingsState)",
+        "method:KoSvgTextPropertiesModel::LAGER_QT_CURSOR(PropertyState,fontKerningState)",
+        "method:KoSvgTextPropertiesModel::LAGER_QT_CURSOR(PropertyState,fontSynthesisStyleState)",
+        "method:KoSvgTextPropertiesModel::LAGER_QT_CURSOR(PropertyState,fontSynthesisWeightState)",
+        "method:KoSvgTextPropertiesModel::LAGER_QT_CURSOR(PropertyState,fontVariantCapsState)",
+        "method:KoSvgTextPropertiesModel::LAGER_QT_CURSOR(PropertyState,fontVariantEastAsianState)",
+        "method:KoSvgTextPropertiesModel::LAGER_QT_CURSOR(PropertyState,fontVariantLigaturesState)",
+        "method:KoSvgTextPropertiesModel::LAGER_QT_CURSOR(PropertyState,fontVariantNumericState)",
+        "method:KoSvgTextPropertiesModel::LAGER_QT_CURSOR(PropertyState,fontVariantPositionState)",
+        "method:KoSvgTextPropertiesModel::LAGER_QT_CURSOR(QVariantMap,fontFeatureSettings)",
+        "method:KoSvgTextPropertiesModel::LAGER_QT_CURSOR(bool,fontKerning)",
+        "method:KoSvgTextPropertiesModel::LAGER_QT_CURSOR(bool,fontSynthesisStyle)",
+        "method:KoSvgTextPropertiesModel::LAGER_QT_CURSOR(bool,fontSynthesisWeight)",
+        "method:KoSvgTextPropertiesModel::LAGER_QT_CURSOR(int,fontVariantCaps)",
+        "method:KoSvgTextPropertiesModel::LAGER_QT_CURSOR(int,fontVariantPosition)"
+      ]
+    },
+    {
+      "target": "KoSvgTextPropertiesModelSchemaContractTest",
+      "source": "libs/flake/tests/KoSvgTextPropertiesModelSchemaContractTest.cpp",
+      "test": "KoSvgTextPropertiesModelSchemaContractTest::propertyModelWritingAndLayoutCursorSchemaRemainsStable",
+      "behavior": "SVG文字property modelは書字方向、双方向文字、整列、改行、字下げ、描画方式のcursor値型と状態型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoSvgTextPropertiesModel::LAGER_QT_CURSOR(PropertyState,directionState)",
+        "method:KoSvgTextPropertiesModel::LAGER_QT_CURSOR(PropertyState,lineBreakState)",
+        "method:KoSvgTextPropertiesModel::LAGER_QT_CURSOR(PropertyState,tabSizeState)",
+        "method:KoSvgTextPropertiesModel::LAGER_QT_CURSOR(PropertyState,textAlignAllState)",
+        "method:KoSvgTextPropertiesModel::LAGER_QT_CURSOR(PropertyState,textAlignLastState)",
+        "method:KoSvgTextPropertiesModel::LAGER_QT_CURSOR(PropertyState,textAnchorState)",
+        "method:KoSvgTextPropertiesModel::LAGER_QT_CURSOR(PropertyState,textIndentState)",
+        "method:KoSvgTextPropertiesModel::LAGER_QT_CURSOR(PropertyState,textRenderingState)",
+        "method:KoSvgTextPropertiesModel::LAGER_QT_CURSOR(PropertyState,textTransformState)",
+        "method:KoSvgTextPropertiesModel::LAGER_QT_CURSOR(PropertyState,unicodeBidiState)",
+        "method:KoSvgTextPropertiesModel::LAGER_QT_CURSOR(PropertyState,wordBreakState)",
+        "method:KoSvgTextPropertiesModel::LAGER_QT_CURSOR(PropertyState,writingModeState)",
+        "method:KoSvgTextPropertiesModel::LAGER_QT_CURSOR(int,direction)",
+        "method:KoSvgTextPropertiesModel::LAGER_QT_CURSOR(int,lineBreak)",
+        "method:KoSvgTextPropertiesModel::LAGER_QT_CURSOR(int,textAlignAll)",
+        "method:KoSvgTextPropertiesModel::LAGER_QT_CURSOR(int,textAlignLast)",
+        "method:KoSvgTextPropertiesModel::LAGER_QT_CURSOR(int,textAnchor)",
+        "method:KoSvgTextPropertiesModel::LAGER_QT_CURSOR(int,textRendering)",
+        "method:KoSvgTextPropertiesModel::LAGER_QT_CURSOR(int,unicodeBidi)",
+        "method:KoSvgTextPropertiesModel::LAGER_QT_CURSOR(int,wordBreak)",
+        "method:KoSvgTextPropertiesModel::LAGER_QT_CURSOR(int,writingMode)"
+      ]
+    },
+    {
+      "target": "KoSvgTextPropertiesModelSchemaContractTest",
+      "source": "libs/flake/tests/KoSvgTextPropertiesModelSchemaContractTest.cpp",
+      "test": "KoSvgTextPropertiesModelSchemaContractTest::propertyModelDecorationAndBaselineCursorSchemaRemainsStable",
+      "behavior": "SVG文字property modelは文字装飾、下線位置、基準線、句読点ぶら下げのcursor値型と状態型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoSvgTextPropertiesModel::LAGER_QT_CURSOR(HangComma,hangingPunctuationComma)",
+        "method:KoSvgTextPropertiesModel::LAGER_QT_CURSOR(PropertyState,alignmentBaselineState)",
+        "method:KoSvgTextPropertiesModel::LAGER_QT_CURSOR(PropertyState,baselineShiftState)",
+        "method:KoSvgTextPropertiesModel::LAGER_QT_CURSOR(PropertyState,dominantBaselineState)",
+        "method:KoSvgTextPropertiesModel::LAGER_QT_CURSOR(PropertyState,hangingPunctuationState)",
+        "method:KoSvgTextPropertiesModel::LAGER_QT_CURSOR(PropertyState,textDecorationColorState)",
+        "method:KoSvgTextPropertiesModel::LAGER_QT_CURSOR(PropertyState,textDecorationLineState)",
+        "method:KoSvgTextPropertiesModel::LAGER_QT_CURSOR(PropertyState,textDecorationStyleState)",
+        "method:KoSvgTextPropertiesModel::LAGER_QT_CURSOR(PropertyState,textDecorationUnderlinePositionState)",
+        "method:KoSvgTextPropertiesModel::LAGER_QT_CURSOR(QColor,textDecorationColor)",
+        "method:KoSvgTextPropertiesModel::LAGER_QT_CURSOR(bool,hangingPunctuationLast)",
+        "method:KoSvgTextPropertiesModel::LAGER_QT_CURSOR(bool,textDecorationLineThrough)",
+        "method:KoSvgTextPropertiesModel::LAGER_QT_CURSOR(bool,textDecorationOverline)",
+        "method:KoSvgTextPropertiesModel::LAGER_QT_CURSOR(bool,textDecorationUnderline)",
+        "method:KoSvgTextPropertiesModel::LAGER_QT_CURSOR(int,alignmentBaseline)",
+        "method:KoSvgTextPropertiesModel::LAGER_QT_CURSOR(int,baselineShiftMode)",
+        "method:KoSvgTextPropertiesModel::LAGER_QT_CURSOR(int,dominantBaseline)",
+        "method:KoSvgTextPropertiesModel::LAGER_QT_CURSOR(int,textDecorationStyle)",
+        "method:KoSvgTextPropertiesModel::LAGER_QT_CURSOR(int,textDecorationUnderlinePosHorizontal)",
+        "method:KoSvgTextPropertiesModel::LAGER_QT_CURSOR(int,textDecorationUnderlinePosVertical)"
+      ]
+    },
+    {
+      "target": "KoSvgTextPropertiesModelSchemaContractTest",
+      "source": "libs/flake/tests/KoSvgTextPropertiesModelSchemaContractTest.cpp",
+      "test": "KoSvgTextPropertiesModelSchemaContractTest::propertyModelFlowAndSurfaceCursorSchemaRemainsStable",
+      "behavior": "SVG文字property modelは空白折畳み、折返し、図形余白、選択範囲、有効状態のcursor値型と状態型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoSvgTextPropertiesModel::LAGER_QT_CURSOR(PropertyState,shapeMarginState)",
+        "method:KoSvgTextPropertiesModel::LAGER_QT_CURSOR(PropertyState,shapePaddingState)",
+        "method:KoSvgTextPropertiesModel::LAGER_QT_CURSOR(PropertyState,textCollapseState)",
+        "method:KoSvgTextPropertiesModel::LAGER_QT_CURSOR(PropertyState,textWrapState)",
+        "method:KoSvgTextPropertiesModel::LAGER_QT_CURSOR(bool,enabled)",
+        "method:KoSvgTextPropertiesModel::LAGER_QT_CURSOR(bool,spanSelection)",
+        "method:KoSvgTextPropertiesModel::LAGER_QT_CURSOR(int,textCollapse)",
+        "method:KoSvgTextPropertiesModel::LAGER_QT_CURSOR(int,textWrap)"
       ]
     }
   ]

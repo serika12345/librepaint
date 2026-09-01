@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 18:11 JST
+- 更新日時: 2026-09-01 18:16 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -40,7 +40,7 @@
 
 ### 第124便の担当計画
 
-- 実装共通基点は`a03c1527125c83a157186ffeddb5ef2c8d280440`である。image boundsとhistogram担当は`integrated`、SVG property model担当は`ready`、構築許可は
+- 実装共通基点は`a03c1527125c83a157186ffeddb5ef2c8d280440`である。3担当は`integrated`、構築許可は
   指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの
   `transport-commit`、追加委任は禁止する。専用worktree-local `build/tdd-macos`と`./scripts/run-shared-test-env`で主環境・compiler cacheを共有する。
   統合順はimage bounds、histogram、SVG property modelとし、調整担当だけが台帳、進捗文書、不足報告を変更する。3担当の公開header、所有CMake、試験source、生成物は
@@ -81,6 +81,11 @@
   汎用RGB・Lab、基本factory、汎用factoryの非lifecycle全50 APIを対応付け、`libs/pigment/tests/CMakeLists.txt`へheader限定対象を追加した。対象4工程・8入力、
   製品`kritapigment` 365工程・760入力と各集合は変更前後一致し、histogram実体、pixel、selection mask、color space、profile、registryを生成・実行していない。
   主macOS環境では再構成後に対象CTest、20回反復、`KoColorProfileSchemaContractTest`、無作業再構築を確認した。
+- `g124-svg-properties-schema`は受渡しcommit`2a0fdbced31d`を統合commit`4fdcdc32d6`として取り込んだ。開始
+  `libs/flake/text/lager/KoSvgTextPropertiesModel.h`から新規`libs/flake/tests/KoSvgTextPropertiesModelSchemaContractTest.cpp`の5枠へ、書体基礎、書体機能、
+  書字・配置、装飾・baseline、flow・surfaceの全83 APIを対応付け、`libs/flake/tests/CMakeLists.txt`へheader限定対象を追加した。対象4工程・8入力、製品
+  `kritaflake` 618工程・1,268入力と各集合は変更前後一致し、property model、子模型、Lager state・cursor、metaobject、signalを生成・実行していない。
+  主macOS環境では再構成後に対象CTest、20回反復、`KoSvgTextEnumContractTest`、無作業再構築を確認した。
 
 ### 第123便の先行監査計画
 
