@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 17:49 JST
+- 更新日時: 2026-09-01 17:53 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -40,7 +40,7 @@
 
 ### 第124便の担当計画
 
-- 実装共通基点はこの担当票commitとする。3担当は`planned`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの
+- 実装共通基点は`a03c1527125c83a157186ffeddb5ef2c8d280440`である。3担当は`implementing`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの
   `transport-commit`、追加委任は禁止する。専用worktree-local `build/tdd-macos`と`./scripts/run-shared-test-env`で主環境・compiler cacheを共有する。
   統合順はimage bounds、histogram、SVG property modelとし、調整担当だけが台帳、進捗文書、不足報告を変更する。3担当の公開header、所有CMake、試験source、生成物は
   重ならない。
