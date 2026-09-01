@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 22:06 JST
+- 更新日時: 2026-09-01 22:15 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -20,6 +20,16 @@
   angle範囲変換の一責務を、widget・画面・event loop・document・canvas・XML・設定I/O・大域状態の実体化なしで25 API以上閉じる。
 - `g130-text-snap-schema-audit`は`libs/flake/text/KoSvgTextProperties.h`の残り38 APIを主候補とし、`libs/flake/KoSnapGuide.h`の38 APIを比較する。文字property値または
   snapping方針の一責務を、shape・文字layout・font database・resource・canvas・event・描画・XML・大域状態の実体化なしで25 API以上閉じる。
+- `g130-config-surface-schema-audit`は`kis_config.h`のcanvas編集操作設定42 APIを採用した。navigation・zoom 12、workspace状態・分割6、貼付け8、tool option 8、
+  編集tool挙動8を既存`KisConfigEnumContractTest`の未評価型5枠へ追加する。対象4工程・15入力、停止5工程・18入力、製品`kritaapplication`
+  1,227工程・2,472入力を維持する。`kis_image_config.h`は最大の単一責務群が13 APIで、25 APIへ達するには性能・選択表示・export・layer方針を混在させるため棄却した。
+- `g130-guides-angle-schema-audit`は`kis_guides_config.h`の設定・XML・寿命を除くguide配置・表示schema 30 APIを採用した。型・等価6、位置・変換9、表示・操作8、
+  単位・線種4、色・pen 3を新規`KisGuidesConfigSchemaContractTest`の未評価型5枠へ追加する。新対象4工程・8入力、停止5工程・11入力、製品
+  `kritaapplicationui` 1,970工程・3,940入力を維持する。`AngleSelector.h`で実値へ閉じる純粋な静的角度変換は3 APIだけで、25 APIへ達するにはwidget状態・signal・表示を
+  混在させるため棄却した。
+- `g130-text-snap-schema-audit`は`KoSvgTextProperties.h`の全38 APIを採用した。値型・寿命6、property map 10、継承・scale 8、SVG交換・font射影7、metrics・表面7を
+  既存`KoSvgTextEnumContractTest`の未評価型5枠へ追加する。対象4工程・8入力、停止5工程・11入力、製品`kritaflake` 621工程・1,274入力を維持する。
+  `KoSnapGuide.h`は同数を型面で固定できるが、既存試験が製品と`kritatestsdk`へ接続し、安全な新規対象とCMakeが必要となるため、既存軽量対象へsourceだけで閉じる主候補を採用した。
 - 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから契約先または
   移動先、許可path、固有停止条件、比較候補の棄却根拠を含む。既存`build/tdd-macos`の計画は読み取り専用で測定し、構成や構築を開始しない。3報告後にpath、CMake、
   試験source、生成物が重ならない候補だけを担当票へ進める。
