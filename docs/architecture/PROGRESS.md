@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 00:52 JST
+- 更新日時: 2026-09-02 01:03 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -23,6 +23,16 @@
 - `g134-storage-palette-model-schema-audit`は`libs/resources/KisStorageModel.h`の残り33 APIを主候補とし、`libs/widgets/KisPaletteModel.h`の35 APIを比較する。
   resource storage模型操作面またはpalette模型操作面の一責務を、resource database・storage・palette・swatch・proxy・query・mime・I/O・大域状態の実体化なしで
   25 API以上閉じる。
+- `g134-gradient-segment-schema-audit`は`KoSegmentGradient.h`のgradient segment・endpoint局所値47 APIを採用した。補間・endpoint列挙16、endpoint record 5、
+  endpoint状態14、構築・補間8、評価・可変色4を新規`KoGradientSegmentSchemaContractTest`の未評価型5枠へ対応付ける。新対象4工程・8入力、停止5工程・11入力、
+  製品`kritapigment` 367工程・764入力を維持し、資源class `KoSegmentGradient`は閉包から除外する。`KoStopGradient.h`の局所stop値面は16 APIに留まり、25 APIへ達するには
+  resource寿命、I/O、XML、canvas resourceのいずれかを混在させるため棄却した。
+- `g134-stroke-mask-schema-audit`は`kis_stroke.h`の全36 APIを採用した。型・寿命9、job queue操作7、識別・遷移7、状態・strategy方針8、LOD・負荷分散5を既存
+  `KisImageTypesContractTest`の未評価型5枠へ対応付ける。対象4工程・8入力、停止5工程・11入力、製品`kritaimage` 1,196工程・2,416入力を維持する。
+  `kis_base_mask_generator.h`はincludeだけで3個の`KoID`を非自明に静的初期化し、大域状態と新link依存を避けられないため棄却した。
+- `g134-storage-palette-model-schema-audit`は`KisStorageModel.h`の全33 APIを採用した。型・列挙15、表模型8、検索3、import 3、通知4を既存
+  `KisResourceModelEnumContractTest`の未評価型5枠へ対応付ける。対象4工程・9入力、停止5工程・11入力、製品`kritaresources` 150工程・327入力を維持する。
+  `KisPaletteModel.h`も35 APIの型検査は可能だが、既存対象は813工程・1,654入力で、軽量な既存契約がなくwidgets・pigment・resourcesの広いheader閉包を要するため次点とした。
 - 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから契約先または
   移動先、許可path、固有停止条件、比較候補の棄却根拠を含む。既存`build/tdd-macos`の計画は読み取り専用で測定し、構成や構築を開始しない。3報告後にpath、CMake、
   試験source、生成物が重ならない候補だけを担当票へ進める。
