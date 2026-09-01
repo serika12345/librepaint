@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 18076
+    "expectedMissingApis": 17977
   },
   "contracts": [
     {
@@ -35951,6 +35951,240 @@
         "method:PsdAdditionalLayerInfoBlock::writeVectorOriginationDataEx(QIODevice & io,const QDomDocument & vectorOrigination)",
         "method:PsdAdditionalLayerInfoBlock::writeVectorStrokeDataEx(QIODevice & io,const QDomDocument & vectorStroke)",
         "method:PsdAdditionalLayerInfoBlock::writeVmskBlockEx(QIODevice & io,psd_vector_mask mask)"
+      ]
+    },
+    {
+      "target": "KisConfigEnumContractTest",
+      "source": "libs/application/tests/KisConfigEnumContractTest.cpp",
+      "test": "KisConfigEnumContractTest::colorManagementWorkingAndImportSignaturesRemainStable",
+      "behavior": "色管理設定の既定色空間、作業色空間、import profileと取込み時変換は正確な戻り型、引数、const性、既定引数を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisConfig::convertToImageColorspaceOnImport(bool defaultValue=false) const",
+        "method:KisConfig::importProfile(bool defaultValue=false) const",
+        "method:KisConfig::setConvertToImageColorspaceOnImport(bool value)",
+        "method:KisConfig::setImportProfile(const QString & importProfile) const",
+        "method:KisConfig::setUseDefaultColorSpace(bool value) const",
+        "method:KisConfig::setWorkingColorSpace(const QString & workingColorSpace) const",
+        "method:KisConfig::useDefaultColorSpace(bool defaultvalue=false) const",
+        "method:KisConfig::workingColorSpace(bool defaultValue=false) const"
+      ]
+    },
+    {
+      "target": "KisConfigEnumContractTest",
+      "source": "libs/application/tests/KisConfigEnumContractTest.cpp",
+      "test": "KisConfigEnumContractTest::colorManagementMonitorRoutingSignaturesRemainStable",
+      "behavior": "画面別monitorとprofile、描画intent、system profile方針は正確な戻り型、引数、const性、既定引数を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisConfig::getScreenStringIdentfier(int screenNo) const",
+        "method:KisConfig::monitorForScreen(int screen,const QString & defaultMonitor,bool defaultValue=true) const",
+        "method:KisConfig::monitorProfile(int screen) const",
+        "method:KisConfig::monitorRenderIntent(bool defaultValue=false) const",
+        "method:KisConfig::setMonitorForScreen(int screen,const QString & monitor)",
+        "method:KisConfig::setMonitorProfile(int screen,const QString & monitorProfile,bool) const",
+        "method:KisConfig::setRenderIntent(qint32 monitorRenderIntent) const",
+        "method:KisConfig::setUseSystemMonitorProfile(bool _useSystemMonitorProfile) const",
+        "method:KisConfig::useSystemMonitorProfile(bool defaultValue=false) const"
+      ]
+    },
+    {
+      "target": "KisConfigEnumContractTest",
+      "source": "libs/application/tests/KisConfigEnumContractTest.cpp",
+      "test": "KisConfigEnumContractTest::colorManagementOcioSignaturesRemainStable",
+      "behavior": "OCIOの使用、構成、LUT寸法、色表現固定の設定面は正確な戻り型、引数、const性、既定引数を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisConfig::ocioConfiguration(bool defaultValue=false) const",
+        "method:KisConfig::ocioLockColorVisualRepresentation(bool defaultValue=false) const",
+        "method:KisConfig::ocioLutEdgeSize(bool defaultValue=false) const",
+        "method:KisConfig::setOcioConfiguration(const KisOcioConfiguration & cfg)",
+        "method:KisConfig::setOcioLockColorVisualRepresentation(bool value)",
+        "method:KisConfig::setOcioLutEdgeSize(int value)",
+        "method:KisConfig::setUseOcio(bool useOCIO) const",
+        "method:KisConfig::useOcio(bool defaultValue=false) const"
+      ]
+    },
+    {
+      "target": "KisConfigEnumContractTest",
+      "source": "libs/application/tests/KisConfigEnumContractTest.cpp",
+      "test": "KisConfigEnumContractTest::colorManagementPrinterOutputSignaturesRemainStable",
+      "behavior": "印刷色空間、印刷profile、黒点補正の設定面は正確な戻り型、引数、const性、既定引数を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisConfig::printerColorSpace(bool defaultValue=false) const",
+        "method:KisConfig::printerProfile(bool defaultValue=false) const",
+        "method:KisConfig::setPrinterColorSpace(const QString & printerColorSpace) const",
+        "method:KisConfig::setPrinterProfile(const QString & printerProfile) const",
+        "method:KisConfig::setUseBlackPointCompensation(bool useBlackPointCompensation) const",
+        "method:KisConfig::useBlackPointCompensation(bool defaultValue=false) const"
+      ]
+    },
+    {
+      "target": "KisConfigEnumContractTest",
+      "source": "libs/application/tests/KisConfigEnumContractTest.cpp",
+      "test": "KisConfigEnumContractTest::colorManagementEngineAndSelectorSignaturesRemainStable",
+      "behavior": "LCMS最適化方針と色選択器の色空間借用設定は正確な戻り型、pointer方向、引数、const性、既定引数を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisConfig::allowLCMSOptimization(bool defaultValue=false) const",
+        "method:KisConfig::customColorSelectorColorSpace(bool defaultValue=false) const",
+        "method:KisConfig::setAllowLCMSOptimization(bool allowLCMSOptimization)",
+        "method:KisConfig::setCustomColorSelectorColorSpace(const KoColorSpace * cs)"
+      ]
+    },
+    {
+      "target": "KoColorSpaceSchemaContractTest",
+      "source": "libs/pigment/tests/KoColorSpaceSchemaContractTest.cpp",
+      "test": "KoColorSpaceSchemaContractTest::pixelOpacityAndTransparencySignaturesRemainStable",
+      "behavior": "色空間の不透明度複製・取得・設定、alpha乗算、透明色生成は正確な画素pointer、値型、個数型、const性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoColorSpace::copyOpacityU8(quint8 * src,quint8 * dst,qint32 nPixels) const",
+        "method:KoColorSpace::multiplyAlpha(quint8 * pixels,quint8 alpha,qint32 nPixels) const",
+        "method:KoColorSpace::opacityF(const quint8 * pixel) const",
+        "method:KoColorSpace::opacityU8(const quint8 * pixel) const",
+        "method:KoColorSpace::setOpacity(quint8 * pixels,qreal alpha,qint32 nPixels) const",
+        "method:KoColorSpace::setOpacity(quint8 * pixels,quint8 alpha,qint32 nPixels) const",
+        "method:KoColorSpace::transparentColor(quint8 * dst,quint32 nPixels) const"
+      ]
+    },
+    {
+      "target": "KoColorSpaceSchemaContractTest",
+      "source": "libs/pigment/tests/KoColorSpaceSchemaContractTest.cpp",
+      "test": "KoColorSpaceSchemaContractTest::alphaMaskSignaturesRemainStable",
+      "behavior": "色空間の正規化・U8 alpha maskと逆mask、色付き逆mask適用は正確な画素・mask pointer、個数型、const性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoColorSpace::applyAlphaNormedFloatMask(quint8 * pixels,const float * alpha,qint32 nPixels) const",
+        "method:KoColorSpace::applyAlphaU8Mask(quint8 * pixels,const quint8 * alpha,qint32 nPixels) const",
+        "method:KoColorSpace::applyInverseAlphaU8Mask(quint8 * pixels,const quint8 * alpha,qint32 nPixels) const",
+        "method:KoColorSpace::applyInverseNormedFloatMask(quint8 * pixels,const float * alpha,qint32 nPixels) const",
+        "method:KoColorSpace::fillInverseAlphaNormedFloatMaskWithColor(quint8 * pixels,const float * alpha,const quint8 * brushColor,qint32 nPixels) const"
+      ]
+    },
+    {
+      "target": "KoColorSpaceSchemaContractTest",
+      "source": "libs/pigment/tests/KoColorSpaceSchemaContractTest.cpp",
+      "test": "KoColorSpaceSchemaContractTest::grayBrushColoringSignaturesRemainStable",
+      "behavior": "灰色brushの着色と明度変調は正確な出力・brush・色pointer、強度、個数、const性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoColorSpace::fillGrayBrushWithColor(quint8 * dst,const QRgb * brush,quint8 * brushColor,qint32 nPixels) const",
+        "method:KoColorSpace::fillGrayBrushWithColorAndLightnessOverlay(quint8 * dst,const QRgb * brush,quint8 * brushColor,qint32 nPixels) const",
+        "method:KoColorSpace::fillGrayBrushWithColorAndLightnessWithStrength(quint8 * dst,const QRgb * brush,quint8 * brushColor,qreal strength,qint32 nPixels) const",
+        "method:KoColorSpace::modulateLightnessByGrayBrush(quint8 * dst,const QRgb * brush,qreal strength,qint32 nPixels) const"
+      ]
+    },
+    {
+      "target": "KoColorSpaceSchemaContractTest",
+      "source": "libs/pigment/tests/KoColorSpaceSchemaContractTest.cpp",
+      "test": "KoColorSpaceSchemaContractTest::pixelToneAdjustmentSignaturesRemainStable",
+      "behavior": "単一画素の色相・彩度・輝度と各色成分の増減操作は共通の画素pointer、段階値、const関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoColorSpace::decreaseHue(quint8 * pixel,qreal step) const",
+        "method:KoColorSpace::decreaseLuminosity(quint8 * pixel,qreal step) const",
+        "method:KoColorSpace::decreaseSaturation(quint8 * pixel,qreal step) const",
+        "method:KoColorSpace::increaseBlue(quint8 * pixel,qreal step) const",
+        "method:KoColorSpace::increaseGreen(quint8 * pixel,qreal step) const",
+        "method:KoColorSpace::increaseHue(quint8 * pixel,qreal step) const",
+        "method:KoColorSpace::increaseLuminosity(quint8 * pixel,qreal step) const",
+        "method:KoColorSpace::increaseRed(quint8 * pixel,qreal step) const",
+        "method:KoColorSpace::increaseSaturation(quint8 * pixel,qreal step) const",
+        "method:KoColorSpace::increaseYellow(quint8 * pixel,qreal step) const"
+      ]
+    },
+    {
+      "target": "KoColorSpaceSchemaContractTest",
+      "source": "libs/pigment/tests/KoColorSpaceSchemaContractTest.cpp",
+      "test": "KoColorSpaceSchemaContractTest::pixelMeasurementSignaturesRemainStable",
+      "behavior": "二画素間の色・alpha差と単一画素のU8・実数強度計測は正確な入力pointer、戻り型、const性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoColorSpace::difference(const quint8 * src1,const quint8 * src2) const",
+        "method:KoColorSpace::differenceA(const quint8 * src1,const quint8 * src2) const",
+        "method:KoColorSpace::intensity8(const quint8 * src) const",
+        "method:KoColorSpace::intensityF(const quint8 * src) const"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::overlayHierarchyConstructionSignaturesRemainStable",
+      "behavior": "PSD重ね合わせ効果の基底、色・gradient・pattern派生、stroke派生は公開class階層と既定構築可能性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:psd_layer_effects_color_overlay::psd_layer_effects_color_overlay()",
+        "method:psd_layer_effects_gradient_overlay::psd_layer_effects_gradient_overlay()",
+        "method:psd_layer_effects_overlay_base::psd_layer_effects_overlay_base()",
+        "method:psd_layer_effects_pattern_overlay::psd_layer_effects_pattern_overlay()",
+        "method:psd_layer_effects_stroke::psd_layer_effects_stroke()",
+        "struct:psd_layer_effects_color_overlay",
+        "struct:psd_layer_effects_gradient_overlay",
+        "struct:psd_layer_effects_overlay_base",
+        "struct:psd_layer_effects_pattern_overlay",
+        "struct:psd_layer_effects_stroke"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::overlayGradientControlSignaturesRemainStable",
+      "behavior": "PSD重ね合わせ効果の縮尺、層整列、dither、反転の取得・設定は正確な整数・真偽値とconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:psd_layer_effects_overlay_base::alignWithLayer() const",
+        "method:psd_layer_effects_overlay_base::dither() const",
+        "method:psd_layer_effects_overlay_base::reverse() const",
+        "method:psd_layer_effects_overlay_base::scale() const",
+        "method:psd_layer_effects_overlay_base::setAlignWithLayer(bool value)",
+        "method:psd_layer_effects_overlay_base::setDither(bool value)",
+        "method:psd_layer_effects_overlay_base::setReverse(bool value)",
+        "method:psd_layer_effects_overlay_base::setScale(int value)"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::overlayGradientGeometrySignaturesRemainStable",
+      "behavior": "PSD重ね合わせ効果のgradient形式、水平・垂直offset、座標値、線形寸法縮尺は正確な公開関数型とconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:psd_layer_effects_overlay_base::gradientOffset() const",
+        "method:psd_layer_effects_overlay_base::gradientXOffset() const",
+        "method:psd_layer_effects_overlay_base::gradientYOffset() const",
+        "method:psd_layer_effects_overlay_base::scaleLinearSizes(qreal scale)",
+        "method:psd_layer_effects_overlay_base::setGradientOffset(const QPointF & pt)",
+        "method:psd_layer_effects_overlay_base::setStyle(psd_gradient_style value)",
+        "method:psd_layer_effects_overlay_base::style() const"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::overlayPatternSelectionAndPhaseSignaturesRemainStable",
+      "behavior": "PSD重ね合わせ効果のpattern識別・解決・設定と水平・垂直phaseは正確な資源値、共有所有、座標型、const性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:psd_layer_effects_overlay_base::horizontalPhase() const",
+        "method:psd_layer_effects_overlay_base::pattern(KisResourcesInterfaceSP resourcesInterface) const",
+        "method:psd_layer_effects_overlay_base::patternLink() const",
+        "method:psd_layer_effects_overlay_base::patternPhase() const",
+        "method:psd_layer_effects_overlay_base::setPattern(KoPatternSP value)",
+        "method:psd_layer_effects_overlay_base::setPatternPhase(const QPointF & phase)",
+        "method:psd_layer_effects_overlay_base::verticalPhase() const"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::overlayStrokePositionSignaturesRemainStable",
+      "behavior": "PSD stroke効果の配置取得・設定は正確な列挙型とconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:psd_layer_effects_stroke::position() const",
+        "method:psd_layer_effects_stroke::setPosition(psd_stroke_position value)"
       ]
     }
   ]
