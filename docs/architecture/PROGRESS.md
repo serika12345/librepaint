@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 05:30 JST
+- 更新日時: 2026-09-02 05:40 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -35,6 +35,40 @@
 - 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから契約先または
   移動先、許可path、固有停止条件、比較候補の棄却根拠を含む。既存`build/tdd-macos`の計画は読み取り専用で測定し、構成や構築を開始しない。3報告後にpath、CMake、
   試験source、生成物が重ならない候補だけを担当票へ進める。
+
+### 第138便の担当計画
+
+- 実装共通基点は`8521336b213eaf1bb4fe60fb9dd335c2c66135bc`である。ICC profile、segment gradient、unit spin box担当は`implementing`、構築許可は指定試験targetと軽量近傍だけの
+  `granted`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、専用worktree-local `build/tdd-macos`と主作業treeの
+  `/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。統合順はICC profile、segment gradient、unit spin boxとし、調整担当だけが`AGENTS.md`、
+  architecture文書、`docs/architecture/public-api-test-contracts.json`、共通不足報告を変更する。3担当の公開header、所有CMake、試験source、生成物は重ならない。
+- `g138-icc-profile-schema`は`/Users/masato/Documents/librepaint-g138-icc-profile-schema`を所有する。開始
+  `plugins/color/lcms2engine/colorprofiles/IccColorProfile.h`の`IccColorProfile::Data`、`IccColorProfile::Container`、`IccColorProfile`についてclass、constructor・destructor、
+  raw data、container識別・適合性・色彩値、profile複製・永続化・識別・適合性・色彩値・transferの全72 APIから既存
+  `plugins/color/lcms2engine/tests/LcmsColorProfileContainerSchemaContractTest.cpp`の5枠`iccProfileDataAndLifetimeSchemaRemainsStable`、
+  `iccContainerIdentityAndSuitabilitySchemaRemainsStable`、`iccContainerColorimetrySchemaRemainsStable`、
+  `iccProfileIdentityPersistenceAndSuitabilitySchemaRemainsStable`、`iccProfileColorimetryAndTransferSchemaRemainsStable`へ対応付ける。許可pathは既存試験sourceだけでありCMakeは
+  変更しない。対象4工程・8入力、停止5工程・11入力、近傍は`KoColorProfileSchemaContractTest`、製品`kritalcmsengine_static`は397工程・823入力、`kritalcmsengine`は
+  427工程・856入力と各集合の完全一致を確認する。未知5枠、既存5枠、新旧全体CTest、20回反復、近傍、無作業再構築、動的接続、未解決Icc・Data・Container・profile・LCMS記号、
+  構文・変更行書式、公開API・`verify-quick`を確認する。profile・Data・Container・QByteArray処理対象・LCMS handleを生成または呼出し、load・save・色変換・QVector更新・registry・
+  filesystem・I/O、CMake・製品source・OBJECT・shared・module、`kritatestsdk`、LCMS2へのlink、公開header変更、製品計画差、停止線超過が必要なら止める。
+- `g138-segment-gradient-schema`は`/Users/masato/Documents/librepaint-g138-segment-gradient-schema`を所有する。開始`libs/pigment/resources/KoSegmentGradient.h`のalias・class、
+  constructor・destructor・clone、評価・資源、segment生成・集合、編集、直列化の全34 APIから既存`libs/pigment/tests/KoGradientSegmentSchemaContractTest.cpp`の5枠
+  `segmentGradientTypeAndLifetimeSchemaRemainStable`、`segmentGradientEvaluationAndResourceSignaturesRemainStable`、
+  `segmentGradientCreationAndCollectionSignaturesRemainStable`、`segmentGradientEditingSignaturesRemainStable`、`segmentGradientSerializationSignaturesRemainStable`へ
+  対応付ける。許可pathは既存試験sourceだけでありCMakeは変更しない。対象4工程・8入力、停止5工程・11入力、近傍は`KoColorValueSchemaContractTest`、製品`kritapigment`は
+  367工程・764入力と各集合の完全一致を確認する。未知5枠、既存枠、新旧全体CTest、20回反復、近傍、無作業再構築、動的接続、未解決segment・gradient・KoColor・resource・
+  registry記号、構文・変更行書式、公開API・`verify-quick`を確認する。gradient・segment・KoColor・QGradient・QIODevice・QDom・canvas資源を生成または呼出し、segment所有・編集・
+  XML・resource I/O・描画、関数address値、CMake・`KoSegmentGradient.cpp`・製品OBJECT・shared、`kritatestsdk`、新link依存、公開header変更、製品計画差、停止線超過が必要なら止める。
+- `g138-unit-spinbox-schema`は`/Users/masato/Documents/librepaint-g138-unit-spinbox-schema`を所有する。開始`libs/widgetutils/kis_double_parse_unit_spin_box.h`のclass、
+  constructor・destructor、manager方針、単位選択、値変換、範囲・step・精度、文字列変換の全31 APIから新規
+  `libs/widgetutils/tests/KisDoubleParseUnitSpinBoxSchemaContractTest.cpp`の5枠`unitSpinBoxTypeLifetimeAndManagerPolicySignaturesRemainStable`、
+  `unitSpinBoxUnitSelectionSignaturesRemainStable`、`unitSpinBoxValueConversionSignaturesRemainStable`、`unitSpinBoxRangeStepAndPrecisionSignaturesRemainStable`、
+  `unitSpinBoxTextConversionSignaturesRemainStable`へ対応付ける。許可pathは新規試験sourceと`libs/widgetutils/tests/CMakeLists.txt`だけである。新対象4工程・8入力、停止5工程・
+  11入力、近傍は`KisSliderSpinBoxSchemaContractTest`、製品`kritawidgetutils`は274工程・581入力と各集合の完全一致を確認する。未知target、5枠、対象CTest、20回反復、近傍、
+  無作業再構築、動的接続、未解決spin box・unit manager・KoUnit・metaobject記号、構文・変更行書式、公開API・`verify-quick`を確認する。spin box・widget・unit manager・KoUnitを
+  生成または呼出し、GUI event loop・context menu・signal配送、`kis_double_parse_unit_spin_box.cpp`、製品OBJECT・shared、`kritatestsdk`、KF I18n、設定I/O、新link依存、公開header・
+  製品source変更、製品計画差、停止線超過が必要なら止める。
 
 ### 第137便の先行監査計画
 
