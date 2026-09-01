@@ -38,6 +38,37 @@
 - 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから
   契約先または移動先、許可path、固有停止条件、比較候補の棄却根拠を含む。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
 
+### 第124便の担当計画
+
+- 実装共通基点はこの担当票commitとする。3担当は`planned`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの
+  `transport-commit`、追加委任は禁止する。専用worktree-local `build/tdd-macos`と`./scripts/run-shared-test-env`で主環境・compiler cacheを共有する。
+  統合順はimage bounds、histogram、SVG property modelとし、調整担当だけが台帳、進捗文書、不足報告を変更する。3担当の公開header、所有CMake、試験source、生成物は
+  重ならない。
+- `g124-image-bounds-schema`は`/Users/masato/Documents/librepaint-g124-image-bounds-schema`を所有する。開始`libs/image/kis_default_bounds.h`から既存
+  `libs/image/tests/KisImageTypesContractTest.cpp`の5枠`defaultBoundsOwnershipAndHierarchySchemaRemainsStable`、`imageDefaultBoundsSignaturesRemainStable`、
+  `selectionDefaultBoundsSignaturesRemainStable`、`emptySelectionBoundsSignaturesRemainStable`、`wrapAroundBoundsSignaturesRemainStable`へ全47 APIを対応付け、
+  他pathを変更しない。対象4工程・8入力、停止5工程・10入力、製品`kritaimage` 1,193工程・2,410入力と集合の完全一致を確認する。5枠の未知関数診断、対象CTest、
+  20回反復、`KisDefaultBoundsBaseContractTest`、no-work、動的接続、未解決bounds記号、構文・書式・公開API・`verify-quick`を確認する。bounds系・probe・image・device・
+  node・selection実体、constructor・destructor・仮想method・関数address値、製品OBJECT・shared、`kritatestsdk`、Qt Gui・Widgets、新依存、CMake・公開header・製品source変更、
+  製品計画差、停止線超過が必要なら止める。
+- `g124-histogram-schema`は`/Users/masato/Documents/librepaint-g124-histogram-schema`を所有する。開始`libs/pigment/KoBasicHistogramProducers.h`から新規
+  `libs/pigment/tests/KoBasicHistogramProducerSchemaContractTest.cpp`の5枠`basicHistogramStateAndViewSignaturesRemainStable`、
+  `fixedDepthHistogramSignaturesRemainStable`、`genericHistogramSignaturesRemainStable`、`basicHistogramFactorySignaturesRemainStable`、
+  `genericHistogramFactorySignaturesRemainStable`へ非lifecycle全50 APIを対応付け、`libs/pigment/tests/CMakeLists.txt`だけを併せて変更する。最初の期待診断は未知target、
+  予測4工程・8入力、停止5工程・11入力、製品`kritapigment` 365工程・760入力と集合の完全一致を確認する。5枠、対象CTest、20回反復、
+  `KoColorProfileSchemaContractTest`、no-work、動的接続、未解決histogram記号、構文・書式・公開API・`verify-quick`を確認する。constructor・destructor、製品class実体、
+  template factory本文、pixel・selection mask・color space・profile・registry・resource、製品OBJECT・shared、`kritatestsdk`、新依存、公開header・製品source・製品CMake変更、
+  F16宣言欠落、製品計画差、停止線超過が必要なら止める。
+- `g124-svg-properties-schema`は`/Users/masato/Documents/librepaint-g124-svg-properties-schema`を所有する。開始
+  `libs/flake/text/lager/KoSvgTextPropertiesModel.h`から新規`libs/flake/tests/KoSvgTextPropertiesModelSchemaContractTest.cpp`の5枠
+  `propertyModelFontFoundationCursorSchemaRemainsStable`、`propertyModelFontFeatureCursorSchemaRemainsStable`、
+  `propertyModelWritingAndLayoutCursorSchemaRemainsStable`、`propertyModelDecorationAndBaselineCursorSchemaRemainsStable`、
+  `propertyModelFlowAndSurfaceCursorSchemaRemainsStable`へ全83 APIを対応付け、`libs/flake/tests/CMakeLists.txt`だけを併せて変更する。最初の期待診断は未知target、予測
+  4工程・8入力、停止5工程・11入力、製品`kritaflake` 618工程・1,268入力と集合の完全一致を確認する。5枠、対象CTest、20回反復、`KoSvgTextEnumContractTest`、
+  no-work、動的接続、未解決property model記号、構文・書式・公開API・`verify-quick`を確認する。property model・子模型・Lager状態・cursorの生成・get・set・watch、
+  metaobject・signal、QML、Qt Quick・Widgets、font・配置・shape・document・SVG読込・描画、製品OBJECT・shared、`kritatestsdk`、新依存、公開header・製品source・製品CMake変更、
+  製品計画差、停止線超過が必要なら止める。
+
 ### 第123便の先行監査計画
 
 - 監査共通基点は`551714c5f3`、入力は`build/tdd-macos/public-api-missing-g123.json`である。3担当は`auditing`の読み取り専用とし、製品・試験・CMake・script・
