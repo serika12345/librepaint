@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 05:20 JST
+- 更新日時: 2026-09-02 05:30 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -22,6 +22,16 @@
 - `g138-unit-spin-color-scheme-schema-audit`は`libs/widgetutils/kis_double_parse_unit_spin_box.h`の残り31 APIを主候補とし、
   `libs/widgetutils/config/kcolorscheme.h`の29 APIを比較する。単位付き数値spin box wrapperまたは状態別配色・brushの公開schemaを、widget・GUI event loop・unit manager・設定I/O・
   application palette・大域状態の実体化なしで25 API以上閉じる。
+- `g138-icc-color-space-schema-audit`は`IccColorProfile.h`の全72 APIを採用した。profile data・寿命14、container識別・適合性13、container色彩値12、profile識別・永続化・適合性15、
+  profile色彩値・transfer 18を既存`LcmsColorProfileContainerSchemaContractTest`の未評価型5枠へ対応付ける。CMakeを変更せず対象4工程・8入力、停止5工程・11入力、製品
+  `kritalcmsengine_static` 397工程・823入力と`kritalcmsengine` 427工程・856入力を維持する。`KoColorSpaceAbstract.h`はinline画素処理の具体観測が画素buffer・alpha applicator・
+  色変換・registryを要し、既存試験も371工程・771入力であるため棄却した。
+- `g138-stop-segment-gradient-schema-audit`は`KoSegmentGradient.h`の全34 APIを採用した。型・寿命7、評価・資源署名8、生成・集合署名6、編集署名9、直列化署名4を既存
+  `KoGradientSegmentSchemaContractTest`の未評価型5枠へ対応付ける。CMakeを変更せず対象4工程・8入力、停止5工程・11入力、製品`kritapigment` 367工程・764入力を維持する。
+  `KoStopGradient.h`は局所stop型と外側資源操作へ責務が分かれ、局所値の実体化にもout-of-line `KoColor`と色空間が必要で、既存実試験は製品と`kritatestsdk`へ接続するため棄却した。
+- `g138-unit-spin-color-scheme-schema-audit`は`kis_double_parse_unit_spin_box.h`の全31 APIを採用した。型・寿命・manager方針8、単位選択4、値変換6、範囲・step・精度10、文字列変換3を
+  新規`KisDoubleParseUnitSpinBoxSchemaContractTest`の未評価型5枠へ対応付ける。新対象4工程・8入力、停止5工程・11入力、製品`kritawidgetutils` 274工程・581入力を維持する。
+  `kcolorscheme.h`は配色と状態別brushの2 classにまたがり、既存対象がKF ConfigCoreを含む4工程・9入力であるため、単一classで依存の狭い採用候補を優先した。
 - 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから契約先または
   移動先、許可path、固有停止条件、比較候補の棄却根拠を含む。既存`build/tdd-macos`の計画は読み取り専用で測定し、構成や構築を開始しない。3報告後にpath、CMake、
   試験source、生成物が重ならない候補だけを担当票へ進める。
