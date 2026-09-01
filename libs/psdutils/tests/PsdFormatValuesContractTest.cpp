@@ -77,6 +77,11 @@ private Q_SLOTS:
     void shadowBaseGeometrySignaturesRemainStable();
     void shadowBaseContourVariationSignaturesRemainStable();
     void shadowBaseFillTechniqueSignaturesRemainStable();
+    void layerEffectHierarchySchemaRemainsStable();
+    void layerEffectContextAndSubtypePolicySchemaRemainsStable();
+    void shadowColorValueSignaturesRemainStable();
+    void layerEffectGeometryScalingSignaturesRemainStable();
+    void bevelColorValueSignaturesRemainStable();
     void overlayHierarchyConstructionSignaturesRemainStable();
     void overlayGradientControlSignaturesRemainStable();
     void overlayGradientGeometrySignaturesRemainStable();
@@ -412,6 +417,84 @@ void PsdFormatValuesContractTest::shadowBaseFillTechniqueSignaturesRemainStable(
     ASSERT_SHADOW_SIGNATURE(setFillType, FillSetter);
     ASSERT_SHADOW_SIGNATURE(technique, TechniqueGetter);
     ASSERT_SHADOW_SIGNATURE(setTechnique, TechniqueSetter);
+}
+
+void PsdFormatValuesContractTest::layerEffectHierarchySchemaRemainsStable()
+{
+    using ShadowCommon = psd_layer_effects_shadow_common;
+    using DropShadow = psd_layer_effects_drop_shadow;
+    using InnerShadow = psd_layer_effects_inner_shadow;
+    using GlowCommon = psd_layer_effects_glow_common;
+    using OuterGlow = psd_layer_effects_outer_glow;
+    using InnerGlow = psd_layer_effects_inner_glow;
+
+    static_assert(std::is_class_v<ShadowCommon>);
+    static_assert(std::is_base_of_v<ShadowBase, ShadowCommon>);
+    static_assert(std::is_class_v<DropShadow>);
+    static_assert(std::is_base_of_v<ShadowCommon, DropShadow>);
+    static_assert(std::is_class_v<InnerShadow>);
+    static_assert(std::is_base_of_v<ShadowCommon, InnerShadow>);
+    static_assert(std::is_class_v<GlowCommon>);
+    static_assert(std::is_base_of_v<ShadowBase, GlowCommon>);
+    static_assert(std::is_class_v<OuterGlow>);
+    static_assert(std::is_base_of_v<GlowCommon, OuterGlow>);
+    static_assert(std::is_class_v<InnerGlow>);
+    static_assert(std::is_base_of_v<GlowCommon, InnerGlow>);
+}
+
+void PsdFormatValuesContractTest::layerEffectContextAndSubtypePolicySchemaRemainsStable()
+{
+    using Context = psd_layer_effects_context;
+    using Satin = psd_layer_effects_satin;
+    using InnerGlow = psd_layer_effects_inner_glow;
+    using SatinGetter = bool (Satin::*)() const;
+    using SatinSetter = void (Satin::*)(bool);
+    using SourceGetter = psd_glow_source (InnerGlow::*)() const;
+    using SourceSetter = void (InnerGlow::*)(psd_glow_source);
+
+    static_assert(std::is_class_v<Context>);
+    static_assert(std::is_default_constructible_v<Context>);
+    static_assert(std::is_same_v<decltype(Context::keep_original), bool>);
+    static_assert(std::is_class_v<Satin>);
+    static_assert(std::is_base_of_v<ShadowBase, Satin>);
+    static_assert(std::is_same_v<decltype(static_cast<SatinGetter>(&Satin::invert)), SatinGetter>);
+    static_assert(std::is_same_v<decltype(static_cast<SatinSetter>(&Satin::setInvert)), SatinSetter>);
+    static_assert(std::is_same_v<decltype(static_cast<SourceGetter>(&InnerGlow::source)), SourceGetter>);
+    static_assert(std::is_same_v<decltype(static_cast<SourceSetter>(&InnerGlow::setSource)), SourceSetter>);
+}
+
+void PsdFormatValuesContractTest::shadowColorValueSignaturesRemainStable()
+{
+    using ColorGetter = KoColor (ShadowBase::*)() const;
+    using ColorSetter = void (ShadowBase::*)(KoColor);
+
+    ASSERT_SHADOW_SIGNATURE(color, ColorGetter);
+    ASSERT_SHADOW_SIGNATURE(setColor, ColorSetter);
+    ASSERT_SHADOW_SIGNATURE(nativeColor, ColorGetter);
+    ASSERT_SHADOW_SIGNATURE(setNativeColor, ColorSetter);
+}
+
+void PsdFormatValuesContractTest::layerEffectGeometryScalingSignaturesRemainStable()
+{
+    using Context = psd_layer_effects_context;
+    using OffsetGetter = QPoint (ShadowBase::*)(const Context *) const;
+    using ShadowScale = void (ShadowBase::*)(qreal);
+    using BevelScale = void (BevelEmboss::*)(qreal);
+
+    ASSERT_SHADOW_SIGNATURE(calculateOffset, OffsetGetter);
+    ASSERT_SHADOW_SIGNATURE(scaleLinearSizes, ShadowScale);
+    ASSERT_BEVEL_SIGNATURE(scaleLinearSizes, BevelScale);
+}
+
+void PsdFormatValuesContractTest::bevelColorValueSignaturesRemainStable()
+{
+    using ColorGetter = KoColor (BevelEmboss::*)() const;
+    using ColorSetter = void (BevelEmboss::*)(KoColor);
+
+    ASSERT_BEVEL_SIGNATURE(highlightColor, ColorGetter);
+    ASSERT_BEVEL_SIGNATURE(setHighlightColor, ColorSetter);
+    ASSERT_BEVEL_SIGNATURE(shadowColor, ColorGetter);
+    ASSERT_BEVEL_SIGNATURE(setShadowColor, ColorSetter);
 }
 
 void PsdFormatValuesContractTest::overlayHierarchyConstructionSignaturesRemainStable()
