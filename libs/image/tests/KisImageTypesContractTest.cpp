@@ -5,6 +5,7 @@
 
 #include "brushengine/kis_paint_information.h"
 #include "kis_default_bounds.h"
+#include "kis_distance_information.h"
 #include "kis_selection_filters.h"
 #include "kis_sequential_iterator.h"
 #include "kis_types.h"
@@ -61,6 +62,11 @@ private Q_SLOTS:
     void paintInputCanvasOrientationSignaturesRemainStable();
     void paintInputDerivedMotionSignaturesRemainStable();
     void paintInputTiltConversionSignaturesRemainStable();
+    void distanceStateLifecycleSchemaRemainsStable();
+    void distanceLastDabObservationSignaturesRemainStable();
+    void distanceSpacingAndTimingSignaturesRemainStable();
+    void distanceStrokeProgressSignaturesRemainStable();
+    void distanceDrawingAngleLockSignaturesRemainStable();
     void sequentialIteratorTypeAndAliasSchemaRemainsStable();
     void sequentialIteratorDevicePolicySchemaRemainsStable();
     void sequentialIteratorAccessPolicySchemaRemainsStable();
@@ -600,6 +606,113 @@ void KisImageTypesContractTest::paintInputTiltConversionSignaturesRemainStable()
     static_assert(
         std::is_same_v<decltype(KisPaintInformation::tiltElevation(std::declval<const KisPaintInformation &>())),
                        qreal>);
+
+    QVERIFY(true);
+}
+
+void KisImageTypesContractTest::distanceStateLifecycleSchemaRemainsStable()
+{
+    using Distance = KisDistanceInformation;
+
+    static_assert(std::is_class_v<Distance>);
+    static_assert(std::is_default_constructible_v<Distance>);
+    static_assert(std::is_copy_constructible_v<Distance>);
+    static_assert(std::is_constructible_v<Distance, const Distance &, int>);
+    static_assert(std::is_constructible_v<Distance, const QPointF &, qreal>);
+    static_assert(std::is_constructible_v<Distance, const QPointF &, qreal, qreal, qreal, int>);
+    static_assert(std::is_constructible_v<Distance, qreal, qreal, int>);
+    static_assert(std::is_constructible_v<Distance, qreal, qreal>);
+    static_assert(std::is_copy_assignable_v<Distance>);
+    static_assert(std::is_destructible_v<Distance>);
+
+    QVERIFY(true);
+}
+
+void KisImageTypesContractTest::distanceLastDabObservationSignaturesRemainStable()
+{
+    using Distance = KisDistanceInformation;
+    using BooleanSignature = bool (Distance::*)() const;
+    using DabSequenceSignature = int (Distance::*)() const;
+    using PaintInformationSignature = const KisPaintInformation &(Distance::*)() const;
+    using PositionSignature = QPointF (Distance::*)() const;
+    using ScalarSignature = qreal (Distance::*)() const;
+
+    static_assert(
+        std::is_same_v<decltype(static_cast<DabSequenceSignature>(&Distance::currentDabSeqNo)), DabSequenceSignature>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<BooleanSignature>(&Distance::hasLastDabInformation)), BooleanSignature>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<BooleanSignature>(&Distance::hasLastPaintInformation)), BooleanSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<BooleanSignature>(&Distance::isStarted)), BooleanSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<ScalarSignature>(&Distance::lastDrawingAngle)), ScalarSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<PaintInformationSignature>(&Distance::lastPaintInformation)),
+                                 PaintInformationSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<PositionSignature>(&Distance::lastPosition)), PositionSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<ScalarSignature>(&Distance::maxPressure)), ScalarSignature>);
+
+    QVERIFY(true);
+}
+
+void KisImageTypesContractTest::distanceSpacingAndTimingSignaturesRemainStable()
+{
+    using Distance = KisDistanceInformation;
+    using BooleanSignature = bool (Distance::*)() const;
+    using ScalarSignature = qreal (Distance::*)() const;
+    using SpacingSignature = const KisSpacingInformation &(Distance::*)() const;
+    using TimingSignature = const KisTimingInformation &(Distance::*)() const;
+    using UpdateSpacingSignature = void (Distance::*)(const KisSpacingInformation &);
+    using UpdateTimingSignature = void (Distance::*)(const KisTimingInformation &);
+
+    static_assert(std::is_same_v<decltype(static_cast<SpacingSignature>(&Distance::currentSpacing)), SpacingSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<TimingSignature>(&Distance::currentTiming)), TimingSignature>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<ScalarSignature>(&Distance::getSpacingInterval)), ScalarSignature>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<ScalarSignature>(&Distance::getTimingUpdateInterval)), ScalarSignature>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<BooleanSignature>(&Distance::needsSpacingUpdate)), BooleanSignature>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<BooleanSignature>(&Distance::needsTimingUpdate)), BooleanSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<UpdateSpacingSignature>(&Distance::updateSpacing)),
+                                 UpdateSpacingSignature>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<UpdateTimingSignature>(&Distance::updateTiming)), UpdateTimingSignature>);
+
+    QVERIFY(true);
+}
+
+void KisImageTypesContractTest::distanceStrokeProgressSignaturesRemainStable()
+{
+    using Distance = KisDistanceInformation;
+    using NextPointSignature = qreal (Distance::*)(const QPointF &, const QPointF &, qreal, qreal);
+    using OverrideLastValuesSignature = void (Distance::*)(const QPointF &, qreal);
+    using RegisterPaintedDabSignature =
+        void (Distance::*)(const KisPaintInformation &, const KisSpacingInformation &, const KisTimingInformation &);
+    using ScalarSignature = qreal (Distance::*)() const;
+
+    static_assert(
+        std::is_same_v<decltype(static_cast<NextPointSignature>(&Distance::getNextPointPosition)), NextPointSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<OverrideLastValuesSignature>(&Distance::overrideLastValues)),
+                                 OverrideLastValuesSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<RegisterPaintedDabSignature>(&Distance::registerPaintedDab)),
+                                 RegisterPaintedDabSignature>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<ScalarSignature>(&Distance::scalarDistanceApprox)), ScalarSignature>);
+
+    QVERIFY(true);
+}
+
+void KisImageTypesContractTest::distanceDrawingAngleLockSignaturesRemainStable()
+{
+    using Distance = KisDistanceInformation;
+    using LockDrawingAngleSignature = void (Distance::*)(const KisPaintInformation &) const;
+    using LockedDrawingAngleSignature = boost::optional<qreal> (Distance::*)() const;
+
+    static_assert(std::is_same_v<decltype(static_cast<LockDrawingAngleSignature>(&Distance::lockCurrentDrawingAngle)),
+                                 LockDrawingAngleSignature>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<LockedDrawingAngleSignature>(&Distance::lockedDrawingAngleOptional)),
+                       LockedDrawingAngleSignature>);
 
     QVERIFY(true);
 }
