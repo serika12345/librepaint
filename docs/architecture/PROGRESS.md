@@ -41,6 +41,29 @@
   `kis_derived_resources_test`は製品群と`kritatestsdk`を含む2,017工程・4,031入力であり、実preset、大域locked-properties、資源registryを避ける停止条件に
   抵触するため実装へ進めない。
 
+### 第106並列便の担当計画
+
+- 実装共通基点は`8653ba81b9f718e49715c4467c8d8a0d6849e501`である。2担当は`planned`、構築許可は`granted`、Git権限は許可pathだけの
+  `transport-commit`、追加委任は禁止する。専用worktreeは翻訳catalog `po/`を疎な取得から除外し、各担当のworktree-local `build/tdd-macos`と
+  `./scripts/run-shared-test-env`で主環境・compiler cacheを共有する。統合順はSVG、OpenGLとし、調整担当だけが台帳、進捗文書、不足報告を変更する。
+- `g106-svg-character-result`は`/Users/masato/Documents/librepaint-g106-svg-character-result`を所有する。対象は
+  `libs/flake/text/KoSvgTextShape_p.h`の`CharacterResult` structと、位置・表示・索引8、glyph・領域・offset 9、改行・行端・均等割付9、
+  font・拡縮・metrics 8、cursor・anchor・方向3の全38 APIである。開始headerから新規
+  `libs/flake/tests/KoSvgTextCharacterResultValueContractTest.cpp`の5枠へ対応付け、`libs/flake/tests/CMakeLists.txt`だけを併せて変更する。最初の期待診断は
+  未知対象、予測4工程・8入力、停止5工程・11入力、製品`kritaflake`不変とする。
+- SVG担当は変更なし計画と直接依存、未知対象診断、限定構築、5枠、対象CTest、20回反復、`KoSvgTextFontMetricsValueContractTest`、無作業再構築、動的接続、
+  source構文、公開API検査、`verify-quick`を確認する。`fontHalfLeading`の未初期化値、`CharacterResult`の7メソッド、`ResolutionHandler`、out-of-line
+  `FontMetrics`演算、実shape・font registry・描画、製品OBJECT・shared、`kritatestsdk`、公開header、FreeType link、Qt Widgets、停止線超過が必要なら止める。
+- `g106-opengl-renderer-config`は`/Users/masato/Documents/librepaint-g106-opengl-renderer-config`を所有する。対象は
+  `libs/ui/opengl/kis_opengl.h`のfilter列挙5、renderer列挙・flag 7、ANGLE・XCB列挙8、`RendererConfig`型・member・分類5、文字列変換2の全27 APIである。
+  開始`libs/ui/opengl/kis_opengl.cpp`の純粋変換3本文を新規`libs/ui/opengl/KisOpenGLRendererConfig.cpp`へ一対一移管し、開始headerから新規
+  `libs/ui/tests/KisOpenGLRendererConfigContractTest.cpp`の5枠へ対応付ける。許可pathはこの3sourceと`libs/ui/CMakeLists.txt`、
+  `libs/ui/tests/CMakeLists.txt`だけである。最初の期待診断は未知対象、新対象は予測5工程・12入力、停止6工程・15入力、製品は現状1,965工程・3,930入力から
+  予測1,966工程・3,933入力、停止は現状比+2工程・+6入力とする。
+- OpenGL担当は変更なし計画と直接依存、未知対象診断、3本文移管、限定構築、5枠、対象CTest、20回反復、`KisDlgPreferencesEnumContractTest`、
+  無作業再構築、動的接続、source構文、公開API検査、`verify-quick`を確認する。専用OBJECTは製品へ一度だけ、試験へ直接収容する。製品sharedへの試験link、
+  `kritatestsdk`、実OpenGL context・driver・画面、`KisConfig`・`QSettings` I/O、静的初期化、公開header、3本文以外の製品変更、停止線超過が必要なら止める。
+
 ### 第105並列便の監査計画
 
 - 共通基点は`347b1bc680`、入力は`build/tdd-macos/public-api-missing-g105.json`である。3担当は`auditing`の読み取り専用とし、製品・試験・CMake・
