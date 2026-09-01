@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 22:32 JST
+- 更新日時: 2026-09-01 22:37 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -36,7 +36,7 @@
 
 ### 第130便の担当計画
 
-- 実装共通基点は`c78c0133ba5e9eef1845e68f51c4ba3d0e3fd7ff`である。config canvas、guides config担当は`integrated`、SVG text properties担当は`implementing`、構築許可は
+- 実装共通基点は`c78c0133ba5e9eef1845e68f51c4ba3d0e3fd7ff`である。config canvas、guides config、SVG text properties担当は`integrated`、構築許可は
   指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、専用worktree-local
   `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。統合順はconfig canvas、guides config、
   SVG text propertiesとし、調整担当だけが`AGENTS.md`、architecture文書、公開API台帳、共通不足報告を変更する。3担当の公開header、所有CMake、試験source、生成物は重ならない。
@@ -77,6 +77,12 @@
   追加した。対象4工程・8入力、製品`kritaapplicationui` 1,970工程・3,940入力と各集合は変更前後一致し、guide・色・pen、widget・canvas・document、XML・設定I/O・
   大域状態を生成・実行していない。担当macOS環境で対象CTest、20回反復、近傍`KisGridConfigValueContractTest`、無作業再構築、動的接続・未解決記号、構文・書式、
   公開API検査、`verify-quick`に成功した。公開API契約検査は29,838件中12,975件対応、16,863件未対応となった。
+- `g130-svg-text-properties-schema`は受渡しcommit`0ee07bd1b6b5`を統合commit`8e9040fd74`として取り込んだ。開始
+  `libs/flake/text/KoSvgTextProperties.h`から既存`libs/flake/tests/KoSvgTextEnumContractTest.cpp`の5枠へ、値型・寿命、property map、継承・scale、SVG交換・font射影、
+  metrics・表面の全38 APIを対応付けた。対象4工程・8入力、製品`kritaflake` 621工程・1,274入力と各集合は変更前後一致し、文字property実体、静的既定値、XML・
+  loading context、font database、shape・文字配置・resource・描画・大域状態を生成・実行していない。担当macOS環境で対象CTest、20回反復、近傍
+  `KoSvgTextPropertiesModelSchemaContractTest`、無作業再構築、動的接続・未解決記号、構文・書式、公開API検査、`verify-quick`に成功した。公開API契約検査は
+  29,838件中13,013件対応、16,825件未対応となった。
 
 ### 第129便の先行監査計画
 

@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 16863
+    "expectedMissingApis": 16825
   },
   "contracts": [
     {
@@ -38604,6 +38604,89 @@
         "method:KisGuidesConfig::guidesColor() const",
         "method:KisGuidesConfig::guidesPen() const",
         "method:KisGuidesConfig::setGuidesColor(const QColor & value)"
+      ]
+    },
+    {
+      "target": "KoSvgTextEnumContractTest",
+      "source": "libs/flake/tests/KoSvgTextEnumContractTest.cpp",
+      "test": "KoSvgTextEnumContractTest::textPropertyValueTypeAndLifetimeSchemaRemainsStable",
+      "behavior": "SVG文字property値はclass性、既定・copy構築、代入・等価比較、および破棄可能性の公開型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoSvgTextProperties",
+        "method:KoSvgTextProperties::KoSvgTextProperties()",
+        "method:KoSvgTextProperties::KoSvgTextProperties(const KoSvgTextProperties & rhs)",
+        "method:KoSvgTextProperties::operator =(const KoSvgTextProperties & rhs)",
+        "method:KoSvgTextProperties::operator ==(const KoSvgTextProperties & rhs) const",
+        "method:KoSvgTextProperties::~KoSvgTextProperties()"
+      ]
+    },
+    {
+      "target": "KoSvgTextEnumContractTest",
+      "source": "libs/flake/tests/KoSvgTextEnumContractTest.cpp",
+      "test": "KoSvgTextEnumContractTest::textPropertyValueMapSchemaRemainsStable",
+      "behavior": "SVG文字property mapは識別子とQVariant値の設定・有無・取得・削除・既定値、全property取得、空判定、およびproperty分類の公開型とconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoSvgTextProperties::defaultProperties()",
+        "method:KoSvgTextProperties::hasProperty(PropertyId id) const",
+        "method:KoSvgTextProperties::isEmpty() const",
+        "method:KoSvgTextProperties::properties() const",
+        "method:KoSvgTextProperties::property(PropertyId id,const QVariant & defaultValue=QVariant ()) const",
+        "method:KoSvgTextProperties::propertyIsBlockOnly(KoSvgTextProperties::PropertyId id)",
+        "method:KoSvgTextProperties::propertyIsInheritable(KoSvgTextProperties::PropertyId id) const",
+        "method:KoSvgTextProperties::propertyOrDefault(PropertyId id) const",
+        "method:KoSvgTextProperties::removeProperty(PropertyId id)",
+        "method:KoSvgTextProperties::setProperty(PropertyId id,const QVariant & value)"
+      ]
+    },
+    {
+      "target": "KoSvgTextEnumContractTest",
+      "source": "libs/flake/tests/KoSvgTextEnumContractTest.cpp",
+      "test": "KoSvgTextEnumContractTest::textPropertyInheritanceAndScalingSchemaRemainsStable",
+      "behavior": "SVG文字propertyは非継承値の処理、親からの継承・差分抽出、相対値解決、絶対値scaleについて公開型、const性、既定引数を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoSvgTextProperties::hasNonInheritableProperties() const",
+        "method:KoSvgTextProperties::inheritFrom(const KoSvgTextProperties & parentProperties,bool resolve=false,bool onlyFontAndLineHeight=false)",
+        "method:KoSvgTextProperties::inheritsProperty(PropertyId id,const KoSvgTextProperties & parentProperties) const",
+        "method:KoSvgTextProperties::ownProperties(const KoSvgTextProperties & parentProperties,bool keepFontSize=false) const",
+        "method:KoSvgTextProperties::resetNonInheritableToDefault()",
+        "method:KoSvgTextProperties::resolveRelativeValues(const KoSvgText::FontMetrics metrics=KoSvgText::FontMetrics (12.0,true),const qreal fontSize=12.0,bool onlyFontAndLineHeight=false)",
+        "method:KoSvgTextProperties::scaleAbsoluteValues(const double scaleInline=1.0,const double scaleBlock=1.0)",
+        "method:KoSvgTextProperties::setAllButNonInheritableProperties(const KoSvgTextProperties & properties)"
+      ]
+    },
+    {
+      "target": "KoSvgTextEnumContractTest",
+      "source": "libs/flake/tests/KoSvgTextEnumContractTest.cpp",
+      "test": "KoSvgTextEnumContractTest::textPropertyInterchangeAndFontProjectionSchemaRemainsStable",
+      "behavior": "SVG文字propertyはSVG属性・段落propertyへの変換、対応XML属性、font feature・CSS font情報・font生成、属性解析の公開型とconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoSvgTextProperties::convertParagraphProperties() const",
+        "method:KoSvgTextProperties::convertToSvgTextAttributes() const",
+        "method:KoSvgTextProperties::cssFontInfo() const",
+        "method:KoSvgTextProperties::fontFeaturesForText(int start,int length) const",
+        "method:KoSvgTextProperties::generateFont() const",
+        "method:KoSvgTextProperties::parseSvgTextAttribute(const SvgLoadingContext & context,const QString & command,const QString & value)",
+        "method:KoSvgTextProperties::supportedXmlAttributes()"
+      ]
+    },
+    {
+      "target": "KoSvgTextEnumContractTest",
+      "source": "libs/flake/tests/KoSvgTextEnumContractTest.cpp",
+      "test": "KoSvgTextEnumContractTest::textPropertyMetricsAndSurfaceSchemaRemainsStable",
+      "behavior": "SVG文字propertyはline height適用、背景・stroke、font寸法、metricsとx-heightの公開型、const性および既定引数を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoSvgTextProperties::applyLineHeight(KoSvgText::FontMetrics metrics) const",
+        "method:KoSvgTextProperties::background() const",
+        "method:KoSvgTextProperties::fontSize() const",
+        "method:KoSvgTextProperties::metrics(const bool withResolvedLineHeight=true,const bool offsetByBaseline=false) const",
+        "method:KoSvgTextProperties::setFontSize(const KoSvgText::CssLengthPercentage length)",
+        "method:KoSvgTextProperties::stroke() const",
+        "method:KoSvgTextProperties::xHeight() const"
       ]
     }
   ]
