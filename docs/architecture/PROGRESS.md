@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 04:10 JST
+- 更新日時: 2026-09-02 04:20 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -35,7 +35,7 @@
 
 ### 第136便の担当計画
 
-- 実装共通基点は`d5b4d5e9a9b507466d10f47aa55756bc472642e3`である。shape strokeとstore担当は`integrated`、angle selector担当は`ready`、構築許可は指定試験targetと軽量近傍だけの
+- 実装共通基点は`d5b4d5e9a9b507466d10f47aa55756bc472642e3`である。shape stroke、store、angle selector担当は`integrated`、構築許可は指定試験targetと軽量近傍だけの
   `granted`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、専用worktree-local `build/tdd-macos`と主作業treeの
   `/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。統合順はshape stroke、store、angle selectorとし、調整担当だけが`AGENTS.md`、
   architecture文書、`docs/architecture/public-api-test-contracts.json`、共通不足報告を変更する。3担当の公開header、所有CMake、試験source、生成物は重ならない。
@@ -81,6 +81,13 @@
   21入力と各集合は変更前後一致し、store・QIODevice・archive・backend・filesystemを生成・実行していない。担当macOS環境と中央環境で対象CTest、担当環境で5枠個別、
   両環境で20回反復と近傍`StoreDebugContractTest`、担当環境で無作業再構築、動的接続・未解決記号、構文・書式、公開API検査、`verify-quick`に成功した。中央の公開API契約検査は
   29,838件中13,613件対応、16,225件未対応となる。作業tree 870,364 KiBと担当branchは削除した。
+- `g136-angle-selector-schema`は受渡しcommit`b74a97485ae2`を統合commit`54dc128f9e`として取り込んだ。開始`libs/libkis/AngleSelector.h`から新規
+  `libs/libkis/tests/AngleSelectorSchemaContractTest.cpp`の5枠へ、角度選択器wrapperの型・寿命・view、主角度、範囲・精度・wrap、表示、角度変換の36 APIを対応付け、
+  `libs/libkis/tests/CMakeLists.txt`へQt Widgets・Testだけを接続するheader限定対象を追加した。対象4工程・8入力、製品`kritalibkis` 2,018工程・4,034入力と各集合は変更前後一致し、
+  AngleSelector・KisAngleSelector・QWidget・QApplication・画面・event loopを生成・実行していない。担当macOS環境と中央環境で対象CTest、担当環境で5枠個別、両環境で
+  20回反復と近傍`KisAngleSelectorSchemaContractTest`、担当環境で無作業再構築、動的接続・未解決記号、構文・書式、公開API検査、`verify-quick`に成功した。中央の公開API契約検査は
+  29,838件中13,649件対応、16,189件未対応となり、最新入力を`build/tdd-macos/public-api-missing-g137.json`へ生成する。担当worktreeとbranchは削除し、主Ninja treeと共有
+  compiler cacheだけを再利用対象として保持する。
 
 ### 第135便の先行監査計画
 

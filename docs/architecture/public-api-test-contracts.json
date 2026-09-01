@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 16225
+    "expectedMissingApis": 16189
   },
   "contracts": [
     {
@@ -40052,6 +40052,87 @@
         "method:KoStore::extractFile(const QString & sourceName,QByteArray & data)",
         "method:KoStore::setCompressionEnabled(bool e)",
         "method:KoStore::setSubstitution(const QString & name,const QString & substitution)"
+      ]
+    },
+    {
+      "target": "AngleSelectorSchemaContractTest",
+      "source": "libs/libkis/tests/AngleSelectorSchemaContractTest.cpp",
+      "test": "AngleSelectorSchemaContractTest::angleSelectorTypeAndViewSchemaRemainsStable",
+      "behavior": "角度選択器wrapperはQObject継承、既定構築、仮想寿命、view取得、および角度変更通知の公開スキーマを維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:AngleSelector",
+        "method:AngleSelector::AngleSelector()",
+        "method:AngleSelector::angleChanged(qreal angle)",
+        "method:AngleSelector::widget() const",
+        "method:AngleSelector::~AngleSelector()"
+      ]
+    },
+    {
+      "target": "AngleSelectorSchemaContractTest",
+      "source": "libs/libkis/tests/AngleSelectorSchemaContractTest.cpp",
+      "test": "AngleSelectorSchemaContractTest::angleSelectorPrimaryAngleSchemaRemainsStable",
+      "behavior": "角度選択器wrapperは主角度、reset角度、snap角度の取得・設定・resetについて正確な引数、戻り型、const性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:AngleSelector::angle() const",
+        "method:AngleSelector::reset()",
+        "method:AngleSelector::resetAngle() const",
+        "method:AngleSelector::setAngle(qreal newAngle)",
+        "method:AngleSelector::setResetAngle(qreal newResetAngle)",
+        "method:AngleSelector::setSnapAngle(qreal newSnapAngle)",
+        "method:AngleSelector::snapAngle() const"
+      ]
+    },
+    {
+      "target": "AngleSelectorSchemaContractTest",
+      "source": "libs/libkis/tests/AngleSelectorSchemaContractTest.cpp",
+      "test": "AngleSelectorSchemaContractTest::angleSelectorRangePrecisionAndWrappingSchemaRemainsStable",
+      "behavior": "角度選択器wrapperは小数精度、上下限、範囲、循環の取得・設定について正確な引数、戻り型、const性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:AngleSelector::decimals() const",
+        "method:AngleSelector::maximum() const",
+        "method:AngleSelector::minimum() const",
+        "method:AngleSelector::setDecimals(int newNumberOfDecimals)",
+        "method:AngleSelector::setMaximum(qreal newMaximum)",
+        "method:AngleSelector::setMinimum(qreal newMinimum)",
+        "method:AngleSelector::setRange(qreal newMinimum,qreal newMaximum)",
+        "method:AngleSelector::setWrapping(bool newWrapping)",
+        "method:AngleSelector::wrapping() const"
+      ]
+    },
+    {
+      "target": "AngleSelectorSchemaContractTest",
+      "source": "libs/libkis/tests/AngleSelectorSchemaContractTest.cpp",
+      "test": "AngleSelectorSchemaContractTest::angleSelectorPresentationSchemaRemainsStable",
+      "behavior": "角度選択器wrapperは接頭辞、反転選択肢、増加方向、高さ、平坦spin boxの表示設定について正確な引数、戻り型、const性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:AngleSelector::flipOptionsMode() const",
+        "method:AngleSelector::increasingDirection() const",
+        "method:AngleSelector::isUsingFlatSpinBox() const",
+        "method:AngleSelector::prefix() const",
+        "method:AngleSelector::setFlipOptionsMode(QString newMode)",
+        "method:AngleSelector::setIncreasingDirection(QString newIncreasingDirection)",
+        "method:AngleSelector::setPrefix(const QString & newPrefix)",
+        "method:AngleSelector::setWidgetsHeight(int newHeight)",
+        "method:AngleSelector::useFlatSpinBox(bool newUseFlatSpinBox)",
+        "method:AngleSelector::widgetsHeight() const"
+      ]
+    },
+    {
+      "target": "AngleSelectorSchemaContractTest",
+      "source": "libs/libkis/tests/AngleSelectorSchemaContractTest.cpp",
+      "test": "AngleSelectorSchemaContractTest::angleSelectorTransformSchemaRemainsStable",
+      "behavior": "角度選択器wrapperは範囲内の共終端角と水平・垂直反転についてmember・静的overload、既定成功pointer、戻り型、const性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:AngleSelector::closestCoterminalAngleInRange(qreal angle,bool * ok=nullptr) const",
+        "method:AngleSelector::closestCoterminalAngleInRange(qreal angle,qreal minimum,qreal maximum,bool * ok=nullptr)",
+        "method:AngleSelector::flip(Qt::Orientations orientations)",
+        "method:AngleSelector::flipAngle(qreal angle,Qt::Orientations orientations)",
+        "method:AngleSelector::flipAngle(qreal angle,qreal minimum,qreal maximum,Qt::Orientations orientations,bool * ok=nullptr)"
       ]
     }
   ]
