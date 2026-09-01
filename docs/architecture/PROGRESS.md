@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 01:03 JST
+- 更新日時: 2026-09-02 01:07 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -36,6 +36,40 @@
 - 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから契約先または
   移動先、許可path、固有停止条件、比較候補の棄却根拠を含む。既存`build/tdd-macos`の計画は読み取り専用で測定し、構成や構築を開始しない。3報告後にpath、CMake、
   試験source、生成物が重ならない候補だけを担当票へ進める。
+
+### 第134便の担当計画
+
+- 実装共通基点は`832aa7e56018ffe72f34c7b05ae424077be657b7`である。gradient segment、stroke、storage model担当は`ready`、構築許可は指定試験targetと
+  軽量近傍だけの`granted`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、専用worktree-local
+  `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。統合順はgradient segment、stroke、storage modelとし、
+  調整担当だけが`AGENTS.md`、architecture文書、`docs/architecture/public-api-test-contracts.json`、共通不足報告を変更する。3担当の公開header、所有CMake、試験source、
+  生成物は重ならない。
+- `g134-gradient-segment-schema`は`/Users/masato/Documents/librepaint-g134-gradient-segment-schema`を所有する。開始
+  `libs/pigment/resources/KoSegmentGradient.h`の2補間enum、endpoint enum・record、`KoGradientSegment`の全公開構築・状態・補間・評価・可変色操作から新規
+  `libs/pigment/tests/KoGradientSegmentSchemaContractTest.cpp`の5枠`gradientSegmentInterpolationAndEndpointOrdinalsRemainStable`、
+  `gradientSegmentEndpointRecordSchemaRemainsStable`、`gradientSegmentEndpointStateSignaturesRemainStable`、
+  `gradientSegmentConstructionAndInterpolationSignaturesRemainStable`、`gradientSegmentEvaluationAndVariableColorSignaturesRemainStable`へ47 APIを対応付ける。許可pathは
+  新規試験sourceと`libs/pigment/tests/CMakeLists.txt`だけである。新対象`KoGradientSegmentSchemaContractTest`は4工程・8入力、停止5工程・11入力、近傍は
+  `KoColorValueSchemaContractTest`、製品`kritapigment`は367工程・764入力と各集合の完全一致を確認する。未知target、5枠、対象CTest、20回反復、近傍、無作業再構築、
+  動的接続、未解決segment・color・resource記号、構文・変更行書式、公開API・`verify-quick`を確認する。型特性と未評価式を越えてsegment・endpoint・KoColor・gradient resource・
+  canvas resource・XML・device・I/O・色変換を生成または呼出し、`KoSegmentGradient.cpp`、Qt Xml、製品OBJECT・shared、`kritatestsdk`、新link依存、公開header・製品source変更、
+  製品計画差、停止線超過が必要なら止める。
+- `g134-stroke-schema`は`/Users/masato/Documents/librepaint-g134-stroke-schema`を所有する。開始`libs/image/kis_stroke.h`のclass、Typeと全5値、constructor・destructor、
+  job queue・識別・遷移・状態・strategy方針・LOD操作から既存`libs/image/tests/KisImageTypesContractTest.cpp`の5枠`strokeTypeAndLifecycleSchemaRemainStable`、
+  `strokeJobQueueOperationSignaturesRemainStable`、`strokeIdentityAndLifecycleTransitionSignaturesRemainStable`、`strokeStateAndStrategyPolicySignaturesRemainStable`、
+  `strokeLodAndBalancingSignaturesRemainStable`へ全36 APIを対応付ける。許可pathはこの試験source1件だけであり、担当CMakeは`libs/image/tests/CMakeLists.txt`だが変更しない。
+  対象`KisImageTypesContractTest`は4工程・8入力、停止5工程・11入力、近傍は`KisStrokeJobContractTest`、製品`kritaimage`は1,196工程・2,416入力と各集合の完全一致を確認する。
+  5枠の未知関数、対象CTest、20回反復、近傍、無作業再構築、動的接続、未解決stroke・strategy・job記号、構文・変更行書式、公開API・`verify-quick`を確認する。型特性と
+  未評価式を越えてstroke・strategy・job・queueを生成または呼出し、thread処理、製品source・OBJECT・shared、`kritatestsdk`、新依存、CMake・公開header変更、製品計画差、
+  停止線超過が必要なら止める。
+- `g134-storage-model-schema`は`/Users/masato/Documents/librepaint-g134-storage-model-schema`を所有する。開始`libs/resources/KisStorageModel.h`のclass、2 enum・全12値、
+  constructor・destructor、表模型・検索・import・通知操作から既存`libs/resources/tests/KisResourceModelEnumContractTest.cpp`の5枠`storageModelTypeAndEnumSchemaRemainsStable`、
+  `storageModelTableSchemaRemainsStable`、`storageModelLookupSchemaRemainsStable`、`storageModelImportSchemaRemainsStable`、
+  `storageModelNotificationSchemaRemainsStable`へ全33 APIを対応付ける。許可pathはこの試験source1件だけであり、担当CMakeは`libs/resources/tests/CMakeLists.txt`だが変更しない。
+  対象`KisResourceModelEnumContractTest`は4工程・9入力、停止5工程・11入力、近傍は`KisTagModelSchemaContractTest`、製品`kritaresources`は150工程・327入力と各集合の完全一致を
+  確認する。5枠の未知関数、既存枠、対象CTest、20回反復、近傍、無作業再構築、動的接続、未解決storage model・SQL・DB・import記号、構文・変更行書式、公開API・
+  `verify-quick`を確認する。型特性と未評価式を越えて模型・singleton・storage・resource・DB・QSql・query・import・I/O・signal・metaobjectを生成または呼出し、製品source・
+  OBJECT・shared、`kritatestsdk`、新依存、CMake・公開header変更、製品計画差、停止線超過が必要なら止める。
 
 ### 第133便の先行監査計画
 
