@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 10:28 JST
+- 更新日時: 2026-09-01 10:36 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -138,6 +138,20 @@
   `KisConfig`・`QSettings` I/O、filesystem、大域状態を使わず、既存`KisDlgPreferencesEnumContractTest`等の限定対象へ閉じる候補を優先する。
 - 各報告は完全なAPI識別子、最大5枠の観測挙動、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、
   開始pathから追加・移動先path、許可path、固有停止条件、比較・除外候補の根拠を含む。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
+- `g108-svg-text-values-audit`は`KoSvgText.h`のフォント選択値状態40 APIを採用した。可変font軸14、style候補5、合字機能7、数字機能8、東アジア字形機能6を
+  1型1枠で固定する。全APIはheader内で閉じ、新規対象はQt Gui・Test・Xmlだけの4工程・8入力を予測する。`FontFamilyAxis`と`FontFamilyStyleInfo`の
+  `operator==`は同値時falseとなる反転実装、`debugInfo`はQHash順序と表示値に問題があるため、欠陥分類前の維持契約から除外した。LineBox群の安全面は24 API、
+  property modelはlagerと9 nested model OBJECTを要求するため棄却した。
+- `g108-psd-values-audit`は`psd_additional_layer_info_block.h`のgradient・pattern fill-layer局所値33 APIを採用した。gradient既定値・copy 12、
+  scalar・bool setter 6、形式コード・SVG判定2、pattern既定値・copy 8、setter 5を既存`PsdFormatValuesContractTest`の5枠へ追加する。全methodはinlineで、
+  既存`kritaglobaldebugobjects`とQt/KFだけの5工程・12入力を維持し、製品`kritapsd`は1,977工程・3,952入力不変とする。非null資源、registry、ASL、実image、
+  生pointer所有へ到達するAPIは除外した。
+- `g108-preferences-values-audit`は`kis_config.h`の列挙型に裏付けられた設定schema 45 APIを採用した。入力・sampler 14、canvas surface 9、session・色設定8、
+  選択操作欄6、表示・補助線8を既存`KisConfigEnumContractTest`の5枠へ追加する。未評価`static_assert`だけで関数型、const性、静的・instance区分、既定引数を固定し、
+  `KisConfig`・`QSettings`・`QSurfaceFormat`を生成・呼出ししない。対象4工程・15入力、製品`kritaapplication` 1,223工程・2,464入力を維持する。
+  preferencesの純粋局所値は12 API、image設定のI/Oなし本文は2 APIで下限未達のため棄却した。
+- 到達不能な古いLibrePaint source複製と一時Nix shell派生物101件を回収し、20.43 GiBを解放した。主Ninja木、共有compiler cache、現在の`.direnv`開発profile、
+  最新不足報告は保持している。
 
 ### 第105並列便の監査計画
 
