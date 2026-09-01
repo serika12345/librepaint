@@ -18,9 +18,12 @@ namespace
 {
 
 using BevelEmboss = psd_layer_effects_bevel_emboss;
+using ShadowBase = psd_layer_effects_shadow_base;
 
 #define ASSERT_BEVEL_SIGNATURE(functionName, signatureType)                                                            \
     static_assert(std::is_same_v<decltype(static_cast<signatureType>(&BevelEmboss::functionName)), signatureType>)
+#define ASSERT_SHADOW_SIGNATURE(functionName, signatureType)                                                           \
+    static_assert(std::is_same_v<decltype(static_cast<signatureType>(&ShadowBase::functionName)), signatureType>)
 
 template<typename Resource>
 void verifyLegacyResourceAcceptsAndIgnoresPayloads()
@@ -59,6 +62,11 @@ private Q_SLOTS:
     void bevelLightBlendSignaturesRemainStable();
     void bevelTextureControlSignaturesRemainStable();
     void bevelTexturePhaseAndValueTypeRemainStable();
+    void shadowBaseValueTypeAndActivationSignaturesRemainStable();
+    void shadowBaseBlendAndLightingSignaturesRemainStable();
+    void shadowBaseGeometrySignaturesRemainStable();
+    void shadowBaseContourVariationSignaturesRemainStable();
+    void shadowBaseFillTechniqueSignaturesRemainStable();
     void resourceIdentityFieldsAreIndependentValues();
     void transparencyStopsPreserveSignedValues();
     void patternDefaultsMatchTheEmptyRecord();
@@ -305,6 +313,85 @@ void PsdFormatValuesContractTest::bevelTexturePhaseAndValueTypeRemainStable()
     ASSERT_BEVEL_SIGNATURE(setTextureHorizontalPhase, IntSetter);
     ASSERT_BEVEL_SIGNATURE(textureVerticalPhase, IntGetter);
     ASSERT_BEVEL_SIGNATURE(setTextureVerticalPhase, IntSetter);
+}
+
+void PsdFormatValuesContractTest::shadowBaseValueTypeAndActivationSignaturesRemainStable()
+{
+    using BoolGetter = bool (ShadowBase::*)() const;
+    using BoolSetter = void (ShadowBase::*)(bool);
+
+    static_assert(std::is_class_v<ShadowBase>);
+    static_assert(std::is_polymorphic_v<ShadowBase>);
+    ASSERT_SHADOW_SIGNATURE(effectEnabled, BoolGetter);
+    ASSERT_SHADOW_SIGNATURE(setEffectEnabled, BoolSetter);
+    ASSERT_SHADOW_SIGNATURE(invertsSelection, BoolGetter);
+    ASSERT_SHADOW_SIGNATURE(setInvertsSelection, BoolSetter);
+    ASSERT_SHADOW_SIGNATURE(edgeHidden, BoolGetter);
+    ASSERT_SHADOW_SIGNATURE(setEdgeHidden, BoolSetter);
+    ASSERT_SHADOW_SIGNATURE(knocksOut, BoolGetter);
+    ASSERT_SHADOW_SIGNATURE(setKnocksOut, BoolSetter);
+}
+
+void PsdFormatValuesContractTest::shadowBaseBlendAndLightingSignaturesRemainStable()
+{
+    using BlendModeGetter = QString (ShadowBase::*)() const;
+    using BlendModeSetter = void (ShadowBase::*)(QString);
+    using ScalarGetter = qint32 (ShadowBase::*)() const;
+    using ScalarSetter = void (ShadowBase::*)(qint32);
+    using BoolGetter = bool (ShadowBase::*)() const;
+    using BoolSetter = void (ShadowBase::*)(bool);
+
+    ASSERT_SHADOW_SIGNATURE(blendMode, BlendModeGetter);
+    ASSERT_SHADOW_SIGNATURE(setBlendMode, BlendModeSetter);
+    ASSERT_SHADOW_SIGNATURE(opacity, ScalarGetter);
+    ASSERT_SHADOW_SIGNATURE(setOpacity, ScalarSetter);
+    ASSERT_SHADOW_SIGNATURE(angle, ScalarGetter);
+    ASSERT_SHADOW_SIGNATURE(setAngle, ScalarSetter);
+    ASSERT_SHADOW_SIGNATURE(useGlobalLight, BoolGetter);
+    ASSERT_SHADOW_SIGNATURE(setUseGlobalLight, BoolSetter);
+}
+
+void PsdFormatValuesContractTest::shadowBaseGeometrySignaturesRemainStable()
+{
+    using ScalarGetter = qint32 (ShadowBase::*)() const;
+    using ScalarSetter = void (ShadowBase::*)(qint32);
+
+    ASSERT_SHADOW_SIGNATURE(distance, ScalarGetter);
+    ASSERT_SHADOW_SIGNATURE(setDistance, ScalarSetter);
+    ASSERT_SHADOW_SIGNATURE(spread, ScalarGetter);
+    ASSERT_SHADOW_SIGNATURE(setSpread, ScalarSetter);
+    ASSERT_SHADOW_SIGNATURE(size, ScalarGetter);
+    ASSERT_SHADOW_SIGNATURE(setSize, ScalarSetter);
+}
+
+void PsdFormatValuesContractTest::shadowBaseContourVariationSignaturesRemainStable()
+{
+    using BoolGetter = bool (ShadowBase::*)() const;
+    using BoolSetter = void (ShadowBase::*)(bool);
+    using ScalarGetter = qint32 (ShadowBase::*)() const;
+    using ScalarSetter = void (ShadowBase::*)(qint32);
+
+    ASSERT_SHADOW_SIGNATURE(antiAliased, BoolGetter);
+    ASSERT_SHADOW_SIGNATURE(setAntiAliased, BoolSetter);
+    ASSERT_SHADOW_SIGNATURE(noise, ScalarGetter);
+    ASSERT_SHADOW_SIGNATURE(setNoise, ScalarSetter);
+    ASSERT_SHADOW_SIGNATURE(range, ScalarGetter);
+    ASSERT_SHADOW_SIGNATURE(setRange, ScalarSetter);
+    ASSERT_SHADOW_SIGNATURE(jitter, ScalarGetter);
+    ASSERT_SHADOW_SIGNATURE(setJitter, ScalarSetter);
+}
+
+void PsdFormatValuesContractTest::shadowBaseFillTechniqueSignaturesRemainStable()
+{
+    using FillGetter = psd_fill_type (ShadowBase::*)() const;
+    using FillSetter = void (ShadowBase::*)(psd_fill_type);
+    using TechniqueGetter = psd_technique_type (ShadowBase::*)() const;
+    using TechniqueSetter = void (ShadowBase::*)(psd_technique_type);
+
+    ASSERT_SHADOW_SIGNATURE(fillType, FillGetter);
+    ASSERT_SHADOW_SIGNATURE(setFillType, FillSetter);
+    ASSERT_SHADOW_SIGNATURE(technique, TechniqueGetter);
+    ASSERT_SHADOW_SIGNATURE(setTechnique, TechniqueSetter);
 }
 
 void PsdFormatValuesContractTest::resourceIdentityFieldsAreIndependentValues()
@@ -2514,6 +2601,7 @@ void PsdFormatValuesContractTest::legacyPathAndPrintResourceRecordsAcceptAndIgno
 }
 
 #undef ASSERT_BEVEL_SIGNATURE
+#undef ASSERT_SHADOW_SIGNATURE
 
 QTEST_GUILESS_MAIN(PsdFormatValuesContractTest)
 
