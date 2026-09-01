@@ -33,6 +33,15 @@ struct CanReadExportMimeTypeWithoutArgument<Config,
                                             std::void_t<decltype(std::declval<const Config &>().exportMimeType())>>
     : std::true_type {
 };
+
+template<typename Config, typename = void>
+struct CanReadPasteFormatWithoutArgument : std::false_type {
+};
+
+template<typename Config>
+struct CanReadPasteFormatWithoutArgument<Config, std::void_t<decltype(std::declval<const Config &>().pasteFormat())>>
+    : std::true_type {
+};
 }
 
 class KisConfigEnumContractTest : public QObject
@@ -90,6 +99,11 @@ private Q_SLOTS:
     void defaultDocumentBackgroundAndLayerSignaturesRemainStable();
     void nativeDocumentPersistenceSignaturesRemainStable();
     void documentAutosaveAndUndoHistorySignaturesRemainStable();
+    void canvasNavigationAndZoomSignaturesRemainStable();
+    void canvasWorkspaceStateAndSplitSignaturesRemainStable();
+    void pasteWorkflowSignaturesRemainStable();
+    void toolOptionSurfaceSignaturesRemainStable();
+    void editingToolBehaviorSignaturesRemainStable();
 };
 
 void KisConfigEnumContractTest::inputAndSamplerValuesRemainStable()
@@ -1004,6 +1018,95 @@ void KisConfigEnumContractTest::documentAutosaveAndUndoHistorySignaturesRemainSt
     static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().undoEnabled()), bool>);
     static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().undoStackLimit()), int>);
     static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().useCumulativeUndoRedo()), bool>);
+}
+
+void KisConfigEnumContractTest::canvasNavigationAndZoomSignaturesRemainStable()
+{
+    ASSERT_KIS_CONFIG_SIGNATURE(rulersTrackMouse, bool (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setRulersTrackMouse, void (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(scrollbarZoomEnabled, bool (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setScrollbarZoomEnabled, void (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(vastScrolling, qreal (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setVastScrolling, void (KisConfig::*)(qreal) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(zoomHorizontal, bool (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setZoomHorizontal, void (KisConfig::*)(bool));
+    ASSERT_KIS_CONFIG_SIGNATURE(zoomMarginSize, int (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setZoomMarginSize, void (KisConfig::*)(int));
+    ASSERT_KIS_CONFIG_SIGNATURE(zoomSteps, int (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setZoomSteps, void (KisConfig::*)(int));
+
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().rulersTrackMouse()), bool>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().scrollbarZoomEnabled()), bool>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().vastScrolling()), qreal>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().zoomHorizontal()), bool>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().zoomMarginSize()), int>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().zoomSteps()), int>);
+}
+
+void KisConfigEnumContractTest::canvasWorkspaceStateAndSplitSignaturesRemainStable()
+{
+    ASSERT_KIS_CONFIG_SIGNATURE(canvasState, QString (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setCanvasState, void (KisConfig::*)(const QString &) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(horizontalSplitLines, int (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setHorizontalSplitLines, void (KisConfig::*)(int) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(verticalSplitLines, int (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setVerticalSplitLines, void (KisConfig::*)(int) const);
+
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().canvasState()), QString>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().horizontalSplitLines()), int>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().verticalSplitLines()), int>);
+}
+
+void KisConfigEnumContractTest::pasteWorkflowSignaturesRemainStable()
+{
+    ASSERT_KIS_CONFIG_SIGNATURE(activateTransformToolAfterPaste, bool (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setActivateTransformToolAfterPaste, void (KisConfig::*)(bool));
+    ASSERT_KIS_CONFIG_SIGNATURE(pasteBehaviour, qint32 (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setPasteBehaviour, void (KisConfig::*)(qint32) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(pasteFormat, qint32 (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setPasteFormat, void (KisConfig::*)(qint32));
+    ASSERT_KIS_CONFIG_SIGNATURE(renamePastedLayers, bool (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setRenamePastedLayers, void (KisConfig::*)(bool));
+
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().activateTransformToolAfterPaste()), bool>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().pasteBehaviour()), qint32>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().pasteFormat(false)), qint32>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().renamePastedLayers()), bool>);
+    static_assert(!CanReadPasteFormatWithoutArgument<KisConfig>::value);
+}
+
+void KisConfigEnumContractTest::toolOptionSurfaceSignaturesRemainStable()
+{
+    ASSERT_KIS_CONFIG_SIGNATURE(sliderLabels, bool (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setSliderLabels, void (KisConfig::*)(bool));
+    ASSERT_KIS_CONFIG_SIGNATURE(toolOptionsInDocker, bool (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setToolOptionsInDocker, void (KisConfig::*)(bool));
+    ASSERT_KIS_CONFIG_SIGNATURE(toolOptionsPopupDetached, bool (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setToolOptionsPopupDetached, void (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(toolbarSlider, QString (KisConfig::*)(int, bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setToolbarSlider, void (KisConfig::*)(int, const QString &));
+
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().sliderLabels()), bool>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().toolOptionsInDocker()), bool>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().toolOptionsPopupDetached()), bool>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().toolbarSlider(0)), QString>);
+}
+
+void KisConfigEnumContractTest::editingToolBehaviorSignaturesRemainStable()
+{
+    ASSERT_KIS_CONFIG_SIGNATURE(antialiasCurves, bool (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setAntialiasCurves, void (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(autoSmoothBezierCurves, bool (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setAutoSmoothBezierCurves, void (KisConfig::*)(bool));
+    ASSERT_KIS_CONFIG_SIGNATURE(useEraserBrushOpacity, bool (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setUseEraserBrushOpacity, void (KisConfig::*)(bool));
+    ASSERT_KIS_CONFIG_SIGNATURE(useEraserBrushSize, bool (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setUseEraserBrushSize, void (KisConfig::*)(bool));
+
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().antialiasCurves()), bool>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().autoSmoothBezierCurves()), bool>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().useEraserBrushOpacity()), bool>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().useEraserBrushSize()), bool>);
 }
 
 #undef ASSERT_KIS_CONFIG_SIGNATURE
