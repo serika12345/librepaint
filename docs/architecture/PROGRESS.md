@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 21:56 JST
+- 更新日時: 2026-09-01 22:02 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -39,7 +39,7 @@
 
 ### 第129便の担当計画
 
-- 実装共通基点は`2641bfb605be06cb507c4f59bcd1e4d071f6543a`である。config document、SVG view geometry担当は`integrated`、sequential iterator担当は`implementing`、
+- 実装共通基点は`2641bfb605be06cb507c4f59bcd1e4d071f6543a`である。config document、SVG view geometry、sequential iterator担当は`integrated`、
   構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、専用
   worktree-local `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。統合順はconfig document、
   SVG view geometry、sequential iteratorとし、調整担当だけが`AGENTS.md`、architecture文書、公開API台帳、共通不足報告を変更する。3担当の公開header、製品source、
@@ -87,6 +87,13 @@
   shape・canvas・document・font registry・描画・XML実体・大域状態を生成・実行していない。担当macOS環境で対象CTest、20回反復、近傍
   `SvgTransformParserContractTest`、無作業再構築、動的接続、移管記号の単一定義、構文・新規行書式、公開API検査、`verify-quick`に成功した。公開API契約検査は
   29,838件中12,864件対応、16,974件未対応となった。
+- `g129-sequential-iterator-schema`は受渡しcommit`276fb1945536`を統合commit`393e67337b`として取り込んだ。開始
+  `libs/image/kis_sequential_iterator.h`から既存`libs/image/tests/KisImageTypesContractTest.cpp`の5枠へ、型・alias、device・access・no-progress policy、逐次移動の
+  全39 APIを対応付けた。試験sourceだけの先行compileでpaint device公開headerが要求するpigment headerの探索経路不足を検出し、差分を撤回して担当票を補正した。
+  再開後は`libs/image/tests/CMakeLists.txt`で対象だけにpigment source・binary include pathとexport定義を追加し、link依存を増やさず対象4工程・8入力、製品
+  `kritaimage` 1,195工程・2,414入力と各集合を維持した。policy・iterator・paint device・pixel buffer・progressを生成・実行していない。担当macOS環境で対象CTest、
+  20回反復、近傍`KisPropertiesConfigurationSchemaContractTest`、無作業再構築、動的接続・未解決記号、構文・書式、公開API検査、`verify-quick`に成功した。
+  公開API契約検査は29,838件中12,903件対応、16,935件未対応となった。
 
 ### 第128便の先行監査計画
 

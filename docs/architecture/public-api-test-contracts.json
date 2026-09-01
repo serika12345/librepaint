@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 16974
+    "expectedMissingApis": 16935
   },
   "contracts": [
     {
@@ -38358,6 +38358,90 @@
       "apis": [
         "method:SvgUtil::parseNumber(const char * ptr,qreal & number)",
         "method:SvgUtil::simplifyList(const QString & str)"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::sequentialIteratorTypeAndAliasSchemaRemainsStable",
+      "behavior": "逐次画素反復はread-only・writableの既定policy、水平反復子pointer alias、および公開policy型の対応を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisSequentialConstIterator",
+        "alias:KisSequentialIterator",
+        "alias:ReadOnlyIteratorPolicy::IteratorTypeSP",
+        "alias:WritableIteratorPolicy::IteratorTypeSP",
+        "class:KisSequentialIteratorBase",
+        "struct:DevicePolicy",
+        "struct:NoProgressPolicy",
+        "struct:ReadOnlyIteratorPolicy",
+        "struct:WritableIteratorPolicy"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::sequentialIteratorDevicePolicySchemaRemainsStable",
+      "behavior": "逐次画素反復のdevice policyはpaint device所有型、直接・変換可能値からの構築、水平反復子生成とpixel寸法取得の公開型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:DevicePolicy::m_dev",
+        "method:DevicePolicy::DevicePolicy(Convertible sel)",
+        "method:DevicePolicy::DevicePolicy(KisPaintDeviceSP dev)",
+        "method:DevicePolicy::createConstIterator(const QRect & rect)",
+        "method:DevicePolicy::createIterator(const QRect & rect)",
+        "method:DevicePolicy::pixelSize() const"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::sequentialIteratorAccessPolicySchemaRemainsStable",
+      "behavior": "逐次画素反復のread-only・writable access policyは内部反復子pointer型、構築型、現在値・旧値pointerとcache更新の公開型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:ReadOnlyIteratorPolicy::m_iter",
+        "member:WritableIteratorPolicy::m_iter",
+        "method:ReadOnlyIteratorPolicy::ReadOnlyIteratorPolicy(SourcePolicy source,const QRect & rect)",
+        "method:ReadOnlyIteratorPolicy::oldRawData() const",
+        "method:ReadOnlyIteratorPolicy::rawDataConst() const",
+        "method:ReadOnlyIteratorPolicy::updatePointersCache()",
+        "method:WritableIteratorPolicy::WritableIteratorPolicy(SourcePolicy source,const QRect & rect)",
+        "method:WritableIteratorPolicy::oldRawData() const",
+        "method:WritableIteratorPolicy::rawData()",
+        "method:WritableIteratorPolicy::rawDataConst() const",
+        "method:WritableIteratorPolicy::updatePointersCache()"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::sequentialIteratorNoProgressPolicySchemaRemainsStable",
+      "behavior": "逐次画素反復のno-progress policyは範囲、現在値、完了通知の公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:NoProgressPolicy::setFinished()",
+        "method:NoProgressPolicy::setRange(int,int)",
+        "method:NoProgressPolicy::setValue(int)"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::sequentialIteratorTraversalSchemaRemainsStable",
+      "behavior": "逐次画素反復はprogress policy既定値を持つ構築と寿命、連続pixel数・移動・座標・read/write pointer取得の公開型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSequentialIteratorBase::KisSequentialIteratorBase(SourcePolicy source,const QRect & rect,ProgressPolicy progressPolicy=ProgressPolicy ())",
+        "method:KisSequentialIteratorBase::nConseqPixels() const",
+        "method:KisSequentialIteratorBase::nextPixel()",
+        "method:KisSequentialIteratorBase::nextPixels(int numPixels)",
+        "method:KisSequentialIteratorBase::oldRawData() const",
+        "method:KisSequentialIteratorBase::rawData()",
+        "method:KisSequentialIteratorBase::rawDataConst() const",
+        "method:KisSequentialIteratorBase::x() const",
+        "method:KisSequentialIteratorBase::y() const",
+        "method:KisSequentialIteratorBase::~KisSequentialIteratorBase()"
       ]
     }
   ]
