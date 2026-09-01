@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 19096
+    "expectedMissingApis": 19002
   },
   "contracts": [
     {
@@ -33716,6 +33716,235 @@
         "method:KoSvgText::FontFeatureEastAsian::fontFeatures(const int start,const int end)",
         "method:KoSvgText::FontFeatureEastAsian::operator ==(const FontFeatureEastAsian & other) const",
         "struct:KoSvgText::FontFeatureEastAsian"
+      ]
+    },
+    {
+      "target": "KisConfigEnumContractTest",
+      "source": "libs/application/tests/KisConfigEnumContractTest.cpp",
+      "test": "KisConfigEnumContractTest::navigationGestureSignaturesRemainStable",
+      "behavior": "キャンバス移動gesture設定は引数なし取得、戻り型、setter引数、const性を安定した公開schemaとして保つ。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisConfig::clicklessSpacePan(bool defaultValue=false) const",
+        "method:KisConfig::kineticScrollingEnabled(bool defaultValue=false) const",
+        "method:KisConfig::kineticScrollingGesture(bool defaultValue=false) const",
+        "method:KisConfig::kineticScrollingHiddenScrollbars(bool defaultValue=false) const",
+        "method:KisConfig::kineticScrollingSensitivity(bool defaultValue=false) const",
+        "method:KisConfig::longPressEnabled(bool defaultValue=false) const",
+        "method:KisConfig::setClicklessSpacePan(const bool toggle) const",
+        "method:KisConfig::setKineticScrollingEnabled(bool enabled)",
+        "method:KisConfig::setKineticScrollingGesture(int kineticScroll)",
+        "method:KisConfig::setKineticScrollingHideScrollbars(bool scrollbar)",
+        "method:KisConfig::setKineticScrollingSensitivity(int sensitivity)",
+        "method:KisConfig::setLongPressEnabled(bool value)"
+      ]
+    },
+    {
+      "target": "KisConfigEnumContractTest",
+      "source": "libs/application/tests/KisConfigEnumContractTest.cpp",
+      "test": "KisConfigEnumContractTest::inputProfileAndPointerBackendSignaturesRemainStable",
+      "behavior": "入力profile、筆圧曲線、pointer backend、tablet button補正は文字列・真偽値と静的設定入口の正確な公開型を保つ。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisConfig::currentInputProfile(bool defaultValue=false) const",
+        "method:KisConfig::pressureTabletCurve(bool defaultValue=false) const",
+        "method:KisConfig::setCurrentInputProfile(const QString & name)",
+        "method:KisConfig::setPressureTabletCurve(const QString & curveString) const",
+        "method:KisConfig::setUseRightMiddleTabletButtonWorkaround(bool value)",
+        "method:KisConfig::setUseWin8PointerInput(bool value)",
+        "method:KisConfig::setUseWin8PointerInputNoApp(QSettings * settings,bool value)",
+        "method:KisConfig::useRightMiddleTabletButtonWorkaround(bool defaultValue=false) const",
+        "method:KisConfig::useWin8PointerInput(bool defaultValue=false) const",
+        "method:KisConfig::useWin8PointerInputNoApp(QSettings * settings,bool defaultValue=false)"
+      ]
+    },
+    {
+      "target": "KisConfigEnumContractTest",
+      "source": "libs/application/tests/KisConfigEnumContractTest.cpp",
+      "test": "KisConfigEnumContractTest::tabletEventFilteringSignaturesRemainStable",
+      "behavior": "tablet eventの遅延、計測、選別、圧縮、driver shortcut判定、X11筆圧段階は正確な取得型とsetter型を保つ。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisConfig::ignoreHighFunctionKeys(bool defaultValue=false) const",
+        "method:KisConfig::setIgnoreHighFunctionKeys(bool value)",
+        "method:KisConfig::setTabletEventsDelay(int value)",
+        "method:KisConfig::setTestingAcceptCompressedTabletEvents(bool value)",
+        "method:KisConfig::setTestingCompressBrushEvents(bool value)",
+        "method:KisConfig::setTrackTabletEventLatency(bool value)",
+        "method:KisConfig::shouldEatDriverShortcuts(bool defaultValue=false) const",
+        "method:KisConfig::tabletEventsDelay(bool defaultValue=false) const",
+        "method:KisConfig::testingAcceptCompressedTabletEvents(bool defaultValue=false) const",
+        "method:KisConfig::testingCompressBrushEvents(bool defaultValue=false) const",
+        "method:KisConfig::trackTabletEventLatency(bool defaultValue=false) const",
+        "method:KisConfig::workaroundX11SmoothPressureSteps(bool defaultValue=false) const"
+      ]
+    },
+    {
+      "target": "KisConfigEnumContractTest",
+      "source": "libs/application/tests/KisConfigEnumContractTest.cpp",
+      "test": "KisConfigEnumContractTest::stabilizerInputSignaturesRemainStable",
+      "behavior": "手ぶれ補正入力設定は遅延描画の真偽値とsample数の整数値を対応setterとともに公開schemaとして保つ。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisConfig::setStabilizerDelayedPaint(bool value)",
+        "method:KisConfig::setStabilizerSampleSize(int value)",
+        "method:KisConfig::stabilizerDelayedPaint(bool defaultValue=false) const",
+        "method:KisConfig::stabilizerSampleSize(bool defaultValue=false) const"
+      ]
+    },
+    {
+      "target": "KisConfigEnumContractTest",
+      "source": "libs/application/tests/KisConfigEnumContractTest.cpp",
+      "test": "KisConfigEnumContractTest::selectionModifierSignaturesRemainStable",
+      "behavior": "選択操作のCtrl・Alt入替設定は引数なし真偽値取得と真偽値setterの公開型を保つ。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisConfig::setSwitchSelectionCtrlAlt(bool value)",
+        "method:KisConfig::switchSelectionCtrlAlt(bool defaultValue=false) const"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::interpretedResourceDefaultsRemainStable",
+      "behavior": "PSD解釈済み資源の基底は空のerror・表示、成功する既定処理、入力byte不変、安全な破棄を保つ。",
+      "classification": "maintained",
+      "apis": [
+        "class:PSDInterpretedResource",
+        "member:PSDInterpretedResource::error",
+        "method:PSDInterpretedResource::createBlock(QByteArray &)",
+        "method:PSDInterpretedResource::displayText()",
+        "method:PSDInterpretedResource::interpretBlock(QByteArray)",
+        "method:PSDInterpretedResource::valid()",
+        "method:PSDInterpretedResource::~PSDInterpretedResource()"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::resolutionInfoDefaultsAndCopiesRemainIndependent",
+      "behavior": "PSD解像度記録は5単位の保存値、300 dpi・inchの既定値を保ち、符号付き解像度と単位を複製元から独立して保持する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:RESN_INFO_1005::PSDUnit",
+        "enumerator:RESN_INFO_1005::PSDUnit::PSD_UNIT_CM",
+        "enumerator:RESN_INFO_1005::PSDUnit::PSD_UNIT_COLUMN",
+        "enumerator:RESN_INFO_1005::PSDUnit::PSD_UNIT_INCH",
+        "enumerator:RESN_INFO_1005::PSDUnit::PSD_UNIT_PICA",
+        "enumerator:RESN_INFO_1005::PSDUnit::PSD_UNIT_POINT",
+        "member:RESN_INFO_1005::hRes",
+        "member:RESN_INFO_1005::hResUnit",
+        "member:RESN_INFO_1005::heightUnit",
+        "member:RESN_INFO_1005::vRes",
+        "member:RESN_INFO_1005::vResUnit",
+        "member:RESN_INFO_1005::widthUnit",
+        "method:RESN_INFO_1005::RESN_INFO_1005()",
+        "struct:RESN_INFO_1005"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::resolutionInfoBlocksRoundTripInMemory",
+      "behavior": "PSD解像度記録は8BIM headerと16 byteの16.16固定小数payloadを生成し、memory内の再解釈で解像度と単位を復元する。",
+      "classification": "maintained",
+      "apis": [
+        "method:RESN_INFO_1005::createBlock(QByteArray & data)",
+        "method:RESN_INFO_1005::interpretBlock(QByteArray data)"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::iccProfileDefaultsAndCopiesRemainIndependent",
+      "behavior": "PSD ICC記録は空byte列を既定値とし、任意profile byte列を複製元から独立して所有する。",
+      "classification": "maintained",
+      "apis": [
+        "member:ICC_PROFILE_1039::icc",
+        "struct:ICC_PROFILE_1039"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::iccProfileBlocksValidateAndRoundTripInMemory",
+      "behavior": "PSD ICC記録は空profileを診断付きで拒否し、非空byte列を8BIM header・識別子・寸法付きblockへmemory内変換する。",
+      "classification": "maintained",
+      "apis": [
+        "method:ICC_PROFILE_1039::createBlock(QByteArray & data)",
+        "method:ICC_PROFILE_1039::interpretBlock(QByteArray data)"
+      ]
+    },
+    {
+      "target": "KoSvgTextEnumConversionContractTest",
+      "source": "libs/flake/tests/KoSvgTextEnumConversionContractTest.cpp",
+      "test": "KoSvgTextEnumConversionContractTest::writingDirectionAndBidiTokensPreserveAliasesAndFallbacks",
+      "behavior": "SVG書字方向・文字方向・双方向制御は既知token、旧別名、未知値fallback、SVG 1.1正規形を安定して相互変換する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KoSvgText::parseDirection(const QString & value)",
+        "function:KoSvgText::parseUnicodeBidi(const QString & value)",
+        "function:KoSvgText::parseWritingMode(const QString & value)",
+        "function:KoSvgText::writeDirection(Direction value)",
+        "function:KoSvgText::writeUnicodeBidi(UnicodeBidi value)",
+        "function:KoSvgText::writeWritingMode(WritingMode value,bool svg1_1=false)"
+      ]
+    },
+    {
+      "target": "KoSvgTextEnumConversionContractTest",
+      "source": "libs/flake/tests/KoSvgTextEnumConversionContractTest.cpp",
+      "test": "KoSvgTextEnumConversionContractTest::orientationAnchoringAndAlignmentPreserveCanonicalValues",
+      "behavior": "SVG文字方向、anchor、整列は既知tokenと未知値fallbackを変換し、justify-allを維持中のjustify正規形へ集約する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KoSvgText::parseTextAlign(const QString & value)",
+        "function:KoSvgText::parseTextAnchor(const QString & value)",
+        "function:KoSvgText::parseTextOrientation(const QString & value)",
+        "function:KoSvgText::parseTextOrientationFromGlyphOrientation(AutoValue value)",
+        "function:KoSvgText::writeTextAlign(TextAlign value)",
+        "function:KoSvgText::writeTextAnchor(TextAnchor value)",
+        "function:KoSvgText::writeTextOrientation(TextOrientation orientation)"
+      ]
+    },
+    {
+      "target": "KoSvgTextEnumConversionContractTest",
+      "source": "libs/flake/tests/KoSvgTextEnumConversionContractTest.cpp",
+      "test": "KoSvgTextEnumConversionContractTest::breakingAndLengthAdjustmentPreserveCanonicalValues",
+      "behavior": "SVG単語分割、改行、文字長調整は既知tokenと未知値fallbackを安定した正規文字列へ相互変換する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KoSvgText::parseLengthAdjust(const QString & value)",
+        "function:KoSvgText::parseLineBreak(const QString & value)",
+        "function:KoSvgText::parseWordBreak(const QString & value)",
+        "function:KoSvgText::writeLengthAdjust(LengthAdjust value)",
+        "function:KoSvgText::writeLineBreak(LineBreak value)",
+        "function:KoSvgText::writeWordBreak(WordBreak value)"
+      ]
+    },
+    {
+      "target": "KoSvgTextEnumConversionContractTest",
+      "source": "libs/flake/tests/KoSvgTextEnumConversionContractTest.cpp",
+      "test": "KoSvgTextEnumConversionContractTest::textPathTokensPreserveCanonicalDefaults",
+      "behavior": "SVG text-pathのmethod、spacing、sideは既知tokenと未知値の既定分類を安定した正規文字列へ相互変換する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KoSvgText::parseTextPathMethod(const QString & value)",
+        "function:KoSvgText::parseTextPathSide(const QString & value)",
+        "function:KoSvgText::parseTextPathSpacing(const QString & value)",
+        "function:KoSvgText::writeTextPathMethod(TextPathMethod value)",
+        "function:KoSvgText::writeTextPathSide(TextPathSide value)",
+        "function:KoSvgText::writeTextPathSpacing(TextPathSpacing value)"
+      ]
+    },
+    {
+      "target": "KoSvgTextEnumConversionContractTest",
+      "source": "libs/flake/tests/KoSvgTextEnumConversionContractTest.cpp",
+      "test": "KoSvgTextEnumConversionContractTest::textRenderingTokensPreserveCanonicalDefault",
+      "behavior": "SVG文字描画品質は3最適化tokenを個別値へ変換し、未知値をautoへ正規化して相互変換する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KoSvgText::parseTextRendering(const QString & value)",
+        "function:KoSvgText::writeTextRendering(TextRendering value)"
       ]
     }
   ]
