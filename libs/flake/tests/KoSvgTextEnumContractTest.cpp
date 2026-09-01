@@ -29,6 +29,11 @@ private Q_SLOTS:
     void fontStylesCompareSlantOnlyForOblique();
     void textTransformsOwnIndependentFlags();
     void textIndentOwnsLengthAndLineFlags();
+    void cssLengthPercentageValueSchemaRemainsStable();
+    void cssLengthPercentageResolutionAndFormattingSignaturesRemainStable();
+    void lineHeightValueSchemaRemainsStable();
+    void tabSizeValueSchemaRemainsStable();
+    void lineHeightAndTabSizeConversionSignaturesRemainStable();
     void graphicsContextStyleOrdinalsRemainStable();
     void graphicsContextFillAndStrokeStateKeepsPublicTypes();
     void graphicsContextClipTransformAndColorStateKeepsPublicTypes();
@@ -445,6 +450,166 @@ void KoSvgTextEnumContractTest::textIndentOwnsLengthAndLineFlags()
     QVERIFY(copy == indent);
     copy.eachLine = false;
     QVERIFY(copy != indent);
+}
+
+void KoSvgTextEnumContractTest::cssLengthPercentageValueSchemaRemainsStable()
+{
+    using Length = KoSvgText::CssLengthPercentage;
+
+    static_assert(std::is_class_v<Length>);
+    static_assert(std::is_same_v<decltype(&Length::value), qreal Length::*>);
+    static_assert(std::is_same_v<decltype(&Length::unit), Length::UnitType Length::*>);
+    static_assert(std::is_default_constructible_v<Length>);
+    static_assert(std::is_constructible_v<Length, qreal, Length::UnitType>);
+    static_assert(std::is_same_v<decltype(&Length::operator==), bool (Length::*)(const Length &) const>);
+
+    const Length defaults;
+    QCOMPARE(defaults.value, 0.0);
+    QCOMPARE(int(defaults.unit), int(Length::Absolute));
+
+    const Length emLength(2.5, Length::Em);
+    QCOMPARE(emLength.value, 2.5);
+    QCOMPARE(int(emLength.unit), int(Length::Em));
+    QVERIFY(emLength == Length(2.5, Length::Em));
+    QVERIFY(!(emLength == Length(2.5, Length::Ex)));
+    QVERIFY(!(emLength == Length(3.5, Length::Em)));
+
+    Length copy = emLength;
+    copy.value = 7.0;
+    copy.unit = Length::Cap;
+    QCOMPARE(emLength.value, 2.5);
+    QCOMPARE(int(emLength.unit), int(Length::Em));
+}
+
+void KoSvgTextEnumContractTest::cssLengthPercentageResolutionAndFormattingSignaturesRemainStable()
+{
+    using Length = KoSvgText::CssLengthPercentage;
+    using ConversionSignature = void (Length::*)(KoSvgText::FontMetrics, qreal, Length::UnitType);
+    using DebugSignature = QDebug (*)(QDebug, const Length &);
+    using WriterSignature = QString (*)(const Length &, bool);
+
+    static_assert(
+        std::is_same_v<decltype(static_cast<ConversionSignature>(&Length::convertToAbsolute)), ConversionSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<DebugSignature>(&KoSvgText::operator<<)), DebugSignature>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<WriterSignature>(&KoSvgText::writeLengthPercentage)), WriterSignature>);
+}
+
+void KoSvgTextEnumContractTest::lineHeightValueSchemaRemainsStable()
+{
+    using Length = KoSvgText::CssLengthPercentage;
+    using LineHeight = KoSvgText::LineHeightInfo;
+
+    static_assert(std::is_class_v<LineHeight>);
+    static_assert(std::is_same_v<decltype(&LineHeight::isNormal), bool LineHeight::*>);
+    static_assert(std::is_same_v<decltype(&LineHeight::isNumber), bool LineHeight::*>);
+    static_assert(std::is_same_v<decltype(&LineHeight::length), Length LineHeight::*>);
+    static_assert(std::is_same_v<decltype(&LineHeight::value), qreal LineHeight::*>);
+    static_assert(std::is_same_v<decltype(&LineHeight::operator==), bool (LineHeight::*)(const LineHeight &) const>);
+
+    const LineHeight defaults;
+    QCOMPARE(defaults.length.value, 0.0);
+    QCOMPARE(int(defaults.length.unit), int(Length::Absolute));
+    QCOMPARE(defaults.value, 1.0);
+    QVERIFY(!defaults.isNumber);
+    QVERIFY(defaults.isNormal);
+
+    LineHeight numeric;
+    numeric.isNormal = false;
+    numeric.isNumber = true;
+    numeric.value = 1.5;
+    numeric.length = Length(2.0, Length::Em);
+    LineHeight numericCopy = numeric;
+    numericCopy.length = Length(4.0, Length::Cap);
+    QVERIFY(numericCopy == numeric);
+    numericCopy.value = 2.0;
+    QVERIFY(!(numericCopy == numeric));
+    QCOMPARE(numeric.value, 1.5);
+    QCOMPARE(int(numeric.length.unit), int(Length::Em));
+
+    LineHeight measured;
+    measured.isNormal = false;
+    measured.length = Length(1.75, Length::Lh);
+    measured.value = 8.0;
+    LineHeight measuredCopy = measured;
+    measuredCopy.value = 9.0;
+    QVERIFY(measuredCopy == measured);
+    measuredCopy.length.value = 2.0;
+    QVERIFY(!(measuredCopy == measured));
+    measuredCopy = measured;
+    measuredCopy.isNormal = true;
+    QVERIFY(!(measuredCopy == measured));
+}
+
+void KoSvgTextEnumContractTest::tabSizeValueSchemaRemainsStable()
+{
+    using Length = KoSvgText::CssLengthPercentage;
+    using TabSize = KoSvgText::TabSizeInfo;
+
+    static_assert(std::is_class_v<TabSize>);
+    static_assert(std::is_same_v<decltype(&TabSize::extraSpacing), qreal TabSize::*>);
+    static_assert(std::is_same_v<decltype(&TabSize::isNumber), bool TabSize::*>);
+    static_assert(std::is_same_v<decltype(&TabSize::length), Length TabSize::*>);
+    static_assert(std::is_same_v<decltype(&TabSize::value), qreal TabSize::*>);
+    static_assert(std::is_same_v<decltype(&TabSize::operator==), bool (TabSize::*)(const TabSize &) const>);
+
+    const TabSize defaults;
+    QCOMPARE(defaults.extraSpacing, 0.0);
+    QVERIFY(defaults.isNumber);
+    QCOMPARE(defaults.length.value, 0.0);
+    QCOMPARE(int(defaults.length.unit), int(Length::Absolute));
+    QCOMPARE(defaults.value, 8.0);
+
+    TabSize numeric;
+    numeric.value = 4.0;
+    numeric.length = Length(2.0, Length::Em);
+    TabSize numericCopy = numeric;
+    numericCopy.extraSpacing = 3.0;
+    numericCopy.length = Length(5.0, Length::Cap);
+    QVERIFY(numericCopy == numeric);
+    numericCopy.value = 6.0;
+    QVERIFY(!(numericCopy == numeric));
+    QCOMPARE(numeric.value, 4.0);
+    QCOMPARE(numeric.extraSpacing, 0.0);
+
+    TabSize measured;
+    measured.isNumber = false;
+    measured.value = 12.0;
+    measured.length = Length(2.5, Length::Ch);
+    TabSize measuredCopy = measured;
+    measuredCopy.value = 15.0;
+    measuredCopy.extraSpacing = 7.0;
+    QVERIFY(measuredCopy == measured);
+    measuredCopy.length.unit = Length::Ic;
+    QVERIFY(!(measuredCopy == measured));
+    measuredCopy = measured;
+    measuredCopy.isNumber = true;
+    QVERIFY(!(measuredCopy == measured));
+}
+
+void KoSvgTextEnumContractTest::lineHeightAndTabSizeConversionSignaturesRemainStable()
+{
+    using LineHeight = KoSvgText::LineHeightInfo;
+    using TabSize = KoSvgText::TabSizeInfo;
+    using LineHeightDebugSignature = QDebug (*)(QDebug, const LineHeight &);
+    using LineHeightParserSignature = LineHeight (*)(const QString &, const SvgLoadingContext &);
+    using LineHeightWriterSignature = QString (*)(LineHeight);
+    using TabSizeDebugSignature = QDebug (*)(QDebug, const TabSize &);
+    using TabSizeParserSignature = TabSize (*)(const QString &, const SvgLoadingContext &);
+    using TabSizeWriterSignature = QString (*)(TabSize);
+
+    static_assert(std::is_same_v<decltype(static_cast<LineHeightDebugSignature>(&KoSvgText::operator<<)),
+                                 LineHeightDebugSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<LineHeightParserSignature>(&KoSvgText::parseLineHeight)),
+                                 LineHeightParserSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<LineHeightWriterSignature>(&KoSvgText::writeLineHeight)),
+                                 LineHeightWriterSignature>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<TabSizeDebugSignature>(&KoSvgText::operator<<)), TabSizeDebugSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<TabSizeParserSignature>(&KoSvgText::parseTabSize)),
+                                 TabSizeParserSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<TabSizeWriterSignature>(&KoSvgText::writeTabSize)),
+                                 TabSizeWriterSignature>);
 }
 
 void KoSvgTextEnumContractTest::graphicsContextStyleOrdinalsRemainStable()
