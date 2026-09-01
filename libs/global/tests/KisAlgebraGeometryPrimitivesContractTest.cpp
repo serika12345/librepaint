@@ -11,6 +11,10 @@
 #include <cmath>
 #include <type_traits>
 
+void kis_safe_assert_recoverable(const char *, const char *, int)
+{
+}
+
 namespace
 {
 
@@ -57,6 +61,11 @@ private Q_SLOTS:
     void triangleConstructionAndElasticMovementPreserveConstraints();
     void polygonPredicatesAndPointComparisonsRespectTolerance();
     void scalarMinimizersConvergeWithinBounds();
+    void pathConstructionAndConvexTopologyRemainStable();
+    void vectorPathSegmentAndIndexProjectionRemainStable();
+    void vectorPathOrderingAndSimplificationRemainStable();
+    void vectorPathContainmentAndRectangleCutsRemainStable();
+    void vectorPathGutterAndDebugRepresentationsRemainStable();
 };
 
 void KisAlgebraGeometryPrimitivesContractTest::rightHalfPlaneReportsSignedDistanceAndLine()
@@ -624,6 +633,183 @@ void KisAlgebraGeometryPrimitivesContractTest::scalarMinimizersConvergeWithinBou
         0.0, 10.0, 1e-12, 0);
     QVERIFY(iterationLimited >= 0.0);
     QVERIFY(iterationLimited <= 10.0);
+}
+
+void KisAlgebraGeometryPrimitivesContractTest::pathConstructionAndConvexTopologyRemainStable()
+{
+    using Point = KisAlgebra2D::VectorPath::VectorPathPoint;
+
+    const QPainterPath arrow = KisAlgebra2D::smallArrow();
+    QCOMPARE(arrow.elementCount(), 13);
+    QCOMPARE(QPointF(arrow.elementAt(0)), QPointF(5.0, 2.0));
+    QCOMPARE(QPointF(arrow.elementAt(6)), QPointF(5.0, -2.0));
+    QCOMPARE(arrow.currentPosition(), QPointF(5.0, 2.0));
+    QCOMPARE(arrow.boundingRect(), QRectF(-5.0, -8.0, 12.0, 16.0));
+
+    const QPolygonF triangle({QPointF(0.0, 0.0), QPointF(3.0, 0.0), QPointF(0.0, 2.0)});
+    QCOMPARE(KisAlgebra2D::calculateConvexHull(triangle), triangle);
+
+    QPainterPath painterPath;
+    painterPath.moveTo(0.0, 0.0);
+    painterPath.lineTo(2.0, 0.0);
+    painterPath.cubicTo(QPointF(3.0, 0.0), QPointF(3.0, 2.0), QPointF(2.0, 2.0));
+    const KisAlgebra2D::VectorPath convertedPath(painterPath);
+    QCOMPARE(convertedPath.pointsCount(), 3);
+    QCOMPARE(convertedPath.segmentsCount(), 2);
+    QCOMPARE(int(convertedPath.pointAt(0).type), int(Point::MoveTo));
+    QCOMPARE(int(convertedPath.pointAt(1).type), int(Point::LineTo));
+    QCOMPARE(int(convertedPath.pointAt(2).type), int(Point::BezierTo));
+    QCOMPARE(convertedPath.pointAt(2).endPoint, QPointF(2.0, 2.0));
+    QCOMPARE(convertedPath.pointAt(2).controlPoint1, QPointF(3.0, 0.0));
+    QCOMPARE(convertedPath.pointAt(2).controlPoint2, QPointF(3.0, 2.0));
+
+    QList<Point> points({Point::moveTo(QPointF(1.0, 1.0)), Point::lineTo(QPointF(4.0, 1.0))});
+    const KisAlgebra2D::VectorPath copiedPath(points);
+    points[1].endPoint = QPointF(-1.0, -1.0);
+    QCOMPARE(copiedPath.pointsCount(), 2);
+    QCOMPARE(copiedPath.segmentsCount(), 1);
+    QCOMPARE(copiedPath.pointAt(1).endPoint, QPointF(4.0, 1.0));
+}
+
+void KisAlgebraGeometryPrimitivesContractTest::vectorPathSegmentAndIndexProjectionRemainStable()
+{
+    using Point = KisAlgebra2D::VectorPath::VectorPathPoint;
+    const QList<Point> points({Point::moveTo(QPointF(0.0, 0.0)),
+                               Point::lineTo(QPointF(4.0, 0.0)),
+                               Point::bezierTo(QPointF(8.0, 0.0), QPointF(5.0, 2.0), QPointF(7.0, 2.0)),
+                               Point::lineTo(QPointF(10.0, 0.0))});
+    KisAlgebra2D::VectorPath path(points);
+
+    QCOMPARE(path.pointAt(1).endPoint, QPointF(4.0, 0.0));
+    const QList<Point> bezierSegment = path.segmentAt(1);
+    QCOMPARE(bezierSegment.size(), 2);
+    QCOMPARE(bezierSegment[0].endPoint, QPointF(4.0, 0.0));
+    QCOMPARE(bezierSegment[1].endPoint, QPointF(8.0, 0.0));
+    QCOMPARE(path.segmentAtAsLine(1), QLineF(QPointF(4.0, 0.0), QPointF(8.0, 0.0)));
+
+    const auto projectedSegment = path.segmentAtAsSegment(1);
+    QVERIFY(projectedSegment.has_value());
+    QCOMPARE(int(projectedSegment->type), int(Point::BezierTo));
+    QCOMPARE(projectedSegment->controlPoint1, QPointF(5.0, 2.0));
+    QCOMPARE(projectedSegment->controlPoint2, QPointF(7.0, 2.0));
+
+    QVERIFY(path.segmentAt(-1).isEmpty());
+    QVERIFY(!path.segmentAtAsSegment(path.segmentsCount()).has_value());
+    QCOMPARE(path.segmentAtAsLine(path.segmentsCount()), QLineF());
+
+    for (int segmentIndex = 0; segmentIndex < path.segmentsCount(); ++segmentIndex) {
+        const int pathIndex = path.segmentIndexToPathIndex(segmentIndex);
+        QCOMPARE(path.pathIndexToSegmentIndex(pathIndex), segmentIndex);
+    }
+}
+
+void KisAlgebraGeometryPrimitivesContractTest::vectorPathOrderingAndSimplificationRemainStable()
+{
+    using Point = KisAlgebra2D::VectorPath::VectorPathPoint;
+
+    QPainterPath densePath;
+    densePath.moveTo(0.0, 0.0);
+    densePath.lineTo(1.0, 0.0);
+    densePath.lineTo(5.0, 0.0);
+    const QPainterPath thresholdSimplified = KisAlgebra2D::trySimplifyPath(densePath, 2.0);
+    QCOMPARE(thresholdSimplified.elementCount(), 2);
+    QCOMPARE(QPointF(thresholdSimplified.elementAt(0)), QPointF(0.0, 0.0));
+    QCOMPARE(QPointF(thresholdSimplified.elementAt(1)), QPointF(5.0, 0.0));
+
+    const QList<Point> collinearPoints({Point::moveTo(QPointF(0.0, 0.0)),
+                                        Point::lineTo(QPointF(1.0, 0.0)),
+                                        Point::lineTo(QPointF(3.0, 0.0)),
+                                        Point::lineTo(QPointF(3.0, 2.0))});
+    const KisAlgebra2D::VectorPath collinearPath(collinearPoints);
+    const KisAlgebra2D::VectorPath angleSimplified = collinearPath.trulySimplified();
+    QCOMPARE(angleSimplified.pointsCount(), 3);
+    QCOMPARE(angleSimplified.pointAt(1).endPoint, QPointF(3.0, 0.0));
+
+    const QList<Point> closedPoints({Point::moveTo(QPointF(0.0, 0.0)),
+                                     Point::lineTo(QPointF(2.0, 0.0)),
+                                     Point::lineTo(QPointF(2.0, 2.0)),
+                                     Point::lineTo(QPointF(0.0, 0.0))});
+    const KisAlgebra2D::VectorPath closedPath(closedPoints);
+    const KisAlgebra2D::VectorPath reversedPath = closedPath.reversed();
+    QCOMPARE(reversedPath.pointAt(0).endPoint, QPointF(0.0, 0.0));
+    QCOMPARE(reversedPath.pointAt(1).endPoint, QPointF(2.0, 2.0));
+    QCOMPARE(reversedPath.pointAt(2).endPoint, QPointF(2.0, 0.0));
+    QCOMPARE(reversedPath.pointAt(3).endPoint, QPointF(0.0, 0.0));
+
+    QVERIFY(closedPath.fuzzyComparePointsCyclic(closedPath));
+    QList<Point> closePoints = closedPoints;
+    closePoints[1].endPoint += QPointF(0.01, -0.01);
+    QVERIFY(closedPath.fuzzyComparePointsCyclic(KisAlgebra2D::VectorPath(closePoints), 0.02));
+    QVERIFY(!closedPath.fuzzyComparePointsCyclic(KisAlgebra2D::VectorPath(closePoints)));
+
+    QPainterPath expectedPainterPath;
+    expectedPainterPath.moveTo(0.0, 0.0);
+    expectedPainterPath.lineTo(2.0, 0.0);
+    expectedPainterPath.lineTo(2.0, 2.0);
+    expectedPainterPath.lineTo(0.0, 0.0);
+    expectedPainterPath.closeSubpath();
+    QCOMPARE(closedPath.asPainterPath(), expectedPainterPath);
+}
+
+void KisAlgebraGeometryPrimitivesContractTest::vectorPathContainmentAndRectangleCutsRemainStable()
+{
+    QPainterPath square;
+    square.addRect(QRectF(0.0, 0.0, 10.0, 10.0));
+    QVERIFY(KisAlgebra2D::isInsideShape(square, QPointF(5.0, 5.0)));
+    QVERIFY(!KisAlgebra2D::isInsideShape(square, QPointF(15.0, 5.0)));
+
+    const KisAlgebra2D::VectorPath vectorSquare(square);
+    QVERIFY(KisAlgebra2D::isInsideShape(vectorSquare, QPointF(5.0, 5.0)));
+    QVERIFY(!KisAlgebra2D::isInsideShape(KisAlgebra2D::VectorPath(QList<KisAlgebra2D::VectorPath::VectorPathPoint>()),
+                                         QPointF()));
+
+    const QList<QPointF> rectanglePoints(
+        {QPointF(0.0, 0.0), QPointF(0.0, 10.0), QPointF(10.0, 10.0), QPointF(10.0, 0.0)});
+    const QLineF centerLine(QPointF(5.0, 0.0), QPointF(5.0, 10.0));
+    const QPainterPath leftCut = KisAlgebra2D::getOnePathFromRectangleCutThrough(rectanglePoints, centerLine, true);
+    QCOMPARE(QPointF(leftCut.elementAt(0)), centerLine.p1());
+    QCOMPARE(QPointF(leftCut.elementAt(1)), centerLine.p2());
+    QCOMPARE(leftCut.currentPosition(), centerLine.p1());
+
+    const QList<QPainterPath> cuts =
+        KisAlgebra2D::getPathsFromRectangleCutThrough(QRectF(0.0, 0.0, 10.0, 10.0), centerLine, centerLine);
+    QCOMPARE(cuts.size(), 2);
+    QCOMPARE(QPointF(cuts[0].elementAt(0)), centerLine.p1());
+    QCOMPARE(QPointF(cuts[1].elementAt(0)), centerLine.p1());
+}
+
+void KisAlgebraGeometryPrimitivesContractTest::vectorPathGutterAndDebugRepresentationsRemainStable()
+{
+    using Point = KisAlgebra2D::VectorPath::VectorPathPoint;
+    const QList<Point> squarePoints({Point::moveTo(QPointF(0.0, 0.0)),
+                                     Point::lineTo(QPointF(4.0, 0.0)),
+                                     Point::lineTo(QPointF(4.0, 4.0)),
+                                     Point::lineTo(QPointF(0.0, 0.0))});
+    const KisAlgebra2D::VectorPath square(squarePoints);
+    const KisAlgebra2D::VectorPath empty(QList<Point>{});
+
+    const KisAlgebra2D::VectorPath unchanged =
+        KisAlgebra2D::mergeShapesWithGutter(square, square, empty, empty, -1, square.segmentsCount(), false, true);
+    QCOMPARE(unchanged.asPainterPath(), square.asPainterPath());
+
+    const QPainterPath invalidGutter =
+        KisAlgebra2D::removeGutterSmart(square.asPainterPath(), 100, square.asPainterPath(), 100, false);
+    QVERIFY(invalidGutter.isEmpty());
+
+    QString pointDebugText;
+    {
+        QDebug debug(&pointDebugText);
+        debug << Point::bezierTo(QPointF(5.0, 6.0), QPointF(1.0, 2.0), QPointF(3.0, 4.0));
+        QVERIFY(debug.autoInsertSpaces());
+    }
+    QVERIFY(pointDebugText.contains(QStringLiteral("(curve (5, 6): ((1, 2), (3, 4)))")));
+
+    QString pathDebugText;
+    {
+        QDebug debug(&pathDebugText);
+        debug << square;
+    }
+    QVERIFY(pathDebugText.contains(QStringLiteral("QPainterPath")));
 }
 
 QTEST_GUILESS_MAIN(KisAlgebraGeometryPrimitivesContractTest)

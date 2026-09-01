@@ -84,6 +84,7 @@ kis_add_test(
         kritaglobalalgebradirectionobjects
         kritaglobalalgebrarectobjects
         kritaglobalalgebraplanargeometryobjects
+        kritaglobalalgebrapathtopologyobjects
         Qt${QT_MAJOR_VERSION}::Core
         Qt${QT_MAJOR_VERSION}::Gui
         Qt${QT_MAJOR_VERSION}::Test
