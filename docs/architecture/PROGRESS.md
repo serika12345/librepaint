@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 15:15 JST
+- 更新日時: 2026-09-01 15:22 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -817,6 +817,19 @@
   document、lager大域状態へ到達しない。
 - 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから契約先または
   移動先、許可path、固有停止条件、比較候補の棄却根拠を含む。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
+- `g120-application-config-schema-audit`は`KisConfig`の色管理profile経路・方針35 APIを採用した。作業色空間・import 8、monitor経路9、OCIO方針8、
+  印刷出力profile 6、色管理engine・selector色空間4を既存`KisConfigEnumContractTest`の未評価型5枠へ追加する。対象4工程・15入力、製品
+  `kritaapplication` 1,224工程・2,466入力を維持し、設定実体、画面列挙、OCIO・LCMS、profile読込み、registryを実行しない。animationは24、文書作成は23、
+  保存・復元は22 APIで下限未達、表示性能群はOpenGL・SIMD・LOD等の複数責務を混在させるため棄却した。
+- `g120-color-space-operations-schema-audit`は`KoColorSpace`の局所画素・alpha処理schema 30 APIを採用した。opacity・透明7、alpha mask 5、gray brush着色4、
+  tone調整10、画素計測4を既存`KoColorSpaceSchemaContractTest`の未評価型5枠へ追加する。対象4工程・8入力、製品`kritapigment`
+  365工程・760入力を維持し、実色空間、派生fake、画素buffer、brush dataを生成しない。色変換面は純粋責務が24 API、composite・ditherは9、XMLは2 APIで
+  下限未達のため棄却した。
+- `g120-psd-overlay-schema-audit`はlayer-effect overlay公開schema 34 APIを採用した。overlay階層・構築10、gradient制御8、gradient幾何7、pattern選択・phase 7、
+  stroke位置2を既存`PsdFormatValuesContractTest`の未評価型5枠へ追加する。対象6工程・14入力、製品`kritapsdutils` 635工程・1,300入力と`kritapsd`
+  1,979工程・3,956入力を維持し、constructor・destructor・method、色、pattern・gradient、registry、resource interface、scaleを実行しない。
+  additional-layer残存は色・pattern・gradient・ASL・shape責務を混在させ、psd.hの他の安全な各責務は25 API未満のため棄却した。3監査は編集、構築、試験、
+  Git操作、追加委任を行っていない。
 - `g119-resource-storage-schema-audit`は`KisResourceStorage`のidentity・寿命・状態schema 25 APIを採用した。共有pointer・class・storage種別10、寿命6、
   種別label 2、識別query 3、状態・時刻query 4を既存`KisResourceModelEnumContractTest`の5枠へ追加する。翻訳なし種別文字列だけを実行し、他は未評価型とする。
   対象4工程・9入力、製品`kritaresources` 149工程・325入力を維持し、実storage、filesystem、archive、SQL、registry、loaderを生成しない。`KoColorSet`は値契約に
