@@ -65,6 +65,11 @@ private Q_SLOTS:
     void layerPropertyDialogSignaturesRemainStable();
     void selectionSurfaceSignaturesRemainStable();
     void singleChannelPresentationSignaturesRemainStable();
+    void colorManagementWorkingAndImportSignaturesRemainStable();
+    void colorManagementMonitorRoutingSignaturesRemainStable();
+    void colorManagementOcioSignaturesRemainStable();
+    void colorManagementPrinterOutputSignaturesRemainStable();
+    void colorManagementEngineAndSelectorSignaturesRemainStable();
 };
 
 void KisConfigEnumContractTest::inputAndSamplerValuesRemainStable()
@@ -752,6 +757,87 @@ void KisConfigEnumContractTest::singleChannelPresentationSignaturesRemainStable(
     ASSERT_KIS_CONFIG_SIGNATURE(setShowSingleChannelAsColor, void (KisConfig::*)(bool));
 
     static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().showSingleChannelAsColor()), bool>);
+}
+
+void KisConfigEnumContractTest::colorManagementWorkingAndImportSignaturesRemainStable()
+{
+    ASSERT_KIS_CONFIG_SIGNATURE(useDefaultColorSpace, bool (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setUseDefaultColorSpace, void (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(workingColorSpace, QString (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setWorkingColorSpace, void (KisConfig::*)(const QString &) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(importProfile, QString (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setImportProfile, void (KisConfig::*)(const QString &) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(convertToImageColorspaceOnImport, bool (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setConvertToImageColorspaceOnImport, void (KisConfig::*)(bool));
+
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().useDefaultColorSpace()), bool>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().workingColorSpace()), QString>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().importProfile()), QString>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().convertToImageColorspaceOnImport()), bool>);
+}
+
+void KisConfigEnumContractTest::colorManagementMonitorRoutingSignaturesRemainStable()
+{
+    ASSERT_KIS_CONFIG_SIGNATURE(monitorForScreen, QString (KisConfig::*)(int, const QString &, bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setMonitorForScreen, void (KisConfig::*)(int, const QString &));
+    ASSERT_KIS_CONFIG_SIGNATURE(monitorProfile, QString (KisConfig::*)(int) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setMonitorProfile, void (KisConfig::*)(int, const QString &, bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(getScreenStringIdentfier, const QString (KisConfig::*)(int) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(monitorRenderIntent, qint32 (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setRenderIntent, void (KisConfig::*)(qint32) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(useSystemMonitorProfile, bool (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setUseSystemMonitorProfile, void (KisConfig::*)(bool) const);
+
+    static_assert(
+        std::is_same_v<decltype(std::declval<const KisConfig &>().monitorForScreen(0, std::declval<const QString &>())),
+                       QString>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().monitorRenderIntent()), qint32>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().useSystemMonitorProfile()), bool>);
+}
+
+void KisConfigEnumContractTest::colorManagementOcioSignaturesRemainStable()
+{
+    ASSERT_KIS_CONFIG_SIGNATURE(useOcio, bool (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setUseOcio, void (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(ocioConfiguration, KisOcioConfiguration (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setOcioConfiguration, void (KisConfig::*)(const KisOcioConfiguration &));
+    ASSERT_KIS_CONFIG_SIGNATURE(ocioLutEdgeSize, int (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setOcioLutEdgeSize, void (KisConfig::*)(int));
+    ASSERT_KIS_CONFIG_SIGNATURE(ocioLockColorVisualRepresentation, bool (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setOcioLockColorVisualRepresentation, void (KisConfig::*)(bool));
+
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().useOcio()), bool>);
+    static_assert(
+        std::is_same_v<decltype(std::declval<const KisConfig &>().ocioConfiguration()), KisOcioConfiguration>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().ocioLutEdgeSize()), int>);
+    static_assert(
+        std::is_same_v<decltype(std::declval<const KisConfig &>().ocioLockColorVisualRepresentation()), bool>);
+}
+
+void KisConfigEnumContractTest::colorManagementPrinterOutputSignaturesRemainStable()
+{
+    ASSERT_KIS_CONFIG_SIGNATURE(printerColorSpace, QString (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setPrinterColorSpace, void (KisConfig::*)(const QString &) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(printerProfile, QString (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setPrinterProfile, void (KisConfig::*)(const QString &) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(useBlackPointCompensation, bool (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setUseBlackPointCompensation, void (KisConfig::*)(bool) const);
+
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().printerColorSpace()), QString>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().printerProfile()), QString>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().useBlackPointCompensation()), bool>);
+}
+
+void KisConfigEnumContractTest::colorManagementEngineAndSelectorSignaturesRemainStable()
+{
+    ASSERT_KIS_CONFIG_SIGNATURE(allowLCMSOptimization, bool (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setAllowLCMSOptimization, void (KisConfig::*)(bool));
+    ASSERT_KIS_CONFIG_SIGNATURE(customColorSelectorColorSpace, const KoColorSpace *(KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setCustomColorSelectorColorSpace, void (KisConfig::*)(const KoColorSpace *));
+
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().allowLCMSOptimization()), bool>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().customColorSelectorColorSpace()),
+                                 const KoColorSpace *>);
 }
 
 #undef ASSERT_KIS_CONFIG_SIGNATURE
