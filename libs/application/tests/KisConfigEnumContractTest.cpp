@@ -40,6 +40,11 @@ private Q_SLOTS:
     void tabletEventFilteringSignaturesRemainStable();
     void stabilizerInputSignaturesRemainStable();
     void selectionModifierSignaturesRemainStable();
+    void primaryCursorAppearanceSignaturesRemainStable();
+    void primaryOutlineAppearanceSignaturesRemainStable();
+    void eraserCursorAppearanceSignaturesRemainStable();
+    void paintingOutlineVisibilitySignaturesRemainStable();
+    void selectionOutlineRenderingSignaturesRemainStable();
 };
 
 void KisConfigEnumContractTest::inputAndSamplerValuesRemainStable()
@@ -378,6 +383,74 @@ void KisConfigEnumContractTest::selectionModifierSignaturesRemainStable()
     ASSERT_KIS_CONFIG_SIGNATURE(setSwitchSelectionCtrlAlt, void (KisConfig::*)(bool));
 
     static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().switchSelectionCtrlAlt()), bool>);
+}
+
+void KisConfigEnumContractTest::primaryCursorAppearanceSignaturesRemainStable()
+{
+    ASSERT_KIS_CONFIG_SIGNATURE(newCursorStyle, CursorStyle (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setNewCursorStyle, void (KisConfig::*)(CursorStyle));
+    ASSERT_KIS_CONFIG_SIGNATURE(getCursorMainColor, QColor (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setCursorMainColor, void (KisConfig::*)(const QColor &) const);
+
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().newCursorStyle()), CursorStyle>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().getCursorMainColor()), QColor>);
+}
+
+void KisConfigEnumContractTest::primaryOutlineAppearanceSignaturesRemainStable()
+{
+    ASSERT_KIS_CONFIG_SIGNATURE(newOutlineStyle, OutlineStyle (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setNewOutlineStyle, void (KisConfig::*)(OutlineStyle));
+    ASSERT_KIS_CONFIG_SIGNATURE(lastUsedOutlineStyle, OutlineStyle (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setLastUsedOutlineStyle, void (KisConfig::*)(OutlineStyle));
+    ASSERT_KIS_CONFIG_SIGNATURE(outlineSizeMinimum, qreal (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setOutlineSizeMinimum, void (KisConfig::*)(qreal) const);
+
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().newOutlineStyle()), OutlineStyle>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().lastUsedOutlineStyle()), OutlineStyle>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().outlineSizeMinimum()), qreal>);
+}
+
+void KisConfigEnumContractTest::eraserCursorAppearanceSignaturesRemainStable()
+{
+    ASSERT_KIS_CONFIG_SIGNATURE(separateEraserCursor, bool (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setSeparateEraserCursor, void (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(eraserCursorStyle, CursorStyle (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setEraserCursorStyle, void (KisConfig::*)(CursorStyle));
+    ASSERT_KIS_CONFIG_SIGNATURE(getEraserCursorMainColor, QColor (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setEraserCursorMainColor, void (KisConfig::*)(const QColor &) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(eraserOutlineStyle, OutlineStyle (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setEraserOutlineStyle, void (KisConfig::*)(OutlineStyle));
+
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().separateEraserCursor()), bool>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().eraserCursorStyle()), CursorStyle>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().getEraserCursorMainColor()), QColor>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().eraserOutlineStyle()), OutlineStyle>);
+}
+
+void KisConfigEnumContractTest::paintingOutlineVisibilitySignaturesRemainStable()
+{
+    ASSERT_KIS_CONFIG_SIGNATURE(showOutlineWhilePainting, bool (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setShowOutlineWhilePainting, void (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(forceAlwaysFullSizedOutline, bool (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setForceAlwaysFullSizedOutline, void (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(showEraserOutlineWhilePainting, bool (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setShowEraserOutlineWhilePainting, void (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(forceAlwaysFullSizedEraserOutline, bool (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setForceAlwaysFullSizedEraserOutline, void (KisConfig::*)(bool) const);
+
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().showOutlineWhilePainting()), bool>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().forceAlwaysFullSizedOutline()), bool>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().showEraserOutlineWhilePainting()), bool>);
+    static_assert(
+        std::is_same_v<decltype(std::declval<const KisConfig &>().forceAlwaysFullSizedEraserOutline()), bool>);
+}
+
+void KisConfigEnumContractTest::selectionOutlineRenderingSignaturesRemainStable()
+{
+    ASSERT_KIS_CONFIG_SIGNATURE(antialiasSelectionOutline, bool (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setAntialiasSelectionOutline, void (KisConfig::*)(bool) const);
+
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().antialiasSelectionOutline()), bool>);
 }
 
 #undef ASSERT_KIS_CONFIG_SIGNATURE
