@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 01:47 JST
+- 更新日時: 2026-09-02 01:58 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -21,6 +21,15 @@
 - `g135-tag-proxy-display-schema-audit`は`libs/resources/KisTagFilterResourceProxyModel.h`の残り34 APIを主候補とし、
   `libs/canvas/color/kis_display_color_transform.h`の33 APIを比較する。tag資源proxy操作面または画面色変換操作面の一責務を、resource・tag・model・proxy・DB・I/O・
   paint device・色変換・画面filter・大域状態の実体化なしで25 API以上閉じる。
+- `g135-shape-stroke-pattern-schema-audit`は`KoPatternBackground.h`の描画を除く配置値36 APIを採用した。型・値寿命6、repeat・基準点列挙14、pattern・表示幾何8、
+  基準点配置4、tile・変換4を新規`KoPatternBackgroundSchemaContractTest`の未評価型5枠へ対応付ける。新対象4工程・8入力、停止5工程・11入力、製品`kritaflake`
+  621工程・1,274入力を維持する。`KoShapeStroke.h`も描画・marker幾何を除く28 APIを固定できるが、採用候補より8 API少なくQt Guiの実includeも要するため次点とした。
+- `g135-histogram-data-schema-audit`は`kis_histogram.h`の全32 APIを採用した。型・寿命7、計算値9、計算・結果6、型・producer・channel 5、選択5を既存
+  `KisImageTypesContractTest`の具体値・未評価型5枠へ対応付ける。対象4工程・8入力、停止5工程・11入力、製品`kritaimage` 1,196工程・2,416入力を維持する。
+  `kis_datamanager.h`はtile・memento・pool・device・planar I/Oへ責務が分散し、inline転送の意味を実体なしでは観測できないため棄却した。
+- `g135-tag-proxy-display-schema-audit`は`KisTagFilterResourceProxyModel.h`の全34 APIを採用した。型・通知6、filter設定11、検索・状態6、転送4、変更7を既存
+  `KisResourceModelEnumContractTest`の未評価型5枠へ対応付ける。対象4工程・9入力、停止5工程・11入力、製品`kritaresources` 150工程・327入力を維持する。
+  `kis_display_color_transform.h`は既存対象が1,284工程・2,559入力で、軽量な同責務契約がなくpaint device・色空間・画面filterの広いheader閉包を要するため棄却した。
 - 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから契約先または
   移動先、許可path、固有停止条件、比較候補の棄却根拠を含む。既存`build/tdd-macos`の計画は読み取り専用で測定し、構成や構築を開始しない。3報告後にpath、CMake、
   試験source、生成物が重ならない候補だけを担当票へ進める。
