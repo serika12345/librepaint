@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 18251
+    "expectedMissingApis": 18169
   },
   "contracts": [
     {
@@ -35506,6 +35506,223 @@
         "method:KoColorProfile::load()",
         "method:KoColorProfile::rawData() const",
         "method:KoColorProfile::save(const QString & fileName)"
+      ]
+    },
+    {
+      "target": "KisConfigEnumContractTest",
+      "source": "libs/application/tests/KisConfigEnumContractTest.cpp",
+      "test": "KisConfigEnumContractTest::layerPresentationTextAndThumbnailSignaturesRemainStable",
+      "behavior": "layer情報文字とthumbnail生成の表示設定は正確な公開関数型、const性、既定引数を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisConfig::layerInfoTextOpacity(bool defaultValue=false) const",
+        "method:KisConfig::layerThumbnailGenerationTimeout(bool defaultValue=false) const",
+        "method:KisConfig::layerThumbnailSize(bool defaultValue=false) const",
+        "method:KisConfig::setLayerInfoTextOpacity(int value)",
+        "method:KisConfig::setLayerThumbnailGenerationTimeout(int value)",
+        "method:KisConfig::setLayerThumbnailSize(int size)",
+        "method:KisConfig::setUseInlineLayerInfoText(bool value)",
+        "method:KisConfig::useInlineLayerInfoText(bool defaultValue=false) const"
+      ]
+    },
+    {
+      "target": "KisConfigEnumContractTest",
+      "source": "libs/application/tests/KisConfigEnumContractTest.cpp",
+      "test": "KisConfigEnumContractTest::layerTreePresentationSignaturesRemainStable",
+      "behavior": "layer treeの字下げ、選択checkbox、root layer表示設定は正確な公開関数型、const性、既定引数を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisConfig::layerTreeIndentation(bool defaultValue=false) const",
+        "method:KisConfig::setLayerTreeIndentation(int percentage)",
+        "method:KisConfig::setShowRootLayer(bool showRootLayer) const",
+        "method:KisConfig::setUseLayerSelectionCheckbox(bool value)",
+        "method:KisConfig::showRootLayer(bool defaultValue=false) const",
+        "method:KisConfig::useLayerSelectionCheckbox(bool defaultValue=false) const"
+      ]
+    },
+    {
+      "target": "KisConfigEnumContractTest",
+      "source": "libs/application/tests/KisConfigEnumContractTest.cpp",
+      "test": "KisConfigEnumContractTest::layerPropertyDialogSignaturesRemainStable",
+      "behavior": "layer propertiesの色空間変換方針とfilter gallery表示設定は正確な公開関数型、const性、既定引数を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisConfig::convertLayerColorSpaceInProperties(bool defaultValue=false) const",
+        "method:KisConfig::setConvertLayerColorSpaceInProperties(bool value)",
+        "method:KisConfig::setShowFilterGallery(bool showFilterGallery) const",
+        "method:KisConfig::setShowFilterGalleryLayerMaskDialog(bool showFilterGallery) const",
+        "method:KisConfig::showFilterGallery(bool defaultValue=false) const",
+        "method:KisConfig::showFilterGalleryLayerMaskDialog(bool defaultValue=false) const"
+      ]
+    },
+    {
+      "target": "KisConfigEnumContractTest",
+      "source": "libs/application/tests/KisConfigEnumContractTest.cpp",
+      "test": "KisConfigEnumContractTest::selectionSurfaceSignaturesRemainStable",
+      "behavior": "selection action bar、表示最小寸法、global selection表示設定は正確な公開関数型、const性、既定引数を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisConfig::selectionActionBar(bool defaultValue=false) const",
+        "method:KisConfig::selectionViewSizeMinimum(bool defaultValue=false) const",
+        "method:KisConfig::setSelectionActionBar(bool value)",
+        "method:KisConfig::setSelectionViewSizeMinimum(qreal outlineSizeMinimum) const",
+        "method:KisConfig::setShowGlobalSelection(bool showGlobalSelection) const",
+        "method:KisConfig::showGlobalSelection(bool defaultValue=false) const"
+      ]
+    },
+    {
+      "target": "KisConfigEnumContractTest",
+      "source": "libs/application/tests/KisConfigEnumContractTest.cpp",
+      "test": "KisConfigEnumContractTest::singleChannelPresentationSignaturesRemainStable",
+      "behavior": "単一channelの色表示設定は正確な真偽値getter・setter型、const性、既定引数を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisConfig::setShowSingleChannelAsColor(bool asColor)",
+        "method:KisConfig::showSingleChannelAsColor(bool defaultValue=false) const"
+      ]
+    },
+    {
+      "target": "KisImageConfigResourceBudgetSchemaContractTest",
+      "source": "libs/image/tests/KisImageConfigResourceBudgetSchemaContractTest.cpp",
+      "test": "KisImageConfigResourceBudgetSchemaContractTest::memoryBudgetSignaturesRemainStable",
+      "behavior": "画像処理のRAM上限、hard・soft・pool割合は正確な静的queryと公開関数型、const性、既定引数を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisImageConfig::defaultMemoryHardLimitPercent()",
+        "method:KisImageConfig::maximumMemoryHardLimitPercent()",
+        "method:KisImageConfig::memoryHardLimitPercent(bool requestDefault=false) const",
+        "method:KisImageConfig::memoryPoolLimitPercent(bool requestDefault=false) const",
+        "method:KisImageConfig::memorySoftLimitPercent(bool requestDefault=false) const",
+        "method:KisImageConfig::setMemoryHardLimitPercent(qreal value)",
+        "method:KisImageConfig::setMemoryPoolLimitPercent(qreal value)",
+        "method:KisImageConfig::setMemorySoftLimitPercent(qreal value)",
+        "method:KisImageConfig::totalRAM()"
+      ]
+    },
+    {
+      "target": "KisImageConfigResourceBudgetSchemaContractTest",
+      "source": "libs/image/tests/KisImageConfigResourceBudgetSchemaContractTest.cpp",
+      "test": "KisImageConfigResourceBudgetSchemaContractTest::derivedTilePoolLimitSignaturesRemainStable",
+      "behavior": "画像処理のpool容量とtile hard・soft上限は引数なしの正確なconst整数queryを維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisImageConfig::poolLimit() const",
+        "method:KisImageConfig::tilesHardLimit() const",
+        "method:KisImageConfig::tilesSoftLimit() const"
+      ]
+    },
+    {
+      "target": "KisImageConfigResourceBudgetSchemaContractTest",
+      "source": "libs/image/tests/KisImageConfigResourceBudgetSchemaContractTest.cpp",
+      "test": "KisImageConfigResourceBudgetSchemaContractTest::swapStorageBudgetSignaturesRemainStable",
+      "behavior": "swap容量、directory、slab、window設定は正確な公開関数型、const性の差、既定引数を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisImageConfig::maxSwapSize(bool requestDefault=false) const",
+        "method:KisImageConfig::setMaxSwapSize(int value)",
+        "method:KisImageConfig::setSwapDir(const QString & swapDir)",
+        "method:KisImageConfig::setSwapSlabSize(int value)",
+        "method:KisImageConfig::setSwapWindowSize(int value)",
+        "method:KisImageConfig::swapDir(bool requestDefault=false)",
+        "method:KisImageConfig::swapSlabSize() const",
+        "method:KisImageConfig::swapWindowSize() const"
+      ]
+    },
+    {
+      "target": "KisImageConfigResourceBudgetSchemaContractTest",
+      "source": "libs/image/tests/KisImageConfigResourceBudgetSchemaContractTest.cpp",
+      "test": "KisImageConfigResourceBudgetSchemaContractTest::workerSchedulingSignaturesRemainStable",
+      "behavior": "画像処理worker数とscheduler配分率は正確な公開関数型、const性、既定引数を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisImageConfig::maxNumberOfThreads(bool defaultValue=false) const",
+        "method:KisImageConfig::schedulerBalancingRatio() const",
+        "method:KisImageConfig::setMaxNumberOfThreads(int value)",
+        "method:KisImageConfig::setSchedulerBalancingRatio(qreal value)"
+      ]
+    },
+    {
+      "target": "KisImageConfigResourceBudgetSchemaContractTest",
+      "source": "libs/image/tests/KisImageConfigResourceBudgetSchemaContractTest.cpp",
+      "test": "KisImageConfigResourceBudgetSchemaContractTest::updatePatchPartitionSignaturesRemainStable",
+      "behavior": "更新作業単位の幅と高さは引数なしの正確なconst整数getterと整数setterの対を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisImageConfig::setUpdatePatchHeight(int value)",
+        "method:KisImageConfig::setUpdatePatchWidth(int value)",
+        "method:KisImageConfig::updatePatchHeight() const",
+        "method:KisImageConfig::updatePatchWidth() const"
+      ]
+    },
+    {
+      "target": "KoSvgTextCharacterResultValueContractTest",
+      "source": "libs/flake/tests/KoSvgTextCharacterResultValueContractTest.cpp",
+      "test": "KoSvgTextCharacterResultValueContractTest::lineChunkValueSchemaRemainsStable",
+      "behavior": "SVG文字行のchunk値は正確な公開member型、空・零の既定値、代入値、copy独立性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:LineChunk::boundingBox",
+        "member:LineChunk::chunkIndices",
+        "member:LineChunk::conditionalHangEnd",
+        "member:LineChunk::length",
+        "struct:LineChunk"
+      ]
+    },
+    {
+      "target": "KoSvgTextCharacterResultValueContractTest",
+      "source": "libs/flake/tests/KoSvgTextCharacterResultValueContractTest.cpp",
+      "test": "KoSvgTextCharacterResultValueContractTest::lineBoxVerticalGeometryDefaultsRemainStable",
+      "behavior": "SVG文字行boxのchunk集合、現在位置、上端・下端は正確な公開member型と空・零の既定値を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:LineBox::actualLineBottom",
+        "member:LineBox::actualLineTop",
+        "member:LineBox::chunks",
+        "member:LineBox::currentChunk",
+        "member:LineBox::expectedLineTop",
+        "method:LineBox::LineBox()",
+        "struct:LineBox"
+      ]
+    },
+    {
+      "target": "KoSvgTextCharacterResultValueContractTest",
+      "source": "libs/flake/tests/KoSvgTextCharacterResultValueContractTest.cpp",
+      "test": "KoSvgTextCharacterResultValueContractTest::lineBoxBaselineAndStateDefaultsRemainStable",
+      "behavior": "SVG文字行boxのbaseline、indent、先頭・末尾・確定・均等割付状態は正確な公開member型と零・falseの既定値を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:LineBox::baselineBottom",
+        "member:LineBox::baselineTop",
+        "member:LineBox::firstLine",
+        "member:LineBox::justifyLine",
+        "member:LineBox::lastLine",
+        "member:LineBox::lineFinalized",
+        "member:LineBox::textIndent"
+      ]
+    },
+    {
+      "target": "KoSvgTextCharacterResultValueContractTest",
+      "source": "libs/flake/tests/KoSvgTextCharacterResultValueContractTest.cpp",
+      "test": "KoSvgTextCharacterResultValueContractTest::lineBoxConstructionSignaturesRemainStable",
+      "behavior": "SVG文字行boxは開始・終了点または行幅列、方向、indent、解像度調整器を受ける正確な構築可能型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:LineBox::LineBox(QPointF start,QPointF end,const KoSvgText::ResolutionHandler & resHandler)",
+        "method:LineBox::LineBox(QVector<QLineF> lineWidths,bool ltr,QPointF indent,const KoSvgText::ResolutionHandler & resHandler)"
+      ]
+    },
+    {
+      "target": "KoSvgTextCharacterResultValueContractTest",
+      "source": "libs/flake/tests/KoSvgTextCharacterResultValueContractTest.cpp",
+      "test": "KoSvgTextCharacterResultValueContractTest::lineBoxOperationSignaturesRemainStable",
+      "behavior": "SVG文字行boxの現在chunk取得・設定、位置選択、調整消去、空判定は正確な非const公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:LineBox::chunk()",
+        "method:LineBox::clearAndAdjust(bool isHorizontal,QPointF current,QPointF indent)",
+        "method:LineBox::isEmpty()",
+        "method:LineBox::setCurrentChunk(LineChunk chunk)",
+        "method:LineBox::setCurrentChunkForPos(QPointF pos,bool isHorizontal)"
       ]
     }
   ]

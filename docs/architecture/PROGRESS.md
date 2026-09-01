@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 14:29 JST
+- 更新日時: 2026-09-01 14:44 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -833,27 +833,50 @@
 
 ### 第118便の担当計画
 
-- 実装共通基点はこの担当票commitとする。3担当は`planned`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの
+- 実装共通基点は`90b98dc790f58dfbdb49931b27f452ddb2670ab8`である。3担当は`integrated`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの
   `transport-commit`、追加委任は禁止する。専用worktree-local `build/tdd-macos`と`./scripts/run-shared-test-env`で主環境・compiler cacheを共有する。
   統合順はapplication設定、image資源予算、SVG行boxとし、調整担当だけが台帳、進捗文書、不足報告を変更する。3担当の許可path、CMake、試験source、生成物は重ならない。
-- `g118-application-layer-selection-schema`は`/Users/masato/Documents/librepaint-g118-application-layer-selection-schema`を所有する。開始
+- `g118-application-layer-selection-schema`の削除済みworktreeは`/Users/masato/Documents/librepaint-g118-application-layer-selection-schema`である。開始
   `libs/application/kis_config.h`から既存`libs/application/tests/KisConfigEnumContractTest.cpp`の5枠へ、layer情報・thumbnail 8、layer tree 6、
   layer properties 6、selection surface 6、単一channel表示2の全28 APIを対応付け、他pathを変更しない。対象4工程・15入力、停止5工程・18入力、製品
   `kritaapplication` 1,224工程・2,466入力の完全一致を確認する。5枠の未知関数診断、対象CTest、20回反復、`KisActionEnumContractTest`、no-work、動的接続、
   未解決記号、構文・書式・公開API・`verify-quick`を確認する。設定実体、KConfigGroup・QSettings、application・GUI、layer・selection、filesystem、大域状態、
   Qt Widgets、製品shared、`kritatestsdk`、新依存、公開header・CMake変更、停止線超過が必要なら止める。
-- `g118-image-resource-budget-schema`は`/Users/masato/Documents/librepaint-g118-image-resource-budget-schema`を所有する。開始
+- `g118-image-resource-budget-schema`の削除済みworktreeは`/Users/masato/Documents/librepaint-g118-image-resource-budget-schema`である。開始
   `libs/image/kis_image_config.h`から新規`libs/image/tests/KisImageConfigResourceBudgetSchemaContractTest.cpp`の5枠へ、memory予算9、導出tile/pool上限3、
   swap storage 8、worker scheduling 4、更新patch分割4の全28 APIを対応付け、`libs/image/tests/CMakeLists.txt`だけを併せて変更する。最初の期待診断は未知target、
   予測4工程・8入力、停止5工程・10入力、製品`kritaimage` 1,193工程・2,410入力不変とする。対象CTest、20回反復、`KisImageTypesContractTest`、no-work、
   動的接続、未解決記号、構文・書式・公開API・`verify-quick`を確認する。設定実体、KConfigGroup、filesystem、RAM・CPU検出、swap directory、scheduler、
   tile pool、image・paint device、製品OBJECT・shared、`kritatestsdk`、新依存、公開header・製品CMake変更、停止線超過が必要なら止める。
-- `g118-svg-line-box-schema`は`/Users/masato/Documents/librepaint-g118-svg-line-box-schema`を所有する。開始
+- `g118-svg-line-box-schema`の削除済みworktreeは`/Users/masato/Documents/librepaint-g118-svg-line-box-schema`である。開始
   `libs/flake/text/KoSvgTextShape_p.h`から既存`libs/flake/tests/KoSvgTextCharacterResultValueContractTest.cpp`の5枠へ、line chunk値5、line box垂直幾何7、
   baseline・状態7、constructor型2、操作型5の全26 APIを対応付け、他pathを変更しない。対象4工程・8入力、停止5工程・11入力、製品`kritaflake`
   618工程・1,268入力の完全一致を確認する。5枠の未知関数診断、対象CTest、20回反復、`KoSvgTextFontMetricsValueContractTest`、no-work、動的接続、未解決記号、
   構文・書式・公開API・`verify-quick`を確認する。parameter constructor・操作本文、`ResolutionHandler`実装、`KoSvgText.cpp`、実shape・document・font registry・
   文字配置・描画、FreeType library、Qt Widgets、製品OBJECT・shared、`kritatestsdk`、新依存、公開header・CMake変更、停止線超過が必要なら止める。
+
+### 第118便の統合結果
+
+- `g118-application-layer-selection-schema`は受渡しcommit `66292edc4ae2`と同一patchを統合commit `b20ffd0ea2`として取り込んだ。開始
+  `libs/application/kis_config.h`から既存`libs/application/tests/KisConfigEnumContractTest.cpp`の5枠へ、layer情報・thumbnail 8、layer tree 6、
+  layer properties 6、selection surface 6、単一channel表示2の全28 APIを対応付けた。対象4工程・15入力、製品`kritaapplication`
+  1,224工程・2,466入力は不変であり、設定実体、GUI、layer、selection、filesystemを実行していない。
+- `g118-image-resource-budget-schema`は受渡しcommit `034b4eaa90c6`と同一patchを統合commit `e755a15c3a`として取り込んだ。開始
+  `libs/image/kis_image_config.h`から新規`libs/image/tests/KisImageConfigResourceBudgetSchemaContractTest.cpp`の5枠へ、memory予算9、
+  導出tile・pool上限3、swap storage 8、worker scheduling 4、更新patch分割4の全28 APIを対応付け、`libs/image/tests/CMakeLists.txt`へ
+  Qt Core・Gui・Testだけへ動的接続するheader限定対象を追加した。対象4工程・8入力、製品`kritaimage` 1,193工程・2,410入力は不変であり、設定実体、
+  RAM・CPU検出、filesystem、scheduler、tile poolを実行していない。
+- `g118-svg-line-box-schema`は受渡しcommit `64afe4ada64b`と同一patchを統合commit `3e55452314`として取り込んだ。開始
+  `libs/flake/text/KoSvgTextShape_p.h`から既存`libs/flake/tests/KoSvgTextCharacterResultValueContractTest.cpp`の5枠へ、line chunk値5、
+  line box垂直幾何7、baseline・状態7、constructor型2、操作型5の全26 APIを対応付けた。対象4工程・8入力、製品`kritaflake`
+  618工程・1,268入力は不変であり、parameter constructor・操作本文、`ResolutionHandler`実装、実shape・文字配置・描画を実行していない。
+- 主macOS環境では追加15枠、3対象CTest、各20回反復、近傍`KisActionEnumContractTest`、`KisImageTypesContractTest`、
+  `KoSvgTextFontMetricsValueContractTest`、再構築時の無コンパイル・無リンク、動的接続、未解決製品記号を確認した。image対象追加時のCMake再生成後も構築は
+  新対象4工程だけだった。公開API契約検査は82 APIを重複なく受理し、29,838件中11,669件対応、18,169件未対応となった。最新入力は
+  `build/tdd-macos/public-api-missing-g119.json`である。Linux、全native検証、製品全体構築は実行していない。
+- 受渡しpatchの同一性と3 worktreeのclean状態を確認後、application担当649 MB、image担当643 MB、SVG担当642 MBの作業木とbranchを削除して
+  約1.93 GBを回収した。新報告の生成成功後に旧`public-api-missing-g118.json` 4.5 MBも削除した。主`build/tdd-macos`、共有compiler cache、
+  最新不足報告は次便の限定構築へ再利用する。
 
 ### 第105並列便の監査計画
 
@@ -13313,7 +13336,7 @@
 
 ## 次の操作
 
-`build/tdd-macos/public-api-missing-g118.json`から第118並列便の非重複候補を3担当で監査する。第117便の対象を除外し、欠陥疑いの比較・診断、
+`build/tdd-macos/public-api-missing-g119.json`から第119並列便の非重複候補を3担当で監査する。第118便の対象を除外し、欠陥疑いの比較・診断、
 資源registry、設定I/O、生pointer所有へ到達する経路は保留する。別の所有pathから25 API以上を最大5枠、限定対象か一sourceの一対一構築所有で
 固定できる候補を優先し、担当票の確定前に変更なし計画、直接依存、予測閉包、製品共有ライブラリー・`kritatestsdk`非接続、許可pathと停止線を照合する。
 
