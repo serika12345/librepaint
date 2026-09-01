@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 21:27 JST
+- 更新日時: 2026-09-01 21:29 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -86,6 +86,11 @@
   対応付けた。対象4工程・9入力、製品`kritaresources` 150工程・327入力と各集合は変更前後一致し、storage・iterator・resource・tag、bundle・database・filesystem・
   plugin registry、static metadata値を生成・実行・参照していない。主macOS環境で対象CTest、20回反復、近傍`KisTagModelSchemaContractTest`、無作業再構築、
   公開API検査、`verify-quick`に成功した。
+- 第128便は3責務15枠へ102 APIを重複なく対応付けた。公開API契約検査は29,838件中12,803件対応、17,035件未対応となり、`verify-quick`は成功した。
+  最新入力は`build/tdd-macos/public-api-missing-g129.json`である。Linux、全native検証、製品全体構築は実行していない。清浄性と受渡しcommitを確認後、properties
+  configuration担当866,040 KiB、composite operation担当857,152 KiB、resource storage担当860,068 KiBの作業tree、専用構築木、3 branchを削除して合計
+  2,583,260 KiB（約2.46 GiB）を回収し、旧`public-api-missing-g128.json`も削除した。主`build/tdd-macos` 5.3 GB、共有compiler cache 960 MB、最新不足報告だけを
+  第129便へ再利用する。次の永続作業は第129便の不足報告から、pathと所有CMakeが重ならない3責務を先行監査し、限定構築範囲を確認してから担当票を確定することである。
 
 ### 第127便の先行監査計画
 
