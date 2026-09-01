@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 23:53 JST
+- 更新日時: 2026-09-02 00:12 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -21,6 +21,16 @@
   入力操作schemaまたはPSD layer effect値schemaの一責務を、tool・event・canvas・input manager・resource・gradient・pattern・色変換・大域状態の実体化なしで25 API以上閉じる。
 - `g133-tag-storage-model-schema-audit`は`libs/resources/KisTagModel.h`の残り38 APIを主候補とし、`libs/resources/KisStorageModel.h`の33 APIを比較する。tag model操作面または
   resource storage model操作面の一責務を、resource database・storage・model・proxy・query・I/O・大域状態の実体化なしで25 API以上閉じる。
+- `g133-color-value-space-schema-audit`は`KoColor.h`の局所pixel色値28 APIを採用した。型・構築・copy 10、buffer・色空間・profile関連付け7、QColor交換3、opacity 4、
+  channel加減算4を新規`KoColorValueSchemaContractTest`の未評価型5枠へ対応付ける。新対象4工程・8入力、停止5工程・11入力、製品`kritapigment`
+  367工程・764入力を維持する。色変換、XML/SVG、metadata、診断表示の17 APIは別責務として除外した。`KoColorSpace.h`は単一のbuffer変換・変換生成責務で最大24 APIに留まり、
+  25 APIへ達するにはXML、composite・dither、ownership・lifecycleのいずれかを混在させるため棄却した。
+- `g133-tool-psd-schema-audit`は`kis_tool_invocation_action.h`の全30 APIを採用した。型・寿命4、主要shortcut値4、一時tool shortcut値11、activation・event操作6、
+  policy照会5を新規`KisToolInvocationActionSchemaContractTest`の型特性・未評価型5枠へ対応付ける。新対象4工程・8入力、停止5工程・11入力、製品`kritainputui`
+  1,386工程・2,781入力を維持する。`psd.h`の残り32 APIはlayer effectだけでは23 APIであり、25 APIへ達するにはgradient stopまたは色mode・blend変換を混在させるため棄却した。
+- `g133-tag-storage-model-schema-audit`は`KisTagModel.h`の全38 APIを採用した。抽象tag操作10、全tag模型表示6、全tag模型操作9、絞込模型のfilter・検索7、変更操作6を既存
+  `KisTagModelSchemaContractTest`の未評価型5枠へ対応付ける。対象4工程・9入力、停止5工程・11入力、製品`kritaresources` 150工程・327入力を維持する。
+  `KisStorageModel.h`の33 APIも型検査で閉じられるが、tag候補は5 API多く、既存契約先がheader責務と一致し、新規includeも不要なので次点とした。
 - 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから契約先または
   移動先、許可path、固有停止条件、比較候補の棄却根拠を含む。既存`build/tdd-macos`の計画は読み取り専用で測定し、構成や構築を開始しない。3報告後にpath、CMake、
   試験source、生成物が重ならない候補だけを担当票へ進める。
