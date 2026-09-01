@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "brushengine/kis_paint_information.h"
 #include "kis_default_bounds.h"
 #include "kis_selection_filters.h"
 #include "kis_types.h"
@@ -10,6 +11,7 @@
 #include <QTest>
 
 #include <type_traits>
+#include <utility>
 
 namespace
 {
@@ -47,6 +49,11 @@ private Q_SLOTS:
     void selectionDefaultBoundsSignaturesRemainStable();
     void emptySelectionBoundsSignaturesRemainStable();
     void wrapAroundBoundsSignaturesRemainStable();
+    void paintInputPositionAndSensorSignaturesRemainStable();
+    void paintInputStrokeProgressSignaturesRemainStable();
+    void paintInputCanvasOrientationSignaturesRemainStable();
+    void paintInputDerivedMotionSignaturesRemainStable();
+    void paintInputTiltConversionSignaturesRemainStable();
 };
 
 void KisImageTypesContractTest::intrusivePointerAliasesPreserveOwnershipKinds()
@@ -455,6 +462,132 @@ void KisImageTypesContractTest::wrapAroundBoundsSignaturesRemainStable()
     ASSERT_DEFAULT_BOUNDS_SIGNATURE(KisWrapAroundBoundsWrapper,
                                     sourceCookie,
                                     void *(KisWrapAroundBoundsWrapper::*)() const);
+
+    QVERIFY(true);
+}
+
+void KisImageTypesContractTest::paintInputPositionAndSensorSignaturesRemainStable()
+{
+    using PositionSignature = const QPointF &(KisPaintInformation::*)() const;
+    using SetPositionSignature = void (KisPaintInformation::*)(const QPointF &);
+    using ScalarSignature = qreal (KisPaintInformation::*)() const;
+    using SetScalarSignature = void (KisPaintInformation::*)(qreal);
+
+    static_assert(std::is_class_v<KisPaintInformation>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<PositionSignature>(&KisPaintInformation::pos)), PositionSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<SetPositionSignature>(&KisPaintInformation::setPos)),
+                                 SetPositionSignature>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<ScalarSignature>(&KisPaintInformation::pressure)), ScalarSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<SetScalarSignature>(&KisPaintInformation::setPressure)),
+                                 SetScalarSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<ScalarSignature>(&KisPaintInformation::xTilt)), ScalarSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<ScalarSignature>(&KisPaintInformation::yTilt)), ScalarSignature>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<ScalarSignature>(&KisPaintInformation::rotation)), ScalarSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<ScalarSignature>(&KisPaintInformation::tangentialPressure)),
+                                 ScalarSignature>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<ScalarSignature>(&KisPaintInformation::perspective)), ScalarSignature>);
+
+    QVERIFY(true);
+}
+
+void KisImageTypesContractTest::paintInputStrokeProgressSignaturesRemainStable()
+{
+    using ScalarSignature = qreal (KisPaintInformation::*)() const;
+    using SetCurrentTimeSignature = void (KisPaintInformation::*)(qreal) const;
+    using DabSequenceSignature = int (KisPaintInformation::*)() const;
+    using HoveringModeSignature = bool (KisPaintInformation::*)() const;
+
+    static_assert(
+        std::is_same_v<decltype(static_cast<ScalarSignature>(&KisPaintInformation::currentTime)), ScalarSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<SetCurrentTimeSignature>(&KisPaintInformation::setCurrentTime)),
+                                 SetCurrentTimeSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<DabSequenceSignature>(&KisPaintInformation::currentDabSeqNo)),
+                                 DabSequenceSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<ScalarSignature>(&KisPaintInformation::totalStrokeLength)),
+                                 ScalarSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<HoveringModeSignature>(&KisPaintInformation::isHoveringMode)),
+                                 HoveringModeSignature>);
+
+    QVERIFY(true);
+}
+
+void KisImageTypesContractTest::paintInputCanvasOrientationSignaturesRemainStable()
+{
+    using ScalarSignature = qreal (KisPaintInformation::*)() const;
+    using SetScalarSignature = void (KisPaintInformation::*)(qreal);
+    using BooleanSignature = bool (KisPaintInformation::*)() const;
+    using SetBooleanSignature = void (KisPaintInformation::*)(bool);
+
+    static_assert(
+        std::is_same_v<decltype(static_cast<ScalarSignature>(&KisPaintInformation::canvasRotation)), ScalarSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<SetScalarSignature>(&KisPaintInformation::setCanvasRotation)),
+                                 SetScalarSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<BooleanSignature>(&KisPaintInformation::canvasMirroredH)),
+                                 BooleanSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<SetBooleanSignature>(&KisPaintInformation::setCanvasMirroredH)),
+                                 SetBooleanSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<BooleanSignature>(&KisPaintInformation::canvasMirroredV)),
+                                 BooleanSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<SetBooleanSignature>(&KisPaintInformation::setCanvasMirroredV)),
+                                 SetBooleanSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<ScalarSignature>(&KisPaintInformation::tiltDirectionOffset)),
+                                 ScalarSignature>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<SetScalarSignature>(&KisPaintInformation::setTiltDirectionOffset)),
+                       SetScalarSignature>);
+
+    QVERIFY(true);
+}
+
+void KisImageTypesContractTest::paintInputDerivedMotionSignaturesRemainStable()
+{
+    using DrawingAngleSignature = qreal (KisPaintInformation::*)(bool) const;
+    using DrawingAngleSafeSignature = qreal (KisPaintInformation::*)(const KisDistanceInformation &) const;
+    using DirectionSignature = QPointF (KisPaintInformation::*)() const;
+    using ScalarSignature = qreal (KisPaintInformation::*)() const;
+    using OverrideDrawingAngleSignature = void (KisPaintInformation::*)(qreal);
+
+    static_assert(std::is_same_v<decltype(static_cast<DrawingAngleSignature>(&KisPaintInformation::drawingAngle)),
+                                 DrawingAngleSignature>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisPaintInformation &>().drawingAngle()), qreal>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<DrawingAngleSafeSignature>(&KisPaintInformation::drawingAngleSafe)),
+                       DrawingAngleSafeSignature>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<DirectionSignature>(&KisPaintInformation::drawingDirectionVector)),
+                       DirectionSignature>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<ScalarSignature>(&KisPaintInformation::drawingDistance)), ScalarSignature>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<ScalarSignature>(&KisPaintInformation::drawingSpeed)), ScalarSignature>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<ScalarSignature>(&KisPaintInformation::maxPressure)), ScalarSignature>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<OverrideDrawingAngleSignature>(&KisPaintInformation::overrideDrawingAngle)),
+                       OverrideDrawingAngleSignature>);
+
+    QVERIFY(true);
+}
+
+void KisImageTypesContractTest::paintInputTiltConversionSignaturesRemainStable()
+{
+    using TiltDirectionSignature = qreal (*)(const KisPaintInformation &, bool);
+    using TiltElevationSignature = qreal (*)(const KisPaintInformation &, qreal, qreal, bool);
+
+    static_assert(std::is_same_v<decltype(static_cast<TiltDirectionSignature>(&KisPaintInformation::tiltDirection)),
+                                 TiltDirectionSignature>);
+    static_assert(
+        std::is_same_v<decltype(KisPaintInformation::tiltDirection(std::declval<const KisPaintInformation &>())),
+                       qreal>);
+    static_assert(std::is_same_v<decltype(static_cast<TiltElevationSignature>(&KisPaintInformation::tiltElevation)),
+                                 TiltElevationSignature>);
+    static_assert(
+        std::is_same_v<decltype(KisPaintInformation::tiltElevation(std::declval<const KisPaintInformation &>())),
+                       qreal>);
 
     QVERIFY(true);
 }

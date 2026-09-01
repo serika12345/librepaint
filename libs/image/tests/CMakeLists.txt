@@ -1250,7 +1250,10 @@ kis_add_test(
     KisImageTypesContractTest.cpp
     LINK_LIBRARIES
         Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
         Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Xml
+        Boost::boost
 )
 target_include_directories(KisImageTypesContractTest PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/..
