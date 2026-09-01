@@ -85,6 +85,11 @@ private Q_SLOTS:
     void animationScrubbingAndAudioSignaturesRemainStable();
     void animationCacheAndMediaBackendSignaturesRemainStable();
     void animationFrameTransferSignaturesRemainStable();
+    void defaultDocumentGeometrySignaturesRemainStable();
+    void defaultDocumentColorSpaceSignaturesRemainStable();
+    void defaultDocumentBackgroundAndLayerSignaturesRemainStable();
+    void nativeDocumentPersistenceSignaturesRemainStable();
+    void documentAutosaveAndUndoHistorySignaturesRemainStable();
 };
 
 void KisConfigEnumContractTest::inputAndSamplerValuesRemainStable()
@@ -919,6 +924,86 @@ void KisConfigEnumContractTest::animationFrameTransferSignaturesRemainStable()
     static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().trimFramesImport()), bool>);
     static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().exportMimeType(false)), QString>);
     static_assert(!CanReadExportMimeTypeWithoutArgument<KisConfig>::value);
+}
+
+void KisConfigEnumContractTest::defaultDocumentGeometrySignaturesRemainStable()
+{
+    ASSERT_KIS_CONFIG_SIGNATURE(defImageHeight, qint32 (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(defImageHeight, void (KisConfig::*)(qint32) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(defImageResolution, qreal (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(defImageResolution, void (KisConfig::*)(qreal) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(defImageWidth, qint32 (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(defImageWidth, void (KisConfig::*)(qint32) const);
+
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().defImageHeight()), qint32>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().defImageResolution()), qreal>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().defImageWidth()), qint32>);
+}
+
+void KisConfigEnumContractTest::defaultDocumentColorSpaceSignaturesRemainStable()
+{
+    ASSERT_KIS_CONFIG_SIGNATURE(defColorModel, QString (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(defColorModel, void (KisConfig::*)(const QString &) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(defColorProfile, QString (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(defColorProfile, void (KisConfig::*)(const QString &) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(defaultColorDepth, QString (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setDefaultColorDepth, void (KisConfig::*)(const QString &) const);
+
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().defColorModel()), QString>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().defColorProfile()), QString>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().defaultColorDepth()), QString>);
+}
+
+void KisConfigEnumContractTest::defaultDocumentBackgroundAndLayerSignaturesRemainStable()
+{
+    ASSERT_KIS_CONFIG_SIGNATURE(defaultBackgroundColor, QColor (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setDefaultBackgroundColor, void (KisConfig::*)(const QColor &));
+    ASSERT_KIS_CONFIG_SIGNATURE(defaultBackgroundOpacity, quint8 (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setDefaultBackgroundOpacity, void (KisConfig::*)(quint8));
+    ASSERT_KIS_CONFIG_SIGNATURE(numDefaultLayers, int (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setNumDefaultLayers, void (KisConfig::*)(int));
+
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().defaultBackgroundColor()), QColor>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().defaultBackgroundOpacity()), quint8>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().numDefaultLayers()), int>);
+}
+
+void KisConfigEnumContractTest::nativeDocumentPersistenceSignaturesRemainStable()
+{
+    ASSERT_KIS_CONFIG_SIGNATURE(backupFile, bool (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setBackupFile, void (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(compressKra, bool (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setCompressKra, void (KisConfig::*)(bool));
+    ASSERT_KIS_CONFIG_SIGNATURE(trimKra, bool (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setTrimKra, void (KisConfig::*)(bool));
+    ASSERT_KIS_CONFIG_SIGNATURE(useZip64, bool (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setUseZip64, void (KisConfig::*)(bool));
+
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().backupFile()), bool>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().compressKra()), bool>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().trimKra()), bool>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().useZip64()), bool>);
+}
+
+void KisConfigEnumContractTest::documentAutosaveAndUndoHistorySignaturesRemainStable()
+{
+    ASSERT_KIS_CONFIG_SIGNATURE(autoSaveInterval, int (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setAutoSaveInterval, void (KisConfig::*)(int) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(cumulativeUndoData, KisCumulativeUndoData (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setCumulativeUndoData, void (KisConfig::*)(KisCumulativeUndoData));
+    ASSERT_KIS_CONFIG_SIGNATURE(setCumulativeUndoRedo, void (KisConfig::*)(bool));
+    ASSERT_KIS_CONFIG_SIGNATURE(setUndoEnabled, void (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setUndoStackLimit, void (KisConfig::*)(int) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(undoEnabled, bool (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(undoStackLimit, int (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(useCumulativeUndoRedo, bool (KisConfig::*)(bool) const);
+
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().autoSaveInterval()), int>);
+    static_assert(
+        std::is_same_v<decltype(std::declval<const KisConfig &>().cumulativeUndoData()), KisCumulativeUndoData>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().undoEnabled()), bool>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().undoStackLimit()), int>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().useCumulativeUndoRedo()), bool>);
 }
 
 #undef ASSERT_KIS_CONFIG_SIGNATURE
