@@ -195,6 +195,24 @@ target_include_directories(KisSliderSpinBoxSchemaContractTest PRIVATE
 target_compile_definitions(KisSliderSpinBoxSchemaContractTest PRIVATE kritawidgetutils_EXPORTS)
 
 kis_add_test(
+    KisDoubleParseUnitSpinBoxSchemaContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Widgets
+        Boost::boost
+)
+target_include_directories(KisDoubleParseUnitSpinBoxSchemaContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+)
+target_compile_definitions(KisDoubleParseUnitSpinBoxSchemaContractTest PRIVATE
+    kritaglobal_EXPORTS
+    kritawidgetutils_EXPORTS
+)
+
+kis_add_test(
     KisCursorSchemaContractTest.cpp
     LINK_LIBRARIES
         Qt${QT_MAJOR_VERSION}::Test
