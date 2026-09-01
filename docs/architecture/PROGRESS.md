@@ -803,6 +803,21 @@
   約1.93 GBを回収した。新報告の生成成功後に旧`public-api-missing-g117.json` 4.5 MBも削除した。5.3 GBの主`build/tdd-macos`、共有compiler cache、
   最新不足報告は次便の限定構築へ再利用する。
 
+### 第118便の先行監査計画
+
+- 共通基点は`d3a175cea5`、入力は`build/tdd-macos/public-api-missing-g118.json`である。3担当は`auditing`の読み取り専用とし、製品・試験・CMake・script・
+  台帳・文書を変更せず、構築、試験、Git操作、追加委任も行わない。一つの公開責務から25 API以上を最大5枠へ固定し、既存限定対象、header-only値面、または
+  公開headerを変えない一sourceのOBJECT一対一移管で製品共有ライブラリーと`kritatestsdk`へ接続しない候補だけを採用する。
+- `g118-application-config-schema-audit`は`libs/application/kis_config.h`の残り236 APIから、既存契約と重複しない一つの設定責務を監査する。未評価型検査だけで
+  getter・setter、const性、静的区分、既定引数を固定できる25 API以上を優先し、`KisConfig`・`QSettings`・application・GUI・filesystemを生成または実行しない。
+- `g118-image-config-schema-audit`は`libs/image/kis_image_config.h`の残り65 APIから、animation契約と重複しない一つの設定責務を監査する。未評価型検査だけで
+  25 API以上を閉じ、設定実体、KConfigGroup、filesystem、大域状態、image・paint deviceを生成または実行しない。
+- `g118-svg-text-schema-audit`は`libs/flake/text/KoSvgText.h`の残り120 API、`libs/flake/text/KoSvgTextShape.h`の140 API、
+  `libs/flake/text/KoSvgTextShape_p.h`の75 APIを比較する。列挙・値型・公開schemaから一責務25 API以上を選び、実shape、font registry、HarfBuzz、描画、
+  document、lager大域状態へ到達しない。
+- 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから契約先または
+  移動先、許可path、固有停止条件、比較候補の棄却根拠を含む。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
+
 ### 第105並列便の監査計画
 
 - 共通基点は`347b1bc680`、入力は`build/tdd-macos/public-api-missing-g105.json`である。3担当は`auditing`の読み取り専用とし、製品・試験・CMake・
