@@ -2,12 +2,29 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 05:10 JST
+- 更新日時: 2026-09-02 05:20 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
+
+### 第138便の先行監査計画
+
+- 監査共通基点は`c76e8984fc9a53578150f71e2c7d52415784e310`、入力は`build/tdd-macos/public-api-missing-g138.json`である。3担当は`auditing`の読み取り専用とし、
+  製品・試験・CMake・script・台帳・文書を変更せず、構築、試験、Git操作、追加委任も行わない。一つの公開責務から25 API以上を最大5枠へ固定し、既存限定対象、
+  header-only値面、または公開headerを変えない一sourceのOBJECT一対一移管で、製品共有ライブラリーと`kritatestsdk`へ接続しない候補だけを採用する。
+- `g138-icc-color-space-schema-audit`は`plugins/color/lcms2engine/colorprofiles/IccColorProfile.h`の残り72 APIを主候補とし、`libs/pigment/KoColorSpaceAbstract.h`の32 APIを
+  比較する。ICC profileのdata・container・profile公開面または同型channel色空間の公開面を、実profile・画素・LCMS処理・色変換・registry・I/O・大域状態の実体化なしで
+  25 API以上閉じる。
+- `g138-stop-segment-gradient-schema-audit`は`libs/pigment/resources/KoStopGradient.h`の残り40 APIを主候補とし、`libs/pigment/resources/KoSegmentGradient.h`の34 APIを
+  比較する。色停止gradientの公開値面または区間gradientの公開値面を、資源I/O・canvas資源・色空間registry・QGradient・XML・描画の実体化なしで25 API以上閉じる。
+- `g138-unit-spin-color-scheme-schema-audit`は`libs/widgetutils/kis_double_parse_unit_spin_box.h`の残り31 APIを主候補とし、
+  `libs/widgetutils/config/kcolorscheme.h`の29 APIを比較する。単位付き数値spin box wrapperまたは状態別配色・brushの公開schemaを、widget・GUI event loop・unit manager・設定I/O・
+  application palette・大域状態の実体化なしで25 API以上閉じる。
+- 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから契約先または
+  移動先、許可path、固有停止条件、比較候補の棄却根拠を含む。既存`build/tdd-macos`の計画は読み取り専用で測定し、構成や構築を開始しない。3報告後にpath、CMake、
+  試験source、生成物が重ならない候補だけを担当票へ進める。
 
 ### 第137便の先行監査計画
 
