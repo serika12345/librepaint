@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 17:35 JST
+- 更新日時: 2026-09-01 17:49 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -23,6 +23,18 @@
 - `g124-flake-schema-audit`は`libs/flake/text/lager/KoSvgTextPropertiesModel.h`の残り154 APIを主候補とし、`libs/flake/svg/SvgUtil.h`の41 APIと
   `libs/flake/text/KoSvgTextShape_p.h`の49 APIを比較する。文字property modelまたはSVG変換の一つの公開schemaを、実shape、document、lager状態、font、文字配置、
   SVG読込、描画なしで25 API以上閉じる候補を選ぶ。
+- `g124-image-bounds-schema-audit`は`kis_default_bounds.h`の全47 APIを採用した。alias・階層10、image bounds 10、selection bounds 14、empty bounds 4、
+  wrap wrapper 9を既存`KisImageTypesContractTest`の未評価型5枠へ追加する。対象4工程・8入力、停止5工程・10入力、製品`kritaimage` 1,193工程・2,410入力を
+  維持し、constructor・destructorを含む構築可能性と仮想関数型だけを固定する。既存distance試験は1,197工程、selection候補はprojection・undo・cache・node責務を
+  横断するため棄却した。
+- `g124-pigment-schema-audit`は`KoBasicHistogramProducers.h`の非lifecycle公開schema 50 APIを採用した。基底状態・表示12、固定深度16、汎用RGB・Lab 10、
+  基本factory 4、汎用factory 8を新規`KoBasicHistogramProducerSchemaContractTest`の未評価型5枠へ追加する。新対象は4工程・8入力、停止5工程・11入力、製品
+  `kritapigment` 365工程・760入力を維持する。constructor・destructor 21 APIを分離し、実pixel、selection mask、color space、registryを生成・実行しない。
+  `KoColor`の安全面は21 API、gradient segmentの厳密型面は24 APIで下限未達のため棄却した。
+- `g124-flake-schema-audit`は`KoSvgTextPropertiesModel`のLager/Qt cursor公開schema全83 APIを採用した。書体基礎19、書体機能15、書字・配置21、装飾・baseline 20、
+  flow・surface 8を新規`KoSvgTextPropertiesModelSchemaContractTest`の未評価型5枠へ追加する。新対象は4工程・8入力、停止5工程・11入力、製品`kritaflake`
+  618工程・1,268入力を維持する。backing cursor、getter、setter、通知signalの型だけを固定し、property model、Lager状態、metaobject、signalを実行しない。
+  `SvgUtil`は41 APIが複数責務へ分散し、`KoSvgTextShape_p.h`はglyph・配置・Freetypeまで閉包が広がるため棄却した。
 - 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから
   契約先または移動先、許可path、固有停止条件、比較候補の棄却根拠を含む。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
 
