@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 17388
+    "expectedMissingApis": 17359
   },
   "contracts": [
     {
@@ -37404,6 +37404,80 @@
       "apis": [
         "method:KisCursor::load(const QString & cursorName,int hotspotX=-1,int hotspotY=-1)",
         "method:KisCursor::loadWithSize(const QString & cursorName,int width,int height,int hotspotX=-1,int hotspotY=-1)"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::gradientFillRepresentationSignaturesRemainStable",
+      "behavior": "gradient fillのASL・設定・brush・background表現とgradient pointer取得は正確な返値、member関数、非const性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:psd_layer_gradient_fill::getASLXML()",
+        "method:psd_layer_gradient_fill::getBackground()",
+        "method:psd_layer_gradient_fill::getBrush()",
+        "method:psd_layer_gradient_fill::getFillLayerConfig()",
+        "method:psd_layer_gradient_fill::getGradient()"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::gradientFillInputAndSerializationSignaturesRemainStable",
+      "behavior": "gradient fillの設定入力、Qt・Ko gradient入力、ASL catcher・writerは正確な値・pointer・参照引数とstatic・member区分を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:psd_layer_gradient_fill::loadFromConfig(KisFilterConfigurationSP cfg)",
+        "method:psd_layer_gradient_fill::setFromQGradient(const QGradient * gradient)",
+        "method:psd_layer_gradient_fill::setGradient(const KoAbstractGradientSP & newGradient)",
+        "method:psd_layer_gradient_fill::setupCatcher(const QString path,KisAslCallbackObjectCatcher & catcher,psd_layer_gradient_fill * data)",
+        "method:psd_layer_gradient_fill::writeASL(KisAslXmlWriter & w)"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::patternFillConversionSignaturesRemainStable",
+      "behavior": "pattern fillのASL・設定・brush・background変換、pattern解決、catcher・writerは正確な資源proxy参照、const性、static・member区分を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:psd_layer_pattern_fill::getASLXML()",
+        "method:psd_layer_pattern_fill::getBackground(KisEmbeddedResourceStorageProxy & embeddedProxy)",
+        "method:psd_layer_pattern_fill::getBrush(KisEmbeddedResourceStorageProxy & embeddedProxy)",
+        "method:psd_layer_pattern_fill::getFillLayerConfig() const",
+        "method:psd_layer_pattern_fill::loadFromConfig(KisFilterConfigurationSP cfg)",
+        "method:psd_layer_pattern_fill::loadPattern(KisEmbeddedResourceStorageProxy & embeddedProxy)",
+        "method:psd_layer_pattern_fill::setupCatcher(const QString path,KisAslCallbackObjectCatcher & catcher,psd_layer_pattern_fill * data)",
+        "method:psd_layer_pattern_fill::writeASL(KisAslXmlWriter & w)"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::solidColorFillValueAndRepresentationSchemaRemainsStable",
+      "behavior": "solid-color fillは公開structであり、色値と借用color-space pointer、ASL・設定・brush・background返値の正確な型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:psd_layer_solid_color::cs",
+        "member:psd_layer_solid_color::fill_color",
+        "method:psd_layer_solid_color::getASLXML()",
+        "method:psd_layer_solid_color::getBackground()",
+        "method:psd_layer_solid_color::getBrush()",
+        "method:psd_layer_solid_color::getFillLayerConfig()",
+        "struct:psd_layer_solid_color"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::solidColorFillInputAndSerializationSignaturesRemainStable",
+      "behavior": "solid-color fillの設定・色入力とASL catcher・writerは正確な共有値、const参照、static・member区分を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:psd_layer_solid_color::loadFromConfig(KisFilterConfigurationSP cfg)",
+        "method:psd_layer_solid_color::setColor(const KoColor & color)",
+        "method:psd_layer_solid_color::setupCatcher(const QString path,KisAslCallbackObjectCatcher & catcher,psd_layer_solid_color * data)",
+        "method:psd_layer_solid_color::writeASL(KisAslXmlWriter & w)"
       ]
     }
   ]

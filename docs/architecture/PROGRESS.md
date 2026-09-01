@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 18:54 JST
+- 更新日時: 2026-09-01 18:57 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -40,7 +40,7 @@
 
 ### 第125便の担当計画
 
-- 実装共通基点は`81f8a07ec8`である。freehandとcursor担当は`integrated`、PSD fill担当は`ready`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの
+- 実装共通基点は`81f8a07ec8`である。3担当は`integrated`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの
   `transport-commit`、追加委任は禁止する。専用worktree-local `build/tdd-macos`と主作業treeの
   `/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。統合順はfreehand、cursor、PSD fillとし、調整担当だけが台帳、進捗文書、
   不足報告を変更する。3担当の公開header、所有CMake、試験source、生成物は重ならない。
@@ -81,6 +81,11 @@
   `libs/widgetutils/tests/CMakeLists.txt`へheader限定対象を追加した。対象4工程・8入力、製品`kritawidgetutils` 273工程・579入力と各集合は変更前後一致し、
   cursor・widget実体、factory・load本文、画面、event loop、icon・画像読込、cache、filesystem、theme状態を生成・実行していない。主macOS環境では再構成後に
   対象CTest、20回反復、`KColorSchemeEnumContractTest`、無作業再構築を確認した。
+- `g125-psd-fill-schema`は受渡しcommit`c8fcd61814aa`を統合commit`ad55e88994`として取り込んだ。開始
+  `libs/psd/psd_additional_layer_info_block.h`から既存`libs/psdutils/tests/PsdFormatValuesContractTest.cpp`の5枠へ、gradient表現、gradient入力・直列化、
+  pattern変換、solid色値・表現、solid入力・直列化の29 APIを対応付けた。対象6工程・14入力、製品`kritapsdutils` 635工程・1,300入力と`kritapsd`
+  1,979工程・3,956入力および各集合は変更前後一致し、fill、色、gradient、pattern、shape、brush、ASL、資源、PSD I/Oを生成・実行していない。主macOS環境では
+  対象CTest、20回反復、`PsdByteIoContractTest`、無作業再構築を確認した。
 
 ### 第124便の先行監査計画
 
