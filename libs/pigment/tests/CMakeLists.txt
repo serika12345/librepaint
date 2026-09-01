@@ -215,6 +215,20 @@ target_include_directories(KoColorProfileConstantsContractTest PRIVATE
 )
 
 kis_add_test(
+    KoColorProfileSchemaContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Test
+        Boost::boost
+)
+target_include_directories(KoColorProfileSchemaContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+)
+target_compile_definitions(KoColorProfileSchemaContractTest PRIVATE kritapigment_EXPORTS)
+
+kis_add_test(
     KoHistogramProducerContractTest.cpp
     LINK_LIBRARIES
         kritapigmenthistogramproducerobjects
