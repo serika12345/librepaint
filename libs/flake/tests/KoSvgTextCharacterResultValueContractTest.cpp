@@ -118,6 +118,11 @@ private Q_SLOTS:
     void lineBreakAndJustificationStateDefaultAndAssignIndependently();
     void fontMetricsAndScaledValuesPreserveExplicitValues();
     void cursorDirectionAndCopiesOwnNestedValues();
+    void lineChunkValueSchemaRemainsStable();
+    void lineBoxVerticalGeometryDefaultsRemainStable();
+    void lineBoxBaselineAndStateDefaultsRemainStable();
+    void lineBoxConstructionSignaturesRemainStable();
+    void lineBoxOperationSignaturesRemainStable();
 };
 
 void KoSvgTextCharacterResultValueContractTest::positionVisibilityAndIndicesDefaultAndAssignIndependently()
@@ -341,6 +346,125 @@ void KoSvgTextCharacterResultValueContractTest::cursorDirectionAndCopiesOwnNeste
     QCOMPARE(source.cursorInfo.graphemeIndices, QVector<int>({83, 89, 179}));
     QCOMPARE(int(source.anchor), int(KoSvgText::AnchorMiddle));
     QCOMPARE(int(source.direction), int(KoSvgText::DirectionLeftToRight));
+}
+
+void KoSvgTextCharacterResultValueContractTest::lineChunkValueSchemaRemainsStable()
+{
+    static_assert(std::is_aggregate_v<LineChunk>);
+    static_assert(std::is_same_v<decltype(LineChunk::length), QLineF>);
+    static_assert(std::is_same_v<decltype(LineChunk::chunkIndices), QVector<int>>);
+    static_assert(std::is_same_v<decltype(LineChunk::boundingBox), QRectF>);
+    static_assert(std::is_same_v<decltype(LineChunk::conditionalHangEnd), QPointF>);
+
+    LineChunk defaults;
+    QCOMPARE(defaults.length, QLineF());
+    QVERIFY(defaults.chunkIndices.isEmpty());
+    QCOMPARE(defaults.boundingBox, QRectF());
+    QCOMPARE(defaults.conditionalHangEnd, QPointF());
+
+    LineChunk source;
+    source.length = QLineF(QPointF(-2.0, 3.0), QPointF(5.0, -7.0));
+    source.chunkIndices = {11, -13};
+    source.boundingBox = QRectF(-17.0, 19.0, 23.0, 29.0);
+    source.conditionalHangEnd = QPointF(31.0, -37.0);
+    const LineChunk copied(source);
+
+    source.chunkIndices.append(41);
+    source.length.setP1(QPointF(43.0, 47.0));
+
+    QCOMPARE(copied.length, QLineF(QPointF(-2.0, 3.0), QPointF(5.0, -7.0)));
+    QCOMPARE(copied.chunkIndices, QVector<int>({11, -13}));
+    QCOMPARE(copied.boundingBox, QRectF(-17.0, 19.0, 23.0, 29.0));
+    QCOMPARE(copied.conditionalHangEnd, QPointF(31.0, -37.0));
+}
+
+void KoSvgTextCharacterResultValueContractTest::lineBoxVerticalGeometryDefaultsRemainStable()
+{
+    static_assert(std::is_class_v<LineBox>);
+    static_assert(std::is_default_constructible_v<LineBox>);
+    static_assert(std::is_same_v<decltype(LineBox::chunks), QVector<LineChunk>>);
+    static_assert(std::is_same_v<decltype(LineBox::currentChunk), int>);
+    static_assert(std::is_same_v<decltype(LineBox::expectedLineTop), qreal>);
+    static_assert(std::is_same_v<decltype(LineBox::actualLineTop), qreal>);
+    static_assert(std::is_same_v<decltype(LineBox::actualLineBottom), qreal>);
+
+    LineBox lineBox;
+    QVERIFY(lineBox.chunks.isEmpty());
+    QCOMPARE(lineBox.currentChunk, -1);
+    QCOMPARE(lineBox.expectedLineTop, 0.0);
+    QCOMPARE(lineBox.actualLineTop, 0.0);
+    QCOMPARE(lineBox.actualLineBottom, 0.0);
+
+    lineBox.chunks.append(LineChunk());
+    lineBox.currentChunk = 3;
+    lineBox.expectedLineTop = -5.0;
+    lineBox.actualLineTop = 7.0;
+    lineBox.actualLineBottom = 11.0;
+
+    QCOMPARE(lineBox.chunks.size(), 1);
+    QCOMPARE(lineBox.currentChunk, 3);
+    QCOMPARE(lineBox.expectedLineTop, -5.0);
+    QCOMPARE(lineBox.actualLineTop, 7.0);
+    QCOMPARE(lineBox.actualLineBottom, 11.0);
+}
+
+void KoSvgTextCharacterResultValueContractTest::lineBoxBaselineAndStateDefaultsRemainStable()
+{
+    static_assert(std::is_same_v<decltype(LineBox::baselineTop), QPointF>);
+    static_assert(std::is_same_v<decltype(LineBox::baselineBottom), QPointF>);
+    static_assert(std::is_same_v<decltype(LineBox::textIndent), QPointF>);
+    static_assert(std::is_same_v<decltype(LineBox::firstLine), bool>);
+    static_assert(std::is_same_v<decltype(LineBox::lastLine), bool>);
+    static_assert(std::is_same_v<decltype(LineBox::lineFinalized), bool>);
+    static_assert(std::is_same_v<decltype(LineBox::justifyLine), bool>);
+
+    LineBox lineBox;
+    QCOMPARE(lineBox.baselineTop, QPointF());
+    QCOMPARE(lineBox.baselineBottom, QPointF());
+    QCOMPARE(lineBox.textIndent, QPointF());
+    QVERIFY(!lineBox.firstLine);
+    QVERIFY(!lineBox.lastLine);
+    QVERIFY(!lineBox.lineFinalized);
+    QVERIFY(!lineBox.justifyLine);
+
+    lineBox.baselineTop = QPointF(-2.0, 3.0);
+    lineBox.baselineBottom = QPointF(5.0, -7.0);
+    lineBox.textIndent = QPointF(11.0, 13.0);
+    lineBox.firstLine = true;
+    lineBox.lastLine = true;
+    lineBox.lineFinalized = true;
+    lineBox.justifyLine = true;
+
+    QCOMPARE(lineBox.baselineTop, QPointF(-2.0, 3.0));
+    QCOMPARE(lineBox.baselineBottom, QPointF(5.0, -7.0));
+    QCOMPARE(lineBox.textIndent, QPointF(11.0, 13.0));
+    QVERIFY(lineBox.firstLine);
+    QVERIFY(lineBox.lastLine);
+    QVERIFY(lineBox.lineFinalized);
+    QVERIFY(lineBox.justifyLine);
+}
+
+void KoSvgTextCharacterResultValueContractTest::lineBoxConstructionSignaturesRemainStable()
+{
+    static_assert(std::is_constructible_v<LineBox, QPointF, QPointF, const KoSvgText::ResolutionHandler &>);
+    static_assert(
+        std::is_constructible_v<LineBox, QVector<QLineF>, bool, QPointF, const KoSvgText::ResolutionHandler &>);
+}
+
+void KoSvgTextCharacterResultValueContractTest::lineBoxOperationSignaturesRemainStable()
+{
+    using ChunkGetter = LineChunk (LineBox::*)();
+    using ChunkSetter = void (LineBox::*)(LineChunk);
+    using ClearAndAdjust = void (LineBox::*)(bool, QPointF, QPointF);
+    using SetChunkForPosition = void (LineBox::*)(QPointF, bool);
+    using EmptyQuery = bool (LineBox::*)();
+
+    static_assert(std::is_same_v<decltype(static_cast<ChunkGetter>(&LineBox::chunk)), ChunkGetter>);
+    static_assert(std::is_same_v<decltype(static_cast<ChunkSetter>(&LineBox::setCurrentChunk)), ChunkSetter>);
+    static_assert(std::is_same_v<decltype(static_cast<ClearAndAdjust>(&LineBox::clearAndAdjust)), ClearAndAdjust>);
+    static_assert(std::is_same_v<decltype(static_cast<SetChunkForPosition>(&LineBox::setCurrentChunkForPos)),
+                                 SetChunkForPosition>);
+    static_assert(std::is_same_v<decltype(static_cast<EmptyQuery>(&LineBox::isEmpty)), EmptyQuery>);
 }
 
 QTEST_GUILESS_MAIN(KoSvgTextCharacterResultValueContractTest)
