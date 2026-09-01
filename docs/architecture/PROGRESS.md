@@ -831,6 +831,30 @@
   `KoSvgTextShape.h`の安全な各責務は25 API未満であり、cursor・glyph値群は22 API、SubChunkはshape所有へ入るため棄却した。3監査は編集、構築、試験、
   Git操作、追加委任を行っていない。
 
+### 第118便の担当計画
+
+- 実装共通基点はこの担当票commitとする。3担当は`planned`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの
+  `transport-commit`、追加委任は禁止する。専用worktree-local `build/tdd-macos`と`./scripts/run-shared-test-env`で主環境・compiler cacheを共有する。
+  統合順はapplication設定、image資源予算、SVG行boxとし、調整担当だけが台帳、進捗文書、不足報告を変更する。3担当の許可path、CMake、試験source、生成物は重ならない。
+- `g118-application-layer-selection-schema`は`/Users/masato/Documents/librepaint-g118-application-layer-selection-schema`を所有する。開始
+  `libs/application/kis_config.h`から既存`libs/application/tests/KisConfigEnumContractTest.cpp`の5枠へ、layer情報・thumbnail 8、layer tree 6、
+  layer properties 6、selection surface 6、単一channel表示2の全28 APIを対応付け、他pathを変更しない。対象4工程・15入力、停止5工程・18入力、製品
+  `kritaapplication` 1,224工程・2,466入力の完全一致を確認する。5枠の未知関数診断、対象CTest、20回反復、`KisActionEnumContractTest`、no-work、動的接続、
+  未解決記号、構文・書式・公開API・`verify-quick`を確認する。設定実体、KConfigGroup・QSettings、application・GUI、layer・selection、filesystem、大域状態、
+  Qt Widgets、製品shared、`kritatestsdk`、新依存、公開header・CMake変更、停止線超過が必要なら止める。
+- `g118-image-resource-budget-schema`は`/Users/masato/Documents/librepaint-g118-image-resource-budget-schema`を所有する。開始
+  `libs/image/kis_image_config.h`から新規`libs/image/tests/KisImageConfigResourceBudgetSchemaContractTest.cpp`の5枠へ、memory予算9、導出tile/pool上限3、
+  swap storage 8、worker scheduling 4、更新patch分割4の全28 APIを対応付け、`libs/image/tests/CMakeLists.txt`だけを併せて変更する。最初の期待診断は未知target、
+  予測4工程・8入力、停止5工程・10入力、製品`kritaimage` 1,193工程・2,410入力不変とする。対象CTest、20回反復、`KisImageTypesContractTest`、no-work、
+  動的接続、未解決記号、構文・書式・公開API・`verify-quick`を確認する。設定実体、KConfigGroup、filesystem、RAM・CPU検出、swap directory、scheduler、
+  tile pool、image・paint device、製品OBJECT・shared、`kritatestsdk`、新依存、公開header・製品CMake変更、停止線超過が必要なら止める。
+- `g118-svg-line-box-schema`は`/Users/masato/Documents/librepaint-g118-svg-line-box-schema`を所有する。開始
+  `libs/flake/text/KoSvgTextShape_p.h`から既存`libs/flake/tests/KoSvgTextCharacterResultValueContractTest.cpp`の5枠へ、line chunk値5、line box垂直幾何7、
+  baseline・状態7、constructor型2、操作型5の全26 APIを対応付け、他pathを変更しない。対象4工程・8入力、停止5工程・11入力、製品`kritaflake`
+  618工程・1,268入力の完全一致を確認する。5枠の未知関数診断、対象CTest、20回反復、`KoSvgTextFontMetricsValueContractTest`、no-work、動的接続、未解決記号、
+  構文・書式・公開API・`verify-quick`を確認する。parameter constructor・操作本文、`ResolutionHandler`実装、`KoSvgText.cpp`、実shape・document・font registry・
+  文字配置・描画、FreeType library、Qt Widgets、製品OBJECT・shared、`kritatestsdk`、新依存、公開header・CMake変更、停止線超過が必要なら止める。
+
 ### 第105並列便の監査計画
 
 - 共通基点は`347b1bc680`、入力は`build/tdd-macos/public-api-missing-g105.json`である。3担当は`auditing`の読み取り専用とし、製品・試験・CMake・
