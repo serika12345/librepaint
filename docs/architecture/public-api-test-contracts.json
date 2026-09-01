@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 17977
+    "expectedMissingApis": 17876
   },
   "contracts": [
     {
@@ -36185,6 +36185,242 @@
       "apis": [
         "method:psd_layer_effects_stroke::position() const",
         "method:psd_layer_effects_stroke::setPosition(psd_stroke_position value)"
+      ]
+    },
+    {
+      "target": "KisDlgPreferencesEnumContractTest",
+      "source": "libs/ui/tests/KisDlgPreferencesEnumContractTest.cpp",
+      "test": "KisDlgPreferencesEnumContractTest::generalTabTypeAndStateSchemaRemainsStable",
+      "behavior": "一般設定画面は公開型、構築引数、既定値復元、共有設定状態、MDI方式、強制フォント解像度の宣言型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:GeneralTab",
+        "member:GeneralTab::m_cumulativeUndoData",
+        "member:GeneralTab::m_pasteFormatGroup",
+        "method:GeneralTab::GeneralTab(QWidget * parent,const KisImportExportPreferenceOptions & importExportOptions,const char * name=0)",
+        "method:GeneralTab::forcedFontDpi()",
+        "method:GeneralTab::mdiMode()",
+        "method:GeneralTab::setDefault()"
+      ]
+    },
+    {
+      "target": "KisDlgPreferencesEnumContractTest",
+      "source": "libs/ui/tests/KisDlgPreferencesEnumContractTest.cpp",
+      "test": "KisDlgPreferencesEnumContractTest::generalTabCursorAndSamplerSchemaRemainsStable",
+      "behavior": "一般設定画面のカーソル、輪郭、消しゴム輪郭、色採取プレビューは正確な取得・選択変換関数型とconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:GeneralTab::colorSamplerPreviewCircleDiameter() const",
+        "method:GeneralTab::colorSamplerPreviewCircleExtraCirclesEnabled() const",
+        "method:GeneralTab::colorSamplerPreviewCircleOutlineEnabled() const",
+        "method:GeneralTab::colorSamplerPreviewCircleThickness() const",
+        "method:GeneralTab::colorSamplerPreviewStyle() const",
+        "method:GeneralTab::cursorStyle()",
+        "method:GeneralTab::eraserCursorStyle()",
+        "method:GeneralTab::eraserOutlineStyle()",
+        "method:GeneralTab::getColorSamplerPreviewStyleValue(const QComboBox * cmb)",
+        "method:GeneralTab::outlineStyle()",
+        "method:GeneralTab::setColorSamplerPreviewStyleIndexByValue(QComboBox * cmb,KisConfig::ColorSamplerPreviewStyle style)",
+        "method:GeneralTab::setColorSamplerPreviewStyleItems(QComboBox * cmb)",
+        "method:GeneralTab::showEraserOutlineWhilePainting()",
+        "method:GeneralTab::showOutlineWhilePainting()"
+      ]
+    },
+    {
+      "target": "KisDlgPreferencesEnumContractTest",
+      "source": "libs/ui/tests/KisDlgPreferencesEnumContractTest.cpp",
+      "test": "KisDlgPreferencesEnumContractTest::generalTabSessionAndDocumentSchemaRemainsStable",
+      "behavior": "一般設定画面のセッション、保存、圧縮、文書取込み、レイヤー命名方針は正確な取得関数型とconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:GeneralTab::autoSaveInterval()",
+        "method:GeneralTab::compressKra()",
+        "method:GeneralTab::convertToImageColorspaceOnImport()",
+        "method:GeneralTab::exportMimeType()",
+        "method:GeneralTab::iconsInMenu() const",
+        "method:GeneralTab::renameDuplicatedLayers()",
+        "method:GeneralTab::renameMergedLayers()",
+        "method:GeneralTab::renamePastedLayers()",
+        "method:GeneralTab::saveSessionOnQuit() const",
+        "method:GeneralTab::sessionOnStartup() const",
+        "method:GeneralTab::showRootLayer()",
+        "method:GeneralTab::trimFramesImport()",
+        "method:GeneralTab::trimKra()",
+        "method:GeneralTab::undoStackSize()",
+        "method:GeneralTab::useZip64()"
+      ]
+    },
+    {
+      "target": "KisDlgPreferencesEnumContractTest",
+      "source": "libs/ui/tests/KisDlgPreferencesEnumContractTest.cpp",
+      "test": "KisDlgPreferencesEnumContractTest::generalTabInteractionAndNavigationSchemaRemainsStable",
+      "behavior": "一般設定画面の長押し、慣性移動、拡大縮小、選択操作、ツール表示、キャンバス通知は正確な取得関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:GeneralTab::kineticScrollingEnabled()",
+        "method:GeneralTab::kineticScrollingGesture()",
+        "method:GeneralTab::kineticScrollingHiddenScrollbars()",
+        "method:GeneralTab::kineticScrollingSensitivity()",
+        "method:GeneralTab::longPressEnabled()",
+        "method:GeneralTab::showCanvasMessages()",
+        "method:GeneralTab::switchSelectionCtrlAlt()",
+        "method:GeneralTab::toolOptionsInDocker()",
+        "method:GeneralTab::zoomMarginSize()",
+        "method:GeneralTab::zoomSteps()"
+      ]
+    },
+    {
+      "target": "KisDlgPreferencesEnumContractTest",
+      "source": "libs/ui/tests/KisDlgPreferencesEnumContractTest.cpp",
+      "test": "KisDlgPreferencesEnumContractTest::generalTabAnimationSchemaRemainsStable",
+      "behavior": "一般設定画面のタイムライン自動固定、再生範囲調整、自動拡大縮小は正確な取得関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:GeneralTab::adaptivePlaybackRange()",
+        "method:GeneralTab::autoZoomTimelineToPlaybackRange()",
+        "method:GeneralTab::autopinLayersToTimeline()"
+      ]
+    },
+    {
+      "target": "KoSvgTextEnumContractTest",
+      "source": "libs/flake/tests/KoSvgTextEnumContractTest.cpp",
+      "test": "KoSvgTextEnumContractTest::cssLengthPercentageValueSchemaRemainsStable",
+      "behavior": "SVG文字組みの長さ・割合値は公開型、単位と数値の初期値、値構築、等価判定、複製の独立性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KoSvgText::CssLengthPercentage::unit",
+        "member:KoSvgText::CssLengthPercentage::value",
+        "method:KoSvgText::CssLengthPercentage::CssLengthPercentage()",
+        "method:KoSvgText::CssLengthPercentage::CssLengthPercentage(qreal value,UnitType unit=Absolute)",
+        "method:KoSvgText::CssLengthPercentage::operator ==(const CssLengthPercentage & other) const",
+        "struct:KoSvgText::CssLengthPercentage"
+      ]
+    },
+    {
+      "target": "KoSvgTextEnumContractTest",
+      "source": "libs/flake/tests/KoSvgTextEnumContractTest.cpp",
+      "test": "KoSvgTextEnumContractTest::cssLengthPercentageResolutionAndFormattingSignaturesRemainStable",
+      "behavior": "SVG文字組みの長さ解決、診断表示、文字列化は正確な引数、戻り値、既定引数の公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KoSvgText::operator <<(QDebug dbg,const KoSvgText::CssLengthPercentage & value)",
+        "function:KoSvgText::writeLengthPercentage(const CssLengthPercentage & length,bool percentageAsEm=false)",
+        "method:KoSvgText::CssLengthPercentage::convertToAbsolute(const KoSvgText::FontMetrics metrics,const qreal fontSize,const UnitType percentageUnit=Em)"
+      ]
+    },
+    {
+      "target": "KoSvgTextEnumContractTest",
+      "source": "libs/flake/tests/KoSvgTextEnumContractTest.cpp",
+      "test": "KoSvgTextEnumContractTest::lineHeightValueSchemaRemainsStable",
+      "behavior": "SVG行高値は通常・数値・長さの公開状態、既定値、方式別等価判定、複製の独立性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KoSvgText::LineHeightInfo::isNormal",
+        "member:KoSvgText::LineHeightInfo::isNumber",
+        "member:KoSvgText::LineHeightInfo::length",
+        "member:KoSvgText::LineHeightInfo::value",
+        "method:KoSvgText::LineHeightInfo::operator ==(const LineHeightInfo & rhs) const",
+        "struct:KoSvgText::LineHeightInfo"
+      ]
+    },
+    {
+      "target": "KoSvgTextEnumContractTest",
+      "source": "libs/flake/tests/KoSvgTextEnumContractTest.cpp",
+      "test": "KoSvgTextEnumContractTest::tabSizeValueSchemaRemainsStable",
+      "behavior": "SVGタブ幅値は数値・長さ・追加間隔の公開状態、既定値、方式別等価判定、複製の独立性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KoSvgText::TabSizeInfo::extraSpacing",
+        "member:KoSvgText::TabSizeInfo::isNumber",
+        "member:KoSvgText::TabSizeInfo::length",
+        "member:KoSvgText::TabSizeInfo::value",
+        "method:KoSvgText::TabSizeInfo::operator ==(const TabSizeInfo & rhs) const",
+        "struct:KoSvgText::TabSizeInfo"
+      ]
+    },
+    {
+      "target": "KoSvgTextEnumContractTest",
+      "source": "libs/flake/tests/KoSvgTextEnumContractTest.cpp",
+      "test": "KoSvgTextEnumContractTest::lineHeightAndTabSizeConversionSignaturesRemainStable",
+      "behavior": "SVG行高・タブ幅の診断表示、解析、文字列化は正確な引数と戻り値の公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KoSvgText::operator <<(QDebug dbg,const KoSvgText::LineHeightInfo & value)",
+        "function:KoSvgText::operator <<(QDebug dbg,const KoSvgText::TabSizeInfo & value)",
+        "function:KoSvgText::parseLineHeight(const QString & value,const SvgLoadingContext & context)",
+        "function:KoSvgText::parseTabSize(const QString & value,const SvgLoadingContext & context)",
+        "function:KoSvgText::writeLineHeight(LineHeightInfo lineHeight)",
+        "function:KoSvgText::writeTabSize(TabSizeInfo tabSize)"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::layerEffectHierarchySchemaRemainsStable",
+      "behavior": "PSDの影と光彩効果は共通基底からdrop・inner・outer派生へ至る公開class階層を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:psd_layer_effects_drop_shadow",
+        "class:psd_layer_effects_glow_common",
+        "class:psd_layer_effects_inner_glow",
+        "class:psd_layer_effects_inner_shadow",
+        "class:psd_layer_effects_outer_glow",
+        "class:psd_layer_effects_shadow_common"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::layerEffectContextAndSubtypePolicySchemaRemainsStable",
+      "behavior": "PSD効果の適用文脈、satin反転、inner glowの発生源は公開型、既定構築、状態型、取得・設定関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:psd_layer_effects_context::keep_original",
+        "method:psd_layer_effects_context::psd_layer_effects_context()",
+        "method:psd_layer_effects_inner_glow::setSource(psd_glow_source value)",
+        "method:psd_layer_effects_inner_glow::source() const",
+        "method:psd_layer_effects_satin::invert() const",
+        "method:psd_layer_effects_satin::setInvert(bool value)",
+        "struct:psd_layer_effects_context",
+        "struct:psd_layer_effects_satin"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::shadowColorValueSignaturesRemainStable",
+      "behavior": "PSD影効果の描画色とnative色の取得・設定は正確な色値型とconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:psd_layer_effects_shadow_base::color() const",
+        "method:psd_layer_effects_shadow_base::nativeColor() const",
+        "method:psd_layer_effects_shadow_base::setColor(KoColor value)",
+        "method:psd_layer_effects_shadow_base::setNativeColor(KoColor value)"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::layerEffectGeometryScalingSignaturesRemainStable",
+      "behavior": "PSD影効果のoffset計算と影・bevelの線形寸法縮尺は正確な文脈、数値、const性の公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:psd_layer_effects_bevel_emboss::scaleLinearSizes(qreal scale)",
+        "method:psd_layer_effects_shadow_base::calculateOffset(const psd_layer_effects_context * context) const",
+        "method:psd_layer_effects_shadow_base::scaleLinearSizes(qreal scale)"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::bevelColorValueSignaturesRemainStable",
+      "behavior": "PSD bevel効果のhighlight色とshadow色の取得・設定は正確な色値型とconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:psd_layer_effects_bevel_emboss::highlightColor() const",
+        "method:psd_layer_effects_bevel_emboss::setHighlightColor(KoColor value)",
+        "method:psd_layer_effects_bevel_emboss::setShadowColor(KoColor value)",
+        "method:psd_layer_effects_bevel_emboss::shadowColor() const"
       ]
     }
   ]

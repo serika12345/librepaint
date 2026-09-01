@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 16:09 JST
+- 更新日時: 2026-09-01 16:25 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -68,6 +68,30 @@
   5枠の未知関数診断、対象CTest、20回反復、`PsdByteIoContractTest`、no-work、動的接続、未解決記号、構文・書式・公開API・`verify-quick`を確認する。
   効果・context・色の実体とmethod、constructor・destructor、offset・scale、pattern・gradient registry、lookup生pointer、ASL、製品shared、`kritatestsdk`、
   新依存、公開header・CMake変更、停止線超過が必要なら止める。
+
+### 第121便の統合結果
+
+- 共通実装基点は`b42e396629031f0c18fa85adbad4854322bddbd8`である。一般設定担当では、開始
+  `libs/ui/forms/{wdggeneralsettings,wdgdisplaysettings,wdgcolorsettings,wdgtabletsettings,wdgperformancesettings,wdgfullscreensettings,WdgPopupPaletteSettings}.ui`
+  の既存生成先7枚から`libs/ui/CMakeLists.txt`の`KisDlgPreferencesEnumContractTest`私有sourceへ限定依存辺を追加した。受渡しcommit
+  `d75dd0032d785`を統合commit`a2baff4803`として取り込み、全65枚の共通生成対象へ接続せず、実測閉包を11工程・31入力へ収めた。製品
+  `kritaapplicationui`は1,967工程・3,934入力で不変である。
+- `g121-general-preferences-schema`は受渡しcommit`7c90fceb343a`を統合commit`aff60a69d0`として取り込んだ。開始
+  `libs/ui/dialogs/kis_dlg_preferences.h`から`libs/ui/tests/KisDlgPreferencesEnumContractTest.cpp`の5枠へ、一般設定の公開型・共有状態、cursor・sampler、
+  session・文書方針、操作・navigation、animation表示の49 APIを対応付けた。widget、application、画面、event loop、signal、設定I/O、製品共有ライブラリーを
+  実行または接続していない。
+- `g121-svg-scalar-schema`は受渡しcommit`831077ad965c`を統合commit`6e7bc0e204`として取り込んだ。開始
+  `libs/flake/text/KoSvgText.h`から`libs/flake/tests/KoSvgTextEnumContractTest.cpp`の5枠へ、CSS長さ値、行高値、tab幅値、解決・解析・書式関数型の27 APIを
+  対応付けた。header内の既定値、複製、等価だけを実測し、実shape、font処理、文字配置、描画、製品`kritaflake`へ接続していない。
+- `g121-psd-layer-effect-schema`は受渡しcommit`c195bc6b1a4d`を統合commit`6c300130a5`として取り込んだ。開始
+  `libs/psdutils/psd.h`から`libs/psdutils/tests/PsdFormatValuesContractTest.cpp`の5枠へ、影・光彩の型階層、効果文脈、subtype方針、色、offset・寸法縮尺の25 APIを
+  対応付けた。効果実体、色操作、offset・scale、pattern・gradient registry、ASL、製品`kritapsdutils`・`kritapsd`へ接続していない。
+- 主macOS環境では3対象の全15枠、各対象CTest、各20回反復、軽量近傍、無作業再構築、動的接続、未解決記号を確認した。受渡しと統合patchは一致し、
+  各対象はQt・KF・OS等だけへ接続して製品共有ライブラリーと`kritatestsdk`を含まない。公開API契約検査は101 APIを重複なく受理し、29,838件中11,962件対応、
+  17,876件未対応となった。最新入力は`build/tdd-macos/public-api-missing-g122.json`である。Linux、全native検証、製品全体構築は実行していない。
+- 新報告の成功後に旧`public-api-missing-g121.json` 4.4 MB、cleanな一般設定担当647 MB、SVG担当640 MB、PSD担当649 MBと3 branchを削除し、約1.94 GBを
+  回収した。主`build/tdd-macos`と共有compiler cacheは第122便の限定構築へ再利用する。次の永続作業は第122便の不足報告から、pathと所有CMakeが重ならない
+  3責務を先行監査し、構築範囲を確認してから担当票を確定することである。
 
 ### 第106並列便の監査計画
 
