@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 17035
+    "expectedMissingApis": 16999
   },
   "contracts": [
     {
@@ -38207,6 +38207,87 @@
         "method:KisResourceStorage::resourceMd5(const QString & url)",
         "method:KisResourceStorage::resources(const QString & resourceType) const",
         "method:KisResourceStorage::tags(const QString & resourceType) const"
+      ]
+    },
+    {
+      "target": "KisConfigEnumContractTest",
+      "source": "libs/application/tests/KisConfigEnumContractTest.cpp",
+      "test": "KisConfigEnumContractTest::defaultDocumentGeometrySignaturesRemainStable",
+      "behavior": "文書の既定寸法と解像度はgetterの既定値指定、setter overload、const性および値型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisConfig::defImageHeight(bool defaultValue=false) const",
+        "method:KisConfig::defImageHeight(qint32 height) const",
+        "method:KisConfig::defImageResolution(bool defaultValue=false) const",
+        "method:KisConfig::defImageResolution(qreal res) const",
+        "method:KisConfig::defImageWidth(bool defaultValue=false) const",
+        "method:KisConfig::defImageWidth(qint32 width) const"
+      ]
+    },
+    {
+      "target": "KisConfigEnumContractTest",
+      "source": "libs/application/tests/KisConfigEnumContractTest.cpp",
+      "test": "KisConfigEnumContractTest::defaultDocumentColorSpaceSignaturesRemainStable",
+      "behavior": "文書の既定色モデル、profile、色深度はgetterの既定値指定、setter overload、const性および文字列値型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisConfig::defColorModel(bool defaultValue=false) const",
+        "method:KisConfig::defColorModel(const QString & model) const",
+        "method:KisConfig::defColorProfile(bool defaultValue=false) const",
+        "method:KisConfig::defColorProfile(const QString & depth) const",
+        "method:KisConfig::defaultColorDepth(bool defaultValue=false) const",
+        "method:KisConfig::setDefaultColorDepth(const QString & depth) const"
+      ]
+    },
+    {
+      "target": "KisConfigEnumContractTest",
+      "source": "libs/application/tests/KisConfigEnumContractTest.cpp",
+      "test": "KisConfigEnumContractTest::defaultDocumentBackgroundAndLayerSignaturesRemainStable",
+      "behavior": "文書の既定背景色・不透明度・layer数はgetterの既定値指定、setter型およびconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisConfig::defaultBackgroundColor(bool defaultValue=false) const",
+        "method:KisConfig::defaultBackgroundOpacity(bool defaultValue=false) const",
+        "method:KisConfig::numDefaultLayers(bool defaultValue=false) const",
+        "method:KisConfig::setDefaultBackgroundColor(const QColor & value)",
+        "method:KisConfig::setDefaultBackgroundOpacity(quint8 value)",
+        "method:KisConfig::setNumDefaultLayers(int num)"
+      ]
+    },
+    {
+      "target": "KisConfigEnumContractTest",
+      "source": "libs/application/tests/KisConfigEnumContractTest.cpp",
+      "test": "KisConfigEnumContractTest::nativeDocumentPersistenceSignaturesRemainStable",
+      "behavior": "KRA保存方針はbackup、圧縮、trim、Zip64のgetter既定値指定、setter型およびconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisConfig::backupFile(bool defaultValue=false) const",
+        "method:KisConfig::compressKra(bool defaultValue=false) const",
+        "method:KisConfig::setBackupFile(bool backupFile) const",
+        "method:KisConfig::setCompressKra(bool compress)",
+        "method:KisConfig::setTrimKra(bool trim)",
+        "method:KisConfig::setUseZip64(bool value)",
+        "method:KisConfig::trimKra(bool defaultValue=false) const",
+        "method:KisConfig::useZip64(bool defaultValue=false) const"
+      ]
+    },
+    {
+      "target": "KisConfigEnumContractTest",
+      "source": "libs/application/tests/KisConfigEnumContractTest.cpp",
+      "test": "KisConfigEnumContractTest::documentAutosaveAndUndoHistorySignaturesRemainStable",
+      "behavior": "文書の自動保存とundo履歴方針はgetterの既定値指定、cumulative undo値型、setter型およびconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisConfig::autoSaveInterval(bool defaultValue=false) const",
+        "method:KisConfig::cumulativeUndoData(bool defaultValue=false) const",
+        "method:KisConfig::setAutoSaveInterval(int seconds) const",
+        "method:KisConfig::setCumulativeUndoData(KisCumulativeUndoData value)",
+        "method:KisConfig::setCumulativeUndoRedo(bool value)",
+        "method:KisConfig::setUndoEnabled(bool undo) const",
+        "method:KisConfig::setUndoStackLimit(int limit) const",
+        "method:KisConfig::undoEnabled(bool defaultValue=false) const",
+        "method:KisConfig::undoStackLimit(bool defaultValue=false) const",
+        "method:KisConfig::useCumulativeUndoRedo(bool defaultValue=false) const"
       ]
     }
   ]

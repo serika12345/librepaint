@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 21:42 JST
+- 更新日時: 2026-09-01 21:48 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -37,7 +37,7 @@
 
 ### 第129便の担当計画
 
-- 実装共通基点は`2641bfb605be06cb507c4f59bcd1e4d071f6543a`である。config document、SVG view geometry、sequential iterator担当は`implementing`、
+- 実装共通基点は`2641bfb605be06cb507c4f59bcd1e4d071f6543a`である。config document担当は`integrated`、SVG view geometry、sequential iterator担当は`implementing`、
   構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、専用
   worktree-local `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。統合順はconfig document、
   SVG view geometry、sequential iteratorとし、調整担当だけが`AGENTS.md`、architecture文書、公開API台帳、共通不足報告を変更する。3担当の公開header、製品source、
@@ -68,6 +68,14 @@
   停止5工程・10入力、製品`kritaimage` 1,195工程・2,414入力と各集合の完全一致を確認する。5枠の未知関数、対象CTest、20回反復、近傍、no-work、動的接続、未解決
   iterator・paint device・progress記号、構文・書式・公開API・`verify-quick`を確認する。template本文実体化、policy・iterator・paint device・pixel buffer・progressの
   生成または呼出し、raw pointer参照、mask・XML・描画、製品OBJECT・shared、`kritatestsdk`、新依存、許可外変更、製品計画差、停止線超過が必要なら止める。
+
+### 第129便の統合結果
+
+- `g129-config-document-schema`は受渡しcommit`e71e19d00490`を統合commit`96b0a4eb55`として取り込んだ。開始`libs/application/kis_config.h`から既存
+  `libs/application/tests/KisConfigEnumContractTest.cpp`の5枠へ、既定document寸法・色空間・背景・layer、KRA保存、自動保存・undo履歴の36 APIを対応付けた。
+  対象4工程・15入力、製品`kritaapplication` 1,226工程・2,470入力と各集合は変更前後一致し、設定・document・image、KConfig・QSettings、設定I/O、filesystem、
+  大域状態を生成・実行していない。担当macOS環境で対象CTest、20回反復、近傍`KisActionEnumContractTest`、無作業再構築、依存・未解決記号、構文・変更行書式、
+  公開API検査、`verify-quick`に成功した。公開API契約検査は29,838件中12,839件対応、16,999件未対応となった。
 
 ### 第128便の先行監査計画
 
