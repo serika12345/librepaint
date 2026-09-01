@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 09:15 JST
+- 更新日時: 2026-09-01 09:24 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -32,6 +32,12 @@
   空間・表示・解像度状態、marker・text・paint状態を既存`KoSvgTextEnumContractTest`の5枠へ追加する。個体を生成せず型と列挙値だけを観測するため、
   CMake変更なしで既存Qt Gui・Test・Xml限定対象4工程・8入力を維持できる。実装を要求するconstructor・copy constructor・継承fill消去の3 APIは除外した。
   `SvgUtil`は一source分割とassert・XML・text property実装を要求し、`KoSvgTextProperties`はfont registry・shape・SVG解析へ接続するため棄却した。
+- `g105-paintop-value-audit`は候補なしとした。simple paintop factoryの静的hook検出・委譲は最大10 API、`KisDabCacheUtils`は安全な純粋面2 API、
+  color sourceのfake可能面は6 APIであり、25 APIへ広げると実Widget、paint device、色空間・資源registry、大域乱数、製品sharedへ到達する。
+  代替監査の`KisAlgebra2D::VectorPath`も経路幾何28 API中22 APIまでは一source移管で閉じるが、残りはassert責務とBezier実装の追加分割を要求するため棄却した。
+- 第三代替の`KoSvgText::FontMetrics`はstruct、inline既定構築、公開member 27件の全29 APIを採用した。方向・送り量、字高・上下量、baseline群、装飾線、
+  caretと値copyを5枠へ固定する。新規header限定対象は最寄り`KoSvgTextEnumContractTest`と同じQt Gui・Test・Xmlだけの4工程・8入力を予測し、
+  引数付き構築、比較、診断、baseline変換・変更などout-of-line APIは対象外とする。
 
 ### 第105並列便の担当計画
 
@@ -51,6 +57,14 @@
 - SVG担当は変更なし計画と直接依存、5枠、対象CTest、20回反復、軽量近傍、無作業再構築、動的接続、source構文、公開API検査、`verify-quick`を確認する。
   `SvgGraphicContext.cpp`、`KoShapeStroke.cpp`、`KoSvgTextProperties.cpp`、CMake、公開header、製品shared library、`kritatestsdk`、実shape・document・
   font registry・filesystem・描画、試験用代替実装、Qt限定範囲外の依存に到達した場合は編集を止める。台帳・進捗文書は調整担当が所有する。
+- `g105-svg-font-metrics-values`は`planned`、実装基点は`11cef4dc0f`、専用worktreeは
+  `/Users/masato/Documents/librepaint-g105-svg-font-metrics-values`、構築許可は`granted`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。
+  対象は`libs/flake/text/KoSvgText.h`の`FontMetrics` struct・inline既定構築、方向・送り量5 member、字高・上下量7 member、baseline 8 member、
+  装飾線4 member、caret 3 memberの全29 APIである。開始headerから新規`libs/flake/tests/KoSvgTextFontMetricsValueContractTest.cpp`の5枠へ対応付け、
+  `libs/flake/tests/CMakeLists.txt`だけを併せて変更する。最初の期待診断は未知対象、予測4工程・8入力、停止5工程・11入力、製品不変とする。
+- FontMetrics担当は変更なし計画と直接依存、未知対象診断、5枠、対象CTest、20回反復、軽量近傍、無作業再構築、動的接続、source構文、公開API検査、
+  `verify-quick`を確認する。out-of-line API、製品shared library、`kritatestsdk`、製品OBJECT、公開header、新依存、停止線超過が必要なら編集を止める。
+  台帳・進捗文書は調整担当が所有する。SVG状態担当はCMakeを変更しないため、2担当の許可pathは重ならない。
 
 ### 第104並列便の監査計画
 
