@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 06:20 JST
+- 更新日時: 2026-09-02 06:25 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -49,12 +49,13 @@
 - `g139-layer-utils-schema`は`/Users/masato/Documents/librepaint-g139-layer-utils-schema`を所有する。開始`libs/image/kis_layer_utils.h`の全74 APIから既存
   `libs/image/tests/KisImageTypesContractTest.cpp`の5枠`layerMergePolicyAndOrderingSignaturesRemainStable`、`layerMutationAndProjectionCommandSignaturesRemainStable`、
   `layerHierarchySearchAndTraversalSignaturesRemainStable`、`layerFrameQueryAndJobSchemaRemainStable`、`layerCommandTypesAndLifecycleSchemaRemainStable`へ対応付ける。許可pathは既存試験
-  sourceと`libs/image/tests/CMakeLists.txt`である。最初の限定構築で公開headerが要求する`libs/painting/undo/kundo2command.h`の位置だけが不足したため、対象固有のcompile includeへ
-  `${CMAKE_SOURCE_DIR}/libs/painting/undo`を追加する。linkと製品依存は追加しない。対象4工程・8入力、停止5工程・11入力、近傍は`KisSpacingInformationContractTest`、製品
+  sourceと`libs/image/tests/CMakeLists.txt`である。限定構築で公開headerが要求する`libs/painting/undo/kundo2command.h`と、その所有targetが生成する
+  `kritapaintingundo_export.h`の位置だけが不足したため、対象固有のcompile includeへ`${CMAKE_SOURCE_DIR}/libs/painting/undo`と
+  `${CMAKE_BINARY_DIR}/libs/painting/undo`を追加する。linkと製品依存は追加しない。対象4工程・8入力、停止5工程・11入力、近傍は`KisSpacingInformationContractTest`、製品
   `kritaimage`は1,196工程・2,416入力と集合の完全一致を
   確認する。未知5枠、既存枠、対象CTest、20回反復、近傍、無作業再構築、動的接続、未解決layer utils・image・node・KUndo2記号、構文・変更行書式、公開API・`verify-quick`を
   確認する。関数address値・template本文を生成または実行し、command・shared storage・image・node・device・stroke・projectionを実体化し、RTTI・vtable・製品source・OBJECT・
-  shared、`kritatestsdk`、新link依存、指定include位置以外のCMake変更・公開header変更、製品計画差、停止線超過が必要なら止める。
+  shared、`kritatestsdk`、新link依存、指定したsource・binary include位置以外のCMake変更・公開header変更、製品計画差、停止線超過が必要なら止める。
 - `g139-canvas-resource-schema`は`/Users/masato/Documents/librepaint-g139-canvas-resource-schema`を所有する。開始`libs/flake/KoCanvasResourceProvider.h`の全45 APIから新規
   `libs/flake/tests/KoCanvasResourceProviderSchemaContractTest.cpp`の5枠`canvasResourceProviderTypeLifetimeAndApplicationPolicySchemaRemainsStable`、
   `canvasResourceAccessSignaturesRemainStable`、`canvasPresentationResourceSignaturesRemainStable`、`canvasResourceExtensionPointSignaturesRemainStable`、
