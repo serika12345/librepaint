@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 16189
+    "expectedMissingApis": 16151
   },
   "contracts": [
     {
@@ -40133,6 +40133,89 @@
         "method:AngleSelector::flip(Qt::Orientations orientations)",
         "method:AngleSelector::flipAngle(qreal angle,Qt::Orientations orientations)",
         "method:AngleSelector::flipAngle(qreal angle,qreal minimum,qreal maximum,Qt::Orientations orientations,bool * ok=nullptr)"
+      ]
+    },
+    {
+      "target": "SliderSpinBoxSchemaContractTest",
+      "source": "libs/libkis/tests/SliderSpinBoxSchemaContractTest.cpp",
+      "test": "SliderSpinBoxSchemaContractTest::sliderSpinBoxTypeLifetimeAndViewSchemaRemainStable",
+      "behavior": "整数・実数slider spin box wrapperは基底型、既定構築、非copy性、仮想寿命、および内部widgetの借用pointer型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:DoubleSliderSpinBox",
+        "class:SliderSpinBox",
+        "method:DoubleSliderSpinBox::DoubleSliderSpinBox()",
+        "method:DoubleSliderSpinBox::widget() const",
+        "method:DoubleSliderSpinBox::~DoubleSliderSpinBox()",
+        "method:SliderSpinBox::SliderSpinBox()",
+        "method:SliderSpinBox::widget() const",
+        "method:SliderSpinBox::~SliderSpinBox()"
+      ]
+    },
+    {
+      "target": "SliderSpinBoxSchemaContractTest",
+      "source": "libs/libkis/tests/SliderSpinBoxSchemaContractTest.cpp",
+      "test": "SliderSpinBoxSchemaContractTest::sliderSpinBoxHardRangeSignaturesRemainStable",
+      "behavior": "整数・実数slider spin box wrapperは上下限とhard range設定について正確な値型、既定再計算方針、および実数桁数の既定引数を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:DoubleSliderSpinBox::setMaximum(qreal newMaximum,bool computeNewFastSliderStep=true)",
+        "method:DoubleSliderSpinBox::setMinimum(qreal newMinimum,bool computeNewFastSliderStep=true)",
+        "method:DoubleSliderSpinBox::setRange(qreal newMinimum,qreal newMaximum,int newNumberOfDecimals=0,bool computeNewFastSliderStep=true)",
+        "method:SliderSpinBox::setMaximum(int newMaximum,bool computeNewFastSliderStep=true)",
+        "method:SliderSpinBox::setMinimum(int newMinimum,bool computeNewFastSliderStep=true)",
+        "method:SliderSpinBox::setRange(int newMinimum,int newMaximum,bool computeNewFastSliderStep=true)"
+      ]
+    },
+    {
+      "target": "SliderSpinBoxSchemaContractTest",
+      "source": "libs/libkis/tests/SliderSpinBoxSchemaContractTest.cpp",
+      "test": "SliderSpinBoxSchemaContractTest::sliderSpinBoxSoftRangeAndStepSignaturesRemainStable",
+      "behavior": "整数・実数slider spin box wrapperはsoft rangeとfast stepの取得・設定について正確な整数・実数型、戻り型、const性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:DoubleSliderSpinBox::fastSliderStep() const",
+        "method:DoubleSliderSpinBox::setFastSliderStep(qreal newFastSliderStep)",
+        "method:DoubleSliderSpinBox::setSoftMaximum(qreal newSoftMaximum)",
+        "method:DoubleSliderSpinBox::setSoftMinimum(qreal newSoftMinimum)",
+        "method:DoubleSliderSpinBox::setSoftRange(qreal newSoftMinimum,qreal newSoftMaximum)",
+        "method:DoubleSliderSpinBox::softMaximum() const",
+        "method:DoubleSliderSpinBox::softMinimum() const",
+        "method:SliderSpinBox::fastSliderStep() const",
+        "method:SliderSpinBox::setFastSliderStep(int newFastSliderStep)",
+        "method:SliderSpinBox::setSoftMaximum(int newSoftMaximum)",
+        "method:SliderSpinBox::setSoftMinimum(int newSoftMinimum)",
+        "method:SliderSpinBox::setSoftRange(int newSoftMinimum,int newSoftMaximum)",
+        "method:SliderSpinBox::softMaximum() const",
+        "method:SliderSpinBox::softMinimum() const"
+      ]
+    },
+    {
+      "target": "SliderSpinBoxSchemaContractTest",
+      "source": "libs/libkis/tests/SliderSpinBoxSchemaContractTest.cpp",
+      "test": "SliderSpinBoxSchemaContractTest::sliderSpinBoxValueAndScalingSignaturesRemainStable",
+      "behavior": "整数・実数slider spin box wrapperは値設定と指数比設定について正確な整数・実数引数型とvoid戻り型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:DoubleSliderSpinBox::setExponentRatio(qreal newExponentRatio)",
+        "method:DoubleSliderSpinBox::setValue(qreal newValue)",
+        "method:SliderSpinBox::setExponentRatio(qreal newExponentRatio)",
+        "method:SliderSpinBox::setValue(int newValue)"
+      ]
+    },
+    {
+      "target": "SliderSpinBoxSchemaContractTest",
+      "source": "libs/libkis/tests/SliderSpinBoxSchemaContractTest.cpp",
+      "test": "SliderSpinBoxSchemaContractTest::sliderSpinBoxDraggingPolicySignaturesRemainStable",
+      "behavior": "整数・実数slider spin box wrapperはdrag状態取得、drag中の更新通知方針、および完了通知について正確な関数型とconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:DoubleSliderSpinBox::draggingFinished()",
+        "method:DoubleSliderSpinBox::isDragging() const",
+        "method:DoubleSliderSpinBox::setBlockUpdateSignalOnDrag(bool newBlockUpdateSignalOnDrag)",
+        "method:SliderSpinBox::draggingFinished()",
+        "method:SliderSpinBox::isDragging() const",
+        "method:SliderSpinBox::setBlockUpdateSignalOnDrag(bool newBlockUpdateSignalOnDrag)"
       ]
     }
   ]
