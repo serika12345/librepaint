@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 00:34 JST
+- 更新日時: 2026-09-02 00:39 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -37,7 +37,7 @@
 
 ### 第133便の担当計画
 
-- 実装共通基点は`12f7411ff92ab2235799f60650d5d117ac6b0c54`である。color value担当は`integrated`、tool invocationとtag model担当は`ready`、構築許可は指定試験targetと
+- 実装共通基点は`12f7411ff92ab2235799f60650d5d117ac6b0c54`である。color valueとtool invocation担当は`integrated`、tag model担当は`ready`、構築許可は指定試験targetと
   軽量近傍だけの`granted`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、専用worktree-local
   `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。統合順はcolor value、tool invocation、tag modelとし、
   調整担当だけが`AGENTS.md`、architecture文書、`docs/architecture/public-api-test-contracts.json`、共通不足報告を変更する。3担当の公開header、所有CMake、試験source、
@@ -77,6 +77,12 @@
   color space・profile・registry・変換を生成・実行していない。担当macOS環境と中央環境で対象CTest、担当環境で5枠個別、20回反復、近傍
   `KoColorSpaceSchemaContractTest`、無作業再構築、動的接続・未解決記号、構文・書式、公開API検査、`verify-quick`に成功した。公開headerのImath推移依存は
   `Imath::Imath`のincludeだけを明示し、新しいlink依存は追加していない。公開API契約検査は29,838件中13,258件対応、16,580件未対応となった。
+- `g133-tool-invocation-schema`は受渡しcommit`bb0e32ad6c97`を統合commit`cf5fd70234`として取り込んだ。開始
+  `libs/input/ui/kis_tool_invocation_action.h`から新規`libs/input/ui/tests/KisToolInvocationActionSchemaContractTest.cpp`の5枠へ、入力操作の型・寿命、主要shortcut値、
+  一時tool shortcut値、activation・event操作、policy照会の30 APIを対応付け、所有CMakeへheader限定対象を追加した。対象4工程・8入力、製品`kritainputui`
+  1,386工程・2,781入力と各集合は変更前後一致し、action・event・tool・canvas・input manager・resource・大域状態を生成・実行していない。担当macOS環境と中央環境で
+  対象CTest、担当環境で5枠個別、20回反復、近傍`KisPopupWidgetInterfaceContractTest`、無作業再構築、動的接続・未解決記号、構文・書式、公開API検査、
+  `verify-quick`に成功した。公開API契約検査は29,838件中13,288件対応、16,550件未対応となった。
 
 ### 第132便の先行監査計画
 

@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 16580
+    "expectedMissingApis": 16550
   },
   "contracts": [
     {
@@ -39247,6 +39247,81 @@
         "method:KoColor::added(const KoColor & value) const",
         "method:KoColor::subtract(const KoColor & value)",
         "method:KoColor::subtracted(const KoColor & value) const"
+      ]
+    },
+    {
+      "target": "KisToolInvocationActionSchemaContractTest",
+      "source": "libs/input/ui/tests/KisToolInvocationActionSchemaContractTest.cpp",
+      "test": "KisToolInvocationActionSchemaContractTest::toolInvocationTypeAndLifecycleSchemaRemainStable",
+      "behavior": "入力tool操作は抽象入力操作を継承するclass、shortcut列挙、既定構築、および仮想破棄の公開型schemaを維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisToolInvocationAction",
+        "enum:KisToolInvocationAction::Shortcut",
+        "method:KisToolInvocationAction::KisToolInvocationAction()",
+        "method:KisToolInvocationAction::~KisToolInvocationAction()"
+      ]
+    },
+    {
+      "target": "KisToolInvocationActionSchemaContractTest",
+      "source": "libs/input/ui/tests/KisToolInvocationActionSchemaContractTest.cpp",
+      "test": "KisToolInvocationActionSchemaContractTest::toolInvocationPrimaryShortcutOrdinalsRemainStable",
+      "behavior": "入力tool操作の起動・確定・取消・別色起動shortcutは現行の安定した列挙値を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "enumerator:KisToolInvocationAction::Shortcut::ActivateShortcut",
+        "enumerator:KisToolInvocationAction::Shortcut::ActivateWithOtherColorShortcut",
+        "enumerator:KisToolInvocationAction::Shortcut::CancelShortcut",
+        "enumerator:KisToolInvocationAction::Shortcut::ConfirmShortcut"
+      ]
+    },
+    {
+      "target": "KisToolInvocationActionSchemaContractTest",
+      "source": "libs/input/ui/tests/KisToolInvocationActionSchemaContractTest.cpp",
+      "test": "KisToolInvocationActionSchemaContractTest::toolInvocationTemporaryToolShortcutOrdinalsRemainStable",
+      "behavior": "入力tool操作の線・楕円・矩形・移動・塗潰し・gradient・計測・選択用shortcutは宣言順の安定した列挙値を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "enumerator:KisToolInvocationAction::Shortcut::ContigSelToolShortcut",
+        "enumerator:KisToolInvocationAction::Shortcut::EllipseSelToolShortcut",
+        "enumerator:KisToolInvocationAction::Shortcut::EllipseToolShortcut",
+        "enumerator:KisToolInvocationAction::Shortcut::FillToolShortcut",
+        "enumerator:KisToolInvocationAction::Shortcut::FreehandSelToolShortcut",
+        "enumerator:KisToolInvocationAction::Shortcut::GradientToolShortcut",
+        "enumerator:KisToolInvocationAction::Shortcut::LineToolShortcut",
+        "enumerator:KisToolInvocationAction::Shortcut::MeasureToolShortcut",
+        "enumerator:KisToolInvocationAction::Shortcut::MoveToolShortcut",
+        "enumerator:KisToolInvocationAction::Shortcut::RectSelToolShortcut",
+        "enumerator:KisToolInvocationAction::Shortcut::RectToolShortcut"
+      ]
+    },
+    {
+      "target": "KisToolInvocationActionSchemaContractTest",
+      "source": "libs/input/ui/tests/KisToolInvocationActionSchemaContractTest.cpp",
+      "test": "KisToolInvocationActionSchemaContractTest::toolInvocationActivationAndEventSignaturesRemainStable",
+      "behavior": "入力tool操作は起動・解除と入力eventの開始・終了・処理・未処理引渡しについて正確な関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisToolInvocationAction::activate(int shortcut)",
+        "method:KisToolInvocationAction::begin(int shortcut,QEvent * event)",
+        "method:KisToolInvocationAction::deactivate(int shortcut)",
+        "method:KisToolInvocationAction::end(QEvent * event)",
+        "method:KisToolInvocationAction::inputEvent(QEvent * event)",
+        "method:KisToolInvocationAction::processUnhandledEvent(QEvent * event)"
+      ]
+    },
+    {
+      "target": "KisToolInvocationActionSchemaContractTest",
+      "source": "libs/input/ui/tests/KisToolInvocationActionSchemaContractTest.cpp",
+      "test": "KisToolInvocationActionSchemaContractTest::toolInvocationPolicySignaturesRemainStable",
+      "behavior": "入力tool操作は優先度、修飾key、操作group、必須shortcut、高解像度入力対応の方針照会について正確な関数型とconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisToolInvocationAction::canIgnoreModifiers() const",
+        "method:KisToolInvocationAction::inputActionGroup(int shortcut) const",
+        "method:KisToolInvocationAction::isShortcutRequired(int shortcut) const",
+        "method:KisToolInvocationAction::priority() const",
+        "method:KisToolInvocationAction::supportsHiResInputEvents(int shortcut) const"
       ]
     }
   ]
