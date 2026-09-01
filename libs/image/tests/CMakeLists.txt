@@ -1260,8 +1260,13 @@ target_include_directories(KisImageTypesContractTest PRIVATE
     ${CMAKE_CURRENT_BINARY_DIR}/..
     ${CMAKE_SOURCE_DIR}/libs/global
     ${CMAKE_BINARY_DIR}/libs/global
+    ${CMAKE_SOURCE_DIR}/libs/pigment
+    ${CMAKE_BINARY_DIR}/libs/pigment
 )
-target_compile_definitions(KisImageTypesContractTest PRIVATE kritaimage_EXPORTS)
+target_compile_definitions(KisImageTypesContractTest PRIVATE
+    kritaimage_EXPORTS
+    kritapigment_EXPORTS
+)
 
 kis_add_test(
     KisImageConfigAnimationSchemaContractTest.cpp

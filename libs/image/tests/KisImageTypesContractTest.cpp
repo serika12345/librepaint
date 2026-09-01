@@ -6,6 +6,7 @@
 #include "brushengine/kis_paint_information.h"
 #include "kis_default_bounds.h"
 #include "kis_selection_filters.h"
+#include "kis_sequential_iterator.h"
 #include "kis_types.h"
 
 #include <QTest>
@@ -26,6 +27,12 @@ public:
 
 protected:
     KisPaintDeviceSP parentPaintDevice() const override;
+};
+
+class PaintDeviceConvertible
+{
+public:
+    operator KisPaintDeviceSP() const;
 };
 
 } // namespace
@@ -54,6 +61,11 @@ private Q_SLOTS:
     void paintInputCanvasOrientationSignaturesRemainStable();
     void paintInputDerivedMotionSignaturesRemainStable();
     void paintInputTiltConversionSignaturesRemainStable();
+    void sequentialIteratorTypeAndAliasSchemaRemainsStable();
+    void sequentialIteratorDevicePolicySchemaRemainsStable();
+    void sequentialIteratorAccessPolicySchemaRemainsStable();
+    void sequentialIteratorNoProgressPolicySchemaRemainsStable();
+    void sequentialIteratorTraversalSchemaRemainsStable();
 };
 
 void KisImageTypesContractTest::intrusivePointerAliasesPreserveOwnershipKinds()
@@ -588,6 +600,128 @@ void KisImageTypesContractTest::paintInputTiltConversionSignaturesRemainStable()
     static_assert(
         std::is_same_v<decltype(KisPaintInformation::tiltElevation(std::declval<const KisPaintInformation &>())),
                        qreal>);
+
+    QVERIFY(true);
+}
+
+void KisImageTypesContractTest::sequentialIteratorTypeAndAliasSchemaRemainsStable()
+{
+    using ConstPolicy = ReadOnlyIteratorPolicy<>;
+    using WritablePolicy = WritableIteratorPolicy<>;
+    using ConstIterator = KisSequentialIteratorBase<ConstPolicy>;
+    using WritableIterator = KisSequentialIteratorBase<WritablePolicy>;
+
+    static_assert(std::is_same_v<KisSequentialConstIterator, ConstIterator>);
+    static_assert(std::is_same_v<KisSequentialIterator, WritableIterator>);
+    static_assert(std::is_same_v<ConstPolicy::IteratorTypeSP, KisHLineConstIteratorSP>);
+    static_assert(std::is_same_v<WritablePolicy::IteratorTypeSP, KisHLineIteratorSP>);
+    static_assert(std::is_class_v<ConstIterator>);
+    static_assert(std::is_class_v<DevicePolicy>);
+    static_assert(std::is_class_v<NoProgressPolicy>);
+    static_assert(std::is_class_v<ConstPolicy>);
+    static_assert(std::is_class_v<WritablePolicy>);
+
+    QVERIFY(true);
+}
+
+void KisImageTypesContractTest::sequentialIteratorDevicePolicySchemaRemainsStable()
+{
+    using PaintDeviceMember = KisPaintDeviceSP DevicePolicy::*;
+    using CreateConstIteratorSignature = KisHLineConstIteratorSP (DevicePolicy::*)(const QRect &);
+    using CreateIteratorSignature = KisHLineIteratorSP (DevicePolicy::*)(const QRect &);
+    using PixelSizeSignature = int (DevicePolicy::*)() const;
+
+    static_assert(std::is_same_v<decltype(&DevicePolicy::m_dev), PaintDeviceMember>);
+    static_assert(std::is_constructible_v<DevicePolicy, KisPaintDeviceSP>);
+    static_assert(std::is_constructible_v<DevicePolicy, PaintDeviceConvertible>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<CreateConstIteratorSignature>(&DevicePolicy::createConstIterator)),
+                       CreateConstIteratorSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<CreateIteratorSignature>(&DevicePolicy::createIterator)),
+                                 CreateIteratorSignature>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<PixelSizeSignature>(&DevicePolicy::pixelSize)), PixelSizeSignature>);
+
+    QVERIFY(true);
+}
+
+void KisImageTypesContractTest::sequentialIteratorAccessPolicySchemaRemainsStable()
+{
+    using ConstPolicy = ReadOnlyIteratorPolicy<>;
+    using WritablePolicy = WritableIteratorPolicy<>;
+    using ConstIteratorMember = KisHLineConstIteratorSP ConstPolicy::*;
+    using WritableIteratorMember = KisHLineIteratorSP WritablePolicy::*;
+    using ConstRawDataSignature = const quint8 *(ConstPolicy::*)() const;
+    using WritableConstRawDataSignature = const quint8 *(WritablePolicy::*)() const;
+    using WritableRawDataSignature = quint8 *(WritablePolicy::*)();
+    using ConstUpdateSignature = void (ConstPolicy::*)();
+    using WritableUpdateSignature = void (WritablePolicy::*)();
+
+    static_assert(std::is_same_v<decltype(&ConstPolicy::m_iter), ConstIteratorMember>);
+    static_assert(std::is_constructible_v<ConstPolicy, DevicePolicy, const QRect &>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<ConstRawDataSignature>(&ConstPolicy::oldRawData)), ConstRawDataSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<ConstRawDataSignature>(&ConstPolicy::rawDataConst)),
+                                 ConstRawDataSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<ConstUpdateSignature>(&ConstPolicy::updatePointersCache)),
+                                 ConstUpdateSignature>);
+
+    static_assert(std::is_same_v<decltype(&WritablePolicy::m_iter), WritableIteratorMember>);
+    static_assert(std::is_constructible_v<WritablePolicy, DevicePolicy, const QRect &>);
+    static_assert(std::is_same_v<decltype(static_cast<WritableConstRawDataSignature>(&WritablePolicy::oldRawData)),
+                                 WritableConstRawDataSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<WritableRawDataSignature>(&WritablePolicy::rawData)),
+                                 WritableRawDataSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<WritableConstRawDataSignature>(&WritablePolicy::rawDataConst)),
+                                 WritableConstRawDataSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<WritableUpdateSignature>(&WritablePolicy::updatePointersCache)),
+                                 WritableUpdateSignature>);
+
+    QVERIFY(true);
+}
+
+void KisImageTypesContractTest::sequentialIteratorNoProgressPolicySchemaRemainsStable()
+{
+    using SetRangeSignature = void (NoProgressPolicy::*)(int, int);
+    using SetValueSignature = void (NoProgressPolicy::*)(int);
+    using SetFinishedSignature = void (NoProgressPolicy::*)();
+
+    static_assert(
+        std::is_same_v<decltype(static_cast<SetRangeSignature>(&NoProgressPolicy::setRange)), SetRangeSignature>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<SetValueSignature>(&NoProgressPolicy::setValue)), SetValueSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<SetFinishedSignature>(&NoProgressPolicy::setFinished)),
+                                 SetFinishedSignature>);
+
+    QVERIFY(true);
+}
+
+void KisImageTypesContractTest::sequentialIteratorTraversalSchemaRemainsStable()
+{
+    using Iterator = KisSequentialIterator;
+    using ConsecutivePixelsSignature = int (Iterator::*)() const;
+    using NextPixelSignature = bool (Iterator::*)();
+    using NextPixelsSignature = bool (Iterator::*)(int);
+    using OldRawDataSignature = const quint8 *(Iterator::*)() const;
+    using RawDataSignature = quint8 *(Iterator::*)();
+    using RawDataConstSignature = const quint8 *(Iterator::*)() const;
+    using CoordinateSignature = int (Iterator::*)() const;
+
+    static_assert(std::is_constructible_v<Iterator, DevicePolicy, const QRect &, NoProgressPolicy>);
+    static_assert(std::is_constructible_v<Iterator, DevicePolicy, const QRect &>);
+    static_assert(std::is_destructible_v<Iterator>);
+    static_assert(std::is_same_v<decltype(static_cast<ConsecutivePixelsSignature>(&Iterator::nConseqPixels)),
+                                 ConsecutivePixelsSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<NextPixelSignature>(&Iterator::nextPixel)), NextPixelSignature>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<NextPixelsSignature>(&Iterator::nextPixels)), NextPixelsSignature>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<OldRawDataSignature>(&Iterator::oldRawData)), OldRawDataSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<RawDataSignature>(&Iterator::rawData)), RawDataSignature>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<RawDataConstSignature>(&Iterator::rawDataConst)), RawDataConstSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<CoordinateSignature>(&Iterator::x)), CoordinateSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<CoordinateSignature>(&Iterator::y)), CoordinateSignature>);
 
     QVERIFY(true);
 }
