@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 09:44 JST
+- 更新日時: 2026-09-01 09:50 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -25,6 +25,21 @@
 - 各報告は完全なAPI識別子、最大5枠の観測挙動、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし計画、製品計画、予測工程・入力と停止線、
   開始pathから追加・移動先pathへの対応、許可path、固有停止条件、比較・除外候補の根拠を含む。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを
   担当票へ進める。
+- `g106-svg-layout-result-audit`は`KoSvgTextShape_p.h`の`CharacterResult`値面38 APIを採用した。位置・表示・索引、glyph・配置領域・offset、
+  改行・行端・均等割付、font・拡縮・metrics、cursor・anchor・方向と複製独立性を5枠へ固定する。新規header限定対象はQt Gui・Test・Xmlだけへ接続し、
+  最寄り`KoSvgTextFontMetricsValueContractTest`と同じ4工程・8入力を予測する。`fontHalfLeading`の未初期化既定値と、`ResolutionHandler`や
+  out-of-line `FontMetrics`演算へ到達する7メソッドは読まない。`CursorInfo`、`CursorPos`、`Glyph`は各責務が7、5、10 APIで、合計しても異なる値責務を
+  混在させるため棄却した。
+- `g106-opengl-config-values-audit`は`kis_opengl.h`の列挙・flag・renderer設定値27 APIを採用した。filter値、renderer bit、ANGLE・XCB値、
+  `RendererConfig`の既定値と値だけの分類、既知backend文字列の厳密な往復を5枠へ固定する。開始`libs/ui/opengl/kis_opengl.cpp`から純粋変換3本文だけを新規
+  `libs/ui/opengl/KisOpenGLRendererConfig.cpp`へ移し、専用OBJECTを製品へ一度、試験へ直接収容する。新対象は5工程・12入力、停止6工程・15入力、製品
+  `kritaapplicationui`は一翻訳単位だけ増える1,966工程・3,933入力を予測し、依存集合は不変とする。実OpenGL文脈・driver、`KisConfig` I/O、静的初期化には
+  到達しない。
+- `g106-derived-resource-values-audit`は候補なしとした。大域状態を避けたSize、BrushRotation、3 LOD値、BrushNameの6変換器は24 APIで採用下限に1件届かず、
+  7変換器目は`KisLockedPropertiesServer::instance()`へ入る。さらに24 API側も具体的な`KisPaintOpPreset`と非仮想`settings()`・`name()`を要求し、限定対象へ
+  閉じるには`kritaimage` 1,192工程・2,408入力や`kritaresources`へ接続するか、複数製品sourceを追加分離する必要がある。既存
+  `kis_derived_resources_test`は製品群と`kritatestsdk`を含む2,017工程・4,031入力であり、実preset、大域locked-properties、資源registryを避ける停止条件に
+  抵触するため実装へ進めない。
 
 ### 第105並列便の監査計画
 
