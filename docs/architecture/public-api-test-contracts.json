@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 17479
+    "expectedMissingApis": 17432
   },
   "contracts": [
     {
@@ -37223,6 +37223,98 @@
         "method:KoSvgTextPropertiesModel::LAGER_QT_CURSOR(bool,spanSelection)",
         "method:KoSvgTextPropertiesModel::LAGER_QT_CURSOR(int,textCollapse)",
         "method:KoSvgTextPropertiesModel::LAGER_QT_CURSOR(int,textWrap)"
+      ]
+    },
+    {
+      "target": "FreehandStrokeSchemaContractTest",
+      "source": "libs/painting/tests/FreehandStrokeSchemaContractTest.cpp",
+      "test": "FreehandStrokeSchemaContractTest::freehandStrategyFlagSchemaRemainsStable",
+      "behavior": "freehand stroke strategyは描画strategy基底、flag型、QFlags別名と継続stroke・時刻付き統合の列挙値を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:FreehandStrokeStrategy::Flags",
+        "class:FreehandStrokeStrategy",
+        "enum:FreehandStrokeStrategy::Flag",
+        "enumerator:FreehandStrokeStrategy::Flag::None",
+        "enumerator:FreehandStrokeStrategy::Flag::SupportsContinuedInterstrokeData",
+        "enumerator:FreehandStrokeStrategy::Flag::SupportsTimedMergeId"
+      ]
+    },
+    {
+      "target": "FreehandStrokeSchemaContractTest",
+      "source": "libs/painting/tests/FreehandStrokeSchemaContractTest.cpp",
+      "test": "FreehandStrokeSchemaContractTest::freehandDabTypeSchemaRemainsStable",
+      "behavior": "freehand dab jobはstroke job基底と、点・線・曲線・多角形・矩形・楕円・path描画を表す連続した公開種別値を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:FreehandStrokeStrategy::Data",
+        "enum:FreehandStrokeStrategy::Data::DabType",
+        "enumerator:FreehandStrokeStrategy::Data::DabType::CURVE",
+        "enumerator:FreehandStrokeStrategy::Data::DabType::ELLIPSE",
+        "enumerator:FreehandStrokeStrategy::Data::DabType::LINE",
+        "enumerator:FreehandStrokeStrategy::Data::DabType::PAINTER_PATH",
+        "enumerator:FreehandStrokeStrategy::Data::DabType::POINT",
+        "enumerator:FreehandStrokeStrategy::Data::DabType::POLYGON",
+        "enumerator:FreehandStrokeStrategy::Data::DabType::POLYLINE",
+        "enumerator:FreehandStrokeStrategy::Data::DabType::QPAINTER_PATH",
+        "enumerator:FreehandStrokeStrategy::Data::DabType::QPAINTER_PATH_FILL",
+        "enumerator:FreehandStrokeStrategy::Data::DabType::RECT"
+      ]
+    },
+    {
+      "target": "FreehandStrokeSchemaContractTest",
+      "source": "libs/painting/tests/FreehandStrokeSchemaContractTest.cpp",
+      "test": "FreehandStrokeSchemaContractTest::freehandDabPayloadMemberSchemaRemainsStable",
+      "behavior": "freehand dab jobはstroke識別子、dab種別、入力点、制御点、図形、path、pen、描画色の公開payload型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:FreehandStrokeStrategy::Data::control1",
+        "member:FreehandStrokeStrategy::Data::control2",
+        "member:FreehandStrokeStrategy::Data::customColor",
+        "member:FreehandStrokeStrategy::Data::path",
+        "member:FreehandStrokeStrategy::Data::pen",
+        "member:FreehandStrokeStrategy::Data::pi1",
+        "member:FreehandStrokeStrategy::Data::pi2",
+        "member:FreehandStrokeStrategy::Data::points",
+        "member:FreehandStrokeStrategy::Data::rect",
+        "member:FreehandStrokeStrategy::Data::strokeInfoId",
+        "member:FreehandStrokeStrategy::Data::type"
+      ]
+    },
+    {
+      "target": "FreehandStrokeSchemaContractTest",
+      "source": "libs/painting/tests/FreehandStrokeSchemaContractTest.cpp",
+      "test": "FreehandStrokeSchemaContractTest::freehandDabConstructionAndCloneSignaturesRemainStable",
+      "behavior": "freehand dab jobは入力点・制御点・図形・path・pen・色による構築形式とLOD複製の公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:FreehandStrokeStrategy::Data::Data(int _strokeInfoId,DabType _type,const QPainterPath & _path)",
+        "method:FreehandStrokeStrategy::Data::Data(int _strokeInfoId,DabType _type,const QPainterPath & _path,const QPen & _pen,const KoColor & _customColor)",
+        "method:FreehandStrokeStrategy::Data::Data(int _strokeInfoId,DabType _type,const QRectF & _rect)",
+        "method:FreehandStrokeStrategy::Data::Data(int _strokeInfoId,DabType _type,const vQPointF & _points)",
+        "method:FreehandStrokeStrategy::Data::Data(int _strokeInfoId,const KisPaintInformation & _pi)",
+        "method:FreehandStrokeStrategy::Data::Data(int _strokeInfoId,const KisPaintInformation & _pi1,const KisPaintInformation & _pi2)",
+        "method:FreehandStrokeStrategy::Data::Data(int _strokeInfoId,const KisPaintInformation & _pi1,const QPointF & _control1,const QPointF & _control2,const KisPaintInformation & _pi2)",
+        "method:FreehandStrokeStrategy::Data::createLodClone(int levelOfDetail)"
+      ]
+    },
+    {
+      "target": "FreehandStrokeSchemaContractTest",
+      "source": "libs/painting/tests/FreehandStrokeSchemaContractTest.cpp",
+      "test": "FreehandStrokeSchemaContractTest::freehandStrategyLifecycleAndCallbackSignaturesRemainStable",
+      "behavior": "freehand stroke strategyは単一・複数stroke情報と乱数seedによる構築、仮想破棄、開始・終了・job処理・LOD複製通知の公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:FreehandStrokeStrategy::FreehandStrokeStrategy(KisResourcesSnapshotSP resources,KisFreehandStrokeInfo * strokeInfo,const KUndo2MagicString & name,Flags flags,int dabRandomSeed)",
+        "method:FreehandStrokeStrategy::FreehandStrokeStrategy(KisResourcesSnapshotSP resources,KisFreehandStrokeInfo * strokeInfo,const KUndo2MagicString & name,Flags flags=None)",
+        "method:FreehandStrokeStrategy::FreehandStrokeStrategy(KisResourcesSnapshotSP resources,QVector<KisFreehandStrokeInfo * > strokeInfos,const KUndo2MagicString & name,Flags flags=None)",
+        "method:FreehandStrokeStrategy::createLodClone(int levelOfDetail)",
+        "method:FreehandStrokeStrategy::doStrokeCallback(KisStrokeJobData * data)",
+        "method:FreehandStrokeStrategy::finishStrokeCallback()",
+        "method:FreehandStrokeStrategy::initStrokeCallback()",
+        "method:FreehandStrokeStrategy::notifyUserEndedStroke()",
+        "method:FreehandStrokeStrategy::notifyUserStartedStroke()",
+        "method:FreehandStrokeStrategy::~FreehandStrokeStrategy()"
       ]
     }
   ]
