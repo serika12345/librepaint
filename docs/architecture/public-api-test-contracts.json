@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 18380
+    "expectedMissingApis": 18251
   },
   "contracts": [
     {
@@ -35242,6 +35242,270 @@
         "method:psd_layer_effects_bevel_emboss::texturePhase() const",
         "method:psd_layer_effects_bevel_emboss::textureVerticalPhase() const",
         "struct:psd_layer_effects_bevel_emboss"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::shadowBaseValueTypeAndActivationSignaturesRemainStable",
+      "behavior": "PSD影効果の基底は多態的な公開classであり、有効・選択反転・端隠蔽・knockout状態の正確な真偽値getter・setter型とconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:psd_layer_effects_shadow_base",
+        "method:psd_layer_effects_shadow_base::edgeHidden() const",
+        "method:psd_layer_effects_shadow_base::effectEnabled() const",
+        "method:psd_layer_effects_shadow_base::invertsSelection() const",
+        "method:psd_layer_effects_shadow_base::knocksOut() const",
+        "method:psd_layer_effects_shadow_base::setEdgeHidden(bool value)",
+        "method:psd_layer_effects_shadow_base::setEffectEnabled(bool value)",
+        "method:psd_layer_effects_shadow_base::setInvertsSelection(bool value)",
+        "method:psd_layer_effects_shadow_base::setKnocksOut(bool value)"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::shadowBaseBlendAndLightingSignaturesRemainStable",
+      "behavior": "PSD影効果のblend mode、opacity、角度、大域照明状態は正確な文字列・符号付き整数・真偽値getter・setter型とconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:psd_layer_effects_shadow_base::angle() const",
+        "method:psd_layer_effects_shadow_base::blendMode() const",
+        "method:psd_layer_effects_shadow_base::opacity() const",
+        "method:psd_layer_effects_shadow_base::setAngle(qint32 value)",
+        "method:psd_layer_effects_shadow_base::setBlendMode(QString value)",
+        "method:psd_layer_effects_shadow_base::setOpacity(qint32 value)",
+        "method:psd_layer_effects_shadow_base::setUseGlobalLight(bool value)",
+        "method:psd_layer_effects_shadow_base::useGlobalLight() const"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::shadowBaseGeometrySignaturesRemainStable",
+      "behavior": "PSD影効果の距離、拡散、寸法は正確な符号付き整数getter・setter型とconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:psd_layer_effects_shadow_base::distance() const",
+        "method:psd_layer_effects_shadow_base::setDistance(qint32 value)",
+        "method:psd_layer_effects_shadow_base::setSize(qint32 value)",
+        "method:psd_layer_effects_shadow_base::setSpread(qint32 value)",
+        "method:psd_layer_effects_shadow_base::size() const",
+        "method:psd_layer_effects_shadow_base::spread() const"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::shadowBaseContourVariationSignaturesRemainStable",
+      "behavior": "PSD影効果の輪郭antialias、noise、range、jitterは正確な真偽値・符号付き整数getter・setter型とconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:psd_layer_effects_shadow_base::antiAliased() const",
+        "method:psd_layer_effects_shadow_base::jitter() const",
+        "method:psd_layer_effects_shadow_base::noise() const",
+        "method:psd_layer_effects_shadow_base::range() const",
+        "method:psd_layer_effects_shadow_base::setAntiAliased(bool value)",
+        "method:psd_layer_effects_shadow_base::setJitter(qint32 value)",
+        "method:psd_layer_effects_shadow_base::setNoise(qint32 value)",
+        "method:psd_layer_effects_shadow_base::setRange(qint32 value)"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::shadowBaseFillTechniqueSignaturesRemainStable",
+      "behavior": "PSD影効果の塗り種別と方式は正確な列挙getter・setter型とconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:psd_layer_effects_shadow_base::fillType() const",
+        "method:psd_layer_effects_shadow_base::setFillType(psd_fill_type value)",
+        "method:psd_layer_effects_shadow_base::setTechnique(psd_technique_type value)",
+        "method:psd_layer_effects_shadow_base::technique() const"
+      ]
+    },
+    {
+      "target": "KStandardActionEnumContractTest",
+      "source": "libs/widgetutils/tests/KStandardActionEnumContractTest.cpp",
+      "test": "KStandardActionEnumContractTest::actionCollectionIdentityAndConfigurationSignaturesRemainStable",
+      "behavior": "action collectionの構築・寿命・全instance参照・component識別・GUI client・設定groupと読書きは正確な公開関数型、const性、既定引数を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisKActionCollection",
+        "method:KisKActionCollection::KisKActionCollection(QObject * parent,const QString & cName=QString ())",
+        "method:KisKActionCollection::allCollections()",
+        "method:KisKActionCollection::componentDisplayName() const",
+        "method:KisKActionCollection::componentName() const",
+        "method:KisKActionCollection::configGroup() const",
+        "method:KisKActionCollection::parentGUIClient() const",
+        "method:KisKActionCollection::readSettings()",
+        "method:KisKActionCollection::setComponentDisplayName(const QString & displayName)",
+        "method:KisKActionCollection::setComponentName(const QString & componentName)",
+        "method:KisKActionCollection::setConfigGroup(const QString & group)",
+        "method:KisKActionCollection::writeSettings(KConfigGroup * config=0,bool writeScheme=false,QAction * oneAction=0) const",
+        "method:KisKActionCollection::~KisKActionCollection()"
+      ]
+    },
+    {
+      "target": "KStandardActionEnumContractTest",
+      "source": "libs/widgetutils/tests/KStandardActionEnumContractTest.cpp",
+      "test": "KStandardActionEnumContractTest::actionCollectionLookupAndClassificationSignaturesRemainStable",
+      "behavior": "action collectionの件数、空状態、索引・名前検索、group・category分類は正確な公開関数型とconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisKActionCollection::action(const QString & name) const",
+        "method:KisKActionCollection::action(int index) const",
+        "method:KisKActionCollection::actionGroups() const",
+        "method:KisKActionCollection::actions() const",
+        "method:KisKActionCollection::actionsWithoutGroup() const",
+        "method:KisKActionCollection::categories() const",
+        "method:KisKActionCollection::count() const",
+        "method:KisKActionCollection::getCategory(const QString & categoryName)",
+        "method:KisKActionCollection::isEmpty() const"
+      ]
+    },
+    {
+      "target": "KStandardActionEnumContractTest",
+      "source": "libs/widgetutils/tests/KStandardActionEnumContractTest.cpp",
+      "test": "KStandardActionEnumContractTest::actionCollectionMembershipMutationSignaturesRemainStable",
+      "behavior": "action collectionへのaction追加・分類追加・一括追加・除去・引取り・消去は正確な公開関数型と既定引数を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisKActionCollection::add(const QString & name,const QObject * receiver=0,const char * member=0)",
+        "method:KisKActionCollection::addAction(KStandardAction::StandardAction actionType,const QObject * receiver=0,const char * member=0)",
+        "method:KisKActionCollection::addAction(KStandardAction::StandardAction actionType,const QString & name,const QObject * receiver=0,const char * member=0)",
+        "method:KisKActionCollection::addAction(const QString & name,QAction * action)",
+        "method:KisKActionCollection::addAction(const QString & name,const QObject * receiver=0,const char * member=0)",
+        "method:KisKActionCollection::addActions(const QList<QAction * > & actions)",
+        "method:KisKActionCollection::addCategorizedAction(const QString & name,QAction * action,const QString & categoryName)",
+        "method:KisKActionCollection::clear()",
+        "method:KisKActionCollection::removeAction(QAction * action)",
+        "method:KisKActionCollection::takeAction(QAction * action)"
+      ]
+    },
+    {
+      "target": "KStandardActionEnumContractTest",
+      "source": "libs/widgetutils/tests/KStandardActionEnumContractTest.cpp",
+      "test": "KStandardActionEnumContractTest::actionCollectionShortcutSignaturesRemainStable",
+      "behavior": "action collectionの既定shortcut、shortcut列、変更可否、更新は正確な公開関数型とconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisKActionCollection::defaultShortcut(QAction * action) const",
+        "method:KisKActionCollection::defaultShortcuts(QAction * action) const",
+        "method:KisKActionCollection::isShortcutsConfigurable(QAction * action) const",
+        "method:KisKActionCollection::setDefaultShortcut(QAction * action,const QKeySequence & shortcut)",
+        "method:KisKActionCollection::setDefaultShortcuts(QAction * action,const QList<QKeySequence> & shortcuts)",
+        "method:KisKActionCollection::setShortcutsConfigurable(QAction * action,bool configurable)",
+        "method:KisKActionCollection::updateShortcuts()"
+      ]
+    },
+    {
+      "target": "KStandardActionEnumContractTest",
+      "source": "libs/widgetutils/tests/KStandardActionEnumContractTest.cpp",
+      "test": "KStandardActionEnumContractTest::actionCollectionAssociationAndNotificationSignaturesRemainStable",
+      "behavior": "action collectionとwidgetの関連付け、およびaction挿入・強調・hover・発火通知は正確な公開関数型とconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisKActionCollection::actionHighlighted(QAction * action)",
+        "method:KisKActionCollection::actionHovered(QAction * action)",
+        "method:KisKActionCollection::actionTriggered(QAction * action)",
+        "method:KisKActionCollection::addAssociatedWidget(QWidget * widget)",
+        "method:KisKActionCollection::associateWidget(QWidget * widget) const",
+        "method:KisKActionCollection::associatedWidgets() const",
+        "method:KisKActionCollection::clearAssociatedWidgets()",
+        "method:KisKActionCollection::inserted(QAction * action)",
+        "method:KisKActionCollection::removeAssociatedWidget(QWidget * widget)"
+      ]
+    },
+    {
+      "target": "KoColorProfileSchemaContractTest",
+      "source": "libs/pigment/tests/KoColorProfileSchemaContractTest.cpp",
+      "test": "KoColorProfileSchemaContractTest::profileIdentityAndLifetimeSignaturesRemainStable",
+      "behavior": "色プロファイルは抽象的かつ仮想destructorを持つ公開classであり、複製・識別・由来・版・妥当性・filename更新の正確な公開関数型とconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoColorProfile",
+        "method:KoColorProfile::clone() const",
+        "method:KoColorProfile::colorModelID() const",
+        "method:KoColorProfile::copyright() const",
+        "method:KoColorProfile::fileName() const",
+        "method:KoColorProfile::info() const",
+        "method:KoColorProfile::manufacturer() const",
+        "method:KoColorProfile::name() const",
+        "method:KoColorProfile::operator ==(const KoColorProfile &) const",
+        "method:KoColorProfile::setFileName(const QString & filename)",
+        "method:KoColorProfile::type() const",
+        "method:KoColorProfile::uniqueId() const",
+        "method:KoColorProfile::valid() const",
+        "method:KoColorProfile::version() const",
+        "method:KoColorProfile::~KoColorProfile()"
+      ]
+    },
+    {
+      "target": "KoColorProfileSchemaContractTest",
+      "source": "libs/pigment/tests/KoColorProfileSchemaContractTest.cpp",
+      "test": "KoColorProfileSchemaContractTest::profileSuitabilityAndIntentSignaturesRemainStable",
+      "behavior": "色プロファイルの表示・入力・出力・印刷・作業領域適合性と4 rendering intent対応は引数なしの正確なconst真偽値queryを維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoColorProfile::isSuitableForDisplay() const",
+        "method:KoColorProfile::isSuitableForInput() const",
+        "method:KoColorProfile::isSuitableForOutput() const",
+        "method:KoColorProfile::isSuitableForPrinting() const",
+        "method:KoColorProfile::isSuitableForWorkspace() const",
+        "method:KoColorProfile::supportsAbsolute() const",
+        "method:KoColorProfile::supportsPerceptual() const",
+        "method:KoColorProfile::supportsRelative() const",
+        "method:KoColorProfile::supportsSaturation() const"
+      ]
+    },
+    {
+      "target": "KoColorProfileSchemaContractTest",
+      "source": "libs/pigment/tests/KoColorProfileSchemaContractTest.cpp",
+      "test": "KoColorProfileSchemaContractTest::profileChromaticitySignaturesRemainStable",
+      "behavior": "色プロファイルの色材・白色点・原色・HDR基準白は正確な公開関数型、静的区分、const性、既定引数を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoColorProfile::colorantsForType(ColorPrimaries primaries,KoColorimetryUtils::xy & whitePoint,QList<KoColorimetryUtils::xy> & colorants,const bool prequantized=false)",
+        "method:KoColorProfile::getColorPrimaries() const",
+        "method:KoColorProfile::getColorPrimariesName(ColorPrimaries primaries)",
+        "method:KoColorProfile::getColorantsXYZ() const",
+        "method:KoColorProfile::getColorantsxyY() const",
+        "method:KoColorProfile::getWhitePointXYZ() const",
+        "method:KoColorProfile::getWhitePointxyY() const",
+        "method:KoColorProfile::hasColorants() const",
+        "method:KoColorProfile::hdrReferenceWhite() const"
+      ]
+    },
+    {
+      "target": "KoColorProfileSchemaContractTest",
+      "source": "libs/pigment/tests/KoColorProfileSchemaContractTest.cpp",
+      "test": "KoColorProfileSchemaContractTest::profileTransferFunctionSignaturesRemainStable",
+      "behavior": "色プロファイルの伝達関数query・比較と正確・高速の線形化・逆線形化は正確な公開関数型、静的区分、const性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoColorProfile::compareTRC(TransferCharacteristics characteristics,float error) const",
+        "method:KoColorProfile::delinearizeFloatValue(QVector<qreal> & Value) const",
+        "method:KoColorProfile::delinearizeFloatValueFast(QVector<qreal> & Value) const",
+        "method:KoColorProfile::getEstimatedTRC() const",
+        "method:KoColorProfile::getTransferCharacteristicName(TransferCharacteristics curve)",
+        "method:KoColorProfile::getTransferCharacteristics() const",
+        "method:KoColorProfile::hasTRC() const",
+        "method:KoColorProfile::isLinear() const",
+        "method:KoColorProfile::linearizeFloatValue(QVector<qreal> & Value) const",
+        "method:KoColorProfile::linearizeFloatValueFast(QVector<qreal> & Value) const"
+      ]
+    },
+    {
+      "target": "KoColorProfileSchemaContractTest",
+      "source": "libs/pigment/tests/KoColorProfileSchemaContractTest.cpp",
+      "test": "KoColorProfileSchemaContractTest::profileSerializationSignaturesRemainStable",
+      "behavior": "色プロファイルの読込み、byte列取得、filename指定保存は正確な公開関数型とconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoColorProfile::load()",
+        "method:KoColorProfile::rawData() const",
+        "method:KoColorProfile::save(const QString & fileName)"
       ]
     }
   ]
