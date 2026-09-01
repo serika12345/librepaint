@@ -594,6 +594,24 @@ target_include_directories(KoSvgTextEnumContractTest PRIVATE
 target_compile_definitions(KoSvgTextEnumContractTest PRIVATE kritaflake_EXPORTS)
 
 kis_add_test(
+    KoSvgTextPropertiesModelSchemaContractTest.cpp
+    LINK_LIBRARIES
+        Boost::boost
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Xml
+        lager
+)
+target_include_directories(KoSvgTextPropertiesModelSchemaContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+)
+target_compile_definitions(KoSvgTextPropertiesModelSchemaContractTest PRIVATE kritaflake_EXPORTS)
+
+kis_add_test(
     KoSvgTextEnumConversionContractTest.cpp
     LINK_LIBRARIES
         kritaflakesvgtextenumconversionobjects
