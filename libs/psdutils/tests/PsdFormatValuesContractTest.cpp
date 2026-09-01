@@ -14,6 +14,33 @@
 
 #include <type_traits>
 
+namespace
+{
+
+template<typename Resource>
+void verifyLegacyResourceAcceptsAndIgnoresPayloads()
+{
+    static_assert(std::is_base_of_v<PSDInterpretedResource, Resource>);
+    static_assert(std::is_default_constructible_v<Resource>);
+
+    Resource resource;
+    QVERIFY(resource.error.isEmpty());
+    QVERIFY(resource.interpretBlock(QByteArray()));
+    QVERIFY(resource.error.isEmpty());
+    QVERIFY(resource.valid());
+    QVERIFY(resource.displayText().isEmpty());
+
+    QByteArray payload = QByteArray::fromHex("00017f80ff00");
+    const QByteArray originalPayload = payload;
+    QVERIFY(resource.interpretBlock(payload));
+    QCOMPARE(payload, originalPayload);
+    QVERIFY(resource.error.isEmpty());
+    QVERIFY(resource.valid());
+    QVERIFY(resource.displayText().isEmpty());
+}
+
+} // namespace
+
 class PsdFormatValuesContractTest : public QObject
 {
     Q_OBJECT
@@ -64,6 +91,11 @@ private Q_SLOTS:
     void resolutionInfoBlocksRoundTripInMemory();
     void iccProfileDefaultsAndCopiesRemainIndependent();
     void iccProfileBlocksValidateAndRoundTripInMemory();
+    void legacyResourceRecords1001To1014AcceptAndIgnorePayloads();
+    void legacyResourceRecords1015To1030AcceptAndIgnorePayloads();
+    void legacyResourceRecords1033To1045AcceptAndIgnorePayloads();
+    void legacyResourceRecords1046To1060AcceptAndIgnorePayloads();
+    void legacyPathAndPrintResourceRecordsAcceptAndIgnorePayloads();
 };
 
 void PsdFormatValuesContractTest::fileLimitsAndStorageEnumsRemainStable()
@@ -1878,6 +1910,74 @@ void PsdFormatValuesContractTest::iccProfileBlocksValidateAndRoundTripInMemory()
     QCOMPARE(nameLength, quint16(0));
     QCOMPARE(payloadSize, quint32(payload.size()));
     QCOMPARE(buffer.readAll(), payload);
+}
+
+void PsdFormatValuesContractTest::legacyResourceRecords1001To1014AcceptAndIgnorePayloads()
+{
+    verifyLegacyResourceAcceptsAndIgnoresPayloads<MAC_PRINT_INFO_1001>();
+    verifyLegacyResourceAcceptsAndIgnoresPayloads<ALPHA_NAMES_1006>();
+    verifyLegacyResourceAcceptsAndIgnoresPayloads<DISPLAY_INFO_1007>();
+    verifyLegacyResourceAcceptsAndIgnoresPayloads<CAPTION_1008>();
+    verifyLegacyResourceAcceptsAndIgnoresPayloads<BORDER_INFO_1009>();
+    verifyLegacyResourceAcceptsAndIgnoresPayloads<BACKGROUND_COL_1010>();
+    verifyLegacyResourceAcceptsAndIgnoresPayloads<PRINT_FLAGS_1011>();
+    verifyLegacyResourceAcceptsAndIgnoresPayloads<GREY_HALFTONE_1012>();
+    verifyLegacyResourceAcceptsAndIgnoresPayloads<COLOR_HALFTONE_1013>();
+    verifyLegacyResourceAcceptsAndIgnoresPayloads<DUOTONE_HALFTONE_1014>();
+}
+
+void PsdFormatValuesContractTest::legacyResourceRecords1015To1030AcceptAndIgnorePayloads()
+{
+    verifyLegacyResourceAcceptsAndIgnoresPayloads<GREY_XFER_1015>();
+    verifyLegacyResourceAcceptsAndIgnoresPayloads<COLOR_XFER_1016>();
+    verifyLegacyResourceAcceptsAndIgnoresPayloads<DUOTONE_XFER_1017>();
+    verifyLegacyResourceAcceptsAndIgnoresPayloads<DUOTONE_INFO_1018>();
+    verifyLegacyResourceAcceptsAndIgnoresPayloads<EFFECTIVE_BW_1019>();
+    verifyLegacyResourceAcceptsAndIgnoresPayloads<EPS_OPT_1021>();
+    verifyLegacyResourceAcceptsAndIgnoresPayloads<QUICK_MASK_1022>();
+    verifyLegacyResourceAcceptsAndIgnoresPayloads<LAYER_STATE_1024>();
+    verifyLegacyResourceAcceptsAndIgnoresPayloads<WORKING_PATH_1025>();
+    verifyLegacyResourceAcceptsAndIgnoresPayloads<LAYER_GROUP_1026>();
+    verifyLegacyResourceAcceptsAndIgnoresPayloads<IPTC_NAA_DATA_1028>();
+    verifyLegacyResourceAcceptsAndIgnoresPayloads<IMAGE_MODE_RAW_1029>();
+    verifyLegacyResourceAcceptsAndIgnoresPayloads<JPEG_QUAL_1030>();
+}
+
+void PsdFormatValuesContractTest::legacyResourceRecords1033To1045AcceptAndIgnorePayloads()
+{
+    verifyLegacyResourceAcceptsAndIgnoresPayloads<THUMB_RES_1033>();
+    verifyLegacyResourceAcceptsAndIgnoresPayloads<COPYRIGHT_FLG_1034>();
+    verifyLegacyResourceAcceptsAndIgnoresPayloads<URL_1035>();
+    verifyLegacyResourceAcceptsAndIgnoresPayloads<THUMB_RES2_1036>();
+    verifyLegacyResourceAcceptsAndIgnoresPayloads<COLOR_SAMPLER_1038>();
+    verifyLegacyResourceAcceptsAndIgnoresPayloads<WATERMARK_1040>();
+    verifyLegacyResourceAcceptsAndIgnoresPayloads<ICC_UNTAGGED_1041>();
+    verifyLegacyResourceAcceptsAndIgnoresPayloads<EFFECTS_VISIBLE_1042>();
+    verifyLegacyResourceAcceptsAndIgnoresPayloads<SPOT_HALFTONE_1043>();
+    verifyLegacyResourceAcceptsAndIgnoresPayloads<DOC_IDS_1044>();
+    verifyLegacyResourceAcceptsAndIgnoresPayloads<ALPHA_NAMES_UNI_1045>();
+}
+
+void PsdFormatValuesContractTest::legacyResourceRecords1046To1060AcceptAndIgnorePayloads()
+{
+    verifyLegacyResourceAcceptsAndIgnoresPayloads<IDX_COL_TAB_CNT_1046>();
+    verifyLegacyResourceAcceptsAndIgnoresPayloads<IDX_TRANSPARENT_1047>();
+    verifyLegacyResourceAcceptsAndIgnoresPayloads<SLICES_1050>();
+    verifyLegacyResourceAcceptsAndIgnoresPayloads<WORKFLOW_URL_UNI_1051>();
+    verifyLegacyResourceAcceptsAndIgnoresPayloads<JUMP_TO_XPEP_1052>();
+    verifyLegacyResourceAcceptsAndIgnoresPayloads<ALPHA_ID_1053>();
+    verifyLegacyResourceAcceptsAndIgnoresPayloads<URL_LIST_UNI_1054>();
+    verifyLegacyResourceAcceptsAndIgnoresPayloads<VERSION_INFO_1057>();
+    verifyLegacyResourceAcceptsAndIgnoresPayloads<EXIF_DATA_1058>();
+    verifyLegacyResourceAcceptsAndIgnoresPayloads<XMP_DATA_1060>();
+}
+
+void PsdFormatValuesContractTest::legacyPathAndPrintResourceRecordsAcceptAndIgnorePayloads()
+{
+    verifyLegacyResourceAcceptsAndIgnoresPayloads<PATH_INFO_FIRST_2000>();
+    verifyLegacyResourceAcceptsAndIgnoresPayloads<PATH_INFO_LAST_2998>();
+    verifyLegacyResourceAcceptsAndIgnoresPayloads<CLIPPING_PATH_2999>();
+    verifyLegacyResourceAcceptsAndIgnoresPayloads<PRINT_FLAGS_2_10000>();
 }
 
 QTEST_GUILESS_MAIN(PsdFormatValuesContractTest)
