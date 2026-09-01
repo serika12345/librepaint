@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 20:06 JST
+- 更新日時: 2026-09-01 20:08 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -36,6 +36,38 @@
 - 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから
   契約先または移動先、許可path、固有停止条件、比較候補の棄却根拠を含む。既存`build/tdd-macos`の計画は読み取り専用で測定し、構成や構築を開始しない。3報告後に
   path、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
+
+### 第127便の担当計画
+
+- 実装共通基点は`8f1da2d383`である。3担当は`preparing`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの
+  `transport-commit`、追加委任は禁止する。専用worktree-local `build/tdd-macos`と主作業treeの
+  `/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。統合順はconfig animation、SVG text coordinates、paint informationとし、
+  調整担当だけが台帳、進捗文書、不足報告を変更する。3担当の公開header、所有CMake、試験source、生成物は重ならない。
+- `g127-config-animation-schema`は`/Users/masato/Documents/librepaint-g127-config-animation-schema`を所有する。開始`libs/application/kis_config.h`から既存
+  `libs/application/tests/KisConfigEnumContractTest.cpp`の5枠`animationPlaybackPolicySignaturesRemainStable`、
+  `animationTimelineNavigationSignaturesRemainStable`、`animationScrubbingAndAudioSignaturesRemainStable`、
+  `animationCacheAndMediaBackendSignaturesRemainStable`、`animationFrameTransferSignaturesRemainStable`へ26 APIを対応付け、他pathを変更しない。対象4工程・15入力、
+  停止5工程・18入力、製品`kritaapplication` 1,225工程・2,468入力と各集合の完全一致を確認する。5枠の未知関数、対象CTest、20回反復、
+  `KisActionEnumContractTest`、no-work、動的接続、未解決設定記号、構文・書式・公開API・`verify-quick`を確認する。設定実体・method本文、KConfig・QSettings、
+  filesystem、FFmpeg process、animation cache、timeline・音声、QApplication、画面、大域状態、platform service、製品OBJECT・shared、`kritatestsdk`、新依存、
+  CMake・header・製品source変更、製品計画差、停止線超過が必要なら止める。
+- `g127-svg-text-coordinates-schema`は`/Users/masato/Documents/librepaint-g127-svg-text-coordinates-schema`を所有する。開始
+  `libs/flake/text/KoSvgText.h`から既存`libs/flake/tests/KoSvgTextEnumContractTest.cpp`の5枠`characterTransformationValueSchemaRemainsStable`、
+  `characterTransformationOperationSignaturesRemainStable`、`resolutionHandlerValueSchemaRemainsStable`、
+  `resolutionHandlerConversionSignaturesRemainStable`、`resolutionHandlerAdjustmentSignaturesRemainStable`へ34 APIを対応付け、他pathを変更しない。対象4工程・8入力、
+  停止5工程・11入力、製品`kritaflake` 619工程・1,270入力と各集合の完全一致を確認する。5枠の未知関数、対象CTest、20回反復、
+  `KoSvgTextFontMetricsValueContractTest`、no-work、動的接続、未解決SVG文字記号、構文・書式・公開API・`verify-quick`を確認する。out-of-line本文、shape、layout、
+  font database、HarfBuzz・FreeType、描画、画像、XML、資源、大域状態、製品OBJECT・shared、`kritatestsdk`、新依存、CMake・header・製品source変更、製品計画差、
+  停止線超過が必要なら止める。
+- `g127-paint-information-schema`は`/Users/masato/Documents/librepaint-g127-paint-information-schema`を所有する。開始
+  `libs/image/brushengine/kis_paint_information.h`から既存`libs/image/tests/KisImageTypesContractTest.cpp`の5枠
+  `paintInputPositionAndSensorSignaturesRemainStable`、`paintInputStrokeProgressSignaturesRemainStable`、`paintInputCanvasOrientationSignaturesRemainStable`、
+  `paintInputDerivedMotionSignaturesRemainStable`、`paintInputTiltConversionSignaturesRemainStable`へ32 APIを対応付け、
+  `libs/image/tests/CMakeLists.txt`で公開headerの既存Qt Gui・Xml・Boost依存だけを明示する。対象4工程・8入力、停止5工程・10入力、製品`kritaimage`
+  1,194工程・2,412入力と各集合の完全一致を確認する。5枠の未知関数、対象CTest、20回反復、`KisImageConfigAnimationSchemaContractTest`、no-work、動的接続、
+  未解決入力標本記号、構文・書式・公開API・`verify-quick`を確認する。入力標本・距離・乱数・spacing・timing実体、constructor・destructor・method本文、device、preset、
+  resource、paintop、stroke、描画、XML、設定I/O、大域状態、製品OBJECT・shared、`kritatestsdk`、既存header閉包外の新依存、公開header・製品source変更、製品計画差、
+  停止線超過が必要なら止める。
 
 ### 第126便の先行監査計画
 
