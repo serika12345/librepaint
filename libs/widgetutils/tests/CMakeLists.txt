@@ -183,6 +183,18 @@ kis_add_test(
 target_compile_definitions(KisDoubleParseSpinBoxContractTest PRIVATE kritawidgetutils_EXPORTS)
 
 kis_add_test(
+    KisSliderSpinBoxSchemaContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Widgets
+)
+target_include_directories(KisSliderSpinBoxSchemaContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+)
+target_compile_definitions(KisSliderSpinBoxSchemaContractTest PRIVATE kritawidgetutils_EXPORTS)
+
+kis_add_test(
     KStandardActionEnumContractTest.cpp
     LINK_LIBRARIES
         Qt${QT_MAJOR_VERSION}::Test
