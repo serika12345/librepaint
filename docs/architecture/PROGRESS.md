@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 20:57 JST
+- 更新日時: 2026-09-01 21:15 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -37,7 +37,8 @@
 
 ### 第128便の担当計画
 
-- 実装共通基点は`5eba25f8a1488dfc543aff5776439b0722d55963`である。3担当は`implementing`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの
+- 実装共通基点は`5eba25f8a1488dfc543aff5776439b0722d55963`である。properties configuration担当は`integrated`、composite operationとresource storage担当は`ready`、
+  構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの
   `transport-commit`、追加委任は禁止する。専用worktree-local `build/tdd-macos`と主作業treeの
   `/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。統合順はproperties configuration、composite operation、resource storageとし、
   調整担当だけが台帳、進捗文書、不足報告を変更する。3担当の公開header、製品source、所有CMake、試験source、生成物は重ならない。
@@ -66,6 +67,14 @@
   各集合の完全一致を確認する。5枠の未知関数、対象CTest、20回反復、`KisTagModelSchemaContractTest`、no-work、動的接続、未解決storage・resource・tag記号、構文・書式・
   公開API・`verify-quick`を確認する。storage・iterator・resource・tag実体、遅延読込、bundle・database・filesystem・plugin registry、static metadata値、GUI・大域状態、
   製品OBJECT・shared、`kritatestsdk`、新依存、CMake・header・製品source変更、製品計画差、停止線超過が必要なら止める。
+
+### 第128便の統合結果
+
+- `g128-properties-configuration-schema`は受渡しcommit`ff970ae9e574`を統合commit`bd6ed690f8`として取り込んだ。開始
+  `libs/image/kis_properties_configuration.h`から新規`libs/image/tests/KisPropertiesConfigurationSchemaContractTest.cpp`の5枠へ、property map面、型付き変換、
+  prefix転送、XML形式、key・文字列変換型の34 APIを対応付け、`libs/image/tests/CMakeLists.txt`へ専用targetを追加した。対象4工程・8入力、製品`kritaimage`
+  1,194工程・2,412入力と各集合は変更前後一致し、設定・色・曲線・XML、image・node・device・resource・registryを生成・実行していない。主macOS環境で対象CTest、
+  20回反復、近傍`KisImageConfigResourceBudgetSchemaContractTest`、無作業再構築、公開API検査、`verify-quick`に成功した。
 
 ### 第127便の先行監査計画
 

@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 17137
+    "expectedMissingApis": 17103
   },
   "contracts": [
     {
@@ -37970,6 +37970,85 @@
       "apis": [
         "method:KisPaintInformation::tiltDirection(const KisPaintInformation & info,bool normalize=true)",
         "method:KisPaintInformation::tiltElevation(const KisPaintInformation & info,qreal maxTiltX=60.0,qreal maxTiltY=60.0,bool normalize=true)"
+      ]
+    },
+    {
+      "target": "KisPropertiesConfigurationSchemaContractTest",
+      "source": "libs/image/tests/KisPropertiesConfigurationSchemaContractTest.cpp",
+      "test": "KisPropertiesConfigurationSchemaContractTest::propertyMapSurfaceAndMutationSignaturesRemainStable",
+      "behavior": "設定値mapは公開class種別、全件取得、key照会、値照会のoverload、存在判定、消去・設定・非保存指定の引数・返値とconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisPropertiesConfiguration",
+        "method:KisPropertiesConfiguration::clearProperties()",
+        "method:KisPropertiesConfiguration::compareTo(const KisPropertiesConfiguration * rhs) const",
+        "method:KisPropertiesConfiguration::getProperties() const",
+        "method:KisPropertiesConfiguration::getPropertiesKeys() const",
+        "method:KisPropertiesConfiguration::getProperty(const QString & name) const",
+        "method:KisPropertiesConfiguration::getProperty(const QString & name,QVariant & value) const",
+        "method:KisPropertiesConfiguration::hasProperty(const QString & name) const",
+        "method:KisPropertiesConfiguration::removeProperty(const QString & name)",
+        "method:KisPropertiesConfiguration::setProperty(const QString & name,const QVariant & value)",
+        "method:KisPropertiesConfiguration::setPropertyNotSaved(const QString & name)"
+      ]
+    },
+    {
+      "target": "KisPropertiesConfigurationSchemaContractTest",
+      "source": "libs/image/tests/KisPropertiesConfigurationSchemaContractTest.cpp",
+      "test": "KisPropertiesConfigurationSchemaContractTest::typedPropertyConversionAndDefaultSignaturesRemainStable",
+      "behavior": "設定値mapはbool・色・曲線・数値・文字列・文字列列への型付き取得、遅延既定値取得、文字列列設定の公開型と既定引数を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPropertiesConfiguration::getBool(const QString & name,bool def=false) const",
+        "method:KisPropertiesConfiguration::getColor(const QString & name,const KoColor & color=KoColor ()) const",
+        "method:KisPropertiesConfiguration::getCubicCurve(const QString & name,const KisCubicCurve & curve=KisCubicCurve ()) const",
+        "method:KisPropertiesConfiguration::getDouble(const QString & name,double def=0.0) const",
+        "method:KisPropertiesConfiguration::getFloat(const QString & name,float def=0.0) const",
+        "method:KisPropertiesConfiguration::getInt(const QString & name,int def=0) const",
+        "method:KisPropertiesConfiguration::getPropertyLazy(const QString & name,const QStringList & defaultValue) const",
+        "method:KisPropertiesConfiguration::getPropertyLazy(const QString & name,const T & defaultValue) const",
+        "method:KisPropertiesConfiguration::getPropertyLazy(const QString & name,const char * defaultValue) const",
+        "method:KisPropertiesConfiguration::getString(const QString & name,const QString & def=QString ()) const",
+        "method:KisPropertiesConfiguration::getStringList(const QString & name,const QStringList & defaultValue=QStringList ()) const",
+        "method:KisPropertiesConfiguration::setProperty(const QString & name,const QStringList & value)"
+      ]
+    },
+    {
+      "target": "KisPropertiesConfigurationSchemaContractTest",
+      "source": "libs/image/tests/KisPropertiesConfigurationSchemaContractTest.cpp",
+      "test": "KisPropertiesConfigurationSchemaContractTest::prefixedPropertyTransferSignaturesRemainStable",
+      "behavior": "設定値mapはprefix付き部分集合の取得・設定についてborrowed pointerと共有pointerのoverloadおよびconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPropertiesConfiguration::getPrefixedProperties(const QString & prefix,KisPropertiesConfiguration * config) const",
+        "method:KisPropertiesConfiguration::getPrefixedProperties(const QString & prefix,KisPropertiesConfigurationSP config) const",
+        "method:KisPropertiesConfiguration::setPrefixedProperties(const QString & prefix,const KisPropertiesConfiguration * config)",
+        "method:KisPropertiesConfiguration::setPrefixedProperties(const QString & prefix,const KisPropertiesConfigurationSP config)"
+      ]
+    },
+    {
+      "target": "KisPropertiesConfigurationSchemaContractTest",
+      "source": "libs/image/tests/KisPropertiesConfigurationSchemaContractTest.cpp",
+      "test": "KisPropertiesConfigurationSchemaContractTest::propertyXmlSerializationSignaturesRemainStable",
+      "behavior": "設定値mapはDOM・文字列からの読込みとDOM・文字列への書出しの公開型、const性、clear既定引数を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPropertiesConfiguration::fromXML(const QDomElement &)",
+        "method:KisPropertiesConfiguration::fromXML(const QString & xml,bool clear=true)",
+        "method:KisPropertiesConfiguration::toXML() const",
+        "method:KisPropertiesConfiguration::toXML(QDomDocument &,QDomElement &) const"
+      ]
+    },
+    {
+      "target": "KisPropertiesConfigurationSchemaContractTest",
+      "source": "libs/image/tests/KisPropertiesConfigurationSchemaContractTest.cpp",
+      "test": "KisPropertiesConfigurationSchemaContractTest::propertyKeyAndStringEncodingSignaturesRemainStable",
+      "behavior": "設定値mapは文字列escape・unescapeと抽出prefix keyの公開静的関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPropertiesConfiguration::escapeString(const QString & string)",
+        "method:KisPropertiesConfiguration::extractedPrefixKey()",
+        "method:KisPropertiesConfiguration::unescapeString(const QString & string)"
       ]
     }
   ]
