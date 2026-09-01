@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 06:05 JST
+- 更新日時: 2026-09-02 06:10 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -20,6 +20,15 @@
   image共有値・変換面の一責務を、image・node・paint device・stroke・projection・filesystem・大域registryの実体化なしで25 API以上閉じる。
 - `g139-canvas-resource-gamut-mask-schema-audit`は`libs/flake/KoCanvasResourceProvider.h`の残り45 APIを主候補とし、`libs/flake/resources/KoGamutMask.h`の38 APIを比較する。
   canvas資源提供者の公開通知・型面または色域mask資源の公開型面を、QObject実体、signal配送、resource I/O・SVG・painter・view・大域registryの実体化なしで25 API以上閉じる。
+- `g139-color-set-stop-gradient-schema-audit`は`KoColorSet.h`の全82 APIを採用した。型・形式・寿命20、直列化27、状態・配置15、検索10、変更・通知10を新規
+  `KoColorSetSchemaContractTest`の未評価型5枠へ対応付ける。新対象4工程・8入力、停止5工程・11入力、製品`kritapigment` 367工程・764入力を維持する。
+  `KoStopGradient.h`は局所停止点値と外側勾配資源へ責務が分かれ、具体観測がKoColor・色空間・QGradient・canvas資源・XML・I/Oへ到達するため棄却した。
+- `g139-layer-utils-krita-utils-schema-audit`は`kis_layer_utils.h`の全74 APIを採用した。結合方針・整列13、変更・projection命令17、階層検索・走査11、frame照会・job 10、
+  command型・寿命23を既存`KisImageTypesContractTest`の未評価型5枠へ対応付ける。CMakeを変更せず対象4工程・8入力、停止5工程・11入力、製品`kritaimage` 1,196工程・
+  2,416入力を維持する。`krita_utils.h`は単一の純粋幾何責務が24 APIに留まり、残りが文字列・不透明度・channel・地域化・node・device・描画へ分かれるため棄却した。
+- `g139-canvas-resource-gamut-mask-schema-audit`は`KoCanvasResourceProvider.h`の全45 APIを採用した。型・寿命・application方針6、資源access 14、表示資源10、拡張点12、
+  interface・通知3を新規`KoCanvasResourceProviderSchemaContractTest`の未評価型5枠へ対応付ける。新対象4工程・8入力、停止5工程・11入力、製品`kritaflake` 621工程・
+  1,274入力を維持する。`KoGamutMask.h`は2 classにまたがり、資源寿命・shape所有・座標変換・描画・preview・I/Oへ責務と依存が分散するため棄却した。
 - 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから契約先または
   移動先、許可path、固有停止条件、比較候補の棄却根拠を含む。既存`build/tdd-macos`の計画は読み取り専用で測定し、構成や構築を開始しない。3報告後にpath、CMake、
   試験source、生成物が重ならない候補だけを担当票へ進める。
