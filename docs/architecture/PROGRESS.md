@@ -2,12 +2,28 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 20:38 JST
+- 更新日時: 2026-09-01 20:40 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
+
+### 第128便の先行監査計画
+
+- 監査共通基点は`69eaa3126f0d9f51c588aba0fd5a97b4c53387e9`、入力は`build/tdd-macos/public-api-missing-g128.json`である。3担当は
+  `auditing`の読み取り専用とし、製品・試験・CMake・script・台帳・文書を変更せず、構築、試験、Git操作、追加委任も行わない。一つの公開責務から25 API以上を
+  最大5枠へ固定し、既存限定対象、header-only値面、または公開headerを変えない一sourceのOBJECT一対一移管で、製品共有ライブラリーと`kritatestsdk`へ接続しない
+  候補だけを採用する。
+- `g128-image-layer-schema-audit`は`libs/image/kis_layer_utils.h`の残り74 APIを主候補とし、`libs/image/kis_properties_configuration.h`の44 APIを比較する。
+  layer構造操作または設定値schemaの一責務を、image・node・paint device・XML・resource・filesystem・大域状態の実体化なしで25 API以上閉じる候補を選ぶ。
+- `g128-pigment-composite-schema-audit`は`libs/pigment/KoCompositeOp.h`の残り41 APIを主候補とし、`libs/pigment/KoColor.h`の45 APIを比較する。合成演算または色値の
+  公開schemaを、color space・profile・pixel buffer・合成処理・描画・registry・大域状態の実体化なしで25 API以上閉じる候補を選ぶ。
+- `g128-resource-storage-schema-audit`は`libs/resources/KisResourceStorage.h`の残り91 APIを主候補とし、`libs/pigment/resources/KoColorSet.h`の82 APIを比較する。
+  resource storageまたはpalette値の一責務を、保存域・bundle・database・filesystem・resource読込・色空間・画面・大域状態の実体化なしで25 API以上閉じる候補を選ぶ。
+- 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから
+  契約先または移動先、許可path、固有停止条件、比較候補の棄却根拠を含む。既存`build/tdd-macos`の計画は読み取り専用で測定し、構成や構築を開始しない。3報告後に
+  path、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
 
 ### 第127便の先行監査計画
 
