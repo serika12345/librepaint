@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 12:52 JST
+- 更新日時: 2026-09-01 12:58 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -506,7 +506,7 @@
 
 ### 第113便の担当計画
 
-- 実装共通基点は`c5416f411e7d940fb9ac9c840bb4b354a16392fe`である。2担当は`implementing`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は
+- 実装共通基点は`c5416f411e7d940fb9ac9c840bb4b354a16392fe`である。2担当は`integrated`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は
   許可pathだけの`transport-commit`、追加委任は禁止する。専用worktree-local `build/tdd-macos`と`./scripts/run-shared-test-env`で主環境・compiler cacheを
   共有する。統合順は設定、PSDとし、調整担当だけが台帳、進捗文書、不足報告を変更する。2担当の試験source、生成物、許可pathは相互に重ならない。
 - `g113-config-canvas-schema`は`/Users/masato/Documents/librepaint-g113-config-canvas-schema`を所有する。開始`libs/application/kis_config.h`から既存
@@ -526,6 +526,22 @@
   無作業再構築、動的接続、未解決製品記号、source構文、公開API検査、`verify-quick`を確認する。外側recordの実体化、device・channel pointer参照解決、実image・
   色空間・registry・ASL・filesystem、製品shared、`kritatestsdk`、新依存、公開header・CMake変更、停止線超過が必要なら止める。
 
+### 第113便の統合結果
+
+- `g113-config-canvas-schema`は受渡しcommit `c20bb9426a6d`と同一patchを統合commit `2b81f91f4d`として取り込んだ。開始
+  `libs/application/kis_config.h`から既存`libs/application/tests/KisConfigEnumContractTest.cpp`の5枠へ、透明checkerboard 10、pixel grid 6、
+  construction grid 14、guides 4、MDI canvas背景4の全38 APIを対応付けた。未評価の関数型と既定引数検査だけを用い、設定実体、GUI、filesystem、画像実在確認を
+  実行していない。対象は変更前後4工程・15入力、製品`kritaapplication`は1,224工程・2,466入力で不変である。
+- `g113-psd-layer-record-schema`は受渡しcommit `0074b2e5fd18`と同一patchを統合commit `97c803efc6`として取り込んだ。開始
+  `libs/psd/psd_layer_record.h`から既存`libs/psdutils/tests/PsdFormatValuesContractTest.cpp`の5枠へ、外側record直列化field型17、mask矩形5、mask制御8、
+  単一blending range 3、blending-range集合4の全37 APIを対応付けた。外側recordを実体化せず、nested aggregateの既定値・符号付き値・copy独立性だけを観測し、
+  device・channel pointer・実image・色空間へ到達していない。対象は変更前後6工程・14入力、製品`kritapsd`は1,979工程・3,956入力で不変かつ未構築である。
+- 主macOS環境では追加10枠、2対象CTest、各20回反復、近傍`KisActionEnumContractTest`と`PsdByteIoContractTest`、再構築時の無コンパイル・無リンク、
+  動的接続と未解決製品記号を確認した。公開API契約検査は75 APIを重複なく受理し、29,838件中11,143件対応、18,695件未対応となった。最新入力は
+  `build/tdd-macos/public-api-missing-g114.json`である。Linux、全native検証、製品全体構築は実行していない。
+- 新報告の生成と受渡しpatchの同一性、2 worktreeのclean状態を確認後、旧`public-api-missing-g113.json` 4.6 MB、設定担当853 MB、PSD担当859 MBと
+  2 branchを削除し、約1.71 GBを回収した。主`build/tdd-macos`、共有compiler cache、最新不足報告は次便の限定構築へ再利用する。
+
 ### 第114便の先行監査計画
 
 - `g114-resource-value-audit`は共通基点`3691e14048`と`build/tdd-macos/public-api-missing-g113.json`から第113便担当中の75 APIを除外して読む。
@@ -541,7 +557,7 @@
 
 ### 第114便の担当計画
 
-- `g114-tag-resource-model-schema`は`planned`、実装基点は`c5416f411e7d940fb9ac9c840bb4b354a16392fe`、専用worktreeは
+- `g114-tag-resource-model-schema`は`implementing`、実装基点は`c5416f411e7d940fb9ac9c840bb4b354a16392fe`、専用worktreeは
   `/Users/masato/Documents/librepaint-g114-tag-resource-model-schema`である。構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの
   `transport-commit`、追加委任は禁止する。worktree-local `build/tdd-macos`と`./scripts/run-shared-test-env`で主環境・compiler cacheを共有し、調整担当だけが
   台帳、進捗文書、不足報告を変更する。

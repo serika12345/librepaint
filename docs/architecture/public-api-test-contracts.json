@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 18770
+    "expectedMissingApis": 18695
   },
   "contracts": [
     {
@@ -34447,6 +34447,171 @@
       "apis": [
         "method:KisAllResourcesModel::setResourceActive(const QModelIndex & index,bool value)",
         "method:KisAllResourcesModel::setResourceMetaData(KoResourceSP resource,QMap<QString,QVariant> metadata)"
+      ]
+    },
+    {
+      "target": "KisConfigEnumContractTest",
+      "source": "libs/application/tests/KisConfigEnumContractTest.cpp",
+      "test": "KisConfigEnumContractTest::canvasCheckerboardSignaturesRemainStable",
+      "behavior": "透明checkerboardのcanvas境界色、格子寸法、2色、scroll設定は正確な公開関数型、const性、既定値指定を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisConfig::canvasBorderColor(bool defaultValue=false) const",
+        "method:KisConfig::checkSize(bool defaultValue=false) const",
+        "method:KisConfig::checkersColor1(bool defaultValue=false) const",
+        "method:KisConfig::checkersColor2(bool defaultValue=false) const",
+        "method:KisConfig::scrollCheckers(bool defaultValue=false) const",
+        "method:KisConfig::setCanvasBorderColor(const QColor & color) const",
+        "method:KisConfig::setCheckSize(qint32 checkSize) const",
+        "method:KisConfig::setCheckersColor1(const QColor & v) const",
+        "method:KisConfig::setCheckersColor2(const QColor & v) const",
+        "method:KisConfig::setScrollingCheckers(bool scrollCheckers) const"
+      ]
+    },
+    {
+      "target": "KisConfigEnumContractTest",
+      "source": "libs/application/tests/KisConfigEnumContractTest.cpp",
+      "test": "KisConfigEnumContractTest::pixelGridSignaturesRemainStable",
+      "behavior": "pixel gridの有効状態、色、描画閾値は真偽値・色・実数の公開関数型、const性、既定値指定を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisConfig::enablePixelGrid(bool v) const",
+        "method:KisConfig::getPixelGridColor(bool defaultValue=false) const",
+        "method:KisConfig::getPixelGridDrawingThreshold(bool defaultValue=false) const",
+        "method:KisConfig::pixelGridEnabled(bool defaultValue=false) const",
+        "method:KisConfig::setPixelGridColor(const QColor & v) const",
+        "method:KisConfig::setPixelGridDrawingThreshold(qreal v) const"
+      ]
+    },
+    {
+      "target": "KisConfigEnumContractTest",
+      "source": "libs/application/tests/KisConfigEnumContractTest.cpp",
+      "test": "KisConfigEnumContractTest::constructionGridSignaturesRemainStable",
+      "behavior": "construction gridの既定間隔と主線・分割線・等角垂直線のstyle・色は公開関数型、const性、既定値指定を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisConfig::getDefaultGridSpacing(bool defaultValue=false) const",
+        "method:KisConfig::getGridIsoVerticalColor(bool defaultValue=false) const",
+        "method:KisConfig::getGridIsoVerticalStyle(bool defaultValue=false) const",
+        "method:KisConfig::getGridMainColor(bool defaultValue=false) const",
+        "method:KisConfig::getGridMainStyle(bool defaultValue=false) const",
+        "method:KisConfig::getGridSubdivisionColor(bool defaultValue=false) const",
+        "method:KisConfig::getGridSubdivisionStyle(bool defaultValue=false) const",
+        "method:KisConfig::setDefaultGridSpacing(QPoint gridSpacing)",
+        "method:KisConfig::setGridIsoVerticalColor(const QColor & v) const",
+        "method:KisConfig::setGridIsoVerticalStyle(quint32 v) const",
+        "method:KisConfig::setGridMainColor(const QColor & v) const",
+        "method:KisConfig::setGridMainStyle(quint32 v) const",
+        "method:KisConfig::setGridSubdivisionColor(const QColor & v) const",
+        "method:KisConfig::setGridSubdivisionStyle(quint32 v) const"
+      ]
+    },
+    {
+      "target": "KisConfigEnumContractTest",
+      "source": "libs/application/tests/KisConfigEnumContractTest.cpp",
+      "test": "KisConfigEnumContractTest::guidesPresentationSignaturesRemainStable",
+      "behavior": "guide線のstyleと色は正確な公開関数型、const性、既定値指定を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisConfig::guidesColor(bool defaultValue=false) const",
+        "method:KisConfig::guidesLineStyle(bool defaultValue=false) const",
+        "method:KisConfig::setGuidesColor(const QColor & v) const",
+        "method:KisConfig::setGuidesLineStyle(quint32 v) const"
+      ]
+    },
+    {
+      "target": "KisConfigEnumContractTest",
+      "source": "libs/application/tests/KisConfigEnumContractTest.cpp",
+      "test": "KisConfigEnumContractTest::mdiCanvasBackgroundSignaturesRemainStable",
+      "behavior": "MDI canvas背景の色文字列と画像pathは正確な公開関数型、const性、既定値指定を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisConfig::getMDIBackgroundColor(bool defaultValue=false) const",
+        "method:KisConfig::getMDIBackgroundImage(bool defaultValue=false) const",
+        "method:KisConfig::setMDIBackgroundColor(const QString & v) const",
+        "method:KisConfig::setMDIBackgroundImage(const QString & fileName) const"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::layerRecordSerializedFieldTypesRemainStable",
+      "behavior": "PSD layer recordは矩形、channel数、blend、表示・保護状態、label・fill、mask・range・nameを直列化する公開fieldの正確な型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:PSDLayerRecord::blendModeKey",
+        "member:PSDLayerRecord::blendingRanges",
+        "member:PSDLayerRecord::bottom",
+        "member:PSDLayerRecord::clipping",
+        "member:PSDLayerRecord::fillType",
+        "member:PSDLayerRecord::irrelevant",
+        "member:PSDLayerRecord::isPassThrough",
+        "member:PSDLayerRecord::labelColor",
+        "member:PSDLayerRecord::layerMask",
+        "member:PSDLayerRecord::layerName",
+        "member:PSDLayerRecord::left",
+        "member:PSDLayerRecord::nChannels",
+        "member:PSDLayerRecord::opacity",
+        "member:PSDLayerRecord::right",
+        "member:PSDLayerRecord::top",
+        "member:PSDLayerRecord::transparencyProtected",
+        "member:PSDLayerRecord::visible"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::layerMaskRectanglePreservesSignedCoordinates",
+      "behavior": "PSD layer mask矩形はaggregate、4辺の符号付き32 bit型、零初期値、負座標を含む値copyの独立性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:PSDLayerRecord::LayerMaskData::bottom",
+        "member:PSDLayerRecord::LayerMaskData::left",
+        "member:PSDLayerRecord::LayerMaskData::right",
+        "member:PSDLayerRecord::LayerMaskData::top",
+        "struct:PSDLayerRecord::LayerMaskData"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::layerMaskControlsPreserveDefaultsAndCopyState",
+      "behavior": "PSD layer maskの既定色、位置・無効・反転flag、user・vector密度とfeatherは正確な型、現行既定値、値copyの独立性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:PSDLayerRecord::LayerMaskData::defaultColor",
+        "member:PSDLayerRecord::LayerMaskData::disabled",
+        "member:PSDLayerRecord::LayerMaskData::invertLayerMaskWhenBlending",
+        "member:PSDLayerRecord::LayerMaskData::positionedRelativeToLayer",
+        "member:PSDLayerRecord::LayerMaskData::userMaskDensity",
+        "member:PSDLayerRecord::LayerMaskData::userMaskFeather",
+        "member:PSDLayerRecord::LayerMaskData::vectorMaskDensity",
+        "member:PSDLayerRecord::LayerMaskData::vectorMaskFeather"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::layerBlendingRangePreservesEndpointArrays",
+      "behavior": "PSD単一blending rangeは黒・白の各2端点配列、零初期値、端点値の保持とcopy独立性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:PSDLayerRecord::LayerBlendingRanges::LayerBlendingRange::blackValues",
+        "member:PSDLayerRecord::LayerBlendingRanges::LayerBlendingRange::whiteValues",
+        "struct:PSDLayerRecord::LayerBlendingRanges::LayerBlendingRange"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::layerBlendingRangesPreserveValueCopies",
+      "behavior": "PSD blending-range集合はraw data、合成灰色範囲、channel別範囲の正確な値型とcopy後の独立性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:PSDLayerRecord::LayerBlendingRanges::compositeGrayRange",
+        "member:PSDLayerRecord::LayerBlendingRanges::data",
+        "member:PSDLayerRecord::LayerBlendingRanges::sourceDestinationRanges",
+        "struct:PSDLayerRecord::LayerBlendingRanges"
       ]
     }
   ]
