@@ -48,3 +48,20 @@ target_compile_definitions(AngleSelectorSchemaContractTest PRIVATE
     kritalibkis_EXPORTS
     kritawidgets_EXPORTS
 )
+
+kis_add_test(
+    SliderSpinBoxSchemaContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Widgets
+)
+target_include_directories(SliderSpinBoxSchemaContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/widgetutils
+    ${CMAKE_BINARY_DIR}/libs/widgetutils
+)
+target_compile_definitions(SliderSpinBoxSchemaContractTest PRIVATE
+    kritalibkis_EXPORTS
+    kritawidgetutils_EXPORTS
+)
