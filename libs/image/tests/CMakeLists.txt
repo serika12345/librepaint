@@ -1262,6 +1262,7 @@ target_include_directories(KisImageTypesContractTest PRIVATE
     ${CMAKE_BINARY_DIR}/libs/global
     ${CMAKE_SOURCE_DIR}/libs/pigment
     ${CMAKE_BINARY_DIR}/libs/pigment
+    $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
 )
 target_compile_definitions(KisImageTypesContractTest PRIVATE
     kritaimage_EXPORTS

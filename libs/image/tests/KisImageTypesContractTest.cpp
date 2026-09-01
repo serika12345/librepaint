@@ -6,6 +6,7 @@
 #include "brushengine/kis_paint_information.h"
 #include "kis_default_bounds.h"
 #include "kis_distance_information.h"
+#include "kis_histogram.h"
 #include "kis_selection_filters.h"
 #include "kis_sequential_iterator.h"
 #include "kis_stroke.h"
@@ -68,6 +69,11 @@ private Q_SLOTS:
     void distanceSpacingAndTimingSignaturesRemainStable();
     void distanceStrokeProgressSignaturesRemainStable();
     void distanceDrawingAngleLockSignaturesRemainStable();
+    void histogramTypeAndLifecycleSchemaRemainStable();
+    void histogramCalculationValueSchemaRemainsStable();
+    void histogramComputationAndResultSignaturesRemainStable();
+    void histogramTypeProducerAndChannelSignaturesRemainStable();
+    void histogramSelectionSignaturesRemainStable();
     void strokeTypeAndLifecycleSchemaRemainStable();
     void strokeJobQueueOperationSignaturesRemainStable();
     void strokeIdentityAndLifecycleTransitionSignaturesRemainStable();
@@ -719,6 +725,111 @@ void KisImageTypesContractTest::distanceDrawingAngleLockSignaturesRemainStable()
     static_assert(
         std::is_same_v<decltype(static_cast<LockedDrawingAngleSignature>(&Distance::lockedDrawingAngleOptional)),
                        LockedDrawingAngleSignature>);
+
+    QVERIFY(true);
+}
+
+void KisImageTypesContractTest::histogramTypeAndLifecycleSchemaRemainStable()
+{
+    static_assert(std::is_class_v<KisHistogram>);
+    static_assert(std::is_enum_v<enumHistogramType>);
+    static_assert(std::is_constructible_v<KisHistogram, KisPaintLayerSP, KoHistogramProducer *, enumHistogramType>);
+    static_assert(std::is_constructible_v<KisHistogram,
+                                          KisPaintDeviceSP,
+                                          const QRect &,
+                                          KoHistogramProducer *,
+                                          enumHistogramType>);
+    static_assert(std::has_virtual_destructor_v<KisHistogram>);
+
+    QCOMPARE(static_cast<int>(LINEAR), 0);
+    QCOMPARE(static_cast<int>(LOGARITHMIC), 1);
+}
+
+void KisImageTypesContractTest::histogramCalculationValueSchemaRemainsStable()
+{
+    using Calculations = KisHistogram::Calculations;
+    using DoubleGetter = double (Calculations::*)();
+    using CountGetter = quint32 (Calculations::*)();
+
+    static_assert(std::is_class_v<Calculations>);
+    static_assert(std::is_default_constructible_v<Calculations>);
+    static_assert(std::is_same_v<decltype(static_cast<DoubleGetter>(&Calculations::getMax)), DoubleGetter>);
+    static_assert(std::is_same_v<decltype(static_cast<DoubleGetter>(&Calculations::getMin)), DoubleGetter>);
+    static_assert(std::is_same_v<decltype(static_cast<DoubleGetter>(&Calculations::getMean)), DoubleGetter>);
+    static_assert(std::is_same_v<decltype(static_cast<DoubleGetter>(&Calculations::getTotal)), DoubleGetter>);
+    static_assert(std::is_same_v<decltype(static_cast<CountGetter>(&Calculations::getHighest)), CountGetter>);
+    static_assert(std::is_same_v<decltype(static_cast<CountGetter>(&Calculations::getLowest)), CountGetter>);
+    static_assert(std::is_same_v<decltype(static_cast<CountGetter>(&Calculations::getCount)), CountGetter>);
+
+    Calculations calculations;
+    QCOMPARE(calculations.getMax(), 0.0);
+    QCOMPARE(calculations.getMin(), 0.0);
+    QCOMPARE(calculations.getMean(), 0.0);
+    QCOMPARE(calculations.getTotal(), 0.0);
+    QCOMPARE(calculations.getHighest(), quint32(0));
+    QCOMPARE(calculations.getLowest(), quint32(0));
+    QCOMPARE(calculations.getCount(), quint32(0));
+}
+
+void KisImageTypesContractTest::histogramComputationAndResultSignaturesRemainStable()
+{
+    using Histogram = KisHistogram;
+    using VoidOperation = void (Histogram::*)();
+    using CalculationsQuery = Histogram::Calculations (Histogram::*)();
+    using ValueQuery = quint32 (Histogram::*)(quint8);
+    using TypeQuery = enumHistogramType (Histogram::*)();
+
+    static_assert(std::is_same_v<decltype(static_cast<VoidOperation>(&Histogram::updateHistogram)), VoidOperation>);
+    static_assert(std::is_same_v<decltype(static_cast<VoidOperation>(&Histogram::computeHistogram)), VoidOperation>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<CalculationsQuery>(&Histogram::calculations)), CalculationsQuery>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<CalculationsQuery>(&Histogram::selectionCalculations)), CalculationsQuery>);
+    static_assert(std::is_same_v<decltype(static_cast<ValueQuery>(&Histogram::getValue)), ValueQuery>);
+    static_assert(std::is_same_v<decltype(static_cast<TypeQuery>(&Histogram::getHistogramType)), TypeQuery>);
+
+    QVERIFY(true);
+}
+
+void KisImageTypesContractTest::histogramTypeProducerAndChannelSignaturesRemainStable()
+{
+    using Histogram = KisHistogram;
+    using SetTypeSignature = void (Histogram::*)(enumHistogramType);
+    using SetProducerSignature = void (Histogram::*)(KoHistogramProducer *);
+    using ProducerQuery = KoHistogramProducer *(Histogram::*)();
+    using SetChannelSignature = void (Histogram::*)(qint32);
+    using ChannelQuery = qint32 (Histogram::*)();
+
+    static_assert(
+        std::is_same_v<decltype(static_cast<SetTypeSignature>(&Histogram::setHistogramType)), SetTypeSignature>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<SetProducerSignature>(&Histogram::setProducer)), SetProducerSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<ProducerQuery>(&Histogram::producer)), ProducerQuery>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<SetChannelSignature>(&Histogram::setChannel)), SetChannelSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<ChannelQuery>(&Histogram::channel)), ChannelQuery>);
+
+    QVERIFY(true);
+}
+
+void KisImageTypesContractTest::histogramSelectionSignaturesRemainStable()
+{
+    using Histogram = KisHistogram;
+    using HasSelectionQuery = bool (Histogram::*)();
+    using SelectionBoundQuery = double (Histogram::*)();
+    using ClearSelectionSignature = void (Histogram::*)();
+    using SetSelectionSignature = void (Histogram::*)(double, double);
+
+    static_assert(
+        std::is_same_v<decltype(static_cast<HasSelectionQuery>(&Histogram::hasSelection)), HasSelectionQuery>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<SelectionBoundQuery>(&Histogram::selectionFrom)), SelectionBoundQuery>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<SelectionBoundQuery>(&Histogram::selectionTo)), SelectionBoundQuery>);
+    static_assert(std::is_same_v<decltype(static_cast<ClearSelectionSignature>(&Histogram::setNoSelection)),
+                                 ClearSelectionSignature>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<SetSelectionSignature>(&Histogram::setSelection)), SetSelectionSignature>);
 
     QVERIFY(true);
 }
