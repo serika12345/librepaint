@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 18:21 JST
+- 更新日時: 2026-09-01 18:31 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -24,6 +24,17 @@
 - `g125-psd-fill-schema-audit`は`libs/psd/psd_additional_layer_info_block.h`の残り43 APIを主候補とし、同headerの既存追加layer情報契約と
   `libs/psd/psd_layer_record.h`の23 APIを比較する。塗り、文字、vector記録の値・公開関数型から一責務を選び、実ASL・PSD入出力、gradient・pattern・shape・resource、
   filesystemを生成・実行しない。
+- `g125-freehand-schema-audit`は`freehand_stroke.h`の全47 APIを採用した。flag・strategy 6、dab種別12、job payload member 11、job構築・LOD clone 8、
+  strategy構築・callback・lifecycle 10を新規`FreehandStrokeSchemaContractTest`の未評価型5枠へ追加する。新対象は4工程・8入力、停止5工程・11入力、製品
+  `kritapainting` 1,215工程・2,452入力を維持する。既存`FreehandStrokeContractTest`は1,304工程・2,626入力で製品sharedと`kritatestsdk`へ接続し、
+  `kis_resources_snapshot.h`は複数の画像・資源・paint方針を横断するため棄却した。
+- `g125-cursor-schema-audit`は`kis_cursor.h`の全44 APIを採用した。型・標準factory 19、移動・変形factory 12、sampling・調整factory 9、mesh factory 2、
+  読込署名2を新規`KisCursorSchemaContractTest`の未評価型5枠へ追加する。新対象は4工程・8入力、停止5工程・11入力、製品`kritawidgetutils` 273工程・579入力を
+  維持する。`kxmlguiclient.h`はaction・XML・filesystem・widget所有を横断し、`kis_icon_utils.h`の純粋な型・値面は18 APIで下限未達のため棄却した。
+- `g125-psd-fill-schema-audit`は追加layer情報headerのsolid・gradient・pattern fill変換29 APIを採用した。gradient表現5、gradient入力・直列化5、pattern変換8、
+  solid値・表現7、solid入力・直列化4を既存`PsdFormatValuesContractTest`の未評価型5枠へ追加する。対象は6工程・14入力、停止7工程・16入力、製品
+  `kritapsdutils` 635工程・1,300入力と`kritapsd` 1,979工程・3,956入力を維持する。同headerの文字・vector残余14 APIと`psd_layer_record.h`の23 APIは
+  下限未達のため分離した。
 - 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから
   契約先または移動先、許可path、固有停止条件、比較候補の棄却根拠を含む。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
 
