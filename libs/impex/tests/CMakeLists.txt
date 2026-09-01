@@ -96,6 +96,25 @@ target_compile_definitions(KisMediaEncoderFormatAndSettingsContractTest PRIVATE
     kritaimpex_EXPORTS
 )
 
+kis_add_test(
+    KisFFMpegWrapperSchemaContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KisFFMpegWrapperSchemaContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/../animation
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/pigment
+    ${CMAKE_BINARY_DIR}/libs/application
+    ${CMAKE_BINARY_DIR}/libs/impex
+    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Widgets,INTERFACE_INCLUDE_DIRECTORIES>
+)
+target_compile_definitions(KisFFMpegWrapperSchemaContractTest PRIVATE
+    kritaapplicationui_EXPORTS
+    kritaimpex_EXPORTS
+)
+
 kis_add_tests(
     kis_remote_file_fetcher_test.cpp
     TEST_NAMES_VAR remote_file_fetcher_test_names
