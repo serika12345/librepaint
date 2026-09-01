@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 08:41 JST
+- 更新日時: 2026-09-01 09:08 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -46,12 +46,12 @@
 - 変更なし計画、直接依存、初期未充足の後、5枠、全対象CTest、20回反復、`PsdByteIoContractTest`、無作業再構築、動的接続、source構文、公開API検査、
   `verify-quick`を実行する。`psd_resource_block.cpp`、raw `resource`所有、RESN・ICC非inline経路、実QIODevice filesystem、製品shared、`kritatestsdk`、
   色・resource registry、ASL、停止線超過に到達した場合は編集を止める。
-- `g104-image-rects-walker-policy`は`planned`、実装基点は`05f93c6aa4`、worktreeは
+- `g104-image-rects-walker-policy`は`integrated`、実装基点は`05f93c6aa4`、削除済みworktreeは
   `/Users/masato/Documents/librepaint-g104-image-rects-walker-policy`とする。`libs/image/kis_base_rects_walker.h`の更新種別6、node位置12、subtree flag 6、
   `JobItem`・`LeafStack` 6、walker・clone通知型5の全35 APIを新規`KisBaseRectsWalkerPolicyContractTest`の5枠へ固定する。許可pathは新規試験sourceと
   `libs/image/tests/CMakeLists.txt`だけ、予測4工程・8入力、停止5工程・11入力、製品不変とする。fake walkerは型成立だけを確認して実体化せず、製品source、
   node・projection・image、製品shared、`kritatestsdk`へ接続しない。
-- `g104-tools-categories-mapper`は`planned`、実装基点は`05f93c6aa4`、worktreeは
+- `g104-tools-categories-mapper`は`integrated`、実装基点は`05f93c6aa4`、削除済みworktreeは
   `/Users/masato/Documents/librepaint-g104-tools-categories-mapper`とする。`libs/tools/ui/kis_categories_mapper.h`の構築・項目識別11、状態・通知14、category・entry追加検索7、
   行写像・削除・展開5、行signal 5の全42 APIを新規`KisCategoriesMapperContractTest`の5枠へ固定する。許可pathは新規試験sourceと
   `libs/tools/ui/tests/CMakeLists.txt`だけとし、既存`kritatoolsuicategorizedmodelobjects`を再利用する。予測8工程・17入力、停止9工程・20入力、製品不変とする。
@@ -71,6 +71,28 @@
 - `g104-utility-model-values-audit`は`KisCategoriesMapper`の全42 APIを採用した。既存`kritatoolsuicategorizedmodelobjects`は4工程・9入力でQt Coreだけに閉じ、
   新契約は8工程・17入力を予測する。`KisWidgetConnectionUtils`はheader-only値面25 APIまで閉じるが実property接続を含まず、`krita_utils`は単一の純粋責務が
   25 API未満のため次点・棄却とした。
+
+### 第104並列便の統合結果
+
+- `g104-psd-document-space-values`は受渡しcommit `798a42407cae`を統合commit `b54fb163df`として取り込んだ。既存
+  `libs/psdutils/tests/PsdFormatValuesContractTest.cpp`へ5枠を追加し、`libs/psdutils/tests/CMakeLists.txt`では既存
+  `kritaglobaldebugobjects`だけを試験へ静的収容した。グリッド・ガイドの既定値と複製、資源block往復と方向診断、大域照明角度・高度の既定値・符号付き値・
+  資源block往復の26 APIを固定した。限定対象は5工程・12入力、製品`kritapsd`は1,976工程・3,950入力のままで構築していない。
+- `g104-tools-categories-mapper`は受渡しcommit `020b86d11787`を統合commit `56e67f8d6f`として取り込んだ。新規
+  `libs/tools/ui/tests/KisCategoriesMapperContractTest.cpp`と`libs/tools/ui/tests/CMakeLists.txt`で、分類・項目の同一性と寿命、状態変更と通知、追加・検索、
+  行写像・除去・展開、行signal順序の42 APIを5枠へ固定した。既存`kritatoolsuicategorizedmodelobjects`を再利用し、限定対象は8工程・16入力、同OBJECTは
+  4工程・9入力、製品`kritatoolsui`は1,245工程・2,510入力のままで構築していない。選択解除でも`toggled`を真にする現行遷移、lock系setterが通知しない挙動、
+  無効行を契約外とする境界を維持した。
+- `g104-image-rects-walker-policy`は受渡しcommit `42f26a5f269f`を統合commit `07b07ca4fa`として取り込んだ。新規
+  `libs/image/tests/KisBaseRectsWalkerPolicyContractTest.cpp`と`libs/image/tests/CMakeLists.txt`で、更新種別、節位置と汚染位置変換、部分木走査flag、仕事項目、
+  walker・複製通知型の35 APIを5枠へ固定した。限定対象は4工程・8入力で製品を構築していない。公開headerの既存include列によりglobal、pigment、resources、
+  psdutils、KF I18n、Imathの検索pathが必要だが、構築・動的接続はQt Core・Gui・Testだけに閉じ、製品shared libraryと`kritatestsdk`へ接続していない。
+- 主macOS環境では追加15枠、3対象CTest、各20回反復、近傍`PsdByteIoContractTest`、`KisImageBarrierLockContractTest`、
+  `KisDefaultBoundsBaseContractTest`、`KisPaintOpsModelContractTest`、再構築時の無コンパイル・無リンク、3sourceの単体構文、動的接続を確認した。
+  公開API契約検査は第104便の103 APIを重複なく受理し、29,838件中10,443件対応、19,395件未対応となった。最新入力は
+  `build/tdd-macos/public-api-missing-g105.json`である。Linux、全native検証、製品全体リンクはこの便では実行していない。
+- 新報告の生成と受渡し差分の同一性を確認後、旧`public-api-missing-g104.json` 4.8 MB、cleanなPSD担当640 MB、分類写像担当630 MB、
+  矩形走査担当642 MBと3 branchを削除し、約1.91 GBを回収した。主`build/tdd-macos`と共有compiler cacheは次便の限定構築へ再利用する。
 
 ### 第103並列便の監査計画
 
@@ -12367,10 +12389,10 @@
 
 ## 次の操作
 
-第53並列便の計画コミットを共通基点として3担当作業ツリーを作成し、表示色設定値、描画済みdab値、曲線範囲模型境界を並列実装する。
-主作業ツリーではAndroid条件付き設定通知を実装する。各担当は未知対象診断、単発・20回反復CTest、軽量近傍、限定閉包、製品共有
-ライブラリー非接続、整形検査、`verify-quick`を確認し、中央台帳は変更しない。統合担当は各成果を取り込んで台帳を合算し、担当
-作業ツリーを直ちに削除した後、主増分構築木で4限定対象と4近傍を結合検査する。
+`build/tdd-macos/public-api-missing-g105.json`から第105並列便の非重複候補を3担当で監査する。既知の次点
+`libs/widgets/KisWidgetConnectionUtils.h`のheader-only状態値25 APIを再評価し、他2担当は異なる所有pathから25 API以上を最大5枠、
+限定対象か一sourceの一対一構築所有で固定できる候補を探す。監査結果を担当票へ確定する前に、変更なし計画、直接依存、予測閉包、
+製品shared library・`kritatestsdk`非接続、許可pathと停止線を照合する。
 
 ## R1-G5完了根拠
 

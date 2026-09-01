@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 19498
+    "expectedMissingApis": 19395
   },
   "contracts": [
     {
@@ -32819,6 +32819,244 @@
       "apis": [
         "method:KisSpinBoxUnitManager::clearSyncWithOtherUnitManager(KisSpinBoxUnitManager * other)",
         "method:KisSpinBoxUnitManager::syncWithOtherUnitManager(KisSpinBoxUnitManager * other)"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::gridGuideDefaultsAndCopiesPreserveSpatialValues",
+      "behavior": "PSDのグリッド・ガイド資源値は文書倍率と空間値の既定値を持ち、複製後の変更から元の値を独立させる。",
+      "classification": "maintained",
+      "apis": [
+        "member:GRID_GUIDE_1032::documentMultiplier",
+        "member:GRID_GUIDE_1032::gridHorizontal",
+        "member:GRID_GUIDE_1032::gridVertical",
+        "member:GRID_GUIDE_1032::horizontalGuides",
+        "member:GRID_GUIDE_1032::version",
+        "member:GRID_GUIDE_1032::verticalGuides",
+        "method:GRID_GUIDE_1032::GRID_GUIDE_1032()",
+        "struct:GRID_GUIDE_1032"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::gridGuideBlocksRoundTripAndDescribeOrientation",
+      "behavior": "PSDのグリッド・ガイド資源は符号付き間隔と方向別ガイドをバイト列へ往復し、人が読める向きの説明を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:GRID_GUIDE_1032::createBlock(QByteArray & data)",
+        "method:GRID_GUIDE_1032::displayText()",
+        "method:GRID_GUIDE_1032::interpretBlock(QByteArray data)",
+        "method:GRID_GUIDE_1032::valid()"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::globalAngleDefaultsCopyAndDescribeSignedValues",
+      "behavior": "PSDの大域照明角度は既定値30を持ち、符号付き角度を値として複製し説明する。",
+      "classification": "maintained",
+      "apis": [
+        "member:GLOBAL_ANGLE_1037::angle",
+        "method:GLOBAL_ANGLE_1037::GLOBAL_ANGLE_1037()",
+        "method:GLOBAL_ANGLE_1037::displayText()",
+        "method:GLOBAL_ANGLE_1037::valid()",
+        "struct:GLOBAL_ANGLE_1037"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::globalAltitudeDefaultsCopyAndDescribeSignedValues",
+      "behavior": "PSDの大域照明高度は既定値30を持ち、符号付き高度を値として複製し説明する。",
+      "classification": "maintained",
+      "apis": [
+        "member:GLOBAL_ALT_1049::altitude",
+        "method:GLOBAL_ALT_1049::GLOBAL_ALT_1049()",
+        "method:GLOBAL_ALT_1049::displayText()",
+        "method:GLOBAL_ALT_1049::valid()",
+        "struct:GLOBAL_ALT_1049"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::globalLightingBlocksRoundTripSignedValues",
+      "behavior": "PSDの大域照明角度と高度は資源識別子と符号付き値を保ってバイト列へ往復する。",
+      "classification": "maintained",
+      "apis": [
+        "method:GLOBAL_ALT_1049::createBlock(QByteArray & data)",
+        "method:GLOBAL_ALT_1049::interpretBlock(QByteArray data)",
+        "method:GLOBAL_ANGLE_1037::createBlock(QByteArray & data)",
+        "method:GLOBAL_ANGLE_1037::interpretBlock(QByteArray data)"
+      ]
+    },
+    {
+      "target": "KisCategoriesMapperContractTest",
+      "source": "libs/tools/ui/tests/KisCategoriesMapperContractTest.cpp",
+      "test": "KisCategoriesMapperContractTest::constructionCategoryAndEntryIdentityRemainStable",
+      "behavior": "分類写像は分類項目と値項目の同一性、親子関係、値の複製所有、QObject寿命を保つ。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisCategoriesMapper",
+        "class:KisCategoriesMapper::DataItem",
+        "class:__CategoriesSignalsBase",
+        "method:KisCategoriesMapper::DataItem::DataItem(const QString & categoryName,KisCategoriesMapper * parent)",
+        "method:KisCategoriesMapper::DataItem::DataItem(const TEntry & entry,DataItem * category,KisCategoriesMapper * parent)",
+        "method:KisCategoriesMapper::DataItem::data() const",
+        "method:KisCategoriesMapper::DataItem::isCategory() const",
+        "method:KisCategoriesMapper::DataItem::name() const",
+        "method:KisCategoriesMapper::DataItem::parentCategory() const",
+        "method:KisCategoriesMapper::KisCategoriesMapper()",
+        "method:KisCategoriesMapper::~KisCategoriesMapper()"
+      ]
+    },
+    {
+      "target": "KisCategoriesMapperContractTest",
+      "source": "libs/tools/ui/tests/KisCategoriesMapperContractTest.cpp",
+      "test": "KisCategoriesMapperContractTest::itemStateDefaultsMutationsAndNotificationsRemainStable",
+      "behavior": "分類項目は展開・有効・選択・固定状態の既定値と変更通知を保ち、選択遷移では解除時も切替済み状態を立てる。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCategoriesMapper::DataItem::isCheckable() const",
+        "method:KisCategoriesMapper::DataItem::isChecked() const",
+        "method:KisCategoriesMapper::DataItem::isEnabled() const",
+        "method:KisCategoriesMapper::DataItem::isExpanded() const",
+        "method:KisCategoriesMapper::DataItem::isLockable() const",
+        "method:KisCategoriesMapper::DataItem::isLocked() const",
+        "method:KisCategoriesMapper::DataItem::isToggled() const",
+        "method:KisCategoriesMapper::DataItem::setCheckable(bool value)",
+        "method:KisCategoriesMapper::DataItem::setChecked(bool value)",
+        "method:KisCategoriesMapper::DataItem::setEnabled(bool value)",
+        "method:KisCategoriesMapper::DataItem::setExpanded(bool value)",
+        "method:KisCategoriesMapper::DataItem::setLockable(bool value)",
+        "method:KisCategoriesMapper::DataItem::setLocked(bool value)",
+        "method:KisCategoriesMapper::DataItem::setToggled(bool value)"
+      ]
+    },
+    {
+      "target": "KisCategoriesMapperContractTest",
+      "source": "libs/tools/ui/tests/KisCategoriesMapperContractTest.cpp",
+      "test": "KisCategoriesMapperContractTest::categoryEntryInsertionAndLookupRemainStable",
+      "behavior": "分類写像は分類の暗黙追加、重複抑止、分類内と横断の検索、挿入順の行数を保つ。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCategoriesMapper::addCategory(const QString & category)",
+        "method:KisCategoriesMapper::addEntry(const QString & category,const TEntry & entry)",
+        "method:KisCategoriesMapper::fetchCategory(const QString & category) const",
+        "method:KisCategoriesMapper::fetchEntry(const QString & category,const TEntry & entry) const",
+        "method:KisCategoriesMapper::fetchOneEntry(const TEntry & entry) const",
+        "method:KisCategoriesMapper::itemsForCategory(const QString & category) const",
+        "method:KisCategoriesMapper::rowCount() const"
+      ]
+    },
+    {
+      "target": "KisCategoriesMapperContractTest",
+      "source": "libs/tools/ui/tests/KisCategoriesMapperContractTest.cpp",
+      "test": "KisCategoriesMapperContractTest::rowMappingRemovalAndExpansionRemainStable",
+      "behavior": "分類写像は有効行の項目対応、一括展開、値と分類の除去後の行詰めを一貫させる。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCategoriesMapper::expandAllCategories()",
+        "method:KisCategoriesMapper::itemFromRow(int row) const",
+        "method:KisCategoriesMapper::removeCategory(const QString & category)",
+        "method:KisCategoriesMapper::removeEntry(const QString & category,const TEntry & entry)",
+        "method:KisCategoriesMapper::rowFromItem(DataItem * item) const"
+      ]
+    },
+    {
+      "target": "KisCategoriesMapperContractTest",
+      "source": "libs/tools/ui/tests/KisCategoriesMapperContractTest.cpp",
+      "test": "KisCategoriesMapperContractTest::rowSignalProtocolRemainsStable",
+      "behavior": "分類写像は行挿入・除去の開始終了と状態変更を安定したsignal署名と順序で通知する。",
+      "classification": "maintained",
+      "apis": [
+        "method:__CategoriesSignalsBase::beginInsertRow(int row)",
+        "method:__CategoriesSignalsBase::beginRemoveRow(int row)",
+        "method:__CategoriesSignalsBase::endInsertRow()",
+        "method:__CategoriesSignalsBase::endRemoveRow()",
+        "method:__CategoriesSignalsBase::rowChanged(int row)"
+      ]
+    },
+    {
+      "target": "KisBaseRectsWalkerPolicyContractTest",
+      "source": "libs/image/tests/KisBaseRectsWalkerPolicyContractTest.cpp",
+      "test": "KisBaseRectsWalkerPolicyContractTest::updateTypesKeepStableOrdinals",
+      "behavior": "矩形走査の更新種別は通常更新から非対応までの直列化可能な序数を保つ。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KisBaseRectsWalker::UpdateType",
+        "enumerator:KisBaseRectsWalker::UpdateType::FULL_REFRESH",
+        "enumerator:KisBaseRectsWalker::UpdateType::FULL_REFRESH_NO_FILTHY",
+        "enumerator:KisBaseRectsWalker::UpdateType::UNSUPPORTED",
+        "enumerator:KisBaseRectsWalker::UpdateType::UPDATE",
+        "enumerator:KisBaseRectsWalker::UpdateType::UPDATE_NO_FILTHY"
+      ]
+    },
+    {
+      "target": "KisBaseRectsWalkerPolicyContractTest",
+      "source": "libs/image/tests/KisBaseRectsWalkerPolicyContractTest.cpp",
+      "test": "KisBaseRectsWalkerPolicyContractTest::nodePositionsKeepStableMasksAndConversion",
+      "behavior": "矩形走査の節位置は安定したビット値を持ち、汚染位置へ既定どおり変換される。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisBaseRectsWalker::NodePosition",
+        "enum:KisBaseRectsWalker::NodePositionValues",
+        "enumerator:KisBaseRectsWalker::NodePositionValues::N_ABOVE_FILTHY",
+        "enumerator:KisBaseRectsWalker::NodePositionValues::N_BELOW_FILTHY",
+        "enumerator:KisBaseRectsWalker::NodePositionValues::N_BOTTOMMOST",
+        "enumerator:KisBaseRectsWalker::NodePositionValues::N_EXTRA",
+        "enumerator:KisBaseRectsWalker::NodePositionValues::N_FILTHY",
+        "enumerator:KisBaseRectsWalker::NodePositionValues::N_FILTHY_ORIGINAL",
+        "enumerator:KisBaseRectsWalker::NodePositionValues::N_FILTHY_PROJECTION",
+        "enumerator:KisBaseRectsWalker::NodePositionValues::N_NORMAL",
+        "enumerator:KisBaseRectsWalker::NodePositionValues::N_TOPMOST",
+        "method:KisBaseRectsWalker::convertPositionToFilthy(NodePosition position)"
+      ]
+    },
+    {
+      "target": "KisBaseRectsWalkerPolicyContractTest",
+      "source": "libs/image/tests/KisBaseRectsWalkerPolicyContractTest.cpp",
+      "test": "KisBaseRectsWalkerPolicyContractTest::subtreeVisitFlagsComposeWithoutGraph",
+      "behavior": "部分木走査の方針値は安定したビット値を持ち、節グラフなしで独立に合成・照会できる。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisBaseRectsWalker::SubtreeVisitFlags",
+        "enum:KisBaseRectsWalker::SubtreeVisitFlag",
+        "enumerator:KisBaseRectsWalker::SubtreeVisitFlag::DontNotifyClones",
+        "enumerator:KisBaseRectsWalker::SubtreeVisitFlag::NoFilthyMode",
+        "enumerator:KisBaseRectsWalker::SubtreeVisitFlag::None",
+        "enumerator:KisBaseRectsWalker::SubtreeVisitFlag::SkipNonRenderableNodes"
+      ]
+    },
+    {
+      "target": "KisBaseRectsWalkerPolicyContractTest",
+      "source": "libs/image/tests/KisBaseRectsWalkerPolicyContractTest.cpp",
+      "test": "KisBaseRectsWalkerPolicyContractTest::jobItemsPreserveAssignedGeometryAndFlags",
+      "behavior": "矩形走査の仕事項目は節参照・位置・適用矩形・描画方針を値として保持し、積み重ねの複製後も独立する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisBaseRectsWalker::LeafStack",
+        "member:KisBaseRectsWalker::JobItem::m_applyRect",
+        "member:KisBaseRectsWalker::JobItem::m_leaf",
+        "member:KisBaseRectsWalker::JobItem::m_position",
+        "member:KisBaseRectsWalker::JobItem::m_renderFlags",
+        "struct:KisBaseRectsWalker::JobItem"
+      ]
+    },
+    {
+      "target": "KisBaseRectsWalkerPolicyContractTest",
+      "source": "libs/image/tests/KisBaseRectsWalkerPolicyContractTest.cpp",
+      "test": "KisBaseRectsWalkerPolicyContractTest::notificationCollectionsAndWalkerTypesRemainUsable",
+      "behavior": "矩形走査の共有所有型と複製通知型は公開された型関係を保ち、通知列を値として複製できる。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisBaseRectsWalker::CloneNotificationsVector",
+        "alias:KisBaseRectsWalkerSP",
+        "class:KisBaseRectsWalker",
+        "method:KisBaseRectsWalker::CloneNotification::CloneNotification()",
+        "struct:KisBaseRectsWalker::CloneNotification"
       ]
     }
   ]
