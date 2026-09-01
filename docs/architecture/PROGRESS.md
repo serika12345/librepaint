@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 11:29 JST
+- 更新日時: 2026-09-01 11:31 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -283,6 +283,23 @@
   `build/tdd-macos/public-api-missing-g110.json`である。Linux、全native検証、製品全体構築・linkは実行していない。
 - 新報告と受渡しpatchの同一性、3 worktreeのclean状態を確認後、旧`public-api-missing-g109.json` 4.7 MB、設定担当640 MB、PSD担当644 MB、
   SVG担当642 MBと3 branchを削除し、約1.93 GBを回収した。主`build/tdd-macos`、共有compiler cache、最新不足報告は次便の限定構築へ再利用する。
+
+### 第110並列便の監査計画
+
+- 共通基点は`f071adc12d0cbae8cf42d00cb92cd35c4ac9333d`、入力は`build/tdd-macos/public-api-missing-g110.json`である。3担当は`auditing`の
+  読み取り専用とし、製品・試験・CMake・台帳・文書を変更せず、構築、試験、Git操作、追加委任も行わない。一つの公開責務から25 API以上を最大5枠へ固定し、
+  既存限定対象、header-only値面、または既設OBJECTへ公開header不変の定義を一対一移管して、製品shared libraryと`kritatestsdk`へ接続しない候補だけを採用する。
+- `g110-config-schema-audit`は`libs/application/kis_config.h`の残り356 APIから、cursor・outline視覚状態、animation、文書既定値、表示性能を比較し、既存
+  `KisConfigEnumContractTest`の未評価関数型検査へ25 API以上を5枠以内で追加できる一責務を選ぶ。設定実体、KConfigGroup、`QSettings`、GUI・Applicationを
+  生成・呼出しせず、既存4工程・15入力と製品`kritaapplication`の変更なし計画を維持する。
+- `g110-psd-resource-values-audit`は`libs/psd/psd_resource_block.h`の残り110 APIと`libs/psdutils/psd.h` 197 APIを比較し、未固定のresource record、
+  byte列、既定値、符号付き値、copy、memory内変換から一責務を選ぶ。第109便の解像度・ICC記録と重複せず、実image・device、色空間・資源registry、filesystem、
+  生pointer所有へ到達せず、既設`kritapsdresourcevaluerecordobjects`かheader限定対象へ閉じる候補を優先する。
+- `g110-svg-conversions-audit`は`libs/flake/text/KoSvgText.h`の残り145 APIから、font feature、font style・weight・stretch、white-space、baseline等の純粋な
+  parse・write群を比較する。第109便の方向・整列・改行・text-path・描画品質と重複せず、既設`kritaflakesvgtextenumconversionobjects`と
+  `KoSvgTextEnumConversionContractTest`へ25 API以上を最大5枠で追加できる一責務を選ぶ。loading context、XML、shape、font registry、描画へ到達するAPIは除外する。
+- 各報告は完全なAPI識別子、最大5枠の観測挙動、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、
+  開始pathから追加・移動先path、許可path、固有停止条件、比較・除外候補の根拠を含む。3報告後にpath、試験source、CMake、生成物が重ならない候補だけを担当票へ進める。
 
 ### 第105並列便の監査計画
 
