@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 17612
+    "expectedMissingApis": 17562
   },
   "contracts": [
     {
@@ -37000,6 +37000,101 @@
         "method:KisWrapAroundBoundsWrapper::wrapAroundMode() const",
         "method:KisWrapAroundBoundsWrapper::wrapAroundModeAxis() const",
         "method:KisWrapAroundBoundsWrapper::~KisWrapAroundBoundsWrapper()"
+      ]
+    },
+    {
+      "target": "KoBasicHistogramProducerSchemaContractTest",
+      "source": "libs/pigment/tests/KoBasicHistogramProducerSchemaContractTest.cpp",
+      "test": "KoBasicHistogramProducerSchemaContractTest::basicHistogramStateAndViewSignaturesRemainStable",
+      "behavior": "基本histogram生成器は抽象基底の責務と、channel・bin・count・表示範囲・識別子の公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoBasicHistogramProducer",
+        "method:KoBasicHistogramProducer::channels()",
+        "method:KoBasicHistogramProducer::clear()",
+        "method:KoBasicHistogramProducer::count()",
+        "method:KoBasicHistogramProducer::getBinAt(int channel,int position)",
+        "method:KoBasicHistogramProducer::id() const",
+        "method:KoBasicHistogramProducer::numberOfBins()",
+        "method:KoBasicHistogramProducer::outOfViewLeft(int channel)",
+        "method:KoBasicHistogramProducer::outOfViewRight(int channel)",
+        "method:KoBasicHistogramProducer::setView(qreal from,qreal size)",
+        "method:KoBasicHistogramProducer::viewFrom() const",
+        "method:KoBasicHistogramProducer::viewWidth() const"
+      ]
+    },
+    {
+      "target": "KoBasicHistogramProducerSchemaContractTest",
+      "source": "libs/pigment/tests/KoBasicHistogramProducerSchemaContractTest.cpp",
+      "test": "KoBasicHistogramProducerSchemaContractTest::fixedDepthHistogramSignaturesRemainStable",
+      "behavior": "固定深度histogram生成器はU8・U16・F32・F16の派生関係と、pixel入力・表示文字列・最大zoomの公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoBasicF16HalfHistogramProducer",
+        "class:KoBasicF32HistogramProducer",
+        "class:KoBasicU16HistogramProducer",
+        "class:KoBasicU8HistogramProducer",
+        "method:KoBasicF16HalfHistogramProducer::addRegionToBin(const quint8 * pixels,const quint8 * selectionMask,quint32 nPixels,const KoColorSpace * colorSpace)",
+        "method:KoBasicF16HalfHistogramProducer::maximalZoom() const",
+        "method:KoBasicF16HalfHistogramProducer::positionToString(qreal pos) const",
+        "method:KoBasicF32HistogramProducer::addRegionToBin(const quint8 * pixels,const quint8 * selectionMask,quint32 nPixels,const KoColorSpace * colorSpace)",
+        "method:KoBasicF32HistogramProducer::maximalZoom() const",
+        "method:KoBasicF32HistogramProducer::positionToString(qreal pos) const",
+        "method:KoBasicU16HistogramProducer::addRegionToBin(const quint8 * pixels,const quint8 * selectionMask,quint32 nPixels,const KoColorSpace * colorSpace)",
+        "method:KoBasicU16HistogramProducer::maximalZoom() const",
+        "method:KoBasicU16HistogramProducer::positionToString(qreal pos) const",
+        "method:KoBasicU8HistogramProducer::addRegionToBin(const quint8 * pixels,const quint8 * selectionMask,quint32 nPixels,const KoColorSpace * colorSpace)",
+        "method:KoBasicU8HistogramProducer::maximalZoom() const",
+        "method:KoBasicU8HistogramProducer::positionToString(qreal pos) const"
+      ]
+    },
+    {
+      "target": "KoBasicHistogramProducerSchemaContractTest",
+      "source": "libs/pigment/tests/KoBasicHistogramProducerSchemaContractTest.cpp",
+      "test": "KoBasicHistogramProducerSchemaContractTest::genericHistogramSignaturesRemainStable",
+      "behavior": "汎用Lab・RGB histogram生成器は基底派生と、channel・pixel入力・表示文字列・最大zoomの公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoGenericLabHistogramProducer",
+        "class:KoGenericRGBHistogramProducer",
+        "method:KoGenericLabHistogramProducer::addRegionToBin(const quint8 * pixels,const quint8 * selectionMask,quint32 nPixels,const KoColorSpace * colorSpace)",
+        "method:KoGenericLabHistogramProducer::channels()",
+        "method:KoGenericLabHistogramProducer::maximalZoom() const",
+        "method:KoGenericLabHistogramProducer::positionToString(qreal pos) const",
+        "method:KoGenericRGBHistogramProducer::addRegionToBin(const quint8 * pixels,const quint8 * selectionMask,quint32 nPixels,const KoColorSpace * colorSpace)",
+        "method:KoGenericRGBHistogramProducer::channels()",
+        "method:KoGenericRGBHistogramProducer::maximalZoom() const",
+        "method:KoGenericRGBHistogramProducer::positionToString(qreal pos) const"
+      ]
+    },
+    {
+      "target": "KoBasicHistogramProducerSchemaContractTest",
+      "source": "libs/pigment/tests/KoBasicHistogramProducerSchemaContractTest.cpp",
+      "test": "KoBasicHistogramProducerSchemaContractTest::basicHistogramFactorySignaturesRemainStable",
+      "behavior": "基本histogram factoryは生成、色空間互換性、優先度とstrict既定方針の公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoBasicHistogramProducerFactory",
+        "method:KoBasicHistogramProducerFactory::generate()",
+        "method:KoBasicHistogramProducerFactory::isCompatibleWith(const KoColorSpace * colorSpace,bool strict=false) const",
+        "method:KoBasicHistogramProducerFactory::preferrednessLevelWith(const KoColorSpace * colorSpace) const"
+      ]
+    },
+    {
+      "target": "KoBasicHistogramProducerSchemaContractTest",
+      "source": "libs/pigment/tests/KoBasicHistogramProducerSchemaContractTest.cpp",
+      "test": "KoBasicHistogramProducerSchemaContractTest::genericHistogramFactorySignaturesRemainStable",
+      "behavior": "汎用Lab・RGB histogram factoryは生成、色空間互換性、優先度とstrict既定方針の公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoGenericLabHistogramProducerFactory",
+        "class:KoGenericRGBHistogramProducerFactory",
+        "method:KoGenericLabHistogramProducerFactory::generate()",
+        "method:KoGenericLabHistogramProducerFactory::isCompatibleWith(const KoColorSpace *,bool strict=false) const",
+        "method:KoGenericLabHistogramProducerFactory::preferrednessLevelWith(const KoColorSpace *) const",
+        "method:KoGenericRGBHistogramProducerFactory::generate()",
+        "method:KoGenericRGBHistogramProducerFactory::isCompatibleWith(const KoColorSpace *,bool strict=false) const",
+        "method:KoGenericRGBHistogramProducerFactory::preferrednessLevelWith(const KoColorSpace *) const"
       ]
     }
   ]

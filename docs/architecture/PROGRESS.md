@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 18:03 JST
+- 更新日時: 2026-09-01 18:11 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -40,8 +40,8 @@
 
 ### 第124便の担当計画
 
-- 実装共通基点は`a03c1527125c83a157186ffeddb5ef2c8d280440`である。image bounds担当は`integrated`、histogram担当は`implementing`、SVG property model担当は
-  `ready`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの
+- 実装共通基点は`a03c1527125c83a157186ffeddb5ef2c8d280440`である。image boundsとhistogram担当は`integrated`、SVG property model担当は`ready`、構築許可は
+  指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの
   `transport-commit`、追加委任は禁止する。専用worktree-local `build/tdd-macos`と`./scripts/run-shared-test-env`で主環境・compiler cacheを共有する。
   統合順はimage bounds、histogram、SVG property modelとし、調整担当だけが台帳、進捗文書、不足報告を変更する。3担当の公開header、所有CMake、試験source、生成物は
   重ならない。
@@ -76,6 +76,11 @@
   `libs/image/tests/KisImageTypesContractTest.cpp`の5枠へ、alias・階層、画像境界、選択・mask境界、空選択境界、wrap境界の全47 APIを対応付けた。対象
   4工程・8入力、製品`kritaimage` 1,193工程・2,410入力と各集合は変更前後一致し、bounds系、probe、image、device、node、selectionを実体化していない。
   主macOS環境でも対象CTest、20回反復、`KisDefaultBoundsBaseContractTest`を確認した。
+- `g124-histogram-schema`は受渡しcommit`8e243ee381c8`を統合commit`8fdad3afd6`として取り込んだ。開始
+  `libs/pigment/KoBasicHistogramProducers.h`から新規`libs/pigment/tests/KoBasicHistogramProducerSchemaContractTest.cpp`の5枠へ、基底状態・表示、固定深度、
+  汎用RGB・Lab、基本factory、汎用factoryの非lifecycle全50 APIを対応付け、`libs/pigment/tests/CMakeLists.txt`へheader限定対象を追加した。対象4工程・8入力、
+  製品`kritapigment` 365工程・760入力と各集合は変更前後一致し、histogram実体、pixel、selection mask、color space、profile、registryを生成・実行していない。
+  主macOS環境では再構成後に対象CTest、20回反復、`KoColorProfileSchemaContractTest`、無作業再構築を確認した。
 
 ### 第123便の先行監査計画
 
