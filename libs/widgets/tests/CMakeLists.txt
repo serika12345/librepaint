@@ -177,6 +177,20 @@ kis_add_test(
 target_compile_definitions(KisAngleGaugeContractTest PRIVATE kritawidgets_EXPORTS)
 
 kis_add_test(
+    KisAngleSelectorSchemaContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Widgets
+)
+target_include_directories(KisAngleSelectorSchemaContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/widgetutils
+    ${CMAKE_BINARY_DIR}/libs/widgetutils
+)
+target_compile_definitions(KisAngleSelectorSchemaContractTest PRIVATE kritawidgets_EXPORTS)
+
+kis_add_test(
     KisColorLabelButtonContractTest.cpp
     LINK_LIBRARIES
         kritawidgetscolorlabelbuttonobjects
