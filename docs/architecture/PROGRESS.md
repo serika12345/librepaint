@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 21:48 JST
+- 更新日時: 2026-09-01 21:52 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -30,7 +30,9 @@
   未評価型検査に留まり、具体観測にはevent・設定大域状態が必要となるため棄却した。
 - `g129-mask-iterator-schema-audit`は`kis_sequential_iterator.h`の全39 APIを採用した。型・alias 9、device policy 6、read/write access policy 11、
   no-progress policy 3、逐次移動10を既存`KisImageTypesContractTest`の未評価型5枠へ追加する。対象4工程・8入力、停止5工程・10入力、製品`kritaimage`
-  1,195工程・2,414入力を維持する。mask generatorは公開header読込みだけで`KoID`と翻訳記号の大域初期化へ接続し、既存試験も製品全体へ接続するため棄却した。
+  1,195工程・2,414入力を維持する。試験sourceだけの先行実装は`kis_paint_device.h`が要求するpigment headerの探索経路不足を最初のcompileで検出して撤回したため、
+  対象だけにpigmentのsource・binary include pathとexport定義を追加する。mask generatorは公開header読込みだけで`KoID`と翻訳記号の大域初期化へ接続し、既存試験も
+  製品全体へ接続するため棄却した。
 - 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから契約先または
   移動先、許可path、固有停止条件、比較候補の棄却根拠を含む。既存`build/tdd-macos`の計画は読み取り専用で測定し、構成や構築を開始しない。3報告後にpath、CMake、
   試験source、生成物が重ならない候補だけを担当票へ進める。
@@ -63,11 +65,13 @@
 - `g129-sequential-iterator-schema`は`/Users/masato/Documents/librepaint-g129-sequential-iterator-schema`を所有する。開始
   `libs/image/kis_sequential_iterator.h`から既存`libs/image/tests/KisImageTypesContractTest.cpp`の5枠`sequentialIteratorTypeAndAliasSchemaRemainsStable`、
   `sequentialIteratorDevicePolicySchemaRemainsStable`、`sequentialIteratorAccessPolicySchemaRemainsStable`、
-  `sequentialIteratorNoProgressPolicySchemaRemainsStable`、`sequentialIteratorTraversalSchemaRemainsStable`へ全39 APIを対応付け、他pathを変更しない。担当CMakeは
-  `libs/image/tests/CMakeLists.txt`、対象は`KisImageTypesContractTest`、最寄り契約は`KisPropertiesConfigurationSchemaContractTest`である。対象4工程・8入力、
+  `sequentialIteratorNoProgressPolicySchemaRemainsStable`、`sequentialIteratorTraversalSchemaRemainsStable`へ全39 APIを対応付ける。許可pathはこの試験sourceと
+  `libs/image/tests/CMakeLists.txt`だけである。CMake変更は`KisImageTypesContractTest`だけへ`libs/pigment`のsource・binary include pathと`kritapigment_EXPORTS`を追加し、
+  link対象は増やさない。対象は`KisImageTypesContractTest`、最寄り契約は`KisPropertiesConfigurationSchemaContractTest`である。対象4工程・8入力、
   停止5工程・10入力、製品`kritaimage` 1,195工程・2,414入力と各集合の完全一致を確認する。5枠の未知関数、対象CTest、20回反復、近傍、no-work、動的接続、未解決
   iterator・paint device・progress記号、構文・書式・公開API・`verify-quick`を確認する。template本文実体化、policy・iterator・paint device・pixel buffer・progressの
-  生成または呼出し、raw pointer参照、mask・XML・描画、製品OBJECT・shared、`kritatestsdk`、新依存、許可外変更、製品計画差、停止線超過が必要なら止める。
+  生成または呼出し、raw pointer参照、mask・XML・描画、製品OBJECT・shared、`kritatestsdk`、新link依存・追加include path、許可外変更、製品計画差、停止線超過が
+  必要なら止める。最初の試行は`KoColorConversionTransformation.h`不足で停止し、試験差分を撤回してcleanな共通基点へ戻した。訂正した担当票から同じ5枠を再開する。
 
 ### 第129便の統合結果
 
