@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 18:57 JST
+- 更新日時: 2026-09-01 19:00 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -86,6 +86,11 @@
   pattern変換、solid色値・表現、solid入力・直列化の29 APIを対応付けた。対象6工程・14入力、製品`kritapsdutils` 635工程・1,300入力と`kritapsd`
   1,979工程・3,956入力および各集合は変更前後一致し、fill、色、gradient、pattern、shape、brush、ASL、資源、PSD I/Oを生成・実行していない。主macOS環境では
   対象CTest、20回反復、`PsdByteIoContractTest`、無作業再構築を確認した。
+- 第125便は3責務15枠へ120 APIを重複なく対応付けた。公開API契約検査は29,838件中12,479件対応、17,359件未対応となり、`verify-quick`は成功した。
+  最新入力は`build/tdd-macos/public-api-missing-g126.json`である。Linux、全native検証、製品全体構築は実行していない。清浄性と受渡しcommitを確認後、
+  freehand担当870,644 KiB、cursor担当867,600 KiB、PSD fill担当876,692 KiBの作業tree、専用構築木、3 branchを削除して合計2,614,936 KiB
+  （約2.49 GiB）を回収し、旧`public-api-missing-g125.json`も削除した。主`build/tdd-macos` 5.3 GB、共有compiler cache 1.0 GB、最新不足報告だけを
+  第126便へ再利用する。次の永続作業は第126便の不足報告から、pathと所有CMakeが重ならない3責務を先行監査し、限定構築範囲を確認してから担当票を確定することである。
 
 ### 第124便の先行監査計画
 
