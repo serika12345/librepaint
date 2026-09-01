@@ -13,6 +13,8 @@ namespace
 {
 #define ASSERT_GRADIENT_SEGMENT_SIGNATURE(method, signature)                                                           \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KoGradientSegment::method)), signature>)
+#define ASSERT_SEGMENT_GRADIENT_SIGNATURE(method, signature)                                                           \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KoSegmentGradient::method)), signature>)
 } // namespace
 
 class KoGradientSegmentSchemaContractTest : public QObject
@@ -25,6 +27,11 @@ private Q_SLOTS:
     void gradientSegmentEndpointStateSignaturesRemainStable();
     void gradientSegmentConstructionAndInterpolationSignaturesRemainStable();
     void gradientSegmentEvaluationAndVariableColorSignaturesRemainStable();
+    void segmentGradientTypeAndLifetimeSchemaRemainStable();
+    void segmentGradientEvaluationAndResourceSignaturesRemainStable();
+    void segmentGradientCreationAndCollectionSignaturesRemainStable();
+    void segmentGradientEditingSignaturesRemainStable();
+    void segmentGradientSerializationSignaturesRemainStable();
 };
 
 void KoGradientSegmentSchemaContractTest::gradientSegmentInterpolationAndEndpointOrdinalsRemainStable()
@@ -103,6 +110,106 @@ void KoGradientSegmentSchemaContractTest::gradientSegmentEvaluationAndVariableCo
     ASSERT_GRADIENT_SEGMENT_SIGNATURE(hasVariableColors, bool (KoGradientSegment::*)());
     ASSERT_GRADIENT_SEGMENT_SIGNATURE(length, qreal (KoGradientSegment::*)());
     ASSERT_GRADIENT_SEGMENT_SIGNATURE(setVariableColors, void (KoGradientSegment::*)(const KoColor &, const KoColor &));
+}
+
+void KoGradientSegmentSchemaContractTest::segmentGradientTypeAndLifetimeSchemaRemainStable()
+{
+    static_assert(std::is_same_v<KoSegmentGradientSP, QSharedPointer<KoSegmentGradient>>);
+    static_assert(std::is_class_v<KoSegmentGradient>);
+    static_assert(std::is_base_of_v<KoAbstractGradient, KoSegmentGradient>);
+    static_assert(std::is_default_constructible_v<KoSegmentGradient>);
+    static_assert(std::is_constructible_v<KoSegmentGradient, const QString &>);
+    static_assert(std::is_copy_constructible_v<KoSegmentGradient>);
+    static_assert(std::is_destructible_v<KoSegmentGradient>);
+    static_assert(!std::is_copy_assignable_v<KoSegmentGradient>);
+    ASSERT_SEGMENT_GRADIENT_SIGNATURE(clone, KoResourceSP (KoSegmentGradient::*)() const);
+}
+
+void KoGradientSegmentSchemaContractTest::segmentGradientEvaluationAndResourceSignaturesRemainStable()
+{
+    using ResourceTypeSignature = QPair<QString, QString> (KoSegmentGradient::*)() const;
+
+    ASSERT_SEGMENT_GRADIENT_SIGNATURE(colorAt, void (KoSegmentGradient::*)(KoColor &, qreal) const);
+    ASSERT_SEGMENT_GRADIENT_SIGNATURE(segmentAt, KoGradientSegment * (KoSegmentGradient::*)(qreal) const);
+    ASSERT_SEGMENT_GRADIENT_SIGNATURE(toQGradient, QGradient * (KoSegmentGradient::*)() const);
+    ASSERT_SEGMENT_GRADIENT_SIGNATURE(requiredCanvasResources, QList<int> (KoSegmentGradient::*)() const);
+    ASSERT_SEGMENT_GRADIENT_SIGNATURE(bakeVariableColors, void (KoSegmentGradient::*)(KoCanvasResourcesInterfaceSP));
+    ASSERT_SEGMENT_GRADIENT_SIGNATURE(updateVariableColors, void (KoSegmentGradient::*)(KoCanvasResourcesInterfaceSP));
+    ASSERT_SEGMENT_GRADIENT_SIGNATURE(resourceType, ResourceTypeSignature);
+    ASSERT_SEGMENT_GRADIENT_SIGNATURE(defaultFileExtension, QString (KoSegmentGradient::*)() const);
+}
+
+void KoGradientSegmentSchemaContractTest::segmentGradientCreationAndCollectionSignaturesRemainStable()
+{
+    using CreateFromQColor = void (KoSegmentGradient::*)(int,
+                                                         int,
+                                                         double,
+                                                         double,
+                                                         double,
+                                                         const QColor &,
+                                                         const QColor &,
+                                                         KoGradientSegmentEndpointType,
+                                                         KoGradientSegmentEndpointType);
+    using CreateFromKoColor = void (KoSegmentGradient::*)(int,
+                                                          int,
+                                                          double,
+                                                          double,
+                                                          double,
+                                                          const KoColor &,
+                                                          const KoColor &,
+                                                          KoGradientSegmentEndpointType,
+                                                          KoGradientSegmentEndpointType);
+
+    ASSERT_SEGMENT_GRADIENT_SIGNATURE(createSegment, CreateFromQColor);
+    ASSERT_SEGMENT_GRADIENT_SIGNATURE(createSegment, CreateFromKoColor);
+    ASSERT_SEGMENT_GRADIENT_SIGNATURE(getHandlePositions, const QList<double> (KoSegmentGradient::*)() const);
+    ASSERT_SEGMENT_GRADIENT_SIGNATURE(getMiddleHandlePositions, const QList<double> (KoSegmentGradient::*)() const);
+    ASSERT_SEGMENT_GRADIENT_SIGNATURE(segments, const QList<KoGradientSegment *> &(KoSegmentGradient::*)() const);
+    ASSERT_SEGMENT_GRADIENT_SIGNATURE(setSegments, void (KoSegmentGradient::*)(const QList<KoGradientSegment *> &));
+
+    static_assert(
+        std::is_same_v<decltype(std::declval<KoSegmentGradient &>().createSegment(0,
+                                                                                  0,
+                                                                                  0.0,
+                                                                                  1.0,
+                                                                                  0.5,
+                                                                                  std::declval<const QColor &>(),
+                                                                                  std::declval<const QColor &>())),
+                       void>);
+    static_assert(
+        std::is_same_v<decltype(std::declval<KoSegmentGradient &>().createSegment(0,
+                                                                                  0,
+                                                                                  0.0,
+                                                                                  1.0,
+                                                                                  0.5,
+                                                                                  std::declval<const KoColor &>(),
+                                                                                  std::declval<const KoColor &>())),
+                       void>);
+}
+
+void KoGradientSegmentSchemaContractTest::segmentGradientEditingSignaturesRemainStable()
+{
+    ASSERT_SEGMENT_GRADIENT_SIGNATURE(moveSegmentStartOffset, void (KoSegmentGradient::*)(KoGradientSegment *, double));
+    ASSERT_SEGMENT_GRADIENT_SIGNATURE(moveSegmentEndOffset, void (KoSegmentGradient::*)(KoGradientSegment *, double));
+    ASSERT_SEGMENT_GRADIENT_SIGNATURE(moveSegmentMiddleOffset,
+                                      void (KoSegmentGradient::*)(KoGradientSegment *, double));
+    ASSERT_SEGMENT_GRADIENT_SIGNATURE(splitSegment, void (KoSegmentGradient::*)(KoGradientSegment *));
+    ASSERT_SEGMENT_GRADIENT_SIGNATURE(duplicateSegment, void (KoSegmentGradient::*)(KoGradientSegment *));
+    ASSERT_SEGMENT_GRADIENT_SIGNATURE(mirrorSegment, void (KoSegmentGradient::*)(KoGradientSegment *));
+    ASSERT_SEGMENT_GRADIENT_SIGNATURE(removeSegment, KoGradientSegment * (KoSegmentGradient::*)(KoGradientSegment *));
+    ASSERT_SEGMENT_GRADIENT_SIGNATURE(collapseSegment, KoGradientSegment * (KoSegmentGradient::*)(KoGradientSegment *));
+    ASSERT_SEGMENT_GRADIENT_SIGNATURE(removeSegmentPossible, bool (KoSegmentGradient::*)() const);
+}
+
+void KoGradientSegmentSchemaContractTest::segmentGradientSerializationSignaturesRemainStable()
+{
+    ASSERT_SEGMENT_GRADIENT_SIGNATURE(loadFromDevice,
+                                      bool (KoSegmentGradient::*)(QIODevice *, KisResourcesInterfaceSP));
+    ASSERT_SEGMENT_GRADIENT_SIGNATURE(saveToDevice, bool (KoSegmentGradient::*)(QIODevice *) const);
+    ASSERT_SEGMENT_GRADIENT_SIGNATURE(toXML, void (KoSegmentGradient::*)(QDomDocument &, QDomElement &) const);
+
+    using FromXml = KoSegmentGradient (*)(const QDomElement &);
+    static_assert(std::is_same_v<decltype(static_cast<FromXml>(&KoSegmentGradient::fromXML)), FromXml>);
 }
 
 QTEST_GUILESS_MAIN(KoGradientSegmentSchemaContractTest)
