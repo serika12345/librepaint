@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 12:58 JST
+- 更新日時: 2026-09-01 13:02 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -557,7 +557,7 @@
 
 ### 第114便の担当計画
 
-- `g114-tag-resource-model-schema`は`implementing`、実装基点は`c5416f411e7d940fb9ac9c840bb4b354a16392fe`、専用worktreeは
+- `g114-tag-resource-model-schema`は`integrated`、実装基点は`c5416f411e7d940fb9ac9c840bb4b354a16392fe`、削除済み専用worktreeは
   `/Users/masato/Documents/librepaint-g114-tag-resource-model-schema`である。構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの
   `transport-commit`、追加委任は禁止する。worktree-local `build/tdd-macos`と`./scripts/run-shared-test-env`で主環境・compiler cacheを共有し、調整担当だけが
   台帳、進捗文書、不足報告を変更する。
@@ -569,6 +569,35 @@
   `KisTagModelSchemaContractTest`、無作業再構築、動的接続、`KisTagResourceModel`未解決記号、source構文、公開API検査、`verify-quick`を確認する。模型生成、
   SQL・storage・registry・filesystem・GUI・大域状態の実行、意味上の重い`TestTagResourceModel`、製品shared、`kritaresourcestorage`、`kritatestsdk`、新依存、
   公開header・CMake変更、停止線超過が必要なら止める。
+
+### 第114便の統合結果
+
+- `g114-tag-resource-model-schema`は受渡しcommit `815c733f3020`と同一patchを統合commit `f30b4a96f0`として取り込んだ。開始
+  `libs/resources/KisTagResourceModel.h`から既存`libs/resources/tests/KisResourceModelEnumContractTest.cpp`の5枠へ、class・TagFilter・寿命・表示9、
+  絞込み7、tag関係・資源検索6、取込・書出4、資源変更7の全33 APIを対応付けた。未評価の型・overload・既定引数検査と列挙値だけを用い、模型、SQL、storage、
+  registry、filesystemを実行していない。対象は変更前後4工程・9入力、製品`kritaresources`は149工程・325入力で不変である。
+- 主macOS環境では追加5枠、対象CTest、20回反復、近傍`KisTagModelSchemaContractTest`、再構築時の無コンパイル・無リンク、動的接続と未解決製品記号を確認した。
+  公開API契約検査は33 APIを重複なく受理し、29,838件中11,176件対応、18,662件未対応となった。最新入力は
+  `build/tdd-macos/public-api-missing-g115.json`である。重い`TestTagResourceModel`、Linux、全native検証、製品全体構築は実行していない。
+- 新報告の生成と受渡しpatchの同一性、worktreeのclean状態を確認後、旧`public-api-missing-g114.json` 4.6 MB、担当worktree 852 MBとbranchを削除した。
+  主`build/tdd-macos`、共有compiler cache、最新不足報告は次便の限定構築へ再利用する。
+
+### 第115便の先行監査計画
+
+- 共通基点は`f30b4a96f0`、入力は`build/tdd-macos/public-api-missing-g115.json`である。3担当は`auditing`の読み取り専用とし、製品・試験・CMake・台帳・文書を
+  変更せず、構築、試験、Git操作、追加委任も行わない。一つの公開責務から25 API以上を最大5枠へ固定し、既存限定対象、header-only値面、または公開headerを
+  変えない一sourceのOBJECT一対一移管で製品shared libraryと`kritatestsdk`へ接続しない候補だけを採用する。
+- `g115-resource-model-audit`は`libs/resources/KisResourceModel.h` 47 API、`libs/resources/KisTagResourceModel.h` 25 API、`libs/resources/KisTagModel.h`
+  38 APIを比較し、資源・tag・tag-resource模型の残り公開schemaから一責務を選ぶ。模型、SQL、storage、registry、filesystemを実行せず、統合済み
+  `KisResourceModelEnumContractTest`または`KisTagModelSchemaContractTest`の未評価型検査へ閉じる候補を優先する。
+- `g115-canvas-value-audit`は`libs/ui/canvas/kis_grid_config.h` 79 API、`libs/canvas/kis_coordinates_converter.h` 86 API、
+  `libs/ui/canvas/kis_painting_assistant.h` 103 APIを比較し、grid設定値、座標変換値、painting assistant局所値から一責務を選ぶ。実canvas・document・image・shape、
+  GUI、設定I/O、大域状態を使わず、既存限定対象または一source一対一移管で閉じる候補を優先する。
+- `g115-format-value-audit`は`libs/widgetutils/config/kstandardaction.h` 74 API、`libs/flake/text/KoSvgTextShape_p.h` 75 API、`libs/psdutils/psd.h` 169 APIを
+  比較し、標準action識別schema、SVG layout残値、PSD局所recordのうち一責務を選ぶ。実action・window、shape・font registry・描画、image・device・色空間・
+  資源registry・filesystemへ到達しない候補を優先する。
+- 各報告は完全なAPI識別子、最大5枠、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから契約先または
+  移動先、許可path、固有停止条件、比較・除外候補の根拠を含む。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
 
 ### 第105並列便の監査計画
 

@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 18695
+    "expectedMissingApis": 18662
   },
   "contracts": [
     {
@@ -34612,6 +34612,84 @@
         "member:PSDLayerRecord::LayerBlendingRanges::data",
         "member:PSDLayerRecord::LayerBlendingRanges::sourceDestinationRanges",
         "struct:PSDLayerRecord::LayerBlendingRanges"
+      ]
+    },
+    {
+      "target": "KisResourceModelEnumContractTest",
+      "source": "libs/resources/tests/KisResourceModelEnumContractTest.cpp",
+      "test": "KisResourceModelEnumContractTest::tagResourceModelTypeAndViewSchemaRemainsStable",
+      "behavior": "tag資源模型は公開class・仮想破棄、TagFilterの3値、資源型と既定parentを受ける構築、header・roleの公開schemaを維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisTagResourceModel",
+        "enum:KisTagResourceModel::TagFilter",
+        "enumerator:KisTagResourceModel::TagFilter::ShowActiveTags",
+        "enumerator:KisTagResourceModel::TagFilter::ShowAllTags",
+        "enumerator:KisTagResourceModel::TagFilter::ShowInactiveTags",
+        "method:KisTagResourceModel::KisTagResourceModel(const QString & resourceType,QObject * parent=0)",
+        "method:KisTagResourceModel::headerData(int section,Qt::Orientation orientation,int role=Qt::DisplayRole) const",
+        "method:KisTagResourceModel::roleNames() const",
+        "method:KisTagResourceModel::~KisTagResourceModel()"
+      ]
+    },
+    {
+      "target": "KisResourceModelEnumContractTest",
+      "source": "libs/resources/tests/KisResourceModelEnumContractTest.cpp",
+      "test": "KisResourceModelEnumContractTest::tagResourceModelFilterSchemaRemainsStable",
+      "behavior": "tag資源模型はtag・資源・storageの状態と、tag・資源の共有所有列またはID列を受ける7種類の絞込み関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTagResourceModel::setResourceFilter(ResourceFilter filter)",
+        "method:KisTagResourceModel::setResourcesFilter(const QVector<KoResourceSP> resources)",
+        "method:KisTagResourceModel::setResourcesFilter(const QVector<int> resourceIds)",
+        "method:KisTagResourceModel::setStorageFilter(StorageFilter filter)",
+        "method:KisTagResourceModel::setTagFilter(TagFilter filter)",
+        "method:KisTagResourceModel::setTagsFilter(const QVector<KisTagSP> tags)",
+        "method:KisTagResourceModel::setTagsFilter(const QVector<int> tagIds)"
+      ]
+    },
+    {
+      "target": "KisResourceModelEnumContractTest",
+      "source": "libs/resources/tests/KisResourceModelEnumContractTest.cpp",
+      "test": "KisResourceModelEnumContractTest::tagResourceModelRelationsSchemaRemainsStable",
+      "behavior": "tag資源模型はtagの付与・解除・三状態判定と、索引・資源間の変換に関する共有所有・ID・const性の公開schemaを維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTagResourceModel::indexForResource(KoResourceSP resource) const",
+        "method:KisTagResourceModel::indexForResourceId(int resourceId) const",
+        "method:KisTagResourceModel::isResourceTagged(const KisTagSP tag,const int resourceId)",
+        "method:KisTagResourceModel::resourceForIndex(QModelIndex index) const",
+        "method:KisTagResourceModel::tagResources(const KisTagSP tag,const QVector<int> & resourceIds)",
+        "method:KisTagResourceModel::untagResources(const KisTagSP tag,const QVector<int> & resourceIds)"
+      ]
+    },
+    {
+      "target": "KisResourceModelEnumContractTest",
+      "source": "libs/resources/tests/KisResourceModelEnumContractTest.cpp",
+      "test": "KisResourceModelEnumContractTest::tagResourceModelTransferSchemaRemainsStable",
+      "behavior": "tag資源模型はfile・deviceを介する資源の取込、上書き判定、書出しの公開関数型と空storage識別子の既定値を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTagResourceModel::exportResource(KoResourceSP resource,QIODevice * device)",
+        "method:KisTagResourceModel::importResource(const QString & filename,QIODevice * device,const bool allowOverwrite,const QString & storageId=QString ())",
+        "method:KisTagResourceModel::importResourceFile(const QString & filename,const bool allowOverwrite,const QString & storageId=QString ())",
+        "method:KisTagResourceModel::importWillOverwriteResource(const QString & fileName,const QString & storageLocation) const"
+      ]
+    },
+    {
+      "target": "KisResourceModelEnumContractTest",
+      "source": "libs/resources/tests/KisResourceModelEnumContractTest.cpp",
+      "test": "KisResourceModelEnumContractTest::tagResourceModelMutationSchemaRemainsStable",
+      "behavior": "tag資源模型は共有所有資源の追加・filename重複回避・更新・再読込・改名・活性・metadata更新の公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTagResourceModel::addResource(KoResourceSP resource,const QString & storageId)",
+        "method:KisTagResourceModel::addResourceDeduplicateFileName(KoResourceSP resource,const QString & storageId)",
+        "method:KisTagResourceModel::reloadResource(KoResourceSP resource)",
+        "method:KisTagResourceModel::renameResource(KoResourceSP resource,const QString & name)",
+        "method:KisTagResourceModel::setResourceActive(const QModelIndex & index,bool value)",
+        "method:KisTagResourceModel::setResourceMetaData(KoResourceSP resource,QMap<QString,QVariant> metadata)",
+        "method:KisTagResourceModel::updateResource(KoResourceSP resource)"
       ]
     }
   ]
