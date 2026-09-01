@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 12:31 JST
+- 更新日時: 2026-09-01 12:34 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -455,7 +455,7 @@
 
 ### 第112便の担当計画
 
-- `g112-all-resources-model-schema`は`planned`、実装基点は`caeff83a9bb8da3fba1afb6af0e402bd23f0b6d1`、専用worktreeは
+- `g112-all-resources-model-schema`は`implementing`、実装基点は`caeff83a9bb8da3fba1afb6af0e402bd23f0b6d1`、専用worktreeは
   `/Users/masato/Documents/librepaint-g112-all-resources-model-schema`である。構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は
   許可pathだけの`transport-commit`、追加委任は禁止する。worktree-local `build/tdd-macos`と`./scripts/run-shared-test-env`で主環境・compiler cacheを
   共有し、調整担当だけが台帳、進捗文書、不足報告を変更する。
@@ -469,6 +469,20 @@
   製品計画は前後完全一致とする。5枠の未知関数診断、未評価の型・既定引数検査、対象CTest、20回反復、`KisTagModelSchemaContractTest`、無作業再構築、動的接続、
   `KisAllResourcesModel`未解決記号、source構文、公開API検査、`verify-quick`を確認する。模型・storage・registry・SQL・filesystem・GUI・大域状態の実行、
   製品shared、`kritatestsdk`、新依存、停止線超過が必要なら止める。
+
+### 第113便の先行監査計画
+
+- 共通基点は`fdebc9db38`、入力は`build/tdd-macos/public-api-missing-g112.json`である。2担当は`auditing`の読み取り専用とし、製品・試験・CMake・台帳・文書を
+  変更せず、構築、試験、Git操作、追加委任も行わない。一つの公開責務から25 API以上を最大5枠へ固定し、既存限定対象、header-only値面、または公開headerを
+  変えない一sourceのOBJECT一対一移管で製品shared libraryと`kritatestsdk`へ接続しない候補だけを採用する。第112便の資源模型29 APIとpathを重ねない。
+- `g113-config-schema-audit`は`libs/application/kis_config.h`の未対応302 APIをanimation、文書既定値、表示性能、保存、application統合の設定責務に分け、既存
+  `KisConfigEnumContractTest`の未評価関数型検査へ25 API以上を最大5枠で追加できる一責務を選ぶ。設定実体、KConfig・`QSettings`、filesystem、GUI、大域状態を
+  生成または呼び出さず、対象4工程・15入力と製品`kritaapplication` 1,224工程・2,466入力を維持する候補を優先する。
+- `g113-psd-schema-audit`は`libs/psdutils/psd.h`の未対応169 API、`libs/psd/psd_additional_layer_info_block.h` 80 API、
+  `libs/psd/psd_layer_record.h` 60 APIを比較し、未固定の直列化record、列挙、局所値、符号付き寸法、copyから一責務を選ぶ。実image・device、色空間・資源registry、
+  ASL、filesystem、生pointer参照解決へ到達せず、既存`PsdFormatValuesContractTest`の限定閉包へ25 API以上を最大5枠で追加できる候補を優先する。
+- 各報告は完全なAPI識別子、最大5枠、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから契約先、許可path、
+  固有停止条件、比較・除外候補の根拠を含む。2報告後にpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
 
 ### 第105並列便の監査計画
 
