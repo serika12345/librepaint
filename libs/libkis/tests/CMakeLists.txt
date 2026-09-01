@@ -10,3 +10,22 @@ kis_add_tests(
     TestNotifier.cpp
     LINK_LIBRARIES kritalibkis kritatestsdk
     )
+
+kis_add_test(
+    GridConfigSchemaContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Test
+        Boost::boost
+)
+target_include_directories(GridConfigSchemaContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/ui/canvas
+    ${CMAKE_BINARY_DIR}/libs/application
+)
+target_compile_definitions(GridConfigSchemaContractTest PRIVATE
+    kritalibkis_EXPORTS
+    kritaui_EXPORTS
+)
