@@ -61,6 +61,15 @@
   未解決pointer event・Qt入力event・KConfig・notifier記号、構文・変更行書式、公開API・`verify-quick`を確認する。wrapper・Qt入力eventを生成または実行し、GUI event loop・event配送・
   canvas・shape・painter・大域tablet状態へ到達し、`KoPointerEvent.cpp`、製品source・OBJECT・shared、`kritatestsdk`、Qt Gui等への新link、公開header変更、製品計画差、停止線超過が必要なら止める。
 
+### 第140便の統合結果
+
+- `g140-resource-locator-schema`は受渡しcommit`367870f14d46`を統合commit`91f5913fb8`として取り込んだ。開始`libs/resources/KisResourceLocator.h`から既存
+  `libs/resources/tests/KisResourceModelEnumContractTest.cpp`の5枠へ、型・error・寿命、初期化・path、storage保守、外部資源flow、storage通知の31 APIを対応付けた。CMakeと直接依存を
+  変更せず対象4工程・9入力を維持し、製品`kritaresources`は150工程・327入力と各集合hashが変更前後で一致した。locator・singleton・filesystem・database・storage・resource・
+  method・signal・metaobjectを生成または実行していない。担当macOS環境と中央環境で5枠を含む対象CTest・20回反復と近傍`KisTagModelSchemaContractTest`、担当環境で無作業再構築、
+  動的接続・未解決記号、構文・書式、公開API検査、`verify-quick`に成功した。中央の公開API契約検査は29,838件中14,129件対応、15,709件未対応となる。作業tree 864,480 KiBと
+  担当branchは削除した。
+
 ### 第139便の先行監査計画
 
 - 監査共通基点は`0d0dc2c57883cb48f603c492c293c0b37c217fda`、入力は`build/tdd-macos/public-api-missing-g139.json`である。3担当は`auditing`の読み取り専用とし、

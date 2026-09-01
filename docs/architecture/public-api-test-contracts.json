@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 15740
+    "expectedMissingApis": 15709
   },
   "contracts": [
     {
@@ -9142,6 +9142,82 @@
         "enumerator:KisAbstractResourceFilterInterface::StorageFilter::ShowActiveStorages",
         "enumerator:KisAbstractResourceFilterInterface::StorageFilter::ShowAllStorages",
         "enumerator:KisAbstractResourceFilterInterface::StorageFilter::ShowInactiveStorages"
+      ]
+    },
+    {
+      "target": "KisResourceModelEnumContractTest",
+      "source": "libs/resources/tests/KisResourceModelEnumContractTest.cpp",
+      "test": "KisResourceModelEnumContractTest::resourceLocatorTypeAndErrorSchemaRemainsStable",
+      "behavior": "資源位置解決器はQObject所有型、仮想寿命、位置解決結果の宣言順、公開位置キーの値型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisResourceLocator",
+        "enum:KisResourceLocator::LocatorError",
+        "enumerator:KisResourceLocator::LocatorError::CannotCreateLocation",
+        "enumerator:KisResourceLocator::LocatorError::CannotInitializeDb",
+        "enumerator:KisResourceLocator::LocatorError::CannotSynchronizeDb",
+        "enumerator:KisResourceLocator::LocatorError::LocationReadOnly",
+        "enumerator:KisResourceLocator::LocatorError::Ok",
+        "member:KisResourceLocator::resourceLocationKey",
+        "method:KisResourceLocator::~KisResourceLocator()"
+      ]
+    },
+    {
+      "target": "KisResourceModelEnumContractTest",
+      "source": "libs/resources/tests/KisResourceModelEnumContractTest.cpp",
+      "test": "KisResourceModelEnumContractTest::resourceLocatorInitializationAndPathSchemaRemainsStable",
+      "behavior": "資源位置解決器の共有instance、初期化結果、診断一覧、基点と資源pathの公開署名は引数所有とconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisResourceLocator::errorMessages() const",
+        "method:KisResourceLocator::filePathForResource(KoResourceSP resource)",
+        "method:KisResourceLocator::initialize(const QString & installationResourcesLocation)",
+        "method:KisResourceLocator::instance()",
+        "method:KisResourceLocator::resourceLocationBase() const"
+      ]
+    },
+    {
+      "target": "KisResourceModelEnumContractTest",
+      "source": "libs/resources/tests/KisResourceModelEnumContractTest.cpp",
+      "test": "KisResourceModelEnumContractTest::resourceLocatorStorageMaintenanceSchemaRemainsStable",
+      "behavior": "保管場所の追加、除去、照会、整理、タグ保存、書体更新の公開命令は値と参照の受渡しおよび結果型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisResourceLocator::addStorage(const QString & storageLocation,KisResourceStorageSP storage)",
+        "method:KisResourceLocator::hasStorage(const QString & storageLocation)",
+        "method:KisResourceLocator::purge(const QString & storageLocation,const QVector<int> & removedTagIds)",
+        "method:KisResourceLocator::purgeTag(const QString tagUrl,const QString resourceType)",
+        "method:KisResourceLocator::removeStorage(const QString & storageLocation)",
+        "method:KisResourceLocator::saveTags()",
+        "method:KisResourceLocator::updateFontStorage()"
+      ]
+    },
+    {
+      "target": "KisResourceModelEnumContractTest",
+      "source": "libs/resources/tests/KisResourceModelEnumContractTest.cpp",
+      "test": "KisResourceModelEnumContractTest::resourceLocatorExternalResourceFlowSchemaRemainsStable",
+      "behavior": "外部資源の取込みと除去を囲む通知は資源種別、件数、識別子を所定の値または参照で伝える署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisResourceLocator::beginExternalResourceImport(const QString & resourceType,int numResources)",
+        "method:KisResourceLocator::beginExternalResourceRemove(const QString & resourceType,const QVector<int> resourceIds)",
+        "method:KisResourceLocator::endExternalResourceImport(const QString & resourceType)",
+        "method:KisResourceLocator::endExternalResourceRemove(const QString & resourceType)",
+        "method:KisResourceLocator::progressMessage(const QString &)",
+        "method:KisResourceLocator::resourceActiveStateChanged(const QString & resourceType,int resourceId)"
+      ]
+    },
+    {
+      "target": "KisResourceModelEnumContractTest",
+      "source": "libs/resources/tests/KisResourceModelEnumContractTest.cpp",
+      "test": "KisResourceModelEnumContractTest::resourceLocatorStorageNotificationSchemaRemainsStable",
+      "behavior": "保管場所の追加、除去、再同期、一括同期完了の通知は位置と一括処理状態を伝える公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisResourceLocator::storageAdded(const QString & location)",
+        "method:KisResourceLocator::storageRemoved(const QString & location)",
+        "method:KisResourceLocator::storageResynchronized(const QString & storage,bool isBulkResynchronization)",
+        "method:KisResourceLocator::storagesBulkSynchronizationFinished()"
       ]
     },
     {
