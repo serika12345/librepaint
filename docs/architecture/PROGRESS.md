@@ -9,6 +9,23 @@
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
 
+### 第124便の先行監査計画
+
+- 監査共通基点は`f7a53793c7`、入力は`build/tdd-macos/public-api-missing-g124.json`である。3担当は`auditing`の読み取り専用とし、製品・試験・CMake・script・
+  台帳・文書を変更せず、構築、試験、Git操作、追加委任も行わない。一つの公開責務から25 API以上を最大5枠へ固定し、既存限定対象、header-only値面、または
+  公開headerを変えない一sourceのOBJECT一対一移管で製品共有ライブラリーと`kritatestsdk`へ接続しない候補だけを採用する。
+- `g124-image-bounds-schema-audit`は`libs/image/kis_default_bounds.h`の残り47 APIを主候補とし、`libs/image/kis_distance_information.h`と
+  `libs/image/kis_selection.h`の各43 APIを比較する。領域、境界、時刻、wrap等の局所公開schemaを、実image、paint device、selection、projection、stroke、乱数、
+  大域状態なしで25 API以上閉じる一責務を選ぶ。
+- `g124-pigment-schema-audit`は`libs/pigment/KoBasicHistogramProducers.h`の残り71 APIを主候補とし、`libs/pigment/KoColor.h`の45 APIと
+  `libs/pigment/resources/KoSegmentGradient.h`の81 APIを比較する。histogram、色値、gradientの列挙・局所値・公開関数型から一責務を選び、実color space、profile、
+  registry、resource、gradient補間、描画、filesystemを生成・実行しない。
+- `g124-flake-schema-audit`は`libs/flake/text/lager/KoSvgTextPropertiesModel.h`の残り154 APIを主候補とし、`libs/flake/svg/SvgUtil.h`の41 APIと
+  `libs/flake/text/KoSvgTextShape_p.h`の49 APIを比較する。文字property modelまたはSVG変換の一つの公開schemaを、実shape、document、lager状態、font、文字配置、
+  SVG読込、描画なしで25 API以上閉じる候補を選ぶ。
+- 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから
+  契約先または移動先、許可path、固有停止条件、比較候補の棄却根拠を含む。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
+
 ### 第123便の先行監査計画
 
 - 監査共通基点は`551714c5f3`、入力は`build/tdd-macos/public-api-missing-g123.json`である。3担当は`auditing`の読み取り専用とし、製品・試験・CMake・script・
