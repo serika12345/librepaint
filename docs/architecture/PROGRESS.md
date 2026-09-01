@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 23:47 JST
+- 更新日時: 2026-09-01 23:50 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -85,6 +85,11 @@
   補間・spacing・timing計算を生成・実行していない。担当macOS環境と中央環境で対象CTest、担当環境で20回反復、近傍`KisSpacingInformationContractTest`と
   `KisTimingInformationContractTest`、無作業再構築、動的接続・未解決記号、構文・書式、公開API検査、`verify-quick`に成功した。公開API契約検査は29,838件中
   13,192件対応、16,646件未対応となった。
+- `g132-snap-strategy-schema`は受渡しcommit`66cf29a57a`を統合commit`d86a95d07a`として取り込んだ。開始`libs/flake/KoSnapStrategy.h`から既存
+  `libs/flake/tests/KoSnapGuideSchemaContractTest.cpp`の5枠へ、基底型・状態、基底操作、point・orthogonal、extension・intersection、grid・bounding boxの38 APIを
+  対応付けた。対象4工程・8入力、製品`kritaflake` 621工程・1,274入力と各集合は変更前後一致し、strategy・shape・canvas・path・proxy・event・painterを生成・実行して
+  いない。担当macOS環境と中央環境で既存5枠と新5枠、対象CTest、担当環境で20回反復、近傍`KoSnapDataContractTest`、無作業再構築、動的接続・未解決記号、構文・書式、
+  公開API検査、`verify-quick`に成功した。公開API契約検査は29,838件中13,230件対応、16,608件未対応となった。
 
 ### 第131便の先行監査計画
 

@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 16646
+    "expectedMissingApis": 16608
   },
   "contracts": [
     {
@@ -39091,6 +39091,89 @@
       "apis": [
         "method:KisDistanceInformation::lockCurrentDrawingAngle(const KisPaintInformation & info) const",
         "method:KisDistanceInformation::lockedDrawingAngleOptional() const"
+      ]
+    },
+    {
+      "target": "KoSnapGuideSchemaContractTest",
+      "source": "libs/flake/tests/KoSnapGuideSchemaContractTest.cpp",
+      "test": "KoSnapGuideSchemaContractTest::snapStrategyBaseTypeAndStateSchemaRemainsStable",
+      "behavior": "スナップstrategy基底は抽象class、snap種別とその順序、strategy種別を受ける構築、および仮想破棄を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoSnapStrategy",
+        "enum:KoSnapStrategy::SnapType",
+        "enumerator:KoSnapStrategy::SnapType::ToLine",
+        "enumerator:KoSnapStrategy::SnapType::ToPoint",
+        "function:operator <(KoSnapStrategy::SnapType lhs,KoSnapStrategy::SnapType rhs)",
+        "method:KoSnapStrategy::KoSnapStrategy(KoSnapGuide::Strategy type)",
+        "method:KoSnapStrategy::~KoSnapStrategy()"
+      ]
+    },
+    {
+      "target": "KoSnapGuideSchemaContractTest",
+      "source": "libs/flake/tests/KoSnapGuideSchemaContractTest.cpp",
+      "test": "KoSnapGuideSchemaContractTest::snapStrategyBaseOperationSignaturesRemainStable",
+      "behavior": "スナップstrategy基底はsnap・装飾、strategy種別・位置・snap種別取得、および距離・内積計算の関数型とconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoSnapStrategy::decoration(const KoViewConverter & converter) const",
+        "method:KoSnapStrategy::scalarProduct(const QPointF & p1,const QPointF & p2)",
+        "method:KoSnapStrategy::snap(const QPointF & mousePosition,KoSnapProxy * proxy,qreal maxSnapDistance)",
+        "method:KoSnapStrategy::snappedPosition() const",
+        "method:KoSnapStrategy::snappedType() const",
+        "method:KoSnapStrategy::squareDistance(const QPointF & p1,const QPointF & p2)",
+        "method:KoSnapStrategy::type() const"
+      ]
+    },
+    {
+      "target": "KoSnapGuideSchemaContractTest",
+      "source": "libs/flake/tests/KoSnapGuideSchemaContractTest.cpp",
+      "test": "KoSnapGuideSchemaContractTest::snapStrategyPointAndOrthogonalSignaturesRemainStable",
+      "behavior": "node・直交snap strategyは基底継承、既定構築、およびsnap・装飾overrideの関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:NodeSnapStrategy",
+        "class:OrthogonalSnapStrategy",
+        "method:NodeSnapStrategy::NodeSnapStrategy()",
+        "method:NodeSnapStrategy::decoration(const KoViewConverter & converter) const",
+        "method:NodeSnapStrategy::snap(const QPointF & mousePosition,KoSnapProxy * proxy,qreal maxSnapDistance)",
+        "method:OrthogonalSnapStrategy::OrthogonalSnapStrategy()",
+        "method:OrthogonalSnapStrategy::decoration(const KoViewConverter & converter) const",
+        "method:OrthogonalSnapStrategy::snap(const QPointF & mousePosition,KoSnapProxy * proxy,qreal maxSnapDistance)"
+      ]
+    },
+    {
+      "target": "KoSnapGuideSchemaContractTest",
+      "source": "libs/flake/tests/KoSnapGuideSchemaContractTest.cpp",
+      "test": "KoSnapGuideSchemaContractTest::snapStrategyExtensionAndIntersectionSignaturesRemainStable",
+      "behavior": "延長線・交点snap strategyは基底継承、既定構築、およびsnap・装飾overrideの関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:ExtensionSnapStrategy",
+        "class:IntersectionSnapStrategy",
+        "method:ExtensionSnapStrategy::ExtensionSnapStrategy()",
+        "method:ExtensionSnapStrategy::decoration(const KoViewConverter & converter) const",
+        "method:ExtensionSnapStrategy::snap(const QPointF & mousePosition,KoSnapProxy * proxy,qreal maxSnapDistance)",
+        "method:IntersectionSnapStrategy::IntersectionSnapStrategy()",
+        "method:IntersectionSnapStrategy::decoration(const KoViewConverter & converter) const",
+        "method:IntersectionSnapStrategy::snap(const QPointF & mousePosition,KoSnapProxy * proxy,qreal maxSnapDistance)"
+      ]
+    },
+    {
+      "target": "KoSnapGuideSchemaContractTest",
+      "source": "libs/flake/tests/KoSnapGuideSchemaContractTest.cpp",
+      "test": "KoSnapGuideSchemaContractTest::snapStrategyGridAndBoundingBoxSignaturesRemainStable",
+      "behavior": "bounding box・grid snap strategyは基底継承、既定構築、およびsnap・装飾overrideの関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:BoundingBoxSnapStrategy",
+        "class:GridSnapStrategy",
+        "method:BoundingBoxSnapStrategy::BoundingBoxSnapStrategy()",
+        "method:BoundingBoxSnapStrategy::decoration(const KoViewConverter & converter) const",
+        "method:BoundingBoxSnapStrategy::snap(const QPointF & mousePosition,KoSnapProxy * proxy,qreal maxSnapDistance)",
+        "method:GridSnapStrategy::GridSnapStrategy()",
+        "method:GridSnapStrategy::decoration(const KoViewConverter & converter) const",
+        "method:GridSnapStrategy::snap(const QPointF & mousePosition,KoSnapProxy * proxy,qreal maxSnapDistance)"
       ]
     }
   ]
