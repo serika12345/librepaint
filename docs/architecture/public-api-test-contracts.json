@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 16465
+    "expectedMissingApis": 16429
   },
   "contracts": [
     {
@@ -39497,6 +39497,87 @@
         "method:KoGradientSegment::hasVariableColors()",
         "method:KoGradientSegment::length()",
         "method:KoGradientSegment::setVariableColors(const KoColor & foreground,const KoColor & background)"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::strokeTypeAndLifecycleSchemaRemainStable",
+      "behavior": "stroke待ち行列項目はclass、実行種別とその安定値、strategyを受ける構築、および破棄可能性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisStroke",
+        "enum:KisStroke::Type",
+        "enumerator:KisStroke::Type::LEGACY",
+        "enumerator:KisStroke::Type::LOD0",
+        "enumerator:KisStroke::Type::LODN",
+        "enumerator:KisStroke::Type::RESUME",
+        "enumerator:KisStroke::Type::SUSPEND",
+        "method:KisStroke::KisStroke(KisStrokeStrategy * strokeStrategy,Type type=LEGACY,int levelOfDetail=0)",
+        "method:KisStroke::~KisStroke()"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::strokeJobQueueOperationSignaturesRemainStable",
+      "behavior": "stroke待ち行列項目はjob追加・取出し、件数・有無、および次jobの逐次性・LOD照会について正確な関数型とconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisStroke::addJob(KisStrokeJobData * data)",
+        "method:KisStroke::addMutatedJobs(const QVector<KisStrokeJobData * > list)",
+        "method:KisStroke::hasJobs() const",
+        "method:KisStroke::nextJobLevelOfDetail() const",
+        "method:KisStroke::nextJobSequentiality() const",
+        "method:KisStroke::numJobs() const",
+        "method:KisStroke::popOneJob()"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::strokeIdentityAndLifecycleTransitionSignaturesRemainStable",
+      "behavior": "stroke待ち行列項目は識別子・名前、終了・取消、および休止protocolについて正確な関数型とconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisStroke::canCancel() const",
+        "method:KisStroke::cancelStroke()",
+        "method:KisStroke::endStroke()",
+        "method:KisStroke::id() const",
+        "method:KisStroke::name() const",
+        "method:KisStroke::supportsSuspension()",
+        "method:KisStroke::suspendStroke(KisStrokeSP recipient)"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::strokeStateAndStrategyPolicySignaturesRemainStable",
+      "behavior": "stroke待ち行列項目は初期化・終了・取消状態と、排他・wrap around・忘却・非同期取消・redo消去方針の正確なconst照会型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisStroke::canForgetAboutMe() const",
+        "method:KisStroke::clearsRedoOnStart() const",
+        "method:KisStroke::isAsynchronouslyCancellable() const",
+        "method:KisStroke::isCancelled() const",
+        "method:KisStroke::isEnded() const",
+        "method:KisStroke::isExclusive() const",
+        "method:KisStroke::isInitialized() const",
+        "method:KisStroke::supportsWrapAroundMode() const"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::strokeLodAndBalancingSignaturesRemainStable",
+      "behavior": "stroke待ち行列項目はLOD、負荷分散比率、LOD companion、および種別照会について正確な関数型とconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisStroke::balancingRatioOverride() const",
+        "method:KisStroke::lodBuddy() const",
+        "method:KisStroke::setLodBuddy(KisStrokeSP buddy)",
+        "method:KisStroke::type() const",
+        "method:KisStroke::worksOnLevelOfDetail() const"
       ]
     }
   ]

@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 01:27 JST
+- 更新日時: 2026-09-02 01:32 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -39,7 +39,7 @@
 
 ### 第134便の担当計画
 
-- 実装共通基点は`832aa7e56018ffe72f34c7b05ae424077be657b7`である。gradient segment担当は`integrated`、strokeとstorage model担当は`ready`、構築許可は指定試験targetと
+- 実装共通基点は`832aa7e56018ffe72f34c7b05ae424077be657b7`である。gradient segmentとstroke担当は`integrated`、storage model担当は`ready`、構築許可は指定試験targetと
   軽量近傍だけの`granted`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、専用worktree-local
   `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。統合順はgradient segment、stroke、storage modelとし、
   調整担当だけが`AGENTS.md`、architecture文書、`docs/architecture/public-api-test-contracts.json`、共通不足報告を変更する。3担当の公開header、所有CMake、試験source、
@@ -79,6 +79,11 @@
   segment・endpoint・KoColor・gradient resource・canvas resource・XML・device・I/O・色変換を生成・実行していない。担当macOS環境と中央環境で対象CTest、担当環境で
   5枠個別、20回反復、近傍`KoColorValueSchemaContractTest`、無作業再構築、動的接続・未解決記号、構文・書式、公開API検査、`verify-quick`に成功した。
   公開API契約検査は29,838件中13,373件対応、16,465件未対応となった。
+- `g134-stroke-schema`は受渡しcommit`12faa53c61ac`を統合commit`0176f574db`として取り込んだ。開始`libs/image/kis_stroke.h`から既存
+  `libs/image/tests/KisImageTypesContractTest.cpp`の5枠へ、strokeの型・寿命、job queue操作、識別・遷移、状態・strategy方針、LOD・負荷分散の36 APIを対応付けた。
+  対象4工程・8入力、製品`kritaimage` 1,196工程・2,416入力と各集合は変更前後一致し、stroke・strategy・job・queue・thread処理を生成・実行していない。
+  担当macOS環境と中央環境で対象CTest、担当環境で5枠個別、20回反復、近傍`KisStrokeJobContractTest`、無作業再構築、動的接続・未解決記号、構文・書式、公開API検査、
+  `verify-quick`に成功した。公開API契約検査は29,838件中13,409件対応、16,429件未対応となった。
 
 ### 第133便の先行監査計画
 
