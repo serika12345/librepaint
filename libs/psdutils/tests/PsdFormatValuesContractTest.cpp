@@ -19,11 +19,15 @@ namespace
 
 using BevelEmboss = psd_layer_effects_bevel_emboss;
 using ShadowBase = psd_layer_effects_shadow_base;
+using AdditionalLayerInfo = PsdAdditionalLayerInfoBlock;
 
 #define ASSERT_BEVEL_SIGNATURE(functionName, signatureType)                                                            \
     static_assert(std::is_same_v<decltype(static_cast<signatureType>(&BevelEmboss::functionName)), signatureType>)
 #define ASSERT_SHADOW_SIGNATURE(functionName, signatureType)                                                           \
     static_assert(std::is_same_v<decltype(static_cast<signatureType>(&ShadowBase::functionName)), signatureType>)
+#define ASSERT_ADDITIONAL_LAYER_INFO_SIGNATURE(functionName, signatureType)                                            \
+    static_assert(                                                                                                     \
+        std::is_same_v<decltype(static_cast<signatureType>(&AdditionalLayerInfo::functionName)), signatureType>)
 
 template<typename Resource>
 void verifyLegacyResourceAcceptsAndIgnoresPayloads()
@@ -109,6 +113,11 @@ private Q_SLOTS:
     void layerMaskControlsPreserveDefaultsAndCopyState();
     void layerBlendingRangePreservesEndpointArrays();
     void layerBlendingRangesPreserveValueCopies();
+    void additionalLayerInfoIdentityAndHandlerSignaturesRemainStable();
+    void additionalLayerInfoSerializedIdentityFieldTypesRemainStable();
+    void additionalLayerInfoPayloadFieldTypesRemainStable();
+    void additionalLayerInfoCoreBlockWriterSignaturesRemainStable();
+    void additionalLayerInfoPayloadWriterSignaturesRemainStable();
     void gradientFillDefaultsAndCopiesValueState();
     void gradientFillScalarSettersPreserveSignedValues();
     void gradientFillTypeCodesAndSvgCompatibilityRemainStable();
@@ -2196,6 +2205,83 @@ void PsdFormatValuesContractTest::layerBlendingRangesPreserveValueCopies()
     QCOMPARE(ranges.compositeGrayRange.first.blackValues[0], quint8(1));
     QCOMPARE(ranges.sourceDestinationRanges.size(), 1);
     QCOMPARE(ranges.sourceDestinationRanges[0].second.whiteValues[0], quint8(247));
+}
+
+void PsdFormatValuesContractTest::additionalLayerInfoIdentityAndHandlerSignaturesRemainStable()
+{
+    using ExtraLayerInfoBlockHandler = std::function<bool(QIODevice &)>;
+    using UserMaskInfoBlockHandler = std::function<bool(QIODevice &)>;
+    using ExtraHandlerSetter = void (AdditionalLayerInfo::*)(ExtraLayerInfoBlockHandler);
+    using UserMaskHandlerSetter = void (AdditionalLayerInfo::*)(UserMaskInfoBlockHandler);
+    using Valid = bool (AdditionalLayerInfo::*)();
+
+    static_assert(std::is_class_v<AdditionalLayerInfo>);
+    static_assert(std::is_same_v<AdditionalLayerInfo::ExtraLayerInfoBlockHandler, ExtraLayerInfoBlockHandler>);
+    static_assert(std::is_same_v<AdditionalLayerInfo::UserMaskInfoBlockHandler, UserMaskInfoBlockHandler>);
+    static_assert(std::is_constructible_v<AdditionalLayerInfo, const PSDHeader &>);
+    ASSERT_ADDITIONAL_LAYER_INFO_SIGNATURE(setExtraLayerInfoBlockHandler, ExtraHandlerSetter);
+    ASSERT_ADDITIONAL_LAYER_INFO_SIGNATURE(setUserMaskInfoBlockHandler, UserMaskHandlerSetter);
+    ASSERT_ADDITIONAL_LAYER_INFO_SIGNATURE(valid, Valid);
+}
+
+void PsdFormatValuesContractTest::additionalLayerInfoSerializedIdentityFieldTypesRemainStable()
+{
+    static_assert(std::is_same_v<decltype(AdditionalLayerInfo::m_header), const PSDHeader &>);
+    static_assert(std::is_same_v<decltype(AdditionalLayerInfo::error), QString>);
+    static_assert(std::is_same_v<decltype(AdditionalLayerInfo::keys), QStringList>);
+    static_assert(std::is_same_v<decltype(AdditionalLayerInfo::unicodeLayerName), QString>);
+    static_assert(std::is_same_v<decltype(AdditionalLayerInfo::labelColor), quint16>);
+    static_assert(std::is_same_v<decltype(AdditionalLayerInfo::fillType), psd_fill_type>);
+    static_assert(std::is_same_v<decltype(AdditionalLayerInfo::sectionDividerType), psd_section_type>);
+    static_assert(std::is_same_v<decltype(AdditionalLayerInfo::sectionDividerBlendMode), QString>);
+}
+
+void PsdFormatValuesContractTest::additionalLayerInfoPayloadFieldTypesRemainStable()
+{
+    static_assert(std::is_same_v<decltype(AdditionalLayerInfo::embeddedPatterns), QVector<QDomDocument>>);
+    static_assert(std::is_same_v<decltype(AdditionalLayerInfo::layerStyleXml), QDomDocument>);
+    static_assert(std::is_same_v<decltype(AdditionalLayerInfo::txt2Data), QVariantHash>);
+    static_assert(std::is_same_v<decltype(AdditionalLayerInfo::fillConfig), QDomDocument>);
+    static_assert(std::is_same_v<decltype(AdditionalLayerInfo::textTransform), QTransform>);
+    static_assert(std::is_same_v<decltype(AdditionalLayerInfo::textData), QDomDocument>);
+    static_assert(std::is_same_v<decltype(AdditionalLayerInfo::vectorMask), psd_vector_mask>);
+    static_assert(std::is_same_v<decltype(AdditionalLayerInfo::vectorStroke), QDomDocument>);
+    static_assert(std::is_same_v<decltype(AdditionalLayerInfo::vectorOriginationData), QDomDocument>);
+}
+
+void PsdFormatValuesContractTest::additionalLayerInfoCoreBlockWriterSignaturesRemainStable()
+{
+    using Read = bool (AdditionalLayerInfo::*)(QIODevice &);
+    using Write = bool (AdditionalLayerInfo::*)(QIODevice &, KisNodeSP);
+    using WriteLuni = void (AdditionalLayerInfo::*)(QIODevice &, const QString &);
+    using WriteLsct = void (AdditionalLayerInfo::*)(QIODevice &, psd_section_type, bool, const QString &);
+    using WriteLfx2 = void (AdditionalLayerInfo::*)(QIODevice &, const QDomDocument &, bool);
+    using WritePatt = void (AdditionalLayerInfo::*)(QIODevice &, const QDomDocument &);
+    using WriteLclr = void (AdditionalLayerInfo::*)(QIODevice &, const quint16 &);
+
+    ASSERT_ADDITIONAL_LAYER_INFO_SIGNATURE(read, Read);
+    ASSERT_ADDITIONAL_LAYER_INFO_SIGNATURE(write, Write);
+    ASSERT_ADDITIONAL_LAYER_INFO_SIGNATURE(writeLuniBlockEx, WriteLuni);
+    ASSERT_ADDITIONAL_LAYER_INFO_SIGNATURE(writeLsctBlockEx, WriteLsct);
+    ASSERT_ADDITIONAL_LAYER_INFO_SIGNATURE(writeLfx2BlockEx, WriteLfx2);
+    ASSERT_ADDITIONAL_LAYER_INFO_SIGNATURE(writePattBlockEx, WritePatt);
+    ASSERT_ADDITIONAL_LAYER_INFO_SIGNATURE(writeLclrBlockEx, WriteLclr);
+}
+
+void PsdFormatValuesContractTest::additionalLayerInfoPayloadWriterSignaturesRemainStable()
+{
+    using WriteFill = void (AdditionalLayerInfo::*)(QIODevice &, const QDomDocument &, psd_fill_type);
+    using WriteVmsk = void (AdditionalLayerInfo::*)(QIODevice &, psd_vector_mask);
+    using WriteTypeTool = void (AdditionalLayerInfo::*)(QIODevice &, psd_layer_type_shape);
+    using WriteXml = void (AdditionalLayerInfo::*)(QIODevice &, const QDomDocument &);
+    using WriteTxt2 = void (AdditionalLayerInfo::*)(QIODevice &, const QVariantHash);
+
+    ASSERT_ADDITIONAL_LAYER_INFO_SIGNATURE(writeFillLayerBlockEx, WriteFill);
+    ASSERT_ADDITIONAL_LAYER_INFO_SIGNATURE(writeVmskBlockEx, WriteVmsk);
+    ASSERT_ADDITIONAL_LAYER_INFO_SIGNATURE(writeTypeToolBlockEx, WriteTypeTool);
+    ASSERT_ADDITIONAL_LAYER_INFO_SIGNATURE(writeVectorStrokeDataEx, WriteXml);
+    ASSERT_ADDITIONAL_LAYER_INFO_SIGNATURE(writeVectorOriginationDataEx, WriteXml);
+    ASSERT_ADDITIONAL_LAYER_INFO_SIGNATURE(writeTxt2BlockEx, WriteTxt2);
 }
 
 void PsdFormatValuesContractTest::gradientFillDefaultsAndCopiesValueState()
