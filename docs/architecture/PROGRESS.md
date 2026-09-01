@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 06:40 JST
+- 更新日時: 2026-09-02 06:45 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -35,7 +35,7 @@
 
 ### 第139便の担当計画
 
-- 実装共通基点は`8229e7982b496c06b81dbc439d7d64f0d7e7088e`である。color setとlayer utils担当は`integrated`、canvas resource provider担当は`ready`、構築許可は指定試験targetと
+- 実装共通基点は`8229e7982b496c06b81dbc439d7d64f0d7e7088e`である。color set、layer utils、canvas resource provider担当は`integrated`、構築許可は指定試験targetと
   軽量近傍だけの`granted`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、専用worktree-local `build/tdd-macos`と主作業treeの
   `/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。統合順はcolor set、layer utils、canvas resource providerとし、調整担当だけが`AGENTS.md`、
   architecture文書、`docs/architecture/public-api-test-contracts.json`、共通不足報告を変更する。3担当の公開header、所有CMake、試験source、生成物は重ならない。
@@ -59,7 +59,7 @@
   確認する。関数address値・template本文を生成または実行し、command・shared storage・image・node・device・stroke・projectionを実体化し、RTTI・vtable・製品source・OBJECT・
   shared、`kritatestsdk`、新link依存、指定したsource・binary・Qt Widgets include位置以外のCMake変更・公開header変更、製品計画差、停止線超過、さらに別の未割当依存が必要なら止める。
 - `g139-canvas-resource-schema`は`/Users/masato/Documents/librepaint-g139-canvas-resource-schema`を所有する。開始`libs/flake/KoCanvasResourceProvider.h`の全45 APIから新規
-  `libs/flake/tests/KoCanvasResourceProviderSchemaContractTest.cpp`の5枠`canvasResourceProviderTypeLifetimeAndApplicationPolicySchemaRemainsStable`、
+  `libs/flake/tests/KoCanvasResourceProviderSchemaContractTest.cpp`の5枠`canvasProviderTypeLifetimeAndPolicySchemaRemainsStable`、
   `canvasResourceAccessSignaturesRemainStable`、`canvasPresentationResourceSignaturesRemainStable`、`canvasResourceExtensionPointSignaturesRemainStable`、
   `canvasResourceInterfaceAndNotificationSignaturesRemainStable`へ対応付ける。許可pathは新規試験sourceと`libs/flake/tests/CMakeLists.txt`だけである。新対象4工程・8入力、停止5工程・
   11入力、近傍は`KoCanvasResourceIdsContractTest`、製品`kritaflake`は621工程・1,274入力と集合の完全一致を確認する。未知target、5枠、対象CTest、20回反復、近傍、無作業再構築、
@@ -80,6 +80,12 @@
   2,416入力の各集合は変更前後一致し、command・shared storage・image・node・device・stroke・projection・template本文を生成または実行していない。担当macOS環境と中央環境で
   新5枠を含む対象CTest・20回反復と近傍`KisSpacingInformationContractTest`、担当環境で無作業再構築、動的接続・未解決記号、構文・書式、公開API検査、`verify-quick`に成功した。
   中央の公開API契約検査は台帳同期後に29,838件中14,053件対応、15,785件未対応となる。作業tree 896,276 KiBと担当branchは削除した。
+- `g139-canvas-resource-schema`は受渡しcommit`df69e9eae16d`を統合commit`fc0e91cd65`として取り込んだ。開始`libs/flake/KoCanvasResourceProvider.h`から新規
+  `libs/flake/tests/KoCanvasResourceProviderSchemaContractTest.cpp`の5枠へ、型・寿命・application方針、資源access、表示資源、拡張点、interface・通知の45 APIを対応付けた。
+  新対象4工程・8入力、製品`kritaflake` 621工程・1,274入力の各集合は変更前後一致し、QObject・provider・QVariant資源値・色・単位・shape・共有資源を生成または実行していない。
+  担当macOS環境と中央環境で5枠・対象CTest・20回反復と近傍`KoCanvasResourceIdsContractTest`、担当環境で無作業再構築、動的接続・未解決記号、構文・書式、公開API検査、
+  `verify-quick`に成功した。中央の公開API契約検査は29,838件中14,098件対応、15,740件未対応となる。作業tree 868,196 KiBと担当branchは削除した。第139便全体で201 APIを
+  追加し、3作業tree計2,636,628 KiBを回収した。主Ninja木、共有compiler cache、最新不足報告`build/tdd-macos/public-api-missing-g140.json`だけを再利用対象として保持する。
 
 ### 第138便の先行監査計画
 

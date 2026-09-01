@@ -20,15 +20,14 @@ class KoCanvasResourceProviderSchemaContractTest : public QObject
     Q_OBJECT
 
 private Q_SLOTS:
-    void canvasResourceProviderTypeLifetimeAndApplicationPolicySchemaRemainsStable();
+    void canvasProviderTypeLifetimeAndPolicySchemaRemainsStable();
     void canvasResourceAccessSignaturesRemainStable();
     void canvasPresentationResourceSignaturesRemainStable();
     void canvasResourceExtensionPointSignaturesRemainStable();
     void canvasResourceInterfaceAndNotificationSignaturesRemainStable();
 };
 
-void KoCanvasResourceProviderSchemaContractTest::
-    canvasResourceProviderTypeLifetimeAndApplicationPolicySchemaRemainsStable()
+void KoCanvasResourceProviderSchemaContractTest::canvasProviderTypeLifetimeAndPolicySchemaRemainsStable()
 {
     static_assert(std::is_class_v<KoCanvasResourceProvider>);
     static_assert(std::is_base_of_v<QObject, KoCanvasResourceProvider>);

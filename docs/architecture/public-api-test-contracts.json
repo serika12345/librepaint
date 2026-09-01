@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 15785
+    "expectedMissingApis": 15740
   },
   "contracts": [
     {
@@ -40371,6 +40371,96 @@
         "method:KoShapeStroke::paintMarkers(const KoShape * shape,QPainter & painter) const",
         "method:KoShapeStroke::strokeInsets(const KoShape * shape,KoInsets & insets) const",
         "method:KoShapeStroke::strokeMaxMarkersInset(const KoShape * shape) const"
+      ]
+    },
+    {
+      "target": "KoCanvasResourceProviderSchemaContractTest",
+      "source": "libs/flake/tests/KoCanvasResourceProviderSchemaContractTest.cpp",
+      "test": "KoCanvasResourceProviderSchemaContractTest::canvasProviderTypeLifetimeAndPolicySchemaRemainsStable",
+      "behavior": "canvas資源提供者はQObjectとの継承関係、application固有方針と列挙値、既定の親を持つ構築、仮想破棄、および複写禁止の公開型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoCanvasResourceProvider",
+        "enum:KoCanvasResourceProvider::ApplicationSpecial",
+        "enumerator:KoCanvasResourceProvider::ApplicationSpecial::NoAdvancedText",
+        "enumerator:KoCanvasResourceProvider::ApplicationSpecial::NoSpecial",
+        "method:KoCanvasResourceProvider::KoCanvasResourceProvider(QObject * parent=0)",
+        "method:KoCanvasResourceProvider::~KoCanvasResourceProvider()"
+      ]
+    },
+    {
+      "target": "KoCanvasResourceProviderSchemaContractTest",
+      "source": "libs/flake/tests/KoCanvasResourceProviderSchemaContractTest.cpp",
+      "test": "KoCanvasResourceProviderSchemaContractTest::canvasResourceAccessSignaturesRemainStable",
+      "behavior": "canvas資源提供者は汎用値・色・図形・単位の設定、型別取得、存在確認と消去について正確な引数・戻り型とconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoCanvasResourceProvider::boolResource(int key) const",
+        "method:KoCanvasResourceProvider::clearResource(int key)",
+        "method:KoCanvasResourceProvider::hasResource(int key) const",
+        "method:KoCanvasResourceProvider::intResource(int key) const",
+        "method:KoCanvasResourceProvider::koColorResource(int key) const",
+        "method:KoCanvasResourceProvider::koShapeResource(int key) const",
+        "method:KoCanvasResourceProvider::resource(int key) const",
+        "method:KoCanvasResourceProvider::setResource(int key,KoShape * shape)",
+        "method:KoCanvasResourceProvider::setResource(int key,const KoColor & color)",
+        "method:KoCanvasResourceProvider::setResource(int key,const KoUnit & unit)",
+        "method:KoCanvasResourceProvider::setResource(int key,const QVariant & value)",
+        "method:KoCanvasResourceProvider::sizeResource(int key) const",
+        "method:KoCanvasResourceProvider::stringResource(int key) const",
+        "method:KoCanvasResourceProvider::unitResource(int key) const"
+      ]
+    },
+    {
+      "target": "KoCanvasResourceProviderSchemaContractTest",
+      "source": "libs/flake/tests/KoCanvasResourceProviderSchemaContractTest.cpp",
+      "test": "KoCanvasResourceProviderSchemaContractTest::canvasPresentationResourceSignaturesRemainStable",
+      "behavior": "canvas資源提供者は前景・背景色、handle半径、装飾厚、および代替色利用方針の取得・設定について正確な関数型とconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoCanvasResourceProvider::backgroundColor() const",
+        "method:KoCanvasResourceProvider::decorationThickness() const",
+        "method:KoCanvasResourceProvider::foregroundColor() const",
+        "method:KoCanvasResourceProvider::handleRadius() const",
+        "method:KoCanvasResourceProvider::isUsingOtherColor() const",
+        "method:KoCanvasResourceProvider::setBackgroundColor(const KoColor & color)",
+        "method:KoCanvasResourceProvider::setDecorationThickness(int decorationThickness)",
+        "method:KoCanvasResourceProvider::setForegroundColor(const KoColor & color)",
+        "method:KoCanvasResourceProvider::setHandleRadius(int handleSize)",
+        "method:KoCanvasResourceProvider::setUsingOtherColor(bool usingOtherColor)"
+      ]
+    },
+    {
+      "target": "KoCanvasResourceProviderSchemaContractTest",
+      "source": "libs/flake/tests/KoCanvasResourceProviderSchemaContractTest.cpp",
+      "test": "KoCanvasResourceProviderSchemaContractTest::canvasResourceExtensionPointSignaturesRemainStable",
+      "behavior": "canvas資源提供者は派生値変換器、抽象資源、更新mediator、およびactive資源依存の登録・照会・解除について正確な共有型とkey型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoCanvasResourceProvider::addActiveCanvasResourceDependency(KoActiveCanvasResourceDependencySP dep)",
+        "method:KoCanvasResourceProvider::addDerivedResourceConverter(KoDerivedResourceConverterSP converter)",
+        "method:KoCanvasResourceProvider::addResourceUpdateMediator(KoResourceUpdateMediatorSP mediator)",
+        "method:KoCanvasResourceProvider::hasAbstractResource(int key)",
+        "method:KoCanvasResourceProvider::hasActiveCanvasResourceDependency(int sourceKey,int targetKey) const",
+        "method:KoCanvasResourceProvider::hasDerivedResourceConverter(int key)",
+        "method:KoCanvasResourceProvider::hasResourceUpdateMediator(int key)",
+        "method:KoCanvasResourceProvider::removeAbstractResource(int key)",
+        "method:KoCanvasResourceProvider::removeActiveCanvasResourceDependency(int sourceKey,int targetKey)",
+        "method:KoCanvasResourceProvider::removeDerivedResourceConverter(int key)",
+        "method:KoCanvasResourceProvider::removeResourceUpdateMediator(int key)",
+        "method:KoCanvasResourceProvider::setAbstractResource(KoAbstractCanvasResourceInterfaceSP abstractResource)"
+      ]
+    },
+    {
+      "target": "KoCanvasResourceProviderSchemaContractTest",
+      "source": "libs/flake/tests/KoCanvasResourceProviderSchemaContractTest.cpp",
+      "test": "KoCanvasResourceProviderSchemaContractTest::canvasResourceInterfaceAndNotificationSignaturesRemainStable",
+      "behavior": "canvas資源提供者は共有資源interfaceの取得と、資源変更前・変更後通知について正確な引数・戻り型とconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoCanvasResourceProvider::canvasResourceChangeAttempted(int key,const QVariant & value)",
+        "method:KoCanvasResourceProvider::canvasResourceChanged(int key,const QVariant & value)",
+        "method:KoCanvasResourceProvider::canvasResourcesInterface() const"
       ]
     },
     {
