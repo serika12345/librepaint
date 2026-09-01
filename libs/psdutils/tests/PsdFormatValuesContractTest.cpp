@@ -54,6 +54,11 @@ private Q_SLOTS:
     void globalAngleDefaultsCopyAndDescribeSignedValues();
     void globalAltitudeDefaultsCopyAndDescribeSignedValues();
     void globalLightingBlocksRoundTripSignedValues();
+    void gradientFillDefaultsAndCopiesValueState();
+    void gradientFillScalarSettersPreserveSignedValues();
+    void gradientFillTypeCodesAndSvgCompatibilityRemainStable();
+    void patternFillDefaultsAndCopiesValueState();
+    void patternFillSettersPreserveValues();
 };
 
 void PsdFormatValuesContractTest::fileLimitsAndStorageEnumsRemainStable()
@@ -1534,6 +1539,191 @@ void PsdFormatValuesContractTest::globalLightingBlocksRoundTripSignedValues()
     GLOBAL_ALT_1049 parsedAltitude;
     QVERIFY(parsedAltitude.interpretBlock(altitudeBuffer.readAll()));
     QCOMPARE(parsedAltitude.altitude, qint32(-45));
+}
+
+void PsdFormatValuesContractTest::gradientFillDefaultsAndCopiesValueState()
+{
+    const psd_layer_gradient_fill empty;
+    QCOMPARE(empty.angle, 0.0);
+    QCOMPARE(empty.style, QStringLiteral("linear"));
+    QCOMPARE(empty.repeat, QStringLiteral("none"));
+    QCOMPARE(empty.scale, 100.0);
+    QVERIFY(!empty.reverse);
+    QVERIFY(!empty.dithered);
+    QVERIFY(!empty.align_with_layer);
+    QCOMPARE(empty.offset, QPointF());
+    QVERIFY(empty.gradient.isNull());
+    QCOMPARE(empty.imageWidth, 1);
+    QCOMPARE(empty.imageHeight, 1);
+
+    psd_layer_gradient_fill fill;
+    fill.angle = -135.25;
+    fill.style = QStringLiteral("radial");
+    fill.repeat = QStringLiteral("alternate");
+    fill.scale = -42.5;
+    fill.reverse = true;
+    fill.dithered = true;
+    fill.align_with_layer = true;
+    fill.offset = QPointF(-12.5, 8.25);
+    QDomElement gradientElement = fill.gradient.createElement(QStringLiteral("gradient"));
+    fill.gradient.appendChild(gradientElement);
+    fill.imageWidth = -640;
+    fill.imageHeight = -480;
+
+    psd_layer_gradient_fill copy = fill;
+    QCOMPARE(copy.angle, -135.25);
+    QCOMPARE(copy.style, QStringLiteral("radial"));
+    QCOMPARE(copy.repeat, QStringLiteral("alternate"));
+    QCOMPARE(copy.scale, -42.5);
+    QVERIFY(copy.reverse);
+    QVERIFY(copy.dithered);
+    QVERIFY(copy.align_with_layer);
+    QCOMPARE(copy.offset, QPointF(-12.5, 8.25));
+    QCOMPARE(copy.gradient.documentElement().tagName(), QStringLiteral("gradient"));
+    QCOMPARE(copy.imageWidth, -640);
+    QCOMPARE(copy.imageHeight, -480);
+
+    copy.angle = 22.5;
+    copy.style = QStringLiteral("linear");
+    copy.repeat = QStringLiteral("none");
+    copy.scale = 75.0;
+    copy.reverse = false;
+    copy.dithered = false;
+    copy.align_with_layer = false;
+    copy.offset = QPointF(4.0, -6.0);
+    copy.gradient = QDomDocument();
+    copy.imageWidth = 320;
+    copy.imageHeight = 240;
+    QCOMPARE(fill.angle, -135.25);
+    QCOMPARE(fill.style, QStringLiteral("radial"));
+    QCOMPARE(fill.repeat, QStringLiteral("alternate"));
+    QCOMPARE(fill.scale, -42.5);
+    QVERIFY(fill.reverse);
+    QVERIFY(fill.dithered);
+    QVERIFY(fill.align_with_layer);
+    QCOMPARE(fill.offset, QPointF(-12.5, 8.25));
+    QCOMPARE(fill.gradient.documentElement().tagName(), QStringLiteral("gradient"));
+    QCOMPARE(fill.imageWidth, -640);
+    QCOMPARE(fill.imageHeight, -480);
+}
+
+void PsdFormatValuesContractTest::gradientFillScalarSettersPreserveSignedValues()
+{
+    psd_layer_gradient_fill fill;
+    fill.setAlignWithLayer(true);
+    fill.setAngle(-135.25f);
+    fill.setDither(true);
+    fill.setOffset(QPointF(-12.5, 8.25));
+    fill.setReverse(true);
+    fill.setScale(-42.5f);
+
+    QVERIFY(fill.align_with_layer);
+    QCOMPARE(fill.angle, -135.25);
+    QVERIFY(fill.dithered);
+    QCOMPARE(fill.offset, QPointF(-12.5, 8.25));
+    QVERIFY(fill.reverse);
+    QCOMPARE(fill.scale, -42.5);
+
+    fill.setAlignWithLayer(false);
+    fill.setDither(false);
+    fill.setReverse(false);
+    QVERIFY(!fill.align_with_layer);
+    QVERIFY(!fill.dithered);
+    QVERIFY(!fill.reverse);
+}
+
+void PsdFormatValuesContractTest::gradientFillTypeCodesAndSvgCompatibilityRemainStable()
+{
+    psd_layer_gradient_fill fill;
+
+    fill.repeat = QStringLiteral("stale");
+    fill.setType(QStringLiteral("Lnr "));
+    QCOMPARE(fill.style, QStringLiteral("linear"));
+    QCOMPARE(fill.repeat, QStringLiteral("none"));
+    QVERIFY(fill.svgCompatible());
+
+    fill.setType(QStringLiteral("Rdl "));
+    QCOMPARE(fill.style, QStringLiteral("radial"));
+    QCOMPARE(fill.repeat, QStringLiteral("none"));
+    QVERIFY(fill.svgCompatible());
+
+    fill.setType(QStringLiteral("Angl"));
+    QCOMPARE(fill.style, QStringLiteral("conical"));
+    QCOMPARE(fill.repeat, QStringLiteral("none"));
+    QVERIFY(!fill.svgCompatible());
+
+    fill.setType(QStringLiteral("Rflc"));
+    QCOMPARE(fill.style, QStringLiteral("bilinear"));
+    QCOMPARE(fill.repeat, QStringLiteral("alternate"));
+    QVERIFY(!fill.svgCompatible());
+
+    fill.setType(QStringLiteral("Dmnd"));
+    QCOMPARE(fill.style, QStringLiteral("square"));
+    QCOMPARE(fill.repeat, QStringLiteral("none"));
+    QVERIFY(!fill.svgCompatible());
+}
+
+void PsdFormatValuesContractTest::patternFillDefaultsAndCopiesValueState()
+{
+    const psd_layer_pattern_fill empty;
+    QCOMPARE(empty.angle, 0.0);
+    QCOMPARE(empty.scale, 100.0);
+    QCOMPARE(empty.offset, QPointF());
+    QVERIFY(empty.patternName.isEmpty());
+    QVERIFY(empty.patternID.isEmpty());
+    QVERIFY(empty.pattern.isNull());
+    QVERIFY(!empty.align_with_layer);
+
+    psd_layer_pattern_fill fill;
+    fill.angle = -90.5;
+    fill.scale = -25.0;
+    fill.offset = QPointF(-7.5, 11.25);
+    fill.patternName = QStringLiteral("Grid");
+    fill.patternID = QStringLiteral("pattern-id");
+    fill.align_with_layer = true;
+
+    psd_layer_pattern_fill copy = fill;
+    QCOMPARE(copy.angle, -90.5);
+    QCOMPARE(copy.scale, -25.0);
+    QCOMPARE(copy.offset, QPointF(-7.5, 11.25));
+    QCOMPARE(copy.patternName, QStringLiteral("Grid"));
+    QCOMPARE(copy.patternID, QStringLiteral("pattern-id"));
+    QVERIFY(copy.pattern.isNull());
+    QVERIFY(copy.align_with_layer);
+
+    copy.angle = 45.0;
+    copy.scale = 125.0;
+    copy.offset = QPointF(3.0, -4.0);
+    copy.patternName = QStringLiteral("Dots");
+    copy.patternID = QStringLiteral("copy-id");
+    copy.align_with_layer = false;
+    QCOMPARE(fill.angle, -90.5);
+    QCOMPARE(fill.scale, -25.0);
+    QCOMPARE(fill.offset, QPointF(-7.5, 11.25));
+    QCOMPARE(fill.patternName, QStringLiteral("Grid"));
+    QCOMPARE(fill.patternID, QStringLiteral("pattern-id"));
+    QVERIFY(fill.pattern.isNull());
+    QVERIFY(fill.align_with_layer);
+}
+
+void PsdFormatValuesContractTest::patternFillSettersPreserveValues()
+{
+    psd_layer_pattern_fill fill;
+    fill.setAlignWithLayer(true);
+    fill.setAngle(-90.5f);
+    fill.setOffset(QPointF(-7.5, 11.25));
+    fill.setPatternRef(QStringLiteral("pattern-id"), QStringLiteral("Grid"));
+    fill.setScale(-25.0f);
+
+    QVERIFY(fill.align_with_layer);
+    QCOMPARE(fill.angle, -90.5);
+    QCOMPARE(fill.offset, QPointF(-7.5, 11.25));
+    QCOMPARE(fill.patternID, QStringLiteral("pattern-id"));
+    QCOMPARE(fill.patternName, QStringLiteral("Grid"));
+    QCOMPARE(fill.scale, -25.0);
+
+    fill.setAlignWithLayer(false);
+    QVERIFY(!fill.align_with_layer);
 }
 
 QTEST_GUILESS_MAIN(PsdFormatValuesContractTest)
