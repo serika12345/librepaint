@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 18169
+    "expectedMissingApis": 18076
   },
   "contracts": [
     {
@@ -35723,6 +35723,234 @@
         "method:LineBox::isEmpty()",
         "method:LineBox::setCurrentChunk(LineChunk chunk)",
         "method:LineBox::setCurrentChunkForPos(QPointF pos,bool isHorizontal)"
+      ]
+    },
+    {
+      "target": "KisResourceModelEnumContractTest",
+      "source": "libs/resources/tests/KisResourceModelEnumContractTest.cpp",
+      "test": "KisResourceModelEnumContractTest::storageTypeIdentitySchemaRemainsStable",
+      "behavior": "資源storageの共有所有型、class、storage種別と7列挙値は正確な型、基底型、連続する現行値を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisResourceStorageSP",
+        "class:KisResourceStorage",
+        "enum:KisResourceStorage::StorageType",
+        "enumerator:KisResourceStorage::StorageType::AdobeBrushLibrary",
+        "enumerator:KisResourceStorage::StorageType::AdobeStyleLibrary",
+        "enumerator:KisResourceStorage::StorageType::Bundle",
+        "enumerator:KisResourceStorage::StorageType::Folder",
+        "enumerator:KisResourceStorage::StorageType::FontStorage",
+        "enumerator:KisResourceStorage::StorageType::Memory",
+        "enumerator:KisResourceStorage::StorageType::Unknown"
+      ]
+    },
+    {
+      "target": "KisResourceModelEnumContractTest",
+      "source": "libs/resources/tests/KisResourceModelEnumContractTest.cpp",
+      "test": "KisResourceModelEnumContractTest::storageLifetimeSchemaRemainsStable",
+      "behavior": "資源storageのlocation・種別構築、copy構築・代入、破棄、cloneは正確な構築可能性と公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisResourceStorage::KisResourceStorage(const KisResourceStorage & rhs)",
+        "method:KisResourceStorage::KisResourceStorage(const QString & location)",
+        "method:KisResourceStorage::KisResourceStorage(const QString & location,KisResourceStorage::StorageType storageType)",
+        "method:KisResourceStorage::clone() const",
+        "method:KisResourceStorage::operator =(const KisResourceStorage & rhs)",
+        "method:KisResourceStorage::~KisResourceStorage()"
+      ]
+    },
+    {
+      "target": "KisResourceModelEnumContractTest",
+      "source": "libs/resources/tests/KisResourceModelEnumContractTest.cpp",
+      "test": "KisResourceModelEnumContractTest::storageTypeLabelSchemaRemainsStable",
+      "behavior": "資源storage種別の翻訳・非翻訳label関数は正確な静的関数型を維持し、非翻訳labelは7種の固定文字列を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisResourceStorage::storageTypeToString(StorageType storageType)",
+        "method:KisResourceStorage::storageTypeToUntranslatedString(StorageType storageType)"
+      ]
+    },
+    {
+      "target": "KisResourceModelEnumContractTest",
+      "source": "libs/resources/tests/KisResourceModelEnumContractTest.cpp",
+      "test": "KisResourceModelEnumContractTest::storageIdentityQuerySchemaRemainsStable",
+      "behavior": "資源storageの名前、location、種別queryは正確な戻り型とconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisResourceStorage::location() const",
+        "method:KisResourceStorage::name() const",
+        "method:KisResourceStorage::type() const"
+      ]
+    },
+    {
+      "target": "KisResourceModelEnumContractTest",
+      "source": "libs/resources/tests/KisResourceModelEnumContractTest.cpp",
+      "test": "KisResourceModelEnumContractTest::storageStateQuerySchemaRemainsStable",
+      "behavior": "資源storageの妥当性、thumbnail、storage・資源別時刻queryは正確な戻り型、引数、const性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisResourceStorage::thumbnail() const",
+        "method:KisResourceStorage::timeStampForResource(const QString & resourceType,const QString & filename) const",
+        "method:KisResourceStorage::timestamp() const",
+        "method:KisResourceStorage::valid() const"
+      ]
+    },
+    {
+      "target": "KoColorSpaceSchemaContractTest",
+      "source": "libs/pigment/tests/KoColorSpaceSchemaContractTest.cpp",
+      "test": "KoColorSpaceSchemaContractTest::colorSpaceIdentitySignaturesRemainStable",
+      "behavior": "色空間はregistry所有の抽象classであり、識別子・名前・色模型・深度と比較の正確な公開関数型とconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoColorSpace",
+        "method:KoColorSpace::colorDepthId() const",
+        "method:KoColorSpace::colorModelId() const",
+        "method:KoColorSpace::id() const",
+        "method:KoColorSpace::name() const",
+        "method:KoColorSpace::operator !=(const KoColorSpace & rhs) const",
+        "method:KoColorSpace::operator ==(const KoColorSpace & rhs) const"
+      ]
+    },
+    {
+      "target": "KoColorSpaceSchemaContractTest",
+      "source": "libs/pigment/tests/KoColorSpaceSchemaContractTest.cpp",
+      "test": "KoColorSpaceSchemaContractTest::channelTopologySignaturesRemainStable",
+      "behavior": "色空間のalpha位置、channel数・一覧・flag、色channel数、画素寸法は正確な公開関数型、const性、既定引数を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoColorSpace::alphaPos() const",
+        "method:KoColorSpace::channelCount() const",
+        "method:KoColorSpace::channelFlags(bool color=true,bool alpha=false) const",
+        "method:KoColorSpace::channels() const",
+        "method:KoColorSpace::colorChannelCount() const",
+        "method:KoColorSpace::pixelSize() const"
+      ]
+    },
+    {
+      "target": "KoColorSpaceSchemaContractTest",
+      "source": "libs/pigment/tests/KoColorSpaceSchemaContractTest.cpp",
+      "test": "KoColorSpaceSchemaContractTest::channelRepresentationSignaturesRemainStable",
+      "behavior": "色空間のchannel文字表現、正規化値変換、U8縮尺、単一channel画素生成は正確なpointer・索引・参照方向、戻り型、const性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoColorSpace::channelValueText(const quint8 * pixel,quint32 channelIndex) const",
+        "method:KoColorSpace::fromNormalisedChannelsValue(quint8 * pixel,const QVector<float> & values) const",
+        "method:KoColorSpace::normalisedChannelValueText(const quint8 * pixel,quint32 channelIndex) const",
+        "method:KoColorSpace::normalisedChannelsValue(const quint8 * pixel,QVector<float> & channels) const",
+        "method:KoColorSpace::scaleToU8(const quint8 * srcPixel,qint32 channelPos) const",
+        "method:KoColorSpace::singleChannelPixel(quint8 * dstPixel,const quint8 * srcPixel,quint32 channelIndex) const"
+      ]
+    },
+    {
+      "target": "KoColorSpaceSchemaContractTest",
+      "source": "libs/pigment/tests/KoColorSpaceSchemaContractTest.cpp",
+      "test": "KoColorSpaceSchemaContractTest::profileCompatibilityAndIndependencePolicyRemainStable",
+      "behavior": "色空間独立性の4段階とHDR、profile借用、適合性、劣化方針queryは正確な列挙値、公開関数型、const性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:ColorSpaceIndependence",
+        "enumerator:ColorSpaceIndependence::FULLY_INDEPENDENT",
+        "enumerator:ColorSpaceIndependence::TO_LAB16",
+        "enumerator:ColorSpaceIndependence::TO_RGBA16",
+        "enumerator:ColorSpaceIndependence::TO_RGBA8",
+        "method:KoColorSpace::hasHighDynamicRange() const",
+        "method:KoColorSpace::profile() const",
+        "method:KoColorSpace::profileIsCompatible(const KoColorProfile * profile) const",
+        "method:KoColorSpace::willDegrade(ColorSpaceIndependence independence) const"
+      ]
+    },
+    {
+      "target": "KoColorSpaceSchemaContractTest",
+      "source": "libs/pigment/tests/KoColorSpaceSchemaContractTest.cpp",
+      "test": "KoColorSpaceSchemaContractTest::gamutMetadataSignaturesRemainStable",
+      "behavior": "色空間の推定TRC色度、gamut色度、輝度係数metadataは正確な値返却型とconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoColorSpace::estimatedTRCXYY() const",
+        "method:KoColorSpace::gamutXYY() const",
+        "method:KoColorSpace::lumaCoefficients() const"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::additionalLayerInfoIdentityAndHandlerSignaturesRemainStable",
+      "behavior": "PSD追加layer情報blockのclass、handler型、header構築可能性、handler設定、妥当性queryは正確な公開schemaを維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:PsdAdditionalLayerInfoBlock::ExtraLayerInfoBlockHandler",
+        "alias:PsdAdditionalLayerInfoBlock::UserMaskInfoBlockHandler",
+        "class:PsdAdditionalLayerInfoBlock",
+        "method:PsdAdditionalLayerInfoBlock::PsdAdditionalLayerInfoBlock(const PSDHeader & header)",
+        "method:PsdAdditionalLayerInfoBlock::setExtraLayerInfoBlockHandler(ExtraLayerInfoBlockHandler handler)",
+        "method:PsdAdditionalLayerInfoBlock::setUserMaskInfoBlockHandler(UserMaskInfoBlockHandler handler)",
+        "method:PsdAdditionalLayerInfoBlock::valid()"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::additionalLayerInfoSerializedIdentityFieldTypesRemainStable",
+      "behavior": "PSD追加layer情報blockのheader、error、key、layer名、label色、fill、section種別・blend modeは正確な公開member型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:PsdAdditionalLayerInfoBlock::error",
+        "member:PsdAdditionalLayerInfoBlock::fillType",
+        "member:PsdAdditionalLayerInfoBlock::keys",
+        "member:PsdAdditionalLayerInfoBlock::labelColor",
+        "member:PsdAdditionalLayerInfoBlock::m_header",
+        "member:PsdAdditionalLayerInfoBlock::sectionDividerBlendMode",
+        "member:PsdAdditionalLayerInfoBlock::sectionDividerType",
+        "member:PsdAdditionalLayerInfoBlock::unicodeLayerName"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::additionalLayerInfoPayloadFieldTypesRemainStable",
+      "behavior": "PSD追加layer情報blockのpattern、layer style、text、fill、変換、vector mask・stroke・origination payloadは正確な公開member型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:PsdAdditionalLayerInfoBlock::embeddedPatterns",
+        "member:PsdAdditionalLayerInfoBlock::fillConfig",
+        "member:PsdAdditionalLayerInfoBlock::layerStyleXml",
+        "member:PsdAdditionalLayerInfoBlock::textData",
+        "member:PsdAdditionalLayerInfoBlock::textTransform",
+        "member:PsdAdditionalLayerInfoBlock::txt2Data",
+        "member:PsdAdditionalLayerInfoBlock::vectorMask",
+        "member:PsdAdditionalLayerInfoBlock::vectorOriginationData",
+        "member:PsdAdditionalLayerInfoBlock::vectorStroke"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::additionalLayerInfoCoreBlockWriterSignaturesRemainStable",
+      "behavior": "PSD追加layer情報の読書きとLuni・Lsct・Lfx2・Patt・Lclr block writerは正確な戻り値、参照・値引数の公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:PsdAdditionalLayerInfoBlock::read(QIODevice & io)",
+        "method:PsdAdditionalLayerInfoBlock::write(QIODevice & io,KisNodeSP node)",
+        "method:PsdAdditionalLayerInfoBlock::writeLclrBlockEx(QIODevice & io,const quint16 & labelColor)",
+        "method:PsdAdditionalLayerInfoBlock::writeLfx2BlockEx(QIODevice & io,const QDomDocument & stylesXmlDoc,bool useLfxsLayerStyleFormat)",
+        "method:PsdAdditionalLayerInfoBlock::writeLsctBlockEx(QIODevice & io,psd_section_type sectionType,bool isPassThrough,const QString & blendModeKey)",
+        "method:PsdAdditionalLayerInfoBlock::writeLuniBlockEx(QIODevice & io,const QString & layerName)",
+        "method:PsdAdditionalLayerInfoBlock::writePattBlockEx(QIODevice & io,const QDomDocument & patternsXmlDoc)"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::additionalLayerInfoPayloadWriterSignaturesRemainStable",
+      "behavior": "PSD追加layer情報のfill、vector mask、type tool、vector stroke・origination、Txt2 writerは正確な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:PsdAdditionalLayerInfoBlock::writeFillLayerBlockEx(QIODevice & io,const QDomDocument & fillConfig,psd_fill_type type)",
+        "method:PsdAdditionalLayerInfoBlock::writeTxt2BlockEx(QIODevice & io,const QVariantHash txt2Hash)",
+        "method:PsdAdditionalLayerInfoBlock::writeTypeToolBlockEx(QIODevice & io,psd_layer_type_shape typeTool)",
+        "method:PsdAdditionalLayerInfoBlock::writeVectorOriginationDataEx(QIODevice & io,const QDomDocument & vectorOrigination)",
+        "method:PsdAdditionalLayerInfoBlock::writeVectorStrokeDataEx(QIODevice & io,const QDomDocument & vectorStroke)",
+        "method:PsdAdditionalLayerInfoBlock::writeVmskBlockEx(QIODevice & io,psd_vector_mask mask)"
       ]
     }
   ]

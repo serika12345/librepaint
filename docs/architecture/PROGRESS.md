@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 14:55 JST
+- 更新日時: 2026-09-01 15:13 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -833,28 +833,51 @@
 
 ### 第119便の担当計画
 
-- 実装共通基点はこの担当票commitとする。3担当は`planned`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの
+- 実装共通基点は`da1c1f5273c12bb1d4abe3764d38c21dddf5e8bb`である。3担当は`integrated`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの
   `transport-commit`、追加委任は禁止する。専用worktree-local `build/tdd-macos`と`./scripts/run-shared-test-env`で主環境・compiler cacheを共有する。
   統合順は資源storage、色空間、PSD直列化とし、調整担当だけが台帳、進捗文書、不足報告を変更する。3担当の許可path、CMake、試験source、生成物は重ならない。
-- `g119-resource-storage-schema`は`/Users/masato/Documents/librepaint-g119-resource-storage-schema`を所有する。開始
+- `g119-resource-storage-schema`の削除済みworktreeは`/Users/masato/Documents/librepaint-g119-resource-storage-schema`である。開始
   `libs/resources/KisResourceStorage.h`から既存`libs/resources/tests/KisResourceModelEnumContractTest.cpp`の5枠へ、共有pointer・class・storage種別10、
   寿命6、種別label 2、識別query 3、状態・時刻query 4の全25 APIを対応付け、他pathを変更しない。対象4工程・9入力、停止5工程・11入力、製品
   `kritaresources` 149工程・325入力の完全一致を確認する。5枠の未知関数診断、対象CTest、20回反復、`KisTagModelSchemaContractTest`、no-work、動的接続、
   未解決記号、構文・書式・公開API・`verify-quick`を確認する。翻訳なし種別文字列以外のmethod、実storage、filesystem・archive・SQL、registry・factory・loader、
   resource・tag模型、Qt Widgets、製品shared、`kritatestsdk`、新依存、公開header・CMake変更、停止線超過が必要なら止める。
-- `g119-color-space-schema`は`/Users/masato/Documents/librepaint-g119-color-space-schema`を所有する。開始`libs/pigment/KoColorSpace.h`から新規
+- `g119-color-space-schema`の削除済みworktreeは`/Users/masato/Documents/librepaint-g119-color-space-schema`である。開始`libs/pigment/KoColorSpace.h`から新規
   `libs/pigment/tests/KoColorSpaceSchemaContractTest.cpp`の5枠へ、識別7、channel構造6、channel表現6、profile適合性・独立性9、gamut metadata 3の全31 APIを
   対応付け、`libs/pigment/tests/CMakeLists.txt`だけを併せて変更する。最初の期待診断は未知target、予測4工程・8入力、停止5工程・10入力、製品
   `kritapigment` 365工程・760入力不変とする。対象CTest、20回反復、`KoColorSpaceConstantsContractTest`、no-work、動的接続、未解決記号、構文・書式・
   公開API・`verify-quick`を確認する。実色空間・派生fake、registry、profile、色変換、画素buffer、XML、composite・dither処理、製品OBJECT・shared、
   `kritatestsdk`、新依存、公開header・製品CMake変更、停止線超過が必要なら止める。
-- `g119-psd-additional-layer-schema`は`/Users/masato/Documents/librepaint-g119-psd-additional-layer-schema`を所有する。開始
+- `g119-psd-additional-layer-schema`の削除済みworktreeは`/Users/masato/Documents/librepaint-g119-psd-additional-layer-schema`である。開始
   `libs/psd/psd_additional_layer_info_block.h`から既存`libs/psdutils/tests/PsdFormatValuesContractTest.cpp`の5枠へ、identity・handler 7、直列化識別field 8、
   payload field 9、中核block writer 7、payload writer 6の全37 APIを対応付け、他pathを変更しない。対象6工程・14入力、停止7工程・16入力、製品
   `kritapsdutils` 635工程・1,300入力と`kritapsd` 1,979工程・3,956入力の完全一致を確認する。5枠の未知関数診断、対象CTest、20回反復、
   `PsdByteIoContractTest`、no-work、動的接続、未解決記号、構文・書式・公開API・`verify-quick`を確認する。class・PSDHeader実体、header参照member bind、
   member access、method呼出し・address値、QIODevice・KisNode、XML入出力、vector mask解決、ASL・filesystem・registry、製品shared、`kritatestsdk`、新依存、
   公開header・CMake変更、停止線超過が必要なら止める。
+
+### 第119便の統合結果
+
+- `g119-resource-storage-schema`は受渡しcommit `59ce31a9d13d`と同一patchを統合commit `035ed8446a`として取り込んだ。開始
+  `libs/resources/KisResourceStorage.h`から既存`libs/resources/tests/KisResourceModelEnumContractTest.cpp`の5枠へ、共有pointer・class・storage種別10、
+  寿命6、種別label 2、識別query 3、状態・時刻query 4の全25 APIを対応付けた。対象4工程・9入力、製品`kritaresources` 149工程・325入力は不変である。
+  翻訳なし種別文字列だけを実行し、実storage、filesystem、archive、SQL、registry、loaderを生成していない。
+- `g119-color-space-schema`は受渡しcommit `d936c876198e`と同一patchを統合commit `72aafe950e`として取り込んだ。開始
+  `libs/pigment/KoColorSpace.h`から新規`libs/pigment/tests/KoColorSpaceSchemaContractTest.cpp`の5枠へ、識別7、channel構造6、channel表現6、
+  profile適合性・独立性9、gamut metadata 3の全31 APIを対応付け、`libs/pigment/tests/CMakeLists.txt`へQt Core・Gui・Testだけへ動的接続するheader限定対象を
+  追加した。KF I18nの通常接続は対象を4工程・9入力に増やしたため構築前にinclude-onlyへ狭め、対象4工程・8入力、製品`kritapigment`
+  365工程・760入力を維持した。実色空間、registry、profile、色変換、画素bufferを生成していない。
+- `g119-psd-additional-layer-schema`は受渡しcommit `7b96b59f0ee5`と同一patchを統合commit `8869852ec2`として取り込んだ。開始
+  `libs/psd/psd_additional_layer_info_block.h`から既存`libs/psdutils/tests/PsdFormatValuesContractTest.cpp`の5枠へ、identity・handler 7、
+  直列化識別field 8、payload field 9、中核block writer 7、payload writer 6の全37 APIを対応付けた。対象6工程・14入力、製品`kritapsdutils`
+  635工程・1,300入力と`kritapsd` 1,979工程・3,956入力は不変であり、class実体、header参照member、QIODevice、XML入出力、registryを実行していない。
+- 主macOS環境では追加15枠、3対象CTest、各20回反復、近傍`KisTagModelSchemaContractTest`、`KoColorSpaceConstantsContractTest`、
+  `PsdByteIoContractTest`、再構築時の無コンパイル・無リンク、動的接続、未解決製品記号を確認した。色空間対象追加時のCMake再生成後も構築は新対象4工程だけだった。
+  公開API契約検査は93 APIを重複なく受理し、29,838件中11,762件対応、18,076件未対応となった。最新入力は
+  `build/tdd-macos/public-api-missing-g120.json`である。Linux、全native検証、製品全体構築は実行していない。
+- 受渡しpatchの同一性と3 worktreeのclean状態を確認後、資源storage担当642 MB、色空間担当639 MB、PSD担当651 MBの作業木とbranchを削除して
+  約1.93 GBを回収した。新報告の生成成功後に旧`public-api-missing-g119.json` 4.5 MBも削除した。主`build/tdd-macos`、共有compiler cache、
+  最新不足報告は次便の限定構築へ再利用する。
 - `g118-application-config-schema-audit`は`KisConfig`のlayer表示・selection操作設定28 APIを採用した。layer情報・thumbnail 8、layer tree 6、
   layer properties 6、selection surface 6、単一channel表示2を既存`KisConfigEnumContractTest`の未評価型5枠へ追加する。対象4工程・15入力、製品
   `kritaapplication` 1,224工程・2,466入力を維持し、設定実体、GUI、layer、selection、filesystemへ到達しない。animationは24、文書作成既定値は23、
@@ -13391,7 +13414,7 @@
 
 ## 次の操作
 
-`build/tdd-macos/public-api-missing-g119.json`から第119並列便の非重複候補を3担当で監査する。第118便の対象を除外し、欠陥疑いの比較・診断、
+`build/tdd-macos/public-api-missing-g120.json`から第120並列便の非重複候補を3担当で監査する。第119便の対象を除外し、欠陥疑いの比較・診断、
 資源registry、設定I/O、生pointer所有へ到達する経路は保留する。別の所有pathから25 API以上を最大5枠、限定対象か一sourceの一対一構築所有で
 固定できる候補を優先し、担当票の確定前に変更なし計画、直接依存、予測閉包、製品共有ライブラリー・`kritatestsdk`非接続、許可pathと停止線を照合する。
 
