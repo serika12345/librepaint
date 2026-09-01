@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 11:42 JST
+- 更新日時: 2026-09-01 12:01 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -316,25 +316,25 @@
 
 ### 第110並列便の担当計画
 
-- 実装共通基点は`7d0bd2c7ccea2bcdb3feb3397a685169aa9f656f`である。3担当は`planned`、構築許可は`granted`、Git権限は許可pathだけの
+- 実装共通基点は`7d0bd2c7ccea2bcdb3feb3397a685169aa9f656f`である。3担当は`integrated`、構築許可は`granted`、Git権限は許可pathだけの
   `transport-commit`、追加委任は禁止する。専用worktreeは翻訳catalog `po/`を疎な取得から除外し、worktree-local `build/tdd-macos`と
   `./scripts/run-shared-test-env`で主環境・compiler cacheを共有する。統合順は設定schema、PSD legacy resource、SVG property tokenとし、調整担当だけが
   台帳、進捗文書、不足報告を変更する。3担当はCMakeを変更せず、製品・試験sourceも相互に重ならない。
-- `g110-config-cursor-schema`は`/Users/masato/Documents/librepaint-g110-config-cursor-schema`を所有する。対象は`libs/application/kis_config.h`の通常cursor 4、
+- `g110-config-cursor-schema`の削除済みworktreeは`/Users/masato/Documents/librepaint-g110-config-cursor-schema`である。対象は`libs/application/kis_config.h`の通常cursor 4、
   通常outline 6、eraser cursor・outline 8、描画中outline 8、選択outline 2の全28 APIである。開始headerから既存
   `libs/application/tests/KisConfigEnumContractTest.cpp`の新規5枠へ対応付け、他pathを変更しない。変更前後は4工程・15入力、停止5工程・18入力、製品
   `kritaapplication`は1,224工程・2,466入力不変とする。
 - 設定担当は変更なし計画と直接依存、5枠、対象CTest、20回反復、`KisActionEnumContractTest`、無作業再構築、動的接続、KisConfig未解決記号、source構文、
   公開API検査、`verify-quick`を確認する。未評価式だけを使い、設定・QColor実体の生成・呼出し、設定I/O・GUI・大域状態、視覚状態外API、公開header・製品・CMake、
   製品計画差、停止線超過が必要なら止める。
-- `g110-psd-legacy-resources`は`/Users/masato/Documents/librepaint-g110-psd-legacy-resources`を所有する。対象は
+- `g110-psd-legacy-resources`の削除済みworktreeは`/Users/masato/Documents/librepaint-g110-psd-legacy-resources`である。対象は
   `libs/psd/psd_resource_block.h`のlegacy resource 48 structと各inline `interpretBlock`の全96 APIである。開始headerから既存
   `libs/psdutils/tests/PsdFormatValuesContractTest.cpp`の新規5枠へ対応付け、他pathを変更しない。分類は`known_defect`、変更前後は6工程・14入力、
   停止7工程・16入力、製品`kritapsd`は変更前後1,979工程・3,956入力とし、1工程または1入力でも増加した場合は止める。
 - PSD担当は48型がpayloadを解析・保存せず成功扱いで破棄すること、変更なし計画と直接依存、5枠、対象CTest、20回反復、`PsdByteIoContractTest`、
   無作業再構築、動的接続、source構文、公開API検査、`verify-quick`を確認する。`PSDResourceBlock`本体、生pointer所有、out-of-line定義、実image・device、
   色空間・資源registry、filesystem、製品sharedへの試験接続、`kritatestsdk`、公開header・製品・CMake、停止線超過が必要なら止める。
-- `g110-svg-property-tokens`は`/Users/masato/Documents/librepaint-g110-svg-property-tokens`を所有する。対象は`libs/flake/text/KoSvgText.h`のfont feature 12、
+- `g110-svg-property-tokens`の削除済みworktreeは`/Users/masato/Documents/librepaint-g110-svg-property-tokens`である。対象は`libs/flake/text/KoSvgText.h`のfont feature 12、
   font weight・style 3、baseline 4、white-space・XML-space 4、text-transform 2の全25 APIである。開始`libs/flake/text/KoSvgText.cpp`の選択25定義を既設
   `libs/flake/text/KoSvgTextEnumConversions.cpp`へ一対一移管し、開始headerから既存`libs/flake/tests/KoSvgTextEnumConversionContractTest.cpp`の新規5枠へ
   対応付ける。この3sourceだけを許可し、CMakeは変更しない。限定対象は変更後4工程・8変更入力以内、停止5工程・10入力、製品は3工程・3変更入力、
@@ -343,6 +343,31 @@
   `KoSvgTextEnumContractTest`と`KoSvgTextFontSelectionValueContractTest`、無作業再構築、動的接続、単一定義、source構文、公開API検査、`verify-quick`を確認する。
   除外2 API、assert製品記号、`KisDomUtils`、loading・XML・shape・font registry・描画、CMake・公開header、製品sharedへの試験接続、`kritatestsdk`、
   停止線超過が必要なら止める。
+
+### 第110並列便の統合結果
+
+- `g110-config-cursor-schema`は受渡しcommit `a024a909bd2a`と同一patchを統合commit `b3d35b2d7c`として取り込んだ。開始
+  `libs/application/kis_config.h`から既存`libs/application/tests/KisConfigEnumContractTest.cpp`の5枠へ、通常cursor、通常outline、消しゴム専用cursor・
+  outline、描画中outline表示、選択outline品質の28 APIを対応付けた。未評価の関数型検査だけを用い、設定・色実体とGUIを生成せず、対象4工程・15入力、
+  製品`kritaapplication`は1,224工程・2,466入力で不変である。
+- `g110-psd-legacy-resources`は受渡しcommit `2df4c4742073`と同一patchを統合commit `1278ca2eee`として取り込んだ。開始
+  `libs/psd/psd_resource_block.h`から既存`libs/psdutils/tests/PsdFormatValuesContractTest.cpp`の5枠へ、legacy resource 48型と各`interpretBlock`の
+  全96 APIを対応付けた。空またはNULを含むpayloadを成功として受理しながら内容を保存しない現行経路を`known_defect`として固定した。対象6工程・14入力、
+  製品`kritapsd`は統合済み基準1,979工程・3,956入力で前後不変である。旧基準との差をSVG OBJECT統合分と確認して基準を訂正した後に実装した。
+- `g110-svg-property-tokens`は受渡しcommit `bfa91bdbc338`と同一patchを統合commit `943eeed9cb`として取り込んだ。開始
+  `libs/flake/text/KoSvgText.cpp`の純粋変換25定義を既設`libs/flake/text/KoSvgTextEnumConversions.cpp`へ一対一移管し、開始
+  `libs/flake/text/KoSvgText.h`から既存`libs/flake/tests/KoSvgTextEnumConversionContractTest.cpp`の5枠へfont feature、weight・style、baseline、
+  white-space・XML-space、text-transformの25 APIを対応付けた。限定対象は4実工程で、移管25記号はOBJECT内に各一定義、除外した
+  `parseCSSFontStretch`と`writeBaselineShiftMode`は旧sourceに残した。
+- 主macOS環境では追加15枠、3対象CTest、各20回反復、近傍`KisActionEnumContractTest`、`PsdByteIoContractTest`、
+  `KoSvgTextEnumContractTest`、`KoSvgTextFontSelectionValueContractTest`、再構築時の無コンパイル・無リンク、動的接続と未解決記号を確認した。公開API契約検査は
+  149 APIを重複なく受理し、29,838件中10,985件対応、18,853件未対応となった。最新入力は`build/tdd-macos/public-api-missing-g111.json`である。
+  Linux、全native検証、製品全体構築は実行していない。
+- SVG製品側の3工程予測を主Ninja木で確認しようとしたところ、過去便から製品閉包の未構築変更が累積していたため`kritaflake`は102工程を開始し、既存
+  `libs/flake/resources/KoCssStylePreset.cpp:197`の`KoPathShape`不完全型診断で停止した。第110便で変更した3sourceの限定構築・構文・契約は成功しており、
+  公開headerと失敗sourceは変更していない。製品所有targetを構築範囲の確認に直接使う前に、glob再検査後の実行対象だけを安全に列挙できる計画機能を整備する。
+- 新報告の生成と受渡しpatchの同一性、3 worktreeのclean状態を確認後、旧`public-api-missing-g110.json` 4.7 MB、設定担当642 MB、PSD担当646 MB、
+  SVG担当645 MBと3 branchを削除し、約1.93 GBを回収した。主`build/tdd-macos`、共有compiler cache、最新不足報告は次便の限定構築へ再利用する。
 
 ### 第105並列便の監査計画
 

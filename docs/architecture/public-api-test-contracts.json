@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 19002
+    "expectedMissingApis": 18853
   },
   "contracts": [
     {
@@ -33945,6 +33945,290 @@
       "apis": [
         "function:KoSvgText::parseTextRendering(const QString & value)",
         "function:KoSvgText::writeTextRendering(TextRendering value)"
+      ]
+    },
+    {
+      "target": "KisConfigEnumContractTest",
+      "source": "libs/application/tests/KisConfigEnumContractTest.cpp",
+      "test": "KisConfigEnumContractTest::primaryCursorAppearanceSignaturesRemainStable",
+      "behavior": "通常描画cursorの形状と主色はgetterの既定引数・戻り型、setterの引数型とconst性を公開schemaとして保つ。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisConfig::getCursorMainColor(bool defaultValue=false) const",
+        "method:KisConfig::newCursorStyle(bool defaultValue=false) const",
+        "method:KisConfig::setCursorMainColor(const QColor & v) const",
+        "method:KisConfig::setNewCursorStyle(CursorStyle style)"
+      ]
+    },
+    {
+      "target": "KisConfigEnumContractTest",
+      "source": "libs/application/tests/KisConfigEnumContractTest.cpp",
+      "test": "KisConfigEnumContractTest::primaryOutlineAppearanceSignaturesRemainStable",
+      "behavior": "通常描画outlineの形状、最終使用形状、最小寸法はgetterとsetterの正確な型・const性を公開schemaとして保つ。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisConfig::lastUsedOutlineStyle(bool defaultValue=false) const",
+        "method:KisConfig::newOutlineStyle(bool defaultValue=false) const",
+        "method:KisConfig::outlineSizeMinimum(bool defaultValue=false) const",
+        "method:KisConfig::setLastUsedOutlineStyle(OutlineStyle style)",
+        "method:KisConfig::setNewOutlineStyle(OutlineStyle style)",
+        "method:KisConfig::setOutlineSizeMinimum(qreal outlineSizeMinimum) const"
+      ]
+    },
+    {
+      "target": "KisConfigEnumContractTest",
+      "source": "libs/application/tests/KisConfigEnumContractTest.cpp",
+      "test": "KisConfigEnumContractTest::eraserCursorAppearanceSignaturesRemainStable",
+      "behavior": "消しゴム専用cursor・outlineの有効状態、形状、主色はgetterとsetterの正確な型・const性を公開schemaとして保つ。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisConfig::eraserCursorStyle(bool defaultValue=false) const",
+        "method:KisConfig::eraserOutlineStyle(bool defaultValue=false) const",
+        "method:KisConfig::getEraserCursorMainColor(bool defaultValue=false) const",
+        "method:KisConfig::separateEraserCursor(bool defaultValue=false) const",
+        "method:KisConfig::setEraserCursorMainColor(const QColor & v) const",
+        "method:KisConfig::setEraserCursorStyle(CursorStyle style)",
+        "method:KisConfig::setEraserOutlineStyle(OutlineStyle style)",
+        "method:KisConfig::setSeparateEraserCursor(bool value) const"
+      ]
+    },
+    {
+      "target": "KisConfigEnumContractTest",
+      "source": "libs/application/tests/KisConfigEnumContractTest.cpp",
+      "test": "KisConfigEnumContractTest::paintingOutlineVisibilitySignaturesRemainStable",
+      "behavior": "描画中の通常・消しゴムoutline表示と常時実寸表示はgetterとsetterの正確な真偽値型・const性を公開schemaとして保つ。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisConfig::forceAlwaysFullSizedEraserOutline(bool defaultValue=false) const",
+        "method:KisConfig::forceAlwaysFullSizedOutline(bool defaultValue=false) const",
+        "method:KisConfig::setForceAlwaysFullSizedEraserOutline(bool value) const",
+        "method:KisConfig::setForceAlwaysFullSizedOutline(bool value) const",
+        "method:KisConfig::setShowEraserOutlineWhilePainting(bool showEraserOutlineWhilePainting) const",
+        "method:KisConfig::setShowOutlineWhilePainting(bool showOutlineWhilePainting) const",
+        "method:KisConfig::showEraserOutlineWhilePainting(bool defaultValue=false) const",
+        "method:KisConfig::showOutlineWhilePainting(bool defaultValue=false) const"
+      ]
+    },
+    {
+      "target": "KisConfigEnumContractTest",
+      "source": "libs/application/tests/KisConfigEnumContractTest.cpp",
+      "test": "KisConfigEnumContractTest::selectionOutlineRenderingSignaturesRemainStable",
+      "behavior": "選択outlineのアンチエイリアス設定はgetterの既定引数・戻り型とsetterの引数型・const性を公開schemaとして保つ。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisConfig::antialiasSelectionOutline(bool defaultValue=false) const",
+        "method:KisConfig::setAntialiasSelectionOutline(bool v) const"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::legacyResourceRecords1001To1014AcceptAndIgnorePayloads",
+      "behavior": "PSDの旧式資源1001〜1014は空またはNULを含むpayloadを成功として受理する一方、内容を保存せず、入力byte列・空の診断・妥当状態を維持する。",
+      "classification": "known_defect",
+      "apis": [
+        "method:ALPHA_NAMES_1006::interpretBlock(QByteArray)",
+        "method:BACKGROUND_COL_1010::interpretBlock(QByteArray)",
+        "method:BORDER_INFO_1009::interpretBlock(QByteArray)",
+        "method:CAPTION_1008::interpretBlock(QByteArray)",
+        "method:COLOR_HALFTONE_1013::interpretBlock(QByteArray)",
+        "method:DISPLAY_INFO_1007::interpretBlock(QByteArray)",
+        "method:DUOTONE_HALFTONE_1014::interpretBlock(QByteArray)",
+        "method:GREY_HALFTONE_1012::interpretBlock(QByteArray)",
+        "method:MAC_PRINT_INFO_1001::interpretBlock(QByteArray)",
+        "method:PRINT_FLAGS_1011::interpretBlock(QByteArray)",
+        "struct:ALPHA_NAMES_1006",
+        "struct:BACKGROUND_COL_1010",
+        "struct:BORDER_INFO_1009",
+        "struct:CAPTION_1008",
+        "struct:COLOR_HALFTONE_1013",
+        "struct:DISPLAY_INFO_1007",
+        "struct:DUOTONE_HALFTONE_1014",
+        "struct:GREY_HALFTONE_1012",
+        "struct:MAC_PRINT_INFO_1001",
+        "struct:PRINT_FLAGS_1011"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::legacyResourceRecords1015To1030AcceptAndIgnorePayloads",
+      "behavior": "PSDの旧式資源1015〜1030は空またはNULを含むpayloadを成功として受理する一方、内容を保存せず、入力byte列・空の診断・妥当状態を維持する。",
+      "classification": "known_defect",
+      "apis": [
+        "method:COLOR_XFER_1016::interpretBlock(QByteArray)",
+        "method:DUOTONE_INFO_1018::interpretBlock(QByteArray)",
+        "method:DUOTONE_XFER_1017::interpretBlock(QByteArray)",
+        "method:EFFECTIVE_BW_1019::interpretBlock(QByteArray)",
+        "method:EPS_OPT_1021::interpretBlock(QByteArray)",
+        "method:GREY_XFER_1015::interpretBlock(QByteArray)",
+        "method:IMAGE_MODE_RAW_1029::interpretBlock(QByteArray)",
+        "method:IPTC_NAA_DATA_1028::interpretBlock(QByteArray)",
+        "method:JPEG_QUAL_1030::interpretBlock(QByteArray)",
+        "method:LAYER_GROUP_1026::interpretBlock(QByteArray)",
+        "method:LAYER_STATE_1024::interpretBlock(QByteArray)",
+        "method:QUICK_MASK_1022::interpretBlock(QByteArray)",
+        "method:WORKING_PATH_1025::interpretBlock(QByteArray)",
+        "struct:COLOR_XFER_1016",
+        "struct:DUOTONE_INFO_1018",
+        "struct:DUOTONE_XFER_1017",
+        "struct:EFFECTIVE_BW_1019",
+        "struct:EPS_OPT_1021",
+        "struct:GREY_XFER_1015",
+        "struct:IMAGE_MODE_RAW_1029",
+        "struct:IPTC_NAA_DATA_1028",
+        "struct:JPEG_QUAL_1030",
+        "struct:LAYER_GROUP_1026",
+        "struct:LAYER_STATE_1024",
+        "struct:QUICK_MASK_1022",
+        "struct:WORKING_PATH_1025"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::legacyResourceRecords1033To1045AcceptAndIgnorePayloads",
+      "behavior": "PSDの旧式資源1033〜1045は空またはNULを含むpayloadを成功として受理する一方、内容を保存せず、入力byte列・空の診断・妥当状態を維持する。",
+      "classification": "known_defect",
+      "apis": [
+        "method:ALPHA_NAMES_UNI_1045::interpretBlock(QByteArray)",
+        "method:COLOR_SAMPLER_1038::interpretBlock(QByteArray)",
+        "method:COPYRIGHT_FLG_1034::interpretBlock(QByteArray)",
+        "method:DOC_IDS_1044::interpretBlock(QByteArray)",
+        "method:EFFECTS_VISIBLE_1042::interpretBlock(QByteArray)",
+        "method:ICC_UNTAGGED_1041::interpretBlock(QByteArray)",
+        "method:SPOT_HALFTONE_1043::interpretBlock(QByteArray)",
+        "method:THUMB_RES2_1036::interpretBlock(QByteArray)",
+        "method:THUMB_RES_1033::interpretBlock(QByteArray)",
+        "method:URL_1035::interpretBlock(QByteArray)",
+        "method:WATERMARK_1040::interpretBlock(QByteArray)",
+        "struct:ALPHA_NAMES_UNI_1045",
+        "struct:COLOR_SAMPLER_1038",
+        "struct:COPYRIGHT_FLG_1034",
+        "struct:DOC_IDS_1044",
+        "struct:EFFECTS_VISIBLE_1042",
+        "struct:ICC_UNTAGGED_1041",
+        "struct:SPOT_HALFTONE_1043",
+        "struct:THUMB_RES2_1036",
+        "struct:THUMB_RES_1033",
+        "struct:URL_1035",
+        "struct:WATERMARK_1040"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::legacyResourceRecords1046To1060AcceptAndIgnorePayloads",
+      "behavior": "PSDの旧式資源1046〜1060は空またはNULを含むpayloadを成功として受理する一方、内容を保存せず、入力byte列・空の診断・妥当状態を維持する。",
+      "classification": "known_defect",
+      "apis": [
+        "method:ALPHA_ID_1053::interpretBlock(QByteArray)",
+        "method:EXIF_DATA_1058::interpretBlock(QByteArray)",
+        "method:IDX_COL_TAB_CNT_1046::interpretBlock(QByteArray)",
+        "method:IDX_TRANSPARENT_1047::interpretBlock(QByteArray)",
+        "method:JUMP_TO_XPEP_1052::interpretBlock(QByteArray)",
+        "method:SLICES_1050::interpretBlock(QByteArray)",
+        "method:URL_LIST_UNI_1054::interpretBlock(QByteArray)",
+        "method:VERSION_INFO_1057::interpretBlock(QByteArray)",
+        "method:WORKFLOW_URL_UNI_1051::interpretBlock(QByteArray)",
+        "method:XMP_DATA_1060::interpretBlock(QByteArray)",
+        "struct:ALPHA_ID_1053",
+        "struct:EXIF_DATA_1058",
+        "struct:IDX_COL_TAB_CNT_1046",
+        "struct:IDX_TRANSPARENT_1047",
+        "struct:JUMP_TO_XPEP_1052",
+        "struct:SLICES_1050",
+        "struct:URL_LIST_UNI_1054",
+        "struct:VERSION_INFO_1057",
+        "struct:WORKFLOW_URL_UNI_1051",
+        "struct:XMP_DATA_1060"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::legacyPathAndPrintResourceRecordsAcceptAndIgnorePayloads",
+      "behavior": "PSDの旧式path・clipping path・印刷資源は空またはNULを含むpayloadを成功として受理する一方、内容を保存せず、入力byte列・空の診断・妥当状態を維持する。",
+      "classification": "known_defect",
+      "apis": [
+        "method:CLIPPING_PATH_2999::interpretBlock(QByteArray)",
+        "method:PATH_INFO_FIRST_2000::interpretBlock(QByteArray)",
+        "method:PATH_INFO_LAST_2998::interpretBlock(QByteArray)",
+        "method:PRINT_FLAGS_2_10000::interpretBlock(QByteArray)",
+        "struct:CLIPPING_PATH_2999",
+        "struct:PATH_INFO_FIRST_2000",
+        "struct:PATH_INFO_LAST_2998",
+        "struct:PRINT_FLAGS_2_10000"
+      ]
+    },
+    {
+      "target": "KoSvgTextEnumConversionContractTest",
+      "source": "libs/flake/tests/KoSvgTextEnumConversionContractTest.cpp",
+      "test": "KoSvgTextEnumConversionContractTest::fontFeatureTokensPreserveUpdatesSerializationAndRanges",
+      "behavior": "SVG font feature tokenは合字・数字・東アジア字形・位置・大文字形を現行の更新規則、出力順、既定化、範囲表記へ変換する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KoSvgText::fontFeaturesCaps(const FontFeatureCaps & feature,const int start,const int end)",
+        "function:KoSvgText::fontFeaturesPosition(const FontFeaturePosition & feature,const int start,const int end)",
+        "function:KoSvgText::parseFontFeatureCaps(const QString & value,FontFeatureCaps feature)",
+        "function:KoSvgText::parseFontFeatureEastAsian(const QString & value,FontFeatureEastAsian features)",
+        "function:KoSvgText::parseFontFeatureLigatures(const QString & value,FontFeatureLigatures features)",
+        "function:KoSvgText::parseFontFeatureNumeric(const QString & value,FontFeatureNumeric features)",
+        "function:KoSvgText::parseFontFeaturePosition(const QString & value,FontFeaturePosition feature)",
+        "function:KoSvgText::writeFontFeatureCaps(const FontFeatureCaps & value)",
+        "function:KoSvgText::writeFontFeatureEastAsian(const FontFeatureEastAsian & feature)",
+        "function:KoSvgText::writeFontFeatureLigatures(const FontFeatureLigatures & feature)",
+        "function:KoSvgText::writeFontFeatureNumeric(const FontFeatureNumeric & feature)",
+        "function:KoSvgText::writeFontFeaturePosition(const FontFeaturePosition & value)"
+      ]
+    },
+    {
+      "target": "KoSvgTextEnumConversionContractTest",
+      "source": "libs/flake/tests/KoSvgTextEnumConversionContractTest.cpp",
+      "test": "KoSvgTextEnumConversionContractTest::fontWeightAndStyleTokensPreserveBoundsAndAngles",
+      "behavior": "CSS font weightとstyle tokenは相対weightの境界、数値の切詰め、italic・oblique角度、未知値の既定化を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KoSvgText::parseCSSFontWeight(const QString & value,int currentWeight)",
+        "function:KoSvgText::parseFontStyle(const QString & value)",
+        "function:KoSvgText::writeFontStyle(CssFontStyleData value)"
+      ]
+    },
+    {
+      "target": "KoSvgTextEnumConversionContractTest",
+      "source": "libs/flake/tests/KoSvgTextEnumConversionContractTest.cpp",
+      "test": "KoSvgTextEnumConversionContractTest::baselineTokensPreserveAliasesAndFallbacks",
+      "behavior": "SVG baselineとbaseline-shift tokenは旧別名、dominant・alignment別の正規形、未知値fallbackを安定して変換する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KoSvgText::parseBaseline(const QString & value)",
+        "function:KoSvgText::parseBaselineShiftMode(const QString & value)",
+        "function:KoSvgText::writeAlignmentBaseline(Baseline value)",
+        "function:KoSvgText::writeDominantBaseline(Baseline value)"
+      ]
+    },
+    {
+      "target": "KoSvgTextEnumConversionContractTest",
+      "source": "libs/flake/tests/KoSvgTextEnumConversionContractTest.cpp",
+      "test": "KoSvgTextEnumConversionContractTest::whitespaceTokensPreserveShorthandsFallbacksAndTrimIndependence",
+      "behavior": "CSS white-spaceとXML space tokenは現行の短縮形展開、正規出力、未知値fallback、trim非依存、break-spaces分岐を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KoSvgText::whiteSpaceValueToLongHands(const QString & value,TextSpaceCollapse & collapseMethod,TextWrap & wrapMethod,TextSpaceTrims & trimMethod)",
+        "function:KoSvgText::writeWhiteSpaceValue(TextSpaceCollapse collapseMethod,TextWrap wrapMethod,KoSvgText::TextSpaceTrims trimMethod)",
+        "function:KoSvgText::writeXmlSpace(TextSpaceCollapse collapseMethod)",
+        "function:KoSvgText::xmlSpaceToLongHands(const QString & value,TextSpaceCollapse & collapseMethod)"
+      ]
+    },
+    {
+      "target": "KoSvgTextEnumConversionContractTest",
+      "source": "libs/flake/tests/KoSvgTextEnumConversionContractTest.cpp",
+      "test": "KoSvgTextEnumConversionContractTest::textTransformTokensPreserveOrderedResetAndWarnings",
+      "behavior": "CSS text-transform tokenは入力順の上書き、noneによる途中初期化、未知tokenの警告、現行の正規出力を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KoSvgText::parseTextTransform(const QString & value)",
+        "function:KoSvgText::writeTextTransform(TextTransformInfo textTransform)"
       ]
     }
   ]
