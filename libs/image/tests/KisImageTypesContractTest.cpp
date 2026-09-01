@@ -7,6 +7,7 @@
 #include "kis_default_bounds.h"
 #include "kis_distance_information.h"
 #include "kis_histogram.h"
+#include "kis_layer_utils.h"
 #include "kis_selection_filters.h"
 #include "kis_sequential_iterator.h"
 #include "kis_stroke.h"
@@ -22,6 +23,8 @@ namespace
 
 #define ASSERT_DEFAULT_BOUNDS_SIGNATURE(boundsType, method, signature)                                                 \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&boundsType::method)), signature>)
+#define ASSERT_LAYER_UTILS_SIGNATURE(function, signature)                                                              \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KisLayerUtils::function)), signature>)
 
 class SelectionDefaultBoundsConstructorProbe final : public KisSelectionDefaultBoundsBase
 {
@@ -84,6 +87,11 @@ private Q_SLOTS:
     void sequentialIteratorAccessPolicySchemaRemainsStable();
     void sequentialIteratorNoProgressPolicySchemaRemainsStable();
     void sequentialIteratorTraversalSchemaRemainsStable();
+    void layerMergePolicyAndOrderingSignaturesRemainStable();
+    void layerMutationAndProjectionCommandSignaturesRemainStable();
+    void layerHierarchySearchAndTraversalSignaturesRemainStable();
+    void layerFrameQueryAndJobSchemaRemainStable();
+    void layerCommandTypesAndLifecycleSchemaRemainStable();
 };
 
 void KisImageTypesContractTest::intrusivePointerAliasesPreserveOwnershipKinds()
@@ -1060,7 +1068,194 @@ void KisImageTypesContractTest::sequentialIteratorTraversalSchemaRemainsStable()
     QVERIFY(true);
 }
 
+void KisImageTypesContractTest::layerMergePolicyAndOrderingSignaturesRemainStable()
+{
+    static_assert(std::is_same_v<KisLayerUtils::MergeFlags, QFlags<KisLayerUtils::MergeFlag>>);
+    static_assert(KisLayerUtils::None == 0);
+    static_assert(KisLayerUtils::SkipMergingFrames == 1);
+
+    ASSERT_LAYER_UTILS_SIGNATURE(sortMergeableNodes, KisNodeList (*)(KisNodeSP, KisNodeList));
+    ASSERT_LAYER_UTILS_SIGNATURE(sortMergeableNodes, void (*)(KisNodeSP, QList<KisNodeSP> &, QList<KisNodeSP> &));
+    ASSERT_LAYER_UTILS_SIGNATURE(filterMergeableNodes, void (*)(KisNodeList &, bool));
+    ASSERT_LAYER_UTILS_SIGNATURE(sortAndFilterAnyMergeableNodesSafe, KisNodeList (*)(const KisNodeList &, KisImageSP));
+    ASSERT_LAYER_UTILS_SIGNATURE(checkIsChildOf, bool (*)(KisNodeSP, const KisNodeList &));
+    ASSERT_LAYER_UTILS_SIGNATURE(checkIsCloneOf, bool (*)(KisNodeSP, const KisNodeList &));
+    ASSERT_LAYER_UTILS_SIGNATURE(filterUnlockedNodes, void (*)(KisNodeList &));
+    ASSERT_LAYER_UTILS_SIGNATURE(sortAndFilterMergeableInternalNodes, KisNodeList (*)(KisNodeList, bool));
+    ASSERT_LAYER_UTILS_SIGNATURE(sortMergeableInternalNodes, KisNodeList (*)(KisNodeList));
+
+    static_assert(std::is_same_v<decltype(KisLayerUtils::filterMergeableNodes(std::declval<KisNodeList &>())), void>);
+    static_assert(
+        std::is_same_v<decltype(KisLayerUtils::sortAndFilterMergeableInternalNodes(std::declval<KisNodeList>())),
+                       KisNodeList>);
+
+    QVERIFY(true);
+}
+
+void KisImageTypesContractTest::layerMutationAndProjectionCommandSignaturesRemainStable()
+{
+    ASSERT_LAYER_UTILS_SIGNATURE(refreshHiddenAreaAsync, void (*)(KisImageSP, KisNodeSP, const QRect &));
+    ASSERT_LAYER_UTILS_SIGNATURE(recursiveTightNodeVisibleBounds, QRect (*)(KisNodeSP));
+    ASSERT_LAYER_UTILS_SIGNATURE(forceAllDelayedNodesUpdate, void (*)(KisNodeSP));
+    ASSERT_LAYER_UTILS_SIGNATURE(hasDelayedNodeWithUpdates, bool (*)(KisNodeSP));
+    ASSERT_LAYER_UTILS_SIGNATURE(forceAllHiddenOriginalsUpdate, void (*)(KisNodeSP));
+    ASSERT_LAYER_UTILS_SIGNATURE(
+        mergeDown,
+        void (*)(KisImageSP, KisLayerSP, const KisMetaData::MergeStrategy *, KisLayerUtils::MergeFlags));
+    ASSERT_LAYER_UTILS_SIGNATURE(mergeMultipleLayers,
+                                 void (*)(KisImageSP, KisNodeList, KisNodeSP, KisLayerUtils::MergeFlags));
+    ASSERT_LAYER_UTILS_SIGNATURE(newLayerFromVisible, void (*)(KisImageSP, KisNodeSP, KisLayerUtils::MergeFlags));
+    ASSERT_LAYER_UTILS_SIGNATURE(mergeMultipleNodes,
+                                 void (*)(KisImageSP, KisNodeList, KisNodeSP, KisLayerUtils::MergeFlags));
+    ASSERT_LAYER_UTILS_SIGNATURE(tryMergeSelectionMasks, bool (*)(KisImageSP, KisNodeList, KisNodeSP));
+    ASSERT_LAYER_UTILS_SIGNATURE(flattenLayer, void (*)(KisImageSP, KisLayerSP, KisLayerUtils::MergeFlags));
+    ASSERT_LAYER_UTILS_SIGNATURE(flattenImage, void (*)(KisImageSP, KisNodeSP, KisLayerUtils::MergeFlags));
+    ASSERT_LAYER_UTILS_SIGNATURE(addCopyOfNameTag, void (*)(KisNodeSP));
+    ASSERT_LAYER_UTILS_SIGNATURE(changeImageDefaultProjectionColor, void (*)(KisImageSP, const KoColor &));
+    ASSERT_LAYER_UTILS_SIGNATURE(canChangeImageProfileInvisibly, bool (*)(KisImageSP));
+    ASSERT_LAYER_UTILS_SIGNATURE(splitAlphaToMask, void (*)(KisImageSP, KisNodeSP, const QString &));
+    ASSERT_LAYER_UTILS_SIGNATURE(convertToPaintLayer, std::future<KisNodeSP> (*)(KisImageSP, KisNodeSP));
+
+    static_assert(std::is_same_v<decltype(KisLayerUtils::mergeDown(std::declval<KisImageSP>(),
+                                                                   std::declval<KisLayerSP>(),
+                                                                   std::declval<const KisMetaData::MergeStrategy *>())),
+                                 void>);
+    static_assert(std::is_same_v<decltype(KisLayerUtils::mergeMultipleLayers(std::declval<KisImageSP>(),
+                                                                             std::declval<KisNodeList>(),
+                                                                             std::declval<KisNodeSP>())),
+                                 void>);
+    static_assert(std::is_same_v<decltype(KisLayerUtils::newLayerFromVisible(std::declval<KisImageSP>(),
+                                                                             std::declval<KisNodeSP>())),
+                                 void>);
+    static_assert(std::is_same_v<decltype(KisLayerUtils::mergeMultipleNodes(std::declval<KisImageSP>(),
+                                                                            std::declval<KisNodeList>(),
+                                                                            std::declval<KisNodeSP>())),
+                                 void>);
+    static_assert(
+        std::is_same_v<decltype(KisLayerUtils::flattenLayer(std::declval<KisImageSP>(), std::declval<KisLayerSP>())),
+                       void>);
+    static_assert(
+        std::is_same_v<decltype(KisLayerUtils::flattenImage(std::declval<KisImageSP>(), std::declval<KisNodeSP>())),
+                       void>);
+
+    QVERIFY(true);
+}
+
+void KisImageTypesContractTest::layerHierarchySearchAndTraversalSignaturesRemainStable()
+{
+    using IntegerChecker = std::function<int(KisNodeSP)>;
+    using NodeVisitor = void (*)(KisNodeSP);
+
+    static_assert(std::is_same_v<decltype(KisLayerUtils::checkNodesDiffer<int>(std::declval<KisNodeList>(),
+                                                                               std::declval<IntegerChecker>())),
+                                 bool>);
+    ASSERT_LAYER_UTILS_SIGNATURE(findNodesWithProps, KisNodeList (*)(KisNodeSP, const KoProperties &, bool));
+    ASSERT_LAYER_UTILS_SIGNATURE(findRoot, KisNodeSP (*)(KisNodeSP));
+    static_assert(std::is_same_v<decltype(KisLayerUtils::recursiveApplyNodes(std::declval<KisNodeSP>(),
+                                                                             std::declval<NodeVisitor>())),
+                                 void>);
+    ASSERT_LAYER_UTILS_SIGNATURE(recursiveFindNode, KisNodeSP (*)(KisNodeSP, std::function<bool(KisNodeSP)>));
+    ASSERT_LAYER_UTILS_SIGNATURE(findNodeByUuid, KisNodeSP (*)(KisNodeSP, const QUuid &));
+    ASSERT_LAYER_UTILS_SIGNATURE(findNodesByName, QList<KisNodeSP> (*)(KisNodeSP, const QString &, bool, bool));
+    ASSERT_LAYER_UTILS_SIGNATURE(findNodeByName, KisNodeSP (*)(KisNodeSP, const QString &));
+    ASSERT_LAYER_UTILS_SIGNATURE(findIsolationRoot, KisNodeSP (*)(KisNodeSP));
+    ASSERT_LAYER_UTILS_SIGNATURE(findImageByHierarchy, KisImageSP (*)(KisNodeSP));
+    static_assert(
+        std::is_same_v<decltype(KisLayerUtils::findNodeByType<KisNode>(std::declval<KisNodeSP>())), KisNode *>);
+
+    QVERIFY(true);
+}
+
+void KisImageTypesContractTest::layerFrameQueryAndJobSchemaRemainStable()
+{
+    static_assert(std::is_same_v<KisLayerUtils::FrameJobs, QMap<int, QSet<KisNodeSP>>>);
+    ASSERT_LAYER_UTILS_SIGNATURE(updateFrameJobs, void (*)(KisLayerUtils::FrameJobs *, KisNodeSP));
+    ASSERT_LAYER_UTILS_SIGNATURE(updateFrameJobsRecursive, void (*)(KisLayerUtils::FrameJobs *, KisNodeSP));
+    ASSERT_LAYER_UTILS_SIGNATURE(fetchLayerFrames, QSet<int> (*)(KisNodeSP));
+    ASSERT_LAYER_UTILS_SIGNATURE(fetchLayerFramesRecursive, QSet<int> (*)(KisNodeSP));
+    ASSERT_LAYER_UTILS_SIGNATURE(fetchLayerActiveRasterFrameTime, int (*)(KisNodeSP));
+    ASSERT_LAYER_UTILS_SIGNATURE(fetchLayerActiveRasterFrameSpan, KisTimeSpan (*)(KisNodeSP, int));
+    ASSERT_LAYER_UTILS_SIGNATURE(fetchLayerIdenticalRasterFrameTimes, QSet<int> (*)(KisNodeSP, const int &));
+    ASSERT_LAYER_UTILS_SIGNATURE(filterTimesForOnlyRasterKeyedTimes, QSet<int> (*)(KisNodeSP, const QSet<int> &));
+    ASSERT_LAYER_UTILS_SIGNATURE(fetchUniqueFrameTimes, QSet<int> (*)(KisNodeSP, QSet<int>, bool));
+
+    QVERIFY(true);
+}
+
+void KisImageTypesContractTest::layerCommandTypesAndLifecycleSchemaRemainStable()
+{
+    using SwitchCommand = KisLayerUtils::SwitchFrameCommand;
+    using SharedStorage = SwitchCommand::SharedStorage;
+    using KeepSelected = KisLayerUtils::KeepNodesSelectedCommand;
+    using RemoveNodeHelper = KisLayerUtils::RemoveNodeHelper;
+    using SelectGlobalMask = KisLayerUtils::SelectGlobalSelectionMask;
+    using SimpleRemove = KisLayerUtils::SimpleRemoveLayers;
+    using SimpleUpdate = KisLayerUtils::KisSimpleUpdateCommand;
+    using PartBSignature = void (KeepSelected::*)();
+    using SimplePartBSignature = void (SimpleUpdate::*)();
+    using UpdateNodesSignature = void (*)(const KisNodeList &);
+    using RedoSignature = void (SelectGlobalMask::*)();
+    using PopulateSignature = void (SimpleRemove::*)();
+
+    static_assert(std::is_same_v<SwitchCommand::SharedStorageSP, QSharedPointer<SharedStorage>>);
+    static_assert(std::is_class_v<SwitchCommand>);
+    static_assert(std::is_class_v<SharedStorage>);
+    static_assert(std::is_class_v<KeepSelected>);
+    static_assert(std::is_class_v<RemoveNodeHelper>);
+    static_assert(std::is_class_v<SelectGlobalMask>);
+    static_assert(std::is_class_v<SimpleRemove>);
+    static_assert(std::is_class_v<SimpleUpdate>);
+    static_assert(std::is_base_of_v<KisCommandUtils::FlipFlopCommand, SwitchCommand>);
+    static_assert(std::is_base_of_v<KisCommandUtils::FlipFlopCommand, KeepSelected>);
+    static_assert(std::is_base_of_v<KisCommandUtils::FlipFlopCommand, SimpleUpdate>);
+    static_assert(std::is_base_of_v<KUndo2Command, SelectGlobalMask>);
+    static_assert(std::is_base_of_v<RemoveNodeHelper, SimpleRemove>);
+    static_assert(std::is_base_of_v<KisCommandUtils::AggregateCommand, SimpleRemove>);
+    static_assert(std::is_abstract_v<RemoveNodeHelper>);
+    static_assert(std::has_virtual_destructor_v<RemoveNodeHelper>);
+    static_assert(std::is_same_v<decltype(SharedStorage::value), int>);
+
+    static_assert(std::is_constructible_v<KeepSelected,
+                                          const KisNodeList &,
+                                          const KisNodeList &,
+                                          KisNodeSP,
+                                          KisNodeSP,
+                                          KisImageSP,
+                                          bool,
+                                          KUndo2Command *>);
+    static_assert(std::is_constructible_v<KeepSelected,
+                                          const KisNodeList &,
+                                          const KisNodeList &,
+                                          KisNodeSP,
+                                          KisNodeSP,
+                                          KisImageSP,
+                                          bool>);
+    static_assert(std::is_same_v<decltype(static_cast<PartBSignature>(&KeepSelected::partB)), PartBSignature>);
+
+    static_assert(std::is_constructible_v<SimpleUpdate, KisNodeList, bool, KUndo2Command *>);
+    static_assert(std::is_constructible_v<SimpleUpdate, KisNodeList, bool>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<SimplePartBSignature>(&SimpleUpdate::partB)), SimplePartBSignature>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<UpdateNodesSignature>(&SimpleUpdate::updateNodes)), UpdateNodesSignature>);
+
+    static_assert(std::is_constructible_v<SelectGlobalMask, KisImageSP>);
+    static_assert(std::is_destructible_v<SelectGlobalMask>);
+    static_assert(std::is_same_v<decltype(static_cast<RedoSignature>(&SelectGlobalMask::redo)), RedoSignature>);
+
+    static_assert(std::is_constructible_v<SimpleRemove, const KisNodeList &, KisImageSP>);
+    static_assert(std::is_same_v<decltype(static_cast<PopulateSignature>(&SimpleRemove::populateChildCommands)),
+                                 PopulateSignature>);
+
+    static_assert(std::is_destructible_v<SharedStorage>);
+    static_assert(std::is_constructible_v<SwitchCommand, KisImageSP, int, bool, SwitchCommand::SharedStorageSP>);
+    static_assert(std::is_destructible_v<SwitchCommand>);
+
+    QVERIFY(true);
+}
+
 #undef ASSERT_DEFAULT_BOUNDS_SIGNATURE
+#undef ASSERT_LAYER_UTILS_SIGNATURE
 
 QTEST_GUILESS_MAIN(KisImageTypesContractTest)
 
