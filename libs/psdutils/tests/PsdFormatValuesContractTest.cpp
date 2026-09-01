@@ -17,6 +17,11 @@
 namespace
 {
 
+using BevelEmboss = psd_layer_effects_bevel_emboss;
+
+#define ASSERT_BEVEL_SIGNATURE(functionName, signatureType)                                                            \
+    static_assert(std::is_same_v<decltype(static_cast<signatureType>(&BevelEmboss::functionName)), signatureType>)
+
 template<typename Resource>
 void verifyLegacyResourceAcceptsAndIgnoresPayloads()
 {
@@ -49,6 +54,11 @@ private Q_SLOTS:
     void fileLimitsAndStorageEnumsRemainStable();
     void colorSamplerIdentifiersRemainStable();
     void layerEffectEnumsRemainStable();
+    void bevelGeometryAndTechniqueSignaturesRemainStable();
+    void bevelGlossAndContourSignaturesRemainStable();
+    void bevelLightBlendSignaturesRemainStable();
+    void bevelTextureControlSignaturesRemainStable();
+    void bevelTexturePhaseAndValueTypeRemainStable();
     void resourceIdentityFieldsAreIndependentValues();
     void transparencyStopsPreserveSignedValues();
     void patternDefaultsMatchTheEmptyRecord();
@@ -201,6 +211,100 @@ void PsdFormatValuesContractTest::layerEffectEnumsRemainStable()
     QCOMPARE(int(psd_open_folder), 1);
     QCOMPARE(int(psd_closed_folder), 2);
     QCOMPARE(int(psd_bounding_divider), 3);
+}
+
+void PsdFormatValuesContractTest::bevelGeometryAndTechniqueSignaturesRemainStable()
+{
+    using StyleGetter = psd_bevel_style (BevelEmboss::*)() const;
+    using StyleSetter = void (BevelEmboss::*)(psd_bevel_style);
+    using TechniqueGetter = psd_technique_type (BevelEmboss::*)() const;
+    using TechniqueSetter = void (BevelEmboss::*)(psd_technique_type);
+    using IntGetter = int (BevelEmboss::*)() const;
+    using IntSetter = void (BevelEmboss::*)(int);
+    using DirectionGetter = psd_direction (BevelEmboss::*)() const;
+    using DirectionSetter = void (BevelEmboss::*)(psd_direction);
+
+    ASSERT_BEVEL_SIGNATURE(style, StyleGetter);
+    ASSERT_BEVEL_SIGNATURE(setStyle, StyleSetter);
+    ASSERT_BEVEL_SIGNATURE(technique, TechniqueGetter);
+    ASSERT_BEVEL_SIGNATURE(setTechnique, TechniqueSetter);
+    ASSERT_BEVEL_SIGNATURE(depth, IntGetter);
+    ASSERT_BEVEL_SIGNATURE(setDepth, IntSetter);
+    ASSERT_BEVEL_SIGNATURE(direction, DirectionGetter);
+    ASSERT_BEVEL_SIGNATURE(setDirection, DirectionSetter);
+    ASSERT_BEVEL_SIGNATURE(soften, IntGetter);
+    ASSERT_BEVEL_SIGNATURE(setSoften, IntSetter);
+    ASSERT_BEVEL_SIGNATURE(altitude, IntGetter);
+    ASSERT_BEVEL_SIGNATURE(setAltitude, IntSetter);
+}
+
+void PsdFormatValuesContractTest::bevelGlossAndContourSignaturesRemainStable()
+{
+    using BoolGetter = bool (BevelEmboss::*)() const;
+    using BoolSetter = void (BevelEmboss::*)(bool);
+    using IntGetter = int (BevelEmboss::*)() const;
+    using IntSetter = void (BevelEmboss::*)(int);
+
+    ASSERT_BEVEL_SIGNATURE(glossAntiAliased, BoolGetter);
+    ASSERT_BEVEL_SIGNATURE(setGlossAntiAliased, BoolSetter);
+    ASSERT_BEVEL_SIGNATURE(contourEnabled, BoolGetter);
+    ASSERT_BEVEL_SIGNATURE(setContourEnabled, BoolSetter);
+    ASSERT_BEVEL_SIGNATURE(contourRange, IntGetter);
+    ASSERT_BEVEL_SIGNATURE(setContourRange, IntSetter);
+}
+
+void PsdFormatValuesContractTest::bevelLightBlendSignaturesRemainStable()
+{
+    using BlendModeGetter = QString (BevelEmboss::*)() const;
+    using BlendModeSetter = void (BevelEmboss::*)(QString);
+    using OpacityGetter = qint32 (BevelEmboss::*)() const;
+    using OpacitySetter = void (BevelEmboss::*)(qint32);
+
+    ASSERT_BEVEL_SIGNATURE(highlightBlendMode, BlendModeGetter);
+    ASSERT_BEVEL_SIGNATURE(setHighlightBlendMode, BlendModeSetter);
+    ASSERT_BEVEL_SIGNATURE(highlightOpacity, OpacityGetter);
+    ASSERT_BEVEL_SIGNATURE(setHighlightOpacity, OpacitySetter);
+    ASSERT_BEVEL_SIGNATURE(shadowBlendMode, BlendModeGetter);
+    ASSERT_BEVEL_SIGNATURE(setShadowBlendMode, BlendModeSetter);
+    ASSERT_BEVEL_SIGNATURE(shadowOpacity, OpacityGetter);
+    ASSERT_BEVEL_SIGNATURE(setShadowOpacity, OpacitySetter);
+}
+
+void PsdFormatValuesContractTest::bevelTextureControlSignaturesRemainStable()
+{
+    using BoolGetter = bool (BevelEmboss::*)() const;
+    using BoolSetter = void (BevelEmboss::*)(bool);
+    using IntGetter = int (BevelEmboss::*)() const;
+    using IntSetter = void (BevelEmboss::*)(int);
+
+    ASSERT_BEVEL_SIGNATURE(textureEnabled, BoolGetter);
+    ASSERT_BEVEL_SIGNATURE(setTextureEnabled, BoolSetter);
+    ASSERT_BEVEL_SIGNATURE(textureScale, IntGetter);
+    ASSERT_BEVEL_SIGNATURE(setTextureScale, IntSetter);
+    ASSERT_BEVEL_SIGNATURE(textureDepth, IntGetter);
+    ASSERT_BEVEL_SIGNATURE(setTextureDepth, IntSetter);
+    ASSERT_BEVEL_SIGNATURE(textureInvert, BoolGetter);
+    ASSERT_BEVEL_SIGNATURE(setTextureInvert, BoolSetter);
+    ASSERT_BEVEL_SIGNATURE(textureAlignWithLayer, BoolGetter);
+    ASSERT_BEVEL_SIGNATURE(setTextureAlignWithLayer, BoolSetter);
+}
+
+void PsdFormatValuesContractTest::bevelTexturePhaseAndValueTypeRemainStable()
+{
+    using PhaseGetter = QPointF (BevelEmboss::*)() const;
+    using PhaseSetter = void (BevelEmboss::*)(const QPointF &);
+    using IntGetter = int (BevelEmboss::*)() const;
+    using IntSetter = void (BevelEmboss::*)(int);
+
+    static_assert(std::is_base_of_v<psd_layer_effects_shadow_base, BevelEmboss>);
+    static_assert(std::is_copy_constructible_v<BevelEmboss>);
+    static_assert(std::is_copy_assignable_v<BevelEmboss>);
+    ASSERT_BEVEL_SIGNATURE(texturePhase, PhaseGetter);
+    ASSERT_BEVEL_SIGNATURE(setTexturePhase, PhaseSetter);
+    ASSERT_BEVEL_SIGNATURE(textureHorizontalPhase, IntGetter);
+    ASSERT_BEVEL_SIGNATURE(setTextureHorizontalPhase, IntSetter);
+    ASSERT_BEVEL_SIGNATURE(textureVerticalPhase, IntGetter);
+    ASSERT_BEVEL_SIGNATURE(setTextureVerticalPhase, IntSetter);
 }
 
 void PsdFormatValuesContractTest::resourceIdentityFieldsAreIndependentValues()
@@ -2408,6 +2512,8 @@ void PsdFormatValuesContractTest::legacyPathAndPrintResourceRecordsAcceptAndIgno
     verifyLegacyResourceAcceptsAndIgnoresPayloads<CLIPPING_PATH_2999>();
     verifyLegacyResourceAcceptsAndIgnoresPayloads<PRINT_FLAGS_2_10000>();
 }
+
+#undef ASSERT_BEVEL_SIGNATURE
 
 QTEST_GUILESS_MAIN(PsdFormatValuesContractTest)
 
