@@ -830,6 +830,29 @@
   1,979工程・3,956入力を維持し、constructor・destructor・method、色、pattern・gradient、registry、resource interface、scaleを実行しない。
   additional-layer残存は色・pattern・gradient・ASL・shape責務を混在させ、psd.hの他の安全な各責務は25 API未満のため棄却した。3監査は編集、構築、試験、
   Git操作、追加委任を行っていない。
+
+### 第120便の担当計画
+
+- 実装共通基点はこの担当票commitとする。3担当は`planned`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの
+  `transport-commit`、追加委任は禁止する。専用worktree-local `build/tdd-macos`と`./scripts/run-shared-test-env`で主環境・compiler cacheを共有する。
+  統合順はapplication色管理、色空間局所画素、PSD overlayとし、調整担当だけが台帳、進捗文書、不足報告を変更する。3担当の許可path、CMake、試験source、生成物は重ならない。
+- `g120-application-color-management-schema`は`/Users/masato/Documents/librepaint-g120-application-color-management-schema`を所有する。開始
+  `libs/application/kis_config.h`から既存`libs/application/tests/KisConfigEnumContractTest.cpp`の5枠へ、作業色空間・import 8、monitor経路9、OCIO方針8、
+  印刷出力profile 6、色管理engine・selector色空間4の全35 APIを対応付け、他pathを変更しない。対象4工程・15入力、停止5工程・18入力、製品
+  `kritaapplication` 1,224工程・2,466入力の完全一致を確認する。5枠の未知関数診断、対象CTest、20回反復、`KisActionEnumContractTest`、no-work、動的接続、
+  未解決記号、構文・書式・公開API・`verify-quick`を確認する。設定実体、画面列挙、OCIO・LCMS、profile読込み、registry、filesystem・GUI・大域状態、
+  製品shared、`kritatestsdk`、新依存、公開header・CMake変更、停止線超過が必要なら止める。
+- `g120-color-space-pixel-schema`は`/Users/masato/Documents/librepaint-g120-color-space-pixel-schema`を所有する。開始`libs/pigment/KoColorSpace.h`から既存
+  `libs/pigment/tests/KoColorSpaceSchemaContractTest.cpp`の5枠へ、opacity・透明7、alpha mask 5、gray brush着色4、tone調整10、画素計測4の全30 APIを対応付け、
+  他pathを変更しない。対象4工程・8入力、停止5工程・10入力、製品`kritapigment` 365工程・760入力の完全一致を確認する。5枠の未知関数診断、対象CTest、
+  20回反復、`KoColorSpaceConstantsContractTest`、no-work、動的接続、未解決記号、構文・書式・公開API・`verify-quick`を確認する。実色空間・派生fake、registry、
+  profile、変換、画素buffer、brush data、製品OBJECT・shared、`kritatestsdk`、新依存、公開header・CMake変更、停止線超過が必要なら止める。
+- `g120-psd-overlay-schema`は`/Users/masato/Documents/librepaint-g120-psd-overlay-schema`を所有する。開始`libs/psdutils/psd.h`から既存
+  `libs/psdutils/tests/PsdFormatValuesContractTest.cpp`の5枠へ、overlay階層・構築10、gradient制御8、gradient幾何7、pattern選択・phase 7、stroke位置2の
+  全34 APIを対応付け、他pathを変更しない。対象6工程・14入力、停止7工程・16入力、製品`kritapsdutils` 635工程・1,300入力と`kritapsd`
+  1,979工程・3,956入力の完全一致を確認する。5枠の未知関数診断、対象CTest、20回反復、`PsdByteIoContractTest`、no-work、動的接続、未解決記号、構文・書式・
+  公開API・`verify-quick`を確認する。overlay・派生・shadow基底の実体、constructor・destructor・copy、method呼出し・address値、RTTI・vtable、`psd.cpp`、色、
+  pattern・gradient、registry・resource interface・scale、製品shared、`kritatestsdk`、新依存、公開header・CMake変更、停止線超過が必要なら止める。
 - `g119-resource-storage-schema-audit`は`KisResourceStorage`のidentity・寿命・状態schema 25 APIを採用した。共有pointer・class・storage種別10、寿命6、
   種別label 2、識別query 3、状態・時刻query 4を既存`KisResourceModelEnumContractTest`の5枠へ追加する。翻訳なし種別文字列だけを実行し、他は未評価型とする。
   対象4工程・9入力、製品`kritaresources` 149工程・325入力を維持し、実storage、filesystem、archive、SQL、registry、loaderを生成しない。`KoColorSet`は値契約に
