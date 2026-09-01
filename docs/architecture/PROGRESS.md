@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 12:12 JST
+- 更新日時: 2026-09-01 12:15 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -396,6 +396,32 @@
   procedural制御4、inline色table 3を既存`PsdFormatValuesContractTest`の5枠へ追加する。aggregateの既定値・正確な型・signed値・浅いpointer copy・256色配列の
   値copyをpointer参照解決と色空間生成なしで固定する。変更後予測3工程・6変更入力、停止4工程・9入力とし、試験source以外を変更しない。
 - 次の操作は構築計画修正を基点commitとして確定し、設定26 APIとPSD 28 APIの非重複2担当票を記録してから専用worktreeで並列実装することである。
+
+### 第111便の担当計画
+
+- 実装共通基点は`47fa981712d55b4e56d724278483307212649202`である。2担当は`planned`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は
+  許可pathだけの`transport-commit`、追加委任は禁止する。専用worktreeは翻訳catalog `po/`を疎な取得から除外し、worktree-local
+  `build/tdd-macos`と`./scripts/run-shared-test-env`で主環境・compiler cacheを共有する。統合順は設定、PSDとし、調整担当だけが台帳、進捗文書、不足報告を変更する。
+- `g111-config-resource-schema`は`/Users/masato/Documents/librepaint-g111-config-resource-schema`を所有する。開始`libs/application/kis_config.h`から既存
+  `libs/application/tests/KisConfigEnumContractTest.cpp`の5枠へ、preset表示8 API
+  `presetChooserViewMode`、`setPresetChooserViewMode`、`presetIconSize`、`setPresetIconSize`、`presetStripVisible`、`setPresetStripVisible`、
+  `paintopPopupDetached`、`setPaintopPopupDetached`、favorite資源4 API `favoriteCompositeOps`、`setFavoriteCompositeOps`、`favoritePresets`、
+  `setFavoritePresets`、palette・preset方針6 API `defaultPalette`、`setDefaultPalette`、`forcePaletteColors`、`setForcePaletteColors`、`useDirtyPresets`、
+  `setUseDirtyPresets`、HUD・palette表示6 API `showBrushHud`、`setShowBrushHud`、`brushHudSetting`、`setBrushHudSetting`、`showPaletteBottomBar`、
+  `setShowPaletteBottomBar`、scratchpad 2 API `scratchpadVisible`、`setScratchpadVisible`の全26 APIを対応付け、他pathを変更しない。
+- 設定担当は新`plan`で変更なし対象4工程・15入力と製品`kritaapplication` 1,224工程・2,466入力を乾式確認する。製品は構築しない。変更後停止線は対象5工程・
+  18入力、製品計画は前後完全一致とする。初期不足診断、5枠、対象CTest、20回反復、`KisActionEnumContractTest`、無作業再構築、動的接続、KisConfig未解決記号、
+  source構文、公開API検査、`verify-quick`を確認する。設定実体・値を生成または呼出し、GUI・filesystem・大域設定、製品shared、`kritatestsdk`、公開header・製品・
+  CMake変更、新依存、停止線超過が必要なら止める。
+- `g111-psd-gradient-schema`は`/Users/masato/Documents/librepaint-g111-psd-gradient-schema`を所有する。開始`libs/psdutils/psd.h`から既存
+  `libs/psdutils/tests/PsdFormatValuesContractTest.cpp`の5枠へ、`psd_gradient_color`のstructと`name_length`、`name`、`number_color_stops`、`color_stop`、
+  `number_transparency_stops`、`transparency_stop`、`smoothness`の8 API、`psd_layer_gradient_map`のstructと`reverse`、`dithered`、`name_length`、`name`、
+  `expansion_count`、`interpolation`、`length`、`mode`の9 API、同mapのstop数・pointer 4 API、`random_number_seed`、`showing_transparency_flag`、
+  `using_vector_color_flag`、`roughness_factor`の4 API、`min_color`、`max_color`、`lookup_table`の3 API、全28 APIを対応付け、他pathを変更しない。
+- PSD担当は新`plan`で変更なし対象6工程・14入力と製品`kritapsd` 1,979工程・3,956入力を乾式確認する。製品は構築しない。変更後停止線は対象7工程・16入力、
+  製品計画は前後完全一致とする。初期不足診断、5枠、対象CTest、20回反復、`PsdByteIoContractTest`、無作業再構築、動的接続、未解決製品記号、source構文、
+  公開API検査、`verify-quick`を確認する。`psd_gradient_color_stop::actual_color`、pointer参照解決、実色空間・image・device・資源registry、filesystem、製品shared、
+  `kritatestsdk`、公開header・製品・CMake変更、新依存、停止線超過が必要なら止める。
 
 ### 第105並列便の監査計画
 
