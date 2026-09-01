@@ -69,6 +69,12 @@
   method・signal・metaobjectを生成または実行していない。担当macOS環境と中央環境で5枠を含む対象CTest・20回反復と近傍`KisTagModelSchemaContractTest`、担当環境で無作業再構築、
   動的接続・未解決記号、構文・書式、公開API検査、`verify-quick`に成功した。中央の公開API契約検査は29,838件中14,129件対応、15,709件未対応となる。作業tree 864,480 KiBと
   担当branchは削除した。
+- `g140-ffmpeg-wrapper-schema`は受渡しcommit`de014b097a00`を統合commit`5ee8b74cac`として取り込んだ。開始`libs/impex/animation/KisFFMpegWrapper.h`から新規
+  `libs/impex/tests/KisFFMpegWrapperSchemaContractTest.cpp`の5枠へ、設定値、型・error・寿命、探索・色変換、process・probe、通知の43 APIを対応付けた。直接linkはQt Core/Testだけで、
+  新対象4工程・8入力に収めた。製品`kritaimpexui` 1,350工程・2,712入力と`kritaapplicationui` 1,970工程・3,940入力は維持され、入力集合hashは監査値と一致した。命令集合の生hash差は
+  CMakeが新試験対象追加時に生成するdepfile識別子だけで、担当環境の正規化集合は前後一致した。wrapper・QObject・QProcess・codec・document・image・stream・method・signal・探索・
+  外部processを生成または実行していない。担当macOS環境と中央環境で5枠・対象CTest・20回反復と近傍`KisMediaEncoderFormatAndSettingsContractTest`、担当環境で無作業再構築、動的接続・
+  未解決記号、構文・書式、公開API検査、`verify-quick`に成功した。中央の公開API契約検査は29,838件中14,172件対応、15,666件未対応となる。作業tree 857 MiBと担当branchは削除した。
 
 ### 第139便の先行監査計画
 

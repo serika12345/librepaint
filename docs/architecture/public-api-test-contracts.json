@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 15709
+    "expectedMissingApis": 15666
   },
   "contracts": [
     {
@@ -32158,6 +32158,94 @@
         "member:KisMediaEncoderWrapperSettings::inputFps",
         "member:KisMediaEncoderWrapperSettings::lastFrameSec",
         "member:KisMediaEncoderWrapperSettings::outputFps"
+      ]
+    },
+    {
+      "target": "KisFFMpegWrapperSchemaContractTest",
+      "source": "libs/impex/tests/KisFFMpegWrapperSchemaContractTest.cpp",
+      "test": "KisFFMpegWrapperSchemaContractTest::ffmpegSettingsValueSchemaRemainsStable",
+      "behavior": "FFMpeg処理設定は空の経路・引数・進捗、標準の非対話引数、無効な各切替、0 frameを既定とし、複製後も全値を独立して保持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisFFMpegWrapperSettings::args",
+        "member:KisFFMpegWrapperSettings::batchMode",
+        "member:KisFFMpegWrapperSettings::binaryOutput",
+        "member:KisFFMpegWrapperSettings::defaultPrependArgs",
+        "member:KisFFMpegWrapperSettings::logPath",
+        "member:KisFFMpegWrapperSettings::outputFile",
+        "member:KisFFMpegWrapperSettings::processPath",
+        "member:KisFFMpegWrapperSettings::progressIndeterminate",
+        "member:KisFFMpegWrapperSettings::progressMessage",
+        "member:KisFFMpegWrapperSettings::storeOutput",
+        "member:KisFFMpegWrapperSettings::totalFrames",
+        "struct:KisFFMpegWrapperSettings"
+      ]
+    },
+    {
+      "target": "KisFFMpegWrapperSchemaContractTest",
+      "source": "libs/impex/tests/KisFFMpegWrapperSchemaContractTest.cpp",
+      "test": "KisFFMpegWrapperSchemaContractTest::ffmpegWrapperIdentityAndErrorSchemaRemainStable",
+      "behavior": "FFMpeg処理器はQObject所有と仮想寿命、probe結果の安定した3値、600秒の既定待機時間を公開型として維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisFFMpegWrapper",
+        "enum:FFProbeErrorCodes",
+        "enumerator:FFProbeErrorCodes::INVALID_JSON",
+        "enumerator:FFProbeErrorCodes::NONE",
+        "enumerator:FFProbeErrorCodes::UNSUPPORTED_CODEC",
+        "method:KisFFMpegWrapper::KisFFMpegWrapper(QObject * parent=nullptr)",
+        "method:KisFFMpegWrapper::~KisFFMpegWrapper()",
+        "variable:FFMPEG_TIMEOUT"
+      ]
+    },
+    {
+      "target": "KisFFMpegWrapperSchemaContractTest",
+      "source": "libs/impex/tests/KisFFMpegWrapperSchemaContractTest.cpp",
+      "test": "KisFFMpegWrapperSchemaContractTest::ffmpegDiscoveryAndColorConversionSignaturesRemainStable",
+      "behavior": "実行ファイル探索、設定位置、対応codec、色特性変換の公開照会は入力所有と結果型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisFFMpegWrapper::colorPrimariesFromName(QString name)",
+        "method:KisFFMpegWrapper::configuredFFMpegLocation()",
+        "method:KisFFMpegWrapper::findFFMpeg(const QString & customLocation)",
+        "method:KisFFMpegWrapper::findFFProbe(const QString & customLocation)",
+        "method:KisFFMpegWrapper::findProcessInfo(const QString & processName,const QString & processPath,bool includeProcessInfo)",
+        "method:KisFFMpegWrapper::findProcessPath(const QString & processName,const QString & customLocation,bool processInfo)",
+        "method:KisFFMpegWrapper::getSupportedCodecs(const QJsonObject & ffmpegJsonProcessInput)",
+        "method:KisFFMpegWrapper::setConfiguredFFMpegLocation(QString & location)",
+        "method:KisFFMpegWrapper::transferCharacteristicsFromName(QString name)"
+      ]
+    },
+    {
+      "target": "KisFFMpegWrapperSchemaContractTest",
+      "source": "libs/impex/tests/KisFFMpegWrapperSchemaContractTest.cpp",
+      "test": "KisFFMpegWrapperSchemaContractTest::ffmpegProcessAndProbeSignaturesRemainStable",
+      "behavior": "probe、同期・非同期開始、reset、完了待機の公開命令は設定参照と既定待機時間を含む引数・結果型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisFFMpegWrapper::ffmpegProbe(const QString & inputFile,const QString & ffmpegPath,bool batchMode)",
+        "method:KisFFMpegWrapper::ffprobe(const QString & inputFile,const QString & ffprobePath)",
+        "method:KisFFMpegWrapper::reset()",
+        "method:KisFFMpegWrapper::runProcessAndReturn(const QString & processPath,const QStringList & args,int msecs=FFMPEG_TIMEOUT)",
+        "method:KisFFMpegWrapper::start(const KisFFMpegWrapperSettings & settings)",
+        "method:KisFFMpegWrapper::startNonBlocking(const KisFFMpegWrapperSettings & settings)",
+        "method:KisFFMpegWrapper::waitForFinished(int msecs=FFMPEG_TIMEOUT)"
+      ]
+    },
+    {
+      "target": "KisFFMpegWrapperSchemaContractTest",
+      "source": "libs/impex/tests/KisFFMpegWrapperSchemaContractTest.cpp",
+      "test": "KisFFMpegWrapperSchemaContractTest::ffmpegSignalSignaturesRemainStable",
+      "behavior": "FFMpeg処理の開始・完了・error・進捗・標準入出力通知はframe番号、pipe番号、文字列、byte列を値で伝える署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisFFMpegWrapper::sigFinished()",
+        "method:KisFFMpegWrapper::sigFinishedWithError(QString message)",
+        "method:KisFFMpegWrapper::sigProgressUpdated(int frameNo)",
+        "method:KisFFMpegWrapper::sigReadLine(int pipe,QString line)",
+        "method:KisFFMpegWrapper::sigReadSTDERR(QByteArray stderrBuffer)",
+        "method:KisFFMpegWrapper::sigReadSTDOUT(QByteArray stdoutBuffer)",
+        "method:KisFFMpegWrapper::sigStarted()"
       ]
     },
     {
