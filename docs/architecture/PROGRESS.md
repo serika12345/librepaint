@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 23:27 JST
+- 更新日時: 2026-09-01 23:30 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -35,6 +35,41 @@
 - 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから契約先または
   移動先、許可path、固有停止条件、比較候補の棄却根拠を含む。既存`build/tdd-macos`の計画は読み取り専用で測定し、構成や構築を開始しない。3報告後にpath、CMake、
   試験source、生成物が重ならない候補だけを担当票へ進める。
+
+### 第132便の担当計画
+
+- 実装共通基点は`c46e51d79eadbd4c69294aa22208a88e0c05bf36`である。color source、distance state、snap strategy担当は`implementing`、構築許可は指定試験targetと
+  軽量近傍だけの`granted`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、専用worktree-local
+  `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。統合順はcolor source、distance state、snap strategyとし、
+  調整担当だけが`AGENTS.md`、architecture文書、`docs/architecture/public-api-test-contracts.json`、共通不足報告を変更する。3担当の公開header、所有CMake、試験source、
+  生成物は重ならない。
+- `g132-color-source-schema`は`/Users/masato/Documents/librepaint-g132-color-source-schema`を所有する。開始
+  `plugins/paintops/libpaintop/kis_color_source.h`の基底と6派生class、全公開constructor・destructor・操作から新規
+  `plugins/paintops/libpaintop/tests/KisColorSourceSchemaContractTest.cpp`の5枠`colorSourceHierarchyAndBaseProtocolSignaturesRemainStable`、
+  `uniformColorSourceTransformationSignaturesRemainStable`、`selectedColorSourceVariantSignaturesRemainStable`、`totalRandomColorSourceSignaturesRemainStable`、
+  `patternColorSourceSignaturesRemainStable`へ全45 APIを対応付ける。許可pathは新規試験sourceと`plugins/paintops/libpaintop/tests/CMakeLists.txt`だけである。新対象
+  `KisColorSourceSchemaContractTest`は4工程・8入力、停止5工程・11入力、近傍は`KisDabCacheUtilsSchemaContractTest`、製品`kritalibpaintop`は2,110工程・4,218入力と
+  各集合の完全一致を確認する。未知target、5枠、対象CTest、20回反復、近傍、無作業再構築、動的接続、未解決色源・color・gradient・device・resource記号、構文・
+  変更行書式、公開API・`verify-quick`を確認する。型特性と未評価式を越えて色源・color・gradient・paint device・paint information・color space・変換・resource・乱数を
+  生成または呼出し、`kis_color_source.cpp`、製品OBJECT・shared、`kritatestsdk`、Qt Widgets、新link依存、公開header・製品source変更、製品計画差、停止線超過が必要なら止める。
+- `g132-distance-state-schema`は`/Users/masato/Documents/librepaint-g132-distance-state-schema`を所有する。開始`libs/image/kis_distance_information.h`の
+  `KisDistanceInformation`公開面から既存`libs/image/tests/KisImageTypesContractTest.cpp`の5枠`distanceStateLifecycleSchemaRemainsStable`、
+  `distanceLastDabObservationSignaturesRemainStable`、`distanceSpacingAndTimingSignaturesRemainStable`、`distanceStrokeProgressSignaturesRemainStable`、
+  `distanceDrawingAngleLockSignaturesRemainStable`へruntime距離状態31 APIを対応付ける。許可pathはこの試験source1件だけであり、担当CMakeは
+  `libs/image/tests/CMakeLists.txt`だが変更しない。対象`KisImageTypesContractTest`は4工程・8入力、停止5工程・11入力、近傍は`KisSpacingInformationContractTest`と
+  `KisTimingInformationContractTest`、製品`kritaimage`は1,196工程・2,416入力と各集合の完全一致を確認する。5枠の未知関数、対象CTest、20回反復、2近傍、無作業再構築、
+  動的接続、未解決distance・paint・spacing・timing記号、構文・変更行書式、公開API・`verify-quick`を確認する。型特性と未評価式を越えてDistance・PaintInformation・
+  SpacingInformation・TimingInformationを生成または呼出し、XML・補間・spacing・timing計算、製品source・OBJECT・shared、`kritatestsdk`、新依存、CMake・公開header変更、
+  製品計画差、停止線超過が必要なら止める。
+- `g132-snap-strategy-schema`は`/Users/masato/Documents/librepaint-g132-snap-strategy-schema`を所有する。開始`libs/flake/KoSnapStrategy.h`の基底、SnapTypeと6派生classの
+  全公開面から既存`libs/flake/tests/KoSnapGuideSchemaContractTest.cpp`の5枠`snapStrategyBaseTypeAndStateSchemaRemainsStable`、
+  `snapStrategyBaseOperationSignaturesRemainStable`、`snapStrategyPointAndOrthogonalSignaturesRemainStable`、
+  `snapStrategyExtensionAndIntersectionSignaturesRemainStable`、`snapStrategyGridAndBoundingBoxSignaturesRemainStable`へ全38 APIを対応付ける。許可pathはこの試験source1件だけであり、
+  担当CMakeは`libs/flake/tests/CMakeLists.txt`だが変更しない。対象`KoSnapGuideSchemaContractTest`は4工程・8入力、停止5工程・11入力、近傍は`KoSnapDataContractTest`、
+  製品`kritaflake`は621工程・1,274入力と各集合の完全一致を確認する。5枠の未知関数、既存5枠、対象CTest、20回反復、近傍、無作業再構築、動的接続、未解決snap・shape・
+  canvas・path・proxy・painter記号、構文・変更行書式、公開API・`verify-quick`を確認する。型特性と未評価式を越えてstrategy・shape・canvas・path・proxy・event・painterを
+  生成または呼出し、`KoSnapStrategy.cpp`、製品OBJECT・shared、`kritatestsdk`、Qt Widgets、新link依存、CMake・公開header・製品source変更、製品計画差、停止線超過が
+  必要なら止める。
 
 ### 第131便の先行監査計画
 
