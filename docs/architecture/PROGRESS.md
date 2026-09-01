@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 12:34 JST
+- 更新日時: 2026-09-01 12:44 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -455,7 +455,7 @@
 
 ### 第112便の担当計画
 
-- `g112-all-resources-model-schema`は`implementing`、実装基点は`caeff83a9bb8da3fba1afb6af0e402bd23f0b6d1`、専用worktreeは
+- `g112-all-resources-model-schema`は`integrated`、実装基点は`caeff83a9bb8da3fba1afb6af0e402bd23f0b6d1`、削除済み専用worktreeは
   `/Users/masato/Documents/librepaint-g112-all-resources-model-schema`である。構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は
   許可pathだけの`transport-commit`、追加委任は禁止する。worktree-local `build/tdd-macos`と`./scripts/run-shared-test-env`で主環境・compiler cacheを
   共有し、調整担当だけが台帳、進捗文書、不足報告を変更する。
@@ -470,6 +470,18 @@
   `KisAllResourcesModel`未解決記号、source構文、公開API検査、`verify-quick`を確認する。模型・storage・registry・SQL・filesystem・GUI・大域状態の実行、
   製品shared、`kritatestsdk`、新依存、停止線超過が必要なら止める。
 
+### 第112便の統合結果
+
+- `g112-all-resources-model-schema`は受渡しcommit `5d8ea14e4ff0`と同一patchを統合commit `3907e7b2e9`として取り込んだ。開始
+  `libs/resources/KisResourceModel.h`から既存`libs/resources/tests/KisResourceModelEnumContractTest.cpp`の5枠へ、全資源模型のclass・寿命・表schema 9、
+  索引・資源検索9、取込・書出4、資源永続化5、活性・metadata更新2の全29 APIを対応付けた。未評価の型・既定引数検査だけを用い、模型、storage、registry、
+  SQL、filesystemを実行していない。対象は変更前後4工程・9入力、製品`kritaresources`は149工程・325入力で不変である。
+- 主macOS環境では追加5枠、対象CTest、20回反復、近傍`KisTagModelSchemaContractTest`、再構築時の無コンパイル・無リンク、動的接続と未解決製品記号を確認した。
+  公開API契約検査は29 APIを重複なく受理し、29,838件中11,068件対応、18,770件未対応となった。最新入力は
+  `build/tdd-macos/public-api-missing-g113.json`である。Linux、全native検証、製品全体構築は実行していない。
+- 新報告の生成と受渡しpatchの同一性、worktreeのclean状態を確認後、旧`public-api-missing-g112.json` 4.6 MB、担当worktree 852 MBとbranchを削除した。
+  主`build/tdd-macos`、共有compiler cache、最新不足報告は次便の限定構築へ再利用する。
+
 ### 第113便の先行監査計画
 
 - 共通基点は`fdebc9db38`、入力は`build/tdd-macos/public-api-missing-g112.json`である。2担当は`auditing`の読み取り専用とし、製品・試験・CMake・台帳・文書を
@@ -483,6 +495,14 @@
   ASL、filesystem、生pointer参照解決へ到達せず、既存`PsdFormatValuesContractTest`の限定閉包へ25 API以上を最大5枠で追加できる候補を優先する。
 - 各報告は完全なAPI識別子、最大5枠、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから契約先、許可path、
   固有停止条件、比較・除外候補の根拠を含む。2報告後にpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
+- `g113-config-schema-audit`は`kis_config.h`のキャンバス視覚補助設定38 APIを採用した。透明checkerboard 10、pixel grid 6、construction grid 14、guides 4、
+  MDI canvas背景4を既存`KisConfigEnumContractTest`の未評価関数型5枠へ追加する。対象4工程・15入力、製品`kritaapplication` 1,224工程・2,466入力を
+  維持する。animation 24、保存22、文書作成既定値23は下限未達、表示性能31とapplication統合58は各複数責務に分かれるため棄却した。
+- `g113-psd-schema-audit`は`psd_layer_record.h`のlayer直列化scalar・mask・blending-range値schema 37 APIを採用した。外側recordの公開member型17、
+  mask矩形5、mask制御8、単一blending range 3、blending-range集合4を既存`PsdFormatValuesContractTest`の5枠へ追加する。外側recordを実体化せず、
+  nested aggregateだけの既定値・符号付き値・値copyを観測するため、対象6工程・14入力、製品`kritapsd` 1,979工程・3,956入力を維持する。`psd.h`の
+  shadow基底は色空間と製品実装、additional-layer-infoの安全面は24 API以下またはASL・registryを要求するため棄却した。
+- 次の操作は設定38 APIとPSD 37 APIのpathが重ならない2担当票を確定し、専用worktreeで並列実装することである。
 
 ### 第105並列便の監査計画
 

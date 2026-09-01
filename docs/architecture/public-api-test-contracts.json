@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 18799
+    "expectedMissingApis": 18770
   },
   "contracts": [
     {
@@ -34373,6 +34373,80 @@
         "member:psd_layer_gradient_map::lookup_table",
         "member:psd_layer_gradient_map::max_color",
         "member:psd_layer_gradient_map::min_color"
+      ]
+    },
+    {
+      "target": "KisResourceModelEnumContractTest",
+      "source": "libs/resources/tests/KisResourceModelEnumContractTest.cpp",
+      "test": "KisResourceModelEnumContractTest::allResourcesModelTableSchemaRemainsStable",
+      "behavior": "全資源模型は公開class・仮想破棄、表の寸法・data・header・編集・flag・roleの正確な関数型と既定引数を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisAllResourcesModel",
+        "method:KisAllResourcesModel::columnCount(const QModelIndex & parent=QModelIndex ()) const",
+        "method:KisAllResourcesModel::data(const QModelIndex & index,int role) const",
+        "method:KisAllResourcesModel::flags(const QModelIndex & index) const",
+        "method:KisAllResourcesModel::headerData(int section,Qt::Orientation orientation,int role=Qt::DisplayRole) const",
+        "method:KisAllResourcesModel::roleNames() const",
+        "method:KisAllResourcesModel::rowCount(const QModelIndex & parent=QModelIndex ()) const",
+        "method:KisAllResourcesModel::setData(const QModelIndex & index,const QVariant & value,int role)",
+        "method:KisAllResourcesModel::~KisAllResourcesModel()"
+      ]
+    },
+    {
+      "target": "KisResourceModelEnumContractTest",
+      "source": "libs/resources/tests/KisResourceModelEnumContractTest.cpp",
+      "test": "KisResourceModelEnumContractTest::allResourcesModelLookupSchemaRemainsStable",
+      "behavior": "全資源模型は索引・資源ID・名前・filename・MD5・tagによる検索の戻り型、値と参照の受渡し、const性、既定索引を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAllResourcesModel::indexForResource(KoResourceSP resource) const",
+        "method:KisAllResourcesModel::indexForResourceId(int resourceId) const",
+        "method:KisAllResourcesModel::resourceExists(const QString & md5,const QString & filename,const QString & name)",
+        "method:KisAllResourcesModel::resourceForId(int id) const",
+        "method:KisAllResourcesModel::resourceForIndex(QModelIndex index=QModelIndex ()) const",
+        "method:KisAllResourcesModel::resourcesForFilename(QString filename) const",
+        "method:KisAllResourcesModel::resourcesForMD5(const QString & md5sum) const",
+        "method:KisAllResourcesModel::resourcesForName(const QString & name) const",
+        "method:KisAllResourcesModel::tagsForResource(int resourceId) const"
+      ]
+    },
+    {
+      "target": "KisResourceModelEnumContractTest",
+      "source": "libs/resources/tests/KisResourceModelEnumContractTest.cpp",
+      "test": "KisResourceModelEnumContractTest::allResourcesModelTransferSchemaRemainsStable",
+      "behavior": "全資源模型はfile・deviceを介する資源の取込、上書き判定、書出しの公開関数型と空storage識別子の既定値を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAllResourcesModel::exportResource(KoResourceSP resource,QIODevice * device)",
+        "method:KisAllResourcesModel::importResource(const QString & filename,QIODevice * device,const bool allowOverwrite,const QString & storageId=QString (\"\"))",
+        "method:KisAllResourcesModel::importResourceFile(const QString & filename,const bool allowOverwrite,const QString & storageId=QString (\"\"))",
+        "method:KisAllResourcesModel::importWillOverwriteResource(const QString & fileName,const QString & storageLocation=QString ()) const"
+      ]
+    },
+    {
+      "target": "KisResourceModelEnumContractTest",
+      "source": "libs/resources/tests/KisResourceModelEnumContractTest.cpp",
+      "test": "KisResourceModelEnumContractTest::allResourcesModelPersistenceSchemaRemainsStable",
+      "behavior": "全資源模型は共有所有資源の追加・filename重複回避・更新・再読込・改名の公開関数型と空storage識別子の既定値を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAllResourcesModel::addResource(KoResourceSP resource,const QString & storageId=QString (\"\"))",
+        "method:KisAllResourcesModel::addResourceDeduplicateFileName(KoResourceSP resource,const QString & storageId=QString (\"\"))",
+        "method:KisAllResourcesModel::reloadResource(KoResourceSP resource)",
+        "method:KisAllResourcesModel::renameResource(KoResourceSP resource,const QString & name)",
+        "method:KisAllResourcesModel::updateResource(KoResourceSP resource)"
+      ]
+    },
+    {
+      "target": "KisResourceModelEnumContractTest",
+      "source": "libs/resources/tests/KisResourceModelEnumContractTest.cpp",
+      "test": "KisResourceModelEnumContractTest::allResourcesModelStateSchemaRemainsStable",
+      "behavior": "全資源模型は索引による活性状態更新と、共有所有資源に対するmetadata写像更新の公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAllResourcesModel::setResourceActive(const QModelIndex & index,bool value)",
+        "method:KisAllResourcesModel::setResourceMetaData(KoResourceSP resource,QMap<QString,QVariant> metadata)"
       ]
     }
   ]
