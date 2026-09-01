@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 12:29 JST
+- 更新日時: 2026-09-01 12:31 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -452,6 +452,23 @@
   活性・metadata更新2を既存`KisResourceModelEnumContractTest`の未評価型5枠へ追加する。模型を生成せず全関数を呼ばないため、対象は変更前後4工程・9入力、
   製品`kritaresources`は149工程・325入力を維持する。`KisResourceStorage`は単独責務の最大がiterator面21 APIで下限未達、image設定42 APIは大域通知対象と
   複数色管理依存を分離する新規CMake所有を要するため棄却した。次の操作は第112便の担当票を確定し、試験source 1本だけの専用worktreeで実装することである。
+
+### 第112便の担当計画
+
+- `g112-all-resources-model-schema`は`planned`、実装基点は`caeff83a9bb8da3fba1afb6af0e402bd23f0b6d1`、専用worktreeは
+  `/Users/masato/Documents/librepaint-g112-all-resources-model-schema`である。構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は
+  許可pathだけの`transport-commit`、追加委任は禁止する。worktree-local `build/tdd-macos`と`./scripts/run-shared-test-env`で主環境・compiler cacheを
+  共有し、調整担当だけが台帳、進捗文書、不足報告を変更する。
+- 開始`libs/resources/KisResourceModel.h`から既存`libs/resources/tests/KisResourceModelEnumContractTest.cpp`の5枠へ、型・寿命・表模型9 API
+  `class`、destructor、`rowCount`、`columnCount`、`data`、`headerData`、`setData`、`flags`、`roleNames`、索引・検索9 API `resourceForIndex`、
+  `indexForResource`、`indexForResourceId`、`resourceForId`、`resourceExists`、`resourcesForFilename`、`resourcesForName`、`resourcesForMD5`、
+  `tagsForResource`、取込・書出4 API `importResourceFile`、`importResource`、`importWillOverwriteResource`、`exportResource`、永続化5 API `addResource`、
+  `addResourceDeduplicateFileName`、`updateResource`、`reloadResource`、`renameResource`、活性・metadata 2 API `setResourceActive`、`setResourceMetaData`の
+  `KisAllResourcesModel`全29 APIを対応付ける。許可pathは試験source 1本だけで、公開header、製品source、CMakeを変更しない。
+- 担当は新`plan`で変更なし対象4工程・9入力と製品`kritaresources` 149工程・325入力を乾式確認する。製品は構築しない。変更後停止線は対象5工程・11入力、
+  製品計画は前後完全一致とする。5枠の未知関数診断、未評価の型・既定引数検査、対象CTest、20回反復、`KisTagModelSchemaContractTest`、無作業再構築、動的接続、
+  `KisAllResourcesModel`未解決記号、source構文、公開API検査、`verify-quick`を確認する。模型・storage・registry・SQL・filesystem・GUI・大域状態の実行、
+  製品shared、`kritatestsdk`、新依存、停止線超過が必要なら止める。
 
 ### 第105並列便の監査計画
 
