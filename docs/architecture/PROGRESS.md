@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 13:29 JST
+- 更新日時: 2026-09-01 13:37 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -673,6 +673,40 @@
   色空間・資源registry、ASL、filesystem、生pointer所有へ到達する経路は採用しない。
 - 各報告は完全なAPI識別子、最大5枠の観測挙動、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから
   契約先または移動先、許可path、固有停止条件、比較候補の棄却根拠を含む。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
+- `g116-application-config-audit`はworkspace表示枠設定28 APIを採用した。通常表示・主chrome 6、全画面window chrome 8、全画面surface 4、一時surface 4、
+  補助chrome 6を既存`KisConfigEnumContractTest`の未評価型5枠へ追加する。対象4工程・15入力、製品`kritaapplication` 1,224工程・2,466入力を維持する。
+  animation 24、文書既定23、保存22は下限未達、表示性能31はSIMD・色管理・OpenGL・LOD・計測・thumbnailの複数責務に分かれるため棄却した。
+- `g116-image-config-audit`は画像animation制作設定40 APIを採用した。onion skin表示12、frame作業8、描画cadence 8、cache storage 4、cache limit 8を新規
+  `KisImageConfigAnimationSchemaContractTest`の未評価型5枠へ対応付ける。新対象4工程・8入力、製品`kritaimage` 1,193工程・2,410入力不変を予測する。
+  memory・swap 20、描画patch・性能21、選択・文書表示10は下限未達、汎用設定とimport・export 14は設定I/Oそのもののため棄却した。
+- `g116-psd-record-audit`は`psd_layer_effects_bevel_emboss`の安全な公開状態schema 43 APIを採用した。幾何・方式12、光沢・輪郭6、明部・影8、texture制御10、
+  texture phase・値型7を既存`PsdFormatValuesContractTest`の未評価型5枠へ追加する。対象6工程・14入力、製品`kritapsdutils` 565工程・1,160入力と
+  `kritapsd` 1,979工程・3,956入力を維持する。shadow基底の安全面35は次点、additional-layer-infoの安全面20とresource-block全14は下限未達である。
+  色・pattern・lookup pointer・registry・ASL・device・生pointer所有へ入る経路は除外した。3監査は編集、構築、試験、Git操作、追加委任を行っていない。
+
+### 第116便の担当計画
+
+- 実装共通基点はこの担当票commitとする。3担当は`planned`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの
+  `transport-commit`、追加委任は禁止する。専用worktree-local `build/tdd-macos`と`./scripts/run-shared-test-env`で主環境・compiler cacheを共有する。
+  統合順はapplication設定、image設定、PSDとし、調整担当だけが台帳、進捗文書、不足報告を変更する。3担当の許可path、CMake、試験source、生成物は重ならない。
+- `g116-application-workspace-schema`は`/Users/masato/Documents/librepaint-g116-application-workspace-schema`を所有する。開始
+  `libs/application/kis_config.h`から既存`libs/application/tests/KisConfigEnumContractTest.cpp`の5枠へ、通常表示・主chrome 6、全画面window chrome 8、
+  全画面surface 4、一時surface 4、補助chrome 6の全28 APIを対応付け、他pathを変更しない。対象4工程・15入力、停止5工程・18入力、製品
+  `kritaapplication` 1,224工程・2,466入力の完全一致を確認する。5枠の未知関数診断、対象CTest、20回反復、`KisActionEnumContractTest`、no-work、
+  動的接続、未解決記号、構文・書式・公開API・`verify-quick`を確認する。設定実体・GUI・filesystem・大域設定、製品shared、`kritatestsdk`、新依存、
+  公開header・製品source・CMake変更、停止線超過が必要なら止める。
+- `g116-image-animation-schema`は`/Users/masato/Documents/librepaint-g116-image-animation-schema`を所有する。開始`libs/image/kis_image_config.h`から新規
+  `libs/image/tests/KisImageConfigAnimationSchemaContractTest.cpp`の5枠へ、onion skin表示12、frame作業8、描画cadence 8、cache storage 4、cache limit 8の
+  全40 APIを対応付け、`libs/image/tests/CMakeLists.txt`だけを併せて変更する。最初の期待診断は未知target、新対象は予測4工程・8入力、停止5工程・10入力、
+  製品`kritaimage`は1,193工程・2,410入力不変とする。対象CTest、20回反復、`KisImageTypesContractTest`、no-work、動的接続、未解決記号、構文・書式・
+  公開API・`verify-quick`を確認する。設定実体、`kis_image_config.cpp`、KConfigGroup、filesystem、大域設定、RAM・CPU検出、製品shared・OBJECT、
+  `kritatestsdk`、公開header・製品CMake変更、停止線超過が必要なら止める。
+- `g116-psd-bevel-schema`は`/Users/masato/Documents/librepaint-g116-psd-bevel-schema`を所有する。開始`libs/psdutils/psd.h`から既存
+  `libs/psdutils/tests/PsdFormatValuesContractTest.cpp`の5枠へ、幾何・方式12、光沢・輪郭6、明部・影8、texture制御10、texture phase・値型7の全43 APIを
+  対応付け、他pathを変更しない。対象6工程・14入力、停止7工程・16入力、製品`kritapsdutils` 565工程・1,160入力と`kritapsd` 1,979工程・3,956入力の
+  完全一致を確認する。5枠の未知関数診断、対象CTest、20回反復、`PsdByteIoContractTest`、no-work、動的接続、未解決記号、構文・書式・公開API・
+  `verify-quick`を確認する。実体、constructor、実copy、関数address値生成、`psd.cpp`、色・pattern・lookup pointer・registry、製品shared、
+  `kritatestsdk`、新依存、公開header・CMake変更、停止線超過が必要なら止める。
 
 ### 第105並列便の監査計画
 
