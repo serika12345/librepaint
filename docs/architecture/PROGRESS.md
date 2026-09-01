@@ -2,12 +2,30 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 16:25 JST
+- 更新日時: 2026-09-01 16:28 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
+
+### 第122便の先行監査計画
+
+- 監査共通基点は`14e4030b8858d6526fca3d89bc5c1637dff10175`、入力は`build/tdd-macos/public-api-missing-g122.json`である。3担当は`auditing`の
+  読み取り専用とし、製品・試験・CMake・script・台帳・文書を変更せず、構築、試験、Git操作、追加委任も行わない。一つの公開責務から25 API以上を
+  最大5枠へ固定し、既存限定対象、header-only値面、または公開headerを変えない一sourceのOBJECT一対一移管で製品共有ライブラリーと`kritatestsdk`へ
+  接続しない候補だけを採用する。
+- `g122-transform-args-audit`は`plugins/tools/tool_transform2/tool_transform_args.h`の残り100 APIを主候補とし、
+  `plugins/tools/tool_transform2/kis_transform_utils.h`と同packageの既存試験を比較する。変形方式、補間、warp・perspective等の局所値schemaを、実image、
+  paint device、undo command、tool・canvas、描画、filesystemなしで25 API以上閉じる一責務を選ぶ。
+- `g122-image-interaction-audit`は`libs/image/kis_distance_information.h`の残り43 API、`libs/image/brushengine/kis_paint_information.h`の61 API、
+  `libs/image/kis_selection_filters.h`の49 APIを比較する。入力点・距離・spacing、または選択filterの局所値schemaから、乱数、大域状態、実paint device・selection、
+  image、stroke実行なしで25 API以上閉じる一責務を選ぶ。
+- `g122-widget-values-audit`は`libs/widgets/KisAngleSelector.h`の残り50 API、`libs/widgets/KoRuler.h`の48 API、
+  `libs/widgetutils/kis_slider_spin_box.h`の41 APIを比較する。列挙、局所設定値、純粋変換の一責務を、画面表示、event loop、signal配送、設定I/O、製品widget実体なしで
+  25 API以上閉じる候補を選ぶ。
+- 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから
+  契約先または移動先、許可path、固有停止条件、比較候補の棄却根拠を含む。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
 
 ### 第121便の先行監査計画
 
