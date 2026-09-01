@@ -39,6 +39,36 @@
 - 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから
   契約先または移動先、許可path、固有停止条件、比較候補の棄却根拠を含む。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
 
+### 第122便の担当計画
+
+- 実装共通基点はこの担当票commitとする。3担当は`planned`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの
+  `transport-commit`、追加委任は禁止する。専用worktree-local `build/tdd-macos`と`./scripts/run-shared-test-env`で主環境・compiler cacheを共有する。
+  統合順は選択filter、角度選択、変形幾何とし、調整担当だけが台帳、進捗文書、不足報告を変更する。3担当の公開header、所有CMake、試験source、生成物は重ならない。
+- `g122-selection-filter-schema`は`/Users/masato/Documents/librepaint-g122-selection-filter-schema`を所有する。開始`libs/image/kis_selection_filters.h`から既存
+  `libs/image/tests/KisImageTypesContractTest.cpp`の5枠`selectionFilterBaseInterfaceSchemaRemainsStable`、`morphologicalSelectionFilterSchemaRemainsStable`、
+  `invertAndAntiAliasSelectionFilterSchemaRemainsStable`、`borderAndFeatherSelectionFilterSchemaRemainsStable`、`growthSelectionFilterPolicySchemaRemainsStable`へ
+  全49 APIを対応付け、他pathを変更しない。対象4工程・8入力、停止5工程・10入力、製品`kritaimage` 1,193工程・2,410入力の完全一致を確認する。5枠の未知関数診断、
+  対象CTest、20回反復、`KisAbstractProjectionPlaneContractTest`、no-work、動的接続、未解決filter記号、構文・書式・公開API・`verify-quick`を確認する。
+  filter、selection、paint device、default bounds、shared pointer値の生成、constructor・destructor・method実行、製品OBJECT・shared、`kritatestsdk`、Qt Gui・Widgets、
+  新依存、公開header・製品・CMake変更、製品計画差、停止線超過が必要なら止める。
+- `g122-angle-selector-schema`は`/Users/masato/Documents/librepaint-g122-angle-selector-schema`を所有する。開始`libs/widgets/KisAngleSelector.h`から新規
+  `libs/widgets/tests/KisAngleSelectorSchemaContractTest.cpp`の5枠`angleSelectorFlipPresentationSchemaRemainsStable`、`angleSelectorPrimaryAngleSchemaRemainsStable`、
+  `angleSelectorRangePrecisionAndWrappingSchemaRemainsStable`、`angleSelectorLocalPresentationSchemaRemainsStable`、
+  `angleSelectorStaticTransformSignaturesRemainStable`へ全34 APIを対応付け、`libs/widgets/tests/CMakeLists.txt`だけを併せて変更する。最初の期待診断は未知target、
+  予測4工程・8入力、停止5工程・11入力、製品`kritawidgets` 806工程・1,641入力、`kritawidgetutils` 273工程・579入力と既存pending集合の完全一致を確認する。
+  5枠、対象CTest、20回反復、`KisAngleGaugeContractTest`、no-work、動的接続、未解決製品記号、構文・書式・公開API・`verify-quick`を確認する。
+  Selector・SpinBox・Gauge・QWidget・QApplication・event loop・signal・metaobject・画面・style・resize、instance変換・reset、static変換本文、製品OBJECT・shared、
+  `kritatestsdk`、Qt以外の新依存、公開header・製品source・製品CMake、製品計画差、停止線超過が必要なら止める。
+- `g122-transform-geometry-schema`は`/Users/masato/Documents/librepaint-g122-transform-geometry-schema`を所有する。開始
+  `plugins/tools/tool_transform2/tool_transform_args.h`から新規`plugins/tools/tool_transform2/tests/ToolTransformArgsGeometrySchemaContractTest.cpp`の5枠
+  `freeTransformCenterSignaturesRemainStable`、`freeTransformRotationSignaturesRemainStable`、`freeTransformScaleSignaturesRemainStable`、
+  `freeTransformShearAndBoundsSignaturesRemainStable`、`freeTransformPerspectiveSignaturesRemainStable`へ全30 APIを対応付け、
+  `plugins/tools/tool_transform2/tests/CMakeLists.txt`だけを併せて変更する。最初の期待診断は未知target、予測4工程・9入力、停止5工程・12入力、製品
+  `kritatooltransform_static`は担当worktreeで変更前全閉包を再測定し、変更後の完全一致を確認する。5枠、対象CTest、20回反復、
+  `KisBezierMeshValuesContractTest`、no-work、動的接続、未解決変形記号、構文・書式・公開API・`verify-quick`を確認する。`tool_transform_args.cc`等の製品source、
+  ToolTransformArgs・paint device・tool stateの実体、image、undo、canvas、描画、filesystem、Qt Widgets、製品OBJECT・shared、`kritatestsdk`、新依存、公開header・
+  製品CMake、製品計画差、停止線超過が必要なら止める。
+
 ### 第121便の先行監査計画
 
 - 監査共通基点は`88fb4bedee20cfeab647b7566b794a9f454a0c0b`、入力は`build/tdd-macos/public-api-missing-g121.json`である。3担当は`auditing`の
