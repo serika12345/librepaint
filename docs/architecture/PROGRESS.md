@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 23:12 JST
+- 更新日時: 2026-09-01 23:16 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -37,7 +37,7 @@
 
 ### 第131便の担当計画
 
-- 実装共通基点は`be35f28c8101df67874deaab4332222c5f3c6e65`である。Dab cache、frame serializer、snap guide担当は`implementing`、構築許可は指定試験targetと
+- 実装共通基点は`be35f28c8101df67874deaab4332222c5f3c6e65`である。Dab cache、frame serializer、snap guide担当は`integrated`、構築許可は指定試験targetと
   軽量近傍だけの`granted`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、専用worktree-local
   `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。統合順はDab cache、frame serializer、snap guideとし、
   調整担当だけが`AGENTS.md`、architecture文書、`docs/architecture/public-api-test-contracts.json`、共通不足報告を変更する。3担当の公開header、所有CMake、試験source、
@@ -88,6 +88,11 @@
   所有CMakeへheader限定対象を追加した。対象4工程・8入力、製品`kritaflake` 621工程・1,274入力と各集合は変更前後一致し、guide・strategy・shape・canvas・event・
   painter・view converterを生成・実行していない。担当macOS環境と中央環境で対象CTest、担当環境で20回反復、近傍`KoSnapDataContractTest`、無作業再構築、動的接続・
   未解決記号、構文・書式、公開API検査、`verify-quick`に成功した。公開API契約検査は29,838件中13,116件対応、16,722件未対応となった。
+- 第131便は3責務15枠へ103 APIを重複なく対応付けた。公開API契約検査は29,838件中13,116件対応、16,722件未対応となり、`verify-quick`は成功した。最新入力は
+  `build/tdd-macos/public-api-missing-g132.json`である。Linux、全native検証、製品全体構築は実行していない。清浄性、受渡しcommit、中央の所有pathとの完全一致を確認後、
+  Dab cache担当855,584 KiB、frame serializer担当863,108 KiB、snap guide担当855,800 KiBの作業tree、専用構築木、3 branchを削除して合計2,574,492 KiB
+  （約2.46 GiB）を回収し、旧`public-api-missing-g131.json`も削除した。主`build/tdd-macos` 5.3 GB、共有compiler cache 960 MB、最新不足報告だけを第132便へ再利用する。
+  次の永続作業は第132便の不足報告から、pathと所有CMakeが重ならない3責務を先行監査し、限定構築範囲を確認してから担当票を確定することである。
 
 ### 第130便の先行監査計画
 
