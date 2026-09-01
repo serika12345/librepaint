@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 18491
+    "expectedMissingApis": 18380
   },
   "contracts": [
     {
@@ -34996,6 +34996,252 @@
         "function:KStandardAction::reportBug(const QObject * recvr,const char * slot,QObject * parent)",
         "function:KStandardAction::tipOfDay(const QObject * recvr,const char * slot,QObject * parent)",
         "function:KStandardAction::whatsThis(const QObject * recvr,const char * slot,QObject * parent)"
+      ]
+    },
+    {
+      "target": "KisConfigEnumContractTest",
+      "source": "libs/application/tests/KisConfigEnumContractTest.cpp",
+      "test": "KisConfigEnumContractTest::workspaceModeAndPrimaryChromeSignaturesRemainStable",
+      "behavior": "workspaceの全画面状態、docker表示、status bar表示は正確な真偽値getter・setter型、const性、既定引数を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisConfig::fullscreenMode(bool defaultValue=false) const",
+        "method:KisConfig::setFullscreenMode(const bool value) const",
+        "method:KisConfig::setShowDockers(const bool value) const",
+        "method:KisConfig::setShowStatusBar(const bool value) const",
+        "method:KisConfig::showDockers(bool defaultValue=false) const",
+        "method:KisConfig::showStatusBar(bool defaultValue=false) const"
+      ]
+    },
+    {
+      "target": "KisConfigEnumContractTest",
+      "source": "libs/application/tests/KisConfigEnumContractTest.cpp",
+      "test": "KisConfigEnumContractTest::fullscreenWindowChromeSignaturesRemainStable",
+      "behavior": "全画面時のmenu・status bar・title bar・toolbar非表示設定は正確な真偽値getter・setter型、const性、既定引数を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisConfig::hideMenuFullscreen(bool defaultValue=false) const",
+        "method:KisConfig::hideStatusbarFullscreen(bool defaultValue=false) const",
+        "method:KisConfig::hideTitlebarFullscreen(bool defaultValue=false) const",
+        "method:KisConfig::hideToolbarFullscreen(bool defaultValue=false) const",
+        "method:KisConfig::setHideMenuFullscreen(const bool value) const",
+        "method:KisConfig::setHideStatusbarFullscreen(const bool value) const",
+        "method:KisConfig::setHideTitlebarFullscreen(const bool value) const",
+        "method:KisConfig::setHideToolbarFullscreen(const bool value) const"
+      ]
+    },
+    {
+      "target": "KisConfigEnumContractTest",
+      "source": "libs/application/tests/KisConfigEnumContractTest.cpp",
+      "test": "KisConfigEnumContractTest::fullscreenWorkspaceSurfaceSignaturesRemainStable",
+      "behavior": "全画面時のdocker・scrollbar非表示設定は正確な真偽値getter・setter型、const性、既定引数を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisConfig::hideDockersFullscreen(bool defaultValue=false) const",
+        "method:KisConfig::hideScrollbarsFullscreen(bool defaultValue=false) const",
+        "method:KisConfig::setHideDockersFullscreen(const bool value) const",
+        "method:KisConfig::setHideScrollbarsFullscreen(const bool value) const"
+      ]
+    },
+    {
+      "target": "KisConfigEnumContractTest",
+      "source": "libs/application/tests/KisConfigEnumContractTest.cpp",
+      "test": "KisConfigEnumContractTest::workspaceTransientSurfaceSignaturesRemainStable",
+      "behavior": "workspaceのscrollbar・popup非表示設定は正確な真偽値getter・setter型、const性の差、既定引数を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisConfig::hidePopups(bool defaultValue=false) const",
+        "method:KisConfig::hideScrollbars(bool defaultValue=false) const",
+        "method:KisConfig::setHidePopups(bool hidePopups)",
+        "method:KisConfig::setHideScrollbars(bool value) const"
+      ]
+    },
+    {
+      "target": "KisConfigEnumContractTest",
+      "source": "libs/application/tests/KisConfigEnumContractTest.cpp",
+      "test": "KisConfigEnumContractTest::workspaceAuxiliaryChromeSignaturesRemainStable",
+      "behavior": "docker title、canvas message、rulerの表示設定は正確な真偽値getter・setter型、const性の差、既定引数を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisConfig::setShowCanvasMessages(bool show)",
+        "method:KisConfig::setShowDockerTitleBars(const bool value) const",
+        "method:KisConfig::setShowRulers(bool rulers) const",
+        "method:KisConfig::showCanvasMessages(bool defaultValue=false) const",
+        "method:KisConfig::showDockerTitleBars(bool defaultValue=false) const",
+        "method:KisConfig::showRulers(bool defaultValue=false) const"
+      ]
+    },
+    {
+      "target": "KisImageConfigAnimationSchemaContractTest",
+      "source": "libs/image/tests/KisImageConfigAnimationSchemaContractTest.cpp",
+      "test": "KisImageConfigAnimationSchemaContractTest::onionSkinAppearanceSignaturesRemainStable",
+      "behavior": "onion skinの枚数、色付け、offset別opacity・状態、前後色は正確な公開関数型、const性、既定引数を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisImageConfig::numberOfOnionSkins() const",
+        "method:KisImageConfig::onionSkinOpacity(int offset,bool requestDefault=false) const",
+        "method:KisImageConfig::onionSkinState(int offset) const",
+        "method:KisImageConfig::onionSkinTintColorBackward() const",
+        "method:KisImageConfig::onionSkinTintColorForward() const",
+        "method:KisImageConfig::onionSkinTintFactor() const",
+        "method:KisImageConfig::setNumberOfOnionSkins(int value)",
+        "method:KisImageConfig::setOnionSkinOpacity(int offset,int value)",
+        "method:KisImageConfig::setOnionSkinState(int offset,bool value)",
+        "method:KisImageConfig::setOnionSkinTintColorBackward(const QColor & value)",
+        "method:KisImageConfig::setOnionSkinTintColorForward(const QColor & value)",
+        "method:KisImageConfig::setOnionSkinTintFactor(int value)"
+      ]
+    },
+    {
+      "target": "KisImageConfigAnimationSchemaContractTest",
+      "source": "libs/image/tests/KisImageConfigAnimationSchemaContractTest.cpp",
+      "test": "KisImageConfigAnimationSchemaContractTest::animationFrameWorkflowSignaturesRemainStable",
+      "behavior": "自動key、duplicate方式、追加onion-skin設定、既定frame色labelは正確な公開関数型、const性、既定引数を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisImageConfig::autoKeyEnabled(bool requestDefault=false) const",
+        "method:KisImageConfig::autoKeyModeDuplicate(bool requestDefault=false) const",
+        "method:KisImageConfig::defaultFrameColorLabel() const",
+        "method:KisImageConfig::setAutoKeyEnabled(bool value)",
+        "method:KisImageConfig::setAutoKeyModeDuplicate(bool value)",
+        "method:KisImageConfig::setDefaultFrameColorLabel(int label)",
+        "method:KisImageConfig::setShowAdditionalOnionSkinsSettings(bool value)",
+        "method:KisImageConfig::showAdditionalOnionSkinsSettings(bool requestDefault=false) const"
+      ]
+    },
+    {
+      "target": "KisImageConfigAnimationSchemaContractTest",
+      "source": "libs/image/tests/KisImageConfigAnimationSchemaContractTest.cpp",
+      "test": "KisImageConfigAnimationSchemaContractTest::animationRenderingCadenceSignaturesRemainStable",
+      "behavior": "animation frame描画のclone数、timeout、FPS上限、自動検出は正確な公開関数型、const性、既定引数を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisImageConfig::detectFpsLimit(bool defaultValue=false) const",
+        "method:KisImageConfig::fpsLimit(bool defaultValue=false) const",
+        "method:KisImageConfig::frameRenderingClones(bool defaultValue=false) const",
+        "method:KisImageConfig::frameRenderingTimeout(bool defaultValue=false) const",
+        "method:KisImageConfig::setDetectFpsLimit(bool value)",
+        "method:KisImageConfig::setFpsLimit(int value)",
+        "method:KisImageConfig::setFrameRenderingClones(int value)",
+        "method:KisImageConfig::setFrameRenderingTimeout(int value)"
+      ]
+    },
+    {
+      "target": "KisImageConfigAnimationSchemaContractTest",
+      "source": "libs/image/tests/KisImageConfigAnimationSchemaContractTest.cpp",
+      "test": "KisImageConfigAnimationSchemaContractTest::animationCacheStorageSignaturesRemainStable",
+      "behavior": "animation cacheのdisk交換方針と保存directoryは正確な公開関数型、const性、既定引数を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisImageConfig::animationCacheDir(bool defaultValue=false) const",
+        "method:KisImageConfig::setAnimationCacheDir(const QString & value)",
+        "method:KisImageConfig::setUseOnDiskAnimationCacheSwapping(bool value)",
+        "method:KisImageConfig::useOnDiskAnimationCacheSwapping(bool defaultValue=false) const"
+      ]
+    },
+    {
+      "target": "KisImageConfigAnimationSchemaContractTest",
+      "source": "libs/image/tests/KisImageConfigAnimationSchemaContractTest.cpp",
+      "test": "KisImageConfigAnimationSchemaContractTest::animationCacheLimitSignaturesRemainStable",
+      "behavior": "animation cacheのframe寸法上限と対象領域・marginは正確な公開関数型、const性、既定引数を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisImageConfig::animationCacheFrameSizeLimit(bool defaultValue=false) const",
+        "method:KisImageConfig::animationCacheRegionOfInterestMargin(bool defaultValue=false) const",
+        "method:KisImageConfig::setAnimationCacheFrameSizeLimit(int value)",
+        "method:KisImageConfig::setAnimationCacheRegionOfInterestMargin(qreal value)",
+        "method:KisImageConfig::setUseAnimationCacheFrameSizeLimit(bool value)",
+        "method:KisImageConfig::setUseAnimationCacheRegionOfInterest(bool value)",
+        "method:KisImageConfig::useAnimationCacheFrameSizeLimit(bool defaultValue=false) const",
+        "method:KisImageConfig::useAnimationCacheRegionOfInterest(bool defaultValue=false) const"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::bevelGeometryAndTechniqueSignaturesRemainStable",
+      "behavior": "PSD bevel効果のstyle・technique・depth・direction・soften・altitudeは正確な列挙・符号付き整数のgetter・setter型とconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:psd_layer_effects_bevel_emboss::altitude() const",
+        "method:psd_layer_effects_bevel_emboss::depth() const",
+        "method:psd_layer_effects_bevel_emboss::direction() const",
+        "method:psd_layer_effects_bevel_emboss::setAltitude(int value)",
+        "method:psd_layer_effects_bevel_emboss::setDepth(int value)",
+        "method:psd_layer_effects_bevel_emboss::setDirection(psd_direction value)",
+        "method:psd_layer_effects_bevel_emboss::setSoften(int value)",
+        "method:psd_layer_effects_bevel_emboss::setStyle(psd_bevel_style value)",
+        "method:psd_layer_effects_bevel_emboss::setTechnique(psd_technique_type value)",
+        "method:psd_layer_effects_bevel_emboss::soften() const",
+        "method:psd_layer_effects_bevel_emboss::style() const",
+        "method:psd_layer_effects_bevel_emboss::technique() const"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::bevelGlossAndContourSignaturesRemainStable",
+      "behavior": "PSD bevel効果の光沢antialias、輪郭有効状態、輪郭範囲は正確な真偽値・整数getter・setter型とconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:psd_layer_effects_bevel_emboss::contourEnabled() const",
+        "method:psd_layer_effects_bevel_emboss::contourRange() const",
+        "method:psd_layer_effects_bevel_emboss::glossAntiAliased() const",
+        "method:psd_layer_effects_bevel_emboss::setContourEnabled(bool value)",
+        "method:psd_layer_effects_bevel_emboss::setContourRange(int value)",
+        "method:psd_layer_effects_bevel_emboss::setGlossAntiAliased(bool value)"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::bevelLightBlendSignaturesRemainStable",
+      "behavior": "PSD bevel効果の明部・影のblend modeとopacityは正確な文字列・符号付き整数getter・setter型とconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:psd_layer_effects_bevel_emboss::highlightBlendMode() const",
+        "method:psd_layer_effects_bevel_emboss::highlightOpacity() const",
+        "method:psd_layer_effects_bevel_emboss::setHighlightBlendMode(QString value)",
+        "method:psd_layer_effects_bevel_emboss::setHighlightOpacity(qint32 value)",
+        "method:psd_layer_effects_bevel_emboss::setShadowBlendMode(QString value)",
+        "method:psd_layer_effects_bevel_emboss::setShadowOpacity(qint32 value)",
+        "method:psd_layer_effects_bevel_emboss::shadowBlendMode() const",
+        "method:psd_layer_effects_bevel_emboss::shadowOpacity() const"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::bevelTextureControlSignaturesRemainStable",
+      "behavior": "PSD bevel textureの有効状態、scale、depth、反転、layer整列は正確な真偽値・整数getter・setter型とconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:psd_layer_effects_bevel_emboss::setTextureAlignWithLayer(bool value)",
+        "method:psd_layer_effects_bevel_emboss::setTextureDepth(int value)",
+        "method:psd_layer_effects_bevel_emboss::setTextureEnabled(bool value)",
+        "method:psd_layer_effects_bevel_emboss::setTextureInvert(bool value)",
+        "method:psd_layer_effects_bevel_emboss::setTextureScale(int value)",
+        "method:psd_layer_effects_bevel_emboss::textureAlignWithLayer() const",
+        "method:psd_layer_effects_bevel_emboss::textureDepth() const",
+        "method:psd_layer_effects_bevel_emboss::textureEnabled() const",
+        "method:psd_layer_effects_bevel_emboss::textureInvert() const",
+        "method:psd_layer_effects_bevel_emboss::textureScale() const"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::bevelTexturePhaseAndValueTypeRemainStable",
+      "behavior": "PSD bevel効果はshadow基底のcopy可能な値型であり、texture phaseと水平・垂直phaseの正確な公開関数型とconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:psd_layer_effects_bevel_emboss::setTextureHorizontalPhase(int value)",
+        "method:psd_layer_effects_bevel_emboss::setTexturePhase(const QPointF & phase)",
+        "method:psd_layer_effects_bevel_emboss::setTextureVerticalPhase(int value)",
+        "method:psd_layer_effects_bevel_emboss::textureHorizontalPhase() const",
+        "method:psd_layer_effects_bevel_emboss::texturePhase() const",
+        "method:psd_layer_effects_bevel_emboss::textureVerticalPhase() const",
+        "struct:psd_layer_effects_bevel_emboss"
       ]
     }
   ]

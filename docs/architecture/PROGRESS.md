@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 13:37 JST
+- 更新日時: 2026-09-01 13:55 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -686,27 +686,49 @@
 
 ### 第116便の担当計画
 
-- 実装共通基点はこの担当票commitとする。3担当は`planned`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの
+- 実装共通基点は`734e794d977c349ef26460b740e859e540398fa5`である。3担当は`integrated`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの
   `transport-commit`、追加委任は禁止する。専用worktree-local `build/tdd-macos`と`./scripts/run-shared-test-env`で主環境・compiler cacheを共有する。
   統合順はapplication設定、image設定、PSDとし、調整担当だけが台帳、進捗文書、不足報告を変更する。3担当の許可path、CMake、試験source、生成物は重ならない。
-- `g116-application-workspace-schema`は`/Users/masato/Documents/librepaint-g116-application-workspace-schema`を所有する。開始
+- `g116-application-workspace-schema`の削除済みworktreeは`/Users/masato/Documents/librepaint-g116-application-workspace-schema`である。開始
   `libs/application/kis_config.h`から既存`libs/application/tests/KisConfigEnumContractTest.cpp`の5枠へ、通常表示・主chrome 6、全画面window chrome 8、
   全画面surface 4、一時surface 4、補助chrome 6の全28 APIを対応付け、他pathを変更しない。対象4工程・15入力、停止5工程・18入力、製品
   `kritaapplication` 1,224工程・2,466入力の完全一致を確認する。5枠の未知関数診断、対象CTest、20回反復、`KisActionEnumContractTest`、no-work、
   動的接続、未解決記号、構文・書式・公開API・`verify-quick`を確認する。設定実体・GUI・filesystem・大域設定、製品shared、`kritatestsdk`、新依存、
   公開header・製品source・CMake変更、停止線超過が必要なら止める。
-- `g116-image-animation-schema`は`/Users/masato/Documents/librepaint-g116-image-animation-schema`を所有する。開始`libs/image/kis_image_config.h`から新規
+- `g116-image-animation-schema`の削除済みworktreeは`/Users/masato/Documents/librepaint-g116-image-animation-schema`である。開始`libs/image/kis_image_config.h`から新規
   `libs/image/tests/KisImageConfigAnimationSchemaContractTest.cpp`の5枠へ、onion skin表示12、frame作業8、描画cadence 8、cache storage 4、cache limit 8の
   全40 APIを対応付け、`libs/image/tests/CMakeLists.txt`だけを併せて変更する。最初の期待診断は未知target、新対象は予測4工程・8入力、停止5工程・10入力、
   製品`kritaimage`は1,193工程・2,410入力不変とする。対象CTest、20回反復、`KisImageTypesContractTest`、no-work、動的接続、未解決記号、構文・書式・
   公開API・`verify-quick`を確認する。設定実体、`kis_image_config.cpp`、KConfigGroup、filesystem、大域設定、RAM・CPU検出、製品shared・OBJECT、
   `kritatestsdk`、公開header・製品CMake変更、停止線超過が必要なら止める。
-- `g116-psd-bevel-schema`は`/Users/masato/Documents/librepaint-g116-psd-bevel-schema`を所有する。開始`libs/psdutils/psd.h`から既存
+- `g116-psd-bevel-schema`の削除済みworktreeは`/Users/masato/Documents/librepaint-g116-psd-bevel-schema`である。開始`libs/psdutils/psd.h`から既存
   `libs/psdutils/tests/PsdFormatValuesContractTest.cpp`の5枠へ、幾何・方式12、光沢・輪郭6、明部・影8、texture制御10、texture phase・値型7の全43 APIを
   対応付け、他pathを変更しない。対象6工程・14入力、停止7工程・16入力、製品`kritapsdutils` 565工程・1,160入力と`kritapsd` 1,979工程・3,956入力の
   完全一致を確認する。5枠の未知関数診断、対象CTest、20回反復、`PsdByteIoContractTest`、no-work、動的接続、未解決記号、構文・書式・公開API・
   `verify-quick`を確認する。実体、constructor、実copy、関数address値生成、`psd.cpp`、色・pattern・lookup pointer・registry、製品shared、
   `kritatestsdk`、新依存、公開header・CMake変更、停止線超過が必要なら止める。
+
+### 第116便の統合結果
+
+- `g116-application-workspace-schema`は受渡しcommit `0dce4c72c2ce`と同一patchを統合commit `96a62de64a`として取り込んだ。開始
+  `libs/application/kis_config.h`から既存`libs/application/tests/KisConfigEnumContractTest.cpp`の5枠へ、通常表示・主chrome 6、全画面window chrome 8、
+  全画面surface 4、一時surface 4、補助chrome 6の全28 APIを対応付けた。未評価型検査だけを用い、設定実体とGUIを生成していない。対象4工程・15入力、
+  製品`kritaapplication`は1,224工程・2,466入力で不変である。
+- `g116-image-animation-schema`は受渡しcommit `4ea26259a131`と同一patchを統合commit `cb5a2e3861`として取り込んだ。開始
+  `libs/image/kis_image_config.h`から新規`libs/image/tests/KisImageConfigAnimationSchemaContractTest.cpp`の5枠へ、onion skin表示12、frame作業8、描画cadence 8、
+  cache storage 4、cache limit 8の全40 APIを対応付け、`libs/image/tests/CMakeLists.txt`へQt Core・Gui・Testだけへ動的接続するheader限定対象を追加した。
+  対象4工程・8入力、製品`kritaimage`は1,193工程・2,410入力で不変であり、設定実体、KConfigGroup、filesystem、大域設定を実行していない。
+- `g116-psd-bevel-schema`は受渡しcommit `4d4e81cff7fe`と同一patchを統合commit `3b0eab0c42`として取り込んだ。開始
+  `libs/psdutils/psd.h`から既存`libs/psdutils/tests/PsdFormatValuesContractTest.cpp`の5枠へ、幾何・方式12、光沢・輪郭6、明部・影8、texture制御10、
+  texture phase・値型7の全43 APIを対応付けた。対象6工程・14入力と製品`kritapsd` 1,979工程・3,956入力は不変だった。担当票の
+  `kritapsdutils` 565工程・1,160入力は過去基点値だったため編集前に停止し、現基点の635工程・1,300入力へ訂正して変更後の完全一致を確認した。実体、色、
+  pattern、registry、製品記号は生成していない。
+- 主macOS環境では追加15枠、3対象CTest、各20回反復、近傍`KisActionEnumContractTest`、`KisImageTypesContractTest`、`PsdByteIoContractTest`、再構築時の
+  無コンパイル・無リンク、動的接続、未解決製品記号を確認した。公開API契約検査は111 APIを重複なく受理し、29,838件中11,458件対応、18,380件未対応と
+  なった。最新入力は`build/tdd-macos/public-api-missing-g117.json`である。Linux、全native検証、製品全体構築は実行していない。
+- 受渡しpatchの同一性と3 worktreeのclean状態を確認後、application担当646 MB、image担当641 MB、PSD担当645 MBの作業木とbranchを削除して約1.93 GBを
+  回収した。新報告の生成成功後に旧`public-api-missing-g116.json` 4.5 MBも削除した。主`build/tdd-macos`、共有compiler cache、最新不足報告は次便の
+  限定構築へ再利用する。
 
 ### 第105並列便の監査計画
 
@@ -13166,7 +13188,7 @@
 
 ## 次の操作
 
-`build/tdd-macos/public-api-missing-g116.json`から第116並列便の非重複候補を3担当で監査する。第115便の対象を除外し、欠陥疑いの比較・診断、
+`build/tdd-macos/public-api-missing-g117.json`から第117並列便の非重複候補を3担当で監査する。第116便の対象を除外し、欠陥疑いの比較・診断、
 資源registry、設定I/O、生pointer所有へ到達する経路は保留する。別の所有pathから25 API以上を最大5枠、限定対象か一sourceの一対一構築所有で
 固定できる候補を優先し、担当票の確定前に変更なし計画、直接依存、予測閉包、製品共有ライブラリー・`kritatestsdk`非接続、許可pathと停止線を照合する。
 監査結果を担当票へ確定する前に、変更なし計画、直接依存、予測閉包、製品shared library・`kritatestsdk`非接続、許可pathと停止線を照合する。
