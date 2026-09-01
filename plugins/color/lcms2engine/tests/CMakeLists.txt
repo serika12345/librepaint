@@ -3,6 +3,25 @@ if(OpenEXR_FOUND)
 endif()
 include_directories( ${LCMS2_INCLUDE_DIR} )
 
+kis_add_test(
+    LcmsColorProfileContainerSchemaContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Test
+        Boost::boost
+)
+target_include_directories(LcmsColorProfileContainerSchemaContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/../colorprofiles
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/pigment
+    ${CMAKE_BINARY_DIR}/libs/pigment
+)
+target_compile_definitions(LcmsColorProfileContainerSchemaContractTest PRIVATE
+    kritalcmsengine_EXPORTS
+    kritapigment_EXPORTS
+)
+
 kis_add_tests(
     TestKoLcmsColorProfile.cpp
     TestColorSpaceRegistry.cpp
