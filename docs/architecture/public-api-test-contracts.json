@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 19395
+    "expectedMissingApis": 19304
   },
   "contracts": [
     {
@@ -33057,6 +33057,232 @@
         "class:KisBaseRectsWalker",
         "method:KisBaseRectsWalker::CloneNotification::CloneNotification()",
         "struct:KisBaseRectsWalker::CloneNotification"
+      ]
+    },
+    {
+      "target": "KisWidgetConnectionStateContractTest",
+      "source": "libs/widgets/tests/KisWidgetConnectionStateContractTest.cpp",
+      "test": "KisWidgetConnectionStateContractTest::controlStateDefaultsAndAliasesRemainTyped",
+      "behavior": "操作部品の汎用状態は値を型の既定値、有効状態を真で初期化し、チェック欄とボタン群の別名を対応する値型へ保つ。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisWidgetConnectionUtils::ButtonGroupState",
+        "alias:KisWidgetConnectionUtils::CheckBoxState",
+        "member:KisWidgetConnectionUtils::ControlState::enabled",
+        "struct:KisWidgetConnectionUtils::ControlState"
+      ]
+    },
+    {
+      "target": "KisWidgetConnectionStateContractTest",
+      "source": "libs/widgets/tests/KisWidgetConnectionStateContractTest.cpp",
+      "test": "KisWidgetConnectionStateContractTest::controlStateConversionPreservesValueAndEnabled",
+      "behavior": "操作部品状態の変換器は左辺値と右辺値を値型へ変換し、元値から独立した値と有効状態を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisWidgetConnectionUtils::ToControlState::operator ()(T && value,bool enabled)",
+        "struct:KisWidgetConnectionUtils::ToControlState"
+      ]
+    },
+    {
+      "target": "KisWidgetConnectionStateContractTest",
+      "source": "libs/widgets/tests/KisWidgetConnectionStateContractTest.cpp",
+      "test": "KisWidgetConnectionStateContractTest::comboBoxStateDefaultsAndAssignedListsRemainStable",
+      "behavior": "選択欄状態は空の項目・説明、索引-1、有効を既定とし、重複とUnicodeを含む一覧を順序どおり保持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisWidgetConnectionUtils::ComboBoxState::currentIndex",
+        "member:KisWidgetConnectionUtils::ComboBoxState::enabled",
+        "member:KisWidgetConnectionUtils::ComboBoxState::items",
+        "member:KisWidgetConnectionUtils::ComboBoxState::toolTips",
+        "struct:KisWidgetConnectionUtils::ComboBoxState"
+      ]
+    },
+    {
+      "target": "KisWidgetConnectionStateContractTest",
+      "source": "libs/widgets/tests/KisWidgetConnectionStateContractTest.cpp",
+      "test": "KisWidgetConnectionStateContractTest::spacingStateDefaultsAndConversionRoundTripRemainStable",
+      "behavior": "間隔状態は固定・自動間隔の既定値を持ち、変換器と逆変換器の間で値、使用方針、係数の順序を保つ。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisWidgetConnectionUtils::SpacingState::autoSpacingCoeff",
+        "member:KisWidgetConnectionUtils::SpacingState::spacing",
+        "member:KisWidgetConnectionUtils::SpacingState::useAutoSpacing",
+        "method:KisWidgetConnectionUtils::FromSpacingState::operator () (const SpacingState & x)",
+        "method:KisWidgetConnectionUtils::ToSpacingState::operator () (qreal spacing,bool useAutoSpacing,qreal autoSpacingCoeff)",
+        "struct:KisWidgetConnectionUtils::FromSpacingState",
+        "struct:KisWidgetConnectionUtils::SpacingState",
+        "struct:KisWidgetConnectionUtils::ToSpacingState"
+      ]
+    },
+    {
+      "target": "KisWidgetConnectionStateContractTest",
+      "source": "libs/widgets/tests/KisWidgetConnectionStateContractTest.cpp",
+      "test": "KisWidgetConnectionStateContractTest::spinBoxStatesDefaultsAliasesAndConversionRemainTyped",
+      "behavior": "数値入力状態は整数・実数の値域と有効状態を型どおり初期化し、変換後の値・最小・最大を入力元から独立して保持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisWidgetConnectionUtils::DoubleSpinBoxState",
+        "alias:KisWidgetConnectionUtils::IntSpinBoxState",
+        "member:KisWidgetConnectionUtils::SpinBoxState::enabled",
+        "method:KisWidgetConnectionUtils::ToSpinBoxState::operator ()(T && value,T && min,T && max,bool enabled)",
+        "struct:KisWidgetConnectionUtils::SpinBoxState",
+        "struct:KisWidgetConnectionUtils::ToSpinBoxState"
+      ]
+    },
+    {
+      "target": "KoSvgTextEnumContractTest",
+      "source": "libs/flake/tests/KoSvgTextEnumContractTest.cpp",
+      "test": "KoSvgTextEnumContractTest::graphicsContextStyleOrdinalsRemainStable",
+      "behavior": "SVG描画状態の様式種別は未指定、単色、複合、継承の公開順序と型を保つ。",
+      "classification": "maintained",
+      "apis": [
+        "class:SvgGraphicsContext",
+        "enum:SvgGraphicsContext::StyleType",
+        "enumerator:SvgGraphicsContext::StyleType::Complex",
+        "enumerator:SvgGraphicsContext::StyleType::Inherit",
+        "enumerator:SvgGraphicsContext::StyleType::None",
+        "enumerator:SvgGraphicsContext::StyleType::Solid"
+      ]
+    },
+    {
+      "target": "KoSvgTextEnumContractTest",
+      "source": "libs/flake/tests/KoSvgTextEnumContractTest.cpp",
+      "test": "KoSvgTextEnumContractTest::graphicsContextFillAndStrokeStateKeepsPublicTypes",
+      "behavior": "SVG描画状態は塗りと線の様式、規則、色、識別子、線所有型を公開された値型として保持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:SvgGraphicsContext::fillColor",
+        "member:SvgGraphicsContext::fillId",
+        "member:SvgGraphicsContext::fillRule",
+        "member:SvgGraphicsContext::fillType",
+        "member:SvgGraphicsContext::stroke",
+        "member:SvgGraphicsContext::strokeId",
+        "member:SvgGraphicsContext::strokeType"
+      ]
+    },
+    {
+      "target": "KoSvgTextEnumContractTest",
+      "source": "libs/flake/tests/KoSvgTextEnumContractTest.cpp",
+      "test": "KoSvgTextEnumContractTest::graphicsContextClipTransformAndColorStateKeepsPublicTypes",
+      "behavior": "SVG描画状態はfilter・clip識別子、clip規則、不透明度、変換、現色、基準ディレクトリを公開された値型として保持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:SvgGraphicsContext::clipMaskId",
+        "member:SvgGraphicsContext::clipPathId",
+        "member:SvgGraphicsContext::clipRule",
+        "member:SvgGraphicsContext::currentColor",
+        "member:SvgGraphicsContext::filterId",
+        "member:SvgGraphicsContext::matrix",
+        "member:SvgGraphicsContext::opacity",
+        "member:SvgGraphicsContext::xmlBaseDir"
+      ]
+    },
+    {
+      "target": "KoSvgTextEnumContractTest",
+      "source": "libs/flake/tests/KoSvgTextEnumContractTest.cpp",
+      "test": "KoSvgTextEnumContractTest::graphicsContextSpatialVisibilityAndResolutionStateKeepsPublicTypes",
+      "behavior": "SVG描画状態は空白、境界、百分率、viewbox変換、表示・可視性、解像度枠、画素密度を公開された値型として保持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:SvgGraphicsContext::currentBoundingBox",
+        "member:SvgGraphicsContext::display",
+        "member:SvgGraphicsContext::forcePercentage",
+        "member:SvgGraphicsContext::isResolutionFrame",
+        "member:SvgGraphicsContext::pixelsPerInch",
+        "member:SvgGraphicsContext::preserveWhitespace",
+        "member:SvgGraphicsContext::viewboxTransform",
+        "member:SvgGraphicsContext::visible"
+      ]
+    },
+    {
+      "target": "KoSvgTextEnumContractTest",
+      "source": "libs/flake/tests/KoSvgTextEnumContractTest.cpp",
+      "test": "KoSvgTextEnumContractTest::graphicsContextMarkerTextAndPaintStateKeepsPublicTypes",
+      "behavior": "SVG描画状態はmarker識別子、自動塗り、文字属性、内外形状、描画順を公開された値型として保持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:SvgGraphicsContext::autoFillMarkers",
+        "member:SvgGraphicsContext::markerEndId",
+        "member:SvgGraphicsContext::markerMidId",
+        "member:SvgGraphicsContext::markerStartId",
+        "member:SvgGraphicsContext::paintOrder",
+        "member:SvgGraphicsContext::shapeInsideValue",
+        "member:SvgGraphicsContext::shapeSubtractValue",
+        "member:SvgGraphicsContext::textProperties"
+      ]
+    },
+    {
+      "target": "KoSvgTextFontMetricsValueContractTest",
+      "source": "libs/flake/tests/KoSvgTextFontMetricsValueContractTest.cpp",
+      "test": "KoSvgTextFontMetricsValueContractTest::orientationAndAdvancesDefaultToIndependentScalarValues",
+      "behavior": "文字計量値は横書きと零の文字寸法・送り量を既定とし、方向と各送り量へ符号付き値を独立に保持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KoSvgText::FontMetrics::fontSize",
+        "member:KoSvgText::FontMetrics::ideographicAdvance",
+        "member:KoSvgText::FontMetrics::isVertical",
+        "member:KoSvgText::FontMetrics::spaceAdvance",
+        "member:KoSvgText::FontMetrics::zeroAdvance",
+        "method:KoSvgText::FontMetrics::FontMetrics()",
+        "struct:KoSvgText::FontMetrics"
+      ]
+    },
+    {
+      "target": "KoSvgTextFontMetricsValueContractTest",
+      "source": "libs/flake/tests/KoSvgTextFontMetricsValueContractTest.cpp",
+      "test": "KoSvgTextFontMetricsValueContractTest::heightsAndScriptOffsetsPreserveSignedValues",
+      "behavior": "文字計量値は字高・上下付き文字の二次元変位・上下端・行間を零で初期化し、異なる符号付き値を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KoSvgText::FontMetrics::ascender",
+        "member:KoSvgText::FontMetrics::capHeight",
+        "member:KoSvgText::FontMetrics::descender",
+        "member:KoSvgText::FontMetrics::lineGap",
+        "member:KoSvgText::FontMetrics::subScriptOffset",
+        "member:KoSvgText::FontMetrics::superScriptOffset",
+        "member:KoSvgText::FontMetrics::xHeight"
+      ]
+    },
+    {
+      "target": "KoSvgTextFontMetricsValueContractTest",
+      "source": "libs/flake/tests/KoSvgTextFontMetricsValueContractTest.cpp",
+      "test": "KoSvgTextFontMetricsValueContractTest::baselinesPreserveIndependentSignedValues",
+      "behavior": "文字計量値は字母・数式・表意文字・ぶら下げの各基準線を零で初期化し、互いに独立した符号付き位置を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KoSvgText::FontMetrics::alphabeticBaseline",
+        "member:KoSvgText::FontMetrics::hangingBaseline",
+        "member:KoSvgText::FontMetrics::ideographicCenterBaseline",
+        "member:KoSvgText::FontMetrics::ideographicFaceOverBaseline",
+        "member:KoSvgText::FontMetrics::ideographicFaceUnderBaseline",
+        "member:KoSvgText::FontMetrics::ideographicOverBaseline",
+        "member:KoSvgText::FontMetrics::ideographicUnderBaseline",
+        "member:KoSvgText::FontMetrics::mathematicalBaseline"
+      ]
+    },
+    {
+      "target": "KoSvgTextFontMetricsValueContractTest",
+      "source": "libs/flake/tests/KoSvgTextFontMetricsValueContractTest.cpp",
+      "test": "KoSvgTextFontMetricsValueContractTest::decorationMetricsPreserveIndependentSignedValues",
+      "behavior": "文字計量値は下線と打消線の位置・太さを零で初期化し、各値を独立した符号付き量として保持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KoSvgText::FontMetrics::lineThroughOffset",
+        "member:KoSvgText::FontMetrics::lineThroughThickness",
+        "member:KoSvgText::FontMetrics::underlineOffset",
+        "member:KoSvgText::FontMetrics::underlineThickness"
+      ]
+    },
+    {
+      "target": "KoSvgTextFontMetricsValueContractTest",
+      "source": "libs/flake/tests/KoSvgTextFontMetricsValueContractTest.cpp",
+      "test": "KoSvgTextFontMetricsValueContractTest::caretMetricsAndCopiesOwnAllValues",
+      "behavior": "文字計量値はcaret傾斜量を零で初期化し、全公開値の複製構築・代入後に元と複製を独立させる。",
+      "classification": "maintained",
+      "apis": [
+        "member:KoSvgText::FontMetrics::caretOffset",
+        "member:KoSvgText::FontMetrics::caretRise",
+        "member:KoSvgText::FontMetrics::caretRun"
       ]
     }
   ]

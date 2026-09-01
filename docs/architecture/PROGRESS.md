@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 09:24 JST
+- 更新日時: 2026-09-01 09:40 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -41,7 +41,7 @@
 
 ### 第105並列便の担当計画
 
-- `g105-widget-connection-state`は`planned`、実装基点は`53153084ed`、専用worktreeは
+- `g105-widget-connection-state`は`integrated`、実装基点は`53153084ed`、削除済みworktreeは
   `/Users/masato/Documents/librepaint-g105-widget-connection-state`、構築許可は`granted`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。
   対象は`libs/widgets/KisWidgetConnectionUtils.h`の`ControlState`・2 alias 4 API、`ToControlState` 2 API、`ComboBoxState` 5 API、spacing状態と変換8 API、
   spin box状態・2 alias・変換6 APIの全25 APIである。開始headerから新規`libs/widgets/tests/KisWidgetConnectionStateContractTest.cpp`の5枠へ対応付け、
@@ -49,7 +49,7 @@
 - 担当は変更なし計画と直接依存、未知対象診断、限定構築、5枠、対象CTest、20回反復、`KisColorSelectorConfigurationContractTest`、無作業再構築、
   動的接続、source構文、公開API検査、`verify-quick`を確認する。製品shared library、`kritatestsdk`、`KisWidgetConnectionUtils.cpp`、製品CMake、
   公開header、実Widget生成・画面・設定I/O、Qt Core・Test以外の依存、停止線超過に到達した場合は編集を止める。台帳・進捗文書は調整担当が所有する。
-- `g105-svg-graphics-context-state`は`planned`、実装基点は`53153084ed`、専用worktreeは
+- `g105-svg-graphics-context-state`は`integrated`、実装基点は`53153084ed`、削除済みworktreeは
   `/Users/masato/Documents/librepaint-g105-svg-graphics-context-state`、構築許可は`granted`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。
   対象は`libs/flake/svg/SvgGraphicContext.h`のclass・`StyleType`・4列挙子6 API、fill・stroke状態7 API、clip・変換・色状態8 API、
   空間・表示・解像度状態8 API、marker・text・paint状態8 APIの全37 APIである。開始headerから既存
@@ -57,7 +57,7 @@
 - SVG担当は変更なし計画と直接依存、5枠、対象CTest、20回反復、軽量近傍、無作業再構築、動的接続、source構文、公開API検査、`verify-quick`を確認する。
   `SvgGraphicContext.cpp`、`KoShapeStroke.cpp`、`KoSvgTextProperties.cpp`、CMake、公開header、製品shared library、`kritatestsdk`、実shape・document・
   font registry・filesystem・描画、試験用代替実装、Qt限定範囲外の依存に到達した場合は編集を止める。台帳・進捗文書は調整担当が所有する。
-- `g105-svg-font-metrics-values`は`planned`、実装基点は`11cef4dc0f`、専用worktreeは
+- `g105-svg-font-metrics-values`は`integrated`、実装基点は`11cef4dc0f`、削除済みworktreeは
   `/Users/masato/Documents/librepaint-g105-svg-font-metrics-values`、構築許可は`granted`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。
   対象は`libs/flake/text/KoSvgText.h`の`FontMetrics` struct・inline既定構築、方向・送り量5 member、字高・上下量7 member、baseline 8 member、
   装飾線4 member、caret 3 memberの全29 APIである。開始headerから新規`libs/flake/tests/KoSvgTextFontMetricsValueContractTest.cpp`の5枠へ対応付け、
@@ -65,6 +65,27 @@
 - FontMetrics担当は変更なし計画と直接依存、未知対象診断、5枠、対象CTest、20回反復、軽量近傍、無作業再構築、動的接続、source構文、公開API検査、
   `verify-quick`を確認する。out-of-line API、製品shared library、`kritatestsdk`、製品OBJECT、公開header、新依存、停止線超過が必要なら編集を止める。
   台帳・進捗文書は調整担当が所有する。SVG状態担当はCMakeを変更しないため、2担当の許可pathは重ならない。
+
+### 第105並列便の統合結果
+
+- `g105-widget-connection-state`は受渡しcommit `27c4f20d9376`を統合commit `60573737c3`として取り込んだ。開始
+  `libs/widgets/KisWidgetConnectionUtils.h`から新規`libs/widgets/tests/KisWidgetConnectionStateContractTest.cpp`の5枠へ、汎用状態、変換器、
+  combo box、spacing、spin boxの25 APIを対応付け、`libs/widgets/tests/CMakeLists.txt`へQt Testだけの限定対象を追加した。実測4工程・8入力で、
+  実Widget、接続関数、製品`kritawidgets`、Qt Widgetsへ接続していない。
+- `g105-svg-graphics-context-state`は受渡しcommit `04edd3c582fb`を統合commit `063d0d73d1`として取り込んだ。開始
+  `libs/flake/svg/SvgGraphicContext.h`から既存`libs/flake/tests/KoSvgTextEnumContractTest.cpp`へ5枠を追加し、様式列挙、fill・stroke、clip・変換・色、
+  空間・表示・解像度、marker・text・paintの公開型37 APIを固定した。CMakeを変更せず既存4工程・8入力を維持し、個体を生成しないため
+  `SvgGraphicContext.cpp`、shape・text property実装、製品`kritaflake`へ接続していない。
+- `g105-svg-font-metrics-values`は受渡しcommit `2dde9002d6ec`を統合commit `f9fad970936`として取り込んだ。開始
+  `libs/flake/text/KoSvgText.h`から新規`libs/flake/tests/KoSvgTextFontMetricsValueContractTest.cpp`の5枠へ、inline既定構築、方向・送り量、字高・上下量、
+  baseline、装飾線、caretの29 APIを対応付け、`libs/flake/tests/CMakeLists.txt`へQt Gui・Test・Xmlだけの限定対象を追加した。実測4工程・8入力で、
+  全27 memberの既定値・符号付き値・複製独立性をout-of-line演算子なしで固定した。
+- 主macOS環境では追加15枠、3対象CTest、各20回反復、近傍`KisColorSelectorConfigurationContractTest`、`KoShapeEnumContractTest`、
+  `KoSvgTextEnumContractTest`、再構築時の無コンパイル・無リンク、3sourceの単体構文、動的接続を確認した。3対象の動的依存はQt Core・Gui・Test・Xmlと
+  OS基盤だけで、製品shared library、`kritatestsdk`、Qt Widgetsを含まない。公開API契約検査は91 APIを重複なく受理し、29,838件中10,534件対応、
+  19,304件未対応となった。最新入力は`build/tdd-macos/public-api-missing-g106.json`である。Linux、全native検証、製品全体リンクは実行していない。
+- 新報告の生成と受渡し差分の同一性を確認後、旧`public-api-missing-g105.json` 4.8 MB、cleanなWidget担当626 MB、SVG状態担当629 MB、
+  FontMetrics担当639 MBと3 branchを削除し、約1.89 GBを回収した。主`build/tdd-macos`と共有compiler cacheは次便の限定構築へ再利用する。
 
 ### 第104並列便の監査計画
 
@@ -12446,10 +12467,10 @@
 
 ## 次の操作
 
-`build/tdd-macos/public-api-missing-g105.json`から第105並列便の非重複候補を3担当で監査する。既知の次点
-`libs/widgets/KisWidgetConnectionUtils.h`のheader-only状態値25 APIを再評価し、他2担当は異なる所有pathから25 API以上を最大5枠、
-限定対象か一sourceの一対一構築所有で固定できる候補を探す。監査結果を担当票へ確定する前に、変更なし計画、直接依存、予測閉包、
-製品shared library・`kritatestsdk`非接続、許可pathと停止線を照合する。
+`build/tdd-macos/public-api-missing-g106.json`から第106並列便の非重複候補を3担当で監査する。第105便で除外した実Widget接続、
+SvgGraphicsContextのout-of-line実装、FontMetricsの演算・変換は依存境界を分離する根拠が得られるまで保留し、別の所有pathから25 API以上を
+最大5枠、限定対象か一sourceの一対一構築所有で固定できる候補を優先する。監査結果を担当票へ確定する前に、変更なし計画、直接依存、
+予測閉包、製品shared library・`kritatestsdk`非接続、許可pathと停止線を照合する。
 
 ## R1-G5完了根拠
 
