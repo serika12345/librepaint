@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 10:03 JST
+- 更新日時: 2026-09-01 10:22 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -43,10 +43,10 @@
 
 ### 第106並列便の担当計画
 
-- 実装共通基点は`8653ba81b9f718e49715c4467c8d8a0d6849e501`である。2担当は`planned`、構築許可は`granted`、Git権限は許可pathだけの
-  `transport-commit`、追加委任は禁止する。専用worktreeは翻訳catalog `po/`を疎な取得から除外し、各担当のworktree-local `build/tdd-macos`と
-  `./scripts/run-shared-test-env`で主環境・compiler cacheを共有する。統合順はSVG、OpenGLとし、調整担当だけが台帳、進捗文書、不足報告を変更する。
-- `g106-svg-character-result`は`/Users/masato/Documents/librepaint-g106-svg-character-result`を所有する。対象は
+- 実装共通基点は`8653ba81b9f718e49715c4467c8d8a0d6849e501`である。2担当は`integrated`、構築許可は`granted`、Git権限は許可pathだけの
+  `transport-commit`、追加委任は禁止した。専用worktreeは翻訳catalog `po/`を疎な取得から除外し、各担当のworktree-local `build/tdd-macos`と
+  `./scripts/run-shared-test-env`で主環境・compiler cacheを共有した。統合順はSVG、OpenGLとし、調整担当だけが台帳、進捗文書、不足報告を変更した。
+- `g106-svg-character-result`の削除済みworktreeは`/Users/masato/Documents/librepaint-g106-svg-character-result`である。対象は
   `libs/flake/text/KoSvgTextShape_p.h`の`CharacterResult` structと、位置・表示・索引8、glyph・領域・offset 9、改行・行端・均等割付9、
   font・拡縮・metrics 8、cursor・anchor・方向3の全38 APIである。開始headerから新規
   `libs/flake/tests/KoSvgTextCharacterResultValueContractTest.cpp`の5枠へ対応付け、`libs/flake/tests/CMakeLists.txt`だけを併せて変更する。最初の期待診断は
@@ -54,7 +54,7 @@
 - SVG担当は変更なし計画と直接依存、未知対象診断、限定構築、5枠、対象CTest、20回反復、`KoSvgTextFontMetricsValueContractTest`、無作業再構築、動的接続、
   source構文、公開API検査、`verify-quick`を確認する。`fontHalfLeading`の未初期化値、`CharacterResult`の7メソッド、`ResolutionHandler`、out-of-line
   `FontMetrics`演算、実shape・font registry・描画、製品OBJECT・shared、`kritatestsdk`、公開header、FreeType link、Qt Widgets、停止線超過が必要なら止める。
-- `g106-opengl-renderer-config`は`/Users/masato/Documents/librepaint-g106-opengl-renderer-config`を所有する。対象は
+- `g106-opengl-renderer-config`の削除済みworktreeは`/Users/masato/Documents/librepaint-g106-opengl-renderer-config`である。対象は
   `libs/ui/opengl/kis_opengl.h`のfilter列挙5、renderer列挙・flag 7、ANGLE・XCB列挙8、`RendererConfig`型・member・分類5、文字列変換2の全27 APIである。
   開始`libs/ui/opengl/kis_opengl.cpp`の純粋変換3本文を新規`libs/ui/opengl/KisOpenGLRendererConfig.cpp`へ一対一移管し、開始headerから新規
   `libs/ui/tests/KisOpenGLRendererConfigContractTest.cpp`の5枠へ対応付ける。許可pathはこの3sourceと`libs/ui/CMakeLists.txt`、
@@ -63,6 +63,25 @@
 - OpenGL担当は変更なし計画と直接依存、未知対象診断、3本文移管、限定構築、5枠、対象CTest、20回反復、`KisDlgPreferencesEnumContractTest`、
   無作業再構築、動的接続、source構文、公開API検査、`verify-quick`を確認する。専用OBJECTは製品へ一度だけ、試験へ直接収容する。製品sharedへの試験link、
   `kritatestsdk`、実OpenGL context・driver・画面、`KisConfig`・`QSettings` I/O、静的初期化、公開header、3本文以外の製品変更、停止線超過が必要なら止める。
+
+### 第106並列便の統合結果
+
+- `g106-svg-character-result`は受渡しcommit `2e0868166956`を統合commit `31746735f8`として取り込んだ。開始
+  `libs/flake/text/KoSvgTextShape_p.h`から新規`libs/flake/tests/KoSvgTextCharacterResultValueContractTest.cpp`の5枠へ、位置・表示・索引、字形・幾何・変位、
+  改行・行端・均等割付、font計量・倍率、cursor・方向・複製独立性の38 APIを対応付け、`libs/flake/tests/CMakeLists.txt`へQt Gui・Test・Xmlだけの
+  header限定対象を追加した。実測4工程・8入力で、未初期化の`fontHalfLeading`は明示代入後だけを観測し、製品`kritaflake`と計算メソッドへ接続していない。
+- `g106-opengl-renderer-config`は受渡しcommit `25d8a2e02dad`と同一patchを統合commit `be5891b59d`として取り込んだ。開始
+  `libs/ui/opengl/kis_opengl.cpp`の純粋変換3本文を新規`libs/ui/opengl/KisOpenGLRendererConfig.cpp`へ一対一移管し、新OBJECTを製品へ一度、試験へ直接収容した。
+  開始`libs/ui/opengl/kis_opengl.h`から新規`libs/ui/tests/KisOpenGLRendererConfigContractTest.cpp`の5枠へ列挙・flag、基盤識別値、設定分類、文字列往復の27 APIを
+  対応付けた。新対象は5工程・13入力、製品計画は1,965工程・3,930入力から1,966工程・3,932入力で、試験は製品sharedへ接続していない。KF I18nは公開headerの
+  include鎖を構築するためのheader検索だけを伝播し、動的接続には含まれない。
+- 主macOS環境では追加10枠、2対象CTest、各20回反復、近傍`KoSvgTextFontMetricsValueContractTest`、`KisDlgPreferencesEnumContractTest`、再構築時の
+  無コンパイル・無リンク、動的接続、移管3記号の単一定義を確認した。OpenGL担当のclean worktreeでは`KisDlgPreferencesEnumContractTest`が既存の生成header
+  依存不足で構築前に失敗したが、主treeでは限定構築とCTestが成功した。動的依存はQt、KF ConfigCore、OS基盤だけで、製品shared、`kritatestsdk`、KF I18n、
+  Qt OpenGL moduleを含まない。公開API契約検査は65 APIを重複なく受理し、29,838件中10,599件対応、19,239件未対応となった。最新入力は
+  `build/tdd-macos/public-api-missing-g107.json`である。Linux、全native検証、製品全体構築は実行していない。
+- 新報告と受渡しpatchの同一性を確認後、旧`public-api-missing-g106.json` 4.7 MB、cleanなSVG担当641 MB、OpenGL担当641 MBと2 branchを削除し、
+  約1.28 GBを回収した。主`build/tdd-macos`と共有compiler cacheは次便の限定構築へ再利用する。
 
 ### 第107並列便の先行監査計画
 
@@ -79,7 +98,7 @@
 
 ### 第107並列便の担当計画
 
-- `g107-resource-tag-schema`は`planned`、実装基点は`1eb31a411b2bd4baf461037ece3798997ca81d60`、専用worktreeは
+- `g107-resource-tag-schema`は`ready`、実装基点は`1eb31a411b23887aad1ff4304b269846ff5540b1`、専用worktreeは
   `/Users/masato/Documents/librepaint-g107-resource-tag-schema`、構築許可は`granted`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。
   翻訳catalog `po/`を疎な取得から除外し、worktree-local `build/tdd-macos`と`./scripts/run-shared-test-env`で主環境・compiler cacheを共有する。
 - 対象は`libs/resources/KisTagModel.h`の共有pointer aliasと3型4 API、`Columns`と7列挙子8 API、`Ids`・2列挙子・2 inline URL 5 API、

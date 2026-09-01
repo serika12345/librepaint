@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 19304
+    "expectedMissingApis": 19239
   },
   "contracts": [
     {
@@ -33283,6 +33283,161 @@
         "member:KoSvgText::FontMetrics::caretOffset",
         "member:KoSvgText::FontMetrics::caretRise",
         "member:KoSvgText::FontMetrics::caretRun"
+      ]
+    },
+    {
+      "target": "KoSvgTextCharacterResultValueContractTest",
+      "source": "libs/flake/tests/KoSvgTextCharacterResultValueContractTest.cpp",
+      "test": "KoSvgTextCharacterResultValueContractTest::positionVisibilityAndIndicesDefaultAndAssignIndependently",
+      "behavior": "文字配置結果は原点・回転なし・表示対象・addressable・非中間・非固定塊・索引未設定を既定とし、位置、表示状態、索引を独立して保持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:CharacterResult::addressable",
+        "member:CharacterResult::anchored_chunk",
+        "member:CharacterResult::finalPosition",
+        "member:CharacterResult::hidden",
+        "member:CharacterResult::middle",
+        "member:CharacterResult::plaintTextIndex",
+        "member:CharacterResult::rotate",
+        "member:CharacterResult::visualIndex",
+        "struct:CharacterResult"
+      ]
+    },
+    {
+      "target": "KoSvgTextCharacterResultValueContractTest",
+      "source": "libs/flake/tests/KoSvgTextCharacterResultValueContractTest.cpp",
+      "test": "KoSvgTextCharacterResultValueContractTest::glyphGeometryAndOffsetsDefaultAndAssignIndependently",
+      "behavior": "文字配置結果は空の字形・領域・変位と横書きを既定とし、字形、配置領域、CSS位置、各基準線変位、送り量を独立して保持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:CharacterResult::advance",
+        "member:CharacterResult::baselineOffset",
+        "member:CharacterResult::cssPosition",
+        "member:CharacterResult::dominantBaselineOffset",
+        "member:CharacterResult::glyph",
+        "member:CharacterResult::inkBoundingBox",
+        "member:CharacterResult::isHorizontal",
+        "member:CharacterResult::textLengthOffset",
+        "member:CharacterResult::textPathAndAnchoringOffset"
+      ]
+    },
+    {
+      "target": "KoSvgTextCharacterResultValueContractTest",
+      "source": "libs/flake/tests/KoSvgTextCharacterResultValueContractTest.cpp",
+      "test": "KoSvgTextCharacterResultValueContractTest::lineBreakAndJustificationStateDefaultAndAssignIndependently",
+      "behavior": "文字配置結果は改行・行端変更・均等割付・ぶら下げ・長さ適用・折返し・タブ寸法なしを既定とし、各行状態を独立して保持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:CharacterResult::breakType",
+        "member:CharacterResult::isHanging",
+        "member:CharacterResult::justifyAfter",
+        "member:CharacterResult::justifyBefore",
+        "member:CharacterResult::lineEnd",
+        "member:CharacterResult::lineStart",
+        "member:CharacterResult::overflowWrap",
+        "member:CharacterResult::tabSize",
+        "member:CharacterResult::textLengthApplied"
+      ]
+    },
+    {
+      "target": "KoSvgTextCharacterResultValueContractTest",
+      "source": "libs/flake/tests/KoSvgTextCharacterResultValueContractTest.cpp",
+      "test": "KoSvgTextCharacterResultValueContractTest::fontMetricsAndScaledValuesPreserveExplicitValues",
+      "behavior": "文字配置結果は既定倍率、零の計量済み量、通常書体、標準太さを保ち、明示初期化した半行間と各font計量値を符号付き値として保持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:CharacterResult::extraFontScaling",
+        "member:CharacterResult::fontHalfLeading",
+        "member:CharacterResult::fontStyle",
+        "member:CharacterResult::fontWeight",
+        "member:CharacterResult::metrics",
+        "member:CharacterResult::scaledAscent",
+        "member:CharacterResult::scaledDescent",
+        "member:CharacterResult::scaledHalfLeading"
+      ]
+    },
+    {
+      "target": "KoSvgTextCharacterResultValueContractTest",
+      "source": "libs/flake/tests/KoSvgTextCharacterResultValueContractTest.cpp",
+      "test": "KoSvgTextCharacterResultValueContractTest::cursorDirectionAndCopiesOwnNestedValues",
+      "behavior": "文字配置結果は空のcaret情報、先頭anchor、左から右の方向を既定とし、入れ子の字形・計量・配列を含む複製を元値から独立して所有する。",
+      "classification": "maintained",
+      "apis": [
+        "member:CharacterResult::anchor",
+        "member:CharacterResult::cursorInfo",
+        "member:CharacterResult::direction"
+      ]
+    },
+    {
+      "target": "KisOpenGLRendererConfigContractTest",
+      "source": "libs/ui/tests/KisOpenGLRendererConfigContractTest.cpp",
+      "test": "KisOpenGLRendererConfigContractTest::filterModesKeepStableOrdinals",
+      "behavior": "OpenGL画像補間方式は最近傍、二線形、三線形、高品質の公開順序を0から3の安定した識別値として保つ。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KisOpenGL::FilterMode",
+        "enumerator:KisOpenGL::FilterMode::BilinearFilterMode",
+        "enumerator:KisOpenGL::FilterMode::HighQualityFiltering",
+        "enumerator:KisOpenGL::FilterMode::NearestFilterMode",
+        "enumerator:KisOpenGL::FilterMode::TrilinearFilterMode"
+      ]
+    },
+    {
+      "target": "KisOpenGLRendererConfigContractTest",
+      "source": "libs/ui/tests/KisOpenGLRendererConfigContractTest.cpp",
+      "test": "KisOpenGLRendererConfigContractTest::rendererFlagsKeepStableBitMasks",
+      "behavior": "OpenGL描画器識別値は未選択、自動、デスクトップ、GLES、ソフトウェアの安定したビットを保ち、flag集合で独立に合成できる。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisOpenGL::OpenGLRenderers",
+        "enum:KisOpenGL::OpenGLRenderer",
+        "enumerator:KisOpenGL::OpenGLRenderer::RendererAuto",
+        "enumerator:KisOpenGL::OpenGLRenderer::RendererDesktopGL",
+        "enumerator:KisOpenGL::OpenGLRenderer::RendererNone",
+        "enumerator:KisOpenGL::OpenGLRenderer::RendererOpenGLES",
+        "enumerator:KisOpenGL::OpenGLRenderer::RendererSoftware"
+      ]
+    },
+    {
+      "target": "KisOpenGLRendererConfigContractTest",
+      "source": "libs/ui/tests/KisOpenGLRendererConfigContractTest.cpp",
+      "test": "KisOpenGLRendererConfigContractTest::platformRendererEnumsKeepStableCodes",
+      "behavior": "ANGLE描画器とXCB接続方式は各基盤へ渡す公開識別値を安定して保つ。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KisOpenGL::AngleRenderer",
+        "enum:KisOpenGL::XcbGLProviderProtocol",
+        "enumerator:KisOpenGL::AngleRenderer::AngleRendererD3d11",
+        "enumerator:KisOpenGL::AngleRenderer::AngleRendererD3d11Warp",
+        "enumerator:KisOpenGL::AngleRenderer::AngleRendererD3d9",
+        "enumerator:KisOpenGL::AngleRenderer::AngleRendererDefault",
+        "enumerator:KisOpenGL::XcbGLProviderProtocol::XCB_EGL",
+        "enumerator:KisOpenGL::XcbGLProviderProtocol::XCB_GLX"
+      ]
+    },
+    {
+      "target": "KisOpenGLRendererConfigContractTest",
+      "source": "libs/ui/tests/KisOpenGLRendererConfigContractTest.cpp",
+      "test": "KisOpenGLRendererConfigContractTest::rendererConfigDefaultsAndClassifiesValueOnlyFormats",
+      "behavior": "OpenGL描画設定は既定surface形式とANGLE方式を持ち、値だけのsurface形式とANGLE方式の組合せを自動、デスクトップ、GLES、ソフトウェアへ分類する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisOpenGL",
+        "member:KisOpenGL::RendererConfig::angleRenderer",
+        "member:KisOpenGL::RendererConfig::format",
+        "method:KisOpenGL::RendererConfig::rendererId() const",
+        "struct:KisOpenGL::RendererConfig"
+      ]
+    },
+    {
+      "target": "KisOpenGLRendererConfigContractTest",
+      "source": "libs/ui/tests/KisOpenGLRendererConfigContractTest.cpp",
+      "test": "KisOpenGLRendererConfigContractTest::rendererConfigStringsRoundTripKnownBackends",
+      "behavior": "OpenGL描画器設定は既知の小文字backend名を双方向変換し、未知値、大小文字差、空白差を自動選択へ正規化する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisOpenGL::convertConfigToOpenGLRenderer(QString renderer)",
+        "method:KisOpenGL::convertOpenGLRendererToConfig(OpenGLRenderer renderer)"
       ]
     }
   ]
