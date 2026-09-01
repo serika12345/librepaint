@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 20:40 JST
+- 更新日時: 2026-09-01 20:51 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -21,6 +21,16 @@
   公開schemaを、color space・profile・pixel buffer・合成処理・描画・registry・大域状態の実体化なしで25 API以上閉じる候補を選ぶ。
 - `g128-resource-storage-schema-audit`は`libs/resources/KisResourceStorage.h`の残り91 APIを主候補とし、`libs/pigment/resources/KoColorSet.h`の82 APIを比較する。
   resource storageまたはpalette値の一責務を、保存域・bundle・database・filesystem・resource読込・色空間・画面・大域状態の実体化なしで25 API以上閉じる候補を選ぶ。
+- `g128-image-layer-schema-audit`は`kis_properties_configuration.h`のproperty map・prefix転送・XML schema 34 APIを採用した。map面・変更11、型付き変換・既定値12、
+  prefix転送4、XML形式4、key・文字列変換型3を新規`KisPropertiesConfigurationSchemaContractTest`の5枠へ追加する。新対象は4工程・8入力、停止5工程・10入力、
+  製品`kritaimage` 1,194工程・2,412入力を維持する。`kis_layer_utils.h`のnode検索・整列だけでは22 APIで下限未達となり、更新・merge・commandを混在させるため棄却した。
+- `g128-pigment-composite-schema-audit`は`KoCompositeOp.h`の全41 APIを採用した。parameter buffer既定値8、opacity・copy挙動11、category型13、identity・lifecycle型7、
+  呼出型2を新規`KoCompositeOpSchemaContractTest`の5枠へ追加する。`libs/pigment/KoCompositeOp.cpp`から新規`KoCompositeOpParameterInfo.cpp`へparameter値の6定義だけを
+  本文不変で移し、新規OBJECTを製品と限定試験へ一対一収容する。新対象5工程・11入力、製品`kritapigment` 366工程・762入力から367工程・764入力、停止線6/14と
+  368/767を用いる。`KoColor.h`は最大単一責務が12 APIで下限未達となり、色空間・profile・buffer・XMLを混在させるため棄却した。
+- `g128-resource-storage-schema-audit`は`KisResourceStorage.h`のresource・tag列挙・参照schema 27 APIを採用した。resource item 6、resource iterator移動6・値4、
+  tag iterator 5、storage参照入口6を既存`KisResourceModelEnumContractTest`の5枠へ追加する。対象4工程・9入力、停止5工程・11入力、製品`kritaresources`
+  150工程・327入力を維持する。metadata値は製品定義への接続、versioningは順序・adapter・書込み責務の混在、`KoColorSet.h`は既存対象370工程・769入力のため棄却した。
 - 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから
   契約先または移動先、許可path、固有停止条件、比較候補の棄却根拠を含む。既存`build/tdd-macos`の計画は読み取り専用で測定し、構成や構築を開始しない。3報告後に
   path、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
