@@ -33,6 +33,34 @@
   移動先、許可path、固有停止条件、比較候補の棄却根拠を含む。既存`build/tdd-macos`の計画は読み取り専用で測定し、構成や構築を開始しない。3報告後にpath、CMake、
   試験source、生成物が重ならない候補だけを担当票へ進める。
 
+### 第140便の担当計画
+
+- 実装共通基点は`b70725bdd17a8daec642d65a067f6e7f3aa201bd`である。resource locator、FFMpeg wrapper、pointer event担当は`assigned`、構築許可は指定試験targetと
+  軽量近傍だけの`granted`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、専用worktree-local `build/tdd-macos`と主作業treeの
+  `/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。統合順はresource locator、FFMpeg wrapper、pointer eventとし、調整担当だけが`AGENTS.md`、
+  architecture文書、`docs/architecture/public-api-test-contracts.json`、共通不足報告を変更する。3担当の公開header、所有CMake、試験source、生成物は重ならない。
+- `g140-resource-locator-schema`は`/Users/masato/Documents/librepaint-g140-resource-locator-schema`を所有する。開始`libs/resources/KisResourceLocator.h`の全31 APIから既存
+  `libs/resources/tests/KisResourceModelEnumContractTest.cpp`の5枠`resourceLocatorTypeAndErrorSchemaRemainsStable`、`resourceLocatorInitializationAndPathSchemaRemainsStable`、
+  `resourceLocatorStorageMaintenanceSchemaRemainsStable`、`resourceLocatorExternalResourceFlowSchemaRemainsStable`、`resourceLocatorStorageNotificationSchemaRemainsStable`へ対応付ける。
+  許可pathは既存試験sourceだけであり、`libs/resources/tests/CMakeLists.txt`を変更しない。対象4工程・9入力、停止5工程・11入力、近傍は`KisTagModelSchemaContractTest`、製品
+  `kritaresources`は150工程・327入力と集合の完全一致を確認する。未知5枠、対象CTest、20回反復、近傍、無作業再構築、動的接続、未解決locator・storage・resource・metaobject記号、
+  構文・変更行書式、公開API・`verify-quick`を確認する。locator・singleton・filesystem・database・storage・bundle・memory storage・resource loader・font更新・signalを生成または
+  実行し、製品source・OBJECT・shared、`kritatestsdk`、新link依存、CMake・公開header変更、製品計画差、停止線超過が必要なら止める。
+- `g140-ffmpeg-wrapper-schema`は`/Users/masato/Documents/librepaint-g140-ffmpeg-wrapper-schema`を所有する。開始`libs/impex/animation/KisFFMpegWrapper.h`の全43 APIから新規
+  `libs/impex/tests/KisFFMpegWrapperSchemaContractTest.cpp`の5枠`ffmpegSettingsValueSchemaRemainsStable`、`ffmpegWrapperIdentityAndErrorSchemaRemainStable`、
+  `ffmpegDiscoveryAndColorConversionSignaturesRemainStable`、`ffmpegProcessAndProbeSignaturesRemainStable`、`ffmpegSignalSignaturesRemainStable`へ対応付ける。許可pathは新規試験sourceと
+  `libs/impex/tests/CMakeLists.txt`だけである。新対象4工程・8入力、停止5工程・11入力、近傍は`KisMediaEncoderFormatAndSettingsContractTest`、製品`kritaimpexui` 1,350工程・
+  2,712入力と`kritaapplicationui` 1,970工程・3,940入力の集合を維持する。未知target、5枠、対象CTest、20回反復、近傍、無作業再構築、動的接続、未解決wrapper・impex error・
+  metaobject記号、構文・変更行書式、公開API・`verify-quick`を確認する。wrapper・QProcess・dialog・codec・document・image・stream・QObjectを生成または実行し、外部process・探索・
+  色変換・probe・設定I/O・filesystemへ到達し、製品source・OBJECT・shared、`kritatestsdk`、Qt Widgetsへのlink、新非header依存、公開header変更、製品計画差、停止線超過が必要なら止める。
+- `g140-pointer-event-schema`は`/Users/masato/Documents/librepaint-g140-pointer-event-schema`を所有する。開始`libs/flake/KoPointerEvent.h`の全39 APIから新規
+  `libs/flake/tests/KoPointerEventSchemaContractTest.cpp`の5枠`pointerEventTypeLifetimeAndWrapperSchemaRemainsStable`、`pointerEventRoutingAndAcceptanceSignaturesRemainStable`、
+  `pointerEventPositionSignaturesRemainStable`、`pointerEventDeviceMeasurementSignaturesRemainStable`、`pointerEventDeepCopyCompatibilitySignaturesRemainStable`へ対応付ける。許可pathは新規試験
+  sourceと`libs/flake/tests/CMakeLists.txt`だけである。新対象4工程・8入力、停止5工程・11入力、近傍は`KoCanvasResourceProviderSchemaContractTest`、製品`kritaflake`は621工程・
+  1,274入力と集合の完全一致を確認する。Qt 5限定のdeep-copy overload 3件は公開headerと同じ条件で記述する。未知target、5枠、対象CTest、20回反復、近傍、無作業再構築、動的接続、
+  未解決pointer event・Qt入力event・KConfig・notifier記号、構文・変更行書式、公開API・`verify-quick`を確認する。wrapper・Qt入力eventを生成または実行し、GUI event loop・event配送・
+  canvas・shape・painter・大域tablet状態へ到達し、`KoPointerEvent.cpp`、製品source・OBJECT・shared、`kritatestsdk`、Qt Gui等への新link、公開header変更、製品計画差、停止線超過が必要なら止める。
+
 ### 第139便の先行監査計画
 
 - 監査共通基点は`0d0dc2c57883cb48f603c492c293c0b37c217fda`、入力は`build/tdd-macos/public-api-missing-g139.json`である。3担当は`auditing`の読み取り専用とし、
