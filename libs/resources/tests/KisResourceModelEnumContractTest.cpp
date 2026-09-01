@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include <KisResourceLocator.h>
 #include <KisResourceModel.h>
 #include <KisResourceStorage.h>
 #include <KisStorageModel.h>
@@ -58,6 +59,11 @@ private Q_SLOTS:
     void tagFilterProxyLookupAndStateSchemaRemainsStable();
     void tagFilterProxyTransferSchemaRemainsStable();
     void tagFilterProxyMutationSchemaRemainsStable();
+    void resourceLocatorTypeAndErrorSchemaRemainsStable();
+    void resourceLocatorInitializationAndPathSchemaRemainsStable();
+    void resourceLocatorStorageMaintenanceSchemaRemainsStable();
+    void resourceLocatorExternalResourceFlowSchemaRemainsStable();
+    void resourceLocatorStorageNotificationSchemaRemainsStable();
 };
 
 void KisResourceModelEnumContractTest::columnValuesRemainStable()
@@ -690,6 +696,76 @@ void KisResourceModelEnumContractTest::tagFilterProxyMutationSchemaRemainsStable
     static_assert(
         std::is_same_v<decltype(std::declval<Model &>().addResourceDeduplicateFileName(std::declval<KoResourceSP>())),
                        bool>);
+}
+
+void KisResourceModelEnumContractTest::resourceLocatorTypeAndErrorSchemaRemainsStable()
+{
+    using Locator = KisResourceLocator;
+    using Error = Locator::LocatorError;
+
+    static_assert(std::is_class_v<Locator>);
+    static_assert(std::is_base_of_v<QObject, Locator>);
+    static_assert(std::is_destructible_v<Locator>);
+    static_assert(std::has_virtual_destructor_v<Locator>);
+    static_assert(std::is_enum_v<Error>);
+
+    static_assert(int(Error::Ok) == 0);
+    static_assert(int(Error::LocationReadOnly) == 1);
+    static_assert(int(Error::CannotCreateLocation) == 2);
+    static_assert(int(Error::CannotInitializeDb) == 3);
+    static_assert(int(Error::CannotSynchronizeDb) == 4);
+
+    static_assert(std::is_same_v<decltype(Locator::resourceLocationKey), const QString>);
+}
+
+void KisResourceModelEnumContractTest::resourceLocatorInitializationAndPathSchemaRemainsStable()
+{
+    using Locator = KisResourceLocator;
+
+    static_assert(std::is_same_v<decltype(&Locator::instance), Locator *(*)()>);
+    static_assert(std::is_same_v<decltype(&Locator::initialize), Locator::LocatorError (Locator::*)(const QString &)>);
+    static_assert(std::is_same_v<decltype(&Locator::errorMessages), QStringList (Locator::*)() const>);
+    static_assert(std::is_same_v<decltype(&Locator::resourceLocationBase), QString (Locator::*)() const>);
+    static_assert(std::is_same_v<decltype(&Locator::filePathForResource), QString (Locator::*)(KoResourceSP)>);
+}
+
+void KisResourceModelEnumContractTest::resourceLocatorStorageMaintenanceSchemaRemainsStable()
+{
+    using Locator = KisResourceLocator;
+
+    static_assert(
+        std::is_same_v<decltype(&Locator::addStorage), bool (Locator::*)(const QString &, KisResourceStorageSP)>);
+    static_assert(std::is_same_v<decltype(&Locator::removeStorage), bool (Locator::*)(const QString &)>);
+    static_assert(std::is_same_v<decltype(&Locator::hasStorage), bool (Locator::*)(const QString &)>);
+    static_assert(std::is_same_v<decltype(&Locator::purge), void (Locator::*)(const QString &, const QVector<int> &)>);
+    static_assert(std::is_same_v<decltype(&Locator::purgeTag), void (Locator::*)(QString, QString)>);
+    static_assert(std::is_same_v<decltype(&Locator::saveTags), void (*)()>);
+    static_assert(std::is_same_v<decltype(&Locator::updateFontStorage), void (Locator::*)()>);
+}
+
+void KisResourceModelEnumContractTest::resourceLocatorExternalResourceFlowSchemaRemainsStable()
+{
+    using Locator = KisResourceLocator;
+
+    static_assert(std::is_same_v<decltype(&Locator::progressMessage), void (Locator::*)(const QString &)>);
+    static_assert(
+        std::is_same_v<decltype(&Locator::beginExternalResourceImport), void (Locator::*)(const QString &, int)>);
+    static_assert(std::is_same_v<decltype(&Locator::endExternalResourceImport), void (Locator::*)(const QString &)>);
+    static_assert(std::is_same_v<decltype(&Locator::beginExternalResourceRemove),
+                                 void (Locator::*)(const QString &, QVector<int>)>);
+    static_assert(std::is_same_v<decltype(&Locator::endExternalResourceRemove), void (Locator::*)(const QString &)>);
+    static_assert(
+        std::is_same_v<decltype(&Locator::resourceActiveStateChanged), void (Locator::*)(const QString &, int)>);
+}
+
+void KisResourceModelEnumContractTest::resourceLocatorStorageNotificationSchemaRemainsStable()
+{
+    using Locator = KisResourceLocator;
+
+    static_assert(std::is_same_v<decltype(&Locator::storageAdded), void (Locator::*)(const QString &)>);
+    static_assert(std::is_same_v<decltype(&Locator::storageRemoved), void (Locator::*)(const QString &)>);
+    static_assert(std::is_same_v<decltype(&Locator::storageResynchronized), void (Locator::*)(const QString &, bool)>);
+    static_assert(std::is_same_v<decltype(&Locator::storagesBulkSynchronizationFinished), void (Locator::*)()>);
 }
 
 QTEST_GUILESS_MAIN(KisResourceModelEnumContractTest)
