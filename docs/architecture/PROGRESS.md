@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 00:12 JST
+- 更新日時: 2026-09-02 00:16 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -34,6 +34,40 @@
 - 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから契約先または
   移動先、許可path、固有停止条件、比較候補の棄却根拠を含む。既存`build/tdd-macos`の計画は読み取り専用で測定し、構成や構築を開始しない。3報告後にpath、CMake、
   試験source、生成物が重ならない候補だけを担当票へ進める。
+
+### 第133便の担当計画
+
+- 実装共通基点は`12f7411ff92ab2235799f60650d5d117ac6b0c54`である。color value、tool invocation、tag model担当は`ready`、構築許可は指定試験targetと
+  軽量近傍だけの`granted`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、専用worktree-local
+  `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。統合順はcolor value、tool invocation、tag modelとし、
+  調整担当だけが`AGENTS.md`、architecture文書、`docs/architecture/public-api-test-contracts.json`、共通不足報告を変更する。3担当の公開header、所有CMake、試験source、
+  生成物は重ならない。
+- `g133-color-value-schema`は`/Users/masato/Documents/librepaint-g133-color-value-schema`を所有する。開始`libs/pigment/KoColor.h`のclass、6構築経路、copy・代入・比較、
+  色空間・buffer・profile関連付け、QColor交換、opacity、channel加減算から新規`libs/pigment/tests/KoColorValueSchemaContractTest.cpp`の5枠
+  `colorValueConstructionAndCopySchemaRemainsStable`、`colorValueStorageAndAssociationSignaturesRemainStable`、`colorValueQColorInterchangeSignaturesRemainStable`、
+  `colorValueOpacitySignaturesRemainStable`、`colorValueChannelArithmeticSignaturesRemainStable`へ28 APIを対応付ける。許可pathは新規試験sourceと
+  `libs/pigment/tests/CMakeLists.txt`だけである。新対象`KoColorValueSchemaContractTest`は4工程・8入力、停止5工程・11入力、近傍は`KoColorSpaceSchemaContractTest`、製品
+  `kritapigment`は367工程・764入力と各集合の完全一致を確認する。未知target、5枠、対象CTest、20回反復、近傍、無作業再構築、動的接続、未解決color・color space・
+  profile・registry・変換記号、構文・変更行書式、公開API・`verify-quick`を確認する。型特性と未評価式を越えてKoColor・QColor・pixel buffer・color space・profile・
+  registry・変換を生成または呼出し、`KoColor.cpp`、Qt Xml、製品OBJECT・shared、`kritatestsdk`、新link依存、公開header・製品source変更、製品計画差、停止線超過が必要なら止める。
+- `g133-tool-invocation-schema`は`/Users/masato/Documents/librepaint-g133-tool-invocation-schema`を所有する。開始
+  `libs/input/ui/kis_tool_invocation_action.h`のclass、Shortcut enumと全15値、constructor・destructor、activation・event 6操作、policy 5照会から新規
+  `libs/input/ui/tests/KisToolInvocationActionSchemaContractTest.cpp`の5枠`toolInvocationTypeAndLifecycleSchemaRemainStable`、
+  `toolInvocationPrimaryShortcutOrdinalsRemainStable`、`toolInvocationTemporaryToolShortcutOrdinalsRemainStable`、
+  `toolInvocationActivationAndEventSignaturesRemainStable`、`toolInvocationPolicySignaturesRemainStable`へ全30 APIを対応付ける。許可pathは新規試験sourceと
+  `libs/input/ui/tests/CMakeLists.txt`だけである。新対象`KisToolInvocationActionSchemaContractTest`は4工程・8入力、停止5工程・11入力、近傍は
+  `KisPopupWidgetInterfaceContractTest`、製品`kritainputui`は1,386工程・2,781入力と各集合の完全一致を確認する。未知target、5枠、対象CTest、20回反復、近傍、
+  無作業再構築、動的接続、未解決tool invocation・abstract input action記号、構文・変更行書式、公開API・`verify-quick`を確認する。型特性と未評価式を越えてaction・
+  event・tool・canvas・input manager・resource・大域状態を生成または呼出し、`kis_tool_invocation_action.cpp`、Qt Widgets、製品OBJECT・shared、`kritatestsdk`、新link依存、
+  公開header・製品source変更、製品計画差、停止線超過が必要なら止める。
+- `g133-tag-model-schema`は`/Users/masato/Documents/librepaint-g133-tag-model-schema`を所有する。開始`libs/resources/KisTagModel.h`の3 classと全公開destructor・model表示・
+  tag検索・追加・有効化・無効化・改名・filter操作から既存`libs/resources/tests/KisTagModelSchemaContractTest.cpp`の5枠
+  `abstractTagModelOperationSignaturesRemainStable`、`allTagsModelViewSignaturesRemainStable`、`allTagsModelTagOperationSignaturesRemainStable`、
+  `filteredTagModelTypeFilterAndLookupSignaturesRemainStable`、`filteredTagModelMutationSignaturesRemainStable`へ全38 APIを対応付ける。許可pathはこの試験source1件だけであり、
+  担当CMakeは`libs/resources/tests/CMakeLists.txt`だが変更しない。対象`KisTagModelSchemaContractTest`は4工程・9入力、停止5工程・11入力、近傍は
+  `KisResourceModelEnumContractTest`、製品`kritaresources`は150工程・327入力と各集合の完全一致を確認する。5枠の未知関数、対象CTest、20回反復、近傍、無作業再構築、
+  動的接続、未解決tag model記号、構文・変更行書式、公開API・`verify-quick`を確認する。型特性と未評価式を越えてtag model・proxy・resource・database・query・storage・
+  I/O・大域状態を生成または呼出し、製品source・OBJECT・shared、`kritatestsdk`、新link依存、CMake・公開header変更、製品計画差、停止線超過が必要なら止める。
 
 ### 第132便の先行監査計画
 
