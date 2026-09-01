@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 14:20 JST
+- 更新日時: 2026-09-01 14:29 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -805,7 +805,7 @@
 
 ### 第118便の先行監査計画
 
-- 共通基点は`d3a175cea5`、入力は`build/tdd-macos/public-api-missing-g118.json`である。3担当は`auditing`の読み取り専用とし、製品・試験・CMake・script・
+- 共通基点は`f2f76e62a3`、入力は`build/tdd-macos/public-api-missing-g118.json`である。3担当は`auditing`の読み取り専用とし、製品・試験・CMake・script・
   台帳・文書を変更せず、構築、試験、Git操作、追加委任も行わない。一つの公開責務から25 API以上を最大5枠へ固定し、既存限定対象、header-only値面、または
   公開headerを変えない一sourceのOBJECT一対一移管で製品共有ライブラリーと`kritatestsdk`へ接続しない候補だけを採用する。
 - `g118-application-config-schema-audit`は`libs/application/kis_config.h`の残り236 APIから、既存契約と重複しない一つの設定責務を監査する。未評価型検査だけで
@@ -817,6 +817,19 @@
   document、lager大域状態へ到達しない。
 - 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから契約先または
   移動先、許可path、固有停止条件、比較候補の棄却根拠を含む。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
+- `g118-application-config-schema-audit`は`KisConfig`のlayer表示・selection操作設定28 APIを採用した。layer情報・thumbnail 8、layer tree 6、
+  layer properties 6、selection surface 6、単一channel表示2を既存`KisConfigEnumContractTest`の未評価型5枠へ追加する。対象4工程・15入力、製品
+  `kritaapplication` 1,224工程・2,466入力を維持し、設定実体、GUI、layer、selection、filesystemへ到達しない。animationは24、文書作成既定値は23、
+  保存・復元は22 APIで下限未達、表示性能群は複数責務に分かれるため棄却した。
+- `g118-image-config-schema-audit`は`KisImageConfig`の資源予算schema 28 APIを採用した。memory予算9、導出tile/pool上限3、swap storage 8、
+  worker scheduling 4、更新patch分割4を新規`KisImageConfigResourceBudgetSchemaContractTest`の未評価型5枠へ対応付ける。新対象4工程・8入力、製品
+  `kritaimage` 1,193工程・2,410入力を維持し、RAM・CPU検出、swap directory、scheduler、tile pool、設定I/Oを実行しない。残り37 APIは寿命、進捗、描画品質、
+  selection、proofing、import/export、設定template、大域resetに分かれ、各責務が25 API未満または設定本文へ到達するため棄却した。
+- `g118-svg-text-schema-audit`は`KoSvgTextShape_p.h`の行box配置schema 26 APIを採用した。line chunk値5、line boxの垂直幾何・既定値7、baseline・状態7、
+  constructor型2、操作型5を既存`KoSvgTextCharacterResultValueContractTest`の5枠へ追加する。対象4工程・8入力、製品`kritaflake` 618工程・1,268入力を維持する。
+  parameter constructorと操作本文は実行せず、`ResolutionHandler`実装、実shape、document、font・文字配置・描画へ到達しない。`KoSvgText.h`と
+  `KoSvgTextShape.h`の安全な各責務は25 API未満であり、cursor・glyph値群は22 API、SubChunkはshape所有へ入るため棄却した。3監査は編集、構築、試験、
+  Git操作、追加委任を行っていない。
 
 ### 第105並列便の監査計画
 
