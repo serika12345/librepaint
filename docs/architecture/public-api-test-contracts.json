@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 15972
+    "expectedMissingApis": 15941
   },
   "contracts": [
     {
@@ -36814,6 +36814,82 @@
       "apis": [
         "method:KisDoubleSliderSpinBox::setExponentRatio(qreal newExponentRatio)",
         "method:KisSliderSpinBox::setExponentRatio(qreal newExponentRatio)"
+      ]
+    },
+    {
+      "target": "KisDoubleParseUnitSpinBoxSchemaContractTest",
+      "source": "libs/widgetutils/tests/KisDoubleParseUnitSpinBoxSchemaContractTest.cpp",
+      "test": "KisDoubleParseUnitSpinBoxSchemaContractTest::unitSpinBoxTypeLifetimeAndManagerPolicySignaturesRemainStable",
+      "behavior": "単位付き数値入力は数式対応spin boxとの継承関係、既定の親を持つ構築・仮想破棄、単位manager・次元・表示単位・外部単位変更・小数桁保護方針について正確な公開型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisDoubleParseUnitSpinBox",
+        "method:KisDoubleParseUnitSpinBox::KisDoubleParseUnitSpinBox(QWidget * parent=0)",
+        "method:KisDoubleParseUnitSpinBox::preventDecimalsChangeFromUnitManager(bool prevent)",
+        "method:KisDoubleParseUnitSpinBox::setDimensionType(int dim)",
+        "method:KisDoubleParseUnitSpinBox::setDisplayUnit(bool toggle)",
+        "method:KisDoubleParseUnitSpinBox::setUnitChangeFromOutsideBehavior(bool toggle)",
+        "method:KisDoubleParseUnitSpinBox::setUnitManager(KisSpinBoxUnitManager * unitManager)",
+        "method:KisDoubleParseUnitSpinBox::~KisDoubleParseUnitSpinBox()"
+      ]
+    },
+    {
+      "target": "KisDoubleParseUnitSpinBoxSchemaContractTest",
+      "source": "libs/widgetutils/tests/KisDoubleParseUnitSpinBoxSchemaContractTest.cpp",
+      "test": "KisDoubleParseUnitSpinBoxSchemaContractTest::unitSpinBoxUnitSelectionSignaturesRemainStable",
+      "behavior": "単位付き数値入力は単位値または記号による表示単位設定と、返却単位記号の設定・取得について正確な関数型とconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDoubleParseUnitSpinBox::returnUnit() const",
+        "method:KisDoubleParseUnitSpinBox::setReturnUnit(const QString & symbol)",
+        "method:KisDoubleParseUnitSpinBox::setUnit(const KoUnit & unit)",
+        "method:KisDoubleParseUnitSpinBox::setUnit(const QString & symbol)"
+      ]
+    },
+    {
+      "target": "KisDoubleParseUnitSpinBoxSchemaContractTest",
+      "source": "libs/widgetutils/tests/KisDoubleParseUnitSpinBoxSchemaContractTest.cpp",
+      "test": "KisDoubleParseUnitSpinBoxSchemaContractTest::unitSpinBoxValueConversionSignaturesRemainStable",
+      "behavior": "単位付き数値入力は表示値とpoint値の変更・取得、式上書き方針を持つpoint値設定、およびpoint値変更通知について正確な関数型と既定値を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDoubleParseUnitSpinBox::changeValue(double newValue)",
+        "method:KisDoubleParseUnitSpinBox::changeValuePt(double newValue)",
+        "method:KisDoubleParseUnitSpinBox::setValuePt(double value,bool overWriteExpression=false)",
+        "method:KisDoubleParseUnitSpinBox::value() const",
+        "method:KisDoubleParseUnitSpinBox::valueChangedPt(qreal)",
+        "method:KisDoubleParseUnitSpinBox::valuePt() const"
+      ]
+    },
+    {
+      "target": "KisDoubleParseUnitSpinBoxSchemaContractTest",
+      "source": "libs/widgetutils/tests/KisDoubleParseUnitSpinBoxSchemaContractTest.cpp",
+      "test": "KisDoubleParseUnitSpinBoxSchemaContractTest::unitSpinBoxRangeStepAndPrecisionSignaturesRemainStable",
+      "behavior": "単位付き数値入力は表示値とpoint値の上下限・刻み、三値同時設定、小数桁数、および単一刻みについて正確な関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDoubleParseUnitSpinBox::setDecimals(int prec)",
+        "method:KisDoubleParseUnitSpinBox::setLineStep(double step)",
+        "method:KisDoubleParseUnitSpinBox::setLineStepPt(double step)",
+        "method:KisDoubleParseUnitSpinBox::setMaximum(double max)",
+        "method:KisDoubleParseUnitSpinBox::setMaximumPt(double max)",
+        "method:KisDoubleParseUnitSpinBox::setMinMaxStep(double min,double max,double step)",
+        "method:KisDoubleParseUnitSpinBox::setMinMaxStepPt(double min,double max,double step)",
+        "method:KisDoubleParseUnitSpinBox::setMinimum(double min)",
+        "method:KisDoubleParseUnitSpinBox::setMinimumPt(double min)",
+        "method:KisDoubleParseUnitSpinBox::setSingleStep(double val)"
+      ]
+    },
+    {
+      "target": "KisDoubleParseUnitSpinBoxSchemaContractTest",
+      "source": "libs/widgetutils/tests/KisDoubleParseUnitSpinBoxSchemaContractTest.cpp",
+      "test": "KisDoubleParseUnitSpinBoxSchemaContractTest::unitSpinBoxTextConversionSignaturesRemainStable",
+      "behavior": "単位付き数値入力は数値の表示文字列化、文字列の数値化、および装飾を除いた表示文字列取得について正確な関数型とconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDoubleParseUnitSpinBox::textFromValue(double value) const",
+        "method:KisDoubleParseUnitSpinBox::valueFromText(const QString & str) const",
+        "method:KisDoubleParseUnitSpinBox::veryCleanText() const"
       ]
     },
     {

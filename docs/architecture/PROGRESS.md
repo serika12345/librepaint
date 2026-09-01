@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 05:55 JST
+- 更新日時: 2026-09-02 06:00 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -38,7 +38,7 @@
 
 ### 第138便の担当計画
 
-- 実装共通基点は`8521336b213eaf1bb4fe60fb9dd335c2c66135bc`である。ICC profileとsegment gradient担当は`integrated`、unit spin box担当は`ready`、構築許可は指定試験targetと軽量近傍だけの
+- 実装共通基点は`8521336b213eaf1bb4fe60fb9dd335c2c66135bc`である。ICC profile、segment gradient、unit spin box担当は`integrated`、構築許可は指定試験targetと軽量近傍だけの
   `granted`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、専用worktree-local `build/tdd-macos`と主作業treeの
   `/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。統合順はICC profile、segment gradient、unit spin boxとし、調整担当だけが`AGENTS.md`、
   architecture文書、`docs/architecture/public-api-test-contracts.json`、共通不足報告を変更する。3担当の公開header、所有CMake、試験source、生成物は重ならない。
@@ -85,6 +85,13 @@
   QIODevice・QDom・canvas資源を生成または呼び出していない。担当macOS環境と中央環境で新旧10枠・対象CTest・20回反復と近傍`KoColorValueSchemaContractTest`、担当環境で
   無作業再構築、動的接続・未解決記号、構文・書式、公開API検査、`verify-quick`に成功した。中央の公開API契約検査は台帳同期後に29,838件中13,866件対応、15,972件未対応と
   なる。作業tree 877,500 KiBと担当branchは削除した。
+- `g138-unit-spinbox-schema`は受渡しcommit`4b349c32bcb6`を統合commit`f5cba10273`として取り込んだ。開始
+  `libs/widgetutils/kis_double_parse_unit_spin_box.h`から新規`libs/widgetutils/tests/KisDoubleParseUnitSpinBoxSchemaContractTest.cpp`の5枠へ、型・寿命・manager方針、単位選択、
+  値変換、範囲・step・精度、文字列変換の31 APIを対応付けた。新対象4工程・8入力、製品`kritawidgetutils` 274工程・581入力の各集合は変更前後一致し、spin box・widget・
+  unit manager・KoUnitを生成または呼び出していない。担当macOS環境と中央環境で5枠・対象CTest・20回反復と近傍`KisSliderSpinBoxSchemaContractTest`、担当環境で無作業再構築、
+  動的接続・未解決記号、構文・書式、公開API検査、`verify-quick`に成功した。中央の公開API契約検査は29,838件中13,897件対応、15,941件未対応となる。作業tree
+  860,088 KiBと担当branchは削除した。第138便全体で137 APIを追加し、3作業tree計2,609,460 KiBを回収した。主Ninja木、共有compiler cache、最新不足報告
+  `build/tdd-macos/public-api-missing-g139.json`だけを再利用対象として保持する。
 
 ### 第137便の先行監査計画
 
