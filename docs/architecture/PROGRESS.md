@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 03:10 JST
+- 更新日時: 2026-09-02 03:30 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -20,6 +20,15 @@
   またはgamut mask資源値schemaの一責務を、実archive・filesystem・device I/O・shape・painter・資源登録・大域状態の実体化なしで25 API以上閉じる。
 - `g136-angle-image-config-schema-audit`は`libs/libkis/AngleSelector.h`の残り36 APIを主候補とし、`libs/image/kis_image_config.h`の37 APIを比較する。角度選択器の公開schema
   または画像設定の残存schemaの一責務を、widget・GUI event loop・永続設定・proofing・import/export設定・大域状態の実体化なしで25 API以上閉じる。
+- `g136-shape-stroke-pointer-schema-audit`は`KoShapeStroke.h`の全32 APIを採用した。型・寿命6、線幾何8、dash 5、色・brush・pen 5、描画・比較署名8を新規
+  `KoShapeStrokeSchemaContractTest`の未評価型5枠へ対応付ける。新対象4工程・8入力、停止5工程・11入力、製品`kritaflake` 621工程・1,274入力を維持する。
+  `KoPointerEvent.h`は借用Qt event寿命、浅い・深い複製、入力値、Qt版別複製、大域tablet入力状態へ責務が分かれ、具体観測が実eventと大域状態を要するため棄却した。
+- `g136-store-gamut-schema-audit`は`KoStore.h`の全37 APIを採用した。型・寿命・列挙9、生成・開閉6、data stream・位置11、directory移動8、抽出・設定3を新規
+  `KoStoreSchemaContractTest`の列挙値・未評価型5枠へ対応付ける。新対象4工程・8入力、停止5工程・11入力、製品`kritaresourcestorage` 9工程・21入力を維持する。
+  `KoGamutMask.h`は局所shape責務9件と外側資源責務29件へ分かれ、外側もI/O・metadata・変換・shape一覧・描画を混在し、Qt Guiとshape・資源閉包を要するため棄却した。
+- `g136-angle-image-config-schema-audit`は`AngleSelector.h`の全36 APIを採用した。型・寿命・view 5、主角度7、範囲・精度・wrap 9、表示10、角度変換5を新規
+  `AngleSelectorSchemaContractTest`の未評価型5枠へ対応付ける。新対象4工程・8入力、停止5工程・11入力、製品`kritalibkis` 2,018工程・4,034入力を維持する。
+  `kis_image_config.h`の残37 APIは最大の単一責務群が13件で、25 APIへ達するには性能・mask・selection・proofing・import/export・汎用設定I/Oを混在させるため棄却した。
 - 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから契約先または
   移動先、許可path、固有停止条件、比較候補の棄却根拠を含む。既存`build/tdd-macos`の計画は読み取り専用で測定し、構成や構築を開始しない。3報告後にpath、CMake、
   試験source、生成物が重ならない候補だけを担当票へ進める。
