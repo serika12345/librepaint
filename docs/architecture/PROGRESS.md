@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 14:46 JST
+- 更新日時: 2026-09-01 14:55 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -817,6 +817,19 @@
   document、lager大域状態へ到達しない。
 - 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから契約先または
   移動先、許可path、固有停止条件、比較候補の棄却根拠を含む。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
+- `g119-resource-storage-schema-audit`は`KisResourceStorage`のidentity・寿命・状態schema 25 APIを採用した。共有pointer・class・storage種別10、寿命6、
+  種別label 2、識別query 3、状態・時刻query 4を既存`KisResourceModelEnumContractTest`の5枠へ追加する。翻訳なし種別文字列だけを実行し、他は未評価型とする。
+  対象4工程・9入力、製品`kritaresources` 149工程・325入力を維持し、実storage、filesystem、archive、SQL、registry、loaderを生成しない。`KoColorSet`は値契約に
+  22定義のOBJECT分離、`KoSegmentGradient`はregistry不要の局所値面が22 APIで下限未達のため棄却した。
+- `g119-color-space-schema-audit`は`KoColorSpace`の識別・channel記述schema 31 APIを採用した。識別7、channel構造6、channel表現6、profile適合性・独立性9、
+  gamut metadata 3を新規`KoColorSpaceSchemaContractTest`の未評価型5枠へ対応付ける。新対象4工程・8入力、製品`kritapigment` 365工程・760入力を維持し、
+  実色空間、派生fake、registry、profile、色変換、画素bufferを生成しない。histogram producerは各責務24 API以下、ICC containerはconstructorを含めて25 APIだが
+  派生probeと重いplugin閉包を要し、第117便profile契約とも重複するため棄却した。
+- `g119-psd-values-audit`は`PsdAdditionalLayerInfoBlock`の公開直列化schema 37 APIを採用した。identity・handler 7、直列化識別field 8、payload field 9、
+  中核block writer 7、payload writer 6を既存`PsdFormatValuesContractTest`の未評価型5枠へ追加する。対象6工程・14入力、製品`kritapsdutils` 635工程・1,300入力と
+  `kritapsd` 1,979工程・3,956入力を維持し、class実体、header参照member、QIODevice、XML入出力、vector mask解決、ASL、registryを実行しない。
+  overlay 34 APIは誤実体化時の色・pattern・gradient registry閉包riskが高く、resource block残存は14 APIで下限未達のため棄却した。3監査は編集、構築、試験、
+  Git操作、追加委任を行っていない。
 - `g118-application-config-schema-audit`は`KisConfig`のlayer表示・selection操作設定28 APIを採用した。layer情報・thumbnail 8、layer tree 6、
   layer properties 6、selection surface 6、単一channel表示2を既存`KisConfigEnumContractTest`の未評価型5枠へ追加する。対象4工程・15入力、製品
   `kritaapplication` 1,224工程・2,466入力を維持し、設定実体、GUI、layer、selection、filesystemへ到達しない。animationは24、文書作成既定値は23、
