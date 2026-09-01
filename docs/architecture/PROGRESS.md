@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 10:55 JST
+- 更新日時: 2026-09-01 10:57 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -200,6 +200,23 @@
   全native検証、製品全体構築は実行していない。
 - 新報告と受渡しpatchの同一性、3 worktreeのclean状態を確認後、旧`public-api-missing-g108.json` 4.7 MB、PSD担当630 MB、設定担当634 MB、
   SVG担当639 MBと3 branchを削除し、約1.90 GBを回収した。主`build/tdd-macos`、共有compiler cache、最新不足報告は次便の限定構築へ再利用する。
+
+### 第109並列便の監査計画
+
+- 共通基点は`97d8fba4c1991b6e863ec7a784a4767baafec984`、入力は`build/tdd-macos/public-api-missing-g109.json`である。3担当は`auditing`の
+  読み取り専用とし、製品・試験・CMake・台帳・文書を変更せず、構築、試験、Git操作、追加委任も行わない。一つの公開責務から25 API以上を最大5枠へ固定し、
+  既存限定対象、header-only値面、または公開headerを変えない一sourceのOBJECT一対一移管で製品shared libraryと`kritatestsdk`へ接続しない候補だけを採用する。
+- `g109-config-schema-audit`は`libs/application/kis_config.h`の残り396 APIを、描画・入力、文書既定値、animation、表示性能等の設定責務に分け、既存
+  `KisConfigEnumContractTest`の未評価関数型検査へ25 API以上を5枠以内で追加できる一責務を選ぶ。`KisConfig`、KConfigGroup、`QSettings`、画面形式を生成・
+  呼出しせず、既存4工程・15入力と製品`kritaapplication`の変更なし計画を維持する。
+- `g109-psd-record-values-audit`は`libs/psd/psd_resource_block.h` 137 API、`libs/psd/psd_layer_record.h` 60 API、
+  `libs/psd/psd_additional_layer_info_block.h`の残り80 APIを比較し、未固定の記録値、既定値、符号付き寸法、copy、inline setterから一責務を選ぶ。実image、
+  paint device、色空間・資源registry、ASL、filesystem、生pointer所有へ到達する経路と第108便のfill-layer値は除外する。
+- `g109-interaction-values-audit`は`plugins/tools/tool_transform2/tool_transform_args.h` 100 API、`libs/image/brushengine/kis_paint_information.h` 61 API、
+  `libs/flake/text/KoSvgText.h`の残り172 APIを比較し、変形引数、入力点値、またはSVG純粋変換のうち限定構築で25 API以上を固定できる一責務を選ぶ。実tool・image・
+  paint device・shape・font registry・描画・大域乱数へ到達する経路は除外し、必要な本文分離は公開headerを変えない一source一対一移管だけを許容する。
+- 各報告は完全なAPI識別子、最大5枠の観測挙動、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、
+  開始pathから追加・移動先path、許可path、固有停止条件、比較・除外候補の根拠を含む。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
 
 ### 第105並列便の監査計画
 
