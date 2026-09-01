@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 15859
+    "expectedMissingApis": 15785
   },
   "contracts": [
     {
@@ -38518,6 +38518,125 @@
         "method:KisSequentialIteratorBase::x() const",
         "method:KisSequentialIteratorBase::y() const",
         "method:KisSequentialIteratorBase::~KisSequentialIteratorBase()"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::layerMergePolicyAndOrderingSignaturesRemainStable",
+      "behavior": "layer操作は結合方針の列挙値とflags別名、およびnodeの親子・複製・lock・結合可能性の検査と整列について正確な関数型と既定値を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisLayerUtils::MergeFlags",
+        "enum:KisLayerUtils::MergeFlag",
+        "enumerator:KisLayerUtils::MergeFlag::None",
+        "enumerator:KisLayerUtils::MergeFlag::SkipMergingFrames",
+        "function:KisLayerUtils::checkIsChildOf(KisNodeSP node,const KisNodeList & parents)",
+        "function:KisLayerUtils::checkIsCloneOf(KisNodeSP node,const KisNodeList & nodes)",
+        "function:KisLayerUtils::filterMergeableNodes(KisNodeList & nodes,bool allowMasks=false)",
+        "function:KisLayerUtils::filterUnlockedNodes(KisNodeList & nodes)",
+        "function:KisLayerUtils::sortAndFilterAnyMergeableNodesSafe(const KisNodeList & nodes,KisImageSP image)",
+        "function:KisLayerUtils::sortAndFilterMergeableInternalNodes(KisNodeList nodes,bool allowMasks=false)",
+        "function:KisLayerUtils::sortMergeableInternalNodes(KisNodeList nodes)",
+        "function:KisLayerUtils::sortMergeableNodes(KisNodeSP root,KisNodeList nodes)",
+        "function:KisLayerUtils::sortMergeableNodes(KisNodeSP root,QList<KisNodeSP> & inputNodes,QList<KisNodeSP> & outputNodes)"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::layerMutationAndProjectionCommandSignaturesRemainStable",
+      "behavior": "layer操作は遅延・不可視領域更新、結合・平坦化、projection色・profile、alpha mask・paint layer変換について正確な関数型と既定結合方針を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisLayerUtils::addCopyOfNameTag(KisNodeSP node)",
+        "function:KisLayerUtils::canChangeImageProfileInvisibly(KisImageSP image)",
+        "function:KisLayerUtils::changeImageDefaultProjectionColor(KisImageSP image,const KoColor & color)",
+        "function:KisLayerUtils::convertToPaintLayer(KisImageSP image,KisNodeSP src)",
+        "function:KisLayerUtils::flattenImage(KisImageSP image,KisNodeSP activeNode,MergeFlags flags=None)",
+        "function:KisLayerUtils::flattenLayer(KisImageSP image,KisLayerSP layer,MergeFlags flags=None)",
+        "function:KisLayerUtils::forceAllDelayedNodesUpdate(KisNodeSP root)",
+        "function:KisLayerUtils::forceAllHiddenOriginalsUpdate(KisNodeSP root)",
+        "function:KisLayerUtils::hasDelayedNodeWithUpdates(KisNodeSP root)",
+        "function:KisLayerUtils::mergeDown(KisImageSP image,KisLayerSP layer,const KisMetaData::MergeStrategy * strategy,MergeFlags flags=None)",
+        "function:KisLayerUtils::mergeMultipleLayers(KisImageSP image,KisNodeList mergedNodes,KisNodeSP putAfter,MergeFlags flags=None)",
+        "function:KisLayerUtils::mergeMultipleNodes(KisImageSP image,KisNodeList mergedNodes,KisNodeSP putAfter,MergeFlags flags=None)",
+        "function:KisLayerUtils::newLayerFromVisible(KisImageSP image,KisNodeSP putAfter,MergeFlags flags=None)",
+        "function:KisLayerUtils::recursiveTightNodeVisibleBounds(KisNodeSP rootNode)",
+        "function:KisLayerUtils::refreshHiddenAreaAsync(KisImageSP image,KisNodeSP rootNode,const QRect & preparedArea)",
+        "function:KisLayerUtils::splitAlphaToMask(KisImageSP image,KisNodeSP node,const QString & maskName)",
+        "function:KisLayerUtils::tryMergeSelectionMasks(KisImageSP image,KisNodeList mergedNodes,KisNodeSP putAfter)"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::layerHierarchySearchAndTraversalSignaturesRemainStable",
+      "behavior": "layer操作はnode属性差、階層内の画像・隔離root・名前・型・UUID・属性による検索、および再帰走査について正確な関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisLayerUtils::checkNodesDiffer(KisNodeList nodes,std::function<T (KisNodeSP)> checkerFunc)",
+        "function:KisLayerUtils::findImageByHierarchy(KisNodeSP node)",
+        "function:KisLayerUtils::findIsolationRoot(KisNodeSP node)",
+        "function:KisLayerUtils::findNodeByName(KisNodeSP root,const QString & name)",
+        "function:KisLayerUtils::findNodeByType(KisNodeSP root)",
+        "function:KisLayerUtils::findNodeByUuid(KisNodeSP root,const QUuid & uuid)",
+        "function:KisLayerUtils::findNodesByName(KisNodeSP root,const QString & name,bool recursive,bool partialMatch)",
+        "function:KisLayerUtils::findNodesWithProps(KisNodeSP root,const KoProperties & props,bool excludeRoot)",
+        "function:KisLayerUtils::findRoot(KisNodeSP node)",
+        "function:KisLayerUtils::recursiveApplyNodes(NodePointer node,Functor func)",
+        "function:KisLayerUtils::recursiveFindNode(KisNodeSP node,std::function<bool (KisNodeSP)> func)"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::layerFrameQueryAndJobSchemaRemainStable",
+      "behavior": "layer操作はframe job集合、layerのframe時刻・範囲・同一frame・一意frame照会、およびjob更新について正確な公開型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisLayerUtils::FrameJobs",
+        "function:KisLayerUtils::fetchLayerActiveRasterFrameSpan(KisNodeSP node,const int time)",
+        "function:KisLayerUtils::fetchLayerActiveRasterFrameTime(KisNodeSP node)",
+        "function:KisLayerUtils::fetchLayerFrames(KisNodeSP node)",
+        "function:KisLayerUtils::fetchLayerFramesRecursive(KisNodeSP rootNode)",
+        "function:KisLayerUtils::fetchLayerIdenticalRasterFrameTimes(KisNodeSP node,const int & frameTime)",
+        "function:KisLayerUtils::fetchUniqueFrameTimes(KisNodeSP node,QSet<int> selectedTimes,bool filterActiveFrameID)",
+        "function:KisLayerUtils::filterTimesForOnlyRasterKeyedTimes(KisNodeSP node,const QSet<int> & times)",
+        "function:KisLayerUtils::updateFrameJobs(FrameJobs * jobs,KisNodeSP node)",
+        "function:KisLayerUtils::updateFrameJobsRecursive(FrameJobs * jobs,KisNodeSP rootNode)"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::layerCommandTypesAndLifecycleSchemaRemainStable",
+      "behavior": "layer操作の公開commandは共有保存値、選択維持・単純更新・削除・global selection・frame切替の継承、構築・破棄・実行段階について正確な型と既定親を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisLayerUtils::SwitchFrameCommand::SharedStorageSP",
+        "class:KisLayerUtils::KeepNodesSelectedCommand",
+        "class:KisLayerUtils::KisSimpleUpdateCommand",
+        "class:KisLayerUtils::RemoveNodeHelper",
+        "member:KisLayerUtils::SwitchFrameCommand::SharedStorage::value",
+        "method:KisLayerUtils::KeepNodesSelectedCommand::KeepNodesSelectedCommand(const KisNodeList & selectedBefore,const KisNodeList & selectedAfter,KisNodeSP activeBefore,KisNodeSP activeAfter,KisImageSP image,bool finalize,KUndo2Command * parent=0)",
+        "method:KisLayerUtils::KeepNodesSelectedCommand::partB()",
+        "method:KisLayerUtils::KisSimpleUpdateCommand::KisSimpleUpdateCommand(KisNodeList nodes,bool finalize,KUndo2Command * parent=0)",
+        "method:KisLayerUtils::KisSimpleUpdateCommand::partB()",
+        "method:KisLayerUtils::KisSimpleUpdateCommand::updateNodes(const KisNodeList & nodes)",
+        "method:KisLayerUtils::RemoveNodeHelper::~RemoveNodeHelper()",
+        "method:KisLayerUtils::SelectGlobalSelectionMask::SelectGlobalSelectionMask(KisImageSP image)",
+        "method:KisLayerUtils::SelectGlobalSelectionMask::redo()",
+        "method:KisLayerUtils::SelectGlobalSelectionMask::~SelectGlobalSelectionMask()",
+        "method:KisLayerUtils::SimpleRemoveLayers::SimpleRemoveLayers(const KisNodeList & nodes,KisImageSP image)",
+        "method:KisLayerUtils::SimpleRemoveLayers::populateChildCommands()",
+        "method:KisLayerUtils::SwitchFrameCommand::SharedStorage::~SharedStorage()",
+        "method:KisLayerUtils::SwitchFrameCommand::SwitchFrameCommand(KisImageSP image,int time,bool finalize,SharedStorageSP storage)",
+        "method:KisLayerUtils::SwitchFrameCommand::~SwitchFrameCommand()",
+        "struct:KisLayerUtils::SelectGlobalSelectionMask",
+        "struct:KisLayerUtils::SimpleRemoveLayers",
+        "struct:KisLayerUtils::SwitchFrameCommand",
+        "struct:KisLayerUtils::SwitchFrameCommand::SharedStorage"
       ]
     },
     {
