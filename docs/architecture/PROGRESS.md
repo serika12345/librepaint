@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 15:13 JST
+- 更新日時: 2026-09-01 15:15 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -878,6 +878,20 @@
 - 受渡しpatchの同一性と3 worktreeのclean状態を確認後、資源storage担当642 MB、色空間担当639 MB、PSD担当651 MBの作業木とbranchを削除して
   約1.93 GBを回収した。新報告の生成成功後に旧`public-api-missing-g119.json` 4.5 MBも削除した。主`build/tdd-macos`、共有compiler cache、
   最新不足報告は次便の限定構築へ再利用する。
+
+### 第120便の先行監査計画
+
+- 監査対象の実装基点は`8a79879491`、入力は`build/tdd-macos/public-api-missing-g120.json`である。3担当は`auditing`の読み取り専用とし、製品・試験・CMake・
+  script・台帳・文書を変更せず、構築、試験、Git操作、追加委任も行わない。一つの公開責務から25 API以上を最大5枠へ固定し、既存限定対象、header-only値面、
+  または公開headerを変えない一sourceのOBJECT一対一移管で製品共有ライブラリーと`kritatestsdk`へ接続しない候補だけを採用する。
+- `g120-application-config-schema-audit`は`libs/application/kis_config.h`の残り208 APIから、第116・118便と重複しない一つの設定責務を監査する。未評価型検査だけで
+  getter・setter、const性、静的区分、既定引数を固定できる25 API以上を優先し、設定実体、KConfigGroup・QSettings、application、GUI、filesystemを実行しない。
+- `g120-color-space-operations-schema-audit`は`libs/pigment/KoColorSpace.h`の残り70 APIから、第119便の識別・channel記述と重複しない操作schemaを監査する。
+  色変換、composite、dither、XML、画素処理の公開型面から、実色空間、registry、profile、変換、画素bufferを生成または実行せず25 API以上を閉じられる責務を選ぶ。
+- `g120-psd-overlay-schema-audit`は`libs/psdutils/psd.h`の残り91 APIを主候補とし、前便次点のoverlay系34 APIを再監査する。inline constructorやmethodを実行せず、
+  色、pattern・gradient registry、resource interface、scale実装へ到達しない未評価型範囲だけを採用する。`psd_additional_layer_info_block.h`の残り43 APIも比較する。
+- 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから契約先または
+  移動先、許可path、固有停止条件、比較候補の棄却根拠を含む。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
 - `g118-application-config-schema-audit`は`KisConfig`のlayer表示・selection操作設定28 APIを採用した。layer情報・thumbnail 8、layer tree 6、
   layer properties 6、selection surface 6、単一channel表示2を既存`KisConfigEnumContractTest`の未評価型5枠へ追加する。対象4工程・15入力、製品
   `kritaapplication` 1,224工程・2,466入力を維持し、設定実体、GUI、layer、selection、filesystemへ到達しない。animationは24、文書作成既定値は23、
