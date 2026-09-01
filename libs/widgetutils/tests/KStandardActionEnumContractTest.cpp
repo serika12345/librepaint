@@ -5,10 +5,13 @@
 
 #include <kstandardaction.h>
 
+#include "../xmlgui/kactioncollection.h"
+
 #include <QTest>
 
 #include <array>
 #include <type_traits>
+#include <utility>
 
 namespace
 {
@@ -25,8 +28,58 @@ using RecentActionSignature = KRecentFilesAction *(*)(const QObject *, const cha
 using ToggleActionSignature = KToggleAction *(*)(const QObject *, const char *, QObject *);
 using FullScreenActionSignature = KToggleFullScreenAction *(*)(const QObject *, const char *, QWidget *, QObject *);
 
+using ActionCollection = KisKActionCollection;
+using ActionCollectionAllCollectionsSignature = const QList<ActionCollection *> &(*)();
+using ActionCollectionVoidSignature = void (ActionCollection::*)();
+using ActionCollectionStringSignature = QString (ActionCollection::*)() const;
+using ActionCollectionSetStringSignature = void (ActionCollection::*)(const QString &);
+using ActionCollectionParentClientSignature = const KisKXMLGUIClient *(ActionCollection::*)() const;
+using ActionCollectionWriteSettingsSignature = void (ActionCollection::*)(KConfigGroup *, bool, QAction *) const;
+using ActionCollectionCountSignature = int (ActionCollection::*)() const;
+using ActionCollectionEmptySignature = bool (ActionCollection::*)() const;
+using ActionCollectionActionIndexSignature = QAction *(ActionCollection::*)(int) const;
+using ActionCollectionActionNameSignature = QAction *(ActionCollection::*)(const QString &) const;
+using ActionCollectionActionsSignature = QList<QAction *> (ActionCollection::*)() const;
+using ActionCollectionUngroupedActionsSignature = const QList<QAction *> (ActionCollection::*)() const;
+using ActionCollectionActionGroupsSignature = const QList<QActionGroup *> (ActionCollection::*)() const;
+using ActionCollectionCategoriesSignature = QList<KisKActionCategory *> (ActionCollection::*)() const;
+using ActionCollectionCategorySignature = KisKActionCategory *(ActionCollection::*)(const QString &);
+using ActionCollectionTemplateAddSignature = QAction *(ActionCollection::*)(const QString &,
+                                                                            const QObject *,
+                                                                            const char *);
+using ActionCollectionStandardAddSignature = QAction *(ActionCollection::*)(StandardAction,
+                                                                            const QObject *,
+                                                                            const char *);
+using ActionCollectionNamedStandardAddSignature = QAction *(ActionCollection::*)(StandardAction,
+                                                                                 const QString &,
+                                                                                 const QObject *,
+                                                                                 const char *);
+using ActionCollectionActionAddSignature = QAction *(ActionCollection::*)(const QString &, QAction *);
+using ActionCollectionReceiverAddSignature = QAction *(ActionCollection::*)(const QString &,
+                                                                            const QObject *,
+                                                                            const char *);
+using ActionCollectionActionsAddSignature = void (ActionCollection::*)(const QList<QAction *> &);
+using ActionCollectionCategorizedAddSignature = QAction *(ActionCollection::*)(const QString &,
+                                                                               QAction *,
+                                                                               const QString &);
+using ActionCollectionActionMutationSignature = void (ActionCollection::*)(QAction *);
+using ActionCollectionTakeActionSignature = QAction *(ActionCollection::*)(QAction *);
+using ActionCollectionDefaultShortcutSignature = QKeySequence (ActionCollection::*)(QAction *) const;
+using ActionCollectionDefaultShortcutsSignature = QList<QKeySequence> (ActionCollection::*)(QAction *) const;
+using ActionCollectionSetDefaultShortcutSignature = void (ActionCollection::*)(QAction *, const QKeySequence &);
+using ActionCollectionSetDefaultShortcutsSignature = void (ActionCollection::*)(QAction *, const QList<QKeySequence> &);
+using ActionCollectionShortcutConfigurableSignature = bool (ActionCollection::*)(QAction *) const;
+using ActionCollectionSetShortcutConfigurableSignature = void (ActionCollection::*)(QAction *, bool);
+using ActionCollectionAssociateWidgetSignature = void (ActionCollection::*)(QWidget *) const;
+using ActionCollectionMutateWidgetSignature = void (ActionCollection::*)(QWidget *);
+using ActionCollectionAssociatedWidgetsSignature = QList<QWidget *> (ActionCollection::*)() const;
+using ActionCollectionNotificationSignature = void (ActionCollection::*)(QAction *);
+
 #define ASSERT_STANDARD_ACTION_SIGNATURE(functionName, signatureType)                                                  \
     static_assert(std::is_same_v<decltype(static_cast<signatureType>(&KStandardAction::functionName)), signatureType>)
+
+#define ASSERT_ACTION_COLLECTION_SIGNATURE(functionName, signatureType)                                                \
+    static_assert(std::is_same_v<decltype(static_cast<signatureType>(&ActionCollection::functionName)), signatureType>)
 
 } // namespace
 
@@ -41,6 +94,11 @@ private Q_SLOTS:
     void standardActionViewNavigationSignaturesRemainStable();
     void standardActionToolAndSettingsSignaturesRemainStable();
     void standardActionHelpSignaturesRemainStable();
+    void actionCollectionIdentityAndConfigurationSignaturesRemainStable();
+    void actionCollectionLookupAndClassificationSignaturesRemainStable();
+    void actionCollectionMembershipMutationSignaturesRemainStable();
+    void actionCollectionShortcutSignaturesRemainStable();
+    void actionCollectionAssociationAndNotificationSignaturesRemainStable();
 };
 
 void KStandardActionEnumContractTest::standardActionIdsRemainStable()
@@ -179,6 +237,110 @@ void KStandardActionEnumContractTest::standardActionHelpSignaturesRemainStable()
     ASSERT_STANDARD_ACTION_SIGNATURE(aboutKDE, ReceiverActionSignature);
 }
 
+void KStandardActionEnumContractTest::actionCollectionIdentityAndConfigurationSignaturesRemainStable()
+{
+    static_assert(std::is_class_v<ActionCollection>);
+    static_assert(std::is_base_of_v<QObject, ActionCollection>);
+    static_assert(std::is_constructible_v<ActionCollection, QObject *>);
+    static_assert(std::is_constructible_v<ActionCollection, QObject *, const QString &>);
+    static_assert(!std::is_convertible_v<QObject *, ActionCollection>);
+    static_assert(std::is_destructible_v<ActionCollection>);
+    static_assert(std::has_virtual_destructor_v<ActionCollection>);
+
+    ASSERT_ACTION_COLLECTION_SIGNATURE(allCollections, ActionCollectionAllCollectionsSignature);
+    ASSERT_ACTION_COLLECTION_SIGNATURE(componentName, ActionCollectionStringSignature);
+    ASSERT_ACTION_COLLECTION_SIGNATURE(setComponentName, ActionCollectionSetStringSignature);
+    ASSERT_ACTION_COLLECTION_SIGNATURE(componentDisplayName, ActionCollectionStringSignature);
+    ASSERT_ACTION_COLLECTION_SIGNATURE(setComponentDisplayName, ActionCollectionSetStringSignature);
+    ASSERT_ACTION_COLLECTION_SIGNATURE(parentGUIClient, ActionCollectionParentClientSignature);
+    ASSERT_ACTION_COLLECTION_SIGNATURE(configGroup, ActionCollectionStringSignature);
+    ASSERT_ACTION_COLLECTION_SIGNATURE(setConfigGroup, ActionCollectionSetStringSignature);
+    ASSERT_ACTION_COLLECTION_SIGNATURE(readSettings, ActionCollectionVoidSignature);
+    ASSERT_ACTION_COLLECTION_SIGNATURE(writeSettings, ActionCollectionWriteSettingsSignature);
+    static_assert(std::is_same_v<decltype(std::declval<const ActionCollection &>().writeSettings()), void>);
+}
+
+void KStandardActionEnumContractTest::actionCollectionLookupAndClassificationSignaturesRemainStable()
+{
+    ASSERT_ACTION_COLLECTION_SIGNATURE(count, ActionCollectionCountSignature);
+    ASSERT_ACTION_COLLECTION_SIGNATURE(isEmpty, ActionCollectionEmptySignature);
+    ASSERT_ACTION_COLLECTION_SIGNATURE(action, ActionCollectionActionIndexSignature);
+    ASSERT_ACTION_COLLECTION_SIGNATURE(action, ActionCollectionActionNameSignature);
+    ASSERT_ACTION_COLLECTION_SIGNATURE(actions, ActionCollectionActionsSignature);
+    ASSERT_ACTION_COLLECTION_SIGNATURE(actionsWithoutGroup, ActionCollectionUngroupedActionsSignature);
+    ASSERT_ACTION_COLLECTION_SIGNATURE(actionGroups, ActionCollectionActionGroupsSignature);
+    ASSERT_ACTION_COLLECTION_SIGNATURE(categories, ActionCollectionCategoriesSignature);
+    ASSERT_ACTION_COLLECTION_SIGNATURE(getCategory, ActionCollectionCategorySignature);
+}
+
+void KStandardActionEnumContractTest::actionCollectionMembershipMutationSignaturesRemainStable()
+{
+    ASSERT_ACTION_COLLECTION_SIGNATURE(clear, ActionCollectionVoidSignature);
+    ASSERT_ACTION_COLLECTION_SIGNATURE(add<QAction>, ActionCollectionTemplateAddSignature);
+    ASSERT_ACTION_COLLECTION_SIGNATURE(addAction, ActionCollectionStandardAddSignature);
+    ASSERT_ACTION_COLLECTION_SIGNATURE(addAction, ActionCollectionNamedStandardAddSignature);
+    ASSERT_ACTION_COLLECTION_SIGNATURE(addAction, ActionCollectionActionAddSignature);
+    ASSERT_ACTION_COLLECTION_SIGNATURE(addAction, ActionCollectionReceiverAddSignature);
+    ASSERT_ACTION_COLLECTION_SIGNATURE(addActions, ActionCollectionActionsAddSignature);
+    ASSERT_ACTION_COLLECTION_SIGNATURE(addCategorizedAction, ActionCollectionCategorizedAddSignature);
+    ASSERT_ACTION_COLLECTION_SIGNATURE(removeAction, ActionCollectionActionMutationSignature);
+    ASSERT_ACTION_COLLECTION_SIGNATURE(takeAction, ActionCollectionTakeActionSignature);
+
+    static_assert(
+        std::is_same_v<decltype(std::declval<ActionCollection &>().add<QAction>(std::declval<const QString &>())),
+                       QAction *>);
+    static_assert(
+        std::is_same_v<decltype(std::declval<ActionCollection &>().addAction(StandardAction::ActionNone)), QAction *>);
+    static_assert(
+        std::is_same_v<decltype(std::declval<ActionCollection &>().addAction(StandardAction::ActionNone,
+                                                                             std::declval<const QString &>())),
+                       QAction *>);
+    static_assert(
+        std::is_same_v<decltype(std::declval<ActionCollection &>().addAction(std::declval<const QString &>(),
+                                                                             static_cast<QAction *>(nullptr))),
+                       QAction *>);
+    static_assert(
+        std::is_same_v<decltype(std::declval<ActionCollection &>().addAction(std::declval<const QString &>())),
+                       QAction *>);
+}
+
+void KStandardActionEnumContractTest::actionCollectionShortcutSignaturesRemainStable()
+{
+    ASSERT_ACTION_COLLECTION_SIGNATURE(defaultShortcut, ActionCollectionDefaultShortcutSignature);
+    ASSERT_ACTION_COLLECTION_SIGNATURE(defaultShortcuts, ActionCollectionDefaultShortcutsSignature);
+    ASSERT_ACTION_COLLECTION_SIGNATURE(setDefaultShortcut, ActionCollectionSetDefaultShortcutSignature);
+    ASSERT_ACTION_COLLECTION_SIGNATURE(setDefaultShortcuts, ActionCollectionSetDefaultShortcutsSignature);
+    ASSERT_ACTION_COLLECTION_SIGNATURE(isShortcutsConfigurable, ActionCollectionShortcutConfigurableSignature);
+    ASSERT_ACTION_COLLECTION_SIGNATURE(setShortcutsConfigurable, ActionCollectionSetShortcutConfigurableSignature);
+    ASSERT_ACTION_COLLECTION_SIGNATURE(updateShortcuts, ActionCollectionVoidSignature);
+}
+
+void KStandardActionEnumContractTest::actionCollectionAssociationAndNotificationSignaturesRemainStable()
+{
+    ASSERT_ACTION_COLLECTION_SIGNATURE(associateWidget, ActionCollectionAssociateWidgetSignature);
+    ASSERT_ACTION_COLLECTION_SIGNATURE(addAssociatedWidget, ActionCollectionMutateWidgetSignature);
+    ASSERT_ACTION_COLLECTION_SIGNATURE(removeAssociatedWidget, ActionCollectionMutateWidgetSignature);
+    ASSERT_ACTION_COLLECTION_SIGNATURE(associatedWidgets, ActionCollectionAssociatedWidgetsSignature);
+    ASSERT_ACTION_COLLECTION_SIGNATURE(clearAssociatedWidgets, ActionCollectionVoidSignature);
+    ASSERT_ACTION_COLLECTION_SIGNATURE(inserted, ActionCollectionNotificationSignature);
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+#elif defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
+    ASSERT_ACTION_COLLECTION_SIGNATURE(actionHighlighted, ActionCollectionNotificationSignature);
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#elif defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
+    ASSERT_ACTION_COLLECTION_SIGNATURE(actionHovered, ActionCollectionNotificationSignature);
+    ASSERT_ACTION_COLLECTION_SIGNATURE(actionTriggered, ActionCollectionNotificationSignature);
+}
+
+#undef ASSERT_ACTION_COLLECTION_SIGNATURE
 #undef ASSERT_STANDARD_ACTION_SIGNATURE
 
 QTEST_GUILESS_MAIN(KStandardActionEnumContractTest)
