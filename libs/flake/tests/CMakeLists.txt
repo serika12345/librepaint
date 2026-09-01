@@ -314,6 +314,19 @@ target_include_directories(KoShapeStrokeSchemaContractTest PRIVATE
 target_compile_definitions(KoShapeStrokeSchemaContractTest PRIVATE kritaflake_EXPORTS)
 
 kis_add_test(
+    KoCanvasResourceProviderSchemaContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KoCanvasResourceProviderSchemaContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/resources
+)
+target_compile_definitions(KoCanvasResourceProviderSchemaContractTest PRIVATE kritaflake_EXPORTS)
+
+kis_add_test(
     TestSvgParser.cpp
     TEST_NAME TestSvgParser
     LINK_LIBRARIES kritaflake kritatestsdk
