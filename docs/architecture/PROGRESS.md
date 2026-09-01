@@ -2,12 +2,28 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 23:16 JST
+- 更新日時: 2026-09-01 23:19 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
+
+### 第132便の先行監査計画
+
+- 監査共通基点は`f1f8b07b94e73740622b256166e0ac429cb6ffb8`、入力は`build/tdd-macos/public-api-missing-g132.json`である。3担当は`auditing`の読み取り専用とし、
+  製品・試験・CMake・script・台帳・文書を変更せず、構築、試験、Git操作、追加委任も行わない。一つの公開責務から25 API以上を最大5枠へ固定し、既存限定対象、
+  header-only値面、または公開headerを変えない一sourceのOBJECT一対一移管で、製品共有ライブラリーと`kritatestsdk`へ接続しない候補だけを採用する。
+- `g132-color-source-schema-audit`は`plugins/paintops/libpaintop/kis_color_source.h`の残り45 APIを主候補とし、`libs/pigment/KoColor.h`の45 APIを比較する。paintop色源の
+  継承・操作schemaまたはpixel色値の一責務を、color source・paint device・gradient・color space・変換・paint information・描画・大域状態の実体化なしで25 API以上閉じる。
+- `g132-distance-tile-schema-audit`は`libs/image/kis_distance_information.h`の残り43 APIを主候補とし、`libs/image/tiles3/kis_tile_data_interface.h`の41 APIを比較する。
+  stroke距離・timing状態またはtile data lifetime schemaの一責務を、paint information・spacing・timing・XML・tile pool・buffer・locking・大域状態の実体化なしで
+  25 API以上閉じる。
+- `g132-tag-snap-strategy-schema-audit`は`libs/resources/KisTagModel.h`の残り38 APIを主候補とし、`libs/flake/KoSnapStrategy.h`の38 APIを比較する。tag model操作面または
+  snapping strategy継承面の一責務を、resource database・storage・model実体・shape・canvas・path・event・描画・大域状態の実体化なしで25 API以上閉じる。
+- 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから契約先または
+  移動先、許可path、固有停止条件、比較候補の棄却根拠を含む。既存`build/tdd-macos`の計画は読み取り専用で測定し、構成や構築を開始しない。3報告後にpath、CMake、
+  試験source、生成物が重ならない候補だけを担当票へ進める。
 
 ### 第131便の先行監査計画
 
