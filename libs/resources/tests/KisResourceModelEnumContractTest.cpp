@@ -25,6 +25,11 @@ private Q_SLOTS:
     void allResourcesModelTransferSchemaRemainsStable();
     void allResourcesModelPersistenceSchemaRemainsStable();
     void allResourcesModelStateSchemaRemainsStable();
+    void resourceModelTypeAndFilterSchemaRemainsStable();
+    void resourceModelLookupSchemaRemainsStable();
+    void resourceModelTransferSchemaRemainsStable();
+    void resourceModelPersistenceSchemaRemainsStable();
+    void resourceModelStateSchemaRemainsStable();
     void tagResourceModelTypeAndViewSchemaRemainsStable();
     void tagResourceModelFilterSchemaRemainsStable();
     void tagResourceModelRelationsSchemaRemainsStable();
@@ -173,6 +178,89 @@ void KisResourceModelEnumContractTest::allResourcesModelPersistenceSchemaRemains
 void KisResourceModelEnumContractTest::allResourcesModelStateSchemaRemainsStable()
 {
     using Model = KisAllResourcesModel;
+
+    static_assert(std::is_same_v<decltype(&Model::setResourceActive), bool (Model::*)(const QModelIndex &, bool)>);
+    static_assert(
+        std::is_same_v<decltype(&Model::setResourceMetaData), bool (Model::*)(KoResourceSP, QMap<QString, QVariant>)>);
+}
+
+void KisResourceModelEnumContractTest::resourceModelTypeAndFilterSchemaRemainsStable()
+{
+    using Model = KisResourceModel;
+
+    static_assert(std::is_class_v<Model>);
+    static_assert(std::is_destructible_v<Model>);
+    static_assert(std::has_virtual_destructor_v<Model>);
+    static_assert(std::is_constructible_v<Model, const QString &>);
+    static_assert(std::is_constructible_v<Model, const QString &, QObject *>);
+
+    static_assert(std::is_same_v<decltype(&Model::setResourceFilter), void (Model::*)(Model::ResourceFilter)>);
+    static_assert(std::is_same_v<decltype(&Model::setStorageFilter), void (Model::*)(Model::StorageFilter)>);
+    static_assert(std::is_same_v<decltype(&Model::showOnlyUntaggedResources), void (Model::*)(bool)>);
+    static_assert(std::is_same_v<decltype(&Model::roleNames), QHash<int, QByteArray> (Model::*)() const>);
+}
+
+void KisResourceModelEnumContractTest::resourceModelLookupSchemaRemainsStable()
+{
+    using Model = KisResourceModel;
+
+    static_assert(std::is_same_v<decltype(&Model::resourceForIndex), KoResourceSP (Model::*)(QModelIndex) const>);
+    static_assert(std::is_same_v<decltype(&Model::indexForResource), QModelIndex (Model::*)(KoResourceSP) const>);
+    static_assert(std::is_same_v<decltype(&Model::indexForResourceId), QModelIndex (Model::*)(int) const>);
+    static_assert(std::is_same_v<decltype(&Model::resourceForId), KoResourceSP (Model::*)(int) const>);
+    static_assert(
+        std::is_same_v<decltype(&Model::resourcesForFilename), QVector<KoResourceSP> (Model::*)(QString) const>);
+    static_assert(std::is_same_v<decltype(&Model::resourcesForName), QVector<KoResourceSP> (Model::*)(QString) const>);
+    static_assert(std::is_same_v<decltype(&Model::resourcesForMD5), QVector<KoResourceSP> (Model::*)(QString) const>);
+    static_assert(std::is_same_v<decltype(&Model::tagsForResource), QVector<KisTagSP> (Model::*)(int) const>);
+
+    static_assert(std::is_same_v<decltype(std::declval<const Model &>().resourceForIndex()), KoResourceSP>);
+}
+
+void KisResourceModelEnumContractTest::resourceModelTransferSchemaRemainsStable()
+{
+    using Model = KisResourceModel;
+
+    static_assert(std::is_same_v<decltype(&Model::importResourceFile),
+                                 KoResourceSP (Model::*)(const QString &, bool, const QString &)>);
+    static_assert(std::is_same_v<decltype(&Model::importResource),
+                                 KoResourceSP (Model::*)(const QString &, QIODevice *, bool, const QString &)>);
+    static_assert(std::is_same_v<decltype(&Model::importWillOverwriteResource),
+                                 bool (Model::*)(const QString &, const QString &) const>);
+    static_assert(std::is_same_v<decltype(&Model::exportResource), bool (Model::*)(KoResourceSP, QIODevice *)>);
+
+    static_assert(
+        std::is_same_v<decltype(std::declval<Model &>().importResourceFile(std::declval<const QString &>(), false)),
+                       KoResourceSP>);
+    static_assert(std::is_same_v<decltype(std::declval<Model &>().importResource(std::declval<const QString &>(),
+                                                                                 static_cast<QIODevice *>(nullptr),
+                                                                                 false)),
+                                 KoResourceSP>);
+    static_assert(std::is_same_v<decltype(std::declval<const Model &>().importWillOverwriteResource(
+                                     std::declval<const QString &>())),
+                                 bool>);
+}
+
+void KisResourceModelEnumContractTest::resourceModelPersistenceSchemaRemainsStable()
+{
+    using Model = KisResourceModel;
+
+    static_assert(std::is_same_v<decltype(&Model::addResource), bool (Model::*)(KoResourceSP, const QString &)>);
+    static_assert(std::is_same_v<decltype(&Model::addResourceDeduplicateFileName),
+                                 bool (Model::*)(KoResourceSP, const QString &)>);
+    static_assert(std::is_same_v<decltype(&Model::updateResource), bool (Model::*)(KoResourceSP)>);
+    static_assert(std::is_same_v<decltype(&Model::reloadResource), bool (Model::*)(KoResourceSP)>);
+    static_assert(std::is_same_v<decltype(&Model::renameResource), bool (Model::*)(KoResourceSP, const QString &)>);
+
+    static_assert(std::is_same_v<decltype(std::declval<Model &>().addResource(std::declval<KoResourceSP>())), bool>);
+    static_assert(
+        std::is_same_v<decltype(std::declval<Model &>().addResourceDeduplicateFileName(std::declval<KoResourceSP>())),
+                       bool>);
+}
+
+void KisResourceModelEnumContractTest::resourceModelStateSchemaRemainsStable()
+{
+    using Model = KisResourceModel;
 
     static_assert(std::is_same_v<decltype(&Model::setResourceActive), bool (Model::*)(const QModelIndex &, bool)>);
     static_assert(
