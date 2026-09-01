@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 19239
+    "expectedMissingApis": 19214
   },
   "contracts": [
     {
@@ -33438,6 +33438,76 @@
       "apis": [
         "method:KisOpenGL::convertConfigToOpenGLRenderer(QString renderer)",
         "method:KisOpenGL::convertOpenGLRendererToConfig(OpenGLRenderer renderer)"
+      ]
+    },
+    {
+      "target": "KisTagModelSchemaContractTest",
+      "source": "libs/resources/tests/KisTagModelSchemaContractTest.cpp",
+      "test": "KisTagModelSchemaContractTest::modelTypesDescribeOwnershipAndHierarchy",
+      "behavior": "タグ模型の公開型は抽象操作、全タグ表、絞込み模型の継承関係と共有所有型を保ち、既定の共有pointerをnullで初期化する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisAllTagsModelSP",
+        "class:KisAbstractTagModel",
+        "class:KisAllTagsModel",
+        "class:KisTagModel"
+      ]
+    },
+    {
+      "target": "KisTagModelSchemaContractTest",
+      "source": "libs/resources/tests/KisTagModelSchemaContractTest.cpp",
+      "test": "KisTagModelSchemaContractTest::columnsRemainStable",
+      "behavior": "全タグ模型の列schemaは識別子、URL、名前、説明、資源種別、有効状態、タグ役割の連続した公開順序を保つ。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KisAllTagsModel::Columns",
+        "enumerator:KisAllTagsModel::Columns::Active",
+        "enumerator:KisAllTagsModel::Columns::Comment",
+        "enumerator:KisAllTagsModel::Columns::Id",
+        "enumerator:KisAllTagsModel::Columns::KisTagRole",
+        "enumerator:KisAllTagsModel::Columns::Name",
+        "enumerator:KisAllTagsModel::Columns::ResourceType",
+        "enumerator:KisAllTagsModel::Columns::Url"
+      ]
+    },
+    {
+      "target": "KisTagModelSchemaContractTest",
+      "source": "libs/resources/tests/KisTagModelSchemaContractTest.cpp",
+      "test": "KisTagModelSchemaContractTest::pseudoRowsKeepStableIdsAndUrls",
+      "behavior": "全タグ模型の全件・未分類擬似行は負の識別値と相異なる安定URLを対応付ける。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KisAllTagsModel::Ids",
+        "enumerator:KisAllTagsModel::Ids::All",
+        "enumerator:KisAllTagsModel::Ids::AllUntagged",
+        "method:KisAllTagsModel::urlAll()",
+        "method:KisAllTagsModel::urlAllUntagged()"
+      ]
+    },
+    {
+      "target": "KisTagModelSchemaContractTest",
+      "source": "libs/resources/tests/KisTagModelSchemaContractTest.cpp",
+      "test": "KisTagModelSchemaContractTest::tagFilterValuesRemainStable",
+      "behavior": "タグ絞込み値は無効タグ、有効タグ、全タグの公開順序を安定して保つ。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KisTagModel::TagFilter",
+        "enumerator:KisTagModel::TagFilter::ShowActiveTags",
+        "enumerator:KisTagModel::TagFilter::ShowAllTags",
+        "enumerator:KisTagModel::TagFilter::ShowInactiveTags"
+      ]
+    },
+    {
+      "target": "KisTagModelSchemaContractTest",
+      "source": "libs/resources/tests/KisTagModelSchemaContractTest.cpp",
+      "test": "KisTagModelSchemaContractTest::storageFilterValuesRemainStable",
+      "behavior": "保存場所絞込み値は無効保存場所、有効保存場所、全保存場所の公開順序を安定して保つ。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KisTagModel::StorageFilter",
+        "enumerator:KisTagModel::StorageFilter::ShowActiveStorages",
+        "enumerator:KisTagModel::StorageFilter::ShowAllStorages",
+        "enumerator:KisTagModel::StorageFilter::ShowInactiveStorages"
       ]
     }
   ]

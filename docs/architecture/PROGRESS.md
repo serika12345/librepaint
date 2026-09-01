@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 10:22 JST
+- 更新日時: 2026-09-01 10:28 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -98,8 +98,8 @@
 
 ### 第107並列便の担当計画
 
-- `g107-resource-tag-schema`は`ready`、実装基点は`1eb31a411b23887aad1ff4304b269846ff5540b1`、専用worktreeは
-  `/Users/masato/Documents/librepaint-g107-resource-tag-schema`、構築許可は`granted`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。
+- `g107-resource-tag-schema`は`integrated`、実装基点は`1eb31a411b23887aad1ff4304b269846ff5540b1`、削除済みworktreeは
+  `/Users/masato/Documents/librepaint-g107-resource-tag-schema`、構築許可は`granted`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止した。
   翻訳catalog `po/`を疎な取得から除外し、worktree-local `build/tdd-macos`と`./scripts/run-shared-test-env`で主環境・compiler cacheを共有する。
 - 対象は`libs/resources/KisTagModel.h`の共有pointer aliasと3型4 API、`Columns`と7列挙子8 API、`Ids`・2列挙子・2 inline URL 5 API、
   `TagFilter`・3列挙子4 API、`StorageFilter`・3列挙子4 APIの全25 APIである。開始headerから新規
@@ -108,6 +108,36 @@
 - 担当は変更なし計画と直接依存、未知対象診断、限定構築、5枠、対象CTest、20回反復、`KisResourceModelEnumContractTest`、無作業再構築、動的接続、nm、
   source構文、公開API検査、`verify-quick`を確認する。模型の生成・破棄・metaobject、行data・tag操作、SQL、filesystem、資源registry、製品shared、
   `kritatestsdk`、公開header・製品OBJECT、停止線超過が必要なら止める。台帳、進捗文書、不足報告は調整担当が所有する。
+
+### 第107並列便の統合結果
+
+- `g107-resource-tag-schema`は受渡しcommit `0f0f30e76d28`を統合commit `68d1e22712`として取り込んだ。開始`libs/resources/KisTagModel.h`から新規
+  `libs/resources/tests/KisTagModelSchemaContractTest.cpp`の5枠へ、公開型と共有所有、列schema、全件・未分類の擬似行、tag絞込み、storage絞込みの25 APIを
+  対応付け、`libs/resources/tests/CMakeLists.txt`へheader限定対象を追加した。模型を生成せず、SQL、filesystem、資源registry、製品`kritaresources`へ
+  接続していない。
+- 主macOS環境では5枠、対象CTest、20回反復、近傍`KisResourceModelEnumContractTest`、再構築時の無コンパイル・無リンク、動的接続を確認した。新対象は
+  4工程・9入力、製品`kritaresources`は149工程・325入力で不変である。動的依存はQt Core・Gui・Test、KF I18n、OS基盤だけで、製品shared、
+  `kritatestsdk`を含まない。公開API契約検査は25 APIを重複なく受理し、29,838件中10,624件対応、19,214件未対応となった。最新入力は
+  `build/tdd-macos/public-api-missing-g108.json`である。Linux、全native検証、製品全体構築は実行していない。
+- 新報告と受渡しpatchの同一性を確認後、旧`public-api-missing-g107.json` 4.7 MB、cleanな担当639 MBとbranchを削除した。主`build/tdd-macos`と
+  共有compiler cacheは次便の限定構築へ再利用する。
+
+### 第108並列便の監査計画
+
+- 共通基点は`68d1e227120d6efb61f278e7da554cafd22df9be`、入力は`build/tdd-macos/public-api-missing-g108.json`である。3担当は`auditing`の
+  読み取り専用とし、製品・試験・CMake・台帳・文書を変更せず、構築、試験、Git操作、追加委任も行わない。一つの公開責務から25 API以上を最大5枠へ固定し、
+  既存限定対象、header-only値面、または公開headerを変えない一sourceのOBJECT一対一移管で製品shared libraryと`kritatestsdk`へ接続しない候補だけを採用する。
+- `g108-svg-text-values-audit`は`libs/flake/text/KoSvgText.h` 212 API、`libs/flake/text/KoSvgTextShape_p.h` 75 API、
+  `libs/flake/text/lager/KoSvgTextPropertiesModel.h` 154 APIを比較し、font feature・variation、文字配置の残り値、または文字property状態の一責務を選ぶ。実shape、
+  font registry、HarfBuzz処理、描画、lager大域状態へ到達する経路は採用しない。第105・106便のSVG APIと重複させない。
+- `g108-psd-values-audit`は`libs/psdutils/psd.h` 197 API、`libs/psd/psd_resource_block.h` 137 API、
+  `libs/psd/psd_additional_layer_info_block.h` 113 APIを比較し、第99〜106便と重ならない列挙、記録値、既定値、符号付き寸法、copyの一責務を選ぶ。実image、
+  paint device、色空間・pattern registry、ASL、filesystem、所有不明の生pointerへ到達する経路は採用しない。
+- `g108-preferences-values-audit`は`libs/ui/dialogs/kis_dlg_preferences.h` 126 API、`libs/application/kis_config.h` 441 API、
+  `libs/image/kis_image_config.h` 105 APIを比較し、表示設定の列挙・局所値、application設定schema、またはimage設定値の一責務を選ぶ。実dialog・application、
+  `KisConfig`・`QSettings` I/O、filesystem、大域状態を使わず、既存`KisDlgPreferencesEnumContractTest`等の限定対象へ閉じる候補を優先する。
+- 各報告は完全なAPI識別子、最大5枠の観測挙動、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、
+  開始pathから追加・移動先path、許可path、固有停止条件、比較・除外候補の根拠を含む。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
 
 ### 第105並列便の監査計画
 
