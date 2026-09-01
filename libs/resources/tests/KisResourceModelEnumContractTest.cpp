@@ -4,6 +4,7 @@
  */
 
 #include <KisResourceModel.h>
+#include <KisResourceStorage.h>
 #include <KisTagResourceModel.h>
 
 #include <QTest>
@@ -35,6 +36,11 @@ private Q_SLOTS:
     void tagResourceModelRelationsSchemaRemainsStable();
     void tagResourceModelTransferSchemaRemainsStable();
     void tagResourceModelMutationSchemaRemainsStable();
+    void storageTypeIdentitySchemaRemainsStable();
+    void storageLifetimeSchemaRemainsStable();
+    void storageTypeLabelSchemaRemainsStable();
+    void storageIdentityQuerySchemaRemainsStable();
+    void storageStateQuerySchemaRemainsStable();
 };
 
 void KisResourceModelEnumContractTest::columnValuesRemainStable()
@@ -350,6 +356,82 @@ void KisResourceModelEnumContractTest::tagResourceModelMutationSchemaRemainsStab
     static_assert(std::is_same_v<decltype(&Model::setResourceActive), bool (Model::*)(const QModelIndex &, bool)>);
     static_assert(
         std::is_same_v<decltype(&Model::setResourceMetaData), bool (Model::*)(KoResourceSP, QMap<QString, QVariant>)>);
+}
+
+void KisResourceModelEnumContractTest::storageTypeIdentitySchemaRemainsStable()
+{
+    using Storage = KisResourceStorage;
+    using StorageType = Storage::StorageType;
+
+    static_assert(std::is_same_v<KisResourceStorageSP, QSharedPointer<Storage>>);
+    static_assert(std::is_class_v<Storage>);
+    static_assert(std::is_enum_v<StorageType>);
+    static_assert(std::is_same_v<std::underlying_type_t<StorageType>, int>);
+
+    static_assert(int(StorageType::Unknown) == 1);
+    static_assert(int(StorageType::Folder) == 2);
+    static_assert(int(StorageType::Bundle) == 3);
+    static_assert(int(StorageType::AdobeBrushLibrary) == 4);
+    static_assert(int(StorageType::AdobeStyleLibrary) == 5);
+    static_assert(int(StorageType::Memory) == 6);
+    static_assert(int(StorageType::FontStorage) == 7);
+}
+
+void KisResourceModelEnumContractTest::storageLifetimeSchemaRemainsStable()
+{
+    using Storage = KisResourceStorage;
+
+    static_assert(std::is_constructible_v<Storage, const QString &, Storage::StorageType>);
+    static_assert(std::is_constructible_v<Storage, const QString &>);
+    static_assert(std::is_copy_constructible_v<Storage>);
+    static_assert(std::is_destructible_v<Storage>);
+    static_assert(std::is_copy_assignable_v<Storage>);
+    static_assert(std::is_same_v<decltype(&Storage::operator=), Storage &(Storage::*)(const Storage &)>);
+    static_assert(std::is_same_v<decltype(&Storage::clone), KisResourceStorageSP (Storage::*)() const>);
+}
+
+void KisResourceModelEnumContractTest::storageTypeLabelSchemaRemainsStable()
+{
+    using Storage = KisResourceStorage;
+    using StorageType = Storage::StorageType;
+    using TypeLabelFunction = QString (*)(StorageType);
+
+    static_assert(std::is_same_v<decltype(&Storage::storageTypeToString), TypeLabelFunction>);
+    static_assert(std::is_same_v<decltype(&Storage::storageTypeToUntranslatedString), TypeLabelFunction>);
+
+    const std::array<std::pair<StorageType, const char *>, 7> labels{{
+        {StorageType::Unknown, "Unknown"},
+        {StorageType::Folder, "Folder"},
+        {StorageType::Bundle, "Bundle"},
+        {StorageType::AdobeBrushLibrary, "Adobe Brush Library"},
+        {StorageType::AdobeStyleLibrary, "Adobe Style Library"},
+        {StorageType::Memory, "Memory"},
+        {StorageType::FontStorage, "Font Storage"},
+    }};
+
+    for (const auto &[storageType, expectedLabel] : labels) {
+        QCOMPARE(Storage::storageTypeToUntranslatedString(storageType), QString::fromLatin1(expectedLabel));
+    }
+}
+
+void KisResourceModelEnumContractTest::storageIdentityQuerySchemaRemainsStable()
+{
+    using Storage = KisResourceStorage;
+
+    static_assert(std::is_same_v<decltype(&Storage::name), QString (Storage::*)() const>);
+    static_assert(std::is_same_v<decltype(&Storage::location), QString (Storage::*)() const>);
+    static_assert(std::is_same_v<decltype(&Storage::type), Storage::StorageType (Storage::*)() const>);
+}
+
+void KisResourceModelEnumContractTest::storageStateQuerySchemaRemainsStable()
+{
+    using Storage = KisResourceStorage;
+
+    static_assert(std::is_same_v<decltype(&Storage::valid), bool (Storage::*)() const>);
+    static_assert(std::is_same_v<decltype(&Storage::thumbnail), QImage (Storage::*)() const>);
+    static_assert(std::is_same_v<decltype(&Storage::timestamp), QDateTime (Storage::*)() const>);
+    static_assert(std::is_same_v<decltype(&Storage::timeStampForResource),
+                                 QDateTime (Storage::*)(const QString &, const QString &) const>);
 }
 
 QTEST_GUILESS_MAIN(KisResourceModelEnumContractTest)
