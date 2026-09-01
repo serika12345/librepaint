@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 12:15 JST
+- 更新日時: 2026-09-01 12:17 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -422,6 +422,15 @@
   製品計画は前後完全一致とする。初期不足診断、5枠、対象CTest、20回反復、`PsdByteIoContractTest`、無作業再構築、動的接続、未解決製品記号、source構文、
   公開API検査、`verify-quick`を確認する。`psd_gradient_color_stop::actual_color`、pointer参照解決、実色空間・image・device・資源registry、filesystem、製品shared、
   `kritatestsdk`、公開header・製品・CMake変更、新依存、停止線超過が必要なら止める。
+
+### 第112便の先行監査計画
+
+- `g112-resource-config-audit`は共通基点`23a2fc050c`と`build/tdd-macos/public-api-missing-g111.json`から第111便担当中の54 APIを除外して読む。
+  `libs/resources/KisResourceStorage.h` 116 API、`libs/image/kis_image_config.h` 105 API、`libs/resources/KisResourceModel.h` 76 APIを比較し、storage schema、image設定schema、
+  resource model schemaのうち一責務25 API以上を最大5枠で固定できる候補を一つ選ぶ。読み取り専用とし、編集、構築、試験、Git、追加委任は行わない。
+- 実storage・resource registry、SQL・filesystem、`QSettings`・KConfig I/O、image・paint device、GUI・大域状態へ到達せず、既存限定対象の未評価型検査または
+  header-only値面で製品sharedと`kritatestsdk`へ接続しない候補を優先する。完全なAPI識別子、最大5枠、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、
+  予測工程・入力と停止線、開始pathから契約先、許可path、比較候補の棄却根拠を報告する。
 
 ### 第105並列便の監査計画
 
