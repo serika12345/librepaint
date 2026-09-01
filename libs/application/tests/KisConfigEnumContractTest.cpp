@@ -50,6 +50,11 @@ private Q_SLOTS:
     void paletteAndPresetPolicySignaturesRemainStable();
     void brushHudAndPalettePresentationSignaturesRemainStable();
     void scratchpadResourceSurfaceSignaturesRemainStable();
+    void canvasCheckerboardSignaturesRemainStable();
+    void pixelGridSignaturesRemainStable();
+    void constructionGridSignaturesRemainStable();
+    void guidesPresentationSignaturesRemainStable();
+    void mdiCanvasBackgroundSignaturesRemainStable();
 };
 
 void KisConfigEnumContractTest::inputAndSamplerValuesRemainStable()
@@ -520,6 +525,88 @@ void KisConfigEnumContractTest::scratchpadResourceSurfaceSignaturesRemainStable(
     ASSERT_KIS_CONFIG_SIGNATURE(setScratchpadVisible, void (KisConfig::*)(bool));
 
     static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().scratchpadVisible()), bool>);
+}
+
+void KisConfigEnumContractTest::canvasCheckerboardSignaturesRemainStable()
+{
+    ASSERT_KIS_CONFIG_SIGNATURE(canvasBorderColor, QColor (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setCanvasBorderColor, void (KisConfig::*)(const QColor &) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(checkSize, qint32 (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setCheckSize, void (KisConfig::*)(qint32) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(checkersColor1, QColor (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setCheckersColor1, void (KisConfig::*)(const QColor &) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(checkersColor2, QColor (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setCheckersColor2, void (KisConfig::*)(const QColor &) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(scrollCheckers, bool (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setScrollingCheckers, void (KisConfig::*)(bool) const);
+
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().canvasBorderColor()), QColor>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().checkSize()), qint32>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().checkersColor1()), QColor>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().checkersColor2()), QColor>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().scrollCheckers()), bool>);
+}
+
+void KisConfigEnumContractTest::pixelGridSignaturesRemainStable()
+{
+    ASSERT_KIS_CONFIG_SIGNATURE(pixelGridEnabled, bool (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(enablePixelGrid, void (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(getPixelGridColor, QColor (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setPixelGridColor, void (KisConfig::*)(const QColor &) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(getPixelGridDrawingThreshold, qreal (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setPixelGridDrawingThreshold, void (KisConfig::*)(qreal) const);
+
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().pixelGridEnabled()), bool>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().getPixelGridColor()), QColor>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().getPixelGridDrawingThreshold()), qreal>);
+}
+
+void KisConfigEnumContractTest::constructionGridSignaturesRemainStable()
+{
+    ASSERT_KIS_CONFIG_SIGNATURE(getDefaultGridSpacing, QPoint (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setDefaultGridSpacing, void (KisConfig::*)(QPoint));
+    ASSERT_KIS_CONFIG_SIGNATURE(getGridMainStyle, quint32 (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setGridMainStyle, void (KisConfig::*)(quint32) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(getGridMainColor, QColor (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setGridMainColor, void (KisConfig::*)(const QColor &) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(getGridSubdivisionStyle, quint32 (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setGridSubdivisionStyle, void (KisConfig::*)(quint32) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(getGridSubdivisionColor, QColor (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setGridSubdivisionColor, void (KisConfig::*)(const QColor &) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(getGridIsoVerticalStyle, quint32 (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setGridIsoVerticalStyle, void (KisConfig::*)(quint32) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(getGridIsoVerticalColor, QColor (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setGridIsoVerticalColor, void (KisConfig::*)(const QColor &) const);
+
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().getDefaultGridSpacing()), QPoint>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().getGridMainStyle()), quint32>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().getGridMainColor()), QColor>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().getGridSubdivisionStyle()), quint32>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().getGridSubdivisionColor()), QColor>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().getGridIsoVerticalStyle()), quint32>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().getGridIsoVerticalColor()), QColor>);
+}
+
+void KisConfigEnumContractTest::guidesPresentationSignaturesRemainStable()
+{
+    ASSERT_KIS_CONFIG_SIGNATURE(guidesLineStyle, quint32 (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setGuidesLineStyle, void (KisConfig::*)(quint32) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(guidesColor, QColor (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setGuidesColor, void (KisConfig::*)(const QColor &) const);
+
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().guidesLineStyle()), quint32>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().guidesColor()), QColor>);
+}
+
+void KisConfigEnumContractTest::mdiCanvasBackgroundSignaturesRemainStable()
+{
+    ASSERT_KIS_CONFIG_SIGNATURE(getMDIBackgroundColor, QString (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setMDIBackgroundColor, void (KisConfig::*)(const QString &) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(getMDIBackgroundImage, QString (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setMDIBackgroundImage, void (KisConfig::*)(const QString &) const);
+
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().getMDIBackgroundColor()), QString>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().getMDIBackgroundImage()), QString>);
 }
 
 #undef ASSERT_KIS_CONFIG_SIGNATURE
