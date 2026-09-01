@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 16760
+    "expectedMissingApis": 16722
   },
   "contracts": [
     {
@@ -38842,6 +38842,89 @@
         "method:KisFrameDataSerializer::saveFrame(const Frame & frame)",
         "method:KisFrameDataSerializer::subtractFrames(Frame & dst,const Frame & src)",
         "method:KisFrameDataSerializer::~KisFrameDataSerializer()"
+      ]
+    },
+    {
+      "target": "KoSnapGuideSchemaContractTest",
+      "source": "libs/flake/tests/KoSnapGuideSchemaContractTest.cpp",
+      "test": "KoSnapGuideSchemaContractTest::snapGuideTypeAndStrategySchemaRemainsStable",
+      "behavior": "スナップガイドはclass、strategy列挙型とflags型、および11 strategyの固有bit値を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KoSnapGuide::Strategies",
+        "class:KoSnapGuide",
+        "enum:KoSnapGuide::Strategy",
+        "enumerator:KoSnapGuide::Strategy::BoundingBoxSnapping",
+        "enumerator:KoSnapGuide::Strategy::CustomSnapping",
+        "enumerator:KoSnapGuide::Strategy::DocumentBoundsSnapping",
+        "enumerator:KoSnapGuide::Strategy::DocumentCenterSnapping",
+        "enumerator:KoSnapGuide::Strategy::ExtensionSnapping",
+        "enumerator:KoSnapGuide::Strategy::GridSnapping",
+        "enumerator:KoSnapGuide::Strategy::GuideLineSnapping",
+        "enumerator:KoSnapGuide::Strategy::IntersectionSnapping",
+        "enumerator:KoSnapGuide::Strategy::NodeSnapping",
+        "enumerator:KoSnapGuide::Strategy::OrthogonalSnapping",
+        "enumerator:KoSnapGuide::Strategy::PixelSnapping"
+      ]
+    },
+    {
+      "target": "KoSnapGuideSchemaContractTest",
+      "source": "libs/flake/tests/KoSnapGuideSchemaContractTest.cpp",
+      "test": "KoSnapGuideSchemaContractTest::snapGuideLifetimeAndInteractionSignaturesRemainStable",
+      "behavior": "スナップガイドはcanvas関連付け構築と仮想破棄、位置・offset付き位置のsnap、guide描画、境界矩形取得の関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoSnapGuide::KoSnapGuide(KoCanvasBase * canvas)",
+        "method:KoSnapGuide::boundingRect()",
+        "method:KoSnapGuide::paint(QPainter & painter,const KoViewConverter & converter,const KoColorDisplayRendererInterface * displayRenderer)",
+        "method:KoSnapGuide::snap(const QPointF & mousePosition,Qt::KeyboardModifiers modifiers)",
+        "method:KoSnapGuide::snap(const QPointF & mousePosition,const QPointF & dragOffset,Qt::KeyboardModifiers modifiers)",
+        "method:KoSnapGuide::~KoSnapGuide()"
+      ]
+    },
+    {
+      "target": "KoSnapGuideSchemaContractTest",
+      "source": "libs/flake/tests/KoSnapGuideSchemaContractTest.cpp",
+      "test": "KoSnapGuideSchemaContractTest::snapGuideStrategyPolicySignaturesRemainStable",
+      "behavior": "スナップガイドは個別・flags単位のstrategy有効化、custom追加・上書き、全体有効化と各状態取得の関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoSnapGuide::addCustomSnapStrategy(KoSnapStrategy * customStrategy)",
+        "method:KoSnapGuide::enableSnapStrategies(Strategies strategies)",
+        "method:KoSnapGuide::enableSnapStrategy(Strategy type,bool value)",
+        "method:KoSnapGuide::enableSnapping(bool on)",
+        "method:KoSnapGuide::enabledSnapStrategies() const",
+        "method:KoSnapGuide::isSnapping() const",
+        "method:KoSnapGuide::isStrategyEnabled(Strategy type) const",
+        "method:KoSnapGuide::overrideSnapStrategy(Strategy type,KoSnapStrategy * strategy)"
+      ]
+    },
+    {
+      "target": "KoSnapGuideSchemaContractTest",
+      "source": "libs/flake/tests/KoSnapGuideSchemaContractTest.cpp",
+      "test": "KoSnapGuideSchemaContractTest::snapGuideAssociationSignaturesRemainStable",
+      "behavior": "スナップガイドは追加編集shape、canvas、除外path point・shapeの設定と取得、および状態初期化の関数型とconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoSnapGuide::additionalEditedShape() const",
+        "method:KoSnapGuide::canvas() const",
+        "method:KoSnapGuide::ignoredPathPoints() const",
+        "method:KoSnapGuide::ignoredShapes() const",
+        "method:KoSnapGuide::reset()",
+        "method:KoSnapGuide::setAdditionalEditedShape(KoShape * shape)",
+        "method:KoSnapGuide::setIgnoredPathPoints(const QList<KoPathPoint * > & ignoredPoints)",
+        "method:KoSnapGuide::setIgnoredShapes(const QList<KoShape * > & ignoredShapes)"
+      ]
+    },
+    {
+      "target": "KoSnapGuideSchemaContractTest",
+      "source": "libs/flake/tests/KoSnapGuideSchemaContractTest.cpp",
+      "test": "KoSnapGuideSchemaContractTest::snapGuideDistanceSignaturesRemainStable",
+      "behavior": "スナップガイドはpixel単位のsnap距離を整数で設定・取得する関数型とconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoSnapGuide::setSnapDistance(int distance)",
+        "method:KoSnapGuide::snapDistance() const"
       ]
     }
   ]
