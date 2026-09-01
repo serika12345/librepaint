@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 16935
+    "expectedMissingApis": 16893
   },
   "contracts": [
     {
@@ -38442,6 +38442,93 @@
         "method:KisSequentialIteratorBase::x() const",
         "method:KisSequentialIteratorBase::y() const",
         "method:KisSequentialIteratorBase::~KisSequentialIteratorBase()"
+      ]
+    },
+    {
+      "target": "KisConfigEnumContractTest",
+      "source": "libs/application/tests/KisConfigEnumContractTest.cpp",
+      "test": "KisConfigEnumContractTest::canvasNavigationAndZoomSignaturesRemainStable",
+      "behavior": "canvas navigationとzoom設定はmouse追従、scrollbar zoom、広域scroll、水平zoom、余白、stepのgetter既定値指定、setter型およびconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisConfig::rulersTrackMouse(bool defaultValue=false) const",
+        "method:KisConfig::scrollbarZoomEnabled(bool defaultValue=false) const",
+        "method:KisConfig::setRulersTrackMouse(bool value) const",
+        "method:KisConfig::setScrollbarZoomEnabled(bool enabled) const",
+        "method:KisConfig::setVastScrolling(const qreal factor) const",
+        "method:KisConfig::setZoomHorizontal(bool value)",
+        "method:KisConfig::setZoomMarginSize(int zoomMarginSize)",
+        "method:KisConfig::setZoomSteps(int steps)",
+        "method:KisConfig::vastScrolling(bool defaultValue=false) const",
+        "method:KisConfig::zoomHorizontal(bool defaultValue=false) const",
+        "method:KisConfig::zoomMarginSize(bool defaultValue=false) const",
+        "method:KisConfig::zoomSteps(bool defaultValue=false) const"
+      ]
+    },
+    {
+      "target": "KisConfigEnumContractTest",
+      "source": "libs/application/tests/KisConfigEnumContractTest.cpp",
+      "test": "KisConfigEnumContractTest::canvasWorkspaceStateAndSplitSignaturesRemainStable",
+      "behavior": "canvas workspace設定は状態文字列と水平・垂直分割数のgetter既定値指定、setter型およびconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisConfig::canvasState(bool defaultValue=false) const",
+        "method:KisConfig::horizontalSplitLines(bool defaultValue=false) const",
+        "method:KisConfig::setCanvasState(const QString & state) const",
+        "method:KisConfig::setHorizontalSplitLines(const int numberLines) const",
+        "method:KisConfig::setVerticalSplitLines(const int numberLines) const",
+        "method:KisConfig::verticalSplitLines(bool defaultValue=false) const"
+      ]
+    },
+    {
+      "target": "KisConfigEnumContractTest",
+      "source": "libs/application/tests/KisConfigEnumContractTest.cpp",
+      "test": "KisConfigEnumContractTest::pasteWorkflowSignaturesRemainStable",
+      "behavior": "貼付け工程設定は変形tool起動、貼付け動作・形式、layer改名の値型とsetter const性を維持し、形式getterだけは明示的な既定値引数を要求する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisConfig::activateTransformToolAfterPaste(bool defaultValue=false) const",
+        "method:KisConfig::pasteBehaviour(bool defaultValue=false) const",
+        "method:KisConfig::pasteFormat(bool defaultValue) const",
+        "method:KisConfig::renamePastedLayers(bool defaultValue=false) const",
+        "method:KisConfig::setActivateTransformToolAfterPaste(bool value)",
+        "method:KisConfig::setPasteBehaviour(qint32 behaviour) const",
+        "method:KisConfig::setPasteFormat(qint32 format)",
+        "method:KisConfig::setRenamePastedLayers(bool value)"
+      ]
+    },
+    {
+      "target": "KisConfigEnumContractTest",
+      "source": "libs/application/tests/KisConfigEnumContractTest.cpp",
+      "test": "KisConfigEnumContractTest::toolOptionSurfaceSignaturesRemainStable",
+      "behavior": "tool option表示設定はslider label、docker配置、popup分離、toolbar sliderのgetter既定値指定、index・文字列型およびsetter const性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisConfig::setSliderLabels(bool enabled)",
+        "method:KisConfig::setToolOptionsInDocker(bool inDocker)",
+        "method:KisConfig::setToolOptionsPopupDetached(bool detached) const",
+        "method:KisConfig::setToolbarSlider(int sliderNumber,const QString & slider)",
+        "method:KisConfig::sliderLabels(bool defaultValue=false) const",
+        "method:KisConfig::toolOptionsInDocker(bool defaultValue=false) const",
+        "method:KisConfig::toolOptionsPopupDetached(bool defaultValue=false) const",
+        "method:KisConfig::toolbarSlider(int sliderNumber,bool defaultValue=false) const"
+      ]
+    },
+    {
+      "target": "KisConfigEnumContractTest",
+      "source": "libs/application/tests/KisConfigEnumContractTest.cpp",
+      "test": "KisConfigEnumContractTest::editingToolBehaviorSignaturesRemainStable",
+      "behavior": "編集tool設定はcurve anti-alias・自動平滑化とeraserのopacity・size連動についてgetter既定値指定、setter型およびconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisConfig::antialiasCurves(bool defaultValue=false) const",
+        "method:KisConfig::autoSmoothBezierCurves(bool defaultValue=false) const",
+        "method:KisConfig::setAntialiasCurves(bool v) const",
+        "method:KisConfig::setAutoSmoothBezierCurves(bool value)",
+        "method:KisConfig::setUseEraserBrushOpacity(bool value)",
+        "method:KisConfig::setUseEraserBrushSize(bool value)",
+        "method:KisConfig::useEraserBrushOpacity(bool defaultValue=false) const",
+        "method:KisConfig::useEraserBrushSize(bool defaultValue=false) const"
       ]
     }
   ]

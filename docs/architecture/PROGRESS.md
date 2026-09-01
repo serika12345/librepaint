@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 22:17 JST
+- 更新日時: 2026-09-01 22:27 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -36,7 +36,7 @@
 
 ### 第130便の担当計画
 
-- 実装共通基点は`c78c0133ba5e9eef1845e68f51c4ba3d0e3fd7ff`である。config canvas、guides config、SVG text properties担当は`implementing`、構築許可は
+- 実装共通基点は`c78c0133ba5e9eef1845e68f51c4ba3d0e3fd7ff`である。config canvas担当は`integrated`、guides config、SVG text properties担当は`implementing`、構築許可は
   指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、専用worktree-local
   `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。統合順はconfig canvas、guides config、
   SVG text propertiesとし、調整担当だけが`AGENTS.md`、architecture文書、公開API台帳、共通不足報告を変更する。3担当の公開header、所有CMake、試験source、生成物は重ならない。
@@ -64,6 +64,14 @@
   製品`kritaflake` 621工程・1,274入力と各集合の完全一致を確認する。5枠の未知関数、対象CTest、20回反復、近傍、no-work、動的接続、未解決文字property・shape・font記号、
   構文・変更行書式、公開API・`verify-quick`を確認する。実constructor・destructor・method本文、静的既定property、XML、loading context、font database、shape・文字配置・
   resource・描画・大域状態、製品OBJECT・shared、`kritatestsdk`、新依存、許可外変更、製品計画差、停止線超過が必要なら止める。
+
+### 第130便の統合結果
+
+- `g130-config-canvas-schema`は受渡しcommit`f2babf761512`を統合commit`27aff7d2da`として取り込んだ。開始`libs/application/kis_config.h`から既存
+  `libs/application/tests/KisConfigEnumContractTest.cpp`の5枠へ、canvas navigation・zoom、workspace状態・分割、貼付け、tool option表示、編集tool方針の42 APIを
+  対応付けた。対象4工程・15入力、製品`kritaapplication` 1,227工程・2,472入力と各集合は変更前後一致し、設定・document・image・画面・platform service・大域状態を
+  生成・実行していない。担当macOS環境で対象CTest、20回反復、近傍`KisActionEnumContractTest`、無作業再構築、依存・未解決記号、構文・変更行書式、公開API検査、
+  `verify-quick`に成功した。公開API契約検査は29,838件中12,945件対応、16,893件未対応となった。
 
 ### 第129便の先行監査計画
 
