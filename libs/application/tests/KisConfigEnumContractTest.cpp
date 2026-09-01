@@ -60,6 +60,11 @@ private Q_SLOTS:
     void fullscreenWorkspaceSurfaceSignaturesRemainStable();
     void workspaceTransientSurfaceSignaturesRemainStable();
     void workspaceAuxiliaryChromeSignaturesRemainStable();
+    void layerPresentationTextAndThumbnailSignaturesRemainStable();
+    void layerTreePresentationSignaturesRemainStable();
+    void layerPropertyDialogSignaturesRemainStable();
+    void selectionSurfaceSignaturesRemainStable();
+    void singleChannelPresentationSignaturesRemainStable();
 };
 
 void KisConfigEnumContractTest::inputAndSamplerValuesRemainStable()
@@ -679,6 +684,74 @@ void KisConfigEnumContractTest::workspaceAuxiliaryChromeSignaturesRemainStable()
     static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().showDockerTitleBars()), bool>);
     static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().showCanvasMessages()), bool>);
     static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().showRulers()), bool>);
+}
+
+void KisConfigEnumContractTest::layerPresentationTextAndThumbnailSignaturesRemainStable()
+{
+    ASSERT_KIS_CONFIG_SIGNATURE(layerInfoTextOpacity, int (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setLayerInfoTextOpacity, void (KisConfig::*)(int));
+    ASSERT_KIS_CONFIG_SIGNATURE(useInlineLayerInfoText, bool (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setUseInlineLayerInfoText, void (KisConfig::*)(bool));
+    ASSERT_KIS_CONFIG_SIGNATURE(layerThumbnailSize, int (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setLayerThumbnailSize, void (KisConfig::*)(int));
+    ASSERT_KIS_CONFIG_SIGNATURE(layerThumbnailGenerationTimeout, int (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setLayerThumbnailGenerationTimeout, void (KisConfig::*)(int));
+
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().layerInfoTextOpacity()), int>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().useInlineLayerInfoText()), bool>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().layerThumbnailSize()), int>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().layerThumbnailGenerationTimeout()), int>);
+}
+
+void KisConfigEnumContractTest::layerTreePresentationSignaturesRemainStable()
+{
+    ASSERT_KIS_CONFIG_SIGNATURE(layerTreeIndentation, int (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setLayerTreeIndentation, void (KisConfig::*)(int));
+    ASSERT_KIS_CONFIG_SIGNATURE(useLayerSelectionCheckbox, bool (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setUseLayerSelectionCheckbox, void (KisConfig::*)(bool));
+    ASSERT_KIS_CONFIG_SIGNATURE(showRootLayer, bool (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setShowRootLayer, void (KisConfig::*)(bool) const);
+
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().layerTreeIndentation()), int>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().useLayerSelectionCheckbox()), bool>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().showRootLayer()), bool>);
+}
+
+void KisConfigEnumContractTest::layerPropertyDialogSignaturesRemainStable()
+{
+    ASSERT_KIS_CONFIG_SIGNATURE(convertLayerColorSpaceInProperties, bool (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setConvertLayerColorSpaceInProperties, void (KisConfig::*)(bool));
+    ASSERT_KIS_CONFIG_SIGNATURE(showFilterGallery, bool (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setShowFilterGallery, void (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(showFilterGalleryLayerMaskDialog, bool (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setShowFilterGalleryLayerMaskDialog, void (KisConfig::*)(bool) const);
+
+    static_assert(
+        std::is_same_v<decltype(std::declval<const KisConfig &>().convertLayerColorSpaceInProperties()), bool>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().showFilterGallery()), bool>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().showFilterGalleryLayerMaskDialog()), bool>);
+}
+
+void KisConfigEnumContractTest::selectionSurfaceSignaturesRemainStable()
+{
+    ASSERT_KIS_CONFIG_SIGNATURE(selectionActionBar, bool (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setSelectionActionBar, void (KisConfig::*)(bool));
+    ASSERT_KIS_CONFIG_SIGNATURE(selectionViewSizeMinimum, qreal (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setSelectionViewSizeMinimum, void (KisConfig::*)(qreal) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(showGlobalSelection, bool (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setShowGlobalSelection, void (KisConfig::*)(bool) const);
+
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().selectionActionBar()), bool>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().selectionViewSizeMinimum()), qreal>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().showGlobalSelection()), bool>);
+}
+
+void KisConfigEnumContractTest::singleChannelPresentationSignaturesRemainStable()
+{
+    ASSERT_KIS_CONFIG_SIGNATURE(showSingleChannelAsColor, bool (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setShowSingleChannelAsColor, void (KisConfig::*)(bool));
+
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().showSingleChannelAsColor()), bool>);
 }
 
 #undef ASSERT_KIS_CONFIG_SIGNATURE
