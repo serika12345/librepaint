@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 16:28 JST
+- 更新日時: 2026-09-01 16:36 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -24,6 +24,18 @@
 - `g122-widget-values-audit`は`libs/widgets/KisAngleSelector.h`の残り50 API、`libs/widgets/KoRuler.h`の48 API、
   `libs/widgetutils/kis_slider_spin_box.h`の41 APIを比較する。列挙、局所設定値、純粋変換の一責務を、画面表示、event loop、signal配送、設定I/O、製品widget実体なしで
   25 API以上閉じる候補を選ぶ。
+- `g122-transform-args-audit`は`ToolTransformArgs`のfree-transform幾何・perspective局所値30 APIを採用した。中心6、回転・camera 10、尺度6、剪断・境界6、
+  perspective行列2を、新規`ToolTransformArgsGeometrySchemaContractTest`の未評価型5枠へ追加する。新対象は4工程・9入力、停止5工程・12入力を予測し、製品
+  `kritatooltransform_static`の計画を完全に維持する。既存`test_animated_transform_parameters`は乾式計画843工程でapplication UIまで広がり、warp・pixel精度は
+  合計20 API、liquify・mesh合算は14 API、XML・継続状態・座標変換は8 APIであるため棄却した。
+- `g122-image-interaction-audit`は`kis_selection_filters.h`の選択filter公開schema全49 APIを採用した。基底interface 5、形態filter 12、反転・anti-alias 7、
+  border・feather 10、grow方針15を既存`KisImageTypesContractTest`の未評価型5枠へ追加する。対象4工程・8入力、停止5工程・10入力、製品`kritaimage`
+  1,193工程・2,410入力を維持し、実selection・paint device・default bounds、filter実体・methodを実行しない。既存距離試験は乾式計画303工程、PaintInformationは
+  random・XML・distance・spacing・timing・template実行を混在させるため棄却した。
+- `g122-widget-values-audit`は`KisAngleSelector`の局所設定・列挙・静的変換schema 34 APIを採用した。flip表示8、主角度6、range・精度・wrap 9、局所表示8、
+  static変換型3を新規`KisAngleSelectorSchemaContractTest`の5枠へ追加する。列挙ordinalだけを実測し、methodは未評価型とする。新対象は4工程・8入力、停止5工程・11入力を
+  予測し、製品`kritawidgets` 806工程・1,641入力、`kritawidgetutils` 273工程・579入力を維持する。slider spin boxの安全面は27 APIだが宣言型だけ、`KoRuler`は
+  25 API到達に表示・tab・guide・hotspot・signal責務の混在が必要なため棄却した。
 - 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから
   契約先または移動先、許可path、固有停止条件、比較候補の棄却根拠を含む。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
 
