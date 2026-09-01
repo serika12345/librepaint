@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 05:50 JST
+- 更新日時: 2026-09-02 05:55 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -38,7 +38,7 @@
 
 ### 第138便の担当計画
 
-- 実装共通基点は`8521336b213eaf1bb4fe60fb9dd335c2c66135bc`である。ICC profile担当は`integrated`、segment gradientとunit spin box担当は`ready`、構築許可は指定試験targetと軽量近傍だけの
+- 実装共通基点は`8521336b213eaf1bb4fe60fb9dd335c2c66135bc`である。ICC profileとsegment gradient担当は`integrated`、unit spin box担当は`ready`、構築許可は指定試験targetと軽量近傍だけの
   `granted`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、専用worktree-local `build/tdd-macos`と主作業treeの
   `/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。統合順はICC profile、segment gradient、unit spin boxとし、調整担当だけが`AGENTS.md`、
   architecture文書、`docs/architecture/public-api-test-contracts.json`、共通不足報告を変更する。3担当の公開header、所有CMake、試験source、生成物は重ならない。
@@ -79,6 +79,12 @@
   load・save・色変換・QVector更新を生成・実行していない。担当macOS環境と中央環境で新旧10枠・対象CTest・20回反復と近傍`KoColorProfileSchemaContractTest`、担当環境で
   無作業再構築、動的接続・未解決記号、構文・書式、公開API検査、`verify-quick`に成功した。中央の公開API契約検査は29,838件中13,832件対応、16,006件未対応となる。
   作業tree 871,872 KiBと担当branchは削除した。
+- `g138-segment-gradient-schema`は受渡しcommit`5197d42aa3fa`を統合commit`a0de0e956f`として取り込んだ。開始
+  `libs/pigment/resources/KoSegmentGradient.h`から既存`libs/pigment/tests/KoGradientSegmentSchemaContractTest.cpp`の5枠へ、型・寿命、評価・資源、生成・集合、編集、直列化の
+  34 APIを対応付けた。CMakeを変更せず対象4工程・8入力、製品`kritapigment` 367工程・764入力の各集合は変更前後一致し、gradient・segment・KoColor・QGradient・
+  QIODevice・QDom・canvas資源を生成または呼び出していない。担当macOS環境と中央環境で新旧10枠・対象CTest・20回反復と近傍`KoColorValueSchemaContractTest`、担当環境で
+  無作業再構築、動的接続・未解決記号、構文・書式、公開API検査、`verify-quick`に成功した。中央の公開API契約検査は台帳同期後に29,838件中13,866件対応、15,972件未対応と
+  なる。作業tree 877,500 KiBと担当branchは削除した。
 
 ### 第137便の先行監査計画
 

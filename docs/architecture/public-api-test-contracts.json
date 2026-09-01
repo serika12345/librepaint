@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 16006
+    "expectedMissingApis": 15972
   },
   "contracts": [
     {
@@ -39497,6 +39497,85 @@
         "method:KoGradientSegment::hasVariableColors()",
         "method:KoGradientSegment::length()",
         "method:KoGradientSegment::setVariableColors(const KoColor & foreground,const KoColor & background)"
+      ]
+    },
+    {
+      "target": "KoGradientSegmentSchemaContractTest",
+      "source": "libs/pigment/tests/KoGradientSegmentSchemaContractTest.cpp",
+      "test": "KoGradientSegmentSchemaContractTest::segmentGradientTypeAndLifetimeSchemaRemainStable",
+      "behavior": "区間勾配資源は共有ポインター別名、抽象勾配との継承関係、構築・複製・破棄、および複写代入禁止の公開型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KoSegmentGradientSP",
+        "class:KoSegmentGradient",
+        "method:KoSegmentGradient::KoSegmentGradient(const KoSegmentGradient & rhs)",
+        "method:KoSegmentGradient::KoSegmentGradient(const QString & file=QString ())",
+        "method:KoSegmentGradient::clone() const",
+        "method:KoSegmentGradient::operator =(const KoSegmentGradient & rhs)",
+        "method:KoSegmentGradient::~KoSegmentGradient()"
+      ]
+    },
+    {
+      "target": "KoGradientSegmentSchemaContractTest",
+      "source": "libs/pigment/tests/KoGradientSegmentSchemaContractTest.cpp",
+      "test": "KoGradientSegmentSchemaContractTest::segmentGradientEvaluationAndResourceSignaturesRemainStable",
+      "behavior": "区間勾配資源は色評価、区間検索、Qt勾配変換、canvas資源要求と可変色更新、資源種別と既定拡張子について正確な関数型とconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoSegmentGradient::bakeVariableColors(KoCanvasResourcesInterfaceSP canvasResourcesInterface)",
+        "method:KoSegmentGradient::colorAt(KoColor & dst,qreal t) const",
+        "method:KoSegmentGradient::defaultFileExtension() const",
+        "method:KoSegmentGradient::requiredCanvasResources() const",
+        "method:KoSegmentGradient::resourceType() const",
+        "method:KoSegmentGradient::segmentAt(qreal t) const",
+        "method:KoSegmentGradient::toQGradient() const",
+        "method:KoSegmentGradient::updateVariableColors(KoCanvasResourcesInterfaceSP canvasResourcesInterface)"
+      ]
+    },
+    {
+      "target": "KoGradientSegmentSchemaContractTest",
+      "source": "libs/pigment/tests/KoGradientSegmentSchemaContractTest.cpp",
+      "test": "KoGradientSegmentSchemaContractTest::segmentGradientCreationAndCollectionSignaturesRemainStable",
+      "behavior": "区間勾配資源はKrita色とQt色による区間生成、端点・中点位置一覧、および区間集合の取得・設定について正確な関数型と既定端点種別を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoSegmentGradient::createSegment(int interpolation,int colorInterpolation,double startOffset,double endOffset,double middleOffset,const KoColor & leftColor,const KoColor & rightColor,KoGradientSegmentEndpointType leftType=COLOR_ENDPOINT,KoGradientSegmentEndpointType rightType=COLOR_ENDPOINT)",
+        "method:KoSegmentGradient::createSegment(int interpolation,int colorInterpolation,double startOffset,double endOffset,double middleOffset,const QColor & leftColor,const QColor & rightColor,KoGradientSegmentEndpointType leftType=COLOR_ENDPOINT,KoGradientSegmentEndpointType rightType=COLOR_ENDPOINT)",
+        "method:KoSegmentGradient::getHandlePositions() const",
+        "method:KoSegmentGradient::getMiddleHandlePositions() const",
+        "method:KoSegmentGradient::segments() const",
+        "method:KoSegmentGradient::setSegments(const QList<KoGradientSegment * > & segments)"
+      ]
+    },
+    {
+      "target": "KoGradientSegmentSchemaContractTest",
+      "source": "libs/pigment/tests/KoGradientSegmentSchemaContractTest.cpp",
+      "test": "KoGradientSegmentSchemaContractTest::segmentGradientEditingSignaturesRemainStable",
+      "behavior": "区間勾配資源は境界・中点移動、分割・複製・鏡映・削除・縮約、および削除可否について正確な関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoSegmentGradient::collapseSegment(KoGradientSegment * segment)",
+        "method:KoSegmentGradient::duplicateSegment(KoGradientSegment * segment)",
+        "method:KoSegmentGradient::mirrorSegment(KoGradientSegment * segment)",
+        "method:KoSegmentGradient::moveSegmentEndOffset(KoGradientSegment * segment,double t)",
+        "method:KoSegmentGradient::moveSegmentMiddleOffset(KoGradientSegment * segment,double t)",
+        "method:KoSegmentGradient::moveSegmentStartOffset(KoGradientSegment * segment,double t)",
+        "method:KoSegmentGradient::removeSegment(KoGradientSegment * segment)",
+        "method:KoSegmentGradient::removeSegmentPossible() const",
+        "method:KoSegmentGradient::splitSegment(KoGradientSegment * segment)"
+      ]
+    },
+    {
+      "target": "KoGradientSegmentSchemaContractTest",
+      "source": "libs/pigment/tests/KoGradientSegmentSchemaContractTest.cpp",
+      "test": "KoGradientSegmentSchemaContractTest::segmentGradientSerializationSignaturesRemainStable",
+      "behavior": "区間勾配資源は装置からの読込・保存とDOMへの変換・復元について正確な関数型とconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoSegmentGradient::fromXML(const QDomElement & elt)",
+        "method:KoSegmentGradient::loadFromDevice(QIODevice * dev,KisResourcesInterfaceSP resourcesInterface)",
+        "method:KoSegmentGradient::saveToDevice(QIODevice * dev) const",
+        "method:KoSegmentGradient::toXML(QDomDocument & doc,QDomElement & gradientElt) const"
       ]
     },
     {
