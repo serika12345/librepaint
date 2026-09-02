@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 13138
+    "expectedMissingApis": 13113
   },
   "contracts": [
     {
@@ -47189,6 +47189,76 @@
         "method:View::currentBrushPresetChanged()",
         "method:View::currentToolChanged(const QString & toolId)",
         "method:View::showFloatingMessage(const QString & message,const QIcon & icon,int timeout,int priority)"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::updaterContextOwnershipLifetimeAndConstructionSchemaRemainsStable",
+      "behavior": "画像更新contextと試験用派生contextの公開型、継承、構築、寿命、理想thread数指定tagの型を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisTestableUpdaterContext",
+        "class:KisUpdaterContext",
+        "member:KisUpdaterContext::useIdealThreadCountTag",
+        "method:KisTestableUpdaterContext::KisTestableUpdaterContext(qint32 threadCount)",
+        "method:KisUpdaterContext::KisUpdaterContext(qint32 threadCount=useIdealThreadCountTag,KisUpdateScheduler * parent=0)",
+        "method:KisUpdaterContext::~KisUpdaterContext()"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::updaterContextSnapshotLodAndCapacitySignaturesRemainStable",
+      "behavior": "画像更新contextのjob snapshot、LOD、空きthread、idle状態、thread上限照会の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisUpdaterContext::currentLevelOfDetail() const",
+        "method:KisUpdaterContext::getContextSnapshotEx() const",
+        "method:KisUpdaterContext::getJobsSnapshot(qint32 & numMergeJobs,qint32 & numStrokeJobs)",
+        "method:KisUpdaterContext::hasSpareThread()",
+        "method:KisUpdaterContext::isIdle() const",
+        "method:KisUpdaterContext::threadsLimit() const"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::updaterContextJobAdmissionAndSubmissionSignaturesRemainStable",
+      "behavior": "画像更新contextのmerge・stroke・自発job受付判定と投入の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisUpdaterContext::addMergeJob(KisBaseRectsWalkerSP walker)",
+        "method:KisUpdaterContext::addSpontaneousJob(KisSpontaneousJob * spontaneousJob)",
+        "method:KisUpdaterContext::addStrokeJob(KisStrokeJob * strokeJob)",
+        "method:KisUpdaterContext::isJobAllowed(KisBaseRectsWalkerSP walker)"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::updaterContextSynchronizationAndLimitSignaturesRemainStable",
+      "behavior": "画像更新contextの完了待機、排他制御、thread上限、試験mode設定の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisUpdaterContext::lock()",
+        "method:KisUpdaterContext::setTestingMode(bool value)",
+        "method:KisUpdaterContext::setThreadsLimit(int value)",
+        "method:KisUpdaterContext::unlock()",
+        "method:KisUpdaterContext::waitForDone()"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::updaterContextContinuationAndCompletionSignaturesRemainStable",
+      "behavior": "画像更新contextの更新継続、有効作業、job完了、job thread終了通知の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisUpdaterContext::continueUpdate(const QRect & rc)",
+        "method:KisUpdaterContext::doSomeUsefulWork()",
+        "method:KisUpdaterContext::jobFinished()",
+        "method:KisUpdaterContext::jobThreadExited()"
       ]
     }
   ]
