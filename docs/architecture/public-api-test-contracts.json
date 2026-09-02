@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 15408
+    "expectedMissingApis": 15382
   },
   "contracts": [
     {
@@ -41814,6 +41814,77 @@
         "method:KoShapeFactoryBase::createDefaultShape(KoDocumentResourceManager * documentResources=0) const",
         "method:KoShapeFactoryBase::createShape(const KoProperties * params,KoDocumentResourceManager * documentResources=0) const",
         "method:KoShapeFactoryBase::createShapeOptionPanels()"
+      ]
+    },
+    {
+      "target": "KisChunkAllocatorSchemaContractTest",
+      "source": "libs/image/tiles3/tests/KisChunkAllocatorSchemaContractTest.cpp",
+      "test": "KisChunkAllocatorSchemaContractTest::chunkContainerTypeSchemaRemainsStable",
+      "behavior": "swap chunk allocatorは区間一覧、その反復子、区間値、chunk handle、allocatorからなる公開型集合を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisChunkDataList",
+        "alias:KisChunkDataListIterator",
+        "class:KisChunk",
+        "class:KisChunkAllocator",
+        "class:KisChunkData"
+      ]
+    },
+    {
+      "target": "KisChunkAllocatorSchemaContractTest",
+      "source": "libs/image/tiles3/tests/KisChunkAllocatorSchemaContractTest.cpp",
+      "test": "KisChunkAllocatorSchemaContractTest::chunkDataIntervalSchemaRemainsStable",
+      "behavior": "swap chunk区間値は開始・終了位置を保持し、開始位置と寸法による構築、再設定、寸法照会、等値比較の公開面を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisChunkData::m_begin",
+        "member:KisChunkData::m_end",
+        "method:KisChunkData::KisChunkData(quint64 begin,quint64 size)",
+        "method:KisChunkData::operator ==(const KisChunkData & other) const",
+        "method:KisChunkData::setChunk(quint64 begin,quint64 size)",
+        "method:KisChunkData::size() const"
+      ]
+    },
+    {
+      "target": "KisChunkAllocatorSchemaContractTest",
+      "source": "libs/image/tiles3/tests/KisChunkAllocatorSchemaContractTest.cpp",
+      "test": "KisChunkAllocatorSchemaContractTest::chunkHandleSchemaRemainsStable",
+      "behavior": "swap chunk handleは空または区間反復子から構築でき、境界、寸法、位置、区間dataを照会する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisChunk::KisChunk()",
+        "method:KisChunk::KisChunk(KisChunkDataListIterator iterator)",
+        "method:KisChunk::begin() const",
+        "method:KisChunk::data()",
+        "method:KisChunk::end() const",
+        "method:KisChunk::position()",
+        "method:KisChunk::size() const"
+      ]
+    },
+    {
+      "target": "KisChunkAllocatorSchemaContractTest",
+      "source": "libs/image/tiles3/tests/KisChunkAllocatorSchemaContractTest.cpp",
+      "test": "KisChunkAllocatorSchemaContractTest::chunkAllocatorLifetimeAndCapacitySchemaRemainsStable",
+      "behavior": "swap chunk allocatorは既定または指定容量から構築・破棄でき、現在のchunk数を照会する公開型面を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisChunkAllocator::KisChunkAllocator(quint64 slabSize=DEFAULT_SLAB_SIZE,quint64 storeSize=DEFAULT_STORE_SIZE)",
+        "method:KisChunkAllocator::numChunks() const",
+        "method:KisChunkAllocator::~KisChunkAllocator()"
+      ]
+    },
+    {
+      "target": "KisChunkAllocatorSchemaContractTest",
+      "source": "libs/image/tiles3/tests/KisChunkAllocatorSchemaContractTest.cpp",
+      "test": "KisChunkAllocatorSchemaContractTest::chunkAllocatorOperationSchemaRemainsStable",
+      "behavior": "swap chunk allocatorはchunk確保・解放、区間診断、整合性検査、断片化率照会の公開署名と既定診断引数を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisChunkAllocator::debugChunks()",
+        "method:KisChunkAllocator::debugFragmentation(bool toStderr=true)",
+        "method:KisChunkAllocator::freeChunk(KisChunk chunk)",
+        "method:KisChunkAllocator::getChunk(quint64 size)",
+        "method:KisChunkAllocator::sanityCheck(bool pleaseCrash=true)"
       ]
     }
   ]

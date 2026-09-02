@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 10:20 JST
+- 更新日時: 2026-09-02 10:25 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -40,7 +40,7 @@
 
 ### 第143便の担当計画
 
-- 実装共通基点は`f891a7f26aeda5e923ef34bb304701777dae3650`である。icon utilityとshape factory担当は`integrated`、chunk allocator担当は`assigned`、構築許可は指定試験targetと軽量近傍だけの`granted`、
+- 実装共通基点は`f891a7f26aeda5e923ef34bb304701777dae3650`である。icon utility、shape factory、chunk allocator担当は`integrated`、構築許可は指定試験targetと軽量近傍だけの`granted`、
   Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、専用worktree-local `build/tdd-macos`と主作業treeの
   `/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。統合順はicon utility、shape factory、chunk allocatorとし、調整担当だけが`AGENTS.md`、architecture文書、
   `docs/architecture/public-api-test-contracts.json`、共通不足報告を変更する。3担当の公開header、所有CMake、試験source、生成物は重ならない。
@@ -81,6 +81,14 @@
   factory、shape、properties、資源manager、DOM、読込みcontext、plugin、registryを生成または実行していない。担当macOS環境と中央環境で5枠と既存shape列挙枠を含む対象CTest・20回反復、近傍
   `KoSvgTextEnumContractTest`、無作業再構築、動的接続・未解決記号、構文・書式、公開API検査に成功した。中央の公開API契約検査は29,838件中14,430件対応、15,408件未対応となる。作業tree
   877,924 KiBと担当branchは削除した。生成処理と読込み処理の実行時挙動は別の効果契約で扱う。
+- `g143-chunk-allocator-schema`は受渡しcommit`51c834221931`を統合commit`50ecf5d3b2`として取り込んだ。開始`libs/image/tiles3/swap/kis_chunk_allocator.h`から新規
+  `libs/image/tiles3/tests/KisChunkAllocatorSchemaContractTest.cpp`の5枠へ、型集合、区間値、chunk handle、allocator寿命・容量、操作の26 APIを対応付けた。公開headerの`QLinkedList`をQt 6で解決するため、
+  `libs/image/tiles3/tests/CMakeLists.txt`でこの対象だけにCore5CompatをPRIVATE linkした。製品sourceを接続せず新対象4工程・8入力、製品`kritaimage` 1,196工程・2,416入力を維持した。chunk、list、
+  iterator、allocator、memory割当、swap I/O、診断・assertを生成または実行していない。担当macOS環境と中央環境で5枠を含む対象CTest・20回反復、近傍`KisImageTypesContractTest`、無作業再構築、
+  動的接続・未解決記号、構文・書式、公開API検査に成功した。中央の公開API契約検査は29,838件中14,456件対応、15,382件未対応となる。作業tree 878,464 KiBと担当branchは削除した。第143便全体で
+  79 APIを追加し、3作業tree計2,630,460 KiB（約2.51 GiB）を回収した。旧不足報告を削除し、主Ninja木、共有compiler cache、最新不足報告
+  `build/tdd-macos/public-api-missing-g144.json`だけを再利用対象として保持する。次の永続作業は第144便の不足報告から、pathと所有CMakeが重ならない3責務を先行監査し、限定構築範囲を確認してから担当票を
+  確定することである。
 
 ### 第142便の先行監査計画
 
