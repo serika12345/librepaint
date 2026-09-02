@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 15019
+    "expectedMissingApis": 14991
   },
   "contracts": [
     {
@@ -42788,6 +42788,79 @@
       "classification": "maintained",
       "apis": [
         "method:KoDocumentResourceManager::resourceChanged(int key,const QVariant & value)"
+      ]
+    },
+    {
+      "target": "KisOpenGLRendererConfigContractTest",
+      "source": "libs/ui/tests/KisOpenGLRendererConfigContractTest.cpp",
+      "test": "KisOpenGLRendererConfigContractTest::openGLRendererSelectionAndConfigurationSignaturesRemainStable",
+      "behavior": "OpenGL境界はrenderer候補の選択、既定surface設定、現在・Qt・利用可能・利用者選択backendの照会と設定について公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisOpenGL::getCurrentOpenGLRenderer()",
+        "method:KisOpenGL::getQtPreferredOpenGLRenderer()",
+        "method:KisOpenGL::getSupportedOpenGLRenderers()",
+        "method:KisOpenGL::getUserPreferredOpenGLRendererConfig()",
+        "method:KisOpenGL::selectSurfaceConfig(KisOpenGL::OpenGLRenderer preferredRenderer,KisConfig::RootSurfaceFormat preferredRootSurfaceFormat,KisConfig::CanvasSurfaceBitDepthMode preferredCanvasSurfaceBitMode,bool enableDebug)",
+        "method:KisOpenGL::setDefaultSurfaceConfig(const RendererConfig & config)",
+        "method:KisOpenGL::setUserPreferredOpenGLRendererConfig(OpenGLRenderer renderer)"
+      ]
+    },
+    {
+      "target": "KisOpenGLRendererConfigContractTest",
+      "source": "libs/ui/tests/KisOpenGLRendererConfigContractTest.cpp",
+      "test": "KisOpenGLRendererConfigContractTest::openGLInitializationAndDiagnosticsSignaturesRemainStable",
+      "behavior": "OpenGL境界は共有context初期化とdriver・診断・警告・利用可否の照会について公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisOpenGL::currentDriver()",
+        "method:KisOpenGL::getDebugText()",
+        "method:KisOpenGL::getOpenGLWarnings()",
+        "method:KisOpenGL::hasOpenGL()",
+        "method:KisOpenGL::initialize()",
+        "method:KisOpenGL::initializeContext(QOpenGLContext * ctx)"
+      ]
+    },
+    {
+      "target": "KisOpenGLRendererConfigContractTest",
+      "source": "libs/ui/tests/KisOpenGLRendererConfigContractTest.cpp",
+      "test": "KisOpenGLRendererConfigContractTest::openGLCapabilitySignaturesRemainStable",
+      "behavior": "OpenGL境界はAPI版、buffer mapping、fence、LOD、VAOとdriver workaroundの能力照会について公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisOpenGL::hasOpenGL3()",
+        "method:KisOpenGL::hasOpenGLES()",
+        "method:KisOpenGL::needsFenceWorkaround()",
+        "method:KisOpenGL::supportsBufferMapping()",
+        "method:KisOpenGL::supportsFenceSync()",
+        "method:KisOpenGL::supportsLoD()",
+        "method:KisOpenGL::supportsVAO()"
+      ]
+    },
+    {
+      "target": "KisOpenGLRendererConfigContractTest",
+      "source": "libs/ui/tests/KisOpenGLRendererConfigContractTest.cpp",
+      "test": "KisOpenGLRendererConfigContractTest::openGLTextureAndOutlinePolicySignaturesRemainStable",
+      "behavior": "OpenGL境界はtexture bufferの利用・無効化とtool outlineのFBO利用policyについて公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisOpenGL::forceDisableTextureBuffers()",
+        "method:KisOpenGL::shouldUseTextureBuffers(bool userPreference)",
+        "method:KisOpenGL::useFBOForToolOutlineRendering()",
+        "method:KisOpenGL::useTextureBufferInvalidation()"
+      ]
+    },
+    {
+      "target": "KisOpenGLRendererConfigContractTest",
+      "source": "libs/ui/tests/KisOpenGLRendererConfigContractTest.cpp",
+      "test": "KisOpenGLRendererConfigContractTest::openGLTestingAndPlatformSignaturesRemainStable",
+      "behavior": "OpenGL境界は試験初期化、同期診断、buffer無効化、XCB provider照会の公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisOpenGL::glInvalidateBufferData(uint buffer)",
+        "method:KisOpenGL::setDebugSynchronous(bool value)",
+        "method:KisOpenGL::testingInitializeDefaultSurfaceFormat()",
+        "method:KisOpenGL::xcbGlProviderProtocol()"
       ]
     }
   ]

@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 12:34 JST
+- 更新日時: 2026-09-02 12:38 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -40,7 +40,7 @@
 
 ### 第148便の担当計画
 
-- 実装共通基点は`29238066d01f`である。tile、color space abstract、OpenGL関数担当は`implementing`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの
+- 実装共通基点は`29238066d01f`である。OpenGL関数担当は`integrated`、tile担当は`implementing`、color space abstract担当は`rejected`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの
   `transport-commit`、追加委任は禁止する。対象platformはmacOSであり、専用worktree-local `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。
   統合順はOpenGL関数、tile、color space abstractとし、調整担当だけが`AGENTS.md`、architecture文書、`docs/architecture/public-api-test-contracts.json`、共通不足報告を変更する。
   3担当の公開header、所有CMake、試験source、生成物は重ならない。
@@ -68,6 +68,17 @@
   担当tree内の変更前後集合・保留集合完全一致を確認する。未知targetと5枠、対象CTest、20回反復、近傍、無作業再構築、動的接続、AUTOMOC入力、未解決色空間・registry・factory・変換記号、構文・書式、
   公開API・`verify-quick`を確認する。trait、特殊化、vtable、画素、mask、色空間、registry、変換、factoryを生成または実行し、inline本文を実体化し、製品source・OBJECT・shared、`kritatestsdk`、新非header依存、
   公開header変更、製品計画差、停止線超過が必要なら止める。
+
+### 第148便の統合結果
+
+- `g148-opengl-functions-schema`は受渡しcommit`da93171f5d7e`を統合commit`6cd0976b9b`として取り込んだ。開始`libs/ui/opengl/kis_opengl.h`から既存
+  `libs/ui/tests/KisOpenGLRendererConfigContractTest.cpp`の5枠へ、renderer選択・設定、初期化・診断、能力、texture・outline policy、試験・platformの28 APIを対応付けた。CMakeと直接依存を変更せず、
+  既存RendererConfig値変換の一source OBJECTを含む対象5工程・12入力、製品`kritaapplicationui` 1,970工程・3,940入力を維持した。OpenGL context、surface、driver、設定、大域状態、GUI applicationと追加static本文を
+  生成または実行していない。担当macOS環境と中央環境で5枠と既存OpenGL値枠を含む対象CTest・20回反復、近傍`KisGuidesConfigSchemaContractTest`、無作業再構築、動的接続・追加未解決記号、構文・書式、
+  公開API検査に成功した。中央の公開API契約検査は29,838件中14,847件対応、14,991件未対応となる。作業tree 879,292 KiBと担当branchは削除した。実context初期化、driver照会、能力判定の実行時挙動は
+  別の効果契約で扱う。
+- `g148-color-space-abstract-schema`は、Imath interface探索先の追加後、constructorの未評価probeだけで`KoColorSpaceAbstract` constructor、vtable対象override、混色・畳み込みtemplate本文が実体化されたため
+  `rejected`とした。dummy traitへの処理定義追加は未評価型契約の範囲を越えるため行わず、製品・OBJECT・SDKへ接続していない。未コミットの許可2 path、作業tree 877,072 KiB、担当branchは削除した。
 
 ### 第147便の先行監査計画
 
