@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 23:29 JST
+- 更新日時: 2026-09-02 23:32 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -26,6 +26,28 @@
 - `g105-widget-connection-audit`は`libs/libkis/Canvas.h`の全21 APIを採用した。型・寿命・identity 5、zoom・中心6、回転・mirror 5、描画方針4、View関連1を新規
   `libs/libkis/tests/CanvasSchemaContractTest.cpp`の5枠へ対応付ける。親省略構築も固定する。直接linkはQt Core・Testだけ、Qt Guiはinterface includeだけとし、新対象4工程・8入力、停止5工程・11入力、製品`kritalibkis`
   2,018工程・4,034入力を維持する。`Node.h`は71 APIの責務分散、`Krita.h`は大域singleton、`Scratchpad.h`はwidget・画像・資源、`kis_action_registry.h`はsingleton・XML・設定I/Oへ閉包が広がるため棄却した。
+
+### 第167便の担当計画
+
+- 実装共通基点は`911c2e9fde`である。3担当は`implementing`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、専用worktree-local
+  `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。各担当は専用作業treeから`./scripts/run-shared-test-env`で主作業treeのcached test環境へ入り、変更前の対象限定計画と直接CMake依存を確認する。統合順はupdater context、SVG text markup converter、libkis Canvasとし、
+  調整担当だけがarchitecture文書、公開API台帳、共通不足報告を変更する。3担当の公開header、所有CMake、試験source、生成物は重ならない。製品targetを引数にするplan/build、全体build、全体`verify`は禁止し、担当targetと近傍、公開API検査、`verify-quick`だけを実行する。
+- `g167-updater-context-schema`は`/Users/masato/Documents/librepaint-g167-updater-context-schema`を所有する。開始`libs/image/kis_updater_context.h`の全25 APIから既存
+  `libs/image/tests/KisImageTypesContractTest.cpp`の5枠`updaterContextOwnershipLifetimeAndConstructionSchemaRemainsStable`、`updaterContextSnapshotLodAndCapacitySignaturesRemainStable`、
+  `updaterContextJobAdmissionAndSubmissionSignaturesRemainStable`、`updaterContextSynchronizationAndLimitSignaturesRemainStable`、`updaterContextContinuationAndCompletionSignaturesRemainStable`へ対応付ける。完全集合は所有・寿命・構築6、snapshot・LOD・容量6、job受付・投入4、同期・上限5、継続・完了4である。
+  許可pathは既存試験sourceだけで、CMake・依存・公開header・製品sourceを変更しない。0〜2引数構築の省略形を未評価式で固定し、`useIdealThreadCountTag`は型だけを観測する。対象4工程・8入力、停止5工程・11入力、近傍`KisImageConfigAnimationSchemaContractTest`、製品`kritaimage` 1,196工程・2,416入力を維持する。
+  旧binaryの新5枠Unknown、対象CTest・枠個別・20回反復、既存枠、近傍、無作業再構築、動的接続・AUTOMOC入力・updater・scheduler・job・thread未解決記号、構文・書式、公開API・`verify-quick`を確認する。context、thread pool、walker、stroke・spontaneous jobを実体化または実行し、静的値をODR使用し、新規include・link、製品接続、停止線超過が必要なら止める。
+- `g167-svg-text-markup-schema`は`/Users/masato/Documents/librepaint-g167-svg-text-markup-schema`を所有する。開始`libs/flake/text/KoSvgTextShapeMarkupConverter.h`の全24 APIから新規
+  `libs/flake/tests/KoSvgTextShapeMarkupConverterSchemaContractTest.cpp`の5枠`svgTextMarkupConverterIdentityAndWrappingSchemaRemainStable`、`svgTextMarkupDocumentPropertySchemaRemainStable`、
+  `svgTextMarkupSvgAndHtmlConversionSignaturesRemainStable`、`svgTextMarkupDocumentConversionAndDiagnosticSignaturesRemainStable`、`svgTextMarkupStyleConversionSignaturesRemainStable`へ対応付ける。完全集合はidentity・折返し方針7、文書property 6、SVG・HTML変換4、文書変換・診断4、style変換3である。
+  許可pathは新規試験sourceと`libs/flake/tests/CMakeLists.txt`の対象固有節だけで、公開header・製品sourceを変更しない。3列挙値、2 property値、`style`の2〜4引数省略形を固定する。直接linkはQt Core・Gui・Testだけ、includeはflake source/generatedとtext所有path、definitionは`kritaflake_EXPORTS`だけとし、公開headerをsourceやAUTOMOC入力へ加えない。
+  新対象4工程・8入力、停止5工程・11入力、近傍`KoSvgTextEnumContractTest`、製品`kritaflake` 621工程・1,274入力を維持する。unknown target・CTest 0件、新5枠、対象CTest・枠個別・20回反復、近傍、無作業再構築、動的接続・AUTOMOC入力・converter・shape・document未解決記号、構文・書式、公開API・`verify-quick`を確認する。
+  converter、shape、QTextDocument、QTextFormat、ExtraStyles、SVG・HTML・style変換本文を実体化または実行し、Qt Widgets・Xml、製品OBJECT・shared、`kritatestsdk`へのlink、停止線超過が必要なら止める。
+- `g167-libkis-canvas-schema`は`/Users/masato/Documents/librepaint-g167-libkis-canvas-schema`を所有する。開始`libs/libkis/Canvas.h`の全21 APIから新規
+  `libs/libkis/tests/CanvasSchemaContractTest.cpp`の5枠`canvasTypeLifetimeAndIdentitySchemaRemainsStable`、`canvasZoomAndCenterSchemaRemainsStable`、`canvasRotationAndMirrorSchemaRemainsStable`、
+  `canvasRenderingPolicySchemaRemainsStable`、`canvasViewAssociationSchemaRemainsStable`へ対応付ける。完全集合は型・寿命・identity 5、zoom・中心6、回転・mirror 5、描画方針4、View関連1である。許可pathは新規試験sourceと`libs/libkis/tests/CMakeLists.txt`の対象固有節だけで、公開header・製品sourceを変更しない。
+  親省略構築を未評価式で固定する。直接linkはQt Core・Testだけ、Qt Guiはinterface include、includeはlibkis source/generated、definitionは`kritalibkis_EXPORTS`だけとし、公開headerをsourceやAUTOMOC入力へ加えない。新対象4工程・8入力、停止5工程・11入力、近傍`ViewSchemaContractTest`、製品`kritalibkis` 2,018工程・4,034入力を維持する。
+  unknown target・CTest 0件、新5枠、対象CTest・枠個別・20回反復、近傍、無作業再構築、動的接続・AUTOMOC入力・Canvas・KoCanvasBase・View未解決記号、構文・書式、公開API・`verify-quick`を確認する。Canvas、KoCanvasBase、View、canvas操作本文、OpenGL、display converter、signal・metaobject、event loopを実体化または実行し、Qt Guiへの直接link、flake・製品OBJECT・shared、`kritatestsdk`への接続、停止線超過が必要なら止める。
 
 ### 第166便の先行監査計画
 
