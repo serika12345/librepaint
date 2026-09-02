@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 12743
+    "expectedMissingApis": 12718
   },
   "contracts": [
     {
@@ -48214,6 +48214,76 @@
         "method:KoShapeContainer::paint(QPainter & painter) const",
         "method:KoShapeContainer::paintComponent(QPainter & painter) const",
         "method:KoShapeContainer::update() const"
+      ]
+    },
+    {
+      "target": "KisVisualColorSelectorShapeSchemaContractTest",
+      "source": "libs/widgets/tests/KisVisualColorSelectorShapeSchemaContractTest.cpp",
+      "test": "KisVisualColorSelectorShapeSchemaContractTest::visualColorSelectorShapeTypeAndDimensionSchemaRemainsStable",
+      "behavior": "視覚色選択shapeの公開型、抽象性、一次元・二次元の安定値、完全な構築引数、仮想寿命と次元照会を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisVisualColorSelectorShape",
+        "enum:KisVisualColorSelectorShape::Dimensions",
+        "enumerator:KisVisualColorSelectorShape::Dimensions::onedimensional",
+        "enumerator:KisVisualColorSelectorShape::Dimensions::twodimensional",
+        "method:KisVisualColorSelectorShape::KisVisualColorSelectorShape(KisVisualColorSelector * parent,KisVisualColorSelectorShape::Dimensions dimension,int channel1,int channel2)",
+        "method:KisVisualColorSelectorShape::getDimensions() const",
+        "method:KisVisualColorSelectorShape::~KisVisualColorSelectorShape()"
+      ]
+    },
+    {
+      "target": "KisVisualColorSelectorShapeSchemaContractTest",
+      "source": "libs/widgets/tests/KisVisualColorSelectorShapeSchemaContractTest.cpp",
+      "test": "KisVisualColorSelectorShapeSchemaContractTest::visualColorSelectorShapeCursorAndChannelSchemaRemainsStable",
+      "behavior": "視覚色選択shapeのcursor位置、既定通知方針、channel照会・maskとchannel値設定の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisVisualColorSelectorShape::channel(int dimension) const",
+        "method:KisVisualColorSelectorShape::channelMask() const",
+        "method:KisVisualColorSelectorShape::getCursorPosition() const",
+        "method:KisVisualColorSelectorShape::setChannelValues(QVector4D channelValues,quint32 channelFlags)",
+        "method:KisVisualColorSelectorShape::setCursorPosition(QPointF position,bool signal=false)"
+      ]
+    },
+    {
+      "target": "KisVisualColorSelectorShapeSchemaContractTest",
+      "source": "libs/widgets/tests/KisVisualColorSelectorShapeSchemaContractTest.cpp",
+      "test": "KisVisualColorSelectorShapeSchemaContractTest::visualColorSelectorShapeColorAndImageSchemaRemainsStable",
+      "behavior": "視覚色選択shapeの画像map、現在色、表示色変換と画像再生成要求の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisVisualColorSelectorShape::forceImageUpdate()",
+        "method:KisVisualColorSelectorShape::getColorFromConverter(KoColor c)",
+        "method:KisVisualColorSelectorShape::getCurrentColor()",
+        "method:KisVisualColorSelectorShape::getImageMap()"
+      ]
+    },
+    {
+      "target": "KisVisualColorSelectorShapeSchemaContractTest",
+      "source": "libs/widgets/tests/KisVisualColorSelectorShapeSchemaContractTest.cpp",
+      "test": "KisVisualColorSelectorShapeSchemaContractTest::visualColorSelectorShapeGeometrySchemaRemainsStable",
+      "behavior": "視覚色選択shapeが正方形・円・三角形へ割り当てる領域と境界幅設定の派生実装面を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisVisualColorSelectorShape::getSpaceForCircle(QRect geom)",
+        "method:KisVisualColorSelectorShape::getSpaceForSquare(QRect geom)",
+        "method:KisVisualColorSelectorShape::getSpaceForTriangle(QRect geom)",
+        "method:KisVisualColorSelectorShape::setBorderWidth(int width)"
+      ]
+    },
+    {
+      "target": "KisVisualColorSelectorShapeSchemaContractTest",
+      "source": "libs/widgets/tests/KisVisualColorSelectorShapeSchemaContractTest.cpp",
+      "test": "KisVisualColorSelectorShapeSchemaContractTest::visualColorSelectorShapePolicyAndNotificationSchemaRemainsStable",
+      "behavior": "視覚色選択shapeの色相・gamut mask・tablet入力方針、mask更新とcursor移動通知の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisVisualColorSelectorShape::isHueControl() const",
+        "method:KisVisualColorSelectorShape::setAcceptTabletEvents(bool on)",
+        "method:KisVisualColorSelectorShape::sigCursorMoved(QPointF pos)",
+        "method:KisVisualColorSelectorShape::supportsGamutMask() const",
+        "method:KisVisualColorSelectorShape::updateGamutMask()"
       ]
     }
   ]
