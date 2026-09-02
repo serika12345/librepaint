@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 13044
+    "expectedMissingApis": 12980
   },
   "contracts": [
     {
@@ -47463,6 +47463,115 @@
         "class:KisVLineIteratorNG",
         "method:KisVLineIteratorNG::KisVLineIteratorNG()",
         "method:KisVLineIteratorNG::~KisVLineIteratorNG()"
+      ]
+    },
+    {
+      "target": "KoPathShapeSchemaContractTest",
+      "source": "libs/flake/tests/KoPathShapeSchemaContractTest.cpp",
+      "test": "KoPathShapeSchemaContractTest::pathShapeIdentityListenerAndValueSchemaRemainStable",
+      "behavior": "vector path形状の公開型、path index・subpath型、構築・寿命とpoint選択変更listenerの公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KoPathPointIndex",
+        "alias:KoSubpath",
+        "alias:KoSubpathList",
+        "class:KoPathShape",
+        "method:KoPathShape::KoPathShape()",
+        "method:KoPathShape::PointSelectionChangeListener::notifyPathPointsChanged(KoPathShape * shape)",
+        "method:KoPathShape::PointSelectionChangeListener::notifyShapeChanged(ChangeType type,KoShape * shape)",
+        "method:KoPathShape::PointSelectionChangeListener::recommendPointSelectionChange(KoPathShape * shape,const QList<KoPathPointIndex> & newSelection)",
+        "method:KoPathShape::~KoPathShape()",
+        "struct:KoPathShape::PointSelectionChangeListener"
+      ]
+    },
+    {
+      "target": "KoPathShapeSchemaContractTest",
+      "source": "libs/flake/tests/KoPathShapeSchemaContractTest.cpp",
+      "test": "KoPathShapeSchemaContractTest::pathShapeGeometryAndRenderingSignaturesRemainStable",
+      "behavior": "vector path形状の複製、境界・外形・寸法、hit判定、描画・stroke・正規化・文字列化の公開署名と既定変換を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoPathShape::boundingRect() const",
+        "method:KoPathShape::cloneShape() const",
+        "method:KoPathShape::hitTest(const QPointF & position) const",
+        "method:KoPathShape::normalize()",
+        "method:KoPathShape::outline() const",
+        "method:KoPathShape::outlineRect() const",
+        "method:KoPathShape::paint(QPainter & painter) const",
+        "method:KoPathShape::paintPoints(KisHandlePainterHelper & handlesHelper)",
+        "method:KoPathShape::pathShapeId() const",
+        "method:KoPathShape::pathStroke(const QPen & pen) const",
+        "method:KoPathShape::setSize(const QSizeF & size)",
+        "method:KoPathShape::size() const",
+        "method:KoPathShape::toString(const QTransform & matrix=QTransform ()) const"
+      ]
+    },
+    {
+      "target": "KoPathShapeSchemaContractTest",
+      "source": "libs/flake/tests/KoPathShapeSchemaContractTest.cpp",
+      "test": "KoPathShapeSchemaContractTest::pathShapeConstructionStyleAndMarkerSignaturesRemainStable",
+      "behavior": "vector path形状の構築・結合・分離、塗り規則、marker取得・設定の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoPathShape::arcTo(qreal rx,qreal ry,qreal startAngle,qreal sweepAngle)",
+        "method:KoPathShape::autoFillMarkers() const",
+        "method:KoPathShape::clear()",
+        "method:KoPathShape::close()",
+        "method:KoPathShape::closeMerge()",
+        "method:KoPathShape::combine(KoPathShape * path)",
+        "method:KoPathShape::createShapeFromPainterPath(const QPainterPath & path)",
+        "method:KoPathShape::curveTo(const QPointF & c,const QPointF & p)",
+        "method:KoPathShape::curveTo(const QPointF & c1,const QPointF & c2,const QPointF & p)",
+        "method:KoPathShape::fillRule() const",
+        "method:KoPathShape::hasMarkers() const",
+        "method:KoPathShape::lineTo(const QPointF & p)",
+        "method:KoPathShape::marker(KoFlake::MarkerPosition pos) const",
+        "method:KoPathShape::moveTo(const QPointF & p)",
+        "method:KoPathShape::separate(QList<KoPathShape * > & separatedPaths)",
+        "method:KoPathShape::setAutoFillMarkers(bool value)",
+        "method:KoPathShape::setFillRule(Qt::FillRule fillRule)",
+        "method:KoPathShape::setMarker(KoMarker * marker,KoFlake::MarkerPosition pos)"
+      ]
+    },
+    {
+      "target": "KoPathShapeSchemaContractTest",
+      "source": "libs/flake/tests/KoPathShapeSchemaContractTest.cpp",
+      "test": "KoPathShapeSchemaContractTest::pathShapePointQueryAndMutationSignaturesRemainStable",
+      "behavior": "vector path形状のpoint・segment照会、point挿入・除去・分割、選択変更とnode型直列化の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoPathShape::breakAfter(const KoPathPointIndex & pointIndex)",
+        "method:KoPathShape::insertPoint(KoPathPoint * point,const KoPathPointIndex & pointIndex)",
+        "method:KoPathShape::loadNodeTypes(const QString & nodeTypes)",
+        "method:KoPathShape::nodeTypes() const",
+        "method:KoPathShape::pathPointIndex(const KoPathPoint * point) const",
+        "method:KoPathShape::pointByIndex(const KoPathPointIndex & pointIndex) const",
+        "method:KoPathShape::pointCount() const",
+        "method:KoPathShape::pointsAt(const QRectF & rect,const bool useControlPoints=false) const",
+        "method:KoPathShape::recommendPointSelectionChange(const QList<KoPathPointIndex> & newSelection)",
+        "method:KoPathShape::removePoint(const KoPathPointIndex & pointIndex)",
+        "method:KoPathShape::segmentAtPoint(const QPointF & point,const QRectF & grabRoi) const",
+        "method:KoPathShape::segmentByIndex(const KoPathPointIndex & pointIndex) const",
+        "method:KoPathShape::segmentsAt(const QRectF & rect) const"
+      ]
+    },
+    {
+      "target": "KoPathShapeSchemaContractTest",
+      "source": "libs/flake/tests/KoPathShapeSchemaContractTest.cpp",
+      "test": "KoPathShapeSchemaContractTest::pathShapeSubpathTopologySignaturesRemainStable",
+      "behavior": "vector path形状のsubpath追加・移動・開閉・結合・反転・除去と件数照会の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoPathShape::addSubpath(KoSubpath * subpath,int subpathIndex)",
+        "method:KoPathShape::closeSubpath(const KoPathPointIndex & pointIndex)",
+        "method:KoPathShape::isClosedSubpath(int subpathIndex) const",
+        "method:KoPathShape::join(int subpathIndex)",
+        "method:KoPathShape::moveSubpath(int oldSubpathIndex,int newSubpathIndex)",
+        "method:KoPathShape::openSubpath(const KoPathPointIndex & pointIndex)",
+        "method:KoPathShape::removeSubpath(int subpathIndex)",
+        "method:KoPathShape::reverseSubpath(int subpathIndex)",
+        "method:KoPathShape::subpathCount() const",
+        "method:KoPathShape::subpathPointCount(int subpathIndex) const"
       ]
     }
   ]
