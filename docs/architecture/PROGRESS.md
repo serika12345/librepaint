@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 10:29 JST
+- 更新日時: 2026-09-02 10:31 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -20,6 +20,19 @@
   option・offset・共有data・XML面を、shape・stroke・painter・marker描画・XML writer・保存data・layer・imageの実体化なしで閉じる。
 - `g144-display-config-visual-color-model-schema-audit`は`libs/ui/canvas/KisDisplayConfig.h`の全28 APIを主候補とし、`libs/widgets/KisVisualColorModel.h`の全33 APIを比較する。表示色変換の単一・複数surface
   設定値または視覚色modelの列挙・色空間・channel・signal面を、system color manager・screen・設定・色変換・QObject・signal・applicationの実体化なしで閉じる。
+- `g144-brush-model-uniform-property-schema-audit`は`kis_uniform_paintop_property.h`の全28 APIを採用した。所有型4、種別値8、寿命4、識別・設定7、値・通知5を既存
+  `KisImageTypesContractTest`の未評価型5枠へ対応付ける。CMakeを変更せず対象4工程・8入力、停止5工程・11入力、製品`kritaimage` 1,196工程・2,416入力を維持する。現在の対象命令集合hashは
+  `b83c09fe3d4b3ca467659d4896a906a8683feff274f897056f537c54fbd3df76`、入力集合hashは`42c0bdca62da9111fd79736a3055bd233ee32342bc2c9ae69fc577a83a88cf81`、製品命令集合hashは
+  `8b3e011450f2ca342e0ce523cc1696c2e2b3970456a8cb097553ee5fdf79930f`、製品入力集合hashは`76f2aa4251a6bf4e2adf2a1e822bc9d629753b2e93e5b877ee4eae23364940bc`である。
+  `KisBrushModel.h`は既存値試験が`TextBrushData`の既定構築から`QGuiApplication::font()`を実行し、別対象ならQt Gui・lager・資源includeを新設するため棄却した。
+- `g144-marker-saving-context-schema-audit`は`KoShapeSavingContext.h`の全27 APIを採用した。保存option値7、context型・writer 5、option操作5、layer・image・marker 5、共有data・offset 5を新規
+  `KoShapeSavingContextSchemaContractTest`の未評価型5枠へ対応付ける。新対象4工程・8入力、停止5工程・11入力を予測し、製品`kritaflake` 621工程・1,274入力を維持する。現在の製品命令集合hashは
+  `f3f361da0bcc5c5d3fcc2e2e638cfbfce33af5ddc455e80260a62ff35b74a676`、入力集合hashは`1a30862a8e0463c6578045c344b23088d4909ac6017407162709d283413b8cb5`、保留集合hashは
+  `9250d67bdf59e467ed07775ea4455d48070d2e65d7474c380b70e7faef23fdd4`である。`KoMarker.h`は安全な具体値が座標系列挙に限られ、既存command試験のstubと分離した独立対象にもQt Gui・Xmlが必要なため棄却した。
+- `g144-display-config-visual-color-model-schema-audit`は`KisDisplayConfig.h`の全28 APIを採用した。型・構築7、単一surface値7、外部policy署名4、複数surface値6、投影4を新規
+  `KisDisplayConfigSchemaContractTest`の未評価型5枠へ対応付ける。新対象4工程・8入力、停止5工程・11入力を予測し、製品`kritaapplicationui` 1,970工程・3,940入力を維持する。現在の製品命令集合hashは
+  `54a81e7f2dc46cb6b03d85bc5606456480d58d433d4acedf3a971d51508da391`、入力集合hashは`fadce0f47495bd67de7f32dd23bcb107bb18415503800cf48d62f14a425fb3ff`である。
+  `KisVisualColorModel.h`はQObject、metaobject、色値・色空間、channel変換、設定slot、4 signalへ公開責務と定義閉包が広がるため棄却した。
 - 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから契約先または移動先、許可path、固有停止条件、
   比較候補の棄却根拠を含む。既存`build/tdd-macos`の計画は読み取り専用で測定し、構成や構築を開始しない。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
 
