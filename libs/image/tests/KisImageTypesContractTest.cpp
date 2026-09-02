@@ -9,6 +9,7 @@
 #include "kis_distance_information.h"
 #include "kis_histogram.h"
 #include "kis_layer_utils.h"
+#include "kis_paint_device_frames_interface.h"
 #include "kis_selection_filters.h"
 #include "kis_sequential_iterator.h"
 #include "kis_stroke.h"
@@ -98,6 +99,11 @@ private Q_SLOTS:
     void uniformPaintOpPropertyLifetimeSchemaRemainsStable();
     void uniformPaintOpPropertyIdentityAndSettingsSignaturesRemainStable();
     void uniformPaintOpPropertyValueAndNotificationSignaturesRemainStable();
+    void paintDeviceFrameOwnershipAndTestingDataSchemaRemainsStable();
+    void paintDeviceFrameLifecycleAndIdentitySignaturesRemainStable();
+    void paintDeviceFrameGeometryAndPixelSignaturesRemainStable();
+    void paintDeviceFrameTransferAndPersistenceSignaturesRemainStable();
+    void paintDeviceFrameUndoCacheAndTestingSignaturesRemainStable();
 };
 
 void KisImageTypesContractTest::intrusivePointerAliasesPreserveOwnershipKinds()
@@ -1329,6 +1335,85 @@ void KisImageTypesContractTest::uniformPaintOpPropertyValueAndNotificationSignat
     static_assert(std::is_same_v<decltype(&KisUniformPaintOpProperty::setValue), ValueSetterSignature>);
     static_assert(std::is_same_v<decltype(&KisUniformPaintOpProperty::value), ValueSignature>);
     static_assert(std::is_same_v<decltype(&KisUniformPaintOpProperty::valueChanged), ValueSetterSignature>);
+}
+
+void KisImageTypesContractTest::paintDeviceFrameOwnershipAndTestingDataSchemaRemainsStable()
+{
+    using TestingData = KisPaintDeviceFramesInterface::TestingDataObjects;
+
+    static_assert(std::is_class_v<KisPaintDeviceFramesInterface>);
+    static_assert(std::is_class_v<TestingData>);
+    static_assert(std::is_same_v<TestingData::Data, KisPaintDeviceData>);
+    static_assert(std::is_same_v<TestingData::FramesHash, QHash<int, KisPaintDeviceData *>>);
+    static_assert(std::is_same_v<decltype(TestingData::m_currentData), KisPaintDeviceData *>);
+    static_assert(std::is_same_v<decltype(TestingData::m_data), KisPaintDeviceData *>);
+    static_assert(std::is_same_v<decltype(TestingData::m_externalFrameData), KisPaintDeviceData *>);
+    static_assert(std::is_same_v<decltype(TestingData::m_frames), TestingData::FramesHash>);
+    static_assert(std::is_same_v<decltype(TestingData::m_lodData), KisPaintDeviceData *>);
+}
+
+void KisImageTypesContractTest::paintDeviceFrameLifecycleAndIdentitySignaturesRemainStable()
+{
+    using CreateSignature = int (KisPaintDeviceFramesInterface::*)(bool, int, const QPoint &, KUndo2Command *);
+    using CurrentSignature = int (KisPaintDeviceFramesInterface::*)() const;
+    using FramesSignature = QList<int> (KisPaintDeviceFramesInterface::*)();
+
+    static_assert(std::is_constructible_v<KisPaintDeviceFramesInterface, KisPaintDevice *>);
+    static_assert(std::is_same_v<decltype(&KisPaintDeviceFramesInterface::createFrame), CreateSignature>);
+    static_assert(std::is_same_v<decltype(&KisPaintDeviceFramesInterface::currentFrameId), CurrentSignature>);
+    static_assert(std::is_same_v<decltype(&KisPaintDeviceFramesInterface::frames), FramesSignature>);
+}
+
+void KisImageTypesContractTest::paintDeviceFrameGeometryAndPixelSignaturesRemainStable()
+{
+    using BoundsSignature = QRect (KisPaintDeviceFramesInterface::*)(int);
+    using DefaultPixelSignature = KoColor (KisPaintDeviceFramesInterface::*)(int) const;
+    using OffsetSignature = QPoint (KisPaintDeviceFramesInterface::*)(int) const;
+    using SetDefaultPixelSignature = void (KisPaintDeviceFramesInterface::*)(const KoColor &, int);
+    using SetOffsetSignature = void (KisPaintDeviceFramesInterface::*)(int, const QPoint &);
+
+    static_assert(std::is_same_v<decltype(&KisPaintDeviceFramesInterface::frameBounds), BoundsSignature>);
+    static_assert(std::is_same_v<decltype(&KisPaintDeviceFramesInterface::frameDefaultPixel), DefaultPixelSignature>);
+    static_assert(std::is_same_v<decltype(&KisPaintDeviceFramesInterface::frameOffset), OffsetSignature>);
+    static_assert(
+        std::is_same_v<decltype(&KisPaintDeviceFramesInterface::setFrameDefaultPixel), SetDefaultPixelSignature>);
+    static_assert(std::is_same_v<decltype(&KisPaintDeviceFramesInterface::setFrameOffset), SetOffsetSignature>);
+}
+
+void KisImageTypesContractTest::paintDeviceFrameTransferAndPersistenceSignaturesRemainStable()
+{
+    using DataManagerSignature = KisDataManagerSP (KisPaintDeviceFramesInterface::*)(int) const;
+    using ReadSignature = bool (KisPaintDeviceFramesInterface::*)(QIODevice *, int);
+    using UploadSignature = void (KisPaintDeviceFramesInterface::*)(int, KisPaintDeviceSP);
+    using UploadFromFrameSignature = void (KisPaintDeviceFramesInterface::*)(int, int, KisPaintDeviceSP);
+    using WriteSignature = bool (KisPaintDeviceFramesInterface::*)(KisPaintDeviceWriter &, int);
+    using WriteToDeviceSignature = void (KisPaintDeviceFramesInterface::*)(int, KisPaintDeviceSP);
+
+    static_assert(std::is_same_v<decltype(&KisPaintDeviceFramesInterface::frameDataManager), DataManagerSignature>);
+    static_assert(std::is_same_v<decltype(&KisPaintDeviceFramesInterface::readFrame), ReadSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<UploadSignature>(&KisPaintDeviceFramesInterface::uploadFrame)),
+                                 UploadSignature>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<UploadFromFrameSignature>(&KisPaintDeviceFramesInterface::uploadFrame)),
+                       UploadFromFrameSignature>);
+    static_assert(std::is_same_v<decltype(&KisPaintDeviceFramesInterface::writeFrame), WriteSignature>);
+    static_assert(std::is_same_v<decltype(&KisPaintDeviceFramesInterface::writeFrameToDevice), WriteToDeviceSignature>);
+}
+
+void KisImageTypesContractTest::paintDeviceFrameUndoCacheAndTestingSignaturesRemainStable()
+{
+    using DeleteSignature = void (KisPaintDeviceFramesInterface::*)(int, KUndo2Command *);
+    using InvalidateSignature = void (KisPaintDeviceFramesInterface::*)(int);
+    using TestingDataSignature =
+        KisPaintDeviceFramesInterface::TestingDataObjects (KisPaintDeviceFramesInterface::*)() const;
+    using TestingListSignature = QList<KisPaintDeviceData *> (KisPaintDeviceFramesInterface::*)() const;
+
+    static_assert(std::is_same_v<decltype(&KisPaintDeviceFramesInterface::deleteFrame), DeleteSignature>);
+    static_assert(std::is_same_v<decltype(&KisPaintDeviceFramesInterface::invalidateFrameCache), InvalidateSignature>);
+    static_assert(
+        std::is_same_v<decltype(&KisPaintDeviceFramesInterface::testingGetDataObjects), TestingDataSignature>);
+    static_assert(
+        std::is_same_v<decltype(&KisPaintDeviceFramesInterface::testingGetDataObjectsList), TestingListSignature>);
 }
 
 #undef ASSERT_DEFAULT_BOUNDS_SIGNATURE
