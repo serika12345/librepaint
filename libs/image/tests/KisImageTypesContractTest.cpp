@@ -22,6 +22,7 @@
 #include "kis_layer_utils.h"
 #include "kis_paint_device_frames_interface.h"
 #include "kis_pixel_selection.h"
+#include "kis_processing_visitor.h"
 #include "kis_projection_leaf.h"
 #include "kis_selection_based_layer.h"
 #include "kis_selection_filters.h"
@@ -69,6 +70,8 @@ namespace
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisSelectionBasedLayer::method)), signature>)
 #define ASSERT_CLONE_LAYER_SIGNATURE(method, signature)                                                                \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisCloneLayer::method)), signature>)
+#define ASSERT_PROCESSING_VISITOR_SIGNATURE(method, signature)                                                         \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KisProcessingVisitor::method)), signature>)
 
 class BaseConstIteratorConstructorProbe final : public KisBaseConstIteratorNG
 {
@@ -351,6 +354,11 @@ private Q_SLOTS:
     void cloneLayerDeviceProjectionAndPresentationSignaturesRemainStable();
     void cloneLayerImageAndGeometrySignaturesRemainStable();
     void cloneLayerVisitorCloneAndUpdateSignaturesRemainStable();
+    void processingVisitorOwnershipAndLifetimeSchemaRemainsStable();
+    void processingVisitorNodeAndLayerVisitSignaturesRemainStable();
+    void processingVisitorCloneAndMaskVisitSignaturesRemainStable();
+    void processingVisitorInitializationSignatureRemainsStable();
+    void processingVisitorProgressHelperSchemaRemainsStable();
 };
 
 void KisImageTypesContractTest::intrusivePointerAliasesPreserveOwnershipKinds()
@@ -2828,6 +2836,53 @@ void KisImageTypesContractTest::cloneLayerVisitorCloneAndUpdateSignaturesRemainS
     ASSERT_CLONE_LAYER_SIGNATURE(syncLodCache, void (KisCloneLayer::*)());
 }
 
+void KisImageTypesContractTest::processingVisitorOwnershipAndLifetimeSchemaRemainsStable()
+{
+    static_assert(std::is_class_v<KisProcessingVisitor>);
+    static_assert(std::is_abstract_v<KisProcessingVisitor>);
+    static_assert(std::is_base_of_v<KisShared, KisProcessingVisitor>);
+    static_assert(std::has_virtual_destructor_v<KisProcessingVisitor>);
+}
+
+void KisImageTypesContractTest::processingVisitorNodeAndLayerVisitSignaturesRemainStable()
+{
+    ASSERT_PROCESSING_VISITOR_SIGNATURE(visit, void (KisProcessingVisitor::*)(KisNode *, KisUndoAdapter *));
+    ASSERT_PROCESSING_VISITOR_SIGNATURE(visit, void (KisProcessingVisitor::*)(KisPaintLayer *, KisUndoAdapter *));
+    ASSERT_PROCESSING_VISITOR_SIGNATURE(visit, void (KisProcessingVisitor::*)(KisGroupLayer *, KisUndoAdapter *));
+    ASSERT_PROCESSING_VISITOR_SIGNATURE(visit, void (KisProcessingVisitor::*)(KisAdjustmentLayer *, KisUndoAdapter *));
+    ASSERT_PROCESSING_VISITOR_SIGNATURE(visit, void (KisProcessingVisitor::*)(KisExternalLayer *, KisUndoAdapter *));
+    ASSERT_PROCESSING_VISITOR_SIGNATURE(visit, void (KisProcessingVisitor::*)(KisGeneratorLayer *, KisUndoAdapter *));
+}
+
+void KisImageTypesContractTest::processingVisitorCloneAndMaskVisitSignaturesRemainStable()
+{
+    ASSERT_PROCESSING_VISITOR_SIGNATURE(visit, void (KisProcessingVisitor::*)(KisCloneLayer *, KisUndoAdapter *));
+    ASSERT_PROCESSING_VISITOR_SIGNATURE(visit, void (KisProcessingVisitor::*)(KisFilterMask *, KisUndoAdapter *));
+    ASSERT_PROCESSING_VISITOR_SIGNATURE(visit, void (KisProcessingVisitor::*)(KisTransformMask *, KisUndoAdapter *));
+    ASSERT_PROCESSING_VISITOR_SIGNATURE(visit, void (KisProcessingVisitor::*)(KisTransparencyMask *, KisUndoAdapter *));
+    ASSERT_PROCESSING_VISITOR_SIGNATURE(visit, void (KisProcessingVisitor::*)(KisColorizeMask *, KisUndoAdapter *));
+    ASSERT_PROCESSING_VISITOR_SIGNATURE(visit, void (KisProcessingVisitor::*)(KisSelectionMask *, KisUndoAdapter *));
+}
+
+void KisImageTypesContractTest::processingVisitorInitializationSignatureRemainsStable()
+{
+    ASSERT_PROCESSING_VISITOR_SIGNATURE(createInitCommand, KUndo2Command * (KisProcessingVisitor::*)());
+}
+
+void KisImageTypesContractTest::processingVisitorProgressHelperSchemaRemainsStable()
+{
+    using ProgressHelper = KisProcessingVisitor::ProgressHelper;
+
+    static_assert(std::is_class_v<ProgressHelper>);
+    static_assert(std::is_constructible_v<ProgressHelper, const KisNode *>);
+    static_assert(std::is_destructible_v<ProgressHelper>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<KoUpdater *(ProgressHelper::*)() const>(&ProgressHelper::updater)),
+                       KoUpdater *(ProgressHelper::*)() const>);
+    static_assert(std::is_same_v<decltype(static_cast<void (ProgressHelper::*)()>(&ProgressHelper::cancel)),
+                                 void (ProgressHelper::*)()>);
+}
+
 #undef ASSERT_DEFAULT_BOUNDS_SIGNATURE
 #undef ASSERT_LAYER_UTILS_SIGNATURE
 #undef ASSERT_PAINTOP_SETTINGS_SIGNATURE
@@ -2843,6 +2898,7 @@ void KisImageTypesContractTest::cloneLayerVisitorCloneAndUpdateSignaturesRemainS
 #undef ASSERT_SELECTION_MASK_SIGNATURE
 #undef ASSERT_SELECTION_BASED_LAYER_SIGNATURE
 #undef ASSERT_CLONE_LAYER_SIGNATURE
+#undef ASSERT_PROCESSING_VISITOR_SIGNATURE
 
 QTEST_GUILESS_MAIN(KisImageTypesContractTest)
 
