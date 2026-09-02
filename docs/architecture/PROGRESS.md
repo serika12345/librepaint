@@ -9,6 +9,21 @@
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
 
+### 第141便の先行監査計画
+
+- 監査共通基点は`4868a5ddaa836d3931453db2cb00816de03498c8`、入力は`build/tdd-macos/public-api-missing-g141.json`である。3担当は`auditing`の読み取り専用とし、
+  製品・試験・CMake・script・台帳・文書を変更せず、構築、試験、Git操作、追加委任も行わない。一つの公開責務から25 API以上を最大5枠へ固定し、既存限定対象、header-only値面、
+  または公開headerを変えない一sourceのOBJECT一対一移管で、製品共有ライブラリーと`kritatestsdk`へ接続しない候補だけを採用する。
+- `g141-resource-version-tag-model-schema-audit`は`libs/resources/KisResourceStorage.h`の版管理責務25 APIを主候補とし、`libs/resources/KisTagResourceModel.h`の全25 APIを比較する。保存資源の
+  版識別・順序・反復またはtagと資源の対応modelを、filesystem・database・storage plugin・資源I/O・実resource・model index・signal配送・大域registryの実体化なしで閉じる。
+- `g141-layer-icons-saved-command-schema-audit`は`libs/image/kis_layer_properties_icons.h`の全30 APIを主候補とし、`libs/image/commands_new/kis_saved_commands.h`の全30 APIを比較する。layer状態の
+  公開識別・命令面または保存済みundo命令の公開型面を、実node・image・色空間・icon・singleton・stroke・undo実行・RTTI・動的命令unwrapの実体化なしで閉じる。
+- `g141-display-renderer-color-space-schema-audit`は`libs/pigment/KoColorDisplayRendererInterface.h`の全30 APIを主候補とし、`libs/pigment/KoColorSpaceAbstract.h`の全32 APIを比較する。表示色変換interfaceの
+  抽象・既定実装面または同型色空間の公開画素処理面を、実色変換・画素buffer・image・palette・色空間registry・signal配送・大域rendererの実体化なしで閉じる。
+- 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから契約先または移動先、許可path、
+  固有停止条件、比較候補の棄却根拠を含む。既存`build/tdd-macos`の計画は読み取り専用で測定し、構成や構築を開始しない。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを
+  担当票へ進める。
+
 ### 第140便の先行監査計画
 
 - 監査共通基点は`4fb012861d3c0aa810a4c3af197ca255b9008a0d`、入力は`build/tdd-macos/public-api-missing-g140.json`である。3担当は`auditing`の読み取り専用とし、
