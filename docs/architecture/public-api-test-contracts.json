@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 13525
+    "expectedMissingApis": 13495
   },
   "contracts": [
     {
@@ -46262,6 +46262,81 @@
       "apis": [
         "function:KoSvgText::parseCSSFontStretch(const QString & value,int currentStretch)",
         "function:KoSvgText::parseTextIndent(const QString & value,const SvgLoadingContext & context)"
+      ]
+    },
+    {
+      "target": "KoResourceManagerSchemaContractTest",
+      "source": "libs/flake/tests/KoResourceManagerSchemaContractTest.cpp",
+      "test": "KoResourceManagerSchemaContractTest::resourceManagerTypeAndLifetimeSchemaRemainsStable",
+      "behavior": "キャンバス資源管理器がQObjectとして既定構築可能な公開型であることを固定する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoResourceManager",
+        "method:KoResourceManager::KoResourceManager()"
+      ]
+    },
+    {
+      "target": "KoResourceManagerSchemaContractTest",
+      "source": "libs/flake/tests/KoResourceManagerSchemaContractTest.cpp",
+      "test": "KoResourceManagerSchemaContractTest::resourceManagerTypedValueSignaturesRemainStable",
+      "behavior": "キャンバス資源管理器の型付き値設定・取得・存在照会・消去の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoResourceManager::boolResource(int key) const",
+        "method:KoResourceManager::clearResource(int key)",
+        "method:KoResourceManager::hasResource(int key) const",
+        "method:KoResourceManager::intResource(int key) const",
+        "method:KoResourceManager::koColorResource(int key) const",
+        "method:KoResourceManager::koShapeResource(int key) const",
+        "method:KoResourceManager::resource(int key) const",
+        "method:KoResourceManager::setResource(int key,KoShape * shape)",
+        "method:KoResourceManager::setResource(int key,const KoColor & color)",
+        "method:KoResourceManager::setResource(int key,const KoUnit & unit)",
+        "method:KoResourceManager::setResource(int key,const QVariant & value)",
+        "method:KoResourceManager::sizeResource(int key) const",
+        "method:KoResourceManager::stringResource(int key) const",
+        "method:KoResourceManager::unitResource(int key) const"
+      ]
+    },
+    {
+      "target": "KoResourceManagerSchemaContractTest",
+      "source": "libs/flake/tests/KoResourceManagerSchemaContractTest.cpp",
+      "test": "KoResourceManagerSchemaContractTest::resourceManagerDerivedAndMediatorSignaturesRemainStable",
+      "behavior": "キャンバス資源管理器の派生資源変換器と更新仲介器の登録・照会・解除署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoResourceManager::addDerivedResourceConverter(KoDerivedResourceConverterSP converter)",
+        "method:KoResourceManager::addResourceUpdateMediator(KoResourceUpdateMediatorSP mediator)",
+        "method:KoResourceManager::hasDerivedResourceConverter(int key)",
+        "method:KoResourceManager::hasResourceUpdateMediator(int key)",
+        "method:KoResourceManager::removeDerivedResourceConverter(int key)",
+        "method:KoResourceManager::removeResourceUpdateMediator(int key)"
+      ]
+    },
+    {
+      "target": "KoResourceManagerSchemaContractTest",
+      "source": "libs/flake/tests/KoResourceManagerSchemaContractTest.cpp",
+      "test": "KoResourceManagerSchemaContractTest::resourceManagerDependencyAndAbstractSignaturesRemainStable",
+      "behavior": "キャンバス資源管理器の資源間依存と抽象資源の登録・照会・解除署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoResourceManager::addActiveCanvasResourceDependency(KoActiveCanvasResourceDependencySP dep)",
+        "method:KoResourceManager::hasAbstractResource(int key)",
+        "method:KoResourceManager::hasActiveCanvasResourceDependency(int sourceKey,int targetKey) const",
+        "method:KoResourceManager::removeAbstractResource(int key)",
+        "method:KoResourceManager::removeActiveCanvasResourceDependency(int sourceKey,int targetKey)",
+        "method:KoResourceManager::setAbstractResource(KoAbstractCanvasResourceInterfaceSP resource)"
+      ]
+    },
+    {
+      "target": "KoResourceManagerSchemaContractTest",
+      "source": "libs/flake/tests/KoResourceManagerSchemaContractTest.cpp",
+      "test": "KoResourceManagerSchemaContractTest::resourceManagerNotificationSignaturesRemainStable",
+      "behavior": "キャンバス資源管理器が変更試行と確定変更を同じキー・値順で通知する公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoResourceManager::resourceChangeAttempted(int key,const QVariant & value)",
+        "method:KoResourceManager::resourceChanged(int key,const QVariant & value)"
       ]
     }
   ]
