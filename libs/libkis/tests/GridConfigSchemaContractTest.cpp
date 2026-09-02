@@ -4,6 +4,7 @@
  */
 
 #include "GridConfig.h"
+#include "GuidesConfig.h"
 
 #include <QTest>
 
@@ -13,6 +14,8 @@ namespace
 {
 #define ASSERT_GRID_CONFIG_SIGNATURE(method, signature)                                                                \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&GridConfig::method)), signature>)
+#define ASSERT_GUIDES_CONFIG_SIGNATURE(method, signature)                                                              \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&GuidesConfig::method)), signature>)
 } // namespace
 
 class GridConfigSchemaContractTest : public QObject
@@ -25,6 +28,11 @@ private Q_SLOTS:
     void isometricGridGeometrySignaturesRemainStable();
     void gridLinePresentationSignaturesRemainStable();
     void gridColorPresentationSignaturesRemainStable();
+    void guidesConfigIdentityAndConstructionSchemaRemainsStable();
+    void guidesConfigComparisonAndSerializationSignaturesRemainStable();
+    void guidesConfigPresentationSignaturesRemainStable();
+    void guidesConfigPositionSignaturesRemainStable();
+    void guidesConfigInteractionStateSignaturesRemainStable();
 };
 
 void GridConfigSchemaContractTest::gridIdentityAndVisibilityPolicySignaturesRemainStable()
@@ -108,7 +116,55 @@ void GridConfigSchemaContractTest::gridColorPresentationSignaturesRemainStable()
     QVERIFY(true);
 }
 
+void GridConfigSchemaContractTest::guidesConfigIdentityAndConstructionSchemaRemainsStable()
+{
+    static_assert(std::is_class_v<GuidesConfig>);
+    static_assert(std::is_base_of_v<QObject, GuidesConfig>);
+    static_assert(std::is_constructible_v<GuidesConfig, KisGuidesConfig *>);
+    static_assert(std::is_default_constructible_v<GuidesConfig>);
+    static_assert(std::is_destructible_v<GuidesConfig>);
+    static_assert(std::has_virtual_destructor_v<GuidesConfig>);
+}
+
+void GridConfigSchemaContractTest::guidesConfigComparisonAndSerializationSignaturesRemainStable()
+{
+    ASSERT_GUIDES_CONFIG_SIGNATURE(operator==, bool (GuidesConfig::*)(const GuidesConfig &) const);
+    ASSERT_GUIDES_CONFIG_SIGNATURE(operator!=, bool (GuidesConfig::*)(const GuidesConfig &) const);
+    ASSERT_GUIDES_CONFIG_SIGNATURE(fromXml, bool (GuidesConfig::*)(const QString &) const);
+    ASSERT_GUIDES_CONFIG_SIGNATURE(toXml, QString (GuidesConfig::*)() const);
+}
+
+void GridConfigSchemaContractTest::guidesConfigPresentationSignaturesRemainStable()
+{
+    ASSERT_GUIDES_CONFIG_SIGNATURE(color, QColor (GuidesConfig::*)() const);
+    ASSERT_GUIDES_CONFIG_SIGNATURE(setColor, void (GuidesConfig::*)(const QColor &) const);
+    ASSERT_GUIDES_CONFIG_SIGNATURE(lineType, QString (GuidesConfig::*)() const);
+    ASSERT_GUIDES_CONFIG_SIGNATURE(setLineType, void (GuidesConfig::*)(const QString &));
+}
+
+void GridConfigSchemaContractTest::guidesConfigPositionSignaturesRemainStable()
+{
+    ASSERT_GUIDES_CONFIG_SIGNATURE(hasGuides, bool (GuidesConfig::*)() const);
+    ASSERT_GUIDES_CONFIG_SIGNATURE(hasSamePositionAs, bool (GuidesConfig::*)(const GuidesConfig &) const);
+    ASSERT_GUIDES_CONFIG_SIGNATURE(horizontalGuides, QList<qreal> (GuidesConfig::*)() const);
+    ASSERT_GUIDES_CONFIG_SIGNATURE(setHorizontalGuides, void (GuidesConfig::*)(const QList<qreal> &));
+    ASSERT_GUIDES_CONFIG_SIGNATURE(verticalGuides, QList<qreal> (GuidesConfig::*)() const);
+    ASSERT_GUIDES_CONFIG_SIGNATURE(setVerticalGuides, void (GuidesConfig::*)(const QList<qreal> &));
+}
+
+void GridConfigSchemaContractTest::guidesConfigInteractionStateSignaturesRemainStable()
+{
+    ASSERT_GUIDES_CONFIG_SIGNATURE(removeAllGuides, void (GuidesConfig::*)());
+    ASSERT_GUIDES_CONFIG_SIGNATURE(visible, bool (GuidesConfig::*)() const);
+    ASSERT_GUIDES_CONFIG_SIGNATURE(setVisible, void (GuidesConfig::*)(bool));
+    ASSERT_GUIDES_CONFIG_SIGNATURE(locked, bool (GuidesConfig::*)() const);
+    ASSERT_GUIDES_CONFIG_SIGNATURE(setLocked, void (GuidesConfig::*)(bool));
+    ASSERT_GUIDES_CONFIG_SIGNATURE(snap, bool (GuidesConfig::*)() const);
+    ASSERT_GUIDES_CONFIG_SIGNATURE(setSnap, void (GuidesConfig::*)(bool));
+}
+
 #undef ASSERT_GRID_CONFIG_SIGNATURE
+#undef ASSERT_GUIDES_CONFIG_SIGNATURE
 
 QTEST_GUILESS_MAIN(GridConfigSchemaContractTest)
 
