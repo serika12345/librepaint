@@ -74,6 +74,11 @@ private Q_SLOTS:
     void allTagResourceModelColumnSchemaRemainsStable();
     void allTagResourceModelTableSchemaRemainsStable();
     void allTagResourceModelRelationSchemaRemainsStable();
+    void storageMetadataKeySchemaRemainsStable();
+    void storageMetadataAccessSignaturesRemainStable();
+    void storagePersistenceAndVersioningSignaturesRemainStable();
+    void storagePluginFactorySchemaRemainsStable();
+    void storagePluginRegistrySchemaRemainsStable();
 };
 
 void KisResourceModelEnumContractTest::columnValuesRemainStable()
@@ -911,6 +916,84 @@ void KisResourceModelEnumContractTest::allTagResourceModelRelationSchemaRemainsS
     static_assert(std::is_same_v<decltype(&Model::tagResources), bool (Model::*)(KisTagSP, const QVector<int> &)>);
     static_assert(std::is_same_v<decltype(&Model::untagResources), bool (Model::*)(KisTagSP, const QVector<int> &)>);
     static_assert(std::is_same_v<decltype(&Model::isResourceTagged), int (Model::*)(KisTagSP, int)>);
+}
+
+void KisResourceModelEnumContractTest::storageMetadataKeySchemaRemainsStable()
+{
+    using Storage = KisResourceStorage;
+
+    static_assert(std::is_same_v<decltype(Storage::s_meta_author), const QString>);
+    static_assert(std::is_same_v<decltype(Storage::s_meta_creation_date), const QString>);
+    static_assert(std::is_same_v<decltype(Storage::s_meta_creator), const QString>);
+    static_assert(std::is_same_v<decltype(Storage::s_meta_dc_date), const QString>);
+    static_assert(std::is_same_v<decltype(Storage::s_meta_description), const QString>);
+    static_assert(std::is_same_v<decltype(Storage::s_meta_email), const QString>);
+    static_assert(std::is_same_v<decltype(Storage::s_meta_generator), const QString>);
+    static_assert(std::is_same_v<decltype(Storage::s_meta_initial_creator), const QString>);
+    static_assert(std::is_same_v<decltype(Storage::s_meta_license), const QString>);
+    static_assert(std::is_same_v<decltype(Storage::s_meta_name), const QString>);
+    static_assert(std::is_same_v<decltype(Storage::s_meta_title), const QString>);
+    static_assert(std::is_same_v<decltype(Storage::s_meta_user_defined), const QString>);
+    static_assert(std::is_same_v<decltype(Storage::s_meta_value), const QString>);
+    static_assert(std::is_same_v<decltype(Storage::s_meta_version), const QString>);
+    static_assert(std::is_same_v<decltype(Storage::s_meta_website), const QString>);
+    static_assert(std::is_same_v<decltype(Storage::s_xmlns_dc), const QString>);
+    static_assert(std::is_same_v<decltype(Storage::s_xmlns_meta), const QString>);
+}
+
+void KisResourceModelEnumContractTest::storageMetadataAccessSignaturesRemainStable()
+{
+    using Storage = KisResourceStorage;
+
+    static_assert(std::is_same_v<decltype(&Storage::metaData), QVariant (Storage::*)(const QString &) const>);
+    static_assert(std::is_same_v<decltype(&Storage::metaDataKeys), QStringList (Storage::*)() const>);
+    static_assert(
+        std::is_same_v<decltype(&Storage::setMetaData), void (Storage::*)(const QString &, const QVariant &)>);
+}
+
+void KisResourceModelEnumContractTest::storagePersistenceAndVersioningSignaturesRemainStable()
+{
+    using Storage = KisResourceStorage;
+
+    static_assert(std::is_same_v<decltype(&Storage::addResource), bool (Storage::*)(KoResourceSP)>);
+    static_assert(std::is_same_v<decltype(&Storage::addTag), bool (Storage::*)(const QString &, KisTagSP)>);
+    static_assert(std::is_same_v<decltype(&Storage::exportResource), bool (Storage::*)(const QString &, QIODevice *)>);
+    static_assert(std::is_same_v<decltype(&Storage::importResource), bool (Storage::*)(const QString &, QIODevice *)>);
+    static_assert(std::is_same_v<decltype(&Storage::loadVersionedResource), bool (Storage::*)(KoResourceSP)>);
+    static_assert(std::is_same_v<decltype(&Storage::saveAsNewVersion), bool (Storage::*)(KoResourceSP)>);
+    static_assert(std::is_same_v<decltype(&Storage::supportsVersioning), bool (Storage::*)() const>);
+}
+
+void KisResourceModelEnumContractTest::storagePluginFactorySchemaRemainsStable()
+{
+    struct PluginType;
+    using Factory = KisStoragePluginFactory<PluginType>;
+
+    static_assert(std::is_class_v<KisStoragePluginFactoryBase>);
+    static_assert(std::is_class_v<Factory>);
+    static_assert(std::is_base_of_v<KisStoragePluginFactoryBase, Factory>);
+    static_assert(std::is_destructible_v<KisStoragePluginFactoryBase>);
+    static_assert(std::has_virtual_destructor_v<KisStoragePluginFactoryBase>);
+    static_assert(std::is_same_v<decltype(&KisStoragePluginFactoryBase::create),
+                                 KisStoragePlugin *(KisStoragePluginFactoryBase::*)(const QString &)>);
+    static_assert(std::is_same_v<decltype(&Factory::create), KisStoragePlugin *(Factory::*)(const QString &)>);
+    static_assert(std::is_same_v<decltype(static_cast<QDebug (*)(QDebug, KisResourceStorageSP)>(&operator<<)),
+                                 QDebug (*)(QDebug, KisResourceStorageSP)>);
+}
+
+void KisResourceModelEnumContractTest::storagePluginRegistrySchemaRemainsStable()
+{
+    using Registry = KisStoragePluginRegistry;
+
+    static_assert(std::is_class_v<Registry>);
+    static_assert(std::is_default_constructible_v<Registry>);
+    static_assert(std::is_destructible_v<Registry>);
+    static_assert(std::has_virtual_destructor_v<Registry>);
+    static_assert(std::is_same_v<decltype(&Registry::addStoragePluginFactory),
+                                 void (Registry::*)(KisResourceStorage::StorageType, KisStoragePluginFactoryBase *)>);
+    static_assert(std::is_same_v<decltype(&Registry::instance), Registry *(*)()>);
+    static_assert(std::is_same_v<decltype(&Registry::storageTypes),
+                                 QList<KisResourceStorage::StorageType> (Registry::*)() const>);
 }
 
 QTEST_GUILESS_MAIN(KisResourceModelEnumContractTest)
