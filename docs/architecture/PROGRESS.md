@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 20:37 JST
+- 更新日時: 2026-09-02 20:42 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -22,6 +22,21 @@
   型・alias・値member・action識別子・keyframe命令・移動・clone・比較・hash・CSS値parse/write面を、画像・node・keyframe・undo命令・SVG context・stream・filesystem・signal・metaobject・大域状態の実体化なしで閉じる。
 - 各報告は完全なAPI識別子、既定引数観測、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから契約先または移動先、許可path、固有停止条件、
   比較候補の棄却根拠を含む。既存`build/tdd-macos`の計画は読み取り専用で測定し、構成や構築を開始しない。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
+- `g162-image-saved-paint-information-schema-audit`は`libs/image/commands_new/kis_saved_commands.h`の全30 APIを採用した。階層・寿命10、時間・identity 8、merge・unwrap 5、macro構成・identity 5、macro実行・override 2を既存
+  `libs/image/tests/KisImageTypesContractTest.cpp`の5枠へ対応付ける。`addCommand`の2省略形と`getCommandExecutionJobs`の履歴指定省略形も未評価式で固定する。CMakeと依存を変えず対象4工程・8入力、停止5工程・11入力、製品
+  `kritaimage` 1,196工程・2,416入力を維持する。対象命令集合hashは`860901e6bedec4afd10214e6f9e56ccd61a1e8182c0e7d050a1092b2c13c25d1`、入力集合hashは
+  `42c0bdca62da9111fd79736a3055bd233ee32342bc2c9ae69fc577a83a88cf81`、製品命令集合hashは`e055c792a96a6478029f98d6f7ef6eb7c32df4c7f228092ee25a0aaeff5be7ab`、入力集合hashは
+  `76f2aa4251a6bf4e2adf2a1e822bc9d629753b2e93e5b877ee4eae23364940bc`である。`kis_paint_information.h`はRAII distance registrar、mix、乱数、XML、template paintへ責務が分散し、template本文の実体化を要するため棄却した。
+- `g162-widgets-palette-visual-selector-schema-audit`は`libs/widgets/KisPaletteModel.h`の全35 APIを採用した。identity・role 8、model照会・drag/drop 11、palette接続6、swatch変更5、group・layout 5を新規
+  `libs/widgets/tests/KisPaletteModelSchemaContractTest.cpp`の5枠へ対応付ける。追加role序数と構築、model照会、swatch、group操作の既定引数省略形を固定する。直接linkはQt Core・Gui・Testだけ、新対象4工程・8〜9入力、停止5工程・11入力、製品
+  `kritawidgets` 809工程・1,647入力を維持する。近傍`KisVisualColorModelSchemaContractTest`の命令集合hashは`ae9b217ae06360388bfcd75150b0d1474144d98e8fd7db506ea2b82ccac2a88d`、入力集合hashは
+  `7469bfffc3302129b3f3bbb23e3358759489cecec50772b94e4ad297b7d86d2a`、製品命令集合hashは`baeb2dab120a80387688d7082f787f31c3d527483e9d12132459052024bdf0ae`、入力集合hashは
+  `935f4653e18dfab872dcfee4732689a6fd96aa191335b559949afabc731a821a`である。`KisVisualColorSelector.h`はwidget、gamut mask、描画、色変換、configuration、通知へ閉包が広がるため棄却した。
+- `g162-animation-utils-svg-text-schema-audit`は`libs/flake/text/KoSvgText.h`の全28 APIを採用した。font記録6、debug書式10、自動値parse 6、値write 4、CSS parse 2を既存
+  `libs/flake/tests/KoSvgTextEnumContractTest.cpp`の5枠へ対応付ける。5 parse関数と2 write関数の既定引数省略形も未評価式で固定する。CMakeと依存を変えず対象4工程・8入力、停止5工程・11入力、製品
+  `kritaflake` 621工程・1,274入力を維持する。対象命令集合hashは`a6e9b6f6abd87c029d5a6e66f21f84b01ac0fbfcaec6f50a5eb00dd5470eb231`、入力集合hashは
+  `8fe54ed466151d60b6e0f8831566da506cb3a82319adaa3eb3657433bd6e3b57`、製品命令集合hashは`2fc3040d1c607ecd81879d6ec00ad8a4a161787da567b484bc934a687afefb07`、入力集合hashは
+  `1a30862a8e0463c6578045c344b23088d4909ac6017407162709d283413b8cb5`である。`KisAnimUtils.h`はframe値、画像・node・keyframe変更、undo command、clone、debug・hash、大域action名へ責務が分散し、製品所有も2,002工程超となるため棄却した。
 
 ### 第161便の先行監査計画
 
