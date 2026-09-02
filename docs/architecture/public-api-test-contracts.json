@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 13435
+    "expectedMissingApis": 13407
   },
   "contracts": [
     {
@@ -46487,6 +46487,79 @@
         "method:KisShortcutsEditor::resizeColumns()",
         "method:KisShortcutsEditor::searchUpdated(QString s)",
         "method:KisShortcutsEditor::slotScrollerStateChanged(QScroller::State state)"
+      ]
+    },
+    {
+      "target": "KKeySequenceWidgetSchemaContractTest",
+      "source": "libs/widgetutils/tests/KKeySequenceWidgetSchemaContractTest.cpp",
+      "test": "KKeySequenceWidgetSchemaContractTest::xmlGuiWindowTypeAndOptionSchemaRemainsStable",
+      "behavior": "XML GUI windowの標準toolbar・shortcut・status・保存・生成optionの公開型とbit値を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KXmlGuiWindow::StandardWindowOptions",
+        "class:KXmlGuiWindow",
+        "enum:KXmlGuiWindow::StandardWindowOption",
+        "enumerator:KXmlGuiWindow::StandardWindowOption::Create",
+        "enumerator:KXmlGuiWindow::StandardWindowOption::Default",
+        "enumerator:KXmlGuiWindow::StandardWindowOption::Keys",
+        "enumerator:KXmlGuiWindow::StandardWindowOption::Save",
+        "enumerator:KXmlGuiWindow::StandardWindowOption::StatusBar",
+        "enumerator:KXmlGuiWindow::StandardWindowOption::ToolBar"
+      ]
+    },
+    {
+      "target": "KKeySequenceWidgetSchemaContractTest",
+      "source": "libs/widgetutils/tests/KKeySequenceWidgetSchemaContractTest.cpp",
+      "test": "KKeySequenceWidgetSchemaContractTest::xmlGuiWindowLifetimeAndFeaturePolicySchemaRemainsStable",
+      "behavior": "XML GUI windowの寿命、既定構築、help・toolbar menu方針、標準status actionの公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KXmlGuiWindow::KXmlGuiWindow(QWidget * parent=0,Qt::WindowFlags f=Qt::WindowFlags ())",
+        "method:KXmlGuiWindow::createStandardStatusBarAction()",
+        "method:KXmlGuiWindow::isHelpMenuEnabled() const",
+        "method:KXmlGuiWindow::isStandardToolBarMenuEnabled() const",
+        "method:KXmlGuiWindow::setHelpMenuEnabled(bool showHelpMenu=true)",
+        "method:KXmlGuiWindow::setStandardToolBarMenuEnabled(bool enable)",
+        "method:KXmlGuiWindow::~KXmlGuiWindow()"
+      ]
+    },
+    {
+      "target": "KKeySequenceWidgetSchemaContractTest",
+      "source": "libs/widgetutils/tests/KKeySequenceWidgetSchemaContractTest.cpp",
+      "test": "KKeySequenceWidgetSchemaContractTest::xmlGuiWindowCreationAndSetupSchemaRemainsStable",
+      "behavior": "XML GUI windowのGUI生成、二つの標準設定手順、main window設定適用の公開署名と既定引数を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KXmlGuiWindow::applyMainWindowSettings(const KConfigGroup & config)",
+        "method:KXmlGuiWindow::createGUI(const QString & xmlfile=QString ())",
+        "method:KXmlGuiWindow::setupGUI(StandardWindowOptions options=Default,const QString & xmlfile=QString ())",
+        "method:KXmlGuiWindow::setupGUI(const QSize & defaultSize,StandardWindowOptions options=Default,const QString & xmlfile=QString ())"
+      ]
+    },
+    {
+      "target": "KKeySequenceWidgetSchemaContractTest",
+      "source": "libs/widgetutils/tests/KKeySequenceWidgetSchemaContractTest.cpp",
+      "test": "KKeySequenceWidgetSchemaContractTest::xmlGuiWindowFactoryAndFinalizationSchemaRemainsStable",
+      "behavior": "XML GUI windowのfactory・toolbar action借用、toolbar設定、GUI確定の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KXmlGuiWindow::configureToolbars()",
+        "method:KXmlGuiWindow::finalizeGUI(KisKXMLGUIClient * client)",
+        "method:KXmlGuiWindow::finalizeGUI(bool force)",
+        "method:KXmlGuiWindow::guiFactory()",
+        "method:KXmlGuiWindow::setupToolbarMenuActions()",
+        "method:KXmlGuiWindow::toolBarMenuAction()"
+      ]
+    },
+    {
+      "target": "KKeySequenceWidgetSchemaContractTest",
+      "source": "libs/widgetutils/tests/KKeySequenceWidgetSchemaContractTest.cpp",
+      "test": "KKeySequenceWidgetSchemaContractTest::xmlGuiWindowStateNotificationSchemaRemainsStable",
+      "behavior": "XML GUI windowの通常・反転状態変更通知を区別する公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KXmlGuiWindow::slotStateChanged(const QString & newstate)",
+        "method:KXmlGuiWindow::slotStateChanged(const QString & newstate,bool reverse)"
       ]
     }
   ]
