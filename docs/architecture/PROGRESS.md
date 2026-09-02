@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 22:00 JST
+- 更新日時: 2026-09-02 22:03 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -37,7 +37,7 @@
 
 ### 第164便の担当計画
 
-- 実装共通基点は`5c700d53e9`である。3担当は`preparing`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、専用worktree-local `build/tdd-macos`と主作業treeの
+- 実装共通基点は`5c700d53e9`である。3担当は`implementing`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、専用worktree-local `build/tdd-macos`と主作業treeの
   `/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。統合順はXML GUI window、再生engine、SVG text cursorとし、調整担当だけが`AGENTS.md`、architecture文書、`docs/architecture/public-api-test-contracts.json`、共通不足報告を変更する。3担当の公開header、所有CMake、試験source、生成物は重ならない。
 - `g164-xml-gui-window-schema`は`/Users/masato/Documents/librepaint-g164-xml-gui-window-schema`を所有する。開始`libs/widgetutils/xmlgui/kxmlguiwindow.h`の全28 APIから既存
   `libs/widgetutils/tests/KKeySequenceWidgetSchemaContractTest.cpp`の5枠`xmlGuiWindowTypeAndOptionSchemaRemainsStable`、`xmlGuiWindowLifetimeAndFeaturePolicySchemaRemainsStable`、`xmlGuiWindowCreationAndSetupSchemaRemainsStable`、
