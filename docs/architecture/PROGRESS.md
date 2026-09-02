@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 12:25 JST
+- 更新日時: 2026-09-02 12:28 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -22,6 +22,21 @@
   workaround面またはsurface format・driver・extension・HDR probe面を、OpenGL context・surface・driver・設定・大域状態・QImage・GUI applicationの実体化なしで閉じる。
 - 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから契約先または移動先、許可path、固有停止条件、
   比較候補の棄却根拠を含む。既存`build/tdd-macos`の計画は読み取り専用で測定し、構成や構築を開始しない。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
+- `g148-tile-memento-manager-schema-audit`は`kis_tile.h`の全25 APIを採用した。型・寿命7、manager接続・診断5、読書きlock 4、data・幾何7、連結2を新規`KisTileSchemaContractTest`の未評価型5枠へ
+  対応付ける。直接linkはQt Core・Core5Compat・Testだけ、新対象4工程・8入力、停止5工程・11入力を予測し、製品`kritaimage` 1,196工程・2,416入力を維持する。現在の近傍命令集合hashは
+  `5d67dbf41d8f1b0f8073f3bf78c61c5caf8c2428d6d01b21766a84cbd81c7c25`、入力集合hashは`e7404b6eddf611a7a6e91514dd99a6829ca657bd6136578ca3bde746948944b1`、製品命令集合hashは
+  `8b3e011450f2ca342e0ce523cc1696c2e2b3970456a8cb097553ee5fdf79930f`、入力集合hashは`76f2aa4251a6bf4e2adf2a1e822bc9d629753b2e93e5b877ee4eae23364940bc`である。
+  `kis_memento_manager.h`はhash table特殊化、履歴、raw pointer、mutexを直接閉包し、alias・寿命検査だけでもtemplate実体化へ波及するため棄却した。
+- `g148-color-space-abstract-composite-ops-schema-audit`は`KoColorSpaceAbstract.h`の全32 APIを採用した。型・構築3、channel 10、不透明度・mask 12、表示変換5、調整変換2を新規
+  `KoColorSpaceAbstractSchemaContractTest`の未評価型5枠へ対応付ける。宣言だけの試験用traitで特殊化の型面を形成し、直接linkはQt Core・Gui・TestとBoost headerだけ、新対象4工程・8入力、停止5工程・11入力を
+  予測し、製品`kritapigment` 367工程・764入力と保留集合を維持する。現在の近傍命令集合hashは`324e134905eba3b6b9408ed1bcf1fe276dd9829985c51f51d6850115b1e27133`、入力集合hashは
+  `b2f84cf956475e56944f8b016b636477d0efcc682a59f214e67ccf1020d411b2`、製品命令集合hashは`3b4b2551060ce396e760303c6c8267bfd467111e857b576eee57c1565db40eea`、入力集合hashは
+  `bf5edd640fbf030d1ea10b191f4635fe33c618ae166776ed804ed21b494f1f6e`である。`KoCompositeOps.h`は部分特殊化と関数templateが非修飾IDへ集約され、合成実装を意図せず生成するriskが高いため棄却した。
+- `g148-opengl-functions-mode-prober-schema-audit`は`kis_opengl.h`の未対応28 APIを採用した。renderer選択・設定7、初期化・診断6、能力7、texture・outline policy 4、試験・platform 4を既存
+  `KisOpenGLRendererConfigContractTest`の未評価型5枠へ対応付ける。対象は既存RendererConfig値変換を担う一source OBJECTを含むため5工程・12入力であり、追加後も集合を完全に維持する。現在の対象命令集合hashは
+  `8aed958037c896581a74104f8c9e6284295a0156f3a9fdb10e382a3ddd1b1142`、入力集合hashは`570be7c8748914990ae337c311e985fff6c2f39cbc98c9d081089df7d7ac07ea`、停止線は現状比1工程・3入力の
+  6工程・15入力、製品`kritaapplicationui` 1,970工程・3,940入力の命令集合hashは`54a81e7f2dc46cb6b03d85bc5606456480d58d433d4acedf3a971d51508da391`、入力集合hashは
+  `fadce0f47495bd67de7f32dd23bcb107bb18415503800cf48d62f14a425fb3ff`である。`KisOpenGLModeProber.h`はWindows限定APIをmacOSで完全固定できず、context・surface・大域状態と製品定義への閉包も広いため棄却した。
 
 ### 第147便の先行監査計画
 
