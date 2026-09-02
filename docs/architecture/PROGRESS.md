@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 20:47 JST
+- 更新日時: 2026-09-02 21:03 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -40,7 +40,7 @@
 
 ### 第162便の担当計画
 
-- 実装共通基点は`f56b778062`である。3担当は`implementing`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、
+- 実装共通基点は`f56b778062`である。3担当は`integrated`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、
   専用worktree-local `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。統合順はsaved command、palette model、SVG textとし、調整担当だけが
   `AGENTS.md`、architecture文書、`docs/architecture/public-api-test-contracts.json`、共通不足報告を変更する。3担当の公開header、所有CMake、試験source、生成物は重ならない。
 - `g162-saved-command-schema`は`/Users/masato/Documents/librepaint-g162-saved-command-schema`を所有する。開始`libs/image/commands_new/kis_saved_commands.h`の全30 APIから既存
@@ -64,6 +64,26 @@
   許可pathは既存試験sourceだけであり、CMake・公開header・製品sourceを変更しない。parse 5関数とwrite 2関数の既定引数省略形を未評価式で固定する。対象4工程・8入力、停止5工程・11入力、同じ対象の既存列挙・値契約を近傍とし、製品`kritaflake`
   621工程・1,274入力の変更前後集合完全一致を確認する。旧binaryの新5枠Unknown、対象CTest・枠個別・20回反復、既存枠、無作業再構築、動的接続・AUTOMOC入力・SVG text未解決記号、構文・書式、公開API・`verify-quick`を確認する。SVG context、stream、shape、font、
   layout、filesystem、描画を生成または実行し、CMake・依存変更、製品接続、公開header変更、製品計画差、停止線超過が必要なら止める。
+
+### 第162便の統合結果
+
+- `g162-saved-command-schema`は受渡しcommit`441d552a70`を統合commit`2288be7562`として取り込んだ。開始`libs/image/commands_new/kis_saved_commands.h`から既存
+  `libs/image/tests/KisImageTypesContractTest.cpp`の5枠へ、階層・寿命、時間・identity、merge・unwrap、macro構成・identity、macro実行・overrideの全30 APIを対応付けた。`addCommand`の2省略形とjob展開の履歴指定省略形も固定した。
+  CMakeと依存を変えず対象4工程・8入力、製品`kritaimage` 1,196工程・2,416入力の集合を維持した。担当macOS環境で旧binaryの新5枠Unknown、対象CTest・20回反復、近傍`KisImageConfigAnimationSchemaContractTest`、無作業再構築、
+  動的接続・AUTOMOC入力・未解決記号、構文・書式、公開API検査、`verify-quick`に成功した。中央環境でも対象だけを構築・実行し、台帳commit`308fc826f7`で29,838件中16,250件対応、13,588件未対応となった。
+  command、stroke、RTTI unwrap、macro実行時効果は別契約で扱う。
+- `g162-palette-model-schema`は受渡しcommit`af6751ae3f`を統合commit`1729e85fac`として取り込んだ。開始`libs/widgets/KisPaletteModel.h`から新規
+  `libs/widgets/tests/KisPaletteModelSchemaContractTest.cpp`の5枠へ、identity・role、model照会・drag/drop、palette接続、swatch変更、group・layoutの全35 APIを対応付けた。追加role序数と構築、照会、swatch、group操作の既定引数省略形も固定した。
+  直接linkはQt Core・Gui・Testだけ、新対象4工程・8入力、製品`kritawidgets` 809工程・1,647入力の集合を維持した。担当macOS環境でunknown target・CTest 0件、新5枠、対象CTest・20回反復、近傍
+  `KisVisualColorModelSchemaContractTest`、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式、公開API検査、`verify-quick`に成功した。中央環境でも対象だけを構築・実行し、台帳commit`4ab0caff61`で
+  29,838件中16,285件対応、13,553件未対応となった。model、palette、swatch、resource、MIME、drag/drop、色変換、通知配送の実行時効果は別契約で扱う。
+- `g162-svg-text-schema`は受渡しcommit`501ab82d7a`を統合commit`5b1c0873c2`として取り込んだ。開始`libs/flake/text/KoSvgText.h`から既存
+  `libs/flake/tests/KoSvgTextEnumContractTest.cpp`の5枠へ、font記録、debug書式、自動値parse、値write、CSS parseの全28 APIを対応付けた。5 parse関数と2 write関数の既定引数省略形も固定した。CMakeと依存を変えず対象4工程・8入力、
+  製品`kritaflake` 621工程・1,274入力の集合を維持した。担当macOS環境で旧binaryの新5枠Unknown、対象CTest・20回反復、既存枠、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式、公開API検査、`verify-quick`に成功した。
+  中央環境でも対象だけを構築・実行し、台帳commit`0b50d3e4c6`で29,838件中16,313件対応、13,525件未対応となった。SVG context、stream、shape、font、layout、filesystem、描画の実行時効果は別契約で扱う。
+- 第162便全体で93 APIを15枠へ重複なく対応付け、3担当のcleanな作業treeと担当branchを削除して計2,633,668 KiB（約2.51 GiB）を回収した。公開API台帳、構造方針、文書、link、D2再生成を含む
+  `verify-quick`は成功した。旧不足報告`public-api-missing-g162.json`をごみ箱へ移し、主Ninja木5,638,152 KiB、共有compiler cache 983,064 KiB、最新不足報告
+  `build/tdd-macos/public-api-missing-g163.json`だけを再利用対象として保持する。製品、全体、Linuxの構築は実施していない。次の永続作業は第163便の不足報告から、既存限定対象を優先してpathと所有CMakeが重ならない3責務を先行監査することである。
 
 ### 第161便の先行監査計画
 
@@ -16961,7 +16981,7 @@
 
 ## 次の操作
 
-`build/tdd-macos/public-api-missing-g162.json`から第162並列便の非重複候補を3担当で監査する。第161便の対象を除外し、欠陥疑いの比較・診断、
+`build/tdd-macos/public-api-missing-g163.json`から第163並列便の非重複候補を3担当で監査する。第162便の対象を除外し、欠陥疑いの比較・診断、
 資源registry、設定I/O、生pointer所有へ到達する経路は保留する。別の所有pathから25 API以上を最大5枠、限定対象か一sourceの一対一構築所有で
 固定できる候補を優先し、担当票の確定前に変更なし計画、直接依存、予測閉包、製品共有ライブラリー・`kritatestsdk`非接続、許可pathと停止線を照合する。
 
