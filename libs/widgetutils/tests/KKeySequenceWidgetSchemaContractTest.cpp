@@ -2,6 +2,7 @@
  * SPDX-License-Identifier: LGPL-2.0-only */
 #include "../xmlgui/KisShortcutsEditor.h"
 #include "../xmlgui/kkeysequencewidget.h"
+#include "../xmlgui/kmainwindow.h"
 #include "../xmlgui/kxmlguiwindow.h"
 #include <QTest>
 #include <type_traits>
@@ -26,6 +27,11 @@ private Q_SLOTS:
     void xmlGuiWindowCreationAndSetupSchemaRemainsStable();
     void xmlGuiWindowFactoryAndFinalizationSchemaRemainsStable();
     void xmlGuiWindowStateNotificationSchemaRemainsStable();
+    void mainWindowTypeAndLifetimeSchemaRemainsStable();
+    void mainWindowSessionRestoreSchemaRemainsStable();
+    void mainWindowChromeAndToolbarSchemaRemainsStable();
+    void mainWindowAutoSaveSchemaRemainsStable();
+    void mainWindowPersistenceAndNotificationSchemaRemainsStable();
 };
 void KKeySequenceWidgetSchemaContractTest::keySequenceWidgetTypeAndEnumerationSchemaRemainsStable()
 {
@@ -186,6 +192,60 @@ void KKeySequenceWidgetSchemaContractTest::xmlGuiWindowStateNotificationSchemaRe
     using ReversedState = void (W::*)(const QString &, bool);
     static_assert(std::is_same_v<decltype(static_cast<State>(&W::slotStateChanged)), State>);
     static_assert(std::is_same_v<decltype(static_cast<ReversedState>(&W::slotStateChanged)), ReversedState>);
+}
+
+void KKeySequenceWidgetSchemaContractTest::mainWindowTypeAndLifetimeSchemaRemainsStable()
+{
+    using W = KisKMainWindow;
+    static_assert(std::is_class_v<W>);
+    static_assert(std::is_constructible_v<W, QWidget *, Qt::WindowFlags> && std::is_default_constructible_v<W>);
+    static_assert(std::has_virtual_destructor_v<W>);
+    static_assert(std::is_same_v<decltype(&kRestoreMainWindows<W>), void (*)()>);
+}
+
+void KKeySequenceWidgetSchemaContractTest::mainWindowSessionRestoreSchemaRemainsStable()
+{
+    using W = KisKMainWindow;
+    static_assert(std::is_same_v<decltype(&W::canBeRestored), bool (*)(int)>);
+    static_assert(std::is_same_v<decltype(&W::classNameOfToplevel), const QString (*)(int)>);
+    static_assert(std::is_same_v<decltype(&W::restore), bool (W::*)(int, bool)>);
+    static_assert(std::is_same_v<decltype(std::declval<W &>().restore(1)), bool>);
+    static_assert(std::is_same_v<decltype(&W::memberList), QList<W *> (*)()>);
+}
+
+void KKeySequenceWidgetSchemaContractTest::mainWindowChromeAndToolbarSchemaRemainsStable()
+{
+    using W = KisKMainWindow;
+    static_assert(std::is_same_v<decltype(&W::hasMenuBar), bool (W::*)()>);
+    static_assert(std::is_same_v<decltype(&W::toolBar), KisToolBar *(W::*)(const QString &)>);
+    static_assert(std::is_same_v<decltype(std::declval<W &>().toolBar()), KisToolBar *>);
+    static_assert(std::is_same_v<decltype(&W::toolBars), QList<KisToolBar *> (W::*)() const>);
+    static_assert(std::is_same_v<decltype(&W::appHelpActivated), void (W::*)()>);
+}
+
+void KKeySequenceWidgetSchemaContractTest::mainWindowAutoSaveSchemaRemainsStable()
+{
+    using W = KisKMainWindow;
+    using NamedSettings = void (W::*)(const QString &, bool);
+    using GroupSettings = void (W::*)(const KConfigGroup &, bool);
+    static_assert(std::is_same_v<decltype(static_cast<NamedSettings>(&W::setAutoSaveSettings)), NamedSettings>);
+    static_assert(std::is_same_v<decltype(std::declval<W &>().setAutoSaveSettings()), void>);
+    static_assert(std::is_same_v<decltype(static_cast<GroupSettings>(&W::setAutoSaveSettings)), GroupSettings>);
+    static_assert(
+        std::is_same_v<decltype(std::declval<W &>().setAutoSaveSettings(std::declval<const KConfigGroup &>())), void>);
+    static_assert(std::is_same_v<decltype(&W::resetAutoSaveSettings), void (W::*)()>);
+    static_assert(std::is_same_v<decltype(&W::autoSaveSettings), bool (W::*)() const>);
+    static_assert(std::is_same_v<decltype(&W::autoSaveGroup), QString (W::*)() const>);
+    static_assert(std::is_same_v<decltype(&W::autoSaveConfigGroup), KConfigGroup (W::*)() const>);
+}
+
+void KKeySequenceWidgetSchemaContractTest::mainWindowPersistenceAndNotificationSchemaRemainsStable()
+{
+    using W = KisKMainWindow;
+    static_assert(std::is_same_v<decltype(&W::applyMainWindowSettings), void (W::*)(const KConfigGroup &)>);
+    static_assert(std::is_same_v<decltype(&W::saveMainWindowSettings), void (W::*)(KConfigGroup &)>);
+    static_assert(std::is_same_v<decltype(&W::dbusName), QString (W::*)() const>);
+    static_assert(std::is_same_v<decltype(&W::setSettingsDirty), void (W::*)()>);
 }
 QTEST_GUILESS_MAIN(KKeySequenceWidgetSchemaContractTest)
 #include "KKeySequenceWidgetSchemaContractTest.moc"
