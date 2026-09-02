@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 12811
+    "expectedMissingApis": 12787
   },
   "contracts": [
     {
@@ -48011,6 +48011,75 @@
         "method:KoToolBase::selectionChanged(bool hasSelection)",
         "method:KoToolBase::statusTextChanged(const QString & statusText)",
         "method:KoToolBase::textModeChanged(bool inTextMode)"
+      ]
+    },
+    {
+      "target": "KisGradientColorEditorSchemaContractTest",
+      "source": "libs/widgets/tests/KisGradientColorEditorSchemaContractTest.cpp",
+      "test": "KisGradientColorEditorSchemaContractTest::gradientColorEditorTypeAndLifetimeSchemaRemainsStable",
+      "behavior": "勾配色編集Widgetの公開型、親Widget付き・省略構築、複製宣言と寿命の公開契約を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisGradientColorEditor",
+        "method:KisGradientColorEditor::KisGradientColorEditor(QWidget * parent=nullptr)",
+        "method:KisGradientColorEditor::KisGradientColorEditor(const KisGradientColorEditor & other)",
+        "method:KisGradientColorEditor::~KisGradientColorEditor()"
+      ]
+    },
+    {
+      "target": "KisGradientColorEditorSchemaContractTest",
+      "source": "libs/widgets/tests/KisGradientColorEditorSchemaContractTest.cpp",
+      "test": "KisGradientColorEditorSchemaContractTest::gradientColorEditorPositionSchemaRemainsStable",
+      "behavior": "勾配色編集の停止位置照会・設定・通知と位置slider方針の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisGradientColorEditor::position() const",
+        "method:KisGradientColorEditor::positionChanged(qreal position)",
+        "method:KisGradientColorEditor::setPosition(qreal position)",
+        "method:KisGradientColorEditor::setPositionSliderEnabled(bool enabled)",
+        "method:KisGradientColorEditor::setUsePositionSlider(bool use)"
+      ]
+    },
+    {
+      "target": "KisGradientColorEditorSchemaContractTest",
+      "source": "libs/widgets/tests/KisGradientColorEditorSchemaContractTest.cpp",
+      "test": "KisGradientColorEditorSchemaContractTest::gradientColorEditorColorSchemaRemainsStable",
+      "behavior": "勾配色編集の色・色種別照会、設定と変更通知の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisGradientColorEditor::color() const",
+        "method:KisGradientColorEditor::colorChanged(KoColor color)",
+        "method:KisGradientColorEditor::colorType() const",
+        "method:KisGradientColorEditor::colorTypeChanged(KisGradientWidgetsUtils::ColorType type)",
+        "method:KisGradientColorEditor::setColor(KoColor color)",
+        "method:KisGradientColorEditor::setColorType(KisGradientWidgetsUtils::ColorType type)"
+      ]
+    },
+    {
+      "target": "KisGradientColorEditorSchemaContractTest",
+      "source": "libs/widgets/tests/KisGradientColorEditorSchemaContractTest.cpp",
+      "test": "KisGradientColorEditorSchemaContractTest::gradientColorEditorTransparencySchemaRemainsStable",
+      "behavior": "勾配色編集の透明状態照会・設定・通知と透明選択表示方針の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisGradientColorEditor::setTransparent(bool checked)",
+        "method:KisGradientColorEditor::setUseTransParentCheckBox(bool use)",
+        "method:KisGradientColorEditor::transparent() const",
+        "method:KisGradientColorEditor::transparentToggled(bool checked)"
+      ]
+    },
+    {
+      "target": "KisGradientColorEditorSchemaContractTest",
+      "source": "libs/widgets/tests/KisGradientColorEditorSchemaContractTest.cpp",
+      "test": "KisGradientColorEditorSchemaContractTest::gradientColorEditorOpacityAndGeometrySchemaRemainsStable",
+      "behavior": "勾配色編集の不透明度照会・設定・通知と推奨・最小寸法の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisGradientColorEditor::minimumSizeHint() const",
+        "method:KisGradientColorEditor::opacity() const",
+        "method:KisGradientColorEditor::opacityChanged(qreal opacity)",
+        "method:KisGradientColorEditor::setOpacity(qreal opacity)",
+        "method:KisGradientColorEditor::sizeHint() const"
       ]
     }
   ]
