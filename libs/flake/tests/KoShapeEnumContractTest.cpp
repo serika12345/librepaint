@@ -4,6 +4,7 @@
  */
 
 #include <KoShape.h>
+#include <KoShapeContainer.h>
 #include <KoShapeFactoryBase.h>
 
 #include <QTest>
@@ -26,6 +27,21 @@ protected:
     {
     }
 };
+
+class ShapeContainerConstructorProbe final : public KoShapeContainer
+{
+public:
+    using KoShapeContainer::KoShapeContainer;
+
+    void paintComponent(QPainter &painter) const override;
+};
+
+#define ASSERT_SHAPE_CONTAINER_SIGNATURE(method, signature)                                                            \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KoShapeContainer::method)), signature>)
+
+#define ASSERT_SHAPE_INTERFACE_SIGNATURE(method, signature)                                                            \
+    static_assert(                                                                                                     \
+        std::is_same_v<decltype(static_cast<signature>(&KoShapeContainer::ShapeInterface::method)), signature>)
 } // namespace
 
 class KoShapeEnumContractTest : public QObject
@@ -41,6 +57,11 @@ private Q_SLOTS:
     void shapeFactoryMetadataSignaturesRemainStable();
     void shapeFactoryLoadingAndResourceSignaturesRemainStable();
     void shapeFactoryCreationSignaturesRemainStable();
+    void shapeContainerIdentityAndLifecycleSignaturesRemainStable();
+    void shapeContainerHierarchySignaturesRemainStable();
+    void shapeContainerModelAndInterfaceSignaturesRemainStable();
+    void shapeContainerClippingAndTransformSignaturesRemainStable();
+    void shapeContainerPaintingAndUpdateSignaturesRemainStable();
 };
 
 void KoShapeEnumContractTest::changeTypeValuesRemainStable()
@@ -153,6 +174,49 @@ void KoShapeEnumContractTest::shapeFactoryCreationSignaturesRemainStable()
         createShape,
         KoShape * (KoShapeFactoryBase::*)(const KoProperties *, KoDocumentResourceManager *) const);
     ASSERT_SHAPE_FACTORY_SIGNATURE(createShapeOptionPanels, QList<KoShapeConfigWidgetBase *> (KoShapeFactoryBase::*)());
+}
+
+void KoShapeEnumContractTest::shapeContainerIdentityAndLifecycleSignaturesRemainStable()
+{
+    static_assert(std::is_class_v<KoShapeContainer>);
+    static_assert(std::is_base_of_v<KoShape, KoShapeContainer>);
+    static_assert(std::is_abstract_v<KoShapeContainer>);
+    static_assert(std::has_virtual_destructor_v<KoShapeContainer>);
+    static_assert(std::is_constructible_v<ShapeContainerConstructorProbe>);
+    static_assert(std::is_constructible_v<ShapeContainerConstructorProbe, KoShapeContainerModel *>);
+    static_assert(std::is_class_v<KoShapeContainer::ShapeInterface>);
+    static_assert(std::is_constructible_v<KoShapeContainer::ShapeInterface, KoShapeContainer *>);
+}
+
+void KoShapeEnumContractTest::shapeContainerHierarchySignaturesRemainStable()
+{
+    ASSERT_SHAPE_CONTAINER_SIGNATURE(addShape, void (KoShapeContainer::*)(KoShape *));
+    ASSERT_SHAPE_CONTAINER_SIGNATURE(removeShape, void (KoShapeContainer::*)(KoShape *));
+    ASSERT_SHAPE_CONTAINER_SIGNATURE(shapeCount, int (KoShapeContainer::*)() const);
+    ASSERT_SHAPE_CONTAINER_SIGNATURE(shapes, QList<KoShape *> (KoShapeContainer::*)() const);
+    ASSERT_SHAPE_INTERFACE_SIGNATURE(addShape, void (KoShapeContainer::ShapeInterface::*)(KoShape *));
+    ASSERT_SHAPE_INTERFACE_SIGNATURE(removeShape, void (KoShapeContainer::ShapeInterface::*)(KoShape *));
+}
+
+void KoShapeEnumContractTest::shapeContainerModelAndInterfaceSignaturesRemainStable()
+{
+    ASSERT_SHAPE_CONTAINER_SIGNATURE(model, KoShapeContainerModel * (KoShapeContainer::*)() const);
+    ASSERT_SHAPE_CONTAINER_SIGNATURE(shapeInterface, KoShapeContainer::ShapeInterface * (KoShapeContainer::*)());
+}
+
+void KoShapeEnumContractTest::shapeContainerClippingAndTransformSignaturesRemainStable()
+{
+    ASSERT_SHAPE_CONTAINER_SIGNATURE(setClipped, void (KoShapeContainer::*)(const KoShape *, bool));
+    ASSERT_SHAPE_CONTAINER_SIGNATURE(isClipped, bool (KoShapeContainer::*)(const KoShape *) const);
+    ASSERT_SHAPE_CONTAINER_SIGNATURE(setInheritsTransform, void (KoShapeContainer::*)(const KoShape *, bool));
+    ASSERT_SHAPE_CONTAINER_SIGNATURE(inheritsTransform, bool (KoShapeContainer::*)(const KoShape *) const);
+}
+
+void KoShapeEnumContractTest::shapeContainerPaintingAndUpdateSignaturesRemainStable()
+{
+    ASSERT_SHAPE_CONTAINER_SIGNATURE(paint, void (KoShapeContainer::*)(QPainter &) const);
+    ASSERT_SHAPE_CONTAINER_SIGNATURE(paintComponent, void (KoShapeContainer::*)(QPainter &) const);
+    ASSERT_SHAPE_CONTAINER_SIGNATURE(update, void (KoShapeContainer::*)() const);
 }
 
 QTEST_GUILESS_MAIN(KoShapeEnumContractTest)
