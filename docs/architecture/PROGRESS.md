@@ -2,12 +2,26 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 20:33 JST
+- 更新日時: 2026-09-02 20:37 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
+
+### 第162便の先行監査計画
+
+- 監査共通基点は`0282b07d99`、入力は`build/tdd-macos/public-api-missing-g162.json`である。3担当は`auditing`の読み取り専用とし、製品・試験・CMake・script・台帳・文書を変更せず、構成、構築、試験、Git操作、
+  追加委任も行わない。一つの公開責務から25 API以上を最大5枠へ固定し、既存限定対象、header-only値面、または公開headerを変えない一sourceのOBJECT一対一移管で、製品共有ライブラリーと
+  `kritatestsdk`へ接続しない候補だけを採用する。公開API識別子に既定引数が含まれる場合は、関数型に加えて未評価の省略呼出しで固定する計画を含める。
+- `g162-image-saved-paint-information-schema-audit`は`libs/image/commands_new/kis_saved_commands.h`の未対応30 APIを主候補とし、`libs/image/brushengine/kis_paint_information.h`の未対応29 APIを比較する。保存命令または描画入力情報の
+  型・寿命・undo/redo・merge・時刻・macro・stroke・座標・混合・乱数・XML面を、stroke facade・command実行・paint operation・distance・乱数・XML・signal・metaobject・大域状態の実体化なしで閉じる。
+- `g162-widgets-palette-visual-selector-schema-audit`は`libs/widgets/KisPaletteModel.h`の未対応35 APIを主候補とし、`libs/widgets/KisVisualColorSelector.h`の未対応34 APIを比較する。palette模型または視覚色選択器の
+  型・寿命・列挙値・model・swatch・group・MIME・色空間・gamut・表示方針・通知面を、widget・palette・resource・drag/drop・色変換・描画・signal・metaobject・GUI event loop・大域状態の実体化なしで閉じる。
+- `g162-animation-utils-svg-text-schema-audit`は`plugins/dockers/animation/KisAnimUtils.h`の未対応33 APIを主候補とし、`libs/flake/text/KoSvgText.h`の未対応28 APIを比較する。animation frame操作またはSVG text値変換の
+  型・alias・値member・action識別子・keyframe命令・移動・clone・比較・hash・CSS値parse/write面を、画像・node・keyframe・undo命令・SVG context・stream・filesystem・signal・metaobject・大域状態の実体化なしで閉じる。
+- 各報告は完全なAPI識別子、既定引数観測、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから契約先または移動先、許可path、固有停止条件、
+  比較候補の棄却根拠を含む。既存`build/tdd-macos`の計画は読み取り専用で測定し、構成や構築を開始しない。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
 
 ### 第161便の先行監査計画
 
