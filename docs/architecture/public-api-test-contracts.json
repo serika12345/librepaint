@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 14696
+    "expectedMissingApis": 14638
   },
   "contracts": [
     {
@@ -43516,6 +43516,109 @@
         "method:KisConfig::preferXcbEglProvider(bool defaultValue=false) const",
         "method:KisConfig::preferXcbEglProvider(const QSettings * settings,bool defaultValue=false)",
         "method:KisConfig::setPreferXcbEglProvider(bool value)"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::animationInterfaceTypeAndOptionSchemaRemainsStable",
+      "behavior": "画像animation interfaceは公開型、非同期時刻切替flagと値、imageを受ける通常・複製構築、破棄の型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisImageAnimationInterface::SwitchTimeAsyncFlags",
+        "class:KisImageAnimationInterface",
+        "enum:KisImageAnimationInterface::SwitchTimeAsyncOption",
+        "enumerator:KisImageAnimationInterface::SwitchTimeAsyncOption::STAO_FORCE_REGENERATION",
+        "enumerator:KisImageAnimationInterface::SwitchTimeAsyncOption::STAO_NONE",
+        "enumerator:KisImageAnimationInterface::SwitchTimeAsyncOption::STAO_USE_UNDO",
+        "method:KisImageAnimationInterface::KisImageAnimationInterface(KisImage * image)",
+        "method:KisImageAnimationInterface::KisImageAnimationInterface(const KisImageAnimationInterface & rhs,KisImage * newImage)",
+        "method:KisImageAnimationInterface::~KisImageAnimationInterface()"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::animationTimelineAndExportSignaturesRemainStable",
+      "behavior": "画像animation interfaceは現在時刻・再生範囲・framerate・書出し設定・選択時刻・所有image参照の厳密な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisImageAnimationInterface::activeLayerSelectedTimes()",
+        "method:KisImageAnimationInterface::activePlaybackRange() const",
+        "method:KisImageAnimationInterface::currentTime() const",
+        "method:KisImageAnimationInterface::currentUITime() const",
+        "method:KisImageAnimationInterface::documentPlaybackRange() const",
+        "method:KisImageAnimationInterface::exportInitialFrameNumber()",
+        "method:KisImageAnimationInterface::exportSequenceBaseName()",
+        "method:KisImageAnimationInterface::exportSequenceFilePath()",
+        "method:KisImageAnimationInterface::externalFrameActive() const",
+        "method:KisImageAnimationInterface::framerate() const",
+        "method:KisImageAnimationInterface::hasAnimation() const",
+        "method:KisImageAnimationInterface::image() const",
+        "method:KisImageAnimationInterface::setActiveLayerSelectedTimes(const QSet<int> & times)",
+        "method:KisImageAnimationInterface::setActivePlaybackRange(const KisTimeSpan range)",
+        "method:KisImageAnimationInterface::setDocumentRange(const KisTimeSpan range)",
+        "method:KisImageAnimationInterface::setExportInitialFrameNumber(const int frameNum)",
+        "method:KisImageAnimationInterface::setExportSequenceBaseName(const QString & baseName)",
+        "method:KisImageAnimationInterface::setExportSequenceFilePath(const QString & filePath)",
+        "method:KisImageAnimationInterface::setFramerate(int fps)",
+        "method:KisImageAnimationInterface::totalLength()"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::animationSwitchAndInvalidationSignaturesRemainStable",
+      "behavior": "画像animation interfaceは時刻切替、frame再生成、node変更通知、範囲・frame無効化、投影色と文書範囲更新の厳密な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisImageAnimationInterface::invalidateFrame(const int time,KisNodeSP target)",
+        "method:KisImageAnimationInterface::invalidateFrames(const KisTimeSpan & range,const QRect & rect)",
+        "method:KisImageAnimationInterface::notifyNodeChanged(const KisNode * node,const QRect & rect,bool recursive)",
+        "method:KisImageAnimationInterface::notifyNodeChanged(const KisNode * node,const QVector<QRect> & rects,bool recursive)",
+        "method:KisImageAnimationInterface::requestFrameRegeneration(int frameId,const KisRegion & dirtyRegion,bool isCancellable,KisLockFrameGenerationLock && lock)",
+        "method:KisImageAnimationInterface::requestTimeSwitchNonGUI(int time,bool useUndo=false)",
+        "method:KisImageAnimationInterface::requestTimeSwitchWithUndo(int time)",
+        "method:KisImageAnimationInterface::setDefaultProjectionColor(const KoColor & color)",
+        "method:KisImageAnimationInterface::setDocumentRangeEndFrame(int column)",
+        "method:KisImageAnimationInterface::setDocumentRangeStartFrame(int column)",
+        "method:KisImageAnimationInterface::switchCurrentTimeAsync(int frameId,SwitchTimeAsyncFlags options=STAO_NONE)"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::animationGenerationLockSignaturesRemainStable",
+      "behavior": "画像animation interfaceは背景frame生成抑止とframe生成lockの取得・解放・試行に関する厳密な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisImageAnimationInterface::backgroundFrameGenerationBlocked() const",
+        "method:KisImageAnimationInterface::blockBackgroundFrameGeneration()",
+        "method:KisImageAnimationInterface::lockFrameGeneration()",
+        "method:KisImageAnimationInterface::tryLockFrameGeneration()",
+        "method:KisImageAnimationInterface::unblockBackgroundFrameGeneration()",
+        "method:KisImageAnimationInterface::unlockFrameGeneration()"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::animationNotificationSignaturesRemainStable",
+      "behavior": "画像animation interfaceは文書範囲、frame状態、framerate、keyframe、再生範囲、UI時刻を通知するsignalの厳密な公開型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisImageAnimationInterface::sigDocumentRangeChanged()",
+        "method:KisImageAnimationInterface::sigFrameCancelled()",
+        "method:KisImageAnimationInterface::sigFrameReady(int time)",
+        "method:KisImageAnimationInterface::sigFrameRegenerated(int time)",
+        "method:KisImageAnimationInterface::sigFrameRegenerationSkipped(int time)",
+        "method:KisImageAnimationInterface::sigFramerateChanged()",
+        "method:KisImageAnimationInterface::sigFramesChanged(const KisTimeSpan & range,const QRect & rect)",
+        "method:KisImageAnimationInterface::sigInternalRequestTimeSwitch(int frameId,bool useUndo)",
+        "method:KisImageAnimationInterface::sigKeyframeAdded(const KisKeyframeChannel * channel,int time)",
+        "method:KisImageAnimationInterface::sigKeyframeRemoved(const KisKeyframeChannel * channel,int time)",
+        "method:KisImageAnimationInterface::sigPlaybackRangeChanged()",
+        "method:KisImageAnimationInterface::sigUiTimeChanged(int newTime)"
       ]
     }
   ]
