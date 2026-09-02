@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 12763
+    "expectedMissingApis": 12743
   },
   "contracts": [
     {
@@ -48149,6 +48149,71 @@
       "apis": [
         "method:KisCurveOption::isChecked() const",
         "method:KisCurveOption::isRandom() const"
+      ]
+    },
+    {
+      "target": "KoShapeEnumContractTest",
+      "source": "libs/flake/tests/KoShapeEnumContractTest.cpp",
+      "test": "KoShapeEnumContractTest::shapeContainerIdentityAndLifecycleSignaturesRemainStable",
+      "behavior": "形状コンテナの公開型、形状基底、抽象性、model省略構築、仮想寿命と階層操作interface型を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoShapeContainer",
+        "method:KoShapeContainer::KoShapeContainer(KoShapeContainerModel * model=0)",
+        "method:KoShapeContainer::ShapeInterface::ShapeInterface(KoShapeContainer * _q)",
+        "method:KoShapeContainer::~KoShapeContainer()",
+        "struct:KoShapeContainer::ShapeInterface"
+      ]
+    },
+    {
+      "target": "KoShapeEnumContractTest",
+      "source": "libs/flake/tests/KoShapeEnumContractTest.cpp",
+      "test": "KoShapeEnumContractTest::shapeContainerHierarchySignaturesRemainStable",
+      "behavior": "形状コンテナと専用interfaceによる非所有子形状の追加・除去、件数と一覧照会の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShapeContainer::ShapeInterface::addShape(KoShape * shape)",
+        "method:KoShapeContainer::ShapeInterface::removeShape(KoShape * shape)",
+        "method:KoShapeContainer::addShape(KoShape * shape)",
+        "method:KoShapeContainer::removeShape(KoShape * shape)",
+        "method:KoShapeContainer::shapeCount() const",
+        "method:KoShapeContainer::shapes() const"
+      ]
+    },
+    {
+      "target": "KoShapeEnumContractTest",
+      "source": "libs/flake/tests/KoShapeEnumContractTest.cpp",
+      "test": "KoShapeEnumContractTest::shapeContainerModelAndInterfaceSignaturesRemainStable",
+      "behavior": "形状コンテナが借用modelと階層操作interfaceを公開する照会署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShapeContainer::model() const",
+        "method:KoShapeContainer::shapeInterface()"
+      ]
+    },
+    {
+      "target": "KoShapeEnumContractTest",
+      "source": "libs/flake/tests/KoShapeEnumContractTest.cpp",
+      "test": "KoShapeEnumContractTest::shapeContainerClippingAndTransformSignaturesRemainStable",
+      "behavior": "子形状のclippingと親変換継承を設定・照会する非所有pointer境界の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShapeContainer::inheritsTransform(const KoShape * shape) const",
+        "method:KoShapeContainer::isClipped(const KoShape * child) const",
+        "method:KoShapeContainer::setClipped(const KoShape * child,bool clipping)",
+        "method:KoShapeContainer::setInheritsTransform(const KoShape * shape,bool inherit)"
+      ]
+    },
+    {
+      "target": "KoShapeEnumContractTest",
+      "source": "libs/flake/tests/KoShapeEnumContractTest.cpp",
+      "test": "KoShapeEnumContractTest::shapeContainerPaintingAndUpdateSignaturesRemainStable",
+      "behavior": "形状コンテナの描画入口、派生描画責務と更新入口の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShapeContainer::paint(QPainter & painter) const",
+        "method:KoShapeContainer::paintComponent(QPainter & painter) const",
+        "method:KoShapeContainer::update() const"
       ]
     }
   ]
