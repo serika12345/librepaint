@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 14152
+    "expectedMissingApis": 14106
   },
   "contracts": [
     {
@@ -44690,6 +44690,97 @@
         "method:KisKeyframeChannel::sigKeyframeAboutToBeRemoved(const KisKeyframeChannel * channel,int time)",
         "method:KisKeyframeChannel::sigKeyframeChanged(const KisKeyframeChannel * channel,int time)",
         "method:KisKeyframeChannel::sigKeyframeHasBeenRemoved(const KisKeyframeChannel * channel,int time)"
+      ]
+    },
+    {
+      "target": "KisKeyframeChannelSchemaContractTest",
+      "source": "libs/image/tests/KisKeyframeChannelSchemaContractTest.cpp",
+      "test": "KisKeyframeChannelSchemaContractTest::scalarKeyframeLimitsValueSchemaRemainsStable",
+      "behavior": "scalar keyframeの上下限値は入力順を正規化し、範囲内外の値を公開下限・上限へclampする。",
+      "classification": "maintained",
+      "apis": [
+        "member:ScalarKeyframeLimits::lower",
+        "member:ScalarKeyframeLimits::upper",
+        "method:ScalarKeyframeLimits::ScalarKeyframeLimits(qreal x,qreal y)",
+        "method:ScalarKeyframeLimits::clamp(qreal value)",
+        "struct:ScalarKeyframeLimits"
+      ]
+    },
+    {
+      "target": "KisKeyframeChannelSchemaContractTest",
+      "source": "libs/image/tests/KisKeyframeChannelSchemaContractTest.cpp",
+      "test": "KisKeyframeChannelSchemaContractTest::scalarKeyframeTypeAndInterpolationSchemaRemainsStable",
+      "behavior": "scalar keyframeは補間・tangent方針の列挙値、2種類の構築、channel変更接続に関する厳密な公開型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisScalarKeyframe",
+        "enum:KisScalarKeyframe::InterpolationMode",
+        "enum:KisScalarKeyframe::TangentsMode",
+        "enumerator:KisScalarKeyframe::InterpolationMode::Bezier",
+        "enumerator:KisScalarKeyframe::InterpolationMode::Constant",
+        "enumerator:KisScalarKeyframe::InterpolationMode::Linear",
+        "enumerator:KisScalarKeyframe::TangentsMode::Sharp",
+        "enumerator:KisScalarKeyframe::TangentsMode::Smooth",
+        "member:KisScalarKeyframe::valueChangedChannelConnection",
+        "method:KisScalarKeyframe::KisScalarKeyframe(qreal value,InterpolationMode interpMode,TangentsMode tangentMode,QPointF leftTangent,QPointF rightTangent,QSharedPointer<ScalarKeyframeLimits> limits)",
+        "method:KisScalarKeyframe::KisScalarKeyframe(qreal value,QSharedPointer<ScalarKeyframeLimits> limits)"
+      ]
+    },
+    {
+      "target": "KisKeyframeChannelSchemaContractTest",
+      "source": "libs/image/tests/KisKeyframeChannelSchemaContractTest.cpp",
+      "test": "KisKeyframeChannelSchemaContractTest::scalarKeyframeValueAndTangentSchemaRemainsStable",
+      "behavior": "scalar keyframeは値、補間・tangent方針、tangent座標、上下限、変更通知に関する厳密な公開関数型と既定undo親を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisScalarKeyframe::duplicate(KisKeyframeChannel * newChannel=0)",
+        "method:KisScalarKeyframe::interpolationMode() const",
+        "method:KisScalarKeyframe::leftTangent() const",
+        "method:KisScalarKeyframe::rightTangent() const",
+        "method:KisScalarKeyframe::setInterpolationMode(InterpolationMode mode,KUndo2Command * parentUndoCmd=nullptr)",
+        "method:KisScalarKeyframe::setInterpolationTangents(QPointF leftTangent,QPointF rightTangent,KUndo2Command * parentUndoCmd=nullptr)",
+        "method:KisScalarKeyframe::setLimits(QSharedPointer<ScalarKeyframeLimits> limits)",
+        "method:KisScalarKeyframe::setTangentsMode(TangentsMode mode,KUndo2Command * parentUndoCmd=nullptr)",
+        "method:KisScalarKeyframe::setValue(qreal val,KUndo2Command * parentUndoCmd=nullptr)",
+        "method:KisScalarKeyframe::sigChanged(const KisScalarKeyframe * scalarKey)",
+        "method:KisScalarKeyframe::tangentsMode() const",
+        "method:KisScalarKeyframe::value() const"
+      ]
+    },
+    {
+      "target": "KisKeyframeChannelSchemaContractTest",
+      "source": "libs/image/tests/KisKeyframeChannelSchemaContractTest.cpp",
+      "test": "KisKeyframeChannelSchemaContractTest::scalarKeyframeChannelTypeAndPolicySchemaRemainsStable",
+      "behavior": "scalar keyframe channelは寿命、上下限、既定値・補間方針、現在値への影響照会に関する厳密な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisScalarKeyframeChannel",
+        "method:KisScalarKeyframeChannel::KisScalarKeyframeChannel(const KisScalarKeyframeChannel & rhs)",
+        "method:KisScalarKeyframeChannel::KisScalarKeyframeChannel(const KoID & id,KisDefaultBoundsBaseSP bounds)",
+        "method:KisScalarKeyframeChannel::currentValue()",
+        "method:KisScalarKeyframeChannel::isCurrentTimeAffectedBy(int keyTime)",
+        "method:KisScalarKeyframeChannel::limits() const",
+        "method:KisScalarKeyframeChannel::removeLimits()",
+        "method:KisScalarKeyframeChannel::setDefaultInterpolationMode(KisScalarKeyframe::InterpolationMode mode)",
+        "method:KisScalarKeyframeChannel::setDefaultValue(qreal value)",
+        "method:KisScalarKeyframeChannel::setLimits(qreal low,qreal high)",
+        "method:KisScalarKeyframeChannel::~KisScalarKeyframeChannel()"
+      ]
+    },
+    {
+      "target": "KisKeyframeChannelSchemaContractTest",
+      "source": "libs/image/tests/KisKeyframeChannelSchemaContractTest.cpp",
+      "test": "KisKeyframeChannelSchemaContractTest::scalarKeyframeChannelEvaluationAndMutationSchemaRemainsStable",
+      "behavior": "scalar keyframe channelは値評価、曲線補間、keyframe追加・挿入・削除、影響・同一frame照会に関する厳密な公開関数型と既定undo親を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisScalarKeyframeChannel::addScalarKeyframe(int time,qreal value,KUndo2Command * parentUndoCmd=nullptr)",
+        "method:KisScalarKeyframeChannel::affectedFrames(int time) const",
+        "method:KisScalarKeyframeChannel::identicalFrames(int time) const",
+        "method:KisScalarKeyframeChannel::insertKeyframe(int time,KisKeyframeSP keyframe,KUndo2Command * parentUndoCmd=nullptr)",
+        "method:KisScalarKeyframeChannel::interpolate(QPointF point1,QPointF rightTangent,QPointF leftTangent,QPointF point2,qreal t)",
+        "method:KisScalarKeyframeChannel::removeKeyframe(int time,KUndo2Command * parentUndoCmd=nullptr)",
+        "method:KisScalarKeyframeChannel::valueAt(int time) const"
       ]
     }
   ]
