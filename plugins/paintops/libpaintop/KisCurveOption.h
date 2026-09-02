@@ -11,6 +11,7 @@
 #include <vector>
 #include <memory>
 
+#include "kritapaintop_export.h"
 #include "sensors/KisDynamicSensor.h"
 
 struct KisCurveOptionData;
