@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 14638
+    "expectedMissingApis": 14609
   },
   "contracts": [
     {
@@ -43619,6 +43619,80 @@
         "method:KisImageAnimationInterface::sigKeyframeRemoved(const KisKeyframeChannel * channel,int time)",
         "method:KisImageAnimationInterface::sigPlaybackRangeChanged()",
         "method:KisImageAnimationInterface::sigUiTimeChanged(int newTime)"
+      ]
+    },
+    {
+      "target": "KoMarkerSchemaContractTest",
+      "source": "libs/flake/tests/KoMarkerSchemaContractTest.cpp",
+      "test": "KoMarkerSchemaContractTest::markerIdentityLifecycleAndCoordinateEnumSchemaRemainsStable",
+      "behavior": "SVG markerは公開型、座標系の値順、通常・複製構築と破棄の型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoMarker",
+        "enum:KoMarker::MarkerCoordinateSystem",
+        "enumerator:KoMarker::MarkerCoordinateSystem::StrokeWidth",
+        "enumerator:KoMarker::MarkerCoordinateSystem::UserSpaceOnUse",
+        "method:KoMarker::KoMarker()",
+        "method:KoMarker::KoMarker(const KoMarker & rhs)",
+        "method:KoMarker::~KoMarker()"
+      ]
+    },
+    {
+      "target": "KoMarkerSchemaContractTest",
+      "source": "libs/flake/tests/KoMarkerSchemaContractTest.cpp",
+      "test": "KoMarkerSchemaContractTest::markerCoordinateAndReferenceSignaturesRemainStable",
+      "behavior": "SVG markerは座標系の照会・更新・文字列変換と基準位置・寸法の照会・更新に関する厳密な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoMarker::coordinateSystem() const",
+        "method:KoMarker::coordinateSystemFromString(const QString & value)",
+        "method:KoMarker::coordinateSystemToString(MarkerCoordinateSystem value)",
+        "method:KoMarker::referencePoint() const",
+        "method:KoMarker::referenceSize() const",
+        "method:KoMarker::setCoordinateSystem(MarkerCoordinateSystem value)",
+        "method:KoMarker::setReferencePoint(const QPointF & value)",
+        "method:KoMarker::setReferenceSize(const QSizeF & size)"
+      ]
+    },
+    {
+      "target": "KoMarkerSchemaContractTest",
+      "source": "libs/flake/tests/KoMarkerSchemaContractTest.cpp",
+      "test": "KoMarkerSchemaContractTest::markerOrientationNameAndEqualitySignaturesRemainStable",
+      "behavior": "SVG markerは名前・等価比較と自動・明示orientationの照会・更新に関する厳密な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoMarker::explicitOrientation() const",
+        "method:KoMarker::hasAutoOrientation() const",
+        "method:KoMarker::name() const",
+        "method:KoMarker::operator ==(const KoMarker & other) const",
+        "method:KoMarker::setAutoOrientation(bool value)",
+        "method:KoMarker::setExplicitOrientation(qreal value)"
+      ]
+    },
+    {
+      "target": "KoMarkerSchemaContractTest",
+      "source": "libs/flake/tests/KoMarkerSchemaContractTest.cpp",
+      "test": "KoMarkerSchemaContractTest::markerShapeAndGeometrySignaturesRemainStable",
+      "behavior": "SVG markerはshape集合とstroke幅・node角度から求める余白、境界、輪郭の厳密な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoMarker::boundingRect(qreal strokeWidth,qreal nodeAngle) const",
+        "method:KoMarker::maxInset(qreal strokeWidth) const",
+        "method:KoMarker::outline(qreal strokeWidth,qreal nodeAngle) const",
+        "method:KoMarker::setShapes(const QList<KoShape * > & shapes)",
+        "method:KoMarker::shapes() const"
+      ]
+    },
+    {
+      "target": "KoMarkerSchemaContractTest",
+      "source": "libs/flake/tests/KoMarkerSchemaContractTest.cpp",
+      "test": "KoMarkerSchemaContractTest::markerPaintingAndStrokeSignaturesRemainStable",
+      "behavior": "SVG markerは位置描画、preview描画、shape stroke適用で借用描画・shape・stroke対象を受ける厳密な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoMarker::applyShapeStroke(const KoShape * shape,KoShapeStroke * stroke,const QPointF & pos,qreal strokeWidth,qreal nodeAngle)",
+        "method:KoMarker::drawPreview(QPainter * painter,const QRectF & previewRect,const QPen & pen,KoFlake::MarkerPosition position)",
+        "method:KoMarker::paintAtPosition(QPainter * painter,const QPointF & pos,qreal strokeWidth,qreal nodeAngle)"
       ]
     }
   ]
