@@ -28,6 +28,27 @@
   font family、内部色選択、tag・visual selector、scratchpad、libkis文書・nodeはfont database・描画・global renderer・resource・複数Widget・canvas・文書状態へ閉包が広がるため棄却した。
 - 中央の`public-api-missing-g175.json`で3ヘッダーの全識別子と20件・20件・22件を照合した。開始header、試験source、所有CMake、生成物に重複はなく、合計62 APIを15枠へ進める。公開headerをtarget sourceやAUTOMOC入力へ加えず、製品共有libraryと`kritatestsdk`へ接続しない。実装中に許可path外変更、製品OBJECT/shared、実体化・本文実行、動的接続の拡大、5工程・11入力超過、製品計画集合の変化が必要になれば担当を停止する。
 
+### 第175便の担当計画
+
+- 実装共通基点は`5b5c82cc4d`である。3担当は`implementing`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、専用worktree-local
+  `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。実装は並行し、構成・構築枠は一度に1担当だけへ与える。開始時はprocessing visitorだけが構築`granted`、SVG text contour commandとmain windowは実装後に構築前で待機する。
+  統合順はprocessing visitor、SVG text contour command、main windowとし、調整担当だけがarchitecture文書、公開API台帳、共通不足報告を変更する。3担当の公開header、所有CMake、試験source、生成物は重ならない。製品targetを引数にするplan/build、全体build、全体`verify`、Linux検証は禁止し、担当targetと近傍、公開API検査、`verify-quick`だけを実行する。
+- `g175-processing-visitor-schema`は`/Users/masato/Documents/librepaint-g175-processing-visitor-schema`を所有する。開始`libs/image/kis_processing_visitor.h`の未対応全20 APIから既存
+  `libs/image/tests/KisImageTypesContractTest.cpp`の5枠`processingVisitorOwnershipAndLifetimeSchemaRemainsStable`、`processingVisitorNodeAndLayerVisitSignaturesRemainStable`、`processingVisitorCloneAndMaskVisitSignaturesRemainStable`、
+  `processingVisitorInitializationSignatureRemainsStable`、`processingVisitorProgressHelperSchemaRemainsStable`へ対応付ける。完全集合はvisitor class・破棄、node・paint/group/adjustment/external/generator layerの6 `visit`、clone layer・filter/transform/transparency/colorize/selection maskの6 `visit`、`createInitCommand`、`ProgressHelper` class・node構築・破棄・`updater`・`cancel`である。許可pathは既存試験sourceだけで、CMake・依存・公開header・製品sourceを変更しない。
+  visitor、進捗helper、node、layer、mask、undo、command、updaterを実体化せず、dispatch、command生成、進捗開始・取消、destructor本文を実行しない。対象4工程・8入力、停止5工程・11入力、近傍`KisImageConfigAnimationSchemaContractTest`、挙動近傍`KisDoNothingProcessingVisitorContractTest`、製品`kritaimage` 1,196工程・2,416入力を維持する。
+  旧binaryの新5枠Unknown、対象CTest・枠個別・20回反復、既存枠、近傍、無作業再構築、動的接続・AUTOMOC入力・visitor/progress/node/mask/undo未解決記号、構文・書式、公開API・`verify-quick`を確認する。実体化・本文実行、新規include・link、停止線超過が必要なら止める。
+- `g175-svg-text-contour-schema`は`/Users/masato/Documents/librepaint-g175-svg-text-contour-schema`を所有する。開始`libs/flake/commands/KoSvgTextAddRemoveShapeCommands.h`の未対応全20 APIから新規
+  `libs/flake/tests/KoSvgTextAddRemoveShapeCommandsSchemaContractTest.cpp`の5枠`svgTextContourCommandTypeHierarchyRemainsStable`、`svgTextContourTypeValuesRemainStable`、`svgTextContourCommandPhaseSignaturesRemainStable`、
+  `svgTextContourSpecializedLifecycleSignaturesRemainStable`、`svgTextContourRemovalOperationSignatureRemainsStable`へ対応付ける。完全集合は4 class、`ContourType`と`Unknown`・`Inside`・`Subtract`・`TextPath`、親既定引数付き基底構築・破棄・`partA`・`partB`、親既定引数付きadd/remove/set text path各構築・破棄、`removeContourShapesFromFlow`である。許可pathは新規試験sourceと`libs/flake/tests/CMakeLists.txt`の対象固有節だけで、公開header・製品sourceを変更しない。
+  command、shape、親command、private実装を実体化せず、構築・破棄、phase、undo・redo、shape変更、輪郭削除本文を実行しない。直接linkはBoost headerとQt Core・Testだけ、Qt Gui・KF I18n、flake・global・painting/undoのsource/generatedをcompile interfaceへ限定し、新対象4工程・8入力、停止5工程・11入力、近傍`KoShapeReorderCommandSchemaContractTest`、製品`kritaflake` 621工程・1,274入力を維持する。
+  実装後は構築許可まで待機する。許可後にunknown target・CTest 0件、新5枠、対象CTest・枠個別・20回反復、近傍、無作業再構築、動的接続・AUTOMOC入力・command/shape/undo未解決記号、構文・書式、公開API・`verify-quick`を確認する。実体化・本文実行、Qt Gui・KF I18n・製品libraryの直接link、停止線超過が必要なら止める。
+- `g175-main-window-schema`は`/Users/masato/Documents/librepaint-g175-main-window-schema`を所有する。開始`libs/widgetutils/xmlgui/kmainwindow.h`の未対応全22 APIから既存
+  `libs/widgetutils/tests/KKeySequenceWidgetSchemaContractTest.cpp`の5枠`mainWindowTypeAndLifetimeSchemaRemainsStable`、`mainWindowSessionRestoreSchemaRemainsStable`、`mainWindowChromeAndToolbarSchemaRemainsStable`、
+  `mainWindowAutoSaveSchemaRemainsStable`、`mainWindowPersistenceAndNotificationSchemaRemainsStable`へ対応付ける。完全集合はclass、親・window flags既定引数付き構築・破棄、`kRestoreMainWindows`、`canBeRestored`、`classNameOfToplevel`、show既定引数付き`restore`、`memberList`、`hasMenuBar`、名前既定引数付き`toolBar`、`toolBars`、`appHelpActivated`、2種類の`setAutoSaveSettings`と既定引数、`resetAutoSaveSettings`、`autoSaveSettings`、`autoSaveGroup`、`autoSaveConfigGroup`、`applyMainWindowSettings`、`saveMainWindowSettings`、`dbusName`、`setSettingsDirty`である。許可pathは既存試験sourceだけで、CMake・依存・公開header・製品sourceを変更しない。
+  main window、Widget、toolbar、KConfigGroup、private pointerを実体化せず、restore template、session、menu・toolbar、help、設定保存、DBus、global window listを実行しない。対象4工程・8入力、停止5工程・11入力、近傍`KXMLGUIClientSchemaContractTest`、製品`kritawidgetutils` 274工程・581入力を維持する。
+  実装後は構築許可まで待機する。許可後に旧binaryの新5枠Unknown、対象CTest・枠個別・20回反復、既存枠、近傍、無作業再構築、動的接続・AUTOMOC入力・window/KConfig/toolbar/session未解決記号、構文・書式、公開API・`verify-quick`を確認する。restore templateの実体化、window・設定本文の実行、新規include・link、停止線超過が必要なら止める。
+
 ### 第174便の先行監査計画
 
 - 監査共通基点は`41413ea1e2`、入力は`build/tdd-macos/public-api-missing-g174.json`である。3担当は`auditing`の読み取り専用とし、製品・試験・CMake・script・台帳・文書を変更せず、構成、構築、試験、Git操作、追加委任も行わない。
