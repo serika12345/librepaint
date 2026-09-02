@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-03 02:29 JST
+- 更新日時: 2026-09-03 02:47 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -49,6 +49,8 @@
   `visualColorSelectorShapeGeometrySchemaRemainsStable`、`visualColorSelectorShapePolicyAndNotificationSchemaRemainsStable`へ対応付ける。完全集合はclass、`Dimensions`、`onedimensional`、`twodimensional`、構築・破棄、`getDimensions`、`getCursorPosition`、既定引数を含む`setCursorPosition`、`channel`、`channelMask`、`setChannelValues`、`getImageMap`、`getCurrentColor`、`getColorFromConverter`、`forceImageUpdate`、`getSpaceForSquare`、`getSpaceForCircle`、`getSpaceForTriangle`、`setBorderWidth`、`isHueControl`、`supportsGamutMask`、`updateGamutMask`、`setAcceptTabletEvents`、`sigCursorMoved`である。許可pathは新規試験sourceと`libs/widgets/tests/CMakeLists.txt`の対象固有節だけで、公開header・製品sourceを変更しない。
   局所派生probeは純粋仮想関数の宣言だけとし、shape、Widget、色、画像、event、signalを実体化しない。直接linkはQt Core・Testだけ、Qt Gui・Widgets・KF・Imath・Boostはinterface include、includeはwidgets・pigment・resources・globalのsource/generatedと必要なexport定義だけに限定し、公開headerをsourceやAUTOMOC入力へ加えない。新対象4工程・8入力、停止5工程・11入力、近傍`KisVisualColorModelSchemaContractTest`を維持する。
   実装後は構築許可まで待機する。許可後にunknown target・CTest 0件、新5枠、対象CTest・枠個別・20回反復、近傍、無作業再構築、動的接続・AUTOMOC入力・shape・Widget・色・画像未解決記号、構文・書式、公開API・`verify-quick`を確認する。probeや依存値を実体化し、signal・描画・eventを実行し、Qt Gui・Widgetsまたは製品libraryへlinkし、停止線を超える必要があれば止める。
+- visual selector shape限定対象の初回compileは`KisVisualColorSelector.h`からflakeのgamut mask資源と生成export headerまで到達した。親selectorとmodelはpointerとしてしか公開しないため、開始
+  `libs/widgets/KisVisualColorSelectorShape.h`の完全型includeを`KisVisualColorSelector`・`KisVisualColorModel`の前方宣言へ縮小し、実際に親selectorを呼び出す`libs/widgets/KisVisualColorSelectorShape.cpp`へ`KisVisualColorSelector.h`の直接includeを移す。公開APIと製品実装を変えず、限定対象からflake資源閉包を除去し、レーンの一時flake include補正を外して同じ4工程・8入力で再開する。
 
 ### 第170便の先行監査計画
 

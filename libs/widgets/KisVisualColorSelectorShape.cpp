@@ -4,6 +4,7 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisVisualColorSelectorShape.h"
+#include "KisVisualColorSelector.h"
 
 #include <QColor>
 #include <QImage>

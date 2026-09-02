@@ -16,8 +16,10 @@
 #include "kritawidgets_export.h"
 #include "KoColorDisplayRendererInterface.h"
 
-#include "KisVisualColorSelector.h"
 #include "KisColorSelectorConfiguration.h"
+
+class KisVisualColorModel;
+class KisVisualColorSelector;
 
 /**
  * @brief The KisVisualColorSelectorShape class
