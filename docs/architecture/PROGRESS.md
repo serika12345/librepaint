@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 17:03 JST
+- 更新日時: 2026-09-02 17:29 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -74,6 +74,30 @@
   公開headerをtarget sourceやAUTOMOC入力へ加えない。新対象4工程・8入力、停止5工程・11入力、近傍は`SelectionSchemaContractTest`、製品`kritalibkis`は2,018工程・4,034入力と担当tree内の変更前後集合完全一致を確認する。
   未知target・CTest 0件、新5枠、対象CTest・20回反復、近傍、無作業再構築、動的接続・AUTOMOC入力・未解決View記号、構文・変更行書式、公開API・`verify-quick`を確認する。View・KisView・QObject・resource・document・
   canvas・GUI event loop・method・slot・signal・metaobjectを生成または実行し、Qt Widgets実link、製品source・OBJECT・shared、`kritatestsdk`、新しい非header link、公開header変更、製品計画差、停止線超過が必要なら止める。
+
+### 第156便の統合結果
+
+- `g156-scalar-keyframe-schema`は受渡しcommit`b85352e6e0`を統合commit`bf8525ed3e`として取り込んだ。開始`libs/image/kis_scalar_keyframe_channel.h`から既存
+  `libs/image/tests/KisKeyframeChannelSchemaContractTest.cpp`の5枠へ、上下限値、keyframe型・補間、値・tangent、channel型・方針、評価・更新の全46 APIを対応付けた。8 APIは関数型に加えて既定引数の
+  省略呼出しも未評価式で固定し、上下限の逆順入力を1から5へ正規化して範囲外・内側の3値をclampするheader-only本文を具体実行した。CMakeと直接依存を変更せず対象4工程・8入力、製品`kritaimage`
+  1,196工程・2,416入力を維持した。keyframe・channel・bounds・undo・XML・signal配送・metaobject・補間本文を生成または実行していない。担当macOS環境で旧binaryの新5枠Unknown、対象CTest・20回反復、近傍
+  `KisImageTypesContractTest`、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式、公開API検査、`verify-quick`に成功した。中央環境でも対象CTest、公開API検査、`verify-quick`に成功し、台帳commit
+  `a84917761f`で29,838件中15,732件対応、14,106件未対応となった。作業tree 878,988 KiBと担当branchは削除した。実keyframe更新・補間・signal配送は別の効果契約で扱う。
+- `g156-svg-text-property-values-schema`は受渡しcommit`ce3fead093`を統合commit`df28af96d1`として取り込んだ。開始`libs/flake/text/KoSvgText.h`から既存
+  `libs/flake/tests/KoSvgTextFontMetricsValueContractTest.cpp`の5枠へ、背景property、stroke property、path配置、underline位置、font metrics操作の31 APIを対応付けた。空propertyの既定値・等価・独立コピー、
+  path配置とunderline位置の既定値・変更値を具体実行し、out-of-line操作は厳密な未評価関数型で固定した。列挙値の`QCOMPARE`が`KoSvgText::staticMetaObject`を要求する初回link診断に対し、整数値比較へ狭めて
+  製品依存を加えず解消した。CMakeと直接依存を変更せず対象4工程・8入力、製品`kritaflake` 621工程・1,274入力を維持した。非空background・stroke、shape、layout、font database、path、painter、XML、document、
+  resource、out-of-line本文・debug出力を生成または実行していない。担当macOS環境で旧binaryの新5枠Unknown、対象CTest・20回反復、近傍`KoSvgTextCharacterResultValueContractTest`、無作業再構築、動的接続・
+  AUTOMOC入力・未解決記号、構文・書式、公開API検査、`verify-quick`に成功した。中央環境でも対象CTest、公開API検査、`verify-quick`に成功し、台帳commit`a8222979cd`で29,838件中15,763件対応、
+  14,075件未対応となった。作業tree 884,240 KiBと担当branchは削除した。非空描画propertyとfont metrics操作結果は別の効果契約で扱う。
+- `g156-libkis-view-schema`は受渡しcommit`8fc9bb5519`を統合commit`8a646a4a5a`として取り込んだ。開始`libs/libkis/View.h`から新規`libs/libkis/tests/ViewSchemaContractTest.cpp`の5枠へ、
+  所有・寿命・等価、brush幾何、deposit・合成、入力mode方針、HDR表示の29 APIを対応付け、`libs/libkis/tests/CMakeLists.txt`へ独立対象を追加した。構築は2引数型に加えて既定parent省略形も固定した。直接linkは
+  Qt Core・TestだけでQt Guiは公開header解釈用interface includeに限定し、新対象4工程・8入力、製品`kritalibkis` 2,018工程・4,034入力を維持した。View・KisView・QObject、slot・signal・metaobject、resource、
+  document、canvas、GUI event loopを生成または実行していない。担当macOS環境で未知target・CTest 0件、新5枠、対象CTest・20回反復、近傍`SelectionSchemaContractTest`、無作業再構築、動的接続・AUTOMOC入力・
+  未解決記号、構文・書式、公開API検査、`verify-quick`に成功した。中央環境ではCMake定義変更に伴うNinja再構成後、製品を構築せず新対象だけを構築・実行し、公開API検査、`verify-quick`に成功した。台帳commit
+  `348e8218d9`で29,838件中15,792件対応、14,046件未対応となった。作業tree 875,744 KiBと担当branchは削除した。実view状態変更とUI反映は別の効果契約で扱う。
+- 第156便全体で106 APIを15枠へ重複なく対応付け、3担当の作業tree計2,638,972 KiB（約2.52 GiB）を回収した。旧不足報告`public-api-missing-g156.json`をごみ箱へ移し、主Ninja木5,613,624 KiB、
+  共有compiler cache 982,592 KiB、最新不足報告`build/tdd-macos/public-api-missing-g157.json`だけを再利用対象として保持する。次の永続作業は第157便の不足報告から、既存限定対象を優先してpathと所有CMakeが重ならない3責務を先行監査することである。
 
 ### 第155便の先行監査計画
 
