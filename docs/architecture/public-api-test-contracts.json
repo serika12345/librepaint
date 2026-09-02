@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 13759
+    "expectedMissingApis": 13730
   },
   "contracts": [
     {
@@ -45668,6 +45668,80 @@
         "method:KisDataManager::read(QIODevice * io)",
         "method:KisDataManager::releaseInternalPools()",
         "method:KisDataManager::write(KisPaintDeviceWriter & writer)"
+      ]
+    },
+    {
+      "target": "KoShapeLoadingContextSchemaContractTest",
+      "source": "libs/flake/tests/KoShapeLoadingContextSchemaContractTest.cpp",
+      "test": "KoShapeLoadingContextSchemaContractTest::additionalAttributeValueSchemaRemainsStable",
+      "behavior": "shape読込時の追加属性値がnamespace・tag・nameを保持し、copyが独立し、nameだけで等価判定する現行規則を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KoShapeLoadingContext::AdditionalAttributeData::name",
+        "member:KoShapeLoadingContext::AdditionalAttributeData::ns",
+        "member:KoShapeLoadingContext::AdditionalAttributeData::tag",
+        "method:KoShapeLoadingContext::AdditionalAttributeData::AdditionalAttributeData(const QString & ns,const QString & tag,const QString & name)",
+        "method:KoShapeLoadingContext::AdditionalAttributeData::operator ==(const AdditionalAttributeData & other) const",
+        "struct:KoShapeLoadingContext::AdditionalAttributeData"
+      ]
+    },
+    {
+      "target": "KoShapeLoadingContextSchemaContractTest",
+      "source": "libs/flake/tests/KoShapeLoadingContextSchemaContractTest.cpp",
+      "test": "KoShapeLoadingContextSchemaContractTest::shapeLoadingIdentityStoreAndResourceSignaturesRemainStable",
+      "behavior": "shape読込contextの型、寿命、store・document資源参照、MIME判定と既定引数省略形を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoShapeLoadingContext",
+        "method:KoShapeLoadingContext::KoShapeLoadingContext(KoStore * store,KoDocumentResourceManager * documentResources)",
+        "method:KoShapeLoadingContext::documentResourceManager() const",
+        "method:KoShapeLoadingContext::mimeTypeForPath(const QString & href,bool b=true)",
+        "method:KoShapeLoadingContext::store() const",
+        "method:KoShapeLoadingContext::~KoShapeLoadingContext()"
+      ]
+    },
+    {
+      "target": "KoShapeLoadingContextSchemaContractTest",
+      "source": "libs/flake/tests/KoShapeLoadingContextSchemaContractTest.cpp",
+      "test": "KoShapeLoadingContextSchemaContractTest::shapeLoadingLayerZIndexAndSectionSignaturesRemainStable",
+      "behavior": "shape読込contextのlayer登録、z-index、section modelに関する公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShapeLoadingContext::addLayer(KoShapeLayer * layer,const QString & layerName)",
+        "method:KoShapeLoadingContext::clearLayers()",
+        "method:KoShapeLoadingContext::layer(const QString & layerName)",
+        "method:KoShapeLoadingContext::sectionModel()",
+        "method:KoShapeLoadingContext::setSectionModel(KoSectionModel * sectionModel)",
+        "method:KoShapeLoadingContext::setZIndex(int index)",
+        "method:KoShapeLoadingContext::zIndex()"
+      ]
+    },
+    {
+      "target": "KoShapeLoadingContextSchemaContractTest",
+      "source": "libs/flake/tests/KoShapeLoadingContextSchemaContractTest.cpp",
+      "test": "KoShapeLoadingContextSchemaContractTest::shapeLoadingShapeReferenceAndUpdaterSignaturesRemainStable",
+      "behavior": "shape読込contextのshape・subitem識別と遅延更新に関する公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShapeLoadingContext::addShapeId(KoShape * shape,const QString & id)",
+        "method:KoShapeLoadingContext::addShapeSubItemId(KoShape * shape,const QVariant & subItem,const QString & id)",
+        "method:KoShapeLoadingContext::shapeById(const QString & id)",
+        "method:KoShapeLoadingContext::shapeLoaded(KoShape * shape)",
+        "method:KoShapeLoadingContext::shapeSubItemById(const QString & id)",
+        "method:KoShapeLoadingContext::updateShape(const QString & id,KoLoadingShapeUpdater * shapeUpdater)"
+      ]
+    },
+    {
+      "target": "KoShapeLoadingContextSchemaContractTest",
+      "source": "libs/flake/tests/KoShapeLoadingContextSchemaContractTest.cpp",
+      "test": "KoShapeLoadingContextSchemaContractTest::shapeLoadingSharedAndAdditionalDataSignaturesRemainStable",
+      "behavior": "shape読込contextの共有data所有と静的な追加属性集合に関する公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShapeLoadingContext::addAdditionalAttributeData(const AdditionalAttributeData & attributeData)",
+        "method:KoShapeLoadingContext::addSharedData(const QString & id,KoSharedLoadingData * data)",
+        "method:KoShapeLoadingContext::additionalAttributeData()",
+        "method:KoShapeLoadingContext::sharedData(const QString & id) const"
       ]
     }
   ]
