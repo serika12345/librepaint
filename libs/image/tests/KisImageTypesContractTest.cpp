@@ -16,6 +16,7 @@
 #include "kis_histogram.h"
 #include "kis_image_animation_interface.h"
 #include "kis_image_signal_router.h"
+#include "kis_iterator_ng.h"
 #include "kis_layer_utils.h"
 #include "kis_paint_device_frames_interface.h"
 #include "kis_pixel_selection.h"
@@ -54,6 +55,82 @@ namespace
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisMaskGenerator::method)), signature>)
 #define ASSERT_UPDATER_CONTEXT_SIGNATURE(method, signature)                                                            \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisUpdaterContext::method)), signature>)
+#define ASSERT_ITERATOR_SIGNATURE(type, method, signature)                                                             \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&type::method)), signature>)
+
+class BaseConstIteratorConstructorProbe final : public KisBaseConstIteratorNG
+{
+public:
+    const quint8 *oldRawData() const override;
+    const quint8 *rawDataConst() const override;
+    qint32 x() const override;
+    qint32 y() const override;
+    bool nextPixel() override;
+    bool nextPixels(qint32 n) override;
+    qint32 nConseqPixels() const override;
+};
+
+class HLineConstIteratorConstructorProbe final : public KisHLineConstIteratorNG
+{
+public:
+    const quint8 *oldRawData() const override;
+    const quint8 *rawDataConst() const override;
+    qint32 x() const override;
+    qint32 y() const override;
+    bool nextPixel() override;
+    bool nextPixels(qint32 n) override;
+    qint32 nConseqPixels() const override;
+    void nextRow() override;
+    void resetPixelPos() override;
+    void resetRowPos() override;
+};
+
+class HLineIteratorConstructorProbe final : public KisHLineIteratorNG
+{
+public:
+    const quint8 *oldRawData() const override;
+    const quint8 *rawDataConst() const override;
+    quint8 *rawData() override;
+    qint32 x() const override;
+    qint32 y() const override;
+    bool nextPixel() override;
+    bool nextPixels(qint32 n) override;
+    qint32 nConseqPixels() const override;
+    void nextRow() override;
+    void resetPixelPos() override;
+    void resetRowPos() override;
+};
+
+class VLineConstIteratorConstructorProbe final : public KisVLineConstIteratorNG
+{
+public:
+    const quint8 *oldRawData() const override;
+    const quint8 *rawDataConst() const override;
+    qint32 x() const override;
+    qint32 y() const override;
+    bool nextPixel() override;
+    bool nextPixels(qint32 n) override;
+    qint32 nConseqPixels() const override;
+    void nextColumn() override;
+    void resetColumnPos() override;
+    void resetPixelPos() override;
+};
+
+class VLineIteratorConstructorProbe final : public KisVLineIteratorNG
+{
+public:
+    const quint8 *oldRawData() const override;
+    const quint8 *rawDataConst() const override;
+    quint8 *rawData() override;
+    qint32 x() const override;
+    qint32 y() const override;
+    bool nextPixel() override;
+    bool nextPixels(qint32 n) override;
+    qint32 nConseqPixels() const override;
+    void nextColumn() override;
+    void resetColumnPos() override;
+    void resetPixelPos() override;
+};
 
 class SelectionDefaultBoundsConstructorProbe final : public KisSelectionDefaultBoundsBase
 {
@@ -224,6 +301,11 @@ private Q_SLOTS:
     void updaterContextJobAdmissionAndSubmissionSignaturesRemainStable();
     void updaterContextSynchronizationAndLimitSignaturesRemainStable();
     void updaterContextContinuationAndCompletionSignaturesRemainStable();
+    void baseConstIteratorOwnershipAndTraversalSchemaRemainsStable();
+    void horizontalConstIteratorTraversalSchemaRemainsStable();
+    void horizontalWritableIteratorSchemaRemainsStable();
+    void verticalConstIteratorTraversalSchemaRemainsStable();
+    void verticalWritableIteratorSchemaRemainsStable();
 };
 
 void KisImageTypesContractTest::intrusivePointerAliasesPreserveOwnershipKinds()
@@ -2332,6 +2414,63 @@ void KisImageTypesContractTest::updaterContextContinuationAndCompletionSignature
     ASSERT_UPDATER_CONTEXT_SIGNATURE(jobThreadExited, void (KisUpdaterContext::*)());
 }
 
+void KisImageTypesContractTest::baseConstIteratorOwnershipAndTraversalSchemaRemainsStable()
+{
+    static_assert(std::is_class_v<KisBaseConstIteratorNG>);
+    static_assert(std::is_base_of_v<KisBaseConstAccessor, KisBaseConstIteratorNG>);
+    static_assert(std::is_abstract_v<KisBaseConstIteratorNG>);
+    static_assert(std::has_virtual_destructor_v<KisBaseConstIteratorNG>);
+    static_assert(!std::is_copy_constructible_v<KisBaseConstIteratorNG>);
+    static_assert(std::is_default_constructible_v<BaseConstIteratorConstructorProbe>);
+    ASSERT_ITERATOR_SIGNATURE(KisBaseConstIteratorNG, nextPixel, bool (KisBaseConstIteratorNG::*)());
+    ASSERT_ITERATOR_SIGNATURE(KisBaseConstIteratorNG, nextPixels, bool (KisBaseConstIteratorNG::*)(qint32));
+    ASSERT_ITERATOR_SIGNATURE(KisBaseConstIteratorNG, nConseqPixels, qint32 (KisBaseConstIteratorNG::*)() const);
+}
+
+void KisImageTypesContractTest::horizontalConstIteratorTraversalSchemaRemainsStable()
+{
+    static_assert(std::is_class_v<KisHLineConstIteratorNG>);
+    static_assert(std::is_base_of_v<KisBaseConstIteratorNG, KisHLineConstIteratorNG>);
+    static_assert(std::is_abstract_v<KisHLineConstIteratorNG>);
+    static_assert(std::has_virtual_destructor_v<KisHLineConstIteratorNG>);
+    static_assert(std::is_default_constructible_v<HLineConstIteratorConstructorProbe>);
+    ASSERT_ITERATOR_SIGNATURE(KisHLineConstIteratorNG, nextRow, void (KisHLineConstIteratorNG::*)());
+    ASSERT_ITERATOR_SIGNATURE(KisHLineConstIteratorNG, resetPixelPos, void (KisHLineConstIteratorNG::*)());
+    ASSERT_ITERATOR_SIGNATURE(KisHLineConstIteratorNG, resetRowPos, void (KisHLineConstIteratorNG::*)());
+}
+
+void KisImageTypesContractTest::horizontalWritableIteratorSchemaRemainsStable()
+{
+    static_assert(std::is_class_v<KisHLineIteratorNG>);
+    static_assert(std::is_base_of_v<KisHLineConstIteratorNG, KisHLineIteratorNG>);
+    static_assert(std::is_base_of_v<KisBaseAccessor, KisHLineIteratorNG>);
+    static_assert(std::is_abstract_v<KisHLineIteratorNG>);
+    static_assert(std::has_virtual_destructor_v<KisHLineIteratorNG>);
+    static_assert(std::is_default_constructible_v<HLineIteratorConstructorProbe>);
+}
+
+void KisImageTypesContractTest::verticalConstIteratorTraversalSchemaRemainsStable()
+{
+    static_assert(std::is_class_v<KisVLineConstIteratorNG>);
+    static_assert(std::is_base_of_v<KisBaseConstIteratorNG, KisVLineConstIteratorNG>);
+    static_assert(std::is_abstract_v<KisVLineConstIteratorNG>);
+    static_assert(std::has_virtual_destructor_v<KisVLineConstIteratorNG>);
+    static_assert(std::is_default_constructible_v<VLineConstIteratorConstructorProbe>);
+    ASSERT_ITERATOR_SIGNATURE(KisVLineConstIteratorNG, nextColumn, void (KisVLineConstIteratorNG::*)());
+    ASSERT_ITERATOR_SIGNATURE(KisVLineConstIteratorNG, resetColumnPos, void (KisVLineConstIteratorNG::*)());
+    ASSERT_ITERATOR_SIGNATURE(KisVLineConstIteratorNG, resetPixelPos, void (KisVLineConstIteratorNG::*)());
+}
+
+void KisImageTypesContractTest::verticalWritableIteratorSchemaRemainsStable()
+{
+    static_assert(std::is_class_v<KisVLineIteratorNG>);
+    static_assert(std::is_base_of_v<KisVLineConstIteratorNG, KisVLineIteratorNG>);
+    static_assert(std::is_base_of_v<KisBaseAccessor, KisVLineIteratorNG>);
+    static_assert(std::is_abstract_v<KisVLineIteratorNG>);
+    static_assert(std::has_virtual_destructor_v<KisVLineIteratorNG>);
+    static_assert(std::is_default_constructible_v<VLineIteratorConstructorProbe>);
+}
+
 #undef ASSERT_DEFAULT_BOUNDS_SIGNATURE
 #undef ASSERT_LAYER_UTILS_SIGNATURE
 #undef ASSERT_PAINTOP_SETTINGS_SIGNATURE
@@ -2342,6 +2481,7 @@ void KisImageTypesContractTest::updaterContextContinuationAndCompletionSignature
 #undef ASSERT_PIXEL_SELECTION_SIGNATURE
 #undef ASSERT_MASK_GENERATOR_SIGNATURE
 #undef ASSERT_UPDATER_CONTEXT_SIGNATURE
+#undef ASSERT_ITERATOR_SIGNATURE
 
 QTEST_GUILESS_MAIN(KisImageTypesContractTest)
 
