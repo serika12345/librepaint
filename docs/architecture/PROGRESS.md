@@ -38,6 +38,32 @@
   `df820efe3d083b74721d0810891808a6509980f9d2ff4714b2e06d397bc91da5`、製品命令集合hashは`8b3e011450f2ca342e0ce523cc1696c2e2b3970456a8cb097553ee5fdf79930f`、入力集合hashは
   `76f2aa4251a6bf4e2adf2a1e822bc9d629753b2e93e5b877ee4eae23364940bc`である。`kis_tiled_data_manager.h`はtile access・履歴・I/O・manager操作へ責務が分散し、inline本文がhash table・memento・lockへ直結するため棄却した。
 
+### 第152便の担当計画
+
+- 実装共通基点は`a702dd87eb`である。3担当は`preparing`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、
+  専用worktree-local `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。統合順はtile data store、canvas座標変換、stop-gradientとし、調整担当だけが
+  `AGENTS.md`、architecture文書、`docs/architecture/public-api-test-contracts.json`、共通不足報告を変更する。3担当の公開header、所有CMake、試験source、生成物は重ならない。
+- `g152-tile-data-store-schema`は`/Users/masato/Documents/librepaint-g152-tile-data-store-schema`を所有する。開始`libs/image/tiles3/kis_tile_data_store.h`の全33 APIから既存
+  `libs/image/tiles3/tests/KisTileDataSchemaContractTest.cpp`の5枠`tileDataStoreTypeAndMemoryValueSchemaRemainsStable`、`tileDataStoreSingletonAndStatisticsSignaturesRemainStable`、
+  `tileDataStoreIterationSignaturesRemainStable`、`tileDataStoreTileLifetimeSignaturesRemainStable`、`tileDataStoreMaintenanceSignaturesRemainStable`へ対応付ける。許可pathは既存試験sourceだけで、CMakeを変更しない。
+  対象4工程・8入力、停止5工程・11入力、近傍は`KisTileSchemaContractTest`、製品`kritaimage`は1,196工程・2,416入力と担当tree内の変更前後集合完全一致を確認する。旧binaryで新5枠Unknown、対象CTest、5枠個別、
+  20回反復、近傍、無作業再構築、動的接続・未解決store・tile・iterator・memory記号、構文・変更行書式、公開API・`verify-quick`を確認する。store singleton、tile data、pooler、swapper、clock、iterator、memory I/O、
+  `MiB_TO_METRIC`と他のinline本文を生成または実行し、新依存、CMake・公開header変更、製品接続、image・global以外のinclude、対象集合・製品計画差、停止線超過が必要なら止める。
+- `g152-coordinates-converter-schema`は`/Users/masato/Documents/librepaint-g152-coordinates-converter-schema`を所有する。開始`libs/canvas/kis_coordinates_converter.h`のout-of-line 68 APIから新規
+  `libs/canvas/tests/KisCoordinatesConverterSchemaContractTest.cpp`の5枠`coordinatesConverterIdentityAndCanvasStateSignaturesRemainStable`、`coordinatesConverterZoomRotationAndMirrorSignaturesRemainStable`、
+  `coordinatesConverterTransformAndStillPointSignaturesRemainStable`、`coordinatesConverterImageGeometrySignaturesRemainStable`、`coordinatesConverterCheckerProjectionSignaturesRemainStable`へ対応付ける。
+  許可pathは新規試験sourceと`libs/canvas/tests/CMakeLists.txt`だけである。直接linkはQt Core・Gui・Testだけ、includeはcanvas・widgets・flake・imageのsource/generated、definitionは`kritacanvas_EXPORTS`だけとし、公開headerを
+  target sourceやAUTOMOC入力へ加えない。新対象4工程・8入力、停止5工程・11入力、近傍は`KisFrameDataSerializerSchemaContractTest`、製品`kritacanvas`は1,220工程・2,460入力と担当tree内の変更前後集合完全一致を確認する。
+  未知targetと5枠、対象CTest、5枠個別、20回反復、近傍、無作業再構築、動的接続・AUTOMOC入力・未解決converter・image・canvas記号、構文・変更行書式、公開API・`verify-quick`を確認する。converter、still point、image、canvas、
+  constructor、destructor、変換・checker処理、inline・template本文、関数address値を生成または実行し、製品source・OBJECT・shared、`kritatestsdk`、Qt Widgets、新非header依存、公開header変更、製品計画差、停止線超過が必要なら止める。
+- `g152-stop-gradient-schema`は`/Users/masato/Documents/librepaint-g152-stop-gradient-schema`を所有する。開始`libs/pigment/resources/KoStopGradient.h`の全40 APIから新規
+  `libs/pigment/tests/KoStopGradientSchemaContractTest.cpp`の5枠`gradientStopTypeSchemaRemainsStable`、`gradientStopValueSchemaRemainsStable`、`stopGradientLifetimeAndResourceSchemaRemainsStable`、
+  `stopGradientCollectionAndVariableColorSchemaRemainsStable`、`stopGradientConversionAndPersistenceSchemaRemainsStable`へ対応付ける。許可pathは新規試験sourceと`libs/pigment/tests/CMakeLists.txt`だけである。直接linkは
+  Qt Core・Gui・TestとBoost headerだけ、includeはpigment・resources・global source/generatedとKF I18n・Imath interface、definitionsは`kritaglobal_EXPORTS`・`kritapigment_EXPORTS`・`kritaresources_EXPORTS`だけとし、
+  製品libraryへlinkしない。新対象4工程・8入力、停止5工程・11入力、近傍は`KoGradientSegmentSchemaContractTest`、製品`kritapigment`は367工程・764入力と担当tree内の変更前後集合完全一致を確認する。未知targetと5枠、
+  対象CTest、5枠個別、20回反復、近傍、無作業再構築、動的接続・未解決gradient・resource・XML・device記号、構文・変更行書式、公開API・`verify-quick`を確認する。gradient、stop、resource、canvas resource、色変換、XML、device、
+  inline・out-of-line本文を生成または実行し、`KoStopGradient.cpp`、製品source・OBJECT・shared、`kritatestsdk`、新非header依存、公開header変更、製品計画差、停止線超過が必要なら止める。
+
 ### 第151便の先行監査計画
 
 - 監査共通基点は`200b8268a8`、入力は`build/tdd-macos/public-api-missing-g151.json`である。3担当は`auditing`の読み取り専用とし、製品・試験・CMake・script・台帳・文書を変更せず、構築、試験、Git操作、
