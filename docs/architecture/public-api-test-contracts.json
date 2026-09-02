@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 13618
+    "expectedMissingApis": 13588
   },
   "contracts": [
     {
@@ -46034,6 +46034,81 @@
         "method:KisPaintOpOption::sigCheckedChanged(bool value)",
         "method:KisPaintOpOption::sigEnabledChanged(bool value)",
         "method:KisPaintOpOption::sigSettingChanged()"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::savedCommandHierarchyAndLifetimeSchemaRemainsStable",
+      "behavior": "保存済み操作の継承、抽象基底構築型、仮想寿命、undo・redo署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisSavedCommand",
+        "class:KisSavedCommandBase",
+        "class:KisSavedMacroCommand",
+        "method:KisSavedCommand::KisSavedCommand(KUndo2CommandSP command,KisStrokesFacade * strokesFacade)",
+        "method:KisSavedCommandBase::KisSavedCommandBase(const KUndo2MagicString & name,KisStrokesFacade * strokesFacade)",
+        "method:KisSavedCommandBase::redo()",
+        "method:KisSavedCommandBase::undo()",
+        "method:KisSavedCommandBase::~KisSavedCommandBase()",
+        "method:KisSavedMacroCommand::KisSavedMacroCommand(const KUndo2MagicString & name,KisStrokesFacade * strokesFacade)",
+        "method:KisSavedMacroCommand::~KisSavedMacroCommand()"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::savedCommandTimingAndIdentitySignaturesRemainStable",
+      "behavior": "保存済み操作の識別子、時間範囲、timed ID、merge状態の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSavedCommand::endTime() const",
+        "method:KisSavedCommand::id() const",
+        "method:KisSavedCommand::isMerged() const",
+        "method:KisSavedCommand::setEndTime(const QTime & time)",
+        "method:KisSavedCommand::setTime(const QTime & time)",
+        "method:KisSavedCommand::setTimedID(int timedID)",
+        "method:KisSavedCommand::time() const",
+        "method:KisSavedCommand::timedId() const"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::savedCommandMergeAndUnwrapSignaturesRemainStable",
+      "behavior": "保存済み単一操作のmerge、相殺、内部操作列、遅延unwrapの公開型を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSavedCommand::canAnnihilateWith(const KUndo2Command * command) const",
+        "method:KisSavedCommand::mergeCommandsVector() const",
+        "method:KisSavedCommand::mergeWith(const KUndo2Command * command)",
+        "method:KisSavedCommand::timedMergeWith(KUndo2Command * other)",
+        "method:KisSavedCommand::unwrap(Command * cmd,Func && func)"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::savedMacroCommandCompositionAndIdentitySignaturesRemainStable",
+      "behavior": "保存済みmacroへの操作追加、識別子、merge・相殺方針と省略実行属性を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSavedMacroCommand::addCommand(KUndo2CommandSP command,KisStrokeJobData::Sequentiality sequentiality=KisStrokeJobData::SEQUENTIAL,KisStrokeJobData::Exclusivity exclusivity=KisStrokeJobData::NORMAL)",
+        "method:KisSavedMacroCommand::canAnnihilateWith(const KUndo2Command * command) const",
+        "method:KisSavedMacroCommand::id() const",
+        "method:KisSavedMacroCommand::mergeWith(const KUndo2Command * command)",
+        "method:KisSavedMacroCommand::setMacroId(int value)"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::savedMacroCommandExecutionAndOverrideSignaturesRemainStable",
+      "behavior": "保存済みmacroのstroke job展開、履歴指定省略形、上書き情報の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSavedMacroCommand::getCommandExecutionJobs(QVector<KisStrokeJobData * > * jobs,bool undo,bool shouldGoToHistory=true) const",
+        "method:KisSavedMacroCommand::setOverrideInfo(const KisSavedMacroCommand * overriddenCommand,const QVector<const KUndo2Command * > & skipWhileOverride)"
       ]
     }
   ]
