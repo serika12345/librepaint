@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 09:51 JST
+- 更新日時: 2026-09-02 09:55 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -41,7 +41,7 @@
 
 ### 第142便の担当計画
 
-- 実装共通基点は`fafea64c9ea11f09f1e97138104f1d210216a7a1`である。tag resource modelとcolor scheme担当は`integrated`、dab rendering job担当は`assigned`、構築許可は指定試験targetと軽量近傍だけの
+- 実装共通基点は`fafea64c9ea11f09f1e97138104f1d210216a7a1`である。tag resource model、color scheme、dab rendering job担当は`integrated`、構築許可は指定試験targetと軽量近傍だけの
   `granted`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、専用worktree-local `build/tdd-macos`と主作業treeの
   `/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。統合順はtag resource model、color scheme、dab rendering jobとし、調整担当だけが`AGENTS.md`、
   architecture文書、`docs/architecture/public-api-test-contracts.json`、共通不足報告を変更する。3担当の公開header、所有CMake、試験source、生成物は重ならない。
@@ -80,6 +80,14 @@
   対象4工程・9入力、製品`kritawidgetutils` 274工程・581入力と中央の両集合hashを監査値のまま維持した。配色、brush、palette、設定、widget、製品記号を生成または実行していない。担当macOS
   環境と中央環境で5枠と既存列挙3枠を含む対象CTest・20回反復と近傍`KStandardActionEnumContractTest`、無作業再構築、動的接続・未解決記号、構文・書式、公開API検査、`verify-quick`に
   成功した。中央の公開API契約検査は29,838件中14,350件対応、15,488件未対応となる。作業tree 874,652 KiBと担当branchは削除した。
+- `g142-dab-rendering-job-schema`は受渡しcommit`d01742ded19c`を統合commit`6df4a4978f`として取り込んだ。開始`plugins/paintops/defaultpaintops/brush/KisDabRenderingJob.h`から新規
+  `plugins/paintops/defaultpaintops/brush/tests/KisDabRenderingJobSchemaContractTest.cpp`の5枠へ、job型・複製、job種別、状態、payload、runnerの27 APIを対応付けた。直接linkはQt Core・Gui・Test・Xmlと
+  Boostだけで、新対象4工程・8入力に収めた。製品`kritapixelbrush`は1,303工程・2,625入力、命令集合hash`1ea382d559d6c492663b4ee92a3856dfa9e1580d8351c6dd7dbef05ace372a28`、入力集合hash
+  `dbe4bbdfdc88c786835fa2ca6bf828804358a388aead60d36a3b582784503499`を監査値のまま維持した。job、runner、shared pointer、device、generation info、queue、resource、stroke、製品記号を
+  生成または実行していない。担当macOS環境と中央環境で5枠を含む対象CTest・20回反復と近傍`KisDabCacheUtilsSchemaContractTest`、無作業再構築、動的接続・未解決記号、構文・書式、公開API検査、
+  `verify-quick`に成功した。中央の公開API契約検査は29,838件中14,377件対応、15,461件未対応となる。作業tree 877,472 KiBと担当branchは削除した。第142便全体で81 APIを追加し、
+  3作業tree計2,629,972 KiB（約2.51 GiB）を回収した。旧不足報告を削除し、主Ninja木、共有compiler cache、最新不足報告`build/tdd-macos/public-api-missing-g143.json`だけを再利用対象として保持する。
+  次の永続作業は第143便の不足報告から、pathと所有CMakeが重ならない3責務を先行監査し、限定構築範囲を確認してから担当票を確定することである。
 
 ### 第141便の先行監査計画
 

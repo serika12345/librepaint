@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 15488
+    "expectedMissingApis": 15461
   },
   "contracts": [
     {
@@ -41599,6 +41599,78 @@
         "method:KStatefulBrush::brush(QPalette::ColorGroup) const",
         "method:KStatefulBrush::brush(const QPalette &) const",
         "method:KStatefulBrush::brush(const QWidget *) const"
+      ]
+    },
+    {
+      "target": "KisDabRenderingJobSchemaContractTest",
+      "source": "plugins/paintops/defaultpaintops/brush/tests/KisDabRenderingJobSchemaContractTest.cpp",
+      "test": "KisDabRenderingJobSchemaContractTest::dabRenderingJobIdentityAndCopySchemaRemainsStable",
+      "behavior": "dab描画jobは順序・種別・不透明度・流量からの構築、複製、代入、描画先offset照会を備える公開型面を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisDabRenderingJob",
+        "method:KisDabRenderingJob::KisDabRenderingJob(const KisDabRenderingJob & rhs)",
+        "method:KisDabRenderingJob::KisDabRenderingJob(int _seqNo,JobType _type,qreal opacity=OPACITY_OPAQUE_F,qreal flow=OPACITY_OPAQUE_F)",
+        "method:KisDabRenderingJob::dstDabOffset() const",
+        "method:KisDabRenderingJob::operator =(const KisDabRenderingJob & rhs)"
+      ]
+    },
+    {
+      "target": "KisDabRenderingJobSchemaContractTest",
+      "source": "plugins/paintops/defaultpaintops/brush/tests/KisDabRenderingJobSchemaContractTest.cpp",
+      "test": "KisDabRenderingJobSchemaContractTest::dabRenderingJobTypeSchemaRemainsStable",
+      "behavior": "dab描画jobの処理種別は生成、後処理、複製を0から連続する列挙値として維持する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KisDabRenderingJob::JobType",
+        "enumerator:KisDabRenderingJob::JobType::Copy",
+        "enumerator:KisDabRenderingJob::JobType::Dab",
+        "enumerator:KisDabRenderingJob::JobType::Postprocess"
+      ]
+    },
+    {
+      "target": "KisDabRenderingJobSchemaContractTest",
+      "source": "plugins/paintops/defaultpaintops/brush/tests/KisDabRenderingJobSchemaContractTest.cpp",
+      "test": "KisDabRenderingJobSchemaContractTest::dabRenderingJobStatusSchemaRemainsStable",
+      "behavior": "dab描画jobの進行状態は未開始、実行中、完了を0から連続する列挙値として維持する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KisDabRenderingJob::Status",
+        "enumerator:KisDabRenderingJob::Status::Completed",
+        "enumerator:KisDabRenderingJob::Status::New",
+        "enumerator:KisDabRenderingJob::Status::Running"
+      ]
+    },
+    {
+      "target": "KisDabRenderingJobSchemaContractTest",
+      "source": "plugins/paintops/defaultpaintops/brush/tests/KisDabRenderingJobSchemaContractTest.cpp",
+      "test": "KisDabRenderingJobSchemaContractTest::dabRenderingJobPayloadSchemaRemainsStable",
+      "behavior": "dab描画jobは順序、生成情報、種別、元・後処理device、状態、不透明度、流量と共有所有別名からなる公開payloadを維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisDabRenderingJobSP",
+        "member:KisDabRenderingJob::flow",
+        "member:KisDabRenderingJob::generationInfo",
+        "member:KisDabRenderingJob::opacity",
+        "member:KisDabRenderingJob::originalDevice",
+        "member:KisDabRenderingJob::postprocessedDevice",
+        "member:KisDabRenderingJob::seqNo",
+        "member:KisDabRenderingJob::status",
+        "member:KisDabRenderingJob::type"
+      ]
+    },
+    {
+      "target": "KisDabRenderingJobSchemaContractTest",
+      "source": "plugins/paintops/defaultpaintops/brush/tests/KisDabRenderingJobSchemaContractTest.cpp",
+      "test": "KisDabRenderingJobSchemaContractTest::dabRenderingJobRunnerSchemaRemainsStable",
+      "behavior": "dab描画job runnerはQt runnableとしてjob・queue・stroke実行口を受け取り、全体または単一jobを実行する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisDabRenderingJobRunner",
+        "method:KisDabRenderingJobRunner::KisDabRenderingJobRunner(KisDabRenderingJobSP job,KisDabRenderingQueue * parentQueue,KisRunnableStrokeJobsInterface * runnableJobsInterface)",
+        "method:KisDabRenderingJobRunner::executeOneJob(KisDabRenderingJob * job,KisDabCacheUtils::DabRenderingResources * resources,KisDabRenderingQueue * parentQueue)",
+        "method:KisDabRenderingJobRunner::run()",
+        "method:KisDabRenderingJobRunner::~KisDabRenderingJobRunner()"
       ]
     }
   ]
