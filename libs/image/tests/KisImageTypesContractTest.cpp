@@ -24,6 +24,7 @@
 #include "kis_sequential_iterator.h"
 #include "kis_stroke.h"
 #include "kis_types.h"
+#include "kis_updater_context.h"
 
 #include <QTest>
 
@@ -51,6 +52,8 @@ namespace
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisPixelSelection::method)), signature>)
 #define ASSERT_MASK_GENERATOR_SIGNATURE(method, signature)                                                             \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisMaskGenerator::method)), signature>)
+#define ASSERT_UPDATER_CONTEXT_SIGNATURE(method, signature)                                                            \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KisUpdaterContext::method)), signature>)
 
 class SelectionDefaultBoundsConstructorProbe final : public KisSelectionDefaultBoundsBase
 {
@@ -216,6 +219,11 @@ private Q_SLOTS:
     void maskGeneratorAppearanceSignaturesRemainStable();
     void maskGeneratorRenderingPolicySignaturesRemainStable();
     void maskGeneratorSerializationAndRegistrySignaturesRemainStable();
+    void updaterContextOwnershipLifetimeAndConstructionSchemaRemainsStable();
+    void updaterContextSnapshotLodAndCapacitySignaturesRemainStable();
+    void updaterContextJobAdmissionAndSubmissionSignaturesRemainStable();
+    void updaterContextSynchronizationAndLimitSignaturesRemainStable();
+    void updaterContextContinuationAndCompletionSignaturesRemainStable();
 };
 
 void KisImageTypesContractTest::intrusivePointerAliasesPreserveOwnershipKinds()
@@ -2276,6 +2284,54 @@ void KisImageTypesContractTest::maskGeneratorSerializationAndRegistrySignaturesR
     static_assert(std::is_same_v<decltype(&KisMaskGenerator::maskGeneratorIds), QList<KoID> (*)()>);
 }
 
+void KisImageTypesContractTest::updaterContextOwnershipLifetimeAndConstructionSchemaRemainsStable()
+{
+    static_assert(std::is_class_v<KisUpdaterContext>);
+    static_assert(std::is_class_v<KisTestableUpdaterContext>);
+    static_assert(std::is_base_of_v<KisUpdaterContext, KisTestableUpdaterContext>);
+    static_assert(std::is_same_v<decltype(KisUpdaterContext::useIdealThreadCountTag), const int>);
+    static_assert(std::is_constructible_v<KisUpdaterContext>);
+    static_assert(std::is_constructible_v<KisUpdaterContext, qint32>);
+    static_assert(std::is_constructible_v<KisUpdaterContext, qint32, KisUpdateScheduler *>);
+    static_assert(std::is_destructible_v<KisUpdaterContext>);
+    static_assert(std::is_constructible_v<KisTestableUpdaterContext, qint32>);
+}
+
+void KisImageTypesContractTest::updaterContextSnapshotLodAndCapacitySignaturesRemainStable()
+{
+    ASSERT_UPDATER_CONTEXT_SIGNATURE(getJobsSnapshot, void (KisUpdaterContext::*)(qint32 &, qint32 &));
+    ASSERT_UPDATER_CONTEXT_SIGNATURE(getContextSnapshotEx, KisUpdaterContextSnapshotEx (KisUpdaterContext::*)() const);
+    ASSERT_UPDATER_CONTEXT_SIGNATURE(currentLevelOfDetail, int (KisUpdaterContext::*)() const);
+    ASSERT_UPDATER_CONTEXT_SIGNATURE(hasSpareThread, bool (KisUpdaterContext::*)());
+    ASSERT_UPDATER_CONTEXT_SIGNATURE(isIdle, bool (KisUpdaterContext::*)() const);
+    ASSERT_UPDATER_CONTEXT_SIGNATURE(threadsLimit, int (KisUpdaterContext::*)() const);
+}
+
+void KisImageTypesContractTest::updaterContextJobAdmissionAndSubmissionSignaturesRemainStable()
+{
+    ASSERT_UPDATER_CONTEXT_SIGNATURE(isJobAllowed, bool (KisUpdaterContext::*)(KisBaseRectsWalkerSP));
+    ASSERT_UPDATER_CONTEXT_SIGNATURE(addMergeJob, void (KisUpdaterContext::*)(KisBaseRectsWalkerSP));
+    ASSERT_UPDATER_CONTEXT_SIGNATURE(addStrokeJob, void (KisUpdaterContext::*)(KisStrokeJob *));
+    ASSERT_UPDATER_CONTEXT_SIGNATURE(addSpontaneousJob, void (KisUpdaterContext::*)(KisSpontaneousJob *));
+}
+
+void KisImageTypesContractTest::updaterContextSynchronizationAndLimitSignaturesRemainStable()
+{
+    ASSERT_UPDATER_CONTEXT_SIGNATURE(waitForDone, void (KisUpdaterContext::*)());
+    ASSERT_UPDATER_CONTEXT_SIGNATURE(lock, void (KisUpdaterContext::*)());
+    ASSERT_UPDATER_CONTEXT_SIGNATURE(unlock, void (KisUpdaterContext::*)());
+    ASSERT_UPDATER_CONTEXT_SIGNATURE(setThreadsLimit, void (KisUpdaterContext::*)(int));
+    ASSERT_UPDATER_CONTEXT_SIGNATURE(setTestingMode, void (KisUpdaterContext::*)(bool));
+}
+
+void KisImageTypesContractTest::updaterContextContinuationAndCompletionSignaturesRemainStable()
+{
+    ASSERT_UPDATER_CONTEXT_SIGNATURE(continueUpdate, void (KisUpdaterContext::*)(const QRect &));
+    ASSERT_UPDATER_CONTEXT_SIGNATURE(doSomeUsefulWork, void (KisUpdaterContext::*)());
+    ASSERT_UPDATER_CONTEXT_SIGNATURE(jobFinished, void (KisUpdaterContext::*)());
+    ASSERT_UPDATER_CONTEXT_SIGNATURE(jobThreadExited, void (KisUpdaterContext::*)());
+}
+
 #undef ASSERT_DEFAULT_BOUNDS_SIGNATURE
 #undef ASSERT_LAYER_UTILS_SIGNATURE
 #undef ASSERT_PAINTOP_SETTINGS_SIGNATURE
@@ -2285,6 +2341,7 @@ void KisImageTypesContractTest::maskGeneratorSerializationAndRegistrySignaturesR
 #undef ASSERT_SAVED_COMMAND_SIGNATURE
 #undef ASSERT_PIXEL_SELECTION_SIGNATURE
 #undef ASSERT_MASK_GENERATOR_SIGNATURE
+#undef ASSERT_UPDATER_CONTEXT_SIGNATURE
 
 QTEST_GUILESS_MAIN(KisImageTypesContractTest)
 
