@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 12:20 JST
+- 更新日時: 2026-09-02 12:23 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -83,6 +83,9 @@
   KoColor、KoUnit、shape、undo stack、method・signal・metaobjectを生成または実行していない。担当macOS環境と中央環境で5枠を含む対象CTest・20回反復、近傍`KoCanvasBaseSchemaContractTest`、無作業再構築、
   動的接続・AUTOMOC入力・未解決記号、構文・書式、公開API検査に成功した。中央の公開API契約検査は29,838件中14,819件対応、15,019件未対応となる。作業tree 881,516 KiBと担当branchは削除した。
   資源値の格納・削除、undo stack、変更通知の実行時挙動は別の効果契約で扱う。
+- 第147便全体で116 APIを追加し、3作業tree計2,633,308 KiB（約2.51 GiB）を回収した。旧不足報告を削除し、主Ninja木5.4 GiB、共有compiler cache 961 MiB、最新不足報告
+  `build/tdd-macos/public-api-missing-g148.json`だけを再利用対象として保持する。次の永続作業は第148便の不足報告から、pathと所有CMakeが重ならない3責務を先行監査し、限定構築範囲を確認してから担当票を
+  確定することである。
 
 ### 第146便の先行監査計画
 
