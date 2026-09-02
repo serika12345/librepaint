@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 11:23 JST
+- 更新日時: 2026-09-02 11:25 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -36,6 +36,33 @@
   `kis_text_brush.h`は寿命・資源複製、device I/O、stroke通知、dab・mask生成、text・font・pipe・XMLへ責務とbrush/image/pigment依存が分散するため棄却した。
 - 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから契約先または移動先、許可path、固有停止条件、
   比較候補の棄却根拠を含む。既存`build/tdd-macos`の計画は読み取り専用で測定し、構成や構築を開始しない。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
+
+### 第146便の担当計画
+
+- 実装共通基点は`1b0505cd72`である。image signal router、libkis guides config、ASL XML writer担当は`implementing`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの
+  `transport-commit`、追加委任は禁止する。対象platformはmacOSであり、専用worktree-local `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。
+  統合順はimage signal router、libkis guides config、ASL XML writerとし、調整担当だけが`AGENTS.md`、architecture文書、`docs/architecture/public-api-test-contracts.json`、共通不足報告を変更する。
+  3担当の公開header、所有CMake、試験source、生成物は重ならない。
+- `g146-image-signal-router-schema`は`/Users/masato/Documents/librepaint-g146-image-signal-router-schema`を所有する。開始`libs/image/kis_image_signal_router.h`の全27 APIから既存
+  `libs/image/tests/KisImageTypesContractTest.cpp`の5枠`imageSignalRouterOwnershipAndLifetimeSchemaRemainsStable`、`imageSignalRouterNotificationSignaturesRemainStable`、
+  `imageSignalRouterBatchAndLodSignaturesRemainStable`、`imageSignalRouterNodeGraphSignaturesRemainStable`、`imageSignalRouterImageMetadataSignaturesRemainStable`へ対応付ける。許可pathは既存試験sourceだけで、
+  CMakeを変更しない。対象4工程・8入力、停止5工程・11入力、近傍は`KisImageConfigAnimationSchemaContractTest`、製品`kritaimage`は1,196工程・2,416入力と担当tree内の変更前後集合完全一致を確認する。
+  未知5枠、対象CTest、20回反復、既存image型枠と近傍、無作業再構築、動的接続、未解決router・metaobject・signal・image・node・profile・color space記号、構文・変更行書式、公開API・`verify-quick`を確認する。
+  router、image、node、profile、color spaceを生成し、emit・slot・signal・metaobject・event loopを実行し、headerを自動MOC入力へ追加し、製品source・OBJECT・shared、`kritatestsdk`、新link/include依存、CMake・
+  公開header変更、製品計画差、停止線超過が必要なら止める。
+- `g146-guides-config-schema`は`/Users/masato/Documents/librepaint-g146-guides-config-schema`を所有する。開始`libs/libkis/GuidesConfig.h`の全25 APIから既存
+  `libs/libkis/tests/GridConfigSchemaContractTest.cpp`の5枠`guidesConfigIdentityAndConstructionSchemaRemainsStable`、`guidesConfigComparisonAndSerializationSignaturesRemainStable`、
+  `guidesConfigPresentationSignaturesRemainStable`、`guidesConfigPositionSignaturesRemainStable`、`guidesConfigInteractionStateSignaturesRemainStable`へ対応付ける。許可pathは既存試験sourceだけで、CMakeを変更しない。
+  対象4工程・9入力以内、停止5工程・11入力、近傍は`AngleSelectorSchemaContractTest`、製品`kritalibkis`は2,018工程・4,034入力と担当tree内の変更前後集合完全一致を確認する。未知5枠、対象CTest、20回反復、
+  既存grid枠と近傍、無作業再構築、動的接続、未解決guide・XML・QObject metaobject記号、構文・変更行書式、公開API・`verify-quick`を確認する。GuidesConfig、内部guide値、QObject、QColor、QListを生成し、比較・位置・表示・lock・
+  snap・XML処理を実行し、Qt Widgets・dialog・GUI application・filesystem・設定へ接続し、製品source・OBJECT・shared、`kritatestsdk`、新link/include依存、CMake・公開header変更、製品計画差、停止線超過が必要なら止める。
+- `g146-asl-xml-writer-schema`は`/Users/masato/Documents/librepaint-g146-asl-xml-writer-schema`を所有する。開始`libs/psdutils/asl/kis_asl_xml_writer.h`の全28 APIから新規
+  `libs/psdutils/tests/KisAslXmlWriterSchemaContractTest.cpp`の5枠`aslXmlWriterIdentityAndDocumentSignaturesRemainStable`、`aslXmlWriterContainerSignaturesRemainStable`、
+  `aslXmlWriterScalarSignaturesRemainStable`、`aslXmlWriterGeometrySignaturesRemainStable`、`aslXmlWriterColorGradientAndPatternSignaturesRemainStable`へ対応付ける。許可pathは新規試験sourceと
+  `libs/psdutils/tests/CMakeLists.txt`だけである。直接linkはQt Core・Testだけ、compile-only includeはpsdutils・pigment・resources・globalのsource・generated directoryだけとし、新対象4工程・8入力、停止5工程・11入力、
+  近傍は`KisAslWriterUtilsContractTest`、製品`kritapsdutils`は638工程・1,306入力と担当tree内の変更前後集合完全一致を確認する。未知target、5枠、対象CTest、20回反復、近傍、無作業再構築、動的接続、
+  未解決writer・XML・色・勾配・pattern記号、構文・変更行書式、公開API・`verify-quick`を確認する。writer、XML文書、KoColor、勾配、pattern、resource、点・矩形値を生成し、constructor・destructor・method本文をODR使用し、
+  Qt Gui・Xml、製品source・OBJECT・shared、`kritatestsdk`、`kis_asl_xml_writer.cpp`、新非header依存、公開header変更、製品計画差、停止線超過が必要なら止める。
 
 ### 第145便の先行監査計画
 
