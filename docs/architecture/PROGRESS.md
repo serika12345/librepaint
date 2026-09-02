@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 09:58 JST
+- 更新日時: 2026-09-02 10:02 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -20,6 +20,20 @@
   識別・生成面またはshape読込みcontextの対応表・共有data面を、shape・plugin・document資源・XML・store・section・signal・registryの実体化なしで閉じる。
 - `g143-icon-utils-key-sequence-schema-audit`は`libs/widgetutils/kis_icon_utils.h`の全27 APIを主候補とし、`libs/widgetutils/xmlgui/kkeysequencewidget.h`の全29 APIを比較する。icon寸法・group・load・
   更新面またはshortcut入力widgetの公開型面を、icon theme・cache・widget・event loop・shortcut取得・競合解決・action更新・signal配送の実体化なしで閉じる。
+- `g143-mask-generator-chunk-allocator-schema-audit`は`kis_chunk_allocator.h`の全26 APIを採用した。chunk型集合5、区間値6、handle 7、allocator寿命・容量3、操作5を新規
+  `KisChunkAllocatorSchemaContractTest`の未評価型5枠へ対応付ける。新対象4工程・8入力、停止5工程・11入力を予測し、製品`kritaimage` 1,196工程・2,416入力を維持する。現在の製品命令集合hashは
+  `e055c792a96a6478029f98d6f7ef6eb7c32df4c7f228092ee25a0aaeff5be7ab`、入力集合hashは`76f2aa4251a6bf4e2adf2a1e822bc9d629753b2e93e5b877ee4eae23364940bc`である。
+  `kis_base_mask_generator.h`はincludeだけで3個のnamespace-scope `KoID`を動的初期化・破棄し、mask・XML面も責務が広いため棄却した。
+- `g143-shape-factory-loading-context-schema-audit`は`KoShapeFactoryBase.h`の全26 APIを採用した。shape template値9、factory型・寿命3、metadata 8、読込み・資源3、生成3を既存
+  `KoShapeEnumContractTest`の5枠へ対応付ける。現対象4工程・8入力からheader追加後4工程・9入力以内、停止5工程・11入力を予測し、製品`kritaflake` 621工程・1,274入力を維持する。現在の対象命令集合hash
+  `8957a35a28bf81e731044acecddbb476981ff8377bcf6cccbddb94c7f92cd17f`、入力集合hash`e0ea3aa5b91dda85d79add6d117ba972754e188779857d92090839756903d87b`、製品命令集合hash
+  `f3f361da0bcc5c5d3fcc2e2e638cfbfce33af5ddc455e80260a62ff35b74a676`、製品入力集合hash`1a30862a8e0463c6578045c344b23088d4909ac6017407162709d283413b8cb5`である。
+  `KoShapeLoadingContext.h`は安全な値面が6 APIに留まり、残りがstore、layer、shape対応表、updater、共有data所有、section、document資源、大域集合へ分かれるため棄却した。
+- `g143-icon-utils-key-sequence-schema-audit`は`kis_icon_utils.h`の全27 APIを採用した。標準寸法8、group 10、読込み・theme・cache 4、object・action更新3、container更新2を既存
+  `KisCursorSchemaContractTest`の5枠へ対応付ける。現対象4工程・8入力からheader追加後4工程・9入力以内、停止5工程・11入力を予測し、製品`kritawidgetutils` 274工程・581入力を維持する。現在の対象命令集合hash
+  `07db13f2109d30219ec3cdad64d7d7adab3385f6546ebbe5fc9690b0336f018c`、入力集合hash`096a079b95e6b777c6ee744261f62af416384aa7b0862da3367ed7e4098cc3aa`、製品命令集合hash
+  `56a1140dc95af9026d7d8c45012cde947f2c88fe2044d03f25cb959d156aa464`、製品入力集合hash`f46d65e23e89a75da7a65b85d61a6816aabd467fd38a4bb4ef1f09ed15707df8`である。
+  `kkeysequencewidget.h`は具象QWidget、metaobject、入力取得、競合解決、action更新、signal配送を含み、新規targetまたはQt Widgets依存が必要なため棄却した。
 - 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから契約先または移動先、許可path、
   固有停止条件、比較候補の棄却根拠を含む。既存`build/tdd-macos`の計画は読み取り専用で測定し、構成や構築を開始しない。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを
   担当票へ進める。
