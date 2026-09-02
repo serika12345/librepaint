@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 12956
+    "expectedMissingApis": 12934
   },
   "contracts": [
     {
@@ -47641,6 +47641,73 @@
         "method:KisActionRegistry::sanityCheckPropertized(const QString & name)",
         "method:KisActionRegistry::shortcutsUpdated()",
         "method:KisActionRegistry::updateShortcut(const QString & name,QAction * ac)"
+      ]
+    },
+    {
+      "target": "KoColorSetSchemaContractTest",
+      "source": "libs/pigment/tests/KoColorSetSchemaContractTest.cpp",
+      "test": "KoColorSetSchemaContractTest::swatchGroupOwnershipCopyAndLifetimeSchemaRemainsStable",
+      "behavior": "色見本群の公開型、共有所有、複製・代入可能性と寿命の公開契約を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisSwatchGroupSP",
+        "class:KisSwatchGroup",
+        "method:KisSwatchGroup::KisSwatchGroup(const KisSwatchGroup & rhs)",
+        "method:KisSwatchGroup::operator =(const KisSwatchGroup & rhs)",
+        "method:KisSwatchGroup::~KisSwatchGroup()"
+      ]
+    },
+    {
+      "target": "KoColorSetSchemaContractTest",
+      "source": "libs/pigment/tests/KoColorSetSchemaContractTest.cpp",
+      "test": "KoColorSetSchemaContractTest::swatchGroupEntrySchemaRemainsStable",
+      "behavior": "色見本群の一覧要素型とgroup・swatch・行列位置memberの公開型を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisSwatchGroup::SwatchInfo::column",
+        "member:KisSwatchGroup::SwatchInfo::group",
+        "member:KisSwatchGroup::SwatchInfo::row",
+        "member:KisSwatchGroup::SwatchInfo::swatch",
+        "struct:KisSwatchGroup::SwatchInfo"
+      ]
+    },
+    {
+      "target": "KoColorSetSchemaContractTest",
+      "source": "libs/pigment/tests/KoColorSetSchemaContractTest.cpp",
+      "test": "KoColorSetSchemaContractTest::swatchGroupLayoutAndCountSignaturesRemainStable",
+      "behavior": "色見本群の既定配置型、行数設定と行・色・slot件数照会の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisSwatchGroup::DEFAULT_COLUMN_COUNT",
+        "member:KisSwatchGroup::DEFAULT_ROW_COUNT",
+        "method:KisSwatchGroup::colorCount() const",
+        "method:KisSwatchGroup::rowCount() const",
+        "method:KisSwatchGroup::setRowCount(int newRowCount)",
+        "method:KisSwatchGroup::slotCount() const"
+      ]
+    },
+    {
+      "target": "KoColorSetSchemaContractTest",
+      "source": "libs/pigment/tests/KoColorSetSchemaContractTest.cpp",
+      "test": "KoColorSetSchemaContractTest::swatchGroupIdentityAndListingSignaturesRemainStable",
+      "behavior": "色見本群の名前設定・照会と一覧取得の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSwatchGroup::infoList() const",
+        "method:KisSwatchGroup::name() const",
+        "method:KisSwatchGroup::setName(const QString & name)"
+      ]
+    },
+    {
+      "target": "KoColorSetSchemaContractTest",
+      "source": "libs/pigment/tests/KoColorSetSchemaContractTest.cpp",
+      "test": "KoColorSetSchemaContractTest::swatchGroupLookupAndDebugSignaturesRemainStable",
+      "behavior": "色見本群の座標存在確認・取得とdebug出力の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "function:operator <<(QDebug dbg,const KisSwatchGroup group)",
+        "method:KisSwatchGroup::checkSwatchExists(int column,int row) const",
+        "method:KisSwatchGroup::getSwatch(int column,int row) const"
       ]
     }
   ]
