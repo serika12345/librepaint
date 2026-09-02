@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-03 02:14 JST
+- 更新日時: 2026-09-03 02:22 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -26,6 +26,27 @@
 - `g105-widget-connection-audit`は`libs/widgets/KisVisualColorSelectorShape.h`の残存全25 APIを採用した。型・次元7、cursor・channel 5、色・画像4、幾何4、方針・通知5を新規
   `libs/widgets/tests/KisVisualColorSelectorShapeSchemaContractTest.cpp`の5枠へ対応付ける。局所派生probeは純粋仮想関数の宣言だけとし、shape、Widget、色、画像、event、signalを実体化しない。直接linkはQt Core・Testだけ、Qt Gui・Widgets・KF・Imath・Boostはinterface includeだけとし、新対象4工程・8入力、停止5工程・11入力を維持する。
   libkisの複数責務、色選択Widget、dialog・stroke・tag、file dialog・window・help menuは大域状態・描画・event・資源・filesystemへ閉包が広がるため棄却した。
+
+### 第171便の担当計画
+
+- 実装共通基点は`d0af4bcde0`である。3担当は`implementing`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、専用worktree-local
+  `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。実装は並行し、最初の構成・構築枠は一度に1担当だけへ与える。開始時はcurve optionだけが構築`granted`、shape containerとvisual selector shapeは実装後に構築前で待機し、調整担当が前担当の中央統合構築完了を確認して順に許可する。
+  統合順はcurve option、shape container、visual selector shapeとし、調整担当だけがarchitecture文書、公開API台帳、共通不足報告を変更する。3担当の公開header、所有CMake、試験source、生成物は重ならない。製品targetを引数にするplan/build、全体build、全体`verify`は禁止し、担当targetと近傍、公開API検査、`verify-quick`だけを実行する。
+- `g171-curve-option-schema`は`/Users/masato/Documents/librepaint-g171-curve-option-schema`を所有する。開始`plugins/paintops/libpaintop/KisCurveOption.h`の全24 APIから新規
+  `plugins/paintops/libpaintop/tests/KisCurveOptionSchemaContractTest.cpp`の5枠`curveOptionOwnershipAndPolicySchemaRemainsStable`、`curveOptionValueComponentStorageRemainsStable`、`curveOptionValueCompositionSignaturesRemainStable`、
+  `curveOptionStrengthSignaturesRemainStable`、`curveOptionStatePolicySignaturesRemainStable`へ対応付ける。完全集合は`KisCurveOption`、data構築、削除copy構築・代入、`ValueComponents`、その9公開member、`rotationLikeValue`、`sizeLikeValue`、`computeValueComponents`、既定引数を含む`computeSizeLikeValue`、`computeRotationLikeValue`、`strengthValue`、`strengthMinValue`、`strengthMaxValue`、`isChecked`、`isRandom`である。許可pathは新規試験sourceと`plugins/paintops/libpaintop/tests/CMakeLists.txt`の対象固有節だけで、公開header・製品sourceを変更しない。
+  `ValueComponents`の安全な既定値だけを実行時に観測し、option、sensor、data、paint情報を実体化しない。直接linkはQt Core・Gui・Test・XmlとBoost headerだけ、compile interfaceはlibpaintop・brush・global・image・brushengine・pigmentに限定し、公開headerをsourceやAUTOMOC入力へ加えない。新対象4工程・8入力、停止5工程・11入力、近傍`KisDabCacheUtilsSchemaContractTest`、製品`kritalibpaintop` 2,110工程・4,218入力を維持する。
+  unknown target・CTest 0件、新5枠、対象CTest・枠個別・20回反復、近傍、無作業再構築、動的接続・AUTOMOC入力・option・sensor・paint情報未解決記号、構文・書式、公開API・`verify-quick`を確認する。optionや依存値を実体化し、計算本文を実行し、製品libraryへlinkし、停止線を超える必要があれば止める。
+- `g171-shape-container-schema`は`/Users/masato/Documents/librepaint-g171-shape-container-schema`を所有する。開始`libs/flake/KoShapeContainer.h`の全20 APIから既存
+  `libs/flake/tests/KoShapeEnumContractTest.cpp`の5枠`shapeContainerIdentityAndLifecycleSignaturesRemainStable`、`shapeContainerHierarchySignaturesRemainStable`、`shapeContainerModelAndInterfaceSignaturesRemainStable`、
+  `shapeContainerClippingAndTransformSignaturesRemainStable`、`shapeContainerPaintingAndUpdateSignaturesRemainStable`へ対応付ける。完全集合は`KoShapeContainer`、model既定引数を含む構築・破棄、`ShapeInterface`とその構築、containerとinterfaceの`addShape`・`removeShape`、`shapeCount`、`shapes`、`model`、`shapeInterface`、`setClipped`、`isClipped`、`setInheritsTransform`、`inheritsTransform`、`paint`、`paintComponent`、`update`である。許可pathは既存試験sourceだけで、CMake・依存・公開header・製品sourceを変更しない。
+  shape pointerの非所有借用を関数型で固定し、抽象probe、container、model、shape、painter、interfaceを実体化しない。対象4工程・8入力、停止5工程・11入力、近傍`KoShapeContainerModelContractTest`、製品`kritaflake` 621工程・1,274入力を維持する。
+  実装後は構築許可まで待機する。許可後に旧binaryの新5枠Unknown、対象CTest・枠個別・20回反復、既存枠、近傍、無作業再構築、動的接続・AUTOMOC入力・container・model・shape・painter未解決記号、構文・書式、公開API・`verify-quick`を確認する。抽象probeや依存値を実体化し、描画・更新・階層操作を実行し、新規include・link、停止線超過が必要なら止める。
+- `g171-visual-selector-shape-schema`は`/Users/masato/Documents/librepaint-g171-visual-selector-shape-schema`を所有する。開始`libs/widgets/KisVisualColorSelectorShape.h`の残存全25 APIから新規
+  `libs/widgets/tests/KisVisualColorSelectorShapeSchemaContractTest.cpp`の5枠`visualColorSelectorShapeTypeAndDimensionSchemaRemainsStable`、`visualColorSelectorShapeCursorAndChannelSchemaRemainsStable`、`visualColorSelectorShapeColorAndImageSchemaRemainsStable`、
+  `visualColorSelectorShapeGeometrySchemaRemainsStable`、`visualColorSelectorShapePolicyAndNotificationSchemaRemainsStable`へ対応付ける。完全集合はclass、`Dimensions`、`onedimensional`、`twodimensional`、構築・破棄、`getDimensions`、`getCursorPosition`、既定引数を含む`setCursorPosition`、`channel`、`channelMask`、`setChannelValues`、`getImageMap`、`getCurrentColor`、`getColorFromConverter`、`forceImageUpdate`、`getSpaceForSquare`、`getSpaceForCircle`、`getSpaceForTriangle`、`setBorderWidth`、`isHueControl`、`supportsGamutMask`、`updateGamutMask`、`setAcceptTabletEvents`、`sigCursorMoved`である。許可pathは新規試験sourceと`libs/widgets/tests/CMakeLists.txt`の対象固有節だけで、公開header・製品sourceを変更しない。
+  局所派生probeは純粋仮想関数の宣言だけとし、shape、Widget、色、画像、event、signalを実体化しない。直接linkはQt Core・Testだけ、Qt Gui・Widgets・KF・Imath・Boostはinterface include、includeはwidgets・pigment・resources・globalのsource/generatedと必要なexport定義だけに限定し、公開headerをsourceやAUTOMOC入力へ加えない。新対象4工程・8入力、停止5工程・11入力、近傍`KisVisualColorModelSchemaContractTest`を維持する。
+  実装後は構築許可まで待機する。許可後にunknown target・CTest 0件、新5枠、対象CTest・枠個別・20回反復、近傍、無作業再構築、動的接続・AUTOMOC入力・shape・Widget・色・画像未解決記号、構文・書式、公開API・`verify-quick`を確認する。probeや依存値を実体化し、signal・描画・eventを実行し、Qt Gui・Widgetsまたは製品libraryへlinkし、停止線を超える必要があれば止める。
 
 ### 第170便の先行監査計画
 
