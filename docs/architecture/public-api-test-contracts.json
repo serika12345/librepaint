@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 13990
+    "expectedMissingApis": 13965
   },
   "contracts": [
     {
@@ -45077,6 +45077,76 @@
         "method:KisHsvColorInput::update()",
         "method:KisHsvColorInput::updated()",
         "method:KisHsvColorInput::valueSliderChanged(int)"
+      ]
+    },
+    {
+      "target": "ColorizeMaskSchemaContractTest",
+      "source": "libs/libkis/tests/ColorizeMaskSchemaContractTest.cpp",
+      "test": "ColorizeMaskSchemaContractTest::colorizeMaskOwnershipLifetimeAndTypeSchemaRemainsStable",
+      "behavior": "script公開colorize maskはNode所有関係、既定parentを持つ2構築、仮想破棄、node種別照会に関する厳密な公開型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:ColorizeMask",
+        "method:ColorizeMask::ColorizeMask(KisImageSP image,KisColorizeMaskSP mask,QObject * parent=0)",
+        "method:ColorizeMask::ColorizeMask(KisImageSP image,QString name,QObject * parent=0)",
+        "method:ColorizeMask::type() const",
+        "method:ColorizeMask::~ColorizeMask()"
+      ]
+    },
+    {
+      "target": "ColorizeMaskSchemaContractTest",
+      "source": "libs/libkis/tests/ColorizeMaskSchemaContractTest.cpp",
+      "test": "ColorizeMaskSchemaContractTest::colorizeMaskKeyStrokeDataSignaturesRemainStable",
+      "behavior": "script公開colorize maskはkey stroke色・透明色indexと矩形pixel byte列の照会・更新に関する厳密な公開関数型と既定透明indexを維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:ColorizeMask::initializeKeyStrokeColors(QList<ManagedColor * > colors,int transparentIndex=-1)",
+        "method:ColorizeMask::keyStrokePixelData(ManagedColor * color,int x,int y,int w,int h) const",
+        "method:ColorizeMask::keyStrokesColors() const",
+        "method:ColorizeMask::removeKeyStroke(ManagedColor * color)",
+        "method:ColorizeMask::setKeyStrokePixelData(QByteArray value,ManagedColor * color,int x,int y,int w,int h)",
+        "method:ColorizeMask::transparencyIndex() const"
+      ]
+    },
+    {
+      "target": "ColorizeMaskSchemaContractTest",
+      "source": "libs/libkis/tests/ColorizeMaskSchemaContractTest.cpp",
+      "test": "ColorizeMaskSchemaContractTest::colorizeMaskDetectionAndCleanupPolicySignaturesRemainStable",
+      "behavior": "script公開colorize maskはedge検出の有効状態・寸法とcleanup量を照会・更新する厳密な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:ColorizeMask::cleanUpAmount() const",
+        "method:ColorizeMask::edgeDetectionSize() const",
+        "method:ColorizeMask::setCleanUpAmount(qreal value)",
+        "method:ColorizeMask::setEdgeDetectionSize(qreal value)",
+        "method:ColorizeMask::setUseEdgeDetection(bool value)",
+        "method:ColorizeMask::useEdgeDetection() const"
+      ]
+    },
+    {
+      "target": "ColorizeMaskSchemaContractTest",
+      "source": "libs/libkis/tests/ColorizeMaskSchemaContractTest.cpp",
+      "test": "ColorizeMaskSchemaContractTest::colorizeMaskEditingBoundsAndOutputPolicySignaturesRemainStable",
+      "behavior": "script公開colorize maskはkey stroke編集表示、device境界制限、出力表示の方針を照会・更新する厳密な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:ColorizeMask::editKeyStrokes() const",
+        "method:ColorizeMask::limitToDeviceBounds() const",
+        "method:ColorizeMask::setEditKeyStrokes(bool enabled)",
+        "method:ColorizeMask::setLimitToDeviceBounds(bool value)",
+        "method:ColorizeMask::setShowOutput(bool enabled)",
+        "method:ColorizeMask::showOutput() const"
+      ]
+    },
+    {
+      "target": "ColorizeMaskSchemaContractTest",
+      "source": "libs/libkis/tests/ColorizeMaskSchemaContractTest.cpp",
+      "test": "ColorizeMaskSchemaContractTest::colorizeMaskUpdateAndCacheSignaturesRemainStable",
+      "behavior": "script公開colorize maskはcache破棄と既定forceを持つmask更新に関する厳密な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:ColorizeMask::resetCache()",
+        "method:ColorizeMask::updateMask(bool force=false)"
       ]
     }
   ]
