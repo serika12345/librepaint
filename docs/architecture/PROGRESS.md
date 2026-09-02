@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 09:35 JST
+- 更新日時: 2026-09-02 09:38 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -38,6 +38,35 @@
 - 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから契約先または移動先、許可path、
   固有停止条件、比較候補の棄却根拠を含む。既存`build/tdd-macos`の計画は読み取り専用で測定し、構成や構築を開始しない。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを
   担当票へ進める。
+
+### 第142便の担当計画
+
+- 実装共通基点は`fafea64c9ea11f09f1e97138104f1d210216a7a1`である。tag resource model、dab rendering job、color scheme担当は`assigned`、構築許可は指定試験targetと軽量近傍だけの
+  `granted`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、専用worktree-local `build/tdd-macos`と主作業treeの
+  `/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。統合順はtag resource model、color scheme、dab rendering jobとし、調整担当だけが`AGENTS.md`、
+  architecture文書、`docs/architecture/public-api-test-contracts.json`、共通不足報告を変更する。3担当の公開header、所有CMake、試験source、生成物は重ならない。
+- `g142-tag-resource-model-schema`は`/Users/masato/Documents/librepaint-g142-tag-resource-model-schema`を所有する。開始`libs/resources/KisTagResourceModel.h`の全25 APIから既存
+  `libs/resources/tests/KisResourceModelEnumContractTest.cpp`の5枠`abstractTagResourceRelationSchemaRemainsStable`、`allTagResourceModelTypeAndLifetimeSchemaRemainsStable`、
+  `allTagResourceModelColumnSchemaRemainsStable`、`allTagResourceModelTableSchemaRemainsStable`、`allTagResourceModelRelationSchemaRemainsStable`へ対応付ける。許可pathは既存試験sourceだけで、
+  CMakeを変更しない。対象4工程・9入力、停止5工程・11入力、近傍は`KisTagModelSchemaContractTest`、製品`kritaresources`は150工程・327入力と担当tree内の変更前後集合完全一致を確認する。
+  未知5枠、対象CTest、20回反復、近傍、無作業再構築、動的接続、未解決model・database・resource・metaobject記号、構文・変更行書式、公開API・`verify-quick`を確認する。model、database、
+  query、resource、tag、model index、signal、大域providerを生成または実行し、製品source・OBJECT・shared、`kritatestsdk`、新link/include依存、CMake・公開header変更、製品計画差、停止線超過が
+  必要なら止める。
+- `g142-color-scheme-schema`は`/Users/masato/Documents/librepaint-g142-color-scheme-schema`を所有する。開始`libs/widgetutils/config/kcolorscheme.h`の全29 APIから既存
+  `libs/widgetutils/tests/KColorSchemeEnumContractTest.cpp`の5枠`colorSchemeIdentityAndLifecycleSignaturesRemainStable`、`colorSchemeBrushLookupSignaturesRemainStable`、
+  `colorSchemeStaticTransformationSignaturesRemainStable`、`statefulBrushIdentityAndConstructionSignaturesRemainStable`、`statefulBrushLookupSignaturesRemainStable`へ対応付ける。許可pathは既存試験sourceだけで、
+  CMakeを変更しない。対象4工程・9入力、停止5工程・11入力、近傍は`KStandardActionEnumContractTest`、製品`kritawidgetutils`は274工程・581入力と担当tree内の変更前後集合・保留集合の完全一致を
+  確認する。未知5枠、対象CTest、20回反復、既存列挙3枠と近傍、無作業再構築、動的接続、未解決配色・状態別brush記号、構文・変更行書式、公開API・`verify-quick`を確認する。配色、brush、
+  palette、設定、widgetを生成し、設定読込み・palette変換・widget状態照会を実行し、製品source・OBJECT・shared、`kritatestsdk`、Qt Widgets、新link依存、CMake・公開header変更、製品計画差、
+  停止線超過が必要なら止める。
+- `g142-dab-rendering-job-schema`は`/Users/masato/Documents/librepaint-g142-dab-rendering-job-schema`を所有する。開始
+  `plugins/paintops/defaultpaintops/brush/KisDabRenderingJob.h`の全27 APIから新規`plugins/paintops/defaultpaintops/brush/tests/KisDabRenderingJobSchemaContractTest.cpp`の5枠
+  `dabRenderingJobIdentityAndCopySchemaRemainsStable`、`dabRenderingJobTypeSchemaRemainsStable`、`dabRenderingJobStatusSchemaRemainsStable`、`dabRenderingJobPayloadSchemaRemainsStable`、
+  `dabRenderingJobRunnerSchemaRemainsStable`へ対応付ける。許可pathは新規試験sourceと`plugins/paintops/defaultpaintops/brush/tests/CMakeLists.txt`だけである。新対象4工程・8入力、停止5工程・11入力、
+  近傍は`KisDabCacheUtilsSchemaContractTest`、製品`kritapixelbrush`は1,303工程・2,625入力と担当tree内の変更前後集合完全一致を確認する。直接linkはQt Core・Gui・Test・XmlとBoostだけとし、
+  defaultpaintops、libpaintop、brush、global、image、brushengine、pigmentのsource・generated header includeだけを許可する。未知target、5枠、対象CTest、20回反復、近傍、無作業再構築、動的接続、
+  未解決job・runner・queue・device・resource・stroke記号、構文・変更行書式、公開API・`verify-quick`を確認する。job、runner、shared pointer、device、generation info、queue、resource、strokeを
+  生成または実行し、`KisDabRenderingJob.cpp`、製品source・OBJECT・shared、`kritatestsdk`、新非header依存、公開header変更、製品計画差、停止線超過が必要なら止める。
 
 ### 第141便の先行監査計画
 
