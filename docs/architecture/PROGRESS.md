@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 11:54 JST
+- 更新日時: 2026-09-02 11:57 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -96,6 +96,9 @@
   QHash、QList、method本文、filter、registry、大域状態を生成または実行していない。担当macOS環境と中央環境で5枠を含む対象CTest・20回反復、近傍`KisMetaDataTagsContractTest`、無作業再構築、
   動的接続・未解決記号、構文・書式、公開API検査に成功した。中央の公開API契約検査は29,838件中14,703件対応、15,135件未対応となる。作業tree 876,924 KiBと担当branchは削除した。
   metadata entry操作、filter適用、反復、診断出力の実行時挙動は別の効果契約で扱う。
+- 第146便全体で79 APIを追加し、採用3担当と構築前棄却1担当の作業tree計3,506,408 KiB（約3.34 GiB）を回収した。旧不足報告を削除し、主Ninja木5.4 GiB、共有compiler cache 960 MiB、
+  最新不足報告`build/tdd-macos/public-api-missing-g147.json`だけを再利用対象として保持する。次の永続作業は第147便の不足報告から、pathと所有CMakeが重ならない3責務を先行監査し、限定構築範囲を確認してから
+  担当票を確定することである。
 
 ### 第145便の先行監査計画
 
