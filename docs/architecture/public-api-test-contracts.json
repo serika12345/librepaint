@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 13650
+    "expectedMissingApis": 13618
   },
   "contracts": [
     {
@@ -45957,6 +45957,83 @@
       "apis": [
         "method:KoResourceBundle::getTagsList()",
         "method:KoResourceBundle::manifest()"
+      ]
+    },
+    {
+      "target": "KisPaintOpOptionSchemaContractTest",
+      "source": "libs/tools/ui/tests/KisPaintOpOptionSchemaContractTest.cpp",
+      "test": "KisPaintOpOptionSchemaContractTest::paintOpOptionTypeAndCategorySchemaRemainsStable",
+      "behavior": "描画オプションの所有class、LOD制限reader型、設定分類と列挙値を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisPaintOpOption::OptionalLodLimitationsReader",
+        "class:KisPaintOpOption",
+        "enum:KisPaintOpOption::PaintopCategory",
+        "enumerator:KisPaintOpOption::PaintopCategory::COLOR",
+        "enumerator:KisPaintOpOption::PaintopCategory::FILTER",
+        "enumerator:KisPaintOpOption::PaintopCategory::GENERAL",
+        "enumerator:KisPaintOpOption::PaintopCategory::MASKING_BRUSH",
+        "enumerator:KisPaintOpOption::PaintopCategory::TEXTURE"
+      ]
+    },
+    {
+      "target": "KisPaintOpOptionSchemaContractTest",
+      "source": "libs/tools/ui/tests/KisPaintOpOptionSchemaContractTest.cpp",
+      "test": "KisPaintOpOptionSchemaContractTest::paintOpOptionConstructionAndLifetimeSchemaRemainsStable",
+      "behavior": "描画オプションの固定値・cursor・外部有効状態による構築と破棄可能性を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPaintOpOption::KisPaintOpOption(const QString & label,KisPaintOpOption::PaintopCategory category,bool checked)",
+        "method:KisPaintOpOption::KisPaintOpOption(const QString & label,KisPaintOpOption::PaintopCategory category,lager::cursor<bool> checkedCursor)",
+        "method:KisPaintOpOption::KisPaintOpOption(const QString & label,KisPaintOpOption::PaintopCategory category,lager::cursor<bool> checkedCursor,lager::reader<bool> externallyEnabledLink)",
+        "method:KisPaintOpOption::~KisPaintOpOption()"
+      ]
+    },
+    {
+      "target": "KisPaintOpOptionSchemaContractTest",
+      "source": "libs/tools/ui/tests/KisPaintOpOptionSchemaContractTest.cpp",
+      "test": "KisPaintOpOptionSchemaContractTest::paintOpOptionStateAndIdentitySchemaRemainsStable",
+      "behavior": "描画オプションの分類、選択・有効・固定状態、表示名の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPaintOpOption::category() const",
+        "method:KisPaintOpOption::isCheckable() const",
+        "method:KisPaintOpOption::isChecked() const",
+        "method:KisPaintOpOption::isEnabled() const",
+        "method:KisPaintOpOption::isLocked() const",
+        "method:KisPaintOpOption::label() const",
+        "method:KisPaintOpOption::setChecked(bool checked)",
+        "method:KisPaintOpOption::setLocked(bool value)"
+      ]
+    },
+    {
+      "target": "KisPaintOpOptionSchemaContractTest",
+      "source": "libs/tools/ui/tests/KisPaintOpOptionSchemaContractTest.cpp",
+      "test": "KisPaintOpOptionSchemaContractTest::paintOpOptionContextAndConfigurationSchemaRemainsStable",
+      "behavior": "描画オプションの画面、画像、node、資源、設定読書きを接続する公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPaintOpOption::configurationPage() const",
+        "method:KisPaintOpOption::setCanvasResourcesInterface(KoCanvasResourcesInterfaceSP canvasResourcesInterface)",
+        "method:KisPaintOpOption::setImage(KisImageWSP image)",
+        "method:KisPaintOpOption::setNode(KisNodeWSP node)",
+        "method:KisPaintOpOption::setResourcesInterface(KisResourcesInterfaceSP resourcesInterface)",
+        "method:KisPaintOpOption::startReadOptionSetting(const KisPropertiesConfigurationSP setting)",
+        "method:KisPaintOpOption::startWriteOptionSetting(KisPropertiesConfigurationSP setting) const"
+      ]
+    },
+    {
+      "target": "KisPaintOpOptionSchemaContractTest",
+      "source": "libs/tools/ui/tests/KisPaintOpOptionSchemaContractTest.cpp",
+      "test": "KisPaintOpOptionSchemaContractTest::paintOpOptionLodAndNotificationSchemaRemainsStable",
+      "behavior": "描画オプションのLOD制限取得と選択・有効・設定変更通知の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPaintOpOption::effectiveLodLimitations() const",
+        "method:KisPaintOpOption::lodLimitations(KisPaintopLodLimitations * l) const",
+        "method:KisPaintOpOption::sigCheckedChanged(bool value)",
+        "method:KisPaintOpOption::sigEnabledChanged(bool value)",
+        "method:KisPaintOpOption::sigSettingChanged()"
       ]
     }
   ]
