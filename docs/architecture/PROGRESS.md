@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-03 02:22 JST
+- 更新日時: 2026-09-03 02:29 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -35,8 +35,10 @@
 - `g171-curve-option-schema`は`/Users/masato/Documents/librepaint-g171-curve-option-schema`を所有する。開始`plugins/paintops/libpaintop/KisCurveOption.h`の全24 APIから新規
   `plugins/paintops/libpaintop/tests/KisCurveOptionSchemaContractTest.cpp`の5枠`curveOptionOwnershipAndPolicySchemaRemainsStable`、`curveOptionValueComponentStorageRemainsStable`、`curveOptionValueCompositionSignaturesRemainStable`、
   `curveOptionStrengthSignaturesRemainStable`、`curveOptionStatePolicySignaturesRemainStable`へ対応付ける。完全集合は`KisCurveOption`、data構築、削除copy構築・代入、`ValueComponents`、その9公開member、`rotationLikeValue`、`sizeLikeValue`、`computeValueComponents`、既定引数を含む`computeSizeLikeValue`、`computeRotationLikeValue`、`strengthValue`、`strengthMinValue`、`strengthMaxValue`、`isChecked`、`isRandom`である。許可pathは新規試験sourceと`plugins/paintops/libpaintop/tests/CMakeLists.txt`の対象固有節だけで、公開header・製品sourceを変更しない。
-  `ValueComponents`の安全な既定値だけを実行時に観測し、option、sensor、data、paint情報を実体化しない。直接linkはQt Core・Gui・Test・XmlとBoost headerだけ、compile interfaceはlibpaintop・brush・global・image・brushengine・pigmentに限定し、公開headerをsourceやAUTOMOC入力へ加えない。新対象4工程・8入力、停止5工程・11入力、近傍`KisDabCacheUtilsSchemaContractTest`、製品`kritalibpaintop` 2,110工程・4,218入力を維持する。
+  `ValueComponents`の安全な既定値だけを実行時に観測し、option、sensor、data、paint情報を実体化しない。直接linkはQt Core・Gui・Test・XmlとBoost headerだけ、compile interfaceはlibpaintop・brush・global・image・brushengine・pigment、および公開headerの推移的`Eigen/Sparse`に必要なEigen3のinterface includeに限定し、公開headerをsourceやAUTOMOC入力へ加えない。新対象4工程・8入力、停止5工程・11入力、近傍`KisDabCacheUtilsSchemaContractTest`、製品`kritalibpaintop` 2,110工程・4,218入力を維持する。
   unknown target・CTest 0件、新5枠、対象CTest・枠個別・20回反復、近傍、無作業再構築、動的接続・AUTOMOC入力・option・sensor・paint情報未解決記号、構文・書式、公開API・`verify-quick`を確認する。optionや依存値を実体化し、計算本文を実行し、製品libraryへlinkし、停止線を超える必要があれば止める。
+- curve option限定対象の初回compileは公開headerの推移的`Eigen/Sparse`不足を示し、Eigen3のinterface include追加後も`KisDynamicSensorIds.h`由来の翻訳付き静的`KoID`初期化が製品記号を要求した。参照引数にしか使わない
+  `KisCurveOptionData.h`を`plugins/paintops/libpaintop/KisCurveOption.h`の公開includeから前方宣言へ縮小し、完全型の直接includeを既に持つ`plugins/paintops/libpaintop/KisCurveOption.cpp`へ閉じる。製品実装、公開API、所有targetを変えず、公開header利用者のEigen・翻訳・静的初期化閉包を除去してから同じ4工程・8入力の契約実装を再開する。
 - `g171-shape-container-schema`は`/Users/masato/Documents/librepaint-g171-shape-container-schema`を所有する。開始`libs/flake/KoShapeContainer.h`の全20 APIから既存
   `libs/flake/tests/KoShapeEnumContractTest.cpp`の5枠`shapeContainerIdentityAndLifecycleSignaturesRemainStable`、`shapeContainerHierarchySignaturesRemainStable`、`shapeContainerModelAndInterfaceSignaturesRemainStable`、
   `shapeContainerClippingAndTransformSignaturesRemainStable`、`shapeContainerPaintingAndUpdateSignaturesRemainStable`へ対応付ける。完全集合は`KoShapeContainer`、model既定引数を含む構築・破棄、`ShapeInterface`とその構築、containerとinterfaceの`addShape`・`removeShape`、`shapeCount`、`shapes`、`model`、`shapeInterface`、`setClipped`、`isClipped`、`setInheritsTransform`、`inheritsTransform`、`paint`、`paintComponent`、`update`である。許可pathは既存試験sourceだけで、CMake・依存・公開header・製品sourceを変更しない。

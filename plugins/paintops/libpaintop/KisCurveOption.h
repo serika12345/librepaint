@@ -11,8 +11,9 @@
 #include <vector>
 #include <memory>
 
-#include <KisCurveOptionData.h>
 #include "sensors/KisDynamicSensor.h"
+
+struct KisCurveOptionData;
 
 class PAINTOP_EXPORT KisCurveOption
 {
