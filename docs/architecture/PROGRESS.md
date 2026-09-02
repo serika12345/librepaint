@@ -2,12 +2,26 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 19:20 JST
+- 更新日時: 2026-09-02 19:22 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
+
+### 第160便の先行監査計画
+
+- 監査共通基点は`7050dd66d0`、入力は`build/tdd-macos/public-api-missing-g160.json`である。3担当は`auditing`の読み取り専用とし、製品・試験・CMake・script・台帳・文書を変更せず、構築、試験、Git操作、
+  追加委任も行わない。一つの公開責務から25 API以上を最大5枠へ固定し、既存限定対象、header-only値面、または公開headerを変えない一sourceのOBJECT一対一移管で、製品共有ライブラリーと
+  `kritatestsdk`へ接続しない候補だけを採用する。公開API識別子に既定引数が含まれる場合は、関数型に加えて未評価の省略呼出しで固定する計画を含める。
+- `g160-image-data-config-schema-audit`は`libs/image/kis_datamanager.h`の未対応35 APIを主候補とし、`libs/image/kis_image_config.h`の未対応37 APIを比較する。pixel data managerまたは画像設定の
+  型・寿命・容量・範囲・転送・履歴・設定値・入出力面を、tile・memento・paint device・I/O・設定backend・色・resource・signal・metaobject・大域状態の実体化なしで閉じる。
+- `g160-flake-css-gamut-schema-audit`は`libs/flake/resources/KoCssStylePreset.h`の未対応33 APIを主候補とし、`libs/flake/resources/KoGamutMask.h`の未対応38 APIを比較する。CSS style presetまたはgamut mask資源の
+  型・寿命・copy・識別・説明・sample・形状・変換・保存署名面を、資源backend・SVG text shape・KoShape・painter・device・filesystem・signal・metaobject・大域状態の実体化なしで閉じる。
+- `g160-widgetutils-window-keysequence-schema-audit`は`libs/widgetutils/xmlgui/kxmlguiwindow.h`の未対応28 APIを主候補とし、`libs/widgetutils/xmlgui/kkeysequencewidget.h`の未対応29 APIを比較する。XML GUI windowまたは
+  shortcut入力widgetの型・寿命・列挙値・設定・action・通知面を、window・widget・menu・toolbar・GUI factory・設定backend・shortcut捕捉・signal・metaobject・GUI event loop・大域状態の実体化なしで閉じる。
+- 各報告は完全なAPI識別子、既定引数観測、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから契約先または移動先、許可path、固有停止条件、
+  比較候補の棄却根拠を含む。既存`build/tdd-macos`の計画は読み取り専用で測定し、構成や構築を開始しない。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
 
 ### 第159便の先行監査計画
 
