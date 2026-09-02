@@ -17,6 +17,13 @@
 - `g105-svg-value-audit`はflake・SVG・vector・documentから、第176便のcanvas controller通知proxyを除外して一責務を選ぶ。
 - `g105-widget-connection-audit`はwidgetutils・widgets・libkis・軽量接続面から、第176便のfont family selectorを除外して一責務を選ぶ。
 - 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、予測工程・入力と停止線、開始pathから契約先、許可path、固有停止条件を含む。比較した候補と棄却根拠も記録する。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
+- image・paintop領域は`libs/image/brushengine/kis_paint_information.h`の残存全29 APIを採用した。値の構築・copy・寿命6、距離情報登録子5、補間7、乱数源・距離・LOD6、hover・描画・XML・debug5を既存`libs/image/tests/KisImageTypesContractTest.cpp`の5枠へ対応付ける。paint情報、距離情報、乱数源、XML要素、paintopを実体化せず、inline `paintAt`、補間、登録子、乱数、XML、debug本文を実行しない。CMakeと依存を変えず対象4工程・8入力、停止5工程・11入力、command hash`860901e6be`、input hash`42c0bdca62`、製品`kritaimage` 1,196工程・2,416入力を維持する。
+  `kis_image.h`、`kis_painter.h`、`kis_paint_device.h`は文書状態・画素・projection・threadへ閉包が広く、paintop settings・factoryは設定、resource、registry、template分岐へ広がるため棄却した。
+- flake・vector領域は`libs/flake/KoToolFactoryBase.h`の残存全19 APIと`libs/flake/KoToolRegistry.h`の残存全4 APIを一つのtool生成・登録責務として採用した。factory型・toolbox section 8、寿命・生成4、識別・表示7、registry型・寿命3、singleton参照1を既存`libs/flake/tests/KoToolBaseSchemaContractTest.cpp`の5枠へ対応付ける。factory、registry、tool、canvas、action collection、actionを実体化せず、tool・action生成、setter、registry初期化、singleton本文を実行しない。CMakeと依存を変えず、flakeとglobalの既存compile interface、Qt Core・Testだけの直接link、対象4工程・8入力、停止5工程・11入力、command hash`c0cc6dc727`、input hash`4cff0fdfd5`、製品`kritaflake` 621工程・1,274入力を維持する。
+  `KoFontFamily.h`はresources所有とdevice読込、SVG loading・parserはXML・filesystem・shape生成、shape・tool managerは描画・event配送・大域状態へ閉包が広がるため棄却した。
+- widgetutils領域は`libs/widgetutils/xmlgui/ktoolbar.h`の残存全19 APIと`libs/widgetutils/xmlgui/ktoggletoolbaraction.h`の残存全6 APIを一つのtoolbar表示制御責務として採用した。2型・寿命5、toolbar参照・外観4、設定・XML5、client・編集方針5、toggle action操作6を既存`libs/widgetutils/tests/KKeySequenceWidgetSchemaContractTest.cpp`の5枠へ対応付ける。toolbar、toggle action、main window、client、設定、XML、eventを実体化せず、設定・XML入出力、client登録、global toolbar状態、signal、event filterを実行しない。CMakeと依存を変えず、Qt Widgetsは既存compile interface、Qt Gui・Testだけの直接link、対象4工程・8入力、停止5工程・11入力、command hash`f96c5d3334`、input hash`9e1145634e`、製品`kritawidgetutils` 274工程・581入力を維持する。
+  tag selection widgetはresource modelと複数Widget、XMLGUI factory・builderはaction ownershipとDOM構築、libkis文書・nodeは文書・画像状態と製品共有libraryへ閉包が広がるため棄却した。
+- 中央の`public-api-missing-g177.json`でpaint情報29件、tool factory・registry 23件、toolbar・toggle action 25件の全識別子を照合した。3責務の開始headerと既存試験sourceは相互に異なり、所有CMake、生成物にも重複はない。合計77 APIを15枠へ進め、許可path外変更、製品OBJECT/shared、新規include・link、実体化・本文実行、5工程・11入力超過、製品計画集合の変化が必要になれば担当を停止する。
 
 ### 第176便の先行監査計画
 
