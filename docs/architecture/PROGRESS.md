@@ -17,7 +17,7 @@
 - `g105-svg-value-audit`はflake・SVG・vector・documentから、第171便のshape containerを除外して一責務を選ぶ。
 - `g105-widget-connection-audit`はwidgetutils・widgets・libkis・軽量接続面から、第171便のvisual selector shapeを除外して一責務を選ぶ。
 - 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、予測工程・入力と停止線、開始pathから契約先、許可path、固有停止条件、比較候補の棄却根拠を含む。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
-- `g105-paintop-value-audit`は`libs/image/kis_selection_mask.h`の残存全22 APIを採用した。所有・寿命4、visitor・clone 3、幾何6、表示・状態5、selection・model 4を既存
+- `g105-paintop-value-audit`は`libs/image/kis_selection_mask.h`の残存全22 APIを採用した。所有・寿命4、visitor・clone 3、幾何5、表示・状態6、selection・model 4を既存
   `libs/image/tests/KisImageTypesContractTest.cpp`の5枠へ対応付ける。mask、image、node、selection、visitor、undo、metaobjectを実体化せず、inline `clone()`も実行しない。CMakeと依存を変えず対象4工程・8入力、停止5工程・11入力、製品`kritaimage` 1,196工程・2,416入力を維持する。
   paint情報・設定・更新queue・brush applicator・数値処理は所有状態、描画処理、実装本文へ閉包が広がるため棄却した。
 - `g105-svg-value-audit`は`libs/flake/KoSelection.h`の全24 APIを採用した。identity・寿命3、幾何・active layer 7、membership 4、filtered shape view 4、mutation・通知・描画6を新規
@@ -26,6 +26,27 @@
 - `g105-widget-connection-audit`は`libs/widgetutils/KoFileDialog.h`の全23 APIを採用した。dialog型9、寿命2、設定7、選択結果4、filter通知1を新規
   `libs/widgetutils/tests/KoFileDialogSchemaContractTest.cpp`の5枠へ対応付ける。dialog、Widget、`QFileDialog`、filesystem、設定、event loop、private pointerを実体化しない。直接linkはQt Core・Testだけ、新対象4工程・8入力、停止5工程・11入力、製品`kritawidgetutils` 274工程・581入力を維持する。
   visual selector、scratchpad、document、node、main・help menu、font群は描画、文書状態、大域状態、filesystemへ閉包が広がるため棄却した。
+
+### 第172便の担当計画
+
+- 実装共通基点は`2f76d72d6a60`である。3担当は`implementing`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、専用worktree-local
+  `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。実装は並行し、構成・構築枠は一度に1担当だけへ与える。開始時はselection maskだけが構築`granted`、selectionとfile dialogは実装後に構築前で待機する。
+  統合順はselection mask、selection、file dialogとし、調整担当だけがarchitecture文書、公開API台帳、共通不足報告を変更する。3担当の公開header、所有CMake、試験source、生成物は重ならない。製品targetを引数にするplan/build、全体build、全体`verify`、Linux検証は禁止し、担当targetと近傍、公開API検査、`verify-quick`だけを実行する。
+- `g172-selection-mask-schema`は`/Users/masato/Documents/librepaint-g172-selection-mask-schema`を所有する。開始`libs/image/kis_selection_mask.h`の残存全22 APIから既存
+  `libs/image/tests/KisImageTypesContractTest.cpp`の5枠`selectionMaskOwnershipAndLifetimeSchemaRemainsStable`、`selectionMaskVisitorAndCloneSignaturesRemainStable`、`selectionMaskGeometrySignaturesRemainStable`、
+  `selectionMaskPresentationAndStateSignaturesRemainStable`、`selectionMaskSelectionAndModelSignaturesRemainStable`へ対応付ける。完全集合はclass、image・name既定引数を含む構築、copy構築、破棄、2種類の`accept`、`clone`、位置既定引数を含む`needRect`・`changeRect`、`extent`、`exactBounds`、`setDirty`、`icon`、`active`、`setActive`、`decorationsVisible`、2引数の`setDecorationsVisible`、loading既定引数を含む`setVisible`、`setSelection`、`notifySelectionChangedCompressed`、`sectionModelProperties`、`setSectionModelProperties`である。許可pathは既存試験sourceだけで、CMake・依存・公開header・製品sourceを変更しない。
+  mask、image、node、selection、visitor、undo、metaobjectを実体化せず、inline `clone()`も実行しない。対象4工程・8入力、停止5工程・11入力、近傍`KisImageConfigAnimationSchemaContractTest`、製品`kritaimage` 1,196工程・2,416入力を維持する。
+  旧binaryの新5枠Unknown、対象CTest・枠個別・20回反復、既存枠、近傍、無作業再構築、動的接続・AUTOMOC入力・依存値の未解決記号、構文・書式、公開API・`verify-quick`を確認する。依存値を実体化し、状態変更やvisitorを実行し、新規include・link、停止線超過が必要なら止める。
+- `g172-selection-schema`は`/Users/masato/Documents/librepaint-g172-selection-schema`を所有する。開始`libs/flake/KoSelection.h`の全24 APIから新規
+  `libs/flake/tests/KoSelectionSchemaContractTest.cpp`の5枠`selectionIdentityAndLifecycleSignaturesRemainStable`、`selectionGeometryAndActiveLayerSignaturesRemainStable`、`selectionMembershipQuerySignaturesRemainStable`、
+  `selectionFilteredShapeViewSignaturesRemainStable`、`selectionMutationObservationAndPaintingSignaturesRemainStable`へ対応付ける。完全集合はclass、parent既定引数を含む構築、破棄、`activeLayer`、`setActiveLayer`、`currentLayerChanged`、`boundingRect`、`outlineRect`、`size`、`setSize`、`count`、`firstSelectedShape`、`isSelected`、`hitTest`、4種類の`selectedShapes` view、`select`、`deselect`、`deselectAll`、`notifyShapeChanged`、`paint`、`selectionChanged`である。許可pathは新規試験sourceと`libs/flake/tests/CMakeLists.txt`の対象固有節だけで、公開header・製品sourceを変更しない。
+  selection、shape、layer、painter、QObjectを実体化せず、signalとmetaobjectを実行しない。直接linkはQt Core・Gui・Testだけ、Qt Xmlとflake・globalのsource/generatedはcompile interfaceに限定し、新対象4工程・8入力、停止5工程・11入力、近傍`KoKeepShapesSelectedCommandContractTest`、製品`kritaflake` 621工程・1,274入力を維持する。
+  実装後は構築許可まで待機する。許可後にunknown target・CTest 0件、新5枠、対象CTest・枠個別・20回反復、近傍、無作業再構築、動的接続・AUTOMOC入力・依存値の未解決記号、構文・書式、公開API・`verify-quick`を確認する。依存値を実体化し、selection操作・描画・signalを実行し、製品libraryへlinkし、停止線を超える必要があれば止める。
+- `g172-file-dialog-schema`は`/Users/masato/Documents/librepaint-g172-file-dialog-schema`を所有する。開始`libs/widgetutils/KoFileDialog.h`の全23 APIから新規
+  `libs/widgetutils/tests/KoFileDialogSchemaContractTest.cpp`の5枠`fileDialogTypeSchemaRemainsStable`、`fileDialogLifetimeSchemaRemainsStable`、`fileDialogConfigurationSignaturesRemainStable`、
+  `fileDialogSelectionResultSignaturesRemainStable`、`fileDialogFilterNotificationSignatureRemainsStable`へ対応付ける。完全集合はclass、`DialogType`と`OpenFile`・`OpenFiles`・`OpenDirectory`・`ImportFile`・`ImportFiles`・`ImportDirectory`・`SaveFile`の値0〜6、構築、破棄、`setCaption`、force既定引数を含む`setDefaultDir`、`setDirectoryUrl`、`setImageFilters`、default MIME既定引数を含む`setMimeTypeFilters`、`setNameFilter`、`selectNameFilter`、`filename`、`filenames`、`selectedMimeType`、`selectedNameFilter`、`onFilterSelected`である。許可pathは新規試験sourceと`libs/widgetutils/tests/CMakeLists.txt`の対象固有節だけで、公開header・製品sourceを変更しない。
+  dialog、Widget、`QFileDialog`、filesystem、設定、event loop、private pointerを実体化しない。直接linkはQt Core・Testだけ、Qt Gui・Widgetsはcompile interfaceに限定し、新対象4工程・8入力、停止5工程・11入力、近傍`KisCursorSchemaContractTest`、比較対象`KKeySequenceWidgetSchemaContractTest`、製品`kritawidgetutils` 274工程・581入力を維持する。
+  実装後は構築許可まで待機する。許可後にunknown target・CTest 0件、新5枠、対象CTest・枠個別・20回反復、近傍、無作業再構築、動的接続・AUTOMOC入力・dialog依存値の未解決記号、構文・書式、公開API・`verify-quick`を確認する。dialogや依存値を実体化し、filesystem・設定・event loopを実行し、製品libraryへlinkし、停止線を超える必要があれば止める。
 
 ### 第171便の先行監査計画
 
