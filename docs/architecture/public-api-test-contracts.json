@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 14432
+    "expectedMissingApis": 14403
   },
   "contracts": [
     {
@@ -44050,6 +44050,80 @@
         "method:KisPaintOpSettings::setSavedBrushSize(qreal value)",
         "method:KisPaintOpSettings::setSavedEraserOpacity(qreal value)",
         "method:KisPaintOpSettings::setSavedEraserSize(qreal value)"
+      ]
+    },
+    {
+      "target": "KoSvgTextCharacterResultValueContractTest",
+      "source": "libs/flake/tests/KoSvgTextCharacterResultValueContractTest.cpp",
+      "test": "KoSvgTextCharacterResultValueContractTest::textShapeIdentityAndSharedStateAliasesRemainStable",
+      "behavior": "SVG text shapeはdebug flag、memento共有pointer、node index・shape・mementoの公開型とshape派生関係を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KoSvgTextShape::DebugElements",
+        "alias:KoSvgTextShapeMementoSP",
+        "class:KoSvgTextNodeIndex",
+        "class:KoSvgTextShape",
+        "class:KoSvgTextShapeMemento"
+      ]
+    },
+    {
+      "target": "KoSvgTextCharacterResultValueContractTest",
+      "source": "libs/flake/tests/KoSvgTextCharacterResultValueContractTest.cpp",
+      "test": "KoSvgTextCharacterResultValueContractTest::textShapePublicEnumSchemaRemainsStable",
+      "behavior": "SVG text shapeはdebug表示要素とtext配置方式の公開列挙型・値順を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KoSvgTextShape::DebugElement",
+        "enum:KoSvgTextShape::TextType",
+        "enumerator:KoSvgTextShape::DebugElement::CharBbox",
+        "enumerator:KoSvgTextShape::DebugElement::LineBox",
+        "enumerator:KoSvgTextShape::TextType::InlineWrap",
+        "enumerator:KoSvgTextShape::TextType::PrePositionedText",
+        "enumerator:KoSvgTextShape::TextType::PreformattedText",
+        "enumerator:KoSvgTextShape::TextType::TextInShape"
+      ]
+    },
+    {
+      "target": "KoSvgTextCharacterResultValueContractTest",
+      "source": "libs/flake/tests/KoSvgTextCharacterResultValueContractTest.cpp",
+      "test": "KoSvgTextCharacterResultValueContractTest::textCharacterInfoMemberSchemaRemainsStable",
+      "behavior": "SVG text character情報はadvance、最終位置、論理・表示index、font metrics、中央・回転・RTL状態の公開値型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KoSvgTextCharacterInfo::advance",
+        "member:KoSvgTextCharacterInfo::finalPos",
+        "member:KoSvgTextCharacterInfo::logicalIndex",
+        "member:KoSvgTextCharacterInfo::metrics",
+        "member:KoSvgTextCharacterInfo::middle",
+        "member:KoSvgTextCharacterInfo::rotateDeg",
+        "member:KoSvgTextCharacterInfo::rtl",
+        "member:KoSvgTextCharacterInfo::visualIndex",
+        "struct:KoSvgTextCharacterInfo"
+      ]
+    },
+    {
+      "target": "KoSvgTextCharacterResultValueContractTest",
+      "source": "libs/flake/tests/KoSvgTextCharacterResultValueContractTest.cpp",
+      "test": "KoSvgTextCharacterResultValueContractTest::textCharacterInfoOrderingSignaturesRemainStable",
+      "behavior": "SVG text character情報は論理順と表示順を比較する公開静的関数の厳密な型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoSvgTextCharacterInfo::logicalLessThan(const KoSvgTextCharacterInfo & a,const KoSvgTextCharacterInfo & b)",
+        "method:KoSvgTextCharacterInfo::visualLessThan(const KoSvgTextCharacterInfo & a,const KoSvgTextCharacterInfo & b)"
+      ]
+    },
+    {
+      "target": "KoSvgTextCharacterResultValueContractTest",
+      "source": "libs/flake/tests/KoSvgTextCharacterResultValueContractTest.cpp",
+      "test": "KoSvgTextCharacterResultValueContractTest::textNodeIndexLifecycleAndAccessSignaturesRemainStable",
+      "behavior": "SVG text node indexは複製・破棄可能性とproperties、text path、path情報への借用accessorの厳密な公開型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoSvgTextNodeIndex::KoSvgTextNodeIndex(const KoSvgTextNodeIndex & rhs)",
+        "method:KoSvgTextNodeIndex::properties()",
+        "method:KoSvgTextNodeIndex::textPath()",
+        "method:KoSvgTextNodeIndex::textPathInfo()",
+        "method:KoSvgTextNodeIndex::~KoSvgTextNodeIndex()"
       ]
     }
   ]
