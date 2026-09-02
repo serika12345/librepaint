@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 12440
+    "expectedMissingApis": 12417
   },
   "contracts": [
     {
@@ -49102,6 +49102,74 @@
         "method:KisKMainWindow::dbusName() const",
         "method:KisKMainWindow::saveMainWindowSettings(KConfigGroup & config)",
         "method:KisKMainWindow::setSettingsDirty()"
+      ]
+    },
+    {
+      "target": "KisBaseRectsWalkerPolicyContractTest",
+      "source": "libs/image/tests/KisBaseRectsWalkerPolicyContractTest.cpp",
+      "test": "KisBaseRectsWalkerPolicyContractTest::rectsWalkerOwnershipAndLifetimeSchemaRemainsStable",
+      "behavior": "矩形走査器の既定構築と仮想寿命の公開型契約を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisBaseRectsWalker::KisBaseRectsWalker()",
+        "method:KisBaseRectsWalker::~KisBaseRectsWalker()"
+      ]
+    },
+    {
+      "target": "KisBaseRectsWalkerPolicyContractTest",
+      "source": "libs/image/tests/KisBaseRectsWalkerPolicyContractTest.cpp",
+      "test": "KisBaseRectsWalkerPolicyContractTest::rectsWalkerGeometryObservationSignaturesRemainStable",
+      "behavior": "矩形走査器が公開する要求・変更・参照・切り抜き矩形、開始node、詳細度の観測署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisBaseRectsWalker::accessRect() const",
+        "method:KisBaseRectsWalker::changeRect() const",
+        "method:KisBaseRectsWalker::cropRect() const",
+        "method:KisBaseRectsWalker::levelOfDetail() const",
+        "method:KisBaseRectsWalker::requestedRect() const",
+        "method:KisBaseRectsWalker::startNode() const",
+        "method:KisBaseRectsWalker::uncroppedChangeRect() const"
+      ]
+    },
+    {
+      "target": "KisBaseRectsWalkerPolicyContractTest",
+      "source": "libs/image/tests/KisBaseRectsWalkerPolicyContractTest.cpp",
+      "test": "KisBaseRectsWalkerPolicyContractTest::rectsWalkerStatePolicySignaturesRemainStable",
+      "behavior": "矩形走査器の空状態、可変性、checksum妥当性、clone無効化方針と走査種別の観測署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisBaseRectsWalker::changeRectVaries() const",
+        "method:KisBaseRectsWalker::checksumValid()",
+        "method:KisBaseRectsWalker::clonesDontInvalidateFrames() const",
+        "method:KisBaseRectsWalker::isEmpty() const",
+        "method:KisBaseRectsWalker::needRectVaries() const",
+        "method:KisBaseRectsWalker::type() const"
+      ]
+    },
+    {
+      "target": "KisBaseRectsWalkerPolicyContractTest",
+      "source": "libs/image/tests/KisBaseRectsWalkerPolicyContractTest.cpp",
+      "test": "KisBaseRectsWalkerPolicyContractTest::rectsWalkerCollectionAndConfigurationSignaturesRemainStable",
+      "behavior": "矩形走査の収集・再計算入口、leaf stackとclone通知列の参照、切り抜き・clone無効化設定の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisBaseRectsWalker::cloneNotifications()",
+        "method:KisBaseRectsWalker::collectRects(KisNodeSP node,const QRect & requestedRect)",
+        "method:KisBaseRectsWalker::leafStack()",
+        "method:KisBaseRectsWalker::recalculate(const QRect & requestedRect)",
+        "method:KisBaseRectsWalker::setClonesDontInvalidateFrames(bool value)",
+        "method:KisBaseRectsWalker::setCropRect(QRect cropRect)"
+      ]
+    },
+    {
+      "target": "KisBaseRectsWalkerPolicyContractTest",
+      "source": "libs/image/tests/KisBaseRectsWalkerPolicyContractTest.cpp",
+      "test": "KisBaseRectsWalkerPolicyContractTest::rectsWalkerCloneNotificationSchemaRemainsStable",
+      "behavior": "clone node、dirty矩形、frame無効化方針を保持して通知する値型の構築・通知署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisBaseRectsWalker::CloneNotification::CloneNotification(KisNodeSP node,const QRect & dirtyRect,bool dontInvalidateFrames)",
+        "method:KisBaseRectsWalker::CloneNotification::notify()"
       ]
     }
   ]
