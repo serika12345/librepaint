@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 21:28 JST
+- 更新日時: 2026-09-02 21:44 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -69,6 +69,23 @@
   `AllActions`の全bit値、letter値、構築のaction・letter省略形、collection追加のtitle省略形、shortcut保存のconfig省略形を固定する。対象4工程・8入力、停止5工程・11入力、近傍`KStandardActionEnumContractTest`、製品`kritawidgetutils` 274工程・581入力の変更前後集合完全一致を確認する。
   旧binaryの新5枠Unknown、対象CTest・枠個別・20回反復、近傍、無作業再構築、動的接続・AUTOMOC入力・shortcut編集の未解決記号、構文・書式、公開API・`verify-quick`を確認する。widget、設定backend、action collection、printer、対話処理を生成または実行し、
   CMake・依存変更、製品接続、公開header変更、製品計画差、停止線超過が必要なら止める。
+
+### 第163便の統合結果
+
+- 資源管理契約は開始`libs/flake/KoResourceManager_p.h`から新規`libs/flake/tests/KoResourceManagerSchemaContractTest.cpp`の5枠へ全30 APIを対応付けた。構築範囲の先行改善では、同headerの`KoColor`・`KoUnit`完全型所有を
+  `libs/flake/KoResourceManager_p.cpp`、`libs/flake/KoCanvasResourceProvider.cpp`、`libs/flake/KoDocumentResourceManager.cpp`へ移した。構造commit`ba14f2e885`、受渡しcommit`099bff3153`、統合commit`0acba823f6`、台帳commit
+  `e222c8e109`である。新対象は4工程・8入力、Qt Core・Testだけを直接linkし、5枠個別、対象CTest、20回反復、近傍、無作業再構築、動的接続・AUTOMOC・未解決記号、構文・書式、公開API検査、`verify-quick`に成功した。中央では該当3 objectだけの
+  構築と対象・近傍CTestに成功し、29,838件中16,343件対応、13,495件未対応となった。担当の最初の計画確認で`build-incremental native plan kritaflake`が乾式表示ではなく製品621工程を孤立作業tree内で実行したため即時停止し、編集前の生成木
+  289,244 KiBをゴミ箱へ移した。再開後と中央統合では製品targetを実行していない。資源値更新順序と通知配送の動的挙動は別契約で扱う。
+- PNG変換契約は受渡しcommit`a0b817faee`を統合commit`a741edbb6b`として取り込み、開始`libs/impex/ui/kis_png_converter.h`から新規`libs/impex/tests/KisPNGConverterSchemaContractTest.cpp`の5枠へ全28 APIを対応付けた。optionの既定値・copy独立性と
+  converter公開署名・既定引数省略形を固定した。新対象は4工程・8入力、Qt Core・Gui・Testだけを直接linkし、製品`kritaimpexui` 1,350工程・2,712入力の計画集合を維持した。担当macOS環境で5枠個別、対象CTest、20回反復、近傍、無作業再構築、
+  動的接続・AUTOMOC・未解決記号、構文・書式、公開API検査、`verify-quick`に成功した。中央でも対象・近傍CTestに成功し、台帳commit`111aaafef1`で16,371件対応、13,467件未対応となった。実画像、paint device、metadata filter、取消処理の動的挙動は別契約で扱う。
+- shortcut編集契約は受渡しcommit`b1f0112dc2`を統合commit`53e7d4e0c3`として取り込み、開始`libs/widgetutils/xmlgui/KisShortcutsEditor.h`から既存
+  `libs/widgetutils/tests/KKeySequenceWidgetSchemaContractTest.cpp`の5枠へ全32 APIを対応付けた。CMakeと依存を変えず列挙値、公開署名、構築・collection追加・設定保存の既定引数省略形を固定した。対象は4工程・8入力、製品`kritawidgetutils` 274工程・581入力の
+  計画集合を維持した。担当macOS環境で5枠個別、対象CTest、20回反復、近傍、無作業再構築、未解決記号、構文・書式、公開API検査、`verify-quick`に成功した。中央でも対象・近傍CTestに成功し、台帳commit`be5b8a9601`で16,403件対応、13,435件未対応となった。
+  widget、設定backend、印刷、scroll、signal配送の動的挙動は別契約で扱う。
+- 第163便全体で90 APIを15枠へ重複なく対応付けた。公開API報告`build/tdd-macos/public-api-missing-g164.json`と高速検査に成功後、旧`public-api-missing-g163.json`をゴミ箱へ移し、3担当のcleanな作業treeとbranchを削除して2,637,296 KiB（約2.51 GiB）を回収した。
+  再利用する主Ninja木5,633,940 KiB、共有compiler cache 983,196 KiB、最新不足報告だけを保持する。中央の製品共有library、全体、Linuxは構築していない。次の永続作業は第164便の不足報告から、構築範囲を先に監査してpathと所有CMakeが重ならない3責務を選ぶことである。
 
 ### 第162便の先行監査計画
 
