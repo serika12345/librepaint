@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 13113
+    "expectedMissingApis": 13089
   },
   "contracts": [
     {
@@ -47259,6 +47259,75 @@
         "method:KisUpdaterContext::doSomeUsefulWork()",
         "method:KisUpdaterContext::jobFinished()",
         "method:KisUpdaterContext::jobThreadExited()"
+      ]
+    },
+    {
+      "target": "KoSvgTextShapeMarkupConverterSchemaContractTest",
+      "source": "libs/flake/tests/KoSvgTextShapeMarkupConverterSchemaContractTest.cpp",
+      "test": "KoSvgTextShapeMarkupConverterSchemaContractTest::svgTextMarkupConverterIdentityAndWrappingSchemaRemainStable",
+      "behavior": "SVG文字markup変換器の公開型、構築・寿命、折返し方式と列挙値を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoSvgTextShapeMarkupConverter",
+        "enum:KoSvgTextShapeMarkupConverter::WrappingMode",
+        "enumerator:KoSvgTextShapeMarkupConverter::WrappingMode::QtLegacy",
+        "enumerator:KoSvgTextShapeMarkupConverter::WrappingMode::WhiteSpacePre",
+        "enumerator:KoSvgTextShapeMarkupConverter::WrappingMode::WhiteSpacePreWrap",
+        "method:KoSvgTextShapeMarkupConverter::KoSvgTextShapeMarkupConverter(KoSvgTextShape * shape)",
+        "method:KoSvgTextShapeMarkupConverter::~KoSvgTextShapeMarkupConverter()"
+      ]
+    },
+    {
+      "target": "KoSvgTextShapeMarkupConverterSchemaContractTest",
+      "source": "libs/flake/tests/KoSvgTextShapeMarkupConverterSchemaContractTest.cpp",
+      "test": "KoSvgTextShapeMarkupConverterSchemaContractTest::svgTextMarkupDocumentPropertySchemaRemainStable",
+      "behavior": "SVG文字markup変換器の折返し・行内寸法property値と文書frame formatへの取得・設定署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KoSvgTextShapeMarkupConverter::InlineSizeProperty",
+        "member:KoSvgTextShapeMarkupConverter::WrappingModeProperty",
+        "method:KoSvgTextShapeMarkupConverter::getInlineSize(const QTextFrameFormat & frameFormat)",
+        "method:KoSvgTextShapeMarkupConverter::getWrappingMode(const QTextFrameFormat & frameFormat)",
+        "method:KoSvgTextShapeMarkupConverter::setInlineSize(QTextFrameFormat * frameFormat,double inlineSize)",
+        "method:KoSvgTextShapeMarkupConverter::setWrappingMode(QTextFrameFormat * frameFormat,WrappingMode wrappingMode)"
+      ]
+    },
+    {
+      "target": "KoSvgTextShapeMarkupConverterSchemaContractTest",
+      "source": "libs/flake/tests/KoSvgTextShapeMarkupConverterSchemaContractTest.cpp",
+      "test": "KoSvgTextShapeMarkupConverterSchemaContractTest::svgTextMarkupSvgAndHtmlConversionSignaturesRemainStable",
+      "behavior": "SVG文字markup変換器のSVG・HTMLへの変換と復元の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoSvgTextShapeMarkupConverter::convertFromHtml(const QString & htmlText,QString * svgText,QString * styles)",
+        "method:KoSvgTextShapeMarkupConverter::convertFromSvg(const QString & svgText,const QString & stylesText,const QRectF & boundsInPixels,qreal pixelsPerInch)",
+        "method:KoSvgTextShapeMarkupConverter::convertToHtml(QString * htmlText)",
+        "method:KoSvgTextShapeMarkupConverter::convertToSvg(QString * svgText,QString * stylesText)"
+      ]
+    },
+    {
+      "target": "KoSvgTextShapeMarkupConverterSchemaContractTest",
+      "source": "libs/flake/tests/KoSvgTextShapeMarkupConverterSchemaContractTest.cpp",
+      "test": "KoSvgTextShapeMarkupConverterSchemaContractTest::svgTextMarkupDocumentAndDiagnosticSignaturesRemainStable",
+      "behavior": "SVG文字markup変換器の文字文書相互変換とerror・warning診断取得の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoSvgTextShapeMarkupConverter::convertDocumentToSvg(const QTextDocument * doc,QString * svgText)",
+        "method:KoSvgTextShapeMarkupConverter::convertSvgToDocument(const QString & svgText,QTextDocument * doc)",
+        "method:KoSvgTextShapeMarkupConverter::errors() const",
+        "method:KoSvgTextShapeMarkupConverter::warnings() const"
+      ]
+    },
+    {
+      "target": "KoSvgTextShapeMarkupConverterSchemaContractTest",
+      "source": "libs/flake/tests/KoSvgTextShapeMarkupConverterSchemaContractTest.cpp",
+      "test": "KoSvgTextShapeMarkupConverterSchemaContractTest::svgTextMarkupStyleConversionSignaturesRemainStable",
+      "behavior": "SVG文字markup変換器のstyle生成・解析・format差分取得の公開署名と既定引数省略形を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoSvgTextShapeMarkupConverter::formatDifference(QTextFormat test,QTextFormat reference)",
+        "method:KoSvgTextShapeMarkupConverter::style(QTextCharFormat format,QTextBlockFormat blockFormat,QTextCharFormat mostCommon=QTextCharFormat (),bool includeLineHeight=false)",
+        "method:KoSvgTextShapeMarkupConverter::stylesFromString(QStringList styles,QTextCharFormat currentCharFormat,QTextBlockFormat currentBlockFormat,ExtraStyles & extraStyles)"
       ]
     }
   ]
