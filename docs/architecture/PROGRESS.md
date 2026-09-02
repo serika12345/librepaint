@@ -40,6 +40,38 @@
   `54a81e7f2dc46cb6b03d85bc5606456480d58d433d4acedf3a971d51508da391`、入力集合hashは`fadce0f47495bd67de7f32dd23bcb107bb18415503800cf48d62f14a425fb3ff`である。`KoDualColorButton.h`はcanvas resource provider、
   display renderer、前景・背景色、公開pixmap・矩形状態、platform dialog、painter、drag-and-drop、色空間更新へ責務が広がるため棄却した。
 
+### 第159便の担当計画
+
+- 実装共通基点は`f732c81e89`である。3担当は`preparing`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、
+  専用worktree-local `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。統合順はgroup layer、file dialog、segment gradient sliderとし、調整担当だけが
+  `AGENTS.md`、architecture文書、`docs/architecture/public-api-test-contracts.json`、共通不足報告を変更する。3担当の公開header、所有CMake、試験source、生成物は重ならない。
+- `g159-group-layer-schema`は`/Users/masato/Documents/librepaint-g159-group-layer-schema`を所有する。開始`libs/image/kis_group_layer.h`の全32 APIから既存
+  `libs/image/tests/KisImageTypesContractTest.cpp`の5枠`groupLayerOwnershipLifetimeAndHierarchySchemaRemainsStable`、`groupLayerImageCoordinateAndDeviceSignaturesRemainStable`、
+  `groupLayerCompositionAndVisitorSignaturesRemainStable`、`groupLayerPresentationAndPolicySignaturesRemainStable`、`groupLayerChildrenBoundsSignaturesRemainStable`へ対応付ける。完全集合はclass・色空間省略構築・copy構築・破棄・
+  `clone`・`allowAsChild`、`colorSpace`・`lazyDestinationForSubtreeComposition`・`original`・`paintDevice`・`setImage`・`setX`・`setY`・`x`・`y`、2 `accept`・`createMergedLayerTemplate`・
+  `fillMergedLayerTemplate`・`projectionIsValid`・`resetCache`、`defaultProjectionColor`・`icon`・`passThroughMode`・`sectionModelProperties`と3 setter、子のtight・loose bounds・`exactBounds`・`extent`である。許可pathは既存試験sourceだけで
+  CMakeを変更しない。対象4工程・8入力、停止5工程・11入力、近傍は`KisImageConfigAnimationSchemaContractTest`、製品`kritaimage`は1,196工程・2,416入力と担当tree内の変更前後集合・保留集合完全一致を確認する。旧binaryで
+  新5枠Unknown、対象CTest・5枠個別・20回反復、近傍、無作業再構築、動的接続・AUTOMOC入力・未解決layer・composition記号、構文・書式、公開API・`verify-quick`を確認する。group layer、image、node、device、visitor、undo、
+  色、property、icon、inline本文を生成または実行し、CMake・公開header・製品source変更、新依存、製品接続、対象集合・製品計画差、停止線超過が必要なら止める。
+- `g159-file-dialog-schema`は`/Users/masato/Documents/librepaint-g159-file-dialog-schema`を所有する。開始`libs/libkis/FileDialog.h`の全27 APIから新規
+  `libs/libkis/tests/FileDialogSchemaContractTest.cpp`の5枠`fileDialogTypeAndModeValuesRemainStable`、`fileDialogLifecycleAndLocationSignaturesRemainStable`、`fileDialogFilterConfigurationSignaturesRemainStable`、
+  `fileDialogSelectionResultSignaturesRemainStable`、`fileDialogStaticSelectionSignaturesRemainStable`へ対応付ける。完全集合はclass・`DialogType`と7列挙子、3既定引数構築・破棄・`setCaption`・`setDefaultDir`・`setDirectoryUrl`、
+  `onFilterSelected`・`selectNameFilter`・`setImageFilters`・`setMimeTypeFilters`・`setNameFilter`、`filename`・`filenames`・`selectedMimeType`・`selectedNameFilter`、4 static選択入口である。許可pathは新規試験sourceと
+  `libs/libkis/tests/CMakeLists.txt`の対象固有節だけである。7 mode序数を具体値で、構築・default directory・MIME filter・4 static入口の既定引数省略形を未評価式で固定する。直接linkはQt Core・Testだけ、Qt Gui・Widgetsはinterface include、
+  includeはlibkis source/generated、definitionは`kritalibkis_EXPORTS`だけとし、公開headerをtarget sourceやAUTOMOC入力へ加えない。新対象4工程・8入力、停止5工程・11入力、近傍は`ViewSchemaContractTest`、製品`kritalibkis`は
+  2,018工程・4,034入力と担当tree内の変更前後集合完全一致を確認する。未知target・CTest 0件、新5枠、対象CTest・20回反復、近傍、無作業再構築、動的接続・AUTOMOC入力・未解決dialog記号、構文・書式、公開API・
+  `verify-quick`を確認する。dialog、QWidget、Private、KoFileDialog、設定、filesystem、GUI event loop、signal、metaobjectを生成または実行し、Qt Widgets link、製品source・OBJECT・shared、`kritatestsdk`、新依存、公開header変更、
+  製品計画差、停止線超過が必要なら止める。
+- `g159-segment-gradient-slider-schema`は`/Users/masato/Documents/librepaint-g159-segment-gradient-slider-schema`を所有する。開始`libs/ui/widgets/gradient/KisSegmentGradientSlider.h`の全35 APIから新規
+  `libs/ui/tests/KisSegmentGradientSliderSchemaContractTest.cpp`の5枠`segmentGradientSliderHandleSchemaRemainsStable`、`segmentGradientSliderConstructionAndSelectionSchemaRemainsStable`、
+  `segmentGradientSliderNavigationAndNotificationSchemaRemainsStable`、`segmentGradientSliderHandleMovementSchemaRemainsStable`、`segmentGradientSliderMutationSchemaRemainsStable`へ対応付ける。完全集合はclass・`HandleType`と4列挙子・
+  `Handle`と2 member・`shrinkEpsilon`、3既定引数構築・`selectedHandle`・2 size hint・`setGradientResource`、色選択・前後選択・中央寄せ・2通知、`deleteHandle`・3種の両方向を含む6移動、選択handle削除・segment collapse・split・
+  duplicate・mirror・gradient flip・stop均等配置である。許可pathは新規試験sourceと`libs/ui/tests/CMakeLists.txt`の対象固有節だけである。列挙序数、member型、epsilonを具体値で、構築と6移動APIの既定bool省略形を未評価式で固定する。
+  直接linkはQt Core・Gui・Testだけ、Qt Widgets・KF I18n・Imathはinterface include、includeはui・application・pigment・resources・globalのsource/generated、definitionは各owner exportだけとし、公開headerをtarget sourceや
+  AUTOMOC入力へ加えない。新対象4工程・8入力、停止5工程・11入力、近傍は`KoGradientSegmentSchemaContractTest`、製品`kritaapplicationui`は1,970工程・3,940入力と担当tree内の変更前後集合完全一致を確認する。未知target・
+  CTest 0件、新5枠、対象CTest・20回反復、近傍、無作業再構築、動的接続・AUTOMOC入力・未解決slider・gradient・timer記号、構文・書式、公開API・`verify-quick`を確認する。widget、gradient、色、menu、action、signal、metaobject、
+  event、paint、timerを生成または実行し、Qt Widgets link、製品source・OBJECT・shared、`kritatestsdk`、新依存、公開header変更、製品計画差、停止線超過が必要なら止める。
+
 ### 第158便の先行監査計画
 
 - 監査共通基点は`3117715b86`、入力は`build/tdd-macos/public-api-missing-g158.json`である。3担当は`auditing`の読み取り専用とし、製品・試験・CMake・script・台帳・文書を変更せず、構築、試験、Git操作、
