@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 19:42 JST
+- 更新日時: 2026-09-02 19:48 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -62,7 +62,9 @@
   `getMemento`・`hasCurrentMemento`・`rollback`・`rollforward`、`purge`・`read`・`write`・`releaseInternalPools`である。許可pathは既存試験sourceだけであり、CMake・公開header・製品sourceを変更しない。stride省略呼出しを未評価式で固定し、
   対象4工程・8入力、停止5工程・11入力、近傍`KisImageConfigAnimationSchemaContractTest`、製品`kritaimage` 1,196工程・2,416入力と担当tree内の変更前後集合完全一致を確認する。旧binaryの新5枠Unknown、対象CTest・枠個別・20回反復、
   近傍、無作業再構築、動的接続・AUTOMOC入力・data manager・tile・memento・I/O未解決記号、構文・書式、公開API・`verify-quick`を確認する。manager、tile、memento、iterator、pool、I/O、inline本文を生成または実行し、
-  CMake変更、新依存、製品接続、製品計画差、停止線超過が必要なら止める。
+  最初の限定compileで`kis_datamanager.h`からtile data・chunk allocatorへ達した公開header連鎖が`QLinkedList`を要求し、Qt 6のCore5Compat探索先不足で停止した。許可pathを`libs/image/tests/CMakeLists.txt`の
+  `KisImageTypesContractTest`固有include節へ拡張し、`Qt${QT_MAJOR_VERSION}::Core5Compat`のinterface includeだけを追加して再開する。直接linkは増やさず、対象4工程・8入力、製品計画と集合の不変を再確認する。manager、tile、memento、
+  iterator、pool、I/O、inline本文を生成または実行し、Core5Compat link、他のCMake変更、新依存、製品接続、製品計画差、停止線超過が必要なら止める。
 - `g160-shape-loading-context-schema`は`/Users/masato/Documents/librepaint-g160-shape-loading-context-schema`を所有する。開始`libs/flake/KoShapeLoadingContext.h`の全29 APIから新規
   `libs/flake/tests/KoShapeLoadingContextSchemaContractTest.cpp`の5枠`additionalAttributeValueSchemaRemainsStable`、`shapeLoadingIdentityStoreAndResourceSignaturesRemainStable`、
   `shapeLoadingLayerZIndexAndSectionSignaturesRemainStable`、`shapeLoadingShapeReferenceAndUpdaterSignaturesRemainStable`、`shapeLoadingSharedAndAdditionalDataSignaturesRemainStable`へ対応付ける。完全集合は`AdditionalAttributeData`と3 member・
