@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 13164
+    "expectedMissingApis": 13138
   },
   "contracts": [
     {
@@ -47118,6 +47118,77 @@
         "method:KisKXMLGUIClient::plugActionList(const QString & name,const QList<QAction * > & actionList)",
         "method:KisKXMLGUIClient::prepareXMLUnplug(QWidget *)",
         "method:KisKXMLGUIClient::unplugActionList(const QString & name)"
+      ]
+    },
+    {
+      "target": "ViewSchemaContractTest",
+      "source": "libs/libkis/tests/ViewSchemaContractTest.cpp",
+      "test": "ViewSchemaContractTest::viewDocumentAndVisibilitySignaturesRemainStable",
+      "behavior": "script向けViewのwindow・document・canvas・選択node参照とdocument差替え・表示状態の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:View::canvas() const",
+        "method:View::document() const",
+        "method:View::selectedNodes() const",
+        "method:View::setDocument(Document * document)",
+        "method:View::setVisible()",
+        "method:View::visible() const",
+        "method:View::window() const"
+      ]
+    },
+    {
+      "target": "ViewSchemaContractTest",
+      "source": "libs/libkis/tests/ViewSchemaContractTest.cpp",
+      "test": "ViewSchemaContractTest::viewResourceSelectionSignaturesRemainStable",
+      "behavior": "script向けViewの資源有効化と現在のbrush・gradient・pattern取得・差替えの公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:View::activateResource(Resource * resource)",
+        "method:View::currentBrushPreset() const",
+        "method:View::currentGradient() const",
+        "method:View::currentPattern() const",
+        "method:View::setCurrentBrushPreset(Resource * resource)",
+        "method:View::setCurrentGradient(Resource * resource)",
+        "method:View::setCurrentPattern(Resource * resource)"
+      ]
+    },
+    {
+      "target": "ViewSchemaContractTest",
+      "source": "libs/libkis/tests/ViewSchemaContractTest.cpp",
+      "test": "ViewSchemaContractTest::viewColorStateAndNotificationSignaturesRemainStable",
+      "behavior": "script向けViewの前景・背景色取得・差替えと変更通知の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:View::backgroundColor() const",
+        "method:View::backgroundColorChanged()",
+        "method:View::foregroundColor() const",
+        "method:View::foregroundColorChanged()",
+        "method:View::setBackGroundColor(ManagedColor * color)",
+        "method:View::setForeGroundColor(ManagedColor * color)"
+      ]
+    },
+    {
+      "target": "ViewSchemaContractTest",
+      "source": "libs/libkis/tests/ViewSchemaContractTest.cpp",
+      "test": "ViewSchemaContractTest::viewCoordinateTransformSignaturesRemainStable",
+      "behavior": "script向けViewのflake座標からcanvas・document・image座標への変換取得の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:View::flakeToCanvasTransform() const",
+        "method:View::flakeToDocumentTransform() const",
+        "method:View::flakeToImageTransform() const"
+      ]
+    },
+    {
+      "target": "ViewSchemaContractTest",
+      "source": "libs/libkis/tests/ViewSchemaContractTest.cpp",
+      "test": "ViewSchemaContractTest::viewInteractionNotificationSignaturesRemainStable",
+      "behavior": "script向けViewのbrush・tool変更通知と浮動message表示の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:View::currentBrushPresetChanged()",
+        "method:View::currentToolChanged(const QString & toolId)",
+        "method:View::showFloatingMessage(const QString & message,const QIcon & icon,int timeout,int priority)"
       ]
     }
   ]
