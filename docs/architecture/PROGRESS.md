@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-03 02:47 JST
+- 更新日時: 2026-09-03 02:58 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -51,6 +51,18 @@
   実装後は構築許可まで待機する。許可後にunknown target・CTest 0件、新5枠、対象CTest・枠個別・20回反復、近傍、無作業再構築、動的接続・AUTOMOC入力・shape・Widget・色・画像未解決記号、構文・書式、公開API・`verify-quick`を確認する。probeや依存値を実体化し、signal・描画・eventを実行し、Qt Gui・Widgetsまたは製品libraryへlinkし、停止線を超える必要があれば止める。
 - visual selector shape限定対象の初回compileは`KisVisualColorSelector.h`からflakeのgamut mask資源と生成export headerまで到達した。親selectorとmodelはpointerとしてしか公開しないため、開始
   `libs/widgets/KisVisualColorSelectorShape.h`の完全型includeを`KisVisualColorSelector`・`KisVisualColorModel`の前方宣言へ縮小し、実際に親selectorを呼び出す`libs/widgets/KisVisualColorSelectorShape.cpp`へ`KisVisualColorSelector.h`の直接includeを移す。公開APIと製品実装を変えず、限定対象からflake資源閉包を除去し、レーンの一時flake include補正を外して同じ4工程・8入力で再開する。
+
+### 第171便の統合結果
+
+- `g171-curve-option-schema`は公開headerの推移依存を先に縮小した。開始`plugins/paintops/libpaintop/KisCurveOption.h`から参照型`KisCurveOptionData.h`を前方宣言へ置換し、完全型の直接includeを既に持つ`plugins/paintops/libpaintop/KisCurveOption.cpp`へ閉じ、公開マクロの直接所有headerも明示した。これにより翻訳付き静的sensor IDと`KoID`初期化のlink要求を公開利用者から除去した。
+  受渡しcommit`c98abca567`を統合commit`234055f40b`として取り込み、新規`plugins/paintops/libpaintop/tests/KisCurveOptionSchemaContractTest.cpp`の5枠へ所有・方針、値成分、値合成、強度、状態方針の全24 APIを対応付けた。対象4工程・8入力、5枠、20回反復、近傍、無作業再構築、Qtだけの動的接続、AUTOMOC・未解決記号、構文・書式に成功した。中央再生成は構成3.3秒・生成11.3秒、対象全体23.09秒だった。台帳commit`b7e4d39b23`で17,075件対応、12,763件未対応となった。曲線・sensor・paint情報の計算結果は別契約で扱う。
+- `g171-shape-container-schema`は受渡しcommit`b056271c22`を統合commit`532a4843ed`として取り込んだ。開始`libs/flake/KoShapeContainer.h`から既存
+  `libs/flake/tests/KoShapeEnumContractTest.cpp`の5枠へ、型・寿命、階層、model・interface、clipping・変換、描画・更新の全20 APIを対応付けた。非所有のshape pointerを関数型で固定し、CMakeと依存を変えず対象4工程・8入力に保った。
+  担当と中央の5枠、20回反復、既存枠、近傍CTest、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式に成功した。担当再生成は構成24.1秒・生成11.0秒、中央対象構築は4.72秒だった。製品`kritaflake`の読み取り基線は621工程・1,274入力を維持し、台帳commit`fbe48b9503`で17,095件対応、12,743件未対応となった。階層操作・描画・更新の実行時結果は別契約で扱う。
+- `g171-visual-selector-shape-schema`は開始`libs/widgets/KisVisualColorSelectorShape.h`の親selector完全型includeを前方宣言へ縮小し、実際に呼び出す`libs/widgets/KisVisualColorSelectorShape.cpp`へ移した。これによりflakeのgamut mask資源と生成export headerの探索を公開shape利用者から除去した。
+  受渡しcommit`f5507a9b92`を統合commit`96f2b139c2`として取り込み、新規`libs/widgets/tests/KisVisualColorSelectorShapeSchemaContractTest.cpp`の5枠へ型・次元、cursor・channel、色・画像、幾何、方針・通知の残存全25 APIを対応付けた。直接linkはQt Core・Testだけ、対象4工程・8入力に保った。担当と中央の5枠、20回反復、近傍CTest、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式に成功した。中央再生成は構成3.4秒・生成11.7秒、対象全体23.20秒だった。台帳commit`8d029eccaf`で17,120件対応、12,718件未対応となった。色・画像、gamut mask、tablet event、signal配送の実行時結果は別契約で扱う。
+- 第171便全体で69 APIを15枠へ重複なく対応付けた。実装を並行し、構成・構築枠だけをcurve option、shape container、visual selector shapeの順に直列化した。対象・近傍CTest、各20回反復、無作業再構築、公開API検査と`verify-quick`は成功した。製品target、全体build、全体`verify`、Linuxは実行していない。
+  3担当のcleanな作業treeと担当branch、および旧不足報告を削除して2,648,432 KiB（約2.53 GiB）を回収した。主Ninja木5,652,904 KiB、共有compiler cache 983,216 KiB、最新不足報告`build/tdd-macos/public-api-missing-g172.json` 3,248 KiBだけを再利用対象として保持する。
 
 ### 第170便の先行監査計画
 
@@ -17523,7 +17535,7 @@
 
 ## 次の操作
 
-`build/tdd-macos/public-api-missing-g171.json`から第171並列便の非重複候補を3担当で監査する。欠陥疑いの比較・診断、資源registry、設定I/O、生pointer所有へ到達する経路は保留する。
+`build/tdd-macos/public-api-missing-g172.json`から第172並列便の非重複候補を3担当で監査する。欠陥疑いの比較・診断、資源registry、設定I/O、生pointer所有へ到達する経路は保留する。
 別の所有pathから20〜80 APIを最大5枠、既存限定対象またはheader限定対象で固定できる候補を優先し、担当票の確定前に変更なし計画、直接依存、予測閉包、製品共有ライブラリー・`kritatestsdk`非接続、許可pathと停止線を照合する。
 
 ## R1-G5完了根拠
