@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 13495
+    "expectedMissingApis": 13467
   },
   "contracts": [
     {
@@ -46337,6 +46337,79 @@
       "apis": [
         "method:KoResourceManager::resourceChangeAttempted(int key,const QVariant & value)",
         "method:KoResourceManager::resourceChanged(int key,const QVariant & value)"
+      ]
+    },
+    {
+      "target": "KisPNGConverterSchemaContractTest",
+      "source": "libs/impex/tests/KisPNGConverterSchemaContractTest.cpp",
+      "test": "KisPNGConverterSchemaContractTest::pngOptionCoreValueSchemaRemainsStable",
+      "behavior": "PNG保存optionの圧縮・interlace・alpha・縮小の型、既定値、copy独立性を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisPNGOptions::alpha",
+        "member:KisPNGOptions::compression",
+        "member:KisPNGOptions::downsample",
+        "member:KisPNGOptions::interlace",
+        "method:KisPNGOptions::KisPNGOptions()",
+        "struct:KisPNGOptions"
+      ]
+    },
+    {
+      "target": "KisPNGConverterSchemaContractTest",
+      "source": "libs/impex/tests/KisPNGConverterSchemaContractTest.cpp",
+      "test": "KisPNGConverterSchemaContractTest::pngOptionMetadataAndProfileFlagsRemainStable",
+      "behavior": "PNG保存optionのmetadata・profile方針の型、既定値、copy独立性を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisPNGOptions::exif",
+        "member:KisPNGOptions::forceSRGB",
+        "member:KisPNGOptions::iptc",
+        "member:KisPNGOptions::saveAsHDR",
+        "member:KisPNGOptions::saveSRGBProfile",
+        "member:KisPNGOptions::storeAuthor",
+        "member:KisPNGOptions::storeMetaData",
+        "member:KisPNGOptions::xmp"
+      ]
+    },
+    {
+      "target": "KisPNGConverterSchemaContractTest",
+      "source": "libs/impex/tests/KisPNGConverterSchemaContractTest.cpp",
+      "test": "KisPNGConverterSchemaContractTest::pngOptionIndexedFilterAndTransparencyValuesRemainStable",
+      "behavior": "PNG保存optionのindexed化、metadata filter、透過画素補完色の型、既定値、copy独立性を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisPNGOptions::filters",
+        "member:KisPNGOptions::transparencyFillColor",
+        "member:KisPNGOptions::tryToSaveAsIndexed"
+      ]
+    },
+    {
+      "target": "KisPNGConverterSchemaContractTest",
+      "source": "libs/impex/tests/KisPNGConverterSchemaContractTest.cpp",
+      "test": "KisPNGConverterSchemaContractTest::pngConverterIdentityAndInputSignaturesRemainStable",
+      "behavior": "PNG変換器の寿命、batch指定省略形、device・file入力、画像取得の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisPNGConverter",
+        "method:KisPNGConverter::KisPNGConverter(KisDocument * doc,bool batchMode=false)",
+        "method:KisPNGConverter::buildImage(QIODevice * iod)",
+        "method:KisPNGConverter::buildImage(const QString & filename)",
+        "method:KisPNGConverter::image()",
+        "method:KisPNGConverter::~KisPNGConverter()"
+      ]
+    },
+    {
+      "target": "KisPNGConverterSchemaContractTest",
+      "source": "libs/impex/tests/KisPNGConverterSchemaContractTest.cpp",
+      "test": "KisPNGConverterSchemaContractTest::pngConverterOutputAndControlSignaturesRemainStable",
+      "behavior": "PNG変換器のdevice・file出力、取消、色空間判定、store保存とmetadata省略形の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPNGConverter::buildFile(QIODevice *,const QRect & imageRect,const qreal xRes,const qreal yRes,KisPaintDeviceSP device,vKisAnnotationSP_it annotationsStart,vKisAnnotationSP_it annotationsEnd,KisPNGOptions options,KisMetaData::Store * metaData)",
+        "method:KisPNGConverter::buildFile(const QString & filename,const QRect & imageRect,const qreal xRes,const qreal yRes,KisPaintDeviceSP device,vKisAnnotationSP_it annotationsStart,vKisAnnotationSP_it annotationsEnd,KisPNGOptions options,KisMetaData::Store * metaData)",
+        "method:KisPNGConverter::cancel()",
+        "method:KisPNGConverter::isColorSpaceSupported(const KoColorSpace * cs)",
+        "method:KisPNGConverter::saveDeviceToStore(const QString & filename,const QRect & imageRect,const qreal xRes,const qreal yRes,KisPaintDeviceSP dev,KoStore * store,KisMetaData::Store * metaData=0)"
       ]
     }
   ]
