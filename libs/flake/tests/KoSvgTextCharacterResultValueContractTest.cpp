@@ -128,6 +128,11 @@ private Q_SLOTS:
     void textCursorPositionValueSchemaRemainsStable();
     void glyphOutlineAndBitmapValueSchemaRemainsStable();
     void glyphColorLayerAndVariantSchemaRemainsStable();
+    void textShapeIdentityAndSharedStateAliasesRemainStable();
+    void textShapePublicEnumSchemaRemainsStable();
+    void textCharacterInfoMemberSchemaRemainsStable();
+    void textCharacterInfoOrderingSignaturesRemainStable();
+    void textNodeIndexLifecycleAndAccessSignaturesRemainStable();
 };
 
 void KoSvgTextCharacterResultValueContractTest::positionVisibilityAndIndicesDefaultAndAssignIndependently()
@@ -522,6 +527,62 @@ void KoSvgTextCharacterResultValueContractTest::glyphColorLayerAndVariantSchemaR
     static_assert(std::is_same_v<decltype(Glyph::ColorLayers::replaceWithForeGroundColor), QVector<bool>>);
     static_assert(std::is_same_v<Glyph::Variant,
                                  std::variant<std::monostate, Glyph::Outline, Glyph::Bitmap, Glyph::ColorLayers>>);
+}
+
+void KoSvgTextCharacterResultValueContractTest::textShapeIdentityAndSharedStateAliasesRemainStable()
+{
+    static_assert(std::is_same_v<KoSvgTextShape::DebugElements, QFlags<KoSvgTextShape::DebugElement>>);
+    static_assert(std::is_same_v<KoSvgTextShapeMementoSP, QSharedPointer<KoSvgTextShapeMemento>>);
+    static_assert(std::is_class_v<KoSvgTextNodeIndex>);
+    static_assert(std::is_class_v<KoSvgTextShape>);
+    static_assert(std::is_class_v<KoSvgTextShapeMemento>);
+    static_assert(std::is_base_of_v<KoShape, KoSvgTextShape>);
+    static_assert(std::is_base_of_v<SvgShape, KoSvgTextShape>);
+    static_assert(std::is_base_of_v<KoShapeBulkActionInterface, KoSvgTextShape>);
+}
+
+void KoSvgTextCharacterResultValueContractTest::textShapePublicEnumSchemaRemainsStable()
+{
+    static_assert(std::is_enum_v<KoSvgTextShape::DebugElement>);
+    static_assert(KoSvgTextShape::DebugElement::CharBbox == static_cast<KoSvgTextShape::DebugElement>(1));
+    static_assert(KoSvgTextShape::DebugElement::LineBox == static_cast<KoSvgTextShape::DebugElement>(2));
+    static_assert(std::is_enum_v<KoSvgTextShape::TextType>);
+    static_assert(KoSvgTextShape::PrePositionedText == static_cast<KoSvgTextShape::TextType>(0));
+    static_assert(KoSvgTextShape::PreformattedText == static_cast<KoSvgTextShape::TextType>(1));
+    static_assert(KoSvgTextShape::InlineWrap == static_cast<KoSvgTextShape::TextType>(2));
+    static_assert(KoSvgTextShape::TextInShape == static_cast<KoSvgTextShape::TextType>(3));
+}
+
+void KoSvgTextCharacterResultValueContractTest::textCharacterInfoMemberSchemaRemainsStable()
+{
+    static_assert(std::is_aggregate_v<KoSvgTextCharacterInfo>);
+    static_assert(std::is_same_v<decltype(KoSvgTextCharacterInfo::advance), QPointF>);
+    static_assert(std::is_same_v<decltype(KoSvgTextCharacterInfo::finalPos), QPointF>);
+    static_assert(std::is_same_v<decltype(KoSvgTextCharacterInfo::logicalIndex), int>);
+    static_assert(std::is_same_v<decltype(KoSvgTextCharacterInfo::metrics), KoSvgText::FontMetrics>);
+    static_assert(std::is_same_v<decltype(KoSvgTextCharacterInfo::middle), bool>);
+    static_assert(std::is_same_v<decltype(KoSvgTextCharacterInfo::rotateDeg), qreal>);
+    static_assert(std::is_same_v<decltype(KoSvgTextCharacterInfo::rtl), bool>);
+    static_assert(std::is_same_v<decltype(KoSvgTextCharacterInfo::visualIndex), int>);
+}
+
+void KoSvgTextCharacterResultValueContractTest::textCharacterInfoOrderingSignaturesRemainStable()
+{
+    using Comparison = bool (*)(const KoSvgTextCharacterInfo &, const KoSvgTextCharacterInfo &);
+
+    static_assert(std::is_same_v<decltype(&KoSvgTextCharacterInfo::logicalLessThan), Comparison>);
+    static_assert(std::is_same_v<decltype(&KoSvgTextCharacterInfo::visualLessThan), Comparison>);
+}
+
+void KoSvgTextCharacterResultValueContractTest::textNodeIndexLifecycleAndAccessSignaturesRemainStable()
+{
+    using NodeIndex = KoSvgTextNodeIndex;
+
+    static_assert(std::is_copy_constructible_v<NodeIndex>);
+    static_assert(std::is_destructible_v<NodeIndex>);
+    static_assert(std::is_same_v<decltype(&NodeIndex::properties), KoSvgTextProperties *(NodeIndex::*)()>);
+    static_assert(std::is_same_v<decltype(&NodeIndex::textPath), KoShape *(NodeIndex::*)()>);
+    static_assert(std::is_same_v<decltype(&NodeIndex::textPathInfo), KoSvgText::TextOnPathInfo *(NodeIndex::*)()>);
 }
 
 QTEST_GUILESS_MAIN(KoSvgTextCharacterResultValueContractTest)
