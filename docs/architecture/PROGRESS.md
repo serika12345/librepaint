@@ -2,12 +2,21 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-03 05:06 JST
+- 更新日時: 2026-09-03 05:39 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
+
+### 第175便の先行監査計画
+
+- 監査共通基点は`f2d7d7b4c1`、入力は`build/tdd-macos/public-api-missing-g175.json`である。3担当は`auditing`の読み取り専用とし、製品・試験・CMake・script・台帳・文書を変更せず、構成、構築、試験、Git操作、追加委任も行わない。
+  一つの公開責務から20〜80 APIを最大5枠へ固定し、既存限定対象またはheader限定の4〜10工程程度の対象で、製品共有libraryと`kritatestsdk`へ接続しない候補だけを採用する。製品targetを引数にする`build-incremental ... plan`と製品buildは実行せず、既存Ninja木のquery・commands・inputsだけを読み取る。
+- `g105-paintop-value-audit`はpaintop・image・pigment・値型から、第174便のclone layerを除外して一責務を選ぶ。
+- `g105-svg-value-audit`はflake・SVG・vector・documentから、第174便のfont glyph modelを除外して一責務を選ぶ。
+- `g105-widget-connection-audit`はwidgetutils・widgets・libkis・軽量接続面から、第174便のhelp menuを除外して一責務を選ぶ。
+- 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、予測工程・入力と停止線、開始pathから契約先、許可path、固有停止条件、比較候補の棄却根拠を含む。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
 
 ### 第174便の先行監査計画
 
@@ -48,6 +57,17 @@
   `helpMenuNotificationSignatureRemainsStable`へ対応付ける。完全集合はclass、`MenuId`と`menuHelpContents`・`menuWhatsThis`・`menuAboutApp`・`menuAboutKDE`・`menuReportBug`・`menuSwitchLanguage`、about text既定引数付き構築、about dataとshowWhatsThis既定引数付き構築、破棄、`menu`、`action`、`appHelpActivated`、`contextHelpActivated`、`aboutApplication`、`aboutKDE`、`reportBug`、`switchApplicationLanguage`、`showAboutApplication`である。許可pathは新規試験sourceと`libs/widgetutils/tests/CMakeLists.txt`の対象固有節だけで、公開header・製品sourceを変更しない。
   help menu、private実装、Widget、menu、action、dialog、timerを実体化せず、help経路、language切替、signal、event loopを実行しない。直接linkはQt Core・Testだけ、xmlgui source/generatedだけをcompile interfaceに含め、新対象4工程・8入力、停止5工程・11入力、近傍`KXMLGUIClientSchemaContractTest`、製品`kritawidgetutils` 274工程・581入力を維持する。
   実装後は構築許可まで待機する。許可後にunknown target・CTest 0件、新5枠、対象CTest・枠個別・20回反復、近傍、無作業再構築、動的接続・AUTOMOC入力・help/menu/action/dialog未解決記号、構文・書式、公開API・`verify-quick`を確認する。実体化・本文実行、Qt Gui・WidgetsまたはKF libraryの直接link、製品library、停止線超過が必要なら止める。
+
+### 第174便の統合結果
+
+- `g174-clone-layer-schema`は開始`libs/image/kis_clone_layer.h`から既存`libs/image/tests/KisImageTypesContractTest.cpp`の5枠へ、型・所有・寿命、clone元・copy方針、device・projection・表示、image・幾何、visitor・clone・更新の未対応全34 APIを対応付けた。CMakeと依存を変えず、clone layer、source layer、image、node、device、projection、visitor、undoを実体化せず、inline clone、dirty、LOD、mask領域、metaobject本文を実行しない4工程・8入力に保った。
+  受渡しcommit`45911b0e65`を統合commit`d0a12de9e3`として取り込み、担当と中央の5枠、対象・既存・近傍CTest、20回反復、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式に成功した。台帳commit`51322b115f`で17,294件対応、12,544件未対応となった。projection、dirty伝播、LOD同期、visitor処理の実行時結果は別契約で扱う。
+- `g174-font-glyph-model-schema`は開始`libs/flake/text/KoFontGlyphModel.h`から新規`libs/flake/tests/KoFontGlyphModelSchemaContractTest.cpp`の5枠へ、型・寿命、role・glyph種別、tree navigation、data・metadata、font face選択の未対応全22 APIを対応付けた。直接linkはQt Core・Testだけとし、Boost、Qt Gui、KF I18n、Freetype、HarfBuzz、Fontconfigをcompile interfaceに限定した。初回compileでQHash・QMap型のcommaが検査macro引数を分割したため、試験source内の型別名へ閉じて依存を増やさず解消した。
+  受渡しcommit`3bc9492b34`を統合commit`6840bcdab7`として取り込み、対象4工程・8入力、5枠、対象・近傍CTest、20回反復、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式に成功した。製品`kritaflake`の読み取り基線は621工程・1,274入力を維持し、台帳commit`cff562dead`で17,316件対応、12,522件未対応となった。glyph照会、font database、OpenType処理、signal・metaobjectの実行時結果は別契約で扱う。
+- `g174-help-menu-schema`は開始`libs/widgetutils/xmlgui/khelpmenu.h`から新規`libs/widgetutils/tests/KHelpMenuSchemaContractTest.cpp`の5枠へ、型・menu識別子、寿命、menu・action参照、help経路、通知の未対応全20 APIを対応付けた。直接linkはQt Core・Testだけとし、help menu、private実装、Widget、menu、action、dialog、timer、language設定、signal本文を実行しない4工程・8入力に保った。
+  受渡しcommit`8373462fa5`を統合commit`e4270b33d1`として取り込み、担当と中央の5枠、対象・近傍CTest、20回反復、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式に成功した。製品`kritawidgetutils`の読み取り基線は274工程・581入力を維持し、台帳commit`f2d7d7b4c1`で17,336件対応、12,502件未対応となった。menu生成、help経路、language切替、signal配送の実行時結果は別契約で扱う。
+- 第174便全体で76 APIを15枠へ重複なく対応付けた。実装を並行し、構成・構築枠だけをclone layer、font glyph model、help menuの順に直列化した。対象・近傍CTest、各20回反復、無作業再構築、公開API検査と`verify-quick`は成功した。製品target、全体build、全体`verify`、Linuxは実行していない。
+  3担当のcleanな作業treeと担当branchを削除して2,602,712 KiB（約2.48 GiB）を回収し、旧不足報告`public-api-missing-g174.json`をごみ箱へ移した。主Ninja木5,636,412 KiB、共有compiler cache 981,900 KiB、最新不足報告`build/tdd-macos/public-api-missing-g175.json` 3,272,816 bytesだけを再利用対象として保持する。次の永続作業は第175便の不足報告から、既存限定対象を優先してpathと所有CMakeが重ならない3責務を先行監査することである。
 
 ### 第173便の先行監査計画
 
