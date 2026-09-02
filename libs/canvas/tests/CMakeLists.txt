@@ -37,6 +37,30 @@ target_include_directories(KisFrameDataSerializerSchemaContractTest PRIVATE
 target_compile_definitions(KisFrameDataSerializerSchemaContractTest PRIVATE kritacanvas_EXPORTS)
 
 kis_add_test(
+    KisCoordinatesConverterSchemaContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KisCoordinatesConverterSchemaContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/widgets
+    ${CMAKE_BINARY_DIR}/libs/widgets
+    ${CMAKE_SOURCE_DIR}/libs/flake
+    ${CMAKE_BINARY_DIR}/libs/flake
+    ${CMAKE_SOURCE_DIR}/libs/image
+    ${CMAKE_BINARY_DIR}/libs/image
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+)
+target_compile_definitions(KisCoordinatesConverterSchemaContractTest PRIVATE
+    kritacanvas_EXPORTS
+    kritaglobal_EXPORTS
+)
+
+kis_add_test(
     KisDisplayColorFilterContractTest.cpp
     LINK_LIBRARIES
         Qt${QT_MAJOR_VERSION}::Core
