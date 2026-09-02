@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 21:57 JST
+- 更新日時: 2026-09-02 22:00 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -34,6 +34,29 @@
 - `g164-image-updater-svg-cursor-schema-audit`は`plugins/tools/svgtexttool/SvgTextCursor.h`の全35 APIを採用した。identity・shape 6、typesetting 9、property bridge 8、property interface照会8、変更4を新規
   `plugins/tools/svgtexttool/tests/SvgTextCursorPropertySchemaContractTest.cpp`の5枠へ対応付ける。hover handle、装飾描画、property merge、2 property setterの既定引数省略形を固定する。既存enum契約は4工程・14入力で入力停止線を超えているため拡張せず、直接linkをQt Core・Gui・Testだけにした
   新対象4工程・8〜9入力、停止5工程・11入力へ分離し、製品`krita_tool_svgtext_static` 2,013工程・4,024入力を維持する。`kis_updater_context.h`は25 APIぎりぎりで公開header自身がthread pool・lock・scheduler・walker・jobの完全型を所有し、宣言解釈だけで責務外閉包へ入るため棄却した。
+
+### 第164便の担当計画
+
+- 実装共通基点は`5c700d53e9`である。3担当は`preparing`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、専用worktree-local `build/tdd-macos`と主作業treeの
+  `/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。統合順はXML GUI window、再生engine、SVG text cursorとし、調整担当だけが`AGENTS.md`、architecture文書、`docs/architecture/public-api-test-contracts.json`、共通不足報告を変更する。3担当の公開header、所有CMake、試験source、生成物は重ならない。
+- `g164-xml-gui-window-schema`は`/Users/masato/Documents/librepaint-g164-xml-gui-window-schema`を所有する。開始`libs/widgetutils/xmlgui/kxmlguiwindow.h`の全28 APIから既存
+  `libs/widgetutils/tests/KKeySequenceWidgetSchemaContractTest.cpp`の5枠`xmlGuiWindowTypeAndOptionSchemaRemainsStable`、`xmlGuiWindowLifetimeAndFeaturePolicySchemaRemainsStable`、`xmlGuiWindowCreationAndSetupSchemaRemainsStable`、
+  `xmlGuiWindowFactoryAndFinalizationSchemaRemainsStable`、`xmlGuiWindowStateNotificationSchemaRemainsStable`へ対応付ける。完全集合はclass・enum・alias・6列挙子9、構築・破棄・help方針3・toolbar方針2・status action 7、GUI作成・2 setup・main window設定4、factory・toolbar action・menu設定・2 finalize・設定dialog 6、
+  状態通知2である。許可pathは既存試験sourceだけであり、CMake・公開header・製品sourceを変更しない。構築、help表示、GUI作成、2 setup overloadの既定引数省略形を未評価式で固定する。対象4工程・8入力、停止5工程・11入力、近傍`KStandardActionEnumContractTest`、製品`kritawidgetutils` 274工程・581入力の変更前後集合完全一致を確認する。
+  旧binaryの新5枠Unknown、対象CTest・枠個別・20回反復、既存枠、近傍、無作業再構築、動的接続・AUTOMOC入力・XML GUI window未解決記号、構文・書式、公開API・`verify-quick`を確認する。window、widget、GUI factory、action、toolbar、設定backend、signal・slot・metaobject、event loopを生成または実行し、
+  CMake・依存変更、Qt Widgets link、製品接続、公開header変更、製品計画差、停止線超過が必要なら止める。
+- `g164-playback-engine-schema`は`/Users/masato/Documents/librepaint-g164-playback-engine-schema`を所有する。開始`libs/ui/animation/KisPlaybackEngine.h`の全35 APIから新規
+  `libs/ui/tests/KisPlaybackEngineSchemaContractTest.cpp`の5枠`playbackEngineTypeLifetimeAndSeekPolicySchemaRemainsStable`、`playbackStatisticsValueSchemaRemainsStable`、`playbackTransportAndSeekSignaturesRemainStable`、
+  `playbackKeyframeNavigationSignaturesRemainStable`、`playbackAudioDropPolicyAndNotificationSignaturesRemainStable`へ対応付ける。完全集合はclass・構築・破棄・enum・3列挙子・alias 8、統計struct・3 member 4、transport 4・seek・frame移動4の9、keyframe移動6、mute2・drop2・能力2・統計取得・通知8である。許可pathは新規試験sourceと
+  `libs/ui/tests/CMakeLists.txt`の対象固有節だけである。局所具象probeは宣言だけとし、親省略構築とseek option省略形を未評価式で固定する。直接linkはQt Core・Testだけ、includeはUI・flake source/generatedとQt Gui・Widgets interface、definitionは`kritaapplicationui_EXPORTS`・`kritaflake_EXPORTS`だけとし、公開headerをsourceやAUTOMOC入力へ加えない。
+  新対象4工程・8入力、停止5工程・11入力、近傍`KisAnimationFrameCacheFwdContractTest`、製品`kritaapplicationui` 1,970工程・3,940入力の集合を監査基準として維持する。未知target・CTest 0件、新5枠、対象CTest・枠個別・20回反復、近傍、無作業再構築、動的接続・AUTOMOC入力・再生engine未解決記号、構文・書式、公開API・`verify-quick`を確認する。
+  engine・probe・timer・audio・image・canvas・node・widget・signal・metaobject・event loopを生成または実行し、製品targetを含む`build-incremental ... plan`、製品source・OBJECT・shared、Qt Gui・Widgets link、`kritatestsdk`、公開header変更、停止線超過が必要なら止める。
+- `g164-svg-text-cursor-schema`は`/Users/masato/Documents/librepaint-g164-svg-text-cursor-schema`を所有する。開始`plugins/tools/svgtexttool/SvgTextCursor.h`の全35 APIから新規
+  `plugins/tools/svgtexttool/tests/SvgTextCursorPropertySchemaContractTest.cpp`の5枠`svgTextCursorIdentityAndShapeSignaturesRemainStable`、`svgTextCursorTypeSettingSignaturesRemainStable`、`svgTextCursorPropertyBridgeSignaturesRemainStable`、
+  `svgTextCursorPropertyInterfaceQuerySignaturesRemainStable`、`svgTextCursorPropertyInterfaceMutationSignaturesRemainStable`へ対応付ける。完全集合はcursor class・構築・破棄・shape取得設定通知6、typesetting・handle・装飾9、property取得・merge・action・通知・interface・更新8、property interface class・構築・破棄・照会5の8、通知2・setter 2の4である。許可pathは新規試験sourceと
+  `plugins/tools/svgtexttool/tests/CMakeLists.txt`の対象固有節だけである。hover、装飾描画の2〜4引数形、property mergeの1〜3引数形、2 setterの1引数形を未評価式で固定する。直接linkはQt Core・Gui・Testだけ、includeはsvgtexttool、flake text・svg、global、pigment、resourcesのsource/generatedとQt Widgets・Xml、KF I18n、Boost・OpenEXR・Imath interface、definitionは所有exportだけとし、公開headerをsourceやAUTOMOC入力へ加えない。
+  新対象4工程・8〜9入力、停止5工程・11入力、近傍`SvgTextCursorEnumContractTest`、製品`krita_tool_svgtext_static` 2,013工程・4,024入力の集合を監査基準として維持する。未知target・CTest 0件、新5枠、対象CTest・枠個別・20回反復、近傍、無作業再構築、動的接続・AUTOMOC入力・SVG text cursor未解決記号、構文・書式、公開API・`verify-quick`を確認する。
+  cursor・property interface・canvas・shape・painter・action・property変更・描画・signal・metaobject・event loopを生成または実行し、製品targetを含む`build-incremental ... plan`、Qt Widgets・Xml・KF・OpenEXR・製品・`kritatestsdk`へのlink、公開header変更、停止線超過が必要なら止める。
 
 ### 第163便の先行監査計画
 
