@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-03 03:02 JST
+- 更新日時: 2026-09-03 03:57 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -47,6 +47,20 @@
   `fileDialogSelectionResultSignaturesRemainStable`、`fileDialogFilterNotificationSignatureRemainsStable`へ対応付ける。完全集合はclass、`DialogType`と`OpenFile`・`OpenFiles`・`OpenDirectory`・`ImportFile`・`ImportFiles`・`ImportDirectory`・`SaveFile`の値0〜6、構築、破棄、`setCaption`、force既定引数を含む`setDefaultDir`、`setDirectoryUrl`、`setImageFilters`、default MIME既定引数を含む`setMimeTypeFilters`、`setNameFilter`、`selectNameFilter`、`filename`、`filenames`、`selectedMimeType`、`selectedNameFilter`、`onFilterSelected`である。許可pathは新規試験sourceと`libs/widgetutils/tests/CMakeLists.txt`の対象固有節だけで、公開header・製品sourceを変更しない。
   dialog、Widget、`QFileDialog`、filesystem、設定、event loop、private pointerを実体化しない。直接linkはQt Core・Testだけ、Qt Gui・Widgetsはcompile interfaceに限定し、新対象4工程・8入力、停止5工程・11入力、近傍`KisCursorSchemaContractTest`、比較対象`KKeySequenceWidgetSchemaContractTest`、製品`kritawidgetutils` 274工程・581入力を維持する。
   実装後は構築許可まで待機する。許可後にunknown target・CTest 0件、新5枠、対象CTest・枠個別・20回反復、近傍、無作業再構築、動的接続・AUTOMOC入力・dialog依存値の未解決記号、構文・書式、公開API・`verify-quick`を確認する。dialogや依存値を実体化し、filesystem・設定・event loopを実行し、製品libraryへlinkし、停止線を超える必要があれば止める。
+
+### 第172便の統合結果
+
+- `g172-selection-mask-schema`は受渡しcommit`2e703f5f2f`を統合commit`1d82a12e53`として取り込んだ。開始`libs/image/kis_selection_mask.h`から既存
+  `libs/image/tests/KisImageTypesContractTest.cpp`の5枠へ、所有・寿命、visitor・clone、幾何、表示・状態、selection・modelの残存全22 APIを対応付けた。mask、image、node、selection、visitor、undo、metaobjectとinline `clone()`本文を実行せず、CMakeと依存を変えない4工程・8入力を維持した。
+  担当と中央の対象CTest、担当の5枠個別・20回反復・既存枠・近傍、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式に成功した。台帳commit`c8b9af2e24`で17,142件対応、12,696件未対応となった。selection内容、visitor配送、可視状態変更の実行時結果は別契約で扱う。
+- `g172-selection-schema`は受渡しcommit`b6c3ce05f2`を統合commit`d390eeca7e`として取り込んだ。開始`libs/flake/KoSelection.h`から新規
+  `libs/flake/tests/KoSelectionSchemaContractTest.cpp`の5枠へ、identity・寿命、幾何・active layer、membership、filtered shape view、mutation・通知・描画の全24 APIを対応付けた。直接linkをQt Core・Gui・Testだけに保ち、selection、shape、layer、painter、QObjectを実体化しない4工程・8入力とした。
+  担当と中央の対象CTest、担当の5枠個別・20回反復・近傍、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式に成功した。中央再生成は構成3.4秒・生成11.2秒だった。製品`kritaflake`の読み取り基線は621工程・1,274入力を維持し、台帳commit`2786eac902`で17,166件対応、12,672件未対応となった。selection操作、描画、signal配送の実行時結果は別契約で扱う。
+- `g172-file-dialog-schema`は受渡しcommit`3ee24245a6`を統合commit`09931ef032`として取り込んだ。開始`libs/widgetutils/KoFileDialog.h`から新規
+  `libs/widgetutils/tests/KoFileDialogSchemaContractTest.cpp`の5枠へ、dialog型、寿命、設定、選択結果、filter通知の全23 APIを対応付けた。直接linkをQt Core・Testだけに保ち、既定引数2件を省略形でも固定し、dialog、filesystem、設定、event loop、private pointerを実体化しない4工程・8入力とした。
+  担当と中央の対象CTest、担当の5枠個別・20回反復・近傍、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式に成功した。中央再生成は構成3.5秒・生成11.2秒だった。製品`kritawidgetutils`の読み取り基線は274工程・581入力を維持し、台帳commit`56a07f4f08`で17,189件対応、12,649件未対応となった。dialog表示、filesystem・設定操作、event loopの実行時結果は別契約で扱う。
+- 第172便全体で69 APIを15枠へ重複なく対応付けた。実装を並行し、構成・構築枠だけをselection mask、selection、file dialogの順に直列化した。対象・近傍CTest、各20回反復、無作業再構築、公開API検査と`verify-quick`は成功した。製品target、全体build、全体`verify`、Linuxは実行していない。
+  3担当のcleanな作業treeと担当branchを削除して2,641,084 KiB（約2.52 GiB）を回収し、旧不足報告`public-api-missing-g172.json`をごみ箱へ移した。主Ninja木5,652,688 KiB、共有compiler cache 982,980 KiB、最新不足報告`build/tdd-macos/public-api-missing-g173.json` 3,232 KiBだけを再利用対象として保持する。次の永続作業は第173便の不足報告から、既存限定対象を優先してpathと所有CMakeが重ならない3責務を先行監査することである。
 
 ### 第171便の先行監査計画
 
