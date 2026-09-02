@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 13:52 JST
+- 更新日時: 2026-09-02 14:00 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -22,6 +22,22 @@
   frame生成・更新・signal面またはpaint layerの構築・paint device・projection・channel・animation面を、image、node、paint device、frame生成、stroke、scheduler、signal、GUI event loopの実体化なしで閉じる。
 - 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから契約先または移動先、許可path、固有停止条件、
   比較候補の棄却根拠を含む。既存`build/tdd-macos`の計画は読み取り専用で測定し、構成や構築を開始しない。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
+- `g151-application-config-preferences-schema-audit`は`kis_config.h`から描画性能・backend方針25 APIを採用した。vector・LOD方針6、texture pipeline 7、projection backend 4、診断logging 4、backend互換4を既存
+  `KisConfigEnumContractTest`の未評価型5枠へ対応付ける。CMakeと直接依存を変更せず対象4工程・15入力、停止5工程・18入力、製品`kritaapplication` 1,227工程・2,472入力を維持する。現在の対象命令集合hashは
+  `a62ef0a3256fb3263ec9a52c9cc304c63d4606c27eb089d3165bfed44240d787`、入力集合hashは`9e0f4c721d6cb133bdc3619651c9d6d6322f62af8539aa8d64212854a17f9ee5`、製品命令集合hashは
+  `bb7627024a454e54169ce3fc3c6c3c16056e113e32767194f81e90c940cc0c62`、入力集合hashは`285be4e058b5e6cfb9fe8b12947ac273c624a179fabf80bd062295a5df1403c9`である。
+  `kis_dlg_preferences.h`は16個のdialog・widget classと複数tabへ責務が分散し、非GUIの局所値面が25 API未満であるため棄却した。
+- `g151-flake-marker-shape-manager-schema-audit`は`KoMarker.h`の全29 APIを採用した。型・寿命・座標列挙7、座標系・基準8、向き・名前・等価6、shape・幾何5、描画・stroke 3を新規
+  `KoMarkerSchemaContractTest`の未評価型5枠へ対応付ける。直接linkはQt Gui・Test・Xmlだけ、新対象4工程・8入力、停止5工程・11入力を予測し、製品`kritaflake` 621工程・1,274入力と保留集合を維持する。近傍
+  `KoShapeEnumContractTest`の命令集合hashは`09ccb773c249421c698b1c6999d75041ba5291f41c55d9ccbe77c52652e407cb`、入力集合hashは
+  `e0ea3aa5b91dda85d79add6d117ba972754e188779857d92090839756903d87b`、製品命令集合hashは`2fc3040d1c607ecd81879d6ec00ad8a4a161787da567b484bc934a687afefb07`、入力集合hashは
+  `1a30862a8e0463c6578045c344b23088d4909ac6017407162709d283413b8cb5`、保留集合hashは`9250d67bdf59e467ed07775ea4455d48070d2e65d7474c380b70e7faef23fdd4`である。
+  `KoShapeManager.h`はmanager、paint job所有値、shape interface、selection、canvas、描画、signalへ責務が分散し、不完全shape型を所有する`unique_ptr`の実体化riskもあるため棄却した。
+- `g151-image-animation-paint-layer-schema-audit`は`kis_image_animation_interface.h`の全58 APIを採用した。型・時間切替flag 9、時間軸・書出し20、切替・無効化11、生成lock 6、通知signal 12を既存
+  `KisImageTypesContractTest`の未評価型5枠へ対応付ける。CMakeと直接依存を変更せず対象4工程・8入力、停止5工程・11入力、製品`kritaimage` 1,196工程・2,416入力を維持する。現在の対象命令集合hashは
+  `b83c09fe3d4b3ca467659d4896a906a8683feff274f897056f537c54fbd3df76`、入力集合hashは`42c0bdca62da9111fd79736a3055bd233ee32342bc2c9ae69fc577a83a88cf81`、製品命令集合hashは
+  `8b3e011450f2ca342e0ce523cc1696c2e2b3970456a8cb097553ee5fdf79930f`、入力集合hashは`76f2aa4251a6bf4e2adf2a1e822bc9d629753b2e93e5b877ee4eae23364940bc`である。
+  `kis_paint_layer.h`はnode・device・visitor継承、LOD・onion skin・keyframe、projection・signalへ型閉包と責務が広がるため棄却した。
 
 ### 第150便の先行監査計画
 
