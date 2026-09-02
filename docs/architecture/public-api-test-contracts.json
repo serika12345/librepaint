@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 15461
+    "expectedMissingApis": 15434
   },
   "contracts": [
     {
@@ -41671,6 +41671,78 @@
         "method:KisDabRenderingJobRunner::executeOneJob(KisDabRenderingJob * job,KisDabCacheUtils::DabRenderingResources * resources,KisDabRenderingQueue * parentQueue)",
         "method:KisDabRenderingJobRunner::run()",
         "method:KisDabRenderingJobRunner::~KisDabRenderingJobRunner()"
+      ]
+    },
+    {
+      "target": "KisCursorSchemaContractTest",
+      "source": "libs/widgetutils/tests/KisCursorSchemaContractTest.cpp",
+      "test": "KisCursorSchemaContractTest::iconStandardSizeSchemaRemainsStable",
+      "behavior": "icon utilityは16から128までの標準寸法と利用場所groupの公開列挙型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KisIconUtils::Group",
+        "enum:KisIconUtils::StdSizes",
+        "enumerator:KisIconUtils::StdSizes::SizeEnormous",
+        "enumerator:KisIconUtils::StdSizes::SizeHuge",
+        "enumerator:KisIconUtils::StdSizes::SizeLarge",
+        "enumerator:KisIconUtils::StdSizes::SizeMedium",
+        "enumerator:KisIconUtils::StdSizes::SizeSmall",
+        "enumerator:KisIconUtils::StdSizes::SizeSmallMedium"
+      ]
+    },
+    {
+      "target": "KisCursorSchemaContractTest",
+      "source": "libs/widgetutils/tests/KisCursorSchemaContractTest.cpp",
+      "test": "KisCursorSchemaContractTest::iconGroupSchemaRemainsStable",
+      "behavior": "icon utilityの利用場所groupは無指定、desktop、toolbar、panel、dialog、userの安定した順序と境界別名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "enumerator:KisIconUtils::Group::Desktop",
+        "enumerator:KisIconUtils::Group::Dialog",
+        "enumerator:KisIconUtils::Group::FirstGroup",
+        "enumerator:KisIconUtils::Group::LastGroup",
+        "enumerator:KisIconUtils::Group::MainToolbar",
+        "enumerator:KisIconUtils::Group::NoGroup",
+        "enumerator:KisIconUtils::Group::Panel",
+        "enumerator:KisIconUtils::Group::Small",
+        "enumerator:KisIconUtils::Group::Toolbar",
+        "enumerator:KisIconUtils::Group::User"
+      ]
+    },
+    {
+      "target": "KisCursorSchemaContractTest",
+      "source": "libs/widgetutils/tests/KisCursorSchemaContractTest.cpp",
+      "test": "KisCursorSchemaContractTest::iconLoadingThemeAndCacheSignaturesRemainStable",
+      "behavior": "icon utilityは名前による読込み、暗色theme照会、cache消去、読込み済み名一覧の公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisIconUtils::allUniqueLoadedIconNames()",
+        "function:KisIconUtils::clearIconCache()",
+        "function:KisIconUtils::loadIcon(const QString & name)",
+        "function:KisIconUtils::useDarkIcons()"
+      ]
+    },
+    {
+      "target": "KisCursorSchemaContractTest",
+      "source": "libs/widgetutils/tests/KisCursorSchemaContractTest.cpp",
+      "test": "KisCursorSchemaContractTest::iconObjectAndActionUpdateSignaturesRemainStable",
+      "behavior": "icon utilityは一般QObject、抽象button、actionへ登録済みiconを更新する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisIconUtils::updateIcon(QAbstractButton * button)",
+        "function:KisIconUtils::updateIcon(QAction * action)",
+        "function:KisIconUtils::updateIconCommon(QObject * object)"
+      ]
+    },
+    {
+      "target": "KisCursorSchemaContractTest",
+      "source": "libs/widgetutils/tests/KisCursorSchemaContractTest.cpp",
+      "test": "KisCursorSchemaContractTest::iconContainerUpdateSignaturesRemainStable",
+      "behavior": "icon utilityはcombo boxとtab barが保持する項目iconを更新する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisIconUtils::updateIcon(QComboBox * comboBox)",
+        "function:KisIconUtils::updateIcon(QTabBar * tabBar)"
       ]
     }
   ]
