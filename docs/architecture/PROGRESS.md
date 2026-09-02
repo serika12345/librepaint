@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 14:18 JST
+- 更新日時: 2026-09-02 14:27 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -22,6 +22,21 @@
   memory・swap・clock・通知面またはtiled data managerの領域・読書き・転送・memento面を、store singleton、tile data、memory、swap、clock、manager、iterator、memento、lock、I/Oの実体化なしで閉じる。
 - 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから契約先または移動先、許可path、固有停止条件、
   比較候補の棄却根拠を含む。既存`build/tdd-macos`の計画は読み取り専用で測定し、構成や構築を開始しない。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
+- `g152-canvas-coordinate-tool-base-schema-audit`は`kis_coordinates_converter.h`の未対応86 APIからout-of-line座標変換状態・幾何68 APIを採用した。型・canvas状態18、zoom・回転・mirror 21、transform・still point 13、
+  image幾何14、checker投影2を新規`KisCoordinatesConverterSchemaContractTest`の未評価型5枠へ対応付ける。直接linkはQt Core・Gui・Testだけ、新対象4工程・8入力、停止5工程・11入力を予測し、製品`kritacanvas`
+  1,220工程・2,460入力を維持する。近傍`KisFrameDataSerializerSchemaContractTest`の命令集合hashは`5a407d02965d620076f23d36ee701fddd577fde4b8c4253e21a4593018952d6f`、入力集合hashは
+  `3b9d4ab3393168ed9467e1028d6019007e0c5d608b30e780580e23e91087086c`、製品命令集合hashは`57f6a7f66dc958cf75e84b555efa2f23469ff9d58e98f01c5118c04cdfed5e2a`、入力集合hashは
+  `07cd5d7bad4e32f577612c195c3a83d8ae7e828b87bbfe8f0cd75015db097c81`である。Traitsと14変換templateの18 APIはinline本文実体化riskのため保留し、`KoToolBase.h`はGUI・入力・action・signal責務と依存が広いため棄却した。
+- `g152-pigment-registry-gradient-schema-audit`は`KoStopGradient.h`の全40 APIを採用した。型・列挙9、stop値9、gradient寿命・resource型8、stop集合・可変色7、変換・永続化7を新規
+  `KoStopGradientSchemaContractTest`の未評価型5枠へ対応付ける。直接linkはQt Core・Gui・TestとBoost headerだけ、新対象4工程・8入力、停止5工程・11入力を予測し、製品`kritapigment` 367工程・764入力を維持する。
+  近傍`KoGradientSegmentSchemaContractTest`の命令集合hashは`b018b298403307bda4e71eee11a904d22740157e6fc0567bff07c9499a64af80`、入力集合hashは
+  `ee89748c7e066cfd19124b285d8657a092b72f7328df51fe0893a0a0c28e906f`、製品命令集合hashは`3b4b2551060ce396e760303c6c8267bfd467111e857b576eee57c1565db40eea`、入力集合hashは
+  `bf5edd640fbf030d1ea10b191f4635fe33c618ae166776ed804ed21b494f1f6e`である。`KoColorSpaceRegistry.h`は純粋型面が25 API未満で、factory・profile・conversion・singletonへ責務と閉包が分散するため棄却した。
+- `g152-tile-store-manager-schema-audit`は`kis_tile_data_store.h`の全33 APIを採用した。型・memory値10、singleton・統計6、iterator 6、tile寿命7、保守4を既存`KisTileDataSchemaContractTest`の未評価型5枠へ
+  対応付ける。同じtile data保存責務を所有する109行の試験sourceを使い、1,714行の汎用`KisImageTypesContractTest`への追加を避ける。CMakeと直接依存を変更せず対象4工程・8入力、停止5工程・11入力、製品
+  `kritaimage` 1,196工程・2,416入力を維持する。現在の対象命令集合hashは`857d70e0d3785e8cb797634378ca81b111ef1688942c1b9bd31bc9cc0b27b348`、入力集合hashは
+  `df820efe3d083b74721d0810891808a6509980f9d2ff4714b2e06d397bc91da5`、製品命令集合hashは`8b3e011450f2ca342e0ce523cc1696c2e2b3970456a8cb097553ee5fdf79930f`、入力集合hashは
+  `76f2aa4251a6bf4e2adf2a1e822bc9d629753b2e93e5b877ee4eae23364940bc`である。`kis_tiled_data_manager.h`はtile access・履歴・I/O・manager操作へ責務が分散し、inline本文がhash table・memento・lockへ直結するため棄却した。
 
 ### 第151便の先行監査計画
 
