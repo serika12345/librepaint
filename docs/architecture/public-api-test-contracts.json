@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 14236
+    "expectedMissingApis": 14205
   },
   "contracts": [
     {
@@ -44516,6 +44516,82 @@
         "method:KoSvgTextShape::getPositionsAndRotationsForRange(const int startPos,const int endPos) const",
         "method:KoSvgTextShape::propertiesForPos(const int pos,bool inherited=false) const",
         "method:KoSvgTextShape::propertiesForRange(const int startPos,const int endPos,bool inherited=false) const"
+      ]
+    },
+    {
+      "target": "PaletteSchemaContractTest",
+      "source": "libs/libkis/tests/PaletteSchemaContractTest.cpp",
+      "test": "PaletteSchemaContractTest::paletteOwnershipLifetimeAndEqualitySchemaRemainsStable",
+      "behavior": "script公開paletteはQObject所有、resourceからの構築、仮想破棄、等価・非等価比較に関する厳密な公開型と既定parentを維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:Palette",
+        "method:Palette::Palette(Resource * resource,QObject * parent=0)",
+        "method:Palette::operator !=(const Palette & other) const",
+        "method:Palette::operator ==(const Palette & other) const",
+        "method:Palette::~Palette()"
+      ]
+    },
+    {
+      "target": "PaletteSchemaContractTest",
+      "source": "libs/libkis/tests/PaletteSchemaContractTest.cpp",
+      "test": "PaletteSchemaContractTest::paletteGridAndCountSignaturesRemainStable",
+      "behavior": "script公開paletteはgridの列・行と全体・group別の色数・slot数を照会・更新する厳密な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:Palette::colorsCountGroup(QString name)",
+        "method:Palette::colorsCountTotal()",
+        "method:Palette::columnCount()",
+        "method:Palette::numberOfEntries() const",
+        "method:Palette::rowCount()",
+        "method:Palette::rowCountGroup(QString name)",
+        "method:Palette::setColumnCount(int columns)",
+        "method:Palette::setRowCountGroup(int rows,QString name)",
+        "method:Palette::slotCount()",
+        "method:Palette::slotCountGroup(QString name)"
+      ]
+    },
+    {
+      "target": "PaletteSchemaContractTest",
+      "source": "libs/libkis/tests/PaletteSchemaContractTest.cpp",
+      "test": "PaletteSchemaContractTest::paletteGroupOperationSignaturesRemainStable",
+      "behavior": "script公開paletteはgroup一覧、追加・削除・改名・移動に関する厳密な公開関数型と既定引数を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:Palette::addGroup(QString name)",
+        "method:Palette::changeGroupName(QString oldGroupName,QString newGroupName)",
+        "method:Palette::groupNames() const",
+        "method:Palette::moveGroup(const QString & groupName,const QString & groupNameInsertBefore=QString ())",
+        "method:Palette::removeGroup(QString name,bool keepColors=true)",
+        "method:Palette::renameGroup(QString oldGroupName,QString newGroupName)"
+      ]
+    },
+    {
+      "target": "PaletteSchemaContractTest",
+      "source": "libs/libkis/tests/PaletteSchemaContractTest.cpp",
+      "test": "PaletteSchemaContractTest::paletteEntryOperationSignaturesRemainStable",
+      "behavior": "script公開paletteは全体・group別のswatch取得、追加・削除に関する現行・旧公開関数型と既定groupを維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:Palette::addEntry(Swatch entry,QString groupName=QString ())",
+        "method:Palette::colorSetEntryByIndex(int index)",
+        "method:Palette::colorSetEntryFromGroup(int index,const QString & groupName)",
+        "method:Palette::entryByIndex(int index)",
+        "method:Palette::entryByIndexFromGroup(int index,const QString & groupName)",
+        "method:Palette::removeEntry(int index)",
+        "method:Palette::removeEntryFromGroup(int index,const QString & groupName)"
+      ]
+    },
+    {
+      "target": "PaletteSchemaContractTest",
+      "source": "libs/libkis/tests/PaletteSchemaContractTest.cpp",
+      "test": "PaletteSchemaContractTest::paletteMetadataAndPersistenceSignaturesRemainStable",
+      "behavior": "script公開paletteはcommentの照会・更新と保存結果に関する厳密な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:Palette::comment()",
+        "method:Palette::save()",
+        "method:Palette::setComment(QString comment)"
       ]
     }
   ]
