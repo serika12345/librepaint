@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 19:33 JST
+- 更新日時: 2026-09-02 19:39 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -32,6 +32,23 @@
 - 再代替の`g160-flake-shape-svg-loading-context-schema-audit`は基点`d3702aebf8`で`libs/flake/KoShapeLoadingContext.h`の未対応29 APIを主候補とし、`libs/flake/svg/SvgLoadingContext.h`の未対応26 APIを比較する。shapeまたはSVG読込contextの
   型・寿命・追加属性値・store・資源・layer・shape識別・共有data・style・XML base・外部file取得署名面を、store・shape・resource・XML・CSS・filesystem・network・signal・metaobject・大域状態の実体化なしで閉じる。
   前記共通条件、報告項目、読み取り専用範囲を引き継ぎ、採用済み画像・widgetutils候補とpath、CMake、生成物が重ならないことを確認する。
+- `g160-image-data-config-schema-audit`は`libs/image/kis_datamanager.h`の全35 APIを採用した。所有・既定画素7、範囲・領域・連続性8、pixel転送・更新8、copy・履歴8、永続化・purge・pool 4を既存
+  `libs/image/tests/KisImageTypesContractTest.cpp`の5枠へ対応付ける。`readBytes`と`writeBytes`のstride省略形も未評価式で固定する。CMakeと直接依存を変えず対象4工程・8入力、停止5工程・11入力、製品
+  `kritaimage` 1,196工程・2,416入力を維持する。対象命令集合hashは`46c1249e9f94483432bcccd677e79f48c1ed1ad72be6e848f3c52ed69c955504`、入力集合hashは
+  `42c0bdca62da9111fd79736a3055bd233ee32342bc2c9ae69fc577a83a88cf81`、製品命令集合hashは`e055c792a96a6478029f98d6f7ef6eb7c32df4c7f228092ee25a0aaeff5be7ab`、入力集合hashは
+  `76f2aa4251a6bf4e2adf2a1e822bc9d629753b2e93e5b877ee4eae23364940bc`である。`kis_image_config.h`の残り37 APIはproofing、import/export、性能、brush・mask上限、layer改名、selection表示などへ分散するため棄却した。
+- `g160-widgetutils-window-keysequence-schema-audit`は`libs/widgetutils/xmlgui/kkeysequencewidget.h`の全29 APIを採用した。型・列挙・flags 10、寿命・捕捉4、競合方針6、shortcut値5、関連・通知4を新規
+  `libs/widgetutils/tests/KKeySequenceWidgetSchemaContractTest.cpp`の5枠へ対応付ける。validationとshortcut flagsの値、親省略構築、validation省略設定を固定する。直接linkはQt Gui・Testだけ、Qt Widgetsはinterface includeとし、新対象
+  4工程・8入力、停止5工程・11入力、製品`kritawidgetutils` 274工程・581入力を維持する。近傍`KStandardActionEnumContractTest`の命令集合hashは
+  `2bda8b4ea4f3e398c62e0537419c708ace1ce10e2981180765de32c5a5915b6d`、入力集合hashは`3a43732d43574755ffbd79d0237dbda81f6f026a016f4e600377cb6c6b31e623`、製品命令集合hashは
+  `68db313f3adcae19160bfad2912807a324750413d4c8207b39bbd5d2457f19a7`、入力集合hashは`f46d65e23e89a75da7a65b85d61a6816aabd467fd38a4bb4ef1f09ed15707df8`である。`kxmlguiwindow.h`は三重継承、
+  XML GUI factory、toolbar・status action、KConfig復元へ閉包が広がるため棄却した。
+- `g160-flake-shape-svg-loading-context-schema-audit`は`libs/flake/KoShapeLoadingContext.h`の全29 APIを採用した。追加属性値6、identity・store・resource 6、layer・z-index・section 7、shape識別・subitem・updater 6、
+  shared・静的追加属性4を新規`libs/flake/tests/KoShapeLoadingContextSchemaContractTest.cpp`の5枠へ対応付ける。追加属性値の保持・copy独立性・nameだけの等価則とMIME判定の既定引数省略形を固定する。直接linkはQt Core・Testだけ、
+  新対象4工程・8入力、停止5工程・11入力、製品`kritaflake` 621工程・1,274入力を維持する。近傍`KoShapeSavingContextSchemaContractTest`の命令集合hashは
+  `1123a608b1a85c0d39eb5b06fe43d3220b4c41b1754bcef4ccb3f80ab826adc6`、入力集合hashは`fece3acc6f98a2846816ff9374adc56caafa64c6425b9f3b468e4e7d916e7e75`、製品命令集合hashは
+  `2fc3040d1c607ecd81879d6ec00ad8a4a161787da567b484bc934a687afefb07`、入力集合hashは`1a30862a8e0463c6578045c344b23088d4909ac6017407162709d283413b8cb5`である。`SvgLoadingContext.h`はDOM、
+  SVG text property、graphics context、CSS、profile、外部file取得へ責務と閉包が広がるため棄却した。
 
 ### 第159便の先行監査計画
 
