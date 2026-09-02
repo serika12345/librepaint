@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 14340
+    "expectedMissingApis": 14297
   },
   "contracts": [
     {
@@ -44277,6 +44277,94 @@
         "method:psd_layer_effects_shadow_base::gradientLink() const",
         "method:psd_layer_effects_shadow_base::setContourLookupTable(const quint8 * value)",
         "method:psd_layer_effects_shadow_base::setGradient(KoAbstractGradientSP value)"
+      ]
+    },
+    {
+      "target": "KisBrushSchemaContractTest",
+      "source": "libs/brush/tests/KisBrushSchemaContractTest.cpp",
+      "test": "KisBrushSchemaContractTest::brushIdentityAndTypeSchemaRemainsStable",
+      "behavior": "brushは共有pointer別名、基底・着色情報型、brush種別と適用方式の公開列挙型・値順を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisBrushSP",
+        "alias:KoAbstractGradientSP",
+        "class:KisBrush",
+        "class:KisBrush::ColoringInformation",
+        "enum:enumBrushApplication",
+        "enum:enumBrushType",
+        "enumerator:enumBrushApplication::ALPHAMASK",
+        "enumerator:enumBrushApplication::GRADIENTMAP",
+        "enumerator:enumBrushApplication::IMAGESTAMP",
+        "enumerator:enumBrushApplication::LIGHTNESSMAP",
+        "enumerator:enumBrushType::IMAGE",
+        "enumerator:enumBrushType::INVALID",
+        "enumerator:enumBrushType::MASK",
+        "enumerator:enumBrushType::PIPE_IMAGE",
+        "enumerator:enumBrushType::PIPE_MASK"
+      ]
+    },
+    {
+      "target": "KisBrushSchemaContractTest",
+      "source": "libs/brush/tests/KisBrushSchemaContractTest.cpp",
+      "test": "KisBrushSchemaContractTest::brushColoringConstantsAndMetadataSchemaRemainsStable",
+      "behavior": "brushは種別metadata key、既定lightness・softness係数と着色情報の色・行列移動・仮想破棄に関する公開型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisBrush::brushTypeMetaDataKey",
+        "method:KisBrush::ColoringInformation::color() const",
+        "method:KisBrush::ColoringInformation::nextColumn()",
+        "method:KisBrush::ColoringInformation::nextRow()",
+        "method:KisBrush::ColoringInformation::~ColoringInformation()",
+        "variable:DEFAULT_LIGHTNESS_STRENGTH",
+        "variable:DEFAULT_SOFTNESS_FACTOR"
+      ]
+    },
+    {
+      "target": "KisBrushSchemaContractTest",
+      "source": "libs/brush/tests/KisBrushSchemaContractTest.cpp",
+      "test": "KisBrushSchemaContractTest::brushSizeAndAngleSignaturesRemainStable",
+      "behavior": "brushはpixel寸法、有効size、scale、angleを照会・更新する厳密な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisBrush::angle() const",
+        "method:KisBrush::height() const",
+        "method:KisBrush::scale() const",
+        "method:KisBrush::setAngle(qreal _angle)",
+        "method:KisBrush::setScale(qreal _scale)",
+        "method:KisBrush::setUserEffectiveSize(qreal value)",
+        "method:KisBrush::userEffectiveSize() const",
+        "method:KisBrush::width() const"
+      ]
+    },
+    {
+      "target": "KisBrushSchemaContractTest",
+      "source": "libs/brush/tests/KisBrushSchemaContractTest.cpp",
+      "test": "KisBrushSchemaContractTest::brushSpacingPolicySignaturesRemainStable",
+      "behavior": "brushは手動spacingと自動spacingの有効性・係数を照会・更新する厳密な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisBrush::autoSpacingActive() const",
+        "method:KisBrush::autoSpacingCoeff() const",
+        "method:KisBrush::setAutoSpacing(bool active,qreal coeff)",
+        "method:KisBrush::setSpacing(double spacing)",
+        "method:KisBrush::spacing() const"
+      ]
+    },
+    {
+      "target": "KisBrushSchemaContractTest",
+      "source": "libs/brush/tests/KisBrushSchemaContractTest.cpp",
+      "test": "KisBrushSchemaContractTest::brushApplicationPolicySignaturesRemainStable",
+      "behavior": "brushは種別・適用方式、gradient・lightness保持、cache・piercing対応、resource分類を照会・更新する厳密な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisBrush::applyingGradient() const",
+        "method:KisBrush::brushApplication() const",
+        "method:KisBrush::brushType() const",
+        "method:KisBrush::isPiercedApprox() const",
+        "method:KisBrush::preserveLightness() const",
+        "method:KisBrush::resourceType() const",
+        "method:KisBrush::setBrushApplication(enumBrushApplication brushApplication)",
+        "method:KisBrush::supportsCaching() const"
       ]
     }
   ]
