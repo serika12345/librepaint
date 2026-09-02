@@ -2,12 +2,21 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-03 01:18 JST
+- 更新日時: 2026-09-03 02:14 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
+
+### 第171便の先行監査計画
+
+- 監査共通基点は`945bff2866`、入力は`build/tdd-macos/public-api-missing-g171.json`である。3担当は`auditing`の読み取り専用とし、製品・試験・CMake・script・台帳・文書を変更せず、構成、構築、試験、Git操作、追加委任も行わない。
+  一つの公開責務から20〜80 APIを最大5枠へ固定し、既存限定対象またはheader限定の4〜10工程程度の対象で、製品共有libraryと`kritatestsdk`へ接続しない候補だけを採用する。製品targetを引数にする`build-incremental ... plan`と製品buildは実行せず、既存Ninja木のquery・commands・inputsだけを読み取る。
+- `g105-paintop-value-audit`はpaintop・image・pigment・値型から、第170便のedge detectionを除外して一責務を選ぶ。
+- `g105-svg-value-audit`はflake・SVG・vector・documentから、第170便のtool baseを除外して一責務を選ぶ。
+- `g105-widget-connection-audit`はwidgetutils・widgets・libkis・軽量接続面から、第170便のgradient color editorを除外して一責務を選ぶ。
+- 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、予測工程・入力と停止線、開始pathから契約先、許可path、固有停止条件、比較候補の棄却根拠を含む。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
 
 ### 第170便の先行監査計画
 
@@ -47,6 +56,21 @@
   `gradientColorEditorTransparencySchemaRemainsStable`、`gradientColorEditorOpacityAndGeometrySchemaRemainsStable`へ対応付ける。完全集合は型・寿命4、位置5、色6、透明度4、不透明度・寸法5である。許可pathは新規試験sourceと`libs/widgets/tests/CMakeLists.txt`の対象固有節だけで、公開header・製品sourceを変更しない。
   親省略構築を未評価式で固定し、editor、Widget、色、gradient、signal、描画を実体化しない。直接linkはQt Core・Testだけ、Qt Gui・Widgetsとgradient依存はinterface include、includeはwidgets・pigment source/generated、必要なexport定義だけとし、公開headerをsourceやAUTOMOC入力へ加えない。新対象4工程・8入力、停止5工程・11入力、近傍`KisVisualColorModelSchemaContractTest`を維持する。
   実装後は構築許可まで待機する。許可後にunknown target・CTest 0件、新5枠、対象CTest・枠個別・20回反復、近傍、無作業再構築、動的接続・AUTOMOC入力・editor・color・gradient未解決記号、構文・書式、公開API・`verify-quick`を確認する。editor、KoColor、Widget、gradientを実体化し、signal・描画・event loopを実行し、Qt Widgets・製品libraryへlinkし、停止線を超える必要があれば止める。
+
+### 第170便の統合結果
+
+- `g170-edge-detection-schema`は受渡しcommit`9d2d304d59`を統合commit`684030b3a8`として取り込んだ。開始`libs/image/kis_edge_detection_kernel.h`から既存
+  `libs/image/tests/KisImageTypesContractTest.cpp`の5枠へ、型・filter、出力方針、matrix・kernel生成、radius変換、device操作の全21 APIを対応付けた。全既定引数省略形も固定し、CMakeと依存を変えず対象4工程・8入力に保った。
+  担当と中央の対象・近傍CTest、20回反復、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式に成功した。台帳commit`54de50cf42`で16,967件対応、12,871件未対応となった。kernel数値、device変換、channel処理、FFT選択の実行時結果は別契約で扱う。
+- `g170-tool-base-schema`は調整担当が担当作業treeの完成差分を限定検証し、受渡しcommit`e480403b13`を統合commit`7a7e7bc756`として取り込んだ。開始`libs/flake/KoToolBase.h`から新規
+  `libs/flake/tests/KoToolBaseSchemaContractTest.cpp`の5枠へ、identity・context・表示、入力・focus・drag・描画、選択・clipboard・popup、寿命・resource・stroke、activate・cursor・状態signalの全60 APIを対応付けた。直接linkはQt Core・Testだけ、新対象4工程・8入力に保った。
+  対象5枠、20回反復、近傍CTest、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式と`verify-quick`に成功した。中央再生成は構成3.4秒・生成11.4秒、対象全体24.21秒だった。台帳commit`1bb473cb40`で17,027件対応、12,811件未対応となった。tool・canvas・event・clipboard・stroke・通知の実行時結果は別契約で扱う。
+- `g170-gradient-color-editor-schema`は受渡しcommit`8484825fd9`を統合commit`7dfa3b9704`として取り込んだ。開始`libs/widgets/KisGradientColorEditor.h`から新規
+  `libs/widgets/tests/KisGradientColorEditorSchemaContractTest.cpp`の5枠へ、型・寿命、位置、色、透明度、不透明度・寸法の残存全24 APIを対応付けた。親省略構築も固定し、直接linkはQt Core・Testだけ、新対象4工程・8入力に保った。
+  担当と中央の対象・近傍CTest、20回反復、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式に成功した。担当再生成は構成24.0秒・生成11.3秒、中央再生成は構成3.4秒・生成11.3秒、対象全体23.46秒だった。台帳commit`945bff2866`で17,051件対応、12,787件未対応となった。色・位置・透明度編集、signal配送、Widget寸法の実行時結果は別契約で扱う。
+- 第170便全体で105 APIを15枠へ重複なく対応付けた。実装を並行し、構成・構築枠だけをedge detection、tool base、gradient color editorの順に直列化した。公開API台帳、構造方針、文書、link、D2再生成を含む`verify-quick`は成功した。
+  3担当のcleanな作業treeと担当branchを削除し、旧不足報告3件を含む2,650,440 KiB（約2.53 GiB）を回収した。主Ninja木5,649,964 KiB、共有compiler cache 982,840 KiB、最新不足報告`build/tdd-macos/public-api-missing-g171.json`だけを再利用対象として保持する。製品、全体、Linuxの構築は実施していない。
+- 新規2対象の中央生成は11.3〜11.4秒、対象全体は23.46〜24.21秒であり、第168便の942.0秒は再現しなかった。各対象は4工程・8入力、tool基底の製品`kritaflake`基線は621工程・1,274入力を維持したため、構造的な構築範囲拡大はない。
 
 ### 第169便の先行監査計画
 
@@ -17465,7 +17489,7 @@
 
 ## 次の操作
 
-`build/tdd-macos/public-api-missing-g170.json`から第170並列便の非重複候補を3担当で監査する。欠陥疑いの比較・診断、資源registry、設定I/O、生pointer所有へ到達する経路は保留する。
+`build/tdd-macos/public-api-missing-g171.json`から第171並列便の非重複候補を3担当で監査する。欠陥疑いの比較・診断、資源registry、設定I/O、生pointer所有へ到達する経路は保留する。
 別の所有pathから20〜80 APIを最大5枠、既存限定対象またはheader限定対象で固定できる候補を優先し、担当票の確定前に変更なし計画、直接依存、予測閉包、製品共有ライブラリー・`kritatestsdk`非接続、許可pathと停止線を照合する。
 
 ## R1-G5完了根拠
