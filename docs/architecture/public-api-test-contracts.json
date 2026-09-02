@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 14106
+    "expectedMissingApis": 14075
   },
   "contracts": [
     {
@@ -44781,6 +44781,82 @@
         "method:KisScalarKeyframeChannel::interpolate(QPointF point1,QPointF rightTangent,QPointF leftTangent,QPointF point2,qreal t)",
         "method:KisScalarKeyframeChannel::removeKeyframe(int time,KUndo2Command * parentUndoCmd=nullptr)",
         "method:KisScalarKeyframeChannel::valueAt(int time) const"
+      ]
+    },
+    {
+      "target": "KoSvgTextFontMetricsValueContractTest",
+      "source": "libs/flake/tests/KoSvgTextFontMetricsValueContractTest.cpp",
+      "test": "KoSvgTextFontMetricsValueContractTest::backgroundPropertyValueAndComparisonSignaturesRemainStable",
+      "behavior": "SVG文字の背景propertyは空の既定値、値コピー、空値等価と厳密な構築・比較・debug出力型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KoSvgText::operator <<(QDebug dbg,const KoSvgText::BackgroundProperty & prop)",
+        "member:KoSvgText::BackgroundProperty::property",
+        "method:KoSvgText::BackgroundProperty::BackgroundProperty()",
+        "method:KoSvgText::BackgroundProperty::BackgroundProperty(QSharedPointer<KoShapeBackground> p)",
+        "method:KoSvgText::BackgroundProperty::operator ==(const BackgroundProperty & rhs) const",
+        "struct:KoSvgText::BackgroundProperty"
+      ]
+    },
+    {
+      "target": "KoSvgTextFontMetricsValueContractTest",
+      "source": "libs/flake/tests/KoSvgTextFontMetricsValueContractTest.cpp",
+      "test": "KoSvgTextFontMetricsValueContractTest::strokePropertyValueAndComparisonSignaturesRemainStable",
+      "behavior": "SVG文字のstroke propertyは空の既定値、値コピー、空値等価と厳密な構築・比較・debug出力型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KoSvgText::operator <<(QDebug dbg,const KoSvgText::StrokeProperty & prop)",
+        "member:KoSvgText::StrokeProperty::property",
+        "method:KoSvgText::StrokeProperty::StrokeProperty()",
+        "method:KoSvgText::StrokeProperty::StrokeProperty(QSharedPointer<KoShapeStrokeModel> p)",
+        "method:KoSvgText::StrokeProperty::operator ==(const StrokeProperty & rhs) const",
+        "struct:KoSvgText::StrokeProperty"
+      ]
+    },
+    {
+      "target": "KoSvgTextFontMetricsValueContractTest",
+      "source": "libs/flake/tests/KoSvgTextFontMetricsValueContractTest.cpp",
+      "test": "KoSvgTextFontMetricsValueContractTest::textOnPathValueSchemaRemainsStable",
+      "behavior": "SVG文字のpath配置値はoffset・割合・方式・間隔・辺の既定値を持ち、コピー後に独立した値を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KoSvgText::TextOnPathInfo::method",
+        "member:KoSvgText::TextOnPathInfo::side",
+        "member:KoSvgText::TextOnPathInfo::spacing",
+        "member:KoSvgText::TextOnPathInfo::startOffset",
+        "member:KoSvgText::TextOnPathInfo::startOffsetIsPercentage",
+        "struct:KoSvgText::TextOnPathInfo"
+      ]
+    },
+    {
+      "target": "KoSvgTextFontMetricsValueContractTest",
+      "source": "libs/flake/tests/KoSvgTextFontMetricsValueContractTest.cpp",
+      "test": "KoSvgTextFontMetricsValueContractTest::textUnderlinePositionValueAndComparisonSignaturesRemainStable",
+      "behavior": "SVG文字のunderline位置は横auto・縦leftを既定とし、位置差を等価比較へ反映する厳密な公開型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KoSvgText::operator <<(QDebug dbg,const KoSvgText::TextUnderlinePosition & position)",
+        "member:KoSvgText::TextUnderlinePosition::horizontalPosition",
+        "member:KoSvgText::TextUnderlinePosition::verticalPosition",
+        "method:KoSvgText::TextUnderlinePosition::operator ==(const TextUnderlinePosition & other) const",
+        "struct:KoSvgText::TextUnderlinePosition"
+      ]
+    },
+    {
+      "target": "KoSvgTextFontMetricsValueContractTest",
+      "source": "libs/flake/tests/KoSvgTextFontMetricsValueContractTest.cpp",
+      "test": "KoSvgTextFontMetricsValueContractTest::fontMetricsOperationSignaturesRemainStable",
+      "behavior": "SVG文字のfont metricsは構築、比較、基線照会・更新・拡縮・原点移動とdebug出力に関する厳密な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KoSvgText::operator <<(QDebug dbg,const KoSvgText::FontMetrics & metrics)",
+        "method:KoSvgText::FontMetrics::FontMetrics(qreal fontSizeInPt,bool isHorizontal)",
+        "method:KoSvgText::FontMetrics::offsetMetricsToNewOrigin(const Baseline baseline)",
+        "method:KoSvgText::FontMetrics::operator ==(const FontMetrics & other) const",
+        "method:KoSvgText::FontMetrics::scaleBaselines(const qreal multiplier)",
+        "method:KoSvgText::FontMetrics::setBaselineValueByTag(const QString & tag,int32_t value)",
+        "method:KoSvgText::FontMetrics::setMetricsValueByTag(const QLatin1String & tag,int32_t value)",
+        "method:KoSvgText::FontMetrics::valueForBaselineValue(Baseline baseline) const"
       ]
     }
   ]
