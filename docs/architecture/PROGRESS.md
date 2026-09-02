@@ -2,12 +2,21 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-03 06:16 JST
+- 更新日時: 2026-09-03 06:57 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
+
+### 第177便の先行監査計画
+
+- 監査共通基点は`f0c61c887c`、入力は`build/tdd-macos/public-api-missing-g177.json`である。3担当は`auditing`の読み取り専用とし、製品・試験・CMake・script・台帳・文書を変更せず、構成、構築、試験、Git操作、追加委任も行わない。
+  一つの公開責務から20〜80 APIを最大5枠へ固定し、既存限定対象またはheader限定の4〜10工程程度の対象で、製品共有libraryと`kritatestsdk`へ接続しない候補だけを採用する。製品targetを引数にする`build-incremental ... plan`と製品buildは実行せず、既存Ninja木のquery・commands・inputsだけを読み取る。
+- `g105-paintop-value-audit`はpaintop・image・pigment・値型から、第176便の矩形walkerを除外して一責務を選ぶ。
+- `g105-svg-value-audit`はflake・SVG・vector・documentから、第176便のcanvas controller通知proxyを除外して一責務を選ぶ。
+- `g105-widget-connection-audit`はwidgetutils・widgets・libkis・軽量接続面から、第176便のfont family selectorを除外して一責務を選ぶ。
+- 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、予測工程・入力と停止線、開始pathから契約先、許可path、固有停止条件を含む。比較した候補と棄却根拠も記録する。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
 
 ### 第176便の先行監査計画
 
@@ -45,6 +54,17 @@
   `libs/widgetutils/tests/KisFontFamilyComboBoxSchemaContractTest.cpp`の5枠`fontFamilySelectorTypeAndLifetimeSchemaRemainsStable`、`fontFamilySelectorCurrentValueSchemaRemainsStable`、`fontFamilySelectorPopulationSchemaRemainsStable`、
   `fontFamilyComboPopulationSchemaRemainsStable`、`pinnedFontsSeparatorPresentationSchemaRemainsStable`へ対応付ける。完全集合は3 classと各構築、current font/family/styleの設定・照会、候補再充填・初期化・通知、family候補の再充填・固定・初期化、delegateのpaint・separator状態・size hintである。許可pathは新規試験sourceと`libs/widgetutils/tests/CMakeLists.txt`の対象固有節だけで、公開header・製品sourceを変更しない。
   selector、Widget、font、font database、painter、delegateを実体化せず、font列挙、設定読込、paint、signal、event loopを実行しない。直接linkはQt Core・Testだけ、Qt Gui・Widgetsをcompile interfaceに限定し、新対象4工程・8入力、停止5工程・11入力、近傍`KisCursorSchemaContractTest`、製品`kritawidgetutils` 274工程・581入力を維持する。実装後は構築許可まで待機し、許可後に限定検証一式を行う。Qt Gui・Widgetsまたは製品libraryの直接link、実体化、停止線超過が必要なら止める。
+
+### 第176便の統合結果
+
+- `g176-rects-walker-schema`は開始`libs/image/kis_base_rects_walker.h`から既存`libs/image/tests/KisBaseRectsWalkerPolicyContractTest.cpp`の5枠へ、所有・寿命、幾何観測、状態方針、収集・設定、clone通知の残存全23 APIを対応付けた。CMakeと依存を変えず、walker、clone通知、node、layer、projectionを実体化せず、矩形計算、graph走査、checksum、通知本文を実行しない4工程・8入力に保った。
+  受渡しcommit`4f07508e4a`を統合commit`3acb6bb741`として取り込み、担当と中央の5枠、対象CTest、20回反復、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式に成功した。指定近傍`KisProjectionLeafContractTest`は現CMake木に存在せず`unknown target`となったため、近傍範囲を拡張していない。台帳commit`1dc7f85354`で17,421件対応、12,417件未対応となった。矩形収集、projection graph走査、checksum判定、clone更新通知の実行時結果は別契約で扱う。
+- `g176-canvas-controller-proxy-schema`は開始`libs/flake/KoCanvasController.h`の`KoCanvasControllerProxyObject`から新規`libs/flake/tests/KoCanvasControllerProxySchemaContractTest.cpp`の5枠へ、型・参照、canvas寿命・状態、位置・offset、view幾何、zoom・mirror通知の全29 APIを対応付けた。直接linkをQt Core・Testだけとし、proxy、controller、canvas、QObjectを実体化せず、inline emitter、signal、metaobject、event loopを実行しない4工程・8入力に保った。
+  受渡しcommit`334042093e`を統合commit`8ae3d60199`として取り込み、対象・近傍CTest、5枠、20回反復、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式に成功した。台帳commit`f3b6db0e7d`で17,450件対応、12,388件未対応となった。signal配送、inline emitter、canvas状態変更の実行時結果は別契約で扱う。
+- `g176-font-family-selector-schema`は開始`libs/widgetutils/kis_font_family_combo_box.h`から新規`libs/widgetutils/tests/KisFontFamilyComboBoxSchemaContractTest.cpp`の5枠へ、3型・寿命、現在値、selector候補更新、family候補更新、固定font区切り表示の全22 APIを対応付けた。直接linkをQt Core・Testだけ、Qt Gui・Widgetsをcompile interfaceだけとし、selector、Widget、font database、painter、delegateを実体化せず、候補列挙、設定読込、paint、signal、event loopを実行しない4工程・8入力に保った。
+  受渡しcommit`161be53b00`を統合commit`76ef52ad01`として取り込み、対象・近傍CTest、5枠、20回反復、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式に成功した。台帳commit`f0c61c887c`で17,472件対応、12,366件未対応となった。font候補列挙、設定・描画・通知の実行時結果は別契約で扱う。
+- 第176便全体で74 APIを15枠へ重複なく対応付けた。実装を並行し、構成・構築枠だけを矩形walker、canvas controller通知proxy、font family selectorの順に直列化した。対象CTest、各20回反復、無作業再構築、公開API検査と`verify-quick`は成功した。製品target、全体build、全体`verify`、Linuxは実行していない。
+  3担当のcleanな作業tree、担当build木、担当branchを統合直後に削除し、2,048,784 KiB（約1.95 GiB）の担当領域を回収した。旧不足報告`public-api-missing-g176.json`をごみ箱へ移し、主Ninja木5,640,440 KiB、共有compiler cache 982,508 KiB、最新不足報告`build/tdd-macos/public-api-missing-g177.json` 3,236,150 bytesだけを再利用対象として保持する。次の永続作業は第177便の不足報告から、既存限定対象を優先してpathと所有CMakeが重ならない3責務を先行監査することである。
 
 ### 第175便の先行監査計画
 
