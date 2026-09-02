@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 13337
+    "expectedMissingApis": 13304
   },
   "contracts": [
     {
@@ -46720,6 +46720,84 @@
         "method:SvgTextCursorPropertyInterface::emitSelectionChange()",
         "method:SvgTextCursorPropertyInterface::setCharacterPropertiesOnSelected(KoSvgTextProperties properties,QSet<KoSvgTextProperties::PropertyId> removeProperties=QSet<KoSvgTextProperties::PropertyId> ())",
         "method:SvgTextCursorPropertyInterface::setPropertiesOnSelected(KoSvgTextProperties properties,QSet<KoSvgTextProperties::PropertyId> removeProperties=QSet<KoSvgTextProperties::PropertyId> ())"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::pixelSelectionOwnershipCopyAndLifetimeSchemaRemainsStable",
+      "behavior": "画素選択の公開型、paint device・selection component継承、copy方針を含む3構築経路と寿命を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisPixelSelection",
+        "method:KisPixelSelection::KisPixelSelection(KisDefaultBoundsBaseSP defaultBounds=KisDefaultBoundsBaseSP (),KisSelectionWSP parentSelection=KisSelectionWSP ())",
+        "method:KisPixelSelection::KisPixelSelection(const KisPaintDeviceSP copySource,KritaUtils::DeviceCopyMode copyMode=KritaUtils::CopySnapshot,KisSelectionWSP parentSelection=KisSelectionWSP ())",
+        "method:KisPixelSelection::KisPixelSelection(const KisPixelSelection & rhs,KritaUtils::DeviceCopyMode copyMode=KritaUtils::CopySnapshot)",
+        "method:KisPixelSelection::~KisPixelSelection()"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::pixelSelectionMutationSignaturesRemainStable",
+      "behavior": "画素選択の適用、消去、alpha複写、反転、移動、矩形選択の公開署名と既定選択値を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPixelSelection::applySelection(KisPixelSelectionSP selection,SelectionAction action)",
+        "method:KisPixelSelection::clear()",
+        "method:KisPixelSelection::clear(const QRect & r)",
+        "method:KisPixelSelection::copyAlphaFrom(KisPaintDeviceSP src,const QRect & processRect)",
+        "method:KisPixelSelection::invert()",
+        "method:KisPixelSelection::isEmpty() const",
+        "method:KisPixelSelection::moveTo(const QPoint & pt)",
+        "method:KisPixelSelection::select(const QRect & r,quint8 selectedness=MAX_SELECTED)"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::pixelSelectionGeometryAndOutlineCacheSignaturesRemainStable",
+      "behavior": "画素選択の選択範囲、輪郭取得、輪郭cacheの有効性・再計算・差し替え・無効化の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPixelSelection::invalidateOutlineCache()",
+        "method:KisPixelSelection::isTotallyUnselected(const QRect & r) const",
+        "method:KisPixelSelection::outline() const",
+        "method:KisPixelSelection::outlineCache() const",
+        "method:KisPixelSelection::outlineCacheValid() const",
+        "method:KisPixelSelection::recalculateOutlineCache()",
+        "method:KisPixelSelection::selectedExactRect() const",
+        "method:KisPixelSelection::selectedRect() const",
+        "method:KisPixelSelection::setOutlineCache(const QPainterPath & cache)"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::pixelSelectionParentCloneAndProjectionSignaturesRemainStable",
+      "behavior": "画素選択のclone、親selection参照・差し替え、合成色空間、projection反映の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPixelSelection::clone(KisSelection *)",
+        "method:KisPixelSelection::compositionSourceColorSpace() const",
+        "method:KisPixelSelection::parentSelection() const",
+        "method:KisPixelSelection::renderToProjection(KisPaintDeviceSP projection)",
+        "method:KisPixelSelection::renderToProjection(KisPaintDeviceSP projection,const QRect & r)",
+        "method:KisPixelSelection::setParentSelection(KisSelectionWSP selection)"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::pixelSelectionThumbnailAndPersistenceSignaturesRemainStable",
+      "behavior": "画素選択のstream読込とthumbnail画像・変換・有効性・再計算の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPixelSelection::read(QIODevice * stream)",
+        "method:KisPixelSelection::recalculateThumbnailImage(const QColor & maskColor)",
+        "method:KisPixelSelection::thumbnailImage() const",
+        "method:KisPixelSelection::thumbnailImageTransform() const",
+        "method:KisPixelSelection::thumbnailImageValid() const"
       ]
     }
   ]
