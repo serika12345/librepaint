@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 12:47 JST
+- 更新日時: 2026-09-02 12:52 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -22,6 +22,22 @@
   XCF I/O・allocator・fatal処理・大域状態、PSD resource・gradient・pattern・色変換・layer効果の実体化なしで閉じる。
 - 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから契約先または移動先、許可path、固有停止条件、
   比較候補の棄却根拠を含む。既存`build/tdd-macos`の計画は読み取り専用で測定し、構成や構築を開始しない。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
+- `g149-svg-text-properties-cursor-schema-audit`は`KoSvgTextPropertiesModel.h`の未対応71 APIを採用した。型・列挙・解決3、cursor data member 16、子model member 14、子model accessor 13、公開signal 15を既存
+  `KoSvgTextPropertiesModelSchemaContractTest`の未評価型5枠へ対応付ける。CMakeと直接依存を変更せず対象4工程・8入力、停止5工程・11入力、製品`kritaflake` 621工程・1,274入力と保留集合を維持する。現在の対象命令集合hashは
+  `63805b0dfb3ef229b7168fe1ab3e2800c948c9b6cccea567ad1d2b376032f424`、入力集合hashは`3db9d1722d5ecfd93797d7434243c5f0fc78036ed59b8b1760b9c0e63372d05e`、製品命令集合hashは
+  `2fc3040d1c607ecd81879d6ec00ad8a4a161787da567b484bc934a687afefb07`、入力集合hashは`1a30862a8e0463c6578045c344b23088d4909ac6017407162709d283413b8cb5`である。`SvgTextCursor.h`は
+  既存対象が4工程・14入力で停止線を越え、2 classとshape・property・action・painter・signal責務を混在するため棄却した。
+- `g149-image-config-tile-data-schema-audit`は`kis_tile_data_interface.h`の全41 APIを採用した。cache型・操作10、型・状態・寿命9、格納・参照10、swap・履歴・age 9、memory lifecycle 3を新規
+  `KisTileDataSchemaContractTest`の未評価型5枠へ対応付ける。直接linkはQt Core・Core5Compat・Testだけ、新対象4工程・8入力、停止5工程・11入力を予測し、製品`kritaimage` 1,196工程・2,416入力を維持する。近傍
+  `KisTileSchemaContractTest`の現在の命令集合hashは`500556b6b030fab899dd75fa7f3f7d29e30b0efc8f673356ed2b0047aa36c656`、入力集合hashは
+  `fa7ff0552c3b2a1acd7780abde3cca3df68733c3e815a29ce4debd1cdbfd56b4`、製品命令集合hashは`8b3e011450f2ca342e0ce523cc1696c2e2b3970456a8cb097553ee5fdf79930f`、入力集合hashは
+  `76f2aa4251a6bf4e2adf2a1e822bc9d629753b2e93e5b877ee4eae23364940bc`である。`kis_image_config.h`は残37 APIがproofing、性能、選択、brush、layer名、import/export、汎用設定templateへ分散し、
+  templateの厳密検査に設定本文の実体化riskがあるため棄却した。
+- `g149-xcf-psd-schema-audit`は`xcftools.h`の全30 APIを採用した。整数alias・大域宣言11、fatal診断4、file lifecycle 4、allocation・補助4、構文解析7を既存`XcfToolsValueContractTest`の未評価型5枠へ
+  対応付ける。CMakeと直接依存を変更せず対象4工程・8入力、停止5工程・11入力、製品`kritaxcfimport` 1,985工程・3,968入力を維持する。現在の対象命令集合hashは
+  `ce8ca9f011628c83f55ad547590bc5d5d139fdc27af1c3395da10906e0a6c863`、入力集合hashは`911a6ee2c844b75cb1affb2ab30284e2bb75d14ffe366bb5687434b8b3938d8d`、製品命令集合hashは
+  `245cbd9f9b1e595645000af4c5cfae55681837972b72da121c283917d09dc8e1`、入力集合hashは`f2b5e5a5219a382dd6e6689a77512c56daa5ab00168c9249481c22d6a4ae729c`である。`psd.h`は残32 APIが
+  変換、gradient stop、pattern、複数layer効果へ分散し、既存対象も6工程・14入力で停止線を越えるため棄却した。
 
 ### 第148便の先行監査計画
 
