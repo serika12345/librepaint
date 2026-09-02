@@ -22,6 +22,7 @@
 #include "kis_paint_device_frames_interface.h"
 #include "kis_pixel_selection.h"
 #include "kis_projection_leaf.h"
+#include "kis_selection_based_layer.h"
 #include "kis_selection_filters.h"
 #include "kis_selection_mask.h"
 #include "kis_sequential_iterator.h"
@@ -63,6 +64,8 @@ namespace
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisEdgeDetectionKernel::method)), signature>)
 #define ASSERT_SELECTION_MASK_SIGNATURE(method, signature)                                                             \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisSelectionMask::method)), signature>)
+#define ASSERT_SELECTION_BASED_LAYER_SIGNATURE(method, signature)                                                      \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KisSelectionBasedLayer::method)), signature>)
 
 class BaseConstIteratorConstructorProbe final : public KisBaseConstIteratorNG
 {
@@ -183,6 +186,19 @@ public:
 
 protected:
     void addCommands(KisStrokeId id, bool undo) override;
+};
+
+class SelectionBasedLayerConstructorProbe final : public KisSelectionBasedLayer
+{
+public:
+    using KisSelectionBasedLayer::KisSelectionBasedLayer;
+    SelectionBasedLayerConstructorProbe(const SelectionBasedLayerConstructorProbe &) = default;
+
+    bool accept(KisNodeVisitor &) override;
+    void accept(KisProcessingVisitor &, KisUndoAdapter *) override;
+    KisNodeSP clone() const override;
+    QIcon icon() const override;
+    KisBaseNode::PropertyList sectionModelProperties() const override;
 };
 
 class SavedCommandUnwrapCallable
@@ -322,6 +338,11 @@ private Q_SLOTS:
     void selectionMaskGeometrySignaturesRemainStable();
     void selectionMaskPresentationAndStateSignaturesRemainStable();
     void selectionMaskSelectionAndModelSignaturesRemainStable();
+    void selectionBasedLayerOwnershipAndLifetimeSchemaRemainsStable();
+    void selectionBasedLayerSelectionDeviceAndProjectionSignaturesRemainStable();
+    void selectionBasedLayerHierarchyImageAndDirtySignaturesRemainStable();
+    void selectionBasedLayerGeometryAndLodSignaturesRemainStable();
+    void selectionBasedLayerThumbnailAndNotificationSignaturesRemainStable();
 };
 
 void KisImageTypesContractTest::intrusivePointerAliasesPreserveOwnershipKinds()
@@ -2670,6 +2691,81 @@ void KisImageTypesContractTest::selectionMaskSelectionAndModelSignaturesRemainSt
     ASSERT_SELECTION_MASK_SIGNATURE(setSectionModelProperties, SetPropertiesSignature);
 }
 
+void KisImageTypesContractTest::selectionBasedLayerOwnershipAndLifetimeSchemaRemainsStable()
+{
+    static_assert(std::is_class_v<KisSelectionBasedLayer>);
+    static_assert(std::is_base_of_v<KisLayer, KisSelectionBasedLayer>);
+    static_assert(std::is_base_of_v<KisIndirectPaintingSupport, KisSelectionBasedLayer>);
+    static_assert(std::is_base_of_v<KisNodeFilterInterface, KisSelectionBasedLayer>);
+    static_assert(std::is_abstract_v<KisSelectionBasedLayer>);
+    static_assert(std::is_constructible_v<SelectionBasedLayerConstructorProbe,
+                                          KisImageWSP,
+                                          const QString &,
+                                          KisSelectionSP,
+                                          KisFilterConfigurationSP>);
+    static_assert(std::is_copy_constructible_v<SelectionBasedLayerConstructorProbe>);
+    static_assert(std::has_virtual_destructor_v<KisSelectionBasedLayer>);
+}
+
+void KisImageTypesContractTest::selectionBasedLayerSelectionDeviceAndProjectionSignaturesRemainStable()
+{
+    using SelectionGetterSignature = KisSelectionSP (KisSelectionBasedLayer::*)() const;
+    using SetSelectionSignature = void (KisSelectionBasedLayer::*)(KisSelectionSP);
+    using FetchSelectionSignature = KisSelectionSP (KisSelectionBasedLayer::*)(const QRect &) const;
+    using DeviceGetterSignature = KisPaintDeviceSP (KisSelectionBasedLayer::*)() const;
+    using ProjectionSignature = bool (KisSelectionBasedLayer::*)() const;
+    using ResetCacheSignature = void (KisSelectionBasedLayer::*)(const KoColorSpace *);
+
+    ASSERT_SELECTION_BASED_LAYER_SIGNATURE(internalSelection, SelectionGetterSignature);
+    ASSERT_SELECTION_BASED_LAYER_SIGNATURE(setInternalSelection, SetSelectionSignature);
+    ASSERT_SELECTION_BASED_LAYER_SIGNATURE(fetchComposedInternalSelection, FetchSelectionSignature);
+    ASSERT_SELECTION_BASED_LAYER_SIGNATURE(original, DeviceGetterSignature);
+    ASSERT_SELECTION_BASED_LAYER_SIGNATURE(paintDevice, DeviceGetterSignature);
+    ASSERT_SELECTION_BASED_LAYER_SIGNATURE(needProjection, ProjectionSignature);
+    ASSERT_SELECTION_BASED_LAYER_SIGNATURE(resetCache, ResetCacheSignature);
+}
+
+void KisImageTypesContractTest::selectionBasedLayerHierarchyImageAndDirtySignaturesRemainStable()
+{
+    using AllowChildSignature = bool (KisSelectionBasedLayer::*)(KisNodeSP) const;
+    using SetImageSignature = void (KisSelectionBasedLayer::*)(KisImageWSP);
+    using DirtySignature = void (KisSelectionBasedLayer::*)();
+    using LayerSignature = KisLayer *(KisSelectionBasedLayer::*)();
+
+    ASSERT_SELECTION_BASED_LAYER_SIGNATURE(allowAsChild, AllowChildSignature);
+    ASSERT_SELECTION_BASED_LAYER_SIGNATURE(setImage, SetImageSignature);
+    ASSERT_SELECTION_BASED_LAYER_SIGNATURE(setDirty, DirtySignature);
+    ASSERT_SELECTION_BASED_LAYER_SIGNATURE(layer, LayerSignature);
+}
+
+void KisImageTypesContractTest::selectionBasedLayerGeometryAndLodSignaturesRemainStable()
+{
+    using CoordinateGetterSignature = qint32 (KisSelectionBasedLayer::*)() const;
+    using CoordinateSetterSignature = void (KisSelectionBasedLayer::*)(qint32);
+    using LodSignature = bool (KisSelectionBasedLayer::*)() const;
+    using BoundsSignature = QRect (KisSelectionBasedLayer::*)() const;
+
+    ASSERT_SELECTION_BASED_LAYER_SIGNATURE(x, CoordinateGetterSignature);
+    ASSERT_SELECTION_BASED_LAYER_SIGNATURE(y, CoordinateGetterSignature);
+    ASSERT_SELECTION_BASED_LAYER_SIGNATURE(setX, CoordinateSetterSignature);
+    ASSERT_SELECTION_BASED_LAYER_SIGNATURE(setY, CoordinateSetterSignature);
+    ASSERT_SELECTION_BASED_LAYER_SIGNATURE(supportsLodPainting, LodSignature);
+    ASSERT_SELECTION_BASED_LAYER_SIGNATURE(extent, BoundsSignature);
+    ASSERT_SELECTION_BASED_LAYER_SIGNATURE(exactBounds, BoundsSignature);
+}
+
+void KisImageTypesContractTest::selectionBasedLayerThumbnailAndNotificationSignaturesRemainStable()
+{
+    using ThumbnailSignature =
+        QImage (KisSelectionBasedLayer::*)(qint32, qint32, Qt::AspectRatioMode, KisThumbnailBoundsMode);
+    using SequenceSignature = int (KisSelectionBasedLayer::*)() const;
+    using NotificationSignature = void (KisSelectionBasedLayer::*)();
+
+    ASSERT_SELECTION_BASED_LAYER_SIGNATURE(createThumbnail, ThumbnailSignature);
+    ASSERT_SELECTION_BASED_LAYER_SIGNATURE(thumbnailSeqNo, SequenceSignature);
+    ASSERT_SELECTION_BASED_LAYER_SIGNATURE(slotImageSizeChanged, NotificationSignature);
+}
+
 #undef ASSERT_DEFAULT_BOUNDS_SIGNATURE
 #undef ASSERT_LAYER_UTILS_SIGNATURE
 #undef ASSERT_PAINTOP_SETTINGS_SIGNATURE
@@ -2683,6 +2779,7 @@ void KisImageTypesContractTest::selectionMaskSelectionAndModelSignaturesRemainSt
 #undef ASSERT_ITERATOR_SIGNATURE
 #undef ASSERT_EDGE_DETECTION_SIGNATURE
 #undef ASSERT_SELECTION_MASK_SIGNATURE
+#undef ASSERT_SELECTION_BASED_LAYER_SIGNATURE
 
 QTEST_GUILESS_MAIN(KisImageTypesContractTest)
 
