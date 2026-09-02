@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 15602
+    "expectedMissingApis": 15572
   },
   "contracts": [
     {
@@ -41305,6 +41305,81 @@
         "method:KisVersionedStorageIterator::lastModified() const",
         "method:KisVersionedStorageIterator::resourceImpl() const",
         "method:KisVersionedStorageIterator::versions() const"
+      ]
+    },
+    {
+      "target": "KisLayerPropertiesIconsSchemaContractTest",
+      "source": "libs/image/tests/KisLayerPropertiesIconsSchemaContractTest.cpp",
+      "test": "KisLayerPropertiesIconsSchemaContractTest::layerPropertyIconOwnerAndLifetimeSchemaRemainsStable",
+      "behavior": "layer property icon所有者は公開構築・破棄と共有instance取得を備える単一classの型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisLayerPropertiesIcons",
+        "method:KisLayerPropertiesIcons::KisLayerPropertiesIcons()",
+        "method:KisLayerPropertiesIcons::instance()",
+        "method:KisLayerPropertiesIcons::~KisLayerPropertiesIcons()"
+      ]
+    },
+    {
+      "target": "KisLayerPropertiesIconsSchemaContractTest",
+      "source": "libs/image/tests/KisLayerPropertiesIconsSchemaContractTest.cpp",
+      "test": "KisLayerPropertiesIconsSchemaContractTest::layerPropertyVisibilityAndLockIdentifierSchemaRemainsStable",
+      "behavior": "layerの表示、lock、alpha継承・lock、通過、選択状態は不変のKoID型識別子として公開される。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisLayerPropertiesIcons::alphaLocked",
+        "member:KisLayerPropertiesIcons::inheritAlpha",
+        "member:KisLayerPropertiesIcons::locked",
+        "member:KisLayerPropertiesIcons::passThrough",
+        "member:KisLayerPropertiesIcons::selectionActive",
+        "member:KisLayerPropertiesIcons::visible"
+      ]
+    },
+    {
+      "target": "KisLayerPropertiesIconsSchemaContractTest",
+      "source": "libs/image/tests/KisLayerPropertiesIconsSchemaContractTest.cpp",
+      "test": "KisLayerPropertiesIconsSchemaContractTest::layerPropertyPresentationIdentifierSchemaRemainsStable",
+      "behavior": "layer style、onion skin、色label・overlay、colorize状態、file操作、error、色空間不一致、antialiasは不変のKoID型識別子として公開される。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisLayerPropertiesIcons::antialiased",
+        "member:KisLayerPropertiesIcons::colorLabelIndex",
+        "member:KisLayerPropertiesIcons::colorOverlay",
+        "member:KisLayerPropertiesIcons::colorizeEditKeyStrokes",
+        "member:KisLayerPropertiesIcons::colorizeNeedsUpdate",
+        "member:KisLayerPropertiesIcons::colorizeShowColoring",
+        "member:KisLayerPropertiesIcons::layerColorSpaceMismatch",
+        "member:KisLayerPropertiesIcons::layerError",
+        "member:KisLayerPropertiesIcons::layerStyle",
+        "member:KisLayerPropertiesIcons::onionSkins",
+        "member:KisLayerPropertiesIcons::openFileLayerFile"
+      ]
+    },
+    {
+      "target": "KisLayerPropertiesIconsSchemaContractTest",
+      "source": "libs/image/tests/KisLayerPropertiesIconsSchemaContractTest.cpp",
+      "test": "KisLayerPropertiesIconsSchemaContractTest::layerPropertyFactorySignaturesRemainStable",
+      "behavior": "layer property生成は状態・stasis、error文字列、色空間を受け取り、同じproperty値型を返す公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisLayerPropertiesIcons::getColorSpaceMismatchProperty(const KoColorSpace * cs)",
+        "method:KisLayerPropertiesIcons::getErrorProperty(const QString & message)",
+        "method:KisLayerPropertiesIcons::getProperty(const KoID & id,bool state)",
+        "method:KisLayerPropertiesIcons::getProperty(const KoID & id,bool state,bool isInStasis,bool stateInStasis)"
+      ]
+    },
+    {
+      "target": "KisLayerPropertiesIconsSchemaContractTest",
+      "source": "libs/image/tests/KisLayerPropertiesIconsSchemaContractTest.cpp",
+      "test": "KisLayerPropertiesIconsSchemaContractTest::layerPropertyNodeStorageAndPresentationSignaturesRemainStable",
+      "behavior": "layer propertyの状態判定、node照会・設定・undo付き設定、icon更新は共有node・image所有と値参照を区別する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisLayerPropertiesIcons::isStatelessProperty(const QString & id)",
+        "method:KisLayerPropertiesIcons::nodeProperty(KisNodeSP node,const KoID & id,const QVariant & defaultValue)",
+        "method:KisLayerPropertiesIcons::setNodeProperty(KisBaseNode::PropertyList * props,const KoID & id,const QVariant & value)",
+        "method:KisLayerPropertiesIcons::setNodePropertyAutoUndo(KisNodeSP node,const KoID & id,const QVariant & value,KisImageSP image)",
+        "method:KisLayerPropertiesIcons::updateIcons()"
       ]
     }
   ]

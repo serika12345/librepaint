@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 06:50 JST
+- 更新日時: 2026-09-02 09:23 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -35,7 +35,7 @@
 
 ### 第141便の担当計画
 
-- 実装共通基点は`2b6b5e544e1412c1ef319c8e3cba0a5d64e5d262`である。storage version、layer property icons、display renderer担当は`assigned`、構築許可は指定試験targetと軽量近傍だけの
+- 実装共通基点は`2b6b5e544e1412c1ef319c8e3cba0a5d64e5d262`である。storage versionとlayer property icons担当は`integrated`、display renderer担当は`assigned`、構築許可は指定試験targetと軽量近傍だけの
   `granted`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、専用worktree-local `build/tdd-macos`と主作業treeの
   `/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。統合順はstorage version、layer property icons、display rendererとし、調整担当だけが`AGENTS.md`、
   architecture文書、`docs/architecture/public-api-test-contracts.json`、共通不足報告を変更する。3担当の公開header、所有CMake、試験source、生成物は重ならない。
@@ -68,6 +68,11 @@
   9入力を維持し、製品`kritaresources`は150工程・327入力と両集合hashが監査値に一致した。entry・比較器・helper・iterator本文、filesystem・database・storage plugin・資源I/Oを
   実行していない。担当macOS環境と中央環境で5枠を含む対象CTest・20回反復と近傍`KisTagModelSchemaContractTest`、担当環境で無作業再構築、動的接続・未解決記号、構文・書式、
   公開API検査、`verify-quick`に成功した。中央の公開API契約検査は29,838件中14,236件対応、15,602件未対応となる。作業tree 876,564 KiBと担当branchは削除した。
+- `g141-layer-property-icons-schema`は受渡しcommit`555f90b6e9d1`を統合commit`eb1b28c27d`として取り込んだ。開始`libs/image/kis_layer_properties_icons.h`から新規
+  `libs/image/tests/KisLayerPropertiesIconsSchemaContractTest.cpp`の5枠へ、所有型・寿命、可視・lock識別、表示識別、property生成、node保存・表示の30 APIを対応付けた。直接linkは
+  Qt Core・Gui・TestとBoostだけで、新対象4工程・8入力に収めた。製品`kritaimage`は1,196工程・2,416入力と両集合hashが監査値に一致し、owner・静的KoID・node・image・色空間・icon・
+  singleton・製品記号を生成または実行していない。担当macOS環境と中央環境で5枠を含む対象CTest・20回反復と近傍`KisImageTypesContractTest`、担当環境で無作業再構築、動的接続・
+  未解決記号、構文・書式、公開API検査、`verify-quick`に成功した。中央の公開API契約検査は29,838件中14,266件対応、15,572件未対応となる。作業tree 880,120 KiBと担当branchは削除した。
 
 ### 第140便の先行監査計画
 
