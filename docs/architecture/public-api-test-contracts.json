@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 13304
+    "expectedMissingApis": 13271
   },
   "contracts": [
     {
@@ -46798,6 +46798,84 @@
         "method:KisPixelSelection::thumbnailImage() const",
         "method:KisPixelSelection::thumbnailImageTransform() const",
         "method:KisPixelSelection::thumbnailImageValid() const"
+      ]
+    },
+    {
+      "target": "KisDisplayColorTransformSchemaContractTest",
+      "source": "libs/canvas/tests/KisDisplayColorTransformSchemaContractTest.cpp",
+      "test": "KisDisplayColorTransformSchemaContractTest::displayColorTransformIdentityAndLifecycleSchemaRemainsStable",
+      "behavior": "表示色変換の公開型、変換option組、既定構築と寿命を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisDisplayColorTransform::ConversionOptions",
+        "class:KisDisplayColorTransform",
+        "method:KisDisplayColorTransform::KisDisplayColorTransform()",
+        "method:KisDisplayColorTransform::~KisDisplayColorTransform()"
+      ]
+    },
+    {
+      "target": "KisDisplayColorTransformSchemaContractTest",
+      "source": "libs/canvas/tests/KisDisplayColorTransformSchemaContractTest.cpp",
+      "test": "KisDisplayColorTransformSchemaContractTest::displayColorTransformConfigurationSignaturesRemainStable",
+      "behavior": "表示色変換のprofile・色空間・filter設定と現在の変換方針照会の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDisplayColorTransform::conversionOptions() const",
+        "method:KisDisplayColorTransform::displayFilter() const",
+        "method:KisDisplayColorTransform::paintingColorSpace() const",
+        "method:KisDisplayColorTransform::setDisplayConfiguration(const KoColorProfile * widgetProfile,const KoColorProfile * canvasProfile,KoColorConversionTransformation::Intent intent,KoColorConversionTransformation::ConversionFlags conversionFlags)",
+        "method:KisDisplayColorTransform::setDisplayFilter(QSharedPointer<KisDisplayColorFilter> displayFilter)",
+        "method:KisDisplayColorTransform::setInputColorSpace(const KoColorSpace * colorSpace)",
+        "method:KisDisplayColorTransform::setPaintingColorSpace(const KoColorSpace * colorSpace)",
+        "method:KisDisplayColorTransform::usesDisplayFilter() const"
+      ]
+    },
+    {
+      "target": "KisDisplayColorTransformSchemaContractTest",
+      "source": "libs/canvas/tests/KisDisplayColorTransformSchemaContractTest.cpp",
+      "test": "KisDisplayColorTransformSchemaContractTest::displayColorTransformColorConversionSignaturesRemainStable",
+      "behavior": "表示色変換の色値近似、filter適用、変換省略判定、視覚表現の取得・復元の公開署名とproof既定値を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDisplayColorTransform::applyDisplayFiltering(const KoColor & color,const KoID & bitDepthId) const",
+        "method:KisDisplayColorTransform::applyDisplayFilteringF32(KisFixedPaintDeviceSP device,const KoColorSpace * destinationColorSpace) const",
+        "method:KisDisplayColorTransform::approximateFromRenderedQColor(const QColor & color) const",
+        "method:KisDisplayColorTransform::canSkipDisplayConversion(const KoColorSpace * colorSpace) const",
+        "method:KisDisplayColorTransform::captureVisualRepresentation(const KoColor & color) const",
+        "method:KisDisplayColorTransform::restorePaintingColor(const KoColor & visualRepresentation) const",
+        "method:KisDisplayColorTransform::toQColor(const KoColor & color,bool proofToPaintColors=false) const"
+      ]
+    },
+    {
+      "target": "KisDisplayColorTransformSchemaContractTest",
+      "source": "libs/canvas/tests/KisDisplayColorTransformSchemaContractTest.cpp",
+      "test": "KisDisplayColorTransformSchemaContractTest::displayColorTransformImageConversionSignaturesRemainStable",
+      "behavior": "表示色変換の色・paint device・raw pixelから表示画像への変換公開署名とproof・filter・範囲の既定値を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDisplayColorTransform::convertColorToDisplayColorSpace(const KoColor & color,bool applyDisplayFilter=false) const",
+        "method:KisDisplayColorTransform::convertImageToDisplayColorSpace(KisPaintDeviceSP sourceDevice,QRect source=QRect (),bool applyDisplayFilter=false) const",
+        "method:KisDisplayColorTransform::toQImage(KisPaintDeviceSP device,bool proofPaintColors=false) const",
+        "method:KisDisplayColorTransform::toQImage(const KoColorSpace * sourceColorSpace,const quint8 * pixels,QSize size,bool proofPaintColors=false) const"
+      ]
+    },
+    {
+      "target": "KisDisplayColorTransformSchemaContractTest",
+      "source": "libs/canvas/tests/KisDisplayColorTransformSchemaContractTest.cpp",
+      "test": "KisDisplayColorTransformSchemaContractTest::displayColorTransformComponentModelSignaturesRemainStable",
+      "behavior": "表示色変換のHSV・HSL・HSI・HSY成分からの色生成と逆変換の公開署名、alpha・HSY係数の既定値を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDisplayColorTransform::fromHsiF(qreal h,qreal s,qreal i) const",
+        "method:KisDisplayColorTransform::fromHslF(qreal h,qreal s,qreal l,qreal a=1.0) const",
+        "method:KisDisplayColorTransform::fromHsv(int h,int s,int v,int a=255) const",
+        "method:KisDisplayColorTransform::fromHsvF(qreal h,qreal s,qreal v,qreal a=1.0) const",
+        "method:KisDisplayColorTransform::fromHsyF(qreal h,qreal s,qreal y,qreal redWeight=0.2126,qreal greenWeight=0.7152,qreal blueWeight=0.0722,qreal gamma=2.2) const",
+        "method:KisDisplayColorTransform::getHsiF(const KoColor & color,qreal * h,qreal * s,qreal * i) const",
+        "method:KisDisplayColorTransform::getHslF(const KoColor & color,qreal * h,qreal * s,qreal * l,qreal * a=nullptr) const",
+        "method:KisDisplayColorTransform::getHsv(const KoColor & color,int * h,int * s,int * v,int * a=nullptr) const",
+        "method:KisDisplayColorTransform::getHsvF(const KoColor & color,qreal * h,qreal * s,qreal * v,qreal * a=nullptr) const",
+        "method:KisDisplayColorTransform::getHsyF(const KoColor & color,qreal * h,qreal * s,qreal * y,qreal redWeight=0.2126,qreal greenWeight=0.7152,qreal blueWeight=0.0722,qreal gamma=2.2) const"
       ]
     }
   ]
