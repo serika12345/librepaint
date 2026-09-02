@@ -38,6 +38,33 @@
   `3b4b2551060ce396e760303c6c8267bfd467111e857b576eee57c1565db40eea`、入力集合hashは`bf5edd640fbf030d1ea10b191f4635fe33c618ae166776ed804ed21b494f1f6e`である。
   `KoStopGradient.h`は資源継承、色値、QGradient、XML、device、canvas resource、複製・保存へ責務と定義閉包が広がるため棄却した。
 
+### 第147便の担当計画
+
+- 実装共通基点は`5b0d4072307d`である。projection leaf、document resource manager、color space担当は`implementing`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの
+  `transport-commit`、追加委任は禁止する。対象platformはmacOSであり、専用worktree-local `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。
+  統合順はcolor space、projection leaf、document resource managerとし、調整担当だけが`AGENTS.md`、architecture文書、`docs/architecture/public-api-test-contracts.json`、共通不足報告を変更する。
+  3担当の公開header、所有CMake、試験source、生成物は重ならない。
+- `g147-color-space-schema`は`/Users/masato/Documents/librepaint-g147-color-space-schema`を所有する。開始`libs/pigment/KoColorSpace.h`の未対応40 APIから既存
+  `libs/pigment/tests/KoColorSpaceSchemaContractTest.cpp`の5枠`colorSpaceOwnershipAndOperatorSchemaRemainsStable`、`colorSpaceCompositionAndDitherSignaturesRemainStable`、
+  `colorSpaceConversionAndProofingSignaturesRemainStable`、`colorSpaceCanonicalRepresentationSignaturesRemainStable`、`colorSpaceAdjustmentAndXmlSignaturesRemainStable`へ対応付ける。許可pathは既存試験sourceだけで、
+  CMakeを変更しない。対象4工程・8入力、停止5工程・11入力、近傍は`KoColorValueSchemaContractTest`、製品`kritapigment`は367工程・764入力と担当tree内の変更前後集合完全一致を確認する。未知5枠、
+  対象CTest、20回反復、既存color space枠と近傍、無作業再構築、動的接続、未解決color space・変換・合成・dither・XML記号、構文・変更行書式、公開API・`verify-quick`を確認する。色空間、画素、変換、
+  合成、dither、XML、device、QImage、QColorを生成し、method本文を実行し、製品source・OBJECT・shared、`kritatestsdk`、新link/include依存、CMake・公開header変更、製品計画差、停止線超過が必要なら止める。
+- `g147-projection-leaf-schema`は`/Users/masato/Documents/librepaint-g147-projection-leaf-schema`を所有する。開始`libs/image/kis_projection_leaf.h`の全35 APIから既存
+  `libs/image/tests/KisImageTypesContractTest.cpp`の5枠`projectionLeafOwnershipDropReasonAndLifetimeSchemaRemainsStable`、`projectionLeafGraphNavigationSignaturesRemainStable`、
+  `projectionLeafVisitorAndProjectionAccessSignaturesRemainStable`、`projectionLeafNodeClassificationAndRenderingSignaturesRemainStable`、
+  `projectionLeafDropOverlayAndTemporaryVisibilitySignaturesRemainStable`へ対応付ける。許可pathは既存試験sourceだけで、CMakeを変更しない。対象4工程・8入力、停止5工程・11入力、近傍は
+  `KisImageConfigAnimationSchemaContractTest`、製品`kritaimage`は1,196工程・2,416入力と担当tree内の変更前後集合完全一致を確認する。未知5枠、対象CTest、20回反復、既存image型枠と近傍、無作業再構築、
+  動的接続、未解決leaf・node・visitor・device・projection記号、構文・変更行書式、公開API・`verify-quick`を確認する。leaf、node、visitor、paint device、projection planeを生成し、移動・visitor・投影再生成・
+  描画methodを実行し、製品source・OBJECT・shared、`kritatestsdk`、新link/include依存、CMake・公開header変更、製品計画差、停止線超過が必要なら止める。
+- `g147-document-resource-manager-schema`は`/Users/masato/Documents/librepaint-g147-document-resource-manager-schema`を所有する。開始`libs/flake/KoDocumentResourceManager.h`の全41 APIから新規
+  `libs/flake/tests/KoDocumentResourceManagerSchemaContractTest.cpp`の5枠`documentResourceManagerIdentityAndLifecycleSignaturesRemainStable`、`documentResourceKeySchemaRemainsStable`、
+  `documentResourceValueAccessSignaturesRemainStable`、`documentResourceDocumentStateSignaturesRemainStable`、`documentResourceChangeSignalSignatureRemainsStable`へ対応付ける。許可pathは新規試験sourceと
+  `libs/flake/tests/CMakeLists.txt`だけである。直接linkはQt Core・Testだけ、includeはflake source・generatedだけ、definitionは`kritaflake_EXPORTS`だけとし、公開headerをtarget sourceとAUTOMOC入力へ追加しない。
+  新対象4工程・8入力、停止5工程・11入力、近傍は`KoCanvasBaseSchemaContractTest`、製品`kritaflake`は621工程・1,274入力と担当tree内の変更前後集合・保留集合完全一致を確認する。未知targetと5枠、対象CTest、
+  20回反復、近傍、無作業再構築、動的接続、AUTOMOC入力、未解決manager・metaobject・resource・undo・shape記号、構文・変更行書式、公開API・`verify-quick`を確認する。QObject、manager、QVariant、KoColor、
+  KoUnit、shape、undo stackを生成し、method・signal・metaobjectを実行し、Qt Gui・Widgets・Xml・KF、製品source・OBJECT・shared、`kritatestsdk`、新非header依存、公開header変更、製品計画差、停止線超過が必要なら止める。
+
 ### 第146便の先行監査計画
 
 - 監査共通基点は`491c033f36b3`、入力は`build/tdd-macos/public-api-missing-g146.json`である。3担当は`auditing`の読み取り専用とし、製品・試験・CMake・script・台帳・文書を変更せず、構築、試験、Git操作、
