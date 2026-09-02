@@ -1266,6 +1266,8 @@ target_include_directories(KisImageTypesContractTest PRIVATE
     ${CMAKE_BINARY_DIR}/libs/painting/undo
     $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Widgets,INTERFACE_INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:Eigen3::Eigen,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:Imath::Imath,INTERFACE_INCLUDE_DIRECTORIES>
 )
 target_compile_definitions(KisImageTypesContractTest PRIVATE
     kritaimage_EXPORTS

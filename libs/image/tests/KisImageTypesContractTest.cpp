@@ -4,6 +4,7 @@
  */
 
 #include "brushengine/kis_paint_information.h"
+#include "brushengine/kis_paintop_settings.h"
 #include "brushengine/kis_uniform_paintop_property.h"
 #include "kis_default_bounds.h"
 #include "kis_distance_information.h"
@@ -30,6 +31,8 @@ namespace
     static_assert(std::is_same_v<decltype(static_cast<signature>(&boundsType::method)), signature>)
 #define ASSERT_LAYER_UTILS_SIGNATURE(function, signature)                                                              \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisLayerUtils::function)), signature>)
+#define ASSERT_PAINTOP_SETTINGS_SIGNATURE(method, signature)                                                           \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KisPaintOpSettings::method)), signature>)
 
 class SelectionDefaultBoundsConstructorProbe final : public KisSelectionDefaultBoundsBase
 {
@@ -122,6 +125,11 @@ private Q_SLOTS:
     void animationSwitchAndInvalidationSignaturesRemainStable();
     void animationGenerationLockSignaturesRemainStable();
     void animationNotificationSignaturesRemainStable();
+    void paintOpUpdatePropertyKeySchemaRemainsStable();
+    void paintOpCadenceAndLodPolicySignaturesRemainStable();
+    void paintOpDepositParameterSignaturesRemainStable();
+    void paintOpGeometryCompositeAndEraserSignaturesRemainStable();
+    void paintOpSavedBrushAndEraserValueSignaturesRemainStable();
 };
 
 void KisImageTypesContractTest::intrusivePointerAliasesPreserveOwnershipKinds()
@@ -1706,8 +1714,65 @@ void KisImageTypesContractTest::animationNotificationSignaturesRemainStable()
                                  void (KisImageAnimationInterface::*)(int)>);
 }
 
+void KisImageTypesContractTest::paintOpUpdatePropertyKeySchemaRemainsStable()
+{
+    static_assert(std::is_same_v<decltype(AIRBRUSH_ENABLED), const QString>);
+    static_assert(std::is_same_v<decltype(AIRBRUSH_IGNORE_SPACING), const QString>);
+    static_assert(std::is_same_v<decltype(AIRBRUSH_RATE), const QString>);
+    static_assert(std::is_same_v<decltype(SPACING_USE_UPDATES), const QString>);
+}
+
+void KisImageTypesContractTest::paintOpCadenceAndLodPolicySignaturesRemainStable()
+{
+    ASSERT_PAINTOP_SETTINGS_SIGNATURE(airbrushInterval, qreal (KisPaintOpSettings::*)() const);
+    ASSERT_PAINTOP_SETTINGS_SIGNATURE(isAirbrushing, bool (KisPaintOpSettings::*)() const);
+    ASSERT_PAINTOP_SETTINGS_SIGNATURE(useSpacingUpdates, bool (KisPaintOpSettings::*)() const);
+    ASSERT_PAINTOP_SETTINGS_SIGNATURE(needsAsynchronousUpdates, bool (KisPaintOpSettings::*)() const);
+    ASSERT_PAINTOP_SETTINGS_SIGNATURE(lodSizeThreshold, qreal (KisPaintOpSettings::*)() const);
+    ASSERT_PAINTOP_SETTINGS_SIGNATURE(lodSizeThresholdSupported, bool (KisPaintOpSettings::*)() const);
+    ASSERT_PAINTOP_SETTINGS_SIGNATURE(setLodSizeThreshold, void (KisPaintOpSettings::*)(qreal));
+}
+
+void KisImageTypesContractTest::paintOpDepositParameterSignaturesRemainStable()
+{
+    ASSERT_PAINTOP_SETTINGS_SIGNATURE(paintOpOpacity, qreal (KisPaintOpSettings::*)());
+    ASSERT_PAINTOP_SETTINGS_SIGNATURE(setPaintOpOpacity, void (KisPaintOpSettings::*)(qreal));
+    ASSERT_PAINTOP_SETTINGS_SIGNATURE(paintOpFlow, qreal (KisPaintOpSettings::*)());
+    ASSERT_PAINTOP_SETTINGS_SIGNATURE(setPaintOpFlow, void (KisPaintOpSettings::*)(qreal));
+    ASSERT_PAINTOP_SETTINGS_SIGNATURE(paintOpFade, qreal (KisPaintOpSettings::*)());
+    ASSERT_PAINTOP_SETTINGS_SIGNATURE(setPaintOpFade, void (KisPaintOpSettings::*)(qreal));
+    ASSERT_PAINTOP_SETTINGS_SIGNATURE(paintOpScatter, qreal (KisPaintOpSettings::*)());
+    ASSERT_PAINTOP_SETTINGS_SIGNATURE(setPaintOpScatter, void (KisPaintOpSettings::*)(qreal));
+}
+
+void KisImageTypesContractTest::paintOpGeometryCompositeAndEraserSignaturesRemainStable()
+{
+    ASSERT_PAINTOP_SETTINGS_SIGNATURE(paintOpCompositeOp, QString (KisPaintOpSettings::*)());
+    ASSERT_PAINTOP_SETTINGS_SIGNATURE(setPaintOpCompositeOp, void (KisPaintOpSettings::*)(const QString &));
+    ASSERT_PAINTOP_SETTINGS_SIGNATURE(paintOpSize, qreal (KisPaintOpSettings::*)() const);
+    ASSERT_PAINTOP_SETTINGS_SIGNATURE(setPaintOpSize, void (KisPaintOpSettings::*)(qreal));
+    ASSERT_PAINTOP_SETTINGS_SIGNATURE(paintOpAngle, qreal (KisPaintOpSettings::*)() const);
+    ASSERT_PAINTOP_SETTINGS_SIGNATURE(setPaintOpAngle, void (KisPaintOpSettings::*)(qreal));
+    ASSERT_PAINTOP_SETTINGS_SIGNATURE(paintOpPatternSize, qreal (KisPaintOpSettings::*)());
+    ASSERT_PAINTOP_SETTINGS_SIGNATURE(eraserMode, bool (KisPaintOpSettings::*)());
+    ASSERT_PAINTOP_SETTINGS_SIGNATURE(setEraserMode, void (KisPaintOpSettings::*)(bool));
+}
+
+void KisImageTypesContractTest::paintOpSavedBrushAndEraserValueSignaturesRemainStable()
+{
+    ASSERT_PAINTOP_SETTINGS_SIGNATURE(savedBrushOpacity, qreal (KisPaintOpSettings::*)() const);
+    ASSERT_PAINTOP_SETTINGS_SIGNATURE(setSavedBrushOpacity, void (KisPaintOpSettings::*)(qreal));
+    ASSERT_PAINTOP_SETTINGS_SIGNATURE(savedBrushSize, qreal (KisPaintOpSettings::*)() const);
+    ASSERT_PAINTOP_SETTINGS_SIGNATURE(setSavedBrushSize, void (KisPaintOpSettings::*)(qreal));
+    ASSERT_PAINTOP_SETTINGS_SIGNATURE(savedEraserOpacity, qreal (KisPaintOpSettings::*)() const);
+    ASSERT_PAINTOP_SETTINGS_SIGNATURE(setSavedEraserOpacity, void (KisPaintOpSettings::*)(qreal));
+    ASSERT_PAINTOP_SETTINGS_SIGNATURE(savedEraserSize, qreal (KisPaintOpSettings::*)() const);
+    ASSERT_PAINTOP_SETTINGS_SIGNATURE(setSavedEraserSize, void (KisPaintOpSettings::*)(qreal));
+}
+
 #undef ASSERT_DEFAULT_BOUNDS_SIGNATURE
 #undef ASSERT_LAYER_UTILS_SIGNATURE
+#undef ASSERT_PAINTOP_SETTINGS_SIGNATURE
 
 QTEST_GUILESS_MAIN(KisImageTypesContractTest)
 
