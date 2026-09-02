@@ -38,6 +38,35 @@
   6工程・15入力、製品`kritaapplicationui` 1,970工程・3,940入力の命令集合hashは`54a81e7f2dc46cb6b03d85bc5606456480d58d433d4acedf3a971d51508da391`、入力集合hashは
   `fadce0f47495bd67de7f32dd23bcb107bb18415503800cf48d62f14a425fb3ff`である。`KisOpenGLModeProber.h`はWindows限定APIをmacOSで完全固定できず、context・surface・大域状態と製品定義への閉包も広いため棄却した。
 
+### 第148便の担当計画
+
+- 実装共通基点は`29238066d01f`である。tile、color space abstract、OpenGL関数担当は`implementing`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの
+  `transport-commit`、追加委任は禁止する。対象platformはmacOSであり、専用worktree-local `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。
+  統合順はOpenGL関数、tile、color space abstractとし、調整担当だけが`AGENTS.md`、architecture文書、`docs/architecture/public-api-test-contracts.json`、共通不足報告を変更する。
+  3担当の公開header、所有CMake、試験source、生成物は重ならない。
+- `g148-opengl-functions-schema`は`/Users/masato/Documents/librepaint-g148-opengl-functions-schema`を所有する。開始`libs/ui/opengl/kis_opengl.h`の未対応28 APIから既存
+  `libs/ui/tests/KisOpenGLRendererConfigContractTest.cpp`の5枠`openGLRendererSelectionAndConfigurationSignaturesRemainStable`、`openGLInitializationAndDiagnosticsSignaturesRemainStable`、
+  `openGLCapabilitySignaturesRemainStable`、`openGLTextureAndOutlinePolicySignaturesRemainStable`、`openGLTestingAndPlatformSignaturesRemainStable`へ対応付ける。許可pathは既存試験sourceだけで、CMakeを変更しない。
+  既存RendererConfig値変換の一source OBJECTを含む対象5工程・12入力を完全に維持し、停止線6工程・15入力、近傍は既存5枠と`KisGuidesConfigSchemaContractTest`、製品`kritaapplicationui`は1,970工程・
+  3,940入力と担当tree内の変更前後集合完全一致を確認する。未知5枠、対象CTest、20回反復、既存OpenGL値枠と近傍、無作業再構築、動的接続、追加APIの未解決OpenGL・context・surface・driver・設定記号、構文・
+  変更行書式、公開API・`verify-quick`を確認する。OpenGL context、surface、driver、設定、大域状態、GUI applicationを生成し、追加static本文を実行し、既存renderer-config OBJECT以外の製品source・OBJECT・shared、`kritatestsdk`、
+  新link/include依存、CMake・公開header変更、対象集合・製品計画差、停止線超過が必要なら止める。
+- `g148-tile-schema`は`/Users/masato/Documents/librepaint-g148-tile-schema`を所有する。開始`libs/image/tiles3/kis_tile.h`の全25 APIから新規
+  `libs/image/tiles3/tests/KisTileSchemaContractTest.cpp`の5枠`tileOwnershipAndLifetimeSchemaRemainsStable`、`tileManagerAttachmentAndDiagnosticsSignaturesRemainStable`、
+  `tileReadWriteLockSignaturesRemainStable`、`tileDataAndGeometrySignaturesRemainStable`、`tileLinkedTraversalSignaturesRemainStable`へ対応付ける。許可pathは新規試験sourceと
+  `libs/image/tiles3/tests/CMakeLists.txt`だけである。直接linkはQt Core・Core5Compat・Testだけ、includeはimage source・generatedだけ、definitionは`kritaimage_EXPORTS`だけとする。新対象4工程・8入力、
+  停止5工程・11入力、近傍は`KisChunkAllocatorSchemaContractTest`、製品`kritaimage`は1,196工程・2,416入力と担当tree内の変更前後集合完全一致を確認する。未知targetと5枠、対象CTest、20回反復、近傍、
+  無作業再構築、動的接続、未解決tile・data・manager・store・lock記号、構文・変更行書式、公開API・`verify-quick`を確認する。tile、data、manager、shared pointer、lock、storeを生成し、inline本文・lock・
+  manager通知・memory・診断を実行し、`kis_tile.cpp`、製品source・OBJECT・shared、`kritatestsdk`、Qt Core・Core5Compat・Test以外の新link、公開header変更、製品計画差、停止線超過が必要なら止める。
+- `g148-color-space-abstract-schema`は`/Users/masato/Documents/librepaint-g148-color-space-abstract-schema`を所有する。開始`libs/pigment/KoColorSpaceAbstract.h`の全32 APIから新規
+  `libs/pigment/tests/KoColorSpaceAbstractSchemaContractTest.cpp`の5枠`colorSpaceAbstractIdentityAndConstructionSchemaRemainsStable`、`colorSpaceAbstractChannelSchemaRemainsStable`、
+  `colorSpaceAbstractOpacityAndMaskSignaturesRemainStable`、`colorSpaceAbstractVisualConversionSignaturesRemainStable`、`colorSpaceAbstractTransformationSignaturesRemainStable`へ対応付ける。許可pathは新規試験sourceと
+  `libs/pigment/tests/CMakeLists.txt`だけである。直接linkはQt Core・Gui・TestとBoost headerだけ、includeはpigment・global source/generatedとKF I18n interface、definitionsは`kritaglobal_EXPORTS`・
+  `kritapigment_EXPORTS`だけとし、公開headerをtarget sourceとAUTOMOC入力へ追加しない。新対象4工程・8入力、停止5工程・11入力、近傍は`KoColorSpaceSchemaContractTest`、製品`kritapigment`は367工程・764入力と
+  担当tree内の変更前後集合・保留集合完全一致を確認する。未知targetと5枠、対象CTest、20回反復、近傍、無作業再構築、動的接続、AUTOMOC入力、未解決色空間・registry・factory・変換記号、構文・書式、
+  公開API・`verify-quick`を確認する。trait、特殊化、vtable、画素、mask、色空間、registry、変換、factoryを生成または実行し、inline本文を実体化し、製品source・OBJECT・shared、`kritatestsdk`、新非header依存、
+  公開header変更、製品計画差、停止線超過が必要なら止める。
+
 ### 第147便の先行監査計画
 
 - 監査共通基点は`385f9340b045`、入力は`build/tdd-macos/public-api-missing-g147.json`である。3担当は`auditing`の読み取り専用とし、製品・試験・CMake・script・台帳・文書を変更せず、構築、試験、Git操作、
