@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 12913
+    "expectedMissingApis": 12892
   },
   "contracts": [
     {
@@ -47774,6 +47774,72 @@
         "method:KoSvgTextContentElement::insertText(int start,QString insertText)",
         "method:KoSvgTextContentElement::numChars(bool withControls=false,KoSvgTextProperties resolvedProps=KoSvgTextProperties ()) const",
         "method:KoSvgTextContentElement::removeText(int & start,int length)"
+      ]
+    },
+    {
+      "target": "KisWidgetConnectionStateContractTest",
+      "source": "libs/widgets/tests/KisWidgetConnectionStateContractTest.cpp",
+      "test": "KisWidgetConnectionStateContractTest::primitiveControlConnectionSignaturesRemainStable",
+      "behavior": "基本button・spin box・sliderと状態propertyを接続する公開関数overloadの署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisWidgetConnectionUtils::connectControl(QAbstractButton * button,QObject * source,const char * property)",
+        "function:KisWidgetConnectionUtils::connectControl(QCheckBox * button,QObject * source,const char * property)",
+        "function:KisWidgetConnectionUtils::connectControl(QDoubleSpinBox * spinBox,QObject * source,const char * property)",
+        "function:KisWidgetConnectionUtils::connectControl(QSlider * slider,QObject * source,const char * property)",
+        "function:KisWidgetConnectionUtils::connectControl(QSpinBox * spinBox,QObject * source,const char * property)"
+      ]
+    },
+    {
+      "target": "KisWidgetConnectionStateContractTest",
+      "source": "libs/widgets/tests/KisWidgetConnectionStateContractTest.cpp",
+      "test": "KisWidgetConnectionStateContractTest::choiceActionAndTextControlConnectionSignaturesRemainStable",
+      "behavior": "action・選択・文字controlと状態propertyを接続する公開関数overloadの署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisWidgetConnectionUtils::connectControl(QAction * button,QObject * source,const char * property)",
+        "function:KisWidgetConnectionUtils::connectControl(QButtonGroup * button,QObject * source,const char * property)",
+        "function:KisWidgetConnectionUtils::connectControl(QComboBox * button,QObject * source,const char * property)",
+        "function:KisWidgetConnectionUtils::connectControl(QLineEdit * widget,QObject * source,const char * property)"
+      ]
+    },
+    {
+      "target": "KisWidgetConnectionStateContractTest",
+      "source": "libs/widgets/tests/KisWidgetConnectionStateContractTest.cpp",
+      "test": "KisWidgetConnectionStateContractTest::specializedControlConnectionSignaturesRemainStable",
+      "behavior": "角度・色・file・倍率・spacing controlと状態propertyを接続する公開関数overloadの署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisWidgetConnectionUtils::connectControl(KisAngleSelector * widget,QObject * source,const char * property)",
+        "function:KisWidgetConnectionUtils::connectControl(KisColorButton * widget,QObject * source,const char * property)",
+        "function:KisWidgetConnectionUtils::connectControl(KisFileNameRequester * widget,QObject * source,const char * property)",
+        "function:KisWidgetConnectionUtils::connectControl(KisMultipliersDoubleSliderSpinBox * spinBox,QObject * source,const char * property)",
+        "function:KisWidgetConnectionUtils::connectControl(KisSpacingSelectionWidget * widget,QObject * source,const char * property)"
+      ]
+    },
+    {
+      "target": "KisWidgetConnectionStateContractTest",
+      "source": "libs/widgets/tests/KisWidgetConnectionStateContractTest.cpp",
+      "test": "KisWidgetConnectionStateContractTest::controlStateConnectionSignaturesRemainStable",
+      "behavior": "button・選択・spin boxの読出し状態propertyと書込propertyを接続する公開関数overloadの署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisWidgetConnectionUtils::connectControlState(QAbstractButton * button,QObject * source,const char * readStateProperty,const char * writeProperty)",
+        "function:KisWidgetConnectionUtils::connectControlState(QButtonGroup * group,QObject * source,const char * readStateProperty,const char * writeProperty)",
+        "function:KisWidgetConnectionUtils::connectControlState(QComboBox * button,QObject * source,const char * readStateProperty,const char * writeProperty)",
+        "function:KisWidgetConnectionUtils::connectControlState(QDoubleSpinBox * spinBox,QObject * source,const char * readStateProperty,const char * writeProperty)",
+        "function:KisWidgetConnectionUtils::connectControlState(QSpinBox * spinBox,QObject * source,const char * readStateProperty,const char * writeProperty)"
+      ]
+    },
+    {
+      "target": "KisWidgetConnectionStateContractTest",
+      "source": "libs/widgets/tests/KisWidgetConnectionStateContractTest.cpp",
+      "test": "KisWidgetConnectionStateContractTest::widgetPresentationPropertyConnectionSignaturesRemainStable",
+      "behavior": "Widgetの有効性・可視性と状態propertyを接続する公開関数の署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisWidgetConnectionUtils::connectWidgetEnabledToProperty(QWidget * widget,QObject * source,const char * property)",
+        "function:KisWidgetConnectionUtils::connectWidgetVisibleToProperty(QWidget * widget,QObject * source,const char * property)"
       ]
     }
   ]
