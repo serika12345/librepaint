@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 20:42 JST
+- 更新日時: 2026-09-02 20:44 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -37,6 +37,33 @@
   `kritaflake` 621工程・1,274入力を維持する。対象命令集合hashは`a6e9b6f6abd87c029d5a6e66f21f84b01ac0fbfcaec6f50a5eb00dd5470eb231`、入力集合hashは
   `8fe54ed466151d60b6e0f8831566da506cb3a82319adaa3eb3657433bd6e3b57`、製品命令集合hashは`2fc3040d1c607ecd81879d6ec00ad8a4a161787da567b484bc934a687afefb07`、入力集合hashは
   `1a30862a8e0463c6578045c344b23088d4909ac6017407162709d283413b8cb5`である。`KisAnimUtils.h`はframe値、画像・node・keyframe変更、undo command、clone、debug・hash、大域action名へ責務が分散し、製品所有も2,002工程超となるため棄却した。
+
+### 第162便の担当計画
+
+- 実装共通基点は`f56b778062`である。3担当は`preparing`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、
+  専用worktree-local `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。統合順はsaved command、palette model、SVG textとし、調整担当だけが
+  `AGENTS.md`、architecture文書、`docs/architecture/public-api-test-contracts.json`、共通不足報告を変更する。3担当の公開header、所有CMake、試験source、生成物は重ならない。
+- `g162-saved-command-schema`は`/Users/masato/Documents/librepaint-g162-saved-command-schema`を所有する。開始`libs/image/commands_new/kis_saved_commands.h`の全30 APIから既存
+  `libs/image/tests/KisImageTypesContractTest.cpp`の5枠`savedCommandHierarchyAndLifetimeSchemaRemainsStable`、`savedCommandTimingAndIdentitySignaturesRemainStable`、
+  `savedCommandMergeAndUnwrapSignaturesRemainStable`、`savedMacroCommandCompositionAndIdentitySignaturesRemainStable`、`savedMacroCommandExecutionAndOverrideSignaturesRemainStable`へ対応付ける。完全集合は3 class、base・通常・macroの構築と
+  base・macroの破棄、base undo・redo、通常commandのtimed ID・ID・時間範囲・merge状態8、merge・annihilation・command列・timed merge・unwrap 5、macroの追加・ID・merge・annihilation 5、job展開・override 2である。許可pathは既存試験sourceだけであり、
+  CMake・公開header・製品sourceを変更しない。`addCommand`の2省略形と`getCommandExecutionJobs`の履歴指定省略形を未評価式で固定する。対象4工程・8入力、停止5工程・11入力、近傍`KisImageConfigAnimationSchemaContractTest`、製品
+  `kritaimage` 1,196工程・2,416入力の変更前後集合完全一致を確認する。旧binaryの新5枠Unknown、対象CTest・枠個別・20回反復、近傍、無作業再構築、動的接続・AUTOMOC入力・saved command・undo・stroke・RTTI未解決記号、構文・書式、
+  公開API・`verify-quick`を確認する。command、stroke facade・job、macro、unwrap本文を生成または実行し、CMake・依存変更、製品接続、公開header変更、製品計画差、停止線超過が必要なら止める。
+- `g162-palette-model-schema`は`/Users/masato/Documents/librepaint-g162-palette-model-schema`を所有する。開始`libs/widgets/KisPaletteModel.h`の全35 APIから新規
+  `libs/widgets/tests/KisPaletteModelSchemaContractTest.cpp`の5枠`paletteModelIdentityAndRoleSchemaRemainsStable`、`paletteModelQueryAndDragDropSignaturesRemainStable`、
+  `paletteModelPaletteConnectionSignaturesRemainStable`、`paletteModelSwatchMutationSignaturesRemainStable`、`paletteModelGroupAndLayoutSignaturesRemainStable`へ対応付ける。完全集合はclass・role enumと4列挙子・構築・破棄、model照会・MIME・drag/drop 11、
+  color set・renderer・2通知・外部変更6、swatch追加・2 clear・削除・設定5、group追加・改名・削除・列数・group行数5である。許可pathは新規試験sourceと`libs/widgets/tests/CMakeLists.txt`の対象固有節だけである。role序数と構築、model照会、swatch、groupの
+  既定引数省略形を固定する。直接linkはQt Core・Gui・Testだけ、includeはwidgets・pigment・resources・globalのsource/generatedと必要なinterface include、definitionは所有exportだけとし、公開headerをsourceやAUTOMOC入力へ加えない。新対象4工程・8〜9入力、
+  停止5工程・11入力、近傍`KisVisualColorModelSchemaContractTest`、製品`kritawidgets` 809工程・1,647入力と保留集合の変更前後完全一致を確認する。unknown target・CTest 0件、新5枠、対象CTest・20回反復、近傍、無作業再構築、動的接続・
+  AUTOMOC入力・未解決palette記号、構文・書式、公開API・`verify-quick`を確認する。model、palette、swatch、resource、renderer、index、MIME、drag/drop、色変換、signal、metaobject、event loopを生成または実行し、Qt外の新link、製品接続、公開header変更、
+  製品計画差、停止線超過が必要なら止める。
+- `g162-svg-text-schema`は`/Users/masato/Documents/librepaint-g162-svg-text-schema`を所有する。開始`libs/flake/text/KoSvgText.h`の全28 APIから既存
+  `libs/flake/tests/KoSvgTextEnumContractTest.cpp`の5枠`svgTextFontRecordSchemaRemainsStable`、`svgTextDebugFormattingSchemaRemainsStable`、`svgTextAutomaticValueParsingSchemaRemainsStable`、
+  `svgTextValueWritingSchemaRemainsStable`、`svgTextCssParsingSchemaRemainsStable`へ対応付ける。完全集合はfont axis・styleのdebug・等価とaxis stream 6、10 debug stream overload、自動値変換と5 parse 6、4 write、CSS stretch・indent parse 2である。
+  許可pathは既存試験sourceだけであり、CMake・公開header・製品sourceを変更しない。parse 5関数とwrite 2関数の既定引数省略形を未評価式で固定する。対象4工程・8入力、停止5工程・11入力、同じ対象の既存列挙・値契約を近傍とし、製品`kritaflake`
+  621工程・1,274入力の変更前後集合完全一致を確認する。旧binaryの新5枠Unknown、対象CTest・枠個別・20回反復、既存枠、無作業再構築、動的接続・AUTOMOC入力・SVG text未解決記号、構文・書式、公開API・`verify-quick`を確認する。SVG context、stream、shape、font、
+  layout、filesystem、描画を生成または実行し、CMake・依存変更、製品接続、公開header変更、製品計画差、停止線超過が必要なら止める。
 
 ### 第161便の先行監査計画
 
