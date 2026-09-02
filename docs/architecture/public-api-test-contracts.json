@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 15327
+    "expectedMissingApis": 15299
   },
   "contracts": [
     {
@@ -42030,6 +42030,79 @@
         "method:KoShapeSavingContext::removeShapeOffset(const KoShape * shape)",
         "method:KoShapeSavingContext::shapeOffset(const KoShape * shape) const",
         "method:KoShapeSavingContext::sharedData(const QString & id) const"
+      ]
+    },
+    {
+      "target": "KisDisplayConfigSchemaContractTest",
+      "source": "libs/ui/tests/KisDisplayConfigSchemaContractTest.cpp",
+      "test": "KisDisplayConfigSchemaContractTest::displayConfigTypeAndConstructionSchemaRemainsStable",
+      "behavior": "表示色設定は変換intent・flagのoption型を共有する単一・複数surface型と既定またはprofile付き構築面を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisDisplayConfig::Options",
+        "alias:KisMultiSurfaceDisplayConfig::Options",
+        "class:KisDisplayConfig",
+        "class:KisMultiSurfaceDisplayConfig",
+        "method:KisDisplayConfig::KisDisplayConfig()",
+        "method:KisDisplayConfig::KisDisplayConfig(const KoColorProfile * _profile,KoColorConversionTransformation::Intent _intent,KoColorConversionTransformation::ConversionFlags _conversionFlags,bool _isHDR=false)",
+        "method:KisMultiSurfaceDisplayConfig::KisMultiSurfaceDisplayConfig()"
+      ]
+    },
+    {
+      "target": "KisDisplayConfigSchemaContractTest",
+      "source": "libs/ui/tests/KisDisplayConfigSchemaContractTest.cpp",
+      "test": "KisDisplayConfigSchemaContractTest::displayConfigValueSchemaRemainsStable",
+      "behavior": "単一surface表示色設定はprofile、intent、変換flag、HDR状態とoption設定・照会・等値比較の公開面を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisDisplayConfig::conversionFlags",
+        "member:KisDisplayConfig::intent",
+        "member:KisDisplayConfig::isHDR",
+        "member:KisDisplayConfig::profile",
+        "method:KisDisplayConfig::operator ==(const KisDisplayConfig & rhs) const",
+        "method:KisDisplayConfig::options() const",
+        "method:KisDisplayConfig::setOptions(const Options & options)"
+      ]
+    },
+    {
+      "target": "KisDisplayConfigSchemaContractTest",
+      "source": "libs/ui/tests/KisDisplayConfigSchemaContractTest.cpp",
+      "test": "KisDisplayConfigSchemaContractTest::displayConfigExternalPolicySignaturesRemainStable",
+      "behavior": "表示色設定は設定値からのoption導出、system color manager初期化、screen profile照会、診断出力の公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:operator <<(QDebug debug,const KisDisplayConfig & value)",
+        "method:KisDisplayConfig::initializeSystemColorManager()",
+        "method:KisDisplayConfig::optionsFromKisConfig(const KisConfig & cfg)",
+        "method:KisDisplayConfig::profileForScreen(int screen)"
+      ]
+    },
+    {
+      "target": "KisDisplayConfigSchemaContractTest",
+      "source": "libs/ui/tests/KisDisplayConfigSchemaContractTest.cpp",
+      "test": "KisDisplayConfigSchemaContractTest::multiSurfaceDisplayConfigValueSchemaRemainsStable",
+      "behavior": "複数surface表示色設定はUI・canvasのprofile、共通intent・変換flag、canvas HDR状態と等値比較の公開面を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisMultiSurfaceDisplayConfig::canvasProfile",
+        "member:KisMultiSurfaceDisplayConfig::conversionFlags",
+        "member:KisMultiSurfaceDisplayConfig::intent",
+        "member:KisMultiSurfaceDisplayConfig::isCanvasHDR",
+        "member:KisMultiSurfaceDisplayConfig::uiProfile",
+        "method:KisMultiSurfaceDisplayConfig::operator ==(const KisMultiSurfaceDisplayConfig & rhs) const"
+      ]
+    },
+    {
+      "target": "KisDisplayConfigSchemaContractTest",
+      "source": "libs/ui/tests/KisDisplayConfigSchemaContractTest.cpp",
+      "test": "KisDisplayConfigSchemaContractTest::multiSurfaceDisplayConfigProjectionSchemaRemainsStable",
+      "behavior": "複数surface表示色設定はcanvas・UI別の単一surface設定を導出し、共通optionを設定・照会する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMultiSurfaceDisplayConfig::canvasDisplayConfig() const",
+        "method:KisMultiSurfaceDisplayConfig::options() const",
+        "method:KisMultiSurfaceDisplayConfig::setOptions(const Options & options)",
+        "method:KisMultiSurfaceDisplayConfig::uiDisplayConfig() const"
       ]
     }
   ]

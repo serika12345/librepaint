@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 10:50 JST
+- 更新日時: 2026-09-02 10:52 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -38,7 +38,7 @@
 
 ### 第144便の担当計画
 
-- 実装共通基点は`7903e1e745`である。uniform paintop propertyとshape saving context担当は`integrated`、display config担当は`assigned`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの
+- 実装共通基点は`7903e1e745`である。uniform paintop property、shape saving context、display config担当は`integrated`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの
   `transport-commit`、追加委任は禁止する。対象platformはmacOSであり、専用worktree-local `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を
   共有する。統合順はuniform paintop property、shape saving context、display configとし、調整担当だけが`AGENTS.md`、architecture文書、`docs/architecture/public-api-test-contracts.json`、共通不足報告を
   変更する。3担当の公開header、所有CMake、試験source、生成物は重ならない。
@@ -77,6 +77,14 @@
   新対象4工程・8入力に収め、製品`kritaflake` 621工程・1,274入力と保留集合を維持した。context、writer、shape、layer、marker、image、shared data、QTransform、XML出力・集合操作・所有移転・offset処理を
   生成または実行していない。担当macOS環境と中央環境で5枠を含む対象CTest・20回反復、近傍`KoShapeEnumContractTest`、無作業再構築、動的接続・未解決記号、構文・書式、公開API検査に成功した。中央の
   公開API契約検査は29,838件中14,511件対応、15,327件未対応となる。作業tree 879,540 KiBと担当branchは削除した。XML、layer・image収集、marker参照、共有data所有、offset処理の実行時挙動は別の効果契約で扱う。
+- `g144-display-config-schema`は受渡しcommit`0b6e87866f5b`を統合commit`8778411a7a`として取り込んだ。開始`libs/ui/canvas/KisDisplayConfig.h`から新規
+  `libs/ui/tests/KisDisplayConfigSchemaContractTest.cpp`の5枠へ、型・構築、単一surface値、外部policy署名、複数surface値、投影の28 APIを対応付けた。公開headerが要求する`kritaui_export.h`のため、
+  `libs/ui/tests/CMakeLists.txt`でこの対象だけにapplication source・generated includeを追加した。直接linkはQt Core・TestとBoost headerだけで、新対象4工程・8入力に収め、製品`kritaapplicationui`
+  1,970工程・3,940入力を維持した。単一・複数surface値、inline本文、system color manager、設定I/O、screen・profile取得、色変換を生成または実行していない。担当macOS環境と中央環境で5枠を含む対象CTest・
+  20回反復、近傍`KisGuidesConfigSchemaContractTest`、無作業再構築、動的接続・未解決記号、構文・書式、公開API検査に成功した。中央の公開API契約検査は29,838件中14,539件対応、15,299件未対応となる。
+  作業tree 875,948 KiBと担当branchは削除した。第144便全体で83 APIを追加し、3作業tree計2,637,792 KiB（約2.52 GiB）を回収した。旧不足報告を削除し、主Ninja木、共有compiler cache、最新不足報告
+  `build/tdd-macos/public-api-missing-g145.json`だけを再利用対象として保持する。次の永続作業は第145便の不足報告から、pathと所有CMakeが重ならない3責務を先行監査し、限定構築範囲を確認してから担当票を
+  確定することである。
 
 ### 第143便の先行監査計画
 
