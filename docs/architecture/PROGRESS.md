@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 23:01 JST
+- 更新日時: 2026-09-02 23:03 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -31,6 +31,28 @@
 - `g166-libkis-scratchpad-view-schema-audit`は`libs/libkis/View.h`の残り全26 APIを採用した。document・可視性7、resource選択7、色状態・通知6、座標変換3、対話通知3を既存
   `libs/libkis/tests/ViewSchemaContractTest.cpp`の5枠へ対応付ける。CMakeと依存を変えず対象4工程・8入力、停止5工程・11入力、製品`kritalibkis` 2,018工程・4,034入力を維持する。`Scratchpad.h`はQWidget、画像、gradient、pattern、
   document・layer転写、zoom、pan、viewport、signalへ責務が分散し、既定引数とWidgets閉包も広いため比較棄却した。
+
+### 第166便の担当計画
+
+- 実装共通基点は`125e380a5b`である。3担当は`implementing`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、専用worktree-local
+  `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。統合順はmask generator、XML GUI client、libkis viewとし、調整担当だけがarchitecture文書、公開API台帳、共通不足報告を変更する。
+- `g166-mask-generator-schema`は`/Users/masato/Documents/librepaint-g166-mask-generator-schema`を所有する。開始`libs/image/kis_base_mask_generator.h`の全39 APIから既存
+  `libs/image/tests/KisImageTypesContractTest.cpp`の5枠`maskGeneratorIdentityLifetimeAndConstantsSchemaRemainStable`、`maskGeneratorGeometrySignaturesRemainStable`、`maskGeneratorAppearanceSignaturesRemainStable`、
+  `maskGeneratorRenderingPolicySignaturesRemainStable`、`maskGeneratorSerializationAndRegistrySignaturesRemainStable`へ対応付ける。完全集合はidentity・寿命・定数11、geometry 10、外観8、描画方針7、XML・registry 3である。許可pathは既存試験sourceだけであり、
+  CMake・公開header・製品sourceを変更しない。列挙値、oversampling値、ID省略構築を固定し、静的KoIDをODR使用しない。対象4工程・8入力、停止5工程・11入力、近傍`KisImageConfigAnimationSchemaContractTest`、製品`kritaimage` 1,196工程・2,416入力を維持する。
+  旧binaryの新5枠Unknown、対象CTest・枠個別・20回反復、既存枠、近傍、無作業再構築、動的接続・AUTOMOC入力・mask・applicator・XML・registry未解決記号、構文・書式、公開API・`verify-quick`を確認する。generator・probe・KoID・applicator・XMLを実体化または実行し、
+  CMake・依存・公開header・製品source変更、製品接続、停止線超過が必要なら止める。
+- `g166-xml-gui-client-schema`は`/Users/masato/Documents/librepaint-g166-xml-gui-client-schema`を所有する。開始`libs/widgetutils/xmlgui/kxmlguiclient.h`の全38 APIから新規
+  `libs/widgetutils/tests/KXMLGUIClientSchemaContractTest.cpp`の5枠`xmlGuiClientIdentityAndStateTypesRemainStable`、`xmlGuiClientStateActionSchemaRemainsStable`、`xmlGuiClientDocumentAndComponentSignaturesRemainStable`、
+  `xmlGuiClientActionFactoryAndHierarchySignaturesRemainStable`、`xmlGuiClientDynamicPlugSignaturesRemainStable`へ対応付ける。完全集合はidentity・状態型8、状態action 5、文書・component 9、action・factory・階層11、動的plug 5である。許可pathは新規試験sourceと
+  `libs/widgetutils/tests/CMakeLists.txt`の対象固有節だけである。状態列挙値、状態値copy、XML置換のmerge省略形を固定する。直接linkはQt Core・Testだけ、includeはxmlgui source/generated、definitionは`kritawidgetutils_EXPORTS`だけとし、公開headerをsourceやAUTOMOC入力へ加えない。
+  新対象4工程・8入力、停止5工程・11入力、近傍`KStandardActionEnumContractTest`、製品`kritawidgetutils` 274工程・581入力を維持する。unknown target・CTest 0件、新5枠、対象CTest・枠個別・20回反復、近傍、無作業再構築、動的接続・AUTOMOC入力・XML GUI client未解決記号、
+  構文・書式、公開API・`verify-quick`を確認する。client、XML、widget、action、factory、builderを実体化または実行し、Qt Widgets・Xml・KF・製品・SDKへのlink、製品source、公開header変更、停止線超過が必要なら止める。
+- `g166-libkis-view-schema`は`/Users/masato/Documents/librepaint-g166-libkis-view-schema`を所有する。開始`libs/libkis/View.h`の残り全26 APIから既存
+  `libs/libkis/tests/ViewSchemaContractTest.cpp`の5枠`viewDocumentAndVisibilitySignaturesRemainStable`、`viewResourceSelectionSignaturesRemainStable`、`viewColorStateAndNotificationSignaturesRemainStable`、
+  `viewCoordinateTransformSignaturesRemainStable`、`viewInteractionNotificationSignaturesRemainStable`へ対応付ける。完全集合はdocument・可視性7、resource選択7、色状態・通知6、座標変換3、対話通知3であり、既定引数はない。許可pathは既存試験sourceだけで、CMake・依存・公開headerを変更しない。
+  対象4工程・8入力、停止5工程・11入力、近傍`SelectionSchemaContractTest`、製品`kritalibkis` 2,018工程・4,034入力を維持する。旧binaryの新5枠Unknown、対象CTest・枠個別・20回反復、既存枠、近傍、無作業再構築、動的接続・AUTOMOC入力・View・canvas・document・resource未解決記号、
+  構文・書式、公開API・`verify-quick`を確認する。view、document、window、canvas、resource、color、floating message、signalを実体化または実行し、CMake・依存・公開header・製品source変更、製品接続、停止線超過が必要なら止める。
 
 ### 第165便の先行監査計画
 
