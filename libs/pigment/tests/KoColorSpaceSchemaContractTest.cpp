@@ -31,6 +31,11 @@ private Q_SLOTS:
     void grayBrushColoringSignaturesRemainStable();
     void pixelToneAdjustmentSignaturesRemainStable();
     void pixelMeasurementSignaturesRemainStable();
+    void colorSpaceOwnershipAndOperatorSchemaRemainsStable();
+    void colorSpaceCompositionAndDitherSignaturesRemainStable();
+    void colorSpaceConversionAndProofingSignaturesRemainStable();
+    void colorSpaceCanonicalRepresentationSignaturesRemainStable();
+    void colorSpaceAdjustmentAndXmlSignaturesRemainStable();
 };
 
 void KoColorSpaceSchemaContractTest::colorSpaceIdentitySignaturesRemainStable()
@@ -150,6 +155,116 @@ void KoColorSpaceSchemaContractTest::pixelMeasurementSignaturesRemainStable()
     ASSERT_KO_COLOR_SPACE_SIGNATURE(differenceA, quint8 (KoColorSpace::*)(const quint8 *, const quint8 *) const);
     ASSERT_KO_COLOR_SPACE_SIGNATURE(intensity8, quint8 (KoColorSpace::*)(const quint8 *) const);
     ASSERT_KO_COLOR_SPACE_SIGNATURE(intensityF, qreal (KoColorSpace::*)(const quint8 *) const);
+}
+
+void KoColorSpaceSchemaContractTest::colorSpaceOwnershipAndOperatorSchemaRemainsStable()
+{
+    static_assert(std::is_enum_v<Deletability>);
+    static_assert(OwnedByRegistryDoNotDelete == 0);
+    static_assert(OwnedByRegistryRegistryDeletes == 1);
+    static_assert(NotOwnedByRegistry == 2);
+    static_assert(
+        !std::is_constructible_v<KoColorSpace, const QString &, const QString &, KoMixColorsOp *, KoConvolutionOp *>);
+    static_assert(std::is_same_v<decltype(static_cast<QDebug (*)(QDebug, const KoColorSpace *)>(&operator<<)),
+                                 QDebug (*)(QDebug, const KoColorSpace *)>);
+}
+
+void KoColorSpaceSchemaContractTest::colorSpaceCompositionAndDitherSignaturesRemainStable()
+{
+    ASSERT_KO_COLOR_SPACE_SIGNATURE(addCompositeOp, void (KoColorSpace::*)(const KoCompositeOp *));
+    ASSERT_KO_COLOR_SPACE_SIGNATURE(addDitherOp, void (KoColorSpace::*)(KisDitherOp *));
+    ASSERT_KO_COLOR_SPACE_SIGNATURE(bitBlt,
+                                    void (KoColorSpace::*)(const KoColorSpace *,
+                                                           const KoCompositeOp::ParameterInfo &,
+                                                           const KoCompositeOp *,
+                                                           KoColorConversionTransformation::Intent,
+                                                           KoColorConversionTransformation::ConversionFlags) const);
+    ASSERT_KO_COLOR_SPACE_SIGNATURE(compositeOp,
+                                    const KoCompositeOp *(KoColorSpace::*)(const QString &, const KoColorSpace *)
+                                        const);
+    ASSERT_KO_COLOR_SPACE_SIGNATURE(compositeOps, QList<KoCompositeOp *> (KoColorSpace::*)() const);
+    ASSERT_KO_COLOR_SPACE_SIGNATURE(convolutionOp, KoConvolutionOp * (KoColorSpace::*)() const);
+    ASSERT_KO_COLOR_SPACE_SIGNATURE(ditherOp, const KisDitherOp *(KoColorSpace::*)(const QString &, DitherType) const);
+    ASSERT_KO_COLOR_SPACE_SIGNATURE(hasCompositeOp,
+                                    bool (KoColorSpace::*)(const QString &, const KoColorSpace *) const);
+    ASSERT_KO_COLOR_SPACE_SIGNATURE(mixColorsOp, KoMixColorsOp * (KoColorSpace::*)() const);
+
+    static_assert(
+        std::is_same_v<decltype(std::declval<const KoColorSpace &>().compositeOp(QString())), const KoCompositeOp *>);
+    static_assert(std::is_same_v<decltype(std::declval<const KoColorSpace &>().hasCompositeOp(QString())), bool>);
+}
+
+void KoColorSpaceSchemaContractTest::colorSpaceConversionAndProofingSignaturesRemainStable()
+{
+    ASSERT_KO_COLOR_SPACE_SIGNATURE(convertChannelToVisualRepresentation,
+                                    void (KoColorSpace::*)(const quint8 *, quint8 *, quint32, QBitArray) const);
+    ASSERT_KO_COLOR_SPACE_SIGNATURE(convertChannelToVisualRepresentation,
+                                    void (KoColorSpace::*)(const quint8 *, quint8 *, quint32, qint32) const);
+    ASSERT_KO_COLOR_SPACE_SIGNATURE(convertPixelsTo,
+                                    bool (KoColorSpace::*)(const quint8 *,
+                                                           quint8 *,
+                                                           const KoColorSpace *,
+                                                           quint32,
+                                                           KoColorConversionTransformation::Intent,
+                                                           KoColorConversionTransformation::ConversionFlags) const);
+    ASSERT_KO_COLOR_SPACE_SIGNATURE(convertToQImage,
+                                    QImage (KoColorSpace::*)(const quint8 *,
+                                                             qint32,
+                                                             qint32,
+                                                             const KoColorProfile *,
+                                                             KoColorConversionTransformation::Intent,
+                                                             KoColorConversionTransformation::ConversionFlags) const);
+    ASSERT_KO_COLOR_SPACE_SIGNATURE(createColorConverter,
+                                    KoColorConversionTransformation
+                                        * (KoColorSpace::*)(const KoColorSpace *,
+                                                            KoColorConversionTransformation::Intent,
+                                                            KoColorConversionTransformation::ConversionFlags) const);
+    ASSERT_KO_COLOR_SPACE_SIGNATURE(createProofingTransform,
+                                    KoColorConversionTransformation
+                                        * (KoColorSpace::*)(const KoColorSpace *,
+                                                            const KoColorSpace *,
+                                                            KoColorConversionTransformation::Intent,
+                                                            KoColorConversionTransformation::Intent,
+                                                            bool,
+                                                            quint8 *,
+                                                            KoColorConversionTransformation::ConversionFlags) const);
+    ASSERT_KO_COLOR_SPACE_SIGNATURE(
+        proofPixelsTo,
+        bool (KoColorSpace::*)(const quint8 *, quint8 *, quint32, KoColorConversionTransformation *) const);
+}
+
+void KoColorSpaceSchemaContractTest::colorSpaceCanonicalRepresentationSignaturesRemainStable()
+{
+    ASSERT_KO_COLOR_SPACE_SIGNATURE(fromHSY, QVector<double> (KoColorSpace::*)(qreal *, qreal *, qreal *) const);
+    ASSERT_KO_COLOR_SPACE_SIGNATURE(fromLabA16, void (KoColorSpace::*)(const quint8 *, quint8 *, quint32) const);
+    ASSERT_KO_COLOR_SPACE_SIGNATURE(fromQColor, void (KoColorSpace::*)(const QColor &, quint8 *) const);
+    ASSERT_KO_COLOR_SPACE_SIGNATURE(fromRgbA16, void (KoColorSpace::*)(const quint8 *, quint8 *, quint32) const);
+    ASSERT_KO_COLOR_SPACE_SIGNATURE(fromYUV, QVector<double> (KoColorSpace::*)(qreal *, qreal *, qreal *) const);
+    ASSERT_KO_COLOR_SPACE_SIGNATURE(toHSY,
+                                    void (KoColorSpace::*)(const QVector<double> &, qreal *, qreal *, qreal *) const);
+    ASSERT_KO_COLOR_SPACE_SIGNATURE(toLabA16, void (KoColorSpace::*)(const quint8 *, quint8 *, quint32) const);
+    ASSERT_KO_COLOR_SPACE_SIGNATURE(toQColor, void (KoColorSpace::*)(const quint8 *, QColor *) const);
+    ASSERT_KO_COLOR_SPACE_SIGNATURE(toQColor16, void (KoColorSpace::*)(const quint8 *, QColor *) const);
+    ASSERT_KO_COLOR_SPACE_SIGNATURE(toRgbA16, void (KoColorSpace::*)(const quint8 *, quint8 *, quint32) const);
+    ASSERT_KO_COLOR_SPACE_SIGNATURE(toYUV,
+                                    void (KoColorSpace::*)(const QVector<double> &, qreal *, qreal *, qreal *) const);
+}
+
+void KoColorSpaceSchemaContractTest::colorSpaceAdjustmentAndXmlSignaturesRemainStable()
+{
+    ASSERT_KO_COLOR_SPACE_SIGNATURE(createBrightnessContrastAdjustment,
+                                    KoColorTransformation * (KoColorSpace::*)(const quint16 *) const);
+    ASSERT_KO_COLOR_SPACE_SIGNATURE(createColorTransformation,
+                                    KoColorTransformation
+                                        * (KoColorSpace::*)(const QString &, const QHash<QString, QVariant> &) const);
+    ASSERT_KO_COLOR_SPACE_SIGNATURE(createDarkenAdjustment,
+                                    KoColorTransformation * (KoColorSpace::*)(qint32, bool, qreal) const);
+    ASSERT_KO_COLOR_SPACE_SIGNATURE(createInvertTransformation, KoColorTransformation * (KoColorSpace::*)() const);
+    ASSERT_KO_COLOR_SPACE_SIGNATURE(createPerChannelAdjustment,
+                                    KoColorTransformation * (KoColorSpace::*)(const quint16 *const *) const);
+    ASSERT_KO_COLOR_SPACE_SIGNATURE(colorFromXML, void (KoColorSpace::*)(quint8 *, const QDomElement &) const);
+    ASSERT_KO_COLOR_SPACE_SIGNATURE(colorToXML,
+                                    void (KoColorSpace::*)(const quint8 *, QDomDocument &, QDomElement &) const);
 }
 
 QTEST_GUILESS_MAIN(KoColorSpaceSchemaContractTest)
