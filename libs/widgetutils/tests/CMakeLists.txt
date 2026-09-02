@@ -225,6 +225,18 @@ target_include_directories(KisCursorSchemaContractTest PRIVATE
 target_compile_definitions(KisCursorSchemaContractTest PRIVATE kritawidgetutils_EXPORTS)
 
 kis_add_test(
+    KisActionRegistrySchemaContractTest.cpp
+    LINK_LIBRARIES Qt${QT_MAJOR_VERSION}::Core Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KisActionRegistrySchemaContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Gui,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Xml,INTERFACE_INCLUDE_DIRECTORIES>
+)
+target_compile_definitions(KisActionRegistrySchemaContractTest PRIVATE kritawidgetutils_EXPORTS)
+
+kis_add_test(
     KStandardActionEnumContractTest.cpp
     LINK_LIBRARIES
         Qt${QT_MAJOR_VERSION}::Test
