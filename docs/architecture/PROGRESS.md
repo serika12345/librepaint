@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 12:28 JST
+- 更新日時: 2026-09-02 12:34 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -54,14 +54,16 @@
 - `g148-tile-schema`は`/Users/masato/Documents/librepaint-g148-tile-schema`を所有する。開始`libs/image/tiles3/kis_tile.h`の全25 APIから新規
   `libs/image/tiles3/tests/KisTileSchemaContractTest.cpp`の5枠`tileOwnershipAndLifetimeSchemaRemainsStable`、`tileManagerAttachmentAndDiagnosticsSignaturesRemainStable`、
   `tileReadWriteLockSignaturesRemainStable`、`tileDataAndGeometrySignaturesRemainStable`、`tileLinkedTraversalSignaturesRemainStable`へ対応付ける。許可pathは新規試験sourceと
-  `libs/image/tiles3/tests/CMakeLists.txt`だけである。直接linkはQt Core・Core5Compat・Testだけ、includeはimage source・generatedだけ、definitionは`kritaimage_EXPORTS`だけとする。新対象4工程・8入力、
+  `libs/image/tiles3/tests/CMakeLists.txt`だけである。初期構築で`kis_tile.h`が直接要求する`kis_shared.h`の探索先不足を確認したため、この対象だけに所有元のglobal source・generated directoryをPRIVATE追加する。
+  直接linkはQt Core・Core5Compat・Testだけ、includeはimage・global source/generatedだけ、definitionは`kritaimage_EXPORTS`だけとする。新対象4工程・8入力、
   停止5工程・11入力、近傍は`KisChunkAllocatorSchemaContractTest`、製品`kritaimage`は1,196工程・2,416入力と担当tree内の変更前後集合完全一致を確認する。未知targetと5枠、対象CTest、20回反復、近傍、
   無作業再構築、動的接続、未解決tile・data・manager・store・lock記号、構文・変更行書式、公開API・`verify-quick`を確認する。tile、data、manager、shared pointer、lock、storeを生成し、inline本文・lock・
   manager通知・memory・診断を実行し、`kis_tile.cpp`、製品source・OBJECT・shared、`kritatestsdk`、Qt Core・Core5Compat・Test以外の新link、公開header変更、製品計画差、停止線超過が必要なら止める。
 - `g148-color-space-abstract-schema`は`/Users/masato/Documents/librepaint-g148-color-space-abstract-schema`を所有する。開始`libs/pigment/KoColorSpaceAbstract.h`の全32 APIから新規
   `libs/pigment/tests/KoColorSpaceAbstractSchemaContractTest.cpp`の5枠`colorSpaceAbstractIdentityAndConstructionSchemaRemainsStable`、`colorSpaceAbstractChannelSchemaRemainsStable`、
   `colorSpaceAbstractOpacityAndMaskSignaturesRemainStable`、`colorSpaceAbstractVisualConversionSignaturesRemainStable`、`colorSpaceAbstractTransformationSignaturesRemainStable`へ対応付ける。許可pathは新規試験sourceと
-  `libs/pigment/tests/CMakeLists.txt`だけである。直接linkはQt Core・Gui・TestとBoost headerだけ、includeはpigment・global source/generatedとKF I18n interface、definitionsは`kritaglobal_EXPORTS`・
+  `libs/pigment/tests/CMakeLists.txt`だけである。初期構築で`KoColorSpaceMaths.h`が`HAVE_OPENEXR`時に直接要求する`half.h`の探索先不足を確認したため、この対象だけに`Imath::Imath`のinterface include directoryをPRIVATE追加する。
+  直接linkはQt Core・Gui・TestとBoost headerだけ、includeはpigment・global source/generated、KF I18nとImathのinterface、definitionsは`kritaglobal_EXPORTS`・
   `kritapigment_EXPORTS`だけとし、公開headerをtarget sourceとAUTOMOC入力へ追加しない。新対象4工程・8入力、停止5工程・11入力、近傍は`KoColorSpaceSchemaContractTest`、製品`kritapigment`は367工程・764入力と
   担当tree内の変更前後集合・保留集合完全一致を確認する。未知targetと5枠、対象CTest、20回反復、近傍、無作業再構築、動的接続、AUTOMOC入力、未解決色空間・registry・factory・変換記号、構文・書式、
   公開API・`verify-quick`を確認する。trait、特殊化、vtable、画素、mask、色空間、registry、変換、factoryを生成または実行し、inline本文を実体化し、製品source・OBJECT・shared、`kritatestsdk`、新非header依存、
