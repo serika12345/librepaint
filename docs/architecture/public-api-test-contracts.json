@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 14368
+    "expectedMissingApis": 14340
   },
   "contracts": [
     {
@@ -44204,6 +44204,79 @@
         "method:Selection::replace(Selection * selection)",
         "method:Selection::subtract(Selection * selection)",
         "method:Selection::symmetricdifference(Selection * selection)"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::gradientColorStopMemberSchemaRemainsStable",
+      "behavior": "PSD gradient color stopは実色、stop種別、位置、midpointの公開値型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:psd_gradient_color_stop::actual_color",
+        "member:psd_gradient_color_stop::color_stop_type",
+        "member:psd_gradient_color_stop::location",
+        "member:psd_gradient_color_stop::midpoint",
+        "struct:psd_gradient_color_stop"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::bevelContourAndTextureResourceSignaturesRemainStable",
+      "behavior": "PSD bevel・emboss効果はgloss contour表とtexture pattern・資源linkを照会・設定する厳密な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:psd_layer_effects_bevel_emboss::glossContourLookupTable() const",
+        "method:psd_layer_effects_bevel_emboss::setGlossContourLookupTable(const quint8 * value)",
+        "method:psd_layer_effects_bevel_emboss::setTexturePattern(KoPatternSP value)",
+        "method:psd_layer_effects_bevel_emboss::texturePattern(KisResourcesInterfaceSP resourcesInterface) const",
+        "method:psd_layer_effects_bevel_emboss::texturePatternLink() const"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::layerEffectShadowHierarchyLifecycleSignaturesRemainStable",
+      "behavior": "PSD shadow系layer effectはbevel、drop・inner shadow、satin、共通・基底効果の公開構築・破棄可能性と継承関係を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:psd_layer_effects_bevel_emboss::psd_layer_effects_bevel_emboss()",
+        "method:psd_layer_effects_drop_shadow::~psd_layer_effects_drop_shadow()",
+        "method:psd_layer_effects_inner_shadow::psd_layer_effects_inner_shadow()",
+        "method:psd_layer_effects_inner_shadow::~psd_layer_effects_inner_shadow()",
+        "method:psd_layer_effects_satin::psd_layer_effects_satin()",
+        "method:psd_layer_effects_shadow_base::psd_layer_effects_shadow_base()",
+        "method:psd_layer_effects_shadow_base::~psd_layer_effects_shadow_base()",
+        "method:psd_layer_effects_shadow_common::~psd_layer_effects_shadow_common()"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::layerEffectGlowLifecycleSignaturesRemainStable",
+      "behavior": "PSD glow系layer effectは共通・inner・outer効果の公開構築・破棄可能性と継承関係を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:psd_layer_effects_glow_common::psd_layer_effects_glow_common()",
+        "method:psd_layer_effects_glow_common::~psd_layer_effects_glow_common()",
+        "method:psd_layer_effects_inner_glow::psd_layer_effects_inner_glow()",
+        "method:psd_layer_effects_inner_glow::~psd_layer_effects_inner_glow()",
+        "method:psd_layer_effects_outer_glow::~psd_layer_effects_outer_glow()"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::shadowContourAndGradientResourceSignaturesRemainStable",
+      "behavior": "PSD shadow基底効果はcontour表とgradient・資源linkを照会・設定する厳密な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:psd_layer_effects_shadow_base::contourLookupTable() const",
+        "method:psd_layer_effects_shadow_base::gradient(KisResourcesInterfaceSP resourcesInterface) const",
+        "method:psd_layer_effects_shadow_base::gradientLink() const",
+        "method:psd_layer_effects_shadow_base::setContourLookupTable(const quint8 * value)",
+        "method:psd_layer_effects_shadow_base::setGradient(KoAbstractGradientSP value)"
       ]
     }
   ]
