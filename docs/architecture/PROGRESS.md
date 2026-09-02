@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 21:14 JST
+- 更新日時: 2026-09-02 21:18 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -40,7 +40,7 @@
 
 ### 第163便の担当計画
 
-- 実装共通基点は`18b3c4cc9f`である。3担当は`preparing`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、
+- 実装共通基点は`18b3c4cc9f`である。3担当は`implementing`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、
   専用worktree-local `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。統合順は資源管理、PNG変換、shortcut編集とし、調整担当だけが
   `AGENTS.md`、architecture文書、`docs/architecture/public-api-test-contracts.json`、共通不足報告を変更する。3担当の公開header、所有CMake、試験source、生成物は重ならない。
 - `g163-resource-manager-schema`は`/Users/masato/Documents/librepaint-g163-resource-manager-schema`を所有する。開始`libs/flake/KoResourceManager_p.h`の全30 APIから新規
