@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 14:50 JST
+- 更新日時: 2026-09-02 14:53 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -37,6 +37,37 @@
   小規模便へ保留する。
 - 3本目の差替監査`g153-libkis-selection-shape-schema-audit`は`libs/libkis/Selection.h`の未対応35 APIを主候補とし、`libs/libkis/Shape.h`の未対応30 APIを比較する。script公開selectionまたはshape wrapperの型・寿命・
   範囲・変形・集合演算・pixel転送面を、selection、node、shape、image、clipboard、document、GUI event loopの実体化なしで閉じる。先行3監査と同じ読み取り専用権限、報告項目、25 API・5枠条件を適用する。
+- `g153-libkis-selection-shape-schema-audit`は`Selection.h`の全35 APIを採用した。型・寿命・同一性6、幾何・pixel data 9、選択内容・clipboard操作型7、morphology操作型8、selection論理結合5を新規
+  `SelectionSchemaContractTest`の未評価型5枠へ対応付ける。直接linkはQt Core・Testと必要なheader interfaceだけ、新対象4工程・8入力、停止5工程・11入力を予測し、製品`kritalibkis` 2,018工程・4,034入力を
+  維持する。近傍`GridConfigSchemaContractTest`の命令集合hashは`8f9a875addf86c8e0f66e69f72e85d66cc29e0af29f586b5abe3547896e36d05`、入力集合hashは
+  `9a2e2dbeaf477dabbd53c38aa1913ada74f03cf1719127986d1bea608b0c8f6c`、製品命令集合hashは`8c8c527c8f9355e51acb1fdd6b56bfdf424464c92cf421eb9c3ab541b2e5f4f6`、入力集合hashは
+  `c7d3d05a6481dae255bd0e55d6a0c3db9f35146efe125ad093974e94bb69ad03`である。`Shape.h`は`KoShape.h`を直接取り込み、Qt Gui、flake、SVG、変換、更新、選択状態へ閉包が広がるため棄却した。
+
+### 第153便の担当計画
+
+- 実装共通基点は`0eb1dd8c2b`である。3担当は`preparing`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、
+  専用worktree-local `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。統合順はpaint operation設定、SVG text値・node index、libkis selectionとし、調整担当だけが
+  `AGENTS.md`、architecture文書、`docs/architecture/public-api-test-contracts.json`、共通不足報告を変更する。3担当の公開header、所有CMake、試験source、生成物は重ならない。
+- `g153-paintop-settings-schema`は`/Users/masato/Documents/librepaint-g153-paintop-settings-schema`を所有する。開始`libs/image/brushengine/kis_paintop_settings.h`のpaint parameter・更新方針36 APIから既存
+  `libs/image/tests/KisImageTypesContractTest.cpp`の5枠`paintOpUpdatePropertyKeySchemaRemainsStable`、`paintOpCadenceAndLodPolicySignaturesRemainStable`、`paintOpDepositParameterSignaturesRemainStable`、
+  `paintOpGeometryCompositeAndEraserSignaturesRemainStable`、`paintOpSavedBrushAndEraserValueSignaturesRemainStable`へ対応付ける。許可pathは既存試験sourceだけで、CMakeを変更しない。対象4工程・8入力、停止5工程・11入力、
+  近傍は`KisImageConfigAnimationSchemaContractTest`、製品`kritaimage`は1,196工程・2,416入力と担当tree内の変更前後集合完全一致を確認する。旧binaryで新5枠Unknown、対象CTest、新5枠個別、20回反復、近傍、無作業再構築、
+  動的接続・未解決設定記号、構文・変更行書式、公開API・`verify-quick`を確認する。設定keyの値、KisPaintOpSettings、派生型、設定backend、preset、resource、paint operation、image、device、XML、inline本文を生成または実行し、
+  新依存、CMake・公開header変更、製品接続、対象集合・製品計画差、停止線超過が必要なら止める。
+- `g153-svg-text-shape-value-index-schema`は`/Users/masato/Documents/librepaint-g153-svg-text-shape-value-index-schema`を所有する。開始`libs/flake/text/KoSvgTextShape.h`の公開値・node index 29 APIから既存
+  `libs/flake/tests/KoSvgTextCharacterResultValueContractTest.cpp`の5枠`textShapeIdentityAndSharedStateAliasesRemainStable`、`textShapePublicEnumSchemaRemainsStable`、`textCharacterInfoMemberSchemaRemainsStable`、
+  `textCharacterInfoOrderingSignaturesRemainStable`、`textNodeIndexLifecycleAndAccessSignaturesRemainStable`へ対応付ける。許可pathは既存試験sourceだけで、CMakeを変更しない。対象4工程・8入力、停止5工程・11入力、近傍は
+  `KoSvgTextFontMetricsValueContractTest`、製品`kritaflake`は621工程・1,274入力と担当tree内の変更前後集合・保留集合完全一致を確認する。旧binaryで新5枠Unknown、対象CTest、新5枠個別、20回反復、近傍、無作業再構築、
+  動的接続・AUTOMOC入力・未解決text shape・node index記号、構文・変更行書式、公開API・`verify-quick`を確認する。shape、node index、memento、character info、font metrics、path、properties、layout、paint、XML、document、
+  resource、GUI、inline本文、関数address値を生成または実行し、新依存、CMake・公開header変更、製品接続、対象集合・製品計画差、停止線超過が必要なら止める。
+- `g153-libkis-selection-schema`は`/Users/masato/Documents/librepaint-g153-libkis-selection-schema`を所有する。開始`libs/libkis/Selection.h`の全35 APIから新規
+  `libs/libkis/tests/SelectionSchemaContractTest.cpp`の5枠`selectionWrapperTypeLifetimeAndIdentitySchemaRemainsStable`、`selectionWrapperGeometryAndPixelDataSchemaRemainsStable`、
+  `selectionWrapperContentAndClipboardSchemaRemainsStable`、`selectionWrapperMorphologySchemaRemainsStable`、`selectionWrapperBooleanCombinationSchemaRemainsStable`へ対応付ける。許可pathは新規試験sourceと
+  `libs/libkis/tests/CMakeLists.txt`だけである。直接linkはQt Core・Testと必要なheader interfaceだけ、includeはlibkis・image・global source/generated、definitionsは`kritalibkis_EXPORTS`・`kritaimage_EXPORTS`・
+  `kritaglobal_EXPORTS`だけとし、公開headerをtarget sourceやAUTOMOC入力へ加えない。新対象4工程・8入力、停止5工程・11入力、近傍は`GridConfigSchemaContractTest`、製品`kritalibkis`は2,018工程・4,034入力と担当tree内の
+  変更前後集合完全一致を確認する。未知targetと新5枠、対象CTest、新5枠個別、20回反復、近傍、無作業再構築、動的接続・AUTOMOC入力・未解決selection・node記号、構文・変更行書式、公開API・`verify-quick`を確認する。
+  Selection、Node、KisSelectionSP、QByteArray、clipboard、image、document、GUI、metaobject、signal、method本文を生成または実行し、`Selection.cpp`、製品source・OBJECT・shared、`kritatestsdk`、Qt Gui・Widgets、flake、新非header依存、
+  公開header変更、製品計画差、停止線超過が必要なら止める。
 
 ### 第152便の先行監査計画
 
