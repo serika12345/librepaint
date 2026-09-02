@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 22:57 JST
+- 更新日時: 2026-09-02 23:01 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -22,6 +22,15 @@
   document・view・canvas・widget・painter・brush・event・action・signal・metaobject・event loopの実体化なしで閉じる。
 - 各報告は完全なAPI識別子、既定引数観測、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから契約先または移動先、許可path、固有停止条件、比較候補の棄却根拠を含む。
   既存`build/tdd-macos`の計画は読み取り専用で測定し、構成や構築を開始しない。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
+- `g166-image-mask-generator-clone-layer-schema-audit`は`libs/image/kis_base_mask_generator.h`の全39 APIを採用した。identity・寿命・定数11、geometry 10、外観8、描画方針7、XML・registry 3を既存
+  `libs/image/tests/KisImageTypesContractTest.cpp`の5枠へ対応付ける。列挙値、oversampling値、ID省略構築も固定し、静的KoIDはODR使用しない。CMakeと依存を変えず対象4工程・8入力、停止5工程・11入力、製品`kritaimage`
+  1,196工程・2,416入力を維持する。`kis_clone_layer.h`はQObject・layer・node階層、clone元、image、projection、visitor、undo、更新、LODへ閉包が広がるため比較棄却した。
+- `g166-xml-gui-client-gradient-chooser-schema-audit`は`libs/widgetutils/xmlgui/kxmlguiclient.h`の全38 APIを採用した。identity・状態型8、状態action 5、文書・component 9、action・factory・階層11、動的plug 5を新規
+  `libs/widgetutils/tests/KXMLGUIClientSchemaContractTest.cpp`の5枠へ対応付ける。状態列挙値、状態値copy、XML置換のmerge省略形も固定する。直接linkはQt Core・Testだけ、新対象4工程・8入力、停止5工程・11入力、製品`kritawidgetutils`
+  274工程・581入力を維持する。`KisGradientChooser.h`はQFrame・Q_OBJECT、dialog、色、resource、canvas resource、gradient所有型を公開headerで直接取り込むため比較棄却した。
+- `g166-libkis-scratchpad-view-schema-audit`は`libs/libkis/View.h`の残り全26 APIを採用した。document・可視性7、resource選択7、色状態・通知6、座標変換3、対話通知3を既存
+  `libs/libkis/tests/ViewSchemaContractTest.cpp`の5枠へ対応付ける。CMakeと依存を変えず対象4工程・8入力、停止5工程・11入力、製品`kritalibkis` 2,018工程・4,034入力を維持する。`Scratchpad.h`はQWidget、画像、gradient、pattern、
+  document・layer転写、zoom、pan、viewport、signalへ責務が分散し、既定引数とWidgets閉包も広いため比較棄却した。
 
 ### 第165便の先行監査計画
 
