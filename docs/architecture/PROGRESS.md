@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 10:03 JST
+- 更新日時: 2026-09-02 10:10 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -53,8 +53,9 @@
   停止線超過が必要なら止める。
 - `g143-shape-factory-schema`は`/Users/masato/Documents/librepaint-g143-shape-factory-schema`を所有する。開始`libs/flake/KoShapeFactoryBase.h`の全26 APIから既存
   `libs/flake/tests/KoShapeEnumContractTest.cpp`の5枠`shapeTemplateValueSchemaRemainsStable`、`shapeFactoryIdentityAndLifecycleSignaturesRemainStable`、`shapeFactoryMetadataSignaturesRemainStable`、
-  `shapeFactoryLoadingAndResourceSignaturesRemainStable`、`shapeFactoryCreationSignaturesRemainStable`へ対応付ける。許可pathは既存試験sourceだけで、CMakeを変更しない。不足API外のprotected setter補助検査は
-  追加しない。対象は現在4工程・8入力、変更後上限5工程・11入力、近傍は`KoSvgTextEnumContractTest`、製品`kritaflake`は621工程・1,274入力と担当tree内の変更前後集合・保留集合の完全一致を
+  `shapeFactoryLoadingAndResourceSignaturesRemainStable`、`shapeFactoryCreationSignaturesRemainStable`へ対応付ける。許可pathは既存試験sourceと`libs/flake/tests/CMakeLists.txt`である。公開headerが直接要求する
+  `KisQStringListFwd.h`を解決するため、この対象固有のprivate includeへ`libs/global`のsource・generated directoryだけを加える。不足API外のprotected setter補助検査は追加しない。対象は現在4工程・8入力、
+  変更後上限5工程・11入力、近傍は`KoSvgTextEnumContractTest`、製品`kritaflake`は621工程・1,274入力と担当tree内の変更前後集合・保留集合の完全一致を
   確認する。未知5枠、対象CTest、20回反復、既存shape列挙3枠と近傍、無作業再構築、動的接続、未解決factory・vtable・metaobject・shape記号、構文・変更行書式、公開API・`verify-quick`を
   確認する。factory・派生probe・shape・properties・option panel・資源manager・DOM・読込みcontextを生成し、plugin・registry・document資源・XML・signalを実行し、製品source・OBJECT・shared、
   `kritatestsdk`、新link/include依存、CMake・公開header変更、製品計画差、停止線超過が必要なら止める。
