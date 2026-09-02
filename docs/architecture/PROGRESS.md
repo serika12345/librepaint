@@ -17,6 +17,15 @@
 - `g105-svg-value-audit`はflake・SVG・vector・documentから、第171便のshape containerを除外して一責務を選ぶ。
 - `g105-widget-connection-audit`はwidgetutils・widgets・libkis・軽量接続面から、第171便のvisual selector shapeを除外して一責務を選ぶ。
 - 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、予測工程・入力と停止線、開始pathから契約先、許可path、固有停止条件、比較候補の棄却根拠を含む。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
+- `g105-paintop-value-audit`は`libs/image/kis_selection_mask.h`の残存全22 APIを採用した。所有・寿命4、visitor・clone 3、幾何6、表示・状態5、selection・model 4を既存
+  `libs/image/tests/KisImageTypesContractTest.cpp`の5枠へ対応付ける。mask、image、node、selection、visitor、undo、metaobjectを実体化せず、inline `clone()`も実行しない。CMakeと依存を変えず対象4工程・8入力、停止5工程・11入力、製品`kritaimage` 1,196工程・2,416入力を維持する。
+  paint情報・設定・更新queue・brush applicator・数値処理は所有状態、描画処理、実装本文へ閉包が広がるため棄却した。
+- `g105-svg-value-audit`は`libs/flake/KoSelection.h`の全24 APIを採用した。identity・寿命3、幾何・active layer 7、membership 4、filtered shape view 4、mutation・通知・描画6を新規
+  `libs/flake/tests/KoSelectionSchemaContractTest.cpp`の5枠へ対応付ける。selection、shape、layer、painter、QObjectを実体化せず、signalとmetaobjectを実行しない。直接linkはQt Core・Gui・Testだけ、新対象4工程・8入力、停止5工程・11入力、製品`kritaflake` 621工程・1,274入力を維持する。
+  controller・manager・resource、SVG parser、command群は大域状態、event配送、資源I/O、製品実装へ閉包が広がるため棄却した。
+- `g105-widget-connection-audit`は`libs/widgetutils/KoFileDialog.h`の全23 APIを採用した。dialog型9、寿命2、設定7、選択結果4、filter通知1を新規
+  `libs/widgetutils/tests/KoFileDialogSchemaContractTest.cpp`の5枠へ対応付ける。dialog、Widget、`QFileDialog`、filesystem、設定、event loop、private pointerを実体化しない。直接linkはQt Core・Testだけ、新対象4工程・8入力、停止5工程・11入力、製品`kritawidgetutils` 274工程・581入力を維持する。
+  visual selector、scratchpad、document、node、main・help menu、font群は描画、文書状態、大域状態、filesystemへ閉包が広がるため棄却した。
 
 ### 第171便の先行監査計画
 
