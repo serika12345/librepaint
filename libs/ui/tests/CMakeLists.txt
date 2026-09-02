@@ -174,6 +174,26 @@ target_compile_definitions(KisGuidesConfigSchemaContractTest PRIVATE
 )
 
 kis_add_test(
+    KisDisplayConfigSchemaContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+        Boost::boost
+)
+target_include_directories(KisDisplayConfigSchemaContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/application
+    ${CMAKE_BINARY_DIR}/libs/application
+    ${CMAKE_SOURCE_DIR}/libs/pigment
+    ${CMAKE_BINARY_DIR}/libs/pigment
+)
+target_compile_definitions(KisDisplayConfigSchemaContractTest PRIVATE
+    kritaui_EXPORTS
+    kritapigment_EXPORTS
+)
+
+kis_add_test(
     KisExposureGammaCorrectionInterfaceContractTest.cpp
     LINK_LIBRARIES
         kritauiexposuregammacorrectionobjects
