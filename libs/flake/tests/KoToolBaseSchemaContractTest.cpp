@@ -4,6 +4,8 @@
  */
 
 #include <KoToolBase.h>
+#include <KoToolFactoryBase.h>
+#include <KoToolRegistry.h>
 
 #include <QTest>
 
@@ -13,6 +15,8 @@ namespace
 {
 #define ASSERT_TOOL_SIGNATURE(method, signature)                                                                       \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KoToolBase::method)), signature>)
+#define ASSERT_TOOL_FACTORY_SIGNATURE(method, signature)                                                               \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KoToolFactoryBase::method)), signature>)
 
 class ToolConstructorProbe : public KoToolBase
 {
@@ -21,6 +25,14 @@ public:
         : KoToolBase(canvas)
     {
     }
+};
+
+class ToolFactoryConstructorProbe final : public KoToolFactoryBase
+{
+public:
+    using KoToolFactoryBase::KoToolFactoryBase;
+
+    KoToolBase *createTool(KoCanvasBase *canvas) override;
 };
 } // namespace
 
@@ -34,6 +46,11 @@ private Q_SLOTS:
     void toolSelectionClipboardAndPopupSignaturesRemainStable();
     void toolLifecycleResourceAndStrokeSignaturesRemainStable();
     void toolActivationCursorAndStatusSignalSignaturesRemainStable();
+    void toolFactoryTypeAndSectionValuesRemainStable();
+    void toolFactoryLifetimeAndCreationSignaturesRemainStable();
+    void toolFactoryIdentityAndPresentationSignaturesRemainStable();
+    void toolRegistryTypeAndLifetimeSchemaRemainsStable();
+    void toolRegistryAccessSignatureRemainsStable();
 };
 
 void KoToolBaseSchemaContractTest::toolIdentityContextAndPresentationSignaturesRemainStable()
@@ -116,6 +133,69 @@ void KoToolBaseSchemaContractTest::toolActivationCursorAndStatusSignalSignatures
     ASSERT_TOOL_SIGNATURE(selectionChanged, void (KoToolBase::*)(bool));
     ASSERT_TOOL_SIGNATURE(statusTextChanged, void (KoToolBase::*)(const QString &));
     ASSERT_TOOL_SIGNATURE(textModeChanged, void (KoToolBase::*)(bool));
+}
+
+void KoToolBaseSchemaContractTest::toolFactoryTypeAndSectionValuesRemainStable()
+{
+    static_assert(std::is_class_v<KoToolFactoryBase>);
+    static_assert(std::is_same_v<decltype(ToolBoxSection::Main), const QString>);
+    static_assert(std::is_same_v<decltype(ToolBoxSection::Shape), const QString>);
+    static_assert(std::is_same_v<decltype(ToolBoxSection::Transform), const QString>);
+    static_assert(std::is_same_v<decltype(ToolBoxSection::Fill), const QString>);
+    static_assert(std::is_same_v<decltype(ToolBoxSection::View), const QString>);
+    static_assert(std::is_same_v<decltype(ToolBoxSection::Select), const QString>);
+    static_assert(std::is_same_v<decltype(ToolBoxSection::Navigation), const QString>);
+
+    QCOMPARE(ToolBoxSection::Main, QStringLiteral("main"));
+    QCOMPARE(ToolBoxSection::Shape, QStringLiteral("0 Krita/Shape"));
+    QCOMPARE(ToolBoxSection::Transform, QStringLiteral("2 Krita/Transform"));
+    QCOMPARE(ToolBoxSection::Fill, QStringLiteral("3 Krita/Fill"));
+    QCOMPARE(ToolBoxSection::View, QStringLiteral("4 Krita/View"));
+    QCOMPARE(ToolBoxSection::Select, QStringLiteral("5 Krita/Select"));
+    QCOMPARE(ToolBoxSection::Navigation, QStringLiteral("navigation"));
+}
+
+void KoToolBaseSchemaContractTest::toolFactoryLifetimeAndCreationSignaturesRemainStable()
+{
+    using Factory = KoToolFactoryBase;
+
+    static_assert(std::is_abstract_v<Factory>);
+    static_assert(std::is_base_of_v<QObject, Factory>);
+    static_assert(std::has_virtual_destructor_v<Factory>);
+    static_assert(std::is_constructible_v<ToolFactoryConstructorProbe, const QString &>);
+    ASSERT_TOOL_FACTORY_SIGNATURE(createActions, QList<QAction *> (Factory::*)(KisKActionCollection *));
+    ASSERT_TOOL_FACTORY_SIGNATURE(createTool, KoToolBase * (Factory::*)(KoCanvasBase *));
+}
+
+void KoToolBaseSchemaContractTest::toolFactoryIdentityAndPresentationSignaturesRemainStable()
+{
+    using Factory = KoToolFactoryBase;
+
+    ASSERT_TOOL_FACTORY_SIGNATURE(id, QString (Factory::*)() const);
+    ASSERT_TOOL_FACTORY_SIGNATURE(priority, int (Factory::*)() const);
+    ASSERT_TOOL_FACTORY_SIGNATURE(section, QString (Factory::*)() const);
+    ASSERT_TOOL_FACTORY_SIGNATURE(toolTip, QString (Factory::*)() const);
+    ASSERT_TOOL_FACTORY_SIGNATURE(iconName, QString (Factory::*)() const);
+    ASSERT_TOOL_FACTORY_SIGNATURE(activationShapeId, QString (Factory::*)() const);
+    ASSERT_TOOL_FACTORY_SIGNATURE(shortcut, QKeySequence (Factory::*)() const);
+}
+
+void KoToolBaseSchemaContractTest::toolRegistryTypeAndLifetimeSchemaRemainsStable()
+{
+    using Registry = KoToolRegistry;
+
+    static_assert(std::is_class_v<Registry>);
+    static_assert(std::is_base_of_v<KoGenericRegistry<KoToolFactoryBase *>, Registry>);
+    static_assert(std::is_default_constructible_v<Registry>);
+    static_assert(std::has_virtual_destructor_v<Registry>);
+}
+
+void KoToolBaseSchemaContractTest::toolRegistryAccessSignatureRemainsStable()
+{
+    using Registry = KoToolRegistry;
+    using InstanceSignature = Registry *(*)();
+
+    static_assert(std::is_same_v<decltype(static_cast<InstanceSignature>(&Registry::instance)), InstanceSignature>);
 }
 
 QTEST_APPLESS_MAIN(KoToolBaseSchemaContractTest)
