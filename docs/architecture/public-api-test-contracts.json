@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 15572
+    "expectedMissingApis": 15542
   },
   "contracts": [
     {
@@ -41380,6 +41380,81 @@
         "method:KisLayerPropertiesIcons::setNodeProperty(KisBaseNode::PropertyList * props,const KoID & id,const QVariant & value)",
         "method:KisLayerPropertiesIcons::setNodePropertyAutoUndo(KisNodeSP node,const KoID & id,const QVariant & value,KisImageSP image)",
         "method:KisLayerPropertiesIcons::updateIcons()"
+      ]
+    },
+    {
+      "target": "KoColorDisplayRendererSchemaContractTest",
+      "source": "libs/pigment/tests/KoColorDisplayRendererSchemaContractTest.cpp",
+      "test": "KoColorDisplayRendererSchemaContractTest::displayRendererInterfaceIdentityAndLifecycleSignaturesRemainStable",
+      "behavior": "表示色変換interfaceはQObject由来の抽象型、保護された構築、仮想破棄、表示設定変更通知を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoColorDisplayRendererInterface",
+        "method:KoColorDisplayRendererInterface::KoColorDisplayRendererInterface()",
+        "method:KoColorDisplayRendererInterface::displayConfigurationChanged()",
+        "method:KoColorDisplayRendererInterface::~KoColorDisplayRendererInterface()"
+      ]
+    },
+    {
+      "target": "KoColorDisplayRendererSchemaContractTest",
+      "source": "libs/pigment/tests/KoColorDisplayRendererSchemaContractTest.cpp",
+      "test": "KoColorDisplayRendererSchemaContractTest::displayRendererInterfaceColorConversionSignaturesRemainStable",
+      "behavior": "表示色変換interfaceはKoColor、QColor、QImage、HSV、画素bufferを相互変換する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoColorDisplayRendererInterface::approximateFromRenderedQColor(const QColor & c) const",
+        "method:KoColorDisplayRendererInterface::convertColorToDisplayColorSpace(const KoColor color) const",
+        "method:KoColorDisplayRendererInterface::convertImageToDisplayColorSpace(const QImage source) const",
+        "method:KoColorDisplayRendererInterface::fromHsv(int h,int s,int v,int a=255) const",
+        "method:KoColorDisplayRendererInterface::getHsv(const KoColor & srcColor,int * h,int * s,int * v,int * a=0) const",
+        "method:KoColorDisplayRendererInterface::toQColor(const KoColor & c,bool proofToPaintColors=false) const",
+        "method:KoColorDisplayRendererInterface::toQImage(const KoColorSpace * srcColorSpace,const quint8 * data,QSize size,bool proofPaintColors=false) const"
+      ]
+    },
+    {
+      "target": "KoColorDisplayRendererSchemaContractTest",
+      "source": "libs/pigment/tests/KoColorDisplayRendererSchemaContractTest.cpp",
+      "test": "KoColorDisplayRendererSchemaContractTest::displayRendererInterfaceSpaceAndPaletteSignaturesRemainStable",
+      "behavior": "表示色変換interfaceは描画色空間、表示用palette、channelの可視範囲を照会する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoColorDisplayRendererInterface::getPaintingColorSpace() const",
+        "method:KoColorDisplayRendererInterface::handlePaletteForDisplayColorSpace() const",
+        "method:KoColorDisplayRendererInterface::maxVisibleFloatValue(const KoChannelInfo * chaninfo) const",
+        "method:KoColorDisplayRendererInterface::minVisibleFloatValue(const KoChannelInfo * chaninfo) const",
+        "method:KoColorDisplayRendererInterface::systemPaletteForDisplayColorSpace() const"
+      ]
+    },
+    {
+      "target": "KoColorDisplayRendererSchemaContractTest",
+      "source": "libs/pigment/tests/KoColorDisplayRendererSchemaContractTest.cpp",
+      "test": "KoColorDisplayRendererSchemaContractTest::dumbDisplayRendererColorConversionSignaturesRemainStable",
+      "behavior": "既定表示色変換器はKoColor、QColor、QImage、HSV、画素bufferを相互変換する具体実装署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoDumbColorDisplayRenderer::approximateFromRenderedQColor(const QColor & c) const",
+        "method:KoDumbColorDisplayRenderer::convertColorToDisplayColorSpace(KoColor c) const",
+        "method:KoDumbColorDisplayRenderer::convertImageToDisplayColorSpace(const QImage source) const",
+        "method:KoDumbColorDisplayRenderer::fromHsv(int h,int s,int v,int a=255) const",
+        "method:KoDumbColorDisplayRenderer::getHsv(const KoColor & srcColor,int * h,int * s,int * v,int * a=0) const",
+        "method:KoDumbColorDisplayRenderer::toQColor(const KoColor & c,bool proofToPaintColors=false) const",
+        "method:KoDumbColorDisplayRenderer::toQImage(const KoColorSpace * srcColorSpace,const quint8 * data,QSize size,bool proofPaintColors=false) const"
+      ]
+    },
+    {
+      "target": "KoColorDisplayRendererSchemaContractTest",
+      "source": "libs/pigment/tests/KoColorDisplayRendererSchemaContractTest.cpp",
+      "test": "KoColorDisplayRendererSchemaContractTest::dumbDisplayRendererIdentitySpaceAndPaletteSignaturesRemainStable",
+      "behavior": "既定表示色変換器はinterfaceの具体実装として共有instance、描画色空間、表示用palette、channelの可視範囲を照会する公開面を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoDumbColorDisplayRenderer",
+        "method:KoDumbColorDisplayRenderer::getPaintingColorSpace() const",
+        "method:KoDumbColorDisplayRenderer::handlePaletteForDisplayColorSpace() const",
+        "method:KoDumbColorDisplayRenderer::instance()",
+        "method:KoDumbColorDisplayRenderer::maxVisibleFloatValue(const KoChannelInfo * chaninfo) const",
+        "method:KoDumbColorDisplayRenderer::minVisibleFloatValue(const KoChannelInfo * chaninfo) const",
+        "method:KoDumbColorDisplayRenderer::systemPaletteForDisplayColorSpace() const"
       ]
     }
   ]
