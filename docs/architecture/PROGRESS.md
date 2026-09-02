@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 18:14 JST
+- 更新日時: 2026-09-02 18:42 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -70,6 +70,30 @@
   停止5工程・11入力、近傍は`KisMediaEncoderFormatAndSettingsContractTest`、製品`kritaimpexui`は1,350工程・2,712入力と担当tree内の変更前後集合・保留集合完全一致を確認する。未知target・CTest 0件、新5枠、対象CTest・
   20回反復、近傍、無作業再構築、動的接続・AUTOMOC入力・未解決dialog・製品記号、構文・書式、公開API・`verify-quick`を確認する。dialog、KoDialog、view、main window、QDir、UI、signal、metaobject、event loop、外部process、
   filesystem、codec、document、image、stream I/Oを生成または実行し、Qt Widgets link、製品source・OBJECT・shared、`kritatestsdk`、新依存、公開header変更、製品計画差、停止線超過が必要なら止める。
+
+### 第158便の統合結果
+
+- `g158-fixed-paint-device-schema`は受渡しcommit`4eca07ec5c`を統合commit`e386a880aa`として取り込んだ。開始`libs/image/kis_fixed_paint_device.h`から既存
+  `libs/image/tests/KisImageTypesContractTest.cpp`の5枠へ、所有・copy、幾何・容量・色、buffer storage、転送・変換、pixel更新の全27 APIを対応付けた。allocator省略構築、既定byte初期化、色変換の既定方針省略形も
+  未評価式で固定した。CMakeと直接依存を変更せず対象4工程・8入力、製品`kritaimage` 1,196工程・2,416入力を維持した。担当macOS環境で旧binaryの新5枠Unknown、対象CTest・5枠個別・20回反復、近傍
+  `KisImageConfigAnimationSchemaContractTest`、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式、公開API検査、`verify-quick`に成功した。中央環境でも対象だけを構築・実行し、台帳commit
+  `09e02ed987`で29,838件中15,900件対応、13,938件未対応となった。作業tree 881,896 KiBと担当branchは削除した。buffer内容、色変換、QImage変換は別の効果契約で扱う。
+- `g158-node-view-color-scheme-schema`は受渡しcommit`1559454796`を統合commit`4790ccb611`として取り込んだ。開始`libs/ui/nodes/kis_node_view_color_scheme.h`から新規
+  `libs/ui/tests/KisNodeViewColorSchemeSchemaContractTest.cpp`の5枠へ、型・寿命・singleton、基本寸法、配置、相対矩形、色方針の全25 APIを対応付け、`libs/ui/tests/CMakeLists.txt`へ独立対象を追加した。公開headerの
+  `kritaui_export.h`を解釈するためapplication source・generated includeだけを対象限定で追加し、直接linkはQt Gui・Testだけ、新対象4工程・8入力、製品`kritaapplicationui` 1,970工程・3,940入力を維持した。担当macOS環境で
+  未知target・CTest 0件、export header不足の初期診断、新5枠、対象CTest・20回反復、近傍`KisDisplayConfigSchemaContractTest`、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式、公開API検査、
+  `verify-quick`に成功した。中央環境でもCMake再生成後に新対象だけを構築・実行し、台帳commit`c0686dcaf2`で29,838件中15,925件対応、13,913件未対応となった。作業tree 881,336 KiBと担当branchは削除した。
+  singleton寿命、設定値、画面palette、style、寸法計算結果は別の効果契約で扱う。
+- `g158-video-import-schema`は受渡しcommit`39e0e73d11`を統合commit`94f73b9b2a`として取り込んだ。開始`libs/impex/animation/KisDlgImportVideoAnimation.h`から新規
+  `libs/impex/tests/KisDlgImportVideoAnimationSchemaContractTest.cpp`の5枠へ、video stream幾何値、encoding・色値、rendered frame値、dialog型・構築、公開workflowの全25 APIを対応付け、`libs/impex/tests/CMakeLists.txt`へ
+  独立対象を追加した。値structの既定値・copy独立性・空frame判定を具体実行し、dialog操作は未評価型で固定した。公開headerが直接含む生成UI headerは対象内の`ki18n_wrap_ui`で生成し、Qt Gui・Widgets、KF Config・I18n・
+  WidgetsAddons、Eigen、Imathはinterface includeだけ、直接linkはQt Core・Testだけに保った。fresh対象5工程・10入力で停止線5工程・11入力以内、製品`kritaimpexui` 1,350工程・2,712入力を維持した。担当macOS環境で未知target・
+  CTest 0件、12段階の直接header不足診断、新5枠、対象CTest・20回反復、近傍`KisMediaEncoderFormatAndSettingsContractTest`、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式、公開API検査、
+  `verify-quick`に成功した。途中の製品側生成UI再利用案は1,329工程へ広がったため238工程時点で中止し、変更を除去してfresh木で再検証した。中央環境でもCMake再生成後に新対象だけを構築・実行し、台帳commit
+  `29e12006f3`で29,838件中15,950件対応、13,888件未対応となった。作業tree 875,916 KiBと担当branchは削除した。dialog、外部process・filesystem・codec・document・image I/Oは別の効果契約で扱う。
+- 第158便全体で77 APIを15枠へ重複なく対応付け、3担当の作業tree計2,639,148 KiB（約2.52 GiB）を回収した。中止した動画取込の旧構築木578,992 KiBも、修正後fresh対象の成功後にごみ箱から完全削除した。公開API台帳、
+  構造方針、文書、link、D2再生成を含む`verify-quick`は成功した。旧不足報告`public-api-missing-g158.json`をごみ箱へ移し、主Ninja木5,619,400 KiB、共有compiler cache 983,480 KiB、最新不足報告
+  `build/tdd-macos/public-api-missing-g159.json`だけを再利用対象として保持する。次の永続作業は第159便の不足報告から、既存限定対象を優先してpathと所有CMakeが重ならない3責務を先行監査することである。
 
 ### 第157便の先行監査計画
 
