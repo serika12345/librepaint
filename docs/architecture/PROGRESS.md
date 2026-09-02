@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 09:31 JST
+- 更新日時: 2026-09-02 09:35 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -21,6 +21,20 @@
   rendering queue・stroke job・resource準備・描画実行の実体化なしで閉じる。
 - `g142-color-scheme-key-sequence-schema-audit`は`libs/widgetutils/config/kcolorscheme.h`の全29 APIを主候補とし、`libs/widgetutils/xmlgui/kkeysequencewidget.h`の全29 APIを比較する。配色値・
   状態別brushまたはshortcut入力widgetの公開型面を、設定読込み・palette生成・widget・event loop・shortcut取得・競合解決・signal配送の実体化なしで閉じる。
+- `g142-tag-resource-bundle-schema-audit`は`KisTagResourceModel.h`の全25 APIを採用した。抽象対応関係5、全tag資源model型・寿命3、列識別9、table面5、対応操作3を既存
+  `KisResourceModelEnumContractTest`の未評価型5枠へ対応付ける。CMakeを変更せず対象4工程・9入力、停止5工程・11入力、製品`kritaresources` 150工程・327入力を維持する。現在の中央計画は
+  命令集合hash`5e12cc82be3b8fb1cb9cb12bc1668eb1ba4d771e38cde627dcf349e056854169`、入力集合hash`32cd9deb6e2d4f1ef6e20c752f10f398b790fa59ce26efb3c213128a964804df`、
+  製品命令集合hash`3ce4d1343fd8f97c6fec75661ca5cb5e1a2dcaa3dfb1488c6e93bf348cbac122`、製品入力集合hash`05f38c71b59ed483a467839e983e7255e44b0e212c0ca7acd15c77148c2d048f`
+  である。`KoResourceBundle.h`は既存近傍が製品OBJECTを含む14工程・28入力で、独立対象にもQt Xmlと直列化includeの追加が必要なため棄却した。
+- `g142-paintop-factory-dab-job-schema-audit`は`KisDabRenderingJob.h`の全27 APIを採用した。job型・複製5、job種別4、状態4、payload 9、runner 5を新規
+  `KisDabRenderingJobSchemaContractTest`の未評価型5枠へ対応付ける。新対象4工程・8入力、停止5工程・11入力を予測し、製品owner `kritapixelbrush` 1,303工程・2,625入力を維持する。現在の
+  製品命令集合hashは`1ea382d559d6c492663b4ee92a3856dfa9e1580d8351c6dd7dbef05ace372a28`、入力集合hashは`dbe4bbdfdc88c786835fa2ca6bf828804358a388aead60d36a3b582784503499`
+  である。`kis_simple_paintop_factory.h`は30 API中4件がplatform条件付きで、残るtemplate helperとfactory特殊化にもpaintop・設定widget・資源準備本文の実体化riskがあるため棄却した。
+- `g142-color-scheme-key-sequence-schema-audit`は`kcolorscheme.h`の全29 APIを採用した。配色型・寿命5、brush照会4、静的変換7、状態別brush型・構築10、状態別brush照会3を既存
+  `KColorSchemeEnumContractTest`の未評価型5枠へ対応付ける。CMakeを変更せず対象4工程・9入力、停止5工程・11入力、製品`kritawidgetutils` 274工程・581入力を維持する。対象命令集合hash
+  `4f0bed6ee6180c964e7a72fa31c245142d4a2b4dd962b4d76d9f843599e01179`、入力集合hash`316921dba324ee1b022d37a335ff870b7b6a6a3e2c977cd5f4dc5d87859b61eb`、製品命令集合hash
+  `56a1140dc95af9026d7d8c45012cde947f2c88fe2044d03f25cb959d156aa464`、製品入力集合hash`f46d65e23e89a75da7a65b85d61a6816aabd467fd38a4bb4ef1f09ed15707df8`である。
+  `kkeysequencewidget.h`は具象QWidget、metaobject、入力取得、競合解決、action更新、signal配送へ責務と依存が広がり、新規CMake対象も必要なため棄却した。
 - 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから契約先または移動先、許可path、
   固有停止条件、比較候補の棄却根拠を含む。既存`build/tdd-macos`の計画は読み取り専用で測定し、構成や構築を開始しない。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを
   担当票へ進める。
