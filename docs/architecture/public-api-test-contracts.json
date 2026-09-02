@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 12718
+    "expectedMissingApis": 12696
   },
   "contracts": [
     {
@@ -48284,6 +48284,73 @@
         "method:KisVisualColorSelectorShape::sigCursorMoved(QPointF pos)",
         "method:KisVisualColorSelectorShape::supportsGamutMask() const",
         "method:KisVisualColorSelectorShape::updateGamutMask()"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::selectionMaskOwnershipAndLifetimeSchemaRemainsStable",
+      "behavior": "選択maskの公開型、imageと名前を受け取る構築、copy構築と仮想寿命を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisSelectionMask",
+        "method:KisSelectionMask::KisSelectionMask(KisImageWSP image,const QString & name=QString ())",
+        "method:KisSelectionMask::KisSelectionMask(const KisSelectionMask & rhs)",
+        "method:KisSelectionMask::~KisSelectionMask()"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::selectionMaskVisitorAndCloneSignaturesRemainStable",
+      "behavior": "選択maskのnode visitor、処理visitorとundo境界、およびclone入口の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSelectionMask::accept(KisNodeVisitor & v)",
+        "method:KisSelectionMask::accept(KisProcessingVisitor & visitor,KisUndoAdapter * undoAdapter)",
+        "method:KisSelectionMask::clone() const"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::selectionMaskGeometrySignaturesRemainStable",
+      "behavior": "選択maskの必要・変更領域、範囲、正確な境界と複数dirty領域を扱う公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSelectionMask::changeRect(const QRect & rect,PositionToFilthy pos=N_FILTHY) const",
+        "method:KisSelectionMask::exactBounds() const",
+        "method:KisSelectionMask::extent() const",
+        "method:KisSelectionMask::needRect(const QRect & rect,PositionToFilthy pos=N_FILTHY) const",
+        "method:KisSelectionMask::setDirty(const QVector<QRect> & rects)"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::selectionMaskPresentationAndStateSignaturesRemainStable",
+      "behavior": "選択maskのicon、active状態、装飾表示と読み込み時を含む可視性設定の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSelectionMask::active() const",
+        "method:KisSelectionMask::decorationsVisible() const",
+        "method:KisSelectionMask::icon() const",
+        "method:KisSelectionMask::setActive(bool active)",
+        "method:KisSelectionMask::setDecorationsVisible(bool value,bool update)",
+        "method:KisSelectionMask::setVisible(bool visible,bool isLoading=false)"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::selectionMaskSelectionAndModelSignaturesRemainStable",
+      "behavior": "選択内容の設定と圧縮通知、およびnode section model属性を読み書きする公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSelectionMask::notifySelectionChangedCompressed()",
+        "method:KisSelectionMask::sectionModelProperties() const",
+        "method:KisSelectionMask::setSectionModelProperties(const KisBaseNode::PropertyList & properties)",
+        "method:KisSelectionMask::setSelection(KisSelectionSP selection)"
       ]
     }
   ]
