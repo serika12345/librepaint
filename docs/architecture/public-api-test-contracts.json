@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 12980
+    "expectedMissingApis": 12956
   },
   "contracts": [
     {
@@ -47572,6 +47572,75 @@
         "method:KoPathShape::reverseSubpath(int subpathIndex)",
         "method:KoPathShape::subpathCount() const",
         "method:KoPathShape::subpathPointCount(int subpathIndex) const"
+      ]
+    },
+    {
+      "target": "KisActionRegistrySchemaContractTest",
+      "source": "libs/widgetutils/tests/KisActionRegistrySchemaContractTest.cpp",
+      "test": "KisActionRegistrySchemaContractTest::actionRegistryCategorySchemaRemainsStable",
+      "behavior": "action登録の公開型と分類値の構築、component・category名、妥当性照会の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisActionRegistry",
+        "member:KisActionRegistry::ActionCategory::categoryName",
+        "member:KisActionRegistry::ActionCategory::componentName",
+        "method:KisActionRegistry::ActionCategory::ActionCategory()",
+        "method:KisActionRegistry::ActionCategory::ActionCategory(const QString & _componentName,const QString & _categoryName)",
+        "method:KisActionRegistry::ActionCategory::isValid() const",
+        "struct:KisActionRegistry::ActionCategory"
+      ]
+    },
+    {
+      "target": "KisActionRegistrySchemaContractTest",
+      "source": "libs/widgetutils/tests/KisActionRegistrySchemaContractTest.cpp",
+      "test": "KisActionRegistrySchemaContractTest::actionRegistryIdentityAndLifetimeSchemaRemainsStable",
+      "behavior": "action登録の公開構築・仮想寿命と共有instance取得の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisActionRegistry::KisActionRegistry()",
+        "method:KisActionRegistry::instance()",
+        "method:KisActionRegistry::~KisActionRegistry()"
+      ]
+    },
+    {
+      "target": "KisActionRegistrySchemaContractTest",
+      "source": "libs/widgetutils/tests/KisActionRegistrySchemaContractTest.cpp",
+      "test": "KisActionRegistrySchemaContractTest::actionRegistryLookupAndFactorySchemaRemainsStable",
+      "behavior": "action登録の存在・property・分類・shortcut識別子照会とQAction生成・属性反映の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisActionRegistry::fetchActionCategory(const QString & name) const",
+        "method:KisActionRegistry::getActionProperty(const QString & name,const QString & property)",
+        "method:KisActionRegistry::hasAction(const QString & name) const",
+        "method:KisActionRegistry::makeQAction(const QString & name,QObject * parent=0)",
+        "method:KisActionRegistry::propertizeAction(const QString & name,QAction * a)",
+        "method:KisActionRegistry::registeredShortcutIds() const"
+      ]
+    },
+    {
+      "target": "KisActionRegistrySchemaContractTest",
+      "source": "libs/widgetutils/tests/KisActionRegistrySchemaContractTest.cpp",
+      "test": "KisActionRegistrySchemaContractTest::actionRegistryShortcutConfigurationSchemaRemainsStable",
+      "behavior": "action登録のshortcut scheme・独自shortcut読込と設定保存・変更通知入口の公開署名とconfig省略形を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisActionRegistry::applyShortcutScheme(const KConfigBase * config=0)",
+        "method:KisActionRegistry::loadCustomShortcuts()",
+        "method:KisActionRegistry::loadShortcutScheme(const QString & schemeName)",
+        "method:KisActionRegistry::notifySettingsUpdated()",
+        "method:KisActionRegistry::settingsPageSaved()"
+      ]
+    },
+    {
+      "target": "KisActionRegistrySchemaContractTest",
+      "source": "libs/widgetutils/tests/KisActionRegistrySchemaContractTest.cpp",
+      "test": "KisActionRegistrySchemaContractTest::actionRegistryMaintenanceAndNotificationSchemaRemainsStable",
+      "behavior": "action登録の属性検査、shortcut更新と変更signalの公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisActionRegistry::sanityCheckPropertized(const QString & name)",
+        "method:KisActionRegistry::shortcutsUpdated()",
+        "method:KisActionRegistry::updateShortcut(const QString & name,QAction * ac)"
       ]
     }
   ]
