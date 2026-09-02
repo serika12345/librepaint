@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 12366
+    "expectedMissingApis": 12337
   },
   "contracts": [
     {
@@ -49311,6 +49311,80 @@
         "method:PinnedFontsSeparator::setSeparatorAdded()",
         "method:PinnedFontsSeparator::setSeparatorIndex(int index)",
         "method:PinnedFontsSeparator::sizeHint(const QStyleOptionViewItem & option,const QModelIndex & index) const"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::paintInformationConstructionAndLifetimeSchemaRemainsStable",
+      "behavior": "描画入力情報の既定・sensor値別・copy構築、代入と寿命の公開型契約を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPaintInformation::KisPaintInformation(const KisPaintInformation & rhs)",
+        "method:KisPaintInformation::KisPaintInformation(const QPointF & pos,qreal pressure,qreal xTilt,qreal yTilt,qreal rotation)",
+        "method:KisPaintInformation::KisPaintInformation(const QPointF & pos,qreal pressure,qreal xTilt,qreal yTilt,qreal rotation,qreal tangentialPressure,qreal perspective,qreal time,qreal speed)",
+        "method:KisPaintInformation::KisPaintInformation(const QPointF & pos=QPointF (),qreal pressure=PRESSURE_DEFAULT)",
+        "method:KisPaintInformation::operator =(const KisPaintInformation & rhs)",
+        "method:KisPaintInformation::~KisPaintInformation()"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::paintInformationDistanceRegistrarSchemaRemainsStable",
+      "behavior": "描画入力情報へ距離状態を一時登録する値の構築、copy禁止、moveと寿命の公開型契約を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisPaintInformation::DistanceInformationRegistrar",
+        "method:KisPaintInformation::DistanceInformationRegistrar::DistanceInformationRegistrar(DistanceInformationRegistrar && rhs)",
+        "method:KisPaintInformation::DistanceInformationRegistrar::DistanceInformationRegistrar(KisPaintInformation * _p,KisDistanceInformation * distanceInfo)",
+        "method:KisPaintInformation::DistanceInformationRegistrar::DistanceInformationRegistrar(const DistanceInformationRegistrar & rhs)",
+        "method:KisPaintInformation::DistanceInformationRegistrar::~DistanceInformationRegistrar()"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::paintInformationMixingSignaturesRemainStable",
+      "behavior": "描画入力情報を位置指定、時刻有無、位置限定で補間する静的・in-place入口の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPaintInformation::mix(const QPointF & p,qreal t,const KisPaintInformation & p1,const KisPaintInformation & p2)",
+        "method:KisPaintInformation::mix(qreal t,const KisPaintInformation & pi1,const KisPaintInformation & pi2)",
+        "method:KisPaintInformation::mixOnlyPosition(qreal t,const KisPaintInformation & mixedPi,const KisPaintInformation & basePi)",
+        "method:KisPaintInformation::mixOtherOnlyPosition(qreal t,const KisPaintInformation & other)",
+        "method:KisPaintInformation::mixOtherWithoutTime(qreal t,const KisPaintInformation & other)",
+        "method:KisPaintInformation::mixWithoutTime(const QPointF & p,qreal t,const KisPaintInformation & p1,const KisPaintInformation & p2)",
+        "method:KisPaintInformation::mixWithoutTime(qreal t,const KisPaintInformation & pi1,const KisPaintInformation & pi2)"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::paintInformationRandomDistanceAndLodSignaturesRemainStable",
+      "behavior": "描画入力情報のdab単位・stroke単位乱数源、距離状態の一時登録とLOD設定の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPaintInformation::perStrokeRandomSource() const",
+        "method:KisPaintInformation::randomSource() const",
+        "method:KisPaintInformation::registerDistanceInformation(KisDistanceInformation * distance)",
+        "method:KisPaintInformation::setLevelOfDetail(int levelOfDetail)",
+        "method:KisPaintInformation::setPerStrokeRandomSource(KisPerStrokeRandomSourceSP value)",
+        "method:KisPaintInformation::setRandomSource(KisRandomSourceSP value)"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::paintInformationHoverPaintSerializationAndDebugSignaturesRemainStable",
+      "behavior": "hover入力生成、paintop呼出し、XML入出力とdebug出力の公開入口・既定引数を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "function:operator <<(QDebug debug,const KisPaintInformation & info)",
+        "method:KisPaintInformation::createHoveringModeInfo(const QPointF & pos,qreal pressure=PRESSURE_DEFAULT,qreal xTilt=0.0,qreal yTilt=0.0,qreal rotation=0.0,qreal tangentialPressure=0.0,qreal perspective=1.0,qreal speed=0.0,qreal canvasrotation=0.0,bool canvasMirroredH=false,bool canvasMirroredV=false,qreal tiltDirectionOffset=0.0)",
+        "method:KisPaintInformation::fromXML(const QDomElement &)",
+        "method:KisPaintInformation::paintAt(PaintOp & op,KisDistanceInformation * distanceInfo)",
+        "method:KisPaintInformation::toXML(QDomDocument &,QDomElement &) const"
       ]
     }
   ]
