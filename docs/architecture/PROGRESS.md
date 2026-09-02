@@ -2,12 +2,26 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 14:42 JST
+- 更新日時: 2026-09-02 14:44 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
+
+### 第153便の先行監査計画
+
+- 監査共通基点は`4d11f82dac9a`、入力は`build/tdd-macos/public-api-missing-g153.json`である。3担当は`auditing`の読み取り専用とし、製品・試験・CMake・script・台帳・文書を変更せず、構築、試験、Git操作、
+  追加委任も行わない。一つの公開責務から25 API以上を最大5枠へ固定し、既存限定対象、header-only値面、または公開headerを変えない一sourceのOBJECT一対一移管で、製品共有ライブラリーと
+  `kritatestsdk`へ接続しない候補だけを採用する。
+- `g153-application-image-config-schema-audit`は`libs/application/kis_config.h`の未対応44 APIを主候補とし、`libs/image/kis_image_config.h`の未対応37 APIを比較する。applicationまたはimage設定の単一責務に属する列挙・
+  型付き照会・更新面を、設定backend、filesystem、OpenGL context、CPU検出、大域状態、画像、GUI event loopの実体化なしで閉じる。
+- `g153-paintop-settings-preset-schema-audit`は`libs/image/brushengine/kis_paintop_settings.h`の未対応86 APIを主候補とし、`libs/image/brushengine/kis_paintop_preset.h`の未対応43 APIを比較する。paint operation設定または
+  presetの型・識別子・値・resource・更新面を、設定object、preset、resource、paint operation、image、device、XML、大域状態の実体化なしで閉じる。
+- `g153-svg-text-shape-schema-audit`は`libs/flake/text/KoSvgTextShape.h`の未対応140 APIを主候補とし、`libs/flake/KoShape.h`の未対応118 APIを比較する。SVG text shapeまたは基底shapeの型・列挙・状態・幾何・
+  配置面を、shape、text layout、document、painter、resource、XML、GUI event loopの実体化なしで閉じる。
+- 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから契約先または移動先、許可path、固有停止条件、
+  比較候補の棄却根拠を含む。既存`build/tdd-macos`の計画は読み取り専用で測定し、構成や構築を開始しない。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
 
 ### 第152便の先行監査計画
 
