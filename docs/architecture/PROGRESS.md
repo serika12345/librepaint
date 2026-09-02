@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-03 03:57 JST
+- 更新日時: 2026-09-03 05:00 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -48,6 +48,17 @@
   `strokeConfigControlSchemaRemainsStable`、`strokeConfigActivationAndNotificationSchemaRemainsStable`へ対応付ける。完全集合はclass、構築・破棄、公開member `thicknessLabel`・`strokeStyleLabel`・`separatorLine`、`lineStyle`、`lineDashes`、`lineWidth`、`color`、`miterLimit`、`startMarker`、`endMarker`、`capStyle`、`joinStyle`、`createShapeStroke`、`setNoSelectionTrackingMode`、`setActive`、`updateStyleControlsAvailability`、`setUnitManagers`、`activate`、`deactivate`、`sigStrokeChanged`である。許可pathは新規試験sourceと`libs/widgets/tests/CMakeLists.txt`の対象固有節だけで、公開header・製品sourceを変更しない。
   Widget、canvas、shape、marker、stroke、unit manager、resource、公開pointer、private pointer、signal本文を実体化・実行しない。直接linkはQt Core・Testだけ、widgets・flakeのsource/generatedとQt Gui・Widgetsはcompile interfaceに限定し、新対象4工程・8入力、停止5工程・11入力、近傍`KisVisualColorSelectorShapeSchemaContractTest`、製品`kritawidgets` 809工程・1,647入力を維持する。
   実装後は構築許可まで待機する。許可後にunknown target・CTest 0件、新5枠、対象CTest・枠個別・20回反復、近傍、無作業再構築、動的接続・AUTOMOC入力・製品記号、構文・書式、公開API・`verify-quick`を確認する。依存値や公開pointerを実体化・参照し、Widget・resource・signal本文を実行し、Qt Gui・Widgetsまたは製品libraryへlinkし、停止線を超える必要があれば止める。
+
+### 第173便の統合結果
+
+- `g173-selection-based-layer-schema`は開始`libs/image/kis_selection_based_layer.h`から既存`libs/image/tests/KisImageTypesContractTest.cpp`の5枠へ、所有・寿命、selection・device・projection、階層・image・dirty、幾何・LOD、thumbnail・通知の未対応全25 APIを対応付けた。担当処理停止後に調整担当が許可pathの差分と限定build成功を引き継ぎ、5枠個別、対象・既存・近傍CTest、20回反復、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式を完了した。
+  受渡しcommit`1c61f569c2`を統合commit`680dc89d2f`として取り込み、CMakeと依存を変えない4工程・8入力を維持した。layer、image、node、selection、filter、device、projection、thumbnail、metaobjectとinline本文を実行していない。台帳commit`c35051dddb`で17,214件対応、12,624件未対応となった。selection合成、device・projection、thumbnail、通知の実行時結果は別契約で扱う。
+- `g173-shape-reorder-schema`は開始`libs/flake/commands/KoShapeReorderCommand.h`から新規`libs/flake/tests/KoShapeReorderCommandSchemaContractTest.cpp`の5枠へ、identity・寿命、indexed shape値、move種別、生成・merge、正規化・実行の全23 APIを対応付けた。公開KUndo headerが要求するQt GuiとKF I18nを対象固有のinterface includeへ限定し、直接linkをQt Core・Testだけに保った。
+  受渡しcommit`aaaa8b57d3`を統合commit`374c472e22`として取り込み、対象4工程・8入力、5枠、対象・近傍CTest、20回反復、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式に成功した。製品`kritaflake`の読み取り基線は621工程・1,274入力を維持し、台帳commit`5dc53ba6ed`で17,237件対応、12,601件未対応となった。shape順序計算、merge、redo・undoの実行時結果は別契約で扱う。
+- `g173-stroke-config-schema`は開始`libs/widgets/KoStrokeConfigWidget.h`から新規`libs/widgets/tests/KoStrokeConfigWidgetSchemaContractTest.cpp`の5枠へ、型・寿命・公開表示部品、外観、marker・stroke、制御、activate・通知の全23 APIを対応付けた。直接linkをQt Core・Testだけに保ち、Widget、canvas、shape、marker、stroke、unit manager、resource、公開・private pointer、signal本文を実行しない4工程・8入力とした。
+  受渡しcommit`46549ee554`を統合commit`736f3030e8`として取り込み、担当と中央の対象CTest、担当の5枠個別・20回反復・近傍、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式に成功した。中央再生成は構成3.5秒・生成11.4秒だった。製品`kritawidgets`の読み取り基線は809工程・1,647入力を維持し、台帳commit`41413ea1e2`で17,260件対応、12,578件未対応となった。Widget制御、resource反映、stroke生成、signal配送の実行時結果は別契約で扱う。
+- 第173便全体で71 APIを15枠へ重複なく対応付けた。実装を並行し、構成・構築枠だけをselection-based layer、shape reorder、stroke configの順に直列化した。対象・近傍CTest、各20回反復、無作業再構築、公開API検査と`verify-quick`は成功した。製品target、全体build、全体`verify`、Linuxは実行していない。
+  3担当のcleanな作業treeと担当branchを削除して2,646,740 KiB（約2.52 GiB）を回収し、旧不足報告`public-api-missing-g173.json`をごみ箱へ移した。主Ninja木5,654,108 KiB、共有compiler cache 983,332 KiB、最新不足報告`build/tdd-macos/public-api-missing-g174.json` 3,216 KiBだけを再利用対象として保持する。次の永続作業は第174便の不足報告から、既存限定対象を優先してpathと所有CMakeが重ならない3責務を先行監査することである。
 
 ### 第172便の先行監査計画
 
