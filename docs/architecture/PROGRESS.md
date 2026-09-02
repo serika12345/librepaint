@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 12:52 JST
+- 更新日時: 2026-09-02 12:53 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -38,6 +38,31 @@
   `ce8ca9f011628c83f55ad547590bc5d5d139fdc27af1c3395da10906e0a6c863`、入力集合hashは`911a6ee2c844b75cb1affb2ab30284e2bb75d14ffe366bb5687434b8b3938d8d`、製品命令集合hashは
   `245cbd9f9b1e595645000af4c5cfae55681837972b72da121c283917d09dc8e1`、入力集合hashは`f2b5e5a5219a382dd6e6689a77512c56daa5ab00168c9249481c22d6a4ae729c`である。`psd.h`は残32 APIが
   変換、gradient stop、pattern、複数layer効果へ分散し、既存対象も6工程・14入力で停止線を越えるため棄却した。
+
+### 第149便の担当計画
+
+- 実装共通基点は`aa4b8a8d0029`である。3担当は`preparing`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、
+  専用worktree-local `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。統合順はSVG文字属性、tile data、XCF宣言とし、調整担当だけが`AGENTS.md`、
+  architecture文書、`docs/architecture/public-api-test-contracts.json`、共通不足報告を変更する。3担当の公開header、所有CMake、試験source、生成物は重ならない。
+- `g149-svg-text-properties-model-schema`は`/Users/masato/Documents/librepaint-g149-svg-text-properties-model-schema`を所有する。開始`libs/flake/text/lager/KoSvgTextPropertiesModel.h`の未対応71 APIから既存
+  `libs/flake/tests/KoSvgTextPropertiesModelSchemaContractTest.cpp`の5枠`propertyModelIdentityEnumAndResolutionSchemaRemainsStable`、`propertyModelCursorDataMemberSchemaRemainsStable`、
+  `propertyModelChildModelMemberSchemaRemainsStable`、`propertyModelChildModelAccessorSignaturesRemainStable`、`propertyModelSurfaceSignalSignaturesRemainStable`へ対応付ける。許可pathは既存試験sourceだけで、CMakeを変更しない。
+  対象4工程・8入力、停止5工程・11入力、近傍は既存5枠と`KoSvgTextEnumContractTest`、製品`kritaflake`は621工程・1,274入力と担当tree内の変更前後集合・保留集合完全一致を確認する。旧binaryで新5枠Unknown、
+  対象CTest、5枠個別、20回反復、近傍、無作業再構築、動的接続、AUTOMOC入力、未解決model・metaobject・lager state記号、構文・変更行書式、公開API・`verify-quick`を確認する。model、cursor state、子model、QObject、
+  signal、metaobject、shape、font registry、layout、GUI、大域状態、constructorやinline本文を生成または実行し、新依存、CMake・公開header変更、製品接続、対象集合・製品計画差、停止線超過が必要なら止める。
+- `g149-tile-data-schema`は`/Users/masato/Documents/librepaint-g149-tile-data-schema`を所有する。開始`libs/image/tiles3/kis_tile_data_interface.h`の全41 APIから新規
+  `libs/image/tiles3/tests/KisTileDataSchemaContractTest.cpp`の5枠`tileDataCacheTypesAndOperationsSchemaRemainsStable`、`tileDataIdentityStateAndLifetimeSchemaRemainsStable`、
+  `tileDataStorageAndReferenceSignaturesRemainStable`、`tileDataSwapHistoryAndAgeSignaturesRemainStable`、`tileDataMemoryLifecycleSignaturesRemainStable`へ対応付ける。許可pathは新規試験sourceと
+  `libs/image/tiles3/tests/CMakeLists.txt`だけである。直接linkはQt Core・Core5Compat・Testだけ、includeはimage・global source/generatedだけ、definitionは`kritaimage_EXPORTS`だけとする。新対象4工程・8入力、
+  停止5工程・11入力、近傍は`KisTileSchemaContractTest`、製品`kritaimage`は1,196工程・2,416入力と担当tree内の変更前後集合完全一致を確認する。未知targetと5枠、対象CTest、5枠個別、20回反復、近傍、無作業再構築、
+  動的接続、未解決tile data・cache・store・chunk・lock・memory記号、構文・変更行書式、公開API・`verify-quick`を確認する。cache、tile data、store、list、chunk、lock、memoryを生成または実行し、inline本文、allocation、release、
+  swap、lockを実行し、`WIDTH`・`HEIGHT`をODR使用し、`kis_tile_data.cpp`、製品source・OBJECT・shared、`kritatestsdk`、新link、image・global以外の新手動include、公開header変更、製品計画差、停止線超過が必要なら止める。
+- `g149-xcf-schema`は`/Users/masato/Documents/librepaint-g149-xcf-schema`を所有する。開始`plugins/impex/xcf/3rdparty/xcftools/xcftools.h`の全30 APIから既存
+  `plugins/impex/xcf/tests/XcfToolsValueContractTest.cpp`の5枠`xcfPrimitiveAndGlobalSchemaRemainsStable`、`xcfFatalDiagnosticSignaturesRemainStable`、`xcfFileLifecycleSignaturesRemainStable`、
+  `xcfAllocationAndSupportSignaturesRemainStable`、`xcfParsingSignaturesRemainStable`へ対応付ける。許可pathは既存試験sourceだけで、CMakeを変更しない。対象4工程・8入力、停止5工程・11入力、近傍は同対象の既存4枠、
+  製品`kritaxcfimport`は1,985工程・3,968入力と担当tree内の変更前後集合完全一致を確認する。旧binaryで新5枠Unknown、対象CTest、5枠個別、20回反復、無作業再構築、動的接続、未解決XCF関数・変数記号、構文・
+  変更行書式、公開API・`verify-quick`を確認する。XCF buffer、FILE、I/O、mmap、unzipper、allocator、fatal処理、gettext、大域値を参照または実行し、xcftools製品source・OBJECT・shared、`kritatestsdk`、新依存、CMake・
+  公開header変更、対象集合・製品計画差、停止線超過が必要なら止める。
 
 ### 第148便の先行監査計画
 
