@@ -50,6 +50,11 @@ private Q_SLOTS:
     void textPropertyInheritanceAndScalingSchemaRemainsStable();
     void textPropertyInterchangeAndFontProjectionSchemaRemainsStable();
     void textPropertyMetricsAndSurfaceSchemaRemainsStable();
+    void svgTextFontRecordSchemaRemainsStable();
+    void svgTextDebugFormattingSchemaRemainsStable();
+    void svgTextAutomaticValueParsingSchemaRemainsStable();
+    void svgTextValueWritingSchemaRemainsStable();
+    void svgTextCssParsingSchemaRemainsStable();
 };
 
 void KoSvgTextEnumContractTest::layoutEnumsRemainOrdered()
@@ -965,6 +970,95 @@ void KoSvgTextEnumContractTest::textPropertyMetricsAndSurfaceSchemaRemainsStable
         std::is_same_v<decltype(static_cast<SetFontSizeSignature>(&Properties::setFontSize)), SetFontSizeSignature>);
 
     QVERIFY(true);
+}
+
+void KoSvgTextEnumContractTest::svgTextFontRecordSchemaRemainsStable()
+{
+    using namespace KoSvgText;
+    static_assert(std::is_same_v<decltype(&FontFamilyAxis::debugInfo), QString (FontFamilyAxis::*)() const>);
+    static_assert(
+        std::is_same_v<decltype(&FontFamilyAxis::operator==), bool (FontFamilyAxis::*)(const FontFamilyAxis &) const>);
+    static_assert(std::is_same_v<decltype(&FontFamilyStyleInfo::debugInfo), QString (FontFamilyStyleInfo::*)() const>);
+    static_assert(std::is_same_v<decltype(&FontFamilyStyleInfo::operator==),
+                                 bool (FontFamilyStyleInfo::*)(const FontFamilyStyleInfo &) const>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<QDataStream &(*)(QDataStream &, const FontFamilyAxis &)>(&operator<<)),
+                       QDataStream &(*)(QDataStream &, const FontFamilyAxis &)>);
+    static_assert(std::is_same_v<decltype(static_cast<QDataStream &(*)(QDataStream &, FontFamilyAxis &)>(&operator>>)),
+                                 QDataStream &(*)(QDataStream &, FontFamilyAxis &)>);
+}
+
+void KoSvgTextEnumContractTest::svgTextDebugFormattingSchemaRemainsStable()
+{
+    using namespace KoSvgText;
+#define ASSERT_DEBUG(Type)                                                                                             \
+    static_assert(std::is_same_v<decltype(static_cast<QDebug (*)(QDebug, const Type &)>(&operator<<)),                 \
+                                 QDebug (*)(QDebug, const Type &)>)
+    ASSERT_DEBUG(AutoLengthPercentage);
+    ASSERT_DEBUG(AutoValue);
+    ASSERT_DEBUG(CssFontStyleData);
+    ASSERT_DEBUG(FontFamilyAxis);
+    ASSERT_DEBUG(FontFamilyStyleInfo);
+    ASSERT_DEBUG(FontFeatureEastAsian);
+    ASSERT_DEBUG(FontFeatureLigatures);
+    ASSERT_DEBUG(FontFeatureNumeric);
+    ASSERT_DEBUG(TextIndentInfo);
+    ASSERT_DEBUG(TextTransformInfo);
+#undef ASSERT_DEBUG
+}
+
+void KoSvgTextEnumContractTest::svgTextAutomaticValueParsingSchemaRemainsStable()
+{
+    using namespace KoSvgText;
+    static_assert(std::is_same_v<decltype(&fromAutoValue), QVariant (*)(const AutoValue &)>);
+    static_assert(std::is_same_v<
+                  decltype(&parseAutoLengthPercentageXY),
+                  AutoLengthPercentage (*)(const QString &, const SvgLoadingContext &, const QString &, QRectF, bool)>);
+    static_assert(std::is_same_v<decltype(&parseAutoValueAngular),
+                                 AutoValue (*)(const QString &, const SvgLoadingContext &, const QString &)>);
+    static_assert(std::is_same_v<decltype(&parseAutoValueX),
+                                 AutoValue (*)(const QString &, const SvgLoadingContext &, const QString &)>);
+    static_assert(std::is_same_v<decltype(&parseAutoValueXY),
+                                 AutoValue (*)(const QString &, const SvgLoadingContext &, const QString &)>);
+    static_assert(std::is_same_v<decltype(&parseAutoValueY),
+                                 AutoValue (*)(const QString &, const SvgLoadingContext &, const QString &)>);
+    static_assert(std::is_same_v<decltype(parseAutoLengthPercentageXY(std::declval<const QString &>(),
+                                                                      std::declval<const SvgLoadingContext &>())),
+                                 AutoLengthPercentage>);
+    static_assert(std::is_same_v<decltype(parseAutoValueAngular(std::declval<const QString &>(),
+                                                                std::declval<const SvgLoadingContext &>())),
+                                 AutoValue>);
+    static_assert(std::is_same_v<decltype(parseAutoValueX(std::declval<const QString &>(),
+                                                          std::declval<const SvgLoadingContext &>())),
+                                 AutoValue>);
+    static_assert(std::is_same_v<decltype(parseAutoValueXY(std::declval<const QString &>(),
+                                                           std::declval<const SvgLoadingContext &>())),
+                                 AutoValue>);
+    static_assert(std::is_same_v<decltype(parseAutoValueY(std::declval<const QString &>(),
+                                                          std::declval<const SvgLoadingContext &>())),
+                                 AutoValue>);
+}
+
+void KoSvgTextEnumContractTest::svgTextValueWritingSchemaRemainsStable()
+{
+    using namespace KoSvgText;
+    static_assert(std::is_same_v<decltype(&writeAutoLengthPercentage),
+                                 QString (*)(const AutoLengthPercentage &, const QString &, bool)>);
+    static_assert(std::is_same_v<decltype(&writeAutoValue), QString (*)(const AutoValue &, const QString &)>);
+    static_assert(
+        std::is_same_v<decltype(&writeBaselineShiftMode), QString (*)(BaselineShiftMode, CssLengthPercentage)>);
+    static_assert(std::is_same_v<decltype(&writeTextIndent), QString (*)(TextIndentInfo)>);
+    static_assert(
+        std::is_same_v<decltype(writeAutoLengthPercentage(std::declval<const AutoLengthPercentage &>())), QString>);
+    static_assert(std::is_same_v<decltype(writeAutoValue(std::declval<const AutoValue &>())), QString>);
+}
+
+void KoSvgTextEnumContractTest::svgTextCssParsingSchemaRemainsStable()
+{
+    using namespace KoSvgText;
+    static_assert(std::is_same_v<decltype(&parseCSSFontStretch), int (*)(const QString &, int)>);
+    static_assert(
+        std::is_same_v<decltype(&parseTextIndent), TextIndentInfo (*)(const QString &, const SvgLoadingContext &)>);
 }
 
 QTEST_GUILESS_MAIN(KoSvgTextEnumContractTest)
