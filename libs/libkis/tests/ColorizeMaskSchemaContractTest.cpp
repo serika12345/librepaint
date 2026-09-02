@@ -1,0 +1,82 @@
+/* SPDX-FileCopyrightText: 2026 LibrePaint contributors
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
+#include <ColorizeMask.h>
+#include <QTest>
+
+#include <type_traits>
+#include <utility>
+
+#define ASSERT_COLORIZE_MASK_SIGNATURE(method, signature)                                                              \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&ColorizeMask::method)), signature>)
+
+class ColorizeMaskSchemaContractTest : public QObject
+{
+    Q_OBJECT
+private Q_SLOTS:
+    void colorizeMaskOwnershipLifetimeAndTypeSchemaRemainsStable();
+    void colorizeMaskKeyStrokeDataSignaturesRemainStable();
+    void colorizeMaskDetectionAndCleanupPolicySignaturesRemainStable();
+    void colorizeMaskEditingBoundsAndOutputPolicySignaturesRemainStable();
+    void colorizeMaskUpdateAndCacheSignaturesRemainStable();
+};
+
+void ColorizeMaskSchemaContractTest::colorizeMaskOwnershipLifetimeAndTypeSchemaRemainsStable()
+{
+    static_assert(std::is_class_v<ColorizeMask>);
+    static_assert(std::is_base_of_v<Node, ColorizeMask>);
+    static_assert(std::is_constructible_v<ColorizeMask, KisImageSP, QString>);
+    static_assert(std::is_constructible_v<ColorizeMask, KisImageSP, QString, QObject *>);
+    static_assert(std::is_constructible_v<ColorizeMask, KisImageSP, KisColorizeMaskSP>);
+    static_assert(std::is_constructible_v<ColorizeMask, KisImageSP, KisColorizeMaskSP, QObject *>);
+    static_assert(std::has_virtual_destructor_v<ColorizeMask>);
+    ASSERT_COLORIZE_MASK_SIGNATURE(type, QString (ColorizeMask::*)() const);
+}
+
+void ColorizeMaskSchemaContractTest::colorizeMaskKeyStrokeDataSignaturesRemainStable()
+{
+    ASSERT_COLORIZE_MASK_SIGNATURE(keyStrokesColors, QList<ManagedColor *> (ColorizeMask::*)() const);
+    ASSERT_COLORIZE_MASK_SIGNATURE(initializeKeyStrokeColors, void (ColorizeMask::*)(QList<ManagedColor *>, int));
+    ASSERT_COLORIZE_MASK_SIGNATURE(removeKeyStroke, void (ColorizeMask::*)(ManagedColor *));
+    ASSERT_COLORIZE_MASK_SIGNATURE(transparencyIndex, int (ColorizeMask::*)() const);
+    ASSERT_COLORIZE_MASK_SIGNATURE(keyStrokePixelData,
+                                   QByteArray (ColorizeMask::*)(ManagedColor *, int, int, int, int) const);
+    ASSERT_COLORIZE_MASK_SIGNATURE(setKeyStrokePixelData,
+                                   bool (ColorizeMask::*)(QByteArray, ManagedColor *, int, int, int, int));
+
+    using InitializeWithDefaultIndex =
+        decltype(std::declval<ColorizeMask &>().initializeKeyStrokeColors(std::declval<QList<ManagedColor *>>()));
+    static_assert(std::is_same_v<InitializeWithDefaultIndex, void>);
+}
+
+void ColorizeMaskSchemaContractTest::colorizeMaskDetectionAndCleanupPolicySignaturesRemainStable()
+{
+    ASSERT_COLORIZE_MASK_SIGNATURE(setUseEdgeDetection, void (ColorizeMask::*)(bool));
+    ASSERT_COLORIZE_MASK_SIGNATURE(useEdgeDetection, bool (ColorizeMask::*)() const);
+    ASSERT_COLORIZE_MASK_SIGNATURE(setEdgeDetectionSize, void (ColorizeMask::*)(qreal));
+    ASSERT_COLORIZE_MASK_SIGNATURE(edgeDetectionSize, qreal (ColorizeMask::*)() const);
+    ASSERT_COLORIZE_MASK_SIGNATURE(setCleanUpAmount, void (ColorizeMask::*)(qreal));
+    ASSERT_COLORIZE_MASK_SIGNATURE(cleanUpAmount, qreal (ColorizeMask::*)() const);
+}
+
+void ColorizeMaskSchemaContractTest::colorizeMaskEditingBoundsAndOutputPolicySignaturesRemainStable()
+{
+    ASSERT_COLORIZE_MASK_SIGNATURE(setLimitToDeviceBounds, void (ColorizeMask::*)(bool));
+    ASSERT_COLORIZE_MASK_SIGNATURE(limitToDeviceBounds, bool (ColorizeMask::*)() const);
+    ASSERT_COLORIZE_MASK_SIGNATURE(setShowOutput, void (ColorizeMask::*)(bool));
+    ASSERT_COLORIZE_MASK_SIGNATURE(showOutput, bool (ColorizeMask::*)() const);
+    ASSERT_COLORIZE_MASK_SIGNATURE(setEditKeyStrokes, void (ColorizeMask::*)(bool));
+    ASSERT_COLORIZE_MASK_SIGNATURE(editKeyStrokes, bool (ColorizeMask::*)() const);
+}
+
+void ColorizeMaskSchemaContractTest::colorizeMaskUpdateAndCacheSignaturesRemainStable()
+{
+    ASSERT_COLORIZE_MASK_SIGNATURE(updateMask, void (ColorizeMask::*)(bool));
+    ASSERT_COLORIZE_MASK_SIGNATURE(resetCache, void (ColorizeMask::*)());
+
+    using UpdateWithDefaultForce = decltype(std::declval<ColorizeMask &>().updateMask());
+    static_assert(std::is_same_v<UpdateWithDefaultForce, void>);
+}
+
+QTEST_GUILESS_MAIN(ColorizeMaskSchemaContractTest)
+#include "ColorizeMaskSchemaContractTest.moc"
