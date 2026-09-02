@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 13089
+    "expectedMissingApis": 13068
   },
   "contracts": [
     {
@@ -47328,6 +47328,72 @@
         "method:KoSvgTextShapeMarkupConverter::formatDifference(QTextFormat test,QTextFormat reference)",
         "method:KoSvgTextShapeMarkupConverter::style(QTextCharFormat format,QTextBlockFormat blockFormat,QTextCharFormat mostCommon=QTextCharFormat (),bool includeLineHeight=false)",
         "method:KoSvgTextShapeMarkupConverter::stylesFromString(QStringList styles,QTextCharFormat currentCharFormat,QTextBlockFormat currentBlockFormat,ExtraStyles & extraStyles)"
+      ]
+    },
+    {
+      "target": "CanvasSchemaContractTest",
+      "source": "libs/libkis/tests/CanvasSchemaContractTest.cpp",
+      "test": "CanvasSchemaContractTest::canvasTypeLifetimeAndIdentitySchemaRemainsStable",
+      "behavior": "script向けCanvasの公開型、canvas・QObject借用構築、仮想寿命、同一性比較と親省略構築を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "class:Canvas",
+        "method:Canvas::Canvas(KoCanvasBase * canvas,QObject * parent=0)",
+        "method:Canvas::operator !=(const Canvas & other) const",
+        "method:Canvas::operator ==(const Canvas & other) const",
+        "method:Canvas::~Canvas()"
+      ]
+    },
+    {
+      "target": "CanvasSchemaContractTest",
+      "source": "libs/libkis/tests/CanvasSchemaContractTest.cpp",
+      "test": "CanvasSchemaContractTest::canvasZoomAndCenterSchemaRemainsStable",
+      "behavior": "script向けCanvasのzoom・中心位置・pan・zoom復元の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:Canvas::pan(const QPoint & offset)",
+        "method:Canvas::preferredCenter() const",
+        "method:Canvas::resetZoom()",
+        "method:Canvas::setPreferredCenter(const QPointF & imagePos)",
+        "method:Canvas::setZoomLevel(qreal value)",
+        "method:Canvas::zoomLevel() const"
+      ]
+    },
+    {
+      "target": "CanvasSchemaContractTest",
+      "source": "libs/libkis/tests/CanvasSchemaContractTest.cpp",
+      "test": "CanvasSchemaContractTest::canvasRotationAndMirrorSchemaRemainsStable",
+      "behavior": "script向けCanvasの回転・回転復元・mirror状態の取得と設定の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:Canvas::mirror() const",
+        "method:Canvas::resetRotation()",
+        "method:Canvas::rotation() const",
+        "method:Canvas::setMirror(bool value)",
+        "method:Canvas::setRotation(qreal angle)"
+      ]
+    },
+    {
+      "target": "CanvasSchemaContractTest",
+      "source": "libs/libkis/tests/CanvasSchemaContractTest.cpp",
+      "test": "CanvasSchemaContractTest::canvasRenderingPolicySchemaRemainsStable",
+      "behavior": "script向けCanvasのwraparoundと詳細度modeの取得・設定に関する公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:Canvas::levelOfDetailMode() const",
+        "method:Canvas::setLevelOfDetailMode(bool enable)",
+        "method:Canvas::setWrapAroundMode(bool enable)",
+        "method:Canvas::wrapAroundMode() const"
+      ]
+    },
+    {
+      "target": "CanvasSchemaContractTest",
+      "source": "libs/libkis/tests/CanvasSchemaContractTest.cpp",
+      "test": "CanvasSchemaContractTest::canvasViewAssociationSchemaRemainsStable",
+      "behavior": "script向けCanvasから所有Viewを参照する公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:Canvas::view() const"
       ]
     }
   ]
