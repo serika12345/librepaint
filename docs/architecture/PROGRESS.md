@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 14:44 JST
+- 更新日時: 2026-09-02 14:50 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -22,6 +22,21 @@
   配置面を、shape、text layout、document、painter、resource、XML、GUI event loopの実体化なしで閉じる。
 - 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから契約先または移動先、許可path、固有停止条件、
   比較候補の棄却根拠を含む。既存`build/tdd-macos`の計画は読み取り専用で測定し、構成や構築を開始しない。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
+- `g153-paintop-settings-preset-schema-audit`は`kis_paintop_settings.h`のpaint parameter・更新方針36 APIを採用した。公開設定key 4、cadence・LOD 7、opacity・flow・fade・scatter 8、幾何・合成・eraser 9、
+  保存brush・eraser 8を既存`KisImageTypesContractTest`の未評価型5枠へ対応付ける。CMakeと直接依存を変更せず対象4工程・8入力、停止5工程・11入力、製品`kritaimage` 1,196工程・2,416入力を維持する。
+  対象命令集合hashは`b83c09fe3d4b3ca467659d4896a906a8683feff274f897056f537c54fbd3df76`、入力集合hashは`42c0bdca62da9111fd79736a3055bd233ee32342bc2c9ae69fc577a83a88cf81`、
+  製品命令集合hashは`8b3e011450f2ca342e0ce523cc1696c2e2b3970456a8cb097553ee5fdf79930f`、入力集合hashは`76f2aa4251a6bf4e2adf2a1e822bc9d629753b2e93e5b877ee4eae23364940bc`である。
+  `kis_paintop_preset.h`は局所identity・設定面が約15 APIで、25 APIへ広げるとresource snapshot、XML・device、masking、更新proxyを混在させるため棄却した。
+- `g153-svg-text-shape-schema-audit`は`KoSvgTextShape.h`の公開値・node index 29 APIを採用した。identity・共有状態alias 5、公開列挙8、character info member 9、character info順序2、node index寿命・access 5を既存
+  `KoSvgTextCharacterResultValueContractTest`の未評価型5枠へ対応付ける。CMakeと直接依存を変更せず対象4工程・8入力、停止5工程・11入力、製品`kritaflake` 621工程・1,274入力を維持する。対象命令集合hashは
+  `8b9ca4b733145cd3eb599eaf7bdeb368dc4d5b10be947740bdb498e218d5e43d`、入力集合hashは`6f1be372a2d9ab0fae470eb0c3a4c629358a081f42b2e1016bec6ae66f541404`、製品命令集合hashは
+  `2fc3040d1c607ecd81879d6ec00ad8a4a161787da567b484bc934a687afefb07`、入力集合hashは`1a30862a8e0463c6578045c344b23088d4909ac6017407162709d283413b8cb5`である。`KoShape.h`は
+  幾何・所有・描画・listener・更新へ118 APIが分散し、今回の値・index面より単一責務の境界が弱いため棄却した。
+- `g153-application-image-config-schema-audit`は両候補を棄却した。`kis_config.h`の44 APIは起動・session・通知13、Android表示倍率・入力回避12、汎用設定serialization 8、debug 2、その他9へ分散し、macOSで
+  観測できる最大単一責務は13 APIである。`kis_image_config.h`の37 APIも型・backend 8、import・export・proofing 8、性能・上限13、layer・selection 8へ分散する。異なる設定責務を結合せず、各群は25 API未満の
+  小規模便へ保留する。
+- 3本目の差替監査`g153-libkis-selection-shape-schema-audit`は`libs/libkis/Selection.h`の未対応35 APIを主候補とし、`libs/libkis/Shape.h`の未対応30 APIを比較する。script公開selectionまたはshape wrapperの型・寿命・
+  範囲・変形・集合演算・pixel転送面を、selection、node、shape、image、clipboard、document、GUI event loopの実体化なしで閉じる。先行3監査と同じ読み取り専用権限、報告項目、25 API・5枠条件を適用する。
 
 ### 第152便の先行監査計画
 
