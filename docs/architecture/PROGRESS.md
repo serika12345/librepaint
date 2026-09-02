@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 11:07 JST
+- 更新日時: 2026-09-02 11:11 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -39,7 +39,7 @@
 
 ### 第145便の担当計画
 
-- 実装共通基点は`4502da0168`である。paint device frames interface担当は`integrated`、canvas baseとbrush model担当は`ready`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの
+- 実装共通基点は`4502da0168`である。paint device frames interfaceとcanvas base担当は`integrated`、brush model担当は`ready`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの
   `transport-commit`、追加委任は禁止する。対象platformはmacOSであり、専用worktree-local `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を
   共有する。統合順はpaint device frames interface、canvas base、brush modelとし、調整担当だけが`AGENTS.md`、architecture文書、`docs/architecture/public-api-test-contracts.json`、共通不足報告を変更する。
   3担当の公開header、所有CMake、試験source、生成物は重ならない。
@@ -72,6 +72,12 @@
   製品`kritaimage` 1,196工程・2,416入力を維持した。frame interface、内部data、device、frame、data manager、KoColor、undo、stream、writer、method本文、I/O、cache、破棄処理を生成または実行していない。
   担当macOS環境と中央環境で5枠と既存image型枠を含む対象CTest・20回反復、近傍`KisImageConfigAnimationSchemaContractTest`、無作業再構築、動的接続・未解決記号、構文・書式、公開API検査に成功した。
   中央の公開API契約検査は29,838件中14,567件対応、15,271件未対応となる。作業tree 879,428 KiBと担当branchは削除した。frame I/O、undo、cacheの実行時挙動は別の効果契約で扱う。
+- `g145-canvas-base-schema`は受渡しcommit`01cb43509d30`を統合commit`48ed7a6ca5`として取り込んだ。開始`libs/flake/KoCanvasBase.h`から新規
+  `libs/flake/tests/KoCanvasBaseSchemaContractTest.cpp`の5枠へ、型・寿命、controller・resource、shape・command・observer、widget・view、grid・presentationの29 APIを対応付けた。公開headerを自動MOC入力へ
+  加えず、直接linkはQt Core・Testだけで、新対象4工程・8入力に収め、製品`kritaflake` 621工程・1,274入力と保留集合を維持した。canvas、widget、shape、tool、command、controller、resource、cursor、KoUnit、
+  inline本文、signal、metaobject、OpenGL、座標変換、undo所有処理を生成または実行していない。担当macOS環境と中央環境で5枠を含む対象CTest・20回反復、近傍`KoShapeSavingContextSchemaContractTest`、無作業再構築、
+  動的接続・未解決記号、自動MOC入力、構文・書式、公開API検査に成功した。中央の公開API契約検査は29,838件中14,596件対応、15,242件未対応となる。作業tree 874,212 KiBと担当branchは削除した。
+  canvasの実行時制御、描画、座標変換、signal配送は別の効果契約で扱う。
 
 ### 第144便の先行監査計画
 

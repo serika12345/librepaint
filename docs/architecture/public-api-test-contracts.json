@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 15271
+    "expectedMissingApis": 15242
   },
   "contracts": [
     {
@@ -42176,6 +42176,80 @@
         "method:KisPaintDeviceFramesInterface::invalidateFrameCache(int frameId)",
         "method:KisPaintDeviceFramesInterface::testingGetDataObjects() const",
         "method:KisPaintDeviceFramesInterface::testingGetDataObjectsList() const"
+      ]
+    },
+    {
+      "target": "KoCanvasBaseSchemaContractTest",
+      "source": "libs/flake/tests/KoCanvasBaseSchemaContractTest.cpp",
+      "test": "KoCanvasBaseSchemaContractTest::canvasIdentityAndLifecycleSignaturesRemainStable",
+      "behavior": "canvas境界はQObject由来の抽象型としてcontrollerと共有resourceから構築でき、仮想破棄を備える公開型面を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoCanvasBase",
+        "method:KoCanvasBase::KoCanvasBase(KoShapeControllerBase * shapeController,KoCanvasResourceProvider * sharedResourceManager=0)",
+        "method:KoCanvasBase::~KoCanvasBase()"
+      ]
+    },
+    {
+      "target": "KoCanvasBaseSchemaContractTest",
+      "source": "libs/flake/tests/KoCanvasBaseSchemaContractTest.cpp",
+      "test": "KoCanvasBaseSchemaContractTest::canvasControllerAndResourceSignaturesRemainStable",
+      "behavior": "canvas境界はcanvas・shape controller、resource、表示renderer、snap guide、tool proxyを接続・照会する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoCanvasBase::canvasController() const",
+        "method:KoCanvasBase::displayRendererInterface() const",
+        "method:KoCanvasBase::resourceManager() const",
+        "method:KoCanvasBase::setCanvasController(KoCanvasController * controller)",
+        "method:KoCanvasBase::shapeController() const",
+        "method:KoCanvasBase::snapGuide() const",
+        "method:KoCanvasBase::toolProxy() const"
+      ]
+    },
+    {
+      "target": "KoCanvasBaseSchemaContractTest",
+      "source": "libs/flake/tests/KoCanvasBaseSchemaContractTest.cpp",
+      "test": "KoCanvasBaseSchemaContractTest::canvasShapeCommandAndObserverSignaturesRemainStable",
+      "behavior": "canvas境界はcommand、shape managerと所有shape、選択proxy、observer切断、更新領域を扱う公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoCanvasBase::addCommand(KUndo2Command * command)",
+        "method:KoCanvasBase::currentShapeManagerOwnerShape() const",
+        "method:KoCanvasBase::disconnectCanvasObserver(QObject * object)",
+        "method:KoCanvasBase::selectedShapesProxy() const",
+        "method:KoCanvasBase::setCurrentShapeManagerOwnerShape(KoShape * source)",
+        "method:KoCanvasBase::shapeManager() const",
+        "method:KoCanvasBase::updateCanvas(const QRectF & rc)"
+      ]
+    },
+    {
+      "target": "KoCanvasBaseSchemaContractTest",
+      "source": "libs/flake/tests/KoCanvasBaseSchemaContractTest.cpp",
+      "test": "KoCanvasBaseSchemaContractTest::canvasWidgetAndViewSignaturesRemainStable",
+      "behavior": "canvas境界はwidgetとview converterの可変・const参照、OpenGL状態、view座標変換の公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoCanvasBase::canvasIsOpenGL() const",
+        "method:KoCanvasBase::canvasWidget()",
+        "method:KoCanvasBase::canvasWidget() const",
+        "method:KoCanvasBase::viewConverter()",
+        "method:KoCanvasBase::viewConverter() const",
+        "method:KoCanvasBase::viewToDocument(const QPointF & viewPoint) const"
+      ]
+    },
+    {
+      "target": "KoCanvasBaseSchemaContractTest",
+      "source": "libs/flake/tests/KoCanvasBaseSchemaContractTest.cpp",
+      "test": "KoCanvasBaseSchemaContractTest::canvasGridAndPresentationSignaturesRemainStable",
+      "behavior": "canvas境界はdocument原点、grid、snap、shape移動制限、cursor、document単位の公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoCanvasBase::clipToDocument(const KoShape * shape,QPointF & move) const",
+        "method:KoCanvasBase::documentOrigin() const",
+        "method:KoCanvasBase::gridSize(QPointF * offset,QSizeF * spacing) const",
+        "method:KoCanvasBase::setCursor(const QCursor & cursor)",
+        "method:KoCanvasBase::snapToGrid() const",
+        "method:KoCanvasBase::unit() const"
       ]
     }
   ]
