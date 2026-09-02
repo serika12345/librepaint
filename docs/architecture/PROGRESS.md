@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 15:51 JST
+- 更新日時: 2026-09-02 16:04 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -40,7 +40,7 @@
 
 ### 第154便の担当計画
 
-- 実装共通基点は`ac1c93a5a5`である。3担当は`preparing`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、
+- 実装共通基点は`ac1c93a5a5`である。3担当は`integrated`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、
   専用worktree-local `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。統合順はPSD layer effect資源、brush schema、visual color modelとし、調整担当だけが
   `AGENTS.md`、architecture文書、`docs/architecture/public-api-test-contracts.json`、共通不足報告を変更する。3担当の公開header、所有CMake、試験source、生成物は重ならない。
 - `g154-psd-layer-effect-resource-schema`は`/Users/masato/Documents/librepaint-g154-psd-layer-effect-resource-schema`を所有する。開始`libs/psdutils/psd.h`のlayer effect資源28 APIから既存
@@ -68,6 +68,28 @@
   解釈できるため、所有CMakeの対象限定include節へ追加する。補正前の対象は4工程・8入力、製品`kritawidgets`は809工程・1,647入力と集合を完全に維持した。補正後も同じ計画を要求し、さらに別の依存が必要なら停止する。
 - KF I18n補正後、同じ公開header連鎖の`KoColorSpaceMaths.h`が要求する`half.h`不足を次の診断として得た。前便で同じ色型連鎖を閉じたImath interface includeを対象限定include節へ追加する。対象4工程・8入力と製品
   `kritawidgets` 809工程・1,647入力・集合完全一致を維持し、Imath追加後に別の不足が残る場合は停止する。
+
+### 第154便の統合結果
+
+- `g154-psd-layer-effect-resource-schema`は受渡しcommit`14dfc249c4`を統合commit`59f40566c5`として取り込んだ。開始`libs/psdutils/psd.h`から既存
+  `libs/psdutils/tests/PsdFormatValuesContractTest.cpp`の5枠へ、gradient color stop member、bevel contour・texture資源、shadow階層寿命、glow寿命、shadow contour・gradient資源の28 APIを対応付けた。
+  CMakeと直接依存を変更せず対象6工程・14入力、所有製品`kritapsdutils` 638工程・1,306入力、下流`kritapsd` 1,982工程・3,962入力を維持した。gradient stop、effect、color、pattern、gradient、resource interface、
+  PSD device・channel・image・I/Oを生成または実行していない。担当macOS環境で旧binaryの新5枠Unknown、新5枠、対象CTest・20回反復、近傍`PsdByteIoContractTest`、無作業再構築、動的接続・未解決記号、構文・書式、
+  公開API検査、`verify-quick`に成功した。中央環境でも対象CTest、公開API検査、`verify-quick`に成功し、台帳commit`ab6388ada5`で29,838件中15,498件対応、14,340件未対応となった。作業tree 890,160 KiBと
+  担当branchは削除した。実layer effect資源の読書き・描画効果は別の効果契約で扱う。
+- `g154-brush-schema`は受渡しcommit`ffef6905d6`を統合commit`9adce7022a`として取り込んだ。開始`libs/brush/kis_brush.h`から新規`libs/brush/tests/KisBrushSchemaContractTest.cpp`の5枠へ、型・列挙、
+  着色・定数・metadata、寸法・角度、spacing、適用方針の43 APIを対応付け、`libs/brush/tests/CMakeLists.txt`へ独立対象を追加した。直接linkはQt Core・Gui・TestとBoost headerだけで、新対象4工程・8入力、製品
+  `kritalibbrush` 1,222工程・2,466入力を維持した。brush、派生型、resource、brush tip画像、paint device、painter、XML、gradient、乱数、inline本文を生成または実行していない。担当macOS環境で未知targetと新5枠、
+  対象CTest・20回反復、近傍`KisBrushModelValuesContractTest`、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式、公開API検査、`verify-quick`に成功した。中央環境でも対象CTest、公開API検査、
+  `verify-quick`に成功し、台帳commit`6c37ccca48`で29,838件中15,541件対応、14,297件未対応となった。作業tree 873,444 KiBと担当branchは削除した。実brush画像・mask生成・描画効果は別の効果契約で扱う。
+- `g154-visual-color-model-schema`は受渡しcommit`3d37230a52`を統合commit`ca13a5b8c6`として取り込んだ。開始`libs/widgets/KisVisualColorModel.h`から新規
+  `libs/widgets/tests/KisVisualColorModelSchemaContractTest.cpp`の5枠へ、型・列挙、寿命・状態、方針、変換・更新、通知の全33 APIを対応付け、`libs/widgets/tests/CMakeLists.txt`へ独立対象を追加した。公開headerの
+  直接include連鎖で得た`klocalizedstring.h`、次に`half.h`の不足診断に対し、対象固有のKF I18n・Imath interface includeだけを加えた。直接linkを増やさず新対象4工程・8入力、製品`kritawidgets` 809工程・
+  1,647入力を維持した。model、KoColor、色空間registry・変換、resource、view、widget、GUI event loopを生成または実行していない。担当macOS環境で未知target、2段階の直接header不足診断、新5枠、対象CTest・
+  20回反復、近傍`KisColorSelectorConfigurationContractTest`、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式、公開API検査、`verify-quick`に成功した。中央環境でも対象CTest、公開API検査、
+  `verify-quick`に成功し、台帳commit`596a6a942f`で29,838件中15,574件対応、14,264件未対応となった。作業tree 879,680 KiBと担当branchは削除した。実色変換・状態変更・signal配送は別の効果契約で扱う。
+- 第154便全体で104 APIを15枠へ重複なく対応付け、3担当の作業tree計2,643,284 KiB（約2.52 GiB）を回収した。旧不足報告をTrashへ移し、主Ninja木5,609,428 KiB、共有compiler cache 983,048 KiB、
+  最新不足報告`build/tdd-macos/public-api-missing-g155.json`だけを再利用対象として保持する。次の永続作業は第155便の不足報告から、既存限定対象を優先してpathと所有CMakeが重ならない3責務を先行監査することである。
 
 ### 第153便の先行監査計画
 
