@@ -2,12 +2,26 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 13:13 JST
+- 更新日時: 2026-09-02 13:16 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
+
+### 第150便の先行監査計画
+
+- 監査共通基点は`7d579712c7f1`、入力は`build/tdd-macos/public-api-missing-g150.json`である。3担当は`auditing`の読み取り専用とし、製品・試験・CMake・script・台帳・文書を変更せず、構築、試験、Git操作、
+  追加委任も行わない。一つの公開責務から25 API以上を最大5枠へ固定し、既存限定対象、header-only値面、または公開headerを変えない一sourceのOBJECT一対一移管で、製品共有ライブラリーと
+  `kritatestsdk`へ接続しない候補だけを採用する。
+- `g150-svg-layout-values-schema-audit`は`libs/flake/text/KoSvgTextShape_p.h`の未対応49 APIを主候補とし、`libs/flake/text/KoSvgText.h`の未対応59 APIを比較する。SVG文字配置の改行・cursor・glyph・subchunk・character結果面または
+  SVG文字値の変換・診断・path・背景・stroke・書体metric面を、shape、forest、background、stroke、font、painter、layout、XML、streamの実体化なしで閉じる。
+- `g150-resource-storage-view-schema-audit`は`libs/resources/KisResourceStorage.h`の未対応39 APIを主候補とし、`libs/libkis/View.h`の未対応55 APIを比較する。resource storageのmetadata識別子・version・import/export・plugin factory面または
+  scripting viewのcanvas・document・色・brush・resource・表示面を、storage、filesystem、database、resource、plugin、registry、view、canvas、document、GUI、大域状態の実体化なしで閉じる。
+- `g150-tool-paint-information-schema-audit`は`libs/tools/kis_tool.h`の未対応33 APIを主候補とし、`libs/image/brushengine/kis_paint_information.h`の未対応29 APIを比較する。toolの有効化・primary/alternate action・pointer入力・能力面または
+  paint informationの構築・混合・distance登録・乱数・XML面を、tool、canvas、shape、pointer event、paint device、paint operation、distance、random、XML、GUI event loopの実体化なしで閉じる。
+- 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから契約先または移動先、許可path、固有停止条件、
+  比較候補の棄却根拠を含む。既存`build/tdd-macos`の計画は読み取り専用で測定し、構成や構築を開始しない。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
 
 ### 第149便の先行監査計画
 
