@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 12649
+    "expectedMissingApis": 12624
   },
   "contracts": [
     {
@@ -48488,6 +48488,76 @@
       "classification": "maintained",
       "apis": [
         "method:KoFileDialog::onFilterSelected(const QString & filter)"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::selectionBasedLayerOwnershipAndLifetimeSchemaRemainsStable",
+      "behavior": "selection制御付きlayerの公開型、継承責務、完全な構築入力、copy構築と仮想寿命を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisSelectionBasedLayer",
+        "method:KisSelectionBasedLayer::KisSelectionBasedLayer(KisImageWSP image,const QString & name,KisSelectionSP selection,KisFilterConfigurationSP filterConfig)",
+        "method:KisSelectionBasedLayer::KisSelectionBasedLayer(const KisSelectionBasedLayer & rhs)",
+        "method:KisSelectionBasedLayer::~KisSelectionBasedLayer()"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::selectionBasedLayerSelectionDeviceAndProjectionSignaturesRemainStable",
+      "behavior": "selection制御付きlayerの内部selection、paint device、projection要否とcache更新境界の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSelectionBasedLayer::fetchComposedInternalSelection(const QRect & rect) const",
+        "method:KisSelectionBasedLayer::internalSelection() const",
+        "method:KisSelectionBasedLayer::needProjection() const",
+        "method:KisSelectionBasedLayer::original() const",
+        "method:KisSelectionBasedLayer::paintDevice() const",
+        "method:KisSelectionBasedLayer::resetCache(const KoColorSpace * colorSpace)",
+        "method:KisSelectionBasedLayer::setInternalSelection(KisSelectionSP selection)"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::selectionBasedLayerHierarchyImageAndDirtySignaturesRemainStable",
+      "behavior": "selection制御付きlayerの子node許可、image所属、dirty通知とlayer interface入口の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSelectionBasedLayer::allowAsChild(KisNodeSP node) const",
+        "method:KisSelectionBasedLayer::layer()",
+        "method:KisSelectionBasedLayer::setDirty()",
+        "method:KisSelectionBasedLayer::setImage(KisImageWSP image)"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::selectionBasedLayerGeometryAndLodSignaturesRemainStable",
+      "behavior": "selection制御付きlayerの座標、概算・正確な領域とLOD描画方針の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSelectionBasedLayer::exactBounds() const",
+        "method:KisSelectionBasedLayer::extent() const",
+        "method:KisSelectionBasedLayer::setX(qint32 x)",
+        "method:KisSelectionBasedLayer::setY(qint32 y)",
+        "method:KisSelectionBasedLayer::supportsLodPainting() const",
+        "method:KisSelectionBasedLayer::x() const",
+        "method:KisSelectionBasedLayer::y() const"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::selectionBasedLayerThumbnailAndNotificationSignaturesRemainStable",
+      "behavior": "selection制御付きlayerのthumbnail生成、更新番号とimage寸法変更通知の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSelectionBasedLayer::createThumbnail(qint32 w,qint32 h,Qt::AspectRatioMode aspectRatioMode,KisThumbnailBoundsMode boundsMode)",
+        "method:KisSelectionBasedLayer::slotImageSizeChanged()",
+        "method:KisSelectionBasedLayer::thumbnailSeqNo() const"
       ]
     }
   ]
