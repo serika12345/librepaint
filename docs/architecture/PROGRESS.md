@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 10:34 JST
+- 更新日時: 2026-09-02 10:38 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -59,7 +59,8 @@
 - `g144-display-config-schema`は`/Users/masato/Documents/librepaint-g144-display-config-schema`を所有する。開始`libs/ui/canvas/KisDisplayConfig.h`の全28 APIから新規
   `libs/ui/tests/KisDisplayConfigSchemaContractTest.cpp`の5枠`displayConfigTypeAndConstructionSchemaRemainsStable`、`displayConfigValueSchemaRemainsStable`、
   `displayConfigExternalPolicySignaturesRemainStable`、`multiSurfaceDisplayConfigValueSchemaRemainsStable`、`multiSurfaceDisplayConfigProjectionSchemaRemainsStable`へ対応付ける。許可pathは新規試験sourceと
-  `libs/ui/tests/CMakeLists.txt`だけである。直接linkはQt Core・TestとBoost headerだけ、includeはui・pigment source・generated headerだけとし、新対象4工程・8入力、停止5工程・11入力、近傍は
+  `libs/ui/tests/CMakeLists.txt`だけである。直接linkはQt Core・TestとBoost headerだけ、includeはui・pigment source・generated headerに加え、公開headerが直接要求する`kritaui_export.h`の所有先である
+  application source・generated directoryだけとし、新対象4工程・8入力、停止5工程・11入力、近傍は
   `KisGuidesConfigSchemaContractTest`、製品`kritaapplicationui`は1,970工程・3,940入力と担当tree内の変更前後集合完全一致を確認する。未知target、5枠、対象CTest、20回反復、近傍、無作業再構築、動的接続、
   未解決display config・system color manager・設定・screen・profile・色変換記号、構文・変更行書式、公開API・`verify-quick`を確認する。単一・複数surface値を生成し、inline本文、system color manager、設定I/O、
   screen・profile取得、色変換を実行し、Qt Gui・Widgets、製品source・OBJECT・shared、`kritatestsdk`、新非header依存、公開header変更、製品計画差、停止線超過が必要なら止める。
