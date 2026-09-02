@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 15:46 JST
+- 更新日時: 2026-09-02 15:51 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -59,13 +59,15 @@
 - `g154-visual-color-model-schema`は`/Users/masato/Documents/librepaint-g154-visual-color-model-schema`を所有する。開始`libs/widgets/KisVisualColorModel.h`の全33 APIから新規
   `libs/widgets/tests/KisVisualColorModelSchemaContractTest.cpp`の5枠`visualColorModelTypeAndEnumerationSchemaRemainsStable`、`visualColorModelLifetimeAndStateSchemaRemainsStable`、
   `visualColorModelPolicySchemaRemainsStable`、`visualColorModelConversionAndMutationSchemaRemainsStable`、`visualColorModelNotificationSchemaRemainsStable`へ対応付ける。許可pathは新規試験sourceと
-  `libs/widgets/tests/CMakeLists.txt`だけである。直接linkはQt Core・Gui・Testだけ、includeはwidgets・pigment・globalのsource/generatedとKF I18n interface、definitionsは`kritawidgets_EXPORTS`・`kritapigment_EXPORTS`・
+  `libs/widgets/tests/CMakeLists.txt`だけである。直接linkはQt Core・Gui・Testだけ、includeはwidgets・pigment・globalのsource/generatedとKF I18n・Imath interface、definitionsは`kritawidgets_EXPORTS`・`kritapigment_EXPORTS`・
   `kritaglobal_EXPORTS`だけとし、公開headerをtarget sourceやAUTOMOC入力へ加えない。新対象4工程・8入力、停止5工程・11入力、近傍は`KisColorSelectorConfigurationContractTest`、製品`kritawidgets`は809工程・1,647入力と担当tree内の
   変更前後集合完全一致を確認する。未知targetと新5枠、対象CTest、新5枠個別、20回反復、近傍、無作業再構築、動的接続・AUTOMOC入力・未解決model・color記号、構文・変更行書式、公開API・`verify-quick`を確認する。model、
   QObject、KoColor、QVector4D、QSharedPointer、signal、metaobject、ACS設定、色空間registry・変換、resource、view、widget、GUI event loopを生成または実行し、`KisVisualColorModel.cpp`、製品source・OBJECT・shared、`kritatestsdk`、
   Qt Widgets、追加の非header依存、公開header変更、製品計画差、停止線超過が必要なら止める。
 - visual color model担当の最初の対象限定構築で、`KisVisualColorModel.h`から`KoID.h`へ至る直接include連鎖の`klocalizedstring.h`不足を初期診断として得た。製品libraryへ接続せずKF I18nのinterface includeだけで公開headerを
   解釈できるため、所有CMakeの対象限定include節へ追加する。補正前の対象は4工程・8入力、製品`kritawidgets`は809工程・1,647入力と集合を完全に維持した。補正後も同じ計画を要求し、さらに別の依存が必要なら停止する。
+- KF I18n補正後、同じ公開header連鎖の`KoColorSpaceMaths.h`が要求する`half.h`不足を次の診断として得た。前便で同じ色型連鎖を閉じたImath interface includeを対象限定include節へ追加する。対象4工程・8入力と製品
+  `kritawidgets` 809工程・1,647入力・集合完全一致を維持し、Imath追加後に別の不足が残る場合は停止する。
 
 ### 第153便の先行監査計画
 
