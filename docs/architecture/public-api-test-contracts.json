@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 14721
+    "expectedMissingApis": 14696
   },
   "contracts": [
     {
@@ -43446,6 +43446,76 @@
         "method:KisTool::mousePressEvent(KoPointerEvent * event)",
         "method:KisTool::mouseReleaseEvent(KoPointerEvent * event)",
         "method:KisTool::mouseTripleClickEvent(KoPointerEvent * event)"
+      ]
+    },
+    {
+      "target": "KisConfigEnumContractTest",
+      "source": "libs/application/tests/KisConfigEnumContractTest.cpp",
+      "test": "KisConfigEnumContractTest::renderingVectorAndLodPolicySignaturesRemainStable",
+      "behavior": "描画設定はvector最適化とLOD方針の取得・更新に関する厳密な公開関数型、const性、既定引数を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisConfig::disableAVXOptimizations(bool defaultValue=false) const",
+        "method:KisConfig::disableVectorOptimizations(bool defaultValue=false) const",
+        "method:KisConfig::levelOfDetailEnabled(bool defaultValue=false) const",
+        "method:KisConfig::setDisableAVXOptimizations(bool value)",
+        "method:KisConfig::setDisableVectorOptimizations(bool value)",
+        "method:KisConfig::setLevelOfDetailEnabled(bool value)"
+      ]
+    },
+    {
+      "target": "KisConfigEnumContractTest",
+      "source": "libs/application/tests/KisConfigEnumContractTest.cpp",
+      "test": "KisConfigEnumContractTest::renderingTexturePipelineSignaturesRemainStable",
+      "behavior": "描画設定はmipmap、filter、texture寸法・境界・buffer方針の厳密な公開関数型と既定引数を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisConfig::numMipmapLevels(bool defaultValue=false) const",
+        "method:KisConfig::openGLFilteringMode(bool defaultValue=false) const",
+        "method:KisConfig::openGLTextureSize(bool defaultValue=false) const",
+        "method:KisConfig::setOpenGLFilteringMode(int filteringMode)",
+        "method:KisConfig::setUseOpenGLTextureBuffer(bool useBuffer)",
+        "method:KisConfig::textureOverlapBorder() const",
+        "method:KisConfig::useOpenGLTextureBuffer(bool defaultValue=false) const"
+      ]
+    },
+    {
+      "target": "KisConfigEnumContractTest",
+      "source": "libs/application/tests/KisConfigEnumContractTest.cpp",
+      "test": "KisConfigEnumContractTest::renderingProjectionBackendSignaturesRemainStable",
+      "behavior": "描画設定はOpenGLとprojection backend方針の取得・無効化・更新に関する厳密な公開関数型と既定引数を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisConfig::disableOpenGL() const",
+        "method:KisConfig::setUseProjections(bool useProj) const",
+        "method:KisConfig::useOpenGL(bool defaultValue=false) const",
+        "method:KisConfig::useProjections(bool defaultValue=false) const"
+      ]
+    },
+    {
+      "target": "KisConfigEnumContractTest",
+      "source": "libs/application/tests/KisConfigEnumContractTest.cpp",
+      "test": "KisConfigEnumContractTest::renderingDiagnosticLoggingSignaturesRemainStable",
+      "behavior": "描画設定はbrush速度とOpenGL framerate診断記録のconst取得・更新関数型と既定引数を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisConfig::enableBrushSpeedLogging(bool defaultValue=false) const",
+        "method:KisConfig::enableOpenGLFramerateLogging(bool defaultValue=false) const",
+        "method:KisConfig::setEnableBrushSpeedLogging(bool value) const",
+        "method:KisConfig::setEnableOpenGLFramerateLogging(bool value) const"
+      ]
+    },
+    {
+      "target": "KisConfigEnumContractTest",
+      "source": "libs/application/tests/KisConfigEnumContractTest.cpp",
+      "test": "KisConfigEnumContractTest::renderingBackendCompatibilitySignaturesRemainStable",
+      "behavior": "描画設定はfence回避策とXCB EGL提供元方針についてmember・static overload、借用QSettings pointer、既定引数の公開型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisConfig::forceOpenGLFenceWorkaround(bool defaultValue=false) const",
+        "method:KisConfig::preferXcbEglProvider(bool defaultValue=false) const",
+        "method:KisConfig::preferXcbEglProvider(const QSettings * settings,bool defaultValue=false)",
+        "method:KisConfig::setPreferXcbEglProvider(bool value)"
       ]
     }
   ]
