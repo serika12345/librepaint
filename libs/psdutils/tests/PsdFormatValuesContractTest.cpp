@@ -87,6 +87,11 @@ private Q_SLOTS:
     void shadowColorValueSignaturesRemainStable();
     void layerEffectGeometryScalingSignaturesRemainStable();
     void bevelColorValueSignaturesRemainStable();
+    void gradientColorStopMemberSchemaRemainsStable();
+    void bevelContourAndTextureResourceSignaturesRemainStable();
+    void layerEffectShadowHierarchyLifecycleSignaturesRemainStable();
+    void layerEffectGlowLifecycleSignaturesRemainStable();
+    void shadowContourAndGradientResourceSignaturesRemainStable();
     void overlayHierarchyConstructionSignaturesRemainStable();
     void overlayGradientControlSignaturesRemainStable();
     void overlayGradientGeometrySignaturesRemainStable();
@@ -2934,6 +2939,82 @@ void PsdFormatValuesContractTest::legacyPathAndPrintResourceRecordsAcceptAndIgno
     verifyLegacyResourceAcceptsAndIgnoresPayloads<PATH_INFO_LAST_2998>();
     verifyLegacyResourceAcceptsAndIgnoresPayloads<CLIPPING_PATH_2999>();
     verifyLegacyResourceAcceptsAndIgnoresPayloads<PRINT_FLAGS_2_10000>();
+}
+
+void PsdFormatValuesContractTest::gradientColorStopMemberSchemaRemainsStable()
+{
+    static_assert(std::is_aggregate_v<psd_gradient_color_stop>);
+    static_assert(std::is_same_v<decltype(psd_gradient_color_stop::actual_color), KoColor>);
+    static_assert(std::is_same_v<decltype(psd_gradient_color_stop::color_stop_type), psd_color_stop_type>);
+    static_assert(std::is_same_v<decltype(psd_gradient_color_stop::location), qint32>);
+    static_assert(std::is_same_v<decltype(psd_gradient_color_stop::midpoint), qint32>);
+}
+
+void PsdFormatValuesContractTest::bevelContourAndTextureResourceSignaturesRemainStable()
+{
+    using ContourGetter = const quint8 *(BevelEmboss::*)() const;
+    using ContourSetter = void (BevelEmboss::*)(const quint8 *);
+    using PatternSetter = void (BevelEmboss::*)(KoPatternSP);
+    using PatternGetter = KoPatternSP (BevelEmboss::*)(KisResourcesInterfaceSP) const;
+    using PatternLinkGetter = KoResourceSignature (BevelEmboss::*)() const;
+
+    static_assert(std::is_same_v<decltype(&BevelEmboss::glossContourLookupTable), ContourGetter>);
+    static_assert(std::is_same_v<decltype(&BevelEmboss::setGlossContourLookupTable), ContourSetter>);
+    static_assert(std::is_same_v<decltype(&BevelEmboss::setTexturePattern), PatternSetter>);
+    static_assert(std::is_same_v<decltype(&BevelEmboss::texturePattern), PatternGetter>);
+    static_assert(std::is_same_v<decltype(&BevelEmboss::texturePatternLink), PatternLinkGetter>);
+}
+
+void PsdFormatValuesContractTest::layerEffectShadowHierarchyLifecycleSignaturesRemainStable()
+{
+    using DropShadow = psd_layer_effects_drop_shadow;
+    using InnerShadow = psd_layer_effects_inner_shadow;
+    using Satin = psd_layer_effects_satin;
+    using ShadowCommon = psd_layer_effects_shadow_common;
+
+    static_assert(std::is_default_constructible_v<BevelEmboss>);
+    static_assert(std::is_destructible_v<DropShadow>);
+    static_assert(std::is_default_constructible_v<InnerShadow>);
+    static_assert(std::is_destructible_v<InnerShadow>);
+    static_assert(std::is_default_constructible_v<Satin>);
+    static_assert(std::is_default_constructible_v<ShadowBase>);
+    static_assert(std::is_destructible_v<ShadowBase>);
+    static_assert(std::is_destructible_v<ShadowCommon>);
+    static_assert(std::is_base_of_v<ShadowBase, BevelEmboss>);
+    static_assert(std::is_base_of_v<ShadowBase, ShadowCommon>);
+    static_assert(std::is_base_of_v<ShadowCommon, DropShadow>);
+    static_assert(std::is_base_of_v<ShadowCommon, InnerShadow>);
+}
+
+void PsdFormatValuesContractTest::layerEffectGlowLifecycleSignaturesRemainStable()
+{
+    using GlowCommon = psd_layer_effects_glow_common;
+    using InnerGlow = psd_layer_effects_inner_glow;
+    using OuterGlow = psd_layer_effects_outer_glow;
+
+    static_assert(std::is_default_constructible_v<GlowCommon>);
+    static_assert(std::is_destructible_v<GlowCommon>);
+    static_assert(std::is_default_constructible_v<InnerGlow>);
+    static_assert(std::is_destructible_v<InnerGlow>);
+    static_assert(std::is_destructible_v<OuterGlow>);
+    static_assert(std::is_base_of_v<ShadowBase, GlowCommon>);
+    static_assert(std::is_base_of_v<GlowCommon, InnerGlow>);
+    static_assert(std::is_base_of_v<GlowCommon, OuterGlow>);
+}
+
+void PsdFormatValuesContractTest::shadowContourAndGradientResourceSignaturesRemainStable()
+{
+    using ContourGetter = const quint8 *(ShadowBase::*)() const;
+    using ContourSetter = void (ShadowBase::*)(const quint8 *);
+    using GradientGetter = KoAbstractGradientSP (ShadowBase::*)(KisResourcesInterfaceSP) const;
+    using GradientLinkGetter = KoResourceSignature (ShadowBase::*)() const;
+    using GradientSetter = void (ShadowBase::*)(KoAbstractGradientSP);
+
+    static_assert(std::is_same_v<decltype(&ShadowBase::contourLookupTable), ContourGetter>);
+    static_assert(std::is_same_v<decltype(&ShadowBase::gradient), GradientGetter>);
+    static_assert(std::is_same_v<decltype(&ShadowBase::gradientLink), GradientLinkGetter>);
+    static_assert(std::is_same_v<decltype(&ShadowBase::setContourLookupTable), ContourSetter>);
+    static_assert(std::is_same_v<decltype(&ShadowBase::setGradient), GradientSetter>);
 }
 
 #undef ASSERT_BEVEL_SIGNATURE
