@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 15:05 JST
+- 更新日時: 2026-09-02 15:27 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -45,7 +45,7 @@
 
 ### 第153便の担当計画
 
-- 実装共通基点は`0eb1dd8c2b`である。3担当は`in_progress`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、
+- 実装共通基点は`0eb1dd8c2b`である。3担当は`integrated`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、
   専用worktree-local `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。統合順はpaint operation設定、SVG text値・node index、libkis selectionとし、調整担当だけが
   `AGENTS.md`、architecture文書、`docs/architecture/public-api-test-contracts.json`、共通不足報告を変更する。3担当の公開header、所有CMake、試験source、生成物は重ならない。
 - `g153-paintop-settings-schema`は`/Users/masato/Documents/librepaint-g153-paintop-settings-schema`を所有する。開始`libs/image/brushengine/kis_paintop_settings.h`のpaint parameter・更新方針36 APIから既存
@@ -74,6 +74,28 @@
   初期診断として得た。いずれも製品libraryへ接続せずinterface includeだけで公開headerを解釈できるため、所有CMakeの対象限定include節を許可pathへ加えた。補正後も4工程・8入力と製品計画完全一致を要求し、さらに別の依存が必要なら停止する。
 - paint operation担当の再構成後、Eigenで最初の不足は解消し、同じ連鎖の`KoColorSpaceMaths.h`が要求する`half.h`不足を次の診断として得た。近傍の既存限定対象が同じ連鎖に対して持つImath interface includeを許可範囲へ加える。対象は
   4工程・8入力を維持し、製品`kritaimage`は1,196工程・2,416入力と入力集合を維持した。Imath追加後に別の不足が残る場合は停止する。
+
+### 第153便の統合結果
+
+- `g153-paintop-settings-schema`は受渡しcommit`c0336df2ba`を統合commit`3a090551f5`として取り込んだ。開始`libs/image/brushengine/kis_paintop_settings.h`から既存
+  `libs/image/tests/KisImageTypesContractTest.cpp`の5枠へ、公開設定key、cadence・LOD、deposit parameter、幾何・合成・eraser、保存brush・eraser値の36 APIを対応付けた。公開headerの直接include連鎖を解釈するため
+  `libs/image/tests/CMakeLists.txt`の対象固有include節へEigen・Imath interfaceを追加したが、linkを増やさず対象4工程・8入力、製品`kritaimage` 1,196工程・2,416入力を維持した。設定実体、backend、preset、resource、paint operation、
+  image、device、XML、inline本文を生成または実行していない。担当macOS環境で旧binaryの新5枠Unknown、2段階の直接header不足診断、新5枠、対象CTest・20回反復、近傍、無作業再構築、動的接続・未解決記号、構文・書式、
+  公開API検査、`verify-quick`に成功した。中央環境でも対象限定の構成更新と構築、CTest、公開API検査、`verify-quick`に成功し、台帳commit`d333d5c3c5`で29,838件中15,406件対応、14,432件未対応となった。
+  作業tree 880,476 KiBと担当branchは削除した。実設定値、更新cadence、LOD・deposit・eraser効果は別の効果契約で扱う。
+- `g153-svg-text-shape-value-index-schema`は受渡しcommit`756a5d76bb`を統合commit`e6e36fbb71`として取り込んだ。開始`libs/flake/text/KoSvgTextShape.h`から既存
+  `libs/flake/tests/KoSvgTextCharacterResultValueContractTest.cpp`の5枠へ、identity・共有状態alias、公開列挙、character info member・順序、node index寿命・accessの29 APIを対応付けた。CMakeと直接依存を変更せず対象4工程・8入力、
+  製品`kritaflake` 621工程・1,274入力を維持した。shape、node index、memento、character info、font metrics、path、properties、layout、paint、XML、document、resource、GUI、inline本文を生成または実行していない。
+  担当macOS環境で新5枠、対象CTest・20回反復、近傍`KoSvgTextFontMetricsValueContractTest`、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式、公開API検査、`verify-quick`に成功した。中央環境でも対象CTest、
+  公開API検査、`verify-quick`に成功し、台帳commit`0846a7709d`で29,838件中15,435件対応、14,403件未対応となった。作業tree 884,208 KiBと担当branchは削除した。実layout・描画・node accessは別の効果契約で扱う。
+- `g153-libkis-selection-schema`は受渡しcommit`fd65f23102`を統合commit`9e16869519`として取り込んだ。開始`libs/libkis/Selection.h`から新規`libs/libkis/tests/SelectionSchemaContractTest.cpp`の5枠へ、型・寿命・同一性、
+  幾何・pixel data、選択内容・clipboard操作型、morphology操作型、selection論理結合の全35 APIを対応付け、`libs/libkis/tests/CMakeLists.txt`へ独立対象を追加した。`libkis.h`が直接includeする`QAction`を解釈するため
+  Qt Widgets interface includeだけを加え、Qt Gui・Widgetsをlinkせず新対象4工程・8入力、製品`kritalibkis` 2,018工程・4,034入力を維持した。Selection、Node、内部selection、QByteArray、clipboard、image、document、GUI、
+  metaobject、signal、method本文を生成または実行していない。担当macOS環境で未知target、直接header不足診断、新5枠、対象CTest・20回反復、近傍`GridConfigSchemaContractTest`、無作業再構築、動的接続・AUTOMOC入力・未解決記号、
+  構文・書式、公開API検査、`verify-quick`に成功した。中央環境でも対象限定の構成更新と構築、CTest、Qt Test・Coreだけの動的接続、空のAUTOMOC header入力、公開API検査、`verify-quick`に成功し、台帳commit`b676ae3760`で
+  29,838件中15,470件対応、14,368件未対応となった。作業tree 877,908 KiBと担当branchは削除した。実selection・clipboard・pixel処理は別の効果契約で扱う。
+- 第153便全体で100 APIを15枠へ重複なく対応付け、3担当の作業tree計2,642,592 KiB（約2.52 GiB）を回収した。旧不足報告をTrashへ移し、主Ninja木5,609,172 KiB、共有compiler cache 982,788 KiB、
+  最新不足報告`build/tdd-macos/public-api-missing-g154.json`だけを再利用対象として保持する。次の永続作業は第154便の不足報告から、既存限定対象を優先してpathと所有CMakeが重ならない3責務を先行監査することである。
 
 ### 第152便の先行監査計画
 
