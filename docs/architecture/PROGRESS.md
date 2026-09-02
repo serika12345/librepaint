@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 15:00 JST
+- 更新日時: 2026-09-02 15:05 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -51,7 +51,7 @@
 - `g153-paintop-settings-schema`は`/Users/masato/Documents/librepaint-g153-paintop-settings-schema`を所有する。開始`libs/image/brushengine/kis_paintop_settings.h`のpaint parameter・更新方針36 APIから既存
   `libs/image/tests/KisImageTypesContractTest.cpp`の5枠`paintOpUpdatePropertyKeySchemaRemainsStable`、`paintOpCadenceAndLodPolicySignaturesRemainStable`、`paintOpDepositParameterSignaturesRemainStable`、
   `paintOpGeometryCompositeAndEraserSignaturesRemainStable`、`paintOpSavedBrushAndEraserValueSignaturesRemainStable`へ対応付ける。許可pathは既存試験sourceと`libs/image/tests/CMakeLists.txt`の当該対象include節だけである。公開headerの直接include連鎖が
-  `Eigen/Sparse`を要求するため、`Eigen3::Eigen`のinterface includeだけを追加し、linkを増やさない。対象4工程・8入力、停止5工程・11入力、
+  `Eigen/Sparse`と`half.h`を要求するため、同じ連鎖を検査する既存`KisPropertiesConfigurationSchemaContractTest`と同じEigen・Imathのinterface includeだけを追加し、linkを増やさない。対象4工程・8入力、停止5工程・11入力、
   近傍は`KisImageConfigAnimationSchemaContractTest`、製品`kritaimage`は1,196工程・2,416入力と担当tree内の変更前後集合完全一致を確認する。旧binaryで新5枠Unknown、対象CTest、新5枠個別、20回反復、近傍、無作業再構築、
   動的接続・未解決設定記号、構文・変更行書式、公開API・`verify-quick`を確認する。設定keyの値、KisPaintOpSettings、派生型、設定backend、preset、resource、paint operation、image、device、XML、inline本文を生成または実行し、
   追加の非header依存、許可節外のCMake・公開header変更、製品接続、対象集合・製品計画差、停止線超過が必要なら止める。
@@ -72,6 +72,8 @@
   公開header変更、製品計画差、停止線超過が必要なら止める。
 - 最初の対象限定構築で、paint operation担当は`kis_paintop_settings.h`から`kis_cubic_curve_spline.h`へ至る直接include連鎖の`Eigen/Sparse`不足、selection担当は`Selection.h`から`libkis.h`へ至る直接include連鎖の`QAction`不足を
   初期診断として得た。いずれも製品libraryへ接続せずinterface includeだけで公開headerを解釈できるため、所有CMakeの対象限定include節を許可pathへ加えた。補正後も4工程・8入力と製品計画完全一致を要求し、さらに別の依存が必要なら停止する。
+- paint operation担当の再構成後、Eigenで最初の不足は解消し、同じ連鎖の`KoColorSpaceMaths.h`が要求する`half.h`不足を次の診断として得た。近傍の既存限定対象が同じ連鎖に対して持つImath interface includeを許可範囲へ加える。対象は
+  4工程・8入力を維持し、製品`kritaimage`は1,196工程・2,416入力と入力集合を維持した。Imath追加後に別の不足が残る場合は停止する。
 
 ### 第152便の先行監査計画
 
