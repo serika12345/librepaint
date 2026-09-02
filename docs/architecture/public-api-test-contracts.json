@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 12544
+    "expectedMissingApis": 12522
   },
   "contracts": [
     {
@@ -48773,6 +48773,73 @@
         "method:KisCloneLayer::needRectOnSourceForMasks(const QRect & rc) const",
         "method:KisCloneLayer::setDirtyOriginal(const QRect & rect,bool dontInvalidateFrames)",
         "method:KisCloneLayer::syncLodCache()"
+      ]
+    },
+    {
+      "target": "KoFontGlyphModelSchemaContractTest",
+      "source": "libs/flake/tests/KoFontGlyphModelSchemaContractTest.cpp",
+      "test": "KoFontGlyphModelSchemaContractTest::fontGlyphModelIdentityAndLifecycleSignaturesRemainStable",
+      "behavior": "フォントfaceの字形一覧modelの公開型、QObject親の既定値を持つ構築と仮想寿命を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoFontGlyphModel",
+        "method:KoFontGlyphModel::KoFontGlyphModel(QObject * parent=nullptr)",
+        "method:KoFontGlyphModel::~KoFontGlyphModel()"
+      ]
+    },
+    {
+      "target": "KoFontGlyphModelSchemaContractTest",
+      "source": "libs/flake/tests/KoFontGlyphModelSchemaContractTest.cpp",
+      "test": "KoFontGlyphModelSchemaContractTest::fontGlyphModelRoleAndGlyphTypeValuesRemainStable",
+      "behavior": "字形の基底・variation・OpenType種別とmodel roleの公開列挙値を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KoFontGlyphModel::GlyphType",
+        "enum:KoFontGlyphModel::Roles",
+        "enumerator:KoFontGlyphModel::GlyphType::Base",
+        "enumerator:KoFontGlyphModel::GlyphType::OpenType",
+        "enumerator:KoFontGlyphModel::GlyphType::UnicodeVariationSelector",
+        "enumerator:KoFontGlyphModel::Roles::ChildCount",
+        "enumerator:KoFontGlyphModel::Roles::GlyphLabel",
+        "enumerator:KoFontGlyphModel::Roles::OpenTypeFeatures"
+      ]
+    },
+    {
+      "target": "KoFontGlyphModelSchemaContractTest",
+      "source": "libs/flake/tests/KoFontGlyphModelSchemaContractTest.cpp",
+      "test": "KoFontGlyphModelSchemaContractTest::fontGlyphModelTreeNavigationSignaturesRemainStable",
+      "behavior": "字形tree modelのindex、親子、行列数と子要素有無を照会する公開署名と既定親を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoFontGlyphModel::columnCount(const QModelIndex & parent=QModelIndex ()) const",
+        "method:KoFontGlyphModel::hasChildren(const QModelIndex & parent=QModelIndex ()) const",
+        "method:KoFontGlyphModel::index(int row,int column,const QModelIndex & parent=QModelIndex ()) const",
+        "method:KoFontGlyphModel::parent(const QModelIndex & child) const",
+        "method:KoFontGlyphModel::rowCount(const QModelIndex & parent=QModelIndex ()) const"
+      ]
+    },
+    {
+      "target": "KoFontGlyphModelSchemaContractTest",
+      "source": "libs/flake/tests/KoFontGlyphModelSchemaContractTest.cpp",
+      "test": "KoFontGlyphModelSchemaContractTest::fontGlyphModelDataAndMetadataSignaturesRemainStable",
+      "behavior": "字形modelの表示data、role名、Unicode block、OpenType情報と文字列indexを照会する公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoFontGlyphModel::blocks() const",
+        "method:KoFontGlyphModel::data(const QModelIndex & index,int role=Qt::DisplayRole) const",
+        "method:KoFontGlyphModel::featureInfo() const",
+        "method:KoFontGlyphModel::indexForString(QString grapheme)",
+        "method:KoFontGlyphModel::roleNames() const"
+      ]
+    },
+    {
+      "target": "KoFontGlyphModelSchemaContractTest",
+      "source": "libs/flake/tests/KoFontGlyphModelSchemaContractTest.cpp",
+      "test": "KoFontGlyphModelSchemaContractTest::fontGlyphModelFaceSelectionSignatureRemainsStable",
+      "behavior": "字形modelへfont face、言語とsample限定方針を設定する公開署名と既定値を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoFontGlyphModel::setFace(FT_FaceSP face,QLatin1String language=QLatin1String (),bool samplesOnly=false)"
       ]
     }
   ]
