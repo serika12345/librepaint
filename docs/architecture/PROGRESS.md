@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 23:26 JST
+- 更新日時: 2026-09-02 23:29 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -17,6 +17,15 @@
 - `g105-svg-value-audit`はflake・SVG・vector・documentから、shape生成、XML入出力、描画、filesystem、registry、大域状態を実行せず全件を固定できる一責務を選ぶ。
 - `g105-widget-connection-audit`はwidgetutils・widgets・libkis・軽量接続面から、widget、canvas、action、signal、metaobject、event loop、大域状態を実行せず全件を固定できる一責務を選ぶ。
 - 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、予測工程・入力と停止線、開始pathから契約先、許可path、固有停止条件、比較候補の棄却根拠を含む。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
+- `g105-paintop-value-audit`は`libs/image/kis_updater_context.h`の全25 APIを採用した。所有・寿命・構築6、snapshot・LOD・容量6、job受付・投入4、同期・上限5、継続・完了4を既存
+  `libs/image/tests/KisImageTypesContractTest.cpp`の5枠へ対応付ける。0〜2引数構築の既定引数省略形を固定し、静的`useIdealThreadCountTag`はODR使用しない。CMakeと依存を変えず対象4工程・8入力、停止5工程・11入力、製品`kritaimage`
+  1,196工程・2,416入力を維持する。`KoColorSpaceAbstract.h`はtemplate本文、`kis_simple_paintop_factory.h`は人工型とSFINAE分岐、`kis_paintop_settings.h`は残存責務の分散が大きいため棄却した。
+- `g105-svg-value-audit`は`libs/flake/text/KoSvgTextShapeMarkupConverter.h`の全24 APIを採用した。identity・折返し方針7、文書property 6、SVG・HTML変換4、文書変換・診断4、style変換3を新規
+  `libs/flake/tests/KoSvgTextShapeMarkupConverterSchemaContractTest.cpp`の5枠へ対応付ける。3列挙値、2 property値、`style`の2〜4引数省略形を固定する。直接linkはQt Core・Gui・Testだけ、新対象4工程・8入力、停止5工程・11入力、製品`kritaflake`
+  621工程・1,274入力を維持する。`KoPathShape.h`はpath・paint・markerまで、`KoSvgSymbolCollectionResource.h`はinline所有処理、`SvgLoadingContext.h`はXML・filesystem・shape登録まで閉包が広がるため棄却した。
+- `g105-widget-connection-audit`は`libs/libkis/Canvas.h`の全21 APIを採用した。型・寿命・identity 5、zoom・中心6、回転・mirror 5、描画方針4、View関連1を新規
+  `libs/libkis/tests/CanvasSchemaContractTest.cpp`の5枠へ対応付ける。親省略構築も固定する。直接linkはQt Core・Testだけ、Qt Guiはinterface includeだけとし、新対象4工程・8入力、停止5工程・11入力、製品`kritalibkis`
+  2,018工程・4,034入力を維持する。`Node.h`は71 APIの責務分散、`Krita.h`は大域singleton、`Scratchpad.h`はwidget・画像・資源、`kis_action_registry.h`はsingleton・XML・設定I/Oへ閉包が広がるため棄却した。
 
 ### 第166便の先行監査計画
 
