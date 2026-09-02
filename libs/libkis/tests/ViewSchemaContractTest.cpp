@@ -17,6 +17,11 @@ private Q_SLOTS:
     void viewDepositAndCompositeSignaturesRemainStable();
     void viewInputModePolicySignaturesRemainStable();
     void viewHdrPresentationSignaturesRemainStable();
+    void viewDocumentAndVisibilitySignaturesRemainStable();
+    void viewResourceSelectionSignaturesRemainStable();
+    void viewColorStateAndNotificationSignaturesRemainStable();
+    void viewCoordinateTransformSignaturesRemainStable();
+    void viewInteractionNotificationSignaturesRemainStable();
 };
 
 void ViewSchemaContractTest::viewOwnershipLifetimeAndEqualitySchemaRemainsStable()
@@ -68,6 +73,52 @@ void ViewSchemaContractTest::viewHdrPresentationSignaturesRemainStable()
     ASSERT_VIEW_SIGNATURE(setHDRExposure, void (View::*)(float));
     ASSERT_VIEW_SIGNATURE(HDRGamma, float (View::*)() const);
     ASSERT_VIEW_SIGNATURE(setHDRGamma, void (View::*)(float));
+}
+
+void ViewSchemaContractTest::viewDocumentAndVisibilitySignaturesRemainStable()
+{
+    ASSERT_VIEW_SIGNATURE(window, Window * (View::*)() const);
+    ASSERT_VIEW_SIGNATURE(document, Document * (View::*)() const);
+    ASSERT_VIEW_SIGNATURE(setDocument, void (View::*)(Document *));
+    ASSERT_VIEW_SIGNATURE(visible, bool (View::*)() const);
+    ASSERT_VIEW_SIGNATURE(setVisible, void (View::*)());
+    ASSERT_VIEW_SIGNATURE(canvas, Canvas * (View::*)() const);
+    ASSERT_VIEW_SIGNATURE(selectedNodes, QList<Node *> (View::*)() const);
+}
+
+void ViewSchemaContractTest::viewResourceSelectionSignaturesRemainStable()
+{
+    ASSERT_VIEW_SIGNATURE(activateResource, void (View::*)(Resource *));
+    ASSERT_VIEW_SIGNATURE(currentBrushPreset, Resource * (View::*)() const);
+    ASSERT_VIEW_SIGNATURE(setCurrentBrushPreset, void (View::*)(Resource *));
+    ASSERT_VIEW_SIGNATURE(currentPattern, Resource * (View::*)() const);
+    ASSERT_VIEW_SIGNATURE(setCurrentPattern, void (View::*)(Resource *));
+    ASSERT_VIEW_SIGNATURE(currentGradient, Resource * (View::*)() const);
+    ASSERT_VIEW_SIGNATURE(setCurrentGradient, void (View::*)(Resource *));
+}
+
+void ViewSchemaContractTest::viewColorStateAndNotificationSignaturesRemainStable()
+{
+    ASSERT_VIEW_SIGNATURE(foregroundColor, ManagedColor * (View::*)() const);
+    ASSERT_VIEW_SIGNATURE(setForeGroundColor, void (View::*)(ManagedColor *));
+    ASSERT_VIEW_SIGNATURE(backgroundColor, ManagedColor * (View::*)() const);
+    ASSERT_VIEW_SIGNATURE(setBackGroundColor, void (View::*)(ManagedColor *));
+    ASSERT_VIEW_SIGNATURE(foregroundColorChanged, void (View::*)());
+    ASSERT_VIEW_SIGNATURE(backgroundColorChanged, void (View::*)());
+}
+
+void ViewSchemaContractTest::viewCoordinateTransformSignaturesRemainStable()
+{
+    ASSERT_VIEW_SIGNATURE(flakeToDocumentTransform, QTransform (View::*)() const);
+    ASSERT_VIEW_SIGNATURE(flakeToCanvasTransform, QTransform (View::*)() const);
+    ASSERT_VIEW_SIGNATURE(flakeToImageTransform, QTransform (View::*)() const);
+}
+
+void ViewSchemaContractTest::viewInteractionNotificationSignaturesRemainStable()
+{
+    ASSERT_VIEW_SIGNATURE(currentBrushPresetChanged, void (View::*)());
+    ASSERT_VIEW_SIGNATURE(currentToolChanged, void (View::*)(const QString &));
+    ASSERT_VIEW_SIGNATURE(showFloatingMessage, void (View::*)(const QString &, const QIcon &, int, int));
 }
 
 QTEST_GUILESS_MAIN(ViewSchemaContractTest)
