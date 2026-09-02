@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-03 05:39 JST
+- 更新日時: 2026-09-03 05:44 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -17,6 +17,16 @@
 - `g105-svg-value-audit`はflake・SVG・vector・documentから、第174便のfont glyph modelを除外して一責務を選ぶ。
 - `g105-widget-connection-audit`はwidgetutils・widgets・libkis・軽量接続面から、第174便のhelp menuを除外して一責務を選ぶ。
 - 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、予測工程・入力と停止線、開始pathから契約先、許可path、固有停止条件、比較候補の棄却根拠を含む。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
+- `g105-paintop-value-audit`は`libs/image/kis_processing_visitor.h`の未対応全20 APIを採用した。型・寿命2、node・layer visit 6、clone・mask visit 6、初期化command 1、進捗helper 5を既存
+  `libs/image/tests/KisImageTypesContractTest.cpp`の5枠へ対応付ける。visitor、進捗helper、node、layer、mask、undo、command、updaterを実体化せず、visitor dispatch、command生成、進捗開始・取消、destructor本文を実行しない。CMakeと依存を変えず対象4工程・8入力、停止5工程・11入力、製品`kritaimage` 1,196工程・2,416入力を維持する。
+  色空間template、update job、transaction、brush mask applicator、paintop設定は画素処理・registry、thread実行、undo所有移転、生pointer状態、設定・resourceへ閉包が広がるため棄却した。
+- `g105-svg-value-audit`は`libs/flake/commands/KoSvgTextAddRemoveShapeCommands.h`の未対応全20 APIを採用した。4 command型、輪郭種別5、基底command phase 4、派生command寿命6、輪郭削除操作1を新規
+  `libs/flake/tests/KoSvgTextAddRemoveShapeCommandsSchemaContractTest.cpp`の5枠へ対応付ける。command、shape、親command、private実装を実体化せず、構築・破棄、phase、undo・redo、shape変更、輪郭削除本文を実行しない。直接linkはBoost headerとQt Core・Testだけ、Qt Gui・KF I18n、flake・global・painting/undoのsource/generatedをcompile interfaceへ限定し、新対象4工程・8入力、停止5工程・11入力、製品`kritaflake` 621工程・1,274入力を維持する。
+  SVG loading・parser、symbol resource、shape manager・tool proxy、SVG text shape本体はXML・filesystem・resource・shape registry、描画・event配送、複数責務へ閉包が広がるため棄却した。
+- `g105-widget-connection-audit`は`libs/widgetutils/xmlgui/kmainwindow.h`の未対応全22 APIを採用した。型・寿命・restore template 4、session restore 4、chrome・toolbar 4、自動保存6、永続化・通知4を既存
+  `libs/widgetutils/tests/KKeySequenceWidgetSchemaContractTest.cpp`の5枠へ対応付ける。main window、Widget、toolbar、KConfigGroup、private pointerを実体化せず、restore template、session、menu・toolbar、help、設定保存、DBus、global window listを実行しない。CMakeと依存を変えず対象4工程・8入力、停止5工程・11入力、製品`kritawidgetutils` 274工程・581入力を維持する。
+  font family、内部色選択、tag・visual selector、scratchpad、libkis文書・nodeはfont database・描画・global renderer・resource・複数Widget・canvas・文書状態へ閉包が広がるため棄却した。
+- 中央の`public-api-missing-g175.json`で3ヘッダーの全識別子と20件・20件・22件を照合した。開始header、試験source、所有CMake、生成物に重複はなく、合計62 APIを15枠へ進める。公開headerをtarget sourceやAUTOMOC入力へ加えず、製品共有libraryと`kritatestsdk`へ接続しない。実装中に許可path外変更、製品OBJECT/shared、実体化・本文実行、動的接続の拡大、5工程・11入力超過、製品計画集合の変化が必要になれば担当を停止する。
 
 ### 第174便の先行監査計画
 
