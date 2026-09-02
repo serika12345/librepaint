@@ -16,6 +16,8 @@ namespace
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KoColorSet::method)), signature>)
 #define ASSERT_COLOR_SET_STRING_MEMBER(member)                                                                         \
     static_assert(std::is_same_v<decltype(KoColorSet::member), const QString>)
+#define ASSERT_SWATCH_GROUP_SIGNATURE(method, signature)                                                               \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KisSwatchGroup::method)), signature>)
 } // namespace
 
 class KoColorSetSchemaContractTest : public QObject
@@ -28,6 +30,11 @@ private Q_SLOTS:
     void colorSetStateAndLayoutSchemaRemainsStable();
     void colorSetLookupSchemaRemainsStable();
     void colorSetMutationAndNotificationSchemaRemainsStable();
+    void swatchGroupOwnershipCopyAndLifetimeSchemaRemainsStable();
+    void swatchGroupEntrySchemaRemainsStable();
+    void swatchGroupLayoutAndCountSignaturesRemainStable();
+    void swatchGroupIdentityAndListingSignaturesRemainStable();
+    void swatchGroupLookupAndDebugSignaturesRemainStable();
 };
 
 void KoColorSetSchemaContractTest::colorSetTypeFormatAndLifetimeSchemaRemainsStable()
@@ -164,6 +171,51 @@ void KoColorSetSchemaContractTest::colorSetMutationAndNotificationSchemaRemainsS
 
     QVERIFY(true);
 }
+
+void KoColorSetSchemaContractTest::swatchGroupOwnershipCopyAndLifetimeSchemaRemainsStable()
+{
+    static_assert(std::is_same_v<KisSwatchGroupSP, QSharedPointer<KisSwatchGroup>>);
+    static_assert(std::is_class_v<KisSwatchGroup>);
+    static_assert(std::is_copy_constructible_v<KisSwatchGroup>);
+    static_assert(std::is_destructible_v<KisSwatchGroup>);
+    ASSERT_SWATCH_GROUP_SIGNATURE(operator=, KisSwatchGroup & (KisSwatchGroup::*)(const KisSwatchGroup &));
+}
+
+void KoColorSetSchemaContractTest::swatchGroupEntrySchemaRemainsStable()
+{
+    static_assert(std::is_class_v<KisSwatchGroup::SwatchInfo>);
+    static_assert(std::is_same_v<decltype(std::declval<KisSwatchGroup::SwatchInfo>().group), QString>);
+    static_assert(std::is_same_v<decltype(std::declval<KisSwatchGroup::SwatchInfo>().swatch), KisSwatch>);
+    static_assert(std::is_same_v<decltype(std::declval<KisSwatchGroup::SwatchInfo>().row), int>);
+    static_assert(std::is_same_v<decltype(std::declval<KisSwatchGroup::SwatchInfo>().column), int>);
+}
+
+void KoColorSetSchemaContractTest::swatchGroupLayoutAndCountSignaturesRemainStable()
+{
+    static_assert(std::is_same_v<decltype(KisSwatchGroup::DEFAULT_COLUMN_COUNT), int>);
+    static_assert(std::is_same_v<decltype(KisSwatchGroup::DEFAULT_ROW_COUNT), int>);
+    ASSERT_SWATCH_GROUP_SIGNATURE(setRowCount, void (KisSwatchGroup::*)(int));
+    ASSERT_SWATCH_GROUP_SIGNATURE(rowCount, int (KisSwatchGroup::*)() const);
+    ASSERT_SWATCH_GROUP_SIGNATURE(colorCount, int (KisSwatchGroup::*)() const);
+    ASSERT_SWATCH_GROUP_SIGNATURE(slotCount, int (KisSwatchGroup::*)() const);
+}
+
+void KoColorSetSchemaContractTest::swatchGroupIdentityAndListingSignaturesRemainStable()
+{
+    ASSERT_SWATCH_GROUP_SIGNATURE(setName, void (KisSwatchGroup::*)(const QString &));
+    ASSERT_SWATCH_GROUP_SIGNATURE(name, QString (KisSwatchGroup::*)() const);
+    ASSERT_SWATCH_GROUP_SIGNATURE(infoList, QList<KisSwatchGroup::SwatchInfo> (KisSwatchGroup::*)() const);
+}
+
+void KoColorSetSchemaContractTest::swatchGroupLookupAndDebugSignaturesRemainStable()
+{
+    ASSERT_SWATCH_GROUP_SIGNATURE(checkSwatchExists, bool (KisSwatchGroup::*)(int, int) const);
+    ASSERT_SWATCH_GROUP_SIGNATURE(getSwatch, KisSwatch (KisSwatchGroup::*)(int, int) const);
+    static_assert(std::is_same_v<decltype(static_cast<QDebug (*)(QDebug, const KisSwatchGroup)>(&operator<<)),
+                                 QDebug (*)(QDebug, const KisSwatchGroup)>);
+}
+
+#undef ASSERT_SWATCH_GROUP_SIGNATURE
 
 QTEST_GUILESS_MAIN(KoColorSetSchemaContractTest)
 
