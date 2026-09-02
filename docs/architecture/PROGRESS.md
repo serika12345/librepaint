@@ -17,6 +17,15 @@
 - `g105-svg-value-audit`はflake・SVG・vector・documentから、第169便のSVG text content elementを除外して一責務を選ぶ。
 - `g105-widget-connection-audit`はwidgetutils・widgets・libkis・軽量接続面から、第169便のwidget connectionを除外して一責務を選ぶ。
 - 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、予測工程・入力と停止線、開始pathから契約先、許可path、固有停止条件、比較候補の棄却根拠を含む。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
+- `g105-paintop-value-audit`は`libs/image/kis_edge_detection_kernel.h`の全21 APIを採用した。型・filter 7、出力方針6、matrix・kernel生成4、radius変換2、device操作2を既存
+  `libs/image/tests/KisImageTypesContractTest.cpp`の5枠へ対応付ける。全既定引数省略形を未評価式で固定し、device、kernel、matrix、借用updaterを実体化しない。CMakeと依存を変えず対象4工程・8入力、停止5工程・11入力、製品`kritaimage` 1,196工程・2,416入力を維持する。
+  math toolboxは生配列所有と欠陥疑い、histogram producerは色空間・factory、`KoColorSpaceAbstract.h`はtemplate・registry・pixel処理、gradient・mask applicatorはresource・生pixel pointerへ閉包が広がるため棄却した。
+- `g105-svg-value-audit`は`libs/flake/KoToolBase.h`の全60 APIを採用した。identity・context・表示12、入力・focus・drag・描画18、選択・clipboard・popup 12、寿命・resource・stroke 13、activate・cursor・状態signal 5を新規
+  `libs/flake/tests/KoToolBaseSchemaContractTest.cpp`の5枠へ対応付ける。借用pointerは型だけを観測し、tool、canvas、event、shape、Widget、QObject通知を実体化しない。直接linkはQt Core・Testだけ、新対象4工程・8入力、停止5工程・11入力、製品`kritaflake` 621工程・1,274入力を維持する。
+  canvas controller、tool manager・proxy、shape managerは所有状態・大域管理・event配送、shape reorderは生pointer保持、font・SVG・resource群はregistry・filesystem・I/Oへ閉包が広がるため棄却した。
+- `g105-widget-connection-audit`は`libs/widgets/KisGradientColorEditor.h`の残存全24 APIを採用した。型・寿命4、位置5、色6、透明度4、不透明度・寸法5を新規
+  `libs/widgets/tests/KisGradientColorEditorSchemaContractTest.cpp`の5枠へ対応付ける。親省略構築も固定し、editor、Widget、色、gradient、signal、描画を実体化しない。直接linkはQt Core・Testだけ、Qt Gui・Widgetsはinterface includeだけとし、新対象4工程・8入力、停止5工程・11入力を維持する。
+  libkis Node・Krita・Scratchpadは複数責務・大域状態・生pointer、色選択・stroke・tag Widget群は描画・event・資源登録、XML GUI・file dialog群は設定I/O・filesystem・生menu所有へ閉包が広がるため棄却した。
 
 ### 第169便の先行監査計画
 
