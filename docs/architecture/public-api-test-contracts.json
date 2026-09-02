@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 13701
+    "expectedMissingApis": 13675
   },
   "contracts": [
     {
@@ -45816,6 +45816,77 @@
         "method:KisKKeySequenceWidget::keySequenceChanged(const QKeySequence & seq)",
         "method:KisKKeySequenceWidget::setCheckActionCollections(const QList<KisKActionCollection * > & actionCollections)",
         "method:KisKKeySequenceWidget::stealShortcut(const QKeySequence & seq,QAction * action)"
+      ]
+    },
+    {
+      "target": "KisMementoManagerSchemaContractTest",
+      "source": "libs/image/tiles3/tests/KisMementoManagerSchemaContractTest.cpp",
+      "test": "KisMementoManagerSchemaContractTest::mementoManagerAliasAndOwnerSchemaRemainsStable",
+      "behavior": "タイル変更履歴のlist、共有pointer、hash、iteratorのaliasと所有classの型を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisHistoryList",
+        "alias:KisMementoItemHashTable",
+        "alias:KisMementoItemHashTableIterator",
+        "alias:KisMementoItemHashTableIteratorConst",
+        "alias:KisMementoItemList",
+        "alias:KisMementoItemListIterator",
+        "alias:KisMementoSP",
+        "class:KisMementoManager"
+      ]
+    },
+    {
+      "target": "KisMementoManagerSchemaContractTest",
+      "source": "libs/image/tiles3/tests/KisMementoManagerSchemaContractTest.cpp",
+      "test": "KisMementoManagerSchemaContractTest::mementoHistoryItemValueSchemaRemainsStable",
+      "behavior": "履歴項目の集約性、変更項目list、memento参照の値型を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisHistoryItem::itemList",
+        "member:KisHistoryItem::memento",
+        "struct:KisHistoryItem"
+      ]
+    },
+    {
+      "target": "KisMementoManagerSchemaContractTest",
+      "source": "libs/image/tiles3/tests/KisMementoManagerSchemaContractTest.cpp",
+      "test": "KisMementoManagerSchemaContractTest::mementoManagerLifetimeAndCurrentRevisionSignaturesRemainStable",
+      "behavior": "履歴管理の構築・破棄可能性と現在revisionを取得する公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMementoManager::KisMementoManager()",
+        "method:KisMementoManager::KisMementoManager(const KisMementoManager & rhs)",
+        "method:KisMementoManager::currentMemento()",
+        "method:KisMementoManager::getMemento()",
+        "method:KisMementoManager::hasCurrentMemento()",
+        "method:KisMementoManager::~KisMementoManager()"
+      ]
+    },
+    {
+      "target": "KisMementoManagerSchemaContractTest",
+      "source": "libs/image/tiles3/tests/KisMementoManagerSchemaContractTest.cpp",
+      "test": "KisMementoManagerSchemaContractTest::mementoManagerTileRegistrationAndCommitSignaturesRemainStable",
+      "behavior": "タイル変更の登録、確定、確定済みタイル取得、既定タイル設定の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMementoManager::commit()",
+        "method:KisMementoManager::getCommittedTile(qint32 col,qint32 row,bool & existingTile)",
+        "method:KisMementoManager::registerTileChange(KisTile * tile)",
+        "method:KisMementoManager::registerTileDeleted(KisTile * tile)",
+        "method:KisMementoManager::setDefaultTileData(KisTileData * defaultTileData)"
+      ]
+    },
+    {
+      "target": "KisMementoManagerSchemaContractTest",
+      "source": "libs/image/tiles3/tests/KisMementoManagerSchemaContractTest.cpp",
+      "test": "KisMementoManagerSchemaContractTest::mementoManagerHistoryTraversalAndMaintenanceSignaturesRemainStable",
+      "behavior": "タイル履歴の巻き戻し、再適用、破棄、診断の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMementoManager::debugPrintInfo()",
+        "method:KisMementoManager::purgeHistory(KisMementoSP oldestMemento)",
+        "method:KisMementoManager::rollback(KisTileHashTable * ht,KisMementoSP memento)",
+        "method:KisMementoManager::rollforward(KisTileHashTable * ht,KisMementoSP memento)"
       ]
     }
   ]
