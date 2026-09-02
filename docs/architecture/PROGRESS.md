@@ -2,12 +2,21 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 23:32 JST
+- 更新日時: 2026-09-02 23:48 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
+
+### 第168便の先行監査計画
+
+- 監査共通基点は`f4b7feeb18`、入力は`build/tdd-macos/public-api-missing-g168.json`である。3担当は`auditing`の読み取り専用とし、製品・試験・CMake・script・台帳・文書を変更せず、構成、構築、試験、Git操作、追加委任も行わない。
+  一つの公開責務から20〜80 APIを最大5枠へ固定し、既存限定対象またはheader限定の4〜10工程程度の対象で、製品共有libraryと`kritatestsdk`へ接続しない候補だけを採用する。製品targetを引数にする`build-incremental ... plan`と製品buildは実行せず、既存Ninja木のquery・commands・inputsだけを読み取る。
+- `g105-paintop-value-audit`はpaintop・image・pigment・値型から、第167便のupdater contextを除外して一責務を選ぶ。
+- `g105-svg-value-audit`はflake・SVG・vector・documentから、第167便の文字markup変換を除外して一責務を選ぶ。
+- `g105-widget-connection-audit`はwidgetutils・widgets・libkis・軽量接続面から、第167便のCanvasを除外して一責務を選ぶ。
+- 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、予測工程・入力と停止線、開始pathから契約先、許可path、固有停止条件、比較候補の棄却根拠を含む。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
 
 ### 第167便の先行監査計画
 
@@ -48,6 +57,21 @@
   `canvasRenderingPolicySchemaRemainsStable`、`canvasViewAssociationSchemaRemainsStable`へ対応付ける。完全集合は型・寿命・identity 5、zoom・中心6、回転・mirror 5、描画方針4、View関連1である。許可pathは新規試験sourceと`libs/libkis/tests/CMakeLists.txt`の対象固有節だけで、公開header・製品sourceを変更しない。
   親省略構築を未評価式で固定する。直接linkはQt Core・Testだけ、Qt Guiはinterface include、includeはlibkis source/generated、definitionは`kritalibkis_EXPORTS`だけとし、公開headerをsourceやAUTOMOC入力へ加えない。新対象4工程・8入力、停止5工程・11入力、近傍`ViewSchemaContractTest`、製品`kritalibkis` 2,018工程・4,034入力を維持する。
   unknown target・CTest 0件、新5枠、対象CTest・枠個別・20回反復、近傍、無作業再構築、動的接続・AUTOMOC入力・Canvas・KoCanvasBase・View未解決記号、構文・書式、公開API・`verify-quick`を確認する。Canvas、KoCanvasBase、View、canvas操作本文、OpenGL、display converter、signal・metaobject、event loopを実体化または実行し、Qt Guiへの直接link、flake・製品OBJECT・shared、`kritatestsdk`への接続、停止線超過が必要なら止める。
+
+### 第167便の統合結果
+
+- `g167-updater-context-schema`は受渡しcommit`d64069b6ab`を統合commit`93fa8a1702`として取り込んだ。開始`libs/image/kis_updater_context.h`から既存
+  `libs/image/tests/KisImageTypesContractTest.cpp`の5枠へ、所有・寿命・構築、snapshot・LOD・容量、job受付・投入、同期・上限、継続・完了の全25 APIを対応付けた。0〜2引数構築の省略形を固定し、`useIdealThreadCountTag`はODR使用しなかった。
+  CMakeと依存を変えず対象4工程・8入力に保ち、担当と中央の対象・近傍CTest、20回反復、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式に成功した。台帳commit`e81678d291`で16,725件対応、13,113件未対応となった。thread・job投入、lock・waitの実行時効果は別契約で扱う。
+- `g167-svg-text-markup-schema`は受渡しcommit`229d38ece4`を統合commit`566c78ef8d`として取り込んだ。開始`libs/flake/text/KoSvgTextShapeMarkupConverter.h`から新規
+  `libs/flake/tests/KoSvgTextShapeMarkupConverterSchemaContractTest.cpp`の5枠へ、identity・折返し方針、文書property、SVG・HTML変換、文書変換・診断、style変換の全24 APIを対応付けた。3列挙値、2 property値、`style`の省略形も固定し、直接linkはQt Core・Gui・Testだけ、新対象4工程・8入力に保った。
+  中央台帳検査で長いslot名の整形改行だけを検出したため、受渡しcommit`231f72e16c`を統合commit`f61756e43a`として試験名を短縮し、API配分と本文を変えず機械検出可能にした。担当と中央の対象・近傍CTest、20回反復、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式に成功した。
+  台帳commit`adeb8e507d`で16,749件対応、13,089件未対応となった。SVG・HTML・文字文書相互変換の実行時結果は別契約で扱う。
+- `g167-libkis-canvas-schema`は受渡しcommit`b906b673e9`を統合commit`e7f4faf89e`として取り込んだ。開始`libs/libkis/Canvas.h`から新規
+  `libs/libkis/tests/CanvasSchemaContractTest.cpp`の5枠へ、型・寿命・identity、zoom・中心、回転・mirror、描画方針、View関連の全21 APIを対応付けた。親省略構築も固定し、直接linkはQt Core・Testだけ、Qt Guiはinterface includeだけ、新対象4工程・8入力に保った。
+  担当と中央の対象・近傍CTest、20回反復、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式に成功した。台帳commit`f4b7feeb18`で16,770件対応、13,068件未対応となった。Canvas、View、zoom・pan・回転・描画modeの実行時効果は別契約で扱う。
+- 第167便全体で70 APIを15枠へ重複なく対応付けた。公開API台帳、構造方針、文書、link、D2再生成を含む`verify-quick`は成功した。3担当のcleanな作業treeと担当branchを削除し、2,645,420 KiB（約2.52 GiB）を回収した。
+  旧不足報告3件を削除し、主Ninja木5,643,248 KiB、共有compiler cache 983,204 KiB、最新不足報告`build/tdd-macos/public-api-missing-g168.json`だけを再利用対象として保持する。製品、全体、Linuxの構築は実施していない。次の永続作業は第168便の不足報告から、既存限定対象を優先してpathと所有CMakeが重ならない3責務を先行監査することである。
 
 ### 第166便の先行監査計画
 
@@ -17303,7 +17327,7 @@
 
 ## 次の操作
 
-`build/tdd-macos/public-api-missing-g167.json`から第167並列便の非重複候補を3担当で監査する。欠陥疑いの比較・診断、資源registry、設定I/O、生pointer所有へ到達する経路は保留する。
+`build/tdd-macos/public-api-missing-g168.json`から第168並列便の非重複候補を3担当で監査する。欠陥疑いの比較・診断、資源registry、設定I/O、生pointer所有へ到達する経路は保留する。
 別の所有pathから20〜80 APIを最大5枠、既存限定対象またはheader限定対象で固定できる候補を優先し、担当票の確定前に変更なし計画、直接依存、予測閉包、製品共有ライブラリー・`kritatestsdk`非接続、許可pathと停止線を照合する。
 
 ## R1-G5完了根拠
