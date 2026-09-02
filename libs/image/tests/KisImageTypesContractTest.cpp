@@ -6,6 +6,7 @@
 #include "brushengine/kis_paint_information.h"
 #include "brushengine/kis_paintop_settings.h"
 #include "brushengine/kis_uniform_paintop_property.h"
+#include "kis_datamanager.h"
 #include "kis_default_bounds.h"
 #include "kis_distance_information.h"
 #include "kis_fixed_paint_device.h"
@@ -39,6 +40,8 @@ namespace
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisGroupLayer::method)), signature>)
 #define ASSERT_FIXED_PAINT_DEVICE_SIGNATURE(method, signature)                                                         \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisFixedPaintDevice::method)), signature>)
+#define ASSERT_DATA_MANAGER_SIGNATURE(method, signature)                                                               \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KisDataManager::method)), signature>)
 
 class SelectionDefaultBoundsConstructorProbe final : public KisSelectionDefaultBoundsBase
 {
@@ -146,6 +149,11 @@ private Q_SLOTS:
     void groupLayerCompositionAndVisitorSignaturesRemainStable();
     void groupLayerPresentationAndPolicySignaturesRemainStable();
     void groupLayerChildrenBoundsSignaturesRemainStable();
+    void dataManagerOwnershipAndDefaultPixelSchemaRemainsStable();
+    void dataManagerExtentRegionAndContiguitySignaturesRemainStable();
+    void dataManagerPixelTransferAndMutationSignaturesRemainStable();
+    void dataManagerCopyAndHistorySignaturesRemainStable();
+    void dataManagerPersistencePurgeAndPoolSignaturesRemainStable();
 };
 
 void KisImageTypesContractTest::intrusivePointerAliasesPreserveOwnershipKinds()
@@ -1914,11 +1922,81 @@ void KisImageTypesContractTest::groupLayerChildrenBoundsSignaturesRemainStable()
     ASSERT_GROUP_LAYER_SIGNATURE(calculateChildrenLooseUserVisibleBounds, QRect (KisGroupLayer::*)() const);
 }
 
+void KisImageTypesContractTest::dataManagerOwnershipAndDefaultPixelSchemaRemainsStable()
+{
+    static_assert(std::is_base_of_v<KisTiledDataManager, KisDataManager>);
+    static_assert(std::is_constructible_v<KisDataManager, const KisDataManager &>);
+    static_assert(std::is_constructible_v<KisDataManager, quint32, const quint8 *>);
+    static_assert(std::has_virtual_destructor_v<KisDataManager>);
+    ASSERT_DATA_MANAGER_SIGNATURE(defaultPixel, const quint8 *(KisDataManager::*)() const);
+    ASSERT_DATA_MANAGER_SIGNATURE(setDefaultPixel, void (KisDataManager::*)(const quint8 *));
+    ASSERT_DATA_MANAGER_SIGNATURE(pixelSize, quint32 (KisDataManager::*)() const);
+}
+
+void KisImageTypesContractTest::dataManagerExtentRegionAndContiguitySignaturesRemainStable()
+{
+    ASSERT_DATA_MANAGER_SIGNATURE(extent, QRect (KisDataManager::*)() const);
+    ASSERT_DATA_MANAGER_SIGNATURE(extent, void (KisDataManager::*)(qint32 &, qint32 &, qint32 &, qint32 &) const);
+    ASSERT_DATA_MANAGER_SIGNATURE(region, KisRegion (KisDataManager::*)() const);
+    ASSERT_DATA_MANAGER_SIGNATURE(setExtent, void (KisDataManager::*)(const QRect &));
+    ASSERT_DATA_MANAGER_SIGNATURE(setExtent, void (KisDataManager::*)(qint32, qint32, qint32, qint32));
+    ASSERT_DATA_MANAGER_SIGNATURE(rowStride, qint32 (KisDataManager::*)(qint32, qint32) const);
+    ASSERT_DATA_MANAGER_SIGNATURE(numContiguousColumns, qint32 (KisDataManager::*)(qint32, qint32, qint32) const);
+    ASSERT_DATA_MANAGER_SIGNATURE(numContiguousRows, qint32 (KisDataManager::*)(qint32, qint32, qint32) const);
+}
+
+void KisImageTypesContractTest::dataManagerPixelTransferAndMutationSignaturesRemainStable()
+{
+    ASSERT_DATA_MANAGER_SIGNATURE(clear, void (KisDataManager::*)());
+    ASSERT_DATA_MANAGER_SIGNATURE(clear, void (KisDataManager::*)(qint32, qint32, qint32, qint32, const quint8 *));
+    ASSERT_DATA_MANAGER_SIGNATURE(clear, void (KisDataManager::*)(qint32, qint32, qint32, qint32, quint8));
+    ASSERT_DATA_MANAGER_SIGNATURE(setPixel, void (KisDataManager::*)(qint32, qint32, const quint8 *));
+    ASSERT_DATA_MANAGER_SIGNATURE(readBytes,
+                                  void (KisDataManager::*)(quint8 *, qint32, qint32, qint32, qint32, qint32) const);
+    ASSERT_DATA_MANAGER_SIGNATURE(writeBytes,
+                                  void (KisDataManager::*)(const quint8 *, qint32, qint32, qint32, qint32, qint32));
+    ASSERT_DATA_MANAGER_SIGNATURE(readPlanarBytes,
+                                  QVector<quint8 *> (KisDataManager::*)(QVector<qint32>, qint32, qint32, qint32, qint32)
+                                      const);
+    ASSERT_DATA_MANAGER_SIGNATURE(
+        writePlanarBytes,
+        void (KisDataManager::*)(QVector<quint8 *>, QVector<qint32>, qint32, qint32, qint32, qint32));
+    static_assert(
+        std::is_same_v<decltype(std::declval<const KisDataManager &>()
+                                    .readBytes(std::declval<quint8 *>(), qint32{}, qint32{}, qint32{}, qint32{})),
+                       void>);
+    static_assert(std::is_same_v<
+                  decltype(std::declval<KisDataManager &>()
+                               .writeBytes(std::declval<const quint8 *>(), qint32{}, qint32{}, qint32{}, qint32{})),
+                  void>);
+}
+
+void KisImageTypesContractTest::dataManagerCopyAndHistorySignaturesRemainStable()
+{
+    ASSERT_DATA_MANAGER_SIGNATURE(bitBlt, void (KisDataManager::*)(KisTiledDataManagerSP, const QRect &));
+    ASSERT_DATA_MANAGER_SIGNATURE(bitBltOldData, void (KisDataManager::*)(KisTiledDataManagerSP, const QRect &));
+    ASSERT_DATA_MANAGER_SIGNATURE(bitBltRough, void (KisDataManager::*)(KisTiledDataManagerSP, const QRect &));
+    ASSERT_DATA_MANAGER_SIGNATURE(bitBltRoughOldData, void (KisDataManager::*)(KisTiledDataManagerSP, const QRect &));
+    ASSERT_DATA_MANAGER_SIGNATURE(getMemento, KisMementoSP (KisDataManager::*)());
+    ASSERT_DATA_MANAGER_SIGNATURE(hasCurrentMemento, bool (KisDataManager::*)() const);
+    ASSERT_DATA_MANAGER_SIGNATURE(rollback, void (KisDataManager::*)(KisMementoSP));
+    ASSERT_DATA_MANAGER_SIGNATURE(rollforward, void (KisDataManager::*)(KisMementoSP));
+}
+
+void KisImageTypesContractTest::dataManagerPersistencePurgeAndPoolSignaturesRemainStable()
+{
+    ASSERT_DATA_MANAGER_SIGNATURE(purge, void (KisDataManager::*)(const QRect &));
+    ASSERT_DATA_MANAGER_SIGNATURE(read, bool (KisDataManager::*)(QIODevice *));
+    ASSERT_DATA_MANAGER_SIGNATURE(write, bool (KisDataManager::*)(KisPaintDeviceWriter &));
+    ASSERT_DATA_MANAGER_SIGNATURE(releaseInternalPools, void (*)());
+}
+
 #undef ASSERT_DEFAULT_BOUNDS_SIGNATURE
 #undef ASSERT_LAYER_UTILS_SIGNATURE
 #undef ASSERT_PAINTOP_SETTINGS_SIGNATURE
 #undef ASSERT_GROUP_LAYER_SIGNATURE
 #undef ASSERT_FIXED_PAINT_DEVICE_SIGNATURE
+#undef ASSERT_DATA_MANAGER_SIGNATURE
 
 QTEST_GUILESS_MAIN(KisImageTypesContractTest)
 
