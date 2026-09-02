@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 12624
+    "expectedMissingApis": 12601
   },
   "contracts": [
     {
@@ -48558,6 +48558,74 @@
         "method:KisSelectionBasedLayer::createThumbnail(qint32 w,qint32 h,Qt::AspectRatioMode aspectRatioMode,KisThumbnailBoundsMode boundsMode)",
         "method:KisSelectionBasedLayer::slotImageSizeChanged()",
         "method:KisSelectionBasedLayer::thumbnailSeqNo() const"
+      ]
+    },
+    {
+      "target": "KoShapeReorderCommandSchemaContractTest",
+      "source": "libs/flake/tests/KoShapeReorderCommandSchemaContractTest.cpp",
+      "test": "KoShapeReorderCommandSchemaContractTest::shapeReorderIdentityAndLifecycleSignaturesRemainStable",
+      "behavior": "形状順序変更命令の公開型、indexed shapeまたはshapeと新indexを受け取る構築、および仮想寿命を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoShapeReorderCommand",
+        "method:KoShapeReorderCommand::KoShapeReorderCommand(const QList<IndexedShape> & shapes,KUndo2Command * parent=0)",
+        "method:KoShapeReorderCommand::KoShapeReorderCommand(const QList<KoShape * > & shapes,QList<int> & newIndexes,KUndo2Command * parent=0)",
+        "method:KoShapeReorderCommand::~KoShapeReorderCommand()"
+      ]
+    },
+    {
+      "target": "KoShapeReorderCommandSchemaContractTest",
+      "source": "libs/flake/tests/KoShapeReorderCommandSchemaContractTest.cpp",
+      "test": "KoShapeReorderCommandSchemaContractTest::indexedShapeValueSchemaRemainsStable",
+      "behavior": "順序変更対象のshape借用pointer、Z index、構築・比較とdebug出力の公開値schemaを固定する。",
+      "classification": "maintained",
+      "apis": [
+        "function:operator <<(QDebug dbg,const KoShapeReorderCommand::IndexedShape & indexedShape)",
+        "member:KoShapeReorderCommand::IndexedShape::shape",
+        "member:KoShapeReorderCommand::IndexedShape::zIndex",
+        "method:KoShapeReorderCommand::IndexedShape::IndexedShape()",
+        "method:KoShapeReorderCommand::IndexedShape::IndexedShape(KoShape * _shape)",
+        "method:KoShapeReorderCommand::IndexedShape::operator <(const IndexedShape & rhs) const",
+        "struct:KoShapeReorderCommand::IndexedShape"
+      ]
+    },
+    {
+      "target": "KoShapeReorderCommandSchemaContractTest",
+      "source": "libs/flake/tests/KoShapeReorderCommandSchemaContractTest.cpp",
+      "test": "KoShapeReorderCommandSchemaContractTest::shapeReorderMoveTypeValuesRemainStable",
+      "behavior": "形状を前後へ一段移動または最前面・最背面へ移す公開種別と安定値を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KoShapeReorderCommand::MoveShapeType",
+        "enumerator:KoShapeReorderCommand::MoveShapeType::BringToFront",
+        "enumerator:KoShapeReorderCommand::MoveShapeType::LowerShape",
+        "enumerator:KoShapeReorderCommand::MoveShapeType::RaiseShape",
+        "enumerator:KoShapeReorderCommand::MoveShapeType::SendToBack"
+      ]
+    },
+    {
+      "target": "KoShapeReorderCommandSchemaContractTest",
+      "source": "libs/flake/tests/KoShapeReorderCommandSchemaContractTest.cpp",
+      "test": "KoShapeReorderCommandSchemaContractTest::shapeReorderCreationAndMergeSignaturesRemainStable",
+      "behavior": "shape managerに基づく順序命令の生成とshape集合の上下mergeを行う公開署名と親命令の既定方針を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShapeReorderCommand::createCommand(const QList<KoShape * > & shapes,KoShapeManager * manager,MoveShapeType move,KUndo2Command * parent=0)",
+        "method:KoShapeReorderCommand::mergeDownShapes(QList<KoShape * > shapesBelow,QList<KoShape * > shapesAbove)",
+        "method:KoShapeReorderCommand::mergeInShape(QList<KoShape * > shapes,KoShape * newShape,KUndo2Command * parent=0)"
+      ]
+    },
+    {
+      "target": "KoShapeReorderCommandSchemaContractTest",
+      "source": "libs/flake/tests/KoShapeReorderCommandSchemaContractTest.cpp",
+      "test": "KoShapeReorderCommandSchemaContractTest::shapeReorderNormalizationAndExecutionSignaturesRemainStable",
+      "behavior": "Z indexの完全・遅延正規化と順序変更命令のredo・undo入口の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShapeReorderCommand::homogenizeZIndexes(QList<IndexedShape> shapes)",
+        "method:KoShapeReorderCommand::homogenizeZIndexesLazy(QList<IndexedShape> shapes)",
+        "method:KoShapeReorderCommand::redo()",
+        "method:KoShapeReorderCommand::undo()"
       ]
     }
   ]
