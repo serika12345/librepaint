@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 13888
+    "expectedMissingApis": 13856
   },
   "contracts": [
     {
@@ -45359,6 +45359,83 @@
         "method:KisDlgImportVideoAnimation::documentInfo()",
         "method:KisDlgImportVideoAnimation::renderFrames(const QDir & directory)",
         "method:KisDlgImportVideoAnimation::showOpenFileDialog()"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::groupLayerOwnershipLifetimeAndHierarchySchemaRemainsStable",
+      "behavior": "group layerの型、copy、色空間省略constructor、仮想寿命、clone戻り値、子node方針を未評価型で固定する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisGroupLayer",
+        "method:KisGroupLayer::KisGroupLayer(KisImageWSP image,const QString & name,quint8 opacity,const KoColorSpace * colorSpace=0)",
+        "method:KisGroupLayer::KisGroupLayer(const KisGroupLayer & rhs)",
+        "method:KisGroupLayer::allowAsChild(KisNodeSP) const",
+        "method:KisGroupLayer::clone() const",
+        "method:KisGroupLayer::~KisGroupLayer()"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::groupLayerImageCoordinateAndDeviceSignaturesRemainStable",
+      "behavior": "group layerのimage所属、座標、色空間、通常・subtree composition device面を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisGroupLayer::colorSpace() const",
+        "method:KisGroupLayer::lazyDestinationForSubtreeComposition() const",
+        "method:KisGroupLayer::original() const",
+        "method:KisGroupLayer::paintDevice() const",
+        "method:KisGroupLayer::setImage(KisImageWSP image)",
+        "method:KisGroupLayer::setX(qint32 x)",
+        "method:KisGroupLayer::setY(qint32 y)",
+        "method:KisGroupLayer::x() const",
+        "method:KisGroupLayer::y() const"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::groupLayerCompositionAndVisitorSignaturesRemainStable",
+      "behavior": "group layerのvisitor overload、merged layer生成・充填、projection cache方針を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisGroupLayer::accept(KisNodeVisitor & v)",
+        "method:KisGroupLayer::accept(KisProcessingVisitor & visitor,KisUndoAdapter * undoAdapter)",
+        "method:KisGroupLayer::createMergedLayerTemplate(KisLayerSP prevLayer)",
+        "method:KisGroupLayer::fillMergedLayerTemplate(KisLayerSP dstLayer,KisLayerSP prevLayer,bool skipPaintingThisLayer)",
+        "method:KisGroupLayer::projectionIsValid() const",
+        "method:KisGroupLayer::resetCache(const KoColorSpace * colorSpace)"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::groupLayerPresentationAndPolicySignaturesRemainStable",
+      "behavior": "group layerのsection property、projection既定色、pass-through、iconの公開型を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisGroupLayer::defaultProjectionColor() const",
+        "method:KisGroupLayer::icon() const",
+        "method:KisGroupLayer::passThroughMode() const",
+        "method:KisGroupLayer::sectionModelProperties() const",
+        "method:KisGroupLayer::setDefaultProjectionColor(KoColor color)",
+        "method:KisGroupLayer::setPassThroughMode(bool value)",
+        "method:KisGroupLayer::setSectionModelProperties(const KisBaseNode::PropertyList & properties)"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::groupLayerChildrenBoundsSignaturesRemainStable",
+      "behavior": "group layerの範囲と子nodeのtight・loose表示範囲を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisGroupLayer::calculateChildrenLooseUserVisibleBounds() const",
+        "method:KisGroupLayer::calculateChildrenTightUserVisibleBounds() const",
+        "method:KisGroupLayer::exactBounds() const",
+        "method:KisGroupLayer::extent() const"
       ]
     }
   ]
