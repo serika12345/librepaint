@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 12:53 JST
+- 更新日時: 2026-09-02 13:13 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -41,7 +41,7 @@
 
 ### 第149便の担当計画
 
-- 実装共通基点は`aa4b8a8d0029`である。3担当は`preparing`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、
+- 実装共通基点は`aa4b8a8d0029`である。3担当は`integrated`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、
   専用worktree-local `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。統合順はSVG文字属性、tile data、XCF宣言とし、調整担当だけが`AGENTS.md`、
   architecture文書、`docs/architecture/public-api-test-contracts.json`、共通不足報告を変更する。3担当の公開header、所有CMake、試験source、生成物は重ならない。
 - `g149-svg-text-properties-model-schema`は`/Users/masato/Documents/librepaint-g149-svg-text-properties-model-schema`を所有する。開始`libs/flake/text/lager/KoSvgTextPropertiesModel.h`の未対応71 APIから既存
@@ -63,6 +63,27 @@
   製品`kritaxcfimport`は1,985工程・3,968入力と担当tree内の変更前後集合完全一致を確認する。旧binaryで新5枠Unknown、対象CTest、5枠個別、20回反復、無作業再構築、動的接続、未解決XCF関数・変数記号、構文・
   変更行書式、公開API・`verify-quick`を確認する。XCF buffer、FILE、I/O、mmap、unzipper、allocator、fatal処理、gettext、大域値を参照または実行し、xcftools製品source・OBJECT・shared、`kritatestsdk`、新依存、CMake・
   公開header変更、対象集合・製品計画差、停止線超過が必要なら止める。
+
+### 第149便の統合結果
+
+- `g149-svg-text-properties-model-schema`は受渡しcommit`b618ad3b03e1`を統合commit`83b3bae191`として取り込んだ。開始`libs/flake/text/lager/KoSvgTextPropertiesModel.h`から既存
+  `libs/flake/tests/KoSvgTextPropertiesModelSchemaContractTest.cpp`の5枠へ、型・列挙・解決、cursor data member、子model member・accessor、公開signalの71 APIを対応付けた。CMakeと直接依存を変更せず、対象4工程・8入力、
+  製品`kritaflake` 621工程・1,274入力と保留集合を維持した。model、cursor state、子model、signal、metaobject、shape、font registry、layout、GUI、大域状態、constructor・inline本文を生成または実行していない。
+  担当macOS環境で新5枠と既存5枠を含む対象CTest・20回反復、近傍`KoSvgTextFontMetricsValueContractTest`、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式、公開API検査、`verify-quick`に成功した。
+  中央環境でも対象CTest、公開API検査、`verify-quick`に成功し、29,838件中14,943件対応、14,895件未対応となった。作業tree 881,124 KiBと担当branchは削除した。実model状態更新、signal配送、解決値計算は別の効果契約で扱う。
+- `g149-tile-data-schema`は受渡しcommit`8bdca2e50142`を統合commit`31d8938391`として取り込んだ。開始`libs/image/tiles3/kis_tile_data_interface.h`から新規
+  `libs/image/tiles3/tests/KisTileDataSchemaContractTest.cpp`の5枠へ、cache型・操作、状態・寿命、格納・参照、swap・履歴・age、memory lifecycleの41 APIを対応付け、
+  `libs/image/tiles3/tests/CMakeLists.txt`へ独立対象を追加した。直接linkはQt Core・Core5Compat・Testだけ、includeはimage・global source/generatedだけ、新対象4工程・8入力、製品`kritaimage` 1,196工程・2,416入力を維持した。
+  cache、tile data、store、list、chunk、lock、memory、inline本文、allocation、release、swap、lockを生成または実行していない。担当macOS環境で5枠、対象CTest・20回反復、近傍`KisTileSchemaContractTest`、無作業再構築、
+  動的接続・未解決記号、構文・書式、公開API検査、`verify-quick`に成功した。中央環境でも対象限定の構成更新と構築、CTest、公開API検査、`verify-quick`に成功し、29,838件中14,984件対応、14,854件未対応となった。
+  作業tree 874,908 KiBと担当branchは削除した。cache・参照・swap・memory本文の実行時挙動は別の効果契約で扱う。
+- `g149-xcf-schema`は受渡しcommit`3ea1d1d19ebc`を統合commit`11483daf76`として取り込んだ。開始`plugins/impex/xcf/3rdparty/xcftools/xcftools.h`から既存
+  `plugins/impex/xcf/tests/XcfToolsValueContractTest.cpp`の5枠へ、整数alias・大域宣言、fatal診断、file lifecycle、allocation・補助、構文解析の30 APIを対応付けた。CMakeと直接依存を変更せず対象4工程・8入力、
+  製品`kritaxcfimport` 1,985工程・3,968入力を維持した。XCF buffer、FILE、I/O、mmap、unzipper、allocator、fatal処理、gettext、大域値を参照または実行していない。担当macOS環境で新5枠と既存4枠を含む対象CTest・
+  20回反復、無作業再構築、動的接続・未解決記号、構文・書式、公開API検査、`verify-quick`に成功した。中央環境でも対象CTest、公開API検査、`verify-quick`に成功し、29,838件中15,014件対応、14,824件未対応となった。
+  作業tree 869,732 KiBと担当branchは削除した。platform別macro宣言はmacOS面を固定し、実I/O・fatal・allocator本文は別の効果契約で扱う。
+- 第149便全体で142 APIを15枠へ重複なく対応付け、3担当の作業tree計2,625,764 KiB（約2.50 GiB）を回収した。旧不足報告を削除し、主Ninja木5.4 GiB、共有compiler cache 1,017 MiB、最新不足報告
+  `build/tdd-macos/public-api-missing-g150.json`だけを再利用対象として保持する。次の永続作業は第150便の不足報告から、既存4工程・8入力の契約対象を再利用でき、pathと所有CMakeが重ならない3責務を先行監査することである。
 
 ### 第148便の先行監査計画
 
