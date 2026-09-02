@@ -9,6 +9,9 @@
 #include <QGuiApplication>
 #include <QTest>
 
+#include <type_traits>
+#include <utility>
+
 namespace
 {
 
@@ -37,6 +40,11 @@ private Q_SLOTS:
     void autoBrushGeneratorDefaultsAndMembersAreIndependent();
     void autoBrushDefaultsAndNestedGeneratorAreIndependent();
     void textBrushDefaultsAndMembersAreIndependent();
+    void predefinedBrushResourceAndSizingSchemaRemainsStable();
+    void predefinedBrushAdjustmentSchemaRemainsStable();
+    void brushAggregateSchemaRemainsStable();
+    void brushPersistenceSignaturesRemainStable();
+    void brushSizingAndPolicySignaturesRemainStable();
 };
 
 void KisBrushModelValuesContractTest::enumValuesAreStable()
@@ -159,6 +167,76 @@ void KisBrushModelValuesContractTest::textBrushDefaultsAndMembersAreIndependent(
     verifyIndependentMember(baseline, [](auto &data) {
         data.usePipeMode = true;
     });
+}
+
+void KisBrushModelValuesContractTest::predefinedBrushResourceAndSizingSchemaRemainsStable()
+{
+    using Data = KisBrushModel::PredefinedBrushData;
+
+    static_assert(std::is_class_v<Data>);
+    static_assert(std::is_same_v<decltype(&Data::resourceSignature), KoResourceSignature Data::*>);
+    static_assert(std::is_same_v<decltype(&Data::subtype), QString Data::*>);
+    static_assert(std::is_same_v<decltype(&Data::baseSize), QSize Data::*>);
+    static_assert(std::is_same_v<decltype(&Data::scale), qreal Data::*>);
+    static_assert(std::is_same_v<decltype(&Data::application), enumBrushApplication Data::*>);
+    static_assert(std::is_same_v<decltype(&Data::brushType), enumBrushType Data::*>);
+}
+
+void KisBrushModelValuesContractTest::predefinedBrushAdjustmentSchemaRemainsStable()
+{
+    using Data = KisBrushModel::PredefinedBrushData;
+    static_assert(std::is_same_v<decltype(&Data::hasColorAndTransparency), bool Data::*>);
+    static_assert(std::is_same_v<decltype(&Data::autoAdjustMidPoint), bool Data::*>);
+    static_assert(std::is_same_v<decltype(&Data::adjustmentMidPoint), quint8 Data::*>);
+    static_assert(std::is_same_v<decltype(&Data::brightnessAdjustment), qreal Data::*>);
+    static_assert(std::is_same_v<decltype(&Data::contrastAdjustment), qreal Data::*>);
+    static_assert(std::is_same_v<decltype(&Data::parasiteSelection), QString Data::*>);
+    static_assert(std::is_same_v<decltype(std::declval<const Data &>() == std::declval<const Data &>()), bool>);
+}
+
+void KisBrushModelValuesContractTest::brushAggregateSchemaRemainsStable()
+{
+    using Data = KisBrushModel::BrushData;
+
+    static_assert(std::is_class_v<Data>);
+    static_assert(std::is_same_v<decltype(&Data::common), KisBrushModel::CommonData Data::*>);
+    static_assert(std::is_same_v<decltype(&Data::type), KisBrushModel::BrushType Data::*>);
+    static_assert(std::is_same_v<decltype(&Data::autoBrush), KisBrushModel::AutoBrushData Data::*>);
+    static_assert(std::is_same_v<decltype(&Data::predefinedBrush), KisBrushModel::PredefinedBrushData Data::*>);
+    static_assert(std::is_same_v<decltype(&Data::textBrush), KisBrushModel::TextBrushData Data::*>);
+}
+
+void KisBrushModelValuesContractTest::brushPersistenceSignaturesRemainStable()
+{
+    using Data = KisBrushModel::BrushData;
+    using Read = std::optional<Data> (*)(const KisPropertiesConfiguration *, KisResourcesInterfaceSP);
+
+    static_assert(std::is_same_v<decltype(&Data::write), void (Data::*)(KisPropertiesConfiguration *) const>);
+    static_assert(std::is_same_v<decltype(&Data::read), Read>);
+}
+
+void KisBrushModelValuesContractTest::brushSizingAndPolicySignaturesRemainStable()
+{
+    using Data = KisBrushModel::BrushData;
+    using AutoData = KisBrushModel::AutoBrushData;
+    using PredefinedData = KisBrushModel::PredefinedBrushData;
+    using TextData = KisBrushModel::TextBrushData;
+    using BrushType = KisBrushModel::BrushType;
+
+    using LodLimitations = KisPaintopLodLimitations (*)(const Data &);
+    using EffectiveSize = qreal (*)(BrushType, const AutoData &, const PredefinedData &, const TextData &);
+    using AggregateEffectiveSize = qreal (*)(const Data &);
+    using SetEffectiveSize = void (*)(BrushType, AutoData &, PredefinedData &, TextData &, qreal);
+    using LightnessMode = qreal (*)(BrushType, const PredefinedData &);
+
+    static_assert(std::is_same_v<decltype(&KisBrushModel::brushLodLimitations), LodLimitations>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<EffectiveSize>(&KisBrushModel::effectiveSizeForBrush)), EffectiveSize>);
+    static_assert(std::is_same_v<decltype(static_cast<AggregateEffectiveSize>(&KisBrushModel::effectiveSizeForBrush)),
+                                 AggregateEffectiveSize>);
+    static_assert(std::is_same_v<decltype(&KisBrushModel::setEffectiveSizeForBrush), SetEffectiveSize>);
+    static_assert(std::is_same_v<decltype(&KisBrushModel::lightnessModeActivated), LightnessMode>);
+    static_assert(std::is_same_v<decltype(std::declval<const Data &>() == std::declval<const Data &>()), bool>);
 }
 
 int main(int argc, char **argv)
