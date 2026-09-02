@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 13730
+    "expectedMissingApis": 13701
   },
   "contracts": [
     {
@@ -45742,6 +45742,80 @@
         "method:KoShapeLoadingContext::addSharedData(const QString & id,KoSharedLoadingData * data)",
         "method:KoShapeLoadingContext::additionalAttributeData()",
         "method:KoShapeLoadingContext::sharedData(const QString & id) const"
+      ]
+    },
+    {
+      "target": "KKeySequenceWidgetSchemaContractTest",
+      "source": "libs/widgetutils/tests/KKeySequenceWidgetSchemaContractTest.cpp",
+      "test": "KKeySequenceWidgetSchemaContractTest::keySequenceWidgetTypeAndEnumerationSchemaRemainsStable",
+      "behavior": "shortcut入力型、検証方針、競合検査flagsの型と数値を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisKKeySequenceWidget::ShortcutTypes",
+        "class:KisKKeySequenceWidget",
+        "enum:KisKKeySequenceWidget::ShortcutType",
+        "enum:KisKKeySequenceWidget::Validation",
+        "enumerator:KisKKeySequenceWidget::ShortcutType::GlobalShortcuts",
+        "enumerator:KisKKeySequenceWidget::ShortcutType::LocalShortcuts",
+        "enumerator:KisKKeySequenceWidget::ShortcutType::None",
+        "enumerator:KisKKeySequenceWidget::ShortcutType::StandardShortcuts",
+        "enumerator:KisKKeySequenceWidget::Validation::NoValidate",
+        "enumerator:KisKKeySequenceWidget::Validation::Validate"
+      ]
+    },
+    {
+      "target": "KKeySequenceWidgetSchemaContractTest",
+      "source": "libs/widgetutils/tests/KKeySequenceWidgetSchemaContractTest.cpp",
+      "test": "KKeySequenceWidgetSchemaContractTest::keySequenceWidgetLifetimeAndCaptureSchemaRemainsStable",
+      "behavior": "shortcut入力widgetの完全な構築型、親省略構築、破棄、入力開始・消去の公開型を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisKKeySequenceWidget::KisKKeySequenceWidget(QWidget * parent=0)",
+        "method:KisKKeySequenceWidget::captureKeySequence()",
+        "method:KisKKeySequenceWidget::clearKeySequence()",
+        "method:KisKKeySequenceWidget::~KisKKeySequenceWidget()"
+      ]
+    },
+    {
+      "target": "KKeySequenceWidgetSchemaContractTest",
+      "source": "libs/widgetutils/tests/KKeySequenceWidgetSchemaContractTest.cpp",
+      "test": "KKeySequenceWidgetSchemaContractTest::keySequenceWidgetPolicySchemaRemainsStable",
+      "behavior": "shortcut入力widgetの競合検査、多段shortcut、modifierless入力方針の型とconst性を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisKKeySequenceWidget::checkForConflictsAgainst() const",
+        "method:KisKKeySequenceWidget::isModifierlessAllowed()",
+        "method:KisKKeySequenceWidget::multiKeyShortcutsAllowed() const",
+        "method:KisKKeySequenceWidget::setCheckForConflictsAgainst(ShortcutTypes types)",
+        "method:KisKKeySequenceWidget::setModifierlessAllowed(bool allow)",
+        "method:KisKKeySequenceWidget::setMultiKeyShortcutsAllowed(bool)"
+      ]
+    },
+    {
+      "target": "KKeySequenceWidgetSchemaContractTest",
+      "source": "libs/widgetutils/tests/KKeySequenceWidgetSchemaContractTest.cpp",
+      "test": "KKeySequenceWidgetSchemaContractTest::keySequenceWidgetValueSchemaRemainsStable",
+      "behavior": "shortcut値の取得・設定型、Validation省略可能性、表示・component設定型を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisKKeySequenceWidget::isKeySequenceAvailable(const QKeySequence & seq) const",
+        "method:KisKKeySequenceWidget::keySequence() const",
+        "method:KisKKeySequenceWidget::setClearButtonShown(bool show)",
+        "method:KisKKeySequenceWidget::setComponentName(const QString & componentName)",
+        "method:KisKKeySequenceWidget::setKeySequence(const QKeySequence & seq,Validation val=NoValidate)"
+      ]
+    },
+    {
+      "target": "KKeySequenceWidgetSchemaContractTest",
+      "source": "libs/widgetutils/tests/KKeySequenceWidgetSchemaContractTest.cpp",
+      "test": "KKeySequenceWidgetSchemaContractTest::keySequenceWidgetAssociationAndNotificationSchemaRemainsStable",
+      "behavior": "shortcut入力widgetのaction collection関連付け、変更通知、shortcut移譲型を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisKKeySequenceWidget::applyStealShortcut()",
+        "method:KisKKeySequenceWidget::keySequenceChanged(const QKeySequence & seq)",
+        "method:KisKKeySequenceWidget::setCheckActionCollections(const QList<KisKActionCollection * > & actionCollections)",
+        "method:KisKKeySequenceWidget::stealShortcut(const QKeySequence & seq,QAction * action)"
       ]
     }
   ]
