@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 18:09 JST
+- 更新日時: 2026-09-02 18:14 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -22,6 +22,22 @@
   型・寿命・open・seek・read/write・画像・設定・操作面を、device・metadata backend・filesystem・process・document・image・widget・signal・metaobject・GUI event loop・大域状態の実体化なしで閉じる。
 - 各報告は完全なAPI識別子、既定引数観測、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから契約先または移動先、許可path、固有停止条件、
   比較候補の棄却根拠を含む。既存`build/tdd-macos`の計画は読み取り専用で測定し、構成や構築を開始しない。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
+- `g158-ui-node-color-curve-schema-audit`は`libs/ui/nodes/kis_node_view_color_scheme.h`の全25 APIを採用した。型・寿命・singleton 4、基本寸法10、配置4、相対矩形4、色方針3を新規
+  `libs/ui/tests/KisNodeViewColorSchemeSchemaContractTest.cpp`の5枠へ対応付ける。直接linkはQt Gui・Testだけ、新対象4工程・8入力、停止5工程・11入力を予測し、製品`kritaapplicationui`
+  1,970工程・3,940入力を維持する。近傍`KisDisplayConfigSchemaContractTest`の命令集合hashは`45b4c6dc19107eac16608f1384cc88823ee492b578e9e000411b0c6d2c8f4ea9`、入力集合hashは
+  `0f5781b1ac2dec2ed9954f2948ac1d5b605eed4e419085ff8415d097846cb8ce`、製品命令集合hashは`54a81e7f2dc46cb6b03d85bc5606456480d58d433d4acedf3a971d51508da391`、入力集合hashは
+  `fadce0f47495bd67de7f32dd23bcb107bb18415503800cf48d62f14a425fb3ff`である。`kis_curve_widget.h`はQWidget・Q_OBJECT、curve、pixmap、入力event、paint、signalへ責務と閉包が広がるため棄却した。
+- `g158-image-selection-fixed-device-schema-audit`は`libs/image/kis_fixed_paint_device.h`の全27 APIを採用した。所有・copy 5、幾何・容量・色7、buffer storage 6、転送・変換5、pixel更新4を既存
+  `libs/image/tests/KisImageTypesContractTest.cpp`の5枠へ対応付ける。allocator省略構築、既定byte初期化、色変換引数省略形も未評価式で固定する。CMakeと直接依存を変えず対象4工程・8入力、停止5工程・11入力、製品
+  `kritaimage` 1,196工程・2,416入力を維持する。対象命令集合hashは`3e66227252e2031040d70686ca122fb2b8113bd1c160d0f1008d1476518f3b52`、入力集合hashは
+  `42c0bdca62da9111fd79736a3055bd233ee32342bc2c9ae69fc577a83a88cf81`、製品命令集合hashは`e055c792a96a6478029f98d6f7ef6eb7c32df4c7f228092ee25a0aaeff5be7ab`、入力集合hashは
+  `76f2aa4251a6bf4e2adf2a1e822bc9d629753b2e93e5b877ee4eae23364940bc`である。`kis_selection_based_layer.h`は抽象多重継承、selection・projection・node・thumbnail・LOD・signalへ責務が混在するため棄却した。
+- `g158-metadata-video-import-schema-audit`は`libs/impex/animation/KisDlgImportVideoAnimation.h`の全25 APIを採用した。video stream幾何値7、encoding・色値7、rendered frame値6、dialog型・構築2、公開workflow 3を新規
+  `libs/impex/tests/KisDlgImportVideoAnimationSchemaContractTest.cpp`の5枠へ対応付ける。値structの既定値・copy独立性・空frame判定だけを具体実行し、dialog操作は未評価型で固定する。直接linkはQt Core・Testだけ、新対象
+  4工程・8入力、停止5工程・11入力を予測し、製品`kritaimpexui` 1,350工程・2,712入力を維持する。近傍`KisMediaEncoderFormatAndSettingsContractTest`の命令集合hashは
+  `a89c1ca924743344c46657e748d7828fd24f2185172945699751f0b1e54de776`、入力集合hashは`cf0648c4ad31097ad0543338b2b00c8a749956145bd8ffe647cc078a2e343e9c`、製品命令集合hashは
+  `f6e21b06b6569a1666604021e885b50ffd7a9eacb52b636a378671926f158959`、入力集合hashは`00f7a3901606d05fc5caf4af291550dd664f62f16b659305d99939c74191ea56`である。
+  `KisExiv2IODevice.h`の不足報告27件にはExiv2 0.28未満と以後の相互排他署名が含まれ、現macOS構成で固定可能な現行宣言は最大23件となるため棄却した。
 
 ### 第157便の先行監査計画
 
