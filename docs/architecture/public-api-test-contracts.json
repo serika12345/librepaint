@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 14205
+    "expectedMissingApis": 14152
   },
   "contracts": [
     {
@@ -44592,6 +44592,104 @@
         "method:Palette::comment()",
         "method:Palette::save()",
         "method:Palette::setComment(QString comment)"
+      ]
+    },
+    {
+      "target": "KisKeyframeChannelSchemaContractTest",
+      "source": "libs/image/tests/KisKeyframeChannelSchemaContractTest.cpp",
+      "test": "KisKeyframeChannelSchemaContractTest::keyframeChannelTypeLifetimeAndIdentifierSchemaRemainsStable",
+      "behavior": "keyframe channelは抽象型、識別子定数、通常・複製構築、仮想破棄に関する厳密な公開型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisKeyframeChannel",
+        "member:KisKeyframeChannel::Opacity",
+        "member:KisKeyframeChannel::PositionX",
+        "member:KisKeyframeChannel::PositionY",
+        "member:KisKeyframeChannel::Raster",
+        "member:KisKeyframeChannel::RotationX",
+        "member:KisKeyframeChannel::RotationY",
+        "member:KisKeyframeChannel::RotationZ",
+        "member:KisKeyframeChannel::ScaleX",
+        "member:KisKeyframeChannel::ScaleY",
+        "member:KisKeyframeChannel::ShearX",
+        "member:KisKeyframeChannel::ShearY",
+        "member:KisKeyframeChannel::TransformArguments",
+        "method:KisKeyframeChannel::KisKeyframeChannel(const KisKeyframeChannel & rhs)",
+        "method:KisKeyframeChannel::KisKeyframeChannel(const KoID & id,KisDefaultBoundsBaseSP bounds)",
+        "method:KisKeyframeChannel::~KisKeyframeChannel()"
+      ]
+    },
+    {
+      "target": "KisKeyframeChannelSchemaContractTest",
+      "source": "libs/image/tests/KisKeyframeChannelSchemaContractTest.cpp",
+      "test": "KisKeyframeChannelSchemaContractTest::keyframeChannelLookupAndTimelineSchemaRemainsStable",
+      "behavior": "keyframe channelはkeyframe・時刻・識別子・状態hashを照会する厳密な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisKeyframeChannel::activeKeyframeAt(int time) const",
+        "method:KisKeyframeChannel::activeKeyframeTime() const",
+        "method:KisKeyframeChannel::activeKeyframeTime(int time) const",
+        "method:KisKeyframeChannel::allKeyframeTimes() const",
+        "method:KisKeyframeChannel::channelHash() const",
+        "method:KisKeyframeChannel::firstKeyframeTime() const",
+        "method:KisKeyframeChannel::id() const",
+        "method:KisKeyframeChannel::keyframeAt(int time) const",
+        "method:KisKeyframeChannel::keyframeCount() const",
+        "method:KisKeyframeChannel::lastKeyframeTime() const",
+        "method:KisKeyframeChannel::lookupKeyframeTime(KisKeyframeSP toLookup)",
+        "method:KisKeyframeChannel::name() const",
+        "method:KisKeyframeChannel::nextKeyframeTime(const int time) const",
+        "method:KisKeyframeChannel::previousKeyframeTime(const int time) const"
+      ]
+    },
+    {
+      "target": "KisKeyframeChannelSchemaContractTest",
+      "source": "libs/image/tests/KisKeyframeChannelSchemaContractTest.cpp",
+      "test": "KisKeyframeChannelSchemaContractTest::keyframeChannelMutationSchemaRemainsStable",
+      "behavior": "keyframe channelはkeyframeの追加・挿入・削除とchannel内・channel間の移動・複製・交換に関する厳密な公開関数型と既定undo親を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisKeyframeChannel::addKeyframe(int time,KUndo2Command * parentUndoCmd=nullptr)",
+        "method:KisKeyframeChannel::copyKeyframe(const KisKeyframeChannel * sourceChannel,int sourceTime,KisKeyframeChannel * targetChannel,int targetTime,KUndo2Command * parentUndoCmd=nullptr)",
+        "method:KisKeyframeChannel::copyKeyframe(int sourceTime,int targetTime,KUndo2Command * parentUndoCmd=nullptr)",
+        "method:KisKeyframeChannel::insertKeyframe(int time,KisKeyframeSP keyframe,KUndo2Command * parentUndoCmd=nullptr)",
+        "method:KisKeyframeChannel::moveKeyframe(KisKeyframeChannel * sourceChannel,int sourceTime,KisKeyframeChannel * targetChannel,int targetTime,KUndo2Command * parentUndoCmd=nullptr)",
+        "method:KisKeyframeChannel::moveKeyframe(int sourceTime,int targetTime,KUndo2Command * parentUndoCmd=nullptr)",
+        "method:KisKeyframeChannel::removeKeyframe(int time,KUndo2Command * parentUndoCmd=nullptr)",
+        "method:KisKeyframeChannel::swapKeyframes(KisKeyframeChannel * channelA,int timeA,KisKeyframeChannel * channelB,int timeB,KUndo2Command * parentUndoCmd=nullptr)",
+        "method:KisKeyframeChannel::swapKeyframes(int timeA,int timeB,KUndo2Command * parentUndoCmd=nullptr)"
+      ]
+    },
+    {
+      "target": "KisKeyframeChannelSchemaContractTest",
+      "source": "libs/image/tests/KisKeyframeChannelSchemaContractTest.cpp",
+      "test": "KisKeyframeChannelSchemaContractTest::keyframeChannelOwnershipFrameAndSerializationSchemaRemainsStable",
+      "behavior": "keyframe channelはnode・既定boundsの所有参照、影響frame・矩形、同一frame、XML直列化、channel識別子変換に関する厳密な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisKeyframeChannel::affectedFrames(int time) const",
+        "method:KisKeyframeChannel::affectedRect(int time) const",
+        "method:KisKeyframeChannel::channelIdToKoId(const QString & id)",
+        "method:KisKeyframeChannel::identicalFrames(int time) const",
+        "method:KisKeyframeChannel::loadXML(const QDomElement & channelNode)",
+        "method:KisKeyframeChannel::node() const",
+        "method:KisKeyframeChannel::setDefaultBounds(KisDefaultBoundsBaseSP bounds)",
+        "method:KisKeyframeChannel::setNode(KisNodeWSP node)",
+        "method:KisKeyframeChannel::toXML(QDomDocument doc,const QString & layerFilename)"
+      ]
+    },
+    {
+      "target": "KisKeyframeChannelSchemaContractTest",
+      "source": "libs/image/tests/KisKeyframeChannelSchemaContractTest.cpp",
+      "test": "KisKeyframeChannelSchemaContractTest::keyframeChannelNotificationSchemaRemainsStable",
+      "behavior": "keyframe channelはkeyframeの追加・削除前後・変更と集約変更を通知する厳密な公開signal型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisKeyframeChannel::sigAddedKeyframe(const KisKeyframeChannel * channel,int time)",
+        "method:KisKeyframeChannel::sigAnyKeyframeChange()",
+        "method:KisKeyframeChannel::sigKeyframeAboutToBeRemoved(const KisKeyframeChannel * channel,int time)",
+        "method:KisKeyframeChannel::sigKeyframeChanged(const KisKeyframeChannel * channel,int time)",
+        "method:KisKeyframeChannel::sigKeyframeHasBeenRemoved(const KisKeyframeChannel * channel,int time)"
       ]
     }
   ]
