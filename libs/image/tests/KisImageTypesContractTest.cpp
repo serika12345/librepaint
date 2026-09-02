@@ -8,6 +8,7 @@
 #include "kis_default_bounds.h"
 #include "kis_distance_information.h"
 #include "kis_histogram.h"
+#include "kis_image_animation_interface.h"
 #include "kis_image_signal_router.h"
 #include "kis_layer_utils.h"
 #include "kis_paint_device_frames_interface.h"
@@ -116,6 +117,11 @@ private Q_SLOTS:
     void projectionLeafVisitorAndProjectionAccessSignaturesRemainStable();
     void projectionLeafNodeClassificationAndRenderingSignaturesRemainStable();
     void projectionLeafDropOverlayAndTemporaryVisibilitySignaturesRemainStable();
+    void animationInterfaceTypeAndOptionSchemaRemainsStable();
+    void animationTimelineAndExportSignaturesRemainStable();
+    void animationSwitchAndInvalidationSignaturesRemainStable();
+    void animationGenerationLockSignaturesRemainStable();
+    void animationNotificationSignaturesRemainStable();
 };
 
 void KisImageTypesContractTest::intrusivePointerAliasesPreserveOwnershipKinds()
@@ -1565,6 +1571,139 @@ void KisImageTypesContractTest::projectionLeafDropOverlayAndTemporaryVisibilityS
     static_assert(
         std::is_same_v<decltype(&KisProjectionLeaf::setTemporaryHiddenFromRendering), SetVisibilitySignature>);
     static_assert(std::is_same_v<decltype(&KisProjectionLeaf::isTemporaryHiddenFromRendering), BooleanSignature>);
+}
+
+void KisImageTypesContractTest::animationInterfaceTypeAndOptionSchemaRemainsStable()
+{
+    static_assert(std::is_class_v<KisImageAnimationInterface>);
+    static_assert(std::is_same_v<KisImageAnimationInterface::SwitchTimeAsyncFlags,
+                                 QFlags<KisImageAnimationInterface::SwitchTimeAsyncOption>>);
+    static_assert(KisImageAnimationInterface::STAO_NONE == 0);
+    static_assert(KisImageAnimationInterface::STAO_USE_UNDO == (1 << 1));
+    static_assert(KisImageAnimationInterface::STAO_FORCE_REGENERATION == (1 << 2));
+    static_assert(std::is_constructible_v<KisImageAnimationInterface, KisImage *>);
+    static_assert(std::is_constructible_v<KisImageAnimationInterface, const KisImageAnimationInterface &, KisImage *>);
+    static_assert(std::is_destructible_v<KisImageAnimationInterface>);
+}
+
+void KisImageTypesContractTest::animationTimelineAndExportSignaturesRemainStable()
+{
+    using ConstBooleanSignature = bool (KisImageAnimationInterface::*)() const;
+    using ConstIntegerSignature = int (KisImageAnimationInterface::*)() const;
+    using StringSignature = QString (KisImageAnimationInterface::*)();
+
+    static_assert(std::is_same_v<decltype(&KisImageAnimationInterface::hasAnimation), ConstBooleanSignature>);
+    static_assert(std::is_same_v<decltype(&KisImageAnimationInterface::currentTime), ConstIntegerSignature>);
+    static_assert(std::is_same_v<decltype(&KisImageAnimationInterface::currentUITime), ConstIntegerSignature>);
+    static_assert(std::is_same_v<decltype(&KisImageAnimationInterface::externalFrameActive), ConstBooleanSignature>);
+    static_assert(std::is_same_v<decltype(&KisImageAnimationInterface::documentPlaybackRange),
+                                 const KisTimeSpan &(KisImageAnimationInterface::*)() const>);
+    static_assert(std::is_same_v<decltype(&KisImageAnimationInterface::setDocumentRange),
+                                 void (KisImageAnimationInterface::*)(const KisTimeSpan)>);
+    static_assert(std::is_same_v<decltype(&KisImageAnimationInterface::activePlaybackRange),
+                                 const KisTimeSpan &(KisImageAnimationInterface::*)() const>);
+    static_assert(std::is_same_v<decltype(&KisImageAnimationInterface::setActivePlaybackRange),
+                                 void (KisImageAnimationInterface::*)(const KisTimeSpan)>);
+    static_assert(std::is_same_v<decltype(&KisImageAnimationInterface::framerate), ConstIntegerSignature>);
+    static_assert(
+        std::is_same_v<decltype(&KisImageAnimationInterface::setFramerate), void (KisImageAnimationInterface::*)(int)>);
+    static_assert(std::is_same_v<decltype(&KisImageAnimationInterface::exportSequenceFilePath), StringSignature>);
+    static_assert(std::is_same_v<decltype(&KisImageAnimationInterface::setExportSequenceFilePath),
+                                 void (KisImageAnimationInterface::*)(const QString &)>);
+    static_assert(std::is_same_v<decltype(&KisImageAnimationInterface::exportSequenceBaseName), StringSignature>);
+    static_assert(std::is_same_v<decltype(&KisImageAnimationInterface::setExportSequenceBaseName),
+                                 void (KisImageAnimationInterface::*)(const QString &)>);
+    static_assert(std::is_same_v<decltype(&KisImageAnimationInterface::exportInitialFrameNumber),
+                                 int (KisImageAnimationInterface::*)()>);
+    static_assert(std::is_same_v<decltype(&KisImageAnimationInterface::setExportInitialFrameNumber),
+                                 void (KisImageAnimationInterface::*)(const int)>);
+    static_assert(std::is_same_v<decltype(&KisImageAnimationInterface::activeLayerSelectedTimes),
+                                 QSet<int> (KisImageAnimationInterface::*)()>);
+    static_assert(std::is_same_v<decltype(&KisImageAnimationInterface::setActiveLayerSelectedTimes),
+                                 void (KisImageAnimationInterface::*)(const QSet<int> &)>);
+    static_assert(std::is_same_v<decltype(&KisImageAnimationInterface::image),
+                                 KisImageWSP (KisImageAnimationInterface::*)() const>);
+    static_assert(
+        std::is_same_v<decltype(&KisImageAnimationInterface::totalLength), int (KisImageAnimationInterface::*)()>);
+}
+
+void KisImageTypesContractTest::animationSwitchAndInvalidationSignaturesRemainStable()
+{
+    static_assert(std::is_same_v<decltype(&KisImageAnimationInterface::requestTimeSwitchWithUndo),
+                                 void (KisImageAnimationInterface::*)(int)>);
+    static_assert(std::is_same_v<decltype(&KisImageAnimationInterface::requestTimeSwitchNonGUI),
+                                 void (KisImageAnimationInterface::*)(int, bool)>);
+    static_assert(
+        std::is_same_v<decltype(std::declval<KisImageAnimationInterface &>().requestTimeSwitchNonGUI(0)), void>);
+    static_assert(
+        std::is_same_v<decltype(&KisImageAnimationInterface::switchCurrentTimeAsync),
+                       void (KisImageAnimationInterface::*)(int, KisImageAnimationInterface::SwitchTimeAsyncFlags)>);
+    static_assert(
+        std::is_same_v<decltype(std::declval<KisImageAnimationInterface &>().switchCurrentTimeAsync(0)), void>);
+    static_assert(std::is_same_v<
+                  decltype(&KisImageAnimationInterface::requestFrameRegeneration),
+                  void (KisImageAnimationInterface::*)(int, const KisRegion &, bool, KisLockFrameGenerationLock &&)>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<void (KisImageAnimationInterface::*)(const KisNode *, const QRect &, bool)>(
+                           &KisImageAnimationInterface::notifyNodeChanged)),
+                       void (KisImageAnimationInterface::*)(const KisNode *, const QRect &, bool)>);
+    static_assert(
+        std::is_same_v<
+            decltype(static_cast<void (KisImageAnimationInterface::*)(const KisNode *, const QVector<QRect> &, bool)>(
+                &KisImageAnimationInterface::notifyNodeChanged)),
+            void (KisImageAnimationInterface::*)(const KisNode *, const QVector<QRect> &, bool)>);
+    static_assert(std::is_same_v<decltype(&KisImageAnimationInterface::invalidateFrames),
+                                 void (KisImageAnimationInterface::*)(const KisTimeSpan &, const QRect &)>);
+    static_assert(std::is_same_v<decltype(&KisImageAnimationInterface::invalidateFrame),
+                                 void (KisImageAnimationInterface::*)(const int, KisNodeSP)>);
+    static_assert(std::is_same_v<decltype(&KisImageAnimationInterface::setDefaultProjectionColor),
+                                 void (KisImageAnimationInterface::*)(const KoColor &)>);
+    static_assert(std::is_same_v<decltype(&KisImageAnimationInterface::setDocumentRangeStartFrame),
+                                 void (KisImageAnimationInterface::*)(int)>);
+    static_assert(std::is_same_v<decltype(&KisImageAnimationInterface::setDocumentRangeEndFrame),
+                                 void (KisImageAnimationInterface::*)(int)>);
+}
+
+void KisImageTypesContractTest::animationGenerationLockSignaturesRemainStable()
+{
+    static_assert(std::is_same_v<decltype(&KisImageAnimationInterface::backgroundFrameGenerationBlocked),
+                                 bool (KisImageAnimationInterface::*)() const>);
+    static_assert(std::is_same_v<decltype(&KisImageAnimationInterface::blockBackgroundFrameGeneration),
+                                 void (KisImageAnimationInterface::*)()>);
+    static_assert(std::is_same_v<decltype(&KisImageAnimationInterface::unblockBackgroundFrameGeneration),
+                                 void (KisImageAnimationInterface::*)()>);
+    static_assert(std::is_same_v<decltype(&KisImageAnimationInterface::lockFrameGeneration),
+                                 void (KisImageAnimationInterface::*)()>);
+    static_assert(std::is_same_v<decltype(&KisImageAnimationInterface::unlockFrameGeneration),
+                                 void (KisImageAnimationInterface::*)()>);
+    static_assert(std::is_same_v<decltype(&KisImageAnimationInterface::tryLockFrameGeneration),
+                                 bool (KisImageAnimationInterface::*)()>);
+}
+
+void KisImageTypesContractTest::animationNotificationSignaturesRemainStable()
+{
+    using EmptySignal = void (KisImageAnimationInterface::*)();
+
+    static_assert(std::is_same_v<decltype(&KisImageAnimationInterface::sigDocumentRangeChanged), EmptySignal>);
+    static_assert(std::is_same_v<decltype(&KisImageAnimationInterface::sigFrameCancelled), EmptySignal>);
+    static_assert(std::is_same_v<decltype(&KisImageAnimationInterface::sigFrameReady),
+                                 void (KisImageAnimationInterface::*)(int)>);
+    static_assert(std::is_same_v<decltype(&KisImageAnimationInterface::sigFrameRegenerated),
+                                 void (KisImageAnimationInterface::*)(int)>);
+    static_assert(std::is_same_v<decltype(&KisImageAnimationInterface::sigFrameRegenerationSkipped),
+                                 void (KisImageAnimationInterface::*)(int)>);
+    static_assert(std::is_same_v<decltype(&KisImageAnimationInterface::sigFramerateChanged), EmptySignal>);
+    static_assert(std::is_same_v<decltype(&KisImageAnimationInterface::sigFramesChanged),
+                                 void (KisImageAnimationInterface::*)(const KisTimeSpan &, const QRect &)>);
+    static_assert(std::is_same_v<decltype(&KisImageAnimationInterface::sigInternalRequestTimeSwitch),
+                                 void (KisImageAnimationInterface::*)(int, bool)>);
+    static_assert(std::is_same_v<decltype(&KisImageAnimationInterface::sigKeyframeAdded),
+                                 void (KisImageAnimationInterface::*)(const KisKeyframeChannel *, int)>);
+    static_assert(std::is_same_v<decltype(&KisImageAnimationInterface::sigKeyframeRemoved),
+                                 void (KisImageAnimationInterface::*)(const KisKeyframeChannel *, int)>);
+    static_assert(std::is_same_v<decltype(&KisImageAnimationInterface::sigPlaybackRangeChanged), EmptySignal>);
+    static_assert(std::is_same_v<decltype(&KisImageAnimationInterface::sigUiTimeChanged),
+                                 void (KisImageAnimationInterface::*)(int)>);
 }
 
 #undef ASSERT_DEFAULT_BOUNDS_SIGNATURE
