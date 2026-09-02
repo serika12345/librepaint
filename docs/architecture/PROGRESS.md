@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 21:47 JST
+- 更新日時: 2026-09-02 21:52 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -21,6 +21,16 @@
   engine・timer・audio・画像・canvas・paintop・painter・node・widget・resource・template本文・signal・metaobject・event loopの実体化なしで閉じる。
 - 各報告は完全なAPI識別子、既定引数観測、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから契約先または移動先、許可path、固有停止条件、比較候補の棄却根拠を含む。既存
   `build/tdd-macos`の計画は読み取り専用で測定し、構成や構築を開始しない。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
+- `g164-widgetutils-window-opengl-schema-audit`は`libs/widgetutils/xmlgui/kxmlguiwindow.h`の全28 APIを採用した。型・option値9、寿命・機能方針7、GUI構築・設定4、factory・確定6、状態通知2を既存
+  `libs/widgetutils/tests/KKeySequenceWidgetSchemaContractTest.cpp`の5枠へ対応付ける。構築、help方針、GUI作成、2 setup overloadの既定引数省略形を固定する。CMakeと依存を変えず対象4工程・8入力、停止5工程・11入力、製品`kritawidgetutils` 274工程・581入力を維持する。
+  `KisOpenGLModeProber.h`は34 API中`Result::isUsingAngle()`がWindows限定宣言でmacOSから観測できず、既存近傍も5工程・12入力で停止線を超えるため棄却した。
+- `g164-playback-paintop-factory-schema-audit`は`libs/ui/animation/KisPlaybackEngine.h`の全35 APIを採用した。型・寿命・seek方針8、統計値4、transport・seek 9、keyframe移動6、音声・drop方針・通知8を新規
+  `libs/ui/tests/KisPlaybackEngineSchemaContractTest.cpp`の5枠へ対応付ける。局所具象probeの宣言だけで親省略構築とseek option省略形を固定する。直接linkはQt Core・Testだけ、Qt Gui・Widgetsはinterface includeだけとし、新対象4工程・8入力、停止5工程・11入力、製品
+  `kritaapplicationui` 1,970工程・3,940入力を維持する。`kis_simple_paintop_factory.h`はtrait・SFINAE分岐・factory template本文とwidget・paintop・資源生成が混在し、安全な局所面が約15 APIに留まるため棄却した。
+- `g164-psd-asl-css-preset-schema-audit`は両候補を棄却した。`kis_asl_xml_writer.h`は単一責務28 APIだが、公開headerだけでpattern・resource・gradient・colorからQt Gui・KF I18n・Imathへ連鎖し、近傍も5工程・13入力で停止線を超える。
+  `KoCssStylePreset.h`はidentity 6、property 9、sample 11、shape 2、資源I/O 5へ分散し、25 APIへ達するにはshape・SVG・thumbnail・device処理を混在させる。このため第3候補を`g164-image-updater-svg-cursor-schema-audit`へ差し替える。
+- `g164-image-updater-svg-cursor-schema-audit`は`libs/image/kis_updater_context.h`の未対応25 APIを主候補とし、`plugins/tools/svgtexttool/SvgTextCursor.h`の未対応35 APIを比較する。更新実行contextまたはSVG text cursorの型・寿命・thread数・job受付・進行・snapshot・lock・完了・LOD・選択property・typesetting handle・shape・装飾・通知面を、
+  thread・scheduler・job・walker・image・canvas・text shape・property変更・painter・action・signal・metaobject・event loopの実体化なしで閉じる。最初の3監査と同じ読み取り専用条件、報告項目、停止条件を適用する。
 
 ### 第163便の先行監査計画
 
