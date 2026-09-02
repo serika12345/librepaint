@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 15354
+    "expectedMissingApis": 15327
   },
   "contracts": [
     {
@@ -41958,6 +41958,78 @@
         "method:KisUniformPaintOpProperty::setValue(const QVariant & value)",
         "method:KisUniformPaintOpProperty::value() const",
         "method:KisUniformPaintOpProperty::valueChanged(const QVariant & value)"
+      ]
+    },
+    {
+      "target": "KoShapeSavingContextSchemaContractTest",
+      "source": "libs/flake/tests/KoShapeSavingContextSchemaContractTest.cpp",
+      "test": "KoShapeSavingContextSchemaContractTest::shapeSavingOptionValueSchemaRemainsStable",
+      "behavior": "shape保存contextはpresentation、描画識別、style XML、master page一意化、z-indexの独立したoption bitを維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KoShapeSavingContext::ShapeSavingOptions",
+        "enum:KoShapeSavingContext::ShapeSavingOption",
+        "enumerator:KoShapeSavingContext::ShapeSavingOption::AutoStyleInStyleXml",
+        "enumerator:KoShapeSavingContext::ShapeSavingOption::DrawId",
+        "enumerator:KoShapeSavingContext::ShapeSavingOption::PresentationShape",
+        "enumerator:KoShapeSavingContext::ShapeSavingOption::UniqueMasterPages",
+        "enumerator:KoShapeSavingContext::ShapeSavingOption::ZIndex"
+      ]
+    },
+    {
+      "target": "KoShapeSavingContextSchemaContractTest",
+      "source": "libs/flake/tests/KoShapeSavingContextSchemaContractTest.cpp",
+      "test": "KoShapeSavingContextSchemaContractTest::shapeSavingContextIdentityAndWriterSignaturesRemainStable",
+      "behavior": "shape保存contextはXML writer参照から構築・破棄でき、writerを差し替え・照会する公開型面を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoShapeSavingContext",
+        "method:KoShapeSavingContext::KoShapeSavingContext(KoXmlWriter & xmlWriter)",
+        "method:KoShapeSavingContext::setXmlWriter(KoXmlWriter & xmlWriter)",
+        "method:KoShapeSavingContext::xmlWriter()",
+        "method:KoShapeSavingContext::~KoShapeSavingContext()"
+      ]
+    },
+    {
+      "target": "KoShapeSavingContextSchemaContractTest",
+      "source": "libs/flake/tests/KoShapeSavingContextSchemaContractTest.cpp",
+      "test": "KoShapeSavingContextSchemaContractTest::shapeSavingContextOptionSignaturesRemainStable",
+      "behavior": "shape保存contextはoptionの追加・除去・照会とoption集合の設定・取得を行う公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShapeSavingContext::addOption(ShapeSavingOption option)",
+        "method:KoShapeSavingContext::isSet(ShapeSavingOption option) const",
+        "method:KoShapeSavingContext::options() const",
+        "method:KoShapeSavingContext::removeOption(ShapeSavingOption option)",
+        "method:KoShapeSavingContext::setOptions(ShapeSavingOptions options)"
+      ]
+    },
+    {
+      "target": "KoShapeSavingContextSchemaContractTest",
+      "source": "libs/flake/tests/KoShapeSavingContextSchemaContractTest.cpp",
+      "test": "KoShapeSavingContextSchemaContractTest::shapeSavingContextLayerImageAndMarkerSignaturesRemainStable",
+      "behavior": "shape保存contextは保存layer集合、image一覧、marker参照、layer集合XML出力を扱う公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShapeSavingContext::addLayerForSaving(const KoShapeLayer * layer)",
+        "method:KoShapeSavingContext::clearLayers()",
+        "method:KoShapeSavingContext::imagesToSave()",
+        "method:KoShapeSavingContext::markerRef(const KoMarker * marker)",
+        "method:KoShapeSavingContext::saveLayerSet(KoXmlWriter & xmlWriter) const"
+      ]
+    },
+    {
+      "target": "KoShapeSavingContextSchemaContractTest",
+      "source": "libs/flake/tests/KoShapeSavingContextSchemaContractTest.cpp",
+      "test": "KoShapeSavingContextSchemaContractTest::shapeSavingContextSharedDataAndOffsetSignaturesRemainStable",
+      "behavior": "shape保存contextはshape別offsetと識別子付き共有保存dataの登録・除去・照会を行う公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShapeSavingContext::addShapeOffset(const KoShape * shape,const QTransform & matrix)",
+        "method:KoShapeSavingContext::addSharedData(const QString & id,KoSharedSavingData * data)",
+        "method:KoShapeSavingContext::removeShapeOffset(const KoShape * shape)",
+        "method:KoShapeSavingContext::shapeOffset(const KoShape * shape) const",
+        "method:KoShapeSavingContext::sharedData(const QString & id) const"
       ]
     }
   ]
