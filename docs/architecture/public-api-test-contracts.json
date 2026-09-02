@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 15517
+    "expectedMissingApis": 15488
   },
   "contracts": [
     {
@@ -41525,6 +41525,80 @@
         "method:KisAllTagResourceModel::isResourceTagged(const KisTagSP tag,const int resourceId)",
         "method:KisAllTagResourceModel::tagResources(const KisTagSP tag,const QVector<int> & resourceIds)",
         "method:KisAllTagResourceModel::untagResources(const KisTagSP tag,const QVector<int> & resourceId)"
+      ]
+    },
+    {
+      "target": "KColorSchemeEnumContractTest",
+      "source": "libs/widgetutils/tests/KColorSchemeEnumContractTest.cpp",
+      "test": "KColorSchemeEnumContractTest::colorSchemeIdentityAndLifecycleSignaturesRemainStable",
+      "behavior": "配色値はpalette状態と色集合から構築でき、複製・代入・仮想破棄を備える公開型面を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KColorScheme",
+        "method:KColorScheme::KColorScheme(QPalette::ColorGroup,ColorSet=View,KSharedConfigPtr=KSharedConfigPtr ())",
+        "method:KColorScheme::KColorScheme(const KColorScheme &)",
+        "method:KColorScheme::operator =(const KColorScheme &)",
+        "method:KColorScheme::~KColorScheme()"
+      ]
+    },
+    {
+      "target": "KColorSchemeEnumContractTest",
+      "source": "libs/widgetutils/tests/KColorSchemeEnumContractTest.cpp",
+      "test": "KColorSchemeEnumContractTest::colorSchemeBrushLookupSignaturesRemainStable",
+      "behavior": "配色値は背景・装飾・前景brushと濃淡色をroleから照会する公開署名と既定roleを維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KColorScheme::background(BackgroundRole=NormalBackground) const",
+        "method:KColorScheme::decoration(DecorationRole) const",
+        "method:KColorScheme::foreground(ForegroundRole=NormalText) const",
+        "method:KColorScheme::shade(ShadeRole) const"
+      ]
+    },
+    {
+      "target": "KColorSchemeEnumContractTest",
+      "source": "libs/widgetutils/tests/KColorSchemeEnumContractTest.cpp",
+      "test": "KColorSchemeEnumContractTest::colorSchemeStaticTransformationSignaturesRemainStable",
+      "behavior": "配色処理はpaletteの背景・前景調整、contrast照会、application palette生成、基準色の濃淡変換を行う静的署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KColorScheme::adjustBackground(QPalette &,BackgroundRole newRole=NormalBackground,QPalette::ColorRole color=QPalette::Base,ColorSet set=View,KSharedConfigPtr=KSharedConfigPtr ())",
+        "method:KColorScheme::adjustForeground(QPalette &,ForegroundRole newRole=NormalText,QPalette::ColorRole color=QPalette::Text,ColorSet set=View,KSharedConfigPtr=KSharedConfigPtr ())",
+        "method:KColorScheme::contrast()",
+        "method:KColorScheme::contrastF(const KSharedConfigPtr & config=KSharedConfigPtr ())",
+        "method:KColorScheme::createApplicationPalette(const KSharedConfigPtr & config)",
+        "method:KColorScheme::shade(const QColor &,ShadeRole)",
+        "method:KColorScheme::shade(const QColor &,ShadeRole,qreal contrast,qreal chromaAdjust=0.0)"
+      ]
+    },
+    {
+      "target": "KColorSchemeEnumContractTest",
+      "source": "libs/widgetutils/tests/KColorSchemeEnumContractTest.cpp",
+      "test": "KColorSchemeEnumContractTest::statefulBrushIdentityAndConstructionSignaturesRemainStable",
+      "behavior": "状態別brushはrole別配色またはbrush値から構築でき、既定・複製・代入・破棄を備える公開型面を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KStatefulBrush",
+        "method:KStatefulBrush::KStatefulBrush()",
+        "method:KStatefulBrush::KStatefulBrush(KColorScheme::ColorSet,KColorScheme::BackgroundRole,KSharedConfigPtr=KSharedConfigPtr ())",
+        "method:KStatefulBrush::KStatefulBrush(KColorScheme::ColorSet,KColorScheme::DecorationRole,KSharedConfigPtr=KSharedConfigPtr ())",
+        "method:KStatefulBrush::KStatefulBrush(KColorScheme::ColorSet,KColorScheme::ForegroundRole,KSharedConfigPtr=KSharedConfigPtr ())",
+        "method:KStatefulBrush::KStatefulBrush(const KStatefulBrush &)",
+        "method:KStatefulBrush::KStatefulBrush(const QBrush &,KSharedConfigPtr=KSharedConfigPtr ())",
+        "method:KStatefulBrush::KStatefulBrush(const QBrush &,const QBrush & background,KSharedConfigPtr=KSharedConfigPtr ())",
+        "method:KStatefulBrush::operator =(const KStatefulBrush &)",
+        "method:KStatefulBrush::~KStatefulBrush()"
+      ]
+    },
+    {
+      "target": "KColorSchemeEnumContractTest",
+      "source": "libs/widgetutils/tests/KColorSchemeEnumContractTest.cpp",
+      "test": "KColorSchemeEnumContractTest::statefulBrushLookupSignaturesRemainStable",
+      "behavior": "状態別brushは色group、palette、widgetの現在状態からbrushを照会する3つの公開overloadを維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KStatefulBrush::brush(QPalette::ColorGroup) const",
+        "method:KStatefulBrush::brush(const QPalette &) const",
+        "method:KStatefulBrush::brush(const QWidget *) const"
       ]
     }
   ]
