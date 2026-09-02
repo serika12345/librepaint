@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 14793
+    "expectedMissingApis": 14754
   },
   "contracts": [
     {
@@ -41792,6 +41792,90 @@
         "method:KisAllTagResourceModel::isResourceTagged(const KisTagSP tag,const int resourceId)",
         "method:KisAllTagResourceModel::tagResources(const KisTagSP tag,const QVector<int> & resourceIds)",
         "method:KisAllTagResourceModel::untagResources(const KisTagSP tag,const QVector<int> & resourceId)"
+      ]
+    },
+    {
+      "target": "KisResourceModelEnumContractTest",
+      "source": "libs/resources/tests/KisResourceModelEnumContractTest.cpp",
+      "test": "KisResourceModelEnumContractTest::storageMetadataKeySchemaRemainsStable",
+      "behavior": "資源保管は作者、日付、説明、license、版、名前空間を表す17個のmetadata識別子をconst QStringの静的宣言として維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisResourceStorage::s_meta_author",
+        "member:KisResourceStorage::s_meta_creation_date",
+        "member:KisResourceStorage::s_meta_creator",
+        "member:KisResourceStorage::s_meta_dc_date",
+        "member:KisResourceStorage::s_meta_description",
+        "member:KisResourceStorage::s_meta_email",
+        "member:KisResourceStorage::s_meta_generator",
+        "member:KisResourceStorage::s_meta_initial_creator",
+        "member:KisResourceStorage::s_meta_license",
+        "member:KisResourceStorage::s_meta_name",
+        "member:KisResourceStorage::s_meta_title",
+        "member:KisResourceStorage::s_meta_user_defined",
+        "member:KisResourceStorage::s_meta_value",
+        "member:KisResourceStorage::s_meta_version",
+        "member:KisResourceStorage::s_meta_website",
+        "member:KisResourceStorage::s_xmlns_dc",
+        "member:KisResourceStorage::s_xmlns_meta"
+      ]
+    },
+    {
+      "target": "KisResourceModelEnumContractTest",
+      "source": "libs/resources/tests/KisResourceModelEnumContractTest.cpp",
+      "test": "KisResourceModelEnumContractTest::storageMetadataAccessSignaturesRemainStable",
+      "behavior": "資源保管はmetadata値・key列のconst照会とkey・値設定の厳密な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisResourceStorage::metaData(const QString & key) const",
+        "method:KisResourceStorage::metaDataKeys() const",
+        "method:KisResourceStorage::setMetaData(const QString & key,const QVariant & value)"
+      ]
+    },
+    {
+      "target": "KisResourceModelEnumContractTest",
+      "source": "libs/resources/tests/KisResourceModelEnumContractTest.cpp",
+      "test": "KisResourceModelEnumContractTest::storagePersistenceAndVersioningSignaturesRemainStable",
+      "behavior": "資源保管は資源・tag追加、deviceとのimport・export、版付き読込み・保存、版管理能力照会の厳密な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisResourceStorage::addResource(KoResourceSP resource)",
+        "method:KisResourceStorage::addTag(const QString & resourceType,KisTagSP tag)",
+        "method:KisResourceStorage::exportResource(const QString & url,QIODevice * device)",
+        "method:KisResourceStorage::importResource(const QString & url,QIODevice * device)",
+        "method:KisResourceStorage::loadVersionedResource(KoResourceSP resource)",
+        "method:KisResourceStorage::saveAsNewVersion(KoResourceSP resource)",
+        "method:KisResourceStorage::supportsVersioning() const"
+      ]
+    },
+    {
+      "target": "KisResourceModelEnumContractTest",
+      "source": "libs/resources/tests/KisResourceModelEnumContractTest.cpp",
+      "test": "KisResourceModelEnumContractTest::storagePluginFactorySchemaRemainsStable",
+      "behavior": "資源保管plugin factoryは基底と具体templateの継承・仮想寿命、locationからの生成、storage診断の厳密な公開型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisStoragePluginFactory",
+        "class:KisStoragePluginFactoryBase",
+        "function:operator <<(QDebug dbg,const KisResourceStorageSP storage)",
+        "method:KisStoragePluginFactory::create(const QString & location)",
+        "method:KisStoragePluginFactoryBase::create(const QString &)",
+        "method:KisStoragePluginFactoryBase::~KisStoragePluginFactoryBase()"
+      ]
+    },
+    {
+      "target": "KisResourceModelEnumContractTest",
+      "source": "libs/resources/tests/KisResourceModelEnumContractTest.cpp",
+      "test": "KisResourceModelEnumContractTest::storagePluginRegistrySchemaRemainsStable",
+      "behavior": "資源保管plugin registryは公開型と寿命、storage種別ごとのfactory登録、singleton照会、登録種別照会の厳密な型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisStoragePluginRegistry",
+        "method:KisStoragePluginRegistry::KisStoragePluginRegistry()",
+        "method:KisStoragePluginRegistry::addStoragePluginFactory(KisResourceStorage::StorageType storageType,KisStoragePluginFactoryBase * factory)",
+        "method:KisStoragePluginRegistry::instance()",
+        "method:KisStoragePluginRegistry::storageTypes() const",
+        "method:KisStoragePluginRegistry::~KisStoragePluginRegistry()"
       ]
     },
     {
