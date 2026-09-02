@@ -10,6 +10,8 @@
 
 #include <QVariant>
 #include <FlakeDebug.h>
+#include <KoColor.h>
+#include <KoUnit.h>
 
 #include "KoShape.h"
 #include "kis_assert.h"

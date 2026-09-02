@@ -13,14 +13,14 @@
 #include <QHash>
 
 #include "kritaflake_export.h"
-#include <KoColor.h>
-#include <KoUnit.h>
 #include "KoDerivedResourceConverter.h"
 #include "KoResourceUpdateMediator.h"
 #include "KoActiveCanvasResourceDependency.h"
 #include "KoAbstractCanvasResourceInterface.h"
 
 class KoShape;
+class KoColor;
+class KoUnit;
 class QVariant;
 
 /**
@@ -264,4 +264,3 @@ private:
 };
 
 #endif
-

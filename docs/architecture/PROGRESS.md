@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 21:25 JST
+- 更新日時: 2026-09-02 21:28 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -43,14 +43,17 @@
 - 実装共通基点は`18b3c4cc9f`である。3担当は`implementing`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、
   専用worktree-local `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。統合順は資源管理、PNG変換、shortcut編集とし、調整担当だけが
   `AGENTS.md`、architecture文書、`docs/architecture/public-api-test-contracts.json`、共通不足報告を変更する。3担当の公開header、所有CMake、試験source、生成物は重ならない。
+- 資源管理契約の最初の限定compileは`libs/flake/KoResourceManager_p.h`から`KoColor.h`、色空間、`KoID.h`、KF I18nへ連鎖したため、試験依存を増やす前に構築範囲を縮小した。同headerに不要だった`KoColor`・`KoUnit`の完全型includeを前方宣言へ置き換え、
+  完全型の所有を`libs/flake/KoResourceManager_p.cpp`、`libs/flake/KoCanvasResourceProvider.cpp`、`libs/flake/KoDocumentResourceManager.cpp`の明示includeへ移した。該当3 objectだけを構築し、近傍
+  `KoCanvasResourceProviderSchemaContractTest`と公開API検査、高速検査に成功した。製品共有libraryと全体は構築していない。この構造準備後は資源管理契約へpigment・global・KF I18nの探索先を追加しない。
 - `g163-resource-manager-schema`は`/Users/masato/Documents/librepaint-g163-resource-manager-schema`を所有する。開始`libs/flake/KoResourceManager_p.h`の全30 APIから新規
   `libs/flake/tests/KoResourceManagerSchemaContractTest.cpp`の5枠`resourceManagerTypeAndLifetimeSchemaRemainsStable`、`resourceManagerTypedValueSignaturesRemainStable`、
   `resourceManagerDerivedAndMediatorSignaturesRemainStable`、`resourceManagerDependencyAndAbstractSignaturesRemainStable`、`resourceManagerNotificationSignaturesRemainStable`へ対応付ける。完全集合はclass・構築2、型付き取得・設定・消去・存在14、
   派生資源converter・更新mediatorの追加・存在・削除6、active canvas依存と抽象資源の追加・存在・削除6、通知2である。許可pathは新規試験sourceと`libs/flake/tests/CMakeLists.txt`の対象固有節だけである。直接linkはQt Core・Testだけ、includeは
-  flakeのsource/generated、`libs/resources`、公開headerが値型として直接includeする`libs/pigment`・`libs/global`のsource/generatedとQt Guiのinterface include、definitionは`kritaflake_EXPORTS`だけとし、公開headerをsourceやAUTOMOC入力へ加えない。新対象4〜5工程・8〜11入力、停止5工程・11入力、近傍`KoCanvasResourceProviderSchemaContractTest`、製品
+  flakeのsource/generatedと`libs/resources`、definitionは`kritaflake_EXPORTS`だけとし、公開headerをsourceやAUTOMOC入力へ加えない。新対象4〜5工程・8〜11入力、停止5工程・11入力、近傍`KoCanvasResourceProviderSchemaContractTest`、製品
   `kritaflake` 621工程・1,274入力の変更前後集合完全一致を確認する。未知target・CTest 0件、新5枠、対象CTest・枠個別・20回反復、近傍、無作業再構築、動的接続・AUTOMOC入力・資源管理の未解決記号、構文・書式、公開API・
   `verify-quick`を確認する。資源管理器、shape・color・unit・converter・mediator・依存・抽象資源・通知・metaobjectを生成または実行し、`KoResourceManager_p.cpp`や公開headerの変更、製品source・OBJECT・shared、`kritatestsdk`、Qt Gui・Widgets、
-  header以外への新link、製品計画差、停止線超過が必要なら止める。最初の限定compileで`KoColor.h`が見つからず停止したため、製品linkを増やさず公開header自身の直接include所有先だけを担当票へ追加した。
+  header以外への新link、製品計画差、停止線超過が必要なら止める。
 - `g163-png-converter-schema`は`/Users/masato/Documents/librepaint-g163-png-converter-schema`を所有する。開始`libs/impex/ui/kis_png_converter.h`の全28 APIから新規
   `libs/impex/tests/KisPNGConverterSchemaContractTest.cpp`の5枠`pngOptionCoreValueSchemaRemainsStable`、`pngOptionMetadataAndProfileFlagsRemainStable`、
   `pngOptionIndexedFilterAndTransparencyValuesRemainStable`、`pngConverterIdentityAndInputSignaturesRemainStable`、`pngConverterOutputAndControlSignaturesRemainStable`へ対応付ける。完全集合はoption struct・構築・中核member 6、metadata・profile flag 8、
@@ -62,7 +65,7 @@
 - `g163-shortcuts-editor-schema`は`/Users/masato/Documents/librepaint-g163-shortcuts-editor-schema`を所有する。開始`libs/widgetutils/xmlgui/KisShortcutsEditor.h`の全32 APIから既存
   `libs/widgetutils/tests/KKeySequenceWidgetSchemaContractTest.cpp`の5枠`shortcutsEditorTypeAndEnumerationSchemaRemainsStable`、`shortcutsEditorLifetimeAndStateSchemaRemainsStable`、
   `shortcutsEditorCollectionAndPolicySchemaRemainsStable`、`shortcutsEditorPersistenceSchemaRemainsStable`、`shortcutsEditorInteractionSchemaRemainsStable`へ対応付ける。完全集合はclass・alias・2 enum・7列挙子11、構築・破棄・action型取得・変更状態4、
-  collection追加・消去・action型設定・既定化・設定消去5、import・export・保存3・commit・undo7、検索消去・更新・key変更・列幅変更・scroll状態5である。許可pathは既存試験sourceだけであり、CMake・公開header・製品sourceを変更しない。action typeのQt context値、
+  collection追加・消去・action型設定・設定消去・undo 5、import・export・保存3・commit・既定化・印刷7、検索消去・更新・key変更・列幅変更・scroll状態5である。許可pathは既存試験sourceだけであり、CMake・公開header・製品sourceを変更しない。action typeのQt context値、
   `AllActions`の全bit値、letter値、構築のaction・letter省略形、collection追加のtitle省略形、shortcut保存のconfig省略形を固定する。対象4工程・8入力、停止5工程・11入力、近傍`KStandardActionEnumContractTest`、製品`kritawidgetutils` 274工程・581入力の変更前後集合完全一致を確認する。
   旧binaryの新5枠Unknown、対象CTest・枠個別・20回反復、近傍、無作業再構築、動的接続・AUTOMOC入力・shortcut編集の未解決記号、構文・書式、公開API・`verify-quick`を確認する。widget、設定backend、action collection、printer、対話処理を生成または実行し、
   CMake・依存変更、製品接続、公開header変更、製品計画差、停止線超過が必要なら止める。

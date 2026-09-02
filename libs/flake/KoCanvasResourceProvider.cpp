@@ -14,7 +14,9 @@
 #include "KoShape.h"
 #include "KoShapeStroke.h"
 #include "KoResourceManager_p.h"
+#include <KoColor.h>
 #include <KoColorSpaceRegistry.h>
+#include <KoUnit.h>
 
 #include <KoCanvasResourcesInterface.h>
 
