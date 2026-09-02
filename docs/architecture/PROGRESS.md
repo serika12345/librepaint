@@ -2,12 +2,26 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 10:25 JST
+- 更新日時: 2026-09-02 10:29 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
+
+### 第144便の先行監査計画
+
+- 監査共通基点は`e29998bab4`、入力は`build/tdd-macos/public-api-missing-g144.json`である。3担当は`auditing`の読み取り専用とし、製品・試験・CMake・script・台帳・文書を変更せず、構築、
+  試験、Git操作、追加委任も行わない。一つの公開責務から25 API以上を最大5枠へ固定し、既存限定対象、header-only値面、または公開headerを変えない一sourceのOBJECT一対一移管で、製品共有
+  ライブラリーと`kritatestsdk`へ接続しない候補だけを採用する。
+- `g144-brush-model-uniform-property-schema-audit`は`libs/brush/KisBrushModel.h`の未対応28 APIを主候補とし、`libs/image/brushengine/kis_uniform_paintop_property.h`の全28 APIを比較する。brush値modelの
+  predefined・集約値・寸法helper面または共通paintop propertyの種別・値・通知面を、application font・設定・資源・paintop・widget・signal・大域状態の実体化なしで閉じる。
+- `g144-marker-saving-context-schema-audit`は`libs/flake/KoMarker.h`の全29 APIを主候補とし、`libs/flake/KoShapeSavingContext.h`の全27 APIを比較する。markerの座標系・幾何・描画署名またはshape保存contextの
+  option・offset・共有data・XML面を、shape・stroke・painter・marker描画・XML writer・保存data・layer・imageの実体化なしで閉じる。
+- `g144-display-config-visual-color-model-schema-audit`は`libs/ui/canvas/KisDisplayConfig.h`の全28 APIを主候補とし、`libs/widgets/KisVisualColorModel.h`の全33 APIを比較する。表示色変換の単一・複数surface
+  設定値または視覚色modelの列挙・色空間・channel・signal面を、system color manager・screen・設定・色変換・QObject・signal・applicationの実体化なしで閉じる。
+- 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから契約先または移動先、許可path、固有停止条件、
+  比較候補の棄却根拠を含む。既存`build/tdd-macos`の計画は読み取り専用で測定し、構成や構築を開始しない。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
 
 ### 第143便の先行監査計画
 
