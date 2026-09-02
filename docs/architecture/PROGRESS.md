@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 11:59 JST
+- 更新日時: 2026-09-02 12:03 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -22,6 +22,21 @@
   stop gradientの値・並び・資源・補間・XML面を、色空間・変換・合成・gradient・資源・XML・device・canvas resourceの実体化なしで閉じる。
 - 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから契約先または移動先、許可path、固有停止条件、
   比較候補の棄却根拠を含む。既存`build/tdd-macos`の計画は読み取り専用で測定し、構成や構築を開始しない。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
+- `g147-projection-leaf-data-manager-schema-audit`は`kis_projection_leaf.h`の全35 APIを採用した。型・drop理由・寿命7、graph移動7、visitor・投影参照5、node分類・描画11、drop・overlay・一時表示5を既存
+  `KisImageTypesContractTest`の未評価型5枠へ対応付ける。CMakeを変更せず対象4工程・8入力、停止5工程・11入力、製品`kritaimage` 1,196工程・2,416入力を維持する。現在の対象命令集合hashは
+  `b83c09fe3d4b3ca467659d4896a906a8683feff274f897056f537c54fbd3df76`、入力集合hashは`42c0bdca62da9111fd79736a3055bd233ee32342bc2c9ae69fc577a83a88cf81`、製品命令集合hashは
+  `8b3e011450f2ca342e0ce523cc1696c2e2b3970456a8cb097553ee5fdf79930f`、入力集合hashは`76f2aa4251a6bf4e2adf2a1e822bc9d629753b2e93e5b877ee4eae23364940bc`である。
+  `kis_datamanager.h`はtile managerとmementoを直接取り込み、ほぼ全methodがtile・memory・undo・I/Oへのinline転送であるため棄却した。
+- `g147-document-resource-shape-manager-schema-audit`は`KoDocumentResourceManager.h`の全41 APIを採用した。型・寿命3、資源key 17、値照会・設定14、document状態6、変更signal 1を新規
+  `KoDocumentResourceManagerSchemaContractTest`の未評価型5枠へ対応付ける。直接linkはQt Core・Testだけ、新対象4工程・8入力、停止5工程・11入力を予測し、製品`kritaflake` 621工程・1,274入力と保留集合を維持する。
+  現在の近傍命令集合hashは`618614b9363b476938dd0526b3f6cbfde9611a509afc07c12efb7570352c2f3d`、入力集合hashは`b4e04331824c6b207e23f3a826a6890779c4632ddd76254f4302b362dfcc42b7`、
+  製品命令集合hashは`2fc3040d1c607ecd81879d6ec00ad8a4a161787da567b484bc934a687afefb07`、入力集合hashは`1a30862a8e0463c6578045c344b23088d4909ac6017407162709d283413b8cb5`、保留集合hashは
+  `9250d67bdf59e467ed07775ea4455d48070d2e65d7474c380b70e7faef23fdd4`である。`KoShapeManager.h`はpaint job所有値、shape寿命、描画・照会・更新に責務と不完全型の所有処理が分散するため棄却した。
+- `g147-color-space-stop-gradient-schema-audit`は`KoColorSpace.h`の未対応40 APIを採用した。所有policy・演算子6、合成・dither 9、変換・proof 7、標準表現11、調整・XML 7を既存
+  `KoColorSpaceSchemaContractTest`の未評価型5枠へ対応付ける。CMakeを変更せず対象4工程・8入力、停止5工程・11入力、製品`kritapigment` 367工程・764入力を維持する。現在の対象命令集合hashは
+  `324e134905eba3b6b9408ed1bcf1fe276dd9829985c51f51d6850115b1e27133`、入力集合hashは`b2f84cf956475e56944f8b016b636477d0efcc682a59f214e67ccf1020d411b2`、製品命令集合hashは
+  `3b4b2551060ce396e760303c6c8267bfd467111e857b576eee57c1565db40eea`、入力集合hashは`bf5edd640fbf030d1ea10b191f4635fe33c618ae166776ed804ed21b494f1f6e`である。
+  `KoStopGradient.h`は資源継承、色値、QGradient、XML、device、canvas resource、複製・保存へ責務と定義閉包が広がるため棄却した。
 
 ### 第146便の先行監査計画
 
