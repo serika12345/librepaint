@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 14046
+    "expectedMissingApis": 14019
   },
   "contracts": [
     {
@@ -44931,6 +44931,78 @@
         "method:View::HDRGamma() const",
         "method:View::setHDRExposure(float exposure)",
         "method:View::setHDRGamma(float gamma)"
+      ]
+    },
+    {
+      "target": "KisCategorizedListModelSchemaContractTest",
+      "source": "libs/tools/ui/tests/KisCategorizedListModelSchemaContractTest.cpp",
+      "test": "KisCategorizedListModelSchemaContractTest::categorizedListModelIdentityAndAliasSchemaRemainsStable",
+      "behavior": "分類list modelは基底・通常・整列modelの型とentry・mapper・data itemの厳密な公開aliasを維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisCategorizedListModel::DataItem",
+        "alias:KisCategorizedListModel::Entry_Type",
+        "alias:KisCategorizedListModel::SpecificCategoriesMapper",
+        "class:KisCategorizedListModel",
+        "class:KisSortedCategorizedListModel",
+        "class:__CategorizedListModelBase"
+      ]
+    },
+    {
+      "target": "KisCategorizedListModelSchemaContractTest",
+      "source": "libs/tools/ui/tests/KisCategorizedListModelSchemaContractTest.cpp",
+      "test": "KisCategorizedListModelSchemaContractTest::categorizedListModelAdditionalRoleValuesRemainStable",
+      "behavior": "分類list modelの追加roleはQtの利用者role直後からheader・展開・整列・lock・toggleを連続する既定値として維持する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:__CategorizedListModelBase::AdditionalRoles",
+        "enumerator:__CategorizedListModelBase::AdditionalRoles::ExpandCategoryRole",
+        "enumerator:__CategorizedListModelBase::AdditionalRoles::IsHeaderRole",
+        "enumerator:__CategorizedListModelBase::AdditionalRoles::SortRole",
+        "enumerator:__CategorizedListModelBase::AdditionalRoles::isLockableRole",
+        "enumerator:__CategorizedListModelBase::AdditionalRoles::isLockedRole",
+        "enumerator:__CategorizedListModelBase::AdditionalRoles::isToggledRole"
+      ]
+    },
+    {
+      "target": "KisCategorizedListModelSchemaContractTest",
+      "source": "libs/tools/ui/tests/KisCategorizedListModelSchemaContractTest.cpp",
+      "test": "KisCategorizedListModelSchemaContractTest::categorizedListModelLifecycleSignaturesRemainStable",
+      "behavior": "分類list modelは基底の構築・破棄と既定parentを持つ通常model構築に関する公開型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCategorizedListModel::KisCategorizedListModel(QObject * parent=0)",
+        "method:__CategorizedListModelBase::__CategorizedListModelBase(QObject * parent)",
+        "method:__CategorizedListModelBase::~__CategorizedListModelBase()"
+      ]
+    },
+    {
+      "target": "KisCategorizedListModelSchemaContractTest",
+      "source": "libs/tools/ui/tests/KisCategorizedListModelSchemaContractTest.cpp",
+      "test": "KisCategorizedListModelSchemaContractTest::categorizedListModelAccessSignaturesRemainStable",
+      "behavior": "分類list modelはmapper・data・entry・flag・index・rowの照会とdata更新に関する厳密な公開関数型と既定roleを維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCategorizedListModel::categoriesMapper()",
+        "method:KisCategorizedListModel::categoriesMapper() const",
+        "method:KisCategorizedListModel::data(const QModelIndex & idx,int role=Qt::DisplayRole) const",
+        "method:KisCategorizedListModel::entryAt(TEntry & entry,QModelIndex index) const",
+        "method:KisCategorizedListModel::flags(const QModelIndex & idx) const",
+        "method:KisCategorizedListModel::indexOf(const TEntry & entry) const",
+        "method:KisCategorizedListModel::rowCount(const QModelIndex & parent) const",
+        "method:KisCategorizedListModel::setData(const QModelIndex & idx,const QVariant & value,int role=Qt::EditRole)"
+      ]
+    },
+    {
+      "target": "KisCategorizedListModelSchemaContractTest",
+      "source": "libs/tools/ui/tests/KisCategorizedListModelSchemaContractTest.cpp",
+      "test": "KisCategorizedListModelSchemaContractTest::sortedCategorizedListModelAccessSignaturesRemainStable",
+      "behavior": "整列分類list modelはparent構築とentry・indexの相互照会に関する厳密な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSortedCategorizedListModel::KisSortedCategorizedListModel(QObject * parent)",
+        "method:KisSortedCategorizedListModel::entryAt(Entry_Type & entry,QModelIndex index) const",
+        "method:KisSortedCategorizedListModel::indexOf(const Entry_Type & entry) const"
       ]
     }
   ]
