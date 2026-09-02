@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 13913
+    "expectedMissingApis": 13888
   },
   "contracts": [
     {
@@ -45289,6 +45289,76 @@
         "method:KisNodeViewColorScheme::allColorLabels() const",
         "method:KisNodeViewColorScheme::colorFromLabelIndex(int index) const",
         "method:KisNodeViewColorScheme::gridColor(const QStyleOptionViewItem & option,QTreeView * view) const"
+      ]
+    },
+    {
+      "target": "KisDlgImportVideoAnimationSchemaContractTest",
+      "source": "libs/impex/tests/KisDlgImportVideoAnimationSchemaContractTest.cpp",
+      "test": "KisDlgImportVideoAnimationSchemaContractTest::basicVideoStreamGeometryValueSchemaRemainsStable",
+      "behavior": "動画streamの識別、寸法、fps、frame数の型、既定値、値copy独立性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisBasicVideoInfo::file",
+        "member:KisBasicVideoInfo::fps",
+        "member:KisBasicVideoInfo::frames",
+        "member:KisBasicVideoInfo::height",
+        "member:KisBasicVideoInfo::stream",
+        "member:KisBasicVideoInfo::width",
+        "struct:KisBasicVideoInfo"
+      ]
+    },
+    {
+      "target": "KisDlgImportVideoAnimationSchemaContractTest",
+      "source": "libs/impex/tests/KisDlgImportVideoAnimationSchemaContractTest.cpp",
+      "test": "KisDlgImportVideoAnimationSchemaContractTest::basicVideoEncodingAndColorValueSchemaRemainsStable",
+      "behavior": "動画encoding、pixel形式、duration、色特性の型、既定値、値copy独立性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisBasicVideoInfo::colorDepth",
+        "member:KisBasicVideoInfo::colorPrimaries",
+        "member:KisBasicVideoInfo::colorTransfer",
+        "member:KisBasicVideoInfo::duration",
+        "member:KisBasicVideoInfo::encoding",
+        "member:KisBasicVideoInfo::hasOverriddenFPS",
+        "member:KisBasicVideoInfo::pixFormat"
+      ]
+    },
+    {
+      "target": "KisDlgImportVideoAnimationSchemaContractTest",
+      "source": "libs/impex/tests/KisDlgImportVideoAnimationSchemaContractTest.cpp",
+      "test": "KisDlgImportVideoAnimationSchemaContractTest::renderedFramesValueSchemaRemainsStable",
+      "behavior": "描画frame一覧と配置時刻の空判定、件数、再配置判定、値copy独立性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:RenderedFrames::renderedFrameFiles",
+        "member:RenderedFrames::renderedFrameTargetTimes",
+        "method:RenderedFrames::framesNeedRelocation() const",
+        "method:RenderedFrames::isEmpty() const",
+        "method:RenderedFrames::size() const",
+        "struct:RenderedFrames"
+      ]
+    },
+    {
+      "target": "KisDlgImportVideoAnimationSchemaContractTest",
+      "source": "libs/impex/tests/KisDlgImportVideoAnimationSchemaContractTest.cpp",
+      "test": "KisDlgImportVideoAnimationSchemaContractTest::videoImportDialogIdentityAndLifecycleSignatureRemainsStable",
+      "behavior": "動画取込dialogの型と借用window・viewを受ける構築署名を未評価型で維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisDlgImportVideoAnimation",
+        "method:KisDlgImportVideoAnimation::KisDlgImportVideoAnimation(KisMainWindow * m_mainWindow,KisView * m_activeView)"
+      ]
+    },
+    {
+      "target": "KisDlgImportVideoAnimationSchemaContractTest",
+      "source": "libs/impex/tests/KisDlgImportVideoAnimationSchemaContractTest.cpp",
+      "test": "KisDlgImportVideoAnimationSchemaContractTest::videoImportDialogPublicWorkflowSignaturesRemainStable",
+      "behavior": "動画取込dialogのdocument情報、frame描画、入力file選択に関する公開返値・引数署名を未評価型で維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDlgImportVideoAnimation::documentInfo()",
+        "method:KisDlgImportVideoAnimation::renderFrames(const QDir & directory)",
+        "method:KisDlgImportVideoAnimation::showOpenFileDialog()"
       ]
     }
   ]
