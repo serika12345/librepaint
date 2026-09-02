@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 12578
+    "expectedMissingApis": 12544
   },
   "contracts": [
     {
@@ -48694,6 +48694,85 @@
         "method:KoStrokeConfigWidget::activate()",
         "method:KoStrokeConfigWidget::deactivate()",
         "method:KoStrokeConfigWidget::sigStrokeChanged()"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::cloneLayerTypeOwnershipAndLifetimeSchemaRemainsStable",
+      "behavior": "clone layerの公開型、copy方針の安定値、clone元とimageを受け取る構築、copy構築および仮想寿命を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisCloneLayer",
+        "enum:CopyLayerType",
+        "enumerator:CopyLayerType::COPY_ORIGINAL",
+        "enumerator:CopyLayerType::COPY_PROJECTION",
+        "method:KisCloneLayer::KisCloneLayer(KisLayerSP from,KisImageWSP image,const QString & name,quint8 opacity)",
+        "method:KisCloneLayer::KisCloneLayer(const KisCloneLayer & rhs)",
+        "method:KisCloneLayer::~KisCloneLayer()"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::cloneLayerSourceIdentityAndPolicySignaturesRemainStable",
+      "behavior": "clone元layerとUUID情報の参照・更新、copy方針および通常paint layerへの変換入口の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCloneLayer::copyFrom() const",
+        "method:KisCloneLayer::copyFromInfo() const",
+        "method:KisCloneLayer::copyType() const",
+        "method:KisCloneLayer::reincarnateAsPaintLayer() const",
+        "method:KisCloneLayer::setCopyFrom(KisLayerSP layer)",
+        "method:KisCloneLayer::setCopyFromInfo(KisNodeUuidInfo info)",
+        "method:KisCloneLayer::setCopyType(CopyLayerType type)"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::cloneLayerDeviceProjectionAndPresentationSignaturesRemainStable",
+      "behavior": "clone layerのdevice・projection・色空間・表示情報と子node受入方針の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCloneLayer::allowAsChild(KisNodeSP) const",
+        "method:KisCloneLayer::colorSpace() const",
+        "method:KisCloneLayer::icon() const",
+        "method:KisCloneLayer::needProjection() const",
+        "method:KisCloneLayer::original() const",
+        "method:KisCloneLayer::paintDevice() const",
+        "method:KisCloneLayer::sectionModelProperties() const"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::cloneLayerImageAndGeometrySignaturesRemainStable",
+      "behavior": "clone layerのimage関連付け、座標設定と概算・正確領域照会の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCloneLayer::exactBounds() const",
+        "method:KisCloneLayer::extent() const",
+        "method:KisCloneLayer::setImage(KisImageWSP image)",
+        "method:KisCloneLayer::setX(qint32)",
+        "method:KisCloneLayer::setY(qint32)",
+        "method:KisCloneLayer::x() const",
+        "method:KisCloneLayer::y() const"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::cloneLayerVisitorCloneAndUpdateSignaturesRemainStable",
+      "behavior": "clone layerのvisitor受付、複製、clone元更新領域、mask要求領域とLOD同期入口の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCloneLayer::accept(KisNodeVisitor &)",
+        "method:KisCloneLayer::accept(KisProcessingVisitor & visitor,KisUndoAdapter * undoAdapter)",
+        "method:KisCloneLayer::clone() const",
+        "method:KisCloneLayer::needRectOnSourceForMasks(const QRect & rc) const",
+        "method:KisCloneLayer::setDirtyOriginal(const QRect & rect,bool dontInvalidateFrames)",
+        "method:KisCloneLayer::syncLodCache()"
       ]
     }
   ]
