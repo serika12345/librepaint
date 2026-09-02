@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 12871
+    "expectedMissingApis": 12811
   },
   "contracts": [
     {
@@ -47906,6 +47906,111 @@
       "apis": [
         "method:KisEdgeDetectionKernel::applyEdgeDetection(KisPaintDeviceSP device,const QRect & rect,qreal xRadius,qreal yRadius,FilterType type,const QBitArray & channelFlags,KoUpdater * progressUpdater,FilterOutput output=pythagorean,bool writeToAlpha=false)",
         "method:KisEdgeDetectionKernel::convertToNormalMap(KisPaintDeviceSP device,const QRect & rect,qreal xRadius,qreal yRadius,FilterType type,int channelToConvert,QVector<int> channelOrder,QVector<bool> channelFlip,const QBitArray & channelFlags,KoUpdater * progressUpdater,boost::optional<bool> useFftw=boost::none)"
+      ]
+    },
+    {
+      "target": "KoToolBaseSchemaContractTest",
+      "source": "libs/flake/tests/KoToolBaseSchemaContractTest.cpp",
+      "test": "KoToolBaseSchemaContractTest::toolIdentityContextAndPresentationSignaturesRemainStable",
+      "behavior": "tool基底の公開型・寿命、factory・canvas識別とcursor・装飾・option・action表示面の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoToolBase",
+        "method:KoToolBase::KoToolBase(KoCanvasBase * canvas)",
+        "method:KoToolBase::action(const QString & name) const",
+        "method:KoToolBase::canvas() const",
+        "method:KoToolBase::cursor() const",
+        "method:KoToolBase::decorationThickness() const",
+        "method:KoToolBase::decorationsRect() const",
+        "method:KoToolBase::factory() const",
+        "method:KoToolBase::optionWidgets()",
+        "method:KoToolBase::toolId() const",
+        "method:KoToolBase::wantsAutoScroll() const",
+        "method:KoToolBase::~KoToolBase()"
+      ]
+    },
+    {
+      "target": "KoToolBaseSchemaContractTest",
+      "source": "libs/flake/tests/KoToolBaseSchemaContractTest.cpp",
+      "test": "KoToolBaseSchemaContractTest::toolInputFocusDragAndPaintingSignaturesRemainStable",
+      "behavior": "tool基底の描画、pointer・key・input method・focus・drag/drop入力境界の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoToolBase::customMoveEvent(KoPointerEvent * event)",
+        "method:KoToolBase::customPressEvent(KoPointerEvent * event)",
+        "method:KoToolBase::customReleaseEvent(KoPointerEvent * event)",
+        "method:KoToolBase::dragLeaveEvent(QDragLeaveEvent * event)",
+        "method:KoToolBase::dragMoveEvent(QDragMoveEvent * event,const QPointF & point)",
+        "method:KoToolBase::dropEvent(QDropEvent * event,const QPointF & point)",
+        "method:KoToolBase::focusInEvent(QFocusEvent * event)",
+        "method:KoToolBase::focusOutEvent(QFocusEvent * event)",
+        "method:KoToolBase::inputMethodEvent(QInputMethodEvent * event)",
+        "method:KoToolBase::inputMethodQuery(Qt::InputMethodQuery query) const",
+        "method:KoToolBase::keyPressEvent(QKeyEvent * event)",
+        "method:KoToolBase::keyReleaseEvent(QKeyEvent * event)",
+        "method:KoToolBase::mouseDoubleClickEvent(KoPointerEvent * event)",
+        "method:KoToolBase::mouseMoveEvent(KoPointerEvent * event)",
+        "method:KoToolBase::mousePressEvent(KoPointerEvent * event)",
+        "method:KoToolBase::mouseReleaseEvent(KoPointerEvent * event)",
+        "method:KoToolBase::mouseTripleClickEvent(KoPointerEvent * event)",
+        "method:KoToolBase::paint(QPainter & painter,const KoViewConverter & converter)"
+      ]
+    },
+    {
+      "target": "KoToolBaseSchemaContractTest",
+      "source": "libs/flake/tests/KoToolBaseSchemaContractTest.cpp",
+      "test": "KoToolBaseSchemaContractTest::toolSelectionClipboardAndPopupSignaturesRemainStable",
+      "behavior": "tool基底の選択・clipboard操作、popup表示と文字・不透明度mode照会の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoToolBase::copy() const",
+        "method:KoToolBase::cut()",
+        "method:KoToolBase::deleteSelection()",
+        "method:KoToolBase::deselect()",
+        "method:KoToolBase::hasSelection()",
+        "method:KoToolBase::isInTextMode() const",
+        "method:KoToolBase::isOpacityPresetMode() const",
+        "method:KoToolBase::paste()",
+        "method:KoToolBase::popupActionsMenu()",
+        "method:KoToolBase::popupWidget()",
+        "method:KoToolBase::selectAll()",
+        "method:KoToolBase::selection()"
+      ]
+    },
+    {
+      "target": "KoToolBaseSchemaContractTest",
+      "source": "libs/flake/tests/KoToolBaseSchemaContractTest.cpp",
+      "test": "KoToolBaseSchemaContractTest::toolLifecycleResourceAndStrokeSignaturesRemainStable",
+      "behavior": "tool基底の有効化・無効化、resource変更、stroke制御、装飾・option更新と状態表示の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoToolBase::activate(const QSet<KoShape * > & shapes)",
+        "method:KoToolBase::canvasResourceChanged(int key,const QVariant & res)",
+        "method:KoToolBase::deactivate()",
+        "method:KoToolBase::documentResourceChanged(int key,const QVariant & res)",
+        "method:KoToolBase::explicitUserStrokeEndRequest()",
+        "method:KoToolBase::maskSyntheticEvents() const",
+        "method:KoToolBase::repaintDecorations()",
+        "method:KoToolBase::requestRedoDuringStroke()",
+        "method:KoToolBase::requestStrokeCancellation()",
+        "method:KoToolBase::requestStrokeEnd()",
+        "method:KoToolBase::requestUndoDuringStroke()",
+        "method:KoToolBase::setStatusText(const QString & statusText)",
+        "method:KoToolBase::updateOptionsWidgetIcons()"
+      ]
+    },
+    {
+      "target": "KoToolBaseSchemaContractTest",
+      "source": "libs/flake/tests/KoToolBaseSchemaContractTest.cpp",
+      "test": "KoToolBaseSchemaContractTest::toolActivationCursorAndStatusSignalSignaturesRemainStable",
+      "behavior": "tool切替要求とcursor・選択・状態文字・文字mode変更通知の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoToolBase::activateTool(const QString & id)",
+        "method:KoToolBase::cursorChanged(const QCursor & cursor)",
+        "method:KoToolBase::selectionChanged(bool hasSelection)",
+        "method:KoToolBase::statusTextChanged(const QString & statusText)",
+        "method:KoToolBase::textModeChanged(bool inTextMode)"
       ]
     }
   ]
