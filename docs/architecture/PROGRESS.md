@@ -27,6 +27,27 @@
   `libs/widgets/tests/KisWidgetConnectionStateContractTest.cpp`の5枠へ対応付ける。厳密なoverload関数型だけを観測し、Widget、接続、signal、property、event loopを実行しない。CMakeと依存を変えず対象4工程・8入力、停止5工程・11入力を維持する。
   libkis Node・Krita・Scratchpadは複数責務・大域状態・資源・生pointer所有、色選択Widget群は描画・event・色空間、XML GUI・file dialog群は設定I/O・filesystem・action生成へ閉包が広がるため棄却した。
 
+### 第169便の担当計画
+
+- 実装共通基点は`c366a56299`である。3担当は`implementing`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、専用worktree-local
+  `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。実装は並行し、最初の構成・構築枠は一度に1担当だけへ与える。開始時はswatch groupだけが構築`granted`、SVG text contentとwidget connectionは実装後に構築前で待機し、調整担当が前担当の構築完了を確認して順に許可する。
+  統合順はswatch group、SVG text content、widget connectionとし、調整担当だけがarchitecture文書、公開API台帳、共通不足報告を変更する。3担当の公開header、所有CMake、試験source、生成物は重ならない。製品targetを引数にするplan/build、全体build、全体`verify`は禁止し、担当targetと近傍、公開API検査、`verify-quick`だけを実行する。
+- `g169-swatch-group-schema`は`/Users/masato/Documents/librepaint-g169-swatch-group-schema`を所有する。開始`libs/pigment/resources/KisSwatchGroup.h`の全22 APIから既存
+  `libs/pigment/tests/KoColorSetSchemaContractTest.cpp`の5枠`swatchGroupOwnershipCopyAndLifetimeSchemaRemainsStable`、`swatchGroupEntrySchemaRemainsStable`、`swatchGroupLayoutAndCountSignaturesRemainStable`、
+  `swatchGroupIdentityAndListingSignaturesRemainStable`、`swatchGroupLookupAndDebugSignaturesRemainStable`へ対応付ける。完全集合は所有・copy・寿命5、entry値5、配置・件数6、identity・一覧3、検索・debug 3である。許可pathは既存試験sourceだけで、CMake・依存・公開header・製品sourceを変更しない。
+  copy・代入・破棄・debug演算子と静的countは型だけを観測し、group、swatch、SwatchInfo、resource registryを実体化しない。対象4工程・8入力、停止5工程・11入力、近傍`KoColorValueSchemaContractTest`を維持する。旧binaryの新5枠Unknown、対象CTest・枠個別・20回反復、既存枠、近傍、無作業再構築、動的接続・AUTOMOC入力・swatch・group未解決記号、構文・書式、公開API・`verify-quick`を確認する。
+  method本文を実行し、静的countをODR使用し、新規include・link、製品接続、停止線超過が必要なら止める。
+- `g169-svg-text-content-schema`は`/Users/masato/Documents/librepaint-g169-svg-text-content-schema`を所有する。開始`libs/flake/text/KoSvgTextContentElement.h`の全21 APIから新規
+  `libs/flake/tests/KoSvgTextContentElementSchemaContractTest.cpp`の5枠`contentIdentityAndLifecycleSignaturesRemainStable`、`contentPropertyAndPathValueSchemaRemainsStable`、`contentLayoutAndDecorationValueSchemaRemainsStable`、
+  `contentSerializationSignaturesRemainStable`、`contentQueryAndMutationSignaturesRemainStable`へ対応付ける。完全集合はidentity・寿命4、property・path値5、layout・装飾値5、XML署名3、文字照会・編集4である。許可pathは新規試験sourceと`libs/flake/tests/CMakeLists.txt`の対象固有節だけで、公開header・製品sourceを変更しない。
+  XML・照会・編集の省略形を未評価式で固定する。直接linkはQt Gui・Test・Xmlだけ、includeはflake source/generated、definitionは`kritaflake_EXPORTS`だけとし、公開headerをsourceやAUTOMOC入力へ加えない。新対象4工程・8入力、停止5工程・11入力、近傍`KoSvgTextFontMetricsValueContractTest`、製品`kritaflake` 621工程・1,274入力を維持する。
+  実装後は構築許可まで待機する。許可後にunknown target・CTest 0件、新5枠、対象CTest・枠個別・20回反復、近傍、無作業再構築、動的接続・AUTOMOC入力・content element・XML・shape未解決記号、構文・書式、公開API・`verify-quick`を確認する。content element、property、DOM、context、shape、layoutを実体化または実行し、製品OBJECT・shared、`kritatestsdk`、Qt以外へのlink、停止線超過が必要なら止める。
+- `g169-widget-connection-schema`は`/Users/masato/Documents/librepaint-g169-widget-connection-schema`を所有する。開始`libs/widgets/KisWidgetConnectionUtils.h`の残存全21 APIから既存
+  `libs/widgets/tests/KisWidgetConnectionStateContractTest.cpp`の5枠`primitiveControlConnectionSignaturesRemainStable`、`choiceActionAndTextControlConnectionSignaturesRemainStable`、`specializedControlConnectionSignaturesRemainStable`、
+  `controlStateConnectionSignaturesRemainStable`、`widgetPresentationPropertyConnectionSignaturesRemainStable`へ対応付ける。完全集合は基本control接続5、選択・action・文字control 4、専用control 5、control状態接続5、表示property接続2である。許可pathは既存試験sourceだけで、CMake・依存・公開header・製品sourceを変更しない。
+  厳密な関数pointer型だけを観測し、Widget、接続、signal、property、event loopを実行しない。対象4工程・8入力、停止5工程・11入力、近傍`KisColorSelectorConfigurationContractTest`を維持する。実装後は構築許可まで待機する。許可後に旧binaryの新5枠Unknown、対象CTest・枠個別・20回反復、既存枠、近傍、無作業再構築、動的接続・AUTOMOC入力・接続関数・Widget未解決記号、構文・書式、公開API・`verify-quick`を確認する。
+  WidgetまたはQObjectを生成し、接続関数・property・signalを実行し、新規include・link、製品接続、停止線超過が必要なら止める。
+
 ### 第168便の先行監査計画
 
 - 監査共通基点は`f4b7feeb18`、入力は`build/tdd-macos/public-api-missing-g168.json`である。3担当は`auditing`の読み取り専用とし、製品・試験・CMake・script・台帳・文書を変更せず、構成、構築、試験、Git操作、追加委任も行わない。
