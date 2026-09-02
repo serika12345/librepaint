@@ -11,6 +11,7 @@
 #include "kis_image_signal_router.h"
 #include "kis_layer_utils.h"
 #include "kis_paint_device_frames_interface.h"
+#include "kis_projection_leaf.h"
 #include "kis_selection_filters.h"
 #include "kis_sequential_iterator.h"
 #include "kis_stroke.h"
@@ -110,6 +111,11 @@ private Q_SLOTS:
     void imageSignalRouterBatchAndLodSignaturesRemainStable();
     void imageSignalRouterNodeGraphSignaturesRemainStable();
     void imageSignalRouterImageMetadataSignaturesRemainStable();
+    void projectionLeafOwnershipDropReasonAndLifetimeSchemaRemainsStable();
+    void projectionLeafGraphNavigationSignaturesRemainStable();
+    void projectionLeafVisitorAndProjectionAccessSignaturesRemainStable();
+    void projectionLeafNodeClassificationAndRenderingSignaturesRemainStable();
+    void projectionLeafDropOverlayAndTemporaryVisibilitySignaturesRemainStable();
 };
 
 void KisImageTypesContractTest::intrusivePointerAliasesPreserveOwnershipKinds()
@@ -1486,6 +1492,79 @@ void KisImageTypesContractTest::imageSignalRouterImageMetadataSignaturesRemainSt
     static_assert(std::is_same_v<decltype(&KisImageSignalRouter::sigRequestNodeReselection), ReselectionSignature>);
     static_assert(std::is_same_v<decltype(&KisImageSignalRouter::sigResolutionChanged), ResolutionSignature>);
     static_assert(std::is_same_v<decltype(&KisImageSignalRouter::sigSizeChanged), SizeSignature>);
+}
+
+void KisImageTypesContractTest::projectionLeafOwnershipDropReasonAndLifetimeSchemaRemainsStable()
+{
+    static_assert(std::is_class_v<KisProjectionLeaf>);
+    static_assert(std::is_enum_v<KisProjectionLeaf::NodeDropReason>);
+    static_assert(KisProjectionLeaf::NodeAvailable == 0);
+    static_assert(KisProjectionLeaf::DropPassThroughMask == 1);
+    static_assert(KisProjectionLeaf::DropPassThroughClone == 2);
+    static_assert(std::is_constructible_v<KisProjectionLeaf, KisNode *>);
+    static_assert(std::has_virtual_destructor_v<KisProjectionLeaf>);
+}
+
+void KisImageTypesContractTest::projectionLeafGraphNavigationSignaturesRemainStable()
+{
+    using LeafSignature = KisProjectionLeafSP (KisProjectionLeaf::*)() const;
+    using NodeSignature = KisNodeSP (KisProjectionLeaf::*)() const;
+    using PlaneSignature = KisAbstractProjectionPlaneSP (KisProjectionLeaf::*)() const;
+
+    static_assert(std::is_same_v<decltype(&KisProjectionLeaf::parent), LeafSignature>);
+    static_assert(std::is_same_v<decltype(&KisProjectionLeaf::firstChild), LeafSignature>);
+    static_assert(std::is_same_v<decltype(&KisProjectionLeaf::lastChild), LeafSignature>);
+    static_assert(std::is_same_v<decltype(&KisProjectionLeaf::prevSibling), LeafSignature>);
+    static_assert(std::is_same_v<decltype(&KisProjectionLeaf::nextSibling), LeafSignature>);
+    static_assert(std::is_same_v<decltype(&KisProjectionLeaf::node), NodeSignature>);
+    static_assert(std::is_same_v<decltype(&KisProjectionLeaf::projectionPlane), PlaneSignature>);
+}
+
+void KisImageTypesContractTest::projectionLeafVisitorAndProjectionAccessSignaturesRemainStable()
+{
+    using AcceptSignature = bool (KisProjectionLeaf::*)(KisNodeVisitor &);
+    using DeviceSignature = KisPaintDeviceSP (KisProjectionLeaf::*)();
+    using RegenerateSignature = void (KisProjectionLeaf::*)();
+
+    static_assert(std::is_same_v<decltype(&KisProjectionLeaf::accept), AcceptSignature>);
+    static_assert(std::is_same_v<decltype(&KisProjectionLeaf::original), DeviceSignature>);
+    static_assert(std::is_same_v<decltype(&KisProjectionLeaf::projection), DeviceSignature>);
+    static_assert(std::is_same_v<decltype(&KisProjectionLeaf::lazyDestinationForSubtreeComposition), DeviceSignature>);
+    static_assert(
+        std::is_same_v<decltype(&KisProjectionLeaf::explicitlyRegeneratePassThroughProjection), RegenerateSignature>);
+}
+
+void KisImageTypesContractTest::projectionLeafNodeClassificationAndRenderingSignaturesRemainStable()
+{
+    using BooleanSignature = bool (KisProjectionLeaf::*)() const;
+    using OpacitySignature = quint8 (KisProjectionLeaf::*)() const;
+    using ChannelFlagsSignature = QBitArray (KisProjectionLeaf::*)() const;
+
+    static_assert(std::is_same_v<decltype(&KisProjectionLeaf::isRoot), BooleanSignature>);
+    static_assert(std::is_same_v<decltype(&KisProjectionLeaf::isLayer), BooleanSignature>);
+    static_assert(std::is_same_v<decltype(&KisProjectionLeaf::isMask), BooleanSignature>);
+    static_assert(std::is_same_v<decltype(&KisProjectionLeaf::canHaveChildLayers), BooleanSignature>);
+    static_assert(std::is_same_v<decltype(&KisProjectionLeaf::dependsOnLowerNodes), BooleanSignature>);
+    static_assert(std::is_same_v<decltype(&KisProjectionLeaf::visible), BooleanSignature>);
+    static_assert(std::is_same_v<decltype(&KisProjectionLeaf::opacity), OpacitySignature>);
+    static_assert(std::is_same_v<decltype(&KisProjectionLeaf::channelFlags), ChannelFlagsSignature>);
+    static_assert(std::is_same_v<decltype(&KisProjectionLeaf::isStillInGraph), BooleanSignature>);
+    static_assert(std::is_same_v<decltype(&KisProjectionLeaf::hasClones), BooleanSignature>);
+    static_assert(std::is_same_v<decltype(&KisProjectionLeaf::shouldBeRendered), BooleanSignature>);
+}
+
+void KisImageTypesContractTest::projectionLeafDropOverlayAndTemporaryVisibilitySignaturesRemainStable()
+{
+    using BooleanSignature = bool (KisProjectionLeaf::*)() const;
+    using DropReasonSignature = KisProjectionLeaf::NodeDropReason (KisProjectionLeaf::*)() const;
+    using SetVisibilitySignature = void (KisProjectionLeaf::*)(bool);
+
+    static_assert(std::is_same_v<decltype(&KisProjectionLeaf::isDroppedNode), BooleanSignature>);
+    static_assert(std::is_same_v<decltype(&KisProjectionLeaf::dropReason), DropReasonSignature>);
+    static_assert(std::is_same_v<decltype(&KisProjectionLeaf::isOverlayProjectionLeaf), BooleanSignature>);
+    static_assert(
+        std::is_same_v<decltype(&KisProjectionLeaf::setTemporaryHiddenFromRendering), SetVisibilitySignature>);
+    static_assert(std::is_same_v<decltype(&KisProjectionLeaf::isTemporaryHiddenFromRendering), BooleanSignature>);
 }
 
 #undef ASSERT_DEFAULT_BOUNDS_SIGNATURE
