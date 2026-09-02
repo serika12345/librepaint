@@ -8,6 +8,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <type_traits>
 
 class XcfToolsValueContractTest : public QObject
 {
@@ -18,6 +19,11 @@ private Q_SLOTS:
     void signedAndDimensionValuesRemainIndependent();
     void borrowedPointerValuesRemainShallowOnCopy();
     void copiesSharePointersAndKeepScalarStateIndependent();
+    void xcfPrimitiveAndGlobalSchemaRemainsStable();
+    void xcfFatalDiagnosticSignaturesRemainStable();
+    void xcfFileLifecycleSignaturesRemainStable();
+    void xcfAllocationAndSupportSignaturesRemainStable();
+    void xcfParsingSignaturesRemainStable();
 };
 
 void XcfToolsValueContractTest::valueInitializationRemainsZeroed()
@@ -222,6 +228,68 @@ void XcfToolsValueContractTest::copiesSharePointersAndKeepScalarStateIndependent
     QCOMPARE(originalImage.numLayers, 1);
     QCOMPARE(originalImage.colormapptr, uint32_t(707));
     QVERIFY(imageCopy.layers == originalImage.layers);
+}
+
+void XcfToolsValueContractTest::xcfPrimitiveAndGlobalSchemaRemainsStable()
+{
+    static_assert(std::is_same_v<int32_t, std::int32_t>);
+    static_assert(std::is_same_v<int8_t, std::int8_t>);
+    static_assert(std::is_same_v<uint32_t, std::uint32_t>);
+    static_assert(std::is_same_v<uint8_t, std::uint8_t>);
+    static_assert(std::is_same_v<uintptr_t, std::uintptr_t>);
+
+    static_assert(std::is_same_v<decltype(XCF), xcfImage>);
+    static_assert(std::is_same_v<decltype(progname), const char *>);
+    static_assert(std::is_same_v<decltype(use_utf8), int>);
+    static_assert(std::is_same_v<decltype(verboseFlag), int>);
+    static_assert(std::is_same_v<decltype(xcf_file), uint8_t *>);
+    static_assert(std::is_same_v<decltype(xcf_length), size_t>);
+}
+
+void XcfToolsValueContractTest::xcfFatalDiagnosticSignaturesRemainStable()
+{
+    static_assert(
+        std::is_same_v<decltype(static_cast<void (*)(const char *, ...)>(&FatalBadXCF)), void (*)(const char *, ...)>);
+    static_assert(std::is_same_v<decltype(static_cast<void (*)(int, const char *, ...)>(&FatalGeneric)),
+                                 void (*)(int, const char *, ...)>);
+    static_assert(std::is_same_v<decltype(static_cast<void (*)(const char *, ...)>(&FatalUnexpected)),
+                                 void (*)(const char *, ...)>);
+    static_assert(std::is_same_v<decltype(static_cast<void (*)(const char *, ...)>(&FatalUnsupportedXCF)),
+                                 void (*)(const char *, ...)>);
+}
+
+void XcfToolsValueContractTest::xcfFileLifecycleSignaturesRemainStable()
+{
+    static_assert(std::is_same_v<decltype(static_cast<void (*)(const char *, const char *)>(&read_or_mmap_xcf)),
+                                 void (*)(const char *, const char *)>);
+    static_assert(std::is_same_v<decltype(static_cast<void (*)()>(&free_or_close_xcf)), void (*)()>);
+    static_assert(std::is_same_v<decltype(static_cast<FILE *(*)(const char *)>(&openout)), FILE *(*)(const char *)>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<int (*)(FILE *, const char *)>(&closeout)), int (*)(FILE *, const char *)>);
+}
+
+void XcfToolsValueContractTest::xcfAllocationAndSupportSignaturesRemainStable()
+{
+    static_assert(std::is_same_v<decltype(static_cast<void *(*)(size_t)>(&xcfmalloc)), void *(*)(size_t)>);
+    static_assert(std::is_same_v<decltype(static_cast<void (*)(void *)>(&xcffree)), void (*)(void *)>);
+    static_assert(std::is_same_v<decltype(static_cast<void (*)()>(&gpl_blurb)), void (*)()>);
+    static_assert(std::is_same_v<decltype(nls_init()), void>);
+}
+
+void XcfToolsValueContractTest::xcfParsingSignaturesRemainStable()
+{
+    static_assert(std::is_same_v<decltype(static_cast<int (*)(tileDimensions *)>(&computeDimensions)),
+                                 int (*)(tileDimensions *)>);
+    static_assert(std::is_same_v<decltype(static_cast<int (*)()>(&getBasicXcfInfo)), int (*)()>);
+    static_assert(std::is_same_v<decltype(ntohl(uint32_t{})), uint32_t>);
+    static_assert(std::is_same_v<decltype(static_cast<int (*)(uint32_t, int, const char *, ...)>(&xcfCheckspace)),
+                                 int (*)(uint32_t, int, const char *, ...)>);
+    static_assert(std::is_same_v<decltype(static_cast<int (*)(uint32_t *, uint32_t *, PropType *)>(&xcfNextprop)),
+                                 int (*)(uint32_t *, uint32_t *, PropType *)>);
+    static_assert(std::is_same_v<decltype(static_cast<int (*)(uint32_t, int, uint32_t *)>(&xcfOffset)),
+                                 int (*)(uint32_t, int, uint32_t *)>);
+    static_assert(std::is_same_v<decltype(static_cast<const char *(*)(uint32_t, uint32_t *)>(&xcfString)),
+                                 const char *(*)(uint32_t, uint32_t *)>);
 }
 
 QTEST_APPLESS_MAIN(XcfToolsValueContractTest)
