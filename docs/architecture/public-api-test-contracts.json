@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 12934
+    "expectedMissingApis": 12913
   },
   "contracts": [
     {
@@ -47708,6 +47708,72 @@
         "function:operator <<(QDebug dbg,const KisSwatchGroup group)",
         "method:KisSwatchGroup::checkSwatchExists(int column,int row) const",
         "method:KisSwatchGroup::getSwatch(int column,int row) const"
+      ]
+    },
+    {
+      "target": "KoSvgTextContentElementSchemaContractTest",
+      "source": "libs/flake/tests/KoSvgTextContentElementSchemaContractTest.cpp",
+      "test": "KoSvgTextContentElementSchemaContractTest::contentIdentityAndLifecycleSignaturesRemainStable",
+      "behavior": "SVG文字内容要素の公開型、既定・複製構築と寿命の公開契約を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoSvgTextContentElement::KoSvgTextContentElement()",
+        "method:KoSvgTextContentElement::KoSvgTextContentElement(const KoSvgTextContentElement & rhs)",
+        "method:KoSvgTextContentElement::~KoSvgTextContentElement()",
+        "struct:KoSvgTextContentElement"
+      ]
+    },
+    {
+      "target": "KoSvgTextContentElementSchemaContractTest",
+      "source": "libs/flake/tests/KoSvgTextContentElementSchemaContractTest.cpp",
+      "test": "KoSvgTextContentElementSchemaContractTest::contentPropertyAndPathValueSchemaRemainsStable",
+      "behavior": "SVG文字内容要素の文字property、局所変換、text path情報・識別子・長さの公開member型を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KoSvgTextContentElement::localTransformations",
+        "member:KoSvgTextContentElement::properties",
+        "member:KoSvgTextContentElement::textLength",
+        "member:KoSvgTextContentElement::textPathId",
+        "member:KoSvgTextContentElement::textPathInfo"
+      ]
+    },
+    {
+      "target": "KoSvgTextContentElementSchemaContractTest",
+      "source": "libs/flake/tests/KoSvgTextContentElementSchemaContractTest.cpp",
+      "test": "KoSvgTextContentElementSchemaContractTest::contentLayoutAndDecorationValueSchemaRemainsStable",
+      "behavior": "SVG文字内容要素の長さ調整、装飾、文字列、配置結果位置と外形の公開member型を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KoSvgTextContentElement::associatedOutline",
+        "member:KoSvgTextContentElement::finalResultIndex",
+        "member:KoSvgTextContentElement::lengthAdjust",
+        "member:KoSvgTextContentElement::text",
+        "member:KoSvgTextContentElement::textDecorations"
+      ]
+    },
+    {
+      "target": "KoSvgTextContentElementSchemaContractTest",
+      "source": "libs/flake/tests/KoSvgTextContentElementSchemaContractTest.cpp",
+      "test": "KoSvgTextContentElementSchemaContractTest::contentSerializationSignaturesRemainStable",
+      "behavior": "SVG文字内容要素の要素・文字node読込と保存の公開署名および既定引数省略形を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoSvgTextContentElement::loadSvg(const QDomElement & element,SvgLoadingContext & context,bool rootNode=false)",
+        "method:KoSvgTextContentElement::loadSvgTextNode(const QDomText & text,SvgLoadingContext & context)",
+        "method:KoSvgTextContentElement::saveSvg(SvgSavingContext & context,bool rootText,bool saveText,QMap<QString,QString> shapeSpecificAttributes,KoShape * textPath=nullptr)"
+      ]
+    },
+    {
+      "target": "KoSvgTextContentElementSchemaContractTest",
+      "source": "libs/flake/tests/KoSvgTextContentElementSchemaContractTest.cpp",
+      "test": "KoSvgTextContentElementSchemaContractTest::contentQueryAndMutationSignaturesRemainStable",
+      "behavior": "SVG文字内容要素の文字数・変換文字列照会と文字挿入・除去の公開署名および既定引数省略形を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoSvgTextContentElement::getTransformedString(QVector<QPair<int,int>> & positions,KoSvgTextProperties resolvedProps=KoSvgTextProperties ()) const",
+        "method:KoSvgTextContentElement::insertText(int start,QString insertText)",
+        "method:KoSvgTextContentElement::numChars(bool withControls=false,KoSvgTextProperties resolvedProps=KoSvgTextProperties ()) const",
+        "method:KoSvgTextContentElement::removeText(int & start,int length)"
       ]
     }
   ]
