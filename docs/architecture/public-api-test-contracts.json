@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 12787
+    "expectedMissingApis": 12763
   },
   "contracts": [
     {
@@ -48080,6 +48080,75 @@
         "method:KisGradientColorEditor::opacityChanged(qreal opacity)",
         "method:KisGradientColorEditor::setOpacity(qreal opacity)",
         "method:KisGradientColorEditor::sizeHint() const"
+      ]
+    },
+    {
+      "target": "KisCurveOptionSchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisCurveOptionSchemaContractTest.cpp",
+      "test": "KisCurveOptionSchemaContractTest::curveOptionOwnershipAndPolicySchemaRemainsStable",
+      "behavior": "曲線optionの公開型、値成分型、設定値構築と削除されたcopy構築・代入方針を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisCurveOption",
+        "method:KisCurveOption::KisCurveOption(KisCurveOption &)",
+        "method:KisCurveOption::KisCurveOption(const KisCurveOptionData & data)",
+        "method:KisCurveOption::operator =(KisCurveOption &)",
+        "struct:KisCurveOption::ValueComponents"
+      ]
+    },
+    {
+      "target": "KisCurveOptionSchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisCurveOptionSchemaContractTest.cpp",
+      "test": "KisCurveOptionSchemaContractTest::curveOptionValueComponentStorageRemainsStable",
+      "behavior": "曲線optionの定数・倍率・加算・絶対offset、適用flagと値域成分の型および安全な既定値を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisCurveOption::ValueComponents::absoluteOffset",
+        "member:KisCurveOption::ValueComponents::additive",
+        "member:KisCurveOption::ValueComponents::constant",
+        "member:KisCurveOption::ValueComponents::hasAbsoluteOffset",
+        "member:KisCurveOption::ValueComponents::hasAdditive",
+        "member:KisCurveOption::ValueComponents::hasScaling",
+        "member:KisCurveOption::ValueComponents::maxSizeLikeValue",
+        "member:KisCurveOption::ValueComponents::minSizeLikeValue",
+        "member:KisCurveOption::ValueComponents::scaling"
+      ]
+    },
+    {
+      "target": "KisCurveOptionSchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisCurveOptionSchemaContractTest.cpp",
+      "test": "KisCurveOptionSchemaContractTest::curveOptionValueCompositionSignaturesRemainStable",
+      "behavior": "曲線optionの値成分合成、寸法値・回転値計算と強度利用の既定引数を含む公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCurveOption::ValueComponents::rotationLikeValue(qreal normalizedBaseAngle,bool absoluteAxesFlipped,qreal scalingPartCoeff,bool disableScalingPart) const",
+        "method:KisCurveOption::ValueComponents::sizeLikeValue() const",
+        "method:KisCurveOption::computeRotationLikeValue(const KisPaintInformation & info,qreal baseValue,bool absoluteAxesFlipped,qreal scalingPartCoeff,bool disableScalingPart) const",
+        "method:KisCurveOption::computeSizeLikeValue(const KisPaintInformation & info,bool useStrengthValue=true) const",
+        "method:KisCurveOption::computeValueComponents(const KisPaintInformation & info,bool useStrengthValue) const"
+      ]
+    },
+    {
+      "target": "KisCurveOptionSchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisCurveOptionSchemaContractTest.cpp",
+      "test": "KisCurveOptionSchemaContractTest::curveOptionStrengthSignaturesRemainStable",
+      "behavior": "曲線optionの現在強度・最小強度・最大強度照会の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCurveOption::strengthMaxValue() const",
+        "method:KisCurveOption::strengthMinValue() const",
+        "method:KisCurveOption::strengthValue() const"
+      ]
+    },
+    {
+      "target": "KisCurveOptionSchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisCurveOptionSchemaContractTest.cpp",
+      "test": "KisCurveOptionSchemaContractTest::curveOptionStatePolicySignaturesRemainStable",
+      "behavior": "曲線optionの有効状態と乱数sensor使用方針を照会する公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCurveOption::isChecked() const",
+        "method:KisCurveOption::isRandom() const"
       ]
     }
   ]
