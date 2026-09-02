@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 10:10 JST
+- 更新日時: 2026-09-02 10:12 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -62,7 +62,8 @@
 - `g143-chunk-allocator-schema`は`/Users/masato/Documents/librepaint-g143-chunk-allocator-schema`を所有する。開始`libs/image/tiles3/swap/kis_chunk_allocator.h`の全26 APIから新規
   `libs/image/tiles3/tests/KisChunkAllocatorSchemaContractTest.cpp`の5枠`chunkContainerTypeSchemaRemainsStable`、`chunkDataIntervalSchemaRemainsStable`、`chunkHandleSchemaRemainsStable`、
   `chunkAllocatorLifetimeAndCapacitySchemaRemainsStable`、`chunkAllocatorOperationSchemaRemainsStable`へ対応付ける。許可pathは新規試験sourceと`libs/image/tiles3/tests/CMakeLists.txt`だけである。直接linkは
-  Qt Core・Testだけ、includeはimage source・generated headerだけとし、新対象4工程・8入力、停止5工程・11入力、近傍は`KisImageTypesContractTest`、製品`kritaimage`は1,196工程・2,416入力と
+  Qt Core・Testと、公開headerが使用する`QLinkedList`をQt 6で解決するCore5Compatだけ、includeはimage source・generated headerだけとし、新対象4工程・8入力、停止5工程・11入力、近傍は
+  `KisImageTypesContractTest`、製品`kritaimage`は1,196工程・2,416入力と
   担当tree内の変更前後集合完全一致を確認する。未知target、5枠、対象CTest、20回反復、近傍、無作業再構築、動的接続、未解決chunk・allocator・list割当記号、構文・変更行書式、公開API・
   `verify-quick`を確認する。chunk・list・iterator・allocatorを生成し、inline本文・iterator参照・memory割当・swap I/O・debug・assert・stderrを実行し、`kis_chunk_allocator.cpp`、製品source・
   OBJECT・shared、`kritatestsdk`、新非header依存、公開header変更、製品計画差、停止線超過が必要なら止める。
