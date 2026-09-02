@@ -2,12 +2,21 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-03 05:44 JST
+- 更新日時: 2026-09-03 06:11 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
+
+### 第176便の先行監査計画
+
+- 監査共通基点は`286a94ac4e`、入力は`build/tdd-macos/public-api-missing-g176.json`である。3担当は`auditing`の読み取り専用とし、製品・試験・CMake・script・台帳・文書を変更せず、構成、構築、試験、Git操作、追加委任も行わない。
+  一つの公開責務から20〜80 APIを最大5枠へ固定し、既存限定対象またはheader限定の4〜10工程程度の対象で、製品共有libraryと`kritatestsdk`へ接続しない候補だけを採用する。製品targetを引数にする`build-incremental ... plan`と製品buildは実行せず、既存Ninja木のquery・commands・inputsだけを読み取る。
+- `g105-paintop-value-audit`はpaintop・image・pigment・値型から、第175便のprocessing visitorを除外して一責務を選ぶ。
+- `g105-svg-value-audit`はflake・SVG・vector・documentから、第175便のSVG text contour commandを除外して一責務を選ぶ。
+- `g105-widget-connection-audit`はwidgetutils・widgets・libkis・軽量接続面から、第175便のmain windowを除外して一責務を選ぶ。
+- 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、予測工程・入力と停止線、開始pathから契約先、許可path、固有停止条件、比較候補の棄却根拠を含む。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
 
 ### 第175便の先行監査計画
 
@@ -48,6 +57,17 @@
   `mainWindowAutoSaveSchemaRemainsStable`、`mainWindowPersistenceAndNotificationSchemaRemainsStable`へ対応付ける。完全集合はclass、親・window flags既定引数付き構築・破棄、`kRestoreMainWindows`、`canBeRestored`、`classNameOfToplevel`、show既定引数付き`restore`、`memberList`、`hasMenuBar`、名前既定引数付き`toolBar`、`toolBars`、`appHelpActivated`、2種類の`setAutoSaveSettings`と既定引数、`resetAutoSaveSettings`、`autoSaveSettings`、`autoSaveGroup`、`autoSaveConfigGroup`、`applyMainWindowSettings`、`saveMainWindowSettings`、`dbusName`、`setSettingsDirty`である。許可pathは既存試験sourceだけで、CMake・依存・公開header・製品sourceを変更しない。
   main window、Widget、toolbar、KConfigGroup、private pointerを実体化せず、restore template、session、menu・toolbar、help、設定保存、DBus、global window listを実行しない。対象4工程・8入力、停止5工程・11入力、近傍`KXMLGUIClientSchemaContractTest`、製品`kritawidgetutils` 274工程・581入力を維持する。
   実装後は構築許可まで待機する。許可後に旧binaryの新5枠Unknown、対象CTest・枠個別・20回反復、既存枠、近傍、無作業再構築、動的接続・AUTOMOC入力・window/KConfig/toolbar/session未解決記号、構文・書式、公開API・`verify-quick`を確認する。restore templateの実体化、window・設定本文の実行、新規include・link、停止線超過が必要なら止める。
+
+### 第175便の統合結果
+
+- `g175-processing-visitor-schema`は開始`libs/image/kis_processing_visitor.h`から既存`libs/image/tests/KisImageTypesContractTest.cpp`の5枠へ、型・寿命、node・layer visit、clone・mask visit、初期化command、進捗helperの未対応全20 APIを対応付けた。CMakeと依存を変えず、visitor、helper、node、layer、mask、undo、command、updaterを実体化せず、dispatch、command生成、進捗取消、destructor本文を実行しない4工程・8入力に保った。
+  受渡しcommit`50bb927872`を統合commit`35231dce89`として取り込み、担当と中央の5枠、対象・既存・近傍CTest、20回反復、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式に成功した。台帳commit`5ffdcdf0a5`で17,356件対応、12,482件未対応となった。dispatch、command所有、進捗取消、破棄の実行時結果は別契約で扱う。
+- `g175-svg-text-contour-schema`は開始`libs/flake/commands/KoSvgTextAddRemoveShapeCommands.h`から新規`libs/flake/tests/KoSvgTextAddRemoveShapeCommandsSchemaContractTest.cpp`の5枠へ、4 command型、輪郭種別、基底phase、派生command寿命、輪郭削除操作の未対応全20 APIを対応付けた。直接linkはBoost headerとQt Core・Testだけとし、command、shape、親command、private実装を実体化せず、構築・破棄、phase、undo・redo、shape変更、輪郭削除本文を実行しない4工程・8入力に保った。
+  受渡しcommit`78cd6a3463`を統合commit`17fe1a20a8`として取り込み、対象・近傍CTest、5枠、20回反復、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式に成功した。製品`kritaflake`の読み取り基線は621工程・1,274入力を維持し、台帳commit`7889c394d0`で17,376件対応、12,462件未対応となった。輪郭・text path変更、undo・redo、phase処理の実行時結果は別契約で扱う。
+- `g175-main-window-schema`は開始`libs/widgetutils/xmlgui/kmainwindow.h`から既存`libs/widgetutils/tests/KKeySequenceWidgetSchemaContractTest.cpp`の5枠へ、型・寿命・restore template、session restore、chrome・toolbar、自動保存、永続化・通知の未対応全22 APIを対応付けた。CMakeと依存を変えず、main window、toolbar、KConfig、private実装とrestore template本文を実体化・実行しない4工程・8入力に保った。
+  受渡しcommit`d34c709ec0`を統合commit`6b5ae53e30`として取り込み、新5枠と既存15枠、対象・近傍CTest、20回反復、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式に成功した。製品`kritawidgetutils`の読み取り基線は274工程・581入力を維持し、台帳commit`286a94ac4e`で17,398件対応、12,440件未対応となった。session復元、toolbar生成、設定保存、DBus通知の実行時結果は別契約で扱う。
+- 第175便全体で62 APIを15枠へ重複なく対応付けた。実装を並行し、構成・構築枠だけをprocessing visitor、SVG text contour command、main windowの順に直列化した。対象・近傍CTest、各20回反復、無作業再構築、公開API検査と`verify-quick`は成功した。製品target、全体build、全体`verify`、Linuxは実行していない。
+  processing visitor中央検証のNix wrapper起動は空き273,240 KiBで一度停止したため、統合済みlaneを先に削除し、既に読み込まれた共有開発環境から同じ限定命令を再実行して成功した。3担当のcleanな作業treeと担当branchを削除して2,609,172 KiB（約2.49 GiB）を回収し、旧不足報告`public-api-missing-g175.json`をごみ箱へ移した。主Ninja木5,637,800 KiB、共有compiler cache 982,836 KiB、最新不足報告`build/tdd-macos/public-api-missing-g176.json` 3,255,947 bytesだけを再利用対象として保持する。次の永続作業は第176便の不足報告から、既存限定対象を優先してpathと所有CMakeが重ならない3責務を先行監査することである。
 
 ### 第174便の先行監査計画
 
