@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 10:31 JST
+- 更新日時: 2026-09-02 10:34 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -35,6 +35,34 @@
   `KisVisualColorModel.h`はQObject、metaobject、色値・色空間、channel変換、設定slot、4 signalへ公開責務と定義閉包が広がるため棄却した。
 - 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから契約先または移動先、許可path、固有停止条件、
   比較候補の棄却根拠を含む。既存`build/tdd-macos`の計画は読み取り専用で測定し、構成や構築を開始しない。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
+
+### 第144便の担当計画
+
+- 実装共通基点は`7903e1e745`である。uniform paintop property、shape saving context、display config担当は`assigned`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの
+  `transport-commit`、追加委任は禁止する。対象platformはmacOSであり、専用worktree-local `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を
+  共有する。統合順はuniform paintop property、shape saving context、display configとし、調整担当だけが`AGENTS.md`、architecture文書、`docs/architecture/public-api-test-contracts.json`、共通不足報告を
+  変更する。3担当の公開header、所有CMake、試験source、生成物は重ならない。
+- `g144-uniform-paintop-property-schema`は`/Users/masato/Documents/librepaint-g144-uniform-paintop-property-schema`を所有する。開始
+  `libs/image/brushengine/kis_uniform_paintop_property.h`の全28 APIから既存`libs/image/tests/KisImageTypesContractTest.cpp`の5枠`uniformPaintOpPropertyOwnershipSchemaRemainsStable`、
+  `uniformPaintOpPropertyTypeSchemaRemainsStable`、`uniformPaintOpPropertyLifetimeSchemaRemainsStable`、`uniformPaintOpPropertyIdentityAndSettingsSignaturesRemainStable`、
+  `uniformPaintOpPropertyValueAndNotificationSignaturesRemainStable`へ対応付ける。許可pathは既存試験sourceだけで、CMakeを変更しない。対象4工程・8入力、停止5工程・11入力、近傍は
+  `KisImageConfigAnimationSchemaContractTest`、製品`kritaimage`は1,196工程・2,416入力と担当tree内の変更前後集合完全一致を確認する。未知5枠、対象CTest、20回反復、既存image型枠と近傍、無作業再構築、
+  動的接続、未解決property・metaobject・callback・paintop・settings・widget記号、構文・変更行書式、公開API・`verify-quick`を確認する。property、settings、paintop、widget、QObjectを生成し、method・signal・
+  metaobject・callback・設定・資源・application fontを実行し、製品source・OBJECT・shared、`kritatestsdk`、新link/include依存、CMake・公開header変更、製品計画差、停止線超過が必要なら止める。
+- `g144-shape-saving-context-schema`は`/Users/masato/Documents/librepaint-g144-shape-saving-context-schema`を所有する。開始`libs/flake/KoShapeSavingContext.h`の全27 APIから新規
+  `libs/flake/tests/KoShapeSavingContextSchemaContractTest.cpp`の5枠`shapeSavingOptionValueSchemaRemainsStable`、`shapeSavingContextIdentityAndWriterSignaturesRemainStable`、
+  `shapeSavingContextOptionSignaturesRemainStable`、`shapeSavingContextLayerImageAndMarkerSignaturesRemainStable`、`shapeSavingContextSharedDataAndOffsetSignaturesRemainStable`へ対応付ける。許可pathは新規試験sourceと
+  `libs/flake/tests/CMakeLists.txt`だけである。直接linkはQt Core・Testだけ、includeはflake source・generated headerだけとし、新対象4工程・8入力、停止5工程・11入力、近傍は`KoShapeEnumContractTest`、
+  製品`kritaflake`は621工程・1,274入力と担当tree内の変更前後集合・保留集合完全一致を確認する。未知target、5枠、対象CTest、20回反復、近傍、無作業再構築、動的接続、未解決saving context・writer・shape・
+  marker・saving data記号、構文・変更行書式、公開API・`verify-quick`を確認する。context、writer、shape、layer、marker、image、shared data、QTransformを生成し、XML・集合・所有移転・offset・method本文を実行し、
+  Qt Gui・Xml、製品source・OBJECT・shared、`kritatestsdk`、新非header依存、公開header変更、製品計画差、停止線超過が必要なら止める。
+- `g144-display-config-schema`は`/Users/masato/Documents/librepaint-g144-display-config-schema`を所有する。開始`libs/ui/canvas/KisDisplayConfig.h`の全28 APIから新規
+  `libs/ui/tests/KisDisplayConfigSchemaContractTest.cpp`の5枠`displayConfigTypeAndConstructionSchemaRemainsStable`、`displayConfigValueSchemaRemainsStable`、
+  `displayConfigExternalPolicySignaturesRemainStable`、`multiSurfaceDisplayConfigValueSchemaRemainsStable`、`multiSurfaceDisplayConfigProjectionSchemaRemainsStable`へ対応付ける。許可pathは新規試験sourceと
+  `libs/ui/tests/CMakeLists.txt`だけである。直接linkはQt Core・TestとBoost headerだけ、includeはui・pigment source・generated headerだけとし、新対象4工程・8入力、停止5工程・11入力、近傍は
+  `KisGuidesConfigSchemaContractTest`、製品`kritaapplicationui`は1,970工程・3,940入力と担当tree内の変更前後集合完全一致を確認する。未知target、5枠、対象CTest、20回反復、近傍、無作業再構築、動的接続、
+  未解決display config・system color manager・設定・screen・profile・色変換記号、構文・変更行書式、公開API・`verify-quick`を確認する。単一・複数surface値を生成し、inline本文、system color manager、設定I/O、
+  screen・profile取得、色変換を実行し、Qt Gui・Widgets、製品source・OBJECT・shared、`kritatestsdk`、新非header依存、公開header変更、製品計画差、停止線超過が必要なら止める。
 
 ### 第143便の先行監査計画
 
