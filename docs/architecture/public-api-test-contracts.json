@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 13467
+    "expectedMissingApis": 13435
   },
   "contracts": [
     {
@@ -46410,6 +46410,83 @@
         "method:KisPNGConverter::cancel()",
         "method:KisPNGConverter::isColorSpaceSupported(const KoColorSpace * cs)",
         "method:KisPNGConverter::saveDeviceToStore(const QString & filename,const QRect & imageRect,const qreal xRes,const qreal yRes,KisPaintDeviceSP dev,KoStore * store,KisMetaData::Store * metaData=0)"
+      ]
+    },
+    {
+      "target": "KKeySequenceWidgetSchemaContractTest",
+      "source": "libs/widgetutils/tests/KKeySequenceWidgetSchemaContractTest.cpp",
+      "test": "KKeySequenceWidgetSchemaContractTest::shortcutsEditorTypeAndEnumerationSchemaRemainsStable",
+      "behavior": "ショートカット編集器のaction範囲と英字shortcut許可方針の公開型・列挙値を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisShortcutsEditor::ActionTypes",
+        "class:KisShortcutsEditor",
+        "enum:KisShortcutsEditor::ActionType",
+        "enum:KisShortcutsEditor::LetterShortcuts",
+        "enumerator:KisShortcutsEditor::ActionType::AllActions",
+        "enumerator:KisShortcutsEditor::ActionType::ApplicationAction",
+        "enumerator:KisShortcutsEditor::ActionType::GlobalAction",
+        "enumerator:KisShortcutsEditor::ActionType::WidgetAction",
+        "enumerator:KisShortcutsEditor::ActionType::WindowAction",
+        "enumerator:KisShortcutsEditor::LetterShortcuts::LetterShortcutsAllowed",
+        "enumerator:KisShortcutsEditor::LetterShortcuts::LetterShortcutsDisallowed"
+      ]
+    },
+    {
+      "target": "KKeySequenceWidgetSchemaContractTest",
+      "source": "libs/widgetutils/tests/KKeySequenceWidgetSchemaContractTest.cpp",
+      "test": "KKeySequenceWidgetSchemaContractTest::shortcutsEditorLifetimeAndStateSchemaRemainsStable",
+      "behavior": "ショートカット編集器の寿命、既定方針を使う構築、変更状態とaction範囲照会の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisShortcutsEditor::KisShortcutsEditor(QWidget * parent,ActionTypes actionTypes=AllActions,LetterShortcuts allowLetterShortcuts=LetterShortcutsAllowed)",
+        "method:KisShortcutsEditor::actionTypes() const",
+        "method:KisShortcutsEditor::isModified() const",
+        "method:KisShortcutsEditor::~KisShortcutsEditor()"
+      ]
+    },
+    {
+      "target": "KKeySequenceWidgetSchemaContractTest",
+      "source": "libs/widgetutils/tests/KKeySequenceWidgetSchemaContractTest.cpp",
+      "test": "KKeySequenceWidgetSchemaContractTest::shortcutsEditorCollectionAndPolicySchemaRemainsStable",
+      "behavior": "ショートカット編集器のcollection追加・消去、action範囲設定、構成消去、undoの公開署名と題名省略形を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisShortcutsEditor::addCollection(KisKActionCollection *,const QString & title=QString ())",
+        "method:KisShortcutsEditor::clearCollections()",
+        "method:KisShortcutsEditor::clearConfiguration()",
+        "method:KisShortcutsEditor::setActionTypes(ActionTypes actionTypes)",
+        "method:KisShortcutsEditor::undo()"
+      ]
+    },
+    {
+      "target": "KKeySequenceWidgetSchemaContractTest",
+      "source": "libs/widgetutils/tests/KKeySequenceWidgetSchemaContractTest.cpp",
+      "test": "KKeySequenceWidgetSchemaContractTest::shortcutsEditorPersistenceSchemaRemainsStable",
+      "behavior": "ショートカット編集器の既定化、確定、設定import・export・保存・印刷の公開署名と設定省略形を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisShortcutsEditor::allDefault()",
+        "method:KisShortcutsEditor::commit()",
+        "method:KisShortcutsEditor::exportConfiguration(KConfigBase * config) const",
+        "method:KisShortcutsEditor::importConfiguration(KConfigBase * config,bool isScheme)",
+        "method:KisShortcutsEditor::printShortcuts() const",
+        "method:KisShortcutsEditor::save()",
+        "method:KisShortcutsEditor::saveShortcuts(KConfigGroup * config=0) const"
+      ]
+    },
+    {
+      "target": "KKeySequenceWidgetSchemaContractTest",
+      "source": "libs/widgetutils/tests/KKeySequenceWidgetSchemaContractTest.cpp",
+      "test": "KKeySequenceWidgetSchemaContractTest::shortcutsEditorInteractionSchemaRemainsStable",
+      "behavior": "ショートカット編集器の検索、キー変更、列幅調整、scroll状態受理の公開対話署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisShortcutsEditor::clearSearch()",
+        "method:KisShortcutsEditor::keyChange()",
+        "method:KisShortcutsEditor::resizeColumns()",
+        "method:KisShortcutsEditor::searchUpdated(QString s)",
+        "method:KisShortcutsEditor::slotScrollerStateChanged(QScroller::State state)"
       ]
     }
   ]
