@@ -15,6 +15,7 @@
 #include "kis_fast_math.h"
 
 #include <QDomDocument>
+#include <klocalizedstring.h>
 
 #include "kis_circle_mask_generator.h"
 #include "kis_rect_mask_generator.h"
@@ -24,6 +25,10 @@
 #include "kis_curve_circle_mask_generator.h"
 #include "kis_curve_rect_mask_generator.h"
 #include <kis_dom_utils.h>
+
+const KoID DefaultId("default", ki18n("Default"));
+const KoID SoftId("soft", ki18n("Soft"));
+const KoID GaussId("gauss", ki18n("Gaussian"));
 
 namespace KisConvolutionKernelMaskAccess
 {

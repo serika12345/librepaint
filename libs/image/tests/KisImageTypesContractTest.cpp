@@ -7,6 +7,7 @@
 #include "brushengine/kis_paintop_settings.h"
 #include "brushengine/kis_uniform_paintop_property.h"
 #include "commands_new/kis_saved_commands.h"
+#include "kis_base_mask_generator.h"
 #include "kis_datamanager.h"
 #include "kis_default_bounds.h"
 #include "kis_distance_information.h"
@@ -48,6 +49,8 @@ namespace
     static_assert(std::is_same_v<decltype(static_cast<signature>(&type::method)), signature>)
 #define ASSERT_PIXEL_SELECTION_SIGNATURE(method, signature)                                                            \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisPixelSelection::method)), signature>)
+#define ASSERT_MASK_GENERATOR_SIGNATURE(method, signature)                                                             \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KisMaskGenerator::method)), signature>)
 
 class SelectionDefaultBoundsConstructorProbe final : public KisSelectionDefaultBoundsBase
 {
@@ -62,6 +65,29 @@ class PaintDeviceConvertible
 {
 public:
     operator KisPaintDeviceSP() const;
+};
+
+class MaskGeneratorConstructorProbe final : public KisMaskGenerator
+{
+public:
+    using KisMaskGenerator::KisMaskGenerator;
+    explicit MaskGeneratorConstructorProbe(const KisMaskGenerator &rhs)
+        : KisMaskGenerator(rhs)
+    {
+    }
+
+    KisMaskGenerator *clone() const override
+    {
+        return nullptr;
+    }
+    quint8 valueAt(qreal, qreal) const override
+    {
+        return 0;
+    }
+    KisBrushMaskApplicatorBase *applicator() const override
+    {
+        return nullptr;
+    }
 };
 
 class SavedCommandBaseConstructorProbe final : public KisSavedCommandBase
@@ -185,6 +211,11 @@ private Q_SLOTS:
     void pixelSelectionGeometryAndOutlineCacheSignaturesRemainStable();
     void pixelSelectionParentCloneAndProjectionSignaturesRemainStable();
     void pixelSelectionThumbnailAndPersistenceSignaturesRemainStable();
+    void maskGeneratorIdentityLifetimeAndConstantsSchemaRemainStable();
+    void maskGeneratorGeometrySignaturesRemainStable();
+    void maskGeneratorAppearanceSignaturesRemainStable();
+    void maskGeneratorRenderingPolicySignaturesRemainStable();
+    void maskGeneratorSerializationAndRegistrySignaturesRemainStable();
 };
 
 void KisImageTypesContractTest::intrusivePointerAliasesPreserveOwnershipKinds()
@@ -2168,6 +2199,83 @@ void KisImageTypesContractTest::pixelSelectionThumbnailAndPersistenceSignaturesR
     ASSERT_PIXEL_SELECTION_SIGNATURE(recalculateThumbnailImage, void (KisPixelSelection::*)(const QColor &));
 }
 
+void KisImageTypesContractTest::maskGeneratorIdentityLifetimeAndConstantsSchemaRemainStable()
+{
+    static_assert(std::is_class_v<KisMaskGenerator>);
+    static_assert(std::is_abstract_v<KisMaskGenerator>);
+    static_assert(std::has_virtual_destructor_v<KisMaskGenerator>);
+    static_assert(std::is_enum_v<KisMaskGenerator::Type>);
+    static_assert(KisMaskGenerator::CIRCLE == 0);
+    static_assert(KisMaskGenerator::RECTANGLE == 1);
+    static_assert(std::is_same_v<decltype(DefaultId), const KoID>);
+    static_assert(std::is_same_v<decltype(SoftId), const KoID>);
+    static_assert(std::is_same_v<decltype(GaussId), const KoID>);
+    static_assert(std::is_same_v<decltype(OVERSAMPLING), const int>);
+    static_assert(OVERSAMPLING == 4);
+    static_assert(std::is_constructible_v<MaskGeneratorConstructorProbe,
+                                          qreal,
+                                          qreal,
+                                          qreal,
+                                          qreal,
+                                          int,
+                                          bool,
+                                          KisMaskGenerator::Type,
+                                          const KoID &>);
+    static_assert(std::is_constructible_v<MaskGeneratorConstructorProbe,
+                                          qreal,
+                                          qreal,
+                                          qreal,
+                                          qreal,
+                                          int,
+                                          bool,
+                                          KisMaskGenerator::Type>);
+    static_assert(std::is_constructible_v<MaskGeneratorConstructorProbe, const KisMaskGenerator &>);
+}
+
+void KisImageTypesContractTest::maskGeneratorGeometrySignaturesRemainStable()
+{
+    ASSERT_MASK_GENERATOR_SIGNATURE(width, qreal (KisMaskGenerator::*)() const);
+    ASSERT_MASK_GENERATOR_SIGNATURE(height, qreal (KisMaskGenerator::*)() const);
+    ASSERT_MASK_GENERATOR_SIGNATURE(diameter, qreal (KisMaskGenerator::*)() const);
+    ASSERT_MASK_GENERATOR_SIGNATURE(setDiameter, void (KisMaskGenerator::*)(qreal));
+    ASSERT_MASK_GENERATOR_SIGNATURE(ratio, qreal (KisMaskGenerator::*)() const);
+    ASSERT_MASK_GENERATOR_SIGNATURE(horizontalFade, qreal (KisMaskGenerator::*)() const);
+    ASSERT_MASK_GENERATOR_SIGNATURE(verticalFade, qreal (KisMaskGenerator::*)() const);
+    ASSERT_MASK_GENERATOR_SIGNATURE(spikes, int (KisMaskGenerator::*)() const);
+    ASSERT_MASK_GENERATOR_SIGNATURE(type, KisMaskGenerator::Type (KisMaskGenerator::*)() const);
+    ASSERT_MASK_GENERATOR_SIGNATURE(isEmpty, bool (KisMaskGenerator::*)() const);
+}
+
+void KisImageTypesContractTest::maskGeneratorAppearanceSignaturesRemainStable()
+{
+    ASSERT_MASK_GENERATOR_SIGNATURE(antialiasEdges, bool (KisMaskGenerator::*)() const);
+    ASSERT_MASK_GENERATOR_SIGNATURE(softness, qreal (KisMaskGenerator::*)() const);
+    ASSERT_MASK_GENERATOR_SIGNATURE(setSoftness, void (KisMaskGenerator::*)(qreal));
+    ASSERT_MASK_GENERATOR_SIGNATURE(curveString, QString (KisMaskGenerator::*)() const);
+    ASSERT_MASK_GENERATOR_SIGNATURE(setCurveString, void (KisMaskGenerator::*)(const QString &));
+    ASSERT_MASK_GENERATOR_SIGNATURE(setScale, void (KisMaskGenerator::*)(qreal, qreal));
+    ASSERT_MASK_GENERATOR_SIGNATURE(fixRotation, void (KisMaskGenerator::*)(qreal &, qreal &) const);
+    ASSERT_MASK_GENERATOR_SIGNATURE(shouldSupersample, bool (KisMaskGenerator::*)() const);
+}
+
+void KisImageTypesContractTest::maskGeneratorRenderingPolicySignaturesRemainStable()
+{
+    ASSERT_MASK_GENERATOR_SIGNATURE(shouldSupersample6x6, bool (KisMaskGenerator::*)() const);
+    ASSERT_MASK_GENERATOR_SIGNATURE(shouldVectorize, bool (KisMaskGenerator::*)() const);
+    ASSERT_MASK_GENERATOR_SIGNATURE(valueAt, quint8 (KisMaskGenerator::*)(qreal, qreal) const);
+    ASSERT_MASK_GENERATOR_SIGNATURE(applicator, KisBrushMaskApplicatorBase * (KisMaskGenerator::*)() const);
+    ASSERT_MASK_GENERATOR_SIGNATURE(clone, KisMaskGenerator * (KisMaskGenerator::*)() const);
+    ASSERT_MASK_GENERATOR_SIGNATURE(id, QString (KisMaskGenerator::*)() const);
+    ASSERT_MASK_GENERATOR_SIGNATURE(name, QString (KisMaskGenerator::*)() const);
+}
+
+void KisImageTypesContractTest::maskGeneratorSerializationAndRegistrySignaturesRemainStable()
+{
+    ASSERT_MASK_GENERATOR_SIGNATURE(toXML, void (KisMaskGenerator::*)(QDomDocument &, QDomElement &) const);
+    static_assert(std::is_same_v<decltype(&KisMaskGenerator::fromXML), KisMaskGenerator *(*)(const QDomElement &)>);
+    static_assert(std::is_same_v<decltype(&KisMaskGenerator::maskGeneratorIds), QList<KoID> (*)()>);
+}
+
 #undef ASSERT_DEFAULT_BOUNDS_SIGNATURE
 #undef ASSERT_LAYER_UTILS_SIGNATURE
 #undef ASSERT_PAINTOP_SETTINGS_SIGNATURE
@@ -2176,6 +2284,7 @@ void KisImageTypesContractTest::pixelSelectionThumbnailAndPersistenceSignaturesR
 #undef ASSERT_DATA_MANAGER_SIGNATURE
 #undef ASSERT_SAVED_COMMAND_SIGNATURE
 #undef ASSERT_PIXEL_SELECTION_SIGNATURE
+#undef ASSERT_MASK_GENERATOR_SIGNATURE
 
 QTEST_GUILESS_MAIN(KisImageTypesContractTest)
 
