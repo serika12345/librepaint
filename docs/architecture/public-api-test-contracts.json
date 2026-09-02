@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 14508
+    "expectedMissingApis": 14468
   },
   "contracts": [
     {
@@ -43884,6 +43884,91 @@
       "apis": [
         "method:KisCoordinatesConverter::getOpenGLCheckersInfo(const QRectF & viewportRect,QTransform * textureTransform,QTransform * modelTransform,QRectF * textureRect,QRectF * modelRect,const bool scrollCheckers) const",
         "method:KisCoordinatesConverter::getQPainterCheckersInfo(QTransform * transform,QPointF * brushOrigin,QPolygonF * polygon,const bool scrollCheckers) const"
+      ]
+    },
+    {
+      "target": "KoStopGradientSchemaContractTest",
+      "source": "libs/pigment/tests/KoStopGradientSchemaContractTest.cpp",
+      "test": "KoStopGradientSchemaContractTest::gradientStopTypeSchemaRemainsStable",
+      "behavior": "stop-gradientは共有pointer別名、gradient・stop・並べ替え型とstop種別の値順を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KoStopGradientSP",
+        "class:KoStopGradient",
+        "enum:KoGradientStopType",
+        "enumerator:KoGradientStopType::BACKGROUNDSTOP",
+        "enumerator:KoGradientStopType::COLORSTOP",
+        "enumerator:KoGradientStopType::FOREGROUNDSTOP",
+        "struct:KoGradientStop",
+        "struct:KoGradientStopHueSort",
+        "struct:KoGradientStopValueSort"
+      ]
+    },
+    {
+      "target": "KoStopGradientSchemaContractTest",
+      "source": "libs/pigment/tests/KoStopGradientSchemaContractTest.cpp",
+      "test": "KoStopGradientSchemaContractTest::gradientStopValueSchemaRemainsStable",
+      "behavior": "gradient stop値は位置・色・種別の公開member、構築、等価比較、種別文字列変換、色相・値による並べ替え関数の厳密な型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KoGradientStop::color",
+        "member:KoGradientStop::position",
+        "member:KoGradientStop::type",
+        "method:KoGradientStop::KoGradientStop(qreal _position=0.0,KoColor _color=KoColor (),KoGradientStopType _type=COLORSTOP)",
+        "method:KoGradientStop::operator ==(const KoGradientStop & other) const",
+        "method:KoGradientStop::typeFromString(QString typestring)",
+        "method:KoGradientStop::typeString() const",
+        "method:KoGradientStopHueSort::operator () (const KoGradientStop & a,const KoGradientStop & b)",
+        "method:KoGradientStopValueSort::operator () (const KoGradientStop & a,const KoGradientStop & b)"
+      ]
+    },
+    {
+      "target": "KoStopGradientSchemaContractTest",
+      "source": "libs/pigment/tests/KoStopGradientSchemaContractTest.cpp",
+      "test": "KoStopGradientSchemaContractTest::stopGradientLifetimeAndResourceSchemaRemainsStable",
+      "behavior": "stop-gradientは抽象gradient派生、filename・複製構築、仮想破棄、複製代入禁止、等価・clone・拡張子・resource型の公開契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoStopGradient::KoStopGradient(const KoStopGradient & rhs)",
+        "method:KoStopGradient::KoStopGradient(const QString & filename=QString ())",
+        "method:KoStopGradient::clone() const",
+        "method:KoStopGradient::defaultFileExtension() const",
+        "method:KoStopGradient::operator =(const KoStopGradient & rhs)",
+        "method:KoStopGradient::operator ==(const KoStopGradient & rhs) const",
+        "method:KoStopGradient::resourceType() const",
+        "method:KoStopGradient::~KoStopGradient()"
+      ]
+    },
+    {
+      "target": "KoStopGradientSchemaContractTest",
+      "source": "libs/pigment/tests/KoStopGradientSchemaContractTest.cpp",
+      "test": "KoStopGradientSchemaContractTest::stopGradientCollectionAndVariableColorSchemaRemainsStable",
+      "behavior": "stop-gradientはstop集合、位置での色・周囲stop照会、必要canvas資源、可変色の更新・固定に関する厳密な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoStopGradient::bakeVariableColors(KoCanvasResourcesInterfaceSP canvasResourcesInterface)",
+        "method:KoStopGradient::colorAt(KoColor &,qreal t) const",
+        "method:KoStopGradient::requiredCanvasResources() const",
+        "method:KoStopGradient::setStops(QList<KoGradientStop> stops)",
+        "method:KoStopGradient::stops() const",
+        "method:KoStopGradient::stopsAt(KoGradientStop & leftStop,KoGradientStop & rightStop,qreal t) const",
+        "method:KoStopGradient::updateVariableColors(KoCanvasResourcesInterfaceSP canvasResourcesInterface)"
+      ]
+    },
+    {
+      "target": "KoStopGradientSchemaContractTest",
+      "source": "libs/pigment/tests/KoStopGradientSchemaContractTest.cpp",
+      "test": "KoStopGradientSchemaContractTest::stopGradientConversionAndPersistenceSchemaRemainsStable",
+      "behavior": "stop-gradientはQGradient・XML変換、device入出力、SVG表現について資源interfaceと借用入出力先を受ける厳密な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoStopGradient::fromQGradient(const QGradient * gradient)",
+        "method:KoStopGradient::fromXML(const QDomElement & elt)",
+        "method:KoStopGradient::loadFromDevice(QIODevice * dev,KisResourcesInterfaceSP resourcesInterface)",
+        "method:KoStopGradient::saveSvgGradient() const",
+        "method:KoStopGradient::saveToDevice(QIODevice * dev) const",
+        "method:KoStopGradient::toQGradient() const",
+        "method:KoStopGradient::toXML(QDomDocument & doc,QDomElement & gradientElt) const"
       ]
     }
   ]
