@@ -9,6 +9,15 @@
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
 
+### 第173便の先行監査計画
+
+- 監査共通基点は`56a07f4f08`、入力は`build/tdd-macos/public-api-missing-g173.json`である。3担当は`auditing`の読み取り専用とし、製品・試験・CMake・script・台帳・文書を変更せず、構成、構築、試験、Git操作、追加委任も行わない。
+  一つの公開責務から20〜80 APIを最大5枠へ固定し、既存限定対象またはheader限定の4〜10工程程度の対象で、製品共有libraryと`kritatestsdk`へ接続しない候補だけを採用する。製品targetを引数にする`build-incremental ... plan`と製品buildは実行せず、既存Ninja木のquery・commands・inputsだけを読み取る。
+- `g105-paintop-value-audit`はpaintop・image・pigment・値型から、第172便のselection maskを除外して一責務を選ぶ。
+- `g105-svg-value-audit`はflake・SVG・vector・documentから、第172便のselectionを除外して一責務を選ぶ。
+- `g105-widget-connection-audit`はwidgetutils・widgets・libkis・軽量接続面から、第172便のfile dialogを除外して一責務を選ぶ。
+- 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、予測工程・入力と停止線、開始pathから契約先、許可path、固有停止条件、比較候補の棄却根拠を含む。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
+
 ### 第172便の先行監査計画
 
 - 監査共通基点は`8d029eccaf`、入力は`build/tdd-macos/public-api-missing-g172.json`である。3担当は`auditing`の読み取り専用とし、製品・試験・CMake・script・台帳・文書を変更せず、構成、構築、試験、Git操作、追加委任も行わない。
