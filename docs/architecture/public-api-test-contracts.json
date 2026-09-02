@@ -13,10 +13,10 @@
     "publicHeaderCount": 1549,
     "publicHeaderFingerprint": "f9bb686b01e8043483c842e2f180558c86b434cfd739b076f28825a42ff236d7",
     "publicApiCount": 29838,
-    "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
+    "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 13241
+    "expectedMissingApis": 13202
   },
   "contracts": [
     {
@@ -46951,6 +46951,90 @@
       "apis": [
         "method:Shape::parentShape() const",
         "method:Shape::toSvg(bool prependStyles=false,bool stripTextMode=true)"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::maskGeneratorIdentityLifetimeAndConstantsSchemaRemainStable",
+      "behavior": "マスク生成器の公開型、形状種別、構築・仮想寿命、共有識別子、oversampling定数と識別子省略構築を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisMaskGenerator",
+        "enum:KisMaskGenerator::Type",
+        "enumerator:KisMaskGenerator::Type::CIRCLE",
+        "enumerator:KisMaskGenerator::Type::RECTANGLE",
+        "method:KisMaskGenerator::KisMaskGenerator(const KisMaskGenerator & rhs)",
+        "method:KisMaskGenerator::KisMaskGenerator(qreal radius,qreal ratio,qreal fh,qreal fv,int spikes,bool antialiasEdges,Type type,const KoID & id=DefaultId)",
+        "method:KisMaskGenerator::~KisMaskGenerator()",
+        "variable:DefaultId",
+        "variable:GaussId",
+        "variable:OVERSAMPLING",
+        "variable:SoftId"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::maskGeneratorGeometrySignaturesRemainStable",
+      "behavior": "マスク生成器の幅・高さ・直径・縦横比・縦横fade・spike数・形状種別・空判定の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMaskGenerator::diameter() const",
+        "method:KisMaskGenerator::height() const",
+        "method:KisMaskGenerator::horizontalFade() const",
+        "method:KisMaskGenerator::isEmpty() const",
+        "method:KisMaskGenerator::ratio() const",
+        "method:KisMaskGenerator::setDiameter(qreal value)",
+        "method:KisMaskGenerator::spikes() const",
+        "method:KisMaskGenerator::type() const",
+        "method:KisMaskGenerator::verticalFade() const",
+        "method:KisMaskGenerator::width() const"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::maskGeneratorAppearanceSignaturesRemainStable",
+      "behavior": "マスク生成器のantialias・softness・curve・scale・回転補正・supersampling方針の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMaskGenerator::antialiasEdges() const",
+        "method:KisMaskGenerator::curveString() const",
+        "method:KisMaskGenerator::fixRotation(qreal & xr,qreal & yr) const",
+        "method:KisMaskGenerator::setCurveString(const QString & curveString)",
+        "method:KisMaskGenerator::setScale(qreal scaleX,qreal scaleY)",
+        "method:KisMaskGenerator::setSoftness(qreal softness)",
+        "method:KisMaskGenerator::shouldSupersample() const",
+        "method:KisMaskGenerator::softness() const"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::maskGeneratorRenderingPolicySignaturesRemainStable",
+      "behavior": "マスク生成器の高密度sampling・vector化・画素値・applicator・複製・識別子と名前の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMaskGenerator::applicator() const",
+        "method:KisMaskGenerator::clone() const",
+        "method:KisMaskGenerator::id() const",
+        "method:KisMaskGenerator::name() const",
+        "method:KisMaskGenerator::shouldSupersample6x6() const",
+        "method:KisMaskGenerator::shouldVectorize() const",
+        "method:KisMaskGenerator::valueAt(qreal x,qreal y) const"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::maskGeneratorSerializationAndRegistrySignaturesRemainStable",
+      "behavior": "マスク生成器のXML直列化・復元と登録済み識別子取得の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMaskGenerator::fromXML(const QDomElement &)",
+        "method:KisMaskGenerator::maskGeneratorIds()",
+        "method:KisMaskGenerator::toXML(QDomDocument &,QDomElement &) const"
       ]
     }
   ]
