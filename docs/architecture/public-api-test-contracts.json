@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 12482
+    "expectedMissingApis": 12462
   },
   "contracts": [
     {
@@ -48970,6 +48970,71 @@
         "method:KisProcessingVisitor::ProgressHelper::cancel()",
         "method:KisProcessingVisitor::ProgressHelper::updater() const",
         "method:KisProcessingVisitor::ProgressHelper::~ProgressHelper()"
+      ]
+    },
+    {
+      "target": "KoSvgTextAddRemoveShapeCommandsSchemaContractTest",
+      "source": "libs/flake/tests/KoSvgTextAddRemoveShapeCommandsSchemaContractTest.cpp",
+      "test": "KoSvgTextAddRemoveShapeCommandsSchemaContractTest::svgTextContourCommandTypeHierarchyRemainsStable",
+      "behavior": "SVG文字の輪郭shapeとtext pathを追加・削除する基底・派生command型と継承関係を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoSvgTextAddRemoveShapeCommandImpl",
+        "class:KoSvgTextAddShapeCommand",
+        "class:KoSvgTextRemoveShapeCommand",
+        "class:KoSvgTextSetTextPathOnRangeCommand"
+      ]
+    },
+    {
+      "target": "KoSvgTextAddRemoveShapeCommandsSchemaContractTest",
+      "source": "libs/flake/tests/KoSvgTextAddRemoveShapeCommandsSchemaContractTest.cpp",
+      "test": "KoSvgTextAddRemoveShapeCommandsSchemaContractTest::svgTextContourTypeValuesRemainStable",
+      "behavior": "SVG文字flowで扱う内側輪郭・減算輪郭・text pathの公開種別と安定値を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KoSvgTextAddRemoveShapeCommandImpl::ContourType",
+        "enumerator:KoSvgTextAddRemoveShapeCommandImpl::ContourType::Inside",
+        "enumerator:KoSvgTextAddRemoveShapeCommandImpl::ContourType::Subtract",
+        "enumerator:KoSvgTextAddRemoveShapeCommandImpl::ContourType::TextPath",
+        "enumerator:KoSvgTextAddRemoveShapeCommandImpl::ContourType::Unknown"
+      ]
+    },
+    {
+      "target": "KoSvgTextAddRemoveShapeCommandsSchemaContractTest",
+      "source": "libs/flake/tests/KoSvgTextAddRemoveShapeCommandsSchemaContractTest.cpp",
+      "test": "KoSvgTextAddRemoveShapeCommandsSchemaContractTest::svgTextContourCommandPhaseSignaturesRemainStable",
+      "behavior": "SVG文字輪郭commandのshape・種別・範囲・状態を受け取る構築、仮想寿命と前後phaseの公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoSvgTextAddRemoveShapeCommandImpl::KoSvgTextAddRemoveShapeCommandImpl(KoSvgTextShape * textShape,KoShape * shape,ContourType type,State state,int startPos,int endPos,KUndo2Command * parent=nullptr)",
+        "method:KoSvgTextAddRemoveShapeCommandImpl::partA()",
+        "method:KoSvgTextAddRemoveShapeCommandImpl::partB()",
+        "method:KoSvgTextAddRemoveShapeCommandImpl::~KoSvgTextAddRemoveShapeCommandImpl()"
+      ]
+    },
+    {
+      "target": "KoSvgTextAddRemoveShapeCommandsSchemaContractTest",
+      "source": "libs/flake/tests/KoSvgTextAddRemoveShapeCommandsSchemaContractTest.cpp",
+      "test": "KoSvgTextAddRemoveShapeCommandsSchemaContractTest::svgTextContourSpecializedLifecycleSignaturesRemainStable",
+      "behavior": "SVG文字への輪郭追加・削除と範囲text path設定を行う派生commandの構築経路と仮想寿命を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoSvgTextAddShapeCommand::KoSvgTextAddShapeCommand(KoSvgTextShape * textShape,KoShape * shape,bool inside,KUndo2Command * parentCommand=0)",
+        "method:KoSvgTextAddShapeCommand::~KoSvgTextAddShapeCommand()",
+        "method:KoSvgTextRemoveShapeCommand::KoSvgTextRemoveShapeCommand(KoSvgTextShape * textShape,KoShape * shape,KUndo2Command * parentCommand=0)",
+        "method:KoSvgTextRemoveShapeCommand::~KoSvgTextRemoveShapeCommand()",
+        "method:KoSvgTextSetTextPathOnRangeCommand::KoSvgTextSetTextPathOnRangeCommand(KoSvgTextShape * textShape,KoShape * shape,int startPos,int endPos,KUndo2Command * parentCommand=0)",
+        "method:KoSvgTextSetTextPathOnRangeCommand::~KoSvgTextSetTextPathOnRangeCommand()"
+      ]
+    },
+    {
+      "target": "KoSvgTextAddRemoveShapeCommandsSchemaContractTest",
+      "source": "libs/flake/tests/KoSvgTextAddRemoveShapeCommandsSchemaContractTest.cpp",
+      "test": "KoSvgTextAddRemoveShapeCommandsSchemaContractTest::svgTextContourRemovalOperationSignatureRemainsStable",
+      "behavior": "SVG文字flowから指定種別の輪郭shapeを除去する静的command生成入口の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoSvgTextRemoveShapeCommand::removeContourShapesFromFlow(KoSvgTextShape * textShape,KUndo2Command * parent,bool textInShape,bool textPaths)"
       ]
     }
   ]
