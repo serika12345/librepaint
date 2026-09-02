@@ -90,6 +90,11 @@ private Q_SLOTS:
     void baselinesPreserveIndependentSignedValues();
     void decorationMetricsPreserveIndependentSignedValues();
     void caretMetricsAndCopiesOwnAllValues();
+    void backgroundPropertyValueAndComparisonSignaturesRemainStable();
+    void strokePropertyValueAndComparisonSignaturesRemainStable();
+    void textOnPathValueSchemaRemainsStable();
+    void textUnderlinePositionValueAndComparisonSignaturesRemainStable();
+    void fontMetricsOperationSignaturesRemainStable();
 };
 
 void KoSvgTextFontMetricsValueContractTest::orientationAndAdvancesDefaultToIndependentScalarValues()
@@ -260,6 +265,123 @@ void KoSvgTextFontMetricsValueContractTest::caretMetricsAndCopiesOwnAllValues()
     QCOMPARE(source.caretRun, 211);
     QCOMPARE(source.caretRise, -223);
     QCOMPARE(source.caretOffset, 227);
+}
+
+void KoSvgTextFontMetricsValueContractTest::backgroundPropertyValueAndComparisonSignaturesRemainStable()
+{
+    using Property = KoSvgText::BackgroundProperty;
+    using Comparison = bool (Property::*)(const Property &) const;
+    using DebugOutput = QDebug (*)(QDebug, const Property &);
+    static_assert(std::is_class_v<Property>);
+    static_assert(std::is_same_v<decltype(Property::property), QSharedPointer<KoShapeBackground>>);
+    static_assert(std::is_default_constructible_v<Property>);
+    static_assert(std::is_constructible_v<Property, QSharedPointer<KoShapeBackground>>);
+    static_assert(std::is_same_v<decltype(static_cast<Comparison>(&Property::operator==)), Comparison>);
+    static_assert(std::is_same_v<decltype(static_cast<DebugOutput>(&KoSvgText::operator<<)), DebugOutput>);
+
+    Property source;
+    QVERIFY(source.property.isNull());
+    const Property copied(source);
+    Property assigned;
+    assigned = source;
+    QVERIFY(copied.property.isNull());
+    QVERIFY(assigned.property.isNull());
+    QVERIFY(source == copied);
+}
+
+void KoSvgTextFontMetricsValueContractTest::strokePropertyValueAndComparisonSignaturesRemainStable()
+{
+    using Property = KoSvgText::StrokeProperty;
+    using Comparison = bool (Property::*)(const Property &) const;
+    using DebugOutput = QDebug (*)(QDebug, const Property &);
+    static_assert(std::is_class_v<Property>);
+    static_assert(std::is_same_v<decltype(Property::property), QSharedPointer<KoShapeStrokeModel>>);
+    static_assert(std::is_default_constructible_v<Property>);
+    static_assert(std::is_constructible_v<Property, QSharedPointer<KoShapeStrokeModel>>);
+    static_assert(std::is_same_v<decltype(static_cast<Comparison>(&Property::operator==)), Comparison>);
+    static_assert(std::is_same_v<decltype(static_cast<DebugOutput>(&KoSvgText::operator<<)), DebugOutput>);
+
+    Property source;
+    QVERIFY(source.property.isNull());
+    const Property copied(source);
+    Property assigned;
+    assigned = source;
+    QVERIFY(copied.property.isNull());
+    QVERIFY(assigned.property.isNull());
+    QVERIFY(source == copied);
+}
+
+void KoSvgTextFontMetricsValueContractTest::textOnPathValueSchemaRemainsStable()
+{
+    using Info = KoSvgText::TextOnPathInfo;
+    static_assert(std::is_aggregate_v<Info>);
+    static_assert(std::is_same_v<decltype(Info::startOffset), qreal>);
+    static_assert(std::is_same_v<decltype(Info::startOffsetIsPercentage), bool>);
+    static_assert(std::is_same_v<decltype(Info::method), KoSvgText::TextPathMethod>);
+    static_assert(std::is_same_v<decltype(Info::spacing), KoSvgText::TextPathSpacing>);
+    static_assert(std::is_same_v<decltype(Info::side), KoSvgText::TextPathSide>);
+
+    Info source;
+    QCOMPARE(source.startOffset, 0.0);
+    QVERIFY(!source.startOffsetIsPercentage);
+    QCOMPARE(int(source.method), int(KoSvgText::TextPathAlign));
+    QCOMPARE(int(source.spacing), int(KoSvgText::TextPathAuto));
+    QCOMPARE(int(source.side), int(KoSvgText::TextPathSideLeft));
+    source.startOffset = -13.5;
+    source.startOffsetIsPercentage = true;
+    source.method = KoSvgText::TextPathStretch;
+    source.spacing = KoSvgText::TextPathExact;
+    source.side = KoSvgText::TextPathSideRight;
+    const Info copied(source);
+    source.startOffset = 17.5;
+    QCOMPARE(copied.startOffset, -13.5);
+    QVERIFY(copied.startOffsetIsPercentage);
+    QCOMPARE(int(copied.method), int(KoSvgText::TextPathStretch));
+    QCOMPARE(int(copied.spacing), int(KoSvgText::TextPathExact));
+    QCOMPARE(int(copied.side), int(KoSvgText::TextPathSideRight));
+}
+
+void KoSvgTextFontMetricsValueContractTest::textUnderlinePositionValueAndComparisonSignaturesRemainStable()
+{
+    using Position = KoSvgText::TextUnderlinePosition;
+    using Comparison = bool (Position::*)(const Position &) const;
+    using DebugOutput = QDebug (*)(QDebug, const Position &);
+    static_assert(std::is_class_v<Position>);
+    static_assert(std::is_same_v<decltype(Position::horizontalPosition), KoSvgText::TextDecorationUnderlinePosition>);
+    static_assert(std::is_same_v<decltype(Position::verticalPosition), KoSvgText::TextDecorationUnderlinePosition>);
+    static_assert(std::is_same_v<decltype(static_cast<Comparison>(&Position::operator==)), Comparison>);
+    static_assert(std::is_same_v<decltype(static_cast<DebugOutput>(&KoSvgText::operator<<)), DebugOutput>);
+
+    Position source;
+    QCOMPARE(int(source.horizontalPosition), int(KoSvgText::UnderlineAuto));
+    QCOMPARE(int(source.verticalPosition), int(KoSvgText::UnderlineLeft));
+    const Position copied(source);
+    QVERIFY(source == copied);
+    source.horizontalPosition = KoSvgText::UnderlineUnder;
+    QVERIFY(!(source == copied));
+}
+
+void KoSvgTextFontMetricsValueContractTest::fontMetricsOperationSignaturesRemainStable()
+{
+    using Comparison = bool (FontMetrics::*)(const FontMetrics &) const;
+    using BaselineValue = int (FontMetrics::*)(KoSvgText::Baseline) const;
+    using SetBaselineValue = void (FontMetrics::*)(const QString &, int32_t);
+    using SetMetricsValue = void (FontMetrics::*)(const QLatin1String &, int32_t);
+    using ScaleBaselines = void (FontMetrics::*)(qreal);
+    using OffsetMetrics = void (FontMetrics::*)(KoSvgText::Baseline);
+    using DebugOutput = QDebug (*)(QDebug, const FontMetrics &);
+    static_assert(std::is_constructible_v<FontMetrics, qreal, bool>);
+    static_assert(std::is_same_v<decltype(static_cast<Comparison>(&FontMetrics::operator==)), Comparison>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<BaselineValue>(&FontMetrics::valueForBaselineValue)), BaselineValue>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<SetBaselineValue>(&FontMetrics::setBaselineValueByTag)), SetBaselineValue>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<SetMetricsValue>(&FontMetrics::setMetricsValueByTag)), SetMetricsValue>);
+    static_assert(std::is_same_v<decltype(static_cast<ScaleBaselines>(&FontMetrics::scaleBaselines)), ScaleBaselines>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<OffsetMetrics>(&FontMetrics::offsetMetricsToNewOrigin)), OffsetMetrics>);
+    static_assert(std::is_same_v<decltype(static_cast<DebugOutput>(&KoSvgText::operator<<)), DebugOutput>);
 }
 
 QTEST_GUILESS_MAIN(KoSvgTextFontMetricsValueContractTest)
