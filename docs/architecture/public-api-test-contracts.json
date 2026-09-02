@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 13068
+    "expectedMissingApis": 13044
   },
   "contracts": [
     {
@@ -47394,6 +47394,75 @@
       "classification": "maintained",
       "apis": [
         "method:Canvas::view() const"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::baseConstIteratorOwnershipAndTraversalSchemaRemainsStable",
+      "behavior": "画像の基底const iteratorの公開型、accessor継承、構築・仮想寿命と連続画素走査の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisBaseConstIteratorNG",
+        "method:KisBaseConstIteratorNG::KisBaseConstIteratorNG()",
+        "method:KisBaseConstIteratorNG::nConseqPixels() const",
+        "method:KisBaseConstIteratorNG::nextPixel()",
+        "method:KisBaseConstIteratorNG::nextPixels(qint32 n)",
+        "method:KisBaseConstIteratorNG::~KisBaseConstIteratorNG()"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::horizontalConstIteratorTraversalSchemaRemainsStable",
+      "behavior": "画像の横方向const iteratorの公開型、構築・仮想寿命、次行移動と位置復元の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisHLineConstIteratorNG",
+        "method:KisHLineConstIteratorNG::KisHLineConstIteratorNG()",
+        "method:KisHLineConstIteratorNG::nextRow()",
+        "method:KisHLineConstIteratorNG::resetPixelPos()",
+        "method:KisHLineConstIteratorNG::resetRowPos()",
+        "method:KisHLineConstIteratorNG::~KisHLineConstIteratorNG()"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::horizontalWritableIteratorSchemaRemainsStable",
+      "behavior": "画像の横方向書込iteratorの公開型、多重継承、構築と仮想寿命を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisHLineIteratorNG",
+        "method:KisHLineIteratorNG::KisHLineIteratorNG()",
+        "method:KisHLineIteratorNG::~KisHLineIteratorNG()"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::verticalConstIteratorTraversalSchemaRemainsStable",
+      "behavior": "画像の縦方向const iteratorの公開型、構築・仮想寿命、次列移動と位置復元の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisVLineConstIteratorNG",
+        "method:KisVLineConstIteratorNG::KisVLineConstIteratorNG()",
+        "method:KisVLineConstIteratorNG::nextColumn()",
+        "method:KisVLineConstIteratorNG::resetColumnPos()",
+        "method:KisVLineConstIteratorNG::resetPixelPos()",
+        "method:KisVLineConstIteratorNG::~KisVLineConstIteratorNG()"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::verticalWritableIteratorSchemaRemainsStable",
+      "behavior": "画像の縦方向書込iteratorの公開型、多重継承、構築と仮想寿命を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisVLineIteratorNG",
+        "method:KisVLineIteratorNG::KisVLineIteratorNG()",
+        "method:KisVLineIteratorNG::~KisVLineIteratorNG()"
       ]
     }
   ]
