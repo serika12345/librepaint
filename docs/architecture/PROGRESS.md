@@ -2,12 +2,25 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 21:44 JST
+- 更新日時: 2026-09-02 21:47 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
+
+### 第164便の先行監査計画
+
+- 監査共通基点は`0bcbf33fa6`、入力は`build/tdd-macos/public-api-missing-g164.json`である。3担当は`auditing`の読み取り専用とし、製品・試験・CMake・script・台帳・文書を変更せず、構成、構築、試験、Git操作、追加委任も行わない。一つの公開責務から
+  25 API以上を最大5枠へ固定し、既存限定対象、header-only値面、または公開headerを変えない一sourceのOBJECT一対一移管で、製品共有libraryと`kritatestsdk`へ接続しない候補だけを採用する。公開API識別子に既定引数が含まれる場合は、関数型に加えて未評価の省略呼出しで固定する計画を含める。
+- `g164-widgetutils-window-opengl-schema-audit`は`libs/widgetutils/xmlgui/kxmlguiwindow.h`の未対応28 APIを主候補とし、`libs/ui/opengl/KisOpenGLModeProber.h`の未対応34 APIを比較する。XML GUI windowまたはOpenGL mode検査の型・寿命・列挙値・標準action・GUI構築方針・状態・format・driver能力・HDR・surface設定面を、
+  widget・action・GUI factory・設定backend・OpenGL context・surface・driver問い合わせ・大域状態・signal・metaobject・event loopの実体化なしで閉じる。
+- `g164-psd-asl-css-preset-schema-audit`は`libs/psdutils/asl/kis_asl_xml_writer.h`の未対応28 APIを主候補とし、`libs/flake/resources/KoCssStylePreset.h`の未対応33 APIを比較する。ASL XML writerまたはCSS style presetの型・寿命・文書・descriptor・list・scalar・色・幾何・gradient・pattern・text・変換・sample・metadata・保存面を、
+  DOM変更・device I/O・色変換・gradient・pattern・shape生成・SVG parse・thumbnail・resource store・filesystemの実体化なしで閉じる。
+- `g164-playback-paintop-factory-schema-audit`は`libs/ui/animation/KisPlaybackEngine.h`の未対応35 APIを主候補とし、`plugins/paintops/libpaintop/kis_simple_paintop_factory.h`の未対応30 APIを比較する。再生engineまたは単純paintop factoryの型・寿命・列挙値・統計値・frame移動・再生制御・音声・drop frame・factory identity・設定・資源準備・template能力判定面を、
+  engine・timer・audio・画像・canvas・paintop・painter・node・widget・resource・template本文・signal・metaobject・event loopの実体化なしで閉じる。
+- 各報告は完全なAPI識別子、既定引数観測、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから契約先または移動先、許可path、固有停止条件、比較候補の棄却根拠を含む。既存
+  `build/tdd-macos`の計画は読み取り専用で測定し、構成や構築を開始しない。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
 
 ### 第163便の先行監査計画
 
