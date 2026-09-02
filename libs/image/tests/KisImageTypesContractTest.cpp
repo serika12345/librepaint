@@ -11,6 +11,7 @@
 #include "kis_datamanager.h"
 #include "kis_default_bounds.h"
 #include "kis_distance_information.h"
+#include "kis_edge_detection_kernel.h"
 #include "kis_fixed_paint_device.h"
 #include "kis_group_layer.h"
 #include "kis_histogram.h"
@@ -57,6 +58,8 @@ namespace
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisUpdaterContext::method)), signature>)
 #define ASSERT_ITERATOR_SIGNATURE(type, method, signature)                                                             \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&type::method)), signature>)
+#define ASSERT_EDGE_DETECTION_SIGNATURE(method, signature)                                                             \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KisEdgeDetectionKernel::method)), signature>)
 
 class BaseConstIteratorConstructorProbe final : public KisBaseConstIteratorNG
 {
@@ -306,6 +309,11 @@ private Q_SLOTS:
     void horizontalWritableIteratorSchemaRemainsStable();
     void verticalConstIteratorTraversalSchemaRemainsStable();
     void verticalWritableIteratorSchemaRemainsStable();
+    void edgeDetectionTypeAndFilterSchemaRemainsStable();
+    void edgeDetectionOutputPolicySchemaRemainsStable();
+    void edgeDetectionMatrixAndKernelCreationSignaturesRemainStable();
+    void edgeDetectionRadiusConversionSignaturesRemainStable();
+    void edgeDetectionDeviceOperationSignaturesRemainStable();
 };
 
 void KisImageTypesContractTest::intrusivePointerAliasesPreserveOwnershipKinds()
@@ -2471,6 +2479,118 @@ void KisImageTypesContractTest::verticalWritableIteratorSchemaRemainsStable()
     static_assert(std::is_default_constructible_v<VLineIteratorConstructorProbe>);
 }
 
+void KisImageTypesContractTest::edgeDetectionTypeAndFilterSchemaRemainsStable()
+{
+    static_assert(std::is_class_v<KisEdgeDetectionKernel>);
+    static_assert(std::is_default_constructible_v<KisEdgeDetectionKernel>);
+    static_assert(std::is_enum_v<KisEdgeDetectionKernel::FilterType>);
+    static_assert(KisEdgeDetectionKernel::Simple == 0);
+    static_assert(KisEdgeDetectionKernel::Prewitt == 1);
+    static_assert(KisEdgeDetectionKernel::SobelVector == 2);
+    static_assert(std::is_enum_v<KisEdgeDetectionKernel::FilterOutput>);
+}
+
+void KisImageTypesContractTest::edgeDetectionOutputPolicySchemaRemainsStable()
+{
+    static_assert(KisEdgeDetectionKernel::pythagorean == 0);
+    static_assert(KisEdgeDetectionKernel::xGrowth == 1);
+    static_assert(KisEdgeDetectionKernel::xFall == 2);
+    static_assert(KisEdgeDetectionKernel::yGrowth == 3);
+    static_assert(KisEdgeDetectionKernel::yFall == 4);
+    static_assert(KisEdgeDetectionKernel::radian == 5);
+}
+
+void KisImageTypesContractTest::edgeDetectionMatrixAndKernelCreationSignaturesRemainStable()
+{
+    using Matrix = Eigen::Matrix<qreal, Eigen::Dynamic, Eigen::Dynamic>;
+    ASSERT_EDGE_DETECTION_SIGNATURE(createHorizontalMatrix,
+                                    Matrix (*)(qreal, KisEdgeDetectionKernel::FilterType, bool));
+    ASSERT_EDGE_DETECTION_SIGNATURE(createVerticalMatrix, Matrix (*)(qreal, KisEdgeDetectionKernel::FilterType, bool));
+    ASSERT_EDGE_DETECTION_SIGNATURE(createHorizontalKernel,
+                                    KisConvolutionKernelSP (*)(qreal, KisEdgeDetectionKernel::FilterType, bool, bool));
+    ASSERT_EDGE_DETECTION_SIGNATURE(createVerticalKernel,
+                                    KisConvolutionKernelSP (*)(qreal, KisEdgeDetectionKernel::FilterType, bool, bool));
+    static_assert(
+        std::is_same_v<decltype(KisEdgeDetectionKernel::createHorizontalMatrix(1.0, KisEdgeDetectionKernel::Simple)),
+                       Matrix>);
+    static_assert(
+        std::is_same_v<decltype(KisEdgeDetectionKernel::createVerticalMatrix(1.0, KisEdgeDetectionKernel::Simple)),
+                       Matrix>);
+    static_assert(
+        std::is_same_v<decltype(KisEdgeDetectionKernel::createHorizontalKernel(1.0, KisEdgeDetectionKernel::Simple)),
+                       KisConvolutionKernelSP>);
+    static_assert(std::is_same_v<
+                  decltype(KisEdgeDetectionKernel::createHorizontalKernel(1.0, KisEdgeDetectionKernel::Simple, true)),
+                  KisConvolutionKernelSP>);
+    static_assert(
+        std::is_same_v<decltype(KisEdgeDetectionKernel::createVerticalKernel(1.0, KisEdgeDetectionKernel::Simple)),
+                       KisConvolutionKernelSP>);
+    static_assert(std::is_same_v<
+                  decltype(KisEdgeDetectionKernel::createVerticalKernel(1.0, KisEdgeDetectionKernel::Simple, true)),
+                  KisConvolutionKernelSP>);
+}
+
+void KisImageTypesContractTest::edgeDetectionRadiusConversionSignaturesRemainStable()
+{
+    ASSERT_EDGE_DETECTION_SIGNATURE(kernelSizeFromRadius, int (*)(qreal));
+    ASSERT_EDGE_DETECTION_SIGNATURE(sigmaFromRadius, qreal (*)(qreal));
+}
+
+void KisImageTypesContractTest::edgeDetectionDeviceOperationSignaturesRemainStable()
+{
+    using ApplySignature = void (*)(KisPaintDeviceSP,
+                                    const QRect &,
+                                    qreal,
+                                    qreal,
+                                    KisEdgeDetectionKernel::FilterType,
+                                    const QBitArray &,
+                                    KoUpdater *,
+                                    KisEdgeDetectionKernel::FilterOutput,
+                                    bool);
+    using NormalMapSignature = void (*)(KisPaintDeviceSP,
+                                        const QRect &,
+                                        qreal,
+                                        qreal,
+                                        KisEdgeDetectionKernel::FilterType,
+                                        int,
+                                        QVector<int>,
+                                        QVector<bool>,
+                                        const QBitArray &,
+                                        KoUpdater *,
+                                        boost::optional<bool>);
+    ASSERT_EDGE_DETECTION_SIGNATURE(applyEdgeDetection, ApplySignature);
+    ASSERT_EDGE_DETECTION_SIGNATURE(convertToNormalMap, NormalMapSignature);
+    static_assert(std::is_same_v<decltype(KisEdgeDetectionKernel::applyEdgeDetection(std::declval<KisPaintDeviceSP>(),
+                                                                                     std::declval<const QRect &>(),
+                                                                                     1.0,
+                                                                                     1.0,
+                                                                                     KisEdgeDetectionKernel::Simple,
+                                                                                     std::declval<const QBitArray &>(),
+                                                                                     nullptr)),
+                                 void>);
+    static_assert(
+        std::is_same_v<decltype(KisEdgeDetectionKernel::applyEdgeDetection(std::declval<KisPaintDeviceSP>(),
+                                                                           std::declval<const QRect &>(),
+                                                                           1.0,
+                                                                           1.0,
+                                                                           KisEdgeDetectionKernel::Simple,
+                                                                           std::declval<const QBitArray &>(),
+                                                                           nullptr,
+                                                                           KisEdgeDetectionKernel::pythagorean)),
+                       void>);
+    static_assert(std::is_same_v<decltype(KisEdgeDetectionKernel::convertToNormalMap(std::declval<KisPaintDeviceSP>(),
+                                                                                     std::declval<const QRect &>(),
+                                                                                     1.0,
+                                                                                     1.0,
+                                                                                     KisEdgeDetectionKernel::Simple,
+                                                                                     0,
+                                                                                     std::declval<QVector<int>>(),
+                                                                                     std::declval<QVector<bool>>(),
+                                                                                     std::declval<const QBitArray &>(),
+                                                                                     nullptr)),
+                                 void>);
+}
+
 #undef ASSERT_DEFAULT_BOUNDS_SIGNATURE
 #undef ASSERT_LAYER_UTILS_SIGNATURE
 #undef ASSERT_PAINTOP_SETTINGS_SIGNATURE
@@ -2482,6 +2602,7 @@ void KisImageTypesContractTest::verticalWritableIteratorSchemaRemainsStable()
 #undef ASSERT_MASK_GENERATOR_SIGNATURE
 #undef ASSERT_UPDATER_CONTEXT_SIGNATURE
 #undef ASSERT_ITERATOR_SIGNATURE
+#undef ASSERT_EDGE_DETECTION_SIGNATURE
 
 QTEST_GUILESS_MAIN(KisImageTypesContractTest)
 
