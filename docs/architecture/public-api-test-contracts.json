@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 13407
+    "expectedMissingApis": 13372
   },
   "contracts": [
     {
@@ -46560,6 +46560,86 @@
       "apis": [
         "method:KXmlGuiWindow::slotStateChanged(const QString & newstate)",
         "method:KXmlGuiWindow::slotStateChanged(const QString & newstate,bool reverse)"
+      ]
+    },
+    {
+      "target": "KisPlaybackEngineSchemaContractTest",
+      "source": "libs/ui/tests/KisPlaybackEngineSchemaContractTest.cpp",
+      "test": "KisPlaybackEngineSchemaContractTest::playbackEngineTypeLifetimeAndSeekPolicySchemaRemainsStable",
+      "behavior": "再生engineの抽象型・寿命・既定親構築とseek付加方針の公開型・bit値を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:SeekOptionFlags",
+        "class:KisPlaybackEngine",
+        "enum:SeekOption",
+        "enumerator:SeekOption::SEEK_FINALIZE",
+        "enumerator:SeekOption::SEEK_NONE",
+        "enumerator:SeekOption::SEEK_PUSH_AUDIO",
+        "method:KisPlaybackEngine::KisPlaybackEngine(QObject * parent=nullptr)",
+        "method:KisPlaybackEngine::~KisPlaybackEngine()"
+      ]
+    },
+    {
+      "target": "KisPlaybackEngineSchemaContractTest",
+      "source": "libs/ui/tests/KisPlaybackEngineSchemaContractTest.cpp",
+      "test": "KisPlaybackEngineSchemaContractTest::playbackStatisticsValueSchemaRemainsStable",
+      "behavior": "再生統計の期待・実測frame rateとdrop割合の型、ゼロ既定値、copy独立性を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisPlaybackEngine::PlaybackStats::droppedFramesPortion",
+        "member:KisPlaybackEngine::PlaybackStats::expectedFps",
+        "member:KisPlaybackEngine::PlaybackStats::realFps",
+        "struct:KisPlaybackEngine::PlaybackStats"
+      ]
+    },
+    {
+      "target": "KisPlaybackEngineSchemaContractTest",
+      "source": "libs/ui/tests/KisPlaybackEngineSchemaContractTest.cpp",
+      "test": "KisPlaybackEngineSchemaContractTest::playbackTransportAndSeekSignaturesRemainStable",
+      "behavior": "再生engineのtransport、frame移動、既定音声送出・確定を伴うseekの公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPlaybackEngine::firstFrame()",
+        "method:KisPlaybackEngine::lastFrame()",
+        "method:KisPlaybackEngine::nextFrame()",
+        "method:KisPlaybackEngine::pause()",
+        "method:KisPlaybackEngine::play()",
+        "method:KisPlaybackEngine::playPause()",
+        "method:KisPlaybackEngine::previousFrame()",
+        "method:KisPlaybackEngine::seek(int frameIndex,SeekOptionFlags options=SEEK_FINALIZE|SEEK_PUSH_AUDIO)",
+        "method:KisPlaybackEngine::stop()"
+      ]
+    },
+    {
+      "target": "KisPlaybackEngineSchemaContractTest",
+      "source": "libs/ui/tests/KisPlaybackEngineSchemaContractTest.cpp",
+      "test": "KisPlaybackEngineSchemaContractTest::playbackKeyframeNavigationSignaturesRemainStable",
+      "behavior": "再生engineの通常・照合済み・未filter keyframe前後移動を区別する公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPlaybackEngine::nextKeyframe()",
+        "method:KisPlaybackEngine::nextMatchingKeyframe()",
+        "method:KisPlaybackEngine::nextUnfilteredKeyframe()",
+        "method:KisPlaybackEngine::previousKeyframe()",
+        "method:KisPlaybackEngine::previousMatchingKeyframe()",
+        "method:KisPlaybackEngine::previousUnfilteredKeyframe()"
+      ]
+    },
+    {
+      "target": "KisPlaybackEngineSchemaContractTest",
+      "source": "libs/ui/tests/KisPlaybackEngineSchemaContractTest.cpp",
+      "test": "KisPlaybackEngineSchemaContractTest::playbackAudioDropPolicyAndNotificationSignaturesRemainStable",
+      "behavior": "再生engineのmute・frame drop・音声・速度対応・統計取得・方針変更通知の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPlaybackEngine::dropFrames() const",
+        "method:KisPlaybackEngine::isMute()",
+        "method:KisPlaybackEngine::playbackStatistics() const",
+        "method:KisPlaybackEngine::setDropFramesMode(bool value)",
+        "method:KisPlaybackEngine::setMute(bool val)",
+        "method:KisPlaybackEngine::sigDropFramesModeChanged(bool value)",
+        "method:KisPlaybackEngine::supportsAudio()",
+        "method:KisPlaybackEngine::supportsVariablePlaybackSpeed()"
       ]
     }
   ]
