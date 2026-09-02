@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 13553
+    "expectedMissingApis": 13525
   },
   "contracts": [
     {
@@ -46189,6 +46189,79 @@
         "method:KisPaletteModel::removeGroup(const QString & groupName,bool keepColors)",
         "method:KisPaletteModel::setColumnCount(int colCount)",
         "method:KisPaletteModel::setRowCountForGroup(const QString & groupName,int rowCount)"
+      ]
+    },
+    {
+      "target": "KoSvgTextEnumContractTest",
+      "source": "libs/flake/tests/KoSvgTextEnumContractTest.cpp",
+      "test": "KoSvgTextEnumContractTest::svgTextFontRecordSchemaRemainsStable",
+      "behavior": "SVG文字font axis・style記録の診断、等価比較、stream入出力の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KoSvgText::operator <<(QDataStream & out,const KoSvgText::FontFamilyAxis & axis)",
+        "function:KoSvgText::operator >>(QDataStream & in,KoSvgText::FontFamilyAxis & axis)",
+        "method:KoSvgText::FontFamilyAxis::debugInfo() const",
+        "method:KoSvgText::FontFamilyAxis::operator ==(const FontFamilyAxis & other) const",
+        "method:KoSvgText::FontFamilyStyleInfo::debugInfo() const",
+        "method:KoSvgText::FontFamilyStyleInfo::operator ==(const FontFamilyStyleInfo & other) const"
+      ]
+    },
+    {
+      "target": "KoSvgTextEnumContractTest",
+      "source": "libs/flake/tests/KoSvgTextEnumContractTest.cpp",
+      "test": "KoSvgTextEnumContractTest::svgTextDebugFormattingSchemaRemainsStable",
+      "behavior": "SVG文字の自動値、font、feature、indent、変換情報を診断出力する各公開overloadを固定する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KoSvgText::operator <<(QDebug dbg,const KoSvgText::AutoLengthPercentage & value)",
+        "function:KoSvgText::operator <<(QDebug dbg,const KoSvgText::AutoValue & value)",
+        "function:KoSvgText::operator <<(QDebug dbg,const KoSvgText::CssFontStyleData & value)",
+        "function:KoSvgText::operator <<(QDebug dbg,const KoSvgText::FontFamilyAxis & axis)",
+        "function:KoSvgText::operator <<(QDebug dbg,const KoSvgText::FontFamilyStyleInfo & style)",
+        "function:KoSvgText::operator <<(QDebug dbg,const KoSvgText::FontFeatureEastAsian & feature)",
+        "function:KoSvgText::operator <<(QDebug dbg,const KoSvgText::FontFeatureLigatures & feature)",
+        "function:KoSvgText::operator <<(QDebug dbg,const KoSvgText::FontFeatureNumeric & feature)",
+        "function:KoSvgText::operator <<(QDebug dbg,const KoSvgText::TextIndentInfo & value)",
+        "function:KoSvgText::operator <<(QDebug dbg,const KoSvgText::TextTransformInfo & t)"
+      ]
+    },
+    {
+      "target": "KoSvgTextEnumContractTest",
+      "source": "libs/flake/tests/KoSvgTextEnumContractTest.cpp",
+      "test": "KoSvgTextEnumContractTest::svgTextAutomaticValueParsingSchemaRemainsStable",
+      "behavior": "SVG文字の自動値変換と座標・角度別parseの公開署名および既定引数を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KoSvgText::fromAutoValue(const KoSvgText::AutoValue & value)",
+        "function:KoSvgText::parseAutoLengthPercentageXY(const QString & value,const SvgLoadingContext & context,const QString & autoKeyword=\"auto\",QRectF bbox=QRectF (),bool percentageIsViewPort=true)",
+        "function:KoSvgText::parseAutoValueAngular(const QString & value,const SvgLoadingContext & context,const QString & autoKeyword=\"auto\")",
+        "function:KoSvgText::parseAutoValueX(const QString & value,const SvgLoadingContext & context,const QString & autoKeyword=\"auto\")",
+        "function:KoSvgText::parseAutoValueXY(const QString & value,const SvgLoadingContext & context,const QString & autoKeyword=\"auto\")",
+        "function:KoSvgText::parseAutoValueY(const QString & value,const SvgLoadingContext & context,const QString & autoKeyword=\"auto\")"
+      ]
+    },
+    {
+      "target": "KoSvgTextEnumContractTest",
+      "source": "libs/flake/tests/KoSvgTextEnumContractTest.cpp",
+      "test": "KoSvgTextEnumContractTest::svgTextValueWritingSchemaRemainsStable",
+      "behavior": "SVG文字の自動値、baseline shift、indent書式化の公開署名と既定引数を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KoSvgText::writeAutoLengthPercentage(const AutoLengthPercentage & value,const QString & autoKeyword=\"auto\",bool percentageToEm=false)",
+        "function:KoSvgText::writeAutoValue(const AutoValue & value,const QString & autoKeyword=\"auto\")",
+        "function:KoSvgText::writeBaselineShiftMode(BaselineShiftMode value,CssLengthPercentage shift)",
+        "function:KoSvgText::writeTextIndent(TextIndentInfo textIndent)"
+      ]
+    },
+    {
+      "target": "KoSvgTextEnumContractTest",
+      "source": "libs/flake/tests/KoSvgTextEnumContractTest.cpp",
+      "test": "KoSvgTextEnumContractTest::svgTextCssParsingSchemaRemainsStable",
+      "behavior": "SVG文字のCSS font stretchとtext indent parseの公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KoSvgText::parseCSSFontStretch(const QString & value,int currentStretch)",
+        "function:KoSvgText::parseTextIndent(const QString & value,const SvgLoadingContext & context)"
       ]
     }
   ]
