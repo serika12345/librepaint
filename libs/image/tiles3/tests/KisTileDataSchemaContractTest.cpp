@@ -4,6 +4,7 @@
  */
 
 #include "tiles3/kis_tile_data_interface.h"
+#include "tiles3/kis_tile_data_store.h"
 
 #include <QTest>
 
@@ -20,6 +21,11 @@ private Q_SLOTS:
     void tileDataStorageAndReferenceSignaturesRemainStable();
     void tileDataSwapHistoryAndAgeSignaturesRemainStable();
     void tileDataMemoryLifecycleSignaturesRemainStable();
+    void tileDataStoreTypeAndMemoryValueSchemaRemainsStable();
+    void tileDataStoreSingletonAndStatisticsSignaturesRemainStable();
+    void tileDataStoreIterationSignaturesRemainStable();
+    void tileDataStoreTileLifetimeSignaturesRemainStable();
+    void tileDataStoreMaintenanceSignaturesRemainStable();
 };
 
 void KisTileDataSchemaContractTest::tileDataCacheTypesAndOperationsSchemaRemainsStable()
@@ -102,6 +108,80 @@ void KisTileDataSchemaContractTest::tileDataMemoryLifecycleSignaturesRemainStabl
     static_assert(std::is_same_v<decltype(&KisTileData::allocateMemory), MemorySignature>);
     static_assert(std::is_same_v<decltype(&KisTileData::releaseMemory), MemorySignature>);
     static_assert(std::is_same_v<decltype(&KisTileData::releaseInternalPools), ReleasePoolsSignature>);
+}
+
+void KisTileDataSchemaContractTest::tileDataStoreTypeAndMemoryValueSchemaRemainsStable()
+{
+    using Statistics = KisTileDataStore::MemoryStatistics;
+    using MemoryValueMember = qint64 Statistics::*;
+
+    static_assert(std::is_class_v<KisTileDataStore>);
+    static_assert(std::is_class_v<Statistics>);
+    static_assert(std::is_same_v<decltype(&Statistics::totalMemorySize), MemoryValueMember>);
+    static_assert(std::is_same_v<decltype(&Statistics::realMemorySize), MemoryValueMember>);
+    static_assert(std::is_same_v<decltype(&Statistics::historicalMemorySize), MemoryValueMember>);
+    static_assert(std::is_same_v<decltype(&Statistics::poolSize), MemoryValueMember>);
+    static_assert(std::is_same_v<decltype(&Statistics::swapSize), MemoryValueMember>);
+    static_assert(std::is_default_constructible_v<KisTileDataStore>);
+    static_assert(std::is_destructible_v<KisTileDataStore>);
+    static_assert(std::is_same_v<decltype(MiB_TO_METRIC(qint64{})), qint64>);
+}
+
+void KisTileDataSchemaContractTest::tileDataStoreSingletonAndStatisticsSignaturesRemainStable()
+{
+    static_assert(std::is_same_v<decltype(&KisTileDataStore::instance), KisTileDataStore *(*)()>);
+    static_assert(std::is_same_v<decltype(&KisTileDataStore::memoryStatistics),
+                                 KisTileDataStore::MemoryStatistics (KisTileDataStore::*)()>);
+    static_assert(std::is_same_v<decltype(&KisTileDataStore::tryForceUpdateMemoryStatisticsWhileIdle),
+                                 void (KisTileDataStore::*)()>);
+    static_assert(std::is_same_v<decltype(&KisTileDataStore::numTiles), qint32 (KisTileDataStore::*)() const>);
+    static_assert(std::is_same_v<decltype(&KisTileDataStore::numTilesInMemory), qint32 (KisTileDataStore::*)() const>);
+    static_assert(std::is_same_v<decltype(&KisTileDataStore::memoryMetric), qint64 (KisTileDataStore::*)() const>);
+}
+
+void KisTileDataSchemaContractTest::tileDataStoreIterationSignaturesRemainStable()
+{
+    static_assert(
+        std::is_same_v<decltype(&KisTileDataStore::beginIteration), KisTileDataStoreIterator *(KisTileDataStore::*)()>);
+    static_assert(std::is_same_v<decltype(&KisTileDataStore::beginReverseIteration),
+                                 KisTileDataStoreReverseIterator *(KisTileDataStore::*)()>);
+    static_assert(std::is_same_v<decltype(&KisTileDataStore::beginClockIteration),
+                                 KisTileDataStoreClockIterator *(KisTileDataStore::*)()>);
+    static_assert(std::is_same_v<decltype(static_cast<void (KisTileDataStore::*)(KisTileDataStoreIterator *)>(
+                                     &KisTileDataStore::endIteration)),
+                                 void (KisTileDataStore::*)(KisTileDataStoreIterator *)>);
+    static_assert(std::is_same_v<decltype(static_cast<void (KisTileDataStore::*)(KisTileDataStoreReverseIterator *)>(
+                                     &KisTileDataStore::endIteration)),
+                                 void (KisTileDataStore::*)(KisTileDataStoreReverseIterator *)>);
+    static_assert(std::is_same_v<decltype(static_cast<void (KisTileDataStore::*)(KisTileDataStoreClockIterator *)>(
+                                     &KisTileDataStore::endIteration)),
+                                 void (KisTileDataStore::*)(KisTileDataStoreClockIterator *)>);
+}
+
+void KisTileDataSchemaContractTest::tileDataStoreTileLifetimeSignaturesRemainStable()
+{
+    using TileArgumentSignature = void (KisTileDataStore::*)(KisTileData *);
+
+    static_assert(std::is_same_v<decltype(&KisTileDataStore::createDefaultTileData),
+                                 KisTileData *(KisTileDataStore::*)(qint32, const quint8 *)>);
+    static_assert(std::is_same_v<decltype(&KisTileDataStore::duplicateTileData),
+                                 KisTileData *(KisTileDataStore::*)(KisTileData *)>);
+    static_assert(std::is_same_v<decltype(&KisTileDataStore::freeTileData), TileArgumentSignature>);
+    static_assert(std::is_same_v<decltype(&KisTileDataStore::ensureTileDataLoaded), TileArgumentSignature>);
+    static_assert(std::is_same_v<decltype(&KisTileDataStore::registerTileData), TileArgumentSignature>);
+    static_assert(std::is_same_v<decltype(&KisTileDataStore::unregisterTileData), TileArgumentSignature>);
+    static_assert(
+        std::is_same_v<decltype(&KisTileDataStore::trySwapTileData), bool (KisTileDataStore::*)(KisTileData *)>);
+}
+
+void KisTileDataSchemaContractTest::tileDataStoreMaintenanceSignaturesRemainStable()
+{
+    using VoidSignature = void (KisTileDataStore::*)();
+
+    static_assert(std::is_same_v<decltype(&KisTileDataStore::checkFreeMemory), VoidSignature>);
+    static_assert(std::is_same_v<decltype(&KisTileDataStore::debugPrintList), VoidSignature>);
+    static_assert(std::is_same_v<decltype(&KisTileDataStore::kickPooler), VoidSignature>);
+    static_assert(std::is_same_v<decltype(&KisTileDataStore::purgeMemory), VoidSignature>);
 }
 
 QTEST_GUILESS_MAIN(KisTileDataSchemaContractTest)
