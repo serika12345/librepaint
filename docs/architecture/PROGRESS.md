@@ -17,6 +17,15 @@
 - `g105-svg-value-audit`はflake・SVG・vector・documentから、第168便のpath shapeを除外して一責務を選ぶ。
 - `g105-widget-connection-audit`はwidgetutils・widgets・libkis・軽量接続面から、第168便のaction registryを除外して一責務を選ぶ。
 - 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、予測工程・入力と停止線、開始pathから契約先、許可path、固有停止条件、比較候補の棄却根拠を含む。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
+- `g105-paintop-value-audit`は`libs/pigment/resources/KisSwatchGroup.h`の全22 APIを採用した。所有・copy・寿命5、entry値5、配置・件数6、identity・一覧3、検索・debug 3を既存
+  `libs/pigment/tests/KoColorSetSchemaContractTest.cpp`の5枠へ対応付ける。静的countとdebug演算子は型だけを観測し、group、swatch、resource registryを実体化しない。CMakeと依存を変えず対象4工程・8入力、停止5工程・11入力を維持する。
+  `KoColorSpaceAbstract.h`はtemplate特殊化とpixel処理、mask applicatorは生pixel pointer、`KoAbstractGradient.h`はresource・preview・色空間、rect walkerはimage・node・projectionへ閉包が広がるため棄却した。
+- `g105-svg-value-audit`は`libs/flake/text/KoSvgTextContentElement.h`の全21 APIを採用した。identity・寿命4、property・path値5、layout・装飾値5、XML署名3、文字照会・編集4を新規
+  `libs/flake/tests/KoSvgTextContentElementSchemaContractTest.cpp`の5枠へ対応付ける。XML、文字変換、編集本文を実行せず、省略形だけを未評価式で固定する。直接linkはQt Gui・Test・Xmlだけ、新対象4工程・8入力、停止5工程・11入力、製品`kritaflake` 621工程・1,274入力を維持する。
+  `KoShapeReorderCommand.h`は生shape pointer、font群はresource・model・metaobject、SVG parser群はXML・filesystem・shape registry、tool・canvas群はGUI・大域状態へ閉包が広がるため棄却した。
+- `g105-widget-connection-audit`は`libs/widgets/KisWidgetConnectionUtils.h`の残存全21 APIを採用した。基本control接続5、選択・action・文字control 4、専用control 5、control状態接続5、表示property接続2を既存
+  `libs/widgets/tests/KisWidgetConnectionStateContractTest.cpp`の5枠へ対応付ける。厳密なoverload関数型だけを観測し、Widget、接続、signal、property、event loopを実行しない。CMakeと依存を変えず対象4工程・8入力、停止5工程・11入力を維持する。
+  libkis Node・Krita・Scratchpadは複数責務・大域状態・資源・生pointer所有、色選択Widget群は描画・event・色空間、XML GUI・file dialog群は設定I/O・filesystem・action生成へ閉包が広がるため棄却した。
 
 ### 第168便の先行監査計画
 
