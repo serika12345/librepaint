@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 13829
+    "expectedMissingApis": 13794
   },
   "contracts": [
     {
@@ -45508,6 +45508,86 @@
         "method:FileDialog::getOpenFileName(QWidget * parent=nullptr,const QString & caption=QString (),const QString & directory=QString (),const QString & filter=QString (),const QString & selectedFilter=QString (),const QString & dialogName=QString ())",
         "method:FileDialog::getOpenFileNames(QWidget * parent=nullptr,const QString & caption=QString (),const QString & directory=QString (),const QString & filter=QString (),const QString & selectedFilter=QString (),const QString & dialogName=QString ())",
         "method:FileDialog::getSaveFileName(QWidget * parent=nullptr,const QString & caption=QString (),const QString & directory=QString (),const QString & filter=QString (),const QString & selectedFilter=QString (),const QString & dialogName=QString ())"
+      ]
+    },
+    {
+      "target": "KisSegmentGradientSliderSchemaContractTest",
+      "source": "libs/ui/tests/KisSegmentGradientSliderSchemaContractTest.cpp",
+      "test": "KisSegmentGradientSliderSchemaContractTest::segmentGradientSliderHandleSchemaRemainsStable",
+      "behavior": "セグメント勾配sliderの型、handle種別値、handle構造、縮小許容値を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisSegmentGradientSlider",
+        "enum:KisSegmentGradientSlider::HandleType",
+        "enumerator:KisSegmentGradientSlider::HandleType::HandleType_MidPoint",
+        "enumerator:KisSegmentGradientSlider::HandleType::HandleType_None",
+        "enumerator:KisSegmentGradientSlider::HandleType::HandleType_Segment",
+        "enumerator:KisSegmentGradientSlider::HandleType::HandleType_Stop",
+        "member:KisSegmentGradientSlider::Handle::index",
+        "member:KisSegmentGradientSlider::Handle::type",
+        "member:KisSegmentGradientSlider::shrinkEpsilon",
+        "struct:KisSegmentGradientSlider::Handle"
+      ]
+    },
+    {
+      "target": "KisSegmentGradientSliderSchemaContractTest",
+      "source": "libs/ui/tests/KisSegmentGradientSliderSchemaContractTest.cpp",
+      "test": "KisSegmentGradientSliderSchemaContractTest::segmentGradientSliderConstructionAndSelectionSchemaRemainsStable",
+      "behavior": "セグメント勾配sliderの既定引数を含む構築、選択handle、寸法、勾配資源設定の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSegmentGradientSlider::KisSegmentGradientSlider(QWidget * parent=nullptr,const char * name=nullptr,Qt::WindowFlags f=Qt::WindowFlags ())",
+        "method:KisSegmentGradientSlider::minimumSizeHint() const",
+        "method:KisSegmentGradientSlider::selectedHandle()",
+        "method:KisSegmentGradientSlider::setGradientResource(KoSegmentGradientSP agr)",
+        "method:KisSegmentGradientSlider::sizeHint() const"
+      ]
+    },
+    {
+      "target": "KisSegmentGradientSliderSchemaContractTest",
+      "source": "libs/ui/tests/KisSegmentGradientSliderSchemaContractTest.cpp",
+      "test": "KisSegmentGradientSliderSchemaContractTest::segmentGradientSliderNavigationAndNotificationSchemaRemainsStable",
+      "behavior": "セグメント勾配sliderの選択handle移動、中央寄せ、色選択と変更通知の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSegmentGradientSlider::centerSelectedHandle()",
+        "method:KisSegmentGradientSlider::chooseSelectedStopColor()",
+        "method:KisSegmentGradientSlider::selectNextHandle()",
+        "method:KisSegmentGradientSlider::selectPreviousHandle()",
+        "method:KisSegmentGradientSlider::selectedHandleChanged()",
+        "method:KisSegmentGradientSlider::updateRequested()"
+      ]
+    },
+    {
+      "target": "KisSegmentGradientSliderSchemaContractTest",
+      "source": "libs/ui/tests/KisSegmentGradientSliderSchemaContractTest.cpp",
+      "test": "KisSegmentGradientSliderSchemaContractTest::segmentGradientSliderHandleMovementSchemaRemainsStable",
+      "behavior": "セグメント勾配sliderのhandle削除と個別・選択handle移動の既定引数を含む公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSegmentGradientSlider::deleteHandle(Handle handle)",
+        "method:KisSegmentGradientSlider::moveHandle(Handle handle,qreal distance,bool useShrinkEpsilon=true)",
+        "method:KisSegmentGradientSlider::moveHandleLeft(Handle handle,qreal distance,bool useShrinkEpsilon=true)",
+        "method:KisSegmentGradientSlider::moveHandleRight(Handle handle,qreal distance,bool useShrinkEpsilon=true)",
+        "method:KisSegmentGradientSlider::moveSelectedHandle(qreal distance,bool useShrinkEpsilon=true)",
+        "method:KisSegmentGradientSlider::moveSelectedHandleLeft(qreal distance,bool useShrinkEpsilon=true)",
+        "method:KisSegmentGradientSlider::moveSelectedHandleRight(qreal distance,bool useShrinkEpsilon=true)"
+      ]
+    },
+    {
+      "target": "KisSegmentGradientSliderSchemaContractTest",
+      "source": "libs/ui/tests/KisSegmentGradientSliderSchemaContractTest.cpp",
+      "test": "KisSegmentGradientSliderSchemaContractTest::segmentGradientSliderMutationSchemaRemainsStable",
+      "behavior": "セグメント勾配sliderの選択要素削除、分割、複製、反転、均等配置の公開操作署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSegmentGradientSlider::collapseSelectedSegment()",
+        "method:KisSegmentGradientSlider::deleteSelectedHandle()",
+        "method:KisSegmentGradientSlider::distributeStopsEvenly()",
+        "method:KisSegmentGradientSlider::duplicateSelectedSegment()",
+        "method:KisSegmentGradientSlider::flipGradient()",
+        "method:KisSegmentGradientSlider::mirrorSelectedSegment()",
+        "method:KisSegmentGradientSlider::splitSelectedSegment()"
       ]
     }
   ]
