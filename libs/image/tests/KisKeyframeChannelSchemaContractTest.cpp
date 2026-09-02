@@ -4,6 +4,7 @@
  */
 
 #include "kis_keyframe_channel.h"
+#include "kis_scalar_keyframe_channel.h"
 
 #include <QTest>
 
@@ -43,6 +44,11 @@ private Q_SLOTS:
     void keyframeChannelMutationSchemaRemainsStable();
     void keyframeChannelOwnershipFrameAndSerializationSchemaRemainsStable();
     void keyframeChannelNotificationSchemaRemainsStable();
+    void scalarKeyframeLimitsValueSchemaRemainsStable();
+    void scalarKeyframeTypeAndInterpolationSchemaRemainsStable();
+    void scalarKeyframeValueAndTangentSchemaRemainsStable();
+    void scalarKeyframeChannelTypeAndPolicySchemaRemainsStable();
+    void scalarKeyframeChannelEvaluationAndMutationSchemaRemainsStable();
 };
 
 void KisKeyframeChannelSchemaContractTest::keyframeChannelTypeLifetimeAndIdentifierSchemaRemainsStable()
@@ -150,6 +156,116 @@ void KisKeyframeChannelSchemaContractTest::keyframeChannelNotificationSchemaRema
     static_assert(std::is_same_v<decltype(&Channel::sigKeyframeHasBeenRemoved), NotificationSignature>);
     static_assert(std::is_same_v<decltype(&Channel::sigKeyframeChanged), NotificationSignature>);
     static_assert(std::is_same_v<decltype(&Channel::sigAnyKeyframeChange), void (Channel::*)()>);
+}
+
+void KisKeyframeChannelSchemaContractTest::scalarKeyframeLimitsValueSchemaRemainsStable()
+{
+    static_assert(std::is_class_v<ScalarKeyframeLimits>);
+    static_assert(std::is_same_v<decltype(ScalarKeyframeLimits::lower), qreal>);
+    static_assert(std::is_same_v<decltype(ScalarKeyframeLimits::upper), qreal>);
+    static_assert(std::is_constructible_v<ScalarKeyframeLimits, qreal, qreal>);
+    static_assert(std::is_same_v<decltype(&ScalarKeyframeLimits::clamp), qreal (ScalarKeyframeLimits::*)(qreal)>);
+
+    ScalarKeyframeLimits limits(5.0, 1.0);
+    QCOMPARE(limits.lower, 1.0);
+    QCOMPARE(limits.upper, 5.0);
+    QCOMPARE(limits.clamp(-1.0), 1.0);
+    QCOMPARE(limits.clamp(3.0), 3.0);
+    QCOMPARE(limits.clamp(8.0), 5.0);
+}
+
+void KisKeyframeChannelSchemaContractTest::scalarKeyframeTypeAndInterpolationSchemaRemainsStable()
+{
+    using Keyframe = KisScalarKeyframe;
+    using LimitsSP = QSharedPointer<ScalarKeyframeLimits>;
+
+    static_assert(std::is_class_v<Keyframe>);
+    static_assert(std::is_enum_v<Keyframe::InterpolationMode>);
+    static_assert(int(Keyframe::Constant) == 0);
+    static_assert(int(Keyframe::Linear) == 1);
+    static_assert(int(Keyframe::Bezier) == 2);
+    static_assert(std::is_enum_v<Keyframe::TangentsMode>);
+    static_assert(int(Keyframe::Sharp) == 0);
+    static_assert(int(Keyframe::Smooth) == 1);
+    static_assert(std::is_constructible_v<Keyframe, qreal, LimitsSP>);
+    static_assert(std::is_constructible_v<Keyframe,
+                                          qreal,
+                                          Keyframe::InterpolationMode,
+                                          Keyframe::TangentsMode,
+                                          QPointF,
+                                          QPointF,
+                                          LimitsSP>);
+    static_assert(std::is_same_v<decltype(Keyframe::valueChangedChannelConnection), QMetaObject::Connection>);
+}
+
+void KisKeyframeChannelSchemaContractTest::scalarKeyframeValueAndTangentSchemaRemainsStable()
+{
+    using Keyframe = KisScalarKeyframe;
+    using LimitsSP = QSharedPointer<ScalarKeyframeLimits>;
+
+    static_assert(std::is_same_v<decltype(&Keyframe::duplicate), KisKeyframeSP (Keyframe::*)(KisKeyframeChannel *)>);
+    static_assert(std::is_same_v<decltype(&Keyframe::setValue), void (Keyframe::*)(qreal, KUndo2Command *)>);
+    static_assert(std::is_same_v<decltype(&Keyframe::value), qreal (Keyframe::*)() const>);
+    static_assert(std::is_same_v<decltype(&Keyframe::setInterpolationMode),
+                                 void (Keyframe::*)(Keyframe::InterpolationMode, KUndo2Command *)>);
+    static_assert(
+        std::is_same_v<decltype(&Keyframe::interpolationMode), Keyframe::InterpolationMode (Keyframe::*)() const>);
+    static_assert(std::is_same_v<decltype(&Keyframe::setTangentsMode),
+                                 void (Keyframe::*)(Keyframe::TangentsMode, KUndo2Command *)>);
+    static_assert(std::is_same_v<decltype(&Keyframe::tangentsMode), Keyframe::TangentsMode (Keyframe::*)() const>);
+    static_assert(std::is_same_v<decltype(&Keyframe::setInterpolationTangents),
+                                 void (Keyframe::*)(QPointF, QPointF, KUndo2Command *)>);
+    static_assert(std::is_same_v<decltype(&Keyframe::leftTangent), QPointF (Keyframe::*)() const>);
+    static_assert(std::is_same_v<decltype(&Keyframe::rightTangent), QPointF (Keyframe::*)() const>);
+    static_assert(std::is_same_v<decltype(&Keyframe::setLimits), void (Keyframe::*)(LimitsSP)>);
+    static_assert(std::is_same_v<decltype(&Keyframe::sigChanged), void (Keyframe::*)(const Keyframe *)>);
+
+    static_assert(std::is_same_v<decltype(std::declval<Keyframe &>().duplicate()), KisKeyframeSP>);
+    static_assert(std::is_same_v<decltype(std::declval<Keyframe &>().setValue(0.0)), void>);
+    static_assert(std::is_same_v<decltype(std::declval<Keyframe &>().setInterpolationMode(Keyframe::Constant)), void>);
+    static_assert(std::is_same_v<decltype(std::declval<Keyframe &>().setTangentsMode(Keyframe::Sharp)), void>);
+    static_assert(
+        std::is_same_v<decltype(std::declval<Keyframe &>().setInterpolationTangents(QPointF(), QPointF())), void>);
+}
+
+void KisKeyframeChannelSchemaContractTest::scalarKeyframeChannelTypeAndPolicySchemaRemainsStable()
+{
+    using Channel = KisScalarKeyframeChannel;
+    using LimitsSP = QSharedPointer<ScalarKeyframeLimits>;
+
+    static_assert(std::is_class_v<Channel>);
+    static_assert(std::is_constructible_v<Channel, const KoID &, KisDefaultBoundsBaseSP>);
+    static_assert(std::is_constructible_v<Channel, const Channel &>);
+    static_assert(std::has_virtual_destructor_v<Channel>);
+    static_assert(std::is_same_v<decltype(&Channel::limits), LimitsSP (Channel::*)() const>);
+    static_assert(std::is_same_v<decltype(&Channel::setLimits), void (Channel::*)(qreal, qreal)>);
+    static_assert(std::is_same_v<decltype(&Channel::removeLimits), void (Channel::*)()>);
+    static_assert(std::is_same_v<decltype(&Channel::setDefaultValue), void (Channel::*)(qreal)>);
+    static_assert(std::is_same_v<decltype(&Channel::setDefaultInterpolationMode),
+                                 void (Channel::*)(KisScalarKeyframe::InterpolationMode)>);
+    static_assert(std::is_same_v<decltype(&Channel::currentValue), qreal (Channel::*)()>);
+    static_assert(std::is_same_v<decltype(&Channel::isCurrentTimeAffectedBy), bool (Channel::*)(int)>);
+}
+
+void KisKeyframeChannelSchemaContractTest::scalarKeyframeChannelEvaluationAndMutationSchemaRemainsStable()
+{
+    using Channel = KisScalarKeyframeChannel;
+
+    static_assert(
+        std::is_same_v<decltype(&Channel::addScalarKeyframe), void (Channel::*)(int, qreal, KUndo2Command *)>);
+    static_assert(std::is_same_v<decltype(&Channel::valueAt), qreal (Channel::*)(int) const>);
+    static_assert(
+        std::is_same_v<decltype(&Channel::interpolate), QPointF (*)(QPointF, QPointF, QPointF, QPointF, qreal)>);
+    static_assert(
+        std::is_same_v<decltype(&Channel::insertKeyframe), void (Channel::*)(int, KisKeyframeSP, KUndo2Command *)>);
+    static_assert(std::is_same_v<decltype(&Channel::removeKeyframe), void (Channel::*)(int, KUndo2Command *)>);
+    static_assert(std::is_same_v<decltype(&Channel::affectedFrames), KisTimeSpan (Channel::*)(int) const>);
+    static_assert(std::is_same_v<decltype(&Channel::identicalFrames), KisTimeSpan (Channel::*)(int) const>);
+
+    static_assert(std::is_same_v<decltype(std::declval<Channel &>().addScalarKeyframe(0, 0.0)), void>);
+    static_assert(
+        std::is_same_v<decltype(std::declval<Channel &>().insertKeyframe(0, std::declval<KisKeyframeSP>())), void>);
+    static_assert(std::is_same_v<decltype(std::declval<Channel &>().removeKeyframe(0)), void>);
 }
 
 QTEST_GUILESS_MAIN(KisKeyframeChannelSchemaContractTest)
