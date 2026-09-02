@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 12:41 JST
+- 更新日時: 2026-09-02 12:43 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -85,6 +85,9 @@
   pointer、lock、store、inline本文、manager通知、memory・診断処理を生成または実行していない。担当macOS環境と中央環境で5枠を含む対象CTest・20回反復、近傍`KisChunkAllocatorSchemaContractTest`、無作業再構築、
   動的接続・未解決記号、構文・書式、公開API検査に成功した。中央の公開API契約検査は29,838件中14,872件対応、14,966件未対応となる。作業tree 871,596 KiBと担当branchは削除した。data操作、lock、manager通知の
   実行時挙動は別の効果契約で扱う。
+- 第148便全体で53 APIを追加し、採用2担当と実体化停止1担当の作業tree計2,627,960 KiB（約2.51 GiB）を回収した。旧不足報告を削除し、主Ninja木5.4 GiB、共有compiler cache 961 MiB、最新不足報告
+  `build/tdd-macos/public-api-missing-g149.json`だけを再利用対象として保持する。次の永続作業は第149便の不足報告から、pathと所有CMakeが重ならない3責務を先行監査し、限定構築範囲を確認してから担当票を
+  確定することである。
 
 ### 第147便の先行監査計画
 
