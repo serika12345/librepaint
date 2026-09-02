@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 14264
+    "expectedMissingApis": 14236
   },
   "contracts": [
     {
@@ -44443,6 +44443,79 @@
         "method:KisVisualColorModel::sigColorModelChanged()",
         "method:KisVisualColorModel::sigColorSpaceChanged()",
         "method:KisVisualColorModel::sigNewColor(const KoColor & c)"
+      ]
+    },
+    {
+      "target": "KoSvgTextCharacterResultValueContractTest",
+      "source": "libs/flake/tests/KoSvgTextCharacterResultValueContractTest.cpp",
+      "test": "KoSvgTextCharacterResultValueContractTest::textCursorDirectionalNavigationSignaturesRemainStable",
+      "behavior": "SVG文字shapeはカーソルの方向・行・単語・隣接index移動に関する厳密な公開関数型と既定引数を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoSvgTextShape::lineEnd(int pos)",
+        "method:KoSvgTextShape::lineStart(int pos)",
+        "method:KoSvgTextShape::nextIndex(int pos)",
+        "method:KoSvgTextShape::nextLine(int pos)",
+        "method:KoSvgTextShape::posDown(int pos,bool visual=false)",
+        "method:KoSvgTextShape::posLeft(int pos,bool visual=false)",
+        "method:KoSvgTextShape::posRight(int pos,bool visual=false)",
+        "method:KoSvgTextShape::posUp(int pos,bool visual=false)",
+        "method:KoSvgTextShape::previousIndex(int pos)",
+        "method:KoSvgTextShape::previousLine(int pos)",
+        "method:KoSvgTextShape::wordEnd(int pos)",
+        "method:KoSvgTextShape::wordLeft(int pos,bool visual=false)",
+        "method:KoSvgTextShape::wordRight(int pos,bool visual=false)",
+        "method:KoSvgTextShape::wordStart(int pos)"
+      ]
+    },
+    {
+      "target": "KoSvgTextCharacterResultValueContractTest",
+      "source": "libs/flake/tests/KoSvgTextCharacterResultValueContractTest.cpp",
+      "test": "KoSvgTextCharacterResultValueContractTest::textCursorGeometryQuerySignaturesRemainStable",
+      "behavior": "SVG文字shapeはcaret・選択・座標照会・初期位置に関する厳密な公開関数型と既定引数を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoSvgTextShape::cursorForPos(int pos,QLineF & caret,QColor & color,double bidiFlagSize=1.0)",
+        "method:KoSvgTextShape::initialTextPosition() const",
+        "method:KoSvgTextShape::posForPoint(QPointF point,int start=-1,int end=-1,bool * overlaps=nullptr)",
+        "method:KoSvgTextShape::posForPointLineSensitive(QPointF point)",
+        "method:KoSvgTextShape::selectionBoxes(int pos,int anchor)"
+      ]
+    },
+    {
+      "target": "KoSvgTextCharacterResultValueContractTest",
+      "source": "libs/flake/tests/KoSvgTextCharacterResultValueContractTest.cpp",
+      "test": "KoSvgTextCharacterResultValueContractTest::textCursorStringIndexMappingSignaturesRemainStable",
+      "behavior": "SVG文字shapeはカーソル位置と文字列indexを相互に対応付ける厳密な公開関数型と既定引数を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoSvgTextShape::indexForPos(int pos) const",
+        "method:KoSvgTextShape::posForIndex(int index,bool firstIndex=false,bool skipSynthetic=false) const"
+      ]
+    },
+    {
+      "target": "KoSvgTextCharacterResultValueContractTest",
+      "source": "libs/flake/tests/KoSvgTextCharacterResultValueContractTest.cpp",
+      "test": "KoSvgTextCharacterResultValueContractTest::textCursorNodeRangeMappingSignaturesRemainStable",
+      "behavior": "SVG文字shapeはproperty・node・text pathからnode indexと文字範囲を照会する厳密な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoSvgTextShape::findNodeIndexForPropertyId(KoSvgTextProperties::PropertyId propertyId)",
+        "method:KoSvgTextShape::findRangeForNodeIndex(const KoSvgTextNodeIndex & node) const",
+        "method:KoSvgTextShape::nodeForTextPath(KoShape * textPath) const",
+        "method:KoSvgTextShape::topLevelNodeForPos(int pos) const"
+      ]
+    },
+    {
+      "target": "KoSvgTextCharacterResultValueContractTest",
+      "source": "libs/flake/tests/KoSvgTextCharacterResultValueContractTest.cpp",
+      "test": "KoSvgTextCharacterResultValueContractTest::textCursorRangeValueQuerySignaturesRemainStable",
+      "behavior": "SVG文字shapeは位置・範囲の文字propertyと配置値を照会する厳密な公開関数型と既定引数を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoSvgTextShape::getPositionsAndRotationsForRange(const int startPos,const int endPos) const",
+        "method:KoSvgTextShape::propertiesForPos(const int pos,bool inherited=false) const",
+        "method:KoSvgTextShape::propertiesForRange(const int startPos,const int endPos,bool inherited=false) const"
       ]
     }
   ]
