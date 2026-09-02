@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 17:39 JST
+- 更新日時: 2026-09-02 18:07 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -72,6 +72,31 @@
   `kritalibkis`は2,018工程・4,034入力と担当tree内の変更前後集合完全一致を確認する。未知target・CTest 0件、登録後の旧binaryで新5枠Unknown、対象CTest・20回反復、近傍、無作業再構築、動的接続・AUTOMOC入力・
   未解決ColorizeMask記号、構文・変更行書式、公開API・`verify-quick`を確認する。ColorizeMask・Node・ManagedColor・image・device、構築・破棄・slot・cache更新・pixel操作・metaobjectを生成または実行し、製品source・OBJECT・shared、
   `kritatestsdk`、Qt Widgets、GUI event loop、filesystem・registry、新しい非header依存、公開header変更、製品計画差、停止線超過が必要なら止める。
+
+### 第157便の統合結果
+
+- `g157-categorized-list-model-schema`は受渡しcommit`7a69e071ed`を統合commit`3b4e0d9e86`として取り込んだ。開始
+  `libs/tools/ui/kis_categorized_list_model.h`から新規`libs/tools/ui/tests/KisCategorizedListModelSchemaContractTest.cpp`の5枠へ、型・alias、追加role値、寿命、model access、
+  sorted accessの全27 APIを対応付けた。分類modelの具象化aliasと追加role序数を具体値で、構築と`data`・`setData`の既定引数を未評価式で固定した。直接linkはQt Core・Testだけ、
+  新対象4工程・8入力、製品`kritatoolsui` 1,249工程・2,518入力を維持した。担当macOS環境で未知target・CTest 0件、新5枠、対象CTest・20回反復、近傍
+  `KisCategoriesMapperContractTest`、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式、公開API検査、`verify-quick`に成功した。中央環境でも対象だけを構築・実行し、
+  台帳commit`14904c0015`で29,838件中15,819件対応、14,019件未対応となった。作業tree 884,304 KiBと担当branchは削除した。model実体のindex操作と通知配送は別の効果契約で扱う。
+- `g157-color-input-schema`は受渡しcommit`8d21bee386`を統合commit`7ff31e60a3`として取り込んだ。開始`libs/widgets/kis_color_input.h`から既存
+  `libs/widgets/tests/KisVisualColorModelSchemaContractTest.cpp`の5枠へ、5入力型と構築、割合・通知、整数・浮動値、16進値、HSV値の全29 APIを対応付けた。4構築は厳密な関数型に加えて
+  renderer・percentage・previewの既定引数省略形も未評価式で固定した。Qt WidgetsとKF WidgetsAddonsは公開header解釈用interface includeだけを追加し、直接linkを変えず対象4工程・8入力、
+  製品`kritawidgets` 809工程・1,647入力を維持した。担当macOS環境で旧binaryの新5枠Unknown、対象CTest・20回反復、近傍`KisColorSelectorConfigurationContractTest`、無作業再構築、
+  動的接続・AUTOMOC入力・未解決記号、構文・書式、公開API検査、`verify-quick`に成功した。中央環境でも対象だけを構築・実行し、台帳commit`14f386d307`で29,838件中15,848件対応、
+  13,990件未対応となった。作業tree 876,812 KiBと担当branchは削除した。widget生成、値更新、通知配送は別の効果契約で扱う。
+- `g157-colorize-mask-schema`は受渡しcommit`4a7584e0fc`を統合commit`edc13d9f64`として取り込んだ。開始`libs/libkis/ColorizeMask.h`から新規
+  `libs/libkis/tests/ColorizeMaskSchemaContractTest.cpp`の5枠へ、所有・寿命・型、key stroke data、edge・cleanup方針、編集・bounds・出力方針、更新・cacheの全25 APIを対応付けた。2構築、
+  key stroke色初期化、mask更新の既定引数省略形も未評価式で固定した。公開headerの定義閉包は`ColorizeMask.h`から`Node.h`、`PaintingResources.h`、`kis_figure_painting_stroke.h`、
+  `kis_resources_snapshot.h`、`kis_painter.h`へ達したため、対象限定のsource・generated・interface includeで解釈し、直接linkはQt Core・TestとBoost headerだけに保った。新対象4工程・8入力、
+  製品`kritalibkis` 2,018工程・4,034入力を維持した。担当macOS環境で未知target・CTest 0件、新5枠、対象CTest・20回反復、近傍`ViewSchemaContractTest`、無作業再構築、動的接続・AUTOMOC入力・
+  未解決記号、構文・書式、公開API検査、`verify-quick`に成功した。中央環境でも対象だけを構築・実行し、台帳commit`a0f0603cce`で29,838件中15,873件対応、13,965件未対応となった。
+  作業tree 877,960 KiBと担当branchは削除した。実mask更新、pixel操作、cache効果は別の効果契約で扱う。
+- 第157便全体で81 APIを15枠へ重複なく対応付け、3担当の作業tree計2,639,076 KiB（約2.52 GiB）を回収した。公開API台帳、構造方針、文書、link、D2再生成を含む`verify-quick`は成功した。
+  旧不足報告`public-api-missing-g157.json`をごみ箱へ移し、主Ninja木5,616,412 KiB、共有compiler cache 982,716 KiB、最新不足報告
+  `build/tdd-macos/public-api-missing-g158.json`だけを再利用対象として保持する。次の永続作業は第158便の不足報告から、既存限定対象を優先してpathと所有CMakeが重ならない3責務を先行監査することである。
 
 ### 第156便の先行監査計画
 
