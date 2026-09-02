@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 12892
+    "expectedMissingApis": 12871
   },
   "contracts": [
     {
@@ -47840,6 +47840,72 @@
       "apis": [
         "function:KisWidgetConnectionUtils::connectWidgetEnabledToProperty(QWidget * widget,QObject * source,const char * property)",
         "function:KisWidgetConnectionUtils::connectWidgetVisibleToProperty(QWidget * widget,QObject * source,const char * property)"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::edgeDetectionTypeAndFilterSchemaRemainsStable",
+      "behavior": "edge検出器の公開型、構築、filter列挙型と方式値を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisEdgeDetectionKernel",
+        "enum:KisEdgeDetectionKernel::FilterOutput",
+        "enum:KisEdgeDetectionKernel::FilterType",
+        "enumerator:KisEdgeDetectionKernel::FilterType::Prewitt",
+        "enumerator:KisEdgeDetectionKernel::FilterType::Simple",
+        "enumerator:KisEdgeDetectionKernel::FilterType::SobelVector",
+        "method:KisEdgeDetectionKernel::KisEdgeDetectionKernel()"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::edgeDetectionOutputPolicySchemaRemainsStable",
+      "behavior": "edge検出出力の合成、軸方向増減と角度出力の列挙値を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "enumerator:KisEdgeDetectionKernel::FilterOutput::pythagorean",
+        "enumerator:KisEdgeDetectionKernel::FilterOutput::radian",
+        "enumerator:KisEdgeDetectionKernel::FilterOutput::xFall",
+        "enumerator:KisEdgeDetectionKernel::FilterOutput::xGrowth",
+        "enumerator:KisEdgeDetectionKernel::FilterOutput::yFall",
+        "enumerator:KisEdgeDetectionKernel::FilterOutput::yGrowth"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::edgeDetectionMatrixAndKernelCreationSignaturesRemainStable",
+      "behavior": "edge検出の水平・垂直matrixとkernel生成の公開署名および既定引数省略形を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisEdgeDetectionKernel::createHorizontalKernel(qreal radius,FilterType type,bool denormalize=true,bool reverse=false)",
+        "method:KisEdgeDetectionKernel::createHorizontalMatrix(qreal radius,FilterType type,bool reverse=false)",
+        "method:KisEdgeDetectionKernel::createVerticalKernel(qreal radius,FilterType type,bool denormalize=true,bool reverse=false)",
+        "method:KisEdgeDetectionKernel::createVerticalMatrix(qreal radius,FilterType type,bool reverse=false)"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::edgeDetectionRadiusConversionSignaturesRemainStable",
+      "behavior": "edge検出半径からkernel寸法とsigmaへ変換する公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisEdgeDetectionKernel::kernelSizeFromRadius(qreal radius)",
+        "method:KisEdgeDetectionKernel::sigmaFromRadius(qreal radius)"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::edgeDetectionDeviceOperationSignaturesRemainStable",
+      "behavior": "paint deviceへのedge検出適用とnormal map変換の公開署名および既定引数省略形を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisEdgeDetectionKernel::applyEdgeDetection(KisPaintDeviceSP device,const QRect & rect,qreal xRadius,qreal yRadius,FilterType type,const QBitArray & channelFlags,KoUpdater * progressUpdater,FilterOutput output=pythagorean,bool writeToAlpha=false)",
+        "method:KisEdgeDetectionKernel::convertToNormalMap(KisPaintDeviceSP device,const QRect & rect,qreal xRadius,qreal yRadius,FilterType type,int channelToConvert,QVector<int> channelOrder,QVector<bool> channelFlip,const QBitArray & channelFlags,KoUpdater * progressUpdater,boost::optional<bool> useFftw=boost::none)"
       ]
     }
   ]
