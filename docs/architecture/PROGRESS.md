@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 09:38 JST
+- 更新日時: 2026-09-02 09:47 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -41,7 +41,7 @@
 
 ### 第142便の担当計画
 
-- 実装共通基点は`fafea64c9ea11f09f1e97138104f1d210216a7a1`である。tag resource model、dab rendering job、color scheme担当は`assigned`、構築許可は指定試験targetと軽量近傍だけの
+- 実装共通基点は`fafea64c9ea11f09f1e97138104f1d210216a7a1`である。tag resource model担当は`integrated`、color schemeとdab rendering job担当は`assigned`、構築許可は指定試験targetと軽量近傍だけの
   `granted`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、専用worktree-local `build/tdd-macos`と主作業treeの
   `/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。統合順はtag resource model、color scheme、dab rendering jobとし、調整担当だけが`AGENTS.md`、
   architecture文書、`docs/architecture/public-api-test-contracts.json`、共通不足報告を変更する。3担当の公開header、所有CMake、試験source、生成物は重ならない。
@@ -67,6 +67,14 @@
   defaultpaintops、libpaintop、brush、global、image、brushengine、pigmentのsource・generated header includeだけを許可する。未知target、5枠、対象CTest、20回反復、近傍、無作業再構築、動的接続、
   未解決job・runner・queue・device・resource・stroke記号、構文・変更行書式、公開API・`verify-quick`を確認する。job、runner、shared pointer、device、generation info、queue、resource、strokeを
   生成または実行し、`KisDabRenderingJob.cpp`、製品source・OBJECT・shared、`kritatestsdk`、新非header依存、公開header変更、製品計画差、停止線超過が必要なら止める。
+
+### 第142便の統合結果
+
+- `g142-tag-resource-model-schema`は受渡しcommit`125f999b5b0c`を統合commit`3504f59ffa`として取り込んだ。開始`libs/resources/KisTagResourceModel.h`から既存
+  `libs/resources/tests/KisResourceModelEnumContractTest.cpp`の5枠へ、抽象対応関係、全tag資源model型・寿命、列識別、table面、対応操作の25 APIを対応付けた。CMakeと直接依存を変更せず、
+  対象4工程・9入力、製品`kritaresources` 150工程・327入力と中央の両集合hashを監査値のまま維持した。model、database、query、resource、tag、model index、signal、大域provider、製品記号を
+  生成または実行していない。担当macOS環境と中央環境で5枠を含む対象CTest・20回反復と近傍`KisTagModelSchemaContractTest`、無作業再構築、動的接続・未解決記号、構文・書式、公開API検査、
+  `verify-quick`に成功した。中央の公開API契約検査は29,838件中14,321件対応、15,517件未対応となる。作業tree 877,848 KiBと担当branchは削除した。
 
 ### 第141便の先行監査計画
 

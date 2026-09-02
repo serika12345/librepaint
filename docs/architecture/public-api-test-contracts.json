@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 15542
+    "expectedMissingApis": 15517
   },
   "contracts": [
     {
@@ -41455,6 +41455,76 @@
         "method:KoDumbColorDisplayRenderer::maxVisibleFloatValue(const KoChannelInfo * chaninfo) const",
         "method:KoDumbColorDisplayRenderer::minVisibleFloatValue(const KoChannelInfo * chaninfo) const",
         "method:KoDumbColorDisplayRenderer::systemPaletteForDisplayColorSpace() const"
+      ]
+    },
+    {
+      "target": "KisResourceModelEnumContractTest",
+      "source": "libs/resources/tests/KisResourceModelEnumContractTest.cpp",
+      "test": "KisResourceModelEnumContractTest::abstractTagResourceRelationSchemaRemainsStable",
+      "behavior": "tagと資源の抽象対応modelは仮想破棄とtag付与・解除・状態照会の純粋仮想署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisAbstractTagResourceModel",
+        "method:KisAbstractTagResourceModel::isResourceTagged(const KisTagSP tag,const int resourceId)",
+        "method:KisAbstractTagResourceModel::tagResources(const KisTagSP tag,const QVector<int> & resourceIds)",
+        "method:KisAbstractTagResourceModel::untagResources(const KisTagSP tag,const QVector<int> & resourceIds)",
+        "method:KisAbstractTagResourceModel::~KisAbstractTagResourceModel()"
+      ]
+    },
+    {
+      "target": "KisResourceModelEnumContractTest",
+      "source": "libs/resources/tests/KisResourceModelEnumContractTest.cpp",
+      "test": "KisResourceModelEnumContractTest::allTagResourceModelTypeAndLifetimeSchemaRemainsStable",
+      "behavior": "全tag資源modelはtable modelとtag対応interfaceを実装し、公開列型と仮想破棄を備える型面を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisAllTagResourceModel",
+        "enum:KisAllTagResourceModel::Columns",
+        "method:KisAllTagResourceModel::~KisAllTagResourceModel()"
+      ]
+    },
+    {
+      "target": "KisResourceModelEnumContractTest",
+      "source": "libs/resources/tests/KisResourceModelEnumContractTest.cpp",
+      "test": "KisResourceModelEnumContractTest::allTagResourceModelColumnSchemaRemainsStable",
+      "behavior": "全tag資源modelはtag・資源・有効状態・保存場所・名前を表す列識別子の連続順序を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "enumerator:KisAllTagResourceModel::Columns::Resource",
+        "enumerator:KisAllTagResourceModel::Columns::ResourceActive",
+        "enumerator:KisAllTagResourceModel::Columns::ResourceId",
+        "enumerator:KisAllTagResourceModel::Columns::ResourceName",
+        "enumerator:KisAllTagResourceModel::Columns::ResourceStorageActive",
+        "enumerator:KisAllTagResourceModel::Columns::Tag",
+        "enumerator:KisAllTagResourceModel::Columns::TagActive",
+        "enumerator:KisAllTagResourceModel::Columns::TagId",
+        "enumerator:KisAllTagResourceModel::Columns::TagName"
+      ]
+    },
+    {
+      "target": "KisResourceModelEnumContractTest",
+      "source": "libs/resources/tests/KisResourceModelEnumContractTest.cpp",
+      "test": "KisResourceModelEnumContractTest::allTagResourceModelTableSchemaRemainsStable",
+      "behavior": "全tag資源modelは行列数、cell値、見出し、role名を公開するtable model署名と既定引数を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAllTagResourceModel::columnCount(const QModelIndex & parent=QModelIndex ()) const",
+        "method:KisAllTagResourceModel::data(const QModelIndex & index,int role) const",
+        "method:KisAllTagResourceModel::headerData(int section,Qt::Orientation orientation,int role=Qt::DisplayRole) const",
+        "method:KisAllTagResourceModel::roleNames() const",
+        "method:KisAllTagResourceModel::rowCount(const QModelIndex & parent=QModelIndex ()) const"
+      ]
+    },
+    {
+      "target": "KisResourceModelEnumContractTest",
+      "source": "libs/resources/tests/KisResourceModelEnumContractTest.cpp",
+      "test": "KisResourceModelEnumContractTest::allTagResourceModelRelationSchemaRemainsStable",
+      "behavior": "全tag資源modelはtag付与・解除と資源のtag状態照会を具体実装する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAllTagResourceModel::isResourceTagged(const KisTagSP tag,const int resourceId)",
+        "method:KisAllTagResourceModel::tagResources(const KisTagSP tag,const QVector<int> & resourceIds)",
+        "method:KisAllTagResourceModel::untagResources(const KisTagSP tag,const QVector<int> & resourceId)"
       ]
     }
   ]
