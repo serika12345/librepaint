@@ -20,6 +20,11 @@ private Q_SLOTS:
     void platformRendererEnumsKeepStableCodes();
     void rendererConfigDefaultsAndClassifiesValueOnlyFormats();
     void rendererConfigStringsRoundTripKnownBackends();
+    void openGLRendererSelectionAndConfigurationSignaturesRemainStable();
+    void openGLInitializationAndDiagnosticsSignaturesRemainStable();
+    void openGLCapabilitySignaturesRemainStable();
+    void openGLTextureAndOutlinePolicySignaturesRemainStable();
+    void openGLTestingAndPlatformSignaturesRemainStable();
 };
 
 void KisOpenGLRendererConfigContractTest::filterModesKeepStableOrdinals()
@@ -114,6 +119,62 @@ void KisOpenGLRendererConfigContractTest::rendererConfigStringsRoundTripKnownBac
     QCOMPARE(KisOpenGL::convertConfigToOpenGLRenderer(QStringLiteral("Desktop")), KisOpenGL::RendererAuto);
     QCOMPARE(KisOpenGL::convertConfigToOpenGLRenderer(QStringLiteral(" desktop ")), KisOpenGL::RendererAuto);
     QCOMPARE(KisOpenGL::convertConfigToOpenGLRenderer(QStringLiteral("vulkan")), KisOpenGL::RendererAuto);
+}
+
+void KisOpenGLRendererConfigContractTest::openGLRendererSelectionAndConfigurationSignaturesRemainStable()
+{
+    static_assert(std::is_same_v<decltype(&KisOpenGL::selectSurfaceConfig),
+                                 KisOpenGL::RendererConfig (*)(KisOpenGL::OpenGLRenderer,
+                                                               KisConfig::RootSurfaceFormat,
+                                                               KisConfig::CanvasSurfaceBitDepthMode,
+                                                               bool)>);
+    static_assert(
+        std::is_same_v<decltype(&KisOpenGL::setDefaultSurfaceConfig), void (*)(const KisOpenGL::RendererConfig &)>);
+    static_assert(std::is_same_v<decltype(&KisOpenGL::getCurrentOpenGLRenderer), KisOpenGL::OpenGLRenderer (*)()>);
+    static_assert(std::is_same_v<decltype(&KisOpenGL::getQtPreferredOpenGLRenderer), KisOpenGL::OpenGLRenderer (*)()>);
+    static_assert(std::is_same_v<decltype(&KisOpenGL::getSupportedOpenGLRenderers), KisOpenGL::OpenGLRenderers (*)()>);
+    static_assert(
+        std::is_same_v<decltype(&KisOpenGL::getUserPreferredOpenGLRendererConfig), KisOpenGL::OpenGLRenderer (*)()>);
+    static_assert(std::is_same_v<decltype(&KisOpenGL::setUserPreferredOpenGLRendererConfig),
+                                 void (*)(KisOpenGL::OpenGLRenderer)>);
+}
+
+void KisOpenGLRendererConfigContractTest::openGLInitializationAndDiagnosticsSignaturesRemainStable()
+{
+    static_assert(std::is_same_v<decltype(&KisOpenGL::initialize), void (*)()>);
+    static_assert(std::is_same_v<decltype(&KisOpenGL::initializeContext), void (*)(QOpenGLContext *)>);
+    static_assert(std::is_same_v<decltype(&KisOpenGL::currentDriver), QString (*)()>);
+    static_assert(std::is_same_v<decltype(&KisOpenGL::getDebugText), const QString &(*)()>);
+    static_assert(std::is_same_v<decltype(&KisOpenGL::getOpenGLWarnings), QStringList (*)()>);
+    static_assert(std::is_same_v<decltype(&KisOpenGL::hasOpenGL), bool (*)()>);
+}
+
+void KisOpenGLRendererConfigContractTest::openGLCapabilitySignaturesRemainStable()
+{
+    static_assert(std::is_same_v<decltype(&KisOpenGL::hasOpenGL3), bool (*)()>);
+    static_assert(std::is_same_v<decltype(&KisOpenGL::hasOpenGLES), bool (*)()>);
+    static_assert(std::is_same_v<decltype(&KisOpenGL::supportsBufferMapping), bool (*)()>);
+    static_assert(std::is_same_v<decltype(&KisOpenGL::supportsFenceSync), bool (*)()>);
+    static_assert(std::is_same_v<decltype(&KisOpenGL::supportsLoD), bool (*)()>);
+    static_assert(std::is_same_v<decltype(&KisOpenGL::supportsVAO), bool (*)()>);
+    static_assert(std::is_same_v<decltype(&KisOpenGL::needsFenceWorkaround), bool (*)()>);
+}
+
+void KisOpenGLRendererConfigContractTest::openGLTextureAndOutlinePolicySignaturesRemainStable()
+{
+    static_assert(std::is_same_v<decltype(&KisOpenGL::forceDisableTextureBuffers), bool (*)()>);
+    static_assert(std::is_same_v<decltype(&KisOpenGL::shouldUseTextureBuffers), bool (*)(bool)>);
+    static_assert(std::is_same_v<decltype(&KisOpenGL::useTextureBufferInvalidation), bool (*)()>);
+    static_assert(std::is_same_v<decltype(&KisOpenGL::useFBOForToolOutlineRendering), bool (*)()>);
+}
+
+void KisOpenGLRendererConfigContractTest::openGLTestingAndPlatformSignaturesRemainStable()
+{
+    static_assert(std::is_same_v<decltype(&KisOpenGL::testingInitializeDefaultSurfaceFormat), void (*)()>);
+    static_assert(std::is_same_v<decltype(&KisOpenGL::setDebugSynchronous), void (*)(bool)>);
+    static_assert(std::is_same_v<decltype(&KisOpenGL::glInvalidateBufferData), void (*)(uint)>);
+    static_assert(std::is_same_v<decltype(&KisOpenGL::xcbGlProviderProtocol),
+                                 std::optional<KisOpenGL::XcbGLProviderProtocol> (*)()>);
 }
 
 QTEST_GUILESS_MAIN(KisOpenGLRendererConfigContractTest)
