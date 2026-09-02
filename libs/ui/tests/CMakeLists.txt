@@ -194,6 +194,22 @@ target_compile_definitions(KisDisplayConfigSchemaContractTest PRIVATE
 )
 
 kis_add_test(
+    KisNodeViewColorSchemeSchemaContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KisNodeViewColorSchemeSchemaContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/application
+    ${CMAKE_BINARY_DIR}/libs/application
+)
+target_compile_definitions(KisNodeViewColorSchemeSchemaContractTest PRIVATE
+    kritaui_EXPORTS
+)
+
+kis_add_test(
     KisExposureGammaCorrectionInterfaceContractTest.cpp
     LINK_LIBRARIES
         kritauiexposuregammacorrectionobjects
