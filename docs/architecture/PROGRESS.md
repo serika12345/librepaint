@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 23:03 JST
+- 更新日時: 2026-09-02 23:09 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -38,10 +38,12 @@
   `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。統合順はmask generator、XML GUI client、libkis viewとし、調整担当だけがarchitecture文書、公開API台帳、共通不足報告を変更する。
 - `g166-mask-generator-schema`は`/Users/masato/Documents/librepaint-g166-mask-generator-schema`を所有する。開始`libs/image/kis_base_mask_generator.h`の全39 APIから既存
   `libs/image/tests/KisImageTypesContractTest.cpp`の5枠`maskGeneratorIdentityLifetimeAndConstantsSchemaRemainStable`、`maskGeneratorGeometrySignaturesRemainStable`、`maskGeneratorAppearanceSignaturesRemainStable`、
-  `maskGeneratorRenderingPolicySignaturesRemainStable`、`maskGeneratorSerializationAndRegistrySignaturesRemainStable`へ対応付ける。完全集合はidentity・寿命・定数11、geometry 10、外観8、描画方針7、XML・registry 3である。許可pathは既存試験sourceだけであり、
-  CMake・公開header・製品sourceを変更しない。列挙値、oversampling値、ID省略構築を固定し、静的KoIDをODR使用しない。対象4工程・8入力、停止5工程・11入力、近傍`KisImageConfigAnimationSchemaContractTest`、製品`kritaimage` 1,196工程・2,416入力を維持する。
+  `maskGeneratorRenderingPolicySignaturesRemainStable`、`maskGeneratorSerializationAndRegistrySignaturesRemainStable`へ対応付ける。完全集合はidentity・寿命・定数11、geometry 10、外観8、描画方針7、XML・registry 3である。許可pathは既存試験source、
+  `libs/image/kis_base_mask_generator.h`、`libs/image/kis_base_mask_generator.cpp`だけであり、CMakeと他の製品sourceを変更しない。公開header内で翻訳単位ごとに動的初期化されている`DefaultId`、`SoftId`、`GaussId`の定義を、export付きextern宣言として残して既存所有sourceへ一対一移動する。
+  同時に`klocalizedstring.h`の直接includeを公開headerから所有sourceへ移し、利用側の動的初期化とKF I18nコンパイル閉包を除く。列挙値、oversampling値、ID省略構築を固定し、静的KoIDをODR使用しない。対象4工程・8入力、停止5工程・11入力、近傍
+  `KisImageConfigAnimationSchemaContractTest`、製品`kritaimage` 1,196工程・2,416入力を維持する。
   旧binaryの新5枠Unknown、対象CTest・枠個別・20回反復、既存枠、近傍、無作業再構築、動的接続・AUTOMOC入力・mask・applicator・XML・registry未解決記号、構文・書式、公開API・`verify-quick`を確認する。generator・probe・KoID・applicator・XMLを実体化または実行し、
-  CMake・依存・公開header・製品source変更、製品接続、停止線超過が必要なら止める。
+  CMake・追加依存・他の公開header・他の製品source変更、製品接続、停止線超過が必要なら止める。最初の限定linkで公開header内の3 KoID定義が`ki18nd`、`KLocalizedString`、`KoID`の動的初期化を生成することを確認したため、製品linkを増やさず定義所有を既存sourceへ集約する構造準備を担当票へ追加した。
 - `g166-xml-gui-client-schema`は`/Users/masato/Documents/librepaint-g166-xml-gui-client-schema`を所有する。開始`libs/widgetutils/xmlgui/kxmlguiclient.h`の全38 APIから新規
   `libs/widgetutils/tests/KXMLGUIClientSchemaContractTest.cpp`の5枠`xmlGuiClientIdentityAndStateTypesRemainStable`、`xmlGuiClientStateActionSchemaRemainsStable`、`xmlGuiClientDocumentAndComponentSignaturesRemainStable`、
   `xmlGuiClientActionFactoryAndHierarchySignaturesRemainStable`、`xmlGuiClientDynamicPlugSignaturesRemainStable`へ対応付ける。完全集合はidentity・状態型8、状態action 5、文書・component 9、action・factory・階層11、動的plug 5である。許可pathは新規試験sourceと
