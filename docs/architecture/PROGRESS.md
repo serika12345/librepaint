@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 21:06 JST
+- 更新日時: 2026-09-02 21:12 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -22,6 +22,21 @@
   型・寿命・列挙値・action分類・collection・設定import/export・検索・commit・undo・点制約・curve・pixmap・入出力control・通知面を、widget・設定backend・action collection・printer・curve編集・描画・signal・metaobject・GUI event loop・大域状態の実体化なしで閉じる。
 - 各報告は完全なAPI識別子、既定引数観測、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから契約先または移動先、許可path、固有停止条件、
   比較候補の棄却根拠を含む。既存`build/tdd-macos`の計画は読み取り専用で測定し、構成や構築を開始しない。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
+- `g163-flake-resource-manager-symbol-schema-audit`は`libs/flake/KoResourceManager_p.h`の全30 APIを採用した。型・寿命2、型付き値14、派生資源・仲介6、依存・抽象資源6、通知2を新規
+  `libs/flake/tests/KoResourceManagerSchemaContractTest.cpp`の5枠へ対応付ける。直接linkはQt Core・Testだけ、新対象4工程・8入力、停止5工程・11入力、製品`kritaflake` 621工程・1,274入力を維持する。近傍
+  `KoCanvasResourceProviderSchemaContractTest`の命令集合hashは`0dfcb1e5fa47fb12ae8ae86f948eb21bf5e385512bb0119c84e4db16ac74a398`、入力集合hashは`f136058253aaf63e5ea265410c0d4b48af10cb7593581e14a990ee587dd457d0`、
+  製品命令集合hashは`f3f361da0bcc5c5d3fcc2e2e638cfbf5e385512bb0119c84e4db16ac74a398`、入力集合hashは`1a30862a8e0463c6578045c344b23088d4909ac6017407162709d283413b8cb5`である。
+  `KoSvgSymbolCollectionResource.h`は生shape所有、copy・破棄、icon描画、資源clone、SVG/device I/O、metadataへ責務が分散し、安全な局所値面が約10 APIに留まるため棄却した。
+- `g163-metadata-exiv2-png-schema-audit`は`libs/impex/ui/kis_png_converter.h`の全28 APIを採用した。option中核値6、metadata・profile flag 8、indexed・filter・透過色3、converter identity・入力6、出力・制御5を新規
+  `libs/impex/tests/KisPNGConverterSchemaContractTest.cpp`の5枠へ対応付ける。option既定値とcopy独立性、converter構築とstore保存の既定引数省略形を固定する。直接linkはQt Core・Gui・Testだけ、新対象4工程・8〜9入力、停止5工程・11入力、製品
+  `kritaimpexui` 1,350工程・2,712入力を維持する。近傍`KisMediaEncoderFormatAndSettingsContractTest`の命令集合hashは`5396218daf70b994ca00db11f16b98af52874f9dc9c70b854283c2cd6238a20a`、入力集合hashは
+  `cf0648c4ad31097ad0543338b2b00c8a749956145bd8ffe647cc078a2e343e9c`、製品命令集合hashは`0b25ab3e6ddf45c62fabc1518ff0f8fb7eae4542c4c12583374b6b12422f097e`、入力集合hashは
+  `00f7a3901606d05fc5caf4af291550dd664f62f16b659305d99939c74191ea56`である。`KisExiv2IODevice.h`はreportが版別排他宣言を合算し、現行Exiv2 0.28.8で観測可能なAPIが23件となり採用下限へ届かないため棄却した。
+- `g163-widgetutils-shortcuts-curve-schema-audit`は`libs/widgetutils/xmlgui/KisShortcutsEditor.h`の全32 APIを採用した。型・列挙11、寿命・状態4、collection・方針5、永続化7、対話5を既存
+  `libs/widgetutils/tests/KKeySequenceWidgetSchemaContractTest.cpp`の5枠へ対応付ける。action・letter列挙値、構築、collection追加、shortcut保存の既定引数省略形を固定する。CMakeと依存を変えず対象4工程・8入力、停止5工程・11入力、製品
+  `kritawidgetutils` 274工程・581入力を維持する。対象命令集合hashは`bee24065e968bcd3d711f4c937b6f0dc3ecfb39491fc8367204018a988cdbcb0`、入力集合hashは
+  `9e1145634ef51d3fd0854a653830b452569014f0032c6ae0ab73b7f97c0c58f2`、製品命令集合hashは`68db313f3adcae19160bfad2912807a324750413d4c8207b39bbd5d2457f19a7`、入力集合hashは
+  `f46d65e23e89a75da7a65b85d61a6816aabd467fd38a4bb4ef1f09ed15707df8`である。`kis_curve_widget.h`はcurve値、pixmap、spinbox、点状態、入力・描画event、通知圧縮へ閉包が広がるため棄却した。
 
 ### 第162便の先行監査計画
 
