@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 14075
+    "expectedMissingApis": 14046
   },
   "contracts": [
     {
@@ -44857,6 +44857,80 @@
         "method:KoSvgText::FontMetrics::setBaselineValueByTag(const QString & tag,int32_t value)",
         "method:KoSvgText::FontMetrics::setMetricsValueByTag(const QLatin1String & tag,int32_t value)",
         "method:KoSvgText::FontMetrics::valueForBaselineValue(Baseline baseline) const"
+      ]
+    },
+    {
+      "target": "ViewSchemaContractTest",
+      "source": "libs/libkis/tests/ViewSchemaContractTest.cpp",
+      "test": "ViewSchemaContractTest::viewOwnershipLifetimeAndEqualitySchemaRemainsStable",
+      "behavior": "script公開viewはQObject所有関係、既定parentを持つ構築、仮想破棄、同一性比較に関する厳密な公開型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:View",
+        "method:View::View(KisView * view,QObject * parent=0)",
+        "method:View::operator !=(const View & other) const",
+        "method:View::operator ==(const View & other) const",
+        "method:View::~View()"
+      ]
+    },
+    {
+      "target": "ViewSchemaContractTest",
+      "source": "libs/libkis/tests/ViewSchemaContractTest.cpp",
+      "test": "ViewSchemaContractTest::viewBrushGeometrySignaturesRemainStable",
+      "behavior": "script公開viewはbrush寸法・回転・fadeとpattern寸法の照会・更新に関する厳密な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:View::brushFade() const",
+        "method:View::brushRotation() const",
+        "method:View::brushSize() const",
+        "method:View::patternSize() const",
+        "method:View::setBrushFade(qreal brushFade)",
+        "method:View::setBrushRotation(qreal brushRotation)",
+        "method:View::setBrushSize(qreal brushSize)",
+        "method:View::setPatternSize(qreal size)"
+      ]
+    },
+    {
+      "target": "ViewSchemaContractTest",
+      "source": "libs/libkis/tests/ViewSchemaContractTest.cpp",
+      "test": "ViewSchemaContractTest::viewDepositAndCompositeSignaturesRemainStable",
+      "behavior": "script公開viewは描画flow・opacityと合成modeの照会・更新に関する厳密な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:View::currentBlendingMode() const",
+        "method:View::paintingFlow() const",
+        "method:View::paintingOpacity() const",
+        "method:View::setCurrentBlendingMode(const QString & blendingMode)",
+        "method:View::setPaintingFlow(qreal flow)",
+        "method:View::setPaintingOpacity(qreal opacity)"
+      ]
+    },
+    {
+      "target": "ViewSchemaContractTest",
+      "source": "libs/libkis/tests/ViewSchemaContractTest.cpp",
+      "test": "ViewSchemaContractTest::viewInputModePolicySignaturesRemainStable",
+      "behavior": "script公開viewは筆圧無効、eraser、全体alpha lockの入力mode方針を照会・更新する厳密な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:View::disablePressure() const",
+        "method:View::eraserMode() const",
+        "method:View::globalAlphaLock() const",
+        "method:View::setDisablePressure(bool value)",
+        "method:View::setEraserMode(bool value)",
+        "method:View::setGlobalAlphaLock(bool value)"
+      ]
+    },
+    {
+      "target": "ViewSchemaContractTest",
+      "source": "libs/libkis/tests/ViewSchemaContractTest.cpp",
+      "test": "ViewSchemaContractTest::viewHdrPresentationSignaturesRemainStable",
+      "behavior": "script公開viewはHDR露出・gammaの表示値を照会・更新する厳密なfloat関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:View::HDRExposure() const",
+        "method:View::HDRGamma() const",
+        "method:View::setHDRExposure(float exposure)",
+        "method:View::setHDRGamma(float gamma)"
       ]
     }
   ]
