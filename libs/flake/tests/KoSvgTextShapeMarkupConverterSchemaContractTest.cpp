@@ -24,7 +24,7 @@ private Q_SLOTS:
     void svgTextMarkupConverterIdentityAndWrappingSchemaRemainStable();
     void svgTextMarkupDocumentPropertySchemaRemainStable();
     void svgTextMarkupSvgAndHtmlConversionSignaturesRemainStable();
-    void svgTextMarkupDocumentConversionAndDiagnosticSignaturesRemainStable();
+    void svgTextMarkupDocumentAndDiagnosticSignaturesRemainStable();
     void svgTextMarkupStyleConversionSignaturesRemainStable();
 };
 
@@ -72,8 +72,7 @@ void KoSvgTextShapeMarkupConverterSchemaContractTest::svgTextMarkupSvgAndHtmlCon
     ASSERT_CONVERTER_SIGNATURE(convertFromHtml, bool (Converter::*)(const QString &, QString *, QString *));
 }
 
-void KoSvgTextShapeMarkupConverterSchemaContractTest::
-    svgTextMarkupDocumentConversionAndDiagnosticSignaturesRemainStable()
+void KoSvgTextShapeMarkupConverterSchemaContractTest::svgTextMarkupDocumentAndDiagnosticSignaturesRemainStable()
 {
     using Converter = KoSvgTextShapeMarkupConverter;
 
