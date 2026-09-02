@@ -39,6 +39,31 @@
   `8b3e011450f2ca342e0ce523cc1696c2e2b3970456a8cb097553ee5fdf79930f`、入力集合hashは`76f2aa4251a6bf4e2adf2a1e822bc9d629753b2e93e5b877ee4eae23364940bc`である。
   `kis_paint_layer.h`はnode・device・visitor継承、LOD・onion skin・keyframe、projection・signalへ型閉包と責務が広がるため棄却した。
 
+### 第151便の担当計画
+
+- 実装共通基点は`6727e01b3c`である。3担当は`preparing`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、
+  専用worktree-local `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。統合順はapplication描画設定、image animation interface、flake markerとし、
+  調整担当だけが`AGENTS.md`、architecture文書、`docs/architecture/public-api-test-contracts.json`、共通不足報告を変更する。3担当の公開header、所有CMake、試験source、生成物は重ならない。
+- `g151-config-rendering-schema`は`/Users/masato/Documents/librepaint-g151-config-rendering-schema`を所有する。開始`libs/application/kis_config.h`の描画性能・backend方針25 APIから既存
+  `libs/application/tests/KisConfigEnumContractTest.cpp`の5枠`renderingVectorAndLodPolicySignaturesRemainStable`、`renderingTexturePipelineSignaturesRemainStable`、
+  `renderingProjectionBackendSignaturesRemainStable`、`renderingDiagnosticLoggingSignaturesRemainStable`、`renderingBackendCompatibilitySignaturesRemainStable`へ対応付ける。許可pathは既存試験sourceだけで、
+  CMakeを変更しない。対象4工程・15入力、停止5工程・18入力、近傍は`KisActionEnumContractTest`、製品`kritaapplication`は1,227工程・2,472入力と担当tree内の変更前後集合完全一致を確認する。旧binaryで新5枠Unknown、
+  対象CTest、5枠個別、20回反復、近傍、無作業再構築、動的接続・未解決設定記号、構文・変更行書式、公開API・`verify-quick`を確認する。KisConfig、QSettings、設定backend、OpenGL context、CPU機能検出、大域状態、
+  dialog、widget、event loop、inline本文を生成または実行し、新依存、CMake・公開header変更、製品接続、対象集合・製品計画差、停止線超過が必要なら止める。
+- `g151-image-animation-schema`は`/Users/masato/Documents/librepaint-g151-image-animation-schema`を所有する。開始`libs/image/kis_image_animation_interface.h`の全58 APIから既存
+  `libs/image/tests/KisImageTypesContractTest.cpp`の5枠`animationInterfaceTypeAndOptionSchemaRemainsStable`、`animationTimelineAndExportSignaturesRemainStable`、
+  `animationSwitchAndInvalidationSignaturesRemainStable`、`animationGenerationLockSignaturesRemainStable`、`animationNotificationSignaturesRemainStable`へ対応付ける。許可pathは既存試験sourceだけで、CMakeを変更しない。
+  対象4工程・8入力、停止5工程・11入力、近傍は`KisBlockBackgroundFrameGenerationLockContractTest`、製品`kritaimage`は1,196工程・2,416入力と担当tree内の変更前後集合完全一致を確認する。旧binaryで新5枠Unknown、
+  対象CTest、5枠個別、20回反復、近傍、無作業再構築、動的接続・未解決image・animation・metaobject記号、構文・変更行書式、公開API・`verify-quick`を確認する。animation interface、image、node、device、frame lock、
+  signal、event loop、inline本文、frame generation、stroke、schedulerを生成または実行し、新依存、CMake・公開header変更、製品接続、対象集合・製品計画差、停止線超過が必要なら止める。
+- `g151-marker-schema`は`/Users/masato/Documents/librepaint-g151-marker-schema`を所有する。開始`libs/flake/KoMarker.h`の全29 APIから新規`libs/flake/tests/KoMarkerSchemaContractTest.cpp`の5枠
+  `markerIdentityLifecycleAndCoordinateEnumSchemaRemainsStable`、`markerCoordinateAndReferenceSignaturesRemainStable`、`markerOrientationNameAndEqualitySignaturesRemainStable`、
+  `markerShapeAndGeometrySignaturesRemainStable`、`markerPaintingAndStrokeSignaturesRemainStable`へ対応付ける。許可pathは新規試験sourceと`libs/flake/tests/CMakeLists.txt`だけである。直接linkはQt Gui・Test・Xmlだけ、
+  includeはflake source/generatedだけ、definitionは`kritaflake_EXPORTS`だけとし、公開headerをtarget sourceやAUTOMOC入力へ追加しない。新対象4工程・8入力、停止5工程・11入力、近傍は`KoShapeEnumContractTest`、
+  製品`kritaflake`は621工程・1,274入力と担当tree内の変更前後集合・保留集合完全一致を確認する。未知targetと5枠、対象CTest、5枠個別、20回反復、近傍、無作業再構築、動的接続・AUTOMOC入力・未解決marker・shape・
+  painter・stroke記号、構文・変更行書式、公開API・`verify-quick`を確認する。marker、shape、stroke、painter、path、pen、DOM、Private、vtable、constructor、destructor、copy、inline本文を生成または実行し、
+  `KoMarker.cpp`、製品source・OBJECT・shared、`kritatestsdk`、新非header依存、公開header変更、製品計画差、停止線超過が必要なら止める。
+
 ### 第150便の先行監査計画
 
 - 監査共通基点は`7d579712c7f1`、入力は`build/tdd-macos/public-api-missing-g150.json`である。3担当は`auditing`の読み取り専用とし、製品・試験・CMake・script・台帳・文書を変更せず、構築、試験、Git操作、
