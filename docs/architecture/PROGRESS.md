@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 16:31 JST
+- 更新日時: 2026-09-02 16:51 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -46,7 +46,7 @@
 
 ### 第155便の担当計画
 
-- 実装共通基点は`55ca491bf2`である。3担当は`preparing`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、
+- 実装共通基点は`55ca491bf2`である。3担当は`integrated`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、
   専用worktree-local `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。統合順はSVG text cursor照会、libkis palette、keyframe channelとし、調整担当だけが
   `AGENTS.md`、architecture文書、`docs/architecture/public-api-test-contracts.json`、共通不足報告を変更する。3担当の公開header、所有CMake、試験source、生成物は重ならない。
 - `g155-svg-text-cursor-query-schema`は`/Users/masato/Documents/librepaint-g155-svg-text-cursor-query-schema`を所有する。開始`libs/flake/text/KoSvgTextShape.h`のカーソル照会28 APIから既存
@@ -76,6 +76,32 @@
   Qt Widgetsのinterface includeだけで公開headerを解釈できるため、所有CMakeの対象限定include節へ追加する。補正前の新対象4工程・8入力、製品`kritaimage` 1,196工程・2,416入力を完全に維持し、補正後に別の不足が残る場合は停止する。
 - Qt Widgets補正後、同じ公開header連鎖が`kis_paint_device.h`から要求する`KoColorConversionTransformation.h`不足を次の診断として得た。軽量近傍`KisImageTypesContractTest`が同じ連鎖に持つpigment source・generated、
   Eigen・Imath interface includeと`kritapigment_EXPORTS`だけを対象限定include・definition節へ追加する。linkを増やさず対象4工程・8入力、製品`kritaimage` 1,196工程・2,416入力・集合完全一致を維持し、この補正後に別の不足が残る場合は停止する。
+
+### 第155便の統合結果
+
+- 並列作業領域の計画集計で、`scripts/run-shared-test-env`の環境初期化案内5行がNinjaの標準出力へ混入し、4工程・8入力を9工程・13入力と誤判定できる状態を確認した。対象scriptの回帰試験を先に失敗させ、
+  環境初期化時の標準出力だけを抑えて呼出し命令の標準出力をそのまま保持するよう補正した。script検査17件と`verify-quick`に成功し、commit`5afb599d49`で独立して確定した。以後の担当計測は4工程・8入力を再現した。
+- `g155-svg-text-cursor-query-schema`は受渡しcommit`e4f2f22163`を統合commit`e3cf8dcfa0`として取り込んだ。開始`libs/flake/text/KoSvgTextShape.h`から既存
+  `libs/flake/tests/KoSvgTextCharacterResultValueContractTest.cpp`の5枠へ、方向移動、caret・選択・座標、文字列index、node・range対応、range値照会の28 APIを対応付けた。11 APIは関数型に加えて既定引数の省略呼出しも
+  未評価式で固定した。CMakeと直接依存を変更せず対象4工程・8入力、製品`kritaflake` 621工程・1,274入力を維持した。shape、node index、layout、font、path、painter、XML、document、resource、inline本文、
+  関数address値を生成または実行していない。担当macOS環境で新5枠、対象CTest・20回反復、近傍`KoSvgTextFontMetricsValueContractTest`、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式、公開API検査、
+  `verify-quick`に成功した。中央環境でも対象CTest、公開API検査、`verify-quick`に成功し、台帳commit`601ee9bf36`で29,838件中15,602件対応、14,236件未対応となった。作業tree 882,408 KiBと担当branchは削除した。
+  実layout・描画・cursor移動結果は別の効果契約で扱う。
+- `g155-libkis-palette-schema`は受渡しcommit`01f60713a2`を統合commit`d3f3770cb6`として取り込んだ。開始`libs/libkis/Palette.h`から新規`libs/libkis/tests/PaletteSchemaContractTest.cpp`の5枠へ、
+  所有・寿命・等価、grid・個数、group操作、entry操作、metadata・保存の全31 APIを対応付け、`libs/libkis/tests/CMakeLists.txt`へ独立対象を追加した。構築、group削除・移動、entry追加の4 APIは関数型に加えて
+  既定引数の省略呼出しも未評価式で固定した。直接linkはQt Core・Gui・TestとBoost headerだけで、公開header解釈用のpigment・resources、KF I18n・Eigen・Imath interface includeを対象限定に追加し、
+  新対象4工程・8入力、製品`kritalibkis` 2,018工程・4,034入力を維持した。Palette、Resource、Swatch、metaobject、保存処理、registry、filesystem、view、canvas、document、image、GUI event loopを生成または実行していない。
+  担当macOS環境で未知target、新5枠、対象CTest・20回反復、近傍`GridConfigSchemaContractTest`、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式、公開API検査、`verify-quick`に成功した。中央環境でも対象限定の
+  構成更新と構築、CTest、公開API検査、`verify-quick`に成功し、台帳commit`ca9e18df33`で29,838件中15,633件対応、14,205件未対応となった。作業tree 877,180 KiBと担当branchは削除した。実palette資源更新・保存は別の効果契約で扱う。
+- `g155-keyframe-channel-schema`は受渡しcommit`52a68792cf`を統合commit`558233bb9b`として取り込んだ。開始`libs/image/kis_keyframe_channel.h`から新規
+  `libs/image/tests/KisKeyframeChannelSchemaContractTest.cpp`の5枠へ、型・寿命・識別子、照会・時系列、更新、所有・frame・直列化、通知の全53 APIを対応付け、`libs/image/tests/CMakeLists.txt`へ独立対象を追加した。
+  9更新APIは関数型に加えて既定undo親の省略呼出しも未評価式で固定した。公開header連鎖の`QAction`、次に`KoColorConversionTransformation.h`不足を初期診断として得て、Qt Widgets・KF I18n・Eigen・Imathの
+  interface include、pigment source・generatedとexport定義だけを対象限定に追加した。Qt Widgets・pigment・製品libraryへlinkせず新対象4工程・8入力、製品`kritaimage` 1,196工程・2,416入力を維持した。channel、keyframe、node、
+  undo、XML、signal、metaobject、inline本文、static KoID値を生成または実行していない。担当macOS環境で未知target、2段階の直接header不足診断、新5枠、対象CTest・20回反復、近傍`KisImageTypesContractTest`、無作業再構築、
+  動的接続・AUTOMOC入力・未解決記号、構文・書式、公開API検査、`verify-quick`に成功した。中央環境でも対象限定の構成更新と構築、CTest、公開API検査、`verify-quick`に成功し、台帳commit`ae8284f719`で29,838件中
+  15,686件対応、14,152件未対応となった。作業tree 881,108 KiBと担当branchは削除した。実keyframe更新、XML、signal配送は別の効果契約で扱う。
+- 第155便全体で112 APIを15枠へ重複なく対応付け、3担当の作業tree計2,640,696 KiB（約2.52 GiB）を回収した。旧不足報告をTrashへ移し、主Ninja木5,612,084 KiB、共有compiler cache 983,132 KiB、
+  最新不足報告`build/tdd-macos/public-api-missing-g156.json`だけを再利用対象として保持する。次の永続作業は第156便の不足報告から、既存限定対象を優先してpathと所有CMakeが重ならない3責務を先行監査することである。
 
 ### 第154便の先行監査計画
 
