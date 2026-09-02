@@ -2,6 +2,7 @@
  * SPDX-License-Identifier: LGPL-2.0-only */
 #include "../xmlgui/KisShortcutsEditor.h"
 #include "../xmlgui/kkeysequencewidget.h"
+#include "../xmlgui/kxmlguiwindow.h"
 #include <QTest>
 #include <type_traits>
 #include <utility>
@@ -20,6 +21,11 @@ private Q_SLOTS:
     void shortcutsEditorCollectionAndPolicySchemaRemainsStable();
     void shortcutsEditorPersistenceSchemaRemainsStable();
     void shortcutsEditorInteractionSchemaRemainsStable();
+    void xmlGuiWindowTypeAndOptionSchemaRemainsStable();
+    void xmlGuiWindowLifetimeAndFeaturePolicySchemaRemainsStable();
+    void xmlGuiWindowCreationAndSetupSchemaRemainsStable();
+    void xmlGuiWindowFactoryAndFinalizationSchemaRemainsStable();
+    void xmlGuiWindowStateNotificationSchemaRemainsStable();
 };
 void KKeySequenceWidgetSchemaContractTest::keySequenceWidgetTypeAndEnumerationSchemaRemainsStable()
 {
@@ -122,6 +128,64 @@ void KKeySequenceWidgetSchemaContractTest::shortcutsEditorInteractionSchemaRemai
     static_assert(std::is_same_v<decltype(&E::resizeColumns), void (E::*)()>);
     static_assert(std::is_same_v<decltype(&E::searchUpdated), void (E::*)(QString)>);
     static_assert(std::is_same_v<decltype(&E::slotScrollerStateChanged), void (E::*)(QScroller::State)>);
+}
+
+void KKeySequenceWidgetSchemaContractTest::xmlGuiWindowTypeAndOptionSchemaRemainsStable()
+{
+    using W = KXmlGuiWindow;
+    static_assert(std::is_class_v<W> && std::is_enum_v<W::StandardWindowOption>);
+    static_assert(std::is_same_v<W::StandardWindowOptions, QFlags<W::StandardWindowOption>>);
+    static_assert(W::ToolBar == 1 && W::Keys == 2 && W::StatusBar == 4);
+    static_assert(W::Save == 8 && W::Create == 16 && W::Default == 31);
+}
+
+void KKeySequenceWidgetSchemaContractTest::xmlGuiWindowLifetimeAndFeaturePolicySchemaRemainsStable()
+{
+    using W = KXmlGuiWindow;
+    static_assert(std::is_constructible_v<W, QWidget *, Qt::WindowFlags> && std::is_default_constructible_v<W>);
+    static_assert(std::is_destructible_v<W>);
+    static_assert(std::is_same_v<decltype(&W::setHelpMenuEnabled), void (W::*)(bool)>);
+    static_assert(std::is_same_v<decltype(std::declval<W &>().setHelpMenuEnabled()), void>);
+    static_assert(std::is_same_v<decltype(&W::isHelpMenuEnabled), bool (W::*)() const>);
+    static_assert(std::is_same_v<decltype(&W::setStandardToolBarMenuEnabled), void (W::*)(bool)>);
+    static_assert(std::is_same_v<decltype(&W::isStandardToolBarMenuEnabled), bool (W::*)() const>);
+    static_assert(std::is_same_v<decltype(&W::createStandardStatusBarAction), void (W::*)()>);
+}
+
+void KKeySequenceWidgetSchemaContractTest::xmlGuiWindowCreationAndSetupSchemaRemainsStable()
+{
+    using W = KXmlGuiWindow;
+    using Setup = void (W::*)(W::StandardWindowOptions, const QString &);
+    using SizedSetup = void (W::*)(const QSize &, W::StandardWindowOptions, const QString &);
+    static_assert(std::is_same_v<decltype(&W::createGUI), void (W::*)(const QString &)>);
+    static_assert(std::is_same_v<decltype(std::declval<W &>().createGUI()), void>);
+    static_assert(std::is_same_v<decltype(static_cast<Setup>(&W::setupGUI)), Setup>);
+    static_assert(std::is_same_v<decltype(std::declval<W &>().setupGUI()), void>);
+    static_assert(std::is_same_v<decltype(static_cast<SizedSetup>(&W::setupGUI)), SizedSetup>);
+    static_assert(std::is_same_v<decltype(std::declval<W &>().setupGUI(std::declval<const QSize &>())), void>);
+    static_assert(std::is_same_v<decltype(&W::applyMainWindowSettings), void (W::*)(const KConfigGroup &)>);
+}
+
+void KKeySequenceWidgetSchemaContractTest::xmlGuiWindowFactoryAndFinalizationSchemaRemainsStable()
+{
+    using W = KXmlGuiWindow;
+    using FinalizeClient = void (W::*)(KisKXMLGUIClient *);
+    using FinalizeForce = void (W::*)(bool);
+    static_assert(std::is_same_v<decltype(&W::guiFactory), KisKXMLGUIFactory *(W::*)()>);
+    static_assert(std::is_same_v<decltype(&W::toolBarMenuAction), QAction *(W::*)()>);
+    static_assert(std::is_same_v<decltype(&W::setupToolbarMenuActions), void (W::*)()>);
+    static_assert(std::is_same_v<decltype(static_cast<FinalizeClient>(&W::finalizeGUI)), FinalizeClient>);
+    static_assert(std::is_same_v<decltype(static_cast<FinalizeForce>(&W::finalizeGUI)), FinalizeForce>);
+    static_assert(std::is_same_v<decltype(&W::configureToolbars), void (W::*)()>);
+}
+
+void KKeySequenceWidgetSchemaContractTest::xmlGuiWindowStateNotificationSchemaRemainsStable()
+{
+    using W = KXmlGuiWindow;
+    using State = void (W::*)(const QString &);
+    using ReversedState = void (W::*)(const QString &, bool);
+    static_assert(std::is_same_v<decltype(static_cast<State>(&W::slotStateChanged)), State>);
+    static_assert(std::is_same_v<decltype(static_cast<ReversedState>(&W::slotStateChanged)), ReversedState>);
 }
 QTEST_GUILESS_MAIN(KKeySequenceWidgetSchemaContractTest)
 #include "KKeySequenceWidgetSchemaContractTest.moc"
