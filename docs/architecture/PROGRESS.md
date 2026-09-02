@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 11:15 JST
+- 更新日時: 2026-09-02 11:17 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -83,6 +83,8 @@
   製品`kritalibbrush` 1,222工程・2,466入力を維持した。既存対象のQGuiApplicationとtext brush既定値によるfont観測を拡大せず、定義済みbrush、brush集約、資源、設定、比較・永続化・寸法・LOD本文を新5枠で
   生成または実行していない。担当macOS環境と中央環境で5枠と既存値枠を含む対象CTest・20回反復、近傍`KisDabShapeContractTest`、無作業再構築、動的接続・未解決記号、構文・書式、公開API検査に成功した。
   中央の公開API契約検査は29,838件中14,624件対応、15,214件未対応となる。作業tree 875,984 KiBと担当branchは削除した。永続化、資源解決、寸法・LOD算定の実行時挙動は別の効果契約で扱う。
+- 第145便全体で85 APIを追加し、3作業tree計2,629,624 KiB（約2.51 GiB）を回収した。旧不足報告を削除し、5.4 GiBの主Ninja木、960 MiBの共有compiler cache、最新不足報告
+  `build/tdd-macos/public-api-missing-g146.json`だけを再利用対象として保持する。次の永続作業は第146便の不足報告から、pathと所有CMakeが重ならない3責務を先行監査し、限定構築範囲を確認してから担当票を確定することである。
 
 ### 第144便の先行監査計画
 
