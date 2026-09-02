@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 14609
+    "expectedMissingApis": 14576
   },
   "contracts": [
     {
@@ -43693,6 +43693,84 @@
         "method:KoMarker::applyShapeStroke(const KoShape * shape,KoShapeStroke * stroke,const QPointF & pos,qreal strokeWidth,qreal nodeAngle)",
         "method:KoMarker::drawPreview(QPainter * painter,const QRectF & previewRect,const QPen & pen,KoFlake::MarkerPosition position)",
         "method:KoMarker::paintAtPosition(QPainter * painter,const QPointF & pos,qreal strokeWidth,qreal nodeAngle)"
+      ]
+    },
+    {
+      "target": "KisTileDataSchemaContractTest",
+      "source": "libs/image/tiles3/tests/KisTileDataSchemaContractTest.cpp",
+      "test": "KisTileDataSchemaContractTest::tileDataStoreTypeAndMemoryValueSchemaRemainsStable",
+      "behavior": "tile data storeは公開型、MiB換算templateの戻り型、memory統計の5値、通常構築と破棄の型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisTileDataStore",
+        "function:MiB_TO_METRIC(T value)",
+        "member:KisTileDataStore::MemoryStatistics::historicalMemorySize",
+        "member:KisTileDataStore::MemoryStatistics::poolSize",
+        "member:KisTileDataStore::MemoryStatistics::realMemorySize",
+        "member:KisTileDataStore::MemoryStatistics::swapSize",
+        "member:KisTileDataStore::MemoryStatistics::totalMemorySize",
+        "method:KisTileDataStore::KisTileDataStore()",
+        "method:KisTileDataStore::~KisTileDataStore()",
+        "struct:KisTileDataStore::MemoryStatistics"
+      ]
+    },
+    {
+      "target": "KisTileDataSchemaContractTest",
+      "source": "libs/image/tiles3/tests/KisTileDataSchemaContractTest.cpp",
+      "test": "KisTileDataSchemaContractTest::tileDataStoreSingletonAndStatisticsSignaturesRemainStable",
+      "behavior": "tile data storeは共有instance、memory統計更新・照会、全tile数・memory内tile数・memory metric照会の厳密な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTileDataStore::instance()",
+        "method:KisTileDataStore::memoryMetric() const",
+        "method:KisTileDataStore::memoryStatistics()",
+        "method:KisTileDataStore::numTiles() const",
+        "method:KisTileDataStore::numTilesInMemory() const",
+        "method:KisTileDataStore::tryForceUpdateMemoryStatisticsWhileIdle()"
+      ]
+    },
+    {
+      "target": "KisTileDataSchemaContractTest",
+      "source": "libs/image/tiles3/tests/KisTileDataSchemaContractTest.cpp",
+      "test": "KisTileDataSchemaContractTest::tileDataStoreIterationSignaturesRemainStable",
+      "behavior": "tile data storeは通常・逆順・clockの3 iteratorについて開始時の借用pointer返却と対応する終了時pointer引数の厳密な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTileDataStore::beginClockIteration()",
+        "method:KisTileDataStore::beginIteration()",
+        "method:KisTileDataStore::beginReverseIteration()",
+        "method:KisTileDataStore::endIteration(KisTileDataStoreClockIterator * iterator)",
+        "method:KisTileDataStore::endIteration(KisTileDataStoreIterator * iterator)",
+        "method:KisTileDataStore::endIteration(KisTileDataStoreReverseIterator * iterator)"
+      ]
+    },
+    {
+      "target": "KisTileDataSchemaContractTest",
+      "source": "libs/image/tiles3/tests/KisTileDataSchemaContractTest.cpp",
+      "test": "KisTileDataSchemaContractTest::tileDataStoreTileLifetimeSignaturesRemainStable",
+      "behavior": "tile data storeは既定tile data生成、複製、解放、memory読込み、登録・解除、swap試行に関する厳密な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTileDataStore::createDefaultTileData(qint32 pixelSize,const quint8 * defPixel)",
+        "method:KisTileDataStore::duplicateTileData(KisTileData * rhs)",
+        "method:KisTileDataStore::ensureTileDataLoaded(KisTileData * td)",
+        "method:KisTileDataStore::freeTileData(KisTileData * td)",
+        "method:KisTileDataStore::registerTileData(KisTileData * td)",
+        "method:KisTileDataStore::trySwapTileData(KisTileData * td)",
+        "method:KisTileDataStore::unregisterTileData(KisTileData * td)"
+      ]
+    },
+    {
+      "target": "KisTileDataSchemaContractTest",
+      "source": "libs/image/tiles3/tests/KisTileDataSchemaContractTest.cpp",
+      "test": "KisTileDataSchemaContractTest::tileDataStoreMaintenanceSignaturesRemainStable",
+      "behavior": "tile data storeは空きmemory検査、診断出力、pooler起動、memory解放保守入口の厳密な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTileDataStore::checkFreeMemory()",
+        "method:KisTileDataStore::debugPrintList()",
+        "method:KisTileDataStore::kickPooler()",
+        "method:KisTileDataStore::purgeMemory()"
       ]
     }
   ]
