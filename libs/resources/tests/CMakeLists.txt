@@ -106,6 +106,23 @@ target_include_directories(KisResourceModelEnumContractTest PRIVATE
 target_compile_definitions(KisResourceModelEnumContractTest PRIVATE kritaresources_EXPORTS)
 
 kis_add_test(
+    KoResourceBundleSchemaContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Xml
+)
+target_include_directories(KoResourceBundleSchemaContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/serialization/xml
+    ${CMAKE_BINARY_DIR}/libs/serialization/xml
+    $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
+)
+target_compile_definitions(KoResourceBundleSchemaContractTest PRIVATE kritaresources_EXPORTS)
+
+kis_add_test(
     KisTagModelSchemaContractTest.cpp
     LINK_LIBRARIES
         Qt${QT_MAJOR_VERSION}::Test
