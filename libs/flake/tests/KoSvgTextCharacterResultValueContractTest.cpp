@@ -123,6 +123,11 @@ private Q_SLOTS:
     void lineBoxBaselineAndStateDefaultsRemainStable();
     void lineBoxConstructionSignaturesRemainStable();
     void lineBoxOperationSignaturesRemainStable();
+    void textLayoutBreakAndLineEdgeEnumSchemaRemainsStable();
+    void textCursorInfoValueSchemaRemainsStable();
+    void textCursorPositionValueSchemaRemainsStable();
+    void glyphOutlineAndBitmapValueSchemaRemainsStable();
+    void glyphColorLayerAndVariantSchemaRemainsStable();
 };
 
 void KoSvgTextCharacterResultValueContractTest::positionVisibilityAndIndicesDefaultAndAssignIndependently()
@@ -465,6 +470,58 @@ void KoSvgTextCharacterResultValueContractTest::lineBoxOperationSignaturesRemain
     static_assert(std::is_same_v<decltype(static_cast<SetChunkForPosition>(&LineBox::setCurrentChunkForPos)),
                                  SetChunkForPosition>);
     static_assert(std::is_same_v<decltype(static_cast<EmptyQuery>(&LineBox::isEmpty)), EmptyQuery>);
+}
+
+void KoSvgTextCharacterResultValueContractTest::textLayoutBreakAndLineEdgeEnumSchemaRemainsStable()
+{
+    static_assert(std::is_enum_v<BreakType>);
+    static_assert(BreakType::NoBreak == static_cast<BreakType>(0));
+    static_assert(BreakType::SoftBreak == static_cast<BreakType>(1));
+    static_assert(BreakType::HardBreak == static_cast<BreakType>(2));
+    static_assert(std::is_enum_v<LineEdgeBehaviour>);
+    static_assert(LineEdgeBehaviour::NoChange == static_cast<LineEdgeBehaviour>(0));
+    static_assert(LineEdgeBehaviour::Collapse == static_cast<LineEdgeBehaviour>(1));
+    static_assert(LineEdgeBehaviour::ForceHang == static_cast<LineEdgeBehaviour>(2));
+    static_assert(LineEdgeBehaviour::ConditionallyHang == static_cast<LineEdgeBehaviour>(3));
+}
+
+void KoSvgTextCharacterResultValueContractTest::textCursorInfoValueSchemaRemainsStable()
+{
+    static_assert(std::is_class_v<CursorInfo>);
+    static_assert(std::is_same_v<decltype(CursorInfo::caret), QLineF>);
+    static_assert(std::is_same_v<decltype(CursorInfo::color), QColor>);
+    static_assert(std::is_same_v<decltype(CursorInfo::graphemeIndices), QVector<int>>);
+    static_assert(std::is_same_v<decltype(CursorInfo::isWordBoundary), bool>);
+    static_assert(std::is_same_v<decltype(CursorInfo::offsets), QVector<QPointF>>);
+    static_assert(std::is_same_v<decltype(CursorInfo::rtl), bool>);
+}
+
+void KoSvgTextCharacterResultValueContractTest::textCursorPositionValueSchemaRemainsStable()
+{
+    static_assert(std::is_class_v<CursorPos>);
+    static_assert(std::is_same_v<decltype(CursorPos::cluster), int>);
+    static_assert(std::is_same_v<decltype(CursorPos::index), int>);
+    static_assert(std::is_same_v<decltype(CursorPos::offset), int>);
+    static_assert(std::is_same_v<decltype(CursorPos::synthetic), bool>);
+}
+
+void KoSvgTextCharacterResultValueContractTest::glyphOutlineAndBitmapValueSchemaRemainsStable()
+{
+    static_assert(std::is_class_v<Glyph::Outline>);
+    static_assert(std::is_same_v<decltype(Glyph::Outline::path), QPainterPath>);
+    static_assert(std::is_class_v<Glyph::Bitmap>);
+    static_assert(std::is_same_v<decltype(Glyph::Bitmap::images), QVector<QImage>>);
+    static_assert(std::is_same_v<decltype(Glyph::Bitmap::drawRects), QVector<QRectF>>);
+}
+
+void KoSvgTextCharacterResultValueContractTest::glyphColorLayerAndVariantSchemaRemainsStable()
+{
+    static_assert(std::is_class_v<Glyph::ColorLayers>);
+    static_assert(std::is_same_v<decltype(Glyph::ColorLayers::paths), QVector<QPainterPath>>);
+    static_assert(std::is_same_v<decltype(Glyph::ColorLayers::colors), QVector<QBrush>>);
+    static_assert(std::is_same_v<decltype(Glyph::ColorLayers::replaceWithForeGroundColor), QVector<bool>>);
+    static_assert(std::is_same_v<Glyph::Variant,
+                                 std::variant<std::monostate, Glyph::Outline, Glyph::Bitmap, Glyph::ColorLayers>>);
 }
 
 QTEST_GUILESS_MAIN(KoSvgTextCharacterResultValueContractTest)
