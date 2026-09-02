@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 15095
+    "expectedMissingApis": 15060
   },
   "contracts": [
     {
@@ -42622,6 +42622,86 @@
         "method:KoColorSpace::createDarkenAdjustment(qint32 shade,bool compensate,qreal compensation) const",
         "method:KoColorSpace::createInvertTransformation() const",
         "method:KoColorSpace::createPerChannelAdjustment(const quint16 * const * transferValues) const"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::projectionLeafOwnershipDropReasonAndLifetimeSchemaRemainsStable",
+      "behavior": "投影木leafはnodeから構築できる公開型として仮想破棄とnode除外理由の値を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisProjectionLeaf",
+        "enum:KisProjectionLeaf::NodeDropReason",
+        "enumerator:KisProjectionLeaf::NodeDropReason::DropPassThroughClone",
+        "enumerator:KisProjectionLeaf::NodeDropReason::DropPassThroughMask",
+        "enumerator:KisProjectionLeaf::NodeDropReason::NodeAvailable",
+        "method:KisProjectionLeaf::KisProjectionLeaf(KisNode * node)",
+        "method:KisProjectionLeaf::~KisProjectionLeaf()"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::projectionLeafGraphNavigationSignaturesRemainStable",
+      "behavior": "投影木leafは親子・兄弟・node・投影planeをたどる公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisProjectionLeaf::firstChild() const",
+        "method:KisProjectionLeaf::lastChild() const",
+        "method:KisProjectionLeaf::nextSibling() const",
+        "method:KisProjectionLeaf::node() const",
+        "method:KisProjectionLeaf::parent() const",
+        "method:KisProjectionLeaf::prevSibling() const",
+        "method:KisProjectionLeaf::projectionPlane() const"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::projectionLeafVisitorAndProjectionAccessSignaturesRemainStable",
+      "behavior": "投影木leafはvisitor受付、元・投影・遅延合成先device参照、pass-through投影再生成の公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisProjectionLeaf::accept(KisNodeVisitor & visitor)",
+        "method:KisProjectionLeaf::explicitlyRegeneratePassThroughProjection()",
+        "method:KisProjectionLeaf::lazyDestinationForSubtreeComposition()",
+        "method:KisProjectionLeaf::original()",
+        "method:KisProjectionLeaf::projection()"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::projectionLeafNodeClassificationAndRenderingSignaturesRemainStable",
+      "behavior": "投影木leafはnode分類、下位依存、channel・不透明度・表示状態から描画可否を照会する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisProjectionLeaf::canHaveChildLayers() const",
+        "method:KisProjectionLeaf::channelFlags() const",
+        "method:KisProjectionLeaf::dependsOnLowerNodes() const",
+        "method:KisProjectionLeaf::hasClones() const",
+        "method:KisProjectionLeaf::isLayer() const",
+        "method:KisProjectionLeaf::isMask() const",
+        "method:KisProjectionLeaf::isRoot() const",
+        "method:KisProjectionLeaf::isStillInGraph() const",
+        "method:KisProjectionLeaf::opacity() const",
+        "method:KisProjectionLeaf::shouldBeRendered() const",
+        "method:KisProjectionLeaf::visible() const"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::projectionLeafDropOverlayAndTemporaryVisibilitySignaturesRemainStable",
+      "behavior": "投影木leafは除外・overlay状態と描画からの一時非表示を照会・設定する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisProjectionLeaf::dropReason() const",
+        "method:KisProjectionLeaf::isDroppedNode() const",
+        "method:KisProjectionLeaf::isOverlayProjectionLeaf() const",
+        "method:KisProjectionLeaf::isTemporaryHiddenFromRendering() const",
+        "method:KisProjectionLeaf::setTemporaryHiddenFromRendering(bool value)"
       ]
     }
   ]
