@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 14895
+    "expectedMissingApis": 14854
   },
   "contracts": [
     {
@@ -43047,6 +43047,92 @@
       "apis": [
         "method:KisTile::next() const",
         "method:KisTile::setNext(KisTileSP next)"
+      ]
+    },
+    {
+      "target": "KisTileDataSchemaContractTest",
+      "source": "libs/image/tiles3/tests/KisTileDataSchemaContractTest.cpp",
+      "test": "KisTileDataSchemaContractTest::tileDataCacheTypesAndOperationsSchemaRemainsStable",
+      "behavior": "タイルデータcacheはlockless stackと連結listの別名、iterator型、SimpleCacheの寿命とpush・pop・clearの厳密な公開型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisTileDataCache",
+        "alias:KisTileDataList",
+        "alias:KisTileDataListConstIterator",
+        "alias:KisTileDataListIterator",
+        "class:SimpleCache",
+        "method:SimpleCache::SimpleCache()",
+        "method:SimpleCache::clear()",
+        "method:SimpleCache::pop(int pixelSize,quint8 * & ptr)",
+        "method:SimpleCache::push(int pixelSize,quint8 * & ptr)",
+        "method:SimpleCache::~SimpleCache()"
+      ]
+    },
+    {
+      "target": "KisTileDataSchemaContractTest",
+      "source": "libs/image/tiles3/tests/KisTileDataSchemaContractTest.cpp",
+      "test": "KisTileDataSchemaContractTest::tileDataIdentityStateAndLifetimeSchemaRemainsStable",
+      "behavior": "タイルデータは公開型、通常・圧縮・退避の状態順、固定寸法の宣言型、storeを受け取る構築と破棄の型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisTileData",
+        "enum:KisTileData::EnumTileDataState",
+        "enumerator:KisTileData::EnumTileDataState::COMPRESSED",
+        "enumerator:KisTileData::EnumTileDataState::NORMAL",
+        "enumerator:KisTileData::EnumTileDataState::SWAPPED",
+        "member:KisTileData::HEIGHT",
+        "member:KisTileData::WIDTH",
+        "method:KisTileData::KisTileData(qint32 pixelSize,const quint8 * defPixel,KisTileDataStore * store,bool checkFreeMemory=true)",
+        "method:KisTileData::~KisTileData()"
+      ]
+    },
+    {
+      "target": "KisTileDataSchemaContractTest",
+      "source": "libs/image/tiles3/tests/KisTileDataSchemaContractTest.cpp",
+      "test": "KisTileDataSchemaContractTest::tileDataStorageAndReferenceSignaturesRemainStable",
+      "behavior": "タイルデータは画素data・画素寸法、取得・解放、参照数、複製、履歴状態の厳密な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTileData::acquire()",
+        "method:KisTileData::clone()",
+        "method:KisTileData::data() const",
+        "method:KisTileData::deref()",
+        "method:KisTileData::historical() const",
+        "method:KisTileData::numUsers() const",
+        "method:KisTileData::pixelSize() const",
+        "method:KisTileData::ref() const",
+        "method:KisTileData::release()",
+        "method:KisTileData::setData(const quint8 * data)"
+      ]
+    },
+    {
+      "target": "KisTileDataSchemaContractTest",
+      "source": "libs/image/tiles3/tests/KisTileDataSchemaContractTest.cpp",
+      "test": "KisTileDataSchemaContractTest::tileDataSwapHistoryAndAgeSignaturesRemainStable",
+      "behavior": "タイルデータは退避の抑止・chunk、memento状態、ageの照会と更新に関する厳密な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTileData::age() const",
+        "method:KisTileData::blockSwapping()",
+        "method:KisTileData::markOld()",
+        "method:KisTileData::mementoed() const",
+        "method:KisTileData::resetAge()",
+        "method:KisTileData::setMementoed(bool value)",
+        "method:KisTileData::setSwapChunk(KisChunk chunk)",
+        "method:KisTileData::swapChunk() const",
+        "method:KisTileData::unblockSwapping()"
+      ]
+    },
+    {
+      "target": "KisTileDataSchemaContractTest",
+      "source": "libs/image/tiles3/tests/KisTileDataSchemaContractTest.cpp",
+      "test": "KisTileDataSchemaContractTest::tileDataMemoryLifecycleSignaturesRemainStable",
+      "behavior": "タイルデータは個別領域の確保・解放と共有内部pool解放の厳密な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTileData::allocateMemory()",
+        "method:KisTileData::releaseInternalPools()",
+        "method:KisTileData::releaseMemory()"
       ]
     }
   ]
