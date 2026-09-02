@@ -1291,6 +1291,12 @@ target_include_directories(KisImageTypesContractTest PRIVATE
     ${CMAKE_BINARY_DIR}/libs/global
     ${CMAKE_SOURCE_DIR}/libs/pigment
     ${CMAKE_BINARY_DIR}/libs/pigment
+    ${CMAKE_SOURCE_DIR}/libs/pigment/resources
+    ${CMAKE_BINARY_DIR}/libs/pigment/resources
+    ${CMAKE_SOURCE_DIR}/libs/psdutils
+    ${CMAKE_BINARY_DIR}/libs/psdutils
+    ${CMAKE_SOURCE_DIR}/libs/resources
+    ${CMAKE_BINARY_DIR}/libs/resources
     ${CMAKE_SOURCE_DIR}/libs/painting/undo
     ${CMAKE_BINARY_DIR}/libs/painting/undo
     $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Widgets,INTERFACE_INCLUDE_DIRECTORIES>

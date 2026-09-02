@@ -9,6 +9,7 @@
 #include "kis_default_bounds.h"
 #include "kis_distance_information.h"
 #include "kis_fixed_paint_device.h"
+#include "kis_group_layer.h"
 #include "kis_histogram.h"
 #include "kis_image_animation_interface.h"
 #include "kis_image_signal_router.h"
@@ -34,6 +35,8 @@ namespace
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisLayerUtils::function)), signature>)
 #define ASSERT_PAINTOP_SETTINGS_SIGNATURE(method, signature)                                                           \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisPaintOpSettings::method)), signature>)
+#define ASSERT_GROUP_LAYER_SIGNATURE(method, signature)                                                                \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KisGroupLayer::method)), signature>)
 #define ASSERT_FIXED_PAINT_DEVICE_SIGNATURE(method, signature)                                                         \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisFixedPaintDevice::method)), signature>)
 
@@ -138,6 +141,11 @@ private Q_SLOTS:
     void fixedPaintDeviceBufferStorageSignaturesRemainStable();
     void fixedPaintDeviceTransferAndConversionSignaturesRemainStable();
     void fixedPaintDevicePixelMutationSignaturesRemainStable();
+    void groupLayerOwnershipLifetimeAndHierarchySchemaRemainsStable();
+    void groupLayerImageCoordinateAndDeviceSignaturesRemainStable();
+    void groupLayerCompositionAndVisitorSignaturesRemainStable();
+    void groupLayerPresentationAndPolicySignaturesRemainStable();
+    void groupLayerChildrenBoundsSignaturesRemainStable();
 };
 
 void KisImageTypesContractTest::intrusivePointerAliasesPreserveOwnershipKinds()
@@ -1851,9 +1859,65 @@ void KisImageTypesContractTest::fixedPaintDevicePixelMutationSignaturesRemainSta
     ASSERT_FIXED_PAINT_DEVICE_SIGNATURE(mirror, void (KisFixedPaintDevice::*)(bool, bool));
 }
 
+void KisImageTypesContractTest::groupLayerOwnershipLifetimeAndHierarchySchemaRemainsStable()
+{
+    static_assert(std::is_class_v<KisGroupLayer>);
+    static_assert(std::is_base_of_v<KisLayer, KisGroupLayer>);
+    static_assert(std::is_constructible_v<KisGroupLayer, KisImageWSP, const QString &, quint8>);
+    static_assert(std::is_constructible_v<KisGroupLayer, KisImageWSP, const QString &, quint8, const KoColorSpace *>);
+    static_assert(std::is_copy_constructible_v<KisGroupLayer>);
+    static_assert(std::has_virtual_destructor_v<KisGroupLayer>);
+    ASSERT_GROUP_LAYER_SIGNATURE(allowAsChild, bool (KisGroupLayer::*)(KisNodeSP) const);
+    using CloneResult = decltype(std::declval<const KisGroupLayer &>().clone());
+    static_assert(std::is_same_v<CloneResult, KisNodeSP>);
+}
+
+void KisImageTypesContractTest::groupLayerImageCoordinateAndDeviceSignaturesRemainStable()
+{
+    ASSERT_GROUP_LAYER_SIGNATURE(setImage, void (KisGroupLayer::*)(KisImageWSP));
+    ASSERT_GROUP_LAYER_SIGNATURE(colorSpace, const KoColorSpace *(KisGroupLayer::*)() const);
+    ASSERT_GROUP_LAYER_SIGNATURE(original, KisPaintDeviceSP (KisGroupLayer::*)() const);
+    ASSERT_GROUP_LAYER_SIGNATURE(lazyDestinationForSubtreeComposition, KisPaintDeviceSP (KisGroupLayer::*)() const);
+    ASSERT_GROUP_LAYER_SIGNATURE(paintDevice, KisPaintDeviceSP (KisGroupLayer::*)() const);
+    ASSERT_GROUP_LAYER_SIGNATURE(x, qint32 (KisGroupLayer::*)() const);
+    ASSERT_GROUP_LAYER_SIGNATURE(y, qint32 (KisGroupLayer::*)() const);
+    ASSERT_GROUP_LAYER_SIGNATURE(setX, void (KisGroupLayer::*)(qint32));
+    ASSERT_GROUP_LAYER_SIGNATURE(setY, void (KisGroupLayer::*)(qint32));
+}
+
+void KisImageTypesContractTest::groupLayerCompositionAndVisitorSignaturesRemainStable()
+{
+    ASSERT_GROUP_LAYER_SIGNATURE(accept, bool (KisGroupLayer::*)(KisNodeVisitor &));
+    ASSERT_GROUP_LAYER_SIGNATURE(accept, void (KisGroupLayer::*)(KisProcessingVisitor &, KisUndoAdapter *));
+    ASSERT_GROUP_LAYER_SIGNATURE(createMergedLayerTemplate, KisLayerSP (KisGroupLayer::*)(KisLayerSP));
+    ASSERT_GROUP_LAYER_SIGNATURE(fillMergedLayerTemplate, void (KisGroupLayer::*)(KisLayerSP, KisLayerSP, bool));
+    ASSERT_GROUP_LAYER_SIGNATURE(resetCache, void (KisGroupLayer::*)(const KoColorSpace *));
+    ASSERT_GROUP_LAYER_SIGNATURE(projectionIsValid, bool (KisGroupLayer::*)() const);
+}
+
+void KisImageTypesContractTest::groupLayerPresentationAndPolicySignaturesRemainStable()
+{
+    ASSERT_GROUP_LAYER_SIGNATURE(icon, QIcon (KisGroupLayer::*)() const);
+    ASSERT_GROUP_LAYER_SIGNATURE(sectionModelProperties, KisBaseNode::PropertyList (KisGroupLayer::*)() const);
+    ASSERT_GROUP_LAYER_SIGNATURE(setSectionModelProperties, void (KisGroupLayer::*)(const KisBaseNode::PropertyList &));
+    ASSERT_GROUP_LAYER_SIGNATURE(defaultProjectionColor, KoColor (KisGroupLayer::*)() const);
+    ASSERT_GROUP_LAYER_SIGNATURE(setDefaultProjectionColor, void (KisGroupLayer::*)(KoColor));
+    ASSERT_GROUP_LAYER_SIGNATURE(passThroughMode, bool (KisGroupLayer::*)() const);
+    ASSERT_GROUP_LAYER_SIGNATURE(setPassThroughMode, void (KisGroupLayer::*)(bool));
+}
+
+void KisImageTypesContractTest::groupLayerChildrenBoundsSignaturesRemainStable()
+{
+    ASSERT_GROUP_LAYER_SIGNATURE(extent, QRect (KisGroupLayer::*)() const);
+    ASSERT_GROUP_LAYER_SIGNATURE(exactBounds, QRect (KisGroupLayer::*)() const);
+    ASSERT_GROUP_LAYER_SIGNATURE(calculateChildrenTightUserVisibleBounds, QRect (KisGroupLayer::*)() const);
+    ASSERT_GROUP_LAYER_SIGNATURE(calculateChildrenLooseUserVisibleBounds, QRect (KisGroupLayer::*)() const);
+}
+
 #undef ASSERT_DEFAULT_BOUNDS_SIGNATURE
 #undef ASSERT_LAYER_UTILS_SIGNATURE
 #undef ASSERT_PAINTOP_SETTINGS_SIGNATURE
+#undef ASSERT_GROUP_LAYER_SIGNATURE
 #undef ASSERT_FIXED_PAINT_DEVICE_SIGNATURE
 
 QTEST_GUILESS_MAIN(KisImageTypesContractTest)
