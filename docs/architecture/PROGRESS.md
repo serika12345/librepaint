@@ -28,6 +28,27 @@
   main window、font family、internal color selector、tag・visual selector、scratchpad、libkis文書・nodeは設定・font database・resource・複数Widget・canvas・文書状態へ閉包が広がるため棄却した。
 - 中央の`public-api-missing-g174.json`で3ヘッダーの全識別子と34件・22件・20件を照合した。開始header、試験source、所有CMake、生成物に重複はなく、合計76 APIを15枠へ進める。公開headerをtarget sourceやAUTOMOC入力へ加えず、製品共有libraryと`kritatestsdk`へ接続しない。実装中に許可path外変更、製品OBJECT/shared、実体化・本文実行、動的接続の拡大、5工程・11入力超過、製品計画集合の変化が必要になれば担当を停止する。
 
+### 第174便の担当計画
+
+- 実装共通基点は`e0212e9a64`である。3担当は`implementing`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、専用worktree-local
+  `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。実装は並行し、構成・構築枠は一度に1担当だけへ与える。開始時はclone layerだけが構築`granted`、font glyph modelとhelp menuは実装後に構築前で待機する。
+  統合順はclone layer、font glyph model、help menuとし、調整担当だけがarchitecture文書、公開API台帳、共通不足報告を変更する。3担当の公開header、所有CMake、試験source、生成物は重ならない。製品targetを引数にするplan/build、全体build、全体`verify`、Linux検証は禁止し、担当targetと近傍、公開API検査、`verify-quick`だけを実行する。
+- `g174-clone-layer-schema`は`/Users/masato/Documents/librepaint-g174-clone-layer-schema`を所有する。開始`libs/image/kis_clone_layer.h`の未対応全34 APIから既存
+  `libs/image/tests/KisImageTypesContractTest.cpp`の5枠`cloneLayerTypeOwnershipAndLifetimeSchemaRemainsStable`、`cloneLayerSourceIdentityAndPolicySignaturesRemainStable`、`cloneLayerDeviceProjectionAndPresentationSignaturesRemainStable`、
+  `cloneLayerImageAndGeometrySignaturesRemainStable`、`cloneLayerVisitorCloneAndUpdateSignaturesRemainStable`へ対応付ける。完全集合はclass、`CopyLayerType`と`COPY_PROJECTION`・`COPY_ORIGINAL`、完全引数構築・copy構築・破棄、`copyFrom`・`setCopyFrom`、`copyFromInfo`・`setCopyFromInfo`、`copyType`・`setCopyType`、`reincarnateAsPaintLayer`、`original`、`paintDevice`、`needProjection`、`colorSpace`、`icon`、`sectionModelProperties`、`allowAsChild`、`setImage`、`x`・`y`・`setX`・`setY`、`extent`、`exactBounds`、2種類の`accept`、`clone`、`setDirtyOriginal`、`needRectOnSourceForMasks`、`syncLodCache`である。許可pathは既存試験sourceだけで、CMake・依存・公開header・製品sourceを変更しない。
+  clone layer、source layer、image、node、device、projection、visitor、undoを実体化せず、constructor・destructor、inline clone、dirty、LOD、mask領域、metaobject本文を実行しない。対象4工程・8入力、停止5工程・11入力、近傍`KisImageConfigAnimationSchemaContractTest`、製品`kritaimage` 1,196工程・2,416入力を維持する。
+  旧binaryの新5枠Unknown、対象CTest・枠個別・20回反復、既存枠、近傍、無作業再構築、動的接続・AUTOMOC入力・clone/source/device/vtable/metaobject未解決記号、構文・書式、公開API・`verify-quick`を確認する。実体化、inline・状態変更本文の実行、新規include・link、停止線超過が必要なら止める。
+- `g174-font-glyph-model-schema`は`/Users/masato/Documents/librepaint-g174-font-glyph-model-schema`を所有する。開始`libs/flake/text/KoFontGlyphModel.h`の未対応全22 APIから新規
+  `libs/flake/tests/KoFontGlyphModelSchemaContractTest.cpp`の5枠`fontGlyphModelIdentityAndLifecycleSignaturesRemainStable`、`fontGlyphModelRoleAndGlyphTypeValuesRemainStable`、`fontGlyphModelTreeNavigationSignaturesRemainStable`、
+  `fontGlyphModelDataAndMetadataSignaturesRemainStable`、`fontGlyphModelFaceSelectionSignatureRemainsStable`へ対応付ける。完全集合はclass、親既定引数付き構築・破棄、`GlyphType`と`Base`・`UnicodeVariationSelector`・`OpenType`、`Roles`と`OpenTypeFeatures`・`GlyphLabel`・`ChildCount`、既定引数付き`index`、`parent`、既定引数付き`rowCount`・`columnCount`・`hasChildren`、既定role付き`data`、`roleNames`、`blocks`、`featureInfo`、`indexForString`、language・samplesOnly既定引数付き`setFace`である。許可pathは新規試験sourceと`libs/flake/tests/CMakeLists.txt`の対象固有節だけで、公開header・製品sourceを変更しない。
+  model、index階層、font face、resource pointerを実体化せず、glyph照会、font database、OpenType解析、signal、metaobject、event loop、外部font libraryのdeleterを実行しない。直接linkはQt Core・Testだけ、Boost、Qt Gui、KF I18n、Freetype、HarfBuzz、Fontconfigとflake text・globalのsource/generatedをcompile interfaceへ限定し、新対象4工程・8入力、停止5工程・11入力、近傍`KoFFWWSConverterSchemaContractTest`、製品`kritaflake` 621工程・1,274入力を維持する。
+  実装後は構築許可まで待機する。許可後にunknown target・CTest 0件、新5枠、対象CTest・枠個別・20回反復、近傍、無作業再構築、動的接続・AUTOMOC入力・model/font/resource未解決記号、構文・書式、公開API・`verify-quick`を確認する。実体化・本文実行、Qt Core・Test以外の動的接続、製品library、停止線超過が必要なら止める。
+- `g174-help-menu-schema`は`/Users/masato/Documents/librepaint-g174-help-menu-schema`を所有する。開始`libs/widgetutils/xmlgui/khelpmenu.h`の未対応全20 APIから新規
+  `libs/widgetutils/tests/KHelpMenuSchemaContractTest.cpp`の5枠`helpMenuTypeAndIdentifierSchemaRemainsStable`、`helpMenuLifetimeSchemaRemainsStable`、`helpMenuAccessSchemaRemainsStable`、`helpMenuRoutingSignaturesRemainStable`、
+  `helpMenuNotificationSignatureRemainsStable`へ対応付ける。完全集合はclass、`MenuId`と`menuHelpContents`・`menuWhatsThis`・`menuAboutApp`・`menuAboutKDE`・`menuReportBug`・`menuSwitchLanguage`、about text既定引数付き構築、about dataとshowWhatsThis既定引数付き構築、破棄、`menu`、`action`、`appHelpActivated`、`contextHelpActivated`、`aboutApplication`、`aboutKDE`、`reportBug`、`switchApplicationLanguage`、`showAboutApplication`である。許可pathは新規試験sourceと`libs/widgetutils/tests/CMakeLists.txt`の対象固有節だけで、公開header・製品sourceを変更しない。
+  help menu、private実装、Widget、menu、action、dialog、timerを実体化せず、help経路、language切替、signal、event loopを実行しない。直接linkはQt Core・Testだけ、xmlgui source/generatedだけをcompile interfaceに含め、新対象4工程・8入力、停止5工程・11入力、近傍`KXMLGUIClientSchemaContractTest`、製品`kritawidgetutils` 274工程・581入力を維持する。
+  実装後は構築許可まで待機する。許可後にunknown target・CTest 0件、新5枠、対象CTest・枠個別・20回反復、近傍、無作業再構築、動的接続・AUTOMOC入力・help/menu/action/dialog未解決記号、構文・書式、公開API・`verify-quick`を確認する。実体化・本文実行、Qt Gui・WidgetsまたはKF libraryの直接link、製品library、停止線超過が必要なら止める。
+
 ### 第173便の先行監査計画
 
 - 監査共通基点は`56a07f4f08`、入力は`build/tdd-macos/public-api-missing-g173.json`である。3担当は`auditing`の読み取り専用とし、製品・試験・CMake・script・台帳・文書を変更せず、構成、構築、試験、Git操作、追加委任も行わない。
