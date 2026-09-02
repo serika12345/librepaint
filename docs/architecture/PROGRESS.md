@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 16:13 JST
+- 更新日時: 2026-09-02 16:16 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -43,6 +43,33 @@
   `KisImageTypesContractTest`の命令集合hashは`18846cd1fb8594a8bc0820ed244ffc66d6e97f76ceb5dd11f9ec5959ac8f0eec`、入力集合hashは
   `42c0bdca62da9111fd79736a3055bd233ee32342bc2c9ae69fc577a83a88cf81`、製品命令集合hashは`8b3e011450f2ca342e0ce523cc1696c2e2b3970456a8cb097553ee5fdf79930f`、入力集合hashは
   `76f2aa4251a6bf4e2adf2a1e822bc9d629753b2e93e5b877ee4eae23364940bc`である。`kis_pixel_selection.h`はpaint device・selection・outline・thumbnail・projection・I/Oへ責務と閉包が広がるため棄却した。
+
+### 第155便の担当計画
+
+- 実装共通基点は`55ca491bf2`である。3担当は`preparing`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、
+  専用worktree-local `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。統合順はSVG text cursor照会、libkis palette、keyframe channelとし、調整担当だけが
+  `AGENTS.md`、architecture文書、`docs/architecture/public-api-test-contracts.json`、共通不足報告を変更する。3担当の公開header、所有CMake、試験source、生成物は重ならない。
+- `g155-svg-text-cursor-query-schema`は`/Users/masato/Documents/librepaint-g155-svg-text-cursor-query-schema`を所有する。開始`libs/flake/text/KoSvgTextShape.h`のカーソル照会28 APIから既存
+  `libs/flake/tests/KoSvgTextCharacterResultValueContractTest.cpp`の5枠`textCursorDirectionalNavigationSignaturesRemainStable`、`textCursorGeometryQuerySignaturesRemainStable`、
+  `textCursorStringIndexMappingSignaturesRemainStable`、`textCursorNodeRangeMappingSignaturesRemainStable`、`textCursorRangeValueQuerySignaturesRemainStable`へ対応付ける。許可pathは既存試験sourceだけで、CMakeを変更しない。
+  対象4工程・8入力、停止5工程・11入力、近傍は`KoSvgTextFontMetricsValueContractTest`、製品`kritaflake`は621工程・1,274入力と担当tree内の変更前後集合・保留集合完全一致を確認する。旧binaryで新5枠Unknown、
+  対象CTest、新5枠個別、20回反復、近傍、無作業再構築、動的接続・AUTOMOC入力・未解決text shape記号、構文・変更行書式、公開API・`verify-quick`を確認する。shape、node index、layout、font、path、painter、XML、document、
+  resource、inline本文、関数address値を生成または実行し、新依存、CMake・公開header変更、製品接続、対象集合・製品計画差、停止線超過が必要なら止める。
+- `g155-libkis-palette-schema`は`/Users/masato/Documents/librepaint-g155-libkis-palette-schema`を所有する。開始`libs/libkis/Palette.h`の全31 APIから新規
+  `libs/libkis/tests/PaletteSchemaContractTest.cpp`の5枠`paletteOwnershipLifetimeAndEqualitySchemaRemainsStable`、`paletteGridAndCountSignaturesRemainStable`、`paletteGroupOperationSignaturesRemainStable`、
+  `paletteEntryOperationSignaturesRemainStable`、`paletteMetadataAndPersistenceSignaturesRemainStable`へ対応付ける。許可pathは新規試験sourceと`libs/libkis/tests/CMakeLists.txt`だけである。直接linkはQt Core・Gui・Testと
+  Boost headerだけ、includeはlibkis・global・resources・pigment・imageのsource/generatedと必要なheader interface、definitionは公開headerを解釈するexport定義だけとし、公開headerをtarget sourceやAUTOMOC入力へ加えない。
+  新対象4工程・8入力、停止5工程・11入力、近傍は`GridConfigSchemaContractTest`、製品`kritalibkis`は2,018工程・4,034入力と担当tree内の変更前後集合完全一致を確認する。未知targetと新5枠、対象CTest、新5枠個別、
+  20回反復、近傍、無作業再構築、動的接続・AUTOMOC入力・未解決palette・resource・swatch記号、構文・変更行書式、公開API・`verify-quick`を確認する。Palette、Resource、Swatch、QObject、metaobject、保存処理、registry、
+  filesystem、view、canvas、document、image、GUI event loopを生成または実行し、製品source・OBJECT・shared、`kritatestsdk`、Qt Widgetsまたは新しい非header link、公開header変更、製品計画差、停止線超過が必要なら止める。
+- `g155-keyframe-channel-schema`は`/Users/masato/Documents/librepaint-g155-keyframe-channel-schema`を所有する。開始`libs/image/kis_keyframe_channel.h`の全53 APIから新規
+  `libs/image/tests/KisKeyframeChannelSchemaContractTest.cpp`の5枠`keyframeChannelTypeLifetimeAndIdentifierSchemaRemainsStable`、`keyframeChannelLookupAndTimelineSchemaRemainsStable`、
+  `keyframeChannelMutationSchemaRemainsStable`、`keyframeChannelOwnershipFrameAndSerializationSchemaRemainsStable`、`keyframeChannelNotificationSchemaRemainsStable`へ対応付ける。許可pathは新規試験sourceと
+  `libs/image/tests/CMakeLists.txt`だけである。直接linkはQt Core・Xml・Testと必要なheader interfaceだけ、includeはimage・global・painting/undoのsource/generated、definitionは`kritaimage_EXPORTS`・`kritaglobal_EXPORTS`・
+  `kritapaintingundo_EXPORTS`だけとし、KF I18nはinterface includeに限定し、公開headerをtarget sourceやAUTOMOC入力へ加えない。新対象4工程・8入力、停止5工程・11入力、近傍は`KisImageTypesContractTest`、製品
+  `kritaimage`は1,196工程・2,416入力と担当tree内の変更前後集合完全一致を確認する。未知targetと新5枠、対象CTest、新5枠個別、20回反復、近傍、無作業再構築、動的接続・AUTOMOC入力・未解決channel・keyframe記号、構文・
+  変更行書式、公開API・`verify-quick`を確認する。channel、keyframe、node、default bounds、undo、XML、signal、metaobject、inline move・copy・swap・active本文、static KoID値を生成または実行し、製品source・OBJECT・shared、
+  `kritatestsdk`、新しい非header link、公開header変更、製品計画差、停止線超過が必要なら止める。
 
 ### 第154便の先行監査計画
 
