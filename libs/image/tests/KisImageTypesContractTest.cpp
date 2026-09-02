@@ -6,6 +6,7 @@
 #include "brushengine/kis_paint_information.h"
 #include "brushengine/kis_paintop_settings.h"
 #include "brushengine/kis_uniform_paintop_property.h"
+#include "commands_new/kis_saved_commands.h"
 #include "kis_datamanager.h"
 #include "kis_default_bounds.h"
 #include "kis_distance_information.h"
@@ -42,6 +43,8 @@ namespace
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisFixedPaintDevice::method)), signature>)
 #define ASSERT_DATA_MANAGER_SIGNATURE(method, signature)                                                               \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisDataManager::method)), signature>)
+#define ASSERT_SAVED_COMMAND_SIGNATURE(type, method, signature)                                                        \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&type::method)), signature>)
 
 class SelectionDefaultBoundsConstructorProbe final : public KisSelectionDefaultBoundsBase
 {
@@ -56,6 +59,21 @@ class PaintDeviceConvertible
 {
 public:
     operator KisPaintDeviceSP() const;
+};
+
+class SavedCommandBaseConstructorProbe final : public KisSavedCommandBase
+{
+public:
+    using KisSavedCommandBase::KisSavedCommandBase;
+
+protected:
+    void addCommands(KisStrokeId id, bool undo) override;
+};
+
+class SavedCommandUnwrapCallable
+{
+public:
+    KUndo2Command *operator()(KUndo2Command *command) const;
 };
 
 } // namespace
@@ -154,6 +172,11 @@ private Q_SLOTS:
     void dataManagerPixelTransferAndMutationSignaturesRemainStable();
     void dataManagerCopyAndHistorySignaturesRemainStable();
     void dataManagerPersistencePurgeAndPoolSignaturesRemainStable();
+    void savedCommandHierarchyAndLifetimeSchemaRemainsStable();
+    void savedCommandTimingAndIdentitySignaturesRemainStable();
+    void savedCommandMergeAndUnwrapSignaturesRemainStable();
+    void savedMacroCommandCompositionAndIdentitySignaturesRemainStable();
+    void savedMacroCommandExecutionAndOverrideSignaturesRemainStable();
 };
 
 void KisImageTypesContractTest::intrusivePointerAliasesPreserveOwnershipKinds()
@@ -1991,12 +2014,94 @@ void KisImageTypesContractTest::dataManagerPersistencePurgeAndPoolSignaturesRema
     ASSERT_DATA_MANAGER_SIGNATURE(releaseInternalPools, void (*)());
 }
 
+void KisImageTypesContractTest::savedCommandHierarchyAndLifetimeSchemaRemainsStable()
+{
+    static_assert(std::is_base_of_v<KUndo2Command, KisSavedCommandBase>);
+    static_assert(std::is_base_of_v<KisSavedCommandBase, KisSavedCommand>);
+    static_assert(std::is_base_of_v<KisSavedCommandBase, KisSavedMacroCommand>);
+    static_assert(
+        std::is_constructible_v<SavedCommandBaseConstructorProbe, const KUndo2MagicString &, KisStrokesFacade *>);
+    static_assert(std::has_virtual_destructor_v<KisSavedCommandBase>);
+    ASSERT_SAVED_COMMAND_SIGNATURE(KisSavedCommandBase, redo, void (KisSavedCommandBase::*)());
+    ASSERT_SAVED_COMMAND_SIGNATURE(KisSavedCommandBase, undo, void (KisSavedCommandBase::*)());
+    static_assert(std::is_constructible_v<KisSavedCommand, KUndo2CommandSP, KisStrokesFacade *>);
+    static_assert(std::is_constructible_v<KisSavedMacroCommand, const KUndo2MagicString &, KisStrokesFacade *>);
+    static_assert(std::has_virtual_destructor_v<KisSavedMacroCommand>);
+}
+
+void KisImageTypesContractTest::savedCommandTimingAndIdentitySignaturesRemainStable()
+{
+    ASSERT_SAVED_COMMAND_SIGNATURE(KisSavedCommand, endTime, QTime (KisSavedCommand::*)() const);
+    ASSERT_SAVED_COMMAND_SIGNATURE(KisSavedCommand, id, int (KisSavedCommand::*)() const);
+    ASSERT_SAVED_COMMAND_SIGNATURE(KisSavedCommand, isMerged, bool (KisSavedCommand::*)() const);
+    ASSERT_SAVED_COMMAND_SIGNATURE(KisSavedCommand, setEndTime, void (KisSavedCommand::*)(const QTime &));
+    ASSERT_SAVED_COMMAND_SIGNATURE(KisSavedCommand, setTime, void (KisSavedCommand::*)(const QTime &));
+    ASSERT_SAVED_COMMAND_SIGNATURE(KisSavedCommand, setTimedID, void (KisSavedCommand::*)(int));
+    ASSERT_SAVED_COMMAND_SIGNATURE(KisSavedCommand, time, QTime (KisSavedCommand::*)() const);
+    ASSERT_SAVED_COMMAND_SIGNATURE(KisSavedCommand, timedId, int (KisSavedCommand::*)() const);
+}
+
+void KisImageTypesContractTest::savedCommandMergeAndUnwrapSignaturesRemainStable()
+{
+    ASSERT_SAVED_COMMAND_SIGNATURE(KisSavedCommand,
+                                   canAnnihilateWith,
+                                   bool (KisSavedCommand::*)(const KUndo2Command *) const);
+    ASSERT_SAVED_COMMAND_SIGNATURE(KisSavedCommand,
+                                   mergeCommandsVector,
+                                   QVector<KUndo2Command *> (KisSavedCommand::*)() const);
+    ASSERT_SAVED_COMMAND_SIGNATURE(KisSavedCommand, mergeWith, bool (KisSavedCommand::*)(const KUndo2Command *));
+    ASSERT_SAVED_COMMAND_SIGNATURE(KisSavedCommand, timedMergeWith, bool (KisSavedCommand::*)(KUndo2Command *));
+    static_assert(std::is_same_v<decltype(KisSavedCommand::unwrap(std::declval<KUndo2Command *>(),
+                                                                  std::declval<SavedCommandUnwrapCallable>())),
+                                 KUndo2Command *>);
+}
+
+void KisImageTypesContractTest::savedMacroCommandCompositionAndIdentitySignaturesRemainStable()
+{
+    ASSERT_SAVED_COMMAND_SIGNATURE(KisSavedMacroCommand,
+                                   addCommand,
+                                   void (KisSavedMacroCommand::*)(KUndo2CommandSP,
+                                                                  KisStrokeJobData::Sequentiality,
+                                                                  KisStrokeJobData::Exclusivity));
+    ASSERT_SAVED_COMMAND_SIGNATURE(KisSavedMacroCommand,
+                                   canAnnihilateWith,
+                                   bool (KisSavedMacroCommand::*)(const KUndo2Command *) const);
+    ASSERT_SAVED_COMMAND_SIGNATURE(KisSavedMacroCommand, id, int (KisSavedMacroCommand::*)() const);
+    ASSERT_SAVED_COMMAND_SIGNATURE(KisSavedMacroCommand,
+                                   mergeWith,
+                                   bool (KisSavedMacroCommand::*)(const KUndo2Command *));
+    ASSERT_SAVED_COMMAND_SIGNATURE(KisSavedMacroCommand, setMacroId, void (KisSavedMacroCommand::*)(int));
+    static_assert(
+        std::is_same_v<decltype(std::declval<KisSavedMacroCommand &>().addCommand(std::declval<KUndo2CommandSP>())),
+                       void>);
+    static_assert(
+        std::is_same_v<decltype(std::declval<KisSavedMacroCommand &>().addCommand(std::declval<KUndo2CommandSP>(),
+                                                                                  KisStrokeJobData::SEQUENTIAL)),
+                       void>);
+}
+
+void KisImageTypesContractTest::savedMacroCommandExecutionAndOverrideSignaturesRemainStable()
+{
+    ASSERT_SAVED_COMMAND_SIGNATURE(KisSavedMacroCommand,
+                                   getCommandExecutionJobs,
+                                   void (KisSavedMacroCommand::*)(QVector<KisStrokeJobData *> *, bool, bool) const);
+    ASSERT_SAVED_COMMAND_SIGNATURE(
+        KisSavedMacroCommand,
+        setOverrideInfo,
+        void (KisSavedMacroCommand::*)(const KisSavedMacroCommand *, const QVector<const KUndo2Command *> &));
+    static_assert(
+        std::is_same_v<decltype(std::declval<const KisSavedMacroCommand &>()
+                                    .getCommandExecutionJobs(std::declval<QVector<KisStrokeJobData *> *>(), true)),
+                       void>);
+}
+
 #undef ASSERT_DEFAULT_BOUNDS_SIGNATURE
 #undef ASSERT_LAYER_UTILS_SIGNATURE
 #undef ASSERT_PAINTOP_SETTINGS_SIGNATURE
 #undef ASSERT_GROUP_LAYER_SIGNATURE
 #undef ASSERT_FIXED_PAINT_DEVICE_SIGNATURE
 #undef ASSERT_DATA_MANAGER_SIGNATURE
+#undef ASSERT_SAVED_COMMAND_SIGNATURE
 
 QTEST_GUILESS_MAIN(KisImageTypesContractTest)
 
