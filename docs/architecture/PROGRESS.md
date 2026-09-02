@@ -41,6 +41,40 @@
   `f3f361da0bcc5c5d3fcc2e2e638cfbfce33af5ddc455e80260a62ff35b74a676`、入力集合hashは`1a30862a8e0463c6578045c344b23088d4909ac6017407162709d283413b8cb5`である。`KoSvgTextShape.h`の残りは
   編集・layout・変形・直列化へ責務と実行閉包が広がり、今回の値面より安全な単一境界を形成しないため棄却した。
 
+### 第156便の担当計画
+
+- 実装共通基点は`b0ce77bcf3`である。3担当は`preparing`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、
+  専用worktree-local `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。統合順はscalar keyframe、SVG text補助値、libkis view描画状態とし、調整担当だけが
+  `AGENTS.md`、architecture文書、`docs/architecture/public-api-test-contracts.json`、共通不足報告を変更する。3担当の公開header、所有CMake、試験source、生成物は重ならない。
+- `g156-scalar-keyframe-schema`は`/Users/masato/Documents/librepaint-g156-scalar-keyframe-schema`を所有する。開始`libs/image/kis_scalar_keyframe_channel.h`の全46 APIから既存
+  `libs/image/tests/KisKeyframeChannelSchemaContractTest.cpp`の5枠`scalarKeyframeLimitsValueSchemaRemainsStable`、`scalarKeyframeTypeAndInterpolationSchemaRemainsStable`、
+  `scalarKeyframeValueAndTangentSchemaRemainsStable`、`scalarKeyframeChannelTypeAndPolicySchemaRemainsStable`、`scalarKeyframeChannelEvaluationAndMutationSchemaRemainsStable`へ対応付ける。完全集合は
+  `ScalarKeyframeLimits`と`lower`・`upper`・構築・`clamp`、`KisScalarKeyframe`と2列挙・全5列挙子・2構築・`valueChangedChannelConnection`、`duplicate`・`setValue`・`value`・`setInterpolationMode`・
+  `interpolationMode`・`setTangentsMode`・`tangentsMode`・`setInterpolationTangents`・`leftTangent`・`rightTangent`・`setLimits`・`sigChanged`、`KisScalarKeyframeChannel`と2構築・破棄・`limits`・`setLimits`・
+  `removeLimits`・`setDefaultValue`・`setDefaultInterpolationMode`・`currentValue`・`isCurrentTimeAffectedBy`・`addScalarKeyframe`・`valueAt`・`interpolate`・`insertKeyframe`・`removeKeyframe`・`affectedFrames`・
+  `identicalFrames`である。許可pathは既存試験sourceだけでCMakeを変更しない。8 APIの既定引数を未評価の省略呼出しで固定し、上下限正規化と3点clampを具体値で実行する。対象4工程・8入力、停止5工程・11入力、
+  近傍は`KisImageTypesContractTest`、製品`kritaimage`は1,196工程・2,416入力と担当tree内の変更前後集合・保留集合完全一致を確認する。旧binaryで新5枠Unknown、対象CTest、新5枠個別、20回反復、近傍、
+  無作業再構築、動的接続・AUTOMOC入力・未解決scalar keyframe記号、構文・変更行書式、公開API・`verify-quick`を確認する。keyframe・channel・bounds・undo・XML・signal配送・metaobject・補間本文を生成または実行し、
+  CMake・公開header・製品source変更、新依存、製品接続、対象集合・製品計画差、停止線超過が必要なら止める。
+- `g156-svg-text-property-values-schema`は`/Users/masato/Documents/librepaint-g156-svg-text-property-values-schema`を所有する。開始`libs/flake/text/KoSvgText.h`の31 APIから既存
+  `libs/flake/tests/KoSvgTextFontMetricsValueContractTest.cpp`の5枠`backgroundPropertyValueAndComparisonSignaturesRemainStable`、`strokePropertyValueAndComparisonSignaturesRemainStable`、
+  `textOnPathValueSchemaRemainsStable`、`textUnderlinePositionValueAndComparisonSignaturesRemainStable`、`fontMetricsOperationSignaturesRemainStable`へ対応付ける。完全集合は`BackgroundProperty`のstruct・`property`・2構築・
+  `operator==`・debug出力、`StrokeProperty`の同6 API、`TextOnPathInfo`のstruct・`startOffset`・`startOffsetIsPercentage`・`method`・`spacing`・`side`、`TextUnderlinePosition`のstruct・`horizontalPosition`・
+  `verticalPosition`・`operator==`・debug出力、`FontMetrics`の2引数構築・`offsetMetricsToNewOrigin`・`operator==`・`scaleBaselines`・`setBaselineValueByTag`・`setMetricsValueByTag`・`valueForBaselineValue`・debug出力である。
+  許可pathは既存試験sourceだけでCMakeを変更しない。背景・strokeは既定空値・空値等価・独立コピー、path配置は0・false・align・auto・leftの既定値と代入後の独立値、underline位置はauto・leftの既定値・等価差分を具体値で実行し、
+  out-of-line操作は未評価の厳密な関数型だけを固定する。対象4工程・8入力、停止5工程・11入力、近傍は`KoSvgTextCharacterResultValueContractTest`、製品`kritaflake`は621工程・1,274入力と担当tree内の変更前後集合・
+  保留集合完全一致を確認する。旧binaryで新5枠Unknown、対象CTest、新5枠個別、20回反復、近傍、無作業再構築、動的接続・AUTOMOC入力・未解決SVG text記号、構文・変更行書式、公開API・`verify-quick`を確認する。
+  非空background・stroke、shape、layout、font database、path、painter、XML、document、resource、out-of-line本文・debug出力を生成または実行し、CMake・公開header変更、新依存、製品接続、対象集合・製品計画差、停止線超過が必要なら止める。
+- `g156-libkis-view-schema`は`/Users/masato/Documents/librepaint-g156-libkis-view-schema`を所有する。開始`libs/libkis/View.h`の描画状態29 APIから新規`libs/libkis/tests/ViewSchemaContractTest.cpp`の5枠
+  `viewOwnershipLifetimeAndEqualitySchemaRemainsStable`、`viewBrushGeometrySignaturesRemainStable`、`viewDepositAndCompositeSignaturesRemainStable`、`viewInputModePolicySignaturesRemainStable`、
+  `viewHdrPresentationSignaturesRemainStable`へ対応付け、`libs/libkis/tests/CMakeLists.txt`へ独立対象を追加する。完全集合は`View`・構築・破棄・`operator==`・`operator!=`、`brushSize`・`setBrushSize`・`brushRotation`・
+  `setBrushRotation`・`brushFade`・`setBrushFade`・`patternSize`・`setPatternSize`、`paintingFlow`・`setPaintingFlow`・`paintingOpacity`・`setPaintingOpacity`・`currentBlendingMode`・`setCurrentBlendingMode`、
+  `disablePressure`・`setDisablePressure`・`eraserMode`・`setEraserMode`・`globalAlphaLock`・`setGlobalAlphaLock`、`HDRExposure`・`setHDRExposure`・`HDRGamma`・`setHDRGamma`である。許可pathは新規試験sourceと所有CMakeだけである。
+  構築の既定`parent=0`を未評価の型特性で固定する。直接linkはQt Core・Testだけ、header探索で必要ならQt Gui interface includeだけ、includeはlibkis source/generated、definitionは`kritalibkis_EXPORTS`だけとし、
+  公開headerをtarget sourceやAUTOMOC入力へ加えない。新対象4工程・8入力、停止5工程・11入力、近傍は`SelectionSchemaContractTest`、製品`kritalibkis`は2,018工程・4,034入力と担当tree内の変更前後集合完全一致を確認する。
+  未知target・CTest 0件、新5枠、対象CTest・20回反復、近傍、無作業再構築、動的接続・AUTOMOC入力・未解決View記号、構文・変更行書式、公開API・`verify-quick`を確認する。View・KisView・QObject・resource・document・
+  canvas・GUI event loop・method・slot・signal・metaobjectを生成または実行し、Qt Widgets実link、製品source・OBJECT・shared、`kritatestsdk`、新しい非header link、公開header変更、製品計画差、停止線超過が必要なら止める。
+
 ### 第155便の先行監査計画
 
 - 監査共通基点は`1eca81a004`、入力は`build/tdd-macos/public-api-missing-g155.json`である。3担当は`auditing`の読み取り専用とし、製品・試験・CMake・script・台帳・文書を変更せず、構築、試験、Git操作、
