@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 16:55 JST
+- 更新日時: 2026-09-02 17:03 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -22,6 +22,24 @@
   型・列挙・装飾・方向・配置面を、shape・layout・font database・path・painter・XML・document・resource・GUI event loopの実体化なしで閉じる。
 - 各報告は完全なAPI識別子、既定引数観測、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから契約先または移動先、許可path、固有停止条件、
   比較候補の棄却根拠を含む。共有環境helperの標準出力は呼出し命令だけである。既存`build/tdd-macos`の計画は読み取り専用で測定し、構成や構築を開始しない。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
+- `g156-libkis-node-view-schema-audit`は`libs/libkis/View.h`の描画状態29 APIを採用した。所有・寿命・等価5、brush幾何8、deposit・合成6、入力mode方針6、HDR表示4を新規
+  `libs/libkis/tests/ViewSchemaContractTest.cpp`の5枠へ対応付け、構築の`parent=0`も省略呼出しの型特性で固定する。直接linkはQt Core・Testとheader解釈に必要なinterfaceだけ、新対象4工程・8入力、
+  停止5工程・11入力を予測し、製品`kritalibkis` 2,018工程・4,034入力を維持する。近傍`SelectionSchemaContractTest`の命令集合hashは
+  `09f894ca1d33baef54bf2a52118cde62fa90310ecda9dd2877dae5353e055816`、入力集合hashは`8c1414676f9edc02aa416d6c1edeb02119416b276f52e73de36cf83b27538ca9`、製品命令集合hashは
+  `8c8c527c8f9355e51acb1fdd6b56bfdf424464c92cf421eb9c3ab541b2e5f4f6`、入力集合hashは`c7d3d05a6481dae255bd0e55d6a0c3db9f35146efe125ad093974e94bb69ad03`である。`Node.h`は
+  局所状態だけでは25 APIに届かず、tree・image・pixel・paint・transform責務を混在させる必要があるため棄却した。
+- `g156-scalar-raster-keyframe-schema-audit`は`libs/image/kis_scalar_keyframe_channel.h`の全46 APIを採用した。上下限値5、keyframe型・補間11、値・tangent12、channel型・方針11、
+  評価・更新7を既存`libs/image/tests/KisKeyframeChannelSchemaContractTest.cpp`の5枠へ対応付ける。8 APIの既定引数を省略呼出しでも固定し、`ScalarKeyframeLimits(5, 1)`が下限1・上限5へ正規化され、
+  `clamp(-1) == 1`、`clamp(3) == 3`、`clamp(8) == 5`となるheader-only本文を具体値で固定する。CMakeと直接依存を変えず対象4工程・8入力、停止5工程・11入力、製品`kritaimage`
+  1,196工程・2,416入力を維持する。対象命令集合hashは`306888039f6db446a629be4d028e604214f3560bf54dae6de26fd373d421ea01`、入力集合hashは
+  `31038287f31e73d539e256bd347b113804f3975e94fdaae799ee90c4ed99bdec`、製品命令集合hashは`8b3e011450f2ca342e0ce523cc1696c2e2b3970456a8cb097553ee5fdf79930f`、入力集合hashは
+  `76f2aa4251a6bf4e2adf2a1e822bc9d629753b2e93e5b877ee4eae23364940bc`である。`kis_raster_keyframe_channel.h`はphysical frame・paint device・import・clone・onion skin・XMLへ責務が広がるため棄却した。
+- `g156-svg-text-edit-value-schema-audit`は`libs/flake/text/KoSvgText.h`の文字描画補助値31 APIを採用した。背景property6、stroke property6、path配置6、underline位置5、font metrics操作8を既存
+  `libs/flake/tests/KoSvgTextFontMetricsValueContractTest.cpp`の5枠へ対応付ける。背景・strokeの空propertyと空値等価、path配置とunderline位置の既定値および代入後の独立値を具体値で固定し、out-of-lineの
+  font metrics操作は未評価の厳密な関数型で固定する。CMakeと直接依存を変えず対象4工程・8入力、停止5工程・11入力、製品`kritaflake` 621工程・1,274入力を維持する。対象命令集合hashは
+  `2698d92a3e4815f19ecf01206004052effa66152966bed4c2c12dd2e18200509`、入力集合hashは`6ab69ed1af76e958c132ac77a62bc50104d27f7ca8ff101cb8e69ccedbd1d786`、製品命令集合hashは
+  `f3f361da0bcc5c5d3fcc2e2e638cfbfce33af5ddc455e80260a62ff35b74a676`、入力集合hashは`1a30862a8e0463c6578045c344b23088d4909ac6017407162709d283413b8cb5`である。`KoSvgTextShape.h`の残りは
+  編集・layout・変形・直列化へ責務と実行閉包が広がり、今回の値面より安全な単一境界を形成しないため棄却した。
 
 ### 第155便の先行監査計画
 
