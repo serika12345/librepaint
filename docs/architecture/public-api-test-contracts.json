@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 15135
+    "expectedMissingApis": 15095
   },
   "contracts": [
     {
@@ -42537,6 +42537,91 @@
         "method:KisMetaData::Store::begin() const",
         "method:KisMetaData::Store::debugDump() const",
         "method:KisMetaData::Store::end() const"
+      ]
+    },
+    {
+      "target": "KoColorSpaceSchemaContractTest",
+      "source": "libs/pigment/tests/KoColorSpaceSchemaContractTest.cpp",
+      "test": "KoColorSpaceSchemaContractTest::colorSpaceOwnershipAndOperatorSchemaRemainsStable",
+      "behavior": "色空間はregistry所有policyの値、構築引数、診断出力演算子の公開スキーマを維持する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:Deletability",
+        "enumerator:Deletability::NotOwnedByRegistry",
+        "enumerator:Deletability::OwnedByRegistryDoNotDelete",
+        "enumerator:Deletability::OwnedByRegistryRegistryDeletes",
+        "function:operator <<(QDebug dbg,const KoColorSpace * cs)",
+        "method:KoColorSpace::KoColorSpace(const QString & id,const QString & name,KoMixColorsOp * mixColorsOp,KoConvolutionOp * convolutionOp)"
+      ]
+    },
+    {
+      "target": "KoColorSpaceSchemaContractTest",
+      "source": "libs/pigment/tests/KoColorSpaceSchemaContractTest.cpp",
+      "test": "KoColorSpaceSchemaContractTest::colorSpaceCompositionAndDitherSignaturesRemainStable",
+      "behavior": "色空間は合成演算とdither演算の登録・照会・適用に関する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoColorSpace::addCompositeOp(const KoCompositeOp * op)",
+        "method:KoColorSpace::addDitherOp(KisDitherOp * op)",
+        "method:KoColorSpace::bitBlt(const KoColorSpace * srcSpace,const KoCompositeOp::ParameterInfo & params,const KoCompositeOp * op,KoColorConversionTransformation::Intent renderingIntent,KoColorConversionTransformation::ConversionFlags conversionFlags) const",
+        "method:KoColorSpace::compositeOp(const QString & id,const KoColorSpace * srcSpace=nullptr) const",
+        "method:KoColorSpace::compositeOps() const",
+        "method:KoColorSpace::convolutionOp() const",
+        "method:KoColorSpace::ditherOp(const QString & depth,DitherType type) const",
+        "method:KoColorSpace::hasCompositeOp(const QString & id,const KoColorSpace * srcSpace=nullptr) const",
+        "method:KoColorSpace::mixColorsOp() const"
+      ]
+    },
+    {
+      "target": "KoColorSpaceSchemaContractTest",
+      "source": "libs/pigment/tests/KoColorSpaceSchemaContractTest.cpp",
+      "test": "KoColorSpaceSchemaContractTest::colorSpaceConversionAndProofingSignaturesRemainStable",
+      "behavior": "色空間はchannel表示、画素変換、画像変換、proof変換の公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoColorSpace::convertChannelToVisualRepresentation(const quint8 * src,quint8 * dst,quint32 nPixels,const QBitArray selectedChannels) const",
+        "method:KoColorSpace::convertChannelToVisualRepresentation(const quint8 * src,quint8 * dst,quint32 nPixels,const qint32 selectedChannelIndex) const",
+        "method:KoColorSpace::convertPixelsTo(const quint8 * src,quint8 * dst,const KoColorSpace * dstColorSpace,quint32 numPixels,KoColorConversionTransformation::Intent renderingIntent,KoColorConversionTransformation::ConversionFlags conversionFlags) const",
+        "method:KoColorSpace::convertToQImage(const quint8 * data,qint32 width,qint32 height,const KoColorProfile * dstProfile,KoColorConversionTransformation::Intent renderingIntent,KoColorConversionTransformation::ConversionFlags conversionFlags) const",
+        "method:KoColorSpace::createColorConverter(const KoColorSpace * dstColorSpace,KoColorConversionTransformation::Intent renderingIntent,KoColorConversionTransformation::ConversionFlags conversionFlags) const",
+        "method:KoColorSpace::createProofingTransform(const KoColorSpace * dstColorSpace,const KoColorSpace * proofingSpace,KoColorConversionTransformation::Intent renderingIntent,KoColorConversionTransformation::Intent proofingIntent,bool bpcFirstTransform,quint8 * gamutWarning,KoColorConversionTransformation::ConversionFlags displayConversionFlags) const",
+        "method:KoColorSpace::proofPixelsTo(const quint8 * src,quint8 * dst,quint32 numPixels,KoColorConversionTransformation * proofingTransform) const"
+      ]
+    },
+    {
+      "target": "KoColorSpaceSchemaContractTest",
+      "source": "libs/pigment/tests/KoColorSpaceSchemaContractTest.cpp",
+      "test": "KoColorSpaceSchemaContractTest::colorSpaceCanonicalRepresentationSignaturesRemainStable",
+      "behavior": "色空間はHSY・Lab・QColor・RGB・YUV標準表現との相互変換について公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoColorSpace::fromHSY(qreal * hue,qreal * sat,qreal * luma) const",
+        "method:KoColorSpace::fromLabA16(const quint8 * src,quint8 * dst,quint32 nPixels) const",
+        "method:KoColorSpace::fromQColor(const QColor & color,quint8 * dst) const",
+        "method:KoColorSpace::fromRgbA16(const quint8 * src,quint8 * dst,quint32 nPixels) const",
+        "method:KoColorSpace::fromYUV(qreal * y,qreal * u,qreal * v) const",
+        "method:KoColorSpace::toHSY(const QVector<double> & channelValues,qreal * hue,qreal * sat,qreal * luma) const",
+        "method:KoColorSpace::toLabA16(const quint8 * src,quint8 * dst,quint32 nPixels) const",
+        "method:KoColorSpace::toQColor(const quint8 * src,QColor * c) const",
+        "method:KoColorSpace::toQColor16(const quint8 * src,QColor * c) const",
+        "method:KoColorSpace::toRgbA16(const quint8 * src,quint8 * dst,quint32 nPixels) const",
+        "method:KoColorSpace::toYUV(const QVector<double> & channelValues,qreal * y,qreal * u,qreal * v) const"
+      ]
+    },
+    {
+      "target": "KoColorSpaceSchemaContractTest",
+      "source": "libs/pigment/tests/KoColorSpaceSchemaContractTest.cpp",
+      "test": "KoColorSpaceSchemaContractTest::colorSpaceAdjustmentAndXmlSignaturesRemainStable",
+      "behavior": "色空間は明暗・channel調整変換の生成とXML表現の読書きについて公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoColorSpace::colorFromXML(quint8 * pixel,const QDomElement & elt) const",
+        "method:KoColorSpace::colorToXML(const quint8 * pixel,QDomDocument & doc,QDomElement & colorElt) const",
+        "method:KoColorSpace::createBrightnessContrastAdjustment(const quint16 * transferValues) const",
+        "method:KoColorSpace::createColorTransformation(const QString & id,const QHash<QString,QVariant> & parameters) const",
+        "method:KoColorSpace::createDarkenAdjustment(qint32 shade,bool compensate,qreal compensation) const",
+        "method:KoColorSpace::createInvertTransformation() const",
+        "method:KoColorSpace::createPerChannelAdjustment(const quint16 * const * transferValues) const"
       ]
     }
   ]
