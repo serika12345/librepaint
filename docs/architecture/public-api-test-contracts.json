@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 13794
+    "expectedMissingApis": 13759
   },
   "contracts": [
     {
@@ -45588,6 +45588,86 @@
         "method:KisSegmentGradientSlider::flipGradient()",
         "method:KisSegmentGradientSlider::mirrorSelectedSegment()",
         "method:KisSegmentGradientSlider::splitSelectedSegment()"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::dataManagerOwnershipAndDefaultPixelSchemaRemainsStable",
+      "behavior": "tile-backed raw pixel保管の型、構築・破棄、既定画素pointer、画素byte幅の公開型を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisDataManager",
+        "method:KisDataManager::KisDataManager(const KisDataManager & dm)",
+        "method:KisDataManager::KisDataManager(quint32 pixelSize,const quint8 * defPixel)",
+        "method:KisDataManager::defaultPixel() const",
+        "method:KisDataManager::pixelSize() const",
+        "method:KisDataManager::setDefaultPixel(const quint8 * defPixel)",
+        "method:KisDataManager::~KisDataManager()"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::dataManagerExtentRegionAndContiguitySignaturesRemainStable",
+      "behavior": "tile-backed raw pixel保管の矩形・領域・stride・連続行列に関する公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDataManager::extent() const",
+        "method:KisDataManager::extent(qint32 & x,qint32 & y,qint32 & w,qint32 & h) const",
+        "method:KisDataManager::numContiguousColumns(qint32 x,qint32 minY,qint32 maxY) const",
+        "method:KisDataManager::numContiguousRows(qint32 y,qint32 minX,qint32 maxX) const",
+        "method:KisDataManager::region() const",
+        "method:KisDataManager::rowStride(qint32 x,qint32 y) const",
+        "method:KisDataManager::setExtent(const QRect & rect)",
+        "method:KisDataManager::setExtent(qint32 x,qint32 y,qint32 w,qint32 h)"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::dataManagerPixelTransferAndMutationSignaturesRemainStable",
+      "behavior": "tile-backed raw pixel保管のclear、単一pixel、packed・planar byte転送とstride省略形を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDataManager::clear()",
+        "method:KisDataManager::clear(qint32 x,qint32 y,qint32 w,qint32 h,const quint8 * def)",
+        "method:KisDataManager::clear(qint32 x,qint32 y,qint32 w,qint32 h,quint8 def)",
+        "method:KisDataManager::readBytes(quint8 * data,qint32 x,qint32 y,qint32 w,qint32 h,qint32 dataRowStride=-1) const",
+        "method:KisDataManager::readPlanarBytes(QVector<qint32> channelsizes,qint32 x,qint32 y,qint32 w,qint32 h) const",
+        "method:KisDataManager::setPixel(qint32 x,qint32 y,const quint8 * data)",
+        "method:KisDataManager::writeBytes(const quint8 * data,qint32 x,qint32 y,qint32 w,qint32 h,qint32 dataRowStride=-1)",
+        "method:KisDataManager::writePlanarBytes(QVector<quint8 * > planes,QVector<qint32> channelsizes,qint32 x,qint32 y,qint32 w,qint32 h)"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::dataManagerCopyAndHistorySignaturesRemainStable",
+      "behavior": "tile-backed raw pixel保管のtile共有転送とmemento履歴操作の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDataManager::bitBlt(KisTiledDataManagerSP srcDM,const QRect & rect)",
+        "method:KisDataManager::bitBltOldData(KisTiledDataManagerSP srcDM,const QRect & rect)",
+        "method:KisDataManager::bitBltRough(KisTiledDataManagerSP srcDM,const QRect & rect)",
+        "method:KisDataManager::bitBltRoughOldData(KisTiledDataManagerSP srcDM,const QRect & rect)",
+        "method:KisDataManager::getMemento()",
+        "method:KisDataManager::hasCurrentMemento() const",
+        "method:KisDataManager::rollback(KisMementoSP memento)",
+        "method:KisDataManager::rollforward(KisMementoSP memento)"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::dataManagerPersistencePurgeAndPoolSignaturesRemainStable",
+      "behavior": "tile-backed raw pixel保管の永続化、領域破棄、共有pool解放の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDataManager::purge(const QRect & area)",
+        "method:KisDataManager::read(QIODevice * io)",
+        "method:KisDataManager::releaseInternalPools()",
+        "method:KisDataManager::write(KisPaintDeviceWriter & writer)"
       ]
     }
   ]
