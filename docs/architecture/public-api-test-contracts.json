@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 14754
+    "expectedMissingApis": 14721
   },
   "contracts": [
     {
@@ -43368,6 +43368,84 @@
         "method:KisTileData::allocateMemory()",
         "method:KisTileData::releaseInternalPools()",
         "method:KisTileData::releaseMemory()"
+      ]
+    },
+    {
+      "target": "KisToolSchemaContractTest",
+      "source": "libs/tools/tests/KisToolSchemaContractTest.cpp",
+      "test": "KisToolSchemaContractTest::toolIdentityLifetimeAndActivationStateSchemaRemainsStable",
+      "behavior": "描画toolはKoToolBase派生の抽象型、canvasとcursorを受ける構築、仮想破棄、flag・有効状態照会と状態変更signalの厳密な公開型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisTool",
+        "method:KisTool::KisTool(KoCanvasBase * canvas,const QCursor & cursor)",
+        "method:KisTool::flags() const",
+        "method:KisTool::isActive() const",
+        "method:KisTool::isActiveChanged(bool isActivated)",
+        "method:KisTool::~KisTool()"
+      ]
+    },
+    {
+      "target": "KisToolSchemaContractTest",
+      "source": "libs/tools/tests/KisToolSchemaContractTest.cpp",
+      "test": "KisToolSchemaContractTest::toolActivationResourceAndCapabilitySignaturesRemainStable",
+      "behavior": "描画toolはshape集合による有効化・無効化、canvas資源通知、選択削除、外部paint device、有効node能力、補助線対応、設定表示更新の厳密な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTool::activate(const QSet<KoShape * > & shapes)",
+        "method:KisTool::canvasResourceChanged(int key,const QVariant & res)",
+        "method:KisTool::deactivate()",
+        "method:KisTool::deleteSelection()",
+        "method:KisTool::newActivationWithExternalSource(KisPaintDeviceSP externalSource)",
+        "method:KisTool::nodePaintAbility()",
+        "method:KisTool::supportsPaintingAssistants() const",
+        "method:KisTool::updateSettingsViews()"
+      ]
+    },
+    {
+      "target": "KisToolSchemaContractTest",
+      "source": "libs/tools/tests/KisToolSchemaContractTest.cpp",
+      "test": "KisToolSchemaContractTest::toolPrimaryActionSignaturesRemainStable",
+      "behavior": "描画toolはprimary actionの準備・解除、開始・継続・終了、double click開始、高解像度入力対応の厳密な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTool::activatePrimaryAction()",
+        "method:KisTool::beginPrimaryAction(KoPointerEvent * event)",
+        "method:KisTool::beginPrimaryDoubleClickAction(KoPointerEvent * event)",
+        "method:KisTool::continuePrimaryAction(KoPointerEvent * event)",
+        "method:KisTool::deactivatePrimaryAction()",
+        "method:KisTool::endPrimaryAction(KoPointerEvent * event)",
+        "method:KisTool::primaryActionSupportsHiResEvents() const"
+      ]
+    },
+    {
+      "target": "KisToolSchemaContractTest",
+      "source": "libs/tools/tests/KisToolSchemaContractTest.cpp",
+      "test": "KisToolSchemaContractTest::toolAlternateActionSignaturesRemainStable",
+      "behavior": "描画toolはalternate actionの準備・解除、開始・継続・終了、double click開始、高解像度入力対応についてevent pointerとaction値を受ける厳密な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTool::activateAlternateAction(AlternateAction action)",
+        "method:KisTool::alternateActionSupportsHiResEvents(AlternateAction action) const",
+        "method:KisTool::beginAlternateAction(KoPointerEvent * event,AlternateAction action)",
+        "method:KisTool::beginAlternateDoubleClickAction(KoPointerEvent * event,AlternateAction action)",
+        "method:KisTool::continueAlternateAction(KoPointerEvent * event,AlternateAction action)",
+        "method:KisTool::deactivateAlternateAction(AlternateAction action)",
+        "method:KisTool::endAlternateAction(KoPointerEvent * event,AlternateAction action)"
+      ]
+    },
+    {
+      "target": "KisToolSchemaContractTest",
+      "source": "libs/tools/tests/KisToolSchemaContractTest.cpp",
+      "test": "KisToolSchemaContractTest::toolPointerEventDispatchSignaturesRemainStable",
+      "behavior": "描画toolはpress・double click・triple click・move・releaseの5入力配送入口で同じ借用pointer event署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTool::mouseDoubleClickEvent(KoPointerEvent * event)",
+        "method:KisTool::mouseMoveEvent(KoPointerEvent * event)",
+        "method:KisTool::mousePressEvent(KoPointerEvent * event)",
+        "method:KisTool::mouseReleaseEvent(KoPointerEvent * event)",
+        "method:KisTool::mouseTripleClickEvent(KoPointerEvent * event)"
       ]
     }
   ]
