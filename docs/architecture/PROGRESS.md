@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 21:18 JST
+- 更新日時: 2026-09-02 21:25 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -47,10 +47,10 @@
   `libs/flake/tests/KoResourceManagerSchemaContractTest.cpp`の5枠`resourceManagerTypeAndLifetimeSchemaRemainsStable`、`resourceManagerTypedValueSignaturesRemainStable`、
   `resourceManagerDerivedAndMediatorSignaturesRemainStable`、`resourceManagerDependencyAndAbstractSignaturesRemainStable`、`resourceManagerNotificationSignaturesRemainStable`へ対応付ける。完全集合はclass・構築2、型付き取得・設定・消去・存在14、
   派生資源converter・更新mediatorの追加・存在・削除6、active canvas依存と抽象資源の追加・存在・削除6、通知2である。許可pathは新規試験sourceと`libs/flake/tests/CMakeLists.txt`の対象固有節だけである。直接linkはQt Core・Testだけ、includeは
-  flakeのsource/generatedと`libs/resources`、definitionは`kritaflake_EXPORTS`だけとし、公開headerをsourceやAUTOMOC入力へ加えない。新対象4工程・8入力、停止5工程・11入力、近傍`KoCanvasResourceProviderSchemaContractTest`、製品
+  flakeのsource/generated、`libs/resources`、公開headerが値型として直接includeする`libs/pigment`・`libs/global`のsource/generatedとQt Guiのinterface include、definitionは`kritaflake_EXPORTS`だけとし、公開headerをsourceやAUTOMOC入力へ加えない。新対象4〜5工程・8〜11入力、停止5工程・11入力、近傍`KoCanvasResourceProviderSchemaContractTest`、製品
   `kritaflake` 621工程・1,274入力の変更前後集合完全一致を確認する。未知target・CTest 0件、新5枠、対象CTest・枠個別・20回反復、近傍、無作業再構築、動的接続・AUTOMOC入力・資源管理の未解決記号、構文・書式、公開API・
   `verify-quick`を確認する。資源管理器、shape・color・unit・converter・mediator・依存・抽象資源・通知・metaobjectを生成または実行し、`KoResourceManager_p.cpp`や公開headerの変更、製品source・OBJECT・shared、`kritatestsdk`、Qt Gui・Widgets、
-  header以外への新link、製品計画差、停止線超過が必要なら止める。
+  header以外への新link、製品計画差、停止線超過が必要なら止める。最初の限定compileで`KoColor.h`が見つからず停止したため、製品linkを増やさず公開header自身の直接include所有先だけを担当票へ追加した。
 - `g163-png-converter-schema`は`/Users/masato/Documents/librepaint-g163-png-converter-schema`を所有する。開始`libs/impex/ui/kis_png_converter.h`の全28 APIから新規
   `libs/impex/tests/KisPNGConverterSchemaContractTest.cpp`の5枠`pngOptionCoreValueSchemaRemainsStable`、`pngOptionMetadataAndProfileFlagsRemainStable`、
   `pngOptionIndexedFilterAndTransparencyValuesRemainStable`、`pngConverterIdentityAndInputSignaturesRemainStable`、`pngConverterOutputAndControlSignaturesRemainStable`へ対応付ける。完全集合はoption struct・構築・中核member 6、metadata・profile flag 8、
