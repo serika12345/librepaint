@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 22:40 JST
+- 更新日時: 2026-09-02 22:54 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -60,6 +60,27 @@
   対象CTest・枠個別・20回反復、既存枠、近傍、無作業再構築、動的接続・AUTOMOC入力・Shape・KoShape・SVG未解決記号、構文・書式、公開API・`verify-quick`を確認する。wrapper、KoShape、document、canvas、選択、更新、SVG変換、metaobjectを生成または実行し、
   flakeまたは製品libraryへのlink、製品OBJECT・shared、`kritatestsdk`、公開header変更、flakeとQt Xml以外の新include閉包、停止線超過が必要なら止める。最初の限定compileで`KoShape.h`が直接includeする`QDomDocument`の探索先不足を確認したため、
   linkを増やさずQt Xmlのinterface includeだけを担当票へ追加した。
+
+### 第165便の統合結果
+
+- `g165-pixel-selection-schema`は受渡しcommit`8f98cd3fa5`を統合commit`820c97d012`として取り込んだ。開始`libs/image/kis_pixel_selection.h`から既存
+  `libs/image/tests/KisImageTypesContractTest.cpp`の5枠へ、所有・copy・寿命、選択値変更、geometry・輪郭cache、親selection・clone・projection、thumbnail・永続化の全33 APIを対応付けた。3構築子と`select`の既定引数省略形も固定した。
+  CMakeと依存を変えず対象4工程・8入力、製品`kritaimage` 1,196工程・2,416入力の監査基線を維持した。担当macOS環境で新5枠、対象CTest・20回反復、既存枠、近傍`KisImageConfigAnimationSchemaContractTest`、無作業再構築、
+  動的接続・AUTOMOC入力・未解決記号、構文・書式、公開API検査、`verify-quick`に成功した。中央でも対象と近傍だけを実行し、台帳commit`2c10bc7f6f`で29,838件中16,534件対応、13,304件未対応となった。
+  画素変更、輪郭・thumbnail生成、stream読込の実行時効果は別契約で扱う。
+- `g165-display-color-transform-schema`は受渡しcommit`92c6f32ddf`を統合commit`5256bc4ce7`として取り込んだ。開始`libs/canvas/color/kis_display_color_transform.h`から新規
+  `libs/canvas/tests/KisDisplayColorTransformSchemaContractTest.cpp`の5枠へ、identity・寿命、表示設定、色変換、画像変換、色成分modelの全33 APIを対応付けた。色・画像変換と成分modelの既定引数省略形も固定した。直接linkはQt Core・Gui・Testだけ、
+  新対象4工程・8入力、製品`kritacanvas` 1,220工程・2,460入力の集合を維持した。担当macOS環境でunknown target・CTest 0件、新5枠、対象CTest・20回反復、近傍`KisDisplayColorFilterContractTest`、無作業再構築、
+  動的接続・AUTOMOC入力・未解決記号、構文・書式、公開API検査、`verify-quick`に成功した。中央でも対象と近傍だけを実行し、台帳commit`d0d9464c8c`で29,838件中16,567件対応、13,271件未対応となった。
+  profile選択、filter生成、pixel変換の実行時結果は別契約で扱う。
+- `g165-libkis-shape-schema`は受渡しcommit`c9e67e6360`を統合commit`27ba97c267`として取り込んだ。開始`libs/libkis/Shape.h`から既存
+  `libs/libkis/tests/SelectionSchemaContractTest.cpp`の5枠へ、型・寿命・identity、metadata・方針、geometry・可視性、更新・選択、階層・SVG直列化の全30 APIを対応付けた。親省略構築と`toSvg`の2省略形も固定した。公開`KoShape.h`の直接includeを満たす
+  flake source/generatedとQt Xml interface includeだけを対象固有に加え、直接linkはQt Core・Testだけに保った。対象4工程・8入力、製品`kritalibkis` 2,018工程・4,034入力の監査基線を維持した。担当macOS環境で旧binaryの新5枠Unknown、対象CTest・20回反復、
+  既存枠、近傍`GridConfigSchemaContractTest`、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式、公開API検査、`verify-quick`に成功した。中央でも対象と近傍だけを実行し、台帳commit`5ceae494a5`で29,838件中
+  16,597件対応、13,241件未対応となった。shape、選択、更新、削除、SVG変換の実行時効果は別契約で扱う。
+- 第165便全体で96 APIを15枠へ重複なく対応付けた。3担当のcleanな作業treeと担当branchを削除し、2,643,824 KiB（約2.52 GiB）を回収した。公開API台帳、構造方針、文書、link、D2再生成を含む`verify-quick`は成功した。
+  旧不足報告`public-api-missing-g165.json`をごみ箱へ移し、主Ninja木5,638,308 KiB、共有compiler cache 983,448 KiB、最新不足報告`build/tdd-macos/public-api-missing-g166.json`だけを再利用対象として保持する。製品、全体、Linuxの構築は実施していない。
+  次の永続作業は第166便の不足報告から、既存限定対象を優先してpathと所有CMakeが重ならない3責務を先行監査することである。
 
 ### 第164便の先行監査計画
 
