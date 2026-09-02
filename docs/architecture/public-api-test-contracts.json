@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 12502
+    "expectedMissingApis": 12482
   },
   "contracts": [
     {
@@ -48905,6 +48905,71 @@
       "classification": "maintained",
       "apis": [
         "method:KisKHelpMenu::showAboutApplication()"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::processingVisitorOwnershipAndLifetimeSchemaRemainsStable",
+      "behavior": "画像nodeを処理するvisitorの公開型、抽象性、共有所有基底と仮想寿命を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisProcessingVisitor",
+        "method:KisProcessingVisitor::~KisProcessingVisitor()"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::processingVisitorNodeAndLayerVisitSignaturesRemainStable",
+      "behavior": "一般nodeと各layerをundo adapterとともに処理するvisitor overloadの公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisProcessingVisitor::visit(KisAdjustmentLayer * layer,KisUndoAdapter * undoAdapter)",
+        "method:KisProcessingVisitor::visit(KisExternalLayer * layer,KisUndoAdapter * undoAdapter)",
+        "method:KisProcessingVisitor::visit(KisGeneratorLayer * layer,KisUndoAdapter * undoAdapter)",
+        "method:KisProcessingVisitor::visit(KisGroupLayer * layer,KisUndoAdapter * undoAdapter)",
+        "method:KisProcessingVisitor::visit(KisNode * node,KisUndoAdapter * undoAdapter)",
+        "method:KisProcessingVisitor::visit(KisPaintLayer * layer,KisUndoAdapter * undoAdapter)"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::processingVisitorCloneAndMaskVisitSignaturesRemainStable",
+      "behavior": "clone layerと各maskをundo adapterとともに処理するvisitor overloadの公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisProcessingVisitor::visit(KisCloneLayer * layer,KisUndoAdapter * undoAdapter)",
+        "method:KisProcessingVisitor::visit(KisColorizeMask * mask,KisUndoAdapter * undoAdapter)",
+        "method:KisProcessingVisitor::visit(KisFilterMask * mask,KisUndoAdapter * undoAdapter)",
+        "method:KisProcessingVisitor::visit(KisSelectionMask * mask,KisUndoAdapter * undoAdapter)",
+        "method:KisProcessingVisitor::visit(KisTransformMask * mask,KisUndoAdapter * undoAdapter)",
+        "method:KisProcessingVisitor::visit(KisTransparencyMask * mask,KisUndoAdapter * undoAdapter)"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::processingVisitorInitializationSignatureRemainsStable",
+      "behavior": "全layer処理に先立つ初期化commandを生成するvisitor入口の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisProcessingVisitor::createInitCommand()"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::processingVisitorProgressHelperSchemaRemainsStable",
+      "behavior": "visitor処理のnode別進捗helper、その寿命、updater参照と取消入口の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisProcessingVisitor::ProgressHelper",
+        "method:KisProcessingVisitor::ProgressHelper::ProgressHelper(const KisNode * node)",
+        "method:KisProcessingVisitor::ProgressHelper::cancel()",
+        "method:KisProcessingVisitor::ProgressHelper::updater() const",
+        "method:KisProcessingVisitor::ProgressHelper::~ProgressHelper()"
       ]
     }
   ]
