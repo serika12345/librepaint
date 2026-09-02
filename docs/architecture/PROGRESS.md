@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 13:16 JST
+- 更新日時: 2026-09-02 13:20 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -22,6 +22,20 @@
   paint informationの構築・混合・distance登録・乱数・XML面を、tool、canvas、shape、pointer event、paint device、paint operation、distance、random、XML、GUI event loopの実体化なしで閉じる。
 - 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから契約先または移動先、許可path、固有停止条件、
   比較候補の棄却根拠を含む。既存`build/tdd-macos`の計画は読み取り専用で測定し、構成や構築を開始しない。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
+- `g150-svg-layout-values-schema-audit`は`KoSvgTextShape_p.h`の未対応49 APIからcursor・glyph値面31 APIを採用した。改行・行端9、cursor情報7、cursor位置5、glyph outline・bitmap 5、color layer・variant 5を既存
+  `KoSvgTextCharacterResultValueContractTest`の未評価型5枠へ対応付ける。CMakeと直接依存を変更せず対象4工程・8入力、停止5工程・11入力、製品`kritaflake` 621工程・1,274入力と保留集合を維持する。現在の対象命令集合hashは
+  `8b9ca4b733145cd3eb599eaf7bdeb368dc4d5b10be947740bdb498e218d5e43d`、入力集合hashは`6f1be372a2d9ab0fae470eb0c3a4c629358a081f42b2e1016bec6ae66f541404`、製品命令集合hashは
+  `2fc3040d1c607ecd81879d6ec00ad8a4a161787da567b484bc934a687afefb07`、入力集合hashは`1a30862a8e0463c6578045c344b23088d4909ac6017407162709d283413b8cb5`である。`KoSvgText.h`は純粋変換群が
+  25 API未満であり、残りがstream、shape所有値、font metricsへ分散するため棄却した。
+- `g150-resource-storage-view-schema-audit`は`KisResourceStorage.h`の未対応39 APIを採用した。metadata key 17、metadata access 3、永続化・version 7、plugin factory 6、plugin registry 6を既存
+  `KisResourceModelEnumContractTest`の未評価型5枠へ対応付ける。CMakeと直接依存を変更せず対象4工程・9入力、停止5工程・11入力、製品`kritaresources` 150工程・327入力を維持する。現在の対象命令集合hashは
+  `42f1b8b6087028d75bc3fb1a27bd14ccbedae748678196d6246c097b65f11b1f`、入力集合hashは`32cd9deb6e2d4f1ef6e20c752f10f398b790fa59ce26efb3c213128a964804df`、製品命令集合hashは
+  `6fc1004fbc96441506ef268521ee718c1c111cd8c3701118df5cf65a03eed812`、入力集合hashは`05f38c71b59ed483a467839e983e7255e44b0e212c0ca7acd15c77148c2d048f`である。`View.h`はdocument・canvas・resource・
+  色・HDR・transform・signal・GUI表示へ分散し、新しい限定対象の依存閉包も広いため棄却した。
+- `g150-tool-paint-information-schema-audit`は`kis_tool.h`の未対応33 APIを採用した。型・寿命・状態6、有効化・resource・能力8、primary action 7、alternate action 7、pointer event配送5を新規
+  `KisToolSchemaContractTest`の未評価型5枠へ対応付ける。既存`KisToolActionContractTest`は5工程・17入力で停止線外のため再利用せず、新対象4工程・8入力、停止5工程・11入力を予測し、製品`kritatools` 1,268工程・2,552入力を
+  維持する。製品命令集合hashは`953ef0717607b9d7d02f9f5a4e29ad194b886ffa41c34b79b74174d66dfdf9ee`、入力集合hashは`177be7708ebe8ec482dbef27a2e04d2fe9cf627bb8fc47e9c6dd1a9e4f44dc07`である。
+  `kis_paint_information.h`は構築・混合・distance登録・乱数・XML・paint templateへ分散し、単一責務25 APIを非実体化閉包にできないため棄却した。
 
 ### 第149便の先行監査計画
 
