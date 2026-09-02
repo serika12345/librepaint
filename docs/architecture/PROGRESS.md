@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 11:20 JST
+- 更新日時: 2026-09-02 11:23 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -20,6 +20,20 @@
   種別・caption・directory・filter・選択・実行面を、QObject・内部guide値・XML・dialog・application・filesystem・設定の実体化なしで閉じる。
 - `g146-asl-xml-writer-text-brush-schema-audit`は`libs/psdutils/asl/kis_asl_xml_writer.h`の全28 APIを主候補とし、`libs/brush/kis_text_brush.h`の全28 APIを比較する。ASL XML writerのdescriptor・list・scalar・色・点・勾配・pattern・
   transform面またはtext brushの構築・文字・font・spacing・pipe・描画面を、XML文書・色・勾配・pattern・brush・font・画像・painter・資源の実体化なしで閉じる。
+- `g146-image-signal-router-updater-context-schema-audit`は`kis_image_signal_router.h`の全27 APIを採用した。router型・寿命3、通知6、batch・LOD 6、node graph 7、画像metadata 5を既存
+  `KisImageTypesContractTest`の未評価型5枠へ対応付ける。CMakeを変更せず対象4工程・8入力、停止5工程・11入力、製品`kritaimage` 1,196工程・2,416入力を維持する。現在の対象命令集合hashは
+  `b83c09fe3d4b3ca467659d4896a906a8683feff274f897056f537c54fbd3df76`、入力集合hashは`42c0bdca62da9111fd79736a3055bd233ee32342bc2c9ae69fc577a83a88cf81`、製品命令集合hashは
+  `8b3e011450f2ca342e0ce523cc1696c2e2b3970456a8cb097553ee5fdf79930f`、製品入力集合hashは`76f2aa4251a6bf4e2adf2a1e822bc9d629753b2e93e5b877ee4eae23364940bc`である。
+  `kis_updater_context.h`はthread pool、複数lock、scheduler、walker、jobの直接header閉包が大きく、25件ぎりぎりで実体化riskも高いため棄却した。
+- `g146-libkis-guides-file-dialog-schema-audit`は`GuidesConfig.h`の全25 APIを採用した。型・構築4、比較・直列化4、表示4、位置6、対話状態7を既存`GridConfigSchemaContractTest`の未評価型5枠へ
+  対応付ける。CMakeを変更せず対象4工程・8入力から4工程・9入力以内、停止5工程・11入力、製品`kritalibkis` 2,018工程・4,034入力を維持する。現在の対象命令集合hashは
+  `eeaf8f5345ffe4deb137a045a025169233b6d35387695aa008e44ae8f84184cc`、入力集合hashは`9a2e2dbeaf477dabbd53c38aa1913ada74f03cf1719127986d1bea608b0c8f6c`、製品命令集合hashは
+  `8c8c527c8f9355e51acb1fdd6b56bfdf424464c92cf421eb9c3ab541b2e5f4f6`、製品入力集合hashは`c7d3d05a6481dae255bd0e55d6a0c3db9f35146efe125ad093974e94bb69ad03`である。
+  `FileDialog.h`は具象QDialog、Qt Widgets、directory・filter・複数選択、static実行、filesystem結果へ責務と実行境界が広がるため棄却した。
+- `g146-asl-xml-writer-text-brush-schema-audit`は`kis_asl_xml_writer.h`の全28 APIを採用した。型・文書4、container 4、scalar 7、幾何8、色・勾配・pattern 5を新規
+  `KisAslXmlWriterSchemaContractTest`の未評価型5枠へ対応付ける。既存近傍は5工程・13入力であるため拡張せず、新対象4工程・8入力、停止5工程・11入力を予測し、製品`kritapsdutils` 638工程・1,306入力を
+  維持する。現在の製品命令集合hashは`46ef378e51b0dcfdf434a157ea792233544b645c4855e5585a0916f6530a9e2c`、入力集合hashは`c26bfd7f16faafd66560f96698970f68c753b8918afb561eab34204aba29221b`である。
+  `kis_text_brush.h`は寿命・資源複製、device I/O、stroke通知、dab・mask生成、text・font・pipe・XMLへ責務とbrush/image/pigment依存が分散するため棄却した。
 - 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから契約先または移動先、許可path、固有停止条件、
   比較候補の棄却根拠を含む。既存`build/tdd-macos`の計画は読み取り専用で測定し、構成や構築を開始しない。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
 
