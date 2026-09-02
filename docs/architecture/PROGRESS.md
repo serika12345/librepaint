@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 10:57 JST
+- 更新日時: 2026-09-02 10:59 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -36,6 +36,34 @@
   `psd.h`の残存APIは形式変換、色stop、layer effect寿命、contour、勾配・pattern資源に分散し、既存対象も6工程・14入力で停止線を超えるため棄却した。
 - 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから契約先または移動先、許可path、固有停止条件、
   比較候補の棄却根拠を含む。既存`build/tdd-macos`の計画は読み取り専用で測定し、構成や構築を開始しない。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
+
+### 第145便の担当計画
+
+- 実装共通基点は`4502da0168`である。paint device frames interface、canvas base、brush model担当は`implementing`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの
+  `transport-commit`、追加委任は禁止する。対象platformはmacOSであり、専用worktree-local `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を
+  共有する。統合順はpaint device frames interface、canvas base、brush modelとし、調整担当だけが`AGENTS.md`、architecture文書、`docs/architecture/public-api-test-contracts.json`、共通不足報告を変更する。
+  3担当の公開header、所有CMake、試験source、生成物は重ならない。
+- `g145-paint-device-frames-schema`は`/Users/masato/Documents/librepaint-g145-paint-device-frames-schema`を所有する。開始`libs/image/kis_paint_device_frames_interface.h`の全28 APIから既存
+  `libs/image/tests/KisImageTypesContractTest.cpp`の5枠`paintDeviceFrameOwnershipAndTestingDataSchemaRemainsStable`、`paintDeviceFrameLifecycleAndIdentitySignaturesRemainStable`、
+  `paintDeviceFrameGeometryAndPixelSignaturesRemainStable`、`paintDeviceFrameTransferAndPersistenceSignaturesRemainStable`、`paintDeviceFrameUndoCacheAndTestingSignaturesRemainStable`へ対応付ける。
+  許可pathは既存試験sourceだけで、CMakeを変更しない。対象4工程・8入力、停止5工程・11入力、近傍は`KisImageConfigAnimationSchemaContractTest`、製品`kritaimage`は1,196工程・2,416入力と担当tree内の
+  変更前後集合完全一致を確認する。未知5枠、対象CTest、20回反復、既存image型枠と近傍、無作業再構築、動的接続、未解決device・frame・data manager・undo・stream・writer記号、構文・変更行書式、公開API・
+  `verify-quick`を確認する。interface、試験data、device、frame、data manager、KoColor、undo、stream、writerを生成し、method・I/O・cache・破棄処理を実行し、製品source・OBJECT・shared、`kritatestsdk`、
+  新link/include依存、CMake・公開header変更、製品計画差、停止線超過が必要なら止める。
+- `g145-canvas-base-schema`は`/Users/masato/Documents/librepaint-g145-canvas-base-schema`を所有する。開始`libs/flake/KoCanvasBase.h`の全29 APIから新規
+  `libs/flake/tests/KoCanvasBaseSchemaContractTest.cpp`の5枠`canvasIdentityAndLifecycleSignaturesRemainStable`、`canvasControllerAndResourceSignaturesRemainStable`、
+  `canvasShapeCommandAndObserverSignaturesRemainStable`、`canvasWidgetAndViewSignaturesRemainStable`、`canvasGridAndPresentationSignaturesRemainStable`へ対応付ける。許可pathは新規試験sourceと
+  `libs/flake/tests/CMakeLists.txt`だけである。直接linkはQt Core・Testだけ、includeはflake source・generated headerだけとし、`KoCanvasBase.h`をtarget sourceへ追加しない。新対象4工程・8入力、停止5工程・11入力、
+  近傍は`KoShapeSavingContextSchemaContractTest`、製品`kritaflake`は621工程・1,274入力と担当tree内の変更前後集合・保留集合完全一致を確認する。未知target、5枠、対象CTest、20回反復、近傍、無作業再構築、
+  動的接続、未解決canvas・metaobject・vtable・constructor・destructor・製品method記号、自動MOC入力、構文・変更行書式、公開API・`verify-quick`を確認する。canvas、widget、shape、tool、command、controller、resource、
+  cursor、KoUnitを生成し、inline本文、signal配送、metaobject、OpenGL、座標変換、undo所有処理を実行し、Qt Gui・Widgets、製品source・OBJECT・shared、`kritatestsdk`、新非header依存、公開header変更、
+  製品計画差、停止線超過が必要なら止める。
+- `g145-brush-model-schema`は`/Users/masato/Documents/librepaint-g145-brush-model-schema`を所有する。開始`libs/brush/KisBrushModel.h`の残存28 APIから既存
+  `libs/brush/tests/KisBrushModelValuesContractTest.cpp`の5枠`predefinedBrushResourceAndSizingSchemaRemainsStable`、`predefinedBrushAdjustmentSchemaRemainsStable`、
+  `brushAggregateSchemaRemainsStable`、`brushPersistenceSignaturesRemainStable`、`brushSizingAndPolicySignaturesRemainStable`へ対応付ける。許可pathは既存試験sourceだけで、CMakeを変更しない。対象4工程・8入力、
+  停止5工程・11入力、近傍は`KisDabShapeContractTest`、製品`kritalibbrush`は1,222工程・2,466入力と担当tree内の変更前後集合完全一致を確認する。未知5枠、対象CTest、20回反復、近傍、無作業再構築、動的接続、
+  未解決BrushData永続化・寸法・LOD・resource・settings記号、構文・変更行書式、公開API・`verify-quick`を確認する。PredefinedBrushData、BrushData、資源、設定、brushを生成し、比較・永続化・寸法・LOD本文を実行し、
+  既存application font効果を拡大し、製品source・OBJECT・shared、`kritatestsdk`、新link/include依存、CMake・公開header変更、製品計画差、停止線超過が必要なら止める。
 
 ### 第144便の先行監査計画
 
