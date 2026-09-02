@@ -104,6 +104,11 @@ private Q_SLOTS:
     void pasteWorkflowSignaturesRemainStable();
     void toolOptionSurfaceSignaturesRemainStable();
     void editingToolBehaviorSignaturesRemainStable();
+    void renderingVectorAndLodPolicySignaturesRemainStable();
+    void renderingTexturePipelineSignaturesRemainStable();
+    void renderingProjectionBackendSignaturesRemainStable();
+    void renderingDiagnosticLoggingSignaturesRemainStable();
+    void renderingBackendCompatibilitySignaturesRemainStable();
 };
 
 void KisConfigEnumContractTest::inputAndSamplerValuesRemainStable()
@@ -1107,6 +1112,73 @@ void KisConfigEnumContractTest::editingToolBehaviorSignaturesRemainStable()
     static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().autoSmoothBezierCurves()), bool>);
     static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().useEraserBrushOpacity()), bool>);
     static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().useEraserBrushSize()), bool>);
+}
+
+void KisConfigEnumContractTest::renderingVectorAndLodPolicySignaturesRemainStable()
+{
+    ASSERT_KIS_CONFIG_SIGNATURE(disableAVXOptimizations, bool (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setDisableAVXOptimizations, void (KisConfig::*)(bool));
+    ASSERT_KIS_CONFIG_SIGNATURE(disableVectorOptimizations, bool (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setDisableVectorOptimizations, void (KisConfig::*)(bool));
+    ASSERT_KIS_CONFIG_SIGNATURE(levelOfDetailEnabled, bool (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setLevelOfDetailEnabled, void (KisConfig::*)(bool));
+
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().disableAVXOptimizations()), bool>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().disableVectorOptimizations()), bool>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().levelOfDetailEnabled()), bool>);
+}
+
+void KisConfigEnumContractTest::renderingTexturePipelineSignaturesRemainStable()
+{
+    ASSERT_KIS_CONFIG_SIGNATURE(numMipmapLevels, int (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(openGLFilteringMode, int (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setOpenGLFilteringMode, void (KisConfig::*)(int));
+    ASSERT_KIS_CONFIG_SIGNATURE(openGLTextureSize, int (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(textureOverlapBorder, int (KisConfig::*)() const);
+    ASSERT_KIS_CONFIG_SIGNATURE(useOpenGLTextureBuffer, bool (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setUseOpenGLTextureBuffer, void (KisConfig::*)(bool));
+
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().numMipmapLevels()), int>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().openGLFilteringMode()), int>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().openGLTextureSize()), int>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().useOpenGLTextureBuffer()), bool>);
+}
+
+void KisConfigEnumContractTest::renderingProjectionBackendSignaturesRemainStable()
+{
+    ASSERT_KIS_CONFIG_SIGNATURE(useOpenGL, bool (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(disableOpenGL, void (KisConfig::*)() const);
+    ASSERT_KIS_CONFIG_SIGNATURE(useProjections, bool (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setUseProjections, void (KisConfig::*)(bool) const);
+
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().useOpenGL()), bool>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().useProjections()), bool>);
+}
+
+void KisConfigEnumContractTest::renderingDiagnosticLoggingSignaturesRemainStable()
+{
+    ASSERT_KIS_CONFIG_SIGNATURE(enableBrushSpeedLogging, bool (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setEnableBrushSpeedLogging, void (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(enableOpenGLFramerateLogging, bool (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(setEnableOpenGLFramerateLogging, void (KisConfig::*)(bool) const);
+
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().enableBrushSpeedLogging()), bool>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().enableOpenGLFramerateLogging()), bool>);
+}
+
+void KisConfigEnumContractTest::renderingBackendCompatibilitySignaturesRemainStable()
+{
+    ASSERT_KIS_CONFIG_SIGNATURE(forceOpenGLFenceWorkaround, bool (KisConfig::*)(bool) const);
+    ASSERT_KIS_CONFIG_SIGNATURE(preferXcbEglProvider, bool (KisConfig::*)(bool) const);
+    static_assert(
+        std::is_same_v<decltype(static_cast<bool (*)(const QSettings *, bool)>(&KisConfig::preferXcbEglProvider)),
+                       bool (*)(const QSettings *, bool)>);
+    ASSERT_KIS_CONFIG_SIGNATURE(setPreferXcbEglProvider, void (KisConfig::*)(bool));
+
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().forceOpenGLFenceWorkaround()), bool>);
+    static_assert(std::is_same_v<decltype(std::declval<const KisConfig &>().preferXcbEglProvider()), bool>);
+    static_assert(
+        std::is_same_v<decltype(KisConfig::preferXcbEglProvider(static_cast<const QSettings *>(nullptr))), bool>);
 }
 
 #undef ASSERT_KIS_CONFIG_SIGNATURE
