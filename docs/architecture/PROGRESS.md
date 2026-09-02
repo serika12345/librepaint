@@ -28,6 +28,24 @@
   内部色選択、tag・visual selector、scratchpad、libkis文書・nodeはglobal renderer・resource・複数Widget・canvas・文書状態へ閉包が広がるため棄却した。
 - 中央の`public-api-missing-g176.json`でwalker 23件、canvas controller通知proxy 29件、font family selector 22件の全識別子を照合した。canvas controller本体26件は別責務として残し、選択した3責務の開始header、試験source、所有CMake、生成物に重複はない。合計74 APIを15枠へ進め、実装中に許可path外変更、製品OBJECT/shared、実体化・本文実行、動的接続の拡大、5工程・11入力超過、製品計画集合の変化が必要になれば担当を停止する。
 
+### 第176便の担当計画
+
+- 実装共通基点は`f2f1a98b36`である。3担当は`implementing`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、専用worktree-local
+  `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。Nix再評価を行わず、主作業treeの読み込み済み開発環境を`run-shared-test-env`で共有する。実装は並行し、構成・構築枠は一度に1担当だけへ与える。開始時はrects walkerだけが構築`granted`、canvas controller proxyとfont family selectorは実装後に構築前で待機する。
+  統合順はrects walker、canvas controller proxy、font family selectorとし、調整担当だけがarchitecture文書、公開API台帳、共通不足報告を変更する。製品targetを引数にするplan/build、全体build、全体`verify`、Linux検証は禁止し、担当targetと近傍、公開API検査、`verify-quick`だけを実行する。各統合後に担当作業treeとbuild木を直ちに削除する。
+- `g176-rects-walker-schema`は`/Users/masato/Documents/librepaint-g176-rects-walker-schema`を所有する。開始`libs/image/kis_base_rects_walker.h`の残存全23 APIから既存
+  `libs/image/tests/KisBaseRectsWalkerPolicyContractTest.cpp`の5枠`rectsWalkerOwnershipAndLifetimeSchemaRemainsStable`、`rectsWalkerGeometryObservationSignaturesRemainStable`、`rectsWalkerStatePolicySignaturesRemainStable`、
+  `rectsWalkerCollectionAndConfigurationSignaturesRemainStable`、`rectsWalkerCloneNotificationSchemaRemainsStable`へ対応付ける。完全集合は既定構築・破棄、`accessRect`・`changeRect`・`cropRect`・`levelOfDetail`・`requestedRect`・`startNode`・`uncroppedChangeRect`、`changeRectVaries`・`checksumValid`・`clonesDontInvalidateFrames`・`isEmpty`・`needRectVaries`・`type`、`cloneNotifications`・`collectRects`・`leafStack`・`recalculate`・`setClonesDontInvalidateFrames`・`setCropRect`、`CloneNotification`構築・`notify`である。許可pathは既存試験sourceだけで、CMake・依存・公開header・製品sourceを変更しない。
+  walker、probe、clone通知、node、layer、projectionを実体化せず、矩形本文、graph走査、checksum、通知を実行しない。対象4工程・8入力、停止5工程・11入力、近傍`KisProjectionLeafContractTest`、製品`kritaimage` 1,196工程・2,416入力を維持する。旧binaryの新5枠Unknown、対象・既存枠、CTest、20回反復、近傍、無作業再構築、依存・記号・AUTOMOC・構文・書式、公開API、`verify-quick`を確認し、実体化・本文実行、新規include・link、停止線超過が必要なら止める。
+- `g176-canvas-controller-proxy-schema`は`/Users/masato/Documents/librepaint-g176-canvas-controller-proxy-schema`を所有する。開始`libs/flake/KoCanvasController.h`のproxy全29 APIから新規
+  `libs/flake/tests/KoCanvasControllerProxySchemaContractTest.cpp`の5枠`canvasControllerProxyIdentityAndAccessSignaturesRemainStable`、`canvasControllerProxyLifecycleNotificationsRemainStable`、`canvasControllerProxyPositionAndOffsetNotificationsRemainStable`、
+  `canvasControllerProxyViewGeometryNotificationsRemainStable`、`canvasControllerProxyZoomAndMirrorNotificationsRemainStable`へ対応付ける。完全集合はproxy class、親既定引数付き構築、`canvasController`、canvas removed/set/stateのemit・signal、canvas/document mouse位置・offsetのemit・signal、size・document rect・rotationのemit・signal、effective zoom・zoom state・mirrorのemit・signalである。許可pathは新規試験sourceと`libs/flake/tests/CMakeLists.txt`の対象固有節だけで、公開header・製品sourceを変更しない。
+  proxy、controller、canvas、QObjectを実体化せず、inline emitter、signal、metaobject、event loop、座標変換、zoomを実行しない。直接linkはQt Core・Testだけ、新対象4工程・8入力、停止5工程・11入力、近傍`KoCanvasBaseSchemaContractTest`、製品`kritaflake` 621工程・1,274入力を維持する。実装後は構築許可まで待機し、許可後に限定検証一式を行う。Qt Gui・Widgetsまたは製品libraryの接続、実体化、停止線超過が必要なら止める。
+- `g176-font-family-selector-schema`は`/Users/masato/Documents/librepaint-g176-font-family-selector-schema`を所有する。開始`libs/widgetutils/kis_font_family_combo_box.h`の全22 APIから新規
+  `libs/widgetutils/tests/KisFontFamilyComboBoxSchemaContractTest.cpp`の5枠`fontFamilySelectorTypeAndLifetimeSchemaRemainsStable`、`fontFamilySelectorCurrentValueSchemaRemainsStable`、`fontFamilySelectorPopulationSchemaRemainsStable`、
+  `fontFamilyComboPopulationSchemaRemainsStable`、`pinnedFontsSeparatorPresentationSchemaRemainsStable`へ対応付ける。完全集合は3 classと各構築、current font/family/styleの設定・照会、候補再充填・初期化・通知、family候補の再充填・固定・初期化、delegateのpaint・separator状態・size hintである。許可pathは新規試験sourceと`libs/widgetutils/tests/CMakeLists.txt`の対象固有節だけで、公開header・製品sourceを変更しない。
+  selector、Widget、font、font database、painter、delegateを実体化せず、font列挙、設定読込、paint、signal、event loopを実行しない。直接linkはQt Core・Testだけ、Qt Gui・Widgetsをcompile interfaceに限定し、新対象4工程・8入力、停止5工程・11入力、近傍`KisCursorSchemaContractTest`、製品`kritawidgetutils` 274工程・581入力を維持する。実装後は構築許可まで待機し、許可後に限定検証一式を行う。Qt Gui・Widgetsまたは製品libraryの直接link、実体化、停止線超過が必要なら止める。
+
 ### 第175便の先行監査計画
 
 - 監査共通基点は`f2d7d7b4c1`、入力は`build/tdd-macos/public-api-missing-g175.json`である。3担当は`auditing`の読み取り専用とし、製品・試験・CMake・script・台帳・文書を変更せず、構成、構築、試験、Git操作、追加委任も行わない。
