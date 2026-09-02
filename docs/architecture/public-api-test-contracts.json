@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 12462
+    "expectedMissingApis": 12440
   },
   "contracts": [
     {
@@ -49035,6 +49035,73 @@
       "classification": "maintained",
       "apis": [
         "method:KoSvgTextRemoveShapeCommand::removeContourShapesFromFlow(KoSvgTextShape * textShape,KUndo2Command * parent,bool textInShape,bool textPaths)"
+      ]
+    },
+    {
+      "target": "KKeySequenceWidgetSchemaContractTest",
+      "source": "libs/widgetutils/tests/KKeySequenceWidgetSchemaContractTest.cpp",
+      "test": "KKeySequenceWidgetSchemaContractTest::mainWindowTypeAndLifetimeSchemaRemainsStable",
+      "behavior": "アプリケーションmain windowの公開型、親・window flags既定値を持つ構築、仮想寿命とsession一括復元templateを固定する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisKMainWindow",
+        "function:kRestoreMainWindows()",
+        "method:KisKMainWindow::KisKMainWindow(QWidget * parent=0,Qt::WindowFlags f=Qt::WindowFlags ())",
+        "method:KisKMainWindow::~KisKMainWindow()"
+      ]
+    },
+    {
+      "target": "KKeySequenceWidgetSchemaContractTest",
+      "source": "libs/widgetutils/tests/KKeySequenceWidgetSchemaContractTest.cpp",
+      "test": "KKeySequenceWidgetSchemaContractTest::mainWindowSessionRestoreSchemaRemainsStable",
+      "behavior": "session内windowの有無・型名・一覧照会と表示方針付き復元入口の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisKMainWindow::canBeRestored(int number)",
+        "method:KisKMainWindow::classNameOfToplevel(int number)",
+        "method:KisKMainWindow::memberList()",
+        "method:KisKMainWindow::restore(int number,bool show=true)"
+      ]
+    },
+    {
+      "target": "KKeySequenceWidgetSchemaContractTest",
+      "source": "libs/widgetutils/tests/KKeySequenceWidgetSchemaContractTest.cpp",
+      "test": "KKeySequenceWidgetSchemaContractTest::mainWindowChromeAndToolbarSchemaRemainsStable",
+      "behavior": "main windowのmenu bar有無、toolbar参照・一覧とapplication help入口の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisKMainWindow::appHelpActivated(void)",
+        "method:KisKMainWindow::hasMenuBar()",
+        "method:KisKMainWindow::toolBar(const QString & name=QString ())",
+        "method:KisKMainWindow::toolBars() const"
+      ]
+    },
+    {
+      "target": "KKeySequenceWidgetSchemaContractTest",
+      "source": "libs/widgetutils/tests/KKeySequenceWidgetSchemaContractTest.cpp",
+      "test": "KKeySequenceWidgetSchemaContractTest::mainWindowAutoSaveSchemaRemainsStable",
+      "behavior": "main window表示設定の自動保存を有効・無効化し、保存先と状態を照会する公開署名と既定値を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisKMainWindow::autoSaveConfigGroup() const",
+        "method:KisKMainWindow::autoSaveGroup() const",
+        "method:KisKMainWindow::autoSaveSettings() const",
+        "method:KisKMainWindow::resetAutoSaveSettings()",
+        "method:KisKMainWindow::setAutoSaveSettings(const KConfigGroup & group,bool saveWindowSize=true)",
+        "method:KisKMainWindow::setAutoSaveSettings(const QString & groupName=QLatin1String (\"MainWindow\"),bool saveWindowSize=true)"
+      ]
+    },
+    {
+      "target": "KKeySequenceWidgetSchemaContractTest",
+      "source": "libs/widgetutils/tests/KKeySequenceWidgetSchemaContractTest.cpp",
+      "test": "KKeySequenceWidgetSchemaContractTest::mainWindowPersistenceAndNotificationSchemaRemainsStable",
+      "behavior": "main window設定の適用・保存、DBus識別子照会と設定変更通知入口の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisKMainWindow::applyMainWindowSettings(const KConfigGroup & config)",
+        "method:KisKMainWindow::dbusName() const",
+        "method:KisKMainWindow::saveMainWindowSettings(KConfigGroup & config)",
+        "method:KisKMainWindow::setSettingsDirty()"
       ]
     }
   ]
