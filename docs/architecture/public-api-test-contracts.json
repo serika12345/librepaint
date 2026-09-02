@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 13965
+    "expectedMissingApis": 13938
   },
   "contracts": [
     {
@@ -45147,6 +45147,78 @@
       "apis": [
         "method:ColorizeMask::resetCache()",
         "method:ColorizeMask::updateMask(bool force=false)"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::fixedPaintDeviceOwnershipAndCopySchemaRemainsStable",
+      "behavior": "固定pixel deviceの所有型、copy、allocator省略constructor、仮想寿命を未評価型で固定する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisFixedPaintDevice",
+        "method:KisFixedPaintDevice::KisFixedPaintDevice(const KisFixedPaintDevice & rhs)",
+        "method:KisFixedPaintDevice::KisFixedPaintDevice(const KoColorSpace * colorSpace,KisOptimizedByteArray::MemoryAllocatorSP allocator=KisOptimizedByteArray::MemoryAllocatorSP ())",
+        "method:KisFixedPaintDevice::operator =(const KisFixedPaintDevice & rhs)",
+        "method:KisFixedPaintDevice::~KisFixedPaintDevice()"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::fixedPaintDeviceGeometryCapacityAndColorSchemaRemainsStable",
+      "behavior": "固定pixel deviceの矩形、割当pixel数、pixel幅、色空間・profile関連付けの型とconst性を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisFixedPaintDevice::allocatedPixels() const",
+        "method:KisFixedPaintDevice::bounds() const",
+        "method:KisFixedPaintDevice::colorSpace() const",
+        "method:KisFixedPaintDevice::pixelSize() const",
+        "method:KisFixedPaintDevice::setColorSpace(const KoColorSpace * cs)",
+        "method:KisFixedPaintDevice::setProfile(const KoColorProfile * profile)",
+        "method:KisFixedPaintDevice::setRect(const QRect & rc)"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::fixedPaintDeviceBufferStorageSignaturesRemainStable",
+      "behavior": "固定pixel deviceのbuffer初期化・拡張、mutable・const byte pointer、既定初期値省略形を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisFixedPaintDevice::constData() const",
+        "method:KisFixedPaintDevice::data()",
+        "method:KisFixedPaintDevice::data() const",
+        "method:KisFixedPaintDevice::initialize(quint8 defaultValue=0)",
+        "method:KisFixedPaintDevice::lazyGrowBufferWithoutInitialization()",
+        "method:KisFixedPaintDevice::reallocateBufferWithoutInitialization()"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::fixedPaintDeviceTransferAndConversionSignaturesRemainStable",
+      "behavior": "固定pixel deviceのbyte矩形転送とQImage・色空間変換のoverload、const性、既定方針省略形を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisFixedPaintDevice::convertFromQImage(const QImage & image,const QString & srcProfileName)",
+        "method:KisFixedPaintDevice::convertTo(const KoColorSpace * dstColorSpace=0,KoColorConversionTransformation::Intent renderingIntent=KoColorConversionTransformation::internalRenderingIntent (),KoColorConversionTransformation::ConversionFlags conversionFlags=KoColorConversionTransformation::internalConversionFlags ())",
+        "method:KisFixedPaintDevice::convertToQImage(const KoColorProfile * dstProfile,KoColorConversionTransformation::Intent renderingIntent=KoColorConversionTransformation::internalRenderingIntent (),KoColorConversionTransformation::ConversionFlags conversionFlags=KoColorConversionTransformation::internalConversionFlags ()) const",
+        "method:KisFixedPaintDevice::convertToQImage(const KoColorProfile * dstProfile,qint32 x,qint32 y,qint32 w,qint32 h,KoColorConversionTransformation::Intent renderingIntent=KoColorConversionTransformation::internalRenderingIntent (),KoColorConversionTransformation::ConversionFlags conversionFlags=KoColorConversionTransformation::internalConversionFlags ()) const",
+        "method:KisFixedPaintDevice::readBytes(quint8 * dstData,qint32 x,qint32 y,qint32 w,qint32 h) const"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::fixedPaintDevicePixelMutationSignaturesRemainStable",
+      "behavior": "固定pixel deviceの矩形clear、raw・KoColor fill、水平・垂直mirrorの公開操作型を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisFixedPaintDevice::clear(const QRect & rc)",
+        "method:KisFixedPaintDevice::fill(const QRect & rc,const KoColor & color)",
+        "method:KisFixedPaintDevice::fill(qint32 x,qint32 y,qint32 w,qint32 h,const quint8 * fillPixel)",
+        "method:KisFixedPaintDevice::mirror(bool horizontal,bool vertical)"
       ]
     }
   ]
