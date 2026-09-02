@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 23:55 JST
+- 更新日時: 2026-09-02 23:58 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -26,6 +26,27 @@
 - `g105-widget-connection-audit`は`libs/widgetutils/kis_action_registry.h`の全24 APIを採用した。action分類7、identity・寿命3、検索・factory 6、shortcut設定5、保守・通知3を新規
   `libs/widgetutils/tests/KisActionRegistrySchemaContractTest.cpp`の5枠へ対応付ける。`makeQAction`と`applyShortcutScheme`の省略形も固定する。直接linkはQt Core・Testだけ、Qt Gui・Xmlはinterface includeだけとし、新対象4工程・8入力、停止5工程・11入力、製品`kritawidgetutils` 274工程・581入力を維持する。
   registry、分類値、QAction、singleton、設定I/O、signalを実行しない。`Node.h`は責務分散、`Krita.h`は大域状態、`Scratchpad.h`と色選択・gradient editor群はwidget・canvas・resource・eventへ閉包が広がるため棄却した。
+
+### 第168便の担当計画
+
+- 実装共通基点は`7d48cbc070`である。3担当は`implementing`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、専用worktree-local
+  `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。各担当は専用作業treeから`./scripts/run-shared-test-env`で主作業treeのcached test環境へ入り、変更前の対象限定計画と直接CMake依存を確認する。統合順はiterator、path shape、action registryとし、
+  調整担当だけがarchitecture文書、公開API台帳、共通不足報告を変更する。3担当の公開header、所有CMake、試験source、生成物は重ならない。製品targetを引数にするplan/build、全体build、全体`verify`は禁止し、担当targetと近傍、公開API検査、`verify-quick`だけを実行する。
+- `g168-iterator-schema`は`/Users/masato/Documents/librepaint-g168-iterator-schema`を所有する。開始`libs/image/kis_iterator_ng.h`の全24 APIから既存
+  `libs/image/tests/KisImageTypesContractTest.cpp`の5枠`baseConstIteratorOwnershipAndTraversalSchemaRemainsStable`、`horizontalConstIteratorTraversalSchemaRemainsStable`、`horizontalWritableIteratorSchemaRemainsStable`、
+  `verticalConstIteratorTraversalSchemaRemainsStable`、`verticalWritableIteratorSchemaRemainsStable`へ対応付ける。完全集合は基底const iterator 6、横方向const 6、横方向書込3、縦方向const 6、縦方向書込3である。許可pathは既存試験sourceだけで、CMake・依存・公開header・製品sourceを変更しない。
+  継承、抽象性、copy不可、仮想寿命、未評価構築と走査署名を固定する。局所probeは必要なpure virtual overrideを宣言するだけとし、probe・iterator・accessor・画素を生成しない。対象4工程・8入力、停止5工程・11入力、近傍`KisImageConfigAnimationSchemaContractTest`、製品`kritaimage` 1,196工程・2,416入力を維持する。
+  旧binaryの新5枠Unknown、対象CTest・枠個別・20回反復、既存枠、近傍、無作業再構築、動的接続・AUTOMOC入力・iterator・accessor未解決記号、構文・書式、公開API・`verify-quick`を確認する。走査・data・座標本文を実行し、新規include・link、製品接続、停止線超過が必要なら止める。
+- `g168-path-shape-schema`は`/Users/masato/Documents/librepaint-g168-path-shape-schema`を所有する。開始`libs/flake/KoPathShape.h`の全64 APIから新規
+  `libs/flake/tests/KoPathShapeSchemaContractTest.cpp`の5枠`pathShapeIdentityListenerAndValueSchemaRemainStable`、`pathShapeGeometryAndRenderingSignaturesRemainStable`、`pathShapeConstructionStyleAndMarkerSignaturesRemainStable`、
+  `pathShapePointQueryAndMutationSignaturesRemainStable`、`pathShapeSubpathTopologySignaturesRemainStable`へ対応付ける。完全集合はidentity・listener・値型10、geometry・描画13、path構築・style・marker 18、point照会・変更13、subpath topology 10である。許可pathは新規試験sourceと`libs/flake/tests/CMakeLists.txt`の対象固有節だけで、公開header・製品sourceを変更しない。
+  `toString`と`pointsAt`の省略形も固定する。直接linkはQt Core・Gui・Testだけ、Qt Xmlはinterface include、includeはflake source/generated、definitionは`kritaflake_EXPORTS`だけとし、公開headerをsourceやAUTOMOC入力へ加えない。新対象4工程・8入力、停止5工程・11入力、近傍`KoMarkerSchemaContractTest`、製品`kritaflake` 621工程・1,274入力を維持する。
+  unknown target・CTest 0件、新5枠、対象CTest・枠個別・20回反復、近傍、無作業再構築、動的接続・AUTOMOC入力・path shape・point・segment・marker未解決記号、構文・書式、公開API・`verify-quick`を確認する。shape、listener、point、segment、marker、painter、選択通知を実体化または実行し、製品OBJECT・shared、`kritatestsdk`へのlink、停止線超過が必要なら止める。
+- `g168-action-registry-schema`は`/Users/masato/Documents/librepaint-g168-action-registry-schema`を所有する。開始`libs/widgetutils/kis_action_registry.h`の全24 APIから新規
+  `libs/widgetutils/tests/KisActionRegistrySchemaContractTest.cpp`の5枠`actionRegistryCategorySchemaRemainsStable`、`actionRegistryIdentityAndLifetimeSchemaRemainsStable`、`actionRegistryLookupAndFactorySchemaRemainsStable`、
+  `actionRegistryShortcutConfigurationSchemaRemainsStable`、`actionRegistryMaintenanceAndNotificationSchemaRemainsStable`へ対応付ける。完全集合はaction分類7、identity・寿命3、検索・factory 6、shortcut設定5、保守・通知3である。許可pathは新規試験sourceと`libs/widgetutils/tests/CMakeLists.txt`の対象固有節だけで、公開header・製品sourceを変更しない。
+  `makeQAction`と`applyShortcutScheme`の省略形を未評価で固定する。直接linkはQt Core・Testだけ、Qt Gui・Xmlはinterface include、includeはwidgetutils source/generated、definitionは`kritawidgetutils_EXPORTS`だけとし、公開headerをsourceやAUTOMOC入力へ加えない。新対象4工程・8入力、停止5工程・11入力、近傍`KKeySequenceWidgetSchemaContractTest`、製品`kritawidgetutils` 274工程・581入力を維持する。
+  unknown target・CTest 0件、新5枠、対象CTest・枠個別・20回反復、近傍、無作業再構築、動的接続・AUTOMOC入力・registry・action・config未解決記号、構文・書式、公開API・`verify-quick`を確認する。registry、分類値、QAction、singleton、設定I/O、signal・metaobjectを実体化または実行し、Qt Gui・Xmlへの直接link、製品OBJECT・shared、`kritatestsdk`への接続、停止線超過が必要なら止める。
 
 ### 第167便の先行監査計画
 
