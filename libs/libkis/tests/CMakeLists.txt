@@ -130,6 +130,17 @@ target_include_directories(ViewSchemaContractTest PRIVATE
 target_compile_definitions(ViewSchemaContractTest PRIVATE kritalibkis_EXPORTS)
 
 kis_add_test(
+    CanvasSchemaContractTest.cpp
+    LINK_LIBRARIES Qt${QT_MAJOR_VERSION}::Core Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(CanvasSchemaContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Gui,INTERFACE_INCLUDE_DIRECTORIES>
+)
+target_compile_definitions(CanvasSchemaContractTest PRIVATE kritalibkis_EXPORTS)
+
+kis_add_test(
     FileDialogSchemaContractTest.cpp
     LINK_LIBRARIES Qt${QT_MAJOR_VERSION}::Core Qt${QT_MAJOR_VERSION}::Test
 )
