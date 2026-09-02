@@ -23,6 +23,7 @@
 #include "kis_pixel_selection.h"
 #include "kis_projection_leaf.h"
 #include "kis_selection_filters.h"
+#include "kis_selection_mask.h"
 #include "kis_sequential_iterator.h"
 #include "kis_stroke.h"
 #include "kis_types.h"
@@ -60,6 +61,8 @@ namespace
     static_assert(std::is_same_v<decltype(static_cast<signature>(&type::method)), signature>)
 #define ASSERT_EDGE_DETECTION_SIGNATURE(method, signature)                                                             \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisEdgeDetectionKernel::method)), signature>)
+#define ASSERT_SELECTION_MASK_SIGNATURE(method, signature)                                                             \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KisSelectionMask::method)), signature>)
 
 class BaseConstIteratorConstructorProbe final : public KisBaseConstIteratorNG
 {
@@ -314,6 +317,11 @@ private Q_SLOTS:
     void edgeDetectionMatrixAndKernelCreationSignaturesRemainStable();
     void edgeDetectionRadiusConversionSignaturesRemainStable();
     void edgeDetectionDeviceOperationSignaturesRemainStable();
+    void selectionMaskOwnershipAndLifetimeSchemaRemainsStable();
+    void selectionMaskVisitorAndCloneSignaturesRemainStable();
+    void selectionMaskGeometrySignaturesRemainStable();
+    void selectionMaskPresentationAndStateSignaturesRemainStable();
+    void selectionMaskSelectionAndModelSignaturesRemainStable();
 };
 
 void KisImageTypesContractTest::intrusivePointerAliasesPreserveOwnershipKinds()
@@ -2591,6 +2599,77 @@ void KisImageTypesContractTest::edgeDetectionDeviceOperationSignaturesRemainStab
                                  void>);
 }
 
+void KisImageTypesContractTest::selectionMaskOwnershipAndLifetimeSchemaRemainsStable()
+{
+    static_assert(std::is_class_v<KisSelectionMask>);
+    static_assert(std::is_base_of_v<KisEffectMask, KisSelectionMask>);
+    static_assert(std::is_base_of_v<KisDecoratedNodeInterface, KisSelectionMask>);
+    static_assert(std::is_constructible_v<KisSelectionMask, KisImageWSP>);
+    static_assert(std::is_constructible_v<KisSelectionMask, KisImageWSP, const QString &>);
+    static_assert(std::is_copy_constructible_v<KisSelectionMask>);
+    static_assert(std::has_virtual_destructor_v<KisSelectionMask>);
+}
+
+void KisImageTypesContractTest::selectionMaskVisitorAndCloneSignaturesRemainStable()
+{
+    using NodeVisitorSignature = bool (KisSelectionMask::*)(KisNodeVisitor &);
+    using ProcessingVisitorSignature = void (KisSelectionMask::*)(KisProcessingVisitor &, KisUndoAdapter *);
+    using CloneSignature = KisNodeSP (KisSelectionMask::*)() const;
+
+    ASSERT_SELECTION_MASK_SIGNATURE(accept, NodeVisitorSignature);
+    ASSERT_SELECTION_MASK_SIGNATURE(accept, ProcessingVisitorSignature);
+    ASSERT_SELECTION_MASK_SIGNATURE(clone, CloneSignature);
+}
+
+void KisImageTypesContractTest::selectionMaskGeometrySignaturesRemainStable()
+{
+    using BoundsSignature = QRect (KisSelectionMask::*)(const QRect &, KisNode::PositionToFilthy) const;
+    using RectSignature = QRect (KisSelectionMask::*)() const;
+    using SetDirtySignature = void (KisSelectionMask::*)(const QVector<QRect> &);
+
+    ASSERT_SELECTION_MASK_SIGNATURE(needRect, BoundsSignature);
+    ASSERT_SELECTION_MASK_SIGNATURE(changeRect, BoundsSignature);
+    ASSERT_SELECTION_MASK_SIGNATURE(extent, RectSignature);
+    ASSERT_SELECTION_MASK_SIGNATURE(exactBounds, RectSignature);
+    ASSERT_SELECTION_MASK_SIGNATURE(setDirty, SetDirtySignature);
+    static_assert(
+        std::is_same_v<decltype(std::declval<const KisSelectionMask &>().needRect(std::declval<const QRect &>())),
+                       QRect>);
+    static_assert(
+        std::is_same_v<decltype(std::declval<const KisSelectionMask &>().changeRect(std::declval<const QRect &>())),
+                       QRect>);
+}
+
+void KisImageTypesContractTest::selectionMaskPresentationAndStateSignaturesRemainStable()
+{
+    using IconSignature = QIcon (KisSelectionMask::*)() const;
+    using StateGetterSignature = bool (KisSelectionMask::*)() const;
+    using SetStateSignature = void (KisSelectionMask::*)(bool);
+    using SetDecorationsSignature = void (KisSelectionMask::*)(bool, bool);
+    using SetVisibleSignature = void (KisSelectionMask::*)(bool, bool);
+
+    ASSERT_SELECTION_MASK_SIGNATURE(icon, IconSignature);
+    ASSERT_SELECTION_MASK_SIGNATURE(active, StateGetterSignature);
+    ASSERT_SELECTION_MASK_SIGNATURE(setActive, SetStateSignature);
+    ASSERT_SELECTION_MASK_SIGNATURE(decorationsVisible, StateGetterSignature);
+    ASSERT_SELECTION_MASK_SIGNATURE(setDecorationsVisible, SetDecorationsSignature);
+    ASSERT_SELECTION_MASK_SIGNATURE(setVisible, SetVisibleSignature);
+    static_assert(std::is_same_v<decltype(std::declval<KisSelectionMask &>().setVisible(true)), void>);
+}
+
+void KisImageTypesContractTest::selectionMaskSelectionAndModelSignaturesRemainStable()
+{
+    using SetSelectionSignature = void (KisSelectionMask::*)(KisSelectionSP);
+    using NotifySignature = void (KisSelectionMask::*)();
+    using PropertiesSignature = KisBaseNode::PropertyList (KisSelectionMask::*)() const;
+    using SetPropertiesSignature = void (KisSelectionMask::*)(const KisBaseNode::PropertyList &);
+
+    ASSERT_SELECTION_MASK_SIGNATURE(setSelection, SetSelectionSignature);
+    ASSERT_SELECTION_MASK_SIGNATURE(notifySelectionChangedCompressed, NotifySignature);
+    ASSERT_SELECTION_MASK_SIGNATURE(sectionModelProperties, PropertiesSignature);
+    ASSERT_SELECTION_MASK_SIGNATURE(setSectionModelProperties, SetPropertiesSignature);
+}
+
 #undef ASSERT_DEFAULT_BOUNDS_SIGNATURE
 #undef ASSERT_LAYER_UTILS_SIGNATURE
 #undef ASSERT_PAINTOP_SETTINGS_SIGNATURE
@@ -2603,6 +2682,7 @@ void KisImageTypesContractTest::edgeDetectionDeviceOperationSignaturesRemainStab
 #undef ASSERT_UPDATER_CONTEXT_SIGNATURE
 #undef ASSERT_ITERATOR_SIGNATURE
 #undef ASSERT_EDGE_DETECTION_SIGNATURE
+#undef ASSERT_SELECTION_MASK_SIGNATURE
 
 QTEST_GUILESS_MAIN(KisImageTypesContractTest)
 
