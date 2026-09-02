@@ -12,6 +12,9 @@
 namespace
 {
 
+#define ASSERT_RECTS_WALKER_SIGNATURE(method, signature)                                                               \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KisBaseRectsWalker::method)), signature>)
+
 class WalkerPolicyProbe final : public KisBaseRectsWalker
 {
 public:
@@ -33,6 +36,11 @@ private Q_SLOTS:
     void subtreeVisitFlagsComposeWithoutGraph();
     void jobItemsPreserveAssignedGeometryAndFlags();
     void notificationCollectionsAndWalkerTypesRemainUsable();
+    void rectsWalkerOwnershipAndLifetimeSchemaRemainsStable();
+    void rectsWalkerGeometryObservationSignaturesRemainStable();
+    void rectsWalkerStatePolicySignaturesRemainStable();
+    void rectsWalkerCollectionAndConfigurationSignaturesRemainStable();
+    void rectsWalkerCloneNotificationSchemaRemainsStable();
 };
 
 void KisBaseRectsWalkerPolicyContractTest::updateTypesKeepStableOrdinals()
@@ -126,6 +134,55 @@ void KisBaseRectsWalkerPolicyContractTest::notificationCollectionsAndWalkerTypes
     QCOMPARE(notifications.size(), 1);
     QCOMPARE(copy.size(), 2);
 }
+
+void KisBaseRectsWalkerPolicyContractTest::rectsWalkerOwnershipAndLifetimeSchemaRemainsStable()
+{
+    static_assert(std::is_default_constructible_v<WalkerPolicyProbe>);
+    static_assert(std::has_virtual_destructor_v<KisBaseRectsWalker>);
+}
+
+void KisBaseRectsWalkerPolicyContractTest::rectsWalkerGeometryObservationSignaturesRemainStable()
+{
+    ASSERT_RECTS_WALKER_SIGNATURE(accessRect, QRect (KisBaseRectsWalker::*)() const);
+    ASSERT_RECTS_WALKER_SIGNATURE(changeRect, QRect (KisBaseRectsWalker::*)() const);
+    ASSERT_RECTS_WALKER_SIGNATURE(cropRect, QRect (KisBaseRectsWalker::*)() const);
+    ASSERT_RECTS_WALKER_SIGNATURE(levelOfDetail, int (KisBaseRectsWalker::*)() const);
+    ASSERT_RECTS_WALKER_SIGNATURE(requestedRect, QRect (KisBaseRectsWalker::*)() const);
+    ASSERT_RECTS_WALKER_SIGNATURE(startNode, KisNodeSP (KisBaseRectsWalker::*)() const);
+    ASSERT_RECTS_WALKER_SIGNATURE(uncroppedChangeRect, QRect (KisBaseRectsWalker::*)() const);
+}
+
+void KisBaseRectsWalkerPolicyContractTest::rectsWalkerStatePolicySignaturesRemainStable()
+{
+    ASSERT_RECTS_WALKER_SIGNATURE(changeRectVaries, bool (KisBaseRectsWalker::*)() const);
+    ASSERT_RECTS_WALKER_SIGNATURE(checksumValid, bool (KisBaseRectsWalker::*)());
+    ASSERT_RECTS_WALKER_SIGNATURE(clonesDontInvalidateFrames, bool (KisBaseRectsWalker::*)() const);
+    ASSERT_RECTS_WALKER_SIGNATURE(isEmpty, bool (KisBaseRectsWalker::*)() const);
+    ASSERT_RECTS_WALKER_SIGNATURE(needRectVaries, bool (KisBaseRectsWalker::*)() const);
+    ASSERT_RECTS_WALKER_SIGNATURE(type, KisBaseRectsWalker::UpdateType (KisBaseRectsWalker::*)() const);
+}
+
+void KisBaseRectsWalkerPolicyContractTest::rectsWalkerCollectionAndConfigurationSignaturesRemainStable()
+{
+    ASSERT_RECTS_WALKER_SIGNATURE(cloneNotifications,
+                                  KisBaseRectsWalker::CloneNotificationsVector & (KisBaseRectsWalker::*)());
+    ASSERT_RECTS_WALKER_SIGNATURE(collectRects, void (KisBaseRectsWalker::*)(KisNodeSP, const QRect &));
+    ASSERT_RECTS_WALKER_SIGNATURE(leafStack, KisBaseRectsWalker::LeafStack & (KisBaseRectsWalker::*)());
+    ASSERT_RECTS_WALKER_SIGNATURE(recalculate, void (KisBaseRectsWalker::*)(const QRect &));
+    ASSERT_RECTS_WALKER_SIGNATURE(setClonesDontInvalidateFrames, void (KisBaseRectsWalker::*)(bool));
+    ASSERT_RECTS_WALKER_SIGNATURE(setCropRect, void (KisBaseRectsWalker::*)(QRect));
+}
+
+void KisBaseRectsWalkerPolicyContractTest::rectsWalkerCloneNotificationSchemaRemainsStable()
+{
+    using CloneNotification = KisBaseRectsWalker::CloneNotification;
+
+    static_assert(std::is_constructible_v<CloneNotification, KisNodeSP, const QRect &, bool>);
+    static_assert(std::is_same_v<decltype(static_cast<void (CloneNotification::*)()>(&CloneNotification::notify)),
+                                 void (CloneNotification::*)()>);
+}
+
+#undef ASSERT_RECTS_WALKER_SIGNATURE
 
 QTEST_GUILESS_MAIN(KisBaseRectsWalkerPolicyContractTest)
 
