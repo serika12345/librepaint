@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 16:24 JST
+- 更新日時: 2026-09-02 16:31 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -74,6 +74,8 @@
   `scripts/run-shared-test-env`は環境初期化時の標準出力を抑え、呼び出した命令の標準出力だけを保持する契約へ補正する。対象script検査と`verify-quick`後に同じ4工程・8入力基線で担当を再開する。
 - keyframe channel担当の最初の対象限定構築で、`kis_keyframe_channel.h`から`kundo2stack.h`へ至る直接include連鎖の`QAction`不足を初期診断として得た。製品libraryやQt Widgetsへlinkせず
   Qt Widgetsのinterface includeだけで公開headerを解釈できるため、所有CMakeの対象限定include節へ追加する。補正前の新対象4工程・8入力、製品`kritaimage` 1,196工程・2,416入力を完全に維持し、補正後に別の不足が残る場合は停止する。
+- Qt Widgets補正後、同じ公開header連鎖が`kis_paint_device.h`から要求する`KoColorConversionTransformation.h`不足を次の診断として得た。軽量近傍`KisImageTypesContractTest`が同じ連鎖に持つpigment source・generated、
+  Eigen・Imath interface includeと`kritapigment_EXPORTS`だけを対象限定include・definition節へ追加する。linkを増やさず対象4工程・8入力、製品`kritaimage` 1,196工程・2,416入力・集合完全一致を維持し、この補正後に別の不足が残る場合は停止する。
 
 ### 第154便の先行監査計画
 
