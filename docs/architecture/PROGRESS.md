@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 10:59 JST
+- 更新日時: 2026-09-02 11:07 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -39,7 +39,7 @@
 
 ### 第145便の担当計画
 
-- 実装共通基点は`4502da0168`である。paint device frames interface、canvas base、brush model担当は`implementing`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの
+- 実装共通基点は`4502da0168`である。paint device frames interface担当は`integrated`、canvas baseとbrush model担当は`ready`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの
   `transport-commit`、追加委任は禁止する。対象platformはmacOSであり、専用worktree-local `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を
   共有する。統合順はpaint device frames interface、canvas base、brush modelとし、調整担当だけが`AGENTS.md`、architecture文書、`docs/architecture/public-api-test-contracts.json`、共通不足報告を変更する。
   3担当の公開header、所有CMake、試験source、生成物は重ならない。
@@ -64,6 +64,14 @@
   停止5工程・11入力、近傍は`KisDabShapeContractTest`、製品`kritalibbrush`は1,222工程・2,466入力と担当tree内の変更前後集合完全一致を確認する。未知5枠、対象CTest、20回反復、近傍、無作業再構築、動的接続、
   未解決BrushData永続化・寸法・LOD・resource・settings記号、構文・変更行書式、公開API・`verify-quick`を確認する。PredefinedBrushData、BrushData、資源、設定、brushを生成し、比較・永続化・寸法・LOD本文を実行し、
   既存application font効果を拡大し、製品source・OBJECT・shared、`kritatestsdk`、新link/include依存、CMake・公開header変更、製品計画差、停止線超過が必要なら止める。
+
+### 第145便の統合結果
+
+- `g145-paint-device-frames-schema`は受渡しcommit`19bb62704d79`を統合commit`33224ee81d`として取り込んだ。開始`libs/image/kis_paint_device_frames_interface.h`から既存
+  `libs/image/tests/KisImageTypesContractTest.cpp`の5枠へ、所有・試験data、寿命・識別、幾何・pixel、転送・永続化、undo・cache・試験照会の28 APIを対応付けた。CMakeと直接依存を変更せず、対象4工程・8入力、
+  製品`kritaimage` 1,196工程・2,416入力を維持した。frame interface、内部data、device、frame、data manager、KoColor、undo、stream、writer、method本文、I/O、cache、破棄処理を生成または実行していない。
+  担当macOS環境と中央環境で5枠と既存image型枠を含む対象CTest・20回反復、近傍`KisImageConfigAnimationSchemaContractTest`、無作業再構築、動的接続・未解決記号、構文・書式、公開API検査に成功した。
+  中央の公開API契約検査は29,838件中14,567件対応、15,271件未対応となる。作業tree 879,428 KiBと担当branchは削除した。frame I/O、undo、cacheの実行時挙動は別の効果契約で扱う。
 
 ### 第144便の先行監査計画
 

@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 15299
+    "expectedMissingApis": 15271
   },
   "contracts": [
     {
@@ -42103,6 +42103,79 @@
         "method:KisMultiSurfaceDisplayConfig::options() const",
         "method:KisMultiSurfaceDisplayConfig::setOptions(const Options & options)",
         "method:KisMultiSurfaceDisplayConfig::uiDisplayConfig() const"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::paintDeviceFrameOwnershipAndTestingDataSchemaRemainsStable",
+      "behavior": "paint device frame境界は内部data、外部frame data、LOD data、frame表を表す公開試験値と別名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisPaintDeviceFramesInterface::TestingDataObjects::Data",
+        "alias:KisPaintDeviceFramesInterface::TestingDataObjects::FramesHash",
+        "class:KisPaintDeviceFramesInterface",
+        "member:KisPaintDeviceFramesInterface::TestingDataObjects::m_currentData",
+        "member:KisPaintDeviceFramesInterface::TestingDataObjects::m_data",
+        "member:KisPaintDeviceFramesInterface::TestingDataObjects::m_externalFrameData",
+        "member:KisPaintDeviceFramesInterface::TestingDataObjects::m_frames",
+        "member:KisPaintDeviceFramesInterface::TestingDataObjects::m_lodData",
+        "struct:KisPaintDeviceFramesInterface::TestingDataObjects"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::paintDeviceFrameLifecycleAndIdentitySignaturesRemainStable",
+      "behavior": "paint device frame境界は親deviceから構築でき、frame作成、現在識別子、frame一覧の公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPaintDeviceFramesInterface::KisPaintDeviceFramesInterface(KisPaintDevice * parentDevice)",
+        "method:KisPaintDeviceFramesInterface::createFrame(bool copy,int copySrc,const QPoint & offset,KUndo2Command * parentCommand)",
+        "method:KisPaintDeviceFramesInterface::currentFrameId() const",
+        "method:KisPaintDeviceFramesInterface::frames()"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::paintDeviceFrameGeometryAndPixelSignaturesRemainStable",
+      "behavior": "paint device frame境界はframeの境界、offset、既定pixelを照会・設定する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPaintDeviceFramesInterface::frameBounds(int frameId)",
+        "method:KisPaintDeviceFramesInterface::frameDefaultPixel(int frameId) const",
+        "method:KisPaintDeviceFramesInterface::frameOffset(int frameId) const",
+        "method:KisPaintDeviceFramesInterface::setFrameDefaultPixel(const KoColor & defPixel,int frameId)",
+        "method:KisPaintDeviceFramesInterface::setFrameOffset(int frameId,const QPoint & offset)"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::paintDeviceFrameTransferAndPersistenceSignaturesRemainStable",
+      "behavior": "paint device frame境界はdata manager、stream読書き、device間転送を扱う公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPaintDeviceFramesInterface::frameDataManager(int frameId) const",
+        "method:KisPaintDeviceFramesInterface::readFrame(QIODevice * stream,int frameId)",
+        "method:KisPaintDeviceFramesInterface::uploadFrame(int dstFrameId,KisPaintDeviceSP srcDevice)",
+        "method:KisPaintDeviceFramesInterface::uploadFrame(int srcFrameId,int dstFrameId,KisPaintDeviceSP srcDevice)",
+        "method:KisPaintDeviceFramesInterface::writeFrame(KisPaintDeviceWriter & store,int frameId)",
+        "method:KisPaintDeviceFramesInterface::writeFrameToDevice(int frameId,KisPaintDeviceSP targetDevice)"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::paintDeviceFrameUndoCacheAndTestingSignaturesRemainStable",
+      "behavior": "paint device frame境界はundo付き削除、cache無効化、内部data試験照会の公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPaintDeviceFramesInterface::deleteFrame(int frame,KUndo2Command * parentCommand)",
+        "method:KisPaintDeviceFramesInterface::invalidateFrameCache(int frameId)",
+        "method:KisPaintDeviceFramesInterface::testingGetDataObjects() const",
+        "method:KisPaintDeviceFramesInterface::testingGetDataObjectsList() const"
       ]
     }
   ]
