@@ -4,6 +4,7 @@
  */
 
 #include "kis_cursor.h"
+#include "kis_icon_utils.h"
 
 #include <QTest>
 
@@ -26,6 +27,11 @@ private Q_SLOTS:
     void cursorSamplingAndAdjustmentFactorySchemaRemainsStable();
     void cursorMeshFactorySchemaRemainsStable();
     void cursorLoadingSignatureSchemaRemainsStable();
+    void iconStandardSizeSchemaRemainsStable();
+    void iconGroupSchemaRemainsStable();
+    void iconLoadingThemeAndCacheSignaturesRemainStable();
+    void iconObjectAndActionUpdateSignaturesRemainStable();
+    void iconContainerUpdateSignaturesRemainStable();
 };
 
 void KisCursorSchemaContractTest::cursorTypeAndStandardFactorySchemaRemainsStable()
@@ -96,6 +102,59 @@ void KisCursorSchemaContractTest::cursorLoadingSignatureSchemaRemainsStable()
     static_assert(std::is_same_v<decltype(static_cast<LoadWithSize>(&KisCursor::loadWithSize)), LoadWithSize>);
     static_assert(std::is_same_v<decltype(KisCursor::load(std::declval<const QString &>())), QCursor>);
     static_assert(std::is_same_v<decltype(KisCursor::loadWithSize(std::declval<const QString &>(), 0, 0)), QCursor>);
+}
+
+void KisCursorSchemaContractTest::iconStandardSizeSchemaRemainsStable()
+{
+    static_assert(std::is_enum_v<KisIconUtils::StdSizes>);
+    static_assert(KisIconUtils::SizeSmall == 16);
+    static_assert(KisIconUtils::SizeSmallMedium == 22);
+    static_assert(KisIconUtils::SizeMedium == 32);
+    static_assert(KisIconUtils::SizeLarge == 48);
+    static_assert(KisIconUtils::SizeHuge == 64);
+    static_assert(KisIconUtils::SizeEnormous == 128);
+    static_assert(std::is_enum_v<KisIconUtils::Group>);
+}
+
+void KisCursorSchemaContractTest::iconGroupSchemaRemainsStable()
+{
+    using Group = KisIconUtils::Group;
+
+    static_assert(int(Group::NoGroup) == -1);
+    static_assert(int(Group::Desktop) == 0);
+    static_assert(Group::FirstGroup == Group::Desktop);
+    static_assert(int(Group::Toolbar) == 1);
+    static_assert(int(Group::MainToolbar) == 2);
+    static_assert(int(Group::Small) == 3);
+    static_assert(int(Group::Panel) == 4);
+    static_assert(int(Group::Dialog) == 5);
+    static_assert(int(Group::LastGroup) == 6);
+    static_assert(int(Group::User) == 7);
+}
+
+void KisCursorSchemaContractTest::iconLoadingThemeAndCacheSignaturesRemainStable()
+{
+    static_assert(std::is_same_v<decltype(&KisIconUtils::loadIcon), QIcon (*)(const QString &)>);
+    static_assert(std::is_same_v<decltype(&KisIconUtils::useDarkIcons), bool (*)()>);
+    static_assert(std::is_same_v<decltype(&KisIconUtils::clearIconCache), void (*)()>);
+    static_assert(std::is_same_v<decltype(&KisIconUtils::allUniqueLoadedIconNames), QStringList (*)()>);
+}
+
+void KisCursorSchemaContractTest::iconObjectAndActionUpdateSignaturesRemainStable()
+{
+    static_assert(std::is_same_v<decltype(&KisIconUtils::updateIconCommon), void (*)(QObject *)>);
+    static_assert(std::is_same_v<decltype(static_cast<void (*)(QAbstractButton *)>(&KisIconUtils::updateIcon)),
+                                 void (*)(QAbstractButton *)>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<void (*)(QAction *)>(&KisIconUtils::updateIcon)), void (*)(QAction *)>);
+}
+
+void KisCursorSchemaContractTest::iconContainerUpdateSignaturesRemainStable()
+{
+    static_assert(
+        std::is_same_v<decltype(static_cast<void (*)(QComboBox *)>(&KisIconUtils::updateIcon)), void (*)(QComboBox *)>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<void (*)(QTabBar *)>(&KisIconUtils::updateIcon)), void (*)(QTabBar *)>);
 }
 
 #undef ASSERT_CURSOR_FACTORY_SIGNATURE
