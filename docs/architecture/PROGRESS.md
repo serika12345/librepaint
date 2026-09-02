@@ -17,6 +17,15 @@
 - `g105-svg-value-audit`はflake・SVG・vector・documentから、第170便のtool baseを除外して一責務を選ぶ。
 - `g105-widget-connection-audit`はwidgetutils・widgets・libkis・軽量接続面から、第170便のgradient color editorを除外して一責務を選ぶ。
 - 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、予測工程・入力と停止線、開始pathから契約先、許可path、固有停止条件、比較候補の棄却根拠を含む。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
+- `g105-paintop-value-audit`は`plugins/paintops/libpaintop/KisCurveOption.h`の全24 APIを採用した。所有・方針5、値成分9、値合成5、強度3、状態方針2を新規
+  `plugins/paintops/libpaintop/tests/KisCurveOptionSchemaContractTest.cpp`の5枠へ対応付ける。`ValueComponents`の安全な既定値だけを実行時に観測し、option、sensor、data、情報値を実体化しない。直接linkはQt Core・Gui・Test・Xmlだけ、新対象4工程・8入力、停止5工程・11入力を維持する。
+  processing visitor、数値処理、更新job、transaction、資源registryは所有状態・実装本文・大域状態へ閉包が広がるため棄却した。
+- `g105-svg-value-audit`は`libs/flake/KoShapeContainer.h`の全20 APIを採用した。identity・寿命5、階層6、model・interface 2、clipping・変換4、描画・更新3を既存
+  `libs/flake/tests/KoShapeEnumContractTest.cpp`の5枠へ対応付ける。抽象probeは宣言だけとし、container、model、shape、painter、interfaceを実体化しない。CMakeと依存を変えず対象4工程・8入力、停止5工程・11入力、製品`kritaflake` 621工程・1,274入力を維持する。
+  shape pointerは非所有の借用契約として型だけを観測する。shape manager・reorder、canvas・tool、SVG parser、font・resource群は所有状態・event配送・filesystem・registryへ閉包が広がるため棄却した。
+- `g105-widget-connection-audit`は`libs/widgets/KisVisualColorSelectorShape.h`の残存全25 APIを採用した。型・次元7、cursor・channel 5、色・画像4、幾何4、方針・通知5を新規
+  `libs/widgets/tests/KisVisualColorSelectorShapeSchemaContractTest.cpp`の5枠へ対応付ける。局所派生probeは純粋仮想関数の宣言だけとし、shape、Widget、色、画像、event、signalを実体化しない。直接linkはQt Core・Testだけ、Qt Gui・Widgets・KF・Imath・Boostはinterface includeだけとし、新対象4工程・8入力、停止5工程・11入力を維持する。
+  libkisの複数責務、色選択Widget、dialog・stroke・tag、file dialog・window・help menuは大域状態・描画・event・資源・filesystemへ閉包が広がるため棄却した。
 
 ### 第170便の先行監査計画
 
