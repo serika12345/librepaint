@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 11:35 JST
+- 更新日時: 2026-09-02 11:40 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -37,12 +37,17 @@
 - `g146-metadata-store-exiv-io-schema-audit`は追加の`auditing`読み取り監査として、`libs/painting/metadata/kis_meta_data_store.h`の全27 APIを主候補とし、
   `plugins/metadata/common/KisExiv2IODevice.h`の全27 APIを比較する。metadata entry集合の寿命・反復・検索・追加・削除・複製・filter面またはExiv2 I/Oのopen・seek・read・write・map・transfer面を、
   store・entry・schema・filter・filesystem・device・buffer・Exiv2の実体化なしで閉じる。共通基点、入力、禁止操作、報告要件は第146便の他監査と同じである。
+- 同追加監査は`kis_meta_data_store.h`の全27 APIを採用した。型・寿命4、entry変更5、検索7、照会7、反復・filter・診断4を新規`KisMetaDataStoreSchemaContractTest`の未評価型5枠へ対応付ける。
+  `kis_meta_data_entry.h`を同owner内で先行includeし、直接linkはQt Core・Testだけ、新対象4工程・8入力、停止5工程・11入力を予測し、製品`kritapaintingmetadata` 294工程・619入力を維持する。現在の近傍対象命令集合hashは
+  `991066bdd93fa04d16042df97e1b0966b6ed1dddb6f15e25bc2cb046c23062d3`、入力集合hashは`f350ce0fc7e52f3a23b4e93e6757ecbf0ac24aa5e7df32ff822d9e7987b5890e`、製品命令集合hashは
+  `7e50d578147251176977fe8158d7df4ab588b44e8312afaf0c3041687e2815ad`、製品入力集合hashは`7acf26fc71980b1b71e1409f13de3be97379b8ae4d058054ff564844e492e324`である。
+  `KisExiv2IODevice.h`はExiv2版条件で`long`系と`size_t`・`int64_t`系APIを同時に宣言できず、外部Exiv2 interfaceとfilesystem効果も要求するため棄却した。
 - 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから契約先または移動先、許可path、固有停止条件、
   比較候補の棄却根拠を含む。既存`build/tdd-macos`の計画は読み取り専用で測定し、構成や構築を開始しない。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
 
 ### 第146便の担当計画
 
-- 実装共通基点は`1b0505cd72`である。image signal router担当は`integrated`、libkis guides config担当は`implementing`、ASL XML writer担当は`rejected`、metadata store追加監査は`auditing`、
+- 実装共通基点は`1b0505cd72`である。image signal router担当は`integrated`、libkis guides config担当は`implementing`、ASL XML writer担当は`rejected`、metadata store追加監査は`completed`、
   構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの
   `transport-commit`、追加委任は禁止する。対象platformはmacOSであり、専用worktree-local `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。
   統合順はimage signal router、libkis guides config、ASL XML writerとし、調整担当だけが`AGENTS.md`、architecture文書、`docs/architecture/public-api-test-contracts.json`、共通不足報告を変更する。
