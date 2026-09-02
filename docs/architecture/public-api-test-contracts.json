@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 12672
+    "expectedMissingApis": 12649
   },
   "contracts": [
     {
@@ -48420,6 +48420,74 @@
         "method:KoSelection::paint(QPainter & painter) const",
         "method:KoSelection::select(KoShape * shape)",
         "method:KoSelection::selectionChanged()"
+      ]
+    },
+    {
+      "target": "KoFileDialogSchemaContractTest",
+      "source": "libs/widgetutils/tests/KoFileDialogSchemaContractTest.cpp",
+      "test": "KoFileDialogSchemaContractTest::fileDialogTypeSchemaRemainsStable",
+      "behavior": "ファイル選択dialogの公開型、用途種別とopen・import・saveの安定値を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoFileDialog",
+        "enum:KoFileDialog::DialogType",
+        "enumerator:KoFileDialog::DialogType::ImportDirectory",
+        "enumerator:KoFileDialog::DialogType::ImportFile",
+        "enumerator:KoFileDialog::DialogType::ImportFiles",
+        "enumerator:KoFileDialog::DialogType::OpenDirectory",
+        "enumerator:KoFileDialog::DialogType::OpenFile",
+        "enumerator:KoFileDialog::DialogType::OpenFiles",
+        "enumerator:KoFileDialog::DialogType::SaveFile"
+      ]
+    },
+    {
+      "target": "KoFileDialogSchemaContractTest",
+      "source": "libs/widgetutils/tests/KoFileDialogSchemaContractTest.cpp",
+      "test": "KoFileDialogSchemaContractTest::fileDialogLifetimeSchemaRemainsStable",
+      "behavior": "ファイル選択dialogが親Widget、用途、永続名を受け取る構築と仮想寿命を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoFileDialog::KoFileDialog(QWidget * parent,KoFileDialog::DialogType type,const QString & dialogName)",
+        "method:KoFileDialog::~KoFileDialog()"
+      ]
+    },
+    {
+      "target": "KoFileDialogSchemaContractTest",
+      "source": "libs/widgetutils/tests/KoFileDialogSchemaContractTest.cpp",
+      "test": "KoFileDialogSchemaContractTest::fileDialogConfigurationSignaturesRemainStable",
+      "behavior": "ファイル選択dialogのcaption、初期位置、画像・MIME・名前filterを設定する公開署名と既定方針を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoFileDialog::selectNameFilter(const QString & filter)",
+        "method:KoFileDialog::setCaption(const QString & caption)",
+        "method:KoFileDialog::setDefaultDir(const QString & defaultDir,bool force=false)",
+        "method:KoFileDialog::setDirectoryUrl(const QUrl & defaultUri)",
+        "method:KoFileDialog::setImageFilters()",
+        "method:KoFileDialog::setMimeTypeFilters(const QStringList & mimeTypeList,QString defaultMimeType=QString ())",
+        "method:KoFileDialog::setNameFilter(const QString & filter)"
+      ]
+    },
+    {
+      "target": "KoFileDialogSchemaContractTest",
+      "source": "libs/widgetutils/tests/KoFileDialogSchemaContractTest.cpp",
+      "test": "KoFileDialogSchemaContractTest::fileDialogSelectionResultSignaturesRemainStable",
+      "behavior": "ファイル選択dialogから単一・複数の選択結果と選択済みMIME・名前filterを得る公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoFileDialog::filename()",
+        "method:KoFileDialog::filenames()",
+        "method:KoFileDialog::selectedMimeType() const",
+        "method:KoFileDialog::selectedNameFilter() const"
+      ]
+    },
+    {
+      "target": "KoFileDialogSchemaContractTest",
+      "source": "libs/widgetutils/tests/KoFileDialogSchemaContractTest.cpp",
+      "test": "KoFileDialogSchemaContractTest::fileDialogFilterNotificationSignatureRemainsStable",
+      "behavior": "選択済みfilterを受け取って既定拡張子へ反映する公開slot署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoFileDialog::onFilterSelected(const QString & filter)"
       ]
     }
   ]
