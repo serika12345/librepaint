@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 13372
+    "expectedMissingApis": 13337
   },
   "contracts": [
     {
@@ -46640,6 +46640,86 @@
         "method:KisPlaybackEngine::sigDropFramesModeChanged(bool value)",
         "method:KisPlaybackEngine::supportsAudio()",
         "method:KisPlaybackEngine::supportsVariablePlaybackSpeed()"
+      ]
+    },
+    {
+      "target": "SvgTextCursorPropertySchemaContractTest",
+      "source": "plugins/tools/svgtexttool/tests/SvgTextCursorPropertySchemaContractTest.cpp",
+      "test": "SvgTextCursorPropertySchemaContractTest::svgTextCursorIdentityAndShapeSignaturesRemainStable",
+      "behavior": "SVG文字カーソルの公開型、寿命、canvas借用構築、shape参照・差し替え・変更通知の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "class:SvgTextCursor",
+        "method:SvgTextCursor::SvgTextCursor(KoCanvasBase * canvas)",
+        "method:SvgTextCursor::notifyShapeChanged(KoShape::ChangeType type,KoShape * shape)",
+        "method:SvgTextCursor::setShape(KoSvgTextShape * textShape)",
+        "method:SvgTextCursor::shape() const",
+        "method:SvgTextCursor::~SvgTextCursor()"
+      ]
+    },
+    {
+      "target": "SvgTextCursorPropertySchemaContractTest",
+      "source": "plugins/tools/svgtexttool/tests/SvgTextCursorPropertySchemaContractTest.cpp",
+      "test": "SvgTextCursorPropertySchemaContractTest::svgTextCursorTypeSettingSignaturesRemainStable",
+      "behavior": "SVG文字カーソルの組版handle検出、表示、装飾描画、baseline操作の公開署名と既定引数を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:SvgTextCursor::cursorTypeForTypeSetting() const",
+        "method:SvgTextCursor::handleName(TypeSettingModeHandle handle) const",
+        "method:SvgTextCursor::paintDecorations(QPainter & gc,QColor selectionColor,int decorationThickness=1,qreal handleRadius=5.0,KisHandlePalette handlePalette=KisHandlePalette ())",
+        "method:SvgTextCursor::posForTypeSettingHandleAndRect(const TypeSettingModeHandle handle,const QRectF regionOfInterest)",
+        "method:SvgTextCursor::setDominantBaselineFromHandle(const TypeSettingModeHandle handle)",
+        "method:SvgTextCursor::setDrawTypeSettingHandle(bool draw)",
+        "method:SvgTextCursor::setTypeSettingHandleHovered(TypeSettingModeHandle hovered=TypeSettingModeHandle::NoHandle)",
+        "method:SvgTextCursor::typeSettingHandleAtPos(const QRectF regionOfInterest)",
+        "method:SvgTextCursor::updateTypeSettingDecorFromShape()"
+      ]
+    },
+    {
+      "target": "SvgTextCursorPropertySchemaContractTest",
+      "source": "plugins/tools/svgtexttool/tests/SvgTextCursorPropertySchemaContractTest.cpp",
+      "test": "SvgTextCursorPropertySchemaContractTest::svgTextCursorPropertyBridgeSignaturesRemainStable",
+      "behavior": "SVG文字カーソルの選択範囲・shape文字属性取得、属性統合、action登録、glyph palette通知の公開署名と既定引数を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:SvgTextCursor::currentTextProperties() const",
+        "method:SvgTextCursor::mergePropertiesIntoSelection(const KoSvgTextProperties props,const QSet<KoSvgTextProperties::PropertyId> removeProperties=QSet<KoSvgTextProperties::PropertyId> (),bool paragraphOnly=false,bool selectWord=false)",
+        "method:SvgTextCursor::propertiesForRange() const",
+        "method:SvgTextCursor::propertiesForShape() const",
+        "method:SvgTextCursor::registerPropertyAction(QAction * action,const QString & name)",
+        "method:SvgTextCursor::sigOpenGlyphPalette()",
+        "method:SvgTextCursor::textPropertyInterface()",
+        "method:SvgTextCursor::updateCursorDecoration(QRectF updateRect)"
+      ]
+    },
+    {
+      "target": "SvgTextCursorPropertySchemaContractTest",
+      "source": "plugins/tools/svgtexttool/tests/SvgTextCursorPropertySchemaContractTest.cpp",
+      "test": "SvgTextCursorPropertySchemaContractTest::svgTextCursorPropertyInterfaceQuerySignaturesRemainStable",
+      "behavior": "文字属性interfaceの公開型、寿命、cursor借用構築、選択・継承属性照会の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "class:SvgTextCursorPropertyInterface",
+        "method:SvgTextCursorPropertyInterface::SvgTextCursorPropertyInterface(SvgTextCursor * parent)",
+        "method:SvgTextCursorPropertyInterface::characterPropertiesEnabled()",
+        "method:SvgTextCursorPropertyInterface::getCharacterProperties()",
+        "method:SvgTextCursorPropertyInterface::getInheritedProperties()",
+        "method:SvgTextCursorPropertyInterface::getSelectedProperties()",
+        "method:SvgTextCursorPropertyInterface::spanSelection()",
+        "method:SvgTextCursorPropertyInterface::~SvgTextCursorPropertyInterface()"
+      ]
+    },
+    {
+      "target": "SvgTextCursorPropertySchemaContractTest",
+      "source": "plugins/tools/svgtexttool/tests/SvgTextCursorPropertySchemaContractTest.cpp",
+      "test": "SvgTextCursorPropertySchemaContractTest::svgTextCursorPropertyInterfaceMutationSignaturesRemainStable",
+      "behavior": "文字属性interfaceの選択変更通知と選択範囲への文字・段落属性反映の公開署名と既定の除去集合を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:SvgTextCursorPropertyInterface::emitCharacterSelectionChange()",
+        "method:SvgTextCursorPropertyInterface::emitSelectionChange()",
+        "method:SvgTextCursorPropertyInterface::setCharacterPropertiesOnSelected(KoSvgTextProperties properties,QSet<KoSvgTextProperties::PropertyId> removeProperties=QSet<KoSvgTextProperties::PropertyId> ())",
+        "method:SvgTextCursorPropertyInterface::setPropertiesOnSelected(KoSvgTextProperties properties,QSet<KoSvgTextProperties::PropertyId> removeProperties=QSet<KoSvgTextProperties::PropertyId> ())"
       ]
     }
   ]
