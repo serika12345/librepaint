@@ -2,12 +2,21 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-03 00:43 JST
+- 更新日時: 2026-09-03 01:18 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
+
+### 第170便の先行監査計画
+
+- 監査共通基点は`14e150b722`、入力は`build/tdd-macos/public-api-missing-g170.json`である。3担当は`auditing`の読み取り専用とし、製品・試験・CMake・script・台帳・文書を変更せず、構成、構築、試験、Git操作、追加委任も行わない。
+  一つの公開責務から20〜80 APIを最大5枠へ固定し、既存限定対象またはheader限定の4〜10工程程度の対象で、製品共有libraryと`kritatestsdk`へ接続しない候補だけを採用する。製品targetを引数にする`build-incremental ... plan`と製品buildは実行せず、既存Ninja木のquery・commands・inputsだけを読み取る。
+- `g105-paintop-value-audit`はpaintop・image・pigment・値型から、第169便のswatch groupを除外して一責務を選ぶ。
+- `g105-svg-value-audit`はflake・SVG・vector・documentから、第169便のSVG text content elementを除外して一責務を選ぶ。
+- `g105-widget-connection-audit`はwidgetutils・widgets・libkis・軽量接続面から、第169便のwidget connectionを除外して一責務を選ぶ。
+- 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、予測工程・入力と停止線、開始pathから契約先、許可path、固有停止条件、比較候補の棄却根拠を含む。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
 
 ### 第169便の先行監査計画
 
@@ -47,6 +56,21 @@
   `controlStateConnectionSignaturesRemainStable`、`widgetPresentationPropertyConnectionSignaturesRemainStable`へ対応付ける。完全集合は基本control接続5、選択・action・文字control 4、専用control 5、control状態接続5、表示property接続2である。許可pathは既存試験sourceだけで、CMake・依存・公開header・製品sourceを変更しない。
   厳密な関数pointer型だけを観測し、Widget、接続、signal、property、event loopを実行しない。対象4工程・8入力、停止5工程・11入力、近傍`KisColorSelectorConfigurationContractTest`を維持する。実装後は構築許可まで待機する。許可後に旧binaryの新5枠Unknown、対象CTest・枠個別・20回反復、既存枠、近傍、無作業再構築、動的接続・AUTOMOC入力・接続関数・Widget未解決記号、構文・書式、公開API・`verify-quick`を確認する。
   WidgetまたはQObjectを生成し、接続関数・property・signalを実行し、新規include・link、製品接続、停止線超過が必要なら止める。
+
+### 第169便の統合結果
+
+- `g169-swatch-group-schema`は受渡しcommit`3ec3521c74`を統合commit`e03bfddecc`として取り込んだ。開始`libs/pigment/resources/KisSwatchGroup.h`から既存
+  `libs/pigment/tests/KoColorSetSchemaContractTest.cpp`の5枠へ、所有・copy・寿命、entry値、配置・件数、identity・一覧、検索・debugの全22 APIを対応付けた。CMakeと依存を変えず対象4工程・8入力に保った。
+  担当と中央の対象・近傍CTest、20回反復、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式に成功した。台帳commit`358218d601`で16,904件対応、12,934件未対応となった。配置、件数計算、検索、copyの実行時結果は別契約で扱う。
+- `g169-svg-text-content-schema`は受渡しcommit`47113b75fd`を統合commit`d2014a53de`として取り込んだ。開始`libs/flake/text/KoSvgTextContentElement.h`から新規
+  `libs/flake/tests/KoSvgTextContentElementSchemaContractTest.cpp`の5枠へ、identity・寿命、property・path値、layout・装飾値、XML署名、文字照会・編集の全21 APIを対応付けた。省略形も固定し、直接linkはQt Gui・Test・Xmlだけ、新対象4工程・8入力に保った。
+  担当と中央の対象・近傍CTest、20回反復、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式に成功した。台帳commit`e59140c7dd`で16,925件対応、12,913件未対応となった。SVG読書き、文字変換、配置、編集の実行時結果は別契約で扱う。
+- `g169-widget-connection-schema`は受渡しcommit`89aa895376`を統合commit`1d837c3b43`として取り込んだ。開始`libs/widgets/KisWidgetConnectionUtils.h`から既存
+  `libs/widgets/tests/KisWidgetConnectionStateContractTest.cpp`の5枠へ、基本control接続、選択・action・文字control、専用control、control状態接続、表示property接続の残存全21 APIを対応付けた。CMakeと依存を変えず対象4工程・8入力に保った。
+  担当と中央の対象・近傍CTest、20回反復、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式に成功した。台帳commit`14e150b722`で16,946件対応、12,892件未対応となった。実Widget、property同期、signal配送の実行時結果は別契約で扱う。
+- 第169便全体で64 APIを15枠へ重複なく対応付けた。実装を並行し、構成・構築枠だけをswatch group、SVG text content、widget connectionの順に直列化した。公開API台帳、構造方針、文書、link、D2再生成を含む`verify-quick`は成功した。
+  3担当のcleanな作業treeと担当branchを削除し、旧不足報告3件を含む2,649,300 KiB（約2.53 GiB）を回収した。主Ninja木5,647,248 KiB、共有compiler cache 983,092 KiB、最新不足報告`build/tdd-macos/public-api-missing-g170.json`だけを再利用対象として保持する。製品、全体、Linuxの構築は実施していない。
+- 新規SVG text content対象の担当作業treeでは構成23.4秒・生成11.2秒・全体39.99秒、主作業treeでは構成3.5秒・生成11.3秒・対象全体23.20秒だった。対象4工程・8入力と製品`kritaflake` 621工程・1,274入力は維持され、第168便の942.0秒は再現しなかった。構築範囲の直列制御を継続し、再発時だけ実装より先に原因を分離する。
 
 ### 第168便の先行監査計画
 
@@ -17411,7 +17435,7 @@
 
 ## 次の操作
 
-`build/tdd-macos/public-api-missing-g169.json`から第169並列便の非重複候補を3担当で監査する。欠陥疑いの比較・診断、資源registry、設定I/O、生pointer所有へ到達する経路は保留する。
+`build/tdd-macos/public-api-missing-g170.json`から第170並列便の非重複候補を3担当で監査する。欠陥疑いの比較・診断、資源registry、設定I/O、生pointer所有へ到達する経路は保留する。
 別の所有pathから20〜80 APIを最大5枠、既存限定対象またはheader限定対象で固定できる候補を優先し、担当票の確定前に変更なし計画、直接依存、予測閉包、製品共有ライブラリー・`kritatestsdk`非接続、許可pathと停止線を照合する。
 
 ## R1-G5完了根拠
