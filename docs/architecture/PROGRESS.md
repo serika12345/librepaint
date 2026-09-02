@@ -17,6 +17,15 @@
 - `g105-svg-value-audit`はflake・SVG・vector・documentから、第172便のselectionを除外して一責務を選ぶ。
 - `g105-widget-connection-audit`はwidgetutils・widgets・libkis・軽量接続面から、第172便のfile dialogを除外して一責務を選ぶ。
 - 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、予測工程・入力と停止線、開始pathから契約先、許可path、固有停止条件、比較候補の棄却根拠を含む。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
+- `g105-paintop-value-audit`は`libs/image/kis_selection_based_layer.h`の未対応全25 APIを採用した。所有・寿命4、selection・device・projection 7、階層・image・dirty 4、幾何・LOD 7、thumbnail・通知3を既存
+  `libs/image/tests/KisImageTypesContractTest.cpp`の5枠へ対応付ける。layer、image、node、selection、filter、device、projection、thumbnail、metaobjectとinline `layer()`本文を実体化・実行しない。CMakeと依存を変えず対象4工程・8入力、停止5工程・11入力、製品`kritaimage` 1,196工程・2,416入力を維持する。
+  clone layer、paint情報、image設定、simple paintop factoryは状態遷移、乱数・XML、設定I/O、template分岐へ閉包が広がるため棄却した。
+- `g105-svg-value-audit`は`libs/flake/commands/KoShapeReorderCommand.h`の全23 APIを採用した。identity・寿命4、indexed shape値7、move種別5、生成・merge 3、正規化・実行4を新規
+  `libs/flake/tests/KoShapeReorderCommandSchemaContractTest.cpp`の5枠へ対応付ける。command、shape、manager、親command、indexed shapeを実体化せず、比較・正規化・merge・redo・undo・debug本文を実行しない。直接linkはQt Core・Testだけ、新対象4工程・8入力、停止5工程・11入力、製品`kritaflake` 621工程・1,274入力を維持する。
+  canvas・tool・shape manager、resource群、path tool、SVG parser・loading context、SVG text commandは大域状態、event配送、resource・filesystem、XML・shape生成、複数編集経路へ閉包が広がるため棄却した。
+- `g105-widget-connection-audit`は`libs/widgets/KoStrokeConfigWidget.h`の全23 APIを採用した。型・寿命・公開表示部品6、外観5、marker・stroke 5、制御4、activate・通知3を新規
+  `libs/widgets/tests/KoStrokeConfigWidgetSchemaContractTest.cpp`の5枠へ対応付ける。Widget、canvas、shape、marker、stroke、unit manager、resource、公開pointer、private pointer、signal本文を実体化・実行しない。直接linkはQt Core・Testだけ、新対象4工程・8入力、停止5工程・11入力、製品`kritawidgets` 809工程・1,647入力を維持する。
+  internal color selector、main window、font family、help menu、tag selection、visual selector、scratchpad、libkis document・nodeは大域状態、filesystem、font・resource、複数Widget、文書・canvas状態へ閉包が広がるため棄却した。
 
 ### 第172便の先行監査計画
 
