@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 16:07 JST
+- 更新日時: 2026-09-02 16:13 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -22,6 +22,27 @@
   pixel data managerの型・寿命・識別・状態・操作署名面を、command実行・undo stack・paint device・tile・memento・producer・selection・device I/O・大域状態の実体化なしで閉じる。
 - 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから契約先または移動先、許可path、固有停止条件、
   比較候補の棄却根拠を含む。既存`build/tdd-macos`の計画は読み取り専用で測定し、構成や構築を開始しない。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
+- `g155-libkis-palette-scratchpad-schema-audit`は`Palette.h`の全31 APIを採用した。所有・寿命・等価5、grid・個数10、group操作6、entry操作7、metadata・保存3を新規`PaletteSchemaContractTest`の未評価型5枠へ
+  対応付ける。直接linkはQt Core・Gui・TestとBoost headerだけ、新対象4工程・8入力、停止5工程・11入力を予測し、製品`kritalibkis` 2,018工程・4,034入力を維持する。近傍
+  `GridConfigSchemaContractTest`の命令集合hashは`8f9a875addf86c8e0f66e69f72e85d66cc29e0af29f586b5abe3547896e36d05`、入力集合hashは
+  `9a2e2dbeaf477dabbd53c38aa1913ada74f03cf1719127986d1bea608b0c8f6c`、製品命令集合hashは`8c8c527c8f9355e51acb1fdd6b56bfdf424464c92cf421eb9c3ab541b2e5f4f6`、入力集合hashは
+  `c7d3d05a6481dae255bd0e55d6a0c3db9f35146efe125ad093974e94bb69ad03`である。`Scratchpad.h`はQWidgetとViewを直接含み、zoom・描画・document・image・signalへ責務と閉包が広がるため棄却した。
+- `g155-flake-css-gamut-resource-schema-audit`は当初2候補を棄却した。`KoCssStylePreset.h`は安全な具体既定値面がなく、資源I/O・sample shape生成・更新本文へ到達する第137便の理由が有効である。`KoGamutMask.h`も2 classへ
+  責務が分散し、shape clone・delete、QPainter、SVG・資源I/Oを公開headerが直接抱える第136・139便の理由が有効である。差替監査は`libs/flake/text/KoSvgTextShape.h`の残り111 APIと
+  `libs/flake/resources/KoSvgSymbolCollectionResource.h`の30 APIを同じ読み取り専用条件で比較した。
+- 差替監査は`KoSvgTextShape.h`のカーソル位置・幾何・index・range照会28 APIを採用した。方向移動14、幾何照会5、文字index対応2、node・range対応4、range値照会3を既存
+  `KoSvgTextCharacterResultValueContractTest`の未評価型5枠へ対応付ける。第153便の29 APIとは重複しない。CMakeと直接依存を変更せず対象4工程・8入力、停止5工程・11入力、製品`kritaflake` 621工程・
+  1,274入力を維持する。対象命令集合hashは`254c533fe764b1e2de85d6f0b31d1e3d1648913294be2a017c9cfe6b8d0b6ff7`、入力集合hashは
+  `6f1be372a2d9ab0fae470eb0c3a4c629358a081f42b2e1016bec6ae66f541404`、製品命令集合hashは`f3f361da0bcc5c5d3fcc2e2e638cfbfce33af5ddc455e80260a62ff35b74a676`、入力集合hashは
+  `1a30862a8e0463c6578045c344b23088d4909ac6017407162709d283413b8cb5`である。`KoSvgSymbolCollectionResource.h`はsymbol copy・破棄がshape本文を実行し、icon・資源I/Oとcollection metadataへ責務が分かれるため棄却した。
+- `g155-image-saved-command-datamanager-schema-audit`は当初2候補を棄却した。`kis_saved_commands.h`は3 command責務とtemplate `unwrap`・RTTI・undo実行閉包へ分かれる第141便の理由が有効である。
+  `kis_datamanager.h`も全35 APIがtile managerへinline委譲し、tile・memento・I/O本文と結合する第135・147便の理由が有効である。差替監査は`libs/image/kis_keyframe_channel.h`の53 APIと
+  `libs/image/kis_pixel_selection.h`の33 APIを同じ読み取り専用条件で比較した。
+- 差替監査は`kis_keyframe_channel.h`の全53 APIを採用した。型・寿命・識別子16、照会・時系列14、更新9、所有・frame・直列化9、通知5を新規`KisKeyframeChannelSchemaContractTest`の未評価型5枠へ
+  対応付ける。直接linkはQt Core・Xml・Testと必要なheader interfaceだけ、新対象4工程・8入力、停止5工程・11入力を予測し、製品`kritaimage` 1,196工程・2,416入力を維持する。軽量近傍
+  `KisImageTypesContractTest`の命令集合hashは`18846cd1fb8594a8bc0820ed244ffc66d6e97f76ceb5dd11f9ec5959ac8f0eec`、入力集合hashは
+  `42c0bdca62da9111fd79736a3055bd233ee32342bc2c9ae69fc577a83a88cf81`、製品命令集合hashは`8b3e011450f2ca342e0ce523cc1696c2e2b3970456a8cb097553ee5fdf79930f`、入力集合hashは
+  `76f2aa4251a6bf4e2adf2a1e822bc9d629753b2e93e5b877ee4eae23364940bc`である。`kis_pixel_selection.h`はpaint device・selection・outline・thumbnail・projection・I/Oへ責務と閉包が広がるため棄却した。
 
 ### 第154便の先行監査計画
 
