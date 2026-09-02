@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 14991
+    "expectedMissingApis": 14966
   },
   "contracts": [
     {
@@ -42861,6 +42861,76 @@
         "method:KisOpenGL::setDebugSynchronous(bool value)",
         "method:KisOpenGL::testingInitializeDefaultSurfaceFormat()",
         "method:KisOpenGL::xcbGlProviderProtocol()"
+      ]
+    },
+    {
+      "target": "KisTileSchemaContractTest",
+      "source": "libs/image/tiles3/tests/KisTileSchemaContractTest.cpp",
+      "test": "KisTileSchemaContractTest::tileOwnershipAndLifetimeSchemaRemainsStable",
+      "behavior": "画像tileは既定data・managerまたは別tileから構築・複製・破棄できる共有所有型面を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisTileSP",
+        "class:KisTile",
+        "method:KisTile::KisTile(const KisTile & rhs)",
+        "method:KisTile::KisTile(const KisTile & rhs,KisMementoManager * mm)",
+        "method:KisTile::KisTile(const KisTile & rhs,qint32 col,qint32 row,KisMementoManager * mm)",
+        "method:KisTile::KisTile(qint32 col,qint32 row,KisTileData * defaultTileData,KisMementoManager * mm)",
+        "method:KisTile::~KisTile()"
+      ]
+    },
+    {
+      "target": "KisTileSchemaContractTest",
+      "source": "libs/image/tiles3/tests/KisTileSchemaContractTest.cpp",
+      "test": "KisTileSchemaContractTest::tileManagerAttachmentAndDiagnosticsSignaturesRemainStable",
+      "behavior": "画像tileはdata managerへの接続・切断・未切断破棄通知と診断出力の公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTile::debugDumpTile()",
+        "method:KisTile::debugPrintInfo()",
+        "method:KisTile::notifyAttachedToDataManager(KisMementoManager * mm)",
+        "method:KisTile::notifyDeadWithoutDetaching()",
+        "method:KisTile::notifyDetachedFromDataManager()"
+      ]
+    },
+    {
+      "target": "KisTileSchemaContractTest",
+      "source": "libs/image/tiles3/tests/KisTileSchemaContractTest.cpp",
+      "test": "KisTileSchemaContractTest::tileReadWriteLockSignaturesRemainStable",
+      "behavior": "画像tileは読取り・書込み別のlockとunlockについて公開署名とconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTile::lockForRead() const",
+        "method:KisTile::lockForWrite()",
+        "method:KisTile::unlockForRead() const",
+        "method:KisTile::unlockForWrite()"
+      ]
+    },
+    {
+      "target": "KisTileSchemaContractTest",
+      "source": "libs/image/tiles3/tests/KisTileSchemaContractTest.cpp",
+      "test": "KisTileSchemaContractTest::tileDataAndGeometrySignaturesRemainStable",
+      "behavior": "画像tileは列・行・範囲・画素寸法と生data・tile dataの照会・設定について公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTile::col() const",
+        "method:KisTile::data() const",
+        "method:KisTile::extent() const",
+        "method:KisTile::pixelSize() const",
+        "method:KisTile::row() const",
+        "method:KisTile::setData(const quint8 * data)",
+        "method:KisTile::tileData() const"
+      ]
+    },
+    {
+      "target": "KisTileSchemaContractTest",
+      "source": "libs/image/tiles3/tests/KisTileSchemaContractTest.cpp",
+      "test": "KisTileSchemaContractTest::tileLinkedTraversalSignaturesRemainStable",
+      "behavior": "画像tileは連結された次tileの照会・設定に関する共有所有の公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTile::next() const",
+        "method:KisTile::setNext(KisTileSP next)"
       ]
     }
   ]

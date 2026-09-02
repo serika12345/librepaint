@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 12:38 JST
+- 更新日時: 2026-09-02 12:41 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -40,7 +40,7 @@
 
 ### 第148便の担当計画
 
-- 実装共通基点は`29238066d01f`である。OpenGL関数担当は`integrated`、tile担当は`implementing`、color space abstract担当は`rejected`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの
+- 実装共通基点は`29238066d01f`である。OpenGL関数とtile担当は`integrated`、color space abstract担当は`rejected`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの
   `transport-commit`、追加委任は禁止する。対象platformはmacOSであり、専用worktree-local `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。
   統合順はOpenGL関数、tile、color space abstractとし、調整担当だけが`AGENTS.md`、architecture文書、`docs/architecture/public-api-test-contracts.json`、共通不足報告を変更する。
   3担当の公開header、所有CMake、試験source、生成物は重ならない。
@@ -79,6 +79,12 @@
   別の効果契約で扱う。
 - `g148-color-space-abstract-schema`は、Imath interface探索先の追加後、constructorの未評価probeだけで`KoColorSpaceAbstract` constructor、vtable対象override、混色・畳み込みtemplate本文が実体化されたため
   `rejected`とした。dummy traitへの処理定義追加は未評価型契約の範囲を越えるため行わず、製品・OBJECT・SDKへ接続していない。未コミットの許可2 path、作業tree 877,072 KiB、担当branchは削除した。
+- `g148-tile-schema`は受渡しcommit`c9efc1b2ae88`を統合commit`5efb5528fd`として取り込んだ。開始`libs/image/tiles3/kis_tile.h`から新規
+  `libs/image/tiles3/tests/KisTileSchemaContractTest.cpp`の5枠へ、型・寿命、manager接続・診断、読書きlock、data・幾何、連結の25 APIを対応付けた。公開headerが直接要求する`kis_shared.h`の所有元であるglobal
+  source・generatedを対象固有のPRIVATE探索先へ追加した。直接linkはQt Core・Core5Compat・Testだけ、新対象4工程・8入力に収め、製品`kritaimage` 1,196工程・2,416入力を維持した。tile、data、manager、shared
+  pointer、lock、store、inline本文、manager通知、memory・診断処理を生成または実行していない。担当macOS環境と中央環境で5枠を含む対象CTest・20回反復、近傍`KisChunkAllocatorSchemaContractTest`、無作業再構築、
+  動的接続・未解決記号、構文・書式、公開API検査に成功した。中央の公開API契約検査は29,838件中14,872件対応、14,966件未対応となる。作業tree 871,596 KiBと担当branchは削除した。data操作、lock、manager通知の
+  実行時挙動は別の効果契約で扱う。
 
 ### 第147便の先行監査計画
 
