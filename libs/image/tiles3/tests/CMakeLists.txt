@@ -132,3 +132,18 @@ target_include_directories(KisTileDataSchemaContractTest PRIVATE
     ${CMAKE_BINARY_DIR}/libs/global
 )
 target_compile_definitions(KisTileDataSchemaContractTest PRIVATE kritaimage_EXPORTS)
+
+kis_add_test(
+    KisMementoManagerSchemaContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KisMementoManagerSchemaContractTest PRIVATE
+    ${CMAKE_SOURCE_DIR}/libs/image
+    ${CMAKE_BINARY_DIR}/libs/image
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Core5Compat,INTERFACE_INCLUDE_DIRECTORIES>
+)
+target_compile_definitions(KisMementoManagerSchemaContractTest PRIVATE kritaimage_EXPORTS)
