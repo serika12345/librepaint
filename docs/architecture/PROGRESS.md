@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-03 06:11 JST
+- 更新日時: 2026-09-03 06:16 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -17,6 +17,16 @@
 - `g105-svg-value-audit`はflake・SVG・vector・documentから、第175便のSVG text contour commandを除外して一責務を選ぶ。
 - `g105-widget-connection-audit`はwidgetutils・widgets・libkis・軽量接続面から、第175便のmain windowを除外して一責務を選ぶ。
 - 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、予測工程・入力と停止線、開始pathから契約先、許可path、固有停止条件、比較候補の棄却根拠を含む。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
+- `g105-paintop-value-audit`は`libs/image/kis_base_rects_walker.h`の残存全23 APIを採用した。所有・寿命2、幾何観測7、状態方針6、収集・設定6、clone通知2を既存
+  `libs/image/tests/KisBaseRectsWalkerPolicyContractTest.cpp`の5枠へ対応付ける。既存の宣言限定具象probeだけを用い、walker、probe、clone通知、node、layer、projectionを実体化せず、矩形getter・setter、graph走査、checksum、通知本文を実行しない。CMakeと依存を変えず対象4工程・8入力、停止5工程・11入力、製品`kritaimage` 1,196工程・2,416入力を維持する。
+  色空間template、gradient resource、undo command stroke、間接描画、数値toolboxは画素処理・registry、private所有、command所有、thread・lock、生配列へ閉包が広がるため棄却した。
+- `g105-svg-value-audit`は`libs/flake/KoCanvasController.h`内`KoCanvasControllerProxyObject`の未対応全29 APIを採用した。型・参照3、canvas寿命通知6、位置・offset通知8、view幾何通知6、zoom・mirror通知6を新規
+  `libs/flake/tests/KoCanvasControllerProxySchemaContractTest.cpp`の5枠へ対応付ける。proxy、controller、canvas、QObject、action collectionを実体化せず、inline emitter、signal、metaobject、event loop、座標変換、zoom処理を実行しない。直接linkはQt Core・Testだけ、flake source/generatedだけをcompile interfaceに含め、新対象4工程・8入力、停止5工程・11入力、製品`kritaflake` 621工程・1,274入力を維持する。
+  controller本体、shape・tool manager、tool proxy・path tool、SVG loading・resourceはscroll・zoom・action、描画・event、大域状態、XML・filesystemへ閉包が広がるため棄却した。
+- `g105-widget-connection-audit`は`libs/widgetutils/kis_font_family_combo_box.h`の未対応全22 APIを採用した。3型・寿命6、現在値6、family/style候補更新3、family候補更新3、固定font区切り表示4を新規
+  `libs/widgetutils/tests/KisFontFamilyComboBoxSchemaContractTest.cpp`の5枠へ対応付ける。font selector、Widget、font、font database、painter、delegateを実体化せず、font列挙、設定読込、paint、signal、event loopを実行しない。直接linkはQt Core・Testだけ、Qt Gui・Widgetsをcompile interfaceに限定し、新対象4工程・8入力、停止5工程・11入力、製品`kritawidgetutils` 274工程・581入力を維持する。
+  内部色選択、tag・visual selector、scratchpad、libkis文書・nodeはglobal renderer・resource・複数Widget・canvas・文書状態へ閉包が広がるため棄却した。
+- 中央の`public-api-missing-g176.json`でwalker 23件、canvas controller通知proxy 29件、font family selector 22件の全識別子を照合した。canvas controller本体26件は別責務として残し、選択した3責務の開始header、試験source、所有CMake、生成物に重複はない。合計74 APIを15枠へ進め、実装中に許可path外変更、製品OBJECT/shared、実体化・本文実行、動的接続の拡大、5工程・11入力超過、製品計画集合の変化が必要になれば担当を停止する。
 
 ### 第175便の先行監査計画
 
