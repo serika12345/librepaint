@@ -225,6 +225,18 @@ target_include_directories(KisCursorSchemaContractTest PRIVATE
 target_compile_definitions(KisCursorSchemaContractTest PRIVATE kritawidgetutils_EXPORTS)
 
 kis_add_test(
+    KisFontFamilyComboBoxSchemaContractTest.cpp
+    LINK_LIBRARIES Qt${QT_MAJOR_VERSION}::Core Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KisFontFamilyComboBoxSchemaContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Gui,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Widgets,INTERFACE_INCLUDE_DIRECTORIES>
+)
+target_compile_definitions(KisFontFamilyComboBoxSchemaContractTest PRIVATE kritawidgetutils_EXPORTS)
+
+kis_add_test(
     KoFileDialogSchemaContractTest.cpp
     LINK_LIBRARIES Qt${QT_MAJOR_VERSION}::Core Qt${QT_MAJOR_VERSION}::Test
 )
