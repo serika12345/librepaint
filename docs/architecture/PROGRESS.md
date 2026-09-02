@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 10:38 JST
+- 更新日時: 2026-09-02 10:44 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -38,7 +38,7 @@
 
 ### 第144便の担当計画
 
-- 実装共通基点は`7903e1e745`である。uniform paintop property、shape saving context、display config担当は`assigned`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの
+- 実装共通基点は`7903e1e745`である。uniform paintop property担当は`integrated`、shape saving contextとdisplay config担当は`assigned`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの
   `transport-commit`、追加委任は禁止する。対象platformはmacOSであり、専用worktree-local `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を
   共有する。統合順はuniform paintop property、shape saving context、display configとし、調整担当だけが`AGENTS.md`、architecture文書、`docs/architecture/public-api-test-contracts.json`、共通不足報告を
   変更する。3担当の公開header、所有CMake、試験source、生成物は重ならない。
@@ -64,6 +64,14 @@
   `KisGuidesConfigSchemaContractTest`、製品`kritaapplicationui`は1,970工程・3,940入力と担当tree内の変更前後集合完全一致を確認する。未知target、5枠、対象CTest、20回反復、近傍、無作業再構築、動的接続、
   未解決display config・system color manager・設定・screen・profile・色変換記号、構文・変更行書式、公開API・`verify-quick`を確認する。単一・複数surface値を生成し、inline本文、system color manager、設定I/O、
   screen・profile取得、色変換を実行し、Qt Gui・Widgets、製品source・OBJECT・shared、`kritatestsdk`、新非header依存、公開header変更、製品計画差、停止線超過が必要なら止める。
+
+### 第144便の統合結果
+
+- `g144-uniform-paintop-property-schema`は受渡しcommit`b4c373561f26`を統合commit`cb37882383`として取り込んだ。開始`libs/image/brushengine/kis_uniform_paintop_property.h`から既存
+  `libs/image/tests/KisImageTypesContractTest.cpp`の5枠へ、所有型、種別値、寿命、識別・設定、値・通知の28 APIを対応付けた。CMakeと直接依存を変更せず、対象4工程・8入力、製品`kritaimage`
+  1,196工程・2,416入力を維持した。property、settings、paintop、widget、QObject、method・signal・metaobject・callback、application font、設定・資源を生成または実行していない。担当macOS環境と
+  中央環境で5枠と既存image型枠を含む対象CTest・20回反復、近傍`KisImageConfigAnimationSchemaContractTest`、無作業再構築、動的接続・未解決記号、構文・書式、公開API検査に成功した。中央の公開API
+  契約検査は29,838件中14,484件対応、15,354件未対応となる。作業tree 882,304 KiBと担当branchは削除した。method本文、signal配送、設定・paintop・widgetの実行時挙動は別の効果契約で扱う。
 
 ### 第143便の先行監査計画
 

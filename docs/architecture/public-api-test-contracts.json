@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 15382
+    "expectedMissingApis": 15354
   },
   "contracts": [
     {
@@ -41885,6 +41885,79 @@
         "method:KisChunkAllocator::freeChunk(KisChunk chunk)",
         "method:KisChunkAllocator::getChunk(quint64 size)",
         "method:KisChunkAllocator::sanityCheck(bool pleaseCrash=true)"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::uniformPaintOpPropertyOwnershipSchemaRemainsStable",
+      "behavior": "一様paintop propertyは共有・弱参照・callback別名とQObject由来の公開所有型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisUniformPaintOpPropertyCallback",
+        "alias:KisUniformPaintOpPropertySP",
+        "alias:KisUniformPaintOpPropertyWSP",
+        "class:KisUniformPaintOpProperty"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::uniformPaintOpPropertyTypeSchemaRemainsStable",
+      "behavior": "一様paintop propertyは整数、実数、真偽値、選択値の種別と通常・角度の副種別を連続する列挙値として維持する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KisUniformPaintOpProperty::SubType",
+        "enum:KisUniformPaintOpProperty::Type",
+        "enumerator:KisUniformPaintOpProperty::SubType::SubType_Angle",
+        "enumerator:KisUniformPaintOpProperty::SubType::SubType_None",
+        "enumerator:KisUniformPaintOpProperty::Type::Bool",
+        "enumerator:KisUniformPaintOpProperty::Type::Combo",
+        "enumerator:KisUniformPaintOpProperty::Type::Double",
+        "enumerator:KisUniformPaintOpProperty::Type::Int"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::uniformPaintOpPropertyLifetimeSchemaRemainsStable",
+      "behavior": "一様paintop propertyは識別子・設定・親と任意の種別・副種別から構築でき、仮想破棄を備える公開型面を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisUniformPaintOpProperty::KisUniformPaintOpProperty(Type type,SubType subType,const KoID & id,KisPaintOpSettingsRestrictedSP settings,QObject * parent)",
+        "method:KisUniformPaintOpProperty::KisUniformPaintOpProperty(Type type,const KoID & id,KisPaintOpSettingsRestrictedSP settings,QObject * parent)",
+        "method:KisUniformPaintOpProperty::KisUniformPaintOpProperty(const KoID & id,KisPaintOpSettingsRestrictedSP settings,QObject * parent)",
+        "method:KisUniformPaintOpProperty::~KisUniformPaintOpProperty()"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::uniformPaintOpPropertyIdentityAndSettingsSignaturesRemainStable",
+      "behavior": "一様paintop propertyは設定、識別子、可視性、名前、paintop設定、種別・副種別を照会する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisUniformPaintOpProperty::configuration() const",
+        "method:KisUniformPaintOpProperty::id() const",
+        "method:KisUniformPaintOpProperty::isVisible() const",
+        "method:KisUniformPaintOpProperty::name() const",
+        "method:KisUniformPaintOpProperty::settings() const",
+        "method:KisUniformPaintOpProperty::subType() const",
+        "method:KisUniformPaintOpProperty::type() const"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::uniformPaintOpPropertyValueAndNotificationSignaturesRemainStable",
+      "behavior": "一様paintop propertyは編集widget生成、値再読込み、値設定・照会・変更通知の公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisUniformPaintOpProperty::createPropertyWidget()",
+        "method:KisUniformPaintOpProperty::requestReadValue()",
+        "method:KisUniformPaintOpProperty::setValue(const QVariant & value)",
+        "method:KisUniformPaintOpProperty::value() const",
+        "method:KisUniformPaintOpProperty::valueChanged(const QVariant & value)"
       ]
     }
   ]
