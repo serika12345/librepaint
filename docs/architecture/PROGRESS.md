@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 22:34 JST
+- 更新日時: 2026-09-02 22:40 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -55,9 +55,11 @@
   `libs/libkis/tests/SelectionSchemaContractTest.cpp`の5枠`shapeWrapperTypeLifetimeAndIdentitySchemaRemainsStable`、`shapeWrapperMetadataAndPolicySchemaRemainsStable`、
   `shapeWrapperGeometryAndVisibilitySchemaRemainsStable`、`shapeWrapperLifecycleAndSelectionSchemaRemainsStable`、`shapeWrapperHierarchyAndSerializationSchemaRemainsStable`へ対応付ける。完全集合はclass・構築・破棄・比較2の5、metadata・方針9、geometry・可視性8、
   更新・選択6、階層・SVG直列化2である。許可pathは既存試験sourceと`libs/libkis/tests/CMakeLists.txt`の対象固有節だけである。親省略構築と`toSvg`の0〜1引数形を未評価式で固定する。直接linkはQt Core・Testだけ、flake source/generatedを
-  compile-only探索先へ加え、definitionは`kritaflake_EXPORTS`だけを追加する。対象4工程・8入力、停止5工程・11入力、近傍`GridConfigSchemaContractTest`、製品`kritalibkis` 2,018工程・4,034入力の集合を監査基準として維持する。旧binaryの新5枠Unknown、
+  compile-only探索先へ加え、公開`KoShape.h`が直接includeする`QDomDocument`のためQt Xml interface includeも対象固有に加える。definitionは`kritaflake_EXPORTS`だけを追加する。対象4工程・8入力、停止5工程・11入力、近傍`GridConfigSchemaContractTest`、
+  製品`kritalibkis` 2,018工程・4,034入力の集合を監査基準として維持する。旧binaryの新5枠Unknown、
   対象CTest・枠個別・20回反復、既存枠、近傍、無作業再構築、動的接続・AUTOMOC入力・Shape・KoShape・SVG未解決記号、構文・書式、公開API・`verify-quick`を確認する。wrapper、KoShape、document、canvas、選択、更新、SVG変換、metaobjectを生成または実行し、
-  flakeまたは製品libraryへのlink、製品OBJECT・shared、`kritatestsdk`、公開header変更、flake以外の新include閉包、停止線超過が必要なら止める。
+  flakeまたは製品libraryへのlink、製品OBJECT・shared、`kritatestsdk`、公開header変更、flakeとQt Xml以外の新include閉包、停止線超過が必要なら止める。最初の限定compileで`KoShape.h`が直接includeする`QDomDocument`の探索先不足を確認したため、
+  linkを増やさずQt Xmlのinterface includeだけを担当票へ追加した。
 
 ### 第164便の先行監査計画
 
