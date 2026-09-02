@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 11:46 JST
+- 更新日時: 2026-09-02 11:54 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -47,11 +47,10 @@
 
 ### 第146便の担当計画
 
-- 元3担当の実装共通基点は`1b0505cd72`、metadata store代替担当の共通基点は`5597ddb3a6`である。image signal routerとlibkis guides config担当は`integrated`、ASL XML writer担当は`rejected`、
-  metadata store担当は`implementing`、
+- 元3担当の実装共通基点は`1b0505cd72`、metadata store代替担当の共通基点は`5597ddb3a6`である。image signal router、libkis guides config、metadata store担当は`integrated`、ASL XML writer担当は`rejected`、
   構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの
   `transport-commit`、追加委任は禁止する。対象platformはmacOSであり、専用worktree-local `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。
-  統合順はimage signal router、libkis guides config、ASL XML writerとし、調整担当だけが`AGENTS.md`、architecture文書、`docs/architecture/public-api-test-contracts.json`、共通不足報告を変更する。
+  統合順はimage signal router、libkis guides config、ASL XML writerの構築前棄却、metadata storeとし、調整担当だけが`AGENTS.md`、architecture文書、`docs/architecture/public-api-test-contracts.json`、共通不足報告を変更する。
   3担当の公開header、所有CMake、試験source、生成物は重ならない。
 - `g146-image-signal-router-schema`は`/Users/masato/Documents/librepaint-g146-image-signal-router-schema`を所有する。開始`libs/image/kis_image_signal_router.h`の全27 APIから既存
   `libs/image/tests/KisImageTypesContractTest.cpp`の5枠`imageSignalRouterOwnershipAndLifetimeSchemaRemainsStable`、`imageSignalRouterNotificationSignaturesRemainStable`、
@@ -91,6 +90,12 @@
   対象固有のPRIVATE探索先へ追加し、linkと製品依存を変更せず対象4工程・8入力、製品`kritalibkis` 2,018工程・4,034入力を維持した。GuidesConfig、内部guide値、QObject、QColor、QList、比較・位置・表示・lock・
   snap・XML処理を生成または実行していない。担当macOS環境と中央環境で5枠と既存grid枠を含む対象CTest・20回反復、近傍`AngleSelectorSchemaContractTest`、再構築時のcompile・linkなし、動的接続・未解決記号、
   構文・書式、公開API検査に成功した。中央の公開API契約検査は29,838件中14,676件対応、15,162件未対応となる。作業tree 875,608 KiBと担当branchは削除した。比較、XML、guide状態変更の実行時挙動は別の効果契約で扱う。
+- `g146-metadata-store-schema`は受渡しcommit`3724846e341a`を統合commit`2bd2fc7ea7`として取り込んだ。開始`libs/painting/metadata/kis_meta_data_store.h`から新規
+  `libs/painting/metadata/tests/KisMetaDataStoreSchemaContractTest.cpp`の5枠へ、型・寿命、entry変更、検索、照会、反復・filter・診断の27 APIを対応付けた。新対象だけにpainting metadataとglobalの
+  source・generated探索先を与え、直接linkはQt Core・Testだけ、新対象4工程・8入力に収め、製品`kritapaintingmetadata` 294工程・619入力の計画集合を維持した。store、entry、schema、filter、value、
+  QHash、QList、method本文、filter、registry、大域状態を生成または実行していない。担当macOS環境と中央環境で5枠を含む対象CTest・20回反復、近傍`KisMetaDataTagsContractTest`、無作業再構築、
+  動的接続・未解決記号、構文・書式、公開API検査に成功した。中央の公開API契約検査は29,838件中14,703件対応、15,135件未対応となる。作業tree 876,924 KiBと担当branchは削除した。
+  metadata entry操作、filter適用、反復、診断出力の実行時挙動は別の効果契約で扱う。
 
 ### 第145便の先行監査計画
 

@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 15162
+    "expectedMissingApis": 15135
   },
   "contracts": [
     {
@@ -42465,6 +42465,78 @@
         "method:GuidesConfig::setVisible(const bool value)",
         "method:GuidesConfig::snap() const",
         "method:GuidesConfig::visible() const"
+      ]
+    },
+    {
+      "target": "KisMetaDataStoreSchemaContractTest",
+      "source": "libs/painting/metadata/tests/KisMetaDataStoreSchemaContractTest.cpp",
+      "test": "KisMetaDataStoreSchemaContractTest::metaDataStoreIdentityAndLifecycleSignaturesRemainStable",
+      "behavior": "metadata storeは空または複製元storeから構築・破棄できる公開collection型面を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisMetaData::Store",
+        "method:KisMetaData::Store::Store()",
+        "method:KisMetaData::Store::Store(const Store &)",
+        "method:KisMetaData::Store::~Store()"
+      ]
+    },
+    {
+      "target": "KisMetaDataStoreSchemaContractTest",
+      "source": "libs/painting/metadata/tests/KisMetaDataStoreSchemaContractTest.cpp",
+      "test": "KisMetaDataStoreSchemaContractTest::metaDataStoreEntryMutationSignaturesRemainStable",
+      "behavior": "metadata storeはentry追加、別storeからの複製、schema・key・URI別削除の公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMetaData::Store::addEntry(const Entry & entry)",
+        "method:KisMetaData::Store::copyFrom(const Store * store)",
+        "method:KisMetaData::Store::removeEntry(const KisMetaData::Schema * schema,const QString & entryName)",
+        "method:KisMetaData::Store::removeEntry(const QString & entryKey)",
+        "method:KisMetaData::Store::removeEntry(const QString & uri,const QString & entryName)"
+      ]
+    },
+    {
+      "target": "KisMetaDataStoreSchemaContractTest",
+      "source": "libs/painting/metadata/tests/KisMetaDataStoreSchemaContractTest.cpp",
+      "test": "KisMetaDataStoreSchemaContractTest::metaDataStoreLookupSignaturesRemainStable",
+      "behavior": "metadata storeはschema・key・URI別の可変・const entry検索と値照会の公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMetaData::Store::getEntry(const KisMetaData::Schema * schema,const QString & entryName)",
+        "method:KisMetaData::Store::getEntry(const KisMetaData::Schema * schema,const QString & entryName) const",
+        "method:KisMetaData::Store::getEntry(const QString & entryKey)",
+        "method:KisMetaData::Store::getEntry(const QString & entryKey) const",
+        "method:KisMetaData::Store::getEntry(const QString & uri,const QString & entryName)",
+        "method:KisMetaData::Store::getEntry(const QString & uri,const QString & entryName) const",
+        "method:KisMetaData::Store::getValue(const QString & uri,const QString & entryName) const"
+      ]
+    },
+    {
+      "target": "KisMetaDataStoreSchemaContractTest",
+      "source": "libs/painting/metadata/tests/KisMetaDataStoreSchemaContractTest.cpp",
+      "test": "KisMetaDataStoreSchemaContractTest::metaDataStoreQuerySignaturesRemainStable",
+      "behavior": "metadata storeはentry存在、空状態、entry一覧、key一覧の公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMetaData::Store::containsEntry(const KisMetaData::Schema * schema,const QString & entryName) const",
+        "method:KisMetaData::Store::containsEntry(const QString & entryKey) const",
+        "method:KisMetaData::Store::containsEntry(const QString & uri,const QString & entryName) const",
+        "method:KisMetaData::Store::empty() const",
+        "method:KisMetaData::Store::entries() const",
+        "method:KisMetaData::Store::isEmpty() const",
+        "method:KisMetaData::Store::keys() const"
+      ]
+    },
+    {
+      "target": "KisMetaDataStoreSchemaContractTest",
+      "source": "libs/painting/metadata/tests/KisMetaDataStoreSchemaContractTest.cpp",
+      "test": "KisMetaDataStoreSchemaContractTest::metaDataStoreIterationFilterAndDebugSignaturesRemainStable",
+      "behavior": "metadata storeはconst反復、filter適用、診断出力の公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMetaData::Store::applyFilters(const QList<const Filter * > & filters)",
+        "method:KisMetaData::Store::begin() const",
+        "method:KisMetaData::Store::debugDump() const",
+        "method:KisMetaData::Store::end() const"
       ]
     }
   ]
