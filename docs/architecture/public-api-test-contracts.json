@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 13271
+    "expectedMissingApis": 13241
   },
   "contracts": [
     {
@@ -46876,6 +46876,81 @@
         "method:KisDisplayColorTransform::getHsv(const KoColor & color,int * h,int * s,int * v,int * a=nullptr) const",
         "method:KisDisplayColorTransform::getHsvF(const KoColor & color,qreal * h,qreal * s,qreal * v,qreal * a=nullptr) const",
         "method:KisDisplayColorTransform::getHsyF(const KoColor & color,qreal * h,qreal * s,qreal * y,qreal redWeight=0.2126,qreal greenWeight=0.7152,qreal blueWeight=0.0722,qreal gamma=2.2) const"
+      ]
+    },
+    {
+      "target": "SelectionSchemaContractTest",
+      "source": "libs/libkis/tests/SelectionSchemaContractTest.cpp",
+      "test": "SelectionSchemaContractTest::shapeWrapperTypeLifetimeAndIdentitySchemaRemainsStable",
+      "behavior": "script向けshapeラッパーの公開型、shape・QObject借用構築、寿命、同一性比較の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "class:Shape",
+        "method:Shape::Shape(KoShape * shape,QObject * parent=0)",
+        "method:Shape::operator !=(const Shape & other) const",
+        "method:Shape::operator ==(const Shape & other) const",
+        "method:Shape::~Shape()"
+      ]
+    },
+    {
+      "target": "SelectionSchemaContractTest",
+      "source": "libs/libkis/tests/SelectionSchemaContractTest.cpp",
+      "test": "SelectionSchemaContractTest::shapeWrapperMetadataAndPolicySchemaRemainsStable",
+      "behavior": "script向けshapeラッパーの名前・型・重なり順と選択・geometry保護方針の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:Shape::geometryProtected() const",
+        "method:Shape::name() const",
+        "method:Shape::selectable() const",
+        "method:Shape::setGeometryProtected(bool protect)",
+        "method:Shape::setName(const QString & name)",
+        "method:Shape::setSelectable(bool selectable)",
+        "method:Shape::setZIndex(int zindex)",
+        "method:Shape::type() const",
+        "method:Shape::zIndex() const"
+      ]
+    },
+    {
+      "target": "SelectionSchemaContractTest",
+      "source": "libs/libkis/tests/SelectionSchemaContractTest.cpp",
+      "test": "SelectionSchemaContractTest::shapeWrapperGeometryAndVisibilitySchemaRemainsStable",
+      "behavior": "script向けshapeラッパーの範囲・位置・相対絶対変換・可視性の取得と設定の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:Shape::absoluteTransformation() const",
+        "method:Shape::boundingBox() const",
+        "method:Shape::position() const",
+        "method:Shape::setPosition(QPointF point)",
+        "method:Shape::setTransformation(QTransform matrix)",
+        "method:Shape::setVisible(bool visible)",
+        "method:Shape::transformation() const",
+        "method:Shape::visible() const"
+      ]
+    },
+    {
+      "target": "SelectionSchemaContractTest",
+      "source": "libs/libkis/tests/SelectionSchemaContractTest.cpp",
+      "test": "SelectionSchemaContractTest::shapeWrapperLifecycleAndSelectionSchemaRemainsStable",
+      "behavior": "script向けshapeラッパーの削除、更新、絶対範囲更新、選択・選択解除・状態照会の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:Shape::deselect()",
+        "method:Shape::isSelected()",
+        "method:Shape::remove()",
+        "method:Shape::select()",
+        "method:Shape::update()",
+        "method:Shape::updateAbsolute(QRectF box)"
+      ]
+    },
+    {
+      "target": "SelectionSchemaContractTest",
+      "source": "libs/libkis/tests/SelectionSchemaContractTest.cpp",
+      "test": "SelectionSchemaContractTest::shapeWrapperHierarchyAndSerializationSchemaRemainsStable",
+      "behavior": "script向けshapeラッパーの親shape参照とSVG直列化の公開署名、style・text modeの既定方針を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:Shape::parentShape() const",
+        "method:Shape::toSvg(bool prependStyles=false,bool stripTextMode=true)"
       ]
     }
   ]
