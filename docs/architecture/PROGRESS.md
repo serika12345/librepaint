@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 19:39 JST
+- 更新日時: 2026-09-02 19:42 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -49,6 +49,37 @@
   `1123a608b1a85c0d39eb5b06fe43d3220b4c41b1754bcef4ccb3f80ab826adc6`、入力集合hashは`fece3acc6f98a2846816ff9374adc56caafa64c6425b9f3b468e4e7d916e7e75`、製品命令集合hashは
   `2fc3040d1c607ecd81879d6ec00ad8a4a161787da567b484bc934a687afefb07`、入力集合hashは`1a30862a8e0463c6578045c344b23088d4909ac6017407162709d283413b8cb5`である。`SvgLoadingContext.h`はDOM、
   SVG text property、graphics context、CSS、profile、外部file取得へ責務と閉包が広がるため棄却した。
+
+### 第160便の担当計画
+
+- 実装共通基点は`ce33e46aef`である。3担当は`preparing`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、
+  専用worktree-local `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。統合順はdata manager、shape loading context、key sequence widgetとし、調整担当だけが
+  `AGENTS.md`、architecture文書、`docs/architecture/public-api-test-contracts.json`、共通不足報告を変更する。3担当の公開header、所有CMake、試験source、生成物は重ならない。
+- `g160-data-manager-schema`は`/Users/masato/Documents/librepaint-g160-data-manager-schema`を所有する。開始`libs/image/kis_datamanager.h`の全35 APIから既存
+  `libs/image/tests/KisImageTypesContractTest.cpp`の5枠`dataManagerOwnershipAndDefaultPixelSchemaRemainsStable`、`dataManagerExtentRegionAndContiguitySignaturesRemainStable`、
+  `dataManagerPixelTransferAndMutationSignaturesRemainStable`、`dataManagerCopyAndHistorySignaturesRemainStable`、`dataManagerPersistencePurgeAndPoolSignaturesRemainStable`へ対応付ける。完全集合はclass、2構築・破棄・`defaultPixel`・
+  `setDefaultPixel`・`pixelSize`、2 `extent`・`region`・2 `setExtent`・`rowStride`・`numContiguousColumns`・`numContiguousRows`、3 `clear`・`setPixel`・`readBytes`・`writeBytes`・`readPlanarBytes`・`writePlanarBytes`、4 `bitBlt`系・
+  `getMemento`・`hasCurrentMemento`・`rollback`・`rollforward`、`purge`・`read`・`write`・`releaseInternalPools`である。許可pathは既存試験sourceだけであり、CMake・公開header・製品sourceを変更しない。stride省略呼出しを未評価式で固定し、
+  対象4工程・8入力、停止5工程・11入力、近傍`KisImageConfigAnimationSchemaContractTest`、製品`kritaimage` 1,196工程・2,416入力と担当tree内の変更前後集合完全一致を確認する。旧binaryの新5枠Unknown、対象CTest・枠個別・20回反復、
+  近傍、無作業再構築、動的接続・AUTOMOC入力・data manager・tile・memento・I/O未解決記号、構文・書式、公開API・`verify-quick`を確認する。manager、tile、memento、iterator、pool、I/O、inline本文を生成または実行し、
+  CMake変更、新依存、製品接続、製品計画差、停止線超過が必要なら止める。
+- `g160-shape-loading-context-schema`は`/Users/masato/Documents/librepaint-g160-shape-loading-context-schema`を所有する。開始`libs/flake/KoShapeLoadingContext.h`の全29 APIから新規
+  `libs/flake/tests/KoShapeLoadingContextSchemaContractTest.cpp`の5枠`additionalAttributeValueSchemaRemainsStable`、`shapeLoadingIdentityStoreAndResourceSignaturesRemainStable`、
+  `shapeLoadingLayerZIndexAndSectionSignaturesRemainStable`、`shapeLoadingShapeReferenceAndUpdaterSignaturesRemainStable`、`shapeLoadingSharedAndAdditionalDataSignaturesRemainStable`へ対応付ける。完全集合は`AdditionalAttributeData`と3 member・
+  構築・等価、context class・構築・破棄・`documentResourceManager`・`mimeTypeForPath`・`store`、`addLayer`・`clearLayers`・`layer`・`sectionModel`・`setSectionModel`・`setZIndex`・`zIndex`、`addShapeId`・`addShapeSubItemId`・
+  `shapeById`・`shapeLoaded`・`shapeSubItemById`・`updateShape`、`addAdditionalAttributeData`・`additionalAttributeData`・`addSharedData`・`sharedData`である。許可pathは新規試験sourceと`libs/flake/tests/CMakeLists.txt`の対象固有節だけである。
+  追加属性値の保持・copy独立性・nameだけの等価則とMIME判定の既定引数省略形を固定する。直接linkはQt Core・Testだけ、includeはflake source/generated、definitionは`kritaflake_EXPORTS`だけとし、公開headerをtarget sourceやAUTOMOC入力へ加えない。
+  新対象4工程・8入力、停止5工程・11入力、近傍`KoShapeSavingContextSchemaContractTest`、製品`kritaflake` 621工程・1,274入力と担当tree内の変更前後・保留集合完全一致を確認する。未知target・CTest 0件、新5枠、対象CTest・20回反復、
+  近傍、無作業再構築、動的接続・AUTOMOC入力・未解決context記号、構文・書式、公開API・`verify-quick`を確認する。context、shape、layer、store、resource manager、section、updater、shared data、MIME判定、静的集合を生成または実行し、
+  Qt Gui・Xml、製品source・OBJECT・shared、`kritatestsdk`、新しい非header依存、公開header変更、製品計画差、停止線超過が必要なら止める。
+- `g160-key-sequence-schema`は`/Users/masato/Documents/librepaint-g160-key-sequence-schema`を所有する。開始`libs/widgetutils/xmlgui/kkeysequencewidget.h`の全29 APIから新規
+  `libs/widgetutils/tests/KKeySequenceWidgetSchemaContractTest.cpp`の5枠`keySequenceWidgetTypeAndEnumerationSchemaRemainsStable`、`keySequenceWidgetLifetimeAndCaptureSchemaRemainsStable`、
+  `keySequenceWidgetPolicySchemaRemainsStable`、`keySequenceWidgetValueSchemaRemainsStable`、`keySequenceWidgetAssociationAndNotificationSchemaRemainsStable`へ対応付ける。完全集合はclass・2 enum・7 enumerator・flags alias、構築・破棄・
+  `captureKeySequence`・`clearKeySequence`、競合・multi-key・modifierlessの各getter/setter、`isKeySequenceAvailable`・`keySequence`・`setKeySequence`・`setClearButtonShown`・`setComponentName`、`setCheckActionCollections`・`keySequenceChanged`・
+  `stealShortcut`・`applyStealShortcut`である。許可pathは新規試験sourceと`libs/widgetutils/tests/CMakeLists.txt`の対象固有節だけである。列挙値、flags、親省略構築、validation省略設定を固定する。直接linkはQt Gui・Testだけ、Qt Widgetsはinterface include、
+  includeはwidgetutils source/generated、definitionは`kritawidgetutils_EXPORTS`だけとし、公開headerをtarget sourceやAUTOMOC入力へ加えない。新対象4工程・8入力、停止5工程・11入力、近傍`KStandardActionEnumContractTest`、製品`kritawidgetutils`
+  274工程・581入力と担当tree内の変更前後集合完全一致を確認する。未知target・CTest 0件、新5枠、対象CTest・20回反復、近傍、無作業再構築、動的接続・AUTOMOC入力・未解決shortcut記号、構文・書式、公開API・`verify-quick`を確認する。
+  widget、action collection、QAction、shortcut backend、競合検査、窃取、signal、metaobject、event loopを生成または実行し、Qt Widgets link、製品source・OBJECT・shared、`kritatestsdk`、新しい非header依存、公開header変更、製品計画差、停止線超過が必要なら止める。
 
 ### 第159便の先行監査計画
 
