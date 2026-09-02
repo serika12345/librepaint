@@ -64,6 +64,11 @@ private Q_SLOTS:
     void resourceLocatorStorageMaintenanceSchemaRemainsStable();
     void resourceLocatorExternalResourceFlowSchemaRemainsStable();
     void resourceLocatorStorageNotificationSchemaRemainsStable();
+    void storageVersionEntrySchemaRemainsStable();
+    void storageVersionOrderingSchemaRemainsStable();
+    void storageVersioningHelperSchemaRemainsStable();
+    void storageVersionIteratorNavigationSchemaRemainsStable();
+    void storageVersionIteratorValueSchemaRemainsStable();
 };
 
 void KisResourceModelEnumContractTest::columnValuesRemainStable()
@@ -766,6 +771,76 @@ void KisResourceModelEnumContractTest::resourceLocatorStorageNotificationSchemaR
     static_assert(std::is_same_v<decltype(&Locator::storageRemoved), void (Locator::*)(const QString &)>);
     static_assert(std::is_same_v<decltype(&Locator::storageResynchronized), void (Locator::*)(const QString &, bool)>);
     static_assert(std::is_same_v<decltype(&Locator::storagesBulkSynchronizationFinished), void (Locator::*)()>);
+}
+
+void KisResourceModelEnumContractTest::storageVersionEntrySchemaRemainsStable()
+{
+    using Entry = VersionedResourceEntry;
+
+    static_assert(std::is_class_v<Entry>);
+    static_assert(std::is_same_v<decltype(&Entry::resourceType), QString Entry::*>);
+    static_assert(std::is_same_v<decltype(&Entry::filename), QString Entry::*>);
+    static_assert(std::is_same_v<decltype(&Entry::tagList), QList<QString> Entry::*>);
+    static_assert(std::is_same_v<decltype(&Entry::lastModified), QDateTime Entry::*>);
+    static_assert(std::is_same_v<decltype(&Entry::guessedVersion), int Entry::*>);
+    static_assert(std::is_same_v<decltype(&Entry::guessedKey), QString Entry::*>);
+}
+
+void KisResourceModelEnumContractTest::storageVersionOrderingSchemaRemainsStable()
+{
+    using Entry = VersionedResourceEntry;
+    using KeyLess = Entry::KeyLess;
+    using KeyVersionLess = Entry::KeyVersionLess;
+    using Comparison = bool (KeyLess::*)(const Entry &, const Entry &) const;
+    using VersionComparison = bool (KeyVersionLess::*)(const Entry &, const Entry &) const;
+
+    static_assert(std::is_class_v<KeyLess>);
+    static_assert(std::is_class_v<KeyVersionLess>);
+    static_assert(std::is_same_v<decltype(&KeyLess::operator()), Comparison>);
+    static_assert(std::is_same_v<decltype(&KeyVersionLess::operator()), VersionComparison>);
+}
+
+void KisResourceModelEnumContractTest::storageVersioningHelperSchemaRemainsStable()
+{
+    using Helper = KisStorageVersioningHelper;
+    using Entry = VersionedResourceEntry;
+
+    static_assert(std::is_class_v<Helper>);
+    static_assert(
+        std::is_same_v<decltype(&Helper::addVersionedResource), bool (*)(const QString &, KoResourceSP, int)>);
+    static_assert(std::is_same_v<decltype(&Helper::chooseUniqueName),
+                                 QString (*)(KoResourceSP, int, std::function<bool(QString)>)>);
+    static_assert(std::is_same_v<decltype(&Helper::detectFileVersions), void (*)(QVector<Entry> &)>);
+}
+
+void KisResourceModelEnumContractTest::storageVersionIteratorNavigationSchemaRemainsStable()
+{
+    using Entry = VersionedResourceEntry;
+    using Iterator = KisVersionedStorageIterator;
+    using BaseIterator = KisResourceStorage::ResourceIterator;
+
+    static_assert(std::is_class_v<Iterator>);
+    static_assert(std::is_base_of_v<BaseIterator, Iterator>);
+    static_assert(std::is_constructible_v<Iterator, const QVector<Entry> &, KisStoragePlugin *>);
+    static_assert(std::is_same_v<decltype(&Iterator::hasNext), bool (Iterator::*)() const>);
+    static_assert(std::is_same_v<decltype(&Iterator::next), void (Iterator::*)()>);
+    static_assert(std::is_same_v<decltype(&Iterator::url), QString (Iterator::*)() const>);
+    static_assert(std::is_same_v<decltype(&Iterator::type), QString (Iterator::*)() const>);
+}
+
+void KisResourceModelEnumContractTest::storageVersionIteratorValueSchemaRemainsStable()
+{
+    using Iterator = KisVersionedStorageIterator;
+    using BaseIterator = KisResourceStorage::ResourceIterator;
+
+    struct ResourceImplAccess : Iterator {
+        using Iterator::resourceImpl;
+    };
+
+    static_assert(std::is_same_v<decltype(&Iterator::guessedVersion), int (Iterator::*)() const>);
+    static_assert(std::is_same_v<decltype(&Iterator::lastModified), QDateTime (Iterator::*)() const>);
+    static_assert(std::is_same_v<decltype(&ResourceImplAccess::resourceImpl), KoResourceSP (Iterator::*)() const>);
+    static_assert(std::is_same_v<decltype(&Iterator::versions), QSharedPointer<BaseIterator> (Iterator::*)() const>);
 }
 
 QTEST_GUILESS_MAIN(KisResourceModelEnumContractTest)
