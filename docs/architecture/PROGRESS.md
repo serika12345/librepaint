@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 10:15 JST
+- 更新日時: 2026-09-02 10:20 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -40,7 +40,7 @@
 
 ### 第143便の担当計画
 
-- 実装共通基点は`f891a7f26aeda5e923ef34bb304701777dae3650`である。icon utility担当は`integrated`、shape factoryとchunk allocator担当は`assigned`、構築許可は指定試験targetと軽量近傍だけの`granted`、
+- 実装共通基点は`f891a7f26aeda5e923ef34bb304701777dae3650`である。icon utilityとshape factory担当は`integrated`、chunk allocator担当は`assigned`、構築許可は指定試験targetと軽量近傍だけの`granted`、
   Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、専用worktree-local `build/tdd-macos`と主作業treeの
   `/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。統合順はicon utility、shape factory、chunk allocatorとし、調整担当だけが`AGENTS.md`、architecture文書、
   `docs/architecture/public-api-test-contracts.json`、共通不足報告を変更する。3担当の公開header、所有CMake、試験source、生成物は重ならない。
@@ -75,6 +75,12 @@
   変更せず、対象4工程・8入力、製品`kritawidgetutils` 274工程・581入力を維持した。icon、widget、application、theme・cache・filesystem・画像読込み・event loop・signal配送を生成または実行して
   いない。担当macOS環境と中央環境で5枠と既存cursor枠を含む対象CTest・20回反復、近傍`KColorSchemeEnumContractTest`、無作業再構築、動的接続・未解決記号、構文・書式、公開API検査に成功した。
   中央の公開API契約検査は29,838件中14,404件対応、15,434件未対応となる。作業tree 874,072 KiBと担当branchは削除した。theme選択、cache、画像読込み、各widget更新の実行時挙動は別の効果契約で扱う。
+- `g143-shape-factory-schema`は受渡しcommit`ce69bcb9987d`を統合commit`850189e362`として取り込んだ。開始`libs/flake/KoShapeFactoryBase.h`から既存
+  `libs/flake/tests/KoShapeEnumContractTest.cpp`の5枠へ、shape template値、factory型・寿命、metadata、読込み・資源、生成の26 APIを対応付けた。公開headerが要求する`KisQStringListFwd.h`のため、
+  `libs/flake/tests/CMakeLists.txt`でこの対象だけに`libs/global`のsource・generated includeを追加した。linkを増やさず対象4工程・8入力、製品`kritaflake` 621工程・1,274入力と保留集合を維持した。
+  factory、shape、properties、資源manager、DOM、読込みcontext、plugin、registryを生成または実行していない。担当macOS環境と中央環境で5枠と既存shape列挙枠を含む対象CTest・20回反復、近傍
+  `KoSvgTextEnumContractTest`、無作業再構築、動的接続・未解決記号、構文・書式、公開API検査に成功した。中央の公開API契約検査は29,838件中14,430件対応、15,408件未対応となる。作業tree
+  877,924 KiBと担当branchは削除した。生成処理と読込み処理の実行時挙動は別の効果契約で扱う。
 
 ### 第142便の先行監査計画
 

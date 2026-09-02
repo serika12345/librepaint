@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 15434
+    "expectedMissingApis": 15408
   },
   "contracts": [
     {
@@ -41743,6 +41743,77 @@
       "apis": [
         "function:KisIconUtils::updateIcon(QComboBox * comboBox)",
         "function:KisIconUtils::updateIcon(QTabBar * tabBar)"
+      ]
+    },
+    {
+      "target": "KoShapeEnumContractTest",
+      "source": "libs/flake/tests/KoShapeEnumContractTest.cpp",
+      "test": "KoShapeEnumContractTest::shapeTemplateValueSchemaRemainsStable",
+      "behavior": "shape templateは識別、表示名、family、説明、icon、properties参照からなる既定構築可能な値スキーマを維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KoShapeTemplate::family",
+        "member:KoShapeTemplate::iconName",
+        "member:KoShapeTemplate::id",
+        "member:KoShapeTemplate::name",
+        "member:KoShapeTemplate::properties",
+        "member:KoShapeTemplate::templateId",
+        "member:KoShapeTemplate::toolTip",
+        "method:KoShapeTemplate::KoShapeTemplate()",
+        "struct:KoShapeTemplate"
+      ]
+    },
+    {
+      "target": "KoShapeEnumContractTest",
+      "source": "libs/flake/tests/KoShapeEnumContractTest.cpp",
+      "test": "KoShapeEnumContractTest::shapeFactoryIdentityAndLifecycleSignaturesRemainStable",
+      "behavior": "shape factoryはQObject由来の抽象型として識別名から構築でき、仮想破棄を備える公開型面を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoShapeFactoryBase",
+        "method:KoShapeFactoryBase::KoShapeFactoryBase(const QString & id,const QString & name,const QString & deferredPluginName=QString ())",
+        "method:KoShapeFactoryBase::~KoShapeFactoryBase()"
+      ]
+    },
+    {
+      "target": "KoShapeEnumContractTest",
+      "source": "libs/flake/tests/KoShapeEnumContractTest.cpp",
+      "test": "KoShapeEnumContractTest::shapeFactoryMetadataSignaturesRemainStable",
+      "behavior": "shape factoryはfamily、表示状態、icon、識別名、読込み優先度、template一覧、説明を照会する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShapeFactoryBase::family() const",
+        "method:KoShapeFactoryBase::hidden() const",
+        "method:KoShapeFactoryBase::iconName() const",
+        "method:KoShapeFactoryBase::id() const",
+        "method:KoShapeFactoryBase::loadingPriority() const",
+        "method:KoShapeFactoryBase::name() const",
+        "method:KoShapeFactoryBase::templates() const",
+        "method:KoShapeFactoryBase::toolTip() const"
+      ]
+    },
+    {
+      "target": "KoShapeEnumContractTest",
+      "source": "libs/flake/tests/KoShapeEnumContractTest.cpp",
+      "test": "KoShapeEnumContractTest::shapeFactoryLoadingAndResourceSignaturesRemainStable",
+      "behavior": "shape factoryは新規文書資源manager、対応ODF要素、読込みcontext付き要素判定を扱う公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShapeFactoryBase::newDocumentResourceManager(KoDocumentResourceManager * manager) const",
+        "method:KoShapeFactoryBase::odfElements() const",
+        "method:KoShapeFactoryBase::supports(const QDomElement & element,KoShapeLoadingContext & context) const"
+      ]
+    },
+    {
+      "target": "KoShapeEnumContractTest",
+      "source": "libs/flake/tests/KoShapeEnumContractTest.cpp",
+      "test": "KoShapeEnumContractTest::shapeFactoryCreationSignaturesRemainStable",
+      "behavior": "shape factoryは既定shape、properties付きshape、設定panelを生成する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShapeFactoryBase::createDefaultShape(KoDocumentResourceManager * documentResources=0) const",
+        "method:KoShapeFactoryBase::createShape(const KoProperties * params,KoDocumentResourceManager * documentResources=0) const",
+        "method:KoShapeFactoryBase::createShapeOptionPanels()"
       ]
     }
   ]
