@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 14403
+    "expectedMissingApis": 14368
   },
   "contracts": [
     {
@@ -44124,6 +44124,86 @@
         "method:KoSvgTextNodeIndex::textPath()",
         "method:KoSvgTextNodeIndex::textPathInfo()",
         "method:KoSvgTextNodeIndex::~KoSvgTextNodeIndex()"
+      ]
+    },
+    {
+      "target": "SelectionSchemaContractTest",
+      "source": "libs/libkis/tests/SelectionSchemaContractTest.cpp",
+      "test": "SelectionSchemaContractTest::selectionWrapperTypeLifetimeAndIdentitySchemaRemainsStable",
+      "behavior": "script公開selection wrapperは内部selectionまたは親だけから構築でき、仮想破棄と同一性比較を備える公開型面を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:Selection",
+        "method:Selection::Selection(KisSelectionSP selection,QObject * parent=0)",
+        "method:Selection::Selection(QObject * parent=0)",
+        "method:Selection::operator !=(const Selection & other) const",
+        "method:Selection::operator ==(const Selection & other) const",
+        "method:Selection::~Selection()"
+      ]
+    },
+    {
+      "target": "SelectionSchemaContractTest",
+      "source": "libs/libkis/tests/SelectionSchemaContractTest.cpp",
+      "test": "SelectionSchemaContractTest::selectionWrapperGeometryAndPixelDataSchemaRemainsStable",
+      "behavior": "script公開selection wrapperは複製、位置・寸法、移動・resize、pixel data読書きの厳密な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:Selection::duplicate() const",
+        "method:Selection::height() const",
+        "method:Selection::move(int x,int y)",
+        "method:Selection::pixelData(int x,int y,int w,int h) const",
+        "method:Selection::resize(int w,int h)",
+        "method:Selection::setPixelData(QByteArray value,int x,int y,int w,int h)",
+        "method:Selection::width() const",
+        "method:Selection::x() const",
+        "method:Selection::y() const"
+      ]
+    },
+    {
+      "target": "SelectionSchemaContractTest",
+      "source": "libs/libkis/tests/SelectionSchemaContractTest.cpp",
+      "test": "SelectionSchemaContractTest::selectionWrapperContentAndClipboardSchemaRemainsStable",
+      "behavior": "script公開selection wrapperは選択内容の消去・反転・領域指定とnodeに対する選択・copy・cut・pasteの厳密な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:Selection::clear()",
+        "method:Selection::copy(Node * node)",
+        "method:Selection::cut(Node * node)",
+        "method:Selection::invert()",
+        "method:Selection::paste(Node * destination,int x,int y)",
+        "method:Selection::select(int x,int y,int w,int h,int value)",
+        "method:Selection::selectAll(Node * node,int value)"
+      ]
+    },
+    {
+      "target": "SelectionSchemaContractTest",
+      "source": "libs/libkis/tests/SelectionSchemaContractTest.cpp",
+      "test": "SelectionSchemaContractTest::selectionWrapperMorphologySchemaRemainsStable",
+      "behavior": "script公開selection wrapperはborder、縮小・拡大、dilate・erode、feather、shrink、smoothの厳密な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:Selection::border(int xRadius,int yRadius)",
+        "method:Selection::contract(int value)",
+        "method:Selection::dilate()",
+        "method:Selection::erode()",
+        "method:Selection::feather(int radius)",
+        "method:Selection::grow(int xradius,int yradius)",
+        "method:Selection::shrink(int xRadius,int yRadius,bool edgeLock)",
+        "method:Selection::smooth()"
+      ]
+    },
+    {
+      "target": "SelectionSchemaContractTest",
+      "source": "libs/libkis/tests/SelectionSchemaContractTest.cpp",
+      "test": "SelectionSchemaContractTest::selectionWrapperBooleanCombinationSchemaRemainsStable",
+      "behavior": "script公開selection wrapperは別selectionとの加算、交差、置換、減算、対称差を行う厳密な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:Selection::add(Selection * selection)",
+        "method:Selection::intersect(Selection * selection)",
+        "method:Selection::replace(Selection * selection)",
+        "method:Selection::subtract(Selection * selection)",
+        "method:Selection::symmetricdifference(Selection * selection)"
       ]
     }
   ]
