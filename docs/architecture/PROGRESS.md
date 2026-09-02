@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 22:27 JST
+- 更新日時: 2026-09-02 22:32 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -22,6 +22,15 @@
   document・shape・canvas・widget・dialog・color selector・描画・signal・metaobject・event loopの実体化なしで閉じる。
 - 各報告は完全なAPI識別子、既定引数観測、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから契約先または移動先、許可path、固有停止条件、比較候補の棄却根拠を含む。
   既存`build/tdd-macos`の計画は読み取り専用で測定し、構成や構築を開始しない。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
+- `g165-image-config-pixel-selection-schema-audit`は`libs/image/kis_pixel_selection.h`の全33 APIを採用した。所有・copy・寿命5、選択値変更8、geometry・輪郭cache 9、親selection・clone・projection 6、thumbnail・永続化5を既存
+  `libs/image/tests/KisImageTypesContractTest.cpp`の5枠へ対応付ける。3構築子と`select`の既定引数省略形も未評価式で固定する。CMakeと依存を変えず対象4工程・8入力、停止5工程・11入力、製品`kritaimage`
+  1,196工程・2,416入力を維持する。`kis_image_config.h`の残り37 APIはproofing、性能報告、export/import、選択表示、brush上限、layer rename、colorize mask、template設定I/Oへ分散し、単一責務25 APIに届かないため棄却した。
+- `g165-svg-loading-display-transform-schema-audit`は`libs/canvas/color/kis_display_color_transform.h`の全33 APIを採用した。identity・寿命4、表示設定8、色変換7、画像変換4、色成分model 10を新規
+  `libs/canvas/tests/KisDisplayColorTransformSchemaContractTest.cpp`の5枠へ対応付ける。色・画像変換と成分modelの既定引数省略形も未評価式で固定する。直接linkはQt Core・Gui・Testだけ、新対象4工程・8入力、停止5工程・11入力、製品
+  `kritacanvas` 1,220工程・2,460入力を維持する。`SvgLoadingContext.h`はgraphics context、XML・CSS、shape登録、profile解析、外部file取得、path解決、文字属性解決へ責務が分散するため比較棄却した。
+- `g165-libkis-shape-dual-color-schema-audit`は`libs/libkis/Shape.h`の全30 APIを採用した。型・寿命・identity 5、metadata・方針9、geometry・可視性8、更新・選択6、階層・SVG直列化2を既存
+  `libs/libkis/tests/SelectionSchemaContractTest.cpp`の5枠へ対応付ける。親省略構築と`toSvg`の2省略形も未評価式で固定する。flake source/generatedだけをcompile-only探索先へ加え、直接linkはQt Core・Testだけ、対象4工程・8入力、停止5工程・11入力、
+  製品`kritalibkis` 2,018工程・4,034入力を維持する。`KoDualColorButton.h`はwidget寿命、公開pixmap状態、色、dialog、paint、canvas resource、display renderer、大域singleton既定式、signalへ責務と閉包が広がるため比較棄却した。
 
 ### 第164便の先行監査計画
 
