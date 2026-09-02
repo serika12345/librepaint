@@ -39,6 +39,38 @@
   `f6e21b06b6569a1666604021e885b50ffd7a9eacb52b636a378671926f158959`、入力集合hashは`00f7a3901606d05fc5caf4af291550dd664f62f16b659305d99939c74191ea56`である。
   `KisExiv2IODevice.h`の不足報告27件にはExiv2 0.28未満と以後の相互排他署名が含まれ、現macOS構成で固定可能な現行宣言は最大23件となるため棄却した。
 
+### 第158便の担当計画
+
+- 実装共通基点は`7e8a0f7050`である。3担当は`preparing`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、
+  専用worktree-local `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。統合順は固定paint device、node view配色、動画取込dialogとし、調整担当だけが
+  `AGENTS.md`、architecture文書、`docs/architecture/public-api-test-contracts.json`、共通不足報告を変更する。3担当の公開header、所有CMake、試験source、生成物は重ならない。
+- `g158-fixed-paint-device-schema`は`/Users/masato/Documents/librepaint-g158-fixed-paint-device-schema`を所有する。開始`libs/image/kis_fixed_paint_device.h`の全27 APIから既存
+  `libs/image/tests/KisImageTypesContractTest.cpp`の5枠`fixedPaintDeviceOwnershipAndCopySchemaRemainsStable`、`fixedPaintDeviceGeometryCapacityAndColorSchemaRemainsStable`、
+  `fixedPaintDeviceBufferStorageSignaturesRemainStable`、`fixedPaintDeviceTransferAndConversionSignaturesRemainStable`、`fixedPaintDevicePixelMutationSignaturesRemainStable`へ対応付ける。完全集合はclass、色空間・allocator構築、copy構築・代入、
+  破棄、`allocatedPixels`・`bounds`・`colorSpace`・`pixelSize`・`setColorSpace`・`setProfile`・`setRect`、2 `data`・`constData`・`initialize`・2 buffer拡張、`convertFromQImage`・`convertTo`・2 `convertToQImage`・
+  `readBytes`、`clear`・2 `fill`・`mirror`である。許可pathは既存試験sourceだけでCMakeを変更しない。allocator省略構築、既定byte初期化、`convertTo`の全引数省略形と2 `convertToQImage`の方針省略形を未評価式で固定する。
+  対象4工程・8入力、停止5工程・11入力、近傍は`KisImageConfigAnimationSchemaContractTest`、製品`kritaimage`は1,196工程・2,416入力と担当tree内の変更前後集合・保留集合完全一致を確認する。旧binaryで新5枠Unknown、
+  対象CTest・5枠個別・20回反復、近傍、無作業再構築、動的接続・AUTOMOC入力・未解決device・色変換記号、構文・書式、公開API・`verify-quick`を確認する。device、allocator、buffer、色、QImage、変換本文を生成または実行し、
+  CMake・公開header・製品source変更、新依存、製品接続、対象集合・製品計画差、停止線超過が必要なら止める。
+- `g158-node-view-color-scheme-schema`は`/Users/masato/Documents/librepaint-g158-node-view-color-scheme-schema`を所有する。開始`libs/ui/nodes/kis_node_view_color_scheme.h`の全25 APIから新規
+  `libs/ui/tests/KisNodeViewColorSchemeSchemaContractTest.cpp`の5枠`nodeViewColorSchemeIdentitySchemaRemainsStable`、`nodeViewColorSchemePrimitiveMetricsSchemaRemainsStable`、
+  `nodeViewColorSchemeLayoutSchemaRemainsStable`、`nodeViewColorSchemeRelativeGeometrySchemaRemainsStable`、`nodeViewColorSchemeColorSchemaRemainsStable`へ対応付ける。完全集合はclass・構築・破棄・`instance`、
+  visibility・thumbnail・decoration・text・iconのsize/marginとborder、`rowHeight`・`visibilityColumnWidth`・`indentation`・`selectedButtonColumnWidth`、visibility・thumbnail・decoration・expand buttonの相対矩形、
+  `gridColor`・`colorFromLabelIndex`・`allColorLabels`である。許可pathは新規試験sourceと`libs/ui/tests/CMakeLists.txt`の対象固有節だけである。直接linkはQt Gui・Test、includeはui source/generated、definitionは
+  `kritaui_EXPORTS`だけとし、公開headerをtarget sourceやAUTOMOC入力へ加えない。新対象4工程・8入力、停止5工程・11入力、近傍は`KisDisplayConfigSchemaContractTest`、製品`kritaapplicationui`は1,970工程・3,940入力と
+  担当tree内の変更前後集合完全一致を確認する。未知target・CTest 0件、新5枠、対象CTest・20回反復、近傍、無作業再構築、動的接続・AUTOMOC入力・未解決scheme・設定・style記号、構文・書式、公開API・
+  `verify-quick`を確認する。scheme、singleton、QApplication、QTreeView、style、palette、設定、色label大域状態を生成または実行し、Qt Widgets link、製品source・OBJECT・shared、`kritatestsdk`、新依存、公開header変更、
+  製品計画差、停止線超過が必要なら止める。
+- `g158-video-import-schema`は`/Users/masato/Documents/librepaint-g158-video-import-schema`を所有する。開始`libs/impex/animation/KisDlgImportVideoAnimation.h`の全25 APIから新規
+  `libs/impex/tests/KisDlgImportVideoAnimationSchemaContractTest.cpp`の5枠`basicVideoStreamGeometryValueSchemaRemainsStable`、`basicVideoEncodingAndColorValueSchemaRemainsStable`、
+  `renderedFramesValueSchemaRemainsStable`、`videoImportDialogIdentityAndLifecycleSignatureRemainsStable`、`videoImportDialogPublicWorkflowSignaturesRemainStable`へ対応付ける。完全集合は`KisBasicVideoInfo`と`file`・`stream`・`width`・
+  `height`・`fps`・`frames`・`duration`・`encoding`・`pixFormat`・`hasOverriddenFPS`・`colorPrimaries`・`colorTransfer`・`colorDepth`、`RenderedFrames`と`renderedFrameFiles`・`renderedFrameTargetTimes`・
+  `framesNeedRelocation`・`isEmpty`・`size`、dialog class・構築・`documentInfo`・`renderFrames`・`showOpenFileDialog`である。許可pathは新規試験sourceと`libs/impex/tests/CMakeLists.txt`の対象固有節だけである。値structの既定値・copy独立性・
+  空frame判定を具体実行し、dialogは未評価型だけを固定する。直接linkはQt Core・Testだけ、header解釈用includeは既存ownerのsource/generated/interfaceに限定し、公開headerをtarget sourceやAUTOMOC入力へ加えない。新対象4工程・8入力、
+  停止5工程・11入力、近傍は`KisMediaEncoderFormatAndSettingsContractTest`、製品`kritaimpexui`は1,350工程・2,712入力と担当tree内の変更前後集合・保留集合完全一致を確認する。未知target・CTest 0件、新5枠、対象CTest・
+  20回反復、近傍、無作業再構築、動的接続・AUTOMOC入力・未解決dialog・製品記号、構文・書式、公開API・`verify-quick`を確認する。dialog、KoDialog、view、main window、QDir、UI、signal、metaobject、event loop、外部process、
+  filesystem、codec、document、image、stream I/Oを生成または実行し、Qt Widgets link、製品source・OBJECT・shared、`kritatestsdk`、新依存、公開header変更、製品計画差、停止線超過が必要なら止める。
+
 ### 第157便の先行監査計画
 
 - 監査共通基点は`a46c05ba56`、入力は`build/tdd-macos/public-api-missing-g157.json`である。3担当は`auditing`の読み取り専用とし、製品・試験・CMake・script・台帳・文書を変更せず、構築、試験、Git操作、
