@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 14966
+    "expectedMissingApis": 14895
   },
   "contracts": [
     {
@@ -37463,6 +37463,122 @@
         "method:KoSvgTextPropertiesModel::LAGER_QT_CURSOR(bool,spanSelection)",
         "method:KoSvgTextPropertiesModel::LAGER_QT_CURSOR(int,textCollapse)",
         "method:KoSvgTextPropertiesModel::LAGER_QT_CURSOR(int,textWrap)"
+      ]
+    },
+    {
+      "target": "KoSvgTextPropertiesModelSchemaContractTest",
+      "source": "libs/flake/tests/KoSvgTextPropertiesModelSchemaContractTest.cpp",
+      "test": "KoSvgTextPropertiesModelSchemaContractTest::propertyModelIdentityEnumAndResolutionSchemaRemainsStable",
+      "behavior": "SVG文字property modelは公開型、状態・句読点ぶら下げの列挙順、cursorを受け取る構築面、解決済み書体寸法の関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoSvgTextPropertiesModel",
+        "enum:KoSvgTextPropertiesModel::HangComma",
+        "enum:KoSvgTextPropertiesModel::PropertyState",
+        "enumerator:KoSvgTextPropertiesModel::HangComma::AllowHang",
+        "enumerator:KoSvgTextPropertiesModel::HangComma::ForceHang",
+        "enumerator:KoSvgTextPropertiesModel::HangComma::NoHang",
+        "enumerator:KoSvgTextPropertiesModel::PropertyState::PropertyInherited",
+        "enumerator:KoSvgTextPropertiesModel::PropertyState::PropertySet",
+        "enumerator:KoSvgTextPropertiesModel::PropertyState::PropertyTriState",
+        "enumerator:KoSvgTextPropertiesModel::PropertyState::PropertyUnset",
+        "method:KoSvgTextPropertiesModel::KoSvgTextPropertiesModel(lager::cursor<KoSvgTextPropertyData> _textData=lager::make_state (KoSvgTextPropertyData (),lager::automatic_tag{}))",
+        "method:KoSvgTextPropertiesModel::resolvedFontSize(bool fontSize=false)",
+        "method:KoSvgTextPropertiesModel::resolvedXHeight(bool fontSize=false)"
+      ]
+    },
+    {
+      "target": "KoSvgTextPropertiesModelSchemaContractTest",
+      "source": "libs/flake/tests/KoSvgTextPropertiesModelSchemaContractTest.cpp",
+      "test": "KoSvgTextPropertiesModelSchemaContractTest::propertyModelCursorDataMemberSchemaRemainsStable",
+      "behavior": "SVG文字property modelは文字data、共通property、書体・間隔・字下げ・変形・図形余白のcursor data member型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KoSvgTextPropertiesModel::baselineShiftValueData",
+        "member:KoSvgTextPropertiesModel::commonProperties",
+        "member:KoSvgTextPropertiesModel::cssFontStyleData",
+        "member:KoSvgTextPropertiesModel::fontSizeData",
+        "member:KoSvgTextPropertiesModel::fontVariantEastAsianData",
+        "member:KoSvgTextPropertiesModel::fontVariantLigaturesData",
+        "member:KoSvgTextPropertiesModel::fontVariantNumericData",
+        "member:KoSvgTextPropertiesModel::letterSpacingData",
+        "member:KoSvgTextPropertiesModel::lineHeightData",
+        "member:KoSvgTextPropertiesModel::shapeMarginData",
+        "member:KoSvgTextPropertiesModel::shapePaddingData",
+        "member:KoSvgTextPropertiesModel::tabSizeData",
+        "member:KoSvgTextPropertiesModel::textData",
+        "member:KoSvgTextPropertiesModel::textIndentData",
+        "member:KoSvgTextPropertiesModel::textTransformData",
+        "member:KoSvgTextPropertiesModel::wordSpacingData"
+      ]
+    },
+    {
+      "target": "KoSvgTextPropertiesModelSchemaContractTest",
+      "source": "libs/flake/tests/KoSvgTextPropertiesModelSchemaContractTest.cpp",
+      "test": "KoSvgTextPropertiesModelSchemaContractTest::propertyModelChildModelMemberSchemaRemainsStable",
+      "behavior": "SVG文字property modelは書体・間隔・行高・字下げ・変形・図形余白を公開する子modelの具体型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KoSvgTextPropertiesModel::baselineShiftValueModel",
+        "member:KoSvgTextPropertiesModel::cssFontStyleModel",
+        "member:KoSvgTextPropertiesModel::fontSizeModel",
+        "member:KoSvgTextPropertiesModel::fontVariantEastAsianModel",
+        "member:KoSvgTextPropertiesModel::fontVariantLigaturesModel",
+        "member:KoSvgTextPropertiesModel::fontVariantNumericModel",
+        "member:KoSvgTextPropertiesModel::letterSpacingModel",
+        "member:KoSvgTextPropertiesModel::lineHeightModel",
+        "member:KoSvgTextPropertiesModel::shapeMarginModel",
+        "member:KoSvgTextPropertiesModel::shapePaddingModel",
+        "member:KoSvgTextPropertiesModel::tabSizeModel",
+        "member:KoSvgTextPropertiesModel::textIndentModel",
+        "member:KoSvgTextPropertiesModel::textTransformModel",
+        "member:KoSvgTextPropertiesModel::wordSpacingModel"
+      ]
+    },
+    {
+      "target": "KoSvgTextPropertiesModelSchemaContractTest",
+      "source": "libs/flake/tests/KoSvgTextPropertiesModelSchemaContractTest.cpp",
+      "test": "KoSvgTextPropertiesModelSchemaContractTest::propertyModelChildModelAccessorSignaturesRemainStable",
+      "behavior": "SVG文字property modelは各子modelを借用pointerとして返す公開accessorの厳密な関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoSvgTextPropertiesModel::baselineShiftValue()",
+        "method:KoSvgTextPropertiesModel::fontStyle()",
+        "method:KoSvgTextPropertiesModel::fontVariantEastAsian()",
+        "method:KoSvgTextPropertiesModel::fontVariantLigatures()",
+        "method:KoSvgTextPropertiesModel::fontVariantNumeric()",
+        "method:KoSvgTextPropertiesModel::letterSpacing()",
+        "method:KoSvgTextPropertiesModel::lineHeight()",
+        "method:KoSvgTextPropertiesModel::shapeMargin()",
+        "method:KoSvgTextPropertiesModel::shapePadding()",
+        "method:KoSvgTextPropertiesModel::tabSize()",
+        "method:KoSvgTextPropertiesModel::textIndent()",
+        "method:KoSvgTextPropertiesModel::textTransform()",
+        "method:KoSvgTextPropertiesModel::wordSpacing()"
+      ]
+    },
+    {
+      "target": "KoSvgTextPropertiesModelSchemaContractTest",
+      "source": "libs/flake/tests/KoSvgTextPropertiesModelSchemaContractTest.cpp",
+      "test": "KoSvgTextPropertiesModelSchemaContractTest::propertyModelSurfaceSignalSignaturesRemainStable",
+      "behavior": "SVG文字property modelは文字propertyと各子modelの変更通知を引数なしのvoid signalとして維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoSvgTextPropertiesModel::baselineShiftValueChanged()",
+        "method:KoSvgTextPropertiesModel::fontSizeChanged()",
+        "method:KoSvgTextPropertiesModel::fontStyleChanged()",
+        "method:KoSvgTextPropertiesModel::fontVariantEastAsianChanged()",
+        "method:KoSvgTextPropertiesModel::fontVariantLigaturesChanged()",
+        "method:KoSvgTextPropertiesModel::fontVariantNumericChanged()",
+        "method:KoSvgTextPropertiesModel::letterSpacingChanged()",
+        "method:KoSvgTextPropertiesModel::lineHeightChanged()",
+        "method:KoSvgTextPropertiesModel::shapeMarginChanged()",
+        "method:KoSvgTextPropertiesModel::shapePaddingChanged()",
+        "method:KoSvgTextPropertiesModel::tabSizeChanged()",
+        "method:KoSvgTextPropertiesModel::textIndentChanged()",
+        "method:KoSvgTextPropertiesModel::textPropertyChanged()",
+        "method:KoSvgTextPropertiesModel::textTransformChanged()",
+        "method:KoSvgTextPropertiesModel::wordSpacingChanged()"
       ]
     },
     {
