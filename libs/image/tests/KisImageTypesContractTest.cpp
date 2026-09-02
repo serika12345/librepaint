@@ -213,6 +213,8 @@ public:
     KUndo2Command *operator()(KUndo2Command *command) const;
 };
 
+class PaintOpSignatureProbe;
+
 } // namespace
 
 class KisImageTypesContractTest : public QObject
@@ -239,6 +241,11 @@ private Q_SLOTS:
     void paintInputCanvasOrientationSignaturesRemainStable();
     void paintInputDerivedMotionSignaturesRemainStable();
     void paintInputTiltConversionSignaturesRemainStable();
+    void paintInformationConstructionAndLifetimeSchemaRemainsStable();
+    void paintInformationDistanceRegistrarSchemaRemainsStable();
+    void paintInformationMixingSignaturesRemainStable();
+    void paintInformationRandomDistanceAndLodSignaturesRemainStable();
+    void paintInformationHoverPaintSerializationAndDebugSignaturesRemainStable();
     void distanceStateLifecycleSchemaRemainsStable();
     void distanceLastDabObservationSignaturesRemainStable();
     void distanceSpacingAndTimingSignaturesRemainStable();
@@ -893,6 +900,114 @@ void KisImageTypesContractTest::paintInputTiltConversionSignaturesRemainStable()
     static_assert(
         std::is_same_v<decltype(KisPaintInformation::tiltElevation(std::declval<const KisPaintInformation &>())),
                        qreal>);
+
+    QVERIFY(true);
+}
+
+void KisImageTypesContractTest::paintInformationConstructionAndLifetimeSchemaRemainsStable()
+{
+    using Information = KisPaintInformation;
+    using AssignmentSignature = void (Information::*)(const Information &);
+
+    static_assert(std::is_default_constructible_v<Information>);
+    static_assert(std::is_constructible_v<Information, const QPointF &, qreal>);
+    static_assert(std::is_constructible_v<Information, const QPointF &, qreal, qreal, qreal, qreal>);
+    static_assert(
+        std::is_constructible_v<Information, const QPointF &, qreal, qreal, qreal, qreal, qreal, qreal, qreal, qreal>);
+    static_assert(std::is_copy_constructible_v<Information>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<AssignmentSignature>(&Information::operator=)), AssignmentSignature>);
+    static_assert(std::is_destructible_v<Information>);
+
+    QVERIFY(true);
+}
+
+void KisImageTypesContractTest::paintInformationDistanceRegistrarSchemaRemainsStable()
+{
+    using Information = KisPaintInformation;
+    using Registrar = Information::DistanceInformationRegistrar;
+
+    static_assert(std::is_class_v<Registrar>);
+    static_assert(std::is_constructible_v<Registrar, Information *, KisDistanceInformation *>);
+    static_assert(!std::is_copy_constructible_v<Registrar>);
+    static_assert(std::is_move_constructible_v<Registrar>);
+    static_assert(std::is_destructible_v<Registrar>);
+
+    QVERIFY(true);
+}
+
+void KisImageTypesContractTest::paintInformationMixingSignaturesRemainStable()
+{
+    using Information = KisPaintInformation;
+    using MixAtPositionSignature = Information (*)(const QPointF &, qreal, const Information &, const Information &);
+    using MixSignature = Information (*)(qreal, const Information &, const Information &);
+    using MixInPlaceSignature = void (Information::*)(qreal, const Information &);
+
+    static_assert(
+        std::is_same_v<decltype(static_cast<MixAtPositionSignature>(&Information::mix)), MixAtPositionSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<MixSignature>(&Information::mix)), MixSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<MixSignature>(&Information::mixOnlyPosition)), MixSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<MixAtPositionSignature>(&Information::mixWithoutTime)),
+                                 MixAtPositionSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<MixSignature>(&Information::mixWithoutTime)), MixSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<MixInPlaceSignature>(&Information::mixOtherOnlyPosition)),
+                                 MixInPlaceSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<MixInPlaceSignature>(&Information::mixOtherWithoutTime)),
+                                 MixInPlaceSignature>);
+
+    QVERIFY(true);
+}
+
+void KisImageTypesContractTest::paintInformationRandomDistanceAndLodSignaturesRemainStable()
+{
+    using Information = KisPaintInformation;
+    using RandomSourceSignature = KisRandomSourceSP (Information::*)() const;
+    using SetRandomSourceSignature = void (Information::*)(KisRandomSourceSP);
+    using PerStrokeRandomSourceSignature = KisPerStrokeRandomSourceSP (Information::*)() const;
+    using SetPerStrokeRandomSourceSignature = void (Information::*)(KisPerStrokeRandomSourceSP);
+    using RegisterDistanceSignature =
+        Information::DistanceInformationRegistrar (Information::*)(KisDistanceInformation *);
+    using SetLevelOfDetailSignature = void (Information::*)(int);
+
+    static_assert(std::is_same_v<decltype(static_cast<RandomSourceSignature>(&Information::randomSource)),
+                                 RandomSourceSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<SetRandomSourceSignature>(&Information::setRandomSource)),
+                                 SetRandomSourceSignature>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<PerStrokeRandomSourceSignature>(&Information::perStrokeRandomSource)),
+                       PerStrokeRandomSourceSignature>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<SetPerStrokeRandomSourceSignature>(&Information::setPerStrokeRandomSource)),
+                       SetPerStrokeRandomSourceSignature>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<RegisterDistanceSignature>(&Information::registerDistanceInformation)),
+                       RegisterDistanceSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<SetLevelOfDetailSignature>(&Information::setLevelOfDetail)),
+                                 SetLevelOfDetailSignature>);
+
+    QVERIFY(true);
+}
+
+void KisImageTypesContractTest::paintInformationHoverPaintSerializationAndDebugSignaturesRemainStable()
+{
+    using Information = KisPaintInformation;
+    using HoveringSignature =
+        Information (*)(const QPointF &, qreal, qreal, qreal, qreal, qreal, qreal, qreal, qreal, bool, bool, qreal);
+    using FromXmlSignature = Information (*)(const QDomElement &);
+    using ToXmlSignature = void (Information::*)(QDomDocument &, QDomElement &) const;
+    using DebugSignature = QDebug (*)(QDebug, const Information &);
+
+    static_assert(std::is_same_v<decltype(static_cast<HoveringSignature>(&Information::createHoveringModeInfo)),
+                                 HoveringSignature>);
+    static_assert(
+        std::is_same_v<decltype(Information::createHoveringModeInfo(std::declval<const QPointF &>())), Information>);
+    static_assert(std::is_same_v<decltype(static_cast<FromXmlSignature>(&Information::fromXML)), FromXmlSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<ToXmlSignature>(&Information::toXML)), ToXmlSignature>);
+    static_assert(
+        std::is_same_v<decltype(std::declval<Information &>().paintAt(std::declval<PaintOpSignatureProbe &>(),
+                                                                      static_cast<KisDistanceInformation *>(nullptr))),
+                       void>);
+    static_assert(std::is_same_v<decltype(static_cast<DebugSignature>(&operator<<)), DebugSignature>);
 
     QVERIFY(true);
 }
