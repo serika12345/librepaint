@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 13:21 JST
+- 更新日時: 2026-09-02 13:49 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -39,7 +39,7 @@
 
 ### 第150便の担当計画
 
-- 実装共通基点は`2ae0cafceac3`である。3担当は`preparing`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、
+- 実装共通基点は`2ae0cafceac3`である。3担当は`integrated`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、
   専用worktree-local `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。統合順はSVG文字配置値、resource storage、tool入力配送とし、調整担当だけが
   `AGENTS.md`、architecture文書、`docs/architecture/public-api-test-contracts.json`、共通不足報告を変更する。3担当の公開header、所有CMake、試験source、生成物は重ならない。
 - `g150-svg-glyph-cursor-schema`は`/Users/masato/Documents/librepaint-g150-svg-glyph-cursor-schema`を所有する。開始`libs/flake/text/KoSvgTextShape_p.h`のcursor・glyph値面31 APIから既存
@@ -61,6 +61,26 @@
   1,268工程・2,552入力と担当tree内の変更前後集合完全一致を確認する。未知targetと5枠、対象CTest、5枠個別、20回反復、近傍、無作業再構築、動的接続、AUTOMOC入力、未解決tool・canvas・event・device・metaobject記号、構文・
   変更行書式、公開API・`verify-quick`を確認する。KisTool、canvas、shape、pointer event、paint device、cursor、variant、constructor、destructor、virtual、signal、slot、inline本文、GUI event loop、event配送、selection・device操作を生成または
   実行し、公開headerをAUTOMOC入力化し、`kis_tool.cc`・action OBJECT、製品source・OBJECT・shared、`kritatestsdk`、新link依存、公開header変更、製品計画差、停止線超過が必要なら止める。
+
+### 第150便の統合結果
+
+- `g150-svg-glyph-cursor-schema`は受渡しcommit`130dd656`を統合commit`74915f7d36`として取り込んだ。開始`libs/flake/text/KoSvgTextShape_p.h`から既存
+  `libs/flake/tests/KoSvgTextCharacterResultValueContractTest.cpp`の5枠へ、改行・行端、cursor情報・位置、glyph outline・bitmap、color layer・variantの31 APIを対応付けた。CMakeと直接依存を変更せず対象4工程・8入力、
+  製品`kritaflake` 621工程・1,274入力を維持した。担当macOS環境と中央環境で対象CTest・20回反復、近傍、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式、公開API検査、`verify-quick`に成功した。
+  中央台帳はcommit`8a1914b8f1`で登録し、29,838件中15,045件対応、14,793件未対応となった。作業tree 878,248 KiBと担当branchは削除した。実描画、copy・destruct、文字配置計算は別の効果契約で扱う。
+- `g150-resource-storage-schema`は受渡しcommit`4cb4847`を統合commit`c2feaaa7aa`として取り込んだ。開始`libs/resources/KisResourceStorage.h`から既存
+  `libs/resources/tests/KisResourceModelEnumContractTest.cpp`の5枠へ、metadata key・access、永続化・version、plugin factory・registryの39 APIを対応付けた。CMakeと直接依存を変更せず対象4工程・9入力、
+  製品`kritaresources` 150工程・327入力を維持した。担当macOS環境と中央環境で対象CTest・20回反復、近傍、無作業再構築、動的接続・未解決記号、構文・書式、公開API検査、`verify-quick`に成功した。
+  中央台帳はcommit`cb32aeb80a`で登録し、29,838件中15,084件対応、14,754件未対応となった。作業tree 876,928 KiBと担当branchは削除した。実storage I/O、factory生成、registry singletonの実行時挙動は
+  別の効果契約で扱う。
+- `g150-tool-schema`は受渡しcommit`8a5ac94e51`を統合commit`2e01776311`として取り込んだ。開始`libs/tools/kis_tool.h`から新規`libs/tools/tests/KisToolSchemaContractTest.cpp`の5枠へ、
+  型・寿命・状態、有効化・resource・能力、primary・alternate action、pointer event配送の33 APIを対応付け、`libs/tools/tests/CMakeLists.txt`へ独立対象を追加した。直接linkはQt Core・Gui・Widgets・Xml・Testと
+  Boost headerだけで、KF I18nとImathは公開headerのcompileに必要なinterface探索先だけを利用する。抽象型constructorは宣言だけの局所probeで検査し、製品定義・vtableを生成していない。新対象4工程・8入力、
+  製品`kritatools` 1,268工程・2,552入力を維持した。担当macOS環境で対象CTest・20回反復、近傍、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式、公開API検査、`verify-quick`に成功した。
+  中央環境でも対象限定の構成更新と構築、CTest、公開API検査、`verify-quick`に成功し、29,838件中15,117件対応、14,721件未対応となった。中央台帳はcommit`cd774076d2`で登録した。
+  作業tree 874,968 KiBと担当branchは削除した。実event配送、状態変更、selection・paint device操作は別の効果契約で扱う。
+- 第150便全体で103 APIを15枠へ重複なく対応付け、3担当の作業tree計2,630,144 KiB（約2.51 GiB）を回収した。旧不足報告をTrashへ移し、主Ninja木5,609,068 KiB、共有compiler cache 983,000 KiB、
+  最新不足報告`build/tdd-macos/public-api-missing-g151.json`だけを再利用対象として保持する。次の永続作業は第151便の不足報告から、既存限定対象を優先してpathと所有CMakeが重ならない3責務を先行監査することである。
 
 ### 第149便の先行監査計画
 
