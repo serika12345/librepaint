@@ -61,6 +61,14 @@
   動的接続、未解決renderer・KoColor・registry・palette記号、構文・変更行書式、公開API・`verify-quick`を確認する。renderer・KoColor・色空間・image・palette・channelを生成または実行し、
   conversion・signal・singleton・metaobject・registry・画素bufferへ到達し、製品source・OBJECT・shared、`kritatestsdk`、新非header依存、公開header変更、製品計画差、停止線超過が必要なら止める。
 
+### 第141便の統合結果
+
+- `g141-storage-version-schema`は受渡しcommit`2911f9d09cbd`を統合commit`3d2add2974`として取り込んだ。開始`libs/resources/KisResourceStorage.h`から既存
+  `libs/resources/tests/KisResourceModelEnumContractTest.cpp`の5枠へ、版entry、順序、版管理helper、iterator移動、iterator値の25 APIを対応付けた。CMakeと直接依存を変更せず対象4工程・
+  9入力を維持し、製品`kritaresources`は150工程・327入力と両集合hashが監査値に一致した。entry・比較器・helper・iterator本文、filesystem・database・storage plugin・資源I/Oを
+  実行していない。担当macOS環境と中央環境で5枠を含む対象CTest・20回反復と近傍`KisTagModelSchemaContractTest`、担当環境で無作業再構築、動的接続・未解決記号、構文・書式、
+  公開API検査、`verify-quick`に成功した。中央の公開API契約検査は29,838件中14,236件対応、15,602件未対応となる。作業tree 876,564 KiBと担当branchは削除した。
+
 ### 第140便の先行監査計画
 
 - 監査共通基点は`4fb012861d3c0aa810a4c3af197ca255b9008a0d`、入力は`build/tdd-macos/public-api-missing-g140.json`である。3担当は`auditing`の読み取り専用とし、

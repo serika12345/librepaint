@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 15627
+    "expectedMissingApis": 15602
   },
   "contracts": [
     {
@@ -41235,6 +41235,76 @@
         "method:KoPointerEvent::copyQtPointerEvent(const QTabletEvent * event,QScopedPointer<QEvent> & dst)",
         "method:KoPointerEvent::copyQtPointerEvent(const QTouchEvent * event,QScopedPointer<QEvent> & dst)",
         "method:KoPointerEvent::deepCopyEvent() const"
+      ]
+    },
+    {
+      "target": "KisResourceModelEnumContractTest",
+      "source": "libs/resources/tests/KisResourceModelEnumContractTest.cpp",
+      "test": "KisResourceModelEnumContractTest::storageVersionEntrySchemaRemainsStable",
+      "behavior": "版付き資源entryは資源種別、filename、tag一覧、更新時刻、推定版、推定keyを所定の値型で保持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:VersionedResourceEntry::filename",
+        "member:VersionedResourceEntry::guessedKey",
+        "member:VersionedResourceEntry::guessedVersion",
+        "member:VersionedResourceEntry::lastModified",
+        "member:VersionedResourceEntry::resourceType",
+        "member:VersionedResourceEntry::tagList",
+        "struct:VersionedResourceEntry"
+      ]
+    },
+    {
+      "target": "KisResourceModelEnumContractTest",
+      "source": "libs/resources/tests/KisResourceModelEnumContractTest.cpp",
+      "test": "KisResourceModelEnumContractTest::storageVersionOrderingSchemaRemainsStable",
+      "behavior": "版付き資源entryのkey順とkey・版順の比較器は同じentry参照2件を比較するconst関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:VersionedResourceEntry::KeyLess::operator ()(const VersionedResourceEntry & lhs,const VersionedResourceEntry & rhs) const",
+        "method:VersionedResourceEntry::KeyVersionLess::operator ()(const VersionedResourceEntry & lhs,const VersionedResourceEntry & rhs) const",
+        "struct:VersionedResourceEntry::KeyLess",
+        "struct:VersionedResourceEntry::KeyVersionLess"
+      ]
+    },
+    {
+      "target": "KisResourceModelEnumContractTest",
+      "source": "libs/resources/tests/KisResourceModelEnumContractTest.cpp",
+      "test": "KisResourceModelEnumContractTest::storageVersioningHelperSchemaRemainsStable",
+      "behavior": "資源版管理helperは保存位置への版追加、存在照会を伴う一意名選択、entry集合の版検出について正確な静的関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisStorageVersioningHelper",
+        "method:KisStorageVersioningHelper::addVersionedResource(const QString & saveLocation,KoResourceSP resource,int minVersion)",
+        "method:KisStorageVersioningHelper::chooseUniqueName(KoResourceSP resource,int minVersion,std::function<bool (QString)> checkExists)",
+        "method:KisStorageVersioningHelper::detectFileVersions(QVector<VersionedResourceEntry> & allFiles)"
+      ]
+    },
+    {
+      "target": "KisResourceModelEnumContractTest",
+      "source": "libs/resources/tests/KisResourceModelEnumContractTest.cpp",
+      "test": "KisResourceModelEnumContractTest::storageVersionIteratorNavigationSchemaRemainsStable",
+      "behavior": "版付き保管iteratorは資源iteratorを継承し、entry集合とpluginから構築して次要素、URL、資源種別を照会する署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisVersionedStorageIterator",
+        "method:KisVersionedStorageIterator::KisVersionedStorageIterator(const QVector<VersionedResourceEntry> & entries,KisStoragePlugin * _q)",
+        "method:KisVersionedStorageIterator::hasNext() const",
+        "method:KisVersionedStorageIterator::next()",
+        "method:KisVersionedStorageIterator::type() const",
+        "method:KisVersionedStorageIterator::url() const"
+      ]
+    },
+    {
+      "target": "KisResourceModelEnumContractTest",
+      "source": "libs/resources/tests/KisResourceModelEnumContractTest.cpp",
+      "test": "KisResourceModelEnumContractTest::storageVersionIteratorValueSchemaRemainsStable",
+      "behavior": "版付き保管iteratorは推定版、更新時刻、現在資源、全版iteratorを正確な値・共有所有型で返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisVersionedStorageIterator::guessedVersion() const",
+        "method:KisVersionedStorageIterator::lastModified() const",
+        "method:KisVersionedStorageIterator::resourceImpl() const",
+        "method:KisVersionedStorageIterator::versions() const"
       ]
     }
   ]
