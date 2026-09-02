@@ -327,6 +327,19 @@ target_include_directories(KoCanvasResourceProviderSchemaContractTest PRIVATE
 target_compile_definitions(KoCanvasResourceProviderSchemaContractTest PRIVATE kritaflake_EXPORTS)
 
 kis_add_test(
+    KoResourceManagerSchemaContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KoResourceManagerSchemaContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/resources
+)
+target_compile_definitions(KoResourceManagerSchemaContractTest PRIVATE kritaflake_EXPORTS)
+
+kis_add_test(
     KoPointerEventSchemaContractTest.cpp
     LINK_LIBRARIES
         Qt${QT_MAJOR_VERSION}::Core
