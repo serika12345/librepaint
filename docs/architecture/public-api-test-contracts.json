@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 14297
+    "expectedMissingApis": 14264
   },
   "contracts": [
     {
@@ -44365,6 +44365,84 @@
         "method:KisBrush::resourceType() const",
         "method:KisBrush::setBrushApplication(enumBrushApplication brushApplication)",
         "method:KisBrush::supportsCaching() const"
+      ]
+    },
+    {
+      "target": "KisVisualColorModelSchemaContractTest",
+      "source": "libs/widgets/tests/KisVisualColorModelSchemaContractTest.cpp",
+      "test": "KisVisualColorModelSchemaContractTest::visualColorModelTypeAndEnumerationSchemaRemainsStable",
+      "behavior": "視覚色modelは共有pointer別名、公開class、channel・HSX・YUV色modelの列挙型・値順を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisVisualColorModelSP",
+        "class:KisVisualColorModel",
+        "enum:KisVisualColorModel::ColorModel",
+        "enumerator:KisVisualColorModel::ColorModel::Channel",
+        "enumerator:KisVisualColorModel::ColorModel::HSI",
+        "enumerator:KisVisualColorModel::ColorModel::HSL",
+        "enumerator:KisVisualColorModel::ColorModel::HSV",
+        "enumerator:KisVisualColorModel::ColorModel::HSY",
+        "enumerator:KisVisualColorModel::ColorModel::None",
+        "enumerator:KisVisualColorModel::ColorModel::YUV"
+      ]
+    },
+    {
+      "target": "KisVisualColorModelSchemaContractTest",
+      "source": "libs/widgets/tests/KisVisualColorModelSchemaContractTest.cpp",
+      "test": "KisVisualColorModelSchemaContractTest::visualColorModelLifetimeAndStateSchemaRemainsStable",
+      "behavior": "視覚色modelは既定構築・破棄可能性と現在色、channel値・数、色model、最大channel値を照会する厳密な公開型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisVisualColorModel::KisVisualColorModel()",
+        "method:KisVisualColorModel::channelValues() const",
+        "method:KisVisualColorModel::colorChannelCount() const",
+        "method:KisVisualColorModel::colorModel() const",
+        "method:KisVisualColorModel::currentColor() const",
+        "method:KisVisualColorModel::maxChannelValues() const",
+        "method:KisVisualColorModel::~KisVisualColorModel()"
+      ]
+    },
+    {
+      "target": "KisVisualColorModelSchemaContractTest",
+      "source": "libs/widgets/tests/KisVisualColorModelSchemaContractTest.cpp",
+      "test": "KisVisualColorModelSchemaContractTest::visualColorModelPolicySchemaRemainsStable",
+      "behavior": "視覚色modelは色空間・HSX・露出対応を照会し、状態複製、最大channel値、RGB model、設定再読込みを行う厳密な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisVisualColorModel::colorSpace() const",
+        "method:KisVisualColorModel::copyState(const KisVisualColorModel & other)",
+        "method:KisVisualColorModel::isHSXModel() const",
+        "method:KisVisualColorModel::setMaxChannelValues(const QVector4D & maxValues)",
+        "method:KisVisualColorModel::setRGBColorModel(ColorModel model)",
+        "method:KisVisualColorModel::slotLoadACSConfig()",
+        "method:KisVisualColorModel::supportsExposure() const"
+      ]
+    },
+    {
+      "target": "KisVisualColorModelSchemaContractTest",
+      "source": "libs/widgets/tests/KisVisualColorModelSchemaContractTest.cpp",
+      "test": "KisVisualColorModelSchemaContractTest::visualColorModelConversionAndMutationSchemaRemainsStable",
+      "behavior": "視覚色modelはchannel値とKoColorを相互変換し、channel値・色・色空間を更新する厳密な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisVisualColorModel::convertChannelValuesToKoColor(const QVector4D & values) const",
+        "method:KisVisualColorModel::convertKoColorToChannelValues(KoColor c) const",
+        "method:KisVisualColorModel::slotSetChannelValues(const QVector4D & values)",
+        "method:KisVisualColorModel::slotSetColor(const KoColor & c)",
+        "method:KisVisualColorModel::slotSetColorSpace(const KoColorSpace * cs)"
+      ]
+    },
+    {
+      "target": "KisVisualColorModelSchemaContractTest",
+      "source": "libs/widgets/tests/KisVisualColorModelSchemaContractTest.cpp",
+      "test": "KisVisualColorModelSchemaContractTest::visualColorModelNotificationSchemaRemainsStable",
+      "behavior": "視覚色modelはchannel値、色model、色空間、新しい色の変更を通知する厳密な公開signal型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisVisualColorModel::sigChannelValuesChanged(const QVector4D & values,quint32 channelFlags)",
+        "method:KisVisualColorModel::sigColorModelChanged()",
+        "method:KisVisualColorModel::sigColorSpaceChanged()",
+        "method:KisVisualColorModel::sigNewColor(const KoColor & c)"
       ]
     }
   ]
