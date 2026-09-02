@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 10:53 JST
+- 更新日時: 2026-09-02 10:57 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -20,6 +20,20 @@
   canvas・widget・shape・tool・undo・painter・marker描画・signal・metaobjectの実体化なしで閉じる。
 - `g145-psd-layer-effects-brush-model-schema-audit`は`libs/psdutils/psd.h`の残存32 APIを主候補とし、`libs/brush/KisBrushModel.h`の残存28 APIを比較する。PSD layer effectの勾配・pattern・contour・色stop面またはbrushの
   predefined・集約値・寸法helper面を、資源・勾配・pattern・lookup table所有・設定・application font・brush生成の実体化なしで閉じる。
+- `g145-paint-information-frames-interface-schema-audit`は`kis_paint_device_frames_interface.h`の全28 APIを採用した。frame interfaceの所有・試験data 9、寿命・識別4、幾何・pixel 5、転送・永続化6、undo・cache・試験4を既存
+  `KisImageTypesContractTest`の未評価型5枠へ対応付ける。CMakeを変更せず対象4工程・8入力、停止5工程・11入力、製品`kritaimage` 1,196工程・2,416入力を維持する。現在の対象命令集合hashは
+  `b83c09fe3d4b3ca467659d4896a906a8683feff274f897056f537c54fbd3df76`、入力集合hashは`42c0bdca62da9111fd79736a3055bd233ee32342bc2c9ae69fc577a83a88cf81`、製品命令集合hashは
+  `8b3e011450f2ca342e0ce523cc1696c2e2b3970456a8cb097553ee5fdf79930f`、製品入力集合hashは`76f2aa4251a6bf4e2adf2a1e822bc9d629753b2e93e5b877ee4eae23364940bc`である。
+  `kis_paint_information.h`は寿命、補間、乱数、XML、距離登録、汎用`paintAt` templateに責務と安全な定義閉包が分散するため棄却した。
+- `g145-canvas-base-marker-schema-audit`は`KoCanvasBase.h`の全29 APIを採用した。canvas型・寿命3、controller・resource 7、shape・command・observer 7、widget・view 6、grid・presentation 6を新規
+  `KoCanvasBaseSchemaContractTest`の未評価型5枠へ対応付ける。新対象4工程・8入力、停止5工程・11入力を予測し、製品`kritaflake` 621工程・1,274入力と保留集合を維持する。現在の製品命令集合hashは
+  `f3f361da0bcc5c5d3fcc2e2e638cfbfce33af5ddc455e80260a62ff35b74a676`、入力集合hashは`1a30862a8e0463c6578045c344b23088d4909ac6017407162709d283413b8cb5`、保留集合hashは
+  `9250d67bdf59e467ed07775ea4455d48070d2e65d7474c380b70e7faef23fdd4`である。`KoMarker.h`はQt Gui・Xmlを要求し、既存command試験のstubと分離しても描画・資源・幾何面の具体観測に製品実装が必要なため棄却した。
+- `g145-psd-layer-effects-brush-model-schema-audit`は`KisBrushModel.h`の残存28 APIを採用した。predefined資源・寸法7、調整値7、brush集約6、永続化署名2、寸法・policy署名6を既存
+  `KisBrushModelValuesContractTest`の未評価型5枠へ対応付ける。CMakeと既存効果を変更せず対象4工程・8入力、停止5工程・11入力、製品`kritalibbrush` 1,222工程・2,466入力を維持する。現在の対象命令集合hashは
+  `6ea506089f9e31121a2daf6c57e8d8ed72bec4e35d30c0e2cb3ce0b107a79fab`、入力集合hashは`f534d9f267e77f55eb8bf7aff466b0fad2e1b160e8f70ab5a669b92120052b19`、製品命令集合hashは
+  `0804aabd027fb54ff978ccbbf30d165a4ae6c5a162558f7a257e6e844e2a3ea4`、製品入力集合hashは`b9c02249c4dd6d31eeb021fc113a28626ebf7dcf436da2a9eb4a255eb9e507cf`である。
+  `psd.h`の残存APIは形式変換、色stop、layer effect寿命、contour、勾配・pattern資源に分散し、既存対象も6工程・14入力で停止線を超えるため棄却した。
 - 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから契約先または移動先、許可path、固有停止条件、
   比較候補の棄却根拠を含む。既存`build/tdd-macos`の計画は読み取り専用で測定し、構成や構築を開始しない。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
 
