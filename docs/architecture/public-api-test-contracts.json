@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 13938
+    "expectedMissingApis": 13913
   },
   "contracts": [
     {
@@ -45219,6 +45219,76 @@
         "method:KisFixedPaintDevice::fill(const QRect & rc,const KoColor & color)",
         "method:KisFixedPaintDevice::fill(qint32 x,qint32 y,qint32 w,qint32 h,const quint8 * fillPixel)",
         "method:KisFixedPaintDevice::mirror(bool horizontal,bool vertical)"
+      ]
+    },
+    {
+      "target": "KisNodeViewColorSchemeSchemaContractTest",
+      "source": "libs/ui/tests/KisNodeViewColorSchemeSchemaContractTest.cpp",
+      "test": "KisNodeViewColorSchemeSchemaContractTest::nodeViewColorSchemeIdentitySchemaRemainsStable",
+      "behavior": "node表示配色型の公開識別、既定構築、破棄可能性、singleton取得関数型を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisNodeViewColorScheme",
+        "method:KisNodeViewColorScheme::KisNodeViewColorScheme()",
+        "method:KisNodeViewColorScheme::instance()",
+        "method:KisNodeViewColorScheme::~KisNodeViewColorScheme()"
+      ]
+    },
+    {
+      "target": "KisNodeViewColorSchemeSchemaContractTest",
+      "source": "libs/ui/tests/KisNodeViewColorSchemeSchemaContractTest.cpp",
+      "test": "KisNodeViewColorSchemeSchemaContractTest::nodeViewColorSchemePrimitiveMetricsSchemaRemainsStable",
+      "behavior": "node表示配色のvisibility、thumbnail、decoration、text、icon、borderに関するconst整数取得型を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeViewColorScheme::border() const",
+        "method:KisNodeViewColorScheme::decorationMargin() const",
+        "method:KisNodeViewColorScheme::decorationSize() const",
+        "method:KisNodeViewColorScheme::iconMargin() const",
+        "method:KisNodeViewColorScheme::iconSize() const",
+        "method:KisNodeViewColorScheme::textMargin() const",
+        "method:KisNodeViewColorScheme::thumbnailMargin() const",
+        "method:KisNodeViewColorScheme::thumbnailSize() const",
+        "method:KisNodeViewColorScheme::visibilityMargin() const",
+        "method:KisNodeViewColorScheme::visibilitySize() const"
+      ]
+    },
+    {
+      "target": "KisNodeViewColorSchemeSchemaContractTest",
+      "source": "libs/ui/tests/KisNodeViewColorSchemeSchemaContractTest.cpp",
+      "test": "KisNodeViewColorSchemeSchemaContractTest::nodeViewColorSchemeLayoutSchemaRemainsStable",
+      "behavior": "node表示配色の行高、visibility列幅、indentation、選択button列幅に関するconst整数取得型を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeViewColorScheme::indentation() const",
+        "method:KisNodeViewColorScheme::rowHeight() const",
+        "method:KisNodeViewColorScheme::selectedButtonColumnWidth() const",
+        "method:KisNodeViewColorScheme::visibilityColumnWidth() const"
+      ]
+    },
+    {
+      "target": "KisNodeViewColorSchemeSchemaContractTest",
+      "source": "libs/ui/tests/KisNodeViewColorSchemeSchemaContractTest.cpp",
+      "test": "KisNodeViewColorSchemeSchemaContractTest::nodeViewColorSchemeRelativeGeometrySchemaRemainsStable",
+      "behavior": "node表示配色のvisibility、thumbnail、decoration、展開buttonに関する相対矩形取得型を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeViewColorScheme::relDecorationRect() const",
+        "method:KisNodeViewColorScheme::relExpandButtonRect() const",
+        "method:KisNodeViewColorScheme::relThumbnailRect() const",
+        "method:KisNodeViewColorScheme::relVisibilityRect() const"
+      ]
+    },
+    {
+      "target": "KisNodeViewColorSchemeSchemaContractTest",
+      "source": "libs/ui/tests/KisNodeViewColorSchemeSchemaContractTest.cpp",
+      "test": "KisNodeViewColorSchemeSchemaContractTest::nodeViewColorSchemeColorSchemaRemainsStable",
+      "behavior": "node表示配色のgrid色、label索引色、全label色一覧に関する厳密なconst関数型を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeViewColorScheme::allColorLabels() const",
+        "method:KisNodeViewColorScheme::colorFromLabelIndex(int index) const",
+        "method:KisNodeViewColorScheme::gridColor(const QStyleOptionViewItem & option,QTreeView * view) const"
       ]
     }
   ]
