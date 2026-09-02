@@ -20,6 +20,15 @@
   公開識別・命令面または保存済みundo命令の公開型面を、実node・image・色空間・icon・singleton・stroke・undo実行・RTTI・動的命令unwrapの実体化なしで閉じる。
 - `g141-display-renderer-color-space-schema-audit`は`libs/pigment/KoColorDisplayRendererInterface.h`の全30 APIを主候補とし、`libs/pigment/KoColorSpaceAbstract.h`の全32 APIを比較する。表示色変換interfaceの
   抽象・既定実装面または同型色空間の公開画素処理面を、実色変換・画素buffer・image・palette・色空間registry・signal配送・大域rendererの実体化なしで閉じる。
+- `g141-resource-version-tag-model-schema-audit`は`KisResourceStorage.h`の版管理責務25 APIを採用した。版entry 7、順序4、版管理helper 4、iterator移動6、iterator値4を既存
+  `KisResourceModelEnumContractTest`の未評価型5枠へ対応付ける。CMakeを変更せず対象4工程・9入力、停止5工程・11入力、製品`kritaresources` 150工程・327入力を維持する。
+  `KisTagResourceModel.h`も25 APIを閉じられるが既存tag model契約との観測重複があり、版管理候補は未観測の一処理系列を構成するため優先した。
+- `g141-layer-icons-saved-command-schema-audit`は`kis_layer_properties_icons.h`の全30 APIを採用した。所有型・寿命4、可視・lock識別6、表示識別11、property生成4、node保存・表示5を新規
+  `KisLayerPropertiesIconsSchemaContractTest`の未評価型5枠へ対応付ける。新対象4工程・8入力、停止5工程・11入力、製品`kritaimage` 1,196工程・2,416入力を維持する。
+  `kis_saved_commands.h`はtemplate `unwrap`の固定に特殊化またはRTTI経路が必要で、残る型面もstroke再生・時刻付き命令・macro jobへ責務が分かれるため棄却した。
+- `g141-display-renderer-color-space-schema-audit`は`KoColorDisplayRendererInterface.h`の全30 APIを採用した。interface型・寿命4、interface色変換7、色空間・palette 5、既定renderer色変換7、
+  既定renderer型・色空間・palette 7を新規`KoColorDisplayRendererSchemaContractTest`の未評価型5枠へ対応付ける。新対象4工程・8入力、停止5工程・11入力、製品`kritapigment`
+  367工程・764入力を維持する。`KoColorSpaceAbstract.h`はtemplateの型検査でもregistry・alpha mask・混色・畳込み・実画素演算のinline閉包を誘発する危険が高いため棄却した。
 - 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから契約先または移動先、許可path、
   固有停止条件、比較候補の棄却根拠を含む。既存`build/tdd-macos`の計画は読み取り専用で測定し、構成や構築を開始しない。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを
   担当票へ進める。
