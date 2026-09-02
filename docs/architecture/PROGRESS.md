@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 11:25 JST
+- 更新日時: 2026-09-02 11:29 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -52,14 +52,17 @@
   公開header変更、製品計画差、停止線超過が必要なら止める。
 - `g146-guides-config-schema`は`/Users/masato/Documents/librepaint-g146-guides-config-schema`を所有する。開始`libs/libkis/GuidesConfig.h`の全25 APIから既存
   `libs/libkis/tests/GridConfigSchemaContractTest.cpp`の5枠`guidesConfigIdentityAndConstructionSchemaRemainsStable`、`guidesConfigComparisonAndSerializationSignaturesRemainStable`、
-  `guidesConfigPresentationSignaturesRemainStable`、`guidesConfigPositionSignaturesRemainStable`、`guidesConfigInteractionStateSignaturesRemainStable`へ対応付ける。許可pathは既存試験sourceだけで、CMakeを変更しない。
+  `guidesConfigPresentationSignaturesRemainStable`、`guidesConfigPositionSignaturesRemainStable`、`guidesConfigInteractionStateSignaturesRemainStable`へ対応付ける。許可pathは既存試験sourceと
+  `libs/libkis/tests/CMakeLists.txt`である。初期構築で`GuidesConfig.h`から`kis_guides_config.h`を介して直接要求する`KoUnit.h`の探索先不足を確認したため、この対象だけにflake source・generated directoryを
+  PRIVATE追加し、linkと製品依存は増やさない。
   対象4工程・9入力以内、停止5工程・11入力、近傍は`AngleSelectorSchemaContractTest`、製品`kritalibkis`は2,018工程・4,034入力と担当tree内の変更前後集合完全一致を確認する。未知5枠、対象CTest、20回反復、
   既存grid枠と近傍、無作業再構築、動的接続、未解決guide・XML・QObject metaobject記号、構文・変更行書式、公開API・`verify-quick`を確認する。GuidesConfig、内部guide値、QObject、QColor、QListを生成し、比較・位置・表示・lock・
   snap・XML処理を実行し、Qt Widgets・dialog・GUI application・filesystem・設定へ接続し、製品source・OBJECT・shared、`kritatestsdk`、新link/include依存、CMake・公開header変更、製品計画差、停止線超過が必要なら止める。
 - `g146-asl-xml-writer-schema`は`/Users/masato/Documents/librepaint-g146-asl-xml-writer-schema`を所有する。開始`libs/psdutils/asl/kis_asl_xml_writer.h`の全28 APIから新規
   `libs/psdutils/tests/KisAslXmlWriterSchemaContractTest.cpp`の5枠`aslXmlWriterIdentityAndDocumentSignaturesRemainStable`、`aslXmlWriterContainerSignaturesRemainStable`、
   `aslXmlWriterScalarSignaturesRemainStable`、`aslXmlWriterGeometrySignaturesRemainStable`、`aslXmlWriterColorGradientAndPatternSignaturesRemainStable`へ対応付ける。許可pathは新規試験sourceと
-  `libs/psdutils/tests/CMakeLists.txt`だけである。直接linkはQt Core・Testだけ、compile-only includeはpsdutils・pigment・resources・globalのsource・generated directoryだけとし、新対象4工程・8入力、停止5工程・11入力、
+  `libs/psdutils/tests/CMakeLists.txt`だけである。直接linkはQt Core・Testだけ、compile-only includeはpsdutils・pigment・resources・globalのsource・generated directoryに加え、公開headerから
+  `KoPattern.h`と`KoResource.h`を介して直接要求されたQt Gui・KF I18nのINTERFACE includeだけとする。Qt Gui・KF I18nはlinkしない。新対象4工程・8入力、停止5工程・11入力、
   近傍は`KisAslWriterUtilsContractTest`、製品`kritapsdutils`は638工程・1,306入力と担当tree内の変更前後集合完全一致を確認する。未知target、5枠、対象CTest、20回反復、近傍、無作業再構築、動的接続、
   未解決writer・XML・色・勾配・pattern記号、構文・変更行書式、公開API・`verify-quick`を確認する。writer、XML文書、KoColor、勾配、pattern、resource、点・矩形値を生成し、constructor・destructor・method本文をODR使用し、
   Qt Gui・Xml、製品source・OBJECT・shared、`kritatestsdk`、`kis_asl_xml_writer.cpp`、新非header依存、公開header変更、製品計画差、停止線超過が必要なら止める。
