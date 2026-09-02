@@ -2,12 +2,21 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 23:09 JST
+- 更新日時: 2026-09-02 23:26 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
+
+### 第167便の先行監査計画
+
+- 監査共通基点は`384d14735e`、入力は`build/tdd-macos/public-api-missing-g167.json`である。3担当は`auditing`の読み取り専用とし、製品・試験・CMake・script・台帳・文書を変更せず、構成、構築、試験、Git操作、追加委任も行わない。
+  一つの公開責務から20〜80 APIを最大5枠へ固定し、既存限定対象またはheader限定の4〜10工程程度の対象で、製品共有libraryと`kritatestsdk`へ接続しない候補だけを採用する。製品targetを引数にする`build-incremental ... plan`と製品buildは実行せず、既存Ninja木のquery・commands・inputsだけを読み取る。
+- `g105-paintop-value-audit`はpaintop・image・pigment・値型から、実画像、描画、thread、資源、registry、大域状態を実行せず全件を固定できる一責務を選ぶ。
+- `g105-svg-value-audit`はflake・SVG・vector・documentから、shape生成、XML入出力、描画、filesystem、registry、大域状態を実行せず全件を固定できる一責務を選ぶ。
+- `g105-widget-connection-audit`はwidgetutils・widgets・libkis・軽量接続面から、widget、canvas、action、signal、metaobject、event loop、大域状態を実行せず全件を固定できる一責務を選ぶ。
+- 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、予測工程・入力と停止線、開始pathから契約先、許可path、固有停止条件、比較候補の棄却根拠を含む。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
 
 ### 第166便の先行監査計画
 
@@ -55,6 +64,21 @@
   `viewCoordinateTransformSignaturesRemainStable`、`viewInteractionNotificationSignaturesRemainStable`へ対応付ける。完全集合はdocument・可視性7、resource選択7、色状態・通知6、座標変換3、対話通知3であり、既定引数はない。許可pathは既存試験sourceだけで、CMake・依存・公開headerを変更しない。
   対象4工程・8入力、停止5工程・11入力、近傍`SelectionSchemaContractTest`、製品`kritalibkis` 2,018工程・4,034入力を維持する。旧binaryの新5枠Unknown、対象CTest・枠個別・20回反復、既存枠、近傍、無作業再構築、動的接続・AUTOMOC入力・View・canvas・document・resource未解決記号、
   構文・書式、公開API・`verify-quick`を確認する。view、document、window、canvas、resource、color、floating message、signalを実体化または実行し、CMake・依存・公開header・製品source変更、製品接続、停止線超過が必要なら止める。
+
+### 第166便の統合結果
+
+- `g166-mask-generator-schema`は受渡しcommit`272054643c`を統合commit`262defa89d`として取り込んだ。開始`libs/image/kis_base_mask_generator.h`から既存
+  `libs/image/tests/KisImageTypesContractTest.cpp`の5枠へ、identity・寿命・定数、geometry、外観、描画方針、XML・registryの全39 APIを対応付けた。限定linkで判明した翻訳単位ごとの動的初期化を除くため、開始header内の
+  `DefaultId`、`SoftId`、`GaussId`定義と`klocalizedstring.h`依存を`libs/image/kis_base_mask_generator.cpp`へ一対一移動し、headerにはexport付きextern宣言を残した。公開棚卸しは1,549 header・29,838 API、対象39識別子を維持し、3変数の表示情報にexport属性が加わった
+  fingerprintだけを台帳commit`6f995d6961`で同期した。対象・近傍CTest、20回反復、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式に成功し、中央台帳は16,636件対応、13,202件未対応となった。generator、applicator、XML本文の実行時効果は別契約で扱う。
+- `g166-xml-gui-client-schema`は受渡しcommit`e9d25dd7fd`を統合commit`7571d234ce`として取り込んだ。開始`libs/widgetutils/xmlgui/kxmlguiclient.h`から新規
+  `libs/widgetutils/tests/KXMLGUIClientSchemaContractTest.cpp`の5枠へ、identity・状態型、状態action、文書・component、action・factory・階層、動的plugの全38 APIを対応付けた。状態列挙値、状態値copy、XML差替えのmerge省略形も固定し、直接linkはQt Core・Testだけ、新対象4工程・8入力に保った。
+  担当と中央の対象・近傍CTest、20回反復、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式に成功し、台帳commit`a1a8d400ff`で16,674件対応、13,164件未対応となった。XML統合、action操作、client階層の実行時効果は別契約で扱う。
+- `g166-libkis-view-schema`は受渡しcommit`5782aa98f4`を統合commit`043ee9282e`として取り込んだ。開始`libs/libkis/View.h`の残り全26 APIから既存
+  `libs/libkis/tests/ViewSchemaContractTest.cpp`の5枠へ、document・可視性、resource選択、色状態・通知、座標変換、対話通知を対応付けた。CMakeと依存を変えず対象4工程・8入力に保った。担当と中央の対象・近傍CTest、20回反復、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式に成功し、台帳commit`384d14735e`で
+  16,700件対応、13,138件未対応となった。View、document、canvas、resource、色、浮動message、signalの実行時効果は別契約で扱う。
+- 第166便全体で103 APIを15枠へ重複なく対応付けた。公開API台帳、構造方針、文書、link、D2再生成を含む`verify-quick`は成功した。3担当のcleanな作業treeと担当branchを削除し、2,637,856 KiB（約2.52 GiB）を回収した。
+  旧不足報告3件を削除し、主Ninja木5,640,348 KiB、共有compiler cache 982,956 KiB、最新不足報告`build/tdd-macos/public-api-missing-g167.json`だけを再利用対象として保持する。製品、全体、Linuxの構築は実施していない。次の永続作業は第167便の不足報告から、既存限定対象を優先してpathと所有CMakeが重ならない3責務を先行監査することである。
 
 ### 第165便の先行監査計画
 
@@ -17248,9 +17272,8 @@
 
 ## 次の操作
 
-`build/tdd-macos/public-api-missing-g163.json`から第163並列便の非重複候補を3担当で監査する。第162便の対象を除外し、欠陥疑いの比較・診断、
-資源registry、設定I/O、生pointer所有へ到達する経路は保留する。別の所有pathから25 API以上を最大5枠、限定対象か一sourceの一対一構築所有で
-固定できる候補を優先し、担当票の確定前に変更なし計画、直接依存、予測閉包、製品共有ライブラリー・`kritatestsdk`非接続、許可pathと停止線を照合する。
+`build/tdd-macos/public-api-missing-g167.json`から第167並列便の非重複候補を3担当で監査する。欠陥疑いの比較・診断、資源registry、設定I/O、生pointer所有へ到達する経路は保留する。
+別の所有pathから20〜80 APIを最大5枠、既存限定対象またはheader限定対象で固定できる候補を優先し、担当票の確定前に変更なし計画、直接依存、予測閉包、製品共有ライブラリー・`kritatestsdk`非接続、許可pathと停止線を照合する。
 
 ## R1-G5完了根拠
 
