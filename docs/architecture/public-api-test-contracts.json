@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 12696
+    "expectedMissingApis": 12672
   },
   "contracts": [
     {
@@ -48351,6 +48351,75 @@
         "method:KisSelectionMask::sectionModelProperties() const",
         "method:KisSelectionMask::setSectionModelProperties(const KisBaseNode::PropertyList & properties)",
         "method:KisSelectionMask::setSelection(KisSelectionSP selection)"
+      ]
+    },
+    {
+      "target": "KoSelectionSchemaContractTest",
+      "source": "libs/flake/tests/KoSelectionSchemaContractTest.cpp",
+      "test": "KoSelectionSchemaContractTest::selectionIdentityAndLifecycleSignaturesRemainStable",
+      "behavior": "形状選択の公開型、QObject親を受け取る構築、shapeと変更listenerの役割、および仮想寿命を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoSelection",
+        "method:KoSelection::KoSelection(QObject * parent=0)",
+        "method:KoSelection::~KoSelection()"
+      ]
+    },
+    {
+      "target": "KoSelectionSchemaContractTest",
+      "source": "libs/flake/tests/KoSelectionSchemaContractTest.cpp",
+      "test": "KoSelectionSchemaContractTest::selectionGeometryAndActiveLayerSignaturesRemainStable",
+      "behavior": "形状選択のactive layer通知、境界・輪郭・寸法を読み書きする公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoSelection::activeLayer() const",
+        "method:KoSelection::boundingRect() const",
+        "method:KoSelection::currentLayerChanged(const KoShapeLayer * layer)",
+        "method:KoSelection::outlineRect() const",
+        "method:KoSelection::setActiveLayer(KoShapeLayer * layer)",
+        "method:KoSelection::setSize(const QSizeF & size)",
+        "method:KoSelection::size() const"
+      ]
+    },
+    {
+      "target": "KoSelectionSchemaContractTest",
+      "source": "libs/flake/tests/KoSelectionSchemaContractTest.cpp",
+      "test": "KoSelectionSchemaContractTest::selectionMembershipQuerySignaturesRemainStable",
+      "behavior": "形状選択の件数・先頭要素・所属状態と座標hit testを照会する公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoSelection::count() const",
+        "method:KoSelection::firstSelectedShape() const",
+        "method:KoSelection::hitTest(const QPointF & position) const",
+        "method:KoSelection::isSelected(const KoShape * shape) const"
+      ]
+    },
+    {
+      "target": "KoSelectionSchemaContractTest",
+      "source": "libs/flake/tests/KoSelectionSchemaContractTest.cpp",
+      "test": "KoSelectionSchemaContractTest::selectionFilteredShapeViewSignaturesRemainStable",
+      "behavior": "形状選択から編集可能、delegate込み、全件、可視の各shape viewを得る公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoSelection::selectedEditableShapes() const",
+        "method:KoSelection::selectedEditableShapesAndDelegates() const",
+        "method:KoSelection::selectedShapes() const",
+        "method:KoSelection::selectedVisibleShapes() const"
+      ]
+    },
+    {
+      "target": "KoSelectionSchemaContractTest",
+      "source": "libs/flake/tests/KoSelectionSchemaContractTest.cpp",
+      "test": "KoSelectionSchemaContractTest::selectionMutationObservationAndPaintingSignaturesRemainStable",
+      "behavior": "形状選択の追加・解除・変更観測・描画入口とselection変更通知の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoSelection::deselect(KoShape * shape)",
+        "method:KoSelection::deselectAll()",
+        "method:KoSelection::notifyShapeChanged(ChangeType type,KoShape * shape)",
+        "method:KoSelection::paint(QPainter & painter) const",
+        "method:KoSelection::select(KoShape * shape)",
+        "method:KoSelection::selectionChanged()"
       ]
     }
   ]
