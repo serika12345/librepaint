@@ -10,6 +10,9 @@
 #include <tuple>
 #include <type_traits>
 
+#define ASSERT_CONNECTION_SIGNATURE(function, signature)                                                               \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KisWidgetConnectionUtils::function)), signature>)
+
 class KisWidgetConnectionStateContractTest : public QObject
 {
     Q_OBJECT
@@ -20,6 +23,11 @@ private Q_SLOTS:
     void comboBoxStateDefaultsAndAssignedListsRemainStable();
     void spacingStateDefaultsAndConversionRoundTripRemainStable();
     void spinBoxStatesDefaultsAliasesAndConversionRemainTyped();
+    void primitiveControlConnectionSignaturesRemainStable();
+    void choiceActionAndTextControlConnectionSignaturesRemainStable();
+    void specializedControlConnectionSignaturesRemainStable();
+    void controlStateConnectionSignaturesRemainStable();
+    void widgetPresentationPropertyConnectionSignaturesRemainStable();
 };
 
 void KisWidgetConnectionStateContractTest::controlStateDefaultsAndAliasesRemainTyped()
@@ -140,6 +148,48 @@ void KisWidgetConnectionStateContractTest::spinBoxStatesDefaultsAliasesAndConver
 
     value = 99.0;
     QCOMPARE(realState.value, qreal(2.75));
+}
+
+void KisWidgetConnectionStateContractTest::primitiveControlConnectionSignaturesRemainStable()
+{
+    ASSERT_CONNECTION_SIGNATURE(connectControl, void (*)(QAbstractButton *, QObject *, const char *));
+    ASSERT_CONNECTION_SIGNATURE(connectControl, void (*)(QCheckBox *, QObject *, const char *));
+    ASSERT_CONNECTION_SIGNATURE(connectControl, void (*)(QSpinBox *, QObject *, const char *));
+    ASSERT_CONNECTION_SIGNATURE(connectControl, void (*)(QDoubleSpinBox *, QObject *, const char *));
+    ASSERT_CONNECTION_SIGNATURE(connectControl, void (*)(QSlider *, QObject *, const char *));
+}
+
+void KisWidgetConnectionStateContractTest::choiceActionAndTextControlConnectionSignaturesRemainStable()
+{
+    ASSERT_CONNECTION_SIGNATURE(connectControl, void (*)(QAction *, QObject *, const char *));
+    ASSERT_CONNECTION_SIGNATURE(connectControl, void (*)(QButtonGroup *, QObject *, const char *));
+    ASSERT_CONNECTION_SIGNATURE(connectControl, void (*)(QComboBox *, QObject *, const char *));
+    ASSERT_CONNECTION_SIGNATURE(connectControl, void (*)(QLineEdit *, QObject *, const char *));
+}
+
+void KisWidgetConnectionStateContractTest::specializedControlConnectionSignaturesRemainStable()
+{
+    ASSERT_CONNECTION_SIGNATURE(connectControl, void (*)(KisAngleSelector *, QObject *, const char *));
+    ASSERT_CONNECTION_SIGNATURE(connectControl, void (*)(KisColorButton *, QObject *, const char *));
+    ASSERT_CONNECTION_SIGNATURE(connectControl, void (*)(KisFileNameRequester *, QObject *, const char *));
+    ASSERT_CONNECTION_SIGNATURE(connectControl, void (*)(KisMultipliersDoubleSliderSpinBox *, QObject *, const char *));
+    ASSERT_CONNECTION_SIGNATURE(connectControl, void (*)(KisSpacingSelectionWidget *, QObject *, const char *));
+}
+
+void KisWidgetConnectionStateContractTest::controlStateConnectionSignaturesRemainStable()
+{
+    ASSERT_CONNECTION_SIGNATURE(connectControlState,
+                                void (*)(QAbstractButton *, QObject *, const char *, const char *));
+    ASSERT_CONNECTION_SIGNATURE(connectControlState, void (*)(QButtonGroup *, QObject *, const char *, const char *));
+    ASSERT_CONNECTION_SIGNATURE(connectControlState, void (*)(QComboBox *, QObject *, const char *, const char *));
+    ASSERT_CONNECTION_SIGNATURE(connectControlState, void (*)(QDoubleSpinBox *, QObject *, const char *, const char *));
+    ASSERT_CONNECTION_SIGNATURE(connectControlState, void (*)(QSpinBox *, QObject *, const char *, const char *));
+}
+
+void KisWidgetConnectionStateContractTest::widgetPresentationPropertyConnectionSignaturesRemainStable()
+{
+    ASSERT_CONNECTION_SIGNATURE(connectWidgetEnabledToProperty, void (*)(QWidget *, QObject *, const char *));
+    ASSERT_CONNECTION_SIGNATURE(connectWidgetVisibleToProperty, void (*)(QWidget *, QObject *, const char *));
 }
 
 QTEST_GUILESS_MAIN(KisWidgetConnectionStateContractTest)
