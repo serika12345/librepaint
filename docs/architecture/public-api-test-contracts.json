@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 15242
+    "expectedMissingApis": 15214
   },
   "contracts": [
     {
@@ -42250,6 +42250,79 @@
         "method:KoCanvasBase::setCursor(const QCursor & cursor)",
         "method:KoCanvasBase::snapToGrid() const",
         "method:KoCanvasBase::unit() const"
+      ]
+    },
+    {
+      "target": "KisBrushModelValuesContractTest",
+      "source": "libs/brush/tests/KisBrushModelValuesContractTest.cpp",
+      "test": "KisBrushModelValuesContractTest::predefinedBrushResourceAndSizingSchemaRemainsStable",
+      "behavior": "定義済みbrush値は資源署名、種別、基準寸法、倍率、適用方式、brush形式からなる公開スキーマを維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisBrushModel::PredefinedBrushData::application",
+        "member:KisBrushModel::PredefinedBrushData::baseSize",
+        "member:KisBrushModel::PredefinedBrushData::brushType",
+        "member:KisBrushModel::PredefinedBrushData::resourceSignature",
+        "member:KisBrushModel::PredefinedBrushData::scale",
+        "member:KisBrushModel::PredefinedBrushData::subtype",
+        "struct:KisBrushModel::PredefinedBrushData"
+      ]
+    },
+    {
+      "target": "KisBrushModelValuesContractTest",
+      "source": "libs/brush/tests/KisBrushModelValuesContractTest.cpp",
+      "test": "KisBrushModelValuesContractTest::predefinedBrushAdjustmentSchemaRemainsStable",
+      "behavior": "定義済みbrush値は色・透明度、明るさ・contrast、中間点、寄生選択の調整スキーマと等値比較を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisBrushModel::operator ==(const PredefinedBrushData & lhs,const PredefinedBrushData & rhs)",
+        "member:KisBrushModel::PredefinedBrushData::adjustmentMidPoint",
+        "member:KisBrushModel::PredefinedBrushData::autoAdjustMidPoint",
+        "member:KisBrushModel::PredefinedBrushData::brightnessAdjustment",
+        "member:KisBrushModel::PredefinedBrushData::contrastAdjustment",
+        "member:KisBrushModel::PredefinedBrushData::hasColorAndTransparency",
+        "member:KisBrushModel::PredefinedBrushData::parasiteSelection"
+      ]
+    },
+    {
+      "target": "KisBrushModelValuesContractTest",
+      "source": "libs/brush/tests/KisBrushModelValuesContractTest.cpp",
+      "test": "KisBrushModelValuesContractTest::brushAggregateSchemaRemainsStable",
+      "behavior": "brush集約値は共通値と形式を持ち、自動・定義済み・text brush値を形式別に保持する公開スキーマを維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisBrushModel::BrushData::autoBrush",
+        "member:KisBrushModel::BrushData::common",
+        "member:KisBrushModel::BrushData::predefinedBrush",
+        "member:KisBrushModel::BrushData::textBrush",
+        "member:KisBrushModel::BrushData::type",
+        "struct:KisBrushModel::BrushData"
+      ]
+    },
+    {
+      "target": "KisBrushModelValuesContractTest",
+      "source": "libs/brush/tests/KisBrushModelValuesContractTest.cpp",
+      "test": "KisBrushModelValuesContractTest::brushPersistenceSignaturesRemainStable",
+      "behavior": "brush集約値は設定への書込みと資源interfaceを用いた設定からの読込みについて公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisBrushModel::BrushData::read(const KisPropertiesConfiguration * settings,KisResourcesInterfaceSP resourcesInterface)",
+        "method:KisBrushModel::BrushData::write(KisPropertiesConfiguration * settings) const"
+      ]
+    },
+    {
+      "target": "KisBrushModelValuesContractTest",
+      "source": "libs/brush/tests/KisBrushModelValuesContractTest.cpp",
+      "test": "KisBrushModelValuesContractTest::brushSizingAndPolicySignaturesRemainStable",
+      "behavior": "brush模型はLOD制約、有効寸法の算定・設定、明度方式、集約値の等値比較について公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisBrushModel::brushLodLimitations(const BrushData & data)",
+        "function:KisBrushModel::effectiveSizeForBrush(BrushType type,const AutoBrushData & autoBrush,const PredefinedBrushData & predefinedBrush,const TextBrushData & textBrush)",
+        "function:KisBrushModel::effectiveSizeForBrush(const BrushData & brush)",
+        "function:KisBrushModel::lightnessModeActivated(BrushType type,const PredefinedBrushData & predefinedBrush)",
+        "function:KisBrushModel::operator ==(const BrushData & lhs,const BrushData & rhs)",
+        "function:KisBrushModel::setEffectiveSizeForBrush(const BrushType type,AutoBrushData & autoBrush,PredefinedBrushData & predefinedBrush,TextBrushData & textBrush,qreal value)"
       ]
     }
   ]
