@@ -236,6 +236,18 @@ target_include_directories(KStandardActionEnumContractTest PRIVATE
 )
 target_compile_definitions(KStandardActionEnumContractTest PRIVATE kritawidgetutils_EXPORTS)
 
+kis_add_test(
+    KXMLGUIClientSchemaContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KXMLGUIClientSchemaContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/../xmlgui
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+)
+target_compile_definitions(KXMLGUIClientSchemaContractTest PRIVATE kritawidgetutils_EXPORTS)
+
 kis_add_test(KKeySequenceWidgetSchemaContractTest.cpp
     LINK_LIBRARIES Qt${QT_MAJOR_VERSION}::Gui Qt${QT_MAJOR_VERSION}::Test)
 target_include_directories(KKeySequenceWidgetSchemaContractTest PRIVATE
