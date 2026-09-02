@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 10:02 JST
+- 更新日時: 2026-09-02 10:03 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -37,6 +37,34 @@
 - 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから契約先または移動先、許可path、
   固有停止条件、比較候補の棄却根拠を含む。既存`build/tdd-macos`の計画は読み取り専用で測定し、構成や構築を開始しない。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを
   担当票へ進める。
+
+### 第143便の担当計画
+
+- 実装共通基点は`f891a7f26aeda5e923ef34bb304701777dae3650`である。icon utility、shape factory、chunk allocator担当は`assigned`、構築許可は指定試験targetと軽量近傍だけの`granted`、
+  Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、専用worktree-local `build/tdd-macos`と主作業treeの
+  `/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。統合順はicon utility、shape factory、chunk allocatorとし、調整担当だけが`AGENTS.md`、architecture文書、
+  `docs/architecture/public-api-test-contracts.json`、共通不足報告を変更する。3担当の公開header、所有CMake、試験source、生成物は重ならない。
+- `g143-icon-utils-schema`は`/Users/masato/Documents/librepaint-g143-icon-utils-schema`を所有する。開始`libs/widgetutils/kis_icon_utils.h`の全27 APIから既存
+  `libs/widgetutils/tests/KisCursorSchemaContractTest.cpp`の5枠`iconStandardSizeSchemaRemainsStable`、`iconGroupSchemaRemainsStable`、`iconLoadingThemeAndCacheSignaturesRemainStable`、
+  `iconObjectAndActionUpdateSignaturesRemainStable`、`iconContainerUpdateSignaturesRemainStable`へ対応付ける。許可pathは既存試験sourceだけで、CMakeを変更しない。対象は現在4工程・8入力、変更後上限
+  5工程・11入力、近傍は`KColorSchemeEnumContractTest`、製品`kritawidgetutils`は274工程・581入力と担当tree内の変更前後集合完全一致を確認する。未知5枠、対象CTest、20回反復、既存cursor枠と
+  近傍、無作業再構築、動的接続、未解決icon utility・theme・cache・widget記号、構文・変更行書式、公開API・`verify-quick`を確認する。icon、widget、applicationを生成し、theme・cache・
+  filesystem・画像読込み・widget更新・event loop・signal配送を実行し、Qt Widgets、製品source・OBJECT・shared、`kritatestsdk`、新link/include依存、CMake・公開header変更、製品計画差、
+  停止線超過が必要なら止める。
+- `g143-shape-factory-schema`は`/Users/masato/Documents/librepaint-g143-shape-factory-schema`を所有する。開始`libs/flake/KoShapeFactoryBase.h`の全26 APIから既存
+  `libs/flake/tests/KoShapeEnumContractTest.cpp`の5枠`shapeTemplateValueSchemaRemainsStable`、`shapeFactoryIdentityAndLifecycleSignaturesRemainStable`、`shapeFactoryMetadataSignaturesRemainStable`、
+  `shapeFactoryLoadingAndResourceSignaturesRemainStable`、`shapeFactoryCreationSignaturesRemainStable`へ対応付ける。許可pathは既存試験sourceだけで、CMakeを変更しない。不足API外のprotected setter補助検査は
+  追加しない。対象は現在4工程・8入力、変更後上限5工程・11入力、近傍は`KoSvgTextEnumContractTest`、製品`kritaflake`は621工程・1,274入力と担当tree内の変更前後集合・保留集合の完全一致を
+  確認する。未知5枠、対象CTest、20回反復、既存shape列挙3枠と近傍、無作業再構築、動的接続、未解決factory・vtable・metaobject・shape記号、構文・変更行書式、公開API・`verify-quick`を
+  確認する。factory・派生probe・shape・properties・option panel・資源manager・DOM・読込みcontextを生成し、plugin・registry・document資源・XML・signalを実行し、製品source・OBJECT・shared、
+  `kritatestsdk`、新link/include依存、CMake・公開header変更、製品計画差、停止線超過が必要なら止める。
+- `g143-chunk-allocator-schema`は`/Users/masato/Documents/librepaint-g143-chunk-allocator-schema`を所有する。開始`libs/image/tiles3/swap/kis_chunk_allocator.h`の全26 APIから新規
+  `libs/image/tiles3/tests/KisChunkAllocatorSchemaContractTest.cpp`の5枠`chunkContainerTypeSchemaRemainsStable`、`chunkDataIntervalSchemaRemainsStable`、`chunkHandleSchemaRemainsStable`、
+  `chunkAllocatorLifetimeAndCapacitySchemaRemainsStable`、`chunkAllocatorOperationSchemaRemainsStable`へ対応付ける。許可pathは新規試験sourceと`libs/image/tiles3/tests/CMakeLists.txt`だけである。直接linkは
+  Qt Core・Testだけ、includeはimage source・generated headerだけとし、新対象4工程・8入力、停止5工程・11入力、近傍は`KisImageTypesContractTest`、製品`kritaimage`は1,196工程・2,416入力と
+  担当tree内の変更前後集合完全一致を確認する。未知target、5枠、対象CTest、20回反復、近傍、無作業再構築、動的接続、未解決chunk・allocator・list割当記号、構文・変更行書式、公開API・
+  `verify-quick`を確認する。chunk・list・iterator・allocatorを生成し、inline本文・iterator参照・memory割当・swap I/O・debug・assert・stderrを実行し、`kis_chunk_allocator.cpp`、製品source・
+  OBJECT・shared、`kritatestsdk`、新非header依存、公開header変更、製品計画差、停止線超過が必要なら止める。
 
 ### 第142便の先行監査計画
 
