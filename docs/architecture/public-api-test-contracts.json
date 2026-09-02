@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 15187
+    "expectedMissingApis": 15162
   },
   "contracts": [
     {
@@ -42395,6 +42395,76 @@
         "method:KisImageSignalRouter::sigRequestNodeReselection(KisNodeSP activeNode,const KisNodeList & selectedNodes)",
         "method:KisImageSignalRouter::sigResolutionChanged(double xRes,double yRes)",
         "method:KisImageSignalRouter::sigSizeChanged(const QPointF & oldStillPoint,const QPointF & newStillPoint)"
+      ]
+    },
+    {
+      "target": "GridConfigSchemaContractTest",
+      "source": "libs/libkis/tests/GridConfigSchemaContractTest.cpp",
+      "test": "GridConfigSchemaContractTest::guidesConfigIdentityAndConstructionSchemaRemainsStable",
+      "behavior": "script公開guide設定は内部guide設定または任意のQObject親から構築できるQObject由来の公開型として仮想破棄を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:GuidesConfig",
+        "method:GuidesConfig::GuidesConfig(KisGuidesConfig * guidesConfig)",
+        "method:GuidesConfig::GuidesConfig(QObject * parent=0)",
+        "method:GuidesConfig::~GuidesConfig()"
+      ]
+    },
+    {
+      "target": "GridConfigSchemaContractTest",
+      "source": "libs/libkis/tests/GridConfigSchemaContractTest.cpp",
+      "test": "GridConfigSchemaContractTest::guidesConfigComparisonAndSerializationSignaturesRemainStable",
+      "behavior": "script公開guide設定は位置・表示状態を比較し、XML文字列から読込み・書出しする公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:GuidesConfig::fromXml(const QString & xmlContent) const",
+        "method:GuidesConfig::operator !=(const GuidesConfig & other) const",
+        "method:GuidesConfig::operator ==(const GuidesConfig & other) const",
+        "method:GuidesConfig::toXml() const"
+      ]
+    },
+    {
+      "target": "GridConfigSchemaContractTest",
+      "source": "libs/libkis/tests/GridConfigSchemaContractTest.cpp",
+      "test": "GridConfigSchemaContractTest::guidesConfigPresentationSignaturesRemainStable",
+      "behavior": "script公開guide設定は線色と線種を照会・設定する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:GuidesConfig::color() const",
+        "method:GuidesConfig::lineType() const",
+        "method:GuidesConfig::setColor(const QColor & color) const",
+        "method:GuidesConfig::setLineType(const QString & lineType)"
+      ]
+    },
+    {
+      "target": "GridConfigSchemaContractTest",
+      "source": "libs/libkis/tests/GridConfigSchemaContractTest.cpp",
+      "test": "GridConfigSchemaContractTest::guidesConfigPositionSignaturesRemainStable",
+      "behavior": "script公開guide設定は水平・垂直guide位置の一覧、存在、別設定との位置一致を扱う公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:GuidesConfig::hasGuides() const",
+        "method:GuidesConfig::hasSamePositionAs(const GuidesConfig & guideConfig) const",
+        "method:GuidesConfig::horizontalGuides() const",
+        "method:GuidesConfig::setHorizontalGuides(const QList<qreal> & lines)",
+        "method:GuidesConfig::setVerticalGuides(const QList<qreal> & lines)",
+        "method:GuidesConfig::verticalGuides() const"
+      ]
+    },
+    {
+      "target": "GridConfigSchemaContractTest",
+      "source": "libs/libkis/tests/GridConfigSchemaContractTest.cpp",
+      "test": "GridConfigSchemaContractTest::guidesConfigInteractionStateSignaturesRemainStable",
+      "behavior": "script公開guide設定は全guide削除と表示・lock・snap状態の照会・設定について公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:GuidesConfig::locked() const",
+        "method:GuidesConfig::removeAllGuides()",
+        "method:GuidesConfig::setLocked(const bool value)",
+        "method:GuidesConfig::setSnap(const bool value)",
+        "method:GuidesConfig::setVisible(const bool value)",
+        "method:GuidesConfig::snap() const",
+        "method:GuidesConfig::visible() const"
       ]
     }
   ]

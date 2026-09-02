@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 11:41 JST
+- 更新日時: 2026-09-02 11:46 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -47,7 +47,7 @@
 
 ### 第146便の担当計画
 
-- 元3担当の実装共通基点は`1b0505cd72`、metadata store代替担当の共通基点は`5597ddb3a6`である。image signal router担当は`integrated`、libkis guides config担当は`ready`、ASL XML writer担当は`rejected`、
+- 元3担当の実装共通基点は`1b0505cd72`、metadata store代替担当の共通基点は`5597ddb3a6`である。image signal routerとlibkis guides config担当は`integrated`、ASL XML writer担当は`rejected`、
   metadata store担当は`implementing`、
   構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの
   `transport-commit`、追加委任は禁止する。対象platformはmacOSであり、専用worktree-local `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。
@@ -73,7 +73,8 @@
 - `g146-metadata-store-schema`は`/Users/masato/Documents/librepaint-g146-metadata-store-schema`を所有する。開始`libs/painting/metadata/kis_meta_data_store.h`の全27 APIから新規
   `libs/painting/metadata/tests/KisMetaDataStoreSchemaContractTest.cpp`の5枠`metaDataStoreIdentityAndLifecycleSignaturesRemainStable`、`metaDataStoreEntryMutationSignaturesRemainStable`、
   `metaDataStoreLookupSignaturesRemainStable`、`metaDataStoreQuerySignaturesRemainStable`、`metaDataStoreIterationFilterAndDebugSignaturesRemainStable`へ対応付ける。許可pathは新規試験sourceと
-  `libs/painting/metadata/tests/CMakeLists.txt`だけである。同ownerの`kis_meta_data_entry.h`を先行includeし、直接linkはQt Core・Testだけ、includeはpainting metadata source・generatedだけとする。新対象4工程・8入力、
+  `libs/painting/metadata/tests/CMakeLists.txt`だけである。同ownerの`kis_meta_data_entry.h`を先行includeし、直接linkはQt Core・Testだけ、includeはpainting metadata source・generatedと、entry headerが`kis_debug.h`を
+  直接要求するglobal source・generatedだけとする。新対象4工程・8入力、
   停止5工程・11入力、近傍は`KisMetaDataTagsContractTest`、製品`kritapaintingmetadata`は294工程・619入力と担当tree内の変更前後集合完全一致を確認する。未知target、5枠、対象CTest、20回反復、近傍、無作業再構築、
   動的接続、未解決store・entry・schema・filter記号、構文・変更行書式、公開API・`verify-quick`を確認する。store、entry、schema、filter、value、QHash、QListを生成し、method本文・filter・registry・大域状態を実行し、
   Qt Gui・Xml・KF、製品source・OBJECT・shared、`kritatestsdk`、`kis_meta_data_store.cpp`、新非header依存、公開header変更、製品計画差、停止線超過が必要なら止める。
@@ -85,6 +86,11 @@
   製品`kritaimage` 1,196工程・2,416入力を維持した。router、image、node、profile、color space、emit・slot・signal・metaobject・event loopを生成または実行していない。担当macOS環境と中央環境で5枠と
   既存image型枠を含む対象CTest・20回反復、近傍`KisImageConfigAnimationSchemaContractTest`、無作業再構築、動的接続・未解決記号、自動MOC入力、構文・書式、公開API検査に成功した。中央の公開API契約検査は
   29,838件中14,651件対応、15,187件未対応となる。作業tree 879,964 KiBと担当branchは削除した。通知配送とevent loopの実行時挙動は別の効果契約で扱う。
+- `g146-guides-config-schema`は受渡しcommit`5430b682e730`を統合commit`7e4b4206fd`として取り込んだ。開始`libs/libkis/GuidesConfig.h`から既存
+  `libs/libkis/tests/GridConfigSchemaContractTest.cpp`の5枠へ、型・構築、比較・直列化、表示、位置、対話状態の25 APIを対応付けた。公開headerから直接要求される`KoUnit.h`の所有元であるglobal source・generatedを
+  対象固有のPRIVATE探索先へ追加し、linkと製品依存を変更せず対象4工程・8入力、製品`kritalibkis` 2,018工程・4,034入力を維持した。GuidesConfig、内部guide値、QObject、QColor、QList、比較・位置・表示・lock・
+  snap・XML処理を生成または実行していない。担当macOS環境と中央環境で5枠と既存grid枠を含む対象CTest・20回反復、近傍`AngleSelectorSchemaContractTest`、再構築時のcompile・linkなし、動的接続・未解決記号、
+  構文・書式、公開API検査に成功した。中央の公開API契約検査は29,838件中14,676件対応、15,162件未対応となる。作業tree 875,608 KiBと担当branchは削除した。比較、XML、guide状態変更の実行時挙動は別の効果契約で扱う。
 
 ### 第145便の先行監査計画
 
