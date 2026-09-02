@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 20:17 JST
+- 更新日時: 2026-09-02 20:33 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -40,7 +40,7 @@
 
 ### 第161便の担当計画
 
-- 実装共通基点は`5208912f2b`である。3担当は`implementing`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、
+- 実装共通基点は`5208912f2b`である。3担当は`integrated`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、
   専用worktree-local `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。統合順はmemento manager、resource bundle、paintop optionとし、調整担当だけが
   `AGENTS.md`、architecture文書、`docs/architecture/public-api-test-contracts.json`、共通不足報告を変更する。3担当の公開header、所有CMake、試験source、生成物は重ならない。
 - `g161-memento-manager-schema`は`/Users/masato/Documents/librepaint-g161-memento-manager-schema`を所有する。開始`libs/image/tiles3/kis_memento_manager.h`の全26 APIから新規
@@ -67,6 +67,29 @@
   AUTOMOC入力へ加えない。新対象4工程・8入力、停止5工程・11入力、近傍`KisPaintOpOptionsModelContractTest`、製品`kritatoolsui` 1,249工程・2,518入力の変更前後集合完全一致を確認する。unknown target・CTest 0件、新5枠、対象CTest・
   20回反復、近傍、無作業再構築、動的接続・AUTOMOC入力・未解決option記号、構文・書式、公開API・`verify-quick`を確認する。QObject、widget、lager state、image、node、resource、設定、LOD reader、signalを生成または実行し、Qt Widgets link、
   製品source・OBJECT・shared、`kritatestsdk`、新しい非header依存、公開header変更、製品計画差、停止線超過が必要なら止める。
+
+### 第161便の統合結果
+
+- `g161-memento-manager-schema`は受渡しcommit`e37439d39e`を統合commit`a14d57d665`として取り込んだ。開始`libs/image/tiles3/kis_memento_manager.h`から新規
+  `libs/image/tiles3/tests/KisMementoManagerSchemaContractTest.cpp`の5枠へ、alias・所有class、履歴項目値、寿命・現在revision、tile登録・commit、履歴移動・保守の全26 APIを対応付けた。
+  直接linkはQt Core・Testだけ、Core5Compatは公開header解釈用interface includeだけとした。対象4工程・8入力、製品`kritaimage` 1,196工程・2,416入力の命令・入力集合を維持した。担当macOS環境でunknown target・CTest 0件、
+  新5枠、対象CTest・20回反復、近傍`KisTileDataSchemaContractTest`、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式、公開API検査、`verify-quick`に成功した。中央環境でも対象だけを構築・実行し、
+  台帳commit`13ebbbb414`で29,838件中16,163件対応、13,675件未対応となった。manager、履歴、tile、allocatorの実行時効果は別契約で扱う。
+- `g161-resource-bundle-schema`は受渡しcommit`0b3954fc91`を統合commit`f1f18ba8dd`として取り込んだ。開始`libs/resources/KoResourceBundle.h`から新規
+  `libs/resources/tests/KoResourceBundleSchemaContractTest.cpp`の5枠へ、identity・寿命、metadata・thumbnail、永続化、資源inventory、manifest・tagの全25 APIを対応付けた。metadata既定値と資源追加の2既定引数省略形も固定した。
+  直接linkはQt Core・Gui・Xml・Testだけ、KF I18nは公開header解釈用interface includeだけとした。対象4工程・8入力、製品`kritaresources` 150工程・327入力の命令・入力集合を維持した。担当macOS環境でunknown target・CTest 0件、
+  新5枠、対象CTest・20回反復、近傍`KisResourceModelEnumContractTest`、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式、公開API検査、`verify-quick`に成功した。中央環境でも対象だけを構築・実行し、
+  台帳commit`a98ab55c60`で29,838件中16,188件対応、13,650件未対応となった。bundle、manifest、資源、tag、store、device、filesystemの実行時効果は別契約で扱う。
+- `g161-paintop-option-schema`は受渡しcommit`310aaa66eb`を統合commit`97d2e5d1ce`として取り込んだ。開始`libs/tools/ui/kis_paintop_option.h`から新規
+  `libs/tools/ui/tests/KisPaintOpOptionSchemaContractTest.cpp`の5枠へ、型・category、構築・寿命、状態・識別、文脈・設定、LOD・通知の全32 APIを対応付けた。category序数とoptional reader aliasも固定した。
+  直接linkはQt Core・Testだけ、Qt Widgets、KF I18n、Eigen、Imathと所有headerの探索先はinterface includeだけとした。対象4工程・8入力、製品`kritatoolsui` 1,249工程・2,518入力の命令・入力集合を維持した。担当macOS環境でunknown target・
+  CTest 0件、新5枠、対象CTest・20回反復、近傍`KisPaintOpOptionsModelContractTest`、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式、公開API検査、`verify-quick`に成功した。中央環境でも対象だけを構築・実行し、
+  台帳commit`e9fac6a927`で29,838件中16,220件対応、13,618件未対応となった。widget、lager状態、画像、node、資源、設定処理、LOD算定、通知配送の実行時効果は別契約で扱う。
+- 第161便全体で83 APIを15枠へ重複なく対応付け、3担当のcleanな作業treeと担当branchを削除して計2,641,444 KiB（約2.52 GiB）を回収した。公開API台帳、構造方針、文書、link、D2再生成を含む
+  `verify-quick`は成功した。旧不足報告`public-api-missing-g161.json`をごみ箱へ移し、主Ninja木5,635,676 KiB、共有compiler cache 982,956 KiB、最新不足報告
+  `build/tdd-macos/public-api-missing-g162.json`だけを再利用対象として保持する。製品、全体、Linuxの完了検証は実施していない。
+- コマンド利用法の確認時に`./scripts/run-test --help`を誤って対象名として渡し、全体構築計画5,974工程を開始した。13工程目までに既存製品側の`kritaresourceui`未解決記号と`KoCssStylePreset.cpp`の不完全型診断で停止した。
+  その後の第161便検証は3つの限定対象だけを指定して成功しており、この誤実行は契約結果に影響しない。次の永続作業は第162便の不足報告から、既存限定対象を優先してpathと所有CMakeが重ならない3責務を先行監査することである。
 
 ### 第160便の先行監査計画
 
@@ -16882,7 +16905,7 @@
 
 ## 次の操作
 
-`build/tdd-macos/public-api-missing-g121.json`から第121並列便の非重複候補を3担当で監査する。第120便の対象を除外し、欠陥疑いの比較・診断、
+`build/tdd-macos/public-api-missing-g162.json`から第162並列便の非重複候補を3担当で監査する。第161便の対象を除外し、欠陥疑いの比較・診断、
 資源registry、設定I/O、生pointer所有へ到達する経路は保留する。別の所有pathから25 API以上を最大5枠、限定対象か一sourceの一対一構築所有で
 固定できる候補を優先し、担当票の確定前に変更なし計画、直接依存、予測閉包、製品共有ライブラリー・`kritatestsdk`非接続、許可pathと停止線を照合する。
 
