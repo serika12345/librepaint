@@ -642,6 +642,18 @@ target_include_directories(KoShapeEnumContractTest PRIVATE
 target_compile_definitions(KoShapeEnumContractTest PRIVATE kritaflake_EXPORTS)
 
 kis_add_test(
+    KoShapeSavingContextSchemaContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KoShapeSavingContextSchemaContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+)
+target_compile_definitions(KoShapeSavingContextSchemaContractTest PRIVATE kritaflake_EXPORTS)
+
+kis_add_test(
     KoSvgTextEnumContractTest.cpp
     LINK_LIBRARIES
         Qt${QT_MAJOR_VERSION}::Gui
