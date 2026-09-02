@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 19:28 JST
+- 更新日時: 2026-09-02 19:33 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -27,6 +27,11 @@
 - 代替の`g160-psd-xml-writer-text-brush-schema-audit`は基点`05763bf8eb`で`libs/psdutils/asl/kis_asl_xml_writer.h`の未対応28 APIを主候補とし、`libs/brush/kis_text_brush.h`の未対応28 APIを比較する。ASL XML記述器または
   text brushの型・寿命・階層・scalar・geometry・色・pattern・gradient・文字・描画署名面を、XML document・device・pattern・gradient・brush・paint device・font・signal・metaobject・大域状態の実体化なしで閉じる。
   前記共通条件、報告項目、読み取り専用範囲を引き継ぎ、pathと所有CMakeが採用済み画像・widgetutils候補に重ならないことを確認する。
+- `g160-psd-xml-writer-text-brush-schema-audit`も両候補を棄却した。`KisAslXmlWriter`の28 APIは単一責務だが、公開header閉包がpattern・resource・gradient・色を経てQt Gui・KF I18n・Imathの追加探索を要し、
+  第146便から変わらない過大なコンパイル閉包を持つ。`KisTextBrush`はidentity、資源I/O、stroke、dab・mask、text・font・pipeへ28 APIが分散し、単一責務は最大8 APIである。
+- 再代替の`g160-flake-shape-svg-loading-context-schema-audit`は基点`d3702aebf8`で`libs/flake/KoShapeLoadingContext.h`の未対応29 APIを主候補とし、`libs/flake/svg/SvgLoadingContext.h`の未対応26 APIを比較する。shapeまたはSVG読込contextの
+  型・寿命・追加属性値・store・資源・layer・shape識別・共有data・style・XML base・外部file取得署名面を、store・shape・resource・XML・CSS・filesystem・network・signal・metaobject・大域状態の実体化なしで閉じる。
+  前記共通条件、報告項目、読み取り専用範囲を引き継ぎ、採用済み画像・widgetutils候補とpath、CMake、生成物が重ならないことを確認する。
 
 ### 第159便の先行監査計画
 
