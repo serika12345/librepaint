@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 18:46 JST
+- 更新日時: 2026-09-02 18:50 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -22,6 +22,23 @@
   型・寿命・値・選択・表示方針・入力・通知面を、widget・gradient・色・resource・painter・event・dialog・signal・metaobject・GUI event loop・大域状態の実体化なしで閉じる。
 - 各報告は完全なAPI識別子、既定引数観測、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから契約先または移動先、許可path、固有停止条件、
   比較候補の棄却根拠を含む。既存`build/tdd-macos`の計画は読み取り専用で測定し、構成や構築を開始しない。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
+- `g159-libkis-krita-file-dialog-schema-audit`は`libs/libkis/FileDialog.h`の全27 APIを採用した。型・dialog mode値9、寿命・場所5、filter設定5、選択結果4、static選択入口4を新規
+  `libs/libkis/tests/FileDialogSchemaContractTest.cpp`の5枠へ対応付ける。7 modeの序数だけを具体値で、構築・場所・filter・static入口の既定引数省略形を未評価式で固定する。直接linkはQt Core・Testだけ、新対象4工程・8入力、
+  停止5工程・11入力を予測し、製品`kritalibkis` 2,018工程・4,034入力を維持する。近傍`ViewSchemaContractTest`の命令集合hashは`1c363eb3e47201fe2c50b2572d1e8d6e99c1ba6bb16890d2a1e14982019e77f5`、
+  入力集合hashは`255b615ee55a05d59bb6dfb3f3a3dd3751e4e108172f468ab6157f279e806586`、製品命令集合hashは`8ff79f6698872991292e369d6951ccd156a8863b8c05b01ec2599edba75e91ab`、入力集合hashは
+  `c7d3d05a6481dae255bd0e55d6a0c3db9f35146efe125ad093974e94bb69ad03`である。`Krita.h`はapplication singleton、document・window・view、action、filter・色・profile登録、resource、設定、filesystemへ責務が分散し、
+  単一責務25 APIへ閉じないため棄却した。
+- `g159-image-mask-group-layer-schema-audit`は`libs/image/kis_group_layer.h`の全32 APIを採用した。所有・寿命・階層6、画像・座標・device 9、composition・visitor 6、表示・方針7、子bounds 4を既存
+  `libs/image/tests/KisImageTypesContractTest.cpp`の5枠へ対応付ける。色空間省略構築も未評価式で固定する。CMakeと直接依存を変えず対象4工程・8入力、停止5工程・11入力、製品`kritaimage` 1,196工程・2,416入力を維持する。
+  対象命令集合hashは`3e66227252e2031040d70686ca122fb2b8113bd1c160d0f1008d1476518f3b52`、入力集合hashは`42c0bdca62da9111fd79736a3055bd233ee32342bc2c9ae69fc577a83a88cf81`、
+  製品命令集合hashは`e055c792a96a6478029f98d6f7ef6eb7c32df4c7f228092ee25a0aaeff5be7ab`、入力集合hashは`76f2aa4251a6bf4e2adf2a1e822bc9d629753b2e93e5b877ee4eae23364940bc`である。
+  `kis_mask.h`は抽象多重継承とselection・paint device・projection plane・dirty rect・thumbnailを同時に含み、公開構築のprobeも大きくなるため棄却した。
+- `g159-ui-gradient-dual-color-schema-audit`は`libs/ui/widgets/gradient/KisSegmentGradientSlider.h`の全35 APIを採用した。handle型・値10、構築・選択5、移動・通知6、handle移動7、segment更新7を新規
+  `libs/ui/tests/KisSegmentGradientSliderSchemaContractTest.cpp`の5枠へ対応付ける。handle列挙序数、member型、`shrinkEpsilon`を具体値で、構築と6移動APIの既定引数省略形を未評価式で固定する。直接linkはQt Core・Gui・Testだけ、
+  新対象4工程・8入力、停止5工程・11入力を予測し、製品`kritaapplicationui` 1,970工程・3,940入力を維持する。近傍`KoGradientSegmentSchemaContractTest`の命令集合hashは
+  `b018b298403307bda4e71eee11a904d22740157e6fc0567bff07c9499a64af80`、入力集合hashは`ee89748c7e066cfd19124b285d8657a092b72f7328df51fe0893a0a0c28e906f`、製品命令集合hashは
+  `54a81e7f2dc46cb6b03d85bc5606456480d58d433d4acedf3a971d51508da391`、入力集合hashは`fadce0f47495bd67de7f32dd23bcb107bb18415503800cf48d62f14a425fb3ff`である。`KoDualColorButton.h`はcanvas resource provider、
+  display renderer、前景・背景色、公開pixmap・矩形状態、platform dialog、painter、drag-and-drop、色空間更新へ責務が広がるため棄却した。
 
 ### 第158便の先行監査計画
 
