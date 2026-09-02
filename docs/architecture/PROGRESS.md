@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 22:07 JST
+- 更新日時: 2026-09-02 22:24 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -57,6 +57,26 @@
   `plugins/tools/svgtexttool/tests/CMakeLists.txt`の対象固有節だけである。hover、装飾描画の2〜4引数形、property mergeの1〜3引数形、2 setterの1引数形を未評価式で固定する。直接linkはQt Core・Gui・Testだけ、includeはsvgtexttool、flake text・svg、global、pigment、resourcesのsource/generatedとQt Widgets・Xml、KF I18n、Boost・OpenEXR・Imath interface、definitionは所有exportだけとし、公開headerをsourceやAUTOMOC入力へ加えない。
   新対象4工程・8〜9入力、停止5工程・11入力、近傍`SvgTextCursorEnumContractTest`、製品`krita_tool_svgtext_static` 2,013工程・4,024入力の集合を監査基準として維持する。未知target・CTest 0件、新5枠、対象CTest・枠個別・20回反復、近傍、無作業再構築、動的接続・AUTOMOC入力・SVG text cursor未解決記号、構文・書式、公開API・`verify-quick`を確認する。
   cursor・property interface・canvas・shape・painter・action・property変更・描画・signal・metaobject・event loopを生成または実行し、製品targetを含む`build-incremental ... plan`、Qt Widgets・Xml・KF・OpenEXR・製品・`kritatestsdk`へのlink、公開header変更、停止線超過が必要なら止める。
+
+### 第164便の統合結果
+
+- `g164-xml-gui-window-schema`は受渡しcommit`f4993efd85`を統合commit`5b08252d0d`として取り込んだ。開始`libs/widgetutils/xmlgui/kxmlguiwindow.h`から既存
+  `libs/widgetutils/tests/KKeySequenceWidgetSchemaContractTest.cpp`の5枠へ、公開型・option、寿命・機能方針、GUI生成・設定、factory・確定、状態通知の全28 APIを対応付けた。公開headerの直接includeを満たすため
+  `libs/global`を対象固有のcompile-only探索先へ加え、linkと製品依存は増やしていない。担当macOS環境で旧binaryの新5枠Unknown、対象CTest・枠個別・20回反復、既存枠、近傍
+  `KStandardActionEnumContractTest`、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式、公開API検査、`verify-quick`に成功した。中央でも対象と近傍だけを実行し、台帳commit`f83803f297`で
+  29,838件中16,431件対応、13,407件未対応となった。window、widget、GUI factory、action、toolbar、設定backend、通知配送の実行時効果は別契約で扱う。
+- `g164-playback-engine-schema`は受渡しcommit`90e258d96b`を統合commit`1ee3eee103`として取り込んだ。開始`libs/ui/animation/KisPlaybackEngine.h`から新規
+  `libs/ui/tests/KisPlaybackEngineSchemaContractTest.cpp`の5枠へ、型・寿命・seek方針、統計値、transport・seek、keyframe移動、音声・drop方針・通知の全35 APIを対応付けた。所有する生成export headerを解釈するため
+  `libs/application`の生成先を対象固有のcompile-only探索先へ加え、直接linkはQt Core・Testだけに保った。担当macOS環境でunknown target・CTest 0件、新5枠、対象CTest・枠個別・20回反復、近傍
+  `KisAnimationFrameCacheFwdContractTest`、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式、公開API検査、`verify-quick`に成功した。中央でも対象と近傍だけを実行し、台帳commit`bb791bbb06`で
+  29,838件中16,466件対応、13,372件未対応となった。engine、timer、audio、image、canvas、通知配送の実行時効果は別契約で扱う。
+- `g164-svg-text-cursor-schema`は受渡しcommit`18cb3ce018`を統合commit`80d94546ee`として取り込んだ。開始`plugins/tools/svgtexttool/SvgTextCursor.h`から新規
+  `plugins/tools/svgtexttool/tests/SvgTextCursorPropertySchemaContractTest.cpp`の5枠へ、identity・shape、組版handle、文字属性bridge、属性interface照会、属性変更の全35 APIを対応付けた。直接linkはQt Core・Gui・Testだけに保った。
+  担当macOS環境でunknown target・CTest 0件、新5枠、対象CTest・枠個別・20回反復、近傍`SvgTextCursorEnumContractTest`、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式、公開API検査、
+  `verify-quick`に成功した。中央でも対象と近傍だけを実行し、台帳commit`54e55a11fb`で29,838件中16,501件対応、13,337件未対応となった。canvas、shape、painter、action、property変更、描画、通知配送の実行時効果は別契約で扱う。
+- 第164便全体で98 APIを15枠へ重複なく対応付けた。3担当のcleanな作業treeと担当branchを削除し、2,639,200 KiB（約2.52 GiB）を回収した。公開API台帳、構造方針、文書、link、D2再生成を含む
+  `verify-quick`は成功した。旧不足報告`public-api-missing-g164.json`をごみ箱へ移し、主Ninja木5,636,472 KiB、共有compiler cache 981,948 KiB、最新不足報告
+  `build/tdd-macos/public-api-missing-g165.json`だけを再利用対象として保持する。製品、全体、Linuxの構築は実施していない。次の永続作業は第165便の不足報告から、既存限定対象を優先してpathと所有CMakeが重ならない3責務を先行監査することである。
 
 ### 第163便の先行監査計画
 
