@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 15666
+    "expectedMissingApis": 15627
   },
   "contracts": [
     {
@@ -41151,6 +41151,90 @@
         "method:IccColorProfile::supportsPerceptual() const",
         "method:IccColorProfile::supportsRelative() const",
         "method:IccColorProfile::supportsSaturation() const"
+      ]
+    },
+    {
+      "target": "KoPointerEventSchemaContractTest",
+      "source": "libs/flake/tests/KoPointerEventSchemaContractTest.cpp",
+      "test": "KoPointerEventSchemaContractTest::pointerEventTypeLifetimeAndWrapperSchemaRemainsStable",
+      "behavior": "図形入力eventはmouse・tablet・touch・既存wrapperから文書座標を伴って構築でき、複製・代入・破棄と所有event参照の公開型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoPointerEvent",
+        "member:KoPointerEventWrapper::baseQtEvent",
+        "member:KoPointerEventWrapper::event",
+        "method:KoPointerEvent::KoPointerEvent(KoPointerEvent * event,const QPointF & point)",
+        "method:KoPointerEvent::KoPointerEvent(QMouseEvent * event,const QPointF & point)",
+        "method:KoPointerEvent::KoPointerEvent(QTabletEvent * event,const QPointF & point)",
+        "method:KoPointerEvent::KoPointerEvent(QTouchEvent * ev,const QPointF & pnt)",
+        "method:KoPointerEvent::KoPointerEvent(const KoPointerEvent & rhs)",
+        "method:KoPointerEvent::operator =(const KoPointerEvent & rhs)",
+        "method:KoPointerEvent::~KoPointerEvent()",
+        "method:KoPointerEventWrapper::KoPointerEventWrapper(Event * _event,const QPointF & point)",
+        "struct:KoPointerEventWrapper"
+      ]
+    },
+    {
+      "target": "KoPointerEventSchemaContractTest",
+      "source": "libs/flake/tests/KoPointerEventSchemaContractTest.cpp",
+      "test": "KoPointerEventSchemaContractTest::pointerEventRoutingAndAcceptanceSignaturesRemainStable",
+      "behavior": "図形入力eventの受理状態、発生経路、修飾key、button、時刻、tablet受信状態は正確な戻り型とconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoPointerEvent::accept()",
+        "method:KoPointerEvent::button() const",
+        "method:KoPointerEvent::buttons() const",
+        "method:KoPointerEvent::ignore()",
+        "method:KoPointerEvent::isAccepted() const",
+        "method:KoPointerEvent::modifiers() const",
+        "method:KoPointerEvent::spontaneous() const",
+        "method:KoPointerEvent::tabletInputReceived()",
+        "method:KoPointerEvent::time() const"
+      ]
+    },
+    {
+      "target": "KoPointerEventSchemaContractTest",
+      "source": "libs/flake/tests/KoPointerEventSchemaContractTest.cpp",
+      "test": "KoPointerEventSchemaContractTest::pointerEventPositionSignaturesRemainStable",
+      "behavior": "図形入力eventは文書座標、局所・大域整数座標、およびQt eventからの任意大域座標変換の公開型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KoPointerEvent::point",
+        "method:KoPointerEvent::fetchGlobalPositionFromPointerEvent(QEvent * event)",
+        "method:KoPointerEvent::globalPos() const",
+        "method:KoPointerEvent::pos() const",
+        "method:KoPointerEvent::x() const",
+        "method:KoPointerEvent::y() const"
+      ]
+    },
+    {
+      "target": "KoPointerEventSchemaContractTest",
+      "source": "libs/flake/tests/KoPointerEventSchemaContractTest.cpp",
+      "test": "KoPointerEventSchemaContractTest::pointerEventDeviceMeasurementSignaturesRemainStable",
+      "behavior": "図形入力eventの筆圧、回転、接線圧、傾き、高さ、およびtablet・touch分類は正確な数値・真偽型とconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoPointerEvent::isTabletEvent() const",
+        "method:KoPointerEvent::isTouchEvent() const",
+        "method:KoPointerEvent::pressure() const",
+        "method:KoPointerEvent::rotation() const",
+        "method:KoPointerEvent::tangentialPressure() const",
+        "method:KoPointerEvent::xTilt() const",
+        "method:KoPointerEvent::yTilt() const",
+        "method:KoPointerEvent::z() const"
+      ]
+    },
+    {
+      "target": "KoPointerEventSchemaContractTest",
+      "source": "libs/flake/tests/KoPointerEventSchemaContractTest.cpp",
+      "test": "KoPointerEventSchemaContractTest::pointerEventDeepCopyCompatibilitySignaturesRemainStable",
+      "behavior": "図形入力eventは所有可能なdeep copyを返し、Qt 5ではmouse・tablet・touch eventを所有先へ複製する互換署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoPointerEvent::copyQtPointerEvent(const QMouseEvent * event,QScopedPointer<QEvent> & dst)",
+        "method:KoPointerEvent::copyQtPointerEvent(const QTabletEvent * event,QScopedPointer<QEvent> & dst)",
+        "method:KoPointerEvent::copyQtPointerEvent(const QTouchEvent * event,QScopedPointer<QEvent> & dst)",
+        "method:KoPointerEvent::deepCopyEvent() const"
       ]
     }
   ]

@@ -35,7 +35,7 @@
 
 ### 第140便の担当計画
 
-- 実装共通基点は`b70725bdd17a8daec642d65a067f6e7f3aa201bd`である。resource locator、FFMpeg wrapper、pointer event担当は`assigned`、構築許可は指定試験targetと
+- 実装共通基点は`b70725bdd17a8daec642d65a067f6e7f3aa201bd`である。resource locator、FFMpeg wrapper、pointer event担当は`integrated`、構築許可は指定試験targetと
   軽量近傍だけの`granted`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、専用worktree-local `build/tdd-macos`と主作業treeの
   `/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。統合順はresource locator、FFMpeg wrapper、pointer eventとし、調整担当だけが`AGENTS.md`、
   architecture文書、`docs/architecture/public-api-test-contracts.json`、共通不足報告を変更する。3担当の公開header、所有CMake、試験source、生成物は重ならない。
@@ -75,6 +75,15 @@
   CMakeが新試験対象追加時に生成するdepfile識別子だけで、担当環境の正規化集合は前後一致した。wrapper・QObject・QProcess・codec・document・image・stream・method・signal・探索・
   外部processを生成または実行していない。担当macOS環境と中央環境で5枠・対象CTest・20回反復と近傍`KisMediaEncoderFormatAndSettingsContractTest`、担当環境で無作業再構築、動的接続・
   未解決記号、構文・書式、公開API検査、`verify-quick`に成功した。中央の公開API契約検査は29,838件中14,172件対応、15,666件未対応となる。作業tree 857 MiBと担当branchは削除した。
+- `g140-pointer-event-schema`は受渡しcommit`5ecce38ea3c7`を統合commit`40d806a156`として取り込んだ。開始`libs/flake/KoPointerEvent.h`から新規
+  `libs/flake/tests/KoPointerEventSchemaContractTest.cpp`の5枠へ、型・寿命・wrapper、routing・acceptance、位置、device計測、deep copy互換の39 APIを対応付けた。Qt 5限定のdeep-copy
+  overload 3件は公開headerと同じ条件で固定した。直接linkはQt Core/Testだけで、新対象4工程・8入力、製品`kritaflake` 621工程・1,274入力と両集合hashは監査値に一致した。pointer event・
+  wrapper・Qt入力event・method・GUI event loop・大域tablet状態を生成または実行していない。担当macOS環境と中央環境で5枠・対象CTest・20回反復と近傍
+  `KoCanvasResourceProviderSchemaContractTest`、担当環境で無作業再構築、動的接続・未解決記号、構文・書式、公開API検査、`verify-quick`に成功した。中央の公開API契約検査は29,838件中
+  14,211件対応、15,627件未対応となる。担当の局所構築木295,448 KiBを含む約862 MiBの作業treeとbranchは削除した。第140便全体で113 APIを追加し、3作業tree約2.54 GiBを回収した。
+  主Ninja木、共有compiler cache、最新不足報告`build/tdd-macos/public-api-missing-g141.json`だけを再利用対象として保持する。
+- 第140便の中央検証で生成され、GCから未参照と確認した`librepaint-source` 18件とその参照derivation 18件を明示pathで削除し、9,664.02 MiBを回収した。現在のtest環境が参照する
+  source 1件561 MiB、主Ninja木5.4 GiB、共有compiler cache 959 MiBを保持し、空き容量は29 GiBである。後続の限定検証は読み込み済みtest環境からrepository scriptを直接実行する。
 
 ### 第139便の先行監査計画
 
