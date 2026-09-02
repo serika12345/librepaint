@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 22:32 JST
+- 更新日時: 2026-09-02 22:34 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -31,6 +31,33 @@
 - `g165-libkis-shape-dual-color-schema-audit`は`libs/libkis/Shape.h`の全30 APIを採用した。型・寿命・identity 5、metadata・方針9、geometry・可視性8、更新・選択6、階層・SVG直列化2を既存
   `libs/libkis/tests/SelectionSchemaContractTest.cpp`の5枠へ対応付ける。親省略構築と`toSvg`の2省略形も未評価式で固定する。flake source/generatedだけをcompile-only探索先へ加え、直接linkはQt Core・Testだけ、対象4工程・8入力、停止5工程・11入力、
   製品`kritalibkis` 2,018工程・4,034入力を維持する。`KoDualColorButton.h`はwidget寿命、公開pixmap状態、色、dialog、paint、canvas resource、display renderer、大域singleton既定式、signalへ責務と閉包が広がるため比較棄却した。
+
+### 第165便の担当計画
+
+- 実装共通基点は`6ca76b9811`である。3担当は`implementing`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、専用worktree-local
+  `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。統合順はpixel selection、表示色変換、libkis shapeとし、調整担当だけが`AGENTS.md`、architecture文書、
+  `docs/architecture/public-api-test-contracts.json`、共通不足報告を変更する。3担当の公開header、所有CMake、試験source、生成物は重ならない。
+- `g165-pixel-selection-schema`は`/Users/masato/Documents/librepaint-g165-pixel-selection-schema`を所有する。開始`libs/image/kis_pixel_selection.h`の全33 APIから既存
+  `libs/image/tests/KisImageTypesContractTest.cpp`の5枠`pixelSelectionOwnershipCopyAndLifetimeSchemaRemainsStable`、`pixelSelectionMutationSignaturesRemainStable`、
+  `pixelSelectionGeometryAndOutlineCacheSignaturesRemainStable`、`pixelSelectionParentCloneAndProjectionSignaturesRemainStable`、`pixelSelectionThumbnailAndPersistenceSignaturesRemainStable`へ対応付ける。完全集合はclass・3構築子・破棄5、
+  選択値変更8、geometry・輪郭cache 9、親selection・clone・projection 6、thumbnail・read 5である。許可pathは既存試験sourceだけであり、CMake・公開header・製品sourceを変更しない。3構築子の0〜1引数省略形と`select(rect)`を未評価式で固定する。
+  対象4工程・8入力、停止5工程・11入力、近傍`KisImageConfigAnimationSchemaContractTest`、製品`kritaimage` 1,196工程・2,416入力の変更前後集合完全一致を確認する。旧binaryの新5枠Unknown、対象CTest・枠個別・20回反復、既存枠、近傍、
+  無作業再構築、動的接続・AUTOMOC入力・pixel selection・paint device・selection component未解決記号、構文・書式、公開API・`verify-quick`を確認する。selection、paint device、projection、輪郭、thumbnail、streamを生成または実行し、
+  CMake・依存・公開header・製品source変更、製品接続、停止線超過が必要なら止める。
+- `g165-display-color-transform-schema`は`/Users/masato/Documents/librepaint-g165-display-color-transform-schema`を所有する。開始`libs/canvas/color/kis_display_color_transform.h`の全33 APIから新規
+  `libs/canvas/tests/KisDisplayColorTransformSchemaContractTest.cpp`の5枠`displayColorTransformIdentityAndLifecycleSchemaRemainsStable`、`displayColorTransformConfigurationSignaturesRemainStable`、
+  `displayColorTransformColorConversionSignaturesRemainStable`、`displayColorTransformImageConversionSignaturesRemainStable`、`displayColorTransformComponentModelSignaturesRemainStable`へ対応付ける。完全集合はalias・class・構築・破棄4、表示設定8、
+  色変換7、画像変換4、色成分model 10である。許可pathは新規試験sourceと`libs/canvas/tests/CMakeLists.txt`の対象固有節だけである。色・画像変換と成分modelの全既定引数省略形を未評価式で固定する。直接linkはQt Core・Gui・Testだけ、includeは
+  canvas、image、pigment、globalのsource/generated、definitionは各所有exportだけとし、公開headerをsourceやAUTOMOC入力へ加えない。新対象4工程・8入力、停止5工程・11入力、近傍`KisDisplayColorFilterContractTest`、製品`kritacanvas`
+  1,220工程・2,460入力の集合を監査基準として維持する。unknown target・CTest 0件、新5枠、対象CTest・枠個別・20回反復、近傍、無作業再構築、動的接続・AUTOMOC入力・表示色変換・paint device未解決記号、構文・書式、公開API・
+  `verify-quick`を確認する。変換器、色、profile、色空間、filter、paint device、QImage、pixel bufferを生成または実行し、製品OBJECT・shared、`kritatestsdk`、Qt Widgets、色管理libraryへのlink、公開header変更、停止線超過が必要なら止める。
+- `g165-libkis-shape-schema`は`/Users/masato/Documents/librepaint-g165-libkis-shape-schema`を所有する。開始`libs/libkis/Shape.h`の全30 APIから既存
+  `libs/libkis/tests/SelectionSchemaContractTest.cpp`の5枠`shapeWrapperTypeLifetimeAndIdentitySchemaRemainsStable`、`shapeWrapperMetadataAndPolicySchemaRemainsStable`、
+  `shapeWrapperGeometryAndVisibilitySchemaRemainsStable`、`shapeWrapperLifecycleAndSelectionSchemaRemainsStable`、`shapeWrapperHierarchyAndSerializationSchemaRemainsStable`へ対応付ける。完全集合はclass・構築・破棄・比較2の5、metadata・方針9、geometry・可視性8、
+  更新・選択6、階層・SVG直列化2である。許可pathは既存試験sourceと`libs/libkis/tests/CMakeLists.txt`の対象固有節だけである。親省略構築と`toSvg`の0〜1引数形を未評価式で固定する。直接linkはQt Core・Testだけ、flake source/generatedを
+  compile-only探索先へ加え、definitionは`kritaflake_EXPORTS`だけを追加する。対象4工程・8入力、停止5工程・11入力、近傍`GridConfigSchemaContractTest`、製品`kritalibkis` 2,018工程・4,034入力の集合を監査基準として維持する。旧binaryの新5枠Unknown、
+  対象CTest・枠個別・20回反復、既存枠、近傍、無作業再構築、動的接続・AUTOMOC入力・Shape・KoShape・SVG未解決記号、構文・書式、公開API・`verify-quick`を確認する。wrapper、KoShape、document、canvas、選択、更新、SVG変換、metaobjectを生成または実行し、
+  flakeまたは製品libraryへのlink、製品OBJECT・shared、`kritatestsdk`、公開header変更、flake以外の新include閉包、停止線超過が必要なら止める。
 
 ### 第164便の先行監査計画
 
