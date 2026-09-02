@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 14:27 JST
+- 更新日時: 2026-09-02 14:42 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -40,7 +40,7 @@
 
 ### 第152便の担当計画
 
-- 実装共通基点は`a702dd87eb`である。3担当は`preparing`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、
+- 実装共通基点は`a702dd87eb`である。3担当は`integrated`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、
   専用worktree-local `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。統合順はtile data store、canvas座標変換、stop-gradientとし、調整担当だけが
   `AGENTS.md`、architecture文書、`docs/architecture/public-api-test-contracts.json`、共通不足報告を変更する。3担当の公開header、所有CMake、試験source、生成物は重ならない。
 - `g152-tile-data-store-schema`は`/Users/masato/Documents/librepaint-g152-tile-data-store-schema`を所有する。開始`libs/image/tiles3/kis_tile_data_store.h`の全33 APIから既存
@@ -63,6 +63,29 @@
   製品libraryへlinkしない。新対象4工程・8入力、停止5工程・11入力、近傍は`KoGradientSegmentSchemaContractTest`、製品`kritapigment`は367工程・764入力と担当tree内の変更前後集合完全一致を確認する。未知targetと5枠、
   対象CTest、5枠個別、20回反復、近傍、無作業再構築、動的接続・未解決gradient・resource・XML・device記号、構文・変更行書式、公開API・`verify-quick`を確認する。gradient、stop、resource、canvas resource、色変換、XML、device、
   inline・out-of-line本文を生成または実行し、`KoStopGradient.cpp`、製品source・OBJECT・shared、`kritatestsdk`、新非header依存、公開header変更、製品計画差、停止線超過が必要なら止める。
+
+### 第152便の統合結果
+
+- `g152-tile-data-store-schema`は受渡しcommit`e4090351c4`を統合commit`0fc56d4bf7`として取り込んだ。開始`libs/image/tiles3/kis_tile_data_store.h`から既存
+  `libs/image/tiles3/tests/KisTileDataSchemaContractTest.cpp`の5枠へ、型・memory値、singleton・統計、iterator、tile寿命、保守の33 APIを対応付けた。CMakeと直接依存を変更せず対象4工程・8入力、製品
+  `kritaimage` 1,196工程・2,416入力を維持した。store singleton、tile data、pooler、swapper、clock、iterator、memory I/Oとinline本文を生成または実行していない。担当macOS環境で旧binaryの新5枠
+  Unknown、新5枠、対象CTest・20回反復、近傍`KisTileSchemaContractTest`、無作業再構築、動的接続・未解決記号、構文・書式、公開API検査、`verify-quick`に成功した。中央環境でも対象CTest、公開API検査、
+  `verify-quick`に成功し、台帳commit`f1c2ece03f`で29,838件中15,262件対応、14,576件未対応となった。作業tree 876,944 KiBと担当branchは削除した。実singleton、memory、swap、clock動作は別の効果契約で扱う。
+- `g152-coordinates-converter-schema`は受渡しcommit`4c199aecae`を統合commit`bc19b6b546`として取り込んだ。開始`libs/canvas/kis_coordinates_converter.h`から新規
+  `libs/canvas/tests/KisCoordinatesConverterSchemaContractTest.cpp`の5枠へ、canvas状態、zoom・回転・mirror、変換・still point、image幾何、checker投影のout-of-line 68 APIを対応付け、
+  `libs/canvas/tests/CMakeLists.txt`へ独立対象を追加した。直接linkはQt Core・Gui・Testだけである。公開headerが直接includeする`kis_shared_ptr.h`の所有元を満たすためglobalのsource/generated includeと
+  `kritaglobal_EXPORTS`を局所対象へ追加したが、対象4工程・8入力、製品`kritacanvas` 1,220工程・2,460入力を維持した。converter、still point、image、canvas、変換・checker処理、inline・template本文を生成または
+  実行していない。担当macOS環境で未知targetと新5枠、新5枠、対象CTest・20回反復、近傍`KisFrameDataSerializerSchemaContractTest`、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式、
+  公開API検査、`verify-quick`に成功した。中央環境でも対象限定の構成更新と構築、CTest、公開API検査、`verify-quick`に成功し、台帳commit`699407e302`で29,838件中15,330件対応、14,508件未対応となった。
+  作業tree 880,144 KiBと担当branchは削除した。inline Traitsと14変換templateの18 API、および実変換値は別の契約で扱う。
+- `g152-stop-gradient-schema`は受渡しcommit`94cf6a6b79`を統合commit`da221075d2`として取り込んだ。開始`libs/pigment/resources/KoStopGradient.h`から新規
+  `libs/pigment/tests/KoStopGradientSchemaContractTest.cpp`の5枠へ、gradient stop型、stop値、gradient寿命・resource、stop集合・可変色、変換・永続化の40 APIを対応付け、
+  `libs/pigment/tests/CMakeLists.txt`へ独立対象を追加した。直接linkはQt Core・Gui・TestとBoost headerだけで、KF I18n・Imathはinclude interfaceに限定し、新対象4工程・8入力、製品`kritapigment`
+  367工程・764入力を維持した。gradient、stop、resource、canvas resource、色変換、XML、device、inline・out-of-line本文を生成または実行していない。担当macOS環境で未知targetと新5枠、新5枠、対象CTest・
+  20回反復、近傍`KoGradientSegmentSchemaContractTest`、無作業再構築、動的接続・未解決記号、構文・書式、公開API検査、`verify-quick`に成功した。中央環境でも対象限定の構成更新と構築、CTest、公開API検査、
+  `verify-quick`に成功し、台帳commit`e5bae2fc5b`で29,838件中15,370件対応、14,468件未対応となった。作業tree 876,668 KiBと担当branchは削除した。実gradient・resource・XML・device動作は別の効果契約で扱う。
+- 第152便全体で141 APIを15枠へ重複なく対応付け、3担当の作業tree計2,633,756 KiB（約2.51 GiB）を回収した。旧不足報告をTrashへ移し、主Ninja木5,606,676 KiB、共有compiler cache 983,332 KiB、
+  最新不足報告`build/tdd-macos/public-api-missing-g153.json`だけを再利用対象として保持する。次の永続作業は第153便の不足報告から、既存限定対象を優先してpathと所有CMakeが重ならない3責務を先行監査することである。
 
 ### 第151便の先行監査計画
 
