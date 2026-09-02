@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 14468
+    "expectedMissingApis": 14432
   },
   "contracts": [
     {
@@ -43969,6 +43969,87 @@
         "method:KoStopGradient::saveToDevice(QIODevice * dev) const",
         "method:KoStopGradient::toQGradient() const",
         "method:KoStopGradient::toXML(QDomDocument & doc,QDomElement & gradientElt) const"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::paintOpUpdatePropertyKeySchemaRemainsStable",
+      "behavior": "paint operation設定はairbrushとspacing更新を識別する公開property keyの文字列型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "variable:AIRBRUSH_ENABLED",
+        "variable:AIRBRUSH_IGNORE_SPACING",
+        "variable:AIRBRUSH_RATE",
+        "variable:SPACING_USE_UPDATES"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::paintOpCadenceAndLodPolicySignaturesRemainStable",
+      "behavior": "paint operation設定はairbrush間隔、spacing更新、非同期更新、LOD閾値の照会・更新に関する厳密な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPaintOpSettings::airbrushInterval() const",
+        "method:KisPaintOpSettings::isAirbrushing() const",
+        "method:KisPaintOpSettings::lodSizeThreshold() const",
+        "method:KisPaintOpSettings::lodSizeThresholdSupported() const",
+        "method:KisPaintOpSettings::needsAsynchronousUpdates() const",
+        "method:KisPaintOpSettings::setLodSizeThreshold(qreal value)",
+        "method:KisPaintOpSettings::useSpacingUpdates() const"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::paintOpDepositParameterSignaturesRemainStable",
+      "behavior": "paint operation設定はopacity、flow、fade、scatterの照会・更新に関する厳密な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPaintOpSettings::paintOpFade()",
+        "method:KisPaintOpSettings::paintOpFlow()",
+        "method:KisPaintOpSettings::paintOpOpacity()",
+        "method:KisPaintOpSettings::paintOpScatter()",
+        "method:KisPaintOpSettings::setPaintOpFade(qreal value)",
+        "method:KisPaintOpSettings::setPaintOpFlow(qreal value)",
+        "method:KisPaintOpSettings::setPaintOpOpacity(qreal value)",
+        "method:KisPaintOpSettings::setPaintOpScatter(qreal value)"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::paintOpGeometryCompositeAndEraserSignaturesRemainStable",
+      "behavior": "paint operation設定は合成方式、size、angle、pattern size、eraser modeの照会・更新に関する厳密な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPaintOpSettings::eraserMode()",
+        "method:KisPaintOpSettings::paintOpAngle() const",
+        "method:KisPaintOpSettings::paintOpCompositeOp()",
+        "method:KisPaintOpSettings::paintOpPatternSize()",
+        "method:KisPaintOpSettings::paintOpSize() const",
+        "method:KisPaintOpSettings::setEraserMode(bool value)",
+        "method:KisPaintOpSettings::setPaintOpAngle(qreal value)",
+        "method:KisPaintOpSettings::setPaintOpCompositeOp(const QString & value)",
+        "method:KisPaintOpSettings::setPaintOpSize(qreal value)"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::paintOpSavedBrushAndEraserValueSignaturesRemainStable",
+      "behavior": "paint operation設定は保存済みbrush・eraserのopacityとsizeを照会・更新する厳密な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPaintOpSettings::savedBrushOpacity() const",
+        "method:KisPaintOpSettings::savedBrushSize() const",
+        "method:KisPaintOpSettings::savedEraserOpacity() const",
+        "method:KisPaintOpSettings::savedEraserSize() const",
+        "method:KisPaintOpSettings::setSavedBrushOpacity(qreal value)",
+        "method:KisPaintOpSettings::setSavedBrushSize(qreal value)",
+        "method:KisPaintOpSettings::setSavedEraserOpacity(qreal value)",
+        "method:KisPaintOpSettings::setSavedEraserSize(qreal value)"
       ]
     }
   ]
