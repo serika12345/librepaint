@@ -27,6 +27,27 @@
   `libs/widgets/tests/KisGradientColorEditorSchemaContractTest.cpp`の5枠へ対応付ける。親省略構築も固定し、editor、Widget、色、gradient、signal、描画を実体化しない。直接linkはQt Core・Testだけ、Qt Gui・Widgetsはinterface includeだけとし、新対象4工程・8入力、停止5工程・11入力を維持する。
   libkis Node・Krita・Scratchpadは複数責務・大域状態・生pointer、色選択・stroke・tag Widget群は描画・event・資源登録、XML GUI・file dialog群は設定I/O・filesystem・生menu所有へ閉包が広がるため棄却した。
 
+### 第170便の担当計画
+
+- 実装共通基点は`a2b9729b6c`である。3担当は`implementing`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、専用worktree-local
+  `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。実装は並行し、最初の構成・構築枠は一度に1担当だけへ与える。開始時はedge detectionだけが構築`granted`、tool baseとgradient color editorは実装後に構築前で待機し、調整担当が前担当の中央統合構築完了を確認して順に許可する。
+  統合順はedge detection、tool base、gradient color editorとし、調整担当だけがarchitecture文書、公開API台帳、共通不足報告を変更する。3担当の公開header、所有CMake、試験source、生成物は重ならない。製品targetを引数にするplan/build、全体build、全体`verify`は禁止し、担当targetと近傍、公開API検査、`verify-quick`だけを実行する。
+- `g170-edge-detection-schema`は`/Users/masato/Documents/librepaint-g170-edge-detection-schema`を所有する。開始`libs/image/kis_edge_detection_kernel.h`の全21 APIから既存
+  `libs/image/tests/KisImageTypesContractTest.cpp`の5枠`edgeDetectionTypeAndFilterSchemaRemainsStable`、`edgeDetectionOutputPolicySchemaRemainsStable`、`edgeDetectionMatrixAndKernelCreationSignaturesRemainStable`、
+  `edgeDetectionRadiusConversionSignaturesRemainStable`、`edgeDetectionDeviceOperationSignaturesRemainStable`へ対応付ける。完全集合は型・filter 7、出力方針6、matrix・kernel生成4、radius変換2、device操作2である。許可pathは既存試験sourceだけで、CMake・依存・公開header・製品sourceを変更しない。
+  全既定引数省略形を未評価式で固定し、device、kernel、matrix、updaterを実体化しない。対象4工程・8入力、停止5工程・11入力、近傍`KisImageConfigAnimationSchemaContractTest`、製品`kritaimage` 1,196工程・2,416入力を維持する。旧binaryの新5枠Unknown、対象CTest・枠個別・20回反復、既存枠、近傍、無作業再構築、動的接続・AUTOMOC入力・edge・device・kernel未解決記号、構文・書式、公開API・`verify-quick`を確認する。
+  static関数本文を実行し、借用updaterを所有し、新規include・link、製品接続、停止線超過が必要なら止める。
+- `g170-tool-base-schema`は`/Users/masato/Documents/librepaint-g170-tool-base-schema`を所有する。開始`libs/flake/KoToolBase.h`の全60 APIから新規
+  `libs/flake/tests/KoToolBaseSchemaContractTest.cpp`の5枠`toolIdentityContextAndPresentationSignaturesRemainStable`、`toolInputFocusDragAndPaintingSignaturesRemainStable`、`toolSelectionClipboardAndPopupSignaturesRemainStable`、
+  `toolLifecycleResourceAndStrokeSignaturesRemainStable`、`toolActivationCursorAndStatusSignalSignaturesRemainStable`へ対応付ける。完全集合はidentity・context・表示12、入力・focus・drag・描画18、選択・clipboard・popup 12、寿命・resource・stroke 13、activate・cursor・状態signal 5である。許可pathは新規試験sourceと`libs/flake/tests/CMakeLists.txt`の対象固有節だけで、公開header・製品sourceを変更しない。
+  借用pointerは型だけを観測し、tool、canvas、event、shape、Widget、QObject通知を実体化しない。直接linkはQt Core・Testだけ、includeはflake・global source/generated、definitionは`kritaflake_EXPORTS`だけとし、公開headerをsourceやAUTOMOC入力へ加えない。新対象4工程・8入力、停止5工程・11入力、近傍`KoCanvasBaseSchemaContractTest`、製品`kritaflake` 621工程・1,274入力を維持する。
+  実装後は構築許可まで待機する。許可後にunknown target・CTest 0件、新5枠、対象CTest・枠個別・20回反復、近傍、無作業再構築、動的接続・AUTOMOC入力・tool・canvas・event未解決記号、構文・書式、公開API・`verify-quick`を確認する。toolや抽象probeを実体化し、popup inline本文・signal・eventを実行し、Qt Gui・Widgetsまたは製品libraryへlinkし、停止線を超える必要があれば止める。
+- `g170-gradient-color-editor-schema`は`/Users/masato/Documents/librepaint-g170-gradient-color-editor-schema`を所有する。開始`libs/widgets/KisGradientColorEditor.h`の残存全24 APIから新規
+  `libs/widgets/tests/KisGradientColorEditorSchemaContractTest.cpp`の5枠`gradientColorEditorTypeAndLifetimeSchemaRemainsStable`、`gradientColorEditorPositionSchemaRemainsStable`、`gradientColorEditorColorSchemaRemainsStable`、
+  `gradientColorEditorTransparencySchemaRemainsStable`、`gradientColorEditorOpacityAndGeometrySchemaRemainsStable`へ対応付ける。完全集合は型・寿命4、位置5、色6、透明度4、不透明度・寸法5である。許可pathは新規試験sourceと`libs/widgets/tests/CMakeLists.txt`の対象固有節だけで、公開header・製品sourceを変更しない。
+  親省略構築を未評価式で固定し、editor、Widget、色、gradient、signal、描画を実体化しない。直接linkはQt Core・Testだけ、Qt Gui・Widgetsとgradient依存はinterface include、includeはwidgets・pigment source/generated、必要なexport定義だけとし、公開headerをsourceやAUTOMOC入力へ加えない。新対象4工程・8入力、停止5工程・11入力、近傍`KisVisualColorModelSchemaContractTest`を維持する。
+  実装後は構築許可まで待機する。許可後にunknown target・CTest 0件、新5枠、対象CTest・枠個別・20回反復、近傍、無作業再構築、動的接続・AUTOMOC入力・editor・color・gradient未解決記号、構文・書式、公開API・`verify-quick`を確認する。editor、KoColor、Widget、gradientを実体化し、signal・描画・event loopを実行し、Qt Widgets・製品libraryへlinkし、停止線を超える必要があれば止める。
+
 ### 第169便の先行監査計画
 
 - 監査共通基点は`e113eb3bb7`、入力は`build/tdd-macos/public-api-missing-g169.json`である。3担当は`auditing`の読み取り専用とし、製品・試験・CMake・script・台帳・文書を変更せず、構成、構築、試験、Git操作、追加委任も行わない。
