@@ -4,6 +4,7 @@
  */
 
 #include "brushengine/kis_paint_information.h"
+#include "brushengine/kis_uniform_paintop_property.h"
 #include "kis_default_bounds.h"
 #include "kis_distance_information.h"
 #include "kis_histogram.h"
@@ -92,6 +93,11 @@ private Q_SLOTS:
     void layerHierarchySearchAndTraversalSignaturesRemainStable();
     void layerFrameQueryAndJobSchemaRemainStable();
     void layerCommandTypesAndLifecycleSchemaRemainStable();
+    void uniformPaintOpPropertyOwnershipSchemaRemainsStable();
+    void uniformPaintOpPropertyTypeSchemaRemainsStable();
+    void uniformPaintOpPropertyLifetimeSchemaRemainsStable();
+    void uniformPaintOpPropertyIdentityAndSettingsSignaturesRemainStable();
+    void uniformPaintOpPropertyValueAndNotificationSignaturesRemainStable();
 };
 
 void KisImageTypesContractTest::intrusivePointerAliasesPreserveOwnershipKinds()
@@ -1252,6 +1258,77 @@ void KisImageTypesContractTest::layerCommandTypesAndLifecycleSchemaRemainStable(
     static_assert(std::is_destructible_v<SwitchCommand>);
 
     QVERIFY(true);
+}
+
+void KisImageTypesContractTest::uniformPaintOpPropertyOwnershipSchemaRemainsStable()
+{
+    static_assert(std::is_same_v<KisUniformPaintOpPropertySP, QSharedPointer<KisUniformPaintOpProperty>>);
+    static_assert(std::is_same_v<KisUniformPaintOpPropertyWSP, QWeakPointer<KisUniformPaintOpProperty>>);
+    static_assert(
+        std::is_same_v<KisUniformPaintOpPropertyCallback, KisCallbackBasedPaintopProperty<KisUniformPaintOpProperty>>);
+    static_assert(std::is_base_of_v<QObject, KisUniformPaintOpProperty>);
+}
+
+void KisImageTypesContractTest::uniformPaintOpPropertyTypeSchemaRemainsStable()
+{
+    static_assert(std::is_enum_v<KisUniformPaintOpProperty::Type>);
+    static_assert(std::is_enum_v<KisUniformPaintOpProperty::SubType>);
+    static_assert(KisUniformPaintOpProperty::Int == 0);
+    static_assert(KisUniformPaintOpProperty::Double == 1);
+    static_assert(KisUniformPaintOpProperty::Bool == 2);
+    static_assert(KisUniformPaintOpProperty::Combo == 3);
+    static_assert(KisUniformPaintOpProperty::SubType_None == 0);
+    static_assert(KisUniformPaintOpProperty::SubType_Angle == 1);
+}
+
+void KisImageTypesContractTest::uniformPaintOpPropertyLifetimeSchemaRemainsStable()
+{
+    static_assert(std::is_constructible_v<KisUniformPaintOpProperty,
+                                          KisUniformPaintOpProperty::Type,
+                                          KisUniformPaintOpProperty::SubType,
+                                          const KoID &,
+                                          KisPaintOpSettingsRestrictedSP,
+                                          QObject *>);
+    static_assert(std::is_constructible_v<KisUniformPaintOpProperty,
+                                          KisUniformPaintOpProperty::Type,
+                                          const KoID &,
+                                          KisPaintOpSettingsRestrictedSP,
+                                          QObject *>);
+    static_assert(
+        std::is_constructible_v<KisUniformPaintOpProperty, const KoID &, KisPaintOpSettingsRestrictedSP, QObject *>);
+    static_assert(std::has_virtual_destructor_v<KisUniformPaintOpProperty>);
+}
+
+void KisImageTypesContractTest::uniformPaintOpPropertyIdentityAndSettingsSignaturesRemainStable()
+{
+    using ConfigurationSignature = KisPropertiesConfiguration *(KisUniformPaintOpProperty::*)() const;
+    using StringSignature = QString (KisUniformPaintOpProperty::*)() const;
+    using VisibilitySignature = bool (KisUniformPaintOpProperty::*)() const;
+    using SettingsSignature = KisPaintOpSettingsSP (KisUniformPaintOpProperty::*)() const;
+    using SubTypeSignature = KisUniformPaintOpProperty::SubType (KisUniformPaintOpProperty::*)() const;
+    using TypeSignature = KisUniformPaintOpProperty::Type (KisUniformPaintOpProperty::*)() const;
+
+    static_assert(std::is_same_v<decltype(&KisUniformPaintOpProperty::configuration), ConfigurationSignature>);
+    static_assert(std::is_same_v<decltype(&KisUniformPaintOpProperty::id), StringSignature>);
+    static_assert(std::is_same_v<decltype(&KisUniformPaintOpProperty::isVisible), VisibilitySignature>);
+    static_assert(std::is_same_v<decltype(&KisUniformPaintOpProperty::name), StringSignature>);
+    static_assert(std::is_same_v<decltype(&KisUniformPaintOpProperty::settings), SettingsSignature>);
+    static_assert(std::is_same_v<decltype(&KisUniformPaintOpProperty::subType), SubTypeSignature>);
+    static_assert(std::is_same_v<decltype(&KisUniformPaintOpProperty::type), TypeSignature>);
+}
+
+void KisImageTypesContractTest::uniformPaintOpPropertyValueAndNotificationSignaturesRemainStable()
+{
+    using WidgetSignature = QWidget *(KisUniformPaintOpProperty::*)();
+    using RequestSignature = void (KisUniformPaintOpProperty::*)();
+    using ValueSetterSignature = void (KisUniformPaintOpProperty::*)(const QVariant &);
+    using ValueSignature = QVariant (KisUniformPaintOpProperty::*)() const;
+
+    static_assert(std::is_same_v<decltype(&KisUniformPaintOpProperty::createPropertyWidget), WidgetSignature>);
+    static_assert(std::is_same_v<decltype(&KisUniformPaintOpProperty::requestReadValue), RequestSignature>);
+    static_assert(std::is_same_v<decltype(&KisUniformPaintOpProperty::setValue), ValueSetterSignature>);
+    static_assert(std::is_same_v<decltype(&KisUniformPaintOpProperty::value), ValueSignature>);
+    static_assert(std::is_same_v<decltype(&KisUniformPaintOpProperty::valueChanged), ValueSetterSignature>);
 }
 
 #undef ASSERT_DEFAULT_BOUNDS_SIGNATURE
