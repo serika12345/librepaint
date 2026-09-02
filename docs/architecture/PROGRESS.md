@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 11:40 JST
+- 更新日時: 2026-09-02 11:41 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -47,7 +47,8 @@
 
 ### 第146便の担当計画
 
-- 実装共通基点は`1b0505cd72`である。image signal router担当は`integrated`、libkis guides config担当は`implementing`、ASL XML writer担当は`rejected`、metadata store追加監査は`completed`、
+- 元3担当の実装共通基点は`1b0505cd72`、metadata store代替担当の共通基点は`5597ddb3a6`である。image signal router担当は`integrated`、libkis guides config担当は`ready`、ASL XML writer担当は`rejected`、
+  metadata store担当は`implementing`、
   構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの
   `transport-commit`、追加委任は禁止する。対象platformはmacOSであり、専用worktree-local `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。
   統合順はimage signal router、libkis guides config、ASL XML writerとし、調整担当だけが`AGENTS.md`、architecture文書、`docs/architecture/public-api-test-contracts.json`、共通不足報告を変更する。
@@ -69,6 +70,13 @@
   snap・XML処理を実行し、Qt Widgets・dialog・GUI application・filesystem・設定へ接続し、製品source・OBJECT・shared、`kritatestsdk`、新link/include依存、CMake・公開header変更、製品計画差、停止線超過が必要なら止める。
 - `g146-asl-xml-writer-schema`は構築前の定義閉包検査で`rejected`とした。公開headerから`KoPattern.h`・`KoResource.h`・`KoSegmentGradient.h`・`KoColor.h`へ推移し、Qt Gui、KF I18n、Imathの
   compile interfaceを順次要求したため、28署名のための新規対象として閉包が過大である。製品・Qt Gui・KF I18n・Imathをlinkせず、製品構築前に停止した。未コミット差分、作業tree 873,912 KiB、担当branchは削除した。
+- `g146-metadata-store-schema`は`/Users/masato/Documents/librepaint-g146-metadata-store-schema`を所有する。開始`libs/painting/metadata/kis_meta_data_store.h`の全27 APIから新規
+  `libs/painting/metadata/tests/KisMetaDataStoreSchemaContractTest.cpp`の5枠`metaDataStoreIdentityAndLifecycleSignaturesRemainStable`、`metaDataStoreEntryMutationSignaturesRemainStable`、
+  `metaDataStoreLookupSignaturesRemainStable`、`metaDataStoreQuerySignaturesRemainStable`、`metaDataStoreIterationFilterAndDebugSignaturesRemainStable`へ対応付ける。許可pathは新規試験sourceと
+  `libs/painting/metadata/tests/CMakeLists.txt`だけである。同ownerの`kis_meta_data_entry.h`を先行includeし、直接linkはQt Core・Testだけ、includeはpainting metadata source・generatedだけとする。新対象4工程・8入力、
+  停止5工程・11入力、近傍は`KisMetaDataTagsContractTest`、製品`kritapaintingmetadata`は294工程・619入力と担当tree内の変更前後集合完全一致を確認する。未知target、5枠、対象CTest、20回反復、近傍、無作業再構築、
+  動的接続、未解決store・entry・schema・filter記号、構文・変更行書式、公開API・`verify-quick`を確認する。store、entry、schema、filter、value、QHash、QListを生成し、method本文・filter・registry・大域状態を実行し、
+  Qt Gui・Xml・KF、製品source・OBJECT・shared、`kritatestsdk`、`kis_meta_data_store.cpp`、新非header依存、公開header変更、製品計画差、停止線超過が必要なら止める。
 
 ### 第146便の統合結果
 
