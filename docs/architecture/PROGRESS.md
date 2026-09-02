@@ -2,12 +2,26 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 11:17 JST
+- 更新日時: 2026-09-02 11:20 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
+
+### 第146便の先行監査計画
+
+- 監査共通基点は`491c033f36b3`、入力は`build/tdd-macos/public-api-missing-g146.json`である。3担当は`auditing`の読み取り専用とし、製品・試験・CMake・script・台帳・文書を変更せず、構築、試験、Git操作、
+  追加委任も行わない。一つの公開責務から25 API以上を最大5枠へ固定し、既存限定対象、header-only値面、または公開headerを変えない一sourceのOBJECT一対一移管で、製品共有ライブラリーと
+  `kritatestsdk`へ接続しない候補だけを採用する。
+- `g146-image-signal-router-updater-context-schema-audit`は`libs/image/kis_image_signal_router.h`の全27 APIを主候補とし、`libs/image/kis_updater_context.h`の全25 APIを比較する。画像通知の転送・node変更・batch・LOD・
+  色・寸法signal面または更新jobの予約・実行・同期・取消面を、image・node・projection・job・thread・signal・metaobject・event loopの実体化なしで閉じる。
+- `g146-libkis-guides-file-dialog-schema-audit`は`libs/libkis/GuidesConfig.h`の全25 APIを主候補とし、`libs/libkis/FileDialog.h`の全27 APIを比較する。script公開guide設定の色・線・位置・表示・lock・snap・XML面またはfile dialogの
+  種別・caption・directory・filter・選択・実行面を、QObject・内部guide値・XML・dialog・application・filesystem・設定の実体化なしで閉じる。
+- `g146-asl-xml-writer-text-brush-schema-audit`は`libs/psdutils/asl/kis_asl_xml_writer.h`の全28 APIを主候補とし、`libs/brush/kis_text_brush.h`の全28 APIを比較する。ASL XML writerのdescriptor・list・scalar・色・点・勾配・pattern・
+  transform面またはtext brushの構築・文字・font・spacing・pipe・描画面を、XML文書・色・勾配・pattern・brush・font・画像・painter・資源の実体化なしで閉じる。
+- 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから契約先または移動先、許可path、固有停止条件、
+  比較候補の棄却根拠を含む。既存`build/tdd-macos`の計画は読み取り専用で測定し、構成や構築を開始しない。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
 
 ### 第145便の先行監査計画
 
