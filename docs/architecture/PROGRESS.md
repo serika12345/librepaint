@@ -50,8 +50,9 @@
   `groupLayerCompositionAndVisitorSignaturesRemainStable`、`groupLayerPresentationAndPolicySignaturesRemainStable`、`groupLayerChildrenBoundsSignaturesRemainStable`へ対応付ける。完全集合はclass・色空間省略構築・copy構築・破棄・
   `clone`・`allowAsChild`、`colorSpace`・`lazyDestinationForSubtreeComposition`・`original`・`paintDevice`・`setImage`・`setX`・`setY`・`x`・`y`、2 `accept`・`createMergedLayerTemplate`・
   `fillMergedLayerTemplate`・`projectionIsValid`・`resetCache`、`defaultProjectionColor`・`icon`・`passThroughMode`・`sectionModelProperties`と3 setter、子のtight・loose bounds・`exactBounds`・`extent`である。許可pathは既存試験sourceと
-  `libs/image/tests/CMakeLists.txt`の`KisImageTypesContractTest`固有include節だけである。最初の限定compileで`kis_group_layer.h`から`kis_layer.h`、`kis_psd_layer_style.h`を経た`psd.h`不足を得たため、`libs/psdutils`の
-  source・generated includeだけを対象限定で追加し、linkと他のincludeを増やさない。対象4工程・8入力、停止5工程・11入力、近傍は`KisImageConfigAnimationSchemaContractTest`、製品`kritaimage`は1,196工程・2,416入力と担当tree内の
+  `libs/image/tests/CMakeLists.txt`の`KisImageTypesContractTest`固有include節だけである。最初の限定compileで`kis_group_layer.h`から`kis_layer.h`、`kis_psd_layer_style.h`を経た`psd.h`不足、次に`psd.h`が直接含む
+  `KoPattern.h`不足を得た。公開header連鎖の所有元である`libs/psdutils`、`libs/pigment/resources`、`libs/resources`のsource・generated includeだけを対象限定で追加し、linkと他のincludeを増やさない。対象4工程・8入力、
+  停止5工程・11入力、近傍は`KisImageConfigAnimationSchemaContractTest`、製品`kritaimage`は1,196工程・2,416入力と担当tree内の
   変更前後集合・保留集合完全一致を確認する。旧binaryで
   新5枠Unknown、対象CTest・5枠個別・20回反復、近傍、無作業再構築、動的接続・AUTOMOC入力・未解決layer・composition記号、構文・書式、公開API・`verify-quick`を確認する。group layer、image、node、device、visitor、undo、
   色、property、icon、inline本文を生成または実行し、CMake・公開header・製品source変更、新依存、製品接続、対象集合・製品計画差、停止線超過が必要なら止める。
