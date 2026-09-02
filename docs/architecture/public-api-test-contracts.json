@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 13588
+    "expectedMissingApis": 13553
   },
   "contracts": [
     {
@@ -46109,6 +46109,86 @@
       "apis": [
         "method:KisSavedMacroCommand::getCommandExecutionJobs(QVector<KisStrokeJobData * > * jobs,bool undo,bool shouldGoToHistory=true) const",
         "method:KisSavedMacroCommand::setOverrideInfo(const KisSavedMacroCommand * overriddenCommand,const QVector<const KUndo2Command * > & skipWhileOverride)"
+      ]
+    },
+    {
+      "target": "KisPaletteModelSchemaContractTest",
+      "source": "libs/widgets/tests/KisPaletteModelSchemaContractTest.cpp",
+      "test": "KisPaletteModelSchemaContractTest::paletteModelIdentityAndRoleSchemaRemainsStable",
+      "behavior": "palette模型の所有class、追加roleの型と序数、構築・仮想破棄可能性を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisPaletteModel",
+        "enum:KisPaletteModel::AdditionalRoles",
+        "enumerator:KisPaletteModel::AdditionalRoles::CheckSlotRole",
+        "enumerator:KisPaletteModel::AdditionalRoles::GroupNameRole",
+        "enumerator:KisPaletteModel::AdditionalRoles::IsGroupNameRole",
+        "enumerator:KisPaletteModel::AdditionalRoles::RowInGroupRole",
+        "method:KisPaletteModel::KisPaletteModel(QObject * parent=0)",
+        "method:KisPaletteModel::~KisPaletteModel()"
+      ]
+    },
+    {
+      "target": "KisPaletteModelSchemaContractTest",
+      "source": "libs/widgets/tests/KisPaletteModelSchemaContractTest.cpp",
+      "test": "KisPaletteModelSchemaContractTest::paletteModelQueryAndDragDropSignaturesRemainStable",
+      "behavior": "palette模型の行列照会、表示data、index、MIME、drag/drop、近似色検索の公開署名と既定引数を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPaletteModel::columnCount(const QModelIndex & parent=QModelIndex ()) const",
+        "method:KisPaletteModel::data(const QModelIndex & index,int role=Qt::DisplayRole) const",
+        "method:KisPaletteModel::dropMimeData(const QMimeData * data,Qt::DropAction action,int row,int column,const QModelIndex & parent)",
+        "method:KisPaletteModel::flags(const QModelIndex & index) const",
+        "method:KisPaletteModel::getSwatch(const QModelIndex & index) const",
+        "method:KisPaletteModel::index(int row,int column,const QModelIndex & parent=QModelIndex ()) const",
+        "method:KisPaletteModel::indexForClosest(const KoColor & compare)",
+        "method:KisPaletteModel::mimeData(const QModelIndexList & indexes) const",
+        "method:KisPaletteModel::mimeTypes() const",
+        "method:KisPaletteModel::rowCount(const QModelIndex & parent=QModelIndex ()) const",
+        "method:KisPaletteModel::supportedDropActions() const"
+      ]
+    },
+    {
+      "target": "KisPaletteModelSchemaContractTest",
+      "source": "libs/widgets/tests/KisPaletteModelSchemaContractTest.cpp",
+      "test": "KisPaletteModelSchemaContractTest::paletteModelPaletteConnectionSignaturesRemainStable",
+      "behavior": "palette模型の色集合・表示変換接続とpalette変更通知の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPaletteModel::colorSet() const",
+        "method:KisPaletteModel::setColorSet(KoColorSetSP colorSet)",
+        "method:KisPaletteModel::setDisplayRenderer(const KoColorDisplayRendererInterface * displayRenderer)",
+        "method:KisPaletteModel::sigPaletteChanged()",
+        "method:KisPaletteModel::sigPaletteModified()",
+        "method:KisPaletteModel::slotExternalPaletteModified(QSharedPointer<KoColorSet> resource)"
+      ]
+    },
+    {
+      "target": "KisPaletteModelSchemaContractTest",
+      "source": "libs/widgets/tests/KisPaletteModelSchemaContractTest.cpp",
+      "test": "KisPaletteModelSchemaContractTest::paletteModelSwatchMutationSignaturesRemainStable",
+      "behavior": "palette模型のswatch追加・設定・削除・消去とgroup名省略形の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPaletteModel::addSwatch(const KisSwatch & entry,const QString & groupName=KoColorSet::GLOBAL_GROUP_NAME)",
+        "method:KisPaletteModel::clear()",
+        "method:KisPaletteModel::clear(int defaultColumnsCount)",
+        "method:KisPaletteModel::removeSwatch(const QModelIndex & index,bool keepColors=true)",
+        "method:KisPaletteModel::setSwatch(const KisSwatch & entry,const QModelIndex & index)"
+      ]
+    },
+    {
+      "target": "KisPaletteModelSchemaContractTest",
+      "source": "libs/widgets/tests/KisPaletteModelSchemaContractTest.cpp",
+      "test": "KisPaletteModelSchemaContractTest::paletteModelGroupAndLayoutSignaturesRemainStable",
+      "behavior": "palette模型のgroup追加・改名・削除と行列配置の公開署名および既定寸法を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPaletteModel::addGroup(const QString & groupName,int columnCount=KisSwatchGroup::DEFAULT_COLUMN_COUNT,int rowCount=KisSwatchGroup::DEFAULT_ROW_COUNT)",
+        "method:KisPaletteModel::changeGroupName(const QString & groupName,const QString & newName)",
+        "method:KisPaletteModel::removeGroup(const QString & groupName,bool keepColors)",
+        "method:KisPaletteModel::setColumnCount(int colCount)",
+        "method:KisPaletteModel::setRowCountForGroup(const QString & groupName,int rowCount)"
       ]
     }
   ]
