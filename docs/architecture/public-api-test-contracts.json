@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 12388
+    "expectedMissingApis": 12366
   },
   "contracts": [
     {
@@ -49244,6 +49244,73 @@
         "method:KoCanvasControllerProxyObject::emitEffectiveZoomChanged(qreal zoom)",
         "method:KoCanvasControllerProxyObject::emitZoomStateChanged(const KoZoomState & zoomState)",
         "method:KoCanvasControllerProxyObject::zoomStateChanged(const KoZoomState & zoomState)"
+      ]
+    },
+    {
+      "target": "KisFontFamilyComboBoxSchemaContractTest",
+      "source": "libs/widgetutils/tests/KisFontFamilyComboBoxSchemaContractTest.cpp",
+      "test": "KisFontFamilyComboBoxSchemaContractTest::fontFamilySelectorTypeAndLifetimeSchemaRemainsStable",
+      "behavior": "フォント選択複合widget、family選択widget、固定font区切りdelegateの公開型と親省略可能な構築署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisFontComboBoxes",
+        "class:KisFontFamilyComboBox",
+        "class:PinnedFontsSeparator",
+        "method:KisFontComboBoxes::KisFontComboBoxes(QWidget * parent=0)",
+        "method:KisFontFamilyComboBox::KisFontFamilyComboBox(QWidget * parent=0)",
+        "method:PinnedFontsSeparator::PinnedFontsSeparator(QAbstractItemDelegate * _default,QWidget * parent=nullptr)"
+      ]
+    },
+    {
+      "target": "KisFontFamilyComboBoxSchemaContractTest",
+      "source": "libs/widgetutils/tests/KisFontFamilyComboBoxSchemaContractTest.cpp",
+      "test": "KisFontFamilyComboBoxSchemaContractTest::fontFamilySelectorCurrentValueSchemaRemainsStable",
+      "behavior": "フォント選択複合widgetのfamily・style・font設定と現在値取得、および既定point sizeの公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisFontComboBoxes::currentFamily() const",
+        "method:KisFontComboBoxes::currentFont(int pointSize=10) const",
+        "method:KisFontComboBoxes::currentStyle() const",
+        "method:KisFontComboBoxes::setCurrentFamily(const QString family)",
+        "method:KisFontComboBoxes::setCurrentFont(QFont font)",
+        "method:KisFontComboBoxes::setCurrentStyle(QString style)"
+      ]
+    },
+    {
+      "target": "KisFontFamilyComboBoxSchemaContractTest",
+      "source": "libs/widgetutils/tests/KisFontFamilyComboBoxSchemaContractTest.cpp",
+      "test": "KisFontFamilyComboBoxSchemaContractTest::fontFamilySelectorPopulationSchemaRemainsStable",
+      "behavior": "フォント選択複合widgetのwriting system別再読込、初期化完了とfont変更通知の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisFontComboBoxes::fontChanged(QString)",
+        "method:KisFontComboBoxes::refillComboBox(QVector<QFontDatabase::WritingSystem> writingSystems=QVector<QFontDatabase::WritingSystem> ())",
+        "method:KisFontComboBoxes::setInitialized()"
+      ]
+    },
+    {
+      "target": "KisFontFamilyComboBoxSchemaContractTest",
+      "source": "libs/widgetutils/tests/KisFontFamilyComboBoxSchemaContractTest.cpp",
+      "test": "KisFontFamilyComboBoxSchemaContractTest::fontFamilyComboPopulationSchemaRemainsStable",
+      "behavior": "font family選択widgetのwriting system別再読込、初期化完了と先頭family設定の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisFontFamilyComboBox::refillComboBox(QVector<QFontDatabase::WritingSystem> writingSystems=QVector<QFontDatabase::WritingSystem> ())",
+        "method:KisFontFamilyComboBox::setInitialized()",
+        "method:KisFontFamilyComboBox::setTopFont(const QString & family)"
+      ]
+    },
+    {
+      "target": "KisFontFamilyComboBoxSchemaContractTest",
+      "source": "libs/widgetutils/tests/KisFontFamilyComboBoxSchemaContractTest.cpp",
+      "test": "KisFontFamilyComboBoxSchemaContractTest::pinnedFontsSeparatorPresentationSchemaRemainsStable",
+      "behavior": "固定font区切りdelegateの描画、寸法、区切り位置と追加状態設定の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:PinnedFontsSeparator::paint(QPainter * painter,const QStyleOptionViewItem & option,const QModelIndex & index) const",
+        "method:PinnedFontsSeparator::setSeparatorAdded()",
+        "method:PinnedFontsSeparator::setSeparatorIndex(int index)",
+        "method:PinnedFontsSeparator::sizeHint(const QStyleOptionViewItem & option,const QModelIndex & index) const"
       ]
     }
   ]
