@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 15:31 JST
+- 更新日時: 2026-09-02 15:37 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -22,6 +22,48 @@
   factoryの型・template構造・識別子・生成署名面を、PSD device・channel・画像・paint operation・settings・resource・widget・pluginの実体化なしで閉じる。
 - 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから契約先または移動先、許可path、固有停止条件、
   比較候補の棄却根拠を含む。既存`build/tdd-macos`の計画は読み取り専用で測定し、構成や構築を開始しない。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
+- `g154-brush-imagepipe-schema-audit`は`kis_brush.h`のidentity・寸法・適用方針43 APIを採用した。型・列挙15、着色・定数・metadata 7、寸法・角度8、spacing 5、適用方針8を新規`KisBrushSchemaContractTest`の
+  未評価型5枠へ対応付ける。直接linkはQt Core・Gui・TestとBoost headerだけ、新対象4工程・8入力、停止5工程・11入力を予測し、製品`kritalibbrush` 1,222工程・2,466入力を維持する。近傍
+  `KisBrushModelValuesContractTest`の命令集合hashは`6ea506089f9e31121a2daf6c57e8d8ed72bec4e35d30c0e2cb3ce0b107a79fab`、入力集合hashは`f534d9f267e77f55eb8bf7aff466b0fad2e1b160e8f70ab5a669b92120052b19`、
+  製品命令集合hashは`0804aabd027fb54ff978ccbbf30d165a4ae6c5a162558f7a257e6e844e2a3ea4`、入力集合hashは`b9c02249c4dd6d31eeb021fc113a28626ebf7dcf436da2a9eb4a255eb9e507cf`である。
+  `kis_imagepipe_brush.h`は局所選択・調整・spacing面が約23 APIで、25 APIへ広げるとdevice所有、mask・dab描画、資源I/O、乱数選択を混在させるため棄却した。
+- `g154-palette-visual-color-model-schema-audit`は`KisVisualColorModel.h`の全33 APIを採用した。型・列挙10、寿命・状態7、方針7、変換・更新5、通知4を新規`KisVisualColorModelSchemaContractTest`の未評価型5枠へ
+  対応付ける。直接linkはQt Core・Gui・Testだけ、新対象4工程・8入力、停止5工程・11入力を予測し、製品`kritawidgets` 809工程・1,647入力を維持する。近傍`KisColorSelectorConfigurationContractTest`の命令集合hashは
+  `8038217681935b693be9aabf1af20de56e43cfeeaa0c3eaba0e9de9c279d7b34`、入力集合hashは`5f5076faf08af7b605ed2c91432efcb38ea81239d41555136dc18d49117e51f0`、製品命令集合hashは
+  `baeb2dab120a80387688d7082f787f31c3d527483e9d12132459052024bdf0ae`、入力集合hashは`935f4653e18dfab872dcfee4732689a6fd96aa191335b559949afabc731a821a`である。`KisPaletteModel.h`はmodelに加えてpalette、
+  resource、swatch、renderer、mimeへ公開header閉包が広がるため棄却した。
+- `g154-psd-simple-paintop-schema-audit`は`psd.h`のlayer effect contour・gradient・pattern資源28 APIを採用した。gradient color stop member 5、bevel contour・texture資源5、shadow階層寿命8、glow寿命5、shadow contour・
+  gradient資源5を既存`PsdFormatValuesContractTest`の未評価型5枠へ対応付ける。CMakeと直接依存を変更せず対象6工程・14入力、停止7工程・16入力、製品`kritapsdutils` 638工程・1,306入力と下流`kritapsd`
+  1,982工程・3,962入力を維持する。対象命令集合hashは`faa52ca50312b3e4da98694fb96e6b1eb213a029fb39c4719e05036309847c67`、入力集合hashは
+  `5213fdf0de7ecccbf0ad096f7dd629d312002b2dc070eac9e1aa056fa5306546`、owner製品命令集合hashは`46ef378e51b0dcfdf434a157ea792233544b645c4855e5585a0916f6530a9e2c`、入力集合hashは
+  `c26bfd7f16faafd66560f96698970f68c753b8918afb561eab34204aba29221b`である。`kis_simple_paintop_factory.h`は非template面が約16 APIで、25件へ広げるとinline SFINAE helperと検出traitの本文実体化が必要なため棄却した。
+
+### 第154便の担当計画
+
+- 実装共通基点は`ac1c93a5a5`である。3担当は`preparing`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、
+  専用worktree-local `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。統合順はPSD layer effect資源、brush schema、visual color modelとし、調整担当だけが
+  `AGENTS.md`、architecture文書、`docs/architecture/public-api-test-contracts.json`、共通不足報告を変更する。3担当の公開header、所有CMake、試験source、生成物は重ならない。
+- `g154-psd-layer-effect-resource-schema`は`/Users/masato/Documents/librepaint-g154-psd-layer-effect-resource-schema`を所有する。開始`libs/psdutils/psd.h`のlayer effect資源28 APIから既存
+  `libs/psdutils/tests/PsdFormatValuesContractTest.cpp`の5枠`gradientColorStopMemberSchemaRemainsStable`、`bevelContourAndTextureResourceSignaturesRemainStable`、
+  `layerEffectShadowHierarchyLifecycleSignaturesRemainStable`、`layerEffectGlowLifecycleSignaturesRemainStable`、`shadowContourAndGradientResourceSignaturesRemainStable`へ対応付ける。許可pathは既存試験sourceだけで、
+  CMakeを変更しない。対象6工程・14入力、停止7工程・16入力、近傍は`PsdByteIoContractTest`、製品`kritapsdutils` 638工程・1,306入力と`kritapsd` 1,982工程・3,962入力の担当tree内変更前後集合完全一致を確認する。
+  旧binaryで新5枠Unknown、対象CTest、新5枠個別、20回反復、近傍、無作業再構築、動的接続・未解決PSD資源記号、構文・変更行書式、公開API・`verify-quick`を確認する。gradient stop、effect、color、pattern、gradient、
+  resource interface、lookup pointer、constructor・destructor・inline本文、PSD device・channel・image・I/Oを生成または実行し、新依存、CMake・公開header変更、製品接続、対象集合・製品計画差、停止線超過が必要なら止める。
+- `g154-brush-schema`は`/Users/masato/Documents/librepaint-g154-brush-schema`を所有する。開始`libs/brush/kis_brush.h`のidentity・寸法・適用方針43 APIから新規`libs/brush/tests/KisBrushSchemaContractTest.cpp`の5枠
+  `brushIdentityAndTypeSchemaRemainsStable`、`brushColoringConstantsAndMetadataSchemaRemainsStable`、`brushSizeAndAngleSignaturesRemainStable`、`brushSpacingPolicySignaturesRemainStable`、
+  `brushApplicationPolicySignaturesRemainStable`へ対応付ける。許可pathは新規試験sourceと`libs/brush/tests/CMakeLists.txt`だけである。直接linkはQt Core・Gui・TestとBoost headerだけ、includeはbrush・global・image・resourcesのsource/generatedと
+  KF I18n interface、definitionsは`kritalibbrush_EXPORTS`・`kritaresources_EXPORTS`だけとし、公開headerをtarget sourceやAUTOMOC入力へ加えない。新対象4工程・8入力、停止5工程・11入力、近傍は
+  `KisBrushModelValuesContractTest`、製品`kritalibbrush`は1,222工程・2,466入力と担当tree内の変更前後集合完全一致を確認する。未知targetと新5枠、対象CTest、新5枠個別、20回反復、近傍、無作業再構築、動的接続・AUTOMOC入力・
+  未解決brush・resource記号、構文・変更行書式、公開API・`verify-quick`を確認する。KisBrush、派生型、ColoringInformation、static値、resource、brush tip画像、paint device、painter、XML、gradient、乱数、inline本文を生成または実行し、
+  製品source・OBJECT・shared、`kritatestsdk`、新非header依存、公開header変更、製品計画差、停止線超過が必要なら止める。
+- `g154-visual-color-model-schema`は`/Users/masato/Documents/librepaint-g154-visual-color-model-schema`を所有する。開始`libs/widgets/KisVisualColorModel.h`の全33 APIから新規
+  `libs/widgets/tests/KisVisualColorModelSchemaContractTest.cpp`の5枠`visualColorModelTypeAndEnumerationSchemaRemainsStable`、`visualColorModelLifetimeAndStateSchemaRemainsStable`、
+  `visualColorModelPolicySchemaRemainsStable`、`visualColorModelConversionAndMutationSchemaRemainsStable`、`visualColorModelNotificationSchemaRemainsStable`へ対応付ける。許可pathは新規試験sourceと
+  `libs/widgets/tests/CMakeLists.txt`だけである。直接linkはQt Core・Gui・Testだけ、includeはwidgets・pigment・globalのsource/generated、definitionsは`kritawidgets_EXPORTS`・`kritapigment_EXPORTS`・
+  `kritaglobal_EXPORTS`だけとし、公開headerをtarget sourceやAUTOMOC入力へ加えない。新対象4工程・8入力、停止5工程・11入力、近傍は`KisColorSelectorConfigurationContractTest`、製品`kritawidgets`は809工程・1,647入力と担当tree内の
+  変更前後集合完全一致を確認する。未知targetと新5枠、対象CTest、新5枠個別、20回反復、近傍、無作業再構築、動的接続・AUTOMOC入力・未解決model・color記号、構文・変更行書式、公開API・`verify-quick`を確認する。model、
+  QObject、KoColor、QVector4D、QSharedPointer、signal、metaobject、ACS設定、色空間registry・変換、resource、view、widget、GUI event loopを生成または実行し、`KisVisualColorModel.cpp`、製品source・OBJECT・shared、`kritatestsdk`、
+  Qt Widgets、新非header依存、公開header変更、製品計画差、停止線超過が必要なら止める。
 
 ### 第153便の先行監査計画
 
