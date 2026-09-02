@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 14576
+    "expectedMissingApis": 14508
   },
   "contracts": [
     {
@@ -43771,6 +43771,119 @@
         "method:KisTileDataStore::debugPrintList()",
         "method:KisTileDataStore::kickPooler()",
         "method:KisTileDataStore::purgeMemory()"
+      ]
+    },
+    {
+      "target": "KisCoordinatesConverterSchemaContractTest",
+      "source": "libs/canvas/tests/KisCoordinatesConverterSchemaContractTest.cpp",
+      "test": "KisCoordinatesConverterSchemaContractTest::coordinatesConverterIdentityAndCanvasStateSignaturesRemainStable",
+      "behavior": "canvas座標変換器は型・寿命とcanvas寸法、device pixel比、document offset、表示余白、image・解像度設定の厳密な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisCoordinatesConverter",
+        "method:KisCoordinatesConverter::KisCoordinatesConverter()",
+        "method:KisCoordinatesConverter::devicePixelRatio() const",
+        "method:KisCoordinatesConverter::documentOffset() const",
+        "method:KisCoordinatesConverter::documentOffsetF() const",
+        "method:KisCoordinatesConverter::getCanvasWidgetSize() const",
+        "method:KisCoordinatesConverter::setCanvasWidgetSize(QSizeF size)",
+        "method:KisCoordinatesConverter::setCanvasWidgetSizeKeepZoom(const QSizeF & size)",
+        "method:KisCoordinatesConverter::setDevicePixelRatio(qreal value)",
+        "method:KisCoordinatesConverter::setDocumentOffset(const QPointF & offset)",
+        "method:KisCoordinatesConverter::setExtraReferencesBounds(const QRect & imageRect)",
+        "method:KisCoordinatesConverter::setImage(KisImageWSP image)",
+        "method:KisCoordinatesConverter::setImageBounds(const QRect & rect,const QPointF oldImageStillPoint,const QPointF newImageStillPoint)",
+        "method:KisCoordinatesConverter::setImageResolution(qreal xRes,qreal yRes)",
+        "method:KisCoordinatesConverter::setVastScrolling(qreal value)",
+        "method:KisCoordinatesConverter::vastScrolling() const",
+        "method:KisCoordinatesConverter::viewportDevicePixelSize() const",
+        "method:KisCoordinatesConverter::~KisCoordinatesConverter()"
+      ]
+    },
+    {
+      "target": "KisCoordinatesConverterSchemaContractTest",
+      "source": "libs/canvas/tests/KisCoordinatesConverterSchemaContractTest.cpp",
+      "test": "KisCoordinatesConverterSchemaContractTest::coordinatesConverterZoomRotationAndMirrorSignaturesRemainStable",
+      "behavior": "canvas座標変換器はzoom選択、回転、mirror、自然gesture、変換中心、still pointを伴う更新の厳密な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCoordinatesConverter::beginRotation()",
+        "method:KisCoordinatesConverter::clampZoom(qreal zoom) const",
+        "method:KisCoordinatesConverter::effectivePhysicalZoom() const",
+        "method:KisCoordinatesConverter::effectiveZoom() const",
+        "method:KisCoordinatesConverter::enableNatureGestureFlag()",
+        "method:KisCoordinatesConverter::endRotation()",
+        "method:KisCoordinatesConverter::findNextZoom(qreal currentZoom,const QVector<qreal> & zoomLevels)",
+        "method:KisCoordinatesConverter::findPrevZoom(qreal currentZoom,const QVector<qreal> & zoomLevels)",
+        "method:KisCoordinatesConverter::maxZoom() const",
+        "method:KisCoordinatesConverter::minZoom() const",
+        "method:KisCoordinatesConverter::mirror(const std::optional<KoViewTransformStillPoint> & stillPoint,bool mirrorXAxis,bool mirrorYAxis)",
+        "method:KisCoordinatesConverter::preferredTransformationCenter() const",
+        "method:KisCoordinatesConverter::resetRotation(const std::optional<KoViewTransformStillPoint> & stillPoint)",
+        "method:KisCoordinatesConverter::rotate(const std::optional<KoViewTransformStillPoint> & stillPoint,qreal angle)",
+        "method:KisCoordinatesConverter::rotationAngle() const",
+        "method:KisCoordinatesConverter::setZoom(KoZoomMode::Mode mode,qreal zoom,qreal resolutionX,qreal resolutionY,const std::optional<KoViewTransformStillPoint> & stillPoint)",
+        "method:KisCoordinatesConverter::setZoom(qreal zoom)",
+        "method:KisCoordinatesConverter::standardZoomLevels() const",
+        "method:KisCoordinatesConverter::xAxisMirrored() const",
+        "method:KisCoordinatesConverter::yAxisMirrored() const",
+        "method:KisCoordinatesConverter::zoomTo(const QRectF & widgetRect)"
+      ]
+    },
+    {
+      "target": "KisCoordinatesConverterSchemaContractTest",
+      "source": "libs/canvas/tests/KisCoordinatesConverterSchemaContractTest.cpp",
+      "test": "KisCoordinatesConverterSchemaContractTest::coordinatesConverterTransformAndStillPointSignaturesRemainStable",
+      "behavior": "canvas座標変換器はdocument・flake・image・viewport・widget間の変換行列と中心・still point取得の厳密な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCoordinatesConverter::documentToFlakeTransform() const",
+        "method:KisCoordinatesConverter::documentToWidgetTransform() const",
+        "method:KisCoordinatesConverter::flakeCenterPoint() const",
+        "method:KisCoordinatesConverter::flakeToWidgetTransform() const",
+        "method:KisCoordinatesConverter::imageToDocumentTransform() const",
+        "method:KisCoordinatesConverter::imageToViewportTransform() const",
+        "method:KisCoordinatesConverter::imageToWidgetTransform() const",
+        "method:KisCoordinatesConverter::makeDocStillPoint(const QPointF & docPoint) const",
+        "method:KisCoordinatesConverter::makeWidgetStillPoint(const QPointF & viewPoint) const",
+        "method:KisCoordinatesConverter::viewToWidget() const",
+        "method:KisCoordinatesConverter::viewportToWidgetTransform() const",
+        "method:KisCoordinatesConverter::widgetCenterPoint() const",
+        "method:KisCoordinatesConverter::widgetToView() const"
+      ]
+    },
+    {
+      "target": "KisCoordinatesConverterSchemaContractTest",
+      "source": "libs/canvas/tests/KisCoordinatesConverterSchemaContractTest.cpp",
+      "test": "KisCoordinatesConverterSchemaContractTest::coordinatesConverterImageGeometrySignaturesRemainStable",
+      "behavior": "canvas座標変換器はimage・widget領域、中心、寸法、scale、device pixelへのsnap、offset範囲の厳密な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCoordinatesConverter::imageCenterInWidgetPixel() const",
+        "method:KisCoordinatesConverter::imagePhysicalScale(qreal * scaleX,qreal * scaleY) const",
+        "method:KisCoordinatesConverter::imageRectInDocumentPixels() const",
+        "method:KisCoordinatesConverter::imageRectInImagePixels() const",
+        "method:KisCoordinatesConverter::imageRectInViewportPixels() const",
+        "method:KisCoordinatesConverter::imageRectInWidgetPixels() const",
+        "method:KisCoordinatesConverter::imageScale(qreal * scaleX,qreal * scaleY) const",
+        "method:KisCoordinatesConverter::imageSizeInFlakePixels() const",
+        "method:KisCoordinatesConverter::maximumOffset() const",
+        "method:KisCoordinatesConverter::minimumOffset() const",
+        "method:KisCoordinatesConverter::snapToDevicePixel(const QPointF & point) const",
+        "method:KisCoordinatesConverter::snapWidgetSizeToDevicePixel(const QSizeF & size) const",
+        "method:KisCoordinatesConverter::widgetRectInFlakePixels() const",
+        "method:KisCoordinatesConverter::widgetRectInImagePixels() const"
+      ]
+    },
+    {
+      "target": "KisCoordinatesConverterSchemaContractTest",
+      "source": "libs/canvas/tests/KisCoordinatesConverterSchemaContractTest.cpp",
+      "test": "KisCoordinatesConverterSchemaContractTest::coordinatesConverterCheckerProjectionSignaturesRemainStable",
+      "behavior": "canvas座標変換器はOpenGLとQPainter checker投影で変換・領域・brush原点・polygonの出力先を受ける厳密な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCoordinatesConverter::getOpenGLCheckersInfo(const QRectF & viewportRect,QTransform * textureTransform,QTransform * modelTransform,QRectF * textureRect,QRectF * modelRect,const bool scrollCheckers) const",
+        "method:KisCoordinatesConverter::getQPainterCheckersInfo(QTransform * transform,QPointF * brushOrigin,QPolygonF * polygon,const bool scrollCheckers) const"
       ]
     }
   ]
