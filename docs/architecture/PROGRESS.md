@@ -40,6 +40,39 @@
   製品命令集合hashは`8ff79f6698872991292e369d6951ccd156a8863b8c05b01ec2599edba75e91ab`、入力集合hashは`c7d3d05a6481dae255bd0e55d6a0c3db9f35146efe125ad093974e94bb69ad03`である。
   `View.h`の残りは資源選択、色、document・canvas・window、座標変換、node選択、可視性・message、signalへ責務が分散するため棄却した。
 
+### 第157便の担当計画
+
+- 実装共通基点は`df99db897c`である。3担当は`preparing`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、
+  専用worktree-local `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。統合順は分類list model、色入力、colorize maskとし、調整担当だけが`AGENTS.md`、
+  architecture文書、`docs/architecture/public-api-test-contracts.json`、共通不足報告を変更する。3担当の公開header、所有CMake、試験source、生成物は重ならない。
+- `g157-categorized-list-model-schema`は`/Users/masato/Documents/librepaint-g157-categorized-list-model-schema`を所有する。開始`libs/tools/ui/kis_categorized_list_model.h`の全27 APIから新規
+  `libs/tools/ui/tests/KisCategorizedListModelSchemaContractTest.cpp`の5枠`categorizedListModelIdentityAndAliasSchemaRemainsStable`、`categorizedListModelAdditionalRoleValuesRemainStable`、
+  `categorizedListModelLifecycleSignaturesRemainStable`、`categorizedListModelAccessSignaturesRemainStable`、`sortedCategorizedListModelAccessSignaturesRemainStable`へ対応付ける。完全集合は3 class・3 alias、
+  `AdditionalRoles`と6列挙子、base構築・破棄、model構築・`categoriesMapper` 2 overload・`data`・`entryAt`・`flags`・`indexOf`・`rowCount`・`setData`、sorted model構築・`entryAt`・`indexOf`である。許可pathは
+  新規試験sourceと`libs/tools/ui/tests/CMakeLists.txt`だけである。dummy entry・converterは型形成だけに使い、role序数を具体static assertion、model構築と`data`・`setData`の既定引数を未評価省略形で固定する。直接linkは
+  Qt Core・Testだけ、includeはtools/ui source/generated、definitionは`kritatoolsui_EXPORTS`だけとし、公開headerをtarget sourceやAUTOMOC入力へ加えない。新対象4工程・8入力、停止5工程・11入力、近傍は8工程・16入力の
+  `KisCategoriesMapperContractTest`、製品`kritatoolsui`は1,249工程・2,518入力と担当tree内の変更前後集合完全一致を確認する。未知target・CTest 0件、登録後の旧binaryで新5枠Unknown、対象CTest・20回反復、近傍、
+  無作業再構築、動的接続・AUTOMOC入力・未解決model記号、構文・変更行書式、公開API・`verify-quick`を確認する。template constructor・access本文、model・index・mapper・DataItem・QObject・signal・metaobjectを生成または実行し、
+  Qt Gui・Widgets、製品source・OBJECT・shared、`kritatestsdk`、新しい非header依存、公開header変更、製品計画差、停止線超過が必要なら止める。
+- `g157-color-input-schema`は`/Users/masato/Documents/librepaint-g157-color-input-schema`を所有する。開始`libs/widgets/kis_color_input.h`の全29 APIから既存
+  `libs/widgets/tests/KisVisualColorModelSchemaContractTest.cpp`の5枠`colorInputTypeAndConstructionSchemaRemainsStable`、`colorInputPercentageAndNotificationSchemaRemainsStable`、
+  `colorInputNumericValueSchemaRemainsStable`、`colorInputHexValueSchemaRemainsStable`、`colorInputHsvValueSchemaRemainsStable`へ対応付ける。完全集合は5入力class・5構築、基底の`setPercentageWise`・`usePercentage`・`updated`、
+  integerの`setValue`・`update`、floatの`setValue`・`sliderChanged`・`update`、hexの`setValue`・`update`、HSVの`setMixMode`・`setHue`・`setSaturation`・`setValue`・3 slider変更・`update`・`updated`である。許可pathは
+  既存試験sourceと`libs/widgets/tests/CMakeLists.txt`の対象固有節だけである。最初の4構築は厳密型に加えてrenderer・percentage・preview既定引数の省略形を未評価式で固定する。直接linkは現行Qt Core・Gui・Testを維持し、
+  Qt Widgets・KF WidgetsAddonsはinterface includeだけ、他の現行対象include・definitionを維持し、公開headerをtarget sourceやAUTOMOC入力へ加えない。対象4工程・8入力、停止5工程・11入力、近傍は
+  `KisColorSelectorConfigurationContractTest`、製品`kritawidgets`は809工程・1,647入力と担当tree内の変更前後集合・保留集合完全一致を確認する。旧binaryで新5枠Unknown、対象CTest・20回反復、近傍、無作業再構築、
+  動的接続・AUTOMOC入力・未解決color input記号、構文・変更行書式、公開API・`verify-quick`を確認する。Widget・KoColor・renderer・slider・signal・metaobject・既定renderer instance・GUI event loopを生成または実行し、
+  製品source・OBJECT・shared、`kritatestsdk`、新link、追加interface外の依存、公開header変更、製品計画差、停止線超過が必要なら止める。
+- `g157-colorize-mask-schema`は`/Users/masato/Documents/librepaint-g157-colorize-mask-schema`を所有する。開始`libs/libkis/ColorizeMask.h`の全25 APIから新規
+  `libs/libkis/tests/ColorizeMaskSchemaContractTest.cpp`の5枠`colorizeMaskOwnershipLifetimeAndTypeSchemaRemainsStable`、`colorizeMaskKeyStrokeDataSignaturesRemainStable`、
+  `colorizeMaskDetectionAndCleanupPolicySignaturesRemainStable`、`colorizeMaskEditingBoundsAndOutputPolicySignaturesRemainStable`、`colorizeMaskUpdateAndCacheSignaturesRemainStable`へ対応付ける。完全集合はclass・2構築・破棄・`type`、
+  `initializeKeyStrokeColors`・`keyStrokePixelData`・`keyStrokesColors`・`removeKeyStroke`・`setKeyStrokePixelData`・`transparencyIndex`、cleanup・edge detectionの各getter/setterとuse方針、編集・device bounds・出力の各getter/setter、
+  `resetCache`・`updateMask`である。許可pathは新規試験sourceと`libs/libkis/tests/CMakeLists.txt`だけである。2構築、key stroke色初期化、mask更新の既定引数を未評価省略形で固定する。直接linkはQt Core・TestとBoost headerだけ、
+  推移headerの追加探索も既存軽量対象と同じinterface include・export定義に限定し、公開headerをtarget sourceやAUTOMOC入力へ加えない。新対象4工程・8入力、停止5工程・11入力、近傍は`ViewSchemaContractTest`、製品
+  `kritalibkis`は2,018工程・4,034入力と担当tree内の変更前後集合完全一致を確認する。未知target・CTest 0件、登録後の旧binaryで新5枠Unknown、対象CTest・20回反復、近傍、無作業再構築、動的接続・AUTOMOC入力・
+  未解決ColorizeMask記号、構文・変更行書式、公開API・`verify-quick`を確認する。ColorizeMask・Node・ManagedColor・image・device、構築・破棄・slot・cache更新・pixel操作・metaobjectを生成または実行し、製品source・OBJECT・shared、
+  `kritatestsdk`、Qt Widgets、GUI event loop、filesystem・registry、新しい非header依存、公開header変更、製品計画差、停止線超過が必要なら止める。
+
 ### 第156便の先行監査計画
 
 - 監査共通基点は`9c8c231c1c`、入力は`build/tdd-macos/public-api-missing-g156.json`である。3担当は`auditing`の読み取り専用とし、製品・試験・CMake・script・台帳・文書を変更せず、構築、試験、Git操作、
