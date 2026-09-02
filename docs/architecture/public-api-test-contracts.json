@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 14019
+    "expectedMissingApis": 13990
   },
   "contracts": [
     {
@@ -45003,6 +45003,80 @@
         "method:KisSortedCategorizedListModel::KisSortedCategorizedListModel(QObject * parent)",
         "method:KisSortedCategorizedListModel::entryAt(Entry_Type & entry,QModelIndex index) const",
         "method:KisSortedCategorizedListModel::indexOf(const Entry_Type & entry) const"
+      ]
+    },
+    {
+      "target": "KisVisualColorModelSchemaContractTest",
+      "source": "libs/widgets/tests/KisVisualColorModelSchemaContractTest.cpp",
+      "test": "KisVisualColorModelSchemaContractTest::colorInputTypeAndConstructionSchemaRemainsStable",
+      "behavior": "色channel入力は基底・整数・浮動・16進・HSV入力型とrenderer・割合・previewの既定値を持つ厳密な構築型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisColorInput",
+        "class:KisFloatColorInput",
+        "class:KisHexColorInput",
+        "class:KisHsvColorInput",
+        "class:KisIntegerColorInput",
+        "method:KisColorInput::KisColorInput(QWidget * parent,const KoChannelInfo *,KoColor * color,KoColorDisplayRendererInterface * displayRenderer=KoDumbColorDisplayRenderer::instance (),bool usePercentage=false)",
+        "method:KisFloatColorInput::KisFloatColorInput(QWidget * parent,const KoChannelInfo *,KoColor * color,KoColorDisplayRendererInterface * displayRenderer=KoDumbColorDisplayRenderer::instance (),bool usePercentage=false)",
+        "method:KisHexColorInput::KisHexColorInput(QWidget * parent,KoColor * color,KoColorDisplayRendererInterface * displayRenderer=KoDumbColorDisplayRenderer::instance (),bool usePercentage=false,bool usePreview=false)",
+        "method:KisHsvColorInput::KisHsvColorInput(QWidget * parent,KoColor * color)",
+        "method:KisIntegerColorInput::KisIntegerColorInput(QWidget * parent,const KoChannelInfo *,KoColor * color,KoColorDisplayRendererInterface * displayRenderer=KoDumbColorDisplayRenderer::instance (),bool usePercentage=false)"
+      ]
+    },
+    {
+      "target": "KisVisualColorModelSchemaContractTest",
+      "source": "libs/widgets/tests/KisVisualColorModelSchemaContractTest.cpp",
+      "test": "KisVisualColorModelSchemaContractTest::colorInputPercentageAndNotificationSchemaRemainsStable",
+      "behavior": "色channel入力は割合表示方針の照会・更新と値変更通知に関する厳密な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisColorInput::setPercentageWise(bool val)",
+        "method:KisColorInput::updated()",
+        "method:KisColorInput::usePercentage() const"
+      ]
+    },
+    {
+      "target": "KisVisualColorModelSchemaContractTest",
+      "source": "libs/widgets/tests/KisVisualColorModelSchemaContractTest.cpp",
+      "test": "KisVisualColorModelSchemaContractTest::colorInputNumericValueSchemaRemainsStable",
+      "behavior": "整数・浮動色channel入力は数値設定、slider変更、表示更新に関する厳密な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisFloatColorInput::setValue(double)",
+        "method:KisFloatColorInput::sliderChanged(int)",
+        "method:KisFloatColorInput::update()",
+        "method:KisIntegerColorInput::setValue(int)",
+        "method:KisIntegerColorInput::update()"
+      ]
+    },
+    {
+      "target": "KisVisualColorModelSchemaContractTest",
+      "source": "libs/widgets/tests/KisVisualColorModelSchemaContractTest.cpp",
+      "test": "KisVisualColorModelSchemaContractTest::colorInputHexValueSchemaRemainsStable",
+      "behavior": "16進色入力は文字列値の適用と表示更新に関する厳密な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisHexColorInput::setValue()",
+        "method:KisHexColorInput::update()"
+      ]
+    },
+    {
+      "target": "KisVisualColorModelSchemaContractTest",
+      "source": "libs/widgets/tests/KisVisualColorModelSchemaContractTest.cpp",
+      "test": "KisVisualColorModelSchemaContractTest::colorInputHsvValueSchemaRemainsStable",
+      "behavior": "HSV色入力はmix方式、色相・彩度・値、各slider変更、表示更新・通知に関する厳密な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisHsvColorInput::hueSliderChanged(int)",
+        "method:KisHsvColorInput::saturationSliderChanged(int)",
+        "method:KisHsvColorInput::setHue(double)",
+        "method:KisHsvColorInput::setMixMode(KisHsvColorSlider::MIX_MODE mixMode)",
+        "method:KisHsvColorInput::setSaturation(double)",
+        "method:KisHsvColorInput::setValue(double)",
+        "method:KisHsvColorInput::update()",
+        "method:KisHsvColorInput::updated()",
+        "method:KisHsvColorInput::valueSliderChanged(int)"
       ]
     }
   ]
