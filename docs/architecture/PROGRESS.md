@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 19:48 JST
+- 更新日時: 2026-09-02 20:03 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -82,6 +82,27 @@
   includeはwidgetutils source/generated、definitionは`kritawidgetutils_EXPORTS`だけとし、公開headerをtarget sourceやAUTOMOC入力へ加えない。新対象4工程・8入力、停止5工程・11入力、近傍`KStandardActionEnumContractTest`、製品`kritawidgetutils`
   274工程・581入力と担当tree内の変更前後集合完全一致を確認する。未知target・CTest 0件、新5枠、対象CTest・20回反復、近傍、無作業再構築、動的接続・AUTOMOC入力・未解決shortcut記号、構文・書式、公開API・`verify-quick`を確認する。
   widget、action collection、QAction、shortcut backend、競合検査、窃取、signal、metaobject、event loopを生成または実行し、Qt Widgets link、製品source・OBJECT・shared、`kritatestsdk`、新しい非header依存、公開header変更、製品計画差、停止線超過が必要なら止める。
+
+### 第160便の統合結果
+
+- `g160-data-manager-schema`は受渡しcommit`154868c1c6`を統合commit`04add25db0`として取り込んだ。開始`libs/image/kis_datamanager.h`から既存
+  `libs/image/tests/KisImageTypesContractTest.cpp`の5枠へ、所有・既定画素、範囲・領域・連続性、pixel転送・更新、copy・履歴、永続化・purge・poolの全35 APIを対応付けた。`readBytes`・`writeBytes`のstride省略形も固定した。
+  公開header閉包の`QLinkedList`解釈用にCore5Compatのinterface includeだけを対象固有節へ追加し、直接linkは変えなかった。対象4工程・8入力、製品`kritaimage` 1,196工程・2,416入力の集合を維持した。担当macOS環境で
+  旧binaryの新5枠Unknown、対象CTest・20回反復、近傍`KisImageConfigAnimationSchemaContractTest`、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式、公開API検査、`verify-quick`に成功した。
+  中央環境でも対象7工程だけを構築・実行し、台帳commit`cc7e8d63fe`で29,838件中16,079件対応、13,759件未対応となった。作業tree 879,716 KiBと担当branchは削除した。tile、memento、pool、I/O、inline本文の効果は別契約で扱う。
+- `g160-shape-loading-context-schema`は受渡しcommit`08f7c371d0`を統合commit`29077bc3ad`として取り込んだ。開始`libs/flake/KoShapeLoadingContext.h`から新規
+  `libs/flake/tests/KoShapeLoadingContextSchemaContractTest.cpp`の5枠へ、追加属性値、identity・store・resource、layer・z-index・section、shape識別・subitem・updater、shared・静的追加属性の全29 APIを対応付けた。
+  追加属性値の保持・copy独立性・nameだけの等価則とMIME判定の既定引数省略形を固定した。直接linkはQt Core・Testだけ、新対象4工程・8入力、製品`kritaflake` 621工程・1,274入力の集合を維持した。担当macOS環境で
+  unknown target・CTest 0件、新5枠、対象CTest・20回反復、近傍`KoShapeSavingContextSchemaContractTest`、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式、公開API検査、`verify-quick`に成功した。
+  中央環境でも対象7工程だけを構築・実行し、台帳commit`3cac11e7fb`で29,838件中16,108件対応、13,730件未対応となった。作業tree 881,072 KiBと担当branchは削除した。store、shape登録、updater、共有data、静的集合の効果は別契約で扱う。
+- `g160-key-sequence-schema`は受渡しcommit`ab7f7105c9`を統合commit`82832ead2f`として取り込んだ。開始`libs/widgetutils/xmlgui/kkeysequencewidget.h`から新規
+  `libs/widgetutils/tests/KKeySequenceWidgetSchemaContractTest.cpp`の5枠へ、型・列挙・flags、寿命・捕捉、競合方針、shortcut値、関連・通知の全29 APIを対応付けた。validationとshortcut flagsの値、親省略構築、validation省略設定を固定した。
+  直接linkはQt Gui・Testだけ、新対象4工程・8入力、製品`kritawidgetutils` 274工程・581入力の集合を維持した。担当macOS環境でunknown target・CTest 0件、新5枠、対象CTest・20回反復、近傍
+  `KStandardActionEnumContractTest`、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式、公開API検査、`verify-quick`に成功した。中央環境でも対象7工程だけを構築・実行し、台帳commit`1d3bd2602d`で
+  29,838件中16,137件対応、13,701件未対応となった。作業tree 877,716 KiBと担当branchは削除した。widget、shortcut捕捉・競合検査・窃取、通知配送の効果は別契約で扱う。
+- 第160便全体で93 APIを15枠へ重複なく対応付け、3担当の作業tree計2,638,504 KiB（約2.52 GiB）を回収した。公開API台帳、構造方針、文書、link、D2再生成を含む`verify-quick`は成功した。
+  旧不足報告`public-api-missing-g160.json`をごみ箱へ移し、主Ninja木5,624,840 KiB、共有compiler cache 982,504 KiB、最新不足報告
+  `build/tdd-macos/public-api-missing-g161.json`だけを再利用対象として保持する。次の永続作業は第161便の不足報告から、既存限定対象を優先してpathと所有CMakeが重ならない3責務を先行監査することである。
 
 ### 第159便の先行監査計画
 
