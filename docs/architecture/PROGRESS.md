@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 17:32 JST
+- 更新日時: 2026-09-02 17:39 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -22,6 +22,23 @@
   update・状態面を、mask・node・image・paint device・document・view・canvas・resource・widget・filesystem・signal・metaobject・GUI event loop・大域状態の実体化なしで閉じる。
 - 各報告は完全なAPI識別子、既定引数観測、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから契約先または移動先、許可path、固有停止条件、
   比較候補の棄却根拠を含む。既存`build/tdd-macos`の計画は読み取り専用で測定し、構成や構築を開始しない。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
+- `g157-widgets-color-input-selector-schema-audit`は`libs/widgets/kis_color_input.h`の全29 APIを採用した。5入力型・構築10、割合・通知3、整数・浮動値5、16進値2、HSV値9を既存
+  `libs/widgets/tests/KisVisualColorModelSchemaContractTest.cpp`の5枠へ対応付ける。4構築は関数型に加えてrenderer・percentage・previewの既定引数省略形も未評価式で固定する。直接linkを変えず、Qt Widgetsと
+  KF WidgetsAddonsは公開header解釈用interface includeだけを既存対象へ追加する。対象4工程・8入力、停止5工程・11入力、製品`kritawidgets` 809工程・1,647入力を維持する。対象命令集合hashは
+  `3836924f731f12e46148fc6821c0d9311890543e6f75bfd0021b54a46eff03d0`、入力集合hashは`7469bfffc3302129b3f3bbb23e3358759489cecec50772b94e4ad297b7d86d2a`、製品命令集合hashは
+  `baeb2dab120a80387688d7082f787f31c3d527483e9d12132459052024bdf0ae`、入力集合hashは`935f4653e18dfab872dcfee4732689a6fd96aa191335b559949afabc731a821a`である。`KisVisualColorSelector.h`は
+  shape構成、gamut mask資源、色model・renderer、tablet・slider、proof・exposure、mouse interaction・signalへ責務と閉包が広がるため棄却した。
+- `g157-tools-categorized-palette-editor-schema-audit`は`libs/tools/ui/kis_categorized_list_model.h`の全27 APIを採用した。型・alias 6、追加role値7、寿命3、model access 8、sorted access 3を新規
+  `libs/tools/ui/tests/KisCategorizedListModelSchemaContractTest.cpp`のheader-only 5枠へ対応付ける。dummy entry・converterを宣言し、具象化aliasの厳密型、追加roleの`Qt::UserRole + 1`から`+ 6`、model構築と
+  `data`・`setData`の既定引数省略形を未評価式で固定する。直接linkはQt Core・Testだけ、新対象4工程・8入力、停止5工程・11入力を予測し、製品`kritatoolsui` 1,249工程・2,518入力を維持する。近傍
+  `KisCategoriesMapperContractTest`は8工程・16入力であるため拡張しない。製品命令集合hashは`ff10333773c2d7fec6c810e282558017841675c17cc42a238ce531953006dab1`、入力集合hashは
+  `9fa8903e13913463f04da836e2485fbb7f7345770ac0e35825e99a9eaa7a4314`である。`KisPaletteEditor.h`はpalette資源・色・undo、widget・selection・index、signal・metaobjectへheader閉包が広がるため棄却した。
+- `g157-libkis-colorize-view-schema-audit`は`libs/libkis/ColorizeMask.h`の全25 APIを採用した。所有・寿命・型5、key stroke data 6、edge・cleanup方針6、編集・bounds・出力方針6、更新・cache 2を新規
+  `libs/libkis/tests/ColorizeMaskSchemaContractTest.cpp`の5枠へ対応付ける。2構築、key stroke色初期化、mask更新の既定引数省略形も未評価式で固定する。直接linkはQt Core・TestとBoost headerだけ、推移headerの
+  追加探索が必要な場合も既存軽量対象のinterface includeに限定する。新対象4工程・8入力、停止5工程・11入力を予測し、製品`kritalibkis` 2,018工程・4,034入力を維持する。近傍`ViewSchemaContractTest`の
+  命令集合hashは`1c363eb3e47201fe2c50b2572d1e8d6e99c1ba6bb16890d2a1e14982019e77f5`、入力集合hashは`255b615ee55a05d59bb6dfb3f3a3dd3751e4e108172f468ab6157f279e806586`、
+  製品命令集合hashは`8ff79f6698872991292e369d6951ccd156a8863b8c05b01ec2599edba75e91ab`、入力集合hashは`c7d3d05a6481dae255bd0e55d6a0c3db9f35146efe125ad093974e94bb69ad03`である。
+  `View.h`の残りは資源選択、色、document・canvas・window、座標変換、node選択、可視性・message、signalへ責務が分散するため棄却した。
 
 ### 第156便の先行監査計画
 
