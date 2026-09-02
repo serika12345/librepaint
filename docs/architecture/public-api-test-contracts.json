@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 12337
+    "expectedMissingApis": 12314
   },
   "contracts": [
     {
@@ -49385,6 +49385,74 @@
         "method:KisPaintInformation::fromXML(const QDomElement &)",
         "method:KisPaintInformation::paintAt(PaintOp & op,KisDistanceInformation * distanceInfo)",
         "method:KisPaintInformation::toXML(QDomDocument &,QDomElement &) const"
+      ]
+    },
+    {
+      "target": "KoToolBaseSchemaContractTest",
+      "source": "libs/flake/tests/KoToolBaseSchemaContractTest.cpp",
+      "test": "KoToolBaseSchemaContractTest::toolFactoryTypeAndSectionValuesRemainStable",
+      "behavior": "tool factoryの公開型とtoolbox分類識別子の型・文字列値を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoToolFactoryBase",
+        "variable:ToolBoxSection::Fill",
+        "variable:ToolBoxSection::Main",
+        "variable:ToolBoxSection::Navigation",
+        "variable:ToolBoxSection::Select",
+        "variable:ToolBoxSection::Shape",
+        "variable:ToolBoxSection::Transform",
+        "variable:ToolBoxSection::View"
+      ]
+    },
+    {
+      "target": "KoToolBaseSchemaContractTest",
+      "source": "libs/flake/tests/KoToolBaseSchemaContractTest.cpp",
+      "test": "KoToolBaseSchemaContractTest::toolFactoryLifetimeAndCreationSignaturesRemainStable",
+      "behavior": "tool factoryの識別子付き構築、仮想寿命、window単位action生成とcanvas単位tool生成の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoToolFactoryBase::KoToolFactoryBase(const QString & id)",
+        "method:KoToolFactoryBase::createActions(KisKActionCollection * actionCollection)",
+        "method:KoToolFactoryBase::createTool(KoCanvasBase * canvas)",
+        "method:KoToolFactoryBase::~KoToolFactoryBase()"
+      ]
+    },
+    {
+      "target": "KoToolBaseSchemaContractTest",
+      "source": "libs/flake/tests/KoToolBaseSchemaContractTest.cpp",
+      "test": "KoToolBaseSchemaContractTest::toolFactoryIdentityAndPresentationSignaturesRemainStable",
+      "behavior": "tool factoryの識別子、優先度、分類、説明、icon、対象shapeとshortcutの公開観測署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoToolFactoryBase::activationShapeId() const",
+        "method:KoToolFactoryBase::iconName() const",
+        "method:KoToolFactoryBase::id() const",
+        "method:KoToolFactoryBase::priority() const",
+        "method:KoToolFactoryBase::section() const",
+        "method:KoToolFactoryBase::shortcut() const",
+        "method:KoToolFactoryBase::toolTip() const"
+      ]
+    },
+    {
+      "target": "KoToolBaseSchemaContractTest",
+      "source": "libs/flake/tests/KoToolBaseSchemaContractTest.cpp",
+      "test": "KoToolBaseSchemaContractTest::toolRegistryTypeAndLifetimeSchemaRemainsStable",
+      "behavior": "tool factory登録簿の公開型、既定構築と仮想寿命の契約を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoToolRegistry",
+        "method:KoToolRegistry::KoToolRegistry()",
+        "method:KoToolRegistry::~KoToolRegistry()"
+      ]
+    },
+    {
+      "target": "KoToolBaseSchemaContractTest",
+      "source": "libs/flake/tests/KoToolBaseSchemaContractTest.cpp",
+      "test": "KoToolBaseSchemaContractTest::toolRegistryAccessSignatureRemainsStable",
+      "behavior": "共有tool factory登録簿を取得する公開静的入口の署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoToolRegistry::instance()"
       ]
     }
   ]
