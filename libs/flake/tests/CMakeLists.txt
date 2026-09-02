@@ -873,6 +873,31 @@ target_compile_definitions(KoFFWWSConverterSchemaContractTest PRIVATE
 )
 
 kis_add_test(
+    KoFontGlyphModelSchemaContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KoFontGlyphModelSchemaContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_CURRENT_SOURCE_DIR}/../text
+    ${CMAKE_CURRENT_SOURCE_DIR}/../text/data
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+    $<TARGET_PROPERTY:Boost::boost,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Gui,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:Freetype::Freetype,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:HarfBuzz::HarfBuzz,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:Fontconfig::Fontconfig,INTERFACE_INCLUDE_DIRECTORIES>
+)
+target_compile_definitions(KoFontGlyphModelSchemaContractTest PRIVATE
+    kritaflake_EXPORTS
+    kritaglobal_EXPORTS
+)
+
+kis_add_test(
     KoSvgTextFontMetricsValueContractTest.cpp
     LINK_LIBRARIES
         Qt${QT_MAJOR_VERSION}::Gui
