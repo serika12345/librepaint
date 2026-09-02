@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 20:06 JST
+- 更新日時: 2026-09-02 20:12 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -22,6 +22,21 @@
   型・寿命・分類・状態・設定読書・資源・生成・通知・template capability選択面を、widget・image・node・resource・paintop・painter・signal・metaobject・GUI event loop・大域状態の実体化なしで閉じる。
 - 各報告は完全なAPI識別子、既定引数観測、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから契約先または移動先、許可path、固有停止条件、
   比較候補の棄却根拠を含む。既存`build/tdd-macos`の計画は読み取り専用で測定し、構成や構築を開始しない。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
+- `g161-image-memento-updater-schema-audit`は`libs/image/tiles3/kis_memento_manager.h`の全26 APIを採用した。alias・owner 8、履歴item値3、寿命・現在revision 6、tile登録・commit 5、履歴移動・保守4を新規
+  `libs/image/tiles3/tests/KisMementoManagerSchemaContractTest.cpp`の5枠へ対応付ける。直接linkはQt Core・Testだけ、Core5Compatは公開header解釈用interface includeとし、新対象4工程・8入力、停止5工程・11入力、製品
+  `kritaimage` 1,196工程・2,416入力を維持する。近傍`KisTileDataSchemaContractTest`の命令集合hashは`d1b856296beefc99b7160aacc64d5ed3d890bdb8888373dda69f684cf82f50b2`、入力集合hashは
+  `df820efe3d083b74721d0810891808a6509980f9d2ff4714b2e06d397bc91da5`、製品命令集合hashは`e055c792a96a6478029f98d6f7ef6eb7c32df4c7f228092ee25a0aaeff5be7ab`、入力集合hashは
+  `76f2aa4251a6bf4e2adf2a1e822bc9d629753b2e93e5b877ee4eae23364940bc`である。`kis_updater_context.h`はmerge・stroke・spontaneous job、scheduler、thread pool、lock、snapshotへ閉包が広がるため棄却した。
+- `g161-resource-bundle-composite-ops-schema-audit`は`libs/resources/KoResourceBundle.h`の全25 APIを採用した。identity・寿命4、metadata・thumbnail 6、永続化6、resource inventory 7、manifest・tag 2を新規
+  `libs/resources/tests/KoResourceBundleSchemaContractTest.cpp`の5枠へ対応付ける。metadata既定値とresource追加の2既定引数省略形を未評価式で固定する。直接linkはQt Core・Gui・Xml・Testだけ、新対象4工程・8〜9入力、停止5工程・11入力、製品
+  `kritaresources` 150工程・327入力を維持する。近傍`KisResourceModelEnumContractTest`の命令集合hashは`42f1b8b6087028d75bc3fb1a27bd14ccbedae748678196d6246c097b65f11b1f`、入力集合hashは
+  `32cd9deb6e2d4f1ef6e20c752f10f398b790fa59ce26efb3c213128a964804df`、製品命令集合hashは`6fc1004fbc96441506ef268521ee718c1c111cd8c3701118df5cf65a03eed812`、入力集合hashは
+  `05f38c71b59ed483a467839e983e7255e44b0e212c0ca7acd15c77148c2d048f`である。`KoCompositeOps.h`は巨大なinline template群の実体化と製品合成演算登録へ到達する危険があるため棄却した。
+- `g161-tools-paintop-option-factory-schema-audit`は`libs/tools/ui/kis_paintop_option.h`の全32 APIを採用した。型・category 8、構築・寿命4、状態・識別8、文脈・設定7、LOD・通知5を新規
+  `libs/tools/ui/tests/KisPaintOpOptionSchemaContractTest.cpp`の5枠へ対応付ける。category序数とoptional reader aliasを固定する。直接linkはQt Core・Testだけ、Qt Widgetsはinterface includeとし、新対象4工程・8入力、停止5工程・11入力、製品
+  `kritatoolsui` 1,249工程・2,518入力を維持する。既存`KisPaintOpOptionsModelContractTest`は9工程・25入力のため拡張しない。製品命令集合hashは
+  `4a770875eaa67bdbfb4443f79ffe5fcdebd7c1143ab4effbc1c0f3ebc8b52b66`、入力集合hashは`9fa8903e13913463f04da836e2485fbb7f7345770ac0e35825e99a9eaa7a4314`である。`kis_simple_paintop_factory.h`は検出traitと
+  inline生成本文の安全な分離が難しく、paintop・settings・widget・resource生成へ閉包が広がるため棄却した。
 
 ### 第160便の先行監査計画
 
