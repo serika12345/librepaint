@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 18:50 JST
+- 更新日時: 2026-09-02 19:20 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -74,6 +74,28 @@
   AUTOMOC入力へ加えない。新対象4工程・8入力、停止5工程・11入力、近傍は`KoGradientSegmentSchemaContractTest`、製品`kritaapplicationui`は1,970工程・3,940入力と担当tree内の変更前後集合完全一致を確認する。未知target・
   CTest 0件、新5枠、対象CTest・20回反復、近傍、無作業再構築、動的接続・AUTOMOC入力・未解決slider・gradient・timer記号、構文・書式、公開API・`verify-quick`を確認する。widget、gradient、色、menu、action、signal、metaobject、
   event、paint、timerを生成または実行し、Qt Widgets link、製品source・OBJECT・shared、`kritatestsdk`、新依存、公開header変更、製品計画差、停止線超過が必要なら止める。
+
+### 第159便の統合結果
+
+- `g159-group-layer-schema`は受渡しcommit`1409d22160`を統合commit`8227904a81`として取り込んだ。開始`libs/image/kis_group_layer.h`から既存
+  `libs/image/tests/KisImageTypesContractTest.cpp`の5枠へ、所有・寿命・階層、画像・座標・device、composition・visitor、表示・方針、子boundsの全32 APIを対応付けた。色空間を省略する構築も
+  未評価式で固定した。公開header閉包に必要な`libs/psdutils`、`libs/pigment/resources`、`libs/resources`のsource・generated includeだけを対象固有節へ追加し、直接linkは変えなかった。対象4工程・8入力、製品
+  `kritaimage` 1,196工程・2,416入力の集合を維持した。担当macOS環境で旧binaryの新5枠Unknown、対象CTest・20回反復、近傍`KisImageConfigAnimationSchemaContractTest`、無作業再構築、
+  動的接続・AUTOMOC入力・未解決記号、構文・書式、公開API検査、`verify-quick`に成功した。中央環境でも対象7工程だけを構築・実行し、台帳commit`013de15eb1`で29,838件中15,982件対応、
+  13,856件未対応となった。作業tree 877,512 KiBと担当branchは削除した。実group layer、image、node、device、visitor、undo、compositionとinline本文の効果は別契約で扱う。
+- `g159-file-dialog-schema`は受渡しcommit`6dc31188a8`を統合commit`7f82ff0327`として取り込んだ。開始`libs/libkis/FileDialog.h`から新規
+  `libs/libkis/tests/FileDialogSchemaContractTest.cpp`の5枠へ、型・dialog mode値、寿命・場所、filter設定、選択結果、静的選択入口の全27 APIを対応付けた。7 modeの序数と、構築・場所・filter・静的入口の既定引数省略形を固定した。
+  直接linkはQt Core・Testだけ、新対象4工程・8入力、製品`kritalibkis` 2,018工程・4,034入力の集合を維持した。担当macOS環境で未知target・CTest 0件、新5枠、対象CTest・20回反復、近傍
+  `ViewSchemaContractTest`、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式、公開API検査、`verify-quick`に成功した。中央環境でも対象7工程だけを構築・実行し、台帳commit
+  `e38f2ce0f2`で29,838件中16,009件対応、13,829件未対応となった。作業tree 876,196 KiBと担当branchは削除した。dialog、filesystem、設定とGUI event loopの効果は別契約で扱う。
+- `g159-segment-gradient-slider-schema`は受渡しcommit`c8661a8bb9`を統合commit`dfd8a12f85`として取り込んだ。開始`libs/ui/widgets/gradient/KisSegmentGradientSlider.h`から新規
+  `libs/ui/tests/KisSegmentGradientSliderSchemaContractTest.cpp`の5枠へ、handle型・値、構築・選択、移動・通知、handle移動、segment更新の全35 APIを対応付けた。handle列挙序数、member型、`shrinkEpsilon`と、構築・移動の
+  既定引数省略形を固定した。直接linkはQt Gui・Testだけ、新対象4工程・8入力、製品`kritaapplicationui` 1,970工程・3,940入力の集合を維持した。担当macOS環境で未知target・CTest 0件、新5枠、対象CTest・
+  20回反復、近傍`KoGradientSegmentSchemaContractTest`、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式、公開API検査、`verify-quick`に成功した。中央環境でも対象7工程だけを構築・実行し、
+  台帳commit`844dee2910`で29,838件中16,044件対応、13,794件未対応となった。作業tree 882,444 KiBと担当branchは削除した。widget、gradient、色、signal、event、paint、timerの効果は別契約で扱う。
+- 第159便全体で94 APIを15枠へ重複なく対応付け、3担当の作業tree計2,636,152 KiB（約2.51 GiB）を回収した。公開API台帳、構造方針、文書、link、D2再生成を含む`verify-quick`は成功した。
+  旧不足報告`public-api-missing-g159.json`をごみ箱へ移し、主Ninja木5,622,144 KiB、共有compiler cache 981,608 KiB、最新不足報告
+  `build/tdd-macos/public-api-missing-g160.json`だけを再利用対象として保持する。次の永続作業は第160便の不足報告から、既存限定対象を優先してpathと所有CMakeが重ならない3責務を先行監査することである。
 
 ### 第158便の先行監査計画
 
