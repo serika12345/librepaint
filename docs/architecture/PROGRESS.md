@@ -33,6 +33,34 @@
   固有停止条件、比較候補の棄却根拠を含む。既存`build/tdd-macos`の計画は読み取り専用で測定し、構成や構築を開始しない。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを
   担当票へ進める。
 
+### 第141便の担当計画
+
+- 実装共通基点は`2b6b5e544e1412c1ef319c8e3cba0a5d64e5d262`である。storage version、layer property icons、display renderer担当は`assigned`、構築許可は指定試験targetと軽量近傍だけの
+  `granted`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、専用worktree-local `build/tdd-macos`と主作業treeの
+  `/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。統合順はstorage version、layer property icons、display rendererとし、調整担当だけが`AGENTS.md`、
+  architecture文書、`docs/architecture/public-api-test-contracts.json`、共通不足報告を変更する。3担当の公開header、所有CMake、試験source、生成物は重ならない。
+- `g141-storage-version-schema`は`/Users/masato/Documents/librepaint-g141-storage-version-schema`を所有する。開始`libs/resources/KisResourceStorage.h`の版管理25 APIから既存
+  `libs/resources/tests/KisResourceModelEnumContractTest.cpp`の5枠`storageVersionEntrySchemaRemainsStable`、`storageVersionOrderingSchemaRemainsStable`、
+  `storageVersioningHelperSchemaRemainsStable`、`storageVersionIteratorNavigationSchemaRemainsStable`、`storageVersionIteratorValueSchemaRemainsStable`へ対応付ける。許可pathは既存試験sourceだけで、
+  CMakeを変更しない。対象4工程・9入力、停止5工程・11入力、近傍は`KisTagModelSchemaContractTest`、製品`kritaresources`は150工程・327入力と両集合hashの完全一致を確認する。未知5枠、
+  対象CTest、20回反復、近傍、無作業再構築、動的接続、未解決helper・iterator・plugin・resource記号、構文・変更行書式、公開API・`verify-quick`を確認する。entry・比較器・helper・iterator本文、
+  filesystem・database・storage plugin・resource I/Oを実行し、局所access型からvtable・RTTI・製品記号を生成し、製品source・OBJECT・shared、`kritatestsdk`、新依存、CMake・公開header変更、
+  製品計画差、停止線超過が必要なら止める。
+- `g141-layer-property-icons-schema`は`/Users/masato/Documents/librepaint-g141-layer-property-icons-schema`を所有する。開始`libs/image/kis_layer_properties_icons.h`の全30 APIから新規
+  `libs/image/tests/KisLayerPropertiesIconsSchemaContractTest.cpp`の5枠`layerPropertyIconOwnerAndLifetimeSchemaRemainsStable`、`layerPropertyVisibilityAndLockIdentifierSchemaRemainsStable`、
+  `layerPropertyPresentationIdentifierSchemaRemainsStable`、`layerPropertyFactorySignaturesRemainStable`、`layerPropertyNodeStorageAndPresentationSignaturesRemainStable`へ対応付ける。許可pathは新規試験sourceと
+  `libs/image/tests/CMakeLists.txt`だけである。新対象4工程・8入力、停止5工程・11入力、近傍は`KisImageTypesContractTest`、製品`kritaimage`は1,196工程・2,416入力と両集合hashの完全一致を
+  確認する。未知target、5枠、対象CTest、20回反復、近傍、無作業再構築、動的接続、未解決owner・静的KoID・node・image記号、構文・変更行書式、公開API・`verify-quick`を確認する。
+  owner・KoID・node・image・色空間・icon・singletonを生成または実行し、静的memberをODR使用し、製品source・OBJECT・shared、`kritatestsdk`、新link依存、公開header変更、製品計画差、
+  停止線超過が必要なら止める。
+- `g141-display-renderer-schema`は`/Users/masato/Documents/librepaint-g141-display-renderer-schema`を所有する。開始`libs/pigment/KoColorDisplayRendererInterface.h`の全30 APIから新規
+  `libs/pigment/tests/KoColorDisplayRendererSchemaContractTest.cpp`の5枠`displayRendererInterfaceIdentityAndLifecycleSignaturesRemainStable`、
+  `displayRendererInterfaceColorConversionSignaturesRemainStable`、`displayRendererInterfaceSpaceAndPaletteSignaturesRemainStable`、`dumbDisplayRendererColorConversionSignaturesRemainStable`、
+  `dumbDisplayRendererIdentitySpaceAndPaletteSignaturesRemainStable`へ対応付ける。許可pathは新規試験sourceと`libs/pigment/tests/CMakeLists.txt`だけである。新対象4工程・8入力、停止5工程・11入力、
+  近傍は`KoColorValueSchemaContractTest`、製品`kritapigment`は367工程・764入力と両集合hash・保留集合の完全一致を確認する。未知target、5枠、対象CTest、20回反復、近傍、無作業再構築、
+  動的接続、未解決renderer・KoColor・registry・palette記号、構文・変更行書式、公開API・`verify-quick`を確認する。renderer・KoColor・色空間・image・palette・channelを生成または実行し、
+  conversion・signal・singleton・metaobject・registry・画素bufferへ到達し、製品source・OBJECT・shared、`kritatestsdk`、新非header依存、公開header変更、製品計画差、停止線超過が必要なら止める。
+
 ### 第140便の先行監査計画
 
 - 監査共通基点は`4fb012861d3c0aa810a4c3af197ca255b9008a0d`、入力は`build/tdd-macos/public-api-missing-g140.json`である。3担当は`auditing`の読み取り専用とし、
