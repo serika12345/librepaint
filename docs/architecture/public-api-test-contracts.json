@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 12417
+    "expectedMissingApis": 12388
   },
   "contracts": [
     {
@@ -49170,6 +49170,80 @@
       "apis": [
         "method:KisBaseRectsWalker::CloneNotification::CloneNotification(KisNodeSP node,const QRect & dirtyRect,bool dontInvalidateFrames)",
         "method:KisBaseRectsWalker::CloneNotification::notify()"
+      ]
+    },
+    {
+      "target": "KoCanvasControllerProxySchemaContractTest",
+      "source": "libs/flake/tests/KoCanvasControllerProxySchemaContractTest.cpp",
+      "test": "KoCanvasControllerProxySchemaContractTest::canvasControllerProxyIdentityAndAccessSignaturesRemainStable",
+      "behavior": "canvas controller通知proxyのQObject型、親省略可能な構築とcontroller参照の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoCanvasControllerProxyObject",
+        "method:KoCanvasControllerProxyObject::KoCanvasControllerProxyObject(KoCanvasController * canvasController,QObject * parent=0)",
+        "method:KoCanvasControllerProxyObject::canvasController() const"
+      ]
+    },
+    {
+      "target": "KoCanvasControllerProxySchemaContractTest",
+      "source": "libs/flake/tests/KoCanvasControllerProxySchemaContractTest.cpp",
+      "test": "KoCanvasControllerProxySchemaContractTest::canvasControllerProxyLifecycleNotificationsRemainStable",
+      "behavior": "canvasの設定・解除と状態変更について、通知入口とsignalの対になる公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoCanvasControllerProxyObject::canvasRemoved(KoCanvasController * canvasController)",
+        "method:KoCanvasControllerProxyObject::canvasSet(KoCanvasController * canvasController)",
+        "method:KoCanvasControllerProxyObject::canvasStateChanged()",
+        "method:KoCanvasControllerProxyObject::emitCanvasRemoved(KoCanvasController * canvasController)",
+        "method:KoCanvasControllerProxyObject::emitCanvasSet(KoCanvasController * canvasController)",
+        "method:KoCanvasControllerProxyObject::emitCanvasStateChanged()"
+      ]
+    },
+    {
+      "target": "KoCanvasControllerProxySchemaContractTest",
+      "source": "libs/flake/tests/KoCanvasControllerProxySchemaContractTest.cpp",
+      "test": "KoCanvasControllerProxySchemaContractTest::canvasControllerProxyPositionAndOffsetNotificationsRemainStable",
+      "behavior": "canvas・文書上のpointer位置とcanvas・文書offsetについて、通知入口とsignalの公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoCanvasControllerProxyObject::canvasMousePositionChanged(const QPoint & position)",
+        "method:KoCanvasControllerProxyObject::canvasOffsetChanged()",
+        "method:KoCanvasControllerProxyObject::documentMousePositionChanged(const QPointF & position)",
+        "method:KoCanvasControllerProxyObject::emitCanvasMousePositionChanged(const QPoint & position)",
+        "method:KoCanvasControllerProxyObject::emitCanvasOffsetChanged()",
+        "method:KoCanvasControllerProxyObject::emitDocumentMousePositionChanged(const QPointF & position)",
+        "method:KoCanvasControllerProxyObject::emitMoveDocumentOffset(const QPointF & oldOffset,const QPointF & newOffset)",
+        "method:KoCanvasControllerProxyObject::moveDocumentOffset(const QPointF & oldOffset,const QPointF & newOffset)"
+      ]
+    },
+    {
+      "target": "KoCanvasControllerProxySchemaContractTest",
+      "source": "libs/flake/tests/KoCanvasControllerProxySchemaContractTest.cpp",
+      "test": "KoCanvasControllerProxySchemaContractTest::canvasControllerProxyViewGeometryNotificationsRemainStable",
+      "behavior": "表示領域の寸法、widget座標の文書矩形と文書回転について、通知入口とsignalの公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoCanvasControllerProxyObject::documentRectInWidgetPixelsChanged(const QRectF & documentRectInWidgetPixels)",
+        "method:KoCanvasControllerProxyObject::documentRotationChanged(qreal angle)",
+        "method:KoCanvasControllerProxyObject::emitDocumentRectInWidgetPixelsChanged(const QRectF & documentRectInWidgetPixels)",
+        "method:KoCanvasControllerProxyObject::emitDocumentRotationChanged(qreal angle)",
+        "method:KoCanvasControllerProxyObject::emitSizeChanged(const QSize & size)",
+        "method:KoCanvasControllerProxyObject::sizeChanged(const QSize & size)"
+      ]
+    },
+    {
+      "target": "KoCanvasControllerProxySchemaContractTest",
+      "source": "libs/flake/tests/KoCanvasControllerProxySchemaContractTest.cpp",
+      "test": "KoCanvasControllerProxySchemaContractTest::canvasControllerProxyZoomAndMirrorNotificationsRemainStable",
+      "behavior": "実効zoom、zoom状態と文書mirror状態について、通知入口とsignalの公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoCanvasControllerProxyObject::documentMirrorStatusChanged(bool mirrorX,bool mirrorY)",
+        "method:KoCanvasControllerProxyObject::effectiveZoomChanged(qreal zoom)",
+        "method:KoCanvasControllerProxyObject::emitDocumentMirrorStatusChanged(bool mirrorX,bool mirrorY)",
+        "method:KoCanvasControllerProxyObject::emitEffectiveZoomChanged(qreal zoom)",
+        "method:KoCanvasControllerProxyObject::emitZoomStateChanged(const KoZoomState & zoomState)",
+        "method:KoCanvasControllerProxyObject::zoomStateChanged(const KoZoomState & zoomState)"
       ]
     }
   ]
