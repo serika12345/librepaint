@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 23:48 JST
+- 更新日時: 2026-09-02 23:55 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -17,6 +17,15 @@
 - `g105-svg-value-audit`はflake・SVG・vector・documentから、第167便の文字markup変換を除外して一責務を選ぶ。
 - `g105-widget-connection-audit`はwidgetutils・widgets・libkis・軽量接続面から、第167便のCanvasを除外して一責務を選ぶ。
 - 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、予測工程・入力と停止線、開始pathから契約先、許可path、固有停止条件、比較候補の棄却根拠を含む。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
+- `g105-paintop-value-audit`は`libs/image/kis_iterator_ng.h`の全24 APIを採用した。基底const iterator 6、横方向const iterator 6、横方向書込iterator 3、縦方向const iterator 6、縦方向書込iterator 3を既存
+  `libs/image/tests/KisImageTypesContractTest.cpp`の5枠へ対応付ける。局所probeは宣言と未評価構築可能性だけに用い、iterator・accessor・画素を生成しない。CMakeと依存を変えず対象4工程・8入力、停止5工程・11入力、製品`kritaimage` 1,196工程・2,416入力を維持する。
+  `KoColorSpaceAbstract.h`はtemplate本文、`KoAbstractGradient.h`はresource・色空間・preview、`KisSwatchGroup.h`は共有所有、mask applicatorは描画入力へ閉包が広がるため棄却した。
+- `g105-svg-value-audit`は`libs/flake/KoPathShape.h`の全64 APIを採用した。identity・listener・値型10、geometry・描画13、path構築・style・marker 18、point照会・変更13、subpath topology 10を新規
+  `libs/flake/tests/KoPathShapeSchemaContractTest.cpp`の5枠へ対応付ける。`toString`と`pointsAt`の省略形も固定する。直接linkはQt Core・Gui・Testだけ、Qt Xmlはinterface includeだけに狭め、新対象4工程・8入力、停止5工程・11入力、製品`kritaflake` 621工程・1,274入力を維持する。
+  shape・listener・point・segment・marker・painterは生成しない。`KoShapeManager`、canvas・tool群はGUI・状態・signal、SVG parser群はXML・shape生成、resource群はI/O・所有へ閉包が広がるため棄却した。
+- `g105-widget-connection-audit`は`libs/widgetutils/kis_action_registry.h`の全24 APIを採用した。action分類7、identity・寿命3、検索・factory 6、shortcut設定5、保守・通知3を新規
+  `libs/widgetutils/tests/KisActionRegistrySchemaContractTest.cpp`の5枠へ対応付ける。`makeQAction`と`applyShortcutScheme`の省略形も固定する。直接linkはQt Core・Testだけ、Qt Gui・Xmlはinterface includeだけとし、新対象4工程・8入力、停止5工程・11入力、製品`kritawidgetutils` 274工程・581入力を維持する。
+  registry、分類値、QAction、singleton、設定I/O、signalを実行しない。`Node.h`は責務分散、`Krita.h`は大域状態、`Scratchpad.h`と色選択・gradient editor群はwidget・canvas・resource・eventへ閉包が広がるため棄却した。
 
 ### 第167便の先行監査計画
 
