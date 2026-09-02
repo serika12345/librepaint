@@ -48,7 +48,7 @@ exec "$BASH" -c '
     shift 5
 
     cd "$repo_root"
-    eval "$("$nix_command" print-dev-env "$profile")"
+    eval "$("$nix_command" print-dev-env "$profile")" >/dev/null
     export PATH="$repo_root/scripts:$PATH"
     export CCACHE_BASEDIR="$repo_root"
     export CCACHE_DIR="$shared_cache"

@@ -84,7 +84,8 @@ class IncrementalDevelopmentContractTests(unittest.TestCase):
                 f"#!{BASH}\n"
                 "printf '%s\\n' \"$*\" >\"$COMMAND_LOG\"\n"
                 "printf '%s\\n' 'export LIBREPAINT_TEST_SHELL=1' "
-                f"'export PATH={fake_bin}:/usr/bin:/bin'\n",
+                f"'export PATH={fake_bin}:/usr/bin:/bin' "
+                "'printf '\"'\"'shell-hook-banner\\n'\"'\"''\n",
                 encoding="utf-8",
             )
             fake_nix.chmod(0o755)
@@ -111,7 +112,8 @@ class IncrementalDevelopmentContractTests(unittest.TestCase):
                     "printf '%s\\n' \"$PWD\" \"$CCACHE_BASEDIR\" "
                     "\"$CCACHE_DIR\" \"$LIBREPAINT_REPO_ROOT\" "
                     "\"$LIBREPAINT_BUILD_ROOT\" \"$build_entry\" "
-                    ">\"$ENVIRONMENT_LOG\"",
+                    ">\"$ENVIRONMENT_LOG\"; "
+                    "printf '%s\\n' command-output",
                 ],
                 cwd=REPO_ROOT,
                 env=environment,
@@ -122,6 +124,7 @@ class IncrementalDevelopmentContractTests(unittest.TestCase):
             )
 
             self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertEqual(result.stdout, "command-output\n")
             self.assertEqual(
                 command_log.read_text(encoding="utf-8").strip(),
                 f"print-dev-env {profile.resolve()}",

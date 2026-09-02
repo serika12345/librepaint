@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 16:16 JST
+- 更新日時: 2026-09-02 16:24 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -70,6 +70,10 @@
   `kritaimage`は1,196工程・2,416入力と担当tree内の変更前後集合完全一致を確認する。未知targetと新5枠、対象CTest、新5枠個別、20回反復、近傍、無作業再構築、動的接続・AUTOMOC入力・未解決channel・keyframe記号、構文・
   変更行書式、公開API・`verify-quick`を確認する。channel、keyframe、node、default bounds、undo、XML、signal、metaobject、inline move・copy・swap・active本文、static KoID値を生成または実行し、製品source・OBJECT・shared、
   `kritatestsdk`、新しい非header link、公開header変更、製品計画差、停止線超過が必要なら止める。
+- SVG text担当の最初の計画集計は、共有環境helperが出す5行の案内表示をNinja出力へ含めたため9工程・13入力と誤判定した。案内表示を除いたNinja閉包は担当票どおり4工程・8入力である。
+  `scripts/run-shared-test-env`は環境初期化時の標準出力を抑え、呼び出した命令の標準出力だけを保持する契約へ補正する。対象script検査と`verify-quick`後に同じ4工程・8入力基線で担当を再開する。
+- keyframe channel担当の最初の対象限定構築で、`kis_keyframe_channel.h`から`kundo2stack.h`へ至る直接include連鎖の`QAction`不足を初期診断として得た。製品libraryやQt Widgetsへlinkせず
+  Qt Widgetsのinterface includeだけで公開headerを解釈できるため、所有CMakeの対象限定include節へ追加する。補正前の新対象4工程・8入力、製品`kritaimage` 1,196工程・2,416入力を完全に維持し、補正後に別の不足が残る場合は停止する。
 
 ### 第154便の先行監査計画
 
