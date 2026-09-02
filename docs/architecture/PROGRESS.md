@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 12:17 JST
+- 更新日時: 2026-09-02 12:20 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -40,7 +40,7 @@
 
 ### 第147便の担当計画
 
-- 実装共通基点は`5b0d4072307d`である。color spaceとprojection leaf担当は`integrated`、document resource manager担当は`ready`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの
+- 実装共通基点は`5b0d4072307d`である。color space、projection leaf、document resource manager担当は`integrated`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの
   `transport-commit`、追加委任は禁止する。対象platformはmacOSであり、専用worktree-local `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。
   統合順はcolor space、projection leaf、document resource managerとし、調整担当だけが`AGENTS.md`、architecture文書、`docs/architecture/public-api-test-contracts.json`、共通不足報告を変更する。
   3担当の公開header、所有CMake、試験source、生成物は重ならない。
@@ -77,6 +77,12 @@
   対象4工程・8入力、製品`kritaimage` 1,196工程・2,416入力を維持した。leaf、node、visitor、paint device、projection plane、移動・visitor・投影再生成・描画methodを生成または実行していない。
   担当macOS環境と中央環境で5枠と既存image型枠を含む対象CTest・20回反復、近傍`KisImageConfigAnimationSchemaContractTest`、無作業再構築、動的接続・未解決記号、構文・書式、公開API検査に成功した。
   中央の公開API契約検査は29,838件中14,778件対応、15,060件未対応となる。作業tree 877,668 KiBと担当branchは削除した。graph移動、投影再生成、描画判断の実行時挙動は別の効果契約で扱う。
+- `g147-document-resource-manager-schema`は受渡しcommit`da0fda28c212`を統合commit`391f02fa4e`として取り込んだ。開始`libs/flake/KoDocumentResourceManager.h`から新規
+  `libs/flake/tests/KoDocumentResourceManagerSchemaContractTest.cpp`の5枠へ、型・寿命、資源key、値照会・設定、document状態、変更signalの41 APIを対応付けた。新対象だけにflake source・generated探索先を与え、
+  直接linkはQt Core・Testだけ、新対象4工程・8入力に収め、製品`kritaflake` 621工程・1,274入力と保留集合を維持した。公開headerを対象sourceへ追加せずAUTOMOC header入力は空である。QObject、manager、QVariant、
+  KoColor、KoUnit、shape、undo stack、method・signal・metaobjectを生成または実行していない。担当macOS環境と中央環境で5枠を含む対象CTest・20回反復、近傍`KoCanvasBaseSchemaContractTest`、無作業再構築、
+  動的接続・AUTOMOC入力・未解決記号、構文・書式、公開API検査に成功した。中央の公開API契約検査は29,838件中14,819件対応、15,019件未対応となる。作業tree 881,516 KiBと担当branchは削除した。
+  資源値の格納・削除、undo stack、変更通知の実行時挙動は別の効果契約で扱う。
 
 ### 第146便の先行監査計画
 

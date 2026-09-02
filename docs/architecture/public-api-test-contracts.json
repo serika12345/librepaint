@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 15060
+    "expectedMissingApis": 15019
   },
   "contracts": [
     {
@@ -42702,6 +42702,92 @@
         "method:KisProjectionLeaf::isOverlayProjectionLeaf() const",
         "method:KisProjectionLeaf::isTemporaryHiddenFromRendering() const",
         "method:KisProjectionLeaf::setTemporaryHiddenFromRendering(bool value)"
+      ]
+    },
+    {
+      "target": "KoDocumentResourceManagerSchemaContractTest",
+      "source": "libs/flake/tests/KoDocumentResourceManagerSchemaContractTest.cpp",
+      "test": "KoDocumentResourceManagerSchemaContractTest::documentResourceManagerIdentityAndLifecycleSignaturesRemainStable",
+      "behavior": "文書資源managerは任意のQObject親から構築できるQObject由来の公開型として仮想破棄を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoDocumentResourceManager",
+        "method:KoDocumentResourceManager::KoDocumentResourceManager(QObject * parent=0)",
+        "method:KoDocumentResourceManager::~KoDocumentResourceManager()"
+      ]
+    },
+    {
+      "target": "KoDocumentResourceManagerSchemaContractTest",
+      "source": "libs/flake/tests/KoDocumentResourceManagerSchemaContractTest.cpp",
+      "test": "KoDocumentResourceManagerSchemaContractTest::documentResourceKeySchemaRemainsStable",
+      "behavior": "文書資源managerは共通資源keyと各product領域の開始値を安定した公開列挙値として維持する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KoDocumentResourceManager::DocumentResource",
+        "enumerator:KoDocumentResourceManager::DocumentResource::DocumentRectInPixels",
+        "enumerator:KoDocumentResourceManager::DocumentResource::DocumentResolution",
+        "enumerator:KoDocumentResourceManager::DocumentResource::FlowStart",
+        "enumerator:KoDocumentResourceManager::DocumentResource::GrabSensitivity",
+        "enumerator:KoDocumentResourceManager::DocumentResource::KarbonStart",
+        "enumerator:KoDocumentResourceManager::DocumentResource::KexiStart",
+        "enumerator:KoDocumentResourceManager::DocumentResource::KoPageAppStart",
+        "enumerator:KoDocumentResourceManager::DocumentResource::KoTextStart",
+        "enumerator:KoDocumentResourceManager::DocumentResource::KritaStart",
+        "enumerator:KoDocumentResourceManager::DocumentResource::MarkerCollection",
+        "enumerator:KoDocumentResourceManager::DocumentResource::OdfDocument",
+        "enumerator:KoDocumentResourceManager::DocumentResource::PlanStart",
+        "enumerator:KoDocumentResourceManager::DocumentResource::SheetsStart",
+        "enumerator:KoDocumentResourceManager::DocumentResource::StageStart",
+        "enumerator:KoDocumentResourceManager::DocumentResource::UndoStack",
+        "enumerator:KoDocumentResourceManager::DocumentResource::WordsStart"
+      ]
+    },
+    {
+      "target": "KoDocumentResourceManagerSchemaContractTest",
+      "source": "libs/flake/tests/KoDocumentResourceManagerSchemaContractTest.cpp",
+      "test": "KoDocumentResourceManagerSchemaContractTest::documentResourceValueAccessSignaturesRemainStable",
+      "behavior": "文書資源managerは汎用値・色・shape・単位をkey別に設定・照会・削除する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoDocumentResourceManager::boolResource(int key) const",
+        "method:KoDocumentResourceManager::clearResource(int key)",
+        "method:KoDocumentResourceManager::hasResource(int key) const",
+        "method:KoDocumentResourceManager::intResource(int key) const",
+        "method:KoDocumentResourceManager::koColorResource(int key) const",
+        "method:KoDocumentResourceManager::koShapeResource(int key) const",
+        "method:KoDocumentResourceManager::resource(int key) const",
+        "method:KoDocumentResourceManager::setResource(int key,KoShape * shape)",
+        "method:KoDocumentResourceManager::setResource(int key,const KoColor & color)",
+        "method:KoDocumentResourceManager::setResource(int key,const KoUnit & unit)",
+        "method:KoDocumentResourceManager::setResource(int key,const QVariant & value)",
+        "method:KoDocumentResourceManager::sizeResource(int key) const",
+        "method:KoDocumentResourceManager::stringResource(int key) const",
+        "method:KoDocumentResourceManager::unitResource(int key) const"
+      ]
+    },
+    {
+      "target": "KoDocumentResourceManagerSchemaContractTest",
+      "source": "libs/flake/tests/KoDocumentResourceManagerSchemaContractTest.cpp",
+      "test": "KoDocumentResourceManagerSchemaContractTest::documentResourceDocumentStateSignaturesRemainStable",
+      "behavior": "文書資源managerは文書寸法・解像度・grab感度・undo stackを照会・設定する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoDocumentResourceManager::documentRectInPixels() const",
+        "method:KoDocumentResourceManager::documentResolution() const",
+        "method:KoDocumentResourceManager::grabSensitivity() const",
+        "method:KoDocumentResourceManager::setGrabSensitivity(int grabSensitivity)",
+        "method:KoDocumentResourceManager::setUndoStack(KUndo2Stack * undoStack)",
+        "method:KoDocumentResourceManager::undoStack() const"
+      ]
+    },
+    {
+      "target": "KoDocumentResourceManagerSchemaContractTest",
+      "source": "libs/flake/tests/KoDocumentResourceManagerSchemaContractTest.cpp",
+      "test": "KoDocumentResourceManagerSchemaContractTest::documentResourceChangeSignalSignatureRemainsStable",
+      "behavior": "文書資源managerは変更したkeyと値を通知する公開signal署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoDocumentResourceManager::resourceChanged(int key,const QVariant & value)"
       ]
     }
   ]
