@@ -17,6 +17,7 @@
 #include "kis_image_signal_router.h"
 #include "kis_layer_utils.h"
 #include "kis_paint_device_frames_interface.h"
+#include "kis_pixel_selection.h"
 #include "kis_projection_leaf.h"
 #include "kis_selection_filters.h"
 #include "kis_sequential_iterator.h"
@@ -45,6 +46,8 @@ namespace
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisDataManager::method)), signature>)
 #define ASSERT_SAVED_COMMAND_SIGNATURE(type, method, signature)                                                        \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&type::method)), signature>)
+#define ASSERT_PIXEL_SELECTION_SIGNATURE(method, signature)                                                            \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KisPixelSelection::method)), signature>)
 
 class SelectionDefaultBoundsConstructorProbe final : public KisSelectionDefaultBoundsBase
 {
@@ -177,6 +180,11 @@ private Q_SLOTS:
     void savedCommandMergeAndUnwrapSignaturesRemainStable();
     void savedMacroCommandCompositionAndIdentitySignaturesRemainStable();
     void savedMacroCommandExecutionAndOverrideSignaturesRemainStable();
+    void pixelSelectionOwnershipCopyAndLifetimeSchemaRemainsStable();
+    void pixelSelectionMutationSignaturesRemainStable();
+    void pixelSelectionGeometryAndOutlineCacheSignaturesRemainStable();
+    void pixelSelectionParentCloneAndProjectionSignaturesRemainStable();
+    void pixelSelectionThumbnailAndPersistenceSignaturesRemainStable();
 };
 
 void KisImageTypesContractTest::intrusivePointerAliasesPreserveOwnershipKinds()
@@ -2095,6 +2103,71 @@ void KisImageTypesContractTest::savedMacroCommandExecutionAndOverrideSignaturesR
                        void>);
 }
 
+void KisImageTypesContractTest::pixelSelectionOwnershipCopyAndLifetimeSchemaRemainsStable()
+{
+    static_assert(std::is_class_v<KisPixelSelection>);
+    static_assert(std::is_base_of_v<KisPaintDevice, KisPixelSelection>);
+    static_assert(std::is_base_of_v<KisSelectionComponent, KisPixelSelection>);
+    static_assert(std::has_virtual_destructor_v<KisPixelSelection>);
+    static_assert(std::is_constructible_v<KisPixelSelection, KisDefaultBoundsBaseSP, KisSelectionWSP>);
+    static_assert(
+        std::
+            is_constructible_v<KisPixelSelection, const KisPaintDeviceSP, KritaUtils::DeviceCopyMode, KisSelectionWSP>);
+    static_assert(std::is_constructible_v<KisPixelSelection, const KisPixelSelection &, KritaUtils::DeviceCopyMode>);
+    static_assert(std::is_same_v<decltype(KisPixelSelection()), KisPixelSelection>);
+    static_assert(
+        std::is_same_v<decltype(KisPixelSelection(std::declval<KisDefaultBoundsBaseSP>())), KisPixelSelection>);
+    static_assert(std::is_same_v<decltype(KisPixelSelection(std::declval<KisPaintDeviceSP>())), KisPixelSelection>);
+    static_assert(
+        std::is_same_v<decltype(KisPixelSelection(std::declval<const KisPixelSelection &>())), KisPixelSelection>);
+}
+
+void KisImageTypesContractTest::pixelSelectionMutationSignaturesRemainStable()
+{
+    ASSERT_PIXEL_SELECTION_SIGNATURE(applySelection, void (KisPixelSelection::*)(KisPixelSelectionSP, SelectionAction));
+    ASSERT_PIXEL_SELECTION_SIGNATURE(clear, void (KisPixelSelection::*)());
+    ASSERT_PIXEL_SELECTION_SIGNATURE(clear, void (KisPixelSelection::*)(const QRect &));
+    ASSERT_PIXEL_SELECTION_SIGNATURE(copyAlphaFrom, void (KisPixelSelection::*)(KisPaintDeviceSP, const QRect &));
+    ASSERT_PIXEL_SELECTION_SIGNATURE(invert, void (KisPixelSelection::*)());
+    ASSERT_PIXEL_SELECTION_SIGNATURE(isEmpty, bool (KisPixelSelection::*)() const);
+    ASSERT_PIXEL_SELECTION_SIGNATURE(moveTo, void (KisPixelSelection::*)(const QPoint &));
+    ASSERT_PIXEL_SELECTION_SIGNATURE(select, void (KisPixelSelection::*)(const QRect &, quint8));
+    static_assert(
+        std::is_same_v<decltype(std::declval<KisPixelSelection &>().select(std::declval<const QRect &>())), void>);
+}
+
+void KisImageTypesContractTest::pixelSelectionGeometryAndOutlineCacheSignaturesRemainStable()
+{
+    ASSERT_PIXEL_SELECTION_SIGNATURE(isTotallyUnselected, bool (KisPixelSelection::*)(const QRect &) const);
+    ASSERT_PIXEL_SELECTION_SIGNATURE(outline, QVector<QPolygon> (KisPixelSelection::*)() const);
+    ASSERT_PIXEL_SELECTION_SIGNATURE(outlineCache, QPainterPath (KisPixelSelection::*)() const);
+    ASSERT_PIXEL_SELECTION_SIGNATURE(outlineCacheValid, bool (KisPixelSelection::*)() const);
+    ASSERT_PIXEL_SELECTION_SIGNATURE(recalculateOutlineCache, void (KisPixelSelection::*)());
+    ASSERT_PIXEL_SELECTION_SIGNATURE(setOutlineCache, void (KisPixelSelection::*)(const QPainterPath &));
+    ASSERT_PIXEL_SELECTION_SIGNATURE(invalidateOutlineCache, void (KisPixelSelection::*)());
+    ASSERT_PIXEL_SELECTION_SIGNATURE(selectedExactRect, QRect (KisPixelSelection::*)() const);
+    ASSERT_PIXEL_SELECTION_SIGNATURE(selectedRect, QRect (KisPixelSelection::*)() const);
+}
+
+void KisImageTypesContractTest::pixelSelectionParentCloneAndProjectionSignaturesRemainStable()
+{
+    ASSERT_PIXEL_SELECTION_SIGNATURE(clone, KisSelectionComponent * (KisPixelSelection::*)(KisSelection *));
+    ASSERT_PIXEL_SELECTION_SIGNATURE(compositionSourceColorSpace, const KoColorSpace *(KisPixelSelection::*)() const);
+    ASSERT_PIXEL_SELECTION_SIGNATURE(parentSelection, KisSelectionWSP (KisPixelSelection::*)() const);
+    ASSERT_PIXEL_SELECTION_SIGNATURE(setParentSelection, void (KisPixelSelection::*)(KisSelectionWSP));
+    ASSERT_PIXEL_SELECTION_SIGNATURE(renderToProjection, void (KisPixelSelection::*)(KisPaintDeviceSP));
+    ASSERT_PIXEL_SELECTION_SIGNATURE(renderToProjection, void (KisPixelSelection::*)(KisPaintDeviceSP, const QRect &));
+}
+
+void KisImageTypesContractTest::pixelSelectionThumbnailAndPersistenceSignaturesRemainStable()
+{
+    ASSERT_PIXEL_SELECTION_SIGNATURE(read, bool (KisPixelSelection::*)(QIODevice *));
+    ASSERT_PIXEL_SELECTION_SIGNATURE(thumbnailImage, QImage (KisPixelSelection::*)() const);
+    ASSERT_PIXEL_SELECTION_SIGNATURE(thumbnailImageTransform, QTransform (KisPixelSelection::*)() const);
+    ASSERT_PIXEL_SELECTION_SIGNATURE(thumbnailImageValid, bool (KisPixelSelection::*)() const);
+    ASSERT_PIXEL_SELECTION_SIGNATURE(recalculateThumbnailImage, void (KisPixelSelection::*)(const QColor &));
+}
+
 #undef ASSERT_DEFAULT_BOUNDS_SIGNATURE
 #undef ASSERT_LAYER_UTILS_SIGNATURE
 #undef ASSERT_PAINTOP_SETTINGS_SIGNATURE
@@ -2102,6 +2175,7 @@ void KisImageTypesContractTest::savedMacroCommandExecutionAndOverrideSignaturesR
 #undef ASSERT_FIXED_PAINT_DEVICE_SIGNATURE
 #undef ASSERT_DATA_MANAGER_SIGNATURE
 #undef ASSERT_SAVED_COMMAND_SIGNATURE
+#undef ASSERT_PIXEL_SELECTION_SIGNATURE
 
 QTEST_GUILESS_MAIN(KisImageTypesContractTest)
 
