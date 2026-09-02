@@ -4,10 +4,12 @@
  */
 
 #include "Selection.h"
+#include "Shape.h"
 
 #include <QTest>
 
 #include <type_traits>
+#include <utility>
 
 class SelectionSchemaContractTest : public QObject
 {
@@ -19,6 +21,11 @@ private Q_SLOTS:
     void selectionWrapperContentAndClipboardSchemaRemainsStable();
     void selectionWrapperMorphologySchemaRemainsStable();
     void selectionWrapperBooleanCombinationSchemaRemainsStable();
+    void shapeWrapperTypeLifetimeAndIdentitySchemaRemainsStable();
+    void shapeWrapperMetadataAndPolicySchemaRemainsStable();
+    void shapeWrapperGeometryAndVisibilitySchemaRemainsStable();
+    void shapeWrapperLifecycleAndSelectionSchemaRemainsStable();
+    void shapeWrapperHierarchyAndSerializationSchemaRemainsStable();
 };
 
 void SelectionSchemaContractTest::selectionWrapperTypeLifetimeAndIdentitySchemaRemainsStable()
@@ -88,6 +95,60 @@ void SelectionSchemaContractTest::selectionWrapperBooleanCombinationSchemaRemain
     static_assert(std::is_same_v<decltype(&Selection::subtract), CombinationSignature>);
     static_assert(std::is_same_v<decltype(&Selection::intersect), CombinationSignature>);
     static_assert(std::is_same_v<decltype(&Selection::symmetricdifference), CombinationSignature>);
+}
+
+void SelectionSchemaContractTest::shapeWrapperTypeLifetimeAndIdentitySchemaRemainsStable()
+{
+    using Comparison = bool (Shape::*)(const Shape &) const;
+    static_assert(std::is_class_v<Shape>);
+    static_assert(std::is_constructible_v<Shape, KoShape *, QObject *>);
+    static_assert(std::is_constructible_v<Shape, KoShape *>);
+    static_assert(std::is_destructible_v<Shape>);
+    static_assert(std::is_same_v<decltype(&Shape::operator==), Comparison>);
+    static_assert(std::is_same_v<decltype(&Shape::operator!=), Comparison>);
+}
+
+void SelectionSchemaContractTest::shapeWrapperMetadataAndPolicySchemaRemainsStable()
+{
+    static_assert(std::is_same_v<decltype(&Shape::name), QString (Shape::*)() const>);
+    static_assert(std::is_same_v<decltype(&Shape::setName), void (Shape::*)(const QString &)>);
+    static_assert(std::is_same_v<decltype(&Shape::type), QString (Shape::*)() const>);
+    static_assert(std::is_same_v<decltype(&Shape::zIndex), int (Shape::*)() const>);
+    static_assert(std::is_same_v<decltype(&Shape::setZIndex), void (Shape::*)(int)>);
+    static_assert(std::is_same_v<decltype(&Shape::selectable), bool (Shape::*)() const>);
+    static_assert(std::is_same_v<decltype(&Shape::setSelectable), void (Shape::*)(bool)>);
+    static_assert(std::is_same_v<decltype(&Shape::geometryProtected), bool (Shape::*)() const>);
+    static_assert(std::is_same_v<decltype(&Shape::setGeometryProtected), void (Shape::*)(bool)>);
+}
+
+void SelectionSchemaContractTest::shapeWrapperGeometryAndVisibilitySchemaRemainsStable()
+{
+    static_assert(std::is_same_v<decltype(&Shape::visible), bool (Shape::*)() const>);
+    static_assert(std::is_same_v<decltype(&Shape::setVisible), void (Shape::*)(bool)>);
+    static_assert(std::is_same_v<decltype(&Shape::boundingBox), QRectF (Shape::*)() const>);
+    static_assert(std::is_same_v<decltype(&Shape::position), QPointF (Shape::*)() const>);
+    static_assert(std::is_same_v<decltype(&Shape::setPosition), void (Shape::*)(QPointF)>);
+    static_assert(std::is_same_v<decltype(&Shape::transformation), QTransform (Shape::*)() const>);
+    static_assert(std::is_same_v<decltype(&Shape::setTransformation), void (Shape::*)(QTransform)>);
+    static_assert(std::is_same_v<decltype(&Shape::absoluteTransformation), QTransform (Shape::*)() const>);
+}
+
+void SelectionSchemaContractTest::shapeWrapperLifecycleAndSelectionSchemaRemainsStable()
+{
+    static_assert(std::is_same_v<decltype(&Shape::remove), bool (Shape::*)()>);
+    static_assert(std::is_same_v<decltype(&Shape::update), void (Shape::*)()>);
+    static_assert(std::is_same_v<decltype(&Shape::updateAbsolute), void (Shape::*)(QRectF)>);
+    static_assert(std::is_same_v<decltype(&Shape::select), void (Shape::*)()>);
+    static_assert(std::is_same_v<decltype(&Shape::deselect), void (Shape::*)()>);
+    static_assert(std::is_same_v<decltype(&Shape::isSelected), bool (Shape::*)()>);
+}
+
+void SelectionSchemaContractTest::shapeWrapperHierarchyAndSerializationSchemaRemainsStable()
+{
+    static_assert(std::is_same_v<decltype(&Shape::parentShape), Shape *(Shape::*)() const>);
+    static_assert(std::is_same_v<decltype(&Shape::toSvg), QString (Shape::*)(bool, bool)>);
+    static_assert(std::is_same_v<decltype(std::declval<Shape &>().toSvg()), QString>);
+    static_assert(std::is_same_v<decltype(std::declval<Shape &>().toSvg(true)), QString>);
 }
 
 QTEST_GUILESS_MAIN(SelectionSchemaContractTest)

@@ -106,12 +106,16 @@ target_include_directories(SelectionSchemaContractTest PRIVATE
     ${CMAKE_BINARY_DIR}/libs/image
     ${CMAKE_SOURCE_DIR}/libs/global
     ${CMAKE_BINARY_DIR}/libs/global
+    ${CMAKE_SOURCE_DIR}/libs/flake
+    ${CMAKE_BINARY_DIR}/libs/flake
     $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Widgets,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Xml,INTERFACE_INCLUDE_DIRECTORIES>
 )
 target_compile_definitions(SelectionSchemaContractTest PRIVATE
     kritaglobal_EXPORTS
     kritaimage_EXPORTS
     kritalibkis_EXPORTS
+    kritaflake_EXPORTS
 )
 
 kis_add_test(
