@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 12522
+    "expectedMissingApis": 12502
   },
   "contracts": [
     {
@@ -48840,6 +48840,71 @@
       "classification": "maintained",
       "apis": [
         "method:KoFontGlyphModel::setFace(FT_FaceSP face,QLatin1String language=QLatin1String (),bool samplesOnly=false)"
+      ]
+    },
+    {
+      "target": "KHelpMenuSchemaContractTest",
+      "source": "libs/widgetutils/tests/KHelpMenuSchemaContractTest.cpp",
+      "test": "KHelpMenuSchemaContractTest::helpMenuTypeAndIdentifierSchemaRemainsStable",
+      "behavior": "アプリケーションhelp menuの公開型と各menu actionを識別する安定値を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisKHelpMenu",
+        "enum:KisKHelpMenu::MenuId",
+        "enumerator:KisKHelpMenu::MenuId::menuAboutApp",
+        "enumerator:KisKHelpMenu::MenuId::menuAboutKDE",
+        "enumerator:KisKHelpMenu::MenuId::menuHelpContents",
+        "enumerator:KisKHelpMenu::MenuId::menuReportBug",
+        "enumerator:KisKHelpMenu::MenuId::menuSwitchLanguage",
+        "enumerator:KisKHelpMenu::MenuId::menuWhatsThis"
+      ]
+    },
+    {
+      "target": "KHelpMenuSchemaContractTest",
+      "source": "libs/widgetutils/tests/KHelpMenuSchemaContractTest.cpp",
+      "test": "KHelpMenuSchemaContractTest::helpMenuLifetimeSchemaRemainsStable",
+      "behavior": "help menuの親Widget・about情報・表示方針を受け取る2構築経路、その既定値と仮想寿命を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisKHelpMenu::KisKHelpMenu(QWidget * parent,const KAboutData & aboutData,bool showWhatsThis=true)",
+        "method:KisKHelpMenu::KisKHelpMenu(QWidget * parent=0,const QString & aboutAppText=QString (),bool showWhatsThis=true)",
+        "method:KisKHelpMenu::~KisKHelpMenu()"
+      ]
+    },
+    {
+      "target": "KHelpMenuSchemaContractTest",
+      "source": "libs/widgetutils/tests/KHelpMenuSchemaContractTest.cpp",
+      "test": "KHelpMenuSchemaContractTest::helpMenuAccessSchemaRemainsStable",
+      "behavior": "help menu本体と識別子に対応するactionを借用pointerで取得する公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisKHelpMenu::action(MenuId id) const",
+        "method:KisKHelpMenu::menu()"
+      ]
+    },
+    {
+      "target": "KHelpMenuSchemaContractTest",
+      "source": "libs/widgetutils/tests/KHelpMenuSchemaContractTest.cpp",
+      "test": "KHelpMenuSchemaContractTest::helpMenuRoutingSignaturesRemainStable",
+      "behavior": "アプリケーションhelp、context help、about、bug報告と言語切替を受け付ける公開slot署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisKHelpMenu::aboutApplication()",
+        "method:KisKHelpMenu::aboutKDE()",
+        "method:KisKHelpMenu::appHelpActivated()",
+        "method:KisKHelpMenu::contextHelpActivated()",
+        "method:KisKHelpMenu::reportBug()",
+        "method:KisKHelpMenu::switchApplicationLanguage()"
+      ]
+    },
+    {
+      "target": "KHelpMenuSchemaContractTest",
+      "source": "libs/widgetutils/tests/KHelpMenuSchemaContractTest.cpp",
+      "test": "KHelpMenuSchemaContractTest::helpMenuNotificationSignatureRemainsStable",
+      "behavior": "アプリケーション固有about表示を接続先へ通知する公開signal署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisKHelpMenu::showAboutApplication()"
       ]
     }
   ]
