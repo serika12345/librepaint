@@ -8,6 +8,7 @@
 #include "kis_default_bounds.h"
 #include "kis_distance_information.h"
 #include "kis_histogram.h"
+#include "kis_image_signal_router.h"
 #include "kis_layer_utils.h"
 #include "kis_paint_device_frames_interface.h"
 #include "kis_selection_filters.h"
@@ -104,6 +105,11 @@ private Q_SLOTS:
     void paintDeviceFrameGeometryAndPixelSignaturesRemainStable();
     void paintDeviceFrameTransferAndPersistenceSignaturesRemainStable();
     void paintDeviceFrameUndoCacheAndTestingSignaturesRemainStable();
+    void imageSignalRouterOwnershipAndLifetimeSchemaRemainsStable();
+    void imageSignalRouterNotificationSignaturesRemainStable();
+    void imageSignalRouterBatchAndLodSignaturesRemainStable();
+    void imageSignalRouterNodeGraphSignaturesRemainStable();
+    void imageSignalRouterImageMetadataSignaturesRemainStable();
 };
 
 void KisImageTypesContractTest::intrusivePointerAliasesPreserveOwnershipKinds()
@@ -1414,6 +1420,72 @@ void KisImageTypesContractTest::paintDeviceFrameUndoCacheAndTestingSignaturesRem
         std::is_same_v<decltype(&KisPaintDeviceFramesInterface::testingGetDataObjects), TestingDataSignature>);
     static_assert(
         std::is_same_v<decltype(&KisPaintDeviceFramesInterface::testingGetDataObjectsList), TestingListSignature>);
+}
+
+void KisImageTypesContractTest::imageSignalRouterOwnershipAndLifetimeSchemaRemainsStable()
+{
+    static_assert(std::is_base_of_v<QObject, KisImageSignalRouter>);
+    static_assert(std::is_constructible_v<KisImageSignalRouter, KisImageWSP>);
+    static_assert(std::has_virtual_destructor_v<KisImageSignalRouter>);
+}
+
+void KisImageTypesContractTest::imageSignalRouterNotificationSignaturesRemainStable()
+{
+    using VoidSignature = void (KisImageSignalRouter::*)();
+    using NotificationSignature = void (KisImageSignalRouter::*)(KisImageSignalType);
+    using NotificationsSignature = void (KisImageSignalRouter::*)(KisImageSignalVector);
+
+    static_assert(std::is_same_v<decltype(&KisImageSignalRouter::emitImageModifiedNotification), VoidSignature>);
+    static_assert(std::is_same_v<decltype(&KisImageSignalRouter::emitNotification), NotificationSignature>);
+    static_assert(std::is_same_v<decltype(&KisImageSignalRouter::emitNotifications), NotificationsSignature>);
+    static_assert(std::is_same_v<decltype(&KisImageSignalRouter::sigImageModified), VoidSignature>);
+    static_assert(std::is_same_v<decltype(&KisImageSignalRouter::sigImageModifiedWithoutUndo), VoidSignature>);
+    static_assert(std::is_same_v<decltype(&KisImageSignalRouter::sigNotification), NotificationSignature>);
+}
+
+void KisImageTypesContractTest::imageSignalRouterBatchAndLodSignaturesRemainStable()
+{
+    using VoidSignature = void (KisImageSignalRouter::*)();
+    using BooleanSignature = void (KisImageSignalRouter::*)(bool);
+
+    static_assert(std::is_same_v<decltype(&KisImageSignalRouter::emitNotifyBatchUpdateEnded), VoidSignature>);
+    static_assert(std::is_same_v<decltype(&KisImageSignalRouter::emitNotifyBatchUpdateStarted), VoidSignature>);
+    static_assert(std::is_same_v<decltype(&KisImageSignalRouter::emitRequestLodPlanesSyncBlocked), BooleanSignature>);
+    static_assert(std::is_same_v<decltype(&KisImageSignalRouter::sigNotifyBatchUpdateEnded), VoidSignature>);
+    static_assert(std::is_same_v<decltype(&KisImageSignalRouter::sigNotifyBatchUpdateStarted), VoidSignature>);
+    static_assert(std::is_same_v<decltype(&KisImageSignalRouter::sigRequestLodPlanesSyncBlocked), BooleanSignature>);
+}
+
+void KisImageTypesContractTest::imageSignalRouterNodeGraphSignaturesRemainStable()
+{
+    using RemoveNotificationSignature = void (KisImageSignalRouter::*)(KisNode *, int);
+    using NodeSignature = void (KisImageSignalRouter::*)(KisNodeSP);
+    using NodeAdditionSignature = void (KisImageSignalRouter::*)(KisNode *, int, KisNodeAdditionFlags);
+    using NodeAddedSignalSignature = void (KisImageSignalRouter::*)(KisNodeSP, KisNodeAdditionFlags);
+    using VoidSignature = void (KisImageSignalRouter::*)();
+
+    static_assert(std::is_same_v<decltype(&KisImageSignalRouter::emitAboutToRemoveANode), RemoveNotificationSignature>);
+    static_assert(std::is_same_v<decltype(&KisImageSignalRouter::emitNodeChanged), NodeSignature>);
+    static_assert(std::is_same_v<decltype(&KisImageSignalRouter::emitNodeHasBeenAdded), NodeAdditionSignature>);
+    static_assert(std::is_same_v<decltype(&KisImageSignalRouter::sigLayersChangedAsync), VoidSignature>);
+    static_assert(std::is_same_v<decltype(&KisImageSignalRouter::sigNodeAddedAsync), NodeAddedSignalSignature>);
+    static_assert(std::is_same_v<decltype(&KisImageSignalRouter::sigNodeChanged), NodeSignature>);
+    static_assert(std::is_same_v<decltype(&KisImageSignalRouter::sigRemoveNodeAsync), NodeSignature>);
+}
+
+void KisImageTypesContractTest::imageSignalRouterImageMetadataSignaturesRemainStable()
+{
+    using ColorSpaceSignature = void (KisImageSignalRouter::*)(const KoColorSpace *);
+    using ProfileSignature = void (KisImageSignalRouter::*)(const KoColorProfile *);
+    using ReselectionSignature = void (KisImageSignalRouter::*)(KisNodeSP, const KisNodeList &);
+    using ResolutionSignature = void (KisImageSignalRouter::*)(double, double);
+    using SizeSignature = void (KisImageSignalRouter::*)(const QPointF &, const QPointF &);
+
+    static_assert(std::is_same_v<decltype(&KisImageSignalRouter::sigColorSpaceChanged), ColorSpaceSignature>);
+    static_assert(std::is_same_v<decltype(&KisImageSignalRouter::sigProfileChanged), ProfileSignature>);
+    static_assert(std::is_same_v<decltype(&KisImageSignalRouter::sigRequestNodeReselection), ReselectionSignature>);
+    static_assert(std::is_same_v<decltype(&KisImageSignalRouter::sigResolutionChanged), ResolutionSignature>);
+    static_assert(std::is_same_v<decltype(&KisImageSignalRouter::sigSizeChanged), SizeSignature>);
 }
 
 #undef ASSERT_DEFAULT_BOUNDS_SIGNATURE
