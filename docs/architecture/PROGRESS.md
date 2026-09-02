@@ -27,6 +27,27 @@
   `libs/widgets/tests/KoStrokeConfigWidgetSchemaContractTest.cpp`の5枠へ対応付ける。Widget、canvas、shape、marker、stroke、unit manager、resource、公開pointer、private pointer、signal本文を実体化・実行しない。直接linkはQt Core・Testだけ、新対象4工程・8入力、停止5工程・11入力、製品`kritawidgets` 809工程・1,647入力を維持する。
   internal color selector、main window、font family、help menu、tag selection、visual selector、scratchpad、libkis document・nodeは大域状態、filesystem、font・resource、複数Widget、文書・canvas状態へ閉包が広がるため棄却した。
 
+### 第173便の担当計画
+
+- 実装共通基点は`a0b22419540b`である。3担当は`implementing`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、専用worktree-local
+  `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。実装は並行し、構成・構築枠は一度に1担当だけへ与える。開始時はselection-based layerだけが構築`granted`、shape reorderとstroke configは実装後に構築前で待機する。
+  統合順はselection-based layer、shape reorder、stroke configとし、調整担当だけがarchitecture文書、公開API台帳、共通不足報告を変更する。3担当の公開header、所有CMake、試験source、生成物は重ならない。製品targetを引数にするplan/build、全体build、全体`verify`、Linux検証は禁止し、担当targetと近傍、公開API検査、`verify-quick`だけを実行する。
+- `g173-selection-based-layer-schema`は`/Users/masato/Documents/librepaint-g173-selection-based-layer-schema`を所有する。開始`libs/image/kis_selection_based_layer.h`の未対応全25 APIから既存
+  `libs/image/tests/KisImageTypesContractTest.cpp`の5枠`selectionBasedLayerOwnershipAndLifetimeSchemaRemainsStable`、`selectionBasedLayerSelectionDeviceAndProjectionSignaturesRemainStable`、`selectionBasedLayerHierarchyImageAndDirtySignaturesRemainStable`、
+  `selectionBasedLayerGeometryAndLodSignaturesRemainStable`、`selectionBasedLayerThumbnailAndNotificationSignaturesRemainStable`へ対応付ける。完全集合はclass、完全引数構築、copy構築、破棄、`internalSelection`、`setInternalSelection`、`fetchComposedInternalSelection`、`original`、`paintDevice`、`needProjection`、`resetCache`、`allowAsChild`、`setImage`、引数なし`setDirty`、`layer`、`x`、`y`、`setX`、`setY`、`supportsLodPainting`、`extent`、`exactBounds`、`createThumbnail`、`thumbnailSeqNo`、`slotImageSizeChanged`である。許可pathは既存試験sourceだけで、CMake・依存・公開header・製品sourceを変更しない。
+  layer、image、node、selection、filter、device、projection、thumbnail、metaobjectとinline `layer()`本文を実体化・実行しない。対象4工程・8入力、停止5工程・11入力、近傍`KisImageConfigAnimationSchemaContractTest`、製品`kritaimage` 1,196工程・2,416入力を維持する。
+  旧binaryの新5枠Unknown、対象CTest・枠個別・20回反復、既存枠、近傍、無作業再構築、動的接続・AUTOMOC入力・依存値の未解決記号、構文・書式、公開API・`verify-quick`を確認する。依存値や局所probeを実体化し、inline・状態変更・thumbnail・signal本文を実行し、新規include・link、停止線超過が必要なら止める。
+- `g173-shape-reorder-schema`は`/Users/masato/Documents/librepaint-g173-shape-reorder-schema`を所有する。開始`libs/flake/commands/KoShapeReorderCommand.h`の全23 APIから新規
+  `libs/flake/tests/KoShapeReorderCommandSchemaContractTest.cpp`の5枠`shapeReorderIdentityAndLifecycleSignaturesRemainStable`、`indexedShapeValueSchemaRemainsStable`、`shapeReorderMoveTypeValuesRemainStable`、
+  `shapeReorderCreationAndMergeSignaturesRemainStable`、`shapeReorderNormalizationAndExecutionSignaturesRemainStable`へ対応付ける。完全集合はclass、2種類の親command既定引数付き構築、破棄、`IndexedShape`型・既定構築・shape構築・比較・`zIndex`・`shape`・debug出力、`MoveShapeType`と`RaiseShape`・`LowerShape`・`BringToFront`・`SendToBack`、親既定引数付き`createCommand`・`mergeInShape`、`mergeDownShapes`、`homogenizeZIndexes`、`homogenizeZIndexesLazy`、`redo`、`undo`である。許可pathは新規試験sourceと`libs/flake/tests/CMakeLists.txt`の対象固有節だけで、公開header・製品sourceを変更しない。
+  command、shape、manager、親command、indexed shapeを実体化せず、比較・正規化・merge・redo・undo・debug本文を実行しない。直接linkはQt Core・Testだけ、Boost、flake command・painting undo・globalのsource/generatedはcompile interfaceに限定し、新対象4工程・8入力、停止5工程・11入力、近傍`KoSvgTextReorderShapeInsideCommandContractTest`、製品`kritaflake` 621工程・1,274入力を維持する。
+  実装後は構築許可まで待機する。許可後にunknown target・CTest 0件、新5枠、対象CTest・枠個別・20回反復、近傍、無作業再構築、動的接続・AUTOMOC入力・製品記号、構文・書式、公開API・`verify-quick`を確認する。依存値を実体化し、比較・正規化・命令本文を実行し、製品libraryへlinkし、停止線を超える必要があれば止める。
+- `g173-stroke-config-schema`は`/Users/masato/Documents/librepaint-g173-stroke-config-schema`を所有する。開始`libs/widgets/KoStrokeConfigWidget.h`の全23 APIから新規
+  `libs/widgets/tests/KoStrokeConfigWidgetSchemaContractTest.cpp`の5枠`strokeConfigTypeAndLifetimeSchemaRemainsStable`、`strokeConfigAppearanceSchemaRemainsStable`、`strokeConfigMarkerAndStrokeSchemaRemainsStable`、
+  `strokeConfigControlSchemaRemainsStable`、`strokeConfigActivationAndNotificationSchemaRemainsStable`へ対応付ける。完全集合はclass、構築・破棄、公開member `thicknessLabel`・`strokeStyleLabel`・`separatorLine`、`lineStyle`、`lineDashes`、`lineWidth`、`color`、`miterLimit`、`startMarker`、`endMarker`、`capStyle`、`joinStyle`、`createShapeStroke`、`setNoSelectionTrackingMode`、`setActive`、`updateStyleControlsAvailability`、`setUnitManagers`、`activate`、`deactivate`、`sigStrokeChanged`である。許可pathは新規試験sourceと`libs/widgets/tests/CMakeLists.txt`の対象固有節だけで、公開header・製品sourceを変更しない。
+  Widget、canvas、shape、marker、stroke、unit manager、resource、公開pointer、private pointer、signal本文を実体化・実行しない。直接linkはQt Core・Testだけ、widgets・flakeのsource/generatedとQt Gui・Widgetsはcompile interfaceに限定し、新対象4工程・8入力、停止5工程・11入力、近傍`KisVisualColorSelectorShapeSchemaContractTest`、製品`kritawidgets` 809工程・1,647入力を維持する。
+  実装後は構築許可まで待機する。許可後にunknown target・CTest 0件、新5枠、対象CTest・枠個別・20回反復、近傍、無作業再構築、動的接続・AUTOMOC入力・製品記号、構文・書式、公開API・`verify-quick`を確認する。依存値や公開pointerを実体化・参照し、Widget・resource・signal本文を実行し、Qt Gui・Widgetsまたは製品libraryへlinkし、停止線を超える必要があれば止める。
+
 ### 第172便の先行監査計画
 
 - 監査共通基点は`8d029eccaf`、入力は`build/tdd-macos/public-api-missing-g172.json`である。3担当は`auditing`の読み取り専用とし、製品・試験・CMake・script・台帳・文書を変更せず、構成、構築、試験、Git操作、追加委任も行わない。
