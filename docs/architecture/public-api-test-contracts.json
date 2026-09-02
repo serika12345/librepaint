@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 13675
+    "expectedMissingApis": 13650
   },
   "contracts": [
     {
@@ -45887,6 +45887,76 @@
         "method:KisMementoManager::purgeHistory(KisMementoSP oldestMemento)",
         "method:KisMementoManager::rollback(KisTileHashTable * ht,KisMementoSP memento)",
         "method:KisMementoManager::rollforward(KisTileHashTable * ht,KisMementoSP memento)"
+      ]
+    },
+    {
+      "target": "KoResourceBundleSchemaContractTest",
+      "source": "libs/resources/tests/KoResourceBundleSchemaContractTest.cpp",
+      "test": "KoResourceBundleSchemaContractTest::resourceBundleIdentityAndLifecycleSignaturesRemainStable",
+      "behavior": "資源bundleの共有所有型、class、構築、仮想破棄の公開型を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KoResourceBundleSP",
+        "class:KoResourceBundle",
+        "method:KoResourceBundle::KoResourceBundle(QString const & fileName)",
+        "method:KoResourceBundle::~KoResourceBundle()"
+      ]
+    },
+    {
+      "target": "KoResourceBundleSchemaContractTest",
+      "source": "libs/resources/tests/KoResourceBundleSchemaContractTest.cpp",
+      "test": "KoResourceBundleSchemaContractTest::resourceBundleMetadataAndThumbnailSignaturesRemainStable",
+      "behavior": "資源bundleの識別情報、metadata既定値、thumbnail入出力の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoResourceBundle::defaultFileExtension() const",
+        "method:KoResourceBundle::filename() const",
+        "method:KoResourceBundle::image() const",
+        "method:KoResourceBundle::metaData(const QString & key,const QString & defaultValue=QString ()) const",
+        "method:KoResourceBundle::setMetaData(const QString & key,const QString & value)",
+        "method:KoResourceBundle::setThumbnail(QImage)"
+      ]
+    },
+    {
+      "target": "KoResourceBundleSchemaContractTest",
+      "source": "libs/resources/tests/KoResourceBundleSchemaContractTest.cpp",
+      "test": "KoResourceBundleSchemaContractTest::resourceBundlePersistenceSignaturesRemainStable",
+      "behavior": "資源bundleの読込、保存、manifest・metadata永続化の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoResourceBundle::load()",
+        "method:KoResourceBundle::loadFromDevice(QIODevice * dev)",
+        "method:KoResourceBundle::save()",
+        "method:KoResourceBundle::saveManifest(QScopedPointer<KoStore> & store)",
+        "method:KoResourceBundle::saveMetadata(QScopedPointer<KoStore> & store)",
+        "method:KoResourceBundle::saveToDevice(QIODevice * dev) const"
+      ]
+    },
+    {
+      "target": "KoResourceBundleSchemaContractTest",
+      "source": "libs/resources/tests/KoResourceBundleSchemaContractTest.cpp",
+      "test": "KoResourceBundleSchemaContractTest::resourceBundleInventorySignaturesRemainStable",
+      "behavior": "資源bundle内の資源追加、出力、取得、件数、hash、種別の公開署名と省略可能な識別子を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoResourceBundle::addResource(QString fileType,QString filePath,QVector<KisTagSP> fileTagList,const QString md5sum,const int resourceId=-1,const QString filenameInBundle=\"\")",
+        "method:KoResourceBundle::exportResource(const QString & resourceType,const QString & fileName,QIODevice * device)",
+        "method:KoResourceBundle::loadResource(KoResourceSP resource)",
+        "method:KoResourceBundle::resource(const QString & resourceType,const QString & filepath)",
+        "method:KoResourceBundle::resourceCount() const",
+        "method:KoResourceBundle::resourceMd5(const QString & url)",
+        "method:KoResourceBundle::resourceTypes() const"
+      ]
+    },
+    {
+      "target": "KoResourceBundleSchemaContractTest",
+      "source": "libs/resources/tests/KoResourceBundleSchemaContractTest.cpp",
+      "test": "KoResourceBundleSchemaContractTest::resourceBundleManifestAndTagSignaturesRemainStable",
+      "behavior": "資源bundleのtag一覧とmanifest参照を取得する公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoResourceBundle::getTagsList()",
+        "method:KoResourceBundle::manifest()"
       ]
     }
   ]
