@@ -8,6 +8,7 @@
 #include "brushengine/kis_uniform_paintop_property.h"
 #include "kis_default_bounds.h"
 #include "kis_distance_information.h"
+#include "kis_fixed_paint_device.h"
 #include "kis_histogram.h"
 #include "kis_image_animation_interface.h"
 #include "kis_image_signal_router.h"
@@ -33,6 +34,8 @@ namespace
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisLayerUtils::function)), signature>)
 #define ASSERT_PAINTOP_SETTINGS_SIGNATURE(method, signature)                                                           \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisPaintOpSettings::method)), signature>)
+#define ASSERT_FIXED_PAINT_DEVICE_SIGNATURE(method, signature)                                                         \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KisFixedPaintDevice::method)), signature>)
 
 class SelectionDefaultBoundsConstructorProbe final : public KisSelectionDefaultBoundsBase
 {
@@ -130,6 +133,11 @@ private Q_SLOTS:
     void paintOpDepositParameterSignaturesRemainStable();
     void paintOpGeometryCompositeAndEraserSignaturesRemainStable();
     void paintOpSavedBrushAndEraserValueSignaturesRemainStable();
+    void fixedPaintDeviceOwnershipAndCopySchemaRemainsStable();
+    void fixedPaintDeviceGeometryCapacityAndColorSchemaRemainsStable();
+    void fixedPaintDeviceBufferStorageSignaturesRemainStable();
+    void fixedPaintDeviceTransferAndConversionSignaturesRemainStable();
+    void fixedPaintDevicePixelMutationSignaturesRemainStable();
 };
 
 void KisImageTypesContractTest::intrusivePointerAliasesPreserveOwnershipKinds()
@@ -1770,9 +1778,83 @@ void KisImageTypesContractTest::paintOpSavedBrushAndEraserValueSignaturesRemainS
     ASSERT_PAINTOP_SETTINGS_SIGNATURE(setSavedEraserSize, void (KisPaintOpSettings::*)(qreal));
 }
 
+void KisImageTypesContractTest::fixedPaintDeviceOwnershipAndCopySchemaRemainsStable()
+{
+    using AllocatorSP = KisOptimizedByteArray::MemoryAllocatorSP;
+
+    static_assert(std::is_class_v<KisFixedPaintDevice>);
+    static_assert(std::is_base_of_v<KisShared, KisFixedPaintDevice>);
+    static_assert(std::is_constructible_v<KisFixedPaintDevice, const KoColorSpace *>);
+    static_assert(std::is_constructible_v<KisFixedPaintDevice, const KoColorSpace *, AllocatorSP>);
+    static_assert(std::is_copy_constructible_v<KisFixedPaintDevice>);
+    static_assert(std::is_copy_assignable_v<KisFixedPaintDevice>);
+    static_assert(std::has_virtual_destructor_v<KisFixedPaintDevice>);
+    ASSERT_FIXED_PAINT_DEVICE_SIGNATURE(operator=,
+                                        KisFixedPaintDevice & (KisFixedPaintDevice::*)(const KisFixedPaintDevice &));
+}
+
+void KisImageTypesContractTest::fixedPaintDeviceGeometryCapacityAndColorSchemaRemainsStable()
+{
+    ASSERT_FIXED_PAINT_DEVICE_SIGNATURE(setRect, void (KisFixedPaintDevice::*)(const QRect &));
+    ASSERT_FIXED_PAINT_DEVICE_SIGNATURE(bounds, QRect (KisFixedPaintDevice::*)() const);
+    ASSERT_FIXED_PAINT_DEVICE_SIGNATURE(allocatedPixels, int (KisFixedPaintDevice::*)() const);
+    ASSERT_FIXED_PAINT_DEVICE_SIGNATURE(pixelSize, quint32 (KisFixedPaintDevice::*)() const);
+    ASSERT_FIXED_PAINT_DEVICE_SIGNATURE(colorSpace, const KoColorSpace *(KisFixedPaintDevice::*)() const);
+    ASSERT_FIXED_PAINT_DEVICE_SIGNATURE(setColorSpace, void (KisFixedPaintDevice::*)(const KoColorSpace *));
+    ASSERT_FIXED_PAINT_DEVICE_SIGNATURE(setProfile, void (KisFixedPaintDevice::*)(const KoColorProfile *));
+}
+
+void KisImageTypesContractTest::fixedPaintDeviceBufferStorageSignaturesRemainStable()
+{
+    ASSERT_FIXED_PAINT_DEVICE_SIGNATURE(initialize, bool (KisFixedPaintDevice::*)(quint8));
+    ASSERT_FIXED_PAINT_DEVICE_SIGNATURE(reallocateBufferWithoutInitialization, void (KisFixedPaintDevice::*)());
+    ASSERT_FIXED_PAINT_DEVICE_SIGNATURE(lazyGrowBufferWithoutInitialization, void (KisFixedPaintDevice::*)());
+    ASSERT_FIXED_PAINT_DEVICE_SIGNATURE(data, quint8 * (KisFixedPaintDevice::*)());
+    ASSERT_FIXED_PAINT_DEVICE_SIGNATURE(data, quint8 * (KisFixedPaintDevice::*)() const);
+    ASSERT_FIXED_PAINT_DEVICE_SIGNATURE(constData, const quint8 *(KisFixedPaintDevice::*)() const);
+
+    using InitializeWithDefaultValue = decltype(std::declval<KisFixedPaintDevice &>().initialize());
+    static_assert(std::is_same_v<InitializeWithDefaultValue, bool>);
+}
+
+void KisImageTypesContractTest::fixedPaintDeviceTransferAndConversionSignaturesRemainStable()
+{
+    using Intent = KoColorConversionTransformation::Intent;
+    using Flags = KoColorConversionTransformation::ConversionFlags;
+
+    ASSERT_FIXED_PAINT_DEVICE_SIGNATURE(readBytes,
+                                        void (KisFixedPaintDevice::*)(quint8 *, qint32, qint32, qint32, qint32) const);
+    ASSERT_FIXED_PAINT_DEVICE_SIGNATURE(convertTo, void (KisFixedPaintDevice::*)(const KoColorSpace *, Intent, Flags));
+    ASSERT_FIXED_PAINT_DEVICE_SIGNATURE(convertFromQImage,
+                                        void (KisFixedPaintDevice::*)(const QImage &, const QString &));
+    ASSERT_FIXED_PAINT_DEVICE_SIGNATURE(convertToQImage,
+                                        QImage (KisFixedPaintDevice::*)(const KoColorProfile *, Intent, Flags) const);
+    ASSERT_FIXED_PAINT_DEVICE_SIGNATURE(
+        convertToQImage,
+        QImage (KisFixedPaintDevice::*)(const KoColorProfile *, qint32, qint32, qint32, qint32, Intent, Flags) const);
+
+    using ConvertWithDefaults = decltype(std::declval<KisFixedPaintDevice &>().convertTo());
+    using ImageWithDefaults = decltype(std::declval<const KisFixedPaintDevice &>().convertToQImage(nullptr));
+    using RectImageWithDefaults =
+        decltype(std::declval<const KisFixedPaintDevice &>().convertToQImage(nullptr, 0, 0, 0, 0));
+    static_assert(std::is_same_v<ConvertWithDefaults, void>);
+    static_assert(std::is_same_v<ImageWithDefaults, QImage>);
+    static_assert(std::is_same_v<RectImageWithDefaults, QImage>);
+}
+
+void KisImageTypesContractTest::fixedPaintDevicePixelMutationSignaturesRemainStable()
+{
+    ASSERT_FIXED_PAINT_DEVICE_SIGNATURE(clear, void (KisFixedPaintDevice::*)(const QRect &));
+    ASSERT_FIXED_PAINT_DEVICE_SIGNATURE(fill,
+                                        void (KisFixedPaintDevice::*)(qint32, qint32, qint32, qint32, const quint8 *));
+    ASSERT_FIXED_PAINT_DEVICE_SIGNATURE(fill, void (KisFixedPaintDevice::*)(const QRect &, const KoColor &));
+    ASSERT_FIXED_PAINT_DEVICE_SIGNATURE(mirror, void (KisFixedPaintDevice::*)(bool, bool));
+}
+
 #undef ASSERT_DEFAULT_BOUNDS_SIGNATURE
 #undef ASSERT_LAYER_UTILS_SIGNATURE
 #undef ASSERT_PAINTOP_SETTINGS_SIGNATURE
+#undef ASSERT_FIXED_PAINT_DEVICE_SIGNATURE
 
 QTEST_GUILESS_MAIN(KisImageTypesContractTest)
 
