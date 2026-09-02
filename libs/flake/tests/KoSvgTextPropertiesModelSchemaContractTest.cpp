@@ -37,6 +37,11 @@ private Q_SLOTS:
     void propertyModelWritingAndLayoutCursorSchemaRemainsStable();
     void propertyModelDecorationAndBaselineCursorSchemaRemainsStable();
     void propertyModelFlowAndSurfaceCursorSchemaRemainsStable();
+    void propertyModelIdentityEnumAndResolutionSchemaRemainsStable();
+    void propertyModelCursorDataMemberSchemaRemainsStable();
+    void propertyModelChildModelMemberSchemaRemainsStable();
+    void propertyModelChildModelAccessorSignaturesRemainStable();
+    void propertyModelSurfaceSignalSignaturesRemainStable();
 };
 
 void KoSvgTextPropertiesModelSchemaContractTest::propertyModelFontFoundationCursorSchemaRemainsStable()
@@ -140,6 +145,105 @@ void KoSvgTextPropertiesModelSchemaContractTest::propertyModelFlowAndSurfaceCurs
     ASSERT_PROPERTY_CURSOR(PropertyState, shapePaddingState);
     ASSERT_PROPERTY_CURSOR(bool, spanSelection);
     ASSERT_PROPERTY_CURSOR(bool, enabled);
+}
+
+void KoSvgTextPropertiesModelSchemaContractTest::propertyModelIdentityEnumAndResolutionSchemaRemainsStable()
+{
+    static_assert(std::is_class_v<Model>);
+    static_assert(std::is_enum_v<PropertyState>);
+    static_assert(std::is_enum_v<HangComma>);
+    static_assert(Model::PropertyUnset == 0);
+    static_assert(Model::PropertySet == 1);
+    static_assert(Model::PropertyTriState == 2);
+    static_assert(Model::PropertyInherited == 3);
+    static_assert(Model::NoHang == 0);
+    static_assert(Model::AllowHang == 1);
+    static_assert(Model::ForceHang == 2);
+    static_assert(std::is_constructible_v<Model, lager::cursor<KoSvgTextPropertyData>>);
+    static_assert(std::is_same_v<decltype(static_cast<qreal (Model::*)(bool)>(&Model::resolvedFontSize)),
+                                 qreal (Model::*)(bool)>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<qreal (Model::*)(bool)>(&Model::resolvedXHeight)), qreal (Model::*)(bool)>);
+}
+
+void KoSvgTextPropertiesModelSchemaContractTest::propertyModelCursorDataMemberSchemaRemainsStable()
+{
+    static_assert(
+        std::is_same_v<decltype(Model::baselineShiftValueData), lager::cursor<KoSvgText::CssLengthPercentage>>);
+    static_assert(std::is_same_v<decltype(Model::commonProperties), lager::cursor<KoSvgTextProperties>>);
+    static_assert(std::is_same_v<decltype(Model::cssFontStyleData), lager::cursor<KoSvgText::CssFontStyleData>>);
+    static_assert(std::is_same_v<decltype(Model::fontSizeData), lager::cursor<KoSvgText::CssLengthPercentage>>);
+    static_assert(
+        std::is_same_v<decltype(Model::fontVariantEastAsianData), lager::cursor<KoSvgText::FontFeatureEastAsian>>);
+    static_assert(
+        std::is_same_v<decltype(Model::fontVariantLigaturesData), lager::cursor<KoSvgText::FontFeatureLigatures>>);
+    static_assert(
+        std::is_same_v<decltype(Model::fontVariantNumericData), lager::cursor<KoSvgText::FontFeatureNumeric>>);
+    static_assert(std::is_same_v<decltype(Model::letterSpacingData), lager::cursor<KoSvgText::CssLengthPercentage>>);
+    static_assert(std::is_same_v<decltype(Model::lineHeightData), lager::cursor<KoSvgText::LineHeightInfo>>);
+    static_assert(std::is_same_v<decltype(Model::shapeMarginData), lager::cursor<KoSvgText::CssLengthPercentage>>);
+    static_assert(std::is_same_v<decltype(Model::shapePaddingData), lager::cursor<KoSvgText::CssLengthPercentage>>);
+    static_assert(std::is_same_v<decltype(Model::tabSizeData), lager::cursor<KoSvgText::TabSizeInfo>>);
+    static_assert(std::is_same_v<decltype(Model::textData), lager::cursor<KoSvgTextPropertyData>>);
+    static_assert(std::is_same_v<decltype(Model::textIndentData), lager::cursor<KoSvgText::TextIndentInfo>>);
+    static_assert(std::is_same_v<decltype(Model::textTransformData), lager::cursor<KoSvgText::TextTransformInfo>>);
+    static_assert(std::is_same_v<decltype(Model::wordSpacingData), lager::cursor<KoSvgText::CssLengthPercentage>>);
+}
+
+void KoSvgTextPropertiesModelSchemaContractTest::propertyModelChildModelMemberSchemaRemainsStable()
+{
+    static_assert(std::is_same_v<decltype(Model::baselineShiftValueModel), CssLengthPercentageModel>);
+    static_assert(std::is_same_v<decltype(Model::cssFontStyleModel), CssFontStyleModel>);
+    static_assert(std::is_same_v<decltype(Model::fontSizeModel), CssLengthPercentageModel>);
+    static_assert(std::is_same_v<decltype(Model::fontVariantEastAsianModel), FontVariantEastAsianModel>);
+    static_assert(std::is_same_v<decltype(Model::fontVariantLigaturesModel), FontVariantLigaturesModel>);
+    static_assert(std::is_same_v<decltype(Model::fontVariantNumericModel), FontVariantNumericModel>);
+    static_assert(std::is_same_v<decltype(Model::letterSpacingModel), CssLengthPercentageModel>);
+    static_assert(std::is_same_v<decltype(Model::lineHeightModel), LineHeightModel>);
+    static_assert(std::is_same_v<decltype(Model::shapeMarginModel), CssLengthPercentageModel>);
+    static_assert(std::is_same_v<decltype(Model::shapePaddingModel), CssLengthPercentageModel>);
+    static_assert(std::is_same_v<decltype(Model::tabSizeModel), TabSizeModel>);
+    static_assert(std::is_same_v<decltype(Model::textIndentModel), TextIndentModel>);
+    static_assert(std::is_same_v<decltype(Model::textTransformModel), TextTransformModel>);
+    static_assert(std::is_same_v<decltype(Model::wordSpacingModel), CssLengthPercentageModel>);
+}
+
+void KoSvgTextPropertiesModelSchemaContractTest::propertyModelChildModelAccessorSignaturesRemainStable()
+{
+    static_assert(std::is_same_v<decltype(&Model::baselineShiftValue), CssLengthPercentageModel *(Model::*)()>);
+    static_assert(std::is_same_v<decltype(&Model::fontStyle), CssFontStyleModel *(Model::*)()>);
+    static_assert(std::is_same_v<decltype(&Model::fontVariantEastAsian), FontVariantEastAsianModel *(Model::*)()>);
+    static_assert(std::is_same_v<decltype(&Model::fontVariantLigatures), FontVariantLigaturesModel *(Model::*)()>);
+    static_assert(std::is_same_v<decltype(&Model::fontVariantNumeric), FontVariantNumericModel *(Model::*)()>);
+    static_assert(std::is_same_v<decltype(&Model::letterSpacing), CssLengthPercentageModel *(Model::*)()>);
+    static_assert(std::is_same_v<decltype(&Model::lineHeight), LineHeightModel *(Model::*)()>);
+    static_assert(std::is_same_v<decltype(&Model::shapeMargin), CssLengthPercentageModel *(Model::*)()>);
+    static_assert(std::is_same_v<decltype(&Model::shapePadding), CssLengthPercentageModel *(Model::*)()>);
+    static_assert(std::is_same_v<decltype(&Model::tabSize), TabSizeModel *(Model::*)()>);
+    static_assert(std::is_same_v<decltype(&Model::textIndent), TextIndentModel *(Model::*)()>);
+    static_assert(std::is_same_v<decltype(&Model::textTransform), TextTransformModel *(Model::*)()>);
+    static_assert(std::is_same_v<decltype(&Model::wordSpacing), CssLengthPercentageModel *(Model::*)()>);
+}
+
+void KoSvgTextPropertiesModelSchemaContractTest::propertyModelSurfaceSignalSignaturesRemainStable()
+{
+#define ASSERT_VOID_SIGNAL(name) static_assert(std::is_same_v<decltype(&Model::name), void (Model::*)()>)
+    ASSERT_VOID_SIGNAL(baselineShiftValueChanged);
+    ASSERT_VOID_SIGNAL(fontSizeChanged);
+    ASSERT_VOID_SIGNAL(fontStyleChanged);
+    ASSERT_VOID_SIGNAL(fontVariantEastAsianChanged);
+    ASSERT_VOID_SIGNAL(fontVariantLigaturesChanged);
+    ASSERT_VOID_SIGNAL(fontVariantNumericChanged);
+    ASSERT_VOID_SIGNAL(letterSpacingChanged);
+    ASSERT_VOID_SIGNAL(lineHeightChanged);
+    ASSERT_VOID_SIGNAL(shapeMarginChanged);
+    ASSERT_VOID_SIGNAL(shapePaddingChanged);
+    ASSERT_VOID_SIGNAL(tabSizeChanged);
+    ASSERT_VOID_SIGNAL(textIndentChanged);
+    ASSERT_VOID_SIGNAL(textPropertyChanged);
+    ASSERT_VOID_SIGNAL(textTransformChanged);
+    ASSERT_VOID_SIGNAL(wordSpacingChanged);
+#undef ASSERT_VOID_SIGNAL
 }
 
 QTEST_GUILESS_MAIN(KoSvgTextPropertiesModelSchemaContractTest)
