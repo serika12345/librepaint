@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 20:12 JST
+- 更新日時: 2026-09-02 20:15 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -37,6 +37,36 @@
   `kritatoolsui` 1,249工程・2,518入力を維持する。既存`KisPaintOpOptionsModelContractTest`は9工程・25入力のため拡張しない。製品命令集合hashは
   `4a770875eaa67bdbfb4443f79ffe5fcdebd7c1143ab4effbc1c0f3ebc8b52b66`、入力集合hashは`9fa8903e13913463f04da836e2485fbb7f7345770ac0e35825e99a9eaa7a4314`である。`kis_simple_paintop_factory.h`は検出traitと
   inline生成本文の安全な分離が難しく、paintop・settings・widget・resource生成へ閉包が広がるため棄却した。
+
+### 第161便の担当計画
+
+- 実装共通基点は`5208912f2b`である。3担当は`preparing`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、
+  専用worktree-local `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。統合順はmemento manager、resource bundle、paintop optionとし、調整担当だけが
+  `AGENTS.md`、architecture文書、`docs/architecture/public-api-test-contracts.json`、共通不足報告を変更する。3担当の公開header、所有CMake、試験source、生成物は重ならない。
+- `g161-memento-manager-schema`は`/Users/masato/Documents/librepaint-g161-memento-manager-schema`を所有する。開始`libs/image/tiles3/kis_memento_manager.h`の全26 APIから新規
+  `libs/image/tiles3/tests/KisMementoManagerSchemaContractTest.cpp`の5枠`mementoManagerAliasAndOwnerSchemaRemainsStable`、`mementoHistoryItemValueSchemaRemainsStable`、
+  `mementoManagerLifetimeAndCurrentRevisionSignaturesRemainStable`、`mementoManagerTileRegistrationAndCommitSignaturesRemainStable`、`mementoManagerHistoryTraversalAndMaintenanceSignaturesRemainStable`へ対応付ける。完全集合は
+  7 alias・owner class、`KisHistoryItem`と2 member、2構築・破棄・`getMemento`・`hasCurrentMemento`・`currentMemento`、`registerTileChange`・`registerTileDeleted`・`commit`・`getCommittedTile`・`setDefaultTileData`、
+  `rollback`・`rollforward`・`purgeHistory`・`debugPrintInfo`である。許可pathは新規試験sourceと`libs/image/tiles3/tests/CMakeLists.txt`の対象固有節だけである。直接linkはQt Core・Testだけ、Core5Compatはinterface include、includeはimage・globalの
+  source/generated、definitionは`kritaimage_EXPORTS`だけとし、公開headerをsourceやAUTOMOC入力へ加えない。新対象4工程・8入力、停止5工程・11入力、近傍`KisTileDataSchemaContractTest`、製品`kritaimage` 1,196工程・2,416入力の
+  変更前後集合完全一致を確認する。unknown target・CTest 0件、新5枠、対象CTest・20回反復、近傍、無作業再構築、動的接続・AUTOMOC入力・未解決memento・tile・allocator記号、構文・書式、公開API・`verify-quick`を確認する。
+  manager、history item、memento、tile、hash、lock、allocation、method本文を生成または実行し、Core5Compat link、製品source・OBJECT・shared、`kritatestsdk`、新依存、公開header変更、製品計画差、停止線超過が必要なら止める。
+- `g161-resource-bundle-schema`は`/Users/masato/Documents/librepaint-g161-resource-bundle-schema`を所有する。開始`libs/resources/KoResourceBundle.h`の全25 APIから新規
+  `libs/resources/tests/KoResourceBundleSchemaContractTest.cpp`の5枠`resourceBundleIdentityAndLifecycleSignaturesRemainStable`、`resourceBundleMetadataAndThumbnailSignaturesRemainStable`、
+  `resourceBundlePersistenceSignaturesRemainStable`、`resourceBundleInventorySignaturesRemainStable`、`resourceBundleManifestAndTagSignaturesRemainStable`へ対応付ける。完全集合はalias・class・構築・破棄、`defaultFileExtension`・`filename`・`image`・
+  `metaData`・`setMetaData`・`setThumbnail`、`load`・`loadFromDevice`・`save`・`saveManifest`・`saveMetadata`・`saveToDevice`、`addResource`・`exportResource`・`loadResource`・`resource`・`resourceCount`・`resourceMd5`・`resourceTypes`、
+  `getTagsList`・`manifest`である。許可pathは新規試験sourceと`libs/resources/tests/CMakeLists.txt`の対象固有節だけである。metadataとresource ID・bundle内filenameの既定引数省略形を未評価式で固定する。直接linkはQt Core・Gui・Xml・Testだけ、
+  includeはresources・global・pigment等の公開header所有元source/generated、definitionは必要なowner exportだけとし、公開headerをsourceやAUTOMOC入力へ加えない。新対象4工程・8〜9入力、停止5工程・11入力、近傍
+  `KisResourceModelEnumContractTest`、製品`kritaresources` 150工程・327入力と保留集合の変更前後完全一致を確認する。unknown target・CTest 0件、新5枠、対象CTest・20回反復、近傍、無作業再構築、動的接続・AUTOMOC入力・未解決bundle記号、
+  構文・書式、公開API・`verify-quick`を確認する。bundle、manifest、resource、tag、store、device、archive、filesystem、画像を生成または実行し、製品source・OBJECT・shared、`kritatestsdk`、Qt外の新link、公開header変更、製品計画差、停止線超過が必要なら止める。
+- `g161-paintop-option-schema`は`/Users/masato/Documents/librepaint-g161-paintop-option-schema`を所有する。開始`libs/tools/ui/kis_paintop_option.h`の全32 APIから新規
+  `libs/tools/ui/tests/KisPaintOpOptionSchemaContractTest.cpp`の5枠`paintOpOptionTypeAndCategorySchemaRemainsStable`、`paintOpOptionConstructionAndLifetimeSchemaRemainsStable`、`paintOpOptionStateAndIdentitySchemaRemainsStable`、
+  `paintOpOptionContextAndConfigurationSchemaRemainsStable`、`paintOpOptionLodAndNotificationSchemaRemainsStable`へ対応付ける。完全集合はclass・optional reader alias・category enumと5列挙子、3構築・破棄、`category`・3 `is`状態・`setChecked`・`setLocked`・
+  `isLocked`・`label`、`setImage`・`setNode`・2 resource interface setter・`configurationPage`・設定read/write開始、`lodLimitations`・`effectiveLodLimitations`・3通知である。許可pathは新規試験sourceと`libs/tools/ui/tests/CMakeLists.txt`の対象固有節だけである。
+  category序数とaliasを固定する。直接linkはQt Core・Testだけ、Qt Widgetsはinterface include、includeはtools/ui・application・global・image・resources・pigmentのsource/generatedと必要なinterface include、definitionは各owner exportだけとし、公開headerをsourceや
+  AUTOMOC入力へ加えない。新対象4工程・8入力、停止5工程・11入力、近傍`KisPaintOpOptionsModelContractTest`、製品`kritatoolsui` 1,249工程・2,518入力の変更前後集合完全一致を確認する。unknown target・CTest 0件、新5枠、対象CTest・
+  20回反復、近傍、無作業再構築、動的接続・AUTOMOC入力・未解決option記号、構文・書式、公開API・`verify-quick`を確認する。QObject、widget、lager state、image、node、resource、設定、LOD reader、signalを生成または実行し、Qt Widgets link、
+  製品source・OBJECT・shared、`kritatestsdk`、新しい非header依存、公開header変更、製品計画差、停止線超過が必要なら止める。
 
 ### 第160便の先行監査計画
 
