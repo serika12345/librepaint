@@ -2,12 +2,21 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 23:58 JST
+- 更新日時: 2026-09-03 00:43 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
+
+### 第169便の先行監査計画
+
+- 監査共通基点は`e113eb3bb7`、入力は`build/tdd-macos/public-api-missing-g169.json`である。3担当は`auditing`の読み取り専用とし、製品・試験・CMake・script・台帳・文書を変更せず、構成、構築、試験、Git操作、追加委任も行わない。
+  一つの公開責務から20〜80 APIを最大5枠へ固定し、既存限定対象またはheader限定の4〜10工程程度の対象で、製品共有libraryと`kritatestsdk`へ接続しない候補だけを採用する。製品targetを引数にする`build-incremental ... plan`と製品buildは実行せず、既存Ninja木のquery・commands・inputsだけを読み取る。
+- `g105-paintop-value-audit`はpaintop・image・pigment・値型から、第168便の画像iteratorを除外して一責務を選ぶ。
+- `g105-svg-value-audit`はflake・SVG・vector・documentから、第168便のpath shapeを除外して一責務を選ぶ。
+- `g105-widget-connection-audit`はwidgetutils・widgets・libkis・軽量接続面から、第168便のaction registryを除外して一責務を選ぶ。
+- 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、予測工程・入力と停止線、開始pathから契約先、許可path、固有停止条件、比較候補の棄却根拠を含む。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
 
 ### 第168便の先行監査計画
 
@@ -47,6 +56,21 @@
   `actionRegistryShortcutConfigurationSchemaRemainsStable`、`actionRegistryMaintenanceAndNotificationSchemaRemainsStable`へ対応付ける。完全集合はaction分類7、identity・寿命3、検索・factory 6、shortcut設定5、保守・通知3である。許可pathは新規試験sourceと`libs/widgetutils/tests/CMakeLists.txt`の対象固有節だけで、公開header・製品sourceを変更しない。
   `makeQAction`と`applyShortcutScheme`の省略形を未評価で固定する。直接linkはQt Core・Testだけ、Qt Gui・Xmlはinterface include、includeはwidgetutils source/generated、definitionは`kritawidgetutils_EXPORTS`だけとし、公開headerをsourceやAUTOMOC入力へ加えない。新対象4工程・8入力、停止5工程・11入力、近傍`KKeySequenceWidgetSchemaContractTest`、製品`kritawidgetutils` 274工程・581入力を維持する。
   unknown target・CTest 0件、新5枠、対象CTest・枠個別・20回反復、近傍、無作業再構築、動的接続・AUTOMOC入力・registry・action・config未解決記号、構文・書式、公開API・`verify-quick`を確認する。registry、分類値、QAction、singleton、設定I/O、signal・metaobjectを実体化または実行し、Qt Gui・Xmlへの直接link、製品OBJECT・shared、`kritatestsdk`への接続、停止線超過が必要なら止める。
+
+### 第168便の統合結果
+
+- `g168-iterator-schema`は受渡しcommit`474ecc8846`を統合commit`33733941c5`として取り込んだ。開始`libs/image/kis_iterator_ng.h`から既存
+  `libs/image/tests/KisImageTypesContractTest.cpp`の5枠へ、基底const iterator、横方向const iterator、横方向書込iterator、縦方向const iterator、縦方向書込iteratorの全24 APIを対応付けた。CMakeと依存を変えず対象4工程・8入力に保った。
+  担当と中央の対象・近傍CTest、20回反復、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式に成功した。台帳commit`02f9da81e3`で16,794件対応、13,044件未対応となった。走査、座標、画素dataの実行時結果は別契約で扱う。
+- `g168-path-shape-schema`は受渡しcommit`3914f70c74`を統合commit`b3c05610e3`として取り込んだ。開始`libs/flake/KoPathShape.h`から新規
+  `libs/flake/tests/KoPathShapeSchemaContractTest.cpp`の5枠へ、identity・listener・値型、geometry・描画、path構築・style・marker、point照会・変更、subpath topologyの全64 APIを対応付けた。`toString`と`pointsAt`の省略形も固定し、直接linkはQt Core・Gui・Testだけ、Qt Xmlはinterface includeだけ、新対象4工程・8入力に保った。
+  担当と中央の対象・近傍CTest、20回反復、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式に成功した。台帳commit`e5650f647c`で16,858件対応、12,980件未対応となった。path編集、marker配置、描画の実行時結果は別契約で扱う。
+- `g168-action-registry-schema`は受渡しcommit`6f325dde8a`を統合commit`eb42b84119`として取り込んだ。開始`libs/widgetutils/kis_action_registry.h`から新規
+  `libs/widgetutils/tests/KisActionRegistrySchemaContractTest.cpp`の5枠へ、action分類、identity・寿命、検索・factory、shortcut設定、保守・通知の全24 APIを対応付けた。`makeQAction`と`applyShortcutScheme`の省略形も固定し、直接linkはQt Core・Testだけ、Qt Gui・Xmlはinterface includeだけ、新対象4工程・8入力に保った。
+  担当と中央の対象・近傍CTest、20回反復、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式に成功した。台帳commit`e113eb3bb7`で16,882件対応、12,956件未対応となった。singleton、設定I/O、QAction生成、通知配送の実行時結果は別契約で扱う。
+- 第168便全体で112 APIを15枠へ重複なく対応付けた。公開API台帳、構造方針、文書、link、D2再生成を含む`verify-quick`は成功した。3担当のcleanな作業treeと担当branchを削除し、旧不足報告3件を含む2,645,408 KiB（約2.52 GiB）を回収した。
+  主Ninja木5,645,600 KiB、共有compiler cache 982,364 KiB、最新不足報告`build/tdd-macos/public-api-missing-g169.json`だけを再利用対象として保持する。製品、全体、Linuxの構築は実施していない。
+- path shape統合時の主CMake再生成で一度だけ942.0秒を記録した。直後のaction registry統合では再生成11.4秒、対象構築全体22.50秒となり、4工程・8入力の対象閉包も変わらなかったため、構造的な範囲拡大としては再現していない。次便もCMake変更時の再生成時間を測定し、再発時は実装より先に原因を分離する。
 
 ### 第167便の先行監査計画
 
@@ -17357,7 +17381,7 @@
 
 ## 次の操作
 
-`build/tdd-macos/public-api-missing-g168.json`から第168並列便の非重複候補を3担当で監査する。欠陥疑いの比較・診断、資源registry、設定I/O、生pointer所有へ到達する経路は保留する。
+`build/tdd-macos/public-api-missing-g169.json`から第169並列便の非重複候補を3担当で監査する。欠陥疑いの比較・診断、資源registry、設定I/O、生pointer所有へ到達する経路は保留する。
 別の所有pathから20〜80 APIを最大5枠、既存限定対象またはheader限定対象で固定できる候補を優先し、担当票の確定前に変更なし計画、直接依存、予測閉包、製品共有ライブラリー・`kritatestsdk`非接続、許可pathと停止線を照合する。
 
 ## R1-G5完了根拠
