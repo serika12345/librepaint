@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 13856
+    "expectedMissingApis": 13829
   },
   "contracts": [
     {
@@ -45436,6 +45436,78 @@
         "method:KisGroupLayer::calculateChildrenTightUserVisibleBounds() const",
         "method:KisGroupLayer::exactBounds() const",
         "method:KisGroupLayer::extent() const"
+      ]
+    },
+    {
+      "target": "FileDialogSchemaContractTest",
+      "source": "libs/libkis/tests/FileDialogSchemaContractTest.cpp",
+      "test": "FileDialogSchemaContractTest::fileDialogTypeAndModeValuesRemainStable",
+      "behavior": "ファイル選択dialogの型と選択方式の列挙値を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "class:FileDialog",
+        "enum:FileDialog::DialogType",
+        "enumerator:FileDialog::DialogType::ImportDirectory",
+        "enumerator:FileDialog::DialogType::ImportFile",
+        "enumerator:FileDialog::DialogType::ImportFiles",
+        "enumerator:FileDialog::DialogType::OpenDirectory",
+        "enumerator:FileDialog::DialogType::OpenFile",
+        "enumerator:FileDialog::DialogType::OpenFiles",
+        "enumerator:FileDialog::DialogType::SaveFile"
+      ]
+    },
+    {
+      "target": "FileDialogSchemaContractTest",
+      "source": "libs/libkis/tests/FileDialogSchemaContractTest.cpp",
+      "test": "FileDialogSchemaContractTest::fileDialogLifecycleAndLocationSignaturesRemainStable",
+      "behavior": "ファイル選択dialogの既定引数を含む構築・破棄と表示名・初期位置の設定署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:FileDialog::FileDialog(QWidget * parent=nullptr,const FileDialog::DialogType=DialogType::OpenFile,const QString & dialogName=\"\")",
+        "method:FileDialog::setCaption(const QString & caption)",
+        "method:FileDialog::setDefaultDir(const QString & defaultDir,bool force=false)",
+        "method:FileDialog::setDirectoryUrl(const QUrl & defaultUri)",
+        "method:FileDialog::~FileDialog()"
+      ]
+    },
+    {
+      "target": "FileDialogSchemaContractTest",
+      "source": "libs/libkis/tests/FileDialogSchemaContractTest.cpp",
+      "test": "FileDialogSchemaContractTest::fileDialogFilterConfigurationSignaturesRemainStable",
+      "behavior": "ファイル選択dialogの名前・画像・MIME filter設定と選択通知の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:FileDialog::onFilterSelected(const QString & filter)",
+        "method:FileDialog::selectNameFilter(const QString & filter)",
+        "method:FileDialog::setImageFilters()",
+        "method:FileDialog::setMimeTypeFilters(const QStringList & mimeTypeList,QString defaultMimeType=QString ())",
+        "method:FileDialog::setNameFilter(const QString & filter)"
+      ]
+    },
+    {
+      "target": "FileDialogSchemaContractTest",
+      "source": "libs/libkis/tests/FileDialogSchemaContractTest.cpp",
+      "test": "FileDialogSchemaContractTest::fileDialogSelectionResultSignaturesRemainStable",
+      "behavior": "ファイル選択dialogが返す単一・複数file名と選択済みfilter値の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:FileDialog::filename()",
+        "method:FileDialog::filenames()",
+        "method:FileDialog::selectedMimeType() const",
+        "method:FileDialog::selectedNameFilter() const"
+      ]
+    },
+    {
+      "target": "FileDialogSchemaContractTest",
+      "source": "libs/libkis/tests/FileDialogSchemaContractTest.cpp",
+      "test": "FileDialogSchemaContractTest::fileDialogStaticSelectionSignaturesRemainStable",
+      "behavior": "既定引数を含むdirectory・単一file・複数file・保存先選択の静的入口を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:FileDialog::getExistingDirectory(QWidget * parent=nullptr,const QString & caption=QString (),const QString & directory=QString (),const QString & dialogName=QString ())",
+        "method:FileDialog::getOpenFileName(QWidget * parent=nullptr,const QString & caption=QString (),const QString & directory=QString (),const QString & filter=QString (),const QString & selectedFilter=QString (),const QString & dialogName=QString ())",
+        "method:FileDialog::getOpenFileNames(QWidget * parent=nullptr,const QString & caption=QString (),const QString & directory=QString (),const QString & filter=QString (),const QString & selectedFilter=QString (),const QString & dialogName=QString ())",
+        "method:FileDialog::getSaveFileName(QWidget * parent=nullptr,const QString & caption=QString (),const QString & directory=QString (),const QString & filter=QString (),const QString & selectedFilter=QString (),const QString & dialogName=QString ())"
       ]
     }
   ]
