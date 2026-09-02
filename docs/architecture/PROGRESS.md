@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-03 05:00 JST
+- 更新日時: 2026-09-03 05:06 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -17,6 +17,16 @@
 - `g105-svg-value-audit`はflake・SVG・vector・documentから、第173便のshape reorder commandを除外して一責務を選ぶ。
 - `g105-widget-connection-audit`はwidgetutils・widgets・libkis・軽量接続面から、第173便のstroke config widgetを除外して一責務を選ぶ。
 - 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、予測工程・入力と停止線、開始pathから契約先、許可path、固有停止条件、比較候補の棄却根拠を含む。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
+- `g105-paintop-value-audit`は`libs/image/kis_clone_layer.h`の未対応全34 APIを採用した。型・所有・寿命7、clone元・copy方針7、device・projection・表示7、image・幾何7、visitor・clone・更新6を既存
+  `libs/image/tests/KisImageTypesContractTest.cpp`の5枠へ対応付ける。clone layer、source layer、image、node、paint device、color space、projection、visitor、undo adapterを実体化せず、inline `clone()`、dirty通知、mask領域計算、LOD同期、metaobject本文を実行しない。CMakeと依存を変えず対象4工程・8入力、停止5工程・11入力、製品`kritaimage` 1,196工程・2,416入力を維持する。
+  paint layer、paint情報、image設定、simple paintop factoryは画素・keyframe・projection、乱数・XML、設定I/O、template分岐へ責務と閉包が広がるため棄却した。
+- `g105-svg-value-audit`は`libs/flake/text/KoFontGlyphModel.h`の未対応全22 APIを採用した。型・寿命3、role・glyph種別8、tree navigation 5、data・metadata 5、font face選択1を新規
+  `libs/flake/tests/KoFontGlyphModelSchemaContractTest.cpp`の5枠へ対応付ける。model、index階層、font face、resource pointerを実体化せず、glyph照会、font database、OpenType解析、signal、metaobject、event loop、外部font libraryのdeleterを実行しない。直接linkはQt Core・Testだけ、Boost、Qt Gui、KF I18n、Freetype、HarfBuzz、Fontconfigをcompile interfaceへ限定し、新対象4工程・8入力、停止5工程・11入力、製品`kritaflake` 621工程・1,274入力を維持する。
+  SVG parser・loading context・text編集command、canvas・tool・shape manager、resource群はXML・shape生成、複数編集経路、event配送、大域状態、filesystemへ閉包が広がるため棄却した。
+- `g105-widget-connection-audit`は`libs/widgetutils/xmlgui/khelpmenu.h`の未対応全20 APIを採用した。型・menu識別子8、寿命3、menu・action参照2、help経路6、通知1を新規
+  `libs/widgetutils/tests/KHelpMenuSchemaContractTest.cpp`の5枠へ対応付ける。help menu、private実装、Widget、menu、action、dialog、timerを実体化せず、help経路、language切替、signal、event loopを実行しない。直接linkはQt Core・Testだけ、xmlguiのsource/generatedだけをcompile interfaceに含め、新対象4工程・8入力、停止5工程・11入力、製品`kritawidgetutils` 274工程・581入力を維持する。
+  main window、font family、internal color selector、tag・visual selector、scratchpad、libkis文書・nodeは設定・font database・resource・複数Widget・canvas・文書状態へ閉包が広がるため棄却した。
+- 中央の`public-api-missing-g174.json`で3ヘッダーの全識別子と34件・22件・20件を照合した。開始header、試験source、所有CMake、生成物に重複はなく、合計76 APIを15枠へ進める。公開headerをtarget sourceやAUTOMOC入力へ加えず、製品共有libraryと`kritatestsdk`へ接続しない。実装中に許可path外変更、製品OBJECT/shared、実体化・本文実行、動的接続の拡大、5工程・11入力超過、製品計画集合の変化が必要になれば担当を停止する。
 
 ### 第173便の先行監査計画
 
