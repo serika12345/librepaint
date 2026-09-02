@@ -8,6 +8,7 @@
 #include <QTest>
 
 #include <type_traits>
+#include <utility>
 
 namespace
 {
@@ -133,6 +134,11 @@ private Q_SLOTS:
     void textCharacterInfoMemberSchemaRemainsStable();
     void textCharacterInfoOrderingSignaturesRemainStable();
     void textNodeIndexLifecycleAndAccessSignaturesRemainStable();
+    void textCursorDirectionalNavigationSignaturesRemainStable();
+    void textCursorGeometryQuerySignaturesRemainStable();
+    void textCursorStringIndexMappingSignaturesRemainStable();
+    void textCursorNodeRangeMappingSignaturesRemainStable();
+    void textCursorRangeValueQuerySignaturesRemainStable();
 };
 
 void KoSvgTextCharacterResultValueContractTest::positionVisibilityAndIndicesDefaultAndAssignIndependently()
@@ -583,6 +589,103 @@ void KoSvgTextCharacterResultValueContractTest::textNodeIndexLifecycleAndAccessS
     static_assert(std::is_same_v<decltype(&NodeIndex::properties), KoSvgTextProperties *(NodeIndex::*)()>);
     static_assert(std::is_same_v<decltype(&NodeIndex::textPath), KoShape *(NodeIndex::*)()>);
     static_assert(std::is_same_v<decltype(&NodeIndex::textPathInfo), KoSvgText::TextOnPathInfo *(NodeIndex::*)()>);
+}
+
+void KoSvgTextCharacterResultValueContractTest::textCursorDirectionalNavigationSignaturesRemainStable()
+{
+    using CursorMove = int (KoSvgTextShape::*)(int, bool);
+    using CursorBoundary = int (KoSvgTextShape::*)(int);
+
+    static_assert(std::is_same_v<decltype(static_cast<CursorMove>(&KoSvgTextShape::posLeft)), CursorMove>);
+    static_assert(std::is_same_v<decltype(static_cast<CursorMove>(&KoSvgTextShape::posRight)), CursorMove>);
+    static_assert(std::is_same_v<decltype(static_cast<CursorMove>(&KoSvgTextShape::posUp)), CursorMove>);
+    static_assert(std::is_same_v<decltype(static_cast<CursorMove>(&KoSvgTextShape::posDown)), CursorMove>);
+    static_assert(std::is_same_v<decltype(static_cast<CursorBoundary>(&KoSvgTextShape::lineStart)), CursorBoundary>);
+    static_assert(std::is_same_v<decltype(static_cast<CursorBoundary>(&KoSvgTextShape::lineEnd)), CursorBoundary>);
+    static_assert(std::is_same_v<decltype(static_cast<CursorMove>(&KoSvgTextShape::wordLeft)), CursorMove>);
+    static_assert(std::is_same_v<decltype(static_cast<CursorMove>(&KoSvgTextShape::wordRight)), CursorMove>);
+    static_assert(std::is_same_v<decltype(static_cast<CursorBoundary>(&KoSvgTextShape::nextIndex)), CursorBoundary>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<CursorBoundary>(&KoSvgTextShape::previousIndex)), CursorBoundary>);
+    static_assert(std::is_same_v<decltype(static_cast<CursorBoundary>(&KoSvgTextShape::nextLine)), CursorBoundary>);
+    static_assert(std::is_same_v<decltype(static_cast<CursorBoundary>(&KoSvgTextShape::previousLine)), CursorBoundary>);
+    static_assert(std::is_same_v<decltype(static_cast<CursorBoundary>(&KoSvgTextShape::wordEnd)), CursorBoundary>);
+    static_assert(std::is_same_v<decltype(static_cast<CursorBoundary>(&KoSvgTextShape::wordStart)), CursorBoundary>);
+    static_assert(std::is_same_v<decltype(std::declval<KoSvgTextShape &>().posLeft(0)), int>);
+    static_assert(std::is_same_v<decltype(std::declval<KoSvgTextShape &>().posRight(0)), int>);
+    static_assert(std::is_same_v<decltype(std::declval<KoSvgTextShape &>().posUp(0)), int>);
+    static_assert(std::is_same_v<decltype(std::declval<KoSvgTextShape &>().posDown(0)), int>);
+    static_assert(std::is_same_v<decltype(std::declval<KoSvgTextShape &>().wordLeft(0)), int>);
+    static_assert(std::is_same_v<decltype(std::declval<KoSvgTextShape &>().wordRight(0)), int>);
+}
+
+void KoSvgTextCharacterResultValueContractTest::textCursorGeometryQuerySignaturesRemainStable()
+{
+    using CursorForPos = QPainterPath (KoSvgTextShape::*)(int, QLineF &, QColor &, double);
+    using SelectionBoxes = QPainterPath (KoSvgTextShape::*)(int, int);
+    using PosForPoint = int (KoSvgTextShape::*)(QPointF, int, int, bool *);
+    using PosForPointLineSensitive = int (KoSvgTextShape::*)(QPointF);
+    using InitialTextPosition = QPointF (KoSvgTextShape::*)() const;
+
+    static_assert(std::is_same_v<decltype(static_cast<CursorForPos>(&KoSvgTextShape::cursorForPos)), CursorForPos>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<SelectionBoxes>(&KoSvgTextShape::selectionBoxes)), SelectionBoxes>);
+    static_assert(std::is_same_v<decltype(static_cast<PosForPoint>(&KoSvgTextShape::posForPoint)), PosForPoint>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<PosForPointLineSensitive>(&KoSvgTextShape::posForPointLineSensitive)),
+                       PosForPointLineSensitive>);
+    static_assert(std::is_same_v<decltype(static_cast<InitialTextPosition>(&KoSvgTextShape::initialTextPosition)),
+                                 InitialTextPosition>);
+    static_assert(std::is_same_v<decltype(std::declval<KoSvgTextShape &>()
+                                              .cursorForPos(0, std::declval<QLineF &>(), std::declval<QColor &>())),
+                                 QPainterPath>);
+    static_assert(std::is_same_v<decltype(std::declval<KoSvgTextShape &>().posForPoint(QPointF())), int>);
+}
+
+void KoSvgTextCharacterResultValueContractTest::textCursorStringIndexMappingSignaturesRemainStable()
+{
+    using PosForIndex = int (KoSvgTextShape::*)(int, bool, bool) const;
+    using IndexForPos = int (KoSvgTextShape::*)(int) const;
+
+    static_assert(std::is_same_v<decltype(static_cast<PosForIndex>(&KoSvgTextShape::posForIndex)), PosForIndex>);
+    static_assert(std::is_same_v<decltype(static_cast<IndexForPos>(&KoSvgTextShape::indexForPos)), IndexForPos>);
+    static_assert(std::is_same_v<decltype(std::declval<const KoSvgTextShape &>().posForIndex(0)), int>);
+}
+
+void KoSvgTextCharacterResultValueContractTest::textCursorNodeRangeMappingSignaturesRemainStable()
+{
+    using FindNodeIndex = KoSvgTextNodeIndex (KoSvgTextShape::*)(KoSvgTextProperties::PropertyId);
+    using FindNodeRange = QPair<int, int> (KoSvgTextShape::*)(const KoSvgTextNodeIndex &) const;
+    using TopLevelNode = KoSvgTextNodeIndex (KoSvgTextShape::*)(int) const;
+    using NodeForTextPath = KoSvgTextNodeIndex (KoSvgTextShape::*)(KoShape *) const;
+
+    static_assert(std::is_same_v<decltype(static_cast<FindNodeIndex>(&KoSvgTextShape::findNodeIndexForPropertyId)),
+                                 FindNodeIndex>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<FindNodeRange>(&KoSvgTextShape::findRangeForNodeIndex)), FindNodeRange>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<TopLevelNode>(&KoSvgTextShape::topLevelNodeForPos)), TopLevelNode>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<NodeForTextPath>(&KoSvgTextShape::nodeForTextPath)), NodeForTextPath>);
+}
+
+void KoSvgTextCharacterResultValueContractTest::textCursorRangeValueQuerySignaturesRemainStable()
+{
+    using PropertiesForPos = KoSvgTextProperties (KoSvgTextShape::*)(int, bool) const;
+    using PropertiesForRange = QList<KoSvgTextProperties> (KoSvgTextShape::*)(int, int, bool) const;
+    using PositionsForRange = QList<KoSvgTextCharacterInfo> (KoSvgTextShape::*)(int, int) const;
+
+    static_assert(
+        std::is_same_v<decltype(static_cast<PropertiesForPos>(&KoSvgTextShape::propertiesForPos)), PropertiesForPos>);
+    static_assert(std::is_same_v<decltype(static_cast<PropertiesForRange>(&KoSvgTextShape::propertiesForRange)),
+                                 PropertiesForRange>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<PositionsForRange>(&KoSvgTextShape::getPositionsAndRotationsForRange)),
+                       PositionsForRange>);
+    static_assert(
+        std::is_same_v<decltype(std::declval<const KoSvgTextShape &>().propertiesForPos(0)), KoSvgTextProperties>);
+    static_assert(std::is_same_v<decltype(std::declval<const KoSvgTextShape &>().propertiesForRange(0, 1)),
+                                 QList<KoSvgTextProperties>>);
 }
 
 QTEST_GUILESS_MAIN(KoSvgTextCharacterResultValueContractTest)
