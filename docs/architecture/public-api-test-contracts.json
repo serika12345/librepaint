@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 14824
+    "expectedMissingApis": 14793
   },
   "contracts": [
     {
@@ -35962,6 +35962,82 @@
         "method:LineBox::isEmpty()",
         "method:LineBox::setCurrentChunk(LineChunk chunk)",
         "method:LineBox::setCurrentChunkForPos(QPointF pos,bool isHorizontal)"
+      ]
+    },
+    {
+      "target": "KoSvgTextCharacterResultValueContractTest",
+      "source": "libs/flake/tests/KoSvgTextCharacterResultValueContractTest.cpp",
+      "test": "KoSvgTextCharacterResultValueContractTest::textLayoutBreakAndLineEdgeEnumSchemaRemainsStable",
+      "behavior": "SVG文字配置は改行種別と行端処理の公開列挙型、および各値の連続する現行順序を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:BreakType",
+        "enum:LineEdgeBehaviour",
+        "enumerator:BreakType::HardBreak",
+        "enumerator:BreakType::NoBreak",
+        "enumerator:BreakType::SoftBreak",
+        "enumerator:LineEdgeBehaviour::Collapse",
+        "enumerator:LineEdgeBehaviour::ConditionallyHang",
+        "enumerator:LineEdgeBehaviour::ForceHang",
+        "enumerator:LineEdgeBehaviour::NoChange"
+      ]
+    },
+    {
+      "target": "KoSvgTextCharacterResultValueContractTest",
+      "source": "libs/flake/tests/KoSvgTextCharacterResultValueContractTest.cpp",
+      "test": "KoSvgTextCharacterResultValueContractTest::textCursorInfoValueSchemaRemainsStable",
+      "behavior": "SVG文字cursor表示情報はcaret、色、grapheme索引、単語境界、offset、書字方向の具体的な値型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:CursorInfo::caret",
+        "member:CursorInfo::color",
+        "member:CursorInfo::graphemeIndices",
+        "member:CursorInfo::isWordBoundary",
+        "member:CursorInfo::offsets",
+        "member:CursorInfo::rtl",
+        "struct:CursorInfo"
+      ]
+    },
+    {
+      "target": "KoSvgTextCharacterResultValueContractTest",
+      "source": "libs/flake/tests/KoSvgTextCharacterResultValueContractTest.cpp",
+      "test": "KoSvgTextCharacterResultValueContractTest::textCursorPositionValueSchemaRemainsStable",
+      "behavior": "SVG文字cursor位置はcluster、文字索引、offset、合成位置の具体的な値型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:CursorPos::cluster",
+        "member:CursorPos::index",
+        "member:CursorPos::offset",
+        "member:CursorPos::synthetic",
+        "struct:CursorPos"
+      ]
+    },
+    {
+      "target": "KoSvgTextCharacterResultValueContractTest",
+      "source": "libs/flake/tests/KoSvgTextCharacterResultValueContractTest.cpp",
+      "test": "KoSvgTextCharacterResultValueContractTest::glyphOutlineAndBitmapValueSchemaRemainsStable",
+      "behavior": "SVG文字glyphはoutlineの描画pathとbitmapの画像列・描画矩形列を具体的な値型として維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:Glyph::Bitmap::drawRects",
+        "member:Glyph::Bitmap::images",
+        "member:Glyph::Outline::path",
+        "struct:Glyph::Bitmap",
+        "struct:Glyph::Outline"
+      ]
+    },
+    {
+      "target": "KoSvgTextCharacterResultValueContractTest",
+      "source": "libs/flake/tests/KoSvgTextCharacterResultValueContractTest.cpp",
+      "test": "KoSvgTextCharacterResultValueContractTest::glyphColorLayerAndVariantSchemaRemainsStable",
+      "behavior": "SVG文字glyphはcolor layerのpath・brush・前景色置換列と、空・outline・bitmap・color layerから成る公開variantを維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:Glyph::Variant",
+        "member:Glyph::ColorLayers::colors",
+        "member:Glyph::ColorLayers::paths",
+        "member:Glyph::ColorLayers::replaceWithForeGroundColor",
+        "struct:Glyph::ColorLayers"
       ]
     },
     {
