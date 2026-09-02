@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 19:22 JST
+- 更新日時: 2026-09-02 19:28 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -22,6 +22,11 @@
   shortcut入力widgetの型・寿命・列挙値・設定・action・通知面を、window・widget・menu・toolbar・GUI factory・設定backend・shortcut捕捉・signal・metaobject・GUI event loop・大域状態の実体化なしで閉じる。
 - 各報告は完全なAPI識別子、既定引数観測、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから契約先または移動先、許可path、固有停止条件、
   比較候補の棄却根拠を含む。既存`build/tdd-macos`の計画は読み取り専用で測定し、構成や構築を開始しない。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
+- `g160-flake-css-gamut-schema-audit`は両候補を棄却した。`KoCssStylePreset.h`はidentity・text property・sample表示・資源I/O・shape生成へ33 APIが分散し、単一責務は最大14 APIである。`KoGamutMask.h`は2 classのidentity、
+  資源metadata、mask幾何、preview描画、shape adapterへ38 APIが分散し、単一責務は最大9 APIである。25 APIへ広げるとshape・painter・device I/Oを混在させるため実装へ進めない。
+- 代替の`g160-psd-xml-writer-text-brush-schema-audit`は基点`05763bf8eb`で`libs/psdutils/asl/kis_asl_xml_writer.h`の未対応28 APIを主候補とし、`libs/brush/kis_text_brush.h`の未対応28 APIを比較する。ASL XML記述器または
+  text brushの型・寿命・階層・scalar・geometry・色・pattern・gradient・文字・描画署名面を、XML document・device・pattern・gradient・brush・paint device・font・signal・metaobject・大域状態の実体化なしで閉じる。
+  前記共通条件、報告項目、読み取り専用範囲を引き継ぎ、pathと所有CMakeが採用済み画像・widgetutils候補に重ならないことを確認する。
 
 ### 第159便の先行監査計画
 
