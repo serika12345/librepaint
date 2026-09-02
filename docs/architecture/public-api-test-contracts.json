@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 14854
+    "expectedMissingApis": 14824
   },
   "contracts": [
     {
@@ -32640,6 +32640,81 @@
         "member:xcfLayer::propptr",
         "member:xcfLayer::type",
         "member:xcfTiles::hierarchy"
+      ]
+    },
+    {
+      "target": "XcfToolsValueContractTest",
+      "source": "plugins/impex/xcf/tests/XcfToolsValueContractTest.cpp",
+      "test": "XcfToolsValueContractTest::xcfPrimitiveAndGlobalSchemaRemainsStable",
+      "behavior": "XCF低水準形式は固定幅整数とpointer幅の別名、およびimage・診断・入力bufferに関する大域宣言の厳密な型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:int32_t",
+        "alias:int8_t",
+        "alias:uint32_t",
+        "alias:uint8_t",
+        "alias:uintptr_t",
+        "variable:XCF",
+        "variable:progname",
+        "variable:use_utf8",
+        "variable:verboseFlag",
+        "variable:xcf_file",
+        "variable:xcf_length"
+      ]
+    },
+    {
+      "target": "XcfToolsValueContractTest",
+      "source": "plugins/impex/xcf/tests/XcfToolsValueContractTest.cpp",
+      "test": "XcfToolsValueContractTest::xcfFatalDiagnosticSignaturesRemainStable",
+      "behavior": "XCF低水準形式は一般・予期外・不正・未対応のfatal診断についてstatus、format、可変引数を含む厳密な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:FatalBadXCF(const char * format,...)",
+        "function:FatalGeneric(int status,const char * format,...)",
+        "function:FatalUnexpected(const char * format,...)",
+        "function:FatalUnsupportedXCF(const char * format,...)"
+      ]
+    },
+    {
+      "target": "XcfToolsValueContractTest",
+      "source": "plugins/impex/xcf/tests/XcfToolsValueContractTest.cpp",
+      "test": "XcfToolsValueContractTest::xcfFileLifecycleSignaturesRemainStable",
+      "behavior": "XCF低水準形式は入力の読込み・解放と出力FILEの開始・終了に関する厳密な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:closeout(FILE *,const char *)",
+        "function:free_or_close_xcf(void)",
+        "function:openout(const char *)",
+        "function:read_or_mmap_xcf(const char * filename,const char * unzipper)"
+      ]
+    },
+    {
+      "target": "XcfToolsValueContractTest",
+      "source": "plugins/impex/xcf/tests/XcfToolsValueContractTest.cpp",
+      "test": "XcfToolsValueContractTest::xcfAllocationAndSupportSignaturesRemainStable",
+      "behavior": "XCF低水準形式は利用説明、翻訳初期化、領域確保・解放の公開呼出し型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:gpl_blurb(void)",
+        "function:nls_init(void)",
+        "function:xcffree(void *)",
+        "function:xcfmalloc(size_t size)"
+      ]
+    },
+    {
+      "target": "XcfToolsValueContractTest",
+      "source": "plugins/impex/xcf/tests/XcfToolsValueContractTest.cpp",
+      "test": "XcfToolsValueContractTest::xcfParsingSignaturesRemainStable",
+      "behavior": "XCF低水準形式はtile寸法、基本header、byte順、property領域・offset・文字列の構文解析に関する公開呼出し型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:computeDimensions(struct tileDimensions *)",
+        "function:getBasicXcfInfo(void)",
+        "function:ntohl(uint32_t a)",
+        "function:xcfCheckspace(uint32_t addr,int spaceafter,const char * format,...)",
+        "function:xcfNextprop(uint32_t * master,uint32_t * body,PropType * type)",
+        "function:xcfOffset(uint32_t addr,int spaceafter,uint32_t * apparent)",
+        "function:xcfString(uint32_t ptr,uint32_t * after)"
       ]
     },
     {
