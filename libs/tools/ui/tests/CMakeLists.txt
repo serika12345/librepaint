@@ -68,6 +68,20 @@ target_compile_definitions(KisCategoriesMapperContractTest PRIVATE
 )
 
 kis_add_test(
+    KisCategorizedListModelSchemaContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KisCategorizedListModelSchemaContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+)
+target_compile_definitions(KisCategorizedListModelSchemaContractTest PRIVATE
+    kritatoolsui_EXPORTS
+)
+
+kis_add_test(
     kis_categorized_list_model_test.cpp
     ../../../ui/tests/modeltest.cpp
     TEST_NAME KisCategorizedListModelTest
