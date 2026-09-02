@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 21:52 JST
+- 更新日時: 2026-09-02 21:57 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -31,6 +31,9 @@
   `KoCssStylePreset.h`はidentity 6、property 9、sample 11、shape 2、資源I/O 5へ分散し、25 APIへ達するにはshape・SVG・thumbnail・device処理を混在させる。このため第3候補を`g164-image-updater-svg-cursor-schema-audit`へ差し替える。
 - `g164-image-updater-svg-cursor-schema-audit`は`libs/image/kis_updater_context.h`の未対応25 APIを主候補とし、`plugins/tools/svgtexttool/SvgTextCursor.h`の未対応35 APIを比較する。更新実行contextまたはSVG text cursorの型・寿命・thread数・job受付・進行・snapshot・lock・完了・LOD・選択property・typesetting handle・shape・装飾・通知面を、
   thread・scheduler・job・walker・image・canvas・text shape・property変更・painter・action・signal・metaobject・event loopの実体化なしで閉じる。最初の3監査と同じ読み取り専用条件、報告項目、停止条件を適用する。
+- `g164-image-updater-svg-cursor-schema-audit`は`plugins/tools/svgtexttool/SvgTextCursor.h`の全35 APIを採用した。identity・shape 6、typesetting 9、property bridge 8、property interface照会8、変更4を新規
+  `plugins/tools/svgtexttool/tests/SvgTextCursorPropertySchemaContractTest.cpp`の5枠へ対応付ける。hover handle、装飾描画、property merge、2 property setterの既定引数省略形を固定する。既存enum契約は4工程・14入力で入力停止線を超えているため拡張せず、直接linkをQt Core・Gui・Testだけにした
+  新対象4工程・8〜9入力、停止5工程・11入力へ分離し、製品`krita_tool_svgtext_static` 2,013工程・4,024入力を維持する。`kis_updater_context.h`は25 APIぎりぎりで公開header自身がthread pool・lock・scheduler・walker・jobの完全型を所有し、宣言解釈だけで責務外閉包へ入るため棄却した。
 
 ### 第163便の先行監査計画
 
