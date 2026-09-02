@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 14:00 JST
+- 更新日時: 2026-09-02 14:14 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -41,7 +41,7 @@
 
 ### 第151便の担当計画
 
-- 実装共通基点は`6727e01b3c`である。3担当は`preparing`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、
+- 実装共通基点は`6727e01b3c`である。3担当は`integrated`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、
   専用worktree-local `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。統合順はapplication描画設定、image animation interface、flake markerとし、
   調整担当だけが`AGENTS.md`、architecture文書、`docs/architecture/public-api-test-contracts.json`、共通不足報告を変更する。3担当の公開header、所有CMake、試験source、生成物は重ならない。
 - `g151-config-rendering-schema`は`/Users/masato/Documents/librepaint-g151-config-rendering-schema`を所有する。開始`libs/application/kis_config.h`の描画性能・backend方針25 APIから既存
@@ -63,6 +63,27 @@
   製品`kritaflake`は621工程・1,274入力と担当tree内の変更前後集合・保留集合完全一致を確認する。未知targetと5枠、対象CTest、5枠個別、20回反復、近傍、無作業再構築、動的接続・AUTOMOC入力・未解決marker・shape・
   painter・stroke記号、構文・変更行書式、公開API・`verify-quick`を確認する。marker、shape、stroke、painter、path、pen、DOM、Private、vtable、constructor、destructor、copy、inline本文を生成または実行し、
   `KoMarker.cpp`、製品source・OBJECT・shared、`kritatestsdk`、新非header依存、公開header変更、製品計画差、停止線超過が必要なら止める。
+
+### 第151便の統合結果
+
+- `g151-config-rendering-schema`は受渡しcommit`dcb0e8a099`を統合commit`ad0009e722`として取り込んだ。開始`libs/application/kis_config.h`から既存
+  `libs/application/tests/KisConfigEnumContractTest.cpp`の5枠へ、vector・LOD方針、texture pipeline、projection backend、診断logging、backend互換の25 APIを対応付けた。CMakeと直接依存を変更せず対象4工程・15入力、
+  製品`kritaapplication` 1,227工程・2,472入力を維持した。KisConfig、QSettings、設定backend、OpenGL context、CPU機能検出、大域状態、GUI、inline本文を生成または実行していない。担当macOS環境で新5枠、
+  対象CTest・20回反復、近傍`KisActionEnumContractTest`、無作業再構築、動的接続・未解決記号、構文・書式、公開API検査、`verify-quick`に成功した。中央環境でも対象CTest、公開API検査、`verify-quick`に成功し、
+  台帳commit`5a6cbb3d43`で29,838件中15,142件対応、14,696件未対応となった。作業tree 867,476 KiBと担当branchは削除した。実設定I/O、backend選択結果、platform別効果は別の効果契約で扱う。
+- `g151-image-animation-schema`は受渡しcommit`2402842f4d`を統合commit`b4ab609262`として取り込んだ。開始`libs/image/kis_image_animation_interface.h`から既存
+  `libs/image/tests/KisImageTypesContractTest.cpp`の5枠へ、型・非同期切替option、時間軸・書出し、切替・無効化、生成lock、通知signalの58 APIを対応付けた。CMakeと直接依存を変更せず対象4工程・8入力、製品`kritaimage`
+  1,196工程・2,416入力を維持した。interface、image、node、device、frame lock、signal、event loop、inline本文、frame generation、stroke、schedulerを生成または実行していない。担当macOS環境で新5枠、対象CTest・
+  20回反復、近傍`KisBlockBackgroundFrameGenerationLockContractTest`、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式、公開API検査、`verify-quick`に成功した。中央環境でも対象CTest、公開API検査、
+  `verify-quick`に成功し、台帳commit`ad50cd0086`で29,838件中15,200件対応、14,638件未対応となった。作業tree 868,032 KiBと担当branchは削除した。実scheduler処理とsignal配送は別の効果契約で扱う。
+- `g151-marker-schema`は受渡しcommit`1033d3bf95`を統合commit`476674748f`として取り込んだ。開始`libs/flake/KoMarker.h`から新規`libs/flake/tests/KoMarkerSchemaContractTest.cpp`の5枠へ、
+  型・寿命・座標列挙、座標系・基準、向き・名前・等価、shape・幾何、描画・strokeの29 APIを対応付け、`libs/flake/tests/CMakeLists.txt`へ独立対象を追加した。直接linkはQt Gui・Test・Xmlだけ、includeはflake source/generatedだけ、
+  新対象4工程・8入力、製品`kritaflake` 621工程・1,274入力を維持した。marker、shape、stroke、painter、path、pen、DOM、Private、vtable、constructor、destructor、copy、inline本文を生成または実行していない。
+  担当macOS環境で新5枠、対象CTest・20回反復、近傍`KoShapeEnumContractTest`、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式、公開API検査、`verify-quick`に成功した。中央環境でも対象限定の構成更新と
+  構築、CTest、公開API検査、`verify-quick`に成功し、台帳commit`04d261e4e1`で29,838件中15,229件対応、14,609件未対応となった。作業tree 872,164 KiBと担当branchは削除した。実marker状態、文字列変換、幾何、描画・
+  stroke処理は別の効果契約で扱う。
+- 第151便全体で112 APIを15枠へ重複なく対応付け、3担当の作業tree計2,607,672 KiB（約2.49 GiB）を回収した。旧不足報告をTrashへ移し、主Ninja木5,600,944 KiB、共有compiler cache 983,292 KiB、
+  最新不足報告`build/tdd-macos/public-api-missing-g152.json`だけを再利用対象として保持する。次の永続作業は第152便の不足報告から、既存限定対象を優先してpathと所有CMakeが重ならない3責務を先行監査することである。
 
 ### 第150便の先行監査計画
 
