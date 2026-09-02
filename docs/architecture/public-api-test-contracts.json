@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 13202
+    "expectedMissingApis": 13164
   },
   "contracts": [
     {
@@ -47035,6 +47035,89 @@
         "method:KisMaskGenerator::fromXML(const QDomElement &)",
         "method:KisMaskGenerator::maskGeneratorIds()",
         "method:KisMaskGenerator::toXML(QDomDocument &,QDomElement &) const"
+      ]
+    },
+    {
+      "target": "KXMLGUIClientSchemaContractTest",
+      "source": "libs/widgetutils/tests/KXMLGUIClientSchemaContractTest.cpp",
+      "test": "KXMLGUIClientSchemaContractTest::xmlGuiClientIdentityAndStateTypesRemainStable",
+      "behavior": "XML GUIクライアントの公開型、状態反転種別と値、状態変更値、構築と仮想寿命を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisKXMLGUIClient",
+        "enum:KisKXMLGUIClient::ReverseStateChange",
+        "enumerator:KisKXMLGUIClient::ReverseStateChange::StateNoReverse",
+        "enumerator:KisKXMLGUIClient::ReverseStateChange::StateReverse",
+        "method:KisKXMLGUIClient::KisKXMLGUIClient()",
+        "method:KisKXMLGUIClient::KisKXMLGUIClient(KisKXMLGUIClient * parent)",
+        "method:KisKXMLGUIClient::~KisKXMLGUIClient()",
+        "struct:KisKXMLGUIClient::StateChange"
+      ]
+    },
+    {
+      "target": "KXMLGUIClientSchemaContractTest",
+      "source": "libs/widgetutils/tests/KXMLGUIClientSchemaContractTest.cpp",
+      "test": "KXMLGUIClientSchemaContractTest::xmlGuiClientStateActionSchemaRemainsStable",
+      "behavior": "XML GUIクライアントの状態ごとの有効・無効action一覧と登録・取得の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisKXMLGUIClient::StateChange::actionsToDisable",
+        "member:KisKXMLGUIClient::StateChange::actionsToEnable",
+        "method:KisKXMLGUIClient::addStateActionDisabled(const QString & state,const QString & action)",
+        "method:KisKXMLGUIClient::addStateActionEnabled(const QString & state,const QString & action)",
+        "method:KisKXMLGUIClient::getActionsToChangeForState(const QString & state)"
+      ]
+    },
+    {
+      "target": "KXMLGUIClientSchemaContractTest",
+      "source": "libs/widgetutils/tests/KXMLGUIClientSchemaContractTest.cpp",
+      "test": "KXMLGUIClientSchemaContractTest::xmlGuiClientDocumentAndComponentSignaturesRemainStable",
+      "behavior": "XML GUIクライアントのcomponent名、XML文書・file、再読込・差替え・最新file選択の公開署名とmerge既定値を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisKXMLGUIClient::componentName() const",
+        "method:KisKXMLGUIClient::domDocument() const",
+        "method:KisKXMLGUIClient::findMostRecentXMLFile(const QStringList & files,QString & doc)",
+        "method:KisKXMLGUIClient::localXMLFile() const",
+        "method:KisKXMLGUIClient::reloadXML()",
+        "method:KisKXMLGUIClient::replaceXMLFile(const QString & xmlfile,const QString & localxmlfile,bool merge=false)",
+        "method:KisKXMLGUIClient::setXMLGUIBuildDocument(const QDomDocument & doc)",
+        "method:KisKXMLGUIClient::xmlFile() const",
+        "method:KisKXMLGUIClient::xmlguiBuildDocument() const"
+      ]
+    },
+    {
+      "target": "KXMLGUIClientSchemaContractTest",
+      "source": "libs/widgetutils/tests/KXMLGUIClientSchemaContractTest.cpp",
+      "test": "KXMLGUIClientSchemaContractTest::xmlGuiClientActionFactoryAndHierarchySignaturesRemainStable",
+      "behavior": "XML GUIクライアントのaction取得、collection、factory、builder、親子client操作の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisKXMLGUIClient::action(const QDomElement & element) const",
+        "method:KisKXMLGUIClient::action(const char * name) const",
+        "method:KisKXMLGUIClient::actionCollection() const",
+        "method:KisKXMLGUIClient::childClients()",
+        "method:KisKXMLGUIClient::clientBuilder() const",
+        "method:KisKXMLGUIClient::factory() const",
+        "method:KisKXMLGUIClient::insertChildClient(KisKXMLGUIClient * child)",
+        "method:KisKXMLGUIClient::parentClient() const",
+        "method:KisKXMLGUIClient::removeChildClient(KisKXMLGUIClient * child)",
+        "method:KisKXMLGUIClient::setClientBuilder(KisKXMLGUIBuilder * builder)",
+        "method:KisKXMLGUIClient::setFactory(KisKXMLGUIFactory * factory)"
+      ]
+    },
+    {
+      "target": "KXMLGUIClientSchemaContractTest",
+      "source": "libs/widgetutils/tests/KXMLGUIClientSchemaContractTest.cpp",
+      "test": "KXMLGUIClientSchemaContractTest::xmlGuiClientDynamicPlugSignaturesRemainStable",
+      "behavior": "XML GUIクライアントのaction listとXML部品の接続・解除境界に関する公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisKXMLGUIClient::beginXMLPlug(QWidget *)",
+        "method:KisKXMLGUIClient::endXMLPlug()",
+        "method:KisKXMLGUIClient::plugActionList(const QString & name,const QList<QAction * > & actionList)",
+        "method:KisKXMLGUIClient::prepareXMLUnplug(QWidget *)",
+        "method:KisKXMLGUIClient::unplugActionList(const QString & name)"
       ]
     }
   ]
