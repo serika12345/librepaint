@@ -8,6 +8,7 @@
 #include "brushengine/kis_uniform_paintop_property.h"
 #include "commands_new/kis_saved_commands.h"
 #include "kis_base_mask_generator.h"
+#include "kis_clone_layer.h"
 #include "kis_datamanager.h"
 #include "kis_default_bounds.h"
 #include "kis_distance_information.h"
@@ -66,6 +67,8 @@ namespace
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisSelectionMask::method)), signature>)
 #define ASSERT_SELECTION_BASED_LAYER_SIGNATURE(method, signature)                                                      \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisSelectionBasedLayer::method)), signature>)
+#define ASSERT_CLONE_LAYER_SIGNATURE(method, signature)                                                                \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KisCloneLayer::method)), signature>)
 
 class BaseConstIteratorConstructorProbe final : public KisBaseConstIteratorNG
 {
@@ -343,6 +346,11 @@ private Q_SLOTS:
     void selectionBasedLayerHierarchyImageAndDirtySignaturesRemainStable();
     void selectionBasedLayerGeometryAndLodSignaturesRemainStable();
     void selectionBasedLayerThumbnailAndNotificationSignaturesRemainStable();
+    void cloneLayerTypeOwnershipAndLifetimeSchemaRemainsStable();
+    void cloneLayerSourceIdentityAndPolicySignaturesRemainStable();
+    void cloneLayerDeviceProjectionAndPresentationSignaturesRemainStable();
+    void cloneLayerImageAndGeometrySignaturesRemainStable();
+    void cloneLayerVisitorCloneAndUpdateSignaturesRemainStable();
 };
 
 void KisImageTypesContractTest::intrusivePointerAliasesPreserveOwnershipKinds()
@@ -2766,6 +2774,60 @@ void KisImageTypesContractTest::selectionBasedLayerThumbnailAndNotificationSigna
     ASSERT_SELECTION_BASED_LAYER_SIGNATURE(slotImageSizeChanged, NotificationSignature);
 }
 
+void KisImageTypesContractTest::cloneLayerTypeOwnershipAndLifetimeSchemaRemainsStable()
+{
+    static_assert(std::is_class_v<KisCloneLayer>);
+    static_assert(std::is_enum_v<CopyLayerType>);
+    QCOMPARE(static_cast<int>(COPY_PROJECTION), 0);
+    QCOMPARE(static_cast<int>(COPY_ORIGINAL), 1);
+    static_assert(std::is_constructible_v<KisCloneLayer, KisLayerSP, KisImageWSP, const QString &, quint8>);
+    static_assert(std::is_copy_constructible_v<KisCloneLayer>);
+    static_assert(std::has_virtual_destructor_v<KisCloneLayer>);
+}
+
+void KisImageTypesContractTest::cloneLayerSourceIdentityAndPolicySignaturesRemainStable()
+{
+    ASSERT_CLONE_LAYER_SIGNATURE(copyFrom, KisLayerSP (KisCloneLayer::*)() const);
+    ASSERT_CLONE_LAYER_SIGNATURE(setCopyFrom, void (KisCloneLayer::*)(KisLayerSP));
+    ASSERT_CLONE_LAYER_SIGNATURE(copyFromInfo, KisNodeUuidInfo (KisCloneLayer::*)() const);
+    ASSERT_CLONE_LAYER_SIGNATURE(setCopyFromInfo, void (KisCloneLayer::*)(KisNodeUuidInfo));
+    ASSERT_CLONE_LAYER_SIGNATURE(copyType, CopyLayerType (KisCloneLayer::*)() const);
+    ASSERT_CLONE_LAYER_SIGNATURE(setCopyType, void (KisCloneLayer::*)(CopyLayerType));
+    ASSERT_CLONE_LAYER_SIGNATURE(reincarnateAsPaintLayer, KisLayerSP (KisCloneLayer::*)() const);
+}
+
+void KisImageTypesContractTest::cloneLayerDeviceProjectionAndPresentationSignaturesRemainStable()
+{
+    ASSERT_CLONE_LAYER_SIGNATURE(original, KisPaintDeviceSP (KisCloneLayer::*)() const);
+    ASSERT_CLONE_LAYER_SIGNATURE(paintDevice, KisPaintDeviceSP (KisCloneLayer::*)() const);
+    ASSERT_CLONE_LAYER_SIGNATURE(needProjection, bool (KisCloneLayer::*)() const);
+    ASSERT_CLONE_LAYER_SIGNATURE(colorSpace, const KoColorSpace *(KisCloneLayer::*)() const);
+    ASSERT_CLONE_LAYER_SIGNATURE(icon, QIcon (KisCloneLayer::*)() const);
+    ASSERT_CLONE_LAYER_SIGNATURE(sectionModelProperties, KisBaseNode::PropertyList (KisCloneLayer::*)() const);
+    ASSERT_CLONE_LAYER_SIGNATURE(allowAsChild, bool (KisCloneLayer::*)(KisNodeSP) const);
+}
+
+void KisImageTypesContractTest::cloneLayerImageAndGeometrySignaturesRemainStable()
+{
+    ASSERT_CLONE_LAYER_SIGNATURE(setImage, void (KisCloneLayer::*)(KisImageWSP));
+    ASSERT_CLONE_LAYER_SIGNATURE(x, qint32 (KisCloneLayer::*)() const);
+    ASSERT_CLONE_LAYER_SIGNATURE(y, qint32 (KisCloneLayer::*)() const);
+    ASSERT_CLONE_LAYER_SIGNATURE(setX, void (KisCloneLayer::*)(qint32));
+    ASSERT_CLONE_LAYER_SIGNATURE(setY, void (KisCloneLayer::*)(qint32));
+    ASSERT_CLONE_LAYER_SIGNATURE(extent, QRect (KisCloneLayer::*)() const);
+    ASSERT_CLONE_LAYER_SIGNATURE(exactBounds, QRect (KisCloneLayer::*)() const);
+}
+
+void KisImageTypesContractTest::cloneLayerVisitorCloneAndUpdateSignaturesRemainStable()
+{
+    ASSERT_CLONE_LAYER_SIGNATURE(accept, bool (KisCloneLayer::*)(KisNodeVisitor &));
+    ASSERT_CLONE_LAYER_SIGNATURE(accept, void (KisCloneLayer::*)(KisProcessingVisitor &, KisUndoAdapter *));
+    ASSERT_CLONE_LAYER_SIGNATURE(clone, KisNodeSP (KisCloneLayer::*)() const);
+    ASSERT_CLONE_LAYER_SIGNATURE(setDirtyOriginal, void (KisCloneLayer::*)(const QRect &, bool));
+    ASSERT_CLONE_LAYER_SIGNATURE(needRectOnSourceForMasks, QRect (KisCloneLayer::*)(const QRect &) const);
+    ASSERT_CLONE_LAYER_SIGNATURE(syncLodCache, void (KisCloneLayer::*)());
+}
+
 #undef ASSERT_DEFAULT_BOUNDS_SIGNATURE
 #undef ASSERT_LAYER_UTILS_SIGNATURE
 #undef ASSERT_PAINTOP_SETTINGS_SIGNATURE
@@ -2780,6 +2842,7 @@ void KisImageTypesContractTest::selectionBasedLayerThumbnailAndNotificationSigna
 #undef ASSERT_EDGE_DETECTION_SIGNATURE
 #undef ASSERT_SELECTION_MASK_SIGNATURE
 #undef ASSERT_SELECTION_BASED_LAYER_SIGNATURE
+#undef ASSERT_CLONE_LAYER_SIGNATURE
 
 QTEST_GUILESS_MAIN(KisImageTypesContractTest)
 
