@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 12601
+    "expectedMissingApis": 12578
   },
   "contracts": [
     {
@@ -48626,6 +48626,74 @@
         "method:KoShapeReorderCommand::homogenizeZIndexesLazy(QList<IndexedShape> shapes)",
         "method:KoShapeReorderCommand::redo()",
         "method:KoShapeReorderCommand::undo()"
+      ]
+    },
+    {
+      "target": "KoStrokeConfigWidgetSchemaContractTest",
+      "source": "libs/widgets/tests/KoStrokeConfigWidgetSchemaContractTest.cpp",
+      "test": "KoStrokeConfigWidgetSchemaContractTest::strokeConfigTypeAndLifetimeSchemaRemainsStable",
+      "behavior": "図形stroke設定Widgetの公開型、canvas・親Widgetを受け取る構築、仮想寿命と公開表示部品pointerの型を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoStrokeConfigWidget",
+        "member:KoStrokeConfigWidget::separatorLine",
+        "member:KoStrokeConfigWidget::strokeStyleLabel",
+        "member:KoStrokeConfigWidget::thicknessLabel",
+        "method:KoStrokeConfigWidget::KoStrokeConfigWidget(KoCanvasBase * canvas,QWidget * parent)",
+        "method:KoStrokeConfigWidget::~KoStrokeConfigWidget()"
+      ]
+    },
+    {
+      "target": "KoStrokeConfigWidgetSchemaContractTest",
+      "source": "libs/widgets/tests/KoStrokeConfigWidgetSchemaContractTest.cpp",
+      "test": "KoStrokeConfigWidgetSchemaContractTest::strokeConfigAppearanceSchemaRemainsStable",
+      "behavior": "図形strokeの色、dash、線種、太さとmiter limitを照会する公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoStrokeConfigWidget::color() const",
+        "method:KoStrokeConfigWidget::lineDashes() const",
+        "method:KoStrokeConfigWidget::lineStyle() const",
+        "method:KoStrokeConfigWidget::lineWidth() const",
+        "method:KoStrokeConfigWidget::miterLimit() const"
+      ]
+    },
+    {
+      "target": "KoStrokeConfigWidgetSchemaContractTest",
+      "source": "libs/widgets/tests/KoStrokeConfigWidgetSchemaContractTest.cpp",
+      "test": "KoStrokeConfigWidgetSchemaContractTest::strokeConfigMarkerAndStrokeSchemaRemainsStable",
+      "behavior": "図形strokeのcap・join、開始・終了markerとshape stroke生成入口の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoStrokeConfigWidget::capStyle() const",
+        "method:KoStrokeConfigWidget::createShapeStroke()",
+        "method:KoStrokeConfigWidget::endMarker() const",
+        "method:KoStrokeConfigWidget::joinStyle() const",
+        "method:KoStrokeConfigWidget::startMarker() const"
+      ]
+    },
+    {
+      "target": "KoStrokeConfigWidgetSchemaContractTest",
+      "source": "libs/widgets/tests/KoStrokeConfigWidgetSchemaContractTest.cpp",
+      "test": "KoStrokeConfigWidgetSchemaContractTest::strokeConfigControlSchemaRemainsStable",
+      "behavior": "図形stroke設定のactive状態、selection追跡、単位管理と操作可能状態を設定する公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoStrokeConfigWidget::setActive(bool active)",
+        "method:KoStrokeConfigWidget::setNoSelectionTrackingMode(bool value)",
+        "method:KoStrokeConfigWidget::setUnitManagers(KisSpinBoxUnitManager * managerLineWidth,KisSpinBoxUnitManager * managerMitterLimit)",
+        "method:KoStrokeConfigWidget::updateStyleControlsAvailability(bool enabled)"
+      ]
+    },
+    {
+      "target": "KoStrokeConfigWidgetSchemaContractTest",
+      "source": "libs/widgets/tests/KoStrokeConfigWidgetSchemaContractTest.cpp",
+      "test": "KoStrokeConfigWidgetSchemaContractTest::strokeConfigActivationAndNotificationSchemaRemainsStable",
+      "behavior": "図形stroke設定のactivate・deactivate入口とstroke変更通知の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoStrokeConfigWidget::activate()",
+        "method:KoStrokeConfigWidget::deactivate()",
+        "method:KoStrokeConfigWidget::sigStrokeChanged()"
       ]
     }
   ]
