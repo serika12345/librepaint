@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-02 11:29 JST
+- 更新日時: 2026-09-02 11:35 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -34,12 +34,16 @@
   `KisAslXmlWriterSchemaContractTest`の未評価型5枠へ対応付ける。既存近傍は5工程・13入力であるため拡張せず、新対象4工程・8入力、停止5工程・11入力を予測し、製品`kritapsdutils` 638工程・1,306入力を
   維持する。現在の製品命令集合hashは`46ef378e51b0dcfdf434a157ea792233544b645c4855e5585a0916f6530a9e2c`、入力集合hashは`c26bfd7f16faafd66560f96698970f68c753b8918afb561eab34204aba29221b`である。
   `kis_text_brush.h`は寿命・資源複製、device I/O、stroke通知、dab・mask生成、text・font・pipe・XMLへ責務とbrush/image/pigment依存が分散するため棄却した。
+- `g146-metadata-store-exiv-io-schema-audit`は追加の`auditing`読み取り監査として、`libs/painting/metadata/kis_meta_data_store.h`の全27 APIを主候補とし、
+  `plugins/metadata/common/KisExiv2IODevice.h`の全27 APIを比較する。metadata entry集合の寿命・反復・検索・追加・削除・複製・filter面またはExiv2 I/Oのopen・seek・read・write・map・transfer面を、
+  store・entry・schema・filter・filesystem・device・buffer・Exiv2の実体化なしで閉じる。共通基点、入力、禁止操作、報告要件は第146便の他監査と同じである。
 - 各報告は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、変更なし・製品計画、予測工程・入力と停止線、開始pathから契約先または移動先、許可path、固有停止条件、
   比較候補の棄却根拠を含む。既存`build/tdd-macos`の計画は読み取り専用で測定し、構成や構築を開始しない。3報告後にpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
 
 ### 第146便の担当計画
 
-- 実装共通基点は`1b0505cd72`である。image signal router、libkis guides config、ASL XML writer担当は`implementing`、構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの
+- 実装共通基点は`1b0505cd72`である。image signal router担当は`integrated`、libkis guides config担当は`implementing`、ASL XML writer担当は`rejected`、metadata store追加監査は`auditing`、
+  構築許可は指定試験targetと軽量近傍だけの`granted`、Git権限は許可pathだけの
   `transport-commit`、追加委任は禁止する。対象platformはmacOSであり、専用worktree-local `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。
   統合順はimage signal router、libkis guides config、ASL XML writerとし、調整担当だけが`AGENTS.md`、architecture文書、`docs/architecture/public-api-test-contracts.json`、共通不足報告を変更する。
   3担当の公開header、所有CMake、試験source、生成物は重ならない。
@@ -53,19 +57,21 @@
 - `g146-guides-config-schema`は`/Users/masato/Documents/librepaint-g146-guides-config-schema`を所有する。開始`libs/libkis/GuidesConfig.h`の全25 APIから既存
   `libs/libkis/tests/GridConfigSchemaContractTest.cpp`の5枠`guidesConfigIdentityAndConstructionSchemaRemainsStable`、`guidesConfigComparisonAndSerializationSignaturesRemainStable`、
   `guidesConfigPresentationSignaturesRemainStable`、`guidesConfigPositionSignaturesRemainStable`、`guidesConfigInteractionStateSignaturesRemainStable`へ対応付ける。許可pathは既存試験sourceと
-  `libs/libkis/tests/CMakeLists.txt`である。初期構築で`GuidesConfig.h`から`kis_guides_config.h`を介して直接要求する`KoUnit.h`の探索先不足を確認したため、この対象だけにflake source・generated directoryを
+  `libs/libkis/tests/CMakeLists.txt`である。初期構築で`GuidesConfig.h`から`kis_guides_config.h`を介して直接要求する`KoUnit.h`の探索先不足を確認したため、この対象だけに所有元のglobal source・generated directoryを
   PRIVATE追加し、linkと製品依存は増やさない。
   対象4工程・9入力以内、停止5工程・11入力、近傍は`AngleSelectorSchemaContractTest`、製品`kritalibkis`は2,018工程・4,034入力と担当tree内の変更前後集合完全一致を確認する。未知5枠、対象CTest、20回反復、
   既存grid枠と近傍、無作業再構築、動的接続、未解決guide・XML・QObject metaobject記号、構文・変更行書式、公開API・`verify-quick`を確認する。GuidesConfig、内部guide値、QObject、QColor、QListを生成し、比較・位置・表示・lock・
   snap・XML処理を実行し、Qt Widgets・dialog・GUI application・filesystem・設定へ接続し、製品source・OBJECT・shared、`kritatestsdk`、新link/include依存、CMake・公開header変更、製品計画差、停止線超過が必要なら止める。
-- `g146-asl-xml-writer-schema`は`/Users/masato/Documents/librepaint-g146-asl-xml-writer-schema`を所有する。開始`libs/psdutils/asl/kis_asl_xml_writer.h`の全28 APIから新規
-  `libs/psdutils/tests/KisAslXmlWriterSchemaContractTest.cpp`の5枠`aslXmlWriterIdentityAndDocumentSignaturesRemainStable`、`aslXmlWriterContainerSignaturesRemainStable`、
-  `aslXmlWriterScalarSignaturesRemainStable`、`aslXmlWriterGeometrySignaturesRemainStable`、`aslXmlWriterColorGradientAndPatternSignaturesRemainStable`へ対応付ける。許可pathは新規試験sourceと
-  `libs/psdutils/tests/CMakeLists.txt`だけである。直接linkはQt Core・Testだけ、compile-only includeはpsdutils・pigment・resources・globalのsource・generated directoryに加え、公開headerから
-  `KoPattern.h`と`KoResource.h`を介して直接要求されたQt Gui・KF I18nのINTERFACE includeだけとする。Qt Gui・KF I18nはlinkしない。新対象4工程・8入力、停止5工程・11入力、
-  近傍は`KisAslWriterUtilsContractTest`、製品`kritapsdutils`は638工程・1,306入力と担当tree内の変更前後集合完全一致を確認する。未知target、5枠、対象CTest、20回反復、近傍、無作業再構築、動的接続、
-  未解決writer・XML・色・勾配・pattern記号、構文・変更行書式、公開API・`verify-quick`を確認する。writer、XML文書、KoColor、勾配、pattern、resource、点・矩形値を生成し、constructor・destructor・method本文をODR使用し、
-  Qt Gui・Xml、製品source・OBJECT・shared、`kritatestsdk`、`kis_asl_xml_writer.cpp`、新非header依存、公開header変更、製品計画差、停止線超過が必要なら止める。
+- `g146-asl-xml-writer-schema`は構築前の定義閉包検査で`rejected`とした。公開headerから`KoPattern.h`・`KoResource.h`・`KoSegmentGradient.h`・`KoColor.h`へ推移し、Qt Gui、KF I18n、Imathの
+  compile interfaceを順次要求したため、28署名のための新規対象として閉包が過大である。製品・Qt Gui・KF I18n・Imathをlinkせず、製品構築前に停止した。未コミット差分、作業tree 873,912 KiB、担当branchは削除した。
+
+### 第146便の統合結果
+
+- `g146-image-signal-router-schema`は受渡しcommit`b9d471673afc`を統合commit`67da14a690`として取り込んだ。開始`libs/image/kis_image_signal_router.h`から既存
+  `libs/image/tests/KisImageTypesContractTest.cpp`の5枠へ、型・寿命、通知、batch・LOD、node graph、画像metadataの27 APIを対応付けた。CMakeと直接依存、自動MOC入力を変更せず、対象4工程・8入力、
+  製品`kritaimage` 1,196工程・2,416入力を維持した。router、image、node、profile、color space、emit・slot・signal・metaobject・event loopを生成または実行していない。担当macOS環境と中央環境で5枠と
+  既存image型枠を含む対象CTest・20回反復、近傍`KisImageConfigAnimationSchemaContractTest`、無作業再構築、動的接続・未解決記号、自動MOC入力、構文・書式、公開API検査に成功した。中央の公開API契約検査は
+  29,838件中14,651件対応、15,187件未対応となる。作業tree 879,964 KiBと担当branchは削除した。通知配送とevent loopの実行時挙動は別の効果契約で扱う。
 
 ### 第145便の先行監査計画
 

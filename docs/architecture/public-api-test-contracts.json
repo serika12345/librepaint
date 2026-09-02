@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 15214
+    "expectedMissingApis": 15187
   },
   "contracts": [
     {
@@ -42323,6 +42323,78 @@
         "function:KisBrushModel::lightnessModeActivated(BrushType type,const PredefinedBrushData & predefinedBrush)",
         "function:KisBrushModel::operator ==(const BrushData & lhs,const BrushData & rhs)",
         "function:KisBrushModel::setEffectiveSizeForBrush(const BrushType type,AutoBrushData & autoBrush,PredefinedBrushData & predefinedBrush,TextBrushData & textBrush,qreal value)"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::imageSignalRouterOwnershipAndLifetimeSchemaRemainsStable",
+      "behavior": "画像通知routerは画像の弱参照から構築できるQObject由来の公開型として仮想破棄を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisImageSignalRouter",
+        "method:KisImageSignalRouter::KisImageSignalRouter(KisImageWSP image)",
+        "method:KisImageSignalRouter::~KisImageSignalRouter()"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::imageSignalRouterNotificationSignaturesRemainStable",
+      "behavior": "画像通知routerは単一・複数通知とundo有無別の画像変更を転送する公開slot・signal署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisImageSignalRouter::emitImageModifiedNotification()",
+        "method:KisImageSignalRouter::emitNotification(KisImageSignalType type)",
+        "method:KisImageSignalRouter::emitNotifications(KisImageSignalVector notifications)",
+        "method:KisImageSignalRouter::sigImageModified()",
+        "method:KisImageSignalRouter::sigImageModifiedWithoutUndo()",
+        "method:KisImageSignalRouter::sigNotification(KisImageSignalType type)"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::imageSignalRouterBatchAndLodSignaturesRemainStable",
+      "behavior": "画像通知routerは一括更新の開始・終了とLOD plane同期blockを転送する公開method・signal署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisImageSignalRouter::emitNotifyBatchUpdateEnded()",
+        "method:KisImageSignalRouter::emitNotifyBatchUpdateStarted()",
+        "method:KisImageSignalRouter::emitRequestLodPlanesSyncBlocked(bool value)",
+        "method:KisImageSignalRouter::sigNotifyBatchUpdateEnded()",
+        "method:KisImageSignalRouter::sigNotifyBatchUpdateStarted()",
+        "method:KisImageSignalRouter::sigRequestLodPlanesSyncBlocked(bool value)"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::imageSignalRouterNodeGraphSignaturesRemainStable",
+      "behavior": "画像通知routerはnodeの追加・変更・除去とlayer変更を親位置・追加flag付きで転送する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisImageSignalRouter::emitAboutToRemoveANode(KisNode * parent,int index)",
+        "method:KisImageSignalRouter::emitNodeChanged(KisNodeSP node)",
+        "method:KisImageSignalRouter::emitNodeHasBeenAdded(KisNode * parent,int index,KisNodeAdditionFlags flags)",
+        "method:KisImageSignalRouter::sigLayersChangedAsync()",
+        "method:KisImageSignalRouter::sigNodeAddedAsync(KisNodeSP node,KisNodeAdditionFlags flags)",
+        "method:KisImageSignalRouter::sigNodeChanged(KisNodeSP node)",
+        "method:KisImageSignalRouter::sigRemoveNodeAsync(KisNodeSP node)"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::imageSignalRouterImageMetadataSignaturesRemainStable",
+      "behavior": "画像通知routerは色空間・profile・解像度・寸法とnode再選択を伝える公開signal署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisImageSignalRouter::sigColorSpaceChanged(const KoColorSpace * cs)",
+        "method:KisImageSignalRouter::sigProfileChanged(const KoColorProfile * profile)",
+        "method:KisImageSignalRouter::sigRequestNodeReselection(KisNodeSP activeNode,const KisNodeList & selectedNodes)",
+        "method:KisImageSignalRouter::sigResolutionChanged(double xRes,double yRes)",
+        "method:KisImageSignalRouter::sigSizeChanged(const QPointF & oldStillPoint,const QPointF & newStillPoint)"
       ]
     }
   ]
