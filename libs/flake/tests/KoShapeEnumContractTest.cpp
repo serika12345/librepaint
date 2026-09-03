@@ -53,6 +53,11 @@ class KoShapeEnumContractTest : public QObject
     Q_OBJECT
 
 private Q_SLOTS:
+    void shapePaintingSignaturesRemainStable();
+    void shapeBackgroundSignaturesRemainStable();
+    void shapeStrokeSignaturesRemainStable();
+    void shapePaintOrderSignaturesRemainStable();
+    void shapeTransparencyAndUpdateSignaturesRemainStable();
     void shapeLocalGeometrySignaturesRemainStable();
     void shapeAffineMutationSignaturesRemainStable();
     void shapeTransformationSignaturesRemainStable();
@@ -72,6 +77,52 @@ private Q_SLOTS:
     void shapeContainerClippingAndTransformSignaturesRemainStable();
     void shapeContainerPaintingAndUpdateSignaturesRemainStable();
 };
+
+void KoShapeEnumContractTest::shapePaintingSignaturesRemainStable()
+{
+    ASSERT_SHAPE_SIGNATURE(paint, void (KoShape::*)(QPainter &) const);
+    ASSERT_SHAPE_SIGNATURE(paintStroke, void (KoShape::*)(QPainter &) const);
+    ASSERT_SHAPE_SIGNATURE(paintMarkers, void (KoShape::*)(QPainter &) const);
+}
+
+void KoShapeEnumContractTest::shapeBackgroundSignaturesRemainStable()
+{
+    ASSERT_SHAPE_SIGNATURE(setBackground, void (KoShape::*)(QSharedPointer<KoShapeBackground>));
+    ASSERT_SHAPE_SIGNATURE(background, QSharedPointer<KoShapeBackground> (KoShape::*)() const);
+    ASSERT_SHAPE_SIGNATURE(setInheritBackground, void (KoShape::*)(bool));
+    ASSERT_SHAPE_SIGNATURE(inheritBackground, bool (KoShape::*)() const);
+}
+
+void KoShapeEnumContractTest::shapeStrokeSignaturesRemainStable()
+{
+    ASSERT_SHAPE_SIGNATURE(stroke, KoShapeStrokeModelSP (KoShape::*)() const);
+    ASSERT_SHAPE_SIGNATURE(setStroke, void (KoShape::*)(KoShapeStrokeModelSP));
+    ASSERT_SHAPE_SIGNATURE(setInheritStroke, void (KoShape::*)(bool));
+    ASSERT_SHAPE_SIGNATURE(inheritStroke, bool (KoShape::*)() const);
+}
+
+void KoShapeEnumContractTest::shapePaintOrderSignaturesRemainStable()
+{
+    using DefaultPaintOrder = QVector<KoShape::PaintOrder> (*)();
+
+    ASSERT_SHAPE_SIGNATURE(setPaintOrder, void (KoShape::*)(KoShape::PaintOrder, KoShape::PaintOrder));
+    ASSERT_SHAPE_SIGNATURE(paintOrder, QVector<KoShape::PaintOrder> (KoShape::*)() const);
+    static_assert(
+        std::is_same_v<decltype(static_cast<DefaultPaintOrder>(&KoShape::defaultPaintOrder)), DefaultPaintOrder>);
+    ASSERT_SHAPE_SIGNATURE(setInheritPaintOrder, void (KoShape::*)(bool));
+    ASSERT_SHAPE_SIGNATURE(inheritPaintOrder, bool (KoShape::*)() const);
+}
+
+void KoShapeEnumContractTest::shapeTransparencyAndUpdateSignaturesRemainStable()
+{
+    ASSERT_SHAPE_SIGNATURE(hasTransparency, bool (KoShape::*)() const);
+    ASSERT_SHAPE_SIGNATURE(setTransparency, void (KoShape::*)(qreal));
+    ASSERT_SHAPE_SIGNATURE(transparency, qreal (KoShape::*)(bool) const);
+    ASSERT_SHAPE_SIGNATURE(update, void (KoShape::*)() const);
+    ASSERT_SHAPE_SIGNATURE(updateAbsolute, void (KoShape::*)(const QRectF &) const);
+
+    static_assert(std::is_same_v<decltype(std::declval<const KoShape &>().transparency()), qreal>);
+}
 
 void KoShapeEnumContractTest::shapeLocalGeometrySignaturesRemainStable()
 {
