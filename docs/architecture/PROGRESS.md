@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-03 21:08 JST
+- 更新日時: 2026-09-03 21:12 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -16,6 +16,16 @@
 - `g192-flake-contract-audit`はflake・SVG・vector領域を所有し、第191便までに固定したshape manager・controller、tool代理、shape幾何・階層、clip、背景群、path点・区間種別commandを除外して、一責務の未対応集合を比較する。
 - `g192-ui-contract-audit`はwidgetutils・widgets・libkis領域を所有し、第191便までに固定したHSX色入力、内部色選択dialog、視覚色選択群、palette delegate、filter設定・適用、palette選択・色集合表示を除外して、一責務の未対応集合を比較する。
 - 各担当は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、実際のcompile探索路、予測工程・入力と停止線、開始pathから契約先、許可path、固有停止条件、比較候補の棄却根拠を返す。調整担当は3領域のpath、CMake、試験source、生成物が重ならず、合計60〜180 APIとなる組合せだけを次の実装担当票へ進める。
+
+### 第192便の先行監査結果
+
+- image領域は`libs/image/kis_paint_layer.h`の残存全34 APIをpaint layerの型・構築、階層・表示、描画装置・幾何、編集保護・装飾、visitor・keyframe通知として採用した。既存`KisImageTypesContractTest.cpp`は4,104行の総合翻訳単位であるため追記せず、新規`libs/image/tests/KisPaintLayerSchemaContractTest.cpp`の5枠へ分離する。近傍`KisLayerPropertiesIconsSchemaContractTest`と同じQt Core・Gui・Test・Xml、header-only Boost、既存探索路と定義だけで4工程・8入力を予測し、停止線を5工程・11入力とする。paint layerと3基底、image・node・paint device、色空間、visitor、undo、keyframe、Qt値を実体化せず、全本文とmetaobjectを実行しない。
+  mask・raster keyframe channel・image config・transform maskは複数責務または既固定領域、transactionは主要挙動がinline本文、layer style serializer・paintop preset・色空間registryはI/O・resource・大域状態を横断するため棄却した。
+- flake領域は`libs/flake/KoShape.h`から文書内の名前・識別子・link、追加属性、内容・幾何保護、印刷・選択・可視、再帰編集可否・準備待ちの残存24 APIを採用した。既存`KoShapeEnumContractTest.cpp`は508行・33枠であるため追記せず、新規`libs/flake/tests/KoShapeStateSchemaContractTest.cpp`の5枠へ分離する。既存shape契約と同じQt Core・Gui・Test・Xml、既存探索路と`kritaflake_EXPORTS`だけで4工程・8入力を予測し、停止線を5工程・11入力とする。shape、派生shape、Qt値と属性値を実体化せず、状態保存、再帰探索、準備待ち本文を実行しない。
+  font・CSS・gamut mask・SVG symbolはresource探索路、SVG parserは製品と`kritatestsdk`、tool群は大域action・入力・選択・描画、SVG text shapeは上限超過と複数責務のため棄却した。clone・handle・anchor・user data・tool delegate・snapは別責務として残す。
+- widgets領域は`libs/widgets/kis_color_button.h`の残存全16 APIと`KoColorPopupAction.h`の残存全9 APIを、現在色を選択・表示・通知するUI入口として採用した。既存`KisVisualColorModelSchemaContractTest.cpp`は323行・20枠であるため追記せず、新規`libs/widgets/tests/KisColorSelectionControlSchemaContractTest.cpp`の5枠へ分離する。近傍と同じQt Core・Gui・Test、Qt Widgetsのinterface探索路、既存widgets・pigment探索路と定義だけで4工程・8入力を予測し、停止線を5工程・11入力とする。button、action、Qt基底・値、色とprivate実装を実体化せず、dialog、palette、色設定、icon、寸法、描画、入力、通知配送本文を実行しない。
+  XML GUI候補はconfig探索路、gradient編集は公開面の生成UI依存、tag選択はresource UIと製品試験、zoomは製品OBJECT、libkis候補はapplication・image・view・resource寿命を横断するため棄却した。
+- 中央の`public-api-missing-g192.json`で3集合の83 APIを照合した。開始header、試験source、所有CMake、生成物は3領域で相互に異なる。各専用targetが4工程・8入力に収まり、許可path外変更、探索路・link・compile定義の追加、公開header・製品source変更、候補headerのAUTOMOC入力化、製品shared・OBJECT・`kritatestsdk`接続、指定外実体化・本文実行、5工程・11入力超過、製品計画集合の変化が不要な場合だけ実装へ進める。
 
 ### 第191便の先行監査担当票
 
