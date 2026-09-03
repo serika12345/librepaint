@@ -1,8 +1,13 @@
 /* SPDX-FileCopyrightText: 2026 LibrePaint contributors
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include <CloneLayer.h>
 #include <ColorizeMask.h>
+#include <FileLayer.h>
+#include <FillLayer.h>
+#include <FilterLayer.h>
 #include <FilterMask.h>
+#include <GroupLayer.h>
 #include <QTest>
 #include <SelectionMask.h>
 #include <TransformMask.h>
@@ -31,6 +36,11 @@ private Q_SLOTS:
     void transparencyMaskTypeAndSelectionSchemaRemainStable();
     void selectionMaskTypeAndSelectionSchemaRemainStable();
     void filterMaskTypeAndFilterSchemaRemainStable();
+    void fileLayerTypeAndFileSchemaRemainStable();
+    void fillLayerTypeAndGeneratorSchemaRemainStable();
+    void filterLayerTypeAndFilterSchemaRemainStable();
+    void cloneLayerTypeAndSourceSchemaRemainStable();
+    void groupLayerTypeAndCompositionSchemaRemainStable();
 };
 
 void ColorizeMaskSchemaContractTest::colorizeMaskOwnershipLifetimeAndTypeSchemaRemainsStable()
@@ -159,6 +169,102 @@ void ColorizeMaskSchemaContractTest::filterMaskTypeAndFilterSchemaRemainStable()
     ASSERT_MASK_SIGNATURE(Mask, filter, Filter * (Mask::*)());
     ASSERT_MASK_SIGNATURE(Mask, setFilter, void (Mask::*)(Filter &));
     ASSERT_MASK_SIGNATURE(Mask, type, QString (Mask::*)() const);
+}
+
+void ColorizeMaskSchemaContractTest::fileLayerTypeAndFileSchemaRemainStable()
+{
+    using Layer = FileLayer;
+
+    static_assert(std::is_class_v<Layer>);
+    static_assert(std::is_base_of_v<Node, Layer>);
+    static_assert(std::is_constructible_v<Layer, KisFileLayerSP>);
+    static_assert(std::is_constructible_v<Layer, KisFileLayerSP, QObject *>);
+    static_assert(std::is_constructible_v<Layer, KisImageSP>);
+    static_assert(std::is_constructible_v<Layer, KisImageSP, QString>);
+    static_assert(std::is_constructible_v<Layer, KisImageSP, QString, QString>);
+    static_assert(std::is_constructible_v<Layer, KisImageSP, QString, QString, QString>);
+    static_assert(std::is_constructible_v<Layer, KisImageSP, QString, QString, QString, QString>);
+    static_assert(std::is_constructible_v<Layer, KisImageSP, QString, QString, QString, QString, QString>);
+    static_assert(std::is_constructible_v<Layer, KisImageSP, QString, QString, QString, QString, QString, QObject *>);
+    static_assert(std::has_virtual_destructor_v<Layer>);
+    ASSERT_MASK_SIGNATURE(Layer, path, QString (Layer::*)() const);
+    ASSERT_MASK_SIGNATURE(Layer, resetCache, void (Layer::*)());
+    ASSERT_MASK_SIGNATURE(Layer, scalingFilter, QString (Layer::*)() const);
+    ASSERT_MASK_SIGNATURE(Layer, scalingMethod, QString (Layer::*)() const);
+    ASSERT_MASK_SIGNATURE(Layer, setProperties, void (Layer::*)(QString, QString, QString));
+    ASSERT_MASK_SIGNATURE(Layer, type, QString (Layer::*)() const);
+
+    using SetPropertiesWithDefaults = decltype(std::declval<Layer &>().setProperties(std::declval<QString>()));
+    using SetPropertiesWithDefaultFilter =
+        decltype(std::declval<Layer &>().setProperties(std::declval<QString>(), std::declval<QString>()));
+    static_assert(std::is_same_v<SetPropertiesWithDefaults, void>);
+    static_assert(std::is_same_v<SetPropertiesWithDefaultFilter, void>);
+}
+
+void ColorizeMaskSchemaContractTest::fillLayerTypeAndGeneratorSchemaRemainStable()
+{
+    using Layer = FillLayer;
+
+    static_assert(std::is_class_v<Layer>);
+    static_assert(std::is_base_of_v<Node, Layer>);
+    static_assert(std::is_constructible_v<Layer, KisGeneratorLayerSP>);
+    static_assert(std::is_constructible_v<Layer, KisGeneratorLayerSP, QObject *>);
+    static_assert(std::is_constructible_v<Layer, KisImageSP, QString, KisFilterConfigurationSP, Selection &>);
+    static_assert(
+        std::is_constructible_v<Layer, KisImageSP, QString, KisFilterConfigurationSP, Selection &, QObject *>);
+    static_assert(std::has_virtual_destructor_v<Layer>);
+    ASSERT_MASK_SIGNATURE(Layer, filterConfig, InfoObject * (Layer::*)());
+    ASSERT_MASK_SIGNATURE(Layer, generatorName, QString (Layer::*)());
+    ASSERT_MASK_SIGNATURE(Layer, setGenerator, bool (Layer::*)(const QString &, InfoObject *));
+    ASSERT_MASK_SIGNATURE(Layer, type, QString (Layer::*)() const);
+}
+
+void ColorizeMaskSchemaContractTest::filterLayerTypeAndFilterSchemaRemainStable()
+{
+    using Layer = FilterLayer;
+
+    static_assert(std::is_class_v<Layer>);
+    static_assert(std::is_base_of_v<Node, Layer>);
+    static_assert(std::is_constructible_v<Layer, KisAdjustmentLayerSP>);
+    static_assert(std::is_constructible_v<Layer, KisAdjustmentLayerSP, QObject *>);
+    static_assert(std::is_constructible_v<Layer, KisImageSP, QString, Filter &, Selection &>);
+    static_assert(std::is_constructible_v<Layer, KisImageSP, QString, Filter &, Selection &, QObject *>);
+    static_assert(std::has_virtual_destructor_v<Layer>);
+    ASSERT_MASK_SIGNATURE(Layer, filter, Filter * (Layer::*)());
+    ASSERT_MASK_SIGNATURE(Layer, setFilter, void (Layer::*)(Filter &));
+    ASSERT_MASK_SIGNATURE(Layer, type, QString (Layer::*)() const);
+}
+
+void ColorizeMaskSchemaContractTest::cloneLayerTypeAndSourceSchemaRemainStable()
+{
+    using Layer = CloneLayer;
+
+    static_assert(std::is_class_v<Layer>);
+    static_assert(std::is_base_of_v<Node, Layer>);
+    static_assert(std::is_constructible_v<Layer, KisCloneLayerSP>);
+    static_assert(std::is_constructible_v<Layer, KisCloneLayerSP, QObject *>);
+    static_assert(std::is_constructible_v<Layer, KisImageSP, QString, KisLayerSP>);
+    static_assert(std::is_constructible_v<Layer, KisImageSP, QString, KisLayerSP, QObject *>);
+    static_assert(std::has_virtual_destructor_v<Layer>);
+    ASSERT_MASK_SIGNATURE(Layer, setSourceNode, void (Layer::*)(Node *));
+    ASSERT_MASK_SIGNATURE(Layer, sourceNode, Node * (Layer::*)() const);
+    ASSERT_MASK_SIGNATURE(Layer, type, QString (Layer::*)() const);
+}
+
+void ColorizeMaskSchemaContractTest::groupLayerTypeAndCompositionSchemaRemainStable()
+{
+    using Layer = GroupLayer;
+
+    static_assert(std::is_class_v<Layer>);
+    static_assert(std::is_base_of_v<Node, Layer>);
+    static_assert(std::is_constructible_v<Layer, KisGroupLayerSP>);
+    static_assert(std::is_constructible_v<Layer, KisGroupLayerSP, QObject *>);
+    static_assert(std::is_constructible_v<Layer, KisImageSP, QString>);
+    static_assert(std::is_constructible_v<Layer, KisImageSP, QString, QObject *>);
+    static_assert(std::has_virtual_destructor_v<Layer>);
+    ASSERT_MASK_SIGNATURE(Layer, passThroughMode, bool (Layer::*)() const);
+    ASSERT_MASK_SIGNATURE(Layer, setPassThroughMode, void (Layer::*)(bool));
+    ASSERT_MASK_SIGNATURE(Layer, type, QString (Layer::*)() const);
 }
 
 QTEST_GUILESS_MAIN(ColorizeMaskSchemaContractTest)
