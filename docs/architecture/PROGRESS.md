@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-03 17:34 JST
+- 更新日時: 2026-09-03 17:45 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -21,6 +21,17 @@
 - widgets領域は`libs/widgets/KisDlgInternalColorSelector.h`の残存全23 APIを内部色選択dialogの設定・色編集接続面として採用した。型・寿命・factory 4、設定値9、色空間・renderer 3、色編集5、通知・close 2を既存`libs/widgets/tests/KisVisualColorSelectorShapeSchemaContractTest.cpp`の5枠へ対応付ける。dialog、設定値、Qt widget・文字列、色・色空間・renderer、sampler、patch、関数objectを実体化せず、構築・破棄、色変換・更新、factory代入、signal、close、既定renderer取得本文を実行しない。対象sourceで標準`<functional>`を先行includeして現在の公開headerを形成し、公開headerとCMakeは変えない。直接linkはQt Core・Test、対象4工程・8入力、停止5工程・11入力、command hash`b5499f7b2d`、input hash`894f76554d`、製品`kritawidgets` 809工程・1,647入力を維持する。
   Scratchpad・上位visual selectorはimage・flake・resource閉包または追加探索路、tag selectionとzoomは製品shared・OBJECT、palette・resource chooserは生成UI・filesystem・XML、上位libkis façadeは複数責務を横断し、単独17 APIの候補は下限未満のため棄却した。
 - 中央の`public-api-missing-g189.json`で通常mask生成器22件、shape manager 47件、内部色選択dialog 23件の全識別子を照合した。3責務の開始header、試験source、所有CMake、生成物は相互に異なる。合計92 APIを15枠へ進め、許可path外変更、CMake・探索路・link・compile定義・公開headerの変更、製品OBJECT/shared・`kritatestsdk`、指定外実体化・本文実行、5工程・11入力超過、製品計画集合の変化が必要になれば停止する。
+
+### 第189便の担当計画
+
+- 実装共通基点は`c9910c0f49`である。3担当のGit権限は許可pathだけの1受渡しcommit、追加委任は禁止する。対象platformはmacOSであり、一度に一つだけ作る専用worktree-local `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。Nix再評価を行わず、担当側の`./scripts/run-shared-test-env`で主作業treeの読み込み済み開発環境を共有する。通常mask生成器、shape manager、内部色選択dialogの順に一担当ずつ実装・限定検証・統合・削除する。
+  調整担当だけがarchitecture文書、公開API台帳、共通不足報告を変更する。製品targetを引数にするplan/build、全体build、全体`verify`、Linux検証は禁止し、担当targetと近傍、公開API検査、`verify-quick`だけを実行する。
+- `g189-default-mask-schema`は`/Users/masato/Documents/librepaint-g189-default-mask-schema`を所有する。開始`libs/image/kis_circle_mask_generator.h`と`kis_rect_mask_generator.h`の残存全22 APIから既存`libs/image/tests/KisImageTypesContractTest.cpp`の5枠`defaultMaskTypeAndLifetimeSchemaRemainStable`、`defaultMaskCloneAndSamplingSignaturesRemainStable`、`defaultMaskScaleAndSoftnessSignaturesRemainStable`、`defaultMaskVectorizationSignaturesRemainStable`、`defaultMaskApplicatorSignaturesRemainStable`へ対応付ける。
+  完全集合は両generatorのclass、6引数・copy構築、破棄、clone、`valueAt`、`setScale`、`setSoftness`、`shouldVectorize`、`applicator`、`setMaskScalarApplicator`である。許可pathは既存試験sourceだけで、CMake・依存・公開header・製品sourceを変更しない。両generator、基底、private型、applicator、row processor、`KoID`を実体化せず、構築・複製・破棄、sampling、scale・softness、applicator本文を実行しない。対象4工程・8入力、停止5工程・11入力、近傍`KisSpacingInformationContractTest`、製品`kritaimage` 1,196工程・2,416入力を維持する。対象・新旧枠、CTest、20回反復、近傍、無作業再構築、動的接続・AUTOMOC入力・generator/applicator未解決記号、構文・書式、公開API・`verify-quick`を確認する。
+- `g189-shape-manager-schema`は`/Users/masato/Documents/librepaint-g189-shape-manager-schema`を所有する。開始`libs/flake/KoShapeManager.h`の残存全47 APIから既存`libs/flake/tests/KoCanvasBaseSchemaContractTest.cpp`の5枠`shapeManagerTypeLifetimeAndRepaintSchemaRemainStable`、`shapeManagerPaintJobValueSchemaRemainStable`、`shapeManagerPaintOrderingAndRenderingSignaturesRemainStable`、`shapeManagerShapeAndSelectionSignaturesRemainStable`、`shapeManagerQueryUpdateAndInterfaceSignaturesRemainStable`へ対応付ける。
+  完全集合はmanagerのclass・2構築・破棄・再描画enum、`PaintJob`の型・2 storage別名・2構築・空判定・4 member、`PaintJobsOrder`の型・2 member・clear・空判定、job準備・描画3、shape集合の設定・照会・追加・削除、selection照会・3通知、shape検索2、更新・遮断・変更通知、`ShapeInterface`型・構築・破棄通知・取得、更新転送である。許可pathは既存試験sourceだけで、CMake・依存・公開header・製品sourceを変更しない。manager、canvas、shape、selection、painter、job・順序・interface、所有storage、Qt幾何・容器を実体化せず、shape所有・複製、選択、hit test、更新圧縮、job生成・描画、signal、破棄通知本文を実行しない。対象4工程・8入力、停止5工程・11入力、近傍`KoShapeReorderCommandSchemaContractTest`、製品`kritaflake` 621工程・1,274入力を維持し、通常mask担当の統合・削除後に開始する。同じ限定検証とmanager/shape/selection/painter/job未解決記号を確認する。
+- `g189-internal-color-selector-schema`は`/Users/masato/Documents/librepaint-g189-internal-color-selector-schema`を所有する。開始`libs/widgets/KisDlgInternalColorSelector.h`の残存全23 APIから既存`libs/widgets/tests/KisVisualColorSelectorShapeSchemaContractTest.cpp`の5枠`internalColorSelectorTypeLifetimeAndFactorySchemaRemainStable`、`internalColorSelectorConfigSchemaRemainStable`、`internalColorSelectorColorSpaceAndRendererSignaturesRemainStable`、`internalColorSelectorColorEditingSignaturesRemainStable`、`internalColorSelectorNotificationAndCloseSignaturesRemainStable`へ対応付ける。
+  完全集合はdialog class・構築・破棄・sampler factory、`Config`型・構築・7 bool member、色空間変更・固定・renderer設定、現在色・alpha選択・前色・色更新・patch色、前景色通知・rejectである。許可pathは既存試験sourceだけで、標準`<functional>`を対象headerより先にincludeする。CMake・依存・公開header・製品sourceを変更しない。dialog、設定値、Qt widget・文字列、色・色空間・renderer、sampler、patch、関数objectを実体化せず、構築・破棄、色変換・更新、factory代入、signal、close、既定renderer取得本文を実行しない。対象4工程・8入力、停止5工程・11入力、近傍`KisVisualColorModelSchemaContractTest`、製品`kritawidgets` 809工程・1,647入力を維持し、shape manager担当の統合・削除後に開始する。同じ限定検証とdialog/color/renderer/sampler/patch未解決記号を確認する。
 
 ### 第188便の先行監査計画
 
