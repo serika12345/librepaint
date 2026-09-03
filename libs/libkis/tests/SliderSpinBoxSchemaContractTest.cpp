@@ -20,10 +20,83 @@ private Q_SLOTS:
     void sliderSpinBoxSoftRangeAndStepSignaturesRemainStable();
     void sliderSpinBoxValueAndScalingSignaturesRemainStable();
     void sliderSpinBoxDraggingPolicySignaturesRemainStable();
+    void parseSpinBoxTypeAndLifetimeSchemaRemainStable();
+    void parseSpinBoxWidgetAndSteppingSignaturesRemainStable();
+    void parseSpinBoxValueAndValidationSignaturesRemainStable();
+    void parseSpinBoxExpressionTextSignaturesRemainStable();
+    void parseSpinBoxParsingNotificationSignaturesRemainStable();
 };
 
 #define ASSERT_SLIDER_SPINBOX_SIGNATURE(type, method, signature)                                                       \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&type::method)), signature>)
+
+void SliderSpinBoxSchemaContractTest::parseSpinBoxTypeAndLifetimeSchemaRemainStable()
+{
+    static_assert(std::is_class_v<IntParseSpinBox>);
+    static_assert(std::is_base_of_v<QObject, IntParseSpinBox>);
+    static_assert(std::is_default_constructible_v<IntParseSpinBox>);
+    static_assert(!std::is_copy_constructible_v<IntParseSpinBox>);
+    static_assert(!std::is_copy_assignable_v<IntParseSpinBox>);
+    static_assert(std::has_virtual_destructor_v<IntParseSpinBox>);
+
+    static_assert(std::is_class_v<DoubleParseSpinBox>);
+    static_assert(std::is_base_of_v<QObject, DoubleParseSpinBox>);
+    static_assert(std::is_default_constructible_v<DoubleParseSpinBox>);
+    static_assert(!std::is_copy_constructible_v<DoubleParseSpinBox>);
+    static_assert(!std::is_copy_assignable_v<DoubleParseSpinBox>);
+    static_assert(std::has_virtual_destructor_v<DoubleParseSpinBox>);
+}
+
+void SliderSpinBoxSchemaContractTest::parseSpinBoxWidgetAndSteppingSignaturesRemainStable()
+{
+    using IntegerWidgetGetter = QSpinBox *(IntParseSpinBox::*)() const;
+    using IntegerStep = void (IntParseSpinBox::*)(int);
+    using RealWidgetGetter = QDoubleSpinBox *(DoubleParseSpinBox::*)() const;
+    using RealStep = void (DoubleParseSpinBox::*)(int);
+
+    ASSERT_SLIDER_SPINBOX_SIGNATURE(IntParseSpinBox, widget, IntegerWidgetGetter);
+    ASSERT_SLIDER_SPINBOX_SIGNATURE(IntParseSpinBox, stepBy, IntegerStep);
+    ASSERT_SLIDER_SPINBOX_SIGNATURE(DoubleParseSpinBox, widget, RealWidgetGetter);
+    ASSERT_SLIDER_SPINBOX_SIGNATURE(DoubleParseSpinBox, stepBy, RealStep);
+}
+
+void SliderSpinBoxSchemaContractTest::parseSpinBoxValueAndValidationSignaturesRemainStable()
+{
+    using IntegerValueSetter = void (IntParseSpinBox::*)(int, bool);
+    using IntegerValidityGetter = bool (IntParseSpinBox::*)() const;
+    using RealValueSetter = void (DoubleParseSpinBox::*)(double, bool);
+    using RealValidityGetter = bool (DoubleParseSpinBox::*)() const;
+
+    ASSERT_SLIDER_SPINBOX_SIGNATURE(IntParseSpinBox, setValue, IntegerValueSetter);
+    ASSERT_SLIDER_SPINBOX_SIGNATURE(IntParseSpinBox, isLastValid, IntegerValidityGetter);
+    ASSERT_SLIDER_SPINBOX_SIGNATURE(DoubleParseSpinBox, setValue, RealValueSetter);
+    ASSERT_SLIDER_SPINBOX_SIGNATURE(DoubleParseSpinBox, isLastValid, RealValidityGetter);
+
+    static_assert(std::is_same_v<decltype(std::declval<IntParseSpinBox &>().setValue(0)), void>);
+    static_assert(std::is_same_v<decltype(std::declval<DoubleParseSpinBox &>().setValue(0.0)), void>);
+}
+
+void SliderSpinBoxSchemaContractTest::parseSpinBoxExpressionTextSignaturesRemainStable()
+{
+    using IntegerTextGetter = QString (IntParseSpinBox::*)() const;
+    using RealTextGetter = QString (DoubleParseSpinBox::*)() const;
+
+    ASSERT_SLIDER_SPINBOX_SIGNATURE(IntParseSpinBox, veryCleanText, IntegerTextGetter);
+    ASSERT_SLIDER_SPINBOX_SIGNATURE(DoubleParseSpinBox, veryCleanText, RealTextGetter);
+}
+
+void SliderSpinBoxSchemaContractTest::parseSpinBoxParsingNotificationSignaturesRemainStable()
+{
+    using IntegerParsingErrorSignal = void (IntParseSpinBox::*)(const QString &) const;
+    using IntegerParsingRecoveredSignal = void (IntParseSpinBox::*)() const;
+    using RealParsingErrorSignal = void (DoubleParseSpinBox::*)(const QString &) const;
+    using RealParsingRecoveredSignal = void (DoubleParseSpinBox::*)() const;
+
+    ASSERT_SLIDER_SPINBOX_SIGNATURE(IntParseSpinBox, errorWhileParsing, IntegerParsingErrorSignal);
+    ASSERT_SLIDER_SPINBOX_SIGNATURE(IntParseSpinBox, noMoreParsingError, IntegerParsingRecoveredSignal);
+    ASSERT_SLIDER_SPINBOX_SIGNATURE(DoubleParseSpinBox, errorWhileParsing, RealParsingErrorSignal);
+    ASSERT_SLIDER_SPINBOX_SIGNATURE(DoubleParseSpinBox, noMoreParsingError, RealParsingRecoveredSignal);
+}
 
 void SliderSpinBoxSchemaContractTest::sliderSpinBoxTypeLifetimeAndViewSchemaRemainStable()
 {
