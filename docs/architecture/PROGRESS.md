@@ -2,12 +2,18 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-03 10:35 JST
+- 更新日時: 2026-09-03 11:12 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
+
+### 第181便の先行監査計画
+
+- 監査共通基点は`4ea9ada806`、入力は`build/tdd-macos/public-api-missing-g181.json`である。3担当は`auditing`の読み取り専用とし、製品・試験・CMake・script・台帳・文書を変更せず、構成、構築、試験、Git操作、追加委任も行わない。一つの公開責務から20〜80 APIを最大5枠へ固定し、既存限定対象またはheader限定の4〜10工程程度の対象で、製品共有libraryと`kritatestsdk`へ接続しない候補だけを採用する。製品targetを引数にする`build-incremental ... plan`と製品buildは実行せず、既存Ninja木のquery・commands・inputsだけを読み取る。
+- image・paintop・pigment領域は第180便のmemory statisticsを、flake・SVG・vector領域はSVG savingを、widgetutils・widgets・libkis領域は整数・倍精度数値解析spin boxを除外して一責務ずつ比較する。
+- 各監査は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、予測工程・入力と停止線、開始pathから契約先、許可path、固有停止条件、比較候補の棄却根拠を揃える。3領域のpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
 
 ### 第180便の先行監査計画
 
@@ -32,6 +38,17 @@
   完全集合は2 class、saving contextの単一・二重device構築と既定inline image引数・破棄、writerのshape・layer各list構築・破棄、style・shape writer照会、user space transform、inline image・stripped text mode照会設定、UID・ID・file name生成、image保存、device・file保存、2種類のdetached保存、文書title・description設定である。許可pathは既存試験sourceだけで、CMake・依存・公開header・製品sourceを変更しない。context、writer、device、shape、layer、imageを実体化せず、構築・破棄、識別子生成、画像・文書保存、mode・metadata変更本文を実行しない。対象4工程・8入力、停止5工程・11入力、近傍`KoShapeLoadingContextSchemaContractTest`、製品`kritaflake` 621工程・1,274入力を維持し、memory statistics担当の統合・削除後に開始する。同じ限定検証とcontext/writer/device/shape/image未解決記号を確認する。
 - `g180-parse-spinbox-schema`は`/Users/masato/Documents/librepaint-g180-parse-spinbox-schema`を所有する。開始`libs/libkis/IntParseSpinBox.h`と`libs/libkis/DoubleParseSpinBox.h`の残存各10 APIから既存`libs/libkis/tests/SliderSpinBoxSchemaContractTest.cpp`の5枠`parseSpinBoxTypeAndLifetimeSchemaRemainStable`、`parseSpinBoxWidgetAndSteppingSignaturesRemainStable`、`parseSpinBoxValueAndValidationSignaturesRemainStable`、`parseSpinBoxExpressionTextSignaturesRemainStable`、`parseSpinBoxParsingNotificationSignaturesRemainStable`へ対応付ける。
   完全集合は2 class・親既定引数付き構築・破棄、両型の`widget`・`stepBy`、通知既定引数付き`setValue`・`isLastValid`・`veryCleanText`・`errorWhileParsing`・`noMoreParsingError`である。許可pathは既存試験sourceだけで、CMake・依存・公開header・製品sourceを変更しない。spin boxとWidgetを実体化せず、構築・破棄、値設定、step、文字列整形、妥当性確認、通知本文を実行しない。対象4工程・8入力、停止5工程・11入力、近傍`AngleSelectorSchemaContractTest`、製品`kritalibkis` 2,018工程・4,034入力を維持し、SVG saving担当の統合・削除後に開始する。同じ限定検証とspin box/Widget/value/parser/signal未解決記号を確認する。
+
+### 第180便の統合結果
+
+- `g180-memory-statistics-schema`は開始`libs/image/kis_memory_statistics_server.h`から既存`libs/image/tests/KisImageTypesContractTest.cpp`の5枠へ、server型・寿命、画像・集計既定値、swap・limit既定値、統計収集、更新通知の残存全23 APIを対応付けた。値型`Statistics`だけを実体化して全13 fieldの既定値0を確認し、server、image、QObject、大域singletonを実体化せず、収集・更新・通知本文を実行しない4工程・8入力に保った。
+  受渡しcommit`8568d3ba12`を統合commit`bd39b2bf84`として取り込み、担当と中央の新旧枠、対象・近傍CTest、20回反復、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式に成功した。台帳commit`c55130cccd`で17,769件対応、12,069件未対応となった。singleton取得、画像別集計、待機更新、signal配送の実行時結果は別契約で扱う。
+- `g180-svg-saving-schema`は開始`libs/flake/svg/SvgSavingContext.h`と`libs/flake/svg/SvgWriter.h`から既存`libs/flake/tests/KoShapeSavingContextSchemaContractTest.cpp`の5枠へ、型・寿命・構築、writer・transform・mode、識別子・外部asset、出力、文書metadataの残存全24 APIを対応付けた。context、writer、device、shape、layer、imageを実体化せず、構築・破棄、識別子・画像・文書保存、mode・metadata変更本文を実行しない4工程・8入力に保った。
+  受渡しcommit`aebe1ef10a`を統合commit`d8e6cc7638`として取り込み、担当と中央の新旧枠、対象・近傍CTest、20回反復、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式に成功した。製品`kritaflake`は621工程・1,274入力で不変であり、台帳commit`21679e3969`で17,793件対応、12,045件未対応となった。識別子・外部asset生成、保存結果、mode・metadata変更の実行時結果は別契約で扱う。
+- `g180-parse-spinbox-schema`は開始`libs/libkis/IntParseSpinBox.h`と`libs/libkis/DoubleParseSpinBox.h`から既存`libs/libkis/tests/SliderSpinBoxSchemaContractTest.cpp`の5枠へ、型・寿命、Widget・step、値・妥当性、式文字列、解析通知の残存全20 APIを対応付けた。spin boxとWidgetを実体化せず、構築・破棄、値設定、step、文字列整形、妥当性確認、通知本文を実行しない4工程・8入力に保った。
+  受渡しcommit`8bd783fd3e`を統合commit`b0a8f2e758`として取り込み、担当と中央の新旧枠、対象・近傍CTest、20回反復、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式に成功した。担当専用treeに旧binaryがなかったため新枠の事前Unknown診断は取得せず、乾式計画で未存在を確認した。製品`kritalibkis`は2,018工程・4,034入力で不変であり、台帳commit`4ea9ada806`で17,813件対応、12,025件未対応となった。値変化、式解析、Widget操作、signal配送の実行時結果は別契約で扱う。
+- 第180便全体で67 APIを15枠へ重複なく対応付けた。一度に一つの担当だけを実装・構成・構築・統合し、製品target、全体build、全体`verify`、Linux、Nix再評価は実行していない。対象・近傍CTest、各20回反復、無作業再構築、公開API検査と`verify-quick`は成功した。
+  3担当のcleanな作業tree、担当build木、担当branchを統合直後に削除し、2,607,592 KiB（約2.49 GiB）の担当領域を回収した。旧不足報告`public-api-missing-g180.json`をごみ箱へ移し、主Ninja木5,640,732 KiB、共有compiler cache 983,108 KiB、最新不足報告`build/tdd-macos/public-api-missing-g181.json` 3,149,033 bytesだけを再利用対象として保持する。次の永続作業は第181便の不足報告から、既存限定対象を優先して3責務を先行監査することである。
 
 ### 第179便の先行監査計画
 
