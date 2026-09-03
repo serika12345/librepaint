@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-03 10:24 JST
+- 更新日時: 2026-09-03 10:32 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -14,6 +14,13 @@
 - 監査共通基点は`85b1da0945`、入力は`build/tdd-macos/public-api-missing-g180.json`である。3担当は`auditing`の読み取り専用とし、製品・試験・CMake・script・台帳・文書を変更せず、構成、構築、試験、Git操作、追加委任も行わない。一つの公開責務から20〜80 APIを最大5枠へ固定し、既存限定対象またはheader限定の4〜10工程程度の対象で、製品共有libraryと`kritatestsdk`へ接続しない候補だけを採用する。製品targetを引数にする`build-incremental ... plan`と製品buildは実行せず、既存Ninja木のquery・commands・inputsだけを読み取る。
 - image・paintop・pigment領域は第179便のslider paint operation propertyを、flake・SVG・vector領域はcanvas controllerを、widgetutils・widgets・libkis領域は管理色・swatchを除外して一責務ずつ比較する。
 - 各監査は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、予測工程・入力と停止線、開始pathから契約先、許可path、固有停止条件、比較候補の棄却根拠を揃える。3領域のpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
+- image領域は`libs/image/kis_memory_statistics_server.h`の残存全23 APIを採用した。server型・寿命3、統計値型と画像・集計既定値10、swap・limit既定値5、統計収集2、更新通知3を既存`libs/image/tests/KisImageTypesContractTest.cpp`の5枠へ対応付ける。server、image、QObject、大域singletonを実体化せず、値型`Statistics`の全既定値が0であることと型・member signatureだけを観測する。CMakeと依存を変えず、直接linkはQt Core・Gui・Test・XmlとBoost、対象4工程・8入力、停止5工程・11入力、command hash`860901e6be`、input hash`42c0bdca62`、製品`kritaimage` 1,196工程・2,416入力を維持する。
+  indirect painting support、brush mask applicator、plugin brush settings、paintop factory、math toolbox、filter configuration、paintop presetはlocker・painter・merge・thread・Widget・resource・XMLへ責務が広がり、color space registryとcomposite operation群は件数と閉包が過大なため棄却した。
+- flake・SVG領域は`libs/flake/svg/SvgSavingContext.h`の残存全14 APIと`libs/flake/svg/SvgWriter.h`の残存全10 APIをSVG保存境界として採用した。型・寿命・構築8、writer・transform・mode 6、識別子・外部asset 4、出力4、文書metadata 2を既存`libs/flake/tests/KoShapeSavingContextSchemaContractTest.cpp`の5枠へ対応付ける。保存context、writer、device、shape、imageを実体化せず、構築、保存、画像書出し、識別子生成、metadata設定本文を実行しない。CMakeと依存を変えず、直接linkはQt Core・Test、対象4工程・8入力、停止5工程・11入力、command hash`c4d66a8e3c`、input hash`fece3acc6f`、製品`kritaflake` 621工程・1,274入力を維持する。
+  SVG loading contextはGui・Xml・CSS・profileへ閉包が広がり、style writer、clip mask・path、SVG utility・style parserは別の表示・解析責務を加え、manager・resource群は大域状態へ接続するため棄却した。
+- libkis領域は`libs/libkis/IntParseSpinBox.h`と`libs/libkis/DoubleParseSpinBox.h`の残存各10 APIを数値式解析Widget境界として採用した。2型の型・寿命6、Widget・step 4、値・妥当性4、整形文字列2、解析通知4を既存`libs/libkis/tests/SliderSpinBoxSchemaContractTest.cpp`の5枠へ対応付ける。spin boxとWidgetを実体化せず、値設定、step、文字列整形、妥当性確認、通知本文を実行しない。CMakeと依存を変えず、直接linkはQt Test・Widgets、対象4工程・8入力、停止5工程・11入力、command hash`52edb69a5e`、input hash`eacbda7692`、製品`kritalibkis` 2,018工程・4,034入力を維持する。
+  基底sliderとmultiplierは責務とheader閉包が増え、progress updaterの動的対象、tag widgetの製品library、visual selectorの描画閉包、Window・Notifier・Document・Node・Krita・Scratchpadのapplication・文書状態は限定対象から外れるため棄却した。
+- 中央の`public-api-missing-g180.json`でmemory statistics 23件、SVG saving 24件、整数・倍精度数値解析spin box 20件の全識別子を照合した。3責務の開始header、試験source、所有CMake、生成物は相互に異なる。合計67 APIを15枠へ進め、許可path外変更、新規CMake・include・link、製品OBJECT/shared・`kritatestsdk`、指定外実体化・本文実行、5工程・11入力超過、製品計画集合の変化が必要になれば停止する。
 
 ### 第179便の先行監査計画
 
