@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 10997
+    "expectedMissingApis": 10944
   },
   "contracts": [
     {
@@ -52975,6 +52975,104 @@
       "apis": [
         "method:KisKEditToolBar::newToolBarConfig()",
         "method:KisKEditToolBar::newToolbarConfig()"
+      ]
+    },
+    {
+      "target": "KisPaintLayerSchemaContractTest",
+      "source": "libs/image/tests/KisPaintLayerSchemaContractTest.cpp",
+      "test": "KisPaintLayerSchemaContractTest::layerTypeAndConstructionSchemaRemainStable",
+      "behavior": "画像階層の基底layerは投影面の共有所有別名を持ち、画像・名前・不透明度からの構築と複製構築が可能な抽象nodeとして仮想寿命を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisLayerProjectionPlaneSP",
+        "class:KisLayer",
+        "method:KisLayer::KisLayer(KisImageWSP image,const QString & name,quint8 opacity)",
+        "method:KisLayer::KisLayer(const KisLayer & rhs)",
+        "method:KisLayer::~KisLayer()"
+      ]
+    },
+    {
+      "target": "KisPaintLayerSchemaContractTest",
+      "source": "libs/image/tests/KisPaintLayerSchemaContractTest.cpp",
+      "test": "KisPaintLayerSchemaContractTest::layerProjectionSelectionAndMetadataSignaturesRemainStable",
+      "behavior": "基底layerは色空間・合成方式・style、投影面・描画装置、選択mask・選択、metadataの取得とstyle設定に関する公開所有・参照署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisLayer::colorSpace() const",
+        "method:KisLayer::compositeOp() const",
+        "method:KisLayer::internalProjectionPlane() const",
+        "method:KisLayer::layerStyle() const",
+        "method:KisLayer::metaData()",
+        "method:KisLayer::needProjection() const",
+        "method:KisLayer::original() const",
+        "method:KisLayer::projection() const",
+        "method:KisLayer::projectionPlane() const",
+        "method:KisLayer::selection() const",
+        "method:KisLayer::selectionMask() const",
+        "method:KisLayer::setLayerStyle(KisPSDLayerStyleSP layerStyle)"
+      ]
+    },
+    {
+      "target": "KisPaintLayerSchemaContractTest",
+      "source": "libs/image/tests/KisPaintLayerSchemaContractTest.cpp",
+      "test": "KisPaintLayerSchemaContractTest::layerStateGeometryAndPresentationSignaturesRemainStable",
+      "behavior": "基底layerはsection表示、channel・一時状態、所属画像、座標・境界、thumbnail、利用者可視境界を取得・更新する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisLayer::alphaChannelDisabled() const",
+        "method:KisLayer::channelFlags() const",
+        "method:KisLayer::createThumbnail(qint32 w,qint32 h,Qt::AspectRatioMode aspectRatioMode,KisThumbnailBoundsMode boundsMode)",
+        "method:KisLayer::createThumbnailForFrame(qint32 w,qint32 h,int time,Qt::AspectRatioMode aspectRatioMode,KisThumbnailBoundsMode boundsMode)",
+        "method:KisLayer::disableAlphaChannel(bool disable)",
+        "method:KisLayer::exactBounds() const",
+        "method:KisLayer::extent() const",
+        "method:KisLayer::looseUserVisibleBounds() const",
+        "method:KisLayer::sectionModelProperties() const",
+        "method:KisLayer::setChannelFlags(const QBitArray & channelFlags)",
+        "method:KisLayer::setImage(KisImageWSP image)",
+        "method:KisLayer::setSectionModelProperties(const KisBaseNode::PropertyList & properties)",
+        "method:KisLayer::setTemporary(bool t)",
+        "method:KisLayer::setX(qint32 x)",
+        "method:KisLayer::setY(qint32 y)",
+        "method:KisLayer::temporary() const",
+        "method:KisLayer::thumbnailSeqNo() const",
+        "method:KisLayer::tightUserVisibleBounds() const",
+        "method:KisLayer::x() const",
+        "method:KisLayer::y() const"
+      ]
+    },
+    {
+      "target": "KisPaintLayerSchemaContractTest",
+      "source": "libs/image/tests/KisPaintLayerSchemaContractTest.cpp",
+      "test": "KisPaintLayerSchemaContractTest::layerCompositionAndEffectSignaturesRemainStable",
+      "behavior": "基底layerは部分投影、内部merge、effect mask探索、色overlay、親layer、子mask変更を扱い、既定では自身も描画する公開合成署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisLayer::buildProjectionUpToNode(KisPaintDeviceSP projection,KisNodeSP lastNode,const QRect & rect)",
+        "method:KisLayer::colorOverlayMask() const",
+        "method:KisLayer::createMergedLayerTemplate(KisLayerSP prevLayer)",
+        "method:KisLayer::effectMasks() const",
+        "method:KisLayer::effectMasks(KisNodeSP lastNode) const",
+        "method:KisLayer::fillMergedLayerTemplate(KisLayerSP dstLayer,KisLayerSP prevLayer,bool skipPaintingThisLayer=false)",
+        "method:KisLayer::hasEffectMasks() const",
+        "method:KisLayer::notifyChildMaskChanged()",
+        "method:KisLayer::parentLayer() const",
+        "method:KisLayer::partialChangeRect(KisNodeSP lastNode,const QRect & rect)",
+        "method:KisLayer::tryCreateInternallyMergedLayerFromMutipleLayers(QList<KisLayerSP> layers)"
+      ]
+    },
+    {
+      "target": "KisPaintLayerSchemaContractTest",
+      "source": "libs/image/tests/KisPaintLayerSchemaContractTest.cpp",
+      "test": "KisPaintLayerSchemaContractTest::layerCloneTrackingSignaturesRemainStable",
+      "behavior": "基底layerはclone layerの弱参照を登録・解除・列挙し、存在確認と矩形更新通知を行う公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisLayer::hasClones() const",
+        "method:KisLayer::registerClone(KisCloneLayerWSP clone)",
+        "method:KisLayer::registeredClones() const",
+        "method:KisLayer::unregisterClone(KisCloneLayerWSP clone)",
+        "method:KisLayer::updateClones(const QRect & rect,bool dontInvalidateFrames)"
       ]
     }
   ]
