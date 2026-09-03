@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-03 18:29 JST
+- 更新日時: 2026-09-03 18:32 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -26,6 +26,17 @@
 - widgets領域は`libs/widgets/KisHsvColorSlider.h`の残存全15 APIと`KisSpinboxHSXSelector.h`の残存全7 APIをHSX色channel入力部品として採用した。slider型・mix mode 7、構築・寿命3、色・混合5、spinbox型・寿命・model 4、通知3を既存`libs/widgets/tests/KisVisualColorModelSchemaContractTest.cpp`の5枠へ対応付ける。slider、spinbox、基底Widget、色、renderer、色modelと共有pointer、channel vectorを実体化せず、構築・破棄、既定renderer取得、補間・色変換、model接続、signal・slot本文を実行しない。CMakeと探索路を変えず、直接linkはQt Core・Gui・Test、対象4工程・8入力、停止5工程・11入力、command hash`fc4e6d32a4`、input hash`7469bfffc3`、製品`kritawidgets` 809工程・1,647入力を維持する。
   gradient stop編集とpalette群は生成UIから現対象外のwidgetutils探索路、tag selectionは製品sharedと`kritatestsdk`、unit・angle入力は複数責務、zoomは5工程・12入力と製品OBJECT、Scratchpad・上位selector・libkis façadeはimage・view・resource・application寿命を横断するため棄却した。
 - 中央の`public-api-missing-g190.json`でcurve mask生成器25件、shape controller 23件、HSX色入力22件の全識別子を照合した。3責務の開始header、試験source、所有CMake、生成物は相互に異なる。合計70 APIを15枠へ進め、許可path外変更、CMake・探索路・link・compile定義・公開headerの変更、製品OBJECT/shared・`kritatestsdk`、指定外実体化・本文実行、5工程・11入力超過、製品計画集合の変化が必要になれば停止する。
+
+### 第190便の担当計画
+
+- 実装共通基点は`078dd4ae90`である。3担当のGit権限は許可pathだけの1受渡しcommit、追加委任は禁止する。対象platformはmacOSであり、一度に一つだけ作る専用worktree-local `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。Nix再評価を行わず、担当側の`./scripts/run-shared-test-env`で主作業treeの読み込み済み開発環境を共有する。curve mask生成器、shape controller、HSX色入力の順に一担当ずつ実装・限定検証・統合・削除する。
+  調整担当だけがarchitecture文書、公開API台帳、共通不足報告を変更する。製品targetを引数にするplan/build、全体build、全体`verify`、Linux検証は禁止し、担当targetと近傍、公開API検査、`verify-quick`だけを実行する。
+- `g190-curve-mask-schema`は`/Users/masato/Documents/librepaint-g190-curve-mask-schema`を所有する。開始`libs/image/kis_curve_circle_mask_generator.h`と`kis_curve_rect_mask_generator.h`の残存全25 APIから既存`libs/image/tests/KisImageTypesContractTest.cpp`の5枠`curveMaskTypeAndLifetimeSchemaRemainStable`、`curveMaskCloneAndSamplingSignaturesRemainStable`、`curveMaskScaleAndSoftnessSignaturesRemainStable`、`curveMaskVectorizationAndApplicatorSignaturesRemainStable`、`curveMaskSerializationAndTransformationSignaturesRemainStable`へ対応付ける。
+  完全集合は両generatorのclass、7引数・copy構築、破棄、clone、`valueAt`、`setScale`、`setSoftness`、`shouldVectorize`、`applicator`、`setMaskScalarApplicator`、`toXML`と円形generatorのcurve変換である。許可pathは既存試験sourceだけで、CMake・依存・公開header・製品sourceを変更しない。両generator、基底、curve・点列、private型、applicator、row processor、DOMを実体化せず、構築・複製・破棄、sampling、尺度・softness、applicator、XML、curve変換本文を実行しない。対象4工程・8入力、停止5工程・11入力、近傍`KisSpacingInformationContractTest`、製品`kritaimage` 1,196工程・2,416入力を維持する。対象・新旧枠、CTest、20回反復、近傍、無作業再構築、動的接続・AUTOMOC入力・generator/curve/applicator/DOM未解決記号、構文・書式、公開API・`verify-quick`を確認する。
+- `g190-shape-controller-schema`は`/Users/masato/Documents/librepaint-g190-shape-controller-schema`を所有する。開始`libs/flake/KoShapeControllerBase.h`と`KoShapeController.h`の残存全23 APIから既存`libs/flake/tests/KoShapeEnumContractTest.cpp`の5枠`shapeControllerBaseTypeLifetimeSchemaRemainStable`、`shapeControllerBaseDocumentInterfaceSignaturesRemainStable`、`shapeControllerTypeLifetimeAndDocumentSignaturesRemainStable`、`shapeControllerAdditionSignaturesRemainStable`、`shapeControllerRemovalSignaturesRemainStable`へ対応付ける。
+  完全集合は抽象所有者のclass・構築・破棄、親作成・文書矩形2・解像度・resource manager、具体controllerのclass・canvas/所有者構築・破棄・reset・所有者設定・文書照会5、shape追加3・削除2である。許可pathは既存試験sourceだけで、CMake・依存・公開header・製品sourceを変更しない。controller・抽象所有者・probe、canvas、shape・container、resource manager、undo command、Qt幾何・容器を実体化せず、文書照会、親選択、追加・削除、undo生成、reset本文を実行しない。対象4工程・8入力、停止5工程・11入力、近傍`KoCanvasBaseSchemaContractTest`、製品`kritaflake` 621工程・1,274入力を維持し、curve mask担当の統合・削除後に開始する。同じ限定検証とcontroller/shape/resource/undo未解決記号を確認する。
+- `g190-hsx-input-schema`は`/Users/masato/Documents/librepaint-g190-hsx-input-schema`を所有する。開始`libs/widgets/KisHsvColorSlider.h`の残存全15 APIと`KisSpinboxHSXSelector.h`の残存全7 APIから既存`libs/widgets/tests/KisVisualColorModelSchemaContractTest.cpp`の5枠`hsvColorSliderTypeAndMixModeSchemaRemainStable`、`hsvColorSliderConstructionAndLifetimeSchemaRemainStable`、`hsvColorSliderColorAndMixingSignaturesRemainStable`、`spinboxHsxSelectorTypeLifetimeAndModelSchemaRemainStable`、`spinboxHsxSelectorNotificationSignaturesRemainStable`へ対応付ける。
+  完全集合はslider class・mix mode enumと5値、2構築・破棄、色設定3・mix mode・circular hue、spinbox class・構築・破棄・model設定、channel通知・channel更新・model変更である。許可pathは既存試験sourceだけで、CMake・依存・公開header・製品sourceを変更しない。slider、spinbox、基底Widget、色、renderer、色modelと共有pointer、channel vectorを実体化せず、構築・破棄、既定renderer取得、補間・色変換、model接続、signal・slot本文を実行しない。対象4工程・8入力、停止5工程・11入力、近傍`KisVisualColorSelectorShapeSchemaContractTest`、製品`kritawidgets` 809工程・1,647入力を維持し、shape controller担当の統合・削除後に開始する。同じ限定検証とslider/spinbox/color/renderer/model未解決記号を確認する。
 
 ### 第189便の先行監査計画
 
