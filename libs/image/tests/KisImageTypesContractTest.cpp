@@ -39,6 +39,8 @@
 #include "kis_update_job_item.h"
 #include "kis_updater_context.h"
 #include "kis_warptransform_worker.h"
+#include "tiles3/kis_hline_iterator.h"
+#include "tiles3/kis_vline_iterator.h"
 
 #include <QTest>
 
@@ -402,6 +404,11 @@ private Q_SLOTS:
     void horizontalWritableIteratorSchemaRemainsStable();
     void verticalConstIteratorTraversalSchemaRemainsStable();
     void verticalWritableIteratorSchemaRemainsStable();
+    void lineIteratorTypeAndConstructionSchemaRemainStable();
+    void lineIteratorTileCacheSchemaRemainStable();
+    void lineIteratorDataAccessSignaturesRemainStable();
+    void horizontalLineIteratorTraversalSignaturesRemainStable();
+    void verticalLineIteratorTraversalSignaturesRemainStable();
     void edgeDetectionTypeAndFilterSchemaRemainsStable();
     void edgeDetectionOutputPolicySchemaRemainsStable();
     void edgeDetectionMatrixAndKernelCreationSignaturesRemainStable();
@@ -3246,6 +3253,95 @@ void KisImageTypesContractTest::verticalWritableIteratorSchemaRemainsStable()
     static_assert(std::is_abstract_v<KisVLineIteratorNG>);
     static_assert(std::has_virtual_destructor_v<KisVLineIteratorNG>);
     static_assert(std::is_default_constructible_v<VLineIteratorConstructorProbe>);
+}
+
+void KisImageTypesContractTest::lineIteratorTypeAndConstructionSchemaRemainStable()
+{
+    using HLineConstructor = std::is_constructible<KisHLineIterator2,
+                                                   KisDataManager *,
+                                                   qint32,
+                                                   qint32,
+                                                   qint32,
+                                                   qint32,
+                                                   qint32,
+                                                   bool,
+                                                   KisIteratorCompleteListener *>;
+    using VLineConstructor = std::is_constructible<KisVLineIterator2,
+                                                   KisDataManager *,
+                                                   qint32,
+                                                   qint32,
+                                                   qint32,
+                                                   qint32,
+                                                   qint32,
+                                                   bool,
+                                                   KisIteratorCompleteListener *>;
+
+    static_assert(std::is_class_v<KisHLineIterator2>);
+    static_assert(std::is_base_of_v<KisHLineIteratorNG, KisHLineIterator2>);
+    static_assert(std::is_base_of_v<KisBaseIterator, KisHLineIterator2>);
+    static_assert(HLineConstructor::value);
+    static_assert(std::has_virtual_destructor_v<KisHLineIterator2>);
+    static_assert(std::is_class_v<KisVLineIterator2>);
+    static_assert(std::is_base_of_v<KisVLineIteratorNG, KisVLineIterator2>);
+    static_assert(std::is_base_of_v<KisBaseIterator, KisVLineIterator2>);
+    static_assert(VLineConstructor::value);
+    static_assert(std::has_virtual_destructor_v<KisVLineIterator2>);
+}
+
+void KisImageTypesContractTest::lineIteratorTileCacheSchemaRemainStable()
+{
+    using HLineTileInfo = KisHLineIterator2::KisTileInfo;
+    using VLineTileInfo = KisVLineIterator2::KisTileInfo;
+
+    static_assert(std::is_class_v<HLineTileInfo>);
+    static_assert(std::is_same_v<decltype(HLineTileInfo::tile), KisTileSP>);
+    static_assert(std::is_same_v<decltype(HLineTileInfo::oldtile), KisTileSP>);
+    static_assert(std::is_same_v<decltype(HLineTileInfo::data), quint8 *>);
+    static_assert(std::is_same_v<decltype(HLineTileInfo::oldData), quint8 *>);
+    static_assert(std::is_class_v<VLineTileInfo>);
+    static_assert(std::is_same_v<decltype(VLineTileInfo::tile), KisTileSP>);
+    static_assert(std::is_same_v<decltype(VLineTileInfo::oldtile), KisTileSP>);
+    static_assert(std::is_same_v<decltype(VLineTileInfo::data), quint8 *>);
+    static_assert(std::is_same_v<decltype(VLineTileInfo::oldData), quint8 *>);
+}
+
+void KisImageTypesContractTest::lineIteratorDataAccessSignaturesRemainStable()
+{
+    using HLineConstDataSignature = const quint8 *(KisHLineIterator2::*)() const;
+    using HLineDataSignature = quint8 *(KisHLineIterator2::*)();
+    using VLineConstDataSignature = const quint8 *(KisVLineIterator2::*)() const;
+    using VLineDataSignature = quint8 *(KisVLineIterator2::*)();
+
+    ASSERT_ITERATOR_SIGNATURE(KisHLineIterator2, oldRawData, HLineConstDataSignature);
+    ASSERT_ITERATOR_SIGNATURE(KisHLineIterator2, rawDataConst, HLineConstDataSignature);
+    ASSERT_ITERATOR_SIGNATURE(KisHLineIterator2, rawData, HLineDataSignature);
+    ASSERT_ITERATOR_SIGNATURE(KisHLineIterator2, nConseqPixels, qint32 (KisHLineIterator2::*)() const);
+    ASSERT_ITERATOR_SIGNATURE(KisVLineIterator2, oldRawData, VLineConstDataSignature);
+    ASSERT_ITERATOR_SIGNATURE(KisVLineIterator2, rawDataConst, VLineConstDataSignature);
+    ASSERT_ITERATOR_SIGNATURE(KisVLineIterator2, rawData, VLineDataSignature);
+    ASSERT_ITERATOR_SIGNATURE(KisVLineIterator2, nConseqPixels, qint32 (KisVLineIterator2::*)() const);
+}
+
+void KisImageTypesContractTest::horizontalLineIteratorTraversalSignaturesRemainStable()
+{
+    ASSERT_ITERATOR_SIGNATURE(KisHLineIterator2, nextPixel, bool (KisHLineIterator2::*)());
+    ASSERT_ITERATOR_SIGNATURE(KisHLineIterator2, nextPixels, bool (KisHLineIterator2::*)(qint32));
+    ASSERT_ITERATOR_SIGNATURE(KisHLineIterator2, nextRow, void (KisHLineIterator2::*)());
+    ASSERT_ITERATOR_SIGNATURE(KisHLineIterator2, resetPixelPos, void (KisHLineIterator2::*)());
+    ASSERT_ITERATOR_SIGNATURE(KisHLineIterator2, resetRowPos, void (KisHLineIterator2::*)());
+    ASSERT_ITERATOR_SIGNATURE(KisHLineIterator2, x, qint32 (KisHLineIterator2::*)() const);
+    ASSERT_ITERATOR_SIGNATURE(KisHLineIterator2, y, qint32 (KisHLineIterator2::*)() const);
+}
+
+void KisImageTypesContractTest::verticalLineIteratorTraversalSignaturesRemainStable()
+{
+    ASSERT_ITERATOR_SIGNATURE(KisVLineIterator2, nextPixel, bool (KisVLineIterator2::*)());
+    ASSERT_ITERATOR_SIGNATURE(KisVLineIterator2, nextPixels, bool (KisVLineIterator2::*)(qint32));
+    ASSERT_ITERATOR_SIGNATURE(KisVLineIterator2, nextColumn, void (KisVLineIterator2::*)());
+    ASSERT_ITERATOR_SIGNATURE(KisVLineIterator2, resetPixelPos, void (KisVLineIterator2::*)());
+    ASSERT_ITERATOR_SIGNATURE(KisVLineIterator2, resetColumnPos, void (KisVLineIterator2::*)());
+    ASSERT_ITERATOR_SIGNATURE(KisVLineIterator2, x, qint32 (KisVLineIterator2::*)() const);
+    ASSERT_ITERATOR_SIGNATURE(KisVLineIterator2, y, qint32 (KisVLineIterator2::*)() const);
 }
 
 void KisImageTypesContractTest::edgeDetectionTypeAndFilterSchemaRemainsStable()
