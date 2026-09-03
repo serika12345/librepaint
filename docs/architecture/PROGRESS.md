@@ -2,12 +2,18 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-03 11:20 JST
+- 更新日時: 2026-09-03 11:57 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
+
+### 第182便の先行監査計画
+
+- 監査共通基点は`c7b9da6bbd`、入力は`build/tdd-macos/public-api-missing-g182.json`である。3担当は`auditing`の読み取り専用とし、製品・試験・CMake・script・台帳・文書を変更せず、構成、構築、試験、Git操作、追加委任も行わない。一つの公開責務から20〜80 APIを最大5枠へ固定し、既存限定対象またはheader限定の4〜10工程程度の対象で、製品共有libraryと`kritatestsdk`へ接続しない候補だけを採用する。製品targetを引数にする`build-incremental ... plan`と製品buildは実行せず、既存Ninja木のquery・commands・inputsだけを読み取る。
+- image・paintop・pigment領域は第181便のupdate job itemを、flake・SVG・vector領域はSVG loading contextを、widgetutils・widgets・libkis領域は矩形・楕円視覚色選択形状を除外して一責務ずつ比較する。
+- 各監査は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、予測工程・入力と停止線、開始pathから契約先、許可path、固有停止条件、比較候補の棄却根拠を揃える。3領域のpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
 
 ### 第181便の先行監査計画
 
@@ -30,8 +36,19 @@
   完全集合はclass、`Type`と`EMPTY`・`WAITING`・`MERGE`・`STROKE`・`SPONTANEOUS`、context付き構築・破棄、`run`・`runMergeJob`、walker・stroke job・spontaneous job設定、完了設定・実行中・type照会、access・change矩形とstroke逐次性照会である。許可pathは既存試験sourceだけで、CMake・依存・公開header・製品sourceを変更しない。job item、context、walker、stroke・spontaneous job、merger、QObject、QRunnableを実体化せず、構築・破棄、実行、割当て、状態遷移、矩形・逐次性照会本文を実行しない。対象4工程・8入力、停止5工程・11入力、近傍は同一対象のupdater context 5枠と`KisBaseRectsWalkerPolicyContractTest`、製品`kritaimage` 1,196工程・2,416入力を維持する。対象・新旧枠、CTest、20回反復、近傍、無作業再構築、動的接続・AUTOMOC入力・job/context/walker/merger未解決記号、構文・書式、公開API・`verify-quick`を確認する。
 - `g181-svg-loading-schema`は`/Users/masato/Documents/librepaint-g181-svg-loading-schema`を所有する。開始`libs/flake/svg/SvgLoadingContext.h`の残存全26 APIから既存`libs/flake/tests/KoSvgTextEnumContractTest.cpp`の5枠`svgLoadingTypeLifetimeAndFileFetcherAliasSchemaRemainStable`、`svgLoadingGraphicsContextStackAndOrderSignaturesRemainStable`、`svgLoadingPathAndExternalFileSignaturesRemainStable`、`svgLoadingShapeAndDefinitionRegistrySignaturesRemainStable`、`svgLoadingStyleProfileAndTextSignaturesRemainStable`へ対応付ける。
   完全集合はclass・file fetcher別名・resource manager付き構築・破棄、graphics context照会・既定引数付きpush・pop・Z順・root照会、初期XML base・base dir・絶対相対path・fetcher設定・外部file取得、shape登録照会・definition追加照会存在確認、style sheet追加・CSS照合・style parser・profile解析照会・既定引数付きproperty解決である。許可pathは既存試験sourceだけで、CMake・依存・公開header・製品sourceを変更しない。loading context、graphics context、resource manager、shape、DOM、style parser、profile、text property、file fetcherを実体化せず、構築・破棄、stack、path解決、外部file、登録・解析本文を実行しない。対象4工程・8入力、停止5工程・11入力、近傍`KoShapeLoadingContextSchemaContractTest`、製品`kritaflake` 621工程・1,274入力を維持し、update job item担当の統合・削除後に開始する。同じ限定検証とcontext/DOM/shape/style/profile/file未解決記号を確認する。
-- `g181-visual-selector-shapes-schema`は`/Users/masato/Documents/librepaint-g181-visual-selector-shapes-schema`を所有する。開始`libs/widgets/KisVisualRectangleSelectorShape.h`の残存全13 APIと`libs/widgets/KisVisualEllipticalSelectorShape.h`の残存全12 APIから既存`libs/widgets/tests/KisVisualColorSelectorShapeSchemaContractTest.cpp`の5枠`visualConcreteSelectorShapeTypeLifetimeAndConstructionSchemaRemainStable`、`visualConcreteSelectorShapeOneDimensionalTypeValuesRemainStable`、`visualConcreteSelectorShapeGeometrySignaturesRemainStable`、`visualRectangleSelectorShapeModeSignatureRemainsStable`、`visualEllipticalSelectorShapeGamutSignaturesRemainStable`へ対応付ける。
+- `g181-visual-selector-shapes-schema`は`/Users/masato/Documents/librepaint-g181-visual-selector-shapes-schema`を所有する。開始`libs/widgets/KisVisualRectangleSelectorShape.h`の残存全13 APIと`libs/widgets/KisVisualEllipticalSelectorShape.h`の残存全12 APIから既存`libs/widgets/tests/KisVisualColorSelectorShapeSchemaContractTest.cpp`の5枠`visualConcreteSelectorShapeConstructionSchemaRemainsStable`、`visualConcreteSelectorShapeOneDimensionalTypeValuesRemainStable`、`visualConcreteSelectorShapeGeometrySignaturesRemainStable`、`visualRectangleSelectorShapeModeSignatureRemainsStable`、`visualEllipticalSelectorShapeGamutSignaturesRemainStable`へ対応付ける。
   完全集合は矩形・楕円2 classと幅・一次元種別既定引数付き構築・破棄、矩形`singelDTypes`のvertical・horizontal・border・borderMirrored、楕円同型のborder・borderMirrored、両型のborder幅設定とsquare・circle・triangle領域照会、矩形の一次元mode設定、楕円のgamut mask対応・更新である。許可pathは既存試験sourceだけで、CMake・依存・公開header・製品sourceを変更しない。具体shape、基底shape、selector、矩形、画像、painter、色、gamut maskを実体化せず、構築・破棄、座標変換、領域算出、描画・gamut更新、border・mode変更本文を実行しない。対象4工程・8入力、停止5工程・11入力、近傍`KisVisualColorModelSchemaContractTest`、製品`kritawidgets` 809工程・1,647入力を維持し、SVG loading担当の統合・削除後に開始する。同じ限定検証とshape/selector/geometry/image/gamut未解決記号を確認する。
+
+### 第181便の統合結果
+
+- `g181-update-job-item-schema`は開始`libs/image/kis_update_job_item.h`から既存`libs/image/tests/KisImageTypesContractTest.cpp`の5枠へ、型・状態、寿命・実行、job割当て、状態遷移、矩形・stroke方針の残存全20 APIを対応付けた。job item、context、walker、stroke・spontaneous job、merger、QObject、QRunnableを実体化せず、列挙値と型・member signatureだけを観測する4工程・8入力に保った。
+  受渡しcommit`666ebc04d0`を統合commit`9050ef433e`として取り込み、担当と中央の新旧枠、対象・近傍CTest、20回反復、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式に成功した。台帳commit`56ecb30488`で17,833件対応、12,005件未対応となった。job割当て、atomic状態遷移、各作業実行、context通知、矩形値・逐次性の実行時結果は別契約で扱う。
+- `g181-svg-loading-schema`は開始`libs/flake/svg/SvgLoadingContext.h`から既存`libs/flake/tests/KoSvgTextEnumContractTest.cpp`の5枠へ、型・寿命・file fetcher、graphics context、path・外部file、shape・definition登録、style・profile・textの残存全26 APIを対応付けた。loading context、graphics context、resource manager、shape、DOM、style parser、profile、text property、file fetcherを実体化せず、stack、path解決、外部file、登録・解析本文を実行しない4工程・8入力に保った。
+  初回構築で`QHash`型内のコンマを検査macroが引数区切りとして扱う診断を取得し、許可source内の型別名へ置き換えて解消した。受渡しcommit`d595a1651c`を統合commit`a042883603`として取り込み、担当と中央の全43枠、対象・近傍CTest、20回反復、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式に成功した。製品`kritaflake`は621工程・1,274入力で不変であり、台帳commit`1d4322db62`で17,859件対応、11,979件未対応となった。stack・path・外部file・登録・style・profile・text解決の実行時結果は別契約で扱う。
+- `g181-visual-selector-shapes-schema`は開始`libs/widgets/KisVisualRectangleSelectorShape.h`と`libs/widgets/KisVisualEllipticalSelectorShape.h`から既存`libs/widgets/tests/KisVisualColorSelectorShapeSchemaContractTest.cpp`の5枠へ、型・寿命・構築、一次元形状種別、幾何、矩形mode、楕円gamutの残存全25 APIを対応付けた。具体shape、基底shape、selector、矩形、画像、painter、色、gamut maskを実体化せず、構築・破棄、領域算出、描画、border・mode変更、gamut更新本文を実行しない4工程・8入力に保った。
+  受渡しcommit`3077bc6ee1`を統合commit`2caa6587c2`として取り込み、担当と中央の新旧枠、対象・近傍CTest、20回反復、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式に成功した。長い先頭枠名がclang-formatによりscope直後で改行され、公開API検査の関数検出規則から外れたため、commit`64dd0b4ac2`で`visualConcreteSelectorShapeConstructionSchemaRemainsStable`へ短縮して対象CTest・書式・検出を再確認した。製品`kritawidgets`は809工程・1,647入力で不変であり、台帳commit`c7b9da6bbd`で17,884件対応、11,954件未対応となった。構築、領域算出、座標変換、描画、gamut mask更新の実行時結果は別契約で扱う。
+- 第181便全体で71 APIを15枠へ重複なく対応付けた。一度に一つの担当だけを実装・構成・構築・統合し、製品target、全体build、全体`verify`、Linux、Nix再評価は実行していない。対象・近傍CTest、各20回反復、無作業再構築、公開API検査と`verify-quick`は成功した。
+  3担当のcleanな作業tree、担当build木、担当branchを統合直後に削除し、2,614,628 KiB（約2.49 GiB）の担当領域を回収した。旧不足報告`public-api-missing-g181.json`をごみ箱へ移し、主Ninja木5,640,864 KiB、共有compiler cache 982,096 KiB、最新不足報告`build/tdd-macos/public-api-missing-g182.json` 3,130,850 bytesだけを再利用対象として保持する。次の永続作業は第182便の不足報告から、既存限定対象を優先して3責務を先行監査することである。
 
 ### 第180便の先行監査計画
 
