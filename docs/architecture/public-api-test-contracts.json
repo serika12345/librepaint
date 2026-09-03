@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 11595
+    "expectedMissingApis": 11566
   },
   "contracts": [
     {
@@ -51387,6 +51387,80 @@
         "method:KisFileNameRequester::setValidator(QValidator * validator)",
         "method:KisFileNameRequester::slotSelectFile()",
         "method:KisFileNameRequester::textChanged(const QString & fileName)"
+      ]
+    },
+    {
+      "target": "ColorizeMaskSchemaContractTest",
+      "source": "libs/libkis/tests/ColorizeMaskSchemaContractTest.cpp",
+      "test": "ColorizeMaskSchemaContractTest::transformMaskTypeAndLifetimeSchemaRemainStable",
+      "behavior": "変形mask wrapperは画像と既存maskまたは名前から構築できる公開型、型名照会と仮想寿命を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:TransformMask",
+        "method:TransformMask::TransformMask(KisImageSP image,KisTransformMaskSP mask,QObject * parent=0)",
+        "method:TransformMask::TransformMask(KisImageSP image,QString name,QObject * parent=0)",
+        "method:TransformMask::type() const",
+        "method:TransformMask::~TransformMask()"
+      ]
+    },
+    {
+      "target": "ColorizeMaskSchemaContractTest",
+      "source": "libs/libkis/tests/ColorizeMaskSchemaContractTest.cpp",
+      "test": "ColorizeMaskSchemaContractTest::transformMaskTransformAndSerializationSchemaRemainStable",
+      "behavior": "変形mask wrapperは最終affine変換の照会とXML入出力を行う公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:TransformMask::finalAffineTransform() const",
+        "method:TransformMask::fromXML(const QString & xml)",
+        "method:TransformMask::toXML() const"
+      ]
+    },
+    {
+      "target": "ColorizeMaskSchemaContractTest",
+      "source": "libs/libkis/tests/ColorizeMaskSchemaContractTest.cpp",
+      "test": "ColorizeMaskSchemaContractTest::transparencyMaskTypeAndSelectionSchemaRemainStable",
+      "behavior": "透明度mask wrapperは画像と既存maskまたは名前から構築し、選択と型名を扱う公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:TransparencyMask",
+        "method:TransparencyMask::TransparencyMask(KisImageSP image,KisTransparencyMaskSP mask,QObject * parent=0)",
+        "method:TransparencyMask::TransparencyMask(KisImageSP image,QString name,QObject * parent=0)",
+        "method:TransparencyMask::selection() const",
+        "method:TransparencyMask::setSelection(Selection * selection)",
+        "method:TransparencyMask::type() const",
+        "method:TransparencyMask::~TransparencyMask()"
+      ]
+    },
+    {
+      "target": "ColorizeMaskSchemaContractTest",
+      "source": "libs/libkis/tests/ColorizeMaskSchemaContractTest.cpp",
+      "test": "ColorizeMaskSchemaContractTest::selectionMaskTypeAndSelectionSchemaRemainStable",
+      "behavior": "選択mask wrapperは画像と既存maskまたは名前から構築し、選択と型名を扱う公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:SelectionMask",
+        "method:SelectionMask::SelectionMask(KisImageSP image,KisSelectionMaskSP mask,QObject * parent=0)",
+        "method:SelectionMask::SelectionMask(KisImageSP image,QString name,QObject * parent=0)",
+        "method:SelectionMask::selection() const",
+        "method:SelectionMask::setSelection(Selection * selection)",
+        "method:SelectionMask::type() const",
+        "method:SelectionMask::~SelectionMask()"
+      ]
+    },
+    {
+      "target": "ColorizeMaskSchemaContractTest",
+      "source": "libs/libkis/tests/ColorizeMaskSchemaContractTest.cpp",
+      "test": "ColorizeMaskSchemaContractTest::filterMaskTypeAndFilterSchemaRemainStable",
+      "behavior": "filter mask wrapperは画像と既存maskまたは名前・filterから構築し、filterと型名を扱う公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:FilterMask",
+        "method:FilterMask::FilterMask(KisImageSP image,KisFilterMaskSP mask,QObject * parent=0)",
+        "method:FilterMask::FilterMask(KisImageSP image,QString name,Filter & filter,QObject * parent=0)",
+        "method:FilterMask::filter()",
+        "method:FilterMask::setFilter(Filter & filter)",
+        "method:FilterMask::type() const",
+        "method:FilterMask::~FilterMask()"
       ]
     }
   ]
