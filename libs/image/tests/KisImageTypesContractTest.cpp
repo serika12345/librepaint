@@ -29,6 +29,13 @@
 #include "kis_iterator_ng.h"
 #include "kis_layer_utils.h"
 #include "kis_liquify_transform_worker.h"
+#if !defined(_MSC_VER)
+#pragma GCC diagnostic push
+#endif
+#include "kis_math_toolbox.h"
+#if !defined(_MSC_VER)
+#pragma GCC diagnostic pop
+#endif
 #include "kis_memory_statistics_server.h"
 #include "kis_paint_device_frames_interface.h"
 #include "kis_pixel_selection.h"
@@ -80,6 +87,8 @@ namespace
     static_assert(std::is_same_v<decltype(static_cast<signature>(&type::method)), signature>)
 #define ASSERT_CURVE_MASK_SIGNATURE(type, method, signature)                                                           \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&type::method)), signature>)
+#define ASSERT_MATH_TOOLBOX_SIGNATURE(method, signature)                                                               \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KisMathToolbox::method)), signature>)
 #define ASSERT_UPDATER_CONTEXT_SIGNATURE(method, signature)                                                            \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisUpdaterContext::method)), signature>)
 #define ASSERT_SIMPLE_UPDATE_QUEUE_SIGNATURE(method, signature)                                                        \
@@ -396,6 +405,11 @@ private Q_SLOTS:
     void curveMaskScaleAndSoftnessSignaturesRemainStable();
     void curveMaskVectorizationAndApplicatorSignaturesRemainStable();
     void curveMaskSerializationAndTransformationSignaturesRemainStable();
+    void mathToolboxTypeAndAliasSchemaRemainStable();
+    void mathToolboxFloatRepresentationSchemaRemainStable();
+    void mathToolboxWaveletPlanningSignaturesRemainStable();
+    void mathToolboxWaveletTransformSignaturesRemainStable();
+    void mathToolboxChannelConversionSignaturesRemainStable();
     void maskDataConstructionSchemaRemainStable();
     void maskDataDeviceAndColorSchemaRemainStable();
     void maskDataGeometrySchemaRemainStable();
@@ -3111,6 +3125,59 @@ void KisImageTypesContractTest::curveMaskSerializationAndTransformationSignature
                                 void (*)(qreal, const QList<KisCubicCurvePoint> &, int, QVector<qreal> &));
 }
 
+void KisImageTypesContractTest::mathToolboxTypeAndAliasSchemaRemainStable()
+{
+    static_assert(std::is_class_v<KisMathToolbox>);
+    static_assert(std::is_class_v<KisMathToolbox::KisFloatRepresentation>);
+    static_assert(std::is_same_v<KisMathToolbox::KisWavelet, KisMathToolbox::KisFloatRepresentation>);
+    static_assert(std::is_same_v<PtrToDouble, double (*)(const quint8 *, int)>);
+    static_assert(std::is_same_v<PtrFromDouble, void (*)(quint8 *, int, double)>);
+    static_assert(std::is_same_v<PtrFromDoubleCheckNull, void (*)(quint8 *, int, double, bool *)>);
+}
+
+void KisImageTypesContractTest::mathToolboxFloatRepresentationSchemaRemainStable()
+{
+    using Representation = KisMathToolbox::KisFloatRepresentation;
+
+    static_assert(std::is_constructible_v<Representation, uint, uint>);
+    static_assert(std::is_destructible_v<Representation>);
+    static_assert(std::is_same_v<decltype(Representation::coeffs), float *>);
+    static_assert(std::is_same_v<decltype(Representation::size), uint>);
+    static_assert(std::is_same_v<decltype(Representation::depth), uint>);
+}
+
+void KisImageTypesContractTest::mathToolboxWaveletPlanningSignaturesRemainStable()
+{
+    ASSERT_MATH_TOOLBOX_SIGNATURE(initWavelet,
+                                  KisMathToolbox::KisWavelet * (KisMathToolbox::*)(KisPaintDeviceSP, const QRect &));
+    ASSERT_MATH_TOOLBOX_SIGNATURE(fastWaveletTotalSteps, uint (KisMathToolbox::*)(const QRect &));
+}
+
+void KisImageTypesContractTest::mathToolboxWaveletTransformSignaturesRemainStable()
+{
+    ASSERT_MATH_TOOLBOX_SIGNATURE(
+        fastWaveletTransformation,
+        KisMathToolbox::KisWavelet
+            * (KisMathToolbox::*)(KisPaintDeviceSP, const QRect &, KisMathToolbox::KisWavelet *));
+    ASSERT_MATH_TOOLBOX_SIGNATURE(fastWaveletUntransformation,
+                                  void (KisMathToolbox::*)(KisPaintDeviceSP,
+                                                           const QRect &,
+                                                           KisMathToolbox::KisWavelet *,
+                                                           KisMathToolbox::KisWavelet *));
+}
+
+void KisImageTypesContractTest::mathToolboxChannelConversionSignaturesRemainStable()
+{
+    ASSERT_MATH_TOOLBOX_SIGNATURE(getToDoubleChannelPtr,
+                                  bool (KisMathToolbox::*)(QList<KoChannelInfo *>, QVector<PtrToDouble> &));
+    ASSERT_MATH_TOOLBOX_SIGNATURE(getFromDoubleChannelPtr,
+                                  bool (KisMathToolbox::*)(QList<KoChannelInfo *>, QVector<PtrFromDouble> &));
+    ASSERT_MATH_TOOLBOX_SIGNATURE(getFromDoubleCheckNullChannelPtr,
+                                  bool (KisMathToolbox::*)(QList<KoChannelInfo *>, QVector<PtrFromDoubleCheckNull> &));
+    ASSERT_MATH_TOOLBOX_SIGNATURE(minChannelValue, double (KisMathToolbox::*)(KoChannelInfo *));
+    ASSERT_MATH_TOOLBOX_SIGNATURE(maxChannelValue, double (KisMathToolbox::*)(KoChannelInfo *));
+}
+
 void KisImageTypesContractTest::maskDataConstructionSchemaRemainStable()
 {
     static_assert(std::is_class_v<MaskProcessingData>);
@@ -4023,6 +4090,7 @@ void KisImageTypesContractTest::processingVisitorProgressHelperSchemaRemainsStab
 #undef ASSERT_GAUSSIAN_MASK_SIGNATURE
 #undef ASSERT_DEFAULT_MASK_SIGNATURE
 #undef ASSERT_CURVE_MASK_SIGNATURE
+#undef ASSERT_MATH_TOOLBOX_SIGNATURE
 #undef ASSERT_UPDATER_CONTEXT_SIGNATURE
 #undef ASSERT_ITERATOR_SIGNATURE
 #undef ASSERT_EDGE_DETECTION_SIGNATURE
