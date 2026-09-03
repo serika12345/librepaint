@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-03 23:06 JST
+- 更新日時: 2026-09-03 23:12 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -27,6 +27,13 @@
   `Scratchpad.h`の`kis_types.h`は公開宣言で利用されず、直接利用元の`Scratchpad.cpp`は必要なKis型の所有headerを個別にincludeし、SIP定義もScratchpad、View、Qt値だけを使用する。契約へimage探索路と`kritaimage_EXPORTS`を漏らさないため、契約追加前の独立した構造変更としてこの不要includeだけを除去する。公開宣言とAPI指紋を維持し、`Scratchpad.cpp`、製品MOC、SIP source監査で暗黙依存がないことを確認する。PyQtを利用できない現構成ではSIP生成を実行できない点を残存riskとする。
   Node・Krita façadeは複数の寿命・状態・I/O責務を横断し、tag選択はresources UI境界、単位入力群は異なる管理方式、progress updaterと言語buttonは下限未満、視覚色選択群は直近便との重複になるため棄却した。
 - 中央の`public-api-missing-g195.json`で選択範囲43件、CSS様式資源33件、scratchpad 31件の全識別子を照合した。3責務の開始header、試験source、所有CMake、生成物は相互に異なり、合計107 APIを15枠へ進める。許可path外変更、新規の動的link、候補headerのAUTOMOC入力化、製品shared・OBJECT・`kritatestsdk`接続、指定外実体化・本文実行、各停止線超過、製品計画集合の変化が不要な場合だけ実装へ進める。Scratchpadだけは公開宣言を変えない不要include除去を契約とは別の検査段階・commitで先行する。
+
+### 第195便の担当計画
+
+- 実装共通基点は`ee8b6de434`である。3担当のGit権限は選択範囲とCSS様式資源が許可pathだけの1受渡しcommit、scratchpadが構造整理と契約追加を分けた2受渡しcommitであり、追加委任は禁止する。対象platformはmacOSで、一度に一つだけ作る専用worktree-local `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。Nix再評価を行わず、担当側の`./scripts/run-shared-test-env`で読み込み済み開発環境を共有する。選択範囲、CSS様式資源、scratchpadの順に一担当ずつ実装・限定検証・統合・削除する。調整担当だけがarchitecture文書、公開API台帳、共通不足報告を変更する。製品targetを引数にするplan/build、全体build、全体`verify`、Linux検証は禁止する。
+- `g195-selection-schema`の状態は`planned`、構築実行許可は`granted`で、作業tree`/Users/masato/Documents/librepaint-g195-selection-schema`を所有する。開始`libs/image/kis_selection.h`の残存全43 APIから既存`libs/image/tests/KisMaskSchemaContractTest.cpp`の5枠`selectionTypeAndLifetimeSchemaRemainStable`、`selectionComponentAndOwnershipSignaturesRemainStable`、`selectionContentAndGeometrySignaturesRemainStable`、`selectionCacheAndThumbnailSignaturesRemainStable`、`selectionProjectionAndMutationSignaturesRemainStable`へ対応付ける。許可pathは既存試験sourceだけで、CMake、探索路、link、compile定義、公開header、製品sourceを変更しない。selectionと関連するpointer・Qt値を実体化せず、構築・複製・代入・破棄、選択・cache・投影・通知本文を実行しない。対象4工程・8入力、停止5工程・11入力、近傍`KisImageTypesContractTest`を維持し、変更なし計画、期待する最初の診断、対象と追加5枠の20回反復、近傍、無作業再構築、動的接続、AUTOMOC入力、未解決製品記号、構文・書式、公開API検査、`verify-quick`を確認する。
+- `g195-css-style-preset-schema`の状態は`waiting`、構築実行許可は`withheld`で、選択範囲担当の統合・削除後に作業tree`/Users/masato/Documents/librepaint-g195-css-style-preset-schema`を作る。開始`libs/flake/resources/KoCssStylePreset.h`の残存全33 APIから新規`libs/flake/tests/KoCssStylePresetSchemaContractTest.cpp`の5枠`cssStylePresetTypeLifetimeAndConstructionSchemaRemainStable`、`cssStylePresetPropertyAndResolutionSignaturesRemainStable`、`cssStylePresetIdentityAndClassificationSignaturesRemainStable`、`cssStylePresetSampleAndPresentationSignaturesRemainStable`、`cssStylePresetPersistenceSignaturesRemainStable`へ対応付ける。許可pathは新規試験sourceと`libs/flake/tests/CMakeLists.txt`の新target固有節だけである。CSS様式資源と関連する値・図形・I/Oを実体化せず、構築・複製・破棄、property、見本生成・整列、読込・保存・thumbnail本文を実行しない。対象4工程・8入力、停止5工程・11入力、近傍`KoFontFamilySchemaContractTest`とし、選択範囲担当と同じ限定検証を行う。
+- `g195-scratchpad-schema`の状態は`waiting`、構築実行許可は`withheld`で、CSS様式資源担当の統合・削除後に作業tree`/Users/masato/Documents/librepaint-g195-scratchpad-schema`を作る。第一commitは`libs/libkis/Scratchpad.h`から未使用`kis_types.h` includeだけを除去し、公開API指紋、`Scratchpad.cpp`の構文、製品MOC入力の構文、直接利用元とSIP定義のsource監査で暗黙依存がないことを確認する。第二commitは既存`libs/libkis/tests/ViewSchemaContractTest.cpp`の5枠`scratchpadTypeLifetimeAndModeSchemaRemainStable`、`scratchpadFillSignaturesRemainStable`、`scratchpadZoomAndScaleSignaturesRemainStable`、`scratchpadPanImageAndBoundsSignaturesRemainStable`、`scratchpadNotificationSignaturesRemainStable`へ残存全31 APIを対応付け、`libs/libkis/tests/CMakeLists.txt`のView対象固有節へQt Widgetsのinterface探索路だけを追加する。これら3pathだけを許可し、動的link・compile定義・AUTOMOC入力を増やさない。scratchpadと関連するView・Qt型を実体化せず、構築・破棄、描画、fill、zoom・pan、画像転送、signal本文を実行しない。対象4工程・8入力、停止5工程・11入力、近傍`CanvasSchemaContractTest`とし、各commitの境界検査と契約追加後の限定検証を行う。image探索路または`kritaimage_EXPORTS`の再追加、公開識別子変化、SIP暗黙依存、Qt Widgets動的link、製品objectの広域再構築が必要なら停止する。
 
 ### 第194便の先行監査担当票
 
