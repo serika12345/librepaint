@@ -117,8 +117,15 @@ target_compile_definitions(KisGradientColorEditorSchemaContractTest PRIVATE
     kritawidgets_EXPORTS
 )
 
+set(KisPaletteModelSchemaContractTest_UI)
+ki18n_wrap_ui(KisPaletteModelSchemaContractTest_UI
+    ../WdgPaletteListWidget.ui
+)
+
 kis_add_test(
     KisPaletteModelSchemaContractTest.cpp
+    ${KisPaletteModelSchemaContractTest_UI}
+    TEST_NAME KisPaletteModelSchemaContractTest
     LINK_LIBRARIES
         Qt${QT_MAJOR_VERSION}::Core
         Qt${QT_MAJOR_VERSION}::Gui

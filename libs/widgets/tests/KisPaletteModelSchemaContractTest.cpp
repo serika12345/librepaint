@@ -3,7 +3,10 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include <KisPaletteChooser.h>
 #include <KisPaletteModel.h>
+#include <KoColorPatch.h>
+#include <KoColorSetWidget.h>
 
 #include <QTest>
 
@@ -26,6 +29,11 @@ private Q_SLOTS:
     void paletteModelPaletteConnectionSignaturesRemainStable();
     void paletteModelSwatchMutationSignaturesRemainStable();
     void paletteModelGroupAndLayoutSignaturesRemainStable();
+    void paletteChooserTypeLifetimeAndSelectionSchemaRemainStable();
+    void paletteChooserNotificationSignaturesRemainStable();
+    void colorSetWidgetTypeLifetimeAndPaletteSchemaRemainStable();
+    void colorSetWidgetNotificationSignaturesRemainStable();
+    void colorPatchTypeColorAndNotificationSchemaRemainStable();
 };
 
 void KisPaletteModelSchemaContractTest::paletteModelIdentityAndRoleSchemaRemainsStable()
@@ -105,6 +113,67 @@ void KisPaletteModelSchemaContractTest::paletteModelGroupAndLayoutSignaturesRema
     static_assert(std::is_same_v<decltype(std::declval<KisPaletteModel &>().addGroup(std::declval<const QString &>(),
                                                                                      std::declval<int>())),
                                  KisSwatchGroupSP>);
+}
+
+void KisPaletteModelSchemaContractTest::paletteChooserTypeLifetimeAndSelectionSchemaRemainStable()
+{
+    static_assert(std::is_class_v<KisPaletteChooser>);
+    static_assert(std::is_base_of_v<QWidget, KisPaletteChooser>);
+    static_assert(std::is_default_constructible_v<KisPaletteChooser>);
+    static_assert(std::is_constructible_v<KisPaletteChooser, QWidget *>);
+    static_assert(std::has_virtual_destructor_v<KisPaletteChooser>);
+    static_assert(
+        std::is_same_v<decltype(&KisPaletteChooser::setCurrentItem), void (KisPaletteChooser::*)(KoResourceSP)>);
+    static_assert(
+        std::is_same_v<decltype(&KisPaletteChooser::paletteSelected), void (KisPaletteChooser::*)(KoResourceSP)>);
+}
+
+void KisPaletteModelSchemaContractTest::paletteChooserNotificationSignaturesRemainStable()
+{
+    static_assert(
+        std::is_same_v<decltype(&KisPaletteChooser::sigPaletteSelected), void (KisPaletteChooser::*)(KoColorSetSP)>);
+    static_assert(std::is_same_v<decltype(&KisPaletteChooser::sigAddPalette), void (KisPaletteChooser::*)()>);
+    static_assert(
+        std::is_same_v<decltype(&KisPaletteChooser::sigRemovePalette), void (KisPaletteChooser::*)(KoColorSetSP)>);
+    static_assert(std::is_same_v<decltype(&KisPaletteChooser::sigImportPalette), void (KisPaletteChooser::*)()>);
+    static_assert(
+        std::is_same_v<decltype(&KisPaletteChooser::sigExportPalette), void (KisPaletteChooser::*)(KoColorSetSP)>);
+}
+
+void KisPaletteModelSchemaContractTest::colorSetWidgetTypeLifetimeAndPaletteSchemaRemainStable()
+{
+    static_assert(std::is_class_v<KoColorSetWidget>);
+    static_assert(std::is_base_of_v<QFrame, KoColorSetWidget>);
+    static_assert(std::is_default_constructible_v<KoColorSetWidget>);
+    static_assert(std::is_constructible_v<KoColorSetWidget, QWidget *>);
+    static_assert(std::has_virtual_destructor_v<KoColorSetWidget>);
+    static_assert(std::is_same_v<decltype(&KoColorSetWidget::setColorSet), void (KoColorSetWidget::*)(KoColorSetSP)>);
+    static_assert(std::is_same_v<decltype(&KoColorSetWidget::colorSet), KoColorSetSP (KoColorSetWidget::*)()>);
+    static_assert(std::is_same_v<decltype(&KoColorSetWidget::setDisplayRenderer),
+                                 void (KoColorSetWidget::*)(const KoColorDisplayRendererInterface *)>);
+}
+
+void KisPaletteModelSchemaContractTest::colorSetWidgetNotificationSignaturesRemainStable()
+{
+    static_assert(
+        std::is_same_v<decltype(&KoColorSetWidget::colorChanged), void (KoColorSetWidget::*)(const KoColor &, bool)>);
+    static_assert(
+        std::is_same_v<decltype(&KoColorSetWidget::widgetSizeChanged), void (KoColorSetWidget::*)(const QSize &)>);
+}
+
+void KisPaletteModelSchemaContractTest::colorPatchTypeColorAndNotificationSchemaRemainStable()
+{
+    static_assert(std::is_class_v<KoColorPatch>);
+    static_assert(std::is_base_of_v<QFrame, KoColorPatch>);
+    static_assert(std::is_constructible_v<KoColorPatch, QWidget *>);
+    static_assert(std::has_virtual_destructor_v<KoColorPatch>);
+    static_assert(std::is_same_v<decltype(&KoColorPatch::setColor), void (KoColorPatch::*)(const KoColor &)>);
+    static_assert(std::is_same_v<decltype(&KoColorPatch::color), KoColor (KoColorPatch::*)() const>);
+    static_assert(std::is_same_v<decltype(&KoColorPatch::setDisplayRenderer),
+                                 void (KoColorPatch::*)(const KoColorDisplayRendererInterface *)>);
+    static_assert(
+        std::is_same_v<decltype(&KoColorPatch::getColorFromDisplayRenderer), QColor (KoColorPatch::*)(KoColor)>);
+    static_assert(std::is_same_v<decltype(&KoColorPatch::triggered), void (KoColorPatch::*)(KoColorPatch *)>);
 }
 
 QTEST_APPLESS_MAIN(KisPaletteModelSchemaContractTest)
