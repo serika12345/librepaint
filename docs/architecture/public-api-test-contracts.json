@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 12045
+    "expectedMissingApis": 12025
   },
   "contracts": [
     {
@@ -50127,6 +50127,71 @@
       "apis": [
         "method:SvgWriter::setDocumentDescription(QString description)",
         "method:SvgWriter::setDocumentTitle(QString title)"
+      ]
+    },
+    {
+      "target": "SliderSpinBoxSchemaContractTest",
+      "source": "libs/libkis/tests/SliderSpinBoxSchemaContractTest.cpp",
+      "test": "SliderSpinBoxSchemaContractTest::parseSpinBoxTypeAndLifetimeSchemaRemainStable",
+      "behavior": "整数・倍精度数値式解析spin boxはQObjectを基底とする非copy公開型、既定構築と仮想寿命を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:DoubleParseSpinBox",
+        "class:IntParseSpinBox",
+        "method:DoubleParseSpinBox::DoubleParseSpinBox()",
+        "method:DoubleParseSpinBox::~DoubleParseSpinBox()",
+        "method:IntParseSpinBox::IntParseSpinBox()",
+        "method:IntParseSpinBox::~IntParseSpinBox()"
+      ]
+    },
+    {
+      "target": "SliderSpinBoxSchemaContractTest",
+      "source": "libs/libkis/tests/SliderSpinBoxSchemaContractTest.cpp",
+      "test": "SliderSpinBoxSchemaContractTest::parseSpinBoxWidgetAndSteppingSignaturesRemainStable",
+      "behavior": "整数・倍精度数値式解析spin boxは内部Widget参照を返し、指定step数だけ値を進める公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:DoubleParseSpinBox::stepBy(int steps)",
+        "method:DoubleParseSpinBox::widget() const",
+        "method:IntParseSpinBox::stepBy(int steps)",
+        "method:IntParseSpinBox::widget() const"
+      ]
+    },
+    {
+      "target": "SliderSpinBoxSchemaContractTest",
+      "source": "libs/libkis/tests/SliderSpinBoxSchemaContractTest.cpp",
+      "test": "SliderSpinBoxSchemaContractTest::parseSpinBoxValueAndValidationSignaturesRemainStable",
+      "behavior": "整数・倍精度数値式解析spin boxは任意の式上書き指定とともに値を設定し、直前の解析妥当性を返す公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:DoubleParseSpinBox::isLastValid() const",
+        "method:DoubleParseSpinBox::setValue(double value,bool overwriteExpression=false)",
+        "method:IntParseSpinBox::isLastValid() const",
+        "method:IntParseSpinBox::setValue(int value,bool overwriteExpression=false)"
+      ]
+    },
+    {
+      "target": "SliderSpinBoxSchemaContractTest",
+      "source": "libs/libkis/tests/SliderSpinBoxSchemaContractTest.cpp",
+      "test": "SliderSpinBoxSchemaContractTest::parseSpinBoxExpressionTextSignaturesRemainStable",
+      "behavior": "整数・倍精度数値式解析spin boxは整形した式文字列を返す仮想公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:DoubleParseSpinBox::veryCleanText() const",
+        "method:IntParseSpinBox::veryCleanText() const"
+      ]
+    },
+    {
+      "target": "SliderSpinBoxSchemaContractTest",
+      "source": "libs/libkis/tests/SliderSpinBoxSchemaContractTest.cpp",
+      "test": "SliderSpinBoxSchemaContractTest::parseSpinBoxParsingNotificationSignaturesRemainStable",
+      "behavior": "整数・倍精度数値式解析spin boxは解析失敗と失敗状態からの復帰を通知する公開signal署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:DoubleParseSpinBox::errorWhileParsing(const QString & expr) const",
+        "method:DoubleParseSpinBox::noMoreParsingError() const",
+        "method:IntParseSpinBox::errorWhileParsing(const QString & expr) const",
+        "method:IntParseSpinBox::noMoreParsingError() const"
       ]
     }
   ]
