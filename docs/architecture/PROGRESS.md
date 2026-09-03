@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-03 11:12 JST
+- 更新日時: 2026-09-03 11:20 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -14,6 +14,13 @@
 - 監査共通基点は`4ea9ada806`、入力は`build/tdd-macos/public-api-missing-g181.json`である。3担当は`auditing`の読み取り専用とし、製品・試験・CMake・script・台帳・文書を変更せず、構成、構築、試験、Git操作、追加委任も行わない。一つの公開責務から20〜80 APIを最大5枠へ固定し、既存限定対象またはheader限定の4〜10工程程度の対象で、製品共有libraryと`kritatestsdk`へ接続しない候補だけを採用する。製品targetを引数にする`build-incremental ... plan`と製品buildは実行せず、既存Ninja木のquery・commands・inputsだけを読み取る。
 - image・paintop・pigment領域は第180便のmemory statisticsを、flake・SVG・vector領域はSVG savingを、widgetutils・widgets・libkis領域は整数・倍精度数値解析spin boxを除外して一責務ずつ比較する。
 - 各監査は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、予測工程・入力と停止線、開始pathから契約先、許可path、固有停止条件、比較候補の棄却根拠を揃える。3領域のpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
+- image領域は`libs/image/kis_update_job_item.h`の残存全20 APIを採用した。型・状態7、寿命・実行4、job割当て3、状態遷移3、矩形・stroke方針3を既存`libs/image/tests/KisImageTypesContractTest.cpp`の5枠へ対応付ける。job item、updater context、walker、stroke・spontaneous job、merger、QObject、QRunnableを実体化せず、列挙値、型、member signatureだけを観測する。CMakeと依存を変えず、直接linkはQt Core・Gui・Test・XmlとBoost、対象4工程・8入力、停止5工程・11入力、command hash`860901e6be`、input hash`42c0bdca62`、製品`kritaimage` 1,196工程・2,416入力を維持する。
+  simple update queue、undo command型stroke strategy、warp transform worker、processing applicator、transactionはqueue・undo・描画・orchestration・paint device状態へ閉包が広く、gradient・histogram・color conversion systemはresource・platform条件・大域registryへ接続するため棄却した。
+- flake・SVG領域は`libs/flake/svg/SvgLoadingContext.h`の残存全26 APIを採用した。型・寿命・file fetcher別名4、graphics context stack・順序5、path・外部file 6、shape・definition登録5、style・profile・text 6を既存`libs/flake/tests/KoSvgTextEnumContractTest.cpp`の5枠へ対応付ける。loading context、graphics context、resource manager、shape、DOM、style parser、profile、text property、file fetcherを実体化せず、読込・登録・解析本文を実行しない。CMakeと依存を変えず、直接linkはQt Gui・Test・Xml、対象4工程・8入力、停止5工程・11入力、command hash`5088721319`、input hash`8fe54ed466`、製品`kritaflake` 621工程・1,274入力を維持する。
+  gradient・mesh backgroundは既存対象が製品OBJECTへ接続し、SVG parser、clip mask・path、SVG utility・style parserは描画・解析責務と閉包が広く、shape fill wrapperは単独件数が不足し、manager・tool・resource上位群は大域状態へ接続するため棄却した。
+- widgets領域は`libs/widgets/KisVisualRectangleSelectorShape.h`の残存全13 APIと`libs/widgets/KisVisualEllipticalSelectorShape.h`の残存全12 APIを具体的な視覚色選択形状として採用した。型・寿命・構築6、一次元形状種別8、幾何8、矩形mode 1、楕円gamut 2を既存`libs/widgets/tests/KisVisualColorSelectorShapeSchemaContractTest.cpp`の5枠へ対応付ける。具体shape、基底shape、親selector、矩形、画像、painter、色、gamut maskを実体化せず、構築・破棄、座標変換、領域算出、描画・gamut更新、border・mode変更本文を実行しない。CMakeと依存を変えず、直接linkはQt Core・Test、対象4工程・8入力、停止5工程・11入力、command hash`b5499f7b2d`、input hash`894f76554d`、製品`kritawidgets` 809工程・1,647入力を維持する。
+  slider・multiplierは二責務とheader閉包を跨ぎ、zoom action・widgetは停止線と製品状態対象へ接続し、unit spin box群はpackageを跨ぐ。HSV・汎用color slider、tag selection、visual color selector、progress updater、libkis application・文書群は色変換・描画・resource・製品状態へ閉包が広いため棄却した。
+- 中央の`public-api-missing-g181.json`でupdate job item 20件、SVG loading context 26件、矩形・楕円視覚色選択形状25件の全識別子を照合した。3責務の開始header、試験source、所有CMake、生成物は相互に異なる。合計71 APIを15枠へ進め、許可path外変更、新規CMake・探索路・link、製品OBJECT/shared・`kritatestsdk`、指定外実体化・本文実行、5工程・11入力超過、製品計画集合の変化が必要になれば停止する。
 
 ### 第180便の先行監査計画
 
