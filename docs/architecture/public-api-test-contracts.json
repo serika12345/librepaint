@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 11364
+    "expectedMissingApis": 11317
   },
   "contracts": [
     {
@@ -51978,6 +51978,98 @@
         "method:KisCircleMaskGenerator::setMaskScalarApplicator()",
         "method:KisRectangleMaskGenerator::applicator() const",
         "method:KisRectangleMaskGenerator::setMaskScalarApplicator()"
+      ]
+    },
+    {
+      "target": "KoCanvasBaseSchemaContractTest",
+      "source": "libs/flake/tests/KoCanvasBaseSchemaContractTest.cpp",
+      "test": "KoCanvasBaseSchemaContractTest::shapeManagerTypeLifetimeAndRepaintSchemaRemainStable",
+      "behavior": "shape managerはcanvasと初期shape集合から構築できる公開型、再描画方針の列挙値と仮想寿命を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoShapeManager",
+        "enum:KoShapeManager::Repaint",
+        "enumerator:KoShapeManager::Repaint::AddWithoutRepaint",
+        "enumerator:KoShapeManager::Repaint::PaintShapeOnAdd",
+        "method:KoShapeManager::KoShapeManager(KoCanvasBase * canvas)",
+        "method:KoShapeManager::KoShapeManager(KoCanvasBase * canvas,const QList<KoShape * > & shapes)",
+        "method:KoShapeManager::~KoShapeManager()"
+      ]
+    },
+    {
+      "target": "KoCanvasBaseSchemaContractTest",
+      "source": "libs/flake/tests/KoCanvasBaseSchemaContractTest.cpp",
+      "test": "KoCanvasBaseSchemaContractTest::shapeManagerPaintJobValueSchemaRemainStable",
+      "behavior": "shape managerの描画jobは文書・表示更新領域、対象shape列、複製shape共有storageと空判定を持つ公開値schemaを維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KoShapeManager::PaintJob::ShapesStorage",
+        "alias:KoShapeManager::PaintJob::SharedSafeStorage",
+        "member:KoShapeManager::PaintJob::allClonedShapes",
+        "member:KoShapeManager::PaintJob::docUpdateRect",
+        "member:KoShapeManager::PaintJob::shapes",
+        "member:KoShapeManager::PaintJob::viewUpdateRect",
+        "method:KoShapeManager::PaintJob::PaintJob()",
+        "method:KoShapeManager::PaintJob::PaintJob(QRectF _docUpdateRect,QRect _viewUpdateRect)",
+        "method:KoShapeManager::PaintJob::isEmpty() const",
+        "struct:KoShapeManager::PaintJob"
+      ]
+    },
+    {
+      "target": "KoCanvasBaseSchemaContractTest",
+      "source": "libs/flake/tests/KoCanvasBaseSchemaContractTest.cpp",
+      "test": "KoCanvasBaseSchemaContractTest::shapeManagerPaintOrderingAndRenderingSignaturesRemainStable",
+      "behavior": "shape managerは描画job列と未切抜き更新領域を管理し、job準備、全体・job・単一shape描画を行う公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KoShapeManager::PaintJobsOrder::jobs",
+        "member:KoShapeManager::PaintJobsOrder::uncroppedViewUpdateRect",
+        "method:KoShapeManager::PaintJobsOrder::clear()",
+        "method:KoShapeManager::PaintJobsOrder::isEmpty() const",
+        "method:KoShapeManager::paint(QPainter & painter)",
+        "method:KoShapeManager::paintJob(QPainter & painter,const KoShapeManager::PaintJob & job)",
+        "method:KoShapeManager::preparePaintJobs(PaintJobsOrder & jobsOrder,KoShape * excludeRoot)",
+        "method:KoShapeManager::renderSingleShape(KoShape * shape,QPainter & painter)",
+        "struct:KoShapeManager::PaintJobsOrder"
+      ]
+    },
+    {
+      "target": "KoCanvasBaseSchemaContractTest",
+      "source": "libs/flake/tests/KoCanvasBaseSchemaContractTest.cpp",
+      "test": "KoCanvasBaseSchemaContractTest::shapeManagerShapeAndSelectionSignaturesRemainStable",
+      "behavior": "shape managerはshape集合の設定・照会・追加・削除、selection照会と内容変更通知を行う公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShapeManager::addShape(KoShape * shape,KoShapeManager::Repaint repaint=PaintShapeOnAdd)",
+        "method:KoShapeManager::contentChanged()",
+        "method:KoShapeManager::remove(KoShape * shape)",
+        "method:KoShapeManager::selection() const",
+        "method:KoShapeManager::selectionChanged()",
+        "method:KoShapeManager::selectionContentChanged()",
+        "method:KoShapeManager::setShapes(const QList<KoShape * > & shapes,Repaint repaint=PaintShapeOnAdd)",
+        "method:KoShapeManager::shapes() const",
+        "method:KoShapeManager::topLevelShapes() const"
+      ]
+    },
+    {
+      "target": "KoCanvasBaseSchemaContractTest",
+      "source": "libs/flake/tests/KoCanvasBaseSchemaContractTest.cpp",
+      "test": "KoCanvasBaseSchemaContractTest::shapeManagerQueryUpdateAndInterfaceSignaturesRemainStable",
+      "behavior": "shape managerは位置・領域検索、更新遮断・通知とshape破棄interfaceを公開し、蓄積更新を転送する署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShapeManager::ShapeInterface::ShapeInterface(KoShapeManager * _q)",
+        "method:KoShapeManager::ShapeInterface::notifyShapeDestructed(KoShape * shape)",
+        "method:KoShapeManager::explicitlyIssueShapeChangedSignals()",
+        "method:KoShapeManager::forwardUpdate()",
+        "method:KoShapeManager::notifyShapeChanged(KoShape * shape)",
+        "method:KoShapeManager::setUpdatesBlocked(bool value)",
+        "method:KoShapeManager::shapeAt(const QPointF & position,KoFlake::ShapeSelection selection=KoFlake::ShapeOnTop,bool omitHiddenShapes=true)",
+        "method:KoShapeManager::shapeInterface()",
+        "method:KoShapeManager::shapesAt(const QRectF & rect,bool omitHiddenShapes=true,bool containedMode=false)",
+        "method:KoShapeManager::update(const QRectF & rect,const KoShape * shape=0,bool selectionHandles=false)",
+        "method:KoShapeManager::updatesBlocked() const",
+        "struct:KoShapeManager::ShapeInterface"
       ]
     }
   ]
