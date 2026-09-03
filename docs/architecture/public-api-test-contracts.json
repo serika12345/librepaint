@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 12005
+    "expectedMissingApis": 11979
   },
   "contracts": [
     {
@@ -50257,6 +50257,77 @@
         "method:KisUpdateJobItem::accessRect() const",
         "method:KisUpdateJobItem::changeRect() const",
         "method:KisUpdateJobItem::strokeJobSequentiality() const"
+      ]
+    },
+    {
+      "target": "KoSvgTextEnumContractTest",
+      "source": "libs/flake/tests/KoSvgTextEnumContractTest.cpp",
+      "test": "KoSvgTextEnumContractTest::svgLoadingTypeLifetimeAndFileFetcherAliasSchemaRemainStable",
+      "behavior": "SVG読込文脈は外部file取得関数型、resource managerを借用する構築と公開寿命を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:SvgLoadingContext::FileFetcherFunc",
+        "class:SvgLoadingContext",
+        "method:SvgLoadingContext::SvgLoadingContext(KoDocumentResourceManager * documentResourceManager)",
+        "method:SvgLoadingContext::~SvgLoadingContext()"
+      ]
+    },
+    {
+      "target": "KoSvgTextEnumContractTest",
+      "source": "libs/flake/tests/KoSvgTextEnumContractTest.cpp",
+      "test": "KoSvgTextEnumContractTest::svgLoadingGraphicsContextStackAndOrderSignaturesRemainStable",
+      "behavior": "SVG読込文脈はgraphics context stackの照会・追加・削除、root判定とZ順採番の公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:SvgLoadingContext::currentGC() const",
+        "method:SvgLoadingContext::isRootContext() const",
+        "method:SvgLoadingContext::nextZIndex()",
+        "method:SvgLoadingContext::popGraphicsContext()",
+        "method:SvgLoadingContext::pushGraphicsContext(const QDomElement & element=QDomElement (),bool inherit=true)"
+      ]
+    },
+    {
+      "target": "KoSvgTextEnumContractTest",
+      "source": "libs/flake/tests/KoSvgTextEnumContractTest.cpp",
+      "test": "KoSvgTextEnumContractTest::svgLoadingPathAndExternalFileSignaturesRemainStable",
+      "behavior": "SVG読込文脈はXML基準directoryと絶対・相対pathを扱い、外部file取得関数を設定・実行する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:SvgLoadingContext::absoluteFilePath(const QString & href)",
+        "method:SvgLoadingContext::fetchExternalFile(const QString & url)",
+        "method:SvgLoadingContext::relativeFilePath(const QString & href)",
+        "method:SvgLoadingContext::setFileFetcher(FileFetcherFunc func)",
+        "method:SvgLoadingContext::setInitialXmlBaseDir(const QString & baseDir)",
+        "method:SvgLoadingContext::xmlBaseDir() const"
+      ]
+    },
+    {
+      "target": "KoSvgTextEnumContractTest",
+      "source": "libs/flake/tests/KoSvgTextEnumContractTest.cpp",
+      "test": "KoSvgTextEnumContractTest::svgLoadingShapeAndDefinitionRegistrySignaturesRemainStable",
+      "behavior": "SVG読込文脈はshapeとDOM definitionを識別子で登録・照会する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:SvgLoadingContext::addDefinition(const QDomElement & element)",
+        "method:SvgLoadingContext::definition(const QString & id) const",
+        "method:SvgLoadingContext::hasDefinition(const QString & id) const",
+        "method:SvgLoadingContext::registerShape(const QString & id,KoShape * shape)",
+        "method:SvgLoadingContext::shapeById(const QString & id)"
+      ]
+    },
+    {
+      "target": "KoSvgTextEnumContractTest",
+      "source": "libs/flake/tests/KoSvgTextEnumContractTest.cpp",
+      "test": "KoSvgTextEnumContractTest::svgLoadingStyleProfileAndTextSignaturesRemainStable",
+      "behavior": "SVG読込文脈はstyle sheet・CSS照合・style parser・color profileと解決済みtext propertyの公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:SvgLoadingContext::addStyleSheet(const QDomElement & styleSheet)",
+        "method:SvgLoadingContext::matchingCssStyles(const QDomElement & element) const",
+        "method:SvgLoadingContext::parseProfile(const QDomElement & element)",
+        "method:SvgLoadingContext::profiles()",
+        "method:SvgLoadingContext::resolvedProperties(bool onlyFontAndLineHeight=false) const",
+        "method:SvgLoadingContext::styleParser()"
       ]
     }
   ]
