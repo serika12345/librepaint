@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-03 22:03 JST
+- 更新日時: 2026-09-03 22:10 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -16,6 +16,23 @@
 - `g194-flake-contract-audit`はflake・SVG・vector領域を所有し、第193便までに固定したshape manager・controller、tool代理、shape幾何・階層・文書状態、clip、背景群、path点・区間種別command、path点topology commandを除外して、一責務の未対応集合を比較する。
 - `g194-ui-contract-audit`はwidgetutils・widgets・libkis領域を所有し、第193便までに固定したHSX色入力、内部色選択dialog、視覚色選択群、palette delegate、filter設定・適用、palette選択・色集合表示、色選択button・popup action、action分類・toolbar編集入口を除外して、一責務の未対応集合を比較する。
 - 各担当は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、実際のcompile探索路、予測工程・入力と停止線、開始pathから契約先、実装時許可path、固有停止条件、比較候補の棄却根拠を返す。調整担当は3領域のpath、CMake、試験source、生成物が重ならず、合計60〜180 APIとなる組合せだけを次の実装担当票へ進める。
+
+### 第194便の先行監査結果
+
+- image領域は`libs/image/kis_layer.h`の残存全53 APIを画像階層の基底layer責務として採用した。既存`libs/image/tests/KisPaintLayerSchemaContractTest.cpp`は105行・5枠であり、基底layerの型・構築、投影・選択・metadata、状態・幾何・表示、合成・effect、clone追跡の5枠を追加しても300行・20枠未満に収まるため、同じlayer階層契約へ追記する。CMake、探索路、link、定義を変えず、Qt Core・Gui・Test・Xmlとheader-only Boostだけの4工程・8入力を維持し、停止線を5工程・11入力とする。layer、node、image、device、selection・mask、clone、style、metadata、Qt値を実体化せず、構築、投影、合成、thumbnail、clone通知、metaobject本文を実行しない。
+  fill painter、selection、transform mask、raster keyframe channel、gradient、resource、色空間registryは、描画・永続化・非同期状態・大域registryを横断するか、製品記号の実体化危険が基底layerより高いため棄却した。
+- flake領域は`libs/flake/resources/KoFontFamily.h`の残存全22 APIをfont family資源の型・構築、識別・翻訳、axis・style、能力、永続化として採用し、新規`libs/flake/tests/KoFontFamilySchemaContractTest.cpp`の5枠へ分離する。近傍`KoFFWWSConverterSchemaContractTest`の探索路へresources source・generatedとKF I18n interfaceだけを加え、Qt Gui・Test・Xmlとheader-only Boostの直接linkだけで4工程・8入力を予測し、停止線を5工程・11入力とする。font family、資源基底、WWS・axis・style値、I/O、資源interfaceを実体化せず、構築、clone、読込、thumbnail、翻訳、能力照会本文を実行しない。
+  gamut mask、CSS style、SVG symbol資源、SVG parser、tool manager・path toolは、図形所有・I/O・描画・大域状態・入力処理へ責務が広がるか製品接続を持つため棄却した。
+- widgets領域は`libs/widgets/KoZoomAction.h`の残存全11 APIと`KoZoomWidget.h`の残存全15 APIを、zoom入力・表示・通知の公開接続面として採用し、新規`libs/widgets/tests/KoZoomControlSchemaContractTest.cpp`の5枠へ分離する。構造上の近傍`KisColorSelectionControlSchemaContractTest`と同じQt Core・Gui・Testの直接link、Qt Widgets・KF WidgetsAddonsのinterface探索路、widgets・flakeの既存定義だけで4工程・8入力を予測し、停止線を5工程・11入力とする。action、widget、zoom状態、Qt基底・値、private実装を実体化せず、widget生成、状態反映、slider・combo更新、印刷解像度mode、signal配送本文を実行しない。
+  tag選択は製品と`kritatestsdk`、gradient編集は生成UI、libkis候補はapplication・document・image寿命を横断し、progress updaterと言語buttonは下限未満のため棄却した。
+- 中央の`public-api-missing-g194.json`で3集合の101 APIを照合した。開始headerと試験sourceは相互に異なり、fontとzoomの所有CMake・生成物も異なる。layer担当はCMakeを変更しない。許可path外変更、新規の動的link、公開header・製品source変更、候補headerのAUTOMOC入力化、製品shared・OBJECT・`kritatestsdk`接続、指定外実体化・本文実行、各停止線超過、製品計画集合の変化が不要な場合だけ実装へ進める。
+
+### 第194便の担当計画
+
+- 実装共通基点は`bf4ba400c21f`である。3担当のGit権限は許可pathだけの1受渡しcommit、追加委任は禁止する。対象platformはmacOSであり、一度に一つだけ作る専用worktree-local `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。Nix再評価を行わず、担当側の`./scripts/run-shared-test-env`で主作業treeの読み込み済み開発環境を共有する。基底layer、font family資源、zoom controlの順に一担当ずつ実装・限定検証・統合・削除する。調整担当だけがarchitecture文書、公開API台帳、共通不足報告を変更する。製品targetを引数にするplan/build、全体build、全体`verify`、Linux検証は禁止する。
+- `g194-layer-schema`の状態は`implementing`、構築実行許可は`granted`、作業treeは`/Users/masato/Documents/librepaint-g194-layer-schema`である。開始`libs/image/kis_layer.h`の残存全53 APIを既存`libs/image/tests/KisPaintLayerSchemaContractTest.cpp`の5枠`layerTypeAndConstructionSchemaRemainStable`、`layerProjectionSelectionAndMetadataSignaturesRemainStable`、`layerStateGeometryAndPresentationSignaturesRemainStable`、`layerCompositionAndEffectSignaturesRemainStable`、`layerCloneTrackingSignaturesRemainStable`へ対応付ける。許可pathは既存試験sourceだけであり、CMake、探索路、link、compile定義を変更しない。既存対象4工程・8入力と近傍`KisMaskSchemaContractTest`を維持し、5工程・11入力を停止線として、対象・追加5枠・既存5枠・20回反復・近傍・無作業、接続・AUTOMOC・未解決記号、構文・書式、公開API・`verify-quick`を確認する。
+- `g194-font-family-schema`の状態は`preparing`、構築実行許可は`waiting`、作業treeは`/Users/masato/Documents/librepaint-g194-font-family-schema`である。開始`libs/flake/resources/KoFontFamily.h`の残存全22 APIから新規`libs/flake/tests/KoFontFamilySchemaContractTest.cpp`の5枠`fontFamilyTypeLifetimeAndConstructionSchemaRemainStable`、`fontFamilyIdentityAndLocalizationSignaturesRemainStable`、`fontFamilyAxesAndStylesSignaturesRemainStable`、`fontFamilyCapabilitySignaturesRemainStable`、`fontFamilyResourcePersistenceSignaturesRemainStable`へ対応付ける。許可pathは新規試験sourceと`libs/flake/tests/CMakeLists.txt`の新target固有節だけである。resources source・generatedとKF I18n interface以外の探索路を増やさず、直接linkをQt Gui・Test・Xmlとheader-only Boostに限定する。layer担当の統合・削除後に構築を許可し、予測4工程・8入力、停止5工程・11入力で同じ限定検証を行う。
+- `g194-zoom-control-schema`の状態は`preparing`、構築実行許可は`waiting`、作業treeは`/Users/masato/Documents/librepaint-g194-zoom-control-schema`である。開始`libs/widgets/KoZoomAction.h`の残存全11 APIと`KoZoomWidget.h`の残存全15 APIから新規`libs/widgets/tests/KoZoomControlSchemaContractTest.cpp`の5枠`zoomActionTypeLifetimeAndWidgetSchemaRemainStable`、`zoomActionStateControlSignaturesRemainStable`、`zoomActionNotificationSignaturesRemainStable`、`zoomWidgetTypeLifetimeAndPresentationSchemaRemainStable`、`zoomWidgetStateAndNotificationSignaturesRemainStable`へ対応付ける。許可pathは新規試験sourceと`libs/widgets/tests/CMakeLists.txt`の新target固有節だけである。直接linkをQt Core・Gui・Testに限定し、Qt Widgets・KF WidgetsAddonsはinterface探索路だけとする。font担当の統合・削除後に構築を許可し、予測4工程・8入力、停止5工程・11入力で同じ限定検証を行う。
 
 ### 第193便の先行監査担当票
 
