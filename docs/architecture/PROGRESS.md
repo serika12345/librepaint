@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-03 21:12 JST
+- 更新日時: 2026-09-03 21:18 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -26,6 +26,13 @@
 - widgets領域は`libs/widgets/kis_color_button.h`の残存全16 APIと`KoColorPopupAction.h`の残存全9 APIを、現在色を選択・表示・通知するUI入口として採用した。既存`KisVisualColorModelSchemaContractTest.cpp`は323行・20枠であるため追記せず、新規`libs/widgets/tests/KisColorSelectionControlSchemaContractTest.cpp`の5枠へ分離する。近傍と同じQt Core・Gui・Test、Qt Widgetsのinterface探索路、既存widgets・pigment探索路と定義だけで4工程・8入力を予測し、停止線を5工程・11入力とする。button、action、Qt基底・値、色とprivate実装を実体化せず、dialog、palette、色設定、icon、寸法、描画、入力、通知配送本文を実行しない。
   XML GUI候補はconfig探索路、gradient編集は公開面の生成UI依存、tag選択はresource UIと製品試験、zoomは製品OBJECT、libkis候補はapplication・image・view・resource寿命を横断するため棄却した。
 - 中央の`public-api-missing-g192.json`で3集合の83 APIを照合した。開始header、試験source、所有CMake、生成物は3領域で相互に異なる。各専用targetが4工程・8入力に収まり、許可path外変更、探索路・link・compile定義の追加、公開header・製品source変更、候補headerのAUTOMOC入力化、製品shared・OBJECT・`kritatestsdk`接続、指定外実体化・本文実行、5工程・11入力超過、製品計画集合の変化が不要な場合だけ実装へ進める。
+
+### 第192便の担当計画
+
+- 実装共通基点は`5daf595c3e7d`である。3担当のGit権限は許可pathだけの1受渡しcommit、追加委任は禁止する。対象platformはmacOSであり、一度に一つだけ作る専用worktree-local `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。Nix再評価を行わず、担当側の`./scripts/run-shared-test-env`で主作業treeの読み込み済み開発環境を共有する。paint layer、shape状態、色選択controlの順に一担当ずつ実装・限定検証・統合・削除する。調整担当だけがarchitecture文書、公開API台帳、共通不足報告を変更する。製品targetを引数にするplan/build、全体build、全体`verify`、Linux検証は禁止し、担当targetと近傍、公開API検査、`verify-quick`だけを実行する。
+- `g192-paint-layer-schema`の状態は`preparing`、構築実行許可は`granted`、作業treeは`/Users/masato/Documents/librepaint-g192-paint-layer-schema`である。開始`libs/image/kis_paint_layer.h`の残存全34 APIから新規`libs/image/tests/KisPaintLayerSchemaContractTest.cpp`の5枠`paintLayerTypeAndConstructionSchemaRemainStable`、`paintLayerHierarchyAndPresentationSignaturesRemainStable`、`paintLayerDeviceAndGeometrySignaturesRemainStable`、`paintLayerEditingAndDecorationSignaturesRemainStable`、`paintLayerVisitorAndKeyframeSignaturesRemainStable`へ対応付ける。許可pathは新規試験sourceと`libs/image/tests/CMakeLists.txt`の新target固有節だけである。`KisPaintLayerSchemaContractTest`は近傍`KisLayerPropertiesIconsSchemaContractTest`と同じQt Core・Gui・Test・Xml、header-only Boost、探索路、`kritaimage_EXPORTS`・`kritapigment_EXPORTS`だけを使用する。候補headerをtarget sourceへ加えず、paint layer、基底、image・node・device、色空間、visitor、undo、keyframe、Qt値を実体化せず、本文とmetaobjectを実行しない。予測4工程・8入力、停止5工程・11入力とし、新対象の初回計画・直接依存・空構築閉包、期待する最初の診断、対象と20回反復、近傍、無作業再構築、動的接続、AUTOMOC入力、未解決製品記号、構文・書式、公開API検査、`verify-quick`を確認する。
+- `g192-shape-state-schema`の状態は`preparing`、構築実行許可は`waiting`、作業treeは`/Users/masato/Documents/librepaint-g192-shape-state-schema`である。開始`libs/flake/KoShape.h`の残存24 APIから新規`libs/flake/tests/KoShapeStateSchemaContractTest.cpp`の5枠`shapeIdentityAndLinkSignaturesRemainStable`、`shapeAdditionalAttributeSignaturesRemainStable`、`shapeProtectionSignaturesRemainStable`、`shapePresentationPolicySignaturesRemainStable`、`shapeEditabilityAndReadinessSignaturesRemainStable`へ対応付ける。許可pathは新規試験sourceと`libs/flake/tests/CMakeLists.txt`の新target固有節だけである。近傍`KoShapeEnumContractTest`と同じQt Core・Gui・Test・Xml、探索路、`kritaflake_EXPORTS`だけを使用し、候補headerをAUTOMOC入力へ加えない。shape、派生shape、Qt値、属性値を実体化せず、状態保存、再帰探索、準備待ち本文を実行しない。paint layer担当の統合・削除後に構築を許可し、同じ限定検証を予測4工程・8入力、停止5工程・11入力で行う。
+- `g192-color-selection-control-schema`の状態は`preparing`、構築実行許可は`waiting`、作業treeは`/Users/masato/Documents/librepaint-g192-color-selection-control-schema`である。開始`libs/widgets/kis_color_button.h`の残存全16 APIと`KoColorPopupAction.h`の残存全9 APIから新規`libs/widgets/tests/KisColorSelectionControlSchemaContractTest.cpp`の5枠`colorButtonTypeAndLifetimeSchemaRemainStable`、`colorButtonColorAndPaletteSignaturesRemainStable`、`colorButtonGeometryAndNotificationSignaturesRemainStable`、`colorPopupActionTypeLifetimeAndColorSchemaRemainStable`、`colorPopupActionEditingAndNotificationSignaturesRemainStable`へ対応付ける。許可pathは新規試験sourceと`libs/widgets/tests/CMakeLists.txt`の新target固有節だけである。近傍`KisVisualColorModelSchemaContractTest`と同じQt Core・Gui・Test、Qt Widgetsのinterface、widgets・pigment探索路と既存定義だけを使用し、Qt Widgetsを実行形式へlinkせず候補headerをAUTOMOC入力へ加えない。button、action、Qt基底・値、色、private実装を実体化せず、dialog、palette、色・icon・寸法・描画・入力・通知本文を実行しない。shape状態担当の統合・削除後に構築を許可し、同じ限定検証を予測4工程・8入力、停止5工程・11入力で行う。
 
 ### 第191便の先行監査担当票
 
