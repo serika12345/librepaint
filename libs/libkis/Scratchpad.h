@@ -10,7 +10,6 @@
 #include <QColor>
 #include <QWidget>
 
-#include <kis_types.h>
 
 #include "libkis.h"
 #include "View.h"
