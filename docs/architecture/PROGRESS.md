@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-03 14:26 JST
+- 更新日時: 2026-09-03 14:38 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -21,6 +21,17 @@
 - widgetutils・widgets領域は`libs/widgetutils/KisPreviewFileDialog.h`の残存全14 APIと`libs/widgets/kis_file_name_requester.h`の残存全15 APIをファイル選択UIとして採用した。icon生成型・寿命4、icon provider型・配送4、preview dialog型・通知6、file requester型・構成7、選択・通知8を既存`libs/widgetutils/tests/KoFileDialogSchemaContractTest.cpp`の5枠へ対応付ける。icon creator・provider、preview dialog、file requester、file dialog、Widget、Qt値、validatorを実体化せず、icon生成、選択dialog表示、filesystem参照、設定保存、filter適用、signal本文を実行しない。requester headerと生成export headerを解決する対象固有のwidgets source・build探索路2本だけを追加し、`kritawidgets_EXPORTS`はconsumer利用に不要なため追加しない。直接linkはQt Core・Test、対象4工程・8入力、停止5工程・11入力、command hash`c8db09f47c`、input hash`c34e442c7a`を基準とし、製品`kritawidgetutils` 274工程・581入力と`kritawidgets` 809工程・1,647入力を維持する。
   単位付き数値入力は旧widgetと別manager構築面が混在し、zoom UIは5工程・12入力と製品OBJECT、tag selectionは製品shared・試験支援library、上位visual color selectorはgamut mask・resource・色modelへ接続するため棄却した。
 - 中央の`public-api-missing-g185.json`でsimple update queue 24件、図形描画・外観・更新21件、ファイル選択UI 29件の全識別子を照合した。3責務の開始header、試験source、所有CMake、生成物は相互に異なる。合計74 APIを15枠へ進め、許可path外変更、ファイル選択対象固有のwidgets source・build探索路以外のCMake変更、新規link・compile定義、製品OBJECT/shared・`kritatestsdk`、指定外実体化・本文実行、5工程・11入力超過、製品計画集合の変化が必要になれば停止する。
+
+### 第185便の担当計画
+
+- 実装共通基点は`ac3a308b31`である。3担当のGit権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、一度に一つだけ作る専用worktree-local `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。Nix再評価を行わず、主作業treeの読み込み済み開発環境を`run-shared-test-env`で共有する。simple update queue、図形描画・外観・更新、ファイル選択UIの順に一担当ずつ実装・限定検証・統合・削除する。
+  調整担当だけがarchitecture文書、公開API台帳、共通不足報告を変更する。製品targetを引数にするplan/build、全体build、全体`verify`、Linux検証は禁止し、担当targetと近傍、公開API検査、`verify-quick`だけを実行する。
+- `g185-simple-update-queue-schema`は`/Users/masato/Documents/librepaint-g185-simple-update-queue-schema`を所有する。開始`libs/image/kis_simple_update_queue.h`の残存全24 APIから既存`libs/image/tests/KisImageTypesContractTest.cpp`の5枠`simpleUpdateQueueTypeAndLifetimeSchemaRemainStable`、`simpleUpdateQueueAliasSchemaRemainStable`、`simpleUpdateQueueAdmissionSignaturesRemainStable`、`simpleUpdateQueueStateAndProcessingSignaturesRemainStable`、`simpleUpdateQueueTestingAccessSignaturesRemainStable`へ対応付ける。
+  完全集合はqueue・試験用派生classと構築・破棄、walker・自発jobのlist・iterator別名6、矩形または矩形列のfull refresh・update job追加、自発job追加、空・idle・LOD・size照会、最適化・処理・設定更新、試験用2待機列参照である。許可pathは既存試験sourceだけで、CMake・依存・公開header・製品sourceを変更しない。queue、派生、list・iterator、mutex、node、walker、自発job、updater context、矩形、flagを実体化せず、構築・破棄、設定読込、job追加・分割・統合、mutex取得、待機列処理、getter本文を実行しない。対象4工程・8入力、停止5工程・11入力、近傍`KisBaseRectsWalkerPolicyContractTest`、製品`kritaimage` 1,196工程・2,416入力を維持する。対象・新旧枠、CTest、20回反復、近傍、無作業再構築、動的接続・AUTOMOC入力・queue/job/walker/context未解決記号、構文・書式、公開API・`verify-quick`を確認する。
+- `g185-shape-appearance-schema`は`/Users/masato/Documents/librepaint-g185-shape-appearance-schema`を所有する。開始`libs/flake/KoShape.h`の描画・外観・更新21 APIから既存`libs/flake/tests/KoShapeEnumContractTest.cpp`の5枠`shapePaintingSignaturesRemainStable`、`shapeBackgroundSignaturesRemainStable`、`shapeStrokeSignaturesRemainStable`、`shapePaintOrderSignaturesRemainStable`、`shapeTransparencyAndUpdateSignaturesRemainStable`へ対応付ける。
+  完全集合は図形・stroke・marker描画、背景照会設定・継承、stroke照会設定・継承、描画順設定・照会・既定順・継承、透明判定・透明度照会設定、局所・絶対更新要求である。許可pathは既存試験sourceだけで、CMake・依存・公開header・製品sourceを変更しない。shape、painter、背景共有pointer、stroke、描画順容器、矩形を実体化せず、描画、背景・stroke・描画順設定、再帰透明度計算、再描画要求本文を実行しない。透明度の既定引数省略を未評価式で固定する。対象4工程・8入力、停止5工程・11入力、近傍`KoShapeStrokeSchemaContractTest`、製品`kritaflake` 621工程・1,274入力を維持し、queue担当の統合・削除後に開始する。同じ限定検証とshape/painter/background/stroke/order未解決記号を確認する。
+- `g185-file-selection-schema`は`/Users/masato/Documents/librepaint-g185-file-selection-schema`を所有する。開始`libs/widgetutils/KisPreviewFileDialog.h`の残存全14 APIと`libs/widgets/kis_file_name_requester.h`の残存全15 APIから既存`libs/widgetutils/tests/KoFileDialogSchemaContractTest.cpp`の5枠`fileIconCreatorTypeAndLifetimeSchemaRemainStable`、`fileIconProviderTypeAndDispatchSchemaRemainStable`、`previewFileDialogTypeAndNotificationSchemaRemainStable`、`fileNameRequesterTypeAndConfigurationSchemaRemainStable`、`fileNameRequesterSelectionAndNotificationSchemaRemainStable`へ対応付ける。
+  完全集合はicon creator class・構築・破棄・生成、icon provider class・構築・2 icon overload、preview dialog class・静的creator member・既定引数付き構築・current変更・preview切替・provider再設定、file requester class・構築・破棄・開始directory・構成名・mode・readonly、file名照会設定・MIME filter・validator・選択slot・2通知である。許可pathは既存試験sourceと`libs/widgetutils/tests/CMakeLists.txt`の対象固有探索路だけである。先にwidgets source・build探索路2本だけを追加し、compile定義・link・4工程・8入力を増やさないことを確認してから試験sourceを変更する。icon creator・provider、dialog、requester、Widget、Qt値、validatorを実体化せず、icon生成、dialog表示、filesystem参照、設定保存、filter適用、signal本文を実行しない。停止5工程・11入力、近傍`libs-libkis-FileDialogSchemaContractTest`、製品`kritawidgetutils` 274工程・581入力と`kritawidgets` 809工程・1,647入力を維持し、図形担当の統合・削除後に開始する。同じ限定検証とicon/dialog/requester/Qt値未解決記号を確認する。
 
 ### 第184便の先行監査計画
 
