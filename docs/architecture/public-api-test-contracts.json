@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 11851
+    "expectedMissingApis": 11819
   },
   "contracts": [
     {
@@ -50681,6 +50681,83 @@
         "method:KisLiquifyTransformWorker::approxNeedRect(const QRect & rc,const QRect & fullBounds)",
         "method:KisLiquifyTransformWorker::fromXML(const QDomElement & e)",
         "method:KisLiquifyTransformWorker::toXML(QDomElement * e) const"
+      ]
+    },
+    {
+      "target": "KoPathShapeSchemaContractTest",
+      "source": "libs/flake/tests/KoPathShapeSchemaContractTest.cpp",
+      "test": "KoPathShapeSchemaContractTest::clipTypeAndLifetimeSchemaRemainStable",
+      "behavior": "図形clip maskとclip pathは公開型、既定・値・copy構築、copy代入と公開寿命を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoClipMask",
+        "class:KoClipPath",
+        "method:KoClipMask::KoClipMask()",
+        "method:KoClipMask::KoClipMask(const KoClipMask &)",
+        "method:KoClipMask::operator =(const KoClipMask &)",
+        "method:KoClipMask::~KoClipMask()",
+        "method:KoClipPath::KoClipPath(QList<KoShape * > clipShapes,KoFlake::CoordinateSystem coordinates)",
+        "method:KoClipPath::KoClipPath(const KoClipPath &)",
+        "method:KoClipPath::operator =(const KoClipPath &)",
+        "method:KoClipPath::~KoClipPath()"
+      ]
+    },
+    {
+      "target": "KoPathShapeSchemaContractTest",
+      "source": "libs/flake/tests/KoPathShapeSchemaContractTest.cpp",
+      "test": "KoPathShapeSchemaContractTest::clipCoordinateAndRuleSignaturesRemainStable",
+      "behavior": "図形clip maskはmask・内容座標系を、clip pathは座標系と塗り規則を照会・設定する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoClipMask::contentCoordinates() const",
+        "method:KoClipMask::coordinates() const",
+        "method:KoClipMask::setContentCoordinates(KoFlake::CoordinateSystem value)",
+        "method:KoClipMask::setCoordinates(KoFlake::CoordinateSystem value)",
+        "method:KoClipPath::clipRule() const",
+        "method:KoClipPath::coordinates() const",
+        "method:KoClipPath::setClipRule(Qt::FillRule clipRule)"
+      ]
+    },
+    {
+      "target": "KoPathShapeSchemaContractTest",
+      "source": "libs/flake/tests/KoPathShapeSchemaContractTest.cpp",
+      "test": "KoPathShapeSchemaContractTest::clipShapeOwnershipSignaturesRemainStable",
+      "behavior": "図形clip maskとclip pathは複製、空判定と所有shape集合の照会・設定を行う公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoClipMask::clone() const",
+        "method:KoClipMask::isEmpty() const",
+        "method:KoClipMask::setShapes(const QList<KoShape * > & value)",
+        "method:KoClipMask::shapes() const",
+        "method:KoClipPath::clipPathShapes() const",
+        "method:KoClipPath::clipShapes() const",
+        "method:KoClipPath::clone() const"
+      ]
+    },
+    {
+      "target": "KoPathShapeSchemaContractTest",
+      "source": "libs/flake/tests/KoPathShapeSchemaContractTest.cpp",
+      "test": "KoPathShapeSchemaContractTest::clipGeometrySignaturesRemainStable",
+      "behavior": "図形clip maskはmask範囲と追加offsetを扱い、clip pathは経路・寸法別経路・clip座標変換を返す公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoClipMask::maskRect() const",
+        "method:KoClipMask::setExtraShapeOffset(const QPointF & value)",
+        "method:KoClipMask::setMaskRect(const QRectF & value)",
+        "method:KoClipPath::clipDataTransformation(KoShape * clippedShape) const",
+        "method:KoClipPath::path() const",
+        "method:KoClipPath::pathForSize(const QSizeF & size) const"
+      ]
+    },
+    {
+      "target": "KoPathShapeSchemaContractTest",
+      "source": "libs/flake/tests/KoPathShapeSchemaContractTest.cpp",
+      "test": "KoPathShapeSchemaContractTest::clipRenderingSignaturesRemainStable",
+      "behavior": "図形clip maskとclip pathは対象shapeへmask描画またはclipを適用する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoClipMask::drawMask(QPainter * painter,KoShape * shape)",
+        "method:KoClipPath::applyClipping(KoShape * clippedShape,QPainter & painter)"
       ]
     }
   ]
