@@ -213,7 +213,16 @@ public:
     KUndo2Command *operator()(KUndo2Command *command) const;
 };
 
-class PaintOpSignatureProbe;
+class PaintOpSignatureProbe final : public KisPaintOpSettings
+{
+public:
+    using KisPaintOpSettings::KisPaintOpSettings;
+
+    void setPaintOpSize(qreal value) override;
+    qreal paintOpSize() const override;
+    void setPaintOpAngle(qreal value) override;
+    qreal paintOpAngle() const override;
+};
 
 } // namespace
 
@@ -301,6 +310,11 @@ private Q_SLOTS:
     void paintOpDepositParameterSignaturesRemainStable();
     void paintOpGeometryCompositeAndEraserSignaturesRemainStable();
     void paintOpSavedBrushAndEraserValueSignaturesRemainStable();
+    void paintOpSettingsTypeUpdateListenerAndLifetimeSchemaRemainStable();
+    void paintOpSettingsInteractionAndOutlineSignaturesRemainStable();
+    void paintOpSettingsCompositionAndValiditySignaturesRemainStable();
+    void paintOpSettingsResourceAndCanvasSignaturesRemainStable();
+    void paintOpSettingsMaskingLodAndUniformPropertySignaturesRemainStable();
     void fixedPaintDeviceOwnershipAndCopySchemaRemainsStable();
     void fixedPaintDeviceGeometryCapacityAndColorSchemaRemainsStable();
     void fixedPaintDeviceBufferStorageSignaturesRemainStable();
@@ -2112,6 +2126,102 @@ void KisImageTypesContractTest::paintOpSavedBrushAndEraserValueSignaturesRemainS
     ASSERT_PAINTOP_SETTINGS_SIGNATURE(setSavedEraserOpacity, void (KisPaintOpSettings::*)(qreal));
     ASSERT_PAINTOP_SETTINGS_SIGNATURE(savedEraserSize, qreal (KisPaintOpSettings::*)() const);
     ASSERT_PAINTOP_SETTINGS_SIGNATURE(setSavedEraserSize, void (KisPaintOpSettings::*)(qreal));
+}
+
+void KisImageTypesContractTest::paintOpSettingsTypeUpdateListenerAndLifetimeSchemaRemainStable()
+{
+    using UpdateListener = KisPaintOpSettings::UpdateListener;
+
+    static_assert(std::is_class_v<KisPaintOpSettings>);
+    static_assert(std::is_abstract_v<KisPaintOpSettings>);
+    static_assert(std::is_base_of_v<KisPropertiesConfiguration, KisPaintOpSettings>);
+    static_assert(std::is_class_v<UpdateListener>);
+    static_assert(std::is_abstract_v<UpdateListener>);
+    static_assert(std::is_same_v<KisPaintOpSettings::UpdateListenerSP, QSharedPointer<UpdateListener>>);
+    static_assert(std::is_same_v<KisPaintOpSettings::UpdateListenerWSP, QWeakPointer<UpdateListener>>);
+    static_assert(std::has_virtual_destructor_v<UpdateListener>);
+    static_assert(std::is_same_v<decltype(&UpdateListener::setDirty), void (UpdateListener::*)(bool)>);
+    static_assert(std::is_same_v<decltype(&UpdateListener::isDirty), bool (UpdateListener::*)() const>);
+    static_assert(std::is_same_v<decltype(&UpdateListener::notifySettingsChanged), void (UpdateListener::*)()>);
+    static_assert(std::is_constructible_v<PaintOpSignatureProbe, KisResourcesInterfaceSP>);
+    static_assert(std::is_copy_constructible_v<PaintOpSignatureProbe>);
+    static_assert(std::has_virtual_destructor_v<KisPaintOpSettings>);
+}
+
+void KisImageTypesContractTest::paintOpSettingsInteractionAndOutlineSignaturesRemainStable()
+{
+    using OutlineMode = KisPaintOpSettings::OutlineMode;
+
+    static_assert(std::is_class_v<OutlineMode>);
+    static_assert(std::is_aggregate_v<OutlineMode>);
+    static_assert(std::is_same_v<decltype(&OutlineMode::forceCircle), bool OutlineMode::*>);
+    static_assert(std::is_same_v<decltype(&OutlineMode::forceFullSize), bool OutlineMode::*>);
+    static_assert(std::is_same_v<decltype(&OutlineMode::isVisible), bool OutlineMode::*>);
+    static_assert(std::is_same_v<decltype(&OutlineMode::showTiltDecoration), bool OutlineMode::*>);
+    ASSERT_PAINTOP_SETTINGS_SIGNATURE(activate, void (KisPaintOpSettings::*)());
+    ASSERT_PAINTOP_SETTINGS_SIGNATURE(
+        brushOutline,
+        KisOptimizedBrushOutline (KisPaintOpSettings::*)(const KisPaintInformation &, const OutlineMode &, qreal));
+    static_assert(std::is_same_v<decltype(&KisPaintOpSettings::ellipseOutline),
+                                 KisOptimizedBrushOutline (*)(qreal, qreal, qreal, qreal)>);
+    static_assert(std::is_same_v<decltype(&KisPaintOpSettings::makeTiltIndicator),
+                                 QPainterPath (*)(const KisPaintInformation &, const QPointF &, qreal, qreal)>);
+    ASSERT_PAINTOP_SETTINGS_SIGNATURE(
+        mousePressEvent,
+        bool (KisPaintOpSettings::*)(const KisPaintInformation &, Qt::KeyboardModifiers, KisNodeWSP));
+    ASSERT_PAINTOP_SETTINGS_SIGNATURE(mouseReleaseEvent, bool (KisPaintOpSettings::*)());
+    ASSERT_PAINTOP_SETTINGS_SIGNATURE(node, KisNodeSP (KisPaintOpSettings::*)() const);
+    ASSERT_PAINTOP_SETTINGS_SIGNATURE(paintIncremental, bool (KisPaintOpSettings::*)());
+}
+
+void KisImageTypesContractTest::paintOpSettingsCompositionAndValiditySignaturesRemainStable()
+{
+    ASSERT_PAINTOP_SETTINGS_SIGNATURE(clone, KisPaintOpSettingsSP (KisPaintOpSettings::*)() const);
+    ASSERT_PAINTOP_SETTINGS_SIGNATURE(resetSettings, void (KisPaintOpSettings::*)(const QStringList &));
+    ASSERT_PAINTOP_SETTINGS_SIGNATURE(indirectPaintingCompositeOp, QString (KisPaintOpSettings::*)() const);
+    ASSERT_PAINTOP_SETTINGS_SIGNATURE(effectivePaintOpCompositeOp, QString (KisPaintOpSettings::*)());
+    ASSERT_PAINTOP_SETTINGS_SIGNATURE(modelName, QString (KisPaintOpSettings::*)() const);
+    ASSERT_PAINTOP_SETTINGS_SIGNATURE(setModelName, void (KisPaintOpSettings::*)(const QString &));
+    ASSERT_PAINTOP_SETTINGS_SIGNATURE(isValid, bool (KisPaintOpSettings::*)() const);
+    ASSERT_PAINTOP_SETTINGS_SIGNATURE(setProperty, void (KisPaintOpSettings::*)(const QString &, const QVariant &));
+    ASSERT_PAINTOP_SETTINGS_SIGNATURE(sanityVersionCookie, quint64 (KisPaintOpSettings::*)() const);
+    ASSERT_PAINTOP_SETTINGS_SIGNATURE(hasPatternSettings, bool (KisPaintOpSettings::*)() const);
+}
+
+void KisImageTypesContractTest::paintOpSettingsResourceAndCanvasSignaturesRemainStable()
+{
+    ASSERT_PAINTOP_SETTINGS_SIGNATURE(resourcesInterface, KisResourcesInterfaceSP (KisPaintOpSettings::*)() const);
+    ASSERT_PAINTOP_SETTINGS_SIGNATURE(setResourcesInterface, void (KisPaintOpSettings::*)(KisResourcesInterfaceSP));
+    ASSERT_PAINTOP_SETTINGS_SIGNATURE(canvasResourcesInterface,
+                                      KoCanvasResourcesInterfaceSP (KisPaintOpSettings::*)() const);
+    ASSERT_PAINTOP_SETTINGS_SIGNATURE(setCanvasResourcesInterface,
+                                      void (KisPaintOpSettings::*)(KoCanvasResourcesInterfaceSP));
+    ASSERT_PAINTOP_SETTINGS_SIGNATURE(resourceCacheInterface,
+                                      KoResourceCacheInterfaceSP (KisPaintOpSettings::*)() const);
+    ASSERT_PAINTOP_SETTINGS_SIGNATURE(setResourceCacheInterface,
+                                      void (KisPaintOpSettings::*)(KoResourceCacheInterfaceSP));
+    ASSERT_PAINTOP_SETTINGS_SIGNATURE(regenerateResourceCache,
+                                      void (KisPaintOpSettings::*)(KoResourceCacheInterfaceSP));
+    ASSERT_PAINTOP_SETTINGS_SIGNATURE(requiredCanvasResources, QList<int> (KisPaintOpSettings::*)() const);
+}
+
+void KisImageTypesContractTest::paintOpSettingsMaskingLodAndUniformPropertySignaturesRemainStable()
+{
+    ASSERT_PAINTOP_SETTINGS_SIGNATURE(hasMaskingSettings, bool (KisPaintOpSettings::*)() const);
+    ASSERT_PAINTOP_SETTINGS_SIGNATURE(createMaskingSettings, KisPaintOpSettingsSP (KisPaintOpSettings::*)() const);
+    ASSERT_PAINTOP_SETTINGS_SIGNATURE(maskingBrushCompositeOp, QString (KisPaintOpSettings::*)() const);
+    static_assert(
+        std::is_same_v<decltype(&KisPaintOpSettings::isLodUserAllowed), bool (*)(KisPropertiesConfigurationSP)>);
+    static_assert(
+        std::is_same_v<decltype(&KisPaintOpSettings::setLodUserAllowed), void (*)(KisPropertiesConfigurationSP, bool)>);
+    ASSERT_PAINTOP_SETTINGS_SIGNATURE(
+        uniformProperties,
+        QList<KisUniformPaintOpPropertySP> (KisPaintOpSettings::*)(KisPaintOpSettingsSP,
+                                                                   QPointer<KisPaintOpPresetUpdateProxy>));
+    ASSERT_PAINTOP_SETTINGS_SIGNATURE(setUpdateListener,
+                                      void (KisPaintOpSettings::*)(KisPaintOpSettings::UpdateListenerWSP));
+    ASSERT_PAINTOP_SETTINGS_SIGNATURE(updateListener,
+                                      KisPaintOpSettings::UpdateListenerWSP (KisPaintOpSettings::*)() const);
 }
 
 void KisImageTypesContractTest::fixedPaintDeviceOwnershipAndCopySchemaRemainsStable()
