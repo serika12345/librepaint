@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include <commands/KoPathPointTypeCommand.h>
+#include <commands/KoPathSegmentTypeCommand.h>
 #include <commands/KoShapeReorderCommand.h>
 
 #include <QDebug>
@@ -19,6 +21,10 @@ using ShapeList = QList<KoShape *>;
 
 #define ASSERT_REORDER_SIGNATURE(method, signature)                                                                    \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KoShapeReorderCommand::method)), signature>)
+#define ASSERT_PATH_POINT_TYPE_SIGNATURE(method, signature)                                                            \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KoPathPointTypeCommand::method)), signature>)
+#define ASSERT_PATH_SEGMENT_TYPE_SIGNATURE(method, signature)                                                          \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KoPathSegmentTypeCommand::method)), signature>)
 } // namespace
 
 class KoShapeReorderCommandSchemaContractTest : public QObject
@@ -26,12 +32,69 @@ class KoShapeReorderCommandSchemaContractTest : public QObject
     Q_OBJECT
 
 private Q_SLOTS:
+    void pathPointTypeCommandTypeAndLifetimeSchemaRemainStable();
+    void pathPointTypeValuesRemainStable();
+    void pathPointTypeExecutionSignaturesRemainStable();
+    void pathSegmentTypeCommandTypeLifetimeAndValuesRemainStable();
+    void pathSegmentTypeExecutionSignaturesRemainStable();
     void shapeReorderIdentityAndLifecycleSignaturesRemainStable();
     void indexedShapeValueSchemaRemainsStable();
     void shapeReorderMoveTypeValuesRemainStable();
     void shapeReorderCreationAndMergeSignaturesRemainStable();
     void shapeReorderNormalizationAndExecutionSignaturesRemainStable();
 };
+
+void KoShapeReorderCommandSchemaContractTest::pathPointTypeCommandTypeAndLifetimeSchemaRemainStable()
+{
+    using Command = KoPathPointTypeCommand;
+    using PointType = Command::PointType;
+
+    static_assert(std::is_class_v<Command>);
+    static_assert(std::is_base_of_v<KUndo2Command, Command>);
+    static_assert(std::has_virtual_destructor_v<Command>);
+    static_assert(std::is_enum_v<PointType>);
+    static_assert(std::is_constructible_v<Command, const QList<KoPathPointData> &, PointType>);
+    static_assert(std::is_constructible_v<Command, const QList<KoPathPointData> &, PointType, KUndo2Command *>);
+}
+
+void KoShapeReorderCommandSchemaContractTest::pathPointTypeValuesRemainStable()
+{
+    static_assert(int(KoPathPointTypeCommand::Corner) == 0);
+    static_assert(int(KoPathPointTypeCommand::Smooth) == 1);
+    static_assert(int(KoPathPointTypeCommand::Symmetric) == 2);
+    static_assert(int(KoPathPointTypeCommand::Line) == 3);
+    static_assert(int(KoPathPointTypeCommand::Curve) == 4);
+}
+
+void KoShapeReorderCommandSchemaContractTest::pathPointTypeExecutionSignaturesRemainStable()
+{
+    ASSERT_PATH_POINT_TYPE_SIGNATURE(redo, void (KoPathPointTypeCommand::*)());
+    ASSERT_PATH_POINT_TYPE_SIGNATURE(undo, void (KoPathPointTypeCommand::*)());
+    ASSERT_PATH_POINT_TYPE_SIGNATURE(makeCubicPointSmooth, void (*)(KoPathPoint *));
+}
+
+void KoShapeReorderCommandSchemaContractTest::pathSegmentTypeCommandTypeLifetimeAndValuesRemainStable()
+{
+    using Command = KoPathSegmentTypeCommand;
+    using SegmentType = Command::SegmentType;
+
+    static_assert(std::is_class_v<Command>);
+    static_assert(std::is_base_of_v<KUndo2Command, Command>);
+    static_assert(std::has_virtual_destructor_v<Command>);
+    static_assert(std::is_enum_v<SegmentType>);
+    static_assert(int(Command::Curve) == 1);
+    static_assert(int(Command::Line) == 2);
+    static_assert(std::is_constructible_v<Command, const KoPathPointData &, SegmentType>);
+    static_assert(std::is_constructible_v<Command, const KoPathPointData &, SegmentType, KUndo2Command *>);
+    static_assert(std::is_constructible_v<Command, const QList<KoPathPointData> &, SegmentType>);
+    static_assert(std::is_constructible_v<Command, const QList<KoPathPointData> &, SegmentType, KUndo2Command *>);
+}
+
+void KoShapeReorderCommandSchemaContractTest::pathSegmentTypeExecutionSignaturesRemainStable()
+{
+    ASSERT_PATH_SEGMENT_TYPE_SIGNATURE(redo, void (KoPathSegmentTypeCommand::*)());
+    ASSERT_PATH_SEGMENT_TYPE_SIGNATURE(undo, void (KoPathSegmentTypeCommand::*)());
+}
 
 void KoShapeReorderCommandSchemaContractTest::shapeReorderIdentityAndLifecycleSignaturesRemainStable()
 {
