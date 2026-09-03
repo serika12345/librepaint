@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 11620
+    "expectedMissingApis": 11595
   },
   "contracts": [
     {
@@ -51243,6 +51243,76 @@
         "method:KoShape::transparency(bool recursive=false) const",
         "method:KoShape::update() const",
         "method:KoShape::updateAbsolute(const QRectF & rect) const"
+      ]
+    },
+    {
+      "target": "KoShapeEnumContractTest",
+      "source": "libs/flake/tests/KoShapeEnumContractTest.cpp",
+      "test": "KoShapeEnumContractTest::shapeTypeAndLifetimeSchemaRemainStable",
+      "behavior": "図形は公開抽象型、既定構築と仮想寿命を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoShape",
+        "method:KoShape::KoShape()",
+        "method:KoShape::~KoShape()"
+      ]
+    },
+    {
+      "target": "KoShapeEnumContractTest",
+      "source": "libs/flake/tests/KoShapeEnumContractTest.cpp",
+      "test": "KoShapeEnumContractTest::shapeChangeNotificationSignaturesRemainStable",
+      "behavior": "図形は変更listenerの寿命・通知と登録解除を扱う公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShape::ShapeChangeListener::notifyShapeChanged(ChangeType type,KoShape * shape)",
+        "method:KoShape::ShapeChangeListener::~ShapeChangeListener()",
+        "method:KoShape::addShapeChangeListener(ShapeChangeListener * listener)",
+        "method:KoShape::notifyChanged()",
+        "method:KoShape::removeShapeChangeListener(ShapeChangeListener * listener)",
+        "struct:KoShape::ShapeChangeListener"
+      ]
+    },
+    {
+      "target": "KoShapeEnumContractTest",
+      "source": "libs/flake/tests/KoShapeEnumContractTest.cpp",
+      "test": "KoShapeEnumContractTest::shapeDependencySignaturesRemainStable",
+      "behavior": "図形は更新を依存させる図形の登録解除・有無・一覧を扱う公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShape::addDependee(KoShape * shape)",
+        "method:KoShape::dependees() const",
+        "method:KoShape::hasDependee(KoShape * shape) const",
+        "method:KoShape::removeDependee(KoShape * shape)"
+      ]
+    },
+    {
+      "target": "KoShapeEnumContractTest",
+      "source": "libs/flake/tests/KoShapeEnumContractTest.cpp",
+      "test": "KoShapeEnumContractTest::shapeParentRelationshipSignaturesRemainStable",
+      "behavior": "図形は親容器、共通親と祖先からの変形継承を扱う公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShape::hasCommonParent(const KoShape * shape) const",
+        "method:KoShape::inheritsTransformFromAny(const QList<KoShape * > ancestorsInQuestion) const",
+        "method:KoShape::parent() const",
+        "method:KoShape::setParent(KoShapeContainer * parent)"
+      ]
+    },
+    {
+      "target": "KoShapeEnumContractTest",
+      "source": "libs/flake/tests/KoShapeEnumContractTest.cpp",
+      "test": "KoShapeEnumContractTest::shapeTreeOrderingSignaturesRemainStable",
+      "behavior": "図形はz-index範囲、子順序方針、比較とsubtree線形化を扱う公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KoShape::maxZIndex",
+        "member:KoShape::minZIndex",
+        "method:KoShape::childZOrderPolicy()",
+        "method:KoShape::compareShapeZIndex(KoShape * s1,KoShape * s2)",
+        "method:KoShape::linearizeSubtree(const QList<KoShape * > & shapes)",
+        "method:KoShape::linearizeSubtreeSorted(const QList<KoShape * > & shapes)",
+        "method:KoShape::setZIndex(qint16 zIndex)",
+        "method:KoShape::zIndex() const"
       ]
     },
     {
