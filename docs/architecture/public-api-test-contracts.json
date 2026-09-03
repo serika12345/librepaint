@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 11934
+    "expectedMissingApis": 11905
   },
   "contracts": [
     {
@@ -50463,6 +50463,80 @@
         "method:KisWarpTransformWorker::approxChangeRect(const QRect & rc)",
         "method:KisWarpTransformWorker::approxNeedRect(const QRect & rc,const QRect & fullBounds)",
         "method:KisWarpTransformWorker::run(KisPaintDeviceSP srcDev,KisPaintDeviceSP dstDev)"
+      ]
+    },
+    {
+      "target": "KoSvgTextEnumContractTest",
+      "source": "libs/flake/tests/KoSvgTextEnumContractTest.cpp",
+      "test": "KoSvgTextEnumContractTest::svgStyleTypeAndLifetimeSchemaRemainStable",
+      "behavior": "SVG style parserはstyle属性集合の公開別名、読込文脈を借用する構築と公開寿命を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:SvgStyles",
+        "class:SvgStyleParser",
+        "method:SvgStyleParser::SvgStyleParser(SvgLoadingContext & context)",
+        "method:SvgStyleParser::~SvgStyleParser()"
+      ]
+    },
+    {
+      "target": "KoSvgTextEnumContractTest",
+      "source": "libs/flake/tests/KoSvgTextEnumContractTest.cpp",
+      "test": "KoSvgTextEnumContractTest::svgStyleAttributeParsingSignaturesRemainStable",
+      "behavior": "SVG style parserはDOM属性と単一CSS記述からstyle・font・対象属性を解析する公開署名と既定継承指定を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:SvgStyleParser::collectStyles(const QDomElement &)",
+        "method:SvgStyleParser::parseFont(const SvgStyles & styles)",
+        "method:SvgStyleParser::parseOneCssStyle(const QString & style,const QStringList & interestingAttributes)",
+        "method:SvgStyleParser::parseStyle(const SvgStyles & styles,const bool inheritByDefault=false)"
+      ]
+    },
+    {
+      "target": "KoSvgTextEnumContractTest",
+      "source": "libs/flake/tests/KoSvgTextEnumContractTest.cpp",
+      "test": "KoSvgTextEnumContractTest::svgStyleColorAndMergeSignaturesRemainStable",
+      "behavior": "SVG style parserは色とgradient stopを解析し、属性集合またはDOM要素のstyleを結合する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:SvgStyleParser::mergeStyles(const QDomElement &,const QDomElement &)",
+        "method:SvgStyleParser::mergeStyles(const SvgStyles &,const SvgStyles &)",
+        "method:SvgStyleParser::parseColor(QColor &,const QString &)",
+        "method:SvgStyleParser::parseColorStop(const QDomElement &,SvgGraphicsContext * context,qreal & previousOffset)",
+        "method:SvgStyleParser::parseColorStops(QGradient *,const QDomElement &,SvgGraphicsContext * context,const QGradientStops & defaultStops)"
+      ]
+    },
+    {
+      "target": "KoSvgTextEnumContractTest",
+      "source": "libs/flake/tests/KoSvgTextEnumContractTest.cpp",
+      "test": "KoSvgTextEnumContractTest::svgUnitParsingSignaturesRemainStable",
+      "behavior": "SVG値解析は百分率、point、数値、一般・文字・軸・角度単位を解釈する公開署名と既定方向・範囲指定を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:SvgUtil::fromPercentage(QString s,bool * ok=nullptr)",
+        "method:SvgUtil::parseNumber(const QString & string)",
+        "method:SvgUtil::parseTextUnitStruct(SvgGraphicsContext * gc,QStringView unit)",
+        "method:SvgUtil::parseUnit(SvgGraphicsContext * gc,const KoSvgTextProperties & resolved,QStringView,bool horiz=false,bool vert=false,const QRectF & bbox=QRectF ())",
+        "method:SvgUtil::parseUnitAngular(SvgGraphicsContext * gc,const QString & unit)",
+        "method:SvgUtil::parseUnitStruct(SvgGraphicsContext * gc,QStringView unit,bool horiz=false,bool vert=false,const QRectF & bbox=QRectF ())",
+        "method:SvgUtil::parseUnitStructImpl(SvgGraphicsContext * gc,QStringView,bool horiz=false,bool vert=false,const QRectF & bbox=QRectF (),bool percentageViewBox=false)",
+        "method:SvgUtil::parseUnitX(SvgGraphicsContext * gc,const KoSvgTextProperties & resolved,const QString & unit)",
+        "method:SvgUtil::parseUnitXY(SvgGraphicsContext * gc,const KoSvgTextProperties & resolved,const QString & unit)",
+        "method:SvgUtil::parseUnitY(SvgGraphicsContext * gc,const KoSvgTextProperties & resolved,const QString & unit)",
+        "method:SvgUtil::ptToPx(SvgGraphicsContext * gc,double value)",
+        "method:SvgUtil::toPercentage(qreal value)"
+      ]
+    },
+    {
+      "target": "KoSvgTextEnumContractTest",
+      "source": "libs/flake/tests/KoSvgTextEnumContractTest.cpp",
+      "test": "KoSvgTextEnumContractTest::svgGeometryAndSerializationSignaturesRemainStable",
+      "behavior": "SVG値解析は拡張shape tagとview boxを解釈し、transformを文字列またはXML属性へ直列化する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:SvgUtil::mapExtendedShapeTag(const QString & tagName,const QDomElement & element)",
+        "method:SvgUtil::parseViewBox(const QDomElement & e,const QRectF & elementBounds,QRectF * _viewRect,QTransform * _viewTransform)",
+        "method:SvgUtil::transformToString(const QTransform & transform)",
+        "method:SvgUtil::writeTransformAttributeLazy(const QString & name,const QTransform & transform,KoXmlWriter & shapeWriter)"
       ]
     }
   ]
