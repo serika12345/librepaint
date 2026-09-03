@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-03 10:32 JST
+- 更新日時: 2026-09-03 10:35 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -21,6 +21,17 @@
 - libkis領域は`libs/libkis/IntParseSpinBox.h`と`libs/libkis/DoubleParseSpinBox.h`の残存各10 APIを数値式解析Widget境界として採用した。2型の型・寿命6、Widget・step 4、値・妥当性4、整形文字列2、解析通知4を既存`libs/libkis/tests/SliderSpinBoxSchemaContractTest.cpp`の5枠へ対応付ける。spin boxとWidgetを実体化せず、値設定、step、文字列整形、妥当性確認、通知本文を実行しない。CMakeと依存を変えず、直接linkはQt Test・Widgets、対象4工程・8入力、停止5工程・11入力、command hash`52edb69a5e`、input hash`eacbda7692`、製品`kritalibkis` 2,018工程・4,034入力を維持する。
   基底sliderとmultiplierは責務とheader閉包が増え、progress updaterの動的対象、tag widgetの製品library、visual selectorの描画閉包、Window・Notifier・Document・Node・Krita・Scratchpadのapplication・文書状態は限定対象から外れるため棄却した。
 - 中央の`public-api-missing-g180.json`でmemory statistics 23件、SVG saving 24件、整数・倍精度数値解析spin box 20件の全識別子を照合した。3責務の開始header、試験source、所有CMake、生成物は相互に異なる。合計67 APIを15枠へ進め、許可path外変更、新規CMake・include・link、製品OBJECT/shared・`kritatestsdk`、指定外実体化・本文実行、5工程・11入力超過、製品計画集合の変化が必要になれば停止する。
+
+### 第180便の担当計画
+
+- 実装共通基点は`70e7ea883d`である。3担当のGit権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、一度に一つだけ作る専用worktree-local `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。Nix再評価を行わず、主作業treeの読み込み済み開発環境を`run-shared-test-env`で共有する。容量停止を避けるため、memory statistics、SVG saving、数値解析spin boxの順に一担当ずつ実装・限定検証・統合・削除する。
+  調整担当だけがarchitecture文書、公開API台帳、共通不足報告を変更する。製品targetを引数にするplan/build、全体build、全体`verify`、Linux検証は禁止し、担当targetと近傍、公開API検査、`verify-quick`だけを実行する。
+- `g180-memory-statistics-schema`は`/Users/masato/Documents/librepaint-g180-memory-statistics-schema`を所有する。開始`libs/image/kis_memory_statistics_server.h`の残存全23 APIから既存`libs/image/tests/KisImageTypesContractTest.cpp`の5枠`memoryStatisticsServerTypeAndLifetimeSchemaRemainStable`、`memoryStatisticsImageAndAggregateDefaultsRemainStable`、`memoryStatisticsSwapAndLimitDefaultsRemainStable`、`memoryStatisticsCollectionSignaturesRemainStable`、`memoryStatisticsUpdateNotificationSignaturesRemainStable`へ対応付ける。
+  完全集合はserver class・構築・破棄、`Statistics` struct・構築と`imageSize`・`layersSize`・`projectionsSize`・`lodSize`・`totalMemorySize`・`realMemorySize`・`historicalMemorySize`・`poolSize`、`swapSize`・`totalMemoryLimit`・`tilesHardLimit`・`tilesSoftLimit`・`tilesPoolLimit`、`instance`・`fetchMemoryStatistics`、`notifyImageChanged`・`tryForceUpdateMemoryStatisticsWhileIdle`・`sigUpdateMemoryStatistics`である。許可pathは既存試験sourceだけで、CMake・依存・公開header・製品sourceを変更しない。値型`Statistics`だけを安全に実体化して全既定値0を確認し、server、image、QObject、大域singletonを実体化せず、収集・更新・通知本文を実行しない。対象4工程・8入力、停止5工程・11入力、近傍は同一対象のimage signal router枠と`KisBaseRectsWalkerPolicyContractTest`、製品`kritaimage` 1,196工程・2,416入力を維持する。対象・新旧枠、CTest、20回反復、近傍、無作業再構築、動的接続・AUTOMOC入力・server/image/signal未解決記号、構文・書式、公開API・`verify-quick`を確認する。
+- `g180-svg-saving-schema`は`/Users/masato/Documents/librepaint-g180-svg-saving-schema`を所有する。開始`libs/flake/svg/SvgSavingContext.h`の残存全14 APIと`libs/flake/svg/SvgWriter.h`の残存全10 APIから既存`libs/flake/tests/KoShapeSavingContextSchemaContractTest.cpp`の5枠`svgSavingTypeLifetimeAndConstructionSchemaRemainStable`、`svgSavingWriterTransformAndModeSignaturesRemainStable`、`svgSavingIdentityAndExternalAssetSignaturesRemainStable`、`svgWriterOutputSignaturesRemainStable`、`svgWriterDocumentMetadataSignaturesRemainStable`へ対応付ける。
+  完全集合は2 class、saving contextの単一・二重device構築と既定inline image引数・破棄、writerのshape・layer各list構築・破棄、style・shape writer照会、user space transform、inline image・stripped text mode照会設定、UID・ID・file name生成、image保存、device・file保存、2種類のdetached保存、文書title・description設定である。許可pathは既存試験sourceだけで、CMake・依存・公開header・製品sourceを変更しない。context、writer、device、shape、layer、imageを実体化せず、構築・破棄、識別子生成、画像・文書保存、mode・metadata変更本文を実行しない。対象4工程・8入力、停止5工程・11入力、近傍`KoShapeLoadingContextSchemaContractTest`、製品`kritaflake` 621工程・1,274入力を維持し、memory statistics担当の統合・削除後に開始する。同じ限定検証とcontext/writer/device/shape/image未解決記号を確認する。
+- `g180-parse-spinbox-schema`は`/Users/masato/Documents/librepaint-g180-parse-spinbox-schema`を所有する。開始`libs/libkis/IntParseSpinBox.h`と`libs/libkis/DoubleParseSpinBox.h`の残存各10 APIから既存`libs/libkis/tests/SliderSpinBoxSchemaContractTest.cpp`の5枠`parseSpinBoxTypeAndLifetimeSchemaRemainStable`、`parseSpinBoxWidgetAndSteppingSignaturesRemainStable`、`parseSpinBoxValueAndValidationSignaturesRemainStable`、`parseSpinBoxExpressionTextSignaturesRemainStable`、`parseSpinBoxParsingNotificationSignaturesRemainStable`へ対応付ける。
+  完全集合は2 class・親既定引数付き構築・破棄、両型の`widget`・`stepBy`、通知既定引数付き`setValue`・`isLastValid`・`veryCleanText`・`errorWhileParsing`・`noMoreParsingError`である。許可pathは既存試験sourceだけで、CMake・依存・公開header・製品sourceを変更しない。spin boxとWidgetを実体化せず、構築・破棄、値設定、step、文字列整形、妥当性確認、通知本文を実行しない。対象4工程・8入力、停止5工程・11入力、近傍`AngleSelectorSchemaContractTest`、製品`kritalibkis` 2,018工程・4,034入力を維持し、SVG saving担当の統合・削除後に開始する。同じ限定検証とspin box/Widget/value/parser/signal未解決記号を確認する。
 
 ### 第179便の先行監査計画
 
