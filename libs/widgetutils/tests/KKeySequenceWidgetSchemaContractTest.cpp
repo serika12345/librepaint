@@ -3,6 +3,8 @@
 #include "../xmlgui/KisShortcutsEditor.h"
 #include "../xmlgui/kkeysequencewidget.h"
 #include "../xmlgui/kmainwindow.h"
+#include "../xmlgui/ktoggletoolbaraction.h"
+#include "../xmlgui/ktoolbar.h"
 #include "../xmlgui/kxmlguiwindow.h"
 #include <QTest>
 #include <type_traits>
@@ -32,6 +34,11 @@ private Q_SLOTS:
     void mainWindowChromeAndToolbarSchemaRemainsStable();
     void mainWindowAutoSaveSchemaRemainsStable();
     void mainWindowPersistenceAndNotificationSchemaRemainsStable();
+    void toolBarAndToggleActionTypeAndLifetimeSchemaRemainStable();
+    void toolBarOwnershipAndAppearanceSignaturesRemainStable();
+    void toolBarSettingsAndXmlSignaturesRemainStable();
+    void toolBarClientAndGlobalPolicySignaturesRemainStable();
+    void toggleToolBarActionInteractionSignaturesRemainStable();
 };
 void KKeySequenceWidgetSchemaContractTest::keySequenceWidgetTypeAndEnumerationSchemaRemainsStable()
 {
@@ -247,5 +254,63 @@ void KKeySequenceWidgetSchemaContractTest::mainWindowPersistenceAndNotificationS
     static_assert(std::is_same_v<decltype(&W::dbusName), QString (W::*)() const>);
     static_assert(std::is_same_v<decltype(&W::setSettingsDirty), void (W::*)()>);
 }
+
+void KKeySequenceWidgetSchemaContractTest::toolBarAndToggleActionTypeAndLifetimeSchemaRemainStable()
+{
+    using ToolBar = KisToolBar;
+    using ToggleAction = KToggleToolBarAction;
+
+    static_assert(std::is_class_v<ToolBar> && std::is_base_of_v<QToolBar, ToolBar>);
+    static_assert(std::is_constructible_v<ToolBar, const QString &, QWidget *>);
+    static_assert(std::is_constructible_v<ToolBar, const QString &, QWidget *, bool>);
+    static_assert(std::has_virtual_destructor_v<ToolBar>);
+    static_assert(std::is_class_v<ToggleAction> && std::is_base_of_v<KToggleAction, ToggleAction>);
+    static_assert(std::is_constructible_v<ToggleAction, const char *, const QString &, QObject *>);
+    static_assert(std::is_constructible_v<ToggleAction, ToolBar *, const QString &, QObject *>);
+    static_assert(std::has_virtual_destructor_v<ToggleAction>);
+}
+
+void KKeySequenceWidgetSchemaContractTest::toolBarOwnershipAndAppearanceSignaturesRemainStable()
+{
+    using W = KisToolBar;
+
+    static_assert(std::is_same_v<decltype(&W::mainWindow), KisKMainWindow *(W::*)() const>);
+    static_assert(std::is_same_v<decltype(&W::setIconDimensions), void (W::*)(int)>);
+    static_assert(std::is_same_v<decltype(&W::iconSizeDefault), int (W::*)() const>);
+    static_assert(std::is_same_v<decltype(&W::eventFilter), bool (W::*)(QObject *, QEvent *)>);
+}
+
+void KKeySequenceWidgetSchemaContractTest::toolBarSettingsAndXmlSignaturesRemainStable()
+{
+    using W = KisToolBar;
+
+    static_assert(std::is_same_v<decltype(&W::saveSettings), void (W::*)(KConfigGroup &)>);
+    static_assert(std::is_same_v<decltype(&W::applySettings), void (W::*)(const KConfigGroup &)>);
+    static_assert(std::is_same_v<decltype(&W::loadState), void (W::*)(const QDomElement &)>);
+    static_assert(std::is_same_v<decltype(&W::saveState), void (W::*)(QDomElement &) const>);
+}
+
+void KKeySequenceWidgetSchemaContractTest::toolBarClientAndGlobalPolicySignaturesRemainStable()
+{
+    using W = KisToolBar;
+
+    static_assert(std::is_same_v<decltype(&W::addXMLGUIClient), void (W::*)(KisKXMLGUIClient *)>);
+    static_assert(std::is_same_v<decltype(&W::removeXMLGUIClient), void (W::*)(KisKXMLGUIClient *)>);
+    static_assert(std::is_same_v<decltype(&W::toolBarsEditable), bool (*)()>);
+    static_assert(std::is_same_v<decltype(&W::setToolBarsEditable), void (*)(bool)>);
+    static_assert(std::is_same_v<decltype(&W::toolBarsLocked), bool (*)()>);
+    static_assert(std::is_same_v<decltype(&W::setToolBarsLocked), void (*)(bool)>);
+    static_assert(std::is_same_v<decltype(&W::emitToolbarStyleChanged), void (*)()>);
+    static_assert(std::is_same_v<decltype(&W::toolBarStateModel), QObject *(*)()>);
+}
+
+void KKeySequenceWidgetSchemaContractTest::toggleToolBarActionInteractionSignaturesRemainStable()
+{
+    using W = KToggleToolBarAction;
+
+    static_assert(std::is_same_v<decltype(&W::toolBar), KisToolBar *(W::*)()>);
+    static_assert(std::is_same_v<decltype(&W::eventFilter), bool (W::*)(QObject *, QEvent *)>);
+}
+
 QTEST_GUILESS_MAIN(KKeySequenceWidgetSchemaContractTest)
 #include "KKeySequenceWidgetSchemaContractTest.moc"
