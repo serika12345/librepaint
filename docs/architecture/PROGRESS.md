@@ -2,12 +2,18 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-03 12:13 JST
+- 更新日時: 2026-09-03 12:49 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
+
+### 第183便の先行監査計画
+
+- 監査共通基点は`0bdc227c15`、入力は`build/tdd-macos/public-api-missing-g183.json`である。3担当は`auditing`の読み取り専用とし、製品・試験・CMake・script・台帳・文書を変更せず、構成、構築、試験、Git操作、追加委任も行わない。一つの公開責務から20〜80 APIを最大5枠へ固定し、既存限定対象またはheader限定の4〜10工程程度の対象で、製品共有libraryと`kritatestsdk`へ接続しない候補だけを採用する。製品targetを引数にする`build-incremental ... plan`と製品buildは実行せず、既存Ninja木のquery・commands・inputsだけを読み取る。
+- image・paintop・pigment領域は第182便のwarp transform workerを、flake・SVG・vector領域はSVG style・値解析を、widgetutils・widgets・libkis領域はslider型数値入力部品を除外して一責務ずつ比較する。
+- 各監査は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、予測工程・入力と停止線、開始pathから契約先、許可path、固有停止条件、比較候補の棄却根拠を揃える。3領域のpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
 
 ### 第182便の先行監査計画
 
@@ -33,6 +39,17 @@
   完全集合は`SvgStyles`別名、parser class・構築・破棄、style・font・属性・単一CSS解析、色・color stop・stop群解析、2種のstyle merge、百分率往復・point変換、5種の一般単位解析・X・Y・XY・角度・数値解析、拡張shape tag・view box解析・transform文字列化・遅延属性書出しである。許可pathは既存試験sourceと`libs/flake/tests/CMakeLists.txt`の対象固有探索路だけで、global source・generated探索路以外のCMake・依存・公開header・製品sourceを変更しない。parser、context、text property、DOM、gradient、transform、writerを実体化せず、構築・破棄、解析、merge、直列化本文を実行しない。対象4工程・8入力、停止5工程・11入力、近傍`KoShapeLoadingContextSchemaContractTest`、製品`kritaflake` 621工程・1,274入力を維持し、warp transform担当の統合・削除後に開始する。同じ限定検証とparser/context/DOM/gradient/transform/writer未解決記号を確認する。
 - `g182-slider-numeric-input-schema`は`/Users/masato/Documents/librepaint-g182-slider-numeric-input-schema`を所有する。開始`libs/widgetutils/kis_slider_spin_box.h`の残存全14 APIと`libs/widgetutils/kis_multipliers_double_slider_spinbox.h`の残存全16 APIから既存`libs/widgetutils/tests/KisSliderSpinBoxSchemaContractTest.cpp`の5枠`sliderLifetimeAndSizeSchemaRemainStable`、`sliderDragSchemaRemainStable`、`multipliersSliderTypeAndSizeSchemaRemainStable`、`multipliersSliderRangeAndStepSchemaRemainStable`、`multipliersSliderDisplayAndDragSchemaRemainStable`へ対応付ける。
   完全集合は整数・倍精度sliderの構築・破棄・寸法・最小寸法・drag照会・drag中の更新通知遮断・drag完了通知、multiplier sliderのclass・構築・破棄・寸法3種・値照会設定・範囲・step・倍率追加・指数比・接頭辞・接尾辞・drag中の更新通知遮断・値変更通知である。許可pathは既存試験sourceだけで、CMake・依存・公開header・製品sourceを変更しない。各slider、Widget、寸法、文字列を実体化せず、構築・破棄、値域・step・表示・drag・signal本文を実行しない。対象4工程・8入力、停止5工程・11入力、近傍`KisDoubleParseUnitSpinBoxSchemaContractTest`、製品`kritawidgetutils` 274工程・581入力を維持し、SVG担当の統合・削除後に開始する。同じ限定検証とslider/Widget/size/string未解決記号を確認する。
+
+### 第182便の統合結果
+
+- `g182-warp-transform-schema`は開始`libs/image/kis_warptransform_worker.h`から既存`libs/image/tests/KisImageTypesContractTest.cpp`の5枠へ、型・寿命、変形方式、計算方式、数式・画像変換、描画装置・矩形の残存全20 APIを対応付けた。初回限定構築でpointer宣言だけに使う`KoUpdater.h`への不要な構築依存を検出し、開始headerの直接includeを前方宣言へ縮小した。公開署名を維持し、widgetutils探索路やlinkを加えず4工程・8入力に保った。
+  受渡しcommit`42e80f3153`を統合commit`20b0c8e1c7`として取り込み、担当と中央の新旧枠、対象・近傍CTest、20回反復、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式に成功した。台帳commit`e99b5b0f46`で17,904件対応、11,934件未対応となった。変形数式、画像・描画装置変換、矩形近似、進捗通知先寿命の実行時結果は別契約で扱う。
+- `g182-svg-style-value-schema`は開始`libs/flake/svg/SvgStyleParser.h`と`libs/flake/svg/SvgUtil.h`から既存`libs/flake/tests/KoSvgTextEnumContractTest.cpp`の5枠へ、型・寿命、属性、色・結合、単位、表示範囲・直列化の残存全29 APIを対応付けた。初回限定構築で`KisQStringListFwd.h`の探索路不足を取得し、対象固有のglobal source・generated探索路2本だけを加えて解消した。linkと入力集合を増やさず4工程・8入力に保った。
+  受渡しcommit`5638f901c4`を統合commit`83f69d0e1b`として取り込み、担当と中央の全48枠、対象・近傍CTest、20回反復、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式に成功した。製品`kritaflake`は621工程・1,274入力で不変であり、台帳commit`95fa58fcf6`で17,933件対応、11,905件未対応となった。style・色・gradient stop・単位・表示範囲解析と直列化の実行時結果は別契約で扱う。
+- `g182-slider-numeric-input-schema`は開始`libs/widgetutils/kis_slider_spin_box.h`と`libs/widgetutils/kis_multipliers_double_slider_spinbox.h`から既存`libs/widgetutils/tests/KisSliderSpinBoxSchemaContractTest.cpp`の5枠へ、寿命・寸法、drag、multiplier型・寸法、値域・step、表示・dragの残存全30 APIを対応付けた。各slider、Widget、寸法、文字列を実体化せず、構築・破棄、値域・step・倍率、表示・drag・signal本文を実行しない4工程・8入力に保った。
+  受渡しcommit`b01dd8ca53`を統合commit`14172f8ab3`として取り込み、担当と中央の新旧枠、対象・近傍CTest、20回反復、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式に成功した。製品`kritawidgetutils`は274工程・581入力で不変であり、台帳commit`0bdc227c15`で17,963件対応、11,875件未対応となった。寸法、値変化、倍率選択、表示、drag状態、signal配送の実行時結果は別契約で扱う。
+- 第182便全体で79 APIを15枠へ重複なく対応付け、不要な公開header依存1件を除去した。対象固有探索路2本以外の依存を増やさず、一度に一つの担当だけを実装・構成・構築・統合した。製品target、全体build、全体`verify`、Linux、Nix再評価は実行せず、対象・近傍CTest、各20回反復、無作業再構築、公開API検査と`verify-quick`に成功した。
+  3担当のcleanな作業tree、担当build木、担当branchを統合直後に削除し、2,613,752 KiB（約2.49 GiB）の担当領域を回収した。旧不足報告`public-api-missing-g182.json`をごみ箱へ移し、主Ninja木5,640,964 KiB、共有compiler cache 983,052 KiB、最新不足報告`build/tdd-macos/public-api-missing-g183.json` 3,108,651 bytesだけを再利用対象として保持する。次の永続作業は第183便の不足報告から、既存限定対象を優先して3責務を先行監査することである。
 
 ### 第181便の先行監査計画
 
