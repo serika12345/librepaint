@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-03 19:15 JST
+- 更新日時: 2026-09-03 19:17 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -26,6 +26,17 @@
 - widgets領域は`libs/widgets/KisPaletteChooser.h`の残存全10 API、`KoColorSetWidget.h`と`KoColorPatch.h`の各残存全8 APIをpalette資源の選択・表示・色通知として採用した。chooser型・選択5、通知5、色集合Widget型・palette 6、通知2、色patch型・色・通知8を既存`libs/widgets/tests/KisPaletteModelSchemaContractTest.cpp`の5枠へ対応付ける。chooser、色集合Widget、patch、生成UI、Qt Widget・Frame、resource、色集合・色、renderer・寸法を実体化せず、構築・破棄、資源選択、palette取込・書出し、色変換・描画、signal配送本文を実行しない。CMakeと探索路を変えず、直接linkはQt Core・Gui・Test、対象4工程・8入力、停止5工程・11入力、command hash`d9c0a2e87d`、input hash`37058f1b74`、製品`kritawidgets` 809工程・1,647入力を維持する。
   palette view・comboとgradient stop編集はwidgetutils探索路、zoomはflake・KF探索路と製品OBJECT、tag selectionはresource UI探索路と製品shared・`kritatestsdk`、XML GUI候補はconfigとQt Widgets探索路を同時に持つ限定対象がなく、progress updaterは下限未満のため棄却した。
 - 中央の`public-api-missing-g191.json`でmath toolbox 22件、path種別command 21件、palette選択・表示26件の全識別子を照合した。3責務の開始header、試験source、所有CMake、生成物は相互に異なる。合計69 APIを15枠へ進め、許可path外変更、CMake・探索路・link・compile定義・公開headerの変更、製品OBJECT/shared・`kritatestsdk`、指定外実体化・本文実行、5工程・11入力超過、製品計画集合の変化が必要になれば停止する。
+
+### 第191便の担当計画
+
+- 実装共通基点は`f45814f74d`である。3担当のGit権限は許可pathだけの1受渡しcommit、追加委任は禁止する。対象platformはmacOSであり、一度に一つだけ作る専用worktree-local `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。Nix再評価を行わず、担当側の`./scripts/run-shared-test-env`で主作業treeの読み込み済み開発環境を共有する。math toolbox、path種別command、palette選択・表示の順に一担当ずつ実装・限定検証・統合・削除する。
+  調整担当だけがarchitecture文書、公開API台帳、共通不足報告を変更する。製品targetを引数にするplan/build、全体build、全体`verify`、Linux検証は禁止し、担当targetと近傍、公開API検査、`verify-quick`だけを実行する。
+- `g191-math-toolbox-schema`は`/Users/masato/Documents/librepaint-g191-math-toolbox-schema`を所有する。開始`libs/image/kis_math_toolbox.h`の残存全22 APIから既存`libs/image/tests/KisImageTypesContractTest.cpp`の5枠`mathToolboxTypeAndAliasSchemaRemainStable`、`mathToolboxFloatRepresentationSchemaRemainStable`、`mathToolboxWaveletPlanningSignaturesRemainStable`、`mathToolboxWaveletTransformSignaturesRemainStable`、`mathToolboxChannelConversionSignaturesRemainStable`へ対応付ける。
+  完全集合はtoolbox class、waveletとchannel変換関数別名4、浮動小数値表現struct・構築・破棄・3 member、wavelet工程数と初期化の宣言・定義別ID各2、変換・逆変換、channel変換関数取得3・最小最大2である。許可pathは既存試験sourceだけで、公開headerの`-Wcast-align`抑止をdiagnostic push・pop内へ限定する。CMake・依存・公開header・製品sourceを変更しない。toolbox、値表現・wavelet、描画装置・共有pointer、色空間・channel情報、Qt矩形・容器を実体化せず、配列所有、矩形寸法、色空間照会、wavelet処理、変換関数選択、最小・最大値本文を実行しない。対象4工程・8入力、停止5工程・11入力、近傍`KisPaintDeviceWriterContractTest`、製品`kritaimage` 1,196工程・2,416入力を維持する。対象・新旧枠、CTest、20回反復、近傍、無作業再構築、動的接続・AUTOMOC入力・toolbox/device/color space/wavelet未解決記号、構文・書式、公開API・`verify-quick`を確認する。
+- `g191-path-type-command-schema`は`/Users/masato/Documents/librepaint-g191-path-type-command-schema`を所有する。開始`libs/flake/commands/KoPathPointTypeCommand.h`と`KoPathSegmentTypeCommand.h`の残存全21 APIから既存`libs/flake/tests/KoShapeReorderCommandSchemaContractTest.cpp`の5枠`pathPointTypeCommandTypeAndLifetimeSchemaRemainStable`、`pathPointTypeValuesRemainStable`、`pathPointTypeExecutionSignaturesRemainStable`、`pathSegmentTypeCommandTypeLifetimeAndValuesRemainStable`、`pathSegmentTypeExecutionSignaturesRemainStable`へ対応付ける。
+  完全集合は点command class・種別enum・構築・破棄、5種別値、redo・undo・平滑化、区間command class・種別enum・2値・単一/複数点構築・破棄、redo・undoである。許可pathは既存試験sourceだけで、CMake・依存・公開header・製品sourceを変更しない。両command、undo基底、path point・data、Qt容器・点、親commandを実体化せず、構築・破棄、redo・undo、control point平滑化とundo data収集本文を実行しない。対象4工程・8入力、停止5工程・11入力、近傍`KoPathPointDataContractTest`、製品`kritaflake` 621工程・1,274入力を維持し、math toolbox担当の統合・削除後に開始する。同じ限定検証とcommand/path point/undo未解決記号を確認する。
+- `g191-palette-selection-schema`は`/Users/masato/Documents/librepaint-g191-palette-selection-schema`を所有する。開始`libs/widgets/KisPaletteChooser.h`の残存全10 API、`KoColorSetWidget.h`と`KoColorPatch.h`の各残存全8 APIから既存`libs/widgets/tests/KisPaletteModelSchemaContractTest.cpp`の5枠`paletteChooserTypeLifetimeAndSelectionSchemaRemainStable`、`paletteChooserNotificationSignaturesRemainStable`、`colorSetWidgetTypeLifetimeAndPaletteSchemaRemainStable`、`colorSetWidgetNotificationSignaturesRemainStable`、`colorPatchTypeColorAndNotificationSchemaRemainStable`へ対応付ける。
+  完全集合はchooser class・構築・破棄・現在資源設定・選択slotと5通知、色集合Widget class・構築・破棄・色集合取得設定・renderer設定・2通知、色patch class・構築・破棄・色取得設定・renderer設定・色変換・通知である。許可pathは既存試験sourceだけで、CMake・依存・公開header・製品sourceを変更しない。chooser、色集合Widget、patch、生成UI、Qt Widget・Frame、resource、色集合・色、renderer・寸法を実体化せず、構築・破棄、資源選択、palette取込・書出し、色変換・描画、signal配送本文を実行しない。対象4工程・8入力、停止5工程・11入力、近傍`KisGradientColorEditorSchemaContractTest`、製品`kritawidgets` 809工程・1,647入力を維持し、path種別command担当の統合・削除後に開始する。同じ限定検証とchooser/color set/patch/resource/color/renderer未解決記号を確認する。
 
 ### 第190便の先行監査担当票
 
