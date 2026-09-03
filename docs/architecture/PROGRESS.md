@@ -2,12 +2,18 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-03 13:02 JST
+- 更新日時: 2026-09-03 13:39 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
+
+### 第184便の先行監査計画
+
+- 監査共通基点は`adf427b5c0`、入力は`build/tdd-macos/public-api-missing-g184.json`である。3担当は`auditing`の読み取り専用とし、製品・試験・CMake・script・台帳・文書を変更せず、構成、構築、試験、Git操作、追加委任も行わない。一つの公開責務から20〜80 APIを最大5枠へ固定し、既存限定対象またはheader限定の4〜10工程程度の対象で、製品共有libraryと`kritatestsdk`へ接続しない候補だけを採用する。製品targetを引数にする`build-incremental ... plan`と製品buildは実行せず、既存Ninja木のquery・commands・inputsだけを読み取る。
+- image・paintop・pigment領域は第183便のliquify transform workerを、flake・SVG・vector領域は図形clip mask・pathを、widgetutils・widgets・libkis領域はshortcut編集UIを除外して一責務ずつ比較する。
+- 各監査は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、実際のcompile探索路、予測工程・入力と停止線、開始pathから契約先、許可path、固有停止条件、比較候補の棄却根拠を揃える。3領域のpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
 
 ### 第183便の先行監査計画
 
@@ -32,6 +38,17 @@
   完全集合は2 class、既定・値・copy構築、copy代入・破棄、mask・内容座標系、path座標系とclip rule、clone・shape照会設定・空判定、mask矩形・追加offset、path・寸法別path・座標変換、mask描画・clip適用である。許可pathは既存試験sourceだけで、CMake・依存・公開header・製品sourceを変更しない。clip mask・path、shape、Qt容器・幾何値、painterを実体化せず、copy・代入、clone、座標・shape・path操作、描画本文を実行しない。対象4工程・8入力、停止5工程・11入力、近傍`KoShapeClipCommandContractTest`、製品`kritaflake` 621工程・1,274入力を維持し、liquify担当の統合・削除後に開始する。同じ限定検証とclip/shape/path/painter未解決記号を確認する。
 - `g183-shortcut-editing-schema`は`/Users/masato/Documents/librepaint-g183-shortcut-editing-schema`を所有する。開始`libs/widgetutils/xmlgui/kshortcutwidget.h`の残存全12 APIと`libs/widgetutils/xmlgui/KisShortcutsDialog.h`の残存全14 APIから既存`libs/widgetutils/tests/KKeySequenceWidgetSchemaContractTest.cpp`の5枠`shortcutWidgetTypeAndLifetimeSchemaRemainStable`、`shortcutWidgetPolicySignaturesRemainStable`、`shortcutWidgetEditingSignaturesRemainStable`、`shortcutsDialogTypeAndCollectionSchemaRemainStable`、`shortcutsDialogPersistenceSchemaRemainStable`へ対応付ける。
   完全集合はshortcut widget class・構築・破棄、修飾なし許可照会設定・clear button・shortcut照会設定・検査collection設定、steal適用・clear・変更通知、dialog class・既定action種別・既定引数付き構築・破棄・collection追加照会・寸法、保存・既定化・取消し・設定入出力・独自shortcut読込保存である。許可pathは既存試験sourceと`libs/widgetutils/tests/CMakeLists.txt`の対象固有探索路だけで、XML GUI source探索路以外のCMake・依存・公開header・製品sourceを変更しない。shortcut widget・dialog・editor、Widget、キー列、文字列、action collectionを実体化せず、競合検査・編集、collection追加、保存・読込・書出し・復元本文を実行しない。対象4工程・8入力、停止5工程・11入力、近傍`KHelpMenuSchemaContractTest`、製品`kritawidgetutils` 274工程・581入力を維持し、図形担当の統合・削除後に開始する。同じ限定検証とshortcut/dialog/editor/action/Qt値未解決記号を確認する。
+
+### 第183便の統合結果
+
+- `g183-liquify-transform-schema`は開始`libs/image/kis_liquify_transform_worker.h`から既存`libs/image/tests/KisImageTypesContractTest.cpp`の5枠へ、型・寿命、格子・点参照、点変形、描画装置・画像、矩形・XMLの残存全24 APIを対応付けた。worker、格子、updater、描画装置、画像、Qt値、DOMを実体化せず、copy・比較、格子照会、点変形、描画、矩形計算、XML本文を実行しない4工程・8入力に保った。
+  受渡しcommit`77363f7a07`を統合commit`e7611a6b81`として取り込み、担当と中央の新旧枠、対象・近傍CTest、20回反復、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式に成功した。台帳commit`15ef42a523`で17,987件対応、11,851件未対応となった。格子・点変形、画像・描画装置変換、矩形近似、XML往復の実行時結果は別契約で扱う。
+- `g183-shape-clipping-schema`は開始`libs/flake/KoClipMask.h`と`libs/flake/KoClipPath.h`から既存`libs/flake/tests/KoPathShapeSchemaContractTest.cpp`の5枠へ、型・寿命、座標・規則、shape所有、幾何、描画の残存全32 APIを対応付けた。clip mask・path、shape、Qt容器・幾何値、painterを実体化せず、copy・代入、clone、座標・shape・path操作、描画本文を実行しない4工程・8入力に保った。
+  受渡しcommit`9801189fe7`を統合commit`8124cc91a9`として取り込み、担当と中央の新旧枠、対象・近傍CTest、20回反復、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式に成功した。台帳commit`7477221c58`で18,019件対応、11,819件未対応となった。copy・clone・shape操作、幾何算出、mask描画・clip適用の実行時結果は別契約で扱う。
+- `g183-shortcut-editing-schema`は開始`libs/widgetutils/xmlgui/kshortcutwidget.h`と`libs/widgetutils/xmlgui/KisShortcutsDialog.h`から既存`libs/widgetutils/tests/KKeySequenceWidgetSchemaContractTest.cpp`の5枠へ、widget型・寿命、値・方針、編集、dialog型・collection、永続化・復元の残存全26 APIを対応付けた。初回限定構築で`KisShortcutsEditor.h`の探索路不足を取得し、`libs/widgetutils/tests/CMakeLists.txt`へ対象固有のXML GUI source探索路1本だけを加え、直接linkをQt Gui・Testだけに保った。`defaultActionTypes`は`const`であって`constexpr`ではないため型を静的に固定し、その`QFlags`値だけを小さな実行時観測として固定した。widget、dialog、editor、キー列、collection、文字列、寸法は実体化せず、その本文を実行していない。
+  受渡しcommit`ca64f7f569`を統合commit`f8f78e8d75`として取り込み、担当と中央の新旧枠、対象・近傍CTest、20回反復、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式に成功した。対象は4工程・8入力のままであり、台帳commit`adf427b5c0`で18,045件対応、11,793件未対応となった。競合検査・編集、collection操作、保存・読込・書出し・復元の実行時結果は別契約で扱う。
+- 第183便全体で82 APIを15枠へ重複なく対応付けた。対象固有探索路1本以外の依存を増やさず、一度に一つの担当だけを実装・構成・構築・統合した。製品target、全体build、全体`verify`、Linux、Nix再評価は実行せず、対象・近傍CTest、各20回反復、無作業再構築、公開API検査と`verify-quick`に成功した。
+  3担当のcleanな作業tree、担当build木、担当branchを統合直後に削除し、2,651,664 KiB（約2.53 GiB）の担当領域を回収した。旧不足報告`public-api-missing-g183.json`をごみ箱へ移し、主Ninja木5,663,376 KiB、共有compiler cache 983,228 KiB、最新不足報告`build/tdd-macos/public-api-missing-g184.json` 3,087,956 bytesだけを再利用対象として保持する。次の永続作業は第184便の不足報告から、既存限定対象を優先して3責務を先行監査することである。
 
 ### 第182便の先行監査計画
 
