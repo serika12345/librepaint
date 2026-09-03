@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 12289
+    "expectedMissingApis": 12239
   },
   "contracts": [
     {
@@ -49523,6 +49523,101 @@
       "apis": [
         "method:KToggleToolBarAction::eventFilter(QObject * watched,QEvent * event)",
         "method:KToggleToolBarAction::toolBar()"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::paintOpSettingsTypeUpdateListenerAndLifetimeSchemaRemainStable",
+      "behavior": "paint operation設定は更新通知interfaceの所有型・操作、設定の抽象型・構築・copy・仮想寿命を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisPaintOpSettings::UpdateListenerSP",
+        "alias:KisPaintOpSettings::UpdateListenerWSP",
+        "class:KisPaintOpSettings",
+        "method:KisPaintOpSettings::KisPaintOpSettings(KisResourcesInterfaceSP resourcesInterface)",
+        "method:KisPaintOpSettings::KisPaintOpSettings(const KisPaintOpSettings & rhs)",
+        "method:KisPaintOpSettings::UpdateListener::isDirty() const",
+        "method:KisPaintOpSettings::UpdateListener::notifySettingsChanged()",
+        "method:KisPaintOpSettings::UpdateListener::setDirty(bool value)",
+        "method:KisPaintOpSettings::UpdateListener::~UpdateListener()",
+        "method:KisPaintOpSettings::~KisPaintOpSettings()",
+        "struct:KisPaintOpSettings::UpdateListener"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::paintOpSettingsInteractionAndOutlineSignaturesRemainStable",
+      "behavior": "paint operation設定はoutline表示方針、入力通知、起動、node参照、incremental描画方針とoutline生成の公開型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisPaintOpSettings::OutlineMode::forceCircle",
+        "member:KisPaintOpSettings::OutlineMode::forceFullSize",
+        "member:KisPaintOpSettings::OutlineMode::isVisible",
+        "member:KisPaintOpSettings::OutlineMode::showTiltDecoration",
+        "method:KisPaintOpSettings::activate()",
+        "method:KisPaintOpSettings::brushOutline(const KisPaintInformation & info,const OutlineMode & mode,qreal alignForZoom)",
+        "method:KisPaintOpSettings::ellipseOutline(qreal width,qreal height,qreal scale,qreal rotation)",
+        "method:KisPaintOpSettings::makeTiltIndicator(KisPaintInformation const & info,QPointF const & start,qreal lengthScale,qreal angle)",
+        "method:KisPaintOpSettings::mousePressEvent(const KisPaintInformation & paintInformation,Qt::KeyboardModifiers modifiers,KisNodeWSP currentNode)",
+        "method:KisPaintOpSettings::mouseReleaseEvent()",
+        "method:KisPaintOpSettings::node() const",
+        "method:KisPaintOpSettings::paintIncremental()",
+        "struct:KisPaintOpSettings::OutlineMode"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::paintOpSettingsCompositionAndValiditySignaturesRemainStable",
+      "behavior": "paint operation設定はcopy、初期化、合成方式、model識別、妥当性、property更新、版cookie、pattern有無の公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPaintOpSettings::clone() const",
+        "method:KisPaintOpSettings::effectivePaintOpCompositeOp()",
+        "method:KisPaintOpSettings::hasPatternSettings() const",
+        "method:KisPaintOpSettings::indirectPaintingCompositeOp() const",
+        "method:KisPaintOpSettings::isValid() const",
+        "method:KisPaintOpSettings::modelName() const",
+        "method:KisPaintOpSettings::resetSettings(const QStringList & preserveProperties=QStringList ())",
+        "method:KisPaintOpSettings::sanityVersionCookie() const",
+        "method:KisPaintOpSettings::setModelName(const QString & modelName)",
+        "method:KisPaintOpSettings::setProperty(const QString & name,const QVariant & value)"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::paintOpSettingsResourceAndCanvasSignaturesRemainStable",
+      "behavior": "paint operation設定はresource、canvas resource、resource cacheの参照・差替え・再生成と必要canvas resource一覧の公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPaintOpSettings::canvasResourcesInterface() const",
+        "method:KisPaintOpSettings::regenerateResourceCache(KoResourceCacheInterfaceSP cacheInterface)",
+        "method:KisPaintOpSettings::requiredCanvasResources() const",
+        "method:KisPaintOpSettings::resourceCacheInterface() const",
+        "method:KisPaintOpSettings::resourcesInterface() const",
+        "method:KisPaintOpSettings::setCanvasResourcesInterface(KoCanvasResourcesInterfaceSP canvasResourcesInterface)",
+        "method:KisPaintOpSettings::setResourceCacheInterface(KoResourceCacheInterfaceSP cacheInterface)",
+        "method:KisPaintOpSettings::setResourcesInterface(KisResourcesInterfaceSP resourcesInterface)"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::paintOpSettingsMaskingLodAndUniformPropertySignaturesRemainStable",
+      "behavior": "paint operation設定はmasking設定、LOD利用許可、一様propertyと更新listenerを照会・設定する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPaintOpSettings::createMaskingSettings() const",
+        "method:KisPaintOpSettings::hasMaskingSettings() const",
+        "method:KisPaintOpSettings::isLodUserAllowed(const KisPropertiesConfigurationSP config)",
+        "method:KisPaintOpSettings::maskingBrushCompositeOp() const",
+        "method:KisPaintOpSettings::setLodUserAllowed(KisPropertiesConfigurationSP config,bool value)",
+        "method:KisPaintOpSettings::setUpdateListener(UpdateListenerWSP listener)",
+        "method:KisPaintOpSettings::uniformProperties(KisPaintOpSettingsSP settings,QPointer<KisPaintOpPresetUpdateProxy> updateProxy)",
+        "method:KisPaintOpSettings::updateListener() const"
       ]
     }
   ]
