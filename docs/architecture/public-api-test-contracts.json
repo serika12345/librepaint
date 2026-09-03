@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 11317
+    "expectedMissingApis": 11294
   },
   "contracts": [
     {
@@ -52070,6 +52070,74 @@
         "method:KoShapeManager::update(const QRectF & rect,const KoShape * shape=0,bool selectionHandles=false)",
         "method:KoShapeManager::updatesBlocked() const",
         "struct:KoShapeManager::ShapeInterface"
+      ]
+    },
+    {
+      "target": "KisVisualColorSelectorShapeSchemaContractTest",
+      "source": "libs/widgets/tests/KisVisualColorSelectorShapeSchemaContractTest.cpp",
+      "test": "KisVisualColorSelectorShapeSchemaContractTest::internalColorSelectorTypeLifetimeAndFactorySchemaRemainStable",
+      "behavior": "内部色選択dialogはQt dialogとして構築・破棄でき、画面色採取器factoryを設定する公開型と署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisDlgInternalColorSelector",
+        "method:KisDlgInternalColorSelector::KisDlgInternalColorSelector(QWidget * parent,KoColor color,Config config,const QString & caption,const KoColorDisplayRendererInterface * displayRenderer=KoDumbColorDisplayRenderer::instance ())",
+        "method:KisDlgInternalColorSelector::setScreenColorSamplerFactory(std::function<KisScreenColorSamplerBase * (QWidget *)> f)",
+        "method:KisDlgInternalColorSelector::~KisDlgInternalColorSelector()"
+      ]
+    },
+    {
+      "target": "KisVisualColorSelectorShapeSchemaContractTest",
+      "source": "libs/widgets/tests/KisVisualColorSelectorShapeSchemaContractTest.cpp",
+      "test": "KisVisualColorSelectorShapeSchemaContractTest::internalColorSelectorConfigSchemaRemainStable",
+      "behavior": "内部色選択dialogの設定値はmodal表示、視覚選択器、palette、画面色採取、前後色、16進入力、alpha選択の公開項目を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisDlgInternalColorSelector::Config::hexInput",
+        "member:KisDlgInternalColorSelector::Config::modal",
+        "member:KisDlgInternalColorSelector::Config::paletteBox",
+        "member:KisDlgInternalColorSelector::Config::prevNextButtons",
+        "member:KisDlgInternalColorSelector::Config::screenColorSampler",
+        "member:KisDlgInternalColorSelector::Config::useAlpha",
+        "member:KisDlgInternalColorSelector::Config::visualColorSelector",
+        "method:KisDlgInternalColorSelector::Config::Config()",
+        "struct:KisDlgInternalColorSelector::Config"
+      ]
+    },
+    {
+      "target": "KisVisualColorSelectorShapeSchemaContractTest",
+      "source": "libs/widgets/tests/KisVisualColorSelectorShapeSchemaContractTest.cpp",
+      "test": "KisVisualColorSelectorShapeSchemaContractTest::internalColorSelectorColorSpaceAndRendererSignaturesRemainStable",
+      "behavior": "内部色選択dialogは使用色空間の変更・固定と表示rendererの差替えを受け付ける公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDlgInternalColorSelector::colorSpaceChanged(const KoColorSpace * cs)",
+        "method:KisDlgInternalColorSelector::lockUsedColorSpace(const KoColorSpace * cs)",
+        "method:KisDlgInternalColorSelector::setDisplayRenderer(const KoColorDisplayRendererInterface * displayRenderer)"
+      ]
+    },
+    {
+      "target": "KisVisualColorSelectorShapeSchemaContractTest",
+      "source": "libs/widgets/tests/KisVisualColorSelectorShapeSchemaContractTest.cpp",
+      "test": "KisVisualColorSelectorShapeSchemaContractTest::internalColorSelectorColorEditingSignaturesRemainStable",
+      "behavior": "内部色選択dialogは現在色の取得、alpha選択、前色設定、外部色更新とpalette patch選択を受ける公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDlgInternalColorSelector::chooseAlpha(bool chooseAlpha)",
+        "method:KisDlgInternalColorSelector::getCurrentColor()",
+        "method:KisDlgInternalColorSelector::setPreviousColor(KoColor c)",
+        "method:KisDlgInternalColorSelector::slotColorUpdated(KoColor newColor)",
+        "method:KisDlgInternalColorSelector::slotSetColorFromPatch(KoColorPatch * patch)"
+      ]
+    },
+    {
+      "target": "KisVisualColorSelectorShapeSchemaContractTest",
+      "source": "libs/widgets/tests/KisVisualColorSelectorShapeSchemaContractTest.cpp",
+      "test": "KisVisualColorSelectorShapeSchemaContractTest::internalColorSelectorNotificationAndCloseSignaturesRemainStable",
+      "behavior": "内部色選択dialogは選択した前景色を通知し、dialogを閉じる要求を処理する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDlgInternalColorSelector::reject()",
+        "method:KisDlgInternalColorSelector::signalForegroundColorChosen(KoColor color)"
       ]
     }
   ]
