@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-03 09:48 JST
+- 更新日時: 2026-09-03 09:54 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -14,6 +14,13 @@
 - 監査共通基点は`adf4e2c6ba`、入力は`build/tdd-macos/public-api-missing-g179.json`である。3担当は`auditing`の読み取り専用とし、製品・試験・CMake・script・台帳・文書を変更せず、構成、構築、試験、Git操作、追加委任も行わない。一つの公開責務から20〜80 APIを最大5枠へ固定し、既存限定対象またはheader限定の4〜10工程程度の対象で、製品共有libraryと`kritatestsdk`へ接続しない候補だけを採用する。製品targetを引数にする`build-incremental ... plan`と製品buildは実行せず、既存Ninja木のquery・commands・inputsだけを読み取る。
 - image・paintop・pigment領域は第178便のpaint operation設定を、flake・SVG・vector領域はsimple shape containerとbulk lockを、widgetutils・widgets・libkis領域はXML GUI factory・builderを除外して一責務ずつ比較する。
 - 各監査は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、予測工程・入力と停止線、開始pathから契約先、許可path、固有停止条件、比較候補の棄却根拠を揃える。3領域のpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
+- image・paintop領域は`libs/image/brushengine/kis_slider_based_paintop_property.h`の残存全23 APIを採用した。型・4別名6、3構築、range・step 7、表示metadata 6、range通知1を既存`libs/image/tests/KisImageTypesContractTest.cpp`の5枠へ対応付ける。slider property、callback wrapper、uniform property、設定、識別子、QObjectを実体化せず、constructor、range・step・表示値、callback、signal本文を実行しない。CMakeと依存を変えず、直接linkはQt Core・Gui・Test・XmlとBoost、対象4工程・8入力、停止5工程・11入力、command hash`860901e6be`、input hash`42c0bdca62`、製品`kritaimage` 1,196工程・2,416入力を維持する。
+  paintop presetはresource・XML・device・cache、paintop factoryは生成・Widget・resource・interstroke、update jobはatomic・walker・stroke concurrencyへ責務が分岐し、color space registryとimage・painter・paint deviceは閉包と件数が過大なため棄却した。
+- flake・vector領域は`libs/flake/KoCanvasController.h`の残存全26 APIを採用した。型・寿命・canvas 7、表示位置4、zoom 7、pan 5、scrollbar 3を既存`libs/flake/tests/KoCanvasControllerProxySchemaContractTest.cpp`の5枠へ対応付ける。controller、proxy、canvas、action collection、still point、幾何・zoom状態を実体化せず、constructor、canvas操作、可視化、zoom、pan、scrollbar本文を実行しない。CMakeと依存を変えず、直接linkはQt Core・Test、対象4工程・8入力、停止5工程・11入力、command hash`8137633e32`、input hash`d5e479eee8`、製品`kritaflake` 621工程・1,274入力を維持する。
+  SVG utilとstyle parserは座標・単位変換とCSS・DOM状態、clip maskとpathは描画とshape所有を跨ぎ、path point command群は製品共有libraryへ接続する。shape・tool manager、tool proxy、resource群は描画・event・大域状態・serializationへ閉包が広いため棄却した。
+- widgetutils・widgets・libkis領域は`libs/libkis/ManagedColor.h`の残存全19 APIと`libs/libkis/Swatch.h`の残存全16 APIを管理色・swatch値境界として採用した。管理色型・寿命・等値6、色空間・canvas 7、成分・XML 6、swatch型・寿命・copy・等値7、metadata・色・妥当性9を既存`libs/libkis/tests/PaletteSchemaContractTest.cpp`の5枠へ対応付ける。管理色、swatch、KoColor、canvas、QColor、palette資源を実体化せず、色変換、profile探索、成分・XML、copy・代入本文を実行しない。CMakeと依存を変えず、直接linkはQt Core・Gui・TestとBoost、対象4工程・8入力、停止5工程・11入力、command hash`828bcaabf4`、input hash`434cf0e0d9`、製品`kritalibkis` 2,018工程・4,034入力を維持する。
+  visual color selectorはgamut・表示変換・入力・描画、tag selection widgetは製品共有libraryと試験支援library、palette表示群は生成UI・resource・複数Widgetへ閉包が広く、Document・Node・Krita・Scratchpadは文書・画像・application・canvas状態へ責務が分岐するため棄却した。
+- 中央の`public-api-missing-g179.json`でslider paint operation property 23件、canvas controller 26件、管理色・swatch 35件の全識別子を照合した。3責務の開始header、試験source、所有CMake、生成物は相互に異なる。合計84 APIを15枠へ進め、許可path外変更、新規CMake・include・link、製品OBJECT/shared・`kritatestsdk`、実体化・本文実行、5工程・11入力超過、製品計画集合の変化が必要になれば停止する。
 
 ### 第178便の先行監査計画
 
