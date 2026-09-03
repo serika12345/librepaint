@@ -2,12 +2,18 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-03 17:04 JST
+- 更新日時: 2026-09-03 17:34 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
+
+### 第189便の先行監査計画
+
+- 監査共通基点は`21adf36a40`、入力は`build/tdd-macos/public-api-missing-g189.json`である。3担当は`auditing`の読み取り専用とし、製品・試験・CMake・script・台帳・文書を変更せず、構成、構築、試験、Git操作、追加委任も行わない。一つの公開責務から20〜80 APIを最大5枠へ固定し、既存限定対象またはheader限定の4〜10工程程度の対象で、製品共有libraryと`kritatestsdk`へ接続しない候補だけを採用する。製品targetを引数にする`build-incremental ... plan`と製品buildは実行せず、既存Ninja木のquery・commands・inputsだけを読み取る。
+- image・paintop・pigment領域は第188便のGaussian mask生成器を、flake・SVG・vector領域はtool代理を、widgetutils・widgets・libkis領域はfilter設定値・適用を除外して一責務ずつ比較する。
+- 各監査は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、実際のcompile探索路、予測工程・入力と停止線、開始pathから契約先、許可path、固有停止条件、比較候補の棄却根拠を揃える。3領域のpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
 
 ### 第188便の先行監査計画
 
@@ -32,6 +38,17 @@
   完全集合はclass、canvas・parent構築、破棄、active tool・直近pointer event・shortcut・private access、tablet・touch・mouse各転送、key・input method・focus・drag・drop・汎用event、描画・再描画・stroke終了・popup・selection・clipboard操作、selection・tool変更通知である。許可pathは既存試験sourceだけで、CMake・依存・公開header・製品sourceを変更しない。代理、試験用派生、canvas、tool、painter、converter、各event、menu、popup widget、Qt値・容器を実体化せず、入力配送、描画、編集、stroke終了、tool切替、signal本文を実行しない。対象4工程・8入力、停止5工程・11入力、近傍`KoToolBaseSchemaContractTest`、製品`kritaflake` 621工程・1,274入力を維持し、Gaussian担当の統合・削除後に開始する。同じ限定検証とtool/canvas/event/painter未解決記号を確認する。
 - `g188-filter-schema`は`/Users/masato/Documents/librepaint-g188-filter-schema`を所有する。開始`libs/libkis/InfoObject.h`の残存全10 APIと`Filter.h`の残存全11 APIから既存`libs/libkis/tests/ColorizeMaskSchemaContractTest.cpp`の5枠`infoObjectTypeAndLifetimeSchemaRemainStable`、`infoObjectPropertySignaturesRemainStable`、`filterTypeLifetimeAndIdentitySchemaRemainStable`、`filterConfigurationSignaturesRemainStable`、`filterApplicationSignaturesRemainStable`へ対応付ける。
   完全集合は`InfoObject`のclass・2構築・破棄・比較・property map照会設定と、`Filter`のclass・構築・破棄・比較・name・configuration照会設定・同期適用・非同期開始である。許可pathは既存試験sourceだけで、CMake・依存・公開header・製品sourceを変更しない。両型、Node、QObject、文字列・variant・map、設定共有pointerを実体化せず、構築・破棄、比較、property・filter構成、適用・開始本文を実行しない。対象4工程・8入力、停止5工程・11入力、近傍`SelectionSchemaContractTest`、製品`kritalibkis` 2,018工程・4,034入力を維持し、tool代理担当の統合・削除後に開始する。同じ限定検証とfilter/info object/node/configuration未解決記号を確認する。
+
+### 第188便の統合結果
+
+- `g188-gaussian-mask-schema`は開始`libs/image/kis_gauss_circle_mask_generator.h`と`kis_gauss_rect_mask_generator.h`から既存`libs/image/tests/KisImageTypesContractTest.cpp`の5枠へ、型・寿命、clone、sampling、scale・vector化、applicator接続面の残存全20 APIを対応付けた。両generator、基底、private型、applicator、row processor、`KoID`を実体化せず、構築・複製・破棄、sampling、scale、applicator本文を実行しない4工程・8入力に保った。
+  受渡しcommit`7f0c6a2291`を統合commit`a6c453efea`として取り込み、担当と中央の新旧枠、対象・近傍CTest、20回反復、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式に成功した。台帳commit`3b9a1ddf12`で18,390件対応、11,448件未対応となった。Gaussian数値、scale後の出力、SIMD・scalar一致、applicator実行時動作は既存または別の実行時契約で扱う。
+- `g188-tool-proxy-schema`は開始`libs/flake/KoToolProxy.h`から既存`libs/flake/tests/KoCanvasControllerProxySchemaContractTest.cpp`の5枠へ、型・寿命・active tool、pointer event、keyboard・focus・drop、描画・編集、通知の残存全41 APIを対応付けた。代理、試験用派生、canvas、tool、painter、converter、各event、menu、popup widget、Qt値・容器を実体化せず、入力配送、描画、clipboard・選択操作、stroke終了、tool切替、signal本文を実行しない4工程・8入力に保った。
+  受渡しcommit`3c19858635`を統合commit`b6459518c5`として取り込み、担当と中央の新旧枠、対象・近傍CTest、20回反復、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式に成功した。台帳commit`552666b77b`で18,431件対応、11,407件未対応となった。入力配送順、clipboard・選択結果、描画結果とsignal配送は別の実行時契約で扱う。
+- `g188-filter-schema`は開始`libs/libkis/InfoObject.h`と`Filter.h`から既存`libs/libkis/tests/ColorizeMaskSchemaContractTest.cpp`の5枠へ、設定値型・寿命、property、filter型・寿命・同一性、構成、適用の残存全21 APIを対応付けた。両型、Node、QObject、文字列・variant・map、設定共有pointerを実体化せず、構築・破棄、比較、property・構成、同期適用・非同期開始本文を実行しない4工程・8入力に保った。
+  受渡しcommit`6bd9c66477`を統合commit`8eb1cec422`として取り込み、担当と中央の新旧枠、対象・近傍CTest、20回反復、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式に成功した。台帳commit`21adf36a40`で18,452件対応、11,386件未対応となった。property値、設定所有、filter適用結果と非同期実行は別の実行時契約で扱う。
+- 第188便全体で82 APIを15枠へ重複なく対応付けた。CMake・探索路・link・compile定義・公開header・製品sourceを変えず、一度に一つの担当だけを実装・構成・構築・統合した。製品target、全体build、全体`verify`、Linux、Nix再評価は実行せず、対象・近傍CTest、各20回反復、無作業再構築、公開API検査と`verify-quick`に成功した。
+  3担当のcleanな作業tree、担当build木、担当branchを統合直後に削除し、2,640,044 KiB（約2.52 GiB）の担当領域を回収した。途中更新の不足報告を都度ごみ箱へ移し、主Ninja木5,664,232 KiB、共有compiler cache 983,220 KiB、最新不足報告`build/tdd-macos/public-api-missing-g189.json` 2,991,756 bytesだけを再利用対象として保持する。次の永続作業は第189便の不足報告から、既存限定対象を優先して3責務を先行監査することである。
 
 ### 第187便の先行監査計画
 
