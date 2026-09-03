@@ -2,13 +2,20 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include <ColorizeMask.h>
+#include <FilterMask.h>
 #include <QTest>
+#include <SelectionMask.h>
+#include <TransformMask.h>
+#include <TransparencyMask.h>
 
 #include <type_traits>
 #include <utility>
 
 #define ASSERT_COLORIZE_MASK_SIGNATURE(method, signature)                                                              \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&ColorizeMask::method)), signature>)
+
+#define ASSERT_MASK_SIGNATURE(owner, method, signature)                                                                \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&owner::method)), signature>)
 
 class ColorizeMaskSchemaContractTest : public QObject
 {
@@ -19,6 +26,11 @@ private Q_SLOTS:
     void colorizeMaskDetectionAndCleanupPolicySignaturesRemainStable();
     void colorizeMaskEditingBoundsAndOutputPolicySignaturesRemainStable();
     void colorizeMaskUpdateAndCacheSignaturesRemainStable();
+    void transformMaskTypeAndLifetimeSchemaRemainStable();
+    void transformMaskTransformAndSerializationSchemaRemainStable();
+    void transparencyMaskTypeAndSelectionSchemaRemainStable();
+    void selectionMaskTypeAndSelectionSchemaRemainStable();
+    void filterMaskTypeAndFilterSchemaRemainStable();
 };
 
 void ColorizeMaskSchemaContractTest::colorizeMaskOwnershipLifetimeAndTypeSchemaRemainsStable()
@@ -76,6 +88,77 @@ void ColorizeMaskSchemaContractTest::colorizeMaskUpdateAndCacheSignaturesRemainS
 
     using UpdateWithDefaultForce = decltype(std::declval<ColorizeMask &>().updateMask());
     static_assert(std::is_same_v<UpdateWithDefaultForce, void>);
+}
+
+void ColorizeMaskSchemaContractTest::transformMaskTypeAndLifetimeSchemaRemainStable()
+{
+    using Mask = TransformMask;
+
+    static_assert(std::is_class_v<Mask>);
+    static_assert(std::is_base_of_v<Node, Mask>);
+    static_assert(std::is_constructible_v<Mask, KisImageSP, KisTransformMaskSP>);
+    static_assert(std::is_constructible_v<Mask, KisImageSP, KisTransformMaskSP, QObject *>);
+    static_assert(std::is_constructible_v<Mask, KisImageSP, QString>);
+    static_assert(std::is_constructible_v<Mask, KisImageSP, QString, QObject *>);
+    static_assert(std::has_virtual_destructor_v<Mask>);
+    ASSERT_MASK_SIGNATURE(Mask, type, QString (Mask::*)() const);
+}
+
+void ColorizeMaskSchemaContractTest::transformMaskTransformAndSerializationSchemaRemainStable()
+{
+    using Mask = TransformMask;
+
+    ASSERT_MASK_SIGNATURE(Mask, finalAffineTransform, QTransform (Mask::*)() const);
+    ASSERT_MASK_SIGNATURE(Mask, fromXML, bool (Mask::*)(const QString &));
+    ASSERT_MASK_SIGNATURE(Mask, toXML, QString (Mask::*)() const);
+}
+
+void ColorizeMaskSchemaContractTest::transparencyMaskTypeAndSelectionSchemaRemainStable()
+{
+    using Mask = TransparencyMask;
+
+    static_assert(std::is_class_v<Mask>);
+    static_assert(std::is_base_of_v<Node, Mask>);
+    static_assert(std::is_constructible_v<Mask, KisImageSP, KisTransparencyMaskSP>);
+    static_assert(std::is_constructible_v<Mask, KisImageSP, KisTransparencyMaskSP, QObject *>);
+    static_assert(std::is_constructible_v<Mask, KisImageSP, QString>);
+    static_assert(std::is_constructible_v<Mask, KisImageSP, QString, QObject *>);
+    static_assert(std::has_virtual_destructor_v<Mask>);
+    ASSERT_MASK_SIGNATURE(Mask, selection, Selection * (Mask::*)() const);
+    ASSERT_MASK_SIGNATURE(Mask, setSelection, void (Mask::*)(Selection *));
+    ASSERT_MASK_SIGNATURE(Mask, type, QString (Mask::*)() const);
+}
+
+void ColorizeMaskSchemaContractTest::selectionMaskTypeAndSelectionSchemaRemainStable()
+{
+    using Mask = SelectionMask;
+
+    static_assert(std::is_class_v<Mask>);
+    static_assert(std::is_base_of_v<Node, Mask>);
+    static_assert(std::is_constructible_v<Mask, KisImageSP, KisSelectionMaskSP>);
+    static_assert(std::is_constructible_v<Mask, KisImageSP, KisSelectionMaskSP, QObject *>);
+    static_assert(std::is_constructible_v<Mask, KisImageSP, QString>);
+    static_assert(std::is_constructible_v<Mask, KisImageSP, QString, QObject *>);
+    static_assert(std::has_virtual_destructor_v<Mask>);
+    ASSERT_MASK_SIGNATURE(Mask, selection, Selection * (Mask::*)() const);
+    ASSERT_MASK_SIGNATURE(Mask, setSelection, void (Mask::*)(Selection *));
+    ASSERT_MASK_SIGNATURE(Mask, type, QString (Mask::*)() const);
+}
+
+void ColorizeMaskSchemaContractTest::filterMaskTypeAndFilterSchemaRemainStable()
+{
+    using Mask = FilterMask;
+
+    static_assert(std::is_class_v<Mask>);
+    static_assert(std::is_base_of_v<Node, Mask>);
+    static_assert(std::is_constructible_v<Mask, KisImageSP, KisFilterMaskSP>);
+    static_assert(std::is_constructible_v<Mask, KisImageSP, KisFilterMaskSP, QObject *>);
+    static_assert(std::is_constructible_v<Mask, KisImageSP, QString, Filter &>);
+    static_assert(std::is_constructible_v<Mask, KisImageSP, QString, Filter &, QObject *>);
+    static_assert(std::has_virtual_destructor_v<Mask>);
+    ASSERT_MASK_SIGNATURE(Mask, filter, Filter * (Mask::*)());
+    ASSERT_MASK_SIGNATURE(Mask, setFilter, void (Mask::*)(Filter &));
+    ASSERT_MASK_SIGNATURE(Mask, type, QString (Mask::*)() const);
 }
 
 QTEST_GUILESS_MAIN(ColorizeMaskSchemaContractTest)
