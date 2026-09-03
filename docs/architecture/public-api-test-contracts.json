@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 11875
+    "expectedMissingApis": 11851
   },
   "contracts": [
     {
@@ -50612,6 +50612,75 @@
         "method:KisMultipliersDoubleSliderSpinBox::setPrefix(const QString & prefix)",
         "method:KisMultipliersDoubleSliderSpinBox::setSuffix(const QString & suffix)",
         "method:KisMultipliersDoubleSliderSpinBox::valueChanged(qreal value)"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::liquifyTypeAndLifetimeSchemaRemainStable",
+      "behavior": "liquify変形workerは公開型、画像範囲・進捗通知先・画素精度を受ける構築、copy構築と公開寿命を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisLiquifyTransformWorker",
+        "method:KisLiquifyTransformWorker::KisLiquifyTransformWorker(const KisLiquifyTransformWorker & rhs)",
+        "method:KisLiquifyTransformWorker::KisLiquifyTransformWorker(const QRect & srcBounds,KoUpdater * progress,int pixelPrecision=8)",
+        "method:KisLiquifyTransformWorker::~KisLiquifyTransformWorker()"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::liquifyGridAndPointSignaturesRemainStable",
+      "behavior": "liquify変形workerは同一性、格子寸法・点indexと原点列・変形点列を照会する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisLiquifyTransformWorker::gridSize() const",
+        "method:KisLiquifyTransformWorker::isIdentity() const",
+        "method:KisLiquifyTransformWorker::operator ==(const KisLiquifyTransformWorker & other) const",
+        "method:KisLiquifyTransformWorker::originalPoints() const",
+        "method:KisLiquifyTransformWorker::pointToIndex(const QPoint & cellPt)",
+        "method:KisLiquifyTransformWorker::transformedPoints()"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::liquifyMutationSignaturesRemainStable",
+      "behavior": "liquify変形workerは局所点列の移動・拡縮・回転・取消しと全体座標変換を行う公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisLiquifyTransformWorker::rotatePoints(const QPointF & base,qreal angle,qreal sigma,bool useWashMode,qreal flow)",
+        "method:KisLiquifyTransformWorker::scalePoints(const QPointF & base,qreal scale,qreal sigma,bool useWashMode,qreal flow)",
+        "method:KisLiquifyTransformWorker::transformSrcAndDst(const QTransform & t)",
+        "method:KisLiquifyTransformWorker::translate(const QPointF & offset)",
+        "method:KisLiquifyTransformWorker::translateDstSpace(const QPointF & offset)",
+        "method:KisLiquifyTransformWorker::translatePoints(const QPointF & base,const QPointF & offset,qreal sigma,bool useWashMode,qreal flow)",
+        "method:KisLiquifyTransformWorker::undoPoints(const QPointF & base,qreal amount,qreal sigma)"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::liquifyOutputSignaturesRemainStable",
+      "behavior": "liquify変形workerは描画装置間の変形と入力画像から変形画像・新offsetを生成する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisLiquifyTransformWorker::run(KisPaintDeviceSP srcDevice,KisPaintDeviceSP dstDevice)",
+        "method:KisLiquifyTransformWorker::runOnQImage(const QImage & srcImage,const QPointF & srcImageOffset,const QTransform & imageToThumbTransform,QPointF * newOffset)"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::liquifyBoundsAndXmlSignaturesRemainStable",
+      "behavior": "liquify変形workerは変更・必要・累積範囲の照会と変形格子のXML往復を行う公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisLiquifyTransformWorker::accumulatedStrokesBounds() const",
+        "method:KisLiquifyTransformWorker::approxChangeRect(const QRect & rc)",
+        "method:KisLiquifyTransformWorker::approxNeedRect(const QRect & rc,const QRect & fullBounds)",
+        "method:KisLiquifyTransformWorker::fromXML(const QDomElement & e)",
+        "method:KisLiquifyTransformWorker::toXML(QDomElement * e) const"
       ]
     }
   ]
