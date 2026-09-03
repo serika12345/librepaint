@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 11717
+    "expectedMissingApis": 11693
   },
   "contracts": [
     {
@@ -51040,6 +51040,75 @@
       "apis": [
         "method:KoColorSlider::currentColor() const",
         "method:KoColorSlider::setColors(const KoColor & minColor,const KoColor & maxColor)"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::simpleUpdateQueueTypeAndLifetimeSchemaRemainStable",
+      "behavior": "単純更新待機列は公開型、試験用派生型、既定構築と仮想寿命を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisSimpleUpdateQueue",
+        "class:KisTestableSimpleUpdateQueue",
+        "method:KisSimpleUpdateQueue::KisSimpleUpdateQueue()",
+        "method:KisSimpleUpdateQueue::~KisSimpleUpdateQueue()"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::simpleUpdateQueueAliasSchemaRemainStable",
+      "behavior": "単純更新待機列はwalkerと自発jobのlist・const iterator・mutable iterator別名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisMutableSpontaneousJobsListIterator",
+        "alias:KisMutableWalkersListIterator",
+        "alias:KisSpontaneousJobsList",
+        "alias:KisSpontaneousJobsListIterator",
+        "alias:KisWalkersList",
+        "alias:KisWalkersListIterator"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::simpleUpdateQueueAdmissionSignaturesRemainStable",
+      "behavior": "単純更新待機列は矩形または矩形列の更新・全体更新jobと自発jobを受け入れる公開overloadを維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSimpleUpdateQueue::addFullRefreshJob(KisNodeSP node,const QRect & rc,const QRect & cropRect,int levelOfDetail)",
+        "method:KisSimpleUpdateQueue::addFullRefreshJob(KisNodeSP node,const QVector<QRect> & rects,const QRect & cropRect,int levelOfDetail,KisProjectionUpdateFlags flags)",
+        "method:KisSimpleUpdateQueue::addSpontaneousJob(KisSpontaneousJob * spontaneousJob)",
+        "method:KisSimpleUpdateQueue::addUpdateJob(KisNodeSP node,const QRect & rc,const QRect & cropRect,int levelOfDetail)",
+        "method:KisSimpleUpdateQueue::addUpdateJob(KisNodeSP node,const QVector<QRect> & rects,const QRect & cropRect,int levelOfDetail,KisProjectionUpdateFlags flags)"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::simpleUpdateQueueStateAndProcessingSignaturesRemainStable",
+      "behavior": "単純更新待機列は空・idle・LOD・規模の照会と最適化・処理・設定更新の公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSimpleUpdateQueue::isEmpty() const",
+        "method:KisSimpleUpdateQueue::isIdle() const",
+        "method:KisSimpleUpdateQueue::optimize()",
+        "method:KisSimpleUpdateQueue::overrideLevelOfDetail() const",
+        "method:KisSimpleUpdateQueue::processQueue(KisUpdaterContext & updaterContext)",
+        "method:KisSimpleUpdateQueue::sizeMetric() const",
+        "method:KisSimpleUpdateQueue::updateSettings()"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::simpleUpdateQueueTestingAccessSignaturesRemainStable",
+      "behavior": "試験用単純更新待機列は自発jobとwalkerの可変待機列参照を公開する署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTestableSimpleUpdateQueue::getSpontaneousJobsList()",
+        "method:KisTestableSimpleUpdateQueue::getWalkersList()"
       ]
     }
   ]
