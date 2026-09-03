@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-03 20:42 JST
+- 更新日時: 2026-09-03 21:02 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -37,6 +37,14 @@
   完全集合は点command class・種別enum・構築・破棄、5種別値、redo・undo・平滑化、区間command class・種別enum・2値・単一/複数点構築・破棄、redo・undoである。初回の限定構築で公開header連鎖の`QDomDocument`に対するQt Xml探索路不足を確認したため、許可pathは既存試験sourceと`libs/flake/tests/CMakeLists.txt`の対象固有設定とする。Qt Xmlのinterface includeだけを`target_include_directories`へ追加し、link・compile定義・公開header・製品sourceを変更しない。両command、undo基底、path point・data、Qt容器・点、親commandを実体化せず、構築・破棄、redo・undo、control point平滑化とundo data収集本文を実行しない。対象4工程・8入力、停止5工程・11入力、近傍`KoPathPointDataContractTest`、製品`kritaflake` 621工程・1,274入力を維持し、math toolbox担当の統合・削除後に開始する。Qt Xmlが実行形式へ接続する、工程・入力が増える、または対象外の探索路が変わる場合は停止し、同じ限定検証とcommand/path point/undo未解決記号を確認する。
 - `g191-palette-selection-schema`は`/Users/masato/Documents/librepaint-g191-palette-selection-schema`を所有する。開始`libs/widgets/KisPaletteChooser.h`の残存全10 API、`KoColorSetWidget.h`と`KoColorPatch.h`の各残存全8 APIから既存`libs/widgets/tests/KisPaletteModelSchemaContractTest.cpp`の5枠`paletteChooserTypeLifetimeAndSelectionSchemaRemainStable`、`paletteChooserNotificationSignaturesRemainStable`、`colorSetWidgetTypeLifetimeAndPaletteSchemaRemainStable`、`colorSetWidgetNotificationSignaturesRemainStable`、`colorPatchTypeColorAndNotificationSchemaRemainStable`へ対応付ける。
   完全集合はchooser class・構築・破棄・現在資源設定・選択slotと5通知、色集合Widget class・構築・破棄・色集合取得設定・renderer設定・2通知、色patch class・構築・破棄・色取得設定・renderer設定・色変換・通知である。新しい担当構築木での最初の限定構築は、`KisPaletteChooser.h`がprivate実装用`ui_WdgPaletteListWidget.h`を公開面から要求し、過去の製品構築生成物へ暗黙に依存していたため失敗した。対象固有UI生成を試行すると、古い製品側生成物が主構築木に存在する条件でAUTOMOCが製品側headerを依存記録へ採用し、2回目の対象構築が製品側へ拡大した。開始`libs/widgets/KisPaletteChooser.h`からprivate UI includeを除き、同header内の`Ui_WdgPaletteListWidget`前方宣言へ置き換える。完全型を使用する既存`libs/widgets/KisPaletteChooser.cpp`のUI includeを唯一の所有位置とし、試験CMakeの対象固有UI生成は削除する。これにより公開面から生成物依存を除き、製品`kritawidgets`のUI生成規則・source集合、link、compile定義と公開APIは変えない。許可pathは既存試験source、`libs/widgets/tests/CMakeLists.txt`の試行除去、`libs/widgets/KisPaletteChooser.h`とする。chooser、色集合Widget、patch、Qt Widget・Frame、resource、色集合・色、renderer・寸法を実体化せず、構築・破棄、資源選択、palette取込・書出し、色変換・描画、signal配送本文を実行しない。対象4工程・8入力、停止5工程・11入力、近傍`KisGradientColorEditorSchemaContractTest`、製品`kritawidgets` 809工程・1,647入力を維持する。対象外の生成物または製品依存が増える、製品側計画集合が変わる、停止線を超える場合は中止する。同じ限定検証と公開API集合不変、AUTOMOC依存記録のUI不在、chooser/color set/patch/resource/color/renderer未解決記号を確認する。
+
+### 第191便の統合結果
+
+- `g191-math-toolbox-schema`は開始`libs/image/kis_math_toolbox.h`から既存`libs/image/tests/KisImageTypesContractTest.cpp`の5枠へ、toolbox型・別名、浮動小数値表現、wavelet計画・変換、色channel変換の残存全22 APIを対応付けた。公開headerの警告抑止を試験include範囲へ限定し、数値表現、描画装置、色空間、channel、wavelet本文を実体化・実行しない4工程・8入力に保った。受渡しcommit`815ca748f2`を統合commit`ee82d7a5ca`として取り込み、台帳commit`a7f2b0be3b`で18,636件対応、11,202件未対応となった。
+- `g191-path-type-command-schema`は開始`libs/flake/commands/KoPathPointTypeCommand.h`と`KoPathSegmentTypeCommand.h`から既存`libs/flake/tests/KoShapeReorderCommandSchemaContractTest.cpp`の5枠へ、点・区間種別commandの型・寿命・列挙値・実行署名の残存全21 APIを対応付けた。公開header連鎖が直接要求するQt Xmlのinterface includeだけを対象固有探索路へ加え、実行形式へのlinkを増やさず4工程・8入力に保った。受渡しcommit`ecdfe7259d`を統合commit`1fcb32fd43`として取り込み、台帳commit`0462f55d42`で18,657件対応、11,181件未対応となった。
+- `g191-palette-selection-schema`は開始`libs/widgets/KisPaletteChooser.h`、`KoColorSetWidget.h`、`KoColorPatch.h`から既存`libs/widgets/tests/KisPaletteModelSchemaContractTest.cpp`の5枠へ、パレット選択、色集合表示、色見本通知の残存全26 APIを対応付けた。開始`libs/widgets/KisPaletteChooser.h`のprivate生成UI includeを前方宣言へ置き換え、完全型の所有を既に直接includeする`libs/widgets/KisPaletteChooser.cpp`へ限定した。試験側のUI生成試行は最終CMake差分から除去し、生成UIがない新規構築木と主構築木の両方で対象を4工程・8入力へ戻した。契約受渡しcommit`effac9f31a`を`1e9baa5680`、生成順序試行`c42832a0b0`を`0d4bab2afd`、根本修正`bf41d7945e`を`0746f986db`として順に取り込み、台帳commit`018494e09a`で18,683件対応、11,155件未対応となった。
+- 第191便全体で69 APIを15枠へ重複なく対応付けた。主作業treeで3対象・3近傍CTest、各新規5枠の20回反復、無作業再構築、動的接続、AUTOMOC、未解決記号、構文・書式、公開API検査、`verify-quick`に成功した。製品target、全体`verify`、Linux、Nix再評価は完了検証として実行していない。`run-test --help`をヘルプ表示と誤認した非検証実行は全体構築を開始し、`KisResourceModelIndexResolver::resourceIndex`の未解決と`KoCssStylePreset.cpp`の不完全`KoPathShape`という既存基準不具合で停止した。UI生成試行中に拡大した主tree計画も同じ基準不具合を再検出しており、いずれも第191便の成功根拠には含めない。
+  3担当のcleanな作業treeと担当build木を統合直後に削除して2,648,360 KiB（約2.53 GiB）を回収した。旧不足報告`public-api-missing-g191.json`を削除し、主Ninja木5,665,576 KiB、共有compiler cache 982,872 KiB、最新`build/tdd-macos/public-api-missing-g192.json` 2,932,871 bytesだけを保持する。次の永続作業は第192便の不足報告から、既存限定対象を優先して3責務を先行監査することである。
 
 ### 第190便の先行監査担当票
 
