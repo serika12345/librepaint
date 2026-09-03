@@ -32,6 +32,7 @@
 #include "kis_selection_filters.h"
 #include "kis_selection_mask.h"
 #include "kis_sequential_iterator.h"
+#include "kis_simple_update_queue.h"
 #include "kis_stroke.h"
 #include "kis_types.h"
 #include "kis_update_job_item.h"
@@ -66,6 +67,8 @@ namespace
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisMaskGenerator::method)), signature>)
 #define ASSERT_UPDATER_CONTEXT_SIGNATURE(method, signature)                                                            \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisUpdaterContext::method)), signature>)
+#define ASSERT_SIMPLE_UPDATE_QUEUE_SIGNATURE(method, signature)                                                        \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KisSimpleUpdateQueue::method)), signature>)
 #define ASSERT_ITERATOR_SIGNATURE(type, method, signature)                                                             \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&type::method)), signature>)
 #define ASSERT_EDGE_DETECTION_SIGNATURE(method, signature)                                                             \
@@ -371,6 +374,11 @@ private Q_SLOTS:
     void updaterContextJobAdmissionAndSubmissionSignaturesRemainStable();
     void updaterContextSynchronizationAndLimitSignaturesRemainStable();
     void updaterContextContinuationAndCompletionSignaturesRemainStable();
+    void simpleUpdateQueueTypeAndLifetimeSchemaRemainStable();
+    void simpleUpdateQueueAliasSchemaRemainStable();
+    void simpleUpdateQueueAdmissionSignaturesRemainStable();
+    void simpleUpdateQueueStateAndProcessingSignaturesRemainStable();
+    void simpleUpdateQueueTestingAccessSignaturesRemainStable();
     void updateJobItemTypeAndStateSchemaRemainStable();
     void updateJobItemLifetimeAndExecutionSignaturesRemainStable();
     void updateJobItemAssignmentSignaturesRemainStable();
@@ -2940,6 +2948,59 @@ void KisImageTypesContractTest::updaterContextContinuationAndCompletionSignature
     ASSERT_UPDATER_CONTEXT_SIGNATURE(doSomeUsefulWork, void (KisUpdaterContext::*)());
     ASSERT_UPDATER_CONTEXT_SIGNATURE(jobFinished, void (KisUpdaterContext::*)());
     ASSERT_UPDATER_CONTEXT_SIGNATURE(jobThreadExited, void (KisUpdaterContext::*)());
+}
+
+void KisImageTypesContractTest::simpleUpdateQueueTypeAndLifetimeSchemaRemainStable()
+{
+    static_assert(std::is_class_v<KisSimpleUpdateQueue>);
+    static_assert(std::is_class_v<KisTestableSimpleUpdateQueue>);
+    static_assert(std::is_base_of_v<KisSimpleUpdateQueue, KisTestableSimpleUpdateQueue>);
+    static_assert(std::is_default_constructible_v<KisSimpleUpdateQueue>);
+    static_assert(std::has_virtual_destructor_v<KisSimpleUpdateQueue>);
+}
+
+void KisImageTypesContractTest::simpleUpdateQueueAliasSchemaRemainStable()
+{
+    static_assert(std::is_same_v<KisMutableSpontaneousJobsListIterator, QMutableListIterator<KisSpontaneousJob *>>);
+    static_assert(std::is_same_v<KisMutableWalkersListIterator, QMutableListIterator<KisBaseRectsWalkerSP>>);
+    static_assert(std::is_same_v<KisSpontaneousJobsList, QList<KisSpontaneousJob *>>);
+    static_assert(std::is_same_v<KisSpontaneousJobsListIterator, QListIterator<KisSpontaneousJob *>>);
+    static_assert(std::is_same_v<KisWalkersList, QList<KisBaseRectsWalkerSP>>);
+    static_assert(std::is_same_v<KisWalkersListIterator, QListIterator<KisBaseRectsWalkerSP>>);
+}
+
+void KisImageTypesContractTest::simpleUpdateQueueAdmissionSignaturesRemainStable()
+{
+    using RectJobSignature = void (KisSimpleUpdateQueue::*)(KisNodeSP, const QRect &, const QRect &, int);
+    using RectsJobSignature =
+        void (KisSimpleUpdateQueue::*)(KisNodeSP, const QVector<QRect> &, const QRect &, int, KisProjectionUpdateFlags);
+
+    ASSERT_SIMPLE_UPDATE_QUEUE_SIGNATURE(addFullRefreshJob, RectJobSignature);
+    ASSERT_SIMPLE_UPDATE_QUEUE_SIGNATURE(addFullRefreshJob, RectsJobSignature);
+    ASSERT_SIMPLE_UPDATE_QUEUE_SIGNATURE(addSpontaneousJob, void (KisSimpleUpdateQueue::*)(KisSpontaneousJob *));
+    ASSERT_SIMPLE_UPDATE_QUEUE_SIGNATURE(addUpdateJob, RectJobSignature);
+    ASSERT_SIMPLE_UPDATE_QUEUE_SIGNATURE(addUpdateJob, RectsJobSignature);
+}
+
+void KisImageTypesContractTest::simpleUpdateQueueStateAndProcessingSignaturesRemainStable()
+{
+    ASSERT_SIMPLE_UPDATE_QUEUE_SIGNATURE(isEmpty, bool (KisSimpleUpdateQueue::*)() const);
+    ASSERT_SIMPLE_UPDATE_QUEUE_SIGNATURE(isIdle, bool (KisSimpleUpdateQueue::*)() const);
+    ASSERT_SIMPLE_UPDATE_QUEUE_SIGNATURE(optimize, void (KisSimpleUpdateQueue::*)());
+    ASSERT_SIMPLE_UPDATE_QUEUE_SIGNATURE(overrideLevelOfDetail, int (KisSimpleUpdateQueue::*)() const);
+    ASSERT_SIMPLE_UPDATE_QUEUE_SIGNATURE(processQueue, void (KisSimpleUpdateQueue::*)(KisUpdaterContext &));
+    ASSERT_SIMPLE_UPDATE_QUEUE_SIGNATURE(sizeMetric, qint32 (KisSimpleUpdateQueue::*)() const);
+    ASSERT_SIMPLE_UPDATE_QUEUE_SIGNATURE(updateSettings, void (KisSimpleUpdateQueue::*)());
+}
+
+void KisImageTypesContractTest::simpleUpdateQueueTestingAccessSignaturesRemainStable()
+{
+    using WalkersSignature = KisWalkersList &(KisTestableSimpleUpdateQueue::*)();
+    using SpontaneousJobsSignature = KisSpontaneousJobsList &(KisTestableSimpleUpdateQueue::*)();
+
+    static_assert(
+        std::is_same_v<decltype(&KisTestableSimpleUpdateQueue::getSpontaneousJobsList), SpontaneousJobsSignature>);
+    static_assert(std::is_same_v<decltype(&KisTestableSimpleUpdateQueue::getWalkersList), WalkersSignature>);
 }
 
 void KisImageTypesContractTest::updateJobItemTypeAndStateSchemaRemainStable()
