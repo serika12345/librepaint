@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 11407
+    "expectedMissingApis": 11386
   },
   "contracts": [
     {
@@ -51845,6 +51845,72 @@
       "apis": [
         "method:KoToolProxy::selectionChanged(bool hasSelection)",
         "method:KoToolProxy::toolChanged(const QString & toolId)"
+      ]
+    },
+    {
+      "target": "ColorizeMaskSchemaContractTest",
+      "source": "libs/libkis/tests/ColorizeMaskSchemaContractTest.cpp",
+      "test": "ColorizeMaskSchemaContractTest::infoObjectTypeAndLifetimeSchemaRemainStable",
+      "behavior": "設定値objectはQObjectまたは既存設定共有pointerから構築できる公開型と仮想寿命を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:InfoObject",
+        "method:InfoObject::InfoObject(KisPropertiesConfigurationSP configuration)",
+        "method:InfoObject::InfoObject(QObject * parent=0)",
+        "method:InfoObject::~InfoObject()"
+      ]
+    },
+    {
+      "target": "ColorizeMaskSchemaContractTest",
+      "source": "libs/libkis/tests/ColorizeMaskSchemaContractTest.cpp",
+      "test": "ColorizeMaskSchemaContractTest::infoObjectPropertySignaturesRemainStable",
+      "behavior": "設定値objectはproperty mapまたは個別keyの値を照会・設定し、他の設定値objectと比較する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:InfoObject::operator !=(const InfoObject & other) const",
+        "method:InfoObject::operator ==(const InfoObject & other) const",
+        "method:InfoObject::properties() const",
+        "method:InfoObject::property(const QString & key)",
+        "method:InfoObject::setProperties(QMap<QString,QVariant> propertyMap)",
+        "method:InfoObject::setProperty(const QString & key,QVariant value)"
+      ]
+    },
+    {
+      "target": "ColorizeMaskSchemaContractTest",
+      "source": "libs/libkis/tests/ColorizeMaskSchemaContractTest.cpp",
+      "test": "ColorizeMaskSchemaContractTest::filterTypeLifetimeAndIdentitySchemaRemainStable",
+      "behavior": "filter wrapperは既定構築と仮想寿命を持つ公開型であり、他のfilter wrapperと比較する署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:Filter",
+        "method:Filter::Filter()",
+        "method:Filter::operator !=(const Filter & other) const",
+        "method:Filter::operator ==(const Filter & other) const",
+        "method:Filter::~Filter()"
+      ]
+    },
+    {
+      "target": "ColorizeMaskSchemaContractTest",
+      "source": "libs/libkis/tests/ColorizeMaskSchemaContractTest.cpp",
+      "test": "ColorizeMaskSchemaContractTest::filterConfigurationSignaturesRemainStable",
+      "behavior": "filter wrapperはfilter名と設定値objectを照会・設定する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:Filter::configuration() const",
+        "method:Filter::name() const",
+        "method:Filter::setConfiguration(InfoObject * value)",
+        "method:Filter::setName(const QString & name)"
+      ]
+    },
+    {
+      "target": "ColorizeMaskSchemaContractTest",
+      "source": "libs/libkis/tests/ColorizeMaskSchemaContractTest.cpp",
+      "test": "ColorizeMaskSchemaContractTest::filterApplicationSignaturesRemainStable",
+      "behavior": "filter wrapperはnodeの指定矩形へ同期適用または非同期開始する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:Filter::apply(Node * node,int x,int y,int w,int h)",
+        "method:Filter::startFilter(Node * node,int x,int y,int w,int h)"
       ]
     }
   ]
