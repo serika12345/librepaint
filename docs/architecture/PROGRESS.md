@@ -2,12 +2,18 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-03 09:12 JST
+- 更新日時: 2026-09-03 09:48 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
+
+### 第179便の先行監査計画
+
+- 監査共通基点は`adf4e2c6ba`、入力は`build/tdd-macos/public-api-missing-g179.json`である。3担当は`auditing`の読み取り専用とし、製品・試験・CMake・script・台帳・文書を変更せず、構成、構築、試験、Git操作、追加委任も行わない。一つの公開責務から20〜80 APIを最大5枠へ固定し、既存限定対象またはheader限定の4〜10工程程度の対象で、製品共有libraryと`kritatestsdk`へ接続しない候補だけを採用する。製品targetを引数にする`build-incremental ... plan`と製品buildは実行せず、既存Ninja木のquery・commands・inputsだけを読み取る。
+- image・paintop・pigment領域は第178便のpaint operation設定を、flake・SVG・vector領域はsimple shape containerとbulk lockを、widgetutils・widgets・libkis領域はXML GUI factory・builderを除外して一責務ずつ比較する。
+- 各監査は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、予測工程・入力と停止線、開始pathから契約先、許可path、固有停止条件、比較候補の棄却根拠を揃える。3領域のpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
 
 ### 第178便の先行監査計画
 
@@ -36,6 +42,17 @@
 - `g178-xml-gui-construction-schema`は`/Users/masato/Documents/librepaint-g178-xml-gui-construction-schema`を所有する。開始`libs/widgetutils/xmlgui/kxmlguifactory.h`の残存全19 APIと`libs/widgetutils/xmlgui/kxmlguibuilder.h`の残存全13 APIから既存`libs/widgetutils/tests/KKeySequenceWidgetSchemaContractTest.cpp`の5枠`xmlGuiFactoryTypeLifetimeAndConfigurationSchemaRemainsStable`、`xmlGuiFactoryClientAndActionSignaturesRemainStable`、`xmlGuiFactoryContainerResetAndNotificationSignaturesRemainStable`、`xmlGuiBuilderTypeOwnershipAndTagSchemaRemainsStable`、`xmlGuiBuilderElementLifecycleSignaturesRemainStable`へ対応付ける。
   完全集合はfactory class・builderとparent付き構築・破棄、設定読込・保存、action property要素とaction検索、client追加・削除・一覧、action list接続・解除、container照会・一覧・全体reset・container reset、client追加・削除・変更中通知、builder class・widget付き構築・破棄、builder client照会・設定、widget照会、container・custom tag、container生成・削除、custom要素生成・削除、GUI終了である。許可pathは既存試験sourceだけで、CMake・依存・公開header・製品sourceを変更しない。
   factory、builder、client、widget、action、DOM、設定を実体化せず、設定I/O、client統合、container探索・reset、signal、GUI生成・削除・終了本文を実行しない。対象4工程・8入力、停止5工程・11入力、近傍`KHelpMenuSchemaContractTest`、製品`kritawidgetutils` 274工程・581入力を維持する。実装後は構築許可まで待機する。許可後に旧binaryの新5枠Unknown、対象・既存枠、CTest、20回反復、近傍、無作業再構築、動的接続・AUTOMOC入力・factory/builder/client/widget/action/DOM未解決記号、構文・書式、公開API・`verify-quick`を確認する。実体化・本文実行、新規include・link、停止線超過が必要なら止める。
+
+### 第178便の統合結果
+
+- `g178-paintop-settings-schema`は開始`libs/image/brushengine/kis_paintop_settings.h`から既存`libs/image/tests/KisImageTypesContractTest.cpp`の5枠へ、型・更新通知・寿命、outline・入力・起動、copy・設定・合成・妥当性、resource・canvas・cache、masking・LOD・一様propertyの残存全50 APIを対応付けた。CMakeと依存を変えず、設定、resource、canvas、cache、node、paint情報、outline、uniform propertyを実体化せず、constructor、clone、入力処理、outline生成、設定変更、cache再生成、masking生成本文を実行しない4工程・8入力に保った。
+  受渡しcommit`d7672bfe5a`を統合commit`43b0ee36c0`として取り込み、担当と中央の5枠、対象・近傍CTest、20回反復、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式に成功した。台帳commit`d10100571c`で17,599件対応、12,239件未対応となった。設定値・resource差替え、入力、outline、cache、maskingの実行時結果は別契約で扱う。
+- `g178-shape-hierarchy-schema`は開始`libs/flake/SimpleShapeContainerModel.h`と`libs/flake/KoShapeBulkActionLock.h`から既存`libs/flake/tests/KoShapeContainerModelContractTest.cpp`の5枠へ、simple model型・寿命、格納・clip、transform・移動・container通知、階層・manager、bulk lockの残存全31 APIを対応付けた。globalのsource・generated includeだけを`libs/flake/tests/CMakeLists.txt`の対象固有節へ追加し、直接linkを既存shape container model OBJECTとQt Testだけに保った。model、shape、container、manager、bulk interface、lockを実体化せず、copy、階層変更、manager登録、lock、update本文を実行しない5工程・11入力である。
+  受渡しcommit`f6badf4949`を統合commit`1ddc225153`として取り込み、担当と中央の5枠、既存4枠、対象・近傍CTest、20回反復、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式に成功した。製品`kritaflake`の読み取り基線は621工程・1,274入力で不変であり、台帳commit`9b0bf67956`で17,630件対応、12,208件未対応となった。copy、格納、階層通知、manager連携、lock・更新矩形の実行時結果は別契約で扱う。
+- `g178-xml-gui-construction-schema`は開始`libs/widgetutils/xmlgui/kxmlguifactory.h`と`libs/widgetutils/xmlgui/kxmlguibuilder.h`から既存`libs/widgetutils/tests/KKeySequenceWidgetSchemaContractTest.cpp`の5枠へ、factory型・寿命・設定、client・action list、container・reset・通知、builder型・寿命・所有・tag、要素生成・削除・終了の残存全32 APIを対応付けた。CMakeと依存を変えず、factory、builder、client、widget、action、DOM、設定を実体化せず、設定I/O、client統合、container操作、signal、GUI生成・削除・終了本文を実行しない4工程・8入力に保った。
+  受渡しcommit`58a476037e`を統合commit`78cc1ef72d`として取り込み、担当と中央の5枠、直前のtoolbar 5枠、対象・近傍CTest、20回反復、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式に成功した。製品`kritawidgetutils`の読み取り基線は274工程・581入力で不変であり、台帳commit`adf4e2c6ba`で17,662件対応、12,176件未対応となった。設定I/O、client統合、container操作、signal配送、GUI生成の実行時結果は別契約で扱う。
+- 第178便全体で113 APIを15枠へ重複なく対応付けた。製品target、全体build、全体`verify`、Linuxは実行していない。対象・近傍CTest、各20回反復、無作業再構築、公開API検査と`verify-quick`は成功した。
+  3作業treeの初回同時保持で空きが244,436 KiBとなり、paint operation設定担当の初回CMake生成は容量不足で停止した。source変更前のcleanな状態を確認し、不完全な担当Ninja木72,200 KiBを削除した。shape階層とXML GUI構築は未検証checkpoint commitへ退避して初回作業tree計1,175,460 KiBを先行回収し、その後は一度に一つだけ再作成・検証した。最終的な3担当のcleanな作業tree、担当build木、担当branch計2,616,708 KiBを統合直後に削除した。旧不足報告`public-api-missing-g178.json`をごみ箱へ移し、主Ninja木5,640,600 KiB、共有compiler cache 982,888 KiB、最新不足報告`build/tdd-macos/public-api-missing-g179.json` 3,184,834 bytesだけを再利用対象として保持する。次の永続作業は第179便の不足報告から、既存限定対象を優先して3責務を先行監査することである。
 
 ### 第177便の先行監査計画
 
