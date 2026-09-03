@@ -29,6 +29,14 @@ protected:
     }
 };
 
+class ShapeConstructorProbe final : public KoShape
+{
+public:
+    using KoShape::KoShape;
+
+    void paint(QPainter &painter) const override;
+};
+
 class ShapeContainerConstructorProbe final : public KoShapeContainer
 {
 public:
@@ -53,6 +61,11 @@ class KoShapeEnumContractTest : public QObject
     Q_OBJECT
 
 private Q_SLOTS:
+    void shapeTypeAndLifetimeSchemaRemainStable();
+    void shapeChangeNotificationSignaturesRemainStable();
+    void shapeDependencySignaturesRemainStable();
+    void shapeParentRelationshipSignaturesRemainStable();
+    void shapeTreeOrderingSignaturesRemainStable();
     void shapePaintingSignaturesRemainStable();
     void shapeBackgroundSignaturesRemainStable();
     void shapeStrokeSignaturesRemainStable();
@@ -77,6 +90,62 @@ private Q_SLOTS:
     void shapeContainerClippingAndTransformSignaturesRemainStable();
     void shapeContainerPaintingAndUpdateSignaturesRemainStable();
 };
+
+void KoShapeEnumContractTest::shapeTypeAndLifetimeSchemaRemainStable()
+{
+    static_assert(std::is_class_v<KoShape>);
+    static_assert(std::is_abstract_v<KoShape>);
+    static_assert(std::is_constructible_v<ShapeConstructorProbe>);
+    static_assert(std::has_virtual_destructor_v<KoShape>);
+}
+
+void KoShapeEnumContractTest::shapeChangeNotificationSignaturesRemainStable()
+{
+    using Listener = KoShape::ShapeChangeListener;
+
+    static_assert(std::is_class_v<Listener>);
+    static_assert(std::is_abstract_v<Listener>);
+    static_assert(std::has_virtual_destructor_v<Listener>);
+    static_assert(std::is_same_v<decltype(static_cast<void (Listener::*)(KoShape::ChangeType, KoShape *)>(
+                                     &Listener::notifyShapeChanged)),
+                                 void (Listener::*)(KoShape::ChangeType, KoShape *)>);
+    ASSERT_SHAPE_SIGNATURE(addShapeChangeListener, void (KoShape::*)(Listener *));
+    ASSERT_SHAPE_SIGNATURE(removeShapeChangeListener, void (KoShape::*)(Listener *));
+    ASSERT_SHAPE_SIGNATURE(notifyChanged, void (KoShape::*)());
+}
+
+void KoShapeEnumContractTest::shapeDependencySignaturesRemainStable()
+{
+    ASSERT_SHAPE_SIGNATURE(addDependee, bool (KoShape::*)(KoShape *));
+    ASSERT_SHAPE_SIGNATURE(removeDependee, void (KoShape::*)(KoShape *));
+    ASSERT_SHAPE_SIGNATURE(hasDependee, bool (KoShape::*)(KoShape *) const);
+    ASSERT_SHAPE_SIGNATURE(dependees, QList<KoShape *> (KoShape::*)() const);
+}
+
+void KoShapeEnumContractTest::shapeParentRelationshipSignaturesRemainStable()
+{
+    ASSERT_SHAPE_SIGNATURE(parent, KoShapeContainer * (KoShape::*)() const);
+    ASSERT_SHAPE_SIGNATURE(setParent, void (KoShape::*)(KoShapeContainer *));
+    ASSERT_SHAPE_SIGNATURE(hasCommonParent, bool (KoShape::*)(const KoShape *) const);
+    ASSERT_SHAPE_SIGNATURE(inheritsTransformFromAny, bool (KoShape::*)(QList<KoShape *>) const);
+}
+
+void KoShapeEnumContractTest::shapeTreeOrderingSignaturesRemainStable()
+{
+    using ShapeComparator = bool (*)(KoShape *, KoShape *);
+    using ShapeLinearizer = QList<KoShape *> (*)(const QList<KoShape *> &);
+
+    static_assert(std::is_same_v<decltype(KoShape::maxZIndex), const qint16>);
+    static_assert(std::is_same_v<decltype(KoShape::minZIndex), const qint16>);
+    ASSERT_SHAPE_SIGNATURE(childZOrderPolicy, KoShape::ChildZOrderPolicy (KoShape::*)());
+    static_assert(
+        std::is_same_v<decltype(static_cast<ShapeComparator>(&KoShape::compareShapeZIndex)), ShapeComparator>);
+    static_assert(std::is_same_v<decltype(static_cast<ShapeLinearizer>(&KoShape::linearizeSubtree)), ShapeLinearizer>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<ShapeLinearizer>(&KoShape::linearizeSubtreeSorted)), ShapeLinearizer>);
+    ASSERT_SHAPE_SIGNATURE(setZIndex, void (KoShape::*)(qint16));
+    ASSERT_SHAPE_SIGNATURE(zIndex, qint16 (KoShape::*)() const);
+}
 
 void KoShapeEnumContractTest::shapePaintingSignaturesRemainStable()
 {
