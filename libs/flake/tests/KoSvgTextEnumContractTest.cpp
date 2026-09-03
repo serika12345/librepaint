@@ -5,6 +5,8 @@
 
 #include "svg/SvgGraphicContext.h"
 #include "svg/SvgLoadingContext.h"
+#include "svg/SvgStyleParser.h"
+#include "svg/SvgUtil.h"
 #include "text/KoSvgText.h"
 #include "text/KoSvgTextProperties.h"
 
@@ -64,6 +66,11 @@ private Q_SLOTS:
     void svgLoadingPathAndExternalFileSignaturesRemainStable();
     void svgLoadingShapeAndDefinitionRegistrySignaturesRemainStable();
     void svgLoadingStyleProfileAndTextSignaturesRemainStable();
+    void svgStyleTypeAndLifetimeSchemaRemainStable();
+    void svgStyleAttributeParsingSignaturesRemainStable();
+    void svgStyleColorAndMergeSignaturesRemainStable();
+    void svgUnitParsingSignaturesRemainStable();
+    void svgGeometryAndSerializationSignaturesRemainStable();
 };
 
 void KoSvgTextEnumContractTest::layoutEnumsRemainOrdered()
@@ -1132,6 +1139,123 @@ void KoSvgTextEnumContractTest::svgLoadingStyleProfileAndTextSignaturesRemainSta
     ASSERT_SVG_LOADING_CONTEXT_SIGNATURE(profiles, Profiles (Context::*)());
     ASSERT_SVG_LOADING_CONTEXT_SIGNATURE(resolvedProperties, KoSvgTextProperties (Context::*)(bool) const);
     static_assert(std::is_same_v<decltype(std::declval<const Context &>().resolvedProperties()), KoSvgTextProperties>);
+}
+
+void KoSvgTextEnumContractTest::svgStyleTypeAndLifetimeSchemaRemainStable()
+{
+    using Parser = SvgStyleParser;
+    using StyleMap = QMap<QString, QString>;
+
+    static_assert(std::is_same_v<SvgStyles, StyleMap>);
+    static_assert(std::is_class_v<Parser>);
+    static_assert(std::is_constructible_v<Parser, SvgLoadingContext &>);
+    static_assert(std::is_destructible_v<Parser>);
+}
+
+void KoSvgTextEnumContractTest::svgStyleAttributeParsingSignaturesRemainStable()
+{
+    using Parser = SvgStyleParser;
+    using ParseStyleSignature = void (Parser::*)(const SvgStyles &, bool);
+    using ParseFontSignature = void (Parser::*)(const SvgStyles &);
+    using CollectStylesSignature = SvgStyles (Parser::*)(const QDomElement &);
+    using ParseOneCssStyleSignature = SvgStyles (Parser::*)(const QString &, const QStringList &);
+
+    static_assert(std::is_same_v<decltype(static_cast<ParseStyleSignature>(&Parser::parseStyle)), ParseStyleSignature>);
+    static_assert(
+        std::is_same_v<decltype(std::declval<Parser &>().parseStyle(std::declval<const SvgStyles &>())), void>);
+    static_assert(std::is_same_v<decltype(static_cast<ParseFontSignature>(&Parser::parseFont)), ParseFontSignature>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<CollectStylesSignature>(&Parser::collectStyles)), CollectStylesSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<ParseOneCssStyleSignature>(&Parser::parseOneCssStyle)),
+                                 ParseOneCssStyleSignature>);
+}
+
+void KoSvgTextEnumContractTest::svgStyleColorAndMergeSignaturesRemainStable()
+{
+    using Parser = SvgStyleParser;
+    using ParseColorSignature = bool (Parser::*)(QColor &, const QString &);
+    using ParseColorStopSignature =
+        QPair<qreal, QColor> (Parser::*)(const QDomElement &, SvgGraphicsContext *, qreal &);
+    using ParseColorStopsSignature =
+        void (Parser::*)(QGradient *, const QDomElement &, SvgGraphicsContext *, const QGradientStops &);
+    using MergeStyleMapsSignature = SvgStyles (Parser::*)(const SvgStyles &, const SvgStyles &);
+    using MergeElementsSignature = SvgStyles (Parser::*)(const QDomElement &, const QDomElement &);
+
+    static_assert(std::is_same_v<decltype(static_cast<ParseColorSignature>(&Parser::parseColor)), ParseColorSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<ParseColorStopSignature>(&Parser::parseColorStop)),
+                                 ParseColorStopSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<ParseColorStopsSignature>(&Parser::parseColorStops)),
+                                 ParseColorStopsSignature>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<MergeStyleMapsSignature>(&Parser::mergeStyles)), MergeStyleMapsSignature>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<MergeElementsSignature>(&Parser::mergeStyles)), MergeElementsSignature>);
+}
+
+void KoSvgTextEnumContractTest::svgUnitParsingSignaturesRemainStable()
+{
+    using CssLength = KoSvgText::CssLengthPercentage;
+    using FromPercentageSignature = double (*)(QString, bool *);
+    using ToPercentageSignature = QString (*)(qreal);
+    using PtToPxSignature = double (*)(SvgGraphicsContext *, double);
+    using ParseUnitSignature =
+        qreal (*)(SvgGraphicsContext *, const KoSvgTextProperties &, QStringView, bool, bool, const QRectF &);
+    using ParseUnitStructSignature = CssLength (*)(SvgGraphicsContext *, QStringView, bool, bool, const QRectF &);
+    using ParseTextUnitStructSignature = CssLength (*)(SvgGraphicsContext *, QStringView);
+    using ParseUnitStructImplSignature =
+        CssLength (*)(SvgGraphicsContext *, QStringView, bool, bool, const QRectF &, bool);
+    using ParseDirectionalUnitSignature = qreal (*)(SvgGraphicsContext *, const KoSvgTextProperties &, const QString &);
+    using ParseAngularSignature = qreal (*)(SvgGraphicsContext *, const QString &);
+    using ParseNumberSignature = qreal (*)(const QString &);
+
+    static_assert(std::is_same_v<decltype(static_cast<FromPercentageSignature>(&SvgUtil::fromPercentage)),
+                                 FromPercentageSignature>);
+    static_assert(std::is_same_v<decltype(SvgUtil::fromPercentage(std::declval<QString>())), double>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<ToPercentageSignature>(&SvgUtil::toPercentage)), ToPercentageSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<PtToPxSignature>(&SvgUtil::ptToPx)), PtToPxSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<ParseUnitSignature>(&SvgUtil::parseUnit)), ParseUnitSignature>);
+    static_assert(std::is_same_v<decltype(SvgUtil::parseUnit(nullptr,
+                                                             std::declval<const KoSvgTextProperties &>(),
+                                                             std::declval<QStringView>())),
+                                 qreal>);
+    static_assert(std::is_same_v<decltype(static_cast<ParseUnitStructSignature>(&SvgUtil::parseUnitStruct)),
+                                 ParseUnitStructSignature>);
+    static_assert(std::is_same_v<decltype(SvgUtil::parseUnitStruct(nullptr, std::declval<QStringView>())), CssLength>);
+    static_assert(std::is_same_v<decltype(static_cast<ParseTextUnitStructSignature>(&SvgUtil::parseTextUnitStruct)),
+                                 ParseTextUnitStructSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<ParseUnitStructImplSignature>(&SvgUtil::parseUnitStructImpl)),
+                                 ParseUnitStructImplSignature>);
+    static_assert(
+        std::is_same_v<decltype(SvgUtil::parseUnitStructImpl(nullptr, std::declval<QStringView>())), CssLength>);
+    static_assert(std::is_same_v<decltype(static_cast<ParseDirectionalUnitSignature>(&SvgUtil::parseUnitX)),
+                                 ParseDirectionalUnitSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<ParseDirectionalUnitSignature>(&SvgUtil::parseUnitY)),
+                                 ParseDirectionalUnitSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<ParseDirectionalUnitSignature>(&SvgUtil::parseUnitXY)),
+                                 ParseDirectionalUnitSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<ParseAngularSignature>(&SvgUtil::parseUnitAngular)),
+                                 ParseAngularSignature>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<ParseNumberSignature>(&SvgUtil::parseNumber)), ParseNumberSignature>);
+}
+
+void KoSvgTextEnumContractTest::svgGeometryAndSerializationSignaturesRemainStable()
+{
+    using MapExtendedShapeTagSignature = QString (*)(const QString &, const QDomElement &);
+    using ParseViewBoxSignature = bool (*)(const QDomElement &, const QRectF &, QRectF *, QTransform *);
+    using TransformToStringSignature = QString (*)(const QTransform &);
+    using WriteTransformAttributeSignature = void (*)(const QString &, const QTransform &, KoXmlWriter &);
+
+    static_assert(std::is_same_v<decltype(static_cast<MapExtendedShapeTagSignature>(&SvgUtil::mapExtendedShapeTag)),
+                                 MapExtendedShapeTagSignature>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<ParseViewBoxSignature>(&SvgUtil::parseViewBox)), ParseViewBoxSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<TransformToStringSignature>(&SvgUtil::transformToString)),
+                                 TransformToStringSignature>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<WriteTransformAttributeSignature>(&SvgUtil::writeTransformAttributeLazy)),
+                       WriteTransformAttributeSignature>);
 }
 
 QTEST_GUILESS_MAIN(KoSvgTextEnumContractTest)
