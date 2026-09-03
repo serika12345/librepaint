@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 11954
+    "expectedMissingApis": 11934
   },
   "contracts": [
     {
@@ -50398,6 +50398,71 @@
       "apis": [
         "method:KisVisualEllipticalSelectorShape::supportsGamutMask() const",
         "method:KisVisualEllipticalSelectorShape::updateGamutMask()"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::warpTransformTypeAndLifetimeSchemaRemainStable",
+      "behavior": "warp変形workerはQObjectを基底とする公開型、変形方式・対応点・係数・進捗通知先を受ける構築と仮想寿命を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisWarpTransformWorker",
+        "method:KisWarpTransformWorker::KisWarpTransformWorker(WarpType warpType,QVector<QPointF> origPoint,QVector<QPointF> transfPoint,qreal alpha,KoUpdater * progress)",
+        "method:KisWarpTransformWorker::~KisWarpTransformWorker()"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::warpTransformModeSchemaRemainStable",
+      "behavior": "warp変形workerはaffine・similitude・rigidの変形方式と方式数を表す公開列挙型および連続値を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisWarpTransformWorker::WarpType",
+        "enum:KisWarpTransformWorker::WarpType_",
+        "enumerator:KisWarpTransformWorker::WarpType_::AFFINE_TRANSFORM",
+        "enumerator:KisWarpTransformWorker::WarpType_::N_MODES",
+        "enumerator:KisWarpTransformWorker::WarpType_::RIGID_TRANSFORM",
+        "enumerator:KisWarpTransformWorker::WarpType_::SIMILITUDE_TRANSFORM"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::warpTransformCalculationSchemaRemainStable",
+      "behavior": "warp変形workerは格子計算と直接描画を表す公開計算方式列挙型および連続値を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisWarpTransformWorker::WarpCalculation",
+        "enum:KisWarpTransformWorker::WarpCalculation_",
+        "enumerator:KisWarpTransformWorker::WarpCalculation_::DRAW",
+        "enumerator:KisWarpTransformWorker::WarpCalculation_::GRID"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::warpTransformMathAndImageSignaturesRemainStable",
+      "behavior": "warp変形workerは3方式の点変形計算と入力画像から変形画像・新offsetを生成する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisWarpTransformWorker::affineTransformMath(QPointF v,QVector<QPointF> p,QVector<QPointF> q,qreal alpha)",
+        "method:KisWarpTransformWorker::rigidTransformMath(QPointF v,QVector<QPointF> p,QVector<QPointF> q,qreal alpha)",
+        "method:KisWarpTransformWorker::similitudeTransformMath(QPointF v,QVector<QPointF> p,QVector<QPointF> q,qreal alpha)",
+        "method:KisWarpTransformWorker::transformQImage(WarpType warpType,const QVector<QPointF> & origPoint,const QVector<QPointF> & transfPoint,qreal alpha,const QImage & srcImage,const QPointF & srcQImageOffset,QPointF * newOffset)"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::warpTransformDeviceAndBoundsSignaturesRemainStable",
+      "behavior": "warp変形workerは描画装置間の変形を実行し、変更範囲と必要範囲を近似する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisWarpTransformWorker::approxChangeRect(const QRect & rc)",
+        "method:KisWarpTransformWorker::approxNeedRect(const QRect & rc,const QRect & fullBounds)",
+        "method:KisWarpTransformWorker::run(KisPaintDeviceSP srcDev,KisPaintDeviceSP dstDev)"
       ]
     }
   ]
