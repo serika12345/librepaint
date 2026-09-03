@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 11507
+    "expectedMissingApis": 11468
   },
   "contracts": [
     {
@@ -51610,6 +51610,90 @@
         "method:FilterMask::setFilter(Filter & filter)",
         "method:FilterMask::type() const",
         "method:FilterMask::~FilterMask()"
+      ]
+    },
+    {
+      "target": "ColorizeMaskSchemaContractTest",
+      "source": "libs/libkis/tests/ColorizeMaskSchemaContractTest.cpp",
+      "test": "ColorizeMaskSchemaContractTest::fileLayerTypeAndFileSchemaRemainStable",
+      "behavior": "file layer wrapperは既存layerまたは画像とfile設定から構築し、path・cache・拡縮方針と型名を扱う公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:FileLayer",
+        "method:FileLayer::FileLayer(KisFileLayerSP layer,QObject * parent=0)",
+        "method:FileLayer::FileLayer(KisImageSP image,const QString name=QString (),const QString baseName=QString (),const QString fileName=QString (),const QString scalingMethod=QString (),const QString scalingFilter=QString (),QObject * parent=0)",
+        "method:FileLayer::path() const",
+        "method:FileLayer::resetCache()",
+        "method:FileLayer::scalingFilter() const",
+        "method:FileLayer::scalingMethod() const",
+        "method:FileLayer::setProperties(QString fileName,QString scalingMethod=QString (\"None\"),QString scalingFilter=QString (\"Bicubic\"))",
+        "method:FileLayer::type() const",
+        "method:FileLayer::~FileLayer()"
+      ]
+    },
+    {
+      "target": "ColorizeMaskSchemaContractTest",
+      "source": "libs/libkis/tests/ColorizeMaskSchemaContractTest.cpp",
+      "test": "ColorizeMaskSchemaContractTest::fillLayerTypeAndGeneratorSchemaRemainStable",
+      "behavior": "fill layer wrapperは既存layerまたは画像・generator設定・選択から構築し、generator構成と型名を扱う公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:FillLayer",
+        "method:FillLayer::FillLayer(KisGeneratorLayerSP layer,QObject * parent=0)",
+        "method:FillLayer::FillLayer(KisImageSP image,QString name,KisFilterConfigurationSP filterConfig,Selection & selection,QObject * parent=0)",
+        "method:FillLayer::filterConfig()",
+        "method:FillLayer::generatorName()",
+        "method:FillLayer::setGenerator(const QString & generatorName,InfoObject * filterConfig)",
+        "method:FillLayer::type() const",
+        "method:FillLayer::~FillLayer()"
+      ]
+    },
+    {
+      "target": "ColorizeMaskSchemaContractTest",
+      "source": "libs/libkis/tests/ColorizeMaskSchemaContractTest.cpp",
+      "test": "ColorizeMaskSchemaContractTest::filterLayerTypeAndFilterSchemaRemainStable",
+      "behavior": "filter layer wrapperは既存layerまたは画像・filter・選択から構築し、filterと型名を扱う公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:FilterLayer",
+        "method:FilterLayer::FilterLayer(KisAdjustmentLayerSP layer,QObject * parent=0)",
+        "method:FilterLayer::FilterLayer(KisImageSP image,QString name,Filter & filter,Selection & selection,QObject * parent=0)",
+        "method:FilterLayer::filter()",
+        "method:FilterLayer::setFilter(Filter & filter)",
+        "method:FilterLayer::type() const",
+        "method:FilterLayer::~FilterLayer()"
+      ]
+    },
+    {
+      "target": "ColorizeMaskSchemaContractTest",
+      "source": "libs/libkis/tests/ColorizeMaskSchemaContractTest.cpp",
+      "test": "ColorizeMaskSchemaContractTest::cloneLayerTypeAndSourceSchemaRemainStable",
+      "behavior": "clone layer wrapperは既存layerまたは画像・sourceから構築し、複製元nodeと型名を扱う公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:CloneLayer",
+        "method:CloneLayer::CloneLayer(KisCloneLayerSP layer,QObject * parent=0)",
+        "method:CloneLayer::CloneLayer(KisImageSP image,QString name,KisLayerSP source,QObject * parent=0)",
+        "method:CloneLayer::setSourceNode(Node * node)",
+        "method:CloneLayer::sourceNode() const",
+        "method:CloneLayer::type() const",
+        "method:CloneLayer::~CloneLayer()"
+      ]
+    },
+    {
+      "target": "ColorizeMaskSchemaContractTest",
+      "source": "libs/libkis/tests/ColorizeMaskSchemaContractTest.cpp",
+      "test": "ColorizeMaskSchemaContractTest::groupLayerTypeAndCompositionSchemaRemainStable",
+      "behavior": "group layer wrapperは既存layerまたは画像・名前から構築し、pass-through合成と型名を扱う公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:GroupLayer",
+        "method:GroupLayer::GroupLayer(KisGroupLayerSP layer,QObject * parent=0)",
+        "method:GroupLayer::GroupLayer(KisImageSP image,QString name,QObject * parent=0)",
+        "method:GroupLayer::passThroughMode() const",
+        "method:GroupLayer::setPassThroughMode(bool passthrough)",
+        "method:GroupLayer::type() const",
+        "method:GroupLayer::~GroupLayer()"
       ]
     }
   ]
