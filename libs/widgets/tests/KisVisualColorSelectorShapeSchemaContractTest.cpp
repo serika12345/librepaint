@@ -43,15 +43,14 @@ private Q_SLOTS:
     void visualColorSelectorShapeColorAndImageSchemaRemainsStable();
     void visualColorSelectorShapeGeometrySchemaRemainsStable();
     void visualColorSelectorShapePolicyAndNotificationSchemaRemainsStable();
-    void visualConcreteSelectorShapeTypeLifetimeAndConstructionSchemaRemainStable();
+    void visualConcreteSelectorShapeConstructionSchemaRemainsStable();
     void visualConcreteSelectorShapeOneDimensionalTypeValuesRemainStable();
     void visualConcreteSelectorShapeGeometrySignaturesRemainStable();
     void visualRectangleSelectorShapeModeSignatureRemainsStable();
     void visualEllipticalSelectorShapeGamutSignaturesRemainStable();
 };
 
-void KisVisualColorSelectorShapeSchemaContractTest::
-    visualConcreteSelectorShapeTypeLifetimeAndConstructionSchemaRemainStable()
+void KisVisualColorSelectorShapeSchemaContractTest::visualConcreteSelectorShapeConstructionSchemaRemainsStable()
 {
     using Dimensions = KisVisualColorSelectorShape::Dimensions;
     using RectangleShape = KisVisualRectangleSelectorShape;
