@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 11793
+    "expectedMissingApis": 11773
   },
   "contracts": [
     {
@@ -50829,6 +50829,71 @@
         "method:KisShortcutsDialog::save()",
         "method:KisShortcutsDialog::saveCustomShortcuts(const QString & path) const",
         "method:KisShortcutsDialog::undo()"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::maskDataConstructionSchemaRemainStable",
+      "behavior": "brush mask処理dataは固定描画装置、色空間、色、密度、中心、角度を受け取る公開構築型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:MaskProcessingData::MaskProcessingData(KisFixedPaintDeviceSP _device,const KoColorSpace * _colorSpace,const quint8 * _color,qreal _randomness,qreal _density,double _centerX,double _centerY,double _angle)",
+        "struct:MaskProcessingData"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::maskDataDeviceAndColorSchemaRemainStable",
+      "behavior": "brush mask処理dataは描画装置、色空間、色byteと画素寸法の公開member型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:MaskProcessingData::color",
+        "member:MaskProcessingData::colorSpace",
+        "member:MaskProcessingData::device",
+        "member:MaskProcessingData::pixelSize"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::maskDataGeometrySchemaRemainStable",
+      "behavior": "brush mask処理dataは中心、角度、密度とrandomnessの公開member型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:MaskProcessingData::centerX",
+        "member:MaskProcessingData::centerY",
+        "member:MaskProcessingData::cosa",
+        "member:MaskProcessingData::density",
+        "member:MaskProcessingData::randomness",
+        "member:MaskProcessingData::sina"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::brushMaskApplicatorSchemaRemainStable",
+      "behavior": "brush mask適用器は処理dataの初期化、矩形処理と仮想寿命の公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisBrushMaskApplicatorBase",
+        "method:KisBrushMaskApplicatorBase::initializeData(const MaskProcessingData * data)",
+        "method:KisBrushMaskApplicatorBase::process(const QRect & rect)",
+        "method:KisBrushMaskApplicatorBase::~KisBrushMaskApplicatorBase()"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::brushMaskOperatorSchemaRemainStable",
+      "behavior": "brush mask呼出しwrapperは適用器参照を保持して矩形処理を委譲する公開型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:OperatorWrapper::m_applicator",
+        "method:OperatorWrapper::OperatorWrapper(KisBrushMaskApplicatorBase * applicator)",
+        "method:OperatorWrapper::operator ()(const QRect & rect) const",
+        "struct:OperatorWrapper"
       ]
     }
   ]
