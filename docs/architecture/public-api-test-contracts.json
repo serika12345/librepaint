@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 11448
+    "expectedMissingApis": 11407
   },
   "contracts": [
     {
@@ -51759,6 +51759,92 @@
         "method:KisGaussCircleMaskGenerator::setMaskScalarApplicator()",
         "method:KisGaussRectangleMaskGenerator::applicator() const",
         "method:KisGaussRectangleMaskGenerator::setMaskScalarApplicator()"
+      ]
+    },
+    {
+      "target": "KoCanvasControllerProxySchemaContractTest",
+      "source": "libs/flake/tests/KoCanvasControllerProxySchemaContractTest.cpp",
+      "test": "KoCanvasControllerProxySchemaContractTest::toolProxyTypeLifetimeAndActiveToolSignaturesRemainStable",
+      "behavior": "tool代理はcanvasとparentを受ける抽象公開型、仮想寿命、active tool、直近pointer event、優先shortcutとprivate実装への接続面を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoToolProxy",
+        "method:KoToolProxy::KoToolProxy(KoCanvasBase * canvas,QObject * parent=0)",
+        "method:KoToolProxy::lastDeliveredPointerEvent() const",
+        "method:KoToolProxy::priv()",
+        "method:KoToolProxy::setActiveTool(KoToolBase * tool)",
+        "method:KoToolProxy::toolPriorityShortcuts() const",
+        "method:KoToolProxy::~KoToolProxy()"
+      ]
+    },
+    {
+      "target": "KoCanvasControllerProxySchemaContractTest",
+      "source": "libs/flake/tests/KoCanvasControllerProxySchemaContractTest.cpp",
+      "test": "KoCanvasControllerProxySchemaContractTest::toolProxyPointerEventForwardingSignaturesRemainStable",
+      "behavior": "tool代理はmouse、tablet、touchのpointer eventとdocument座標をactive toolへ転送する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoToolProxy::mouseDoubleClickEvent(KoPointerEvent * event)",
+        "method:KoToolProxy::mouseDoubleClickEvent(QMouseEvent * event,const QPointF & point)",
+        "method:KoToolProxy::mouseMoveEvent(KoPointerEvent * event)",
+        "method:KoToolProxy::mouseMoveEvent(QMouseEvent * event,const QPointF & point)",
+        "method:KoToolProxy::mousePressEvent(KoPointerEvent * event)",
+        "method:KoToolProxy::mousePressEvent(QMouseEvent * event,const QPointF & point)",
+        "method:KoToolProxy::mouseReleaseEvent(KoPointerEvent * event)",
+        "method:KoToolProxy::mouseReleaseEvent(QMouseEvent * event,const QPointF & point)",
+        "method:KoToolProxy::tabletEvent(QTabletEvent * event,const QPointF & point)",
+        "method:KoToolProxy::touchEvent(QTouchEvent * event,const QPointF & point)"
+      ]
+    },
+    {
+      "target": "KoCanvasControllerProxySchemaContractTest",
+      "source": "libs/flake/tests/KoCanvasControllerProxySchemaContractTest.cpp",
+      "test": "KoCanvasControllerProxySchemaContractTest::toolProxyKeyboardFocusAndDropSignaturesRemainStable",
+      "behavior": "tool代理はkeyboard、input method、focus、drag・dropと汎用eventをactive toolへ転送する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoToolProxy::dragLeaveEvent(QDragLeaveEvent * event)",
+        "method:KoToolProxy::dragMoveEvent(QDragMoveEvent * event,const QPointF & point)",
+        "method:KoToolProxy::dropEvent(QDropEvent * event,const QPointF & point)",
+        "method:KoToolProxy::focusInEvent(QFocusEvent * event)",
+        "method:KoToolProxy::focusOutEvent(QFocusEvent * event)",
+        "method:KoToolProxy::inputMethodEvent(QInputMethodEvent * event)",
+        "method:KoToolProxy::inputMethodQuery(Qt::InputMethodQuery query) const",
+        "method:KoToolProxy::keyPressEvent(QKeyEvent * event)",
+        "method:KoToolProxy::keyReleaseEvent(QKeyEvent * event)",
+        "method:KoToolProxy::processEvent(QEvent *) const"
+      ]
+    },
+    {
+      "target": "KoCanvasControllerProxySchemaContractTest",
+      "source": "libs/flake/tests/KoCanvasControllerProxySchemaContractTest.cpp",
+      "test": "KoCanvasControllerProxySchemaContractTest::toolProxyPaintingAndEditingSignaturesRemainStable",
+      "behavior": "tool代理は装飾描画、stroke終了、popup表示とselection・clipboard編集をactive toolへ委譲する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoToolProxy::copy() const",
+        "method:KoToolProxy::cut()",
+        "method:KoToolProxy::deleteSelection()",
+        "method:KoToolProxy::deselect()",
+        "method:KoToolProxy::explicitUserStrokeEndRequest()",
+        "method:KoToolProxy::hasSelection() const",
+        "method:KoToolProxy::paint(QPainter & painter,const KoViewConverter & converter)",
+        "method:KoToolProxy::paste()",
+        "method:KoToolProxy::popupActionsMenu()",
+        "method:KoToolProxy::popupWidget()",
+        "method:KoToolProxy::repaintDecorations()",
+        "method:KoToolProxy::selectAll()"
+      ]
+    },
+    {
+      "target": "KoCanvasControllerProxySchemaContractTest",
+      "source": "libs/flake/tests/KoCanvasControllerProxySchemaContractTest.cpp",
+      "test": "KoCanvasControllerProxySchemaContractTest::toolProxyNotificationSignaturesRemainStable",
+      "behavior": "tool代理はselection有無とactive tool識別子の変更を通知する公開signal署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoToolProxy::selectionChanged(bool hasSelection)",
+        "method:KoToolProxy::toolChanged(const QString & toolId)"
       ]
     }
   ]
