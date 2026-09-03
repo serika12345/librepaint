@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 11566
+    "expectedMissingApis": 11528
   },
   "contracts": [
     {
@@ -51177,6 +51177,89 @@
         "method:KisIndirectPaintingSupport::ReadLocker::~ReadLocker()",
         "struct:KisIndirectPaintingSupport::FinalMergeSuspender",
         "struct:KisIndirectPaintingSupport::ReadLocker"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::lineIteratorTypeAndConstructionSchemaRemainStable",
+      "behavior": "水平・垂直tile行反復子は公開型、data managerと走査領域を受ける構築と仮想寿命を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisHLineIterator2",
+        "class:KisVLineIterator2",
+        "method:KisHLineIterator2::KisHLineIterator2(KisDataManager * dataManager,qint32 x,qint32 y,qint32 w,qint32 offsetX,qint32 offsetY,bool writable,KisIteratorCompleteListener * listener)",
+        "method:KisHLineIterator2::~KisHLineIterator2()",
+        "method:KisVLineIterator2::KisVLineIterator2(KisDataManager * dataManager,qint32 x,qint32 y,qint32 h,qint32 offsetX,qint32 offsetY,bool writable,KisIteratorCompleteListener * completeListener)",
+        "method:KisVLineIterator2::~KisVLineIterator2()"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::lineIteratorTileCacheSchemaRemainStable",
+      "behavior": "水平・垂直tile行反復子は現在・直前のtileと画素dataを保持する公開cache型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisHLineIterator2::KisTileInfo::data",
+        "member:KisHLineIterator2::KisTileInfo::oldData",
+        "member:KisHLineIterator2::KisTileInfo::oldtile",
+        "member:KisHLineIterator2::KisTileInfo::tile",
+        "member:KisVLineIterator2::KisTileInfo::data",
+        "member:KisVLineIterator2::KisTileInfo::oldData",
+        "member:KisVLineIterator2::KisTileInfo::oldtile",
+        "member:KisVLineIterator2::KisTileInfo::tile",
+        "struct:KisHLineIterator2::KisTileInfo",
+        "struct:KisVLineIterator2::KisTileInfo"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::lineIteratorDataAccessSignaturesRemainStable",
+      "behavior": "水平・垂直tile行反復子は現在・直前の画素dataと連続画素数を公開する署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisHLineIterator2::nConseqPixels() const",
+        "method:KisHLineIterator2::oldRawData() const",
+        "method:KisHLineIterator2::rawData()",
+        "method:KisHLineIterator2::rawDataConst() const",
+        "method:KisVLineIterator2::nConseqPixels() const",
+        "method:KisVLineIterator2::oldRawData() const",
+        "method:KisVLineIterator2::rawData()",
+        "method:KisVLineIterator2::rawDataConst() const"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::horizontalLineIteratorTraversalSignaturesRemainStable",
+      "behavior": "水平tile行反復子は画素・行の移動とresetおよび現在座標を扱う公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisHLineIterator2::nextPixel()",
+        "method:KisHLineIterator2::nextPixels(qint32 n)",
+        "method:KisHLineIterator2::nextRow()",
+        "method:KisHLineIterator2::resetPixelPos()",
+        "method:KisHLineIterator2::resetRowPos()",
+        "method:KisHLineIterator2::x() const",
+        "method:KisHLineIterator2::y() const"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::verticalLineIteratorTraversalSignaturesRemainStable",
+      "behavior": "垂直tile行反復子は画素・列の移動とresetおよび現在座標を扱う公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisVLineIterator2::nextColumn()",
+        "method:KisVLineIterator2::nextPixel()",
+        "method:KisVLineIterator2::nextPixels(qint32 n)",
+        "method:KisVLineIterator2::resetColumnPos()",
+        "method:KisVLineIterator2::resetPixelPos()",
+        "method:KisVLineIterator2::x() const",
+        "method:KisVLineIterator2::y() const"
       ]
     },
     {
