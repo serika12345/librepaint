@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 12314
+    "expectedMissingApis": 12289
   },
   "contracts": [
     {
@@ -49453,6 +49453,76 @@
       "classification": "maintained",
       "apis": [
         "method:KoToolRegistry::instance()"
+      ]
+    },
+    {
+      "target": "KKeySequenceWidgetSchemaContractTest",
+      "source": "libs/widgetutils/tests/KKeySequenceWidgetSchemaContractTest.cpp",
+      "test": "KKeySequenceWidgetSchemaContractTest::toolBarAndToggleActionTypeAndLifetimeSchemaRemainStable",
+      "behavior": "toolbarと表示切替actionの公開型、構築引数、read-config既定値と仮想寿命の契約を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KToggleToolBarAction",
+        "class:KisToolBar",
+        "method:KToggleToolBarAction::KToggleToolBarAction(KisToolBar * toolBar,const QString & text,QObject * parent)",
+        "method:KToggleToolBarAction::KToggleToolBarAction(const char * toolBarName,const QString & text,QObject * parent)",
+        "method:KToggleToolBarAction::~KToggleToolBarAction()",
+        "method:KisToolBar::KisToolBar(const QString & objectName,QWidget * parent,bool readConfig=true)",
+        "method:KisToolBar::~KisToolBar()"
+      ]
+    },
+    {
+      "target": "KKeySequenceWidgetSchemaContractTest",
+      "source": "libs/widgetutils/tests/KKeySequenceWidgetSchemaContractTest.cpp",
+      "test": "KKeySequenceWidgetSchemaContractTest::toolBarOwnershipAndAppearanceSignaturesRemainStable",
+      "behavior": "toolbarのmain window参照、icon寸法の設定・既定値とevent filterの公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisToolBar::eventFilter(QObject * watched,QEvent * event)",
+        "method:KisToolBar::iconSizeDefault() const",
+        "method:KisToolBar::mainWindow() const",
+        "method:KisToolBar::setIconDimensions(int size)"
+      ]
+    },
+    {
+      "target": "KKeySequenceWidgetSchemaContractTest",
+      "source": "libs/widgetutils/tests/KKeySequenceWidgetSchemaContractTest.cpp",
+      "test": "KKeySequenceWidgetSchemaContractTest::toolBarSettingsAndXmlSignaturesRemainStable",
+      "behavior": "toolbar設定の適用・保存とXML状態の読込・保存に使う公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisToolBar::applySettings(const KConfigGroup & cg)",
+        "method:KisToolBar::loadState(const QDomElement & element)",
+        "method:KisToolBar::saveSettings(KConfigGroup & cg)",
+        "method:KisToolBar::saveState(QDomElement & element) const"
+      ]
+    },
+    {
+      "target": "KKeySequenceWidgetSchemaContractTest",
+      "source": "libs/widgetutils/tests/KKeySequenceWidgetSchemaContractTest.cpp",
+      "test": "KKeySequenceWidgetSchemaContractTest::toolBarClientAndGlobalPolicySignaturesRemainStable",
+      "behavior": "toolbarのXML GUI client関連付け、全体編集・lock方針、外観通知と状態model取得の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisToolBar::addXMLGUIClient(KisKXMLGUIClient * client)",
+        "method:KisToolBar::emitToolbarStyleChanged()",
+        "method:KisToolBar::removeXMLGUIClient(KisKXMLGUIClient * client)",
+        "method:KisToolBar::setToolBarsEditable(bool editable)",
+        "method:KisToolBar::setToolBarsLocked(bool locked)",
+        "method:KisToolBar::toolBarStateModel()",
+        "method:KisToolBar::toolBarsEditable()",
+        "method:KisToolBar::toolBarsLocked()"
+      ]
+    },
+    {
+      "target": "KKeySequenceWidgetSchemaContractTest",
+      "source": "libs/widgetutils/tests/KKeySequenceWidgetSchemaContractTest.cpp",
+      "test": "KKeySequenceWidgetSchemaContractTest::toggleToolBarActionInteractionSignaturesRemainStable",
+      "behavior": "toolbar表示切替actionの対象toolbar参照とevent filterの公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KToggleToolBarAction::eventFilter(QObject * watched,QEvent * event)",
+        "method:KToggleToolBarAction::toolBar()"
       ]
     }
   ]
