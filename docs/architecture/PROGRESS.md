@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-03 15:17 JST
+- 更新日時: 2026-09-03 15:29 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -21,6 +21,17 @@
 - libkis領域は`libs/libkis/TransformMask.h`の残存全8 API、`TransparencyMask.h`・`SelectionMask.h`・`FilterMask.h`の残存各7 APIをmask node wrapperとして採用した。transform mask型・寿命5、変換・XML 3、transparency mask 7、selection mask 7、filter mask 7を既存`libs/libkis/tests/ColorizeMaskSchemaContractTest.cpp`の5枠へ対応付ける。各mask、Node、Image、Selection、Filter、Object、文字列、transform、共有pointerを実体化せず、構築・破棄、型文字列、変換、XML往復、selection・filter取得設定本文を実行しない。全直接includeと展開先は既存の実探索路で解決し、CMakeと依存を変えず、直接linkはQt Core・Testとheader-only Boost、対象4工程・8入力、停止5工程・11入力、command hash`b8e12504e2`、input hash`4cd1bceca5`、製品`kritalibkis` 2,018工程・4,034入力を維持する。
   gradient editorは生成UI規則が大量の製品shared・OBJECTへ接続し、palette view・comboはwidgetutils探索路を要する。Krita façadeとNode全体はapplication・文書・tree・画素・animation・資源へ広く、上位visual selectorとtag selectionは資源・色変換または製品試験支援接続を伴うため棄却した。
 - 中央の`public-api-missing-g186.json`で間接描画支援23件、図形階層・依存通知・tree順序25件、libkis mask wrapper 29件の全識別子を照合した。3責務の開始header、試験source、所有CMake、生成物は相互に異なる。合計77 APIを15枠へ進め、許可path外変更、新規CMake・探索路・link、製品OBJECT/shared・`kritatestsdk`、指定外実体化・本文実行、5工程・11入力超過、製品計画集合の変化が必要になれば停止する。
+
+### 第186便の担当計画
+
+- 実装共通基点は`4353795d05`である。3担当のGit権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、一度に一つだけ作る専用worktree-local `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。Nix再評価を行わず、主作業treeの読み込み済み開発環境を`run-shared-test-env`で共有する。間接描画支援、図形階層・依存通知・tree順序、libkis mask wrapperの順に一担当ずつ実装・限定検証・統合・削除する。
+  調整担当だけがarchitecture文書、公開API台帳、共通不足報告を変更する。製品targetを引数にするplan/build、全体build、全体`verify`、Linux検証は禁止し、担当targetと近傍、公開API検査、`verify-quick`だけを実行する。
+- `g186-indirect-painting-schema`は`/Users/masato/Documents/librepaint-g186-indirect-painting-schema`を所有する。開始`libs/image/kis_indirect_painting_support.h`の残存全23 APIから既存`libs/image/tests/KisImageTypesContractTest.cpp`の5枠`indirectPaintingTypeAndLifetimeSchemaRemainStable`、`indirectPaintingTemporaryStateSignaturesRemainStable`、`indirectPaintingPainterPolicySignaturesRemainStable`、`indirectPaintingMergeAndSuspensionSignaturesRemainStable`、`indirectPaintingGuardLifetimeSchemaRemainStable`へ対応付ける。
+  完全集合はsupport class・構築・破棄、一時target有無・照会・設定、selection・opacity・composite operation・channel flags・現在色の設定、painter設定・非間接描画対応、同期・threaded merge、最終merge停止、`FinalMergeSuspender`と`ReadLocker`の型・構築・破棄・共有pointer別名である。許可pathは既存試験sourceだけで、CMake・依存・公開header・製品sourceを変更しない。support、guard、共有pointer、描画装置、selection、node、painter、色、channel flags、undo command、magic string、stroke job列を実体化せず、lock、painter設定、merge、transaction、job生成、resource解放、suspend本文を実行しない。対象4工程・8入力、停止5工程・11入力、近傍`KisPaintDeviceWriterContractTest`、製品`kritaimage` 1,196工程・2,416入力を維持する。対象・新旧枠、CTest、20回反復、近傍、無作業再構築、動的接続・AUTOMOC入力・support/guard/device/selection/painter未解決記号、構文・書式、公開API・`verify-quick`を確認する。
+- `g186-shape-hierarchy-schema`は`/Users/masato/Documents/librepaint-g186-shape-hierarchy-schema`を所有する。開始`libs/flake/KoShape.h`の図形階層・依存通知・tree順序25 APIから既存`libs/flake/tests/KoShapeEnumContractTest.cpp`の5枠`shapeTypeAndLifetimeSchemaRemainStable`、`shapeChangeNotificationSignaturesRemainStable`、`shapeDependencySignaturesRemainStable`、`shapeParentRelationshipSignaturesRemainStable`、`shapeTreeOrderingSignaturesRemainStable`へ対応付ける。
+  完全集合はshape class・構築・破棄、`ShapeChangeListener`の型・破棄・通知、listener追加削除・変更通知、dependee追加削除・有無・列、親照会設定・共通親・transform継承、z-index最大最小・子順序方針・比較・subtree線形化と並べ替え・z-index照会設定である。許可pathは既存試験sourceだけで、CMake・依存・公開header・製品sourceを変更しない。shape、試験用派生、listener、container、painter、shape列を実体化せず、listener通知、依存循環判定、親変更、共通親・transform継承探索、tree線形化・並べ替え・z-index更新本文を実行しない。対象4工程・8入力、停止5工程・11入力、近傍`KoShapeReorderCommandSchemaContractTest`、製品`kritaflake` 621工程・1,274入力を維持し、間接描画担当の統合・削除後に開始する。同じ限定検証とshape/listener/container/order未解決記号を確認する。
+- `g186-libkis-mask-schema`は`/Users/masato/Documents/librepaint-g186-libkis-mask-schema`を所有する。開始`libs/libkis/TransformMask.h`の残存全8 API、`TransparencyMask.h`・`SelectionMask.h`・`FilterMask.h`の残存各7 APIから既存`libs/libkis/tests/ColorizeMaskSchemaContractTest.cpp`の5枠`transformMaskTypeAndLifetimeSchemaRemainStable`、`transformMaskTransformAndSerializationSchemaRemainStable`、`transparencyMaskTypeAndSelectionSchemaRemainStable`、`selectionMaskTypeAndSelectionSchemaRemainStable`、`filterMaskTypeAndFilterSchemaRemainStable`へ対応付ける。
+  完全集合は4 mask wrapperのclass・2構築・破棄・type、transform maskの最終affine transform・XML入出力、transparency maskとselection maskのselection照会設定、filter maskのfilter照会設定である。許可pathは既存試験sourceだけで、CMake・依存・公開header・製品sourceを変更しない。各mask、Node、Image、Selection、Filter、Object、文字列、transform、共有pointerを実体化せず、構築・破棄、型文字列、変換、XML往復、selection・filter取得設定本文を実行しない。対象4工程・8入力、停止5工程・11入力、近傍`SelectionSchemaContractTest`、製品`kritalibkis` 2,018工程・4,034入力を維持し、図形階層担当の統合・削除後に開始する。同じ限定検証とmask/node/image/selection/filter未解決記号を確認する。
 
 ### 第185便の先行監査計画
 
