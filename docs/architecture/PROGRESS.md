@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-03 16:14 JST
+- 更新日時: 2026-09-03 16:16 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -21,6 +21,17 @@
 - libkis領域は`libs/libkis/FileLayer.h`の残存全10 API、`FillLayer.h`の残存全8 API、`FilterLayer.h`・`CloneLayer.h`・`GroupLayer.h`の残存各7 APIを非vector特殊layer wrapperとして採用した。file、fill、filter、clone、groupを責務別に既存`libs/libkis/tests/ColorizeMaskSchemaContractTest.cpp`の5枠へ対応付ける。各layer、Node、Image、Selection、Filter、InfoObject、Object、文字列、共有pointerを実体化せず、構築・破棄、filesystem・cache、generator・filter、clone source、pass-through、型文字列本文を実行しない。全直接includeは実探索路で解決し、CMakeと依存を変えず、直接linkはQt Core・Testとheader-only Boost、対象4工程・8入力、停止5工程・11入力、command hash`b8e12504e2`、input hash`4cd1bceca5`、製品`kritalibkis` 2,018工程・4,034入力を維持する。
   低水準色入力は第184便と責務が重なり、gradient editorは生成UI、palette UIは追加widgetutils探索路、zoom UIは7工程・15入力と製品OBJECTへ接続する。Krita・Node façadeは責務が広く、vector layerは単独で下限未満かつflake描画を混在させるため棄却した。
 - 中央の`public-api-missing-g187.json`でtile line iterator 38件、gradient背景21件、特殊layer wrapper 39件の全識別子を照合した。3責務の開始header、試験source、所有CMake、生成物は相互に異なる。合計98 APIを15枠へ進め、許可path外変更、gradient背景対象固有のQt Gui公開include探索路以外のCMake変更、新規link・compile定義、製品OBJECT/shared・`kritatestsdk`、指定外実体化・本文実行、5工程・11入力超過、製品計画集合の変化が必要になれば停止する。
+
+### 第187便の担当計画
+
+- 実装共通基点は`a634d40d6f`である。image・libkis担当のGit権限は許可pathだけの1受渡しcommit、flake担当は構築範囲と試験の2受渡しcommit、追加委任は禁止する。対象platformはmacOSであり、一度に一つだけ作る専用worktree-local `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。Nix再評価を行わず、担当側の`run-shared-test-env`で主作業treeの読み込み済み開発環境を共有する。tile line iterator、gradient背景、特殊layer wrapperの順に一担当ずつ実装・限定検証・統合・削除する。
+  調整担当だけがarchitecture文書、公開API台帳、共通不足報告を変更する。製品targetを引数にするplan/build、全体build、全体`verify`、Linux検証は禁止し、担当targetと近傍、公開API検査、`verify-quick`だけを実行する。
+- `g187-tile-line-iterator-schema`は`/Users/masato/Documents/librepaint-g187-tile-line-iterator-schema`を所有する。開始`libs/image/tiles3/kis_hline_iterator.h`と`kis_vline_iterator.h`の残存全38 APIから既存`libs/image/tests/KisImageTypesContractTest.cpp`の5枠`lineIteratorTypeAndConstructionSchemaRemainStable`、`lineIteratorTileCacheSchemaRemainStable`、`lineIteratorDataAccessSignaturesRemainStable`、`horizontalLineIteratorTraversalSignaturesRemainStable`、`verticalLineIteratorTraversalSignaturesRemainStable`へ対応付ける。
+  完全集合は両iteratorのclass・構築・破棄、両`KisTileInfo` structとtile・oldtile・data・oldData member、old・const・可変raw dataと連続画素数、水平のpixel・複数pixel・row走査とreset・座標、垂直のpixel・複数pixel・column走査とreset・座標である。許可pathは既存試験sourceだけで、CMake・依存・公開header・製品sourceを変更しない。iterator、cache型、data manager、tile・共有pointer、listener、画素bufferを実体化せず、構築・破棄、inline lock・座標計算、cache確保・取得・切替、走査・reset・raw data本文を実行しない。対象4工程・8入力、停止5工程・11入力、近傍`KisTileSchemaContractTest`、製品`kritaimage` 1,196工程・2,416入力を維持する。対象・新旧枠、CTest、20回反復、近傍、無作業再構築、動的接続・AUTOMOC入力・iterator/tile/data manager未解決記号、構文・書式、公開API・`verify-quick`を確認する。
+- `g187-gradient-background-schema`は`/Users/masato/Documents/librepaint-g187-gradient-background-schema`を所有する。開始`libs/flake/KoGradientBackground.h`と`KoMeshGradientBackground.h`の残存全21 APIから既存`libs/flake/tests/KoPatternBackgroundSchemaContractTest.cpp`の5枠`gradientBackgroundTypeAndLifetimeSchemaRemainStable`、`gradientBackgroundValueSemanticsSignaturesRemainStable`、`gradientBackgroundGradientAndRenderingSignaturesRemainStable`、`meshGradientBackgroundTypeAndLifetimeSchemaRemainStable`、`meshGradientBackgroundValueAndRenderingSignaturesRemainStable`へ対応付ける。
+  完全集合は通常gradient背景のclass・pointer・値・copy構築・破棄、代入・比較、gradient・transform照会設定・描画と、mesh gradient背景のclass・gradient pointer・copy構築・破棄、代入・比較・可変gradient・transform照会・描画である。許可pathは既存試験sourceと`libs/flake/tests/CMakeLists.txt`の対象固有探索路だけである。先にQt Guiの`INTERFACE_INCLUDE_DIRECTORIES` 1本だけを追加し、4工程・8入力とQt Testだけの直接link・実binary動的接続が増えないことを確認して構築範囲commitを作り、その後に試験sourceを変更する。両背景、基底、gradient、transform、painter、pathを実体化せず、所有・複製・代入・比較・変換・描画本文を実行しない。停止5工程・11入力、近傍`KoShapeStrokeSchemaContractTest`、製品`kritaflake` 621工程・1,274入力を維持し、iterator担当の統合・削除後に開始する。同じ限定検証とbackground/gradient/transform/painter未解決記号を確認する。
+- `g187-special-layer-schema`は`/Users/masato/Documents/librepaint-g187-special-layer-schema`を所有する。開始`libs/libkis/FileLayer.h`の残存全10 API、`FillLayer.h`の残存全8 API、`FilterLayer.h`・`CloneLayer.h`・`GroupLayer.h`の残存各7 APIから既存`libs/libkis/tests/ColorizeMaskSchemaContractTest.cpp`の5枠`fileLayerTypeAndFileSchemaRemainStable`、`fillLayerTypeAndGeneratorSchemaRemainStable`、`filterLayerTypeAndFilterSchemaRemainStable`、`cloneLayerTypeAndSourceSchemaRemainStable`、`groupLayerTypeAndCompositionSchemaRemainStable`へ対応付ける。
+  完全集合は5 layer wrapperのclass・2構築・破棄・typeに加え、fileのpath・cache・scaling・properties、fillのfilter構成・generator、filterの取得設定、cloneのsource、groupのpass-throughである。許可pathは既存試験sourceだけで、CMake・依存・公開header・製品sourceを変更しない。各layer、Node、Image、Selection、Filter、InfoObject、Object、文字列、共有pointerを実体化せず、構築・破棄、filesystem・cache、generator・filter、clone source、pass-through、型文字列本文を実行しない。対象4工程・8入力、停止5工程・11入力、近傍`SelectionSchemaContractTest`、製品`kritalibkis` 2,018工程・4,034入力を維持し、gradient背景担当の統合・削除後に開始する。同じ限定検証とlayer/node/image/selection/filter未解決記号を確認する。
 
 ### 第186便の先行監査計画
 
