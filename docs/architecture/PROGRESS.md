@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-03 12:49 JST
+- 更新日時: 2026-09-03 13:00 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -14,6 +14,13 @@
 - 監査共通基点は`0bdc227c15`、入力は`build/tdd-macos/public-api-missing-g183.json`である。3担当は`auditing`の読み取り専用とし、製品・試験・CMake・script・台帳・文書を変更せず、構成、構築、試験、Git操作、追加委任も行わない。一つの公開責務から20〜80 APIを最大5枠へ固定し、既存限定対象またはheader限定の4〜10工程程度の対象で、製品共有libraryと`kritatestsdk`へ接続しない候補だけを採用する。製品targetを引数にする`build-incremental ... plan`と製品buildは実行せず、既存Ninja木のquery・commands・inputsだけを読み取る。
 - image・paintop・pigment領域は第182便のwarp transform workerを、flake・SVG・vector領域はSVG style・値解析を、widgetutils・widgets・libkis領域はslider型数値入力部品を除外して一責務ずつ比較する。
 - 各監査は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、予測工程・入力と停止線、開始pathから契約先、許可path、固有停止条件、比較候補の棄却根拠を揃える。3領域のpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
+- image領域は`libs/image/kis_liquify_transform_worker.h`の残存全24 APIを採用した。型・寿命4、同一性・格子・点参照6、点変形7、描画装置・画像2、矩形・XML 5を既存`libs/image/tests/KisImageTypesContractTest.cpp`の5枠へ対応付ける。worker、格子、updater、描画装置、画像、Qt値、DOMを実体化せず、copy・比較・格子照会、点変形、描画、矩形計算、XML本文を実行しない。全直接includeは実探索路で解決し、CMakeと依存を変えず、直接linkはQt Core・Gui・Test・XmlとBoost、対象4工程・8入力、停止5工程・11入力、command hash`860901e6be`、input hash`42c0bdca62`、製品`kritaimage` 1,196工程・2,416入力を維持する。
+  simple update queue、gradient painter、processing applicator、stroke undo、transaction、indirect painting support、brush mask applicatorはqueue・undo・描画装置・同期状態へ閉包が広く、pigment候補はresource・大域registry・外部形式条件へ接続するため棄却した。
+- flake・vector領域は`libs/flake/KoClipMask.h`の残存全17 APIと`libs/flake/KoClipPath.h`の残存全15 APIを図形クリッピングとして採用した。型・寿命10、座標・規則7、shape所有7、幾何6、描画2を既存`libs/flake/tests/KoPathShapeSchemaContractTest.cpp`の5枠へ対応付ける。clip mask・path、shape、Qt容器・幾何値、painterを実体化せず、copy・代入、clone、座標・shape・path操作、描画本文を実行しない。全直接includeは実探索路で解決し、CMakeと依存を変えず、直接linkはQt Core・Gui・Test、対象4工程・8入力、停止5工程・11入力、command hash`4d4cecaed7`、input hash`aadbcf35d3`、製品`kritaflake` 621工程・1,274入力を維持する。
+  SVG parserはresource・shape群まで定義閉包が広く、font・symbol・CSS preset・gamut maskは資源入出力が中心であり、shape・tool管理群はQObject metaobject、入力配送、選択寿命へ接続する。shape fillとgradient背景の結合は複数責務になるため棄却した。
+- widgetutils領域は`libs/widgetutils/xmlgui/kshortcutwidget.h`の残存全12 APIと`libs/widgetutils/xmlgui/KisShortcutsDialog.h`の残存全14 APIをshortcut編集UIとして採用した。widget型・寿命3、値・方針6、編集3、dialog型・collection 7、永続化・復元7を既存`libs/widgetutils/tests/KKeySequenceWidgetSchemaContractTest.cpp`の5枠へ対応付ける。shortcut widget・dialog・editor、Widget、キー列、文字列、action collectionを実体化せず、競合検査・編集、collection追加、保存・読込・書出し・復元本文を実行しない。dialog headerの直接includeを解決する対象固有のXML GUI source探索路1本だけを追加し、直接linkはQt Gui・Test、対象4工程・8入力、停止5工程・11入力、command hash`9070057888`、input hash`9e1145634e`、製品`kritawidgetutils` 274工程・581入力を維持する。
+  tag selectionは製品・試験支援libraryへ接続し、Scratchpadは不要なimage・View直接includeの構造整理が先行し、visual selectorと内部色dialogはresource・pigment・描画・表示変換へ閉包が広く、action分類との結合は複数責務と追加探索路を生むため棄却した。
+- 中央の`public-api-missing-g183.json`でliquify transform worker 24件、図形クリッピング32件、shortcut編集UI 26件の全識別子を照合した。3責務の開始header、試験source、所有CMake、生成物は相互に異なる。合計82 APIを15枠へ進め、許可path外変更、shortcut対象固有のXML GUI source探索路以外のCMake変更、新規link、製品OBJECT/shared・`kritatestsdk`、指定外実体化・本文実行、5工程・11入力超過、製品計画集合の変化が必要になれば停止する。
 
 ### 第182便の先行監査計画
 
