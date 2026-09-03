@@ -2,12 +2,19 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-03 06:57 JST
+- 更新日時: 2026-09-03 09:06 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
+
+### 第178便の先行監査計画
+
+- 監査共通基点は`aceeeb834f`、入力は`build/tdd-macos/public-api-missing-g178.json`である。監査は読み取り専用とし、製品・試験・CMake・script・台帳・文書を変更せず、構成、構築、試験、Git操作を行わない。
+  一つの公開責務から20〜80 APIを最大5枠へ固定し、既存限定対象またはheader限定の4〜10工程程度の対象で、製品共有libraryと`kritatestsdk`へ接続しない候補だけを採用する。製品targetを引数にする`build-incremental ... plan`と製品buildは実行せず、既存Ninja木のquery・commands・inputsだけを読み取る。
+- image・paintop・pigment領域は第177便のpaint情報を、flake・SVG・vector領域はtool factory・registryを、widgetutils・widgets・libkis領域はtoolbar表示制御を除外して一責務ずつ比較する。
+- 各監査は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、予測工程・入力と停止線、開始pathから契約先、許可path、固有停止条件、比較候補の棄却根拠を揃える。3領域のpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
 
 ### 第177便の先行監査計画
 
@@ -35,6 +42,17 @@
   完全集合はfactory classと7 toolbox section定数、factory構築・破棄・action・tool生成、`id`・`priority`・`section`・`toolTip`・`iconName`・`activationShapeId`・`shortcut`、registry class・構築・破棄・`instance`である。許可pathは既存試験sourceだけで、CMake・依存・公開header・製品sourceを変更しない。対象4工程・8入力、停止5工程・11入力、近傍`KoCanvasControllerProxySchemaContractTest`、製品`kritaflake` 621工程・1,274入力を維持する。旧binaryの新5枠Unknown、対象・既存枠、CTest、20回反復、近傍、無作業再構築、依存・記号・AUTOMOC・構文・書式、公開API、`verify-quick`を確認する。
 - `g177-toolbar-visibility-schema`は`/Users/masato/Documents/librepaint-g177-toolbar-visibility-schema`を所有する。開始`libs/widgetutils/xmlgui/ktoolbar.h`の残存全19 APIと`libs/widgetutils/xmlgui/ktoggletoolbaraction.h`の残存全6 APIから既存`libs/widgetutils/tests/KKeySequenceWidgetSchemaContractTest.cpp`の5枠`toolBarAndToggleActionTypeAndLifetimeSchemaRemainStable`、`toolBarOwnershipAndAppearanceSignaturesRemainStable`、`toolBarSettingsAndXmlSignaturesRemainStable`、`toolBarClientAndGlobalPolicySignaturesRemainStable`、`toggleToolBarActionInteractionSignaturesRemainStable`へ対応付ける。
   完全集合は2 class・toolbar構築破棄・toggle actionの2構築破棄、main window・icon寸法・既定寸法・event filter、設定適用保存・XML読込保存、client追加削除・toolbar編集/lock状態・外観通知・状態model、toggle actionのtoolbar参照・event filterである。許可pathは既存試験sourceと`libs/widgetutils/tests/CMakeLists.txt`の`KKeySequenceWidgetSchemaContractTest`対象固有include節だけである。先にKWidgetsAddonsのinterface includeだけを追加して、対象4工程・8入力と直接link集合が不変であることを確認してから試験sourceを変更する。停止5工程・11入力、近傍`KHelpMenuSchemaContractTest`、製品`kritawidgetutils` 274工程・581入力を維持する。旧binaryの新5枠Unknown、対象・既存枠、CTest、20回反復、近傍、無作業再構築、依存・記号・AUTOMOC・構文・書式、公開API、`verify-quick`を確認する。
+
+### 第177便の統合結果
+
+- `g177-paint-information-schema`は開始`libs/image/brushengine/kis_paint_information.h`から既存`libs/image/tests/KisImageTypesContractTest.cpp`の5枠へ、値の構築・copy・寿命、距離情報登録子、補間、乱数源・距離・LOD、hover・描画・XML・debugの残存全29 APIを対応付けた。CMakeと依存を変えず、paint情報、距離情報、乱数源、XML要素、paintopを実体化せず、inline描画、補間、登録、乱数、XML本文を実行しない4工程・8入力に保った。
+  受渡しcommit`f701dc2a1a`を統合commit`891b18e961`として取り込み、担当と中央の5枠、対象・近傍CTest、20回反復、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式に成功した。台帳commit`6ffbf02629`で17,501件対応、12,337件未対応となった。描画呼出し、補間、距離登録、乱数・XML処理の実行時結果は別契約で扱う。
+- `g177-tool-factory-registry-schema`は開始`libs/flake/KoToolFactoryBase.h`と`libs/flake/KoToolRegistry.h`から既存`libs/flake/tests/KoToolBaseSchemaContractTest.cpp`の5枠へ、factory型・toolbox section、寿命・生成、識別・表示、registry型・寿命、singleton参照の残存全23 APIを対応付けた。CMakeと依存を変えず、factory、registry、tool、canvas、actionを実体化せず、tool・action生成、registry初期化、singleton本文を実行しない4工程・8入力に保った。7つのtoolbox section識別子は公開文字列値も固定した。
+  受渡しcommit`49b23870ef`を統合commit`46bca3c2b2`として取り込み、担当と中央の5枠、対象・近傍CTest、20回反復、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式に成功した。台帳commit`2c9f380d1e`で17,524件対応、12,314件未対応となった。tool・action生成とregistry初期化の実行時結果は別契約で扱う。
+- `g177-toolbar-visibility-schema`は開始`libs/widgetutils/xmlgui/ktoolbar.h`と`libs/widgetutils/xmlgui/ktoggletoolbaraction.h`から既存`libs/widgetutils/tests/KKeySequenceWidgetSchemaContractTest.cpp`の5枠へ、型・寿命、toolbar参照・外観、設定・XML、client・global方針、toggle action操作の残存全25 APIを対応付けた。開始時のheader閉包監査で不足していたKWidgetsAddons公開headerのincludeだけを`libs/widgetutils/tests/CMakeLists.txt`の対象固有節へ追加し、直接linkをQt Gui・Testだけに保った。
+  構築範囲commit`5fb4403a22`を`ad19833fb7`、試験commit`c5432a5421`を`dee222dac4`として順に取り込んだ。対象は変更前後とも4工程・8入力、製品`kritawidgetutils`は274工程・581入力で不変であり、5枠、対象・近傍CTest、20回反復、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式に成功した。台帳commit`aceeeb834f`で17,549件対応、12,289件未対応となった。設定・XML、client登録、global toolbar状態、event filterの実行時結果は別契約で扱う。
+- 第177便全体で77 APIを15枠へ重複なく対応付けた。3担当を一つずつ実装・構成・構築・統合し、製品target、全体build、全体`verify`、Linuxは実行していない。対象・近傍CTest、各20回反復、無作業再構築、公開API検査と`verify-quick`は成功した。
+  3担当のcleanな作業tree、担当build木、担当branchを統合直後に削除し、1,763,684 KiB（約1.68 GiB）の担当領域を回収した。旧不足報告`public-api-missing-g177.json`をごみ箱へ移し、主Ninja木5,640,516 KiB、共有compiler cache 982,900 KiB、最新不足報告`build/tdd-macos/public-api-missing-g178.json` 3,215,481 bytesだけを再利用対象として保持する。次の永続作業は第178便の不足報告から、既存限定対象を優先して3責務を先行監査することである。
 
 ### 第176便の先行監査計画
 
