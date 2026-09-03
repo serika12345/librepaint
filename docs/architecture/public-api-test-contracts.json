@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 11155
+    "expectedMissingApis": 11121
   },
   "contracts": [
     {
@@ -52547,6 +52547,85 @@
         "method:KoColorPatch::setDisplayRenderer(const KoColorDisplayRendererInterface * displayRenderer)",
         "method:KoColorPatch::triggered(KoColorPatch * widget)",
         "method:KoColorPatch::~KoColorPatch()"
+      ]
+    },
+    {
+      "target": "KisPaintLayerSchemaContractTest",
+      "source": "libs/image/tests/KisPaintLayerSchemaContractTest.cpp",
+      "test": "KisPaintLayerSchemaContractTest::paintLayerTypeAndConstructionSchemaRemainStable",
+      "behavior": "描画レイヤーは画像、名前、不透明度と任意の描画装置または色空間から構築・複製でき、共有所有される公開型と仮想寿命を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisPaintLayerSP",
+        "class:KisPaintLayer",
+        "method:KisPaintLayer::KisPaintLayer(KisImageWSP image,const QString & name,quint8 opacity)",
+        "method:KisPaintLayer::KisPaintLayer(KisImageWSP image,const QString & name,quint8 opacity,KisPaintDeviceSP dev)",
+        "method:KisPaintLayer::KisPaintLayer(KisImageWSP image,const QString & name,quint8 opacity,const KoColorSpace * colorSpace)",
+        "method:KisPaintLayer::KisPaintLayer(const KisPaintLayer & rhs)",
+        "method:KisPaintLayer::~KisPaintLayer()"
+      ]
+    },
+    {
+      "target": "KisPaintLayerSchemaContractTest",
+      "source": "libs/image/tests/KisPaintLayerSchemaContractTest.cpp",
+      "test": "KisPaintLayerSchemaContractTest::paintLayerHierarchyAndPresentationSignaturesRemainStable",
+      "behavior": "描画レイヤーは子要素の許可、複製、表示用icon、投影要否、画像所有者とsection属性を扱う公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPaintLayer::allowAsChild(KisNodeSP) const",
+        "method:KisPaintLayer::clone() const",
+        "method:KisPaintLayer::icon() const",
+        "method:KisPaintLayer::needProjection() const",
+        "method:KisPaintLayer::sectionModelProperties() const",
+        "method:KisPaintLayer::setImage(KisImageWSP image)",
+        "method:KisPaintLayer::setSectionModelProperties(const KisBaseNode::PropertyList & properties)"
+      ]
+    },
+    {
+      "target": "KisPaintLayerSchemaContractTest",
+      "source": "libs/image/tests/KisPaintLayerSchemaContractTest.cpp",
+      "test": "KisPaintLayerSchemaContractTest::paintLayerDeviceAndGeometrySignaturesRemainStable",
+      "behavior": "描画レイヤーは正確な境界と範囲、LOD対応装置、基底レイヤー、元装置と現在の描画装置を公開署名から参照する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPaintLayer::exactBounds() const",
+        "method:KisPaintLayer::extent() const",
+        "method:KisPaintLayer::getLodCapableDevices() const",
+        "method:KisPaintLayer::layer()",
+        "method:KisPaintLayer::original() const",
+        "method:KisPaintLayer::paintDevice() const"
+      ]
+    },
+    {
+      "target": "KisPaintLayerSchemaContractTest",
+      "source": "libs/image/tests/KisPaintLayerSchemaContractTest.cpp",
+      "test": "KisPaintLayerSchemaContractTest::paintLayerEditingAndDecorationSignaturesRemainStable",
+      "behavior": "描画レイヤーはalpha・channelの編集保護、装飾表示、onion skin状態とcache更新を扱う公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPaintLayer::alphaLocked() const",
+        "method:KisPaintLayer::channelLockFlags() const",
+        "method:KisPaintLayer::decorationsVisible() const",
+        "method:KisPaintLayer::flushOnionSkinCache()",
+        "method:KisPaintLayer::onionSkinEnabled() const",
+        "method:KisPaintLayer::setAlphaLocked(bool lock)",
+        "method:KisPaintLayer::setChannelLockFlags(const QBitArray & channelFlags)",
+        "method:KisPaintLayer::setDecorationsVisible(bool value,bool update)",
+        "method:KisPaintLayer::setOnionSkinEnabled(bool state)"
+      ]
+    },
+    {
+      "target": "KisPaintLayerSchemaContractTest",
+      "source": "libs/image/tests/KisPaintLayerSchemaContractTest.cpp",
+      "test": "KisPaintLayerSchemaContractTest::paintLayerVisitorAndKeyframeSignaturesRemainStable",
+      "behavior": "描画レイヤーはノード・処理visitorを受け入れ、keyframe追加・変更と外部onion skin更新を受け取る公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPaintLayer::accept(KisNodeVisitor & v)",
+        "method:KisPaintLayer::accept(KisProcessingVisitor & visitor,KisUndoAdapter * undoAdapter)",
+        "method:KisPaintLayer::handleKeyframeChannelFrameAdded(const KisKeyframeChannel * channel,int time)",
+        "method:KisPaintLayer::handleKeyframeChannelFrameChange(const KisKeyframeChannel * channel,int time)",
+        "method:KisPaintLayer::slotExternalUpdateOnionSkins()"
       ]
     }
   ]
