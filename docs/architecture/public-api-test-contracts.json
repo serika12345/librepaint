@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 10922
+    "expectedMissingApis": 10896
   },
   "contracts": [
     {
@@ -53140,6 +53140,77 @@
         "method:KoFontFamily::loadFromDevice(QIODevice * dev,KisResourcesInterfaceSP resourcesInterface)",
         "method:KoFontFamily::resourceType() const",
         "method:KoFontFamily::updateThumbnail()"
+      ]
+    },
+    {
+      "target": "KoZoomControlSchemaContractTest",
+      "source": "libs/widgets/tests/KoZoomControlSchemaContractTest.cpp",
+      "test": "KoZoomControlSchemaContractTest::zoomActionTypeLifetimeAndWidgetSchemaRemainStable",
+      "behavior": "zoom actionは表示文字列と親objectから構築される選択actionとして仮想寿命を持ち、toolbar用Widgetを生成する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoZoomAction",
+        "method:KoZoomAction::KoZoomAction(const QString & text,QObject * parent)",
+        "method:KoZoomAction::createWidget(QWidget * parent)",
+        "method:KoZoomAction::~KoZoomAction()"
+      ]
+    },
+    {
+      "target": "KoZoomControlSchemaContractTest",
+      "source": "libs/widgets/tests/KoZoomControlSchemaContractTest.cpp",
+      "test": "KoZoomControlSchemaContractTest::zoomActionStateControlSignaturesRemainStable",
+      "behavior": "zoom actionはzoom状態を受け取り、印刷解像度modeの利用状態を設定する公開slot署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoZoomAction::setUsePrintResolutionMode(bool value)",
+        "method:KoZoomAction::slotZoomStateChanged(const KoZoomState & zoomState)"
+      ]
+    },
+    {
+      "target": "KoZoomControlSchemaContractTest",
+      "source": "libs/widgets/tests/KoZoomControlSchemaContractTest.cpp",
+      "test": "KoZoomControlSchemaContractTest::zoomActionNotificationSignaturesRemainStable",
+      "behavior": "zoom actionは選択modeと倍率を外部へ通知し、倍率一覧・slider・印刷解像度modeの表示状態を内部Widgetへ通知する公開signal署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoZoomAction::sigInternalUpdateUsePrintResolutionMode(bool value)",
+        "method:KoZoomAction::sigInternalUpdateZoomLevelsComboState(const QStringList & values,int index,const QString & activeText)",
+        "method:KoZoomAction::sigInternalUpdateZoomLevelsSliderState(int size,int index)",
+        "method:KoZoomAction::sigUsePrintResolutionModeChanged(bool value)",
+        "method:KoZoomAction::zoomChanged(KoZoomMode::Mode mode,qreal zoom)"
+      ]
+    },
+    {
+      "target": "KoZoomControlSchemaContractTest",
+      "source": "libs/widgets/tests/KoZoomControlSchemaContractTest.cpp",
+      "test": "KoZoomControlSchemaContractTest::zoomWidgetTypeLifetimeAndPresentationSchemaRemainStable",
+      "behavior": "zoom Widgetは親と最大倍率から構築されるWidgetとして仮想寿命を持ち、倍率入力欄の外観と印刷解像度modeを設定する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoZoomWidget",
+        "method:KoZoomWidget::KoZoomWidget(QWidget * parent,int maxZoom)",
+        "method:KoZoomWidget::isZoomInputFlat() const",
+        "method:KoZoomWidget::setUsePrintResolutionMode(bool value)",
+        "method:KoZoomWidget::setZoomInputFlat(bool flat)",
+        "method:KoZoomWidget::~KoZoomWidget()"
+      ]
+    },
+    {
+      "target": "KoZoomControlSchemaContractTest",
+      "source": "libs/widgets/tests/KoZoomControlSchemaContractTest.cpp",
+      "test": "KoZoomControlSchemaContractTest::zoomWidgetStateAndNotificationSignaturesRemainStable",
+      "behavior": "zoom Widgetは文字列または索引の現在倍率、slider、倍率一覧を更新し、入力変更と印刷解像度mode変更を通知する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoZoomWidget::setCurrentZoomLevel(const QString & valueString)",
+        "method:KoZoomWidget::setCurrentZoomLevel(int index)",
+        "method:KoZoomWidget::setSliderState(int size,int index)",
+        "method:KoZoomWidget::setSliderValue(int value)",
+        "method:KoZoomWidget::setZoomLevelsState(const QStringList & values,int index,const QString & activeText)",
+        "method:KoZoomWidget::sigUsePrintResolutionModeChanged(bool value)",
+        "method:KoZoomWidget::sliderValueChanged(int value)",
+        "method:KoZoomWidget::zoomLevelChanged(const QString & level)",
+        "method:KoZoomWidget::zoomLevelChangedIndex(int index)"
       ]
     }
   ]
