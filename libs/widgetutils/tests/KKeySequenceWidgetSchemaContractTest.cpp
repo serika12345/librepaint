@@ -5,6 +5,8 @@
 #include "../xmlgui/kmainwindow.h"
 #include "../xmlgui/ktoggletoolbaraction.h"
 #include "../xmlgui/ktoolbar.h"
+#include "../xmlgui/kxmlguibuilder.h"
+#include "../xmlgui/kxmlguifactory.h"
 #include "../xmlgui/kxmlguiwindow.h"
 #include <QTest>
 #include <type_traits>
@@ -39,6 +41,11 @@ private Q_SLOTS:
     void toolBarSettingsAndXmlSignaturesRemainStable();
     void toolBarClientAndGlobalPolicySignaturesRemainStable();
     void toggleToolBarActionInteractionSignaturesRemainStable();
+    void xmlGuiFactoryTypeLifetimeAndConfigurationSchemaRemainsStable();
+    void xmlGuiFactoryClientAndActionSignaturesRemainStable();
+    void xmlGuiFactoryContainerResetAndNotificationSignaturesRemainStable();
+    void xmlGuiBuilderTypeOwnershipAndTagSchemaRemainsStable();
+    void xmlGuiBuilderElementLifecycleSignaturesRemainStable();
 };
 void KKeySequenceWidgetSchemaContractTest::keySequenceWidgetTypeAndEnumerationSchemaRemainsStable()
 {
@@ -310,6 +317,76 @@ void KKeySequenceWidgetSchemaContractTest::toggleToolBarActionInteractionSignatu
 
     static_assert(std::is_same_v<decltype(&W::toolBar), KisToolBar *(W::*)()>);
     static_assert(std::is_same_v<decltype(&W::eventFilter), bool (W::*)(QObject *, QEvent *)>);
+}
+
+void KKeySequenceWidgetSchemaContractTest::xmlGuiFactoryTypeLifetimeAndConfigurationSchemaRemainsStable()
+{
+    using Factory = KisKXMLGUIFactory;
+
+    static_assert(std::is_class_v<Factory> && std::is_base_of_v<QObject, Factory>);
+    static_assert(std::is_constructible_v<Factory, KisKXMLGUIBuilder *, QObject *>);
+    static_assert(std::has_virtual_destructor_v<Factory>);
+    static_assert(std::is_same_v<decltype(&Factory::readConfigFile), QString (*)(const QString &, const QString &)>);
+    static_assert(std::is_same_v<decltype(&Factory::saveConfigFile),
+                                 bool (*)(const QDomDocument &, const QString &, const QString &)>);
+    static_assert(std::is_same_v<decltype(&Factory::actionPropertiesElement), QDomElement (*)(QDomDocument &)>);
+    static_assert(
+        std::is_same_v<decltype(&Factory::findActionByName), QDomElement (*)(QDomElement &, const QString &, bool)>);
+}
+
+void KKeySequenceWidgetSchemaContractTest::xmlGuiFactoryClientAndActionSignaturesRemainStable()
+{
+    using Factory = KisKXMLGUIFactory;
+
+    static_assert(std::is_same_v<decltype(&Factory::addClient), void (Factory::*)(KisKXMLGUIClient *)>);
+    static_assert(std::is_same_v<decltype(&Factory::removeClient), void (Factory::*)(KisKXMLGUIClient *)>);
+    static_assert(std::is_same_v<decltype(&Factory::plugActionList),
+                                 void (Factory::*)(KisKXMLGUIClient *, const QString &, const QList<QAction *> &)>);
+    static_assert(
+        std::is_same_v<decltype(&Factory::unplugActionList), void (Factory::*)(KisKXMLGUIClient *, const QString &)>);
+    static_assert(std::is_same_v<decltype(&Factory::clients), QList<KisKXMLGUIClient *> (Factory::*)() const>);
+}
+
+void KKeySequenceWidgetSchemaContractTest::xmlGuiFactoryContainerResetAndNotificationSignaturesRemainStable()
+{
+    using Factory = KisKXMLGUIFactory;
+
+    static_assert(std::is_same_v<decltype(&Factory::container),
+                                 QWidget *(Factory::*)(const QString &, KisKXMLGUIClient *, bool)>);
+    static_assert(std::is_same_v<decltype(&Factory::containers), QList<QWidget *> (Factory::*)(const QString &)>);
+    static_assert(std::is_same_v<decltype(&Factory::reset), void (Factory::*)()>);
+    static_assert(std::is_same_v<decltype(&Factory::resetContainer), void (Factory::*)(const QString &, bool)>);
+    static_assert(std::is_same_v<decltype(&Factory::clientAdded), void (Factory::*)(KisKXMLGUIClient *)>);
+    static_assert(std::is_same_v<decltype(&Factory::clientRemoved), void (Factory::*)(KisKXMLGUIClient *)>);
+    static_assert(std::is_same_v<decltype(&Factory::makingChanges), void (Factory::*)(bool)>);
+}
+
+void KKeySequenceWidgetSchemaContractTest::xmlGuiBuilderTypeOwnershipAndTagSchemaRemainsStable()
+{
+    using Builder = KisKXMLGUIBuilder;
+
+    static_assert(std::is_class_v<Builder>);
+    static_assert(std::is_constructible_v<Builder, QWidget *>);
+    static_assert(std::has_virtual_destructor_v<Builder>);
+    static_assert(std::is_same_v<decltype(&Builder::builderClient), KisKXMLGUIClient *(Builder::*)() const>);
+    static_assert(std::is_same_v<decltype(&Builder::setBuilderClient), void (Builder::*)(KisKXMLGUIClient *)>);
+    static_assert(std::is_same_v<decltype(&Builder::widget), QWidget *(Builder::*)()>);
+    static_assert(std::is_same_v<decltype(&Builder::containerTags), QStringList (Builder::*)() const>);
+    static_assert(std::is_same_v<decltype(&Builder::customTags), QStringList (Builder::*)() const>);
+}
+
+void KKeySequenceWidgetSchemaContractTest::xmlGuiBuilderElementLifecycleSignaturesRemainStable()
+{
+    using Builder = KisKXMLGUIBuilder;
+
+    static_assert(std::is_same_v<decltype(&Builder::createContainer),
+                                 QWidget *(Builder::*)(QWidget *, int, const QDomElement &, QAction *&)>);
+    static_assert(std::is_same_v<decltype(&Builder::removeContainer),
+                                 void (Builder::*)(QWidget *, QWidget *, QDomElement &, QAction *)>);
+    static_assert(std::is_same_v<decltype(&Builder::createCustomElement),
+                                 QAction *(Builder::*)(QWidget *, int, const QDomElement &)>);
+    static_assert(std::is_same_v<decltype(&Builder::removeCustomElement), void (Builder::*)(QWidget *, QAction *)>);
+    static_assert(std::is_same_v<decltype(&Builder::finalizeGUI), void (Builder::*)(KisKXMLGUIClient *)>);
 }
 
 QTEST_GUILESS_MAIN(KKeySequenceWidgetSchemaContractTest)
