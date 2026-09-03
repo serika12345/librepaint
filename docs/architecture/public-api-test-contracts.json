@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 11072
+    "expectedMissingApis": 11041
   },
   "contracts": [
     {
@@ -52765,6 +52765,82 @@
         "method:KoColorPopupAction::setCurrentColor(const KoColor & color)",
         "method:KoColorPopupAction::setCurrentColor(const QColor & color)",
         "method:KoColorPopupAction::updateIcon()"
+      ]
+    },
+    {
+      "target": "KisMaskSchemaContractTest",
+      "source": "libs/image/tests/KisMaskSchemaContractTest.cpp",
+      "test": "KisMaskSchemaContractTest::maskTypeAndConstructionSchemaRemainStable",
+      "behavior": "単一channel maskは画像と名前から構築・複製され、nodeおよび間接描画支援として派生実装される公開抽象型と仮想寿命を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisMask",
+        "method:KisMask::KisMask(KisImageWSP image,const QString & name)",
+        "method:KisMask::KisMask(const KisMask & rhs)",
+        "method:KisMask::~KisMask()"
+      ]
+    },
+    {
+      "target": "KisMaskSchemaContractTest",
+      "source": "libs/image/tests/KisMaskSchemaContractTest.cpp",
+      "test": "KisMaskSchemaContractTest::maskHierarchyAndSelectionSignaturesRemainStable",
+      "behavior": "maskは親子制約と画像所有者を持ち、layer・描画装置・既存選択・矩形から選択を初期化して取得・置換する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMask::allowAsChild(KisNodeSP node) const",
+        "method:KisMask::initSelection(KisLayerSP parentLayer)",
+        "method:KisMask::initSelection(KisPaintDeviceSP copyFromDevice,KisLayerSP parentLayer)",
+        "method:KisMask::initSelection(KisSelectionSP copyFrom,KisLayerSP parentLayer)",
+        "method:KisMask::selection() const",
+        "method:KisMask::setImage(KisImageWSP image)",
+        "method:KisMask::setSelection(KisSelectionSP selection)",
+        "method:KisMask::testingInitSelection(const QRect & rect,KisLayerSP parentLayer)"
+      ]
+    },
+    {
+      "target": "KisMaskSchemaContractTest",
+      "source": "libs/image/tests/KisMaskSchemaContractTest.cpp",
+      "test": "KisMaskSchemaContractTest::maskDeviceAndProjectionSignaturesRemainStable",
+      "behavior": "maskは色空間・合成方式を借用参照し、元装置・編集装置・投影装置と投影面を共有所有型で返す公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMask::colorSpace() const",
+        "method:KisMask::compositeOp() const",
+        "method:KisMask::original() const",
+        "method:KisMask::paintDevice() const",
+        "method:KisMask::projection() const",
+        "method:KisMask::projectionPlane() const"
+      ]
+    },
+    {
+      "target": "KisMaskSchemaContractTest",
+      "source": "libs/image/tests/KisMaskSchemaContractTest.cpp",
+      "test": "KisMaskSchemaContractTest::maskGeometryAndThumbnailSignaturesRemainStable",
+      "behavior": "maskはdirty位置の既定規則を含む必要・変更矩形、従属・非従属境界、thumbnail、LOD対応と更新番号の公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMask::changeRect(const QRect & rect,PositionToFilthy pos=N_FILTHY) const",
+        "method:KisMask::createThumbnail(qint32 w,qint32 h,Qt::AspectRatioMode aspectRatioMode,KisThumbnailBoundsMode boundsMode)",
+        "method:KisMask::exactBounds() const",
+        "method:KisMask::extent() const",
+        "method:KisMask::needRect(const QRect & rect,PositionToFilthy pos=N_FILTHY) const",
+        "method:KisMask::nonDependentExtent() const",
+        "method:KisMask::supportsLodPainting() const",
+        "method:KisMask::thumbnailSeqNo() const"
+      ]
+    },
+    {
+      "target": "KisMaskSchemaContractTest",
+      "source": "libs/image/tests/KisMaskSchemaContractTest.cpp",
+      "test": "KisMaskSchemaContractTest::maskPositionAndEditingSignaturesRemainStable",
+      "behavior": "maskは既定の最大選択量で矩形を編集でき、node座標を取得・設定する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMask::select(const QRect & rc,quint8 selectedness=MAX_SELECTED)",
+        "method:KisMask::setX(qint32 x)",
+        "method:KisMask::setY(qint32 y)",
+        "method:KisMask::x() const",
+        "method:KisMask::y() const"
       ]
     }
   ]
