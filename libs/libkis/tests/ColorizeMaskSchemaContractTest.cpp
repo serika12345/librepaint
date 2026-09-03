@@ -5,9 +5,11 @@
 #include <ColorizeMask.h>
 #include <FileLayer.h>
 #include <FillLayer.h>
+#include <Filter.h>
 #include <FilterLayer.h>
 #include <FilterMask.h>
 #include <GroupLayer.h>
+#include <InfoObject.h>
 #include <QTest>
 #include <SelectionMask.h>
 #include <TransformMask.h>
@@ -41,6 +43,11 @@ private Q_SLOTS:
     void filterLayerTypeAndFilterSchemaRemainStable();
     void cloneLayerTypeAndSourceSchemaRemainStable();
     void groupLayerTypeAndCompositionSchemaRemainStable();
+    void infoObjectTypeAndLifetimeSchemaRemainStable();
+    void infoObjectPropertySignaturesRemainStable();
+    void filterTypeLifetimeAndIdentitySchemaRemainStable();
+    void filterConfigurationSignaturesRemainStable();
+    void filterApplicationSignaturesRemainStable();
 };
 
 void ColorizeMaskSchemaContractTest::colorizeMaskOwnershipLifetimeAndTypeSchemaRemainsStable()
@@ -265,6 +272,52 @@ void ColorizeMaskSchemaContractTest::groupLayerTypeAndCompositionSchemaRemainSta
     ASSERT_MASK_SIGNATURE(Layer, passThroughMode, bool (Layer::*)() const);
     ASSERT_MASK_SIGNATURE(Layer, setPassThroughMode, void (Layer::*)(bool));
     ASSERT_MASK_SIGNATURE(Layer, type, QString (Layer::*)() const);
+}
+
+void ColorizeMaskSchemaContractTest::infoObjectTypeAndLifetimeSchemaRemainStable()
+{
+    static_assert(std::is_class_v<InfoObject>);
+    static_assert(std::is_base_of_v<QObject, InfoObject>);
+    static_assert(std::is_constructible_v<InfoObject, KisPropertiesConfigurationSP>);
+    static_assert(std::is_constructible_v<InfoObject>);
+    static_assert(std::is_constructible_v<InfoObject, QObject *>);
+    static_assert(std::has_virtual_destructor_v<InfoObject>);
+}
+
+void ColorizeMaskSchemaContractTest::infoObjectPropertySignaturesRemainStable()
+{
+    using Properties = QMap<QString, QVariant>;
+
+    ASSERT_MASK_SIGNATURE(InfoObject, operator==, bool (InfoObject::*)(const InfoObject &) const);
+    ASSERT_MASK_SIGNATURE(InfoObject, operator!=, bool (InfoObject::*)(const InfoObject &) const);
+    ASSERT_MASK_SIGNATURE(InfoObject, properties, Properties (InfoObject::*)() const);
+    ASSERT_MASK_SIGNATURE(InfoObject, property, QVariant (InfoObject::*)(const QString &));
+    ASSERT_MASK_SIGNATURE(InfoObject, setProperties, void (InfoObject::*)(Properties));
+    ASSERT_MASK_SIGNATURE(InfoObject, setProperty, void (InfoObject::*)(const QString &, QVariant));
+}
+
+void ColorizeMaskSchemaContractTest::filterTypeLifetimeAndIdentitySchemaRemainStable()
+{
+    static_assert(std::is_class_v<Filter>);
+    static_assert(std::is_base_of_v<QObject, Filter>);
+    static_assert(std::is_constructible_v<Filter>);
+    static_assert(std::has_virtual_destructor_v<Filter>);
+    ASSERT_MASK_SIGNATURE(Filter, operator==, bool (Filter::*)(const Filter &) const);
+    ASSERT_MASK_SIGNATURE(Filter, operator!=, bool (Filter::*)(const Filter &) const);
+}
+
+void ColorizeMaskSchemaContractTest::filterConfigurationSignaturesRemainStable()
+{
+    ASSERT_MASK_SIGNATURE(Filter, configuration, InfoObject * (Filter::*)() const);
+    ASSERT_MASK_SIGNATURE(Filter, name, QString (Filter::*)() const);
+    ASSERT_MASK_SIGNATURE(Filter, setConfiguration, void (Filter::*)(InfoObject *));
+    ASSERT_MASK_SIGNATURE(Filter, setName, void (Filter::*)(const QString &));
+}
+
+void ColorizeMaskSchemaContractTest::filterApplicationSignaturesRemainStable()
+{
+    ASSERT_MASK_SIGNATURE(Filter, apply, bool (Filter::*)(Node *, int, int, int, int));
+    ASSERT_MASK_SIGNATURE(Filter, startFilter, bool (Filter::*)(Node *, int, int, int, int));
 }
 
 QTEST_GUILESS_MAIN(ColorizeMaskSchemaContractTest)
