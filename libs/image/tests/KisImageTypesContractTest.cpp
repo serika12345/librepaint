@@ -10,6 +10,7 @@
 #include "commands_new/kis_saved_commands.h"
 #include "kis_base_mask_generator.h"
 #include "kis_brush_mask_applicator_base.h"
+#include "kis_circle_mask_generator.h"
 #include "kis_clone_layer.h"
 #include "kis_datamanager.h"
 #include "kis_default_bounds.h"
@@ -31,6 +32,7 @@
 #include "kis_pixel_selection.h"
 #include "kis_processing_visitor.h"
 #include "kis_projection_leaf.h"
+#include "kis_rect_mask_generator.h"
 #include "kis_selection_based_layer.h"
 #include "kis_selection_filters.h"
 #include "kis_selection_mask.h"
@@ -71,6 +73,8 @@ namespace
 #define ASSERT_MASK_GENERATOR_SIGNATURE(method, signature)                                                             \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisMaskGenerator::method)), signature>)
 #define ASSERT_GAUSSIAN_MASK_SIGNATURE(type, method, signature)                                                        \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&type::method)), signature>)
+#define ASSERT_DEFAULT_MASK_SIGNATURE(type, method, signature)                                                         \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&type::method)), signature>)
 #define ASSERT_UPDATER_CONTEXT_SIGNATURE(method, signature)                                                            \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisUpdaterContext::method)), signature>)
@@ -378,6 +382,11 @@ private Q_SLOTS:
     void gaussianMaskSamplingSignaturesRemainStable();
     void gaussianMaskScaleAndVectorizationSignaturesRemainStable();
     void gaussianMaskApplicatorSignaturesRemainStable();
+    void defaultMaskTypeAndLifetimeSchemaRemainStable();
+    void defaultMaskCloneAndSamplingSignaturesRemainStable();
+    void defaultMaskScaleAndSoftnessSignaturesRemainStable();
+    void defaultMaskVectorizationSignaturesRemainStable();
+    void defaultMaskApplicatorSignaturesRemainStable();
     void maskDataConstructionSchemaRemainStable();
     void maskDataDeviceAndColorSchemaRemainStable();
     void maskDataGeometrySchemaRemainStable();
@@ -2936,6 +2945,69 @@ void KisImageTypesContractTest::gaussianMaskApplicatorSignaturesRemainStable()
                                    void (KisGaussRectangleMaskGenerator::*)());
 }
 
+void KisImageTypesContractTest::defaultMaskTypeAndLifetimeSchemaRemainStable()
+{
+    static_assert(std::is_class_v<KisCircleMaskGenerator>);
+    static_assert(std::is_base_of_v<KisMaskGenerator, KisCircleMaskGenerator>);
+    static_assert(std::is_constructible_v<KisCircleMaskGenerator, qreal, qreal, qreal, qreal, int, bool>);
+    static_assert(std::is_copy_constructible_v<KisCircleMaskGenerator>);
+    static_assert(std::has_virtual_destructor_v<KisCircleMaskGenerator>);
+
+    static_assert(std::is_class_v<KisRectangleMaskGenerator>);
+    static_assert(std::is_base_of_v<KisMaskGenerator, KisRectangleMaskGenerator>);
+    static_assert(std::is_constructible_v<KisRectangleMaskGenerator, qreal, qreal, qreal, qreal, int, bool>);
+    static_assert(std::is_copy_constructible_v<KisRectangleMaskGenerator>);
+    static_assert(std::has_virtual_destructor_v<KisRectangleMaskGenerator>);
+}
+
+void KisImageTypesContractTest::defaultMaskCloneAndSamplingSignaturesRemainStable()
+{
+    ASSERT_DEFAULT_MASK_SIGNATURE(KisCircleMaskGenerator,
+                                  clone,
+                                  KisMaskGenerator * (KisCircleMaskGenerator::*)() const);
+    ASSERT_DEFAULT_MASK_SIGNATURE(KisCircleMaskGenerator,
+                                  valueAt,
+                                  quint8 (KisCircleMaskGenerator::*)(qreal, qreal) const);
+    ASSERT_DEFAULT_MASK_SIGNATURE(KisRectangleMaskGenerator,
+                                  clone,
+                                  KisMaskGenerator * (KisRectangleMaskGenerator::*)() const);
+    ASSERT_DEFAULT_MASK_SIGNATURE(KisRectangleMaskGenerator,
+                                  valueAt,
+                                  quint8 (KisRectangleMaskGenerator::*)(qreal, qreal) const);
+}
+
+void KisImageTypesContractTest::defaultMaskScaleAndSoftnessSignaturesRemainStable()
+{
+    ASSERT_DEFAULT_MASK_SIGNATURE(KisCircleMaskGenerator, setScale, void (KisCircleMaskGenerator::*)(qreal, qreal));
+    ASSERT_DEFAULT_MASK_SIGNATURE(KisCircleMaskGenerator, setSoftness, void (KisCircleMaskGenerator::*)(qreal));
+    ASSERT_DEFAULT_MASK_SIGNATURE(KisRectangleMaskGenerator,
+                                  setScale,
+                                  void (KisRectangleMaskGenerator::*)(qreal, qreal));
+    ASSERT_DEFAULT_MASK_SIGNATURE(KisRectangleMaskGenerator, setSoftness, void (KisRectangleMaskGenerator::*)(qreal));
+}
+
+void KisImageTypesContractTest::defaultMaskVectorizationSignaturesRemainStable()
+{
+    ASSERT_DEFAULT_MASK_SIGNATURE(KisCircleMaskGenerator, shouldVectorize, bool (KisCircleMaskGenerator::*)() const);
+    ASSERT_DEFAULT_MASK_SIGNATURE(KisRectangleMaskGenerator,
+                                  shouldVectorize,
+                                  bool (KisRectangleMaskGenerator::*)() const);
+}
+
+void KisImageTypesContractTest::defaultMaskApplicatorSignaturesRemainStable()
+{
+    ASSERT_DEFAULT_MASK_SIGNATURE(KisCircleMaskGenerator,
+                                  applicator,
+                                  KisBrushMaskApplicatorBase * (KisCircleMaskGenerator::*)() const);
+    ASSERT_DEFAULT_MASK_SIGNATURE(KisCircleMaskGenerator, setMaskScalarApplicator, void (KisCircleMaskGenerator::*)());
+    ASSERT_DEFAULT_MASK_SIGNATURE(KisRectangleMaskGenerator,
+                                  applicator,
+                                  KisBrushMaskApplicatorBase * (KisRectangleMaskGenerator::*)() const);
+    ASSERT_DEFAULT_MASK_SIGNATURE(KisRectangleMaskGenerator,
+                                  setMaskScalarApplicator,
+                                  void (KisRectangleMaskGenerator::*)());
+}
+
 void KisImageTypesContractTest::maskDataConstructionSchemaRemainStable()
 {
     static_assert(std::is_class_v<MaskProcessingData>);
@@ -3846,6 +3918,7 @@ void KisImageTypesContractTest::processingVisitorProgressHelperSchemaRemainsStab
 #undef ASSERT_PIXEL_SELECTION_SIGNATURE
 #undef ASSERT_MASK_GENERATOR_SIGNATURE
 #undef ASSERT_GAUSSIAN_MASK_SIGNATURE
+#undef ASSERT_DEFAULT_MASK_SIGNATURE
 #undef ASSERT_UPDATER_CONTEXT_SIGNATURE
 #undef ASSERT_ITERATOR_SIGNATURE
 #undef ASSERT_EDGE_DETECTION_SIGNATURE
