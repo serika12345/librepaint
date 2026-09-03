@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 12127
+    "expectedMissingApis": 12092
   },
   "contracts": [
     {
@@ -49910,6 +49910,86 @@
         "method:KoCanvasController::resetScrollBars()",
         "method:KoCanvasController::scrollBarValue() const",
         "method:KoCanvasController::setScrollBarValue(const QPoint & value)"
+      ]
+    },
+    {
+      "target": "PaletteSchemaContractTest",
+      "source": "libs/libkis/tests/PaletteSchemaContractTest.cpp",
+      "test": "PaletteSchemaContractTest::managedColorTypeLifetimeAndEqualitySchemaRemainStable",
+      "behavior": "管理色は既定・内部色・色空間識別子からの構築、仮想寿命と等値比較の公開型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:ManagedColor",
+        "method:ManagedColor::ManagedColor(KoColor color,QObject * parent=0)",
+        "method:ManagedColor::ManagedColor(QObject * parent=0)",
+        "method:ManagedColor::ManagedColor(const QString & colorModel,const QString & colorDepth,const QString & colorProfile,QObject * parent=0)",
+        "method:ManagedColor::operator ==(const ManagedColor & other) const",
+        "method:ManagedColor::~ManagedColor()"
+      ]
+    },
+    {
+      "target": "PaletteSchemaContractTest",
+      "source": "libs/libkis/tests/PaletteSchemaContractTest.cpp",
+      "test": "PaletteSchemaContractTest::managedColorColorSpaceAndCanvasSignaturesRemainStable",
+      "behavior": "管理色は色model・depth・profileの照会・設定とcanvas表示色・QColor変換に関する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:ManagedColor::colorDepth() const",
+        "method:ManagedColor::colorForCanvas(Canvas * canvas) const",
+        "method:ManagedColor::colorModel() const",
+        "method:ManagedColor::colorProfile() const",
+        "method:ManagedColor::fromQColor(const QColor & qcolor,Canvas * canvas=0)",
+        "method:ManagedColor::setColorProfile(const QString & colorProfile)",
+        "method:ManagedColor::setColorSpace(const QString & colorModel,const QString & colorDepth,const QString & colorProfile)"
+      ]
+    },
+    {
+      "target": "PaletteSchemaContractTest",
+      "source": "libs/libkis/tests/PaletteSchemaContractTest.cpp",
+      "test": "PaletteSchemaContractTest::managedColorComponentsAndSerializationSignaturesRemainStable",
+      "behavior": "管理色は成分値の照会・設定、XML往復と表示文字列生成に関する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:ManagedColor::components() const",
+        "method:ManagedColor::componentsOrdered() const",
+        "method:ManagedColor::fromXML(const QString & xml)",
+        "method:ManagedColor::setComponents(const QVector<float> & values)",
+        "method:ManagedColor::toQString()",
+        "method:ManagedColor::toXML() const"
+      ]
+    },
+    {
+      "target": "PaletteSchemaContractTest",
+      "source": "libs/libkis/tests/PaletteSchemaContractTest.cpp",
+      "test": "PaletteSchemaContractTest::swatchTypeLifetimeCopyAndEqualitySchemaRemainStable",
+      "behavior": "swatchは既定・copy構築、copy代入、仮想寿命と等値・非等値比較の公開型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:Swatch",
+        "method:Swatch::Swatch(QObject * parent=0)",
+        "method:Swatch::Swatch(const Swatch & rhs,QObject * parent=0)",
+        "method:Swatch::operator !=(const Swatch & other) const",
+        "method:Swatch::operator =(const Swatch & rhs)",
+        "method:Swatch::operator ==(const Swatch & other) const",
+        "method:Swatch::~Swatch()"
+      ]
+    },
+    {
+      "target": "PaletteSchemaContractTest",
+      "source": "libs/libkis/tests/PaletteSchemaContractTest.cpp",
+      "test": "PaletteSchemaContractTest::swatchMetadataColorAndValiditySignaturesRemainStable",
+      "behavior": "swatchは名前・識別子・管理色・spot colorの照会・設定と妥当性確認に関する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:Swatch::color() const",
+        "method:Swatch::id() const",
+        "method:Swatch::isValid() const",
+        "method:Swatch::name() const",
+        "method:Swatch::setColor(ManagedColor * color)",
+        "method:Swatch::setId(const QString & id)",
+        "method:Swatch::setName(const QString & name)",
+        "method:Swatch::setSpotColor(bool spotColor)",
+        "method:Swatch::spotColor() const"
       ]
     }
   ]
