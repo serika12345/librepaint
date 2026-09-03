@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 11773
+    "expectedMissingApis": 11741
   },
   "contracts": [
     {
@@ -50894,6 +50894,83 @@
         "method:OperatorWrapper::OperatorWrapper(KisBrushMaskApplicatorBase * applicator)",
         "method:OperatorWrapper::operator ()(const QRect & rect) const",
         "struct:OperatorWrapper"
+      ]
+    },
+    {
+      "target": "KoShapeEnumContractTest",
+      "source": "libs/flake/tests/KoShapeEnumContractTest.cpp",
+      "test": "KoShapeEnumContractTest::shapeLocalGeometrySignaturesRemainStable",
+      "behavior": "図形は寸法、位置、最小高さ、縦横比と解像度を照会・設定する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShape::keepAspectRatio() const",
+        "method:KoShape::minimumHeight() const",
+        "method:KoShape::position() const",
+        "method:KoShape::setKeepAspectRatio(bool keepAspect)",
+        "method:KoShape::setMinimumHeight(qreal height)",
+        "method:KoShape::setPosition(const QPointF & position)",
+        "method:KoShape::setResolution(qreal xRes,qreal yRes)",
+        "method:KoShape::setSize(const QSizeF & size)",
+        "method:KoShape::size() const"
+      ]
+    },
+    {
+      "target": "KoShapeEnumContractTest",
+      "source": "libs/flake/tests/KoShapeEnumContractTest.cpp",
+      "test": "KoShapeEnumContractTest::shapeAffineMutationSignaturesRemainStable",
+      "behavior": "図形は拡縮、回転と傾斜を適用する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShape::rotate(qreal angle)",
+        "method:KoShape::rotation() const",
+        "method:KoShape::scale(qreal sx,qreal sy)",
+        "method:KoShape::shear(qreal sx,qreal sy)"
+      ]
+    },
+    {
+      "target": "KoShapeEnumContractTest",
+      "source": "libs/flake/tests/KoShapeEnumContractTest.cpp",
+      "test": "KoShapeEnumContractTest::shapeTransformationSignaturesRemainStable",
+      "behavior": "図形は絶対位置と絶対・局所変換を照会・設定・適用し、既定anchorを利用できる公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShape::absolutePosition(KoFlake::AnchorPosition anchor=KoFlake::Center) const",
+        "method:KoShape::absoluteTransformation() const",
+        "method:KoShape::applyAbsoluteTransformation(const QTransform & matrix)",
+        "method:KoShape::applyTransformation(const QTransform & matrix)",
+        "method:KoShape::setAbsolutePosition(const QPointF & newPosition,KoFlake::AnchorPosition anchor=KoFlake::Center)",
+        "method:KoShape::setTransformation(const QTransform & matrix)",
+        "method:KoShape::transformation() const"
+      ]
+    },
+    {
+      "target": "KoShapeEnumContractTest",
+      "source": "libs/flake/tests/KoShapeEnumContractTest.cpp",
+      "test": "KoShapeEnumContractTest::shapeCoordinateMappingSignaturesRemainStable",
+      "behavior": "図形は点と矩形を図形座標・文書座標間で写像する公開overloadを維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShape::documentToShape(const QPointF & point) const",
+        "method:KoShape::documentToShape(const QRectF & rect) const",
+        "method:KoShape::shapeToDocument(const QPointF & point) const",
+        "method:KoShape::shapeToDocument(const QRectF & rect) const"
+      ]
+    },
+    {
+      "target": "KoShapeEnumContractTest",
+      "source": "libs/flake/tests/KoShapeEnumContractTest.cpp",
+      "test": "KoShapeEnumContractTest::shapeBoundsAndOutlineSignaturesRemainStable",
+      "behavior": "図形はhit判定、単体・集合の外接領域、輪郭とstroke余白を返す公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShape::absoluteOutlineRect() const",
+        "method:KoShape::absoluteOutlineRect(const QList<KoShape * > & shapes)",
+        "method:KoShape::boundingRect() const",
+        "method:KoShape::boundingRect(const QList<KoShape * > & shapes)",
+        "method:KoShape::hitTest(const QPointF & position) const",
+        "method:KoShape::outline() const",
+        "method:KoShape::outlineRect() const",
+        "method:KoShape::strokeInsets() const"
       ]
     }
   ]
