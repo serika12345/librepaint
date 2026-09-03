@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-03 22:48 JST
+- 更新日時: 2026-09-03 23:06 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -16,6 +16,17 @@
 - `g195-flake-contract-audit`はflake・SVG・vector領域を所有し、第194便までに固定したshape manager・controller、tool代理、shape幾何・階層・文書状態、clip、背景群、path点・区間種別command、path点topology command、font family資源を除外して、一責務の未対応集合を比較する。
 - `g195-ui-contract-audit`はwidgetutils・widgets・libkis領域を所有し、第194便までに固定したHSX色入力、内部色選択dialog、視覚色選択群、palette delegate、filter設定・適用、palette選択・色集合表示、色選択button・popup action、action分類・toolbar編集入口、zoom action・Widgetを除外して、一責務の未対応集合を比較する。
 - 各担当は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、実際のcompile探索路、予測工程・入力と停止線、開始pathから契約先、実装時許可path、固有停止条件、比較候補の棄却根拠を返す。調整担当は3領域のpath、CMake、試験source、生成物が重ならず、合計60〜180 APIとなる組合せだけを次の実装担当票へ進める。
+
+### 第195便の先行監査結果
+
+- image領域は`libs/image/kis_selection.h`の残存全43 APIを選択範囲の型・構築、構成要素・所有、内容・幾何、輪郭・縮小画像cache、投影・変更通知として採用した。既存`libs/image/tests/KisMaskSchemaContractTest.cpp`は123行・5枠であり、同じmask・選択責務の5枠を追加しても約240行・10枠で分離基準内に収まる。CMake、探索路、link、定義を変えず、Qt Core・Gui・Test・Xmlとheader-only Boostだけの4工程・8入力を維持し、停止線を5工程・11入力とする。selection、paint device、shape selection、node、既定bounds、解像度代理、投影、Qt値を実体化せず、構築・複製・代入・破棄、cache再計算、投影更新、flatten、通知本文を実行しない。
+  fill painter、transform mask、raster keyframe channel、gradient、resource、色空間registryは、描画・永続化・非同期状態・大域registryを横断するか、製品記号の実体化危険が選択範囲より高いため棄却した。
+- flake領域は`libs/flake/resources/KoCssStylePreset.h`の残存全33 APIをCSS様式資源の型・構築、property・解像度、識別・分類、見本表示、永続化として採用し、新規`libs/flake/tests/KoCssStylePresetSchemaContractTest.cpp`の5枠へ分離する。近傍`KoFontFamilySchemaContractTest`と同じQt Gui・Test・Xml、header-only Boost、flake・text・global・resourcesの既存探索路と定義だけで4工程・8入力を予測し、停止線を5工程・11入力とする。CSS様式資源、文字property集合、SVG見本、図形、I/O、資源interfaceを実体化せず、構築、clone、読込・保存、見本図形生成・整列、thumbnail更新本文を実行しない。
+  gamut mask、SVG symbol資源、SVG parser、tool manager、path tool、SVG text shapeは、図形所有・描画・大域状態・入力処理へ責務が広がるか製品接続または上限超過を伴うため棄却した。
+- libkis領域は`libs/libkis/Scratchpad.h`の残存全31 APIをscratchpadの型・寿命・mode、fill、zoom・scale、pan・画像・範囲、通知として採用し、既存`libs/libkis/tests/ViewSchemaContractTest.cpp`の5枠へ追加する。既存sourceは125行・10枠であり、追加後も約220行・15枠で分離基準内に収まる。現行対象はQt Core・Testの直接linkとQt Guiのinterfaceだけによる4工程・8入力で、Qt Widgetsのinterface探索路だけを追加して同じ4工程・8入力を維持し、停止線を5工程・11入力とする。scratchpad、View、Qt Widget・色・画像・座標・矩形・変換を実体化せず、構築・破棄、描画、fill、zoom連携、pan、画像転送、signal本文を実行しない。
+  `Scratchpad.h`の`kis_types.h`は公開宣言で利用されず、直接利用元の`Scratchpad.cpp`は必要なKis型の所有headerを個別にincludeし、SIP定義もScratchpad、View、Qt値だけを使用する。契約へimage探索路と`kritaimage_EXPORTS`を漏らさないため、契約追加前の独立した構造変更としてこの不要includeだけを除去する。公開宣言とAPI指紋を維持し、`Scratchpad.cpp`、製品MOC、SIP source監査で暗黙依存がないことを確認する。PyQtを利用できない現構成ではSIP生成を実行できない点を残存riskとする。
+  Node・Krita façadeは複数の寿命・状態・I/O責務を横断し、tag選択はresources UI境界、単位入力群は異なる管理方式、progress updaterと言語buttonは下限未満、視覚色選択群は直近便との重複になるため棄却した。
+- 中央の`public-api-missing-g195.json`で選択範囲43件、CSS様式資源33件、scratchpad 31件の全識別子を照合した。3責務の開始header、試験source、所有CMake、生成物は相互に異なり、合計107 APIを15枠へ進める。許可path外変更、新規の動的link、候補headerのAUTOMOC入力化、製品shared・OBJECT・`kritatestsdk`接続、指定外実体化・本文実行、各停止線超過、製品計画集合の変化が不要な場合だけ実装へ進める。Scratchpadだけは公開宣言を変えない不要include除去を契約とは別の検査段階・commitで先行する。
 
 ### 第194便の先行監査担当票
 
