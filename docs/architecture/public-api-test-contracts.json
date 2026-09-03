@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 10853
+    "expectedMissingApis": 10820
   },
   "contracts": [
     {
@@ -53299,6 +53299,84 @@
         "method:KisSelection::requestCompressedProjectionUpdate(const QRect & rc)",
         "method:KisSelection::updateProjection()",
         "method:KisSelection::updateProjection(const QRect & rect)"
+      ]
+    },
+    {
+      "target": "KoCssStylePresetSchemaContractTest",
+      "source": "libs/flake/tests/KoCssStylePresetSchemaContractTest.cpp",
+      "test": "KoCssStylePresetSchemaContractTest::cssStylePresetTypeLifetimeAndConstructionSchemaRemainStable",
+      "behavior": "CSS様式資源は共有pointer別名、資源基底、ファイル名または別資源からの構築、禁止された代入、仮想寿命を持つ公開型契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KoCssStylePresetSP",
+        "class:KoCssStylePreset",
+        "method:KoCssStylePreset::KoCssStylePreset(const KoCssStylePreset & rhs)",
+        "method:KoCssStylePreset::KoCssStylePreset(const QString & filename)",
+        "method:KoCssStylePreset::operator =(const KoCssStylePreset & rhs)",
+        "method:KoCssStylePreset::~KoCssStylePreset()"
+      ]
+    },
+    {
+      "target": "KoCssStylePresetSchemaContractTest",
+      "source": "libs/flake/tests/KoCssStylePresetSchemaContractTest.cpp",
+      "test": "KoCssStylePresetSchemaContractTest::cssStylePresetPropertyAndResolutionSignaturesRemainStable",
+      "behavior": "CSS様式資源は指定または既定の解像度で文字propertyを取得・設定し、保存済み解像度と主要font familyを公開する署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoCssStylePreset::primaryFontFamily() const",
+        "method:KoCssStylePreset::properties(int ppi=72,bool removeKraProps=false) const",
+        "method:KoCssStylePreset::setProperties(const KoSvgTextProperties & properties)",
+        "method:KoCssStylePreset::setStoredPPIResolution(const int ppi)",
+        "method:KoCssStylePreset::storedPPIResolution() const"
+      ]
+    },
+    {
+      "target": "KoCssStylePresetSchemaContractTest",
+      "source": "libs/flake/tests/KoCssStylePresetSchemaContractTest.cpp",
+      "test": "KoCssStylePresetSchemaContractTest::cssStylePresetIdentityAndClassificationSignaturesRemainStable",
+      "behavior": "CSS様式資源は説明と様式種別を照会・設定する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoCssStylePreset::description() const",
+        "method:KoCssStylePreset::setDescription(const QString & desc)",
+        "method:KoCssStylePreset::setStyleType(const QString & type)",
+        "method:KoCssStylePreset::styleType() const"
+      ]
+    },
+    {
+      "target": "KoCssStylePresetSchemaContractTest",
+      "source": "libs/flake/tests/KoCssStylePresetSchemaContractTest.cpp",
+      "test": "KoCssStylePresetSchemaContractTest::cssStylePresetSampleAndPresentationSignaturesRemainStable",
+      "behavior": "CSS様式資源は前後を含む見本文字列、SVG見本、段落寸法、生成図形、整列状態を公開し、見本の整列状態を更新する署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoCssStylePreset::afterText() const",
+        "method:KoCssStylePreset::alignSample() const",
+        "method:KoCssStylePreset::beforeText() const",
+        "method:KoCssStylePreset::generateSampleShape() const",
+        "method:KoCssStylePreset::paragraphSampleSize() const",
+        "method:KoCssStylePreset::sampleSvg() const",
+        "method:KoCssStylePreset::sampleText() const",
+        "method:KoCssStylePreset::setAfterText(const QString & text)",
+        "method:KoCssStylePreset::setBeforeText(const QString & text)",
+        "method:KoCssStylePreset::setParagraphSampleSize(const QSizeF size)",
+        "method:KoCssStylePreset::setSampleText(const QString & text)",
+        "method:KoCssStylePreset::updateAlignSample()"
+      ]
+    },
+    {
+      "target": "KoCssStylePresetSchemaContractTest",
+      "source": "libs/flake/tests/KoCssStylePresetSchemaContractTest.cpp",
+      "test": "KoCssStylePresetSchemaContractTest::cssStylePresetPersistenceSignaturesRemainStable",
+      "behavior": "CSS様式資源は複製、装置からの読込・保存、既定拡張子、資源種別、thumbnail更新を資源基底契約として公開する署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoCssStylePreset::clone() const",
+        "method:KoCssStylePreset::defaultFileExtension() const",
+        "method:KoCssStylePreset::loadFromDevice(QIODevice * dev,KisResourcesInterfaceSP resourcesInterface)",
+        "method:KoCssStylePreset::resourceType() const",
+        "method:KoCssStylePreset::saveToDevice(QIODevice * dev) const",
+        "method:KoCssStylePreset::updateThumbnail()"
       ]
     }
   ]
