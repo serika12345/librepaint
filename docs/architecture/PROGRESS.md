@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-03 13:39 JST
+- 更新日時: 2026-09-03 13:49 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -21,6 +21,17 @@
 - widgets領域は`libs/widgets/KoTriangleColorSelector.h`の残存全18 APIと`libs/widgets/KoColorSlider.h`の残存全6 APIを低水準色選択入力として採用した。triangle selector型・寿命4、色channel 9、色・通知5、slider型・寿命4、slider色2を既存`libs/widgets/tests/KisVisualColorModelSchemaContractTest.cpp`の5枠へ対応付ける。selector、slider、基底、Widget、色値、表示renderer、painter、画像、入力eventを実体化せず、HSV更新、色変換、描画、renderer singleton、signal本文を実行しない。全直接includeは実探索路で解決し、CMakeと依存を変えず、直接linkはQt Core・Gui・Test、対象4工程・8入力、停止5工程・11入力、command hash`fc4e6d32a4`、input hash`7469bfffc3`、製品`kritawidgets` 809工程・1,647入力を維持する。
   filter・情報objectは別名だけに完全な設定headerを取り込む過大な閉包整理が先行し、tag selection、palette view・chooserは製品・試験支援libraryまたはOBJECTへ接続する。Scratchpadと上位visual selectorはapplication・resource・描画状態へ閉包が広いため棄却した。
 - 中央の`public-api-missing-g184.json`でbrush mask applicator 20件、図形幾何32件、低水準色選択入力24件の全識別子を照合した。3責務の開始header、試験source、所有CMake、生成物は相互に異なる。合計76 APIを15枠へ進め、許可path外変更、新規CMake・探索路・link、製品OBJECT/shared・`kritatestsdk`、指定外実体化・本文実行、5工程・11入力超過、製品計画集合の変化が必要になれば停止する。
+
+### 第184便の担当計画
+
+- 実装共通基点は`256a9b48bd`である。3担当のGit権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、一度に一つだけ作る専用worktree-local `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。Nix再評価を行わず、主作業treeの読み込み済み開発環境を`run-shared-test-env`で共有する。brush mask applicator、図形幾何、低水準色選択入力の順に一担当ずつ実装・限定検証・統合・削除する。
+  調整担当だけがarchitecture文書、公開API台帳、共通不足報告を変更する。製品targetを引数にするplan/build、全体build、全体`verify`、Linux検証は禁止し、担当targetと近傍、公開API検査、`verify-quick`だけを実行する。
+- `g184-brush-mask-applicator-schema`は`/Users/masato/Documents/librepaint-g184-brush-mask-applicator-schema`を所有する。開始`libs/image/kis_brush_mask_applicator_base.h`の残存全20 APIから既存`libs/image/tests/KisImageTypesContractTest.cpp`の5枠`maskDataConstructionSchemaRemainStable`、`maskDataDeviceAndColorSchemaRemainStable`、`maskDataGeometrySchemaRemainStable`、`brushMaskApplicatorSchemaRemainStable`、`brushMaskOperatorSchemaRemainStable`へ対応付ける。
+  完全集合は`MaskProcessingData` structと構築、描画装置・色空間・色byte・画素寸法、randomness・density・中心2軸・角度cos/sin、applicator class・破棄・初期化・処理、`OperatorWrapper` struct・構築・呼出し・applicator memberである。許可pathは既存試験sourceだけで、CMake・依存・公開header・製品sourceを変更しない。data、applicator、wrapper、固定描画装置、色空間、色byte、矩形を実体化せず、三角関数・画素寸法取得、初期化、virtual処理、wrapper呼出し本文を実行しない。対象4工程・8入力、停止5工程・11入力、近傍`KisSpacingInformationContractTest`、製品`kritaimage` 1,196工程・2,416入力を維持する。対象・新旧枠、CTest、20回反復、近傍、無作業再構築、動的接続・AUTOMOC入力・mask data/applicator/device/color space未解決記号、構文・書式、公開API・`verify-quick`を確認する。
+- `g184-shape-geometry-schema`は`/Users/masato/Documents/librepaint-g184-shape-geometry-schema`を所有する。開始`libs/flake/KoShape.h`の図形幾何32 APIから既存`libs/flake/tests/KoShapeEnumContractTest.cpp`の5枠`shapeLocalGeometrySignaturesRemainStable`、`shapeAffineMutationSignaturesRemainStable`、`shapeTransformationSignaturesRemainStable`、`shapeCoordinateMappingSignaturesRemainStable`、`shapeBoundsAndOutlineSignaturesRemainStable`へ対応付ける。
+  完全集合は寸法・位置・最小高さ・縦横比・解像度、拡縮・回転・傾斜、絶対位置・絶対変換・局所変換の照会設定適用、点・矩形の文書座標往復、hit test、外接矩形・絶対輪郭矩形の単体・集合overload、輪郭・輪郭矩形・stroke insetsである。許可pathは既存試験sourceだけで、CMake・依存・公開header・製品sourceを変更しない。shape、Qt幾何値、transform、painter path、insets、shape容器を実体化せず、変形・座標・領域計算とhit test本文を実行しない。対象4工程・8入力、停止5工程・11入力、近傍`KoPathShapeSchemaContractTest`、製品`kritaflake` 621工程・1,274入力を維持し、brush mask担当の統合・削除後に開始する。同じ限定検証とshape/Qt幾何値/transform/path/insets未解決記号を確認する。
+- `g184-low-level-color-input-schema`は`/Users/masato/Documents/librepaint-g184-low-level-color-input-schema`を所有する。開始`libs/widgets/KoTriangleColorSelector.h`の残存全18 APIと`libs/widgets/KoColorSlider.h`の残存全6 APIから既存`libs/widgets/tests/KisVisualColorModelSchemaContractTest.cpp`の5枠`triangleColorSelectorTypeAndLifetimeSchemaRemainStable`、`triangleColorSelectorChannelSignaturesRemainStable`、`triangleColorSelectorColorAndNotificationSignaturesRemainStable`、`colorSliderTypeAndLifetimeSchemaRemainStable`、`colorSliderColorSignaturesRemainStable`へ対応付ける。
+  完全集合はtriangle selector class・2構築・破棄、HSV・回転の照会設定、HSV一括設定、現在色、色設定slot、hue追従、色変更・容器終了要求、color slider class・2構築・破棄、現在色・端点色設定である。許可pathは既存試験sourceだけで、CMake・依存・公開header・製品sourceを変更しない。selector、slider、基底、Widget、色値、renderer、painter、画像、入力eventを実体化せず、HSV更新、色変換、描画、renderer singleton、signal本文を実行しない。対象4工程・8入力、停止5工程・11入力、近傍`KisVisualColorSelectorShapeSchemaContractTest`、製品`kritawidgets` 809工程・1,647入力を維持し、図形幾何担当の統合・削除後に開始する。同じ限定検証とselector/slider/base/renderer/color未解決記号を確認する。
 
 ### 第183便の先行監査計画
 
