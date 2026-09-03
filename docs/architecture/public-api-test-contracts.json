@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 12153
+    "expectedMissingApis": 12127
   },
   "contracts": [
     {
@@ -49839,6 +49839,77 @@
       "classification": "maintained",
       "apis": [
         "method:KisSliderBasedPaintOpPropertyBase::sigRangeChanged()"
+      ]
+    },
+    {
+      "target": "KoCanvasControllerProxySchemaContractTest",
+      "source": "libs/flake/tests/KoCanvasControllerProxySchemaContractTest.cpp",
+      "test": "KoCanvasControllerProxySchemaContractTest::canvasControllerTypeLifetimeAndCanvasSignaturesRemainStable",
+      "behavior": "canvas controllerはaction集合を受ける構築、仮想寿命、通知proxy、action集合とcanvasの借用参照・設定に関する公開型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoCanvasController",
+        "member:KoCanvasController::proxyObject",
+        "method:KoCanvasController::KoCanvasController(KisKActionCollection * actionCollection)",
+        "method:KoCanvasController::actionCollection() const",
+        "method:KoCanvasController::canvas() const",
+        "method:KoCanvasController::setCanvas(KoCanvasBase * canvas)",
+        "method:KoCanvasController::~KoCanvasController()"
+      ]
+    },
+    {
+      "target": "KoCanvasControllerProxySchemaContractTest",
+      "source": "libs/flake/tests/KoCanvasControllerProxySchemaContractTest.cpp",
+      "test": "KoCanvasControllerProxySchemaContractTest::canvasControllerVisibilityAndPositionSignaturesRemainStable",
+      "behavior": "canvas controllerはcursor位置、文書矩形の表示保証、表示中心の照会・設定に関する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoCanvasController::currentCursorPosition() const",
+        "method:KoCanvasController::ensureVisibleDoc(const QRectF & docRect,bool smooth)",
+        "method:KoCanvasController::preferredCenter() const",
+        "method:KoCanvasController::setPreferredCenter(const QPointF & viewPoint)"
+      ]
+    },
+    {
+      "target": "KoCanvasControllerProxySchemaContractTest",
+      "source": "libs/flake/tests/KoCanvasControllerProxySchemaContractTest.cpp",
+      "test": "KoCanvasControllerProxySchemaContractTest::canvasControllerZoomSignaturesRemainStable",
+      "behavior": "canvas controllerはzoom mode・倍率・矩形・still pointに基づくzoom操作とzoom状態照会の公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoCanvasController::setZoom(KoZoomMode::Mode mode,qreal zoom)",
+        "method:KoCanvasController::zoomIn()",
+        "method:KoCanvasController::zoomIn(const KoViewTransformStillPoint & stillPoint)",
+        "method:KoCanvasController::zoomOut()",
+        "method:KoCanvasController::zoomOut(const KoViewTransformStillPoint & stillPoint)",
+        "method:KoCanvasController::zoomState() const",
+        "method:KoCanvasController::zoomTo(const QRect & rect)"
+      ]
+    },
+    {
+      "target": "KoCanvasControllerProxySchemaContractTest",
+      "source": "libs/flake/tests/KoCanvasControllerProxySchemaContractTest.cpp",
+      "test": "KoCanvasControllerProxySchemaContractTest::canvasControllerPanSignaturesRemainStable",
+      "behavior": "canvas controllerは任意距離と上下左右方向へ表示を移動する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoCanvasController::pan(const QPoint & distance)",
+        "method:KoCanvasController::panDown()",
+        "method:KoCanvasController::panLeft()",
+        "method:KoCanvasController::panRight()",
+        "method:KoCanvasController::panUp()"
+      ]
+    },
+    {
+      "target": "KoCanvasControllerProxySchemaContractTest",
+      "source": "libs/flake/tests/KoCanvasControllerProxySchemaContractTest.cpp",
+      "test": "KoCanvasControllerProxySchemaContractTest::canvasControllerScrollBarSignaturesRemainStable",
+      "behavior": "canvas controllerはscrollbar位置の照会・設定と既定位置へのresetに関する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoCanvasController::resetScrollBars()",
+        "method:KoCanvasController::scrollBarValue() const",
+        "method:KoCanvasController::setScrollBarValue(const QPoint & value)"
       ]
     }
   ]
