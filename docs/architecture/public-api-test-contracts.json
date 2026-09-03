@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 11528
+    "expectedMissingApis": 11507
   },
   "contracts": [
     {
@@ -51260,6 +51260,72 @@
         "method:KisVLineIterator2::resetPixelPos()",
         "method:KisVLineIterator2::x() const",
         "method:KisVLineIterator2::y() const"
+      ]
+    },
+    {
+      "target": "KoPatternBackgroundSchemaContractTest",
+      "source": "libs/flake/tests/KoPatternBackgroundSchemaContractTest.cpp",
+      "test": "KoPatternBackgroundSchemaContractTest::gradientBackgroundTypeAndLifetimeSchemaRemainStable",
+      "behavior": "gradient背景はpointer・値・copyによる構築、既定変換行列と仮想寿命を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoGradientBackground",
+        "method:KoGradientBackground::KoGradientBackground(QGradient * gradient,const QTransform & matrix=QTransform ())",
+        "method:KoGradientBackground::KoGradientBackground(const KoGradientBackground &)",
+        "method:KoGradientBackground::KoGradientBackground(const QGradient & gradient,const QTransform & matrix=QTransform ())",
+        "method:KoGradientBackground::~KoGradientBackground()"
+      ]
+    },
+    {
+      "target": "KoPatternBackgroundSchemaContractTest",
+      "source": "libs/flake/tests/KoPatternBackgroundSchemaContractTest.cpp",
+      "test": "KoPatternBackgroundSchemaContractTest::gradientBackgroundValueSemanticsSignaturesRemainStable",
+      "behavior": "gradient背景は他の背景との比較と値代入を行う公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoGradientBackground::compareTo(const KoShapeBackground * other) const",
+        "method:KoGradientBackground::operator =(const KoGradientBackground &)"
+      ]
+    },
+    {
+      "target": "KoPatternBackgroundSchemaContractTest",
+      "source": "libs/flake/tests/KoPatternBackgroundSchemaContractTest.cpp",
+      "test": "KoPatternBackgroundSchemaContractTest::gradientBackgroundGradientAndRenderingSignaturesRemainStable",
+      "behavior": "gradient背景はgradientと変換行列を照会・設定し、pathへ描画する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoGradientBackground::gradient() const",
+        "method:KoGradientBackground::paint(QPainter & painter,const QPainterPath & fillPath) const",
+        "method:KoGradientBackground::setGradient(const QGradient & gradient)",
+        "method:KoGradientBackground::setTransform(const QTransform & matrix)",
+        "method:KoGradientBackground::transform() const"
+      ]
+    },
+    {
+      "target": "KoPatternBackgroundSchemaContractTest",
+      "source": "libs/flake/tests/KoPatternBackgroundSchemaContractTest.cpp",
+      "test": "KoPatternBackgroundSchemaContractTest::meshGradientBackgroundTypeAndLifetimeSchemaRemainStable",
+      "behavior": "mesh gradient背景はgradient pointer・copyによる構築、既定変換行列と仮想寿命を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoMeshGradientBackground",
+        "method:KoMeshGradientBackground::KoMeshGradientBackground(const KoMeshGradientBackground &)",
+        "method:KoMeshGradientBackground::KoMeshGradientBackground(const SvgMeshGradient * gradient,const QTransform & matrix=QTransform ())",
+        "method:KoMeshGradientBackground::~KoMeshGradientBackground()"
+      ]
+    },
+    {
+      "target": "KoPatternBackgroundSchemaContractTest",
+      "source": "libs/flake/tests/KoPatternBackgroundSchemaContractTest.cpp",
+      "test": "KoPatternBackgroundSchemaContractTest::meshGradientBackgroundValueAndRenderingSignaturesRemainStable",
+      "behavior": "mesh gradient背景は値代入・比較、gradient・変換行列の照会とpath描画を行う公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoMeshGradientBackground::compareTo(const KoShapeBackground * other) const",
+        "method:KoMeshGradientBackground::gradient()",
+        "method:KoMeshGradientBackground::operator =(const KoMeshGradientBackground &)",
+        "method:KoMeshGradientBackground::paint(QPainter & painter,const QPainterPath & fillPath) const",
+        "method:KoMeshGradientBackground::transform()"
       ]
     },
     {
