@@ -4,6 +4,7 @@
  */
 
 #include "svg/SvgGraphicContext.h"
+#include "svg/SvgLoadingContext.h"
 #include "text/KoSvgText.h"
 #include "text/KoSvgTextProperties.h"
 
@@ -13,6 +14,9 @@
 #include <array>
 #include <type_traits>
 #include <utility>
+
+#define ASSERT_SVG_LOADING_CONTEXT_SIGNATURE(method, signature)                                                        \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&SvgLoadingContext::method)), signature>)
 
 class KoSvgTextEnumContractTest : public QObject
 {
@@ -55,6 +59,11 @@ private Q_SLOTS:
     void svgTextAutomaticValueParsingSchemaRemainsStable();
     void svgTextValueWritingSchemaRemainsStable();
     void svgTextCssParsingSchemaRemainsStable();
+    void svgLoadingTypeLifetimeAndFileFetcherAliasSchemaRemainStable();
+    void svgLoadingGraphicsContextStackAndOrderSignaturesRemainStable();
+    void svgLoadingPathAndExternalFileSignaturesRemainStable();
+    void svgLoadingShapeAndDefinitionRegistrySignaturesRemainStable();
+    void svgLoadingStyleProfileAndTextSignaturesRemainStable();
 };
 
 void KoSvgTextEnumContractTest::layoutEnumsRemainOrdered()
@@ -1059,6 +1068,70 @@ void KoSvgTextEnumContractTest::svgTextCssParsingSchemaRemainsStable()
     static_assert(std::is_same_v<decltype(&parseCSSFontStretch), int (*)(const QString &, int)>);
     static_assert(
         std::is_same_v<decltype(&parseTextIndent), TextIndentInfo (*)(const QString &, const SvgLoadingContext &)>);
+}
+
+void KoSvgTextEnumContractTest::svgLoadingTypeLifetimeAndFileFetcherAliasSchemaRemainStable()
+{
+    using Context = SvgLoadingContext;
+    using FileFetcher = std::function<QByteArray(const QString &)>;
+
+    static_assert(std::is_same_v<Context::FileFetcherFunc, FileFetcher>);
+    static_assert(std::is_class_v<Context>);
+    static_assert(std::is_constructible_v<Context, KoDocumentResourceManager *>);
+    static_assert(std::is_destructible_v<Context>);
+}
+
+void KoSvgTextEnumContractTest::svgLoadingGraphicsContextStackAndOrderSignaturesRemainStable()
+{
+    using Context = SvgLoadingContext;
+
+    ASSERT_SVG_LOADING_CONTEXT_SIGNATURE(currentGC, SvgGraphicsContext * (Context::*)() const);
+    ASSERT_SVG_LOADING_CONTEXT_SIGNATURE(pushGraphicsContext,
+                                         SvgGraphicsContext * (Context::*)(const QDomElement &, bool));
+    static_assert(std::is_same_v<decltype(std::declval<Context &>().pushGraphicsContext()), SvgGraphicsContext *>);
+    static_assert(
+        std::is_same_v<decltype(std::declval<Context &>().pushGraphicsContext(std::declval<const QDomElement &>())),
+                       SvgGraphicsContext *>);
+    ASSERT_SVG_LOADING_CONTEXT_SIGNATURE(popGraphicsContext, void (Context::*)());
+    ASSERT_SVG_LOADING_CONTEXT_SIGNATURE(nextZIndex, int (Context::*)());
+    ASSERT_SVG_LOADING_CONTEXT_SIGNATURE(isRootContext, bool (Context::*)() const);
+}
+
+void KoSvgTextEnumContractTest::svgLoadingPathAndExternalFileSignaturesRemainStable()
+{
+    using Context = SvgLoadingContext;
+
+    ASSERT_SVG_LOADING_CONTEXT_SIGNATURE(setInitialXmlBaseDir, void (Context::*)(const QString &));
+    ASSERT_SVG_LOADING_CONTEXT_SIGNATURE(xmlBaseDir, QString (Context::*)() const);
+    ASSERT_SVG_LOADING_CONTEXT_SIGNATURE(absoluteFilePath, QString (Context::*)(const QString &));
+    ASSERT_SVG_LOADING_CONTEXT_SIGNATURE(relativeFilePath, QString (Context::*)(const QString &));
+    ASSERT_SVG_LOADING_CONTEXT_SIGNATURE(setFileFetcher, void (Context::*)(Context::FileFetcherFunc));
+    ASSERT_SVG_LOADING_CONTEXT_SIGNATURE(fetchExternalFile, QByteArray (Context::*)(const QString &));
+}
+
+void KoSvgTextEnumContractTest::svgLoadingShapeAndDefinitionRegistrySignaturesRemainStable()
+{
+    using Context = SvgLoadingContext;
+
+    ASSERT_SVG_LOADING_CONTEXT_SIGNATURE(registerShape, void (Context::*)(const QString &, KoShape *));
+    ASSERT_SVG_LOADING_CONTEXT_SIGNATURE(shapeById, KoShape * (Context::*)(const QString &));
+    ASSERT_SVG_LOADING_CONTEXT_SIGNATURE(addDefinition, void (Context::*)(const QDomElement &));
+    ASSERT_SVG_LOADING_CONTEXT_SIGNATURE(definition, QDomElement (Context::*)(const QString &) const);
+    ASSERT_SVG_LOADING_CONTEXT_SIGNATURE(hasDefinition, bool (Context::*)(const QString &) const);
+}
+
+void KoSvgTextEnumContractTest::svgLoadingStyleProfileAndTextSignaturesRemainStable()
+{
+    using Context = SvgLoadingContext;
+    using Profiles = QHash<QString, const KoColorProfile *>;
+
+    ASSERT_SVG_LOADING_CONTEXT_SIGNATURE(addStyleSheet, void (Context::*)(const QDomElement &));
+    ASSERT_SVG_LOADING_CONTEXT_SIGNATURE(matchingCssStyles, QStringList (Context::*)(const QDomElement &) const);
+    ASSERT_SVG_LOADING_CONTEXT_SIGNATURE(styleParser, SvgStyleParser & (Context::*)());
+    ASSERT_SVG_LOADING_CONTEXT_SIGNATURE(parseProfile, void (Context::*)(const QDomElement &));
+    ASSERT_SVG_LOADING_CONTEXT_SIGNATURE(profiles, Profiles (Context::*)());
+    ASSERT_SVG_LOADING_CONTEXT_SIGNATURE(resolvedProperties, KoSvgTextProperties (Context::*)(bool) const);
+    static_assert(std::is_same_v<decltype(std::declval<const Context &>().resolvedProperties()), KoSvgTextProperties>);
 }
 
 QTEST_GUILESS_MAIN(KoSvgTextEnumContractTest)
