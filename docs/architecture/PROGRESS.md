@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-03 13:00 JST
+- 更新日時: 2026-09-03 13:02 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -21,6 +21,17 @@
 - widgetutils領域は`libs/widgetutils/xmlgui/kshortcutwidget.h`の残存全12 APIと`libs/widgetutils/xmlgui/KisShortcutsDialog.h`の残存全14 APIをshortcut編集UIとして採用した。widget型・寿命3、値・方針6、編集3、dialog型・collection 7、永続化・復元7を既存`libs/widgetutils/tests/KKeySequenceWidgetSchemaContractTest.cpp`の5枠へ対応付ける。shortcut widget・dialog・editor、Widget、キー列、文字列、action collectionを実体化せず、競合検査・編集、collection追加、保存・読込・書出し・復元本文を実行しない。dialog headerの直接includeを解決する対象固有のXML GUI source探索路1本だけを追加し、直接linkはQt Gui・Test、対象4工程・8入力、停止5工程・11入力、command hash`9070057888`、input hash`9e1145634e`、製品`kritawidgetutils` 274工程・581入力を維持する。
   tag selectionは製品・試験支援libraryへ接続し、Scratchpadは不要なimage・View直接includeの構造整理が先行し、visual selectorと内部色dialogはresource・pigment・描画・表示変換へ閉包が広く、action分類との結合は複数責務と追加探索路を生むため棄却した。
 - 中央の`public-api-missing-g183.json`でliquify transform worker 24件、図形クリッピング32件、shortcut編集UI 26件の全識別子を照合した。3責務の開始header、試験source、所有CMake、生成物は相互に異なる。合計82 APIを15枠へ進め、許可path外変更、shortcut対象固有のXML GUI source探索路以外のCMake変更、新規link、製品OBJECT/shared・`kritatestsdk`、指定外実体化・本文実行、5工程・11入力超過、製品計画集合の変化が必要になれば停止する。
+
+### 第183便の担当計画
+
+- 実装共通基点は`6dff59be21`である。3担当のGit権限は許可pathだけの`transport-commit`、追加委任は禁止する。対象platformはmacOSであり、一度に一つだけ作る専用worktree-local `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。Nix再評価を行わず、主作業treeの読み込み済み開発環境を`run-shared-test-env`で共有する。容量停止を避けるため、liquify transform worker、図形クリッピング、shortcut編集UIの順に一担当ずつ実装・限定検証・統合・削除する。
+  調整担当だけがarchitecture文書、公開API台帳、共通不足報告を変更する。製品targetを引数にするplan/build、全体build、全体`verify`、Linux検証は禁止し、担当targetと近傍、公開API検査、`verify-quick`だけを実行する。
+- `g183-liquify-transform-schema`は`/Users/masato/Documents/librepaint-g183-liquify-transform-schema`を所有する。開始`libs/image/kis_liquify_transform_worker.h`の残存全24 APIから既存`libs/image/tests/KisImageTypesContractTest.cpp`の5枠`liquifyTypeAndLifetimeSchemaRemainStable`、`liquifyGridAndPointSignaturesRemainStable`、`liquifyMutationSignaturesRemainStable`、`liquifyOutputSignaturesRemainStable`、`liquifyBoundsAndXmlSignaturesRemainStable`へ対応付ける。
+  完全集合はclass・2構築・破棄、等値・同一性・点index・格子寸法・原点列・変形点列、点の移動・拡縮・回転・取消し・全体移動2種・座標変換、描画装置・画像変換、変更・必要・累積範囲とXML往復である。許可pathは既存試験sourceだけで、CMake・依存・公開header・製品sourceを変更しない。worker、格子、updater、描画装置、画像、Qt値、DOMを実体化せず、copy・比較、格子照会、点変形、描画、矩形計算、XML本文を実行しない。対象4工程・8入力、停止5工程・11入力、近傍`KisLodTransformContractTest`、製品`kritaimage` 1,196工程・2,416入力を維持する。対象・新旧枠、CTest、20回反復、近傍、無作業再構築、動的接続・AUTOMOC入力・worker/updater/device/image/XML未解決記号、構文・書式、公開API・`verify-quick`を確認する。
+- `g183-shape-clipping-schema`は`/Users/masato/Documents/librepaint-g183-shape-clipping-schema`を所有する。開始`libs/flake/KoClipMask.h`の残存全17 APIと`libs/flake/KoClipPath.h`の残存全15 APIから既存`libs/flake/tests/KoPathShapeSchemaContractTest.cpp`の5枠`clipTypeAndLifetimeSchemaRemainStable`、`clipCoordinateAndRuleSignaturesRemainStable`、`clipShapeOwnershipSignaturesRemainStable`、`clipGeometrySignaturesRemainStable`、`clipRenderingSignaturesRemainStable`へ対応付ける。
+  完全集合は2 class、既定・値・copy構築、copy代入・破棄、mask・内容座標系、path座標系とclip rule、clone・shape照会設定・空判定、mask矩形・追加offset、path・寸法別path・座標変換、mask描画・clip適用である。許可pathは既存試験sourceだけで、CMake・依存・公開header・製品sourceを変更しない。clip mask・path、shape、Qt容器・幾何値、painterを実体化せず、copy・代入、clone、座標・shape・path操作、描画本文を実行しない。対象4工程・8入力、停止5工程・11入力、近傍`KoShapeClipCommandContractTest`、製品`kritaflake` 621工程・1,274入力を維持し、liquify担当の統合・削除後に開始する。同じ限定検証とclip/shape/path/painter未解決記号を確認する。
+- `g183-shortcut-editing-schema`は`/Users/masato/Documents/librepaint-g183-shortcut-editing-schema`を所有する。開始`libs/widgetutils/xmlgui/kshortcutwidget.h`の残存全12 APIと`libs/widgetutils/xmlgui/KisShortcutsDialog.h`の残存全14 APIから既存`libs/widgetutils/tests/KKeySequenceWidgetSchemaContractTest.cpp`の5枠`shortcutWidgetTypeAndLifetimeSchemaRemainStable`、`shortcutWidgetPolicySignaturesRemainStable`、`shortcutWidgetEditingSignaturesRemainStable`、`shortcutsDialogTypeAndCollectionSchemaRemainStable`、`shortcutsDialogPersistenceSchemaRemainStable`へ対応付ける。
+  完全集合はshortcut widget class・構築・破棄、修飾なし許可照会設定・clear button・shortcut照会設定・検査collection設定、steal適用・clear・変更通知、dialog class・既定action種別・既定引数付き構築・破棄・collection追加照会・寸法、保存・既定化・取消し・設定入出力・独自shortcut読込保存である。許可pathは既存試験sourceと`libs/widgetutils/tests/CMakeLists.txt`の対象固有探索路だけで、XML GUI source探索路以外のCMake・依存・公開header・製品sourceを変更しない。shortcut widget・dialog・editor、Widget、キー列、文字列、action collectionを実体化せず、競合検査・編集、collection追加、保存・読込・書出し・復元本文を実行しない。対象4工程・8入力、停止5工程・11入力、近傍`KHelpMenuSchemaContractTest`、製品`kritawidgetutils` 274工程・581入力を維持し、図形担当の統合・削除後に開始する。同じ限定検証とshortcut/dialog/editor/action/Qt値未解決記号を確認する。
 
 ### 第182便の先行監査計画
 
