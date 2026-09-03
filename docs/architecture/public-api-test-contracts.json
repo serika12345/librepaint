@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 12239
+    "expectedMissingApis": 12208
   },
   "contracts": [
     {
@@ -49618,6 +49618,82 @@
         "method:KisPaintOpSettings::setUpdateListener(UpdateListenerWSP listener)",
         "method:KisPaintOpSettings::uniformProperties(KisPaintOpSettingsSP settings,QPointer<KisPaintOpPresetUpdateProxy> updateProxy)",
         "method:KisPaintOpSettings::updateListener() const"
+      ]
+    },
+    {
+      "target": "KoShapeContainerModelContractTest",
+      "source": "libs/flake/tests/KoShapeContainerModelContractTest.cpp",
+      "test": "KoShapeContainerModelContractTest::simpleShapeContainerTypeAndLifetimeSchemaRemainsStable",
+      "behavior": "単純shape container modelはcontainer model派生の公開型、既定・copy構築と仮想寿命を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:SimpleShapeContainerModel",
+        "method:SimpleShapeContainerModel::SimpleShapeContainerModel()",
+        "method:SimpleShapeContainerModel::SimpleShapeContainerModel(const SimpleShapeContainerModel & rhs)",
+        "method:SimpleShapeContainerModel::~SimpleShapeContainerModel()"
+      ]
+    },
+    {
+      "target": "KoShapeContainerModelContractTest",
+      "source": "libs/flake/tests/KoShapeContainerModelContractTest.cpp",
+      "test": "KoShapeContainerModelContractTest::simpleShapeContainerStorageAndClippingSignaturesRemainStable",
+      "behavior": "単純shape container modelは子shapeの追加・削除・列挙・件数とclip状態の照会・設定に関する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:SimpleShapeContainerModel::add(KoShape * child)",
+        "method:SimpleShapeContainerModel::count() const",
+        "method:SimpleShapeContainerModel::isClipped(const KoShape * shape) const",
+        "method:SimpleShapeContainerModel::remove(KoShape * shape)",
+        "method:SimpleShapeContainerModel::setClipped(const KoShape * shape,bool value)",
+        "method:SimpleShapeContainerModel::shapes() const"
+      ]
+    },
+    {
+      "target": "KoShapeContainerModelContractTest",
+      "source": "libs/flake/tests/KoShapeContainerModelContractTest.cpp",
+      "test": "KoShapeContainerModelContractTest::simpleShapeContainerTransformAndMoveSignaturesRemainStable",
+      "behavior": "単純shape container modelはtransform継承、編集可能性に基づく移動提案とcontainer変更通知の公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:SimpleShapeContainerModel::containerChanged(KoShapeContainer *,KoShape::ChangeType)",
+        "method:SimpleShapeContainerModel::inheritsTransform(const KoShape * shape) const",
+        "method:SimpleShapeContainerModel::proposeMove(KoShape * shape,QPointF & move)",
+        "method:SimpleShapeContainerModel::setInheritsTransform(const KoShape * shape,bool value)"
+      ]
+    },
+    {
+      "target": "KoShapeContainerModelContractTest",
+      "source": "libs/flake/tests/KoShapeContainerModelContractTest.cpp",
+      "test": "KoShapeContainerModelContractTest::simpleShapeContainerHierarchyAndManagerSignaturesRemainStable",
+      "behavior": "単純shape container modelは階層追加・削除通知とroot shape managerの借用参照・設定に関する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:SimpleShapeContainerModel::associatedRootShapeManager() const",
+        "method:SimpleShapeContainerModel::setAssociatedRootShapeManager(KoShapeManager * manager)",
+        "method:SimpleShapeContainerModel::shapeHasBeenAddedToHierarchy(KoShape * shape,KoShapeContainer * addedToSubtree)",
+        "method:SimpleShapeContainerModel::shapeToBeRemovedFromHierarchy(KoShape * shape,KoShapeContainer * removedFromSubtree)"
+      ]
+    },
+    {
+      "target": "KoShapeContainerModelContractTest",
+      "source": "libs/flake/tests/KoShapeContainerModelContractTest.cpp",
+      "test": "KoShapeContainerModelContractTest::shapeBulkActionLockSchemaRemainsStable",
+      "behavior": "shape一括操作lockは対象shapeと更新矩形の値型、lock・unlock、最終更新取得、一括更新に関する公開型と署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KoShapeBulkActionLock::BaseClass",
+        "alias:KoShapeBulkActionLockAdapter::Update",
+        "alias:KoShapeBulkActionLockAdapter::UpdatesList",
+        "class:KoShapeBulkActionLock",
+        "class:KoShapeBulkActionLockAdapter",
+        "method:KoShapeBulkActionLock::KoShapeBulkActionLock(T * shape)",
+        "method:KoShapeBulkActionLock::bulkShapesUpdate(const UpdatesList & updates)",
+        "method:KoShapeBulkActionLock::unlock()",
+        "method:KoShapeBulkActionLock::~KoShapeBulkActionLock()",
+        "method:KoShapeBulkActionLockAdapter::KoShapeBulkActionLockAdapter(const QList<KoShape * > & shapes)",
+        "method:KoShapeBulkActionLockAdapter::lock()",
+        "method:KoShapeBulkActionLockAdapter::takeFinalUpdatesList()",
+        "method:KoShapeBulkActionLockAdapter::unlock()"
       ]
     }
   ]
