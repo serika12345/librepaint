@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-03 18:21 JST
+- 更新日時: 2026-09-03 18:29 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -16,6 +16,16 @@
 - `g190-flake-contract-audit`はflake・SVG・vector領域を所有し、第189便までに固定したshape manager、tool代理、shape幾何・階層、clip、背景群を除外して、一責務の未対応集合を比較する。
 - `g190-ui-contract-audit`はwidgetutils・widgets・libkis領域を所有し、第189便までに固定した内部色選択dialog、視覚色選択群、palette delegate、filter設定・適用を除外して、一責務の未対応集合を比較する。
 - 各担当は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、実際のcompile探索路、予測工程・入力と停止線、開始pathから契約先、許可path、固有停止条件、比較候補の棄却根拠を返す。調整担当は3領域のpath、CMake、試験source、生成物が重ならず、合計60〜180 APIとなる組合せだけを次の実装担当票へ進める。
+
+### 第190便の先行監査結果
+
+- image領域は`libs/image/kis_curve_circle_mask_generator.h`と`kis_curve_rect_mask_generator.h`の残存全25 APIをcurve駆動の円形・矩形ブラシmask生成器として採用した。両型・構築・copy・破棄8、clone・sampling 4、scale・softness 4、vector化・applicator 6、XML・curve変換3を既存`libs/image/tests/KisImageTypesContractTest.cpp`の5枠へ対応付ける。両generator、基底、curve・点列、private型、applicator、row processor、DOMを実体化せず、構築・複製・破棄、sampling、尺度・softness、applicator、XML、curve変換本文を実行しない。CMakeと探索路を変えず、直接linkはQt Core・Gui・Test・Xmlとheader-only Boost、対象4工程・8入力、停止5工程・11入力、command hash`860901e6be`、input hash`42c0bdca62`、製品`kritaimage` 1,196工程・2,416入力を維持する。
+  histogram producerは複数factoryとplatform条件、undo stroke・processing applicator・transactionはundo・描画装置・非同期処理、色合成templateとpaintop factoryは実体化・UI・resource、schedulerと色空間registryはthread・大域状態を横断するため棄却した。
+- flake領域は`libs/flake/KoShapeControllerBase.h`と`KoShapeController.h`の残存全23 APIを文書側の図形所有境界とツール側の追加・削除窓口として採用した。抽象所有者の型・寿命3、文書interface 5、具体controllerの型・寿命・文書照会10、追加3、削除2を既存`libs/flake/tests/KoShapeEnumContractTest.cpp`の5枠へ対応付ける。controller・抽象所有者・probe、canvas、shape・container、resource manager、undo command、Qt幾何・容器を実体化せず、文書照会、親選択、追加・削除、undo生成、reset本文を実行しない。CMakeと探索路を変えず、直接linkはQt Core・Gui・Test・Xml、対象4工程・8入力、停止5工程・11入力、command hash`b97c0e6652`、input hash`e0ea3aa5b9`、製品`kritaflake` 621工程・1,274入力を維持する。
+  `KoShape`残存分は複数責務、SVG parserとresource型群は現対象外のresource探索路、tool managerとpath tool群は大域管理・action・入力・選択・undo・描画、tool代理privateは既固定責務と重複するため棄却した。
+- widgets領域は`libs/widgets/KisHsvColorSlider.h`の残存全15 APIと`KisSpinboxHSXSelector.h`の残存全7 APIをHSX色channel入力部品として採用した。slider型・mix mode 7、構築・寿命3、色・混合5、spinbox型・寿命・model 4、通知3を既存`libs/widgets/tests/KisVisualColorModelSchemaContractTest.cpp`の5枠へ対応付ける。slider、spinbox、基底Widget、色、renderer、色modelと共有pointer、channel vectorを実体化せず、構築・破棄、既定renderer取得、補間・色変換、model接続、signal・slot本文を実行しない。CMakeと探索路を変えず、直接linkはQt Core・Gui・Test、対象4工程・8入力、停止5工程・11入力、command hash`fc4e6d32a4`、input hash`7469bfffc3`、製品`kritawidgets` 809工程・1,647入力を維持する。
+  gradient stop編集とpalette群は生成UIから現対象外のwidgetutils探索路、tag selectionは製品sharedと`kritatestsdk`、unit・angle入力は複数責務、zoomは5工程・12入力と製品OBJECT、Scratchpad・上位selector・libkis façadeはimage・view・resource・application寿命を横断するため棄却した。
+- 中央の`public-api-missing-g190.json`でcurve mask生成器25件、shape controller 23件、HSX色入力22件の全識別子を照合した。3責務の開始header、試験source、所有CMake、生成物は相互に異なる。合計70 APIを15枠へ進め、許可path外変更、CMake・探索路・link・compile定義・公開headerの変更、製品OBJECT/shared・`kritatestsdk`、指定外実体化・本文実行、5工程・11入力超過、製品計画集合の変化が必要になれば停止する。
 
 ### 第189便の先行監査計画
 
