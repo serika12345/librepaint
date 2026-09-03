@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 11643
+    "expectedMissingApis": 11620
   },
   "contracts": [
     {
@@ -51109,6 +51109,74 @@
       "apis": [
         "method:KisTestableSimpleUpdateQueue::getSpontaneousJobsList()",
         "method:KisTestableSimpleUpdateQueue::getWalkersList()"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::indirectPaintingTypeAndLifetimeSchemaRemainStable",
+      "behavior": "間接描画支援は公開型、既定構築と仮想寿命を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisIndirectPaintingSupport",
+        "method:KisIndirectPaintingSupport::KisIndirectPaintingSupport()",
+        "method:KisIndirectPaintingSupport::~KisIndirectPaintingSupport()"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::indirectPaintingTemporaryStateSignaturesRemainStable",
+      "behavior": "間接描画支援は一時描画装置と選択の状態を照会・設定する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisIndirectPaintingSupport::hasTemporaryTarget() const",
+        "method:KisIndirectPaintingSupport::setTemporarySelection(KisSelectionSP selection)",
+        "method:KisIndirectPaintingSupport::setTemporaryTarget(KisPaintDeviceSP t)",
+        "method:KisIndirectPaintingSupport::temporaryTarget() const"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::indirectPaintingPainterPolicySignaturesRemainStable",
+      "behavior": "間接描画支援は一時描画の色・合成・不透明度・channel方針を設定し、painterへ適用する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisIndirectPaintingSupport::setCurrentColor(const KoColor & color)",
+        "method:KisIndirectPaintingSupport::setTemporaryChannelFlags(const QBitArray & channelFlags)",
+        "method:KisIndirectPaintingSupport::setTemporaryCompositeOp(const QString & id)",
+        "method:KisIndirectPaintingSupport::setTemporaryOpacity(qreal o)",
+        "method:KisIndirectPaintingSupport::setupTemporaryPainter(KisPainter * painter) const",
+        "method:KisIndirectPaintingSupport::supportsNonIndirectPainting() const"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::indirectPaintingMergeAndSuspensionSignaturesRemainStable",
+      "behavior": "間接描画支援は同期・threaded mergeと最終merge停止guardを提供する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisIndirectPaintingSupport::FinalMergeSuspenderSP",
+        "method:KisIndirectPaintingSupport::mergeToLayer(KisNodeSP layer,KUndo2Command * parentCommand,const KUndo2MagicString & transactionText,int timedID)",
+        "method:KisIndirectPaintingSupport::mergeToLayerThreaded(KisNodeSP layer,KUndo2Command * parentCommand,const KUndo2MagicString & transactionText,int timedID,QVector<KisRunnableStrokeJobData * > * jobs)",
+        "method:KisIndirectPaintingSupport::trySuspendFinalMerge()"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::indirectPaintingGuardLifetimeSchemaRemainStable",
+      "behavior": "間接描画支援は最終merge停止と読取lockを有効期間に結び付ける二つの公開guard型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisIndirectPaintingSupport::FinalMergeSuspender::FinalMergeSuspender(KisIndirectPaintingSupport * indirect)",
+        "method:KisIndirectPaintingSupport::FinalMergeSuspender::~FinalMergeSuspender()",
+        "method:KisIndirectPaintingSupport::ReadLocker::ReadLocker(const KisIndirectPaintingSupport * lock)",
+        "method:KisIndirectPaintingSupport::ReadLocker::~ReadLocker()",
+        "struct:KisIndirectPaintingSupport::FinalMergeSuspender",
+        "struct:KisIndirectPaintingSupport::ReadLocker"
       ]
     },
     {
