@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-03 16:06 JST
+- 更新日時: 2026-09-03 16:14 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -14,6 +14,13 @@
 - 監査共通基点は`9fb887485a`、入力は`build/tdd-macos/public-api-missing-g187.json`である。3担当は`auditing`の読み取り専用とし、製品・試験・CMake・script・台帳・文書を変更せず、構成、構築、試験、Git操作、追加委任も行わない。一つの公開責務から20〜80 APIを最大5枠へ固定し、既存限定対象またはheader限定の4〜10工程程度の対象で、製品共有libraryと`kritatestsdk`へ接続しない候補だけを採用する。製品targetを引数にする`build-incremental ... plan`と製品buildは実行せず、既存Ninja木のquery・commands・inputsだけを読み取る。
 - image・paintop・pigment領域は第186便の間接描画支援を、flake・SVG・vector領域は図形階層・依存通知・tree順序を、widgetutils・widgets・libkis領域はmask node wrapperを除外して一責務ずつ比較する。
 - 各監査は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、実際のcompile探索路、予測工程・入力と停止線、開始pathから契約先、許可path、固有停止条件、比較候補の棄却根拠を揃える。3領域のpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
+- image領域は`libs/image/tiles3/kis_hline_iterator.h`と`kis_vline_iterator.h`の残存全38 APIを水平・垂直tile line iteratorとして採用した。型・構築6、両iteratorのtile cache 10、data参照8、水平走査7、垂直走査7を既存`libs/image/tests/KisImageTypesContractTest.cpp`の5枠へ対応付ける。iterator、cache型、data manager、tile・共有pointer、listener、画素bufferを実体化せず、構築・破棄、inline lock・座標計算、cache確保・取得・切替、走査・reset・raw data本文を実行しない。全直接includeは実探索路で解決し、CMakeと依存を変えず、直接linkはQt Core・Gui・Test・XmlとBoost、対象4工程・8入力、停止5工程・11入力、command hash`860901e6be`、input hash`42c0bdca62`、製品`kritaimage` 1,196工程・2,416入力を維持する。
+  update schedulerはthread・lock・stroke・LOD・callback、fill painterはcolor・pattern・filter・selection・job生成、色空間registryは大域profile・factory・変換cacheを横断する。標準option群は既存対象が10工程・22入力と複数製品OBJECTへ接続するため棄却した。
+- flake領域は`libs/flake/KoGradientBackground.h`の残存全12 APIと`KoMeshGradientBackground.h`の残存全9 APIをgradient背景として採用した。通常gradient型・寿命5、値semantics 2、gradient・変換・描画5、mesh gradient型・寿命4、値・描画5を既存`libs/flake/tests/KoPatternBackgroundSchemaContractTest.cpp`の5枠へ対応付ける。両背景、基底、gradient、transform、painter、pathを実体化せず、所有・複製・代入・比較・変換・描画本文を実行しない。候補のQt Gui型を解決する対象固有のQt Gui公開include探索路1本だけを契約前に追加し、Qt Guiをlinkしない。対象は追加前4工程・8入力、停止5工程・11入力、command hash`f4fa43b1e2`、input hash`c22f8d30c8`、直接linkはQt Test、製品`kritaflake` 621工程・1,274入力を基準とし、探索路追加後も工程・入力・linkと製品計画集合を維持する。
+  stroke契約targetはCMake変更なしで収まるが責務が異なり、製品背景試験は製品OBJECTへ接続する。`KoShape.h`残存分とSVG text・parser、shape・tool管理群は責務または閉包が広く、resource型群は入出力または追加resource探索路へ接続するため棄却した。
+- libkis領域は`libs/libkis/FileLayer.h`の残存全10 API、`FillLayer.h`の残存全8 API、`FilterLayer.h`・`CloneLayer.h`・`GroupLayer.h`の残存各7 APIを非vector特殊layer wrapperとして採用した。file、fill、filter、clone、groupを責務別に既存`libs/libkis/tests/ColorizeMaskSchemaContractTest.cpp`の5枠へ対応付ける。各layer、Node、Image、Selection、Filter、InfoObject、Object、文字列、共有pointerを実体化せず、構築・破棄、filesystem・cache、generator・filter、clone source、pass-through、型文字列本文を実行しない。全直接includeは実探索路で解決し、CMakeと依存を変えず、直接linkはQt Core・Testとheader-only Boost、対象4工程・8入力、停止5工程・11入力、command hash`b8e12504e2`、input hash`4cd1bceca5`、製品`kritalibkis` 2,018工程・4,034入力を維持する。
+  低水準色入力は第184便と責務が重なり、gradient editorは生成UI、palette UIは追加widgetutils探索路、zoom UIは7工程・15入力と製品OBJECTへ接続する。Krita・Node façadeは責務が広く、vector layerは単独で下限未満かつflake描画を混在させるため棄却した。
+- 中央の`public-api-missing-g187.json`でtile line iterator 38件、gradient背景21件、特殊layer wrapper 39件の全識別子を照合した。3責務の開始header、試験source、所有CMake、生成物は相互に異なる。合計98 APIを15枠へ進め、許可path外変更、gradient背景対象固有のQt Gui公開include探索路以外のCMake変更、新規link・compile定義、製品OBJECT/shared・`kritatestsdk`、指定外実体化・本文実行、5工程・11入力超過、製品計画集合の変化が必要になれば停止する。
 
 ### 第186便の先行監査計画
 
