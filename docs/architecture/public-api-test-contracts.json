@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 11017
+    "expectedMissingApis": 10997
   },
   "contracts": [
     {
@@ -52910,6 +52910,71 @@
       "apis": [
         "method:KoMultiPathPointMergeCommand::testingCombinedPath() const",
         "method:KoPathPointMergeCommand::mergedPointData() const"
+      ]
+    },
+    {
+      "target": "KActionCategoryEditToolBarSchemaContractTest",
+      "source": "libs/widgetutils/tests/KActionCategoryEditToolBarSchemaContractTest.cpp",
+      "test": "KActionCategoryEditToolBarSchemaContractTest::actionCategoryTypeAndLifetimeSchemaRemainStable",
+      "behavior": "action分類は表示文字列と任意のaction collection親から構築され、QObjectとして仮想寿命を持つ公開型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisKActionCategory",
+        "method:KisKActionCategory::KisKActionCategory(const QString & text,KisKActionCollection * parent=0)",
+        "method:KisKActionCategory::~KisKActionCategory()"
+      ]
+    },
+    {
+      "target": "KActionCategoryEditToolBarSchemaContractTest",
+      "source": "libs/widgetutils/tests/KActionCategoryEditToolBarSchemaContractTest.cpp",
+      "test": "KActionCategoryEditToolBarSchemaContractTest::actionCategoryCollectionAndIdentitySignaturesRemainStable",
+      "behavior": "action分類は所属action一覧とcollectionを取得し、分類の表示文字列を取得・設定する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisKActionCategory::actions() const",
+        "method:KisKActionCategory::collection() const",
+        "method:KisKActionCategory::setText(const QString & text)",
+        "method:KisKActionCategory::text() const"
+      ]
+    },
+    {
+      "target": "KActionCategoryEditToolBarSchemaContractTest",
+      "source": "libs/widgetutils/tests/KActionCategoryEditToolBarSchemaContractTest.cpp",
+      "test": "KActionCategoryEditToolBarSchemaContractTest::actionCategoryActionCreationSignaturesRemainStable",
+      "behavior": "action分類は名前、標準action種別、既存action、任意の受信者とmemberからactionを作成・登録する公開overloadと省略可能引数を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisKActionCategory::add(const QString & name,const QObject * receiver=0,const char * member=0)",
+        "method:KisKActionCategory::addAction(KStandardAction::StandardAction actionType,const QObject * receiver=0,const char * member=0)",
+        "method:KisKActionCategory::addAction(KStandardAction::StandardAction actionType,const QString & name,const QObject * receiver=0,const char * member=0)",
+        "method:KisKActionCategory::addAction(const QString & name,QAction * action)",
+        "method:KisKActionCategory::addAction(const QString & name,const QObject * receiver=0,const char * member=0)"
+      ]
+    },
+    {
+      "target": "KActionCategoryEditToolBarSchemaContractTest",
+      "source": "libs/widgetutils/tests/KActionCategoryEditToolBarSchemaContractTest.cpp",
+      "test": "KActionCategoryEditToolBarSchemaContractTest::editToolBarTypeLifetimeAndConfigurationSchemaRemainStable",
+      "behavior": "toolbar編集dialogはXML GUI factoryと任意の親Widgetから構築され、既定toolbar名と資源ファイルの範囲を設定する公開型・寿命・署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisKEditToolBar",
+        "method:KisKEditToolBar::KisKEditToolBar(KisKXMLGUIFactory * factory,QWidget * parent=0)",
+        "method:KisKEditToolBar::setDefaultToolBar(const QString & toolBarName)",
+        "method:KisKEditToolBar::setGlobalDefaultToolBar(const char * toolBarName)",
+        "method:KisKEditToolBar::setResourceFile(const QString & file,bool global=true)",
+        "method:KisKEditToolBar::~KisKEditToolBar()"
+      ]
+    },
+    {
+      "target": "KActionCategoryEditToolBarSchemaContractTest",
+      "source": "libs/widgetutils/tests/KActionCategoryEditToolBarSchemaContractTest.cpp",
+      "test": "KActionCategoryEditToolBarSchemaContractTest::editToolBarNotificationSignaturesRemainStable",
+      "behavior": "toolbar編集dialogは設定反映を現行名と互換名の両方で通知する公開signal署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisKEditToolBar::newToolBarConfig()",
+        "method:KisKEditToolBar::newToolbarConfig()"
       ]
     }
   ]
