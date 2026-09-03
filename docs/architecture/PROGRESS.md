@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-03 16:52 JST
+- 更新日時: 2026-09-03 17:04 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -21,6 +21,17 @@
 - libkis領域は`libs/libkis/InfoObject.h`の残存全10 APIと`Filter.h`の残存全11 APIをfilter設定値・適用接続面として採用した。設定値型・寿命4、property 6、filter型・寿命・同一性5、構成4、適用2を既存`libs/libkis/tests/ColorizeMaskSchemaContractTest.cpp`の5枠へ対応付ける。両型、Node、QObject、文字列・variant・map、設定共有pointerを実体化せず、構築・破棄、比較、property・filter構成、適用・非同期開始本文を実行しない。全直接includeは実探索路で解決し、CMakeと依存を変えず、直接linkはQt Core・Testとheader-only Boost、対象4工程・8入力、停止5工程・11入力、command hash`b8e12504e2`、input hash`4cd1bceca5`、製品`kritalibkis` 2,018工程・4,034入力を維持する。
   ScratchpadはQt Widgets探索路追加、単位入力とangle入力は複数責務、paletteはwidget・resource・生成UI、zoomとtag selectionは製品OBJECT・shared、上位libkis façadeは5枠を超える責務を横断するため後順位または棄却とした。
 - 中央の`public-api-missing-g188.json`でGaussian mask生成器20件、tool代理41件、filter設定値・適用21件の全識別子を照合した。3責務の開始header、試験source、所有CMake、生成物は相互に異なる。合計82 APIを15枠へ進め、許可path外変更、CMake・探索路・link・compile定義の変更、製品OBJECT/shared・`kritatestsdk`、指定外実体化・本文実行、5工程・11入力超過、製品計画集合の変化が必要になれば停止する。
+
+### 第188便の担当計画
+
+- 実装共通基点は`ceae61a028`である。3担当のGit権限は許可pathだけの1受渡しcommit、追加委任は禁止する。対象platformはmacOSであり、一度に一つだけ作る専用worktree-local `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。Nix再評価を行わず、担当側の`./scripts/run-shared-test-env`で主作業treeの読み込み済み開発環境を共有する。Gaussian mask生成器、tool代理、filter設定値・適用の順に一担当ずつ実装・限定検証・統合・削除する。
+  調整担当だけがarchitecture文書、公開API台帳、共通不足報告を変更する。製品targetを引数にするplan/build、全体build、全体`verify`、Linux検証は禁止し、担当targetと近傍、公開API検査、`verify-quick`だけを実行する。
+- `g188-gaussian-mask-schema`は`/Users/masato/Documents/librepaint-g188-gaussian-mask-schema`を所有する。開始`libs/image/kis_gauss_circle_mask_generator.h`と`kis_gauss_rect_mask_generator.h`の残存全20 APIから既存`libs/image/tests/KisImageTypesContractTest.cpp`の5枠`gaussianMaskTypeAndLifetimeSchemaRemainStable`、`gaussianMaskCloneSignaturesRemainStable`、`gaussianMaskSamplingSignaturesRemainStable`、`gaussianMaskScaleAndVectorizationSignaturesRemainStable`、`gaussianMaskApplicatorSignaturesRemainStable`へ対応付ける。
+  完全集合は両generatorのclass、6引数・copy構築、破棄、clone、`valueAt`、`setScale`、`shouldVectorize`、`applicator`、`setMaskScalarApplicator`である。許可pathは既存試験sourceだけで、CMake・依存・公開header・製品sourceを変更しない。両generator、基底、private型、applicator、row processor、`KoID`を実体化せず、構築・複製・破棄、sampling、scale、applicator本文を実行しない。対象4工程・8入力、停止5工程・11入力、近傍`KisSpacingInformationContractTest`、製品`kritaimage` 1,196工程・2,416入力を維持する。対象・新旧枠、CTest、20回反復、近傍、無作業再構築、動的接続・AUTOMOC入力・generator/applicator未解決記号、構文・書式、公開API・`verify-quick`を確認する。
+- `g188-tool-proxy-schema`は`/Users/masato/Documents/librepaint-g188-tool-proxy-schema`を所有する。開始`libs/flake/KoToolProxy.h`の残存全41 APIから既存`libs/flake/tests/KoCanvasControllerProxySchemaContractTest.cpp`の5枠`toolProxyTypeLifetimeAndActiveToolSignaturesRemainStable`、`toolProxyPointerEventForwardingSignaturesRemainStable`、`toolProxyKeyboardFocusAndDropSignaturesRemainStable`、`toolProxyPaintingAndEditingSignaturesRemainStable`、`toolProxyNotificationSignaturesRemainStable`へ対応付ける。
+  完全集合はclass、canvas・parent構築、破棄、active tool・直近pointer event・shortcut・private access、tablet・touch・mouse各転送、key・input method・focus・drag・drop・汎用event、描画・再描画・stroke終了・popup・selection・clipboard操作、selection・tool変更通知である。許可pathは既存試験sourceだけで、CMake・依存・公開header・製品sourceを変更しない。代理、試験用派生、canvas、tool、painter、converter、各event、menu、popup widget、Qt値・容器を実体化せず、入力配送、描画、編集、stroke終了、tool切替、signal本文を実行しない。対象4工程・8入力、停止5工程・11入力、近傍`KoToolBaseSchemaContractTest`、製品`kritaflake` 621工程・1,274入力を維持し、Gaussian担当の統合・削除後に開始する。同じ限定検証とtool/canvas/event/painter未解決記号を確認する。
+- `g188-filter-schema`は`/Users/masato/Documents/librepaint-g188-filter-schema`を所有する。開始`libs/libkis/InfoObject.h`の残存全10 APIと`Filter.h`の残存全11 APIから既存`libs/libkis/tests/ColorizeMaskSchemaContractTest.cpp`の5枠`infoObjectTypeAndLifetimeSchemaRemainStable`、`infoObjectPropertySignaturesRemainStable`、`filterTypeLifetimeAndIdentitySchemaRemainStable`、`filterConfigurationSignaturesRemainStable`、`filterApplicationSignaturesRemainStable`へ対応付ける。
+  完全集合は`InfoObject`のclass・2構築・破棄・比較・property map照会設定と、`Filter`のclass・構築・破棄・比較・name・configuration照会設定・同期適用・非同期開始である。許可pathは既存試験sourceだけで、CMake・依存・公開header・製品sourceを変更しない。両型、Node、QObject、文字列・variant・map、設定共有pointerを実体化せず、構築・破棄、比較、property・filter構成、適用・開始本文を実行しない。対象4工程・8入力、停止5工程・11入力、近傍`SelectionSchemaContractTest`、製品`kritalibkis` 2,018工程・4,034入力を維持し、tool代理担当の統合・削除後に開始する。同じ限定検証とfilter/info object/node/configuration未解決記号を確認する。
 
 ### 第187便の先行監査計画
 
