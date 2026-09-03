@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 12092
+    "expectedMissingApis": 12069
   },
   "contracts": [
     {
@@ -49990,6 +49990,74 @@
         "method:Swatch::setName(const QString & name)",
         "method:Swatch::setSpotColor(bool spotColor)",
         "method:Swatch::spotColor() const"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::memoryStatisticsServerTypeAndLifetimeSchemaRemainStable",
+      "behavior": "memory statistics serverはQObjectを基底とする公開型、既定構築と仮想寿命を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisMemoryStatisticsServer",
+        "method:KisMemoryStatisticsServer::KisMemoryStatisticsServer()",
+        "method:KisMemoryStatisticsServer::~KisMemoryStatisticsServer()"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::memoryStatisticsImageAndAggregateDefaultsRemainStable",
+      "behavior": "memory statistics値は画像・layer・projection・LODと集計memory量をqint64で保持し、既定値0から開始する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisMemoryStatisticsServer::Statistics::historicalMemorySize",
+        "member:KisMemoryStatisticsServer::Statistics::imageSize",
+        "member:KisMemoryStatisticsServer::Statistics::layersSize",
+        "member:KisMemoryStatisticsServer::Statistics::lodSize",
+        "member:KisMemoryStatisticsServer::Statistics::poolSize",
+        "member:KisMemoryStatisticsServer::Statistics::projectionsSize",
+        "member:KisMemoryStatisticsServer::Statistics::realMemorySize",
+        "member:KisMemoryStatisticsServer::Statistics::totalMemorySize",
+        "method:KisMemoryStatisticsServer::Statistics::Statistics()",
+        "struct:KisMemoryStatisticsServer::Statistics"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::memoryStatisticsSwapAndLimitDefaultsRemainStable",
+      "behavior": "memory statistics値はswap量と総量・tileの各上限をqint64で保持し、既定値0から開始する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisMemoryStatisticsServer::Statistics::swapSize",
+        "member:KisMemoryStatisticsServer::Statistics::tilesHardLimit",
+        "member:KisMemoryStatisticsServer::Statistics::tilesPoolLimit",
+        "member:KisMemoryStatisticsServer::Statistics::tilesSoftLimit",
+        "member:KisMemoryStatisticsServer::Statistics::totalMemoryLimit"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::memoryStatisticsCollectionSignaturesRemainStable",
+      "behavior": "memory statistics serverは共有個体を取得し、画像を受けて統計値を返す公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMemoryStatisticsServer::fetchMemoryStatistics(KisImageSP image) const",
+        "method:KisMemoryStatisticsServer::instance()"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::memoryStatisticsUpdateNotificationSignaturesRemainStable",
+      "behavior": "memory statistics serverは画像変更、待機中の強制更新、統計更新を伝えるslot・signal署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMemoryStatisticsServer::notifyImageChanged()",
+        "method:KisMemoryStatisticsServer::sigUpdateMemoryStatistics()",
+        "method:KisMemoryStatisticsServer::tryForceUpdateMemoryStatisticsWhileIdle()"
       ]
     }
   ]
