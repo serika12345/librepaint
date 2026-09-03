@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 12025
+    "expectedMissingApis": 12005
   },
   "contracts": [
     {
@@ -50192,6 +50192,71 @@
         "method:DoubleParseSpinBox::noMoreParsingError() const",
         "method:IntParseSpinBox::errorWhileParsing(const QString & expr) const",
         "method:IntParseSpinBox::noMoreParsingError() const"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::updateJobItemTypeAndStateSchemaRemainStable",
+      "behavior": "更新作業項目はQObject・QRunnableを基底とし、空・待機・結合・stroke・自発作業の連続した公開状態値を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisUpdateJobItem",
+        "enum:KisUpdateJobItem::Type",
+        "enumerator:KisUpdateJobItem::Type::EMPTY",
+        "enumerator:KisUpdateJobItem::Type::MERGE",
+        "enumerator:KisUpdateJobItem::Type::SPONTANEOUS",
+        "enumerator:KisUpdateJobItem::Type::STROKE",
+        "enumerator:KisUpdateJobItem::Type::WAITING"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::updateJobItemLifetimeAndExecutionSignaturesRemainStable",
+      "behavior": "更新作業項目は更新contextを借用する構築・仮想寿命と汎用・結合作業実行の公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisUpdateJobItem::KisUpdateJobItem(KisUpdaterContext * updaterContext)",
+        "method:KisUpdateJobItem::run()",
+        "method:KisUpdateJobItem::runMergeJob()",
+        "method:KisUpdateJobItem::~KisUpdateJobItem()"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::updateJobItemAssignmentSignaturesRemainStable",
+      "behavior": "更新作業項目は結合walker、stroke作業、自発作業を割り当て、実行開始要否を返す公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisUpdateJobItem::setSpontaneousJob(KisSpontaneousJob * spontaneousJob)",
+        "method:KisUpdateJobItem::setStrokeJob(KisStrokeJob * strokeJob)",
+        "method:KisUpdateJobItem::setWalker(KisBaseRectsWalkerSP walker)"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::updateJobItemStateTransitionSignaturesRemainStable",
+      "behavior": "更新作業項目は完了状態への遷移、実行中判定と現在状態照会の公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisUpdateJobItem::isRunning() const",
+        "method:KisUpdateJobItem::setDone()",
+        "method:KisUpdateJobItem::type() const"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::updateJobItemGeometryAndStrokePolicySignaturesRemainStable",
+      "behavior": "更新作業項目は読取・変更矩形の参照とstroke作業の逐次性を返す公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisUpdateJobItem::accessRect() const",
+        "method:KisUpdateJobItem::changeRect() const",
+        "method:KisUpdateJobItem::strokeJobSequentiality() const"
       ]
     }
   ]
