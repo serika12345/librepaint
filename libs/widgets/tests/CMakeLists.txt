@@ -124,12 +124,14 @@ ki18n_wrap_ui(KisPaletteModelSchemaContractTest_UI
 
 kis_add_test(
     KisPaletteModelSchemaContractTest.cpp
-    ${KisPaletteModelSchemaContractTest_UI}
     TEST_NAME KisPaletteModelSchemaContractTest
     LINK_LIBRARIES
         Qt${QT_MAJOR_VERSION}::Core
         Qt${QT_MAJOR_VERSION}::Gui
         Qt${QT_MAJOR_VERSION}::Test
+)
+set_property(TARGET KisPaletteModelSchemaContractTest APPEND PROPERTY
+    AUTOGEN_TARGET_DEPENDS ${KisPaletteModelSchemaContractTest_UI}
 )
 target_include_directories(KisPaletteModelSchemaContractTest PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/..
