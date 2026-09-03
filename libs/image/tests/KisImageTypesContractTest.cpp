@@ -21,6 +21,7 @@
 #include "kis_image_signal_router.h"
 #include "kis_iterator_ng.h"
 #include "kis_layer_utils.h"
+#include "kis_memory_statistics_server.h"
 #include "kis_paint_device_frames_interface.h"
 #include "kis_pixel_selection.h"
 #include "kis_processing_visitor.h"
@@ -291,6 +292,11 @@ private Q_SLOTS:
     void sliderPaintOpPropertyRangeAndStepSignaturesRemainStable();
     void sliderPaintOpPropertyDisplaySignaturesRemainStable();
     void sliderPaintOpPropertyRangeNotificationSignatureRemainsStable();
+    void memoryStatisticsServerTypeAndLifetimeSchemaRemainStable();
+    void memoryStatisticsImageAndAggregateDefaultsRemainStable();
+    void memoryStatisticsSwapAndLimitDefaultsRemainStable();
+    void memoryStatisticsCollectionSignaturesRemainStable();
+    void memoryStatisticsUpdateNotificationSignaturesRemainStable();
     void paintDeviceFrameOwnershipAndTestingDataSchemaRemainsStable();
     void paintDeviceFrameLifecycleAndIdentitySignaturesRemainStable();
     void paintDeviceFrameGeometryAndPixelSignaturesRemainStable();
@@ -1809,6 +1815,79 @@ void KisImageTypesContractTest::sliderPaintOpPropertyRangeNotificationSignatureR
 {
     static_assert(std::is_same_v<decltype(&KisSliderBasedPaintOpPropertyBase::sigRangeChanged),
                                  void (KisSliderBasedPaintOpPropertyBase::*)()>);
+}
+
+void KisImageTypesContractTest::memoryStatisticsServerTypeAndLifetimeSchemaRemainStable()
+{
+    static_assert(std::is_class_v<KisMemoryStatisticsServer>);
+    static_assert(std::is_base_of_v<QObject, KisMemoryStatisticsServer>);
+    static_assert(std::is_default_constructible_v<KisMemoryStatisticsServer>);
+    static_assert(std::has_virtual_destructor_v<KisMemoryStatisticsServer>);
+}
+
+void KisImageTypesContractTest::memoryStatisticsImageAndAggregateDefaultsRemainStable()
+{
+    using Statistics = KisMemoryStatisticsServer::Statistics;
+    using Member = qint64 Statistics::*;
+
+    static_assert(std::is_class_v<Statistics>);
+    static_assert(std::is_default_constructible_v<Statistics>);
+    static_assert(std::is_same_v<decltype(&Statistics::imageSize), Member>);
+    static_assert(std::is_same_v<decltype(&Statistics::layersSize), Member>);
+    static_assert(std::is_same_v<decltype(&Statistics::projectionsSize), Member>);
+    static_assert(std::is_same_v<decltype(&Statistics::lodSize), Member>);
+    static_assert(std::is_same_v<decltype(&Statistics::totalMemorySize), Member>);
+    static_assert(std::is_same_v<decltype(&Statistics::realMemorySize), Member>);
+    static_assert(std::is_same_v<decltype(&Statistics::historicalMemorySize), Member>);
+    static_assert(std::is_same_v<decltype(&Statistics::poolSize), Member>);
+
+    const Statistics statistics;
+    QCOMPARE(statistics.imageSize, qint64(0));
+    QCOMPARE(statistics.layersSize, qint64(0));
+    QCOMPARE(statistics.projectionsSize, qint64(0));
+    QCOMPARE(statistics.lodSize, qint64(0));
+    QCOMPARE(statistics.totalMemorySize, qint64(0));
+    QCOMPARE(statistics.realMemorySize, qint64(0));
+    QCOMPARE(statistics.historicalMemorySize, qint64(0));
+    QCOMPARE(statistics.poolSize, qint64(0));
+}
+
+void KisImageTypesContractTest::memoryStatisticsSwapAndLimitDefaultsRemainStable()
+{
+    using Statistics = KisMemoryStatisticsServer::Statistics;
+    using Member = qint64 Statistics::*;
+
+    static_assert(std::is_same_v<decltype(&Statistics::swapSize), Member>);
+    static_assert(std::is_same_v<decltype(&Statistics::totalMemoryLimit), Member>);
+    static_assert(std::is_same_v<decltype(&Statistics::tilesHardLimit), Member>);
+    static_assert(std::is_same_v<decltype(&Statistics::tilesSoftLimit), Member>);
+    static_assert(std::is_same_v<decltype(&Statistics::tilesPoolLimit), Member>);
+
+    const Statistics statistics;
+    QCOMPARE(statistics.swapSize, qint64(0));
+    QCOMPARE(statistics.totalMemoryLimit, qint64(0));
+    QCOMPARE(statistics.tilesHardLimit, qint64(0));
+    QCOMPARE(statistics.tilesSoftLimit, qint64(0));
+    QCOMPARE(statistics.tilesPoolLimit, qint64(0));
+}
+
+void KisImageTypesContractTest::memoryStatisticsCollectionSignaturesRemainStable()
+{
+    using InstanceSignature = KisMemoryStatisticsServer *(*)();
+    using FetchSignature = KisMemoryStatisticsServer::Statistics (KisMemoryStatisticsServer::*)(KisImageSP) const;
+
+    static_assert(std::is_same_v<decltype(&KisMemoryStatisticsServer::instance), InstanceSignature>);
+    static_assert(std::is_same_v<decltype(&KisMemoryStatisticsServer::fetchMemoryStatistics), FetchSignature>);
+}
+
+void KisImageTypesContractTest::memoryStatisticsUpdateNotificationSignaturesRemainStable()
+{
+    using VoidSignature = void (KisMemoryStatisticsServer::*)();
+
+    static_assert(std::is_same_v<decltype(&KisMemoryStatisticsServer::notifyImageChanged), VoidSignature>);
+    static_assert(
+        std::is_same_v<decltype(&KisMemoryStatisticsServer::tryForceUpdateMemoryStatisticsWhileIdle), VoidSignature>);
+    static_assert(std::is_same_v<decltype(&KisMemoryStatisticsServer::sigUpdateMemoryStatistics), VoidSignature>);
 }
 
 void KisImageTypesContractTest::paintDeviceFrameOwnershipAndTestingDataSchemaRemainsStable()
