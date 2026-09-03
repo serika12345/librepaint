@@ -275,6 +275,20 @@ target_include_directories(KStandardActionEnumContractTest PRIVATE
 target_compile_definitions(KStandardActionEnumContractTest PRIVATE kritawidgetutils_EXPORTS)
 
 kis_add_test(
+    KActionCategoryEditToolBarSchemaContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Test
+        KF${KF_MAJOR}::ConfigGui
+)
+target_include_directories(KActionCategoryEditToolBarSchemaContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/../config
+    ${CMAKE_CURRENT_SOURCE_DIR}/../xmlgui
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Widgets,INTERFACE_INCLUDE_DIRECTORIES>
+)
+target_compile_definitions(KActionCategoryEditToolBarSchemaContractTest PRIVATE kritawidgetutils_EXPORTS)
+
+kis_add_test(
     KXMLGUIClientSchemaContractTest.cpp
     LINK_LIBRARIES
         Qt${QT_MAJOR_VERSION}::Core
