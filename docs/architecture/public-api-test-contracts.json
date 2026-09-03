@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 11693
+    "expectedMissingApis": 11672
   },
   "contracts": [
     {
@@ -51109,6 +51109,72 @@
       "apis": [
         "method:KisTestableSimpleUpdateQueue::getSpontaneousJobsList()",
         "method:KisTestableSimpleUpdateQueue::getWalkersList()"
+      ]
+    },
+    {
+      "target": "KoShapeEnumContractTest",
+      "source": "libs/flake/tests/KoShapeEnumContractTest.cpp",
+      "test": "KoShapeEnumContractTest::shapePaintingSignaturesRemainStable",
+      "behavior": "図形は本体、markerとstrokeを描画する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShape::paint(QPainter & painter) const",
+        "method:KoShape::paintMarkers(QPainter & painter) const",
+        "method:KoShape::paintStroke(QPainter & painter) const"
+      ]
+    },
+    {
+      "target": "KoShapeEnumContractTest",
+      "source": "libs/flake/tests/KoShapeEnumContractTest.cpp",
+      "test": "KoShapeEnumContractTest::shapeBackgroundSignaturesRemainStable",
+      "behavior": "図形は背景とその継承方針を照会・設定する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShape::background() const",
+        "method:KoShape::inheritBackground() const",
+        "method:KoShape::setBackground(QSharedPointer<KoShapeBackground> background)",
+        "method:KoShape::setInheritBackground(bool value)"
+      ]
+    },
+    {
+      "target": "KoShapeEnumContractTest",
+      "source": "libs/flake/tests/KoShapeEnumContractTest.cpp",
+      "test": "KoShapeEnumContractTest::shapeStrokeSignaturesRemainStable",
+      "behavior": "図形はstrokeとその継承方針を照会・設定する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShape::inheritStroke() const",
+        "method:KoShape::setInheritStroke(bool value)",
+        "method:KoShape::setStroke(KoShapeStrokeModelSP stroke)",
+        "method:KoShape::stroke() const"
+      ]
+    },
+    {
+      "target": "KoShapeEnumContractTest",
+      "source": "libs/flake/tests/KoShapeEnumContractTest.cpp",
+      "test": "KoShapeEnumContractTest::shapePaintOrderSignaturesRemainStable",
+      "behavior": "図形は既定・現在の描画順とその継承方針を照会・設定する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShape::defaultPaintOrder()",
+        "method:KoShape::inheritPaintOrder() const",
+        "method:KoShape::paintOrder() const",
+        "method:KoShape::setInheritPaintOrder(bool value)",
+        "method:KoShape::setPaintOrder(PaintOrder first,PaintOrder second)"
+      ]
+    },
+    {
+      "target": "KoShapeEnumContractTest",
+      "source": "libs/flake/tests/KoShapeEnumContractTest.cpp",
+      "test": "KoShapeEnumContractTest::shapeTransparencyAndUpdateSignaturesRemainStable",
+      "behavior": "図形は透明度を照会・設定し、局所・絶対領域の再描画を要求する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShape::hasTransparency() const",
+        "method:KoShape::setTransparency(qreal transparency)",
+        "method:KoShape::transparency(bool recursive=false) const",
+        "method:KoShape::update() const",
+        "method:KoShape::updateAbsolute(const QRectF & rect) const"
       ]
     }
   ]
