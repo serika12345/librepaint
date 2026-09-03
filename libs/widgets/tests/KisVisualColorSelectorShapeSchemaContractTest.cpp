@@ -2,6 +2,9 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include <functional>
+
+#include <KisDlgInternalColorSelector.h>
 #include <KisVisualColorSelectorShape.h>
 #include <KisVisualEllipticalSelectorShape.h>
 #include <KisVisualRectangleSelectorShape.h>
@@ -15,6 +18,9 @@
 
 #define ASSERT_CONCRETE_SELECTOR_SHAPE_SIGNATURE(type, method, signature)                                              \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&type::method)), signature>)
+
+#define ASSERT_INTERNAL_COLOR_SELECTOR_SIGNATURE(method, signature)                                                    \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KisDlgInternalColorSelector::method)), signature>)
 
 class SelectorShapeConstructorProbe : public KisVisualColorSelectorShape
 {
@@ -48,7 +54,83 @@ private Q_SLOTS:
     void visualConcreteSelectorShapeGeometrySignaturesRemainStable();
     void visualRectangleSelectorShapeModeSignatureRemainsStable();
     void visualEllipticalSelectorShapeGamutSignaturesRemainStable();
+    void internalColorSelectorTypeLifetimeAndFactorySchemaRemainStable();
+    void internalColorSelectorConfigSchemaRemainStable();
+    void internalColorSelectorColorSpaceAndRendererSignaturesRemainStable();
+    void internalColorSelectorColorEditingSignaturesRemainStable();
+    void internalColorSelectorNotificationAndCloseSignaturesRemainStable();
 };
+
+void KisVisualColorSelectorShapeSchemaContractTest::internalColorSelectorTypeLifetimeAndFactorySchemaRemainStable()
+{
+    using Dialog = KisDlgInternalColorSelector;
+    using Config = Dialog::Config;
+    using ScreenColorSamplerFactory = std::function<KisScreenColorSamplerBase *(QWidget *)>;
+    using FactorySetter = void (*)(ScreenColorSamplerFactory);
+
+    static_assert(std::is_class_v<Dialog>);
+    static_assert(std::is_base_of_v<QDialog, Dialog>);
+    static_assert(std::is_constructible_v<Dialog, QWidget *, KoColor, Config, const QString &>);
+    static_assert(std::is_constructible_v<Dialog,
+                                          QWidget *,
+                                          KoColor,
+                                          Config,
+                                          const QString &,
+                                          const KoColorDisplayRendererInterface *>);
+    static_assert(std::has_virtual_destructor_v<Dialog>);
+    ASSERT_INTERNAL_COLOR_SELECTOR_SIGNATURE(setScreenColorSamplerFactory, FactorySetter);
+}
+
+void KisVisualColorSelectorShapeSchemaContractTest::internalColorSelectorConfigSchemaRemainStable()
+{
+    using Config = KisDlgInternalColorSelector::Config;
+
+    static_assert(std::is_class_v<Config>);
+    static_assert(std::is_default_constructible_v<Config>);
+    static_assert(std::is_same_v<decltype(&Config::hexInput), bool Config::*>);
+    static_assert(std::is_same_v<decltype(&Config::modal), bool Config::*>);
+    static_assert(std::is_same_v<decltype(&Config::paletteBox), bool Config::*>);
+    static_assert(std::is_same_v<decltype(&Config::prevNextButtons), bool Config::*>);
+    static_assert(std::is_same_v<decltype(&Config::screenColorSampler), bool Config::*>);
+    static_assert(std::is_same_v<decltype(&Config::useAlpha), bool Config::*>);
+    static_assert(std::is_same_v<decltype(&Config::visualColorSelector), bool Config::*>);
+}
+
+void KisVisualColorSelectorShapeSchemaContractTest::internalColorSelectorColorSpaceAndRendererSignaturesRemainStable()
+{
+    using Dialog = KisDlgInternalColorSelector;
+    using ColorSpaceSetter = void (Dialog::*)(const KoColorSpace *);
+    using DisplayRendererSetter = void (Dialog::*)(const KoColorDisplayRendererInterface *);
+
+    ASSERT_INTERNAL_COLOR_SELECTOR_SIGNATURE(colorSpaceChanged, ColorSpaceSetter);
+    ASSERT_INTERNAL_COLOR_SELECTOR_SIGNATURE(lockUsedColorSpace, ColorSpaceSetter);
+    ASSERT_INTERNAL_COLOR_SELECTOR_SIGNATURE(setDisplayRenderer, DisplayRendererSetter);
+}
+
+void KisVisualColorSelectorShapeSchemaContractTest::internalColorSelectorColorEditingSignaturesRemainStable()
+{
+    using Dialog = KisDlgInternalColorSelector;
+    using ColorGetter = KoColor (Dialog::*)();
+    using AlphaChooser = void (Dialog::*)(bool);
+    using ColorSetter = void (Dialog::*)(KoColor);
+    using ColorPatchSetter = void (Dialog::*)(KoColorPatch *);
+
+    ASSERT_INTERNAL_COLOR_SELECTOR_SIGNATURE(getCurrentColor, ColorGetter);
+    ASSERT_INTERNAL_COLOR_SELECTOR_SIGNATURE(chooseAlpha, AlphaChooser);
+    ASSERT_INTERNAL_COLOR_SELECTOR_SIGNATURE(setPreviousColor, ColorSetter);
+    ASSERT_INTERNAL_COLOR_SELECTOR_SIGNATURE(slotColorUpdated, ColorSetter);
+    ASSERT_INTERNAL_COLOR_SELECTOR_SIGNATURE(slotSetColorFromPatch, ColorPatchSetter);
+}
+
+void KisVisualColorSelectorShapeSchemaContractTest::internalColorSelectorNotificationAndCloseSignaturesRemainStable()
+{
+    using Dialog = KisDlgInternalColorSelector;
+    using ColorNotification = void (Dialog::*)(KoColor);
+    using CloseRequest = void (Dialog::*)();
+
+    ASSERT_INTERNAL_COLOR_SELECTOR_SIGNATURE(signalForegroundColorChosen, ColorNotification);
+    ASSERT_INTERNAL_COLOR_SELECTOR_SIGNATURE(reject, CloseRequest);
+}
 
 void KisVisualColorSelectorShapeSchemaContractTest::visualConcreteSelectorShapeConstructionSchemaRemainsStable()
 {
@@ -189,6 +271,7 @@ void KisVisualColorSelectorShapeSchemaContractTest::visualColorSelectorShapePoli
 }
 
 #undef ASSERT_CONCRETE_SELECTOR_SHAPE_SIGNATURE
+#undef ASSERT_INTERNAL_COLOR_SELECTOR_SIGNATURE
 #undef ASSERT_SELECTOR_SHAPE_SIGNATURE
 
 QTEST_GUILESS_MAIN(KisVisualColorSelectorShapeSchemaContractTest)
