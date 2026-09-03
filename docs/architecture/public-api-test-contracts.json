@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 12069
+    "expectedMissingApis": 12045
   },
   "contracts": [
     {
@@ -50058,6 +50058,75 @@
         "method:KisMemoryStatisticsServer::notifyImageChanged()",
         "method:KisMemoryStatisticsServer::sigUpdateMemoryStatistics()",
         "method:KisMemoryStatisticsServer::tryForceUpdateMemoryStatisticsWhileIdle()"
+      ]
+    },
+    {
+      "target": "KoShapeSavingContextSchemaContractTest",
+      "source": "libs/flake/tests/KoShapeSavingContextSchemaContractTest.cpp",
+      "test": "KoShapeSavingContextSchemaContractTest::svgSavingTypeLifetimeAndConstructionSchemaRemainStable",
+      "behavior": "SVG保存contextとwriterはdevice・shape・layer集合を受ける公開構築形と仮想寿命を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:SvgSavingContext",
+        "class:SvgWriter",
+        "method:SvgSavingContext::SvgSavingContext(QIODevice & outputDevice,bool saveInlineImages=true)",
+        "method:SvgSavingContext::SvgSavingContext(QIODevice & shapesDevice,QIODevice & styleDevice,bool saveInlineImages=true)",
+        "method:SvgSavingContext::~SvgSavingContext()",
+        "method:SvgWriter::SvgWriter(const QList<KoShape * > & toplevelShapes)",
+        "method:SvgWriter::SvgWriter(const QList<KoShapeLayer * > & layers)",
+        "method:SvgWriter::~SvgWriter()"
+      ]
+    },
+    {
+      "target": "KoShapeSavingContextSchemaContractTest",
+      "source": "libs/flake/tests/KoShapeSavingContextSchemaContractTest.cpp",
+      "test": "KoShapeSavingContextSchemaContractTest::svgSavingWriterTransformAndModeSignaturesRemainStable",
+      "behavior": "SVG保存contextはstyle・shape writer、user space変換、inline imageとstripped text modeの公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:SvgSavingContext::isSavingInlineImages() const",
+        "method:SvgSavingContext::setStrippedTextMode(bool value)",
+        "method:SvgSavingContext::shapeWriter()",
+        "method:SvgSavingContext::strippedTextMode() const",
+        "method:SvgSavingContext::styleWriter()",
+        "method:SvgSavingContext::userSpaceTransform() const"
+      ]
+    },
+    {
+      "target": "KoShapeSavingContextSchemaContractTest",
+      "source": "libs/flake/tests/KoShapeSavingContextSchemaContractTest.cpp",
+      "test": "KoShapeSavingContextSchemaContractTest::svgSavingIdentityAndExternalAssetSignaturesRemainStable",
+      "behavior": "SVG保存contextは一意識別子、shape識別子、外部file名とimage参照を生成する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:SvgSavingContext::createFileName(const QString & extension)",
+        "method:SvgSavingContext::createUID(const QString & base)",
+        "method:SvgSavingContext::getID(const KoShape * obj)",
+        "method:SvgSavingContext::saveImage(const QImage & image)"
+      ]
+    },
+    {
+      "target": "KoShapeSavingContextSchemaContractTest",
+      "source": "libs/flake/tests/KoShapeSavingContextSchemaContractTest.cpp",
+      "test": "KoShapeSavingContextSchemaContractTest::svgWriterOutputSignaturesRemainStable",
+      "behavior": "SVG writerはdevice・fileへの文書保存と既存contextを含むdetached保存の公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:SvgWriter::save(QIODevice & outputDevice,const QSizeF & pageSize)",
+        "method:SvgWriter::save(const QString & filename,const QSizeF & pageSize,bool writeInlineImages)",
+        "method:SvgWriter::saveDetached(QIODevice & outputDevice)",
+        "method:SvgWriter::saveDetached(SvgSavingContext & savingContext)"
+      ]
+    },
+    {
+      "target": "KoShapeSavingContextSchemaContractTest",
+      "source": "libs/flake/tests/KoShapeSavingContextSchemaContractTest.cpp",
+      "test": "KoShapeSavingContextSchemaContractTest::svgWriterDocumentMetadataSignaturesRemainStable",
+      "behavior": "SVG writerは文書titleとdescriptionを設定する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:SvgWriter::setDocumentDescription(QString description)",
+        "method:SvgWriter::setDocumentTitle(QString title)"
       ]
     }
   ]
