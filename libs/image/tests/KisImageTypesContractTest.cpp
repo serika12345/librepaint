@@ -5,6 +5,7 @@
 
 #include "brushengine/kis_paint_information.h"
 #include "brushengine/kis_paintop_settings.h"
+#include "brushengine/kis_slider_based_paintop_property.h"
 #include "brushengine/kis_uniform_paintop_property.h"
 #include "commands_new/kis_saved_commands.h"
 #include "kis_base_mask_generator.h"
@@ -285,6 +286,11 @@ private Q_SLOTS:
     void uniformPaintOpPropertyLifetimeSchemaRemainsStable();
     void uniformPaintOpPropertyIdentityAndSettingsSignaturesRemainStable();
     void uniformPaintOpPropertyValueAndNotificationSignaturesRemainStable();
+    void sliderPaintOpPropertyTypeAndAliasSchemaRemainStable();
+    void sliderPaintOpPropertyConstructionSchemaRemainsStable();
+    void sliderPaintOpPropertyRangeAndStepSignaturesRemainStable();
+    void sliderPaintOpPropertyDisplaySignaturesRemainStable();
+    void sliderPaintOpPropertyRangeNotificationSignatureRemainsStable();
     void paintDeviceFrameOwnershipAndTestingDataSchemaRemainsStable();
     void paintDeviceFrameLifecycleAndIdentitySignaturesRemainStable();
     void paintDeviceFrameGeometryAndPixelSignaturesRemainStable();
@@ -1719,6 +1725,90 @@ void KisImageTypesContractTest::uniformPaintOpPropertyValueAndNotificationSignat
     static_assert(std::is_same_v<decltype(&KisUniformPaintOpProperty::setValue), ValueSetterSignature>);
     static_assert(std::is_same_v<decltype(&KisUniformPaintOpProperty::value), ValueSignature>);
     static_assert(std::is_same_v<decltype(&KisUniformPaintOpProperty::valueChanged), ValueSetterSignature>);
+}
+
+void KisImageTypesContractTest::sliderPaintOpPropertyTypeAndAliasSchemaRemainStable()
+{
+    using IntSlider = KisSliderBasedPaintOpProperty<int>;
+    using DoubleSlider = KisSliderBasedPaintOpProperty<qreal>;
+
+    static_assert(std::is_class_v<KisSliderBasedPaintOpPropertyBase>);
+    static_assert(std::is_base_of_v<KisUniformPaintOpProperty, KisSliderBasedPaintOpPropertyBase>);
+    static_assert(std::is_class_v<IntSlider>);
+    static_assert(std::is_base_of_v<KisSliderBasedPaintOpPropertyBase, IntSlider>);
+    static_assert(std::is_base_of_v<KisSliderBasedPaintOpPropertyBase, DoubleSlider>);
+    static_assert(std::is_same_v<KisIntSliderBasedPaintOpProperty, IntSlider>);
+    static_assert(std::is_same_v<KisDoubleSliderBasedPaintOpProperty, DoubleSlider>);
+    static_assert(std::is_same_v<KisIntSliderBasedPaintOpPropertyCallback, KisCallbackBasedPaintopProperty<IntSlider>>);
+    static_assert(
+        std::is_same_v<KisDoubleSliderBasedPaintOpPropertyCallback, KisCallbackBasedPaintopProperty<DoubleSlider>>);
+}
+
+void KisImageTypesContractTest::sliderPaintOpPropertyConstructionSchemaRemainsStable()
+{
+    using IntSlider = KisIntSliderBasedPaintOpProperty;
+    using DoubleSlider = KisDoubleSliderBasedPaintOpProperty;
+    using Type = KisUniformPaintOpProperty::Type;
+    using SubType = KisUniformPaintOpProperty::SubType;
+
+    static_assert(
+        std::is_constructible_v<IntSlider, Type, SubType, const KoID &, KisPaintOpSettingsRestrictedSP, QObject *>);
+    static_assert(
+        std::is_constructible_v<DoubleSlider, Type, SubType, const KoID &, KisPaintOpSettingsRestrictedSP, QObject *>);
+    static_assert(std::is_constructible_v<IntSlider, Type, const KoID &, KisPaintOpSettingsRestrictedSP, QObject *>);
+    static_assert(std::is_constructible_v<DoubleSlider, Type, const KoID &, KisPaintOpSettingsRestrictedSP, QObject *>);
+    static_assert(std::is_constructible_v<IntSlider, const KoID &, KisPaintOpSettingsRestrictedSP, QObject *>);
+    static_assert(std::is_constructible_v<DoubleSlider, const KoID &, KisPaintOpSettingsRestrictedSP, QObject *>);
+}
+
+void KisImageTypesContractTest::sliderPaintOpPropertyRangeAndStepSignaturesRemainStable()
+{
+    using IntSlider = KisIntSliderBasedPaintOpProperty;
+    using DoubleSlider = KisDoubleSliderBasedPaintOpProperty;
+    using IntGetter = int (IntSlider::*)() const;
+    using IntSetter = void (IntSlider::*)(int);
+    using DoubleGetter = qreal (DoubleSlider::*)() const;
+    using DoubleSetter = void (DoubleSlider::*)(qreal);
+
+    static_assert(std::is_same_v<decltype(&IntSlider::min), IntGetter>);
+    static_assert(std::is_same_v<decltype(&DoubleSlider::min), DoubleGetter>);
+    static_assert(std::is_same_v<decltype(&IntSlider::max), IntGetter>);
+    static_assert(std::is_same_v<decltype(&DoubleSlider::max), DoubleGetter>);
+    static_assert(std::is_same_v<decltype(&IntSlider::setRange), void (IntSlider::*)(int, int)>);
+    static_assert(std::is_same_v<decltype(&DoubleSlider::setRange), void (DoubleSlider::*)(qreal, qreal)>);
+    static_assert(std::is_same_v<decltype(&IntSlider::singleStep), IntGetter>);
+    static_assert(std::is_same_v<decltype(&DoubleSlider::singleStep), DoubleGetter>);
+    static_assert(std::is_same_v<decltype(&IntSlider::setSingleStep), IntSetter>);
+    static_assert(std::is_same_v<decltype(&DoubleSlider::setSingleStep), DoubleSetter>);
+    static_assert(std::is_same_v<decltype(&IntSlider::pageStep), IntGetter>);
+    static_assert(std::is_same_v<decltype(&DoubleSlider::pageStep), DoubleGetter>);
+    static_assert(std::is_same_v<decltype(&IntSlider::setPageStep), IntSetter>);
+    static_assert(std::is_same_v<decltype(&DoubleSlider::setPageStep), DoubleSetter>);
+}
+
+void KisImageTypesContractTest::sliderPaintOpPropertyDisplaySignaturesRemainStable()
+{
+    using IntSlider = KisIntSliderBasedPaintOpProperty;
+    using DoubleSlider = KisDoubleSliderBasedPaintOpProperty;
+
+    static_assert(std::is_same_v<decltype(&IntSlider::exponentRatio), qreal (IntSlider::*)() const>);
+    static_assert(std::is_same_v<decltype(&DoubleSlider::exponentRatio), qreal (DoubleSlider::*)() const>);
+    static_assert(std::is_same_v<decltype(&IntSlider::setExponentRatio), void (IntSlider::*)(qreal)>);
+    static_assert(std::is_same_v<decltype(&DoubleSlider::setExponentRatio), void (DoubleSlider::*)(qreal)>);
+    static_assert(std::is_same_v<decltype(&IntSlider::decimals), int (IntSlider::*)() const>);
+    static_assert(std::is_same_v<decltype(&DoubleSlider::decimals), int (DoubleSlider::*)() const>);
+    static_assert(std::is_same_v<decltype(&IntSlider::setDecimals), void (IntSlider::*)(int)>);
+    static_assert(std::is_same_v<decltype(&DoubleSlider::setDecimals), void (DoubleSlider::*)(int)>);
+    static_assert(std::is_same_v<decltype(&IntSlider::suffix), QString (IntSlider::*)() const>);
+    static_assert(std::is_same_v<decltype(&DoubleSlider::suffix), QString (DoubleSlider::*)() const>);
+    static_assert(std::is_same_v<decltype(&IntSlider::setSuffix), void (IntSlider::*)(QString)>);
+    static_assert(std::is_same_v<decltype(&DoubleSlider::setSuffix), void (DoubleSlider::*)(QString)>);
+}
+
+void KisImageTypesContractTest::sliderPaintOpPropertyRangeNotificationSignatureRemainsStable()
+{
+    static_assert(std::is_same_v<decltype(&KisSliderBasedPaintOpPropertyBase::sigRangeChanged),
+                                 void (KisSliderBasedPaintOpPropertyBase::*)()>);
 }
 
 void KisImageTypesContractTest::paintDeviceFrameOwnershipAndTestingDataSchemaRemainsStable()
