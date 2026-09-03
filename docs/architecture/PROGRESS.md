@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-03 09:06 JST
+- 更新日時: 2026-09-03 09:12 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -15,6 +15,13 @@
   一つの公開責務から20〜80 APIを最大5枠へ固定し、既存限定対象またはheader限定の4〜10工程程度の対象で、製品共有libraryと`kritatestsdk`へ接続しない候補だけを採用する。製品targetを引数にする`build-incremental ... plan`と製品buildは実行せず、既存Ninja木のquery・commands・inputsだけを読み取る。
 - image・paintop・pigment領域は第177便のpaint情報を、flake・SVG・vector領域はtool factory・registryを、widgetutils・widgets・libkis領域はtoolbar表示制御を除外して一責務ずつ比較する。
 - 各監査は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、予測工程・入力と停止線、開始pathから契約先、許可path、固有停止条件、比較候補の棄却根拠を揃える。3領域のpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
+- image・paintop領域は`libs/image/brushengine/kis_paintop_settings.h`の残存全50 APIを採用した。型・更新通知・寿命11、outline・入力・起動13、copy・設定・合成・妥当性10、resource・canvas・cache 8、masking・LOD・一様property 8を既存`libs/image/tests/KisImageTypesContractTest.cpp`の5枠へ対応付ける。設定、resource、canvas、cache、node、paint情報、outline、uniform propertyを実体化せず、constructor、clone、入力処理、outline生成、設定変更、resource再生成、masking生成の本文を実行しない。CMakeと依存を変えず、直接linkはQt Core・Gui・Test・XmlとBoost、対象4工程・8入力、停止5工程・11入力、command hash`860901e6be`、input hash`42c0bdca62`、製品`kritaimage` 1,196工程・2,416入力を維持する。
+  `kis_image.h`、`kis_painter.h`、`kis_paint_device.h`は文書・画素・projection・strokeへ閉包が広く、color space registryはplugin・resource・profile所有へまたがるため棄却した。
+- flake・vector領域は`libs/flake/SimpleShapeContainerModel.h`の残存全18 APIと`libs/flake/KoShapeBulkActionLock.h`の残存全13 APIをshape階層の保持・一括更新責務として採用した。simple model型・寿命4、格納・clip 6、transform・移動・container通知4、階層・shape manager連携4、bulk lock型・別名・寿命・制御13を既存`libs/flake/tests/KoShapeContainerModelContractTest.cpp`の5枠へ対応付ける。model、shape、container、manager、bulk interface、lockを実体化せず、copy、追加・削除、階層通知、manager登録、lock・unlock・update本文を実行しない。`SimpleShapeContainerModel.h`と`KoShapeBulkActionLock.h`が直接含むglobal headerの探索経路だけを対象固有CMake節へ追加し、製品OBJECT/sharedを接続しない。直接linkは既存shape container model OBJECTとQt Test、定義閉包5工程・11入力、停止6工程・14入力、command hash`173fead0f2`、input hash`f5ac8d2e37`、製品`kritaflake` 621工程・1,274入力を維持する。
+  shape・shape manager・tool managerは描画、選択、event配送、大域状態へ閉包が広く、private tool proxyは入力eventとscroll timerへ責務が分岐するため棄却した。
+- widgetutils領域は`libs/widgetutils/xmlgui/kxmlguifactory.h`の残存全19 APIと`libs/widgetutils/xmlgui/kxmlguibuilder.h`の残存全13 APIをXML GUI構築責務として採用した。factory型・寿命・設定7、client・action list 5、container・reset・通知7、builder型・寿命・所有・tag 8、container・custom要素生成・終了5を既存`libs/widgetutils/tests/KKeySequenceWidgetSchemaContractTest.cpp`の5枠へ対応付ける。factory、builder、client、widget、action、DOM、設定を実体化せず、設定I/O、client統合、container探索・reset、signal、GUI生成・削除・終了本文を実行しない。CMakeと依存を変えず、直接linkはQt Gui・Test、Qt Widgets・KWidgetsAddonsは既存compile interfaceだけ、対象4工程・8入力、停止5工程・11入力、command hash`9070057888`、input hash`9e1145634e`、製品`kritawidgetutils` 274工程・581入力を維持する。
+  tag selection widgetはresource modelと複数Widget、libkis文書・nodeは文書・画像状態と製品共有libraryへ閉包が広く、visual color selectorは色空間・描画・複数Widgetへ責務が分岐するため棄却した。
+- 中央の`public-api-missing-g178.json`でpaint operation設定50件、shape階層31件、XML GUI構築32件の全識別子を照合した。3責務の開始headerと既存試験sourceは相互に異なり、所有CMakeと生成物にも重複はない。合計113 APIを15枠へ進め、許可path外変更、製品OBJECT/sharedへの新規接続、実体化・本文実行、指定したglobal compile interface以外の新規include・link、各停止線超過、製品計画集合の変化が必要になれば停止する。
 
 ### 第177便の先行監査計画
 
