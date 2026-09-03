@@ -9,17 +9,89 @@
 
 #include <type_traits>
 
+#define ASSERT_CANVAS_CONTROLLER_SIGNATURE(method, signature)                                                          \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KoCanvasController::method)), signature>)
+
+namespace
+{
+class CanvasControllerConstructorProbe : public KoCanvasController
+{
+public:
+    explicit CanvasControllerConstructorProbe(KisKActionCollection *actionCollection)
+        : KoCanvasController(actionCollection)
+    {
+    }
+};
+} // namespace
+
 class KoCanvasControllerProxySchemaContractTest : public QObject
 {
     Q_OBJECT
 
 private Q_SLOTS:
+    void canvasControllerTypeLifetimeAndCanvasSignaturesRemainStable();
+    void canvasControllerVisibilityAndPositionSignaturesRemainStable();
+    void canvasControllerZoomSignaturesRemainStable();
+    void canvasControllerPanSignaturesRemainStable();
+    void canvasControllerScrollBarSignaturesRemainStable();
     void canvasControllerProxyIdentityAndAccessSignaturesRemainStable();
     void canvasControllerProxyLifecycleNotificationsRemainStable();
     void canvasControllerProxyPositionAndOffsetNotificationsRemainStable();
     void canvasControllerProxyViewGeometryNotificationsRemainStable();
     void canvasControllerProxyZoomAndMirrorNotificationsRemainStable();
 };
+
+void KoCanvasControllerProxySchemaContractTest::canvasControllerTypeLifetimeAndCanvasSignaturesRemainStable()
+{
+    using Controller = KoCanvasController;
+    static_assert(std::is_class_v<Controller>);
+    static_assert(std::is_abstract_v<Controller>);
+    static_assert(std::has_virtual_destructor_v<Controller>);
+    static_assert(std::is_abstract_v<CanvasControllerConstructorProbe>);
+    static_assert(std::is_same_v<decltype(Controller::proxyObject), QPointer<KoCanvasControllerProxyObject>>);
+    ASSERT_CANVAS_CONTROLLER_SIGNATURE(actionCollection, KisKActionCollection * (Controller::*)() const);
+    ASSERT_CANVAS_CONTROLLER_SIGNATURE(canvas, KoCanvasBase * (Controller::*)() const);
+    ASSERT_CANVAS_CONTROLLER_SIGNATURE(setCanvas, void (Controller::*)(KoCanvasBase *));
+}
+
+void KoCanvasControllerProxySchemaContractTest::canvasControllerVisibilityAndPositionSignaturesRemainStable()
+{
+    using Controller = KoCanvasController;
+    ASSERT_CANVAS_CONTROLLER_SIGNATURE(currentCursorPosition, QPointF (Controller::*)() const);
+    ASSERT_CANVAS_CONTROLLER_SIGNATURE(ensureVisibleDoc, void (Controller::*)(const QRectF &, bool));
+    ASSERT_CANVAS_CONTROLLER_SIGNATURE(preferredCenter, QPointF (Controller::*)() const);
+    ASSERT_CANVAS_CONTROLLER_SIGNATURE(setPreferredCenter, void (Controller::*)(const QPointF &));
+}
+
+void KoCanvasControllerProxySchemaContractTest::canvasControllerZoomSignaturesRemainStable()
+{
+    using Controller = KoCanvasController;
+    ASSERT_CANVAS_CONTROLLER_SIGNATURE(setZoom, void (Controller::*)(KoZoomMode::Mode, qreal));
+    ASSERT_CANVAS_CONTROLLER_SIGNATURE(zoomIn, void (Controller::*)());
+    ASSERT_CANVAS_CONTROLLER_SIGNATURE(zoomIn, void (Controller::*)(const KoViewTransformStillPoint &));
+    ASSERT_CANVAS_CONTROLLER_SIGNATURE(zoomOut, void (Controller::*)());
+    ASSERT_CANVAS_CONTROLLER_SIGNATURE(zoomOut, void (Controller::*)(const KoViewTransformStillPoint &));
+    ASSERT_CANVAS_CONTROLLER_SIGNATURE(zoomState, KoZoomState (Controller::*)() const);
+    ASSERT_CANVAS_CONTROLLER_SIGNATURE(zoomTo, void (Controller::*)(const QRect &));
+}
+
+void KoCanvasControllerProxySchemaContractTest::canvasControllerPanSignaturesRemainStable()
+{
+    using Controller = KoCanvasController;
+    ASSERT_CANVAS_CONTROLLER_SIGNATURE(pan, void (Controller::*)(const QPoint &));
+    ASSERT_CANVAS_CONTROLLER_SIGNATURE(panDown, void (Controller::*)());
+    ASSERT_CANVAS_CONTROLLER_SIGNATURE(panLeft, void (Controller::*)());
+    ASSERT_CANVAS_CONTROLLER_SIGNATURE(panRight, void (Controller::*)());
+    ASSERT_CANVAS_CONTROLLER_SIGNATURE(panUp, void (Controller::*)());
+}
+
+void KoCanvasControllerProxySchemaContractTest::canvasControllerScrollBarSignaturesRemainStable()
+{
+    using Controller = KoCanvasController;
+    ASSERT_CANVAS_CONTROLLER_SIGNATURE(resetScrollBars, void (Controller::*)());
+    ASSERT_CANVAS_CONTROLLER_SIGNATURE(scrollBarValue, QPoint (Controller::*)() const);
+    ASSERT_CANVAS_CONTROLLER_SIGNATURE(setScrollBarValue, void (Controller::*)(const QPoint &));
+}
 
 void KoCanvasControllerProxySchemaContractTest::canvasControllerProxyIdentityAndAccessSignaturesRemainStable()
 {
