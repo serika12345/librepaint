@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include <KoGradientBackground.h>
+#include <KoMeshGradientBackground.h>
 #include <KoPatternBackground.h>
 
 #include <QTest>
@@ -11,6 +13,10 @@
 
 namespace
 {
+#define ASSERT_GRADIENT_BACKGROUND_SIGNATURE(method, signature)                                                        \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KoGradientBackground::method)), signature>)
+#define ASSERT_MESH_GRADIENT_BACKGROUND_SIGNATURE(method, signature)                                                   \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KoMeshGradientBackground::method)), signature>)
 #define ASSERT_PATTERN_BACKGROUND_SIGNATURE(method, signature)                                                         \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KoPatternBackground::method)), signature>)
 } // namespace
@@ -20,12 +26,72 @@ class KoPatternBackgroundSchemaContractTest : public QObject
     Q_OBJECT
 
 private Q_SLOTS:
+    void gradientBackgroundTypeAndLifetimeSchemaRemainStable();
+    void gradientBackgroundValueSemanticsSignaturesRemainStable();
+    void gradientBackgroundGradientAndRenderingSignaturesRemainStable();
+    void meshGradientBackgroundTypeAndLifetimeSchemaRemainStable();
+    void meshGradientBackgroundValueAndRenderingSignaturesRemainStable();
     void patternBackgroundTypeAndValueLifetimeSchemaRemainStable();
     void patternBackgroundRepeatAndReferenceOrdinalsRemainStable();
     void patternImageAndDisplayGeometrySignaturesRemainStable();
     void patternReferencePlacementSignaturesRemainStable();
     void patternTileAndTransformSignaturesRemainStable();
 };
+
+void KoPatternBackgroundSchemaContractTest::gradientBackgroundTypeAndLifetimeSchemaRemainStable()
+{
+    static_assert(std::is_class_v<KoGradientBackground>);
+    static_assert(std::is_base_of_v<KoShapeBackground, KoGradientBackground>);
+    static_assert(std::is_constructible_v<KoGradientBackground, QGradient *>);
+    static_assert(std::is_constructible_v<KoGradientBackground, QGradient *, const QTransform &>);
+    static_assert(std::is_constructible_v<KoGradientBackground, const QGradient &>);
+    static_assert(std::is_constructible_v<KoGradientBackground, const QGradient &, const QTransform &>);
+    static_assert(std::is_copy_constructible_v<KoGradientBackground>);
+    static_assert(std::is_destructible_v<KoGradientBackground>);
+    static_assert(std::has_virtual_destructor_v<KoGradientBackground>);
+}
+
+void KoPatternBackgroundSchemaContractTest::gradientBackgroundValueSemanticsSignaturesRemainStable()
+{
+    ASSERT_GRADIENT_BACKGROUND_SIGNATURE(operator=,
+                                         KoGradientBackground
+                                             & (KoGradientBackground::*)(const KoGradientBackground &));
+    ASSERT_GRADIENT_BACKGROUND_SIGNATURE(compareTo, bool (KoGradientBackground::*)(const KoShapeBackground *) const);
+}
+
+void KoPatternBackgroundSchemaContractTest::gradientBackgroundGradientAndRenderingSignaturesRemainStable()
+{
+    ASSERT_GRADIENT_BACKGROUND_SIGNATURE(gradient, const QGradient *(KoGradientBackground::*)() const);
+    ASSERT_GRADIENT_BACKGROUND_SIGNATURE(setGradient, void (KoGradientBackground::*)(const QGradient &));
+    ASSERT_GRADIENT_BACKGROUND_SIGNATURE(transform, QTransform (KoGradientBackground::*)() const);
+    ASSERT_GRADIENT_BACKGROUND_SIGNATURE(setTransform, void (KoGradientBackground::*)(const QTransform &));
+    ASSERT_GRADIENT_BACKGROUND_SIGNATURE(paint, void (KoGradientBackground::*)(QPainter &, const QPainterPath &) const);
+}
+
+void KoPatternBackgroundSchemaContractTest::meshGradientBackgroundTypeAndLifetimeSchemaRemainStable()
+{
+    static_assert(std::is_class_v<KoMeshGradientBackground>);
+    static_assert(std::is_base_of_v<KoShapeBackground, KoMeshGradientBackground>);
+    static_assert(std::is_constructible_v<KoMeshGradientBackground, const SvgMeshGradient *>);
+    static_assert(std::is_constructible_v<KoMeshGradientBackground, const SvgMeshGradient *, const QTransform &>);
+    static_assert(std::is_copy_constructible_v<KoMeshGradientBackground>);
+    static_assert(std::is_destructible_v<KoMeshGradientBackground>);
+    static_assert(std::has_virtual_destructor_v<KoMeshGradientBackground>);
+}
+
+void KoPatternBackgroundSchemaContractTest::meshGradientBackgroundValueAndRenderingSignaturesRemainStable()
+{
+    ASSERT_MESH_GRADIENT_BACKGROUND_SIGNATURE(operator=,
+                                              KoMeshGradientBackground
+                                                  & (KoMeshGradientBackground::*)(const KoMeshGradientBackground &));
+    ASSERT_MESH_GRADIENT_BACKGROUND_SIGNATURE(compareTo,
+                                              bool (KoMeshGradientBackground::*)(const KoShapeBackground *) const);
+    ASSERT_MESH_GRADIENT_BACKGROUND_SIGNATURE(gradient, SvgMeshGradient * (KoMeshGradientBackground::*)());
+    ASSERT_MESH_GRADIENT_BACKGROUND_SIGNATURE(transform, QTransform (KoMeshGradientBackground::*)());
+    ASSERT_MESH_GRADIENT_BACKGROUND_SIGNATURE(paint,
+                                              void (KoMeshGradientBackground::*)(QPainter &, const QPainterPath &)
+                                                  const);
+}
 
 void KoPatternBackgroundSchemaContractTest::patternBackgroundTypeAndValueLifetimeSchemaRemainStable()
 {
