@@ -4,6 +4,7 @@
  */
 
 #include <KoCanvasController.h>
+#include <KoToolProxy.h>
 
 #include <QTest>
 
@@ -11,6 +12,8 @@
 
 #define ASSERT_CANVAS_CONTROLLER_SIGNATURE(method, signature)                                                          \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KoCanvasController::method)), signature>)
+#define ASSERT_TOOL_PROXY_SIGNATURE(method, signature)                                                                 \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KoToolProxy::method)), signature>)
 
 namespace
 {
@@ -22,6 +25,16 @@ public:
     {
     }
 };
+
+class ToolProxyConstructorProbe : public KoToolProxy
+{
+public:
+    using KoToolProxy::KoToolProxy;
+
+protected:
+    QPointF widgetToDocument(const QPointF &widgetPoint) const override;
+    QPointF documentToWidget(const QPointF &documentPoint) const override;
+};
 } // namespace
 
 class KoCanvasControllerProxySchemaContractTest : public QObject
@@ -29,6 +42,11 @@ class KoCanvasControllerProxySchemaContractTest : public QObject
     Q_OBJECT
 
 private Q_SLOTS:
+    void toolProxyTypeLifetimeAndActiveToolSignaturesRemainStable();
+    void toolProxyPointerEventForwardingSignaturesRemainStable();
+    void toolProxyKeyboardFocusAndDropSignaturesRemainStable();
+    void toolProxyPaintingAndEditingSignaturesRemainStable();
+    void toolProxyNotificationSignaturesRemainStable();
     void canvasControllerTypeLifetimeAndCanvasSignaturesRemainStable();
     void canvasControllerVisibilityAndPositionSignaturesRemainStable();
     void canvasControllerZoomSignaturesRemainStable();
@@ -40,6 +58,75 @@ private Q_SLOTS:
     void canvasControllerProxyViewGeometryNotificationsRemainStable();
     void canvasControllerProxyZoomAndMirrorNotificationsRemainStable();
 };
+
+void KoCanvasControllerProxySchemaContractTest::toolProxyTypeLifetimeAndActiveToolSignaturesRemainStable()
+{
+    using Proxy = KoToolProxy;
+    static_assert(std::is_class_v<Proxy>);
+    static_assert(std::is_base_of_v<QObject, Proxy>);
+    static_assert(std::is_abstract_v<Proxy>);
+    static_assert(std::has_virtual_destructor_v<Proxy>);
+    static_assert(std::is_constructible_v<ToolProxyConstructorProbe, KoCanvasBase *>);
+    static_assert(std::is_constructible_v<ToolProxyConstructorProbe, KoCanvasBase *, QObject *>);
+    ASSERT_TOOL_PROXY_SIGNATURE(setActiveTool, void (Proxy::*)(KoToolBase *));
+    ASSERT_TOOL_PROXY_SIGNATURE(lastDeliveredPointerEvent, KoPointerEvent * (Proxy::*)() const);
+    ASSERT_TOOL_PROXY_SIGNATURE(toolPriorityShortcuts, QVector<QKeySequence> (Proxy::*)() const);
+    ASSERT_TOOL_PROXY_SIGNATURE(priv, KoToolProxyPrivate * (Proxy::*)());
+}
+
+void KoCanvasControllerProxySchemaContractTest::toolProxyPointerEventForwardingSignaturesRemainStable()
+{
+    using Proxy = KoToolProxy;
+    ASSERT_TOOL_PROXY_SIGNATURE(tabletEvent, void (Proxy::*)(QTabletEvent *, const QPointF &));
+    ASSERT_TOOL_PROXY_SIGNATURE(touchEvent, void (Proxy::*)(QTouchEvent *, const QPointF &));
+    ASSERT_TOOL_PROXY_SIGNATURE(mousePressEvent, void (Proxy::*)(QMouseEvent *, const QPointF &));
+    ASSERT_TOOL_PROXY_SIGNATURE(mousePressEvent, void (Proxy::*)(KoPointerEvent *));
+    ASSERT_TOOL_PROXY_SIGNATURE(mouseDoubleClickEvent, void (Proxy::*)(QMouseEvent *, const QPointF &));
+    ASSERT_TOOL_PROXY_SIGNATURE(mouseDoubleClickEvent, void (Proxy::*)(KoPointerEvent *));
+    ASSERT_TOOL_PROXY_SIGNATURE(mouseMoveEvent, void (Proxy::*)(QMouseEvent *, const QPointF &));
+    ASSERT_TOOL_PROXY_SIGNATURE(mouseMoveEvent, void (Proxy::*)(KoPointerEvent *));
+    ASSERT_TOOL_PROXY_SIGNATURE(mouseReleaseEvent, void (Proxy::*)(QMouseEvent *, const QPointF &));
+    ASSERT_TOOL_PROXY_SIGNATURE(mouseReleaseEvent, void (Proxy::*)(KoPointerEvent *));
+}
+
+void KoCanvasControllerProxySchemaContractTest::toolProxyKeyboardFocusAndDropSignaturesRemainStable()
+{
+    using Proxy = KoToolProxy;
+    ASSERT_TOOL_PROXY_SIGNATURE(keyPressEvent, void (Proxy::*)(QKeyEvent *));
+    ASSERT_TOOL_PROXY_SIGNATURE(keyReleaseEvent, void (Proxy::*)(QKeyEvent *));
+    ASSERT_TOOL_PROXY_SIGNATURE(inputMethodQuery, QVariant (Proxy::*)(Qt::InputMethodQuery) const);
+    ASSERT_TOOL_PROXY_SIGNATURE(inputMethodEvent, void (Proxy::*)(QInputMethodEvent *));
+    ASSERT_TOOL_PROXY_SIGNATURE(focusInEvent, void (Proxy::*)(QFocusEvent *));
+    ASSERT_TOOL_PROXY_SIGNATURE(focusOutEvent, void (Proxy::*)(QFocusEvent *));
+    ASSERT_TOOL_PROXY_SIGNATURE(dragMoveEvent, void (Proxy::*)(QDragMoveEvent *, const QPointF &));
+    ASSERT_TOOL_PROXY_SIGNATURE(dragLeaveEvent, void (Proxy::*)(QDragLeaveEvent *));
+    ASSERT_TOOL_PROXY_SIGNATURE(dropEvent, void (Proxy::*)(QDropEvent *, const QPointF &));
+    ASSERT_TOOL_PROXY_SIGNATURE(processEvent, void (Proxy::*)(QEvent *) const);
+}
+
+void KoCanvasControllerProxySchemaContractTest::toolProxyPaintingAndEditingSignaturesRemainStable()
+{
+    using Proxy = KoToolProxy;
+    ASSERT_TOOL_PROXY_SIGNATURE(paint, void (Proxy::*)(QPainter &, const KoViewConverter &));
+    ASSERT_TOOL_PROXY_SIGNATURE(repaintDecorations, void (Proxy::*)());
+    ASSERT_TOOL_PROXY_SIGNATURE(explicitUserStrokeEndRequest, void (Proxy::*)());
+    ASSERT_TOOL_PROXY_SIGNATURE(popupActionsMenu, QMenu * (Proxy::*)());
+    ASSERT_TOOL_PROXY_SIGNATURE(popupWidget, KisPopupWidgetInterface * (Proxy::*)());
+    ASSERT_TOOL_PROXY_SIGNATURE(deleteSelection, void (Proxy::*)());
+    ASSERT_TOOL_PROXY_SIGNATURE(hasSelection, bool (Proxy::*)() const);
+    ASSERT_TOOL_PROXY_SIGNATURE(cut, void (Proxy::*)());
+    ASSERT_TOOL_PROXY_SIGNATURE(copy, void (Proxy::*)() const);
+    ASSERT_TOOL_PROXY_SIGNATURE(paste, bool (Proxy::*)());
+    ASSERT_TOOL_PROXY_SIGNATURE(selectAll, bool (Proxy::*)());
+    ASSERT_TOOL_PROXY_SIGNATURE(deselect, void (Proxy::*)());
+}
+
+void KoCanvasControllerProxySchemaContractTest::toolProxyNotificationSignaturesRemainStable()
+{
+    using Proxy = KoToolProxy;
+    ASSERT_TOOL_PROXY_SIGNATURE(selectionChanged, void (Proxy::*)(bool));
+    ASSERT_TOOL_PROXY_SIGNATURE(toolChanged, void (Proxy::*)(const QString &));
+}
 
 void KoCanvasControllerProxySchemaContractTest::canvasControllerTypeLifetimeAndCanvasSignaturesRemainStable()
 {
