@@ -5,6 +5,8 @@
 
 #include <KoShape.h>
 #include <KoShapeContainer.h>
+#include <KoShapeController.h>
+#include <KoShapeControllerBase.h>
 #include <KoShapeFactoryBase.h>
 
 #include <QTest>
@@ -19,6 +21,10 @@ using ShapeElementList = QList<QPair<QString, QStringList>>;
 
 #define ASSERT_SHAPE_FACTORY_SIGNATURE(method, signature)                                                              \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KoShapeFactoryBase::method)), signature>)
+#define ASSERT_SHAPE_CONTROLLER_BASE_SIGNATURE(method, signature)                                                      \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KoShapeControllerBase::method)), signature>)
+#define ASSERT_SHAPE_CONTROLLER_SIGNATURE(method, signature)                                                           \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KoShapeController::method)), signature>)
 
 class ShapeFactoryConstructorProbe : public KoShapeFactoryBase
 {
@@ -45,6 +51,15 @@ public:
     void paintComponent(QPainter &painter) const override;
 };
 
+class ShapeControllerBaseConstructorProbe final : public KoShapeControllerBase
+{
+public:
+    using KoShapeControllerBase::KoShapeControllerBase;
+
+    QRectF documentRectInPixels() const override;
+    qreal pixelsPerInch() const override;
+};
+
 #define ASSERT_SHAPE_CONTAINER_SIGNATURE(method, signature)                                                            \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KoShapeContainer::method)), signature>)
 
@@ -61,6 +76,11 @@ class KoShapeEnumContractTest : public QObject
     Q_OBJECT
 
 private Q_SLOTS:
+    void shapeControllerBaseTypeLifetimeSchemaRemainStable();
+    void shapeControllerBaseDocumentInterfaceSignaturesRemainStable();
+    void shapeControllerTypeLifetimeAndDocumentSignaturesRemainStable();
+    void shapeControllerAdditionSignaturesRemainStable();
+    void shapeControllerRemovalSignaturesRemainStable();
     void shapeTypeAndLifetimeSchemaRemainStable();
     void shapeChangeNotificationSignaturesRemainStable();
     void shapeDependencySignaturesRemainStable();
@@ -90,6 +110,83 @@ private Q_SLOTS:
     void shapeContainerClippingAndTransformSignaturesRemainStable();
     void shapeContainerPaintingAndUpdateSignaturesRemainStable();
 };
+
+void KoShapeEnumContractTest::shapeControllerBaseTypeLifetimeSchemaRemainStable()
+{
+    static_assert(std::is_class_v<KoShapeControllerBase>);
+    static_assert(std::is_abstract_v<KoShapeControllerBase>);
+    static_assert(std::has_virtual_destructor_v<KoShapeControllerBase>);
+    static_assert(std::is_default_constructible_v<ShapeControllerBaseConstructorProbe>);
+}
+
+void KoShapeEnumContractTest::shapeControllerBaseDocumentInterfaceSignaturesRemainStable()
+{
+    ASSERT_SHAPE_CONTROLLER_BASE_SIGNATURE(createParentForShapes,
+                                           KoShapeContainer
+                                               * (KoShapeControllerBase::*)(QList<KoShape *>, bool, KUndo2Command *));
+    ASSERT_SHAPE_CONTROLLER_BASE_SIGNATURE(documentRect, QRectF (KoShapeControllerBase::*)() const);
+    ASSERT_SHAPE_CONTROLLER_BASE_SIGNATURE(documentRectInPixels, QRectF (KoShapeControllerBase::*)() const);
+    ASSERT_SHAPE_CONTROLLER_BASE_SIGNATURE(pixelsPerInch, qreal (KoShapeControllerBase::*)() const);
+    ASSERT_SHAPE_CONTROLLER_BASE_SIGNATURE(resourceManager,
+                                           KoDocumentResourceManager * (KoShapeControllerBase::*)() const);
+}
+
+void KoShapeEnumContractTest::shapeControllerTypeLifetimeAndDocumentSignaturesRemainStable()
+{
+    static_assert(std::is_class_v<KoShapeController>);
+    static_assert(std::is_base_of_v<QObject, KoShapeController>);
+    static_assert(std::has_virtual_destructor_v<KoShapeController>);
+    static_assert(std::is_constructible_v<KoShapeController, KoCanvasBase *, KoShapeControllerBase *>);
+
+    ASSERT_SHAPE_CONTROLLER_SIGNATURE(reset, void (KoShapeController::*)());
+    ASSERT_SHAPE_CONTROLLER_SIGNATURE(setShapeControllerBase, void (KoShapeController::*)(KoShapeControllerBase *));
+    ASSERT_SHAPE_CONTROLLER_SIGNATURE(documentRectInPixels, QRectF (KoShapeController::*)() const);
+    ASSERT_SHAPE_CONTROLLER_SIGNATURE(pixelsPerInch, qreal (KoShapeController::*)() const);
+    ASSERT_SHAPE_CONTROLLER_SIGNATURE(documentRect, QRectF (KoShapeController::*)() const);
+    ASSERT_SHAPE_CONTROLLER_SIGNATURE(resourceManager, KoDocumentResourceManager * (KoShapeController::*)() const);
+    ASSERT_SHAPE_CONTROLLER_SIGNATURE(documentBase, KoShapeControllerBase * (KoShapeController::*)() const);
+}
+
+void KoShapeEnumContractTest::shapeControllerAdditionSignaturesRemainStable()
+{
+    ASSERT_SHAPE_CONTROLLER_SIGNATURE(addShape,
+                                      KUndo2Command
+                                          * (KoShapeController::*)(KoShape *, KoShapeContainer *, KUndo2Command *));
+    ASSERT_SHAPE_CONTROLLER_SIGNATURE(addShapeDirect,
+                                      KUndo2Command
+                                          * (KoShapeController::*)(KoShape *, KoShapeContainer *, KUndo2Command *));
+    ASSERT_SHAPE_CONTROLLER_SIGNATURE(
+        addShapesDirect,
+        KUndo2Command * (KoShapeController::*)(QList<KoShape *>, KoShapeContainer *, KUndo2Command *));
+
+    static_assert(
+        std::is_same_v<decltype(std::declval<KoShapeController &>().addShape(static_cast<KoShape *>(nullptr),
+                                                                             static_cast<KoShapeContainer *>(nullptr))),
+                       KUndo2Command *>);
+    static_assert(std::is_same_v<decltype(std::declval<KoShapeController &>().addShapeDirect(
+                                     static_cast<KoShape *>(nullptr),
+                                     static_cast<KoShapeContainer *>(nullptr))),
+                                 KUndo2Command *>);
+    static_assert(std::is_same_v<decltype(std::declval<KoShapeController &>().addShapesDirect(
+                                     std::declval<QList<KoShape *>>(),
+                                     static_cast<KoShapeContainer *>(nullptr))),
+                                 KUndo2Command *>);
+}
+
+void KoShapeEnumContractTest::shapeControllerRemovalSignaturesRemainStable()
+{
+    ASSERT_SHAPE_CONTROLLER_SIGNATURE(removeShape, KUndo2Command * (KoShapeController::*)(KoShape *, KUndo2Command *));
+    ASSERT_SHAPE_CONTROLLER_SIGNATURE(removeShapes,
+                                      KUndo2Command
+                                          * (KoShapeController::*)(const QList<KoShape *> &, KUndo2Command *));
+
+    static_assert(
+        std::is_same_v<decltype(std::declval<KoShapeController &>().removeShape(static_cast<KoShape *>(nullptr))),
+                       KUndo2Command *>);
+    static_assert(std::is_same_v<decltype(std::declval<KoShapeController &>().removeShapes(
+                                     std::declval<const QList<KoShape *> &>())),
+                                 KUndo2Command *>);
+}
 
 void KoShapeEnumContractTest::shapeTypeAndLifetimeSchemaRemainStable()
 {
