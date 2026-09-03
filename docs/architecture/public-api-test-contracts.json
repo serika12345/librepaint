@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 11672
+    "expectedMissingApis": 11643
   },
   "contracts": [
     {
@@ -51175,6 +51175,80 @@
         "method:KoShape::transparency(bool recursive=false) const",
         "method:KoShape::update() const",
         "method:KoShape::updateAbsolute(const QRectF & rect) const"
+      ]
+    },
+    {
+      "target": "KoFileDialogSchemaContractTest",
+      "source": "libs/widgetutils/tests/KoFileDialogSchemaContractTest.cpp",
+      "test": "KoFileDialogSchemaContractTest::fileIconCreatorTypeAndLifetimeSchemaRemainStable",
+      "behavior": "ファイルicon生成器は公開抽象型、既定構築、仮想寿命とicon生成署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisAbstractFileIconCreator",
+        "method:KisAbstractFileIconCreator::KisAbstractFileIconCreator()",
+        "method:KisAbstractFileIconCreator::createFileIcon(QString path,QIcon & icon,qreal devicePixelRatioF,QSize iconSize)",
+        "method:KisAbstractFileIconCreator::~KisAbstractFileIconCreator()"
+      ]
+    },
+    {
+      "target": "KoFileDialogSchemaContractTest",
+      "source": "libs/widgetutils/tests/KoFileDialogSchemaContractTest.cpp",
+      "test": "KoFileDialogSchemaContractTest::fileIconProviderTypeAndDispatchSchemaRemainStable",
+      "behavior": "ファイルicon提供器は表示倍率を受け取り、icon種別またはファイル情報からiconを返す公開overloadを維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisFileIconProvider",
+        "method:KisFileIconProvider::KisFileIconProvider(qreal devicePixelRatioF)",
+        "method:KisFileIconProvider::icon(const QFileIconProvider::IconType type) const",
+        "method:KisFileIconProvider::icon(const QFileInfo & fi) const"
+      ]
+    },
+    {
+      "target": "KoFileDialogSchemaContractTest",
+      "source": "libs/widgetutils/tests/KoFileDialogSchemaContractTest.cpp",
+      "test": "KoFileDialogSchemaContractTest::previewFileDialogTypeAndNotificationSchemaRemainStable",
+      "behavior": "preview付きファイルdialogはicon生成器を共有し、現在ファイル・preview表示・provider再設定を扱う公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisPreviewFileDialog",
+        "member:KisPreviewFileDialog::s_iconCreator",
+        "method:KisPreviewFileDialog::KisPreviewFileDialog(QWidget * parent=nullptr,const QString & caption=QString (),const QString & directory=QString (),const QString & filter=QString ())",
+        "method:KisPreviewFileDialog::onCurrentChanged(const QString & path)",
+        "method:KisPreviewFileDialog::previewToggled(bool showPreview)",
+        "method:KisPreviewFileDialog::resetIconProvider()"
+      ]
+    },
+    {
+      "target": "KoFileDialogSchemaContractTest",
+      "source": "libs/widgetutils/tests/KoFileDialogSchemaContractTest.cpp",
+      "test": "KoFileDialogSchemaContractTest::fileNameRequesterTypeAndConfigurationSchemaRemainStable",
+      "behavior": "ファイル名要求widgetは開始directory、構成名、dialog modeとreadonly表示を扱う公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisFileNameRequester",
+        "method:KisFileNameRequester::KisFileNameRequester(QWidget * parent=0)",
+        "method:KisFileNameRequester::mode() const",
+        "method:KisFileNameRequester::setConfigurationName(const QString & name)",
+        "method:KisFileNameRequester::setMode(KoFileDialog::DialogType mode)",
+        "method:KisFileNameRequester::setReadOnlyText(bool readonly)",
+        "method:KisFileNameRequester::setStartDir(const QString & path)",
+        "method:KisFileNameRequester::~KisFileNameRequester()"
+      ]
+    },
+    {
+      "target": "KoFileDialogSchemaContractTest",
+      "source": "libs/widgetutils/tests/KoFileDialogSchemaContractTest.cpp",
+      "test": "KoFileDialogSchemaContractTest::fileNameRequesterSelectionAndNotificationSchemaRemainStable",
+      "behavior": "ファイル名要求widgetはファイル名、MIME filter、validator、選択操作と変更・選択通知を扱う公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisFileNameRequester::fileName() const",
+        "method:KisFileNameRequester::fileSelected(const QString & fileName)",
+        "method:KisFileNameRequester::setFileName(const QString & path)",
+        "method:KisFileNameRequester::setMimeTypeFilters(const QStringList & filterList,QString defaultFilter=QString ())",
+        "method:KisFileNameRequester::setValidator(QValidator * validator)",
+        "method:KisFileNameRequester::slotSelectFile()",
+        "method:KisFileNameRequester::textChanged(const QString & fileName)"
       ]
     }
   ]
