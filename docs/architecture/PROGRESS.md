@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-03 17:45 JST
+- 更新日時: 2026-09-03 18:19 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -32,6 +32,17 @@
   完全集合はmanagerのclass・2構築・破棄・再描画enum、`PaintJob`の型・2 storage別名・2構築・空判定・4 member、`PaintJobsOrder`の型・2 member・clear・空判定、job準備・描画3、shape集合の設定・照会・追加・削除、selection照会・3通知、shape検索2、更新・遮断・変更通知、`ShapeInterface`型・構築・破棄通知・取得、更新転送である。許可pathは既存試験sourceだけで、CMake・依存・公開header・製品sourceを変更しない。manager、canvas、shape、selection、painter、job・順序・interface、所有storage、Qt幾何・容器を実体化せず、shape所有・複製、選択、hit test、更新圧縮、job生成・描画、signal、破棄通知本文を実行しない。対象4工程・8入力、停止5工程・11入力、近傍`KoShapeReorderCommandSchemaContractTest`、製品`kritaflake` 621工程・1,274入力を維持し、通常mask担当の統合・削除後に開始する。同じ限定検証とmanager/shape/selection/painter/job未解決記号を確認する。
 - `g189-internal-color-selector-schema`は`/Users/masato/Documents/librepaint-g189-internal-color-selector-schema`を所有する。開始`libs/widgets/KisDlgInternalColorSelector.h`の残存全23 APIから既存`libs/widgets/tests/KisVisualColorSelectorShapeSchemaContractTest.cpp`の5枠`internalColorSelectorTypeLifetimeAndFactorySchemaRemainStable`、`internalColorSelectorConfigSchemaRemainStable`、`internalColorSelectorColorSpaceAndRendererSignaturesRemainStable`、`internalColorSelectorColorEditingSignaturesRemainStable`、`internalColorSelectorNotificationAndCloseSignaturesRemainStable`へ対応付ける。
   完全集合はdialog class・構築・破棄・sampler factory、`Config`型・構築・7 bool member、色空間変更・固定・renderer設定、現在色・alpha選択・前色・色更新・patch色、前景色通知・rejectである。許可pathは既存試験sourceだけで、標準`<functional>`を対象headerより先にincludeする。CMake・依存・公開header・製品sourceを変更しない。dialog、設定値、Qt widget・文字列、色・色空間・renderer、sampler、patch、関数objectを実体化せず、構築・破棄、色変換・更新、factory代入、signal、close、既定renderer取得本文を実行しない。対象4工程・8入力、停止5工程・11入力、近傍`KisVisualColorModelSchemaContractTest`、製品`kritawidgets` 809工程・1,647入力を維持し、shape manager担当の統合・削除後に開始する。同じ限定検証とdialog/color/renderer/sampler/patch未解決記号を確認する。
+
+### 第189便の統合結果
+
+- `g189-default-mask-schema`は開始`libs/image/kis_circle_mask_generator.h`と`libs/image/kis_rect_mask_generator.h`から既存`libs/image/tests/KisImageTypesContractTest.cpp`の5枠へ、通常の円形・矩形ブラシmask生成器の型・寿命、複製・sampling、尺度・softness、vector化、applicatorの残存全22 APIを対応付けた。両generator、基底、private型、applicator、row processor、`KoID`を実体化せず、構築・複製・破棄、sampling、尺度・softness変更、applicator本文を実行しない4工程・8入力に保った。
+  受渡しcommit`c8dc721a2a`を統合commit`81cceae541`として取り込み、担当と中央の新旧枠、対象・近傍CTest、20回反復、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式に成功した。台帳commit`9ba48b4743`で18,474件対応、11,364件未対応となった。mask数値、尺度・softness変更後の出力、SIMD・scalar一致とapplicator実行時挙動は既存の動的契約が担当する。
+- `g189-shape-manager-schema`は開始`libs/flake/KoShapeManager.h`から既存`libs/flake/tests/KoCanvasBaseSchemaContractTest.cpp`の5枠へ、shape managerの型・寿命・再描画方針、描画job値、描画順序・実行、shape・selection、検索・更新・interfaceの残存全47 APIを対応付けた。manager、canvas、shape、selection、painter、job・順序・interface、所有storage、Qt幾何・容器を実体化せず、shape所有・選択・検索・更新圧縮、job生成・描画、signal、破棄通知本文を実行しない4工程・8入力に保った。
+  受渡しcommit`23d04baca0`を統合commit`ef64799a54`として取り込み、担当と中央の新旧枠、対象・近傍CTest、20回反復、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式に成功した。台帳commit`5889f70e42`で18,521件対応、11,317件未対応となった。shape所有、選択、検索、更新集約、job準備・描画とsignal配送の実行時結果は別契約で扱う。
+- `g189-internal-color-selector-schema`は開始`libs/widgets/KisDlgInternalColorSelector.h`から既存`libs/widgets/tests/KisVisualColorSelectorShapeSchemaContractTest.cpp`の5枠へ、内部色選択dialogの型・寿命・factory、設定値、色空間・renderer、色編集、通知・closeの残存全23 APIを対応付けた。dialog、設定値、Qt widget・文字列、色・色空間・renderer、sampler、patch、関数objectを実体化せず、構築・破棄、色変換・更新、factory代入、signal、close、既定renderer取得本文を実行しない4工程・8入力に保った。
+  受渡しcommit`bdab8ce148`を統合commit`86163fbef7`として取り込み、担当と中央の新旧枠、対象・近傍CTest、20回反復、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式に成功した。標準`<functional>`は試験sourceから公開headerより先に供給し、新規探索路・link・compile定義を導入していない。台帳commit`534129a463`で18,544件対応、11,294件未対応となった。設定値の既定値、色更新、factory代入、signal配送とcloseの実行時結果は別契約で扱う。
+- 第189便全体で92 APIを15枠へ重複なく対応付けた。CMake・探索路・link・compile定義・公開header・製品sourceを変えず、一度に一つの担当だけを実装・構成・構築・統合した。製品target、全体build、全体`verify`、Linux、Nix再評価は実行せず、対象・近傍CTest、各20回反復、無作業再構築、公開API検査と`verify-quick`に成功した。
+  3担当のcleanな作業tree、担当build木、担当branchを統合直後に削除し、2,648,900 KiB（約2.53 GiB）の担当領域を回収した。旧不足報告を保持せず、主Ninja木5,664,524 KiB、共有compiler cache 983,344 KiB、最新不足報告`build/tdd-macos/public-api-missing-g190.json` 2,968,621 bytesだけを再利用対象として保持する。次の永続作業は第190便の不足報告から、既存限定対象を優先して3責務を先行監査することである。
 
 ### 第188便の先行監査計画
 
