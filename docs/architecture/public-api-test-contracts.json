@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 11905
+    "expectedMissingApis": 11875
   },
   "contracts": [
     {
@@ -50537,6 +50537,81 @@
         "method:SvgUtil::parseViewBox(const QDomElement & e,const QRectF & elementBounds,QRectF * _viewRect,QTransform * _viewTransform)",
         "method:SvgUtil::transformToString(const QTransform & transform)",
         "method:SvgUtil::writeTransformAttributeLazy(const QString & name,const QTransform & transform,KoXmlWriter & shapeWriter)"
+      ]
+    },
+    {
+      "target": "KisSliderSpinBoxSchemaContractTest",
+      "source": "libs/widgetutils/tests/KisSliderSpinBoxSchemaContractTest.cpp",
+      "test": "KisSliderSpinBoxSchemaContractTest::sliderLifetimeAndSizeSchemaRemainStable",
+      "behavior": "整数・倍精度slider spin boxは親Widgetを受ける構築、公開寿命と推奨・最小寸法を返す公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDoubleSliderSpinBox::KisDoubleSliderSpinBox(QWidget * parent=nullptr)",
+        "method:KisDoubleSliderSpinBox::minimumSizeHint() const",
+        "method:KisDoubleSliderSpinBox::sizeHint() const",
+        "method:KisDoubleSliderSpinBox::~KisDoubleSliderSpinBox()",
+        "method:KisSliderSpinBox::KisSliderSpinBox(QWidget * parent=nullptr)",
+        "method:KisSliderSpinBox::minimumSizeHint() const",
+        "method:KisSliderSpinBox::sizeHint() const",
+        "method:KisSliderSpinBox::~KisSliderSpinBox()"
+      ]
+    },
+    {
+      "target": "KisSliderSpinBoxSchemaContractTest",
+      "source": "libs/widgetutils/tests/KisSliderSpinBoxSchemaContractTest.cpp",
+      "test": "KisSliderSpinBoxSchemaContractTest::sliderDragSchemaRemainStable",
+      "behavior": "整数・倍精度slider spin boxはdrag状態の照会、drag中の更新通知遮断設定とdrag完了通知の公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDoubleSliderSpinBox::draggingFinished()",
+        "method:KisDoubleSliderSpinBox::isDragging() const",
+        "method:KisDoubleSliderSpinBox::setBlockUpdateSignalOnDrag(bool newBlockUpdateSignalOnDrag)",
+        "method:KisSliderSpinBox::draggingFinished()",
+        "method:KisSliderSpinBox::isDragging() const",
+        "method:KisSliderSpinBox::setBlockUpdateSignalOnDrag(bool newBlockUpdateSignalOnDrag)"
+      ]
+    },
+    {
+      "target": "KisSliderSpinBoxSchemaContractTest",
+      "source": "libs/widgetutils/tests/KisSliderSpinBoxSchemaContractTest.cpp",
+      "test": "KisSliderSpinBoxSchemaContractTest::multipliersSliderTypeAndSizeSchemaRemainStable",
+      "behavior": "倍率選択付き倍精度slider spin boxは公開型、親Widgetを受ける構築、公開寿命と3種の寸法照会署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisMultipliersDoubleSliderSpinBox",
+        "method:KisMultipliersDoubleSliderSpinBox::KisMultipliersDoubleSliderSpinBox(QWidget * _parent=0)",
+        "method:KisMultipliersDoubleSliderSpinBox::minimumSize() const",
+        "method:KisMultipliersDoubleSliderSpinBox::minimumSizeHint() const",
+        "method:KisMultipliersDoubleSliderSpinBox::sizeHint() const",
+        "method:KisMultipliersDoubleSliderSpinBox::~KisMultipliersDoubleSliderSpinBox()"
+      ]
+    },
+    {
+      "target": "KisSliderSpinBoxSchemaContractTest",
+      "source": "libs/widgetutils/tests/KisSliderSpinBoxSchemaContractTest.cpp",
+      "test": "KisSliderSpinBoxSchemaContractTest::multipliersSliderRangeAndStepSchemaRemainStable",
+      "behavior": "倍率選択付き倍精度slider spin boxは値、範囲、小数桁、単一stepと選択倍率を扱う公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMultipliersDoubleSliderSpinBox::addMultiplier(double v)",
+        "method:KisMultipliersDoubleSliderSpinBox::setRange(qreal minimum,qreal maximum,int decimals=0)",
+        "method:KisMultipliersDoubleSliderSpinBox::setSingleStep(qreal value)",
+        "method:KisMultipliersDoubleSliderSpinBox::setValue(qreal value)",
+        "method:KisMultipliersDoubleSliderSpinBox::value()"
+      ]
+    },
+    {
+      "target": "KisSliderSpinBoxSchemaContractTest",
+      "source": "libs/widgetutils/tests/KisSliderSpinBoxSchemaContractTest.cpp",
+      "test": "KisSliderSpinBoxSchemaContractTest::multipliersSliderDisplayAndDragSchemaRemainStable",
+      "behavior": "倍率選択付き倍精度slider spin boxは指数比・接頭辞・接尾辞、drag中の通知方針と値変更通知の公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMultipliersDoubleSliderSpinBox::setBlockUpdateSignalOnDrag(bool block)",
+        "method:KisMultipliersDoubleSliderSpinBox::setExponentRatio(qreal dbl)",
+        "method:KisMultipliersDoubleSliderSpinBox::setPrefix(const QString & prefix)",
+        "method:KisMultipliersDoubleSliderSpinBox::setSuffix(const QString & suffix)",
+        "method:KisMultipliersDoubleSliderSpinBox::valueChanged(qreal value)"
       ]
     }
   ]
