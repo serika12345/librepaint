@@ -34,6 +34,7 @@
 #include "kis_types.h"
 #include "kis_update_job_item.h"
 #include "kis_updater_context.h"
+#include "kis_warptransform_worker.h"
 
 #include <QTest>
 
@@ -368,6 +369,11 @@ private Q_SLOTS:
     void updateJobItemAssignmentSignaturesRemainStable();
     void updateJobItemStateTransitionSignaturesRemainStable();
     void updateJobItemGeometryAndStrokePolicySignaturesRemainStable();
+    void warpTransformTypeAndLifetimeSchemaRemainStable();
+    void warpTransformModeSchemaRemainStable();
+    void warpTransformCalculationSchemaRemainStable();
+    void warpTransformMathAndImageSignaturesRemainStable();
+    void warpTransformDeviceAndBoundsSignaturesRemainStable();
     void baseConstIteratorOwnershipAndTraversalSchemaRemainsStable();
     void horizontalConstIteratorTraversalSchemaRemainsStable();
     void horizontalWritableIteratorSchemaRemainsStable();
@@ -2921,6 +2927,73 @@ void KisImageTypesContractTest::updateJobItemGeometryAndStrokePolicySignaturesRe
     static_assert(std::is_same_v<decltype(&KisUpdateJobItem::accessRect), RectSignature>);
     static_assert(std::is_same_v<decltype(&KisUpdateJobItem::changeRect), RectSignature>);
     static_assert(std::is_same_v<decltype(&KisUpdateJobItem::strokeJobSequentiality), SequentialitySignature>);
+}
+
+void KisImageTypesContractTest::warpTransformTypeAndLifetimeSchemaRemainStable()
+{
+    static_assert(std::is_class_v<KisWarpTransformWorker>);
+    static_assert(std::is_base_of_v<QObject, KisWarpTransformWorker>);
+    static_assert(std::is_constructible_v<KisWarpTransformWorker,
+                                          KisWarpTransformWorker::WarpType,
+                                          QVector<QPointF>,
+                                          QVector<QPointF>,
+                                          qreal,
+                                          KoUpdater *>);
+    static_assert(std::has_virtual_destructor_v<KisWarpTransformWorker>);
+}
+
+void KisImageTypesContractTest::warpTransformModeSchemaRemainStable()
+{
+    using WarpType = KisWarpTransformWorker::WarpType;
+    using WarpTypeEnum = KisWarpTransformWorker::WarpType_;
+
+    static_assert(std::is_same_v<WarpType, WarpTypeEnum>);
+    static_assert(std::is_enum_v<WarpTypeEnum>);
+    static_assert(std::is_integral_v<std::underlying_type_t<WarpTypeEnum>>);
+    static_assert(static_cast<int>(KisWarpTransformWorker::AFFINE_TRANSFORM) == 0);
+    static_assert(static_cast<int>(KisWarpTransformWorker::SIMILITUDE_TRANSFORM) == 1);
+    static_assert(static_cast<int>(KisWarpTransformWorker::RIGID_TRANSFORM) == 2);
+    static_assert(static_cast<int>(KisWarpTransformWorker::N_MODES) == 3);
+}
+
+void KisImageTypesContractTest::warpTransformCalculationSchemaRemainStable()
+{
+    using WarpCalculation = KisWarpTransformWorker::WarpCalculation;
+    using WarpCalculationEnum = KisWarpTransformWorker::WarpCalculation_;
+
+    static_assert(std::is_same_v<WarpCalculation, WarpCalculationEnum>);
+    static_assert(std::is_enum_v<WarpCalculationEnum>);
+    static_assert(std::is_integral_v<std::underlying_type_t<WarpCalculationEnum>>);
+    static_assert(static_cast<int>(KisWarpTransformWorker::GRID) == 0);
+    static_assert(static_cast<int>(KisWarpTransformWorker::DRAW) == 1);
+}
+
+void KisImageTypesContractTest::warpTransformMathAndImageSignaturesRemainStable()
+{
+    using MathSignature = QPointF (*)(QPointF, QVector<QPointF>, QVector<QPointF>, qreal);
+    using ImageSignature = QImage (*)(KisWarpTransformWorker::WarpType,
+                                      const QVector<QPointF> &,
+                                      const QVector<QPointF> &,
+                                      qreal,
+                                      const QImage &,
+                                      const QPointF &,
+                                      QPointF *);
+
+    static_assert(std::is_same_v<decltype(&KisWarpTransformWorker::affineTransformMath), MathSignature>);
+    static_assert(std::is_same_v<decltype(&KisWarpTransformWorker::similitudeTransformMath), MathSignature>);
+    static_assert(std::is_same_v<decltype(&KisWarpTransformWorker::rigidTransformMath), MathSignature>);
+    static_assert(std::is_same_v<decltype(&KisWarpTransformWorker::transformQImage), ImageSignature>);
+}
+
+void KisImageTypesContractTest::warpTransformDeviceAndBoundsSignaturesRemainStable()
+{
+    using RunSignature = void (KisWarpTransformWorker::*)(KisPaintDeviceSP, KisPaintDeviceSP);
+    using ChangeRectSignature = QRect (KisWarpTransformWorker::*)(const QRect &);
+    using NeedRectSignature = QRect (KisWarpTransformWorker::*)(const QRect &, const QRect &);
+
+    static_assert(std::is_same_v<decltype(&KisWarpTransformWorker::run), RunSignature>);
+    static_assert(std::is_same_v<decltype(&KisWarpTransformWorker::approxChangeRect), ChangeRectSignature>);
+    static_assert(std::is_same_v<decltype(&KisWarpTransformWorker::approxNeedRect), NeedRectSignature>);
 }
 
 void KisImageTypesContractTest::baseConstIteratorOwnershipAndTraversalSchemaRemainsStable()

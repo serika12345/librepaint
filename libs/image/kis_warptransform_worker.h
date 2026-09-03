@@ -18,7 +18,7 @@
 #include <QPointF>
 #include <QRect>
 
-#include <KoUpdater.h>
+class KoUpdater;
 
 /**
  * Class to apply a transformation (affine, similitude, MLS) to a paintDevice
