@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 11246
+    "expectedMissingApis": 11224
   },
   "contracts": [
     {
@@ -52276,6 +52276,73 @@
       "apis": [
         "method:KoShapeController::removeShape(KoShape * shape,KUndo2Command * parent=0)",
         "method:KoShapeController::removeShapes(const QList<KoShape * > & shapes,KUndo2Command * parent=0)"
+      ]
+    },
+    {
+      "target": "KisVisualColorModelSchemaContractTest",
+      "source": "libs/widgets/tests/KisVisualColorModelSchemaContractTest.cpp",
+      "test": "KisVisualColorModelSchemaContractTest::hsvColorSliderTypeAndMixModeSchemaRemainStable",
+      "behavior": "HSV色sliderは選択部品として色空間channelまたはHSI・HSL・HSV・HSYで混合する公開型・列挙値を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisHsvColorSlider",
+        "enum:KisHsvColorSlider::MIX_MODE",
+        "enumerator:KisHsvColorSlider::MIX_MODE::COLOR_SPACE",
+        "enumerator:KisHsvColorSlider::MIX_MODE::HSI",
+        "enumerator:KisHsvColorSlider::MIX_MODE::HSL",
+        "enumerator:KisHsvColorSlider::MIX_MODE::HSV",
+        "enumerator:KisHsvColorSlider::MIX_MODE::HSY"
+      ]
+    },
+    {
+      "target": "KisVisualColorModelSchemaContractTest",
+      "source": "libs/widgets/tests/KisVisualColorModelSchemaContractTest.cpp",
+      "test": "KisVisualColorModelSchemaContractTest::hsvColorSliderConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "HSV色sliderは親・表示rendererと任意の向きから構築でき、基底型を介して破棄できる公開署名と寿命を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisHsvColorSlider::KisHsvColorSlider(QWidget * parent=0,KoColorDisplayRendererInterface * displayRenderer=KoDumbColorDisplayRenderer::instance ())",
+        "method:KisHsvColorSlider::KisHsvColorSlider(Qt::Orientation orientation,QWidget * parent=0,KoColorDisplayRendererInterface * displayRenderer=KoDumbColorDisplayRenderer::instance ())",
+        "method:KisHsvColorSlider::~KisHsvColorSlider()"
+      ]
+    },
+    {
+      "target": "KisVisualColorModelSchemaContractTest",
+      "source": "libs/widgets/tests/KisVisualColorModelSchemaContractTest.cpp",
+      "test": "KisVisualColorModelSchemaContractTest::hsvColorSliderColorAndMixingSignaturesRemainStable",
+      "behavior": "HSV色sliderは色値またはchannel端点を設定し、混合方式と循環hueの扱いを選択する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisHsvColorSlider::setCircularHue(bool)",
+        "method:KisHsvColorSlider::setColors(const KoColor minColor,const KoColor maxColor)",
+        "method:KisHsvColorSlider::setColors(const QColor minColor,const QColor maxColor)",
+        "method:KisHsvColorSlider::setColors(qreal minH,qreal minS,qreal minV,qreal maxH,qreal maxS,qreal maxV)",
+        "method:KisHsvColorSlider::setMixMode(MIX_MODE mode)"
+      ]
+    },
+    {
+      "target": "KisVisualColorModelSchemaContractTest",
+      "source": "libs/widgets/tests/KisVisualColorModelSchemaContractTest.cpp",
+      "test": "KisVisualColorModelSchemaContractTest::spinboxHsxSelectorTypeLifetimeAndModelSchemaRemainStable",
+      "behavior": "HSX spinbox選択器はWidgetとして構築・破棄でき、共有色modelへ接続する公開型・署名・寿命を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisSpinboxHSXSelector",
+        "method:KisSpinboxHSXSelector::KisSpinboxHSXSelector(QWidget * parent=nullptr)",
+        "method:KisSpinboxHSXSelector::setModel(KisVisualColorModelSP model)",
+        "method:KisSpinboxHSXSelector::~KisSpinboxHSXSelector()"
+      ]
+    },
+    {
+      "target": "KisVisualColorModelSchemaContractTest",
+      "source": "libs/widgets/tests/KisVisualColorModelSchemaContractTest.cpp",
+      "test": "KisVisualColorModelSchemaContractTest::spinboxHsxSelectorNotificationSignaturesRemainStable",
+      "behavior": "HSX spinbox選択器はchannel値の編集を通知し、model側のchannel値と色model変更を受け取る公開signal・slot署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSpinboxHSXSelector::sigChannelValuesChanged(const QVector4D & values)",
+        "method:KisSpinboxHSXSelector::slotChannelValuesChanged(const QVector4D & values)",
+        "method:KisSpinboxHSXSelector::slotColorModelChanged()"
       ]
     }
   ]
