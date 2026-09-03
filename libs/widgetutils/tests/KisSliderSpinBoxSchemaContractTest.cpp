@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "kis_multipliers_double_slider_spinbox.h"
 #include "kis_slider_spin_box.h"
 
 #include <QTest>
@@ -20,7 +21,15 @@ private Q_SLOTS:
     void sliderSpinSoftRangeWriteSignaturesRemainStable();
     void sliderSpinStepSignaturesRemainStable();
     void sliderSpinExponentSignaturesRemainStable();
+    void sliderLifetimeAndSizeSchemaRemainStable();
+    void sliderDragSchemaRemainStable();
+    void multipliersSliderTypeAndSizeSchemaRemainStable();
+    void multipliersSliderRangeAndStepSchemaRemainStable();
+    void multipliersSliderDisplayAndDragSchemaRemainStable();
 };
+
+#define ASSERT_SLIDER_SIGNATURE(type, method, signature)                                                               \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&type::method)), signature>)
 
 void KisSliderSpinBoxSchemaContractTest::sliderSpinValueAndRangeSignaturesRemainStable()
 {
@@ -120,6 +129,94 @@ void KisSliderSpinBoxSchemaContractTest::sliderSpinExponentSignaturesRemainStabl
     static_assert(
         std::is_same_v<decltype(static_cast<RealSetter>(&KisDoubleSliderSpinBox::setExponentRatio)), RealSetter>);
 }
+
+void KisSliderSpinBoxSchemaContractTest::sliderLifetimeAndSizeSchemaRemainStable()
+{
+    using IntegerSpinBox = KisSliderSpinBox;
+    using RealSpinBox = KisDoubleSliderSpinBox;
+    using IntegerSizeGetter = QSize (IntegerSpinBox::*)() const;
+    using RealSizeGetter = QSize (RealSpinBox::*)() const;
+
+    static_assert(std::is_default_constructible_v<IntegerSpinBox>);
+    static_assert(std::is_constructible_v<IntegerSpinBox, QWidget *>);
+    static_assert(std::has_virtual_destructor_v<IntegerSpinBox>);
+    ASSERT_SLIDER_SIGNATURE(IntegerSpinBox, sizeHint, IntegerSizeGetter);
+    ASSERT_SLIDER_SIGNATURE(IntegerSpinBox, minimumSizeHint, IntegerSizeGetter);
+
+    static_assert(std::is_default_constructible_v<RealSpinBox>);
+    static_assert(std::is_constructible_v<RealSpinBox, QWidget *>);
+    static_assert(std::has_virtual_destructor_v<RealSpinBox>);
+    ASSERT_SLIDER_SIGNATURE(RealSpinBox, sizeHint, RealSizeGetter);
+    ASSERT_SLIDER_SIGNATURE(RealSpinBox, minimumSizeHint, RealSizeGetter);
+}
+
+void KisSliderSpinBoxSchemaContractTest::sliderDragSchemaRemainStable()
+{
+    using IntegerSpinBox = KisSliderSpinBox;
+    using RealSpinBox = KisDoubleSliderSpinBox;
+    using IntegerDraggingGetter = bool (IntegerSpinBox::*)() const;
+    using IntegerPolicySetter = void (IntegerSpinBox::*)(bool);
+    using IntegerFinishedSignal = void (IntegerSpinBox::*)();
+    using RealDraggingGetter = bool (RealSpinBox::*)() const;
+    using RealPolicySetter = void (RealSpinBox::*)(bool);
+    using RealFinishedSignal = void (RealSpinBox::*)();
+
+    ASSERT_SLIDER_SIGNATURE(IntegerSpinBox, isDragging, IntegerDraggingGetter);
+    ASSERT_SLIDER_SIGNATURE(IntegerSpinBox, setBlockUpdateSignalOnDrag, IntegerPolicySetter);
+    ASSERT_SLIDER_SIGNATURE(IntegerSpinBox, draggingFinished, IntegerFinishedSignal);
+    ASSERT_SLIDER_SIGNATURE(RealSpinBox, isDragging, RealDraggingGetter);
+    ASSERT_SLIDER_SIGNATURE(RealSpinBox, setBlockUpdateSignalOnDrag, RealPolicySetter);
+    ASSERT_SLIDER_SIGNATURE(RealSpinBox, draggingFinished, RealFinishedSignal);
+}
+
+void KisSliderSpinBoxSchemaContractTest::multipliersSliderTypeAndSizeSchemaRemainStable()
+{
+    using MultipliersSlider = KisMultipliersDoubleSliderSpinBox;
+    using SizeGetter = QSize (MultipliersSlider::*)() const;
+
+    static_assert(std::is_class_v<MultipliersSlider>);
+    static_assert(std::is_base_of_v<QWidget, MultipliersSlider>);
+    static_assert(std::is_default_constructible_v<MultipliersSlider>);
+    static_assert(std::is_constructible_v<MultipliersSlider, QWidget *>);
+    static_assert(std::has_virtual_destructor_v<MultipliersSlider>);
+    ASSERT_SLIDER_SIGNATURE(MultipliersSlider, sizeHint, SizeGetter);
+    ASSERT_SLIDER_SIGNATURE(MultipliersSlider, minimumSizeHint, SizeGetter);
+    ASSERT_SLIDER_SIGNATURE(MultipliersSlider, minimumSize, SizeGetter);
+}
+
+void KisSliderSpinBoxSchemaContractTest::multipliersSliderRangeAndStepSchemaRemainStable()
+{
+    using MultipliersSlider = KisMultipliersDoubleSliderSpinBox;
+    using ValueGetter = qreal (MultipliersSlider::*)();
+    using ValueSetter = void (MultipliersSlider::*)(qreal);
+    using RangeSetter = void (MultipliersSlider::*)(qreal, qreal, int);
+    using StepSetter = void (MultipliersSlider::*)(qreal);
+    using MultiplierAdder = void (MultipliersSlider::*)(double);
+
+    ASSERT_SLIDER_SIGNATURE(MultipliersSlider, value, ValueGetter);
+    ASSERT_SLIDER_SIGNATURE(MultipliersSlider, setValue, ValueSetter);
+    ASSERT_SLIDER_SIGNATURE(MultipliersSlider, setRange, RangeSetter);
+    ASSERT_SLIDER_SIGNATURE(MultipliersSlider, setSingleStep, StepSetter);
+    ASSERT_SLIDER_SIGNATURE(MultipliersSlider, addMultiplier, MultiplierAdder);
+    static_assert(std::is_same_v<decltype(std::declval<MultipliersSlider &>().setRange(qreal{}, qreal{})), void>);
+}
+
+void KisSliderSpinBoxSchemaContractTest::multipliersSliderDisplayAndDragSchemaRemainStable()
+{
+    using MultipliersSlider = KisMultipliersDoubleSliderSpinBox;
+    using RealSetter = void (MultipliersSlider::*)(qreal);
+    using TextSetter = void (MultipliersSlider::*)(const QString &);
+    using BooleanSetter = void (MultipliersSlider::*)(bool);
+    using ValueSignal = void (MultipliersSlider::*)(qreal);
+
+    ASSERT_SLIDER_SIGNATURE(MultipliersSlider, setExponentRatio, RealSetter);
+    ASSERT_SLIDER_SIGNATURE(MultipliersSlider, setPrefix, TextSetter);
+    ASSERT_SLIDER_SIGNATURE(MultipliersSlider, setSuffix, TextSetter);
+    ASSERT_SLIDER_SIGNATURE(MultipliersSlider, setBlockUpdateSignalOnDrag, BooleanSetter);
+    ASSERT_SLIDER_SIGNATURE(MultipliersSlider, valueChanged, ValueSignal);
+}
+
+#undef ASSERT_SLIDER_SIGNATURE
 
 QTEST_APPLESS_MAIN(KisSliderSpinBoxSchemaContractTest)
 
