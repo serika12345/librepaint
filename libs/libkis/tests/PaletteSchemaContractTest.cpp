@@ -8,6 +8,10 @@
 
 #define ASSERT_PALETTE_SIGNATURE(method, signature)                                                                    \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&Palette::method)), signature>)
+#define ASSERT_MANAGED_COLOR_SIGNATURE(method, signature)                                                              \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&ManagedColor::method)), signature>)
+#define ASSERT_SWATCH_SIGNATURE(method, signature)                                                                     \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&Swatch::method)), signature>)
 
 class PaletteSchemaContractTest : public QObject
 {
@@ -18,6 +22,11 @@ private Q_SLOTS:
     void paletteGroupOperationSignaturesRemainStable();
     void paletteEntryOperationSignaturesRemainStable();
     void paletteMetadataAndPersistenceSignaturesRemainStable();
+    void managedColorTypeLifetimeAndEqualitySchemaRemainStable();
+    void managedColorColorSpaceAndCanvasSignaturesRemainStable();
+    void managedColorComponentsAndSerializationSignaturesRemainStable();
+    void swatchTypeLifetimeCopyAndEqualitySchemaRemainStable();
+    void swatchMetadataColorAndValiditySignaturesRemainStable();
 };
 
 void PaletteSchemaContractTest::paletteOwnershipLifetimeAndEqualitySchemaRemainsStable()
@@ -74,6 +83,66 @@ void PaletteSchemaContractTest::paletteMetadataAndPersistenceSignaturesRemainSta
     ASSERT_PALETTE_SIGNATURE(comment, QString (Palette::*)());
     ASSERT_PALETTE_SIGNATURE(setComment, void (Palette::*)(QString));
     ASSERT_PALETTE_SIGNATURE(save, bool (Palette::*)());
+}
+
+void PaletteSchemaContractTest::managedColorTypeLifetimeAndEqualitySchemaRemainStable()
+{
+    static_assert(std::is_class_v<ManagedColor> && std::is_base_of_v<QObject, ManagedColor>);
+    static_assert(std::is_default_constructible_v<ManagedColor> && std::is_constructible_v<ManagedColor, QObject *>);
+    static_assert(
+        std::is_constructible_v<ManagedColor, const QString &, const QString &, const QString &>
+        && std::is_constructible_v<ManagedColor, const QString &, const QString &, const QString &, QObject *>);
+    static_assert(std::is_constructible_v<ManagedColor, KoColor>
+                  && std::is_constructible_v<ManagedColor, KoColor, QObject *>);
+    static_assert(std::has_virtual_destructor_v<ManagedColor>);
+    ASSERT_MANAGED_COLOR_SIGNATURE(operator==, bool (ManagedColor::*)(const ManagedColor &) const);
+}
+
+void PaletteSchemaContractTest::managedColorColorSpaceAndCanvasSignaturesRemainStable()
+{
+    ASSERT_MANAGED_COLOR_SIGNATURE(colorDepth, QString (ManagedColor::*)() const);
+    ASSERT_MANAGED_COLOR_SIGNATURE(colorForCanvas, QColor (ManagedColor::*)(Canvas *) const);
+    ASSERT_MANAGED_COLOR_SIGNATURE(colorModel, QString (ManagedColor::*)() const);
+    ASSERT_MANAGED_COLOR_SIGNATURE(colorProfile, QString (ManagedColor::*)() const);
+    ASSERT_MANAGED_COLOR_SIGNATURE(fromQColor, ManagedColor * (*)(const QColor &, Canvas *));
+    static_assert(std::is_same_v<decltype(ManagedColor::fromQColor(std::declval<const QColor &>())), ManagedColor *>);
+    ASSERT_MANAGED_COLOR_SIGNATURE(setColorProfile, bool (ManagedColor::*)(const QString &));
+    ASSERT_MANAGED_COLOR_SIGNATURE(setColorSpace,
+                                   bool (ManagedColor::*)(const QString &, const QString &, const QString &));
+}
+
+void PaletteSchemaContractTest::managedColorComponentsAndSerializationSignaturesRemainStable()
+{
+    ASSERT_MANAGED_COLOR_SIGNATURE(components, QVector<float> (ManagedColor::*)() const);
+    ASSERT_MANAGED_COLOR_SIGNATURE(componentsOrdered, QVector<float> (ManagedColor::*)() const);
+    ASSERT_MANAGED_COLOR_SIGNATURE(setComponents, void (ManagedColor::*)(const QVector<float> &));
+    ASSERT_MANAGED_COLOR_SIGNATURE(fromXML, void (ManagedColor::*)(const QString &));
+    ASSERT_MANAGED_COLOR_SIGNATURE(toXML, QString (ManagedColor::*)() const);
+    ASSERT_MANAGED_COLOR_SIGNATURE(toQString, QString (ManagedColor::*)());
+}
+
+void PaletteSchemaContractTest::swatchTypeLifetimeCopyAndEqualitySchemaRemainStable()
+{
+    static_assert(std::is_class_v<Swatch> && std::is_base_of_v<QObject, Swatch>);
+    static_assert(std::is_default_constructible_v<Swatch> && std::is_constructible_v<Swatch, QObject *>);
+    static_assert(std::is_copy_constructible_v<Swatch> && std::is_constructible_v<Swatch, const Swatch &, QObject *>);
+    static_assert(std::has_virtual_destructor_v<Swatch>);
+    ASSERT_SWATCH_SIGNATURE(operator=, Swatch & (Swatch::*)(const Swatch &));
+    ASSERT_SWATCH_SIGNATURE(operator==, bool (Swatch::*)(const Swatch &) const);
+    ASSERT_SWATCH_SIGNATURE(operator!=, bool (Swatch::*)(const Swatch &) const);
+}
+
+void PaletteSchemaContractTest::swatchMetadataColorAndValiditySignaturesRemainStable()
+{
+    ASSERT_SWATCH_SIGNATURE(color, ManagedColor * (Swatch::*)() const);
+    ASSERT_SWATCH_SIGNATURE(id, QString (Swatch::*)() const);
+    ASSERT_SWATCH_SIGNATURE(isValid, bool (Swatch::*)() const);
+    ASSERT_SWATCH_SIGNATURE(name, QString (Swatch::*)() const);
+    ASSERT_SWATCH_SIGNATURE(setColor, void (Swatch::*)(ManagedColor *));
+    ASSERT_SWATCH_SIGNATURE(setId, void (Swatch::*)(const QString &));
+    ASSERT_SWATCH_SIGNATURE(setName, void (Swatch::*)(const QString &));
+    ASSERT_SWATCH_SIGNATURE(setSpotColor, void (Swatch::*)(bool));
+    ASSERT_SWATCH_SIGNATURE(spotColor, bool (Swatch::*)() const);
 }
 
 QTEST_GUILESS_MAIN(PaletteSchemaContractTest)
