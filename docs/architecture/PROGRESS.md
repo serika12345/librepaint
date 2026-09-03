@@ -2,12 +2,18 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-03 14:38 JST
+- 更新日時: 2026-09-03 15:17 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
+
+### 第186便の先行監査計画
+
+- 監査共通基点は`0934cd996a`、入力は`build/tdd-macos/public-api-missing-g186.json`である。3担当は`auditing`の読み取り専用とし、製品・試験・CMake・script・台帳・文書を変更せず、構成、構築、試験、Git操作、追加委任も行わない。一つの公開責務から20〜80 APIを最大5枠へ固定し、既存限定対象またはheader限定の4〜10工程程度の対象で、製品共有libraryと`kritatestsdk`へ接続しない候補だけを採用する。製品targetを引数にする`build-incremental ... plan`と製品buildは実行せず、既存Ninja木のquery・commands・inputsだけを読み取る。
+- image・paintop・pigment領域は第185便のsimple update queueを、flake・SVG・vector領域は図形描画・外観・更新を、widgetutils・widgets・libkis領域はファイル選択UIを除外して一責務ずつ比較する。
+- 各監査は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、実際のcompile探索路、予測工程・入力と停止線、開始pathから契約先、許可path、固有停止条件、比較候補の棄却根拠を揃える。3領域のpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
 
 ### 第185便の先行監査計画
 
@@ -32,6 +38,17 @@
   完全集合は図形・stroke・marker描画、背景照会設定・継承、stroke照会設定・継承、描画順設定・照会・既定順・継承、透明判定・透明度照会設定、局所・絶対更新要求である。許可pathは既存試験sourceだけで、CMake・依存・公開header・製品sourceを変更しない。shape、painter、背景共有pointer、stroke、描画順容器、矩形を実体化せず、描画、背景・stroke・描画順設定、再帰透明度計算、再描画要求本文を実行しない。透明度の既定引数省略を未評価式で固定する。対象4工程・8入力、停止5工程・11入力、近傍`KoShapeStrokeSchemaContractTest`、製品`kritaflake` 621工程・1,274入力を維持し、queue担当の統合・削除後に開始する。同じ限定検証とshape/painter/background/stroke/order未解決記号を確認する。
 - `g185-file-selection-schema`は`/Users/masato/Documents/librepaint-g185-file-selection-schema`を所有する。開始`libs/widgetutils/KisPreviewFileDialog.h`の残存全14 APIと`libs/widgets/kis_file_name_requester.h`の残存全15 APIから既存`libs/widgetutils/tests/KoFileDialogSchemaContractTest.cpp`の5枠`fileIconCreatorTypeAndLifetimeSchemaRemainStable`、`fileIconProviderTypeAndDispatchSchemaRemainStable`、`previewFileDialogTypeAndNotificationSchemaRemainStable`、`fileNameRequesterTypeAndConfigurationSchemaRemainStable`、`fileNameRequesterSelectionAndNotificationSchemaRemainStable`へ対応付ける。
   完全集合はicon creator class・構築・破棄・生成、icon provider class・構築・2 icon overload、preview dialog class・静的creator member・既定引数付き構築・current変更・preview切替・provider再設定、file requester class・構築・破棄・開始directory・構成名・mode・readonly、file名照会設定・MIME filter・validator・選択slot・2通知である。許可pathは既存試験sourceと`libs/widgetutils/tests/CMakeLists.txt`の対象固有探索路だけである。先にwidgets source・build探索路2本だけを追加し、compile定義・link・4工程・8入力を増やさないことを確認してから試験sourceを変更する。icon creator・provider、dialog、requester、Widget、Qt値、validatorを実体化せず、icon生成、dialog表示、filesystem参照、設定保存、filter適用、signal本文を実行しない。停止5工程・11入力、近傍`libs-libkis-FileDialogSchemaContractTest`、製品`kritawidgetutils` 274工程・581入力と`kritawidgets` 809工程・1,647入力を維持し、図形担当の統合・削除後に開始する。同じ限定検証とicon/dialog/requester/Qt値未解決記号を確認する。
+
+### 第185便の統合結果
+
+- `g185-simple-update-queue-schema`は開始`libs/image/kis_simple_update_queue.h`から既存`libs/image/tests/KisImageTypesContractTest.cpp`の5枠へ、型・寿命、待機列別名、job投入、状態・処理、試験用待機列参照の残存全24 APIを対応付けた。queue、派生、list・iterator、mutex、node、walker、自発job、updater context、矩形、flagを実体化せず、構築・破棄、設定読込、job追加・分割・統合、mutex取得、待機列処理、getter本文を実行しない4工程・8入力に保った。
+  受渡しcommit`5641eb1ed0`を統合commit`de46d0446d`として取り込み、担当と中央の新旧枠、対象・近傍CTest、20回反復、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式に成功した。台帳commit`e563bb2295`で18,145件対応、11,693件未対応となった。mutex競合、jobの圧縮・順序・所有権、処理本文の実行時結果は別契約で扱う。
+- `g185-shape-appearance-schema`は開始`libs/flake/KoShape.h`から既存`libs/flake/tests/KoShapeEnumContractTest.cpp`の5枠へ、描画、背景、stroke、描画順、透明度・更新の21 APIを対応付けた。透明度の既定引数省略を未評価式で固定し、shape、painter、背景共有pointer、stroke、描画順容器、矩形を実体化せず、描画、外観設定、再帰透明度計算、再描画要求本文を実行しない4工程・8入力に保った。
+  受渡しcommit`5904fa8209`を統合commit`db268b65e9`として取り込み、担当と中央の新旧枠、対象・近傍CTest、20回反復、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式に成功した。台帳commit`77a39d9f53`で18,166件対応、11,672件未対応となった。描画結果、背景・stroke所有、描画順の実値、再帰透明度、再描画配送は別契約で扱う。
+- `g185-file-selection-schema`は開始`libs/widgetutils/KisPreviewFileDialog.h`と`libs/widgets/kis_file_name_requester.h`から既存`libs/widgetutils/tests/KoFileDialogSchemaContractTest.cpp`の5枠へ、icon生成型・寿命、provider型・配送、preview dialog型・通知、requester型・構成、選択・通知の残存全29 APIを対応付けた。requester headerと生成export headerを解決するwidgets source・build探索路2本だけを対象固有CMake節へ追加し、`kritawidgets_EXPORTS`やlinkを追加しなかった。icon creator・provider、dialog、requester、Widget、Qt値、validatorを実体化せず、icon生成、dialog表示、filesystem参照、設定保存、filter適用、signal本文を実行していない。
+  構築範囲commit`31797db96a`を`44401569d6`、試験commit`458b6dd678`を`90ce4f7972`として順に取り込んだ。対象は変更前後とも4工程・8入力、直接linkはQt Core・Testだけであり、担当と中央の新旧枠、対象・近傍CTest、20回反復、無作業再構築、動的接続・compile定義・AUTOMOC入力・未解決記号、構文・書式に成功した。台帳commit`0934cd996a`で18,195件対応、11,643件未対応となった。実dialog、icon生成、filesystem、表示・通知の実行時結果は別契約で扱う。
+- 第185便全体で74 APIを15枠へ重複なく対応付けた。対象固有探索路2本以外の依存を増やさず、一度に一つの担当だけを実装・構成・構築・統合した。製品target、全体build、全体`verify`、Linux、Nix再評価は実行せず、対象・近傍CTest、各20回反復、無作業再構築、公開API検査と`verify-quick`に成功した。
+  3担当のcleanな作業tree、担当build木、担当branchを統合直後に削除し、2,649,724 KiB（約2.53 GiB）の担当領域を回収した。旧不足報告`public-api-missing-g185.json`をごみ箱へ移し、主Ninja木5,663,940 KiB、共有compiler cache 983,268 KiB、最新不足報告`build/tdd-macos/public-api-missing-g186.json` 3,052,218 bytesだけを再利用対象として保持する。次の永続作業は第186便の不足報告から、既存限定対象を優先して3責務を先行監査することである。
 
 ### 第184便の先行監査計画
 
