@@ -2,12 +2,18 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-03 15:29 JST
+- 更新日時: 2026-09-03 16:06 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
+
+### 第187便の先行監査計画
+
+- 監査共通基点は`9fb887485a`、入力は`build/tdd-macos/public-api-missing-g187.json`である。3担当は`auditing`の読み取り専用とし、製品・試験・CMake・script・台帳・文書を変更せず、構成、構築、試験、Git操作、追加委任も行わない。一つの公開責務から20〜80 APIを最大5枠へ固定し、既存限定対象またはheader限定の4〜10工程程度の対象で、製品共有libraryと`kritatestsdk`へ接続しない候補だけを採用する。製品targetを引数にする`build-incremental ... plan`と製品buildは実行せず、既存Ninja木のquery・commands・inputsだけを読み取る。
+- image・paintop・pigment領域は第186便の間接描画支援を、flake・SVG・vector領域は図形階層・依存通知・tree順序を、widgetutils・widgets・libkis領域はmask node wrapperを除外して一責務ずつ比較する。
+- 各監査は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、実際のcompile探索路、予測工程・入力と停止線、開始pathから契約先、許可path、固有停止条件、比較候補の棄却根拠を揃える。3領域のpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
 
 ### 第186便の先行監査計画
 
@@ -32,6 +38,17 @@
   完全集合はshape class・構築・破棄、`ShapeChangeListener`の型・破棄・通知、listener追加削除・変更通知、dependee追加削除・有無・列、親照会設定・共通親・transform継承、z-index最大最小・子順序方針・比較・subtree線形化と並べ替え・z-index照会設定である。許可pathは既存試験sourceだけで、CMake・依存・公開header・製品sourceを変更しない。shape、試験用派生、listener、container、painter、shape列を実体化せず、listener通知、依存循環判定、親変更、共通親・transform継承探索、tree線形化・並べ替え・z-index更新本文を実行しない。対象4工程・8入力、停止5工程・11入力、近傍`KoShapeReorderCommandSchemaContractTest`、製品`kritaflake` 621工程・1,274入力を維持し、間接描画担当の統合・削除後に開始する。同じ限定検証とshape/listener/container/order未解決記号を確認する。
 - `g186-libkis-mask-schema`は`/Users/masato/Documents/librepaint-g186-libkis-mask-schema`を所有する。開始`libs/libkis/TransformMask.h`の残存全8 API、`TransparencyMask.h`・`SelectionMask.h`・`FilterMask.h`の残存各7 APIから既存`libs/libkis/tests/ColorizeMaskSchemaContractTest.cpp`の5枠`transformMaskTypeAndLifetimeSchemaRemainStable`、`transformMaskTransformAndSerializationSchemaRemainStable`、`transparencyMaskTypeAndSelectionSchemaRemainStable`、`selectionMaskTypeAndSelectionSchemaRemainStable`、`filterMaskTypeAndFilterSchemaRemainStable`へ対応付ける。
   完全集合は4 mask wrapperのclass・2構築・破棄・type、transform maskの最終affine transform・XML入出力、transparency maskとselection maskのselection照会設定、filter maskのfilter照会設定である。許可pathは既存試験sourceだけで、CMake・依存・公開header・製品sourceを変更しない。各mask、Node、Image、Selection、Filter、Object、文字列、transform、共有pointerを実体化せず、構築・破棄、型文字列、変換、XML往復、selection・filter取得設定本文を実行しない。対象4工程・8入力、停止5工程・11入力、近傍`SelectionSchemaContractTest`、製品`kritalibkis` 2,018工程・4,034入力を維持し、図形階層担当の統合・削除後に開始する。同じ限定検証とmask/node/image/selection/filter未解決記号を確認する。
+
+### 第186便の統合結果
+
+- `g186-indirect-painting-schema`は開始`libs/image/kis_indirect_painting_support.h`から既存`libs/image/tests/KisImageTypesContractTest.cpp`の5枠へ、型・寿命、一時描画状態、painter方針、merge・停止、2 guard型・寿命の残存全23 APIを対応付けた。support、guard、共有pointer、描画装置、selection、node、painter、色、channel flags、undo command、magic string、stroke job列を実体化せず、lock、painter設定、merge、transaction、job生成、resource解放、suspend本文を実行しない4工程・8入力に保った。
+  受渡しcommit`6ff5cf82e1`を統合commit`3c5ae27fce`として取り込み、担当と中央の新旧枠、対象・近傍CTest、20回反復、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式に成功した。台帳commit`e41c217aad`で18,218件対応、11,620件未対応となった。merge・lock・suspend、painter設定、job生成・所有と資源解放の実行時結果は別契約で扱う。
+- `g186-shape-hierarchy-schema`は開始`libs/flake/KoShape.h`から既存`libs/flake/tests/KoShapeEnumContractTest.cpp`の5枠へ、型・寿命、変更通知、依存、親関係、tree順序の残存全25 APIを対応付けた。paint override宣言だけの試験用派生を型特性に用い、shape、派生、listener、container、painter、shape列を実体化せず、listener通知、依存循環判定、親変更、共通親・transform継承探索、tree線形化・並べ替え・z-index更新本文を実行しない4工程・8入力に保った。
+  受渡しcommit`0abc2f95b4`を統合commit`43dce02848`として取り込み、担当と中央の新旧枠、対象・近傍CTest、20回反復、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式に成功した。台帳commit`f863c3bd39`で18,243件対応、11,595件未対応となった。通知順、listener寿命、依存循環拒否、親所有、tree順序とz-index更新結果は別契約で扱う。
+- `g186-libkis-mask-schema`は開始`libs/libkis/TransformMask.h`、`TransparencyMask.h`、`SelectionMask.h`、`FilterMask.h`から既存`libs/libkis/tests/ColorizeMaskSchemaContractTest.cpp`の5枠へ、4 mask wrapperの型・寿命、変換・XML、selection・filter接続面の残存全29 APIを対応付けた。各mask、Node、Image、Selection、Filter、Object、文字列、transform、共有pointerを実体化せず、構築・破棄、型文字列、変換、XML往復、selection・filter取得設定本文を実行しない4工程・8入力に保った。
+  受渡しcommit`1b79436091`を統合commit`acb9c5b43a`として取り込み、担当と中央の新旧枠、対象・近傍CTest、20回反復、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式に成功した。台帳commit`9fb887485a`で18,272件対応、11,566件未対応となった。型名の値、変換数値、XML妥当性・往復、selection・filterの所有・null・設定結果は別契約で扱う。
+- 第186便全体で77 APIを15枠へ重複なく対応付けた。CMake・探索路・link・公開header・製品sourceを変えず、一度に一つの担当だけを実装・構成・構築・統合した。製品target、全体build、全体`verify`、Linux、Nix再評価は実行せず、対象・近傍CTest、各20回反復、無作業再構築、公開API検査と`verify-quick`に成功した。
+  3担当のcleanな作業tree、担当build木、担当branchを統合直後に削除し、2,646,720 KiB（約2.52 GiB）の担当領域を回収した。旧不足報告`public-api-missing-g186.json`をごみ箱へ移し、主Ninja木5,664,076 KiB、共有compiler cache 983,380 KiB、最新不足報告`build/tdd-macos/public-api-missing-g187.json` 3,033,889 bytesだけを再利用対象として保持する。次の永続作業は第187便の不足報告から、既存限定対象を優先して3責務を先行監査することである。
 
 ### 第185便の先行監査計画
 
