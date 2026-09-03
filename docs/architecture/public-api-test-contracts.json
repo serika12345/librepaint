@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 11819
+    "expectedMissingApis": 11793
   },
   "contracts": [
     {
@@ -50758,6 +50758,77 @@
       "apis": [
         "method:KoClipMask::drawMask(QPainter * painter,KoShape * shape)",
         "method:KoClipPath::applyClipping(KoShape * clippedShape,QPainter & painter)"
+      ]
+    },
+    {
+      "target": "KKeySequenceWidgetSchemaContractTest",
+      "source": "libs/widgetutils/tests/KKeySequenceWidgetSchemaContractTest.cpp",
+      "test": "KKeySequenceWidgetSchemaContractTest::shortcutWidgetTypeAndLifetimeSchemaRemainStable",
+      "behavior": "shortcut編集widgetは公開型、親省略構築と公開寿命を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisKShortcutWidget",
+        "method:KisKShortcutWidget::KisKShortcutWidget(QWidget * parent=0)",
+        "method:KisKShortcutWidget::~KisKShortcutWidget()"
+      ]
+    },
+    {
+      "target": "KKeySequenceWidgetSchemaContractTest",
+      "source": "libs/widgetutils/tests/KKeySequenceWidgetSchemaContractTest.cpp",
+      "test": "KKeySequenceWidgetSchemaContractTest::shortcutWidgetPolicySignaturesRemainStable",
+      "behavior": "shortcut編集widgetは修飾keyなし入力、競合検査対象、消去button表示とshortcut値を扱う公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisKShortcutWidget::isModifierlessAllowed()",
+        "method:KisKShortcutWidget::setCheckActionCollections(const QList<KisKActionCollection * > & actionCollections)",
+        "method:KisKShortcutWidget::setClearButtonsShown(bool show)",
+        "method:KisKShortcutWidget::setModifierlessAllowed(bool allow)",
+        "method:KisKShortcutWidget::setShortcut(const QList<QKeySequence> & cut)",
+        "method:KisKShortcutWidget::shortcut() const"
+      ]
+    },
+    {
+      "target": "KKeySequenceWidgetSchemaContractTest",
+      "source": "libs/widgetutils/tests/KKeySequenceWidgetSchemaContractTest.cpp",
+      "test": "KKeySequenceWidgetSchemaContractTest::shortcutWidgetEditingSignaturesRemainStable",
+      "behavior": "shortcut編集widgetはshortcutの消去、競合shortcutの移譲と変更通知を行う公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisKShortcutWidget::applyStealShortcut()",
+        "method:KisKShortcutWidget::clearShortcut()",
+        "method:KisKShortcutWidget::shortcutChanged(const QList<QKeySequence> & cut)"
+      ]
+    },
+    {
+      "target": "KKeySequenceWidgetSchemaContractTest",
+      "source": "libs/widgetutils/tests/KKeySequenceWidgetSchemaContractTest.cpp",
+      "test": "KKeySequenceWidgetSchemaContractTest::shortcutsDialogTypeAndCollectionSchemaRemainStable",
+      "behavior": "shortcut設定dialogは公開型、action種別の既定値、公開寿命、collection集合と推奨寸法を扱う公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisShortcutsDialog",
+        "method:KisShortcutsDialog::KisShortcutsDialog(KisShortcutsEditor::ActionTypes types=defaultActionTypes,KisShortcutsEditor::LetterShortcuts allowLetterShortcuts=KisShortcutsEditor::LetterShortcutsAllowed,QWidget * parent=0)",
+        "method:KisShortcutsDialog::actionCollections() const",
+        "method:KisShortcutsDialog::addCollection(KisKActionCollection *,const QString & title=QString ())",
+        "method:KisShortcutsDialog::sizeHint() const",
+        "method:KisShortcutsDialog::~KisShortcutsDialog()",
+        "variable:defaultActionTypes"
+      ]
+    },
+    {
+      "target": "KKeySequenceWidgetSchemaContractTest",
+      "source": "libs/widgetutils/tests/KKeySequenceWidgetSchemaContractTest.cpp",
+      "test": "KKeySequenceWidgetSchemaContractTest::shortcutsDialogPersistenceSchemaRemainStable",
+      "behavior": "shortcut設定dialogは既定値への復帰、設定の入出力・読込・保存と編集の取消を行う公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisShortcutsDialog::allDefault()",
+        "method:KisShortcutsDialog::exportConfiguration(const QString & path) const",
+        "method:KisShortcutsDialog::importConfiguration(const QString & path)",
+        "method:KisShortcutsDialog::loadCustomShortcuts(const QString & path)",
+        "method:KisShortcutsDialog::save()",
+        "method:KisShortcutsDialog::saveCustomShortcuts(const QString & path) const",
+        "method:KisShortcutsDialog::undo()"
       ]
     }
   ]
