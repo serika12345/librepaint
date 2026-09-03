@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 11224
+    "expectedMissingApis": 11202
   },
   "contracts": [
     {
@@ -52343,6 +52343,73 @@
         "method:KisSpinboxHSXSelector::sigChannelValuesChanged(const QVector4D & values)",
         "method:KisSpinboxHSXSelector::slotChannelValuesChanged(const QVector4D & values)",
         "method:KisSpinboxHSXSelector::slotColorModelChanged()"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::mathToolboxTypeAndAliasSchemaRemainStable",
+      "behavior": "画像数値toolboxはwavelet値表現と色channel値を相互変換する関数pointer別名を公開する型schemaを維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisMathToolbox::KisWavelet",
+        "alias:PtrFromDouble",
+        "alias:PtrFromDoubleCheckNull",
+        "alias:PtrToDouble",
+        "class:KisMathToolbox",
+        "struct:KisMathToolbox::KisFloatRepresentation"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::mathToolboxFloatRepresentationSchemaRemainStable",
+      "behavior": "画像数値toolboxの浮動小数値表現は指定寸法・深度から構築され、係数配列とその寸法を保持する公開schemaを維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisMathToolbox::KisFloatRepresentation::coeffs",
+        "member:KisMathToolbox::KisFloatRepresentation::depth",
+        "member:KisMathToolbox::KisFloatRepresentation::size",
+        "method:KisMathToolbox::KisFloatRepresentation::KisFloatRepresentation(uint nsize,uint ndepth)",
+        "method:KisMathToolbox::KisFloatRepresentation::~KisFloatRepresentation()"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::mathToolboxWaveletPlanningSignaturesRemainStable",
+      "behavior": "画像数値toolboxは対象矩形のwavelet工程数を算出し、描画装置からwavelet値表現を初期化する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMathToolbox::fastWaveletTotalSteps(const QRect & rect)",
+        "method:KisMathToolbox::fastWaveletTotalSteps(const QRect &)",
+        "method:KisMathToolbox::initWavelet(KisPaintDeviceSP lay,const QRect &)",
+        "method:KisMathToolbox::initWavelet(KisPaintDeviceSP src,const QRect & rect)"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::mathToolboxWaveletTransformSignaturesRemainStable",
+      "behavior": "画像数値toolboxは描画装置とwavelet値表現の間を一時buffer付きで変換・逆変換する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMathToolbox::fastWaveletTransformation(KisPaintDeviceSP src,const QRect &,KisWavelet * buff=0)",
+        "method:KisMathToolbox::fastWaveletUntransformation(KisPaintDeviceSP dst,const QRect &,KisWavelet * wav,KisWavelet * buff=0)"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::mathToolboxChannelConversionSignaturesRemainStable",
+      "behavior": "画像数値toolboxは色channel情報からdouble値との変換関数列を選択し、channel値域を照会する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMathToolbox::getFromDoubleChannelPtr(QList<KoChannelInfo * > cis,QVector<PtrFromDouble> & f)",
+        "method:KisMathToolbox::getFromDoubleCheckNullChannelPtr(QList<KoChannelInfo * > cis,QVector<PtrFromDoubleCheckNull> & f)",
+        "method:KisMathToolbox::getToDoubleChannelPtr(QList<KoChannelInfo * > cis,QVector<PtrToDouble> & f)",
+        "method:KisMathToolbox::maxChannelValue(KoChannelInfo *)",
+        "method:KisMathToolbox::minChannelValue(KoChannelInfo *)"
       ]
     }
   ]
