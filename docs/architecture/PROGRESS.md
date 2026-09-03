@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-03 18:32 JST
+- 更新日時: 2026-09-03 19:01 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -37,6 +37,17 @@
   完全集合は抽象所有者のclass・構築・破棄、親作成・文書矩形2・解像度・resource manager、具体controllerのclass・canvas/所有者構築・破棄・reset・所有者設定・文書照会5、shape追加3・削除2である。許可pathは既存試験sourceだけで、CMake・依存・公開header・製品sourceを変更しない。controller・抽象所有者・probe、canvas、shape・container、resource manager、undo command、Qt幾何・容器を実体化せず、文書照会、親選択、追加・削除、undo生成、reset本文を実行しない。対象4工程・8入力、停止5工程・11入力、近傍`KoCanvasBaseSchemaContractTest`、製品`kritaflake` 621工程・1,274入力を維持し、curve mask担当の統合・削除後に開始する。同じ限定検証とcontroller/shape/resource/undo未解決記号を確認する。
 - `g190-hsx-input-schema`は`/Users/masato/Documents/librepaint-g190-hsx-input-schema`を所有する。開始`libs/widgets/KisHsvColorSlider.h`の残存全15 APIと`KisSpinboxHSXSelector.h`の残存全7 APIから既存`libs/widgets/tests/KisVisualColorModelSchemaContractTest.cpp`の5枠`hsvColorSliderTypeAndMixModeSchemaRemainStable`、`hsvColorSliderConstructionAndLifetimeSchemaRemainStable`、`hsvColorSliderColorAndMixingSignaturesRemainStable`、`spinboxHsxSelectorTypeLifetimeAndModelSchemaRemainStable`、`spinboxHsxSelectorNotificationSignaturesRemainStable`へ対応付ける。
   完全集合はslider class・mix mode enumと5値、2構築・破棄、色設定3・mix mode・circular hue、spinbox class・構築・破棄・model設定、channel通知・channel更新・model変更である。許可pathは既存試験sourceだけで、CMake・依存・公開header・製品sourceを変更しない。slider、spinbox、基底Widget、色、renderer、色modelと共有pointer、channel vectorを実体化せず、構築・破棄、既定renderer取得、補間・色変換、model接続、signal・slot本文を実行しない。対象4工程・8入力、停止5工程・11入力、近傍`KisVisualColorSelectorShapeSchemaContractTest`、製品`kritawidgets` 809工程・1,647入力を維持し、shape controller担当の統合・削除後に開始する。同じ限定検証とslider/spinbox/color/renderer/model未解決記号を確認する。
+
+### 第190便の統合結果
+
+- `g190-curve-mask-schema`は開始`libs/image/kis_curve_circle_mask_generator.h`と`kis_curve_rect_mask_generator.h`から既存`libs/image/tests/KisImageTypesContractTest.cpp`の5枠へ、curve mask生成器の型・寿命、複製・sampling、尺度・softness、vector化・applicator、XML・curve変換の残存全25 APIを対応付けた。両generator、基底、curve・点列、private型、applicator、row processor、DOMを実体化せず、構築・複製・破棄、sampling、尺度・softness、applicator、XML、curve変換本文を実行しない4工程・8入力に保った。
+  受渡しcommit`fb8df43cbc`を統合commit`39e3e4415b`として取り込み、担当と中央の新旧枠、対象・近傍CTest、20回反復、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式に成功した。台帳commit`e76c6b59b4`で18,569件対応、11,269件未対応となった。mask数値、softness・curve変換結果、SIMD・scalar一致とXML内容は既存または別の動的契約が担当する。
+- `g190-shape-controller-schema`は開始`libs/flake/KoShapeControllerBase.h`と`KoShapeController.h`から既存`libs/flake/tests/KoShapeEnumContractTest.cpp`の5枠へ、文書側の図形所有境界とツール側の追加・削除窓口の残存全23 APIを対応付けた。controller・抽象所有者・宣言だけのprobe、canvas、shape・container、resource manager、undo command、Qt幾何・容器を実体化せず、文書照会、親選択、追加・削除、undo生成、reset本文を実行しない4工程・8入力に保った。
+  受渡しcommit`04b2cea1d8`を統合commit`e57b8cbe49`として取り込み、担当と中央の新旧枠、対象・近傍CTest、20回反復、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式に成功した。台帳commit`8956db994d`で18,592件対応、11,246件未対応となった。実際の親選択、文書照会、undo生成、図形追加・削除結果は別の動的契約で扱う。
+- `g190-hsx-input-schema`は開始`libs/widgets/KisHsvColorSlider.h`と`KisSpinboxHSXSelector.h`から既存`libs/widgets/tests/KisVisualColorModelSchemaContractTest.cpp`の5枠へ、HSX色channel入力の型・mix mode、構築・寿命、色・混合、model接続、通知の残存全22 APIを対応付けた。slider、spinbox、基底Widget、色、renderer、色modelと共有pointer、channel vectorを実体化せず、構築・破棄、既定renderer取得、補間・色変換、model接続、signal・slot本文を実行しない4工程・8入力に保った。
+  受渡しcommit`3a21168905`を統合commit`c905f85946`として取り込み、担当と中央の新旧枠、対象・近傍CTest、20回反復、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式に成功した。台帳commit`4fab9b42b2`で18,614件対応、11,224件未対応となった。補間・色変換、model接続と通知配送の実行時結果は別の動的契約で扱う。
+- 第190便全体で70 APIを15枠へ重複なく対応付けた。CMake・探索路・link・compile定義・公開header・製品sourceを変えず、一度に一つの担当だけを実装・構成・構築・統合した。製品target、全体build、全体`verify`、Linux、Nix再評価は実行せず、対象・近傍CTest、各20回反復、無作業再構築、公開API検査と`verify-quick`に成功した。
+  3担当のcleanな作業tree、担当build木、担当branchを統合直後に削除し、2,642,196 KiB（約2.52 GiB）の担当領域を回収した。旧不足報告を保持せず、主Ninja木5,664,468 KiB、共有compiler cache 983,328 KiB、最新不足報告`build/tdd-macos/public-api-missing-g191.json` 2,949,683 bytesだけを再利用対象として保持する。次の永続作業は第191便の不足報告から、既存限定対象を優先して3責務を先行監査することである。
 
 ### 第189便の先行監査計画
 
