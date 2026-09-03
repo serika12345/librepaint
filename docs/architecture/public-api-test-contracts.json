@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 11181
+    "expectedMissingApis": 11155
   },
   "contracts": [
     {
@@ -52476,6 +52476,77 @@
       "apis": [
         "method:KoPathSegmentTypeCommand::redo()",
         "method:KoPathSegmentTypeCommand::undo()"
+      ]
+    },
+    {
+      "target": "KisPaletteModelSchemaContractTest",
+      "source": "libs/widgets/tests/KisPaletteModelSchemaContractTest.cpp",
+      "test": "KisPaletteModelSchemaContractTest::paletteChooserTypeLifetimeAndSelectionSchemaRemainStable",
+      "behavior": "パレット選択部品はWidgetとして構築・破棄でき、現在資源の設定と選択処理を受け取る公開型・署名・寿命を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisPaletteChooser",
+        "method:KisPaletteChooser::KisPaletteChooser(QWidget * parent=nullptr)",
+        "method:KisPaletteChooser::paletteSelected(KoResourceSP)",
+        "method:KisPaletteChooser::setCurrentItem(KoResourceSP currentResource)",
+        "method:KisPaletteChooser::~KisPaletteChooser()"
+      ]
+    },
+    {
+      "target": "KisPaletteModelSchemaContractTest",
+      "source": "libs/widgets/tests/KisPaletteModelSchemaContractTest.cpp",
+      "test": "KisPaletteModelSchemaContractTest::paletteChooserNotificationSignaturesRemainStable",
+      "behavior": "パレット選択部品は選択、追加、削除、取込み、書出しを通知する公開signal署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPaletteChooser::sigAddPalette()",
+        "method:KisPaletteChooser::sigExportPalette(KoColorSetSP)",
+        "method:KisPaletteChooser::sigImportPalette()",
+        "method:KisPaletteChooser::sigPaletteSelected(KoColorSetSP)",
+        "method:KisPaletteChooser::sigRemovePalette(KoColorSetSP)"
+      ]
+    },
+    {
+      "target": "KisPaletteModelSchemaContractTest",
+      "source": "libs/widgets/tests/KisPaletteModelSchemaContractTest.cpp",
+      "test": "KisPaletteModelSchemaContractTest::colorSetWidgetTypeLifetimeAndPaletteSchemaRemainStable",
+      "behavior": "色集合WidgetはFrameとして構築・破棄でき、色集合の取得・設定と表示rendererの設定を行う公開型・署名・寿命を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoColorSetWidget",
+        "method:KoColorSetWidget::KoColorSetWidget(QWidget * parent=0)",
+        "method:KoColorSetWidget::colorSet()",
+        "method:KoColorSetWidget::setColorSet(KoColorSetSP colorSet)",
+        "method:KoColorSetWidget::setDisplayRenderer(const KoColorDisplayRendererInterface * displayRenderer)",
+        "method:KoColorSetWidget::~KoColorSetWidget()"
+      ]
+    },
+    {
+      "target": "KisPaletteModelSchemaContractTest",
+      "source": "libs/widgets/tests/KisPaletteModelSchemaContractTest.cpp",
+      "test": "KisPaletteModelSchemaContractTest::colorSetWidgetNotificationSignaturesRemainStable",
+      "behavior": "色集合Widgetは色変更の完了状態と表示寸法の変更を通知する公開signal署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoColorSetWidget::colorChanged(const KoColor & color,bool final)",
+        "method:KoColorSetWidget::widgetSizeChanged(const QSize & size)"
+      ]
+    },
+    {
+      "target": "KisPaletteModelSchemaContractTest",
+      "source": "libs/widgets/tests/KisPaletteModelSchemaContractTest.cpp",
+      "test": "KisPaletteModelSchemaContractTest::colorPatchTypeColorAndNotificationSchemaRemainStable",
+      "behavior": "色見本部品はFrameとして構築・破棄でき、色と表示rendererの設定・取得・変換および起動通知を行う公開型・署名・寿命を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoColorPatch",
+        "method:KoColorPatch::KoColorPatch(QWidget * parent)",
+        "method:KoColorPatch::color() const",
+        "method:KoColorPatch::getColorFromDisplayRenderer(KoColor c)",
+        "method:KoColorPatch::setColor(const KoColor & c)",
+        "method:KoColorPatch::setDisplayRenderer(const KoColorDisplayRendererInterface * displayRenderer)",
+        "method:KoColorPatch::triggered(KoColorPatch * widget)",
+        "method:KoColorPatch::~KoColorPatch()"
       ]
     }
   ]
