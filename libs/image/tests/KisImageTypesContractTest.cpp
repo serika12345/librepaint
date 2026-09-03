@@ -20,6 +20,7 @@
 #include "kis_histogram.h"
 #include "kis_image_animation_interface.h"
 #include "kis_image_signal_router.h"
+#include "kis_indirect_painting_support.h"
 #include "kis_iterator_ng.h"
 #include "kis_layer_utils.h"
 #include "kis_liquify_transform_worker.h"
@@ -75,6 +76,8 @@ namespace
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisEdgeDetectionKernel::method)), signature>)
 #define ASSERT_SELECTION_MASK_SIGNATURE(method, signature)                                                             \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisSelectionMask::method)), signature>)
+#define ASSERT_INDIRECT_PAINTING_SIGNATURE(method, signature)                                                          \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KisIndirectPaintingSupport::method)), signature>)
 #define ASSERT_SELECTION_BASED_LAYER_SIGNATURE(method, signature)                                                      \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisSelectionBasedLayer::method)), signature>)
 #define ASSERT_CLONE_LAYER_SIGNATURE(method, signature)                                                                \
@@ -409,6 +412,11 @@ private Q_SLOTS:
     void selectionMaskGeometrySignaturesRemainStable();
     void selectionMaskPresentationAndStateSignaturesRemainStable();
     void selectionMaskSelectionAndModelSignaturesRemainStable();
+    void indirectPaintingTypeAndLifetimeSchemaRemainStable();
+    void indirectPaintingTemporaryStateSignaturesRemainStable();
+    void indirectPaintingPainterPolicySignaturesRemainStable();
+    void indirectPaintingMergeAndSuspensionSignaturesRemainStable();
+    void indirectPaintingGuardLifetimeSchemaRemainStable();
     void selectionBasedLayerOwnershipAndLifetimeSchemaRemainsStable();
     void selectionBasedLayerSelectionDeviceAndProjectionSignaturesRemainStable();
     void selectionBasedLayerHierarchyImageAndDirtySignaturesRemainStable();
@@ -3421,6 +3429,63 @@ void KisImageTypesContractTest::selectionMaskSelectionAndModelSignaturesRemainSt
     ASSERT_SELECTION_MASK_SIGNATURE(notifySelectionChangedCompressed, NotifySignature);
     ASSERT_SELECTION_MASK_SIGNATURE(sectionModelProperties, PropertiesSignature);
     ASSERT_SELECTION_MASK_SIGNATURE(setSectionModelProperties, SetPropertiesSignature);
+}
+
+void KisImageTypesContractTest::indirectPaintingTypeAndLifetimeSchemaRemainStable()
+{
+    static_assert(std::is_class_v<KisIndirectPaintingSupport>);
+    static_assert(std::is_default_constructible_v<KisIndirectPaintingSupport>);
+    static_assert(std::has_virtual_destructor_v<KisIndirectPaintingSupport>);
+}
+
+void KisImageTypesContractTest::indirectPaintingTemporaryStateSignaturesRemainStable()
+{
+    ASSERT_INDIRECT_PAINTING_SIGNATURE(hasTemporaryTarget, bool (KisIndirectPaintingSupport::*)() const);
+    ASSERT_INDIRECT_PAINTING_SIGNATURE(temporaryTarget, KisPaintDeviceSP (KisIndirectPaintingSupport::*)() const);
+    ASSERT_INDIRECT_PAINTING_SIGNATURE(setTemporaryTarget, void (KisIndirectPaintingSupport::*)(KisPaintDeviceSP));
+    ASSERT_INDIRECT_PAINTING_SIGNATURE(setTemporarySelection, void (KisIndirectPaintingSupport::*)(KisSelectionSP));
+}
+
+void KisImageTypesContractTest::indirectPaintingPainterPolicySignaturesRemainStable()
+{
+    ASSERT_INDIRECT_PAINTING_SIGNATURE(setTemporaryOpacity, void (KisIndirectPaintingSupport::*)(qreal));
+    ASSERT_INDIRECT_PAINTING_SIGNATURE(setTemporaryCompositeOp, void (KisIndirectPaintingSupport::*)(const QString &));
+    ASSERT_INDIRECT_PAINTING_SIGNATURE(setTemporaryChannelFlags,
+                                       void (KisIndirectPaintingSupport::*)(const QBitArray &));
+    ASSERT_INDIRECT_PAINTING_SIGNATURE(setCurrentColor, void (KisIndirectPaintingSupport::*)(const KoColor &));
+    ASSERT_INDIRECT_PAINTING_SIGNATURE(setupTemporaryPainter, void (KisIndirectPaintingSupport::*)(KisPainter *) const);
+    ASSERT_INDIRECT_PAINTING_SIGNATURE(supportsNonIndirectPainting, bool (KisIndirectPaintingSupport::*)() const);
+}
+
+void KisImageTypesContractTest::indirectPaintingMergeAndSuspensionSignaturesRemainStable()
+{
+    using MergeSignature =
+        void (KisIndirectPaintingSupport::*)(KisNodeSP, KUndo2Command *, const KUndo2MagicString &, int);
+    using ThreadedMergeSignature = void (KisIndirectPaintingSupport::*)(KisNodeSP,
+                                                                        KUndo2Command *,
+                                                                        const KUndo2MagicString &,
+                                                                        int,
+                                                                        QVector<KisRunnableStrokeJobData *> *);
+    using SuspendSignature = KisIndirectPaintingSupport::FinalMergeSuspenderSP (KisIndirectPaintingSupport::*)();
+
+    ASSERT_INDIRECT_PAINTING_SIGNATURE(mergeToLayer, MergeSignature);
+    ASSERT_INDIRECT_PAINTING_SIGNATURE(mergeToLayerThreaded, ThreadedMergeSignature);
+    ASSERT_INDIRECT_PAINTING_SIGNATURE(trySuspendFinalMerge, SuspendSignature);
+    static_assert(std::is_same_v<KisIndirectPaintingSupport::FinalMergeSuspenderSP,
+                                 QSharedPointer<KisIndirectPaintingSupport::FinalMergeSuspender>>);
+}
+
+void KisImageTypesContractTest::indirectPaintingGuardLifetimeSchemaRemainStable()
+{
+    using FinalMergeSuspender = KisIndirectPaintingSupport::FinalMergeSuspender;
+    using ReadLocker = KisIndirectPaintingSupport::ReadLocker;
+
+    static_assert(std::is_class_v<FinalMergeSuspender>);
+    static_assert(std::is_constructible_v<FinalMergeSuspender, KisIndirectPaintingSupport *>);
+    static_assert(std::is_destructible_v<FinalMergeSuspender>);
+    static_assert(std::is_class_v<ReadLocker>);
+    static_assert(std::is_constructible_v<ReadLocker, const KisIndirectPaintingSupport *>);
+    static_assert(std::is_destructible_v<ReadLocker>);
 }
 
 void KisImageTypesContractTest::selectionBasedLayerOwnershipAndLifetimeSchemaRemainsStable()
