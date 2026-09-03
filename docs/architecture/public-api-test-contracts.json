@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 12176
+    "expectedMissingApis": 12153
   },
   "contracts": [
     {
@@ -49771,6 +49771,74 @@
         "method:KisKXMLGUIBuilder::finalizeGUI(KisKXMLGUIClient * client)",
         "method:KisKXMLGUIBuilder::removeContainer(QWidget * container,QWidget * parent,QDomElement & element,QAction * containerAction)",
         "method:KisKXMLGUIBuilder::removeCustomElement(QWidget * parent,QAction * action)"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::sliderPaintOpPropertyTypeAndAliasSchemaRemainStable",
+      "behavior": "slider型paint operation propertyはbase・値型templateと整数・実数およびcallback付きの公開別名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisDoubleSliderBasedPaintOpProperty",
+        "alias:KisDoubleSliderBasedPaintOpPropertyCallback",
+        "alias:KisIntSliderBasedPaintOpProperty",
+        "alias:KisIntSliderBasedPaintOpPropertyCallback",
+        "class:KisSliderBasedPaintOpProperty",
+        "class:KisSliderBasedPaintOpPropertyBase"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::sliderPaintOpPropertyConstructionSchemaRemainsStable",
+      "behavior": "slider型paint operation propertyは識別子・設定・親と任意の種別・副種別から構築できる公開形を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSliderBasedPaintOpProperty::KisSliderBasedPaintOpProperty(Type type,SubType subType,const KoID & id,KisPaintOpSettingsRestrictedSP settings,QObject * parent)",
+        "method:KisSliderBasedPaintOpProperty::KisSliderBasedPaintOpProperty(Type type,const KoID & id,KisPaintOpSettingsRestrictedSP settings,QObject * parent)",
+        "method:KisSliderBasedPaintOpProperty::KisSliderBasedPaintOpProperty(const KoID & id,KisPaintOpSettingsRestrictedSP settings,QObject * parent)"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::sliderPaintOpPropertyRangeAndStepSignaturesRemainStable",
+      "behavior": "slider型paint operation propertyは値域、単一step、page stepを照会・設定する公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSliderBasedPaintOpProperty::max() const",
+        "method:KisSliderBasedPaintOpProperty::min() const",
+        "method:KisSliderBasedPaintOpProperty::pageStep() const",
+        "method:KisSliderBasedPaintOpProperty::setPageStep(T value)",
+        "method:KisSliderBasedPaintOpProperty::setRange(T min,T max)",
+        "method:KisSliderBasedPaintOpProperty::setSingleStep(T value)",
+        "method:KisSliderBasedPaintOpProperty::singleStep() const"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::sliderPaintOpPropertyDisplaySignaturesRemainStable",
+      "behavior": "slider型paint operation propertyは指数比、小数桁数、接尾辞の表示metadataを照会・設定する公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSliderBasedPaintOpProperty::decimals() const",
+        "method:KisSliderBasedPaintOpProperty::exponentRatio() const",
+        "method:KisSliderBasedPaintOpProperty::setDecimals(int value)",
+        "method:KisSliderBasedPaintOpProperty::setExponentRatio(qreal value)",
+        "method:KisSliderBasedPaintOpProperty::setSuffix(QString value)",
+        "method:KisSliderBasedPaintOpProperty::suffix() const"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::sliderPaintOpPropertyRangeNotificationSignatureRemainsStable",
+      "behavior": "slider型paint operation property baseは値域変更を通知する公開signal署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSliderBasedPaintOpPropertyBase::sigRangeChanged()"
       ]
     }
   ]
