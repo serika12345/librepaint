@@ -32,6 +32,7 @@
 #include "kis_sequential_iterator.h"
 #include "kis_stroke.h"
 #include "kis_types.h"
+#include "kis_update_job_item.h"
 #include "kis_updater_context.h"
 
 #include <QTest>
@@ -362,6 +363,11 @@ private Q_SLOTS:
     void updaterContextJobAdmissionAndSubmissionSignaturesRemainStable();
     void updaterContextSynchronizationAndLimitSignaturesRemainStable();
     void updaterContextContinuationAndCompletionSignaturesRemainStable();
+    void updateJobItemTypeAndStateSchemaRemainStable();
+    void updateJobItemLifetimeAndExecutionSignaturesRemainStable();
+    void updateJobItemAssignmentSignaturesRemainStable();
+    void updateJobItemStateTransitionSignaturesRemainStable();
+    void updateJobItemGeometryAndStrokePolicySignaturesRemainStable();
     void baseConstIteratorOwnershipAndTraversalSchemaRemainsStable();
     void horizontalConstIteratorTraversalSchemaRemainsStable();
     void horizontalWritableIteratorSchemaRemainsStable();
@@ -2859,6 +2865,62 @@ void KisImageTypesContractTest::updaterContextContinuationAndCompletionSignature
     ASSERT_UPDATER_CONTEXT_SIGNATURE(doSomeUsefulWork, void (KisUpdaterContext::*)());
     ASSERT_UPDATER_CONTEXT_SIGNATURE(jobFinished, void (KisUpdaterContext::*)());
     ASSERT_UPDATER_CONTEXT_SIGNATURE(jobThreadExited, void (KisUpdaterContext::*)());
+}
+
+void KisImageTypesContractTest::updateJobItemTypeAndStateSchemaRemainStable()
+{
+    using Type = KisUpdateJobItem::Type;
+
+    static_assert(std::is_class_v<KisUpdateJobItem>);
+    static_assert(std::is_base_of_v<QObject, KisUpdateJobItem>);
+    static_assert(std::is_base_of_v<QRunnable, KisUpdateJobItem>);
+    static_assert(std::is_enum_v<Type>);
+    static_assert(std::is_same_v<std::underlying_type_t<Type>, int>);
+    static_assert(static_cast<int>(Type::EMPTY) == 0);
+    static_assert(static_cast<int>(Type::WAITING) == 1);
+    static_assert(static_cast<int>(Type::MERGE) == 2);
+    static_assert(static_cast<int>(Type::STROKE) == 3);
+    static_assert(static_cast<int>(Type::SPONTANEOUS) == 4);
+}
+
+void KisImageTypesContractTest::updateJobItemLifetimeAndExecutionSignaturesRemainStable()
+{
+    using VoidSignature = void (KisUpdateJobItem::*)();
+
+    static_assert(std::is_constructible_v<KisUpdateJobItem, KisUpdaterContext *>);
+    static_assert(std::has_virtual_destructor_v<KisUpdateJobItem>);
+    static_assert(std::is_same_v<decltype(&KisUpdateJobItem::run), VoidSignature>);
+    static_assert(std::is_same_v<decltype(&KisUpdateJobItem::runMergeJob), VoidSignature>);
+}
+
+void KisImageTypesContractTest::updateJobItemAssignmentSignaturesRemainStable()
+{
+    using WalkerSignature = bool (KisUpdateJobItem::*)(KisBaseRectsWalkerSP);
+    using StrokeSignature = bool (KisUpdateJobItem::*)(KisStrokeJob *);
+    using SpontaneousSignature = bool (KisUpdateJobItem::*)(KisSpontaneousJob *);
+
+    static_assert(std::is_same_v<decltype(&KisUpdateJobItem::setWalker), WalkerSignature>);
+    static_assert(std::is_same_v<decltype(&KisUpdateJobItem::setStrokeJob), StrokeSignature>);
+    static_assert(std::is_same_v<decltype(&KisUpdateJobItem::setSpontaneousJob), SpontaneousSignature>);
+}
+
+void KisImageTypesContractTest::updateJobItemStateTransitionSignaturesRemainStable()
+{
+    using Type = KisUpdateJobItem::Type;
+
+    static_assert(std::is_same_v<decltype(&KisUpdateJobItem::setDone), void (KisUpdateJobItem::*)()>);
+    static_assert(std::is_same_v<decltype(&KisUpdateJobItem::isRunning), bool (KisUpdateJobItem::*)() const>);
+    static_assert(std::is_same_v<decltype(&KisUpdateJobItem::type), Type (KisUpdateJobItem::*)() const>);
+}
+
+void KisImageTypesContractTest::updateJobItemGeometryAndStrokePolicySignaturesRemainStable()
+{
+    using RectSignature = const QRect &(KisUpdateJobItem::*)() const;
+    using SequentialitySignature = KisStrokeJobData::Sequentiality (KisUpdateJobItem::*)() const;
+
+    static_assert(std::is_same_v<decltype(&KisUpdateJobItem::accessRect), RectSignature>);
+    static_assert(std::is_same_v<decltype(&KisUpdateJobItem::changeRect), RectSignature>);
+    static_assert(std::is_same_v<decltype(&KisUpdateJobItem::strokeJobSequentiality), SequentialitySignature>);
 }
 
 void KisImageTypesContractTest::baseConstIteratorOwnershipAndTraversalSchemaRemainsStable()
