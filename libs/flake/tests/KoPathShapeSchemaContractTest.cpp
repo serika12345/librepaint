@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include <KoClipMask.h>
+#include <KoClipPath.h>
 #include <KoPathShape.h>
 
 #include <QTest>
@@ -15,12 +17,99 @@ class KoPathShapeSchemaContractTest : public QObject
     Q_OBJECT
 
 private Q_SLOTS:
+    void clipTypeAndLifetimeSchemaRemainStable();
+    void clipCoordinateAndRuleSignaturesRemainStable();
+    void clipShapeOwnershipSignaturesRemainStable();
+    void clipGeometrySignaturesRemainStable();
+    void clipRenderingSignaturesRemainStable();
     void pathShapeIdentityListenerAndValueSchemaRemainStable();
     void pathShapeGeometryAndRenderingSignaturesRemainStable();
     void pathShapeConstructionStyleAndMarkerSignaturesRemainStable();
     void pathShapePointQueryAndMutationSignaturesRemainStable();
     void pathShapeSubpathTopologySignaturesRemainStable();
 };
+
+void KoPathShapeSchemaContractTest::clipTypeAndLifetimeSchemaRemainStable()
+{
+    static_assert(std::is_class_v<KoClipMask>);
+    static_assert(std::is_default_constructible_v<KoClipMask>);
+    static_assert(std::is_copy_constructible_v<KoClipMask>);
+    static_assert(std::is_copy_assignable_v<KoClipMask>);
+    static_assert(std::is_destructible_v<KoClipMask>);
+
+    static_assert(std::is_class_v<KoClipPath>);
+    static_assert(std::is_constructible_v<KoClipPath, QList<KoShape *>, KoFlake::CoordinateSystem>);
+    static_assert(std::is_copy_constructible_v<KoClipPath>);
+    static_assert(std::is_copy_assignable_v<KoClipPath>);
+    static_assert(std::is_destructible_v<KoClipPath>);
+}
+
+void KoPathShapeSchemaContractTest::clipCoordinateAndRuleSignaturesRemainStable()
+{
+    using MaskCoordinates = KoFlake::CoordinateSystem (KoClipMask::*)() const;
+    using SetMaskCoordinates = void (KoClipMask::*)(KoFlake::CoordinateSystem);
+    using PathCoordinates = KoFlake::CoordinateSystem (KoClipPath::*)() const;
+    using SetClipRule = void (KoClipPath::*)(Qt::FillRule);
+    using ClipRule = Qt::FillRule (KoClipPath::*)() const;
+
+    static_assert(std::is_same_v<decltype(static_cast<MaskCoordinates>(&KoClipMask::coordinates)), MaskCoordinates>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<SetMaskCoordinates>(&KoClipMask::setCoordinates)), SetMaskCoordinates>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<MaskCoordinates>(&KoClipMask::contentCoordinates)), MaskCoordinates>);
+    static_assert(std::is_same_v<decltype(static_cast<SetMaskCoordinates>(&KoClipMask::setContentCoordinates)),
+                                 SetMaskCoordinates>);
+    static_assert(std::is_same_v<decltype(static_cast<PathCoordinates>(&KoClipPath::coordinates)), PathCoordinates>);
+    static_assert(std::is_same_v<decltype(static_cast<SetClipRule>(&KoClipPath::setClipRule)), SetClipRule>);
+    static_assert(std::is_same_v<decltype(static_cast<ClipRule>(&KoClipPath::clipRule)), ClipRule>);
+}
+
+void KoPathShapeSchemaContractTest::clipShapeOwnershipSignaturesRemainStable()
+{
+    using CloneMask = KoClipMask *(KoClipMask::*)() const;
+    using MaskShapes = QList<KoShape *> (KoClipMask::*)() const;
+    using SetMaskShapes = void (KoClipMask::*)(const QList<KoShape *> &);
+    using MaskIsEmpty = bool (KoClipMask::*)() const;
+    using ClonePath = KoClipPath *(KoClipPath::*)() const;
+    using PathShapes = QList<KoPathShape *> (KoClipPath::*)() const;
+    using Shapes = QList<KoShape *> (KoClipPath::*)() const;
+
+    static_assert(std::is_same_v<decltype(static_cast<CloneMask>(&KoClipMask::clone)), CloneMask>);
+    static_assert(std::is_same_v<decltype(static_cast<MaskShapes>(&KoClipMask::shapes)), MaskShapes>);
+    static_assert(std::is_same_v<decltype(static_cast<SetMaskShapes>(&KoClipMask::setShapes)), SetMaskShapes>);
+    static_assert(std::is_same_v<decltype(static_cast<MaskIsEmpty>(&KoClipMask::isEmpty)), MaskIsEmpty>);
+    static_assert(std::is_same_v<decltype(static_cast<ClonePath>(&KoClipPath::clone)), ClonePath>);
+    static_assert(std::is_same_v<decltype(static_cast<PathShapes>(&KoClipPath::clipPathShapes)), PathShapes>);
+    static_assert(std::is_same_v<decltype(static_cast<Shapes>(&KoClipPath::clipShapes)), Shapes>);
+}
+
+void KoPathShapeSchemaContractTest::clipGeometrySignaturesRemainStable()
+{
+    using MaskRect = QRectF (KoClipMask::*)() const;
+    using SetMaskRect = void (KoClipMask::*)(const QRectF &);
+    using SetExtraShapeOffset = void (KoClipMask::*)(const QPointF &);
+    using Path = QPainterPath (KoClipPath::*)() const;
+    using PathForSize = QPainterPath (KoClipPath::*)(const QSizeF &) const;
+    using ClipDataTransformation = QTransform (KoClipPath::*)(KoShape *) const;
+
+    static_assert(std::is_same_v<decltype(static_cast<MaskRect>(&KoClipMask::maskRect)), MaskRect>);
+    static_assert(std::is_same_v<decltype(static_cast<SetMaskRect>(&KoClipMask::setMaskRect)), SetMaskRect>);
+    static_assert(std::is_same_v<decltype(static_cast<SetExtraShapeOffset>(&KoClipMask::setExtraShapeOffset)),
+                                 SetExtraShapeOffset>);
+    static_assert(std::is_same_v<decltype(static_cast<Path>(&KoClipPath::path)), Path>);
+    static_assert(std::is_same_v<decltype(static_cast<PathForSize>(&KoClipPath::pathForSize)), PathForSize>);
+    static_assert(std::is_same_v<decltype(static_cast<ClipDataTransformation>(&KoClipPath::clipDataTransformation)),
+                                 ClipDataTransformation>);
+}
+
+void KoPathShapeSchemaContractTest::clipRenderingSignaturesRemainStable()
+{
+    using DrawMask = void (KoClipMask::*)(QPainter *, KoShape *);
+    using ApplyClipping = void (*)(KoShape *, QPainter &);
+
+    static_assert(std::is_same_v<decltype(static_cast<DrawMask>(&KoClipMask::drawMask)), DrawMask>);
+    static_assert(std::is_same_v<decltype(static_cast<ApplyClipping>(&KoClipPath::applyClipping)), ApplyClipping>);
+}
 
 void KoPathShapeSchemaContractTest::pathShapeIdentityListenerAndValueSchemaRemainStable()
 {
