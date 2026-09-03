@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 11294
+    "expectedMissingApis": 11269
   },
   "contracts": [
     {
@@ -52138,6 +52138,76 @@
       "apis": [
         "method:KisDlgInternalColorSelector::reject()",
         "method:KisDlgInternalColorSelector::signalForegroundColorChosen(KoColor color)"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::curveMaskTypeAndLifetimeSchemaRemainStable",
+      "behavior": "curve駆動の円形・矩形ブラシmask生成器はcurve設定から構築・複製でき、基底型を介して破棄できる公開型と寿命を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisCurveCircleMaskGenerator",
+        "class:KisCurveRectangleMaskGenerator",
+        "method:KisCurveCircleMaskGenerator::KisCurveCircleMaskGenerator(const KisCurveCircleMaskGenerator & rhs)",
+        "method:KisCurveCircleMaskGenerator::KisCurveCircleMaskGenerator(qreal radius,qreal ratio,qreal fh,qreal fv,int spikes,const KisCubicCurve & curve,bool antialiasEdges)",
+        "method:KisCurveCircleMaskGenerator::~KisCurveCircleMaskGenerator()",
+        "method:KisCurveRectangleMaskGenerator::KisCurveRectangleMaskGenerator(const KisCurveRectangleMaskGenerator & rhs)",
+        "method:KisCurveRectangleMaskGenerator::KisCurveRectangleMaskGenerator(qreal radius,qreal ratio,qreal fh,qreal fv,int spikes,const KisCubicCurve & curve,bool antialiasEdges)",
+        "method:KisCurveRectangleMaskGenerator::~KisCurveRectangleMaskGenerator()"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::curveMaskCloneAndSamplingSignaturesRemainStable",
+      "behavior": "curve駆動の円形・矩形ブラシmask生成器は基底型pointerとして複製し、座標から8-bit mask値を得る公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCurveCircleMaskGenerator::clone() const",
+        "method:KisCurveCircleMaskGenerator::valueAt(qreal x,qreal y) const",
+        "method:KisCurveRectangleMaskGenerator::clone() const",
+        "method:KisCurveRectangleMaskGenerator::valueAt(qreal x,qreal y) const"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::curveMaskScaleAndSoftnessSignaturesRemainStable",
+      "behavior": "curve駆動の円形・矩形ブラシmask生成器は二軸尺度とsoftnessを設定する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCurveCircleMaskGenerator::setScale(qreal scaleX,qreal scaleY)",
+        "method:KisCurveCircleMaskGenerator::setSoftness(qreal softness)",
+        "method:KisCurveRectangleMaskGenerator::setScale(qreal scaleX,qreal scaleY)",
+        "method:KisCurveRectangleMaskGenerator::setSoftness(qreal softness)"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::curveMaskVectorizationAndApplicatorSignaturesRemainStable",
+      "behavior": "curve駆動の円形・矩形ブラシmask生成器はvector化方針と借用applicatorを公開し、scalar実装へ切り替える署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCurveCircleMaskGenerator::applicator() const",
+        "method:KisCurveCircleMaskGenerator::setMaskScalarApplicator()",
+        "method:KisCurveCircleMaskGenerator::shouldVectorize() const",
+        "method:KisCurveRectangleMaskGenerator::applicator() const",
+        "method:KisCurveRectangleMaskGenerator::setMaskScalarApplicator()",
+        "method:KisCurveRectangleMaskGenerator::shouldVectorize() const"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::curveMaskSerializationAndTransformationSignaturesRemainStable",
+      "behavior": "curve駆動のブラシmask生成器は設定をXMLへ出力し、円形generatorはsoftness用curve点列を変換する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCurveCircleMaskGenerator::toXML(QDomDocument &,QDomElement &) const",
+        "method:KisCurveCircleMaskGenerator::transformCurveForSoftness(qreal softness,const QList<KisCubicCurvePoint> & points,int curveResolution,QVector<qreal> & result)",
+        "method:KisCurveRectangleMaskGenerator::toXML(QDomDocument &,QDomElement &) const"
       ]
     }
   ]
