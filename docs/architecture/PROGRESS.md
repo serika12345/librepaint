@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-03 21:40 JST
+- 更新日時: 2026-09-03 21:47 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -16,6 +16,23 @@
 - `g193-flake-contract-audit`はflake・SVG・vector領域を所有し、第192便までに固定したshape manager・controller、tool代理、shape幾何・階層・文書状態、clip、背景群、path点・区間種別commandを除外して、一責務の未対応集合を比較する。
 - `g193-ui-contract-audit`はwidgetutils・widgets・libkis領域を所有し、第192便までに固定したHSX色入力、内部色選択dialog、視覚色選択群、palette delegate、filter設定・適用、palette選択・色集合表示、色選択button・popup actionを除外して、一責務の未対応集合を比較する。
 - 各担当は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、実際のcompile探索路、予測工程・入力と停止線、開始pathから契約先、実装時許可path、固有停止条件、比較候補の棄却根拠を返す。調整担当は3領域のpath、CMake、試験source、生成物が重ならず、合計60〜180 APIとなる組合せだけを次の実装担当票へ進める。
+
+### 第193便の先行監査結果
+
+- image領域は`libs/image/kis_mask.h`の残存全31 APIを単一channel maskの型・構築、階層・選択所有、描画装置・投影、幾何・thumbnail、位置編集として採用した。既存4,104行・214枠の総合翻訳単位とpaint layer契約へ混載せず、新規`libs/image/tests/KisMaskSchemaContractTest.cpp`の5枠へ分離する。近傍`KisPaintLayerSchemaContractTest`からpsdutilsを除いたQt Core・Gui・Test・Xml、header-only Boost、既存探索路と定義だけで4工程・8入力を予測し、停止線を5工程・11入力とする。mask、node、image・layer・selection・device・projection、色空間・合成方式、Qt値を実体化せず、選択初期化、投影、dirty領域、thumbnail、座標、metaobject本文を実行しない。
+  generator layerはresource・時限更新、undo stroke strategyは7工程・16入力と製品OBJECT、tiled data managerはinline lock・undo・I/O、processing applicatorとtransactionは非同期処理またはinline副作用が主要契約のため棄却した。
+- flake領域は`libs/flake/commands/KoPathPointInsertCommand.h`、`KoPathPointRemoveCommand.h`、`KoPathPointMergeCommand.h`、`KoMultiPathPointMergeCommand.h`の残存全24 APIを、パス点の挿入・削除・同一path内結合・複数path間結合commandとして採用した。既存の図形順序・点区間種別契約へ混載せず、新規`libs/flake/tests/KoPathPointTopologyCommandSchemaContractTest.cpp`の5枠へ分離する。近傍`KoShapeReorderCommandSchemaContractTest`と同じQt Core・Testの直接link、既存探索路と定義だけで4工程・8入力を予測し、停止線を5工程・11入力とする。command、path点・shape、controller、selection、undo、Qt容器を実体化せず、挿入・削除・結合、実行・取消し、factory、結果取得本文を実行しない。
+  font familyはresource探索路、CSS・gamut mask・SVG symbolはresource・描画・永続化の複数責務、SVG parserは製品と`kritatestsdk`、tool managerは大域状態、SVG text shapeは上限超過のため棄却した。
+- widgetutils領域は`libs/widgetutils/xmlgui/kactioncategory.h`の残存全12 APIと`kedittoolbar.h`の残存全8 APIを、XML GUIのaction整理とtoolbar編集入口として採用した。既存463行・35枠のXML GUI集約契約と348行の標準action契約へ追記せず、新規`libs/widgetutils/tests/KActionCategoryEditToolBarSchemaContractTest.cpp`の5枠へ分離する。既存config・xmlgui探索路、Qt TestとKF ConfigGuiの直接link、Qt Widgetsのinterface、`kritawidgetutils_EXPORTS`だけで4工程・10入力を予測し、停止線を5工程・11入力とする。category、toolbar、collection・factory、Qt action・dialog・値を実体化せず、action追加、collection更新、XML読込、toolbar編集・保存、通知本文を実行しない。
+  tag選択は製品試験、zoomは既存停止線超過、Scratchpadはapplication・view・image寿命を横断し、progress updaterと言語buttonは下限未満のため棄却した。
+- 中央の`public-api-missing-g193.json`で3集合の75 APIを照合した。開始header、試験source、所有CMake、生成物は相互に異なる。許可path外変更、新規の探索路・link・compile定義、公開header・製品source変更、候補headerのAUTOMOC入力化、製品shared・OBJECT・`kritatestsdk`接続、指定外実体化・本文実行、各停止線超過、製品計画集合の変化が不要な場合だけ実装へ進める。
+
+### 第193便の担当計画
+
+- 実装共通基点は`2532be32ad31`である。3担当のGit権限は許可pathだけの1受渡しcommit、追加委任は禁止する。対象platformはmacOSであり、一度に一つだけ作る専用worktree-local `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。Nix再評価を行わず、担当側の`./scripts/run-shared-test-env`で主作業treeの読み込み済み開発環境を共有する。mask、path点topology、XML GUI操作の順に一担当ずつ実装・限定検証・統合・削除する。調整担当だけがarchitecture文書、公開API台帳、共通不足報告を変更する。製品targetを引数にするplan/build、全体build、全体`verify`、Linux検証は禁止する。
+- `g193-mask-schema`の状態は`preparing`、構築実行許可は`granted`、作業treeは`/Users/masato/Documents/librepaint-g193-mask-schema`である。開始`libs/image/kis_mask.h`の残存全31 APIから新規`libs/image/tests/KisMaskSchemaContractTest.cpp`の5枠`maskTypeAndConstructionSchemaRemainStable`、`maskHierarchyAndSelectionSignaturesRemainStable`、`maskDeviceAndProjectionSignaturesRemainStable`、`maskGeometryAndThumbnailSignaturesRemainStable`、`maskPositionAndEditingSignaturesRemainStable`へ対応付ける。許可pathは新規試験sourceと`libs/image/tests/CMakeLists.txt`の新target固有節だけである。近傍`KisPaintLayerSchemaContractTest`の探索路からpsdutilsを除き、Qt Core・Gui・Test・Xml、header-only Boost、既存定義だけを使用する。候補headerをAUTOMOC入力へ加えず、監査で定めた型・本文を実体化・実行しない。予測4工程・8入力、停止5工程・11入力で、編集前後の計画・依存・空閉包、初回診断、対象・5枠・20回反復・近傍・無作業、接続・AUTOMOC・未解決記号・構文・書式・公開API・`verify-quick`を確認する。
+- `g193-path-point-topology-schema`の状態は`preparing`、構築実行許可は`waiting`、作業treeは`/Users/masato/Documents/librepaint-g193-path-point-topology-schema`である。開始4 command headerの残存全24 APIから新規`libs/flake/tests/KoPathPointTopologyCommandSchemaContractTest.cpp`の5枠`pathPointTopologyCommandTypeAndLifetimeSchemaRemainStable`、`pathPointTopologyExecutionSignaturesRemainStable`、`pathPointInsertionResultSignatureRemainsStable`、`pathPointRemovalFactorySignatureRemainsStable`、`pathPointMergeResultSignaturesRemainStable`へ対応付ける。許可pathは新規試験sourceと`libs/flake/tests/CMakeLists.txt`の新target固有節だけである。近傍`KoShapeReorderCommandSchemaContractTest`と同じQt Core・Test、既存探索路と定義だけを使用し、候補headerをAUTOMOC入力へ加えず監査で定めた型・本文を実体化・実行しない。mask担当の統合・削除後に構築を許可し、同じ限定検証を予測4工程・8入力、停止5工程・11入力で行う。
+- `g193-action-category-toolbar-schema`の状態は`preparing`、構築実行許可は`waiting`、作業treeは`/Users/masato/Documents/librepaint-g193-action-category-toolbar-schema`である。開始`libs/widgetutils/xmlgui/kactioncategory.h`の残存全12 APIと`kedittoolbar.h`の残存全8 APIから新規`libs/widgetutils/tests/KActionCategoryEditToolBarSchemaContractTest.cpp`の5枠`actionCategoryTypeAndLifetimeSchemaRemainStable`、`actionCategoryCollectionAndIdentitySignaturesRemainStable`、`actionCategoryActionCreationSignaturesRemainStable`、`editToolBarTypeLifetimeAndConfigurationSchemaRemainStable`、`editToolBarNotificationSignaturesRemainStable`へ対応付ける。許可pathは新規試験sourceと`libs/widgetutils/tests/CMakeLists.txt`の新target固有節だけである。既存config・xmlgui探索路、Qt Test・KF ConfigGui、Qt Widgetsのinterfaceと`kritawidgetutils_EXPORTS`だけを使用し、候補headerをAUTOMOC入力へ加えず監査で定めた型・本文を実体化・実行しない。path点topology担当の統合・削除後に構築を許可し、同じ限定検証を予測4工程・10入力、停止5工程・11入力で行う。
 
 ### 第192便の先行監査担当票
 
