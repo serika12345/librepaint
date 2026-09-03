@@ -4,6 +4,8 @@
  */
 
 #include <KoShapeSavingContext.h>
+#include <svg/SvgSavingContext.h>
+#include <svg/SvgWriter.h>
 
 #include <QTest>
 
@@ -15,6 +17,12 @@ using SavedImageMap = QMap<qint64, QString>;
 
 #define ASSERT_SAVING_CONTEXT_SIGNATURE(method, signature)                                                             \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KoShapeSavingContext::method)), signature>)
+
+#define ASSERT_SVG_SAVING_CONTEXT_SIGNATURE(method, signature)                                                         \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&SvgSavingContext::method)), signature>)
+
+#define ASSERT_SVG_WRITER_SIGNATURE(method, signature)                                                                 \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&SvgWriter::method)), signature>)
 } // namespace
 
 class KoShapeSavingContextSchemaContractTest : public QObject
@@ -27,6 +35,11 @@ private Q_SLOTS:
     void shapeSavingContextOptionSignaturesRemainStable();
     void shapeSavingContextLayerImageAndMarkerSignaturesRemainStable();
     void shapeSavingContextSharedDataAndOffsetSignaturesRemainStable();
+    void svgSavingTypeLifetimeAndConstructionSchemaRemainStable();
+    void svgSavingWriterTransformAndModeSignaturesRemainStable();
+    void svgSavingIdentityAndExternalAssetSignaturesRemainStable();
+    void svgWriterOutputSignaturesRemainStable();
+    void svgWriterDocumentMetadataSignaturesRemainStable();
 };
 
 void KoShapeSavingContextSchemaContractTest::shapeSavingOptionValueSchemaRemainsStable()
@@ -93,6 +106,53 @@ void KoShapeSavingContextSchemaContractTest::shapeSavingContextSharedDataAndOffs
                                     void (KoShapeSavingContext::*)(const KoShape *, const QTransform &));
     ASSERT_SAVING_CONTEXT_SIGNATURE(removeShapeOffset, void (KoShapeSavingContext::*)(const KoShape *));
     ASSERT_SAVING_CONTEXT_SIGNATURE(shapeOffset, QTransform (KoShapeSavingContext::*)(const KoShape *) const);
+}
+
+void KoShapeSavingContextSchemaContractTest::svgSavingTypeLifetimeAndConstructionSchemaRemainStable()
+{
+    static_assert(std::is_class_v<SvgSavingContext>);
+    static_assert(std::is_constructible_v<SvgSavingContext, QIODevice &>);
+    static_assert(std::is_constructible_v<SvgSavingContext, QIODevice &, bool>);
+    static_assert(std::is_constructible_v<SvgSavingContext, QIODevice &, QIODevice &>);
+    static_assert(std::is_constructible_v<SvgSavingContext, QIODevice &, QIODevice &, bool>);
+    static_assert(std::has_virtual_destructor_v<SvgSavingContext>);
+
+    static_assert(std::is_class_v<SvgWriter>);
+    static_assert(std::is_constructible_v<SvgWriter, const QList<KoShape *> &>);
+    static_assert(std::is_constructible_v<SvgWriter, const QList<KoShapeLayer *> &>);
+    static_assert(std::has_virtual_destructor_v<SvgWriter>);
+}
+
+void KoShapeSavingContextSchemaContractTest::svgSavingWriterTransformAndModeSignaturesRemainStable()
+{
+    ASSERT_SVG_SAVING_CONTEXT_SIGNATURE(styleWriter, KoXmlWriter & (SvgSavingContext::*)());
+    ASSERT_SVG_SAVING_CONTEXT_SIGNATURE(shapeWriter, KoXmlWriter & (SvgSavingContext::*)());
+    ASSERT_SVG_SAVING_CONTEXT_SIGNATURE(userSpaceTransform, QTransform (SvgSavingContext::*)() const);
+    ASSERT_SVG_SAVING_CONTEXT_SIGNATURE(isSavingInlineImages, bool (SvgSavingContext::*)() const);
+    ASSERT_SVG_SAVING_CONTEXT_SIGNATURE(setStrippedTextMode, void (SvgSavingContext::*)(bool));
+    ASSERT_SVG_SAVING_CONTEXT_SIGNATURE(strippedTextMode, bool (SvgSavingContext::*)() const);
+}
+
+void KoShapeSavingContextSchemaContractTest::svgSavingIdentityAndExternalAssetSignaturesRemainStable()
+{
+    ASSERT_SVG_SAVING_CONTEXT_SIGNATURE(createUID, QString (SvgSavingContext::*)(const QString &));
+    ASSERT_SVG_SAVING_CONTEXT_SIGNATURE(getID, QString (SvgSavingContext::*)(const KoShape *));
+    ASSERT_SVG_SAVING_CONTEXT_SIGNATURE(createFileName, QString (SvgSavingContext::*)(const QString &));
+    ASSERT_SVG_SAVING_CONTEXT_SIGNATURE(saveImage, QString (SvgSavingContext::*)(const QImage &));
+}
+
+void KoShapeSavingContextSchemaContractTest::svgWriterOutputSignaturesRemainStable()
+{
+    ASSERT_SVG_WRITER_SIGNATURE(save, bool (SvgWriter::*)(QIODevice &, const QSizeF &));
+    ASSERT_SVG_WRITER_SIGNATURE(save, bool (SvgWriter::*)(const QString &, const QSizeF &, bool));
+    ASSERT_SVG_WRITER_SIGNATURE(saveDetached, bool (SvgWriter::*)(QIODevice &));
+    ASSERT_SVG_WRITER_SIGNATURE(saveDetached, bool (SvgWriter::*)(SvgSavingContext &));
+}
+
+void KoShapeSavingContextSchemaContractTest::svgWriterDocumentMetadataSignaturesRemainStable()
+{
+    ASSERT_SVG_WRITER_SIGNATURE(setDocumentTitle, void (SvgWriter::*)(QString));
+    ASSERT_SVG_WRITER_SIGNATURE(setDocumentDescription, void (SvgWriter::*)(QString));
 }
 
 QTEST_APPLESS_MAIN(KoShapeSavingContextSchemaContractTest)
