@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 11121
+    "expectedMissingApis": 11097
   },
   "contracts": [
     {
@@ -52626,6 +52626,75 @@
         "method:KisPaintLayer::handleKeyframeChannelFrameAdded(const KisKeyframeChannel * channel,int time)",
         "method:KisPaintLayer::handleKeyframeChannelFrameChange(const KisKeyframeChannel * channel,int time)",
         "method:KisPaintLayer::slotExternalUpdateOnionSkins()"
+      ]
+    },
+    {
+      "target": "KoShapeStateSchemaContractTest",
+      "source": "libs/flake/tests/KoShapeStateSchemaContractTest.cpp",
+      "test": "KoShapeStateSchemaContractTest::shapeIdentityAndLinkSignaturesRemainStable",
+      "behavior": "図形は文書内の名前、安定識別子、外部linkを取得・設定する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShape::hyperLink() const",
+        "method:KoShape::name() const",
+        "method:KoShape::setHyperLink(const QString & hyperLink)",
+        "method:KoShape::setName(const QString & name)",
+        "method:KoShape::setShapeId(const QString & id)",
+        "method:KoShape::shapeId() const"
+      ]
+    },
+    {
+      "target": "KoShapeStateSchemaContractTest",
+      "source": "libs/flake/tests/KoShapeStateSchemaContractTest.cpp",
+      "test": "KoShapeStateSchemaContractTest::shapeAdditionalAttributeSignaturesRemainStable",
+      "behavior": "図形は名前付き追加属性と直列化用style属性を照会・設定・除去する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShape::additionalAttribute(const QString & name) const",
+        "method:KoShape::hasAdditionalAttribute(const QString & name) const",
+        "method:KoShape::removeAdditionalAttribute(const QString & name)",
+        "method:KoShape::removeAdditionalStyleAttribute(const char * name)",
+        "method:KoShape::setAdditionalAttribute(const QString & name,const QString & value)",
+        "method:KoShape::setAdditionalStyleAttribute(const char * name,const QString & value)"
+      ]
+    },
+    {
+      "target": "KoShapeStateSchemaContractTest",
+      "source": "libs/flake/tests/KoShapeStateSchemaContractTest.cpp",
+      "test": "KoShapeStateSchemaContractTest::shapeProtectionSignaturesRemainStable",
+      "behavior": "図形は内容と幾何を個別に保護・解除し、それぞれの保護状態を照会する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShape::isContentProtected() const",
+        "method:KoShape::isGeometryProtected() const",
+        "method:KoShape::setContentProtected(bool protect)",
+        "method:KoShape::setGeometryProtected(bool on)"
+      ]
+    },
+    {
+      "target": "KoShapeStateSchemaContractTest",
+      "source": "libs/flake/tests/KoShapeStateSchemaContractTest.cpp",
+      "test": "KoShapeStateSchemaContractTest::shapePresentationPolicySignaturesRemainStable",
+      "behavior": "図形は印刷、選択、再帰的な可視性の方針を照会・設定する公開署名と既定の再帰照会を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShape::isPrintable() const",
+        "method:KoShape::isSelectable() const",
+        "method:KoShape::isVisible(bool recursive=true) const",
+        "method:KoShape::setPrintable(bool on)",
+        "method:KoShape::setSelectable(bool selectable)",
+        "method:KoShape::setVisible(bool on)"
+      ]
+    },
+    {
+      "target": "KoShapeStateSchemaContractTest",
+      "source": "libs/flake/tests/KoShapeStateSchemaContractTest.cpp",
+      "test": "KoShapeStateSchemaContractTest::shapeEditabilityAndReadinessSignaturesRemainStable",
+      "behavior": "図形は既定で階層を再帰確認する編集可否と、既定で非同期処理を許す準備完了待機の公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShape::isShapeEditable(bool recursive=true) const",
+        "method:KoShape::waitUntilReady(bool asynchronous=true) const"
       ]
     }
   ]
