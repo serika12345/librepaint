@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 11979
+    "expectedMissingApis": 11954
   },
   "contracts": [
     {
@@ -50328,6 +50328,76 @@
         "method:SvgLoadingContext::profiles()",
         "method:SvgLoadingContext::resolvedProperties(bool onlyFontAndLineHeight=false) const",
         "method:SvgLoadingContext::styleParser()"
+      ]
+    },
+    {
+      "target": "KisVisualColorSelectorShapeSchemaContractTest",
+      "source": "libs/widgets/tests/KisVisualColorSelectorShapeSchemaContractTest.cpp",
+      "test": "KisVisualColorSelectorShapeSchemaContractTest::visualConcreteSelectorShapeConstructionSchemaRemainsStable",
+      "behavior": "矩形・楕円の視覚色選択形状は共通shapeを基底とし、親selector・次元・channel・幅・一次元種別を受ける構築と仮想寿命を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisVisualEllipticalSelectorShape",
+        "class:KisVisualRectangleSelectorShape",
+        "method:KisVisualEllipticalSelectorShape::KisVisualEllipticalSelectorShape(KisVisualColorSelector * parent,Dimensions dimension,int channel1,int channel2,int barWidth=20,KisVisualEllipticalSelectorShape::singelDTypes d=KisVisualEllipticalSelectorShape::border)",
+        "method:KisVisualEllipticalSelectorShape::~KisVisualEllipticalSelectorShape()",
+        "method:KisVisualRectangleSelectorShape::KisVisualRectangleSelectorShape(KisVisualColorSelector * parent,Dimensions dimension,int channel1,int channel2,int width=20,KisVisualRectangleSelectorShape::singelDTypes d=KisVisualRectangleSelectorShape::vertical)",
+        "method:KisVisualRectangleSelectorShape::~KisVisualRectangleSelectorShape()"
+      ]
+    },
+    {
+      "target": "KisVisualColorSelectorShapeSchemaContractTest",
+      "source": "libs/widgets/tests/KisVisualColorSelectorShapeSchemaContractTest.cpp",
+      "test": "KisVisualColorSelectorShapeSchemaContractTest::visualConcreteSelectorShapeOneDimensionalTypeValuesRemainStable",
+      "behavior": "矩形・楕円の視覚色選択形状は一次元表示の向き・境界・反転境界を表す公開列挙型と連続値を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KisVisualEllipticalSelectorShape::singelDTypes",
+        "enum:KisVisualRectangleSelectorShape::singelDTypes",
+        "enumerator:KisVisualEllipticalSelectorShape::singelDTypes::border",
+        "enumerator:KisVisualEllipticalSelectorShape::singelDTypes::borderMirrored",
+        "enumerator:KisVisualRectangleSelectorShape::singelDTypes::border",
+        "enumerator:KisVisualRectangleSelectorShape::singelDTypes::borderMirrored",
+        "enumerator:KisVisualRectangleSelectorShape::singelDTypes::horizontal",
+        "enumerator:KisVisualRectangleSelectorShape::singelDTypes::vertical"
+      ]
+    },
+    {
+      "target": "KisVisualColorSelectorShapeSchemaContractTest",
+      "source": "libs/widgets/tests/KisVisualColorSelectorShapeSchemaContractTest.cpp",
+      "test": "KisVisualColorSelectorShapeSchemaContractTest::visualConcreteSelectorShapeGeometrySignaturesRemainStable",
+      "behavior": "矩形・楕円の視覚色選択形状は境界幅を設定し、正方形・円・三角形との組合せ領域を返す公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisVisualEllipticalSelectorShape::getSpaceForCircle(QRect geom)",
+        "method:KisVisualEllipticalSelectorShape::getSpaceForSquare(QRect geom)",
+        "method:KisVisualEllipticalSelectorShape::getSpaceForTriangle(QRect geom)",
+        "method:KisVisualEllipticalSelectorShape::setBorderWidth(int width)",
+        "method:KisVisualRectangleSelectorShape::getSpaceForCircle(QRect geom)",
+        "method:KisVisualRectangleSelectorShape::getSpaceForSquare(QRect geom)",
+        "method:KisVisualRectangleSelectorShape::getSpaceForTriangle(QRect geom)",
+        "method:KisVisualRectangleSelectorShape::setBorderWidth(int width)"
+      ]
+    },
+    {
+      "target": "KisVisualColorSelectorShapeSchemaContractTest",
+      "source": "libs/widgets/tests/KisVisualColorSelectorShapeSchemaContractTest.cpp",
+      "test": "KisVisualColorSelectorShapeSchemaContractTest::visualRectangleSelectorShapeModeSignatureRemainsStable",
+      "behavior": "矩形の視覚色選択形状は一次元表示種別を変更する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisVisualRectangleSelectorShape::setOneDimensionalType(singelDTypes type)"
+      ]
+    },
+    {
+      "target": "KisVisualColorSelectorShapeSchemaContractTest",
+      "source": "libs/widgets/tests/KisVisualColorSelectorShapeSchemaContractTest.cpp",
+      "test": "KisVisualColorSelectorShapeSchemaContractTest::visualEllipticalSelectorShapeGamutSignaturesRemainStable",
+      "behavior": "楕円の視覚色選択形状はgamut mask対応を表明し、その表示maskを更新する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisVisualEllipticalSelectorShape::supportsGamutMask() const",
+        "method:KisVisualEllipticalSelectorShape::updateGamutMask()"
       ]
     }
   ]
