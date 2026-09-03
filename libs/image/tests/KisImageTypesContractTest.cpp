@@ -9,6 +9,7 @@
 #include "brushengine/kis_uniform_paintop_property.h"
 #include "commands_new/kis_saved_commands.h"
 #include "kis_base_mask_generator.h"
+#include "kis_brush_mask_applicator_base.h"
 #include "kis_clone_layer.h"
 #include "kis_datamanager.h"
 #include "kis_default_bounds.h"
@@ -360,6 +361,11 @@ private Q_SLOTS:
     void maskGeneratorAppearanceSignaturesRemainStable();
     void maskGeneratorRenderingPolicySignaturesRemainStable();
     void maskGeneratorSerializationAndRegistrySignaturesRemainStable();
+    void maskDataConstructionSchemaRemainStable();
+    void maskDataDeviceAndColorSchemaRemainStable();
+    void maskDataGeometrySchemaRemainStable();
+    void brushMaskApplicatorSchemaRemainStable();
+    void brushMaskOperatorSchemaRemainStable();
     void updaterContextOwnershipLifetimeAndConstructionSchemaRemainsStable();
     void updaterContextSnapshotLodAndCapacitySignaturesRemainStable();
     void updaterContextJobAdmissionAndSubmissionSignaturesRemainStable();
@@ -2829,6 +2835,63 @@ void KisImageTypesContractTest::maskGeneratorSerializationAndRegistrySignaturesR
     ASSERT_MASK_GENERATOR_SIGNATURE(toXML, void (KisMaskGenerator::*)(QDomDocument &, QDomElement &) const);
     static_assert(std::is_same_v<decltype(&KisMaskGenerator::fromXML), KisMaskGenerator *(*)(const QDomElement &)>);
     static_assert(std::is_same_v<decltype(&KisMaskGenerator::maskGeneratorIds), QList<KoID> (*)()>);
+}
+
+void KisImageTypesContractTest::maskDataConstructionSchemaRemainStable()
+{
+    static_assert(std::is_class_v<MaskProcessingData>);
+    static_assert(std::is_constructible_v<MaskProcessingData,
+                                          KisFixedPaintDeviceSP,
+                                          const KoColorSpace *,
+                                          const quint8 *,
+                                          qreal,
+                                          qreal,
+                                          double,
+                                          double,
+                                          double>);
+}
+
+void KisImageTypesContractTest::maskDataDeviceAndColorSchemaRemainStable()
+{
+    static_assert(std::is_same_v<decltype(MaskProcessingData::device), KisFixedPaintDeviceSP>);
+    static_assert(std::is_same_v<decltype(MaskProcessingData::colorSpace), const KoColorSpace *>);
+    static_assert(std::is_same_v<decltype(MaskProcessingData::color), const quint8 *>);
+    static_assert(std::is_same_v<decltype(MaskProcessingData::pixelSize), quint32>);
+}
+
+void KisImageTypesContractTest::maskDataGeometrySchemaRemainStable()
+{
+    static_assert(std::is_same_v<decltype(MaskProcessingData::randomness), qreal>);
+    static_assert(std::is_same_v<decltype(MaskProcessingData::density), qreal>);
+    static_assert(std::is_same_v<decltype(MaskProcessingData::centerX), double>);
+    static_assert(std::is_same_v<decltype(MaskProcessingData::centerY), double>);
+    static_assert(std::is_same_v<decltype(MaskProcessingData::cosa), double>);
+    static_assert(std::is_same_v<decltype(MaskProcessingData::sina), double>);
+}
+
+void KisImageTypesContractTest::brushMaskApplicatorSchemaRemainStable()
+{
+    using ProcessSignature = void (KisBrushMaskApplicatorBase::*)(const QRect &);
+    using InitializeDataSignature = void (KisBrushMaskApplicatorBase::*)(const MaskProcessingData *);
+
+    static_assert(std::is_class_v<KisBrushMaskApplicatorBase>);
+    static_assert(std::is_abstract_v<KisBrushMaskApplicatorBase>);
+    static_assert(std::has_virtual_destructor_v<KisBrushMaskApplicatorBase>);
+    static_assert(std::is_same_v<decltype(static_cast<ProcessSignature>(&KisBrushMaskApplicatorBase::process)),
+                                 ProcessSignature>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<InitializeDataSignature>(&KisBrushMaskApplicatorBase::initializeData)),
+                       InitializeDataSignature>);
+}
+
+void KisImageTypesContractTest::brushMaskOperatorSchemaRemainStable()
+{
+    using CallSignature = void (OperatorWrapper::*)(const QRect &) const;
+
+    static_assert(std::is_class_v<OperatorWrapper>);
+    static_assert(std::is_constructible_v<OperatorWrapper, KisBrushMaskApplicatorBase *>);
+    static_assert(std::is_same_v<decltype(static_cast<CallSignature>(&OperatorWrapper::operator())), CallSignature>);
+    static_assert(std::is_same_v<decltype(OperatorWrapper::m_applicator), KisBrushMaskApplicatorBase *>);
 }
 
 void KisImageTypesContractTest::updaterContextOwnershipLifetimeAndConstructionSchemaRemainsStable()
