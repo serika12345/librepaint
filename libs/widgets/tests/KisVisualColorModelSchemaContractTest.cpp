@@ -4,6 +4,8 @@
  */
 
 #include "KisVisualColorModel.h"
+#include "KoColorSlider.h"
+#include "KoTriangleColorSelector.h"
 #include "kis_color_input.h"
 
 #include <QTest>
@@ -39,6 +41,11 @@ private Q_SLOTS:
     void colorInputNumericValueSchemaRemainsStable();
     void colorInputHexValueSchemaRemainsStable();
     void colorInputHsvValueSchemaRemainsStable();
+    void triangleColorSelectorTypeAndLifetimeSchemaRemainStable();
+    void triangleColorSelectorChannelSignaturesRemainStable();
+    void triangleColorSelectorColorAndNotificationSignaturesRemainStable();
+    void colorSliderTypeAndLifetimeSchemaRemainStable();
+    void colorSliderColorSignaturesRemainStable();
 };
 
 void KisVisualColorModelSchemaContractTest::visualColorModelTypeAndEnumerationSchemaRemainsStable()
@@ -179,6 +186,65 @@ void KisVisualColorModelSchemaContractTest::colorInputHsvValueSchemaRemainsStabl
     static_assert(std::is_same_v<decltype(&Input::valueSliderChanged), void (Input::*)(int)>);
     static_assert(std::is_same_v<decltype(&Input::update), void (Input::*)()>);
     static_assert(std::is_same_v<decltype(&Input::updated), void (Input::*)()>);
+}
+
+void KisVisualColorModelSchemaContractTest::triangleColorSelectorTypeAndLifetimeSchemaRemainStable()
+{
+    using Selector = KoTriangleColorSelector;
+
+    static_assert(std::is_class_v<Selector>);
+    static_assert(std::is_base_of_v<KisColorSelectorInterface, Selector>);
+    static_assert(std::is_constructible_v<Selector, QWidget *>);
+    static_assert(std::is_constructible_v<Selector, const KoColorDisplayRendererInterface *, QWidget *>);
+    static_assert(std::has_virtual_destructor_v<Selector>);
+}
+
+void KisVisualColorModelSchemaContractTest::triangleColorSelectorChannelSignaturesRemainStable()
+{
+    using Selector = KoTriangleColorSelector;
+
+    static_assert(std::is_same_v<decltype(&Selector::hue), int (Selector::*)() const>);
+    static_assert(std::is_same_v<decltype(&Selector::value), int (Selector::*)() const>);
+    static_assert(std::is_same_v<decltype(&Selector::saturation), int (Selector::*)() const>);
+    static_assert(std::is_same_v<decltype(&Selector::rotation), int (Selector::*)() const>);
+    static_assert(std::is_same_v<decltype(&Selector::setHue), void (Selector::*)(int)>);
+    static_assert(std::is_same_v<decltype(&Selector::setValue), void (Selector::*)(int)>);
+    static_assert(std::is_same_v<decltype(&Selector::setSaturation), void (Selector::*)(int)>);
+    static_assert(std::is_same_v<decltype(&Selector::setRotation), void (Selector::*)(int)>);
+    static_assert(std::is_same_v<decltype(&Selector::setHSV), void (Selector::*)(int, int, int)>);
+}
+
+void KisVisualColorModelSchemaContractTest::triangleColorSelectorColorAndNotificationSignaturesRemainStable()
+{
+    using Selector = KoTriangleColorSelector;
+
+    static_assert(std::is_same_v<decltype(&Selector::getCurrentColor), KoColor (Selector::*)() const>);
+    static_assert(std::is_same_v<decltype(&Selector::slotSetColor), void (Selector::*)(const KoColor &)>);
+    static_assert(std::is_same_v<decltype(&Selector::setFollowHue), void (Selector::*)(bool)>);
+    static_assert(std::is_same_v<decltype(&Selector::colorChanged), void (Selector::*)(const QColor &)>);
+    static_assert(std::is_same_v<decltype(&Selector::requestCloseContainer), void (Selector::*)()>);
+}
+
+void KisVisualColorModelSchemaContractTest::colorSliderTypeAndLifetimeSchemaRemainStable()
+{
+    using Slider = KoColorSlider;
+
+    static_assert(std::is_class_v<Slider>);
+    static_assert(std::is_base_of_v<KSelector, Slider>);
+    static_assert(std::is_default_constructible_v<Slider>);
+    static_assert(std::is_constructible_v<Slider, QWidget *>);
+    static_assert(std::is_constructible_v<Slider, QWidget *, KoColorDisplayRendererInterface *>);
+    static_assert(std::is_constructible_v<Slider, Qt::Orientation>);
+    static_assert(std::is_constructible_v<Slider, Qt::Orientation, QWidget *, KoColorDisplayRendererInterface *>);
+    static_assert(std::has_virtual_destructor_v<Slider>);
+}
+
+void KisVisualColorModelSchemaContractTest::colorSliderColorSignaturesRemainStable()
+{
+    using Slider = KoColorSlider;
+
+    static_assert(std::is_same_v<decltype(&Slider::currentColor), KoColor (Slider::*)() const>);
+    static_assert(std::is_same_v<decltype(&Slider::setColors), void (Slider::*)(const KoColor &, const KoColor &)>);
 }
 
 QTEST_GUILESS_MAIN(KisVisualColorModelSchemaContractTest)
