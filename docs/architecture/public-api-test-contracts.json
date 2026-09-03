@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 11741
+    "expectedMissingApis": 11717
   },
   "contracts": [
     {
@@ -50971,6 +50971,75 @@
         "method:KoShape::outline() const",
         "method:KoShape::outlineRect() const",
         "method:KoShape::strokeInsets() const"
+      ]
+    },
+    {
+      "target": "KisVisualColorModelSchemaContractTest",
+      "source": "libs/widgets/tests/KisVisualColorModelSchemaContractTest.cpp",
+      "test": "KisVisualColorModelSchemaContractTest::triangleColorSelectorTypeAndLifetimeSchemaRemainStable",
+      "behavior": "三角色選択器は親または表示rendererを受け取る公開構築型と公開寿命を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoTriangleColorSelector",
+        "method:KoTriangleColorSelector::KoTriangleColorSelector(QWidget * parent)",
+        "method:KoTriangleColorSelector::KoTriangleColorSelector(const KoColorDisplayRendererInterface * displayRenderer,QWidget * parent)",
+        "method:KoTriangleColorSelector::~KoTriangleColorSelector()"
+      ]
+    },
+    {
+      "target": "KisVisualColorModelSchemaContractTest",
+      "source": "libs/widgets/tests/KisVisualColorModelSchemaContractTest.cpp",
+      "test": "KisVisualColorModelSchemaContractTest::triangleColorSelectorChannelSignaturesRemainStable",
+      "behavior": "三角色選択器はHSV値と回転を個別または一括で照会・設定する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoTriangleColorSelector::hue() const",
+        "method:KoTriangleColorSelector::rotation() const",
+        "method:KoTriangleColorSelector::saturation() const",
+        "method:KoTriangleColorSelector::setHSV(int h,int s,int v)",
+        "method:KoTriangleColorSelector::setHue(int h)",
+        "method:KoTriangleColorSelector::setRotation(int angle)",
+        "method:KoTriangleColorSelector::setSaturation(int s)",
+        "method:KoTriangleColorSelector::setValue(int v)",
+        "method:KoTriangleColorSelector::value() const"
+      ]
+    },
+    {
+      "target": "KisVisualColorModelSchemaContractTest",
+      "source": "libs/widgets/tests/KisVisualColorModelSchemaContractTest.cpp",
+      "test": "KisVisualColorModelSchemaContractTest::triangleColorSelectorColorAndNotificationSignaturesRemainStable",
+      "behavior": "三角色選択器は現在色、hue追従と色・容器状態の変更通知を扱う公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoTriangleColorSelector::colorChanged(const QColor &)",
+        "method:KoTriangleColorSelector::getCurrentColor() const",
+        "method:KoTriangleColorSelector::requestCloseContainer()",
+        "method:KoTriangleColorSelector::setFollowHue(bool follow)",
+        "method:KoTriangleColorSelector::slotSetColor(const KoColor &)"
+      ]
+    },
+    {
+      "target": "KisVisualColorModelSchemaContractTest",
+      "source": "libs/widgets/tests/KisVisualColorModelSchemaContractTest.cpp",
+      "test": "KisVisualColorModelSchemaContractTest::colorSliderTypeAndLifetimeSchemaRemainStable",
+      "behavior": "色sliderは方向、親、既定表示rendererを選択できる公開構築型と公開寿命を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoColorSlider",
+        "method:KoColorSlider::KoColorSlider(QWidget * parent=0,KoColorDisplayRendererInterface * displayRenderer=KoDumbColorDisplayRenderer::instance ())",
+        "method:KoColorSlider::KoColorSlider(Qt::Orientation orientation,QWidget * parent=0,KoColorDisplayRendererInterface * displayRenderer=KoDumbColorDisplayRenderer::instance ())",
+        "method:KoColorSlider::~KoColorSlider()"
+      ]
+    },
+    {
+      "target": "KisVisualColorModelSchemaContractTest",
+      "source": "libs/widgets/tests/KisVisualColorModelSchemaContractTest.cpp",
+      "test": "KisVisualColorModelSchemaContractTest::colorSliderColorSignaturesRemainStable",
+      "behavior": "色sliderは現在色を返し、両端の色を設定する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoColorSlider::currentColor() const",
+        "method:KoColorSlider::setColors(const KoColor & minColor,const KoColor & maxColor)"
       ]
     }
   ]
