@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 11468
+    "expectedMissingApis": 11448
   },
   "contracts": [
     {
@@ -51694,6 +51694,71 @@
         "method:GroupLayer::setPassThroughMode(bool passthrough)",
         "method:GroupLayer::type() const",
         "method:GroupLayer::~GroupLayer()"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::gaussianMaskTypeAndLifetimeSchemaRemainStable",
+      "behavior": "Gaussian円形・矩形ブラシmask生成器は基底型との関係、寸法・比率・濃度・spike・輪郭補正を受ける構築、copy構築と仮想寿命を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisGaussCircleMaskGenerator",
+        "class:KisGaussRectangleMaskGenerator",
+        "method:KisGaussCircleMaskGenerator::KisGaussCircleMaskGenerator(const KisGaussCircleMaskGenerator & rhs)",
+        "method:KisGaussCircleMaskGenerator::KisGaussCircleMaskGenerator(qreal diameter,qreal ratio,qreal fh,qreal fv,int spikes,bool antialiasEdges)",
+        "method:KisGaussCircleMaskGenerator::~KisGaussCircleMaskGenerator()",
+        "method:KisGaussRectangleMaskGenerator::KisGaussRectangleMaskGenerator(const KisGaussRectangleMaskGenerator & rhs)",
+        "method:KisGaussRectangleMaskGenerator::KisGaussRectangleMaskGenerator(qreal diameter,qreal ratio,qreal fh,qreal fv,int spikes,bool antialiasEdges)",
+        "method:KisGaussRectangleMaskGenerator::~KisGaussRectangleMaskGenerator()"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::gaussianMaskCloneSignaturesRemainStable",
+      "behavior": "Gaussian円形・矩形ブラシmask生成器は基底型pointerとして複製する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisGaussCircleMaskGenerator::clone() const",
+        "method:KisGaussRectangleMaskGenerator::clone() const"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::gaussianMaskSamplingSignaturesRemainStable",
+      "behavior": "Gaussian円形・矩形ブラシmask生成器は座標から8-bit mask値を得る公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisGaussCircleMaskGenerator::valueAt(qreal x,qreal y) const",
+        "method:KisGaussRectangleMaskGenerator::valueAt(qreal x,qreal y) const"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::gaussianMaskScaleAndVectorizationSignaturesRemainStable",
+      "behavior": "Gaussian円形・矩形ブラシmask生成器は二軸尺度を設定し、vector化方針を照会する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisGaussCircleMaskGenerator::setScale(qreal scaleX,qreal scaleY)",
+        "method:KisGaussCircleMaskGenerator::shouldVectorize() const",
+        "method:KisGaussRectangleMaskGenerator::setScale(qreal scaleX,qreal scaleY)",
+        "method:KisGaussRectangleMaskGenerator::shouldVectorize() const"
+      ]
+    },
+    {
+      "target": "KisImageTypesContractTest",
+      "source": "libs/image/tests/KisImageTypesContractTest.cpp",
+      "test": "KisImageTypesContractTest::gaussianMaskApplicatorSignaturesRemainStable",
+      "behavior": "Gaussian円形・矩形ブラシmask生成器は借用applicatorを公開し、scalar実装へ切り替える署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisGaussCircleMaskGenerator::applicator() const",
+        "method:KisGaussCircleMaskGenerator::setMaskScalarApplicator()",
+        "method:KisGaussRectangleMaskGenerator::applicator() const",
+        "method:KisGaussRectangleMaskGenerator::setMaskScalarApplicator()"
       ]
     }
   ]
