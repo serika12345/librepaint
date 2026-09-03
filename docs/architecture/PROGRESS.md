@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-03 19:03 JST
+- 更新日時: 2026-09-03 19:15 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -16,6 +16,16 @@
 - `g191-flake-contract-audit`はflake・SVG・vector領域を所有し、第190便までに固定したshape manager・controller、tool代理、shape幾何・階層、clip、背景群を除外して、一責務の未対応集合を比較する。
 - `g191-ui-contract-audit`はwidgetutils・widgets・libkis領域を所有し、第190便までに固定したHSX色入力、内部色選択dialog、視覚色選択群、palette delegate、filter設定・適用を除外して、一責務の未対応集合を比較する。
 - 各担当は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、実際のcompile探索路、予測工程・入力と停止線、開始pathから契約先、許可path、固有停止条件、比較候補の棄却根拠を返す。調整担当は3領域のpath、CMake、試験source、生成物が重ならず、合計60〜180 APIとなる組合せだけを次の実装担当票へ進める。
+
+### 第191便の先行監査結果
+
+- image領域は`libs/image/kis_math_toolbox.h`の残存全22 APIをwavelet・channel変換境界として採用した。型・別名6、浮動小数値表現5、wavelet計画4、変換2、channel変換5を既存`libs/image/tests/KisImageTypesContractTest.cpp`の5枠へ対応付ける。toolbox、浮動小数値表現・wavelet、描画装置と共有pointer、色空間・channel情報、Qt矩形・容器を実体化せず、配列所有、矩形寸法、色空間照会、wavelet処理、channel変換関数選択、最小・最大値本文を実行しない。公開headerの`-Wcast-align`抑止は試験sourceのdiagnostic push・pop内へ限定する。CMakeと探索路を変えず、直接linkはQt Core・Gui・Test・Xmlとheader-only Boost、対象4工程・8入力、停止5工程・11入力、command hash`860901e6be`、input hash`42c0bdca62`、製品`kritaimage` 1,196工程・2,416入力を維持する。
+  paint layer・transform maskはQObject・非同期状態・visitor、transactionはinline所有・undo登録、paintop presetはresource・cache・XML、色空間registryとhistogram producerは大域状態・複数factory・platform条件を横断するため棄却した。
+- flake領域は`libs/flake/commands/KoPathPointTypeCommand.h`と`KoPathSegmentTypeCommand.h`の残存全21 APIをパス点・区間の直線・曲線種別をundo可能に変更するcommandとして採用した。点command型・寿命4、点種別5、点操作3、区間command型・寿命・種別7、区間操作2を既存`libs/flake/tests/KoShapeReorderCommandSchemaContractTest.cpp`の5枠へ対応付ける。両command、undo基底、path point・data、Qt容器・点、親commandを実体化せず、構築・破棄、redo・undo、control point平滑化とundo data収集本文を実行しない。CMakeと探索路を変えず、直接linkはQt Core・Testとheader-only Boost、対象4工程・8入力、停止5工程・11入力、command hash`08e8e2bc47`、input hash`4a22f82ab6`、製品`kritaflake` 621工程・1,274入力を維持する。
+  group・ungroup commandは既固定shape階層と重複し、`KoShape`残存分は複数責務、SVG parserとresource型群はresource探索路、tool managerとpath tool群は大域action・resource・入力・選択・描画、tool代理privateは既固定責務と重複するため棄却した。
+- widgets領域は`libs/widgets/KisPaletteChooser.h`の残存全10 API、`KoColorSetWidget.h`と`KoColorPatch.h`の各残存全8 APIをpalette資源の選択・表示・色通知として採用した。chooser型・選択5、通知5、色集合Widget型・palette 6、通知2、色patch型・色・通知8を既存`libs/widgets/tests/KisPaletteModelSchemaContractTest.cpp`の5枠へ対応付ける。chooser、色集合Widget、patch、生成UI、Qt Widget・Frame、resource、色集合・色、renderer・寸法を実体化せず、構築・破棄、資源選択、palette取込・書出し、色変換・描画、signal配送本文を実行しない。CMakeと探索路を変えず、直接linkはQt Core・Gui・Test、対象4工程・8入力、停止5工程・11入力、command hash`d9c0a2e87d`、input hash`37058f1b74`、製品`kritawidgets` 809工程・1,647入力を維持する。
+  palette view・comboとgradient stop編集はwidgetutils探索路、zoomはflake・KF探索路と製品OBJECT、tag selectionはresource UI探索路と製品shared・`kritatestsdk`、XML GUI候補はconfigとQt Widgets探索路を同時に持つ限定対象がなく、progress updaterは下限未満のため棄却した。
+- 中央の`public-api-missing-g191.json`でmath toolbox 22件、path種別command 21件、palette選択・表示26件の全識別子を照合した。3責務の開始header、試験source、所有CMake、生成物は相互に異なる。合計69 APIを15枠へ進め、許可path外変更、CMake・探索路・link・compile定義・公開headerの変更、製品OBJECT/shared・`kritatestsdk`、指定外実体化・本文実行、5工程・11入力超過、製品計画集合の変化が必要になれば停止する。
 
 ### 第190便の先行監査担当票
 
