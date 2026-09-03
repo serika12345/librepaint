@@ -298,6 +298,7 @@ kis_add_test(KKeySequenceWidgetSchemaContractTest.cpp
     LINK_LIBRARIES Qt${QT_MAJOR_VERSION}::Gui Qt${QT_MAJOR_VERSION}::Test)
 target_include_directories(KKeySequenceWidgetSchemaContractTest PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/.. ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_CURRENT_SOURCE_DIR}/../xmlgui
     ${CMAKE_SOURCE_DIR}/libs/global
     $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Widgets,INTERFACE_INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:KF${KF_MAJOR}::WidgetsAddons,INTERFACE_INCLUDE_DIRECTORIES>)

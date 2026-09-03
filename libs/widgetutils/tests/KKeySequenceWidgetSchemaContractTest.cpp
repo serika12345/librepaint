@@ -1,8 +1,10 @@
 /* SPDX-FileCopyrightText: 2026 LibrePaint contributors
  * SPDX-License-Identifier: LGPL-2.0-only */
+#include "../xmlgui/KisShortcutsDialog.h"
 #include "../xmlgui/KisShortcutsEditor.h"
 #include "../xmlgui/kkeysequencewidget.h"
 #include "../xmlgui/kmainwindow.h"
+#include "../xmlgui/kshortcutwidget.h"
 #include "../xmlgui/ktoggletoolbaraction.h"
 #include "../xmlgui/ktoolbar.h"
 #include "../xmlgui/kxmlguibuilder.h"
@@ -46,6 +48,11 @@ private Q_SLOTS:
     void xmlGuiFactoryContainerResetAndNotificationSignaturesRemainStable();
     void xmlGuiBuilderTypeOwnershipAndTagSchemaRemainsStable();
     void xmlGuiBuilderElementLifecycleSignaturesRemainStable();
+    void shortcutWidgetTypeAndLifetimeSchemaRemainStable();
+    void shortcutWidgetPolicySignaturesRemainStable();
+    void shortcutWidgetEditingSignaturesRemainStable();
+    void shortcutsDialogTypeAndCollectionSchemaRemainStable();
+    void shortcutsDialogPersistenceSchemaRemainStable();
 };
 void KKeySequenceWidgetSchemaContractTest::keySequenceWidgetTypeAndEnumerationSchemaRemainsStable()
 {
@@ -387,6 +394,69 @@ void KKeySequenceWidgetSchemaContractTest::xmlGuiBuilderElementLifecycleSignatur
                                  QAction *(Builder::*)(QWidget *, int, const QDomElement &)>);
     static_assert(std::is_same_v<decltype(&Builder::removeCustomElement), void (Builder::*)(QWidget *, QAction *)>);
     static_assert(std::is_same_v<decltype(&Builder::finalizeGUI), void (Builder::*)(KisKXMLGUIClient *)>);
+}
+
+void KKeySequenceWidgetSchemaContractTest::shortcutWidgetTypeAndLifetimeSchemaRemainStable()
+{
+    using W = KisKShortcutWidget;
+
+    static_assert(std::is_class_v<W> && std::is_base_of_v<QWidget, W>);
+    static_assert(std::is_constructible_v<W, QWidget *> && std::is_default_constructible_v<W>);
+    static_assert(std::has_virtual_destructor_v<W>);
+}
+
+void KKeySequenceWidgetSchemaContractTest::shortcutWidgetPolicySignaturesRemainStable()
+{
+    using W = KisKShortcutWidget;
+    using Shortcuts = QList<QKeySequence>;
+    using ActionCollections = QList<KisKActionCollection *>;
+
+    static_assert(std::is_same_v<decltype(&W::isModifierlessAllowed), bool (W::*)()>);
+    static_assert(std::is_same_v<decltype(&W::setModifierlessAllowed), void (W::*)(bool)>);
+    static_assert(std::is_same_v<decltype(&W::setClearButtonsShown), void (W::*)(bool)>);
+    static_assert(std::is_same_v<decltype(&W::shortcut), Shortcuts (W::*)() const>);
+    static_assert(std::is_same_v<decltype(&W::setShortcut), void (W::*)(const Shortcuts &)>);
+    static_assert(std::is_same_v<decltype(&W::setCheckActionCollections), void (W::*)(const ActionCollections &)>);
+}
+
+void KKeySequenceWidgetSchemaContractTest::shortcutWidgetEditingSignaturesRemainStable()
+{
+    using W = KisKShortcutWidget;
+    using Shortcuts = QList<QKeySequence>;
+
+    static_assert(std::is_same_v<decltype(&W::applyStealShortcut), void (W::*)()>);
+    static_assert(std::is_same_v<decltype(&W::clearShortcut), void (W::*)()>);
+    static_assert(std::is_same_v<decltype(&W::shortcutChanged), void (W::*)(const Shortcuts &)>);
+}
+
+void KKeySequenceWidgetSchemaContractTest::shortcutsDialogTypeAndCollectionSchemaRemainStable()
+{
+    using D = KisShortcutsDialog;
+    using E = KisShortcutsEditor;
+    using Collections = QList<KisKActionCollection *>;
+
+    static_assert(std::is_class_v<D> && std::is_base_of_v<QWidget, D>);
+    static_assert(std::is_constructible_v<D, E::ActionTypes, E::LetterShortcuts, QWidget *>);
+    static_assert(std::is_default_constructible_v<D> && std::has_virtual_destructor_v<D>);
+    static_assert(std::is_same_v<decltype(defaultActionTypes), const E::ActionTypes>);
+    QVERIFY(defaultActionTypes == (E::WidgetAction | E::WindowAction | E::ApplicationAction));
+    static_assert(std::is_same_v<decltype(&D::addCollection), void (D::*)(KisKActionCollection *, const QString &)>);
+    static_assert(std::is_same_v<decltype(std::declval<D &>().addCollection(nullptr)), void>);
+    static_assert(std::is_same_v<decltype(&D::actionCollections), Collections (D::*)() const>);
+    static_assert(std::is_same_v<decltype(&D::sizeHint), QSize (D::*)() const>);
+}
+
+void KKeySequenceWidgetSchemaContractTest::shortcutsDialogPersistenceSchemaRemainStable()
+{
+    using D = KisShortcutsDialog;
+
+    static_assert(std::is_same_v<decltype(&D::save), void (D::*)()>);
+    static_assert(std::is_same_v<decltype(&D::allDefault), void (D::*)()>);
+    static_assert(std::is_same_v<decltype(&D::undo), void (D::*)()>);
+    static_assert(std::is_same_v<decltype(&D::importConfiguration), void (D::*)(const QString &)>);
+    static_assert(std::is_same_v<decltype(&D::exportConfiguration), void (D::*)(const QString &) const>);
+    static_assert(std::is_same_v<decltype(&D::loadCustomShortcuts), void (D::*)(const QString &)>);
+    static_assert(std::is_same_v<decltype(&D::saveCustomShortcuts), void (D::*)(const QString &) const>);
 }
 
 QTEST_GUILESS_MAIN(KKeySequenceWidgetSchemaContractTest)
