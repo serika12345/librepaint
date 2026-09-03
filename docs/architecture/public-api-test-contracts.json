@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 11097
+    "expectedMissingApis": 11072
   },
   "contracts": [
     {
@@ -52695,6 +52695,76 @@
       "apis": [
         "method:KoShape::isShapeEditable(bool recursive=true) const",
         "method:KoShape::waitUntilReady(bool asynchronous=true) const"
+      ]
+    },
+    {
+      "target": "KisColorSelectionControlSchemaContractTest",
+      "source": "libs/widgets/tests/KisColorSelectionControlSchemaContractTest.cpp",
+      "test": "KisColorSelectionControlSchemaContractTest::colorButtonTypeAndLifetimeSchemaRemainStable",
+      "behavior": "色選択ボタンは任意の親、現在色、既定色から構築でき、押下ボタンとして破棄される公開型と仮想寿命を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisColorButton",
+        "method:KisColorButton::KisColorButton(QWidget * parent=0)",
+        "method:KisColorButton::KisColorButton(const KoColor & c,QWidget * parent=0)",
+        "method:KisColorButton::KisColorButton(const KoColor & c,const KoColor & defaultColor,QWidget * parent=0)",
+        "method:KisColorButton::~KisColorButton()"
+      ]
+    },
+    {
+      "target": "KisColorSelectionControlSchemaContractTest",
+      "source": "libs/widgets/tests/KisColorSelectionControlSchemaContractTest.cpp",
+      "test": "KisColorSelectionControlSchemaContractTest::colorButtonColorAndPaletteSignaturesRemainStable",
+      "behavior": "色選択ボタンは現在色と既定色、alpha channel、palette表示の状態を照会・設定する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisColorButton::color() const",
+        "method:KisColorButton::defaultColor() const",
+        "method:KisColorButton::isAlphaChannelEnabled() const",
+        "method:KisColorButton::paletteViewEnabled() const",
+        "method:KisColorButton::setAlphaChannelEnabled(bool alpha)",
+        "method:KisColorButton::setColor(const KoColor & c)",
+        "method:KisColorButton::setDefaultColor(const KoColor & c)",
+        "method:KisColorButton::setPaletteViewEnabled(bool enable)"
+      ]
+    },
+    {
+      "target": "KisColorSelectionControlSchemaContractTest",
+      "source": "libs/widgets/tests/KisColorSelectionControlSchemaContractTest.cpp",
+      "test": "KisColorSelectionControlSchemaContractTest::colorButtonGeometryAndNotificationSignaturesRemainStable",
+      "behavior": "色選択ボタンは推奨寸法と最小寸法を提供し、利用者が確定した色を通知する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisColorButton::changed(const KoColor & newColor)",
+        "method:KisColorButton::minimumSizeHint() const",
+        "method:KisColorButton::sizeHint() const"
+      ]
+    },
+    {
+      "target": "KisColorSelectionControlSchemaContractTest",
+      "source": "libs/widgets/tests/KisColorSelectionControlSchemaContractTest.cpp",
+      "test": "KisColorSelectionControlSchemaContractTest::colorPopupActionTypeLifetimeAndColorSchemaRemainStable",
+      "behavior": "色ポップアップ操作は任意の親から構築・破棄でき、現在色をQt色値と色管理値の両形式で返す公開型・署名・寿命を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoColorPopupAction",
+        "method:KoColorPopupAction::KoColorPopupAction(QObject * parent=0)",
+        "method:KoColorPopupAction::currentColor() const",
+        "method:KoColorPopupAction::currentKoColor() const",
+        "method:KoColorPopupAction::~KoColorPopupAction()"
+      ]
+    },
+    {
+      "target": "KisColorSelectionControlSchemaContractTest",
+      "source": "libs/widgets/tests/KisColorSelectionControlSchemaContractTest.cpp",
+      "test": "KisColorSelectionControlSchemaContractTest::colorPopupActionEditingAndNotificationSignaturesRemainStable",
+      "behavior": "色ポップアップ操作はQt色値または色管理値を現在色として設定し、表示iconを更新して色変更を通知する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoColorPopupAction::colorChanged(const KoColor & color)",
+        "method:KoColorPopupAction::setCurrentColor(const KoColor & color)",
+        "method:KoColorPopupAction::setCurrentColor(const QColor & color)",
+        "method:KoColorPopupAction::updateIcon()"
       ]
     }
   ]
