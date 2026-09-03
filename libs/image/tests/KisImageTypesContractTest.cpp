@@ -21,6 +21,7 @@
 #include "kis_image_signal_router.h"
 #include "kis_iterator_ng.h"
 #include "kis_layer_utils.h"
+#include "kis_liquify_transform_worker.h"
 #include "kis_memory_statistics_server.h"
 #include "kis_paint_device_frames_interface.h"
 #include "kis_pixel_selection.h"
@@ -374,6 +375,11 @@ private Q_SLOTS:
     void warpTransformCalculationSchemaRemainStable();
     void warpTransformMathAndImageSignaturesRemainStable();
     void warpTransformDeviceAndBoundsSignaturesRemainStable();
+    void liquifyTypeAndLifetimeSchemaRemainStable();
+    void liquifyGridAndPointSignaturesRemainStable();
+    void liquifyMutationSignaturesRemainStable();
+    void liquifyOutputSignaturesRemainStable();
+    void liquifyBoundsAndXmlSignaturesRemainStable();
     void baseConstIteratorOwnershipAndTraversalSchemaRemainsStable();
     void horizontalConstIteratorTraversalSchemaRemainsStable();
     void horizontalWritableIteratorSchemaRemainsStable();
@@ -2994,6 +3000,63 @@ void KisImageTypesContractTest::warpTransformDeviceAndBoundsSignaturesRemainStab
     static_assert(std::is_same_v<decltype(&KisWarpTransformWorker::run), RunSignature>);
     static_assert(std::is_same_v<decltype(&KisWarpTransformWorker::approxChangeRect), ChangeRectSignature>);
     static_assert(std::is_same_v<decltype(&KisWarpTransformWorker::approxNeedRect), NeedRectSignature>);
+}
+
+void KisImageTypesContractTest::liquifyTypeAndLifetimeSchemaRemainStable()
+{
+    static_assert(std::is_class_v<KisLiquifyTransformWorker>);
+    static_assert(std::is_constructible_v<KisLiquifyTransformWorker, const QRect &, KoUpdater *, int>);
+    static_assert(std::is_copy_constructible_v<KisLiquifyTransformWorker>);
+    static_assert(std::is_destructible_v<KisLiquifyTransformWorker>);
+}
+
+void KisImageTypesContractTest::liquifyGridAndPointSignaturesRemainStable()
+{
+    using Worker = KisLiquifyTransformWorker;
+
+    static_assert(std::is_same_v<decltype(&Worker::operator==), bool (Worker::*)(const Worker &) const>);
+    static_assert(std::is_same_v<decltype(&Worker::isIdentity), bool (Worker::*)() const>);
+    static_assert(std::is_same_v<decltype(&Worker::pointToIndex), int (Worker::*)(const QPoint &)>);
+    static_assert(std::is_same_v<decltype(&Worker::gridSize), QSize (Worker::*)() const>);
+    static_assert(std::is_same_v<decltype(&Worker::originalPoints), const QVector<QPointF> &(Worker::*)() const>);
+    static_assert(std::is_same_v<decltype(&Worker::transformedPoints), QVector<QPointF> &(Worker::*)()>);
+}
+
+void KisImageTypesContractTest::liquifyMutationSignaturesRemainStable()
+{
+    using Worker = KisLiquifyTransformWorker;
+    using TranslatePointsSignature = void (Worker::*)(const QPointF &, const QPointF &, qreal, bool, qreal);
+    using DeformPointsSignature = void (Worker::*)(const QPointF &, qreal, qreal, bool, qreal);
+    using UndoPointsSignature = void (Worker::*)(const QPointF &, qreal, qreal);
+    using TranslateSignature = void (Worker::*)(const QPointF &);
+
+    static_assert(std::is_same_v<decltype(&Worker::translatePoints), TranslatePointsSignature>);
+    static_assert(std::is_same_v<decltype(&Worker::scalePoints), DeformPointsSignature>);
+    static_assert(std::is_same_v<decltype(&Worker::rotatePoints), DeformPointsSignature>);
+    static_assert(std::is_same_v<decltype(&Worker::undoPoints), UndoPointsSignature>);
+    static_assert(std::is_same_v<decltype(&Worker::translate), TranslateSignature>);
+    static_assert(std::is_same_v<decltype(&Worker::translateDstSpace), TranslateSignature>);
+    static_assert(std::is_same_v<decltype(&Worker::transformSrcAndDst), void (Worker::*)(const QTransform &)>);
+}
+
+void KisImageTypesContractTest::liquifyOutputSignaturesRemainStable()
+{
+    using Worker = KisLiquifyTransformWorker;
+    using ImageSignature = QImage (Worker::*)(const QImage &, const QPointF &, const QTransform &, QPointF *);
+
+    static_assert(std::is_same_v<decltype(&Worker::run), void (Worker::*)(KisPaintDeviceSP, KisPaintDeviceSP)>);
+    static_assert(std::is_same_v<decltype(&Worker::runOnQImage), ImageSignature>);
+}
+
+void KisImageTypesContractTest::liquifyBoundsAndXmlSignaturesRemainStable()
+{
+    using Worker = KisLiquifyTransformWorker;
+
+    static_assert(std::is_same_v<decltype(&Worker::approxChangeRect), QRect (Worker::*)(const QRect &)>);
+    static_assert(std::is_same_v<decltype(&Worker::approxNeedRect), QRect (Worker::*)(const QRect &, const QRect &)>);
+    static_assert(std::is_same_v<decltype(&Worker::accumulatedStrokesBounds), QRectF (Worker::*)() const>);
+    static_assert(std::is_same_v<decltype(&Worker::toXML), void (Worker::*)(QDomElement *) const>);
+    static_assert(std::is_same_v<decltype(&Worker::fromXML), Worker *(*)(const QDomElement &)>);
 }
 
 void KisImageTypesContractTest::baseConstIteratorOwnershipAndTraversalSchemaRemainsStable()
