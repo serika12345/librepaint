@@ -11,6 +11,7 @@
 
 #include <array>
 #include <type_traits>
+#include <utility>
 
 namespace
 {
@@ -42,6 +43,9 @@ public:
 #define ASSERT_SHAPE_INTERFACE_SIGNATURE(method, signature)                                                            \
     static_assert(                                                                                                     \
         std::is_same_v<decltype(static_cast<signature>(&KoShapeContainer::ShapeInterface::method)), signature>)
+
+#define ASSERT_SHAPE_SIGNATURE(method, signature)                                                                      \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KoShape::method)), signature>)
 } // namespace
 
 class KoShapeEnumContractTest : public QObject
@@ -49,6 +53,11 @@ class KoShapeEnumContractTest : public QObject
     Q_OBJECT
 
 private Q_SLOTS:
+    void shapeLocalGeometrySignaturesRemainStable();
+    void shapeAffineMutationSignaturesRemainStable();
+    void shapeTransformationSignaturesRemainStable();
+    void shapeCoordinateMappingSignaturesRemainStable();
+    void shapeBoundsAndOutlineSignaturesRemainStable();
     void changeTypeValuesRemainStable();
     void paintOrderValuesRemainStable();
     void childZOrderValuesRemainStable();
@@ -63,6 +72,64 @@ private Q_SLOTS:
     void shapeContainerClippingAndTransformSignaturesRemainStable();
     void shapeContainerPaintingAndUpdateSignaturesRemainStable();
 };
+
+void KoShapeEnumContractTest::shapeLocalGeometrySignaturesRemainStable()
+{
+    ASSERT_SHAPE_SIGNATURE(setSize, void (KoShape::*)(const QSizeF &));
+    ASSERT_SHAPE_SIGNATURE(size, QSizeF (KoShape::*)() const);
+    ASSERT_SHAPE_SIGNATURE(setPosition, void (KoShape::*)(const QPointF &));
+    ASSERT_SHAPE_SIGNATURE(position, QPointF (KoShape::*)() const);
+    ASSERT_SHAPE_SIGNATURE(setMinimumHeight, void (KoShape::*)(qreal));
+    ASSERT_SHAPE_SIGNATURE(minimumHeight, qreal (KoShape::*)() const);
+    ASSERT_SHAPE_SIGNATURE(setKeepAspectRatio, void (KoShape::*)(bool));
+    ASSERT_SHAPE_SIGNATURE(keepAspectRatio, bool (KoShape::*)() const);
+    ASSERT_SHAPE_SIGNATURE(setResolution, void (KoShape::*)(qreal, qreal));
+}
+
+void KoShapeEnumContractTest::shapeAffineMutationSignaturesRemainStable()
+{
+    ASSERT_SHAPE_SIGNATURE(scale, void (KoShape::*)(qreal, qreal));
+    ASSERT_SHAPE_SIGNATURE(rotate, void (KoShape::*)(qreal));
+    ASSERT_SHAPE_SIGNATURE(rotation, qreal (KoShape::*)() const);
+    ASSERT_SHAPE_SIGNATURE(shear, void (KoShape::*)(qreal, qreal));
+}
+
+void KoShapeEnumContractTest::shapeTransformationSignaturesRemainStable()
+{
+    ASSERT_SHAPE_SIGNATURE(absolutePosition, QPointF (KoShape::*)(KoFlake::AnchorPosition) const);
+    ASSERT_SHAPE_SIGNATURE(setAbsolutePosition, void (KoShape::*)(const QPointF &, KoFlake::AnchorPosition));
+    ASSERT_SHAPE_SIGNATURE(absoluteTransformation, QTransform (KoShape::*)() const);
+    ASSERT_SHAPE_SIGNATURE(applyAbsoluteTransformation, void (KoShape::*)(const QTransform &));
+    ASSERT_SHAPE_SIGNATURE(setTransformation, void (KoShape::*)(const QTransform &));
+    ASSERT_SHAPE_SIGNATURE(transformation, QTransform (KoShape::*)() const);
+    ASSERT_SHAPE_SIGNATURE(applyTransformation, void (KoShape::*)(const QTransform &));
+
+    static_assert(std::is_same_v<decltype(std::declval<const KoShape &>().absolutePosition()), QPointF>);
+    static_assert(
+        std::is_same_v<decltype(std::declval<KoShape &>().setAbsolutePosition(std::declval<const QPointF &>())), void>);
+}
+
+void KoShapeEnumContractTest::shapeCoordinateMappingSignaturesRemainStable()
+{
+    ASSERT_SHAPE_SIGNATURE(shapeToDocument, QPointF (KoShape::*)(const QPointF &) const);
+    ASSERT_SHAPE_SIGNATURE(shapeToDocument, QRectF (KoShape::*)(const QRectF &) const);
+    ASSERT_SHAPE_SIGNATURE(documentToShape, QPointF (KoShape::*)(const QPointF &) const);
+    ASSERT_SHAPE_SIGNATURE(documentToShape, QRectF (KoShape::*)(const QRectF &) const);
+}
+
+void KoShapeEnumContractTest::shapeBoundsAndOutlineSignaturesRemainStable()
+{
+    using ShapesRect = QRectF (*)(const QList<KoShape *> &);
+
+    ASSERT_SHAPE_SIGNATURE(hitTest, bool (KoShape::*)(const QPointF &) const);
+    ASSERT_SHAPE_SIGNATURE(boundingRect, QRectF (KoShape::*)() const);
+    static_assert(std::is_same_v<decltype(static_cast<ShapesRect>(&KoShape::boundingRect)), ShapesRect>);
+    ASSERT_SHAPE_SIGNATURE(absoluteOutlineRect, QRectF (KoShape::*)() const);
+    static_assert(std::is_same_v<decltype(static_cast<ShapesRect>(&KoShape::absoluteOutlineRect)), ShapesRect>);
+    ASSERT_SHAPE_SIGNATURE(outline, QPainterPath (KoShape::*)() const);
+    ASSERT_SHAPE_SIGNATURE(outlineRect, QRectF (KoShape::*)() const);
+    ASSERT_SHAPE_SIGNATURE(strokeInsets, KoInsets (KoShape::*)() const);
+}
 
 void KoShapeEnumContractTest::changeTypeValuesRemainStable()
 {
