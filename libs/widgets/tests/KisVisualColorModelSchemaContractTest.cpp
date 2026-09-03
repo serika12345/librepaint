@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "KisHsvColorSlider.h"
+#include "KisSpinboxHSXSelector.h"
 #include "KisVisualColorModel.h"
 #include "KoColorSlider.h"
 #include "KoTriangleColorSelector.h"
@@ -46,7 +48,76 @@ private Q_SLOTS:
     void triangleColorSelectorColorAndNotificationSignaturesRemainStable();
     void colorSliderTypeAndLifetimeSchemaRemainStable();
     void colorSliderColorSignaturesRemainStable();
+    void hsvColorSliderTypeAndMixModeSchemaRemainStable();
+    void hsvColorSliderConstructionAndLifetimeSchemaRemainStable();
+    void hsvColorSliderColorAndMixingSignaturesRemainStable();
+    void spinboxHsxSelectorTypeLifetimeAndModelSchemaRemainStable();
+    void spinboxHsxSelectorNotificationSignaturesRemainStable();
 };
+
+void KisVisualColorModelSchemaContractTest::hsvColorSliderTypeAndMixModeSchemaRemainStable()
+{
+    using Slider = KisHsvColorSlider;
+    using MixMode = Slider::MIX_MODE;
+
+    static_assert(std::is_class_v<Slider>);
+    static_assert(std::is_base_of_v<KSelector, Slider>);
+    static_assert(std::is_enum_v<MixMode>);
+    static_assert(int(MixMode::COLOR_SPACE) == 0);
+    static_assert(int(MixMode::HSV) == 1);
+    static_assert(int(MixMode::HSL) == 2);
+    static_assert(int(MixMode::HSI) == 3);
+    static_assert(int(MixMode::HSY) == 4);
+}
+
+void KisVisualColorModelSchemaContractTest::hsvColorSliderConstructionAndLifetimeSchemaRemainStable()
+{
+    using Slider = KisHsvColorSlider;
+
+    static_assert(std::is_default_constructible_v<Slider>);
+    static_assert(std::is_constructible_v<Slider, QWidget *>);
+    static_assert(std::is_constructible_v<Slider, QWidget *, KoColorDisplayRendererInterface *>);
+    static_assert(std::is_constructible_v<Slider, Qt::Orientation>);
+    static_assert(std::is_constructible_v<Slider, Qt::Orientation, QWidget *>);
+    static_assert(std::is_constructible_v<Slider, Qt::Orientation, QWidget *, KoColorDisplayRendererInterface *>);
+    static_assert(std::has_virtual_destructor_v<Slider>);
+}
+
+void KisVisualColorModelSchemaContractTest::hsvColorSliderColorAndMixingSignaturesRemainStable()
+{
+    using Slider = KisHsvColorSlider;
+    using KoColorSetter = void (Slider::*)(KoColor, KoColor);
+    using QColorSetter = void (Slider::*)(QColor, QColor);
+    using ChannelSetter = void (Slider::*)(qreal, qreal, qreal, qreal, qreal, qreal);
+
+    static_assert(std::is_same_v<decltype(static_cast<KoColorSetter>(&Slider::setColors)), KoColorSetter>);
+    static_assert(std::is_same_v<decltype(static_cast<QColorSetter>(&Slider::setColors)), QColorSetter>);
+    static_assert(std::is_same_v<decltype(static_cast<ChannelSetter>(&Slider::setColors)), ChannelSetter>);
+    static_assert(std::is_same_v<decltype(&Slider::setMixMode), void (Slider::*)(Slider::MIX_MODE)>);
+    static_assert(std::is_same_v<decltype(&Slider::setCircularHue), void (Slider::*)(bool)>);
+}
+
+void KisVisualColorModelSchemaContractTest::spinboxHsxSelectorTypeLifetimeAndModelSchemaRemainStable()
+{
+    using Selector = KisSpinboxHSXSelector;
+
+    static_assert(std::is_class_v<Selector>);
+    static_assert(std::is_base_of_v<QWidget, Selector>);
+    static_assert(std::is_default_constructible_v<Selector>);
+    static_assert(std::is_constructible_v<Selector, QWidget *>);
+    static_assert(std::has_virtual_destructor_v<Selector>);
+    static_assert(std::is_same_v<decltype(&Selector::setModel), void (Selector::*)(KisVisualColorModelSP)>);
+}
+
+void KisVisualColorModelSchemaContractTest::spinboxHsxSelectorNotificationSignaturesRemainStable()
+{
+    using Selector = KisSpinboxHSXSelector;
+    using ChannelNotification = void (Selector::*)(const QVector4D &);
+
+    static_assert(std::is_same_v<decltype(&Selector::sigChannelValuesChanged), ChannelNotification>);
+    static_assert(std::is_same_v<decltype(&Selector::slotChannelValuesChanged), ChannelNotification>);
+    static_assert(std::is_same_v<decltype(&Selector::slotColorModelChanged), void (Selector::*)()>);
+}
 
 void KisVisualColorModelSchemaContractTest::visualColorModelTypeAndEnumerationSchemaRemainsStable()
 {
