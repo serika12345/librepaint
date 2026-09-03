@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 10944
+    "expectedMissingApis": 10922
   },
   "contracts": [
     {
@@ -53073,6 +53073,73 @@
         "method:KisLayer::registeredClones() const",
         "method:KisLayer::unregisterClone(KisCloneLayerWSP clone)",
         "method:KisLayer::updateClones(const QRect & rect,bool dontInvalidateFrames)"
+      ]
+    },
+    {
+      "target": "KoFontFamilySchemaContractTest",
+      "source": "libs/flake/tests/KoFontFamilySchemaContractTest.cpp",
+      "test": "KoFontFamilySchemaContractTest::fontFamilyTypeLifetimeAndConstructionSchemaRemainStable",
+      "behavior": "font family資源は共有所有別名を持ち、WWS表現・ファイル名・既存資源から構築できる資源派生型として仮想寿命とcopy代入禁止を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KoFontFamilySP",
+        "class:KoFontFamily",
+        "method:KoFontFamily::KoFontFamily(KoFontFamilyWWSRepresentation representation)",
+        "method:KoFontFamily::KoFontFamily(const KoFontFamily & rhs)",
+        "method:KoFontFamily::KoFontFamily(const QString & filename)",
+        "method:KoFontFamily::operator =(const KoFontFamily & rhs)",
+        "method:KoFontFamily::~KoFontFamily()"
+      ]
+    },
+    {
+      "target": "KoFontFamilySchemaContractTest",
+      "source": "libs/flake/tests/KoFontFamilySchemaContractTest.cpp",
+      "test": "KoFontFamilySchemaContractTest::fontFamilyIdentityAndLocalizationSignaturesRemainStable",
+      "behavior": "font family資源はtypographic family、locale優先列に応じた翻訳名、最終更新日時を値として返す公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoFontFamily::lastModified() const",
+        "method:KoFontFamily::translatedFontName(QStringList locales) const",
+        "method:KoFontFamily::typographicFamily() const"
+      ]
+    },
+    {
+      "target": "KoFontFamilySchemaContractTest",
+      "source": "libs/flake/tests/KoFontFamilySchemaContractTest.cpp",
+      "test": "KoFontFamilySchemaContractTest::fontFamilyAxesAndStylesSignaturesRemainStable",
+      "behavior": "font family資源は利用可能な可変axisとstyle情報を型付き一覧として返す公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoFontFamily::axes() const",
+        "method:KoFontFamily::styles() const"
+      ]
+    },
+    {
+      "target": "KoFontFamilySchemaContractTest",
+      "source": "libs/flake/tests/KoFontFamilySchemaContractTest.cpp",
+      "test": "KoFontFamilySchemaContractTest::fontFamilyCapabilitySignaturesRemainStable",
+      "behavior": "font family資源は可変fontとbitmap・COLRv0・COLRv1・SVG色表現の対応能力を真偽値で公開する署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoFontFamily::colorBitmap() const",
+        "method:KoFontFamily::colorClrV0() const",
+        "method:KoFontFamily::colorClrV1() const",
+        "method:KoFontFamily::colorSVG() const",
+        "method:KoFontFamily::isVariable() const"
+      ]
+    },
+    {
+      "target": "KoFontFamilySchemaContractTest",
+      "source": "libs/flake/tests/KoFontFamilySchemaContractTest.cpp",
+      "test": "KoFontFamilySchemaContractTest::fontFamilyResourcePersistenceSignaturesRemainStable",
+      "behavior": "font family資源はclone、装置からの読込、直列化可否、資源種別、thumbnail更新を資源基底契約として公開する署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoFontFamily::clone() const",
+        "method:KoFontFamily::isSerializable() const",
+        "method:KoFontFamily::loadFromDevice(QIODevice * dev,KisResourcesInterfaceSP resourcesInterface)",
+        "method:KoFontFamily::resourceType() const",
+        "method:KoFontFamily::updateThumbnail()"
       ]
     }
   ]
