@@ -2,12 +2,18 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-03 16:16 JST
+- 更新日時: 2026-09-03 16:52 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
+
+### 第188便の先行監査計画
+
+- 監査共通基点は`4fb4a6463d`、入力は`build/tdd-macos/public-api-missing-g188.json`である。3担当は`auditing`の読み取り専用とし、製品・試験・CMake・script・台帳・文書を変更せず、構成、構築、試験、Git操作、追加委任も行わない。一つの公開責務から20〜80 APIを最大5枠へ固定し、既存限定対象またはheader限定の4〜10工程程度の対象で、製品共有libraryと`kritatestsdk`へ接続しない候補だけを採用する。製品targetを引数にする`build-incremental ... plan`と製品buildは実行せず、既存Ninja木のquery・commands・inputsだけを読み取る。
+- image・paintop・pigment領域は第187便のtile line iteratorを、flake・SVG・vector領域はgradient背景を、widgetutils・widgets・libkis領域は非vector特殊layer wrapperを除外して一責務ずつ比較する。
+- 各監査は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、実際のcompile探索路、予測工程・入力と停止線、開始pathから契約先、許可path、固有停止条件、比較候補の棄却根拠を揃える。3領域のpath、CMake、試験source、生成物が重ならない候補だけを担当票へ進める。
 
 ### 第187便の先行監査計画
 
@@ -32,6 +38,17 @@
   完全集合は通常gradient背景のclass・pointer・値・copy構築・破棄、代入・比較、gradient・transform照会設定・描画と、mesh gradient背景のclass・gradient pointer・copy構築・破棄、代入・比較・可変gradient・transform照会・描画である。許可pathは既存試験sourceと`libs/flake/tests/CMakeLists.txt`の対象固有探索路だけである。先にQt Guiの`INTERFACE_INCLUDE_DIRECTORIES` 1本だけを追加し、4工程・8入力とQt Testだけの直接link・実binary動的接続が増えないことを確認して構築範囲commitを作り、その後に試験sourceを変更する。両背景、基底、gradient、transform、painter、pathを実体化せず、所有・複製・代入・比較・変換・描画本文を実行しない。停止5工程・11入力、近傍`KoShapeStrokeSchemaContractTest`、製品`kritaflake` 621工程・1,274入力を維持し、iterator担当の統合・削除後に開始する。同じ限定検証とbackground/gradient/transform/painter未解決記号を確認する。
 - `g187-special-layer-schema`は`/Users/masato/Documents/librepaint-g187-special-layer-schema`を所有する。開始`libs/libkis/FileLayer.h`の残存全10 API、`FillLayer.h`の残存全8 API、`FilterLayer.h`・`CloneLayer.h`・`GroupLayer.h`の残存各7 APIから既存`libs/libkis/tests/ColorizeMaskSchemaContractTest.cpp`の5枠`fileLayerTypeAndFileSchemaRemainStable`、`fillLayerTypeAndGeneratorSchemaRemainStable`、`filterLayerTypeAndFilterSchemaRemainStable`、`cloneLayerTypeAndSourceSchemaRemainStable`、`groupLayerTypeAndCompositionSchemaRemainStable`へ対応付ける。
   完全集合は5 layer wrapperのclass・2構築・破棄・typeに加え、fileのpath・cache・scaling・properties、fillのfilter構成・generator、filterの取得設定、cloneのsource、groupのpass-throughである。許可pathは既存試験sourceだけで、CMake・依存・公開header・製品sourceを変更しない。各layer、Node、Image、Selection、Filter、InfoObject、Object、文字列、共有pointerを実体化せず、構築・破棄、filesystem・cache、generator・filter、clone source、pass-through、型文字列本文を実行しない。対象4工程・8入力、停止5工程・11入力、近傍`SelectionSchemaContractTest`、製品`kritalibkis` 2,018工程・4,034入力を維持し、gradient背景担当の統合・削除後に開始する。同じ限定検証とlayer/node/image/selection/filter未解決記号を確認する。
+
+### 第187便の統合結果
+
+- `g187-tile-line-iterator-schema`は開始`libs/image/tiles3/kis_hline_iterator.h`と`kis_vline_iterator.h`から既存`libs/image/tests/KisImageTypesContractTest.cpp`の5枠へ、型・構築、tile cache、data参照、水平走査、垂直走査の残存全38 APIを対応付けた。iterator、cache型、data manager、tile・共有pointer、listener、画素bufferを実体化せず、構築・破棄、inline lock・座標計算、cache確保・取得・切替、走査・reset・raw data本文を実行しない4工程・8入力に保った。
+  受渡しcommit`86be44885e`を統合commit`04b0acabf5`として取り込み、担当と中央の新旧枠、対象・近傍CTest、20回反復、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式に成功した。台帳commit`a79b395b2b`で18,310件対応、11,528件未対応となった。tile境界走査、連続画素数・座標値、cache切替、read/write lock、完了通知とbuffer寿命は別契約で扱う。
+- `g187-gradient-background-schema`は開始`libs/flake/KoGradientBackground.h`と`KoMeshGradientBackground.h`から既存`libs/flake/tests/KoPatternBackgroundSchemaContractTest.cpp`の5枠へ、通常・mesh gradient背景の型・寿命、値semantics、gradient・変換・描画の残存全21 APIを対応付けた。対象固有CMake節へQt Gui公開include探索路1本だけを追加し、直接linkをQt Test、実binary動的接続をQt Test/Coreに保った。両背景、基底、gradient、transform、painter、pathを実体化せず、所有・複製・代入・比較・変換・描画本文を実行していない。
+  構築範囲commit`99be169109`を`8d3dc38dce`、試験commit`c80d714fd0`を`041d9360b2`として順に取り込んだ。対象は変更前後とも4工程・8入力、入力hashは不変であり、担当と中央の新旧枠、対象・近傍CTest、20回反復、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式に成功した。台帳commit`d42b671362`で18,331件対応、11,507件未対応となった。gradient所有、copy・比較結果、transform数値と描画像は別契約で扱う。
+- `g187-special-layer-schema`は開始`libs/libkis/FileLayer.h`、`FillLayer.h`、`FilterLayer.h`、`CloneLayer.h`、`GroupLayer.h`から既存`libs/libkis/tests/ColorizeMaskSchemaContractTest.cpp`の5枠へ、特殊layer wrapperの型・寿命とfile、generator、filter、clone source、pass-through接続面の残存全39 APIを対応付けた。各layer、Node、Image、Selection、Filter、InfoObject、Object、文字列、共有pointerを実体化せず、構築・破棄、filesystem・cache、generator・filter、clone source、pass-through、型文字列本文を実行しない4工程・8入力に保った。
+  受渡しcommit`101ea35456`を統合commit`967e00c6c8`として取り込み、担当と中央の新旧枠、対象・近傍CTest、20回反復、無作業再構築、動的接続・AUTOMOC入力・未解決記号、構文・書式に成功した。台帳commit`4fb4a6463d`で18,370件対応、11,468件未対応となった。filesystem・cache、generator・filter、clone source、pass-throughと型文字列の実行時結果は別契約で扱う。
+- 第187便全体で98 APIを15枠へ重複なく対応付けた。gradient背景対象固有のQt Gui公開include探索路1本以外のCMake・探索路・link・公開header・製品sourceを変えず、一度に一つの担当だけを実装・構成・構築・統合した。CMake変更後のnative configure、対象・近傍CTest、各20回反復、無作業再構築、公開API検査と`verify-quick`に成功した。製品target、全体build、全体`verify`、Linux、Nix再評価は実行していない。
+  3担当のcleanな作業tree、担当build木、担当branchを統合直後に削除し、2,649,624 KiB（約2.53 GiB）の担当領域を回収した。旧不足報告`public-api-missing-g187.json`をごみ箱へ移し、主Ninja木5,664,324 KiB、共有compiler cache 983,460 KiB、最新不足報告`build/tdd-macos/public-api-missing-g188.json` 3,010,918 bytesだけを再利用対象として保持する。次の永続作業は第188便の不足報告から、既存限定対象を優先して3責務を先行監査することである。
 
 ### 第186便の先行監査計画
 
