@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 11269
+    "expectedMissingApis": 11246
   },
   "contracts": [
     {
@@ -52208,6 +52208,74 @@
         "method:KisCurveCircleMaskGenerator::toXML(QDomDocument &,QDomElement &) const",
         "method:KisCurveCircleMaskGenerator::transformCurveForSoftness(qreal softness,const QList<KisCubicCurvePoint> & points,int curveResolution,QVector<qreal> & result)",
         "method:KisCurveRectangleMaskGenerator::toXML(QDomDocument &,QDomElement &) const"
+      ]
+    },
+    {
+      "target": "KoShapeEnumContractTest",
+      "source": "libs/flake/tests/KoShapeEnumContractTest.cpp",
+      "test": "KoShapeEnumContractTest::shapeControllerBaseTypeLifetimeSchemaRemainStable",
+      "behavior": "文書側の図形所有境界は具象文書から派生できる抽象公開型、保護された構築入口と仮想寿命を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoShapeControllerBase",
+        "method:KoShapeControllerBase::KoShapeControllerBase()",
+        "method:KoShapeControllerBase::~KoShapeControllerBase()"
+      ]
+    },
+    {
+      "target": "KoShapeEnumContractTest",
+      "source": "libs/flake/tests/KoShapeEnumContractTest.cpp",
+      "test": "KoShapeEnumContractTest::shapeControllerBaseDocumentInterfaceSignaturesRemainStable",
+      "behavior": "文書側の図形所有境界は図形の親作成、文書領域・画素領域・解像度と資源管理者を提供する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShapeControllerBase::createParentForShapes(const QList<KoShape * > shapes,bool forceNewLayer,KUndo2Command * parentCommand)",
+        "method:KoShapeControllerBase::documentRect() const",
+        "method:KoShapeControllerBase::documentRectInPixels() const",
+        "method:KoShapeControllerBase::pixelsPerInch() const",
+        "method:KoShapeControllerBase::resourceManager() const"
+      ]
+    },
+    {
+      "target": "KoShapeEnumContractTest",
+      "source": "libs/flake/tests/KoShapeEnumContractTest.cpp",
+      "test": "KoShapeEnumContractTest::shapeControllerTypeLifetimeAndDocumentSignaturesRemainStable",
+      "behavior": "ツール側の図形controllerはcanvasと文書所有境界を借用し、接続の再設定と文書情報の照会を行う公開型・署名・寿命を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoShapeController",
+        "method:KoShapeController::KoShapeController(KoCanvasBase * canvas,KoShapeControllerBase * shapeController)",
+        "method:KoShapeController::documentBase() const",
+        "method:KoShapeController::documentRect() const",
+        "method:KoShapeController::documentRectInPixels() const",
+        "method:KoShapeController::pixelsPerInch() const",
+        "method:KoShapeController::reset()",
+        "method:KoShapeController::resourceManager() const",
+        "method:KoShapeController::setShapeControllerBase(KoShapeControllerBase * shapeController)",
+        "method:KoShapeController::~KoShapeController()"
+      ]
+    },
+    {
+      "target": "KoShapeEnumContractTest",
+      "source": "libs/flake/tests/KoShapeEnumContractTest.cpp",
+      "test": "KoShapeEnumContractTest::shapeControllerAdditionSignaturesRemainStable",
+      "behavior": "図形controllerは単一図形の追加、直接追加と複数図形の直接追加を任意の親undo commandへ記録する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShapeController::addShape(KoShape * shape,KoShapeContainer * parentShape,KUndo2Command * parent=0)",
+        "method:KoShapeController::addShapeDirect(KoShape * shape,KoShapeContainer * parentShape,KUndo2Command * parent=0)",
+        "method:KoShapeController::addShapesDirect(const QList<KoShape * > shape,KoShapeContainer * parentShape,KUndo2Command * parent=0)"
+      ]
+    },
+    {
+      "target": "KoShapeEnumContractTest",
+      "source": "libs/flake/tests/KoShapeEnumContractTest.cpp",
+      "test": "KoShapeEnumContractTest::shapeControllerRemovalSignaturesRemainStable",
+      "behavior": "図形controllerは単一・複数図形の削除を任意の親undo commandへ記録する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShapeController::removeShape(KoShape * shape,KUndo2Command * parent=0)",
+        "method:KoShapeController::removeShapes(const QList<KoShape * > & shapes,KUndo2Command * parent=0)"
       ]
     }
   ]
