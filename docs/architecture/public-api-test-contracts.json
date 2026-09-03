@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 10896
+    "expectedMissingApis": 10853
   },
   "contracts": [
     {
@@ -53211,6 +53211,94 @@
         "method:KoZoomWidget::sliderValueChanged(int value)",
         "method:KoZoomWidget::zoomLevelChanged(const QString & level)",
         "method:KoZoomWidget::zoomLevelChangedIndex(int index)"
+      ]
+    },
+    {
+      "target": "KisMaskSchemaContractTest",
+      "source": "libs/image/tests/KisMaskSchemaContractTest.cpp",
+      "test": "KisMaskSchemaContractTest::selectionTypeAndLifetimeSchemaRemainStable",
+      "behavior": "選択範囲は既定値、境界・解像度、描画装置の複製元、別の選択範囲から構築でき、複製代入と共有基底の仮想寿命を持つ公開型契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisSelection",
+        "method:KisSelection::KisSelection()",
+        "method:KisSelection::KisSelection(KisDefaultBoundsBaseSP defaultBounds,KisImageResolutionProxySP resolutionProxy)",
+        "method:KisSelection::KisSelection(const KisPaintDeviceSP copySource,KritaUtils::DeviceCopyMode copyMode,KisDefaultBoundsBaseSP defaultBounds,KisImageResolutionProxySP resolutionProxy)",
+        "method:KisSelection::KisSelection(const KisSelection & rhs)",
+        "method:KisSelection::operator =(const KisSelection & rhs)",
+        "method:KisSelection::~KisSelection()"
+      ]
+    },
+    {
+      "target": "KisMaskSchemaContractTest",
+      "source": "libs/image/tests/KisMaskSchemaContractTest.cpp",
+      "test": "KisMaskSchemaContractTest::selectionComponentAndOwnershipSignaturesRemainStable",
+      "behavior": "選択範囲は親node、画素・図形選択、既定境界、解像度代理を公開し、図形選択への変換をundo対応または直接方式で要求する署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSelection::convertToVectorSelection(KisSelectionComponent * shapeSelection)",
+        "method:KisSelection::convertToVectorSelectionNoUndo(KisSelectionComponent * shapeSelection)",
+        "method:KisSelection::parentNode() const",
+        "method:KisSelection::pixelSelection() const",
+        "method:KisSelection::resolutionProxy() const",
+        "method:KisSelection::setDefaultBounds(KisDefaultBoundsBaseSP bounds)",
+        "method:KisSelection::setParentNode(KisNodeWSP node)",
+        "method:KisSelection::setResolutionProxy(KisImageResolutionProxySP proxy)",
+        "method:KisSelection::shapeSelection() const"
+      ]
+    },
+    {
+      "target": "KisMaskSchemaContractTest",
+      "source": "libs/image/tests/KisMaskSchemaContractTest.cpp",
+      "test": "KisMaskSchemaContractTest::selectionContentAndGeometrySignaturesRemainStable",
+      "behavior": "選択範囲は画素・図形内容の有無、矩形内と座標上の選択状態、概算・厳密範囲、可視性、位置を照会・設定する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSelection::hasNonEmptyPixelSelection() const",
+        "method:KisSelection::hasNonEmptyShapeSelection() const",
+        "method:KisSelection::hasShapeSelection() const",
+        "method:KisSelection::isTotallyUnselected(const QRect & r) const",
+        "method:KisSelection::isVisible()",
+        "method:KisSelection::selected(qint32 x,qint32 y) const",
+        "method:KisSelection::selectedExactRect() const",
+        "method:KisSelection::selectedRect() const",
+        "method:KisSelection::setVisible(bool visible)",
+        "method:KisSelection::setX(qint32 x)",
+        "method:KisSelection::setY(qint32 y)",
+        "method:KisSelection::x() const",
+        "method:KisSelection::y() const"
+      ]
+    },
+    {
+      "target": "KisMaskSchemaContractTest",
+      "source": "libs/image/tests/KisMaskSchemaContractTest.cpp",
+      "test": "KisMaskSchemaContractTest::selectionCacheAndThumbnailSignaturesRemainStable",
+      "behavior": "選択範囲は輪郭cacheと縮小画像、その変換と有効性を公開し、輪郭と指定色の縮小画像を再計算する署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSelection::outlineCache() const",
+        "method:KisSelection::outlineCacheValid() const",
+        "method:KisSelection::recalculateOutlineCache()",
+        "method:KisSelection::recalculateThumbnailImage(const QColor & maskColor)",
+        "method:KisSelection::thumbnailImage() const",
+        "method:KisSelection::thumbnailImageTransform() const",
+        "method:KisSelection::thumbnailImageValid() const"
+      ]
+    },
+    {
+      "target": "KisMaskSchemaContractTest",
+      "source": "libs/image/tests/KisMaskSchemaContractTest.cpp",
+      "test": "KisMaskSchemaContractTest::selectionProjectionAndMutationSignaturesRemainStable",
+      "behavior": "選択範囲は画素投影を公開し、全体または指定範囲の更新、消去、平坦化、変更通知、圧縮更新要求を行う署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSelection::clear()",
+        "method:KisSelection::flatten()",
+        "method:KisSelection::notifySelectionChanged()",
+        "method:KisSelection::projection() const",
+        "method:KisSelection::requestCompressedProjectionUpdate(const QRect & rc)",
+        "method:KisSelection::updateProjection()",
+        "method:KisSelection::updateProjection(const QRect & rect)"
       ]
     }
   ]
