@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 11041
+    "expectedMissingApis": 11017
   },
   "contracts": [
     {
@@ -52841,6 +52841,75 @@
         "method:KisMask::setY(qint32 y)",
         "method:KisMask::x() const",
         "method:KisMask::y() const"
+      ]
+    },
+    {
+      "target": "KoPathPointTopologyCommandSchemaContractTest",
+      "source": "libs/flake/tests/KoPathPointTopologyCommandSchemaContractTest.cpp",
+      "test": "KoPathPointTopologyCommandSchemaContractTest::pathPointTopologyCommandTypeAndLifetimeSchemaRemainStable",
+      "behavior": "パス点の挿入・削除・同一経路結合・複数経路結合commandは、それぞれの入力と任意の親commandから構築され、仮想寿命を持つ公開型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoMultiPathPointMergeCommand",
+        "class:KoPathPointInsertCommand",
+        "class:KoPathPointMergeCommand",
+        "class:KoPathPointRemoveCommand",
+        "method:KoMultiPathPointMergeCommand::KoMultiPathPointMergeCommand(const KoPathPointData & pointData1,const KoPathPointData & pointData2,KoShapeControllerBase * controller,KoSelection * selection,KUndo2Command * parent=0)",
+        "method:KoMultiPathPointMergeCommand::~KoMultiPathPointMergeCommand()",
+        "method:KoPathPointInsertCommand::KoPathPointInsertCommand(const QList<KoPathPointData> & pointDataList,qreal insertPosition,KUndo2Command * parent=0)",
+        "method:KoPathPointInsertCommand::~KoPathPointInsertCommand()",
+        "method:KoPathPointMergeCommand::KoPathPointMergeCommand(const KoPathPointData & pointData1,const KoPathPointData & pointData2,KUndo2Command * parent=0)",
+        "method:KoPathPointMergeCommand::~KoPathPointMergeCommand()",
+        "method:KoPathPointRemoveCommand::KoPathPointRemoveCommand(const QList<KoPathPointData> & pointDataList,KUndo2Command * parent=0)",
+        "method:KoPathPointRemoveCommand::~KoPathPointRemoveCommand()"
+      ]
+    },
+    {
+      "target": "KoPathPointTopologyCommandSchemaContractTest",
+      "source": "libs/flake/tests/KoPathPointTopologyCommandSchemaContractTest.cpp",
+      "test": "KoPathPointTopologyCommandSchemaContractTest::pathPointTopologyExecutionSignaturesRemainStable",
+      "behavior": "4種のパス点トポロジーcommandは、変更を適用するredoと元に戻すundoの公開実行契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoMultiPathPointMergeCommand::redo()",
+        "method:KoMultiPathPointMergeCommand::undo()",
+        "method:KoPathPointInsertCommand::redo()",
+        "method:KoPathPointInsertCommand::undo()",
+        "method:KoPathPointMergeCommand::redo()",
+        "method:KoPathPointMergeCommand::undo()",
+        "method:KoPathPointRemoveCommand::redo()",
+        "method:KoPathPointRemoveCommand::undo()"
+      ]
+    },
+    {
+      "target": "KoPathPointTopologyCommandSchemaContractTest",
+      "source": "libs/flake/tests/KoPathPointTopologyCommandSchemaContractTest.cpp",
+      "test": "KoPathPointTopologyCommandSchemaContractTest::pathPointInsertionResultSignatureRemainsStable",
+      "behavior": "パス点挿入commandは、適用後に挿入された点の識別情報を値として返す公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoPathPointInsertCommand::insertedPoints() const"
+      ]
+    },
+    {
+      "target": "KoPathPointTopologyCommandSchemaContractTest",
+      "source": "libs/flake/tests/KoPathPointTopologyCommandSchemaContractTest.cpp",
+      "test": "KoPathPointTopologyCommandSchemaContractTest::pathPointRemovalFactorySignatureRemainsStable",
+      "behavior": "パス点削除commandは、対象点群とshape制御者から任意の親commandを持つ複合削除commandを生成する公開工場署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoPathPointRemoveCommand::createCommand(const QList<KoPathPointData> & pointDataList,KoShapeController * shapeController,KUndo2Command * parent=0)"
+      ]
+    },
+    {
+      "target": "KoPathPointTopologyCommandSchemaContractTest",
+      "source": "libs/flake/tests/KoPathPointTopologyCommandSchemaContractTest.cpp",
+      "test": "KoPathPointTopologyCommandSchemaContractTest::pathPointMergeResultSignaturesRemainStable",
+      "behavior": "パス点結合commandは結合後の点情報を返し、複数経路結合commandは試験用に結合済み経路を借用参照で公開する署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoMultiPathPointMergeCommand::testingCombinedPath() const",
+        "method:KoPathPointMergeCommand::mergedPointData() const"
       ]
     }
   ]
