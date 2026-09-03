@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 12208
+    "expectedMissingApis": 12176
   },
   "contracts": [
     {
@@ -49694,6 +49694,83 @@
         "method:KoShapeBulkActionLockAdapter::lock()",
         "method:KoShapeBulkActionLockAdapter::takeFinalUpdatesList()",
         "method:KoShapeBulkActionLockAdapter::unlock()"
+      ]
+    },
+    {
+      "target": "KKeySequenceWidgetSchemaContractTest",
+      "source": "libs/widgetutils/tests/KKeySequenceWidgetSchemaContractTest.cpp",
+      "test": "KKeySequenceWidgetSchemaContractTest::xmlGuiFactoryTypeLifetimeAndConfigurationSchemaRemainsStable",
+      "behavior": "XML GUI factoryはbuilder・親を借用する構築、仮想寿命、設定XMLとaction property要素を扱う公開型・署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisKXMLGUIFactory",
+        "method:KisKXMLGUIFactory::KisKXMLGUIFactory(KisKXMLGUIBuilder * builder,QObject * parent=0)",
+        "method:KisKXMLGUIFactory::actionPropertiesElement(QDomDocument & doc)",
+        "method:KisKXMLGUIFactory::findActionByName(QDomElement & elem,const QString & sName,bool create)",
+        "method:KisKXMLGUIFactory::readConfigFile(const QString & filename,const QString & componentName=QString ())",
+        "method:KisKXMLGUIFactory::saveConfigFile(const QDomDocument & doc,const QString & filename,const QString & componentName=QString ())",
+        "method:KisKXMLGUIFactory::~KisKXMLGUIFactory()"
+      ]
+    },
+    {
+      "target": "KKeySequenceWidgetSchemaContractTest",
+      "source": "libs/widgetutils/tests/KKeySequenceWidgetSchemaContractTest.cpp",
+      "test": "KKeySequenceWidgetSchemaContractTest::xmlGuiFactoryClientAndActionSignaturesRemainStable",
+      "behavior": "XML GUI factoryはclient集合と名前付きaction listの追加・削除・接続・解除に関する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisKXMLGUIFactory::addClient(KisKXMLGUIClient * client)",
+        "method:KisKXMLGUIFactory::clients() const",
+        "method:KisKXMLGUIFactory::plugActionList(KisKXMLGUIClient * client,const QString & name,const QList<QAction * > & actionList)",
+        "method:KisKXMLGUIFactory::removeClient(KisKXMLGUIClient * client)",
+        "method:KisKXMLGUIFactory::unplugActionList(KisKXMLGUIClient * client,const QString & name)"
+      ]
+    },
+    {
+      "target": "KKeySequenceWidgetSchemaContractTest",
+      "source": "libs/widgetutils/tests/KKeySequenceWidgetSchemaContractTest.cpp",
+      "test": "KKeySequenceWidgetSchemaContractTest::xmlGuiFactoryContainerResetAndNotificationSignaturesRemainStable",
+      "behavior": "XML GUI factoryはcontainer探索・resetとclient追加・削除・変更中通知の公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisKXMLGUIFactory::clientAdded(KisKXMLGUIClient * client)",
+        "method:KisKXMLGUIFactory::clientRemoved(KisKXMLGUIClient * client)",
+        "method:KisKXMLGUIFactory::container(const QString & containerName,KisKXMLGUIClient * client,bool useTagName=false)",
+        "method:KisKXMLGUIFactory::containers(const QString & tagName)",
+        "method:KisKXMLGUIFactory::makingChanges(bool)",
+        "method:KisKXMLGUIFactory::reset()",
+        "method:KisKXMLGUIFactory::resetContainer(const QString & containerName,bool useTagName=false)"
+      ]
+    },
+    {
+      "target": "KKeySequenceWidgetSchemaContractTest",
+      "source": "libs/widgetutils/tests/KKeySequenceWidgetSchemaContractTest.cpp",
+      "test": "KKeySequenceWidgetSchemaContractTest::xmlGuiBuilderTypeOwnershipAndTagSchemaRemainsStable",
+      "behavior": "XML GUI builderはwidgetを借用する構築、仮想寿命、client・widget参照とcontainer・custom tag一覧の公開型・署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisKXMLGUIBuilder",
+        "method:KisKXMLGUIBuilder::KisKXMLGUIBuilder(QWidget * widget)",
+        "method:KisKXMLGUIBuilder::builderClient() const",
+        "method:KisKXMLGUIBuilder::containerTags() const",
+        "method:KisKXMLGUIBuilder::customTags() const",
+        "method:KisKXMLGUIBuilder::setBuilderClient(KisKXMLGUIClient * client)",
+        "method:KisKXMLGUIBuilder::widget()",
+        "method:KisKXMLGUIBuilder::~KisKXMLGUIBuilder()"
+      ]
+    },
+    {
+      "target": "KKeySequenceWidgetSchemaContractTest",
+      "source": "libs/widgetutils/tests/KKeySequenceWidgetSchemaContractTest.cpp",
+      "test": "KKeySequenceWidgetSchemaContractTest::xmlGuiBuilderElementLifecycleSignaturesRemainStable",
+      "behavior": "XML GUI builderはcontainer・custom要素の生成・削除とGUI構築終了に関する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisKXMLGUIBuilder::createContainer(QWidget * parent,int index,const QDomElement & element,QAction * & containerAction)",
+        "method:KisKXMLGUIBuilder::createCustomElement(QWidget * parent,int index,const QDomElement & element)",
+        "method:KisKXMLGUIBuilder::finalizeGUI(KisKXMLGUIClient * client)",
+        "method:KisKXMLGUIBuilder::removeContainer(QWidget * container,QWidget * parent,QDomElement & element,QAction * containerAction)",
+        "method:KisKXMLGUIBuilder::removeCustomElement(QWidget * parent,QAction * action)"
       ]
     }
   ]
