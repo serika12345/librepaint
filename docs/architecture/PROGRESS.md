@@ -2,12 +2,20 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-03 22:46 JST
+- 更新日時: 2026-09-03 22:48 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
+
+### 第195便の先行監査担当票
+
+- 監査共通基点は`6febf8898e12`、入力は`build/tdd-macos/public-api-missing-g195.json`である。3担当の状態は`auditing`であり、主作業treeを読み取り専用で共有する。製品・試験・CMake・script・台帳・文書を変更せず、構成、構築、試験、Git操作、追加委任を行わない。一つの公開責務から20〜80 APIを最大5枠へ固定し、既存限定対象またはheader限定の4〜10工程程度の対象で、製品shared・OBJECTと`kritatestsdk`へ接続しない候補だけを採用する。既存契約sourceが300行または20枠を超える場合は、同じ4工程程度の専用targetへ分ける案を比較する。製品targetを引数にするplan/buildは禁止し、既存Ninja木のquery・commands・inputsだけを読み取る。
+- `g195-image-contract-audit`はimage・paintop・pigment領域を所有し、第194便までに固定したmask生成器、brush mask applicator、transform worker、iterator、塗装設定群、math toolbox、paint layer、mask、基底layerを除外して、一責務の未対応集合を比較する。
+- `g195-flake-contract-audit`はflake・SVG・vector領域を所有し、第194便までに固定したshape manager・controller、tool代理、shape幾何・階層・文書状態、clip、背景群、path点・区間種別command、path点topology command、font family資源を除外して、一責務の未対応集合を比較する。
+- `g195-ui-contract-audit`はwidgetutils・widgets・libkis領域を所有し、第194便までに固定したHSX色入力、内部色選択dialog、視覚色選択群、palette delegate、filter設定・適用、palette選択・色集合表示、色選択button・popup action、action分類・toolbar編集入口、zoom action・Widgetを除外して、一責務の未対応集合を比較する。
+- 各担当は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、実際のcompile探索路、予測工程・入力と停止線、開始pathから契約先、実装時許可path、固有停止条件、比較候補の棄却根拠を返す。調整担当は3領域のpath、CMake、試験source、生成物が重ならず、合計60〜180 APIとなる組合せだけを次の実装担当票へ進める。
 
 ### 第194便の先行監査担当票
 
