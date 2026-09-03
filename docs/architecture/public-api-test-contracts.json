@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 11202
+    "expectedMissingApis": 11181
   },
   "contracts": [
     {
@@ -52410,6 +52410,72 @@
         "method:KisMathToolbox::getToDoubleChannelPtr(QList<KoChannelInfo * > cis,QVector<PtrToDouble> & f)",
         "method:KisMathToolbox::maxChannelValue(KoChannelInfo *)",
         "method:KisMathToolbox::minChannelValue(KoChannelInfo *)"
+      ]
+    },
+    {
+      "target": "KoShapeReorderCommandSchemaContractTest",
+      "source": "libs/flake/tests/KoShapeReorderCommandSchemaContractTest.cpp",
+      "test": "KoShapeReorderCommandSchemaContractTest::pathPointTypeCommandTypeAndLifetimeSchemaRemainStable",
+      "behavior": "パス点種別変更commandは点data列・変更種別・任意の親undo commandから構築できる公開型・列挙型・寿命を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoPathPointTypeCommand",
+        "enum:KoPathPointTypeCommand::PointType",
+        "method:KoPathPointTypeCommand::KoPathPointTypeCommand(const QList<KoPathPointData> & pointDataList,PointType pointType,KUndo2Command * parent=0)",
+        "method:KoPathPointTypeCommand::~KoPathPointTypeCommand()"
+      ]
+    },
+    {
+      "target": "KoShapeReorderCommandSchemaContractTest",
+      "source": "libs/flake/tests/KoShapeReorderCommandSchemaContractTest.cpp",
+      "test": "KoShapeReorderCommandSchemaContractTest::pathPointTypeValuesRemainStable",
+      "behavior": "パス点種別変更commandは角、曲線、直線、滑らか、対称の安定した公開列挙値を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "enumerator:KoPathPointTypeCommand::PointType::Corner",
+        "enumerator:KoPathPointTypeCommand::PointType::Curve",
+        "enumerator:KoPathPointTypeCommand::PointType::Line",
+        "enumerator:KoPathPointTypeCommand::PointType::Smooth",
+        "enumerator:KoPathPointTypeCommand::PointType::Symmetric"
+      ]
+    },
+    {
+      "target": "KoShapeReorderCommandSchemaContractTest",
+      "source": "libs/flake/tests/KoShapeReorderCommandSchemaContractTest.cpp",
+      "test": "KoShapeReorderCommandSchemaContractTest::pathPointTypeExecutionSignaturesRemainStable",
+      "behavior": "パス点種別変更commandは変更の実行・取消しと単一点のcubic制御点平滑化を行う公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoPathPointTypeCommand::makeCubicPointSmooth(KoPathPoint * point)",
+        "method:KoPathPointTypeCommand::redo()",
+        "method:KoPathPointTypeCommand::undo()"
+      ]
+    },
+    {
+      "target": "KoShapeReorderCommandSchemaContractTest",
+      "source": "libs/flake/tests/KoShapeReorderCommandSchemaContractTest.cpp",
+      "test": "KoShapeReorderCommandSchemaContractTest::pathSegmentTypeCommandTypeLifetimeAndValuesRemainStable",
+      "behavior": "パス区間種別変更commandは単一・複数の点dataと任意の親undo commandから構築でき、曲線・直線の公開種別値と寿命を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoPathSegmentTypeCommand",
+        "enum:KoPathSegmentTypeCommand::SegmentType",
+        "enumerator:KoPathSegmentTypeCommand::SegmentType::Curve",
+        "enumerator:KoPathSegmentTypeCommand::SegmentType::Line",
+        "method:KoPathSegmentTypeCommand::KoPathSegmentTypeCommand(const KoPathPointData & pointData,SegmentType segmentType,KUndo2Command * parent=0)",
+        "method:KoPathSegmentTypeCommand::KoPathSegmentTypeCommand(const QList<KoPathPointData> & pointDataList,SegmentType segmentType,KUndo2Command * parent=0)",
+        "method:KoPathSegmentTypeCommand::~KoPathSegmentTypeCommand()"
+      ]
+    },
+    {
+      "target": "KoShapeReorderCommandSchemaContractTest",
+      "source": "libs/flake/tests/KoShapeReorderCommandSchemaContractTest.cpp",
+      "test": "KoShapeReorderCommandSchemaContractTest::pathSegmentTypeExecutionSignaturesRemainStable",
+      "behavior": "パス区間種別変更commandは変更を実行し、以前の区間種別へ戻す公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoPathSegmentTypeCommand::redo()",
+        "method:KoPathSegmentTypeCommand::undo()"
       ]
     }
   ]
