@@ -511,6 +511,8 @@ kis_add_test(
 target_include_directories(KoShapeContainerModelContractTest PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/..
     ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
 )
 target_compile_definitions(KoShapeContainerModelContractTest PRIVATE kritaflake_EXPORTS)
 

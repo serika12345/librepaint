@@ -3,11 +3,21 @@
  * SPDX-License-Identifier: LGPL-2.0-or-later
  */
 
+#include "KoShapeBulkActionLock.h"
 #include "KoShapeContainer.h"
 #include "KoShapeContainerModel.h"
+#include "SimpleShapeContainerModel.h"
 
 #include <QStringList>
 #include <QTest>
+
+#include <type_traits>
+
+#define ASSERT_SIMPLE_SHAPE_CONTAINER_SIGNATURE(method, signature)                                                     \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&SimpleShapeContainerModel::method)), signature>)
+
+#define ASSERT_SHAPE_BULK_ADAPTER_SIGNATURE(method, signature)                                                         \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KoShapeBulkActionLockAdapter::method)), signature>)
 
 void KoShape::setParent(KoShapeContainer *)
 {
@@ -149,11 +159,86 @@ class KoShapeContainerModelContractTest : public QObject
     Q_OBJECT
 
 private Q_SLOTS:
+    void simpleShapeContainerTypeAndLifetimeSchemaRemainsStable();
+    void simpleShapeContainerStorageAndClippingSignaturesRemainStable();
+    void simpleShapeContainerTransformAndMoveSignaturesRemainStable();
+    void simpleShapeContainerHierarchyAndManagerSignaturesRemainStable();
+    void shapeBulkActionLockSchemaRemainsStable();
     void emptyModelPreservesMoveAndDeletesNothing();
     void dispatchesStorageAndFlagsThroughAbstractSurface();
     void dispatchesContainerAndHierarchyNotifications();
     void destroysDerivedModelThroughBase();
 };
+
+void KoShapeContainerModelContractTest::simpleShapeContainerTypeAndLifetimeSchemaRemainsStable()
+{
+    static_assert(std::is_class_v<SimpleShapeContainerModel>);
+    static_assert(std::is_base_of_v<KoShapeContainerModel, SimpleShapeContainerModel>);
+    static_assert(std::is_default_constructible_v<SimpleShapeContainerModel>);
+    static_assert(std::is_copy_constructible_v<SimpleShapeContainerModel>);
+    static_assert(std::is_destructible_v<SimpleShapeContainerModel>);
+}
+
+void KoShapeContainerModelContractTest::simpleShapeContainerStorageAndClippingSignaturesRemainStable()
+{
+    ASSERT_SIMPLE_SHAPE_CONTAINER_SIGNATURE(add, void (SimpleShapeContainerModel::*)(KoShape *));
+    ASSERT_SIMPLE_SHAPE_CONTAINER_SIGNATURE(remove, void (SimpleShapeContainerModel::*)(KoShape *));
+    ASSERT_SIMPLE_SHAPE_CONTAINER_SIGNATURE(count, int (SimpleShapeContainerModel::*)() const);
+    ASSERT_SIMPLE_SHAPE_CONTAINER_SIGNATURE(shapes, QList<KoShape *> (SimpleShapeContainerModel::*)() const);
+    ASSERT_SIMPLE_SHAPE_CONTAINER_SIGNATURE(setClipped, void (SimpleShapeContainerModel::*)(const KoShape *, bool));
+    ASSERT_SIMPLE_SHAPE_CONTAINER_SIGNATURE(isClipped, bool (SimpleShapeContainerModel::*)(const KoShape *) const);
+}
+
+void KoShapeContainerModelContractTest::simpleShapeContainerTransformAndMoveSignaturesRemainStable()
+{
+    ASSERT_SIMPLE_SHAPE_CONTAINER_SIGNATURE(setInheritsTransform,
+                                            void (SimpleShapeContainerModel::*)(const KoShape *, bool));
+    ASSERT_SIMPLE_SHAPE_CONTAINER_SIGNATURE(inheritsTransform,
+                                            bool (SimpleShapeContainerModel::*)(const KoShape *) const);
+    ASSERT_SIMPLE_SHAPE_CONTAINER_SIGNATURE(proposeMove, void (SimpleShapeContainerModel::*)(KoShape *, QPointF &));
+    ASSERT_SIMPLE_SHAPE_CONTAINER_SIGNATURE(
+        containerChanged,
+        void (SimpleShapeContainerModel::*)(KoShapeContainer *, KoShape::ChangeType));
+}
+
+void KoShapeContainerModelContractTest::simpleShapeContainerHierarchyAndManagerSignaturesRemainStable()
+{
+    ASSERT_SIMPLE_SHAPE_CONTAINER_SIGNATURE(shapeHasBeenAddedToHierarchy,
+                                            void (SimpleShapeContainerModel::*)(KoShape *, KoShapeContainer *));
+    ASSERT_SIMPLE_SHAPE_CONTAINER_SIGNATURE(shapeToBeRemovedFromHierarchy,
+                                            void (SimpleShapeContainerModel::*)(KoShape *, KoShapeContainer *));
+    ASSERT_SIMPLE_SHAPE_CONTAINER_SIGNATURE(associatedRootShapeManager,
+                                            KoShapeManager * (SimpleShapeContainerModel::*)() const);
+    ASSERT_SIMPLE_SHAPE_CONTAINER_SIGNATURE(setAssociatedRootShapeManager,
+                                            void (SimpleShapeContainerModel::*)(KoShapeManager *));
+}
+
+void KoShapeContainerModelContractTest::shapeBulkActionLockSchemaRemainsStable()
+{
+    using Adapter = KoShapeBulkActionLockAdapter;
+    using Lock = KoShapeBulkActionLock;
+    using ExpectedUpdate = std::pair<KoShape *, QRectF>;
+    using ExpectedUpdatesList = std::vector<ExpectedUpdate>;
+
+    static_assert(std::is_class_v<Adapter>);
+    static_assert(std::is_same_v<Adapter::Update, ExpectedUpdate>);
+    static_assert(std::is_same_v<Adapter::UpdatesList, ExpectedUpdatesList>);
+    static_assert(std::is_constructible_v<Adapter, const QList<KoShape *> &>);
+    ASSERT_SHAPE_BULK_ADAPTER_SIGNATURE(lock, void (Adapter::*)());
+    ASSERT_SHAPE_BULK_ADAPTER_SIGNATURE(unlock, void (Adapter::*)());
+    ASSERT_SHAPE_BULK_ADAPTER_SIGNATURE(takeFinalUpdatesList, Adapter::UpdatesList (Adapter::*)());
+
+    static_assert(std::is_class_v<Lock>);
+    static_assert(std::is_same_v<Lock::BaseClass, KisAdaptedLock<Adapter>>);
+    static_assert(std::is_constructible_v<Lock, KoShape *>);
+    static_assert(std::is_destructible_v<Lock>);
+    static_assert(std::is_same_v<Lock::Update, ExpectedUpdate>);
+    static_assert(std::is_same_v<Lock::UpdatesList, ExpectedUpdatesList>);
+    static_assert(std::is_same_v<decltype(static_cast<Lock::UpdatesList (Lock::*)()>(&Lock::unlock)),
+                                 Lock::UpdatesList (Lock::*)()>);
+    static_assert(std::is_same_v<decltype(static_cast<void (*)(const Lock::UpdatesList &)>(&Lock::bulkShapesUpdate)),
+                                 void (*)(const Lock::UpdatesList &)>);
+}
 
 void KoShapeContainerModelContractTest::emptyModelPreservesMoveAndDeletesNothing()
 {
