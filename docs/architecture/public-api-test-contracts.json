@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 9590
+    "expectedMissingApis": 9566
   },
   "contracts": [
     {
@@ -56497,6 +56497,75 @@
       "classification": "maintained",
       "apis": [
         "method:Document::flatten()"
+      ]
+    },
+    {
+      "target": "KoFontFamilySchemaContractTest",
+      "source": "libs/flake/tests/KoFontFamilySchemaContractTest.cpp",
+      "test": "KoFontFamilySchemaContractTest::fontRegistryTypeLifetimeAndAccessSchemaRemainStable",
+      "behavior": "書体registryはQObject所有の寿命、既定の親指定、および共有instance取得に関する公開契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoFontRegistry",
+        "method:KoFontRegistry::KoFontRegistry(QObject * parent=nullptr)",
+        "method:KoFontRegistry::instance()",
+        "method:KoFontRegistry::~KoFontRegistry()"
+      ]
+    },
+    {
+      "target": "KoFontFamilySchemaContractTest",
+      "source": "libs/flake/tests/KoFontFamilySchemaContractTest.cpp",
+      "test": "KoFontFamilySchemaContractTest::fontRegistryFaceResolutionSignaturesRemainStable",
+      "behavior": "書体registryはCSS指定に対応するface解決・設定、PostScript名のCSS情報、傾斜と読込みflagに関する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoFontRegistry::configureFaces(const std::vector<FT_FaceSP> & faces,qreal size,qreal fontSizeAdjust,quint32 xRes,quint32 yRes,const QMap<QString,qreal> & axisSettings)",
+        "method:KoFontRegistry::facesForCSSValues(QVector<int> & lengths,KoCSSFontInfo info=KoCSSFontInfo (),const QString & text=\"\",quint32 xRes=72,quint32 yRes=72,bool disableFontMatching=false,const QString & language=QString ())",
+        "method:KoFontRegistry::getCssDataForPostScriptName(const QString postScriptName,QString * foundPostScriptName)",
+        "method:KoFontRegistry::loadFlagsForFace(FT_Face face,bool isHorizontal=true,int32_t loadFlags=0,const KoSvgText::TextRendering rendering=KoSvgText::RenderingAuto)",
+        "method:KoFontRegistry::slantMode(FT_FaceSP face)"
+      ]
+    },
+    {
+      "target": "KoFontFamilySchemaContractTest",
+      "source": "libs/flake/tests/KoFontFamilySchemaContractTest.cpp",
+      "test": "KoFontFamilySchemaContractTest::fontRegistryRepresentationAndMetricsSignaturesRemainStable",
+      "behavior": "書体registryはfamily表現の収集・検索、WWS名の解決、およびCSS・faceからの書体計量生成に関する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoFontRegistry::collectRepresentations() const",
+        "method:KoFontRegistry::fontMetricsForCSSValues(KoCSSFontInfo info=KoCSSFontInfo (),const bool isHorizontal=true,const KoSvgText::TextRendering rendering=KoSvgText::RenderingAuto,const QString & text=\"\",quint32 xRes=72,quint32 yRes=72,bool disableFontMatching=false,const QString & language=QString ())",
+        "method:KoFontRegistry::generateFontMetrics(FT_FaceSP face,bool isHorizontal=true,QString script=QString (),const KoSvgText::TextRendering rendering=KoSvgText::RenderingAuto)",
+        "method:KoFontRegistry::representationByFamilyName(const QString & familyName) const",
+        "method:KoFontRegistry::wwsNameByFamilyName(const QString familyName) const"
+      ]
+    },
+    {
+      "target": "KoFontFamilySchemaContractTest",
+      "source": "libs/flake/tests/KoFontFamilySchemaContractTest.cpp",
+      "test": "KoFontFamilySchemaContractTest::fontStorageTypeLifetimeAndValiditySchemaRemainStable",
+      "behavior": "書体storageは指定場所または既定場所から構築され、資源storage pluginとして妥当性と版管理対応を公開する契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoFontStorage",
+        "method:KoFontStorage::KoFontStorage(const QString & location=\"fontregistry\")",
+        "method:KoFontStorage::isValid() const",
+        "method:KoFontStorage::supportsVersioning() const",
+        "method:KoFontStorage::~KoFontStorage()"
+      ]
+    },
+    {
+      "target": "KoFontFamilySchemaContractTest",
+      "source": "libs/flake/tests/KoFontFamilySchemaContractTest.cpp",
+      "test": "KoFontFamilySchemaContractTest::fontStorageResourceAccessSignaturesRemainStable",
+      "behavior": "書体storageはURLによる資源・項目取得、資源・tag反復、および版管理資源の読込みに関する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoFontStorage::loadVersionedResource(KoResourceSP resource)",
+        "method:KoFontStorage::resource(const QString & url)",
+        "method:KoFontStorage::resourceItem(const QString & url)",
+        "method:KoFontStorage::resources(const QString & resourceType)",
+        "method:KoFontStorage::tags(const QString & resourceType)"
       ]
     }
   ]

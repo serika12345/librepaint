@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-04 20:59 JST
+- 更新日時: 2026-09-04 21:12 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -242,24 +242,30 @@
 - 実装共通基点は`c3e4ffc777`である。一度に一つだけ作る専用worktree-local `build/tdd-macos`と主作業treeの共有compiler cacheを使い、`./scripts/run-shared-test-env`で読み込み済み環境を利用する。各担当のGit権限は許可pathだけの受渡しcommit、追加委任は禁止する。tile data manager、文書node graph、font registry・storageの順に限定検証・統合・削除し、調整担当だけが文書、公開API台帳、共通不足報告を変更する。
 - `g209-tiled-data-manager-schema`の状態は`integrated`、macOSの対象`KisTileSchemaContractTest`と近傍`KisTileDataSchemaContractTest`に限る構築実行許可は`granted`である。正式不足報告の`libs/image/tiles3/kis_tiled_data_manager.h`残存全43 APIを、既存`libs/image/tiles3/tests/KisTileSchemaContractTest.cpp`の5枠`tiledDataManagerTypeLifetimeAndDefaultPixelSchemaRemainStable`、`tiledDataManagerTileAndHistorySignaturesRemainStable`、`tiledDataManagerRegionAndGeometrySignaturesRemainStable`、`tiledDataManagerTransferSignaturesRemainStable`、`tiledDataManagerMaintenanceSignaturesRemainStable`へ8・11・13・9・2件で対応付けた。受渡しcommit`46ec39eaf7`を統合commit`ac3cb314bc`として取り込み、担当側と中央で追加5枠を各20回、対象・近傍CTest、二回目計画と無作業再構築を実行した。CMake変更なしで4工程・8入力、Qt Core・Core5Compat・Testだけの動的接続、AUTOMOC `HEADERS=[]`、製品未解決記号なしを維持し、台帳は20,220件対応、9,618件未対応となった。cleanな専用作業tree、297,252 KiBの構築木、branchを統合直後に削除し、886,876 KiBを回収した。lock、履歴遷移、tile取得、領域更新、転送・I/O、pool解放の実行結果は別の効果契約で扱う。
 - `g209-document-node-schema`の状態は`integrated`、macOSの対象`DocumentNodeSchemaContractTest`と近傍`DocumentGeometrySchemaContractTest`に限る構築実行許可は`granted`である。正式不足報告の`libs/libkis/Document.h`残存28 APIを、新規`libs/libkis/tests/DocumentNodeSchemaContractTest.cpp`の5枠`documentTypeLifetimeAndComparisonSchemaRemainStable`、`documentNodeGraphSignaturesRemainStable`、`documentMaskCreationSignaturesRemainStable`、`documentNodeAndLayerCreationSignaturesRemainStable`、`documentFlatteningSignatureRemainsStable`へ6・8・6・7・1件で対応付けた。受渡しcommit`ef2734365a`を統合commit`fab7f27b63`として取り込み、担当側と中央で追加5枠を各20回、対象・近傍CTest、二回目計画と無作業再構築を実行した。G208と同じcompile interfaceで4工程・8入力、Qt Core・Testだけの動的接続、AUTOMOC `HEADERS=[]`、製品未解決記号なしを維持し、台帳は20,248件対応、9,590件未対応となった。cleanな専用作業tree、294,876 KiBの構築木、branchを統合直後に削除し、884,500 KiBを回収した。文書所有、複製、node探索・選択変更、layer・mask生成、flattenの実行結果は別の効果契約で扱う。
-- `g209-font-registry-storage-schema`の状態は`implementing`、作業treeは`/Users/masato/Documents/librepaint-g209-font-registry-storage-schema`、macOSの対象`KoFontFamilySchemaContractTest`と近傍`KoFFWWSConverterSchemaContractTest`に限る構築実行許可は`granted`、Git権限は`libs/flake/tests/KoFontFamilySchemaContractTest.cpp`だけの受渡しcommitである。正式不足報告の`libs/flake/text/KoFontRegistry.h`残存14 APIと`libs/flake/resources/KoFontStorage.h`残存10 APIを5枠`fontRegistryTypeLifetimeAndAccessSchemaRemainStable`、`fontRegistryFaceResolutionSignaturesRemainStable`、`fontRegistryRepresentationAndMetricsSignaturesRemainStable`、`fontStorageTypeLifetimeAndValiditySchemaRemainStable`、`fontStorageResourceAccessSignaturesRemainStable`へ4・5・5・5・5件で対応付ける。CMakeを変更せず、既存のflake・global・resources探索路、Qt Gui・Test・Xmlとheader-only Boost、書体関連interface、3 export定義による4工程・8入力を維持する。
+- `g209-font-registry-storage-schema`の状態は`integrated`、macOSの対象`KoFontFamilySchemaContractTest`と近傍`KoFFWWSConverterSchemaContractTest`に限る構築実行許可は`granted`である。正式不足報告の`libs/flake/text/KoFontRegistry.h`残存14 APIと`libs/flake/resources/KoFontStorage.h`残存10 APIを、既存`libs/flake/tests/KoFontFamilySchemaContractTest.cpp`の5枠`fontRegistryTypeLifetimeAndAccessSchemaRemainStable`、`fontRegistryFaceResolutionSignaturesRemainStable`、`fontRegistryRepresentationAndMetricsSignaturesRemainStable`、`fontStorageTypeLifetimeAndValiditySchemaRemainStable`、`fontStorageResourceAccessSignaturesRemainStable`へ4・5・5・5・5件で対応付けた。受渡しcommit`4ae343ed56`を統合commit`9a50769891`として取り込み、担当側と中央で追加5枠を各20回、対象・近傍CTest、二回目計画と無作業再構築を実行した。CMake変更なしで4工程・8入力、Qt Gui・Test・Xml・Coreだけの動的接続、AUTOMOC `HEADERS=[]`、書体libraryと製品libraryへの接続および製品未解決記号なしを維持し、台帳は20,272件対応、9,566件未対応となった。cleanな専用作業tree、約293 MiBの構築木、branchを統合直後に削除し、889,436 KiBを回収した。書体照合、代替face解決、表現変換、測定、資源格納の実行結果は別の効果契約で扱う。
 - font担当の停止線は5工程・11入力である。CMake変更、新探索路・定義・link、書体libraryまたは製品libraryの新しい動的接続、製品shared・OBJECT・`kritatestsdk`、候補headerのAUTOMOC入力化、registry・storage・書体・資源関連の製品未解決記号、対象値または本文の実体化、許可path外変更が必要なら停止する。旧binaryで新5枠が未知であること、宣言段階の初期失敗、追加5枠の単発と各20回反復、対象・近傍CTest、AUTOMOC後の二回目計画、無作業再構築2回、動的接続・未解決記号・構文・書式、公開API検査、`verify-quick`を確認する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
 - 文書node担当の停止線は5工程・11入力である。G208と異なる探索路・定義・link、製品shared・OBJECT・`kritatestsdk`接続、候補headerのAUTOMOC入力化、文書・node・layer・mask関連の製品未解決記号、対象値または本文の実体化、許可path外変更が必要なら停止する。対象不存在と宣言段階の初期失敗、追加5枠の単発と各20回反復、対象・近傍CTest、AUTOMOC後の二回目計画、無作業再構築2回、動的接続・未解決記号・構文・書式、公開API検査、`verify-quick`を確認する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
 - 停止線は5工程・11入力である。CMake変更、新探索路・定義・link、製品shared・OBJECT・`kritatestsdk`接続、候補headerのAUTOMOC入力化、tile・manager・memento・lock・I/O関連の製品未解決記号、対象値またはinline本文の実体化、許可path外変更が必要なら停止する。旧binaryで新5枠が未知であること、追加5枠の単発と各20回反復、対象・近傍CTest、AUTOMOC後の二回目計画、無作業再構築2回、動的接続・未解決記号・構文・書式、公開API検査、`verify-quick`を確認する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
 
-### 第210便の先行監査担当票（第209便確定待ち）
+### 第209便の統合結果
 
-- 監査共通基点は`cb224ddbce`、暫定入力は`build/tdd-macos/public-api-missing-g207.json`である。第208便までの契約済み・選定済み責務と、第209便で選定済みのtile data manager、文書node graph・layer/mask生成、font registry・storageを除外し、変更、構成、構築、試験、Git操作、追加委任を行わない読み取り専用監査を先行する。正式な第209便完了報告で全識別子と閉包を再照合する。
+- `libs/image/tiles3/kis_tiled_data_manager.h`から既存`libs/image/tiles3/tests/KisTileSchemaContractTest.cpp`へ43 API・5枠、`libs/libkis/Document.h`から新規`libs/libkis/tests/DocumentNodeSchemaContractTest.cpp`へ28 API・5枠、`libs/flake/text/KoFontRegistry.h`と`libs/flake/resources/KoFontStorage.h`から既存`libs/flake/tests/KoFontFamilySchemaContractTest.cpp`へ24 API・5枠を追加した。公開headerと製品sourceを変更せず、3対象とも4工程・8入力と製品非接続を維持した。
+- 第209便全体で95 APIを15枠へ重複なく対応付け、20,272件対応、9,566件未対応となった。担当側と中央で対象・軽量近傍CTest、各追加枠の20回反復、AUTOMOC後の二回目計画、無作業再構築、動的接続・未解決記号・構文・書式、公開API検査に成功した。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 新しい`build/tdd-macos/public-api-missing-g210.json`は公開header 1,549、公開API 29,838、対応済み20,272、未対応9,566、2,535,450 bytes、SHA-256 `bee18842b948e7fa1a2b06eecc602b48d2da38e21d7c4a814827bda0b26c45cf`を記録する。旧`public-api-missing-g209.json`と3担当の作業tree・構築木・branchを削除し、合計2,660,812 KiBを回収した。主Ninja木5,703,528 KiBと共有compiler cache 983,044 KiBは次便へ保持する。
+
+### 第210便の先行監査担当票
+
+- 監査共通基点は`9a50769891`、正式入力は`build/tdd-macos/public-api-missing-g210.json`である。第209便までの契約済み・選定済み責務を除外し、先行監査の全識別子と閉包を正式報告で再照合した。監査中は変更、構成、構築、試験、Git操作、追加委任を行っていない。
 - `g210-image-contract-audit`の状態は`completed`で、image・paintop・pigment領域から変形maskのnode表現・投影・cache・遅延更新・LoD接続37 APIを選定した。既存mask契約は211行・10枠で追記上限を超えるため、同じcompile interfaceを持つ新規専用targetで4工程・8入力を予測する。
 - `g210-ui-contract-audit`の状態は`completed`で、widgetutils・widgets・libkis領域から文書識別状態・保存・close・処理同期20 APIを選定した。G208/G209の文書契約と責務を分けた新規`DocumentLifecycleSchemaContractTest`とし、4工程・8入力を予測する。
-- `g210-transform-mask-closure-review`の状態は`completed`で、暫定入力`build/tdd-macos/public-api-missing-g209.json`に対して`libs/image/kis_transform_mask.h`の37 APIと5枠8・8・8・8・5、既存mask契約との非重複を独立確認した。新規`KisTransformMaskSchemaContractTest`は既存mask契約と同じcompile interfaceで4工程・8入力、AUTOMOC `HEADERS=[]`、製品非接続を予測する。
-- `g210-document-lifecycle-closure-review`の状態は`completed`で、同じ暫定入力に対して`libs/libkis/Document.h`の識別状態・保存・close・処理同期20 APIと5枠6・4・3・3・4、G208/G209との積集合0件を独立確認した。新規`DocumentLifecycleSchemaContractTest`はDocument専用compile interfaceによる4工程・8入力、Qt Core・Testだけの動的接続を予測する。
+- `g210-transform-mask-closure-review`の状態は`completed`で、正式入力`build/tdd-macos/public-api-missing-g210.json`に対して`libs/image/kis_transform_mask.h`の37 APIと5枠8・8・8・8・5、既存mask契約との非重複を独立確認した。新規`KisTransformMaskSchemaContractTest`は既存mask契約と同じcompile interfaceで4工程・8入力、AUTOMOC `HEADERS=[]`、製品非接続を予測する。
+- `g210-document-lifecycle-closure-review`の状態は`completed`で、同じ正式入力に対して`libs/libkis/Document.h`の識別状態・保存・close・処理同期20 APIと5枠6・4・3・3・4、G208/G209との積集合0件を独立確認した。新規`DocumentLifecycleSchemaContractTest`はDocument専用compile interfaceによる4工程・8入力、Qt Core・Testだけの動的接続を予測する。
 
-### 第210便の先行監査結果（第209便確定待ち）
+### 第210便の先行監査結果
 
 - image領域は`libs/image/kis_transform_mask.h`の残存全37 APIを、型・寿命・visitor 8、装置・幾何8、parameter・cache 8、位置・遅延更新8、LoD・試験・通知5として新規`libs/image/tests/KisTransformMaskSchemaContractTest.cpp`の5枠へ固定する。既存`KisMaskSchemaContractTest`と同じQt Core・Gui・Test・Xml、header-only Boost、image・global・pigment・resources探索路、KF I18n・Imath interface、既存export定義による4工程・8入力を予測し、停止線を5工程・11入力とする。
 - libkis領域は`libs/libkis/Document.h`の残存APIから識別・metadata 6、処理・変更状態4、保存・export 3、close・autosave 3、処理同期4の合計20 APIを、新規`libs/libkis/tests/DocumentLifecycleSchemaContractTest.cpp`の5枠へ固定する。G208の幾何20 API、G209のnode 28 APIと重複せず、同じDocument専用compile interfaceによる4工程・8入力を予測し、停止線を5工程・11入力とする。
-- 2候補は合計57 API・10枠で、開始headerは一部共有するが試験sourceと所有CMakeの新target固有節は異なる。正式な第210便不足報告で全識別子を再照合し、候補headerのAUTOMOC入力化、製品shared・OBJECT、`kritatestsdk`、計画外の探索路・定義・動的接続または未解決製品記号、対象型やinline本文の実体化が不要な場合だけ一担当ずつ実装する。
+- 正式入力で`libs/image/kis_transform_mask.h`の37 APIと`libs/libkis/Document.h`の選定20 APIがすべて残存し、重複がないことを再照合した。2候補は合計57 API・10枠で、開始headerは相互に異なり、試験sourceと所有CMakeの新target固有節も異なる。候補headerのAUTOMOC入力化、製品shared・OBJECT、`kritatestsdk`、計画外の探索路・定義・動的接続または未解決製品記号、対象型やinline本文の実体化が不要な場合だけ一担当ずつ実装する。
 
 ### 第211便の先行監査担当票（第210便確定待ち）
 
@@ -268,14 +274,14 @@
 - `g211-flake-contract-audit`の状態は`completed`で、flake・SVG・vector領域からSVG文字列の範囲変形・挿入・属性統合・削除をundo可能にする5 command型41 APIを選定した。既存`SvgTextCursorPropertySchemaContractTest`へCMake変更なしで追加し、4工程・8入力を予測する。
 - `g211-ui-contract-audit`の状態は`completed`で、widgetutils・widgets・libkis領域からスクリプト向けアプリケーション根façade 39 APIを選定した。既存view契約は269行・20枠のため新規`KritaSchemaContractTest`へ分け、Node系閉包にflake・ui/canvas探索路を加えた4工程・8入力を予測する。
 - `g211-paintop-preset-closure-review`の状態は`completed`で、`libs/image/brushengine/kis_paintop_preset.h`の43 APIが5枠へ重複なく対応し、設定・直列化・資源snapshot・cacheと更新抑止RAII型の一責務に収まることを確認した。直接includeされる`KisPaintOpPresetUpdateProxy.h`のため`libs/image/brushengine`探索路が必須であり、Qt Xml・Widgets、追加export定義は不要である。補正後も4工程・8入力、AUTOMOC `HEADERS=[]`、製品非接続を予測する。
-- `g211-svg-text-command-closure-review`の状態は`reviewing`で、暫定入力`build/tdd-macos/public-api-missing-g209.json`に対して5つのSVG文字列範囲command型41 API、5枠14・8・7・7・5、既存`SvgTextCursorPropertySchemaContractTest`へCMake変更なしで追加する4工程・8入力の閉包を読み取り専用で再照合する。
-- `g211-krita-facade-closure-review`の状態は`reviewing`で、同じ暫定入力に対して`libs/libkis/Krita.h`の39 API、5枠7・10・7・8・7、新規`KritaSchemaContractTest`をNode系compile interfaceへ閉じる4工程・8入力の閉包を読み取り専用で再照合する。
+- `g211-svg-text-command-closure-review`の状態は`completed`で、暫定入力`build/tdd-macos/public-api-missing-g209.json`に対して5つのSVG文字列範囲command型41 API、5枠14・8・7・7・5、既存契約との非重複を独立確認した。`SvgTextCursorPropertySchemaContractTest`は追加後も約250〜280行・10枠で、CMake変更なしの4工程・8入力、AUTOMOC `HEADERS=[]`、製品非接続を維持できる。
+- `g211-krita-facade-closure-review`の状態は`completed`で、同じ暫定入力に対して`libs/libkis/Krita.h`の39 API、5枠7・10・7・8・7を独立確認した。新規`KritaSchemaContractTest`はNode系compile interfaceにflake・ui/canvas・application生成探索路と、`Window.h`が要求するQt Widgetsのinterface探索路を加えれば、Qt Core・Testだけの動的接続と4工程・8入力を予測できる。
 
 ### 第211便の先行監査結果（第210便確定待ち）
 
 - image領域は`libs/image/brushengine/kis_paintop_preset.h`の43 APIを、型・寿命・更新抑止9、識別・設定・直列化12、表示・更新5、masking・資源interface 7、資源snapshot・cache 10として新規`libs/image/tests/KisPaintOpPresetSchemaContractTest.cpp`の5枠へ固定する。image・image/brushengine・global・resources探索路、Qt Core・Gui・Test、header-only Boost、KF I18n interface、`kritaimage_EXPORTS`による4工程・8入力を予測し、Qt Xml・Widgetsと製品libraryを接続しない。
 - flake領域は`plugins/tools/svgtexttool/SvgTextChangeTransformsOnRange.h`の14 API、`SvgTextInsertCommand.h`の8 API、`SvgTextMergePropertiesRangeCommand.h`の7 API、`SvgTextRemoveCommand.h`の7 API、`SvgTextInsertRichCommand.h`の5 APIを、SVG文字列範囲のundo可能な変形・挿入・属性統合・削除41 APIとして既存`plugins/tools/svgtexttool/tests/SvgTextCursorPropertySchemaContractTest.cpp`の5枠へ固定する。CMake変更なしの4工程・8入力を予測する。
-- libkis領域は`libs/libkis/Krita.h`の39 APIを、型・寿命・アプリケーション状態7、文書・window 10、action・extension・通知7、色・filter・資源catalog 8、設定・地域化・変換7として新規`libs/libkis/tests/KritaSchemaContractTest.cpp`の5枠へ固定する。Node系compile interfaceにflake・ui/canvasと`kritaui_export.h`の生成探索路を加え、Qt Core・Testだけを直接接続する4工程・8入力を予測する。製品`kritalibkis`は2,018工程・4,034入力であるため構築対象にしない。
+- libkis領域は`libs/libkis/Krita.h`の39 APIを、型・寿命・アプリケーション状態7、文書・window 10、action・extension・通知7、色・filter・資源catalog 8、設定・地域化・変換7として新規`libs/libkis/tests/KritaSchemaContractTest.cpp`の5枠へ固定する。Node系compile interfaceにflake・ui/canvasと`kritaui_export.h`の生成探索路、Qt Widgetsのinterface探索路を加え、Qt Core・Testだけを直接接続する4工程・8入力を予測する。製品`kritalibkis`は2,018工程・4,034入力であるため構築対象にしない。
 - 3候補とも停止線を5工程・11入力とし、候補headerまたは推移headerのAUTOMOC入力化、製品shared・OBJECT、`kritatestsdk`、計画外の動的接続または未解決製品記号、対象型やinline本文の実体化が必要なら停止する。正式な第211便不足報告で全123 APIの残存と最小閉包を再照合する。
 
 ### 第212便の先行監査担当票（第211便確定待ち）
