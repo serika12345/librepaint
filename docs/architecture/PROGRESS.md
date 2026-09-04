@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 02:50 JST
+- 更新日時: 2026-09-05 02:53 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -448,6 +448,12 @@
 - UI領域は`libs/ui/tool/KisAsyncColorSamplerHelper.h`の20 APIを、型・寿命・状態4、起動・操作6、preview・描画2、全体色・輪郭通知5、色通知3として新規`libs/ui/tests/KisAsyncColorSamplerHelperSchemaContractTest.cpp`の5枠へ固定する。Qt Core・Testを直接接続し、application・image・global探索路と対応するexport定義による4工程・8入力、停止線5工程・11入力を予測する。
 - pigment領域は`libs/pigment/KoColorSpaceRegistry.h`の63 APIを、型・寿命・方針11、factory・profile更新10、profile・catalog照会13、色空間解決・変換11、既定色空間18として新規`libs/pigment/tests/KoColorSpaceRegistrySchemaContractTest.cpp`の5枠へ固定する。pigment・global探索路、KF I18n interface、Qt Core・Gui・Testとheader-only Boost、2 export定義による4工程・8入力、停止線5工程・11入力を予測する。
 - 3候補は合計105 API・15枠である。型特性、厳密な関数pointer、未評価式だけで対象型、Qt値、図形、採取helper、色空間registryを実体化せず観測する。候補headerのAUTOMOC入力化、製品shared・OBJECT・`kritatestsdk`、計画外の探索路・定義・動的接続、製品未解決記号、本文のODR-useが必要なら停止する。図形補助状態、非同期色採取、色空間registryの順に一担当ずつ実装する。
+
+### 第215便の担当計画
+
+- 実装共通基点は`138d41bdc8`である。一度に一つだけ作る専用worktree-local `build/tdd-macos`と主作業treeの共有compiler cacheを使い、担当側の`./scripts/run-shared-test-env`で読み込み済み環境を利用する。図形補助状態、非同期色採取、色空間registryの順に限定検証・統合・削除し、調整担当だけが文書、公開API台帳、共通不足報告を変更する。各担当のGit権限は許可pathだけの1受渡しcommitで、追加委任は禁止する。
+- `g215-shape-state-schema`の状態は`implementing`、担当は`/root/g178_shape_hierarchy_schema`、基点は`138d41bdc8`、作業treeは`/Users/masato/Documents/librepaint-g215-shape-state-schema`である。開始`libs/flake/KoShape.h`の残存全16 APIと`KoShapeLayer.h`の残存全6 APIを、既存`libs/flake/tests/KoShapeStateSchemaContractTest.cpp`の5枠`shapeAttachmentOwnershipSignaturesRemainStable`、`shapeCloneAndSettingsSignaturesRemainStable`、`shapeDelegationAndSnapSignaturesRemainStable`、`shapeHandlePainterHelperSignaturesRemainStable`、`shapeLayerTypeConstructionAndPaintingSchemaRemainStable`へ8・3・3・2・6件で対応付ける。許可pathは既存試験sourceだけで、CMake、公開header、製品sourceを変更しない。既存のQt Core・Gui・Test・Xml、flake・global探索路、`kritaflake_EXPORTS`による4工程・8入力を維持する。
+- 図形補助状態担当は、5工程・11入力超過、探索路・定義・linkの変更、製品shared・OBJECT・`kritatestsdk`接続、候補headerのAUTOMOC入力化、図形・layer関連の製品未解決記号、対象値・Qt値・製品本文の実体化・実行、許可path外変更が必要なら停止する。宣言段階の初期失敗、追加5枠の単発と各20回反復、対象と軽量近傍`KoShapeEnumContractTest`、AUTOMOC後の二回目計画、無作業再構築2回、動的接続・未解決記号・構文・書式、公開API検査、`verify-quick`を確認する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
 
 ### 第216便の先行監査担当票（第215便確定待ち）
 
