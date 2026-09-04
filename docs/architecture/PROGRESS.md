@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-04 12:03 JST
+- 更新日時: 2026-09-04 12:07 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -26,6 +26,13 @@
 - widgets領域は`libs/widgets/KoFillConfigWidget.h`の残存全15 APIと`KoMarkerSelector.h`の残存全7 APIを、図形の塗りとmarkerを設定する外観制御責務として採用し、既存`libs/widgets/tests/KoStrokeConfigWidgetSchemaContractTest.cpp`の5枠へ追加する。既存sourceは70行・5枠であり、追加後も約160行・10枠に収まる。対象固有に`${CMAKE_SOURCE_DIR}/libs/flake/svg`のsource探索路1本を加える以外は、Qt Core・Testの直接link、Qt Gui・Widgets interface、`kritaflake_EXPORTS`と`kritawidgets_EXPORTS`による4工程・8入力を維持し、停止線を5工程・11入力とする。対象・近傍`KisGradientColorEditorSchemaContractTest`はAUTOMOC後のgraphにも製品辺がない。fill widget、marker selector、canvas、図形・stroke・marker、mesh位置、Qt値を実体化せず、選択追跡、図形生成、活性化、mesh操作、marker更新、描画、通知本文を実行しない。
   libkis Nodeはheader includeだけで大域文字列を実体化し、Krita façadeは文書・Window・資源・大域状態、資源server群はsingleton・複数資源template、単位入力群は異なる世代と所有、gradient editor群は生成UI headerへ閉包が広がるため棄却した。
 - 中央の`public-api-missing-g199.json`で色変換system 22件、SVG文字図形本体71件、図形外観制御22件の全識別子を照合した。3責務の開始header、試験source、所有CMake、生成物は相互に異なり、合計115 APIを15枠へ進める。許可path外変更、指定外の動的link・探索root・compile定義、候補headerのAUTOMOC入力化、二回目計画の製品辺、製品shared・OBJECT・`kritatestsdk`接続、指定外実体化・本文実行、各停止線超過が不要な場合だけ実装へ進める。
+
+### 第199便の担当計画
+
+- 実装共通基点は`387daa60fd`である。3担当のGit権限は許可pathだけの1受渡しcommit、追加委任は禁止する。対象platformはmacOSで、一度に一つだけ作る専用worktree-local `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。Nix再評価を行わず、担当側の`./scripts/run-shared-test-env`で読み込み済み開発環境を共有する。色変換system、SVG文字図形、図形外観制御の順に一担当ずつ実装・限定検証・統合・削除する。調整担当だけがarchitecture文書、公開API台帳、共通不足報告を変更する。各対象と近傍は初回構築後の二回目計画と無作業再構築でも製品辺がないことを確認する。製品targetを引数にするplan/build、全体build、全体`verify`、Linux検証は禁止する。
+- `g199-color-conversion-system-schema`の状態は`implementing`、構築実行許可は`granted`で、作業tree`/Users/masato/Documents/librepaint-g199-color-conversion-system-schema`を所有する。開始`libs/pigment/KoColorConversionSystem.h`の残存全22 APIから既存`libs/pigment/tests/KoColorConversionTransformationAbstractFactoryContractTest.cpp`の5枠`colorConversionSystemTypeAndLifetimeSchemaRemainStable`、`colorConversionRegistryInterfaceSchemaRemainStable`、`colorConversionGraphMutationSignaturesRemainStable`、`colorConversionCreationSignaturesRemainStable`、`colorConversionPathQuerySignaturesRemainStable`へ対応付ける。許可pathは既存試験sourceだけで、CMake、探索路、link、compile定義、公開header、製品sourceを変更しない。関連型を実体化せず、graph変更、経路探索、DOT生成、変換生成、registry照会、構築・破棄本文を実行しない。対象4工程・8入力、停止5工程・11入力、近傍`KoColorProfileSchemaContractTest`とし、同じ限定検証を行う。
+- `g199-svg-text-shape-schema`の状態は`waiting`、構築実行許可は`withheld`で、色変換system担当の統合・削除後に作業tree`/Users/masato/Documents/librepaint-g199-svg-text-shape-schema`を作る。開始`libs/flake/text/KoSvgTextShape.h`の本体残存全71 APIから新規`libs/flake/tests/KoSvgTextShapeSchemaContractTest.cpp`の5枠`svgTextShapeTypeLifetimeGeometryAndRenderingSchemaRemainStable`、`svgTextShapeContourPathAndLayoutSignaturesRemainStable`、`svgTextShapeContentEditingAndTransformSignaturesRemainStable`、`svgTextShapeAppearanceStateAndNotificationSignaturesRemainStable`、`svgTextShapePersistenceMementoAndDiagnosticSignaturesRemainStable`へ対応付ける。許可pathは新規試験sourceと`libs/flake/tests/CMakeLists.txt`の新target固有節だけである。Qt Gui・Test・Xml、header-only Boost、flake・global探索路と`kritaflake_EXPORTS`だけを使用し、候補headerをAUTOMOC入力へ加えない。関連型を実体化せず、構築・複製・描画、layout、輪郭所有、文字編集、通知、保存・復元本文を実行しない。対象4工程・8入力、停止5工程・11入力、近傍`KoSvgTextEnumContractTest`とし、同じ限定検証を行う。
+- `g199-shape-appearance-schema`の状態は`waiting`、構築実行許可は`withheld`で、SVG文字図形担当の統合・削除後に作業tree`/Users/masato/Documents/librepaint-g199-shape-appearance-schema`を作る。開始`libs/widgets/KoFillConfigWidget.h`の残存全15 APIと`libs/widgets/KoMarkerSelector.h`の残存全7 APIから既存`libs/widgets/tests/KoStrokeConfigWidgetSchemaContractTest.cpp`の5枠`fillConfigTypeLifetimeAndOutputSchemaRemainStable`、`fillConfigActivationAndControlSchemaRemainStable`、`fillConfigNotificationSignaturesRemainStable`、`markerSelectorTypeLifetimeAndSelectionSchemaRemainStable`、`markerSelectorPresentationSchemaRemainStable`へ対応付ける。許可pathは既存試験sourceと`libs/widgets/tests/CMakeLists.txt`の当該target固有include節だけである。`${CMAKE_SOURCE_DIR}/libs/flake/svg`以外の探索路と新link・compile定義を加えず、関連型を実体化せず、選択追跡、図形生成、活性化、mesh操作、marker更新、描画、通知本文を実行しない。対象4工程・8入力、停止5工程・11入力、近傍`KisGradientColorEditorSchemaContractTest`とし、同じ限定検証を行う。
 
 ### 第198便の先行監査担当票
 
