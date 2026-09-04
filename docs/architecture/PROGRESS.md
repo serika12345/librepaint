@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-04 17:49 JST
+- 更新日時: 2026-09-04 17:53 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -137,6 +137,21 @@
 - `g206-image-contract-audit`の状態は`completed`で、image・paintop・pigment領域から更新・stroke実行調停42 APIを選定した。
 - `g206-node-closure-review`の状態は`completed`で、`libs/libkis/Node.h`の71 APIは5枠へ重複なく対応でき、既存`ColorizeMaskSchemaContractTest`と同じ4工程・8入力、Qt Core・Testだけの動的接続、製品非接続を維持できることを独立確認した。`PaintingResources.h`の内部結合`QString` 2値はheader取込み時に静的初期化されるため、Node・画像・描画stroke等の製品型を実体化しない境界とは区別して正式計画へ明記する。
 - `g206-update-scheduler-closure-review`の状態は`completed`で、`libs/image/kis_update_scheduler.h`の42 APIは5枠へ重複なく対応でき、新規対象をimage・global探索路、`kritaimage_EXPORTS`、Qt Core・Testとheader-only Boostだけによる4工程・8入力に限定できることを独立確認した。近傍からpainting/undoとKF I18n探索路をコピーせず、重い既存実行試験は動作契約として分離する。
+
+### 第206便の先行監査結果
+
+- 正式入力`build/tdd-macos/public-api-missing-g206.json`は公開header 1,549、公開API 29,838、対応済み19,887、未対応9,951、2,630,563 bytes、SHA-256 `07ec76b7127cf2f426d630175b99cd78e3a0de1cfb0351ba2f925fcea8d66e08`を記録する。先行監査の全識別子を再照合し、更新・stroke実行調停42件、tool interaction strategy 23件、スクリプト向け画像node 71件が重複なく残存することを確認した。旧`public-api-missing-g205.json`は削除済みである。
+- image領域は`libs/image/kis_update_scheduler.h`の残存全42 APIを、型・寿命・thread 6、queue制御12、投影・stroke 9、LoD設定6、callback・取消・試験用scheduler 9として新規`libs/image/tests/KisUpdateSchedulerSchemaContractTest.cpp`の5枠へ固定する。image・globalのsource/generated、`kritaimage_EXPORTS`、Qt Core・Test、header-only Boostだけによる4工程・8入力を予測し、停止線を5工程・11入力とする。painting/undoとKF I18n探索路を加えず、scheduler、listener、node、stroke、job、factory、callback、Qt値を実体化せず、本文を実行しない。
+- flake領域は`libs/flake/tools/KoInteractionStrategy.h`、`KoInteractionTool.h`、`KoShapeRubberSelectStrategy.h`の残存全23 APIを、strategy型・寿命3、操作6、tool型・寿命3、event・描画6、rubber選択5として既存`libs/flake/tests/KoToolBaseSchemaContractTest.cpp`の5枠へ固定する。CMakeを変更せず、既存flake/toolsとglobal探索路、`kritaflake_EXPORTS`、Qt Core・Testだけによる4工程・8入力を維持し、停止線を5工程・11入力とする。局所probeを宣言だけで用い、strategy、tool、command、canvas、event、painter、Qt値を実体化せず、本文を実行しない。
+- libkis領域は`libs/libkis/Node.h`の残存全71 APIを、型・寿命・階層13、色・animation・表示状態25、画素・幾何・変換14、識別・編集・永続化14、描画5として新規`libs/libkis/tests/NodeSchemaContractTest.cpp`の5枠へ固定する。既存`ColorizeMaskSchemaContractTest`と同じlibkis・image/filter・global・painting/undo・pigment/resources探索路、Qt Gui・Xml、KF I18n・Eigen・Imath interface、既存export定義、Qt Core・Testとheader-only Boostだけの直接linkによる4工程・8入力を予測し、停止線を5工程・11入力とする。Node、画像、描画stroke、関連製品型を実体化せず本文を実行しないが、`PaintingResources.h`が内部結合で定義する2個の`QString`は翻訳単位の静的初期化として発生する。製品未解決記号や追加の動的接続が現れれば停止する。
+- 3責務の開始headerと試験sourceは相互に異なる。imageとlibkisは新規sourceと各CMakeの新target固有節、flakeは既存sourceだけを変更するため、合計136 API・15枠を更新・stroke実行調停、tool interaction strategy、スクリプト向け画像nodeの順に一担当ずつ実装する。製品target、全体build・`verify`、Linux、Nix再評価を行わず、各対象と軽量近傍、追加枠の反復、AUTOMOC後の二回目計画、無作業再構築、公開API検査、`verify-quick`を確認する。
+
+### 第206便の担当計画
+
+- 実装共通基点は`779b4e75ab`である。一度に一つだけ作る専用worktree-local `build/tdd-macos`と主作業treeの共有compiler cacheを使い、`./scripts/run-shared-test-env`で読み込み済み環境を利用する。各担当のGit権限は許可pathだけの受渡しcommit、追加委任は禁止する。更新scheduler、tool interaction strategy、Nodeの順に限定検証・統合・削除し、調整担当だけが文書、公開API台帳、共通不足報告を変更する。
+- `g206-update-scheduler-schema`の状態は`planned`、構築実行許可は`withheld`である。正式不足報告の`libs/image/kis_update_scheduler.h`残存全42 APIを、新規`libs/image/tests/KisUpdateSchedulerSchemaContractTest.cpp`の5枠`updateSchedulerTypeLifetimeAndThreadSchemaRemainStable`、`updateSchedulerQueueControlSignaturesRemainStable`、`updateSchedulerProjectionAndStrokeSignaturesRemainStable`、`updateSchedulerLodConfigurationSignaturesRemainStable`、`updateSchedulerCallbackCancellationAndTestableSchemaRemainStable`へ6・12・9・6・9件で対応付ける。許可pathは新規試験sourceと`libs/image/tests/CMakeLists.txt`の新target固有節だけで、image・global source/generatedと`kritaimage_EXPORTS`だけを追加でき、直接linkはQt Core・Testとheader-only Boostに限定する。対象`KisUpdateSchedulerSchemaContractTest`、正式CTest`libs-image-KisUpdateSchedulerSchemaContractTest`、近傍`KisProcessingApplicatorSchemaContractTest`である。4工程・8入力を予測し、5工程・11入力超過、指定外探索路・link・定義、AUTOMOC入力化、製品接続、実体化・本文実行が必要なら停止する。
+- `g206-interaction-strategy-schema`の状態は`planned`、構築実行許可は`withheld`である。正式不足報告の3 header残存全23 APIを、既存`libs/flake/tests/KoToolBaseSchemaContractTest.cpp`の5枠`interactionStrategyTypeAndLifetimeSchemaRemainStable`、`interactionStrategyOperationSignaturesRemainStable`、`interactionToolTypeAndLifetimeSchemaRemainStable`、`interactionToolEventAndRenderingSignaturesRemainStable`、`rubberSelectStrategySchemaRemainStable`へ3・6・3・6・5件で対応付ける。許可pathは既存試験sourceだけでCMakeを変更しない。対象`KoToolBaseSchemaContractTest`、正式CTest`libs-flake-KoToolBaseSchemaContractTest`、近傍`KoParameterShapeSchemaContractTest`である。4工程・8入力を維持し、5工程・11入力超過、探索路・link・定義追加、AUTOMOC入力化、製品接続、probe実体化・本文実行が必要なら停止する。
+- `g206-node-schema`の状態は`planned`、構築実行許可は`withheld`である。正式不足報告の`libs/libkis/Node.h`残存全71 APIを、新規`libs/libkis/tests/NodeSchemaContractTest.cpp`の5枠`nodeTypeLifetimeAndHierarchySchemaRemainStable`、`nodeColorAnimationAndPresentationStateSignaturesRemainStable`、`nodePixelGeometryAndTransformationSignaturesRemainStable`、`nodeIdentityEditingAndPersistenceSignaturesRemainStable`、`nodePaintingSignaturesRemainStable`へ13・25・14・14・5件で対応付ける。許可pathは新規試験sourceと`libs/libkis/tests/CMakeLists.txt`の新target固有節だけで、`ColorizeMaskSchemaContractTest`と同じcompile interfaceだけを使う。対象`NodeSchemaContractTest`、正式CTest`libs-libkis-NodeSchemaContractTest`、近傍`ColorizeMaskSchemaContractTest`である。4工程・8入力を予測し、5工程・11入力超過、指定外探索路・link・定義、Qt Gui・Widgets・Xml・KF・製品libraryの動的接続、AUTOMOC入力化、Node製品記号の未解決、header既存の2個の`QString`以外の実体化・本文実行が必要なら停止する。
 
 ### 第207便の先行監査担当票（第206便確定待ち）
 
