@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 8725
+    "expectedMissingApis": 8705
   },
   "contracts": [
     {
@@ -58633,6 +58633,71 @@
         "method:KisCurveWidget::curveChanged(const KisCubicCurve &)",
         "method:KisCurveWidget::modified(void)",
         "method:KisCurveWidget::pointSelectedChanged()"
+      ]
+    },
+    {
+      "target": "KisKraSaveXmlVisitorSchemaContractTest",
+      "source": "plugins/impex/libkra/tests/KisKraSaveXmlVisitorSchemaContractTest.cpp",
+      "test": "KisKraSaveXmlVisitorSchemaContractTest::saveXmlVisitorTypeConstructionAndSelectionSchemaRemainStable",
+      "behavior": "KRA XML保存visitorは型、構築引数、選択node設定の公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisSaveXmlVisitor",
+        "method:KisSaveXmlVisitor::KisSaveXmlVisitor(QDomDocument doc,const QDomElement & element,quint32 & count,const QString & url,bool root)",
+        "method:KisSaveXmlVisitor::setSelectedNodes(vKisNodeSP selectedNodes)"
+      ]
+    },
+    {
+      "target": "KisKraSaveXmlVisitorSchemaContractTest",
+      "source": "plugins/impex/libkra/tests/KisKraSaveXmlVisitorSchemaContractTest.cpp",
+      "test": "KisKraSaveXmlVisitorSchemaContractTest::saveXmlVisitorNodeAndLayerVisitSignaturesRemainStable",
+      "behavior": "KRA XML保存visitorはnodeと各layer種別を訪問する公開overload署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSaveXmlVisitor::visit(KisAdjustmentLayer * layer)",
+        "method:KisSaveXmlVisitor::visit(KisCloneLayer * layer)",
+        "method:KisSaveXmlVisitor::visit(KisExternalLayer *)",
+        "method:KisSaveXmlVisitor::visit(KisGeneratorLayer * layer)",
+        "method:KisSaveXmlVisitor::visit(KisGroupLayer * layer)",
+        "method:KisSaveXmlVisitor::visit(KisNode *)",
+        "method:KisSaveXmlVisitor::visit(KisPaintLayer * layer)"
+      ]
+    },
+    {
+      "target": "KisKraSaveXmlVisitorSchemaContractTest",
+      "source": "plugins/impex/libkra/tests/KisKraSaveXmlVisitorSchemaContractTest.cpp",
+      "test": "KisKraSaveXmlVisitorSchemaContractTest::saveXmlVisitorMaskVisitSignaturesRemainStable",
+      "behavior": "KRA XML保存visitorは各mask種別を訪問する公開overload署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSaveXmlVisitor::visit(KisColorizeMask * mask)",
+        "method:KisSaveXmlVisitor::visit(KisFilterMask * mask)",
+        "method:KisSaveXmlVisitor::visit(KisSelectionMask * mask)",
+        "method:KisSaveXmlVisitor::visit(KisTransformMask * mask)",
+        "method:KisSaveXmlVisitor::visit(KisTransparencyMask * mask)"
+      ]
+    },
+    {
+      "target": "KisKraSaveXmlVisitorSchemaContractTest",
+      "source": "plugins/impex/libkra/tests/KisKraSaveXmlVisitorSchemaContractTest.cpp",
+      "test": "KisKraSaveXmlVisitorSchemaContractTest::saveXmlVisitorFileNameAndErrorSignaturesRemainStable",
+      "behavior": "KRA XML保存visitorはnode・keyframeの保存名とエラー一覧を取得する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSaveXmlVisitor::errorMessages() const",
+        "method:KisSaveXmlVisitor::keyframeFileNames()",
+        "method:KisSaveXmlVisitor::nodeFileNames()"
+      ]
+    },
+    {
+      "target": "KisKraSaveXmlVisitorSchemaContractTest",
+      "source": "plugins/impex/libkra/tests/KisKraSaveXmlVisitorSchemaContractTest.cpp",
+      "test": "KisKraSaveXmlVisitorSchemaContractTest::saveXmlVisitorPaintLayerAttributeSignaturesRemainStable",
+      "behavior": "KRA XML保存visitorはpaint layer属性をXMLへ保存し、XMLから復元する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSaveXmlVisitor::loadPaintLayerAttributes(const QDomElement & el,KisPaintLayer * layer,bool loadLayerOffset)",
+        "method:KisSaveXmlVisitor::savePaintLayerAttributes(KisPaintLayer * layer,QDomDocument & doc,bool saveLayerOffset)"
       ]
     }
   ]
