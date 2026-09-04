@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 9037
+    "expectedMissingApis": 9017
   },
   "contracts": [
     {
@@ -57905,6 +57905,71 @@
       "apis": [
         "method:KisGeneratorLayer::forceUpdateTimedNode()",
         "method:KisGeneratorLayer::hasPendingTimedUpdates() const"
+      ]
+    },
+    {
+      "target": "KisAnimationFrameCacheSchemaContractTest",
+      "source": "libs/ui/tests/KisAnimationFrameCacheSchemaContractTest.cpp",
+      "test": "KisAnimationFrameCacheSchemaContractTest::animationFrameCacheTypeLifetimeAndStatusSchemaRemainStable",
+      "behavior": "animation frame cacheは共有texture型、公開cache型と状態値、textureからの構築、および仮想寿命の公開契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisOpenGLImageTexturesSP",
+        "class:KisAnimationFrameCache",
+        "enum:KisAnimationFrameCache::CacheStatus",
+        "enumerator:KisAnimationFrameCache::CacheStatus::Cached",
+        "enumerator:KisAnimationFrameCache::CacheStatus::Uncached",
+        "method:KisAnimationFrameCache::KisAnimationFrameCache(KisOpenGLImageTexturesSP textures)",
+        "method:KisAnimationFrameCache::~KisAnimationFrameCache()"
+      ]
+    },
+    {
+      "target": "KisAnimationFrameCacheSchemaContractTest",
+      "source": "libs/ui/tests/KisAnimationFrameCacheSchemaContractTest.cpp",
+      "test": "KisAnimationFrameCacheSchemaContractTest::animationFrameCacheLookupSignaturesRemainStable",
+      "behavior": "animation frame cacheはtextureまたは画像から対応cacheを検索し、現存するcache群を照会する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAnimationFrameCache::cacheForImage(KisImageWSP image)",
+        "method:KisAnimationFrameCache::caches()",
+        "method:KisAnimationFrameCache::getFrameCache(KisOpenGLImageTexturesSP textures)"
+      ]
+    },
+    {
+      "target": "KisAnimationFrameCacheSchemaContractTest",
+      "source": "libs/ui/tests/KisAnimationFrameCacheSchemaContractTest.cpp",
+      "test": "KisAnimationFrameCacheSchemaContractTest::animationFrameCacheUploadAndStatusSignaturesRemainStable",
+      "behavior": "animation frame cacheは時刻別frameの取込み要否・cache状態・同一frame統合を判定し、指定時刻を取込む公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAnimationFrameCache::frameStatus(int time) const",
+        "method:KisAnimationFrameCache::shouldUploadNewFrame(int newTime,int oldTime) const",
+        "method:KisAnimationFrameCache::tryGlueSameFrames(const KisTimeSpan & range)",
+        "method:KisAnimationFrameCache::uploadFrame(int time)"
+      ]
+    },
+    {
+      "target": "KisAnimationFrameCacheSchemaContractTest",
+      "source": "libs/ui/tests/KisAnimationFrameCacheSchemaContractTest.cpp",
+      "test": "KisAnimationFrameCacheSchemaContractTest::animationFrameCacheFrameDataSignaturesRemainStable",
+      "behavior": "animation frame cacheは所有画像を照会し、要求領域のframe dataを取得して変換済みdataを登録する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAnimationFrameCache::addConvertedFrameData(KisOpenGLUpdateInfoSP info,int time)",
+        "method:KisAnimationFrameCache::fetchFrameData(int time,KisImageSP image,const KisRegion & requestedRegion) const",
+        "method:KisAnimationFrameCache::image()"
+      ]
+    },
+    {
+      "target": "KisAnimationFrameCacheSchemaContractTest",
+      "source": "libs/ui/tests/KisAnimationFrameCacheSchemaContractTest.cpp",
+      "test": "KisAnimationFrameCacheSchemaContractTest::animationFrameCacheRoiAndNotificationSignaturesRemainStable",
+      "behavior": "animation frame cacheは関心領域に対するframe品質と有効性を管理し、変更通知を公開する署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAnimationFrameCache::changed()",
+        "method:KisAnimationFrameCache::dropLowQualityFrames(const KisTimeSpan & range,const QRect & regionOfInterest,const QRect & minimalRect)",
+        "method:KisAnimationFrameCache::framesHaveValidRoi(const KisTimeSpan & range,const QRect & regionOfInterest)"
       ]
     }
   ]
