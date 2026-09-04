@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 10632
+    "expectedMissingApis": 10612
   },
   "contracts": [
     {
@@ -53835,6 +53835,71 @@
         "method:KoGamutMask::koShapes() const",
         "method:KoGamutMask::setMaskShapes(QList<KoShape * > shapes)",
         "method:KoGamutMask::setPreviewMaskShapes(QList<KoShape * > shapes)"
+      ]
+    },
+    {
+      "target": "KisTagSelectionWidgetSchemaContractTest",
+      "source": "libs/widgets/tests/KisTagSelectionWidgetSchemaContractTest.cpp",
+      "test": "KisTagSelectionWidgetSchemaContractTest::tagSelectionWidgetTypeAndLifetimeSchemaRemainStable",
+      "behavior": "タグ選択Widgetは既定の新規作成許可を持ち、任意の親と作成方針を指定して構築・仮想破棄できる公開型契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisTagSelectionWidget",
+        "method:KisTagSelectionWidget::KisTagSelectionWidget(QWidget * parent=0,bool createNew=true)",
+        "method:KisTagSelectionWidget::~KisTagSelectionWidget()"
+      ]
+    },
+    {
+      "target": "KisTagSelectionWidgetSchemaContractTest",
+      "source": "libs/widgets/tests/KisTagSelectionWidgetSchemaContractTest.cpp",
+      "test": "KisTagSelectionWidgetSchemaContractTest::tagSelectionWidgetListAndNotificationSignaturesRemainStable",
+      "behavior": "タグ選択Widgetは編集可否と選択・非選択・部分選択一覧を受け取り、タグの選択追加・新規作成・選択除去を通知する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTagSelectionWidget::setTagList(bool editable,QList<KoID> & selected,QList<KoID> & notSelected)",
+        "method:KisTagSelectionWidget::setTagList(bool editable,QList<KoID> & selected,QList<KoID> & notSelected,QList<KoID> & semiSelected)",
+        "method:KisTagSelectionWidget::sigAddTagToSelection(KoID tag)",
+        "method:KisTagSelectionWidget::sigCreateNewTag(QString tag)",
+        "method:KisTagSelectionWidget::sigRemoveTagFromSelection(KoID tag)"
+      ]
+    },
+    {
+      "target": "KisTagSelectionWidgetSchemaContractTest",
+      "source": "libs/widgets/tests/KisTagSelectionWidgetSchemaContractTest.cpp",
+      "test": "KisTagSelectionWidgetSchemaContractTest::addTagButtonTypeLifetimeAndAvailabilitySchemaRemainStable",
+      "behavior": "タグ追加buttonは任意の親と既定の新規作成許可で構築・仮想破棄でき、利用可能なタグ一覧と新規作成可否を設定する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:WdgAddTagButton",
+        "method:WdgAddTagButton::WdgAddTagButton(QWidget * parent,bool createNew=true)",
+        "method:WdgAddTagButton::setAddNewTagAvailable(bool addNewTagAvailable)",
+        "method:WdgAddTagButton::setAvailableTagsList(QList<KoID> & notSelected)",
+        "method:WdgAddTagButton::~WdgAddTagButton()"
+      ]
+    },
+    {
+      "target": "KisTagSelectionWidgetSchemaContractTest",
+      "source": "libs/widgets/tests/KisTagSelectionWidgetSchemaContractTest.cpp",
+      "test": "KisTagSelectionWidgetSchemaContractTest::addTagButtonActionAndNotificationSignaturesRemainStable",
+      "behavior": "タグ追加buttonは既存タグ追加と新規タグ作成を通知し、直前操作を完了する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:WdgAddTagButton::sigAddNewTag(KoID tag)",
+        "method:WdgAddTagButton::sigCreateNewTag(QString tagName)",
+        "method:WdgAddTagButton::slotFinishLastAction()"
+      ]
+    },
+    {
+      "target": "KisTagSelectionWidgetSchemaContractTest",
+      "source": "libs/widgets/tests/KisTagSelectionWidgetSchemaContractTest.cpp",
+      "test": "KisTagSelectionWidgetSchemaContractTest::closeableTagLabelTypeLifetimeAndNotificationSchemaRemainStable",
+      "behavior": "閉じられるタグlabelはタグ、編集可否、部分選択、任意の親を指定して構築・仮想破棄でき、タグの選択除去を通知する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:WdgCloseableLabel",
+        "method:WdgCloseableLabel::WdgCloseableLabel(KoID tag,bool editable,bool semiSelected=false,QWidget * parent=0)",
+        "method:WdgCloseableLabel::sigRemoveTagFromSelection(KoID tag)",
+        "method:WdgCloseableLabel::~WdgCloseableLabel()"
       ]
     }
   ]
