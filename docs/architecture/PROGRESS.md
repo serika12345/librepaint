@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-04 19:41 JST
+- 更新日時: 2026-09-04 19:47 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -207,8 +207,8 @@
 
 ### 第208便の担当計画
 
-- 実装共通基点は`c79dd562a2`である。一度に一つだけ作る専用worktree-local `build/tdd-macos`と主作業treeの共有compiler cacheを使い、`./scripts/run-shared-test-env`で読み込み済み環境を利用する。各担当のGit権限は許可pathだけの受渡しcommit、追加委任は禁止する。raster keyframe channel、path編集工具、文書canvas幾何・解像度の順に限定検証・統合・削除し、調整担当だけが文書、公開API台帳、共通不足報告を変更する。
-- `g208-raster-keyframe-schema`の状態は`planned`、macOSの対象・近傍に限る構築実行許可は`granted`である。許可pathは新規`libs/image/tests/KisRasterKeyframeChannelSchemaContractTest.cpp`と`libs/image/tests/CMakeLists.txt`の新target固有節だけで、公開headerと製品sourceは変更しない。正式不足報告の対象header残存全31 APIを5枠`rasterKeyframeTypeLifetimeAndContentSchemaRemainStable`、`rasterKeyframeChannelTypeLifetimeAndConstructionSchemaRemainStable`、`rasterKeyframeChannelCloneAndFrameMappingSignaturesRemainStable`、`rasterKeyframeChannelPersistenceAndTransferSignaturesRemainStable`、`rasterKeyframeChannelPresentationAndMutationSignaturesRemainStable`へ9・4・7・6・5件で対応付ける。対象`KisRasterKeyframeChannelSchemaContractTest`、正式CTest`libs-image-KisRasterKeyframeChannelSchemaContractTest`、近傍`KisKeyframeChannelSchemaContractTest`である。
+- 実装共通基点は`ae61e52152`である。一度に一つだけ作る専用worktree-local `build/tdd-macos`と主作業treeの共有compiler cacheを使い、`./scripts/run-shared-test-env`で読み込み済み環境を利用する。各担当のGit権限は許可pathだけの受渡しcommit、追加委任は禁止する。raster keyframe channel、path編集工具、文書canvas幾何・解像度の順に限定検証・統合・削除し、調整担当だけが文書、公開API台帳、共通不足報告を変更する。
+- `g208-raster-keyframe-schema`の状態は`implementing`、macOSの対象・近傍に限る構築実行許可は`granted`で、基点`ae61e52152`の作業tree`/Users/masato/Documents/librepaint-g208-raster-keyframe-schema`を所有する。許可pathは新規`libs/image/tests/KisRasterKeyframeChannelSchemaContractTest.cpp`と`libs/image/tests/CMakeLists.txt`の新target固有節だけで、公開headerと製品sourceは変更しない。正式不足報告の対象header残存全31 APIを5枠`rasterKeyframeTypeLifetimeAndContentSchemaRemainStable`、`rasterKeyframeChannelTypeLifetimeAndConstructionSchemaRemainStable`、`rasterKeyframeChannelCloneAndFrameMappingSignaturesRemainStable`、`rasterKeyframeChannelPersistenceAndTransferSignaturesRemainStable`、`rasterKeyframeChannelPresentationAndMutationSignaturesRemainStable`へ9・4・7・6・5件で対応付ける。対象`KisRasterKeyframeChannelSchemaContractTest`、正式CTest`libs-image-KisRasterKeyframeChannelSchemaContractTest`、近傍`KisKeyframeChannelSchemaContractTest`である。
 - `g208-path-tool-schema`の状態は`planned`、macOSの対象・近傍に限る構築実行許可は`granted`である。許可pathは既存`libs/flake/tests/KoSelectionSchemaContractTest.cpp`と`libs/flake/tests/CMakeLists.txt`の対象固有節だけで、公開headerと製品sourceは変更しない。正式不足報告の対象header残存全27 APIを5枠`pathToolTypeLifetimeAndConstructionSchemaRemainStable`、`pathToolActivationAndSelectionSignaturesRemainStable`、`pathToolInputSignaturesRemainStable`、`pathToolRenderingAndStrokeControlSignaturesRemainStable`、`pathToolShapeNotificationSignaturesRemainStable`へ3・6・7・8・3件で対応付ける。対象`KoSelectionSchemaContractTest`、正式CTest`libs-flake-KoSelectionSchemaContractTest`、近傍`KoPathShapeSchemaContractTest`である。
 - `g208-document-geometry-schema`の状態は`planned`、macOSの対象・近傍に限る構築実行許可は`granted`である。許可pathは新規`libs/libkis/tests/DocumentGeometrySchemaContractTest.cpp`と`libs/libkis/tests/CMakeLists.txt`の新target固有節だけで、公開headerと製品sourceは変更しない。上記20 APIを5枠`documentBoundsAndDimensionSignaturesRemainStable`、`documentOffsetSignaturesRemainStable`、`documentResolutionSignaturesRemainStable`、`documentCanvasExtentMutationSignaturesRemainStable`、`documentGeometricTransformSignaturesRemainStable`へ5・4・6・3・2件で対応付ける。対象`DocumentGeometrySchemaContractTest`、正式CTest`libs-libkis-DocumentGeometrySchemaContractTest`、近傍`NodeSchemaContractTest`である。
 - 3担当とも予測4工程・8入力、停止線5工程・11入力とする。指定外探索路・link・定義、計画外の動的接続、AUTOMOC header入力、製品未解決記号、対象型の実体化・本文実行、許可path外変更が必要なら停止する。各新枠の初期失敗、単発と20回反復、対象・近傍CTest、AUTOMOC後の二回目計画、無作業再構築2回、動的接続・未解決記号・構文・書式、公開API検査、`verify-quick`を確認する。
