@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-04 21:52 JST
+- 更新日時: 2026-09-04 21:55 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -348,7 +348,7 @@
 - `g214-image-contract-audit`の状態は`completed`で、色空間実装factoryと変換graphへ提供する変換factoryの識別・能力・profile生成・変換辺27 APIを選定した。既存の抽象変換契約と色空間契約はいずれも追記上限を超えるため、新規`KoColorSpaceFactorySchemaContractTest`へ分け、Qt Core・Testとheader-only Boostによる4工程・8入力を予測する。
 - `g214-svg-exchange-closure-review`の状態は`completed`で、4 headerのSVG図形交換22 API、5枠7・6・4・2・3、既存`SvgParserSchemaContractTest`への追記を独立確認した。`fetchShapesFromData`をstatic関数pointerで観測し、`setSvg`の値渡し最上位`const`は公開API検査で表記を補完する。CMake変更なしの4工程・8入力、AUTOMOC `HEADERS=[]`、製品非接続を維持できる。
 - `g214-histogram-painter-closure-review`の状態は`completed`で、`KisHistogramPainter.h`の20 API、5枠4・3・5・5・3を独立確認した。新規`KisHistogramPainterSchemaContractTest`はapplication生成探索路をUI生成探索路より優先し、不要な`${CMAKE_CURRENT_BINARY_DIR}/..`を除いたQt Core・Test直接接続とQt Gui interfaceによる4工程・8入力へ閉じられる。
-- `g214-color-factory-closure-review`の状態は`reviewing`で、2 headerの色空間・変換factory 27 API、5枠5・6・5・5・6、新規`KoColorSpaceFactorySchemaContractTest`の4工程・8入力閉包を独立再検査する。
+- `g214-color-factory-closure-review`の状態は`completed`で、2 headerの色空間・変換factory 27 API、5枠5・6・5・5・6を独立確認した。新規`KoColorSpaceFactorySchemaContractTest`はpigment・global探索路、KF I18n interface、Qt Core・Testとheader-only Boost、2 export定義による4工程・8入力へ閉じ、抽象factoryのconstructor probeとinline methodを実体化せず観測できる。
 
 ### 第214便の先行監査結果（第213便確定待ち）
 
@@ -356,6 +356,13 @@
 - UI領域は`libs/ui/widgets/KisHistogramPainter.h`の20 APIを、型・寿命・設定4、描画3、channel選択5、色・尺度5、peak・対数方針3として新規`libs/ui/tests/KisHistogramPainterSchemaContractTest.cpp`の5枠へ固定する。Qt Core・Testを直接接続し、Qt Guiのinterface探索路、application生成探索路、`kritaapplicationui_EXPORTS`だけを加えた4工程・8入力を予測する。
 - pigment領域は`libs/pigment/KoColorSpaceFactory.h`の18 APIと`KoColorConversionTransformationFactory.h`の9 APIを、色空間factoryの型・寿命・識別5、能力6、profile・生成5、変換辺・factory寿命5、変換終端6として新規`libs/pigment/tests/KoColorSpaceFactorySchemaContractTest.cpp`の5枠へ固定する。pigment・global探索路、KF I18n interface、Qt Core・Testとheader-only Boost、既存export定義による4工程・8入力を予測する。
 - 3候補は合計69 API・15枠で、開始header、試験source、所有CMake、生成物が相互に異なる。候補headerのAUTOMOC入力化、製品shared・OBJECT、`kritatestsdk`、計画外の探索路・定義・動的接続または未解決製品記号、対象型やinline本文の実体化が必要なら停止する。正式な第214便不足報告で全識別子と閉包を再照合する。
+
+### 第215便の先行監査担当票（第214便確定待ち）
+
+- 監査共通基点は`501e772e72`、暫定入力は`build/tdd-macos/public-api-missing-g211.json`である。第210便までの契約済み責務と、第211便から第214便で選定済みのbrush preset、SVG文字列command群、スクリプト向けアプリケーション根、標準曲線option、変形mask adapter、raster面・色channel、gradient painter、変形状態、canvas animation state、SVG図形交換、histogram描画、色空間factoryを除外する。監査中は主作業treeを読み取り専用で共有し、変更、構成、構築、試験、Git操作、追加委任を行わない。既存Ninja graphのquery・commands・inputsは読み取り専用で利用できる。
+- `g215-flake-contract-audit`の状態は`auditing`で、`libs/flake/`、`plugins/tools/svgtexttool/`、`plugins/tools/tool_transform2/`から、選定済み責務と重ならない一責務20〜80 APIを最大5枠へ固定できる候補を比較する。開始header、全API識別子、枠別配分、契約先、所有CMake、最寄りCTest、直接依存、工程・入力、観測方法、停止条件、棄却根拠を返す。既存契約への追記は追加後300行・20枠以下の場合だけ採用する。
+- `g215-ui-contract-audit`の状態は`auditing`で、`libs/widgetutils/`、`libs/widgets/`、`libs/libkis/`、`libs/ui/`から、選定済み責務と重ならない一責務20〜80 APIを最大5枠へ固定できる候補を比較する。UI値とQObjectを実体化せずに宣言契約へ閉じる候補を優先し、開始header、全API識別子、枠別配分、契約先、所有CMake、最寄りCTest、直接依存、工程・入力、観測方法、停止条件、棄却根拠を返す。
+- `g215-image-contract-audit`の状態は`planned`である。第211便の一担当が完了して実行枠が空いた後、`libs/image/`、paintop、pigment領域から同じ条件で候補を監査する。3領域の候補は開始header、試験source、所有CMake、生成物が相互に異なり、製品shared・OBJECT・`kritatestsdk`へ接続せず、targetが概ね4〜10工程へ閉じる組合せだけを第215便計画へ進める。
 
 ### 第201便の先行監査担当票
 
