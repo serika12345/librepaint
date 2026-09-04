@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-04 22:50 JST
+- 更新日時: 2026-09-04 23:04 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -305,8 +305,14 @@
 - brush preset担当の停止線は5工程・11入力である。Qt Xml・Widgetsまたは製品libraryの動的接続、計画外の探索路・定義・link、候補headerのAUTOMOC入力化、製品shared・OBJECT・`kritatestsdk`、preset・設定・資源・cache関連の製品未解決記号、対象値やinline本文の実体化・実行、許可path外変更が必要なら停止する。編集前後の計画・依存・空閉包、対象不存在と宣言段階の初期失敗、追加5枠の単発と各20回反復、対象・近傍CTest、AUTOMOC後の二回目計画、無作業再構築2回、動的接続・未解決記号・構文・書式、公開API検査、`verify-quick`を確認する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
 - `g211-svg-text-command-schema`の状態は`integrated`である。正式不足報告にある`SvgTextChangeTransformsOnRange.h`の14 API、`SvgTextInsertCommand.h`の8 API、`SvgTextMergePropertiesRangeCommand.h`の7 API、`SvgTextRemoveCommand.h`の7 API、`SvgTextInsertRichCommand.h`の5 APIを、既存`plugins/tools/svgtexttool/tests/SvgTextCursorPropertySchemaContractTest.cpp`の5枠`svgTextChangeTransformsOnRangeSchemaRemainStable`、`svgTextInsertCommandSchemaRemainStable`、`svgTextMergePropertiesRangeCommandSchemaRemainStable`、`svgTextRemoveCommandSchemaRemainStable`、`svgTextInsertRichCommandSchemaRemainStable`へ14・8・7・7・5件で対応付けた。`kundo2command.h`の探索不足を初期失敗で検出し、painting/undoのsource・generated探索路と`kritapaintingundo_EXPORTS`だけを対象固有CMake節へ補った。受渡しcommit`4382aacf0b`を統合commit`a5fba76d7e`として取り込み、担当側と中央のmacOSで各枠20回、対象・近傍CTest、補正後4工程・8入力、AUTOMOC後の安定計画、無作業再構築2回、接続・未解決記号・構文・書式、公開API・方針検査に成功した。台帳は20,413件対応、9,425件未対応となった。cleanな専用作業tree、297,624 KiBの構築木、branchを統合直後に削除し、887,356 KiBを回収した。
 - SVG文字列command担当の停止線は5工程・11入力である。painting/undoの2探索路と1 export定義以外のCMake変更、link追加、候補headerのAUTOMOC入力、製品shared・OBJECT、`kritatestsdk`、command・図形・undo関連の製品未解決記号、対象値やinline本文の実体化・実行、許可path外変更が必要なら停止する。編集前後の計画・直接依存・空閉包、探索路不足の初期失敗、追加5枠の単発と各20回反復、対象・近傍CTest、AUTOMOC後の二回目計画、無作業再構築2回、動的接続・未解決記号・構文・書式、公開API検査、`verify-quick`を確認する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
-- `g211-krita-facade-schema`の状態は`implementing`、基点は`167720ae3a`、作業treeは`/Users/masato/Documents/librepaint-g211-krita-facade-schema`とする。正式不足報告にある`libs/libkis/Krita.h`の残存全39 APIを、新規`libs/libkis/tests/KritaSchemaContractTest.cpp`の5枠`kritaTypeLifetimeAndApplicationStateSchemaRemainStable`、`kritaDocumentAndWindowSignaturesRemainStable`、`kritaActionExtensionAndNotificationSignaturesRemainStable`、`kritaColorFilterAndResourceCatalogSignaturesRemainStable`、`kritaSettingsLocalizationAndConversionSignaturesRemainStable`へ7・10・7・8・7件で対応付ける。許可pathは新規試験sourceと`libs/libkis/tests/CMakeLists.txt`の新target固有節だけである。所有targetは`KritaSchemaContractTest`、正式CTestは`libs-libkis-KritaSchemaContractTest`、近傍は`DocumentNodeSchemaContractTest`とする。macOSのこの2対象に限る構築実行許可を`granted`とし、Node系compile interfaceへflake・ui/canvas・application生成探索路とQt Widgets interfaceを加えた4工程・8入力を維持する。
+- `g211-krita-facade-schema`の状態は`integrated`である。開始`libs/libkis/Krita.h`の残存全39 APIを、新規`libs/libkis/tests/KritaSchemaContractTest.cpp`の5枠`kritaTypeLifetimeAndApplicationStateSchemaRemainStable`、`kritaDocumentAndWindowSignaturesRemainStable`、`kritaActionExtensionAndNotificationSignaturesRemainStable`、`kritaColorFilterAndResourceCatalogSignaturesRemainStable`、`kritaSettingsLocalizationAndConversionSignaturesRemainStable`へ7・10・7・8・7件で対応付けた。受渡しcommit`912afb0997`を同一patchの統合commit`194242c0eb`として取り込み、担当側と中央のmacOSで各枠20回、対象・近傍CTest、4工程・8入力、AUTOMOC後の無作業計画、無作業再構築2回、接続・未解決記号・構文・書式、公開API・方針検査に成功した。Qt Test・Coreだけを直接接続し、AUTOMOC `HEADERS=[]`と製品非接続を維持した。台帳は20,452件対応、9,386件未対応となった。cleanな専用作業tree、294,532 KiBの構築木、branchを統合直後に削除し、884,284 KiBを回収した。
 - Krita façade担当の停止線は5工程・11入力である。計画外の探索路・定義・link、候補headerのAUTOMOC入力、製品shared・OBJECT、`kritatestsdk`、Krita・Document・Window・action・resource関連の製品未解決記号、対象値やinline本文の実体化・実行、許可path外変更が必要なら停止する。編集前後の計画・直接依存・空閉包、対象不存在と宣言段階の初期失敗、追加5枠の単発と各20回反復、対象・近傍CTest、AUTOMOC後の二回目計画、無作業再構築2回、動的接続・未解決記号・構文・書式、公開API検査、`verify-quick`を確認する。製品`kritalibkis` target、全体build・`verify`、Linux、Nix再評価は実行しない。
+
+### 第211便の統合結果
+
+- `libs/image/brushengine/kis_paintop_preset.h`から新規`libs/image/tests/KisPaintOpPresetSchemaContractTest.cpp`へ43 API・5枠、`plugins/tools/svgtexttool/`の5 command headerから既存`plugins/tools/svgtexttool/tests/SvgTextCursorPropertySchemaContractTest.cpp`へ41 API・5枠、`libs/libkis/Krita.h`から新規`libs/libkis/tests/KritaSchemaContractTest.cpp`へ39 API・5枠を追加した。公開headerと製品sourceを変更せず、3対象とも4工程・8入力と製品非接続を維持した。
+- 第211便全体で123 APIを15枠へ重複なく対応付け、20,452件対応、9,386件未対応となった。担当側と中央のmacOSで対象・軽量近傍CTest、各追加枠の20回反復、AUTOMOC後の安定計画、無作業再構築2回、動的接続・未解決記号・構文・書式、公開API検査、`verify-quick`に成功した。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 3担当のcleanな専用作業tree、構築木、branchを統合直後に削除し、合計2,653,124 KiBを回収した。主Ninja木と共有compiler cacheは次便の対象限定構築へ再利用する。次の永続作業は第212便の正式不足報告を生成し、暫定3候補を再照合して実装順と閉包を確定することである。
 
 ### 第212便の先行監査担当票（第211便確定待ち）
 
@@ -397,8 +403,8 @@
 ### 第217便の先行監査担当票（第216便確定待ち）
 
 - 監査共通基点は`29cb9d06b9`、暫定入力は`build/tdd-macos/public-api-missing-g211.json`である。第210便までの契約済み責務と、第211便から第216便で選定済みのbrush preset、SVG文字列command群、Krita façade、標準曲線option、変形mask adapter、raster面・色channel、gradient painter、変形状態、canvas animation state、SVG図形交換、histogram描画、色空間factory、図形補助状態・root layer、非同期色採取、色空間registry、生成layer、animation frame cache、path-backed shape編集command群を除外する。監査中は主作業treeを読み取り専用で共有し、変更、構成、構築、試験、Git操作、追加委任を行わない。既存Ninja graphのquery・commands・inputsは読み取り専用で利用できる。
-- `g217-image-contract-audit`の状態は`auditing`で、`libs/image/`、paintop、`libs/pigment/`から、選定済み責務と重ならない一責務20〜80 APIを最大5枠へ固定できる候補を比較する。開始header、全API識別子、枠別配分、契約先、所有CMake、最寄りCTest、直接依存、工程・入力、観測方法、停止条件、棄却根拠を返す。
-- `g217-ui-contract-audit`の状態は`auditing`で、`libs/widgetutils/`、`libs/widgets/`、`libs/libkis/`、`libs/ui/`から同じ条件の候補を比較する。UI値とQObjectを実体化せず宣言契約へ閉じ、生成UI、誤ったexport header、製品I/O・描画実装への接続を避ける。
+- `g217-image-contract-audit`の状態は`completed`で、image・paintop・pigment領域から色付けmaskの型・装置・投影・key stroke・再生成・表示option 57 APIを選定した。既存mask契約から責務を分けた新規専用targetで4工程・8入力を予測する。公開署名にundo型があるため、正式報告後の独立閉包確認で探索路不要の予測を再検証する。
+- `g217-ui-contract-audit`の状態は`completed`で、widgetutils・widgets・libkis・UI領域からlayer一覧の色label・文字列絞り込みとpopup操作23 APIを選定した。新規専用targetへ分け、application生成版export header、image・global探索路、Qt Widgets interfaceによる4工程・8入力を予測する。
 - `g217-flake-contract-audit`の状態は`planned`である。実行枠が空いた後、`libs/flake/`、`plugins/tools/svgtexttool/`、`plugins/tools/tool_transform2/`から同じ条件の候補を監査する。3領域とも既存契約への追記は追加後300行・20枠以下の場合だけ採用し、製品shared・OBJECT・`kritatestsdk`へ接続せず、targetが概ね4〜10工程へ閉じる候補だけを進める。
 
 ### 第201便の先行監査担当票

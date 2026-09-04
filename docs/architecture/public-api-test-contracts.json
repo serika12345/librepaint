@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 9425
+    "expectedMissingApis": 9386
   },
   "contracts": [
     {
@@ -56887,6 +56887,90 @@
         "method:SvgTextInsertRichCommand::redo()",
         "method:SvgTextInsertRichCommand::undo()",
         "method:SvgTextInsertRichCommand::~SvgTextInsertRichCommand()"
+      ]
+    },
+    {
+      "target": "KritaSchemaContractTest",
+      "source": "libs/libkis/tests/KritaSchemaContractTest.cpp",
+      "test": "KritaSchemaContractTest::kritaTypeLifetimeAndApplicationStateSchemaRemainStable",
+      "behavior": "スクリプト向けアプリケーション根は公開型、構築・破棄、単一実体、版情報、および一括処理状態の公開契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:Krita",
+        "method:Krita::Krita(QObject * parent=0)",
+        "method:Krita::batchmode() const",
+        "method:Krita::instance()",
+        "method:Krita::setBatchmode(bool value)",
+        "method:Krita::version() const",
+        "method:Krita::~Krita()"
+      ]
+    },
+    {
+      "target": "KritaSchemaContractTest",
+      "source": "libs/libkis/tests/KritaSchemaContractTest.cpp",
+      "test": "KritaSchemaContractTest::kritaDocumentAndWindowSignaturesRemainStable",
+      "behavior": "スクリプト向けアプリケーション根は文書とwindowの列挙、選択、生成、読込み、およびview列挙の公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:Krita::activeDocument() const",
+        "method:Krita::activeWindow() const",
+        "method:Krita::createDocument(int width,int height,const QString & name,const QString & colorModel,const QString & colorDepth,const QString & profile,double resolution)",
+        "method:Krita::documents() const",
+        "method:Krita::openDocument(const QString & filename)",
+        "method:Krita::openWindow()",
+        "method:Krita::recentDocuments() const",
+        "method:Krita::setActiveDocument(Document * value)",
+        "method:Krita::views() const",
+        "method:Krita::windows() const"
+      ]
+    },
+    {
+      "target": "KritaSchemaContractTest",
+      "source": "libs/libkis/tests/KritaSchemaContractTest.cpp",
+      "test": "KritaSchemaContractTest::kritaActionExtensionAndNotificationSignaturesRemainStable",
+      "behavior": "スクリプト向けアプリケーション根はaction、dock、拡張、および通知窓口の登録・列挙・取得に関する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:Krita::action(const QString & name) const",
+        "method:Krita::actions() const",
+        "method:Krita::addDockWidgetFactory(DockWidgetFactoryBase * factory)",
+        "method:Krita::addExtension(Extension * extension)",
+        "method:Krita::dockers() const",
+        "method:Krita::extensions()",
+        "method:Krita::notifier() const"
+      ]
+    },
+    {
+      "target": "KritaSchemaContractTest",
+      "source": "libs/libkis/tests/KritaSchemaContractTest.cpp",
+      "test": "KritaSchemaContractTest::kritaColorFilterAndResourceCatalogSignaturesRemainStable",
+      "behavior": "スクリプト向けアプリケーション根は色モデル・深度・プロファイル、画像フィルタ、および資源目録の公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:Krita::addProfile(const QString & profilePath)",
+        "method:Krita::colorDepths(const QString & colorModel) const",
+        "method:Krita::colorModels() const",
+        "method:Krita::filter(const QString & name) const",
+        "method:Krita::filterStrategies() const",
+        "method:Krita::filters() const",
+        "method:Krita::profiles(const QString & colorModel,const QString & colorDepth) const",
+        "method:Krita::resources(QString & type) const"
+      ]
+    },
+    {
+      "target": "KritaSchemaContractTest",
+      "source": "libs/libkis/tests/KritaSchemaContractTest.cpp",
+      "test": "KritaSchemaContractTest::kritaSettingsLocalizationAndConversionSignaturesRemainStable",
+      "behavior": "スクリプト向けアプリケーション根は設定、アプリケーションデータ位置、地域化、icon、および値変換の公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:Krita::fromVariant(const QVariant & v)",
+        "method:Krita::getAppDataLocation()",
+        "method:Krita::icon(QString & iconName) const",
+        "method:Krita::krita_i18n(const QString & text)",
+        "method:Krita::krita_i18nc(const QString & context,const QString & text)",
+        "method:Krita::readSetting(const QString & group,const QString & name,const QString & defaultValue)",
+        "method:Krita::writeSetting(const QString & group,const QString & name,const QString & value)"
       ]
     }
   ]
