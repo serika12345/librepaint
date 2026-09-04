@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 10176
+    "expectedMissingApis": 10156
   },
   "contracts": [
     {
@@ -55011,6 +55011,71 @@
         "method:KisVisualColorSelector::slotGamutMaskChanged(KoGamutMaskSP mask)",
         "method:KisVisualColorSelector::slotGamutMaskPreviewUpdate()",
         "method:KisVisualColorSelector::slotGamutMaskUnset()"
+      ]
+    },
+    {
+      "target": "KisStrokeStrategyUndoCommandBasedSchemaContractTest",
+      "source": "libs/image/tests/KisStrokeStrategyUndoCommandBasedSchemaContractTest.cpp",
+      "test": "KisStrokeStrategyUndoCommandBasedSchemaContractTest::undoCommandStrategyTypeAndConstructionSchemaRemainStable",
+      "behavior": "undo command型stroke strategyは名称、undo方向、undo facade、任意の開始・終了commandから構築できる公開型と既定構築署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisStrokeStrategyUndoCommandBased",
+        "method:KisStrokeStrategyUndoCommandBased::KisStrokeStrategyUndoCommandBased(const KUndo2MagicString & name,bool undo,KisStrokeUndoFacade * undoFacade,KUndo2CommandSP initCommand=KUndo2CommandSP (0),KUndo2CommandSP finishCommand=KUndo2CommandSP (0))"
+      ]
+    },
+    {
+      "target": "KisStrokeStrategyUndoCommandBasedSchemaContractTest",
+      "source": "libs/image/tests/KisStrokeStrategyUndoCommandBasedSchemaContractTest.cpp",
+      "test": "KisStrokeStrategyUndoCommandBasedSchemaContractTest::undoCommandDataTypeAndOwnershipSchemaRemainStable",
+      "behavior": "undo command型stroke dataは仮想破棄され、実行commandとundo方向、履歴登録方針を公開値として保持する契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisStrokeStrategyUndoCommandBased::Data",
+        "member:KisStrokeStrategyUndoCommandBased::Data::command",
+        "member:KisStrokeStrategyUndoCommandBased::Data::shouldGoToHistory",
+        "member:KisStrokeStrategyUndoCommandBased::Data::undo",
+        "method:KisStrokeStrategyUndoCommandBased::Data::~Data()"
+      ]
+    },
+    {
+      "target": "KisStrokeStrategyUndoCommandBasedSchemaContractTest",
+      "source": "libs/image/tests/KisStrokeStrategyUndoCommandBasedSchemaContractTest.cpp",
+      "test": "KisStrokeStrategyUndoCommandBasedSchemaContractTest::undoCommandDataConstructionSignaturesRemainStable",
+      "behavior": "undo command型stroke dataは借用または共有commandから、既定のundo方向・逐次性・排他性・履歴登録方針で構築できる公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisStrokeStrategyUndoCommandBased::Data::Data(KUndo2Command * _command,bool _undo=false,Sequentiality _sequentiality=SEQUENTIAL,Exclusivity _exclusivity=NORMAL,bool _shouldGoToHistory=true)",
+        "method:KisStrokeStrategyUndoCommandBased::Data::Data(KUndo2CommandSP _command,bool _undo=false,Sequentiality _sequentiality=SEQUENTIAL,Exclusivity _exclusivity=NORMAL,bool _shouldGoToHistory=true)"
+      ]
+    },
+    {
+      "target": "KisStrokeStrategyUndoCommandBasedSchemaContractTest",
+      "source": "libs/image/tests/KisStrokeStrategyUndoCommandBasedSchemaContractTest.cpp",
+      "test": "KisStrokeStrategyUndoCommandBasedSchemaContractTest::undoCommandMutationInterfaceSchemaRemainStable",
+      "behavior": "変更可能command interfaceは仮想破棄され、借用する実行job interfaceの設定・照会署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisStrokeStrategyUndoCommandBased::MutatedCommandInterface::runnableJobsInterface() const",
+        "method:KisStrokeStrategyUndoCommandBased::MutatedCommandInterface::setRunnableJobsInterface(KisRunnableStrokeJobsInterface * interface)",
+        "method:KisStrokeStrategyUndoCommandBased::MutatedCommandInterface::~MutatedCommandInterface()",
+        "struct:KisStrokeStrategyUndoCommandBased::MutatedCommandInterface"
+      ]
+    },
+    {
+      "target": "KisStrokeStrategyUndoCommandBasedSchemaContractTest",
+      "source": "libs/image/tests/KisStrokeStrategyUndoCommandBasedSchemaContractTest.cpp",
+      "test": "KisStrokeStrategyUndoCommandBasedSchemaContractTest::undoCommandLifecycleAndConfigurationSignaturesRemainStable",
+      "behavior": "undo command型stroke strategyは開始・実行・終了・取消の寿命処理とcommand追加data、macro ID、undo・redo中の利用方針に関する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisStrokeStrategyUndoCommandBased::cancelStrokeCallback()",
+        "method:KisStrokeStrategyUndoCommandBased::doStrokeCallback(KisStrokeJobData * data)",
+        "method:KisStrokeStrategyUndoCommandBased::finishStrokeCallback()",
+        "method:KisStrokeStrategyUndoCommandBased::initStrokeCallback()",
+        "method:KisStrokeStrategyUndoCommandBased::setCommandExtraData(KUndo2CommandExtraData * data)",
+        "method:KisStrokeStrategyUndoCommandBased::setMacroId(int value)",
+        "method:KisStrokeStrategyUndoCommandBased::setUsedWhileUndoRedo(bool value)"
       ]
     }
   ]
