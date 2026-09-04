@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 9909
+    "expectedMissingApis": 9886
   },
   "contracts": [
     {
@@ -55728,6 +55728,74 @@
         "method:KisUpdateScheduler::tryCancelCurrentStrokeAsync()",
         "method:KisUpdateScheduler::tryUndoLastStrokeAsync()",
         "method:KisUpdateScheduler::wrapAroundModeSupported() const"
+      ]
+    },
+    {
+      "target": "KoToolBaseSchemaContractTest",
+      "source": "libs/flake/tests/KoToolBaseSchemaContractTest.cpp",
+      "test": "KoToolBaseSchemaContractTest::interactionStrategyTypeAndLifetimeSchemaRemainStable",
+      "behavior": "対話strategyは工具を親として構築でき、仮想破棄される公開型契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoInteractionStrategy",
+        "method:KoInteractionStrategy::KoInteractionStrategy(KoToolBase * parent)",
+        "method:KoInteractionStrategy::~KoInteractionStrategy()"
+      ]
+    },
+    {
+      "target": "KoToolBaseSchemaContractTest",
+      "source": "libs/flake/tests/KoToolBaseSchemaContractTest.cpp",
+      "test": "KoToolBaseSchemaContractTest::interactionStrategyOperationSignaturesRemainStable",
+      "behavior": "対話strategyは移動処理、取消・完了、undo command生成、補助描画、親工具照会に関する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoInteractionStrategy::cancelInteraction()",
+        "method:KoInteractionStrategy::createCommand()",
+        "method:KoInteractionStrategy::finishInteraction(Qt::KeyboardModifiers modifiers)",
+        "method:KoInteractionStrategy::handleMouseMove(const QPointF & mouseLocation,Qt::KeyboardModifiers modifiers)",
+        "method:KoInteractionStrategy::paint(QPainter & painter,const KoViewConverter & converter,const KoColorDisplayRendererInterface * displayRendererInterface)",
+        "method:KoInteractionStrategy::tool() const"
+      ]
+    },
+    {
+      "target": "KoToolBaseSchemaContractTest",
+      "source": "libs/flake/tests/KoToolBaseSchemaContractTest.cpp",
+      "test": "KoToolBaseSchemaContractTest::interactionToolTypeAndLifetimeSchemaRemainStable",
+      "behavior": "対話工具はcanvasを親として構築でき、仮想破棄される公開型契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoInteractionTool",
+        "method:KoInteractionTool::KoInteractionTool(KoCanvasBase * canvas)",
+        "method:KoInteractionTool::~KoInteractionTool()"
+      ]
+    },
+    {
+      "target": "KoToolBaseSchemaContractTest",
+      "source": "libs/flake/tests/KoToolBaseSchemaContractTest.cpp",
+      "test": "KoToolBaseSchemaContractTest::interactionToolEventAndRenderingSignaturesRemainStable",
+      "behavior": "対話工具はkeyboard・pointer入力の配送とcanvas補助描画に関する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoInteractionTool::keyPressEvent(QKeyEvent * event)",
+        "method:KoInteractionTool::keyReleaseEvent(QKeyEvent * event)",
+        "method:KoInteractionTool::mouseMoveEvent(KoPointerEvent * event)",
+        "method:KoInteractionTool::mousePressEvent(KoPointerEvent * event)",
+        "method:KoInteractionTool::mouseReleaseEvent(KoPointerEvent * event)",
+        "method:KoInteractionTool::paint(QPainter & painter,const KoViewConverter & converter)"
+      ]
+    },
+    {
+      "target": "KoToolBaseSchemaContractTest",
+      "source": "libs/flake/tests/KoToolBaseSchemaContractTest.cpp",
+      "test": "KoToolBaseSchemaContractTest::rubberSelectStrategySchemaRemainStable",
+      "behavior": "矩形範囲選択strategyは任意の格子吸着設定から構築でき、移動、undo command生成、補助描画に関する公開契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoShapeRubberSelectStrategy",
+        "method:KoShapeRubberSelectStrategy::KoShapeRubberSelectStrategy(KoToolBase * tool,const QPointF & clicked,bool useSnapToGrid=false)",
+        "method:KoShapeRubberSelectStrategy::createCommand()",
+        "method:KoShapeRubberSelectStrategy::handleMouseMove(const QPointF & mouseLocation,Qt::KeyboardModifiers modifiers)",
+        "method:KoShapeRubberSelectStrategy::paint(QPainter & painter,const KoViewConverter & converter,const KoColorDisplayRendererInterface * displayRendererInterface)"
       ]
     }
   ]
