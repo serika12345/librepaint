@@ -14,6 +14,16 @@ namespace
 {
 #define ASSERT_HISTOGRAM_MEMBER(type, method, signature)                                                               \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&type::method)), signature>)
+
+class BasicHistogramProducerConstructionProbe final : public KoBasicHistogramProducer
+{
+public:
+    using KoBasicHistogramProducer::KoBasicHistogramProducer;
+
+    void addRegionToBin(const quint8 *, const quint8 *, quint32, const KoColorSpace *) override;
+    QString positionToString(qreal) const override;
+    qreal maximalZoom() const override;
+};
 } // namespace
 
 class KoBasicHistogramProducerSchemaContractTest : public QObject
@@ -21,12 +31,76 @@ class KoBasicHistogramProducerSchemaContractTest : public QObject
     Q_OBJECT
 
 private Q_SLOTS:
+    void basicHistogramConstructionAndLifetimeSchemaRemainStable();
+    void fixedDepthHistogramConstructionAndLifetimeSchemaRemainStable();
+    void genericHistogramConstructionAndLifetimeSchemaRemainStable();
+    void basicHistogramFactoryConstructionAndLifetimeSchemaRemainStable();
+    void genericHistogramFactoryConstructionAndLifetimeSchemaRemainStable();
     void basicHistogramStateAndViewSignaturesRemainStable();
     void fixedDepthHistogramSignaturesRemainStable();
     void genericHistogramSignaturesRemainStable();
     void basicHistogramFactorySignaturesRemainStable();
     void genericHistogramFactorySignaturesRemainStable();
 };
+
+void KoBasicHistogramProducerSchemaContractTest::basicHistogramConstructionAndLifetimeSchemaRemainStable()
+{
+    using Producer = KoBasicHistogramProducer;
+    using Probe = BasicHistogramProducerConstructionProbe;
+
+    static_assert(!std::is_abstract_v<Probe>);
+    static_assert(std::is_constructible_v<Probe, const KoID &, int, int>);
+    static_assert(std::is_constructible_v<Probe, const KoID &, int, const KoColorSpace *>);
+    static_assert(std::has_virtual_destructor_v<Producer>);
+    static_assert(std::is_destructible_v<Producer>);
+
+    QVERIFY(true);
+}
+
+void KoBasicHistogramProducerSchemaContractTest::fixedDepthHistogramConstructionAndLifetimeSchemaRemainStable()
+{
+    static_assert(std::is_constructible_v<KoBasicU8HistogramProducer, const KoID &, const KoColorSpace *>);
+    static_assert(std::is_destructible_v<KoBasicU8HistogramProducer>);
+    static_assert(std::is_constructible_v<KoBasicU16HistogramProducer, const KoID &, const KoColorSpace *>);
+    static_assert(std::is_destructible_v<KoBasicU16HistogramProducer>);
+    static_assert(std::is_constructible_v<KoBasicF32HistogramProducer, const KoID &, const KoColorSpace *>);
+    static_assert(std::is_destructible_v<KoBasicF32HistogramProducer>);
+    static_assert(std::is_constructible_v<KoBasicF16HalfHistogramProducer, const KoID &, const KoColorSpace *>);
+    static_assert(std::is_destructible_v<KoBasicF16HalfHistogramProducer>);
+
+    QVERIFY(true);
+}
+
+void KoBasicHistogramProducerSchemaContractTest::genericHistogramConstructionAndLifetimeSchemaRemainStable()
+{
+    static_assert(std::is_default_constructible_v<KoGenericRGBHistogramProducer>);
+    static_assert(std::is_destructible_v<KoGenericRGBHistogramProducer>);
+    static_assert(std::is_default_constructible_v<KoGenericLabHistogramProducer>);
+    static_assert(std::is_destructible_v<KoGenericLabHistogramProducer>);
+
+    QVERIFY(true);
+}
+
+void KoBasicHistogramProducerSchemaContractTest::basicHistogramFactoryConstructionAndLifetimeSchemaRemainStable()
+{
+    using Factory = KoBasicHistogramProducerFactory<KoBasicU8HistogramProducer>;
+
+    static_assert(std::is_constructible_v<Factory, const KoID &, const QString &, const QString &>);
+    static_assert(std::has_virtual_destructor_v<Factory>);
+    static_assert(std::is_destructible_v<Factory>);
+
+    QVERIFY(true);
+}
+
+void KoBasicHistogramProducerSchemaContractTest::genericHistogramFactoryConstructionAndLifetimeSchemaRemainStable()
+{
+    static_assert(std::is_default_constructible_v<KoGenericRGBHistogramProducerFactory>);
+    static_assert(std::is_destructible_v<KoGenericRGBHistogramProducerFactory>);
+    static_assert(std::is_default_constructible_v<KoGenericLabHistogramProducerFactory>);
+    static_assert(std::is_destructible_v<KoGenericLabHistogramProducerFactory>);
+
+    QVERIFY(true);
+}
 
 void KoBasicHistogramProducerSchemaContractTest::basicHistogramStateAndViewSignaturesRemainStable()
 {
