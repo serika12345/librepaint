@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-04 11:57 JST
+- 更新日時: 2026-09-04 12:03 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -16,6 +16,16 @@
 - `g199-flake-contract-audit`はflake・SVG・vector領域を所有し、第198便までに固定したshape manager・controller、tool代理、shape幾何・階層・文書状態、clip、背景群、path点・区間種別command、path点topology command、font family資源、CSS様式資源、SVG symbol集合資源、ガマットマスク、SVG parserを除外して、一責務の未対応集合を比較する。
 - `g199-ui-contract-audit`はwidgetutils・widgets・libkis領域を所有し、第198便までに固定したHSX色入力、内部色選択dialog、視覚色選択群、palette delegate、filter設定・適用、palette選択・色集合表示、色選択button・popup action、action分類・toolbar編集入口、zoom action・Widget、scratchpad、ウィンドウ操作、アプリケーション状態通知、タグ選択、幾何数値入力を除外して、一責務の未対応集合を比較する。
 - 各担当は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、実際のcompile探索路、予測工程・入力と停止線、開始pathから契約先、実装時許可path、固有停止条件、比較候補の棄却根拠を返す。調整担当は3領域のpath、CMake、試験source、生成物が重ならず、合計60〜180 APIとなる組合せだけを次の実装担当票へ進める。
+
+### 第199便の先行監査結果
+
+- pigment領域は`libs/pigment/KoColorConversionSystem.h`の残存全22 APIを、色変換systemの型・寿命、registry接続面、変換graph変更、変換生成、経路照会として採用し、既存`libs/pigment/tests/KoColorConversionTransformationAbstractFactoryContractTest.cpp`の5枠へ追加する。既存sourceは177行・3枠であり、追加後も約290行・8枠に収まる。CMakeを変えずQt Core・Test、pigment source/generated探索路、`kritapigment_EXPORTS`だけによる4工程・8入力を維持し、停止線を5工程・11入力とする。対象・近傍`KoColorProfileSchemaContractTest`はAUTOMOC後のgraphにも製品辺がない。system、registry、graph node・path、profile、色空間、変換、ID、Qt値を実体化せず、graph変更、経路探索、DOT生成、変換生成、registry照会、構築・破棄本文を実行しない。
+  色空間registryは大域状態・profile所有・cache、色空間抽象は既存source上限とtemplate群、raster keyframe channelはQObject・paint device・undo・XML、paintop factory群はplugin・資源・設定、複合演算群は具体色空間・SIMDへ閉包が広がるため棄却した。
+- flake領域は`libs/flake/text/KoSvgTextShape.h`の残存83 APIから、factory 6、memento型2、cursor変更listener型4を独立責務として除いた`KoSvgTextShape`本体の全71 APIを、型・寿命・幾何・描画、輪郭・path・layout、内容編集・変換、外観状態・通知、保存・memento接続として採用し、新規`libs/flake/tests/KoSvgTextShapeSchemaContractTest.cpp`の5枠へ分離する。既存列挙契約は1,263行・46枠、既存製品試験は625工程・1,281入力のため使用しない。Qt Gui・Test・Xml、header-only Boost、flake・global探索路と`kritaflake_EXPORTS`だけによる4工程・8入力を予測し、停止線を5工程・11入力とする。近傍`KoSvgTextEnumContractTest`はAUTOMOC後のgraphにも製品辺がない。text shape、基底、図形manager、描画器、保存context、property、背景・stroke、memento、Qt値を実体化せず、構築・複製・描画、layout、輪郭所有、文字編集、通知、保存・復元本文を実行しない。
+  tool managerは大域singletonと操作管理、path tool群は入力・UI・選択・描画、shape fill wrapperとshape残存は異なる責務、font registry・storageはOS font環境と資源保管を横断するため棄却した。
+- widgets領域は`libs/widgets/KoFillConfigWidget.h`の残存全15 APIと`KoMarkerSelector.h`の残存全7 APIを、図形の塗りとmarkerを設定する外観制御責務として採用し、既存`libs/widgets/tests/KoStrokeConfigWidgetSchemaContractTest.cpp`の5枠へ追加する。既存sourceは70行・5枠であり、追加後も約160行・10枠に収まる。対象固有に`${CMAKE_SOURCE_DIR}/libs/flake/svg`のsource探索路1本を加える以外は、Qt Core・Testの直接link、Qt Gui・Widgets interface、`kritaflake_EXPORTS`と`kritawidgets_EXPORTS`による4工程・8入力を維持し、停止線を5工程・11入力とする。対象・近傍`KisGradientColorEditorSchemaContractTest`はAUTOMOC後のgraphにも製品辺がない。fill widget、marker selector、canvas、図形・stroke・marker、mesh位置、Qt値を実体化せず、選択追跡、図形生成、活性化、mesh操作、marker更新、描画、通知本文を実行しない。
+  libkis Nodeはheader includeだけで大域文字列を実体化し、Krita façadeは文書・Window・資源・大域状態、資源server群はsingleton・複数資源template、単位入力群は異なる世代と所有、gradient editor群は生成UI headerへ閉包が広がるため棄却した。
+- 中央の`public-api-missing-g199.json`で色変換system 22件、SVG文字図形本体71件、図形外観制御22件の全識別子を照合した。3責務の開始header、試験source、所有CMake、生成物は相互に異なり、合計115 APIを15枠へ進める。許可path外変更、指定外の動的link・探索root・compile定義、候補headerのAUTOMOC入力化、二回目計画の製品辺、製品shared・OBJECT・`kritatestsdk`接続、指定外実体化・本文実行、各停止線超過が不要な場合だけ実装へ進める。
 
 ### 第198便の先行監査担当票
 
