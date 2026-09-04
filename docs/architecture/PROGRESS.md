@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 03:23 JST
+- 更新日時: 2026-09-05 03:25 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -458,6 +458,8 @@
 - `g215-async-color-sampler-schema`の状態は`integrated`である。開始`libs/ui/tool/KisAsyncColorSamplerHelper.h`の残存全20 APIを、新規`libs/ui/tests/KisAsyncColorSamplerHelperSchemaContractTest.cpp`の5枠`asyncColorSamplerTypeLifetimeAndStateSchemaRemainStable`、`asyncColorSamplerActivationAndActionSignaturesRemainStable`、`asyncColorSamplerPreviewAndPaintingSignaturesRemainStable`、`asyncColorSamplerGlobalColorAndOutlineSignaturesRemainStable`、`asyncColorSamplerColorNotificationSignaturesRemainStable`へ4・6・2・5・3件で対応付けた。受渡しcommit`cc14a4dbc2`を統合commit`3dd9f38e20`として取り込み、公開headerと製品sourceは変更していない。
 - 担当側と中央のmacOSで追加5枠を各20回、対象`libs-ui-KisAsyncColorSamplerHelperSchemaContractTest`と近傍`libs-ui-KisHistogramPainterSchemaContractTest`、AUTOMOC後の計画、無作業再構築2回に成功した。4工程・8入力、AUTOMOC `HEADERS=[]`、Qt Core・Testだけの動的接続、製品未解決記号なしを維持し、台帳は20,717件対応、9,121件未対応となった。実際の採取、色更新、cursor・輪郭・描画・通知効果は別の効果契約で扱う。
 - cleanな専用作業tree、297,776 KiBの構築木、branchを統合直後に削除し、887,676 KiBを回収した。主Ninja木5,734,164 KiBと共有compiler cache 982,696 KiBを色空間registry契約へ再利用する。次の永続作業は、同registry 63 APIの担当票を確定して専用作業treeで実装することである。
+- `g215-color-space-registry-schema`の状態は`implementing`、担当は`/root/g208_raster_keyframe_schema`、基点は`29a5eae4ab`、作業treeは`/Users/masato/Documents/librepaint-g215-color-space-registry-schema`である。開始`libs/pigment/KoColorSpaceRegistry.h`の残存全63 APIを、新規`libs/pigment/tests/KoColorSpaceRegistrySchemaContractTest.cpp`の5枠`colorSpaceRegistryTypeLifetimeAndPolicySchemaRemainStable`、`colorSpaceRegistryFactoryAndProfileMutationSignaturesRemainStable`、`colorSpaceRegistryProfileAndCatalogQuerySignaturesRemainStable`、`colorSpaceRegistryResolutionAndConversionSignaturesRemainStable`、`colorSpaceRegistryDefaultColorSpaceSignaturesRemainStable`へ11・10・13・11・18件で対応付ける。識別子集合のSHA-256は`0ccdbe397f16f65ca61c6685880601ece31dcb7561cd76ec21b3c2c5f0ee5d60`である。許可pathは新規試験sourceと`libs/pigment/tests/CMakeLists.txt`の新target固有節だけで、公開headerと製品sourceを変更しない。Qt Core・Gui・Testとheader-only Boost、pigment・global探索路、KF I18n interface、`kritapigment_EXPORTS`、`kritaglobal_EXPORTS`だけによる4工程・8入力を予測する。
+- 色空間registry担当は、5工程・11入力超過、計画外の探索路・定義・link、製品shared・OBJECT・`kritatestsdk`の動的接続、候補headerのAUTOMOC入力化、registry・profile・色空間・Qt値の実体化、singleton取得、inlineを含む製品本文の実行、製品未解決記号、許可path外変更が必要なら停止する。新target不存在、宣言段階の初期失敗、追加5枠の単発と各20回反復、対象と軽量近傍`KoColorSpaceFactorySchemaContractTest`、AUTOMOC後の二回目計画、無作業再構築2回、動的接続・未解決記号・構文・書式、公開API検査、`verify-quick`を確認する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。Git権限は許可pathだけの1受渡しcommitで、追加委任は禁止する。
 
 ### 第216便の先行監査担当票（第215便確定待ち）
 
