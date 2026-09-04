@@ -877,6 +877,22 @@ target_include_directories(KoSvgTextEnumContractTest PRIVATE
 target_compile_definitions(KoSvgTextEnumContractTest PRIVATE kritaflake_EXPORTS)
 
 kis_add_test(
+    KoSvgTextShapeSchemaContractTest.cpp
+    LINK_LIBRARIES
+        Boost::boost
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Xml
+)
+target_include_directories(KoSvgTextShapeSchemaContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+)
+target_compile_definitions(KoSvgTextShapeSchemaContractTest PRIVATE kritaflake_EXPORTS)
+
+kis_add_test(
     SvgParserSchemaContractTest.cpp
     LINK_LIBRARIES
         Boost::boost
