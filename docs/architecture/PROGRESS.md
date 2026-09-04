@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 06:41 JST
+- 更新日時: 2026-09-05 06:44 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -584,6 +584,7 @@
 - `g219-kra-save-xml-visitor-closure-audit`の状態は`completed`である。`plugins/impex/libkra/kis_kra_savexml_visitor.h`の残存全20 API、識別子集合SHA-256 `0ffc9e9eda85883f048f73b8e65085ad12820f379c40dafb0bb2e5541889bed6`、5枠3・7・5・3・2を独立確認した。新規専用targetはlibkra・image・global探索路、Qt Xml interface、Qt Core・Testだけの直接接続と3 export定義による4工程・8入力へ閉じられる。node、layer、mask、QDom値を実体化せず、1,992工程・3,980入力の既存保存試験と製品`kritalibkra`へ接続しない。第218便完了後の正式不足報告で再照合する。
 - `g219-enclose-fill-painter-formal-review`の状態は`completed`、担当は`g178_paintop_settings_schema`、基点は`df73f36749`、正式入力は`build/tdd-macos/public-api-missing-g219.json`である。`libs/image/KisEncloseAndFillPainter.h`の残存全30 APIは一意で台帳と重複せず、集合SHA-256 `72863c12aaf29cb198bcf3cd4420ca2b2c525f06066b5c4179ec5c023aa62395`、5枠5・11・4・5・5に一致した。新規専用targetは既存`KisGradientPainterSchemaContractTest`と同じimage・filter・global・pigment・resources・painting/undo探索路、Eigen・KF I18n・Imath interface、Qt Core・Gui・Testとheader-only Boost、2 export定義により4工程・8入力へ閉じられる。候補headerをAUTOMOC入力にせず、1,196工程・2,416入力の`kritaimage`と1,200工程超の動的fill試験へ接続しない。
 - `g219-curve-widget-formal-review`の状態は`completed`、担当は`g178_shape_hierarchy_schema`、基点は`df73f36749`、正式入力は`build/tdd-macos/public-api-missing-g219.json`である。`libs/ui/widgets/kis_curve_widget.h`の残存全30 APIは一意で台帳と重複せず、集合SHA-256 `1f4c666bcf29b0640a4a1996635571ebbd16f1e0d611411d38afaa5296960716`、5枠9・5・8・4・4に一致した。新規専用targetはapplication・image・global探索路、Qt Gui・Widgets interface、Qt Core・Test、header-only Boost・Eigen、3 export定義により4工程・8入力へ閉じられる。`kritaapplicationui`所有の生成export headerを用い、候補headerをAUTOMOC入力にせず、1,970工程・3,940入力の製品UIへ接続しない。
+- `g219-kra-save-xml-visitor-formal-review`の状態は`reviewing`、担当は`g208_raster_keyframe_schema`、基点は`440c03d09c`、正式入力は`build/tdd-macos/public-api-missing-g219.json`である。対象識別子は`plugins/impex/libkra/kis_kra_savexml_visitor.h`の残存全20 API、集合SHA-256 `0ffc9e9eda85883f048f73b8e65085ad12820f379c40dafb0bb2e5541889bed6`である。主作業treeと既存Ninja graphを読み取り専用で使い、変更許可path、構成・構築・試験・Git権限、追加委任はない。全識別子と5枠3・7・5・3・2、4工程・8入力の専用target、直接・interface依存、既存動的保護、停止条件を再照合する。
 
 ### 第219便の担当計画
 
@@ -597,6 +598,7 @@
 - 監査共通基点は`ad24f02d60`、暫定入力は`build/tdd-macos/public-api-missing-g216.json`である。担当は主作業treeと既存Ninja graphを読み取り専用で利用し、変更、構成、構築、試験、Git操作、追加委任を行わない。正式な第219便不足報告で再照合するまで実装担当票へ進めない。
 - `g220-frame-cache-store-closure-audit`の状態は`completed`である。`libs/canvas/animation/kis_frame_cache_store.h`の残存全22 API、識別子集合SHA-256 `39229d20e5554ed98a98b6c4bcbb4a3c3a791494a08467ab0f88fbb05adf2a80`、5枠5・6・4・2・5を独立確認した。新規専用targetはcanvas source・generated探索路、Qt Core・Testとheader-only Boost、`kritacanvas_EXPORTS`だけによる4工程・8入力へ閉じられる。filesystem、tile pool、serializer、製品実装へ接続せず、1,224工程・2,467入力の既存動的試験を構築しない。第219便完了後の正式不足報告で再照合する。
 - `g220-resource-iterator-closure-audit`の状態は`completed`である。`libs/resources/KisResourceIterator.h`の残存全21 API、識別子集合SHA-256 `e695fcea69332217ece1f46f00b79c6878796c6ae09100e17fcf3a9c0db21ba4`、5枠5・6・2・4・4を独立確認した。新規専用targetはresources source・generated探索路、Qt Gui・KF I18n interface、Qt Core・Testとheader-only Boost、`kritaresources_EXPORTS`だけによる4工程・8入力へ閉じられる。resource model、database、image、製品実装へ接続せず、813工程・1,654入力の既存動的試験を構築しない。第219便完了後の正式不足報告で再照合する。
+- `g220-frame-cache-store-formal-review`の状態は`reviewing`、担当は`g178_shape_hierarchy_schema`、基点は`440c03d09c`、暫定入力は`build/tdd-macos/public-api-missing-g219.json`である。対象識別子は`libs/canvas/animation/kis_frame_cache_store.h`の残存全22 API、集合SHA-256 `39229d20e5554ed98a98b6c4bcbb4a3c3a791494a08467ab0f88fbb05adf2a80`である。主作業treeと既存Ninja graphを読み取り専用で使い、変更許可path、構成・構築・試験・Git権限、追加委任はない。全識別子と5枠5・6・4・2・5、4工程・8入力の専用target、直接・interface依存、既存動的保護、停止条件を再照合し、第219便確定後に差分だけを再確認できる資料を返す。
 
 ### 第221便の先行監査担当票（第220便確定待ち）
 
