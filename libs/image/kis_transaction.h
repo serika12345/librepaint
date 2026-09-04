@@ -14,7 +14,6 @@
 #include "kis_transaction_data.h"
 #include "kis_paint_device.h"
 #include "kis_pixel_selection.h"
-#include "kis_image_config.h"
 
 #include "kis_undo_adapter.h"
 #include "kis_post_execution_undo_adapter.h"
@@ -154,4 +153,3 @@ public:
 };
 
 #endif /* KIS_TRANSACTION_H_ */
-
