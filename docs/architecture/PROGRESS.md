@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-04 16:06 JST
+- 更新日時: 2026-09-04 16:12 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -69,14 +69,29 @@
 - 第203便全体で71 APIを15枠へ重複なく対応付け、19,733件対応、10,105件未対応となった。担当側と中央で対象CTest、各追加枠の20回反復、AUTOMOC後の二回目計画、無作業再構築、動的接続・未解決記号・書式、公開API検査、`verify-quick`に成功した。中央のpalette近傍は当初候補の`KisPaletteModelSchemaContractTest`が13工程と製品`kritaresourceui`・`kritaflake`を要求し、既存の未解決記号と不完全型診断で失敗したため、同じlibkisの3工程・8入力で製品非接続の`GridConfigSchemaContractTest`へ限定した。製品側の既存失敗はこの契約変更の対象外として残り、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 3担当のcleanな専用作業tree、構築木、branchを統合直後に削除し、合計2,650,404 KiBを回収した。主Ninja木と共有compiler cacheは次便の対象限定構築へ再利用し、第204便の正式不足報告を生成した後は旧`public-api-missing-g203.json`を削除して最新報告だけを保持する。
 
-### 第204便の先行監査担当票（第203便確定待ち）
+### 第204便の先行監査担当票
 
-- 監査共通基点は`0e65012a1b`、暫定入力は`build/tdd-macos/public-api-missing-g203.json`である。第203便までに契約済みまたは選定済みの責務を除外し、変更、構成、構築、試験、Git操作、追加委任を行わない読み取り専用監査を先行する。正式な第203便完了報告で再照合・再計測する。
+- 監査共通基点は`0e65012a1b`、正式入力は`build/tdd-macos/public-api-missing-g204.json`である。第203便までに契約済みまたは選定済みの責務を除外した先行監査結果を、第203便完了後の不足報告で再照合・再計測した。
 - `g204-image-contract-audit`の状態は`completed`で、image・paintop・pigment領域からASL layer style serializer 22 APIを選定した。
 - `g204-flake-contract-audit`の状態は`completed`で、flake・SVG・vector領域から図形fillの取得・変更・gradient補助・背景描画20 APIを選定した。
 - `g204-ui-contract-audit`の状態は`completed`で、widgetutils・widgets・libkis領域から単位付き倍精度入力と既定単位管理器の生成面22 APIを選定した。
 - `g204-image-closure-review`の状態は`completed`で、ASL layer style serializerの22 APIは既存PSD layer style契約へCMake変更なしで追加でき、4工程・8入力、製品非接続、候補headerのAUTOMOC非入力化を維持できることを独立確認した。
 - `g204-flake-closure-review`の状態は`completed`で、図形fillの20 APIは既存pattern背景契約へCMake変更なしで追加でき、4工程・8入力、Qt Core・Testだけの動的接続、製品非接続、候補headerのAUTOMOC非入力化を維持できることを独立確認した。
+
+### 第204便の先行監査結果
+
+- 正式入力`build/tdd-macos/public-api-missing-g204.json`は公開header 1,549、公開API 29,838、対応済み19,733、未対応10,105、2,669,174 bytes、SHA-256 `67bf563fc052425265400d48b03dd47600f7bb20a98623a3a95c5e8ca13f7492`を記録する。先行監査の全識別子を再照合し、ASL layer style serializer 22件、図形fill 20件、単位付き倍精度入力と既定単位管理器22件が重複なく残存することを確認した。旧`public-api-missing-g203.json`は新報告の成功後に削除し、主Ninja木5,689,436 KiBと共有compiler cache 983,436 KiBを対象限定構築へ保持する。
+- image領域は`libs/image/kis_asl_layer_style_serializer.h`の残存全22 APIを、型・状態5、device・文書6、style集合5、pattern・gradient 3、資源読込み3として既存`libs/image/tests/KisPSDLayerStyleSchemaContractTest.cpp`の5枠へ固定する。CMakeを変更せず、既存image・global・pigment・pigment/resources・psdutils・resources探索路、Qt Core・Gui・Test・Xml、header-only Boost、KF I18n・Imath interface、`kritaimage_EXPORTS`と`kritapigment_EXPORTS`による4工程・8入力を維持し、停止線を5工程・11入力とする。serializer、device、文書、node、style、pattern、gradient、resource interfaceを実体化せず、本文を実行しない。
+- flake領域は`libs/flake/KoShapeFillWrapper.h`の残存17 API、`KoFlake.h`のgradient複製・結合2 API、`KoPatternBackground.h`の描画1 APIを、図形fillの型・構築4、分類・色6、gradient 5、mesh gradient 2、gradient補助・pattern描画3として既存`libs/flake/tests/KoPatternBackgroundSchemaContractTest.cpp`の5枠へ固定する。CMakeを変更せず、Qt Core・Testだけを動的接続する4工程・8入力を維持し、停止線を5工程・11入力とする。wrapper、shape、色、gradient、mesh gradient、transform、painter、path、backgroundを実体化せず、本文を実行しない。
+- UI領域は`libs/widgets/KoUnitDoubleSpinBox.h`の残存15 APIと`libs/widgetutils/kis_spin_box_unit_manager.h`の7 APIを、単位付き倍精度入力の型・値5、範囲・刻み5、単位・文字列・通知5、管理器builder 3、管理器factory 4として既存`libs/widgetutils/tests/KisDoubleParseUnitSpinBoxSchemaContractTest.cpp`の5枠へ固定する。対象固有CMake節へwidgetsのsource/generated探索路と`kritawidgets_EXPORTS`だけを加え、Qt Core・Gui・Widgets・Testだけを動的接続する4工程・8入力を維持し、停止線を5工程・11入力とする。spin box、unit、builder、factory、Qt値を実体化せず、変換・検証・単位変更・factory生成・signal本文を実行しない。
+- 3責務の開始headerと試験sourceは相互に異なる。imageとflakeは既存sourceだけ、UIは既存sourceと対象固有CMake節だけを変更するため、合計64 API・15枠をASL layer style serializer、図形fill、単位付き倍精度入力の順に一担当ずつ実装する。製品target、全体build・`verify`、Linux、Nix再評価を行わず、各対象と軽量近傍、追加枠の反復、AUTOMOC後の二回目計画、無作業再構築、公開API検査、`verify-quick`を確認する。
+
+### 第204便の担当計画
+
+- 実装共通基点は`7fdc43c0af`である。一度に一つだけ作る専用worktree-local `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有し、`./scripts/run-shared-test-env`で読み込み済み環境を使う。各担当のGit権限は許可pathだけの受渡しcommit、追加委任は禁止する。ASL layer style serializer、図形fill、単位付き倍精度入力の順に限定検証・統合・削除し、調整担当だけが文書、公開API台帳、共通不足報告を変更する。製品target、全体build・`verify`、Linux、Nix再評価は禁止する。
+- `g204-asl-serializer-schema`の状態は`implementing`、macOSの対象・近傍に限る構築実行許可は`granted`で、基点`7fdc43c0af`の作業tree`/Users/masato/Documents/librepaint-g204-asl-serializer-schema`を所有する。正式不足報告の`libs/image/kis_asl_layer_style_serializer.h`残存全22 APIを、既存`libs/image/tests/KisPSDLayerStyleSchemaContractTest.cpp`の5枠`aslLayerStyleSerializerTypeAndStateSchemaRemainStable`、`aslLayerStyleSerializerDeviceAndDocumentSignaturesRemainStable`、`aslLayerStyleSerializerCollectionSignaturesRemainStable`、`aslLayerStyleSerializerPatternAndGradientSignaturesRemainStable`、`aslLayerStyleSerializerResourceLoadingSignaturesRemainStable`へ5・6・5・3・3件で対応付ける。許可pathは既存試験sourceだけ、CMake変更なし、対象`KisPSDLayerStyleSchemaContractTest`、正式CTest`libs-image-KisPSDLayerStyleSchemaContractTest`、近傍`KisPaintLayerSchemaContractTest`である。4工程・8入力を維持し、5工程・11入力超過、新規探索路・link・定義、AUTOMOC入力化、製品接続、実体化・本文実行が必要なら停止する。
+- `g204-shape-fill-schema`の状態は`planned`、構築実行許可は`withheld`である。正式不足報告の`libs/flake/KoShapeFillWrapper.h`の17 API、`KoFlake.h`の2 API、`KoPatternBackground.h`の1 APIを、既存`libs/flake/tests/KoPatternBackgroundSchemaContractTest.cpp`の5枠`shapeFillWrapperTypeAndConstructionSchemaRemainStable`、`shapeFillWrapperClassificationAndColorSignaturesRemainStable`、`shapeFillWrapperGradientSignaturesRemainStable`、`shapeFillWrapperMeshGradientSignaturesRemainStable`、`gradientUtilityAndPatternRenderingSignaturesRemainStable`へ4・6・5・2・3件で対応付ける。許可pathは既存試験sourceだけ、CMake変更なし、対象`KoPatternBackgroundSchemaContractTest`、正式CTest`libs-flake-KoPatternBackgroundSchemaContractTest`、近傍`KoShapeStrokeSchemaContractTest`である。4工程・8入力を維持し、5工程・11入力超過、新規探索路・link・定義、AUTOMOC入力化、Qt Gui動的接続、製品接続、実体化・本文実行が必要なら停止する。
+- `g204-unit-spinbox-schema`の状態は`planned`、構築実行許可は`withheld`である。正式不足報告の`libs/widgets/KoUnitDoubleSpinBox.h`の15 APIと`libs/widgetutils/kis_spin_box_unit_manager.h`の7 APIを、既存`libs/widgetutils/tests/KisDoubleParseUnitSpinBoxSchemaContractTest.cpp`の5枠`unitDoubleSpinBoxTypeLifetimeAndValueSchemaRemainStable`、`unitDoubleSpinBoxRangeAndStepSignaturesRemainStable`、`unitDoubleSpinBoxUnitTextAndNotificationSignaturesRemainStable`、`unitManagerBuilderTypeLifetimeAndBuildSchemaRemainStable`、`unitManagerFactoryTypeAndCreationSchemaRemainStable`へ5・5・5・3・4件で対応付ける。許可pathは既存試験sourceと`libs/widgetutils/tests/CMakeLists.txt`の対象固有節だけで、widgetsのsource/generated探索路と`kritawidgets_EXPORTS`だけを追加できる。対象`KisDoubleParseUnitSpinBoxSchemaContractTest`、正式CTest`libs-widgetutils-KisDoubleParseUnitSpinBoxSchemaContractTest`、近傍`KisSliderSpinBoxSchemaContractTest`である。4工程・8入力を維持し、5工程・11入力超過、指定外探索路・link・定義、AUTOMOC入力化、製品接続、実体化・本文実行が必要なら停止する。
 
 ### 第201便の先行監査担当票
 
