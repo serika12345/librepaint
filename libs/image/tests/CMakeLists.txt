@@ -1342,6 +1342,8 @@ target_include_directories(KisStrokeStrategyUndoCommandBasedSchemaContractTest P
     ${CMAKE_CURRENT_BINARY_DIR}/..
     ${CMAKE_SOURCE_DIR}/libs/global
     ${CMAKE_BINARY_DIR}/libs/global
+    ${CMAKE_SOURCE_DIR}/libs/pigment
+    ${CMAKE_BINARY_DIR}/libs/pigment
     ${CMAKE_SOURCE_DIR}/libs/painting/undo
     ${CMAKE_BINARY_DIR}/libs/painting/undo
     $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Gui,INTERFACE_INCLUDE_DIRECTORIES>
@@ -1349,6 +1351,7 @@ target_include_directories(KisStrokeStrategyUndoCommandBasedSchemaContractTest P
 )
 target_compile_definitions(KisStrokeStrategyUndoCommandBasedSchemaContractTest PRIVATE
     kritaimage_EXPORTS
+    kritapigment_EXPORTS
 )
 
 kis_add_test(
