@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 8683
+    "expectedMissingApis": 8662
   },
   "contracts": [
     {
@@ -58765,6 +58765,72 @@
         "method:KisFrameCacheStore::frameLevelOfDetail(int frameId) const",
         "method:KisFrameCacheStore::hasFrame(int frameId) const",
         "method:KisFrameCacheStore::moveFrame(int srcFrameId,int dstFrameId)"
+      ]
+    },
+    {
+      "target": "KisResourceIteratorSchemaContractTest",
+      "source": "libs/resources/tests/KisResourceIteratorSchemaContractTest.cpp",
+      "test": "KisResourceIteratorSchemaContractTest::resourceIteratorAndItemTypeLifetimeSchemaRemainStable",
+      "behavior": "資源反復器は項目共有pointer別名、項目・反復器型、模型指定構築と破棄可能性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisResourceItemSP",
+        "class:KisResourceItem",
+        "class:KisResourceIterator",
+        "method:KisResourceIterator::KisResourceIterator(KisResourceModel * resourceModel)",
+        "method:KisResourceIterator::~KisResourceIterator()"
+      ]
+    },
+    {
+      "target": "KisResourceIteratorSchemaContractTest",
+      "source": "libs/resources/tests/KisResourceIteratorSchemaContractTest.cpp",
+      "test": "KisResourceIteratorSchemaContractTest::resourceItemIdentityAndMetadataSignaturesRemainStable",
+      "behavior": "資源項目は識別子、ファイル名、名前、種別、MD5、説明文を取得する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisResourceItem::filename()",
+        "method:KisResourceItem::id()",
+        "method:KisResourceItem::md5sum()",
+        "method:KisResourceItem::name()",
+        "method:KisResourceItem::resourceType()",
+        "method:KisResourceItem::tooltip()"
+      ]
+    },
+    {
+      "target": "KisResourceIteratorSchemaContractTest",
+      "source": "libs/resources/tests/KisResourceIteratorSchemaContractTest.cpp",
+      "test": "KisResourceIteratorSchemaContractTest::resourceItemPayloadSignaturesRemainStable",
+      "behavior": "資源項目は資源共有pointerと縮小画像を取得する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisResourceItem::resource()",
+        "method:KisResourceItem::thumbnail()"
+      ]
+    },
+    {
+      "target": "KisResourceIteratorSchemaContractTest",
+      "source": "libs/resources/tests/KisResourceIteratorSchemaContractTest.cpp",
+      "test": "KisResourceIteratorSchemaContractTest::resourceIteratorForwardTraversalSignaturesRemainStable",
+      "behavior": "資源反復器は先頭への移動、次項目の存在・先読み・取得を行う公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisResourceIterator::hasNext() const",
+        "method:KisResourceIterator::next()",
+        "method:KisResourceIterator::peekNext() const",
+        "method:KisResourceIterator::toFront()"
+      ]
+    },
+    {
+      "target": "KisResourceIteratorSchemaContractTest",
+      "source": "libs/resources/tests/KisResourceIteratorSchemaContractTest.cpp",
+      "test": "KisResourceIteratorSchemaContractTest::resourceIteratorBackwardTraversalSignaturesRemainStable",
+      "behavior": "資源反復器は末尾への移動、前項目の存在・先読み・取得を行う公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisResourceIterator::hasPrevious() const",
+        "method:KisResourceIterator::peekPrevious() const",
+        "method:KisResourceIterator::previous()",
+        "method:KisResourceIterator::toBack()"
       ]
     }
   ]
