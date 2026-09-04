@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-04 09:00 JST
+- 更新日時: 2026-09-04 09:13 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -33,7 +33,7 @@
 - 実装共通基点は`ee8b6de434`である。3担当のGit権限は選択範囲とCSS様式資源が許可pathだけの1受渡しcommit、scratchpadが構造整理と契約追加を分けた2受渡しcommitであり、追加委任は禁止する。対象platformはmacOSで、一度に一つだけ作る専用worktree-local `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。Nix再評価を行わず、担当側の`./scripts/run-shared-test-env`で読み込み済み開発環境を共有する。選択範囲、CSS様式資源、scratchpadの順に一担当ずつ実装・限定検証・統合・削除する。調整担当だけがarchitecture文書、公開API台帳、共通不足報告を変更する。製品targetを引数にするplan/build、全体build、全体`verify`、Linux検証は禁止する。
 - `g195-selection-schema`の状態は`integrated`、構築実行許可は`granted`である。開始`libs/image/kis_selection.h`の残存全43 APIを既存`libs/image/tests/KisMaskSchemaContractTest.cpp`の5枠へ対応付け、CMake、探索路、link、compile定義、公開header、製品sourceを変えず4工程・8入力を維持した。受渡しcommit`959b18a225`を統合commit`a9640e99c6`として取り込み、追加5枠の各20回反復、対象・近傍CTest、無作業再構築、動的接続・AUTOMOC・未解決記号、構文・書式、公開API検査、`verify-quick`に成功した。台帳は18,985件対応、10,853件未対応となった。cleanな作業tree`/Users/masato/Documents/librepaint-g195-selection-schema`と担当構築木は統合後に削除する。
 - `g195-css-style-preset-schema`の状態は`integrated`、構築実行許可は`granted`である。開始`libs/flake/resources/KoCssStylePreset.h`の残存全33 APIから新規`libs/flake/tests/KoCssStylePresetSchemaContractTest.cpp`の5枠へ対応付けた。受渡しcommit`9f44cc1a46`を統合commit`b871358a24`として取り込み、最初の構築で判明した`klocalizedstring.h`の直接要求は近傍と同じKF I18nのinterface探索路1本で解消した。動的linkを増やさず4工程・8入力を維持し、5枠の20回反復、対象・近傍CTest、無作業再構築、動的接続・AUTOMOC・未解決記号、構文・書式、公開API検査、`verify-quick`に成功した。台帳は19,018件対応、10,820件未対応となった。cleanな作業tree`/Users/masato/Documents/librepaint-g195-css-style-preset-schema`と担当構築木は統合後に削除する。
-- `g195-scratchpad-schema`の状態は`implementing`、構築実行許可は`granted`で、作業tree`/Users/masato/Documents/librepaint-g195-scratchpad-schema`を所有する。第一commitは`libs/libkis/Scratchpad.h`から未使用`kis_types.h` includeだけを除去し、公開API指紋、`Scratchpad.cpp`の構文、製品MOC入力の構文、直接利用元とSIP定義のsource監査で暗黙依存がないことを確認する。第二commitは既存`libs/libkis/tests/ViewSchemaContractTest.cpp`の5枠`scratchpadTypeLifetimeAndModeSchemaRemainStable`、`scratchpadFillSignaturesRemainStable`、`scratchpadZoomAndScaleSignaturesRemainStable`、`scratchpadPanImageAndBoundsSignaturesRemainStable`、`scratchpadNotificationSignaturesRemainStable`へ残存全31 APIを対応付け、`libs/libkis/tests/CMakeLists.txt`のView対象固有節へQt Widgetsのinterface探索路だけを追加する。これら3pathだけを許可し、動的link・compile定義・AUTOMOC入力を増やさない。scratchpadと関連するView・Qt型を実体化せず、構築・破棄、描画、fill、zoom・pan、画像転送、signal本文を実行しない。対象4工程・8入力、停止5工程・11入力、近傍`CanvasSchemaContractTest`とし、各commitの境界検査と契約追加後の限定検証を行う。image探索路または`kritaimage_EXPORTS`の再追加、公開識別子変化、SIP暗黙依存、Qt Widgets動的link、製品objectの広域再構築が必要なら停止する。
+- `g195-scratchpad-schema`の状態は`integrated`、構築実行許可は`granted`である。第一受渡しcommit`73e77e4ad4`を統合commit`293dc8d63a`として取り込み、`libs/libkis/Scratchpad.h`から未使用`kis_types.h` includeだけを除去した。公開API総数・指紋を維持し、直接利用元、MOC・SIP source、`Scratchpad.cpp`の構文を確認した。製品objectの厳密指定は1,972工程・3,943入力へ広がるため実行しなかった。第二受渡しcommit`eb758f37f3`を統合commit`5fb677fa9c`として取り込み、残存全31 APIを`libs/libkis/tests/ViewSchemaContractTest.cpp`の5枠へ対応付け、Qt Widgetsのinterface探索路だけを追加した。動的linkを増やさず4工程・8入力を維持し、5枠の各20回反復、対象・近傍CTest、無作業再構築、動的接続・AUTOMOC・未解決記号、構文・書式、公開API検査、`verify-quick`に成功した。台帳は19,049件対応、10,789件未対応となった。cleanな作業tree`/Users/masato/Documents/librepaint-g195-scratchpad-schema`と担当構築木は統合後に削除する。
 
 ### 第194便の先行監査担当票
 

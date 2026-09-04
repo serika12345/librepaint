@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 10820
+    "expectedMissingApis": 10789
   },
   "contracts": [
     {
@@ -53377,6 +53377,82 @@
         "method:KoCssStylePreset::resourceType() const",
         "method:KoCssStylePreset::saveToDevice(QIODevice * dev) const",
         "method:KoCssStylePreset::updateThumbnail()"
+      ]
+    },
+    {
+      "target": "ViewSchemaContractTest",
+      "source": "libs/libkis/tests/ViewSchemaContractTest.cpp",
+      "test": "ViewSchemaContractTest::scratchpadTypeLifetimeAndModeSchemaRemainStable",
+      "behavior": "scratchpadはView、既定色、任意の親Widgetから構築されるWidgetとして仮想寿命を持ち、描画色と操作modeを設定する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:Scratchpad",
+        "method:Scratchpad::Scratchpad(View * view,const QColor & defaultColor,QWidget * parent=0)",
+        "method:Scratchpad::setFillColor(QColor color)",
+        "method:Scratchpad::setMode(QString modeName)",
+        "method:Scratchpad::setModeManually(bool value)",
+        "method:Scratchpad::~Scratchpad()"
+      ]
+    },
+    {
+      "target": "ViewSchemaContractTest",
+      "source": "libs/libkis/tests/ViewSchemaContractTest.cpp",
+      "test": "ViewSchemaContractTest::scratchpadFillSignaturesRemainStable",
+      "behavior": "scratchpadは消去、既定・背景・前景・透明色、文書・layer、指定gradient、変換済みpatternで内容を埋める公開署名と既定引数を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:Scratchpad::clear()",
+        "method:Scratchpad::fillBackground()",
+        "method:Scratchpad::fillDefault()",
+        "method:Scratchpad::fillDocument(bool fullContent=true)",
+        "method:Scratchpad::fillForeground()",
+        "method:Scratchpad::fillGradient(const QPoint & gradientVectorStart=QPoint (),const QPoint & gradientVectorEnd=QPoint (),const QString & gradientShape=\"linear\",const QString & gradientRepeat=\"none\",bool reverseGradient=false,bool dither=false)",
+        "method:Scratchpad::fillLayer(bool fullContent=true)",
+        "method:Scratchpad::fillPattern(QTransform transform=QTransform ())",
+        "method:Scratchpad::fillTransparent()"
+      ]
+    },
+    {
+      "target": "ViewSchemaContractTest",
+      "source": "libs/libkis/tests/ViewSchemaContractTest.cpp",
+      "test": "ViewSchemaContractTest::scratchpadZoomAndScaleSignaturesRemainStable",
+      "behavior": "scratchpadはcanvas倍率との連動状態と表示倍率を照会・設定し、内容への適合と既定倍率への復帰を要求する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:Scratchpad::canvasZoomLink()",
+        "method:Scratchpad::linkCanvasZoom(bool value)",
+        "method:Scratchpad::scale()",
+        "method:Scratchpad::scaleReset()",
+        "method:Scratchpad::scaleToFit()",
+        "method:Scratchpad::setCanvasZoomLink(bool value)",
+        "method:Scratchpad::setScale(qreal scale) const"
+      ]
+    },
+    {
+      "target": "ViewSchemaContractTest",
+      "source": "libs/libkis/tests/ViewSchemaContractTest.cpp",
+      "test": "ViewSchemaContractTest::scratchpadPanImageAndBoundsSignaturesRemainStable",
+      "behavior": "scratchpadは指定座標または中央へ移動し、画像を受け渡し、表示領域と内容領域を公開する署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:Scratchpad::contentBounds() const",
+        "method:Scratchpad::copyScratchpadImageData()",
+        "method:Scratchpad::loadScratchpadImage(QImage image)",
+        "method:Scratchpad::panCenter()",
+        "method:Scratchpad::panTo(qint32 x,qint32 y)",
+        "method:Scratchpad::viewportBounds() const"
+      ]
+    },
+    {
+      "target": "ViewSchemaContractTest",
+      "source": "libs/libkis/tests/ViewSchemaContractTest.cpp",
+      "test": "ViewSchemaContractTest::scratchpadNotificationSignaturesRemainStable",
+      "behavior": "scratchpadは倍率、内容、表示領域の変更を公開signalで通知する署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:Scratchpad::contentChanged()",
+        "method:Scratchpad::scaleChanged(qreal scale)",
+        "method:Scratchpad::viewportChanged(const QRect rect)"
       ]
     }
   ]
