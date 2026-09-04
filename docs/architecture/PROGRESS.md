@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 01:39 JST
+- 更新日時: 2026-09-05 01:45 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -383,7 +383,8 @@
 - `g213-transform-state-schema`の状態は`integrated`である。開始`plugins/tools/tool_transform2/tool_transform_args.h`の残存全13 APIと`KisAnimatedTransformMaskParamsHolder.h`の残存全14 APIを、新規`plugins/tools/tool_transform2/tests/ToolTransformStateSchemaContractTest.cpp`の5枠`transformArgsTypeLifetimeAndConstructionSchemaRemainStable`、`transformArgsExternalSourceFilterAndPersistenceSchemaRemainStable`、`animatedTransformHolderTypeLifetimeAndConstructionSchemaRemainStable`、`animatedTransformHolderStateBoundsAndKeyframeSchemaRemainStable`、`animatedTransformHolderCloneBakeAndMutationSchemaRemainStable`へ6・7・4・6・4件で対応付けた。受渡しcommit`abf6dd835c`を統合commit`5eb1a1614a`として取り込み、公開headerと製品sourceは変更していない。
 - 担当側と中央のmacOSで追加5枠を各20回、対象`plugins-tools-tool_transform2-ToolTransformStateSchemaContractTest`と近傍`plugins-tools-tool_transform2-ToolTransformArgsGeometrySchemaContractTest`、AUTOMOC後の二回目計画、無作業再構築2回に成功した。4工程・9入力、AUTOMOC `HEADERS=[]`、Qt Core・Gui・TestとKF I18nだけの動的接続、製品未解決記号なしを維持し、台帳は20,582件対応、9,256件未対応となった。変形処理、保持値の更新、keyframe生成、cache同期の実行結果は別の効果契約で扱う。
 - cleanな専用作業tree、296,284 KiBの構築木、branchを統合直後に削除し、886,112 KiBを回収した。主Ninja木5,730,128 KiBと共有compiler cache 982,536 KiBをcanvas animation state契約へ再利用する。次の永続作業は、既存再生engine契約への24 API追加を担当票へ確定し、専用作業treeで実装することである。
-- `g213-canvas-animation-state-schema`の状態は`implementing`、担当は`/root/g208_raster_keyframe_schema`、基点は`35e20a844f`、作業treeは`/Users/masato/Documents/librepaint-g213-canvas-animation-state-schema`である。開始`libs/ui/canvas/KisCanvasAnimationState.h`の残存全24 APIを、既存`libs/ui/tests/KisPlaybackEngineSchemaContractTest.cpp`の5枠へ型・寿命・再生列挙7、再生・media 6、速度・frame・audio設定4、再生通知5、audio・取消通知2として対応付ける。許可pathは既存試験sourceと`libs/ui/tests/CMakeLists.txt`の対象固有節だけで、公開headerと製品sourceを変更しない。対象固有節へheader-only Boost、image source/generated探索路、`kritaimage_EXPORTS`だけを加え、Qt Core・Testだけの動的接続、4工程・8入力を維持する。
+- `g213-canvas-animation-state-schema`の状態は`implementing`、担当は`/root/g208_raster_keyframe_schema`、基点は`35e20a844f`、作業treeは`/Users/masato/Documents/librepaint-g213-canvas-animation-state-schema`である。開始`libs/ui/canvas/KisCanvasAnimationState.h`の残存全24 APIを、既存`libs/ui/tests/KisPlaybackEngineSchemaContractTest.cpp`の5枠へ型・寿命・再生列挙7、再生・media 6、速度・frame・audio設定4、再生通知5、audio・取消通知2として対応付ける。許可pathは既存試験sourceと`libs/ui/tests/CMakeLists.txt`の対象固有節だけで、公開headerと製品sourceを変更しない。対象固有節へheader-only Boost、image・globalのsource/generated探索路、`kritaimage_EXPORTS`だけを加え、Qt Core・Testだけの動的接続、4工程・8入力を維持する。
+- 最初の赤段階は、計画済みのimage探索路だけでは`KisCanvasAnimationState.h`から`kis_time_span.h`、`kis_types.h`を経由して参照する`libs/global/kis_shared_ptr.h`を解決できないことを示した。`kritaimage`は`kritaglobal`を公開依存とし、既存`kritaimagetimespanvalueobjects`もglobal source/generated探索路を公開しているため、これは製品headerの自己完結性欠陥ではなく、製品libraryを接続しない静的契約targetのcompile interface不足である。動的link、工程数、入力数を増やさず、対象固有節にglobal source/generated探索路だけを補う。
 - canvas animation state担当は、5工程・11入力超過、計画外の探索路・定義・動的link、候補headerのAUTOMOC入力化、製品shared・OBJECT・`kritatestsdk`接続、canvas・animation state・frame display・time span関連の製品未解決記号、対象値・QObject本文・signal本文の実体化・実行、許可path外変更が必要なら停止する。旧binaryで追加5枠が未知であること、宣言段階の初期失敗、追加5枠の単発と各20回反復、対象と軽量近傍、AUTOMOC後の二回目計画、無作業再構築2回、動的接続・未解決記号・構文・書式、公開API検査、`verify-quick`を確認する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
 
 ### 第214便の先行監査担当票（第213便確定待ち）
