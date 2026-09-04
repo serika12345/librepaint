@@ -3,7 +3,12 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "SvgTextChangeTransformsOnRange.h"
 #include "SvgTextCursor.h"
+#include "SvgTextInsertCommand.h"
+#include "SvgTextInsertRichCommand.h"
+#include "SvgTextMergePropertiesRangeCommand.h"
+#include "SvgTextRemoveCommand.h"
 
 #include <QTest>
 
@@ -16,6 +21,8 @@ namespace
     static_assert(std::is_same_v<decltype(static_cast<signature>(&SvgTextCursor::method)), signature>)
 #define ASSERT_PROPERTY_INTERFACE_SIGNATURE(method, signature)                                                         \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&SvgTextCursorPropertyInterface::method)), signature>)
+#define ASSERT_SVG_TEXT_COMMAND_SIGNATURE(command, method, signature)                                                  \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&command::method)), signature>)
 } // namespace
 
 class SvgTextCursorPropertySchemaContractTest : public QObject
@@ -28,6 +35,11 @@ private Q_SLOTS:
     void svgTextCursorPropertyBridgeSignaturesRemainStable();
     void svgTextCursorPropertyInterfaceQuerySignaturesRemainStable();
     void svgTextCursorPropertyInterfaceMutationSignaturesRemainStable();
+    void svgTextChangeTransformsOnRangeSchemaRemainStable();
+    void svgTextInsertCommandSchemaRemainStable();
+    void svgTextMergePropertiesRangeCommandSchemaRemainStable();
+    void svgTextRemoveCommandSchemaRemainStable();
+    void svgTextInsertRichCommandSchemaRemainStable();
 };
 
 void SvgTextCursorPropertySchemaContractTest::svgTextCursorIdentityAndShapeSignaturesRemainStable()
@@ -129,6 +141,136 @@ void SvgTextCursorPropertySchemaContractTest::svgTextCursorPropertyInterfaceMuta
     static_assert(std::is_same_v<decltype(std::declval<SvgTextCursorPropertyInterface &>().setPropertiesOnSelected(
                                      std::declval<KoSvgTextProperties>())),
                                  void>);
+}
+
+void SvgTextCursorPropertySchemaContractTest::svgTextChangeTransformsOnRangeSchemaRemainStable()
+{
+    using Command = SvgTextChangeTransformsOnRange;
+    using OffsetType = Command::OffsetType;
+
+    static_assert(std::is_class_v<Command>);
+    static_assert(std::is_base_of_v<KUndo2Command, Command>);
+    static_assert(std::has_virtual_destructor_v<Command>);
+    static_assert(std::is_enum_v<OffsetType>);
+    static_assert(static_cast<int>(OffsetType::OffsetAll) == 0);
+    static_assert(static_cast<int>(OffsetType::ScaleAndRotate) == 1);
+    static_assert(static_cast<int>(OffsetType::ScaleOnly) == 2);
+    static_assert(static_cast<int>(OffsetType::RotateOnly) == 3);
+
+    static_assert(
+        std::is_constructible_v<Command, KoSvgTextShape *, int, int, QPointF, OffsetType, bool, KUndo2Command *>);
+    static_assert(std::is_constructible_v<Command,
+                                          KoSvgTextShape *,
+                                          int,
+                                          int,
+                                          QVector<QPointF>,
+                                          QVector<qreal>,
+                                          bool,
+                                          KUndo2Command *>);
+    static_assert(std::is_same_v<decltype(Command(std::declval<KoSvgTextShape *>(),
+                                                  0,
+                                                  0,
+                                                  std::declval<QPointF>(),
+                                                  OffsetType::OffsetAll,
+                                                  false)),
+                                 Command>);
+    static_assert(std::is_same_v<decltype(Command(std::declval<KoSvgTextShape *>(),
+                                                  0,
+                                                  0,
+                                                  std::declval<QVector<QPointF>>(),
+                                                  std::declval<QVector<qreal>>(),
+                                                  false)),
+                                 Command>);
+
+    ASSERT_SVG_TEXT_COMMAND_SIGNATURE(Command,
+                                      getTransformForOffset,
+                                      QTransform (*)(KoSvgTextShape *, int, int, QPointF, OffsetType));
+    ASSERT_SVG_TEXT_COMMAND_SIGNATURE(Command, id, int (Command::*)() const);
+    ASSERT_SVG_TEXT_COMMAND_SIGNATURE(Command, mergeWith, bool (Command::*)(const KUndo2Command *));
+    ASSERT_SVG_TEXT_COMMAND_SIGNATURE(Command, redo, void (Command::*)());
+    ASSERT_SVG_TEXT_COMMAND_SIGNATURE(Command, undo, void (Command::*)());
+}
+
+void SvgTextCursorPropertySchemaContractTest::svgTextInsertCommandSchemaRemainStable()
+{
+    using Command = SvgTextInsertCommand;
+
+    static_assert(std::is_class_v<Command>);
+    static_assert(std::is_base_of_v<KUndo2Command, Command>);
+    static_assert(std::has_virtual_destructor_v<Command>);
+    static_assert(std::is_constructible_v<Command, KoSvgTextShape *, int, int, QString, KUndo2Command *>);
+    static_assert(
+        std::is_same_v<decltype(Command(std::declval<KoSvgTextShape *>(), 0, 0, std::declval<QString>())), Command>);
+
+    ASSERT_SVG_TEXT_COMMAND_SIGNATURE(Command, filterInputUnicodeString, QString (*)(QString));
+    ASSERT_SVG_TEXT_COMMAND_SIGNATURE(Command, id, int (Command::*)() const);
+    ASSERT_SVG_TEXT_COMMAND_SIGNATURE(Command, mergeWith, bool (Command::*)(const KUndo2Command *));
+    ASSERT_SVG_TEXT_COMMAND_SIGNATURE(Command, redo, void (Command::*)());
+    ASSERT_SVG_TEXT_COMMAND_SIGNATURE(Command, undo, void (Command::*)());
+}
+
+void SvgTextCursorPropertySchemaContractTest::svgTextMergePropertiesRangeCommandSchemaRemainStable()
+{
+    using Command = SvgTextMergePropertiesRangeCommand;
+    using PropertySet = QSet<KoSvgTextProperties::PropertyId>;
+
+    static_assert(std::is_class_v<Command>);
+    static_assert(std::is_base_of_v<KUndo2Command, Command>);
+    static_assert(std::has_virtual_destructor_v<Command>);
+    static_assert(
+        std::
+            is_constructible_v<Command, KoSvgTextShape *, KoSvgTextProperties, int, int, PropertySet, KUndo2Command *>);
+    static_assert(
+        std::is_same_v<decltype(Command(std::declval<KoSvgTextShape *>(), std::declval<KoSvgTextProperties>(), 0, 0)),
+                       Command>);
+    static_assert(std::is_same_v<decltype(Command(std::declval<KoSvgTextShape *>(),
+                                                  std::declval<KoSvgTextProperties>(),
+                                                  0,
+                                                  0,
+                                                  std::declval<PropertySet>())),
+                                 Command>);
+
+    ASSERT_SVG_TEXT_COMMAND_SIGNATURE(Command, id, int (Command::*)() const);
+    ASSERT_SVG_TEXT_COMMAND_SIGNATURE(Command, mergeWith, bool (Command::*)(const KUndo2Command *));
+    ASSERT_SVG_TEXT_COMMAND_SIGNATURE(Command, redo, void (Command::*)());
+    ASSERT_SVG_TEXT_COMMAND_SIGNATURE(Command, undo, void (Command::*)());
+}
+
+void SvgTextCursorPropertySchemaContractTest::svgTextRemoveCommandSchemaRemainStable()
+{
+    using Command = SvgTextRemoveCommand;
+
+    static_assert(std::is_class_v<Command>);
+    static_assert(std::is_base_of_v<KUndo2Command, Command>);
+    static_assert(std::has_virtual_destructor_v<Command>);
+    static_assert(std::is_constructible_v<Command, KoSvgTextShape *, int, int, int, int, bool, KUndo2Command *>);
+    static_assert(std::is_same_v<decltype(Command(std::declval<KoSvgTextShape *>(), 0, 0, 0, 0)), Command>);
+    static_assert(std::is_same_v<decltype(Command(std::declval<KoSvgTextShape *>(), 0, 0, 0, 0, true)), Command>);
+
+    ASSERT_SVG_TEXT_COMMAND_SIGNATURE(Command, id, int (Command::*)() const);
+    ASSERT_SVG_TEXT_COMMAND_SIGNATURE(Command, mergeWith, bool (Command::*)(const KUndo2Command *));
+    ASSERT_SVG_TEXT_COMMAND_SIGNATURE(Command, redo, void (Command::*)());
+    ASSERT_SVG_TEXT_COMMAND_SIGNATURE(Command, undo, void (Command::*)());
+}
+
+void SvgTextCursorPropertySchemaContractTest::svgTextInsertRichCommandSchemaRemainStable()
+{
+    using Command = SvgTextInsertRichCommand;
+
+    static_assert(std::is_class_v<Command>);
+    static_assert(std::is_base_of_v<KUndo2Command, Command>);
+    static_assert(std::has_virtual_destructor_v<Command>);
+    static_assert(
+        std::is_constructible_v<Command, KoSvgTextShape *, KoSvgTextShape *, int, int, bool, KUndo2Command *>);
+    static_assert(
+        std::is_same_v<decltype(Command(std::declval<KoSvgTextShape *>(), std::declval<KoSvgTextShape *>(), 0, 0)),
+                       Command>);
+    static_assert(std::is_same_v<
+                  decltype(Command(std::declval<KoSvgTextShape *>(), std::declval<KoSvgTextShape *>(), 0, 0, false)),
+                  Command>);
+
+    ASSERT_SVG_TEXT_COMMAND_SIGNATURE(Command, redo, void (Command::*)());
+    ASSERT_SVG_TEXT_COMMAND_SIGNATURE(Command, undo, void (Command::*)());
 }
 
 QTEST_APPLESS_MAIN(SvgTextCursorPropertySchemaContractTest)
