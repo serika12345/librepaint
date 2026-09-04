@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-04 17:20 JST
+- 更新日時: 2026-09-04 17:34 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -120,7 +120,7 @@
 
 - 実装共通基点は`9bba3be3ac`である。一度に一つだけ作る専用worktree-local `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有し、`./scripts/run-shared-test-env`で読み込み済み環境を使う。各担当のGit権限は許可pathだけの受渡しcommit、追加委任は禁止する。画像変更transaction、tool activation管理、資源選択の順に限定検証・統合・削除し、調整担当だけが文書、公開API台帳、共通不足報告を変更する。製品target、全体build・`verify`、Linux、Nix再評価は禁止する。
 - `g205-transaction-schema`の状態は`integrated`、macOSの対象・近傍に限る構築実行許可は`granted`である。正式不足報告の`libs/image/kis_transaction.h`残存全20 APIを、既存`libs/image/tests/KisStrokeStrategyUndoCommandBasedSchemaContractTest.cpp`の5枠`transactionTypeFlagsAndLifetimeSchemaRemainStable`、`transactionConstructionAndMoveSchemaRemainStable`、`transactionCompletionAndInspectionSignaturesRemainStable`、`transactionCommitAndRevertSignaturesRemainStable`、`selectionTransactionTypeAndConstructionSchemaRemainStable`へ6・4・4・3・3件で対応付けた。最初のexact buildは`kis_paint_device.h`から`KoColorConversionTransformation.h`を解決できず、pigment探索路補正後は未使用の`kis_image_config.h`から`kconfiggroup.h`を解決できず停止した。先行commit`cdacfc46e2`で`libs/image/kis_transaction.h`から設定依存だけを除去し、inline実装に必要なpaint deviceとpixel selectionの完全型は保持した。受渡しcommit`3713566b40`を統合commit`f98aceabd7`として取り込み、対象固有節にはpigment source/generated探索路と`kritapigment_EXPORTS`だけを追加した。担当側で追加5枠を各20回、全対象12件と近傍を実行し、中央でも対象と近傍、AUTOMOC後の二回目計画と無作業再構築に成功した。4工程・8入力、Qt Core・Testだけの動的接続、AUTOMOC `HEADERS=[]`、製品非接続を維持し、台帳は19,817件対応、10,021件未対応となった。専用作業tree、292,928 KiBの構築木、branchを統合直後に削除し、882,336 KiBを回収した。
-- `g205-tool-manager-schema`の状態は`implementing`、macOSの対象・近傍に限る構築実行許可は`granted`で、基点`6d490c78d9`の作業tree`/Users/masato/Documents/librepaint-g205-tool-manager-schema`を所有する。正式不足報告の`libs/flake/KoToolManager.h`残存全49 APIを、新規`libs/flake/tests/KoToolManagerSchemaContractTest.cpp`の5枠`toolActionTypeLifetimeAndActivationSchemaRemainStable`、`toolActionMetadataSignaturesRemainStable`、`toolManagerTypeLifetimeAndControllerSignaturesRemainStable`、`toolManagerActivationAndResourceSignaturesRemainStable`、`toolManagerSwitchingAndNotificationSignaturesRemainStable`へ5・10・11・10・13件で対応付ける。許可pathは新規試験sourceと`libs/flake/tests/CMakeLists.txt`の新target固有節だけで、flake source/generated、Qt Gui interface、`kritaflake_EXPORTS`だけを追加でき、直接linkはQt Core・Testとheader-only Boostに限定する。対象`KoToolManagerSchemaContractTest`、正式CTest`libs-flake-KoToolManagerSchemaContractTest`、近傍`KoToolBaseSchemaContractTest`である。4工程・8入力を予測し、5工程・11入力超過、指定外探索路・link・定義、Qt Gui・Widgets動的接続、AUTOMOC入力化、製品接続、実体化・本文実行が必要なら停止する。
+- `g205-tool-manager-schema`の状態は`integrated`、macOSの対象・近傍に限る構築実行許可は`granted`である。正式不足報告の`libs/flake/KoToolManager.h`残存全49 APIを、新規`libs/flake/tests/KoToolManagerSchemaContractTest.cpp`の5枠`toolActionTypeLifetimeAndActivationSchemaRemainStable`、`toolActionMetadataSignaturesRemainStable`、`toolManagerTypeLifetimeAndControllerSignaturesRemainStable`、`toolManagerActivationAndResourceSignaturesRemainStable`、`toolManagerSwitchingAndNotificationSignaturesRemainStable`へ5・10・11・10・13件で対応付けた。旧binary不存在後、宣言だけの5枠が未定義symbolとなる初回redを記録した。受渡しcommit`808e200f77`を統合commit`93c819db71`として取り込み、担当側で追加5枠を各20回、対象と近傍を実行し、中央でも対象と近傍、AUTOMOC後の二回目計画と無作業再構築に成功した。flake source/generated、Qt Gui interface、`kritaflake_EXPORTS`だけによる4工程・8入力、Qt Core・Testだけの動的接続、AUTOMOC `HEADERS=[]`、製品非接続を維持し、台帳は19,866件対応、9,972件未対応となった。cleanな専用作業tree、292,180 KiBの構築木、branchを統合直後に削除し、881,608 KiBを回収した。
 - `g205-resource-selection-schema`の状態は`planned`、構築実行許可は`withheld`である。正式不足報告の`libs/widgets/KoResourceServerProvider.h`と`KoResourcePopupAction.h`残存全21 APIを、新規`libs/widgets/tests/KoResourceSelectionSchemaContractTest.cpp`の5枠`resourceServerProviderTypeAndLifetimeSchemaRemainStable`、`resourceServerProviderAccessSignaturesRemainStable`、`resourcePopupActionTypeLifetimeAndControlSchemaRemainStable`、`resourcePopupActionBackgroundSignaturesRemainStable`、`resourcePopupActionResourceSignaturesRemainStable`へ4・7・5・3・2件で対応付ける。許可pathは新規試験sourceと`libs/widgets/tests/CMakeLists.txt`の新target固有節だけで、先行監査結果のsource/generated・interface探索路とexport定義だけを追加でき、直接linkはQt Core・Gui・Testに限定する。対象`KoResourceSelectionSchemaContractTest`、正式CTest`libs-widgets-KoResourceSelectionSchemaContractTest`、近傍`KisColorSelectionControlSchemaContractTest`である。4工程・8入力を予測し、5工程・11入力超過、指定外探索路・link・定義、Qt Widgets・KF・製品libraryの動的接続、AUTOMOC入力化、製品接続、実体化・本文実行が必要なら停止する。
 
 ### 第206便の先行監査担当票（第205便確定待ち）
@@ -129,8 +129,8 @@
 - `g206-flake-contract-audit`の状態は`completed`で、flake・SVG・vector領域からtool interaction strategy 23 APIを選定した。
 - `g206-ui-contract-audit`の状態は`completed`で、widgetutils・widgets・libkis領域からスクリプト向け画像node 71 APIを選定した。
 - `g206-image-contract-audit`の状態は`completed`で、image・paintop・pigment領域から更新・stroke実行調停42 APIを選定した。
-- `g206-node-closure-review`の状態は`auditing`で、`libs/libkis/Node.h`の71 API案について、既存`ColorizeMaskSchemaContractTest`との直接include閉包、header静的値初期化、5枠の完全性、4工程・8入力と製品非接続の成立条件を独立に読み取り専用レビューする。変更、構成、構築、試験、Git操作、追加委任は行わない。
-- `g206-update-scheduler-closure-review`の状態は`auditing`で、`libs/image/kis_update_scheduler.h`の42 API案について、必要な完全型・探索路、5枠の完全性、軽量近傍、4工程・8入力と製品非接続の成立条件を独立に読み取り専用レビューする。変更、構成、構築、試験、Git操作、追加委任は行わない。
+- `g206-node-closure-review`の状態は`completed`で、`libs/libkis/Node.h`の71 APIは5枠へ重複なく対応でき、既存`ColorizeMaskSchemaContractTest`と同じ4工程・8入力、Qt Core・Testだけの動的接続、製品非接続を維持できることを独立確認した。`PaintingResources.h`の内部結合`QString` 2値はheader取込み時に静的初期化されるため、Node・画像・描画stroke等の製品型を実体化しない境界とは区別して正式計画へ明記する。
+- `g206-update-scheduler-closure-review`の状態は`completed`で、`libs/image/kis_update_scheduler.h`の42 APIは5枠へ重複なく対応でき、新規対象をimage・global探索路、`kritaimage_EXPORTS`、Qt Core・Testとheader-only Boostだけによる4工程・8入力に限定できることを独立確認した。近傍からpainting/undoとKF I18n探索路をコピーせず、重い既存実行試験は動作契約として分離する。
 
 ### 第201便の先行監査担当票
 

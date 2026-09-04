@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 10021
+    "expectedMissingApis": 9972
   },
   "contracts": [
     {
@@ -55481,6 +55481,100 @@
         "class:KisSelectionTransaction",
         "method:KisSelectionTransaction::KisSelectionTransaction(KisPixelSelectionSP pixelSelection,KUndo2Command * parent=0)",
         "method:KisSelectionTransaction::KisSelectionTransaction(const KUndo2MagicString & name,KisPixelSelectionSP pixelSelection,KUndo2Command * parent=0)"
+      ]
+    },
+    {
+      "target": "KoToolManagerSchemaContractTest",
+      "source": "libs/flake/tests/KoToolManagerSchemaContractTest.cpp",
+      "test": "KoToolManagerSchemaContractTest::toolActionTypeLifetimeAndActivationSchemaRemainStable",
+      "behavior": "工具actionはQObject派生としてfactoryから構築・仮想破棄され、起動と変更通知に関する公開契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoToolAction",
+        "method:KoToolAction::KoToolAction(KoToolFactoryBase * toolFactory)",
+        "method:KoToolAction::changed()",
+        "method:KoToolAction::trigger()",
+        "method:KoToolAction::~KoToolAction()"
+      ]
+    },
+    {
+      "target": "KoToolManagerSchemaContractTest",
+      "source": "libs/flake/tests/KoToolManagerSchemaContractTest.cpp",
+      "test": "KoToolManagerSchemaContractTest::toolActionMetadataSignaturesRemainStable",
+      "behavior": "工具actionは所属group、表示情報、識別子、優先度、shortcut、factory、可視性条件に関する公開照会署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoToolAction::buttonGroupId() const",
+        "method:KoToolAction::iconName() const",
+        "method:KoToolAction::iconText() const",
+        "method:KoToolAction::id() const",
+        "method:KoToolAction::priority() const",
+        "method:KoToolAction::section() const",
+        "method:KoToolAction::shortcut() const",
+        "method:KoToolAction::toolFactory() const",
+        "method:KoToolAction::toolTip() const",
+        "method:KoToolAction::visibilityCode() const"
+      ]
+    },
+    {
+      "target": "KoToolManagerSchemaContractTest",
+      "source": "libs/flake/tests/KoToolManagerSchemaContractTest.cpp",
+      "test": "KoToolManagerSchemaContractTest::toolManagerTypeLifetimeAndControllerSignaturesRemainStable",
+      "behavior": "工具管理器はQObject派生singletonとして構築・仮想破棄され、canvas controllerの登録・解除・変更通知とprivate状態照会に関する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoToolManager",
+        "method:KoToolManager::KoToolManager()",
+        "method:KoToolManager::activeCanvasController() const",
+        "method:KoToolManager::addController(KoCanvasController * controller)",
+        "method:KoToolManager::attemptCanvasControllerRemoval(QObject * controller)",
+        "method:KoToolManager::changedCanvas(const KoCanvasBase * canvas)",
+        "method:KoToolManager::currentLayerChanged(const KoCanvasController * canvas,const KoShapeLayer * layer)",
+        "method:KoToolManager::instance()",
+        "method:KoToolManager::priv()",
+        "method:KoToolManager::removeCanvasController(KoCanvasController * controller)",
+        "method:KoToolManager::~KoToolManager()"
+      ]
+    },
+    {
+      "target": "KoToolManagerSchemaContractTest",
+      "source": "libs/flake/tests/KoToolManagerSchemaContractTest.cpp",
+      "test": "KoToolManagerSchemaContractTest::toolManagerActivationAndResourceSignaturesRemainStable",
+      "behavior": "工具管理器は現在の工具・入力装置、工具actionと図形適合工具の照会、初期化・起動要求、資源converter設定に関する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoToolManager::activeToolId() const",
+        "method:KoToolManager::currentInputDevice() const",
+        "method:KoToolManager::initializeCurrentToolForCanvas()",
+        "method:KoToolManager::initializeToolActions()",
+        "method:KoToolManager::preferredToolForSelection(const QList<KoShape * > & shapes)",
+        "method:KoToolManager::requestToolActivation(KoCanvasController * controller)",
+        "method:KoToolManager::setAbstractResource(KoAbstractCanvasResourceInterfaceSP abstractResource,KoToolBase * tool)",
+        "method:KoToolManager::setConverter(KoDerivedResourceConverterSP converter,KoToolBase * tool)",
+        "method:KoToolManager::toolActionList() const",
+        "method:KoToolManager::toolById(KoCanvasBase * canvas,const QString & id) const"
+      ]
+    },
+    {
+      "target": "KoToolManagerSchemaContractTest",
+      "source": "libs/flake/tests/KoToolManagerSchemaContractTest.cpp",
+      "test": "KoToolManagerSchemaContractTest::toolManagerSwitchingAndNotificationSignaturesRemainStable",
+      "behavior": "工具管理器は工具切替、入力装置切替、不透明度資源生成、状態・option widget・選択型の通知に関する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoToolManager::aboutToChangeTool(KoCanvasController * canvas)",
+        "method:KoToolManager::addedTool(KoToolAction * toolAction,KoCanvasController * canvas)",
+        "method:KoToolManager::changedStatusText(const QString & statusText)",
+        "method:KoToolManager::changedTool(KoCanvasController * canvas)",
+        "method:KoToolManager::createOpacityResource(bool isOpacityPresetMode,KoToolBase * tool)",
+        "method:KoToolManager::inputDeviceChanged(const KoInputDevice & device)",
+        "method:KoToolManager::switchBackRequested()",
+        "method:KoToolManager::switchInputDeviceRequested(const KoInputDevice & id)",
+        "method:KoToolManager::switchToolRequested(const QString & id)",
+        "method:KoToolManager::textModeChanged(bool text)",
+        "method:KoToolManager::themeChanged()",
+        "method:KoToolManager::toolCodesSelected(const QList<QString> & types)",
+        "method:KoToolManager::toolOptionWidgetsChanged(KoCanvasController * controller,const QList<QPointer<QWidget>> & widgets)"
       ]
     }
   ]
