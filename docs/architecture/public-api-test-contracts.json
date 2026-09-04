@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 8916
+    "expectedMissingApis": 8896
   },
   "contracts": [
     {
@@ -58206,6 +58206,71 @@
         "class:MouseClickIgnore",
         "method:MouseClickIgnore::MouseClickIgnore(QObject * parent=nullptr)",
         "method:MouseClickIgnore::eventFilter(QObject * obj,QEvent * event)"
+      ]
+    },
+    {
+      "target": "SvgPresentationSchemaContractTest",
+      "source": "libs/flake/tests/SvgPresentationSchemaContractTest.cpp",
+      "test": "SvgPresentationSchemaContractTest::svgGraphicsContextConstructionAndInheritedFillSchemaRemainStable",
+      "behavior": "SVG描画文脈は既定・copy構築でき、継承した塗りの状態を解除する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:SvgGraphicsContext::SvgGraphicsContext()",
+        "method:SvgGraphicsContext::SvgGraphicsContext(const SvgGraphicsContext & gc)",
+        "method:SvgGraphicsContext::workaroundClearInheritedFillProperties()"
+      ]
+    },
+    {
+      "target": "SvgPresentationSchemaContractTest",
+      "source": "libs/flake/tests/SvgPresentationSchemaContractTest.cpp",
+      "test": "SvgPresentationSchemaContractTest::shapePainterTypeLifetimeAndConstructionSchemaRemainStable",
+      "behavior": "図形描画器は公開型として既定構築と破棄ができる寿命契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoShapePainter",
+        "method:KoShapePainter::KoShapePainter()",
+        "method:KoShapePainter::~KoShapePainter()"
+      ]
+    },
+    {
+      "target": "SvgPresentationSchemaContractTest",
+      "source": "libs/flake/tests/SvgPresentationSchemaContractTest.cpp",
+      "test": "SvgPresentationSchemaContractTest::shapePainterConfigurationAndRenderingSignaturesRemainStable",
+      "behavior": "図形描画器は対象図形と更新通知を設定し、内容領域・内部管理器を照会して画像または描画器へ出力する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShapePainter::contentRect() const",
+        "method:KoShapePainter::internalShapeManager() const",
+        "method:KoShapePainter::paint(QImage & image)",
+        "method:KoShapePainter::paint(QPainter & painter)",
+        "method:KoShapePainter::paint(QPainter & painter,const QRect & painterRect,const QRectF & documentRect)",
+        "method:KoShapePainter::setShapes(const QList<KoShape * > & shapes)",
+        "method:KoShapePainter::setUpdateFunction(std::function<void (const QRectF &)> function)"
+      ]
+    },
+    {
+      "target": "SvgPresentationSchemaContractTest",
+      "source": "libs/flake/tests/SvgPresentationSchemaContractTest.cpp",
+      "test": "SvgPresentationSchemaContractTest::svgStyleWriterTypeAndShapePersistenceSchemaRemainStable",
+      "behavior": "SVG様式書込器は図形の埋込み、metadata、および様式保存を提供する公開契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:SvgStyleWriter",
+        "method:SvgStyleWriter::embedShape(const KoShape * shape,SvgSavingContext & context)",
+        "method:SvgStyleWriter::saveMetadata(const KoShape * shape,SvgSavingContext & context)",
+        "method:SvgStyleWriter::saveSvgStyle(KoShape * shape,SvgSavingContext & context)"
+      ]
+    },
+    {
+      "target": "SvgPresentationSchemaContractTest",
+      "source": "libs/flake/tests/SvgPresentationSchemaContractTest.cpp",
+      "test": "SvgPresentationSchemaContractTest::svgStyleWriterPaintStyleSignaturesRemainStable",
+      "behavior": "SVG様式書込器は可視性・透明度・描画順を含む基本様式、塗り、および線を保存する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:SvgStyleWriter::saveSvgBasicStyle(const bool isVisible,const qreal transparency,const QVector<KoShape::PaintOrder> paintOrder,bool inheritPaintorder,SvgSavingContext & context,bool textShape=false)",
+        "method:SvgStyleWriter::saveSvgFill(QSharedPointer<KoShapeBackground> background,const bool fillRuleEvenOdd,const QRectF outlineRect,const QSizeF size,const QTransform absoluteTransform,SvgSavingContext & context)",
+        "method:SvgStyleWriter::saveSvgStroke(KoShapeStrokeModelSP,SvgSavingContext & context)"
       ]
     }
   ]

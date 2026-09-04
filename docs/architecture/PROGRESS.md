@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 05:17 JST
+- 更新日時: 2026-09-05 05:28 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -522,10 +522,17 @@
 - 担当側と中央のmacOSで追加5枠を各20回、対象`libs-image-KisColorizeMaskSchemaContractTest`と近傍`libs-image-KisTransformMaskSchemaContractTest`、AUTOMOC後の計画、無作業再構築2回に成功した。中央閉包は4工程・8入力、AUTOMOC `HEADERS=[]`、Qt Core・Gui・Test・Xmlだけの動的接続、製品未解決記号なしを維持し、台帳は20,899件対応、8,939件未対応となった。cleanな専用作業tree、295,808 KiBの構築木、branchを統合直後に削除し、885,796 KiBを回収した。主Ninja木5,740,140 KiBと共有compiler cache 983,412 KiBをlayer filter契約へ再利用する。mask生成結果、投影更新、layer統合、cache再生成、通知の実行時効果は別契約で扱う。
 - `g217-layer-filter-schema`の状態は`integrated`である。開始`libs/ui/widgets/kis_layer_filter_widget.h`の残存全23 APIを、新規`libs/ui/tests/KisLayerFilterWidgetSchemaContractTest.cpp`の5枠`layerFilterWidgetTypeAndConstructionSchemaRemainStable`、`layerFilterWidgetQueryAndGeometrySignaturesRemainStable`、`layerFilterWidgetMutationPresentationAndNotificationSignaturesRemainStable`、`layerFilterWidgetToolButtonTypeLifetimeAndControlSchemaRemainStable`、`mouseClickIgnoreTypeConstructionAndEventFilterSchemaRemainStable`へ2・8・4・6・3件で対応付けた。受渡しcommit`7f2db82400`を統合commit`0869b6912c`として取り込み、公開headerと製品sourceは変更していない。
 - 担当側と中央のmacOSで追加5枠を各20回、対象`libs-ui-KisLayerFilterWidgetSchemaContractTest`と近傍`libs-ui-KisAsyncColorSamplerHelperSchemaContractTest`、AUTOMOC後の計画、無作業再構築2回に成功した。中央閉包は4工程・8入力、AUTOMOC `HEADERS=[]`、Qt Core・Testだけの動的接続、製品未解決記号なしを維持し、台帳は20,922件対応、8,916件未対応となった。cleanな専用作業tree、294,544 KiBの構築木、branchを統合直後に削除し、884,548 KiBを回収した。主Ninja木5,741,536 KiBと共有compiler cache 982,736 KiBをSVG図形表示契約へ再利用する。widget表示、signal配送、event filterの実行時効果は別契約で扱う。
-- `g217-svg-presentation-schema`の状態は`in_progress`、担当は`/root/g178_shape_hierarchy_schema`、基点は`6f2dd9b4c8`、専用branchは`agent/g217-svg-presentation-schema`、作業treeは`/Users/masato/Documents/librepaint-g217-svg-presentation-schema`である。開始`libs/flake/svg/SvgGraphicContext.h`、`libs/flake/svg/KoShapePainter.h`、`libs/flake/svg/SvgStyleWriter.h`の残存全20 APIを、新規`libs/flake/tests/SvgPresentationSchemaContractTest.cpp`の5枠`svgGraphicsContextConstructionAndInheritedFillSchemaRemainStable`、`shapePainterTypeLifetimeAndConstructionSchemaRemainStable`、`shapePainterConfigurationAndRenderingSignaturesRemainStable`、`svgStyleWriterTypeAndShapePersistenceSchemaRemainStable`、`svgStyleWriterPaintStyleSignaturesRemainStable`へ3・3・7・4・3件で対応付ける。許可pathは新規試験sourceと`libs/flake/tests/CMakeLists.txt`の新target固有節だけで、公開headerと製品sourceを変更しない。
+- `g217-svg-presentation-schema`の状態は`integrated`である。開始`libs/flake/svg/SvgGraphicContext.h`、`libs/flake/svg/KoShapePainter.h`、`libs/flake/svg/SvgStyleWriter.h`の残存全20 APIを、新規`libs/flake/tests/SvgPresentationSchemaContractTest.cpp`の5枠`svgGraphicsContextConstructionAndInheritedFillSchemaRemainStable`、`shapePainterTypeLifetimeAndConstructionSchemaRemainStable`、`shapePainterConfigurationAndRenderingSignaturesRemainStable`、`svgStyleWriterTypeAndShapePersistenceSchemaRemainStable`、`svgStyleWriterPaintStyleSignaturesRemainStable`へ3・3・7・4・3件で対応付けた。受渡しcommit`9867bc88a4`を統合commit`0fa65c8c8b`として取り込み、公開headerと製品sourceは変更していない。
 - 第1枠は`SvgGraphicsContext`の既定・copy構築と継承fill解除、第2枠は`KoShapePainter`型・既定構築・destructor、第3枠は内容領域・内部shape manager・画像描画・painter描画2 overload・shape設定・更新callback、第4枠は`SvgStyleWriter`型・shape埋込み・metadata・SVG様式保存、第5枠は基本様式・fill・stroke保存である。識別子集合SHA-256は`80593bcec7c92605566d98e0c75cb8ad4eb04514939761588cc08a655fd9c813`である。
 - 新targetは`<functional>`を`KoShapePainter.h`より先にincludeし、Qt Core・Testとheader-only Boostだけを直接接続する。flake source・generated探索路、Qt Gui・Xml interface、`kritaflake_EXPORTS`だけを使い、global、painting/undo、KF I18nを加えない。`KoShapeSavingContextSchemaContractTest`を軽量近傍とし、4工程・8入力、停止線5工程・11入力を維持する。最初に新target不存在、次に5枠の宣言だけで同5枠の未定義link失敗を確認し、型特性・厳密な関数pointer・`textShape`既定引数省略の未評価式だけで実装する。
 - 担当は追加5枠の単発と各20回反復、対象`libs-flake-SvgPresentationSchemaContractTest`と近傍`libs-flake-KoShapeSavingContextSchemaContractTest`、AUTOMOC後の二回目計画、無作業再構築2回、動的接続・未解決記号・構文・書式、公開API検査、`verify-quick`を確認する。5工程・11入力超過、計画外の探索路・定義・link、Qt Gui・Xml・KFまたは製品libraryの動的接続、製品shared・OBJECT・`kritatestsdk`の接続、候補headerのAUTOMOC入力化、製品未解決記号、`<functional>`先行includeだけで解析不能、対象・Qt値・callback・inline本文の実体化または実行、許可path外変更が必要なら停止する。macOSの対象限定構築だけを許可し、製品target、全体build・`verify`、Linux、Nix再評価は実行しない。Git権限は許可pathだけの1受渡しcommitで、追加委任は禁止する。
+- 担当側と中央のmacOSで追加5枠を各20回、対象`libs-flake-SvgPresentationSchemaContractTest`と近傍`libs-flake-KoShapeSavingContextSchemaContractTest`、AUTOMOC後の二回目計画、無作業再構築2回に成功した。中央閉包は4工程・8入力、AUTOMOC `HEADERS=[]`、Qt Core・Testだけの動的接続、製品未解決記号なしを維持し、台帳は20,942件対応、8,896件未対応となった。cleanな専用作業tree、295,208 KiBの構築木、branchを統合直後に削除し、886,472 KiBを回収した。描画結果、継承fill解除の効果、SVG永続化内容は既存または将来の動的契約で扱う。
+
+### 第217便の統合結果
+
+- `libs/image/lazybrush/kis_colorize_mask.h`から新規`libs/image/tests/KisColorizeMaskSchemaContractTest.cpp`へ57 API・5枠、`libs/ui/widgets/kis_layer_filter_widget.h`から新規`libs/ui/tests/KisLayerFilterWidgetSchemaContractTest.cpp`へ23 API・5枠、`libs/flake/svg/SvgGraphicContext.h`、`libs/flake/svg/KoShapePainter.h`、`libs/flake/svg/SvgStyleWriter.h`から新規`libs/flake/tests/SvgPresentationSchemaContractTest.cpp`へ20 API・5枠を追加した。公開headerと製品sourceを変更せず、3対象とも4工程・8入力と製品非接続を維持した。
+- 第217便全体で100 APIを15枠へ重複なく対応付け、20,942件対応、8,896件未対応となった。担当側と中央で対象・近傍CTest、各追加枠の20回反復、AUTOMOC後の二回目計画、無作業再構築、動的接続・未解決記号・構文・書式、公開API検査、`verify-quick`に成功した。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 3担当のcleanな専用作業tree、構築木、branchを統合直後に削除し、合計2,656,816 KiBを回収した。主Ninja木5,742,832 KiB、共有compiler cache 982,768 KiB、最新`build/tdd-macos/public-api-missing-g217.json`だけを保持する。次の永続作業は第218便不足報告を生成し、色空間抽象境界、auto levels widget、tool proxy内部状態の候補集合と閉包を再照合することである。
 
 ### 第218便の先行監査担当票（第217便確定待ち）
 
@@ -549,6 +556,17 @@
 - 監査共通基点は`c715242e04`、暫定入力は`build/tdd-macos/public-api-missing-g217.json`である。担当は主作業treeと既存Ninja graphを読み取り専用で利用し、変更、構成、構築、試験、Git操作、追加委任を行わない。正式な第220便不足報告で再照合するまで実装担当票へ進めない。
 - `g221-input-profile-manager-closure-audit`の状態は`completed`である。`libs/input/ui/kis_input_profile_manager.h`の残存全24 API、識別子集合SHA-256 `1d336261b59dbe90df271900c7b1f18d8ba45a6def01cad40b0d772ca5c9888e`、5枠5・3・6・4・6を独立確認した。新規専用targetはinput/ui source・generated探索路、Qt Core・Test、`kritainputui_EXPORTS`だけによる4工程・8入力へ閉じられる。profile filesystem、action実装、canvas、製品input/UIへ接続しない。第220便完了後の正式不足報告で再照合する。
 - `g221-filter-stroke-strategy-closure-audit`の状態は`completed`である。`libs/painting/strokes/kis_filter_stroke_strategy.h`の残存全24 API、識別子集合SHA-256 `464acb3ded62a9db56e2be293b793d42fe65e468689ceb72ed50c27ac81162ec`、5枠4・5・5・5・5を独立確認した。新規専用targetはpainting・image・global・pigment・resources探索路、Eigen・Imath・KF I18n interface、Qt Core・Gui・Test・Xmlとheader-only Boostによる4工程・8入力へ閉じられる。filter、resource snapshot、stroke schedulerの製品実装へ接続せず、1,975工程・3,949入力の既存動的試験を構築しない。第220便完了後の正式不足報告で再照合する。
+
+### 第222便の先行監査担当票（第221便確定待ち）
+
+- 監査共通基点は`5eb25ca5f0`、暫定入力は`build/tdd-macos/public-api-missing-g217.json`である。担当は主作業treeと既存Ninja graphを読み取り専用で利用し、変更、構成、構築、試験、Git操作、追加委任を行わない。正式な第221便不足報告で再照合するまで実装担当票へ進めない。
+- `g222-brush-schema-closure-audit`の状態は`completed`である。`libs/brush/kis_brush.h`の残存全31 API、識別子集合SHA-256 `289468cf15452873d54d30b1083c80af0ec87709fa3868c6730ef7d0586248cc`、5枠5・9・6・7・4を既存`libs/brush/tests/KisBrushSchemaContractTest.cpp`へ追加できる。CMake変更なしでQt Core・Gui・Testとheader-only Boostを直接接続する既存4工程・7入力を維持し、brush、画像、装置、色、gradient、XMLを実体化しない。mask画像内容、cache破棄効果、stroke通知順、XML往復、gradient適用結果は既存または将来の動的契約で扱う。
+- `g222-dual-color-button-closure-audit`の状態は`completed`である。`libs/ui/widgets/KoDualColorButton.h`の残存全36 API、識別子集合SHA-256 `9306110ffb660b18597a08c193e4bd010ad5145b674756ec4b97bfd00e333a42`、5枠8・8・8・8・4を新規専用targetへ固定できる。application・pigment探索路と対応export定義、Qt Gui・Widgets interface、Qt Core・Testとheader-only Boostだけの直接接続による4工程・8入力を予測する。button、色、pixmap、canvas provider、display renderer、dialog、painterを実体化しない。
+- `g222-tool-manager-private-closure-audit`は`libs/flake/KoToolManager_p.h`の34 APIを契約候補から棄却した。同private headerを公開面へ混入させる唯一のowner外経路は`libs/ui/canvas/KoCanvasControllerWidget.cpp`の未使用includeであり、型・memberの実利用はない。公開契約を追加する前に同includeを除去し、flake owner内だけのprivate headerへ戻す構造改善を行う。除去後に必要型の直接includeが不足する場合はその公開headerを特定し、private header経路を復活させない。正式な不足報告で34 APIが公開集合から消えることを完了条件とする。
+
+### 第223便の先行監査担当票（第222便確定待ち）
+
+- `g223-clipboard-schema-closure-audit`の状態は`completed`である。暫定入力`build/tdd-macos/public-api-missing-g217.json`の`libs/impex/ui/kis_clipboard.h`残存全32 API、識別子集合SHA-256 `762cdd60fb30b2b7986252f7dc202e004cebb3538bcdc82e34dd6582a524fbdb`、5枠4・9・8・6・5を新規専用targetへ固定できる。application・image・global探索路と対応export定義、Qt Gui interface、Qt Core・Testだけの直接接続による4工程・8入力を予測する。OS clipboard、URL取得、filesystem、dialog、画像、layer、paint deviceを実行または実体化せず、1,974工程・3,947入力のbroken動的試験へ接続しない。正式な第222便不足報告で再照合する。
 
 ### 第201便の先行監査担当票
 
