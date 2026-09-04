@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-04 22:47 JST
+- 更新日時: 2026-09-04 22:50 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -393,6 +393,13 @@
 - UI領域は`libs/ui/animation/kis_animation_frame_cache.h`の20 APIを、型・寿命・状態7、cache検索3、取込み・frame状態4、frame data 3、ROI・通知3として新規`libs/ui/tests/KisAnimationFrameCacheSchemaContractTest.cpp`の5枠へ固定する。application生成export headerを優先し、application・image・global探索路、Qt Core・Test、3 export定義による4工程・8入力、停止線5工程・11入力を予測する。
 - flake領域は`libs/flake/commands/KoPathCombineCommand.h`、`KoPathControlPointMoveCommand.h`、`KoMultiPathPointJoinCommand.h`、`KoShapeUnclipCommand.h`の21 APIを、結合command型・構築3、結合実行・対応4、制御点移動6、複数path点結合2、clip解除6として既存`libs/flake/tests/KoPathPointTopologyCommandSchemaContractTest.cpp`の5枠へ固定する。Qt Core・Testとheader-only Boostを直接接続し、Qt Gui・XmlとKF I18nをinterface利用する既存4工程・8入力、停止線5工程・11入力を維持する。
 - 3候補は合計62 API・15枠である。型特性、厳密な関数pointer、未評価式だけで対象、Qt値、画像・cache・共有pointer、path commandを実体化せず観測する。候補headerのAUTOMOC入力化、製品shared・OBJECT・`kritatestsdk`、計画外の探索路・定義・動的接続、製品未解決記号、inline本文のODR-useが必要なら停止する。正式な第216便不足報告で全識別子と閉包を再照合する。
+
+### 第217便の先行監査担当票（第216便確定待ち）
+
+- 監査共通基点は`29cb9d06b9`、暫定入力は`build/tdd-macos/public-api-missing-g211.json`である。第210便までの契約済み責務と、第211便から第216便で選定済みのbrush preset、SVG文字列command群、Krita façade、標準曲線option、変形mask adapter、raster面・色channel、gradient painter、変形状態、canvas animation state、SVG図形交換、histogram描画、色空間factory、図形補助状態・root layer、非同期色採取、色空間registry、生成layer、animation frame cache、path-backed shape編集command群を除外する。監査中は主作業treeを読み取り専用で共有し、変更、構成、構築、試験、Git操作、追加委任を行わない。既存Ninja graphのquery・commands・inputsは読み取り専用で利用できる。
+- `g217-image-contract-audit`の状態は`auditing`で、`libs/image/`、paintop、`libs/pigment/`から、選定済み責務と重ならない一責務20〜80 APIを最大5枠へ固定できる候補を比較する。開始header、全API識別子、枠別配分、契約先、所有CMake、最寄りCTest、直接依存、工程・入力、観測方法、停止条件、棄却根拠を返す。
+- `g217-ui-contract-audit`の状態は`auditing`で、`libs/widgetutils/`、`libs/widgets/`、`libs/libkis/`、`libs/ui/`から同じ条件の候補を比較する。UI値とQObjectを実体化せず宣言契約へ閉じ、生成UI、誤ったexport header、製品I/O・描画実装への接続を避ける。
+- `g217-flake-contract-audit`の状態は`planned`である。実行枠が空いた後、`libs/flake/`、`plugins/tools/svgtexttool/`、`plugins/tools/tool_transform2/`から同じ条件の候補を監査する。3領域とも既存契約への追記は追加後300行・20枠以下の場合だけ採用し、製品shared・OBJECT・`kritatestsdk`へ接続せず、targetが概ね4〜10工程へ閉じる候補だけを進める。
 
 ### 第201便の先行監査担当票
 
