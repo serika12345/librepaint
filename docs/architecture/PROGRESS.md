@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 04:01 JST
+- 更新日時: 2026-09-05 04:04 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -492,6 +492,8 @@
 - `g216-generator-layer-schema`の状態は`integrated`である。開始`libs/image/generator/kis_generator_layer.h`の残存全21 APIを、新規`libs/image/tests/KisGeneratorLayerSchemaContractTest.cpp`の5枠`generatorLayerTypeLifetimeAndConstructionSchemaRemainStable`、`generatorLayerConfigurationAndRegenerationSignaturesRemainStable`、`generatorLayerDirtyRegionAndPositionSignaturesRemainStable`、`generatorLayerHierarchyPresentationAndVisitorSignaturesRemainStable`、`generatorLayerTimedUpdateSignaturesRemainStable`へ4・5・4・6・2件で対応付けた。受渡しcommit`f06a69c1d7`を統合commit`14f9fb2cb7`として取り込み、公開headerと製品sourceは変更していない。
 - 宣言段階で`kis_psd_layer_style.h`からの`psd.h`探索不足を検出し、既存PSD layer style契約と製品imageの公開構築界面に合わせて`libs/psdutils`のsource・generated探索路を対象固有節へ加えた。工程・入力と動的接続は増やしていない。担当側と中央のmacOSで追加5枠を各20回、対象`libs-image-KisGeneratorLayerSchemaContractTest`と近傍`libs-image-KisMaskSchemaContractTest`、AUTOMOC後の計画、無作業再構築2回に成功した。4工程・8入力、AUTOMOC `HEADERS=[]`、Qt Core・Gui・Test・Xmlだけの動的接続、製品未解決記号なしを維持し、台帳は20,801件対応、9,037件未対応となった。
 - cleanな専用作業tree、296,700 KiBの構築木、branchを統合直後に削除し、886,640 KiBを回収した。主Ninja木5,737,384 KiBと共有compiler cache 983,080 KiBをanimation frame cache契約へ再利用する。生成処理、cache再生成、dirty領域伝播、visitor処理、時限更新の実行時効果は別契約で扱う。
+- `g216-animation-frame-cache-schema`の状態は`implementing`、担当は`/root/g178_shape_hierarchy_schema`、基点は`2258c3c20d`、作業treeは`/Users/masato/Documents/librepaint-g216-animation-frame-cache-schema`である。開始`libs/ui/animation/kis_animation_frame_cache.h`の残存全20 APIを、新規`libs/ui/tests/KisAnimationFrameCacheSchemaContractTest.cpp`の5枠`animationFrameCacheTypeLifetimeAndStatusSchemaRemainStable`、`animationFrameCacheLookupSignaturesRemainStable`、`animationFrameCacheUploadAndStatusSignaturesRemainStable`、`animationFrameCacheFrameDataSignaturesRemainStable`、`animationFrameCacheRoiAndNotificationSignaturesRemainStable`へ7・3・4・3・3件で対応付ける。識別子集合SHA-256は`2990f8064fc255aaa0f8ecf7f4e74e82b6f4657d8c3d89f1b7547629abce71`である。許可pathは新規試験sourceと`libs/ui/tests/CMakeLists.txt`の新target固有節だけで、公開headerと製品sourceを変更しない。application生成export headerを優先し、application・image・global探索路、Qt Core・Test、`kritaapplicationui_EXPORTS`、`kritaimage_EXPORTS`、`kritaglobal_EXPORTS`だけによる4工程・8入力を予測する。
+- animation frame cache担当は、5工程・11入力超過、計画外の探索路・定義・link、Qt Guiまたは製品shared・OBJECT・`kritatestsdk`の動的接続、候補headerのAUTOMOC入力化、cache・OpenGL画像・frame data・共有pointer・Qt値の実体化、製品本文の実行、製品未解決記号、許可path外変更が必要なら停止する。新target不存在、宣言段階の初期失敗、追加5枠の単発と各20回反復、対象と軽量近傍`KisAsyncColorSamplerHelperSchemaContractTest`、AUTOMOC後の二回目計画、無作業再構築2回、動的接続・未解決記号・構文・書式、公開API検査、`verify-quick`を確認する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。Git権限は許可pathだけの1受渡しcommitで、追加委任は禁止する。
 
 ### 第217便の先行監査担当票（第216便確定待ち）
 
