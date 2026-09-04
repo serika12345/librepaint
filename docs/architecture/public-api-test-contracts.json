@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 10722
+    "expectedMissingApis": 10691
   },
   "contracts": [
     {
@@ -53610,6 +53610,82 @@
       "classification": "maintained",
       "apis": [
         "method:KoSvgSymbolCollectionResource::symbols() const"
+      ]
+    },
+    {
+      "target": "ViewSchemaContractTest",
+      "source": "libs/libkis/tests/ViewSchemaContractTest.cpp",
+      "test": "ViewSchemaContractTest::windowTypeLifetimeAndEqualitySchemaRemainStable",
+      "behavior": "ウィンドウ操作接続面は主ウィンドウと任意の親を指定して構築でき、仮想破棄と同一性比較を備える公開型契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:Window",
+        "method:Window::Window(KisMainWindow * window,QObject * parent=0)",
+        "method:Window::operator !=(const Window & other) const",
+        "method:Window::operator ==(const Window & other) const",
+        "method:Window::~Window()"
+      ]
+    },
+    {
+      "target": "ViewSchemaContractTest",
+      "source": "libs/libkis/tests/ViewSchemaContractTest.cpp",
+      "test": "ViewSchemaContractTest::windowViewAndActivationSignaturesRemainStable",
+      "behavior": "ウィンドウ操作接続面は主ウィンドウ・ドッカー・ビューを公開し、文書ビューの追加・表示、現在ビューの照会、ウィンドウの有効化・終了に用いる署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:Window::activate()",
+        "method:Window::activeView() const",
+        "method:Window::addView(Document * document)",
+        "method:Window::close()",
+        "method:Window::dockers() const",
+        "method:Window::qwindow() const",
+        "method:Window::showView(View * v)",
+        "method:Window::views() const"
+      ]
+    },
+    {
+      "target": "ViewSchemaContractTest",
+      "source": "libs/libkis/tests/ViewSchemaContractTest.cpp",
+      "test": "ViewSchemaContractTest::windowActionAndNotificationSignaturesRemainStable",
+      "behavior": "ウィンドウ操作接続面は既定の表示名と配置を持つ操作を作成し、終了、外観変更、現在ビュー変更を通知する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:Window::activeViewChanged()",
+        "method:Window::createAction(const QString & id,const QString & text=QString (),const QString & menuLocation=QString (\"tools/scripts\"))",
+        "method:Window::themeChanged()",
+        "method:Window::windowClosed()"
+      ]
+    },
+    {
+      "target": "ViewSchemaContractTest",
+      "source": "libs/libkis/tests/ViewSchemaContractTest.cpp",
+      "test": "ViewSchemaContractTest::notifierTypeLifetimeAndActivationSchemaRemainStable",
+      "behavior": "アプリケーション状態通知接続面は任意の親を持つQObjectとして構築・破棄でき、通知の有効状態を照会・設定する公開契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:Notifier",
+        "method:Notifier::Notifier(QObject * parent=0)",
+        "method:Notifier::active() const",
+        "method:Notifier::setActive(bool value)",
+        "method:Notifier::~Notifier()"
+      ]
+    },
+    {
+      "target": "ViewSchemaContractTest",
+      "source": "libs/libkis/tests/ViewSchemaContractTest.cpp",
+      "test": "ViewSchemaContractTest::notifierApplicationAndUiNotificationSignaturesRemainStable",
+      "behavior": "アプリケーション状態通知接続面は終了、画像・ビュー・ウィンドウの寿命、設定変更を公開signalで通知する署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:Notifier::applicationClosing()",
+        "method:Notifier::configurationChanged()",
+        "method:Notifier::imageClosed(const QString & filename)",
+        "method:Notifier::imageCreated(Document * image)",
+        "method:Notifier::imageSaved(const QString & filename)",
+        "method:Notifier::viewClosed(View * view)",
+        "method:Notifier::viewCreated(View * view)",
+        "method:Notifier::windowCreated()",
+        "method:Notifier::windowIsBeingCreated(Window * window)"
       ]
     }
   ]
