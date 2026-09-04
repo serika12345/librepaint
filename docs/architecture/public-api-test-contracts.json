@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 10670
+    "expectedMissingApis": 10632
   },
   "contracts": [
     {
@@ -53752,6 +53752,89 @@
         "method:KoGenericLabHistogramProducerFactory::~KoGenericLabHistogramProducerFactory()",
         "method:KoGenericRGBHistogramProducerFactory::KoGenericRGBHistogramProducerFactory()",
         "method:KoGenericRGBHistogramProducerFactory::~KoGenericRGBHistogramProducerFactory()"
+      ]
+    },
+    {
+      "target": "KoGamutMaskSchemaContractTest",
+      "source": "libs/flake/tests/KoGamutMaskSchemaContractTest.cpp",
+      "test": "KoGamutMaskSchemaContractTest::gamutMaskShapeTypeGeometryAndRenderingSignaturesRemainStable",
+      "behavior": "ガマットマスク図形は空または図形指定で構築・破棄でき、座標判定、輪郭、塗り・輪郭描画、元図形の照会に用いる公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoGamutMaskShape",
+        "method:KoGamutMaskShape::KoGamutMaskShape()",
+        "method:KoGamutMaskShape::KoGamutMaskShape(KoShape * shape)",
+        "method:KoGamutMaskShape::coordIsClear(const QPointF & coord) const",
+        "method:KoGamutMaskShape::koShape()",
+        "method:KoGamutMaskShape::outline()",
+        "method:KoGamutMaskShape::paint(QPainter & painter)",
+        "method:KoGamutMaskShape::paintStroke(QPainter & painter)",
+        "method:KoGamutMaskShape::~KoGamutMaskShape()"
+      ]
+    },
+    {
+      "target": "KoGamutMaskSchemaContractTest",
+      "source": "libs/flake/tests/KoGamutMaskSchemaContractTest.cpp",
+      "test": "KoGamutMaskSchemaContractTest::gamutMaskTypeLifetimeAndValueSemanticsRemainStable",
+      "behavior": "ガマットマスク資源は共有pointer別名を備え、既定・pointer・複製・ファイル名指定で構築して仮想破棄でき、代入を許さない公開型契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KoGamutMaskSP",
+        "class:KoGamutMask",
+        "method:KoGamutMask::KoGamutMask()",
+        "method:KoGamutMask::KoGamutMask(KoGamutMask * rhs)",
+        "method:KoGamutMask::KoGamutMask(const KoGamutMask & rhs)",
+        "method:KoGamutMask::KoGamutMask(const QString & filename)",
+        "method:KoGamutMask::operator =(const KoGamutMask & rhs)",
+        "method:KoGamutMask::~KoGamutMask()"
+      ]
+    },
+    {
+      "target": "KoGamutMaskSchemaContractTest",
+      "source": "libs/flake/tests/KoGamutMaskSchemaContractTest.cpp",
+      "test": "KoGamutMaskSchemaContractTest::gamutMaskPersistenceAndMetadataSignaturesRemainStable",
+      "behavior": "ガマットマスク資源は複製、装置からの読込み・保存、資源種別・拡張子と題名・説明の照会・設定に用いる公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoGamutMask::clone() const",
+        "method:KoGamutMask::defaultFileExtension() const",
+        "method:KoGamutMask::description() const",
+        "method:KoGamutMask::loadFromDevice(QIODevice * dev,KisResourcesInterfaceSP resourcesInterface)",
+        "method:KoGamutMask::resourceType() const",
+        "method:KoGamutMask::saveToDevice(QIODevice * dev) const",
+        "method:KoGamutMask::setDescription(QString description)",
+        "method:KoGamutMask::setTitle(QString title)",
+        "method:KoGamutMask::title() const"
+      ]
+    },
+    {
+      "target": "KoGamutMaskSchemaContractTest",
+      "source": "libs/flake/tests/KoGamutMaskSchemaContractTest.cpp",
+      "test": "KoGamutMaskSchemaContractTest::gamutMaskGeometryAndRenderingSignaturesRemainStable",
+      "behavior": "ガマットマスク資源はpreview別の座標判定と描画、マスク・表示座標変換、回転と寸法を扱う公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoGamutMask::coordIsClear(const QPointF & coord,bool preview)",
+        "method:KoGamutMask::maskSize()",
+        "method:KoGamutMask::maskToViewTransform(qreal viewSize)",
+        "method:KoGamutMask::paint(QPainter & painter,bool preview)",
+        "method:KoGamutMask::paintStroke(QPainter & painter,bool preview)",
+        "method:KoGamutMask::rotation()",
+        "method:KoGamutMask::setRotation(int rotation)",
+        "method:KoGamutMask::viewToMaskTransform(qreal viewSize)"
+      ]
+    },
+    {
+      "target": "KoGamutMaskSchemaContractTest",
+      "source": "libs/flake/tests/KoGamutMaskSchemaContractTest.cpp",
+      "test": "KoGamutMaskSchemaContractTest::gamutMaskShapeCollectionSignaturesRemainStable",
+      "behavior": "ガマットマスク資源は確定・preview図形集合を設定・照会し、preview集合を消去する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoGamutMask::clearPreview()",
+        "method:KoGamutMask::koShapes() const",
+        "method:KoGamutMask::setMaskShapes(QList<KoShape * > shapes)",
+        "method:KoGamutMask::setPreviewMaskShapes(QList<KoShape * > shapes)"
       ]
     }
   ]
