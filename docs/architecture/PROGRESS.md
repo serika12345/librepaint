@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-04 21:18 JST
+- 更新日時: 2026-09-04 21:21 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -325,6 +325,13 @@
 - 変形工具領域は`plugins/tools/tool_transform2/tool_transform_args.h`の13 APIと`KisAnimatedTransformMaskParamsHolder.h`の14 APIを、引数型・寿命・構築6、外部源・filter・永続化7、保持器型・寿命・構築4、状態・境界・keyframe 6、複製・bake・変更4として新規`plugins/tools/tool_transform2/tests/ToolTransformStateSchemaContractTest.cpp`の5枠へ固定する。既存`ToolTransformArgsGeometrySchemaContractTest`と同じ直接link、探索路、定義で4工程・9入力を予測し、停止線を5工程・11入力とする。
 - UI領域は`libs/ui/canvas/KisCanvasAnimationState.h`の残存全24 APIを、型・寿命・再生列挙7、再生・media 6、速度・frame・audio設定4、再生通知5、audio・取消通知2として既存`libs/ui/tests/KisPlaybackEngineSchemaContractTest.cpp`の5枠へ固定する。対象固有CMake節へheader-only Boost、image source/generated探索路、`kritaimage_EXPORTS`だけを加え、Qt Core・Testだけの動的接続、4工程・8入力、停止線5工程・11入力を維持する。
 - 3候補は合計75 API・15枠で、開始header、試験source、所有CMakeが相互に異なる。候補headerのAUTOMOC入力化、製品shared・OBJECT、`kritatestsdk`、計画外の探索路・定義・動的接続または未解決製品記号、対象型やinline・template本文の実体化が必要なら停止する。正式な第213便不足報告で全識別子と閉包を再照合する。
+
+### 第214便の先行監査担当票（第213便確定待ち）
+
+- 監査共通基点は`23be79d354`、暫定入力は`build/tdd-macos/public-api-missing-g210.json`である。第209便までの契約済み責務と、第210便から第213便で選定済みの変形mask、文書lifecycle、brush preset、SVG文字列command群、スクリプト向けアプリケーション根、標準曲線option、変形mask adapter、raster面・色channel、gradient painter、変形状態、canvas animation stateを除外する。監査中は主作業treeを読み取り専用で共有し、変更、構成、構築、試験、Git操作、追加委任を行わない。既存Ninja graphのquery・commands・inputsは読み取り専用で利用できる。
+- `g214-flake-contract-audit`の状態は`auditing`で、`libs/flake/`、`plugins/tools/svgtexttool/`、`plugins/tools/tool_transform2/`から、選定済み責務と重ならない一責務20〜80 APIを最大5枠へ固定できる候補を比較する。開始header、全API識別子、枠別配分、契約先、所有CMake、最寄りCTest、直接依存、実測または予測する工程・入力、観測方法、停止条件、比較候補の棄却根拠を返す。既存契約への追記は追加後300行・20枠以下の場合だけ採用し、それ以外は同じ最小compile interfaceの専用targetを比較する。
+- `g214-ui-contract-audit`の状態は`auditing`で、`libs/widgetutils/`、`libs/widgets/`、`libs/libkis/`、`libs/ui/`から、選定済み責務と重ならない一責務20〜80 APIを最大5枠へ固定できる候補を比較する。開始header、全API識別子、枠別配分、契約先、所有CMake、最寄りCTest、直接依存、実測または予測する工程・入力、観測方法、停止条件、比較候補の棄却根拠を返す。UI値とQObjectを実体化せずに宣言契約へ閉じる候補を優先し、既存契約への追記上限と専用target案を比較する。
+- `g214-image-contract-audit`の状態は`planned`である。第210便の一担当が完了して実行枠が空いた後、`libs/image/`、paintop、pigment領域から同じ条件で候補を監査する。3領域の候補は開始header、試験source、所有CMake、生成物が相互に異なり、製品shared・OBJECT・`kritatestsdk`へ接続せず、targetが概ね4〜10工程へ閉じる組合せだけを第214便計画へ進める。
 
 ### 第201便の先行監査担当票
 
