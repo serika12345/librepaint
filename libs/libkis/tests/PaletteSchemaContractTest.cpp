@@ -2,7 +2,9 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include <Palette.h>
+#include <PaletteView.h>
 #include <QTest>
+#include <kis_palette_view.h>
 #include <type_traits>
 #include <utility>
 
@@ -12,6 +14,10 @@
     static_assert(std::is_same_v<decltype(static_cast<signature>(&ManagedColor::method)), signature>)
 #define ASSERT_SWATCH_SIGNATURE(method, signature)                                                                     \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&Swatch::method)), signature>)
+#define ASSERT_PALETTE_VIEW_SIGNATURE(method, signature)                                                               \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KisPaletteView::method)), signature>)
+#define ASSERT_SCRIPT_PALETTE_VIEW_SIGNATURE(method, signature)                                                        \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&PaletteView::method)), signature>)
 
 class PaletteSchemaContractTest : public QObject
 {
@@ -27,6 +33,11 @@ private Q_SLOTS:
     void managedColorComponentsAndSerializationSignaturesRemainStable();
     void swatchTypeLifetimeCopyAndEqualitySchemaRemainStable();
     void swatchMetadataColorAndValiditySignaturesRemainStable();
+    void paletteViewTypeLifetimeAndModelSchemaRemainStable();
+    void paletteViewSelectionAndModificationSignaturesRemainStable();
+    void paletteViewRenderingAndNotificationSignaturesRemainStable();
+    void scriptPaletteViewTypeLifetimeAndPaletteSchemaRemainStable();
+    void scriptPaletteViewEditingAndNotificationSignaturesRemainStable();
 };
 
 void PaletteSchemaContractTest::paletteOwnershipLifetimeAndEqualitySchemaRemainsStable()
@@ -144,6 +155,64 @@ void PaletteSchemaContractTest::swatchMetadataColorAndValiditySignaturesRemainSt
     ASSERT_SWATCH_SIGNATURE(setSpotColor, void (Swatch::*)(bool));
     ASSERT_SWATCH_SIGNATURE(spotColor, bool (Swatch::*)() const);
 }
+
+void PaletteSchemaContractTest::paletteViewTypeLifetimeAndModelSchemaRemainStable()
+{
+    static_assert(std::is_class_v<KisPaletteView>);
+    static_assert(std::is_base_of_v<QTableView, KisPaletteView>);
+    static_assert(std::is_default_constructible_v<KisPaletteView>);
+    static_assert(std::is_constructible_v<KisPaletteView, QWidget *>);
+    static_assert(std::has_virtual_destructor_v<KisPaletteView>);
+    ASSERT_PALETTE_VIEW_SIGNATURE(setPaletteModel, void (KisPaletteView::*)(KisPaletteModel *));
+    ASSERT_PALETTE_VIEW_SIGNATURE(paletteModel, KisPaletteModel * (KisPaletteView::*)() const);
+}
+
+void PaletteSchemaContractTest::paletteViewSelectionAndModificationSignaturesRemainStable()
+{
+    ASSERT_PALETTE_VIEW_SIGNATURE(setAllowModification, void (KisPaletteView::*)(bool));
+    ASSERT_PALETTE_VIEW_SIGNATURE(removeSelectedEntry, void (KisPaletteView::*)());
+    ASSERT_PALETTE_VIEW_SIGNATURE(selectClosestColor, void (KisPaletteView::*)(const KoColor &));
+    ASSERT_PALETTE_VIEW_SIGNATURE(closestColor, const KoColor (KisPaletteView::*)(const KoColor &) const);
+    ASSERT_PALETTE_VIEW_SIGNATURE(addEntryWithDialog, bool (KisPaletteView::*)(KoColor));
+    ASSERT_PALETTE_VIEW_SIGNATURE(removeEntryWithDialog, bool (KisPaletteView::*)(QModelIndex));
+    ASSERT_PALETTE_VIEW_SIGNATURE(addGroupWithDialog, bool (KisPaletteView::*)());
+    ASSERT_PALETTE_VIEW_SIGNATURE(scrollTo,
+                                  void (KisPaletteView::*)(const QModelIndex &, QAbstractItemView::ScrollHint));
+    ASSERT_PALETTE_VIEW_SIGNATURE(slotFGColorChanged, void (KisPaletteView::*)(const KoColor &));
+}
+
+void PaletteSchemaContractTest::paletteViewRenderingAndNotificationSignaturesRemainStable()
+{
+    ASSERT_PALETTE_VIEW_SIGNATURE(setCrossedKeyword, void (KisPaletteView::*)(const QString &));
+    ASSERT_PALETTE_VIEW_SIGNATURE(setDisplayRenderer,
+                                  void (KisPaletteView::*)(const KoColorDisplayRendererInterface *));
+    ASSERT_PALETTE_VIEW_SIGNATURE(sigColorSelected, void (KisPaletteView::*)(const KoColor &));
+    ASSERT_PALETTE_VIEW_SIGNATURE(sigIndexSelected, void (KisPaletteView::*)(const QModelIndex &));
+    ASSERT_PALETTE_VIEW_SIGNATURE(slotScrollerStateChanged, void (KisPaletteView::*)(QScroller::State));
+}
+
+void PaletteSchemaContractTest::scriptPaletteViewTypeLifetimeAndPaletteSchemaRemainStable()
+{
+    static_assert(std::is_class_v<PaletteView>);
+    static_assert(std::is_base_of_v<QWidget, PaletteView>);
+    static_assert(std::is_default_constructible_v<PaletteView>);
+    static_assert(std::is_constructible_v<PaletteView, QWidget *>);
+    static_assert(std::has_virtual_destructor_v<PaletteView>);
+    ASSERT_SCRIPT_PALETTE_VIEW_SIGNATURE(setPalette, void (PaletteView::*)(Palette *));
+}
+
+void PaletteSchemaContractTest::scriptPaletteViewEditingAndNotificationSignaturesRemainStable()
+{
+    ASSERT_SCRIPT_PALETTE_VIEW_SIGNATURE(addEntryWithDialog, bool (PaletteView::*)(ManagedColor *));
+    ASSERT_SCRIPT_PALETTE_VIEW_SIGNATURE(addGroupWithDialog, bool (PaletteView::*)());
+    ASSERT_SCRIPT_PALETTE_VIEW_SIGNATURE(removeSelectedEntryWithDialog, bool (PaletteView::*)());
+    ASSERT_SCRIPT_PALETTE_VIEW_SIGNATURE(trySelectClosestColor, void (PaletteView::*)(ManagedColor *));
+    ASSERT_SCRIPT_PALETTE_VIEW_SIGNATURE(entrySelectedForeGround, void (PaletteView::*)(Swatch));
+    ASSERT_SCRIPT_PALETTE_VIEW_SIGNATURE(entrySelectedBackGround, void (PaletteView::*)(Swatch));
+}
+
+#undef ASSERT_SCRIPT_PALETTE_VIEW_SIGNATURE
+#undef ASSERT_PALETTE_VIEW_SIGNATURE
 
 QTEST_GUILESS_MAIN(PaletteSchemaContractTest)
 #include "PaletteSchemaContractTest.moc"
