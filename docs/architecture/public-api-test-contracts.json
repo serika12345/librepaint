@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 10543
+    "expectedMissingApis": 10521
   },
   "contracts": [
     {
@@ -54104,6 +54104,73 @@
         "method:SvgParser::documentDescription() const",
         "method:SvgParser::documentTitle() const",
         "method:SvgParser::warnings() const"
+      ]
+    },
+    {
+      "target": "KoColorConversionTransformationAbstractFactoryContractTest",
+      "source": "libs/pigment/tests/KoColorConversionTransformationAbstractFactoryContractTest.cpp",
+      "test": "KoColorConversionTransformationAbstractFactoryContractTest::colorConversionSystemTypeAndLifetimeSchemaRemainStable",
+      "behavior": "色変換systemは公開型であり、registry接続面から構築して破棄できる公開型契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoColorConversionSystem",
+        "method:KoColorConversionSystem::KoColorConversionSystem(RegistryInterface * registryInterface)",
+        "method:KoColorConversionSystem::~KoColorConversionSystem()"
+      ]
+    },
+    {
+      "target": "KoColorConversionTransformationAbstractFactoryContractTest",
+      "source": "libs/pigment/tests/KoColorConversionTransformationAbstractFactoryContractTest.cpp",
+      "test": "KoColorConversionTransformationAbstractFactoryContractTest::colorConversionRegistryInterfaceSchemaRemainStable",
+      "behavior": "色変換registry接続面は仮想寿命を持つ抽象型であり、識別値から色空間・factoryを照会し、profileとfactoryの対応集合を返す公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoColorConversionSystem::RegistryInterface::colorSpace(const QString & colorModelId,const QString & colorDepthId,const QString & profileName)",
+        "method:KoColorConversionSystem::RegistryInterface::colorSpaceFactory(const QString & colorModelId,const QString & colorDepthId) const",
+        "method:KoColorConversionSystem::RegistryInterface::colorSpacesFor(const KoColorProfile * profile) const",
+        "method:KoColorConversionSystem::RegistryInterface::profilesFor(const KoColorSpaceFactory * csf) const",
+        "method:KoColorConversionSystem::RegistryInterface::~RegistryInterface()",
+        "struct:KoColorConversionSystem::RegistryInterface"
+      ]
+    },
+    {
+      "target": "KoColorConversionTransformationAbstractFactoryContractTest",
+      "source": "libs/pigment/tests/KoColorConversionTransformationAbstractFactoryContractTest.cpp",
+      "test": "KoColorConversionTransformationAbstractFactoryContractTest::colorConversionGraphMutationSignaturesRemainStable",
+      "behavior": "色変換systemはprofileと色空間factoryを変換graphへ追加し、両者に必要な接続profileを照会する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoColorConversionSystem::insertColorProfile(const KoColorProfile * profile)",
+        "method:KoColorConversionSystem::insertColorSpace(const KoColorSpaceFactory * csf)",
+        "method:KoColorConversionSystem::requiredConnectionProfilesFor(const KoColorProfile * profile)",
+        "method:KoColorConversionSystem::requiredConnectionProfilesFor(const KoColorSpaceFactory * csf)"
+      ]
+    },
+    {
+      "target": "KoColorConversionTransformationAbstractFactoryContractTest",
+      "source": "libs/pigment/tests/KoColorConversionTransformationAbstractFactoryContractTest.cpp",
+      "test": "KoColorConversionTransformationAbstractFactoryContractTest::colorConversionCreationSignaturesRemainStable",
+      "behavior": "色変換systemは入出力色空間と変換方針から単一変換を生成し、候補識別値から往復変換を出力する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoColorConversionSystem::createColorConverter(const KoColorSpace * srcColorSpace,const KoColorSpace * dstColorSpace,KoColorConversionTransformation::Intent renderingIntent,KoColorConversionTransformation::ConversionFlags conversionFlags) const",
+        "method:KoColorConversionSystem::createColorConverters(const KoColorSpace * colorSpace,const QList<QPair<KoID,KoID>> & possibilities,KoColorConversionTransformation * & fromCS,KoColorConversionTransformation * & toCS) const"
+      ]
+    },
+    {
+      "target": "KoColorConversionTransformationAbstractFactoryContractTest",
+      "source": "libs/pigment/tests/KoColorConversionTransformationAbstractFactoryContractTest.cpp",
+      "test": "KoColorConversionTransformationAbstractFactoryContractTest::colorConversionPathQuerySignaturesRemainStable",
+      "behavior": "色変換systemはnode識別値をhash化し、色空間間の経路有無と最良経路を照会してgraphまたは部分経路をDOT形式で返す公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:qHash(const KoColorConversionSystem::NodeKey & key)",
+        "method:KoColorConversionSystem::bestPathToDot(const QString & srcKey,const QString & dstKey) const",
+        "method:KoColorConversionSystem::existsGoodPath(const QString & srcModelId,const QString & srcDepthId,const QString & srcProfileName,const QString & dstModelId,const QString & dstDepthId,const QString & dstProfileName) const",
+        "method:KoColorConversionSystem::existsPath(const QString & srcModelId,const QString & srcDepthId,const QString & srcProfileName,const QString & dstModelId,const QString & dstDepthId,const QString & dstProfileName) const",
+        "method:KoColorConversionSystem::findBestPath(const NodeKey & src,const NodeKey & dst) const",
+        "method:KoColorConversionSystem::findBestPath(const QString & srcModelId,const QString & srcDepthId,const QString & srcProfileName,const QString & dstModelId,const QString & dstDepthId,const QString & dstProfileName) const",
+        "method:KoColorConversionSystem::toDot() const"
       ]
     }
   ]
