@@ -137,6 +137,38 @@ target_include_directories(ViewSchemaContractTest PRIVATE
 target_compile_definitions(ViewSchemaContractTest PRIVATE kritalibkis_EXPORTS)
 
 kis_add_test(
+    ResourcePresetSchemaContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+        Boost::boost
+)
+target_include_directories(ResourcePresetSchemaContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/image
+    ${CMAKE_BINARY_DIR}/libs/image
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+    ${CMAKE_SOURCE_DIR}/libs/resources
+    ${CMAKE_BINARY_DIR}/libs/resources
+    ${CMAKE_SOURCE_DIR}/libs/resources/ui
+    ${CMAKE_BINARY_DIR}/libs/resources/ui
+    ${CMAKE_SOURCE_DIR}/libs/ui/widgets
+    ${CMAKE_BINARY_DIR}/libs/application
+    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Gui,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Widgets,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
+)
+target_compile_definitions(ResourcePresetSchemaContractTest PRIVATE
+    kritalibkis_EXPORTS
+    kritaimage_EXPORTS
+    kritaglobal_EXPORTS
+    kritaresources_EXPORTS
+    kritaui_EXPORTS
+)
+
+kis_add_test(
     CanvasSchemaContractTest.cpp
     LINK_LIBRARIES Qt${QT_MAJOR_VERSION}::Core Qt${QT_MAJOR_VERSION}::Test
 )
