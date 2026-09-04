@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-04 13:00 JST
+- 更新日時: 2026-09-04 13:04 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -26,6 +26,13 @@
 - widgets領域は`libs/widgets/KisColorSelectorInterface.h`の残存全9 API、`KisScreenColorSamplerBase.h`の残存全5 API、`kis_spinbox_color_selector.h`の残存全7 APIを、低水準の色選択・画面採取接続面として採用し、既存`libs/widgets/tests/KisColorSelectionControlSchemaContractTest.cpp`の5枠へ追加する。既存sourceは90行・5枠であり、追加後も約160行・10枠に収まる。CMakeを変えずQt Core・Gui・Test、Qt Widgets・KF・Imathのinterface、widgets・pigment・global探索路と既存定義だけによる4工程・8入力を維持し、停止線を5工程・11入力とする。対象・近傍`KisVisualColorModelSchemaContractTest`はAUTOMOC後のgraphにも製品辺がない。selector、sampler、spinbox、Widget、色・色空間・rendererを実体化せず、構築、設定、色変換、画面採取、通知配送本文を実行しない。
   gradient editor群は生成UI、libkis Node・Documentは画像・文書・大域値、資源server群はsingletonと複数資源、単位入力群は異なる世代と所有、資源選択群は製品UIへ閉包が広がるため棄却した。
 - 中央の`public-api-missing-g200.json`でfilter設定21件、SVG文字図形補助29件、低水準色選択・画面採取21件の全識別子を照合した。3責務の開始header、試験source、所有CMake、生成物は相互に異なり、合計71 APIを15枠へ進める。許可path外変更、新規の動的link・探索root・compile定義、候補headerのAUTOMOC入力化、二回目計画の製品辺、製品shared・OBJECT・`kritatestsdk`接続、指定外実体化・本文実行、各停止線超過が不要な場合だけ実装へ進める。
+
+### 第200便の担当計画
+
+- 実装共通基点は`34c6ac4328`である。3担当のGit権限は許可pathだけの1受渡しcommit、追加委任は禁止する。対象platformはmacOSで、一度に一つだけ作る専用worktree-local `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。Nix再評価を行わず、担当側の`./scripts/run-shared-test-env`で読み込み済み開発環境を共有する。filter設定、SVG文字図形補助、低水準色選択・画面採取の順に一担当ずつ実装・限定検証・統合・削除する。調整担当だけがarchitecture文書、公開API台帳、共通不足報告を変更する。各対象と近傍は初回構築後の二回目計画と無作業再構築でも製品辺がないことを確認する。製品targetを引数にするplan/build、全体build、全体`verify`、Linux検証は禁止する。
+- `g200-filter-configuration-schema`の状態は`implementing`、構築実行許可は`granted`で、作業tree`/Users/masato/Documents/librepaint-g200-filter-configuration-schema`を所有する。開始`libs/image/filter/kis_filter_configuration.h`の残存全21 APIから既存`libs/image/tests/KisPropertiesConfigurationSchemaContractTest.cpp`の5枠`filterConfigurationTypeAndLifetimeSchemaRemainStable`、`filterConfigurationIdentityAndChannelSignaturesRemainStable`、`filterConfigurationSerializationSignaturesRemainStable`、`filterConfigurationResourceSnapshotSignaturesRemainStable`、`filterConfigurationRequiredResourceSignaturesRemainStable`へ対応付ける。許可pathは既存試験sourceだけで、CMake、探索路、link、compile定義、公開header、製品sourceを変更しない。関連型を実体化せず、構築・破棄、複製・比較、XML変換、資源snapshot、互換性判定本文を実行しない。対象4工程・8入力、停止5工程・11入力、近傍`KisImageConfigGeneralSchemaContractTest`とし、同じ限定検証を行う。
+- `g200-svg-text-helper-schema`の状態は`waiting`、構築実行許可は`withheld`で、filter設定担当の統合・削除後に作業tree`/Users/masato/Documents/librepaint-g200-svg-text-helper-schema`を作る。開始`libs/flake/text/KoSvgTextShape.h`の補助型12 APIと`KoSvgTextShapeOutlineHelper.h`の残存全17 APIから既存`libs/flake/tests/KoSvgTextShapeSchemaContractTest.cpp`の5枠`svgTextShapeFactoryTypeLifetimeAndCreationSchemaRemainStable`、`svgTextShapeMementoAndListenerSchemaRemainStable`、`svgTextShapeOutlineHelperTypeLifetimeAndRenderingSchemaRemainStable`、`svgTextShapeOutlineHelperDisplayStateSignaturesRemainStable`、`svgTextShapeOutlineHelperContourInteractionSignaturesRemainStable`へ対応付ける。許可pathは既存試験sourceだけで、CMake、探索路、link、compile定義、公開header、製品sourceを変更しない。関連型を実体化せず、生成・対応判定・通知・描画・装飾計算・輪郭mode操作本文を実行しない。対象4工程・8入力、停止5工程・11入力、近傍`KoSvgTextEnumContractTest`とし、同じ限定検証を行う。
+- `g200-color-selection-interface-schema`の状態は`waiting`、構築実行許可は`withheld`で、SVG文字図形補助担当の統合・削除後に作業tree`/Users/masato/Documents/librepaint-g200-color-selection-interface-schema`を作る。開始`libs/widgets/KisColorSelectorInterface.h`の残存全9 API、`KisScreenColorSamplerBase.h`の残存全5 API、`kis_spinbox_color_selector.h`の残存全7 APIから既存`libs/widgets/tests/KisColorSelectionControlSchemaContractTest.cpp`の5枠`selectorInterfaceTypeAndConfigSchemaRemainStable`、`selectorInterfaceColorAndNotificationSchemaRemainStable`、`screenSamplerTypeAndNotificationSchemaRemainStable`、`spinboxSelectorTypeAndAlphaSchemaRemainStable`、`spinboxSelectorColorAndNotificationSchemaRemainStable`へ対応付ける。許可pathは既存試験sourceだけで、CMake、探索路、link、compile定義、公開header、製品sourceを変更しない。関連型を実体化せず、構築、設定、色変換、画面採取、通知配送本文を実行しない。対象4工程・8入力、停止5工程・11入力、近傍`KisVisualColorModelSchemaContractTest`とし、同じ限定検証を行う。
 
 ### 第199便の先行監査担当票
 
