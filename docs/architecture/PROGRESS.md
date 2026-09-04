@@ -2,12 +2,20 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-04 10:38 JST
+- 更新日時: 2026-09-04 11:02 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
+
+### 第198便の先行監査担当票
+
+- 監査共通基点は`30128dcd696b`、入力は`build/tdd-macos/public-api-missing-g198.json`である。3担当の状態は`auditing`であり、主作業treeを読み取り専用で共有する。製品・試験・CMake・script・台帳・文書を変更せず、構成、構築、試験、Git操作、追加委任を行わない。一つの公開責務から20〜80 APIを最大5枠へ固定し、既存限定対象またはheader限定の4〜10工程程度の対象で、製品shared・OBJECTと`kritatestsdk`へ接続しない候補だけを採用する。対象と近傍は直接のcommands・inputsに加え、AUTOMOC再生成後の二回目計画でも製品依存を含まないものを選ぶ。既存契約sourceが300行または20枠を超える場合は、同じ4工程程度の専用targetへ分ける案を比較する。製品targetを引数にするplan/buildは禁止し、既存Ninja木のquery・commands・inputsだけを読み取る。
+- `g198-image-contract-audit`はimage・paintop・pigment領域を所有し、第197便までに固定したmask生成器、brush mask applicator、transform worker、iterator、塗装設定群、math toolbox、paint layer、mask、基底layer、選択範囲、一般画像設定、histogram生成器を除外して、一責務の未対応集合を比較する。
+- `g198-flake-contract-audit`はflake・SVG・vector領域を所有し、第197便までに固定したshape manager・controller、tool代理、shape幾何・階層・文書状態、clip、背景群、path点・区間種別command、path点topology command、font family資源、CSS様式資源、SVGシンボル集合資源、ガマットマスクを除外して、一責務の未対応集合を比較する。
+- `g198-ui-contract-audit`はwidgetutils・widgets・libkis領域を所有し、第197便までに固定したHSX色入力、内部色選択dialog、視覚色選択群、palette delegate、filter設定・適用、palette選択・色集合表示、色選択button・popup action、action分類・toolbar編集入口、zoom action・Widget、scratchpad、ウィンドウ操作、アプリケーション状態通知、タグ選択を除外して、一責務の未対応集合を比較する。
+- 各担当は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、実際のcompile探索路、予測工程・入力と停止線、開始pathから契約先、実装時許可path、固有停止条件、比較候補の棄却根拠を返す。調整担当は3領域のpath、CMake、試験source、生成物が重ならず、合計60〜180 APIとなる組合せだけを次の実装担当票へ進める。
 
 ### 第197便の先行監査担当票
 
@@ -32,7 +40,13 @@
 - 実装共通基点は`c81bc74151`である。histogram生成器とガマットマスク担当のGit権限は許可pathだけの1受渡しcommit、タグ選択担当は構造整理と契約追加を分けた2受渡しcommitであり、追加委任は禁止する。対象platformはmacOSで、一度に一つだけ作る専用worktree-local `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。Nix再評価を行わず、担当側の`./scripts/run-shared-test-env`で読み込み済み開発環境を共有する。histogram生成器、ガマットマスク、タグ選択の順に一担当ずつ実装・限定検証・統合・削除する。調整担当だけがarchitecture文書、公開API台帳、共通不足報告を変更する。製品targetを引数にするplan/build、全体build、全体`verify`、Linux検証は禁止する。
 - `g197-histogram-lifetime-schema`の状態は`integrated`、構築実行許可は`granted`である。開始`libs/pigment/KoBasicHistogramProducers.h`の残存全21 APIから既存`libs/pigment/tests/KoBasicHistogramProducerSchemaContractTest.cpp`の5枠へ対応付けた。受渡しcommit`eaeaedcf68`を統合commit`bf2a140fe4`として取り込み、CMakeを変えずQt Core・Gui・Testの直接link、header-only Boost、KF I18nのinterface探索路だけによる4工程・8入力を維持した。5枠の各20回反復、対象・近傍CTest、無作業再構築、動的接続・AUTOMOC・未解決記号、構文・書式、公開API検査、`verify-quick`に成功し、台帳は19,168件対応、10,670件未対応となった。cleanな作業treeと担当構築木は台帳反映後に削除し、884,272 KiBを回収した。
 - `g197-gamut-mask-schema`の状態は`integrated`、構築実行許可は`granted`である。開始`libs/flake/resources/KoGamutMask.h`の残存全38 APIから新規`libs/flake/tests/KoGamutMaskSchemaContractTest.cpp`の5枠へ対応付けた。受渡しcommit`9f32cc4886`を統合commit`06b549f2fc`として取り込み、Qt Gui・Test・Xmlの直接link、header-only Boost、KF I18nのinterface探索路だけによる4工程・8入力を維持した。5枠の各20回反復、対象・近傍CTest、無作業再構築、動的接続・AUTOMOC・未解決記号、構文・書式、公開API検査、`verify-quick`に成功し、台帳は19,206件対応、10,632件未対応となった。cleanな作業treeと担当構築木は台帳反映後に削除し、881,124 KiBを回収した。
-- `g197-tag-selection-widget-schema`の状態は`integrated`、構築実行許可は`granted`である。開始`libs/widgets/KisTagSelectionWidget.h`は構造commit`cb2df99aa6`を統合commit`0220559bfb`として取り込み、private pointerだけに必要だった`TagActions.h`と未使用の`kis_signal_compressor.h`を前方宣言へ置換した。公開API 29,838件と両指紋を維持し、主要な直接利用翻訳単位3件の構文、製品MOC、残る生成UI利用元のinclude・利用型を検査した。続く契約commit`644949be5d`を統合commit`736fc0e523`として取り込み、残存全20 APIを新規`libs/widgets/tests/KisTagSelectionWidgetSchemaContractTest.cpp`の5枠へ対応付けた。Qt Core・Testの直接link、header-only Boost、Qt Gui・WidgetsとKF I18nのinterface探索路だけによる4工程・8入力を維持し、5枠の各20回反復、対象CTest、無作業再構築、動的接続・AUTOMOC・未解決記号、構文・書式、公開API検査、`verify-quick`に成功した。担当treeの近傍`KisPaletteModelSchemaContractTest`は成功したが、主増分treeでは公開header変更で無効化された製品依存を含む6工程を計画したため停止し、既知の`kritaresourceui`未解決記号と`KoCssStylePreset.cpp`の不足includeを伴う初回実行失敗を基線として記録した。製品修正は行わず、製品非接続の`KisVisualColorSelectorShapeSchemaContractTest`へ近傍を変更して限定計画3工程、対象・近傍CTest、両方の無作業再構築に成功した。台帳は19,226件対応、10,612件未対応となった。cleanな作業tree`/Users/masato/Documents/librepaint-g197-tag-selection-widget-schema`と担当構築木は台帳反映後に削除する。
+- `g197-tag-selection-widget-schema`の状態は`integrated`、構築実行許可は`granted`である。開始`libs/widgets/KisTagSelectionWidget.h`は構造commit`cb2df99aa6`を統合commit`0220559bfb`として取り込み、private pointerだけに必要だった`TagActions.h`と未使用の`kis_signal_compressor.h`を前方宣言へ置換した。公開API 29,838件と両指紋を維持し、主要な直接利用翻訳単位3件の構文、製品MOC、残る生成UI利用元のinclude・利用型を検査した。続く契約commit`644949be5d`を統合commit`736fc0e523`として取り込み、残存全20 APIを新規`libs/widgets/tests/KisTagSelectionWidgetSchemaContractTest.cpp`の5枠へ対応付けた。Qt Core・Testの直接link、header-only Boost、Qt Gui・WidgetsとKF I18nのinterface探索路だけによる4工程・8入力を維持し、5枠の各20回反復、対象CTest、無作業再構築、動的接続・AUTOMOC・未解決記号、構文・書式、公開API検査、`verify-quick`に成功した。担当treeの近傍`KisPaletteModelSchemaContractTest`は成功したが、主増分treeでは公開header変更で無効化された製品依存を含む6工程を計画したため停止し、既知の`kritaresourceui`未解決記号と`KoCssStylePreset.cpp`の不足includeを伴う初回実行失敗を基線として記録した。製品修正は行わず、製品非接続の`KisVisualColorSelectorShapeSchemaContractTest`へ近傍を変更して限定計画3工程、対象・近傍CTest、両方の無作業再構築に成功した。台帳は19,226件対応、10,612件未対応となった。cleanな作業treeと担当構築木は台帳反映後に削除し、885,096 KiBを回収した。
+
+### 第197便の統合結果
+
+- 第197便全体で79 APIを15枠へ重複なく対応付けた。開始`libs/pigment/KoBasicHistogramProducers.h`から既存`libs/pigment/tests/KoBasicHistogramProducerSchemaContractTest.cpp`へ21 API、開始`libs/flake/resources/KoGamutMask.h`から新規`libs/flake/tests/KoGamutMaskSchemaContractTest.cpp`へ38 API、開始`libs/widgets/KisTagSelectionWidget.h`から新規`libs/widgets/tests/KisTagSelectionWidgetSchemaContractTest.cpp`へ20 APIを固定した。タグ選択は契約前に公開headerの不要なresources UI・pigment依存を前方宣言へ縮小した。
+- 3担当で対象CTest、各追加5枠の20回反復、無作業再構築、動的接続、AUTOMOC、未解決記号、構文・書式、公開API検査、`verify-quick`に成功し、主作業treeでも3対象と限定近傍を再確認した。タグ選択で最初に指定した近傍だけは二回目の構築計画が製品依存を含み、既存の製品失敗へ到達したため、製品非接続の近傍へ置換した。製品側の修正、全体`verify`、Linux、Nix再評価は行っていない。3担当のcleanな作業treeと担当build木を統合直後に削除して2,650,492 KiB（約2.53 GiB）を回収した。
+- 公開面は1,549ヘッダー、29,838 API、対応済み19,226件、未対応10,612件になった。旧`build/tdd-macos/public-api-missing-g197.json`を削除し、主Ninja木5,683,500 KiB、共有compiler cache 983,244 KiB、最新`build/tdd-macos/public-api-missing-g198.json` 2,805,367 bytesだけを保持する。次の永続作業は第198便の不足報告から3責務を先行監査することである。
 
 ### 第196便の先行監査担当票
 
