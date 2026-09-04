@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-04 23:11 JST
+- 更新日時: 2026-09-04 23:14 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -331,6 +331,12 @@
 - 変形工具領域は`plugins/tools/tool_transform2/kis_transform_mask_adapter.h`の残存全24 APIを、型・寿命・構築4、識別・表示5、値・永続化6、幾何6、引数・keyframe・装置3として既存`plugins/tools/tool_transform2/tests/ToolTransformArgsGeometrySchemaContractTest.cpp`の5枠へ固定する。既存sourceは169行・10枠で、CMake変更なし、4工程・9入力、AUTOMOC `HEADERS=[]`、製品非接続を維持する。
 - libkis領域は`libs/libkis/Channel.h`の残存全13 APIと`Document.h`の色空間・背景7 API、画素・投影・縮小画像3 APIを、スクリプト向けraster面・色channel境界23 APIとして新規`libs/libkis/tests/RasterSurfaceSchemaContractTest.cpp`の5枠へ固定する。channel型・値5、識別・可視性・境界6、channel画素2、文書色空間・背景7、文書画素・投影3へ配分する。既存`NodeSchemaContractTest`のcompile interfaceにflake、ui/canvas、application生成探索路と2 export定義を加えた4工程・8入力を予測し、重量実行試験`TestChannel`と`TestDocument`の2,022工程・4,041入力を構築対象にしない。
 - 3候補は合計79 API・15枠で、開始header、試験source、所有CMakeが相互に異なる。候補headerのAUTOMOC入力化、製品shared・OBJECT、`kritatestsdk`、計画外の探索路・定義・動的接続または未解決製品記号、対象型やinline本文の実体化が必要なら停止する。旧`public-api-missing-g211.json`を新報告の検証後に削除し、主Ninja木5,708,984 KiB、共有compiler cache 982,476 KiB、最新不足報告だけを再利用対象として保持する。
+
+### 第212便の担当計画
+
+- 実装共通基点は`3ff4b96fbd`である。一度に一つだけ作る専用worktree-local `build/tdd-macos`と主作業treeの共有compiler cacheを使い、担当側の`./scripts/run-shared-test-env`で読み込み済み環境を利用する。標準曲線option、変形工具mask adapter、スクリプト向けraster面・色channelの順に限定検証・統合・削除し、調整担当だけが文書、公開API台帳、共通不足報告を変更する。各担当のGit権限は許可pathだけの1受渡しcommitで、追加委任は禁止する。
+- `g212-standard-option-schema`の状態は`implementing`、担当は`/root/g178_shape_hierarchy_schema`、基点は`3ff4b96fbd`、作業treeは`/Users/masato/Documents/librepaint-g212-standard-option-schema`である。開始`plugins/paintops/libpaintop/KisStandardOptions.h`と`KisStandardOptionData.h`の残存全32 APIを、既存`plugins/paintops/libpaintop/tests/KisCurveOptionSchemaContractTest.cpp`の5枠へ10・3・7・5・7件で対応付ける。許可pathはこの既存試験sourceだけで、CMake、公開header、製品source、文書、台帳を変更しない。所有targetは`KisCurveOptionSchemaContractTest`、正式CTestは`plugins-paintops-libpaintop-KisCurveOptionSchemaContractTest`、軽量近傍は`KisDabCacheUtilsSchemaContractTest`とする。macOSのこの2対象に限る構築実行許可を`granted`とし、現行4工程・8入力とCMake無変更を維持する。
+- 標準曲線option担当は、既存targetの5工程・11入力超過、CMake変更、新探索路・定義・link、候補headerのAUTOMOC入力化、製品shared・OBJECT・`kritatestsdk`接続、option・widget factory関連の製品未解決記号、対象値・widget・inlineまたはtemplate本文の実体化・実行、許可path外変更が必要なら停止する。変更なし計画と直接依存、旧binaryでの追加枠不存在、宣言段階の初期失敗、追加5枠の単発と各20回反復、対象・近傍CTest、AUTOMOC後の二回目計画、無作業再構築2回、動的接続・未解決記号・構文・書式、公開API検査、`verify-quick`を確認する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
 
 ### 第213便の先行監査担当票（第212便確定待ち）
 
