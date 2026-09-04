@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 10592
+    "expectedMissingApis": 10566
   },
   "contracts": [
     {
@@ -53965,6 +53965,77 @@
       "classification": "maintained",
       "apis": [
         "function:operator <<(QDebug dbg,const KoAbstractGradientSP res)"
+      ]
+    },
+    {
+      "target": "KisAngleSelectorSchemaContractTest",
+      "source": "libs/widgets/tests/KisAngleSelectorSchemaContractTest.cpp",
+      "test": "KisAngleSelectorSchemaContractTest::angleSelectorLifetimeAndNotificationSchemaRemainStable",
+      "behavior": "角度選択Widgetは任意の親から構築・仮想破棄でき、指定範囲に最も近い同終辺角を求め、向きを反転・初期化して角度変更を通知する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAngleSelector::KisAngleSelector(QWidget * parent=0)",
+        "method:KisAngleSelector::angleChanged(qreal angle)",
+        "method:KisAngleSelector::closestCoterminalAngleInRange(qreal angle,bool * ok=nullptr) const",
+        "method:KisAngleSelector::flip(Qt::Orientations orientations)",
+        "method:KisAngleSelector::reset()",
+        "method:KisAngleSelector::~KisAngleSelector()"
+      ]
+    },
+    {
+      "target": "KisAngleSelectorSchemaContractTest",
+      "source": "libs/widgets/tests/KisAngleSelectorSchemaContractTest.cpp",
+      "test": "KisAngleSelectorSchemaContractTest::angleSelectorSpinBoxTypeAndLifetimeSchemaRemainStable",
+      "behavior": "角度選択spin boxは公開型であり、任意の親から構築して基底所有から仮想破棄できる契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisAngleSelectorSpinBox",
+        "method:KisAngleSelectorSpinBox::KisAngleSelectorSpinBox(QWidget * parent=0)",
+        "method:KisAngleSelectorSpinBox::~KisAngleSelectorSpinBox()"
+      ]
+    },
+    {
+      "target": "KisAngleSelectorSchemaContractTest",
+      "source": "libs/widgets/tests/KisAngleSelectorSchemaContractTest.cpp",
+      "test": "KisAngleSelectorSchemaContractTest::angleSelectorSpinBoxPresentationSchemaRemainStable",
+      "behavior": "角度選択spin boxは平坦表示と数値範囲を設定し、表示様式を更新して寸法候補、平坦状態、入力文字列からの値を返す公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAngleSelectorSpinBox::isFlat() const",
+        "method:KisAngleSelectorSpinBox::minimumSizeHint() const",
+        "method:KisAngleSelectorSpinBox::refreshStyle()",
+        "method:KisAngleSelectorSpinBox::setFlat(bool newFlat)",
+        "method:KisAngleSelectorSpinBox::setRange(double min,double max)",
+        "method:KisAngleSelectorSpinBox::sizeHint() const",
+        "method:KisAngleSelectorSpinBox::valueFromText(const QString & text) const"
+      ]
+    },
+    {
+      "target": "KisAngleSelectorSchemaContractTest",
+      "source": "libs/widgets/tests/KisAngleSelectorSchemaContractTest.cpp",
+      "test": "KisAngleSelectorSchemaContractTest::aspectRatioLockerTypeLifetimeAndConnectionSchemaRemainStable",
+      "behavior": "縦横比連動器は任意の親から構築・仮想破棄でき、角度入力または数値入力の組と縦横比buttonを接続する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisAspectRatioLocker",
+        "method:KisAspectRatioLocker::KisAspectRatioLocker(QObject * parent=0)",
+        "method:KisAspectRatioLocker::connectAngleBoxes(AngleBoxType * spinOne,AngleBoxType * spinTwo,KoAspectButton * aspectButton)",
+        "method:KisAspectRatioLocker::connectSpinBoxes(SpinBoxType * spinOne,SpinBoxType * spinTwo,KoAspectButton * aspectButton)",
+        "method:KisAspectRatioLocker::~KisAspectRatioLocker()"
+      ]
+    },
+    {
+      "target": "KisAngleSelectorSchemaContractTest",
+      "source": "libs/widgets/tests/KisAngleSelectorSchemaContractTest.cpp",
+      "test": "KisAngleSelectorSchemaContractTest::aspectRatioLockerUpdateAndNotificationSchemaRemainStable",
+      "behavior": "縦横比連動器はドラッグ中の更新通知抑止を設定し、比率・slider値・button状態の変更を処理する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAspectRatioLocker::aspectButtonChanged()",
+        "method:KisAspectRatioLocker::aspectButtonToggled(bool value)",
+        "method:KisAspectRatioLocker::setBlockUpdateSignalOnDrag(bool block)",
+        "method:KisAspectRatioLocker::sliderValueChanged()",
+        "method:KisAspectRatioLocker::updateAspect()"
       ]
     }
   ]
