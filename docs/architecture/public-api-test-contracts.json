@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 8872
+    "expectedMissingApis": 8841
   },
   "contracts": [
     {
@@ -58340,6 +58340,82 @@
         "method:KisAutoLevelsWidget::setHighlightsColor(const KoColor & newHighlightsColor)",
         "method:KisAutoLevelsWidget::setMidtonesColor(const KoColor & newMidtonesColor)",
         "method:KisAutoLevelsWidget::setShadowsColor(const KoColor & newShadowsColor)"
+      ]
+    },
+    {
+      "target": "KisBrushSchemaContractTest",
+      "source": "libs/brush/tests/KisBrushSchemaContractTest.cpp",
+      "test": "KisBrushSchemaContractTest::brushLifetimeAndConstructionSignaturesRemainStable",
+      "behavior": "ブラシ基底は既定・filename・copy構築と仮想destructorを提供し、copy代入を許可しない公開寿命契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisBrush::KisBrush()",
+        "method:KisBrush::KisBrush(const KisBrush & rhs)",
+        "method:KisBrush::KisBrush(const QString & filename)",
+        "method:KisBrush::operator =(const KisBrush & rhs)",
+        "method:KisBrush::~KisBrush()"
+      ]
+    },
+    {
+      "target": "KisBrushSchemaContractTest",
+      "source": "libs/brush/tests/KisBrushSchemaContractTest.cpp",
+      "test": "KisBrushSchemaContractTest::brushTipGeometryAndOutlineSignaturesRemainStable",
+      "behavior": "ブラシ基底はbrush tip画像、形状に応じた寸法・中心・角度、輪郭と輪郭元画像を照会・設定する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisBrush::brushTipImage() const",
+        "method:KisBrush::characteristicSize(KisDabShape const &) const",
+        "method:KisBrush::hotSpot(KisDabShape const &,const KisPaintInformation & info) const",
+        "method:KisBrush::maskAngle(double angle=0) const",
+        "method:KisBrush::maskHeight(KisDabShape const &,qreal subPixelX,qreal subPixelY,const KisPaintInformation & info) const",
+        "method:KisBrush::maskWidth(KisDabShape const &,qreal subPixelX,qreal subPixelY,const KisPaintInformation & info) const",
+        "method:KisBrush::outline(bool forcePreciseOutline=false) const",
+        "method:KisBrush::outlineSourceImage() const",
+        "method:KisBrush::setBrushTipImage(const QImage & image)"
+      ]
+    },
+    {
+      "target": "KisBrushSchemaContractTest",
+      "source": "libs/brush/tests/KisBrushSchemaContractTest.cpp",
+      "test": "KisBrushSchemaContractTest::brushDabAndMaskGenerationSignaturesRemainStable",
+      "behavior": "ブラシ基底は描画可否を判定し、色または画素装置からmask・dab・描画装置を生成する全公開overloadを維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisBrush::canPaintFor(const KisPaintInformation &)",
+        "method:KisBrush::generateMaskAndApplyMaskOrCreateDab(KisFixedPaintDeviceSP dst,ColoringInformation * coloringInfo,KisDabShape const &,const KisPaintInformation & info,double subPixelX,double subPixelY,qreal softnessFactor,qreal lightnessStrength) const",
+        "method:KisBrush::generateMaskAndApplyMaskOrCreateDab(KisFixedPaintDeviceSP dst,ColoringInformation * coloringInfo,KisDabShape const &,const KisPaintInformation & info,double subPixelX=0,double subPixelY=0,qreal softnessFactor=DEFAULT_SOFTNESS_FACTOR) const",
+        "method:KisBrush::mask(KisFixedPaintDeviceSP dst,const KisPaintDeviceSP src,KisDabShape const & shape,const KisPaintInformation & info,double subPixelX=0,double subPixelY=0,qreal softnessFactor=DEFAULT_SOFTNESS_FACTOR,qreal lightnessStrength=DEFAULT_LIGHTNESS_STRENGTH) const",
+        "method:KisBrush::mask(KisFixedPaintDeviceSP dst,const KoColor & color,KisDabShape const & shape,const KisPaintInformation & info,double subPixelX=0,double subPixelY=0,qreal softnessFactor=DEFAULT_SOFTNESS_FACTOR,qreal lightnessStrength=DEFAULT_LIGHTNESS_STRENGTH) const",
+        "method:KisBrush::paintDevice(const KoColorSpace * colorSpace,KisDabShape const &,const KisPaintInformation & info,double subPixelX=0,double subPixelY=0) const"
+      ]
+    },
+    {
+      "target": "KisBrushSchemaContractTest",
+      "source": "libs/brush/tests/KisBrushSchemaContractTest.cpp",
+      "test": "KisBrushSchemaContractTest::brushStrokePreparationAndCacheSignaturesRemainStable",
+      "behavior": "ブラシ基底はstroke開始・複製・sequence準備とbrush index、cache初期化、LOD制限を管理する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisBrush::brushIndex() const",
+        "method:KisBrush::clearBrushPyramid()",
+        "method:KisBrush::coldInitBrush()",
+        "method:KisBrush::lodLimitations(KisPaintopLodLimitations * l) const",
+        "method:KisBrush::notifyBrushIsGoingToBeClonedForStroke()",
+        "method:KisBrush::notifyStrokeStarted()",
+        "method:KisBrush::prepareForSeqNo(const KisPaintInformation & info,int seqNo)"
+      ]
+    },
+    {
+      "target": "KisBrushSchemaContractTest",
+      "source": "libs/brush/tests/KisBrushSchemaContractTest.cpp",
+      "test": "KisBrushSchemaContractTest::brushSerializationAndGradientSignaturesRemainStable",
+      "behavior": "ブラシ基底はXMLから資源を復元・読込し、XMLへ保存してgradientを設定する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisBrush::fromXML(const QDomElement & element,KisResourcesInterfaceSP resourcesInterface)",
+        "method:KisBrush::fromXMLLoadResult(const QDomElement & element,KisResourcesInterfaceSP resourcesInterface)",
+        "method:KisBrush::setGradient(KoAbstractGradientSP gradient)",
+        "method:KisBrush::toXML(QDomDocument &,QDomElement &) const"
       ]
     }
   ]
