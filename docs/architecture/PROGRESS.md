@@ -17,6 +17,16 @@
 - `g198-ui-contract-audit`はwidgetutils・widgets・libkis領域を所有し、第197便までに固定したHSX色入力、内部色選択dialog、視覚色選択群、palette delegate、filter設定・適用、palette選択・色集合表示、色選択button・popup action、action分類・toolbar編集入口、zoom action・Widget、scratchpad、ウィンドウ操作、アプリケーション状態通知、タグ選択を除外して、一責務の未対応集合を比較する。
 - 各担当は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、実際のcompile探索路、予測工程・入力と停止線、開始pathから契約先、実装時許可path、固有停止条件、比較候補の棄却根拠を返す。調整担当は3領域のpath、CMake、試験source、生成物が重ならず、合計60〜180 APIとなる組合せだけを次の実装担当票へ進める。
 
+### 第198便の先行監査結果
+
+- pigment領域は`libs/pigment/resources/KoAbstractGradient.h`の残存全20 APIを、抽象gradientの型・寿命、色空間、見本表示、可変色、診断出力として採用し、既存`libs/pigment/tests/KoStopGradientSchemaContractTest.cpp`の5枠へ追加する。既存sourceは114行・5枠であり、追加後も約200行・10枠に収まる。CMakeを変えずQt Core・Gui・Test、header-only Boost、KF I18n・Imathのinterface、pigment・resources・global探索路と定義だけによる4工程・8入力を維持し、停止線を5工程・11入力とする。対象・近傍`KoGradientSegmentSchemaContractTest`はAUTOMOC後の二回目graphにも製品辺がない。gradient、局所probe、色・色空間、Qt値、canvas資源、診断値を実体化せず、構築・破棄、色標本化、見本生成、可変色更新、資源処理、inline診断本文を実行しない。
+  色空間抽象、raster keyframe channel、色変換systemは専用targetと広いtemplate・registry・QObject閉包を要し、paintop設定はbrush・資源cacheへ責務が広がるため棄却した。
+- flake領域は`libs/flake/svg/SvgParser.h`の残存全23 APIを、SVG parserの型・寿命・外部file取得、文書生成、構成、図形・定義解析、metadata・警告として採用し、新規`libs/flake/tests/SvgParserSchemaContractTest.cpp`の5枠へ分離する。既存`TestSvgParser`は625工程・1,281入力で製品接続済みのため使用しない。第197便までにloading context、style、clip、symbol資源のheader閉包が製品非接続targetで固定されており、Qt Gui・Test・Xml、header-only Boost、KF I18nのinterface、flake・global・resources探索路と定義だけによる4工程・8入力を予測する。主近傍`KoSvgTextEnumContractTest`と資源閉包比較`KoSvgSymbolCollectionResourceSchemaContractTest`はAUTOMOC後の二回目graphにも製品辺がなく、停止線を5工程・11入力とする。parser、context、資源manager、図形・marker・symbol、Qt I/O・XML・値・容器を実体化せず、文書生成、解析、図形所有、外部file取得、metadata・警告生成本文を実行しない。
+  tool managerは大域singletonと操作管理の二責務が未解消のため再棄却し、path tool群は製品接続、SVG text shapeは80 API上限超過、font群は独立責務と外部環境を混在させるため棄却した。
+- widgets領域は`libs/widgets/KisAngleSelector.h`の残存全16 APIと`kis_aspect_ratio_locker.h`の残存全10 APIを、角度入力と縦横比連動からなる幾何数値入力責務として採用し、既存`libs/widgets/tests/KisAngleSelectorSchemaContractTest.cpp`の5枠へ追加する。既存sourceは107行・5枠であり、追加後も約190行・10枠に収まる。CMakeを変えずQt Test・Widgetsと推移するCore・Gui、widgets・widgetutils探索路、`kritawidgets_EXPORTS`だけによる4工程・8入力を維持する。対象と製品非接続の近傍`libs/libkis/tests/AngleSelectorSchemaContractTest`はAUTOMOC後の二回目graphにも製品辺がなく、停止線を5工程・11入力とする。selector、spin box、比率locker、button、Qt値、private実装を実体化せず、角度変換、反転・reset、比率計算、接続、通知配送本文を実行しない。
+  libkis Nodeはheader includeだけでnamespace値を実体化し、Krita façadeは大域状態・文書・資源を横断し、gradient editorは生成UI header、単位入力群は異なる所有、進捗・言語buttonは単体下限未満のため棄却した。
+- 中央の`public-api-missing-g198.json`で抽象gradient 20件、SVG parser 23件、角度入力16件、縦横比連動10件の全識別子を照合した。3責務の開始header、試験source、所有CMake、生成物は相互に異なり、合計69 APIを15枠へ進める。許可path外変更、新規の動的link・探索root・compile定義、候補headerのAUTOMOC入力化、二回目計画の製品辺、製品shared・OBJECT・`kritatestsdk`接続、指定外実体化・本文実行、各停止線超過が不要な場合だけ実装へ進める。
+
 ### 第197便の先行監査担当票
 
 - 監査共通基点は`3826fa0ee4cb`、入力は`build/tdd-macos/public-api-missing-g197.json`である。3担当の状態は`auditing`であり、主作業treeを読み取り専用で共有する。製品・試験・CMake・script・台帳・文書を変更せず、構成、構築、試験、Git操作、追加委任を行わない。一つの公開責務から20〜80 APIを最大5枠へ固定し、既存限定対象またはheader限定の4〜10工程程度の対象で、製品shared・OBJECTと`kritatestsdk`へ接続しない候補だけを採用する。既存契約sourceが300行または20枠を超える場合は、同じ4工程程度の専用targetへ分ける案を比較する。製品targetを引数にするplan/buildは禁止し、既存Ninja木のquery・commands・inputsだけを読み取る。
