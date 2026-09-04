@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 9017
+    "expectedMissingApis": 8996
   },
   "contracts": [
     {
@@ -57970,6 +57970,72 @@
         "method:KisAnimationFrameCache::changed()",
         "method:KisAnimationFrameCache::dropLowQualityFrames(const KisTimeSpan & range,const QRect & regionOfInterest,const QRect & minimalRect)",
         "method:KisAnimationFrameCache::framesHaveValidRoi(const KisTimeSpan & range,const QRect & regionOfInterest)"
+      ]
+    },
+    {
+      "target": "KoPathPointTopologyCommandSchemaContractTest",
+      "source": "libs/flake/tests/KoPathPointTopologyCommandSchemaContractTest.cpp",
+      "test": "KoPathPointTopologyCommandSchemaContractTest::pathCombineCommandTypeAndConstructionSchemaRemainStable",
+      "behavior": "path結合commandは公開型と仮想寿命を持ち、controllerとpath一覧から任意のundo親を伴って構築できる公開契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoPathCombineCommand",
+        "method:KoPathCombineCommand::KoPathCombineCommand(KoShapeControllerBase * controller,const QList<KoPathShape * > & paths,KUndo2Command * parent=0)",
+        "method:KoPathCombineCommand::~KoPathCombineCommand()"
+      ]
+    },
+    {
+      "target": "KoPathPointTopologyCommandSchemaContractTest",
+      "source": "libs/flake/tests/KoPathPointTopologyCommandSchemaContractTest.cpp",
+      "test": "KoPathPointTopologyCommandSchemaContractTest::pathCombineExecutionAndCorrespondenceSignaturesRemainStable",
+      "behavior": "path結合commandはredo・undoを行い、結合後pathと元の点に対応する結合後の点を照会する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoPathCombineCommand::combinedPath() const",
+        "method:KoPathCombineCommand::originalToCombined(KoPathPointData pd) const",
+        "method:KoPathCombineCommand::redo()",
+        "method:KoPathCombineCommand::undo()"
+      ]
+    },
+    {
+      "target": "KoPathPointTopologyCommandSchemaContractTest",
+      "source": "libs/flake/tests/KoPathPointTopologyCommandSchemaContractTest.cpp",
+      "test": "KoPathPointTopologyCommandSchemaContractTest::pathControlPointMoveCommandSchemaRemainStable",
+      "behavior": "制御点移動commandは点・移動量・点種別から構築され、統合識別・command統合・redo・undoを提供する公開契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoPathControlPointMoveCommand",
+        "method:KoPathControlPointMoveCommand::KoPathControlPointMoveCommand(const KoPathPointData & pointData,const QPointF & offset,KoPathPoint::PointType pointType,KUndo2Command * parent=0)",
+        "method:KoPathControlPointMoveCommand::id() const",
+        "method:KoPathControlPointMoveCommand::mergeWith(const KUndo2Command * command)",
+        "method:KoPathControlPointMoveCommand::redo()",
+        "method:KoPathControlPointMoveCommand::undo()"
+      ]
+    },
+    {
+      "target": "KoPathPointTopologyCommandSchemaContractTest",
+      "source": "libs/flake/tests/KoPathPointTopologyCommandSchemaContractTest.cpp",
+      "test": "KoPathPointTopologyCommandSchemaContractTest::multiPathPointJoinCommandSchemaRemainStable",
+      "behavior": "複数pathの点結合commandは公開型を持ち、二つの点・controller・選択から任意のundo親を伴って構築できる公開契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoMultiPathPointJoinCommand",
+        "method:KoMultiPathPointJoinCommand::KoMultiPathPointJoinCommand(const KoPathPointData & pointData1,const KoPathPointData & pointData2,KoShapeControllerBase * controller,KoSelection * selection,KUndo2Command * parent=0)"
+      ]
+    },
+    {
+      "target": "KoPathPointTopologyCommandSchemaContractTest",
+      "source": "libs/flake/tests/KoPathPointTopologyCommandSchemaContractTest.cpp",
+      "test": "KoPathPointTopologyCommandSchemaContractTest::shapeUnclipCommandSchemaRemainStable",
+      "behavior": "clip解除commandは単一または複数図形から任意のundo親を伴って構築され、仮想寿命とredo・undoを提供する公開契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoShapeUnclipCommand",
+        "method:KoShapeUnclipCommand::KoShapeUnclipCommand(KoShapeControllerBase * controller,KoShape * shape,KUndo2Command * parent=0)",
+        "method:KoShapeUnclipCommand::KoShapeUnclipCommand(KoShapeControllerBase * controller,const QList<KoShape * > & shapes,KUndo2Command * parent=0)",
+        "method:KoShapeUnclipCommand::redo()",
+        "method:KoShapeUnclipCommand::undo()",
+        "method:KoShapeUnclipCommand::~KoShapeUnclipCommand()"
       ]
     }
   ]
