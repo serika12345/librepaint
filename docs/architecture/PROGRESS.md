@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-04 19:00 JST
+- 更新日時: 2026-09-04 19:03 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -166,7 +166,7 @@
 - `g207-ui-contract-audit`の状態は`completed`で、widgetutils・widgets・libkis領域からスクリプト資源値とbrush preset選択接続面26 APIを選定した。契約実装より先に`libs/libkis/Preset.h`の未使用`kis_paintop_preset.h`を`Preset.cpp`へ移す依存整理が必要である。
 - `g207-image-contract-audit`の状態は`completed`で、image・paintop・pigment領域からstroke queueの投入・完了・状態処理・LoD factory・callback診断29 APIを選定した。新規専用targetは既存処理適用器契約と同じ4工程・8入力を予測し、更新scheduler契約へ追記してpainting/undoとKF I18n探索路を波及させない。
 - `g207-resource-preset-closure-review`の状態は`completed`で、`libs/libkis/Resource.h`、`Preset.h`、`PresetChooser.h`の26 APIが5枠へ重複なく対応できることを確認した。`Preset.h`の未使用`kis_paintop_preset.h`は完全型を使う直接consumerの`Preset.cpp`へ移し、契約targetにはimage・global・resources・resources/ui・ui/widgetsと各生成探索路、Qt Gui・Widgets・KF I18nのinterface、5 export定義だけを与えれば4工程・8入力と製品非接続を予測できる。
-- `g207-shape-creation-closure-review`の状態は`auditing`で、図形registry、path・基本図形factory、生成commandの21 API案について、責務の一体性、必要探索路・定義、4工程・8入力、AUTOMOC非入力化、製品非接続の成立条件を独立に読み取り専用レビューする。
+- `g207-shape-creation-closure-review`の状態は`completed`で、図形registry、path・基本図形factory、生成commandの21 APIが5枠へ重複なく対応できることを確認した。既定引数と値渡しの最上位`const`は未評価式と公開API識別子を併用し、計画済みcompile interfaceによる4工程・8入力、AUTOMOC `HEADERS=[]`、製品非接続を予測できる。
 
 ### 第207便の先行監査結果
 
@@ -178,7 +178,7 @@
 ### 第207便の担当計画
 
 - 実装共通基点は`cf6cf88ceb`である。一度に一つだけ作る専用worktree-local `build/tdd-macos`と主作業treeの共有compiler cacheを使い、`./scripts/run-shared-test-env`で読み込み済み環境を利用する。各担当のGit権限は許可pathだけの受渡しcommit、追加委任は禁止する。stroke queue、図形生成、資源・presetの順に限定検証・統合・削除し、調整担当だけが文書、公開API台帳、共通不足報告を変更する。
-- `g207-strokes-queue-schema`の状態は`implementing`、macOSの対象・近傍に限る構築実行許可は`granted`で、基点`ff82e4c6c3`の作業tree`/Users/masato/Documents/librepaint-g207-strokes-queue-schema`を所有する。正式不足報告の`libs/image/kis_strokes_queue.h`残存全29 APIを、新規`libs/image/tests/KisStrokesQueueSchemaContractTest.cpp`の5枠`strokesQueueTypeAndLifetimeSchemaRemainStable`、`strokesQueueAdmissionAndCompletionSignaturesRemainStable`、`strokesQueueStateAndProcessingSignaturesRemainStable`、`strokesQueueLodAndFactorySignaturesRemainStable`、`strokesQueueCallbacksAndDiagnosticsSignaturesRemainStable`へ3・7・9・6・4件で対応付ける。許可pathは新規試験sourceと`libs/image/tests/CMakeLists.txt`の新target固有節だけである。対象`KisStrokesQueueSchemaContractTest`、正式CTest`libs-image-KisStrokesQueueSchemaContractTest`、近傍`KisProcessingApplicatorSchemaContractTest`である。
+- `g207-strokes-queue-schema`の状態は`integrated`、macOSの対象・近傍に限る構築実行許可は`granted`である。正式不足報告の`libs/image/kis_strokes_queue.h`残存全29 APIを、新規`libs/image/tests/KisStrokesQueueSchemaContractTest.cpp`の5枠`strokesQueueTypeAndLifetimeSchemaRemainStable`、`strokesQueueAdmissionAndCompletionSignaturesRemainStable`、`strokesQueueStateAndProcessingSignaturesRemainStable`、`strokesQueueLodAndFactorySignaturesRemainStable`、`strokesQueueCallbacksAndDiagnosticsSignaturesRemainStable`へ3・7・9・6・4件で対応付けた。許可pathは新規試験sourceと`libs/image/tests/CMakeLists.txt`の新target固有節だけで、公開headerと製品sourceを変更していない。受渡しcommit`da8367aa99`を統合commit`a08a5088c6`として取り込み、担当側と中央で追加5枠を各20回、対象`libs-image-KisStrokesQueueSchemaContractTest`と近傍`libs-image-KisProcessingApplicatorSchemaContractTest`を実行した。4工程・8入力、Qt Core・Testだけの動的接続、AUTOMOC `HEADERS=[]`、製品未解決記号なし、二回目計画と再構築の無作業を確認し、台帳は20,052件対応、9,786件未対応となった。cleanな専用作業treeとbranchを統合直後に削除し、883,148 KiBを回収した。queue順序、並行処理、取消・undo、LoD同期結果は別の効果契約で扱う。
 - `g207-shape-creation-schema`の状態は`planned`、構築実行許可は`withheld`である。正式不足報告の`libs/flake/KoShapeRegistry.h`、`KoPathShapeFactory.h`、`KoBasicShapeFactory.h`、`commands/KoShapeCreateCommand.h`残存全21 APIを、新規`libs/flake/tests/KoShapeCreationSchemaContractTest.cpp`の5枠`shapeRegistryTypeLifetimeAndAccessSchemaRemainStable`、`pathShapeFactoryTypeLifetimeAndConstructionSchemaRemainStable`、`pathShapeFactoryCreationAndSupportSignaturesRemainStable`、`basicShapeFactoryCreationSignaturesRemainStable`、`shapeCreateCommandSchemaRemainStable`へ6・3・3・3・6件で対応付ける。許可pathは新規試験sourceと`libs/flake/tests/CMakeLists.txt`の新target固有節だけである。対象`KoShapeCreationSchemaContractTest`、正式CTest`libs-flake-KoShapeCreationSchemaContractTest`、近傍`KoShapeReorderCommandSchemaContractTest`である。
 - `g207-resource-preset-schema`の状態は`planned`、構築実行許可は`withheld`である。先行依存整理の許可pathは`libs/libkis/Preset.h`と`Preset.cpp`、契約実装の許可pathは新規`libs/libkis/tests/ResourcePresetSchemaContractTest.cpp`と`libs/libkis/tests/CMakeLists.txt`の新target固有節だけである。正式不足報告の3 header残存全26 APIを5枠`resourceTypeLifetimeAndValueSemanticsSchemaRemainStable`、`resourceIdentityAndPresentationSignaturesRemainStable`、`presetTypeLifetimeAndPersistenceSchemaRemainStable`、`presetChooserTypeLifetimeAndSelectionSchemaRemainStable`、`presetChooserNotificationSignaturesRemainStable`へ8・6・5・5・2件で対応付ける。対象`ResourcePresetSchemaContractTest`、正式CTest`libs-libkis-ResourcePresetSchemaContractTest`、近傍`ViewSchemaContractTest`である。
 - 3担当とも予測4工程・8入力、停止線5工程・11入力とする。指定外探索路・link・定義、Qt・KF・製品libraryの計画外動的接続、AUTOMOC header入力、製品未解決記号、対象型の実体化・本文実行、許可path外変更が必要なら停止する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
@@ -201,8 +201,8 @@
 ### 第210便の先行監査担当票（第209便確定待ち）
 
 - 監査共通基点は`cb224ddbce`、暫定入力は`build/tdd-macos/public-api-missing-g207.json`である。第208便までの契約済み・選定済み責務と、第209便で選定済みのtile data manager、文書node graph・layer/mask生成、font registry・storageを除外し、変更、構成、構築、試験、Git操作、追加委任を行わない読み取り専用監査を先行する。正式な第209便完了報告で全識別子と閉包を再照合する。
-- `g210-image-contract-audit`の状態は`auditing`で、image・paintop・pigment領域から一責務20〜80 API・最大5枠の候補を比較する。完全なAPI識別子、観測契約、開始pathから契約先、許可path、既存対象と近傍、予測閉包、停止条件、棄却根拠を返す。
-- `g210-ui-contract-audit`の状態は`auditing`で、widgetutils・widgets・libkis領域から一責務20〜80 API・最大5枠の候補を比較する。完全なAPI識別子、観測契約、開始pathから契約先、許可path、既存対象と近傍、予測閉包、停止条件、棄却根拠を返す。
+- `g210-image-contract-audit`の状態は`completed`で、image・paintop・pigment領域から変形maskのnode表現・投影・cache・遅延更新・LoD接続37 APIを選定した。既存mask契約は211行・10枠で追記上限を超えるため、同じcompile interfaceを持つ新規専用targetで4工程・8入力を予測する。
+- `g210-ui-contract-audit`の状態は`completed`で、widgetutils・widgets・libkis領域から文書識別状態・保存・close・処理同期20 APIを選定した。G208/G209の文書契約と責務を分けた新規`DocumentLifecycleSchemaContractTest`とし、4工程・8入力を予測する。
 
 ### 第201便の先行監査担当票
 

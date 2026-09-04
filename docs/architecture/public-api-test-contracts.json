@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 9815
+    "expectedMissingApis": 9786
   },
   "contracts": [
     {
@@ -55912,6 +55912,80 @@
         "method:Node::paintPath(const QPainterPath & path,const QString strokeStyle=PaintingResources::defaultStrokeStyle,const QString fillStyle=PaintingResources::defaultFillStyle)",
         "method:Node::paintPolygon(const QList<QPointF> points,const QString strokeStyle=PaintingResources::defaultStrokeStyle,const QString fillStyle=PaintingResources::defaultFillStyle)",
         "method:Node::paintRectangle(const QRectF & rect,const QString strokeStyle=PaintingResources::defaultStrokeStyle,const QString fillStyle=PaintingResources::defaultFillStyle)"
+      ]
+    },
+    {
+      "target": "KisStrokesQueueSchemaContractTest",
+      "source": "libs/image/tests/KisStrokesQueueSchemaContractTest.cpp",
+      "test": "KisStrokesQueueSchemaContractTest::strokesQueueTypeAndLifetimeSchemaRemainStable",
+      "behavior": "stroke queueは既定構築・破棄できる公開型として、変更済みjob投入interfaceを実装する契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisStrokesQueue",
+        "method:KisStrokesQueue::KisStrokesQueue()",
+        "method:KisStrokesQueue::~KisStrokesQueue()"
+      ]
+    },
+    {
+      "target": "KisStrokesQueueSchemaContractTest",
+      "source": "libs/image/tests/KisStrokesQueueSchemaContractTest.cpp",
+      "test": "KisStrokesQueueSchemaContractTest::strokesQueueAdmissionAndCompletionSignaturesRemainStable",
+      "behavior": "stroke queueはstrokeの開始、通常・変更済みjob投入、終了・取消、非同期取消・undoに関する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisStrokesQueue::addJob(KisStrokeId id,KisStrokeJobData * data)",
+        "method:KisStrokesQueue::addMutatedJobs(KisStrokeId id,const QVector<KisStrokeJobData * > list)",
+        "method:KisStrokesQueue::cancelStroke(KisStrokeId id)",
+        "method:KisStrokesQueue::endStroke(KisStrokeId id)",
+        "method:KisStrokesQueue::startStroke(KisStrokeStrategy * strokeStrategy)",
+        "method:KisStrokesQueue::tryCancelCurrentStrokeAsync()",
+        "method:KisStrokesQueue::tryUndoLastStrokeAsync()"
+      ]
+    },
+    {
+      "target": "KisStrokesQueueSchemaContractTest",
+      "source": "libs/image/tests/KisStrokesQueueSchemaContractTest.cpp",
+      "test": "KisStrokesQueueSchemaContractTest::strokesQueueStateAndProcessingSignaturesRemainStable",
+      "behavior": "stroke queueは排他要求、空・待機・受付中状態、現在名、負荷指標、均衡比率、wrap-around能力と処理進行に関する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisStrokesQueue::balancingRatioOverride() const",
+        "method:KisStrokesQueue::currentStrokeName() const",
+        "method:KisStrokesQueue::hasOpenedStrokes() const",
+        "method:KisStrokesQueue::isEmpty() const",
+        "method:KisStrokesQueue::isIdle() const",
+        "method:KisStrokesQueue::needsExclusiveAccess() const",
+        "method:KisStrokesQueue::processQueue(KisUpdaterContext & updaterContext,bool externalJobsPending)",
+        "method:KisStrokesQueue::sizeMetric() const",
+        "method:KisStrokesQueue::wrapAroundModeSupported() const"
+      ]
+    },
+    {
+      "target": "KisStrokesQueueSchemaContractTest",
+      "source": "libs/image/tests/KisStrokesQueueSchemaContractTest.cpp",
+      "test": "KisStrokesQueueSchemaContractTest::strokesQueueLodAndFactorySignaturesRemainStable",
+      "behavior": "stroke queueは詳細度設定、明示的再生成、詳細度同期・更新休止再開factoryと事後undo adapterに関する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisStrokesQueue::explicitRegenerateLevelOfDetail()",
+        "method:KisStrokesQueue::lodNPostExecutionUndoAdapter() const",
+        "method:KisStrokesQueue::lodPreferences() const",
+        "method:KisStrokesQueue::setLod0ToNStrokeStrategyFactory(const KisLodSyncStrokeStrategyFactory & factory)",
+        "method:KisStrokesQueue::setLodPreferences(const KisLodPreferences & value)",
+        "method:KisStrokesQueue::setSuspendResumeUpdatesStrokeStrategyFactory(const KisSuspendResumeStrategyPairFactory & factory)"
+      ]
+    },
+    {
+      "target": "KisStrokesQueueSchemaContractTest",
+      "source": "libs/image/tests/KisStrokesQueueSchemaContractTest.cpp",
+      "test": "KisStrokesQueueSchemaContractTest::strokesQueueCallbacksAndDiagnosticsSignaturesRemainStable",
+      "behavior": "stroke queueはredo破棄・GUI再開callback、UFO画像変更通知、全stroke診断出力に関する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisStrokesQueue::debugDumpAllStrokes()",
+        "method:KisStrokesQueue::notifyUFOChangedImage()",
+        "method:KisStrokesQueue::setPostSyncLod0GUIPlaneRequestForResumeCallback(const std::function<void ()> & callback)",
+        "method:KisStrokesQueue::setPurgeRedoStateCallback(const std::function<void ()> & callback)"
       ]
     }
   ]
