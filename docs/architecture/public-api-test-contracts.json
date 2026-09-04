@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 9354
+    "expectedMissingApis": 9330
   },
   "contracts": [
     {
@@ -57048,6 +57048,75 @@
         "function:KisPaintOpOptionWidgetUtils::createMaskingRotationOptionWidget()",
         "function:KisPaintOpOptionWidgetUtils::createMaskingScatterOptionWidget()",
         "function:KisPaintOpOptionWidgetUtils::createMaskingSizeOptionWidget()"
+      ]
+    },
+    {
+      "target": "ToolTransformArgsGeometrySchemaContractTest",
+      "source": "plugins/tools/tool_transform2/tests/ToolTransformArgsGeometrySchemaContractTest.cpp",
+      "test": "ToolTransformArgsGeometrySchemaContractTest::transformMaskAdapterTypeLifetimeAndConstructionSchemaRemainStable",
+      "behavior": "変形mask adapterは公開型、基底interface、構築引数の既定化、および仮想寿命の契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisTransformMaskAdapter",
+        "method:KisTransformMaskAdapter::KisTransformMaskAdapter()",
+        "method:KisTransformMaskAdapter::KisTransformMaskAdapter(const ToolTransformArgs & args,bool isHidden=false,bool isInitialized=true)",
+        "method:KisTransformMaskAdapter::~KisTransformMaskAdapter()"
+      ]
+    },
+    {
+      "target": "ToolTransformArgsGeometrySchemaContractTest",
+      "source": "plugins/tools/tool_transform2/tests/ToolTransformArgsGeometrySchemaContractTest.cpp",
+      "test": "ToolTransformArgsGeometrySchemaContractTest::transformMaskAdapterIdentityAndVisibilitySchemaRemainStable",
+      "behavior": "変形mask adapterは方式識別と初期化・表示状態の照会および変更に関する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTransformMaskAdapter::id() const",
+        "method:KisTransformMaskAdapter::isAffine() const",
+        "method:KisTransformMaskAdapter::isHidden() const",
+        "method:KisTransformMaskAdapter::isInitialized() const",
+        "method:KisTransformMaskAdapter::setHidden(bool value)"
+      ]
+    },
+    {
+      "target": "ToolTransformArgsGeometrySchemaContractTest",
+      "source": "plugins/tools/tool_transform2/tests/ToolTransformArgsGeometrySchemaContractTest.cpp",
+      "test": "ToolTransformArgsGeometrySchemaContractTest::transformMaskAdapterValueAndPersistenceSchemaRemainStable",
+      "behavior": "変形mask adapterは複製・比較、基底引数の更新、およびXML永続化の公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTransformMaskAdapter::clone() const",
+        "method:KisTransformMaskAdapter::compareTransform(KisTransformMaskParamsInterfaceSP rhs) const",
+        "method:KisTransformMaskAdapter::fromDumbXML(const QDomElement & e)",
+        "method:KisTransformMaskAdapter::fromXML(const QDomElement & e)",
+        "method:KisTransformMaskAdapter::setBaseArgs(const ToolTransformArgs & args)",
+        "method:KisTransformMaskAdapter::toXML(QDomElement * e) const"
+      ]
+    },
+    {
+      "target": "ToolTransformArgsGeometrySchemaContractTest",
+      "source": "plugins/tools/tool_transform2/tests/ToolTransformArgsGeometrySchemaContractTest.cpp",
+      "test": "ToolTransformArgsGeometrySchemaContractTest::transformMaskAdapterGeometrySchemaRemainStable",
+      "behavior": "変形mask adapterは変換行列、必要領域、および変換元・変換先座標の変更に関する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTransformMaskAdapter::finalAffineTransform() const",
+        "method:KisTransformMaskAdapter::nonAffineChangeRect(const QRect & rc)",
+        "method:KisTransformMaskAdapter::nonAffineNeedRect(const QRect & rc,const QRect & srcBounds)",
+        "method:KisTransformMaskAdapter::transformSrcAndDst(const QTransform & t)",
+        "method:KisTransformMaskAdapter::translateDstSpace(const QPointF & offset)",
+        "method:KisTransformMaskAdapter::translateSrcAndDst(const QPointF & offset)"
+      ]
+    },
+    {
+      "target": "ToolTransformArgsGeometrySchemaContractTest",
+      "source": "plugins/tools/tool_transform2/tests/ToolTransformArgsGeometrySchemaContractTest.cpp",
+      "test": "ToolTransformArgsGeometrySchemaContractTest::transformMaskAdapterArgumentsKeyframeAndDeviceSchemaRemainStable",
+      "behavior": "変形mask adapterは変形引数、keyframe channel、および描画装置変換の公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTransformMaskAdapter::getKeyframeChannel(const QString & id,KisDefaultBoundsBaseSP defaultBounds)",
+        "method:KisTransformMaskAdapter::transformArgs() const",
+        "method:KisTransformMaskAdapter::transformDevice(KisNodeSP node,KisPaintDeviceSP src,KisPaintDeviceSP dst,bool forceSubPixelTranslation) const"
       ]
     }
   ]
