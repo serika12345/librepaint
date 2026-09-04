@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 9232
+    "expectedMissingApis": 9210
   },
   "contracts": [
     {
@@ -57395,6 +57395,73 @@
       "apis": [
         "method:KisCanvasAnimationState::sigAudioLevelChanged(qreal value)",
         "method:KisCanvasAnimationState::sigCancelPlayback()"
+      ]
+    },
+    {
+      "target": "SvgParserSchemaContractTest",
+      "source": "libs/flake/tests/SvgParserSchemaContractTest.cpp",
+      "test": "SvgParserSchemaContractTest::svgDragClipboardSchemaRemainStable",
+      "behavior": "SVG drag交換は公開型、mime data所有移譲、clipboard登録、任意data追加、および図形SVG設定の公開契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoDrag",
+        "method:KoDrag::KoDrag()",
+        "method:KoDrag::addToClipboard()",
+        "method:KoDrag::mimeData()",
+        "method:KoDrag::setData(const QString & mimeType,const QByteArray & data)",
+        "method:KoDrag::setSvg(const QList<KoShape * > shapes)",
+        "method:KoDrag::~KoDrag()"
+      ]
+    },
+    {
+      "target": "SvgParserSchemaContractTest",
+      "source": "libs/flake/tests/SvgParserSchemaContractTest.cpp",
+      "test": "SvgParserSchemaContractTest::svgPasteImportSchemaRemainStable",
+      "behavior": "SVG貼付け取込みは図形有無の照会、保持dataと指定dataからの図形取得、および省略可能なfragment寸法出力の公開契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoSvgPaste",
+        "method:KoSvgPaste::KoSvgPaste()",
+        "method:KoSvgPaste::fetchShapes(QRectF viewportInPx,qreal resolutionPPI,QSizeF * fragmentSize=nullptr)",
+        "method:KoSvgPaste::fetchShapesFromData(const QByteArray & data,QRectF viewportInPx,qreal resolutionPPI,QSizeF * fragmentSize=nullptr)",
+        "method:KoSvgPaste::hasShapes()",
+        "method:KoSvgPaste::~KoSvgPaste()"
+      ]
+    },
+    {
+      "target": "SvgParserSchemaContractTest",
+      "source": "libs/flake/tests/SvgParserSchemaContractTest.cpp",
+      "test": "SvgParserSchemaContractTest::svgPathShapeLoaderSchemaRemainStable",
+      "behavior": "SVG path loaderは対象pathへの接続と、正規化処理を省略できるSVG path data読込みの公開契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoPathShapeLoader",
+        "method:KoPathShapeLoader::KoPathShapeLoader(KoPathShape * path)",
+        "method:KoPathShapeLoader::parseSvg(const QString & svgInputData,bool process=false)",
+        "method:KoPathShapeLoader::~KoPathShapeLoader()"
+      ]
+    },
+    {
+      "target": "SvgParserSchemaContractTest",
+      "source": "libs/flake/tests/SvgParserSchemaContractTest.cpp",
+      "test": "SvgParserSchemaContractTest::svgShapeTypeAndLifetimeSchemaRemainStable",
+      "behavior": "図形固有SVG interfaceは公開型と仮想寿命の契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:SvgShape",
+        "method:SvgShape::~SvgShape()"
+      ]
+    },
+    {
+      "target": "SvgParserSchemaContractTest",
+      "source": "libs/flake/tests/SvgParserSchemaContractTest.cpp",
+      "test": "SvgParserSchemaContractTest::svgShapePersistenceSignaturesRemainStable",
+      "behavior": "図形固有SVG interfaceはSVG読込み、SVG保存、およびmetadata保存の公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:SvgShape::loadSvg(const QDomElement & element,SvgLoadingContext & context)",
+        "method:SvgShape::saveMetadata(SvgSavingContext & context)",
+        "method:SvgShape::saveSvg(SvgSavingContext & context)"
       ]
     }
   ]

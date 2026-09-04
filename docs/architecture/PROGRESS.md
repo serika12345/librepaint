@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 02:05 JST
+- 更新日時: 2026-09-05 02:15 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -415,8 +415,9 @@
 ### 第214便の担当計画
 
 - 実装共通基点は`90b9bbf84a`である。一度に一つだけ作る専用worktree-local `build/tdd-macos`と主作業treeの共有compiler cacheを使い、担当側の`./scripts/run-shared-test-env`で読み込み済み環境を利用する。SVG図形交換、histogram描画、色空間・変換factoryの順に限定検証・統合・削除し、調整担当だけが文書、公開API台帳、共通不足報告を変更する。各担当のGit権限は許可pathだけの1受渡しcommitで、追加委任は禁止する。
-- `g214-svg-exchange-schema`の状態は`implementing`、担当は`/root/g178_shape_hierarchy_schema`、基点は`90b9bbf84a`、作業treeは`/Users/masato/Documents/librepaint-g214-svg-exchange-schema`である。開始`libs/flake/KoDrag.h`の7 API、`KoSvgPaste.h`の6 API、`KoPathShapeLoader.h`の4 API、`svg/SvgShape.h`の5 APIを、既存`libs/flake/tests/SvgParserSchemaContractTest.cpp`の5枠へclipboard交換7、SVG取込み6、path data読込み4、図形SVG型・寿命2、図形SVG永続化3として対応付ける。許可pathは既存試験sourceだけで、CMake、公開header、製品sourceを変更しない。既存targetのQt Gui・Test・Xml、header-only Boost、既存探索路・定義による4工程・8入力を維持する。
-- SVG図形交換担当は、CMake変更、5工程・11入力超過、新しい探索路・定義・link、候補headerのAUTOMOC入力化、製品shared・OBJECT・`kritatestsdk`接続、clipboard・SVG parser・図形関連の製品未解決記号、対象値・Qt値・製品本文の実体化・実行、許可path外変更が必要なら停止する。旧binaryで追加5枠が未知であること、宣言段階の初期失敗、追加5枠の単発と各20回反復、対象と軽量近傍、AUTOMOC後の二回目計画、無作業再構築2回、動的接続・未解決記号・構文・書式、公開API検査、`verify-quick`を確認する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
+- `g214-svg-exchange-schema`の状態は`integrated`である。開始`libs/flake/KoDrag.h`の7 API、`KoSvgPaste.h`の6 API、`KoPathShapeLoader.h`の4 API、`svg/SvgShape.h`の5 APIを、既存`libs/flake/tests/SvgParserSchemaContractTest.cpp`の5枠`svgDragClipboardSchemaRemainStable`、`svgPasteImportSchemaRemainStable`、`svgPathShapeLoaderSchemaRemainStable`、`svgShapeTypeAndLifetimeSchemaRemainStable`、`svgShapePersistenceSignaturesRemainStable`へ7・6・4・2・3件で対応付けた。受渡しcommit`832e4783f3`を統合commit`6d1e06f826`として取り込み、CMake、公開header、製品sourceは変更していない。
+- 担当側と中央のmacOSで追加5枠を各20回、既存5枠を含む対象`libs-flake-SvgParserSchemaContractTest`と近傍`libs-flake-KoSvgTextShapeSchemaContractTest`、AUTOMOC後の二回目計画、無作業再構築2回に成功した。4工程・8入力、AUTOMOC `HEADERS=[]`、Qt Gui・Test・Xmlだけの動的接続、製品未解決記号なしを維持し、台帳は20,628件対応、9,210件未対応となった。clipboard操作、SVG取込み、path読込み、永続化の実行結果は別の効果契約で扱う。
+- cleanな専用作業tree、293,732 KiBの構築木、branchを統合直後に削除し、883,584 KiBを回収した。主Ninja木5,730,468 KiBと共有compiler cache 981,716 KiBをhistogram描画契約へ再利用する。次の永続作業は、histogram描画20 APIの担当票を確定して専用作業treeで実装することである。
 
 ### 第215便の先行監査担当票（第214便確定待ち）
 
