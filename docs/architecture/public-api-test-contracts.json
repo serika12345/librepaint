@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 8662
+    "expectedMissingApis": 8638
   },
   "contracts": [
     {
@@ -58831,6 +58831,75 @@
         "method:KisResourceIterator::peekPrevious() const",
         "method:KisResourceIterator::previous()",
         "method:KisResourceIterator::toBack()"
+      ]
+    },
+    {
+      "target": "KisInputProfileManagerSchemaContractTest",
+      "source": "libs/input/ui/tests/KisInputProfileManagerSchemaContractTest.cpp",
+      "test": "KisInputProfileManagerSchemaContractTest::inputProfileManagerTypeLifetimeAndSingletonSchemaRemainStable",
+      "behavior": "入力profile管理は型、QObject親付き構築、複製禁止、単一実体取得、破棄可能性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisInputProfileManager",
+        "method:KisInputProfileManager::KisInputProfileManager(QObject * parent=0)",
+        "method:KisInputProfileManager::Q_DISABLE_COPY(KisInputProfileManager)",
+        "method:KisInputProfileManager::instance()",
+        "method:KisInputProfileManager::~KisInputProfileManager()"
+      ]
+    },
+    {
+      "target": "KisInputProfileManagerSchemaContractTest",
+      "source": "libs/input/ui/tests/KisInputProfileManagerSchemaContractTest.cpp",
+      "test": "KisInputProfileManagerSchemaContractTest::inputProfileManagerActionSignaturesRemainStable",
+      "behavior": "入力profile管理は入力actionを識別子で取得し、action一覧を取得・設定する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisInputProfileManager::action(const QString & id) const",
+        "method:KisInputProfileManager::actions()",
+        "method:KisInputProfileManager::setActions(const QList<KisAbstractInputAction * > & actions)"
+      ]
+    },
+    {
+      "target": "KisInputProfileManagerSchemaContractTest",
+      "source": "libs/input/ui/tests/KisInputProfileManagerSchemaContractTest.cpp",
+      "test": "KisInputProfileManagerSchemaContractTest::inputProfileManagerProfileQueryAndSelectionSignaturesRemainStable",
+      "behavior": "入力profile管理はprofile一覧・現在選択・競合shortcutを照会し、選択変更を設定・通知する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisInputProfileManager::currentProfile() const",
+        "method:KisInputProfileManager::currentProfileChanged()",
+        "method:KisInputProfileManager::getConflictingShortcuts(KisInputProfile * profile)",
+        "method:KisInputProfileManager::profileNames() const",
+        "method:KisInputProfileManager::profiles() const",
+        "method:KisInputProfileManager::setCurrentProfile(KisInputProfile * profile)"
+      ]
+    },
+    {
+      "target": "KisInputProfileManagerSchemaContractTest",
+      "source": "libs/input/ui/tests/KisInputProfileManagerSchemaContractTest.cpp",
+      "test": "KisInputProfileManagerSchemaContractTest::inputProfileManagerProfileMutationSignaturesRemainStable",
+      "behavior": "入力profile管理はprofileを追加・複製・削除・改名する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisInputProfileManager::addProfile(const QString & name)",
+        "method:KisInputProfileManager::duplicateProfile(const QString & name,const QString & newName)",
+        "method:KisInputProfileManager::removeProfile(const QString & name)",
+        "method:KisInputProfileManager::renameProfile(const QString & oldName,const QString & newName)"
+      ]
+    },
+    {
+      "target": "KisInputProfileManagerSchemaContractTest",
+      "source": "libs/input/ui/tests/KisInputProfileManagerSchemaContractTest.cpp",
+      "test": "KisInputProfileManagerSchemaContractTest::inputProfileManagerPersistenceAndNotificationSignaturesRemainStable",
+      "behavior": "入力profile管理は保存場所を指定し、profileを読込・保存・初期化して変更を通知する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisInputProfileManager::loadProfiles()",
+        "method:KisInputProfileManager::profilesChanged()",
+        "method:KisInputProfileManager::resetAll()",
+        "method:KisInputProfileManager::saveProfile(KisInputProfile * profile,QString storagePath)",
+        "method:KisInputProfileManager::saveProfiles()",
+        "method:KisInputProfileManager::setProfileLocations(const QStringList & profileFiles,const QString & profileStorageDirectory)"
       ]
     }
   ]
