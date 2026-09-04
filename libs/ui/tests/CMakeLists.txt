@@ -272,6 +272,26 @@ target_compile_definitions(KisHistogramPainterSchemaContractTest PRIVATE
 )
 
 kis_add_test(
+    KisAsyncColorSamplerHelperSchemaContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KisAsyncColorSamplerHelperSchemaContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_BINARY_DIR}/libs/application
+    ${CMAKE_SOURCE_DIR}/libs/image
+    ${CMAKE_BINARY_DIR}/libs/image
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+)
+target_compile_definitions(KisAsyncColorSamplerHelperSchemaContractTest PRIVATE
+    kritaapplicationui_EXPORTS
+    kritaimage_EXPORTS
+    kritaglobal_EXPORTS
+)
+
+kis_add_test(
     KisExposureGammaCorrectionInterfaceContractTest.cpp
     LINK_LIBRARIES
         kritauiexposuregammacorrectionobjects
