@@ -351,6 +351,30 @@ target_compile_definitions(KisLayerFilterWidgetSchemaContractTest PRIVATE
 )
 
 kis_add_test(
+    KisCurveWidgetSchemaContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+        Boost::boost
+        Eigen3::Eigen
+)
+target_include_directories(KisCurveWidgetSchemaContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_BINARY_DIR}/libs/application
+    ${CMAKE_SOURCE_DIR}/libs/image
+    ${CMAKE_BINARY_DIR}/libs/image
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Gui,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Widgets,INTERFACE_INCLUDE_DIRECTORIES>
+)
+target_compile_definitions(KisCurveWidgetSchemaContractTest PRIVATE
+    kritaapplicationui_EXPORTS
+    kritaimage_EXPORTS
+    kritaglobal_EXPORTS
+)
+
+kis_add_test(
     KisAnimationFrameCacheSchemaContractTest.cpp
     LINK_LIBRARIES
         Qt${QT_MAJOR_VERSION}::Core
