@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "kis_asl_layer_style_serializer.h"
 #include "kis_psd_layer_style.h"
 
 #include <QTest>
@@ -11,6 +12,8 @@
 
 #define ASSERT_PSD_LAYER_STYLE_SIGNATURE(method, signature)                                                            \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisPSDLayerStyle::method)), signature>)
+#define ASSERT_ASL_LAYER_STYLE_SERIALIZER_SIGNATURE(method, signature)                                                 \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KisAslLayerStyleSerializer::method)), signature>)
 
 class KisPSDLayerStyleSchemaContractTest : public QObject
 {
@@ -22,6 +25,11 @@ private Q_SLOTS:
     void psdLayerStyleEffectAccessorsRemainStable();
     void psdLayerStyleStateAndResourceSignaturesRemainStable();
     void psdLayerStyleResourceSnapshotSignaturesRemainStable();
+    void aslLayerStyleSerializerTypeAndStateSchemaRemainStable();
+    void aslLayerStyleSerializerDeviceAndDocumentSignaturesRemainStable();
+    void aslLayerStyleSerializerCollectionSignaturesRemainStable();
+    void aslLayerStyleSerializerPatternAndGradientSignaturesRemainStable();
+    void aslLayerStyleSerializerResourceLoadingSignaturesRemainStable();
 };
 
 void KisPSDLayerStyleSchemaContractTest::psdLayerStyleTypeAndLifetimeSchemaRemainStable()
@@ -118,6 +126,73 @@ void KisPSDLayerStyleSchemaContractTest::psdLayerStyleResourceSnapshotSignatures
     QVERIFY(true);
 }
 
+void KisPSDLayerStyleSchemaContractTest::aslLayerStyleSerializerTypeAndStateSchemaRemainStable()
+{
+    static_assert(std::is_class_v<KisAslLayerStyleSerializer>);
+    static_assert(std::is_default_constructible_v<KisAslLayerStyleSerializer>);
+    static_assert(std::is_destructible_v<KisAslLayerStyleSerializer>);
+    ASSERT_ASL_LAYER_STYLE_SERIALIZER_SIGNATURE(isInitialized, bool (KisAslLayerStyleSerializer::*)());
+    ASSERT_ASL_LAYER_STYLE_SERIALIZER_SIGNATURE(isValid, bool (KisAslLayerStyleSerializer::*)());
+
+    QVERIFY(true);
+}
+
+void KisPSDLayerStyleSchemaContractTest::aslLayerStyleSerializerDeviceAndDocumentSignaturesRemainStable()
+{
+    ASSERT_ASL_LAYER_STYLE_SERIALIZER_SIGNATURE(saveToDevice, void (KisAslLayerStyleSerializer::*)(QIODevice &));
+    ASSERT_ASL_LAYER_STYLE_SERIALIZER_SIGNATURE(saveToFile, bool (KisAslLayerStyleSerializer::*)(const QString &));
+    ASSERT_ASL_LAYER_STYLE_SERIALIZER_SIGNATURE(readFromDevice, void (KisAslLayerStyleSerializer::*)(QIODevice &));
+    ASSERT_ASL_LAYER_STYLE_SERIALIZER_SIGNATURE(readFromFile, bool (KisAslLayerStyleSerializer::*)(const QString &));
+    ASSERT_ASL_LAYER_STYLE_SERIALIZER_SIGNATURE(formXmlDocument, QDomDocument (KisAslLayerStyleSerializer::*)() const);
+    ASSERT_ASL_LAYER_STYLE_SERIALIZER_SIGNATURE(formPsdXmlDocument,
+                                                QDomDocument (KisAslLayerStyleSerializer::*)() const);
+
+    QVERIFY(true);
+}
+
+void KisPSDLayerStyleSchemaContractTest::aslLayerStyleSerializerCollectionSignaturesRemainStable()
+{
+    using StylesHash = QHash<QString, KisPSDLayerStyleSP>;
+
+    ASSERT_ASL_LAYER_STYLE_SERIALIZER_SIGNATURE(assignAllLayerStylesToLayers,
+                                                void (KisAslLayerStyleSerializer::*)(KisNodeSP, const QString &));
+    ASSERT_ASL_LAYER_STYLE_SERIALIZER_SIGNATURE(collectAllLayerStyles, QVector<KisPSDLayerStyleSP> (*)(KisNodeSP));
+    ASSERT_ASL_LAYER_STYLE_SERIALIZER_SIGNATURE(styles,
+                                                QVector<KisPSDLayerStyleSP> (KisAslLayerStyleSerializer::*)() const);
+    ASSERT_ASL_LAYER_STYLE_SERIALIZER_SIGNATURE(
+        setStyles,
+        void (KisAslLayerStyleSerializer::*)(const QVector<KisPSDLayerStyleSP> &));
+    ASSERT_ASL_LAYER_STYLE_SERIALIZER_SIGNATURE(stylesHash, StylesHash (KisAslLayerStyleSerializer::*)());
+
+    QVERIFY(true);
+}
+
+void KisPSDLayerStyleSchemaContractTest::aslLayerStyleSerializerPatternAndGradientSignaturesRemainStable()
+{
+    using PatternsHash = QHash<QString, KoPatternSP>;
+
+    ASSERT_ASL_LAYER_STYLE_SERIALIZER_SIGNATURE(patterns, PatternsHash (KisAslLayerStyleSerializer::*)() const);
+    ASSERT_ASL_LAYER_STYLE_SERIALIZER_SIGNATURE(gradients,
+                                                QVector<KoAbstractGradientSP> (KisAslLayerStyleSerializer::*)() const);
+    ASSERT_ASL_LAYER_STYLE_SERIALIZER_SIGNATURE(registerPSDPattern,
+                                                void (KisAslLayerStyleSerializer::*)(const QDomDocument &));
+
+    QVERIFY(true);
+}
+
+void KisPSDLayerStyleSchemaContractTest::aslLayerStyleSerializerResourceLoadingSignaturesRemainStable()
+{
+    ASSERT_ASL_LAYER_STYLE_SERIALIZER_SIGNATURE(readFromPSDXML,
+                                                void (KisAslLayerStyleSerializer::*)(const QDomDocument &));
+    ASSERT_ASL_LAYER_STYLE_SERIALIZER_SIGNATURE(sideLoadLinkedResources,
+                                                void (*)(KisPSDLayerStyle *, KisResourcesInterfaceSP));
+    ASSERT_ASL_LAYER_STYLE_SERIALIZER_SIGNATURE(fetchLinkedResourceSignatures,
+                                                QVector<KoResourceSignature> (*)(const KisPSDLayerStyle *));
+
+    QVERIFY(true);
+}
+
+#undef ASSERT_ASL_LAYER_STYLE_SERIALIZER_SIGNATURE
 #undef ASSERT_PSD_LAYER_STYLE_SIGNATURE
 
 QTEST_GUILESS_MAIN(KisPSDLayerStyleSchemaContractTest)
