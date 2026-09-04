@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include <resources/KoAbstractGradient.h>
 #include <resources/KoStopGradient.h>
 
 #include <QTest>
@@ -13,6 +14,19 @@ namespace
 {
 #define ASSERT_STOP_GRADIENT_SIGNATURE(method, signature)                                                              \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KoStopGradient::method)), signature>)
+
+#define ASSERT_ABSTRACT_GRADIENT_SIGNATURE(method, signature)                                                          \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KoAbstractGradient::method)), signature>)
+
+class AbstractGradientConstructionProbe final : public KoAbstractGradient
+{
+public:
+    using KoAbstractGradient::KoAbstractGradient;
+
+    KoResourceSP clone() const override;
+    bool loadFromDevice(QIODevice *, KisResourcesInterfaceSP) override;
+    QPair<QString, QString> resourceType() const override;
+};
 } // namespace
 
 class KoStopGradientSchemaContractTest : public QObject
@@ -20,12 +34,73 @@ class KoStopGradientSchemaContractTest : public QObject
     Q_OBJECT
 
 private Q_SLOTS:
+    void abstractGradientTypeAndLifetimeSchemaRemainStable();
+    void abstractGradientColorSpaceSignaturesRemainStable();
+    void abstractGradientPresentationSignaturesRemainStable();
+    void abstractGradientVariableColorSignaturesRemainStable();
+    void abstractGradientDebugSignatureRemainsStable();
     void gradientStopTypeSchemaRemainsStable();
     void gradientStopValueSchemaRemainsStable();
     void stopGradientLifetimeAndResourceSchemaRemainsStable();
     void stopGradientCollectionAndVariableColorSchemaRemainsStable();
     void stopGradientConversionAndPersistenceSchemaRemainsStable();
 };
+
+void KoStopGradientSchemaContractTest::abstractGradientTypeAndLifetimeSchemaRemainStable()
+{
+    using Gradient = KoAbstractGradient;
+    using Probe = AbstractGradientConstructionProbe;
+
+    static_assert(std::is_class_v<Gradient>);
+    static_assert(std::is_base_of_v<KoResource, Gradient>);
+    static_assert(std::is_abstract_v<Gradient>);
+    static_assert(!std::is_abstract_v<Probe>);
+    static_assert(std::is_constructible_v<Probe, const QString &>);
+    static_assert(std::is_copy_constructible_v<Probe>);
+    static_assert(std::has_virtual_destructor_v<Gradient>);
+    static_assert(std::is_destructible_v<Gradient>);
+}
+
+void KoStopGradientSchemaContractTest::abstractGradientColorSpaceSignaturesRemainStable()
+{
+    ASSERT_ABSTRACT_GRADIENT_SIGNATURE(colorAt, void (KoAbstractGradient::*)(KoColor &, qreal) const);
+    ASSERT_ABSTRACT_GRADIENT_SIGNATURE(colorSpace, const KoColorSpace *(KoAbstractGradient::*)() const);
+    ASSERT_ABSTRACT_GRADIENT_SIGNATURE(setColorSpace, void (KoAbstractGradient::*)(KoColorSpace *));
+}
+
+void KoStopGradientSchemaContractTest::abstractGradientPresentationSignaturesRemainStable()
+{
+    using GeneratePreviewSignature = QImage (KoAbstractGradient::*)(int, int) const;
+    using GeneratePreviewWithResourcesSignature =
+        QImage (KoAbstractGradient::*)(int, int, KoCanvasResourcesInterfaceSP) const;
+
+    ASSERT_ABSTRACT_GRADIENT_SIGNATURE(generatePreview, GeneratePreviewSignature);
+    ASSERT_ABSTRACT_GRADIENT_SIGNATURE(generatePreview, GeneratePreviewWithResourcesSignature);
+    ASSERT_ABSTRACT_GRADIENT_SIGNATURE(setSpread, void (KoAbstractGradient::*)(QGradient::Spread));
+    ASSERT_ABSTRACT_GRADIENT_SIGNATURE(spread, QGradient::Spread (KoAbstractGradient::*)() const);
+    ASSERT_ABSTRACT_GRADIENT_SIGNATURE(setType, void (KoAbstractGradient::*)(QGradient::Type));
+    ASSERT_ABSTRACT_GRADIENT_SIGNATURE(type, QGradient::Type (KoAbstractGradient::*)() const);
+    ASSERT_ABSTRACT_GRADIENT_SIGNATURE(toQGradient, QGradient * (KoAbstractGradient::*)() const);
+    ASSERT_ABSTRACT_GRADIENT_SIGNATURE(updatePreview, void (KoAbstractGradient::*)());
+}
+
+void KoStopGradientSchemaContractTest::abstractGradientVariableColorSignaturesRemainStable()
+{
+    using CloneSignature = KoAbstractGradientSP (KoAbstractGradient::*)(KoCanvasResourcesInterfaceSP) const;
+    using UpdateSignature = void (KoAbstractGradient::*)(KoCanvasResourcesInterfaceSP);
+
+    ASSERT_ABSTRACT_GRADIENT_SIGNATURE(bakeVariableColors, UpdateSignature);
+    ASSERT_ABSTRACT_GRADIENT_SIGNATURE(cloneAndBakeVariableColors, CloneSignature);
+    ASSERT_ABSTRACT_GRADIENT_SIGNATURE(cloneAndUpdateVariableColors, CloneSignature);
+    ASSERT_ABSTRACT_GRADIENT_SIGNATURE(updateVariableColors, UpdateSignature);
+}
+
+void KoStopGradientSchemaContractTest::abstractGradientDebugSignatureRemainsStable()
+{
+    using DebugSignature = QDebug (*)(QDebug, KoAbstractGradientSP);
+
+    static_assert(std::is_same_v<decltype(static_cast<DebugSignature>(&operator<<)), DebugSignature>);
+}
 
 void KoStopGradientSchemaContractTest::gradientStopTypeSchemaRemainsStable()
 {
