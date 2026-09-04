@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 9210
+    "expectedMissingApis": 9190
   },
   "contracts": [
     {
@@ -57462,6 +57462,71 @@
         "method:SvgShape::loadSvg(const QDomElement & element,SvgLoadingContext & context)",
         "method:SvgShape::saveMetadata(SvgSavingContext & context)",
         "method:SvgShape::saveSvg(SvgSavingContext & context)"
+      ]
+    },
+    {
+      "target": "KisHistogramPainterSchemaContractTest",
+      "source": "libs/ui/tests/KisHistogramPainterSchemaContractTest.cpp",
+      "test": "KisHistogramPainterSchemaContractTest::histogramPainterTypeLifetimeAndSetupSchemaRemainStable",
+      "behavior": "histogram描画器は公開型、既定構築、寿命、および省略可能なchannel集合を伴うhistogram設定の公開契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisHistogramPainter",
+        "method:KisHistogramPainter::KisHistogramPainter()",
+        "method:KisHistogramPainter::setup(KisHistogram * histogram,const KoColorSpace * colorSpace,QVector<int> channels={})",
+        "method:KisHistogramPainter::~KisHistogramPainter()"
+      ]
+    },
+    {
+      "target": "KisHistogramPainterSchemaContractTest",
+      "source": "libs/ui/tests/KisHistogramPainterSchemaContractTest.cpp",
+      "test": "KisHistogramPainterSchemaContractTest::histogramPainterRenderingSignaturesRemainStable",
+      "behavior": "histogram描画器は画像寸法、幅と高さ、および既存の描画器と矩形へ出力する3つの描画入口を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisHistogramPainter::paint(QPainter & painter,const QRect & rect)",
+        "method:KisHistogramPainter::paint(const QSize & imageSize)",
+        "method:KisHistogramPainter::paint(int w,int h)"
+      ]
+    },
+    {
+      "target": "KisHistogramPainterSchemaContractTest",
+      "source": "libs/ui/tests/KisHistogramPainterSchemaContractTest.cpp",
+      "test": "KisHistogramPainterSchemaContractTest::histogramPainterChannelSelectionSignaturesRemainStable",
+      "behavior": "histogram描画器は利用可能なchannel、選択中のchannel集合、単一・複数channel設定、および全channel数の公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisHistogramPainter::availableChannels() const",
+        "method:KisHistogramPainter::channels() const",
+        "method:KisHistogramPainter::setChannel(int channel)",
+        "method:KisHistogramPainter::setChannels(const QVector<int> & channels)",
+        "method:KisHistogramPainter::totalNumberOfAvailableChannels() const"
+      ]
+    },
+    {
+      "target": "KisHistogramPainterSchemaContractTest",
+      "source": "libs/ui/tests/KisHistogramPainterSchemaContractTest.cpp",
+      "test": "KisHistogramPainterSchemaContractTest::histogramPainterColorAndScaleSignaturesRemainStable",
+      "behavior": "histogram描画器は既定色と尺度の照会・設定、および表示範囲へ尺度を合わせる公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisHistogramPainter::defaultColor() const",
+        "method:KisHistogramPainter::scale() const",
+        "method:KisHistogramPainter::setDefaultColor(const QColor & newDefaultColor)",
+        "method:KisHistogramPainter::setScale(qreal newScale)",
+        "method:KisHistogramPainter::setScaleToFit()"
+      ]
+    },
+    {
+      "target": "KisHistogramPainterSchemaContractTest",
+      "source": "libs/ui/tests/KisHistogramPainterSchemaContractTest.cpp",
+      "test": "KisHistogramPainterSchemaContractTest::histogramPainterPeakAndLogarithmicPolicySignaturesRemainStable",
+      "behavior": "histogram描画器は対数表示方針の照会・設定と長いpeakを切る尺度調整の公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisHistogramPainter::isLogarithmic() const",
+        "method:KisHistogramPainter::setLogarithmic(bool logarithmic)",
+        "method:KisHistogramPainter::setScaleToCutLongPeaks()"
       ]
     }
   ]

@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 02:18 JST
+- 更新日時: 2026-09-05 02:30 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -418,8 +418,9 @@
 - `g214-svg-exchange-schema`の状態は`integrated`である。開始`libs/flake/KoDrag.h`の7 API、`KoSvgPaste.h`の6 API、`KoPathShapeLoader.h`の4 API、`svg/SvgShape.h`の5 APIを、既存`libs/flake/tests/SvgParserSchemaContractTest.cpp`の5枠`svgDragClipboardSchemaRemainStable`、`svgPasteImportSchemaRemainStable`、`svgPathShapeLoaderSchemaRemainStable`、`svgShapeTypeAndLifetimeSchemaRemainStable`、`svgShapePersistenceSignaturesRemainStable`へ7・6・4・2・3件で対応付けた。受渡しcommit`832e4783f3`を統合commit`6d1e06f826`として取り込み、CMake、公開header、製品sourceは変更していない。
 - 担当側と中央のmacOSで追加5枠を各20回、既存5枠を含む対象`libs-flake-SvgParserSchemaContractTest`と近傍`libs-flake-KoSvgTextShapeSchemaContractTest`、AUTOMOC後の二回目計画、無作業再構築2回に成功した。4工程・8入力、AUTOMOC `HEADERS=[]`、Qt Gui・Test・Xmlだけの動的接続、製品未解決記号なしを維持し、台帳は20,628件対応、9,210件未対応となった。clipboard操作、SVG取込み、path読込み、永続化の実行結果は別の効果契約で扱う。
 - cleanな専用作業tree、293,732 KiBの構築木、branchを統合直後に削除し、883,584 KiBを回収した。主Ninja木5,730,468 KiBと共有compiler cache 981,716 KiBをhistogram描画契約へ再利用する。次の永続作業は、histogram描画20 APIの担当票を確定して専用作業treeで実装することである。
-- `g214-histogram-painter-schema`の状態は`implementing`、担当は`/root/g178_paintop_settings_schema`、基点は`2919e88152`、作業treeは`/Users/masato/Documents/librepaint-g214-histogram-painter-schema`である。開始`libs/ui/widgets/KisHistogramPainter.h`の残存全20 APIを、新規`libs/ui/tests/KisHistogramPainterSchemaContractTest.cpp`の5枠へ型・寿命・設定4、描画3、channel選択5、色・尺度5、peak・対数方針3として対応付ける。許可pathは新規試験sourceと`libs/ui/tests/CMakeLists.txt`の新target固有節だけで、公開headerと製品sourceを変更しない。Qt Core・Testを直接接続し、Qt Guiのinclude interface、application生成探索路、`kritaapplicationui_EXPORTS`だけによる4工程・8入力を予測する。
-- histogram描画担当は、5工程・11入力超過、計画外の探索路・定義・link、Qt Guiまたは製品shared・OBJECT・`kritatestsdk`の動的接続、候補headerのAUTOMOC入力化、histogram・色空間・QPainter関連の製品未解決記号、対象値・Qt値・製品本文の実体化・実行、許可path外変更が必要なら停止する。新target不存在、宣言段階の初期失敗、追加5枠の単発と各20回反復、対象と軽量近傍、AUTOMOC後の二回目計画、無作業再構築2回、動的接続・未解決記号・構文・書式、公開API検査、`verify-quick`を確認する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
+- `g214-histogram-painter-schema`の状態は`integrated`である。開始`libs/ui/widgets/KisHistogramPainter.h`の残存全20 APIを、新規`libs/ui/tests/KisHistogramPainterSchemaContractTest.cpp`の5枠`histogramPainterTypeLifetimeAndSetupSchemaRemainStable`、`histogramPainterRenderingSignaturesRemainStable`、`histogramPainterChannelSelectionSignaturesRemainStable`、`histogramPainterColorAndScaleSignaturesRemainStable`、`histogramPainterPeakAndLogarithmicPolicySignaturesRemainStable`へ4・3・5・5・3件で対応付けた。受渡しcommit`4b941a2ad8`を統合commit`fa61b2617a`として取り込み、公開headerと製品sourceは変更していない。
+- 担当側と中央のmacOSで追加5枠を各20回、対象`libs-ui-KisHistogramPainterSchemaContractTest`と近傍`libs-ui-KisNodeViewColorSchemeSchemaContractTest`、AUTOMOC後の二回目計画、無作業再構築2回に成功した。4工程・8入力、AUTOMOC `HEADERS=[]`、Qt Core・Testだけの動的接続、製品未解決記号なしを維持し、台帳は20,648件対応、9,190件未対応となった。実際のhistogram描画結果と尺度計算は別の効果契約で扱う。
+- cleanな専用作業tree、296,760 KiBの構築木、branchを統合直後に削除し、886,624 KiBを回収した。主Ninja木5,731,552 KiBと共有compiler cache 983,092 KiBを色空間・変換factory契約へ再利用する。次の永続作業は、同factory 27 APIの担当票を確定して専用作業treeで実装することである。
 
 ### 第215便の先行監査担当票（第214便確定待ち）
 
