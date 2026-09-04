@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 06:56 JST
+- 更新日時: 2026-09-05 06:58 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -603,12 +603,14 @@
 - `g220-frame-cache-store-closure-audit`の状態は`completed`である。`libs/canvas/animation/kis_frame_cache_store.h`の残存全22 API、識別子集合SHA-256 `39229d20e5554ed98a98b6c4bcbb4a3c3a791494a08467ab0f88fbb05adf2a80`、5枠5・6・4・2・5を独立確認した。新規専用targetはcanvas source・generated探索路、Qt Core・Testとheader-only Boost、`kritacanvas_EXPORTS`だけによる4工程・8入力へ閉じられる。filesystem、tile pool、serializer、製品実装へ接続せず、1,224工程・2,467入力の既存動的試験を構築しない。第219便完了後の正式不足報告で再照合する。
 - `g220-resource-iterator-closure-audit`の状態は`completed`である。`libs/resources/KisResourceIterator.h`の残存全21 API、識別子集合SHA-256 `e695fcea69332217ece1f46f00b79c6878796c6ae09100e17fcf3a9c0db21ba4`、5枠5・6・2・4・4を独立確認した。新規専用targetはresources source・generated探索路、Qt Gui・KF I18n interface、Qt Core・Testとheader-only Boost、`kritaresources_EXPORTS`だけによる4工程・8入力へ閉じられる。resource model、database、image、製品実装へ接続せず、813工程・1,654入力の既存動的試験を構築しない。第219便完了後の正式不足報告で再照合する。
 - `g220-frame-cache-store-formal-review`の状態は`completed`、担当は`g178_shape_hierarchy_schema`、基点は`440c03d09c`、暫定入力は`build/tdd-macos/public-api-missing-g219.json`である。`libs/canvas/animation/kis_frame_cache_store.h`の残存全22 APIは一意で台帳と重複せず、集合SHA-256 `39229d20e5554ed98a98b6c4bcbb4a3c3a791494a08467ab0f88fbb05adf2a80`、5枠5・6・4・2・5に一致した。新規専用targetはcanvas source・generated探索路、`kritacanvas_EXPORTS`、Qt Core・Testとheader-only Boostだけで4工程・8入力へ閉じられる。候補headerをAUTOMOC入力にせず、1,220工程・2,460入力の製品canvasと1,224工程・2,467入力の既存動的試験へ接続しない。第219便確定後は識別子集合の差分だけを再照合する。
+- `g220-resource-iterator-formal-review`の状態は`reviewing`、担当は`g208_raster_keyframe_schema`、基点は`21377d76e8`、暫定入力は`build/tdd-macos/public-api-missing-g219.json`である。対象識別子は`libs/resources/KisResourceIterator.h`の残存全21 API、集合SHA-256 `e695fcea69332217ece1f46f00b79c6878796c6ae09100e17fcf3a9c0db21ba4`である。主作業treeと既存Ninja graphを読み取り専用で使い、変更許可path、構成・構築・試験・Git権限、追加委任はない。全識別子と5枠5・6・2・4・4、4工程・8入力の専用target、直接・interface依存、既存動的保護、停止条件を再照合し、第219便確定後に差分だけを再確認できる資料を返す。
 
 ### 第221便の先行監査担当票（第220便確定待ち）
 
 - 監査共通基点は`c715242e04`、暫定入力は`build/tdd-macos/public-api-missing-g217.json`である。担当は主作業treeと既存Ninja graphを読み取り専用で利用し、変更、構成、構築、試験、Git操作、追加委任を行わない。正式な第220便不足報告で再照合するまで実装担当票へ進めない。
 - `g221-input-profile-manager-closure-audit`の状態は`completed`である。`libs/input/ui/kis_input_profile_manager.h`の残存全24 API、識別子集合SHA-256 `1d336261b59dbe90df271900c7b1f18d8ba45a6def01cad40b0d772ca5c9888e`、5枠5・3・6・4・6を独立確認した。新規専用targetはinput/ui source・generated探索路、Qt Core・Test、`kritainputui_EXPORTS`だけによる4工程・8入力へ閉じられる。profile filesystem、action実装、canvas、製品input/UIへ接続しない。第220便完了後の正式不足報告で再照合する。
 - `g221-filter-stroke-strategy-closure-audit`の状態は`completed`である。`libs/painting/strokes/kis_filter_stroke_strategy.h`の残存全24 API、識別子集合SHA-256 `464acb3ded62a9db56e2be293b793d42fe65e468689ceb72ed50c27ac81162ec`、5枠4・5・5・5・5を独立確認した。新規専用targetはpainting・image・global・pigment・resources探索路、Eigen・Imath・KF I18n interface、Qt Core・Gui・Test・Xmlとheader-only Boostによる4工程・8入力へ閉じられる。filter、resource snapshot、stroke schedulerの製品実装へ接続せず、1,975工程・3,949入力の既存動的試験を構築しない。第220便完了後の正式不足報告で再照合する。
+- `g221-input-profile-manager-formal-review`の状態は`reviewing`、担当は`g178_paintop_settings_schema`、基点は`21377d76e8`、暫定入力は`build/tdd-macos/public-api-missing-g219.json`である。対象識別子は`libs/input/ui/kis_input_profile_manager.h`の残存全24 API、集合SHA-256 `1d336261b59dbe90df271900c7b1f18d8ba45a6def01cad40b0d772ca5c9888e`である。主作業treeと既存Ninja graphを読み取り専用で使い、変更許可path、構成・構築・試験・Git権限、追加委任はない。全識別子と5枠5・3・6・4・6、4工程・8入力の専用target、直接・interface依存、既存動的保護、停止条件を再照合し、第220便確定後に差分だけを再確認できる資料を返す。
 
 ### 第222便の先行監査担当票（第221便確定待ち）
 
