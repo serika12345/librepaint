@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 9765
+    "expectedMissingApis": 9739
   },
   "contracts": [
     {
@@ -56052,6 +56052,77 @@
         "method:KoShapeCreateCommand::redo()",
         "method:KoShapeCreateCommand::undo()",
         "method:KoShapeCreateCommand::~KoShapeCreateCommand()"
+      ]
+    },
+    {
+      "target": "ResourcePresetSchemaContractTest",
+      "source": "libs/libkis/tests/ResourcePresetSchemaContractTest.cpp",
+      "test": "ResourcePresetSchemaContractTest::resourceTypeLifetimeAndValueSemanticsSchemaRemainStable",
+      "behavior": "スクリプト資源値は識別値または既存資源から任意のQObject親付きで構築でき、コピー、代入、比較と仮想破棄に関する公開型契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:Resource",
+        "method:Resource::Resource(KoResourceSP resource,const QString & type,QObject * parent=0)",
+        "method:Resource::Resource(const Resource & rhs)",
+        "method:Resource::Resource(int resourceId,const QString & type,const QString & name,const QString & filename,const QImage & image,QObject * parent=0)",
+        "method:Resource::operator !=(const Resource & other) const",
+        "method:Resource::operator =(const Resource & rhs)",
+        "method:Resource::operator ==(const Resource & other) const",
+        "method:Resource::~Resource()"
+      ]
+    },
+    {
+      "target": "ResourcePresetSchemaContractTest",
+      "source": "libs/libkis/tests/ResourcePresetSchemaContractTest.cpp",
+      "test": "ResourcePresetSchemaContractTest::resourceIdentityAndPresentationSignaturesRemainStable",
+      "behavior": "スクリプト資源値は種別、名前、保存名、表示画像の取得と表示値の更新に関する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:Resource::filename() const",
+        "method:Resource::image() const",
+        "method:Resource::name() const",
+        "method:Resource::setImage(QImage image)",
+        "method:Resource::setName(QString value)",
+        "method:Resource::type() const"
+      ]
+    },
+    {
+      "target": "ResourcePresetSchemaContractTest",
+      "source": "libs/libkis/tests/ResourcePresetSchemaContractTest.cpp",
+      "test": "ResourcePresetSchemaContractTest::presetTypeLifetimeAndPersistenceSchemaRemainStable",
+      "behavior": "brush preset包装は資源値から構築され、文字列XMLとの相互変換と仮想破棄に関する公開契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:Preset",
+        "method:Preset::Preset(Resource * resource)",
+        "method:Preset::fromXML(const QString & xml)",
+        "method:Preset::toXML() const",
+        "method:Preset::~Preset()"
+      ]
+    },
+    {
+      "target": "ResourcePresetSchemaContractTest",
+      "source": "libs/libkis/tests/ResourcePresetSchemaContractTest.cpp",
+      "test": "ResourcePresetSchemaContractTest::presetChooserTypeLifetimeAndSelectionSchemaRemainStable",
+      "behavior": "brush preset選択器は任意の親widget付きで構築され、現在資源の取得・設定と仮想破棄に関する公開契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:PresetChooser",
+        "method:PresetChooser::PresetChooser(QWidget * parent=0)",
+        "method:PresetChooser::currentPreset() const",
+        "method:PresetChooser::setCurrentPreset(Resource * resource)",
+        "method:PresetChooser::~PresetChooser()"
+      ]
+    },
+    {
+      "target": "ResourcePresetSchemaContractTest",
+      "source": "libs/libkis/tests/ResourcePresetSchemaContractTest.cpp",
+      "test": "ResourcePresetSchemaContractTest::presetChooserNotificationSignaturesRemainStable",
+      "behavior": "brush preset選択器はクリックと選択を同じスクリプト資源値で通知する公開signal署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:PresetChooser::presetClicked(Resource resource)",
+        "method:PresetChooser::presetSelected(Resource resource)"
       ]
     }
   ]
