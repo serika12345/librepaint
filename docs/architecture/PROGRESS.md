@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 03:47 JST
+- 更新日時: 2026-09-05 03:49 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -491,6 +491,7 @@
 - 実装共通基点は`270f076903`である。一度に一つだけ作る専用worktree-local `build/tdd-macos`と主作業treeの共有compiler cacheを使い、担当側の`./scripts/run-shared-test-env`で読み込み済み環境を利用する。生成layer、animation frame cache、path-backed shape編集commandの順に限定検証・統合・削除し、調整担当だけが文書、公開API台帳、共通不足報告を変更する。各担当のGit権限は許可pathだけの1受渡しcommitで、追加委任は禁止する。
 - `g216-generator-layer-schema`の状態は`implementing`、担当は`/root/g208_raster_keyframe_schema`、基点は`270f076903`、作業treeは`/Users/masato/Documents/librepaint-g216-generator-layer-schema`である。開始`libs/image/generator/kis_generator_layer.h`の残存全21 APIを、新規`libs/image/tests/KisGeneratorLayerSchemaContractTest.cpp`の5枠`generatorLayerTypeLifetimeAndConstructionSchemaRemainStable`、`generatorLayerConfigurationAndRegenerationSignaturesRemainStable`、`generatorLayerDirtyRegionAndPositionSignaturesRemainStable`、`generatorLayerHierarchyPresentationAndVisitorSignaturesRemainStable`、`generatorLayerTimedUpdateSignaturesRemainStable`へ4・5・4・6・2件で対応付ける。識別子集合SHA-256は`f5219b76c7aeeca874589f133b95d73d33b6cfe824ce20f08c55d83b4ed71c15`である。許可pathは新規試験sourceと`libs/image/tests/CMakeLists.txt`の新target固有節だけで、公開headerと製品sourceを変更しない。既存`KisMaskSchemaContractTest`と同じimage・global・pigment・resources探索路、KF I18n・Imath interface、Qt Core・Gui・Test・Xml、header-only Boost、`kritaimage_EXPORTS`と`kritapigment_EXPORTS`だけによる4工程・8入力を予測する。
 - 生成layer担当は、5工程・11入力超過、計画外の探索路・定義・link、製品shared・OBJECT・`kritatestsdk`の動的接続、候補headerのAUTOMOC入力化、画像・設定・選択・visitor・Qt値の実体化、`clone`と`layer`を含むinline本文の実行、製品未解決記号、許可path外変更が必要なら停止する。新target不存在、宣言段階の初期失敗、追加5枠の単発と各20回反復、対象と軽量近傍`KisMaskSchemaContractTest`、AUTOMOC後の二回目計画、無作業再構築2回、動的接続・未解決記号・構文・書式、公開API検査、`verify-quick`を確認する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
+- 宣言段階は`kis_generator_layer.h`から`kis_psd_layer_style.h`を経て`psd.h`が見つからず停止した。既存`KisPSDLayerStyleSchemaContractTest`と製品imageの公開構築界面がともに`libs/psdutils`のsource・generated探索路を提供しており、生成`kritapsdutils_export.h`を含む公開headerの直接閉包である。製品linkや工程を増やさず4工程・8入力を維持できる場合に限り、同2探索路を新target固有節へ追加して再開する権限を付与した。再計画で停止線超過または新たな依存があれば再停止する。
 
 ### 第217便の先行監査担当票（第216便確定待ち）
 
