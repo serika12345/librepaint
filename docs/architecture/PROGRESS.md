@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 01:24 JST
+- 更新日時: 2026-09-05 01:37 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -380,8 +380,9 @@
 - `g213-gradient-painter-schema`の状態は`integrated`である。開始`libs/image/kis_gradient_painter.h`の残存全24 APIを、新規`libs/image/tests/KisGradientPainterSchemaContractTest.cpp`の5枠`gradientPainterTypeLifetimeAndConstructionSchemaRemainStable`、`gradientPainterShapeSchemaRemainStable`、`gradientPainterRepeatSchemaRemainStable`、`gradientPainterConfigurationSignaturesRemainStable`、`gradientPainterPaintingSignaturesRemainStable`へ5・10・4・2・3件で対応付けた。受渡しcommit`2adcb4a65e`を統合commit`e6c5dba719`として取り込み、公開headerと製品sourceは変更していない。
 - 担当側と中央のmacOSで追加5枠を各20回、対象`libs-image-KisGradientPainterSchemaContractTest`と近傍`libs-image-KisPaintLayerSchemaContractTest`、AUTOMOC後の二回目計画、無作業再構築2回に成功した。4工程・8入力、AUTOMOC `HEADERS=[]`、Qt Core・Gui・Testだけの動的接続、製品未解決記号なしを維持し、台帳は20,555件対応、9,283件未対応となった。gradient計算と描画方針template本文の実行結果は別の効果契約で扱う。
 - cleanな専用作業tree、296,332 KiBの構築木、branchを統合直後に削除し、886,148 KiBを回収した。主Ninja木5,728,500 KiBと共有compiler cache 982,912 KiBを次の変形状態契約へ再利用する。次の永続作業は、変形状態27 APIの担当票を確定して専用作業treeで実装することである。
-- `g213-transform-state-schema`の状態は`implementing`、担当は`/root/g178_paintop_settings_schema`、基点は`44abe9ecdb`、作業treeは`/Users/masato/Documents/librepaint-g213-transform-state-schema`である。開始`plugins/tools/tool_transform2/tool_transform_args.h`の残存全13 APIと`KisAnimatedTransformMaskParamsHolder.h`の残存全14 APIを、新規`plugins/tools/tool_transform2/tests/ToolTransformStateSchemaContractTest.cpp`の5枠へ引数型・寿命・構築6、外部源・filter・永続化7、保持器型・寿命・構築4、状態・境界・keyframe 6、複製・bake・変更4として対応付ける。許可pathは新規試験sourceと`plugins/tools/tool_transform2/tests/CMakeLists.txt`の新target固有節だけで、公開headerと製品sourceを変更しない。既存`ToolTransformArgsGeometrySchemaContractTest`と同じQt Core・Gui・Test、KF I18n、header-only Boost、探索路、export定義による4工程・9入力を予測する。
-- 変形状態担当は、5工程・11入力超過、既存近傍と異なる探索路・定義・動的link、候補headerのAUTOMOC入力化、製品shared・OBJECT・`kritatestsdk`接続、変形引数・保持器・keyframe・描画装置関連の製品未解決記号、対象値・inlineまたは製品本文の実体化・実行、許可path外変更が必要なら停止する。新target不存在、宣言段階の初期失敗、追加5枠の単発と各20回反復、対象と軽量近傍、AUTOMOC後の二回目計画、無作業再構築2回、動的接続・未解決記号・構文・書式、公開API検査、`verify-quick`を確認する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
+- `g213-transform-state-schema`の状態は`integrated`である。開始`plugins/tools/tool_transform2/tool_transform_args.h`の残存全13 APIと`KisAnimatedTransformMaskParamsHolder.h`の残存全14 APIを、新規`plugins/tools/tool_transform2/tests/ToolTransformStateSchemaContractTest.cpp`の5枠`transformArgsTypeLifetimeAndConstructionSchemaRemainStable`、`transformArgsExternalSourceFilterAndPersistenceSchemaRemainStable`、`animatedTransformHolderTypeLifetimeAndConstructionSchemaRemainStable`、`animatedTransformHolderStateBoundsAndKeyframeSchemaRemainStable`、`animatedTransformHolderCloneBakeAndMutationSchemaRemainStable`へ6・7・4・6・4件で対応付けた。受渡しcommit`abf6dd835c`を統合commit`5eb1a1614a`として取り込み、公開headerと製品sourceは変更していない。
+- 担当側と中央のmacOSで追加5枠を各20回、対象`plugins-tools-tool_transform2-ToolTransformStateSchemaContractTest`と近傍`plugins-tools-tool_transform2-ToolTransformArgsGeometrySchemaContractTest`、AUTOMOC後の二回目計画、無作業再構築2回に成功した。4工程・9入力、AUTOMOC `HEADERS=[]`、Qt Core・Gui・TestとKF I18nだけの動的接続、製品未解決記号なしを維持し、台帳は20,582件対応、9,256件未対応となった。変形処理、保持値の更新、keyframe生成、cache同期の実行結果は別の効果契約で扱う。
+- cleanな専用作業tree、296,284 KiBの構築木、branchを統合直後に削除し、886,112 KiBを回収した。主Ninja木5,730,128 KiBと共有compiler cache 982,536 KiBをcanvas animation state契約へ再利用する。次の永続作業は、既存再生engine契約への24 API追加を担当票へ確定し、専用作業treeで実装することである。
 
 ### 第214便の先行監査担当票（第213便確定待ち）
 

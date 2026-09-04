@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 9283
+    "expectedMissingApis": 9256
   },
   "contracts": [
     {
@@ -57254,6 +57254,78 @@
         "method:KisGradientPainter::paintGradient(const QPointF & gradientVectorStart,const QPointF & gradientVectorEnd,enumGradientRepeat repeat,double antiAliasThreshold,bool reverseGradient,bool useDithering,const QRect & applyRect,T & paintPolicy)",
         "method:KisGradientPainter::paintGradient(const QPointF & gradientVectorStart,const QPointF & gradientVectorEnd,enumGradientRepeat repeat,double antiAliasThreshold,bool reverseGradient,const QRect & applyRect,bool useDithering=false)",
         "method:KisGradientPainter::paintGradient(const QPointF & gradientVectorStart,const QPointF & gradientVectorEnd,enumGradientRepeat repeat,double antiAliasThreshold,bool reverseGradient,qint32 startx,qint32 starty,qint32 width,qint32 height,bool useDithering=false)"
+      ]
+    },
+    {
+      "target": "ToolTransformStateSchemaContractTest",
+      "source": "plugins/tools/tool_transform2/tests/ToolTransformStateSchemaContractTest.cpp",
+      "test": "ToolTransformStateSchemaContractTest::transformArgsTypeLifetimeAndConstructionSchemaRemainStable",
+      "behavior": "変形引数は3つの構築経路、複製、代入、および寿命の公開契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:ToolTransformArgs::ToolTransformArgs()",
+        "method:ToolTransformArgs::ToolTransformArgs(TransformMode mode,QPointF transformedCenter,QPointF originalCenter,QPointF rotationCenterOffset,bool transformAroundRotationCenter,double aX,double aY,double aZ,double scaleX,double scaleY,double shearX,double shearY,double boundsRotation,KisWarpTransformWorker::WarpType warpType,double alpha,bool defaultPoints,const QString & filterId,int pixelPrecision,int previewPixelPrecision,KisPaintDeviceSP externalSource)",
+        "method:ToolTransformArgs::ToolTransformArgs(const ToolTransformArgs & args)",
+        "method:ToolTransformArgs::clone() const",
+        "method:ToolTransformArgs::operator =(const ToolTransformArgs & args)",
+        "method:ToolTransformArgs::~ToolTransformArgs()"
+      ]
+    },
+    {
+      "target": "ToolTransformStateSchemaContractTest",
+      "source": "plugins/tools/tool_transform2/tests/ToolTransformStateSchemaContractTest.cpp",
+      "test": "ToolTransformStateSchemaContractTest::transformArgsExternalSourceFilterAndPersistenceSchemaRemainStable",
+      "behavior": "変形引数は外部描画源、補間filter、およびXML永続化の公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:ToolTransformArgs::externalSource() const",
+        "method:ToolTransformArgs::filter() const",
+        "method:ToolTransformArgs::filterId() const",
+        "method:ToolTransformArgs::fromXML(const QDomElement & e)",
+        "method:ToolTransformArgs::setExternalSource(KisPaintDeviceSP externalSource)",
+        "method:ToolTransformArgs::setFilterId(const QString & id)",
+        "method:ToolTransformArgs::toXML(QDomElement * e) const"
+      ]
+    },
+    {
+      "target": "ToolTransformStateSchemaContractTest",
+      "source": "plugins/tools/tool_transform2/tests/ToolTransformStateSchemaContractTest.cpp",
+      "test": "ToolTransformStateSchemaContractTest::animatedTransformHolderTypeLifetimeAndConstructionSchemaRemainStable",
+      "behavior": "animation変形保持器は公開型、境界付き構築、複製構築、および仮想寿命の契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisAnimatedTransformMaskParamsHolder",
+        "method:KisAnimatedTransformMaskParamsHolder::KisAnimatedTransformMaskParamsHolder(KisDefaultBoundsBaseSP defaultBounds)",
+        "method:KisAnimatedTransformMaskParamsHolder::KisAnimatedTransformMaskParamsHolder(const KisAnimatedTransformMaskParamsHolder & rhs)",
+        "method:KisAnimatedTransformMaskParamsHolder::~KisAnimatedTransformMaskParamsHolder()"
+      ]
+    },
+    {
+      "target": "ToolTransformStateSchemaContractTest",
+      "source": "plugins/tools/tool_transform2/tests/ToolTransformStateSchemaContractTest.cpp",
+      "test": "ToolTransformStateSchemaContractTest::animatedTransformHolderStateBoundsAndKeyframeSchemaRemainStable",
+      "behavior": "animation変形保持器は変形引数、既定境界、animation状態、およびkeyframe channel接続の公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAnimatedTransformMaskParamsHolder::defaultBounds() const",
+        "method:KisAnimatedTransformMaskParamsHolder::getKeyframeChannel(const QString & id) const",
+        "method:KisAnimatedTransformMaskParamsHolder::isAnimated() const",
+        "method:KisAnimatedTransformMaskParamsHolder::requestKeyframeChannel(const QString & id)",
+        "method:KisAnimatedTransformMaskParamsHolder::setDefaultBounds(KisDefaultBoundsBaseSP bounds)",
+        "method:KisAnimatedTransformMaskParamsHolder::transformArgs() const"
+      ]
+    },
+    {
+      "target": "ToolTransformStateSchemaContractTest",
+      "source": "plugins/tools/tool_transform2/tests/ToolTransformStateSchemaContractTest.cpp",
+      "test": "ToolTransformStateSchemaContractTest::animatedTransformHolderCloneBakeAndMutationSchemaRemainStable",
+      "behavior": "animation変形保持器は複製、現在位置への焼込み・更新、および詳細度cache同期の公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAnimatedTransformMaskParamsHolder::bakeIntoParams() const",
+        "method:KisAnimatedTransformMaskParamsHolder::clone() const",
+        "method:KisAnimatedTransformMaskParamsHolder::setParamsAtCurrentPosition(const KisTransformMaskParamsInterface * params,KUndo2Command * parentCommand)",
+        "method:KisAnimatedTransformMaskParamsHolder::syncLodCache()"
       ]
     }
   ]
