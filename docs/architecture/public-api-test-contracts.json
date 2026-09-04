@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 10428
+    "expectedMissingApis": 10407
   },
   "contracts": [
     {
@@ -54354,6 +54354,72 @@
       "apis": [
         "method:KoMarkerSelector::itemData(int index,int role=Qt::UserRole) const",
         "method:KoMarkerSelector::updateMarkers(const QList<KoMarker * > markers)"
+      ]
+    },
+    {
+      "target": "KisPropertiesConfigurationSchemaContractTest",
+      "source": "libs/image/tests/KisPropertiesConfigurationSchemaContractTest.cpp",
+      "test": "KisPropertiesConfigurationSchemaContractTest::filterConfigurationTypeAndLifetimeSchemaRemainStable",
+      "behavior": "フィルター設定は設定値mapを継承し、識別名、版、資源interfaceから構築して仮想破棄できる公開型と寿命を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisFilterConfiguration",
+        "method:KisFilterConfiguration::KisFilterConfiguration(const QString & name,qint32 version,KisResourcesInterfaceSP resourcesInterface)",
+        "method:KisFilterConfiguration::~KisFilterConfiguration()"
+      ]
+    },
+    {
+      "target": "KisPropertiesConfigurationSchemaContractTest",
+      "source": "libs/image/tests/KisPropertiesConfigurationSchemaContractTest.cpp",
+      "test": "KisPropertiesConfigurationSchemaContractTest::filterConfigurationIdentityAndChannelSignaturesRemainStable",
+      "behavior": "フィルター設定は識別名と版を照会し、適用先との互換性判定および対象channelの取得・設定を行う公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisFilterConfiguration::channelFlags() const",
+        "method:KisFilterConfiguration::isCompatible(const KisPaintDeviceSP) const",
+        "method:KisFilterConfiguration::name() const",
+        "method:KisFilterConfiguration::setChannelFlags(QBitArray channelFlags)",
+        "method:KisFilterConfiguration::version() const"
+      ]
+    },
+    {
+      "target": "KisPropertiesConfigurationSchemaContractTest",
+      "source": "libs/image/tests/KisPropertiesConfigurationSchemaContractTest.cpp",
+      "test": "KisPropertiesConfigurationSchemaContractTest::filterConfigurationSerializationSignaturesRemainStable",
+      "behavior": "フィルター設定は複製・比較と現行または旧形式XMLの読込み・書出しを行う公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisFilterConfiguration::clone() const",
+        "method:KisFilterConfiguration::compareTo(const KisPropertiesConfiguration * rhs) const",
+        "method:KisFilterConfiguration::fromLegacyXML(const QDomElement &)",
+        "method:KisFilterConfiguration::fromXML(const QDomElement &)",
+        "method:KisFilterConfiguration::toXML(QDomDocument &,QDomElement &) const"
+      ]
+    },
+    {
+      "target": "KisPropertiesConfigurationSchemaContractTest",
+      "source": "libs/image/tests/KisPropertiesConfigurationSchemaContractTest.cpp",
+      "test": "KisPropertiesConfigurationSchemaContractTest::filterConfigurationResourceSnapshotSignaturesRemainStable",
+      "behavior": "フィルター設定は資源interfaceを保持し、任意の大域資源から局所snapshotを作成・照会・複製する公開署名と既定引数を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisFilterConfiguration::cloneWithResourcesSnapshot(KisResourcesInterfaceSP globalResourcesInterface=nullptr) const",
+        "method:KisFilterConfiguration::createLocalResourcesSnapshot(KisResourcesInterfaceSP globalResourcesInterface=nullptr)",
+        "method:KisFilterConfiguration::hasLocalResourcesSnapshot() const",
+        "method:KisFilterConfiguration::resourcesInterface() const",
+        "method:KisFilterConfiguration::setResourcesInterface(KisResourcesInterfaceSP resourcesInterface)"
+      ]
+    },
+    {
+      "target": "KisPropertiesConfigurationSchemaContractTest",
+      "source": "libs/image/tests/KisPropertiesConfigurationSchemaContractTest.cpp",
+      "test": "KisPropertiesConfigurationSchemaContractTest::filterConfigurationRequiredResourceSignaturesRemainStable",
+      "behavior": "フィルター設定は埋込み資源、参照資源、および両者を解決した必要資源を資源interfaceから取得する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisFilterConfiguration::embeddedResources(KisResourcesInterfaceSP globalResourcesInterface) const",
+        "method:KisFilterConfiguration::linkedResources(KisResourcesInterfaceSP globalResourcesInterface) const",
+        "method:KisFilterConfiguration::requiredResources(KisResourcesInterfaceSP globalResourcesInterface) const"
       ]
     }
   ]
