@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 9951
+    "expectedMissingApis": 9909
   },
   "contracts": [
     {
@@ -55641,6 +55641,93 @@
       "apis": [
         "method:KoResourcePopupAction::currentResource() const",
         "method:KoResourcePopupAction::setCurrentResource(KoResourceSP resource)"
+      ]
+    },
+    {
+      "target": "KisUpdateSchedulerSchemaContractTest",
+      "source": "libs/image/tests/KisUpdateSchedulerSchemaContractTest.cpp",
+      "test": "KisUpdateSchedulerSchemaContractTest::updateSchedulerTypeLifetimeAndThreadSchemaRemainStable",
+      "behavior": "更新schedulerはstroke facadeとQObjectを継承し、投影更新listenerからの構築、仮想破棄、worker数と進捗通知先の制御に関する公開契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisUpdateScheduler",
+        "method:KisUpdateScheduler::KisUpdateScheduler(KisProjectionUpdateListener * projectionUpdateListener,QObject * parent=0)",
+        "method:KisUpdateScheduler::setProgressProxy(KoProgressProxy * progressProxy)",
+        "method:KisUpdateScheduler::setThreadsLimit(int value)",
+        "method:KisUpdateScheduler::threadsLimit() const",
+        "method:KisUpdateScheduler::~KisUpdateScheduler()"
+      ]
+    },
+    {
+      "target": "KisUpdateSchedulerSchemaContractTest",
+      "source": "libs/image/tests/KisUpdateSchedulerSchemaContractTest.cpp",
+      "test": "KisUpdateSchedulerSchemaContractTest::updateSchedulerQueueControlSignaturesRemainStable",
+      "behavior": "更新schedulerは読取専用即時lock、barrier、更新抑止、自発job投入、待機状態と余剰worker処理に関する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisUpdateScheduler::addSpontaneousJob(KisSpontaneousJob * spontaneousJob)",
+        "method:KisUpdateScheduler::barrierLock()",
+        "method:KisUpdateScheduler::blockUpdates()",
+        "method:KisUpdateScheduler::doSomeUsefulWork()",
+        "method:KisUpdateScheduler::hasUpdatesRunning() const",
+        "method:KisUpdateScheduler::immediateLockForReadOnly()",
+        "method:KisUpdateScheduler::isIdle()",
+        "method:KisUpdateScheduler::spareThreadAppeared()",
+        "method:KisUpdateScheduler::tryBarrierLock()",
+        "method:KisUpdateScheduler::unblockUpdates()",
+        "method:KisUpdateScheduler::unlock(bool resetLodLevels=true)",
+        "method:KisUpdateScheduler::waitForDone()"
+      ]
+    },
+    {
+      "target": "KisUpdateSchedulerSchemaContractTest",
+      "source": "libs/image/tests/KisUpdateSchedulerSchemaContractTest.cpp",
+      "test": "KisUpdateSchedulerSchemaContractTest::updateSchedulerProjectionAndStrokeSignaturesRemainStable",
+      "behavior": "更新schedulerは矩形単位または矩形列単位の投影更新と全更新、継続更新、strokeの開始・job投入・終了・取消に関する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisUpdateScheduler::addJob(KisStrokeId id,KisStrokeJobData * data)",
+        "method:KisUpdateScheduler::cancelStroke(KisStrokeId id)",
+        "method:KisUpdateScheduler::continueUpdate(const QRect & rect)",
+        "method:KisUpdateScheduler::endStroke(KisStrokeId id)",
+        "method:KisUpdateScheduler::fullRefreshAsync(KisNodeSP root,const QRect & rc,const QRect & cropRect)",
+        "method:KisUpdateScheduler::fullRefreshAsync(KisNodeSP root,const QVector<QRect> & rects,const QRect & cropRect,KisProjectionUpdateFlags flags)",
+        "method:KisUpdateScheduler::startStroke(KisStrokeStrategy * strokeStrategy)",
+        "method:KisUpdateScheduler::updateProjection(KisNodeSP node,const QRect & rc,const QRect & cropRect)",
+        "method:KisUpdateScheduler::updateProjection(KisNodeSP node,const QVector<QRect> & rects,const QRect & cropRect,KisProjectionUpdateFlags flags)"
+      ]
+    },
+    {
+      "target": "KisUpdateSchedulerSchemaContractTest",
+      "source": "libs/image/tests/KisUpdateSchedulerSchemaContractTest.cpp",
+      "test": "KisUpdateSchedulerSchemaContractTest::updateSchedulerLodConfigurationSignaturesRemainStable",
+      "behavior": "更新schedulerは詳細度設定、再生成要求、詳細度同期と更新休止・再開のstrategy factory、現在の詳細度照会に関する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisUpdateScheduler::currentLevelOfDetail() const",
+        "method:KisUpdateScheduler::explicitRegenerateLevelOfDetail()",
+        "method:KisUpdateScheduler::lodPreferences() const",
+        "method:KisUpdateScheduler::setLod0ToNStrokeStrategyFactory(const KisLodSyncStrokeStrategyFactory & factory)",
+        "method:KisUpdateScheduler::setLodPreferences(const KisLodPreferences & value)",
+        "method:KisUpdateScheduler::setSuspendResumeUpdatesStrokeStrategyFactory(const KisSuspendResumeStrategyPairFactory & factory)"
+      ]
+    },
+    {
+      "target": "KisUpdateSchedulerSchemaContractTest",
+      "source": "libs/image/tests/KisUpdateSchedulerSchemaContractTest.cpp",
+      "test": "KisUpdateSchedulerSchemaContractTest::updateSchedulerCallbackCancellationAndTestableSchemaRemainStable",
+      "behavior": "更新schedulerはredo破棄とGUI再開callback、事後undo adapter、非同期取消・undo、wrap-around能力を公開し、試験用派生型はworker contextを観測できる契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisTestableUpdateScheduler",
+        "method:KisTestableUpdateScheduler::KisTestableUpdateScheduler(KisProjectionUpdateListener * projectionUpdateListener,qint32 threadCount)",
+        "method:KisTestableUpdateScheduler::updaterContext()",
+        "method:KisUpdateScheduler::lodNPostExecutionUndoAdapter() const",
+        "method:KisUpdateScheduler::setPostSyncLod0GUIPlaneRequestForResumeCallback(const std::function<void ()> & callback)",
+        "method:KisUpdateScheduler::setPurgeRedoStateCallback(const std::function<void ()> & callback)",
+        "method:KisUpdateScheduler::tryCancelCurrentStrokeAsync()",
+        "method:KisUpdateScheduler::tryUndoLastStrokeAsync()",
+        "method:KisUpdateScheduler::wrapAroundModeSupported() const"
       ]
     }
   ]
