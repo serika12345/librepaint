@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 02:01 JST
+- 更新日時: 2026-09-05 02:05 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -411,6 +411,12 @@
 - UI領域は`libs/ui/widgets/KisHistogramPainter.h`の20 APIを、型・寿命・設定4、描画3、channel選択5、色・尺度5、peak・対数方針3として新規`libs/ui/tests/KisHistogramPainterSchemaContractTest.cpp`の5枠へ固定する。Qt Core・Testを直接接続し、Qt Guiのinterface探索路、application生成探索路、`kritaapplicationui_EXPORTS`だけを加えた4工程・8入力を予測する。
 - pigment領域は`libs/pigment/KoColorSpaceFactory.h`の18 APIと`KoColorConversionTransformationFactory.h`の9 APIを、色空間factoryの型・寿命・識別5、能力6、profile・生成5、変換辺・factory寿命5、変換終端6として新規`libs/pigment/tests/KoColorSpaceFactorySchemaContractTest.cpp`の5枠へ固定する。pigment・global探索路、KF I18n interface、Qt Core・Testとheader-only Boost、既存export定義による4工程・8入力を予測する。
 - 3候補は合計69 API・15枠で、開始header、試験source、所有CMake、生成物が相互に異なる。候補headerのAUTOMOC入力化、製品shared・OBJECT、`kritatestsdk`、計画外の探索路・定義・動的接続または未解決製品記号、対象型やinline本文の実体化が必要なら停止する。SVG図形交換、histogram描画、色空間・変換factoryの順に一担当ずつ実装する。
+
+### 第214便の担当計画
+
+- 実装共通基点は`90b9bbf84a`である。一度に一つだけ作る専用worktree-local `build/tdd-macos`と主作業treeの共有compiler cacheを使い、担当側の`./scripts/run-shared-test-env`で読み込み済み環境を利用する。SVG図形交換、histogram描画、色空間・変換factoryの順に限定検証・統合・削除し、調整担当だけが文書、公開API台帳、共通不足報告を変更する。各担当のGit権限は許可pathだけの1受渡しcommitで、追加委任は禁止する。
+- `g214-svg-exchange-schema`の状態は`implementing`、担当は`/root/g178_shape_hierarchy_schema`、基点は`90b9bbf84a`、作業treeは`/Users/masato/Documents/librepaint-g214-svg-exchange-schema`である。開始`libs/flake/KoDrag.h`の7 API、`KoSvgPaste.h`の6 API、`KoPathShapeLoader.h`の4 API、`svg/SvgShape.h`の5 APIを、既存`libs/flake/tests/SvgParserSchemaContractTest.cpp`の5枠へclipboard交換7、SVG取込み6、path data読込み4、図形SVG型・寿命2、図形SVG永続化3として対応付ける。許可pathは既存試験sourceだけで、CMake、公開header、製品sourceを変更しない。既存targetのQt Gui・Test・Xml、header-only Boost、既存探索路・定義による4工程・8入力を維持する。
+- SVG図形交換担当は、CMake変更、5工程・11入力超過、新しい探索路・定義・link、候補headerのAUTOMOC入力化、製品shared・OBJECT・`kritatestsdk`接続、clipboard・SVG parser・図形関連の製品未解決記号、対象値・Qt値・製品本文の実体化・実行、許可path外変更が必要なら停止する。旧binaryで追加5枠が未知であること、宣言段階の初期失敗、追加5枠の単発と各20回反復、対象と軽量近傍、AUTOMOC後の二回目計画、無作業再構築2回、動的接続・未解決記号・構文・書式、公開API検査、`verify-quick`を確認する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
 
 ### 第215便の先行監査担当票（第214便確定待ち）
 
