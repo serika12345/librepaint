@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 04:37 JST
+- 更新日時: 2026-09-05 04:40 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -516,6 +516,8 @@
 ### 第217便の担当計画
 
 - 実装共通基点は`678ab12cf8`である。一度に一つだけ作る専用worktree-local `build/tdd-macos`と主作業treeの共有compiler cacheを使い、担当側の`./scripts/run-shared-test-env`で読み込み済み環境を利用する。色付けmask、layer filter、SVG図形表示の順に限定検証・統合・削除し、調整担当だけが文書、公開API台帳、共通不足報告を変更する。各担当のGit権限は許可pathだけの1受渡しcommitで、追加委任は禁止する。
+- `g217-layer-filter-formal-review`の状態は`auditing`、担当は`/root/g178_paintop_settings_schema`、再確認基点は`be467c6aff`である。正式入力の`libs/ui/widgets/kis_layer_filter_widget.h`残存全23 API、識別子集合SHA-256 `6c88dd7693501cd7ebff7dabad878b162dade4ed9c944aac38031f1f792fead4`について、5枠2・8・4・6・3への正確な割当、既定引数と通知の未評価観測、所有CMake、新規target、軽量近傍、application・image・global探索路、Qt Gui・Widgets interface、Qt Core・Testだけの直接接続、4工程・8入力と停止線を再確認する。主作業treeと既存Ninja graphは読み取り専用とし、変更、構成、構築、試験、Git操作、追加委任を行わない。
+- `g217-svg-presentation-formal-review`の状態は`auditing`、担当は`/root/g178_shape_hierarchy_schema`、再確認基点は`be467c6aff`である。正式入力の`libs/flake/svg/SvgGraphicContext.h`、`KoShapePainter.h`、`SvgStyleWriter.h`残存全20 API、識別子集合SHA-256 `80593bcec7c92605566d98e0c75cb8ad4eb04514939761588cc08a655fd9c813`について、5枠3・3・7・4・3への正確な割当、`<functional>`先行includeを含む未評価観測、所有CMake、新規target、軽量近傍、flake・global・painting/undo探索路、Qt Gui・Xml・KF I18n interface、Qt Core・Testとheader-only Boostだけの直接接続、4工程・8入力と停止線を再確認する。主作業treeと既存Ninja graphは読み取り専用とし、変更、構成、構築、試験、Git操作、追加委任を行わない。
 - `g217-colorize-mask-schema`の状態は`planned`、担当は`/root/g208_raster_keyframe_schema`、基点は`678ab12cf8`、専用branchは`agent/g217-colorize-mask-schema`、作業treeは`/Users/masato/Documents/librepaint-g217-colorize-mask-schema`である。開始`libs/image/lazybrush/kis_colorize_mask.h`の残存全57 APIを、新規`libs/image/tests/KisColorizeMaskSchemaContractTest.cpp`の5枠`colorizeMaskTypeLifetimeAndKeyStrokeColorsSchemaRemainStable`、`colorizeMaskHierarchyAndPresentationSignaturesRemainStable`、`colorizeMaskProjectionAndProcessingSignaturesRemainStable`、`colorizeMaskOptionQuerySignaturesRemainStable`、`colorizeMaskMutationAndNotificationSignaturesRemainStable`へ7・11・15・8・16件で対応付ける。許可pathは新規試験sourceと`libs/image/tests/CMakeLists.txt`の新target固有節だけで、公開headerと製品sourceを変更しない。
 - 第1枠はclass、`KeyStrokeColors` structと2 member、2構築、destructor、第2枠は2 visitor、clone、icon、section属性の取得・設定、非間接描画対応、全装置・LOD装置・描画装置・色付け投影、第3枠は色見本元・色空間、`decorateRect`、3境界、合成初期化、事前filter再生成、mask強制再生成、cache reset、layer統合、merge data書込、試験用filter元、色空間・profile設定、第4枠はcleanup量・edge検出幅・fuzzy半径・装置境界制限・edge検出使用・x・y・key stroke色の8 getter、第5枠はkey stroke直接取得、cleanup・現在色・edge幅・fuzzy半径・画像・key stroke色・key stroke直接値・境界制限・edge検出・x・yの設定、key stroke除去・試験追加・2通知である。識別子集合SHA-256は`1844856fe90b1a1fe8bee3c3cc7280cd5f36e977f50c38828874b5f1514b50ce`である。
 - 新targetはQt Core・Gui・Test・Xmlとheader-only Boostを直接接続し、image・global・pigment・pigment/resources・resources探索路、KF I18n・Imath interface、`kritaimage_EXPORTS`と`kritapigment_EXPORTS`だけを使う。既存`KisTransformMaskSchemaContractTest`を軽量近傍とし、4工程・8入力、停止線5工程・11入力を維持する。最初に5枠の宣言だけで同5枠の未定義link失敗を確認し、型特性・厳密な関数pointer・既定引数省略の未評価式だけで実装する。
