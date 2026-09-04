@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 05:44 JST
+- 更新日時: 2026-09-05 05:47 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -548,7 +548,7 @@
 - `g218-auto-levels-widget-formal-review`の状態は`completed`である。正式24 APIと集合SHA、5枠3・4・6・4・7を再照合した。`ki18n_wrap_ui`で`KisAutoLevelsWidget.ui`からtarget固有binary directoryへ`ui_KisAutoLevelsWidget.h`を生成し、生成headerへ`SKIP_AUTOMOC`と`SKIP_AUTOUIC`を設定する。製品UI生成targetへ接続せず、Qt Core・Testだけを動的接続する5工程・10入力へ閉じられる。
 - `g218-tool-proxy-state-formal-review`の状態は`completed`である。正式22 APIと集合SHA、5枠6・3・4・5・4、flake限定4工程・8入力を再照合した。owner外の`libs/input/ui/kis_tool_proxy.cpp`は`activeTool`を6箇所、同testsは`controller`を4箇所で直接利用している。新規`KoToolProxyPrivateSchemaContractTest`は、両owner外includeと直接member参照を具体的owner操作へ置換し、公開`priv()`のowner外利用を0にし、不足報告から同private headerが消えた時点で削除する一時互換契約として採用する。
 - `g218-opengl-mode-prober-replacement-audit`の状態は`completed-rejected`である。正式報告の`libs/ui/opengl/KisOpenGLModeProber.h`残存34 APIは一責務だが、`Result::isUsingAngle()`が`Q_OS_WIN`だけの宣言であり、macOSでは観測できない。Qtのplatform構成を偽装せず全34 APIを固定できない第164便の停止条件が未解消なため、全件候補から外す。macOSで観測可能な33 APIとWindows限定1 APIへ分ける案は、Windows担当を開始できる段階で再監査する。
-- `g218-brush-replacement-formal-review`の状態は`in_progress`、担当は`/root/g208_raster_keyframe_schema`である。棄却した2候補の代替として、正式報告の`libs/brush/kis_brush.h`残存31 APIと集合SHA、既存`KisBrushSchemaContractTest`への5枠5・9・6・7・4の追記、CMake変更なしの4工程・7入力を再照合する。
+- `g218-brush-replacement-formal-review`の状態は`completed`である。棄却した2候補の代替として、正式報告の`libs/brush/kis_brush.h`残存31 APIと集合SHA、既存`KisBrushSchemaContractTest`への5枠5・9・6・7・4の追記、CMake変更なしの4工程・7入力を再照合した。抽象brushの3 constructorは純粋仮想関数を宣言だけで補う派生probe、deleted copy assignmentは型特性、overloadとXML factoryは厳密な関数pointer、既定引数は未評価省略呼出しで観測し、製品記号を生成しない。
 
 ### 第218便の担当計画
 
@@ -578,7 +578,7 @@
 ### 第222便の先行監査担当票（第221便確定待ち）
 
 - 監査共通基点は`5eb25ca5f0`、暫定入力は`build/tdd-macos/public-api-missing-g217.json`である。担当は主作業treeと既存Ninja graphを読み取り専用で利用し、変更、構成、構築、試験、Git操作、追加委任を行わない。正式な第221便不足報告で再照合するまで実装担当票へ進めない。
-- `g222-brush-schema-closure-audit`の状態は`completed`である。`libs/brush/kis_brush.h`の残存全31 API、識別子集合SHA-256 `289468cf15452873d54d30b1083c80af0ec87709fa3868c6730ef7d0586248cc`、5枠5・9・6・7・4を既存`libs/brush/tests/KisBrushSchemaContractTest.cpp`へ追加できる。CMake変更なしでQt Core・Gui・Testとheader-only Boostを直接接続する既存4工程・7入力を維持し、brush、画像、装置、色、gradient、XMLを実体化しない。mask画像内容、cache破棄効果、stroke通知順、XML往復、gradient適用結果は既存または将来の動的契約で扱う。
+- `g222-brush-schema-closure-audit`の状態は`promoted-to-g218`である。`libs/brush/kis_brush.h`の残存全31 API、識別子集合SHA-256 `289468cf15452873d54d30b1083c80af0ec87709fa3868c6730ef7d0586248cc`、5枠5・9・6・7・4を既存`libs/brush/tests/KisBrushSchemaContractTest.cpp`へ追加できる。CMake変更なしでQt Core・Gui・Testとheader-only Boostを直接接続する既存4工程・7入力を維持し、brush、画像、装置、色、gradient、XMLを実体化しない。mask画像内容、cache破棄効果、stroke通知順、XML往復、gradient適用結果は既存または将来の動的契約で扱う。
 - `g222-dual-color-button-closure-audit`の状態は`completed`である。`libs/ui/widgets/KoDualColorButton.h`の残存全36 API、識別子集合SHA-256 `9306110ffb660b18597a08c193e4bd010ad5145b674756ec4b97bfd00e333a42`、5枠8・8・8・8・4を新規専用targetへ固定できる。application・pigment探索路と対応export定義、Qt Gui・Widgets interface、Qt Core・Testとheader-only Boostだけの直接接続による4工程・8入力を予測する。button、色、pixmap、canvas provider、display renderer、dialog、painterを実体化しない。
 - `g222-tool-manager-private-closure-audit`は`libs/flake/KoToolManager_p.h`の34 APIを契約候補から棄却した。同private headerを公開面へ混入させる唯一のowner外経路は`libs/ui/canvas/KoCanvasControllerWidget.cpp`の未使用includeであり、型・memberの実利用はない。公開契約を追加する前に同includeを除去し、flake owner内だけのprivate headerへ戻す構造改善を行う。除去後に必要型の直接includeが不足する場合はその公開headerを特定し、private header経路を復活させない。正式な不足報告で34 APIが公開集合から消えることを完了条件とする。
 
