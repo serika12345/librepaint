@@ -2,12 +2,20 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-04 11:52 JST
+- 更新日時: 2026-09-04 11:57 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
+
+### 第199便の先行監査担当票
+
+- 監査共通基点は`da625fadcf`、入力は`build/tdd-macos/public-api-missing-g199.json`である。3担当の状態は`auditing`であり、主作業treeを読み取り専用で共有する。製品・試験・CMake・script・台帳・文書を変更せず、構成、構築、試験、Git操作、追加委任を行わない。一つの公開責務から20〜80 APIを最大5枠へ固定し、既存限定対象またはheader限定の4〜10工程程度の対象で、製品shared・OBJECTと`kritatestsdk`へ接続しない候補だけを採用する。対象と近傍は直接のcommands・inputsに加え、AUTOMOC再生成後の二回目計画でも製品依存を含まないものを選ぶ。既存契約sourceが300行または20枠を超える場合は、同じ4工程程度の専用targetへ分ける案を比較する。製品targetを引数にするplan/buildは禁止し、既存Ninja木のquery・commands・inputsだけを読み取る。
+- `g199-image-contract-audit`はimage・paintop・pigment領域を所有し、第198便までに固定したmask生成器、brush mask applicator、transform worker、iterator、塗装設定群、math toolbox、paint layer、mask、基底layer、選択範囲、一般画像設定、histogram生成器、抽象gradientを除外して、一責務の未対応集合を比較する。
+- `g199-flake-contract-audit`はflake・SVG・vector領域を所有し、第198便までに固定したshape manager・controller、tool代理、shape幾何・階層・文書状態、clip、背景群、path点・区間種別command、path点topology command、font family資源、CSS様式資源、SVG symbol集合資源、ガマットマスク、SVG parserを除外して、一責務の未対応集合を比較する。
+- `g199-ui-contract-audit`はwidgetutils・widgets・libkis領域を所有し、第198便までに固定したHSX色入力、内部色選択dialog、視覚色選択群、palette delegate、filter設定・適用、palette選択・色集合表示、色選択button・popup action、action分類・toolbar編集入口、zoom action・Widget、scratchpad、ウィンドウ操作、アプリケーション状態通知、タグ選択、幾何数値入力を除外して、一責務の未対応集合を比較する。
+- 各担当は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、実際のcompile探索路、予測工程・入力と停止線、開始pathから契約先、実装時許可path、固有停止条件、比較候補の棄却根拠を返す。調整担当は3領域のpath、CMake、試験source、生成物が重ならず、合計60〜180 APIとなる組合せだけを次の実装担当票へ進める。
 
 ### 第198便の先行監査担当票
 
@@ -38,7 +46,8 @@
 
 - `g198-abstract-gradient-schema`は受渡しcommit `08ada4da41`を統合commit `d1ea927226`として取り込んだ。開始`libs/pigment/resources/KoAbstractGradient.h`から既存`libs/pigment/tests/KoStopGradientSchemaContractTest.cpp`の5枠へ、抽象グラデーションの型・寿命、色空間、見本表示、可変色、診断出力の残存全20 APIを対応付けた。担当側では各新規枠を20回、対象と近傍を実行し、中央でも対象`libs-pigment-KoStopGradientSchemaContractTest`と近傍`libs-pigment-KoGradientSegmentSchemaContractTest`、AUTOMOC後の二回目計画と無作業再構築に成功した。製品共有ライブラリー・OBJECT・`kritatestsdk`へ接続せず、公開API契約検査と`verify-quick`に成功し、19,246件対応、10,592件未対応となった。cleanな専用作業tree、構築木、branchを統合後に削除し、883,352 KiBを回収した。実際のグラデーション生成、見本生成、色標本化、可変色更新、Linux、全体構築・全体`verify`は本契約の検証範囲外である。
 - `g198-geometry-input-schema`は受渡しcommit `dfde8809d2`を統合commit `8dcc0f3c98`として取り込んだ。開始`libs/widgets/KisAngleSelector.h`と`libs/widgets/kis_aspect_ratio_locker.h`から既存`libs/widgets/tests/KisAngleSelectorSchemaContractTest.cpp`の5枠へ、角度選択と縦横比連動の残存全26 APIを対応付けた。担当側では各新規枠を20回、対象と近傍を実行し、中央でも対象`libs-widgets-KisAngleSelectorSchemaContractTest`と近傍`libs-libkis-AngleSelectorSchemaContractTest`、AUTOMOC後の二回目計画と無作業再構築に成功した。製品共有ライブラリー・OBJECT・`kritatestsdk`へ接続せず、公開API契約検査と`verify-quick`に成功し、19,272件対応、10,566件未対応となった。cleanな専用作業tree、構築木、branchを統合後に削除し、883,768 KiBを回収した。実際の角度計算、比率計算、接続・通知配送、Linux、全体構築・全体`verify`は本契約の検証範囲外である。
-- `g198-svg-parser-schema`は受渡しcommit `130662ca27`を統合commit `048d75bdae`として取り込んだ。開始`libs/flake/svg/SvgParser.h`から新規`libs/flake/tests/SvgParserSchemaContractTest.cpp`の5枠へ、SVG解析器の型・寿命・外部file取得、文書生成、構成、図形・定義解析、metadata・警告の残存全23 APIを対応付けた。新規対象の初回構築は`QXmlStreamReader`の完全型不足と複製不可型への不適切な未評価式を診断し、試験側の既存Qt XmlヘッダーとC++17一時値の未評価式で解消した。担当側では各新規枠を20回、対象と近傍を実行し、中央でも対象`libs-flake-SvgParserSchemaContractTest`と近傍`libs-flake-KoSvgTextEnumContractTest`、AUTOMOC後の二回目計画と無作業再構築に成功した。製品共有ライブラリー・OBJECT・`kritatestsdk`へ接続せず、公開API契約検査に成功し、19,295件対応、10,543件未対応となった。実際のSVG解析、文書・図形生成、外部file取得、所有移動、Linux、全体構築・全体`verify`は本契約の検証範囲外である。
+- `g198-svg-parser-schema`は受渡しcommit `130662ca27`を統合commit `048d75bdae`として取り込んだ。開始`libs/flake/svg/SvgParser.h`から新規`libs/flake/tests/SvgParserSchemaContractTest.cpp`の5枠へ、SVG解析器の型・寿命・外部file取得、文書生成、構成、図形・定義解析、metadata・警告の残存全23 APIを対応付けた。新規対象の初回構築は`QXmlStreamReader`の完全型不足と複製不可型への不適切な未評価式を診断し、試験側の既存Qt XmlヘッダーとC++17一時値の未評価式で解消した。担当側では各新規枠を20回、対象と近傍を実行し、中央でも対象`libs-flake-SvgParserSchemaContractTest`と近傍`libs-flake-KoSvgTextEnumContractTest`、AUTOMOC後の二回目計画と無作業再構築に成功した。製品共有ライブラリー・OBJECT・`kritatestsdk`へ接続せず、公開API契約検査と`verify-quick`に成功し、19,295件対応、10,543件未対応となった。cleanな専用作業tree、構築木、branchを統合後に削除し、882,356 KiBを回収した。実際のSVG解析、文書・図形生成、外部file取得、所有移動、Linux、全体構築・全体`verify`は本契約の検証範囲外である。
+- 第198便全体で3所有領域の全69 APIを15枠へ重複なく対応付けた。CMake変更は製品非接続のSVG parser専用targetだけで、公開headerと製品sourceを変更せず、一度に一つの担当だけを実装・構成・構築・統合した。製品target、全体build、全体`verify`、Linux、Nix再評価は実行せず、対象・近傍CTest、各20回反復、AUTOMOC後の二回目計画、無作業再構築、公開API検査と`verify-quick`に成功した。3担当のcleanな作業tree、担当build木、branchを統合直後に削除し、合計2,649,476 KiBを回収した。旧不足報告を削除し、主Ninja木5,686,148 KiB、共有compiler cache 982,844 KiB、最新不足報告`build/tdd-macos/public-api-missing-g199.json` 2,787,748 bytesだけを再利用対象として保持する。次の永続作業は第199便の不足報告から、既存限定対象を優先して3責務を先行監査することである。
 
 ### 第197便の先行監査担当票
 
