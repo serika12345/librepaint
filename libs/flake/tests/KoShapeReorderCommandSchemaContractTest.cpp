@@ -3,9 +3,12 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include <KoShapeGroup.h>
 #include <commands/KoPathPointTypeCommand.h>
 #include <commands/KoPathSegmentTypeCommand.h>
+#include <commands/KoShapeGroupCommand.h>
 #include <commands/KoShapeReorderCommand.h>
+#include <commands/KoShapeUngroupCommand.h>
 
 #include <QDebug>
 #include <QTest>
@@ -25,6 +28,12 @@ using ShapeList = QList<KoShape *>;
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KoPathPointTypeCommand::method)), signature>)
 #define ASSERT_PATH_SEGMENT_TYPE_SIGNATURE(method, signature)                                                          \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KoPathSegmentTypeCommand::method)), signature>)
+#define ASSERT_SHAPE_GROUP_SIGNATURE(method, signature)                                                                \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KoShapeGroup::method)), signature>)
+#define ASSERT_SHAPE_GROUP_COMMAND_SIGNATURE(method, signature)                                                        \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KoShapeGroupCommand::method)), signature>)
+#define ASSERT_SHAPE_UNGROUP_COMMAND_SIGNATURE(method, signature)                                                      \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KoShapeUngroupCommand::method)), signature>)
 } // namespace
 
 class KoShapeReorderCommandSchemaContractTest : public QObject
@@ -42,6 +51,11 @@ private Q_SLOTS:
     void shapeReorderMoveTypeValuesRemainStable();
     void shapeReorderCreationAndMergeSignaturesRemainStable();
     void shapeReorderNormalizationAndExecutionSignaturesRemainStable();
+    void shapeGroupTypeLifetimeAndCloneSchemaRemainStable();
+    void shapeGroupGeometryAndRenderingSignaturesRemainStable();
+    void shapeGroupCommandTypeLifetimeAndConstructionSchemaRemainStable();
+    void shapeGroupCommandCreationAndExecutionSignaturesRemainStable();
+    void shapeUngroupCommandSchemaRemainStable();
 };
 
 void KoShapeReorderCommandSchemaContractTest::pathPointTypeCommandTypeAndLifetimeSchemaRemainStable()
@@ -153,6 +167,66 @@ void KoShapeReorderCommandSchemaContractTest::shapeReorderNormalizationAndExecut
     ASSERT_REORDER_SIGNATURE(homogenizeZIndexesLazy, QList<IndexedShape> (*)(QList<IndexedShape>));
     ASSERT_REORDER_SIGNATURE(redo, void (KoShapeReorderCommand::*)());
     ASSERT_REORDER_SIGNATURE(undo, void (KoShapeReorderCommand::*)());
+}
+
+void KoShapeReorderCommandSchemaContractTest::shapeGroupTypeLifetimeAndCloneSchemaRemainStable()
+{
+    static_assert(std::is_class_v<KoShapeGroup>);
+    static_assert(std::is_base_of_v<KoShapeContainer, KoShapeGroup>);
+    static_assert(std::is_default_constructible_v<KoShapeGroup>);
+    static_assert(std::has_virtual_destructor_v<KoShapeGroup>);
+    ASSERT_SHAPE_GROUP_SIGNATURE(cloneShape, KoShape * (KoShapeGroup::*)() const);
+}
+
+void KoShapeReorderCommandSchemaContractTest::shapeGroupGeometryAndRenderingSignaturesRemainStable()
+{
+    ASSERT_SHAPE_GROUP_SIGNATURE(paintComponent, void (KoShapeGroup::*)(QPainter &) const);
+    ASSERT_SHAPE_GROUP_SIGNATURE(hitTest, bool (KoShapeGroup::*)(const QPointF &) const);
+    ASSERT_SHAPE_GROUP_SIGNATURE(size, QSizeF (KoShapeGroup::*)() const);
+    ASSERT_SHAPE_GROUP_SIGNATURE(setSize, void (KoShapeGroup::*)(const QSizeF &));
+    ASSERT_SHAPE_GROUP_SIGNATURE(outlineRect, QRectF (KoShapeGroup::*)() const);
+    ASSERT_SHAPE_GROUP_SIGNATURE(boundingRect, QRectF (KoShapeGroup::*)() const);
+}
+
+void KoShapeReorderCommandSchemaContractTest::shapeGroupCommandTypeLifetimeAndConstructionSchemaRemainStable()
+{
+    static_assert(std::is_class_v<KoShapeGroupCommand>);
+    static_assert(std::is_base_of_v<KUndo2Command, KoShapeGroupCommand>);
+    static_assert(std::has_virtual_destructor_v<KoShapeGroupCommand>);
+    static_assert(std::is_constructible_v<KoShapeGroupCommand, KoShapeContainer *, const ShapeList &, bool>);
+    static_assert(
+        std::is_constructible_v<KoShapeGroupCommand, KoShapeContainer *, const ShapeList &, bool, KUndo2Command *>);
+    static_assert(std::is_constructible_v<KoShapeGroupCommand, KoShapeContainer *, const ShapeList &>);
+    static_assert(std::is_constructible_v<KoShapeGroupCommand, KoShapeContainer *, const ShapeList &, KUndo2Command *>);
+}
+
+void KoShapeReorderCommandSchemaContractTest::shapeGroupCommandCreationAndExecutionSignaturesRemainStable()
+{
+    ASSERT_SHAPE_GROUP_COMMAND_SIGNATURE(createCommand,
+                                         KoShapeGroupCommand * (*)(KoShapeContainer *, const ShapeList &, bool));
+    ASSERT_SHAPE_GROUP_COMMAND_SIGNATURE(redo, void (KoShapeGroupCommand::*)());
+    ASSERT_SHAPE_GROUP_COMMAND_SIGNATURE(undo, void (KoShapeGroupCommand::*)());
+
+    static_assert(std::is_same_v<decltype(KoShapeGroupCommand::createCommand(std::declval<KoShapeContainer *>(),
+                                                                             std::declval<const ShapeList &>())),
+                                 KoShapeGroupCommand *>);
+}
+
+void KoShapeReorderCommandSchemaContractTest::shapeUngroupCommandSchemaRemainStable()
+{
+    static_assert(std::is_class_v<KoShapeUngroupCommand>);
+    static_assert(std::is_base_of_v<KUndo2Command, KoShapeUngroupCommand>);
+    static_assert(std::has_virtual_destructor_v<KoShapeUngroupCommand>);
+    static_assert(std::is_constructible_v<KoShapeUngroupCommand, KoShapeContainer *, const ShapeList &>);
+    static_assert(
+        std::is_constructible_v<KoShapeUngroupCommand, KoShapeContainer *, const ShapeList &, const ShapeList &>);
+    static_assert(std::is_constructible_v<KoShapeUngroupCommand,
+                                          KoShapeContainer *,
+                                          const ShapeList &,
+                                          const ShapeList &,
+                                          KUndo2Command *>);
+    ASSERT_SHAPE_UNGROUP_COMMAND_SIGNATURE(redo, void (KoShapeUngroupCommand::*)());
+    ASSERT_SHAPE_UNGROUP_COMMAND_SIGNATURE(undo, void (KoShapeUngroupCommand::*)());
 }
 
 QTEST_APPLESS_MAIN(KoShapeReorderCommandSchemaContractTest)
