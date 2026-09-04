@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "kis_warptransform_worker.h"
+
 #include "brushengine/kis_paint_information.h"
 #include "brushengine/kis_paintop_settings.h"
 #include "brushengine/kis_slider_based_paintop_property.h"
@@ -51,7 +53,6 @@
 #include "kis_types.h"
 #include "kis_update_job_item.h"
 #include "kis_updater_context.h"
-#include "kis_warptransform_worker.h"
 #include "tiles3/kis_hline_iterator.h"
 #include "tiles3/kis_vline_iterator.h"
 
