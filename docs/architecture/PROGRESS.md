@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 02:30 JST
+- 更新日時: 2026-09-05 02:32 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -421,6 +421,8 @@
 - `g214-histogram-painter-schema`の状態は`integrated`である。開始`libs/ui/widgets/KisHistogramPainter.h`の残存全20 APIを、新規`libs/ui/tests/KisHistogramPainterSchemaContractTest.cpp`の5枠`histogramPainterTypeLifetimeAndSetupSchemaRemainStable`、`histogramPainterRenderingSignaturesRemainStable`、`histogramPainterChannelSelectionSignaturesRemainStable`、`histogramPainterColorAndScaleSignaturesRemainStable`、`histogramPainterPeakAndLogarithmicPolicySignaturesRemainStable`へ4・3・5・5・3件で対応付けた。受渡しcommit`4b941a2ad8`を統合commit`fa61b2617a`として取り込み、公開headerと製品sourceは変更していない。
 - 担当側と中央のmacOSで追加5枠を各20回、対象`libs-ui-KisHistogramPainterSchemaContractTest`と近傍`libs-ui-KisNodeViewColorSchemeSchemaContractTest`、AUTOMOC後の二回目計画、無作業再構築2回に成功した。4工程・8入力、AUTOMOC `HEADERS=[]`、Qt Core・Testだけの動的接続、製品未解決記号なしを維持し、台帳は20,648件対応、9,190件未対応となった。実際のhistogram描画結果と尺度計算は別の効果契約で扱う。
 - cleanな専用作業tree、296,760 KiBの構築木、branchを統合直後に削除し、886,624 KiBを回収した。主Ninja木5,731,552 KiBと共有compiler cache 983,092 KiBを色空間・変換factory契約へ再利用する。次の永続作業は、同factory 27 APIの担当票を確定して専用作業treeで実装することである。
+- `g214-color-factory-schema`の状態は`implementing`、担当は`/root/g208_raster_keyframe_schema`、基点は`db0b1371ea`、作業treeは`/Users/masato/Documents/librepaint-g214-color-factory-schema`である。開始`libs/pigment/KoColorSpaceFactory.h`の残存全18 APIと`KoColorConversionTransformationFactory.h`の残存全9 APIを、新規`libs/pigment/tests/KoColorSpaceFactorySchemaContractTest.cpp`の5枠`colorSpaceFactoryTypeLifetimeAndIdentitySchemaRemainStable`、`colorSpaceFactoryCapabilitySignaturesRemainStable`、`colorSpaceFactoryProfileAndCreationSignaturesRemainStable`、`colorSpaceFactoryConversionLinksAndTransformationLifetimeSchemaRemainStable`、`colorConversionTransformationEndpointsSchemaRemainStable`へ5・6・5・5・6件で対応付ける。許可pathは新規試験sourceと`libs/pigment/tests/CMakeLists.txt`の新target固有節だけで、公開headerと製品sourceを変更しない。pigment・global探索路、KF I18n interface、Qt Core・Test、header-only Boost、`kritaglobal_EXPORTS`と`kritapigment_EXPORTS`だけによる4工程・8入力を予測する。
+- 色空間・変換factory担当は、5工程・11入力超過、計画外の探索路・定義・link、Qt Guiまたは製品shared・OBJECT・`kritatestsdk`の動的接続、候補headerのAUTOMOC入力化、色空間・profile・変換関連の製品未解決記号、対象値・Qt値・製品本文の実体化・実行、許可path外変更が必要なら停止する。新target不存在、宣言段階の初期失敗、追加5枠の単発と各20回反復、対象と軽量近傍`KoColorConversionTransformationAbstractFactoryContractTest`、AUTOMOC後の二回目計画、無作業再構築2回、動的接続・未解決記号・構文・書式、公開API検査、`verify-quick`を確認する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
 
 ### 第215便の先行監査担当票（第214便確定待ち）
 
