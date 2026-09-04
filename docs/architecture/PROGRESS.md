@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-04 16:49 JST
+- 更新日時: 2026-09-04 16:55 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -99,14 +99,29 @@
 - 第204便全体で64 APIを15枠へ重複なく対応付け、19,797件対応、10,041件未対応となった。担当側と中央で対象・軽量近傍CTest、各追加枠の20回反復、AUTOMOC後の二回目計画、無作業再構築、動的接続・未解決記号・書式、公開API検査、`verify-quick`に成功した。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 3担当のcleanな専用作業tree、構築木、branchを統合直後に削除し、合計2,646,860 KiBを回収した。主Ninja木と共有compiler cacheは次便の対象限定構築へ再利用し、第205便の正式不足報告を生成した後は旧`public-api-missing-g204.json`を削除して最新報告だけを保持する。
 
-### 第205便の先行監査担当票（第204便確定待ち）
+### 第205便の先行監査担当票
 
-- 監査共通基点は`8f04132b9f`、暫定入力は`build/tdd-macos/public-api-missing-g204.json`である。第204便までに契約済みまたは選定済みの責務を除外し、変更、構成、構築、試験、Git操作、追加委任を行わない読み取り専用監査を先行する。正式な第204便完了報告で再照合・再計測する。
+- 監査共通基点は`8f04132b9f`、正式入力は`build/tdd-macos/public-api-missing-g205.json`である。第204便までに契約済みまたは選定済みの責務を除外した先行監査結果を、第204便完了後の不足報告で再照合・再計測した。
 - `g205-image-contract-audit`の状態は`completed`で、image・paintop・pigment領域から画像変更transaction 20 APIを選定した。
 - `g205-flake-contract-audit`の状態は`completed`で、flake・SVG・vector領域からtool actionとtool activation管理49 APIを選定した。
 - `g205-ui-contract-audit`の状態は`completed`で、widgetutils・widgets・libkis領域から資源server取得とpopup選択・通知21 APIを選定した。
 - `g205-tool-manager-closure-review`の状態は`completed`で、tool actionとtool activation管理の49 APIは新規専用契約へ4工程・8入力、Qt Core・Testだけの動的接続、候補headerのAUTOMOC非入力化、製品非接続を維持して追加できることを独立確認した。
 - `g205-resource-selection-closure-review`の状態は`completed`で、資源server取得とpopup選択・通知の21 APIは新規専用契約へ4工程・8入力、Qt Core・Gui・Testだけの動的接続、候補headerのAUTOMOC非入力化、製品非接続を維持して追加できることを独立確認した。直接include閉包に必要なKF I18n interface探索路を先行監査案へ追加する。
+
+### 第205便の先行監査結果
+
+- 正式入力`build/tdd-macos/public-api-missing-g205.json`は公開header 1,549、公開API 29,838、対応済み19,797、未対応10,041、2,652,442 bytes、SHA-256 `7fedf7ac3d44fc24783c8e2e6f73216ea16fef88a73f7486a76e9d75ddc6f936`を記録する。先行監査の全識別子を再照合し、画像変更transaction 20件、tool actionとtool activation管理49件、資源server取得とpopup選択・通知21件が重複なく残存することを確認した。旧`public-api-missing-g204.json`は新報告の成功後に削除し、主Ninja木5,688,736 KiBと共有compiler cache 983,192 KiBを対象限定構築へ保持する。
+- image領域は`libs/image/kis_transaction.h`の残存全20 APIを、transaction型・flag・寿命6、構築・move 4、完了・照会4、確定・取消3、selection transaction型・構築3として既存`libs/image/tests/KisStrokeStrategyUndoCommandBasedSchemaContractTest.cpp`の5枠へ固定する。CMakeを変更せず、既存image・global・painting/undo探索路、Qt Core・Test、header-only Boost、Qt Gui・KF I18n interface、`kritaimage_EXPORTS`による4工程・8入力を維持し、停止線を5工程・11入力とする。transaction、paint device、pixel selection、undo adapter、command、共有pointerを実体化せず、inlineを含む本文を実行しない。
+- flake領域は`libs/flake/KoToolManager.h`の残存全49 APIを、tool action型・起動5、action表示情報10、manager型・controller 11、tool起動・resource 10、切替・通知13として新規`libs/flake/tests/KoToolManagerSchemaContractTest.cpp`の5枠へ固定する。flake source/generatedとQt Gui interface探索路、`kritaflake_EXPORTS`、Qt Core・Test、header-only Boostだけを使う4工程・8入力を予測し、停止線を5工程・11入力とする。manager、action、factory、canvas、controller、tool、shape、layer、widget、resource、converter、入力装置を実体化せず、singleton・signalを含む本文を実行しない。
+- UI領域は`libs/widgets/KoResourceServerProvider.h`と`KoResourcePopupAction.h`の残存全21 APIを、provider型・寿命4、server取得7、popup型・制御5、背景3、resource 2として新規`libs/widgets/tests/KoResourceSelectionSchemaContractTest.cpp`の5枠へ固定する。widgets、flake・text、pigment、resources、globalのsource/generated、Qt Widgets・Xml、KF ConfigCore・I18n、Boost・Imathのinterface探索路、関連export定義をcompile interfaceへ限定し、Qt Core・Gui・Testだけを動的接続する4工程・8入力を予測する。`seExprScriptServer`は`HAVE_SEEXPR`条件と一致させ、停止線を5工程・11入力とする。provider、action、server、resource、background、canvas interfaceを実体化せず、取得・選択・signal本文を実行しない。
+- 3責務の開始headerと試験sourceは相互に異なる。imageは既存sourceだけ、flakeとUIは新規sourceと各CMakeの新target固有節だけを変更するため、合計90 API・15枠を画像変更transaction、tool activation管理、資源選択の順に一担当ずつ実装する。製品target、全体build・`verify`、Linux、Nix再評価を行わず、各対象と軽量近傍、追加枠の反復、AUTOMOC後の二回目計画、無作業再構築、公開API検査、`verify-quick`を確認する。
+
+### 第205便の担当計画
+
+- 実装共通基点は`9bba3be3ac`である。一度に一つだけ作る専用worktree-local `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有し、`./scripts/run-shared-test-env`で読み込み済み環境を使う。各担当のGit権限は許可pathだけの受渡しcommit、追加委任は禁止する。画像変更transaction、tool activation管理、資源選択の順に限定検証・統合・削除し、調整担当だけが文書、公開API台帳、共通不足報告を変更する。製品target、全体build・`verify`、Linux、Nix再評価は禁止する。
+- `g205-transaction-schema`の状態は`implementing`、macOSの対象・近傍に限る構築実行許可は`granted`で、基点`9bba3be3ac`の作業tree`/Users/masato/Documents/librepaint-g205-transaction-schema`を所有する。正式不足報告の`libs/image/kis_transaction.h`残存全20 APIを、既存`libs/image/tests/KisStrokeStrategyUndoCommandBasedSchemaContractTest.cpp`の5枠`transactionTypeFlagsAndLifetimeSchemaRemainStable`、`transactionConstructionAndMoveSchemaRemainStable`、`transactionCompletionAndInspectionSignaturesRemainStable`、`transactionCommitAndRevertSignaturesRemainStable`、`selectionTransactionTypeAndConstructionSchemaRemainStable`へ6・4・4・3・3件で対応付ける。許可pathは既存試験sourceだけ、CMake変更なし、対象`KisStrokeStrategyUndoCommandBasedSchemaContractTest`、正式CTest`libs-image-KisStrokeStrategyUndoCommandBasedSchemaContractTest`、近傍`KisProcessingApplicatorSchemaContractTest`である。4工程・8入力を維持し、5工程・11入力超過、新規探索路・link・定義、AUTOMOC入力化、製品接続、実体化・本文実行が必要なら停止する。
+- `g205-tool-manager-schema`の状態は`planned`、構築実行許可は`withheld`である。正式不足報告の`libs/flake/KoToolManager.h`残存全49 APIを、新規`libs/flake/tests/KoToolManagerSchemaContractTest.cpp`の5枠`toolActionTypeLifetimeAndActivationSchemaRemainStable`、`toolActionMetadataSignaturesRemainStable`、`toolManagerTypeLifetimeAndControllerSignaturesRemainStable`、`toolManagerActivationAndResourceSignaturesRemainStable`、`toolManagerSwitchingAndNotificationSignaturesRemainStable`へ5・10・11・10・13件で対応付ける。許可pathは新規試験sourceと`libs/flake/tests/CMakeLists.txt`の新target固有節だけで、flake source/generated、Qt Gui interface、`kritaflake_EXPORTS`だけを追加でき、直接linkはQt Core・Testとheader-only Boostに限定する。対象`KoToolManagerSchemaContractTest`、正式CTest`libs-flake-KoToolManagerSchemaContractTest`、近傍`KoToolBaseSchemaContractTest`である。4工程・8入力を予測し、5工程・11入力超過、指定外探索路・link・定義、Qt Gui・Widgets動的接続、AUTOMOC入力化、製品接続、実体化・本文実行が必要なら停止する。
+- `g205-resource-selection-schema`の状態は`planned`、構築実行許可は`withheld`である。正式不足報告の`libs/widgets/KoResourceServerProvider.h`と`KoResourcePopupAction.h`残存全21 APIを、新規`libs/widgets/tests/KoResourceSelectionSchemaContractTest.cpp`の5枠`resourceServerProviderTypeAndLifetimeSchemaRemainStable`、`resourceServerProviderAccessSignaturesRemainStable`、`resourcePopupActionTypeLifetimeAndControlSchemaRemainStable`、`resourcePopupActionBackgroundSignaturesRemainStable`、`resourcePopupActionResourceSignaturesRemainStable`へ4・7・5・3・2件で対応付ける。許可pathは新規試験sourceと`libs/widgets/tests/CMakeLists.txt`の新target固有節だけで、先行監査結果のsource/generated・interface探索路とexport定義だけを追加でき、直接linkはQt Core・Gui・Testに限定する。対象`KoResourceSelectionSchemaContractTest`、正式CTest`libs-widgets-KoResourceSelectionSchemaContractTest`、近傍`KisColorSelectionControlSchemaContractTest`である。4工程・8入力を予測し、5工程・11入力超過、指定外探索路・link・定義、Qt Widgets・KF・製品libraryの動的接続、AUTOMOC入力化、製品接続、実体化・本文実行が必要なら停止する。
 
 ### 第201便の先行監査担当票
 
