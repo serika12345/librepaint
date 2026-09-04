@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 02:32 JST
+- 更新日時: 2026-09-05 02:50 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -421,12 +421,19 @@
 - `g214-histogram-painter-schema`の状態は`integrated`である。開始`libs/ui/widgets/KisHistogramPainter.h`の残存全20 APIを、新規`libs/ui/tests/KisHistogramPainterSchemaContractTest.cpp`の5枠`histogramPainterTypeLifetimeAndSetupSchemaRemainStable`、`histogramPainterRenderingSignaturesRemainStable`、`histogramPainterChannelSelectionSignaturesRemainStable`、`histogramPainterColorAndScaleSignaturesRemainStable`、`histogramPainterPeakAndLogarithmicPolicySignaturesRemainStable`へ4・3・5・5・3件で対応付けた。受渡しcommit`4b941a2ad8`を統合commit`fa61b2617a`として取り込み、公開headerと製品sourceは変更していない。
 - 担当側と中央のmacOSで追加5枠を各20回、対象`libs-ui-KisHistogramPainterSchemaContractTest`と近傍`libs-ui-KisNodeViewColorSchemeSchemaContractTest`、AUTOMOC後の二回目計画、無作業再構築2回に成功した。4工程・8入力、AUTOMOC `HEADERS=[]`、Qt Core・Testだけの動的接続、製品未解決記号なしを維持し、台帳は20,648件対応、9,190件未対応となった。実際のhistogram描画結果と尺度計算は別の効果契約で扱う。
 - cleanな専用作業tree、296,760 KiBの構築木、branchを統合直後に削除し、886,624 KiBを回収した。主Ninja木5,731,552 KiBと共有compiler cache 983,092 KiBを色空間・変換factory契約へ再利用する。次の永続作業は、同factory 27 APIの担当票を確定して専用作業treeで実装することである。
-- `g214-color-factory-schema`の状態は`implementing`、担当は`/root/g208_raster_keyframe_schema`、基点は`db0b1371ea`、作業treeは`/Users/masato/Documents/librepaint-g214-color-factory-schema`である。開始`libs/pigment/KoColorSpaceFactory.h`の残存全18 APIと`KoColorConversionTransformationFactory.h`の残存全9 APIを、新規`libs/pigment/tests/KoColorSpaceFactorySchemaContractTest.cpp`の5枠`colorSpaceFactoryTypeLifetimeAndIdentitySchemaRemainStable`、`colorSpaceFactoryCapabilitySignaturesRemainStable`、`colorSpaceFactoryProfileAndCreationSignaturesRemainStable`、`colorSpaceFactoryConversionLinksAndTransformationLifetimeSchemaRemainStable`、`colorConversionTransformationEndpointsSchemaRemainStable`へ5・6・5・5・6件で対応付ける。許可pathは新規試験sourceと`libs/pigment/tests/CMakeLists.txt`の新target固有節だけで、公開headerと製品sourceを変更しない。pigment・global探索路、KF I18n interface、Qt Core・Test、header-only Boost、`kritaglobal_EXPORTS`と`kritapigment_EXPORTS`だけによる4工程・8入力を予測する。
-- 色空間・変換factory担当は、5工程・11入力超過、計画外の探索路・定義・link、Qt Guiまたは製品shared・OBJECT・`kritatestsdk`の動的接続、候補headerのAUTOMOC入力化、色空間・profile・変換関連の製品未解決記号、対象値・Qt値・製品本文の実体化・実行、許可path外変更が必要なら停止する。新target不存在、宣言段階の初期失敗、追加5枠の単発と各20回反復、対象と軽量近傍`KoColorConversionTransformationAbstractFactoryContractTest`、AUTOMOC後の二回目計画、無作業再構築2回、動的接続・未解決記号・構文・書式、公開API検査、`verify-quick`を確認する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
+- `g214-color-factory-schema`の状態は`integrated`である。開始`libs/pigment/KoColorSpaceFactory.h`の残存全18 APIと`KoColorConversionTransformationFactory.h`の残存全9 APIを、新規`libs/pigment/tests/KoColorSpaceFactorySchemaContractTest.cpp`の5枠`colorSpaceFactoryTypeLifetimeAndIdentitySchemaRemainStable`、`colorSpaceFactoryCapabilitySignaturesRemainStable`、`colorSpaceFactoryProfileAndCreationSignaturesRemainStable`、`colorFactoryLinksAndTransformationLifetimeSchemaRemainStable`、`colorConversionTransformationEndpointsSchemaRemainStable`へ5・6・5・5・6件で対応付けた。受渡しcommit`dcd4f8646d`を統合commit`ccaabf7889`として取り込み、公開headerと製品sourceは変更していない。
+- 担当側と中央のmacOSで追加5枠を各20回、対象`libs-pigment-KoColorSpaceFactorySchemaContractTest`と近傍`libs-pigment-KoColorConversionTransformationAbstractFactoryContractTest`、AUTOMOC後の二回目計画、無作業再構築2回に成功した。4工程・8入力、AUTOMOC `HEADERS=[]`、Qt Core・Testだけの動的接続、製品未解決記号なしを維持し、台帳は20,675件対応、9,163件未対応となった。実際のprofile生成、色空間取得、変換辺生成は別の効果契約で扱う。
+- cleanな専用作業tree、294,768 KiBの構築木、branchを統合直後に削除し、884,648 KiBを回収した。
 
-### 第215便の先行監査担当票（第214便確定待ち）
+### 第214便の統合結果
 
-- 監査共通基点は`501e772e72`、暫定入力は`build/tdd-macos/public-api-missing-g211.json`である。第210便までの契約済み責務と、第211便から第214便で選定済みのbrush preset、SVG文字列command群、スクリプト向けアプリケーション根、標準曲線option、変形mask adapter、raster面・色channel、gradient painter、変形状態、canvas animation state、SVG図形交換、histogram描画、色空間factoryを除外する。監査中は主作業treeを読み取り専用で共有し、変更、構成、構築、試験、Git操作、追加委任を行わない。既存Ninja graphのquery・commands・inputsは読み取り専用で利用できる。
+- `libs/flake/KoDrag.h`、`KoSvgPaste.h`、`KoPathShapeLoader.h`、`svg/SvgShape.h`から既存`libs/flake/tests/SvgParserSchemaContractTest.cpp`へ22 API・5枠、`libs/ui/widgets/KisHistogramPainter.h`から新規`libs/ui/tests/KisHistogramPainterSchemaContractTest.cpp`へ20 API・5枠、`libs/pigment/KoColorSpaceFactory.h`と`KoColorConversionTransformationFactory.h`から新規`libs/pigment/tests/KoColorSpaceFactorySchemaContractTest.cpp`へ27 API・5枠を追加した。公開headerと製品sourceを変更せず、3対象とも4工程・8入力と製品非接続を維持した。
+- 第214便全体で69 APIを15枠へ重複なく対応付け、20,675件対応、9,163件未対応となった。担当側と中央で対象・軽量近傍CTest、各追加枠の20回反復、AUTOMOC後の二回目計画、無作業再構築、動的接続・未解決記号・構文・書式、公開API検査、`verify-quick`に成功した。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 3担当のcleanな専用作業tree、構築木、branchを統合直後に削除し、合計2,654,856 KiBを回収した。新しい`build/tdd-macos/public-api-missing-g215.json`は公開header 1,549、公開API 29,838、対応済み20,675、未対応9,163、2,431,363 bytes、SHA-256 `7c150e1e2b97abee841a2415aa2cbb7c020d8511ffa215f0fb1b670665b6cf8e`を記録する。旧第214便報告を削除し、主Ninja木5,733,016 KiB、共有compiler cache 982,628 KiB、最新不足報告だけを再利用対象として保持する。
+
+### 第215便の先行監査担当票
+
+- 監査共通基点は`501e772e72`、暫定入力は`build/tdd-macos/public-api-missing-g211.json`、正式再照合基点は`ccaabf7889`、正式入力は`build/tdd-macos/public-api-missing-g215.json`である。第214便までに契約済みまたは選定済みの責務を除外し、正式報告で全候補を再計測した。監査中は主作業treeを読み取り専用で共有し、変更、構成、構築、試験、Git操作、追加委任を行っていない。
 - `g215-flake-contract-audit`の状態は`completed`で、`KoShape`と`KoShapeLayer`が公開する図形状態・所有接続・複製・委任・描画補助・layer構造22 APIを選定した。既存82行・5枠の`KoShapeStateSchemaContractTest`へ5枠を追加しても上限内で、CMake変更なしの4工程・8入力を維持する。
 - `g215-ui-contract-audit`の状態は`completed`で、`KisAsyncColorSamplerHelper`の型・状態・採取操作・preview描画・色通知20 APIを選定した。新規`KisAsyncColorSamplerHelperSchemaContractTest`はQt Core・Testだけを直接接続し、application・image・global探索路と3 export定義による4工程・8入力を予測する。
 - `g215-image-contract-audit`の状態は`completed`で、`KoColorSpaceRegistry.h`の色空間・profile登録、検索、変換経路63 APIを選定した。既存色空間契約は272行・15枠のため新規専用targetへ分け、Qt Core・Gui・Testとheader-only Boostによる4工程・8入力を予測する。
@@ -434,12 +441,13 @@
 - `g215-async-sampler-closure-review`の状態は`completed`で、`KisAsyncColorSamplerHelper.h`の20 APIと5枠4・6・2・5・3を独立確認した。application生成探索路を優先して誤った`kritaui_export.h`を避け、Qt Core・Testだけを直接接続する4工程・8入力へ閉じられる。
 - `g215-color-registry-closure-review`の状態は`completed`で、`KoColorSpaceRegistry.h`の63 APIと5枠11・10・13・11・18を独立確認した。現macOS構成の`KoConfig.h`が`HAVE_OPENEXR=1`を供給するため`alpha16f`に追加依存はなく、pigment・global探索路、KF I18n interface、Qt Core・Gui・Test、header-only Boost、2 export定義による4工程・8入力へ閉じられる。
 
-### 第215便の先行監査結果（第214便確定待ち）
+### 第215便の先行監査結果
 
+- 正式入力は公開header 1,549、公開API 29,838、対応済み20,675、未対応9,163、2,431,363 bytes、SHA-256 `7c150e1e2b97abee841a2415aa2cbb7c020d8511ffa215f0fb1b670665b6cf8e`を記録する。図形補助状態22件、非同期色採取20件、色空間registry 63件がすべて未対応で相互に重複しないことを再照合した。識別子集合SHA-256は順に`c66c677147130ab90f62f51ad630ce9dfd75617ea1f6a26734b853a2b3d10364`、`bf3641bf233f58d0298d4cc86499df4e0eacb43981cc539093542fc119866edf`、`0ccdbe397f16f65ca61c6685880601ece31dcb7561cd76ec21b3c2c5f0ee5d60`である。
 - flake領域は`libs/flake/KoShape.h`の16 APIと`KoShapeLayer.h`の6 APIを、図形への補助状態の所有接続8、複製・設定3、委任・snap 3、handle描画補助2、layer型・構築・表示6として既存`libs/flake/tests/KoShapeStateSchemaContractTest.cpp`の5枠へ固定する。Qt Core・Gui・Test・Xml、既存flake・global・resources探索路と`kritaflake_EXPORTS`による4工程・8入力、停止線5工程・11入力を維持する。
 - UI領域は`libs/ui/tool/KisAsyncColorSamplerHelper.h`の20 APIを、型・寿命・状態4、起動・操作6、preview・描画2、全体色・輪郭通知5、色通知3として新規`libs/ui/tests/KisAsyncColorSamplerHelperSchemaContractTest.cpp`の5枠へ固定する。Qt Core・Testを直接接続し、application・image・global探索路と対応するexport定義による4工程・8入力、停止線5工程・11入力を予測する。
 - pigment領域は`libs/pigment/KoColorSpaceRegistry.h`の63 APIを、型・寿命・方針11、factory・profile更新10、profile・catalog照会13、色空間解決・変換11、既定色空間18として新規`libs/pigment/tests/KoColorSpaceRegistrySchemaContractTest.cpp`の5枠へ固定する。pigment・global探索路、KF I18n interface、Qt Core・Gui・Testとheader-only Boost、2 export定義による4工程・8入力、停止線5工程・11入力を予測する。
-- 3候補は合計105 API・15枠である。型特性、厳密な関数pointer、未評価式だけで対象型、Qt値、図形、採取helper、色空間registryを実体化せず観測する。候補headerのAUTOMOC入力化、製品shared・OBJECT・`kritatestsdk`、計画外の探索路・定義・動的接続、製品未解決記号、本文のODR-useが必要なら停止する。正式な第215便不足報告で全識別子と閉包を再照合する。
+- 3候補は合計105 API・15枠である。型特性、厳密な関数pointer、未評価式だけで対象型、Qt値、図形、採取helper、色空間registryを実体化せず観測する。候補headerのAUTOMOC入力化、製品shared・OBJECT・`kritatestsdk`、計画外の探索路・定義・動的接続、製品未解決記号、本文のODR-useが必要なら停止する。図形補助状態、非同期色採取、色空間registryの順に一担当ずつ実装する。
 
 ### 第216便の先行監査担当票（第215便確定待ち）
 

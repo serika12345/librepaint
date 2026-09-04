@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 9190
+    "expectedMissingApis": 9163
   },
   "contracts": [
     {
@@ -57527,6 +57527,78 @@
         "method:KisHistogramPainter::isLogarithmic() const",
         "method:KisHistogramPainter::setLogarithmic(bool logarithmic)",
         "method:KisHistogramPainter::setScaleToCutLongPeaks()"
+      ]
+    },
+    {
+      "target": "KoColorSpaceFactorySchemaContractTest",
+      "source": "libs/pigment/tests/KoColorSpaceFactorySchemaContractTest.cpp",
+      "test": "KoColorSpaceFactorySchemaContractTest::colorSpaceFactoryTypeLifetimeAndIdentitySchemaRemainStable",
+      "behavior": "色空間factoryは公開抽象型と仮想寿命を持ち、安定した識別子、表示名、および利用者向け表示方針を返す公開契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoColorSpaceFactory",
+        "method:KoColorSpaceFactory::id() const",
+        "method:KoColorSpaceFactory::name() const",
+        "method:KoColorSpaceFactory::userVisible() const",
+        "method:KoColorSpaceFactory::~KoColorSpaceFactory()"
+      ]
+    },
+    {
+      "target": "KoColorSpaceFactorySchemaContractTest",
+      "source": "libs/pigment/tests/KoColorSpaceFactorySchemaContractTest.cpp",
+      "test": "KoColorSpaceFactorySchemaContractTest::colorSpaceFactoryCapabilitySignaturesRemainStable",
+      "behavior": "色空間factoryは色模型・深度・engine、HDR対応、基準深度、および変換graph通過費用を表す公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoColorSpaceFactory::colorDepthId() const",
+        "method:KoColorSpaceFactory::colorModelId() const",
+        "method:KoColorSpaceFactory::colorSpaceEngine() const",
+        "method:KoColorSpaceFactory::crossingCost() const",
+        "method:KoColorSpaceFactory::isHdr() const",
+        "method:KoColorSpaceFactory::referenceDepth() const"
+      ]
+    },
+    {
+      "target": "KoColorSpaceFactorySchemaContractTest",
+      "source": "libs/pigment/tests/KoColorSpaceFactorySchemaContractTest.cpp",
+      "test": "KoColorSpaceFactorySchemaContractTest::colorSpaceFactoryProfileAndCreationSignaturesRemainStable",
+      "behavior": "色空間factoryはprofile互換性、既定profile、profile生成、色空間取得、および接続profile照会の公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoColorSpaceFactory::createColorProfile(const QByteArray & rawData) const",
+        "method:KoColorSpaceFactory::defaultProfile() const",
+        "method:KoColorSpaceFactory::grabColorSpace(const KoColorProfile * profile)",
+        "method:KoColorSpaceFactory::profileIsCompatible(const KoColorProfile * profile) const",
+        "method:KoColorSpaceFactory::requiredConnectionProfiles(const KoColorProfile * profile) const"
+      ]
+    },
+    {
+      "target": "KoColorSpaceFactorySchemaContractTest",
+      "source": "libs/pigment/tests/KoColorSpaceFactorySchemaContractTest.cpp",
+      "test": "KoColorSpaceFactorySchemaContractTest::colorFactoryLinksAndTransformationLifetimeSchemaRemainStable",
+      "behavior": "色空間factoryは一般・profile固有の変換辺を提供し、色変換factoryは6つの端点識別値から構築できる公開型と仮想寿命を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoColorConversionTransformationFactory",
+        "method:KoColorConversionTransformationFactory::KoColorConversionTransformationFactory(const QString & _srcModelId,const QString & _srcDepthId,const QString & _srcProfile,const QString & _dstModelId,const QString & _dstDepthId,const QString & _dstProfile)",
+        "method:KoColorConversionTransformationFactory::~KoColorConversionTransformationFactory()",
+        "method:KoColorSpaceFactory::colorConversionLinks() const",
+        "method:KoColorSpaceFactory::colorConversionLinksFromProfile(const KoColorProfile * profile) const"
+      ]
+    },
+    {
+      "target": "KoColorSpaceFactorySchemaContractTest",
+      "source": "libs/pigment/tests/KoColorSpaceFactorySchemaContractTest.cpp",
+      "test": "KoColorSpaceFactorySchemaContractTest::colorConversionTransformationEndpointsSchemaRemainStable",
+      "behavior": "色変換factoryは変換元と変換先それぞれの色模型、深度、およびprofile識別値を返す公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoColorConversionTransformationFactory::dstColorDepthId() const",
+        "method:KoColorConversionTransformationFactory::dstColorModelId() const",
+        "method:KoColorConversionTransformationFactory::dstProfile() const",
+        "method:KoColorConversionTransformationFactory::srcColorDepthId() const",
+        "method:KoColorConversionTransformationFactory::srcColorModelId() const",
+        "method:KoColorConversionTransformationFactory::srcProfile() const"
       ]
     }
   ]

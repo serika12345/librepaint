@@ -51,7 +51,7 @@ private Q_SLOTS:
     void colorSpaceFactoryTypeLifetimeAndIdentitySchemaRemainStable();
     void colorSpaceFactoryCapabilitySignaturesRemainStable();
     void colorSpaceFactoryProfileAndCreationSignaturesRemainStable();
-    void colorSpaceFactoryConversionLinksAndTransformationLifetimeSchemaRemainStable();
+    void colorFactoryLinksAndTransformationLifetimeSchemaRemainStable();
     void colorConversionTransformationEndpointsSchemaRemainStable();
 };
 
@@ -90,8 +90,7 @@ void KoColorSpaceFactorySchemaContractTest::colorSpaceFactoryProfileAndCreationS
                                              const);
 }
 
-void KoColorSpaceFactorySchemaContractTest::
-    colorSpaceFactoryConversionLinksAndTransformationLifetimeSchemaRemainStable()
+void KoColorSpaceFactorySchemaContractTest::colorFactoryLinksAndTransformationLifetimeSchemaRemainStable()
 {
     ASSERT_COLOR_SPACE_FACTORY_SIGNATURE(colorConversionLinks,
                                          QList<KoColorConversionTransformationFactory *> (KoColorSpaceFactory::*)()
