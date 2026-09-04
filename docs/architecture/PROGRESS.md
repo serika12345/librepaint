@@ -9,6 +9,14 @@
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
 
+### 第197便の先行監査担当票
+
+- 監査共通基点は`3826fa0ee4cb`、入力は`build/tdd-macos/public-api-missing-g197.json`である。3担当の状態は`auditing`であり、主作業treeを読み取り専用で共有する。製品・試験・CMake・script・台帳・文書を変更せず、構成、構築、試験、Git操作、追加委任を行わない。一つの公開責務から20〜80 APIを最大5枠へ固定し、既存限定対象またはheader限定の4〜10工程程度の対象で、製品shared・OBJECTと`kritatestsdk`へ接続しない候補だけを採用する。既存契約sourceが300行または20枠を超える場合は、同じ4工程程度の専用targetへ分ける案を比較する。製品targetを引数にするplan/buildは禁止し、既存Ninja木のquery・commands・inputsだけを読み取る。
+- `g197-image-contract-audit`はimage・paintop・pigment領域を所有し、第196便までに固定したmask生成器、brush mask applicator、transform worker、iterator、塗装設定群、math toolbox、paint layer、mask、基底layer、選択範囲、一般画像設定を除外して、一責務の未対応集合を比較する。
+- `g197-flake-contract-audit`はflake・SVG・vector領域を所有し、第196便までに固定したshape manager・controller、tool代理、shape幾何・階層・文書状態、clip、背景群、path点・区間種別command、path点topology command、font family資源、CSS様式資源、SVGシンボル集合資源を除外して、一責務の未対応集合を比較する。
+- `g197-ui-contract-audit`はwidgetutils・widgets・libkis領域を所有し、第196便までに固定したHSX色入力、内部色選択dialog、視覚色選択群、palette delegate、filter設定・適用、palette選択・色集合表示、色選択button・popup action、action分類・toolbar編集入口、zoom action・Widget、scratchpad、ウィンドウ操作、アプリケーション状態通知を除外して、一責務の未対応集合を比較する。
+- 各担当は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、実際のcompile探索路、予測工程・入力と停止線、開始pathから契約先、実装時許可path、固有停止条件、比較候補の棄却根拠を返す。調整担当は3領域のpath、CMake、試験source、生成物が重ならず、合計60〜180 APIとなる組合せだけを次の実装担当票へ進める。
+
 ### 第196便の先行監査担当票
 
 - 監査共通基点は`c78765bb3bf9`、入力は`build/tdd-macos/public-api-missing-g196.json`である。3担当の状態は`auditing`であり、主作業treeを読み取り専用で共有する。製品・試験・CMake・script・台帳・文書を変更せず、構成、構築、試験、Git操作、追加委任を行わない。一つの公開責務から20〜80 APIを最大5枠へ固定し、既存限定対象またはheader限定の4〜10工程程度の対象で、製品shared・OBJECTと`kritatestsdk`へ接続しない候補だけを採用する。既存契約sourceが300行または20枠を超える場合は、同じ4工程程度の専用targetへ分ける案を比較する。製品targetを引数にするplan/buildは禁止し、既存Ninja木のquery・commands・inputsだけを読み取る。
@@ -32,7 +40,13 @@
 - 実装共通基点は`81870f8241`である。3担当のGit権限は許可pathだけの1受渡しcommit、追加委任は禁止する。対象platformはmacOSで、一度に一つだけ作る専用worktree-local `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有する。Nix再評価を行わず、担当側の`./scripts/run-shared-test-env`で読み込み済み開発環境を共有する。一般画像設定、SVGシンボル集合資源、ウィンドウ・通知の順に一担当ずつ実装・限定検証・統合・削除する。調整担当だけがarchitecture文書、公開API台帳、共通不足報告を変更する。製品targetを引数にするplan/build、全体build、全体`verify`、Linux検証は禁止する。
 - `g196-image-config-general-schema`の状態は`integrated`、構築実行許可は`granted`である。開始`libs/image/kis_image_config.h`の残存全37 APIから新規`libs/image/tests/KisImageConfigGeneralSchemaContractTest.cpp`の5枠へ対応付けた。受渡しcommit`4856674b63`を統合commit`03d50cc6ce`として取り込み、Qt Core・Gui・Testの直接link、header-only Boost、KF ConfigCore・I18n・Imathのinterface探索路だけによる4工程・8入力を維持した。5枠の各20回反復、対象・近傍CTest、無作業再構築、動的接続・AUTOMOC・未解決記号、構文・書式、公開API検査、`verify-quick`に成功し、台帳は19,086件対応、10,752件未対応となった。cleanな作業treeと担当構築木は統合後に削除し、885,652 KiBを回収した。
 - `g196-svg-symbol-collection-schema`の状態は`integrated`、構築実行許可は`granted`である。開始`libs/flake/resources/KoSvgSymbolCollectionResource.h`の残存全30 APIから新規`libs/flake/tests/KoSvgSymbolCollectionResourceSchemaContractTest.cpp`の5枠へ対応付けた。受渡しcommit`8736cb335b`を統合commit`405b7392c6`として取り込み、Qt Gui・Test・Xmlの直接link、header-only Boost、KF I18nのinterface探索路だけによる4工程・8入力を維持した。5枠の各20回反復、対象・近傍CTest、無作業再構築、動的接続・AUTOMOC・未解決記号、構文・書式、公開API検査、`verify-quick`に成功し、台帳は19,116件対応、10,722件未対応となった。cleanな作業treeと担当構築木は台帳反映後に削除し、885,316 KiBを回収した。
-- `g196-window-notifier-schema`の状態は`integrated`、構築実行許可は`granted`である。開始`libs/libkis/Window.h`の残存全17 APIと`Notifier.h`の残存全14 APIから既存`libs/libkis/tests/ViewSchemaContractTest.cpp`の5枠へ対応付けた。受渡しcommit`52e9429cfa`を統合commit`489be09397`として取り込み、CMakeを変えずQt Core・Testの直接linkとQt Gui・Widgetsのinterface探索路だけによる4工程・8入力を維持した。5枠の各20回反復、対象・近傍CTest、無作業再構築、動的接続・AUTOMOC・未解決記号、構文・書式、公開API検査、`verify-quick`に成功し、台帳は19,147件対応、10,691件未対応となった。cleanな作業tree`/Users/masato/Documents/librepaint-g196-window-notifier-schema`と担当構築木は台帳反映後に削除する。
+- `g196-window-notifier-schema`の状態は`integrated`、構築実行許可は`granted`である。開始`libs/libkis/Window.h`の残存全17 APIと`Notifier.h`の残存全14 APIから既存`libs/libkis/tests/ViewSchemaContractTest.cpp`の5枠へ対応付けた。受渡しcommit`52e9429cfa`を統合commit`489be09397`として取り込み、CMakeを変えずQt Core・Testの直接linkとQt Gui・Widgetsのinterface探索路だけによる4工程・8入力を維持した。5枠の各20回反復、対象・近傍CTest、無作業再構築、動的接続・AUTOMOC・未解決記号、構文・書式、公開API検査、`verify-quick`に成功し、台帳は19,147件対応、10,691件未対応となった。cleanな作業treeと担当構築木は台帳反映後に削除し、882,328 KiBを回収した。
+
+### 第196便の統合結果
+
+- 第196便全体で98 APIを15枠へ重複なく対応付けた。開始`libs/image/kis_image_config.h`から新規`libs/image/tests/KisImageConfigGeneralSchemaContractTest.cpp`へ37 API、開始`libs/flake/resources/KoSvgSymbolCollectionResource.h`から新規`libs/flake/tests/KoSvgSymbolCollectionResourceSchemaContractTest.cpp`へ30 API、開始`libs/libkis/Window.h`と`Notifier.h`から既存`libs/libkis/tests/ViewSchemaContractTest.cpp`へ31 APIを固定した。前二者は対象固有CMake節だけを追加し、後者はCMakeを変更していない。
+- 3担当で対象・近傍CTest、各追加5枠の20回反復、無作業再構築、動的接続、AUTOMOC、未解決記号、構文・書式、公開API検査、`verify-quick`に成功し、主作業treeでも3対象・3近傍CTestと無作業再構築を再確認した。製品target、全体`verify`、Linux、Nix再評価は実行していない。3担当のcleanな作業treeと担当build木を統合直後に削除して2,653,296 KiB（約2.53 GiB）を回収した。
+- 公開面は1,549ヘッダー、29,838 API、対応済み19,147件、未対応10,691件になった。旧`build/tdd-macos/public-api-missing-g196.json`を削除し、主Ninja木5,683,424 KiB、共有compiler cache 983,212 KiB、最新`build/tdd-macos/public-api-missing-g197.json` 2,825,062 bytesだけを保持する。次の永続作業は第197便の不足報告から3責務を先行監査することである。
 
 ### 第195便の先行監査担当票
 
