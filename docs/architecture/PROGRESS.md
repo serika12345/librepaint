@@ -37,6 +37,8 @@
 
 - 監査共通基点は`90e0de3ed4`、暫定入力は`build/tdd-macos/public-api-missing-g201.json`である。第201便と第202便で契約済みまたは選定済みの責務を除外し、変更、構成、構築、試験、Git操作、追加委任を行わない読み取り専用監査を先行する。正式な第202便完了報告で再照合・再計測する。
 - `g203-image-contract-audit`の状態は`auditing`で、image・paintop・pigment領域からPSD layer style資源を除く一責務20〜80 API・最大5枠の次候補を比較し、完全なAPI識別子、観測契約、開始pathから契約先、許可path、既存対象と近傍、予測閉包、停止条件、棄却根拠を返す。
+- `g203-flake-contract-audit`の状態は`auditing`で、flake・SVG・vector領域からpath toolの選択保持を除く一責務20〜80 API・最大5枠の次候補を比較し、完全なAPI識別子、観測契約、開始pathから契約先、許可path、既存対象と近傍、予測閉包、停止条件、棄却根拠を返す。
+- `g203-ui-contract-audit`の状態は`auditing`で、widgetutils・widgets・libkis領域から視覚色選択器を除く一責務20〜80 API・最大5枠の次候補を比較し、完全なAPI識別子、観測契約、開始pathから契約先、許可path、既存対象と近傍、予測閉包、停止条件、棄却根拠を返す。
 
 ### 第201便の先行監査担当票
 
