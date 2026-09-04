@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-04 19:49 JST
+- 更新日時: 2026-09-04 19:59 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -208,7 +208,7 @@
 ### 第208便の担当計画
 
 - 実装共通基点は`ae61e52152`である。一度に一つだけ作る専用worktree-local `build/tdd-macos`と主作業treeの共有compiler cacheを使い、`./scripts/run-shared-test-env`で読み込み済み環境を利用する。各担当のGit権限は許可pathだけの受渡しcommit、追加委任は禁止する。raster keyframe channel、path編集工具、文書canvas幾何・解像度の順に限定検証・統合・削除し、調整担当だけが文書、公開API台帳、共通不足報告を変更する。
-- `g208-raster-keyframe-schema`の状態は`implementing`、macOSの対象・近傍に限る構築実行許可は`granted`で、基点`ae61e52152`の作業tree`/Users/masato/Documents/librepaint-g208-raster-keyframe-schema`を所有する。許可pathは新規`libs/image/tests/KisRasterKeyframeChannelSchemaContractTest.cpp`と`libs/image/tests/CMakeLists.txt`の新target固有節だけで、公開headerと製品sourceは変更しない。正式不足報告の対象header残存全31 APIを5枠`rasterKeyframeTypeLifetimeAndContentSchemaRemainStable`、`rasterKeyframeChannelTypeLifetimeAndConstructionSchemaRemainStable`、`rasterKeyframeChannelCloneAndFrameMappingSignaturesRemainStable`、`rasterKeyframeChannelPersistenceAndTransferSignaturesRemainStable`、`rasterKeyframeChannelPresentationAndMutationSignaturesRemainStable`へ9・4・7・6・5件で対応付ける。対象`KisRasterKeyframeChannelSchemaContractTest`、正式CTest`libs-image-KisRasterKeyframeChannelSchemaContractTest`、近傍`KisKeyframeChannelSchemaContractTest`である。
+- `g208-raster-keyframe-schema`の状態は`integrated`、macOSの対象・近傍に限る構築実行許可は`granted`である。正式不足報告の`libs/image/kis_raster_keyframe_channel.h`残存全31 APIを、新規`libs/image/tests/KisRasterKeyframeChannelSchemaContractTest.cpp`の5枠`rasterKeyframeTypeLifetimeAndContentSchemaRemainStable`、`rasterKeyframeChannelTypeLifetimeAndConstructionSchemaRemainStable`、`rasterKeyframeChannelCloneAndFrameMappingSignaturesRemainStable`、`rasterKeyframeChannelPersistenceAndTransferSignaturesRemainStable`、`rasterKeyframeChannelPresentationAndMutationSignaturesRemainStable`へ9・4・7・6・5件で対応付けた。受渡しcommit`9920dcd3a8`を統合commit`aa51501f53`として取り込み、担当側と中央で追加5枠を各20回、対象`libs-image-KisRasterKeyframeChannelSchemaContractTest`と近傍`libs-image-KisKeyframeChannelSchemaContractTest`を実行した。4工程・8入力、Qt Core・Xml・Testだけの動的接続、AUTOMOC `HEADERS=[]`、製品未解決記号なし、二回目計画と再構築の無作業を確認し、台帳は20,130件対応、9,708件未対応となった。cleanな専用作業tree、294,892 KiBの構築木、branchを統合直後に削除し、884,468 KiBを回収した。frame内容転送、clone状態、XML永続化の実行結果は別の効果契約で扱う。
 - `g208-path-tool-schema`の状態は`planned`、macOSの対象・近傍に限る構築実行許可は`granted`である。許可pathは既存`libs/flake/tests/KoSelectionSchemaContractTest.cpp`と`libs/flake/tests/CMakeLists.txt`の対象固有節だけで、公開headerと製品sourceは変更しない。正式不足報告の対象header残存全27 APIを5枠`pathToolTypeLifetimeAndConstructionSchemaRemainStable`、`pathToolActivationAndSelectionSignaturesRemainStable`、`pathToolInputSignaturesRemainStable`、`pathToolRenderingAndStrokeControlSignaturesRemainStable`、`pathToolShapeNotificationSignaturesRemainStable`へ3・6・7・8・3件で対応付ける。対象`KoSelectionSchemaContractTest`、正式CTest`libs-flake-KoSelectionSchemaContractTest`、近傍`KoPathShapeSchemaContractTest`である。
 - `g208-document-geometry-schema`の状態は`planned`、macOSの対象・近傍に限る構築実行許可は`granted`である。許可pathは新規`libs/libkis/tests/DocumentGeometrySchemaContractTest.cpp`と`libs/libkis/tests/CMakeLists.txt`の新target固有節だけで、公開headerと製品sourceは変更しない。上記20 APIを5枠`documentBoundsAndDimensionSignaturesRemainStable`、`documentOffsetSignaturesRemainStable`、`documentResolutionSignaturesRemainStable`、`documentCanvasExtentMutationSignaturesRemainStable`、`documentGeometricTransformSignaturesRemainStable`へ5・4・6・3・2件で対応付ける。対象`DocumentGeometrySchemaContractTest`、正式CTest`libs-libkis-DocumentGeometrySchemaContractTest`、近傍`NodeSchemaContractTest`である。
 - 3担当とも予測4工程・8入力、停止線5工程・11入力とする。指定外探索路・link・定義、計画外の動的接続、AUTOMOC header入力、製品未解決記号、対象型の実体化・本文実行、許可path外変更が必要なら停止する。各新枠の初期失敗、単発と20回反復、対象・近傍CTest、AUTOMOC後の二回目計画、無作業再構築2回、動的接続・未解決記号・構文・書式、公開API検査、`verify-quick`を確認する。
@@ -244,10 +244,17 @@
 ### 第212便の先行監査担当票（第211便確定待ち）
 
 - 監査共通基点は`568a5b832d`、暫定入力は`build/tdd-macos/public-api-missing-g208.json`である。第207便までの契約済み責務と、第208便から第211便で選定済みのraster keyframe channel、path編集工具、3組の文書責務、tile data manager、font registry・storage、変形mask、brush preset、SVG文字列command群、スクリプト向けアプリケーション根を除外する。監査中は主作業treeを読み取り専用で共有し、変更、構成、構築、試験、Git操作、追加委任を行わない。正式な第211便完了報告で候補を再照合する。
-- `g212-image-contract-audit`の状態は`auditing`で、image・paintop・pigment領域から一つの公開責務に属する20〜80 APIを最大5枠へ固定できる候補を比較する。完全なAPI識別子、観測契約、開始pathから契約先、許可path、既存対象と近傍、CMake直接依存、既存graphに基づく予測工程・入力、停止条件、棄却根拠を返す。
-- `g212-flake-contract-audit`の状態は`auditing`で、flake・SVG・vector・関連plugin領域から同じ条件の候補を比較する。既存契約sourceが300行または20枠を超える場合は4〜10工程程度の専用targetを選び、製品shared・OBJECTと`kritatestsdk`へ接続する候補を採用しない。
-- `g212-ui-contract-audit`の状態は`auditing`で、widgetutils・widgets・libkis領域から同じ条件の候補を調整担当が読み取り専用で比較する。第208便から第211便で選定済みの文書・Krita責務を除外し、既存契約sourceの成長と対象限定再構築単位を比較して契約先を選ぶ。
+- `g212-image-contract-audit`の状態は`completed`で、image・paintop・pigment領域から標準曲線optionの型・別名と対応widget生成境界32 APIを選定した。既存曲線option契約へCMake変更なしで追加し、4工程・8入力と製品非接続を維持できる。
+- `g212-flake-contract-audit`の状態は`completed`で、flake・SVG・vector・関連plugin領域から変形工具のmask adapter 24 APIを選定した。既存変形引数幾何契約へCMake変更なしで追加し、4工程・9入力と製品非接続を維持できる。
+- `g212-ui-contract-audit`の状態は`completed`で、widgetutils・widgets・libkis領域からスクリプト向けraster面・色channel境界23 APIを選定した。既存Node契約と同じcompile interfaceを持つ新規専用targetへ分け、4工程・8入力を予測する。
 - 各担当は候補headerをtarget sourceやAUTOMOC入力にせず、型特性、厳密な関数pointer、未評価式で実体化と本文実行を避ける計画を優先する。製品targetのplan/buildは禁止し、既存Ninja graphのquery・commands・inputsは読み取り専用で利用できる。
+
+### 第212便の先行監査結果（第211便確定待ち）
+
+- paintop領域は`plugins/paintops/libpaintop/KisStandardOptions.h`と`KisStandardOptionData.h`の32 APIを、型・別名10、構築・評価3、中核widget factory 7、色・強度widget factory 5、masking widget factory 7として既存`plugins/paintops/libpaintop/tests/KisCurveOptionSchemaContractTest.cpp`の5枠へ固定する。既存sourceは109行・5枠で、CMake変更なし、Qt Core・Gui・Test・Xmlとheader-only Boostを直接接続する4工程・8入力、AUTOMOC `HEADERS=[]`、製品非接続を維持する。
+- 変形工具領域は`plugins/tools/tool_transform2/kis_transform_mask_adapter.h`の残存全24 APIを、型・寿命・構築4、識別・表示5、値・永続化6、幾何6、引数・keyframe・装置3として既存`plugins/tools/tool_transform2/tests/ToolTransformArgsGeometrySchemaContractTest.cpp`の5枠へ固定する。既存sourceは169行・10枠で、CMake変更なし、4工程・9入力、AUTOMOC `HEADERS=[]`、製品非接続を維持する。
+- libkis領域は`libs/libkis/Channel.h`の残存全13 APIと`Document.h`の色空間・背景7 API、画素・投影・縮小画像3 APIを、スクリプト向けraster面・色channel境界23 APIとして新規`libs/libkis/tests/RasterSurfaceSchemaContractTest.cpp`の5枠へ固定する。channel型・値5、識別・可視性・境界6、channel画素2、文書色空間・背景7、文書画素・投影3へ配分する。既存`NodeSchemaContractTest`と同じcompile interfaceの4工程・8入力を予測し、重量実行試験`TestChannel`と`TestDocument`の2,022工程・4,041入力を構築対象にしない。
+- 3候補は合計79 API・15枠で、開始header、試験source、所有CMakeが相互に異なる。候補headerのAUTOMOC入力化、製品shared・OBJECT、`kritatestsdk`、計画外の探索路・定義・動的接続または未解決製品記号、対象型やinline本文の実体化が必要なら停止する。正式な第212便不足報告で全識別子と閉包を再照合する。
 
 ### 第201便の先行監査担当票
 

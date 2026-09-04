@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 9739
+    "expectedMissingApis": 9708
   },
   "contracts": [
     {
@@ -56123,6 +56123,82 @@
       "apis": [
         "method:PresetChooser::presetClicked(Resource resource)",
         "method:PresetChooser::presetSelected(Resource resource)"
+      ]
+    },
+    {
+      "target": "KisRasterKeyframeChannelSchemaContractTest",
+      "source": "libs/image/tests/KisRasterKeyframeChannelSchemaContractTest.cpp",
+      "test": "KisRasterKeyframeChannelSchemaContractTest::rasterKeyframeTypeLifetimeAndContentSchemaRemainStable",
+      "behavior": "raster keyframeは描画装置と任意の既存frame識別子から構築され、内容領域・内容有無・frame識別子・複製・装置転送と仮想破棄に関する公開契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisRasterKeyframe",
+        "method:KisRasterKeyframe::KisRasterKeyframe(KisPaintDeviceWSP paintDevice)",
+        "method:KisRasterKeyframe::KisRasterKeyframe(KisPaintDeviceWSP paintDevice,const int & premadeFrameID,const int & colorLabelId=0)",
+        "method:KisRasterKeyframe::contentBounds()",
+        "method:KisRasterKeyframe::duplicate(KisKeyframeChannel * newChannel=0)",
+        "method:KisRasterKeyframe::frameID() const",
+        "method:KisRasterKeyframe::hasContent()",
+        "method:KisRasterKeyframe::writeFrameToDevice(KisPaintDeviceSP writeTarget)",
+        "method:KisRasterKeyframe::~KisRasterKeyframe()"
+      ]
+    },
+    {
+      "target": "KisRasterKeyframeChannelSchemaContractTest",
+      "source": "libs/image/tests/KisRasterKeyframeChannelSchemaContractTest.cpp",
+      "test": "KisRasterKeyframeChannelSchemaContractTest::rasterKeyframeChannelTypeLifetimeAndConstructionSchemaRemainStable",
+      "behavior": "raster keyframe channelは識別子・描画装置・境界または既存channelと新描画装置から構築され、基底channelを通じて仮想破棄される公開型契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisRasterKeyframeChannel",
+        "method:KisRasterKeyframeChannel::KisRasterKeyframeChannel(const KisRasterKeyframeChannel & rhs,const KisPaintDeviceWSP newPaintDevice)",
+        "method:KisRasterKeyframeChannel::KisRasterKeyframeChannel(const KoID & id,const KisPaintDeviceWSP paintDevice,const KisDefaultBoundsBaseSP bounds)",
+        "method:KisRasterKeyframeChannel::~KisRasterKeyframeChannel()"
+      ]
+    },
+    {
+      "target": "KisRasterKeyframeChannelSchemaContractTest",
+      "source": "libs/image/tests/KisRasterKeyframeChannelSchemaContractTest.cpp",
+      "test": "KisRasterKeyframeChannelSchemaContractTest::rasterKeyframeChannelCloneAndFrameMappingSignaturesRemainStable",
+      "behavior": "raster keyframe channelはframe領域・共有関係・共有時刻を照会し、任意の親undo command付きで複製を挿入または一意化する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisRasterKeyframeChannel::areClones(int timeA,int timeB)",
+        "method:KisRasterKeyframeChannel::cloneKeyframe(int source,int destination,KUndo2Command * parentUndoCmd=nullptr)",
+        "method:KisRasterKeyframeChannel::clonesOf(const KisNode * node,int time)",
+        "method:KisRasterKeyframeChannel::clonesOf(int time)",
+        "method:KisRasterKeyframeChannel::frameExtents(KisKeyframeSP keyframe)",
+        "method:KisRasterKeyframeChannel::makeUnique(int time,KUndo2Command * parentUndoCmd=nullptr)",
+        "method:KisRasterKeyframeChannel::timesForFrameID(int frameID) const"
+      ]
+    },
+    {
+      "target": "KisRasterKeyframeChannelSchemaContractTest",
+      "source": "libs/image/tests/KisRasterKeyframeChannelSchemaContractTest.cpp",
+      "test": "KisRasterKeyframeChannelSchemaContractTest::rasterKeyframeChannelPersistenceAndTransferSignaturesRemainStable",
+      "behavior": "raster keyframe channelはframeの取込み・挿入・除去・装置転送と、XMLによる読込み・書出しに関する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisRasterKeyframeChannel::importFrame(int time,KisPaintDeviceSP sourceDevice,KUndo2Command * parentCommand)",
+        "method:KisRasterKeyframeChannel::insertKeyframe(int time,KisKeyframeSP keyframe,KUndo2Command * parentUndoCmd=nullptr)",
+        "method:KisRasterKeyframeChannel::loadXML(const QDomElement & channelNode)",
+        "method:KisRasterKeyframeChannel::removeKeyframe(int time,KUndo2Command * parentUndoCmd=nullptr)",
+        "method:KisRasterKeyframeChannel::toXML(QDomDocument doc,const QString & layerFilename)",
+        "method:KisRasterKeyframeChannel::writeToDevice(int time,KisPaintDeviceSP targetDevice)"
+      ]
+    },
+    {
+      "target": "KisRasterKeyframeChannelSchemaContractTest",
+      "source": "libs/image/tests/KisRasterKeyframeChannelSchemaContractTest.cpp",
+      "test": "KisRasterKeyframeChannelSchemaContractTest::rasterKeyframeChannelPresentationAndMutationSignaturesRemainStable",
+      "behavior": "raster keyframe channelはframe保存名、玉ねぎ皮表示状態、所有描画装置の照会と表示・保存名設定に関する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisRasterKeyframeChannel::frameFilename(int frameId) const",
+        "method:KisRasterKeyframeChannel::onionSkinsEnabled() const",
+        "method:KisRasterKeyframeChannel::paintDevice()",
+        "method:KisRasterKeyframeChannel::setFilenameSuffix(const QString & suffix)",
+        "method:KisRasterKeyframeChannel::setOnionSkinsEnabled(bool value)"
       ]
     }
   ]
