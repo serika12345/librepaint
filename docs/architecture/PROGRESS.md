@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-04 21:32 JST
+- 更新日時: 2026-09-04 21:35 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -272,7 +272,8 @@
 - 実装共通基点は`095188a081`である。一度に一つだけ作る専用worktree-local `build/tdd-macos`と主作業treeの共有compiler cacheを使い、担当側の`./scripts/run-shared-test-env`で読み込み済み環境を利用する。変形mask、文書識別・保存・close・処理同期の順に限定検証・統合・削除し、調整担当だけが文書、公開API台帳、共通不足報告を変更する。各担当のGit権限は許可pathだけの1受渡しcommitで、追加委任は禁止する。
 - `g210-transform-mask-schema`の状態は`integrated`である。開始`libs/image/kis_transform_mask.h`の残存全37 APIを、新規`libs/image/tests/KisTransformMaskSchemaContractTest.cpp`の5枠`transformMaskTypeLifetimeAndVisitorSchemaRemainStable`、`transformMaskDeviceAndGeometrySignaturesRemainStable`、`transformMaskParametersAndCacheSignaturesRemainStable`、`transformMaskPositionAndDelayedUpdateSignaturesRemainStable`、`transformMaskLodTestingAndNotificationSignaturesRemainStable`へ8・8・8・8・5件で対応付けた。受渡しcommit`3859bf5acb`を統合commit`42470a2a73`として取り込み、担当側と中央で追加5枠を各20回、対象・近傍CTest、二回目計画と無作業再構築を実行した。既存mask契約と同じ4工程・8入力、Qt Core・Gui・Test・Xmlだけの動的接続、AUTOMOC `HEADERS=[]`、製品未解決記号なしを維持し、台帳は20,309件対応、9,529件未対応となった。cleanな専用作業tree、294,272 KiBの構築木、branchを統合直後に削除し、883,956 KiBを回収した。投影変形、cache再計算、遅延更新、LoD同期、通知順序の実行結果は別の効果契約で扱う。
 - 変形mask担当の停止線は5工程・11入力である。候補headerのAUTOMOC入力化、製品shared・OBJECT・`kritatestsdk`接続、新探索路・定義・link、計画外の動的接続または製品未解決記号、対象値やinline本文の実体化・実行、許可path外変更が必要なら停止する。編集前後の計画・依存・空閉包、旧binaryでの対象不存在、宣言段階の初期失敗、追加5枠の単発と各20回反復、対象・近傍CTest、AUTOMOC後の二回目計画、無作業再構築2回、動的接続・未解決記号・構文・書式、公開API検査、`verify-quick`を確認する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
-- `g210-document-lifecycle-schema`の状態は`planned`である。変形mask担当の統合と作業tree削除後に、開始`libs/libkis/Document.h`の選定20 APIを新規`libs/libkis/tests/DocumentLifecycleSchemaContractTest.cpp`の5枠6・4・3・3・4件へ対応付ける。許可pathは新規試験sourceと`libs/libkis/tests/CMakeLists.txt`の新target固有節だけ、対象は`DocumentLifecycleSchemaContractTest`、近傍は`DocumentGeometrySchemaContractTest`である。作業treeと構築許可は前担当の削除後に割り当てる。
+- `g210-document-lifecycle-schema`の状態は`implementing`、実装基点は`739bca59d1`、作業treeは`/Users/masato/Documents/librepaint-g210-document-lifecycle-schema`である。開始`libs/libkis/Document.h`の選定20 APIを、新規`libs/libkis/tests/DocumentLifecycleSchemaContractTest.cpp`の5枠`documentIdentificationAndMetadataSignaturesRemainStable`、`documentExecutionAndModificationStateSignaturesRemainStable`、`documentSaveAndExportSignaturesRemainStable`、`documentCloseAndAutosaveSignaturesRemainStable`、`documentProcessingSynchronizationSignaturesRemainStable`へ6・4・3・3・4件で対応付ける。許可pathは新規試験sourceと`libs/libkis/tests/CMakeLists.txt`の新target固有節だけで、所有targetは`DocumentLifecycleSchemaContractTest`、近傍は`DocumentGeometrySchemaContractTest`である。macOSのこの2対象に限る構築実行許可を`granted`とし、既存Document専用targetと同じ探索路、定義、Qt Core・Test、header-only Boostによる4工程・8入力を維持する。
+- 文書lifecycle担当の停止線は5工程・11入力である。既存Document専用targetと異なる探索路・定義・link、候補headerのAUTOMOC入力化、製品shared・OBJECT・`kritatestsdk`接続、計画外の動的接続または文書・保存・同期関連の製品未解決記号、対象値やinline本文の実体化・実行、許可path外変更が必要なら停止する。編集前後の計画・依存・空閉包、対象不存在と宣言段階の初期失敗、追加5枠の単発と各20回反復、対象・近傍CTest、AUTOMOC後の二回目計画、無作業再構築2回、動的接続・未解決記号・構文・書式、公開API検査、`verify-quick`を確認する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
 
 ### 第211便の先行監査担当票（第210便確定待ち）
 
