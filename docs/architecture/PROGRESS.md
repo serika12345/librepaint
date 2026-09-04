@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 05:28 JST
+- 更新日時: 2026-09-05 05:33 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -534,11 +534,19 @@
 - 第217便全体で100 APIを15枠へ重複なく対応付け、20,942件対応、8,896件未対応となった。担当側と中央で対象・近傍CTest、各追加枠の20回反復、AUTOMOC後の二回目計画、無作業再構築、動的接続・未解決記号・構文・書式、公開API検査、`verify-quick`に成功した。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 3担当のcleanな専用作業tree、構築木、branchを統合直後に削除し、合計2,656,816 KiBを回収した。主Ninja木5,742,832 KiB、共有compiler cache 982,768 KiB、最新`build/tdd-macos/public-api-missing-g217.json`だけを保持する。次の永続作業は第218便不足報告を生成し、色空間抽象境界、auto levels widget、tool proxy内部状態の候補集合と閉包を再照合することである。
 
-### 第218便の先行監査担当票（第217便確定待ち）
+### 第218便の先行監査担当票
 
 - `g218-color-space-abstract-closure-audit`の状態は`completed`である。`libs/pigment/KoColorSpaceAbstract.h`の32 API、識別子集合SHA-256 `65d6bd510ff2f9846c38384703df4a1ceb187fdbf522d5da8c4e7a2c5702dcaf`、5枠9・6・10・5・2を独立確認した。代表`KoColorSpaceTrait`と宣言だけの局所派生型により抽象template、公開構築、override署名を実体化せず観測できる。新規専用targetはpigment・global探索路、KF I18n・Imath interface、Qt Core・Gui・Testとheader-only Boost、2 export定義による4工程・8入力を予測する。既存実行試験は371工程・771入力で製品群へ接続するため再利用せず、第217便完了後の正式報告で再照合する。
 - `g218-auto-levels-widget-closure-audit`の状態は`completed`である。`libs/ui/widgets/KisAutoLevelsWidget.h`の24 API、識別子集合SHA-256 `a95a317c6243b9b6813002527f57029887e2dea1ee4d745cd57aed972d199eef`、5枠3・4・6・4・7を独立確認した。新規専用targetは`KisAutoLevelsWidget.ui`をtarget固有binary directoryへ生成し、生成headerをsource集合へ加えずAUTOGENの先行依存にすることで5工程・10入力に閉じられる。application・image・pigment・widgets・widgetutils・global探索路と対応export定義、Qt Gui・Widgets、KF I18n・Imath・Boostのinterfaceを使い、Qt Core・Testだけを直接接続する。第217便完了後の正式報告で再照合する。
 - `g218-tool-proxy-state-closure-audit`の状態は`completed`である。`libs/flake/KoToolProxy_p.h`の22 API、識別子集合SHA-256 `0f59b3ac83a68afbf4972e1d02a6cb7da12852e02969b6a00e78dd750d61265a`、5枠6・3・4・5・4を独立確認した。新規専用targetはflake探索路と`kritaflake_EXPORTS`、Qt Gui interface、Qt Core・Testとheader-only Boostによる4工程・8入力へ閉じられる。owner外の`libs/input/ui`と同試験が`KoToolProxy::priv()`経由で直接利用するため現在は棚卸し対象だが、owner外include・直接member参照・公開`priv()`を除いた時点で削除する一時互換契約として扱う。第217便完了後の正式報告で再照合する。
+
+### 第218便の正式監査担当票
+
+- 正式入力`build/tdd-macos/public-api-missing-g218.json`は公開header 1,549、公開API 29,838、対応済み20,942、未対応8,896、2,359,299 bytes、SHA-256 `cefbca14771a39c7c662cdb2085e24d9dd24373ce7cb9c6aa6ac88df378f46ec`である。色空間抽象境界32、auto levels widget 24、tool proxy内部状態22 APIがすべて未対応であり、先行監査の件数と識別子集合SHA-256に一致する。旧`public-api-missing-g217.json`を削除し、最新報告だけを保持する。
+- 正式監査の共通基点は`637cdc7080`である。3担当は正式報告、対象header、既存契約、CMake graphを読み取り専用で利用し、変更、構成、構築、試験、Git操作、追加委任を行わない。全API識別子、5枠への完全対応、最小閉包、既存動的保護、停止条件を再照合し、調整担当が一つずつ実装担当票へ移す。
+- `g218-color-space-abstract-formal-review`の状態は`in_progress`、担当は`/root/g178_shape_hierarchy_schema`である。正式32 APIと集合SHA、5枠9・6・10・5・2、抽象template用probe、pigment・global探索路、interface依存、4工程・8入力を再照合する。
+- `g218-auto-levels-widget-formal-review`の状態は`in_progress`、担当は`/root/g178_paintop_settings_schema`である。正式24 APIと集合SHA、5枠3・4・6・4・7、対象固有UI生成の所有・順序、5工程・10入力を再照合する。
+- `g218-tool-proxy-state-formal-review`の状態は`in_progress`、担当は`/root/g208_raster_keyframe_schema`である。正式22 APIと集合SHA、5枠6・3・4・5・4、owner外利用、一時互換契約の削除条件、flake限定4工程・8入力を再照合する。
 
 ### 第219便の先行監査担当票（第218便確定待ち）
 
