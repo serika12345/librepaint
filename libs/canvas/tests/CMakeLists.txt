@@ -37,6 +37,19 @@ target_include_directories(KisFrameDataSerializerSchemaContractTest PRIVATE
 target_compile_definitions(KisFrameDataSerializerSchemaContractTest PRIVATE kritacanvas_EXPORTS)
 
 kis_add_test(
+    KisFrameCacheStoreSchemaContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+        Boost::boost
+)
+target_include_directories(KisFrameCacheStoreSchemaContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+)
+target_compile_definitions(KisFrameCacheStoreSchemaContractTest PRIVATE kritacanvas_EXPORTS)
+
+kis_add_test(
     KisCoordinatesConverterSchemaContractTest.cpp
     LINK_LIBRARIES
         Qt${QT_MAJOR_VERSION}::Core
