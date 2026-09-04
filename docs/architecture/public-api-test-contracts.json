@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 10612
+    "expectedMissingApis": 10592
   },
   "contracts": [
     {
@@ -53900,6 +53900,71 @@
         "method:WdgCloseableLabel::WdgCloseableLabel(KoID tag,bool editable,bool semiSelected=false,QWidget * parent=0)",
         "method:WdgCloseableLabel::sigRemoveTagFromSelection(KoID tag)",
         "method:WdgCloseableLabel::~WdgCloseableLabel()"
+      ]
+    },
+    {
+      "target": "KoStopGradientSchemaContractTest",
+      "source": "libs/pigment/tests/KoStopGradientSchemaContractTest.cpp",
+      "test": "KoStopGradientSchemaContractTest::abstractGradientTypeAndLifetimeSchemaRemainStable",
+      "behavior": "抽象グラデーションは資源基底を持つ抽象型であり、ファイル名または同型から構築でき、基底所有から仮想破棄できる公開型契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoAbstractGradient",
+        "method:KoAbstractGradient::KoAbstractGradient(const KoAbstractGradient & rhs)",
+        "method:KoAbstractGradient::KoAbstractGradient(const QString & filename)",
+        "method:KoAbstractGradient::~KoAbstractGradient()"
+      ]
+    },
+    {
+      "target": "KoStopGradientSchemaContractTest",
+      "source": "libs/pigment/tests/KoStopGradientSchemaContractTest.cpp",
+      "test": "KoStopGradientSchemaContractTest::abstractGradientColorSpaceSignaturesRemainStable",
+      "behavior": "抽象グラデーションは位置に対応する色を出力し、借用色空間を照会・設定する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoAbstractGradient::colorAt(KoColor &,qreal t) const",
+        "method:KoAbstractGradient::colorSpace() const",
+        "method:KoAbstractGradient::setColorSpace(KoColorSpace * colorSpace)"
+      ]
+    },
+    {
+      "target": "KoStopGradientSchemaContractTest",
+      "source": "libs/pigment/tests/KoStopGradientSchemaContractTest.cpp",
+      "test": "KoStopGradientSchemaContractTest::abstractGradientPresentationSignaturesRemainStable",
+      "behavior": "抽象グラデーションは任意の表示寸法とcanvas資源から見本を生成し、広がり方と種類を設定・照会してQtグラデーションへ変換し、見本を更新する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoAbstractGradient::generatePreview(int width,int height) const",
+        "method:KoAbstractGradient::generatePreview(int width,int height,KoCanvasResourcesInterfaceSP canvasResourcesInterface) const",
+        "method:KoAbstractGradient::setSpread(QGradient::Spread spreadMethod)",
+        "method:KoAbstractGradient::setType(QGradient::Type repeatType)",
+        "method:KoAbstractGradient::spread() const",
+        "method:KoAbstractGradient::toQGradient() const",
+        "method:KoAbstractGradient::type() const",
+        "method:KoAbstractGradient::updatePreview()"
+      ]
+    },
+    {
+      "target": "KoStopGradientSchemaContractTest",
+      "source": "libs/pigment/tests/KoStopGradientSchemaContractTest.cpp",
+      "test": "KoStopGradientSchemaContractTest::abstractGradientVariableColorSignaturesRemainStable",
+      "behavior": "抽象グラデーションはcanvas資源を用いて可変色を焼き込み、焼き込み済みまたは更新済みの複製を返し、現在値を更新する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoAbstractGradient::bakeVariableColors(KoCanvasResourcesInterfaceSP canvasResourcesInterface)",
+        "method:KoAbstractGradient::cloneAndBakeVariableColors(KoCanvasResourcesInterfaceSP canvasResourcesInterface) const",
+        "method:KoAbstractGradient::cloneAndUpdateVariableColors(KoCanvasResourcesInterfaceSP canvasResourcesInterface) const",
+        "method:KoAbstractGradient::updateVariableColors(KoCanvasResourcesInterfaceSP canvasResourcesInterface)"
+      ]
+    },
+    {
+      "target": "KoStopGradientSchemaContractTest",
+      "source": "libs/pigment/tests/KoStopGradientSchemaContractTest.cpp",
+      "test": "KoStopGradientSchemaContractTest::abstractGradientDebugSignatureRemainsStable",
+      "behavior": "抽象グラデーション共有参照は診断出力へ渡せる公開演算子署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:operator <<(QDebug dbg,const KoAbstractGradientSP res)"
       ]
     }
   ]
