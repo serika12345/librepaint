@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 8705
+    "expectedMissingApis": 8683
   },
   "contracts": [
     {
@@ -58698,6 +58698,73 @@
       "apis": [
         "method:KisSaveXmlVisitor::loadPaintLayerAttributes(const QDomElement & el,KisPaintLayer * layer,bool loadLayerOffset)",
         "method:KisSaveXmlVisitor::savePaintLayerAttributes(KisPaintLayer * layer,QDomDocument & doc,bool saveLayerOffset)"
+      ]
+    },
+    {
+      "target": "KisFrameCacheStoreSchemaContractTest",
+      "source": "libs/canvas/tests/KisFrameCacheStoreSchemaContractTest.cpp",
+      "test": "KisFrameCacheStoreSchemaContractTest::frameCacheStoreTypeLifetimeAndConstructionSchemaRemainStable",
+      "behavior": "frame cache保存部は型、入れ子frame型、既定・保存先指定の構築、破棄可能性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisFrameCacheStore",
+        "method:KisFrameCacheStore::KisFrameCacheStore()",
+        "method:KisFrameCacheStore::KisFrameCacheStore(const QString & frameCachePath)",
+        "method:KisFrameCacheStore::~KisFrameCacheStore()",
+        "struct:KisFrameCacheStore::Frame"
+      ]
+    },
+    {
+      "target": "KisFrameCacheStoreSchemaContractTest",
+      "source": "libs/canvas/tests/KisFrameCacheStoreSchemaContractTest.cpp",
+      "test": "KisFrameCacheStoreSchemaContractTest::frameCacheStoreFrameValueSemanticsSchemaRemainStable",
+      "behavior": "frame cacheのframe値は既定構築・移動・妥当性照会を許可し、複製を禁止する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisFrameCacheStore::Frame::Frame()",
+        "method:KisFrameCacheStore::Frame::Frame(Frame &&)",
+        "method:KisFrameCacheStore::Frame::Frame(const Frame &)",
+        "method:KisFrameCacheStore::Frame::isValid() const",
+        "method:KisFrameCacheStore::Frame::operator =(Frame &&)",
+        "method:KisFrameCacheStore::Frame::operator =(const Frame &)"
+      ]
+    },
+    {
+      "target": "KisFrameCacheStoreSchemaContractTest",
+      "source": "libs/canvas/tests/KisFrameCacheStoreSchemaContractTest.cpp",
+      "test": "KisFrameCacheStoreSchemaContractTest::frameCacheStoreFrameDataSchemaRemainStable",
+      "behavior": "frame cacheのframe値は直列化データ、汚染領域、画像境界、詳細度の公開構成を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisFrameCacheStore::Frame::data",
+        "member:KisFrameCacheStore::Frame::dirtyImageRect",
+        "member:KisFrameCacheStore::Frame::imageBounds",
+        "member:KisFrameCacheStore::Frame::levelOfDetail"
+      ]
+    },
+    {
+      "target": "KisFrameCacheStoreSchemaContractTest",
+      "source": "libs/canvas/tests/KisFrameCacheStoreSchemaContractTest.cpp",
+      "test": "KisFrameCacheStoreSchemaContractTest::frameCacheStorePersistenceSignaturesRemainStable",
+      "behavior": "frame cache保存部はframe識別子でframeを保存・読込する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisFrameCacheStore::loadFrame(int frameId,KisTileDataPoolSP pool)",
+        "method:KisFrameCacheStore::saveFrame(int frameId,Frame frame)"
+      ]
+    },
+    {
+      "target": "KisFrameCacheStoreSchemaContractTest",
+      "source": "libs/canvas/tests/KisFrameCacheStoreSchemaContractTest.cpp",
+      "test": "KisFrameCacheStoreSchemaContractTest::frameCacheStoreMutationAndQuerySignaturesRemainStable",
+      "behavior": "frame cache保存部はframeの移動・破棄と存在・汚染領域・詳細度の照会署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisFrameCacheStore::forgetFrame(int frameId)",
+        "method:KisFrameCacheStore::frameDirtyRect(int frameId) const",
+        "method:KisFrameCacheStore::frameLevelOfDetail(int frameId) const",
+        "method:KisFrameCacheStore::hasFrame(int frameId) const",
+        "method:KisFrameCacheStore::moveFrame(int srcFrameId,int dstFrameId)"
       ]
     }
   ]
