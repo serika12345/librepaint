@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 10156
+    "expectedMissingApis": 10134
   },
   "contracts": [
     {
@@ -55076,6 +55076,73 @@
         "method:KisStrokeStrategyUndoCommandBased::setCommandExtraData(KUndo2CommandExtraData * data)",
         "method:KisStrokeStrategyUndoCommandBased::setMacroId(int value)",
         "method:KisStrokeStrategyUndoCommandBased::setUsedWhileUndoRedo(bool value)"
+      ]
+    },
+    {
+      "target": "KoShapeReorderCommandSchemaContractTest",
+      "source": "libs/flake/tests/KoShapeReorderCommandSchemaContractTest.cpp",
+      "test": "KoShapeReorderCommandSchemaContractTest::shapeGroupTypeLifetimeAndCloneSchemaRemainStable",
+      "behavior": "図形groupは図形containerの派生型として既定構築・仮想破棄でき、図形として複製する公開契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoShapeGroup",
+        "method:KoShapeGroup::KoShapeGroup()",
+        "method:KoShapeGroup::cloneShape() const",
+        "method:KoShapeGroup::~KoShapeGroup()"
+      ]
+    },
+    {
+      "target": "KoShapeReorderCommandSchemaContractTest",
+      "source": "libs/flake/tests/KoShapeReorderCommandSchemaContractTest.cpp",
+      "test": "KoShapeReorderCommandSchemaContractTest::shapeGroupGeometryAndRenderingSignaturesRemainStable",
+      "behavior": "図形groupは構成要素の描画・hit test、寸法の照会・設定、輪郭と境界の取得に関する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShapeGroup::boundingRect() const",
+        "method:KoShapeGroup::hitTest(const QPointF & position) const",
+        "method:KoShapeGroup::outlineRect() const",
+        "method:KoShapeGroup::paintComponent(QPainter & painter) const",
+        "method:KoShapeGroup::setSize(const QSizeF & size)",
+        "method:KoShapeGroup::size() const"
+      ]
+    },
+    {
+      "target": "KoShapeReorderCommandSchemaContractTest",
+      "source": "libs/flake/tests/KoShapeReorderCommandSchemaContractTest.cpp",
+      "test": "KoShapeReorderCommandSchemaContractTest::shapeGroupCommandTypeLifetimeAndConstructionSchemaRemainStable",
+      "behavior": "図形group commandはundo commandの派生型として仮想破棄でき、正規化方針と親commandを指定または省略して構築できる公開契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoShapeGroupCommand",
+        "method:KoShapeGroupCommand::KoShapeGroupCommand(KoShapeContainer * container,const QList<KoShape * > & shapes,KUndo2Command * parent=0)",
+        "method:KoShapeGroupCommand::KoShapeGroupCommand(KoShapeContainer * container,const QList<KoShape * > & shapes,bool shouldNormalize,KUndo2Command * parent=0)",
+        "method:KoShapeGroupCommand::~KoShapeGroupCommand()"
+      ]
+    },
+    {
+      "target": "KoShapeReorderCommandSchemaContractTest",
+      "source": "libs/flake/tests/KoShapeReorderCommandSchemaContractTest.cpp",
+      "test": "KoShapeReorderCommandSchemaContractTest::shapeGroupCommandCreationAndExecutionSignaturesRemainStable",
+      "behavior": "図形group commandは既定の正規化方針で生成でき、group化の実行と取消しを行う公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShapeGroupCommand::createCommand(KoShapeContainer * container,const QList<KoShape * > & shapes,bool shouldNormalize=false)",
+        "method:KoShapeGroupCommand::redo()",
+        "method:KoShapeGroupCommand::undo()"
+      ]
+    },
+    {
+      "target": "KoShapeReorderCommandSchemaContractTest",
+      "source": "libs/flake/tests/KoShapeReorderCommandSchemaContractTest.cpp",
+      "test": "KoShapeReorderCommandSchemaContractTest::shapeUngroupCommandSchemaRemainStable",
+      "behavior": "図形ungroup commandはundo commandの派生型として、最上位図形と親commandを省略して構築・仮想破棄でき、ungroup化の実行と取消しを行う公開契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoShapeUngroupCommand",
+        "method:KoShapeUngroupCommand::KoShapeUngroupCommand(KoShapeContainer * container,const QList<KoShape * > & shapes,const QList<KoShape * > & topLevelShapes=QList<KoShape * > (),KUndo2Command * parent=0)",
+        "method:KoShapeUngroupCommand::redo()",
+        "method:KoShapeUngroupCommand::undo()",
+        "method:KoShapeUngroupCommand::~KoShapeUngroupCommand()"
       ]
     }
   ]
