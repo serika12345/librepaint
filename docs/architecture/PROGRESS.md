@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-04 20:03 JST
+- 更新日時: 2026-09-04 20:07 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -246,16 +246,16 @@
 - 監査共通基点は`568a5b832d`、暫定入力は`build/tdd-macos/public-api-missing-g208.json`である。第207便までの契約済み責務と、第208便から第211便で選定済みのraster keyframe channel、path編集工具、3組の文書責務、tile data manager、font registry・storage、変形mask、brush preset、SVG文字列command群、スクリプト向けアプリケーション根を除外する。監査中は主作業treeを読み取り専用で共有し、変更、構成、構築、試験、Git操作、追加委任を行わない。正式な第211便完了報告で候補を再照合する。
 - `g212-image-contract-audit`の状態は`completed`で、image・paintop・pigment領域から標準曲線optionの型・別名と対応widget生成境界32 APIを選定した。既存曲線option契約へCMake変更なしで追加し、4工程・8入力と製品非接続を維持できる。
 - `g212-flake-contract-audit`の状態は`completed`で、flake・SVG・vector・関連plugin領域から変形工具のmask adapter 24 APIを選定した。既存変形引数幾何契約へCMake変更なしで追加し、4工程・9入力と製品非接続を維持できる。
-- `g212-ui-contract-audit`の状態は`completed`で、widgetutils・widgets・libkis領域からスクリプト向けraster面・色channel境界23 APIを選定した。既存Node契約と同じcompile interfaceを持つ新規専用targetへ分け、4工程・8入力を予測する。
-- `g212-standard-option-closure-review`の状態は`reviewing`で、標準曲線option 32 API案についてtemplateの非実体化、既存targetの依存不変、5枠の責務一体性を独立に読み取り専用レビューする。
-- `g212-raster-surface-closure-review`の状態は`reviewing`で、libkisのraster面・色channel 23 API案についてDocumentとChannelの責務一体性、既定引数観測、Node系compile interfaceの十分性を独立に読み取り専用レビューする。
+- `g212-ui-contract-audit`の状態は`completed`で、widgetutils・widgets・libkis領域からスクリプト向けraster面・色channel境界23 APIを選定した。既存Node契約のcompile interfaceへflake・ui/canvas探索路を加えた新規専用targetで4工程・8入力を予測する。
+- `g212-standard-option-closure-review`の状態は`completed`で、標準曲線option 32 APIが一責務の5枠へ対応し、template本文とwidgetを実体化せず、既存targetへCMake変更なしで追加できることを独立確認した。
+- `g212-raster-surface-closure-review`の状態は`completed`で、libkisのraster面・色channel 23 APIが一責務の5枠へ対応し、`Document::projection`の4既定引数を未評価呼出しで観測できることを独立確認した。Node系compile interfaceにflake・ui/canvasのsource/generated探索路、application生成探索路、`kritaflake_EXPORTS`、`kritaui_EXPORTS`を加える補正が必要である。
 - 各担当は候補headerをtarget sourceやAUTOMOC入力にせず、型特性、厳密な関数pointer、未評価式で実体化と本文実行を避ける計画を優先する。製品targetのplan/buildは禁止し、既存Ninja graphのquery・commands・inputsは読み取り専用で利用できる。
 
 ### 第212便の先行監査結果（第211便確定待ち）
 
 - paintop領域は`plugins/paintops/libpaintop/KisStandardOptions.h`と`KisStandardOptionData.h`の32 APIを、型・別名10、構築・評価3、中核widget factory 7、色・強度widget factory 5、masking widget factory 7として既存`plugins/paintops/libpaintop/tests/KisCurveOptionSchemaContractTest.cpp`の5枠へ固定する。既存sourceは109行・5枠で、CMake変更なし、Qt Core・Gui・Test・Xmlとheader-only Boostを直接接続する4工程・8入力、AUTOMOC `HEADERS=[]`、製品非接続を維持する。
 - 変形工具領域は`plugins/tools/tool_transform2/kis_transform_mask_adapter.h`の残存全24 APIを、型・寿命・構築4、識別・表示5、値・永続化6、幾何6、引数・keyframe・装置3として既存`plugins/tools/tool_transform2/tests/ToolTransformArgsGeometrySchemaContractTest.cpp`の5枠へ固定する。既存sourceは169行・10枠で、CMake変更なし、4工程・9入力、AUTOMOC `HEADERS=[]`、製品非接続を維持する。
-- libkis領域は`libs/libkis/Channel.h`の残存全13 APIと`Document.h`の色空間・背景7 API、画素・投影・縮小画像3 APIを、スクリプト向けraster面・色channel境界23 APIとして新規`libs/libkis/tests/RasterSurfaceSchemaContractTest.cpp`の5枠へ固定する。channel型・値5、識別・可視性・境界6、channel画素2、文書色空間・背景7、文書画素・投影3へ配分する。既存`NodeSchemaContractTest`と同じcompile interfaceの4工程・8入力を予測し、重量実行試験`TestChannel`と`TestDocument`の2,022工程・4,041入力を構築対象にしない。
+- libkis領域は`libs/libkis/Channel.h`の残存全13 APIと`Document.h`の色空間・背景7 API、画素・投影・縮小画像3 APIを、スクリプト向けraster面・色channel境界23 APIとして新規`libs/libkis/tests/RasterSurfaceSchemaContractTest.cpp`の5枠へ固定する。channel型・値5、識別・可視性・境界6、channel画素2、文書色空間・背景7、文書画素・投影3へ配分する。既存`NodeSchemaContractTest`のcompile interfaceにflake、ui/canvas、application生成探索路と2 export定義を加えた4工程・8入力を予測し、重量実行試験`TestChannel`と`TestDocument`の2,022工程・4,041入力を構築対象にしない。
 - 3候補は合計79 API・15枠で、開始header、試験source、所有CMakeが相互に異なる。候補headerのAUTOMOC入力化、製品shared・OBJECT、`kritatestsdk`、計画外の探索路・定義・動的接続または未解決製品記号、対象型やinline本文の実体化が必要なら停止する。正式な第212便不足報告で全識別子と閉包を再照合する。
 
 ### 第201便の先行監査担当票
