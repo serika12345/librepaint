@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 9163
+    "expectedMissingApis": 9141
   },
   "contracts": [
     {
@@ -57599,6 +57599,73 @@
         "method:KoColorConversionTransformationFactory::srcColorDepthId() const",
         "method:KoColorConversionTransformationFactory::srcColorModelId() const",
         "method:KoColorConversionTransformationFactory::srcProfile() const"
+      ]
+    },
+    {
+      "target": "KoShapeStateSchemaContractTest",
+      "source": "libs/flake/tests/KoShapeStateSchemaContractTest.cpp",
+      "test": "KoShapeStateSchemaContractTest::shapeAttachmentOwnershipSignaturesRemainStable",
+      "behavior": "図形はanchor、clip mask、clip path、および利用者dataの借用照会と所有接続を変更する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShape::anchor() const",
+        "method:KoShape::clipMask() const",
+        "method:KoShape::clipPath() const",
+        "method:KoShape::setAnchor(KoShapeAnchor * anchor)",
+        "method:KoShape::setClipMask(KoClipMask * clipMask)",
+        "method:KoShape::setClipPath(KoClipPath * clipPath)",
+        "method:KoShape::setUserData(KoShapeUserData * userData)",
+        "method:KoShape::userData() const"
+      ]
+    },
+    {
+      "target": "KoShapeStateSchemaContractTest",
+      "source": "libs/flake/tests/KoShapeStateSchemaContractTest.cpp",
+      "test": "KoShapeStateSchemaContractTest::shapeCloneAndSettingsSignaturesRemainStable",
+      "behavior": "図形は通常複製、絶対変換を焼き込む複製、および他図形からの設定複写を行う公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShape::cloneShape() const",
+        "method:KoShape::cloneShapeAndBakeAbsoluteTransform() const",
+        "method:KoShape::copySettings(const KoShape * shape)"
+      ]
+    },
+    {
+      "target": "KoShapeStateSchemaContractTest",
+      "source": "libs/flake/tests/KoShapeStateSchemaContractTest.cpp",
+      "test": "KoShapeStateSchemaContractTest::shapeDelegationAndSnapSignaturesRemainStable",
+      "behavior": "図形は操作委任先の集合を設定・照会し、吸着計算用dataを返す公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShape::setToolDelegates(const QSet<KoShape * > & delegates)",
+        "method:KoShape::snapData() const",
+        "method:KoShape::toolDelegates() const"
+      ]
+    },
+    {
+      "target": "KoShapeStateSchemaContractTest",
+      "source": "libs/flake/tests/KoShapeStateSchemaContractTest.cpp",
+      "test": "KoShapeStateSchemaContractTest::shapeHandlePainterHelperSignaturesRemainStable",
+      "behavior": "図形は文書座標と表示座標それぞれのhandle描画補助を作成し、表示座標側の半径と装飾幅を省略できる公開契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShape::createHandlePainterHelperDocument(QPainter * painter,KoShape * shape,qreal handleRadius,int decorationThickness)",
+        "method:KoShape::createHandlePainterHelperView(QPainter * painter,KoShape * shape,const KoViewConverter & converter,qreal handleRadius=0.0,int decorationThickness=1)"
+      ]
+    },
+    {
+      "target": "KoShapeStateSchemaContractTest",
+      "source": "libs/flake/tests/KoShapeStateSchemaContractTest.cpp",
+      "test": "KoShapeStateSchemaContractTest::shapeLayerTypeConstructionAndPaintingSchemaRemainStable",
+      "behavior": "図形layerは公開container型であり、既定または模型付き構築、外接矩形、命中判定、および構成要素描画の公開契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoShapeLayer",
+        "method:KoShapeLayer::KoShapeLayer()",
+        "method:KoShapeLayer::KoShapeLayer(KoShapeContainerModel * model)",
+        "method:KoShapeLayer::boundingRect() const",
+        "method:KoShapeLayer::hitTest(const QPointF & position) const",
+        "method:KoShapeLayer::paintComponent(QPainter & painter) const"
       ]
     }
   ]

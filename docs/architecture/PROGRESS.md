@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 02:53 JST
+- 更新日時: 2026-09-05 03:08 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -452,8 +452,9 @@
 ### 第215便の担当計画
 
 - 実装共通基点は`138d41bdc8`である。一度に一つだけ作る専用worktree-local `build/tdd-macos`と主作業treeの共有compiler cacheを使い、担当側の`./scripts/run-shared-test-env`で読み込み済み環境を利用する。図形補助状態、非同期色採取、色空間registryの順に限定検証・統合・削除し、調整担当だけが文書、公開API台帳、共通不足報告を変更する。各担当のGit権限は許可pathだけの1受渡しcommitで、追加委任は禁止する。
-- `g215-shape-state-schema`の状態は`implementing`、担当は`/root/g178_shape_hierarchy_schema`、基点は`138d41bdc8`、作業treeは`/Users/masato/Documents/librepaint-g215-shape-state-schema`である。開始`libs/flake/KoShape.h`の残存全16 APIと`KoShapeLayer.h`の残存全6 APIを、既存`libs/flake/tests/KoShapeStateSchemaContractTest.cpp`の5枠`shapeAttachmentOwnershipSignaturesRemainStable`、`shapeCloneAndSettingsSignaturesRemainStable`、`shapeDelegationAndSnapSignaturesRemainStable`、`shapeHandlePainterHelperSignaturesRemainStable`、`shapeLayerTypeConstructionAndPaintingSchemaRemainStable`へ8・3・3・2・6件で対応付ける。許可pathは既存試験sourceだけで、CMake、公開header、製品sourceを変更しない。既存のQt Core・Gui・Test・Xml、flake・global探索路、`kritaflake_EXPORTS`による4工程・8入力を維持する。
-- 図形補助状態担当は、5工程・11入力超過、探索路・定義・linkの変更、製品shared・OBJECT・`kritatestsdk`接続、候補headerのAUTOMOC入力化、図形・layer関連の製品未解決記号、対象値・Qt値・製品本文の実体化・実行、許可path外変更が必要なら停止する。宣言段階の初期失敗、追加5枠の単発と各20回反復、対象と軽量近傍`KoShapeEnumContractTest`、AUTOMOC後の二回目計画、無作業再構築2回、動的接続・未解決記号・構文・書式、公開API検査、`verify-quick`を確認する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
+- `g215-shape-state-schema`の状態は`integrated`である。開始`libs/flake/KoShape.h`の残存全16 APIと`KoShapeLayer.h`の残存全6 APIを、既存`libs/flake/tests/KoShapeStateSchemaContractTest.cpp`の5枠`shapeAttachmentOwnershipSignaturesRemainStable`、`shapeCloneAndSettingsSignaturesRemainStable`、`shapeDelegationAndSnapSignaturesRemainStable`、`shapeHandlePainterHelperSignaturesRemainStable`、`shapeLayerTypeConstructionAndPaintingSchemaRemainStable`へ8・3・3・2・6件で対応付けた。受渡しcommit`0d2e2b111a`を統合commit`af72932df3`として取り込み、CMake、公開header、製品sourceを変更していない。
+- 担当側と中央のmacOSで追加5枠を各20回、既存5枠を含む対象`libs-flake-KoShapeStateSchemaContractTest`と近傍`libs-flake-KoShapeEnumContractTest`、AUTOMOC後の二回目計画、無作業再構築2回に成功した。4工程・8入力、AUTOMOC `HEADERS=[]`、Qt Core・Gui・Test・Xmlだけの動的接続、製品未解決記号なしを維持し、台帳は20,697件対応、9,141件未対応となった。所有移転、複製、吸着計算、描画本文は別の効果契約で扱う。
+- cleanな専用作業tree、294,376 KiBの構築木、branchを統合直後に削除し、884,268 KiBを回収した。主Ninja木5,733,108 KiBと共有compiler cache 982,440 KiBを非同期色採取契約へ再利用する。次の永続作業は、同helper 20 APIの担当票を確定して専用作業treeで実装することである。
 
 ### 第216便の先行監査担当票（第215便確定待ち）
 
