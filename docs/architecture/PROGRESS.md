@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 08:30 JST
+- 更新日時: 2026-09-05 08:34 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -660,6 +660,12 @@
 - `g222-dual-color-button-formal-review`の状態は`completed-ready`、担当は`g178_shape_hierarchy_schema`である。正式入力`build/tdd-macos/public-api-missing-g222.json`でも`libs/ui/widgets/KoDualColorButton.h`の残存全36 APIは一意で台帳と重複せず、集合SHA-256 `9306110ffb660b18597a08c193e4bd010ad5145b674756ec4b97bfd00e333a42`、5枠8・8・8・8・4に一致した。補正後の新規専用targetはapplication・pigment・global探索路、Qt Gui・Widgets・KF I18n・Imath interface、3 export定義、Qt Core・Testとheader-only Boostにより4工程・8入力へ閉じられる。候補headerをAUTOMOC入力にせず、canvas、renderer、dialog、製品UIへ接続しない。
 - `g222-tool-manager-private-closure-audit`は`libs/flake/KoToolManager_p.h`の34 APIを契約候補から棄却した。同private headerを公開面へ混入させる唯一のowner外経路は`libs/ui/canvas/KoCanvasControllerWidget.cpp`の未使用includeであり、型・memberの実利用はない。公開契約を追加する前に同includeを除去し、flake owner内だけのprivate headerへ戻す構造改善を行う。除去後に必要型の直接includeが不足する場合はその公開headerを特定し、private header経路を復活させない。正式な不足報告で34 APIが公開集合から消えることを完了条件とする。
 - `g222-tool-manager-private-build-audit`の状態は`completed`である。当該translation unitの製品targetは1,970工程・3,940入力、object単体指定でもorder-only依存により1,648工程・3,294入力となるため、どちらも構築しない。既存`compile_commands.json`を使う`clang-check`で単一翻訳単位だけを検査し、軽量近傍`KoCanvasControllerProxySchemaContractTest`の4工程・8入力、公開API差分、`verify-quick`を確認する。34 API以外の公開面差分、covered件数変化、別のowner外利用、CMake・link変更、製品構築が必要なら停止する。
+
+### 第222便の担当計画
+
+- 実装基点は`532cbe37a6`である。`g222-dual-color-button-schema`の状態は`planned`、開始公開headerは`libs/ui/widgets/KoDualColorButton.h`、許可pathは新規`libs/ui/tests/KoDualColorButtonSchemaContractTest.cpp`と`libs/ui/tests/CMakeLists.txt`の新target固有節だけである。新targetは`KoDualColorButtonSchemaContractTest`、軽量近傍は`KisSegmentGradientSliderSchemaContractTest`、対象platformはmacOS、対象・近傍だけの構築権限は`granted`とする。専用作業treeは`/Users/masato/Documents/librepaint-g222-dual-color-button-schema`、branchは`agent/g222-dual-color-button-schema`、作業tree固有の`build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を使う。Git権限は許可pathだけの1受渡しcommit、追加委任は禁止し、調整担当だけが文書、台帳、不足報告を変更する。
+- 5枠は`dualColorButtonTypeLifetimeAndSelectionSchemaRemainStable`へ`class:KoDualColorButton`、`enum:KoDualColorButton::Selection`、`enumerator:KoDualColorButton::Selection::Background`、`enumerator:KoDualColorButton::Selection::Foreground`、構築、破棄、`setColorDialogState`、`sizeHint`の8件、`dualColorButtonPresentationStateAndRenderingSchemaRemainStable`へ`arrowBitmap`、`backgroundRect`、`foregroundRect`、`resetArrowPixmap`、`resetColours`、`resetPixmap`、`paint_icons`、`updateArrows`の8件、`dualColorButtonColorStateAndConversionSignaturesRemainStable`へ`ResetColours`、`backgroundColor`、`foregroundColor`、`getColorFromDisplayRenderer`、`setBackgroundColor`、`setForegroundColor`、`swapColours`、`updateColorSpace`の8件、`dualColorButtonDialogControlSignaturesRemainStable`へ`backgroundSelect`、`foregroundSelect`、`openBackgroundDialog`、`openForegroundDialog`、`popDialog`、`setDisplayRenderer`、`setPopDialog`、`slotColorDialogClosed`の8件、`dualColorButtonDialogResultAndNotificationSignaturesRemainStable`へ`backgroundColorChanged`、`foregroundColorChanged`、`slotSetBackgroundColorFromDialog`、`slotSetForegroundColorFromDialog`の4件を対応付ける。各method識別子は正式入力`build/tdd-macos/public-api-missing-g222.json`の完全な引数・既定値・修飾をそのまま台帳へ登録し、全36識別子の集合SHA-256 `9306110ffb660b18597a08c193e4bd010ad5145b674756ec4b97bfd00e333a42`を維持する。
+- 新targetはapplication・pigment・globalのsource・generated探索路、`kritaapplicationui_EXPORTS`、`kritapigment_EXPORTS`、`kritaglobal_EXPORTS`、Qt Gui・Widgets・KF I18n・Imathのinterface探索路、Qt Core・Testとheader-only Boostの直接接続だけを許可し、予測閉包4工程・8入力、停止線5工程・11入力とする。型特性、列挙値、member型、厳密なmember pointer、未評価式だけで観測し、button、色、pixmap、canvas provider、display renderer、dialog、painterを実体化しない。担当は変更前の計画・直接依存・target不存在、targetと近傍、追加5枠を各20回、全target試験、CTest、AUTOMOC後の二回目計画、無作業再構築2回、動的接続・未解決記号・AUTOMOC入力・構文・書式、差分、公開API検査、`verify-quick`を確認する。5工程・11入力超過、追加探索路・定義・link、製品shared・OBJECT・`kritatestsdk`、候補headerのAUTOMOC入力化、製品未解決記号、指定対象の実体化、公開header・製品source・既存target・許可path外の変更が必要なら停止する。製品target、全体build・`verify`、Linux、Nix再評価は禁止する。
 
 ### 第223便の先行監査担当票（第222便確定待ち）
 
