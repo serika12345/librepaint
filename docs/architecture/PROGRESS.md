@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 04:32 JST
+- 更新日時: 2026-09-05 04:37 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -506,6 +506,20 @@
 - `g217-flake-contract-audit`の状態は`completed`で、flake・SVG・変形工具領域からSVG図形の外観読込状態・描画・様式保存20 APIを選定した。`SvgGraphicsContext.h`、`KoShapePainter.h`、`SvgStyleWriter.h`を新規専用targetの5枠3・3・7・4・3へ固定し、Qt Core・Testとheader-only Boostだけを直接接続する4工程・8入力を予測する。
 - `g217-colorize-mask-closure-review`の状態は`completed`である。正式候補57件、一意性、現台帳との非重複、一責務性、5枠7・11・15・8・16を独立確認した。`KoColor`、`KUndo2MagicString`、visitor、lazybrush key strokeはpointer・referenceまたは未評価container型だけで観測し、完全定義やpainting/undo探索路を加えない。既存変形mask契約と同じ4工程・8入力を予測し、1,196工程・2,416入力の製品`kritaimage`を構築しない。
 - `g217-svg-presentation-closure-review`の状態は`completed`である。正式候補20件、一意性、一責務性、5枠3・3・7・4・3を独立確認した。新規専用targetはQt Core・Testとheader-only Boostだけを直接接続し、Qt Gui・Xmlはinterface探索に限定して4工程・8入力を予測する。`KoShapePainter.h`の`std::function`は推移includeに依存するため、契約sourceが`<functional>`を先行includeする補正を加える。621工程・1,274入力の製品`kritaflake`を構築しない。
+
+### 第217便の先行監査結果
+
+- 正式入力`build/tdd-macos/public-api-missing-g217.json`は公開header 1,549、公開API 29,838、対応済み20,842、未対応8,996、2,385,559 bytes、SHA-256 `0600b2c0eb864911116186588cf5cc45d14e5d5c2865ec69e7fa66974ee7ee23`である。第216便の3責務62 APIが消え、色付けmask 57、layer filter 23、SVG図形表示20 APIがすべて未対応で相互に重複しないことを再照合した。識別子集合SHA-256は順に`1844856fe90b1a1fe8bee3c3cc7280cd5f36e977f50c38828874b5f1514b50ce`、`6c88dd7693501cd7ebff7dabad878b162dade4ed9c944aac38031f1f792fead4`、`80593bcec7c92605566d98e0c75cb8ad4eb04514939761588cc08a655fd9c813`である。旧`public-api-missing-g216.json`を削除し、最新報告だけを保持する。
+- image領域は`libs/image/lazybrush/kis_colorize_mask.h`の57 APIを5枠7・11・15・8・16へ固定し、既存変形mask契約と同じ4工程・8入力へ閉じる。UI領域は`libs/ui/widgets/kis_layer_filter_widget.h`の23 APIを5枠2・8・4・6・3へ固定し、Qt Gui・Widgetsをinterface探索だけにする新規4工程・8入力targetへ閉じる。flake領域は`libs/flake/svg/SvgGraphicContext.h`、`KoShapePainter.h`、`SvgStyleWriter.h`の20 APIを5枠3・3・7・4・3へ固定し、Qt Gui・Xmlをinterface探索だけにする新規4工程・8入力targetへ閉じる。3候補は合計100 API・15枠である。
+- 第216便では生成layer、animation frame cache、path-backed shape編集commandの計62 API・15枠を追加し、3担当のcleanな専用作業tree、構築木、branchを統合直後に削除して合計2,665,260 KiBを回収した。主Ninja木5,738,780 KiB、共有compiler cache 983,480 KiB、最新不足報告だけを第217便の対象限定構築へ再利用する。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+
+### 第217便の担当計画
+
+- 実装共通基点は`678ab12cf8`である。一度に一つだけ作る専用worktree-local `build/tdd-macos`と主作業treeの共有compiler cacheを使い、担当側の`./scripts/run-shared-test-env`で読み込み済み環境を利用する。色付けmask、layer filter、SVG図形表示の順に限定検証・統合・削除し、調整担当だけが文書、公開API台帳、共通不足報告を変更する。各担当のGit権限は許可pathだけの1受渡しcommitで、追加委任は禁止する。
+- `g217-colorize-mask-schema`の状態は`planned`、担当は`/root/g208_raster_keyframe_schema`、基点は`678ab12cf8`、専用branchは`agent/g217-colorize-mask-schema`、作業treeは`/Users/masato/Documents/librepaint-g217-colorize-mask-schema`である。開始`libs/image/lazybrush/kis_colorize_mask.h`の残存全57 APIを、新規`libs/image/tests/KisColorizeMaskSchemaContractTest.cpp`の5枠`colorizeMaskTypeLifetimeAndKeyStrokeColorsSchemaRemainStable`、`colorizeMaskHierarchyAndPresentationSignaturesRemainStable`、`colorizeMaskProjectionAndProcessingSignaturesRemainStable`、`colorizeMaskOptionQuerySignaturesRemainStable`、`colorizeMaskMutationAndNotificationSignaturesRemainStable`へ7・11・15・8・16件で対応付ける。許可pathは新規試験sourceと`libs/image/tests/CMakeLists.txt`の新target固有節だけで、公開headerと製品sourceを変更しない。
+- 第1枠はclass、`KeyStrokeColors` structと2 member、2構築、destructor、第2枠は2 visitor、clone、icon、section属性の取得・設定、非間接描画対応、全装置・LOD装置・描画装置・色付け投影、第3枠は色見本元・色空間、`decorateRect`、3境界、合成初期化、事前filter再生成、mask強制再生成、cache reset、layer統合、merge data書込、試験用filter元、色空間・profile設定、第4枠はcleanup量・edge検出幅・fuzzy半径・装置境界制限・edge検出使用・x・y・key stroke色の8 getter、第5枠はkey stroke直接取得、cleanup・現在色・edge幅・fuzzy半径・画像・key stroke色・key stroke直接値・境界制限・edge検出・x・yの設定、key stroke除去・試験追加・2通知である。識別子集合SHA-256は`1844856fe90b1a1fe8bee3c3cc7280cd5f36e977f50c38828874b5f1514b50ce`である。
+- 新targetはQt Core・Gui・Test・Xmlとheader-only Boostを直接接続し、image・global・pigment・pigment/resources・resources探索路、KF I18n・Imath interface、`kritaimage_EXPORTS`と`kritapigment_EXPORTS`だけを使う。既存`KisTransformMaskSchemaContractTest`を軽量近傍とし、4工程・8入力、停止線5工程・11入力を維持する。最初に5枠の宣言だけで同5枠の未定義link失敗を確認し、型特性・厳密な関数pointer・既定引数省略の未評価式だけで実装する。
+- 担当は追加5枠の単発と各20回反復、対象`libs-image-KisColorizeMaskSchemaContractTest`と近傍`libs-image-KisTransformMaskSchemaContractTest`、AUTOMOC後の二回目計画、無作業再構築2回、動的接続・未解決記号・構文・書式、公開API検査、`verify-quick`を確認する。5工程・11入力超過、計画外の探索路・定義・link、painting/undo、製品shared・OBJECT・`kritatestsdk`の接続、候補headerのAUTOMOC入力化、製品未解決記号、対象・Qt値・inline本文の実体化または実行、許可path外変更が必要なら停止する。macOSの対象限定構築だけを許可し、製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
 
 ### 第218便の先行監査担当票（第217便確定待ち）
 
