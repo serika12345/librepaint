@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 10105
+    "expectedMissingApis": 10083
   },
   "contracts": [
     {
@@ -55217,6 +55217,73 @@
         "method:PaletteView::entrySelectedForeGround(Swatch entry)",
         "method:PaletteView::removeSelectedEntryWithDialog()",
         "method:PaletteView::trySelectClosestColor(ManagedColor * color)"
+      ]
+    },
+    {
+      "target": "KisPSDLayerStyleSchemaContractTest",
+      "source": "libs/image/tests/KisPSDLayerStyleSchemaContractTest.cpp",
+      "test": "KisPSDLayerStyleSchemaContractTest::aslLayerStyleSerializerTypeAndStateSchemaRemainStable",
+      "behavior": "ASL layer style直列化器は既定構築・破棄でき、初期化済み状態と入力の妥当性を照会する公開契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisAslLayerStyleSerializer",
+        "method:KisAslLayerStyleSerializer::KisAslLayerStyleSerializer()",
+        "method:KisAslLayerStyleSerializer::isInitialized()",
+        "method:KisAslLayerStyleSerializer::isValid()",
+        "method:KisAslLayerStyleSerializer::~KisAslLayerStyleSerializer()"
+      ]
+    },
+    {
+      "target": "KisPSDLayerStyleSchemaContractTest",
+      "source": "libs/image/tests/KisPSDLayerStyleSchemaContractTest.cpp",
+      "test": "KisPSDLayerStyleSchemaContractTest::aslLayerStyleSerializerDeviceAndDocumentSignaturesRemainStable",
+      "behavior": "ASL layer style直列化器はdevice・fileとの読書きと通常・PSD用XML文書の生成に関する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAslLayerStyleSerializer::formPsdXmlDocument() const",
+        "method:KisAslLayerStyleSerializer::formXmlDocument() const",
+        "method:KisAslLayerStyleSerializer::readFromDevice(QIODevice & device)",
+        "method:KisAslLayerStyleSerializer::readFromFile(const QString & filename)",
+        "method:KisAslLayerStyleSerializer::saveToDevice(QIODevice & device)",
+        "method:KisAslLayerStyleSerializer::saveToFile(const QString & filename)"
+      ]
+    },
+    {
+      "target": "KisPSDLayerStyleSchemaContractTest",
+      "source": "libs/image/tests/KisPSDLayerStyleSchemaContractTest.cpp",
+      "test": "KisPSDLayerStyleSchemaContractTest::aslLayerStyleSerializerCollectionSignaturesRemainStable",
+      "behavior": "ASL layer style直列化器はnode階層からstyleを収集・割当てし、保持するstyle列と識別子対応を照会・設定する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAslLayerStyleSerializer::assignAllLayerStylesToLayers(KisNodeSP root,const QString & storageLocation)",
+        "method:KisAslLayerStyleSerializer::collectAllLayerStyles(KisNodeSP root)",
+        "method:KisAslLayerStyleSerializer::setStyles(const QVector<KisPSDLayerStyleSP> & styles)",
+        "method:KisAslLayerStyleSerializer::styles() const",
+        "method:KisAslLayerStyleSerializer::stylesHash()"
+      ]
+    },
+    {
+      "target": "KisPSDLayerStyleSchemaContractTest",
+      "source": "libs/image/tests/KisPSDLayerStyleSchemaContractTest.cpp",
+      "test": "KisPSDLayerStyleSchemaContractTest::aslLayerStyleSerializerPatternAndGradientSignaturesRemainStable",
+      "behavior": "ASL layer style直列化器は読込み済みpattern・gradientの取得とPSD pattern文書の登録に関する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAslLayerStyleSerializer::gradients() const",
+        "method:KisAslLayerStyleSerializer::patterns() const",
+        "method:KisAslLayerStyleSerializer::registerPSDPattern(const QDomDocument & doc)"
+      ]
+    },
+    {
+      "target": "KisPSDLayerStyleSchemaContractTest",
+      "source": "libs/image/tests/KisPSDLayerStyleSchemaContractTest.cpp",
+      "test": "KisPSDLayerStyleSchemaContractTest::aslLayerStyleSerializerResourceLoadingSignaturesRemainStable",
+      "behavior": "ASL layer style直列化器はPSD XMLの取込み、外部資源の補完、関連資源署名の取得に関する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAslLayerStyleSerializer::fetchLinkedResourceSignatures(const KisPSDLayerStyle * style)",
+        "method:KisAslLayerStyleSerializer::readFromPSDXML(const QDomDocument & doc)",
+        "method:KisAslLayerStyleSerializer::sideLoadLinkedResources(KisPSDLayerStyle * style,KisResourcesInterfaceSP resourcesInterface)"
       ]
     }
   ]

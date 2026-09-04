@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-04 16:16 JST
+- 更新日時: 2026-09-04 16:23 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -89,15 +89,15 @@
 ### 第204便の担当計画
 
 - 実装共通基点は`7fdc43c0af`である。一度に一つだけ作る専用worktree-local `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有し、`./scripts/run-shared-test-env`で読み込み済み環境を使う。各担当のGit権限は許可pathだけの受渡しcommit、追加委任は禁止する。ASL layer style serializer、図形fill、単位付き倍精度入力の順に限定検証・統合・削除し、調整担当だけが文書、公開API台帳、共通不足報告を変更する。製品target、全体build・`verify`、Linux、Nix再評価は禁止する。
-- `g204-asl-serializer-schema`の状態は`implementing`、macOSの対象・近傍に限る構築実行許可は`granted`で、基点`7fdc43c0af`の作業tree`/Users/masato/Documents/librepaint-g204-asl-serializer-schema`を所有する。正式不足報告の`libs/image/kis_asl_layer_style_serializer.h`残存全22 APIを、既存`libs/image/tests/KisPSDLayerStyleSchemaContractTest.cpp`の5枠`aslLayerStyleSerializerTypeAndStateSchemaRemainStable`、`aslLayerStyleSerializerDeviceAndDocumentSignaturesRemainStable`、`aslLayerStyleSerializerCollectionSignaturesRemainStable`、`aslLayerStyleSerializerPatternAndGradientSignaturesRemainStable`、`aslLayerStyleSerializerResourceLoadingSignaturesRemainStable`へ5・6・5・3・3件で対応付ける。許可pathは既存試験sourceだけ、CMake変更なし、対象`KisPSDLayerStyleSchemaContractTest`、正式CTest`libs-image-KisPSDLayerStyleSchemaContractTest`、近傍`KisPaintLayerSchemaContractTest`である。4工程・8入力を維持し、5工程・11入力超過、新規探索路・link・定義、AUTOMOC入力化、製品接続、実体化・本文実行が必要なら停止する。
+- `g204-asl-serializer-schema`の状態は`integrated`、macOSの対象・近傍に限る構築実行許可は`granted`である。正式不足報告の`libs/image/kis_asl_layer_style_serializer.h`残存全22 APIを、既存`libs/image/tests/KisPSDLayerStyleSchemaContractTest.cpp`の5枠`aslLayerStyleSerializerTypeAndStateSchemaRemainStable`、`aslLayerStyleSerializerDeviceAndDocumentSignaturesRemainStable`、`aslLayerStyleSerializerCollectionSignaturesRemainStable`、`aslLayerStyleSerializerPatternAndGradientSignaturesRemainStable`、`aslLayerStyleSerializerResourceLoadingSignaturesRemainStable`へ5・6・5・3・3件で対応付けた。CMake、公開header、製品sourceを変更せず、受渡しcommit `2a8253fb10`を統合commit `42f5a917af`として取り込んだ。担当側で追加5枠を各20回、対象と近傍を実行し、中央でも対象`libs-image-KisPSDLayerStyleSchemaContractTest`と近傍`libs-image-KisPaintLayerSchemaContractTest`、AUTOMOC後の二回目計画と無作業再構築に成功した。4工程・8入力、Qt Core・Gui・Test・Xmlだけの動的接続、候補headerのAUTOMOC非入力化、製品非接続を維持し、台帳は19,755件対応、10,083件未対応となった。cleanな専用作業tree、構築木、branchを統合直後に削除し、883,660 KiBを回収した。
 - `g204-shape-fill-schema`の状態は`planned`、構築実行許可は`withheld`である。正式不足報告の`libs/flake/KoShapeFillWrapper.h`の17 API、`KoFlake.h`の2 API、`KoPatternBackground.h`の1 APIを、既存`libs/flake/tests/KoPatternBackgroundSchemaContractTest.cpp`の5枠`shapeFillWrapperTypeAndConstructionSchemaRemainStable`、`shapeFillWrapperClassificationAndColorSignaturesRemainStable`、`shapeFillWrapperGradientSignaturesRemainStable`、`shapeFillWrapperMeshGradientSignaturesRemainStable`、`gradientUtilityAndPatternRenderingSignaturesRemainStable`へ4・6・5・2・3件で対応付ける。許可pathは既存試験sourceだけ、CMake変更なし、対象`KoPatternBackgroundSchemaContractTest`、正式CTest`libs-flake-KoPatternBackgroundSchemaContractTest`、近傍`KoShapeStrokeSchemaContractTest`である。4工程・8入力を維持し、5工程・11入力超過、新規探索路・link・定義、AUTOMOC入力化、Qt Gui動的接続、製品接続、実体化・本文実行が必要なら停止する。
 - `g204-unit-spinbox-schema`の状態は`planned`、構築実行許可は`withheld`である。正式不足報告の`libs/widgets/KoUnitDoubleSpinBox.h`の15 APIと`libs/widgetutils/kis_spin_box_unit_manager.h`の7 APIを、既存`libs/widgetutils/tests/KisDoubleParseUnitSpinBoxSchemaContractTest.cpp`の5枠`unitDoubleSpinBoxTypeLifetimeAndValueSchemaRemainStable`、`unitDoubleSpinBoxRangeAndStepSignaturesRemainStable`、`unitDoubleSpinBoxUnitTextAndNotificationSignaturesRemainStable`、`unitManagerBuilderTypeLifetimeAndBuildSchemaRemainStable`、`unitManagerFactoryTypeAndCreationSchemaRemainStable`へ5・5・5・3・4件で対応付ける。許可pathは既存試験sourceと`libs/widgetutils/tests/CMakeLists.txt`の対象固有節だけで、widgetsのsource/generated探索路と`kritawidgets_EXPORTS`だけを追加できる。対象`KisDoubleParseUnitSpinBoxSchemaContractTest`、正式CTest`libs-widgetutils-KisDoubleParseUnitSpinBoxSchemaContractTest`、近傍`KisSliderSpinBoxSchemaContractTest`である。4工程・8入力を維持し、5工程・11入力超過、指定外探索路・link・定義、AUTOMOC入力化、製品接続、実体化・本文実行が必要なら停止する。
 
 ### 第205便の先行監査担当票（第204便確定待ち）
 
 - 監査共通基点は`8f04132b9f`、暫定入力は`build/tdd-macos/public-api-missing-g204.json`である。第204便までに契約済みまたは選定済みの責務を除外し、変更、構成、構築、試験、Git操作、追加委任を行わない読み取り専用監査を先行する。正式な第204便完了報告で再照合・再計測する。
-- `g205-flake-contract-audit`の状態は`auditing`で、flake・SVG・vector領域から図形fillを除く一責務20〜80 API・最大5枠の次候補を比較し、完全なAPI識別子、観測契約、開始pathから契約先、許可path、既存対象と近傍、予測閉包、停止条件、棄却根拠を返す。
-- `g205-ui-contract-audit`の状態は`auditing`で、widgetutils・widgets・libkis領域から単位付き倍精度入力を除く一責務20〜80 API・最大5枠の次候補を比較し、完全なAPI識別子、観測契約、開始pathから契約先、許可path、既存対象と近傍、予測閉包、停止条件、棄却根拠を返す。
+- `g205-flake-contract-audit`の状態は`completed`で、flake・SVG・vector領域からtool actionとtool activation管理49 APIを選定した。
+- `g205-ui-contract-audit`の状態は`completed`で、widgetutils・widgets・libkis領域から資源server取得とpopup選択・通知21 APIを選定した。
 
 ### 第201便の先行監査担当票
 
