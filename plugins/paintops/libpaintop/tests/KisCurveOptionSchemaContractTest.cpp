@@ -4,6 +4,8 @@
  */
 
 #include "KisCurveOption.h"
+#include "KisStandardOptionData.h"
+#include "KisStandardOptions.h"
 
 #include <QTest>
 
@@ -15,6 +17,14 @@ namespace
 
 #define ASSERT_CURVE_OPTION_SIGNATURE(function, signature)                                                             \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisCurveOption::function)), signature>)
+#define ASSERT_STANDARD_OPTION_WIDGET_FACTORY_SIGNATURE(function)                                                      \
+    static_assert(                                                                                                     \
+        std::is_same_v<decltype(static_cast<KisCurveOptionWidget *(*)()>(&KisPaintOpOptionWidgetUtils::function)),     \
+                       KisCurveOptionWidget *(*)()>)
+
+template<template<typename> class Option>
+struct StandardOptionTemplateProbe {
+};
 
 } // namespace
 
@@ -28,6 +38,11 @@ private Q_SLOTS:
     void curveOptionValueCompositionSignaturesRemainStable();
     void curveOptionStrengthSignaturesRemainStable();
     void curveOptionStatePolicySignaturesRemainStable();
+    void standardOptionTypesAndAliasesSchemaRemainStable();
+    void standardOptionConstructionAndEvaluationSignaturesRemainStable();
+    void standardOptionCoreWidgetFactorySignaturesRemainStable();
+    void standardOptionColorAndStrengthWidgetFactorySignaturesRemainStable();
+    void standardOptionMaskingWidgetFactorySignaturesRemainStable();
 };
 
 void KisCurveOptionSchemaContractTest::curveOptionOwnershipAndPolicySchemaRemainsStable()
@@ -102,6 +117,62 @@ void KisCurveOptionSchemaContractTest::curveOptionStatePolicySignaturesRemainSta
 
     ASSERT_CURVE_OPTION_SIGNATURE(isChecked, GetterSignature);
     ASSERT_CURVE_OPTION_SIGNATURE(isRandom, GetterSignature);
+}
+
+void KisCurveOptionSchemaContractTest::standardOptionTypesAndAliasesSchemaRemainStable()
+{
+    static_assert(std::is_class_v<StandardOptionTemplateProbe<KisStandardOption>>);
+    static_assert(std::is_class_v<StandardOptionTemplateProbe<KisStandardOptionNoApply>>);
+    static_assert(std::is_same_v<KisFlowOption, KisStandardOption<KisFlowOptionData>>);
+    static_assert(std::is_same_v<KisLightnessStrengthOption, KisStandardOption<KisLightnessStrengthOptionData>>);
+    static_assert(std::is_same_v<KisMixOption, KisStandardOption<KisMixOptionData>>);
+    static_assert(std::is_same_v<KisRateOption, KisStandardOption<KisRateOptionData>>);
+    static_assert(std::is_same_v<KisRatioOption, KisStandardOption<KisRatioOptionData>>);
+    static_assert(std::is_same_v<KisSizeOption, KisStandardOption<KisSizeOptionData>>);
+    static_assert(std::is_same_v<KisSoftnessOption, KisStandardOption<KisSoftnessOptionData>>);
+    static_assert(std::is_same_v<KisStrengthOption, KisStandardOption<KisStrengthOptionData>>);
+}
+
+void KisCurveOptionSchemaContractTest::standardOptionConstructionAndEvaluationSignaturesRemainStable()
+{
+    using StandardOption = KisStandardOption<KisFlowOptionData>;
+    using StandardOptionNoApply = KisStandardOptionNoApply<KisFlowOptionData>;
+    using ApplySignature = qreal (StandardOption::*)(const KisPaintInformation &) const;
+
+    static_assert(std::is_constructible_v<StandardOption, const KisPropertiesConfiguration *>);
+    static_assert(std::is_same_v<decltype(static_cast<ApplySignature>(&StandardOption::apply)), ApplySignature>);
+    static_assert(std::is_constructible_v<StandardOptionNoApply, const KisPropertiesConfiguration *>);
+}
+
+void KisCurveOptionSchemaContractTest::standardOptionCoreWidgetFactorySignaturesRemainStable()
+{
+    ASSERT_STANDARD_OPTION_WIDGET_FACTORY_SIGNATURE(createFlowOptionWidget);
+    ASSERT_STANDARD_OPTION_WIDGET_FACTORY_SIGNATURE(createMixOptionWidget);
+    ASSERT_STANDARD_OPTION_WIDGET_FACTORY_SIGNATURE(createOpacityOptionWidget);
+    ASSERT_STANDARD_OPTION_WIDGET_FACTORY_SIGNATURE(createRateOptionWidget);
+    ASSERT_STANDARD_OPTION_WIDGET_FACTORY_SIGNATURE(createRatioOptionWidget);
+    ASSERT_STANDARD_OPTION_WIDGET_FACTORY_SIGNATURE(createRotationOptionWidget);
+    ASSERT_STANDARD_OPTION_WIDGET_FACTORY_SIGNATURE(createSoftnessOptionWidget);
+}
+
+void KisCurveOptionSchemaContractTest::standardOptionColorAndStrengthWidgetFactorySignaturesRemainStable()
+{
+    ASSERT_STANDARD_OPTION_WIDGET_FACTORY_SIGNATURE(createDarkenOptionWidget);
+    ASSERT_STANDARD_OPTION_WIDGET_FACTORY_SIGNATURE(createHueOptionWidget);
+    ASSERT_STANDARD_OPTION_WIDGET_FACTORY_SIGNATURE(createSaturationOptionWidget);
+    ASSERT_STANDARD_OPTION_WIDGET_FACTORY_SIGNATURE(createStrengthOptionWidget);
+    ASSERT_STANDARD_OPTION_WIDGET_FACTORY_SIGNATURE(createValueOptionWidget);
+}
+
+void KisCurveOptionSchemaContractTest::standardOptionMaskingWidgetFactorySignaturesRemainStable()
+{
+    ASSERT_STANDARD_OPTION_WIDGET_FACTORY_SIGNATURE(createMaskingFlowOptionWidget);
+    ASSERT_STANDARD_OPTION_WIDGET_FACTORY_SIGNATURE(createMaskingMirrorOptionWidget);
+    ASSERT_STANDARD_OPTION_WIDGET_FACTORY_SIGNATURE(createMaskingOpacityOptionWidget);
+    ASSERT_STANDARD_OPTION_WIDGET_FACTORY_SIGNATURE(createMaskingRatioOptionWidget);
+    ASSERT_STANDARD_OPTION_WIDGET_FACTORY_SIGNATURE(createMaskingRotationOptionWidget);
+    ASSERT_STANDARD_OPTION_WIDGET_FACTORY_SIGNATURE(createMaskingScatterOptionWidget);
+    ASSERT_STANDARD_OPTION_WIDGET_FACTORY_SIGNATURE(createMaskingSizeOptionWidget);
 }
 
 QTEST_GUILESS_MAIN(KisCurveOptionSchemaContractTest)
