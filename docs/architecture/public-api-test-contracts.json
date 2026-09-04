@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 10337
+    "expectedMissingApis": 10312
   },
   "contracts": [
     {
@@ -54625,6 +54625,76 @@
       "classification": "maintained",
       "apis": [
         "method:KisProcessingApplicator::runSingleCommandStroke(KisImageSP image,KUndo2Command * cmd,KisStrokeJobData::Sequentiality sequentiality=KisStrokeJobData::SEQUENTIAL,KisStrokeJobData::Exclusivity exclusivity=KisStrokeJobData::NORMAL)"
+      ]
+    },
+    {
+      "target": "KoParameterShapeSchemaContractTest",
+      "source": "libs/flake/tests/KoParameterShapeSchemaContractTest.cpp",
+      "test": "KoParameterShapeSchemaContractTest::parameterShapeTypeAndLifetimeSchemaRemainStable",
+      "behavior": "パラメータ図形はpath図形の抽象派生型として既定構築でき、仮想破棄される公開型と寿命を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoParameterShape",
+        "method:KoParameterShape::KoParameterShape()",
+        "method:KoParameterShape::~KoParameterShape()"
+      ]
+    },
+    {
+      "target": "KoParameterShapeSchemaContractTest",
+      "source": "libs/flake/tests/KoParameterShapeSchemaContractTest.cpp",
+      "test": "KoParameterShapeSchemaContractTest::parameterShapeHandleAndStateSignaturesRemainStable",
+      "behavior": "パラメータ図形は制御点の個数・位置・選択、移動・描画と、寸法・正規化・パラメトリック状態を扱う公開署名と既定修飾キーを維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoParameterShape::handleCount() const",
+        "method:KoParameterShape::handleIdAt(const QRectF & rect) const",
+        "method:KoParameterShape::handlePosition(int handleId) const",
+        "method:KoParameterShape::isParametricShape() const",
+        "method:KoParameterShape::moveHandle(int handleId,const QPointF & point,Qt::KeyboardModifiers modifiers=Qt::NoModifier)",
+        "method:KoParameterShape::normalize()",
+        "method:KoParameterShape::paintHandle(KisHandlePainterHelper & handlesHelper,int handleId)",
+        "method:KoParameterShape::paintHandles(KisHandlePainterHelper & handlesHelper)",
+        "method:KoParameterShape::setParametricShape(bool parametric)",
+        "method:KoParameterShape::setSize(const QSizeF & size)"
+      ]
+    },
+    {
+      "target": "KoParameterShapeSchemaContractTest",
+      "source": "libs/flake/tests/KoParameterShapeSchemaContractTest.cpp",
+      "test": "KoParameterShapeSchemaContractTest::parameterChangeStrategySchemaRemainStable",
+      "behavior": "パラメータ図形の変更strategyはtool・図形・制御点から構築して仮想破棄でき、pointer移動、操作完了、undo command生成を扱う公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoParameterChangeStrategy",
+        "method:KoParameterChangeStrategy::KoParameterChangeStrategy(KoToolBase * tool,KoParameterShape * parameterShape,int handleId)",
+        "method:KoParameterChangeStrategy::createCommand()",
+        "method:KoParameterChangeStrategy::finishInteraction(Qt::KeyboardModifiers modifiers)",
+        "method:KoParameterChangeStrategy::handleMouseMove(const QPointF & mouseLocation,Qt::KeyboardModifiers modifiers)",
+        "method:KoParameterChangeStrategy::~KoParameterChangeStrategy()"
+      ]
+    },
+    {
+      "target": "KoParameterShapeSchemaContractTest",
+      "source": "libs/flake/tests/KoParameterShapeSchemaContractTest.cpp",
+      "test": "KoParameterShapeSchemaContractTest::parameterToPathConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "パラメータ図形のpath変換commandは単一図形または図形一覧と任意の親commandから構築して仮想破棄できる公開型と署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoParameterToPathCommand",
+        "method:KoParameterToPathCommand::KoParameterToPathCommand(KoParameterShape * shape,KUndo2Command * parent=0)",
+        "method:KoParameterToPathCommand::KoParameterToPathCommand(const QList<KoParameterShape * > & shapes,KUndo2Command * parent=0)",
+        "method:KoParameterToPathCommand::~KoParameterToPathCommand()"
+      ]
+    },
+    {
+      "target": "KoParameterShapeSchemaContractTest",
+      "source": "libs/flake/tests/KoParameterShapeSchemaContractTest.cpp",
+      "test": "KoParameterShapeSchemaContractTest::parameterToPathExecutionSignaturesRemainStable",
+      "behavior": "パラメータ図形のpath変換commandは変換の適用と取消を行う公開undo・redo署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoParameterToPathCommand::redo()",
+        "method:KoParameterToPathCommand::undo()"
       ]
     }
   ]
