@@ -5,6 +5,7 @@
  */
 #include "Preset.h"
 #include <QDomDocument>
+#include <kis_paintop_preset.h>
 
 struct Preset::Private {
     KisPaintOpPresetSP preset {0};
