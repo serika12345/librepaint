@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-04 18:52 JST
+- 更新日時: 2026-09-04 18:54 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -166,6 +166,7 @@
 - `g207-ui-contract-audit`の状態は`completed`で、widgetutils・widgets・libkis領域からスクリプト資源値とbrush preset選択接続面26 APIを選定した。契約実装より先に`libs/libkis/Preset.h`の未使用`kis_paintop_preset.h`を`Preset.cpp`へ移す依存整理が必要である。
 - `g207-image-contract-audit`の状態は`completed`で、image・paintop・pigment領域からstroke queueの投入・完了・状態処理・LoD factory・callback診断29 APIを選定した。新規専用targetは既存処理適用器契約と同じ4工程・8入力を予測し、更新scheduler契約へ追記してpainting/undoとKF I18n探索路を波及させない。
 - `g207-resource-preset-closure-review`の状態は`completed`で、`libs/libkis/Resource.h`、`Preset.h`、`PresetChooser.h`の26 APIが5枠へ重複なく対応できることを確認した。`Preset.h`の未使用`kis_paintop_preset.h`は完全型を使う直接consumerの`Preset.cpp`へ移し、契約targetにはimage・global・resources・resources/ui・ui/widgetsと各生成探索路、Qt Gui・Widgets・KF I18nのinterface、5 export定義だけを与えれば4工程・8入力と製品非接続を予測できる。
+- `g207-shape-creation-closure-review`の状態は`auditing`で、図形registry、path・基本図形factory、生成commandの21 API案について、責務の一体性、必要探索路・定義、4工程・8入力、AUTOMOC非入力化、製品非接続の成立条件を独立に読み取り専用レビューする。
 
 ### 第207便の先行監査結果
 
