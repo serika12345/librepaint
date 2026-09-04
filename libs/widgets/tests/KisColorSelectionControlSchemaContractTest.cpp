@@ -5,6 +5,7 @@
 
 #include "KisColorSelectorInterface.h"
 #include "KisScreenColorSamplerBase.h"
+#include "KisVisualColorSelector.h"
 #include "KoColorPopupAction.h"
 #include "kis_color_button.h"
 #include "kis_spinbox_color_selector.h"
@@ -50,6 +51,11 @@ private Q_SLOTS:
     void screenSamplerTypeAndNotificationSchemaRemainStable();
     void spinboxSelectorTypeAndAlphaSchemaRemainStable();
     void spinboxSelectorColorAndNotificationSchemaRemainStable();
+    void visualColorSelectorTypeLifetimeAndRenderModeSchemaRemainStable();
+    void visualColorSelectorModelAndConfigurationSignaturesRemainStable();
+    void visualColorSelectorColorAndRendererSignaturesRemainStable();
+    void visualColorSelectorPresentationAndProofSignaturesRemainStable();
+    void visualColorSelectorGamutAndNotificationSignaturesRemainStable();
 };
 
 void KisColorSelectionControlSchemaContractTest::colorButtonTypeAndLifetimeSchemaRemainStable()
@@ -174,6 +180,77 @@ void KisColorSelectionControlSchemaContractTest::spinboxSelectorColorAndNotifica
     static_assert(std::is_same_v<decltype(&Selector::sigNewColor), void (Selector::*)(KoColor)>);
     static_assert(std::is_same_v<decltype(&Selector::slotSetColor), void (Selector::*)(KoColor)>);
     static_assert(std::is_same_v<decltype(&Selector::slotSetColorSpace), void (Selector::*)(const KoColorSpace *)>);
+}
+
+void KisColorSelectionControlSchemaContractTest::visualColorSelectorTypeLifetimeAndRenderModeSchemaRemainStable()
+{
+    using Selector = KisVisualColorSelector;
+
+    static_assert(std::is_class_v<Selector>);
+    static_assert(std::is_base_of_v<KisColorSelectorInterface, Selector>);
+    static_assert(std::is_enum_v<Selector::RenderMode>);
+    static_assert(Selector::StaticBackground == 0);
+    static_assert(Selector::DynamicBackground == 1);
+    static_assert(Selector::CompositeBackground == 2);
+    static_assert(std::is_default_constructible_v<Selector>);
+    static_assert(std::is_constructible_v<Selector, QWidget *>);
+    static_assert(std::is_constructible_v<Selector, QWidget *, KisVisualColorModelSP>);
+    static_assert(std::has_virtual_destructor_v<Selector>);
+    static_assert(std::is_same_v<decltype(&Selector::renderMode), Selector::RenderMode (Selector::*)() const>);
+    static_assert(std::is_same_v<decltype(&Selector::setRenderMode), void (Selector::*)(Selector::RenderMode)>);
+}
+
+void KisColorSelectionControlSchemaContractTest::visualColorSelectorModelAndConfigurationSignaturesRemainStable()
+{
+    using Selector = KisVisualColorSelector;
+
+    static_assert(std::is_same_v<decltype(&Selector::selectorModel), KisVisualColorModelSP (Selector::*)() const>);
+    static_assert(std::is_same_v<decltype(&Selector::setSelectorModel), void (Selector::*)(KisVisualColorModelSP)>);
+    static_assert(
+        std::is_same_v<decltype(&Selector::configuration), const KisColorSelectorConfiguration &(Selector::*)() const>);
+    static_assert(std::is_same_v<decltype(&Selector::setConfiguration),
+                                 void (Selector::*)(const KisColorSelectorConfiguration *)>);
+    static_assert(std::is_same_v<decltype(&Selector::setConfig), void (Selector::*)(bool, bool)>);
+    static_assert(std::is_same_v<decltype(&Selector::setAcceptTabletEvents), void (Selector::*)(bool)>);
+    static_assert(std::is_same_v<decltype(&Selector::setMinimumSliderWidth), void (Selector::*)(int)>);
+}
+
+void KisColorSelectionControlSchemaContractTest::visualColorSelectorColorAndRendererSignaturesRemainStable()
+{
+    using Selector = KisVisualColorSelector;
+
+    static_assert(std::is_same_v<decltype(&Selector::getCurrentColor), KoColor (Selector::*)() const>);
+    static_assert(std::is_same_v<decltype(&Selector::slotSetColor), void (Selector::*)(const KoColor &)>);
+    static_assert(std::is_same_v<decltype(&Selector::slotSetColorSpace), void (Selector::*)(const KoColorSpace *)>);
+    static_assert(std::is_same_v<decltype(&Selector::displayRenderer),
+                                 const KoColorDisplayRendererInterface *(Selector::*)() const>);
+    static_assert(std::is_same_v<decltype(&Selector::setDisplayRenderer),
+                                 void (Selector::*)(const KoColorDisplayRendererInterface *)>);
+    static_assert(std::is_same_v<decltype(&Selector::autoAdjustExposure), bool (Selector::*)() const>);
+    static_assert(std::is_same_v<decltype(&Selector::setAutoAdjustExposure), void (Selector::*)(bool)>);
+}
+
+void KisColorSelectionControlSchemaContractTest::visualColorSelectorPresentationAndProofSignaturesRemainStable()
+{
+    using Selector = KisVisualColorSelector;
+
+    static_assert(std::is_same_v<decltype(&Selector::minimumSizeHint), QSize (Selector::*)() const>);
+    static_assert(std::is_same_v<decltype(&Selector::proofColors), bool (Selector::*)() const>);
+    static_assert(std::is_same_v<decltype(&Selector::setProofColors), void (Selector::*)(bool)>);
+    static_assert(std::is_same_v<decltype(&Selector::setSliderPosition), void (Selector::*)(Qt::Edge)>);
+    static_assert(std::is_same_v<decltype(&Selector::sigInteraction), void (Selector::*)(bool)>);
+}
+
+void KisColorSelectionControlSchemaContractTest::visualColorSelectorGamutAndNotificationSignaturesRemainStable()
+{
+    using Selector = KisVisualColorSelector;
+
+    static_assert(std::is_same_v<decltype(&Selector::activeGamutMask), KoGamutMask *(Selector::*)() const>);
+    static_assert(std::is_same_v<decltype(&Selector::slotGamutMaskChanged), void (Selector::*)(KoGamutMaskSP)>);
+    static_assert(std::is_same_v<decltype(&Selector::slotGamutMaskUnset), void (Selector::*)()>);
+    static_assert(std::is_same_v<decltype(&Selector::slotGamutMaskPreviewUpdate), void (Selector::*)()>);
+    static_assert(std::is_same_v<decltype(&Selector::sigGamutMaskSupportChanged), void (Selector::*)(bool)>);
+    static_assert(std::is_same_v<decltype(&Selector::slotConfigurationChanged), void (Selector::*)()>);
 }
 
 QTEST_APPLESS_MAIN(KisColorSelectionControlSchemaContractTest)
