@@ -268,6 +268,8 @@
 - `g211-flake-contract-audit`の状態は`completed`で、flake・SVG・vector領域からSVG文字列の範囲変形・挿入・属性統合・削除をundo可能にする5 command型41 APIを選定した。既存`SvgTextCursorPropertySchemaContractTest`へCMake変更なしで追加し、4工程・8入力を予測する。
 - `g211-ui-contract-audit`の状態は`completed`で、widgetutils・widgets・libkis領域からスクリプト向けアプリケーション根façade 39 APIを選定した。既存view契約は269行・20枠のため新規`KritaSchemaContractTest`へ分け、Node系閉包にflake・ui/canvas探索路を加えた4工程・8入力を予測する。
 - `g211-paintop-preset-closure-review`の状態は`completed`で、`libs/image/brushengine/kis_paintop_preset.h`の43 APIが5枠へ重複なく対応し、設定・直列化・資源snapshot・cacheと更新抑止RAII型の一責務に収まることを確認した。直接includeされる`KisPaintOpPresetUpdateProxy.h`のため`libs/image/brushengine`探索路が必須であり、Qt Xml・Widgets、追加export定義は不要である。補正後も4工程・8入力、AUTOMOC `HEADERS=[]`、製品非接続を予測する。
+- `g211-svg-text-command-closure-review`の状態は`reviewing`で、暫定入力`build/tdd-macos/public-api-missing-g209.json`に対して5つのSVG文字列範囲command型41 API、5枠14・8・7・7・5、既存`SvgTextCursorPropertySchemaContractTest`へCMake変更なしで追加する4工程・8入力の閉包を読み取り専用で再照合する。
+- `g211-krita-facade-closure-review`の状態は`reviewing`で、同じ暫定入力に対して`libs/libkis/Krita.h`の39 API、5枠7・10・7・8・7、新規`KritaSchemaContractTest`をNode系compile interfaceへ閉じる4工程・8入力の閉包を読み取り専用で再照合する。
 
 ### 第211便の先行監査結果（第210便確定待ち）
 
