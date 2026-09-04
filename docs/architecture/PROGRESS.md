@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-04 17:17 JST
+- 更新日時: 2026-09-04 17:20 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -128,7 +128,9 @@
 - 監査共通基点は`c985281aaa`、暫定入力は`build/tdd-macos/public-api-missing-g205.json`である。第205便までに契約済みまたは選定済みの責務を除外し、変更、構成、構築、試験、Git操作、追加委任を行わない読み取り専用監査を先行する。正式な第205便完了報告で再照合・再計測する。
 - `g206-flake-contract-audit`の状態は`completed`で、flake・SVG・vector領域からtool interaction strategy 23 APIを選定した。
 - `g206-ui-contract-audit`の状態は`completed`で、widgetutils・widgets・libkis領域からスクリプト向け画像node 71 APIを選定した。
-- `g206-image-contract-audit`の状態は`auditing`で、image・paintop・pigment領域から画像変更transactionを除く一責務20〜80 API・最大5枠の次候補を比較する。変更、構成、構築、試験、Git操作、追加委任は行わず、完全なAPI識別子、観測契約、開始pathから契約先、許可path、既存対象と近傍、予測閉包、停止条件、棄却根拠を返す。
+- `g206-image-contract-audit`の状態は`completed`で、image・paintop・pigment領域から更新・stroke実行調停42 APIを選定した。
+- `g206-node-closure-review`の状態は`auditing`で、`libs/libkis/Node.h`の71 API案について、既存`ColorizeMaskSchemaContractTest`との直接include閉包、header静的値初期化、5枠の完全性、4工程・8入力と製品非接続の成立条件を独立に読み取り専用レビューする。変更、構成、構築、試験、Git操作、追加委任は行わない。
+- `g206-update-scheduler-closure-review`の状態は`auditing`で、`libs/image/kis_update_scheduler.h`の42 API案について、必要な完全型・探索路、5枠の完全性、軽量近傍、4工程・8入力と製品非接続の成立条件を独立に読み取り専用レビューする。変更、構成、構築、試験、Git操作、追加委任は行わない。
 
 ### 第201便の先行監査担当票
 
