@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-04 12:52 JST
+- 更新日時: 2026-09-04 13:00 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -16,6 +16,16 @@
 - `g200-flake-contract-audit`はflake・SVG・vector領域を所有し、第199便までに固定したshape manager・controller、tool代理、shape幾何・階層・文書状態、clip、背景群、path点・区間種別command、path点topology command、font family資源、CSS様式資源、SVG symbol集合資源、ガマットマスク、SVG parser、SVG文字図形本体を除外して、一責務の未対応集合を比較する。
 - `g200-ui-contract-audit`はwidgetutils・widgets・libkis領域を所有し、第199便までに固定したHSX色入力、内部色選択dialog、視覚色選択群、palette delegate、filter設定・適用、palette選択・色集合表示、色選択button・popup action、action分類・toolbar編集入口、zoom action・Widget、scratchpad、ウィンドウ操作、アプリケーション状態通知、タグ選択、幾何数値入力、図形外観制御を除外して、一責務の未対応集合を比較する。
 - 各担当は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、実際のcompile探索路、予測工程・入力と停止線、開始pathから契約先、実装時許可path、固有停止条件、比較候補の棄却根拠を返す。調整担当は3領域のpath、CMake、試験source、生成物が重ならず、合計60〜180 APIとなる組合せだけを次の実装担当票へ進める。
+
+### 第200便の先行監査結果
+
+- image領域は`libs/image/filter/kis_filter_configuration.h`の残存全21 APIを、filter設定の型・寿命、識別・channel、直列化、資源snapshot、必要資源として採用し、既存`libs/image/tests/KisPropertiesConfigurationSchemaContractTest.cpp`の5枠へ追加する。既存sourceは164行・5枠であり、追加後も約290行・10枠に収まる。CMakeを変えずQt Core・Gui・Test、header-only Boost、image・global・pigment探索路、既存interfaceだけによる4工程・8入力を維持し、停止線を5工程・11入力とする。対象・近傍`KisImageConfigGeneralSchemaContractTest`はAUTOMOC後のgraphにも製品辺がない。filter設定、基底設定、描画装置、資源interface、資源読込結果、Qt値・XMLを実体化せず、構築・破棄、複製・比較、XML変換、資源snapshot、互換性判定本文を実行しない。
+  processing applicator、transaction、undo stroke strategy、generator layerは製品接続または画像・undo・stroke閉包が広く、色空間registryは大域状態と資源所有を横断するため棄却した。
+- flake領域は`libs/flake/text/KoSvgTextShape.h`に残るfactory 6、memento型2、cursor変更listener型4と、`KoSvgTextShapeOutlineHelper.h`の残存全17 APIを、SVG文字図形の生成・通知・輪郭操作補助として採用し、既存`libs/flake/tests/KoSvgTextShapeSchemaContractTest.cpp`の5枠へ追加する。既存sourceは163行・5枠であり、追加後も約280行・10枠に収まる。CMakeを変えずQt Gui・Test・Xml、header-only Boost、flake・global探索路と`kritaflake_EXPORTS`だけによる4工程・8入力を維持し、停止線を5工程・11入力とする。対象・近傍`KoSvgTextEnumContractTest`はAUTOMOC後のgraphにも製品辺がない。factory、memento、listener、輪郭補助、文字図形、canvas、変換器、描画器、読込文脈、Qt値を実体化せず、生成・対応判定・通知・描画・装飾計算・輪郭mode操作本文を実行しない。
+  tool managerは大域singletonと操作管理、path tool群は入力・選択・描画、shape fill wrapperとshape残存は異なる責務、font registry・storageはOS font環境と資源保管を横断するため棄却した。
+- widgets領域は`libs/widgets/KisColorSelectorInterface.h`の残存全9 API、`KisScreenColorSamplerBase.h`の残存全5 API、`kis_spinbox_color_selector.h`の残存全7 APIを、低水準の色選択・画面採取接続面として採用し、既存`libs/widgets/tests/KisColorSelectionControlSchemaContractTest.cpp`の5枠へ追加する。既存sourceは90行・5枠であり、追加後も約160行・10枠に収まる。CMakeを変えずQt Core・Gui・Test、Qt Widgets・KF・Imathのinterface、widgets・pigment・global探索路と既存定義だけによる4工程・8入力を維持し、停止線を5工程・11入力とする。対象・近傍`KisVisualColorModelSchemaContractTest`はAUTOMOC後のgraphにも製品辺がない。selector、sampler、spinbox、Widget、色・色空間・rendererを実体化せず、構築、設定、色変換、画面採取、通知配送本文を実行しない。
+  gradient editor群は生成UI、libkis Node・Documentは画像・文書・大域値、資源server群はsingletonと複数資源、単位入力群は異なる世代と所有、資源選択群は製品UIへ閉包が広がるため棄却した。
+- 中央の`public-api-missing-g200.json`でfilter設定21件、SVG文字図形補助29件、低水準色選択・画面採取21件の全識別子を照合した。3責務の開始header、試験source、所有CMake、生成物は相互に異なり、合計71 APIを15枠へ進める。許可path外変更、新規の動的link・探索root・compile定義、候補headerのAUTOMOC入力化、二回目計画の製品辺、製品shared・OBJECT・`kritatestsdk`接続、指定外実体化・本文実行、各停止線超過が不要な場合だけ実装へ進める。
 
 ### 第199便の先行監査担当票
 
