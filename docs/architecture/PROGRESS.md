@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-04 23:17 JST
+- 更新日時: 2026-09-04 23:23 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -335,7 +335,8 @@
 ### 第212便の担当計画
 
 - 実装共通基点は`3ff4b96fbd`である。一度に一つだけ作る専用worktree-local `build/tdd-macos`と主作業treeの共有compiler cacheを使い、担当側の`./scripts/run-shared-test-env`で読み込み済み環境を利用する。標準曲線option、変形工具mask adapter、スクリプト向けraster面・色channelの順に限定検証・統合・削除し、調整担当だけが文書、公開API台帳、共通不足報告を変更する。各担当のGit権限は許可pathだけの1受渡しcommitで、追加委任は禁止する。
-- `g212-standard-option-schema`の状態は`implementing`、担当は`/root/g178_shape_hierarchy_schema`、基点は`3ff4b96fbd`、作業treeは`/Users/masato/Documents/librepaint-g212-standard-option-schema`である。開始`plugins/paintops/libpaintop/KisStandardOptions.h`と`KisStandardOptionData.h`の残存全32 APIを、既存`plugins/paintops/libpaintop/tests/KisCurveOptionSchemaContractTest.cpp`の5枠へ10・3・7・5・7件で対応付ける。許可pathはこの既存試験sourceだけで、CMake、公開header、製品source、文書、台帳を変更しない。所有targetは`KisCurveOptionSchemaContractTest`、正式CTestは`plugins-paintops-libpaintop-KisCurveOptionSchemaContractTest`、軽量近傍は`KisDabCacheUtilsSchemaContractTest`とする。macOSのこの2対象に限る構築実行許可を`granted`とし、現行4工程・8入力とCMake無変更を維持する。
+- `g212-standard-option-schema`の状態は`paused_for_structure`である。変更前は4工程・8入力、AUTOMOC `HEADERS=[]`、Qt Core・Gui・Test・Xmlだけの動的接続だった。開始`plugins/paintops/libpaintop/KisStandardOptions.h`と`KisStandardOptionData.h`を追加して5枠だけを宣言した初期失敗で、期待したslot未定義に加え`ki18ndc`、`KLocalizedString` destructor、`KoID` constructorの製品記号を検出した。`KisStandardOptions.h`から`KisCurveOptionDataCommon.h`を経て読み込む`KisDynamicSensorIds.h`が17個のnamespaceスコープ`const KoID`を翻訳単位ごとに動的初期化することが原因である。製品linkを追加せず停止し、未コミットの2 include・5宣言だけを含む専用作業tree、288 MiBの構築木、branchを削除して884,092 KiBを回収した。再開条件は動的センサー識別子の定義所有を狭い製品実装へ移し、公開識別子・製品ABI・実行値・対象閉包を保つ先行構造改善の成立である。
+- `g212-dynamic-sensor-id-ownership-audit`の状態は`auditing`、担当は`/root/g208_raster_keyframe_schema`である。`plugins/paintops/libpaintop/KisDynamicSensorIds.h`の17値を宣言へ変え、最小の製品`.cpp`へ定義を集約する場合について、現在の内部linkage、全利用元、object targetと製品libraryの収容先、export要否、初期化・地域化・識別値、API検出、ABI、限定試験閉包を独立監査する。読み取り専用で、変更、構成、構築、試験、Git操作、追加委任を行わない。
 - 標準曲線option担当は、既存targetの5工程・11入力超過、CMake変更、新探索路・定義・link、候補headerのAUTOMOC入力化、製品shared・OBJECT・`kritatestsdk`接続、option・widget factory関連の製品未解決記号、対象値・widget・inlineまたはtemplate本文の実体化・実行、許可path外変更が必要なら停止する。変更なし計画と直接依存、旧binaryでの追加枠不存在、宣言段階の初期失敗、追加5枠の単発と各20回反復、対象・近傍CTest、AUTOMOC後の二回目計画、無作業再構築2回、動的接続・未解決記号・構文・書式、公開API検査、`verify-quick`を確認する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
 
 ### 第213便の先行監査担当票（第212便確定待ち）
@@ -413,7 +414,7 @@
 - `g217-image-contract-audit`の状態は`completed`で、image・paintop・pigment領域から色付けmaskの型・装置・投影・key stroke・再生成・表示option 57 APIを選定した。既存mask契約から責務を分けた新規専用targetで4工程・8入力を予測する。公開署名にundo型があるため、正式報告後の独立閉包確認で探索路不要の予測を再検証する。
 - `g217-ui-contract-audit`の状態は`completed`で、widgetutils・widgets・libkis・UI領域からlayer一覧の色label・文字列絞り込みとpopup操作23 APIを選定した。新規専用targetへ分け、application生成版export header、image・global探索路、Qt Widgets interfaceによる4工程・8入力を予測する。
 - `g217-flake-contract-audit`の状態は`completed`で、flake・SVG・変形工具領域からSVG図形の外観読込状態・描画・様式保存20 APIを選定した。`SvgGraphicsContext.h`、`KoShapePainter.h`、`SvgStyleWriter.h`を新規専用targetの5枠3・3・7・4・3へ固定し、Qt Core・Testとheader-only Boostだけを直接接続する4工程・8入力を予測する。
-- `g217-colorize-mask-closure-review`の状態は`auditing`、担当は`/root/g208_raster_keyframe_schema`である。色付けmask 57 APIの一責務性、undo・pigmentを含む推移include、4工程・8入力、5工程・11入力の停止線、製品非接続を暫定不足報告と既存Ninja生成物だけで独立再検査する。読み取り専用で、変更、構成、構築、試験、Git操作、追加委任を行わない。
+- `g217-colorize-mask-closure-review`の状態は`completed`である。正式候補57件、一意性、現台帳との非重複、一責務性、5枠7・11・15・8・16を独立確認した。`KoColor`、`KUndo2MagicString`、visitor、lazybrush key strokeはpointer・referenceまたは未評価container型だけで観測し、完全定義やpainting/undo探索路を加えない。既存変形mask契約と同じ4工程・8入力を予測し、1,196工程・2,416入力の製品`kritaimage`を構築しない。
 - `g217-svg-presentation-closure-review`の状態は`auditing`、担当は`/root/g178_paintop_settings_schema`である。SVG外観20 APIの一責務性、3 headerの完全識別子、Qt Gui・Xmlのinterface探索、4工程・8入力、5工程・11入力の停止線、製品非接続を独立再検査する。読み取り専用で、変更、構成、構築、試験、Git操作、追加委任を行わない。
 
 ### 第201便の先行監査担当票
