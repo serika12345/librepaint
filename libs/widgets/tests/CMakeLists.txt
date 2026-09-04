@@ -126,6 +126,7 @@ target_include_directories(KoStrokeConfigWidgetSchemaContractTest PRIVATE
     ${CMAKE_CURRENT_BINARY_DIR}/..
     ${CMAKE_SOURCE_DIR}/libs/flake
     ${CMAKE_BINARY_DIR}/libs/flake
+    ${CMAKE_SOURCE_DIR}/libs/flake/svg
     $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Gui,INTERFACE_INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Widgets,INTERFACE_INCLUDE_DIRECTORIES>
 )
