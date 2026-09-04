@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-04 22:13 JST
+- 更新日時: 2026-09-04 22:17 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -301,9 +301,9 @@
 ### 第211便の担当計画
 
 - 実装共通基点は`e4e2ed8b12`である。一度に一つだけ作る専用worktree-local `build/tdd-macos`と主作業treeの共有compiler cacheを使い、担当側の`./scripts/run-shared-test-env`で読み込み済み環境を利用する。brush preset、SVG文字列command群、スクリプト向けアプリケーション根の順に限定検証・統合・削除し、調整担当だけが文書、公開API台帳、共通不足報告を変更する。各担当のGit権限は許可pathだけの1受渡しcommitで、追加委任は禁止する。
-- `g211-paintop-preset-schema`の状態は`ready`、作業treeは`/Users/masato/Documents/librepaint-g211-paintop-preset-schema`、受渡しcommitは`7bb41e1001`である。開始`libs/image/brushengine/kis_paintop_preset.h`の残存全43 APIを、新規`libs/image/tests/KisPaintOpPresetSchemaContractTest.cpp`の5枠`paintOpPresetTypeLifetimeAndUpdateSuppressionSchemaRemainStable`、`paintOpPresetIdentitySettingsAndSerializationSignaturesRemainStable`、`paintOpPresetCloneAndUpdateInterfaceSignaturesRemainStable`、`paintOpPresetMaskingAndResourceInterfaceSignaturesRemainStable`、`paintOpPresetResourceSnapshotAndCacheSignaturesRemainStable`へ9・12・5・7・10件で対応付けた。許可path内の新規試験sourceと`libs/image/tests/CMakeLists.txt`の新target固有節だけを変更し、macOSで各枠20回、対象・近傍CTest、4工程・8入力、無作業再構築、接続・記号・AUTOMOC、公開API・方針検査に成功した。
+- `g211-paintop-preset-schema`の状態は`integrated`である。開始`libs/image/brushengine/kis_paintop_preset.h`の残存全43 APIを、新規`libs/image/tests/KisPaintOpPresetSchemaContractTest.cpp`の5枠`paintOpPresetTypeLifetimeAndUpdateSuppressionSchemaRemainStable`、`paintOpPresetIdentitySettingsAndSerializationSignaturesRemainStable`、`paintOpPresetCloneAndUpdateInterfaceSignaturesRemainStable`、`paintOpPresetMaskingAndResourceInterfaceSignaturesRemainStable`、`paintOpPresetResourceSnapshotAndCacheSignaturesRemainStable`へ9・12・5・7・10件で対応付けた。受渡しcommit`7bb41e1001`を統合commit`540ccc2576`として取り込み、担当側と中央のmacOSで各枠20回、対象・近傍CTest、4工程・8入力、AUTOMOC後の二回目計画、無作業再構築2回、接続・未解決記号・構文・書式、公開API・方針検査に成功した。台帳は20,372件対応、9,466件未対応となった。cleanな専用作業tree、291,768 KiBの構築木、branchを統合直後に削除し、881,484 KiBを回収した。
 - brush preset担当の停止線は5工程・11入力である。Qt Xml・Widgetsまたは製品libraryの動的接続、計画外の探索路・定義・link、候補headerのAUTOMOC入力化、製品shared・OBJECT・`kritatestsdk`、preset・設定・資源・cache関連の製品未解決記号、対象値やinline本文の実体化・実行、許可path外変更が必要なら停止する。編集前後の計画・依存・空閉包、対象不存在と宣言段階の初期失敗、追加5枠の単発と各20回反復、対象・近傍CTest、AUTOMOC後の二回目計画、無作業再構築2回、動的接続・未解決記号・構文・書式、公開API検査、`verify-quick`を確認する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
-- `g211-svg-text-command-schema`と`g211-krita-facade-schema`の状態は`planned`である。brush preset担当の統合と作業tree削除後に一担当ずつ割り当てる。前者は既存`SvgTextCursorPropertySchemaContractTest.cpp`だけを変更し、後者は新規`KritaSchemaContractTest.cpp`と`libs/libkis/tests/CMakeLists.txt`の新target固有節だけを変更する。
+- `g211-svg-text-command-schema`の状態は`planned`で、次の実装担当とする。既存`SvgTextCursorPropertySchemaContractTest.cpp`だけを変更する。`g211-krita-facade-schema`はその統合と作業tree削除後に新規`KritaSchemaContractTest.cpp`と`libs/libkis/tests/CMakeLists.txt`の新target固有節だけを変更する。
 
 ### 第212便の先行監査担当票（第211便確定待ち）
 
@@ -362,15 +362,17 @@
 - 監査共通基点は`501e772e72`、暫定入力は`build/tdd-macos/public-api-missing-g211.json`である。第210便までの契約済み責務と、第211便から第214便で選定済みのbrush preset、SVG文字列command群、スクリプト向けアプリケーション根、標準曲線option、変形mask adapter、raster面・色channel、gradient painter、変形状態、canvas animation state、SVG図形交換、histogram描画、色空間factoryを除外する。監査中は主作業treeを読み取り専用で共有し、変更、構成、構築、試験、Git操作、追加委任を行わない。既存Ninja graphのquery・commands・inputsは読み取り専用で利用できる。
 - `g215-flake-contract-audit`の状態は`completed`で、`KoShape`と`KoShapeLayer`が公開する図形状態・所有接続・複製・委任・描画補助・layer構造22 APIを選定した。既存82行・5枠の`KoShapeStateSchemaContractTest`へ5枠を追加しても上限内で、CMake変更なしの4工程・8入力を維持する。
 - `g215-ui-contract-audit`の状態は`completed`で、`KisAsyncColorSamplerHelper`の型・状態・採取操作・preview描画・色通知20 APIを選定した。新規`KisAsyncColorSamplerHelperSchemaContractTest`はQt Core・Testだけを直接接続し、application・image・global探索路と3 export定義による4工程・8入力を予測する。
-- `g215-image-contract-audit`の状態は`auditing`である。`libs/image/`、paintop、pigment領域から選定済み責務と重ならない一責務20〜80 APIを最大5枠へ固定できる候補を比較する。3領域の候補は開始header、試験source、所有CMake、生成物が相互に異なり、製品shared・OBJECT・`kritatestsdk`へ接続せず、targetが概ね4〜10工程へ閉じる組合せだけを第215便計画へ進める。
-- `g215-shape-state-closure-review`の状態は`reviewing`で、2 headerの22 APIと5枠8・3・3・2・6、既存`KoShapeStateSchemaContractTest`への追記、4工程・8入力閉包を独立再検査する。
-- `g215-async-sampler-closure-review`の状態は`reviewing`で、`KisAsyncColorSamplerHelper.h`の20 APIと5枠4・6・2・5・3、新規targetの4工程・8入力閉包を独立再検査する。
+- `g215-image-contract-audit`の状態は`completed`で、`KoColorSpaceRegistry.h`の色空間・profile登録、検索、変換経路63 APIを選定した。既存色空間契約は272行・15枠のため新規専用targetへ分け、Qt Core・Gui・Testとheader-only Boostによる4工程・8入力を予測する。
+- `g215-shape-state-closure-review`の状態は`completed`で、2 headerの22 APIと5枠8・3・3・2・6、既存`KoShapeStateSchemaContractTest`への追記を独立確認した。CMake変更なし、Qt Core・Gui・Test・Xml、4工程・8入力を維持でき、resources探索路の追加は不要である。
+- `g215-async-sampler-closure-review`の状態は`completed`で、`KisAsyncColorSamplerHelper.h`の20 APIと5枠4・6・2・5・3を独立確認した。application生成探索路を優先して誤った`kritaui_export.h`を避け、Qt Core・Testだけを直接接続する4工程・8入力へ閉じられる。
+- `g215-color-registry-closure-review`の状態は`reviewing`で、`KoColorSpaceRegistry.h`の63 APIと5枠11・10・13・11・18、新規targetの4工程・8入力閉包、`HAVE_OPENEXR`条件下の`alpha16f`を独立再検査する。
 
 ### 第215便の先行監査結果（第214便確定待ち）
 
 - flake領域は`libs/flake/KoShape.h`の16 APIと`KoShapeLayer.h`の6 APIを、図形への補助状態の所有接続8、複製・設定3、委任・snap 3、handle描画補助2、layer型・構築・表示6として既存`libs/flake/tests/KoShapeStateSchemaContractTest.cpp`の5枠へ固定する。Qt Core・Gui・Test・Xml、既存flake・global・resources探索路と`kritaflake_EXPORTS`による4工程・8入力、停止線5工程・11入力を維持する。
 - UI領域は`libs/ui/tool/KisAsyncColorSamplerHelper.h`の20 APIを、型・寿命・状態4、起動・操作6、preview・描画2、全体色・輪郭通知5、色通知3として新規`libs/ui/tests/KisAsyncColorSamplerHelperSchemaContractTest.cpp`の5枠へ固定する。Qt Core・Testを直接接続し、application・image・global探索路と対応するexport定義による4工程・8入力、停止線5工程・11入力を予測する。
-- 両候補は型特性、厳密な関数pointer、未評価式だけで対象型、Qt値、図形、採取helperを実体化せず観測する。候補headerのAUTOMOC入力化、製品shared・OBJECT・`kritatestsdk`、計画外の探索路・定義・動的接続、製品未解決記号、本文のODR-useが必要なら停止する。image領域の候補を加え、正式な第215便不足報告で全識別子と閉包を再照合する。
+- pigment領域は`libs/pigment/KoColorSpaceRegistry.h`の63 APIを、型・寿命・方針11、factory・profile更新10、profile・catalog照会13、色空間解決・変換11、既定色空間18として新規`libs/pigment/tests/KoColorSpaceRegistrySchemaContractTest.cpp`の5枠へ固定する。pigment・global探索路、KF I18n interface、Qt Core・Gui・Testとheader-only Boost、2 export定義による4工程・8入力、停止線5工程・11入力を予測する。
+- 3候補は合計105 API・15枠である。型特性、厳密な関数pointer、未評価式だけで対象型、Qt値、図形、採取helper、色空間registryを実体化せず観測する。候補headerのAUTOMOC入力化、製品shared・OBJECT・`kritatestsdk`、計画外の探索路・定義・動的接続、製品未解決記号、本文のODR-useが必要なら停止する。正式な第215便不足報告で全識別子と閉包を再照合する。
 
 ### 第201便の先行監査担当票
 

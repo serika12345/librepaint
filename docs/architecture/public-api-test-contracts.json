@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 9509
+    "expectedMissingApis": 9466
   },
   "contracts": [
     {
@@ -56713,6 +56713,94 @@
         "method:Document::tryBarrierLock()",
         "method:Document::unlock()",
         "method:Document::waitForDone()"
+      ]
+    },
+    {
+      "target": "KisPaintOpPresetSchemaContractTest",
+      "source": "libs/image/tests/KisPaintOpPresetSchemaContractTest.cpp",
+      "test": "KisPaintOpPresetSchemaContractTest::paintOpPresetTypeLifetimeAndUpdateSuppressionSchemaRemainStable",
+      "behavior": "描画プリセットは公開型、構築・破棄・複製可能性、代入禁止、および更新通知を抑止する寿命管理型の契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisPaintOpPreset",
+        "class:KisPaintOpPreset::UpdatedPostponer",
+        "method:KisPaintOpPreset::KisPaintOpPreset()",
+        "method:KisPaintOpPreset::KisPaintOpPreset(const KisPaintOpPreset & rhs)",
+        "method:KisPaintOpPreset::KisPaintOpPreset(const QString & filename)",
+        "method:KisPaintOpPreset::UpdatedPostponer::UpdatedPostponer(KisPaintOpPresetSP preset)",
+        "method:KisPaintOpPreset::UpdatedPostponer::~UpdatedPostponer()",
+        "method:KisPaintOpPreset::operator =(const KisPaintOpPreset & rhs)",
+        "method:KisPaintOpPreset::~KisPaintOpPreset()"
+      ]
+    },
+    {
+      "target": "KisPaintOpPresetSchemaContractTest",
+      "source": "libs/image/tests/KisPaintOpPresetSchemaContractTest.cpp",
+      "test": "KisPaintOpPresetSchemaContractTest::paintOpPresetIdentitySettingsAndSerializationSignaturesRemainStable",
+      "behavior": "描画プリセットは方式識別、設定所有、資源種別、XML読書き、および削除・拡張子方針の公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPaintOpPreset::defaultFileExtension() const",
+        "method:KisPaintOpPreset::fromXML(const QDomElement & elt,KisResourcesInterfaceSP resourcesInterface)",
+        "method:KisPaintOpPreset::loadFromDevice(QIODevice * dev,KisResourcesInterfaceSP resourcesInterface)",
+        "method:KisPaintOpPreset::name() const",
+        "method:KisPaintOpPreset::paintOp() const",
+        "method:KisPaintOpPreset::removable() const",
+        "method:KisPaintOpPreset::resourceType() const",
+        "method:KisPaintOpPreset::saveToDevice(QIODevice * dev) const",
+        "method:KisPaintOpPreset::setPaintOp(const KoID & paintOp)",
+        "method:KisPaintOpPreset::setSettings(KisPaintOpSettingsSP settings)",
+        "method:KisPaintOpPreset::settings() const",
+        "method:KisPaintOpPreset::toXML(QDomDocument & doc,QDomElement & elt) const"
+      ]
+    },
+    {
+      "target": "KisPaintOpPresetSchemaContractTest",
+      "source": "libs/image/tests/KisPaintOpPresetSchemaContractTest.cpp",
+      "test": "KisPaintOpPresetSchemaContractTest::paintOpPresetCloneAndUpdateInterfaceSignaturesRemainStable",
+      "behavior": "描画プリセットは複製、連結資源情報の更新、更新通知窓口、および共通設定項目の公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPaintOpPreset::clone() const",
+        "method:KisPaintOpPreset::uniformProperties()",
+        "method:KisPaintOpPreset::updateLinkedResourcesMetaData()",
+        "method:KisPaintOpPreset::updateProxy() const",
+        "method:KisPaintOpPreset::updateProxyNoCreate() const"
+      ]
+    },
+    {
+      "target": "KisPaintOpPresetSchemaContractTest",
+      "source": "libs/image/tests/KisPaintOpPresetSchemaContractTest.cpp",
+      "test": "KisPaintOpPresetSchemaContractTest::paintOpPresetMaskingAndResourceInterfaceSignaturesRemainStable",
+      "behavior": "描画プリセットはマスク用プリセットと全体・キャンバス資源窓口の取得・設定、および必須キャンバス資源の公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPaintOpPreset::canvasResourcesInterface() const",
+        "method:KisPaintOpPreset::createMaskingPreset() const",
+        "method:KisPaintOpPreset::hasMaskingPreset() const",
+        "method:KisPaintOpPreset::requiredCanvasResources() const",
+        "method:KisPaintOpPreset::resourcesInterface() const",
+        "method:KisPaintOpPreset::setCanvasResourcesInterface(KoCanvasResourcesInterfaceSP canvasResourcesInterface)",
+        "method:KisPaintOpPreset::setResourcesInterface(KisResourcesInterfaceSP resourcesInterface)"
+      ]
+    },
+    {
+      "target": "KisPaintOpPresetSchemaContractTest",
+      "source": "libs/image/tests/KisPaintOpPresetSchemaContractTest.cpp",
+      "test": "KisPaintOpPresetSchemaContractTest::paintOpPresetResourceSnapshotAndCacheSignaturesRemainStable",
+      "behavior": "描画プリセットは局所資源snapshot、連結・埋込み・追加読込み資源、および資源cacheの設定・再生成・整合性確認に関する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPaintOpPreset::clearSideLoadedResources()",
+        "method:KisPaintOpPreset::cloneWithResourcesSnapshot(KisResourcesInterfaceSP globalResourcesInterface,KoCanvasResourcesInterfaceSP canvasResourcesInterface,KoResourceCacheInterfaceSP cacheInterface) const",
+        "method:KisPaintOpPreset::embeddedResources(KisResourcesInterfaceSP globalResourcesInterface) const",
+        "method:KisPaintOpPreset::hasLocalResourcesSnapshot() const",
+        "method:KisPaintOpPreset::linkedResources(KisResourcesInterfaceSP globalResourcesInterface) const",
+        "method:KisPaintOpPreset::regenerateResourceCache(KoResourceCacheInterfaceSP cacheInterface)",
+        "method:KisPaintOpPreset::resourceCacheInterface() const",
+        "method:KisPaintOpPreset::sanityCheckResourceCacheIsValid(KoResourceCacheInterfaceSP cacheInterface) const",
+        "method:KisPaintOpPreset::setResourceCacheInterface(KoResourceCacheInterfaceSP cacheInterface)",
+        "method:KisPaintOpPreset::sideLoadedResources(KisResourcesInterfaceSP globalResourcesInterface) const"
       ]
     }
   ]
