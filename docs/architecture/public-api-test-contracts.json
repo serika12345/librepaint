@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 10134
+    "expectedMissingApis": 10105
   },
   "contracts": [
     {
@@ -55143,6 +55143,80 @@
         "method:KoShapeUngroupCommand::redo()",
         "method:KoShapeUngroupCommand::undo()",
         "method:KoShapeUngroupCommand::~KoShapeUngroupCommand()"
+      ]
+    },
+    {
+      "target": "PaletteSchemaContractTest",
+      "source": "libs/libkis/tests/PaletteSchemaContractTest.cpp",
+      "test": "PaletteSchemaContractTest::paletteViewTypeLifetimeAndModelSchemaRemainStable",
+      "behavior": "native palette viewは表表示の派生型として既定parentで構築・仮想破棄でき、palette modelを照会・設定する公開契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisPaletteView",
+        "method:KisPaletteView::KisPaletteView(QWidget * parent=0)",
+        "method:KisPaletteView::paletteModel() const",
+        "method:KisPaletteView::setPaletteModel(KisPaletteModel * model)",
+        "method:KisPaletteView::~KisPaletteView()"
+      ]
+    },
+    {
+      "target": "PaletteSchemaContractTest",
+      "source": "libs/libkis/tests/PaletteSchemaContractTest.cpp",
+      "test": "PaletteSchemaContractTest::paletteViewSelectionAndModificationSignaturesRemainStable",
+      "behavior": "native palette viewは色とgroupの追加・削除、近似色の検索・選択、表示位置、編集許可、前景色追従に関する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPaletteView::addEntryWithDialog(KoColor color)",
+        "method:KisPaletteView::addGroupWithDialog()",
+        "method:KisPaletteView::closestColor(const KoColor & color) const",
+        "method:KisPaletteView::removeEntryWithDialog(QModelIndex index)",
+        "method:KisPaletteView::removeSelectedEntry()",
+        "method:KisPaletteView::scrollTo(const QModelIndex & index,ScrollHint hint=EnsureVisible)",
+        "method:KisPaletteView::selectClosestColor(const KoColor & color)",
+        "method:KisPaletteView::setAllowModification(bool allow)",
+        "method:KisPaletteView::slotFGColorChanged(const KoColor &)"
+      ]
+    },
+    {
+      "target": "PaletteSchemaContractTest",
+      "source": "libs/libkis/tests/PaletteSchemaContractTest.cpp",
+      "test": "PaletteSchemaContractTest::paletteViewRenderingAndNotificationSignaturesRemainStable",
+      "behavior": "native palette viewは交差表示条件と色表示rendererを設定し、色・索引選択とscroller状態を通知または受理する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPaletteView::setCrossedKeyword(const QString & value)",
+        "method:KisPaletteView::setDisplayRenderer(const KoColorDisplayRendererInterface * displayRenderer)",
+        "method:KisPaletteView::sigColorSelected(const KoColor &)",
+        "method:KisPaletteView::sigIndexSelected(const QModelIndex & index)",
+        "method:KisPaletteView::slotScrollerStateChanged(QScroller::State state)"
+      ]
+    },
+    {
+      "target": "PaletteSchemaContractTest",
+      "source": "libs/libkis/tests/PaletteSchemaContractTest.cpp",
+      "test": "PaletteSchemaContractTest::scriptPaletteViewTypeLifetimeAndPaletteSchemaRemainStable",
+      "behavior": "scripting palette viewはwidgetの派生型として既定parentで構築・仮想破棄でき、表示対象paletteを設定する公開契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:PaletteView",
+        "method:PaletteView::PaletteView(QWidget * parent=0)",
+        "method:PaletteView::setPalette(Palette * palette)",
+        "method:PaletteView::~PaletteView()"
+      ]
+    },
+    {
+      "target": "PaletteSchemaContractTest",
+      "source": "libs/libkis/tests/PaletteSchemaContractTest.cpp",
+      "test": "PaletteSchemaContractTest::scriptPaletteViewEditingAndNotificationSignaturesRemainStable",
+      "behavior": "scripting palette viewは色とgroupの追加・選択項目の削除・近似色選択を行い、前景色・背景色のswatch選択を通知する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:PaletteView::addEntryWithDialog(ManagedColor * color)",
+        "method:PaletteView::addGroupWithDialog()",
+        "method:PaletteView::entrySelectedBackGround(Swatch entry)",
+        "method:PaletteView::entrySelectedForeGround(Swatch entry)",
+        "method:PaletteView::removeSelectedEntryWithDialog()",
+        "method:PaletteView::trySelectClosestColor(ManagedColor * color)"
       ]
     }
   ]

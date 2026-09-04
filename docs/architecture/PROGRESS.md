@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-04 16:01 JST
+- 更新日時: 2026-09-04 16:06 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -61,7 +61,13 @@
 - 実装共通基点は`0e65012a1b`である。一度に一つだけ作る専用worktree-local `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有し、`./scripts/run-shared-test-env`で読み込み済み環境を使う。各担当のGit権限は許可pathだけの受渡しcommit、追加委任は禁止する。undo-command型stroke strategy、図形group、palette viewの順に限定検証・統合・削除し、調整担当だけが文書、公開API台帳、共通不足報告を変更する。製品target、全体build・`verify`、Linux、Nix再評価は禁止する。
 - `g203-undo-command-stroke-schema`の状態は`integrated`、macOSの対象・近傍に限る構築実行許可は`granted`である。正式不足報告の`libs/image/kis_stroke_strategy_undo_command_based.h`残存全20 APIを、新規`libs/image/tests/KisStrokeStrategyUndoCommandBasedSchemaContractTest.cpp`の5枠`undoCommandStrategyTypeAndConstructionSchemaRemainStable`、`undoCommandDataTypeAndOwnershipSchemaRemainStable`、`undoCommandDataConstructionSignaturesRemainStable`、`undoCommandMutationInterfaceSchemaRemainStable`、`undoCommandLifecycleAndConfigurationSignaturesRemainStable`へ2・5・2・4・7件で対応付けた。初回redで判明した`QAction`の不足は対象固有のQt Gui interface探索路だけで解決し、直接linkはQt Core・Testのまま維持した。受渡しcommit `95d1b48666`を統合commit `1c03ea8a58`として取り込み、担当側で追加5枠を各20回、対象と近傍を実行し、中央でも対象`libs-image-KisStrokeStrategyUndoCommandBasedSchemaContractTest`と近傍`libs-image-KisProcessingApplicatorSchemaContractTest`、AUTOMOC後の二回目計画と無作業再構築に成功した。4工程・8入力、候補headerのAUTOMOC非入力化、Qt Guiの動的非接続、製品非接続を実測し、台帳は19,682件対応、10,156件未対応となった。cleanな専用作業tree、構築木、branchを統合直後に削除し、885,944 KiBを回収した。
 - `g203-shape-group-schema`の状態は`integrated`、macOSの対象・近傍に限る構築実行許可は`granted`である。正式不足報告の`libs/flake/KoShapeGroup.h`の10 API、`commands/KoShapeGroupCommand.h`の7 API、`commands/KoShapeUngroupCommand.h`の5 APIを、既存`libs/flake/tests/KoShapeReorderCommandSchemaContractTest.cpp`の5枠`shapeGroupTypeLifetimeAndCloneSchemaRemainStable`、`shapeGroupGeometryAndRenderingSignaturesRemainStable`、`shapeGroupCommandTypeLifetimeAndConstructionSchemaRemainStable`、`shapeGroupCommandCreationAndExecutionSignaturesRemainStable`、`shapeUngroupCommandSchemaRemainStable`へ4・6・4・3・5件で対応付けた。CMake、公開header、製品sourceを変更せず、受渡しcommit `fe31cf2787`を統合commit `3fcbe80efe`として取り込んだ。担当側で追加5枠を各20回、対象と近傍を実行し、中央でも対象`libs-flake-KoShapeReorderCommandSchemaContractTest`と近傍`libs-flake-KoPathPointTopologyCommandSchemaContractTest`、AUTOMOC後の二回目計画と無作業再構築に成功した。4工程・8入力、Qt Core・Testだけの動的接続、候補headerのAUTOMOC非入力化、製品非接続を維持し、台帳は19,704件対応、10,134件未対応となった。cleanな専用作業tree、構築木、branchを統合直後に削除し、881,548 KiBを回収した。
-- `g203-palette-view-schema`の状態は`implementing`、macOSの対象・近傍に限る構築実行許可は`granted`で、基点`0f76bb79e3`の作業tree`/Users/masato/Documents/librepaint-g203-palette-view-schema`を所有する。正式不足報告の`libs/widgets/kis_palette_view.h`の19 APIと`libs/libkis/PaletteView.h`の10 APIを、既存`libs/libkis/tests/PaletteSchemaContractTest.cpp`の5枠`paletteViewTypeLifetimeAndModelSchemaRemainStable`、`paletteViewSelectionAndModificationSignaturesRemainStable`、`paletteViewRenderingAndNotificationSignaturesRemainStable`、`scriptPaletteViewTypeLifetimeAndPaletteSchemaRemainStable`、`scriptPaletteViewEditingAndNotificationSignaturesRemainStable`へ5・9・5・4・6件で対応付ける。許可pathは既存試験sourceと`libs/libkis/tests/CMakeLists.txt`の対象固有節だけで、widgets・widgetutilsのsource/generated探索路、Qt Widgets interface、`kritawidgets_EXPORTS`と`kritawidgetutils_EXPORTS`だけを追加できる。対象`PaletteSchemaContractTest`、正式CTest`libs-libkis-PaletteSchemaContractTest`、近傍`KisPaletteModelSchemaContractTest`である。4工程・8入力を維持し、5工程・11入力超過、指定外探索路・link・定義、AUTOMOC入力化、Qt Widgetsまたは製品libraryの動的接続、実体化・本文実行が必要なら停止する。
+- `g203-palette-view-schema`の状態は`integrated`、macOSの対象・近傍に限る構築実行許可は`granted`である。正式不足報告の`libs/widgets/kis_palette_view.h`の19 APIと`libs/libkis/PaletteView.h`の10 APIを、既存`libs/libkis/tests/PaletteSchemaContractTest.cpp`の5枠`paletteViewTypeLifetimeAndModelSchemaRemainStable`、`paletteViewSelectionAndModificationSignaturesRemainStable`、`paletteViewRenderingAndNotificationSignaturesRemainStable`、`scriptPaletteViewTypeLifetimeAndPaletteSchemaRemainStable`、`scriptPaletteViewEditingAndNotificationSignaturesRemainStable`へ5・9・5・4・6件で対応付けた。対象固有CMake節へwidgets・widgetutilsのsource/generated探索路、Qt Widgets interface、`kritawidgets_EXPORTS`と`kritawidgetutils_EXPORTS`だけを加え、linkは変更していない。受渡しcommit `6cd90649d0`を統合commit `5ed513aad5`として取り込み、担当側で追加5枠を各20回、対象と近傍を実行し、中央でも対象`libs-libkis-PaletteSchemaContractTest`と軽量近傍`libs-libkis-GridConfigSchemaContractTest`、AUTOMOC後の二回目計画と無作業再構築に成功した。4工程・8入力、Qt Core・Gui・Testだけの動的接続、候補headerのAUTOMOC非入力化、製品非接続を維持し、台帳は19,733件対応、10,105件未対応となった。cleanな専用作業tree、構築木、branchを統合直後に削除し、882,912 KiBを回収した。
+
+### 第203便の統合結果
+
+- `libs/image/kis_stroke_strategy_undo_command_based.h`から新規`libs/image/tests/KisStrokeStrategyUndoCommandBasedSchemaContractTest.cpp`へ20 API・5枠、`libs/flake/KoShapeGroup.h`とgroup・ungroup commandから既存`libs/flake/tests/KoShapeReorderCommandSchemaContractTest.cpp`へ22 API・5枠、`libs/widgets/kis_palette_view.h`と`libs/libkis/PaletteView.h`から既存`libs/libkis/tests/PaletteSchemaContractTest.cpp`へ29 API・5枠を追加した。公開headerと製品sourceを変更せず、3対象とも4工程・8入力と製品非接続を維持した。
+- 第203便全体で71 APIを15枠へ重複なく対応付け、19,733件対応、10,105件未対応となった。担当側と中央で対象CTest、各追加枠の20回反復、AUTOMOC後の二回目計画、無作業再構築、動的接続・未解決記号・書式、公開API検査、`verify-quick`に成功した。中央のpalette近傍は当初候補の`KisPaletteModelSchemaContractTest`が13工程と製品`kritaresourceui`・`kritaflake`を要求し、既存の未解決記号と不完全型診断で失敗したため、同じlibkisの3工程・8入力で製品非接続の`GridConfigSchemaContractTest`へ限定した。製品側の既存失敗はこの契約変更の対象外として残り、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 3担当のcleanな専用作業tree、構築木、branchを統合直後に削除し、合計2,650,404 KiBを回収した。主Ninja木と共有compiler cacheは次便の対象限定構築へ再利用し、第204便の正式不足報告を生成した後は旧`public-api-missing-g203.json`を削除して最新報告だけを保持する。
 
 ### 第204便の先行監査担当票（第203便確定待ち）
 
@@ -69,8 +75,8 @@
 - `g204-image-contract-audit`の状態は`completed`で、image・paintop・pigment領域からASL layer style serializer 22 APIを選定した。
 - `g204-flake-contract-audit`の状態は`completed`で、flake・SVG・vector領域から図形fillの取得・変更・gradient補助・背景描画20 APIを選定した。
 - `g204-ui-contract-audit`の状態は`completed`で、widgetutils・widgets・libkis領域から単位付き倍精度入力と既定単位管理器の生成面22 APIを選定した。
-- `g204-image-closure-review`の状態は`reviewing`、変更・構築実行・Git権限は`withheld`である。`libs/image/kis_asl_layer_style_serializer.h`の残存22 APIから既存`libs/image/tests/KisPSDLayerStyleSchemaContractTest.cpp`の5枠への完全対応、CMake変更なしの4工程・8入力、製品非接続、候補headerのAUTOMOC非入力化、実体化・本文実行の不要性を独立確認する。
-- `g204-flake-closure-review`の状態は`reviewing`、変更・構築実行・Git権限は`withheld`である。`libs/flake/KoShapeFillWrapper.h`の17 API、`KoFlake.h`のgradient補助2 API、`KoPatternBackground.h`の描画1 APIから既存`libs/flake/tests/KoPatternBackgroundSchemaContractTest.cpp`の5枠への完全対応、CMake変更なしの4工程・8入力、製品非接続、候補headerのAUTOMOC非入力化、実体化・本文実行の不要性を独立確認する。
+- `g204-image-closure-review`の状態は`completed`で、ASL layer style serializerの22 APIは既存PSD layer style契約へCMake変更なしで追加でき、4工程・8入力、製品非接続、候補headerのAUTOMOC非入力化を維持できることを独立確認した。
+- `g204-flake-closure-review`の状態は`completed`で、図形fillの20 APIは既存pattern背景契約へCMake変更なしで追加でき、4工程・8入力、Qt Core・Testだけの動的接続、製品非接続、候補headerのAUTOMOC非入力化を維持できることを独立確認した。
 
 ### 第201便の先行監査担当票
 
