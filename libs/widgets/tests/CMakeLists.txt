@@ -135,13 +135,23 @@ target_compile_definitions(KoStrokeConfigWidgetSchemaContractTest PRIVATE
     kritawidgets_EXPORTS
 )
 
+set(KisGradientColorEditorSchemaContractTest_UI)
+ki18n_wrap_ui(KisGradientColorEditorSchemaContractTest_UI
+    ../wdgstopgradienteditor.ui
+)
+
 kis_add_test(
     KisGradientColorEditorSchemaContractTest.cpp
     LINK_LIBRARIES Qt${QT_MAJOR_VERSION}::Core Qt${QT_MAJOR_VERSION}::Test
 )
+set_property(TARGET KisGradientColorEditorSchemaContractTest APPEND PROPERTY
+    AUTOGEN_TARGET_DEPENDS ${KisGradientColorEditorSchemaContractTest_UI}
+)
 target_include_directories(KisGradientColorEditorSchemaContractTest PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/..
     ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/widgetutils
+    ${CMAKE_BINARY_DIR}/libs/widgetutils
     ${CMAKE_SOURCE_DIR}/libs/pigment
     ${CMAKE_BINARY_DIR}/libs/pigment
     ${CMAKE_SOURCE_DIR}/libs/pigment/resources
@@ -160,6 +170,7 @@ target_compile_definitions(KisGradientColorEditorSchemaContractTest PRIVATE
     kritaglobal_EXPORTS
     kritapigment_EXPORTS
     kritaresources_EXPORTS
+    kritawidgetutils_EXPORTS
     kritawidgets_EXPORTS
 )
 
