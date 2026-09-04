@@ -3,7 +3,11 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "KoDrag.h"
+#include "KoPathShapeLoader.h"
+#include "KoSvgPaste.h"
 #include "svg/SvgParser.h"
+#include "svg/SvgShape.h"
 
 #include <QTest>
 #include <QXmlStreamReader>
@@ -23,6 +27,10 @@ using SymbolList = QVector<KoSvgSymbol *>;
     static_assert(std::is_same_v<decltype(static_cast<signature>(&Parser::method)), signature>)
 #define ASSERT_SVG_PARSER_STATIC_SIGNATURE(method, signature)                                                          \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&Parser::method)), signature>)
+#define ASSERT_SVG_EXCHANGE_SIGNATURE(type, method, signature)                                                         \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&type::method)), signature>)
+#define ASSERT_SVG_EXCHANGE_STATIC_SIGNATURE(type, method, signature)                                                  \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&type::method)), signature>)
 } // namespace
 
 class SvgParserSchemaContractTest : public QObject
@@ -35,6 +43,11 @@ private Q_SLOTS:
     void svgParserConfigurationSignaturesRemainStable();
     void svgParserShapeAndDefinitionSignaturesRemainStable();
     void svgParserMetadataAndWarningSignaturesRemainStable();
+    void svgDragClipboardSchemaRemainStable();
+    void svgPasteImportSchemaRemainStable();
+    void svgPathShapeLoaderSchemaRemainStable();
+    void svgShapeTypeAndLifetimeSchemaRemainStable();
+    void svgShapePersistenceSignaturesRemainStable();
 };
 
 void SvgParserSchemaContractTest::svgParserTypeLifetimeAndFileFetcherSchemaRemainStable()
@@ -94,6 +107,61 @@ void SvgParserSchemaContractTest::svgParserMetadataAndWarningSignaturesRemainSta
     ASSERT_SVG_PARSER_SIGNATURE(documentDescription, QString (Parser::*)() const);
     ASSERT_SVG_PARSER_SIGNATURE(documentTitle, QString (Parser::*)() const);
     ASSERT_SVG_PARSER_SIGNATURE(warnings, QStringList (Parser::*)() const);
+}
+
+void SvgParserSchemaContractTest::svgDragClipboardSchemaRemainStable()
+{
+    static_assert(std::is_class_v<KoDrag>);
+    static_assert(std::is_default_constructible_v<KoDrag>);
+    ASSERT_SVG_EXCHANGE_SIGNATURE(KoDrag, addToClipboard, void (KoDrag::*)());
+    ASSERT_SVG_EXCHANGE_SIGNATURE(KoDrag, mimeData, QMimeData * (KoDrag::*)());
+    ASSERT_SVG_EXCHANGE_SIGNATURE(KoDrag, setData, void (KoDrag::*)(const QString &, const QByteArray &));
+    ASSERT_SVG_EXCHANGE_SIGNATURE(KoDrag, setSvg, bool (KoDrag::*)(QList<KoShape *>));
+    static_assert(std::is_destructible_v<KoDrag>);
+}
+
+void SvgParserSchemaContractTest::svgPasteImportSchemaRemainStable()
+{
+    using Shapes = QList<KoShape *>;
+
+    static_assert(std::is_class_v<KoSvgPaste>);
+    static_assert(std::is_default_constructible_v<KoSvgPaste>);
+    ASSERT_SVG_EXCHANGE_SIGNATURE(KoSvgPaste, fetchShapes, Shapes (KoSvgPaste::*)(QRectF, qreal, QSizeF *));
+    ASSERT_SVG_EXCHANGE_STATIC_SIGNATURE(KoSvgPaste,
+                                         fetchShapesFromData,
+                                         Shapes (*)(const QByteArray &, QRectF, qreal, QSizeF *));
+    static_assert(std::is_same_v<decltype(std::declval<KoSvgPaste &>().fetchShapes(std::declval<QRectF>(),
+                                                                                   std::declval<qreal>())),
+                                 Shapes>);
+    static_assert(std::is_same_v<decltype(KoSvgPaste::fetchShapesFromData(std::declval<const QByteArray &>(),
+                                                                          std::declval<QRectF>(),
+                                                                          std::declval<qreal>())),
+                                 Shapes>);
+    ASSERT_SVG_EXCHANGE_SIGNATURE(KoSvgPaste, hasShapes, bool (KoSvgPaste::*)());
+    static_assert(std::has_virtual_destructor_v<KoSvgPaste>);
+}
+
+void SvgParserSchemaContractTest::svgPathShapeLoaderSchemaRemainStable()
+{
+    static_assert(std::is_class_v<KoPathShapeLoader>);
+    static_assert(std::is_constructible_v<KoPathShapeLoader, KoPathShape *>);
+    ASSERT_SVG_EXCHANGE_SIGNATURE(KoPathShapeLoader, parseSvg, void (KoPathShapeLoader::*)(const QString &, bool));
+    static_assert(
+        std::is_same_v<decltype(std::declval<KoPathShapeLoader &>().parseSvg(std::declval<const QString &>())), void>);
+    static_assert(std::is_destructible_v<KoPathShapeLoader>);
+}
+
+void SvgParserSchemaContractTest::svgShapeTypeAndLifetimeSchemaRemainStable()
+{
+    static_assert(std::is_class_v<SvgShape>);
+    static_assert(std::has_virtual_destructor_v<SvgShape>);
+}
+
+void SvgParserSchemaContractTest::svgShapePersistenceSignaturesRemainStable()
+{
+    ASSERT_SVG_EXCHANGE_SIGNATURE(SvgShape, loadSvg, bool (SvgShape::*)(const QDomElement &, SvgLoadingContext &));
+    ASSERT_SVG_EXCHANGE_SIGNATURE(SvgShape, saveMetadata, void (SvgShape::*)(SvgSavingContext &));
+    ASSERT_SVG_EXCHANGE_SIGNATURE(SvgShape, saveSvg, bool (SvgShape::*)(SvgSavingContext &));
 }
 
 QTEST_APPLESS_MAIN(SvgParserSchemaContractTest)
