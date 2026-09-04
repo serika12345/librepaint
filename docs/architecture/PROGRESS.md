@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-04 19:21 JST
+- 更新日時: 2026-09-04 19:24 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -209,6 +209,8 @@
 - 監査共通基点は`023dd41936`、暫定入力は`build/tdd-macos/public-api-missing-g207.json`である。第209便までの契約済み・選定済み責務と、第210便で選定済みの変形mask、文書識別・保存・close・処理同期を除外し、変更、構成、構築、試験、Git操作、追加委任を行わない読み取り専用監査を先行する。正式な第210便完了報告で全識別子と閉包を再照合する。
 - `g211-image-contract-audit`の状態は`completed`で、image・paintop・pigment領域からbrush presetの型・設定・直列化・資源snapshot・cache 43 APIを選定した。既存画像型契約は4,104行のため新規専用targetへ分け、image・global・resources探索路による4工程・8入力を予測する。
 - `g211-flake-contract-audit`の状態は`completed`で、flake・SVG・vector領域からSVG文字列の範囲変形・挿入・属性統合・削除をundo可能にする5 command型41 APIを選定した。既存`SvgTextCursorPropertySchemaContractTest`へCMake変更なしで追加し、4工程・8入力を予測する。
+- `g211-ui-contract-audit`の状態は`auditing`で、widgetutils・widgets・libkis領域から一責務20〜80 API・最大5枠の候補を比較する。完全なAPI識別子、観測契約、開始pathから契約先、許可path、既存対象と近傍、予測閉包、停止条件、棄却根拠を返す。
+- `g211-paintop-preset-closure-review`の状態は`auditing`で、`libs/image/brushengine/kis_paintop_preset.h`の43 API案について、責務の一体性、条件付き宣言、必要探索路・定義、4工程・8入力、AUTOMOC非入力化、製品非接続の成立条件を独立に読み取り専用レビューする。
 
 ### 第201便の先行監査担当票
 
