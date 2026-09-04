@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 9708
+    "expectedMissingApis": 9681
   },
   "contracts": [
     {
@@ -56199,6 +56199,78 @@
         "method:KisRasterKeyframeChannel::paintDevice()",
         "method:KisRasterKeyframeChannel::setFilenameSuffix(const QString & suffix)",
         "method:KisRasterKeyframeChannel::setOnionSkinsEnabled(bool value)"
+      ]
+    },
+    {
+      "target": "KoSelectionSchemaContractTest",
+      "source": "libs/flake/tests/KoSelectionSchemaContractTest.cpp",
+      "test": "KoSelectionSchemaContractTest::pathToolTypeLifetimeAndConstructionSchemaRemainStable",
+      "behavior": "path編集工具はcanvasを借用して構築され、工具基底を通じて仮想破棄される公開型契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoPathTool",
+        "method:KoPathTool::KoPathTool(KoCanvasBase * canvas)",
+        "method:KoPathTool::~KoPathTool()"
+      ]
+    },
+    {
+      "target": "KoSelectionSchemaContractTest",
+      "source": "libs/flake/tests/KoSelectionSchemaContractTest.cpp",
+      "test": "KoSelectionSchemaContractTest::pathToolActivationAndSelectionSignaturesRemainStable",
+      "behavior": "path編集工具は対象図形集合による起動と終了、全選択・選択解除・選択削除・現在選択取得に関する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoPathTool::activate(const QSet<KoShape * > & shapes)",
+        "method:KoPathTool::deactivate()",
+        "method:KoPathTool::deleteSelection()",
+        "method:KoPathTool::deselect()",
+        "method:KoPathTool::selectAll()",
+        "method:KoPathTool::selection()"
+      ]
+    },
+    {
+      "target": "KoSelectionSchemaContractTest",
+      "source": "libs/flake/tests/KoSelectionSchemaContractTest.cpp",
+      "test": "KoSelectionSchemaContractTest::pathToolInputSignaturesRemainStable",
+      "behavior": "path編集工具はcanvas資源変更、key入力、mouseの押下・移動・解放・二重クリックを対応する公開event署名で受け取る。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoPathTool::canvasResourceChanged(int key,const QVariant & res)",
+        "method:KoPathTool::keyPressEvent(QKeyEvent * event)",
+        "method:KoPathTool::keyReleaseEvent(QKeyEvent * event)",
+        "method:KoPathTool::mouseDoubleClickEvent(KoPointerEvent * event)",
+        "method:KoPathTool::mouseMoveEvent(KoPointerEvent * event)",
+        "method:KoPathTool::mousePressEvent(KoPointerEvent * event)",
+        "method:KoPathTool::mouseReleaseEvent(KoPointerEvent * event)"
+      ]
+    },
+    {
+      "target": "KoSelectionSchemaContractTest",
+      "source": "libs/flake/tests/KoSelectionSchemaContractTest.cpp",
+      "test": "KoSelectionSchemaContractTest::pathToolRenderingAndStrokeControlSignaturesRemainStable",
+      "behavior": "path編集工具は装飾領域の照会・再描画、canvas描画、操作menuとstrokeのundo・取消・終了要求に関する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoPathTool::decorationsRect() const",
+        "method:KoPathTool::explicitUserStrokeEndRequest()",
+        "method:KoPathTool::paint(QPainter & painter,const KoViewConverter & converter)",
+        "method:KoPathTool::popupActionsMenu()",
+        "method:KoPathTool::repaintDecorations()",
+        "method:KoPathTool::requestStrokeCancellation()",
+        "method:KoPathTool::requestStrokeEnd()",
+        "method:KoPathTool::requestUndoDuringStroke()"
+      ]
+    },
+    {
+      "target": "KoSelectionSchemaContractTest",
+      "source": "libs/flake/tests/KoSelectionSchemaContractTest.cpp",
+      "test": "KoSelectionSchemaContractTest::pathToolShapeNotificationSignaturesRemainStable",
+      "behavior": "path編集工具はpath点変更、単一path変更、点種別変更を図形または整数値で受け取る公開通知署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoPathTool::notifyPathPointsChanged(KoPathShape * shape)",
+        "method:KoPathTool::singleShapeChanged(KoPathShape * path)",
+        "method:KoPathTool::typeChanged(int types)"
       ]
     }
   ]
