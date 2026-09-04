@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 9386
+    "expectedMissingApis": 9354
   },
   "contracts": [
     {
@@ -56971,6 +56971,83 @@
         "method:Krita::krita_i18nc(const QString & context,const QString & text)",
         "method:Krita::readSetting(const QString & group,const QString & name,const QString & defaultValue)",
         "method:Krita::writeSetting(const QString & group,const QString & name,const QString & value)"
+      ]
+    },
+    {
+      "target": "KisCurveOptionSchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisCurveOptionSchemaContractTest.cpp",
+      "test": "KisCurveOptionSchemaContractTest::standardOptionTypesAndAliasesSchemaRemainStable",
+      "behavior": "標準曲線optionは適用方針を表す公開型と各標準設定型への別名契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisFlowOption",
+        "alias:KisLightnessStrengthOption",
+        "alias:KisMixOption",
+        "alias:KisRateOption",
+        "alias:KisRatioOption",
+        "alias:KisSizeOption",
+        "alias:KisSoftnessOption",
+        "alias:KisStrengthOption",
+        "class:KisStandardOption",
+        "class:KisStandardOptionNoApply"
+      ]
+    },
+    {
+      "target": "KisCurveOptionSchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisCurveOptionSchemaContractTest.cpp",
+      "test": "KisCurveOptionSchemaContractTest::standardOptionConstructionAndEvaluationSignaturesRemainStable",
+      "behavior": "標準曲線optionは設定からの構築と描画情報に対する評価の公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisStandardOption::KisStandardOption(const KisPropertiesConfiguration * setting)",
+        "method:KisStandardOption::apply(const KisPaintInformation & info) const",
+        "method:KisStandardOptionNoApply::KisStandardOptionNoApply(const KisPropertiesConfiguration * setting)"
+      ]
+    },
+    {
+      "target": "KisCurveOptionSchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisCurveOptionSchemaContractTest.cpp",
+      "test": "KisCurveOptionSchemaContractTest::standardOptionCoreWidgetFactorySignaturesRemainStable",
+      "behavior": "標準曲線optionは主要な描画量を編集するwidget生成窓口の公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisPaintOpOptionWidgetUtils::createFlowOptionWidget()",
+        "function:KisPaintOpOptionWidgetUtils::createMixOptionWidget()",
+        "function:KisPaintOpOptionWidgetUtils::createOpacityOptionWidget()",
+        "function:KisPaintOpOptionWidgetUtils::createRateOptionWidget()",
+        "function:KisPaintOpOptionWidgetUtils::createRatioOptionWidget()",
+        "function:KisPaintOpOptionWidgetUtils::createRotationOptionWidget()",
+        "function:KisPaintOpOptionWidgetUtils::createSoftnessOptionWidget()"
+      ]
+    },
+    {
+      "target": "KisCurveOptionSchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisCurveOptionSchemaContractTest.cpp",
+      "test": "KisCurveOptionSchemaContractTest::standardOptionColorAndStrengthWidgetFactorySignaturesRemainStable",
+      "behavior": "標準曲線optionは色成分と強度を編集するwidget生成窓口の公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisPaintOpOptionWidgetUtils::createDarkenOptionWidget()",
+        "function:KisPaintOpOptionWidgetUtils::createHueOptionWidget()",
+        "function:KisPaintOpOptionWidgetUtils::createSaturationOptionWidget()",
+        "function:KisPaintOpOptionWidgetUtils::createStrengthOptionWidget()",
+        "function:KisPaintOpOptionWidgetUtils::createValueOptionWidget()"
+      ]
+    },
+    {
+      "target": "KisCurveOptionSchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisCurveOptionSchemaContractTest.cpp",
+      "test": "KisCurveOptionSchemaContractTest::standardOptionMaskingWidgetFactorySignaturesRemainStable",
+      "behavior": "標準曲線optionはmasking描画の各量を編集するwidget生成窓口の公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisPaintOpOptionWidgetUtils::createMaskingFlowOptionWidget()",
+        "function:KisPaintOpOptionWidgetUtils::createMaskingMirrorOptionWidget()",
+        "function:KisPaintOpOptionWidgetUtils::createMaskingOpacityOptionWidget()",
+        "function:KisPaintOpOptionWidgetUtils::createMaskingRatioOptionWidget()",
+        "function:KisPaintOpOptionWidgetUtils::createMaskingRotationOptionWidget()",
+        "function:KisPaintOpOptionWidgetUtils::createMaskingScatterOptionWidget()",
+        "function:KisPaintOpOptionWidgetUtils::createMaskingSizeOptionWidget()"
       ]
     }
   ]
