@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include <KoPathToolSelection.h>
 #include <KoSelection.h>
 
 #include <QTest>
@@ -13,6 +14,8 @@ namespace
 {
 #define ASSERT_SELECTION_SIGNATURE(method, signature)                                                                  \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KoSelection::method)), signature>)
+#define ASSERT_PATH_TOOL_SELECTION_SIGNATURE(method, signature)                                                        \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KoPathToolSelection::method)), signature>)
 } // namespace
 
 class KoSelectionSchemaContractTest : public QObject
@@ -25,6 +28,11 @@ private Q_SLOTS:
     void selectionMembershipQuerySignaturesRemainStable();
     void selectionFilteredShapeViewSignaturesRemainStable();
     void selectionMutationObservationAndPaintingSignaturesRemainStable();
+    void pathToolSelectionTypeAndLifetimeSchemaRemainStable();
+    void pathToolSelectionMutationSignaturesRemainStable();
+    void pathToolSelectionQuerySignaturesRemainStable();
+    void pathToolSelectionShapeSynchronizationSignaturesRemainStable();
+    void pathToolSelectionPaintingAndNotificationSignaturesRemainStable();
 };
 
 void KoSelectionSchemaContractTest::selectionIdentityAndLifecycleSignaturesRemainStable()
@@ -73,6 +81,55 @@ void KoSelectionSchemaContractTest::selectionMutationObservationAndPaintingSigna
     ASSERT_SELECTION_SIGNATURE(notifyShapeChanged, void (KoSelection::*)(KoShape::ChangeType, KoShape *));
     ASSERT_SELECTION_SIGNATURE(paint, void (KoSelection::*)(QPainter &) const);
     ASSERT_SELECTION_SIGNATURE(selectionChanged, void (KoSelection::*)());
+}
+
+void KoSelectionSchemaContractTest::pathToolSelectionTypeAndLifetimeSchemaRemainStable()
+{
+    static_assert(std::is_class_v<KoPathToolSelection>);
+    static_assert(std::is_base_of_v<KoToolSelection, KoPathToolSelection>);
+    static_assert(std::is_base_of_v<KoPathShape::PointSelectionChangeListener, KoPathToolSelection>);
+    static_assert(std::is_constructible_v<KoPathToolSelection, KoPathTool *>);
+    static_assert(std::has_virtual_destructor_v<KoPathToolSelection>);
+}
+
+void KoSelectionSchemaContractTest::pathToolSelectionMutationSignaturesRemainStable()
+{
+    ASSERT_PATH_TOOL_SELECTION_SIGNATURE(add, void (KoPathToolSelection::*)(KoPathPoint *, bool));
+    ASSERT_PATH_TOOL_SELECTION_SIGNATURE(remove, void (KoPathToolSelection::*)(KoPathPoint *));
+    ASSERT_PATH_TOOL_SELECTION_SIGNATURE(clear, void (KoPathToolSelection::*)());
+    ASSERT_PATH_TOOL_SELECTION_SIGNATURE(selectPoints, void (KoPathToolSelection::*)(const QRectF &, bool));
+    ASSERT_PATH_TOOL_SELECTION_SIGNATURE(selectAll, void (KoPathToolSelection::*)());
+    ASSERT_PATH_TOOL_SELECTION_SIGNATURE(update, void (KoPathToolSelection::*)());
+}
+
+void KoSelectionSchemaContractTest::pathToolSelectionQuerySignaturesRemainStable()
+{
+    ASSERT_PATH_TOOL_SELECTION_SIGNATURE(contains, bool (KoPathToolSelection::*)(KoPathPoint *));
+    ASSERT_PATH_TOOL_SELECTION_SIGNATURE(hasSelection, bool (KoPathToolSelection::*)());
+    ASSERT_PATH_TOOL_SELECTION_SIGNATURE(objectCount, int (KoPathToolSelection::*)() const);
+    ASSERT_PATH_TOOL_SELECTION_SIGNATURE(size, int (KoPathToolSelection::*)() const);
+    ASSERT_PATH_TOOL_SELECTION_SIGNATURE(selectedPoints, const QSet<KoPathPoint *> &(KoPathToolSelection::*)() const);
+    ASSERT_PATH_TOOL_SELECTION_SIGNATURE(selectedPointsData, QList<KoPathPointData> (KoPathToolSelection::*)() const);
+    ASSERT_PATH_TOOL_SELECTION_SIGNATURE(selectedSegmentsData, QList<KoPathPointData> (KoPathToolSelection::*)() const);
+}
+
+void KoSelectionSchemaContractTest::pathToolSelectionShapeSynchronizationSignaturesRemainStable()
+{
+    ASSERT_PATH_TOOL_SELECTION_SIGNATURE(selectedShapes, QList<KoPathShape *> (KoPathToolSelection::*)() const);
+    ASSERT_PATH_TOOL_SELECTION_SIGNATURE(setSelectedShapes, void (KoPathToolSelection::*)(QList<KoPathShape *>));
+    ASSERT_PATH_TOOL_SELECTION_SIGNATURE(recommendPointSelectionChange,
+                                         void (KoPathToolSelection::*)(KoPathShape *, const QList<KoPathPointIndex> &));
+    ASSERT_PATH_TOOL_SELECTION_SIGNATURE(notifyPathPointsChanged, void (KoPathToolSelection::*)(KoPathShape *));
+    ASSERT_PATH_TOOL_SELECTION_SIGNATURE(notifyShapeChanged,
+                                         void (KoPathToolSelection::*)(KoShape::ChangeType, KoShape *));
+}
+
+void KoSelectionSchemaContractTest::pathToolSelectionPaintingAndNotificationSignaturesRemainStable()
+{
+    ASSERT_PATH_TOOL_SELECTION_SIGNATURE(
+        paint,
+        void (KoPathToolSelection::*)(QPainter &, const KoViewConverter &, qreal, KoColorDisplayRendererInterface *));
+    ASSERT_PATH_TOOL_SELECTION_SIGNATURE(selectionChanged, void (KoPathToolSelection::*)());
 }
 
 QTEST_APPLESS_MAIN(KoSelectionSchemaContractTest)
