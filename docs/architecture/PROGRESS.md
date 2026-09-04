@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 04:56 JST
+- 更新日時: 2026-09-05 04:59 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -541,6 +541,12 @@
 - 監査共通基点は`ad24f02d60`、暫定入力は`build/tdd-macos/public-api-missing-g216.json`である。担当は主作業treeと既存Ninja graphを読み取り専用で利用し、変更、構成、構築、試験、Git操作、追加委任を行わない。正式な第219便不足報告で再照合するまで実装担当票へ進めない。
 - `g220-frame-cache-store-closure-audit`の状態は`completed`である。`libs/canvas/animation/kis_frame_cache_store.h`の残存全22 API、識別子集合SHA-256 `39229d20e5554ed98a98b6c4bcbb4a3c3a791494a08467ab0f88fbb05adf2a80`、5枠5・6・4・2・5を独立確認した。新規専用targetはcanvas source・generated探索路、Qt Core・Testとheader-only Boost、`kritacanvas_EXPORTS`だけによる4工程・8入力へ閉じられる。filesystem、tile pool、serializer、製品実装へ接続せず、1,224工程・2,467入力の既存動的試験を構築しない。第219便完了後の正式不足報告で再照合する。
 - `g220-resource-iterator-closure-audit`の状態は`completed`である。`libs/resources/KisResourceIterator.h`の残存全21 API、識別子集合SHA-256 `e695fcea69332217ece1f46f00b79c6878796c6ae09100e17fcf3a9c0db21ba4`、5枠5・6・2・4・4を独立確認した。新規専用targetはresources source・generated探索路、Qt Gui・KF I18n interface、Qt Core・Testとheader-only Boost、`kritaresources_EXPORTS`だけによる4工程・8入力へ閉じられる。resource model、database、image、製品実装へ接続せず、813工程・1,654入力の既存動的試験を構築しない。第219便完了後の正式不足報告で再照合する。
+
+### 第221便の先行監査担当票（第220便確定待ち）
+
+- 監査共通基点は`c715242e04`、暫定入力は`build/tdd-macos/public-api-missing-g217.json`である。担当は主作業treeと既存Ninja graphを読み取り専用で利用し、変更、構成、構築、試験、Git操作、追加委任を行わない。正式な第220便不足報告で再照合するまで実装担当票へ進めない。
+- `g221-input-profile-manager-closure-audit`の状態は`auditing`、担当は`/root/g178_shape_hierarchy_schema`である。開始`libs/input/ui/kis_input_profile_manager.h`の残存全24 API、識別子集合SHA-256 `1d336261b59dbe90df271900c7b1f18d8ba45a6def01cad40b0d772ca5c9888e`を監査する。対象はclass、parent既定構築・destructor・copy禁止、共有instance、action単体・一覧、profile単体・名称・一覧、profile追加・複製・削除・改名・現在値設定、競合取得、action設定、保存場所設定、profile読込・保存・全reset、現在profile・profiles変更の2通知である。入力profile集合の所有・選択・永続化という一責務性、最大5枠の完全対応、実体化不要の観測方法、所有CMakeと既存または新規target、最寄り契約、最小探索路・定義・動的接続、工程・入力予測と停止線を返す。profile filesystem、action実装、製品input/UI接続が必要、または10工程程度へ閉じない場合は棄却する。
+- `g221-filter-stroke-strategy-closure-audit`の状態は`auditing`、担当は`/root/g208_raster_keyframe_schema`である。開始`libs/painting/strokes/kis_filter_stroke_strategy.h`の残存全24 API、識別子集合SHA-256 `464acb3ded62a9db56e2be293b793d42fe65e468689ceb72ed50c27ac81162ec`を監査する。対象は本体・`FilterJobData`・`IdleBarrierData`の3 class、`ExternalCancelUpdatesStorage` struct、2 alias、外部取消領域の3 member、frame時刻member、job data構築・LOD複製、idle barrier構築・cookie取得・LOD複製、4本体構築・destructor、stroke初期化・実行・終了・取消callback、本体LOD複製である。filter適用strokeのjob data・同期・取消という一責務性、最大5枠の完全対応、実体化不要の観測方法、所有CMakeと既存または新規target、最寄り契約、最小探索路・定義・動的接続、工程・入力予測と停止線を返す。filter・resource snapshot・stroke scheduler・製品実装接続が必要、または10工程程度へ閉じない場合は棄却する。
 
 ### 第201便の先行監査担当票
 
