@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 8807
+    "expectedMissingApis": 8785
   },
   "contracts": [
     {
@@ -58416,6 +58416,73 @@
         "method:KisBrush::fromXMLLoadResult(const QDomElement & element,KisResourcesInterfaceSP resourcesInterface)",
         "method:KisBrush::setGradient(KoAbstractGradientSP gradient)",
         "method:KisBrush::toXML(QDomDocument &,QDomElement &) const"
+      ]
+    },
+    {
+      "target": "KoToolProxyPrivateSchemaContractTest",
+      "source": "libs/flake/tests/KoToolProxyPrivateSchemaContractTest.cpp",
+      "test": "KoToolProxyPrivateSchemaContractTest::toolProxyPrivateTypeLifetimeAndSelectionStateSchemaRemainStable",
+      "behavior": "tool proxyの一時互換境界は選択状態、active tool、所有proxyの内部型・構築・更新署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoToolProxyPrivate",
+        "member:KoToolProxyPrivate::activeTool",
+        "member:KoToolProxyPrivate::hasSelection",
+        "member:KoToolProxyPrivate::parent",
+        "method:KoToolProxyPrivate::KoToolProxyPrivate(KoToolProxy * p)",
+        "method:KoToolProxyPrivate::selectionChanged(bool newSelection)"
+      ]
+    },
+    {
+      "target": "KoToolProxyPrivateSchemaContractTest",
+      "source": "libs/flake/tests/KoToolProxyPrivateSchemaContractTest.cpp",
+      "test": "KoToolProxyPrivateSchemaContractTest::toolProxyPrivateCanvasBindingSignaturesRemainStable",
+      "behavior": "tool proxyの一時互換境界はcanvas controllerの関連付けと編集可否照会の内部署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KoToolProxyPrivate::controller",
+        "method:KoToolProxyPrivate::isActiveLayerEditable()",
+        "method:KoToolProxyPrivate::setCanvasController(KoCanvasController * controller)"
+      ]
+    },
+    {
+      "target": "KoToolProxyPrivateSchemaContractTest",
+      "source": "libs/flake/tests/KoToolProxyPrivateSchemaContractTest.cpp",
+      "test": "KoToolProxyPrivateSchemaContractTest::toolProxyPrivateAutoScrollSignaturesRemainStable",
+      "behavior": "tool proxyの一時互換境界は自動scrollのtimer、文書座標、検査とtimeout処理の内部署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KoToolProxyPrivate::scrollTimer",
+        "member:KoToolProxyPrivate::widgetScrollPointDoc",
+        "method:KoToolProxyPrivate::checkAutoScroll(const KoPointerEvent & event)",
+        "method:KoToolProxyPrivate::timeout()"
+      ]
+    },
+    {
+      "target": "KoToolProxyPrivateSchemaContractTest",
+      "source": "libs/flake/tests/KoToolProxyPrivateSchemaContractTest.cpp",
+      "test": "KoToolProxyPrivateSchemaContractTest::toolProxyPrivatePressAndMultiClickStateSchemaRemainStable",
+      "behavior": "tool proxyの一時互換境界はpress、drag判定、canvas離脱補正、複数clickの内部状態型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KoToolProxyPrivate::isToolPressed",
+        "member:KoToolProxyPrivate::mouseDownPoint",
+        "member:KoToolProxyPrivate::mouseLeaveWorkaround",
+        "member:KoToolProxyPrivate::multiClickCount",
+        "member:KoToolProxyPrivate::multiClickGlobalPoint"
+      ]
+    },
+    {
+      "target": "KoToolProxyPrivateSchemaContractTest",
+      "source": "libs/flake/tests/KoToolProxyPrivateSchemaContractTest.cpp",
+      "test": "KoToolProxyPrivateSchemaContractTest::toolProxyPrivateInputEventMetadataSchemaRemainStable",
+      "behavior": "tool proxyの一時互換境界は直前pointer event、複数clickの時刻・発生源、tool優先shortcutの内部状態型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KoToolProxyPrivate::lastPointerEvent",
+        "member:KoToolProxyPrivate::multiClickSource",
+        "member:KoToolProxyPrivate::multiClickTimeStamp",
+        "member:KoToolProxyPrivate::toolPriorityShortcuts"
       ]
     }
   ]
