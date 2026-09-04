@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 10285
+    "expectedMissingApis": 10233
   },
   "contracts": [
     {
@@ -54767,6 +54767,103 @@
         "function:KisGradientWidgetsUtils::paintGradientBox(QPainter & painter,const KoAbstractGradientSP gradient,const QRectF & rect)",
         "function:KisGradientWidgetsUtils::paintMidPointHandle(QPainter & painter,const QPointF & position,qreal size,bool isSelected,bool isHovered,bool hasFocus,const QColor & borderColor,const QColor & fillColor,const QColor & highlightColor)",
         "function:KisGradientWidgetsUtils::paintStopHandle(QPainter & painter,const QPointF & position,const QSizeF & size,bool isSelected,bool isHovered,bool hasFocus,const QColor & highlightColor,const StopHandleColor & color1,const StopHandleColor & color2={})"
+      ]
+    },
+    {
+      "target": "KisPSDLayerStyleSchemaContractTest",
+      "source": "libs/image/tests/KisPSDLayerStyleSchemaContractTest.cpp",
+      "test": "KisPSDLayerStyleSchemaContractTest::psdLayerStyleTypeAndLifetimeSchemaRemainStable",
+      "behavior": "PSD layer style資源は共有pointer別名、資源基底との継承、既定・copy構築、仮想破棄、copy代入禁止と複製署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisPSDLayerStyleSP",
+        "class:KisPSDLayerStyle",
+        "method:KisPSDLayerStyle::KisPSDLayerStyle(const KisPSDLayerStyle & rhs)",
+        "method:KisPSDLayerStyle::KisPSDLayerStyle(const QString & filename=\"\",KisResourcesInterfaceSP resourcesInterface=KisResourcesInterfaceSP ())",
+        "method:KisPSDLayerStyle::clone() const",
+        "method:KisPSDLayerStyle::operator =(const KisPSDLayerStyle & rhs)",
+        "method:KisPSDLayerStyle::~KisPSDLayerStyle()"
+      ]
+    },
+    {
+      "target": "KisPSDLayerStyleSchemaContractTest",
+      "source": "libs/image/tests/KisPSDLayerStyleSchemaContractTest.cpp",
+      "test": "KisPSDLayerStyleSchemaContractTest::psdLayerStyleIdentityAndSerializationSignaturesRemainStable",
+      "behavior": "PSD layer style資源はloader登録、直列化可否とdevice入出力、状態消去、名称・UUIDの照会と設定に関する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPSDLayerStyle::clear()",
+        "method:KisPSDLayerStyle::isSerializable() const",
+        "method:KisPSDLayerStyle::loadFromDevice(QIODevice * dev,KisResourcesInterfaceSP resourcesInterface)",
+        "method:KisPSDLayerStyle::name() const",
+        "method:KisPSDLayerStyle::psdUuid() const",
+        "method:KisPSDLayerStyle::registerResourceLoader(KisResourceLoaderRegistry & registry)",
+        "method:KisPSDLayerStyle::saveToDevice(QIODevice * dev) const",
+        "method:KisPSDLayerStyle::setName(const QString & value)",
+        "method:KisPSDLayerStyle::setPsdUuid(const QString & value)",
+        "method:KisPSDLayerStyle::setUuid(const QUuid & value)",
+        "method:KisPSDLayerStyle::uuid() const"
+      ]
+    },
+    {
+      "target": "KisPSDLayerStyleSchemaContractTest",
+      "source": "libs/image/tests/KisPSDLayerStyleSchemaContractTest.cpp",
+      "test": "KisPSDLayerStyleSchemaContractTest::psdLayerStyleEffectAccessorsRemainStable",
+      "behavior": "PSD layer style資源は効果context、影、光彩、satin、色・gradient・pattern重畳、stroke、bevelのconst・可変pointer照会署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPSDLayerStyle::bevelAndEmboss()",
+        "method:KisPSDLayerStyle::bevelAndEmboss() const",
+        "method:KisPSDLayerStyle::colorOverlay()",
+        "method:KisPSDLayerStyle::colorOverlay() const",
+        "method:KisPSDLayerStyle::context()",
+        "method:KisPSDLayerStyle::context() const",
+        "method:KisPSDLayerStyle::dropShadow()",
+        "method:KisPSDLayerStyle::dropShadow() const",
+        "method:KisPSDLayerStyle::gradientOverlay()",
+        "method:KisPSDLayerStyle::gradientOverlay() const",
+        "method:KisPSDLayerStyle::innerGlow()",
+        "method:KisPSDLayerStyle::innerGlow() const",
+        "method:KisPSDLayerStyle::innerShadow()",
+        "method:KisPSDLayerStyle::innerShadow() const",
+        "method:KisPSDLayerStyle::outerGlow()",
+        "method:KisPSDLayerStyle::outerGlow() const",
+        "method:KisPSDLayerStyle::patternOverlay()",
+        "method:KisPSDLayerStyle::patternOverlay() const",
+        "method:KisPSDLayerStyle::satin()",
+        "method:KisPSDLayerStyle::satin() const",
+        "method:KisPSDLayerStyle::stroke()",
+        "method:KisPSDLayerStyle::stroke() const"
+      ]
+    },
+    {
+      "target": "KisPSDLayerStyleSchemaContractTest",
+      "source": "libs/image/tests/KisPSDLayerStyleSchemaContractTest.cpp",
+      "test": "KisPSDLayerStyleSchemaContractTest::psdLayerStyleStateAndResourceSignaturesRemainStable",
+      "behavior": "PSD layer style資源は空・有効状態、資源種別、canvas資源要求、資源interfaceの照会と設定に関する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPSDLayerStyle::isEmpty() const",
+        "method:KisPSDLayerStyle::isEnabled() const",
+        "method:KisPSDLayerStyle::requiredCanvasResources() const",
+        "method:KisPSDLayerStyle::resourceType() const",
+        "method:KisPSDLayerStyle::resourcesInterface() const",
+        "method:KisPSDLayerStyle::setEnabled(bool value)",
+        "method:KisPSDLayerStyle::setResourcesInterface(KisResourcesInterfaceSP resourcesInterface)"
+      ]
+    },
+    {
+      "target": "KisPSDLayerStyleSchemaContractTest",
+      "source": "libs/image/tests/KisPSDLayerStyleSchemaContractTest.cpp",
+      "test": "KisPSDLayerStyleSchemaContractTest::psdLayerStyleResourceSnapshotSignaturesRemainStable",
+      "behavior": "PSD layer style資源は局所snapshot、snapshot付き複製、連結・同梱資源の照会と同梱資源消去に関する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPSDLayerStyle::clearSideLoadedResources()",
+        "method:KisPSDLayerStyle::cloneWithResourcesSnapshot(KisResourcesInterfaceSP globalResourcesInterface,KoCanvasResourcesInterfaceSP canvasResourcesInterface) const",
+        "method:KisPSDLayerStyle::hasLocalResourcesSnapshot() const",
+        "method:KisPSDLayerStyle::linkedResources(KisResourcesInterfaceSP globalResourcesInterface) const",
+        "method:KisPSDLayerStyle::sideLoadedResources(KisResourcesInterfaceSP globalResourcesInterface) const"
       ]
     }
   ]
