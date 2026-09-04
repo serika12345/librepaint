@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 9307
+    "expectedMissingApis": 9283
   },
   "contracts": [
     {
@@ -57185,6 +57185,75 @@
         "method:Document::pixelData(int x,int y,int w,int h) const",
         "method:Document::projection(int x=0,int y=0,int w=0,int h=0) const",
         "method:Document::thumbnail(int w,int h) const"
+      ]
+    },
+    {
+      "target": "KisGradientPainterSchemaContractTest",
+      "source": "libs/image/tests/KisGradientPainterSchemaContractTest.cpp",
+      "test": "KisGradientPainterSchemaContractTest::gradientPainterTypeLifetimeAndConstructionSchemaRemainStable",
+      "behavior": "gradient painterは公開型、3つの構築経路、および仮想寿命の契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisGradientPainter",
+        "method:KisGradientPainter::KisGradientPainter()",
+        "method:KisGradientPainter::KisGradientPainter(KisPaintDeviceSP device)",
+        "method:KisGradientPainter::KisGradientPainter(KisPaintDeviceSP device,KisSelectionSP selection)",
+        "method:KisGradientPainter::~KisGradientPainter()"
+      ]
+    },
+    {
+      "target": "KisGradientPainterSchemaContractTest",
+      "source": "libs/image/tests/KisGradientPainterSchemaContractTest.cpp",
+      "test": "KisGradientPainterSchemaContractTest::gradientPainterShapeSchemaRemainStable",
+      "behavior": "gradient painterは9種類の形状とその安定した列挙値を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KisGradientPainter::enumGradientShape",
+        "enumerator:KisGradientPainter::enumGradientShape::GradientShapeBiLinear",
+        "enumerator:KisGradientPainter::enumGradientShape::GradientShapeConical",
+        "enumerator:KisGradientPainter::enumGradientShape::GradientShapeConicalSymetric",
+        "enumerator:KisGradientPainter::enumGradientShape::GradientShapeLinear",
+        "enumerator:KisGradientPainter::enumGradientShape::GradientShapePolygonal",
+        "enumerator:KisGradientPainter::enumGradientShape::GradientShapeRadial",
+        "enumerator:KisGradientPainter::enumGradientShape::GradientShapeReverseSpiral",
+        "enumerator:KisGradientPainter::enumGradientShape::GradientShapeSpiral",
+        "enumerator:KisGradientPainter::enumGradientShape::GradientShapeSquare"
+      ]
+    },
+    {
+      "target": "KisGradientPainterSchemaContractTest",
+      "source": "libs/image/tests/KisGradientPainterSchemaContractTest.cpp",
+      "test": "KisGradientPainterSchemaContractTest::gradientPainterRepeatSchemaRemainStable",
+      "behavior": "gradient painterは3種類の反復方式とその安定した列挙値を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KisGradientPainter::enumGradientRepeat",
+        "enumerator:KisGradientPainter::enumGradientRepeat::GradientRepeatAlternate",
+        "enumerator:KisGradientPainter::enumGradientRepeat::GradientRepeatForwards",
+        "enumerator:KisGradientPainter::enumGradientRepeat::GradientRepeatNone"
+      ]
+    },
+    {
+      "target": "KisGradientPainterSchemaContractTest",
+      "source": "libs/image/tests/KisGradientPainterSchemaContractTest.cpp",
+      "test": "KisGradientPainterSchemaContractTest::gradientPainterConfigurationSignaturesRemainStable",
+      "behavior": "gradient painterは形状設定と事前計算の公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisGradientPainter::precalculateShape()",
+        "method:KisGradientPainter::setGradientShape(enumGradientShape shape)"
+      ]
+    },
+    {
+      "target": "KisGradientPainterSchemaContractTest",
+      "source": "libs/image/tests/KisGradientPainterSchemaContractTest.cpp",
+      "test": "KisGradientPainterSchemaContractTest::gradientPainterPaintingSignaturesRemainStable",
+      "behavior": "gradient painterは座標範囲、矩形範囲、および描画方針を受ける3つの描画入口の公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisGradientPainter::paintGradient(const QPointF & gradientVectorStart,const QPointF & gradientVectorEnd,enumGradientRepeat repeat,double antiAliasThreshold,bool reverseGradient,bool useDithering,const QRect & applyRect,T & paintPolicy)",
+        "method:KisGradientPainter::paintGradient(const QPointF & gradientVectorStart,const QPointF & gradientVectorEnd,enumGradientRepeat repeat,double antiAliasThreshold,bool reverseGradient,const QRect & applyRect,bool useDithering=false)",
+        "method:KisGradientPainter::paintGradient(const QPointF & gradientVectorStart,const QPointF & gradientVectorEnd,enumGradientRepeat repeat,double antiAliasThreshold,bool reverseGradient,qint32 startx,qint32 starty,qint32 width,qint32 height,bool useDithering=false)"
       ]
     }
   ]
