@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 9618
+    "expectedMissingApis": 9590
   },
   "contracts": [
     {
@@ -56424,6 +56424,79 @@
       "apis": [
         "method:KisTiledDataManager::debugPrintInfo()",
         "method:KisTiledDataManager::releaseInternalPools()"
+      ]
+    },
+    {
+      "target": "DocumentNodeSchemaContractTest",
+      "source": "libs/libkis/tests/DocumentNodeSchemaContractTest.cpp",
+      "test": "DocumentNodeSchemaContractTest::documentTypeLifetimeAndComparisonSchemaRemainStable",
+      "behavior": "文書公開面は内部文書の所有指定を伴う構築、仮想寿命、複製、および同一性比較に関する契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:Document",
+        "method:Document::Document(KisDocument * document,bool ownsDocument,QObject * parent=0)",
+        "method:Document::clone() const",
+        "method:Document::operator !=(const Document & other) const",
+        "method:Document::operator ==(const Document & other) const",
+        "method:Document::~Document()"
+      ]
+    },
+    {
+      "target": "DocumentNodeSchemaContractTest",
+      "source": "libs/libkis/tests/DocumentNodeSchemaContractTest.cpp",
+      "test": "DocumentNodeSchemaContractTest::documentNodeGraphSignaturesRemainStable",
+      "behavior": "文書公開面は活動node、最上位node、名前・一意IDによる探索、根node、および選択範囲の照会・変更に関する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:Document::activeNode() const",
+        "method:Document::nodeByName(const QString & name) const",
+        "method:Document::nodeByUniqueID(const QUuid & id) const",
+        "method:Document::rootNode() const",
+        "method:Document::selection() const",
+        "method:Document::setActiveNode(Node * value)",
+        "method:Document::setSelection(Selection * value)",
+        "method:Document::topLevelNodes() const"
+      ]
+    },
+    {
+      "target": "DocumentNodeSchemaContractTest",
+      "source": "libs/libkis/tests/DocumentNodeSchemaContractTest.cpp",
+      "test": "DocumentNodeSchemaContractTest::documentMaskCreationSignaturesRemainStable",
+      "behavior": "文書公開面は色付け・filter・選択・変形・透明度maskの生成に関する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:Document::createColorizeMask(const QString & name)",
+        "method:Document::createFilterMask(const QString & name,Filter & filter,Selection & selection)",
+        "method:Document::createFilterMask(const QString & name,Filter & filter,const Node * selection_source)",
+        "method:Document::createSelectionMask(const QString & name)",
+        "method:Document::createTransformMask(const QString & name)",
+        "method:Document::createTransparencyMask(const QString & name)"
+      ]
+    },
+    {
+      "target": "DocumentNodeSchemaContractTest",
+      "source": "libs/libkis/tests/DocumentNodeSchemaContractTest.cpp",
+      "test": "DocumentNodeSchemaContractTest::documentNodeAndLayerCreationSignaturesRemainStable",
+      "behavior": "文書公開面は一般nodeとgroup・clone・file・fill・filter・vector layerの生成に関する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:Document::createCloneLayer(const QString & name,const Node * source)",
+        "method:Document::createFileLayer(const QString & name,const QString fileName,const QString scalingMethod,const QString scalingFilter=\"Bicubic\")",
+        "method:Document::createFillLayer(const QString & name,const QString generatorName,InfoObject & configuration,Selection & selection)",
+        "method:Document::createFilterLayer(const QString & name,Filter & filter,Selection & selection)",
+        "method:Document::createGroupLayer(const QString & name)",
+        "method:Document::createNode(const QString & name,const QString & nodeType)",
+        "method:Document::createVectorLayer(const QString & name)"
+      ]
+    },
+    {
+      "target": "DocumentNodeSchemaContractTest",
+      "source": "libs/libkis/tests/DocumentNodeSchemaContractTest.cpp",
+      "test": "DocumentNodeSchemaContractTest::documentFlatteningSignatureRemainsStable",
+      "behavior": "文書公開面はnode階層を統合するflatten操作の公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:Document::flatten()"
       ]
     }
   ]
