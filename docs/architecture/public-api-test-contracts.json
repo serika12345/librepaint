@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 10691
+    "expectedMissingApis": 10670
   },
   "contracts": [
     {
@@ -53686,6 +53686,72 @@
         "method:Notifier::viewCreated(View * view)",
         "method:Notifier::windowCreated()",
         "method:Notifier::windowIsBeingCreated(Window * window)"
+      ]
+    },
+    {
+      "target": "KoBasicHistogramProducerSchemaContractTest",
+      "source": "libs/pigment/tests/KoBasicHistogramProducerSchemaContractTest.cpp",
+      "test": "KoBasicHistogramProducerSchemaContractTest::basicHistogramConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "基本histogram生成器は識別子・channel数・bin数または色空間を受け取る2構築形と、派生型を安全に破棄する仮想寿命契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoBasicHistogramProducer::KoBasicHistogramProducer(const KoID & id,int channelCount,int nrOfBins)",
+        "method:KoBasicHistogramProducer::KoBasicHistogramProducer(const KoID & id,int nrOfBins,const KoColorSpace * colorSpace)",
+        "method:KoBasicHistogramProducer::~KoBasicHistogramProducer()"
+      ]
+    },
+    {
+      "target": "KoBasicHistogramProducerSchemaContractTest",
+      "source": "libs/pigment/tests/KoBasicHistogramProducerSchemaContractTest.cpp",
+      "test": "KoBasicHistogramProducerSchemaContractTest::fixedDepthHistogramConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "固定深度histogram生成器は識別子と色空間から構築でき、U8・U16・F32・F16の各派生型を仮想破棄できる公開寿命契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoBasicF16HalfHistogramProducer::KoBasicF16HalfHistogramProducer(const KoID & id,const KoColorSpace * colorSpace)",
+        "method:KoBasicF16HalfHistogramProducer::~KoBasicF16HalfHistogramProducer()",
+        "method:KoBasicF32HistogramProducer::KoBasicF32HistogramProducer(const KoID & id,const KoColorSpace * colorSpace)",
+        "method:KoBasicF32HistogramProducer::~KoBasicF32HistogramProducer()",
+        "method:KoBasicU16HistogramProducer::KoBasicU16HistogramProducer(const KoID & id,const KoColorSpace * colorSpace)",
+        "method:KoBasicU16HistogramProducer::~KoBasicU16HistogramProducer()",
+        "method:KoBasicU8HistogramProducer::KoBasicU8HistogramProducer(const KoID & id,const KoColorSpace * colorSpace)",
+        "method:KoBasicU8HistogramProducer::~KoBasicU8HistogramProducer()"
+      ]
+    },
+    {
+      "target": "KoBasicHistogramProducerSchemaContractTest",
+      "source": "libs/pigment/tests/KoBasicHistogramProducerSchemaContractTest.cpp",
+      "test": "KoBasicHistogramProducerSchemaContractTest::genericHistogramConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "汎用RGB・Lab histogram生成器は既定構築でき、基底所有から仮想破棄できる公開寿命契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoGenericLabHistogramProducer::KoGenericLabHistogramProducer()",
+        "method:KoGenericLabHistogramProducer::~KoGenericLabHistogramProducer()",
+        "method:KoGenericRGBHistogramProducer::KoGenericRGBHistogramProducer()",
+        "method:KoGenericRGBHistogramProducer::~KoGenericRGBHistogramProducer()"
+      ]
+    },
+    {
+      "target": "KoBasicHistogramProducerSchemaContractTest",
+      "source": "libs/pigment/tests/KoBasicHistogramProducerSchemaContractTest.cpp",
+      "test": "KoBasicHistogramProducerSchemaContractTest::basicHistogramFactoryConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "基本histogram factoryは識別子・色模型・色深度から構築でき、基底所有から仮想破棄できる公開寿命契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoBasicHistogramProducerFactory::KoBasicHistogramProducerFactory(const KoID & id,const QString & modelId,const QString & depthId)",
+        "method:KoBasicHistogramProducerFactory::~KoBasicHistogramProducerFactory()"
+      ]
+    },
+    {
+      "target": "KoBasicHistogramProducerSchemaContractTest",
+      "source": "libs/pigment/tests/KoBasicHistogramProducerSchemaContractTest.cpp",
+      "test": "KoBasicHistogramProducerSchemaContractTest::genericHistogramFactoryConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "汎用RGB・Lab histogram factoryは既定構築でき、基底所有から仮想破棄できる公開寿命契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoGenericLabHistogramProducerFactory::KoGenericLabHistogramProducerFactory()",
+        "method:KoGenericLabHistogramProducerFactory::~KoGenericLabHistogramProducerFactory()",
+        "method:KoGenericRGBHistogramProducerFactory::KoGenericRGBHistogramProducerFactory()",
+        "method:KoGenericRGBHistogramProducerFactory::~KoGenericRGBHistogramProducerFactory()"
       ]
     }
   ]
