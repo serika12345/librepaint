@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 8896
+    "expectedMissingApis": 8872
   },
   "contracts": [
     {
@@ -58271,6 +58271,75 @@
         "method:SvgStyleWriter::saveSvgBasicStyle(const bool isVisible,const qreal transparency,const QVector<KoShape::PaintOrder> paintOrder,bool inheritPaintorder,SvgSavingContext & context,bool textShape=false)",
         "method:SvgStyleWriter::saveSvgFill(QSharedPointer<KoShapeBackground> background,const bool fillRuleEvenOdd,const QRectF outlineRect,const QSizeF size,const QTransform absoluteTransform,SvgSavingContext & context)",
         "method:SvgStyleWriter::saveSvgStroke(KoShapeStrokeModelSP,SvgSavingContext & context)"
+      ]
+    },
+    {
+      "target": "KisAutoLevelsWidgetSchemaContractTest",
+      "source": "libs/ui/tests/KisAutoLevelsWidgetSchemaContractTest.cpp",
+      "test": "KisAutoLevelsWidgetSchemaContractTest::autoLevelsWidgetTypeAndLifetimeSchemaRemainStable",
+      "behavior": "自動レベル補正部品はwidget型として親を受け取って構築され、仮想destructorを持つ公開寿命契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisAutoLevelsWidget",
+        "method:KisAutoLevelsWidget::KisAutoLevelsWidget(QWidget * parent)",
+        "method:KisAutoLevelsWidget::~KisAutoLevelsWidget()"
+      ]
+    },
+    {
+      "target": "KisAutoLevelsWidgetSchemaContractTest",
+      "source": "libs/ui/tests/KisAutoLevelsWidgetSchemaContractTest.cpp",
+      "test": "KisAutoLevelsWidgetSchemaContractTest::autoLevelsWidgetContrastAdjustmentMethodSignaturesRemainStable",
+      "behavior": "自動レベル補正部品はshadow・highlight調整方式を設定・照会し、その編集を固定または解除する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAutoLevelsWidget::lockShadowsAndHighlightsAdjustmentMethod()",
+        "method:KisAutoLevelsWidget::setShadowsAndHighlightsAdjustmentMethod(KisAutoLevels::ShadowsAndHighlightsAdjustmentMethod newMethod)",
+        "method:KisAutoLevelsWidget::shadowsAndHighlightsAdjustmentMethod() const",
+        "method:KisAutoLevelsWidget::unlockShadowsAndHighlightsAdjustmentMethod()"
+      ]
+    },
+    {
+      "target": "KisAutoLevelsWidgetSchemaContractTest",
+      "source": "libs/ui/tests/KisAutoLevelsWidgetSchemaContractTest.cpp",
+      "test": "KisAutoLevelsWidgetSchemaContractTest::autoLevelsWidgetClippingAndOffsetSignaturesRemainStable",
+      "behavior": "自動レベル補正部品はshadow・highlightのclipping量と最大入力offsetを照会・設定する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAutoLevelsWidget::highlightsClipping() const",
+        "method:KisAutoLevelsWidget::maximumInputBlackAndWhiteOffset() const",
+        "method:KisAutoLevelsWidget::setHighlightsClipping(qreal newHighlightsClipping)",
+        "method:KisAutoLevelsWidget::setMaximumInputBlackAndWhiteOffset(qreal newMaximumInputBlackAndWhiteOffset)",
+        "method:KisAutoLevelsWidget::setShadowsClipping(qreal newShadowsClipping)",
+        "method:KisAutoLevelsWidget::shadowsClipping() const"
+      ]
+    },
+    {
+      "target": "KisAutoLevelsWidgetSchemaContractTest",
+      "source": "libs/ui/tests/KisAutoLevelsWidgetSchemaContractTest.cpp",
+      "test": "KisAutoLevelsWidgetSchemaContractTest::autoLevelsWidgetMidtonesAdjustmentSignaturesRemainStable",
+      "behavior": "自動レベル補正部品はmidtoneの調整量と調整方式を照会・設定する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAutoLevelsWidget::midtonesAdjustmentAmount() const",
+        "method:KisAutoLevelsWidget::midtonesAdjustmentMethod() const",
+        "method:KisAutoLevelsWidget::setMidtonesAdjustmentAmount(qreal newMidtonesAdjustmentAmount)",
+        "method:KisAutoLevelsWidget::setMidtonesAdjustmentMethod(KisAutoLevels::MidtonesAdjustmentMethod newMethod)"
+      ]
+    },
+    {
+      "target": "KisAutoLevelsWidgetSchemaContractTest",
+      "source": "libs/ui/tests/KisAutoLevelsWidgetSchemaContractTest.cpp",
+      "test": "KisAutoLevelsWidgetSchemaContractTest::autoLevelsWidgetOutputColorAndNotificationSignaturesRemainStable",
+      "behavior": "自動レベル補正部品は出力shadow・midtone・highlight色を照会・設定し、parameter変更を通知する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAutoLevelsWidget::outputHighlightsColor() const",
+        "method:KisAutoLevelsWidget::outputMidtonesColor() const",
+        "method:KisAutoLevelsWidget::outputShadowsColor() const",
+        "method:KisAutoLevelsWidget::parametersChanged()",
+        "method:KisAutoLevelsWidget::setHighlightsColor(const KoColor & newHighlightsColor)",
+        "method:KisAutoLevelsWidget::setMidtonesColor(const KoColor & newMidtonesColor)",
+        "method:KisAutoLevelsWidget::setShadowsColor(const KoColor & newShadowsColor)"
       ]
     }
   ]
