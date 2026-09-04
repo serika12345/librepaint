@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-04 20:26 JST
+- 更新日時: 2026-09-04 20:32 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -236,6 +236,12 @@
 - libkis領域は`libs/libkis/Document.h`の文書型・寿命・比較6、node graph 8、mask生成6、node・layer生成7、flattening 1の合計28 APIを、新規`libs/libkis/tests/DocumentNodeSchemaContractTest.cpp`の5枠へ固定する。G208の`DocumentGeometrySchemaContractTest`と同じ探索路・定義、Qt Core・Testとheader-only Boostによる4工程・8入力を予測し、停止線を5工程・11入力とする。
 - flake領域は`libs/flake/text/KoFontRegistry.h`の残存全14 APIと`libs/flake/resources/KoFontStorage.h`の残存全10 APIを、registry型・寿命・取得4、face解決5、表現・測定5、storage型・寿命・妥当性5、資源取得5として既存`libs/flake/tests/KoFontFamilySchemaContractTest.cpp`の5枠へ固定する。CMake変更なしでflake・global・resources探索路、Qt Gui・Test・Xmlとheader-only Boost、Freetype・HarfBuzz・Fontconfig・KF I18n interface、既存export定義による4工程・8入力を維持する。
 - 3責務の開始headerと試験sourceは相互に異なる。合計95 API・15枠をtile data manager、文書node graph、font registry・storageの順に一担当ずつ実装する。候補headerをtarget sourceやAUTOMOC入力にせず、対象型と本文を実体化しない。製品target、全体build・`verify`、Linux、Nix再評価は行わない。
+
+### 第209便の担当計画
+
+- 実装共通基点は`c3e4ffc777`である。一度に一つだけ作る専用worktree-local `build/tdd-macos`と主作業treeの共有compiler cacheを使い、`./scripts/run-shared-test-env`で読み込み済み環境を利用する。各担当のGit権限は許可pathだけの受渡しcommit、追加委任は禁止する。tile data manager、文書node graph、font registry・storageの順に限定検証・統合・削除し、調整担当だけが文書、公開API台帳、共通不足報告を変更する。
+- `g209-tiled-data-manager-schema`の状態は`implementing`、作業treeは`/Users/masato/Documents/librepaint-g209-tiled-data-manager-schema`、macOSの対象`KisTileSchemaContractTest`と近傍`KisTileDataSchemaContractTest`に限る構築実行許可は`granted`、Git権限は`libs/image/tiles3/tests/KisTileSchemaContractTest.cpp`だけの受渡しcommitである。正式不足報告の`libs/image/tiles3/kis_tiled_data_manager.h`残存全43 APIを5枠`tiledDataManagerTypeLifetimeAndDefaultPixelSchemaRemainStable`、`tiledDataManagerTileAndHistorySignaturesRemainStable`、`tiledDataManagerRegionAndGeometrySignaturesRemainStable`、`tiledDataManagerTransferSignaturesRemainStable`、`tiledDataManagerMaintenanceSignaturesRemainStable`へ8・11・13・9・2件で対応付ける。CMake、公開header、製品sourceを変更せず、既存のimage・global探索路、Qt Core・Core5Compat・Test、`kritaimage_EXPORTS`による4工程・8入力を維持する。
+- 停止線は5工程・11入力である。CMake変更、新探索路・定義・link、製品shared・OBJECT・`kritatestsdk`接続、候補headerのAUTOMOC入力化、tile・manager・memento・lock・I/O関連の製品未解決記号、対象値またはinline本文の実体化、許可path外変更が必要なら停止する。旧binaryで新5枠が未知であること、追加5枠の単発と各20回反復、対象・近傍CTest、AUTOMOC後の二回目計画、無作業再構築2回、動的接続・未解決記号・構文・書式、公開API検査、`verify-quick`を確認する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
 
 ### 第210便の先行監査担当票（第209便確定待ち）
 
