@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-04 15:00 JST
+- 更新日時: 2026-09-04 15:17 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -31,16 +31,30 @@
 - 実装共通基点は`5444d34f88`である。一度に一つだけ作る専用worktree-local `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有し、`./scripts/run-shared-test-env`で読み込み済み環境を使う。各担当のGit権限は許可pathだけの受渡しcommit、追加委任は禁止する。PSD layer style資源、path toolの選択保持、視覚色選択器の順に限定検証・統合・削除し、調整担当だけが文書、公開API台帳、共通不足報告を変更する。製品target、全体build・`verify`、Linux、Nix再評価は禁止する。
 - `g202-psd-layer-style-schema`の状態は`integrated`、macOSの対象・近傍に限る構築実行許可は`granted`である。正式不足報告の`libs/image/kis_psd_layer_style.h`残存全52 APIを、新規`libs/image/tests/KisPSDLayerStyleSchemaContractTest.cpp`の5枠`psdLayerStyleTypeAndLifetimeSchemaRemainStable`、`psdLayerStyleIdentityAndSerializationSignaturesRemainStable`、`psdLayerStyleEffectAccessorsRemainStable`、`psdLayerStyleStateAndResourceSignaturesRemainStable`、`psdLayerStyleResourceSnapshotSignaturesRemainStable`へ7・11・22・7・5件で対応付けた。許可pathは新規試験sourceと`libs/image/tests/CMakeLists.txt`の新target固有節だけで、公開headerと製品sourceを変更していない。受渡しcommit `8f8d8bfb17`を統合commit `fd54150ed3`として取り込み、担当側で追加5枠を各20回、対象と近傍を実行し、中央でも対象`libs-image-KisPSDLayerStyleSchemaContractTest`と近傍`libs-image-KisPaintLayerSchemaContractTest`、AUTOMOC後の二回目計画と無作業再構築に成功した。4工程・8入力、候補headerのAUTOMOC非入力化、製品非接続を実測し、台帳は19,605件対応、10,233件未対応となった。cleanな専用作業tree、構築木、branchを統合直後に削除し、884,300 KiBを回収した。
 - `g202-path-tool-selection-schema`の状態は`integrated`、macOSの対象・近傍に限る構築実行許可は`granted`である。正式不足報告の`libs/flake/tools/KoPathToolSelection.h`残存全23 APIを、既存`libs/flake/tests/KoSelectionSchemaContractTest.cpp`の5枠`pathToolSelectionTypeAndLifetimeSchemaRemainStable`、`pathToolSelectionMutationSignaturesRemainStable`、`pathToolSelectionQuerySignaturesRemainStable`、`pathToolSelectionShapeSynchronizationSignaturesRemainStable`、`pathToolSelectionPaintingAndNotificationSignaturesRemainStable`へ3・6・7・5・2件で対応付けた。許可pathは既存試験sourceだけで、CMake、公開header、製品sourceを変更していない。受渡しcommit `711d58aa93`を統合commit `40957bb50d`として取り込み、担当側で追加5枠を各20回、対象と近傍を実行し、中央でも対象`libs-flake-KoSelectionSchemaContractTest`と近傍`libs-flake-KoPathShapeSchemaContractTest`、AUTOMOC後の二回目計画と無作業再構築に成功した。4工程・8入力、候補headerのAUTOMOC非入力化、製品非接続を維持し、台帳は19,628件対応、10,210件未対応となった。cleanな専用作業tree、構築木、branchを統合直後に削除し、884,976 KiBを回収した。
-- `g202-visual-color-selector-schema`の状態は`integrated`、macOSの対象・近傍に限る構築実行許可は`granted`である。正式不足報告の`libs/widgets/KisVisualColorSelector.h`残存全34 APIを、既存`libs/widgets/tests/KisColorSelectionControlSchemaContractTest.cpp`の5枠`visualColorSelectorTypeLifetimeAndRenderModeSchemaRemainStable`、`visualColorSelectorModelAndConfigurationSignaturesRemainStable`、`visualColorSelectorColorAndRendererSignaturesRemainStable`、`visualColorSelectorPresentationAndProofSignaturesRemainStable`、`visualColorSelectorGamutAndNotificationSignaturesRemainStable`へ9・7・7・5・6件で対応付けた。許可pathは既存試験sourceと`libs/widgets/tests/CMakeLists.txt`の対象固有節だけで、公開header、製品source、動的linkを変更していない。受渡しcommit `0faf637376`を統合commit `663abb7dc2`として取り込み、担当側で追加5枠を各20回、対象と近傍を実行し、中央でも対象`libs-widgets-KisColorSelectionControlSchemaContractTest`と近傍`libs-widgets-KisVisualColorModelSchemaContractTest`、AUTOMOC後の二回目計画と無作業再構築に成功した。4工程・8入力、候補headerのAUTOMOC非入力化、Qt Core・Gui・Testだけの動的接続を維持し、台帳は19,662件対応、10,176件未対応となった。
+- `g202-visual-color-selector-schema`の状態は`integrated`、macOSの対象・近傍に限る構築実行許可は`granted`である。正式不足報告の`libs/widgets/KisVisualColorSelector.h`残存全34 APIを、既存`libs/widgets/tests/KisColorSelectionControlSchemaContractTest.cpp`の5枠`visualColorSelectorTypeLifetimeAndRenderModeSchemaRemainStable`、`visualColorSelectorModelAndConfigurationSignaturesRemainStable`、`visualColorSelectorColorAndRendererSignaturesRemainStable`、`visualColorSelectorPresentationAndProofSignaturesRemainStable`、`visualColorSelectorGamutAndNotificationSignaturesRemainStable`へ9・7・7・5・6件で対応付けた。許可pathは既存試験sourceと`libs/widgets/tests/CMakeLists.txt`の対象固有節だけで、公開header、製品source、動的linkを変更していない。受渡しcommit `0faf637376`を統合commit `663abb7dc2`として取り込み、担当側で追加5枠を各20回、対象と近傍を実行し、中央でも対象`libs-widgets-KisColorSelectionControlSchemaContractTest`と近傍`libs-widgets-KisVisualColorModelSchemaContractTest`、AUTOMOC後の二回目計画と無作業再構築に成功した。4工程・8入力、候補headerのAUTOMOC非入力化、Qt Core・Gui・Testだけの動的接続を維持し、台帳は19,662件対応、10,176件未対応となった。cleanな専用作業tree、構築木、branchを統合直後に削除し、887,136 KiBを回収した。
 
-### 第203便の先行監査担当票（第202便確定待ち）
+### 第202便の統合結果
 
-- 監査共通基点は`d7cc7ca24a`、暫定入力は`build/tdd-macos/public-api-missing-g202.json`である。第201便と第202便で契約済みまたは選定済みの責務を除外し、変更、構成、構築、試験、Git操作、追加委任を行わない読み取り専用監査を先行した。正式な第202便完了報告で再照合・再計測する。
+- `libs/image/kis_psd_layer_style.h`から新規`libs/image/tests/KisPSDLayerStyleSchemaContractTest.cpp`へ52 API・5枠、`libs/flake/tools/KoPathToolSelection.h`から既存`libs/flake/tests/KoSelectionSchemaContractTest.cpp`へ23 API・5枠、`libs/widgets/KisVisualColorSelector.h`から既存`libs/widgets/tests/KisColorSelectionControlSchemaContractTest.cpp`へ34 API・5枠を追加した。公開headerと製品sourceを変更せず、3対象とも4工程・8入力と製品非接続を維持した。
+- 第202便全体で109 APIを15枠へ重複なく対応付け、19,662件対応、10,176件未対応となった。担当側と中央で対象・近傍CTest、各追加枠の20回反復、AUTOMOC後の二回目計画、無作業再構築、動的接続・未解決記号・書式、公開API検査、`verify-quick`に成功した。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 3担当のcleanな専用作業tree、構築木、branchを統合直後に削除し、合計2,656,412 KiBを回収した。旧不足報告`public-api-missing-g202.json`を削除し、主Ninja木5,687,736 KiB、共有compiler cache 982,916 KiB、最新`build/tdd-macos/public-api-missing-g203.json` 2,687,807 bytesだけを再利用対象として保持する。次の永続作業は第203便の正式不足報告で3候補を再照合し、最小閉包を確定することである。
+
+### 第203便の先行監査担当票
+
+- 監査共通基点は`d7cc7ca24a`、正式入力は`build/tdd-macos/public-api-missing-g203.json`である。第201便と第202便で契約済みまたは選定済みの責務を除外した先行監査結果を、第202便完了後の不足報告で再照合・再計測した。
 - `g203-image-contract-audit`の状態は`completed`で、image・paintop・pigment領域からundo-command型stroke strategy 20 APIを選定した。
 - `g203-flake-contract-audit`の状態は`completed`で、flake・SVG・vector領域から図形group本体とgroup・ungroup command 22 APIを選定した。
 - `g203-ui-contract-audit`の状態は`completed`で、widgetutils・widgets・libkis領域からnative・scripting palette view 29 APIを選定した。
-- `g203-build-closure-review`の状態は`auditing`で、undo-command型stroke strategyとnative・scripting palette viewについて、完全型要件、inline本文、対象固有探索路・export定義、動的接続、AUTOMOC、既存契約への追記と専用targetの判断を独立に読み取り確認する。変更・構成・構築・試験を行わず、採用条件と撤回条件を返す。
-- `g203-flake-closure-review`の状態は`auditing`で、図形group本体とgroup・ungroup commandについて、一責務としての結合、完全型要件、既存図形構造command契約への追記、動的接続、AUTOMOCを独立に読み取り確認する。変更・構成・構築・試験を行わず、採用条件と撤回条件を返す。
+- `g203-build-closure-review`の状態は`completed`で、undo-command型stroke strategyは専用targetの4工程・8入力、native・scripting palette viewは既存targetへ対象固有探索路・export定義を追加した4工程・8入力で製品非接続を維持できることを独立確認した。
+- `g203-flake-closure-review`の状態は`completed`で、図形group本体とgroup・ungroup commandは一責務にまとまり、既存図形構造command契約へCMake変更なしで追加できることを独立確認した。
+
+### 第203便の先行監査結果
+
+- 正式入力`build/tdd-macos/public-api-missing-g203.json`は公開header 1,549、公開API 29,838、対応済み19,662、未対応10,176を記録する。先行監査の全識別子を再照合し、undo-command型stroke strategy 20件、図形group本体とgroup・ungroup command 22件、native・scripting palette view 29件が重複なく残存することを確認した。
+- image領域は`libs/image/kis_stroke_strategy_undo_command_based.h`の残存全20 APIを、strategy型・構築2、Data型・所有5、Data構築2、変更interface 4、stroke寿命・設定7として新規`libs/image/tests/KisStrokeStrategyUndoCommandBasedSchemaContractTest.cpp`の5枠へ固定する。既存`KisProcessingApplicatorSchemaContractTest`と同じimage・global・painting/undo探索路、Qt Core・Test、header-only Boost、KF I18n interface、`kritaimage_EXPORTS`による4工程・8入力を予測し、停止線を5工程・11入力とする。候補headerをAUTOMOC入力にせず、製品shared・OBJECT、`kritatestsdk`、command・stroke型の実体化、inline本文の実行を必要としない。
+- flake領域は`libs/flake/KoShapeGroup.h`の10 API、`commands/KoShapeGroupCommand.h`の7 API、`commands/KoShapeUngroupCommand.h`の5 APIを、図形groupの表現と所属変更commandとして既存`libs/flake/tests/KoShapeReorderCommandSchemaContractTest.cpp`の5枠へ固定する。既存sourceは160行・10枠で、追加後も300行・20枠未満に収まり、CMake変更なしでQt Core・Testだけを動的接続する4工程・8入力を維持する。既定引数は未評価呼出しと構築可能性で観測し、停止線を5工程・11入力とする。
+- UI領域は`libs/widgets/kis_palette_view.h`の19 APIと`libs/libkis/PaletteView.h`の10 APIを、native・scripting palette表示・編集境界として既存`libs/libkis/tests/PaletteSchemaContractTest.cpp`の5枠へ固定する。対象固有CMake節へwidgets・widgetutilsのsource/generated探索路、Qt Widgets interface、`kritawidgets_EXPORTS`と`kritawidgetutils_EXPORTS`だけを加え、Qt Core・Gui・Testだけを動的接続する4工程・8入力を維持し、停止線を5工程・11入力とする。候補headerをAUTOMOC入力にせず、view、model、palette、色、swatch、renderer、Qt値を実体化しない。
+- 3責務の開始headerと試験sourceは相互に異なる。imageは新規target、flakeは既存sourceだけ、UIは既存sourceと対象固有CMake節だけを変更するため、合計71 API・15枠をundo-command型stroke strategy、図形group、palette viewの順に一担当ずつ実装する。製品target、全体build・`verify`、Linux、Nix再評価を行わず、各対象と近傍、追加枠の反復、AUTOMOC後の二回目計画、無作業再構築、公開API検査、`verify-quick`を確認する。
 
 ### 第201便の先行監査担当票
 
