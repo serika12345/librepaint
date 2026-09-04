@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 06:54 JST
+- 更新日時: 2026-09-05 06:56 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -592,7 +592,10 @@
 - 変更許可pathは新規試験sourceと`libs/image/tests/CMakeLists.txt`の新target固有節だけである。新target `KisEncloseAndFillPainterSchemaContractTest`は既存`KisGradientPainterSchemaContractTest`と同じimage・filter・global・pigment・pigment/resources・resources・painting/undoのsource・generated探索路、Eigen・KF I18n・Imath interface、`kritaimage_EXPORTS`と`kritapigment_EXPORTS`、Qt Core・Gui・Testとheader-only Boostを使う。予測閉包4工程・8入力、停止線5工程・11入力、軽量近傍は同gradient painter契約である。
 - 型特性、厳密なmember pointer、既定引数を使う未評価呼出しだけで観測し、painter、paint device、selection、色、Qt値、塗り本文を実体化しない。担当は変更前後の計画、target不存在と5枠の初回未定義link診断、追加5枠の単発と各20回反復、対象・近傍CTest、AUTOMOC後の二回目計画、無作業再構築2回、動的接続・未解決記号・構文・書式、公開API検査、`verify-quick`を確認する。5工程・11入力超過、追加探索路・定義・link、製品shared・OBJECT・`kritatestsdk`、候補headerのAUTOMOC入力化、製品未解決記号、対象実体化、公開header・製品source・既存target・許可path外の変更が必要なら停止する。構築許可はmacOSの対象と軽量近傍だけに`granted`、Git権限は許可pathだけの`transport-commit`、追加委任は`forbidden`である。
 - 担当側と中央のmacOSで追加5枠を各20回、全7試験、対象`libs-image-KisEncloseAndFillPainterSchemaContractTest`と近傍`libs-image-KisGradientPainterSchemaContractTest`、AUTOMOC後の二回目計画、無作業再構築2回に成功した。閉包は4工程・8入力、AUTOMOC `HEADERS=[]`、Qt Core・Gui・Testだけの動的接続、製品未解決記号なしである。中央でも正しいcompile commandによる`clang-check -Werror`、書式、公開API検査に成功し、台帳は21,049件対応、8,755件未対応となった。cleanな専用作業tree、299,044 KiBの構築木、branchを統合直後に削除し、主Ninja木5,733,708 KiBと共有compiler cache 983,264 KiBを再利用する。領域方式ごとの画素結果、反転・輪郭・周囲領域の効果、色・pattern塗り、既存selectionとの合成は既存または将来の動的契約で扱う。
-- 第219便は同担当の統合・削除後にcurve widget 30 API、KRA XML保存visitor 20 APIを一担当ずつ実装する。調整担当だけが文書、公開API台帳、共通不足報告を変更する。製品target、全体build・`verify`、Linux、Nix再評価を行わない。
+- `g219-curve-widget-schema`の状態は`planned`、基点は`9954fc89cf`、専用作業treeは`/Users/masato/Documents/librepaint-g219-curve-widget-schema`、branchは`agent/g219-curve-widget-schema`である。`libs/ui/widgets/kis_curve_widget.h`の残存全30 APIを、新規`libs/ui/tests/KisCurveWidgetSchemaContractTest.cpp`の5枠`curveWidgetTypeLifetimeAndConstraintSchemaRemainStable`、`curveWidgetCurveAndBackgroundSignaturesRemainStable`、`curveWidgetPointSelectionAndEditingSignaturesRemainStable`、`curveWidgetInputOutputControlSignaturesRemainStable`、`curveWidgetNotificationSignaturesRemainStable`へ9・5・8・4・4件で対応付ける。第1枠は型、3制約値、constructor・destructor、全体制約の照会・設定、第2枠はcurve・pixmap・reset、第3枠は現在点の選択・位置・corner編集、第4枠は外部spinboxの接続・同期・focus通知、第5枠はcurve変更と圧縮信号を含む通知である。
+- 変更許可pathは新規試験sourceと`libs/ui/tests/CMakeLists.txt`の新target固有節だけである。新target `KisCurveWidgetSchemaContractTest`はapplication・image・globalのsource・generated探索路、Qt Gui・Widgets interface、`kritaapplicationui_EXPORTS`、`kritaimage_EXPORTS`、`kritaglobal_EXPORTS`、Qt Core・Test、header-only Boost・Eigenを使う。`libs/application`所有の生成`kritaui_export.h`を選び、予測閉包4工程・8入力、停止線5工程・11入力、軽量近傍は`KisLayerFilterWidgetSchemaContractTest`である。
+- 型特性、列挙値、厳密なmember pointer、既定引数を使う未評価呼出しだけで観測し、widget、curve、pixmap、spinbox、Qt値、signalを実体化しない。担当は変更前後の計画、target不存在と5枠の初回未定義link診断、追加5枠の単発と各20回反復、対象・近傍CTest、AUTOMOC後の二回目計画、無作業再構築2回、動的接続・未解決記号・構文・書式、公開API検査、`verify-quick`を確認する。5工程・11入力超過、Qt Gui・Widgetsまたは製品libraryの動的接続、追加探索路・定義・link、製品shared・OBJECT・`kritatestsdk`、候補headerのAUTOMOC入力化、誤った`libs/ui`生成export header、製品未解決記号、対象実体化、公開header・製品source・既存target・許可path外の変更が必要なら停止する。構築許可はmacOSの対象と軽量近傍だけに`granted`、Git権限は許可pathだけの`transport-commit`、追加委任は`forbidden`である。
+- 第219便はcurve widget担当の統合・削除後にKRA XML保存visitor 20 APIを実装する。調整担当だけが文書、公開API台帳、共通不足報告を変更する。製品target、全体build・`verify`、Linux、Nix再評価を行わない。
 
 ### 第220便の先行監査担当票（第219便確定待ち）
 
