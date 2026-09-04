@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 05:39 JST
+- 更新日時: 2026-09-05 05:44 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -545,9 +545,17 @@
 - 正式入力`build/tdd-macos/public-api-missing-g218.json`は公開header 1,549、公開API 29,838、対応済み20,942、未対応8,896、2,359,299 bytes、SHA-256 `cefbca14771a39c7c662cdb2085e24d9dd24373ce7cb9c6aa6ac88df378f46ec`である。色空間抽象境界32、auto levels widget 24、tool proxy内部状態22 APIがすべて未対応であり、先行監査の件数と識別子集合SHA-256に一致する。旧`public-api-missing-g217.json`を削除し、最新報告だけを保持する。
 - 正式監査の共通基点は`637cdc7080`である。3担当は正式報告、対象header、既存契約、CMake graphを読み取り専用で利用し、変更、構成、構築、試験、Git操作、追加委任を行わない。全API識別子、5枠への完全対応、最小閉包、既存動的保護、停止条件を再照合し、調整担当が一つずつ実装担当票へ移す。
 - `g218-color-space-abstract-formal-review`の状態は`completed-rejected`である。正式32 APIと集合SHA、5枠9・6・10・5・2、constructor以外の未評価観測、4工程・8入力の予測は一致した。一方、抽象templateのconstructorを正当に観測する派生probeはconstructor、vtable対象override、混色・畳み込み、alpha mask生成器を実体化する。同じ停止診断で棄却した第148便からheader構造は変わっておらず、全32 APIを製品非接続で固定できないため実装候補から外す。constructor依存を非template境界へ分離する構造変更、または製品接続する動的契約の限定構築が成立した後に再監査する。
-- `g218-auto-levels-widget-formal-review`の状態は`in_progress`、担当は`/root/g178_paintop_settings_schema`である。正式24 APIと集合SHA、5枠3・4・6・4・7、対象固有UI生成の所有・順序、5工程・10入力を再照合する。
+- `g218-auto-levels-widget-formal-review`の状態は`completed`である。正式24 APIと集合SHA、5枠3・4・6・4・7を再照合した。`ki18n_wrap_ui`で`KisAutoLevelsWidget.ui`からtarget固有binary directoryへ`ui_KisAutoLevelsWidget.h`を生成し、生成headerへ`SKIP_AUTOMOC`と`SKIP_AUTOUIC`を設定する。製品UI生成targetへ接続せず、Qt Core・Testだけを動的接続する5工程・10入力へ閉じられる。
 - `g218-tool-proxy-state-formal-review`の状態は`completed`である。正式22 APIと集合SHA、5枠6・3・4・5・4、flake限定4工程・8入力を再照合した。owner外の`libs/input/ui/kis_tool_proxy.cpp`は`activeTool`を6箇所、同testsは`controller`を4箇所で直接利用している。新規`KoToolProxyPrivateSchemaContractTest`は、両owner外includeと直接member参照を具体的owner操作へ置換し、公開`priv()`のowner外利用を0にし、不足報告から同private headerが消えた時点で削除する一時互換契約として採用する。
 - `g218-opengl-mode-prober-replacement-audit`の状態は`in_progress`、担当は`/root/g178_shape_hierarchy_schema`である。棄却した色空間抽象境界の代替として、正式報告の`libs/ui/opengl/KisOpenGLModeProber.h`残存34 APIを読み取り専用で監査する。OpenGL contextや製品実装を実体化せず、最大5枠と5工程・11入力以内へ閉じる候補だけを採用する。
+
+### 第218便の担当計画
+
+- 最初の実装基点は`e7cfbde3b1`である。一度に一つだけ作る専用worktree-local `build/tdd-macos`と主作業treeの共有compiler cacheを使い、担当側の`./scripts/run-shared-test-env`で読み込み済み環境を利用する。調整担当だけが文書、公開API台帳、共通不足報告を変更し、担当は許可pathだけの1受渡しcommitを作る。製品target、全体build・`verify`、Linux、Nix再評価を行わない。
+- `g218-auto-levels-widget-schema`の状態は`preparing`、担当は`/root/g178_paintop_settings_schema`、専用branchは`agent/g218-auto-levels-widget-schema`、作業treeは`/Users/masato/Documents/librepaint-g218-auto-levels-widget-schema`である。開始`libs/ui/widgets/KisAutoLevelsWidget.h`の残存全24 APIを、新規`libs/ui/tests/KisAutoLevelsWidgetSchemaContractTest.cpp`の5枠`autoLevelsWidgetTypeAndLifetimeSchemaRemainStable`、`autoLevelsWidgetContrastAdjustmentMethodSignaturesRemainStable`、`autoLevelsWidgetClippingAndOffsetSignaturesRemainStable`、`autoLevelsWidgetMidtonesAdjustmentSignaturesRemainStable`、`autoLevelsWidgetOutputColorAndNotificationSignaturesRemainStable`へ3・4・6・4・7件で対応付ける。識別子集合SHA-256は`a95a317c6243b9b6813002527f57029887e2dea1ee4d745cd57aed972d199eef`である。
+- 第1枠は型、`QWidget *`構築、destructor、第2枠はshadow/highlight調整方式のlock・設定・照会・unlock、第3枠はshadow/highlight clippingと最大入力offsetの照会・設定、第4枠はmidtone調整量・方式の照会・設定、第5枠は出力shadow・midtone・highlight色の照会・設定と`parametersChanged`通知である。許可pathは新規試験sourceと`libs/ui/tests/CMakeLists.txt`の新target固有節だけで、公開header、製品source、製品UI生成を変更しない。
+- 新targetは`ki18n_wrap_ui(KisAutoLevelsWidgetSchemaContractTest ${CMAKE_CURRENT_SOURCE_DIR}/../widgets/KisAutoLevelsWidget.ui)`でtarget固有`ui_KisAutoLevelsWidget.h`を生成する。application、image、pigment、widgets、widgetutils、globalのsource・generated探索路、Qt Gui・Widgets、KF I18n・Imath・Boostのinterface、6 export定義を使い、Qt Core・Testだけを直接接続する。`KisHistogramPainterSchemaContractTest`を軽量近傍とし、5工程・10入力、停止線6工程・13入力を維持する。
+- 最初に新target不存在、次に5枠の宣言だけで5枠の未定義link失敗を確認する。型特性と厳密な関数pointerだけでwidget、生成UI、色、列挙値、signalを実体化せず、候補headerをAUTOMOC入力にしない。担当は追加5枠の単発と各20回反復、対象と近傍、AUTOMOC後の二回目計画、無作業再構築2回、対象固有UI生成物、動的接続・未解決記号・構文・書式、公開API検査、`verify-quick`を確認する。製品UI生成への依存、6工程・13入力超過、Qt Gui・Widgets・KFまたは製品libraryの動的接続、製品shared・OBJECT・`kritatestsdk`、候補headerのAUTOMOC入力化、製品未解決記号、対象実体化、許可path外変更が必要なら停止する。構築許可はmacOSの対象と近傍だけに`granted`、Git権限は許可pathだけの`transport-commit`、追加委任は`forbidden`である。
 
 ### 第219便の先行監査担当票（第218便確定待ち）
 
