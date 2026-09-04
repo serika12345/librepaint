@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 8755
+    "expectedMissingApis": 8725
   },
   "contracts": [
     {
@@ -58558,6 +58558,81 @@
         "method:KisEncloseAndFillPainter::setRegionSelectionIncludeSurroundingRegions(bool include)",
         "method:KisEncloseAndFillPainter::setRegionSelectionInvert(bool invert)",
         "method:KisEncloseAndFillPainter::setRegionSelectionMethod(RegionSelectionMethod regionSelectionMethod)"
+      ]
+    },
+    {
+      "target": "KisCurveWidgetSchemaContractTest",
+      "source": "libs/ui/tests/KisCurveWidgetSchemaContractTest.cpp",
+      "test": "KisCurveWidgetSchemaContractTest::curveWidgetTypeLifetimeAndConstraintSchemaRemainStable",
+      "behavior": "曲線編集部品は型と寿命、既定構築、点の全体制約と3種類の制約値を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisCurveWidget",
+        "enum:KisCurveWidget::PointConstrain",
+        "enumerator:KisCurveWidget::PointConstrain::PointConstrain_AlwaysCorner",
+        "enumerator:KisCurveWidget::PointConstrain::PointConstrain_AlwaysSmooth",
+        "enumerator:KisCurveWidget::PointConstrain::PointConstrain_None",
+        "method:KisCurveWidget::KisCurveWidget(QWidget * parent=nullptr,Qt::WindowFlags f=Qt::WindowFlags ())",
+        "method:KisCurveWidget::globalPointConstrain() const",
+        "method:KisCurveWidget::setGlobalPointConstrain(PointConstrain constrain)",
+        "method:KisCurveWidget::~KisCurveWidget()"
+      ]
+    },
+    {
+      "target": "KisCurveWidgetSchemaContractTest",
+      "source": "libs/ui/tests/KisCurveWidgetSchemaContractTest.cpp",
+      "test": "KisCurveWidgetSchemaContractTest::curveWidgetCurveAndBackgroundSignaturesRemainStable",
+      "behavior": "曲線編集部品は曲線の取得・設定・初期化と背景pixmapの取得・設定署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCurveWidget::curve()",
+        "method:KisCurveWidget::getPixmap()",
+        "method:KisCurveWidget::reset(void)",
+        "method:KisCurveWidget::setCurve(KisCubicCurve inlist)",
+        "method:KisCurveWidget::setPixmap(const QPixmap & pix)"
+      ]
+    },
+    {
+      "target": "KisCurveWidgetSchemaContractTest",
+      "source": "libs/ui/tests/KisCurveWidgetSchemaContractTest.cpp",
+      "test": "KisCurveWidgetSchemaContractTest::curveWidgetPointSelectionAndEditingSignaturesRemainStable",
+      "behavior": "曲線編集部品は現在点の選択・位置・corner状態を照会・編集し、中間点を追加する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCurveWidget::addPointInTheMiddle()",
+        "method:KisCurveWidget::currentPoint() const",
+        "method:KisCurveWidget::currentPointPosition() const",
+        "method:KisCurveWidget::isCurrentPointSetAsCorner() const",
+        "method:KisCurveWidget::pointSelected() const",
+        "method:KisCurveWidget::setCurrentPoint(const QPointF & position,bool setAsCorner)",
+        "method:KisCurveWidget::setCurrentPointAsCorner(bool setAsCorner)",
+        "method:KisCurveWidget::setCurrentPointPosition(const QPointF & position)"
+      ]
+    },
+    {
+      "target": "KisCurveWidgetSchemaContractTest",
+      "source": "libs/ui/tests/KisCurveWidgetSchemaContractTest.cpp",
+      "test": "KisCurveWidgetSchemaContractTest::curveWidgetInputOutputControlSignaturesRemainStable",
+      "behavior": "曲線編集部品は外部入出力部品を接続・解除し、値同期とfocus要求を通知する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCurveWidget::dropInOutControls()",
+        "method:KisCurveWidget::setupInOutControls(QSpinBox * in,QSpinBox * out,int inMin,int inMax,int outMin,int outMax)",
+        "method:KisCurveWidget::shouldFocusIOControls()",
+        "method:KisCurveWidget::shouldSyncIOControls()"
+      ]
+    },
+    {
+      "target": "KisCurveWidgetSchemaContractTest",
+      "source": "libs/ui/tests/KisCurveWidgetSchemaContractTest.cpp",
+      "test": "KisCurveWidgetSchemaContractTest::curveWidgetNotificationSignaturesRemainStable",
+      "behavior": "曲線編集部品は曲線・選択の変更と圧縮通知の開始条件を公開signalとして維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCurveWidget::compressorShouldEmitModified()",
+        "method:KisCurveWidget::curveChanged(const KisCubicCurve &)",
+        "method:KisCurveWidget::modified(void)",
+        "method:KisCurveWidget::pointSelectedChanged()"
       ]
     }
   ]
