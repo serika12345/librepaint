@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 10063
+    "expectedMissingApis": 10041
   },
   "contracts": [
     {
@@ -55349,6 +55349,73 @@
         "function:KoFlake::cloneGradient(const QGradient * gradient)",
         "function:KoFlake::mergeGradient(const QGradient * coordsSource,const QGradient * fillSource)",
         "method:KoPatternBackground::paint(QPainter & painter,const QPainterPath & fillPath) const"
+      ]
+    },
+    {
+      "target": "KisDoubleParseUnitSpinBoxSchemaContractTest",
+      "source": "libs/widgetutils/tests/KisDoubleParseUnitSpinBoxSchemaContractTest.cpp",
+      "test": "KisDoubleParseUnitSpinBoxSchemaContractTest::unitDoubleSpinBoxTypeLifetimeAndValueSchemaRemainStable",
+      "behavior": "単位付き倍精度入力は倍精度入力widgetの派生型として既定parentで構築・仮想破棄でき、値の照会・変更に関する公開契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoUnitDoubleSpinBox",
+        "method:KoUnitDoubleSpinBox::KoUnitDoubleSpinBox(QWidget * parent=0)",
+        "method:KoUnitDoubleSpinBox::changeValue(double newValue)",
+        "method:KoUnitDoubleSpinBox::value() const",
+        "method:KoUnitDoubleSpinBox::~KoUnitDoubleSpinBox()"
+      ]
+    },
+    {
+      "target": "KisDoubleParseUnitSpinBoxSchemaContractTest",
+      "source": "libs/widgetutils/tests/KisDoubleParseUnitSpinBoxSchemaContractTest.cpp",
+      "test": "KisDoubleParseUnitSpinBoxSchemaContractTest::unitDoubleSpinBoxRangeAndStepSignaturesRemainStable",
+      "behavior": "単位付き倍精度入力は最小値・最大値・刻み・point単位の刻みと一括範囲設定に関する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoUnitDoubleSpinBox::setLineStep(double step)",
+        "method:KoUnitDoubleSpinBox::setLineStepPt(double step)",
+        "method:KoUnitDoubleSpinBox::setMaximum(double max)",
+        "method:KoUnitDoubleSpinBox::setMinMaxStep(double min,double max,double step)",
+        "method:KoUnitDoubleSpinBox::setMinimum(double min)"
+      ]
+    },
+    {
+      "target": "KisDoubleParseUnitSpinBoxSchemaContractTest",
+      "source": "libs/widgetutils/tests/KisDoubleParseUnitSpinBoxSchemaContractTest.cpp",
+      "test": "KisDoubleParseUnitSpinBoxSchemaContractTest::unitDoubleSpinBoxUnitTextAndNotificationSignaturesRemainStable",
+      "behavior": "単位付き倍精度入力は単位設定、文字列の検証・相互変換、point単位の値変更通知に関する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoUnitDoubleSpinBox::setUnit(const KoUnit &)",
+        "method:KoUnitDoubleSpinBox::textFromValue(double value) const",
+        "method:KoUnitDoubleSpinBox::validate(QString & input,int & pos) const",
+        "method:KoUnitDoubleSpinBox::valueChangedPt(qreal)",
+        "method:KoUnitDoubleSpinBox::valueFromText(const QString & str) const"
+      ]
+    },
+    {
+      "target": "KisDoubleParseUnitSpinBoxSchemaContractTest",
+      "source": "libs/widgetutils/tests/KisDoubleParseUnitSpinBoxSchemaContractTest.cpp",
+      "test": "KisDoubleParseUnitSpinBoxSchemaContractTest::unitManagerBuilderTypeLifetimeAndBuildSchemaRemainStable",
+      "behavior": "単位管理器builderは仮想破棄され、指定parentを所有関係に用いる管理器生成の公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisSpinBoxUnitManagerBuilder",
+        "method:KisSpinBoxUnitManagerBuilder::buildUnitManager(QObject * parent)",
+        "method:KisSpinBoxUnitManagerBuilder::~KisSpinBoxUnitManagerBuilder()"
+      ]
+    },
+    {
+      "target": "KisDoubleParseUnitSpinBoxSchemaContractTest",
+      "source": "libs/widgetutils/tests/KisDoubleParseUnitSpinBoxSchemaContractTest.cpp",
+      "test": "KisDoubleParseUnitSpinBoxSchemaContractTest::unitManagerFactoryTypeAndCreationSchemaRemainStable",
+      "behavior": "単位管理器factoryは既定管理器を生成し、既定builderを設定・解除する公開静的署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisSpinBoxUnitManagerFactory",
+        "method:KisSpinBoxUnitManagerFactory::buildDefaultUnitManager(QObject * parent)",
+        "method:KisSpinBoxUnitManagerFactory::clearUnitManagerBuilder()",
+        "method:KisSpinBoxUnitManagerFactory::setDefaultUnitManagerBuilder(KisSpinBoxUnitManagerBuilder * pBuilder)"
       ]
     }
   ]

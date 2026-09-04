@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-04 16:44 JST
+- 更新日時: 2026-09-04 16:49 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -91,7 +91,13 @@
 - 実装共通基点は`7fdc43c0af`である。一度に一つだけ作る専用worktree-local `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有し、`./scripts/run-shared-test-env`で読み込み済み環境を使う。各担当のGit権限は許可pathだけの受渡しcommit、追加委任は禁止する。ASL layer style serializer、図形fill、単位付き倍精度入力の順に限定検証・統合・削除し、調整担当だけが文書、公開API台帳、共通不足報告を変更する。製品target、全体build・`verify`、Linux、Nix再評価は禁止する。
 - `g204-asl-serializer-schema`の状態は`integrated`、macOSの対象・近傍に限る構築実行許可は`granted`である。正式不足報告の`libs/image/kis_asl_layer_style_serializer.h`残存全22 APIを、既存`libs/image/tests/KisPSDLayerStyleSchemaContractTest.cpp`の5枠`aslLayerStyleSerializerTypeAndStateSchemaRemainStable`、`aslLayerStyleSerializerDeviceAndDocumentSignaturesRemainStable`、`aslLayerStyleSerializerCollectionSignaturesRemainStable`、`aslLayerStyleSerializerPatternAndGradientSignaturesRemainStable`、`aslLayerStyleSerializerResourceLoadingSignaturesRemainStable`へ5・6・5・3・3件で対応付けた。CMake、公開header、製品sourceを変更せず、受渡しcommit `2a8253fb10`を統合commit `42f5a917af`として取り込んだ。担当側で追加5枠を各20回、対象と近傍を実行し、中央でも対象`libs-image-KisPSDLayerStyleSchemaContractTest`と近傍`libs-image-KisPaintLayerSchemaContractTest`、AUTOMOC後の二回目計画と無作業再構築に成功した。4工程・8入力、Qt Core・Gui・Test・Xmlだけの動的接続、候補headerのAUTOMOC非入力化、製品非接続を維持し、台帳は19,755件対応、10,083件未対応となった。cleanな専用作業tree、構築木、branchを統合直後に削除し、883,660 KiBを回収した。
 - `g204-shape-fill-schema`の状態は`integrated`、macOSの対象・近傍に限る構築実行許可は`granted`である。正式不足報告の`libs/flake/KoShapeFillWrapper.h`の17 API、`KoFlake.h`の2 API、`KoPatternBackground.h`の1 APIを、既存`libs/flake/tests/KoPatternBackgroundSchemaContractTest.cpp`の5枠`shapeFillWrapperTypeAndConstructionSchemaRemainStable`、`shapeFillWrapperClassificationAndColorSignaturesRemainStable`、`shapeFillWrapperGradientSignaturesRemainStable`、`shapeFillWrapperMeshGradientSignaturesRemainStable`、`gradientUtilityAndPatternRenderingSignaturesRemainStable`へ4・6・5・2・3件で対応付けた。CMake、公開header、製品sourceを変更せず、受渡しcommit `e415d54e94`を統合commit `ff0401fa42`として取り込んだ。担当側で追加5枠を各20回、対象と近傍を実行し、中央でも対象`libs-flake-KoPatternBackgroundSchemaContractTest`と近傍`libs-flake-KoShapeStrokeSchemaContractTest`、AUTOMOC後の二回目計画と無作業再構築に成功した。4工程・8入力、Qt Core・Testだけの動的接続、Qt Guiの動的非接続、候補headerのAUTOMOC非入力化、製品非接続を維持し、台帳は19,775件対応、10,063件未対応となった。cleanな専用作業tree、構築木、branchを統合直後に削除し、881,408 KiBを回収した。
-- `g204-unit-spinbox-schema`の状態は`implementing`、macOSの対象・近傍に限る構築実行許可は`granted`で、基点`5c7ee5fea2`の作業tree`/Users/masato/Documents/librepaint-g204-unit-spinbox-schema`を所有する。正式不足報告の`libs/widgets/KoUnitDoubleSpinBox.h`の15 APIと`libs/widgetutils/kis_spin_box_unit_manager.h`の7 APIを、既存`libs/widgetutils/tests/KisDoubleParseUnitSpinBoxSchemaContractTest.cpp`の5枠`unitDoubleSpinBoxTypeLifetimeAndValueSchemaRemainStable`、`unitDoubleSpinBoxRangeAndStepSignaturesRemainStable`、`unitDoubleSpinBoxUnitTextAndNotificationSignaturesRemainStable`、`unitManagerBuilderTypeLifetimeAndBuildSchemaRemainStable`、`unitManagerFactoryTypeAndCreationSchemaRemainStable`へ5・5・5・3・4件で対応付ける。許可pathは既存試験sourceと`libs/widgetutils/tests/CMakeLists.txt`の対象固有節だけで、widgetsのsource/generated探索路と`kritawidgets_EXPORTS`だけを追加できる。対象`KisDoubleParseUnitSpinBoxSchemaContractTest`、正式CTest`libs-widgetutils-KisDoubleParseUnitSpinBoxSchemaContractTest`、近傍`KisSliderSpinBoxSchemaContractTest`である。4工程・8入力を維持し、5工程・11入力超過、指定外探索路・link・定義、AUTOMOC入力化、製品接続、実体化・本文実行が必要なら停止する。
+- `g204-unit-spinbox-schema`の状態は`integrated`、macOSの対象・近傍に限る構築実行許可は`granted`である。正式不足報告の`libs/widgets/KoUnitDoubleSpinBox.h`の15 APIと`libs/widgetutils/kis_spin_box_unit_manager.h`の7 APIを、既存`libs/widgetutils/tests/KisDoubleParseUnitSpinBoxSchemaContractTest.cpp`の5枠`unitDoubleSpinBoxTypeLifetimeAndValueSchemaRemainStable`、`unitDoubleSpinBoxRangeAndStepSignaturesRemainStable`、`unitDoubleSpinBoxUnitTextAndNotificationSignaturesRemainStable`、`unitManagerBuilderTypeLifetimeAndBuildSchemaRemainStable`、`unitManagerFactoryTypeAndCreationSchemaRemainStable`へ5・5・5・3・4件で対応付けた。対象固有CMake節へwidgetsのsource/generated探索路と`kritawidgets_EXPORTS`だけを加え、linkは変更していない。受渡しcommit `c35ef1533d`を統合commit `2ab935aa22`として取り込み、担当側で追加5枠を各20回、対象と近傍を実行し、中央でも対象`libs-widgetutils-KisDoubleParseUnitSpinBoxSchemaContractTest`と近傍`libs-widgetutils-KisSliderSpinBoxSchemaContractTest`、AUTOMOC後の二回目計画と無作業再構築に成功した。4工程・8入力、Qt Core・Gui・Widgets・Testだけの動的接続、候補headerのAUTOMOC非入力化、製品非接続を維持し、台帳は19,797件対応、10,041件未対応となった。cleanな専用作業tree、構築木、branchを統合直後に削除し、881,792 KiBを回収した。
+
+### 第204便の統合結果
+
+- `libs/image/kis_asl_layer_style_serializer.h`から既存`libs/image/tests/KisPSDLayerStyleSchemaContractTest.cpp`へ22 API・5枠、`libs/flake/KoShapeFillWrapper.h`、`KoFlake.h`、`KoPatternBackground.h`から既存`libs/flake/tests/KoPatternBackgroundSchemaContractTest.cpp`へ20 API・5枠、`libs/widgets/KoUnitDoubleSpinBox.h`と`libs/widgetutils/kis_spin_box_unit_manager.h`から既存`libs/widgetutils/tests/KisDoubleParseUnitSpinBoxSchemaContractTest.cpp`へ22 API・5枠を追加した。公開headerと製品sourceを変更せず、3対象とも4工程・8入力と製品非接続を維持した。
+- 第204便全体で64 APIを15枠へ重複なく対応付け、19,797件対応、10,041件未対応となった。担当側と中央で対象・軽量近傍CTest、各追加枠の20回反復、AUTOMOC後の二回目計画、無作業再構築、動的接続・未解決記号・書式、公開API検査、`verify-quick`に成功した。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 3担当のcleanな専用作業tree、構築木、branchを統合直後に削除し、合計2,646,860 KiBを回収した。主Ninja木と共有compiler cacheは次便の対象限定構築へ再利用し、第205便の正式不足報告を生成した後は旧`public-api-missing-g204.json`を削除して最新報告だけを保持する。
 
 ### 第205便の先行監査担当票（第204便確定待ち）
 
@@ -99,8 +105,8 @@
 - `g205-image-contract-audit`の状態は`completed`で、image・paintop・pigment領域から画像変更transaction 20 APIを選定した。
 - `g205-flake-contract-audit`の状態は`completed`で、flake・SVG・vector領域からtool actionとtool activation管理49 APIを選定した。
 - `g205-ui-contract-audit`の状態は`completed`で、widgetutils・widgets・libkis領域から資源server取得とpopup選択・通知21 APIを選定した。
-- `g205-tool-manager-closure-review`の状態は`reviewing`、変更・構築実行・Git権限は`withheld`である。`libs/flake/KoToolManager.h`の49 APIから新規専用契約5枠への完全対応、4工程・8入力、Qt Core・Testだけの動的接続、候補headerのAUTOMOC非入力化、製品非接続を独立確認する。
-- `g205-resource-selection-closure-review`の状態は`reviewing`、変更・構築実行・Git権限は`withheld`である。`libs/widgets/KoResourceServerProvider.h`と`KoResourcePopupAction.h`の21 APIから新規専用契約5枠への完全対応、4工程・8入力、Qt Core・Gui・Testだけの動的接続、候補headerのAUTOMOC非入力化、製品非接続を独立確認する。
+- `g205-tool-manager-closure-review`の状態は`completed`で、tool actionとtool activation管理の49 APIは新規専用契約へ4工程・8入力、Qt Core・Testだけの動的接続、候補headerのAUTOMOC非入力化、製品非接続を維持して追加できることを独立確認した。
+- `g205-resource-selection-closure-review`の状態は`completed`で、資源server取得とpopup選択・通知の21 APIは新規専用契約へ4工程・8入力、Qt Core・Gui・Testだけの動的接続、候補headerのAUTOMOC非入力化、製品非接続を維持して追加できることを独立確認した。直接include閉包に必要なKF I18n interface探索路を先行監査案へ追加する。
 
 ### 第201便の先行監査担当票
 
