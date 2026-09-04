@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 08:51 JST
+- 更新日時: 2026-09-05 08:55 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -673,10 +673,17 @@
 - 対象限定検証の準備中に調整担当が`./scripts/run-test --help`を実行し、同scriptがhelp引数を持たないため主Ninja木の全体構築を開始した。10工程目までに既存`libs/flake/resources/KoCssStylePreset.cpp`の`KoPathShape`不完全型診断で停止し、ソース変更、追加依存、追加作業treeは生じていない。以後はscript本文で引数仕様を確認し、`run-test`へCMake targetとCTest正規表現を必ず明示する。
 - 統合済みpatchを確認後に専用作業tree、約291 MiBのlane構築木、branchを削除して888,168 KiBを回収した。旧`public-api-missing-g222.json`を削除し、主Ninja木5,746,072 KiB、共有compiler cache 982,916 KiB、最新`build/tdd-macos/public-api-missing-g223.json` 2,276,911 bytes、SHA-256 `a6a59230ae740e4e7d6854fb69f0eae98418b8972d781af2c932adc49f059e76`だけを次便へ再利用する。compiler cacheは142,993件中120,202件、84.06%がhitしている。製品target、意図した全体build・`verify`、Linux、Nix再評価は実行していない。
 
-### 第223便の先行監査担当票（第222便確定待ち）
+### 第223便の先行監査担当票
 
+- 正式入力`build/tdd-macos/public-api-missing-g223.json`は公開header 1,548、公開API 29,804、対応済み21,226、未対応8,578である。clipboard 32 APIがすべて残存し、識別子集合SHA-256 `762cdd60fb30b2b7986252f7dc202e004cebb3538bcdc82e34dd6582a524fbdb`は先行・正式監査値に一致する。
 - `g223-clipboard-schema-closure-audit`の状態は`completed`である。暫定入力`build/tdd-macos/public-api-missing-g217.json`の`libs/impex/ui/kis_clipboard.h`残存全32 API、識別子集合SHA-256 `762cdd60fb30b2b7986252f7dc202e004cebb3538bcdc82e34dd6582a524fbdb`、5枠4・9・8・6・5を新規専用targetへ固定できる。application・image・global探索路と対応export定義、Qt Gui interface、Qt Core・Testだけの直接接続による4工程・8入力を予測する。OS clipboard、URL取得、filesystem、dialog、画像、layer、paint deviceを実行または実体化せず、1,974工程・3,947入力のbroken動的試験へ接続しない。正式な第222便不足報告で再照合する。
-- `g223-clipboard-schema-formal-review`の状態は`completed-ready`、担当は`g178_paintop_settings_schema`、基点は`ff158c3b90`である。正式入力`build/tdd-macos/public-api-missing-g222.json`でも`libs/impex/ui/kis_clipboard.h`の残存全32 APIは一意で台帳と重複せず、集合SHA-256 `762cdd60fb30b2b7986252f7dc202e004cebb3538bcdc82e34dd6582a524fbdb`、新規`libs/impex/tests/KisClipboardSchemaContractTest.cpp`の5枠4・9・8・6・5に一致した。新target `KisClipboardSchemaContractTest`はapplication・image・global探索路と3 export定義、Qt Gui interface、Qt Core・Testだけで初回・AUTOMOC後とも4工程・8入力へ閉じられる。軽量近傍`KisPNGConverterSchemaContractTest`も4工程・8入力、候補headerのAUTOMOC `HEADERS=[]`、製品辺なしである。OS clipboard、URL・filesystem、dialog、画像・layer変換、時間範囲、通知順序は既存または後続の動的契約で扱い、正式第223便不足報告で32件と集合SHAを再照合する。
+- `g223-clipboard-schema-formal-review`の状態は`completed-ready`、担当は`g178_paintop_settings_schema`、基点は`ff158c3b90`である。正式入力`build/tdd-macos/public-api-missing-g223.json`でも`libs/impex/ui/kis_clipboard.h`の残存全32 APIは一意で台帳と重複せず、集合SHA-256 `762cdd60fb30b2b7986252f7dc202e004cebb3538bcdc82e34dd6582a524fbdb`、新規`libs/impex/tests/KisClipboardSchemaContractTest.cpp`の5枠4・9・8・6・5に一致した。新target `KisClipboardSchemaContractTest`はapplication・image・global探索路と3 export定義、Qt Gui interface、Qt Core・Testだけで初回・AUTOMOC後とも4工程・8入力へ閉じられる。軽量近傍`KisPNGConverterSchemaContractTest`も4工程・8入力、候補headerのAUTOMOC `HEADERS=[]`、製品辺なしである。OS clipboard、URL・filesystem、dialog、画像・layer変換、時間範囲、通知順序は既存または後続の動的契約で扱う。
+
+### 第223便の担当計画
+
+- 実装基点は`bff239d016`である。`g223-clipboard-schema`の状態は`planned`、開始公開headerは`libs/impex/ui/kis_clipboard.h`、許可pathは新規`libs/impex/tests/KisClipboardSchemaContractTest.cpp`と`libs/impex/tests/CMakeLists.txt`の新target固有節だけである。新targetは`KisClipboardSchemaContractTest`、軽量近傍は`KisPNGConverterSchemaContractTest`、対象platformはmacOS、対象・近傍だけの構築権限は`granted`とする。専用作業treeは`/Users/masato/Documents/librepaint-g223-clipboard-schema`、branchは`agent/g223-clipboard-schema`、作業tree固有の`build/tdd-macos`と主作業treeの共有compiler cacheを使う。Git権限は許可pathだけの1受渡しcommit、追加委任は禁止し、調整担当だけが文書、台帳、不足報告を変更する。
+- 5枠は`clipboardTypeLifetimeAndSingletonSchemaRemainStable`へclass、既定構築、singleton取得、破棄の4件、`clipboardPastePolicySchemaRemainStable`へ2 enumと7 enumeratorの9件、`clipboardContentExtractionSignaturesRemainStable`へ`askUserForSource`、`askUserForSourceWithData`、`clip`、`clipFromBoardContents`、`clipFromBoardContentsWithData`、`clipFromKritaLayers`、`clipFromMimeData`、`getImageWithFallback`の8件、`clipboardContentAvailabilitySignaturesRemainStable`へ`clipSize`、`hasClip`、`hasImage`、`hasLayerStyles`、`hasLayers`、`hasUrls`の6件、`clipboardMutationLayerExchangeAndNotificationSignaturesRemainStable`へ`clipChanged`、`layersMimeData`、2 overloadの`setClip`、`setLayers`の5件を対応付ける。各method識別子は正式入力の完全な引数・既定値・修飾をそのまま台帳へ登録し、全32識別子の集合SHA-256 `762cdd60fb30b2b7986252f7dc202e004cebb3538bcdc82e34dd6582a524fbdb`を維持する。
+- 新targetはimpex/ui、image・globalのsource・generated探索路、application generated探索路、`kritaapplicationui_EXPORTS`、`kritaimage_EXPORTS`、`kritaglobal_EXPORTS`、Qt Gui interface、Qt Core・Testの直接接続だけを許可し、予測閉包4工程・8入力、停止線5工程・11入力とする。型特性、列挙値、厳密なmember pointer、既定引数の未評価呼出しだけで観測し、clipboard singleton、paint device、image、node列、Qt画像・MIME・URL・矩形、時間範囲、色空間を実体化しない。担当は変更前計画・直接依存・target不存在と宣言段階のlink失敗、5枠単発・各20回、全target、正式CTest、近傍、AUTOMOC後二回目計画、無作業再構築2回、動的接続・未解決記号・AUTOMOC入力・構文・書式、差分、公開API検査、`verify-quick`を確認する。5工程・11入力超過、追加探索路・定義・link、Qt Gui・製品shared・OBJECT・`kritatestsdk`の動的接続、候補headerのAUTOMOC入力化、製品未解決記号、完全型補完、対象実体化、公開header・製品source・既存target・許可path外の変更が必要なら停止する。製品target、全体build・`verify`、Linux、Nix再評価は禁止する。
 
 ### 第224便の先行監査担当票（第223便確定待ち）
 
