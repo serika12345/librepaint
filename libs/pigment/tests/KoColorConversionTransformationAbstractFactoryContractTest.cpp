@@ -3,12 +3,14 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include <KoColorConversionSystem.h>
 #include <KoColorConversionTransformationAbstractFactory.h>
 
 #include <QTest>
 
 #include <array>
 #include <memory>
+#include <type_traits>
 #include <utility>
 
 class FactoryProbe final : public KoColorConversionTransformationAbstractFactory
@@ -91,6 +93,11 @@ private Q_SLOTS:
     void conversionCreationPreservesArgumentsAndReturn();
     void proofingCreationPreservesArgumentsAndReturn();
     void defaultConstructionHasVirtualLifetime();
+    void colorConversionSystemTypeAndLifetimeSchemaRemainStable();
+    void colorConversionRegistryInterfaceSchemaRemainStable();
+    void colorConversionGraphMutationSignaturesRemainStable();
+    void colorConversionCreationSignaturesRemainStable();
+    void colorConversionPathQuerySignaturesRemainStable();
 };
 
 void KoColorConversionTransformationAbstractFactoryContractTest::conversionCreationPreservesArgumentsAndReturn()
@@ -170,6 +177,103 @@ void KoColorConversionTransformationAbstractFactoryContractTest::defaultConstruc
     }
 
     QCOMPARE(destructionCount, 1);
+}
+
+void KoColorConversionTransformationAbstractFactoryContractTest::
+    colorConversionSystemTypeAndLifetimeSchemaRemainStable()
+{
+    using System = KoColorConversionSystem;
+
+    static_assert(std::is_class_v<System>);
+    static_assert(std::is_constructible_v<System, System::RegistryInterface *>);
+    static_assert(std::is_destructible_v<System>);
+    static_assert(!std::has_virtual_destructor_v<System>);
+}
+
+void KoColorConversionTransformationAbstractFactoryContractTest::colorConversionRegistryInterfaceSchemaRemainStable()
+{
+    using Registry = KoColorConversionSystem::RegistryInterface;
+    using ColorSpaceSignature = const KoColorSpace *(Registry::*)(const QString &, const QString &, const QString &);
+    using ColorSpaceFactorySignature = const KoColorSpaceFactory *(Registry::*)(const QString &, const QString &) const;
+    using ProfilesSignature = QList<const KoColorProfile *> (Registry::*)(const KoColorSpaceFactory *) const;
+    using ColorSpacesSignature = QList<const KoColorSpaceFactory *> (Registry::*)(const KoColorProfile *) const;
+
+    static_assert(std::is_class_v<Registry>);
+    static_assert(std::is_abstract_v<Registry>);
+    static_assert(std::has_virtual_destructor_v<Registry>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<ColorSpaceSignature>(&Registry::colorSpace)), ColorSpaceSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<ColorSpaceFactorySignature>(&Registry::colorSpaceFactory)),
+                                 ColorSpaceFactorySignature>);
+    static_assert(std::is_same_v<decltype(static_cast<ProfilesSignature>(&Registry::profilesFor)), ProfilesSignature>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<ColorSpacesSignature>(&Registry::colorSpacesFor)), ColorSpacesSignature>);
+}
+
+void KoColorConversionTransformationAbstractFactoryContractTest::colorConversionGraphMutationSignaturesRemainStable()
+{
+    using System = KoColorConversionSystem;
+    using InsertColorSpaceSignature = void (System::*)(const KoColorSpaceFactory *);
+    using InsertColorProfileSignature = void (System::*)(const KoColorProfile *);
+    using RequiredForFactorySignature = QList<KoColorProfileQuery> (System::*)(const KoColorSpaceFactory *);
+    using RequiredForProfileSignature = QList<KoColorProfileQuery> (System::*)(const KoColorProfile *);
+
+    static_assert(std::is_same_v<decltype(static_cast<InsertColorSpaceSignature>(&System::insertColorSpace)),
+                                 InsertColorSpaceSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<InsertColorProfileSignature>(&System::insertColorProfile)),
+                                 InsertColorProfileSignature>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<RequiredForFactorySignature>(&System::requiredConnectionProfilesFor)),
+                       RequiredForFactorySignature>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<RequiredForProfileSignature>(&System::requiredConnectionProfilesFor)),
+                       RequiredForProfileSignature>);
+}
+
+void KoColorConversionTransformationAbstractFactoryContractTest::colorConversionCreationSignaturesRemainStable()
+{
+    using System = KoColorConversionSystem;
+    using CreateConverterSignature =
+        KoColorConversionTransformation *(System::*)(const KoColorSpace *,
+                                                     const KoColorSpace *,
+                                                     KoColorConversionTransformation::Intent,
+                                                     KoColorConversionTransformation::ConversionFlags) const;
+    using CreateConvertersSignature = void (System::*)(const KoColorSpace *,
+                                                       const QList<QPair<KoID, KoID>> &,
+                                                       KoColorConversionTransformation *&,
+                                                       KoColorConversionTransformation *&) const;
+
+    static_assert(std::is_same_v<decltype(static_cast<CreateConverterSignature>(&System::createColorConverter)),
+                                 CreateConverterSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<CreateConvertersSignature>(&System::createColorConverters)),
+                                 CreateConvertersSignature>);
+}
+
+void KoColorConversionTransformationAbstractFactoryContractTest::colorConversionPathQuerySignaturesRemainStable()
+{
+    using System = KoColorConversionSystem;
+    using ToDotSignature = QString (System::*)() const;
+    using BestPathToDotSignature = QString (System::*)(const QString &, const QString &) const;
+    using ExistsPathSignature = bool (
+        System::*)(const QString &, const QString &, const QString &, const QString &, const QString &, const QString &)
+        const;
+    using FindBestPathForStringsSignature = System::Path (
+        System::*)(const QString &, const QString &, const QString &, const QString &, const QString &, const QString &)
+        const;
+    using FindBestPathForNodesSignature =
+        System::Path (System::*)(const System::NodeKey &, const System::NodeKey &) const;
+
+    static_assert(std::is_same_v<decltype(qHash(std::declval<const System::NodeKey &>())), uint>);
+    static_assert(std::is_same_v<decltype(static_cast<ToDotSignature>(&System::toDot)), ToDotSignature>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<BestPathToDotSignature>(&System::bestPathToDot)), BestPathToDotSignature>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<ExistsPathSignature>(&System::existsGoodPath)), ExistsPathSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<ExistsPathSignature>(&System::existsPath)), ExistsPathSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<FindBestPathForStringsSignature>(&System::findBestPath)),
+                                 FindBestPathForStringsSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<FindBestPathForNodesSignature>(&System::findBestPath)),
+                                 FindBestPathForNodesSignature>);
 }
 
 QTEST_GUILESS_MAIN(KoColorConversionTransformationAbstractFactoryContractTest)
