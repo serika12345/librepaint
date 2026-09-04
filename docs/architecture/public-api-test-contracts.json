@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 10378
+    "expectedMissingApis": 10357
   },
   "contracts": [
     {
@@ -54494,6 +54494,72 @@
         "method:KoSvgTextShapeOutlineHelper::contourModeButtonHovered(const QPointF & point)",
         "method:KoSvgTextShapeOutlineHelper::toggleTextContourMode(KoSvgTextShape * shape)",
         "method:KoSvgTextShapeOutlineHelper::updateTextContourMode()"
+      ]
+    },
+    {
+      "target": "KisColorSelectionControlSchemaContractTest",
+      "source": "libs/widgets/tests/KisColorSelectionControlSchemaContractTest.cpp",
+      "test": "KisColorSelectionControlSchemaContractTest::selectorInterfaceTypeAndConfigSchemaRemainStable",
+      "behavior": "色選択interfaceは任意の親Widgetから構築して仮想破棄でき、表示方式と色表示rendererを設定する公開接続面を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisColorSelectorInterface",
+        "method:KisColorSelectorInterface::KisColorSelectorInterface(QWidget * parent=0)",
+        "method:KisColorSelectorInterface::setConfig(bool forceCircular,bool forceSelfUpdate)",
+        "method:KisColorSelectorInterface::setDisplayRenderer(const KoColorDisplayRendererInterface * displayRenderer)",
+        "method:KisColorSelectorInterface::~KisColorSelectorInterface()"
+      ]
+    },
+    {
+      "target": "KisColorSelectionControlSchemaContractTest",
+      "source": "libs/widgets/tests/KisColorSelectionControlSchemaContractTest.cpp",
+      "test": "KisColorSelectionControlSchemaContractTest::selectorInterfaceColorAndNotificationSchemaRemainStable",
+      "behavior": "色選択interfaceは現在色を返し、色・色空間の反映と新しい色の通知を行う公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisColorSelectorInterface::getCurrentColor() const",
+        "method:KisColorSelectorInterface::sigNewColor(const KoColor & c)",
+        "method:KisColorSelectorInterface::slotSetColor(const KoColor & c)",
+        "method:KisColorSelectorInterface::slotSetColorSpace(const KoColorSpace * cs)"
+      ]
+    },
+    {
+      "target": "KisColorSelectionControlSchemaContractTest",
+      "source": "libs/widgets/tests/KisColorSelectionControlSchemaContractTest.cpp",
+      "test": "KisColorSelectionControlSchemaContractTest::screenSamplerTypeAndNotificationSchemaRemainStable",
+      "behavior": "画面色採取の基底は任意の親Widgetから構築して仮想破棄でき、図像更新と採取色通知を行う公開接続面を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisScreenColorSamplerBase",
+        "method:KisScreenColorSamplerBase::KisScreenColorSamplerBase(QWidget * parent=0)",
+        "method:KisScreenColorSamplerBase::sigNewColorSampled(KoColor)",
+        "method:KisScreenColorSamplerBase::updateIcons()",
+        "method:KisScreenColorSamplerBase::~KisScreenColorSamplerBase()"
+      ]
+    },
+    {
+      "target": "KisColorSelectionControlSchemaContractTest",
+      "source": "libs/widgets/tests/KisColorSelectionControlSchemaContractTest.cpp",
+      "test": "KisColorSelectionControlSchemaContractTest::spinboxSelectorTypeAndAlphaSchemaRemainStable",
+      "behavior": "数値欄式の色選択器は親Widgetから構築して仮想破棄でき、alphaを選択対象に含める公開設定署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisSpinboxColorSelector",
+        "method:KisSpinboxColorSelector::KisSpinboxColorSelector(QWidget * parent)",
+        "method:KisSpinboxColorSelector::chooseAlpha(bool chooseAlpha)",
+        "method:KisSpinboxColorSelector::~KisSpinboxColorSelector()"
+      ]
+    },
+    {
+      "target": "KisColorSelectionControlSchemaContractTest",
+      "source": "libs/widgets/tests/KisColorSelectionControlSchemaContractTest.cpp",
+      "test": "KisColorSelectionControlSchemaContractTest::spinboxSelectorColorAndNotificationSchemaRemainStable",
+      "behavior": "数値欄式の色選択器は色・色空間を反映し、新しい色を通知する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSpinboxColorSelector::sigNewColor(KoColor color)",
+        "method:KisSpinboxColorSelector::slotSetColor(KoColor color)",
+        "method:KisSpinboxColorSelector::slotSetColorSpace(const KoColorSpace * cs)"
       ]
     }
   ]
