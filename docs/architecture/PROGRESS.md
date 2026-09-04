@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-04 15:55 JST
+- 更新日時: 2026-09-04 16:01 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -69,6 +69,8 @@
 - `g204-image-contract-audit`の状態は`completed`で、image・paintop・pigment領域からASL layer style serializer 22 APIを選定した。
 - `g204-flake-contract-audit`の状態は`completed`で、flake・SVG・vector領域から図形fillの取得・変更・gradient補助・背景描画20 APIを選定した。
 - `g204-ui-contract-audit`の状態は`completed`で、widgetutils・widgets・libkis領域から単位付き倍精度入力と既定単位管理器の生成面22 APIを選定した。
+- `g204-image-closure-review`の状態は`reviewing`、変更・構築実行・Git権限は`withheld`である。`libs/image/kis_asl_layer_style_serializer.h`の残存22 APIから既存`libs/image/tests/KisPSDLayerStyleSchemaContractTest.cpp`の5枠への完全対応、CMake変更なしの4工程・8入力、製品非接続、候補headerのAUTOMOC非入力化、実体化・本文実行の不要性を独立確認する。
+- `g204-flake-closure-review`の状態は`reviewing`、変更・構築実行・Git権限は`withheld`である。`libs/flake/KoShapeFillWrapper.h`の17 API、`KoFlake.h`のgradient補助2 API、`KoPatternBackground.h`の描画1 APIから既存`libs/flake/tests/KoPatternBackgroundSchemaContractTest.cpp`の5枠への完全対応、CMake変更なしの4工程・8入力、製品非接続、候補headerのAUTOMOC非入力化、実体化・本文実行の不要性を独立確認する。
 
 ### 第201便の先行監査担当票
 
