@@ -1331,6 +1331,23 @@ target_compile_definitions(KisProcessingApplicatorSchemaContractTest PRIVATE
 )
 
 kis_add_test(
+    KisUpdateSchedulerSchemaContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+        Boost::boost
+)
+target_include_directories(KisUpdateSchedulerSchemaContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+)
+target_compile_definitions(KisUpdateSchedulerSchemaContractTest PRIVATE
+    kritaimage_EXPORTS
+)
+
+kis_add_test(
     KisStrokeStrategyUndoCommandBasedSchemaContractTest.cpp
     LINK_LIBRARIES
         Qt${QT_MAJOR_VERSION}::Core
