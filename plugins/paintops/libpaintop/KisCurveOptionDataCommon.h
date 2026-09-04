@@ -6,11 +6,11 @@
 #ifndef KISCURVEOPTIONDATACOMMON_H
 #define KISCURVEOPTIONDATACOMMON_H
 
+#include <KoID.h>
 #include <boost/operators.hpp>
 
 #include "kis_assert.h"
 #include "kis_cubic_curve.h"
-#include "KisDynamicSensorIds.h"
 #include "kritapaintop_export.h"
 
 #include <KisSensorPackInterface.h>

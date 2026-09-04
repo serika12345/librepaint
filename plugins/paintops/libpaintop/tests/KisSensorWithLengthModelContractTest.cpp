@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include <KisDynamicSensorIds.h>
 #include <KisSensorWithLengthModel.h>
 
 #include <QMetaProperty>
