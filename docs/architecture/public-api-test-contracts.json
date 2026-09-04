@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 9058
+    "expectedMissingApis": 9037
   },
   "contracts": [
     {
@@ -57839,6 +57839,72 @@
         "method:KoColorSpaceRegistry::rgb16(const QString & profileName=QString ())",
         "method:KoColorSpaceRegistry::rgb8(const KoColorProfile * profile)",
         "method:KoColorSpaceRegistry::rgb8(const QString & profileName=QString ())"
+      ]
+    },
+    {
+      "target": "KisGeneratorLayerSchemaContractTest",
+      "source": "libs/image/tests/KisGeneratorLayerSchemaContractTest.cpp",
+      "test": "KisGeneratorLayerSchemaContractTest::generatorLayerTypeLifetimeAndConstructionSchemaRemainStable",
+      "behavior": "生成layerは公開型と仮想寿命を持ち、画像・名前・生成設定・選択範囲または既存layerから構築できる公開契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisGeneratorLayer",
+        "method:KisGeneratorLayer::KisGeneratorLayer(KisImageWSP image,const QString & name,KisFilterConfigurationSP kfc,KisSelectionSP selection)",
+        "method:KisGeneratorLayer::KisGeneratorLayer(const KisGeneratorLayer & rhs)",
+        "method:KisGeneratorLayer::~KisGeneratorLayer()"
+      ]
+    },
+    {
+      "target": "KisGeneratorLayerSchemaContractTest",
+      "source": "libs/image/tests/KisGeneratorLayerSchemaContractTest.cpp",
+      "test": "KisGeneratorLayerSchemaContractTest::generatorLayerConfigurationAndRegenerationSignaturesRemainStable",
+      "behavior": "生成layerは生成設定の比較方針を伴う更新、cache再設定、即時更新、およびstroke上のpreview生成を行う公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisGeneratorLayer::previewWithStroke(const KisStrokeId stroke)",
+        "method:KisGeneratorLayer::resetCache(const KoColorSpace * colorSpace)",
+        "method:KisGeneratorLayer::setFilter(KisFilterConfigurationSP filterConfig,bool checkCompareConfig=true)",
+        "method:KisGeneratorLayer::setFilterWithoutUpdate(KisFilterConfigurationSP filterConfig,bool checkCompareConfig=true)",
+        "method:KisGeneratorLayer::update()"
+      ]
+    },
+    {
+      "target": "KisGeneratorLayerSchemaContractTest",
+      "source": "libs/image/tests/KisGeneratorLayerSchemaContractTest.cpp",
+      "test": "KisGeneratorLayerSchemaContractTest::generatorLayerDirtyRegionAndPositionSignaturesRemainStable",
+      "behavior": "生成layerは複数のdirty領域を更新有無の方針別に受け取り、水平・垂直位置を変更する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisGeneratorLayer::setDirty(const QVector<QRect> & rects)",
+        "method:KisGeneratorLayer::setDirtyWithoutUpdate(const QVector<QRect> & rects)",
+        "method:KisGeneratorLayer::setX(qint32 x)",
+        "method:KisGeneratorLayer::setY(qint32 y)"
+      ]
+    },
+    {
+      "target": "KisGeneratorLayerSchemaContractTest",
+      "source": "libs/image/tests/KisGeneratorLayerSchemaContractTest.cpp",
+      "test": "KisGeneratorLayerSchemaContractTest::generatorLayerHierarchyPresentationAndVisitorSignaturesRemainStable",
+      "behavior": "生成layerは複製とlayer照会、表示icon・section属性、および二種類のvisitor受入れを提供する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisGeneratorLayer::accept(KisNodeVisitor &)",
+        "method:KisGeneratorLayer::accept(KisProcessingVisitor & visitor,KisUndoAdapter * undoAdapter)",
+        "method:KisGeneratorLayer::clone() const",
+        "method:KisGeneratorLayer::icon() const",
+        "method:KisGeneratorLayer::layer()",
+        "method:KisGeneratorLayer::sectionModelProperties() const"
+      ]
+    },
+    {
+      "target": "KisGeneratorLayerSchemaContractTest",
+      "source": "libs/image/tests/KisGeneratorLayerSchemaContractTest.cpp",
+      "test": "KisGeneratorLayerSchemaContractTest::generatorLayerTimedUpdateSignaturesRemainStable",
+      "behavior": "生成layerは保留中の時限更新を照会し、その更新を強制実行する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisGeneratorLayer::forceUpdateTimedNode()",
+        "method:KisGeneratorLayer::hasPendingTimedUpdates() const"
       ]
     }
   ]
