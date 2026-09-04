@@ -219,12 +219,23 @@
 - 第208便全体で78 APIを15枠へ重複なく対応付け、20,177件対応、9,661件未対応となった。担当側と中央で対象・軽量近傍CTest、各追加枠の20回反復、AUTOMOC後の二回目計画、無作業再構築、動的接続・未解決記号・構文・書式、公開API検査に成功した。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 新しい`build/tdd-macos/public-api-missing-g209.json`は公開header 1,549、公開API 29,838、対応済み20,177、未対応9,661、2,561,695 bytes、SHA-256 `a842a60f39f8d950e6c65ef49f46bed68769e42fc393bd736ba4c1d3a2f71d19`を記録する。旧`public-api-missing-g208.json`と3担当の作業tree・構築木・branchを削除し、合計2,651,400 KiBを回収した。主Ninja木5,704,208 KiBと共有compiler cache 982,540 KiBは次便へ保持する。
 
-### 第209便の先行監査担当票（第208便確定待ち）
+### 第209便の先行監査担当票
 
-- 監査共通基点は`42d2d46885`、暫定入力は`build/tdd-macos/public-api-missing-g206.json`である。第207便までの契約済み・選定済み責務と、第208便で選定済みのraster keyframe channel、path編集工具、文書canvas幾何・解像度を除外し、変更、構成、構築、試験、Git操作、追加委任を行わない読み取り専用監査を先行する。正式な第208便完了報告で全識別子と閉包を再照合する。
+- 監査共通基点は`589341dbb4`、正式入力は`build/tdd-macos/public-api-missing-g209.json`である。第208便までの契約済み・選定済み責務を除外し、先行監査の全識別子と閉包を正式報告で再照合した。監査中は変更、構成、構築、試験、Git操作、追加委任を行っていない。
 - `g209-image-contract-audit`の状態は`completed`で、image・paintop・pigment領域からtile data managerの既定画素・tile履歴・領域・転送・保守43 APIを選定した。既存`KisTileSchemaContractTest`へCMake変更なしで追加し、4工程・8入力と製品非接続を予測する。
 - `g209-ui-contract-audit`の状態は`completed`で、widgetutils・widgets・libkis領域から文書型・node graph・layer/mask生成・flattening 28 APIを選定した。既存近傍は324行・19枠のため新規`DocumentNodeSchemaContractTest`へ分け、4工程・8入力を予測する。
 - `g209-flake-contract-audit`の状態は`completed`で、flake・SVG・vector領域からfont registryによる書体解決・測定とfont storageによる資源格納24 APIを選定した。既存`KoFontFamilySchemaContractTest`へCMake変更なしで追加し、4工程・8入力と製品非接続を予測する。
+- `g209-tiled-data-manager-closure-review`の状態は`completed`で、`libs/image/tiles3/kis_tiled_data_manager.h`の残存全43 APIが5枠へ重複なく対応し、既存tile契約へCMake変更なしで追加できることを独立確認した。対象はQt Core・Core5Compat・Testだけへ接続する4工程・8入力、AUTOMOC `HEADERS=[]`、製品非接続を維持できる。
+- `g209-document-node-closure-review`の状態は`completed`で、`libs/libkis/Document.h`の文書型・node graph・layer/mask生成・flattening 28 APIがG208の幾何20 APIと重複しないことを独立確認した。G208のDocument専用compile interfaceを再利用する新規targetで4工程・8入力、Qt Core・Testだけの動的接続を予測する。
+- `g209-font-registry-storage-closure-review`の状態は`completed`で、`KoFontRegistry.h`の14 APIと`KoFontStorage.h`の10 APIが書体解決と格納基盤の一責務へ収まり、既存font family契約へCMake変更なしで追加できることを独立確認した。対象は4工程・8入力、AUTOMOC `HEADERS=[]`、製品非接続を維持できる。
+
+### 第209便の先行監査結果
+
+- 正式入力`build/tdd-macos/public-api-missing-g209.json`は公開header 1,549、公開API 29,838、対応済み20,177、未対応9,661を記録する。tile data manager 43件、文書node graph・layer/mask生成28件、font registry・storage 24件が重複なく残存することを確認した。
+- image領域は`libs/image/tiles3/kis_tiled_data_manager.h`の残存全43 APIを、型・寿命・既定画素8、tile・履歴11、領域・幾何13、転送9、保守2として既存`libs/image/tiles3/tests/KisTileSchemaContractTest.cpp`の5枠へ固定する。既存targetは4工程・8入力で、image・global探索路、Qt Core・Core5Compat・Test、`kritaimage_EXPORTS`だけを使用する。CMakeを変更せず、停止線を5工程・11入力とする。
+- libkis領域は`libs/libkis/Document.h`の文書型・寿命・比較6、node graph 8、mask生成6、node・layer生成7、flattening 1の合計28 APIを、新規`libs/libkis/tests/DocumentNodeSchemaContractTest.cpp`の5枠へ固定する。G208の`DocumentGeometrySchemaContractTest`と同じ探索路・定義、Qt Core・Testとheader-only Boostによる4工程・8入力を予測し、停止線を5工程・11入力とする。
+- flake領域は`libs/flake/text/KoFontRegistry.h`の残存全14 APIと`libs/flake/resources/KoFontStorage.h`の残存全10 APIを、registry型・寿命・取得4、face解決5、表現・測定5、storage型・寿命・妥当性5、資源取得5として既存`libs/flake/tests/KoFontFamilySchemaContractTest.cpp`の5枠へ固定する。CMake変更なしでflake・global・resources探索路、Qt Gui・Test・Xmlとheader-only Boost、Freetype・HarfBuzz・Fontconfig・KF I18n interface、既存export定義による4工程・8入力を維持する。
+- 3責務の開始headerと試験sourceは相互に異なる。合計95 API・15枠をtile data manager、文書node graph、font registry・storageの順に一担当ずつ実装する。候補headerをtarget sourceやAUTOMOC入力にせず、対象型と本文を実体化しない。製品target、全体build・`verify`、Linux、Nix再評価は行わない。
 
 ### 第210便の先行監査担当票（第209便確定待ち）
 
