@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-04 20:13 JST
+- 更新日時: 2026-09-04 20:15 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -257,6 +257,14 @@
 - 変形工具領域は`plugins/tools/tool_transform2/kis_transform_mask_adapter.h`の残存全24 APIを、型・寿命・構築4、識別・表示5、値・永続化6、幾何6、引数・keyframe・装置3として既存`plugins/tools/tool_transform2/tests/ToolTransformArgsGeometrySchemaContractTest.cpp`の5枠へ固定する。既存sourceは169行・10枠で、CMake変更なし、4工程・9入力、AUTOMOC `HEADERS=[]`、製品非接続を維持する。
 - libkis領域は`libs/libkis/Channel.h`の残存全13 APIと`Document.h`の色空間・背景7 API、画素・投影・縮小画像3 APIを、スクリプト向けraster面・色channel境界23 APIとして新規`libs/libkis/tests/RasterSurfaceSchemaContractTest.cpp`の5枠へ固定する。channel型・値5、識別・可視性・境界6、channel画素2、文書色空間・背景7、文書画素・投影3へ配分する。既存`NodeSchemaContractTest`のcompile interfaceにflake、ui/canvas、application生成探索路と2 export定義を加えた4工程・8入力を予測し、重量実行試験`TestChannel`と`TestDocument`の2,022工程・4,041入力を構築対象にしない。
 - 3候補は合計79 API・15枠で、開始header、試験source、所有CMakeが相互に異なる。候補headerのAUTOMOC入力化、製品shared・OBJECT、`kritatestsdk`、計画外の探索路・定義・動的接続または未解決製品記号、対象型やinline本文の実体化が必要なら停止する。正式な第212便不足報告で全識別子と閉包を再照合する。
+
+### 第213便の先行監査担当票（第212便確定待ち）
+
+- 監査共通基点は`4b987ff891`、暫定入力は`build/tdd-macos/public-api-missing-g208.json`である。第207便までの契約済み責務と、第208便から第212便で選定済みのraster keyframe channel、path編集工具、4組の文書・channel責務、tile data manager、font registry・storage、変形mask本体と工具adapter、brush preset、標準曲線option、SVG文字列command群、スクリプト向けアプリケーション根を除外する。監査中は主作業treeを読み取り専用で共有し、変更、構成、構築、試験、Git操作、追加委任を行わない。正式な第212便完了報告で候補を再照合する。
+- `g213-image-contract-audit`の状態は`auditing`で、image・paintop・pigment領域から一つの公開責務に属する20〜80 APIを最大5枠へ固定できる候補を比較する。完全なAPI識別子、観測契約、開始pathから契約先、許可path、既存対象と近傍、CMake直接依存、既存graphに基づく予測工程・入力、停止条件、棄却根拠を返す。
+- `g213-flake-contract-audit`の状態は`auditing`で、flake・SVG・vector・関連plugin領域から同じ条件の候補を比較する。既存契約sourceが300行または20枠を超える場合は4〜10工程程度の専用targetを選び、製品shared・OBJECTと`kritatestsdk`へ接続する候補を採用しない。
+- `g213-ui-contract-audit`の状態は`auditing`で、widgetutils・widgets・libkis領域から同じ条件の候補を調整担当が読み取り専用で比較する。一責務の完全な未対応集合を優先し、件数を満たすために異なる所有者や変更理由を混在させない。
+- 各担当は候補headerをtarget sourceやAUTOMOC入力にせず、型特性、厳密な関数pointer、未評価式で実体化と本文実行を避ける計画を優先する。製品targetのplan/buildは禁止し、既存Ninja graphのquery・commands・inputsだけを読み取り専用で利用できる。
 
 ### 第201便の先行監査担当票
 
