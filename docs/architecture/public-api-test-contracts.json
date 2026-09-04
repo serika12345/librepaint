@@ -10,13 +10,13 @@
     "declarations": [
       "public classes, structs, unions, enums, enumerators, aliases, functions, methods, data members, and variables"
     ],
-    "publicHeaderCount": 1549,
-    "publicHeaderFingerprint": "f9bb686b01e8043483c842e2f180558c86b434cfd739b076f28825a42ff236d7",
-    "publicApiCount": 29838,
-    "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
+    "publicHeaderCount": 1548,
+    "publicHeaderFingerprint": "d78d86e437112ee4e870fc718ef12536c8e810f419ab643636d4ebd6e47fd765",
+    "publicApiCount": 29804,
+    "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 8841
+    "expectedMissingApis": 8807
   },
   "contracts": [
     {
