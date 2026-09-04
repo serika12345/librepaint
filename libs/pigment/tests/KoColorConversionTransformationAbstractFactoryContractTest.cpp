@@ -179,8 +179,9 @@ void KoColorConversionTransformationAbstractFactoryContractTest::defaultConstruc
     QCOMPARE(destructionCount, 1);
 }
 
-void KoColorConversionTransformationAbstractFactoryContractTest::
-    colorConversionSystemTypeAndLifetimeSchemaRemainStable()
+// clang-format off
+void KoColorConversionTransformationAbstractFactoryContractTest::colorConversionSystemTypeAndLifetimeSchemaRemainStable()
+// clang-format on
 {
     using System = KoColorConversionSystem;
 
