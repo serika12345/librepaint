@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-04 19:48 JST
+- 更新日時: 2026-09-04 19:49 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -246,6 +246,7 @@
 - 監査共通基点は`568a5b832d`、暫定入力は`build/tdd-macos/public-api-missing-g208.json`である。第207便までの契約済み責務と、第208便から第211便で選定済みのraster keyframe channel、path編集工具、3組の文書責務、tile data manager、font registry・storage、変形mask、brush preset、SVG文字列command群、スクリプト向けアプリケーション根を除外する。監査中は主作業treeを読み取り専用で共有し、変更、構成、構築、試験、Git操作、追加委任を行わない。正式な第211便完了報告で候補を再照合する。
 - `g212-image-contract-audit`の状態は`auditing`で、image・paintop・pigment領域から一つの公開責務に属する20〜80 APIを最大5枠へ固定できる候補を比較する。完全なAPI識別子、観測契約、開始pathから契約先、許可path、既存対象と近傍、CMake直接依存、既存graphに基づく予測工程・入力、停止条件、棄却根拠を返す。
 - `g212-flake-contract-audit`の状態は`auditing`で、flake・SVG・vector・関連plugin領域から同じ条件の候補を比較する。既存契約sourceが300行または20枠を超える場合は4〜10工程程度の専用targetを選び、製品shared・OBJECTと`kritatestsdk`へ接続する候補を採用しない。
+- `g212-ui-contract-audit`の状態は`auditing`で、widgetutils・widgets・libkis領域から同じ条件の候補を調整担当が読み取り専用で比較する。第208便から第211便で選定済みの文書・Krita責務を除外し、既存契約sourceの成長と対象限定再構築単位を比較して契約先を選ぶ。
 - 各担当は候補headerをtarget sourceやAUTOMOC入力にせず、型特性、厳密な関数pointer、未評価式で実体化と本文実行を避ける計画を優先する。製品targetのplan/buildは禁止し、既存Ninja graphのquery・commands・inputsは読み取り専用で利用できる。
 
 ### 第201便の先行監査担当票
