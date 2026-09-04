@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-04 20:02 JST
+- 更新日時: 2026-09-04 20:03 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -247,6 +247,8 @@
 - `g212-image-contract-audit`の状態は`completed`で、image・paintop・pigment領域から標準曲線optionの型・別名と対応widget生成境界32 APIを選定した。既存曲線option契約へCMake変更なしで追加し、4工程・8入力と製品非接続を維持できる。
 - `g212-flake-contract-audit`の状態は`completed`で、flake・SVG・vector・関連plugin領域から変形工具のmask adapter 24 APIを選定した。既存変形引数幾何契約へCMake変更なしで追加し、4工程・9入力と製品非接続を維持できる。
 - `g212-ui-contract-audit`の状態は`completed`で、widgetutils・widgets・libkis領域からスクリプト向けraster面・色channel境界23 APIを選定した。既存Node契約と同じcompile interfaceを持つ新規専用targetへ分け、4工程・8入力を予測する。
+- `g212-standard-option-closure-review`の状態は`reviewing`で、標準曲線option 32 API案についてtemplateの非実体化、既存targetの依存不変、5枠の責務一体性を独立に読み取り専用レビューする。
+- `g212-raster-surface-closure-review`の状態は`reviewing`で、libkisのraster面・色channel 23 API案についてDocumentとChannelの責務一体性、既定引数観測、Node系compile interfaceの十分性を独立に読み取り専用レビューする。
 - 各担当は候補headerをtarget sourceやAUTOMOC入力にせず、型特性、厳密な関数pointer、未評価式で実体化と本文実行を避ける計画を優先する。製品targetのplan/buildは禁止し、既存Ninja graphのquery・commands・inputsは読み取り専用で利用できる。
 
 ### 第212便の先行監査結果（第211便確定待ち）
