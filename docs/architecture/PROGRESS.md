@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-04 21:12 JST
+- 更新日時: 2026-09-04 21:18 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -266,6 +266,13 @@
 - image領域は`libs/image/kis_transform_mask.h`の残存全37 APIを、型・寿命・visitor 8、装置・幾何8、parameter・cache 8、位置・遅延更新8、LoD・試験・通知5として新規`libs/image/tests/KisTransformMaskSchemaContractTest.cpp`の5枠へ固定する。既存`KisMaskSchemaContractTest`と同じQt Core・Gui・Test・Xml、header-only Boost、image・global・pigment・resources探索路、KF I18n・Imath interface、既存export定義による4工程・8入力を予測し、停止線を5工程・11入力とする。
 - libkis領域は`libs/libkis/Document.h`の残存APIから識別・metadata 6、処理・変更状態4、保存・export 3、close・autosave 3、処理同期4の合計20 APIを、新規`libs/libkis/tests/DocumentLifecycleSchemaContractTest.cpp`の5枠へ固定する。G208の幾何20 API、G209のnode 28 APIと重複せず、同じDocument専用compile interfaceによる4工程・8入力を予測し、停止線を5工程・11入力とする。
 - 正式入力で`libs/image/kis_transform_mask.h`の37 APIと`libs/libkis/Document.h`の選定20 APIがすべて残存し、重複がないことを再照合した。2候補は合計57 API・10枠で、開始headerは相互に異なり、試験sourceと所有CMakeの新target固有節も異なる。候補headerのAUTOMOC入力化、製品shared・OBJECT、`kritatestsdk`、計画外の探索路・定義・動的接続または未解決製品記号、対象型やinline本文の実体化が不要な場合だけ一担当ずつ実装する。
+
+### 第210便の担当計画
+
+- 実装共通基点は`095188a081`である。一度に一つだけ作る専用worktree-local `build/tdd-macos`と主作業treeの共有compiler cacheを使い、担当側の`./scripts/run-shared-test-env`で読み込み済み環境を利用する。変形mask、文書識別・保存・close・処理同期の順に限定検証・統合・削除し、調整担当だけが文書、公開API台帳、共通不足報告を変更する。各担当のGit権限は許可pathだけの1受渡しcommitで、追加委任は禁止する。
+- `g210-transform-mask-schema`の状態は`implementing`、作業treeは`/Users/masato/Documents/librepaint-g210-transform-mask-schema`である。開始`libs/image/kis_transform_mask.h`の残存全37 APIを、新規`libs/image/tests/KisTransformMaskSchemaContractTest.cpp`の5枠`transformMaskTypeLifetimeAndVisitorSchemaRemainStable`、`transformMaskDeviceAndGeometrySignaturesRemainStable`、`transformMaskParametersAndCacheSignaturesRemainStable`、`transformMaskPositionAndDelayedUpdateSignaturesRemainStable`、`transformMaskLodTestingAndNotificationSignaturesRemainStable`へ8・8・8・8・5件で対応付ける。許可pathは新規試験sourceと`libs/image/tests/CMakeLists.txt`の新target固有節だけで、所有targetは`KisTransformMaskSchemaContractTest`、近傍は`KisMaskSchemaContractTest`である。macOSのこの2対象に限る構築実行許可を`granted`とし、既存mask契約と同じ探索路、定義、Qt Core・Gui・Test・Xml、header-only Boostによる4工程・8入力を維持する。
+- 変形mask担当の停止線は5工程・11入力である。候補headerのAUTOMOC入力化、製品shared・OBJECT・`kritatestsdk`接続、新探索路・定義・link、計画外の動的接続または製品未解決記号、対象値やinline本文の実体化・実行、許可path外変更が必要なら停止する。編集前後の計画・依存・空閉包、旧binaryでの対象不存在、宣言段階の初期失敗、追加5枠の単発と各20回反復、対象・近傍CTest、AUTOMOC後の二回目計画、無作業再構築2回、動的接続・未解決記号・構文・書式、公開API検査、`verify-quick`を確認する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
+- `g210-document-lifecycle-schema`の状態は`planned`である。変形mask担当の統合と作業tree削除後に、開始`libs/libkis/Document.h`の選定20 APIを新規`libs/libkis/tests/DocumentLifecycleSchemaContractTest.cpp`の5枠6・4・3・3・4件へ対応付ける。許可pathは新規試験sourceと`libs/libkis/tests/CMakeLists.txt`の新target固有節だけ、対象は`DocumentLifecycleSchemaContractTest`、近傍は`DocumentGeometrySchemaContractTest`である。作業treeと構築許可は前担当の削除後に割り当てる。
 
 ### 第211便の先行監査担当票（第210便確定待ち）
 
