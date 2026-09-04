@@ -250,6 +250,8 @@
 - 監査共通基点は`cb224ddbce`、暫定入力は`build/tdd-macos/public-api-missing-g207.json`である。第208便までの契約済み・選定済み責務と、第209便で選定済みのtile data manager、文書node graph・layer/mask生成、font registry・storageを除外し、変更、構成、構築、試験、Git操作、追加委任を行わない読み取り専用監査を先行する。正式な第209便完了報告で全識別子と閉包を再照合する。
 - `g210-image-contract-audit`の状態は`completed`で、image・paintop・pigment領域から変形maskのnode表現・投影・cache・遅延更新・LoD接続37 APIを選定した。既存mask契約は211行・10枠で追記上限を超えるため、同じcompile interfaceを持つ新規専用targetで4工程・8入力を予測する。
 - `g210-ui-contract-audit`の状態は`completed`で、widgetutils・widgets・libkis領域から文書識別状態・保存・close・処理同期20 APIを選定した。G208/G209の文書契約と責務を分けた新規`DocumentLifecycleSchemaContractTest`とし、4工程・8入力を予測する。
+- `g210-transform-mask-closure-review`の状態は`reviewing`で、正式入力候補`build/tdd-macos/public-api-missing-g209.json`に対して`libs/image/kis_transform_mask.h`の37 APIと5枠8・8・8・8・5、既存mask契約と同じcompile interface、新規`KisTransformMaskSchemaContractTest`の4工程・8入力を読み取り専用で再照合する。
+- `g210-document-lifecycle-closure-review`の状態は`reviewing`で、同じ暫定入力に対して`libs/libkis/Document.h`の識別状態・保存・close・処理同期20 APIと5枠6・4・3・3・4、G208/G209との非重複、Document専用compile interfaceによる新規`DocumentLifecycleSchemaContractTest`の4工程・8入力を読み取り専用で再照合する。
 
 ### 第211便の先行監査担当票（第210便確定待ち）
 
