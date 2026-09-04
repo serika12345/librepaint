@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 9681
+    "expectedMissingApis": 9661
   },
   "contracts": [
     {
@@ -56271,6 +56271,71 @@
         "method:KoPathTool::notifyPathPointsChanged(KoPathShape * shape)",
         "method:KoPathTool::singleShapeChanged(KoPathShape * path)",
         "method:KoPathTool::typeChanged(int types)"
+      ]
+    },
+    {
+      "target": "DocumentGeometrySchemaContractTest",
+      "source": "libs/libkis/tests/DocumentGeometrySchemaContractTest.cpp",
+      "test": "DocumentGeometrySchemaContractTest::documentBoundsAndDimensionSignaturesRemainStable",
+      "behavior": "文書canvasは境界矩形と幅・高さの照会、および幅・高さ変更に関する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:Document::bounds() const",
+        "method:Document::height() const",
+        "method:Document::setHeight(int value)",
+        "method:Document::setWidth(int value)",
+        "method:Document::width() const"
+      ]
+    },
+    {
+      "target": "DocumentGeometrySchemaContractTest",
+      "source": "libs/libkis/tests/DocumentGeometrySchemaContractTest.cpp",
+      "test": "DocumentGeometrySchemaContractTest::documentOffsetSignaturesRemainStable",
+      "behavior": "文書canvasは左上offsetの照会と変更に関する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:Document::setXOffset(int x)",
+        "method:Document::setYOffset(int y)",
+        "method:Document::xOffset() const",
+        "method:Document::yOffset() const"
+      ]
+    },
+    {
+      "target": "DocumentGeometrySchemaContractTest",
+      "source": "libs/libkis/tests/DocumentGeometrySchemaContractTest.cpp",
+      "test": "DocumentGeometrySchemaContractTest::documentResolutionSignaturesRemainStable",
+      "behavior": "文書canvasは整数解像度と軸別解像度の照会・変更に関する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:Document::resolution() const",
+        "method:Document::setResolution(int value)",
+        "method:Document::setXRes(double xRes) const",
+        "method:Document::setYRes(double yRes) const",
+        "method:Document::xRes() const",
+        "method:Document::yRes() const"
+      ]
+    },
+    {
+      "target": "DocumentGeometrySchemaContractTest",
+      "source": "libs/libkis/tests/DocumentGeometrySchemaContractTest.cpp",
+      "test": "DocumentGeometrySchemaContractTest::documentCanvasExtentMutationSignaturesRemainStable",
+      "behavior": "文書canvasは切抜き、canvas寸法変更、画素拡縮に関する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:Document::crop(int x,int y,int w,int h)",
+        "method:Document::resizeImage(int x,int y,int w,int h)",
+        "method:Document::scaleImage(int w,int h,int xres,int yres,QString strategy)"
+      ]
+    },
+    {
+      "target": "DocumentGeometrySchemaContractTest",
+      "source": "libs/libkis/tests/DocumentGeometrySchemaContractTest.cpp",
+      "test": "DocumentGeometrySchemaContractTest::documentGeometricTransformSignaturesRemainStable",
+      "behavior": "文書canvasは画像全体の回転と剪断に関する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:Document::rotateImage(double radians)",
+        "method:Document::shearImage(double angleX,double angleY)"
       ]
     }
   ]
