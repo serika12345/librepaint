@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 9886
+    "expectedMissingApis": 9815
   },
   "contracts": [
     {
@@ -55796,6 +55796,122 @@
         "method:KoShapeRubberSelectStrategy::createCommand()",
         "method:KoShapeRubberSelectStrategy::handleMouseMove(const QPointF & mouseLocation,Qt::KeyboardModifiers modifiers)",
         "method:KoShapeRubberSelectStrategy::paint(QPainter & painter,const KoViewConverter & converter,const KoColorDisplayRendererInterface * displayRendererInterface)"
+      ]
+    },
+    {
+      "target": "NodeSchemaContractTest",
+      "source": "libs/libkis/tests/NodeSchemaContractTest.cpp",
+      "test": "NodeSchemaContractTest::nodeTypeLifetimeAndHierarchySchemaRemainStable",
+      "behavior": "スクリプト向け画像nodeはQObject派生の共有型として仮想破棄され、生成、親子接続、子・channel照会、複製・検索・統合に関する公開契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:NodeSP",
+        "class:Node",
+        "method:Node::addChildNode(Node * child,Node * above)",
+        "method:Node::channels() const",
+        "method:Node::childNodes() const",
+        "method:Node::clone() const",
+        "method:Node::createNode(KisImageSP image,KisNodeSP node,QObject * parent=0)",
+        "method:Node::findChildNodes(const QString & name=QString (),bool recursive=false,bool partialMatch=false,const QString & type=QString (),int colorLabelIndex=0) const",
+        "method:Node::mergeDown()",
+        "method:Node::parentNode() const",
+        "method:Node::removeChildNode(Node * child)",
+        "method:Node::setChildNodes(QList<Node * > nodes)",
+        "method:Node::~Node()"
+      ]
+    },
+    {
+      "target": "NodeSchemaContractTest",
+      "source": "libs/libkis/tests/NodeSchemaContractTest.cpp",
+      "test": "NodeSchemaContractTest::nodeColorAnimationAndPresentationStateSignaturesRemainStable",
+      "behavior": "スクリプト向け画像nodeは色空間、合成、透明度、表示、保護、折畳み、animation、timeline固定の状態を照会・変更する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:Node::alphaLocked() const",
+        "method:Node::animated() const",
+        "method:Node::blendingMode() const",
+        "method:Node::collapsed() const",
+        "method:Node::colorDepth() const",
+        "method:Node::colorLabel() const",
+        "method:Node::colorModel() const",
+        "method:Node::colorProfile() const",
+        "method:Node::enableAnimation() const",
+        "method:Node::inheritAlpha() const",
+        "method:Node::isPinnedToTimeline() const",
+        "method:Node::locked() const",
+        "method:Node::opacity() const",
+        "method:Node::setAlphaLocked(bool value)",
+        "method:Node::setBlendingMode(QString value)",
+        "method:Node::setCollapsed(bool collapsed)",
+        "method:Node::setColorLabel(int index)",
+        "method:Node::setColorProfile(const QString & colorProfile)",
+        "method:Node::setColorSpace(const QString & colorModel,const QString & colorDepth,const QString & colorProfile)",
+        "method:Node::setInheritAlpha(bool value)",
+        "method:Node::setLocked(bool value)",
+        "method:Node::setOpacity(int value)",
+        "method:Node::setPinnedToTimeline(bool pinned) const",
+        "method:Node::setVisible(bool visible)",
+        "method:Node::visible() const"
+      ]
+    },
+    {
+      "target": "NodeSchemaContractTest",
+      "source": "libs/libkis/tests/NodeSchemaContractTest.cpp",
+      "test": "NodeSchemaContractTest::nodePixelGeometryAndTransformationSignaturesRemainStable",
+      "behavior": "スクリプト向け画像nodeは境界・位置・画素・投影・frame状態の照会と、切抜き・移動・回転・拡縮・剪断・画素設定に関する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:Node::bounds() const",
+        "method:Node::cropNode(int x,int y,int w,int h)",
+        "method:Node::hasExtents()",
+        "method:Node::hasKeyframeAtTime(int frameNumber)",
+        "method:Node::move(int x,int y)",
+        "method:Node::pixelData(int x,int y,int w,int h) const",
+        "method:Node::pixelDataAtTime(int x,int y,int w,int h,int time) const",
+        "method:Node::position() const",
+        "method:Node::projectionPixelData(int x,int y,int w,int h) const",
+        "method:Node::rotateNode(double radians)",
+        "method:Node::scaleNode(QPointF origin,int width,int height,QString strategy)",
+        "method:Node::setPixelData(QByteArray value,int x,int y,int w,int h)",
+        "method:Node::shearNode(double angleX,double angleY)",
+        "method:Node::thumbnail(int w,int h)"
+      ]
+    },
+    {
+      "target": "NodeSchemaContractTest",
+      "source": "libs/libkis/tests/NodeSchemaContractTest.cpp",
+      "test": "NodeSchemaContractTest::nodeIdentityEditingAndPersistenceSignaturesRemainStable",
+      "behavior": "スクリプト向け画像nodeは識別・名称・型・icon・描画可否・比較・複製・除去・layer style交換・保存に関する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:Node::duplicate()",
+        "method:Node::icon() const",
+        "method:Node::index() const",
+        "method:Node::layerStyleToAsl()",
+        "method:Node::name() const",
+        "method:Node::operator !=(const Node & other) const",
+        "method:Node::operator ==(const Node & other) const",
+        "method:Node::paintAbility()",
+        "method:Node::remove()",
+        "method:Node::save(const QString & filename,double xRes,double yRes,const InfoObject & exportConfiguration,const QRect & exportRect=QRect ())",
+        "method:Node::setLayerStyleFromAsl(const QString & asl)",
+        "method:Node::setName(QString name)",
+        "method:Node::type() const",
+        "method:Node::uniqueId() const"
+      ]
+    },
+    {
+      "target": "NodeSchemaContractTest",
+      "source": "libs/libkis/tests/NodeSchemaContractTest.cpp",
+      "test": "NodeSchemaContractTest::nodePaintingSignaturesRemainStable",
+      "behavior": "スクリプト向け画像nodeは既定または指定した線・塗り様式で楕円、線分、path、多角形、矩形を描く公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:Node::paintEllipse(const QRectF & rect,const QString strokeStyle=PaintingResources::defaultStrokeStyle,const QString fillStyle=PaintingResources::defaultFillStyle)",
+        "method:Node::paintLine(const QPointF pointOne,const QPointF pointTwo,double pressureOne=1.0,double pressureTwo=1.0,const QString strokeStyle=PaintingResources::defaultStrokeStyle)",
+        "method:Node::paintPath(const QPainterPath & path,const QString strokeStyle=PaintingResources::defaultStrokeStyle,const QString fillStyle=PaintingResources::defaultFillStyle)",
+        "method:Node::paintPolygon(const QList<QPointF> points,const QString strokeStyle=PaintingResources::defaultStrokeStyle,const QString fillStyle=PaintingResources::defaultFillStyle)",
+        "method:Node::paintRectangle(const QRectF & rect,const QString strokeStyle=PaintingResources::defaultStrokeStyle,const QString fillStyle=PaintingResources::defaultFillStyle)"
       ]
     }
   ]

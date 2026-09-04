@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-04 18:36 JST
+- 更新日時: 2026-09-04 18:46 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -151,15 +151,28 @@
 - 実装共通基点は`779b4e75ab`である。一度に一つだけ作る専用worktree-local `build/tdd-macos`と主作業treeの共有compiler cacheを使い、`./scripts/run-shared-test-env`で読み込み済み環境を利用する。各担当のGit権限は許可pathだけの受渡しcommit、追加委任は禁止する。更新scheduler、tool interaction strategy、Nodeの順に限定検証・統合・削除し、調整担当だけが文書、公開API台帳、共通不足報告を変更する。
 - `g206-update-scheduler-schema`の状態は`integrated`、macOSの対象・近傍に限る構築実行許可は`granted`である。正式不足報告の`libs/image/kis_update_scheduler.h`残存全42 APIを、新規`libs/image/tests/KisUpdateSchedulerSchemaContractTest.cpp`の5枠`updateSchedulerTypeLifetimeAndThreadSchemaRemainStable`、`updateSchedulerQueueControlSignaturesRemainStable`、`updateSchedulerProjectionAndStrokeSignaturesRemainStable`、`updateSchedulerLodConfigurationSignaturesRemainStable`、`updateSchedulerCallbackCancellationAndTestableSchemaRemainStable`へ6・12・9・6・9件で対応付けた。許可pathは新規試験sourceと`libs/image/tests/CMakeLists.txt`の新target固有節だけで、公開headerと製品sourceを変更していない。受渡しcommit`eac528fe29`を統合commit`b822917a7d`として取り込み、担当側と中央で追加5枠を各20回、対象`libs-image-KisUpdateSchedulerSchemaContractTest`と近傍`libs-image-KisProcessingApplicatorSchemaContractTest`を実行した。4工程・8入力、image・global探索路、`kritaimage_EXPORTS`、Qt Core・Testだけの動的接続、AUTOMOC `HEADERS=[]`、製品未解決記号なし、二回目計画と再構築の無作業を確認し、台帳は19,929件対応、9,909件未対応となった。cleanな専用作業tree、294,488 KiBの構築木、branchを統合直後に削除し、883,948 KiBを回収した。thread・queue・strokeの実行順序と並行動作は既存の重量実行試験が引き続き所有する。
 - `g206-interaction-strategy-schema`の状態は`integrated`、macOSの対象・近傍に限る構築実行許可は`granted`である。正式不足報告の`libs/flake/tools/KoInteractionStrategy.h`、`KoInteractionTool.h`、`KoShapeRubberSelectStrategy.h`残存全23 APIを、既存`libs/flake/tests/KoToolBaseSchemaContractTest.cpp`の5枠`interactionStrategyTypeAndLifetimeSchemaRemainStable`、`interactionStrategyOperationSignaturesRemainStable`、`interactionToolTypeAndLifetimeSchemaRemainStable`、`interactionToolEventAndRenderingSignaturesRemainStable`、`rubberSelectStrategySchemaRemainStable`へ3・6・3・6・5件で対応付けた。許可pathは既存試験sourceだけで、CMake、公開header、製品sourceを変更していない。受渡しcommit`b3cec0f104`を統合commit`1fd84c09d7`として取り込み、担当側と中央で追加5枠を各20回、対象`libs-flake-KoToolBaseSchemaContractTest`と近傍`libs-flake-KoParameterShapeSchemaContractTest`を実行した。4工程・8入力、Qt Core・Testだけの動的接続、AUTOMOC `HEADERS=[]`、製品未解決記号なし、二回目計画と再構築の無作業を確認し、台帳は19,952件対応、9,886件未対応となった。cleanな専用作業tree、297,296 KiBの構築木、branchを統合直後に削除し、886,772 KiBを回収した。入力配送、command生成、取消・完了、rubber-band描画の実行結果は別の効果契約で扱う。
-- `g206-node-schema`の状態は`implementing`、macOSの対象・近傍に限る構築実行許可は`granted`で、基点`7a76defa2b`の作業tree`/Users/masato/Documents/librepaint-g206-node-schema`を所有する。正式不足報告の`libs/libkis/Node.h`残存全71 APIを、新規`libs/libkis/tests/NodeSchemaContractTest.cpp`の5枠`nodeTypeLifetimeAndHierarchySchemaRemainStable`、`nodeColorAnimationAndPresentationStateSignaturesRemainStable`、`nodePixelGeometryAndTransformationSignaturesRemainStable`、`nodeIdentityEditingAndPersistenceSignaturesRemainStable`、`nodePaintingSignaturesRemainStable`へ13・25・14・14・5件で対応付ける。許可pathは新規試験sourceと`libs/libkis/tests/CMakeLists.txt`の新target固有節だけで、`ColorizeMaskSchemaContractTest`と同じcompile interfaceだけを使う。対象`NodeSchemaContractTest`、正式CTest`libs-libkis-NodeSchemaContractTest`、近傍`ColorizeMaskSchemaContractTest`である。4工程・8入力を予測し、5工程・11入力超過、指定外探索路・link・定義、Qt Gui・Widgets・Xml・KF・製品libraryの動的接続、AUTOMOC入力化、Node製品記号の未解決、header既存の2個の`QString`以外の実体化・本文実行が必要なら停止する。
+- `g206-node-schema`の状態は`integrated`、macOSの対象・近傍に限る構築実行許可は`granted`である。正式不足報告の`libs/libkis/Node.h`残存全71 APIを、新規`libs/libkis/tests/NodeSchemaContractTest.cpp`の5枠`nodeTypeLifetimeAndHierarchySchemaRemainStable`、`nodeColorAnimationAndPresentationStateSignaturesRemainStable`、`nodePixelGeometryAndTransformationSignaturesRemainStable`、`nodeIdentityEditingAndPersistenceSignaturesRemainStable`、`nodePaintingSignaturesRemainStable`へ13・25・14・14・5件で対応付けた。許可pathは新規試験sourceと`libs/libkis/tests/CMakeLists.txt`の新target固有節だけで、公開headerと製品sourceを変更していない。受渡しcommit`acba4075e2`を統合commit`218287d17d`として取り込み、担当側と中央で追加5枠を各20回、対象`libs-libkis-NodeSchemaContractTest`と近傍`libs-libkis-ColorizeMaskSchemaContractTest`を実行した。4工程・8入力、Qt Core・Testだけの動的接続、AUTOMOC `HEADERS=[]`、製品未解決記号なし、既知の`PaintingResources`内部`QString` 2値だけの静的初期化、二回目計画と再構築の無作業を確認し、台帳は20,023件対応、9,815件未対応となった。cleanな専用作業tree、289,264 KiBの構築木、branchを統合直後に削除し、878,760 KiBを回収した。階層変更、色変換、画素編集、保存、変形、描画結果は別の効果契約で扱う。
 
-### 第207便の先行監査担当票（第206便確定待ち）
+### 第206便の統合結果
 
-- 監査共通基点は`ca538f1559`、暫定入力は`build/tdd-macos/public-api-missing-g205.json`である。第205便までの選定責務と、第206便で選定済みの更新・stroke実行調停、tool interaction strategy、スクリプト向け画像nodeを除外し、変更、構成、構築、試験、Git操作、追加委任を行わない読み取り専用監査を先行する。正式な第206便完了報告で再照合・再計測する。
+- `libs/image/kis_update_scheduler.h`から新規`libs/image/tests/KisUpdateSchedulerSchemaContractTest.cpp`へ42 API・5枠、`libs/flake/tools/KoInteractionStrategy.h`、`KoInteractionTool.h`、`KoShapeRubberSelectStrategy.h`から既存`libs/flake/tests/KoToolBaseSchemaContractTest.cpp`へ23 API・5枠、`libs/libkis/Node.h`から新規`libs/libkis/tests/NodeSchemaContractTest.cpp`へ71 API・5枠を追加した。公開headerと製品sourceを変更せず、3対象とも4工程・8入力と製品非接続を維持した。
+- 第206便全体で136 APIを15枠へ重複なく対応付け、20,023件対応、9,815件未対応となった。担当側と中央で対象・軽量近傍CTest、各追加枠の20回反復、AUTOMOC後の二回目計画、無作業再構築、動的接続・未解決記号・書式、公開API検査、`verify-quick`に成功した。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 新しい`build/tdd-macos/public-api-missing-g207.json`は公開header 1,549、公開API 29,838、対応済み20,023、未対応9,815、2,597,974 bytes、SHA-256 `0b4a9963b64ad1d0684b16f72903eafd8dd827f4dd41783692f7265bb3722baa`を記録する。旧`public-api-missing-g206.json`と3担当の作業tree・構築木・branchを削除し、合計2,649,480 KiBを回収した。主Ninja木5,694,288 KiBと共有compiler cache 982,312 KiBは次便へ保持する。
+
+### 第207便の先行監査担当票
+
+- 監査共通基点は`ca538f1559`で開始し、正式入力`build/tdd-macos/public-api-missing-g207.json`で候補を再照合した。第206便までの契約済み・選定済み責務を除外し、監査中は変更、構成、構築、試験、Git操作、追加委任を行っていない。
 - `g207-flake-contract-audit`の状態は`completed`で、flake・SVG・vector領域から図形種別の登録・factory生成・undo可能な挿入21 APIを選定した。
 - `g207-ui-contract-audit`の状態は`completed`で、widgetutils・widgets・libkis領域からスクリプト資源値とbrush preset選択接続面26 APIを選定した。契約実装より先に`libs/libkis/Preset.h`の未使用`kis_paintop_preset.h`を`Preset.cpp`へ移す依存整理が必要である。
 - `g207-image-contract-audit`の状態は`completed`で、image・paintop・pigment領域からstroke queueの投入・完了・状態処理・LoD factory・callback診断29 APIを選定した。新規専用targetは既存処理適用器契約と同じ4工程・8入力を予測し、更新scheduler契約へ追記してpainting/undoとKF I18n探索路を波及させない。
 - `g207-resource-preset-closure-review`の状態は`completed`で、`libs/libkis/Resource.h`、`Preset.h`、`PresetChooser.h`の26 APIが5枠へ重複なく対応できることを確認した。`Preset.h`の未使用`kis_paintop_preset.h`は完全型を使う直接consumerの`Preset.cpp`へ移し、契約targetにはimage・global・resources・resources/ui・ui/widgetsと各生成探索路、Qt Gui・Widgets・KF I18nのinterface、5 export定義だけを与えれば4工程・8入力と製品非接続を予測できる。
+
+### 第207便の先行監査結果
+
+- 正式入力`build/tdd-macos/public-api-missing-g207.json`で、stroke queue 29件、図形種別登録・factory生成・undo可能な挿入21件、スクリプト資源値・brush preset変換選択26件が重複なく残存することを確認した。3責務合計76 API・15枠をこの順に実装する。
+- image領域は`libs/image/kis_strokes_queue.h`の全29 APIを、新規`libs/image/tests/KisStrokesQueueSchemaContractTest.cpp`の型・寿命3、投入・完了7、状態・処理9、LoD・factory 6、callback・診断4の5枠へ固定する。image・global・painting/undo探索路、KF I18n interface、`kritaimage_EXPORTS`、Qt Core・Testとheader-only Boostによる4工程・8入力を予測し、候補headerをAUTOMOC入力にせず製品型と本文を実体化しない。対象`KisStrokesQueueSchemaContractTest`、近傍`KisProcessingApplicatorSchemaContractTest`、停止線5工程・11入力とする。
+- flake領域は`libs/flake/KoShapeRegistry.h`、`KoPathShapeFactory.h`、`KoBasicShapeFactory.h`、`commands/KoShapeCreateCommand.h`の全21 APIを、新規`libs/flake/tests/KoShapeCreationSchemaContractTest.cpp`のregistry 6、path factory型・寿命・構築3、path生成・対応3、基本図形生成3、生成command 6の5枠へ固定する。flake・commands・global・painting/undo探索路、Qt Gui・Xml・KF I18n interface、既存export定義、Qt Core・Testとheader-only Boostによる4工程・8入力を予測する。対象`KoShapeCreationSchemaContractTest`、近傍`KoShapeReorderCommandSchemaContractTest`、停止線5工程・11入力とする。
+- libkis領域は`libs/libkis/Resource.h`、`Preset.h`、`PresetChooser.h`の全26 APIを、新規`libs/libkis/tests/ResourcePresetSchemaContractTest.cpp`の資源型・値8、識別・表示6、preset型・永続化5、chooser型・選択5、通知2の5枠へ固定する。先に`Preset.h`の未使用`kis_paintop_preset.h`を完全型consumerの`Preset.cpp`へ移し、公開宣言を変えずimage/brushengine・painting・pigment・Qt Xml探索路を公開header閉包から除く。契約targetはlibkis・image・global・resources・resources/ui・ui/widgetsと各生成探索路、Qt Gui・Widgets・KF I18n interface、5 export定義、Qt Core・Testとheader-only Boostによる4工程・8入力を予測する。対象`ResourcePresetSchemaContractTest`、近傍`ViewSchemaContractTest`、停止線5工程・11入力とする。
 
 ### 第208便の先行監査担当票（第207便確定待ち）
 
@@ -172,8 +185,9 @@
 ### 第209便の先行監査担当票（第208便確定待ち）
 
 - 監査共通基点は`42d2d46885`、暫定入力は`build/tdd-macos/public-api-missing-g206.json`である。第207便までの契約済み・選定済み責務と、第208便で選定済みのraster keyframe channel、path編集工具、文書canvas幾何・解像度を除外し、変更、構成、構築、試験、Git操作、追加委任を行わない読み取り専用監査を先行する。正式な第208便完了報告で全識別子と閉包を再照合する。
-- `g209-image-contract-audit`の状態は`auditing`で、image・paintop・pigment領域から一責務20〜80 API・最大5枠の候補を比較する。完全なAPI識別子、観測契約、開始pathから契約先、許可path、既存対象と近傍、予測閉包、停止条件、棄却根拠を返す。
-- `g209-ui-contract-audit`の状態は`auditing`で、widgetutils・widgets・libkis領域から一責務20〜80 API・最大5枠の候補を比較する。完全なAPI識別子、観測契約、開始pathから契約先、許可path、既存対象と近傍、予測閉包、停止条件、棄却根拠を返す。
+- `g209-image-contract-audit`の状態は`completed`で、image・paintop・pigment領域からtile data managerの既定画素・tile履歴・領域・転送・保守43 APIを選定した。既存`KisTileSchemaContractTest`へCMake変更なしで追加し、4工程・8入力と製品非接続を予測する。
+- `g209-ui-contract-audit`の状態は`completed`で、widgetutils・widgets・libkis領域から文書型・node graph・layer/mask生成・flattening 28 APIを選定した。既存近傍は324行・19枠のため新規`DocumentNodeSchemaContractTest`へ分け、4工程・8入力を予測する。
+- `g209-flake-contract-audit`の状態は`auditing`で、flake・SVG・vector領域から一責務20〜80 API・最大5枠の候補を比較する。完全なAPI識別子、観測契約、開始pathから契約先、許可path、既存対象と近傍、予測閉包、停止条件、棄却根拠を返す。
 
 ### 第201便の先行監査担当票
 
