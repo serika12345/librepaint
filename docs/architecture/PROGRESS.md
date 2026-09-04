@@ -2,12 +2,20 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-04 09:13 JST
+- 更新日時: 2026-09-04 09:18 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
+
+### 第196便の先行監査担当票
+
+- 監査共通基点は`c78765bb3bf9`、入力は`build/tdd-macos/public-api-missing-g196.json`である。3担当の状態は`auditing`であり、主作業treeを読み取り専用で共有する。製品・試験・CMake・script・台帳・文書を変更せず、構成、構築、試験、Git操作、追加委任を行わない。一つの公開責務から20〜80 APIを最大5枠へ固定し、既存限定対象またはheader限定の4〜10工程程度の対象で、製品shared・OBJECTと`kritatestsdk`へ接続しない候補だけを採用する。既存契約sourceが300行または20枠を超える場合は、同じ4工程程度の専用targetへ分ける案を比較する。製品targetを引数にするplan/buildは禁止し、既存Ninja木のquery・commands・inputsだけを読み取る。
+- `g196-image-contract-audit`はimage・paintop・pigment領域を所有し、第195便までに固定したmask生成器、brush mask applicator、transform worker、iterator、塗装設定群、math toolbox、paint layer、mask、基底layer、選択範囲を除外して、一責務の未対応集合を比較する。
+- `g196-flake-contract-audit`はflake・SVG・vector領域を所有し、第195便までに固定したshape manager・controller、tool代理、shape幾何・階層・文書状態、clip、背景群、path点・区間種別command、path点topology command、font family資源、CSS様式資源を除外して、一責務の未対応集合を比較する。
+- `g196-ui-contract-audit`はwidgetutils・widgets・libkis領域を所有し、第195便までに固定したHSX色入力、内部色選択dialog、視覚色選択群、palette delegate、filter設定・適用、palette選択・色集合表示、色選択button・popup action、action分類・toolbar編集入口、zoom action・Widget、scratchpadを除外して、一責務の未対応集合を比較する。
+- 各担当は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、実際のcompile探索路、予測工程・入力と停止線、開始pathから契約先、実装時許可path、固有停止条件、比較候補の棄却根拠を返す。調整担当は3領域のpath、CMake、試験source、生成物が重ならず、合計60〜180 APIとなる組合せだけを次の実装担当票へ進める。
 
 ### 第195便の先行監査担当票
 
@@ -34,6 +42,13 @@
 - `g195-selection-schema`の状態は`integrated`、構築実行許可は`granted`である。開始`libs/image/kis_selection.h`の残存全43 APIを既存`libs/image/tests/KisMaskSchemaContractTest.cpp`の5枠へ対応付け、CMake、探索路、link、compile定義、公開header、製品sourceを変えず4工程・8入力を維持した。受渡しcommit`959b18a225`を統合commit`a9640e99c6`として取り込み、追加5枠の各20回反復、対象・近傍CTest、無作業再構築、動的接続・AUTOMOC・未解決記号、構文・書式、公開API検査、`verify-quick`に成功した。台帳は18,985件対応、10,853件未対応となった。cleanな作業tree`/Users/masato/Documents/librepaint-g195-selection-schema`と担当構築木は統合後に削除する。
 - `g195-css-style-preset-schema`の状態は`integrated`、構築実行許可は`granted`である。開始`libs/flake/resources/KoCssStylePreset.h`の残存全33 APIから新規`libs/flake/tests/KoCssStylePresetSchemaContractTest.cpp`の5枠へ対応付けた。受渡しcommit`9f44cc1a46`を統合commit`b871358a24`として取り込み、最初の構築で判明した`klocalizedstring.h`の直接要求は近傍と同じKF I18nのinterface探索路1本で解消した。動的linkを増やさず4工程・8入力を維持し、5枠の20回反復、対象・近傍CTest、無作業再構築、動的接続・AUTOMOC・未解決記号、構文・書式、公開API検査、`verify-quick`に成功した。台帳は19,018件対応、10,820件未対応となった。cleanな作業tree`/Users/masato/Documents/librepaint-g195-css-style-preset-schema`と担当構築木は統合後に削除する。
 - `g195-scratchpad-schema`の状態は`integrated`、構築実行許可は`granted`である。第一受渡しcommit`73e77e4ad4`を統合commit`293dc8d63a`として取り込み、`libs/libkis/Scratchpad.h`から未使用`kis_types.h` includeだけを除去した。公開API総数・指紋を維持し、直接利用元、MOC・SIP source、`Scratchpad.cpp`の構文を確認した。製品objectの厳密指定は1,972工程・3,943入力へ広がるため実行しなかった。第二受渡しcommit`eb758f37f3`を統合commit`5fb677fa9c`として取り込み、残存全31 APIを`libs/libkis/tests/ViewSchemaContractTest.cpp`の5枠へ対応付け、Qt Widgetsのinterface探索路だけを追加した。動的linkを増やさず4工程・8入力を維持し、5枠の各20回反復、対象・近傍CTest、無作業再構築、動的接続・AUTOMOC・未解決記号、構文・書式、公開API検査、`verify-quick`に成功した。台帳は19,049件対応、10,789件未対応となった。cleanな作業tree`/Users/masato/Documents/librepaint-g195-scratchpad-schema`と担当構築木は統合後に削除する。
+
+### 第195便の統合結果
+
+- `g195-selection-schema`は開始`libs/image/kis_selection.h`から既存`libs/image/tests/KisMaskSchemaContractTest.cpp`へ、選択範囲の型・構築、構成要素・所有、内容・幾何、輪郭・縮小画像cache、投影・変更通知の残存全43 APIを5枠で追加した。受渡しcommit`959b18a225`を統合commit`a9640e99c6`として取り込み、台帳commit`4f34911e64`で18,985件対応、10,853件未対応となった。試験sourceは211行・10枠、CMakeを変えず4工程・8入力を維持した。
+- `g195-css-style-preset-schema`は開始`libs/flake/resources/KoCssStylePreset.h`から新規`libs/flake/tests/KoCssStylePresetSchemaContractTest.cpp`へ、CSS様式資源の型・構築、property・解像度、識別・分類、見本表示、永続化の残存全33 APIを5枠で分離した。受渡しcommit`9f44cc1a46`を統合commit`b871358a24`として取り込み、台帳commit`0d0f8a1e52`で19,018件対応、10,820件未対応となった。初回診断で判明した翻訳ヘッダー要求はKF I18nのinterface探索路だけで解消し、動的linkなしの4工程・8入力を維持した。
+- `g195-scratchpad-schema`は開始`libs/libkis/Scratchpad.h`の未使用`kis_types.h`依存を第一受渡しcommit`73e77e4ad4`から統合commit`293dc8d63a`で除去し、同headerから既存`libs/libkis/tests/ViewSchemaContractTest.cpp`へ残存全31 APIを第二受渡しcommit`eb758f37f3`から統合commit`5fb677fa9c`で5枠追加した。台帳commit`c78765bb3b`で19,049件対応、10,789件未対応となった。公開API総数・指紋を維持し、Qt Widgetsはinterface探索路だけ、試験対象は4工程・8入力である。製品objectの厳密指定は1,972工程・3,943入力に広がるため実行せず、`Scratchpad.cpp`の構文とMOC・SIP source監査で依存除去を検証した。
+- 第195便全体で107 APIを15枠へ重複なく対応付けた。3担当で対象・近傍CTest、各追加5枠の20回反復、無作業再構築、動的接続、AUTOMOC、未解決記号、構文・書式、公開API検査、`verify-quick`に成功し、主作業treeでも3対象・3近傍CTestと無作業再構築を再確認した。製品target、全体`verify`、Linux、Nix再評価は実行していない。3担当のcleanな作業treeと担当build木を統合直後に削除して2,646,240 KiB（約2.52 GiB）を回収した。旧不足報告`public-api-missing-g195.json`を置き換え、主Ninja木5,677,932 KiB、共有compiler cache 983,024 KiB、最新`build/tdd-macos/public-api-missing-g196.json` 2,848,474 bytesだけを保持する。次の永続作業は第196便の不足報告から3責務を先行監査することである。
 
 ### 第194便の先行監査担当票
 
