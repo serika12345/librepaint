@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-04 21:48 JST
+- 更新日時: 2026-09-04 21:52 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -297,6 +297,13 @@
 - flake領域は`plugins/tools/svgtexttool/SvgTextChangeTransformsOnRange.h`の14 API、`SvgTextInsertCommand.h`の8 API、`SvgTextMergePropertiesRangeCommand.h`の7 API、`SvgTextRemoveCommand.h`の7 API、`SvgTextInsertRichCommand.h`の5 APIを、SVG文字列範囲のundo可能な変形・挿入・属性統合・削除41 APIとして既存`plugins/tools/svgtexttool/tests/SvgTextCursorPropertySchemaContractTest.cpp`の5枠へ固定する。CMake変更なしの4工程・8入力を予測する。
 - libkis領域は`libs/libkis/Krita.h`の39 APIを、型・寿命・アプリケーション状態7、文書・window 10、action・extension・通知7、色・filter・資源catalog 8、設定・地域化・変換7として新規`libs/libkis/tests/KritaSchemaContractTest.cpp`の5枠へ固定する。Node系compile interfaceにflake・ui/canvasと`kritaui_export.h`の生成探索路、Qt Widgetsのinterface探索路を加え、Qt Core・Testだけを直接接続する4工程・8入力を予測する。製品`kritalibkis`は2,018工程・4,034入力であるため構築対象にしない。
 - 正式入力でbrush preset 43 API、SVG文字列command群41 API、`Krita.h`の39 APIがすべて残存し、重複がないことを再照合した。3候補は合計123 API・15枠で、停止線を5工程・11入力とし、候補headerまたは推移headerのAUTOMOC入力化、製品shared・OBJECT、`kritatestsdk`、計画外の動的接続または未解決製品記号、対象型やinline本文の実体化が必要なら停止する。
+
+### 第211便の担当計画
+
+- 実装共通基点は`e4e2ed8b12`である。一度に一つだけ作る専用worktree-local `build/tdd-macos`と主作業treeの共有compiler cacheを使い、担当側の`./scripts/run-shared-test-env`で読み込み済み環境を利用する。brush preset、SVG文字列command群、スクリプト向けアプリケーション根の順に限定検証・統合・削除し、調整担当だけが文書、公開API台帳、共通不足報告を変更する。各担当のGit権限は許可pathだけの1受渡しcommitで、追加委任は禁止する。
+- `g211-paintop-preset-schema`の状態は`implementing`、作業treeは`/Users/masato/Documents/librepaint-g211-paintop-preset-schema`である。開始`libs/image/brushengine/kis_paintop_preset.h`の残存全43 APIを、新規`libs/image/tests/KisPaintOpPresetSchemaContractTest.cpp`の5枠`paintOpPresetTypeLifetimeAndUpdateSuppressionSchemaRemainStable`、`paintOpPresetIdentitySettingsAndSerializationSignaturesRemainStable`、`paintOpPresetCloneAndUpdateInterfaceSignaturesRemainStable`、`paintOpPresetMaskingAndResourceInterfaceSignaturesRemainStable`、`paintOpPresetResourceSnapshotAndCacheSignaturesRemainStable`へ9・12・5・7・10件で対応付ける。許可pathは新規試験sourceと`libs/image/tests/CMakeLists.txt`の新target固有節だけで、所有targetは`KisPaintOpPresetSchemaContractTest`、近傍は`KisPaintLayerSchemaContractTest`である。macOSのこの2対象に限る構築実行許可を`granted`とし、image・brushengine・global・resources探索路、KF I18n interface、Qt Core・Gui・Testとheader-only Boost、`kritaimage_EXPORTS`による4工程・8入力を維持する。
+- brush preset担当の停止線は5工程・11入力である。Qt Xml・Widgetsまたは製品libraryの動的接続、計画外の探索路・定義・link、候補headerのAUTOMOC入力化、製品shared・OBJECT・`kritatestsdk`、preset・設定・資源・cache関連の製品未解決記号、対象値やinline本文の実体化・実行、許可path外変更が必要なら停止する。編集前後の計画・依存・空閉包、対象不存在と宣言段階の初期失敗、追加5枠の単発と各20回反復、対象・近傍CTest、AUTOMOC後の二回目計画、無作業再構築2回、動的接続・未解決記号・構文・書式、公開API検査、`verify-quick`を確認する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
+- `g211-svg-text-command-schema`と`g211-krita-facade-schema`の状態は`planned`である。brush preset担当の統合と作業tree削除後に一担当ずつ割り当てる。前者は既存`SvgTextCursorPropertySchemaContractTest.cpp`だけを変更し、後者は新規`KritaSchemaContractTest.cpp`と`libs/libkis/tests/CMakeLists.txt`の新target固有節だけを変更する。
 
 ### 第212便の先行監査担当票（第211便確定待ち）
 
