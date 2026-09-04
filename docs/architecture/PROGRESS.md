@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-04 22:17 JST
+- 更新日時: 2026-09-04 22:20 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -303,7 +303,9 @@
 - 実装共通基点は`e4e2ed8b12`である。一度に一つだけ作る専用worktree-local `build/tdd-macos`と主作業treeの共有compiler cacheを使い、担当側の`./scripts/run-shared-test-env`で読み込み済み環境を利用する。brush preset、SVG文字列command群、スクリプト向けアプリケーション根の順に限定検証・統合・削除し、調整担当だけが文書、公開API台帳、共通不足報告を変更する。各担当のGit権限は許可pathだけの1受渡しcommitで、追加委任は禁止する。
 - `g211-paintop-preset-schema`の状態は`integrated`である。開始`libs/image/brushengine/kis_paintop_preset.h`の残存全43 APIを、新規`libs/image/tests/KisPaintOpPresetSchemaContractTest.cpp`の5枠`paintOpPresetTypeLifetimeAndUpdateSuppressionSchemaRemainStable`、`paintOpPresetIdentitySettingsAndSerializationSignaturesRemainStable`、`paintOpPresetCloneAndUpdateInterfaceSignaturesRemainStable`、`paintOpPresetMaskingAndResourceInterfaceSignaturesRemainStable`、`paintOpPresetResourceSnapshotAndCacheSignaturesRemainStable`へ9・12・5・7・10件で対応付けた。受渡しcommit`7bb41e1001`を統合commit`540ccc2576`として取り込み、担当側と中央のmacOSで各枠20回、対象・近傍CTest、4工程・8入力、AUTOMOC後の二回目計画、無作業再構築2回、接続・未解決記号・構文・書式、公開API・方針検査に成功した。台帳は20,372件対応、9,466件未対応となった。cleanな専用作業tree、291,768 KiBの構築木、branchを統合直後に削除し、881,484 KiBを回収した。
 - brush preset担当の停止線は5工程・11入力である。Qt Xml・Widgetsまたは製品libraryの動的接続、計画外の探索路・定義・link、候補headerのAUTOMOC入力化、製品shared・OBJECT・`kritatestsdk`、preset・設定・資源・cache関連の製品未解決記号、対象値やinline本文の実体化・実行、許可path外変更が必要なら停止する。編集前後の計画・依存・空閉包、対象不存在と宣言段階の初期失敗、追加5枠の単発と各20回反復、対象・近傍CTest、AUTOMOC後の二回目計画、無作業再構築2回、動的接続・未解決記号・構文・書式、公開API検査、`verify-quick`を確認する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
-- `g211-svg-text-command-schema`の状態は`planned`で、次の実装担当とする。既存`SvgTextCursorPropertySchemaContractTest.cpp`だけを変更する。`g211-krita-facade-schema`はその統合と作業tree削除後に新規`KritaSchemaContractTest.cpp`と`libs/libkis/tests/CMakeLists.txt`の新target固有節だけを変更する。
+- `g211-svg-text-command-schema`の状態は`implementing`、基点は`50c404424c`、作業treeは`/Users/masato/Documents/librepaint-g211-svg-text-command-schema`とする。正式不足報告にある`SvgTextChangeTransformsOnRange.h`の14 API、`SvgTextInsertCommand.h`の8 API、`SvgTextMergePropertiesRangeCommand.h`の7 API、`SvgTextRemoveCommand.h`の7 API、`SvgTextInsertRichCommand.h`の5 APIを、既存`plugins/tools/svgtexttool/tests/SvgTextCursorPropertySchemaContractTest.cpp`の5枠`svgTextChangeTransformsOnRangeSchemaRemainStable`、`svgTextInsertCommandSchemaRemainStable`、`svgTextMergePropertiesRangeCommandSchemaRemainStable`、`svgTextRemoveCommandSchemaRemainStable`、`svgTextInsertRichCommandSchemaRemainStable`へ14・8・7・7・5件で対応付ける。許可pathはこの既存試験sourceだけで、CMake変更は認めない。所有targetは`SvgTextCursorPropertySchemaContractTest`、正式CTestは`plugins-tools-svgtexttool-SvgTextCursorPropertySchemaContractTest`、近傍は`SvgTextCursorEnumContractTest`である。macOSのこの2対象に限る構築実行許可を`granted`とし、既存の4工程・8入力を維持する。
+- SVG文字列command担当の停止線は5工程・11入力である。CMake、探索路、定義、link、候補headerのAUTOMOC入力、製品shared・OBJECT、`kritatestsdk`、command・図形・undo関連の製品未解決記号、対象値やinline本文の実体化・実行、許可path外変更が必要なら停止する。編集前後の計画・直接依存・空閉包、宣言段階の初期失敗、追加5枠の単発と各20回反復、対象・近傍CTest、AUTOMOC後の二回目計画、無作業再構築2回、動的接続・未解決記号・構文・書式、公開API検査、`verify-quick`を確認する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
+- `g211-krita-facade-schema`の状態は`planned`である。SVG文字列command担当の統合と作業tree削除後に、新規`KritaSchemaContractTest.cpp`と`libs/libkis/tests/CMakeLists.txt`の新target固有節だけを変更する。
 
 ### 第212便の先行監査担当票（第211便確定待ち）
 
