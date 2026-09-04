@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 9141
+    "expectedMissingApis": 9121
   },
   "contracts": [
     {
@@ -57666,6 +57666,71 @@
         "method:KoShapeLayer::boundingRect() const",
         "method:KoShapeLayer::hitTest(const QPointF & position) const",
         "method:KoShapeLayer::paintComponent(QPainter & painter) const"
+      ]
+    },
+    {
+      "target": "KisAsyncColorSamplerHelperSchemaContractTest",
+      "source": "libs/ui/tests/KisAsyncColorSamplerHelperSchemaContractTest.cpp",
+      "test": "KisAsyncColorSamplerHelperSchemaContractTest::asyncColorSamplerTypeLifetimeAndStateSchemaRemainStable",
+      "behavior": "非同期色採取補助はcanvasを受け取る公開型と仮想寿命を持ち、採取中かを照会する公開契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisAsyncColorSamplerHelper",
+        "method:KisAsyncColorSamplerHelper::KisAsyncColorSamplerHelper(KisCanvas2 * canvas)",
+        "method:KisAsyncColorSamplerHelper::isActive() const",
+        "method:KisAsyncColorSamplerHelper::~KisAsyncColorSamplerHelper()"
+      ]
+    },
+    {
+      "target": "KisAsyncColorSamplerHelperSchemaContractTest",
+      "source": "libs/ui/tests/KisAsyncColorSamplerHelperSchemaContractTest.cpp",
+      "test": "KisAsyncColorSamplerHelperSchemaContractTest::asyncColorSamplerActivationAndActionSignaturesRemainStable",
+      "behavior": "非同期色採取補助は採取方針を指定した起動とcursor更新、および開始・継続・終了・停止からなる操作列の公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAsyncColorSamplerHelper::activate(bool sampleCurrentLayer,bool pickFgColor)",
+        "method:KisAsyncColorSamplerHelper::continueAction(const QPointF & docPoint)",
+        "method:KisAsyncColorSamplerHelper::deactivate()",
+        "method:KisAsyncColorSamplerHelper::endAction()",
+        "method:KisAsyncColorSamplerHelper::startAction(const QPointF & docPoint,int radius,int blend)",
+        "method:KisAsyncColorSamplerHelper::updateCursor(bool sampleCurrentLayer,bool pickFgColor)"
+      ]
+    },
+    {
+      "target": "KisAsyncColorSamplerHelperSchemaContractTest",
+      "source": "libs/ui/tests/KisAsyncColorSamplerHelperSchemaContractTest.cpp",
+      "test": "KisAsyncColorSamplerHelperSchemaContractTest::asyncColorSamplerPreviewAndPaintingSignaturesRemainStable",
+      "behavior": "非同期色採取補助は文書座標からpreview領域を算出し、表示変換を用いて採取表示を描画する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAsyncColorSamplerHelper::colorPreviewDocRect(const QPointF & docPoint)",
+        "method:KisAsyncColorSamplerHelper::paint(QPainter & gc,const KoViewConverter & converter)"
+      ]
+    },
+    {
+      "target": "KisAsyncColorSamplerHelperSchemaContractTest",
+      "source": "libs/ui/tests/KisAsyncColorSamplerHelperSchemaContractTest.cpp",
+      "test": "KisAsyncColorSamplerHelperSchemaContractTest::asyncColorSamplerGlobalColorAndOutlineSignaturesRemainStable",
+      "behavior": "非同期色採取補助は全体色の更新方針を設定・照会し、輪郭更新とcursorの設定・解除を通知する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAsyncColorSamplerHelper::setUpdateGlobalColor(bool value)",
+        "method:KisAsyncColorSamplerHelper::sigRequestCursor(const QCursor & cursor)",
+        "method:KisAsyncColorSamplerHelper::sigRequestCursorReset()",
+        "method:KisAsyncColorSamplerHelper::sigRequestUpdateOutline()",
+        "method:KisAsyncColorSamplerHelper::updateGlobalColor() const"
+      ]
+    },
+    {
+      "target": "KisAsyncColorSamplerHelperSchemaContractTest",
+      "source": "libs/ui/tests/KisAsyncColorSamplerHelperSchemaContractTest.cpp",
+      "test": "KisAsyncColorSamplerHelperSchemaContractTest::asyncColorSamplerColorNotificationSignaturesRemainStable",
+      "behavior": "非同期色採取補助は未加工色、選択色、および確定色をそれぞれ通知する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAsyncColorSamplerHelper::sigColorSelected(const KoColor & color)",
+        "method:KisAsyncColorSamplerHelper::sigFinalColorSelected(const KoColor & color)",
+        "method:KisAsyncColorSamplerHelper::sigRawColorSelected(const KoColor & color)"
       ]
     }
   ]

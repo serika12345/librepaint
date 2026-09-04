@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 03:11 JST
+- 更新日時: 2026-09-05 03:23 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -455,8 +455,9 @@
 - `g215-shape-state-schema`の状態は`integrated`である。開始`libs/flake/KoShape.h`の残存全16 APIと`KoShapeLayer.h`の残存全6 APIを、既存`libs/flake/tests/KoShapeStateSchemaContractTest.cpp`の5枠`shapeAttachmentOwnershipSignaturesRemainStable`、`shapeCloneAndSettingsSignaturesRemainStable`、`shapeDelegationAndSnapSignaturesRemainStable`、`shapeHandlePainterHelperSignaturesRemainStable`、`shapeLayerTypeConstructionAndPaintingSchemaRemainStable`へ8・3・3・2・6件で対応付けた。受渡しcommit`0d2e2b111a`を統合commit`af72932df3`として取り込み、CMake、公開header、製品sourceを変更していない。
 - 担当側と中央のmacOSで追加5枠を各20回、既存5枠を含む対象`libs-flake-KoShapeStateSchemaContractTest`と近傍`libs-flake-KoShapeEnumContractTest`、AUTOMOC後の二回目計画、無作業再構築2回に成功した。4工程・8入力、AUTOMOC `HEADERS=[]`、Qt Core・Gui・Test・Xmlだけの動的接続、製品未解決記号なしを維持し、台帳は20,697件対応、9,141件未対応となった。所有移転、複製、吸着計算、描画本文は別の効果契約で扱う。
 - cleanな専用作業tree、294,376 KiBの構築木、branchを統合直後に削除し、884,268 KiBを回収した。主Ninja木5,733,108 KiBと共有compiler cache 982,440 KiBを非同期色採取契約へ再利用する。次の永続作業は、同helper 20 APIの担当票を確定して専用作業treeで実装することである。
-- `g215-async-color-sampler-schema`の状態は`implementing`、担当は`/root/g178_paintop_settings_schema`、基点は`f0191f3548`、作業treeは`/Users/masato/Documents/librepaint-g215-async-color-sampler-schema`である。開始`libs/ui/tool/KisAsyncColorSamplerHelper.h`の残存全20 APIを、新規`libs/ui/tests/KisAsyncColorSamplerHelperSchemaContractTest.cpp`の5枠`asyncColorSamplerTypeLifetimeAndStateSchemaRemainStable`、`asyncColorSamplerActivationAndActionSignaturesRemainStable`、`asyncColorSamplerPreviewAndPaintingSignaturesRemainStable`、`asyncColorSamplerGlobalColorAndOutlineSignaturesRemainStable`、`asyncColorSamplerColorNotificationSignaturesRemainStable`へ4・6・2・5・3件で対応付ける。許可pathは新規試験sourceと`libs/ui/tests/CMakeLists.txt`の新target固有節だけで、公開headerと製品sourceを変更しない。Qt Core・Test、application生成探索路、image・global探索路、`kritaapplicationui_EXPORTS`、`kritaimage_EXPORTS`、`kritaglobal_EXPORTS`だけによる4工程・8入力を予測する。
-- 非同期色採取担当は、5工程・11入力超過、計画外の探索路・定義・link、Qt Guiまたは製品shared・OBJECT・`kritatestsdk`の動的接続、候補headerのAUTOMOC入力化、canvas・色・描画関連の製品未解決記号、対象値・Qt値・製品本文の実体化・実行、許可path外変更が必要なら停止する。新target不存在、宣言段階の初期失敗、追加5枠の単発と各20回反復、対象と軽量近傍`KisHistogramPainterSchemaContractTest`、AUTOMOC後の二回目計画、無作業再構築2回、動的接続・未解決記号・構文・書式、公開API検査、`verify-quick`を確認する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
+- `g215-async-color-sampler-schema`の状態は`integrated`である。開始`libs/ui/tool/KisAsyncColorSamplerHelper.h`の残存全20 APIを、新規`libs/ui/tests/KisAsyncColorSamplerHelperSchemaContractTest.cpp`の5枠`asyncColorSamplerTypeLifetimeAndStateSchemaRemainStable`、`asyncColorSamplerActivationAndActionSignaturesRemainStable`、`asyncColorSamplerPreviewAndPaintingSignaturesRemainStable`、`asyncColorSamplerGlobalColorAndOutlineSignaturesRemainStable`、`asyncColorSamplerColorNotificationSignaturesRemainStable`へ4・6・2・5・3件で対応付けた。受渡しcommit`cc14a4dbc2`を統合commit`3dd9f38e20`として取り込み、公開headerと製品sourceは変更していない。
+- 担当側と中央のmacOSで追加5枠を各20回、対象`libs-ui-KisAsyncColorSamplerHelperSchemaContractTest`と近傍`libs-ui-KisHistogramPainterSchemaContractTest`、AUTOMOC後の計画、無作業再構築2回に成功した。4工程・8入力、AUTOMOC `HEADERS=[]`、Qt Core・Testだけの動的接続、製品未解決記号なしを維持し、台帳は20,717件対応、9,121件未対応となった。実際の採取、色更新、cursor・輪郭・描画・通知効果は別の効果契約で扱う。
+- cleanな専用作業tree、297,776 KiBの構築木、branchを統合直後に削除し、887,676 KiBを回収した。主Ninja木5,734,164 KiBと共有compiler cache 982,696 KiBを色空間registry契約へ再利用する。次の永続作業は、同registry 63 APIの担当票を確定して専用作業treeで実装することである。
 
 ### 第216便の先行監査担当票（第215便確定待ち）
 
