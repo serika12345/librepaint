@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 10083
+    "expectedMissingApis": 10063
   },
   "contracts": [
     {
@@ -55284,6 +55284,71 @@
         "method:KisAslLayerStyleSerializer::fetchLinkedResourceSignatures(const KisPSDLayerStyle * style)",
         "method:KisAslLayerStyleSerializer::readFromPSDXML(const QDomDocument & doc)",
         "method:KisAslLayerStyleSerializer::sideLoadLinkedResources(KisPSDLayerStyle * style,KisResourcesInterfaceSP resourcesInterface)"
+      ]
+    },
+    {
+      "target": "KoPatternBackgroundSchemaContractTest",
+      "source": "libs/flake/tests/KoPatternBackgroundSchemaContractTest.cpp",
+      "test": "KoPatternBackgroundSchemaContractTest::shapeFillWrapperTypeAndConstructionSchemaRemainStable",
+      "behavior": "図形fill wrapperは単一図形または図形列とfill種別から構築・破棄できる公開契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoShapeFillWrapper",
+        "method:KoShapeFillWrapper::KoShapeFillWrapper(KoShape * shape,KoFlake::FillVariant fillVariant)",
+        "method:KoShapeFillWrapper::KoShapeFillWrapper(QList<KoShape * > shapes,KoFlake::FillVariant fillVariant)",
+        "method:KoShapeFillWrapper::~KoShapeFillWrapper()"
+      ]
+    },
+    {
+      "target": "KoPatternBackgroundSchemaContractTest",
+      "source": "libs/flake/tests/KoPatternBackgroundSchemaContractTest.cpp",
+      "test": "KoPatternBackgroundSchemaContractTest::shapeFillWrapperClassificationAndColorSignaturesRemainStable",
+      "behavior": "図形fill wrapperはfill種別・混在状態・線幅状態・色を照会し、色と線幅を設定する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShapeFillWrapper::color() const",
+        "method:KoShapeFillWrapper::hasZeroLineWidth() const",
+        "method:KoShapeFillWrapper::isMixedFill() const",
+        "method:KoShapeFillWrapper::setColor(const QColor & color)",
+        "method:KoShapeFillWrapper::setLineWidth(const float & lineWidth)",
+        "method:KoShapeFillWrapper::type() const"
+      ]
+    },
+    {
+      "target": "KoPatternBackgroundSchemaContractTest",
+      "source": "libs/flake/tests/KoPatternBackgroundSchemaContractTest.cpp",
+      "test": "KoPatternBackgroundSchemaContractTest::shapeFillWrapperGradientSignaturesRemainStable",
+      "behavior": "図形fill wrapperはgradientと座標変換を照会・設定し、全gradientまたは停止点だけを適用する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShapeFillWrapper::applyGradient(const QGradient * gradient)",
+        "method:KoShapeFillWrapper::applyGradientStopsOnly(const QGradient * gradient)",
+        "method:KoShapeFillWrapper::gradient() const",
+        "method:KoShapeFillWrapper::gradientTransform() const",
+        "method:KoShapeFillWrapper::setGradient(const QGradient * gradient,const QTransform & transform)"
+      ]
+    },
+    {
+      "target": "KoPatternBackgroundSchemaContractTest",
+      "source": "libs/flake/tests/KoPatternBackgroundSchemaContractTest.cpp",
+      "test": "KoPatternBackgroundSchemaContractTest::shapeFillWrapperMeshGradientSignaturesRemainStable",
+      "behavior": "図形fill wrapperはmesh gradientを照会し、座標変換とともに設定する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShapeFillWrapper::meshgradient() const",
+        "method:KoShapeFillWrapper::setMeshGradient(const SvgMeshGradient * gradient,const QTransform & transform)"
+      ]
+    },
+    {
+      "target": "KoPatternBackgroundSchemaContractTest",
+      "source": "libs/flake/tests/KoPatternBackgroundSchemaContractTest.cpp",
+      "test": "KoPatternBackgroundSchemaContractTest::gradientUtilityAndPatternRenderingSignaturesRemainStable",
+      "behavior": "図形fill境界はgradientの複製・座標と内容の結合、およびpattern背景のpath内描画に関する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KoFlake::cloneGradient(const QGradient * gradient)",
+        "function:KoFlake::mergeGradient(const QGradient * coordsSource,const QGradient * fillSource)",
+        "method:KoPatternBackground::paint(QPainter & painter,const QPainterPath & fillPath) const"
       ]
     }
   ]
