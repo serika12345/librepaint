@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-04 22:44 JST
+- 更新日時: 2026-09-04 22:47 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -305,7 +305,8 @@
 - brush preset担当の停止線は5工程・11入力である。Qt Xml・Widgetsまたは製品libraryの動的接続、計画外の探索路・定義・link、候補headerのAUTOMOC入力化、製品shared・OBJECT・`kritatestsdk`、preset・設定・資源・cache関連の製品未解決記号、対象値やinline本文の実体化・実行、許可path外変更が必要なら停止する。編集前後の計画・依存・空閉包、対象不存在と宣言段階の初期失敗、追加5枠の単発と各20回反復、対象・近傍CTest、AUTOMOC後の二回目計画、無作業再構築2回、動的接続・未解決記号・構文・書式、公開API検査、`verify-quick`を確認する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
 - `g211-svg-text-command-schema`の状態は`integrated`である。正式不足報告にある`SvgTextChangeTransformsOnRange.h`の14 API、`SvgTextInsertCommand.h`の8 API、`SvgTextMergePropertiesRangeCommand.h`の7 API、`SvgTextRemoveCommand.h`の7 API、`SvgTextInsertRichCommand.h`の5 APIを、既存`plugins/tools/svgtexttool/tests/SvgTextCursorPropertySchemaContractTest.cpp`の5枠`svgTextChangeTransformsOnRangeSchemaRemainStable`、`svgTextInsertCommandSchemaRemainStable`、`svgTextMergePropertiesRangeCommandSchemaRemainStable`、`svgTextRemoveCommandSchemaRemainStable`、`svgTextInsertRichCommandSchemaRemainStable`へ14・8・7・7・5件で対応付けた。`kundo2command.h`の探索不足を初期失敗で検出し、painting/undoのsource・generated探索路と`kritapaintingundo_EXPORTS`だけを対象固有CMake節へ補った。受渡しcommit`4382aacf0b`を統合commit`a5fba76d7e`として取り込み、担当側と中央のmacOSで各枠20回、対象・近傍CTest、補正後4工程・8入力、AUTOMOC後の安定計画、無作業再構築2回、接続・未解決記号・構文・書式、公開API・方針検査に成功した。台帳は20,413件対応、9,425件未対応となった。cleanな専用作業tree、297,624 KiBの構築木、branchを統合直後に削除し、887,356 KiBを回収した。
 - SVG文字列command担当の停止線は5工程・11入力である。painting/undoの2探索路と1 export定義以外のCMake変更、link追加、候補headerのAUTOMOC入力、製品shared・OBJECT、`kritatestsdk`、command・図形・undo関連の製品未解決記号、対象値やinline本文の実体化・実行、許可path外変更が必要なら停止する。編集前後の計画・直接依存・空閉包、探索路不足の初期失敗、追加5枠の単発と各20回反復、対象・近傍CTest、AUTOMOC後の二回目計画、無作業再構築2回、動的接続・未解決記号・構文・書式、公開API検査、`verify-quick`を確認する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
-- `g211-krita-facade-schema`の状態は`planned`である。SVG文字列command担当の統合と作業tree削除後に、新規`KritaSchemaContractTest.cpp`と`libs/libkis/tests/CMakeLists.txt`の新target固有節だけを変更する。
+- `g211-krita-facade-schema`の状態は`implementing`、基点は`167720ae3a`、作業treeは`/Users/masato/Documents/librepaint-g211-krita-facade-schema`とする。正式不足報告にある`libs/libkis/Krita.h`の残存全39 APIを、新規`libs/libkis/tests/KritaSchemaContractTest.cpp`の5枠`kritaTypeLifetimeAndApplicationStateSchemaRemainStable`、`kritaDocumentAndWindowSignaturesRemainStable`、`kritaActionExtensionAndNotificationSignaturesRemainStable`、`kritaColorFilterAndResourceCatalogSignaturesRemainStable`、`kritaSettingsLocalizationAndConversionSignaturesRemainStable`へ7・10・7・8・7件で対応付ける。許可pathは新規試験sourceと`libs/libkis/tests/CMakeLists.txt`の新target固有節だけである。所有targetは`KritaSchemaContractTest`、正式CTestは`libs-libkis-KritaSchemaContractTest`、近傍は`DocumentNodeSchemaContractTest`とする。macOSのこの2対象に限る構築実行許可を`granted`とし、Node系compile interfaceへflake・ui/canvas・application生成探索路とQt Widgets interfaceを加えた4工程・8入力を維持する。
+- Krita façade担当の停止線は5工程・11入力である。計画外の探索路・定義・link、候補headerのAUTOMOC入力、製品shared・OBJECT、`kritatestsdk`、Krita・Document・Window・action・resource関連の製品未解決記号、対象値やinline本文の実体化・実行、許可path外変更が必要なら停止する。編集前後の計画・直接依存・空閉包、対象不存在と宣言段階の初期失敗、追加5枠の単発と各20回反復、対象・近傍CTest、AUTOMOC後の二回目計画、無作業再構築2回、動的接続・未解決記号・構文・書式、公開API検査、`verify-quick`を確認する。製品`kritalibkis` target、全体build・`verify`、Linux、Nix再評価は実行しない。
 
 ### 第212便の先行監査担当票（第211便確定待ち）
 
