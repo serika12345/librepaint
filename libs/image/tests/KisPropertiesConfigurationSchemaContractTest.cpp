@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "filter/kis_filter_configuration.h"
 #include "kis_properties_configuration.h"
 
 #include <QTest>
@@ -15,6 +16,8 @@ namespace
 
 #define ASSERT_PROPERTIES_CONFIGURATION_SIGNATURE(method, ...)                                                         \
     static_assert(std::is_same_v<decltype(static_cast<__VA_ARGS__>(&KisPropertiesConfiguration::method)), __VA_ARGS__>)
+#define ASSERT_FILTER_CONFIGURATION_SIGNATURE(method, ...)                                                             \
+    static_assert(std::is_same_v<decltype(static_cast<__VA_ARGS__>(&KisFilterConfiguration::method)), __VA_ARGS__>)
 
 } // namespace
 
@@ -28,6 +31,11 @@ private Q_SLOTS:
     void prefixedPropertyTransferSignaturesRemainStable();
     void propertyXmlSerializationSignaturesRemainStable();
     void propertyKeyAndStringEncodingSignaturesRemainStable();
+    void filterConfigurationTypeAndLifetimeSchemaRemainStable();
+    void filterConfigurationIdentityAndChannelSignaturesRemainStable();
+    void filterConfigurationSerializationSignaturesRemainStable();
+    void filterConfigurationResourceSnapshotSignaturesRemainStable();
+    void filterConfigurationRequiredResourceSignaturesRemainStable();
 };
 
 void KisPropertiesConfigurationSchemaContractTest::propertyMapSurfaceAndMutationSignaturesRemainStable()
@@ -155,6 +163,85 @@ void KisPropertiesConfigurationSchemaContractTest::propertyKeyAndStringEncodingS
     ASSERT_PROPERTIES_CONFIGURATION_SIGNATURE(escapeString, QString (*)(const QString &));
     ASSERT_PROPERTIES_CONFIGURATION_SIGNATURE(extractedPrefixKey, QString (*)());
     ASSERT_PROPERTIES_CONFIGURATION_SIGNATURE(unescapeString, QString (*)(const QString &));
+
+    QVERIFY(true);
+}
+
+// clang-format off
+void KisPropertiesConfigurationSchemaContractTest::filterConfigurationTypeAndLifetimeSchemaRemainStable()
+// clang-format on
+{
+    static_assert(std::is_class_v<KisFilterConfiguration>);
+    static_assert(std::is_base_of_v<KisPropertiesConfiguration, KisFilterConfiguration>);
+    static_assert(std::is_constructible_v<KisFilterConfiguration, const QString &, qint32, KisResourcesInterfaceSP>);
+    static_assert(std::is_destructible_v<KisFilterConfiguration>);
+    static_assert(std::has_virtual_destructor_v<KisFilterConfiguration>);
+
+    QVERIFY(true);
+}
+
+// clang-format off
+void KisPropertiesConfigurationSchemaContractTest::filterConfigurationIdentityAndChannelSignaturesRemainStable()
+// clang-format on
+{
+    ASSERT_FILTER_CONFIGURATION_SIGNATURE(channelFlags, QBitArray (KisFilterConfiguration::*)() const);
+    ASSERT_FILTER_CONFIGURATION_SIGNATURE(isCompatible, bool (KisFilterConfiguration::*)(const KisPaintDeviceSP) const);
+    ASSERT_FILTER_CONFIGURATION_SIGNATURE(name, const QString &(KisFilterConfiguration::*)() const);
+    ASSERT_FILTER_CONFIGURATION_SIGNATURE(setChannelFlags, void (KisFilterConfiguration::*)(QBitArray));
+    ASSERT_FILTER_CONFIGURATION_SIGNATURE(version, qint32 (KisFilterConfiguration::*)() const);
+
+    QVERIFY(true);
+}
+
+// clang-format off
+void KisPropertiesConfigurationSchemaContractTest::filterConfigurationSerializationSignaturesRemainStable()
+// clang-format on
+{
+    ASSERT_FILTER_CONFIGURATION_SIGNATURE(clone, KisFilterConfigurationSP (KisFilterConfiguration::*)() const);
+    ASSERT_FILTER_CONFIGURATION_SIGNATURE(compareTo,
+                                          bool (KisFilterConfiguration::*)(const KisPropertiesConfiguration *) const);
+    ASSERT_FILTER_CONFIGURATION_SIGNATURE(fromLegacyXML, void (KisFilterConfiguration::*)(const QDomElement &));
+    ASSERT_FILTER_CONFIGURATION_SIGNATURE(fromXML, void (KisFilterConfiguration::*)(const QDomElement &));
+    ASSERT_FILTER_CONFIGURATION_SIGNATURE(toXML, void (KisFilterConfiguration::*)(QDomDocument &, QDomElement &) const);
+
+    QVERIFY(true);
+}
+
+// clang-format off
+void KisPropertiesConfigurationSchemaContractTest::filterConfigurationResourceSnapshotSignaturesRemainStable()
+// clang-format on
+{
+    ASSERT_FILTER_CONFIGURATION_SIGNATURE(cloneWithResourcesSnapshot,
+                                          KisFilterConfigurationSP (KisFilterConfiguration::*)(KisResourcesInterfaceSP)
+                                              const);
+    ASSERT_FILTER_CONFIGURATION_SIGNATURE(createLocalResourcesSnapshot,
+                                          void (KisFilterConfiguration::*)(KisResourcesInterfaceSP));
+    ASSERT_FILTER_CONFIGURATION_SIGNATURE(hasLocalResourcesSnapshot, bool (KisFilterConfiguration::*)() const);
+    ASSERT_FILTER_CONFIGURATION_SIGNATURE(resourcesInterface,
+                                          KisResourcesInterfaceSP (KisFilterConfiguration::*)() const);
+    ASSERT_FILTER_CONFIGURATION_SIGNATURE(setResourcesInterface,
+                                          void (KisFilterConfiguration::*)(KisResourcesInterfaceSP));
+
+    static_assert(std::is_same_v<decltype(std::declval<const KisFilterConfiguration &>().cloneWithResourcesSnapshot()),
+                                 KisFilterConfigurationSP>);
+    static_assert(
+        std::is_same_v<decltype(std::declval<KisFilterConfiguration &>().createLocalResourcesSnapshot()), void>);
+
+    QVERIFY(true);
+}
+
+// clang-format off
+void KisPropertiesConfigurationSchemaContractTest::filterConfigurationRequiredResourceSignaturesRemainStable()
+// clang-format on
+{
+    using ResourceResults = QList<KoResourceLoadResult>;
+
+    ASSERT_FILTER_CONFIGURATION_SIGNATURE(embeddedResources,
+                                          ResourceResults (KisFilterConfiguration::*)(KisResourcesInterfaceSP) const);
+    ASSERT_FILTER_CONFIGURATION_SIGNATURE(linkedResources,
+                                          ResourceResults (KisFilterConfiguration::*)(KisResourcesInterfaceSP) const);
+    ASSERT_FILTER_CONFIGURATION_SIGNATURE(requiredResources,
+                                          ResourceResults (KisFilterConfiguration::*)(KisResourcesInterfaceSP) const);
 
     QVERIFY(true);
 }
