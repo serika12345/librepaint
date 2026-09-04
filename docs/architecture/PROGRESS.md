@@ -16,6 +16,12 @@
 - `g202-flake-contract-audit`の状態は`auditing`で、flake・SVG・vector領域を所有する。第201便までの契約済み・選定済み責務を除外し、完全なAPI識別子、最大5枠の観測契約、開始pathから契約先、許可path候補、既存対象と近傍、予測閉包と停止条件、比較棄却根拠を返す。
 - `g202-ui-contract-audit`の状態は`auditing`で、widgetutils・widgets・libkis領域を所有する。第201便までの契約済み・選定済み責務を除外し、完全なAPI識別子、最大5枠の観測契約、開始pathから契約先、許可path候補、既存対象と近傍、予測閉包と停止条件、比較棄却根拠を返す。
 - `g202-build-closure-review`の状態は`auditing`で、path toolの選択保持候補と視覚色選択器候補について、前便の広い責務からの分離、前方宣言型の完全型要件、追加探索路・export定義、動的接続、AUTOMOC、既存契約への追記と専用targetの判断を独立に読み取り確認する。変更・構成・構築・試験を行わず、採用条件と撤回条件を返す。
+- `g202-image-closure-review`の状態は`auditing`で、PSD layer style資源候補について、効果構造体・資源・色型の完全型とinline本文、複製・代入特性、必要な探索路・定義・動的接続、専用targetの最小閉包を独立に読み取り確認する。変更・構成・構築・試験を行わず、採用条件と撤回条件を返す。
+
+### 第203便の先行監査担当票（第202便確定待ち）
+
+- 監査共通基点は`90e0de3ed4`、暫定入力は`build/tdd-macos/public-api-missing-g201.json`である。第201便と第202便で契約済みまたは選定済みの責務を除外し、変更、構成、構築、試験、Git操作、追加委任を行わない読み取り専用監査を先行する。正式な第202便完了報告で再照合・再計測する。
+- `g203-image-contract-audit`の状態は`auditing`で、image・paintop・pigment領域からPSD layer style資源を除く一責務20〜80 API・最大5枠の次候補を比較し、完全なAPI識別子、観測契約、開始pathから契約先、許可path、既存対象と近傍、予測閉包、停止条件、棄却根拠を返す。
 
 ### 第201便の先行監査担当票
 
