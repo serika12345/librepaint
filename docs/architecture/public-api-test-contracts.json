@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 9330
+    "expectedMissingApis": 9307
   },
   "contracts": [
     {
@@ -57117,6 +57117,74 @@
         "method:KisTransformMaskAdapter::getKeyframeChannel(const QString & id,KisDefaultBoundsBaseSP defaultBounds)",
         "method:KisTransformMaskAdapter::transformArgs() const",
         "method:KisTransformMaskAdapter::transformDevice(KisNodeSP node,KisPaintDeviceSP src,KisPaintDeviceSP dst,bool forceSubPixelTranslation) const"
+      ]
+    },
+    {
+      "target": "RasterSurfaceSchemaContractTest",
+      "source": "libs/libkis/tests/RasterSurfaceSchemaContractTest.cpp",
+      "test": "RasterSurfaceSchemaContractTest::rasterChannelTypeAndValueSchemaRemainStable",
+      "behavior": "スクリプト向け色channelは公開型、node・channelへの接続、比較、および仮想寿命の契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:Channel",
+        "method:Channel::Channel(KisNodeSP node,KoChannelInfo * channel,QObject * parent=0)",
+        "method:Channel::operator !=(const Channel & other) const",
+        "method:Channel::operator ==(const Channel & other) const",
+        "method:Channel::~Channel()"
+      ]
+    },
+    {
+      "target": "RasterSurfaceSchemaContractTest",
+      "source": "libs/libkis/tests/RasterSurfaceSchemaContractTest.cpp",
+      "test": "RasterSurfaceSchemaContractTest::rasterChannelIdentityVisibilityAndBoundsSchemaRemainStable",
+      "behavior": "スクリプト向け色channelは名称・位置・表示状態・境界・画素寸法の公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:Channel::bounds() const",
+        "method:Channel::channelSize() const",
+        "method:Channel::name() const",
+        "method:Channel::position() const",
+        "method:Channel::setVisible(bool value)",
+        "method:Channel::visible() const"
+      ]
+    },
+    {
+      "target": "RasterSurfaceSchemaContractTest",
+      "source": "libs/libkis/tests/RasterSurfaceSchemaContractTest.cpp",
+      "test": "RasterSurfaceSchemaContractTest::rasterChannelPixelSignaturesRemainStable",
+      "behavior": "スクリプト向け色channelは矩形範囲の画素取得と更新に関する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:Channel::pixelData(const QRect & rect) const",
+        "method:Channel::setPixelData(QByteArray value,const QRect & rect)"
+      ]
+    },
+    {
+      "target": "RasterSurfaceSchemaContractTest",
+      "source": "libs/libkis/tests/RasterSurfaceSchemaContractTest.cpp",
+      "test": "RasterSurfaceSchemaContractTest::rasterDocumentColorSpaceAndBackgroundSignaturesRemainStable",
+      "behavior": "スクリプト向け文書raster面は色モデル・深度・プロファイルと背景色の照会・変更に関する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:Document::backgroundColor()",
+        "method:Document::colorDepth() const",
+        "method:Document::colorModel() const",
+        "method:Document::colorProfile() const",
+        "method:Document::setBackgroundColor(const QColor & color)",
+        "method:Document::setColorProfile(const QString & colorProfile)",
+        "method:Document::setColorSpace(const QString & colorModel,const QString & colorDepth,const QString & colorProfile)"
+      ]
+    },
+    {
+      "target": "RasterSurfaceSchemaContractTest",
+      "source": "libs/libkis/tests/RasterSurfaceSchemaContractTest.cpp",
+      "test": "RasterSurfaceSchemaContractTest::rasterDocumentPixelProjectionAndThumbnailSignaturesRemainStable",
+      "behavior": "スクリプト向け文書raster面は画素、投影画像、および縮小画像の取得に関する公開署名と投影範囲の省略可能性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:Document::pixelData(int x,int y,int w,int h) const",
+        "method:Document::projection(int x=0,int y=0,int w=0,int h=0) const",
+        "method:Document::thumbnail(int w,int h) const"
       ]
     }
   ]
