@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 08:38 JST
+- 更新日時: 2026-09-05 08:45 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -670,11 +670,15 @@
 ### 第223便の先行監査担当票（第222便確定待ち）
 
 - `g223-clipboard-schema-closure-audit`の状態は`completed`である。暫定入力`build/tdd-macos/public-api-missing-g217.json`の`libs/impex/ui/kis_clipboard.h`残存全32 API、識別子集合SHA-256 `762cdd60fb30b2b7986252f7dc202e004cebb3538bcdc82e34dd6582a524fbdb`、5枠4・9・8・6・5を新規専用targetへ固定できる。application・image・global探索路と対応export定義、Qt Gui interface、Qt Core・Testだけの直接接続による4工程・8入力を予測する。OS clipboard、URL取得、filesystem、dialog、画像、layer、paint deviceを実行または実体化せず、1,974工程・3,947入力のbroken動的試験へ接続しない。正式な第222便不足報告で再照合する。
-- `g223-clipboard-schema-formal-review`の状態は`auditing`、担当は`g178_paintop_settings_schema`、基点は`ff158c3b90`、正式入力は`build/tdd-macos/public-api-missing-g222.json`である。開始公開headerは`libs/impex/ui/kis_clipboard.h`、対象は残存全32 API、集合SHA-256 `762cdd60fb30b2b7986252f7dc202e004cebb3538bcdc82e34dd6582a524fbdb`、契約候補は新規`libs/impex/tests/KisClipboardSchemaContractTest.cpp`の5枠4・9・8・6・5、新targetは`KisClipboardSchemaContractTest`、軽量近傍は`KisPNGConverterSchemaContractTest`、所有候補CMakeは`libs/impex/tests/CMakeLists.txt`である。主作業treeと既存Ninja graphを読み取り専用で使い、変更、構成、構築、試験、Git操作、追加委任を行わない。全識別子、枠対応、必要include・定義・link、現在とAUTOMOC後の予測工程・入力、製品辺、実体化有無、停止条件を独立確認し、正式第223便不足報告で再照合する条件を返す。
+- `g223-clipboard-schema-formal-review`の状態は`completed-ready`、担当は`g178_paintop_settings_schema`、基点は`ff158c3b90`である。正式入力`build/tdd-macos/public-api-missing-g222.json`でも`libs/impex/ui/kis_clipboard.h`の残存全32 APIは一意で台帳と重複せず、集合SHA-256 `762cdd60fb30b2b7986252f7dc202e004cebb3538bcdc82e34dd6582a524fbdb`、新規`libs/impex/tests/KisClipboardSchemaContractTest.cpp`の5枠4・9・8・6・5に一致した。新target `KisClipboardSchemaContractTest`はapplication・image・global探索路と3 export定義、Qt Gui interface、Qt Core・Testだけで初回・AUTOMOC後とも4工程・8入力へ閉じられる。軽量近傍`KisPNGConverterSchemaContractTest`も4工程・8入力、候補headerのAUTOMOC `HEADERS=[]`、製品辺なしである。OS clipboard、URL・filesystem、dialog、画像・layer変換、時間範囲、通知順序は既存または後続の動的契約で扱い、正式第223便不足報告で32件と集合SHAを再照合する。
 
 ### 第224便の先行監査担当票（第223便確定待ち）
 
-- `g224-cie-tongue-schema-formal-review`の状態は`auditing`、担当は`g208_raster_keyframe_schema`、基点は`ff158c3b90`、正式入力は`build/tdd-macos/public-api-missing-g222.json`である。開始公開headerは`libs/ui/widgets/kis_cie_tongue_widget.h`、対象は残存全22 API、集合SHA-256 `b678ccb9a147df3837d9ff7e3f3550e9de69b3623a48283178ad03f8e36ded82`、契約候補は新規`libs/ui/tests/KisCIETongueWidgetSchemaContractTest.cpp`の5枠10・3・3・3・3、新targetは`KisCIETongueWidgetSchemaContractTest`、軽量近傍は同CMake内の最小で意味上近いschema target、所有候補CMakeは`libs/ui/tests/CMakeLists.txt`である。主作業treeと既存Ninja graphを読み取り専用で使い、変更、構成、構築、試験、Git操作、追加委任を行わない。全識別子、枠対応、必要include・定義・link、現在とAUTOMOC後の予測工程・入力、製品辺、実体化有無、最小近傍、停止条件を独立確認し、正式第224便不足報告で再照合する条件を返す。
+- `g224-cie-tongue-schema-formal-review`の状態は`completed-ready`、担当は`g208_raster_keyframe_schema`、基点は`ff158c3b90`である。正式入力`build/tdd-macos/public-api-missing-g222.json`でも`libs/ui/widgets/kis_cie_tongue_widget.h`の残存全22 APIは一意で台帳と重複せず、集合SHA-256 `b678ccb9a147df3837d9ff7e3f3550e9de69b3623a48283178ad03f8e36ded82`、新規`libs/ui/tests/KisCIETongueWidgetSchemaContractTest.cpp`の5枠10・3・3・3・3に一致した。新target `KisCIETongueWidgetSchemaContractTest`はapplication・pigment・global探索路と3 export定義、Qt Gui・Widgets・KF I18n・Imath interface、Qt Core・Testとheader-only Boostだけで初回・AUTOMOC後とも4工程・8入力へ閉じられる。軽量近傍は色profileと表示色空間を扱う`KisDisplayConfigSchemaContractTest`で、4工程・8入力、候補headerのAUTOMOC `HEADERS=[]`、製品辺なしである。`loadingFailed`、`loadingStarted`、`uncalibratedColor`はsignalではなく定義・呼出しのない通常public宣言なので、その宣言面として分類する。CIE描画、profile・gamut反映、再描画、色変換結果、Widget寿命は既存または後続の動的契約で扱い、正式第224便不足報告で22件と集合SHAを再照合する。
+
+### 第225便の先行監査担当票（第224便確定待ち）
+
+- `g225-fill-painter-schema-formal-review`の状態は`auditing`、担当は`g208_raster_keyframe_schema`、基点は`84827b3b18`、正式入力は`build/tdd-macos/public-api-missing-g222.json`である。開始公開headerは`libs/image/kis_fill_painter.h`、対象は残存全53 API、集合SHA-256 `bb2bbc772dd0392eda08fe0c4f56644c04cacd02bb77412b5981ce3994ede724`、契約候補は既存`libs/image/tests/KisEncloseAndFillPainterSchemaContractTest.cpp`へ追加する5枠7・4・16・12・14、所有CMakeは変更なし、新target・生成物は作らない。主作業treeと既存Ninja graphを読み取り専用で使い、変更、構成、構築、試験、Git操作、追加委任を行わない。全識別子、既存sourceの行数・枠数と追加後上限、枠対応、既存targetと最小近傍、現在とAUTOMOC後の工程・入力、直接・interface依存、製品辺、実体化有無、停止条件を独立確認し、正式第225便不足報告で再照合する条件を返す。
 
 ### 第201便の先行監査担当票
 
