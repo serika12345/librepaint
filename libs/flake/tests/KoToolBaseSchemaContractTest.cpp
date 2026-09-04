@@ -3,6 +3,9 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include <KoInteractionStrategy.h>
+#include <KoInteractionTool.h>
+#include <KoShapeRubberSelectStrategy.h>
 #include <KoToolBase.h>
 #include <KoToolFactoryBase.h>
 #include <KoToolRegistry.h>
@@ -17,6 +20,12 @@ namespace
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KoToolBase::method)), signature>)
 #define ASSERT_TOOL_FACTORY_SIGNATURE(method, signature)                                                               \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KoToolFactoryBase::method)), signature>)
+#define ASSERT_INTERACTION_STRATEGY_SIGNATURE(method, signature)                                                       \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KoInteractionStrategy::method)), signature>)
+#define ASSERT_INTERACTION_TOOL_SIGNATURE(method, signature)                                                           \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KoInteractionTool::method)), signature>)
+#define ASSERT_RUBBER_SELECT_STRATEGY_SIGNATURE(method, signature)                                                     \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KoShapeRubberSelectStrategy::method)), signature>)
 
 class ToolConstructorProbe : public KoToolBase
 {
@@ -33,6 +42,32 @@ public:
     using KoToolFactoryBase::KoToolFactoryBase;
 
     KoToolBase *createTool(KoCanvasBase *canvas) override;
+};
+
+class InteractionStrategyConstructorProbe final : public KoInteractionStrategy
+{
+public:
+    using KoInteractionStrategy::KoInteractionStrategy;
+
+    void handleMouseMove(const QPointF &mouseLocation, Qt::KeyboardModifiers modifiers) override;
+    KUndo2Command *createCommand() override;
+    void finishInteraction(Qt::KeyboardModifiers modifiers) override;
+};
+
+class InteractionToolConstructorProbe final : public KoInteractionTool
+{
+public:
+    using KoInteractionTool::KoInteractionTool;
+
+    KoInteractionStrategy *createStrategy(KoPointerEvent *event) override;
+};
+
+class RubberSelectStrategyConstructorProbe final : public KoShapeRubberSelectStrategy
+{
+public:
+    using KoShapeRubberSelectStrategy::KoShapeRubberSelectStrategy;
+
+    void finishInteraction(Qt::KeyboardModifiers modifiers) override;
 };
 } // namespace
 
@@ -51,6 +86,11 @@ private Q_SLOTS:
     void toolFactoryIdentityAndPresentationSignaturesRemainStable();
     void toolRegistryTypeAndLifetimeSchemaRemainsStable();
     void toolRegistryAccessSignatureRemainsStable();
+    void interactionStrategyTypeAndLifetimeSchemaRemainStable();
+    void interactionStrategyOperationSignaturesRemainStable();
+    void interactionToolTypeAndLifetimeSchemaRemainStable();
+    void interactionToolEventAndRenderingSignaturesRemainStable();
+    void rubberSelectStrategySchemaRemainStable();
 };
 
 void KoToolBaseSchemaContractTest::toolIdentityContextAndPresentationSignaturesRemainStable()
@@ -196,6 +236,59 @@ void KoToolBaseSchemaContractTest::toolRegistryAccessSignatureRemainsStable()
     using InstanceSignature = Registry *(*)();
 
     static_assert(std::is_same_v<decltype(static_cast<InstanceSignature>(&Registry::instance)), InstanceSignature>);
+}
+
+void KoToolBaseSchemaContractTest::interactionStrategyTypeAndLifetimeSchemaRemainStable()
+{
+    static_assert(std::is_class_v<KoInteractionStrategy>);
+    static_assert(std::is_constructible_v<InteractionStrategyConstructorProbe, KoToolBase *>);
+    static_assert(std::has_virtual_destructor_v<KoInteractionStrategy>);
+}
+
+void KoToolBaseSchemaContractTest::interactionStrategyOperationSignaturesRemainStable()
+{
+    ASSERT_INTERACTION_STRATEGY_SIGNATURE(cancelInteraction, void (KoInteractionStrategy::*)());
+    ASSERT_INTERACTION_STRATEGY_SIGNATURE(createCommand, KUndo2Command * (KoInteractionStrategy::*)());
+    ASSERT_INTERACTION_STRATEGY_SIGNATURE(finishInteraction, void (KoInteractionStrategy::*)(Qt::KeyboardModifiers));
+    ASSERT_INTERACTION_STRATEGY_SIGNATURE(handleMouseMove,
+                                          void (KoInteractionStrategy::*)(const QPointF &, Qt::KeyboardModifiers));
+    ASSERT_INTERACTION_STRATEGY_SIGNATURE(
+        paint,
+        void (KoInteractionStrategy::*)(QPainter &, const KoViewConverter &, const KoColorDisplayRendererInterface *));
+    ASSERT_INTERACTION_STRATEGY_SIGNATURE(tool, KoToolBase * (KoInteractionStrategy::*)() const);
+}
+
+void KoToolBaseSchemaContractTest::interactionToolTypeAndLifetimeSchemaRemainStable()
+{
+    static_assert(std::is_class_v<KoInteractionTool>);
+    static_assert(std::is_constructible_v<InteractionToolConstructorProbe, KoCanvasBase *>);
+    static_assert(std::has_virtual_destructor_v<KoInteractionTool>);
+}
+
+void KoToolBaseSchemaContractTest::interactionToolEventAndRenderingSignaturesRemainStable()
+{
+    ASSERT_INTERACTION_TOOL_SIGNATURE(keyPressEvent, void (KoInteractionTool::*)(QKeyEvent *));
+    ASSERT_INTERACTION_TOOL_SIGNATURE(keyReleaseEvent, void (KoInteractionTool::*)(QKeyEvent *));
+    ASSERT_INTERACTION_TOOL_SIGNATURE(mouseMoveEvent, void (KoInteractionTool::*)(KoPointerEvent *));
+    ASSERT_INTERACTION_TOOL_SIGNATURE(mousePressEvent, void (KoInteractionTool::*)(KoPointerEvent *));
+    ASSERT_INTERACTION_TOOL_SIGNATURE(mouseReleaseEvent, void (KoInteractionTool::*)(KoPointerEvent *));
+    ASSERT_INTERACTION_TOOL_SIGNATURE(paint, void (KoInteractionTool::*)(QPainter &, const KoViewConverter &));
+}
+
+void KoToolBaseSchemaContractTest::rubberSelectStrategySchemaRemainStable()
+{
+    static_assert(std::is_class_v<KoShapeRubberSelectStrategy>);
+    static_assert(std::is_constructible_v<RubberSelectStrategyConstructorProbe, KoToolBase *, const QPointF &>);
+    static_assert(std::is_constructible_v<RubberSelectStrategyConstructorProbe, KoToolBase *, const QPointF &, bool>);
+    ASSERT_RUBBER_SELECT_STRATEGY_SIGNATURE(createCommand, KUndo2Command * (KoShapeRubberSelectStrategy::*)());
+    ASSERT_RUBBER_SELECT_STRATEGY_SIGNATURE(
+        handleMouseMove,
+        void (KoShapeRubberSelectStrategy::*)(const QPointF &, Qt::KeyboardModifiers));
+    ASSERT_RUBBER_SELECT_STRATEGY_SIGNATURE(
+        paint,
+        void (KoShapeRubberSelectStrategy::*)(QPainter &,
+                                              const KoViewConverter &,
+                                              const KoColorDisplayRendererInterface *));
 }
 
 QTEST_APPLESS_MAIN(KoToolBaseSchemaContractTest)
