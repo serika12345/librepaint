@@ -17,6 +17,16 @@
 - `g197-ui-contract-audit`はwidgetutils・widgets・libkis領域を所有し、第196便までに固定したHSX色入力、内部色選択dialog、視覚色選択群、palette delegate、filter設定・適用、palette選択・色集合表示、色選択button・popup action、action分類・toolbar編集入口、zoom action・Widget、scratchpad、ウィンドウ操作、アプリケーション状態通知を除外して、一責務の未対応集合を比較する。
 - 各担当は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、実際のcompile探索路、予測工程・入力と停止線、開始pathから契約先、実装時許可path、固有停止条件、比較候補の棄却根拠を返す。調整担当は3領域のpath、CMake、試験source、生成物が重ならず、合計60〜180 APIとなる組合せだけを次の実装担当票へ進める。
 
+### 第197便の先行監査結果
+
+- pigment領域は`libs/pigment/KoBasicHistogramProducers.h`の残存全21 APIを、基底・固定深度・汎用histogram producerと基本・汎用factoryの構築・寿命として採用し、既存`libs/pigment/tests/KoBasicHistogramProducerSchemaContractTest.cpp`の5枠へ追加する。既存sourceは182行・5枠であり、追加後も300行・20枠未満に収まる。CMake、探索路、link、定義を変えず、Qt Core・Gui・Test、header-only Boost、KF I18nのinterfaceだけによる4工程・8入力を維持し、停止線を5工程・11入力とする。producer、factory、局所probe、ID、色空間、channel、bin、registryを実体化せず、構築・破棄、bin初期化、registry照会、生成・互換性判定、画素処理本文を実行しない。
+  EncloseAndFill painter、paintop factory、brush基底設定、transaction、filter設定、gradient painter、composite operation群は、描画装置・undo・資源・Widget・大規模templateへ定義閉包が広がるかinline所有処理の誤参照危険が高いため棄却した。
+- flake領域は`libs/flake/resources/KoGamutMask.h`の残存全38 APIを、ガマットマスク図形の型・幾何・描画と資源本体の型・寿命、永続化・metadata、幾何・描画、図形集合として採用し、新規`libs/flake/tests/KoGamutMaskSchemaContractTest.cpp`の5枠へ分離する。近傍SVGシンボル集合資源と同じQt Gui・Test・Xml、header-only Boost、KF I18nのinterface探索路、flake・global・resources探索路と定義だけで4工程・8入力を予測し、停止線を5工程・11入力とする。資源、図形wrapper、図形、Qt値・描画型、I/O、資源interfaceを実体化せず、複製・破棄、座標判定、変換・描画、図形所有、preview更新、clone、I/O、inline資源種別本文をODR-useしない。
+  tool manager、SVG parser、path tool・選択は大域状態・入力・製品接続へ広がり、SVG text shapeは80 API上限を超え、shape fill・font群は単体で20 API未満のため棄却した。
+- widgets領域は`libs/widgets/KisTagSelectionWidget.h`の残存全20 APIを、タグ選択Widget、追加button、閉じられるtag labelの型・寿命、一覧・利用可否・通知として採用し、新規`libs/widgets/tests/KisTagSelectionWidgetSchemaContractTest.cpp`の5枠へ分離する。同headerはprivate pointerのためだけに`TagActions.h`をincludeしてresources UI・resource model・pigmentの定義閉包を公開利用元へ伝播し、未使用の`kis_signal_compressor.h`もincludeしている。契約前の独立構造変更で両includeを除去し、`UserInputTagAction`と`QPushButton`を前方宣言する。`KisTagSelectionWidget.cpp`は完全型を直接include済みであり、公開API指紋と全直接利用元の構文を維持する。契約targetはQt Core・Test、header-only Boost、Qt Gui・WidgetsとKF I18nのinterface、widgets・global探索路だけによる4工程・8入力を予測し、停止線を5工程・11入力とする。3 Widget型、ID・容器・文字列、action、layoutを実体化せず、一覧更新、追加・削除、描画、menu操作、通知配送本文を実行しない。
+  単位入力群は異なる所有と管理方式を混在させ、進捗・言語buttonは単体で20 API未満、palette・視覚色選択は直近責務と重複し、Resource・Preset群とlibkisの大規模façadeは資源寿命・大域状態・文書I/Oを横断するため棄却した。
+- 中央の`public-api-missing-g197.json`でhistogram生成器21件、ガマットマスク38件、タグ選択20件の全識別子を照合した。3責務の開始header、試験source、所有CMake、生成物は相互に異なり、合計79 APIを15枠へ進める。許可path外変更、新規の動的link・探索root・compile定義、候補headerのAUTOMOC入力化、製品shared・OBJECT・`kritatestsdk`接続、指定外実体化・本文実行、各停止線超過、製品計画集合の変化が不要な場合だけ実装へ進める。タグ選択だけは公開APIを変えないinclude縮小を契約とは別commit・別検査段階で先行する。
+
 ### 第196便の先行監査担当票
 
 - 監査共通基点は`c78765bb3bf9`、入力は`build/tdd-macos/public-api-missing-g196.json`である。3担当の状態は`auditing`であり、主作業treeを読み取り専用で共有する。製品・試験・CMake・script・台帳・文書を変更せず、構成、構築、試験、Git操作、追加委任を行わない。一つの公開責務から20〜80 APIを最大5枠へ固定し、既存限定対象またはheader限定の4〜10工程程度の対象で、製品shared・OBJECTと`kritatestsdk`へ接続しない候補だけを採用する。既存契約sourceが300行または20枠を超える場合は、同じ4工程程度の専用targetへ分ける案を比較する。製品targetを引数にするplan/buildは禁止し、既存Ninja木のquery・commands・inputsだけを読み取る。
