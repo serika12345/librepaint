@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 01:07 JST
+- 更新日時: 2026-09-05 01:10 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -373,6 +373,12 @@
 - 変形工具領域は`plugins/tools/tool_transform2/tool_transform_args.h`の13 APIと`KisAnimatedTransformMaskParamsHolder.h`の14 APIを、引数型・寿命・構築6、外部源・filter・永続化7、保持器型・寿命・構築4、状態・境界・keyframe 6、複製・bake・変更4として新規`plugins/tools/tool_transform2/tests/ToolTransformStateSchemaContractTest.cpp`の5枠へ固定する。既存`ToolTransformArgsGeometrySchemaContractTest`と同じ直接link、探索路、定義で4工程・9入力を予測し、停止線を5工程・11入力とする。
 - UI領域は`libs/ui/canvas/KisCanvasAnimationState.h`の残存全24 APIを、型・寿命・再生列挙7、再生・media 6、速度・frame・audio設定4、再生通知5、audio・取消通知2として既存`libs/ui/tests/KisPlaybackEngineSchemaContractTest.cpp`の5枠へ固定する。対象固有CMake節へheader-only Boost、image source/generated探索路、`kritaimage_EXPORTS`だけを加え、Qt Core・Testだけの動的接続、4工程・8入力、停止線5工程・11入力を維持する。
 - 3候補は合計75 API・15枠で、開始header、試験source、所有CMakeが相互に異なる。正式報告で全識別子を再照合済みである。候補headerのAUTOMOC入力化、製品shared・OBJECT、`kritatestsdk`、計画外の探索路・定義・動的接続または未解決製品記号、対象型やinline・template本文の実体化が必要なら停止する。gradient painter、変形状態、canvas animation stateの順に一担当ずつ実装する。
+
+### 第213便の担当計画
+
+- 実装共通基点は`4371cded60`である。一度に一つだけ作る専用worktree-local `build/tdd-macos`と主作業treeの共有compiler cacheを使い、担当側の`./scripts/run-shared-test-env`で読み込み済み環境を利用する。gradient painter、変形状態、canvas animation stateの順に限定検証・統合・削除し、調整担当だけが文書、公開API台帳、共通不足報告を変更する。各担当のGit権限は許可pathだけの1受渡しcommitで、追加委任は禁止する。
+- `g213-gradient-painter-schema`の状態は`implementing`、担当は`/root/g178_shape_hierarchy_schema`、基点は`4371cded60`、作業treeは`/Users/masato/Documents/librepaint-g213-gradient-painter-schema`である。開始`libs/image/kis_gradient_painter.h`の残存全24 APIを、新規`libs/image/tests/KisGradientPainterSchemaContractTest.cpp`の5枠へ型・寿命・構築5、形状列挙10、反復列挙4、設定2、描画入口3として対応付ける。許可pathは新規試験sourceと`libs/image/tests/CMakeLists.txt`の新target固有節だけで、公開headerと製品sourceを変更しない。Qt Core・Gui・Testとheader-only Boost、既存探索路・export定義による4工程・8入力、AUTOMOC `HEADERS=[]`、製品非接続を予測する。
+- gradient painter担当は、5工程・11入力超過、計画外の探索路・定義・動的link、候補headerのAUTOMOC入力化、製品shared・OBJECT・`kritatestsdk`接続、painter・描画装置・選択・gradient関連の製品未解決記号、対象値・templateまたは製品本文の実体化・実行、許可path外変更が必要なら停止する。新target不存在、宣言段階の初期失敗、追加5枠の単発と各20回反復、対象と軽量近傍、AUTOMOC後の二回目計画、無作業再構築2回、動的接続・未解決記号・構文・書式、公開API検査、`verify-quick`を確認する。製品`kritaimage`、全体build・`verify`、Linux、Nix再評価は実行しない。
 
 ### 第214便の先行監査担当票（第213便確定待ち）
 
