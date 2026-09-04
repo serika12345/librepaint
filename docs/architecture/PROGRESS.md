@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 08:36 JST
+- 更新日時: 2026-09-05 08:38 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -670,6 +670,11 @@
 ### 第223便の先行監査担当票（第222便確定待ち）
 
 - `g223-clipboard-schema-closure-audit`の状態は`completed`である。暫定入力`build/tdd-macos/public-api-missing-g217.json`の`libs/impex/ui/kis_clipboard.h`残存全32 API、識別子集合SHA-256 `762cdd60fb30b2b7986252f7dc202e004cebb3538bcdc82e34dd6582a524fbdb`、5枠4・9・8・6・5を新規専用targetへ固定できる。application・image・global探索路と対応export定義、Qt Gui interface、Qt Core・Testだけの直接接続による4工程・8入力を予測する。OS clipboard、URL取得、filesystem、dialog、画像、layer、paint deviceを実行または実体化せず、1,974工程・3,947入力のbroken動的試験へ接続しない。正式な第222便不足報告で再照合する。
+- `g223-clipboard-schema-formal-review`の状態は`auditing`、担当は`g178_paintop_settings_schema`、基点は`ff158c3b90`、正式入力は`build/tdd-macos/public-api-missing-g222.json`である。開始公開headerは`libs/impex/ui/kis_clipboard.h`、対象は残存全32 API、集合SHA-256 `762cdd60fb30b2b7986252f7dc202e004cebb3538bcdc82e34dd6582a524fbdb`、契約候補は新規`libs/impex/tests/KisClipboardSchemaContractTest.cpp`の5枠4・9・8・6・5、新targetは`KisClipboardSchemaContractTest`、軽量近傍は`KisPNGConverterSchemaContractTest`、所有候補CMakeは`libs/impex/tests/CMakeLists.txt`である。主作業treeと既存Ninja graphを読み取り専用で使い、変更、構成、構築、試験、Git操作、追加委任を行わない。全識別子、枠対応、必要include・定義・link、現在とAUTOMOC後の予測工程・入力、製品辺、実体化有無、停止条件を独立確認し、正式第223便不足報告で再照合する条件を返す。
+
+### 第224便の先行監査担当票（第223便確定待ち）
+
+- `g224-cie-tongue-schema-formal-review`の状態は`auditing`、担当は`g208_raster_keyframe_schema`、基点は`ff158c3b90`、正式入力は`build/tdd-macos/public-api-missing-g222.json`である。開始公開headerは`libs/ui/widgets/kis_cie_tongue_widget.h`、対象は残存全22 API、集合SHA-256 `b678ccb9a147df3837d9ff7e3f3550e9de69b3623a48283178ad03f8e36ded82`、契約候補は新規`libs/ui/tests/KisCIETongueWidgetSchemaContractTest.cpp`の5枠10・3・3・3・3、新targetは`KisCIETongueWidgetSchemaContractTest`、軽量近傍は同CMake内の最小で意味上近いschema target、所有候補CMakeは`libs/ui/tests/CMakeLists.txt`である。主作業treeと既存Ninja graphを読み取り専用で使い、変更、構成、構築、試験、Git操作、追加委任を行わない。全識別子、枠対応、必要include・定義・link、現在とAUTOMOC後の予測工程・入力、製品辺、実体化有無、最小近傍、停止条件を独立確認し、正式第224便不足報告で再照合する条件を返す。
 
 ### 第201便の先行監査担当票
 
