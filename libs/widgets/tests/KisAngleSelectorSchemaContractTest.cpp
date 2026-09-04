@@ -4,10 +4,15 @@
  */
 
 #include "KisAngleSelector.h"
+#include "kis_aspect_ratio_locker.h"
 
 #include <QTest>
 
 #include <type_traits>
+#include <utility>
+
+class AngleBoxProbe;
+class SpinBoxProbe;
 
 class KisAngleSelectorSchemaContractTest : public QObject
 {
@@ -19,6 +24,11 @@ private Q_SLOTS:
     void angleSelectorRangePrecisionAndWrappingSchemaRemainsStable();
     void angleSelectorLocalPresentationSchemaRemainsStable();
     void angleSelectorStaticTransformSignaturesRemainStable();
+    void angleSelectorLifetimeAndNotificationSchemaRemainStable();
+    void angleSelectorSpinBoxTypeAndLifetimeSchemaRemainStable();
+    void angleSelectorSpinBoxPresentationSchemaRemainStable();
+    void aspectRatioLockerTypeLifetimeAndConnectionSchemaRemainStable();
+    void aspectRatioLockerUpdateAndNotificationSchemaRemainStable();
 };
 
 void KisAngleSelectorSchemaContractTest::angleSelectorFlipPresentationSchemaRemainsStable()
@@ -112,6 +122,89 @@ void KisAngleSelectorSchemaContractTest::angleSelectorStaticTransformSignaturesR
                                  ClosestCoterminal>);
     static_assert(std::is_same_v<decltype(static_cast<Flip>(&Selector::flipAngle)), Flip>);
     static_assert(std::is_same_v<decltype(static_cast<FlipInRange>(&Selector::flipAngle)), FlipInRange>);
+}
+
+void KisAngleSelectorSchemaContractTest::angleSelectorLifetimeAndNotificationSchemaRemainStable()
+{
+    using Selector = KisAngleSelector;
+    using ClosestCoterminal = qreal (Selector::*)(qreal, bool *) const;
+    using Flip = void (Selector::*)(Qt::Orientations);
+    using Reset = void (Selector::*)();
+    using AngleChanged = void (Selector::*)(qreal);
+
+    static_assert(std::is_default_constructible_v<Selector>);
+    static_assert(std::is_constructible_v<Selector, QWidget *>);
+    static_assert(std::has_virtual_destructor_v<Selector>);
+    static_assert(std::is_same_v<decltype(static_cast<ClosestCoterminal>(&Selector::closestCoterminalAngleInRange)),
+                                 ClosestCoterminal>);
+    static_assert(std::is_same_v<decltype(static_cast<Flip>(&Selector::flip)), Flip>);
+    static_assert(std::is_same_v<decltype(static_cast<Reset>(&Selector::reset)), Reset>);
+    static_assert(std::is_same_v<decltype(static_cast<AngleChanged>(&Selector::angleChanged)), AngleChanged>);
+
+    using ClosestWithDefaultOk =
+        decltype(std::declval<const Selector &>().closestCoterminalAngleInRange(std::declval<qreal>()));
+    static_assert(std::is_same_v<ClosestWithDefaultOk, qreal>);
+}
+
+void KisAngleSelectorSchemaContractTest::angleSelectorSpinBoxTypeAndLifetimeSchemaRemainStable()
+{
+    using SpinBox = KisAngleSelectorSpinBox;
+
+    static_assert(std::is_class_v<SpinBox>);
+    static_assert(std::is_base_of_v<KisDoubleParseSpinBox, SpinBox>);
+    static_assert(std::is_default_constructible_v<SpinBox>);
+    static_assert(std::is_constructible_v<SpinBox, QWidget *>);
+    static_assert(std::has_virtual_destructor_v<SpinBox>);
+}
+
+void KisAngleSelectorSchemaContractTest::angleSelectorSpinBoxPresentationSchemaRemainStable()
+{
+    using SpinBox = KisAngleSelectorSpinBox;
+    using FlatGetter = bool (SpinBox::*)() const;
+    using FlatSetter = void (SpinBox::*)(bool);
+    using RangeSetter = void (SpinBox::*)(double, double);
+    using SizeGetter = QSize (SpinBox::*)() const;
+    using TextParser = double (SpinBox::*)(const QString &) const;
+    using Refresher = void (SpinBox::*)();
+
+    static_assert(std::is_same_v<decltype(static_cast<FlatGetter>(&SpinBox::isFlat)), FlatGetter>);
+    static_assert(std::is_same_v<decltype(static_cast<FlatSetter>(&SpinBox::setFlat)), FlatSetter>);
+    static_assert(std::is_same_v<decltype(static_cast<RangeSetter>(&SpinBox::setRange)), RangeSetter>);
+    static_assert(std::is_same_v<decltype(static_cast<SizeGetter>(&SpinBox::minimumSizeHint)), SizeGetter>);
+    static_assert(std::is_same_v<decltype(static_cast<SizeGetter>(&SpinBox::sizeHint)), SizeGetter>);
+    static_assert(std::is_same_v<decltype(static_cast<TextParser>(&SpinBox::valueFromText)), TextParser>);
+    static_assert(std::is_same_v<decltype(static_cast<Refresher>(&SpinBox::refreshStyle)), Refresher>);
+}
+
+void KisAngleSelectorSchemaContractTest::aspectRatioLockerTypeLifetimeAndConnectionSchemaRemainStable()
+{
+    using Locker = KisAspectRatioLocker;
+    using SpinConnection = void (Locker::*)(SpinBoxProbe *, SpinBoxProbe *, KoAspectButton *);
+    using AngleConnection = void (Locker::*)(AngleBoxProbe *, AngleBoxProbe *, KoAspectButton *);
+
+    static_assert(std::is_class_v<Locker>);
+    static_assert(std::is_base_of_v<QObject, Locker>);
+    static_assert(std::is_default_constructible_v<Locker>);
+    static_assert(std::is_constructible_v<Locker, QObject *>);
+    static_assert(std::has_virtual_destructor_v<Locker>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<SpinConnection>(&Locker::connectSpinBoxes<SpinBoxProbe>)), SpinConnection>);
+    static_assert(std::is_same_v<decltype(static_cast<AngleConnection>(&Locker::connectAngleBoxes<AngleBoxProbe>)),
+                                 AngleConnection>);
+}
+
+void KisAngleSelectorSchemaContractTest::aspectRatioLockerUpdateAndNotificationSchemaRemainStable()
+{
+    using Locker = KisAspectRatioLocker;
+    using BooleanSetter = void (Locker::*)(bool);
+    using Notification = void (Locker::*)();
+
+    static_assert(
+        std::is_same_v<decltype(static_cast<BooleanSetter>(&Locker::setBlockUpdateSignalOnDrag)), BooleanSetter>);
+    static_assert(std::is_same_v<decltype(static_cast<Notification>(&Locker::updateAspect)), Notification>);
+    static_assert(std::is_same_v<decltype(static_cast<Notification>(&Locker::sliderValueChanged)), Notification>);
+    static_assert(std::is_same_v<decltype(static_cast<Notification>(&Locker::aspectButtonChanged)), Notification>);
+    static_assert(std::is_same_v<decltype(static_cast<BooleanSetter>(&Locker::aspectButtonToggled)), BooleanSetter>);
 }
 
 QTEST_APPLESS_MAIN(KisAngleSelectorSchemaContractTest)
