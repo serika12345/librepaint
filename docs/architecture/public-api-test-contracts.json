@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 8939
+    "expectedMissingApis": 8916
   },
   "contracts": [
     {
@@ -58138,6 +58138,74 @@
         "method:KisColorizeMask::sigKeyStrokesListChanged()",
         "method:KisColorizeMask::sigUpdateOnDirtyParent() const",
         "method:KisColorizeMask::testingAddKeyStroke(KisPaintDeviceSP dev,const KoColor & color,bool isTransparent=false)"
+      ]
+    },
+    {
+      "target": "KisLayerFilterWidgetSchemaContractTest",
+      "source": "libs/ui/tests/KisLayerFilterWidgetSchemaContractTest.cpp",
+      "test": "KisLayerFilterWidgetSchemaContractTest::layerFilterWidgetTypeAndConstructionSchemaRemainStable",
+      "behavior": "layer filter widgetは公開型を持ち、任意の親widgetから構築できる公開契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisLayerFilterWidget",
+        "method:KisLayerFilterWidget::KisLayerFilterWidget(QWidget * parent=nullptr)"
+      ]
+    },
+    {
+      "target": "KisLayerFilterWidgetSchemaContractTest",
+      "source": "libs/ui/tests/KisLayerFilterWidgetSchemaContractTest.cpp",
+      "test": "KisLayerFilterWidgetSchemaContractTest::layerFilterWidgetQueryAndGeometrySignaturesRemainStable",
+      "behavior": "layer filter widgetは選択色・文字filter・絞り込み状態・希望寸法を照会し、node階層の使用色labelを走査する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisLayerFilterWidget::getActiveColors() const",
+        "method:KisLayerFilterWidget::getDesiredMinimumHeight() const",
+        "method:KisLayerFilterWidget::getDesiredMinimumWidth() const",
+        "method:KisLayerFilterWidget::getTextFilter() const",
+        "method:KisLayerFilterWidget::hasTextFilter() const",
+        "method:KisLayerFilterWidget::isCurrentlyFiltering() const",
+        "method:KisLayerFilterWidget::scanUsedColorLabels(KisNodeSP node,QSet<int> & colorLabels)",
+        "method:KisLayerFilterWidget::sizeHint() const"
+      ]
+    },
+    {
+      "target": "KisLayerFilterWidgetSchemaContractTest",
+      "source": "libs/ui/tests/KisLayerFilterWidgetSchemaContractTest.cpp",
+      "test": "KisLayerFilterWidgetSchemaContractTest::layerFilterWidgetMutationPresentationAndNotificationSignaturesRemainStable",
+      "behavior": "layer filter widgetは状態をresetし、表示時とnode更新時に色labelを更新してfilter条件変更を通知する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisLayerFilterWidget::filteringOptionsChanged()",
+        "method:KisLayerFilterWidget::reset()",
+        "method:KisLayerFilterWidget::showEvent(QShowEvent * show)",
+        "method:KisLayerFilterWidget::updateColorLabels(KisNodeSP root)"
+      ]
+    },
+    {
+      "target": "KisLayerFilterWidgetSchemaContractTest",
+      "source": "libs/ui/tests/KisLayerFilterWidgetSchemaContractTest.cpp",
+      "test": "KisLayerFilterWidgetSchemaContractTest::layerFilterWidgetToolButtonTypeLifetimeAndControlSchemaRemainStable",
+      "behavior": "layer filter tool buttonは公開型・copy構築・寿命を持ち、選択色と文字filter表示を設定する公開契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisLayerFilterWidgetToolButton",
+        "method:KisLayerFilterWidgetToolButton::KisLayerFilterWidgetToolButton(QWidget * parent=nullptr)",
+        "method:KisLayerFilterWidgetToolButton::KisLayerFilterWidgetToolButton(const KisLayerFilterWidgetToolButton & rhs)",
+        "method:KisLayerFilterWidgetToolButton::setSelectedColors(QList<int> colors)",
+        "method:KisLayerFilterWidgetToolButton::setTextFilter(bool isTextFiltering)",
+        "method:KisLayerFilterWidgetToolButton::~KisLayerFilterWidgetToolButton()"
+      ]
+    },
+    {
+      "target": "KisLayerFilterWidgetSchemaContractTest",
+      "source": "libs/ui/tests/KisLayerFilterWidgetSchemaContractTest.cpp",
+      "test": "KisLayerFilterWidgetSchemaContractTest::mouseClickIgnoreTypeConstructionAndEventFilterSchemaRemainStable",
+      "behavior": "popup内のclick抑止器は公開型を持ち、任意の親objectから構築されてeventを選別する公開契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:MouseClickIgnore",
+        "method:MouseClickIgnore::MouseClickIgnore(QObject * parent=nullptr)",
+        "method:MouseClickIgnore::eventFilter(QObject * obj,QEvent * event)"
       ]
     }
   ]
