@@ -35,10 +35,12 @@
 
 ### 第203便の先行監査担当票（第202便確定待ち）
 
-- 監査共通基点は`90e0de3ed4`、暫定入力は`build/tdd-macos/public-api-missing-g201.json`である。第201便と第202便で契約済みまたは選定済みの責務を除外し、変更、構成、構築、試験、Git操作、追加委任を行わない読み取り専用監査を先行する。正式な第202便完了報告で再照合・再計測する。
-- `g203-image-contract-audit`の状態は`auditing`で、image・paintop・pigment領域からPSD layer style資源を除く一責務20〜80 API・最大5枠の次候補を比較し、完全なAPI識別子、観測契約、開始pathから契約先、許可path、既存対象と近傍、予測閉包、停止条件、棄却根拠を返す。
-- `g203-flake-contract-audit`の状態は`auditing`で、flake・SVG・vector領域からpath toolの選択保持を除く一責務20〜80 API・最大5枠の次候補を比較し、完全なAPI識別子、観測契約、開始pathから契約先、許可path、既存対象と近傍、予測閉包、停止条件、棄却根拠を返す。
-- `g203-ui-contract-audit`の状態は`auditing`で、widgetutils・widgets・libkis領域から視覚色選択器を除く一責務20〜80 API・最大5枠の次候補を比較し、完全なAPI識別子、観測契約、開始pathから契約先、許可path、既存対象と近傍、予測閉包、停止条件、棄却根拠を返す。
+- 監査共通基点は`d7cc7ca24a`、暫定入力は`build/tdd-macos/public-api-missing-g202.json`である。第201便と第202便で契約済みまたは選定済みの責務を除外し、変更、構成、構築、試験、Git操作、追加委任を行わない読み取り専用監査を先行した。正式な第202便完了報告で再照合・再計測する。
+- `g203-image-contract-audit`の状態は`completed`で、image・paintop・pigment領域からundo-command型stroke strategy 20 APIを選定した。
+- `g203-flake-contract-audit`の状態は`completed`で、flake・SVG・vector領域から図形group本体とgroup・ungroup command 22 APIを選定した。
+- `g203-ui-contract-audit`の状態は`completed`で、widgetutils・widgets・libkis領域からnative・scripting palette view 29 APIを選定した。
+- `g203-build-closure-review`の状態は`auditing`で、undo-command型stroke strategyとnative・scripting palette viewについて、完全型要件、inline本文、対象固有探索路・export定義、動的接続、AUTOMOC、既存契約への追記と専用targetの判断を独立に読み取り確認する。変更・構成・構築・試験を行わず、採用条件と撤回条件を返す。
+- `g203-flake-closure-review`の状態は`auditing`で、図形group本体とgroup・ungroup commandについて、一責務としての結合、完全型要件、既存図形構造command契約への追記、動的接続、AUTOMOCを独立に読み取り確認する。変更・構成・構築・試験を行わず、採用条件と撤回条件を返す。
 
 ### 第201便の先行監査担当票
 
