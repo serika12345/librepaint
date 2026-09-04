@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 10233
+    "expectedMissingApis": 10210
   },
   "contracts": [
     {
@@ -54864,6 +54864,74 @@
         "method:KisPSDLayerStyle::hasLocalResourcesSnapshot() const",
         "method:KisPSDLayerStyle::linkedResources(KisResourcesInterfaceSP globalResourcesInterface) const",
         "method:KisPSDLayerStyle::sideLoadedResources(KisResourcesInterfaceSP globalResourcesInterface) const"
+      ]
+    },
+    {
+      "target": "KoSelectionSchemaContractTest",
+      "source": "libs/flake/tests/KoSelectionSchemaContractTest.cpp",
+      "test": "KoSelectionSchemaContractTest::pathToolSelectionTypeAndLifetimeSchemaRemainStable",
+      "behavior": "path toolの選択保持器はtool選択とpath点変更listenerの派生型として、借用toolから構築でき仮想破棄される公開型と寿命を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoPathToolSelection",
+        "method:KoPathToolSelection::KoPathToolSelection(KoPathTool * tool)",
+        "method:KoPathToolSelection::~KoPathToolSelection()"
+      ]
+    },
+    {
+      "target": "KoSelectionSchemaContractTest",
+      "source": "libs/flake/tests/KoSelectionSchemaContractTest.cpp",
+      "test": "KoSelectionSchemaContractTest::pathToolSelectionMutationSignaturesRemainStable",
+      "behavior": "path toolの選択保持器は点の追加・除外・全消去、矩形・全体選択と状態更新に関する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoPathToolSelection::add(KoPathPoint * point,bool clear)",
+        "method:KoPathToolSelection::clear()",
+        "method:KoPathToolSelection::remove(KoPathPoint * point)",
+        "method:KoPathToolSelection::selectAll()",
+        "method:KoPathToolSelection::selectPoints(const QRectF & rect,bool clearSelection)",
+        "method:KoPathToolSelection::update()"
+      ]
+    },
+    {
+      "target": "KoSelectionSchemaContractTest",
+      "source": "libs/flake/tests/KoSelectionSchemaContractTest.cpp",
+      "test": "KoSelectionSchemaContractTest::pathToolSelectionQuerySignaturesRemainStable",
+      "behavior": "path toolの選択保持器は選択有無・所属、対象数・点数、選択点と選択区間の値を照会する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoPathToolSelection::contains(KoPathPoint * point)",
+        "method:KoPathToolSelection::hasSelection()",
+        "method:KoPathToolSelection::objectCount() const",
+        "method:KoPathToolSelection::selectedPoints() const",
+        "method:KoPathToolSelection::selectedPointsData() const",
+        "method:KoPathToolSelection::selectedSegmentsData() const",
+        "method:KoPathToolSelection::size() const"
+      ]
+    },
+    {
+      "target": "KoSelectionSchemaContractTest",
+      "source": "libs/flake/tests/KoSelectionSchemaContractTest.cpp",
+      "test": "KoSelectionSchemaContractTest::pathToolSelectionShapeSynchronizationSignaturesRemainStable",
+      "behavior": "path toolの選択保持器は選択図形の取得・設定、推奨点選択、path点と図形の変更通知に追従する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoPathToolSelection::notifyPathPointsChanged(KoPathShape * shape)",
+        "method:KoPathToolSelection::notifyShapeChanged(KoShape::ChangeType type,KoShape * shape)",
+        "method:KoPathToolSelection::recommendPointSelectionChange(KoPathShape * shape,const QList<KoPathPointIndex> & newSelection)",
+        "method:KoPathToolSelection::selectedShapes() const",
+        "method:KoPathToolSelection::setSelectedShapes(const QList<KoPathShape * > shapes)"
+      ]
+    },
+    {
+      "target": "KoSelectionSchemaContractTest",
+      "source": "libs/flake/tests/KoSelectionSchemaContractTest.cpp",
+      "test": "KoSelectionSchemaContractTest::pathToolSelectionPaintingAndNotificationSignaturesRemainStable",
+      "behavior": "path toolの選択保持器は選択handle描画と選択変更通知に関する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoPathToolSelection::paint(QPainter & painter,const KoViewConverter & converter,qreal handleRadius,KoColorDisplayRendererInterface * renderInterface)",
+        "method:KoPathToolSelection::selectionChanged()"
       ]
     }
   ]
