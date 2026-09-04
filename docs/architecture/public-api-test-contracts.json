@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 9972
+    "expectedMissingApis": 9951
   },
   "contracts": [
     {
@@ -55575,6 +55575,72 @@
         "method:KoToolManager::themeChanged()",
         "method:KoToolManager::toolCodesSelected(const QList<QString> & types)",
         "method:KoToolManager::toolOptionWidgetsChanged(KoCanvasController * controller,const QList<QPointer<QWidget>> & widgets)"
+      ]
+    },
+    {
+      "target": "KoResourceSelectionSchemaContractTest",
+      "source": "libs/widgets/tests/KoResourceSelectionSchemaContractTest.cpp",
+      "test": "KoResourceSelectionSchemaContractTest::resourceServerProviderTypeAndLifetimeSchemaRemainStable",
+      "behavior": "資源server提供者はQObject派生singletonとして既定構築・仮想破棄できる公開契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoResourceServerProvider",
+        "method:KoResourceServerProvider::KoResourceServerProvider()",
+        "method:KoResourceServerProvider::instance()",
+        "method:KoResourceServerProvider::~KoResourceServerProvider()"
+      ]
+    },
+    {
+      "target": "KoResourceSelectionSchemaContractTest",
+      "source": "libs/widgets/tests/KoResourceSelectionSchemaContractTest.cpp",
+      "test": "KoResourceSelectionSchemaContractTest::resourceServerProviderAccessSignaturesRemainStable",
+      "behavior": "資源server提供者はgamut mask、gradient、palette、pattern、式、style preset、SVG記号集合の各serverを照会する公開静的署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoResourceServerProvider::gamutMaskServer()",
+        "method:KoResourceServerProvider::gradientServer()",
+        "method:KoResourceServerProvider::paletteServer()",
+        "method:KoResourceServerProvider::patternServer()",
+        "method:KoResourceServerProvider::seExprScriptServer()",
+        "method:KoResourceServerProvider::stylePresetServer()",
+        "method:KoResourceServerProvider::svgSymbolCollectionServer()"
+      ]
+    },
+    {
+      "target": "KoResourceSelectionSchemaContractTest",
+      "source": "libs/widgets/tests/KoResourceSelectionSchemaContractTest.cpp",
+      "test": "KoResourceSelectionSchemaContractTest::resourcePopupActionTypeLifetimeAndControlSchemaRemainStable",
+      "behavior": "資源popup actionはQAction派生として資源種別とcanvas資源interfaceから構築・仮想破棄され、interface更新とicon更新の公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoResourcePopupAction",
+        "method:KoResourcePopupAction::KoResourcePopupAction(const QString & resourceType,KoCanvasResourcesInterfaceSP canvasResourcesInterface,QObject * parent=0)",
+        "method:KoResourcePopupAction::setCanvasResourcesInterface(KoCanvasResourcesInterfaceSP canvasResourcesInterface)",
+        "method:KoResourcePopupAction::updateIcon()",
+        "method:KoResourcePopupAction::~KoResourcePopupAction()"
+      ]
+    },
+    {
+      "target": "KoResourceSelectionSchemaContractTest",
+      "source": "libs/widgets/tests/KoResourceSelectionSchemaContractTest.cpp",
+      "test": "KoResourceSelectionSchemaContractTest::resourcePopupActionBackgroundSignaturesRemainStable",
+      "behavior": "資源popup actionは現在の図形背景の照会・設定と選択通知に関する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoResourcePopupAction::currentBackground() const",
+        "method:KoResourcePopupAction::resourceSelected(QSharedPointer<KoShapeBackground> background)",
+        "method:KoResourcePopupAction::setCurrentBackground(QSharedPointer<KoShapeBackground> background)"
+      ]
+    },
+    {
+      "target": "KoResourceSelectionSchemaContractTest",
+      "source": "libs/widgets/tests/KoResourceSelectionSchemaContractTest.cpp",
+      "test": "KoResourceSelectionSchemaContractTest::resourcePopupActionResourceSignaturesRemainStable",
+      "behavior": "資源popup actionは現在の資源を照会・設定する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoResourcePopupAction::currentResource() const",
+        "method:KoResourcePopupAction::setCurrentResource(KoResourceSP resource)"
       ]
     }
   ]

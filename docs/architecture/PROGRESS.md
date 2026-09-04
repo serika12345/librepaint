@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-04 17:40 JST
+- 更新日時: 2026-09-04 17:49 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -121,7 +121,13 @@
 - 実装共通基点は`9bba3be3ac`である。一度に一つだけ作る専用worktree-local `build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を共有し、`./scripts/run-shared-test-env`で読み込み済み環境を使う。各担当のGit権限は許可pathだけの受渡しcommit、追加委任は禁止する。画像変更transaction、tool activation管理、資源選択の順に限定検証・統合・削除し、調整担当だけが文書、公開API台帳、共通不足報告を変更する。製品target、全体build・`verify`、Linux、Nix再評価は禁止する。
 - `g205-transaction-schema`の状態は`integrated`、macOSの対象・近傍に限る構築実行許可は`granted`である。正式不足報告の`libs/image/kis_transaction.h`残存全20 APIを、既存`libs/image/tests/KisStrokeStrategyUndoCommandBasedSchemaContractTest.cpp`の5枠`transactionTypeFlagsAndLifetimeSchemaRemainStable`、`transactionConstructionAndMoveSchemaRemainStable`、`transactionCompletionAndInspectionSignaturesRemainStable`、`transactionCommitAndRevertSignaturesRemainStable`、`selectionTransactionTypeAndConstructionSchemaRemainStable`へ6・4・4・3・3件で対応付けた。最初のexact buildは`kis_paint_device.h`から`KoColorConversionTransformation.h`を解決できず、pigment探索路補正後は未使用の`kis_image_config.h`から`kconfiggroup.h`を解決できず停止した。先行commit`cdacfc46e2`で`libs/image/kis_transaction.h`から設定依存だけを除去し、inline実装に必要なpaint deviceとpixel selectionの完全型は保持した。受渡しcommit`3713566b40`を統合commit`f98aceabd7`として取り込み、対象固有節にはpigment source/generated探索路と`kritapigment_EXPORTS`だけを追加した。担当側で追加5枠を各20回、全対象12件と近傍を実行し、中央でも対象と近傍、AUTOMOC後の二回目計画と無作業再構築に成功した。4工程・8入力、Qt Core・Testだけの動的接続、AUTOMOC `HEADERS=[]`、製品非接続を維持し、台帳は19,817件対応、10,021件未対応となった。専用作業tree、292,928 KiBの構築木、branchを統合直後に削除し、882,336 KiBを回収した。
 - `g205-tool-manager-schema`の状態は`integrated`、macOSの対象・近傍に限る構築実行許可は`granted`である。正式不足報告の`libs/flake/KoToolManager.h`残存全49 APIを、新規`libs/flake/tests/KoToolManagerSchemaContractTest.cpp`の5枠`toolActionTypeLifetimeAndActivationSchemaRemainStable`、`toolActionMetadataSignaturesRemainStable`、`toolManagerTypeLifetimeAndControllerSignaturesRemainStable`、`toolManagerActivationAndResourceSignaturesRemainStable`、`toolManagerSwitchingAndNotificationSignaturesRemainStable`へ5・10・11・10・13件で対応付けた。旧binary不存在後、宣言だけの5枠が未定義symbolとなる初回redを記録した。受渡しcommit`808e200f77`を統合commit`93c819db71`として取り込み、担当側で追加5枠を各20回、対象と近傍を実行し、中央でも対象と近傍、AUTOMOC後の二回目計画と無作業再構築に成功した。flake source/generated、Qt Gui interface、`kritaflake_EXPORTS`だけによる4工程・8入力、Qt Core・Testだけの動的接続、AUTOMOC `HEADERS=[]`、製品非接続を維持し、台帳は19,866件対応、9,972件未対応となった。cleanな専用作業tree、292,180 KiBの構築木、branchを統合直後に削除し、881,608 KiBを回収した。
-- `g205-resource-selection-schema`の状態は`implementing`、macOSの対象・近傍に限る構築実行許可は`granted`で、基点`c6a9830f48`の作業tree`/Users/masato/Documents/librepaint-g205-resource-selection-schema`を所有する。正式不足報告の`libs/widgets/KoResourceServerProvider.h`と`KoResourcePopupAction.h`残存全21 APIを、新規`libs/widgets/tests/KoResourceSelectionSchemaContractTest.cpp`の5枠`resourceServerProviderTypeAndLifetimeSchemaRemainStable`、`resourceServerProviderAccessSignaturesRemainStable`、`resourcePopupActionTypeLifetimeAndControlSchemaRemainStable`、`resourcePopupActionBackgroundSignaturesRemainStable`、`resourcePopupActionResourceSignaturesRemainStable`へ4・7・5・3・2件で対応付ける。許可pathは新規試験sourceと`libs/widgets/tests/CMakeLists.txt`の新target固有節だけで、先行監査結果のsource/generated・interface探索路とexport定義だけを追加でき、直接linkはQt Core・Gui・Testに限定する。対象`KoResourceSelectionSchemaContractTest`、正式CTest`libs-widgets-KoResourceSelectionSchemaContractTest`、近傍`KisColorSelectionControlSchemaContractTest`である。4工程・8入力を予測し、5工程・11入力超過、指定外探索路・link・定義、Qt Widgets・KF・製品libraryの動的接続、AUTOMOC入力化、製品接続、実体化・本文実行が必要なら停止する。
+- `g205-resource-selection-schema`の状態は`integrated`、macOSの対象・近傍に限る構築実行許可は`granted`である。正式不足報告の`libs/widgets/KoResourceServerProvider.h`と`KoResourcePopupAction.h`残存全21 APIを、新規`libs/widgets/tests/KoResourceSelectionSchemaContractTest.cpp`の5枠`resourceServerProviderTypeAndLifetimeSchemaRemainStable`、`resourceServerProviderAccessSignaturesRemainStable`、`resourcePopupActionTypeLifetimeAndControlSchemaRemainStable`、`resourcePopupActionBackgroundSignaturesRemainStable`、`resourcePopupActionResourceSignaturesRemainStable`へ4・7・5・3・2件で対応付けた。旧binary不存在後、宣言だけの5枠が未定義symbolとなる初回redを記録した。受渡しcommit`347dd8f385`を統合commit`86cdf07ad5`として取り込み、`seExprScriptServer`は既存`HAVE_SEEXPR=1`条件内で観測した。担当側で追加5枠を各20回、対象と近傍を実行し、中央でも対象と近傍、AUTOMOC後の二回目計画と無作業再構築に成功した。計画済み探索路とexport定義だけによる4工程・8入力、Qt Core・Gui・Testだけの動的接続、AUTOMOC `HEADERS=[]`、製品非接続を維持し、台帳は19,887件対応、9,951件未対応となった。cleanな専用作業tree、約290 MiBの構築木、branchを統合直後に削除し、885,396 KiBを回収した。
+
+### 第205便の統合結果
+
+- `libs/image/kis_transaction.h`から既存`libs/image/tests/KisStrokeStrategyUndoCommandBasedSchemaContractTest.cpp`へ20 API・5枠、`libs/flake/KoToolManager.h`から新規`libs/flake/tests/KoToolManagerSchemaContractTest.cpp`へ49 API・5枠、`libs/widgets/KoResourceServerProvider.h`と`KoResourcePopupAction.h`から新規`libs/widgets/tests/KoResourceSelectionSchemaContractTest.cpp`へ21 API・5枠を追加した。transaction契約より先に、開始headerから未使用の`kis_image_config.h`を除去し、KF ConfigCoreの推移依存を公開面から削った。
+- 第205便全体で90 APIを15枠へ重複なく対応付け、19,887件対応、9,951件未対応となった。担当側と中央で対象・軽量近傍CTest、各追加枠の20回反復、AUTOMOC後の二回目計画、無作業再構築、動的接続・未解決記号・書式、公開API検査、`verify-quick`に成功した。3対象とも4工程・8入力と製品非接続を維持し、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 新しい`build/tdd-macos/public-api-missing-g206.json`は公開header 1,549、公開API 29,838、対応済み19,887、未対応9,951、2,630,563 bytes、SHA-256 `07ec76b7127cf2f426d630175b99cd78e3a0de1cfb0351ba2f925fcea8d66e08`を記録する。旧`public-api-missing-g205.json`と3担当の作業tree・構築木・branchを削除し、合計2,649,340 KiBを回収した。主Ninja木5,692,088 KiBと共有compiler cache 983,476 KiBは次便へ保持する。
 
 ### 第206便の先行監査担当票（第205便確定待ち）
 
@@ -135,8 +141,8 @@
 ### 第207便の先行監査担当票（第206便確定待ち）
 
 - 監査共通基点は`ca538f1559`、暫定入力は`build/tdd-macos/public-api-missing-g205.json`である。第205便までの選定責務と、第206便で選定済みの更新・stroke実行調停、tool interaction strategy、スクリプト向け画像nodeを除外し、変更、構成、構築、試験、Git操作、追加委任を行わない読み取り専用監査を先行する。正式な第206便完了報告で再照合・再計測する。
-- `g207-flake-contract-audit`の状態は`auditing`で、flake・SVG・vector領域からtool activation管理とtool interaction strategyを除く一責務20〜80 API・最大5枠の次候補を比較し、完全なAPI識別子、観測契約、開始pathから契約先、許可path、既存対象と近傍、予測閉包、停止条件、棄却根拠を返す。
-- `g207-ui-contract-audit`の状態は`auditing`で、widgetutils・widgets・libkis領域から資源選択と`Node.h`を除く一責務20〜80 API・最大5枠の次候補を比較し、完全なAPI識別子、観測契約、開始pathから契約先、許可path、既存対象と近傍、予測閉包、停止条件、棄却根拠を返す。
+- `g207-flake-contract-audit`の状態は`completed`で、flake・SVG・vector領域から図形種別の登録・factory生成・undo可能な挿入21 APIを選定した。
+- `g207-ui-contract-audit`の状態は`completed`で、widgetutils・widgets・libkis領域からスクリプト資源値とbrush preset選択接続面26 APIを選定した。契約実装より先に`libs/libkis/Preset.h`の未使用`kis_paintop_preset.h`を`Preset.cpp`へ移す依存整理が必要である。
 
 ### 第201便の先行監査担当票
 
