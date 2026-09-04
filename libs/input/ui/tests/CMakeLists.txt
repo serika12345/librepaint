@@ -70,3 +70,19 @@ kis_add_test(
 target_compile_definitions(KisExtendedModifiersMapperContractTest
     PRIVATE kritainputui_EXPORTS
 )
+
+kis_add_test(
+    KisInputProfileManagerSchemaContractTest.cpp
+    TEST_NAME KisInputProfileManagerSchemaContractTest
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(KisInputProfileManagerSchemaContractTest
+    PRIVATE kritainputui_EXPORTS
+)
+target_include_directories(KisInputProfileManagerSchemaContractTest
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/..
+        ${CMAKE_CURRENT_BINARY_DIR}/..
+)
