@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-04 09:18 JST
+- 更新日時: 2026-09-04 09:30 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -16,6 +16,16 @@
 - `g196-flake-contract-audit`はflake・SVG・vector領域を所有し、第195便までに固定したshape manager・controller、tool代理、shape幾何・階層・文書状態、clip、背景群、path点・区間種別command、path点topology command、font family資源、CSS様式資源を除外して、一責務の未対応集合を比較する。
 - `g196-ui-contract-audit`はwidgetutils・widgets・libkis領域を所有し、第195便までに固定したHSX色入力、内部色選択dialog、視覚色選択群、palette delegate、filter設定・適用、palette選択・色集合表示、色選択button・popup action、action分類・toolbar編集入口、zoom action・Widget、scratchpadを除外して、一責務の未対応集合を比較する。
 - 各担当は完全なAPI識別子、最大5枠の観測契約、定義閉包、最寄りCTest、所有CMake、直接依存、実際のcompile探索路、予測工程・入力と停止線、開始pathから契約先、実装時許可path、固有停止条件、比較候補の棄却根拠を返す。調整担当は3領域のpath、CMake、試験source、生成物が重ならず、合計60〜180 APIとなる組合せだけを次の実装担当票へ進める。
+
+### 第196便の先行監査結果
+
+- image領域は`libs/image/kis_image_config.h`の残存全37 APIを一般画像設定の型・寿命、診断・mask、表示・brush、校正・設定転送、汎用entry・alpha設定として採用し、新規`libs/image/tests/KisImageConfigGeneralSchemaContractTest.cpp`の5枠へ分離する。同headerのAnimation・ResourceBudget契約と同じQt Core・Gui・Test、header-only Boost、KF ConfigCore・I18n・Imathのinterface探索路、既存image・pigment・global探索路と定義だけで4工程・8入力を予測し、停止線を5工程・11入力とする。設定object、backend、校正値、property、色、Qt値を実体化せず、構築・破棄、設定読書き・reset、校正・export/import変換本文を実行しない。
+  EncloseAndFill painter、transaction、filter設定、gradient painter、transform mask、PSD layer様式、paintop factoryは、描画装置・undo・資源・非同期状態・plugin生成を横断するかinline本文の誤参照危険が高いため棄却した。
+- flake領域は`libs/flake/resources/KoSvgSymbolCollectionResource.h`の残存全30 APIをSVGシンボル値の型・所有と集合資源の型・寿命、永続化、metadata、内容として採用し、新規`libs/flake/tests/KoSvgSymbolCollectionResourceSchemaContractTest.cpp`の5枠へ分離する。近傍CSS様式資源と同じQt Gui・Test・Xml、header-only Boost、KF I18nのinterface探索路、flake・global・resources探索路と定義だけで4工程・8入力を予測し、停止線を5工程・11入力とする。シンボル値、集合資源、図形、画像・描画値、I/O、資源interface、容器を実体化せず、inline copy・破棄・比較を含む本文、図形複製・削除、icon生成、読込・保存をODR-useしない。
+  gamut mask、SVG parser、tool manager、path tool、SVG text shape、font registry・storageは、描画・入力・大域cache・外部font状態を横断するかAPI上限を超えるため棄却した。
+- libkis領域は`libs/libkis/Window.h`の残存全17 APIと`Notifier.h`の残存全14 APIを、ウィンドウ操作とアプリケーション状態通知の公開接続面として採用し、既存`libs/libkis/tests/ViewSchemaContractTest.cpp`の5枠へ追加する。既存sourceは195行・15枠で、追加後も約275行・20枠と分離基準内に収まる。CMakeを変えず、Qt Core・Testの直接link、Qt Gui・Widgetsのinterface探索路、`kritalibkis_EXPORTS`だけによる4工程・8入力を維持し、停止線を5工程・11入力とする。Window、Notifier、main window、dock、action、Document、View、Qt値を実体化せず、ウィンドウ・view・action操作、終了処理、通知配送、metaobject本文を実行しない。
+  tag選択はresources UI境界と不要includeの独立整理を必要とし、単位入力群は異なる所有・管理方式、Krita・Document・Node façadeは大域状態・文書寿命・I/Oを横断し、視覚色選択は直近責務と重複するため棄却した。
+- 中央の`public-api-missing-g196.json`で一般画像設定37件、SVGシンボル集合資源30件、ウィンドウ・通知31件の全識別子を照合した。3責務の開始header、試験source、所有CMake、生成物は相互に異なり、合計98 APIを15枠へ進める。許可path外変更、新規の動的link・探索root・compile定義、候補headerのAUTOMOC入力化、製品shared・OBJECT・`kritatestsdk`接続、指定外実体化・本文実行、各停止線超過、製品計画集合の変化が不要な場合だけ実装へ進める。
 
 ### 第195便の先行監査担当票
 
