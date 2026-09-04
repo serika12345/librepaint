@@ -63,6 +63,12 @@
 - `g203-shape-group-schema`の状態は`planned`、構築実行許可は`withheld`である。正式不足報告の`libs/flake/KoShapeGroup.h`の10 API、`commands/KoShapeGroupCommand.h`の7 API、`commands/KoShapeUngroupCommand.h`の5 APIを、既存`libs/flake/tests/KoShapeReorderCommandSchemaContractTest.cpp`の5枠`shapeGroupTypeLifetimeAndCloneSchemaRemainStable`、`shapeGroupGeometryAndRenderingSignaturesRemainStable`、`shapeGroupCommandTypeLifetimeAndConstructionSchemaRemainStable`、`shapeGroupCommandCreationAndExecutionSignaturesRemainStable`、`shapeUngroupCommandSchemaRemainStable`へ4・6・4・3・5件で対応付ける。許可pathは既存試験sourceだけ、CMake変更なし、対象`KoShapeReorderCommandSchemaContractTest`、正式CTest`libs-flake-KoShapeReorderCommandSchemaContractTest`、近傍`KoPathPointTopologyCommandSchemaContractTest`である。4工程・8入力を維持し、5工程・11入力超過、新規探索路・link・定義、AUTOMOC入力化、製品接続、実体化・本文実行が必要なら停止する。
 - `g203-palette-view-schema`の状態は`planned`、構築実行許可は`withheld`である。正式不足報告の`libs/widgets/kis_palette_view.h`の19 APIと`libs/libkis/PaletteView.h`の10 APIを、既存`libs/libkis/tests/PaletteSchemaContractTest.cpp`の5枠`paletteViewTypeLifetimeAndModelSchemaRemainStable`、`paletteViewSelectionAndModificationSignaturesRemainStable`、`paletteViewRenderingAndNotificationSignaturesRemainStable`、`scriptPaletteViewTypeLifetimeAndPaletteSchemaRemainStable`、`scriptPaletteViewEditingAndNotificationSignaturesRemainStable`へ5・9・5・4・6件で対応付ける。許可pathは既存試験sourceと`libs/libkis/tests/CMakeLists.txt`の対象固有節だけで、widgets・widgetutilsのsource/generated探索路、Qt Widgets interface、`kritawidgets_EXPORTS`と`kritawidgetutils_EXPORTS`だけを追加できる。対象`PaletteSchemaContractTest`、正式CTest`libs-libkis-PaletteSchemaContractTest`、近傍`KisPaletteModelSchemaContractTest`である。4工程・8入力を維持し、5工程・11入力超過、指定外探索路・link・定義、AUTOMOC入力化、Qt Widgetsまたは製品libraryの動的接続、実体化・本文実行が必要なら停止する。
 
+### 第204便の先行監査担当票（第203便確定待ち）
+
+- 監査共通基点は`0e65012a1b`、暫定入力は`build/tdd-macos/public-api-missing-g203.json`である。第203便までに契約済みまたは選定済みの責務を除外し、変更、構成、構築、試験、Git操作、追加委任を行わない読み取り専用監査を先行する。正式な第203便完了報告で再照合・再計測する。
+- `g204-flake-contract-audit`の状態は`auditing`で、flake・SVG・vector領域から図形groupを除く一責務20〜80 API・最大5枠の次候補を比較し、完全なAPI識別子、観測契約、開始pathから契約先、許可path、既存対象と近傍、予測閉包、停止条件、棄却根拠を返す。
+- `g204-ui-contract-audit`の状態は`auditing`で、widgetutils・widgets・libkis領域からpalette viewを除く一責務20〜80 API・最大5枠の次候補を比較し、完全なAPI識別子、観測契約、開始pathから契約先、許可path、既存対象と近傍、予測閉包、停止条件、棄却根拠を返す。
+
 ### 第201便の先行監査担当票
 
 - 監査共通基点は`3731078a31`、暫定入力は`build/tdd-macos/public-api-missing-g200.json`である。第200便で選定済みのfilter設定21件、SVG文字図形補助29件、低水準色選択・画面採取21件を除外し、変更、構成、構築、試験、Git操作、追加委任を行わない読み取り専用監査を先行する。各担当は一つの公開責務から20〜80 APIを最大5枠へ固定でき、既存限定対象またはheader限定の4〜10工程程度を見込める候補を比較する。第200便完了後の正式不足報告で全識別子を再照合し、閉包計画を再計測してから実装担当票へ進める。
