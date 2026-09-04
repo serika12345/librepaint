@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 00:24 JST
+- 更新日時: 2026-09-05 00:28 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -323,7 +323,7 @@
 - `g212-standard-option-closure-review`の状態は`completed`で、標準曲線option 32 APIが一責務の5枠へ対応し、template本文とwidgetを実体化せず、既存targetへCMake変更なしで追加できることを独立確認した。
 - `g212-raster-surface-closure-review`の状態は`completed`で、libkisのraster面・色channel 23 APIが一責務の5枠へ対応し、`Document::projection`の4既定引数を未評価呼出しで観測できることを独立確認した。Node系compile interfaceにflake・ui/canvasのsource/generated探索路、application生成探索路、`kritaflake_EXPORTS`、`kritaui_EXPORTS`を加える補正が必要である。
 - `g212-transform-mask-adapter-closure-review`の状態は`completed`である。正式不足報告の変形mask adapter 24 API、一意性、既存契約との非重複、5枠4・5・6・6・3を独立確認した。既存変形幾何契約へのCMake無変更追記で4工程・9入力、AUTOMOC `HEADERS=[]`、製品非接続を維持できる。1,994工程・3,987入力の製品`kritatooltransform_static`を構築しない。
-- `g212-raster-surface-closure-review`の状態は`reviewing`、担当は`/root/g208_raster_keyframe_schema`、基点は`f1901d174d`である。正式不足報告の`libs/libkis/Channel.h`残存全13 APIと`Document.h`の色空間・背景7 API、画素・投影・縮小画像3 APIについて、一意性、既存契約との非重複、5枠5・6・2・7・3、新規`libs/libkis/tests/RasterSurfaceSchemaContractTest.cpp`の最小compile interfaceを読み取り専用で独立確認する。変更、構成、構築、試験、Git操作、追加委任を行わず、既存Ninja graphのquery・commands・inputsだけを利用する。
+- `g212-raster-surface-closure-review`の状態は`completed`である。正式不足報告の`libs/libkis/Channel.h`残存全13 APIと`Document.h`の色空間・背景7 API、画素・投影・縮小画像3 APIが一意で、現台帳と他の第212便候補に重複せず、スクリプト向けraster面の一責務として5枠5・6・2・7・3へ対応することを独立確認した。新規`libs/libkis/tests/RasterSurfaceSchemaContractTest.cpp`と新target固有CMake節だけで、既存`DocumentGeometrySchemaContractTest`のcompile interfaceを再利用し、Qt Core・Testとheader-only Boostだけを直接接続する4工程・8入力、AUTOMOC `HEADERS=[]`、製品非接続を予測する。軽量近傍は`DocumentGeometrySchemaContractTest`とし、2,022工程・4,041入力の重量試験・製品targetを構築しない。
 - 各担当は候補headerをtarget sourceやAUTOMOC入力にせず、型特性、厳密な関数pointer、未評価式で実体化と本文実行を避ける計画を優先する。製品targetのplan/buildは禁止し、既存Ninja graphのquery・commands・inputsは読み取り専用で利用できる。
 
 ### 第212便の先行監査結果
