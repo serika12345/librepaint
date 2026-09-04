@@ -3,9 +3,11 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include <KoFlake.h>
 #include <KoGradientBackground.h>
 #include <KoMeshGradientBackground.h>
 #include <KoPatternBackground.h>
+#include <KoShapeFillWrapper.h>
 
 #include <QTest>
 
@@ -19,6 +21,10 @@ namespace
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KoMeshGradientBackground::method)), signature>)
 #define ASSERT_PATTERN_BACKGROUND_SIGNATURE(method, signature)                                                         \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KoPatternBackground::method)), signature>)
+#define ASSERT_SHAPE_FILL_WRAPPER_SIGNATURE(method, signature)                                                         \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KoShapeFillWrapper::method)), signature>)
+#define ASSERT_FLAKE_FUNCTION_SIGNATURE(function, signature)                                                           \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KoFlake::function)), signature>)
 } // namespace
 
 class KoPatternBackgroundSchemaContractTest : public QObject
@@ -36,6 +42,11 @@ private Q_SLOTS:
     void patternImageAndDisplayGeometrySignaturesRemainStable();
     void patternReferencePlacementSignaturesRemainStable();
     void patternTileAndTransformSignaturesRemainStable();
+    void shapeFillWrapperTypeAndConstructionSchemaRemainStable();
+    void shapeFillWrapperClassificationAndColorSignaturesRemainStable();
+    void shapeFillWrapperGradientSignaturesRemainStable();
+    void shapeFillWrapperMeshGradientSignaturesRemainStable();
+    void gradientUtilityAndPatternRenderingSignaturesRemainStable();
 };
 
 void KoPatternBackgroundSchemaContractTest::gradientBackgroundTypeAndLifetimeSchemaRemainStable()
@@ -155,6 +166,50 @@ void KoPatternBackgroundSchemaContractTest::patternTileAndTransformSignaturesRem
     ASSERT_PATTERN_BACKGROUND_SIGNATURE(setTransform, void (KoPatternBackground::*)(const QTransform &));
     ASSERT_PATTERN_BACKGROUND_SIGNATURE(tileRepeatOffset, QPointF (KoPatternBackground::*)() const);
     ASSERT_PATTERN_BACKGROUND_SIGNATURE(transform, QTransform (KoPatternBackground::*)() const);
+}
+
+void KoPatternBackgroundSchemaContractTest::shapeFillWrapperTypeAndConstructionSchemaRemainStable()
+{
+    static_assert(std::is_class_v<KoShapeFillWrapper>);
+    static_assert(std::is_constructible_v<KoShapeFillWrapper, KoShape *, KoFlake::FillVariant>);
+    static_assert(std::is_constructible_v<KoShapeFillWrapper, QList<KoShape *>, KoFlake::FillVariant>);
+    static_assert(std::is_destructible_v<KoShapeFillWrapper>);
+}
+
+void KoPatternBackgroundSchemaContractTest::shapeFillWrapperClassificationAndColorSignaturesRemainStable()
+{
+    ASSERT_SHAPE_FILL_WRAPPER_SIGNATURE(color, QColor (KoShapeFillWrapper::*)() const);
+    ASSERT_SHAPE_FILL_WRAPPER_SIGNATURE(hasZeroLineWidth, bool (KoShapeFillWrapper::*)() const);
+    ASSERT_SHAPE_FILL_WRAPPER_SIGNATURE(isMixedFill, bool (KoShapeFillWrapper::*)() const);
+    ASSERT_SHAPE_FILL_WRAPPER_SIGNATURE(setColor, KUndo2Command * (KoShapeFillWrapper::*)(const QColor &));
+    ASSERT_SHAPE_FILL_WRAPPER_SIGNATURE(setLineWidth, KUndo2Command * (KoShapeFillWrapper::*)(const float &));
+    ASSERT_SHAPE_FILL_WRAPPER_SIGNATURE(type, KoFlake::FillType (KoShapeFillWrapper::*)() const);
+}
+
+void KoPatternBackgroundSchemaContractTest::shapeFillWrapperGradientSignaturesRemainStable()
+{
+    ASSERT_SHAPE_FILL_WRAPPER_SIGNATURE(applyGradient, KUndo2Command * (KoShapeFillWrapper::*)(const QGradient *));
+    ASSERT_SHAPE_FILL_WRAPPER_SIGNATURE(applyGradientStopsOnly,
+                                        KUndo2Command * (KoShapeFillWrapper::*)(const QGradient *));
+    ASSERT_SHAPE_FILL_WRAPPER_SIGNATURE(gradient, const QGradient *(KoShapeFillWrapper::*)() const);
+    ASSERT_SHAPE_FILL_WRAPPER_SIGNATURE(gradientTransform, QTransform (KoShapeFillWrapper::*)() const);
+    ASSERT_SHAPE_FILL_WRAPPER_SIGNATURE(setGradient,
+                                        KUndo2Command * (KoShapeFillWrapper::*)(const QGradient *, const QTransform &));
+}
+
+void KoPatternBackgroundSchemaContractTest::shapeFillWrapperMeshGradientSignaturesRemainStable()
+{
+    ASSERT_SHAPE_FILL_WRAPPER_SIGNATURE(meshgradient, const SvgMeshGradient *(KoShapeFillWrapper::*)() const);
+    ASSERT_SHAPE_FILL_WRAPPER_SIGNATURE(setMeshGradient,
+                                        KUndo2Command
+                                            * (KoShapeFillWrapper::*)(const SvgMeshGradient *, const QTransform &));
+}
+
+void KoPatternBackgroundSchemaContractTest::gradientUtilityAndPatternRenderingSignaturesRemainStable()
+{
+    ASSERT_FLAKE_FUNCTION_SIGNATURE(cloneGradient, QGradient * (*)(const QGradient *));
+    ASSERT_FLAKE_FUNCTION_SIGNATURE(mergeGradient, QGradient * (*)(const QGradient *, const QGradient *));
+    ASSERT_PATTERN_BACKGROUND_SIGNATURE(paint, void (KoPatternBackground::*)(QPainter &, const QPainterPath &) const);
 }
 
 QTEST_GUILESS_MAIN(KoPatternBackgroundSchemaContractTest)
