@@ -4,6 +4,7 @@
  */
 
 #include "text/KoSvgTextShape.h"
+#include "text/KoSvgTextShapeOutlineHelper.h"
 
 #include <QTest>
 
@@ -14,6 +15,10 @@
 namespace
 {
 using TextShape = KoSvgTextShape;
+using TextShapeFactory = KoSvgTextShapeFactory;
+using TextShapeMemento = KoSvgTextShapeMemento;
+using TextCursorChangeListener = TextShape::TextCursorChangeListener;
+using TextShapeOutlineHelper = KoSvgTextShapeOutlineHelper;
 using ShapeList = QList<KoShape *>;
 using ShapePathList = QList<QPainterPath>;
 using PaintOrderList = QVector<TextShape::PaintOrder>;
@@ -24,6 +29,12 @@ using StyleMap = QMap<QString, QString>;
     static_assert(std::is_same_v<decltype(static_cast<signature>(&TextShape::method)), signature>)
 #define ASSERT_TEXT_SHAPE_STATIC_SIGNATURE(method, signature)                                                          \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&TextShape::method)), signature>)
+#define ASSERT_TEXT_SHAPE_FACTORY_SIGNATURE(method, signature)                                                         \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&TextShapeFactory::method)), signature>)
+#define ASSERT_TEXT_CURSOR_LISTENER_SIGNATURE(method, signature)                                                       \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&TextCursorChangeListener::method)), signature>)
+#define ASSERT_TEXT_OUTLINE_HELPER_SIGNATURE(method, signature)                                                        \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&TextShapeOutlineHelper::method)), signature>)
 } // namespace
 
 class KoSvgTextShapeSchemaContractTest : public QObject
@@ -36,6 +47,11 @@ private Q_SLOTS:
     void svgTextShapeContentEditingAndTransformSignaturesRemainStable();
     void svgTextShapeAppearanceStateAndNotificationSignaturesRemainStable();
     void svgTextShapePersistenceMementoAndDiagnosticSignaturesRemainStable();
+    void svgTextShapeFactoryTypeLifetimeAndCreationSchemaRemainStable();
+    void svgTextShapeMementoAndListenerSchemaRemainStable();
+    void svgTextShapeOutlineHelperTypeLifetimeAndRenderingSchemaRemainStable();
+    void svgTextShapeOutlineHelperDisplayStateSignaturesRemainStable();
+    void svgTextShapeOutlineHelperContourInteractionSignaturesRemainStable();
 };
 
 void KoSvgTextShapeSchemaContractTest::svgTextShapeTypeLifetimeGeometryAndRenderingSchemaRemainStable()
@@ -156,6 +172,72 @@ void KoSvgTextShapeSchemaContractTest::svgTextShapePersistenceMementoAndDiagnost
     ASSERT_TEXT_SHAPE_SIGNATURE(setMemento, void (TextShape::*)(KoSvgTextShapeMementoSP));
     ASSERT_TEXT_SHAPE_SIGNATURE(setMemento, void (TextShape::*)(KoSvgTextShapeMementoSP, int, int));
     ASSERT_TEXT_SHAPE_SIGNATURE(shapeTypeSpecificStyles, StyleMap (TextShape::*)(SvgSavingContext &) const);
+}
+
+void KoSvgTextShapeSchemaContractTest::svgTextShapeFactoryTypeLifetimeAndCreationSchemaRemainStable()
+{
+    static_assert(std::is_class_v<TextShapeFactory>);
+    static_assert(std::is_base_of_v<KoShapeFactoryBase, TextShapeFactory>);
+    static_assert(std::is_default_constructible_v<TextShapeFactory>);
+    static_assert(std::has_virtual_destructor_v<TextShapeFactory>);
+
+    ASSERT_TEXT_SHAPE_FACTORY_SIGNATURE(createDefaultShape,
+                                        KoShape * (TextShapeFactory::*)(KoDocumentResourceManager *) const);
+    ASSERT_TEXT_SHAPE_FACTORY_SIGNATURE(
+        createShape,
+        KoShape * (TextShapeFactory::*)(const KoProperties *, KoDocumentResourceManager *) const);
+    ASSERT_TEXT_SHAPE_FACTORY_SIGNATURE(supports,
+                                        bool (TextShapeFactory::*)(const QDomElement &, KoShapeLoadingContext &) const);
+
+    static_assert(std::is_same_v<decltype(std::declval<const TextShapeFactory &>().createDefaultShape()), KoShape *>);
+    static_assert(std::is_same_v<decltype(std::declval<const TextShapeFactory &>().createShape(
+                                     std::declval<const KoProperties *>())),
+                                 KoShape *>);
+}
+
+void KoSvgTextShapeSchemaContractTest::svgTextShapeMementoAndListenerSchemaRemainStable()
+{
+    static_assert(std::is_default_constructible_v<TextShapeMemento>);
+    static_assert(std::has_virtual_destructor_v<TextShapeMemento>);
+
+    static_assert(std::is_class_v<TextCursorChangeListener>);
+    static_assert(std::is_base_of_v<KoShape::ShapeChangeListener, TextCursorChangeListener>);
+    static_assert(std::is_abstract_v<TextCursorChangeListener>);
+    static_assert(std::has_virtual_destructor_v<TextCursorChangeListener>);
+    ASSERT_TEXT_CURSOR_LISTENER_SIGNATURE(notifyCursorPosChanged, void (TextCursorChangeListener::*)(int, int));
+    ASSERT_TEXT_CURSOR_LISTENER_SIGNATURE(notifyMarkupChanged, void (TextCursorChangeListener::*)());
+    ASSERT_TEXT_CURSOR_LISTENER_SIGNATURE(notifyShapeChanged,
+                                          void (TextCursorChangeListener::*)(KoShape::ChangeType, KoShape *));
+}
+
+void KoSvgTextShapeSchemaContractTest::svgTextShapeOutlineHelperTypeLifetimeAndRenderingSchemaRemainStable()
+{
+    static_assert(std::is_class_v<TextShapeOutlineHelper>);
+    static_assert(std::is_constructible_v<TextShapeOutlineHelper, KoCanvasBase *>);
+    static_assert(std::is_destructible_v<TextShapeOutlineHelper>);
+    ASSERT_TEXT_OUTLINE_HELPER_SIGNATURE(paint, void (TextShapeOutlineHelper::*)(QPainter *, const KoViewConverter &));
+    ASSERT_TEXT_OUTLINE_HELPER_SIGNATURE(decorationRect, QRectF (TextShapeOutlineHelper::*)());
+}
+
+void KoSvgTextShapeSchemaContractTest::svgTextShapeOutlineHelperDisplayStateSignaturesRemainStable()
+{
+    ASSERT_TEXT_OUTLINE_HELPER_SIGNATURE(drawBoundingRect, bool (TextShapeOutlineHelper::*)() const);
+    ASSERT_TEXT_OUTLINE_HELPER_SIGNATURE(drawShapeOutlines, bool (TextShapeOutlineHelper::*)() const);
+    ASSERT_TEXT_OUTLINE_HELPER_SIGNATURE(drawTextWrappingArea, bool (TextShapeOutlineHelper::*)() const);
+    ASSERT_TEXT_OUTLINE_HELPER_SIGNATURE(setDecorationThickness, void (TextShapeOutlineHelper::*)(int));
+    ASSERT_TEXT_OUTLINE_HELPER_SIGNATURE(setDrawBoundingRect, void (TextShapeOutlineHelper::*)(bool));
+    ASSERT_TEXT_OUTLINE_HELPER_SIGNATURE(setDrawShapeOutlines, void (TextShapeOutlineHelper::*)(bool));
+    ASSERT_TEXT_OUTLINE_HELPER_SIGNATURE(setDrawTextWrappingArea, void (TextShapeOutlineHelper::*)(bool));
+    ASSERT_TEXT_OUTLINE_HELPER_SIGNATURE(setHandleRadius, void (TextShapeOutlineHelper::*)(int));
+    ASSERT_TEXT_OUTLINE_HELPER_SIGNATURE(setTextAreasHovered, void (TextShapeOutlineHelper::*)(bool));
+}
+
+void KoSvgTextShapeSchemaContractTest::svgTextShapeOutlineHelperContourInteractionSignaturesRemainStable()
+{
+    ASSERT_TEXT_OUTLINE_HELPER_SIGNATURE(contourModeButtonHovered,
+                                         KoSvgTextShape * (TextShapeOutlineHelper::*)(const QPointF &));
+    ASSERT_TEXT_OUTLINE_HELPER_SIGNATURE(toggleTextContourMode, void (TextShapeOutlineHelper::*)(KoSvgTextShape *));
+    ASSERT_TEXT_OUTLINE_HELPER_SIGNATURE(updateTextContourMode, bool (TextShapeOutlineHelper::*)());
 }
 
 QTEST_APPLESS_MAIN(KoSvgTextShapeSchemaContractTest)
