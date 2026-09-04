@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 10566
+    "expectedMissingApis": 10543
   },
   "contracts": [
     {
@@ -54036,6 +54036,74 @@
         "method:KisAspectRatioLocker::setBlockUpdateSignalOnDrag(bool block)",
         "method:KisAspectRatioLocker::sliderValueChanged()",
         "method:KisAspectRatioLocker::updateAspect()"
+      ]
+    },
+    {
+      "target": "SvgParserSchemaContractTest",
+      "source": "libs/flake/tests/SvgParserSchemaContractTest.cpp",
+      "test": "SvgParserSchemaContractTest::svgParserTypeLifetimeAndFileFetcherSchemaRemainStable",
+      "behavior": "SVG解析器は公開型と外部ファイル取得関数型を持ち、文書資源管理器から構築・仮想破棄して取得関数を設定する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:SvgParser::FileFetcherFunc",
+        "class:SvgParser",
+        "method:SvgParser::SvgParser(KoDocumentResourceManager * documentResourceManager)",
+        "method:SvgParser::setFileFetcher(FileFetcherFunc func)",
+        "method:SvgParser::~SvgParser()"
+      ]
+    },
+    {
+      "target": "SvgParserSchemaContractTest",
+      "source": "libs/flake/tests/SvgParserSchemaContractTest.cpp",
+      "test": "SvgParserSchemaContractTest::svgParserDocumentCreationSignaturesRemainStable",
+      "behavior": "SVG解析器は入出力装置、XML stream、byte列、文字列の各入力から文書図形を生成し、任意の診断出力を受け取る公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:SvgParser::createDocumentFromSvg(QIODevice * device,QString * errorMsg=0,int * errorLine=0,int * errorColumn=0)",
+        "method:SvgParser::createDocumentFromSvg(QXmlStreamReader reader,QString * errorMsg=0,int * errorLine=0,int * errorColumn=0)",
+        "method:SvgParser::createDocumentFromSvg(const QByteArray & data,QString * errorMsg=0,int * errorLine=0,int * errorColumn=0)",
+        "method:SvgParser::createDocumentFromSvg(const QString & data,QString * errorMsg=0,int * errorLine=0,int * errorColumn=0)"
+      ]
+    },
+    {
+      "target": "SvgParserSchemaContractTest",
+      "source": "libs/flake/tests/SvgParserSchemaContractTest.cpp",
+      "test": "SvgParserSchemaContractTest::svgParserConfigurationSignaturesRemainStable",
+      "behavior": "SVG解析器は既定KRA文字版、塗りと線の継承、画素範囲と解像度、最上位文字属性解決、XML基準ディレクトリーを設定する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:SvgParser::setDefaultKraTextVersion(int version)",
+        "method:SvgParser::setFillStrokeInheritByDefault(const bool enable)",
+        "method:SvgParser::setResolution(const QRectF boundsInPixels,qreal pixelsPerInch)",
+        "method:SvgParser::setResolveTextPropertiesForTopLevel(const bool enable)",
+        "method:SvgParser::setXmlBaseDir(const QString & baseDir)"
+      ]
+    },
+    {
+      "target": "SvgParserSchemaContractTest",
+      "source": "libs/flake/tests/SvgParserSchemaContractTest.cpp",
+      "test": "SvgParserSchemaContractTest::svgParserShapeAndDefinitionSignaturesRemainStable",
+      "behavior": "SVG解析器は既知markerを照会し、定義・SVG・文字要素を解析して図形を返し、symbolの所有を移す公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:SvgParser::knownMarkers() const",
+        "method:SvgParser::parseDefsElement(const QDomElement & e)",
+        "method:SvgParser::parseSvg(const QDomElement & e,QSizeF * fragmentSize=0)",
+        "method:SvgParser::parseTextElement(const QDomElement & e,KoSvgTextShape * mergeIntoShape=0)",
+        "method:SvgParser::shapes() const",
+        "method:SvgParser::takeSymbols()"
+      ]
+    },
+    {
+      "target": "SvgParserSchemaContractTest",
+      "source": "libs/flake/tests/SvgParserSchemaContractTest.cpp",
+      "test": "SvgParserSchemaContractTest::svgParserMetadataAndWarningSignaturesRemainStable",
+      "behavior": "SVG解析器は文書の説明、表題、解析警告を照会する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:SvgParser::documentDescription() const",
+        "method:SvgParser::documentTitle() const",
+        "method:SvgParser::warnings() const"
       ]
     }
   ]
