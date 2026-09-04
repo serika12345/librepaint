@@ -257,6 +257,21 @@ target_compile_definitions(KisNodeViewColorSchemeSchemaContractTest PRIVATE
 )
 
 kis_add_test(
+    KisHistogramPainterSchemaContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KisHistogramPainterSchemaContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_BINARY_DIR}/libs/application
+    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Gui,INTERFACE_INCLUDE_DIRECTORIES>
+)
+target_compile_definitions(KisHistogramPainterSchemaContractTest PRIVATE
+    kritaapplicationui_EXPORTS
+)
+
+kis_add_test(
     KisExposureGammaCorrectionInterfaceContractTest.cpp
     LINK_LIBRARIES
         kritauiexposuregammacorrectionobjects
