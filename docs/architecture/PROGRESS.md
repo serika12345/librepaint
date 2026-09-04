@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-04 22:37 JST
+- 更新日時: 2026-09-04 22:44 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -303,7 +303,7 @@
 - 実装共通基点は`e4e2ed8b12`である。一度に一つだけ作る専用worktree-local `build/tdd-macos`と主作業treeの共有compiler cacheを使い、担当側の`./scripts/run-shared-test-env`で読み込み済み環境を利用する。brush preset、SVG文字列command群、スクリプト向けアプリケーション根の順に限定検証・統合・削除し、調整担当だけが文書、公開API台帳、共通不足報告を変更する。各担当のGit権限は許可pathだけの1受渡しcommitで、追加委任は禁止する。
 - `g211-paintop-preset-schema`の状態は`integrated`である。開始`libs/image/brushengine/kis_paintop_preset.h`の残存全43 APIを、新規`libs/image/tests/KisPaintOpPresetSchemaContractTest.cpp`の5枠`paintOpPresetTypeLifetimeAndUpdateSuppressionSchemaRemainStable`、`paintOpPresetIdentitySettingsAndSerializationSignaturesRemainStable`、`paintOpPresetCloneAndUpdateInterfaceSignaturesRemainStable`、`paintOpPresetMaskingAndResourceInterfaceSignaturesRemainStable`、`paintOpPresetResourceSnapshotAndCacheSignaturesRemainStable`へ9・12・5・7・10件で対応付けた。受渡しcommit`7bb41e1001`を統合commit`540ccc2576`として取り込み、担当側と中央のmacOSで各枠20回、対象・近傍CTest、4工程・8入力、AUTOMOC後の二回目計画、無作業再構築2回、接続・未解決記号・構文・書式、公開API・方針検査に成功した。台帳は20,372件対応、9,466件未対応となった。cleanな専用作業tree、291,768 KiBの構築木、branchを統合直後に削除し、881,484 KiBを回収した。
 - brush preset担当の停止線は5工程・11入力である。Qt Xml・Widgetsまたは製品libraryの動的接続、計画外の探索路・定義・link、候補headerのAUTOMOC入力化、製品shared・OBJECT・`kritatestsdk`、preset・設定・資源・cache関連の製品未解決記号、対象値やinline本文の実体化・実行、許可path外変更が必要なら停止する。編集前後の計画・依存・空閉包、対象不存在と宣言段階の初期失敗、追加5枠の単発と各20回反復、対象・近傍CTest、AUTOMOC後の二回目計画、無作業再構築2回、動的接続・未解決記号・構文・書式、公開API検査、`verify-quick`を確認する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
-- `g211-svg-text-command-schema`の状態は`ready`、受渡しcommitは`4382aacf0b`、作業treeは`/Users/masato/Documents/librepaint-g211-svg-text-command-schema`である。正式不足報告にある`SvgTextChangeTransformsOnRange.h`の14 API、`SvgTextInsertCommand.h`の8 API、`SvgTextMergePropertiesRangeCommand.h`の7 API、`SvgTextRemoveCommand.h`の7 API、`SvgTextInsertRichCommand.h`の5 APIを、既存`plugins/tools/svgtexttool/tests/SvgTextCursorPropertySchemaContractTest.cpp`の5枠`svgTextChangeTransformsOnRangeSchemaRemainStable`、`svgTextInsertCommandSchemaRemainStable`、`svgTextMergePropertiesRangeCommandSchemaRemainStable`、`svgTextRemoveCommandSchemaRemainStable`、`svgTextInsertRichCommandSchemaRemainStable`へ14・8・7・7・5件で対応付けた。5 headerが直接includeする`kundo2command.h`の探索不足を初期失敗で検出し、painting/undoのsource・generated探索路と`kritapaintingundo_EXPORTS`だけを対象固有CMake節へ補った。macOSで各枠20回、対象・近傍CTest、補正後4工程・8入力、AUTOMOC後の二回目計画、無作業再構築2回、接続・未解決記号・構文・書式、公開API・方針検査に成功した。
+- `g211-svg-text-command-schema`の状態は`integrated`である。正式不足報告にある`SvgTextChangeTransformsOnRange.h`の14 API、`SvgTextInsertCommand.h`の8 API、`SvgTextMergePropertiesRangeCommand.h`の7 API、`SvgTextRemoveCommand.h`の7 API、`SvgTextInsertRichCommand.h`の5 APIを、既存`plugins/tools/svgtexttool/tests/SvgTextCursorPropertySchemaContractTest.cpp`の5枠`svgTextChangeTransformsOnRangeSchemaRemainStable`、`svgTextInsertCommandSchemaRemainStable`、`svgTextMergePropertiesRangeCommandSchemaRemainStable`、`svgTextRemoveCommandSchemaRemainStable`、`svgTextInsertRichCommandSchemaRemainStable`へ14・8・7・7・5件で対応付けた。`kundo2command.h`の探索不足を初期失敗で検出し、painting/undoのsource・generated探索路と`kritapaintingundo_EXPORTS`だけを対象固有CMake節へ補った。受渡しcommit`4382aacf0b`を統合commit`a5fba76d7e`として取り込み、担当側と中央のmacOSで各枠20回、対象・近傍CTest、補正後4工程・8入力、AUTOMOC後の安定計画、無作業再構築2回、接続・未解決記号・構文・書式、公開API・方針検査に成功した。台帳は20,413件対応、9,425件未対応となった。cleanな専用作業tree、297,624 KiBの構築木、branchを統合直後に削除し、887,356 KiBを回収した。
 - SVG文字列command担当の停止線は5工程・11入力である。painting/undoの2探索路と1 export定義以外のCMake変更、link追加、候補headerのAUTOMOC入力、製品shared・OBJECT、`kritatestsdk`、command・図形・undo関連の製品未解決記号、対象値やinline本文の実体化・実行、許可path外変更が必要なら停止する。編集前後の計画・直接依存・空閉包、探索路不足の初期失敗、追加5枠の単発と各20回反復、対象・近傍CTest、AUTOMOC後の二回目計画、無作業再構築2回、動的接続・未解決記号・構文・書式、公開API検査、`verify-quick`を確認する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
 - `g211-krita-facade-schema`の状態は`planned`である。SVG文字列command担当の統合と作業tree削除後に、新規`KritaSchemaContractTest.cpp`と`libs/libkis/tests/CMakeLists.txt`の新target固有節だけを変更する。
 
@@ -383,8 +383,8 @@
 - `g216-ui-contract-audit`の状態は`completed`で、`KisAnimationFrameCache`の型・cache状態・検索・frame取込み・ROI・通知20 APIを選定した。既存前方宣言契約は試験用同名classを持つため新規専用targetとし、application・image・global探索路による4工程・8入力を予測する。
 - `g216-flake-contract-audit`の状態は`completed`で、vector path構造を可逆に変更する4 command型21 APIを選定した。既存128行・5枠のpath point topology契約へ5枠を追記しても上限内で、CMake変更なしの4工程・8入力を維持する。
 - `g216-generator-layer-closure-review`の状態は`completed`で、`kis_generator_layer.h`の21 APIと5枠4・5・4・6・2を独立確認した。既存mask契約と同じQt Core・Gui・Test・Xml、image・pigment・resources探索路、4工程・8入力へ閉じ、inline `clone`と`layer`を関数pointer型だけで観測する。
-- `g216-animation-frame-cache-closure-review`の状態は`reviewing`で、`kis_animation_frame_cache.h`の20 APIと5枠7・3・4・3・3、正規application生成export headerを使う新規targetの4工程・8入力閉包を独立再検査する。
-- `g216-path-topology-command-closure-review`の状態は`reviewing`で、4 headerの21 APIと5枠3・4・6・2・6、既存`KoPathPointTopologyCommandSchemaContractTest`への追記と4工程・8入力閉包を独立再検査する。
+- `g216-animation-frame-cache-closure-review`の状態は`completed`で、`kis_animation_frame_cache.h`の20 APIと5枠7・3・4・3・3を独立確認した。正規application生成export headerを最初に選び、globalの共有pointer定義をsourceで補完すれば、Qt Core・Test、application・image・global探索路、3 export定義による4工程・8入力へ閉じられる。
+- `g216-path-topology-command-closure-review`の状態は`completed`で、4 headerの21 APIと5枠3・4・6・2・6を独立確認した。責務をpath-backed shapeの可逆編集command群と定義し、既存`KoPathPointTopologyCommandSchemaContractTest`へCMake変更なしで追記して4工程・8入力を維持できる。
 
 ### 第216便の先行監査結果（第215便確定待ち）
 

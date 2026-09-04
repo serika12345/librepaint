@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 9466
+    "expectedMissingApis": 9425
   },
   "contracts": [
     {
@@ -56801,6 +56801,92 @@
         "method:KisPaintOpPreset::sanityCheckResourceCacheIsValid(KoResourceCacheInterfaceSP cacheInterface) const",
         "method:KisPaintOpPreset::setResourceCacheInterface(KoResourceCacheInterfaceSP cacheInterface)",
         "method:KisPaintOpPreset::sideLoadedResources(KisResourcesInterfaceSP globalResourcesInterface) const"
+      ]
+    },
+    {
+      "target": "SvgTextCursorPropertySchemaContractTest",
+      "source": "plugins/tools/svgtexttool/tests/SvgTextCursorPropertySchemaContractTest.cpp",
+      "test": "SvgTextCursorPropertySchemaContractTest::svgTextChangeTransformsOnRangeSchemaRemainStable",
+      "behavior": "SVG文字列の範囲変形commandは変形方式、位置・回転指定、差分変形算出、およびundo履歴の実行・統合に関する公開契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:SvgTextChangeTransformsOnRange",
+        "enum:SvgTextChangeTransformsOnRange::OffsetType",
+        "enumerator:SvgTextChangeTransformsOnRange::OffsetType::OffsetAll",
+        "enumerator:SvgTextChangeTransformsOnRange::OffsetType::RotateOnly",
+        "enumerator:SvgTextChangeTransformsOnRange::OffsetType::ScaleAndRotate",
+        "enumerator:SvgTextChangeTransformsOnRange::OffsetType::ScaleOnly",
+        "method:SvgTextChangeTransformsOnRange::SvgTextChangeTransformsOnRange(KoSvgTextShape * shape,int startPos,int endPos,QPointF delta,OffsetType type,bool calculateDeltaPositions,KUndo2Command * parentCommand=nullptr)",
+        "method:SvgTextChangeTransformsOnRange::SvgTextChangeTransformsOnRange(KoSvgTextShape * shape,int startPos,int endPos,QVector<QPointF> positions,QVector<qreal> rotations,bool calculateDeltaPositions,KUndo2Command * parentCommand=nullptr)",
+        "method:SvgTextChangeTransformsOnRange::getTransformForOffset(KoSvgTextShape * shape,int startPos,int endPos,QPointF delta,OffsetType type)",
+        "method:SvgTextChangeTransformsOnRange::id() const",
+        "method:SvgTextChangeTransformsOnRange::mergeWith(const KUndo2Command * other)",
+        "method:SvgTextChangeTransformsOnRange::redo()",
+        "method:SvgTextChangeTransformsOnRange::undo()",
+        "method:SvgTextChangeTransformsOnRange::~SvgTextChangeTransformsOnRange()"
+      ]
+    },
+    {
+      "target": "SvgTextCursorPropertySchemaContractTest",
+      "source": "plugins/tools/svgtexttool/tests/SvgTextCursorPropertySchemaContractTest.cpp",
+      "test": "SvgTextCursorPropertySchemaContractTest::svgTextInsertCommandSchemaRemainStable",
+      "behavior": "SVG文字列の挿入commandは入力文字列の正規化、挿入位置、およびundo履歴の実行・統合に関する公開契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:SvgTextInsertCommand",
+        "method:SvgTextInsertCommand::SvgTextInsertCommand(KoSvgTextShape * shape,int pos,int anchor,QString text,KUndo2Command * parent=0)",
+        "method:SvgTextInsertCommand::filterInputUnicodeString(QString text)",
+        "method:SvgTextInsertCommand::id() const",
+        "method:SvgTextInsertCommand::mergeWith(const KUndo2Command * other)",
+        "method:SvgTextInsertCommand::redo()",
+        "method:SvgTextInsertCommand::undo()",
+        "method:SvgTextInsertCommand::~SvgTextInsertCommand()"
+      ]
+    },
+    {
+      "target": "SvgTextCursorPropertySchemaContractTest",
+      "source": "plugins/tools/svgtexttool/tests/SvgTextCursorPropertySchemaContractTest.cpp",
+      "test": "SvgTextCursorPropertySchemaContractTest::svgTextMergePropertiesRangeCommandSchemaRemainStable",
+      "behavior": "SVG文字列の範囲属性統合commandは追加・除去する属性とundo履歴の実行・統合に関する公開契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:SvgTextMergePropertiesRangeCommand",
+        "method:SvgTextMergePropertiesRangeCommand::SvgTextMergePropertiesRangeCommand(KoSvgTextShape * shape,const KoSvgTextProperties props,const int pos,const int anchor,const QSet<KoSvgTextProperties::PropertyId> removeProperties=QSet<KoSvgTextProperties::PropertyId> (),KUndo2Command * parent=0)",
+        "method:SvgTextMergePropertiesRangeCommand::id() const",
+        "method:SvgTextMergePropertiesRangeCommand::mergeWith(const KUndo2Command * other)",
+        "method:SvgTextMergePropertiesRangeCommand::redo()",
+        "method:SvgTextMergePropertiesRangeCommand::undo()",
+        "method:SvgTextMergePropertiesRangeCommand::~SvgTextMergePropertiesRangeCommand()"
+      ]
+    },
+    {
+      "target": "SvgTextCursorPropertySchemaContractTest",
+      "source": "plugins/tools/svgtexttool/tests/SvgTextCursorPropertySchemaContractTest.cpp",
+      "test": "SvgTextCursorPropertySchemaContractTest::svgTextRemoveCommandSchemaRemainStable",
+      "behavior": "SVG文字列の削除commandは削除範囲、整理方針、およびundo履歴の実行・統合に関する公開契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:SvgTextRemoveCommand",
+        "method:SvgTextRemoveCommand::SvgTextRemoveCommand(KoSvgTextShape * shape,int endIndex,int pos,int anchor,int length,bool allowCleanUp=true,KUndo2Command * parent=0)",
+        "method:SvgTextRemoveCommand::id() const",
+        "method:SvgTextRemoveCommand::mergeWith(const KUndo2Command * other)",
+        "method:SvgTextRemoveCommand::redo()",
+        "method:SvgTextRemoveCommand::undo()",
+        "method:SvgTextRemoveCommand::~SvgTextRemoveCommand()"
+      ]
+    },
+    {
+      "target": "SvgTextCursorPropertySchemaContractTest",
+      "source": "plugins/tools/svgtexttool/tests/SvgTextCursorPropertySchemaContractTest.cpp",
+      "test": "SvgTextCursorPropertySchemaContractTest::svgTextInsertRichCommandSchemaRemainStable",
+      "behavior": "SVG文字列の構造付き挿入commandは属性継承方針とundo履歴の実行に関する公開契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:SvgTextInsertRichCommand",
+        "method:SvgTextInsertRichCommand::SvgTextInsertRichCommand(KoSvgTextShape * shape,KoSvgTextShape * insert,int pos,int anchor,bool inheritPropertiesIfPossible=false,KUndo2Command * parent=0)",
+        "method:SvgTextInsertRichCommand::redo()",
+        "method:SvgTextInsertRichCommand::undo()",
+        "method:SvgTextInsertRichCommand::~SvgTextInsertRichCommand()"
       ]
     }
   ]
