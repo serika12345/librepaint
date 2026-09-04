@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-04 20:32 JST
+- 更新日時: 2026-09-04 20:46 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -240,7 +240,7 @@
 ### 第209便の担当計画
 
 - 実装共通基点は`c3e4ffc777`である。一度に一つだけ作る専用worktree-local `build/tdd-macos`と主作業treeの共有compiler cacheを使い、`./scripts/run-shared-test-env`で読み込み済み環境を利用する。各担当のGit権限は許可pathだけの受渡しcommit、追加委任は禁止する。tile data manager、文書node graph、font registry・storageの順に限定検証・統合・削除し、調整担当だけが文書、公開API台帳、共通不足報告を変更する。
-- `g209-tiled-data-manager-schema`の状態は`implementing`、作業treeは`/Users/masato/Documents/librepaint-g209-tiled-data-manager-schema`、macOSの対象`KisTileSchemaContractTest`と近傍`KisTileDataSchemaContractTest`に限る構築実行許可は`granted`、Git権限は`libs/image/tiles3/tests/KisTileSchemaContractTest.cpp`だけの受渡しcommitである。正式不足報告の`libs/image/tiles3/kis_tiled_data_manager.h`残存全43 APIを5枠`tiledDataManagerTypeLifetimeAndDefaultPixelSchemaRemainStable`、`tiledDataManagerTileAndHistorySignaturesRemainStable`、`tiledDataManagerRegionAndGeometrySignaturesRemainStable`、`tiledDataManagerTransferSignaturesRemainStable`、`tiledDataManagerMaintenanceSignaturesRemainStable`へ8・11・13・9・2件で対応付ける。CMake、公開header、製品sourceを変更せず、既存のimage・global探索路、Qt Core・Core5Compat・Test、`kritaimage_EXPORTS`による4工程・8入力を維持する。
+- `g209-tiled-data-manager-schema`の状態は`integrated`、macOSの対象`KisTileSchemaContractTest`と近傍`KisTileDataSchemaContractTest`に限る構築実行許可は`granted`である。正式不足報告の`libs/image/tiles3/kis_tiled_data_manager.h`残存全43 APIを、既存`libs/image/tiles3/tests/KisTileSchemaContractTest.cpp`の5枠`tiledDataManagerTypeLifetimeAndDefaultPixelSchemaRemainStable`、`tiledDataManagerTileAndHistorySignaturesRemainStable`、`tiledDataManagerRegionAndGeometrySignaturesRemainStable`、`tiledDataManagerTransferSignaturesRemainStable`、`tiledDataManagerMaintenanceSignaturesRemainStable`へ8・11・13・9・2件で対応付けた。受渡しcommit`46ec39eaf7`を統合commit`ac3cb314bc`として取り込み、担当側と中央で追加5枠を各20回、対象・近傍CTest、二回目計画と無作業再構築を実行した。CMake変更なしで4工程・8入力、Qt Core・Core5Compat・Testだけの動的接続、AUTOMOC `HEADERS=[]`、製品未解決記号なしを維持し、台帳は20,220件対応、9,618件未対応となった。cleanな専用作業tree、297,252 KiBの構築木、branchを統合直後に削除し、886,876 KiBを回収した。lock、履歴遷移、tile取得、領域更新、転送・I/O、pool解放の実行結果は別の効果契約で扱う。
 - 停止線は5工程・11入力である。CMake変更、新探索路・定義・link、製品shared・OBJECT・`kritatestsdk`接続、候補headerのAUTOMOC入力化、tile・manager・memento・lock・I/O関連の製品未解決記号、対象値またはinline本文の実体化、許可path外変更が必要なら停止する。旧binaryで新5枠が未知であること、追加5枠の単発と各20回反復、対象・近傍CTest、AUTOMOC後の二回目計画、無作業再構築2回、動的接続・未解決記号・構文・書式、公開API検査、`verify-quick`を確認する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
 
 ### 第210便の先行監査担当票（第209便確定待ち）
@@ -284,10 +284,20 @@
 ### 第213便の先行監査担当票（第212便確定待ち）
 
 - 監査共通基点は`4b987ff891`、暫定入力は`build/tdd-macos/public-api-missing-g208.json`である。第207便までの契約済み責務と、第208便から第212便で選定済みのraster keyframe channel、path編集工具、4組の文書・channel責務、tile data manager、font registry・storage、変形mask本体と工具adapter、brush preset、標準曲線option、SVG文字列command群、スクリプト向けアプリケーション根を除外する。監査中は主作業treeを読み取り専用で共有し、変更、構成、構築、試験、Git操作、追加委任を行わない。正式な第212便完了報告で候補を再照合する。
-- `g213-image-contract-audit`の状態は`auditing`で、image・paintop・pigment領域から一つの公開責務に属する20〜80 APIを最大5枠へ固定できる候補を比較する。完全なAPI識別子、観測契約、開始pathから契約先、許可path、既存対象と近傍、CMake直接依存、既存graphに基づく予測工程・入力、停止条件、棄却根拠を返す。
-- `g213-flake-contract-audit`の状態は`auditing`で、flake・SVG・vector・関連plugin領域から同じ条件の候補を比較する。既存契約sourceが300行または20枠を超える場合は4〜10工程程度の専用targetを選び、製品shared・OBJECTと`kritatestsdk`へ接続する候補を採用しない。
-- `g213-ui-contract-audit`の状態は`auditing`で、widgetutils・widgets・libkis領域から同じ条件の候補を調整担当が読み取り専用で比較する。一責務の完全な未対応集合を優先し、件数を満たすために異なる所有者や変更理由を混在させない。
+- `g213-image-contract-audit`の状態は`completed`で、image・paintop・pigment領域からgradient painterの公開型・列挙・設定・描画入口24 APIを選定した。既存画像型契約は4,104行のため、新規専用targetへ分けて4工程・8入力を予測する。
+- `g213-flake-contract-audit`の状態は`completed`で、flake・SVG・vector・関連plugin領域から変形引数とアニメーション保持器の値・永続化・時間変化27 APIを選定した。G212のmask adapterとAPI識別子は重複せず、既存変形幾何契約と同じcompile interfaceを持つ新規専用targetで4工程・9入力を予測する。
+- `g213-ui-contract-audit`の状態は`completed`で、ui/canvas領域からcanvas animation stateの再生・media・frame・audio接続面24 APIを選定した。既存再生engine契約へ対象固有のimage探索路・定義とheader-only Boostだけを加え、4工程・8入力を維持する。
+- `g213-gradient-painter-closure-review`の状態は`completed`で、`libs/image/kis_gradient_painter.h`の残存全24 APIが5枠へ重複なく対応し、template描画入口も未評価member pointerで本文をODR-useせず観測できることを独立確認した。Qt Core・Gui・Testとheader-only Boost、image・filter・global・pigment・resources・painting/undo探索路による4工程・8入力を予測する。
+- `g213-transform-state-closure-review`の状態は`completed`で、`tool_transform_args.h`の13 APIと`KisAnimatedTransformMaskParamsHolder.h`の14 APIが変形状態の一責務へ収まり、G212の24 APIとの積集合が0件であることを独立確認した。近傍と同じQt Core・Gui・Test、KF I18n、header-only Boostおよび既存探索路・定義による4工程・9入力を予測する。
+- `g213-canvas-animation-state-closure-review`の状態は`completed`で、`libs/ui/canvas/KisCanvasAnimationState.h`の残存全24 APIが5枠へ重複なく対応し、既存再生engine契約は追加後も約180行・10枠に収まることを独立確認した。対象固有CMake節へheader-only Boost、image探索路、`kritaimage_EXPORTS`だけを加え、Qt Core・Testだけの動的接続と4工程・8入力を維持できる。
 - 各担当は候補headerをtarget sourceやAUTOMOC入力にせず、型特性、厳密な関数pointer、未評価式で実体化と本文実行を避ける計画を優先する。製品targetのplan/buildは禁止し、既存Ninja graphのquery・commands・inputsだけを読み取り専用で利用できる。
+
+### 第213便の先行監査結果（第212便確定待ち）
+
+- image領域は`libs/image/kis_gradient_painter.h`の24 APIを、型・寿命・構築5、形状列挙10、反復列挙4、設定2、描画入口3として新規`libs/image/tests/KisGradientPainterSchemaContractTest.cpp`の5枠へ固定する。直接linkはQt Core・Gui・Testとheader-only Boost、探索路はimage・image/filter・global・pigment・pigment/resources・resources・painting/undo、定義は`kritaimage_EXPORTS`と`kritapigment_EXPORTS`を最小案とし、4工程・8入力、停止線5工程・11入力とする。
+- 変形工具領域は`plugins/tools/tool_transform2/tool_transform_args.h`の13 APIと`KisAnimatedTransformMaskParamsHolder.h`の14 APIを、引数型・寿命・構築6、外部源・filter・永続化7、保持器型・寿命・構築4、状態・境界・keyframe 6、複製・bake・変更4として新規`plugins/tools/tool_transform2/tests/ToolTransformStateSchemaContractTest.cpp`の5枠へ固定する。既存`ToolTransformArgsGeometrySchemaContractTest`と同じ直接link、探索路、定義で4工程・9入力を予測し、停止線を5工程・11入力とする。
+- UI領域は`libs/ui/canvas/KisCanvasAnimationState.h`の残存全24 APIを、型・寿命・再生列挙7、再生・media 6、速度・frame・audio設定4、再生通知5、audio・取消通知2として既存`libs/ui/tests/KisPlaybackEngineSchemaContractTest.cpp`の5枠へ固定する。対象固有CMake節へheader-only Boost、image source/generated探索路、`kritaimage_EXPORTS`だけを加え、Qt Core・Testだけの動的接続、4工程・8入力、停止線5工程・11入力を維持する。
+- 3候補は合計75 API・15枠で、開始header、試験source、所有CMakeが相互に異なる。候補headerのAUTOMOC入力化、製品shared・OBJECT、`kritatestsdk`、計画外の探索路・定義・動的接続または未解決製品記号、対象型やinline・template本文の実体化が必要なら停止する。正式な第213便不足報告で全識別子と閉包を再照合する。
 
 ### 第201便の先行監査担当票
 

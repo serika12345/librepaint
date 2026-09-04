@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 9661
+    "expectedMissingApis": 9618
   },
   "contracts": [
     {
@@ -56336,6 +56336,94 @@
       "apis": [
         "method:Document::rotateImage(double radians)",
         "method:Document::shearImage(double angleX,double angleY)"
+      ]
+    },
+    {
+      "target": "KisTileSchemaContractTest",
+      "source": "libs/image/tiles3/tests/KisTileSchemaContractTest.cpp",
+      "test": "KisTileSchemaContractTest::tiledDataManagerTypeLifetimeAndDefaultPixelSchemaRemainStable",
+      "behavior": "tile data managerは共有所有、複製・代入可能な寿命、および既定画素の照会・変更に関する公開契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisTiledDataManagerSP",
+        "class:KisTiledDataManager",
+        "method:KisTiledDataManager::KisTiledDataManager(const KisTiledDataManager & dm)",
+        "method:KisTiledDataManager::KisTiledDataManager(quint32 pixelSize,const quint8 * defPixel)",
+        "method:KisTiledDataManager::defaultPixel() const",
+        "method:KisTiledDataManager::operator =(const KisTiledDataManager & dm)",
+        "method:KisTiledDataManager::setDefaultPixel(const quint8 * defPixel)",
+        "method:KisTiledDataManager::~KisTiledDataManager()"
+      ]
+    },
+    {
+      "target": "KisTileSchemaContractTest",
+      "source": "libs/image/tiles3/tests/KisTileSchemaContractTest.cpp",
+      "test": "KisTileSchemaContractTest::tiledDataManagerTileAndHistorySignaturesRemainStable",
+      "behavior": "tile data managerはtile取得と変更履歴の生成・確定・前後移動・破棄に関する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTiledDataManager::commit()",
+        "method:KisTiledDataManager::getMemento()",
+        "method:KisTiledDataManager::getOldTile(qint32 col,qint32 row)",
+        "method:KisTiledDataManager::getOldTile(qint32 col,qint32 row,bool & existingTile)",
+        "method:KisTiledDataManager::getReadOnlyTileLazy(qint32 col,qint32 row,bool & existingTile)",
+        "method:KisTiledDataManager::getTile(qint32 col,qint32 row,bool writable)",
+        "method:KisTiledDataManager::getTilesPair(qint32 col,qint32 row,bool writable,KisTileSP * tile,KisTileSP * oldTile)",
+        "method:KisTiledDataManager::hasCurrentMemento() const",
+        "method:KisTiledDataManager::purgeHistory(KisMementoSP oldestMemento)",
+        "method:KisTiledDataManager::rollback(KisMementoSP memento)",
+        "method:KisTiledDataManager::rollforward(KisMementoSP memento)"
+      ]
+    },
+    {
+      "target": "KisTileSchemaContractTest",
+      "source": "libs/image/tiles3/tests/KisTileSchemaContractTest.cpp",
+      "test": "KisTileSchemaContractTest::tiledDataManagerRegionAndGeometrySignaturesRemainStable",
+      "behavior": "tile data managerは領域・外接矩形・連続走査寸法の照会と領域設定・消去に関する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTiledDataManager::clear()",
+        "method:KisTiledDataManager::clear(QRect clearRect,const quint8 * clearPixel)",
+        "method:KisTiledDataManager::clear(QRect clearRect,quint8 clearValue)",
+        "method:KisTiledDataManager::clear(qint32 x,qint32 y,qint32 w,qint32 h,const quint8 * clearPixel)",
+        "method:KisTiledDataManager::clear(qint32 x,qint32 y,qint32 w,qint32 h,quint8 clearValue)",
+        "method:KisTiledDataManager::extent() const",
+        "method:KisTiledDataManager::extent(qint32 & x,qint32 & y,qint32 & w,qint32 & h) const",
+        "method:KisTiledDataManager::numContiguousColumns(qint32 x,qint32 minY,qint32 maxY) const",
+        "method:KisTiledDataManager::numContiguousRows(qint32 y,qint32 minX,qint32 maxX) const",
+        "method:KisTiledDataManager::region() const",
+        "method:KisTiledDataManager::rowStride(qint32 x,qint32 y) const",
+        "method:KisTiledDataManager::setExtent(QRect newRect)",
+        "method:KisTiledDataManager::setExtent(qint32 x,qint32 y,qint32 w,qint32 h)"
+      ]
+    },
+    {
+      "target": "KisTileSchemaContractTest",
+      "source": "libs/image/tiles3/tests/KisTileSchemaContractTest.cpp",
+      "test": "KisTileSchemaContractTest::tiledDataManagerTransferSignaturesRemainStable",
+      "behavior": "tile data managerは現行・旧tileの領域転送、単一画素、連続byte列、平面別byte列の入出力に関する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTiledDataManager::bitBlt(KisTiledDataManager * srcDM,const QRect & rect)",
+        "method:KisTiledDataManager::bitBltOldData(KisTiledDataManager * srcDM,const QRect & rect)",
+        "method:KisTiledDataManager::bitBltRough(KisTiledDataManager * srcDM,const QRect & rect)",
+        "method:KisTiledDataManager::bitBltRoughOldData(KisTiledDataManager * srcDM,const QRect & rect)",
+        "method:KisTiledDataManager::readBytes(quint8 * bytes,qint32 x,qint32 y,qint32 w,qint32 h,qint32 dataRowStride=-1) const",
+        "method:KisTiledDataManager::readPlanarBytes(QVector<qint32> channelsizes,qint32 x,qint32 y,qint32 w,qint32 h) const",
+        "method:KisTiledDataManager::setPixel(qint32 x,qint32 y,const quint8 * data)",
+        "method:KisTiledDataManager::writeBytes(const quint8 * bytes,qint32 x,qint32 y,qint32 w,qint32 h,qint32 dataRowStride=-1)",
+        "method:KisTiledDataManager::writePlanarBytes(QVector<quint8 * > planes,QVector<qint32> channelsizes,qint32 x,qint32 y,qint32 w,qint32 h)"
+      ]
+    },
+    {
+      "target": "KisTileSchemaContractTest",
+      "source": "libs/image/tiles3/tests/KisTileSchemaContractTest.cpp",
+      "test": "KisTileSchemaContractTest::tiledDataManagerMaintenanceSignaturesRemainStable",
+      "behavior": "tile data managerは内部poolの解放と診断情報出力に関する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTiledDataManager::debugPrintInfo()",
+        "method:KisTiledDataManager::releaseInternalPools()"
       ]
     }
   ]
