@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 10407
+    "expectedMissingApis": 10378
   },
   "contracts": [
     {
@@ -54420,6 +54420,80 @@
         "method:KisFilterConfiguration::embeddedResources(KisResourcesInterfaceSP globalResourcesInterface) const",
         "method:KisFilterConfiguration::linkedResources(KisResourcesInterfaceSP globalResourcesInterface) const",
         "method:KisFilterConfiguration::requiredResources(KisResourcesInterfaceSP globalResourcesInterface) const"
+      ]
+    },
+    {
+      "target": "KoSvgTextShapeSchemaContractTest",
+      "source": "libs/flake/tests/KoSvgTextShapeSchemaContractTest.cpp",
+      "test": "KoSvgTextShapeSchemaContractTest::svgTextShapeFactoryTypeLifetimeAndCreationSchemaRemainStable",
+      "behavior": "SVG文字図形factoryは公開型として構築・仮想破棄でき、文書資源を任意指定した既定図形・property付き図形の生成とSVG要素の対応判定を行う署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoSvgTextShapeFactory",
+        "method:KoSvgTextShapeFactory::KoSvgTextShapeFactory()",
+        "method:KoSvgTextShapeFactory::createDefaultShape(KoDocumentResourceManager * documentResources=0) const",
+        "method:KoSvgTextShapeFactory::createShape(const KoProperties * params,KoDocumentResourceManager * documentResources=0) const",
+        "method:KoSvgTextShapeFactory::supports(const QDomElement & e,KoShapeLoadingContext & context) const",
+        "method:KoSvgTextShapeFactory::~KoSvgTextShapeFactory()"
+      ]
+    },
+    {
+      "target": "KoSvgTextShapeSchemaContractTest",
+      "source": "libs/flake/tests/KoSvgTextShapeSchemaContractTest.cpp",
+      "test": "KoSvgTextShapeSchemaContractTest::svgTextShapeMementoAndListenerSchemaRemainStable",
+      "behavior": "SVG文字図形のmementoは公開寿命を持ち、cursor変更listenerは図形変更・markup変更・cursor位置変更を通知する抽象接続面を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoSvgTextShape::TextCursorChangeListener::notifyCursorPosChanged(int pos,int anchor)",
+        "method:KoSvgTextShape::TextCursorChangeListener::notifyMarkupChanged()",
+        "method:KoSvgTextShape::TextCursorChangeListener::notifyShapeChanged(ChangeType type,KoShape * shape)",
+        "method:KoSvgTextShapeMemento::KoSvgTextShapeMemento()",
+        "method:KoSvgTextShapeMemento::~KoSvgTextShapeMemento()",
+        "struct:KoSvgTextShape::TextCursorChangeListener"
+      ]
+    },
+    {
+      "target": "KoSvgTextShapeSchemaContractTest",
+      "source": "libs/flake/tests/KoSvgTextShapeSchemaContractTest.cpp",
+      "test": "KoSvgTextShapeSchemaContractTest::svgTextShapeOutlineHelperTypeLifetimeAndRenderingSchemaRemainStable",
+      "behavior": "SVG文字図形の輪郭補助はcanvasから構築・破棄でき、表示変換を用いた描画と装飾矩形の取得を行う公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoSvgTextShapeOutlineHelper",
+        "method:KoSvgTextShapeOutlineHelper::KoSvgTextShapeOutlineHelper(KoCanvasBase * canvas)",
+        "method:KoSvgTextShapeOutlineHelper::decorationRect()",
+        "method:KoSvgTextShapeOutlineHelper::paint(QPainter * painter,const KoViewConverter & converter)",
+        "method:KoSvgTextShapeOutlineHelper::~KoSvgTextShapeOutlineHelper()"
+      ]
+    },
+    {
+      "target": "KoSvgTextShapeSchemaContractTest",
+      "source": "libs/flake/tests/KoSvgTextShapeSchemaContractTest.cpp",
+      "test": "KoSvgTextShapeSchemaContractTest::svgTextShapeOutlineHelperDisplayStateSignaturesRemainStable",
+      "behavior": "SVG文字図形の輪郭補助は境界矩形・図形輪郭・文字折返し領域の表示状態と、装飾線・handle・hoverの表示設定を扱う公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoSvgTextShapeOutlineHelper::drawBoundingRect() const",
+        "method:KoSvgTextShapeOutlineHelper::drawShapeOutlines() const",
+        "method:KoSvgTextShapeOutlineHelper::drawTextWrappingArea() const",
+        "method:KoSvgTextShapeOutlineHelper::setDecorationThickness(int thickness)",
+        "method:KoSvgTextShapeOutlineHelper::setDrawBoundingRect(bool enable)",
+        "method:KoSvgTextShapeOutlineHelper::setDrawShapeOutlines(bool enable)",
+        "method:KoSvgTextShapeOutlineHelper::setDrawTextWrappingArea(bool enable)",
+        "method:KoSvgTextShapeOutlineHelper::setHandleRadius(int radius)",
+        "method:KoSvgTextShapeOutlineHelper::setTextAreasHovered(bool enabled)"
+      ]
+    },
+    {
+      "target": "KoSvgTextShapeSchemaContractTest",
+      "source": "libs/flake/tests/KoSvgTextShapeSchemaContractTest.cpp",
+      "test": "KoSvgTextShapeSchemaContractTest::svgTextShapeOutlineHelperContourInteractionSignaturesRemainStable",
+      "behavior": "SVG文字図形の輪郭補助は座標に対する輪郭mode操作部のhover判定、対象図形のmode切替、表示状態更新を行う公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoSvgTextShapeOutlineHelper::contourModeButtonHovered(const QPointF & point)",
+        "method:KoSvgTextShapeOutlineHelper::toggleTextContourMode(KoSvgTextShape * shape)",
+        "method:KoSvgTextShapeOutlineHelper::updateTextContourMode()"
       ]
     }
   ]
