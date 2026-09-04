@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-04 18:29 JST
+- 更新日時: 2026-09-04 18:36 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -166,8 +166,14 @@
 - 監査共通基点は`11868d3853`、暫定入力は`build/tdd-macos/public-api-missing-g206.json`である。第206便までの契約済み・選定済み責務と、第207便で選定済みのstroke queue、図形種別登録・生成・挿入、スクリプト資源値・brush preset選択を除外し、変更、構成、構築、試験、Git操作、追加委任を行わない読み取り専用監査を先行する。正式な第207便完了報告で全識別子と閉包を再照合する。
 - `g208-image-contract-audit`の状態は`completed`で、image・paintop・pigment領域からraster keyframeとそのchannelの所有・複製・永続化31 APIを選定した。既存keyframe channel契約は273行・10枠で追記上限を超えるため、同じcompile interfaceを持つ新規専用targetで4工程・8入力を予測する。
 - `g208-ui-contract-audit`の状態は`completed`で、widgetutils・widgets・libkis領域から文書canvasの境界・寸法・offset・解像度・変形20 APIを選定した。既存製品試験は2,022工程・4,041入力であるため、`Document.h`を実体化しない新規専用targetへ分け、4工程・8入力を予測する。
-- `g208-flake-contract-audit`の状態は`auditing`で、flake・SVG・vector領域から一責務20〜80 API・最大5枠の候補を比較する。完全なAPI識別子、観測契約、開始pathから契約先、許可path、既存対象と近傍、予測閉包、停止条件、棄却根拠を返す。
-- `g208-raster-keyframe-closure-review`の状態は`auditing`で、`libs/image/kis_raster_keyframe_channel.h`の31 API案について、責務の一体性、既定引数、必要探索路・定義、4工程・8入力、AUTOMOC非入力化、製品非接続の成立条件を独立に読み取り専用レビューする。
+- `g208-flake-contract-audit`の状態は`completed`で、flake・SVG・vector領域からpath編集工具の入力・選択・装飾・stroke制御・図形通知27 APIを選定した。既存`KoSelectionSchemaContractTest`へ対象固有のpainting/undo探索路、KF I18n interface、export定義だけを加え、4工程・8入力と製品非接続を予測する。
+- `g208-raster-keyframe-closure-review`の状態は`completed`で、`libs/image/kis_raster_keyframe_channel.h`の31 APIが5枠へ重複なく対応し、既定引数とstatic/member overloadを未評価式と明示castで観測できることを確認した。候補headerをtarget sourceへ登録しなければ、近傍と同じcompile interfaceによる4工程・8入力、AUTOMOC `HEADERS=[]`、製品非接続を予測できる。
+
+### 第209便の先行監査担当票（第208便確定待ち）
+
+- 監査共通基点は`42d2d46885`、暫定入力は`build/tdd-macos/public-api-missing-g206.json`である。第207便までの契約済み・選定済み責務と、第208便で選定済みのraster keyframe channel、path編集工具、文書canvas幾何・解像度を除外し、変更、構成、構築、試験、Git操作、追加委任を行わない読み取り専用監査を先行する。正式な第208便完了報告で全識別子と閉包を再照合する。
+- `g209-image-contract-audit`の状態は`auditing`で、image・paintop・pigment領域から一責務20〜80 API・最大5枠の候補を比較する。完全なAPI識別子、観測契約、開始pathから契約先、許可path、既存対象と近傍、予測閉包、停止条件、棄却根拠を返す。
+- `g209-ui-contract-audit`の状態は`auditing`で、widgetutils・widgets・libkis領域から一責務20〜80 API・最大5枠の候補を比較する。完全なAPI識別子、観測契約、開始pathから契約先、許可path、既存対象と近傍、予測閉包、停止条件、棄却根拠を返す。
 
 ### 第201便の先行監査担当票
 
