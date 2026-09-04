@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 9566
+    "expectedMissingApis": 9529
   },
   "contracts": [
     {
@@ -56566,6 +56566,88 @@
         "method:KoFontStorage::resourceItem(const QString & url)",
         "method:KoFontStorage::resources(const QString & resourceType)",
         "method:KoFontStorage::tags(const QString & resourceType)"
+      ]
+    },
+    {
+      "target": "KisTransformMaskSchemaContractTest",
+      "source": "libs/image/tests/KisTransformMaskSchemaContractTest.cpp",
+      "test": "KisTransformMaskSchemaContractTest::transformMaskTypeLifetimeAndVisitorSchemaRemainStable",
+      "behavior": "変形maskは画像に所属するnode型としての構築・複製・寿命、visitor受付、および表示iconの公開契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisTransformMask",
+        "method:KisTransformMask::KisTransformMask(KisImageWSP image,const QString & name)",
+        "method:KisTransformMask::KisTransformMask(const KisTransformMask & rhs)",
+        "method:KisTransformMask::accept(KisNodeVisitor & v)",
+        "method:KisTransformMask::accept(KisProcessingVisitor & visitor,KisUndoAdapter * undoAdapter)",
+        "method:KisTransformMask::clone() const",
+        "method:KisTransformMask::icon() const",
+        "method:KisTransformMask::~KisTransformMask()"
+      ]
+    },
+    {
+      "target": "KisTransformMaskSchemaContractTest",
+      "source": "libs/image/tests/KisTransformMaskSchemaContractTest.cpp",
+      "test": "KisTransformMaskSchemaContractTest::transformMaskDeviceAndGeometrySignaturesRemainStable",
+      "behavior": "変形maskは描画装置、投影領域、必要領域、内容境界、および所属画像の公開署名と既定領域分類を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTransformMask::changeRect(const QRect & rect,PositionToFilthy pos=N_FILTHY) const",
+        "method:KisTransformMask::decorateRect(KisPaintDeviceSP & src,KisPaintDeviceSP & dst,const QRect & rc,PositionToFilthy maskPos,KisRenderPassFlags flags) const",
+        "method:KisTransformMask::exactBounds() const",
+        "method:KisTransformMask::extent() const",
+        "method:KisTransformMask::needRect(const QRect & rect,PositionToFilthy pos=N_FILTHY) const",
+        "method:KisTransformMask::paintDevice() const",
+        "method:KisTransformMask::setImage(KisImageWSP image)",
+        "method:KisTransformMask::sourceDataBounds() const"
+      ]
+    },
+    {
+      "target": "KisTransformMaskSchemaContractTest",
+      "source": "libs/image/tests/KisTransformMaskSchemaContractTest.cpp",
+      "test": "KisTransformMaskSchemaContractTest::transformMaskParametersAndCacheSignaturesRemainStable",
+      "behavior": "変形maskは変形parameterの参照・更新・undo更新と静的画像cache・preview装置の公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTransformMask::buildPreviewDevice()",
+        "method:KisTransformMask::buildSourcePreviewDevice()",
+        "method:KisTransformMask::overrideStaticCacheDevice(KisPaintDeviceSP device)",
+        "method:KisTransformMask::recalculateStaticImage()",
+        "method:KisTransformMask::setTransformParams(KisTransformMaskParamsInterfaceSP params)",
+        "method:KisTransformMask::setTransformParamsWithUndo(KisTransformMaskParamsInterfaceSP params,KUndo2Command * parentCommand)",
+        "method:KisTransformMask::staticImageCacheIsValid() const",
+        "method:KisTransformMask::transformParams() const"
+      ]
+    },
+    {
+      "target": "KisTransformMaskSchemaContractTest",
+      "source": "libs/image/tests/KisTransformMaskSchemaContractTest.cpp",
+      "test": "KisTransformMaskSchemaContractTest::transformMaskPositionAndDelayedUpdateSignaturesRemainStable",
+      "behavior": "変形maskは位置の取得・更新、時限更新状態、および安全な静的画像更新の公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTransformMask::forceUpdateTimedNode()",
+        "method:KisTransformMask::hasPendingTimedUpdates() const",
+        "method:KisTransformMask::setX(qint32 x)",
+        "method:KisTransformMask::setY(qint32 y)",
+        "method:KisTransformMask::threadSafeForceStaticImageUpdate()",
+        "method:KisTransformMask::threadSafeForceStaticImageUpdate(const QRect & extraUpdateRect)",
+        "method:KisTransformMask::x() const",
+        "method:KisTransformMask::y() const"
+      ]
+    },
+    {
+      "target": "KisTransformMaskSchemaContractTest",
+      "source": "libs/image/tests/KisTransformMaskSchemaContractTest.cpp",
+      "test": "KisTransformMaskSchemaContractTest::transformMaskLodTestingAndNotificationSignaturesRemainStable",
+      "behavior": "変形maskはLoD cache・装置、試験用interface、および静的画像更新通知の公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTransformMask::getLodCapableDevices() const",
+        "method:KisTransformMask::setTestingInterface(KisTransformMaskTestingInterface * interface)",
+        "method:KisTransformMask::sigInternalForceStaticImageUpdate()",
+        "method:KisTransformMask::syncLodCache()",
+        "method:KisTransformMask::testingInterface() const"
       ]
     }
   ]

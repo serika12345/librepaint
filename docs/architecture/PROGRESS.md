@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-04 21:21 JST
+- 更新日時: 2026-09-04 21:32 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -270,7 +270,7 @@
 ### 第210便の担当計画
 
 - 実装共通基点は`095188a081`である。一度に一つだけ作る専用worktree-local `build/tdd-macos`と主作業treeの共有compiler cacheを使い、担当側の`./scripts/run-shared-test-env`で読み込み済み環境を利用する。変形mask、文書識別・保存・close・処理同期の順に限定検証・統合・削除し、調整担当だけが文書、公開API台帳、共通不足報告を変更する。各担当のGit権限は許可pathだけの1受渡しcommitで、追加委任は禁止する。
-- `g210-transform-mask-schema`の状態は`implementing`、作業treeは`/Users/masato/Documents/librepaint-g210-transform-mask-schema`である。開始`libs/image/kis_transform_mask.h`の残存全37 APIを、新規`libs/image/tests/KisTransformMaskSchemaContractTest.cpp`の5枠`transformMaskTypeLifetimeAndVisitorSchemaRemainStable`、`transformMaskDeviceAndGeometrySignaturesRemainStable`、`transformMaskParametersAndCacheSignaturesRemainStable`、`transformMaskPositionAndDelayedUpdateSignaturesRemainStable`、`transformMaskLodTestingAndNotificationSignaturesRemainStable`へ8・8・8・8・5件で対応付ける。許可pathは新規試験sourceと`libs/image/tests/CMakeLists.txt`の新target固有節だけで、所有targetは`KisTransformMaskSchemaContractTest`、近傍は`KisMaskSchemaContractTest`である。macOSのこの2対象に限る構築実行許可を`granted`とし、既存mask契約と同じ探索路、定義、Qt Core・Gui・Test・Xml、header-only Boostによる4工程・8入力を維持する。
+- `g210-transform-mask-schema`の状態は`integrated`である。開始`libs/image/kis_transform_mask.h`の残存全37 APIを、新規`libs/image/tests/KisTransformMaskSchemaContractTest.cpp`の5枠`transformMaskTypeLifetimeAndVisitorSchemaRemainStable`、`transformMaskDeviceAndGeometrySignaturesRemainStable`、`transformMaskParametersAndCacheSignaturesRemainStable`、`transformMaskPositionAndDelayedUpdateSignaturesRemainStable`、`transformMaskLodTestingAndNotificationSignaturesRemainStable`へ8・8・8・8・5件で対応付けた。受渡しcommit`3859bf5acb`を統合commit`42470a2a73`として取り込み、担当側と中央で追加5枠を各20回、対象・近傍CTest、二回目計画と無作業再構築を実行した。既存mask契約と同じ4工程・8入力、Qt Core・Gui・Test・Xmlだけの動的接続、AUTOMOC `HEADERS=[]`、製品未解決記号なしを維持し、台帳は20,309件対応、9,529件未対応となった。cleanな専用作業tree、294,272 KiBの構築木、branchを統合直後に削除し、883,956 KiBを回収した。投影変形、cache再計算、遅延更新、LoD同期、通知順序の実行結果は別の効果契約で扱う。
 - 変形mask担当の停止線は5工程・11入力である。候補headerのAUTOMOC入力化、製品shared・OBJECT・`kritatestsdk`接続、新探索路・定義・link、計画外の動的接続または製品未解決記号、対象値やinline本文の実体化・実行、許可path外変更が必要なら停止する。編集前後の計画・依存・空閉包、旧binaryでの対象不存在、宣言段階の初期失敗、追加5枠の単発と各20回反復、対象・近傍CTest、AUTOMOC後の二回目計画、無作業再構築2回、動的接続・未解決記号・構文・書式、公開API検査、`verify-quick`を確認する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
 - `g210-document-lifecycle-schema`の状態は`planned`である。変形mask担当の統合と作業tree削除後に、開始`libs/libkis/Document.h`の選定20 APIを新規`libs/libkis/tests/DocumentLifecycleSchemaContractTest.cpp`の5枠6・4・3・3・4件へ対応付ける。許可pathは新規試験sourceと`libs/libkis/tests/CMakeLists.txt`の新target固有節だけ、対象は`DocumentLifecycleSchemaContractTest`、近傍は`DocumentGeometrySchemaContractTest`である。作業treeと構築許可は前担当の削除後に割り当てる。
 
@@ -329,9 +329,9 @@
 ### 第214便の先行監査担当票（第213便確定待ち）
 
 - 監査共通基点は`23be79d354`、暫定入力は`build/tdd-macos/public-api-missing-g210.json`である。第209便までの契約済み責務と、第210便から第213便で選定済みの変形mask、文書lifecycle、brush preset、SVG文字列command群、スクリプト向けアプリケーション根、標準曲線option、変形mask adapter、raster面・色channel、gradient painter、変形状態、canvas animation stateを除外する。監査中は主作業treeを読み取り専用で共有し、変更、構成、構築、試験、Git操作、追加委任を行わない。既存Ninja graphのquery・commands・inputsは読み取り専用で利用できる。
-- `g214-flake-contract-audit`の状態は`auditing`で、`libs/flake/`、`plugins/tools/svgtexttool/`、`plugins/tools/tool_transform2/`から、選定済み責務と重ならない一責務20〜80 APIを最大5枠へ固定できる候補を比較する。開始header、全API識別子、枠別配分、契約先、所有CMake、最寄りCTest、直接依存、実測または予測する工程・入力、観測方法、停止条件、比較候補の棄却根拠を返す。既存契約への追記は追加後300行・20枠以下の場合だけ採用し、それ以外は同じ最小compile interfaceの専用targetを比較する。
-- `g214-ui-contract-audit`の状態は`auditing`で、`libs/widgetutils/`、`libs/widgets/`、`libs/libkis/`、`libs/ui/`から、選定済み責務と重ならない一責務20〜80 APIを最大5枠へ固定できる候補を比較する。開始header、全API識別子、枠別配分、契約先、所有CMake、最寄りCTest、直接依存、実測または予測する工程・入力、観測方法、停止条件、比較候補の棄却根拠を返す。UI値とQObjectを実体化せずに宣言契約へ閉じる候補を優先し、既存契約への追記上限と専用target案を比較する。
-- `g214-image-contract-audit`の状態は`planned`である。第210便の一担当が完了して実行枠が空いた後、`libs/image/`、paintop、pigment領域から同じ条件で候補を監査する。3領域の候補は開始header、試験source、所有CMake、生成物が相互に異なり、製品shared・OBJECT・`kritatestsdk`へ接続せず、targetが概ね4〜10工程へ閉じる組合せだけを第214便計画へ進める。
+- `g214-flake-contract-audit`の状態は`completed`で、SVG図形のclipboard交換、SVG取込み、path data読込み、図形固有SVG永続化を一つの交換境界として22 APIを選定した。既存101行・5枠の`SvgParserSchemaContractTest`へ5枠を追加しても上限内であり、CMake変更なしの4工程・8入力、AUTOMOC `HEADERS=[]`、製品非接続を維持できる。
+- `g214-ui-contract-audit`の状態は`completed`で、`libs/ui/widgets/KisHistogramPainter.h`のhistogram選択・表示色・尺度・描画入口20 APIを選定した。新規`KisHistogramPainterSchemaContractTest`はQt Core・Testだけを直接接続し、Qt Guiのinterface探索路とapplication生成export headerだけで4工程・8入力を予測する。非QObject型と全Qt値を実体化せず観測できる。
+- `g214-image-contract-audit`の状態は`auditing`である。第210便の変形mask担当完了後に実行枠を割り当て、`libs/image/`、paintop、pigment領域から同じ条件で候補を監査している。3領域の候補は開始header、試験source、所有CMake、生成物が相互に異なり、製品shared・OBJECT・`kritatestsdk`へ接続せず、targetが概ね4〜10工程へ閉じる組合せだけを第214便計画へ進める。
 
 ### 第201便の先行監査担当票
 
