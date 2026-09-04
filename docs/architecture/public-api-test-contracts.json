@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 8996
+    "expectedMissingApis": 8939
   },
   "contracts": [
     {
@@ -58036,6 +58036,108 @@
         "method:KoShapeUnclipCommand::redo()",
         "method:KoShapeUnclipCommand::undo()",
         "method:KoShapeUnclipCommand::~KoShapeUnclipCommand()"
+      ]
+    },
+    {
+      "target": "KisColorizeMaskSchemaContractTest",
+      "source": "libs/image/tests/KisColorizeMaskSchemaContractTest.cpp",
+      "test": "KisColorizeMaskSchemaContractTest::colorizeMaskTypeLifetimeAndKeyStrokeColorsSchemaRemainStable",
+      "behavior": "色付けmaskは公開型と仮想寿命を持ち、画像と名前または既存maskから構築され、key stroke色と透明色位置を保持する公開構造を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisColorizeMask",
+        "member:KisColorizeMask::KeyStrokeColors::colors",
+        "member:KisColorizeMask::KeyStrokeColors::transparentIndex",
+        "method:KisColorizeMask::KisColorizeMask(KisImageWSP image,const QString & name)",
+        "method:KisColorizeMask::KisColorizeMask(const KisColorizeMask & rhs)",
+        "method:KisColorizeMask::~KisColorizeMask()",
+        "struct:KisColorizeMask::KeyStrokeColors"
+      ]
+    },
+    {
+      "target": "KisColorizeMaskSchemaContractTest",
+      "source": "libs/image/tests/KisColorizeMaskSchemaContractTest.cpp",
+      "test": "KisColorizeMaskSchemaContractTest::colorizeMaskHierarchyAndPresentationSignaturesRemainStable",
+      "behavior": "色付けmaskはnode階層・visitor・表示属性と、描画・色付け・LODに使う装置集合を公開する署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisColorizeMask::accept(KisNodeVisitor & v)",
+        "method:KisColorizeMask::accept(KisProcessingVisitor & visitor,KisUndoAdapter * undoAdapter)",
+        "method:KisColorizeMask::allPaintDevices() const",
+        "method:KisColorizeMask::clone() const",
+        "method:KisColorizeMask::coloringProjection() const",
+        "method:KisColorizeMask::getLodCapableDevices() const",
+        "method:KisColorizeMask::icon() const",
+        "method:KisColorizeMask::paintDevice() const",
+        "method:KisColorizeMask::sectionModelProperties() const",
+        "method:KisColorizeMask::setSectionModelProperties(const KisBaseNode::PropertyList & properties)",
+        "method:KisColorizeMask::supportsNonIndirectPainting() const"
+      ]
+    },
+    {
+      "target": "KisColorizeMaskSchemaContractTest",
+      "source": "libs/image/tests/KisColorizeMaskSchemaContractTest.cpp",
+      "test": "KisColorizeMaskSchemaContractTest::colorizeMaskProjectionAndProcessingSignaturesRemainStable",
+      "behavior": "色付けmaskは投影範囲・色空間・cache再生成・layer統合と試験用投影参照を管理する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisColorizeMask::colorSampleSourceDevice() const",
+        "method:KisColorizeMask::colorSpace() const",
+        "method:KisColorizeMask::decorateRect(KisPaintDeviceSP & src,KisPaintDeviceSP & dst,const QRect & rc,PositionToFilthy maskPos,KisRenderPassFlags flags) const",
+        "method:KisColorizeMask::exactBounds() const",
+        "method:KisColorizeMask::extent() const",
+        "method:KisColorizeMask::forceRegenerateMask()",
+        "method:KisColorizeMask::initializeCompositeOp()",
+        "method:KisColorizeMask::mergeToLayerThreaded(KisNodeSP layer,KUndo2Command * parentCommand,const KUndo2MagicString & transactionText,int timedID,QVector<KisRunnableStrokeJobData * > * jobs)",
+        "method:KisColorizeMask::nonDependentExtent() const",
+        "method:KisColorizeMask::regeneratePrefilteredDeviceIfNeeded()",
+        "method:KisColorizeMask::resetCache()",
+        "method:KisColorizeMask::setColorSpace(const KoColorSpace * dstColorSpace,KoColorConversionTransformation::Intent renderingIntent=KoColorConversionTransformation::internalRenderingIntent (),KoColorConversionTransformation::ConversionFlags conversionFlags=KoColorConversionTransformation::internalConversionFlags (),KoUpdater * progressUpdater=nullptr)",
+        "method:KisColorizeMask::setProfile(const KoColorProfile * profile,KUndo2Command * parentCommand)",
+        "method:KisColorizeMask::testingFilteredSource() const",
+        "method:KisColorizeMask::writeMergeData(KisPainter * painter,KisPaintDeviceSP src,const QRect & rc)"
+      ]
+    },
+    {
+      "target": "KisColorizeMaskSchemaContractTest",
+      "source": "libs/image/tests/KisColorizeMaskSchemaContractTest.cpp",
+      "test": "KisColorizeMaskSchemaContractTest::colorizeMaskOptionQuerySignaturesRemainStable",
+      "behavior": "色付けmaskはcleanup、輪郭検出、fuzzy処理、装置境界制限、位置、およびkey stroke色の現在値を照会する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisColorizeMask::cleanUpAmount() const",
+        "method:KisColorizeMask::edgeDetectionSize() const",
+        "method:KisColorizeMask::fuzzyRadius() const",
+        "method:KisColorizeMask::keyStrokesColors() const",
+        "method:KisColorizeMask::limitToDeviceBounds() const",
+        "method:KisColorizeMask::useEdgeDetection() const",
+        "method:KisColorizeMask::x() const",
+        "method:KisColorizeMask::y() const"
+      ]
+    },
+    {
+      "target": "KisColorizeMaskSchemaContractTest",
+      "source": "libs/image/tests/KisColorizeMaskSchemaContractTest.cpp",
+      "test": "KisColorizeMaskSchemaContractTest::colorizeMaskMutationAndNotificationSignaturesRemainStable",
+      "behavior": "色付けmaskはkey strokeと生成option・画像・位置を更新し、key stroke一覧と親dirty状態の変更を通知する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisColorizeMask::fetchKeyStrokesDirect() const",
+        "method:KisColorizeMask::removeKeyStroke(const KoColor & color)",
+        "method:KisColorizeMask::setCleanUpAmount(qreal value)",
+        "method:KisColorizeMask::setCurrentColor(const KoColor & color)",
+        "method:KisColorizeMask::setEdgeDetectionSize(qreal value)",
+        "method:KisColorizeMask::setFuzzyRadius(qreal value)",
+        "method:KisColorizeMask::setImage(KisImageWSP image)",
+        "method:KisColorizeMask::setKeyStrokesColors(KeyStrokeColors colors)",
+        "method:KisColorizeMask::setKeyStrokesDirect(const QList<KisLazyFillTools::KeyStroke> & strokes)",
+        "method:KisColorizeMask::setLimitToDeviceBounds(bool value)",
+        "method:KisColorizeMask::setUseEdgeDetection(bool value)",
+        "method:KisColorizeMask::setX(qint32 x)",
+        "method:KisColorizeMask::setY(qint32 y)",
+        "method:KisColorizeMask::sigKeyStrokesListChanged()",
+        "method:KisColorizeMask::sigUpdateOnDirtyParent() const",
+        "method:KisColorizeMask::testingAddKeyStroke(KisPaintDeviceSP dev,const KoColor & color,bool isTransparent=false)"
       ]
     }
   ]
