@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 10210
+    "expectedMissingApis": 10176
   },
   "contracts": [
     {
@@ -54932,6 +54932,85 @@
       "apis": [
         "method:KoPathToolSelection::paint(QPainter & painter,const KoViewConverter & converter,qreal handleRadius,KoColorDisplayRendererInterface * renderInterface)",
         "method:KoPathToolSelection::selectionChanged()"
+      ]
+    },
+    {
+      "target": "KisColorSelectionControlSchemaContractTest",
+      "source": "libs/widgets/tests/KisColorSelectionControlSchemaContractTest.cpp",
+      "test": "KisColorSelectionControlSchemaContractTest::visualColorSelectorTypeLifetimeAndRenderModeSchemaRemainStable",
+      "behavior": "視覚色選択器は色選択interfaceの派生型、背景描画modeの値、既定modelとparentによる構築、仮想破棄、描画mode照会・設定の公開契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisVisualColorSelector",
+        "enum:KisVisualColorSelector::RenderMode",
+        "enumerator:KisVisualColorSelector::RenderMode::CompositeBackground",
+        "enumerator:KisVisualColorSelector::RenderMode::DynamicBackground",
+        "enumerator:KisVisualColorSelector::RenderMode::StaticBackground",
+        "method:KisVisualColorSelector::KisVisualColorSelector(QWidget * parent=0,KisVisualColorModelSP model=KisVisualColorModelSP ())",
+        "method:KisVisualColorSelector::renderMode() const",
+        "method:KisVisualColorSelector::setRenderMode(RenderMode mode)",
+        "method:KisVisualColorSelector::~KisVisualColorSelector()"
+      ]
+    },
+    {
+      "target": "KisColorSelectionControlSchemaContractTest",
+      "source": "libs/widgets/tests/KisColorSelectionControlSchemaContractTest.cpp",
+      "test": "KisColorSelectionControlSchemaContractTest::visualColorSelectorModelAndConfigurationSignaturesRemainStable",
+      "behavior": "視覚色選択器は選択model、色選択設定、tablet入力、slider幅を照会または設定する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisVisualColorSelector::configuration() const",
+        "method:KisVisualColorSelector::selectorModel() const",
+        "method:KisVisualColorSelector::setAcceptTabletEvents(bool on)",
+        "method:KisVisualColorSelector::setConfig(bool forceCircular,bool forceSelfUpdate)",
+        "method:KisVisualColorSelector::setConfiguration(const KisColorSelectorConfiguration * config)",
+        "method:KisVisualColorSelector::setMinimumSliderWidth(int width)",
+        "method:KisVisualColorSelector::setSelectorModel(KisVisualColorModelSP model)"
+      ]
+    },
+    {
+      "target": "KisColorSelectionControlSchemaContractTest",
+      "source": "libs/widgets/tests/KisColorSelectionControlSchemaContractTest.cpp",
+      "test": "KisColorSelectionControlSchemaContractTest::visualColorSelectorColorAndRendererSignaturesRemainStable",
+      "behavior": "視覚色選択器は現在色・色空間、表示renderer、自動露出を照会または設定する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisVisualColorSelector::autoAdjustExposure() const",
+        "method:KisVisualColorSelector::displayRenderer() const",
+        "method:KisVisualColorSelector::getCurrentColor() const",
+        "method:KisVisualColorSelector::setAutoAdjustExposure(bool enabled)",
+        "method:KisVisualColorSelector::setDisplayRenderer(const KoColorDisplayRendererInterface * displayRenderer)",
+        "method:KisVisualColorSelector::slotSetColor(const KoColor & c)",
+        "method:KisVisualColorSelector::slotSetColorSpace(const KoColorSpace * cs)"
+      ]
+    },
+    {
+      "target": "KisColorSelectionControlSchemaContractTest",
+      "source": "libs/widgets/tests/KisColorSelectionControlSchemaContractTest.cpp",
+      "test": "KisColorSelectionControlSchemaContractTest::visualColorSelectorPresentationAndProofSignaturesRemainStable",
+      "behavior": "視覚色選択器は最小寸法、proof色、slider位置と操作中通知に関する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisVisualColorSelector::minimumSizeHint() const",
+        "method:KisVisualColorSelector::proofColors() const",
+        "method:KisVisualColorSelector::setProofColors(bool enabled)",
+        "method:KisVisualColorSelector::setSliderPosition(Qt::Edge edge)",
+        "method:KisVisualColorSelector::sigInteraction(bool active)"
+      ]
+    },
+    {
+      "target": "KisColorSelectionControlSchemaContractTest",
+      "source": "libs/widgets/tests/KisColorSelectionControlSchemaContractTest.cpp",
+      "test": "KisColorSelectionControlSchemaContractTest::visualColorSelectorGamutAndNotificationSignaturesRemainStable",
+      "behavior": "視覚色選択器は有効なgamut mask、maskと設定の更新、gamut対応状態通知に関する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisVisualColorSelector::activeGamutMask() const",
+        "method:KisVisualColorSelector::sigGamutMaskSupportChanged(bool supported)",
+        "method:KisVisualColorSelector::slotConfigurationChanged()",
+        "method:KisVisualColorSelector::slotGamutMaskChanged(KoGamutMaskSP mask)",
+        "method:KisVisualColorSelector::slotGamutMaskPreviewUpdate()",
+        "method:KisVisualColorSelector::slotGamutMaskUnset()"
       ]
     }
   ]
