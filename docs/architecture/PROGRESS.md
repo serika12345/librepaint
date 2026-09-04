@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-04 22:20 JST
+- 更新日時: 2026-09-04 22:24 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -367,7 +367,7 @@
 - `g215-image-contract-audit`の状態は`completed`で、`KoColorSpaceRegistry.h`の色空間・profile登録、検索、変換経路63 APIを選定した。既存色空間契約は272行・15枠のため新規専用targetへ分け、Qt Core・Gui・Testとheader-only Boostによる4工程・8入力を予測する。
 - `g215-shape-state-closure-review`の状態は`completed`で、2 headerの22 APIと5枠8・3・3・2・6、既存`KoShapeStateSchemaContractTest`への追記を独立確認した。CMake変更なし、Qt Core・Gui・Test・Xml、4工程・8入力を維持でき、resources探索路の追加は不要である。
 - `g215-async-sampler-closure-review`の状態は`completed`で、`KisAsyncColorSamplerHelper.h`の20 APIと5枠4・6・2・5・3を独立確認した。application生成探索路を優先して誤った`kritaui_export.h`を避け、Qt Core・Testだけを直接接続する4工程・8入力へ閉じられる。
-- `g215-color-registry-closure-review`の状態は`reviewing`で、`KoColorSpaceRegistry.h`の63 APIと5枠11・10・13・11・18、新規targetの4工程・8入力閉包、`HAVE_OPENEXR`条件下の`alpha16f`を独立再検査する。
+- `g215-color-registry-closure-review`の状態は`completed`で、`KoColorSpaceRegistry.h`の63 APIと5枠11・10・13・11・18を独立確認した。現macOS構成の`KoConfig.h`が`HAVE_OPENEXR=1`を供給するため`alpha16f`に追加依存はなく、pigment・global探索路、KF I18n interface、Qt Core・Gui・Test、header-only Boost、2 export定義による4工程・8入力へ閉じられる。
 
 ### 第215便の先行監査結果（第214便確定待ち）
 
@@ -375,6 +375,13 @@
 - UI領域は`libs/ui/tool/KisAsyncColorSamplerHelper.h`の20 APIを、型・寿命・状態4、起動・操作6、preview・描画2、全体色・輪郭通知5、色通知3として新規`libs/ui/tests/KisAsyncColorSamplerHelperSchemaContractTest.cpp`の5枠へ固定する。Qt Core・Testを直接接続し、application・image・global探索路と対応するexport定義による4工程・8入力、停止線5工程・11入力を予測する。
 - pigment領域は`libs/pigment/KoColorSpaceRegistry.h`の63 APIを、型・寿命・方針11、factory・profile更新10、profile・catalog照会13、色空間解決・変換11、既定色空間18として新規`libs/pigment/tests/KoColorSpaceRegistrySchemaContractTest.cpp`の5枠へ固定する。pigment・global探索路、KF I18n interface、Qt Core・Gui・Testとheader-only Boost、2 export定義による4工程・8入力、停止線5工程・11入力を予測する。
 - 3候補は合計105 API・15枠である。型特性、厳密な関数pointer、未評価式だけで対象型、Qt値、図形、採取helper、色空間registryを実体化せず観測する。候補headerのAUTOMOC入力化、製品shared・OBJECT・`kritatestsdk`、計画外の探索路・定義・動的接続、製品未解決記号、本文のODR-useが必要なら停止する。正式な第215便不足報告で全識別子と閉包を再照合する。
+
+### 第216便の先行監査担当票（第215便確定待ち）
+
+- 監査共通基点は`99bcff706a`、暫定入力は`build/tdd-macos/public-api-missing-g211.json`である。第210便までの契約済み責務と、第211便から第215便で選定済みのbrush preset、SVG文字列command群、スクリプト向けアプリケーション根、標準曲線option、変形mask adapter、raster面・色channel、gradient painter、変形状態、canvas animation state、SVG図形交換、histogram描画、色空間factory、図形補助状態・root layer、非同期色採取、色空間registryを除外する。監査中は主作業treeを読み取り専用で共有し、変更、構成、構築、試験、Git操作、追加委任を行わない。既存Ninja graphのquery・commands・inputsは読み取り専用で利用できる。
+- `g216-image-contract-audit`の状態は`auditing`で、`libs/image/`、paintop、`libs/pigment/`から、選定済み責務と重ならない一責務20〜80 APIを最大5枠へ固定できる候補を比較する。開始header、全API識別子、枠別配分、契約先、所有CMake、最寄りCTest、直接依存、工程・入力、観測方法、停止条件、棄却根拠を返す。
+- `g216-ui-contract-audit`の状態は`auditing`で、`libs/widgetutils/`、`libs/widgets/`、`libs/libkis/`、`libs/ui/`から同じ条件の候補を比較する。UI値とQObjectを実体化せず宣言契約へ閉じる候補を優先し、誤った生成export headerや製品UI生成への接続を避ける。
+- `g216-flake-contract-audit`の状態は`planned`である。実行枠が空いた後、`libs/flake/`、`plugins/tools/svgtexttool/`、`plugins/tools/tool_transform2/`から同じ条件の候補を監査する。3領域とも既存契約への追記は追加後300行・20枠以下の場合だけ採用し、製品shared・OBJECT・`kritatestsdk`へ接続せず、targetが概ね4〜10工程へ閉じる候補だけを進める。
 
 ### 第201便の先行監査担当票
 
