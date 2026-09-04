@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-04 23:34 JST
+- 更新日時: 2026-09-04 23:37 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -322,6 +322,7 @@
 - `g212-ui-contract-audit`の状態は`completed`で、widgetutils・widgets・libkis領域からスクリプト向けraster面・色channel境界23 APIを選定した。既存Node契約のcompile interfaceへflake・ui/canvas探索路を加えた新規専用targetで4工程・8入力を予測する。
 - `g212-standard-option-closure-review`の状態は`completed`で、標準曲線option 32 APIが一責務の5枠へ対応し、template本文とwidgetを実体化せず、既存targetへCMake変更なしで追加できることを独立確認した。
 - `g212-raster-surface-closure-review`の状態は`completed`で、libkisのraster面・色channel 23 APIが一責務の5枠へ対応し、`Document::projection`の4既定引数を未評価呼出しで観測できることを独立確認した。Node系compile interfaceにflake・ui/canvasのsource/generated探索路、application生成探索路、`kritaflake_EXPORTS`、`kritaui_EXPORTS`を加える補正が必要である。
+- `g212-transform-mask-adapter-closure-review`の状態は`auditing`、担当は`/root/g178_paintop_settings_schema`である。正式不足報告の変形mask adapter 24 API、5枠4・5・6・6・3、既存変形幾何契約へのCMake無変更追記、4工程・9入力、製品非接続を独立再検査する。読み取り専用で、変更、構成、構築、試験、Git操作、追加委任を行わない。
 - 各担当は候補headerをtarget sourceやAUTOMOC入力にせず、型特性、厳密な関数pointer、未評価式で実体化と本文実行を避ける計画を優先する。製品targetのplan/buildは禁止し、既存Ninja graphのquery・commands・inputsは読み取り専用で利用できる。
 
 ### 第212便の先行監査結果
