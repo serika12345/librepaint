@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 10041
+    "expectedMissingApis": 10021
   },
   "contracts": [
     {
@@ -55416,6 +55416,71 @@
         "method:KisSpinBoxUnitManagerFactory::buildDefaultUnitManager(QObject * parent)",
         "method:KisSpinBoxUnitManagerFactory::clearUnitManagerBuilder()",
         "method:KisSpinBoxUnitManagerFactory::setDefaultUnitManagerBuilder(KisSpinBoxUnitManagerBuilder * pBuilder)"
+      ]
+    },
+    {
+      "target": "KisStrokeStrategyUndoCommandBasedSchemaContractTest",
+      "source": "libs/image/tests/KisStrokeStrategyUndoCommandBasedSchemaContractTest.cpp",
+      "test": "KisStrokeStrategyUndoCommandBasedSchemaContractTest::transactionTypeFlagsAndLifetimeSchemaRemainStable",
+      "behavior": "画像変更transactionはflag集合、更新抑止値、仮想破棄を備える公開型契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisTransaction::Flags",
+        "class:KisTransaction",
+        "enum:KisTransaction::Flag",
+        "enumerator:KisTransaction::Flag::None",
+        "enumerator:KisTransaction::Flag::SuppressUpdates",
+        "method:KisTransaction::~KisTransaction()"
+      ]
+    },
+    {
+      "target": "KisStrokeStrategyUndoCommandBasedSchemaContractTest",
+      "source": "libs/image/tests/KisStrokeStrategyUndoCommandBasedSchemaContractTest.cpp",
+      "test": "KisStrokeStrategyUndoCommandBasedSchemaContractTest::transactionConstructionAndMoveSchemaRemainStable",
+      "behavior": "画像変更transactionは任意の名称、paint device、親command、時間識別子、stroke間data factory、flagから構築でき、移動によって所有権を移せる公開契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTransaction::KisTransaction(KisPaintDeviceSP device,KUndo2Command * parent=0,int timedID=-1,KisTransactionWrapperFactory * interstrokeDataFactory=0,Flags flags=None)",
+        "method:KisTransaction::KisTransaction(KisTransaction && rhs)",
+        "method:KisTransaction::KisTransaction(const KUndo2MagicString & name,KisPaintDeviceSP device,KUndo2Command * parent=0,int timedID=-1,KisTransactionWrapperFactory * interstrokeDataFactory=0,Flags flags=None)",
+        "method:KisTransaction::operator =(KisTransaction && rhs)"
+      ]
+    },
+    {
+      "target": "KisStrokeStrategyUndoCommandBasedSchemaContractTest",
+      "source": "libs/image/tests/KisStrokeStrategyUndoCommandBasedSchemaContractTest.cpp",
+      "test": "KisStrokeStrategyUndoCommandBasedSchemaContractTest::transactionCompletionAndInspectionSignaturesRemainStable",
+      "behavior": "画像変更transactionは変更の終了、終了済みcommandの引渡し、名称とundo commandの照会に関する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTransaction::end()",
+        "method:KisTransaction::endAndTake()",
+        "method:KisTransaction::text() const",
+        "method:KisTransaction::undoCommand()"
+      ]
+    },
+    {
+      "target": "KisStrokeStrategyUndoCommandBasedSchemaContractTest",
+      "source": "libs/image/tests/KisStrokeStrategyUndoCommandBasedSchemaContractTest.cpp",
+      "test": "KisStrokeStrategyUndoCommandBasedSchemaContractTest::transactionCommitAndRevertSignaturesRemainStable",
+      "behavior": "画像変更transactionは通常または事後実行undo adapterへの確定と変更取消に関する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTransaction::commit(KisPostExecutionUndoAdapter * undoAdapter)",
+        "method:KisTransaction::commit(KisUndoAdapter * undoAdapter)",
+        "method:KisTransaction::revert()"
+      ]
+    },
+    {
+      "target": "KisStrokeStrategyUndoCommandBasedSchemaContractTest",
+      "source": "libs/image/tests/KisStrokeStrategyUndoCommandBasedSchemaContractTest.cpp",
+      "test": "KisStrokeStrategyUndoCommandBasedSchemaContractTest::selectionTransactionTypeAndConstructionSchemaRemainStable",
+      "behavior": "選択transactionは画像変更transactionを継承し、pixel selectionと任意の名称・親commandから構築できる公開契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisSelectionTransaction",
+        "method:KisSelectionTransaction::KisSelectionTransaction(KisPixelSelectionSP pixelSelection,KUndo2Command * parent=0)",
+        "method:KisSelectionTransaction::KisSelectionTransaction(const KUndo2MagicString & name,KisPixelSelectionSP pixelSelection,KUndo2Command * parent=0)"
       ]
     }
   ]
