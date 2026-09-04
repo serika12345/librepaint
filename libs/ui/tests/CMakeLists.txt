@@ -272,6 +272,43 @@ target_compile_definitions(KisHistogramPainterSchemaContractTest PRIVATE
 )
 
 kis_add_test(
+    KisAutoLevelsWidgetSchemaContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+)
+ki18n_wrap_ui(KisAutoLevelsWidgetSchemaContractTest
+    ${CMAKE_CURRENT_SOURCE_DIR}/../widgets/KisAutoLevelsWidget.ui
+)
+target_include_directories(KisAutoLevelsWidgetSchemaContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_BINARY_DIR}/libs/application
+    ${CMAKE_SOURCE_DIR}/libs/image
+    ${CMAKE_BINARY_DIR}/libs/image
+    ${CMAKE_SOURCE_DIR}/libs/pigment
+    ${CMAKE_BINARY_DIR}/libs/pigment
+    ${CMAKE_SOURCE_DIR}/libs/widgets
+    ${CMAKE_BINARY_DIR}/libs/widgets
+    ${CMAKE_SOURCE_DIR}/libs/widgetutils
+    ${CMAKE_BINARY_DIR}/libs/widgetutils
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Gui,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Widgets,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:Imath::Imath,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:Boost::boost,INTERFACE_INCLUDE_DIRECTORIES>
+)
+target_compile_definitions(KisAutoLevelsWidgetSchemaContractTest PRIVATE
+    kritaapplicationui_EXPORTS
+    kritaimage_EXPORTS
+    kritapigment_EXPORTS
+    kritawidgets_EXPORTS
+    kritawidgetutils_EXPORTS
+    kritaglobal_EXPORTS
+)
+
+kis_add_test(
     KisAsyncColorSamplerHelperSchemaContractTest.cpp
     LINK_LIBRARIES
         Qt${QT_MAJOR_VERSION}::Core
