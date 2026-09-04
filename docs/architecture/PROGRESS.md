@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-04 16:40 JST
+- 更新日時: 2026-09-04 16:44 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -99,6 +99,8 @@
 - `g205-image-contract-audit`の状態は`completed`で、image・paintop・pigment領域から画像変更transaction 20 APIを選定した。
 - `g205-flake-contract-audit`の状態は`completed`で、flake・SVG・vector領域からtool actionとtool activation管理49 APIを選定した。
 - `g205-ui-contract-audit`の状態は`completed`で、widgetutils・widgets・libkis領域から資源server取得とpopup選択・通知21 APIを選定した。
+- `g205-tool-manager-closure-review`の状態は`reviewing`、変更・構築実行・Git権限は`withheld`である。`libs/flake/KoToolManager.h`の49 APIから新規専用契約5枠への完全対応、4工程・8入力、Qt Core・Testだけの動的接続、候補headerのAUTOMOC非入力化、製品非接続を独立確認する。
+- `g205-resource-selection-closure-review`の状態は`reviewing`、変更・構築実行・Git権限は`withheld`である。`libs/widgets/KoResourceServerProvider.h`と`KoResourcePopupAction.h`の21 APIから新規専用契約5枠への完全対応、4工程・8入力、Qt Core・Gui・Testだけの動的接続、候補headerのAUTOMOC非入力化、製品非接続を独立確認する。
 
 ### 第201便の先行監査担当票
 
