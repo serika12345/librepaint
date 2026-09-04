@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 9786
+    "expectedMissingApis": 9765
   },
   "contracts": [
     {
@@ -55986,6 +55986,72 @@
         "method:KisStrokesQueue::notifyUFOChangedImage()",
         "method:KisStrokesQueue::setPostSyncLod0GUIPlaneRequestForResumeCallback(const std::function<void ()> & callback)",
         "method:KisStrokesQueue::setPurgeRedoStateCallback(const std::function<void ()> & callback)"
+      ]
+    },
+    {
+      "target": "KoShapeCreationSchemaContractTest",
+      "source": "libs/flake/tests/KoShapeCreationSchemaContractTest.cpp",
+      "test": "KoShapeCreationSchemaContractTest::shapeRegistryTypeLifetimeAndAccessSchemaRemainStable",
+      "behavior": "図形registryはsingleton型としてfactoryを登録し、XML要素名に対応するfactory列を照会する公開契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoShapeRegistry",
+        "method:KoShapeRegistry::KoShapeRegistry()",
+        "method:KoShapeRegistry::addFactory(KoShapeFactoryBase * factory)",
+        "method:KoShapeRegistry::factoriesForElement(const QString & nameSpace,const QString & elementName)",
+        "method:KoShapeRegistry::instance()",
+        "method:KoShapeRegistry::~KoShapeRegistry()"
+      ]
+    },
+    {
+      "target": "KoShapeCreationSchemaContractTest",
+      "source": "libs/flake/tests/KoShapeCreationSchemaContractTest.cpp",
+      "test": "KoShapeCreationSchemaContractTest::pathShapeFactoryTypeLifetimeAndConstructionSchemaRemainStable",
+      "behavior": "path図形factoryは対応MIME型列から構築され、図形factory基底を通じて仮想破棄される公開型契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoPathShapeFactory",
+        "method:KoPathShapeFactory::KoPathShapeFactory(const QStringList &)",
+        "method:KoPathShapeFactory::~KoPathShapeFactory()"
+      ]
+    },
+    {
+      "target": "KoShapeCreationSchemaContractTest",
+      "source": "libs/flake/tests/KoShapeCreationSchemaContractTest.cpp",
+      "test": "KoShapeCreationSchemaContractTest::pathShapeFactoryCreationAndSupportSignaturesRemainStable",
+      "behavior": "path図形factoryは既定図形生成、文書資源管理器の通知、XML要素対応判定に関する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoPathShapeFactory::createDefaultShape(KoDocumentResourceManager * documentResources=0) const",
+        "method:KoPathShapeFactory::newDocumentResourceManager(KoDocumentResourceManager * manager) const",
+        "method:KoPathShapeFactory::supports(const QDomElement & element,KoShapeLoadingContext & context) const"
+      ]
+    },
+    {
+      "target": "KoShapeCreationSchemaContractTest",
+      "source": "libs/flake/tests/KoShapeCreationSchemaContractTest.cpp",
+      "test": "KoShapeCreationSchemaContractTest::basicShapeFactoryCreationSignaturesRemainStable",
+      "behavior": "基本図形factoryは指定境界の楕円と、指定角丸率の矩形を生成する公開静的署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoBasicShapeFactory",
+        "method:KoBasicShapeFactory::createEllipse(const QRectF & rect)",
+        "method:KoBasicShapeFactory::createRectangle(const QRectF & rect,qreal roundCornersX,qreal roundCornersY)"
+      ]
+    },
+    {
+      "target": "KoShapeCreationSchemaContractTest",
+      "source": "libs/flake/tests/KoShapeCreationSchemaContractTest.cpp",
+      "test": "KoShapeCreationSchemaContractTest::shapeCreateCommandSchemaRemainStable",
+      "behavior": "図形生成commandは単一または複数図形と任意の親図形・親commandから構築され、挿入をredo・undoする公開契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoShapeCreateCommand",
+        "method:KoShapeCreateCommand::KoShapeCreateCommand(KoShapeControllerBase * controller,KoShape * shape,KoShapeContainer * parentShape=0,KUndo2Command * parent=0)",
+        "method:KoShapeCreateCommand::KoShapeCreateCommand(KoShapeControllerBase * controller,const QList<KoShape * > shape,KoShapeContainer * parentShape=0,KUndo2Command * parent=0)",
+        "method:KoShapeCreateCommand::redo()",
+        "method:KoShapeCreateCommand::undo()",
+        "method:KoShapeCreateCommand::~KoShapeCreateCommand()"
       ]
     }
   ]

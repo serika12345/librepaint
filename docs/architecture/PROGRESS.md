@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-04 19:09 JST
+- 更新日時: 2026-09-04 19:18 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -179,7 +179,7 @@
 
 - 実装共通基点は`cf6cf88ceb`である。一度に一つだけ作る専用worktree-local `build/tdd-macos`と主作業treeの共有compiler cacheを使い、`./scripts/run-shared-test-env`で読み込み済み環境を利用する。各担当のGit権限は許可pathだけの受渡しcommit、追加委任は禁止する。stroke queue、図形生成、資源・presetの順に限定検証・統合・削除し、調整担当だけが文書、公開API台帳、共通不足報告を変更する。
 - `g207-strokes-queue-schema`の状態は`integrated`、macOSの対象・近傍に限る構築実行許可は`granted`である。正式不足報告の`libs/image/kis_strokes_queue.h`残存全29 APIを、新規`libs/image/tests/KisStrokesQueueSchemaContractTest.cpp`の5枠`strokesQueueTypeAndLifetimeSchemaRemainStable`、`strokesQueueAdmissionAndCompletionSignaturesRemainStable`、`strokesQueueStateAndProcessingSignaturesRemainStable`、`strokesQueueLodAndFactorySignaturesRemainStable`、`strokesQueueCallbacksAndDiagnosticsSignaturesRemainStable`へ3・7・9・6・4件で対応付けた。許可pathは新規試験sourceと`libs/image/tests/CMakeLists.txt`の新target固有節だけで、公開headerと製品sourceを変更していない。受渡しcommit`da8367aa99`を統合commit`a08a5088c6`として取り込み、担当側と中央で追加5枠を各20回、対象`libs-image-KisStrokesQueueSchemaContractTest`と近傍`libs-image-KisProcessingApplicatorSchemaContractTest`を実行した。4工程・8入力、Qt Core・Testだけの動的接続、AUTOMOC `HEADERS=[]`、製品未解決記号なし、二回目計画と再構築の無作業を確認し、台帳は20,052件対応、9,786件未対応となった。cleanな専用作業treeとbranchを統合直後に削除し、883,148 KiBを回収した。queue順序、並行処理、取消・undo、LoD同期結果は別の効果契約で扱う。
-- `g207-shape-creation-schema`の状態は`implementing`、macOSの対象・近傍に限る構築実行許可は`granted`で、基点`9f9532ee64`の作業tree`/Users/masato/Documents/librepaint-g207-shape-creation-schema`を所有する。正式不足報告の`libs/flake/KoShapeRegistry.h`、`KoPathShapeFactory.h`、`KoBasicShapeFactory.h`、`commands/KoShapeCreateCommand.h`残存全21 APIを、新規`libs/flake/tests/KoShapeCreationSchemaContractTest.cpp`の5枠`shapeRegistryTypeLifetimeAndAccessSchemaRemainStable`、`pathShapeFactoryTypeLifetimeAndConstructionSchemaRemainStable`、`pathShapeFactoryCreationAndSupportSignaturesRemainStable`、`basicShapeFactoryCreationSignaturesRemainStable`、`shapeCreateCommandSchemaRemainStable`へ6・3・3・3・6件で対応付ける。許可pathは新規試験sourceと`libs/flake/tests/CMakeLists.txt`の新target固有節だけである。対象`KoShapeCreationSchemaContractTest`、正式CTest`libs-flake-KoShapeCreationSchemaContractTest`、近傍`KoShapeReorderCommandSchemaContractTest`である。
+- `g207-shape-creation-schema`の状態は`integrated`、macOSの対象・近傍に限る構築実行許可は`granted`である。正式不足報告の`libs/flake/KoShapeRegistry.h`、`KoPathShapeFactory.h`、`KoBasicShapeFactory.h`、`commands/KoShapeCreateCommand.h`残存全21 APIを、新規`libs/flake/tests/KoShapeCreationSchemaContractTest.cpp`の5枠`shapeRegistryTypeLifetimeAndAccessSchemaRemainStable`、`pathShapeFactoryTypeLifetimeAndConstructionSchemaRemainStable`、`pathShapeFactoryCreationAndSupportSignaturesRemainStable`、`basicShapeFactoryCreationSignaturesRemainStable`、`shapeCreateCommandSchemaRemainStable`へ6・3・3・3・6件で対応付けた。許可pathは新規試験sourceと`libs/flake/tests/CMakeLists.txt`の新target固有節だけで、公開headerと製品sourceを変更していない。受渡しcommit`f1ff13eb9b`を統合commit`8d2c5ddb87`として取り込み、担当側と中央で追加5枠を各20回、対象`libs-flake-KoShapeCreationSchemaContractTest`と近傍`libs-flake-KoShapeReorderCommandSchemaContractTest`を実行した。4工程・8入力、Qt Core・Testだけの動的接続、AUTOMOC `HEADERS=[]`、製品未解決記号なし、二回目計画と再構築の無作業を確認し、台帳は20,073件対応、9,765件未対応となった。cleanな専用作業tree、295,200 KiBの構築木、branchを統合直後に削除し、884,736 KiBを回収した。registry所有・検索順、図形内容、資源通知、挿入、redo・undo結果は別の効果契約で扱う。
 - `g207-resource-preset-schema`の状態は`planned`、構築実行許可は`withheld`である。先行依存整理の許可pathは`libs/libkis/Preset.h`と`Preset.cpp`、契約実装の許可pathは新規`libs/libkis/tests/ResourcePresetSchemaContractTest.cpp`と`libs/libkis/tests/CMakeLists.txt`の新target固有節だけである。正式不足報告の3 header残存全26 APIを5枠`resourceTypeLifetimeAndValueSemanticsSchemaRemainStable`、`resourceIdentityAndPresentationSignaturesRemainStable`、`presetTypeLifetimeAndPersistenceSchemaRemainStable`、`presetChooserTypeLifetimeAndSelectionSchemaRemainStable`、`presetChooserNotificationSignaturesRemainStable`へ8・6・5・5・2件で対応付ける。対象`ResourcePresetSchemaContractTest`、正式CTest`libs-libkis-ResourcePresetSchemaContractTest`、近傍`ViewSchemaContractTest`である。
 - 3担当とも予測4工程・8入力、停止線5工程・11入力とする。指定外探索路・link・定義、Qt・KF・製品libraryの計画外動的接続、AUTOMOC header入力、製品未解決記号、対象型の実体化・本文実行、許可path外変更が必要なら停止する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
 
@@ -207,8 +207,8 @@
 ### 第211便の先行監査担当票（第210便確定待ち）
 
 - 監査共通基点は`023dd41936`、暫定入力は`build/tdd-macos/public-api-missing-g207.json`である。第209便までの契約済み・選定済み責務と、第210便で選定済みの変形mask、文書識別・保存・close・処理同期を除外し、変更、構成、構築、試験、Git操作、追加委任を行わない読み取り専用監査を先行する。正式な第210便完了報告で全識別子と閉包を再照合する。
-- `g211-image-contract-audit`の状態は`auditing`で、image・paintop・pigment領域から一責務20〜80 API・最大5枠の候補を比較する。完全なAPI識別子、観測契約、開始pathから契約先、許可path、既存対象と近傍、予測閉包、停止条件、棄却根拠を返す。
-- `g211-flake-contract-audit`の状態は`auditing`で、flake・SVG・vector領域から一責務20〜80 API・最大5枠の候補を比較する。完全なAPI識別子、観測契約、開始pathから契約先、許可path、既存対象と近傍、予測閉包、停止条件、棄却根拠を返す。
+- `g211-image-contract-audit`の状態は`completed`で、image・paintop・pigment領域からbrush presetの型・設定・直列化・資源snapshot・cache 43 APIを選定した。既存画像型契約は4,104行のため新規専用targetへ分け、image・global・resources探索路による4工程・8入力を予測する。
+- `g211-flake-contract-audit`の状態は`completed`で、flake・SVG・vector領域からSVG文字列の範囲変形・挿入・属性統合・削除をundo可能にする5 command型41 APIを選定した。既存`SvgTextCursorPropertySchemaContractTest`へCMake変更なしで追加し、4工程・8入力を予測する。
 
 ### 第201便の先行監査担当票
 
