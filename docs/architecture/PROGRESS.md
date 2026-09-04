@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 05:42 JST
+- 更新日時: 2026-09-05 05:44 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -547,7 +547,8 @@
 - `g218-color-space-abstract-formal-review`の状態は`completed-rejected`である。正式32 APIと集合SHA、5枠9・6・10・5・2、constructor以外の未評価観測、4工程・8入力の予測は一致した。一方、抽象templateのconstructorを正当に観測する派生probeはconstructor、vtable対象override、混色・畳み込み、alpha mask生成器を実体化する。同じ停止診断で棄却した第148便からheader構造は変わっておらず、全32 APIを製品非接続で固定できないため実装候補から外す。constructor依存を非template境界へ分離する構造変更、または製品接続する動的契約の限定構築が成立した後に再監査する。
 - `g218-auto-levels-widget-formal-review`の状態は`completed`である。正式24 APIと集合SHA、5枠3・4・6・4・7を再照合した。`ki18n_wrap_ui`で`KisAutoLevelsWidget.ui`からtarget固有binary directoryへ`ui_KisAutoLevelsWidget.h`を生成し、生成headerへ`SKIP_AUTOMOC`と`SKIP_AUTOUIC`を設定する。製品UI生成targetへ接続せず、Qt Core・Testだけを動的接続する5工程・10入力へ閉じられる。
 - `g218-tool-proxy-state-formal-review`の状態は`completed`である。正式22 APIと集合SHA、5枠6・3・4・5・4、flake限定4工程・8入力を再照合した。owner外の`libs/input/ui/kis_tool_proxy.cpp`は`activeTool`を6箇所、同testsは`controller`を4箇所で直接利用している。新規`KoToolProxyPrivateSchemaContractTest`は、両owner外includeと直接member参照を具体的owner操作へ置換し、公開`priv()`のowner外利用を0にし、不足報告から同private headerが消えた時点で削除する一時互換契約として採用する。
-- `g218-opengl-mode-prober-replacement-audit`の状態は`in_progress`、担当は`/root/g178_shape_hierarchy_schema`である。棄却した色空間抽象境界の代替として、正式報告の`libs/ui/opengl/KisOpenGLModeProber.h`残存34 APIを読み取り専用で監査する。OpenGL contextや製品実装を実体化せず、最大5枠と5工程・11入力以内へ閉じる候補だけを採用する。
+- `g218-opengl-mode-prober-replacement-audit`の状態は`completed-rejected`である。正式報告の`libs/ui/opengl/KisOpenGLModeProber.h`残存34 APIは一責務だが、`Result::isUsingAngle()`が`Q_OS_WIN`だけの宣言であり、macOSでは観測できない。Qtのplatform構成を偽装せず全34 APIを固定できない第164便の停止条件が未解消なため、全件候補から外す。macOSで観測可能な33 APIとWindows限定1 APIへ分ける案は、Windows担当を開始できる段階で再監査する。
+- `g218-brush-replacement-formal-review`の状態は`in_progress`、担当は`/root/g208_raster_keyframe_schema`である。棄却した2候補の代替として、正式報告の`libs/brush/kis_brush.h`残存31 APIと集合SHA、既存`KisBrushSchemaContractTest`への5枠5・9・6・7・4の追記、CMake変更なしの4工程・7入力を再照合する。
 
 ### 第218便の担当計画
 
