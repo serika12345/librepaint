@@ -3,16 +3,20 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "../kis_transform_mask_adapter.h"
 #include "../tool_transform_args.h"
 
 #include <QTest>
 
 #include <type_traits>
+#include <utility>
 
 namespace
 {
 #define ASSERT_TRANSFORM_ARGS_SIGNATURE(method, signature)                                                             \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&ToolTransformArgs::method)), signature>)
+#define ASSERT_TRANSFORM_MASK_ADAPTER_SIGNATURE(method, signature)                                                     \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KisTransformMaskAdapter::method)), signature>)
 } // namespace
 
 class ToolTransformArgsGeometrySchemaContractTest : public QObject
@@ -30,6 +34,11 @@ private Q_SLOTS:
     void meshTransformStateSignaturesRemainStable();
     void liquifyAndEditingStateSignaturesRemainStable();
     void transformStateContinuationComparisonAndMappingSignaturesRemainStable();
+    void transformMaskAdapterTypeLifetimeAndConstructionSchemaRemainStable();
+    void transformMaskAdapterIdentityAndVisibilitySchemaRemainStable();
+    void transformMaskAdapterValueAndPersistenceSchemaRemainStable();
+    void transformMaskAdapterGeometrySchemaRemainStable();
+    void transformMaskAdapterArgumentsKeyframeAndDeviceSchemaRemainStable();
 };
 
 void ToolTransformArgsGeometrySchemaContractTest::freeTransformCenterSignaturesRemainStable()
@@ -162,6 +171,66 @@ void ToolTransformArgsGeometrySchemaContractTest::transformStateContinuationComp
     ASSERT_TRANSFORM_ARGS_SIGNATURE(transformSrcAndDst, void (ToolTransformArgs::*)(const QTransform &));
     ASSERT_TRANSFORM_ARGS_SIGNATURE(translateDstSpace, void (ToolTransformArgs::*)(const QPointF &));
     ASSERT_TRANSFORM_ARGS_SIGNATURE(translateSrcAndDst, void (ToolTransformArgs::*)(const QPointF &));
+}
+
+void ToolTransformArgsGeometrySchemaContractTest::transformMaskAdapterTypeLifetimeAndConstructionSchemaRemainStable()
+{
+    static_assert(std::is_class_v<KisTransformMaskAdapter>);
+    static_assert(std::is_base_of_v<KisTransformMaskParamsInterface, KisTransformMaskAdapter>);
+    static_assert(std::is_default_constructible_v<KisTransformMaskAdapter>);
+    static_assert(std::is_constructible_v<KisTransformMaskAdapter, const ToolTransformArgs &, bool, bool>);
+    static_assert(std::has_virtual_destructor_v<KisTransformMaskAdapter>);
+
+    using BothDefaultsResult = decltype(KisTransformMaskAdapter(std::declval<const ToolTransformArgs &>()));
+    using InitializedDefaultResult =
+        decltype(KisTransformMaskAdapter(std::declval<const ToolTransformArgs &>(), false));
+    static_assert(std::is_same_v<BothDefaultsResult, KisTransformMaskAdapter>);
+    static_assert(std::is_same_v<InitializedDefaultResult, KisTransformMaskAdapter>);
+}
+
+void ToolTransformArgsGeometrySchemaContractTest::transformMaskAdapterIdentityAndVisibilitySchemaRemainStable()
+{
+    ASSERT_TRANSFORM_MASK_ADAPTER_SIGNATURE(id, QString (KisTransformMaskAdapter::*)() const);
+    ASSERT_TRANSFORM_MASK_ADAPTER_SIGNATURE(isAffine, bool (KisTransformMaskAdapter::*)() const);
+    ASSERT_TRANSFORM_MASK_ADAPTER_SIGNATURE(isHidden, bool (KisTransformMaskAdapter::*)() const);
+    ASSERT_TRANSFORM_MASK_ADAPTER_SIGNATURE(isInitialized, bool (KisTransformMaskAdapter::*)() const);
+    ASSERT_TRANSFORM_MASK_ADAPTER_SIGNATURE(setHidden, void (KisTransformMaskAdapter::*)(bool));
+}
+
+void ToolTransformArgsGeometrySchemaContractTest::transformMaskAdapterValueAndPersistenceSchemaRemainStable()
+{
+    ASSERT_TRANSFORM_MASK_ADAPTER_SIGNATURE(clone,
+                                            KisTransformMaskParamsInterfaceSP (KisTransformMaskAdapter::*)() const);
+    ASSERT_TRANSFORM_MASK_ADAPTER_SIGNATURE(compareTransform,
+                                            bool (KisTransformMaskAdapter::*)(KisTransformMaskParamsInterfaceSP) const);
+    ASSERT_TRANSFORM_MASK_ADAPTER_SIGNATURE(fromDumbXML, KisTransformMaskParamsInterfaceSP (*)(const QDomElement &));
+    ASSERT_TRANSFORM_MASK_ADAPTER_SIGNATURE(fromXML, KisTransformMaskParamsInterfaceSP (*)(const QDomElement &));
+    ASSERT_TRANSFORM_MASK_ADAPTER_SIGNATURE(setBaseArgs, void (KisTransformMaskAdapter::*)(const ToolTransformArgs &));
+    ASSERT_TRANSFORM_MASK_ADAPTER_SIGNATURE(toXML, void (KisTransformMaskAdapter::*)(QDomElement *) const);
+}
+
+void ToolTransformArgsGeometrySchemaContractTest::transformMaskAdapterGeometrySchemaRemainStable()
+{
+    ASSERT_TRANSFORM_MASK_ADAPTER_SIGNATURE(finalAffineTransform, QTransform (KisTransformMaskAdapter::*)() const);
+    ASSERT_TRANSFORM_MASK_ADAPTER_SIGNATURE(nonAffineChangeRect, QRect (KisTransformMaskAdapter::*)(const QRect &));
+    ASSERT_TRANSFORM_MASK_ADAPTER_SIGNATURE(nonAffineNeedRect,
+                                            QRect (KisTransformMaskAdapter::*)(const QRect &, const QRect &));
+    ASSERT_TRANSFORM_MASK_ADAPTER_SIGNATURE(transformSrcAndDst, void (KisTransformMaskAdapter::*)(const QTransform &));
+    ASSERT_TRANSFORM_MASK_ADAPTER_SIGNATURE(translateDstSpace, void (KisTransformMaskAdapter::*)(const QPointF &));
+    ASSERT_TRANSFORM_MASK_ADAPTER_SIGNATURE(translateSrcAndDst, void (KisTransformMaskAdapter::*)(const QPointF &));
+}
+
+void ToolTransformArgsGeometrySchemaContractTest::transformMaskAdapterArgumentsKeyframeAndDeviceSchemaRemainStable()
+{
+    ASSERT_TRANSFORM_MASK_ADAPTER_SIGNATURE(transformArgs,
+                                            const QSharedPointer<ToolTransformArgs> (KisTransformMaskAdapter::*)()
+                                                const);
+    ASSERT_TRANSFORM_MASK_ADAPTER_SIGNATURE(
+        getKeyframeChannel,
+        KisKeyframeChannel * (KisTransformMaskAdapter::*)(const QString &, KisDefaultBoundsBaseSP));
+    ASSERT_TRANSFORM_MASK_ADAPTER_SIGNATURE(
+        transformDevice,
+        void (KisTransformMaskAdapter::*)(KisNodeSP, KisPaintDeviceSP, KisPaintDeviceSP, bool) const);
 }
 
 QTEST_GUILESS_MAIN(ToolTransformArgsGeometrySchemaContractTest)
