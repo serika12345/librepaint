@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 04:17 JST
+- 更新日時: 2026-09-05 04:24 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -519,6 +519,12 @@
 
 - `g219-enclose-fill-painter-closure-audit`の状態は`completed`である。`libs/image/KisEncloseAndFillPainter.h`の残存全30 API、識別子集合SHA-256 `72863c12aaf29cb198bcf3cd4420ca2b2c525f06066b5c4179ec5c023aa62395`、5枠5・11・4・5・5を独立確認した。新規専用targetはimage・global・pigment・resources・painting/undo探索路、Eigen・KF I18n・Imath interface、Qt Core・Gui・Testとheader-only Boost、2 export定義による4工程・8入力へ閉じられる。製品`kritaimage`の853工程・1,730入力を構築せず、第218便完了後の正式不足報告で再照合する。
 - `g219-curve-widget-closure-audit`の状態は`completed`である。`libs/ui/widgets/kis_curve_widget.h`の残存全30 API、識別子集合SHA-256 `1f4c666bcf29b0640a4a1996635571ebbd16f1e0d611411d38afaa5296960716`、5枠9・5・8・4・4を独立確認した。新規専用targetはapplication・image・global探索路、Qt Gui・Widgets interface、Qt Core・Test、header-only Boost、Eigenと3 export定義による4工程・8入力へ閉じられる。製品`kritaapplicationui`の1,970工程・3,940入力を構築せず、第218便完了後の正式不足報告で再照合する。
+
+### 第220便の先行監査担当票（第219便確定待ち）
+
+- 監査共通基点は`ad24f02d60`、暫定入力は`build/tdd-macos/public-api-missing-g216.json`である。担当は主作業treeと既存Ninja graphを読み取り専用で利用し、変更、構成、構築、試験、Git操作、追加委任を行わない。正式な第219便不足報告で再照合するまで実装担当票へ進めない。
+- `g220-frame-cache-store-closure-audit`の状態は`auditing`、担当は`/root/g208_raster_keyframe_schema`である。開始header `libs/canvas/animation/kis_frame_cache_store.h`の残存全22 API、すなわち`class:KisFrameCacheStore`、`struct:KisFrameCacheStore::Frame`、`Frame`の`data`・`dirtyImageRect`・`imageBounds`・`levelOfDetail`、既定・copy・move構築、copy・move代入、`isValid() const`、`KisFrameCacheStore`の既定・path構築とdestructor、`forgetFrame`・`frameDirtyRect`・`frameLevelOfDetail`・`hasFrame`・`loadFrame`・`moveFrame`・`saveFrame`を監査する。識別子集合SHA-256は`39229d20e5554ed98a98b6c4bcbb4a3c3a791494a08467ab0f88fbb05adf2a80`である。frame tile値・永続cache操作という一責務性、最大5枠の完全対応、実体化不要の観測方法、所有CMakeと既存または新規target、最寄り契約、最小探索路・定義・動的接続、工程・入力予測と停止線を返す。filesystem・tile pool・serializer・製品実装の接続が必要、または10工程程度へ閉じない場合は棄却する。
+- `g220-resource-iterator-closure-audit`の状態は`auditing`、担当は`/root/g178_paintop_settings_schema`である。開始header `libs/resources/KisResourceIterator.h`の残存全21 API、すなわち`alias:KisResourceItemSP`、`class:KisResourceItem`、同`filename`・`id`・`md5sum`・`name`・`resource`・`resourceType`・`thumbnail`・`tooltip`、`class:KisResourceIterator`、同model pointer構築とdestructor、`hasNext`・`hasPrevious`・`next`・`peekNext`・`peekPrevious`・`previous`・`toBack`・`toFront`を監査する。識別子集合SHA-256は`e695fcea69332217ece1f46f00b79c6878796c6ae09100e17fcf3a9c0db21ba4`である。資源項目の読取と前後反復という一責務性、最大5枠の完全対応、実体化不要の観測方法、所有CMakeと既存または新規target、最寄り契約、最小探索路・定義・動的接続、工程・入力予測と停止線を返す。資源model・database・画像・製品実装の接続が必要、または10工程程度へ閉じない場合は棄却する。
 
 ### 第201便の先行監査担当票
 
