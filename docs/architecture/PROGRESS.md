@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-04 18:54 JST
+- 更新日時: 2026-09-04 19:00 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -196,7 +196,13 @@
 - 監査共通基点は`42d2d46885`、暫定入力は`build/tdd-macos/public-api-missing-g206.json`である。第207便までの契約済み・選定済み責務と、第208便で選定済みのraster keyframe channel、path編集工具、文書canvas幾何・解像度を除外し、変更、構成、構築、試験、Git操作、追加委任を行わない読み取り専用監査を先行する。正式な第208便完了報告で全識別子と閉包を再照合する。
 - `g209-image-contract-audit`の状態は`completed`で、image・paintop・pigment領域からtile data managerの既定画素・tile履歴・領域・転送・保守43 APIを選定した。既存`KisTileSchemaContractTest`へCMake変更なしで追加し、4工程・8入力と製品非接続を予測する。
 - `g209-ui-contract-audit`の状態は`completed`で、widgetutils・widgets・libkis領域から文書型・node graph・layer/mask生成・flattening 28 APIを選定した。既存近傍は324行・19枠のため新規`DocumentNodeSchemaContractTest`へ分け、4工程・8入力を予測する。
-- `g209-flake-contract-audit`の状態は`auditing`で、flake・SVG・vector領域から一責務20〜80 API・最大5枠の候補を比較する。完全なAPI識別子、観測契約、開始pathから契約先、許可path、既存対象と近傍、予測閉包、停止条件、棄却根拠を返す。
+- `g209-flake-contract-audit`の状態は`completed`で、flake・SVG・vector領域からfont registryによる書体解決・測定とfont storageによる資源格納24 APIを選定した。既存`KoFontFamilySchemaContractTest`へCMake変更なしで追加し、4工程・8入力と製品非接続を予測する。
+
+### 第210便の先行監査担当票（第209便確定待ち）
+
+- 監査共通基点は`cb224ddbce`、暫定入力は`build/tdd-macos/public-api-missing-g207.json`である。第208便までの契約済み・選定済み責務と、第209便で選定済みのtile data manager、文書node graph・layer/mask生成、font registry・storageを除外し、変更、構成、構築、試験、Git操作、追加委任を行わない読み取り専用監査を先行する。正式な第209便完了報告で全識別子と閉包を再照合する。
+- `g210-image-contract-audit`の状態は`auditing`で、image・paintop・pigment領域から一責務20〜80 API・最大5枠の候補を比較する。完全なAPI識別子、観測契約、開始pathから契約先、許可path、既存対象と近傍、予測閉包、停止条件、棄却根拠を返す。
+- `g210-ui-contract-audit`の状態は`auditing`で、widgetutils・widgets・libkis領域から一責務20〜80 API・最大5枠の候補を比較する。完全なAPI識別子、観測契約、開始pathから契約先、許可path、既存対象と近傍、予測閉包、停止条件、棄却根拠を返す。
 
 ### 第201便の先行監査担当票
 
