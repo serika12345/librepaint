@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 05:44 JST
+- 更新日時: 2026-09-05 05:42 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -552,7 +552,7 @@
 ### 第218便の担当計画
 
 - 最初の実装基点は`e7cfbde3b1`である。一度に一つだけ作る専用worktree-local `build/tdd-macos`と主作業treeの共有compiler cacheを使い、担当側の`./scripts/run-shared-test-env`で読み込み済み環境を利用する。調整担当だけが文書、公開API台帳、共通不足報告を変更し、担当は許可pathだけの1受渡しcommitを作る。製品target、全体build・`verify`、Linux、Nix再評価を行わない。
-- `g218-auto-levels-widget-schema`の状態は`preparing`、担当は`/root/g178_paintop_settings_schema`、専用branchは`agent/g218-auto-levels-widget-schema`、作業treeは`/Users/masato/Documents/librepaint-g218-auto-levels-widget-schema`である。開始`libs/ui/widgets/KisAutoLevelsWidget.h`の残存全24 APIを、新規`libs/ui/tests/KisAutoLevelsWidgetSchemaContractTest.cpp`の5枠`autoLevelsWidgetTypeAndLifetimeSchemaRemainStable`、`autoLevelsWidgetContrastAdjustmentMethodSignaturesRemainStable`、`autoLevelsWidgetClippingAndOffsetSignaturesRemainStable`、`autoLevelsWidgetMidtonesAdjustmentSignaturesRemainStable`、`autoLevelsWidgetOutputColorAndNotificationSignaturesRemainStable`へ3・4・6・4・7件で対応付ける。識別子集合SHA-256は`a95a317c6243b9b6813002527f57029887e2dea1ee4d745cd57aed972d199eef`である。
+- `g218-auto-levels-widget-schema`の状態は`implementing`、担当は`/root/g178_paintop_settings_schema`、専用branchは`agent/g218-auto-levels-widget-schema`、作業treeは`/Users/masato/Documents/librepaint-g218-auto-levels-widget-schema`である。開始`libs/ui/widgets/KisAutoLevelsWidget.h`の残存全24 APIを、新規`libs/ui/tests/KisAutoLevelsWidgetSchemaContractTest.cpp`の5枠`autoLevelsWidgetTypeAndLifetimeSchemaRemainStable`、`autoLevelsWidgetContrastAdjustmentMethodSignaturesRemainStable`、`autoLevelsWidgetClippingAndOffsetSignaturesRemainStable`、`autoLevelsWidgetMidtonesAdjustmentSignaturesRemainStable`、`autoLevelsWidgetOutputColorAndNotificationSignaturesRemainStable`へ3・4・6・4・7件で対応付ける。識別子集合SHA-256は`a95a317c6243b9b6813002527f57029887e2dea1ee4d745cd57aed972d199eef`である。
 - 第1枠は型、`QWidget *`構築、destructor、第2枠はshadow/highlight調整方式のlock・設定・照会・unlock、第3枠はshadow/highlight clippingと最大入力offsetの照会・設定、第4枠はmidtone調整量・方式の照会・設定、第5枠は出力shadow・midtone・highlight色の照会・設定と`parametersChanged`通知である。許可pathは新規試験sourceと`libs/ui/tests/CMakeLists.txt`の新target固有節だけで、公開header、製品source、製品UI生成を変更しない。
 - 新targetは`ki18n_wrap_ui(KisAutoLevelsWidgetSchemaContractTest ${CMAKE_CURRENT_SOURCE_DIR}/../widgets/KisAutoLevelsWidget.ui)`でtarget固有`ui_KisAutoLevelsWidget.h`を生成する。application、image、pigment、widgets、widgetutils、globalのsource・generated探索路、Qt Gui・Widgets、KF I18n・Imath・Boostのinterface、6 export定義を使い、Qt Core・Testだけを直接接続する。`KisHistogramPainterSchemaContractTest`を軽量近傍とし、5工程・10入力、停止線6工程・13入力を維持する。
 - 最初に新target不存在、次に5枠の宣言だけで5枠の未定義link失敗を確認する。型特性と厳密な関数pointerだけでwidget、生成UI、色、列挙値、signalを実体化せず、候補headerをAUTOMOC入力にしない。担当は追加5枠の単発と各20回反復、対象と近傍、AUTOMOC後の二回目計画、無作業再構築2回、対象固有UI生成物、動的接続・未解決記号・構文・書式、公開API検査、`verify-quick`を確認する。製品UI生成への依存、6工程・13入力超過、Qt Gui・Widgets・KFまたは製品libraryの動的接続、製品shared・OBJECT・`kritatestsdk`、候補headerのAUTOMOC入力化、製品未解決記号、対象実体化、許可path外変更が必要なら停止する。構築許可はmacOSの対象と近傍だけに`granted`、Git権限は許可pathだけの`transport-commit`、追加委任は`forbidden`である。
