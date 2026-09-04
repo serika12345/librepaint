@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 8614
+    "expectedMissingApis": 8578
   },
   "contracts": [
     {
@@ -58969,6 +58969,87 @@
         "method:KisFilterStrokeStrategy::doStrokeCallback(KisStrokeJobData * data)",
         "method:KisFilterStrokeStrategy::finishStrokeCallback()",
         "method:KisFilterStrokeStrategy::initStrokeCallback()"
+      ]
+    },
+    {
+      "target": "KoDualColorButtonSchemaContractTest",
+      "source": "libs/ui/tests/KoDualColorButtonSchemaContractTest.cpp",
+      "test": "KoDualColorButtonSchemaContractTest::dualColorButtonTypeLifetimeAndSelectionSchemaRemainStable",
+      "behavior": "二色選択buttonは前景・背景の選択種別、canvas資源・表示rendererを受け取る構築、仮想破棄、dialog選択状態、推奨寸法の公開構成を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoDualColorButton",
+        "enum:KoDualColorButton::Selection",
+        "enumerator:KoDualColorButton::Selection::Background",
+        "enumerator:KoDualColorButton::Selection::Foreground",
+        "method:KoDualColorButton::KoDualColorButton(KisCanvasResourceProvider * canvasResourceProvider,const KoColorDisplayRendererInterface * displayRenderer,QWidget * parent=0,QWidget * dialogParent=0)",
+        "method:KoDualColorButton::setColorDialogState(Selection state)",
+        "method:KoDualColorButton::sizeHint() const",
+        "method:KoDualColorButton::~KoDualColorButton()"
+      ]
+    },
+    {
+      "target": "KoDualColorButtonSchemaContractTest",
+      "source": "libs/ui/tests/KoDualColorButtonSchemaContractTest.cpp",
+      "test": "KoDualColorButtonSchemaContractTest::dualColorButtonPresentationStateAndRenderingSchemaRemainStable",
+      "behavior": "二色選択buttonは前景・背景・reset・交換表示の公開状態とicon描画・矢印更新の公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KoDualColorButton::arrowBitmap",
+        "member:KoDualColorButton::backgroundRect",
+        "member:KoDualColorButton::foregroundRect",
+        "member:KoDualColorButton::resetArrowPixmap",
+        "member:KoDualColorButton::resetColours",
+        "member:KoDualColorButton::resetPixmap",
+        "method:KoDualColorButton::paint_icons(QPainter & painter)",
+        "method:KoDualColorButton::updateArrows()"
+      ]
+    },
+    {
+      "target": "KoDualColorButtonSchemaContractTest",
+      "source": "libs/ui/tests/KoDualColorButtonSchemaContractTest.cpp",
+      "test": "KoDualColorButtonSchemaContractTest::dualColorButtonColorStateAndConversionSignaturesRemainStable",
+      "behavior": "二色選択buttonは前景・背景色の取得・設定・初期化・交換と表示rendererによる色変換・色空間更新の公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoDualColorButton::ResetColours()",
+        "method:KoDualColorButton::backgroundColor() const",
+        "method:KoDualColorButton::foregroundColor() const",
+        "method:KoDualColorButton::getColorFromDisplayRenderer(KoColor c)",
+        "method:KoDualColorButton::setBackgroundColor(const KoColor & color)",
+        "method:KoDualColorButton::setForegroundColor(const KoColor & color)",
+        "method:KoDualColorButton::swapColours()",
+        "method:KoDualColorButton::updateColorSpace()"
+      ]
+    },
+    {
+      "target": "KoDualColorButtonSchemaContractTest",
+      "source": "libs/ui/tests/KoDualColorButtonSchemaContractTest.cpp",
+      "test": "KoDualColorButtonSchemaContractTest::dualColorButtonDialogControlSignaturesRemainStable",
+      "behavior": "二色選択buttonは前景・背景選択、dialog開閉、表示renderer差替え、dialog自動表示設定の公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoDualColorButton::backgroundSelect(bool usePlatformDialog)",
+        "method:KoDualColorButton::foregroundSelect(bool usePlatformDialog)",
+        "method:KoDualColorButton::openBackgroundDialog()",
+        "method:KoDualColorButton::openForegroundDialog()",
+        "method:KoDualColorButton::popDialog() const",
+        "method:KoDualColorButton::setDisplayRenderer(const KoColorDisplayRendererInterface * displayRenderer=KoDumbColorDisplayRenderer::instance ())",
+        "method:KoDualColorButton::setPopDialog(bool popDialog)",
+        "method:KoDualColorButton::slotColorDialogClosed()"
+      ]
+    },
+    {
+      "target": "KoDualColorButtonSchemaContractTest",
+      "source": "libs/ui/tests/KoDualColorButtonSchemaContractTest.cpp",
+      "test": "KoDualColorButtonSchemaContractTest::dualColorButtonDialogResultAndNotificationSignaturesRemainStable",
+      "behavior": "二色選択buttonはdialog結果を前景・背景へ反映し、各色の変更を通知する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoDualColorButton::backgroundColorChanged(const KoColor & color)",
+        "method:KoDualColorButton::foregroundColorChanged(const KoColor & color)",
+        "method:KoDualColorButton::slotSetBackgroundColorFromDialog(const KoColor color)",
+        "method:KoDualColorButton::slotSetForegroundColorFromDialog(const KoColor color)"
       ]
     }
   ]

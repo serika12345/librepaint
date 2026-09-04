@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 08:45 JST
+- 更新日時: 2026-09-05 08:51 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -663,9 +663,15 @@
 
 ### 第222便の担当計画
 
-- 実装基点は`5650ff08d6`である。`g222-dual-color-button-schema`の状態は`implementing`、開始公開headerは`libs/ui/widgets/KoDualColorButton.h`、許可pathは新規`libs/ui/tests/KoDualColorButtonSchemaContractTest.cpp`と`libs/ui/tests/CMakeLists.txt`の新target固有節だけである。新targetは`KoDualColorButtonSchemaContractTest`、軽量近傍は`KisSegmentGradientSliderSchemaContractTest`、対象platformはmacOS、対象・近傍だけの構築権限は`granted`とする。専用作業treeは`/Users/masato/Documents/librepaint-g222-dual-color-button-schema`、branchは`agent/g222-dual-color-button-schema`、作業tree固有の`build/tdd-macos`と主作業treeの`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を使う。Git権限は許可pathだけの1受渡しcommit、追加委任は禁止し、調整担当だけが文書、台帳、不足報告を変更する。
+- 実装基点は`5650ff08d6`である。`g222-dual-color-button-schema`の状態は`integrated`で、開始`libs/ui/widgets/KoDualColorButton.h`の残存全36 APIを、新規`libs/ui/tests/KoDualColorButtonSchemaContractTest.cpp`の5枠へ固定した。許可pathは同試験sourceと`libs/ui/tests/CMakeLists.txt`の新target固有節だけで、公開header、製品source、既存targetを変更していない。受渡しcommit `8beefec456`を統合commit `7d96da2a63`として取り込んだ。
 - 5枠は`dualColorButtonTypeLifetimeAndSelectionSchemaRemainStable`へ`class:KoDualColorButton`、`enum:KoDualColorButton::Selection`、`enumerator:KoDualColorButton::Selection::Background`、`enumerator:KoDualColorButton::Selection::Foreground`、構築、破棄、`setColorDialogState`、`sizeHint`の8件、`dualColorButtonPresentationStateAndRenderingSchemaRemainStable`へ`arrowBitmap`、`backgroundRect`、`foregroundRect`、`resetArrowPixmap`、`resetColours`、`resetPixmap`、`paint_icons`、`updateArrows`の8件、`dualColorButtonColorStateAndConversionSignaturesRemainStable`へ`ResetColours`、`backgroundColor`、`foregroundColor`、`getColorFromDisplayRenderer`、`setBackgroundColor`、`setForegroundColor`、`swapColours`、`updateColorSpace`の8件、`dualColorButtonDialogControlSignaturesRemainStable`へ`backgroundSelect`、`foregroundSelect`、`openBackgroundDialog`、`openForegroundDialog`、`popDialog`、`setDisplayRenderer`、`setPopDialog`、`slotColorDialogClosed`の8件、`dualColorButtonDialogResultAndNotificationSignaturesRemainStable`へ`backgroundColorChanged`、`foregroundColorChanged`、`slotSetBackgroundColorFromDialog`、`slotSetForegroundColorFromDialog`の4件を対応付ける。各method識別子は正式入力`build/tdd-macos/public-api-missing-g222.json`の完全な引数・既定値・修飾をそのまま台帳へ登録し、全36識別子の集合SHA-256 `9306110ffb660b18597a08c193e4bd010ad5145b674756ec4b97bfd00e333a42`を維持する。
 - 新targetはapplication・pigment・globalのsource・generated探索路、`kritaapplicationui_EXPORTS`、`kritapigment_EXPORTS`、`kritaglobal_EXPORTS`、Qt Gui・Widgets・KF I18n・Imathのinterface探索路、Qt Core・Testとheader-only Boostの直接接続だけを許可し、予測閉包4工程・8入力、停止線5工程・11入力とする。型特性、列挙値、member型、厳密なmember pointer、未評価式だけで観測し、button、色、pixmap、canvas provider、display renderer、dialog、painterを実体化しない。担当は変更前の計画・直接依存・target不存在、targetと近傍、追加5枠を各20回、全target試験、CTest、AUTOMOC後の二回目計画、無作業再構築2回、動的接続・未解決記号・AUTOMOC入力・構文・書式、差分、公開API検査、`verify-quick`を確認する。5工程・11入力超過、追加探索路・定義・link、製品shared・OBJECT・`kritatestsdk`、候補headerのAUTOMOC入力化、製品未解決記号、指定対象の実体化、公開header・製品source・既存target・許可path外の変更が必要なら停止する。製品target、全体build・`verify`、Linux、Nix再評価は禁止する。
+
+### 第222便の統合結果
+
+- 開始`libs/ui/widgets/KoDualColorButton.h`から新規`libs/ui/tests/KoDualColorButtonSchemaContractTest.cpp`へ36 API・5枠を追加した。担当側と中央のmacOSで5枠を各20回、対象全7件、正式CTestと近傍`KisSegmentGradientSliderSchemaContractTest`、AUTOMOC後の二回目計画、無作業再構築2回に成功した。中央実測は4工程・8入力、command SHA-256 `01082aa897cf670ecff077141b0e1f5ad373068f025f014a4e6e86ab4b8149f4`、input SHA-256 `2e2cc98208140efbf2924f59d6498083c9d1f0cad2cbeb13d071428740d33621`、AUTOMOC `HEADERS=[]`、Qt Core・Testだけの動的接続、製品未解決記号なしである。正しいcompile commandによる`clang-check -Werror`、書式、差分、公開API検査に成功し、台帳は21,226件対応、8,578件未対応となった。色dialog表示、描画・色変換結果、signal発火順序は既存または後続の動的契約で扱う。
+- 対象限定検証の準備中に調整担当が`./scripts/run-test --help`を実行し、同scriptがhelp引数を持たないため主Ninja木の全体構築を開始した。10工程目までに既存`libs/flake/resources/KoCssStylePreset.cpp`の`KoPathShape`不完全型診断で停止し、ソース変更、追加依存、追加作業treeは生じていない。以後はscript本文で引数仕様を確認し、`run-test`へCMake targetとCTest正規表現を必ず明示する。
+- 統合済みpatchを確認後に専用作業tree、約291 MiBのlane構築木、branchを削除して888,168 KiBを回収した。旧`public-api-missing-g222.json`を削除し、主Ninja木5,746,072 KiB、共有compiler cache 982,916 KiB、最新`build/tdd-macos/public-api-missing-g223.json` 2,276,911 bytes、SHA-256 `a6a59230ae740e4e7d6854fb69f0eae98418b8972d781af2c932adc49f059e76`だけを次便へ再利用する。compiler cacheは142,993件中120,202件、84.06%がhitしている。製品target、意図した全体build・`verify`、Linux、Nix再評価は実行していない。
 
 ### 第223便の先行監査担当票（第222便確定待ち）
 
@@ -678,7 +684,7 @@
 
 ### 第225便の先行監査担当票（第224便確定待ち）
 
-- `g225-fill-painter-schema-formal-review`の状態は`auditing`、担当は`g208_raster_keyframe_schema`、基点は`84827b3b18`、正式入力は`build/tdd-macos/public-api-missing-g222.json`である。開始公開headerは`libs/image/kis_fill_painter.h`、対象は残存全53 API、集合SHA-256 `bb2bbc772dd0392eda08fe0c4f56644c04cacd02bb77412b5981ce3994ede724`、契約候補は既存`libs/image/tests/KisEncloseAndFillPainterSchemaContractTest.cpp`へ追加する5枠7・4・16・12・14、所有CMakeは変更なし、新target・生成物は作らない。主作業treeと既存Ninja graphを読み取り専用で使い、変更、構成、構築、試験、Git操作、追加委任を行わない。全識別子、既存sourceの行数・枠数と追加後上限、枠対応、既存targetと最小近傍、現在とAUTOMOC後の工程・入力、直接・interface依存、製品辺、実体化有無、停止条件を独立確認し、正式第225便不足報告で再照合する条件を返す。
+- `g225-fill-painter-schema-formal-review`の状態は`completed-ready`、担当は`g208_raster_keyframe_schema`、基点は`84827b3b18`である。正式入力`build/tdd-macos/public-api-missing-g222.json`でも`libs/image/kis_fill_painter.h`の残存全53 APIは一意で台帳と重複せず、集合SHA-256 `bb2bbc772dd0392eda08fe0c4f56644c04cacd02bb77412b5981ce3994ede724`、既存`libs/image/tests/KisEncloseAndFillPainterSchemaContractTest.cpp`へ追加する5枠7・4・16・12・14に一致した。既存sourceは119行・5枠で、共通署名別名と検査macroにより追加後270〜295行・10枠を見込む。CMake変更と新targetは不要で、対象と近傍`KisGradientPainterSchemaContractTest`は4工程・8入力、候補headerのAUTOMOC `HEADERS=[]`、Qt Core・Gui・TestとmacOS system frameworksだけの動的接続、製品辺なしである。画素塗り、境界探索、閾値・拡散・隙間閉鎖、anti-alias・feather、pattern変換、selection制限、類似色job分割・進捗、setter後の状態は既存または後続の動的契約で扱い、正式第225便不足報告で53件・集合SHA・source上限を再照合する。
 
 ### 第201便の先行監査担当票
 
