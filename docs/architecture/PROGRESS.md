@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 06:38 JST
+- 更新日時: 2026-09-05 06:41 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -584,6 +584,13 @@
 - `g219-kra-save-xml-visitor-closure-audit`の状態は`completed`である。`plugins/impex/libkra/kis_kra_savexml_visitor.h`の残存全20 API、識別子集合SHA-256 `0ffc9e9eda85883f048f73b8e65085ad12820f379c40dafb0bb2e5541889bed6`、5枠3・7・5・3・2を独立確認した。新規専用targetはlibkra・image・global探索路、Qt Xml interface、Qt Core・Testだけの直接接続と3 export定義による4工程・8入力へ閉じられる。node、layer、mask、QDom値を実体化せず、1,992工程・3,980入力の既存保存試験と製品`kritalibkra`へ接続しない。第218便完了後の正式不足報告で再照合する。
 - `g219-enclose-fill-painter-formal-review`の状態は`completed`、担当は`g178_paintop_settings_schema`、基点は`df73f36749`、正式入力は`build/tdd-macos/public-api-missing-g219.json`である。`libs/image/KisEncloseAndFillPainter.h`の残存全30 APIは一意で台帳と重複せず、集合SHA-256 `72863c12aaf29cb198bcf3cd4420ca2b2c525f06066b5c4179ec5c023aa62395`、5枠5・11・4・5・5に一致した。新規専用targetは既存`KisGradientPainterSchemaContractTest`と同じimage・filter・global・pigment・resources・painting/undo探索路、Eigen・KF I18n・Imath interface、Qt Core・Gui・Testとheader-only Boost、2 export定義により4工程・8入力へ閉じられる。候補headerをAUTOMOC入力にせず、1,196工程・2,416入力の`kritaimage`と1,200工程超の動的fill試験へ接続しない。
 - `g219-curve-widget-formal-review`の状態は`completed`、担当は`g178_shape_hierarchy_schema`、基点は`df73f36749`、正式入力は`build/tdd-macos/public-api-missing-g219.json`である。`libs/ui/widgets/kis_curve_widget.h`の残存全30 APIは一意で台帳と重複せず、集合SHA-256 `1f4c666bcf29b0640a4a1996635571ebbd16f1e0d611411d38afaa5296960716`、5枠9・5・8・4・4に一致した。新規専用targetはapplication・image・global探索路、Qt Gui・Widgets interface、Qt Core・Test、header-only Boost・Eigen、3 export定義により4工程・8入力へ閉じられる。`kritaapplicationui`所有の生成export headerを用い、候補headerをAUTOMOC入力にせず、1,970工程・3,940入力の製品UIへ接続しない。
+
+### 第219便の担当計画
+
+- `g219-enclose-fill-painter-schema`の状態は`planned`、基点は`5a3e417804`、専用作業treeは`/Users/masato/Documents/librepaint-g219-enclose-fill-painter-schema`、branchは`agent/g219-enclose-fill-painter-schema`である。`libs/image/KisEncloseAndFillPainter.h`の残存全30 APIを、新規`libs/image/tests/KisEncloseAndFillPainterSchemaContractTest.cpp`の5枠`encloseAndFillPainterTypeLifetimeAndConstructionSchemaRemainStable`、`encloseAndFillRegionSelectionMethodSchemaRemainStable`、`encloseAndFillOperationSignaturesRemainStable`、`encloseAndFillRegionSelectionQuerySignaturesRemainStable`、`encloseAndFillRegionSelectionMutationSignaturesRemainStable`へ5・11・4・5・5件で対応付ける。第1枠は型、基底、3 constructor、仮想destructor、第2枠は領域選択列挙と0から9の宣言値、第3枠はselection生成2 overloadと色・pattern塗り、第4・5枠は選択方式、色、輪郭・周囲領域、反転の照会・設定である。
+- 変更許可pathは新規試験sourceと`libs/image/tests/CMakeLists.txt`の新target固有節だけである。新target `KisEncloseAndFillPainterSchemaContractTest`は既存`KisGradientPainterSchemaContractTest`と同じimage・filter・global・pigment・pigment/resources・resources・painting/undoのsource・generated探索路、Eigen・KF I18n・Imath interface、`kritaimage_EXPORTS`と`kritapigment_EXPORTS`、Qt Core・Gui・Testとheader-only Boostを使う。予測閉包4工程・8入力、停止線5工程・11入力、軽量近傍は同gradient painter契約である。
+- 型特性、厳密なmember pointer、既定引数を使う未評価呼出しだけで観測し、painter、paint device、selection、色、Qt値、塗り本文を実体化しない。担当は変更前後の計画、target不存在と5枠の初回未定義link診断、追加5枠の単発と各20回反復、対象・近傍CTest、AUTOMOC後の二回目計画、無作業再構築2回、動的接続・未解決記号・構文・書式、公開API検査、`verify-quick`を確認する。5工程・11入力超過、追加探索路・定義・link、製品shared・OBJECT・`kritatestsdk`、候補headerのAUTOMOC入力化、製品未解決記号、対象実体化、公開header・製品source・既存target・許可path外の変更が必要なら停止する。構築許可はmacOSの対象と軽量近傍だけに`granted`、Git権限は許可pathだけの`transport-commit`、追加委任は`forbidden`である。
+- 第219便は同担当の統合・削除後にcurve widget 30 API、KRA XML保存visitor 20 APIを一担当ずつ実装する。調整担当だけが文書、公開API台帳、共通不足報告を変更する。製品target、全体build・`verify`、Linux、Nix再評価を行わない。
 
 ### 第220便の先行監査担当票（第219便確定待ち）
 
