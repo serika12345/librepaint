@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 01:48 JST
+- 更新日時: 2026-09-05 02:01 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -360,10 +360,10 @@
 - 監査共通基点は`4b987ff891`、先行入力は`build/tdd-macos/public-api-missing-g208.json`、正式入力は`build/tdd-macos/public-api-missing-g213.json`である。第212便までの契約済み責務を除外して読み取り専用で先行監査し、第212便完了後の正式報告で候補を再照合した。監査中は変更、構成、構築、試験、Git操作、追加委任を行っていない。
 - `g213-image-contract-audit`の状態は`completed`で、image・paintop・pigment領域からgradient painterの公開型・列挙・設定・描画入口24 APIを選定した。既存画像型契約は4,104行のため、新規専用targetへ分けて4工程・8入力を予測する。
 - `g213-flake-contract-audit`の状態は`completed`で、flake・SVG・vector・関連plugin領域から変形引数とアニメーション保持器の値・永続化・時間変化27 APIを選定した。G212のmask adapterとAPI識別子は重複せず、既存変形幾何契約と同じcompile interfaceを持つ新規専用targetで4工程・9入力を予測する。
-- `g213-ui-contract-audit`の状態は`completed`で、ui/canvas領域からcanvas animation stateの再生・media・frame・audio接続面24 APIを選定した。既存再生engine契約へ対象固有のimage探索路・定義とheader-only Boostだけを加え、4工程・8入力を維持する。
+- `g213-ui-contract-audit`の状態は`completed`で、ui/canvas領域からcanvas animation stateの再生・media・frame・audio接続面24 APIを選定した。既存再生engine契約へ対象固有のimage・global探索路、Qt Xml・KF I18nのinclude interface、image定義、header-only Boostを加え、4工程・8入力を維持する。
 - `g213-gradient-painter-closure-review`の状態は`completed`で、`libs/image/kis_gradient_painter.h`の残存全24 APIが5枠へ重複なく対応し、template描画入口も未評価member pointerで本文をODR-useせず観測できることを独立確認した。Qt Core・Gui・Testとheader-only Boost、image・filter・global・pigment・resources・painting/undo探索路による4工程・8入力を予測する。
 - `g213-transform-state-closure-review`の状態は`completed`で、`tool_transform_args.h`の13 APIと`KisAnimatedTransformMaskParamsHolder.h`の14 APIが変形状態の一責務へ収まり、G212の24 APIとの積集合が0件であることを独立確認した。近傍と同じQt Core・Gui・Test、KF I18n、header-only Boostおよび既存探索路・定義による4工程・9入力を予測する。
-- `g213-canvas-animation-state-closure-review`の状態は`completed`で、`libs/ui/canvas/KisCanvasAnimationState.h`の残存全24 APIが5枠へ重複なく対応し、既存再生engine契約は追加後も約180行・10枠に収まることを独立確認した。対象固有CMake節へheader-only Boost、image探索路、`kritaimage_EXPORTS`だけを加え、Qt Core・Testだけの動的接続と4工程・8入力を維持できる。
+- `g213-canvas-animation-state-closure-review`の状態は`completed`で、`libs/ui/canvas/KisCanvasAnimationState.h`の残存全24 APIが5枠へ重複なく対応し、既存再生engine契約は追加後187行・10枠に収まることを確認した。対象固有CMake節は`kritaimagetimespanvalueobjects`の公開compile interfaceから必要なimage・global探索路、Qt Xml・KF I18nのinclude interface、header-only Boostを再現し、Qt Core・Testだけの動的接続と4工程・8入力を維持する。
 - 各担当は候補headerをtarget sourceやAUTOMOC入力にせず、型特性、厳密な関数pointer、未評価式で実体化と本文実行を避ける計画を優先する。製品targetのplan/buildは禁止し、既存Ninja graphのquery・commands・inputsだけを読み取り専用で利用できる。
 
 ### 第213便の先行監査結果
@@ -371,7 +371,7 @@
 - 正式入力は公開header 1,549、公開API 29,838、対応済み20,531、未対応9,307、2,469,721 bytes、SHA-256 `d7e060712e7bc651ec0584255adb2b194f88df34b256868238dfb1dfbb28b098`を記録する。gradient painter 24件、変形状態27件、canvas animation state 24件がすべて未対応で相互に重複しないことを再照合した。識別子集合SHA-256は順に`2e4adbdcc2056a599a92509ab3a5d8d1279b8f293af3f09cbeacdcb7c982f8a7`、`61dfba395071600997c6849d1862e92ded7e5b746c482caca2c66f2801b2f9f7`、`6ed7355af6e63b363564a472f9f6011b8eeee82b10718899faecda96e41acd04`である。
 - image領域は`libs/image/kis_gradient_painter.h`の24 APIを、型・寿命・構築5、形状列挙10、反復列挙4、設定2、描画入口3として新規`libs/image/tests/KisGradientPainterSchemaContractTest.cpp`の5枠へ固定する。直接linkはQt Core・Gui・Testとheader-only Boost、探索路はimage・image/filter・global・pigment・pigment/resources・resources・painting/undo、定義は`kritaimage_EXPORTS`と`kritapigment_EXPORTS`を最小案とし、4工程・8入力、停止線5工程・11入力とする。
 - 変形工具領域は`plugins/tools/tool_transform2/tool_transform_args.h`の13 APIと`KisAnimatedTransformMaskParamsHolder.h`の14 APIを、引数型・寿命・構築6、外部源・filter・永続化7、保持器型・寿命・構築4、状態・境界・keyframe 6、複製・bake・変更4として新規`plugins/tools/tool_transform2/tests/ToolTransformStateSchemaContractTest.cpp`の5枠へ固定する。既存`ToolTransformArgsGeometrySchemaContractTest`と同じ直接link、探索路、定義で4工程・9入力を予測し、停止線を5工程・11入力とする。
-- UI領域は`libs/ui/canvas/KisCanvasAnimationState.h`の残存全24 APIを、型・寿命・再生列挙7、再生・media 6、速度・frame・audio設定4、再生通知5、audio・取消通知2として既存`libs/ui/tests/KisPlaybackEngineSchemaContractTest.cpp`の5枠へ固定する。対象固有CMake節へheader-only Boost、image source/generated探索路、`kritaimage_EXPORTS`だけを加え、Qt Core・Testだけの動的接続、4工程・8入力、停止線5工程・11入力を維持する。
+- UI領域は`libs/ui/canvas/KisCanvasAnimationState.h`の残存全24 APIを、型・寿命・再生列挙7、再生・media 6、速度・frame・audio設定4、再生通知5、audio・取消通知2として既存`libs/ui/tests/KisPlaybackEngineSchemaContractTest.cpp`の5枠へ固定する。対象固有CMake節へheader-only Boost、image・global source/generated探索路、Qt Xml・KF I18nのinclude interface、`kritaimage_EXPORTS`を加え、Qt Core・Testだけの動的接続、4工程・8入力、停止線5工程・11入力を維持する。
 - 3候補は合計75 API・15枠で、開始header、試験source、所有CMakeが相互に異なる。正式報告で全識別子を再照合済みである。候補headerのAUTOMOC入力化、製品shared・OBJECT、`kritatestsdk`、計画外の探索路・定義・動的接続または未解決製品記号、対象型やinline・template本文の実体化が必要なら停止する。gradient painter、変形状態、canvas animation stateの順に一担当ずつ実装する。
 
 ### 第213便の担当計画
@@ -383,13 +383,20 @@
 - `g213-transform-state-schema`の状態は`integrated`である。開始`plugins/tools/tool_transform2/tool_transform_args.h`の残存全13 APIと`KisAnimatedTransformMaskParamsHolder.h`の残存全14 APIを、新規`plugins/tools/tool_transform2/tests/ToolTransformStateSchemaContractTest.cpp`の5枠`transformArgsTypeLifetimeAndConstructionSchemaRemainStable`、`transformArgsExternalSourceFilterAndPersistenceSchemaRemainStable`、`animatedTransformHolderTypeLifetimeAndConstructionSchemaRemainStable`、`animatedTransformHolderStateBoundsAndKeyframeSchemaRemainStable`、`animatedTransformHolderCloneBakeAndMutationSchemaRemainStable`へ6・7・4・6・4件で対応付けた。受渡しcommit`abf6dd835c`を統合commit`5eb1a1614a`として取り込み、公開headerと製品sourceは変更していない。
 - 担当側と中央のmacOSで追加5枠を各20回、対象`plugins-tools-tool_transform2-ToolTransformStateSchemaContractTest`と近傍`plugins-tools-tool_transform2-ToolTransformArgsGeometrySchemaContractTest`、AUTOMOC後の二回目計画、無作業再構築2回に成功した。4工程・9入力、AUTOMOC `HEADERS=[]`、Qt Core・Gui・TestとKF I18nだけの動的接続、製品未解決記号なしを維持し、台帳は20,582件対応、9,256件未対応となった。変形処理、保持値の更新、keyframe生成、cache同期の実行結果は別の効果契約で扱う。
 - cleanな専用作業tree、296,284 KiBの構築木、branchを統合直後に削除し、886,112 KiBを回収した。主Ninja木5,730,128 KiBと共有compiler cache 982,536 KiBをcanvas animation state契約へ再利用する。次の永続作業は、既存再生engine契約への24 API追加を担当票へ確定し、専用作業treeで実装することである。
-- `g213-canvas-animation-state-schema`の状態は`implementing`、担当は`/root/g208_raster_keyframe_schema`、基点は`35e20a844f`、作業treeは`/Users/masato/Documents/librepaint-g213-canvas-animation-state-schema`である。開始`libs/ui/canvas/KisCanvasAnimationState.h`の残存全24 APIを、既存`libs/ui/tests/KisPlaybackEngineSchemaContractTest.cpp`の5枠へ型・寿命・再生列挙7、再生・media 6、速度・frame・audio設定4、再生通知5、audio・取消通知2として対応付ける。許可pathは既存試験sourceと`libs/ui/tests/CMakeLists.txt`の対象固有節だけで、公開headerと製品sourceを変更しない。対象固有節へheader-only Boost、image・globalのsource/generated探索路、Qt Gui・Widgets・XmlとKF I18nのinclude interface、`kritaimage_EXPORTS`だけを加え、Qt Core・Testだけの動的接続、4工程・8入力を維持する。
+- `g213-canvas-animation-state-schema`の状態は`integrated`である。開始`libs/ui/canvas/KisCanvasAnimationState.h`の残存全24 APIを、既存`libs/ui/tests/KisPlaybackEngineSchemaContractTest.cpp`の5枠`canvasAnimationStateTypeLifetimeAndPlaybackSchemaRemainStable`、`canvasAnimationStatePlaybackAndMediaSignaturesRemainStable`、`canvasAnimationStateSpeedFrameAndAudioSetupSignaturesRemainStable`、`canvasAnimationStatePlaybackNotificationSignaturesRemainStable`、`canvasAnimationStateAudioAndCancellationNotificationSignaturesRemainStable`へ7・6・4・5・2件で対応付けた。受渡しcommit`d9f055752c`を統合commit`0d50109595`として取り込み、公開headerと製品sourceは変更していない。
 - 最初の赤段階は、計画済みのimage探索路だけでは`KisCanvasAnimationState.h`から`kis_time_span.h`、`kis_types.h`を経由して参照する`libs/global/kis_shared_ptr.h`を解決できないことを示した。global探索路を補った次の赤段階は、`kis_time_span.h`から`kis_dom_utils.h`が直接参照する`QDomElement`の探索路不足を示した。同headerは`klocalizedstring.h`も直接参照し、既存`kritaimagetimespanvalueobjects`はglobal探索路、Qt Gui・Widgets・Xml、KF I18n、Boostを公開compile interfaceとして持つ。これは製品headerの自己完結性欠陥ではなく、製品libraryを接続しない静的契約targetのcompile interface不足である。対象固有節へglobal探索路、Qt XmlとKF I18nのinclude interfaceを補い、動的link、工程数、入力数は増やさない。
-- canvas animation state担当は、5工程・11入力超過、計画外の探索路・定義・動的link、候補headerのAUTOMOC入力化、製品shared・OBJECT・`kritatestsdk`接続、canvas・animation state・frame display・time span関連の製品未解決記号、対象値・QObject本文・signal本文の実体化・実行、許可path外変更が必要なら停止する。旧binaryで追加5枠が未知であること、宣言段階の初期失敗、追加5枠の単発と各20回反復、対象と軽量近傍、AUTOMOC後の二回目計画、無作業再構築2回、動的接続・未解決記号・構文・書式、公開API検査、`verify-quick`を確認する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
+- 担当側と中央のmacOSで追加5枠を各20回、既存5枠を含む対象`libs-ui-KisPlaybackEngineSchemaContractTest`と近傍`libs-ui-KisAnimationFrameCacheFwdContractTest`、AUTOMOC後の二回目計画、無作業再構築2回に成功した。4工程・8入力、AUTOMOC `HEADERS=[]`、Qt Core・Testだけの動的接続、製品未解決記号なしを維持し、台帳は20,606件対応、9,232件未対応となった。実際の再生処理、audio接続、signal発火順序は別の効果契約で扱う。
+- cleanな専用作業tree、300,164 KiBの構築木、branchを統合直後に削除し、890,004 KiBを回収した。
 
-### 第214便の先行監査担当票（第213便確定待ち）
+### 第213便の統合結果
 
-- 監査共通基点は`23be79d354`、暫定入力は`build/tdd-macos/public-api-missing-g210.json`である。第209便までの契約済み責務と、第210便から第213便で選定済みの変形mask、文書lifecycle、brush preset、SVG文字列command群、スクリプト向けアプリケーション根、標準曲線option、変形mask adapter、raster面・色channel、gradient painter、変形状態、canvas animation stateを除外する。監査中は主作業treeを読み取り専用で共有し、変更、構成、構築、試験、Git操作、追加委任を行わない。既存Ninja graphのquery・commands・inputsは読み取り専用で利用できる。
+- `libs/image/kis_gradient_painter.h`から新規`libs/image/tests/KisGradientPainterSchemaContractTest.cpp`へ24 API・5枠、`plugins/tools/tool_transform2/tool_transform_args.h`と`KisAnimatedTransformMaskParamsHolder.h`から新規`plugins/tools/tool_transform2/tests/ToolTransformStateSchemaContractTest.cpp`へ27 API・5枠、`libs/ui/canvas/KisCanvasAnimationState.h`から既存`libs/ui/tests/KisPlaybackEngineSchemaContractTest.cpp`へ24 API・5枠を追加した。公開headerと製品sourceを変更せず、3対象とも4工程・8入力または4工程・9入力と製品非接続を維持した。
+- 第213便全体で75 APIを15枠へ重複なく対応付け、20,606件対応、9,232件未対応となった。担当側と中央で対象・軽量近傍CTest、各追加枠の20回反復、AUTOMOC後の二回目計画、無作業再構築、動的接続・未解決記号・構文・書式、公開API検査、`verify-quick`に成功した。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 新しい`build/tdd-macos/public-api-missing-g214.json`は公開header 1,549、公開API 29,838、対応済み20,606、未対応9,232、2,448,134 bytes、SHA-256 `1cabcb124434783cf1147ef1d9a7eec0b8bfe897de97ca69656ba69b6b2bac54`を記録する。旧第213便報告と3担当の作業tree・構築木・branchを削除し、合計2,662,264 KiBを回収した。主Ninja木5,730,324 KiB、共有compiler cache 982,920 KiB、最新不足報告だけを再利用対象として保持する。
+
+### 第214便の先行監査担当票
+
+- 先行監査共通基点は`23be79d354`、先行入力は`build/tdd-macos/public-api-missing-g210.json`、正式再照合基点は`0d50109595`、正式入力は`build/tdd-macos/public-api-missing-g214.json`である。第213便までの契約済み責務を除外し、正式報告で全候補を再計測した。監査中は主作業treeを読み取り専用で共有し、変更、構成、構築、試験、Git操作、追加委任を行っていない。
 - `g214-flake-contract-audit`の状態は`completed`で、SVG図形のclipboard交換、SVG取込み、path data読込み、図形固有SVG永続化を一つの交換境界として22 APIを選定した。既存101行・5枠の`SvgParserSchemaContractTest`へ5枠を追加しても上限内であり、CMake変更なしの4工程・8入力、AUTOMOC `HEADERS=[]`、製品非接続を維持できる。
 - `g214-ui-contract-audit`の状態は`completed`で、`libs/ui/widgets/KisHistogramPainter.h`のhistogram選択・表示色・尺度・描画入口20 APIを選定した。新規`KisHistogramPainterSchemaContractTest`はQt Core・Testだけを直接接続し、Qt Guiのinterface探索路とapplication生成export headerだけで4工程・8入力を予測する。非QObject型と全Qt値を実体化せず観測できる。
 - `g214-image-contract-audit`の状態は`completed`で、色空間実装factoryと変換graphへ提供する変換factoryの識別・能力・profile生成・変換辺27 APIを選定した。既存の抽象変換契約と色空間契約はいずれも追記上限を超えるため、新規`KoColorSpaceFactorySchemaContractTest`へ分け、Qt Core・Testとheader-only Boostによる4工程・8入力を予測する。
@@ -397,12 +404,13 @@
 - `g214-histogram-painter-closure-review`の状態は`completed`で、`KisHistogramPainter.h`の20 API、5枠4・3・5・5・3を独立確認した。新規`KisHistogramPainterSchemaContractTest`はapplication生成探索路をUI生成探索路より優先し、不要な`${CMAKE_CURRENT_BINARY_DIR}/..`を除いたQt Core・Test直接接続とQt Gui interfaceによる4工程・8入力へ閉じられる。
 - `g214-color-factory-closure-review`の状態は`completed`で、2 headerの色空間・変換factory 27 API、5枠5・6・5・5・6を独立確認した。新規`KoColorSpaceFactorySchemaContractTest`はpigment・global探索路、KF I18n interface、Qt Core・Testとheader-only Boost、2 export定義による4工程・8入力へ閉じ、抽象factoryのconstructor probeとinline methodを実体化せず観測できる。
 
-### 第214便の先行監査結果（第213便確定待ち）
+### 第214便の先行監査結果
 
+- 正式入力は公開header 1,549、公開API 29,838、対応済み20,606、未対応9,232、2,448,134 bytes、SHA-256 `1cabcb124434783cf1147ef1d9a7eec0b8bfe897de97ca69656ba69b6b2bac54`を記録する。SVG図形交換22件、histogram描画20件、色空間・変換factory 27件がすべて未対応で相互に重複しないことを再照合した。識別子集合SHA-256は順に`a85a98b0dcbabdca4551765c8b75c9dedca0b1ee761131746a355cd1be1b5e3f`、`311a0df204252ebbbb16a7214df4ba995b807831003e59513d0773c396729a66`、`905372784e9918da4515047d4f999800ec6365aabcbefe6f96032a79c86db5ab`である。
 - flake領域は`libs/flake/KoDrag.h`の7 API、`KoSvgPaste.h`の6 API、`KoPathShapeLoader.h`の4 API、`svg/SvgShape.h`の5 APIを、SVG図形のclipboard交換、取込み、path data読込み、図形固有永続化22 APIとして既存`libs/flake/tests/SvgParserSchemaContractTest.cpp`の5枠へ固定する。既存sourceは101行・5枠で、追加後も上限内に収まり、CMake変更なしの4工程・8入力、Qt Gui・Test・Xmlだけの直接接続、AUTOMOC `HEADERS=[]`、製品非接続を維持する。
 - UI領域は`libs/ui/widgets/KisHistogramPainter.h`の20 APIを、型・寿命・設定4、描画3、channel選択5、色・尺度5、peak・対数方針3として新規`libs/ui/tests/KisHistogramPainterSchemaContractTest.cpp`の5枠へ固定する。Qt Core・Testを直接接続し、Qt Guiのinterface探索路、application生成探索路、`kritaapplicationui_EXPORTS`だけを加えた4工程・8入力を予測する。
 - pigment領域は`libs/pigment/KoColorSpaceFactory.h`の18 APIと`KoColorConversionTransformationFactory.h`の9 APIを、色空間factoryの型・寿命・識別5、能力6、profile・生成5、変換辺・factory寿命5、変換終端6として新規`libs/pigment/tests/KoColorSpaceFactorySchemaContractTest.cpp`の5枠へ固定する。pigment・global探索路、KF I18n interface、Qt Core・Testとheader-only Boost、既存export定義による4工程・8入力を予測する。
-- 3候補は合計69 API・15枠で、開始header、試験source、所有CMake、生成物が相互に異なる。候補headerのAUTOMOC入力化、製品shared・OBJECT、`kritatestsdk`、計画外の探索路・定義・動的接続または未解決製品記号、対象型やinline本文の実体化が必要なら停止する。正式な第214便不足報告で全識別子と閉包を再照合する。
+- 3候補は合計69 API・15枠で、開始header、試験source、所有CMake、生成物が相互に異なる。候補headerのAUTOMOC入力化、製品shared・OBJECT、`kritatestsdk`、計画外の探索路・定義・動的接続または未解決製品記号、対象型やinline本文の実体化が必要なら停止する。SVG図形交換、histogram描画、色空間・変換factoryの順に一担当ずつ実装する。
 
 ### 第215便の先行監査担当票（第214便確定待ち）
 

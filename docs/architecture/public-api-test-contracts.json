@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 9256
+    "expectedMissingApis": 9232
   },
   "contracts": [
     {
@@ -57326,6 +57326,75 @@
         "method:KisAnimatedTransformMaskParamsHolder::clone() const",
         "method:KisAnimatedTransformMaskParamsHolder::setParamsAtCurrentPosition(const KisTransformMaskParamsInterface * params,KUndo2Command * parentCommand)",
         "method:KisAnimatedTransformMaskParamsHolder::syncLodCache()"
+      ]
+    },
+    {
+      "target": "KisPlaybackEngineSchemaContractTest",
+      "source": "libs/ui/tests/KisPlaybackEngineSchemaContractTest.cpp",
+      "test": "KisPlaybackEngineSchemaContractTest::canvasAnimationStateTypeLifetimeAndPlaybackSchemaRemainStable",
+      "behavior": "canvas animation stateは公開型、canvas付き構築、仮想寿命、および3つの安定した再生状態を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisCanvasAnimationState",
+        "enum:PlaybackState",
+        "enumerator:PlaybackState::PAUSED",
+        "enumerator:PlaybackState::PLAYING",
+        "enumerator:PlaybackState::STOPPED",
+        "method:KisCanvasAnimationState::KisCanvasAnimationState(KisCanvas2 * canvas)",
+        "method:KisCanvasAnimationState::~KisCanvasAnimationState()"
+      ]
+    },
+    {
+      "target": "KisPlaybackEngineSchemaContractTest",
+      "source": "libs/ui/tests/KisPlaybackEngineSchemaContractTest.cpp",
+      "test": "KisPlaybackEngineSchemaContractTest::canvasAnimationStatePlaybackAndMediaSignaturesRemainStable",
+      "behavior": "canvas animation stateは再生状態、開始位置、音量、media情報、およびframe表示代理の公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCanvasAnimationState::currentVolume()",
+        "method:KisCanvasAnimationState::displayProxy()",
+        "method:KisCanvasAnimationState::mediaInfo()",
+        "method:KisCanvasAnimationState::playbackOrigin()",
+        "method:KisCanvasAnimationState::playbackState()",
+        "method:KisCanvasAnimationState::setPlaybackState(PlaybackState state)"
+      ]
+    },
+    {
+      "target": "KisPlaybackEngineSchemaContractTest",
+      "source": "libs/ui/tests/KisPlaybackEngineSchemaContractTest.cpp",
+      "test": "KisPlaybackEngineSchemaContractTest::canvasAnimationStateSpeedFrameAndAudioSetupSignaturesRemainStable",
+      "behavior": "canvas animation stateは再生速度、frame表示、audio track準備の公開署名とframe確定引数の省略可能性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCanvasAnimationState::playbackSpeed() const",
+        "method:KisCanvasAnimationState::setPlaybackSpeed(qreal value)",
+        "method:KisCanvasAnimationState::setupAudioTracks()",
+        "method:KisCanvasAnimationState::showFrame(int frame,bool finalize=false)"
+      ]
+    },
+    {
+      "target": "KisPlaybackEngineSchemaContractTest",
+      "source": "libs/ui/tests/KisPlaybackEngineSchemaContractTest.cpp",
+      "test": "KisPlaybackEngineSchemaContractTest::canvasAnimationStatePlaybackNotificationSignaturesRemainStable",
+      "behavior": "canvas animation stateはframe、media、速度、状態、および統計変更を通知する公開signal署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCanvasAnimationState::sigFrameChanged()",
+        "method:KisCanvasAnimationState::sigPlaybackMediaChanged()",
+        "method:KisCanvasAnimationState::sigPlaybackSpeedChanged(qreal value)",
+        "method:KisCanvasAnimationState::sigPlaybackStateChanged(PlaybackState state)",
+        "method:KisCanvasAnimationState::sigPlaybackStatisticsUpdated()"
+      ]
+    },
+    {
+      "target": "KisPlaybackEngineSchemaContractTest",
+      "source": "libs/ui/tests/KisPlaybackEngineSchemaContractTest.cpp",
+      "test": "KisPlaybackEngineSchemaContractTest::canvasAnimationStateAudioAndCancellationNotificationSignaturesRemainStable",
+      "behavior": "canvas animation stateはaudio level変更と再生取消を通知する公開signal署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCanvasAnimationState::sigAudioLevelChanged(qreal value)",
+        "method:KisCanvasAnimationState::sigCancelPlayback()"
       ]
     }
   ]
