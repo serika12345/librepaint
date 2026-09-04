@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 03:31 JST
+- 更新日時: 2026-09-05 03:41 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -458,10 +458,17 @@
 - `g215-async-color-sampler-schema`の状態は`integrated`である。開始`libs/ui/tool/KisAsyncColorSamplerHelper.h`の残存全20 APIを、新規`libs/ui/tests/KisAsyncColorSamplerHelperSchemaContractTest.cpp`の5枠`asyncColorSamplerTypeLifetimeAndStateSchemaRemainStable`、`asyncColorSamplerActivationAndActionSignaturesRemainStable`、`asyncColorSamplerPreviewAndPaintingSignaturesRemainStable`、`asyncColorSamplerGlobalColorAndOutlineSignaturesRemainStable`、`asyncColorSamplerColorNotificationSignaturesRemainStable`へ4・6・2・5・3件で対応付けた。受渡しcommit`cc14a4dbc2`を統合commit`3dd9f38e20`として取り込み、公開headerと製品sourceは変更していない。
 - 担当側と中央のmacOSで追加5枠を各20回、対象`libs-ui-KisAsyncColorSamplerHelperSchemaContractTest`と近傍`libs-ui-KisHistogramPainterSchemaContractTest`、AUTOMOC後の計画、無作業再構築2回に成功した。4工程・8入力、AUTOMOC `HEADERS=[]`、Qt Core・Testだけの動的接続、製品未解決記号なしを維持し、台帳は20,717件対応、9,121件未対応となった。実際の採取、色更新、cursor・輪郭・描画・通知効果は別の効果契約で扱う。
 - cleanな専用作業tree、297,776 KiBの構築木、branchを統合直後に削除し、887,676 KiBを回収した。主Ninja木5,734,164 KiBと共有compiler cache 982,696 KiBを色空間registry契約へ再利用する。次の永続作業は、同registry 63 APIの担当票を確定して専用作業treeで実装することである。
-- `g215-color-space-registry-schema`の状態は`implementing`、担当は`/root/g208_raster_keyframe_schema`、基点は`29a5eae4ab`、作業treeは`/Users/masato/Documents/librepaint-g215-color-space-registry-schema`である。開始`libs/pigment/KoColorSpaceRegistry.h`の残存全63 APIを、新規`libs/pigment/tests/KoColorSpaceRegistrySchemaContractTest.cpp`の5枠`colorSpaceRegistryTypeLifetimeAndPolicySchemaRemainStable`、`colorSpaceRegistryFactoryAndProfileMutationSignaturesRemainStable`、`colorSpaceRegistryProfileAndCatalogQuerySignaturesRemainStable`、`colorSpaceRegistryResolutionAndConversionSignaturesRemainStable`、`colorSpaceRegistryDefaultColorSpaceSignaturesRemainStable`へ11・10・13・11・18件で対応付ける。識別子集合のSHA-256は`0ccdbe397f16f65ca61c6685880601ece31dcb7561cd76ec21b3c2c5f0ee5d60`である。許可pathは新規試験sourceと`libs/pigment/tests/CMakeLists.txt`の新target固有節だけで、公開headerと製品sourceを変更しない。Qt Core・Gui・Testとheader-only Boost、pigment・global探索路、KF I18n interface、`kritapigment_EXPORTS`、`kritaglobal_EXPORTS`だけによる4工程・8入力を予測する。
-- 色空間registry担当は、5工程・11入力超過、計画外の探索路・定義・link、製品shared・OBJECT・`kritatestsdk`の動的接続、候補headerのAUTOMOC入力化、registry・profile・色空間・Qt値の実体化、singleton取得、inlineを含む製品本文の実行、製品未解決記号、許可path外変更が必要なら停止する。新target不存在、宣言段階の初期失敗、追加5枠の単発と各20回反復、対象と軽量近傍`KoColorSpaceFactorySchemaContractTest`、AUTOMOC後の二回目計画、無作業再構築2回、動的接続・未解決記号・構文・書式、公開API検査、`verify-quick`を確認する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。Git権限は許可pathだけの1受渡しcommitで、追加委任は禁止する。
+- `g215-color-space-registry-schema`の状態は`integrated`である。開始`libs/pigment/KoColorSpaceRegistry.h`の残存全63 APIを、新規`libs/pigment/tests/KoColorSpaceRegistrySchemaContractTest.cpp`の5枠`colorSpaceRegistryTypeLifetimeAndPolicySchemaRemainStable`、`colorSpaceRegistryFactoryAndProfileMutationSignaturesRemainStable`、`colorSpaceRegistryProfileAndCatalogQuerySignaturesRemainStable`、`colorSpaceRegistryResolutionAndConversionSignaturesRemainStable`、`colorSpaceRegistryDefaultColorSpaceSignaturesRemainStable`へ11・10・13・11・18件で対応付けた。受渡しcommit`59a1d29278`を統合commit`d9b989c2a0`として取り込み、公開headerと製品sourceは変更していない。
+- 担当側と中央のmacOSで追加5枠を各20回、対象`libs-pigment-KoColorSpaceRegistrySchemaContractTest`と近傍`libs-pigment-KoColorSpaceFactorySchemaContractTest`、AUTOMOC後の計画、無作業再構築2回に成功した。4工程・8入力、AUTOMOC `HEADERS=[]`、Qt Core・Gui・Testだけの動的接続、製品未解決記号なしを維持し、台帳は20,780件対応、9,058件未対応となった。registryの施錠順序、singleton生成、profile登録・変換生成の実行時効果は別契約で扱う。
+- cleanな専用作業tree、298,692 KiBの構築木、branchを統合直後に削除し、888,608 KiBを回収した。主Ninja木5,735,560 KiBと共有compiler cache 983,276 KiBを第216便へ再利用する。
 
-### 第216便の先行監査担当票（第215便確定待ち）
+### 第215便の統合結果
+
+- `libs/flake/KoShape.h`と`KoShapeLayer.h`から既存`libs/flake/tests/KoShapeStateSchemaContractTest.cpp`へ22 API・5枠、`libs/ui/tool/KisAsyncColorSamplerHelper.h`から新規`libs/ui/tests/KisAsyncColorSamplerHelperSchemaContractTest.cpp`へ20 API・5枠、`libs/pigment/KoColorSpaceRegistry.h`から新規`libs/pigment/tests/KoColorSpaceRegistrySchemaContractTest.cpp`へ63 API・5枠を追加した。公開headerと製品sourceを変更せず、3対象とも4工程・8入力と製品非接続を維持した。
+- 第215便全体で105 APIを15枠へ重複なく対応付け、20,780件対応、9,058件未対応となった。担当側と中央で対象・軽量近傍CTest、各追加枠の20回反復、AUTOMOC後の計画、無作業再構築、動的接続・未解決記号・構文・書式、公開API検査、`verify-quick`に成功した。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 3担当のcleanな専用作業tree、構築木、branchを統合直後に削除し、合計2,660,552 KiBを回収した。新しい`build/tdd-macos/public-api-missing-g216.json`は公開header 1,549、公開API 29,838、対応済み20,780、未対応9,058、2,402,389 bytes、SHA-256 `e51139f48559677d6e98eea19cea64511bbda145604ca5b73c19acf8a1e70b3c`を記録する。旧第215便報告を削除し、主Ninja木、共有compiler cache、最新不足報告だけを再利用対象として保持する。
+
+### 第216便の先行監査担当票
 
 - 監査共通基点は`99bcff706a`、暫定入力は`build/tdd-macos/public-api-missing-g211.json`である。第210便までの契約済み責務と、第211便から第215便で選定済みのbrush preset、SVG文字列command群、スクリプト向けアプリケーション根、標準曲線option、変形mask adapter、raster面・色channel、gradient painter、変形状態、canvas animation state、SVG図形交換、histogram描画、色空間factory、図形補助状態・root layer、非同期色採取、色空間registryを除外する。監査中は主作業treeを読み取り専用で共有し、変更、構成、構築、試験、Git操作、追加委任を行わない。既存Ninja graphのquery・commands・inputsは読み取り専用で利用できる。
 - `g216-image-contract-audit`の状態は`completed`で、`KisGeneratorLayer`の構築、設定更新、投影再生成、表示・visitor連携、遅延更新21 APIを選定した。既存mask契約へ混在させず、新規専用targetを同じ4工程・8入力へ閉じる。
@@ -471,8 +478,9 @@
 - `g216-animation-frame-cache-closure-review`の状態は`completed`で、`kis_animation_frame_cache.h`の20 APIと5枠7・3・4・3・3を独立確認した。正規application生成export headerを最初に選び、globalの共有pointer定義をsourceで補完すれば、Qt Core・Test、application・image・global探索路、3 export定義による4工程・8入力へ閉じられる。
 - `g216-path-topology-command-closure-review`の状態は`completed`で、4 headerの21 APIと5枠3・4・6・2・6を独立確認した。責務をpath-backed shapeの可逆編集command群と定義し、既存`KoPathPointTopologyCommandSchemaContractTest`へCMake変更なしで追記して4工程・8入力を維持できる。
 
-### 第216便の先行監査結果（第215便確定待ち）
+### 第216便の先行監査結果
 
+- 正式入力は公開header 1,549、公開API 29,838、対応済み20,780、未対応9,058、2,402,389 bytes、SHA-256 `e51139f48559677d6e98eea19cea64511bbda145604ca5b73c19acf8a1e70b3c`である。生成layer 21件、animation frame cache 20件、path-backed shape編集command 21件がすべて未対応で相互に重複しないことを再照合した。識別子集合SHA-256は順に`f5219b76c7aeeca874589f133b95d73d33b6cfe824ce20f08c55d83b4ed71c15`、`2990f8064fc255aaa0f8ecf7f4e74e82b6f4657d8c3d89f1b7547629abce71`、`bdcfc134a59c5e273830dd839c360a0aa5d0fde92b4090dde5128b2c5524009d`である。
 - image領域は`libs/image/generator/kis_generator_layer.h`の21 APIを、型・寿命・構築4、設定・再生成5、dirty領域・位置4、階層・表示・visitor 6、遅延更新2として新規`libs/image/tests/KisGeneratorLayerSchemaContractTest.cpp`の5枠へ固定する。既存`KisMaskSchemaContractTest`と同じimage・global・pigment・resources探索路、KF I18n・Imath interface、Qt Core・Gui・Test・Xml、header-only Boost、2 export定義による4工程・8入力、停止線5工程・11入力を予測する。
 - UI領域は`libs/ui/animation/kis_animation_frame_cache.h`の20 APIを、型・寿命・状態7、cache検索3、取込み・frame状態4、frame data 3、ROI・通知3として新規`libs/ui/tests/KisAnimationFrameCacheSchemaContractTest.cpp`の5枠へ固定する。application生成export headerを優先し、application・image・global探索路、Qt Core・Test、3 export定義による4工程・8入力、停止線5工程・11入力を予測する。
 - flake領域は`libs/flake/commands/KoPathCombineCommand.h`、`KoPathControlPointMoveCommand.h`、`KoMultiPathPointJoinCommand.h`、`KoShapeUnclipCommand.h`の21 APIを、結合command型・構築3、結合実行・対応4、制御点移動6、複数path点結合2、clip解除6として既存`libs/flake/tests/KoPathPointTopologyCommandSchemaContractTest.cpp`の5枠へ固定する。Qt Core・Testとheader-only Boostを直接接続し、Qt Gui・XmlとKF I18nをinterface利用する既存4工程・8入力、停止線5工程・11入力を維持する。
@@ -481,7 +489,7 @@
 ### 第217便の先行監査担当票（第216便確定待ち）
 
 - 監査共通基点は`29cb9d06b9`、暫定入力は`build/tdd-macos/public-api-missing-g211.json`である。第210便までの契約済み責務と、第211便から第216便で選定済みのbrush preset、SVG文字列command群、Krita façade、標準曲線option、変形mask adapter、raster面・色channel、gradient painter、変形状態、canvas animation state、SVG図形交換、histogram描画、色空間factory、図形補助状態・root layer、非同期色採取、色空間registry、生成layer、animation frame cache、path-backed shape編集command群を除外する。監査中は主作業treeを読み取り専用で共有し、変更、構成、構築、試験、Git操作、追加委任を行わない。既存Ninja graphのquery・commands・inputsは読み取り専用で利用できる。
-- `g217-layer-filter-closure-review`の状態は`auditing`、担当は`/root/g178_shape_hierarchy_schema`、再確認基点は`df30669be5`、暫定入力は`build/tdd-macos/public-api-missing-g215.json`である。`libs/ui/widgets/kis_layer_filter_widget.h`の残存全23 API、識別子集合SHA-256 `6c88dd7693501cd7ebff7dabad878b162dade4ed9c944aac38031f1f792fead4`について、一責務性、5枠への重複なしの分割、新規専用targetの最小探索路・export定義・動的接続、4工程・8入力予測、製品非接続、既存契約との重複を独立確認する。主作業treeは読み取り専用とし、変更、構成、構築、試験、Git操作、追加委任を行わない。第216便完了後の正式不足報告で再照合するまで実装担当票へ進めない。
+- `g217-layer-filter-closure-review`の状態は`completed`である。`libs/ui/widgets/kis_layer_filter_widget.h`の23 API、識別子集合SHA-256 `6c88dd7693501cd7ebff7dabad878b162dade4ed9c944aac38031f1f792fead4`、5枠2・8・4・6・3を独立確認した。新規`KisLayerFilterWidgetSchemaContractTest`はapplication生成export header、image・global探索路、Qt Gui・Widgets interfaceを使い、Qt Core・Testだけを直接接続する4工程・8入力へ閉じられる。既存契約への追記より責務と再構築範囲を分離できる専用targetを採用し、第216便完了後の正式報告で再照合する。
 - `g217-image-contract-audit`の状態は`completed`で、image・paintop・pigment領域から色付けmaskの型・装置・投影・key stroke・再生成・表示option 57 APIを選定した。既存mask契約から責務を分けた新規専用targetで4工程・8入力を予測する。公開署名にundo型があるため、正式報告後の独立閉包確認で探索路不要の予測を再検証する。
 - `g217-ui-contract-audit`の状態は`completed`で、widgetutils・widgets・libkis・UI領域からlayer一覧の色label・文字列絞り込みとpopup操作23 APIを選定した。新規専用targetへ分け、application生成版export header、image・global探索路、Qt Widgets interfaceによる4工程・8入力を予測する。
 - `g217-flake-contract-audit`の状態は`completed`で、flake・SVG・変形工具領域からSVG図形の外観読込状態・描画・様式保存20 APIを選定した。`SvgGraphicsContext.h`、`KoShapePainter.h`、`SvgStyleWriter.h`を新規専用targetの5枠3・3・7・4・3へ固定し、Qt Core・Testとheader-only Boostだけを直接接続する4工程・8入力を予測する。
@@ -490,7 +498,7 @@
 
 ### 第218便の先行監査担当票（第217便確定待ち）
 
-- `g218-color-space-abstract-closure-audit`の状態は`auditing`、担当は`/root/g178_paintop_settings_schema`、再確認基点は`2f8e8df2de`、暫定入力は`build/tdd-macos/public-api-missing-g215.json`である。`libs/pigment/KoColorSpaceAbstract.h`の残存全32 API、識別子集合SHA-256 `65d6bd510ff2f9846c38384703df4a1ceb187fdbf522d5da8c4e7a2c5702dcaf`について、単一責務性、5枠以内への重複なしの分割、template型を実体化・実行しない観測方法、既存契約との重複、新規専用targetの最小探索路・定義・動的接続と工程・入力予測を独立確認する。主作業treeは読み取り専用とし、変更、構成、構築、試験、Git操作、追加委任を行わない。第217便完了後の正式不足報告で再照合するまで実装担当票へ進めない。
+- `g218-color-space-abstract-closure-audit`の状態は`completed`である。`libs/pigment/KoColorSpaceAbstract.h`の32 API、識別子集合SHA-256 `65d6bd510ff2f9846c38384703df4a1ceb187fdbf522d5da8c4e7a2c5702dcaf`、5枠9・6・10・5・2を独立確認した。代表`KoColorSpaceTrait`と宣言だけの局所派生型により抽象template、公開構築、override署名を実体化せず観測できる。新規専用targetはpigment・global探索路、KF I18n・Imath interface、Qt Core・Gui・Testとheader-only Boost、2 export定義による4工程・8入力を予測する。既存実行試験は371工程・771入力で製品群へ接続するため再利用せず、第217便完了後の正式報告で再照合する。
 
 ### 第201便の先行監査担当票
 

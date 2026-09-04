@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 9121
+    "expectedMissingApis": 9058
   },
   "contracts": [
     {
@@ -57731,6 +57731,114 @@
         "method:KisAsyncColorSamplerHelper::sigColorSelected(const KoColor & color)",
         "method:KisAsyncColorSamplerHelper::sigFinalColorSelected(const KoColor & color)",
         "method:KisAsyncColorSamplerHelper::sigRawColorSelected(const KoColor & color)"
+      ]
+    },
+    {
+      "target": "KoColorSpaceRegistrySchemaContractTest",
+      "source": "libs/pigment/tests/KoColorSpaceRegistrySchemaContractTest.cpp",
+      "test": "KoColorSpaceRegistrySchemaContractTest::colorSpaceRegistryTypeLifetimeAndPolicySchemaRemainStable",
+      "behavior": "色空間registryは公開型、profile選択・表示方針、既定構築と仮想寿命、および共有instance取得の公開契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KoColorSpaceRegistry::CustomProfileNameAlias",
+        "class:KoColorSpaceRegistry",
+        "enum:KoColorSpaceRegistry::ColorSpaceListProfilesSelection",
+        "enum:KoColorSpaceRegistry::ColorSpaceListVisibility",
+        "enumerator:KoColorSpaceRegistry::ColorSpaceListProfilesSelection::AllProfiles",
+        "enumerator:KoColorSpaceRegistry::ColorSpaceListProfilesSelection::OnlyDefaultProfile",
+        "enumerator:KoColorSpaceRegistry::ColorSpaceListVisibility::AllColorSpaces",
+        "enumerator:KoColorSpaceRegistry::ColorSpaceListVisibility::OnlyUserVisible",
+        "method:KoColorSpaceRegistry::KoColorSpaceRegistry()",
+        "method:KoColorSpaceRegistry::instance()",
+        "method:KoColorSpaceRegistry::~KoColorSpaceRegistry()"
+      ]
+    },
+    {
+      "target": "KoColorSpaceRegistrySchemaContractTest",
+      "source": "libs/pigment/tests/KoColorSpaceRegistrySchemaContractTest.cpp",
+      "test": "KoColorSpaceRegistrySchemaContractTest::colorSpaceRegistryFactoryAndProfileMutationSignaturesRemainStable",
+      "behavior": "色空間registryはfactoryとprofileの追加・除去、profile別名、および生dataからのprofile生成を行う公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoColorSpaceRegistry::add(KoColorSpaceFactory * item)",
+        "method:KoColorSpaceRegistry::addProfile(KoColorProfile * profile)",
+        "method:KoColorSpaceRegistry::addProfile(const KoColorProfile * profile)",
+        "method:KoColorSpaceRegistry::addProfileAlias(const QString & name,const QString & to)",
+        "method:KoColorSpaceRegistry::addProfileToMap(KoColorProfile * p)",
+        "method:KoColorSpaceRegistry::createColorProfile(const QString & colorModelId,const QString & colorDepthId,const QByteArray & rawData)",
+        "method:KoColorSpaceRegistry::createColorProfile(const QString & colorModelId,const QString & colorDepthId,const QByteArray & rawData,CustomProfileNameAlias customProfileNameAlias)",
+        "method:KoColorSpaceRegistry::remove(KoColorSpaceFactory * item)",
+        "method:KoColorSpaceRegistry::removeProfile(KoColorProfile * profile)",
+        "method:KoColorSpaceRegistry::removeProfileAlias(const QString & name)"
+      ]
+    },
+    {
+      "target": "KoColorSpaceRegistrySchemaContractTest",
+      "source": "libs/pigment/tests/KoColorSpaceRegistrySchemaContractTest.cpp",
+      "test": "KoColorSpaceRegistrySchemaContractTest::colorSpaceRegistryProfileAndCatalogQuerySignaturesRemainStable",
+      "behavior": "色空間registryはprofileの別名・識別子・互換性・既定値とQt色空間対応、および色模型・深度catalogを照会する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoColorSpaceRegistry::QColorSpaceForProfile(const KoColorProfile * profile) const",
+        "method:KoColorSpaceRegistry::colorDepthList(const KoID & colorModelId,ColorSpaceListVisibility option) const",
+        "method:KoColorSpaceRegistry::colorDepthList(const QString & colorModelId,ColorSpaceListVisibility option) const",
+        "method:KoColorSpaceRegistry::colorModelsList(ColorSpaceListVisibility option) const",
+        "method:KoColorSpaceRegistry::defaultProfileForColorSpace(const QString & colorSpaceId) const",
+        "method:KoColorSpaceRegistry::listKeys() const",
+        "method:KoColorSpaceRegistry::profileAlias(const QString & name) const",
+        "method:KoColorSpaceRegistry::profileByName(const QString & name) const",
+        "method:KoColorSpaceRegistry::profileByUniqueId(const QByteArray & id) const",
+        "method:KoColorSpaceRegistry::profileFor(const KoColorProfileQuery & query,const bool generate=true) const",
+        "method:KoColorSpaceRegistry::profileForQColorSpace(const QColorSpace & space)",
+        "method:KoColorSpaceRegistry::profileIsCompatible(const KoColorProfile * profile,const QString & colorSpaceId)",
+        "method:KoColorSpaceRegistry::profilesFor(const QString & csID) const"
+      ]
+    },
+    {
+      "target": "KoColorSpaceRegistrySchemaContractTest",
+      "source": "libs/pigment/tests/KoColorSpaceRegistrySchemaContractTest.cpp",
+      "test": "KoColorSpaceRegistrySchemaContractTest::colorSpaceRegistryResolutionAndConversionSignaturesRemainStable",
+      "behavior": "色空間registryは模型・深度・profileから色空間と識別子を解決し、変換器と永続色空間を提供する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoColorSpaceRegistry::colorConversionCache() const",
+        "method:KoColorSpaceRegistry::colorSpace(const QString & colorModelId,const QString & colorDepthId)",
+        "method:KoColorSpaceRegistry::colorSpace(const QString & colorModelId,const QString & colorDepthId,const KoColorProfile * profile)",
+        "method:KoColorSpaceRegistry::colorSpace(const QString & colorModelId,const QString & colorDepthId,const QString & profileName)",
+        "method:KoColorSpaceRegistry::colorSpaceColorDepthId(const QString & _colorSpaceId) const",
+        "method:KoColorSpaceRegistry::colorSpaceColorModelId(const QString & _colorSpaceId) const",
+        "method:KoColorSpaceRegistry::colorSpaceId(const KoID & colorModelId,const KoID & colorDepthId) const",
+        "method:KoColorSpaceRegistry::colorSpaceId(const QString & colorModelId,const QString & colorDepthId) const",
+        "method:KoColorSpaceRegistry::createColorConverter(const KoColorSpace * srcColorSpace,const KoColorSpace * dstColorSpace,KoColorConversionTransformation::Intent renderingIntent,KoColorConversionTransformation::ConversionFlags conversionFlags) const",
+        "method:KoColorSpaceRegistry::createColorConverters(const KoColorSpace * colorSpace,const QList<QPair<KoID,KoID>> & possibilities,KoColorConversionTransformation * & fromCS,KoColorConversionTransformation * & toCS) const",
+        "method:KoColorSpaceRegistry::permanentColorspace(const KoColorSpace * _colorSpace)"
+      ]
+    },
+    {
+      "target": "KoColorSpaceRegistrySchemaContractTest",
+      "source": "libs/pigment/tests/KoColorSpaceRegistrySchemaContractTest.cpp",
+      "test": "KoColorSpaceRegistrySchemaContractTest::colorSpaceRegistryDefaultColorSpaceSignaturesRemainStable",
+      "behavior": "色空間registryはalpha、gray、RGB、Labの標準色空間と映像用標準profileを返す公開署名、およびprofile名の省略可能性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoColorSpaceRegistry::alpha16()",
+        "method:KoColorSpaceRegistry::alpha16f()",
+        "method:KoColorSpaceRegistry::alpha32f()",
+        "method:KoColorSpaceRegistry::alpha8()",
+        "method:KoColorSpaceRegistry::graya16(const KoColorProfile * profile)",
+        "method:KoColorSpaceRegistry::graya16(const QString & profile=QString ())",
+        "method:KoColorSpaceRegistry::graya8(const KoColorProfile * profile)",
+        "method:KoColorSpaceRegistry::graya8(const QString & profile=QString ())",
+        "method:KoColorSpaceRegistry::lab16(const KoColorProfile * profile)",
+        "method:KoColorSpaceRegistry::lab16(const QString & profileName=QString ())",
+        "method:KoColorSpaceRegistry::p2020G10Profile() const",
+        "method:KoColorSpaceRegistry::p2020PQProfile() const",
+        "method:KoColorSpaceRegistry::p709G10Profile() const",
+        "method:KoColorSpaceRegistry::p709SRGBProfile() const",
+        "method:KoColorSpaceRegistry::rgb16(const KoColorProfile * profile)",
+        "method:KoColorSpaceRegistry::rgb16(const QString & profileName=QString ())",
+        "method:KoColorSpaceRegistry::rgb8(const KoColorProfile * profile)",
+        "method:KoColorSpaceRegistry::rgb8(const QString & profileName=QString ())"
       ]
     }
   ]
