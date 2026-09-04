@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 03:49 JST
+- 更新日時: 2026-09-05 03:52 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -506,7 +506,8 @@
 ### 第218便の先行監査担当票（第217便確定待ち）
 
 - `g218-color-space-abstract-closure-audit`の状態は`completed`である。`libs/pigment/KoColorSpaceAbstract.h`の32 API、識別子集合SHA-256 `65d6bd510ff2f9846c38384703df4a1ceb187fdbf522d5da8c4e7a2c5702dcaf`、5枠9・6・10・5・2を独立確認した。代表`KoColorSpaceTrait`と宣言だけの局所派生型により抽象template、公開構築、override署名を実体化せず観測できる。新規専用targetはpigment・global探索路、KF I18n・Imath interface、Qt Core・Gui・Testとheader-only Boost、2 export定義による4工程・8入力を予測する。既存実行試験は371工程・771入力で製品群へ接続するため再利用せず、第217便完了後の正式報告で再照合する。
-- `g218-auto-levels-widget-closure-audit`の状態は`auditing`、担当は`/root/g178_shape_hierarchy_schema`、再確認基点は`43a6de2f28`、暫定入力は`build/tdd-macos/public-api-missing-g216.json`である。`libs/ui/widgets/KisAutoLevelsWidget.h`の残存全24 API、識別子集合SHA-256 `a95a317c6243b9b6813002527f57029887e2dea1ee4d745cd57aed972d199eef`について、一責務性、5枠への重複なしの分割、対象固有`KisAutoLevelsWidget.ui`生成とAUTOGENの順序、最小探索路・定義・動的接続、工程・入力予測、製品非接続を独立確認する。主作業treeは読み取り専用とし、変更、構成、構築、試験、Git操作、追加委任を行わない。第217便完了後の正式不足報告で再照合するまで実装担当票へ進めない。
+- `g218-auto-levels-widget-closure-audit`の状態は`completed`である。`libs/ui/widgets/KisAutoLevelsWidget.h`の24 API、識別子集合SHA-256 `a95a317c6243b9b6813002527f57029887e2dea1ee4d745cd57aed972d199eef`、5枠3・4・6・4・7を独立確認した。新規専用targetは`KisAutoLevelsWidget.ui`をtarget固有binary directoryへ生成し、生成headerをsource集合へ加えずAUTOGENの先行依存にすることで5工程・10入力に閉じられる。application・image・pigment・widgets・widgetutils・global探索路と対応export定義、Qt Gui・Widgets、KF I18n・Imath・Boostのinterfaceを使い、Qt Core・Testだけを直接接続する。第217便完了後の正式報告で再照合する。
+- `g218-tool-proxy-state-closure-audit`の状態は`auditing`、担当は`/root/g178_paintop_settings_schema`、再確認基点は`992e7ce42b`、暫定入力は`build/tdd-macos/public-api-missing-g216.json`である。`libs/flake/KoToolProxy_p.h`の残存全22 API、識別子集合SHA-256 `0f59b3ac83a68afbf4972e1d02a6cb7da12852e02969b6a00e78dd750d61265a`について、tool代理の入力・選択・自動scroll・複数click状態という一責務性、5枠への重複なしの分割、公開data memberを含む実体化不要の観測方法、新規専用targetの最小探索路・定義・動的接続と工程・入力予測を独立確認する。主作業treeは読み取り専用とし、変更、構成、構築、試験、Git操作、追加委任を行わない。第217便完了後の正式不足報告で再照合するまで実装担当票へ進めない。
 
 ### 第201便の先行監査担当票
 
