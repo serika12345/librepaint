@@ -206,9 +206,12 @@ target_include_directories(KisDoubleParseUnitSpinBoxSchemaContractTest PRIVATE
     ${CMAKE_CURRENT_BINARY_DIR}/..
     ${CMAKE_SOURCE_DIR}/libs/global
     ${CMAKE_BINARY_DIR}/libs/global
+    ${CMAKE_SOURCE_DIR}/libs/widgets
+    ${CMAKE_BINARY_DIR}/libs/widgets
 )
 target_compile_definitions(KisDoubleParseUnitSpinBoxSchemaContractTest PRIVATE
     kritaglobal_EXPORTS
+    kritawidgets_EXPORTS
     kritawidgetutils_EXPORTS
 )
 

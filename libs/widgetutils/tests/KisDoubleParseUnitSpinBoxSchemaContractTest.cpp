@@ -3,7 +3,9 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "KoUnitDoubleSpinBox.h"
 #include "kis_double_parse_unit_spin_box.h"
+#include "kis_spin_box_unit_manager.h"
 
 #include <QTest>
 
@@ -20,6 +22,11 @@ private Q_SLOTS:
     void unitSpinBoxValueConversionSignaturesRemainStable();
     void unitSpinBoxRangeStepAndPrecisionSignaturesRemainStable();
     void unitSpinBoxTextConversionSignaturesRemainStable();
+    void unitDoubleSpinBoxTypeLifetimeAndValueSchemaRemainStable();
+    void unitDoubleSpinBoxRangeAndStepSignaturesRemainStable();
+    void unitDoubleSpinBoxUnitTextAndNotificationSignaturesRemainStable();
+    void unitManagerBuilderTypeLifetimeAndBuildSchemaRemainStable();
+    void unitManagerFactoryTypeAndCreationSchemaRemainStable();
 };
 
 #define ASSERT_UNIT_SPIN_BOX_SIGNATURE(method, signature)                                                              \
@@ -98,6 +105,69 @@ void KisDoubleParseUnitSpinBoxSchemaContractTest::unitSpinBoxTextConversionSigna
     ASSERT_UNIT_SPIN_BOX_SIGNATURE(valueFromText, TextParser);
     ASSERT_UNIT_SPIN_BOX_SIGNATURE(veryCleanText, CleanTextGetter);
 }
+
+#define ASSERT_UNIT_DOUBLE_SPIN_BOX_SIGNATURE(method, signature)                                                       \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KoUnitDoubleSpinBox::method)), signature>)
+
+void KisDoubleParseUnitSpinBoxSchemaContractTest::unitDoubleSpinBoxTypeLifetimeAndValueSchemaRemainStable()
+{
+    using SpinBox = KoUnitDoubleSpinBox;
+
+    static_assert(std::is_class_v<SpinBox>);
+    static_assert(std::is_base_of_v<QDoubleSpinBox, SpinBox>);
+    static_assert(std::is_default_constructible_v<SpinBox>);
+    static_assert(std::is_constructible_v<SpinBox, QWidget *>);
+    static_assert(std::has_virtual_destructor_v<SpinBox>);
+    ASSERT_UNIT_DOUBLE_SPIN_BOX_SIGNATURE(changeValue, void (SpinBox::*)(double));
+    ASSERT_UNIT_DOUBLE_SPIN_BOX_SIGNATURE(value, double (SpinBox::*)() const);
+}
+
+void KisDoubleParseUnitSpinBoxSchemaContractTest::unitDoubleSpinBoxRangeAndStepSignaturesRemainStable()
+{
+    using SpinBox = KoUnitDoubleSpinBox;
+    using ScalarSetter = void (SpinBox::*)(double);
+
+    ASSERT_UNIT_DOUBLE_SPIN_BOX_SIGNATURE(setMinimum, ScalarSetter);
+    ASSERT_UNIT_DOUBLE_SPIN_BOX_SIGNATURE(setMaximum, ScalarSetter);
+    ASSERT_UNIT_DOUBLE_SPIN_BOX_SIGNATURE(setLineStep, ScalarSetter);
+    ASSERT_UNIT_DOUBLE_SPIN_BOX_SIGNATURE(setLineStepPt, ScalarSetter);
+    ASSERT_UNIT_DOUBLE_SPIN_BOX_SIGNATURE(setMinMaxStep, void (SpinBox::*)(double, double, double));
+}
+
+void KisDoubleParseUnitSpinBoxSchemaContractTest::unitDoubleSpinBoxUnitTextAndNotificationSignaturesRemainStable()
+{
+    using SpinBox = KoUnitDoubleSpinBox;
+
+    ASSERT_UNIT_DOUBLE_SPIN_BOX_SIGNATURE(setUnit, void (SpinBox::*)(const KoUnit &));
+    ASSERT_UNIT_DOUBLE_SPIN_BOX_SIGNATURE(validate, QValidator::State (SpinBox::*)(QString &, int &) const);
+    ASSERT_UNIT_DOUBLE_SPIN_BOX_SIGNATURE(textFromValue, QString (SpinBox::*)(double) const);
+    ASSERT_UNIT_DOUBLE_SPIN_BOX_SIGNATURE(valueFromText, double (SpinBox::*)(const QString &) const);
+    ASSERT_UNIT_DOUBLE_SPIN_BOX_SIGNATURE(valueChangedPt, void (SpinBox::*)(qreal));
+}
+
+void KisDoubleParseUnitSpinBoxSchemaContractTest::unitManagerBuilderTypeLifetimeAndBuildSchemaRemainStable()
+{
+    using Builder = KisSpinBoxUnitManagerBuilder;
+
+    static_assert(std::is_class_v<Builder>);
+    static_assert(std::has_virtual_destructor_v<Builder>);
+    static_assert(std::is_same_v<decltype(static_cast<KisSpinBoxUnitManager *(Builder::*)(QObject *)>(
+                                     &Builder::buildUnitManager)),
+                                 KisSpinBoxUnitManager *(Builder::*)(QObject *)>);
+}
+
+void KisDoubleParseUnitSpinBoxSchemaContractTest::unitManagerFactoryTypeAndCreationSchemaRemainStable()
+{
+    using Builder = KisSpinBoxUnitManagerBuilder;
+    using Factory = KisSpinBoxUnitManagerFactory;
+
+    static_assert(std::is_class_v<Factory>);
+    static_assert(std::is_same_v<decltype(&Factory::buildDefaultUnitManager), KisSpinBoxUnitManager *(*)(QObject *)>);
+    static_assert(std::is_same_v<decltype(&Factory::setDefaultUnitManagerBuilder), void (*)(Builder *)>);
+    static_assert(std::is_same_v<decltype(&Factory::clearUnitManagerBuilder), void (*)()>);
+}
+
+#undef ASSERT_UNIT_DOUBLE_SPIN_BOX_SIGNATURE
 
 #undef ASSERT_UNIT_SPIN_BOX_SIGNATURE
 
