@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 06:14 JST
+- 更新日時: 2026-09-05 06:16 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -562,6 +562,8 @@
 - 第1枠は3 constructor、deleted copy assignment、destructor、第2枠はbrush tip画像・幾何・outlineと設定、第3枠はdab・mask生成の全overload、第4枠はbrush index、cache初期化、LOD、stroke開始・sequence準備、第5枠はXML読込・保存とgradient設定である。抽象brushのconstructorは純粋仮想関数を宣言だけで補う派生probe、代入不能性は型特性、overloadとXML factoryは厳密な関数pointer、既定引数は未評価省略呼出しで観測し、brush、画像、paint device、色、gradient、XML、paint情報を実体化しない。
 - `KisBrushSchemaContractTest`はCMake変更なしでbrush・global・image・resources探索路、KF I18n interface、2 export定義、Qt Core・Gui・Testとheader-only Boostだけを直接接続する4工程・7入力を維持する。`KisBrushModelValuesContractTest`を軽量近傍とし、追加後も300行・20枠未満に収める。未知target確認は不要で、5枠の宣言だけによる未定義link失敗を最初の診断とする。担当は変更前後の計画、追加5枠の単発と各20回反復、対象と近傍、AUTOMOC後の二回目計画、無作業再構築2回、動的接続・未解決記号・構文・書式、公開API検査、`verify-quick`を確認する。CMake変更、5工程・11入力超過、新探索路・定義・link、Qt Xml・pigment・image/brushengine・製品shared・OBJECT・`kritatestsdk`接続、candidate headerのAUTOMOC入力化、constructor probeの製品記号、対象実体化、source上限超過が必要なら停止する。構築許可はmacOSの対象と近傍だけに`granted`、Git権限は許可pathだけの`transport-commit`、追加委任は`forbidden`である。
 - 担当側と中央のmacOSで追加5枠を各20回、対象`libs-brush-KisBrushSchemaContractTest`と近傍`libs-brush-KisBrushModelValuesContractTest`、AUTOMOC後の二回目計画、無作業再構築2回に成功した。CMakeは不変で4工程、担当側7入力、中央の再生成済みgraphでは8入力、AUTOMOC `HEADERS=[]`、Qt Core・Gui・Testだけの動的接続、製品未解決記号なしを維持した。試験sourceは251行・10枠で上限内、台帳は20,997件対応、8,841件未対応となった。cleanな専用作業tree、292,368 KiBの構築木、branchを統合直後に削除し、882,436 KiBを回収した。主Ninja木5,739,248 KiBと共有compiler cache 983,020 KiBを再利用する。mask画像内容、cache破棄効果、stroke通知順、XML往復、gradient適用結果は既存または将来の動的契約で扱う。
+- `g218-tool-manager-private-public-surface-cleanup`の状態は`implementing`、担当は調整担当、基点は`440e8cead4`、作業treeは主作業treeである。開始`libs/ui/canvas/KoCanvasControllerWidget.cpp`の未使用`#include "KoToolManager_p.h"`を除去し、到達先`libs/flake/KoToolManager_p.h`を`libs/flake`所有内だけのprivate headerへ戻す。変更許可pathは同UI source、公開API台帳、進捗文書だけで、CMake、public header、製品実装本文を変更しない。
+- 所有製品targetは1,970工程・3,940入力、object単体指定もorder-only依存により1,648工程・3,294入力へ広がるため構築しない。既存`compile_commands.json`による当該翻訳単位だけの`clang-check`、4工程・8入力の`KoCanvasControllerProxySchemaContractTest`、公開API報告差分、`verify-quick`で検証する。完了時は公開headerを1,549から1,548、公開APIを29,838から29,804、対応済みを20,997で維持し、未対応を8,841から8,807へ減らす。34 API以外の公開面差分、対応済み件数変化、別のowner外利用、Qt公開header以外の補完、CMake・link変更、製品target構築が必要なら停止する。
 
 ### 第219便の先行監査担当票（第218便確定待ち）
 
