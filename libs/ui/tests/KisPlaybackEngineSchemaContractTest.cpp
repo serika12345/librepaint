@@ -4,6 +4,7 @@
  */
 
 #include <animation/KisPlaybackEngine.h>
+#include <canvas/KisCanvasAnimationState.h>
 
 #include <QTest>
 
@@ -14,6 +15,9 @@ namespace
 {
 #define ASSERT_PLAYBACK_ENGINE_SIGNATURE(method, signature)                                                            \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisPlaybackEngine::method)), signature>)
+
+#define ASSERT_CANVAS_ANIMATION_STATE_SIGNATURE(method, signature)                                                     \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KisCanvasAnimationState::method)), signature>)
 
 class PlaybackEngineConstructorProbe final : public KisPlaybackEngine
 {
@@ -43,6 +47,11 @@ private Q_SLOTS:
     void playbackTransportAndSeekSignaturesRemainStable();
     void playbackKeyframeNavigationSignaturesRemainStable();
     void playbackAudioDropPolicyAndNotificationSignaturesRemainStable();
+    void canvasAnimationStateTypeLifetimeAndPlaybackSchemaRemainStable();
+    void canvasAnimationStatePlaybackAndMediaSignaturesRemainStable();
+    void canvasAnimationStateSpeedFrameAndAudioSetupSignaturesRemainStable();
+    void canvasAnimationStatePlaybackNotificationSignaturesRemainStable();
+    void canvasAnimationStateAudioAndCancellationNotificationSignaturesRemainStable();
 };
 
 void KisPlaybackEngineSchemaContractTest::playbackEngineTypeLifetimeAndSeekPolicySchemaRemainsStable()
@@ -118,6 +127,54 @@ void KisPlaybackEngineSchemaContractTest::playbackAudioDropPolicyAndNotification
     ASSERT_PLAYBACK_ENGINE_SIGNATURE(playbackStatistics,
                                      KisPlaybackEngine::PlaybackStats (KisPlaybackEngine::*)() const);
     ASSERT_PLAYBACK_ENGINE_SIGNATURE(sigDropFramesModeChanged, void (KisPlaybackEngine::*)(bool));
+}
+
+void KisPlaybackEngineSchemaContractTest::canvasAnimationStateTypeLifetimeAndPlaybackSchemaRemainStable()
+{
+    static_assert(std::is_class_v<KisCanvasAnimationState>);
+    static_assert(std::is_base_of_v<QObject, KisCanvasAnimationState>);
+    static_assert(std::is_enum_v<PlaybackState>);
+    static_assert(PAUSED == 1);
+    static_assert(PLAYING == 2);
+    static_assert(STOPPED == 0);
+    static_assert(std::is_constructible_v<KisCanvasAnimationState, KisCanvas2 *>);
+    static_assert(std::has_virtual_destructor_v<KisCanvasAnimationState>);
+}
+
+void KisPlaybackEngineSchemaContractTest::canvasAnimationStatePlaybackAndMediaSignaturesRemainStable()
+{
+    ASSERT_CANVAS_ANIMATION_STATE_SIGNATURE(currentVolume, qreal (KisCanvasAnimationState::*)());
+    ASSERT_CANVAS_ANIMATION_STATE_SIGNATURE(displayProxy, KisFrameDisplayProxy * (KisCanvasAnimationState::*)());
+    ASSERT_CANVAS_ANIMATION_STATE_SIGNATURE(mediaInfo, boost::optional<QFileInfo> (KisCanvasAnimationState::*)());
+    ASSERT_CANVAS_ANIMATION_STATE_SIGNATURE(playbackOrigin, boost::optional<int> (KisCanvasAnimationState::*)());
+    ASSERT_CANVAS_ANIMATION_STATE_SIGNATURE(playbackState, PlaybackState (KisCanvasAnimationState::*)());
+    ASSERT_CANVAS_ANIMATION_STATE_SIGNATURE(setPlaybackState, void (KisCanvasAnimationState::*)(PlaybackState));
+}
+
+void KisPlaybackEngineSchemaContractTest::canvasAnimationStateSpeedFrameAndAudioSetupSignaturesRemainStable()
+{
+    ASSERT_CANVAS_ANIMATION_STATE_SIGNATURE(playbackSpeed, qreal (KisCanvasAnimationState::*)() const);
+    ASSERT_CANVAS_ANIMATION_STATE_SIGNATURE(setPlaybackSpeed, void (KisCanvasAnimationState::*)(qreal));
+    ASSERT_CANVAS_ANIMATION_STATE_SIGNATURE(setupAudioTracks, void (KisCanvasAnimationState::*)());
+    ASSERT_CANVAS_ANIMATION_STATE_SIGNATURE(showFrame, void (KisCanvasAnimationState::*)(int, bool));
+
+    using ShowFrameWithDefaultFinalize = decltype(std::declval<KisCanvasAnimationState &>().showFrame(0));
+    static_assert(std::is_same_v<ShowFrameWithDefaultFinalize, void>);
+}
+
+void KisPlaybackEngineSchemaContractTest::canvasAnimationStatePlaybackNotificationSignaturesRemainStable()
+{
+    ASSERT_CANVAS_ANIMATION_STATE_SIGNATURE(sigFrameChanged, void (KisCanvasAnimationState::*)());
+    ASSERT_CANVAS_ANIMATION_STATE_SIGNATURE(sigPlaybackMediaChanged, void (KisCanvasAnimationState::*)());
+    ASSERT_CANVAS_ANIMATION_STATE_SIGNATURE(sigPlaybackSpeedChanged, void (KisCanvasAnimationState::*)(qreal));
+    ASSERT_CANVAS_ANIMATION_STATE_SIGNATURE(sigPlaybackStateChanged, void (KisCanvasAnimationState::*)(PlaybackState));
+    ASSERT_CANVAS_ANIMATION_STATE_SIGNATURE(sigPlaybackStatisticsUpdated, void (KisCanvasAnimationState::*)());
+}
+
+void KisPlaybackEngineSchemaContractTest::canvasAnimationStateAudioAndCancellationNotificationSignaturesRemainStable()
+{
+    ASSERT_CANVAS_ANIMATION_STATE_SIGNATURE(sigAudioLevelChanged, void (KisCanvasAnimationState::*)(qreal));
+    ASSERT_CANVAS_ANIMATION_STATE_SIGNATURE(sigCancelPlayback, void (KisCanvasAnimationState::*)());
 }
 
 QTEST_GUILESS_MAIN(KisPlaybackEngineSchemaContractTest)
