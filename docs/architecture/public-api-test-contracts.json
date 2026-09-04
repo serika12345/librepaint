@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 10752
+    "expectedMissingApis": 10722
   },
   "contracts": [
     {
@@ -53535,6 +53535,81 @@
         "method:KisImageConfig::resetConfig()",
         "method:KisImageConfig::writeEntry(const QString & name,const T & value)",
         "method:KisImageConfig::writeList(const QString & name,const QList<T> & value)"
+      ]
+    },
+    {
+      "target": "KoSvgSymbolCollectionResourceSchemaContractTest",
+      "source": "libs/flake/tests/KoSvgSymbolCollectionResourceSchemaContractTest.cpp",
+      "test": "KoSvgSymbolCollectionResourceSchemaContractTest::svgSymbolValueTypeAndLifetimeSchemaRemainStable",
+      "behavior": "SVGシンボル値は識別子・表示名・図形を保持し、既定・複製・表示名指定の構築、画像化、等価比較、破棄が可能な公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KoSvgSymbol::id",
+        "member:KoSvgSymbol::shape",
+        "member:KoSvgSymbol::title",
+        "method:KoSvgSymbol::KoSvgSymbol()",
+        "method:KoSvgSymbol::KoSvgSymbol(const KoSvgSymbol & rhs)",
+        "method:KoSvgSymbol::KoSvgSymbol(const QString & _title)",
+        "method:KoSvgSymbol::icon(int size)",
+        "method:KoSvgSymbol::operator ==(const KoSvgSymbol & rhs) const",
+        "method:KoSvgSymbol::~KoSvgSymbol()",
+        "struct:KoSvgSymbol"
+      ]
+    },
+    {
+      "target": "KoSvgSymbolCollectionResourceSchemaContractTest",
+      "source": "libs/flake/tests/KoSvgSymbolCollectionResourceSchemaContractTest.cpp",
+      "test": "KoSvgSymbolCollectionResourceSchemaContractTest::svgSymbolCollectionTypeAndLifetimeSchemaRemainStable",
+      "behavior": "SVGシンボル集合資源は既定・複製・ファイル名指定で構築でき、仮想破棄と複製可能性を備え、代入を許さない公開型契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoSvgSymbolCollectionResource",
+        "method:KoSvgSymbolCollectionResource::KoSvgSymbolCollectionResource()",
+        "method:KoSvgSymbolCollectionResource::KoSvgSymbolCollectionResource(const KoSvgSymbolCollectionResource & rhs)",
+        "method:KoSvgSymbolCollectionResource::KoSvgSymbolCollectionResource(const QString & filename)",
+        "method:KoSvgSymbolCollectionResource::operator =(const KoSvgSymbolCollectionResource & rhs)",
+        "method:KoSvgSymbolCollectionResource::~KoSvgSymbolCollectionResource()"
+      ]
+    },
+    {
+      "target": "KoSvgSymbolCollectionResourceSchemaContractTest",
+      "source": "libs/flake/tests/KoSvgSymbolCollectionResourceSchemaContractTest.cpp",
+      "test": "KoSvgSymbolCollectionResourceSchemaContractTest::svgSymbolCollectionPersistenceSignaturesRemainStable",
+      "behavior": "SVGシンボル集合資源は複製、装置からの読込み・保存、既定拡張子と資源種別の照会に用いる公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoSvgSymbolCollectionResource::clone() const",
+        "method:KoSvgSymbolCollectionResource::defaultFileExtension() const",
+        "method:KoSvgSymbolCollectionResource::loadFromDevice(QIODevice * dev,KisResourcesInterfaceSP resourcesInterface)",
+        "method:KoSvgSymbolCollectionResource::resourceType() const",
+        "method:KoSvgSymbolCollectionResource::saveToDevice(QIODevice * dev) const"
+      ]
+    },
+    {
+      "target": "KoSvgSymbolCollectionResourceSchemaContractTest",
+      "source": "libs/flake/tests/KoSvgSymbolCollectionResourceSchemaContractTest.cpp",
+      "test": "KoSvgSymbolCollectionResourceSchemaContractTest::svgSymbolCollectionMetadataSignaturesRemainStable",
+      "behavior": "SVGシンボル集合資源は題名、説明、作成者、権利、言語、主題、許諾情報を公開する署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoSvgSymbolCollectionResource::creator() const",
+        "method:KoSvgSymbolCollectionResource::description() const",
+        "method:KoSvgSymbolCollectionResource::language() const",
+        "method:KoSvgSymbolCollectionResource::license() const",
+        "method:KoSvgSymbolCollectionResource::permits() const",
+        "method:KoSvgSymbolCollectionResource::rights() const",
+        "method:KoSvgSymbolCollectionResource::subjects() const",
+        "method:KoSvgSymbolCollectionResource::title() const"
+      ]
+    },
+    {
+      "target": "KoSvgSymbolCollectionResourceSchemaContractTest",
+      "source": "libs/flake/tests/KoSvgSymbolCollectionResourceSchemaContractTest.cpp",
+      "test": "KoSvgSymbolCollectionResourceSchemaContractTest::svgSymbolCollectionContentsSignatureRemainsStable",
+      "behavior": "SVGシンボル集合資源は保持するシンボル一覧を公開する署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoSvgSymbolCollectionResource::symbols() const"
       ]
     }
   ]
