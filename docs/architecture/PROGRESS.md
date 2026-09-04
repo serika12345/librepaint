@@ -189,13 +189,29 @@
 - 第207便全体で76 APIを15枠へ重複なく対応付け、20,099件対応、9,739件未対応となった。担当側と中央で対象・軽量近傍CTest、各追加枠の20回反復、AUTOMOC後の二回目計画、無作業再構築、動的接続・未解決記号・構文・書式、公開API検査、`verify-quick`に成功した。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 新しい`build/tdd-macos/public-api-missing-g208.json`は公開header 1,549、公開API 29,838、対応済み20,099、未対応9,739、2,580,116 bytes、SHA-256 `54745885e32dfad3b06fffa621df95f2c995e45ce6938c32a0a52c43ad1d2160`を記録する。旧`public-api-missing-g207.json`と3担当の作業tree・構築木・branchを削除し、合計2,652,244 KiBを回収した。主Ninja木5,698,276 KiBと共有compiler cache 983,040 KiBは次便へ保持する。
 
-### 第208便の先行監査担当票（第207便確定待ち）
+### 第208便の先行監査担当票
 
-- 監査共通基点は`11868d3853`、暫定入力は`build/tdd-macos/public-api-missing-g206.json`である。第206便までの契約済み・選定済み責務と、第207便で選定済みのstroke queue、図形種別登録・生成・挿入、スクリプト資源値・brush preset選択を除外し、変更、構成、構築、試験、Git操作、追加委任を行わない読み取り専用監査を先行する。正式な第207便完了報告で全識別子と閉包を再照合する。
+- 監査共通基点は`11868d3853`、正式入力は`build/tdd-macos/public-api-missing-g208.json`である。第207便までの契約済み・選定済み責務を除外した先行監査結果を、第207便完了後の不足報告で再照合・再計測した。
 - `g208-image-contract-audit`の状態は`completed`で、image・paintop・pigment領域からraster keyframeとそのchannelの所有・複製・永続化31 APIを選定した。既存keyframe channel契約は273行・10枠で追記上限を超えるため、同じcompile interfaceを持つ新規専用targetで4工程・8入力を予測する。
 - `g208-ui-contract-audit`の状態は`completed`で、widgetutils・widgets・libkis領域から文書canvasの境界・寸法・offset・解像度・変形20 APIを選定した。既存製品試験は2,022工程・4,041入力であるため、`Document.h`を実体化しない新規専用targetへ分け、4工程・8入力を予測する。
 - `g208-flake-contract-audit`の状態は`completed`で、flake・SVG・vector領域からpath編集工具の入力・選択・装飾・stroke制御・図形通知27 APIを選定した。既存`KoSelectionSchemaContractTest`へ対象固有のpainting/undo探索路、KF I18n interface、export定義だけを加え、4工程・8入力と製品非接続を予測する。
 - `g208-raster-keyframe-closure-review`の状態は`completed`で、`libs/image/kis_raster_keyframe_channel.h`の31 APIが5枠へ重複なく対応し、既定引数とstatic/member overloadを未評価式と明示castで観測できることを確認した。候補headerをtarget sourceへ登録しなければ、近傍と同じcompile interfaceによる4工程・8入力、AUTOMOC `HEADERS=[]`、製品非接続を予測できる。
+
+### 第208便の先行監査結果
+
+- 正式入力`build/tdd-macos/public-api-missing-g208.json`は公開header 1,549、公開API 29,838、対応済み20,099、未対応9,739を記録する。先行監査の全識別子を再照合し、raster keyframe channel 31件、path編集工具27件、文書canvas幾何・解像度20件が重複なく残存することを確認した。
+- image領域は`libs/image/kis_raster_keyframe_channel.h`の残存全31 APIを、keyframe型・寿命・内容9、channel型・寿命・構築4、clone・frame対応7、永続化・転送6、表示・変更5として新規`libs/image/tests/KisRasterKeyframeChannelSchemaContractTest.cpp`の5枠へ固定する。既存`KisKeyframeChannelSchemaContractTest`と同じimage・global・pigment・painting/undo探索路、Qt Core・Xml・Test、header-only Boost、Qt Widgets・KF I18n・Eigen3・Imath interface、既存export定義による4工程・8入力を予測する。
+- flake領域は`libs/flake/tools/KoPathTool.h`の残存全27 APIを、型・寿命・構築3、起動・選択6、入力7、描画・stroke制御8、図形通知3として既存`libs/flake/tests/KoSelectionSchemaContractTest.cpp`の5枠へ固定する。対象固有CMake節へpainting/undo source/generated探索路、KF I18n interface、`kritapaintingundo_EXPORTS`だけを加え、既存のQt Core・Gui・Test動的接続と4工程・8入力を維持する。
+- libkis領域は`libs/libkis/Document.h`の残存APIから`bounds`、`width`、`height`、`setWidth`、`setHeight`の境界・寸法5、`xOffset`、`yOffset`、`setXOffset`、`setYOffset`のoffset 4、`resolution`、`xRes`、`yRes`、`setResolution`、`setXRes`、`setYRes`の解像度6、`crop`、`resizeImage`、`scaleImage`の領域変更3、`rotateImage`、`shearImage`の変形2、合計20 APIを新規`libs/libkis/tests/DocumentGeometrySchemaContractTest.cpp`の5枠へ固定する。`Document`を実体化せず、既存Node系compile interfaceによる4工程・8入力を予測する。
+- 3責務の開始headerと試験sourceは相互に異なる。合計78 API・15枠をraster keyframe channel、path編集工具、文書canvas幾何・解像度の順に一担当ずつ実装する。停止線は5工程・11入力で、製品target、全体build・`verify`、Linux、Nix再評価を行わない。
+
+### 第208便の担当計画
+
+- 実装共通基点は`c79dd562a2`である。一度に一つだけ作る専用worktree-local `build/tdd-macos`と主作業treeの共有compiler cacheを使い、`./scripts/run-shared-test-env`で読み込み済み環境を利用する。各担当のGit権限は許可pathだけの受渡しcommit、追加委任は禁止する。raster keyframe channel、path編集工具、文書canvas幾何・解像度の順に限定検証・統合・削除し、調整担当だけが文書、公開API台帳、共通不足報告を変更する。
+- `g208-raster-keyframe-schema`の状態は`planned`、macOSの対象・近傍に限る構築実行許可は`granted`である。許可pathは新規`libs/image/tests/KisRasterKeyframeChannelSchemaContractTest.cpp`と`libs/image/tests/CMakeLists.txt`の新target固有節だけで、公開headerと製品sourceは変更しない。正式不足報告の対象header残存全31 APIを5枠`rasterKeyframeTypeLifetimeAndContentSchemaRemainStable`、`rasterKeyframeChannelTypeLifetimeAndConstructionSchemaRemainStable`、`rasterKeyframeChannelCloneAndFrameMappingSignaturesRemainStable`、`rasterKeyframeChannelPersistenceAndTransferSignaturesRemainStable`、`rasterKeyframeChannelPresentationAndMutationSignaturesRemainStable`へ9・4・7・6・5件で対応付ける。対象`KisRasterKeyframeChannelSchemaContractTest`、正式CTest`libs-image-KisRasterKeyframeChannelSchemaContractTest`、近傍`KisKeyframeChannelSchemaContractTest`である。
+- `g208-path-tool-schema`の状態は`planned`、macOSの対象・近傍に限る構築実行許可は`granted`である。許可pathは既存`libs/flake/tests/KoSelectionSchemaContractTest.cpp`と`libs/flake/tests/CMakeLists.txt`の対象固有節だけで、公開headerと製品sourceは変更しない。正式不足報告の対象header残存全27 APIを5枠`pathToolTypeLifetimeAndConstructionSchemaRemainStable`、`pathToolActivationAndSelectionSignaturesRemainStable`、`pathToolInputSignaturesRemainStable`、`pathToolRenderingAndStrokeControlSignaturesRemainStable`、`pathToolShapeNotificationSignaturesRemainStable`へ3・6・7・8・3件で対応付ける。対象`KoSelectionSchemaContractTest`、正式CTest`libs-flake-KoSelectionSchemaContractTest`、近傍`KoPathShapeSchemaContractTest`である。
+- `g208-document-geometry-schema`の状態は`planned`、macOSの対象・近傍に限る構築実行許可は`granted`である。許可pathは新規`libs/libkis/tests/DocumentGeometrySchemaContractTest.cpp`と`libs/libkis/tests/CMakeLists.txt`の新target固有節だけで、公開headerと製品sourceは変更しない。上記20 APIを5枠`documentBoundsAndDimensionSignaturesRemainStable`、`documentOffsetSignaturesRemainStable`、`documentResolutionSignaturesRemainStable`、`documentCanvasExtentMutationSignaturesRemainStable`、`documentGeometricTransformSignaturesRemainStable`へ5・4・6・3・2件で対応付ける。対象`DocumentGeometrySchemaContractTest`、正式CTest`libs-libkis-DocumentGeometrySchemaContractTest`、近傍`NodeSchemaContractTest`である。
+- 3担当とも予測4工程・8入力、停止線5工程・11入力とする。指定外探索路・link・定義、計画外の動的接続、AUTOMOC header入力、製品未解決記号、対象型の実体化・本文実行、許可path外変更が必要なら停止する。各新枠の初期失敗、単発と20回反復、対象・近傍CTest、AUTOMOC後の二回目計画、無作業再構築2回、動的接続・未解決記号・構文・書式、公開API検査、`verify-quick`を確認する。
 
 ### 第209便の先行監査担当票（第208便確定待ち）
 
