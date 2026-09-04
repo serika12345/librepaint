@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 10357
+    "expectedMissingApis": 10337
   },
   "contracts": [
     {
@@ -54560,6 +54560,71 @@
         "method:KisSpinboxColorSelector::sigNewColor(KoColor color)",
         "method:KisSpinboxColorSelector::slotSetColor(KoColor color)",
         "method:KisSpinboxColorSelector::slotSetColorSpace(const KoColorSpace * cs)"
+      ]
+    },
+    {
+      "target": "KisProcessingApplicatorSchemaContractTest",
+      "source": "libs/image/tests/KisProcessingApplicatorSchemaContractTest.cpp",
+      "test": "KisProcessingApplicatorSchemaContractTest::processingApplicatorTypeAndFlagSchemaRemainStable",
+      "behavior": "処理適用器は再帰処理、画像更新抑止、UI更新抑止、折返し対応を独立指定できる公開flag型と値を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisProcessingApplicator::ProcessingFlags",
+        "class:KisProcessingApplicator",
+        "enum:KisProcessingApplicator::ProcessingFlag",
+        "enumerator:KisProcessingApplicator::ProcessingFlag::NONE",
+        "enumerator:KisProcessingApplicator::ProcessingFlag::NO_IMAGE_UPDATES",
+        "enumerator:KisProcessingApplicator::ProcessingFlag::NO_UI_UPDATES",
+        "enumerator:KisProcessingApplicator::ProcessingFlag::RECURSIVE",
+        "enumerator:KisProcessingApplicator::ProcessingFlag::SUPPORTS_WRAPAROUND_MODE"
+      ]
+    },
+    {
+      "target": "KisProcessingApplicatorSchemaContractTest",
+      "source": "libs/image/tests/KisProcessingApplicatorSchemaContractTest.cpp",
+      "test": "KisProcessingApplicatorSchemaContractTest::processingApplicatorConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "処理適用器は画像と単一nodeまたはnode一覧から、処理flag、通知、undo情報を任意指定して構築・破棄できる公開署名と既定引数を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisProcessingApplicator::KisProcessingApplicator(KisImageWSP image,KisNodeList nodes=KisNodeList (),ProcessingFlags flags=NONE,KisImageSignalVector emitSignals=KisImageSignalVector (),const KUndo2MagicString & name=KUndo2MagicString (),KUndo2CommandExtraData * extraData=0,int macroId=-1)",
+        "method:KisProcessingApplicator::KisProcessingApplicator(KisImageWSP image,KisNodeSP node,ProcessingFlags flags=NONE,KisImageSignalVector emitSignals=KisImageSignalVector (),const KUndo2MagicString & name=KUndo2MagicString (),KUndo2CommandExtraData * extraData=0,int macroId=-1)",
+        "method:KisProcessingApplicator::~KisProcessingApplicator()"
+      ]
+    },
+    {
+      "target": "KisProcessingApplicatorSchemaContractTest",
+      "source": "libs/image/tests/KisProcessingApplicatorSchemaContractTest.cpp",
+      "test": "KisProcessingApplicatorSchemaContractTest::processingApplicatorVisitorAndCommandSignaturesRemainStable",
+      "behavior": "処理適用器はcommand、visitor、全frame visitorを既定の逐次性・排他性または明示した実行特性で投入する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisProcessingApplicator::applyCommand(KUndo2Command * command,KisStrokeJobData::Sequentiality sequentiality=KisStrokeJobData::SEQUENTIAL,KisStrokeJobData::Exclusivity exclusivity=KisStrokeJobData::NORMAL)",
+        "method:KisProcessingApplicator::applyVisitor(KisProcessingVisitorSP visitor,KisStrokeJobData::Sequentiality sequentiality=KisStrokeJobData::SEQUENTIAL,KisStrokeJobData::Exclusivity exclusivity=KisStrokeJobData::NORMAL)",
+        "method:KisProcessingApplicator::applyVisitorAllFrames(KisProcessingVisitorSP visitor,KisStrokeJobData::Sequentiality sequentiality=KisStrokeJobData::SEQUENTIAL,KisStrokeJobData::Exclusivity exclusivity=KisStrokeJobData::NORMAL)"
+      ]
+    },
+    {
+      "target": "KisProcessingApplicatorSchemaContractTest",
+      "source": "libs/image/tests/KisProcessingApplicatorSchemaContractTest.cpp",
+      "test": "KisProcessingApplicatorSchemaContractTest::processingApplicatorCompletionAndControlSignaturesRemainStable",
+      "behavior": "処理適用器はstroke識別子と完了futureを公開し、最終通知、終了、取消を制御する署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisProcessingApplicator::cancel()",
+        "method:KisProcessingApplicator::end()",
+        "method:KisProcessingApplicator::explicitlyEmitFinalSignals()",
+        "method:KisProcessingApplicator::getStroke() const",
+        "method:KisProcessingApplicator::successfullyCompletedFuture()"
+      ]
+    },
+    {
+      "target": "KisProcessingApplicatorSchemaContractTest",
+      "source": "libs/image/tests/KisProcessingApplicatorSchemaContractTest.cpp",
+      "test": "KisProcessingApplicatorSchemaContractTest::processingApplicatorSingleCommandSignatureRemainsStable",
+      "behavior": "処理適用器は画像上で単一commandを既定または明示した逐次性・排他性によりstrokeとして実行する公開静的署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisProcessingApplicator::runSingleCommandStroke(KisImageSP image,KUndo2Command * cmd,KisStrokeJobData::Sequentiality sequentiality=KisStrokeJobData::SEQUENTIAL,KisStrokeJobData::Exclusivity exclusivity=KisStrokeJobData::NORMAL)"
       ]
     }
   ]
