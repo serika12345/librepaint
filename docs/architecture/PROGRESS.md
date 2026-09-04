@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-04 23:14 JST
+- 更新日時: 2026-09-04 23:17 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -412,7 +412,9 @@
 - 監査共通基点は`29cb9d06b9`、暫定入力は`build/tdd-macos/public-api-missing-g211.json`である。第210便までの契約済み責務と、第211便から第216便で選定済みのbrush preset、SVG文字列command群、Krita façade、標準曲線option、変形mask adapter、raster面・色channel、gradient painter、変形状態、canvas animation state、SVG図形交換、histogram描画、色空間factory、図形補助状態・root layer、非同期色採取、色空間registry、生成layer、animation frame cache、path-backed shape編集command群を除外する。監査中は主作業treeを読み取り専用で共有し、変更、構成、構築、試験、Git操作、追加委任を行わない。既存Ninja graphのquery・commands・inputsは読み取り専用で利用できる。
 - `g217-image-contract-audit`の状態は`completed`で、image・paintop・pigment領域から色付けmaskの型・装置・投影・key stroke・再生成・表示option 57 APIを選定した。既存mask契約から責務を分けた新規専用targetで4工程・8入力を予測する。公開署名にundo型があるため、正式報告後の独立閉包確認で探索路不要の予測を再検証する。
 - `g217-ui-contract-audit`の状態は`completed`で、widgetutils・widgets・libkis・UI領域からlayer一覧の色label・文字列絞り込みとpopup操作23 APIを選定した。新規専用targetへ分け、application生成版export header、image・global探索路、Qt Widgets interfaceによる4工程・8入力を予測する。
-- `g217-flake-contract-audit`の状態は`auditing`で、担当は`/root/g178_paintop_settings_schema`である。`libs/flake/`、`plugins/tools/svgtexttool/`、`plugins/tools/tool_transform2/`から同じ条件の候補を監査する。3領域とも既存契約への追記は追加後300行・20枠以下の場合だけ採用し、製品shared・OBJECT・`kritatestsdk`へ接続せず、targetが概ね4〜10工程へ閉じる候補だけを進める。読み取り専用で、変更、構成、構築、試験、Git操作、追加委任を行わない。
+- `g217-flake-contract-audit`の状態は`completed`で、flake・SVG・変形工具領域からSVG図形の外観読込状態・描画・様式保存20 APIを選定した。`SvgGraphicsContext.h`、`KoShapePainter.h`、`SvgStyleWriter.h`を新規専用targetの5枠3・3・7・4・3へ固定し、Qt Core・Testとheader-only Boostだけを直接接続する4工程・8入力を予測する。
+- `g217-colorize-mask-closure-review`の状態は`auditing`、担当は`/root/g208_raster_keyframe_schema`である。色付けmask 57 APIの一責務性、undo・pigmentを含む推移include、4工程・8入力、5工程・11入力の停止線、製品非接続を暫定不足報告と既存Ninja生成物だけで独立再検査する。読み取り専用で、変更、構成、構築、試験、Git操作、追加委任を行わない。
+- `g217-svg-presentation-closure-review`の状態は`auditing`、担当は`/root/g178_paintop_settings_schema`である。SVG外観20 APIの一責務性、3 headerの完全識別子、Qt Gui・Xmlのinterface探索、4工程・8入力、5工程・11入力の停止線、製品非接続を独立再検査する。読み取り専用で、変更、構成、構築、試験、Git操作、追加委任を行わない。
 
 ### 第201便の先行監査担当票
 
