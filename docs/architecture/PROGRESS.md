@@ -2,21 +2,29 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-04 14:08 JST
+- 更新日時: 2026-09-04 14:27 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
 
-### 第202便の先行監査担当票（第201便確定待ち）
+### 第202便の先行監査担当票
 
-- 監査共通基点は`60d43afcb4`、暫定入力は`build/tdd-macos/public-api-missing-g201.json`である。第201便で選定済みの処理適用器20件、パラメータ図形25件、停止gradient編集27件を除外し、変更、構成、構築、試験、Git操作、追加委任を行わない読み取り専用監査を先行する。各担当は一つの公開責務から20〜80 APIを最大5枠へ固定でき、既存限定対象またはheader限定の4〜10工程程度を見込める候補を比較する。第201便完了後の正式不足報告で再照合・再計測する。
-- `g202-image-contract-audit`の状態は`auditing`で、image・paintop・pigment領域を所有する。第201便までの契約済み・選定済み責務を除外し、完全なAPI識別子、最大5枠の観測契約、開始pathから契約先、許可path候補、既存対象と近傍、予測閉包と停止条件、比較棄却根拠を返す。
-- `g202-flake-contract-audit`の状態は`auditing`で、flake・SVG・vector領域を所有する。第201便までの契約済み・選定済み責務を除外し、完全なAPI識別子、最大5枠の観測契約、開始pathから契約先、許可path候補、既存対象と近傍、予測閉包と停止条件、比較棄却根拠を返す。
-- `g202-ui-contract-audit`の状態は`auditing`で、widgetutils・widgets・libkis領域を所有する。第201便までの契約済み・選定済み責務を除外し、完全なAPI識別子、最大5枠の観測契約、開始pathから契約先、許可path候補、既存対象と近傍、予測閉包と停止条件、比較棄却根拠を返す。
-- `g202-build-closure-review`の状態は`auditing`で、path toolの選択保持候補と視覚色選択器候補について、前便の広い責務からの分離、前方宣言型の完全型要件、追加探索路・export定義、動的接続、AUTOMOC、既存契約への追記と専用targetの判断を独立に読み取り確認する。変更・構成・構築・試験を行わず、採用条件と撤回条件を返す。
-- `g202-image-closure-review`の状態は`auditing`で、PSD layer style資源候補について、効果構造体・資源・色型の完全型とinline本文、複製・代入特性、必要な探索路・定義・動的接続、専用targetの最小閉包を独立に読み取り確認する。変更・構成・構築・試験を行わず、採用条件と撤回条件を返す。
+- 監査共通基点は`60d43afcb4`、正式入力は`build/tdd-macos/public-api-missing-g202.json`である。第201便で選定済みの処理適用器20件、パラメータ図形25件、停止gradient編集27件を除外した先行監査結果を、第201便完了後の不足報告で再照合・再計測した。
+- `g202-image-contract-audit`の状態は`completed`で、image・paintop・pigment領域からPSD layer style資源52 APIを選定した。
+- `g202-flake-contract-audit`の状態は`completed`で、flake・SVG・vector領域からpath toolの選択保持23 APIを選定した。
+- `g202-ui-contract-audit`の状態は`completed`で、widgetutils・widgets・libkis領域から視覚色選択器34 APIを選定した。
+- `g202-build-closure-review`の状態は`completed`で、path toolの選択保持は既存targetへの追記が新規targetより狭く、視覚色選択器は既存targetへの対象固有探索路・export定義追加だけで4工程・8入力を維持できることを独立確認した。
+- `g202-image-closure-review`の状態は`completed`で、PSD layer style資源は効果構造体・資源型を実体化せず、既存paint layer契約と同じ探索路・定義による専用targetで4工程・8入力を予測することを独立確認した。
+
+### 第202便の先行監査結果
+
+- 正式入力`build/tdd-macos/public-api-missing-g202.json`は公開header 1,549、公開API 29,838、対応済み19,553、未対応10,285を記録する。先行監査の全識別子を再照合し、PSD layer style資源52件、path toolの選択保持23件、視覚色選択器34件が重複なく残存することを確認した。
+- image領域は`libs/image/kis_psd_layer_style.h`の残存全52 APIを、型・寿命・複製7、識別・直列化11、効果accessor 22、状態・資源7、資源snapshot 5として新規`libs/image/tests/KisPSDLayerStyleSchemaContractTest.cpp`の5枠へ固定する。既存`KisPaintLayerSchemaContractTest`と同じimage・global・pigment・pigment/resources・psdutils・resources探索路、Qt Core・Gui・Test・Xml、header-only Boost、KF I18n・Imath interface、`kritaimage_EXPORTS`と`kritapigment_EXPORTS`による4工程・8入力を予測し、停止線を5工程・11入力とする。候補headerをAUTOMOC入力にせず、製品shared・OBJECT、`kritatestsdk`、PSD効果・資源・色型の実体化、inline本文の実行を必要としない。
+- flake領域は`libs/flake/tools/KoPathToolSelection.h`の残存全23 APIを、型・寿命3、選択変更6、照会7、図形同期5、描画・通知2として既存`libs/flake/tests/KoSelectionSchemaContractTest.cpp`の5枠へ固定する。既存sourceは80行・5枠で、追加後も300行・20枠未満に収まり、CMake変更なしでQt Core・Gui・Testだけを動的接続する4工程・8入力を維持する。新規targetは同じ閉包にCMakeと生成物を加えるため棄却し、停止線を5工程・11入力とする。
+- widgets領域は`libs/widgets/KisVisualColorSelector.h`の残存全34 APIを、型・寿命・描画mode 9、model・設定7、色・renderer 7、表示・proof 5、gamut・通知6として既存`libs/widgets/tests/KisColorSelectionControlSchemaContractTest.cpp`の5枠へ固定する。対象固有CMake節へflake・resourcesのsource/generated探索路、Qt Xml・Boostのinterface探索路、`kritaflake_EXPORTS`と`kritaresources_EXPORTS`だけを加え、Qt Core・Gui・Testだけを動的接続する4工程・8入力を維持し、停止線を5工程・11入力とする。候補headerをAUTOMOC入力にせず、selector、model、gamut mask、renderer、Qt値を実体化しない。
+- 3責務の開始headerと試験sourceは相互に異なる。imageは新規target、flakeは既存sourceだけ、widgetsは既存sourceと対象固有CMake節だけを変更するため、合計109 API・15枠をPSD layer style資源、path toolの選択保持、視覚色選択器の順に一担当ずつ実装する。製品target、全体build・`verify`、Linux、Nix再評価を行わず、各対象と近傍、追加枠の反復、AUTOMOC後の二回目計画、無作業再構築、公開API検査、`verify-quick`を確認する。
 
 ### 第203便の先行監査担当票（第202便確定待ち）
 
@@ -46,6 +54,12 @@
 - `g201-processing-applicator-schema`の状態は`integrated`、構築実行許可は`granted`である。開始`libs/image/kis_processing_applicator.h`の残存全20 APIから新規`libs/image/tests/KisProcessingApplicatorSchemaContractTest.cpp`の5枠`processingApplicatorTypeAndFlagSchemaRemainStable`、`processingApplicatorConstructionAndLifetimeSchemaRemainStable`、`processingApplicatorVisitorAndCommandSignaturesRemainStable`、`processingApplicatorCompletionAndControlSignaturesRemainStable`、`processingApplicatorSingleCommandSignatureRemainsStable`へ対応付けた。許可pathは新規試験sourceと`libs/image/tests/CMakeLists.txt`の新target固有節だけで、公開header、製品source、既存targetを変更していない。受渡しcommit `a0222bd070`を統合commit `0f93d47895`として取り込み、担当側で追加5枠を各20回、対象と近傍を実行し、中央でも対象`libs-image-KisProcessingApplicatorSchemaContractTest`と近傍`libs-image-KisImageTypesContractTest`、AUTOMOC後の二回目計画と無作業再構築に成功した。4工程・8入力と製品非接続を実測し、台帳は19,501件対応、10,337件未対応となった。cleanな専用作業tree、構築木、branchを統合後に削除し、889,468 KiBを回収した。
 - `g201-parameter-shape-schema`の状態は`integrated`、構築実行許可は`granted`である。開始`libs/flake/KoParameterShape.h`の13 API、`tools/KoParameterChangeStrategy.h`の6 API、`commands/KoParameterToPathCommand.h`の6 APIから新規`libs/flake/tests/KoParameterShapeSchemaContractTest.cpp`の5枠`parameterShapeTypeAndLifetimeSchemaRemainStable`、`parameterShapeHandleAndStateSignaturesRemainStable`、`parameterChangeStrategySchemaRemainStable`、`parameterToPathConstructionAndLifetimeSchemaRemainStable`、`parameterToPathExecutionSignaturesRemainStable`へ対応付けた。許可pathは新規試験sourceと`libs/flake/tests/CMakeLists.txt`の新target固有節だけで、公開header、製品source、既存targetを変更していない。受渡しcommit `59b146efaf`を統合commit `9411ae0167`として取り込み、担当側で追加5枠を各20回、対象と近傍を実行し、中央でも対象`libs-flake-KoParameterShapeSchemaContractTest`と近傍`libs-flake-KoPathPointTopologyCommandSchemaContractTest`、AUTOMOC後の二回目計画と無作業再構築に成功した。4工程・8入力と製品非接続を実測し、台帳は19,526件対応、10,312件未対応となった。cleanな専用作業tree、構築木、branchを統合後に削除し、883,312 KiBを回収した。
 - `g201-stop-gradient-editor-schema`の状態は`integrated`、構築実行許可は`granted`である。開始`libs/widgets/KisStopGradientEditor.h`の14 APIと`KisGradientWidgetsUtils.h`の13 APIから既存`libs/widgets/tests/KisGradientColorEditorSchemaContractTest.cpp`の5枠`stopGradientEditorTypeLifetimeAndSortSchemaRemainStable`、`stopGradientEditorResourceSignaturesRemainStable`、`stopGradientEditorPresentationAndNotificationSchemaRemainStable`、`gradientWidgetUtilityTypesAndConversionSchemaRemainStable`、`gradientWidgetUtilityPaintingSignaturesRemainStable`へ対応付けた。第一受渡しcommit `09de3e2920`を統合commit `15d49ea76f`として取り込み、`wdgstopgradienteditor.ui`を試験対象固有のbinary directoryへ生成し、生成headerをsource集合へ追加せずAUTOGEN依存へ接続した。第二受渡しcommit `269324abc3`を統合commit `5640524a8b`として取り込んだ。担当側で追加5枠を各20回、対象と近傍を実行し、中央でも対象`libs-widgets-KisGradientColorEditorSchemaContractTest`と近傍`libs-widgets-KoStrokeConfigWidgetSchemaContractTest`、AUTOMOC後の二回目計画と無作業再構築に成功した。5工程・10入力、製品側生成UI非参照、製品非接続を実測し、台帳は19,553件対応、10,285件未対応となった。
+
+### 第201便の統合結果
+
+- `libs/image/kis_processing_applicator.h`から新規`libs/image/tests/KisProcessingApplicatorSchemaContractTest.cpp`へ20 API・5枠、`libs/flake/KoParameterShape.h`、`tools/KoParameterChangeStrategy.h`、`commands/KoParameterToPathCommand.h`から新規`libs/flake/tests/KoParameterShapeSchemaContractTest.cpp`へ25 API・5枠、`libs/widgets/KisStopGradientEditor.h`と`KisGradientWidgetsUtils.h`から既存`libs/widgets/tests/KisGradientColorEditorSchemaContractTest.cpp`へ27 API・5枠を追加した。公開headerと製品sourceを変更せず、image・flakeは4工程・8入力、widgetsは対象固有UI生成を含む5工程・10入力で製品非接続を維持した。
+- 第201便全体で72 APIを15枠へ重複なく対応付け、19,553件対応、10,285件未対応となった。担当側と中央で対象・近傍CTest、各追加枠の20回反復、AUTOMOC後の二回目計画、無作業再構築、動的接続・未解決記号・書式、公開API検査、`verify-quick`に成功した。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 3担当のcleanな専用作業tree、構築木、branchを統合直後に削除し、合計2,658,652 KiBを回収した。旧不足報告`public-api-missing-g201.json`を削除し、主Ninja木5,686,000 KiB、共有compiler cache 982,504 KiB、最新`build/tdd-macos/public-api-missing-g202.json` 2,715,201 bytesだけを再利用対象として保持する。次の永続作業は第202便の正式不足報告で3候補を再照合し、最小閉包を確定することである。
 
 ### 第200便の先行監査担当票
 
