@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 10312
+    "expectedMissingApis": 10285
   },
   "contracts": [
     {
@@ -54695,6 +54695,78 @@
       "apis": [
         "method:KoParameterToPathCommand::redo()",
         "method:KoParameterToPathCommand::undo()"
+      ]
+    },
+    {
+      "target": "KisGradientColorEditorSchemaContractTest",
+      "source": "libs/widgets/tests/KisGradientColorEditorSchemaContractTest.cpp",
+      "test": "KisGradientColorEditorSchemaContractTest::stopGradientEditorTypeLifetimeAndSortSchemaRemainStable",
+      "behavior": "停止gradient編集器はWidget派生の公開型、並べ替えflagの値と集合、既定構築およびgradient・canvas資源を受ける構築署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisStopGradientEditor::SortFlags",
+        "class:KisStopGradientEditor",
+        "enum:KisStopGradientEditor::SortFlag",
+        "enumerator:KisStopGradientEditor::SortFlag::EVEN_DISTRIBUTION",
+        "enumerator:KisStopGradientEditor::SortFlag::SORT_ASCENDING",
+        "method:KisStopGradientEditor::KisStopGradientEditor(KoStopGradientSP gradient,QWidget * parent,const char * name,const QString & caption,KoCanvasResourcesInterfaceSP canvasResourcesInterface)",
+        "method:KisStopGradientEditor::KisStopGradientEditor(QWidget * parent)"
+      ]
+    },
+    {
+      "target": "KisGradientColorEditorSchemaContractTest",
+      "source": "libs/widgets/tests/KisGradientColorEditorSchemaContractTest.cpp",
+      "test": "KisGradientColorEditorSchemaContractTest::stopGradientEditorResourceSignaturesRemainStable",
+      "behavior": "停止gradient編集器は対象gradientとcanvas資源を設定・参照し、現在の停止色を任意値として取得する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisStopGradientEditor::canvasResourcesInterface() const",
+        "method:KisStopGradientEditor::currentActiveStopColor() const",
+        "method:KisStopGradientEditor::setCanvasResourcesInterface(KoCanvasResourcesInterfaceSP canvasResourcesInterface)",
+        "method:KisStopGradientEditor::setGradient(KoStopGradientSP gradient)"
+      ]
+    },
+    {
+      "target": "KisGradientColorEditorSchemaContractTest",
+      "source": "libs/widgets/tests/KisGradientColorEditorSchemaContractTest.cpp",
+      "test": "KisGradientColorEditorSchemaContractTest::stopGradientEditorPresentationAndNotificationSchemaRemainStable",
+      "behavior": "停止gradient編集器は簡潔表示、広域色変更通知、gradient変更通知の公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisStopGradientEditor::notifyGlobalColorChanged(const KoColor & color)",
+        "method:KisStopGradientEditor::setCompactMode(bool value)",
+        "method:KisStopGradientEditor::sigGradientChanged()"
+      ]
+    },
+    {
+      "target": "KisGradientColorEditorSchemaContractTest",
+      "source": "libs/widgets/tests/KisGradientColorEditorSchemaContractTest.cpp",
+      "test": "KisGradientColorEditorSchemaContractTest::gradientWidgetUtilityTypesAndConversionSchemaRemainStable",
+      "behavior": "gradient表示補助は停止色種別の値、停止handle色の構造、区間端点種別との変換署名と既定透明度を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KisGradientWidgetsUtils::ColorType",
+        "enumerator:KisGradientWidgetsUtils::ColorType::Background",
+        "enumerator:KisGradientWidgetsUtils::ColorType::Custom",
+        "enumerator:KisGradientWidgetsUtils::ColorType::Foreground",
+        "enumerator:KisGradientWidgetsUtils::ColorType::None",
+        "function:KisGradientWidgetsUtils::colorTypeToSegmentEndPointType(KisGradientWidgetsUtils::ColorType type,bool transparent=false)",
+        "function:KisGradientWidgetsUtils::segmentEndPointTypeToColorType(KoGradientSegmentEndpointType type)",
+        "member:KisGradientWidgetsUtils::StopHandleColor::color",
+        "member:KisGradientWidgetsUtils::StopHandleColor::type",
+        "struct:KisGradientWidgetsUtils::StopHandleColor"
+      ]
+    },
+    {
+      "target": "KisGradientColorEditorSchemaContractTest",
+      "source": "libs/widgets/tests/KisGradientColorEditorSchemaContractTest.cpp",
+      "test": "KisGradientColorEditorSchemaContractTest::gradientWidgetUtilityPaintingSignaturesRemainStable",
+      "behavior": "gradient表示補助はgradient枠、中間点handle、単色または二色の停止handleを描画する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisGradientWidgetsUtils::paintGradientBox(QPainter & painter,const KoAbstractGradientSP gradient,const QRectF & rect)",
+        "function:KisGradientWidgetsUtils::paintMidPointHandle(QPainter & painter,const QPointF & position,qreal size,bool isSelected,bool isHovered,bool hasFocus,const QColor & borderColor,const QColor & fillColor,const QColor & highlightColor)",
+        "function:KisGradientWidgetsUtils::paintStopHandle(QPainter & painter,const QPointF & position,const QSizeF & size,bool isSelected,bool isHovered,bool hasFocus,const QColor & highlightColor,const StopHandleColor & color1,const StopHandleColor & color2={})"
       ]
     }
   ]
