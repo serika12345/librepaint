@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 10521
+    "expectedMissingApis": 10450
   },
   "contracts": [
     {
@@ -54171,6 +54171,122 @@
         "method:KoColorConversionSystem::findBestPath(const NodeKey & src,const NodeKey & dst) const",
         "method:KoColorConversionSystem::findBestPath(const QString & srcModelId,const QString & srcDepthId,const QString & srcProfileName,const QString & dstModelId,const QString & dstDepthId,const QString & dstProfileName) const",
         "method:KoColorConversionSystem::toDot() const"
+      ]
+    },
+    {
+      "target": "KoSvgTextShapeSchemaContractTest",
+      "source": "libs/flake/tests/KoSvgTextShapeSchemaContractTest.cpp",
+      "test": "KoSvgTextShapeSchemaContractTest::svgTextShapeTypeLifetimeGeometryAndRenderingSchemaRemainStable",
+      "behavior": "SVG文字図形は既定または同型から構築・複製・仮想破棄でき、描画、幾何、文字種別、解像度を扱う公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoSvgTextShape::KoSvgTextShape()",
+        "method:KoSvgTextShape::KoSvgTextShape(const KoSvgTextShape & rhs)",
+        "method:KoSvgTextShape::boundingRect() const",
+        "method:KoSvgTextShape::cloneShape() const",
+        "method:KoSvgTextShape::defaultPlaceholderText()",
+        "method:KoSvgTextShape::outline() const",
+        "method:KoSvgTextShape::outlineRect() const",
+        "method:KoSvgTextShape::paint(QPainter & painter) const",
+        "method:KoSvgTextShape::paintDebug(QPainter & painter,DebugElements elements) const",
+        "method:KoSvgTextShape::paintStroke(QPainter & painter) const",
+        "method:KoSvgTextShape::setResolution(qreal xRes,qreal yRes)",
+        "method:KoSvgTextShape::setSize(const QSizeF & size)",
+        "method:KoSvgTextShape::size() const",
+        "method:KoSvgTextShape::textOutline() const",
+        "method:KoSvgTextShape::textType() const",
+        "method:KoSvgTextShape::~KoSvgTextShape()"
+      ]
+    },
+    {
+      "target": "KoSvgTextShapeSchemaContractTest",
+      "source": "libs/flake/tests/KoSvgTextShapeSchemaContractTest.cpp",
+      "test": "KoSvgTextShapeSchemaContractTest::svgTextShapeContourPathAndLayoutSignaturesRemainStable",
+      "behavior": "SVG文字図形は輪郭図形、文字path、折返し領域、内部図形管理、再配置を扱う公開署名と既定引数を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoSvgTextShape::addShapeContours(QList<KoShape * > shapes,const bool inside=true)",
+        "method:KoSvgTextShape::addTextPathAtEnd(KoShape * textPath)",
+        "method:KoSvgTextShape::generateTextAreas(const QList<KoShape * > shapesInside,const QList<KoShape * > shapesSubtract,const KoSvgTextProperties & props)",
+        "method:KoSvgTextShape::internalShapeManager() const",
+        "method:KoSvgTextShape::moveShapeInsideToIndex(KoShape * shapeInside,const int index)",
+        "method:KoSvgTextShape::relayout() const",
+        "method:KoSvgTextShape::removeShapesFromContours(QList<KoShape * > shapes,bool callUpdate=true,bool cleanup=true)",
+        "method:KoSvgTextShape::setShapesInside(QList<KoShape * > shapesInside)",
+        "method:KoSvgTextShape::setShapesSubtract(QList<KoShape * > shapesSubtract)",
+        "method:KoSvgTextShape::setTextPathOnRange(KoShape * textPath,const int startPos=-1,const int endPos=-1)",
+        "method:KoSvgTextShape::shapeInContours(KoShape * shape)",
+        "method:KoSvgTextShape::shapesInside() const",
+        "method:KoSvgTextShape::shapesSubtract() const",
+        "method:KoSvgTextShape::textPathsAtRange(const int startPos=-1,const int endPos=-1)",
+        "method:KoSvgTextShape::textWrappingAreas() const"
+      ]
+    },
+    {
+      "target": "KoSvgTextShapeSchemaContractTest",
+      "source": "libs/flake/tests/KoSvgTextShapeSchemaContractTest.cpp",
+      "test": "KoSvgTextShapeSchemaContractTest::svgTextShapeContentEditingAndTransformSignaturesRemainStable",
+      "behavior": "SVG文字図形は文字範囲編集、property統合、文字変形、プレーン文字列と下線生成を扱う公開署名と既定引数を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoSvgTextShape::cleanUp()",
+        "method:KoSvgTextShape::convertCharTransformsToPreformatted(bool makeInlineSize=false)",
+        "method:KoSvgTextShape::copyRange(int index,int length) const",
+        "method:KoSvgTextShape::insertRichText(int pos,const KoSvgTextShape * richText,bool inheritPropertiesIfPossible=false)",
+        "method:KoSvgTextShape::insertText(int pos,QString text)",
+        "method:KoSvgTextShape::mergePropertiesIntoRange(const int startPos,const int endPos,const KoSvgTextProperties properties,const QSet<KoSvgTextProperties::PropertyId> removeProperties=QSet<KoSvgTextProperties::PropertyId> ())",
+        "method:KoSvgTextShape::plainText()",
+        "method:KoSvgTextShape::removeText(int & index,int & length)",
+        "method:KoSvgTextShape::removeTransformsFromRange(const int startPos,const int endPos)",
+        "method:KoSvgTextShape::setCharacterTransformsFromLayout()",
+        "method:KoSvgTextShape::setCharacterTransformsOnRange(const int startPos,const int endPos,const QVector<QPointF> positions,const QVector<qreal> rotateDegrees,const bool deltaPosition=true)",
+        "method:KoSvgTextShape::setPropertiesAtPos(int pos,KoSvgTextProperties properties)",
+        "method:KoSvgTextShape::textProperties() const",
+        "method:KoSvgTextShape::underlines(int pos,int anchor,KoSvgText::TextDecorations decor,KoSvgText::TextDecorationStyle style,qreal minimum,bool thick)"
+      ]
+    },
+    {
+      "target": "KoSvgTextShapeSchemaContractTest",
+      "source": "libs/flake/tests/KoSvgTextShapeSchemaContractTest.cpp",
+      "test": "KoSvgTextShapeSchemaContractTest::svgTextShapeAppearanceStateAndNotificationSignaturesRemainStable",
+      "behavior": "SVG文字図形は背景、輪郭線、描画順、方向、配置制御、通知、一括操作を扱う公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoSvgTextShape::background() const",
+        "method:KoSvgTextShape::direction() const",
+        "method:KoSvgTextShape::endBulkAction()",
+        "method:KoSvgTextShape::fontMatchingDisabled() const",
+        "method:KoSvgTextShape::notifyCursorPosChanged(int pos,int anchor)",
+        "method:KoSvgTextShape::notifyMarkupChanged()",
+        "method:KoSvgTextShape::paintOrder() const",
+        "method:KoSvgTextShape::relayoutIsBlocked() const",
+        "method:KoSvgTextShape::setBackground(QSharedPointer<KoShapeBackground> background)",
+        "method:KoSvgTextShape::setFontMatchingDisabled(const bool disable)",
+        "method:KoSvgTextShape::setPaintOrder(PaintOrder first,PaintOrder second)",
+        "method:KoSvgTextShape::setRelayoutBlocked(const bool disable)",
+        "method:KoSvgTextShape::setStroke(KoShapeStrokeModelSP stroke)",
+        "method:KoSvgTextShape::singleNode() const",
+        "method:KoSvgTextShape::startBulkAction()",
+        "method:KoSvgTextShape::stroke() const",
+        "method:KoSvgTextShape::writingMode() const"
+      ]
+    },
+    {
+      "target": "KoSvgTextShapeSchemaContractTest",
+      "source": "libs/flake/tests/KoSvgTextShapeSchemaContractTest.cpp",
+      "test": "KoSvgTextShapeSchemaContractTest::svgTextShapePersistenceMementoAndDiagnosticSignaturesRemainStable",
+      "behavior": "SVG文字図形はSVG・HTML保存、memento取得・復元、subtree移動、固有style、診断を扱う公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoSvgTextShape::debugParsing()",
+        "method:KoSvgTextShape::enterNodeSubtree()",
+        "method:KoSvgTextShape::getMemento()",
+        "method:KoSvgTextShape::leaveNodeSubtree()",
+        "method:KoSvgTextShape::saveHtml(HtmlSavingContext & context)",
+        "method:KoSvgTextShape::saveSvg(SvgSavingContext & context)",
+        "method:KoSvgTextShape::setMemento(const KoSvgTextShapeMementoSP memento)",
+        "method:KoSvgTextShape::setMemento(const KoSvgTextShapeMementoSP memento,int pos,int anchor)",
+        "method:KoSvgTextShape::shapeTypeSpecificStyles(SvgSavingContext & context) const"
       ]
     }
   ]
