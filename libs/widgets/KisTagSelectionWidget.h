@@ -16,9 +16,9 @@
 #include <KoID.h>
 
 #include <kritawidgets_export.h>
-#include <TagActions.h>
-#include <kis_signal_compressor.h>
 
+class QPushButton;
+class UserInputTagAction;
 
 class KRITAWIDGETS_EXPORT WdgCloseableLabel : public QWidget
 {
