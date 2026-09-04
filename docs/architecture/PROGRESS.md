@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 07:12 JST
+- 更新日時: 2026-09-05 07:14 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -615,12 +615,14 @@
 - `g221-input-profile-manager-closure-audit`の状態は`completed`である。`libs/input/ui/kis_input_profile_manager.h`の残存全24 API、識別子集合SHA-256 `1d336261b59dbe90df271900c7b1f18d8ba45a6def01cad40b0d772ca5c9888e`、5枠5・3・6・4・6を独立確認した。新規専用targetはinput/ui source・generated探索路、Qt Core・Test、`kritainputui_EXPORTS`だけによる4工程・8入力へ閉じられる。profile filesystem、action実装、canvas、製品input/UIへ接続しない。第220便完了後の正式不足報告で再照合する。
 - `g221-filter-stroke-strategy-closure-audit`の状態は`completed`である。`libs/painting/strokes/kis_filter_stroke_strategy.h`の残存全24 API、識別子集合SHA-256 `464acb3ded62a9db56e2be293b793d42fe65e468689ceb72ed50c27ac81162ec`、5枠4・5・5・5・5を独立確認した。新規専用targetはpainting・image・global・pigment・resources探索路、Eigen・Imath・KF I18n interface、Qt Core・Gui・Test・Xmlとheader-only Boostによる4工程・8入力へ閉じられる。filter、resource snapshot、stroke schedulerの製品実装へ接続せず、1,975工程・3,949入力の既存動的試験を構築しない。第220便完了後の正式不足報告で再照合する。
 - `g221-input-profile-manager-formal-review`の状態は`completed-conditional`、担当は`g178_paintop_settings_schema`、基点は`21377d76e8`、暫定入力は`build/tdd-macos/public-api-missing-g219.json`である。`libs/input/ui/kis_input_profile_manager.h`の残存全24 APIは一意で台帳と重複せず、集合SHA-256 `1d336261b59dbe90df271900c7b1f18d8ba45a6def01cad40b0d772ca5c9888e`、5枠5・3・6・4・6に一致した。新規専用targetはinput/ui source・generated探索路、`kritainputui_EXPORTS`、Qt Core・Testだけで4工程・8入力へ閉じられる。候補headerをAUTOMOC入力にせず、profile filesystem、製品input、1,390工程・2,788入力の動的profile試験へ接続しない。正式G221不足報告で件数・集合SHAを再確認することを実装開始条件とする。
+- `g221-filter-stroke-strategy-formal-review`の状態は`reviewing`、担当は`g178_paintop_settings_schema`、基点は`7e540fbe61`、暫定入力は`build/tdd-macos/public-api-missing-g219.json`である。対象識別子は`libs/painting/strokes/kis_filter_stroke_strategy.h`の残存全24 API、集合SHA-256 `464acb3ded62a9db56e2be293b793d42fe65e468689ceb72ed50c27ac81162ec`である。主作業treeと既存Ninja graphを読み取り専用で使い、変更許可path、構成・構築・試験・Git権限、追加委任はない。全識別子と5枠4・5・5・5・5、4工程・8入力の専用target、直接・interface依存、既存動的保護、停止条件を再照合し、第220便確定後に差分だけを再確認できる資料を返す。
 
 ### 第222便の先行監査担当票（第221便確定待ち）
 
 - 監査共通基点は`5eb25ca5f0`、暫定入力は`build/tdd-macos/public-api-missing-g217.json`である。担当は主作業treeと既存Ninja graphを読み取り専用で利用し、変更、構成、構築、試験、Git操作、追加委任を行わない。正式な第221便不足報告で再照合するまで実装担当票へ進めない。
 - `g222-brush-schema-closure-audit`の状態は`promoted-to-g218`である。`libs/brush/kis_brush.h`の残存全31 API、識別子集合SHA-256 `289468cf15452873d54d30b1083c80af0ec87709fa3868c6730ef7d0586248cc`、5枠5・9・6・7・4を既存`libs/brush/tests/KisBrushSchemaContractTest.cpp`へ追加できる。CMake変更なしでQt Core・Gui・Testとheader-only Boostを直接接続する既存4工程・7入力を維持し、brush、画像、装置、色、gradient、XMLを実体化しない。mask画像内容、cache破棄効果、stroke通知順、XML往復、gradient適用結果は既存または将来の動的契約で扱う。
 - `g222-dual-color-button-closure-audit`の状態は`completed`である。`libs/ui/widgets/KoDualColorButton.h`の残存全36 API、識別子集合SHA-256 `9306110ffb660b18597a08c193e4bd010ad5145b674756ec4b97bfd00e333a42`、5枠8・8・8・8・4を新規専用targetへ固定できる。application・pigment探索路と対応export定義、Qt Gui・Widgets interface、Qt Core・Testとheader-only Boostだけの直接接続による4工程・8入力を予測する。button、色、pixmap、canvas provider、display renderer、dialog、painterを実体化しない。
+- `g222-dual-color-button-formal-review`の状態は`reviewing`、担当は`g178_shape_hierarchy_schema`、基点は`7e540fbe61`、暫定入力は`build/tdd-macos/public-api-missing-g219.json`である。対象識別子は`libs/ui/widgets/KoDualColorButton.h`の残存全36 API、集合SHA-256 `9306110ffb660b18597a08c193e4bd010ad5145b674756ec4b97bfd00e333a42`である。主作業treeと既存Ninja graphを読み取り専用で使い、変更許可path、構成・構築・試験・Git権限、追加委任はない。全識別子と5枠8・8・8・8・4、4工程・8入力の専用target、直接・interface依存、既存動的保護、停止条件を再照合し、第221便確定後に差分だけを再確認できる資料を返す。
 - `g222-tool-manager-private-closure-audit`は`libs/flake/KoToolManager_p.h`の34 APIを契約候補から棄却した。同private headerを公開面へ混入させる唯一のowner外経路は`libs/ui/canvas/KoCanvasControllerWidget.cpp`の未使用includeであり、型・memberの実利用はない。公開契約を追加する前に同includeを除去し、flake owner内だけのprivate headerへ戻す構造改善を行う。除去後に必要型の直接includeが不足する場合はその公開headerを特定し、private header経路を復活させない。正式な不足報告で34 APIが公開集合から消えることを完了条件とする。
 - `g222-tool-manager-private-build-audit`の状態は`completed`である。当該translation unitの製品targetは1,970工程・3,940入力、object単体指定でもorder-only依存により1,648工程・3,294入力となるため、どちらも構築しない。既存`compile_commands.json`を使う`clang-check`で単一翻訳単位だけを検査し、軽量近傍`KoCanvasControllerProxySchemaContractTest`の4工程・8入力、公開API差分、`verify-quick`を確認する。34 API以外の公開面差分、covered件数変化、別のowner外利用、CMake・link変更、製品構築が必要なら停止する。
 
