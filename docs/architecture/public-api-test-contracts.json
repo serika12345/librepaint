@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 9529
+    "expectedMissingApis": 9509
   },
   "contracts": [
     {
@@ -56648,6 +56648,71 @@
         "method:KisTransformMask::sigInternalForceStaticImageUpdate()",
         "method:KisTransformMask::syncLodCache()",
         "method:KisTransformMask::testingInterface() const"
+      ]
+    },
+    {
+      "target": "DocumentLifecycleSchemaContractTest",
+      "source": "libs/libkis/tests/DocumentLifecycleSchemaContractTest.cpp",
+      "test": "DocumentLifecycleSchemaContractTest::documentIdentificationAndMetadataSignaturesRemainStable",
+      "behavior": "文書公開面は保存場所、表示名、および文書・著者情報の取得と更新に関する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:Document::documentInfo() const",
+        "method:Document::fileName() const",
+        "method:Document::name() const",
+        "method:Document::setDocumentInfo(const QString & document)",
+        "method:Document::setFileName(QString value)",
+        "method:Document::setName(QString value)"
+      ]
+    },
+    {
+      "target": "DocumentLifecycleSchemaContractTest",
+      "source": "libs/libkis/tests/DocumentLifecycleSchemaContractTest.cpp",
+      "test": "DocumentLifecycleSchemaContractTest::documentExecutionAndModificationStateSignaturesRemainStable",
+      "behavior": "文書公開面は対話抑制状態と未保存変更状態の取得・更新に関する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:Document::batchmode() const",
+        "method:Document::modified() const",
+        "method:Document::setBatchmode(bool value)",
+        "method:Document::setModified(bool modified)"
+      ]
+    },
+    {
+      "target": "DocumentLifecycleSchemaContractTest",
+      "source": "libs/libkis/tests/DocumentLifecycleSchemaContractTest.cpp",
+      "test": "DocumentLifecycleSchemaContractTest::documentSaveAndExportSignaturesRemainStable",
+      "behavior": "文書公開面は現在場所への保存、名前を指定した保存、および構成付き画像exportの公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:Document::exportImage(const QString & filename,const InfoObject & exportConfiguration)",
+        "method:Document::save()",
+        "method:Document::saveAs(const QString & filename)"
+      ]
+    },
+    {
+      "target": "DocumentLifecycleSchemaContractTest",
+      "source": "libs/libkis/tests/DocumentLifecycleSchemaContractTest.cpp",
+      "test": "DocumentLifecycleSchemaContractTest::documentCloseAndAutosaveSignaturesRemainStable",
+      "behavior": "文書公開面は文書を閉じる操作と自動保存状態の取得・更新に関する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:Document::autosave()",
+        "method:Document::close()",
+        "method:Document::setAutosave(bool active)"
+      ]
+    },
+    {
+      "target": "DocumentLifecycleSchemaContractTest",
+      "source": "libs/libkis/tests/DocumentLifecycleSchemaContractTest.cpp",
+      "test": "DocumentLifecycleSchemaContractTest::documentProcessingSynchronizationSignaturesRemainStable",
+      "behavior": "文書公開面は処理の排他制御、再開、完了待機、および非停止のbarrier lock取得に関する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:Document::lock()",
+        "method:Document::tryBarrierLock()",
+        "method:Document::unlock()",
+        "method:Document::waitForDone()"
       ]
     }
   ]
