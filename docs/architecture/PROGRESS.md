@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-04 16:55 JST
+- 更新日時: 2026-09-04 17:00 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -122,6 +122,12 @@
 - `g205-transaction-schema`の状態は`implementing`、macOSの対象・近傍に限る構築実行許可は`granted`で、基点`9bba3be3ac`の作業tree`/Users/masato/Documents/librepaint-g205-transaction-schema`を所有する。正式不足報告の`libs/image/kis_transaction.h`残存全20 APIを、既存`libs/image/tests/KisStrokeStrategyUndoCommandBasedSchemaContractTest.cpp`の5枠`transactionTypeFlagsAndLifetimeSchemaRemainStable`、`transactionConstructionAndMoveSchemaRemainStable`、`transactionCompletionAndInspectionSignaturesRemainStable`、`transactionCommitAndRevertSignaturesRemainStable`、`selectionTransactionTypeAndConstructionSchemaRemainStable`へ6・4・4・3・3件で対応付ける。許可pathは既存試験sourceだけ、CMake変更なし、対象`KisStrokeStrategyUndoCommandBasedSchemaContractTest`、正式CTest`libs-image-KisStrokeStrategyUndoCommandBasedSchemaContractTest`、近傍`KisProcessingApplicatorSchemaContractTest`である。4工程・8入力を維持し、5工程・11入力超過、新規探索路・link・定義、AUTOMOC入力化、製品接続、実体化・本文実行が必要なら停止する。
 - `g205-tool-manager-schema`の状態は`planned`、構築実行許可は`withheld`である。正式不足報告の`libs/flake/KoToolManager.h`残存全49 APIを、新規`libs/flake/tests/KoToolManagerSchemaContractTest.cpp`の5枠`toolActionTypeLifetimeAndActivationSchemaRemainStable`、`toolActionMetadataSignaturesRemainStable`、`toolManagerTypeLifetimeAndControllerSignaturesRemainStable`、`toolManagerActivationAndResourceSignaturesRemainStable`、`toolManagerSwitchingAndNotificationSignaturesRemainStable`へ5・10・11・10・13件で対応付ける。許可pathは新規試験sourceと`libs/flake/tests/CMakeLists.txt`の新target固有節だけで、flake source/generated、Qt Gui interface、`kritaflake_EXPORTS`だけを追加でき、直接linkはQt Core・Testとheader-only Boostに限定する。対象`KoToolManagerSchemaContractTest`、正式CTest`libs-flake-KoToolManagerSchemaContractTest`、近傍`KoToolBaseSchemaContractTest`である。4工程・8入力を予測し、5工程・11入力超過、指定外探索路・link・定義、Qt Gui・Widgets動的接続、AUTOMOC入力化、製品接続、実体化・本文実行が必要なら停止する。
 - `g205-resource-selection-schema`の状態は`planned`、構築実行許可は`withheld`である。正式不足報告の`libs/widgets/KoResourceServerProvider.h`と`KoResourcePopupAction.h`残存全21 APIを、新規`libs/widgets/tests/KoResourceSelectionSchemaContractTest.cpp`の5枠`resourceServerProviderTypeAndLifetimeSchemaRemainStable`、`resourceServerProviderAccessSignaturesRemainStable`、`resourcePopupActionTypeLifetimeAndControlSchemaRemainStable`、`resourcePopupActionBackgroundSignaturesRemainStable`、`resourcePopupActionResourceSignaturesRemainStable`へ4・7・5・3・2件で対応付ける。許可pathは新規試験sourceと`libs/widgets/tests/CMakeLists.txt`の新target固有節だけで、先行監査結果のsource/generated・interface探索路とexport定義だけを追加でき、直接linkはQt Core・Gui・Testに限定する。対象`KoResourceSelectionSchemaContractTest`、正式CTest`libs-widgets-KoResourceSelectionSchemaContractTest`、近傍`KisColorSelectionControlSchemaContractTest`である。4工程・8入力を予測し、5工程・11入力超過、指定外探索路・link・定義、Qt Widgets・KF・製品libraryの動的接続、AUTOMOC入力化、製品接続、実体化・本文実行が必要なら停止する。
+
+### 第206便の先行監査担当票（第205便確定待ち）
+
+- 監査共通基点は`c985281aaa`、暫定入力は`build/tdd-macos/public-api-missing-g205.json`である。第205便までに契約済みまたは選定済みの責務を除外し、変更、構成、構築、試験、Git操作、追加委任を行わない読み取り専用監査を先行する。正式な第205便完了報告で再照合・再計測する。
+- `g206-flake-contract-audit`の状態は`auditing`で、flake・SVG・vector領域からtool activation管理を除く一責務20〜80 API・最大5枠の次候補を比較し、完全なAPI識別子、観測契約、開始pathから契約先、許可path、既存対象と近傍、予測閉包、停止条件、棄却根拠を返す。
+- `g206-ui-contract-audit`の状態は`auditing`で、widgetutils・widgets・libkis領域から資源選択を除く一責務20〜80 API・最大5枠の次候補を比較し、完全なAPI識別子、観測契約、開始pathから契約先、許可path、既存対象と近傍、予測閉包、停止条件、棄却根拠を返す。
 
 ### 第201便の先行監査担当票
 
