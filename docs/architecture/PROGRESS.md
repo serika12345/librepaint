@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-04 23:37 JST
+- 更新日時: 2026-09-04 23:49 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -322,7 +322,7 @@
 - `g212-ui-contract-audit`の状態は`completed`で、widgetutils・widgets・libkis領域からスクリプト向けraster面・色channel境界23 APIを選定した。既存Node契約のcompile interfaceへflake・ui/canvas探索路を加えた新規専用targetで4工程・8入力を予測する。
 - `g212-standard-option-closure-review`の状態は`completed`で、標準曲線option 32 APIが一責務の5枠へ対応し、template本文とwidgetを実体化せず、既存targetへCMake変更なしで追加できることを独立確認した。
 - `g212-raster-surface-closure-review`の状態は`completed`で、libkisのraster面・色channel 23 APIが一責務の5枠へ対応し、`Document::projection`の4既定引数を未評価呼出しで観測できることを独立確認した。Node系compile interfaceにflake・ui/canvasのsource/generated探索路、application生成探索路、`kritaflake_EXPORTS`、`kritaui_EXPORTS`を加える補正が必要である。
-- `g212-transform-mask-adapter-closure-review`の状態は`auditing`、担当は`/root/g178_paintop_settings_schema`である。正式不足報告の変形mask adapter 24 API、5枠4・5・6・6・3、既存変形幾何契約へのCMake無変更追記、4工程・9入力、製品非接続を独立再検査する。読み取り専用で、変更、構成、構築、試験、Git操作、追加委任を行わない。
+- `g212-transform-mask-adapter-closure-review`の状態は`completed`である。正式不足報告の変形mask adapter 24 API、一意性、既存契約との非重複、5枠4・5・6・6・3を独立確認した。既存変形幾何契約へのCMake無変更追記で4工程・9入力、AUTOMOC `HEADERS=[]`、製品非接続を維持できる。1,994工程・3,987入力の製品`kritatooltransform_static`を構築しない。
 - 各担当は候補headerをtarget sourceやAUTOMOC入力にせず、型特性、厳密な関数pointer、未評価式で実体化と本文実行を避ける計画を優先する。製品targetのplan/buildは禁止し、既存Ninja graphのquery・commands・inputsは読み取り専用で利用できる。
 
 ### 第212便の先行監査結果
@@ -338,8 +338,8 @@
 - 実装共通基点は`3ff4b96fbd`である。一度に一つだけ作る専用worktree-local `build/tdd-macos`と主作業treeの共有compiler cacheを使い、担当側の`./scripts/run-shared-test-env`で読み込み済み環境を利用する。標準曲線option、変形工具mask adapter、スクリプト向けraster面・色channelの順に限定検証・統合・削除し、調整担当だけが文書、公開API台帳、共通不足報告を変更する。各担当のGit権限は許可pathだけの1受渡しcommitで、追加委任は禁止する。
 - `g212-standard-option-schema`の状態は`paused_for_structure`である。変更前は4工程・8入力、AUTOMOC `HEADERS=[]`、Qt Core・Gui・Test・Xmlだけの動的接続だった。開始`plugins/paintops/libpaintop/KisStandardOptions.h`と`KisStandardOptionData.h`を追加して5枠だけを宣言した初期失敗で、期待したslot未定義に加え`ki18ndc`、`KLocalizedString` destructor、`KoID` constructorの製品記号を検出した。`KisStandardOptions.h`から`KisCurveOptionDataCommon.h`を経て読み込む`KisDynamicSensorIds.h`が17個のnamespaceスコープ`const KoID`を翻訳単位ごとに動的初期化することが原因である。製品linkを追加せず停止し、未コミットの2 include・5宣言だけを含む専用作業tree、288 MiBの構築木、branchを削除して884,092 KiBを回収した。再開条件は動的センサー識別子の定義所有を狭い製品実装へ移し、公開識別子・製品ABI・実行値・対象閉包を保つ先行構造改善の成立である。
 - `g212-dynamic-sensor-id-ownership-audit`の状態は`completed`である。17値の実装移動は現在の翻訳単位ごとの内部linkageを共有外部linkageへ変え、専用object収容と既存sensor試験への接続変更を要するため棄却した。`KisCurveOptionDataCommon.h`は17識別子を一つも使用せず、値memberと引数に必要な`KoID`完全型だけを推移includeから得ている。Common・Standard headerの直接利用元にも17識別子へ依存する例はないため、`KisDynamicSensorIds.h`を`KoID.h`の直接includeへ置換する一header変更を採用する。これにより識別子のlinkage、ABI、初期化、地域化、識別値を変えず、標準option宣言契約から不要な製品記号生成だけを除く。
-- `g212-curve-option-include-isolation`の状態は`implementing`、担当は`/root/g178_shape_hierarchy_schema`、基点は`dc84f7201d`、作業treeは`/Users/masato/Documents/librepaint-g212-curve-option-include-isolation`である。開始`plugins/paintops/libpaintop/KisCurveOptionDataCommon.h`の未使用`KisDynamicSensorIds.h`推移includeを、同headerが直接必要とする`KoID.h`へ置換する。最終許可pathはこのheaderだけとし、`KisCurveOptionSchemaContractTest.cpp`はStandard headerの一時link probeに限って編集後に復元する。CMake、他の公開header、製品source、文書、台帳を変更しない。macOSの`kritapaintopcurveoptiondatacommonobjects`、`KisCurveOptionDataCommonContractTest`、一時probeを置く`KisCurveOptionSchemaContractTest`に限る構築実行許可を`granted`とする。
-- include分離担当は、Standard header追加だけの一時probeが4工程・8入力から増える、`ki18ndc`・`KLocalizedString`・`KoID`または他の製品未解決記号が残る、17識別子を使う利用元に新しい直接includeが必要、CMake・製品実装・export・link変更が必要、最終差分が一headerを超える場合に停止する。開始headerから同じheaderへの依存置換として、製品識別子の定義・利用位置は変えない。対象object、Common契約、一時Standard header probe、動的接続・未解決記号、構文・書式、公開API検査、`verify-quick`を確認し、製品library、全体build・`verify`、Linux、Nix再評価は実行しない。
+- `g212-curve-option-include-isolation`の状態は`implementing`、担当は`/root/g178_shape_hierarchy_schema`、基点は`dc84f7201d`、作業treeは`/Users/masato/Documents/librepaint-g212-curve-option-include-isolation`である。第一案は開始`plugins/paintops/libpaintop/KisCurveOptionDataCommon.h`の未使用`KisDynamicSensorIds.h`推移includeを`KoID.h`へ置換し、Common object 1工程・3入力、Common契約7工程・16入力、Standard header一時probe 4工程・8入力に成功した。しかし利用元構文確認で7 sourceの暗黙依存を検出したため、headerだけのcommit`41c81a4c21`は統合せず停止した。改訂範囲は同headerに加え、17識別子を実際に使い直接includeを持たない`KisCurveOption.cpp`、4つの`KisDynamicSensorFactory*.cpp`、`KisKritaSensorPack.cpp`、`tests/KisSensorWithLengthModelContractTest.cpp`の7 sourceとする。各sourceへ`KisDynamicSensorIds.h`を直接includeし、既存1 commitへamendする。CMake、他の公開header、識別子定義、製品実装本文、文書、台帳を変更しない。
+- include分離担当の開始→行先は、Common headerが推移的に供給していた動的sensor ID定義を上記7利用sourceの直接includeへ移し、Common header自身の型依存は`KoID.h`へ向ける対応である。全識別子利用sourceの再棚卸し、6製品sourceの個別object構築または構文確認、`kritapaintopkritasensorpackobjects`、`KisSensorWithLengthModelContractTest`、Common object・契約、Standard header一時probeを検証する。新たな暗黙利用元、CMake・export・link変更、製品library構築、識別子の定義・linkage・値・地域化変更、許可8 path外変更が必要なら停止する。動的接続・未解決記号、構文・書式、公開API検査、`verify-quick`を確認し、全体build・`verify`、Linux、Nix再評価は実行しない。
 - 標準曲線option担当は、既存targetの5工程・11入力超過、CMake変更、新探索路・定義・link、候補headerのAUTOMOC入力化、製品shared・OBJECT・`kritatestsdk`接続、option・widget factory関連の製品未解決記号、対象値・widget・inlineまたはtemplate本文の実体化・実行、許可path外変更が必要なら停止する。変更なし計画と直接依存、旧binaryでの追加枠不存在、宣言段階の初期失敗、追加5枠の単発と各20回反復、対象・近傍CTest、AUTOMOC後の二回目計画、無作業再構築2回、動的接続・未解決記号・構文・書式、公開API検査、`verify-quick`を確認する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
 
 ### 第213便の先行監査担当票（第212便確定待ち）
