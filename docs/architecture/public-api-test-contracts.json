@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 8638
+    "expectedMissingApis": 8614
   },
   "contracts": [
     {
@@ -58900,6 +58900,75 @@
         "method:KisInputProfileManager::saveProfile(KisInputProfile * profile,QString storagePath)",
         "method:KisInputProfileManager::saveProfiles()",
         "method:KisInputProfileManager::setProfileLocations(const QStringList & profileFiles,const QString & profileStorageDirectory)"
+      ]
+    },
+    {
+      "target": "KisFilterStrokeStrategySchemaContractTest",
+      "source": "libs/painting/tests/KisFilterStrokeStrategySchemaContractTest.cpp",
+      "test": "KisFilterStrokeStrategySchemaContractTest::filterStrokeJobDataTypeConstructionAndCloneSchemaRemainStable",
+      "behavior": "filter strokeのjobデータはframe時刻を保持し、既定時刻で構築して詳細度別に複製する公開構成を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisFilterStrokeStrategy::FilterJobData",
+        "member:KisFilterStrokeStrategy::FilterJobData::frameTime",
+        "method:KisFilterStrokeStrategy::FilterJobData::FilterJobData(int frameTime=-1)",
+        "method:KisFilterStrokeStrategy::FilterJobData::createLodClone(int levelOfDetail)"
+      ]
+    },
+    {
+      "target": "KisFilterStrokeStrategySchemaContractTest",
+      "source": "libs/painting/tests/KisFilterStrokeStrategySchemaContractTest.cpp",
+      "test": "KisFilterStrokeStrategySchemaContractTest::filterStrokeIdleBarrierDataSchemaRemainStable",
+      "behavior": "filter strokeの待機境界データはcookie所有、既定構築、詳細度別複製、cookie取得の公開構成を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisFilterStrokeStrategy::IdleBarrierData::IdleBarrierCookie",
+        "class:KisFilterStrokeStrategy::IdleBarrierData",
+        "method:KisFilterStrokeStrategy::IdleBarrierData::IdleBarrierData()",
+        "method:KisFilterStrokeStrategy::IdleBarrierData::createLodClone(int levelOfDetail)",
+        "method:KisFilterStrokeStrategy::IdleBarrierData::idleBarrierCookie() const"
+      ]
+    },
+    {
+      "target": "KisFilterStrokeStrategySchemaContractTest",
+      "source": "libs/painting/tests/KisFilterStrokeStrategySchemaContractTest.cpp",
+      "test": "KisFilterStrokeStrategySchemaContractTest::filterStrokeCancellationStorageSchemaRemainStable",
+      "behavior": "filter strokeの外部取消状態は共有所有と取消・更新領域の公開構成を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisFilterStrokeStrategy::ExternalCancelUpdatesStorageSP",
+        "member:KisFilterStrokeStrategy::ExternalCancelUpdatesStorage::cancelledLod0UpdateRect",
+        "member:KisFilterStrokeStrategy::ExternalCancelUpdatesStorage::shouldIssueCancellationUpdates",
+        "member:KisFilterStrokeStrategy::ExternalCancelUpdatesStorage::updateRect",
+        "struct:KisFilterStrokeStrategy::ExternalCancelUpdatesStorage"
+      ]
+    },
+    {
+      "target": "KisFilterStrokeStrategySchemaContractTest",
+      "source": "libs/painting/tests/KisFilterStrokeStrategySchemaContractTest.cpp",
+      "test": "KisFilterStrokeStrategySchemaContractTest::filterStrokeStrategyTypeLifetimeAndConstructionSchemaRemainStable",
+      "behavior": "filter stroke戦略はfilter・設定・資源と任意の外部取消状態を受け取り、詳細度別複製構築と破棄を行う公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisFilterStrokeStrategy",
+        "method:KisFilterStrokeStrategy::KisFilterStrokeStrategy(KisFilterSP filter,KisFilterConfigurationSP filterConfig,KisResourcesSnapshotSP resources)",
+        "method:KisFilterStrokeStrategy::KisFilterStrokeStrategy(KisFilterSP filter,KisFilterConfigurationSP filterConfig,KisResourcesSnapshotSP resources,ExternalCancelUpdatesStorageSP externalCancelUpdatesStorage)",
+        "method:KisFilterStrokeStrategy::KisFilterStrokeStrategy(const KisFilterStrokeStrategy & rhs,int levelOfDetail)",
+        "method:KisFilterStrokeStrategy::~KisFilterStrokeStrategy()"
+      ]
+    },
+    {
+      "target": "KisFilterStrokeStrategySchemaContractTest",
+      "source": "libs/painting/tests/KisFilterStrokeStrategySchemaContractTest.cpp",
+      "test": "KisFilterStrokeStrategySchemaContractTest::filterStrokeStrategyCallbackSignaturesRemainStable",
+      "behavior": "filter stroke戦略は初期化・実行・完了・取消と詳細度別複製のcallback署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisFilterStrokeStrategy::cancelStrokeCallback()",
+        "method:KisFilterStrokeStrategy::createLodClone(int levelOfDetail)",
+        "method:KisFilterStrokeStrategy::doStrokeCallback(KisStrokeJobData * data)",
+        "method:KisFilterStrokeStrategy::finishStrokeCallback()",
+        "method:KisFilterStrokeStrategy::initStrokeCallback()"
       ]
     }
   ]
