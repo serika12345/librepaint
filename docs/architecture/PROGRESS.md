@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 05:33 JST
+- 更新日時: 2026-09-05 05:39 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -544,9 +544,10 @@
 
 - 正式入力`build/tdd-macos/public-api-missing-g218.json`は公開header 1,549、公開API 29,838、対応済み20,942、未対応8,896、2,359,299 bytes、SHA-256 `cefbca14771a39c7c662cdb2085e24d9dd24373ce7cb9c6aa6ac88df378f46ec`である。色空間抽象境界32、auto levels widget 24、tool proxy内部状態22 APIがすべて未対応であり、先行監査の件数と識別子集合SHA-256に一致する。旧`public-api-missing-g217.json`を削除し、最新報告だけを保持する。
 - 正式監査の共通基点は`637cdc7080`である。3担当は正式報告、対象header、既存契約、CMake graphを読み取り専用で利用し、変更、構成、構築、試験、Git操作、追加委任を行わない。全API識別子、5枠への完全対応、最小閉包、既存動的保護、停止条件を再照合し、調整担当が一つずつ実装担当票へ移す。
-- `g218-color-space-abstract-formal-review`の状態は`in_progress`、担当は`/root/g178_shape_hierarchy_schema`である。正式32 APIと集合SHA、5枠9・6・10・5・2、抽象template用probe、pigment・global探索路、interface依存、4工程・8入力を再照合する。
+- `g218-color-space-abstract-formal-review`の状態は`completed-rejected`である。正式32 APIと集合SHA、5枠9・6・10・5・2、constructor以外の未評価観測、4工程・8入力の予測は一致した。一方、抽象templateのconstructorを正当に観測する派生probeはconstructor、vtable対象override、混色・畳み込み、alpha mask生成器を実体化する。同じ停止診断で棄却した第148便からheader構造は変わっておらず、全32 APIを製品非接続で固定できないため実装候補から外す。constructor依存を非template境界へ分離する構造変更、または製品接続する動的契約の限定構築が成立した後に再監査する。
 - `g218-auto-levels-widget-formal-review`の状態は`in_progress`、担当は`/root/g178_paintop_settings_schema`である。正式24 APIと集合SHA、5枠3・4・6・4・7、対象固有UI生成の所有・順序、5工程・10入力を再照合する。
-- `g218-tool-proxy-state-formal-review`の状態は`in_progress`、担当は`/root/g208_raster_keyframe_schema`である。正式22 APIと集合SHA、5枠6・3・4・5・4、owner外利用、一時互換契約の削除条件、flake限定4工程・8入力を再照合する。
+- `g218-tool-proxy-state-formal-review`の状態は`completed`である。正式22 APIと集合SHA、5枠6・3・4・5・4、flake限定4工程・8入力を再照合した。owner外の`libs/input/ui/kis_tool_proxy.cpp`は`activeTool`を6箇所、同testsは`controller`を4箇所で直接利用している。新規`KoToolProxyPrivateSchemaContractTest`は、両owner外includeと直接member参照を具体的owner操作へ置換し、公開`priv()`のowner外利用を0にし、不足報告から同private headerが消えた時点で削除する一時互換契約として採用する。
+- `g218-opengl-mode-prober-replacement-audit`の状態は`in_progress`、担当は`/root/g178_shape_hierarchy_schema`である。棄却した色空間抽象境界の代替として、正式報告の`libs/ui/opengl/KisOpenGLModeProber.h`残存34 APIを読み取り専用で監査する。OpenGL contextや製品実装を実体化せず、最大5枠と5工程・11入力以内へ閉じる候補だけを採用する。
 
 ### 第219便の先行監査担当票（第218便確定待ち）
 
