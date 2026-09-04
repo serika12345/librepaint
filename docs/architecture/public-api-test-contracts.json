@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 10789
+    "expectedMissingApis": 10752
   },
   "contracts": [
     {
@@ -53453,6 +53453,88 @@
         "method:Scratchpad::contentChanged()",
         "method:Scratchpad::scaleChanged(qreal scale)",
         "method:Scratchpad::viewportChanged(const QRect rect)"
+      ]
+    },
+    {
+      "target": "KisImageConfigGeneralSchemaContractTest",
+      "source": "libs/image/tests/KisImageConfigGeneralSchemaContractTest.cpp",
+      "test": "KisImageConfigGeneralSchemaContractTest::imageConfigTypeAndLifetimeSchemaRemainStable",
+      "behavior": "一般画像設定は読取専用方針を指定して構築でき、破棄可能な公開型契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisImageConfig",
+        "method:KisImageConfig::KisImageConfig(bool readOnly)",
+        "method:KisImageConfig::~KisImageConfig()"
+      ]
+    },
+    {
+      "target": "KisImageConfigGeneralSchemaContractTest",
+      "source": "libs/image/tests/KisImageConfigGeneralSchemaContractTest.cpp",
+      "test": "KisImageConfigGeneralSchemaContractTest::imageConfigDiagnosticsAndMaskSignaturesRemainStable",
+      "behavior": "一般画像設定は性能記録・進捗報告、変形maskの範囲外読取領域、色付けmaskのLOD利用を照会・設定する公開署名と既定値要求を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisImageConfig::enablePerfLog(bool requestDefault=false) const",
+        "method:KisImageConfig::enableProgressReporting(bool requestDefault=false) const",
+        "method:KisImageConfig::setEnablePerfLog(bool value)",
+        "method:KisImageConfig::setEnableProgressReporting(bool value)",
+        "method:KisImageConfig::setUseLodForColorizeMask(bool value)",
+        "method:KisImageConfig::transformMaskOffBoundsReadArea() const",
+        "method:KisImageConfig::useLodForColorizeMask(bool requestDefault=false) const"
+      ]
+    },
+    {
+      "target": "KisImageConfigGeneralSchemaContractTest",
+      "source": "libs/image/tests/KisImageConfigGeneralSchemaContractTest.cpp",
+      "test": "KisImageConfigGeneralSchemaContractTest::imageConfigPresentationAndBrushSignaturesRemainStable",
+      "behavior": "一般画像設定はbrush寸法、選択輪郭とoverlay色、重複・統合layerの改名方針を照会・設定する公開署名と既定値要求を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisImageConfig::maxBrushSize(bool defaultValue=false) const",
+        "method:KisImageConfig::maxMaskingBrushSize() const",
+        "method:KisImageConfig::renameDuplicatedLayers(bool defaultValue=false) const",
+        "method:KisImageConfig::renameMergedLayers(bool defaultValue=false) const",
+        "method:KisImageConfig::selectionOutlineOpacity(bool defaultValue=false) const",
+        "method:KisImageConfig::selectionOverlayMaskColor(bool defaultValue=false) const",
+        "method:KisImageConfig::setMaxBrushSize(int value)",
+        "method:KisImageConfig::setRenameDuplicatedLayers(bool value)",
+        "method:KisImageConfig::setRenameMergedLayers(bool value)",
+        "method:KisImageConfig::setSelectionOutlineOpacity(qreal value)",
+        "method:KisImageConfig::setSelectionOverlayMaskColor(const QColor & color)"
+      ]
+    },
+    {
+      "target": "KisImageConfigGeneralSchemaContractTest",
+      "source": "libs/image/tests/KisImageConfigGeneralSchemaContractTest.cpp",
+      "test": "KisImageConfigGeneralSchemaContractTest::imageConfigProofingAndTransferSignaturesRemainStable",
+      "behavior": "一般画像設定は既定校正値と入出力filter別の設定・XMLを照会し、校正値と入出力設定を保存する公開署名と既定値要求を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisImageConfig::defaultProofingconfiguration(bool requestDefault=false)",
+        "method:KisImageConfig::exportConfiguration(const QString & exportConfigId,bool defaultValue=false) const",
+        "method:KisImageConfig::exportConfigurationXML(const QString & exportConfigId,bool defaultValue=false) const",
+        "method:KisImageConfig::hasExportConfiguration(const QString & exportConfigID)",
+        "method:KisImageConfig::importConfiguration(const QString & filterId,bool defaultValue=false) const",
+        "method:KisImageConfig::setDefaultProofingConfig(const KisProofingConfiguration & config)",
+        "method:KisImageConfig::setExportConfiguration(const QString & exportConfigId,KisPropertiesConfigurationSP properties)",
+        "method:KisImageConfig::setImportConfiguration(const QString & filterId,KisPropertiesConfigurationSP properties)"
+      ]
+    },
+    {
+      "target": "KisImageConfigGeneralSchemaContractTest",
+      "source": "libs/image/tests/KisImageConfigGeneralSchemaContractTest.cpp",
+      "test": "KisImageConfigGeneralSchemaContractTest::imageConfigGenericStorageAndAlphaSignaturesRemainStable",
+      "behavior": "一般画像設定は合成時のalpha上限を公開し、名前付き単一値・一覧の既定値付き読出しと書込み、全設定resetを行う汎用署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisImageConfig::maxCollectAlpha() const",
+        "method:KisImageConfig::maxMergeAlpha() const",
+        "method:KisImageConfig::maxMergeCollectAlpha() const",
+        "method:KisImageConfig::readEntry(const QString & name,const T & defaultValue=T ())",
+        "method:KisImageConfig::readList(const QString & name,const QList<T> & defaultValue=QList<T> ())",
+        "method:KisImageConfig::resetConfig()",
+        "method:KisImageConfig::writeEntry(const QString & name,const T & value)",
+        "method:KisImageConfig::writeList(const QString & name,const QList<T> & value)"
       ]
     }
   ]
