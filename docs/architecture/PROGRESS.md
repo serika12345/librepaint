@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-04 20:46 JST
+- 更新日時: 2026-09-04 20:48 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -241,6 +241,8 @@
 
 - 実装共通基点は`c3e4ffc777`である。一度に一つだけ作る専用worktree-local `build/tdd-macos`と主作業treeの共有compiler cacheを使い、`./scripts/run-shared-test-env`で読み込み済み環境を利用する。各担当のGit権限は許可pathだけの受渡しcommit、追加委任は禁止する。tile data manager、文書node graph、font registry・storageの順に限定検証・統合・削除し、調整担当だけが文書、公開API台帳、共通不足報告を変更する。
 - `g209-tiled-data-manager-schema`の状態は`integrated`、macOSの対象`KisTileSchemaContractTest`と近傍`KisTileDataSchemaContractTest`に限る構築実行許可は`granted`である。正式不足報告の`libs/image/tiles3/kis_tiled_data_manager.h`残存全43 APIを、既存`libs/image/tiles3/tests/KisTileSchemaContractTest.cpp`の5枠`tiledDataManagerTypeLifetimeAndDefaultPixelSchemaRemainStable`、`tiledDataManagerTileAndHistorySignaturesRemainStable`、`tiledDataManagerRegionAndGeometrySignaturesRemainStable`、`tiledDataManagerTransferSignaturesRemainStable`、`tiledDataManagerMaintenanceSignaturesRemainStable`へ8・11・13・9・2件で対応付けた。受渡しcommit`46ec39eaf7`を統合commit`ac3cb314bc`として取り込み、担当側と中央で追加5枠を各20回、対象・近傍CTest、二回目計画と無作業再構築を実行した。CMake変更なしで4工程・8入力、Qt Core・Core5Compat・Testだけの動的接続、AUTOMOC `HEADERS=[]`、製品未解決記号なしを維持し、台帳は20,220件対応、9,618件未対応となった。cleanな専用作業tree、297,252 KiBの構築木、branchを統合直後に削除し、886,876 KiBを回収した。lock、履歴遷移、tile取得、領域更新、転送・I/O、pool解放の実行結果は別の効果契約で扱う。
+- `g209-document-node-schema`の状態は`implementing`、作業treeは`/Users/masato/Documents/librepaint-g209-document-node-schema`、macOSの対象`DocumentNodeSchemaContractTest`と近傍`DocumentGeometrySchemaContractTest`に限る構築実行許可は`granted`、Git権限は新規`libs/libkis/tests/DocumentNodeSchemaContractTest.cpp`と`libs/libkis/tests/CMakeLists.txt`の新target固有節だけの受渡しcommitである。正式不足報告の`libs/libkis/Document.h`残存28 APIを5枠`documentTypeLifetimeAndComparisonSchemaRemainStable`、`documentNodeGraphSignaturesRemainStable`、`documentMaskCreationSignaturesRemainStable`、`documentNodeAndLayerCreationSignaturesRemainStable`、`documentFlatteningSignatureRemainsStable`へ6・8・6・7・1件で対応付ける。G208のDocument専用compile interfaceと同じ探索路・定義、Qt Core・Testとheader-only Boostによる4工程・8入力を予測する。
+- 文書node担当の停止線は5工程・11入力である。G208と異なる探索路・定義・link、製品shared・OBJECT・`kritatestsdk`接続、候補headerのAUTOMOC入力化、文書・node・layer・mask関連の製品未解決記号、対象値または本文の実体化、許可path外変更が必要なら停止する。対象不存在と宣言段階の初期失敗、追加5枠の単発と各20回反復、対象・近傍CTest、AUTOMOC後の二回目計画、無作業再構築2回、動的接続・未解決記号・構文・書式、公開API検査、`verify-quick`を確認する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
 - 停止線は5工程・11入力である。CMake変更、新探索路・定義・link、製品shared・OBJECT・`kritatestsdk`接続、候補headerのAUTOMOC入力化、tile・manager・memento・lock・I/O関連の製品未解決記号、対象値またはinline本文の実体化、許可path外変更が必要なら停止する。旧binaryで新5枠が未知であること、追加5枠の単発と各20回反復、対象・近傍CTest、AUTOMOC後の二回目計画、無作業再構築2回、動的接続・未解決記号・構文・書式、公開API検査、`verify-quick`を確認する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
 
 ### 第210便の先行監査担当票（第209便確定待ち）
