@@ -905,6 +905,20 @@ target_include_directories(KoCanvasControllerProxySchemaContractTest PRIVATE
 target_compile_definitions(KoCanvasControllerProxySchemaContractTest PRIVATE kritaflake_EXPORTS)
 
 kis_add_test(
+    KoToolProxyPrivateSchemaContractTest.cpp
+    LINK_LIBRARIES
+        Boost::boost
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KoToolProxyPrivateSchemaContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Gui,INTERFACE_INCLUDE_DIRECTORIES>
+)
+target_compile_definitions(KoToolProxyPrivateSchemaContractTest PRIVATE kritaflake_EXPORTS)
+
+kis_add_test(
     KoToolBaseSchemaContractTest.cpp
     LINK_LIBRARIES
         Qt${QT_MAJOR_VERSION}::Core
