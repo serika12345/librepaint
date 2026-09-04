@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 05:56 JST
+- 更新日時: 2026-09-05 05:58 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -558,6 +558,9 @@
 - 新targetは`ki18n_wrap_ui(KisAutoLevelsWidgetSchemaContractTest ${CMAKE_CURRENT_SOURCE_DIR}/../widgets/KisAutoLevelsWidget.ui)`でtarget固有`ui_KisAutoLevelsWidget.h`を生成する。application、image、pigment、widgets、widgetutils、globalのsource・generated探索路、Qt Gui・Widgets、KF I18n・Imath・Boostのinterface、6 export定義を使い、Qt Core・Testだけを直接接続する。`KisHistogramPainterSchemaContractTest`を軽量近傍とし、5工程・10入力、停止線6工程・13入力を維持する。
 - 最初に新target不存在、次に5枠の宣言だけで5枠の未定義link失敗を確認する。型特性と厳密な関数pointerだけでwidget、生成UI、色、列挙値、signalを実体化せず、候補headerをAUTOMOC入力にしない。担当は追加5枠の単発と各20回反復、対象と近傍、AUTOMOC後の二回目計画、無作業再構築2回、対象固有UI生成物、動的接続・未解決記号・構文・書式、公開API検査、`verify-quick`を確認する。製品UI生成への依存、6工程・13入力超過、Qt Gui・Widgets・KFまたは製品libraryの動的接続、製品shared・OBJECT・`kritatestsdk`、候補headerのAUTOMOC入力化、製品未解決記号、対象実体化、許可path外変更が必要なら停止する。構築許可はmacOSの対象と近傍だけに`granted`、Git権限は許可pathだけの`transport-commit`、追加委任は`forbidden`である。
 - 担当側と中央のmacOSで追加5枠を各20回、対象`libs-ui-KisAutoLevelsWidgetSchemaContractTest`と近傍`libs-ui-KisHistogramPainterSchemaContractTest`、AUTOMOC後の二回目計画、無作業再構築2回に成功した。中央閉包は対象固有UI生成を含む5工程・10入力、AUTOMOC `HEADERS=[]`、Qt Core・Testだけの動的接続、製品UI生成参照と製品未解決記号なしを維持し、台帳は20,966件対応、8,872件未対応となった。cleanな専用作業tree、298,788 KiBの構築木、branchを統合直後に削除し、888,836 KiBを回収した。主Ninja木5,739,484 KiBと共有compiler cache 982,652 KiBを次のブラシ契約へ再利用する。UI初期値、lock・unlock表示効果、色変更、`parametersChanged`配送は将来の動的契約で扱う。
+- `g218-brush-schema`の状態は`preparing`、担当は`/root/g208_raster_keyframe_schema`、基点は`9d06494cfe`、専用branchは`agent/g218-brush-schema`、作業treeは`/Users/masato/Documents/librepaint-g218-brush-schema`である。開始`libs/brush/kis_brush.h`の残存全31 APIを、既存`libs/brush/tests/KisBrushSchemaContractTest.cpp`の5枠`brushLifetimeAndConstructionSignaturesRemainStable`、`brushTipGeometryAndOutlineSignaturesRemainStable`、`brushDabAndMaskGenerationSignaturesRemainStable`、`brushStrokePreparationAndCacheSignaturesRemainStable`、`brushSerializationAndGradientSignaturesRemainStable`へ5・9・6・7・4件で対応付ける。識別子集合SHA-256は`289468cf15452873d54d30b1083c80af0ec87709fa3868c6730ef7d0586248cc`、許可pathは既存試験sourceだけである。
+- 第1枠は3 constructor、deleted copy assignment、destructor、第2枠はbrush tip画像・幾何・outlineと設定、第3枠はdab・mask生成の全overload、第4枠はbrush index、cache初期化、LOD、stroke開始・sequence準備、第5枠はXML読込・保存とgradient設定である。抽象brushのconstructorは純粋仮想関数を宣言だけで補う派生probe、代入不能性は型特性、overloadとXML factoryは厳密な関数pointer、既定引数は未評価省略呼出しで観測し、brush、画像、paint device、色、gradient、XML、paint情報を実体化しない。
+- `KisBrushSchemaContractTest`はCMake変更なしでbrush・global・image・resources探索路、KF I18n interface、2 export定義、Qt Core・Gui・Testとheader-only Boostだけを直接接続する4工程・7入力を維持する。`KisBrushModelValuesContractTest`を軽量近傍とし、追加後も300行・20枠未満に収める。未知target確認は不要で、5枠の宣言だけによる未定義link失敗を最初の診断とする。担当は変更前後の計画、追加5枠の単発と各20回反復、対象と近傍、AUTOMOC後の二回目計画、無作業再構築2回、動的接続・未解決記号・構文・書式、公開API検査、`verify-quick`を確認する。CMake変更、5工程・11入力超過、新探索路・定義・link、Qt Xml・pigment・image/brushengine・製品shared・OBJECT・`kritatestsdk`接続、candidate headerのAUTOMOC入力化、constructor probeの製品記号、対象実体化、source上限超過が必要なら停止する。構築許可はmacOSの対象と近傍だけに`granted`、Git権限は許可pathだけの`transport-commit`、追加委任は`forbidden`である。
 
 ### 第219便の先行監査担当票（第218便確定待ち）
 
