@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7202df9799565b15c12f4c793d56e4c1f394399153c8d5af71c3ebb253d9aa92"
   },
   "migration": {
-    "expectedMissingApis": 10450
+    "expectedMissingApis": 10428
   },
   "contracts": [
     {
@@ -54287,6 +54287,73 @@
         "method:KoSvgTextShape::setMemento(const KoSvgTextShapeMementoSP memento)",
         "method:KoSvgTextShape::setMemento(const KoSvgTextShapeMementoSP memento,int pos,int anchor)",
         "method:KoSvgTextShape::shapeTypeSpecificStyles(SvgSavingContext & context) const"
+      ]
+    },
+    {
+      "target": "KoStrokeConfigWidgetSchemaContractTest",
+      "source": "libs/widgets/tests/KoStrokeConfigWidgetSchemaContractTest.cpp",
+      "test": "KoStrokeConfigWidgetSchemaContractTest::fillConfigTypeLifetimeAndOutputSchemaRemainStable",
+      "behavior": "図形塗り設定Widgetはcanvas、塗り種別、選択追跡方針、親から構築・仮想破棄でき、現在図形、選択塗り索引、生成した輪郭線を返す公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoFillConfigWidget",
+        "method:KoFillConfigWidget::KoFillConfigWidget(KoCanvasBase * canvas,KoFlake::FillVariant fillVariant,bool trackShapeSelection,QWidget * parent)",
+        "method:KoFillConfigWidget::createShapeStroke()",
+        "method:KoFillConfigWidget::currentShapes()",
+        "method:KoFillConfigWidget::selectedFillIndex()",
+        "method:KoFillConfigWidget::~KoFillConfigWidget()"
+      ]
+    },
+    {
+      "target": "KoStrokeConfigWidgetSchemaContractTest",
+      "source": "libs/widgets/tests/KoStrokeConfigWidgetSchemaContractTest.cpp",
+      "test": "KoStrokeConfigWidgetSchemaContractTest::fillConfigActivationAndControlSchemaRemainStable",
+      "behavior": "図形塗り設定Widgetは活性化・非活性化、選択変更への強制更新、選択追跡停止、mesh gradient handle選択を扱う公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoFillConfigWidget::activate()",
+        "method:KoFillConfigWidget::deactivate()",
+        "method:KoFillConfigWidget::forceUpdateOnSelectionChanged()",
+        "method:KoFillConfigWidget::setNoSelectionTrackingMode(bool value)",
+        "method:KoFillConfigWidget::setSelectedMeshGradientHandle(const SvgMeshPosition & position)"
+      ]
+    },
+    {
+      "target": "KoStrokeConfigWidgetSchemaContractTest",
+      "source": "libs/widgets/tests/KoStrokeConfigWidgetSchemaContractTest.cpp",
+      "test": "KoStrokeConfigWidgetSchemaContractTest::fillConfigNotificationSignaturesRemainStable",
+      "behavior": "図形塗り設定Widgetは塗り変更、資源管理器との色授受、mesh gradient初期化を通知する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoFillConfigWidget::sigFillChanged()",
+        "method:KoFillConfigWidget::sigInternalRecoverColorInResourceManager()",
+        "method:KoFillConfigWidget::sigInternalRequestColorToResourceManager()",
+        "method:KoFillConfigWidget::sigMeshGradientResetted()"
+      ]
+    },
+    {
+      "target": "KoStrokeConfigWidgetSchemaContractTest",
+      "source": "libs/widgets/tests/KoStrokeConfigWidgetSchemaContractTest.cpp",
+      "test": "KoStrokeConfigWidgetSchemaContractTest::markerSelectorTypeLifetimeAndSelectionSchemaRemainStable",
+      "behavior": "図形marker選択器は位置と任意の親から構築・仮想破棄でき、現在markerを照会・設定する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoMarkerSelector",
+        "method:KoMarkerSelector::KoMarkerSelector(KoFlake::MarkerPosition position,QWidget * parent=0)",
+        "method:KoMarkerSelector::marker() const",
+        "method:KoMarkerSelector::setMarker(KoMarker * marker)",
+        "method:KoMarkerSelector::~KoMarkerSelector()"
+      ]
+    },
+    {
+      "target": "KoStrokeConfigWidgetSchemaContractTest",
+      "source": "libs/widgets/tests/KoStrokeConfigWidgetSchemaContractTest.cpp",
+      "test": "KoStrokeConfigWidgetSchemaContractTest::markerSelectorPresentationSchemaRemainStable",
+      "behavior": "図形marker選択器は任意の役割に対応する項目値を返し、利用可能marker一覧を更新する公開署名と既定役割を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoMarkerSelector::itemData(int index,int role=Qt::UserRole) const",
+        "method:KoMarkerSelector::updateMarkers(const QList<KoMarker * > markers)"
       ]
     }
   ]
