@@ -1,9 +1,11 @@
 /* SPDX-FileCopyrightText: 2026 LibrePaint contributors
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include <Notifier.h>
 #include <QTest>
 #include <Scratchpad.h>
 #include <View.h>
+#include <Window.h>
 #include <type_traits>
 #include <utility>
 
@@ -12,6 +14,12 @@
 
 #define ASSERT_SCRATCHPAD_SIGNATURE(method, signature)                                                                 \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&Scratchpad::method)), signature>)
+
+#define ASSERT_WINDOW_SIGNATURE(method, signature)                                                                     \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&Window::method)), signature>)
+
+#define ASSERT_NOTIFIER_SIGNATURE(method, signature)                                                                   \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&Notifier::method)), signature>)
 
 class ViewSchemaContractTest : public QObject
 {
@@ -32,6 +40,11 @@ private Q_SLOTS:
     void scratchpadZoomAndScaleSignaturesRemainStable();
     void scratchpadPanImageAndBoundsSignaturesRemainStable();
     void scratchpadNotificationSignaturesRemainStable();
+    void windowTypeLifetimeAndEqualitySchemaRemainStable();
+    void windowViewAndActivationSignaturesRemainStable();
+    void windowActionAndNotificationSignaturesRemainStable();
+    void notifierTypeLifetimeAndActivationSchemaRemainStable();
+    void notifierApplicationAndUiNotificationSignaturesRemainStable();
 };
 
 void ViewSchemaContractTest::viewOwnershipLifetimeAndEqualitySchemaRemainsStable()
@@ -189,6 +202,67 @@ void ViewSchemaContractTest::scratchpadNotificationSignaturesRemainStable()
     ASSERT_SCRATCHPAD_SIGNATURE(scaleChanged, void (Scratchpad::*)(qreal));
     ASSERT_SCRATCHPAD_SIGNATURE(contentChanged, void (Scratchpad::*)());
     ASSERT_SCRATCHPAD_SIGNATURE(viewportChanged, void (Scratchpad::*)(const QRect));
+}
+
+void ViewSchemaContractTest::windowTypeLifetimeAndEqualitySchemaRemainStable()
+{
+    static_assert(std::is_class_v<Window>);
+    static_assert(std::is_base_of_v<QObject, Window>);
+    static_assert(std::is_constructible_v<Window, KisMainWindow *>);
+    static_assert(std::is_constructible_v<Window, KisMainWindow *, QObject *>);
+    static_assert(std::has_virtual_destructor_v<Window>);
+    ASSERT_WINDOW_SIGNATURE(operator==, bool (Window::*)(const Window &) const);
+    ASSERT_WINDOW_SIGNATURE(operator!=, bool (Window::*)(const Window &) const);
+}
+
+void ViewSchemaContractTest::windowViewAndActivationSignaturesRemainStable()
+{
+    ASSERT_WINDOW_SIGNATURE(qwindow, QMainWindow * (Window::*)() const);
+    ASSERT_WINDOW_SIGNATURE(dockers, QList<QDockWidget *> (Window::*)() const);
+    ASSERT_WINDOW_SIGNATURE(views, QList<View *> (Window::*)() const);
+    ASSERT_WINDOW_SIGNATURE(addView, View * (Window::*)(Document *));
+    ASSERT_WINDOW_SIGNATURE(showView, void (Window::*)(View *));
+    ASSERT_WINDOW_SIGNATURE(activeView, View * (Window::*)() const);
+    ASSERT_WINDOW_SIGNATURE(activate, void (Window::*)());
+    ASSERT_WINDOW_SIGNATURE(close, void (Window::*)());
+}
+
+void ViewSchemaContractTest::windowActionAndNotificationSignaturesRemainStable()
+{
+    ASSERT_WINDOW_SIGNATURE(createAction, QAction * (Window::*)(const QString &, const QString &, const QString &));
+    ASSERT_WINDOW_SIGNATURE(windowClosed, void (Window::*)());
+    ASSERT_WINDOW_SIGNATURE(themeChanged, void (Window::*)());
+    ASSERT_WINDOW_SIGNATURE(activeViewChanged, void (Window::*)());
+
+    static_assert(
+        std::is_same_v<decltype(std::declval<Window &>().createAction(std::declval<const QString &>())), QAction *>);
+    static_assert(std::is_same_v<decltype(std::declval<Window &>().createAction(std::declval<const QString &>(),
+                                                                                std::declval<const QString &>())),
+                                 QAction *>);
+}
+
+void ViewSchemaContractTest::notifierTypeLifetimeAndActivationSchemaRemainStable()
+{
+    static_assert(std::is_class_v<Notifier>);
+    static_assert(std::is_base_of_v<QObject, Notifier>);
+    static_assert(std::is_default_constructible_v<Notifier>);
+    static_assert(std::is_constructible_v<Notifier, QObject *>);
+    static_assert(std::has_virtual_destructor_v<Notifier>);
+    ASSERT_NOTIFIER_SIGNATURE(active, bool (Notifier::*)() const);
+    ASSERT_NOTIFIER_SIGNATURE(setActive, void (Notifier::*)(bool));
+}
+
+void ViewSchemaContractTest::notifierApplicationAndUiNotificationSignaturesRemainStable()
+{
+    ASSERT_NOTIFIER_SIGNATURE(applicationClosing, void (Notifier::*)());
+    ASSERT_NOTIFIER_SIGNATURE(imageCreated, void (Notifier::*)(Document *));
+    ASSERT_NOTIFIER_SIGNATURE(imageSaved, void (Notifier::*)(const QString &));
+    ASSERT_NOTIFIER_SIGNATURE(imageClosed, void (Notifier::*)(const QString &));
+    ASSERT_NOTIFIER_SIGNATURE(viewCreated, void (Notifier::*)(View *));
+    ASSERT_NOTIFIER_SIGNATURE(viewClosed, void (Notifier::*)(View *));
+    ASSERT_NOTIFIER_SIGNATURE(windowIsBeingCreated, void (Notifier::*)(Window *));
+    ASSERT_NOTIFIER_SIGNATURE(windowCreated, void (Notifier::*)());
+    ASSERT_NOTIFIER_SIGNATURE(configurationChanged, void (Notifier::*)());
 }
 
 QTEST_GUILESS_MAIN(ViewSchemaContractTest)
