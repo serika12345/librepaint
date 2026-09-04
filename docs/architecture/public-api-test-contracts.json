@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 8785
+    "expectedMissingApis": 8755
   },
   "contracts": [
     {
@@ -58483,6 +58483,81 @@
         "member:KoToolProxyPrivate::multiClickSource",
         "member:KoToolProxyPrivate::multiClickTimeStamp",
         "member:KoToolProxyPrivate::toolPriorityShortcuts"
+      ]
+    },
+    {
+      "target": "KisEncloseAndFillPainterSchemaContractTest",
+      "source": "libs/image/tests/KisEncloseAndFillPainterSchemaContractTest.cpp",
+      "test": "KisEncloseAndFillPainterSchemaContractTest::encloseAndFillPainterTypeLifetimeAndConstructionSchemaRemainStable",
+      "behavior": "囲み領域の塗り手は画像寸法、画素装置、選択を受け取る構築入口と基底・寿命契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisEncloseAndFillPainter",
+        "method:KisEncloseAndFillPainter::KisEncloseAndFillPainter(KisPaintDeviceSP device,KisSelectionSP selection,const QSize & imageSize)",
+        "method:KisEncloseAndFillPainter::KisEncloseAndFillPainter(KisPaintDeviceSP device,const QSize & imageSize)",
+        "method:KisEncloseAndFillPainter::KisEncloseAndFillPainter(const QSize & imageSize)",
+        "method:KisEncloseAndFillPainter::~KisEncloseAndFillPainter()"
+      ]
+    },
+    {
+      "target": "KisEncloseAndFillPainterSchemaContractTest",
+      "source": "libs/image/tests/KisEncloseAndFillPainterSchemaContractTest.cpp",
+      "test": "KisEncloseAndFillPainterSchemaContractTest::encloseAndFillRegionSelectionMethodSchemaRemainStable",
+      "behavior": "囲み領域の塗り手は全領域、特定色、透明、周囲色を組み合わせる10種類の領域選択方式と宣言値を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KisEncloseAndFillPainter::RegionSelectionMethod",
+        "enumerator:KisEncloseAndFillPainter::RegionSelectionMethod::SelectAllRegions",
+        "enumerator:KisEncloseAndFillPainter::RegionSelectionMethod::SelectAllRegionsExceptFilledWithSpecificColor",
+        "enumerator:KisEncloseAndFillPainter::RegionSelectionMethod::SelectAllRegionsExceptFilledWithSpecificColorOrTransparent",
+        "enumerator:KisEncloseAndFillPainter::RegionSelectionMethod::SelectAllRegionsExceptFilledWithTransparent",
+        "enumerator:KisEncloseAndFillPainter::RegionSelectionMethod::SelectRegionsFilledWithSpecificColor",
+        "enumerator:KisEncloseAndFillPainter::RegionSelectionMethod::SelectRegionsFilledWithSpecificColorOrTransparent",
+        "enumerator:KisEncloseAndFillPainter::RegionSelectionMethod::SelectRegionsFilledWithTransparent",
+        "enumerator:KisEncloseAndFillPainter::RegionSelectionMethod::SelectRegionsSurroundedBySpecificColor",
+        "enumerator:KisEncloseAndFillPainter::RegionSelectionMethod::SelectRegionsSurroundedBySpecificColorOrTransparent",
+        "enumerator:KisEncloseAndFillPainter::RegionSelectionMethod::SelectRegionsSurroundedByTransparent"
+      ]
+    },
+    {
+      "target": "KisEncloseAndFillPainterSchemaContractTest",
+      "source": "libs/image/tests/KisEncloseAndFillPainterSchemaContractTest.cpp",
+      "test": "KisEncloseAndFillPainterSchemaContractTest::encloseAndFillOperationSignaturesRemainStable",
+      "behavior": "囲み領域の塗り手は選択を生成・合成し、色またはpatternで塗る公開操作署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisEncloseAndFillPainter::createEncloseAndFillSelection(KisPixelSelectionSP enclosingMask,KisPaintDeviceSP referenceDevice,KisPixelSelectionSP existingSelection)",
+        "method:KisEncloseAndFillPainter::createEncloseAndFillSelection(KisPixelSelectionSP newSelection,KisPixelSelectionSP enclosingMask,KisPaintDeviceSP referenceDevice,KisPixelSelectionSP existingSelection)",
+        "method:KisEncloseAndFillPainter::encloseAndFillColor(KisPixelSelectionSP enclosingMask,KisPaintDeviceSP referenceDevice)",
+        "method:KisEncloseAndFillPainter::encloseAndFillPattern(KisPixelSelectionSP enclosingMask,KisPaintDeviceSP referenceDevice,QTransform patternTransform=QTransform ())"
+      ]
+    },
+    {
+      "target": "KisEncloseAndFillPainterSchemaContractTest",
+      "source": "libs/image/tests/KisEncloseAndFillPainterSchemaContractTest.cpp",
+      "test": "KisEncloseAndFillPainterSchemaContractTest::encloseAndFillRegionSelectionQuerySignaturesRemainStable",
+      "behavior": "囲み領域の塗り手は領域選択方式、基準色、輪郭・周囲領域の包含、反転状態を照会する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisEncloseAndFillPainter::regionSelectionColor() const",
+        "method:KisEncloseAndFillPainter::regionSelectionIncludeContourRegions() const",
+        "method:KisEncloseAndFillPainter::regionSelectionIncludeSurroundingRegions() const",
+        "method:KisEncloseAndFillPainter::regionSelectionInvert() const",
+        "method:KisEncloseAndFillPainter::regionSelectionMethod() const"
+      ]
+    },
+    {
+      "target": "KisEncloseAndFillPainterSchemaContractTest",
+      "source": "libs/image/tests/KisEncloseAndFillPainterSchemaContractTest.cpp",
+      "test": "KisEncloseAndFillPainterSchemaContractTest::encloseAndFillRegionSelectionMutationSignaturesRemainStable",
+      "behavior": "囲み領域の塗り手は領域選択方式、基準色、輪郭・周囲領域の包含、反転状態を設定する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisEncloseAndFillPainter::setRegionSelectionColor(const KoColor & color)",
+        "method:KisEncloseAndFillPainter::setRegionSelectionIncludeContourRegions(bool include)",
+        "method:KisEncloseAndFillPainter::setRegionSelectionIncludeSurroundingRegions(bool include)",
+        "method:KisEncloseAndFillPainter::setRegionSelectionInvert(bool invert)",
+        "method:KisEncloseAndFillPainter::setRegionSelectionMethod(RegionSelectionMethod regionSelectionMethod)"
       ]
     }
   ]
