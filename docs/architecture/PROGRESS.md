@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 04:53 JST
+- 更新日時: 2026-09-05 04:56 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -520,6 +520,10 @@
 - `g217-svg-presentation-formal-review`の状態は`completed`である。正式入力の`libs/flake/svg/SvgGraphicContext.h`、`libs/flake/svg/KoShapePainter.h`、`libs/flake/svg/SvgStyleWriter.h`残存全20 APIと集合SHAを再照合し、5枠`svgGraphicsContextConstructionAndInheritedFillSchemaRemainStable`、`shapePainterTypeLifetimeAndConstructionSchemaRemainStable`、`shapePainterConfigurationAndRenderingSignaturesRemainStable`、`svgStyleWriterTypeAndShapePersistenceSchemaRemainStable`、`svgStyleWriterPaintStyleSignaturesRemainStable`へ3・3・7・4・3件で完全に対応付けた。新規targetは`<functional>`を先行includeし、flake source・generated探索路、Qt Gui・Xml interface、Qt Core・Testとheader-only Boostだけの直接接続による4工程・8入力へ閉じられる。
 - `g217-colorize-mask-schema`の状態は`integrated`である。開始`libs/image/lazybrush/kis_colorize_mask.h`の残存全57 APIを、新規`libs/image/tests/KisColorizeMaskSchemaContractTest.cpp`の5枠`colorizeMaskTypeLifetimeAndKeyStrokeColorsSchemaRemainStable`、`colorizeMaskHierarchyAndPresentationSignaturesRemainStable`、`colorizeMaskProjectionAndProcessingSignaturesRemainStable`、`colorizeMaskOptionQuerySignaturesRemainStable`、`colorizeMaskMutationAndNotificationSignaturesRemainStable`へ7・11・15・8・16件で対応付けた。受渡しcommit`031d5d51ca`を統合commit`cbc2fdd612`として取り込み、公開headerと製品sourceは変更していない。
 - 担当側と中央のmacOSで追加5枠を各20回、対象`libs-image-KisColorizeMaskSchemaContractTest`と近傍`libs-image-KisTransformMaskSchemaContractTest`、AUTOMOC後の計画、無作業再構築2回に成功した。中央閉包は4工程・8入力、AUTOMOC `HEADERS=[]`、Qt Core・Gui・Test・Xmlだけの動的接続、製品未解決記号なしを維持し、台帳は20,899件対応、8,939件未対応となった。cleanな専用作業tree、295,808 KiBの構築木、branchを統合直後に削除し、885,796 KiBを回収した。主Ninja木5,740,140 KiBと共有compiler cache 983,412 KiBをlayer filter契約へ再利用する。mask生成結果、投影更新、layer統合、cache再生成、通知の実行時効果は別契約で扱う。
+- `g217-layer-filter-schema`の状態は`planned`、担当は`/root/g178_paintop_settings_schema`、基点は`19a1a1a5de`、専用branchは`agent/g217-layer-filter-schema`、作業treeは`/Users/masato/Documents/librepaint-g217-layer-filter-schema`である。開始`libs/ui/widgets/kis_layer_filter_widget.h`の残存全23 APIを、新規`libs/ui/tests/KisLayerFilterWidgetSchemaContractTest.cpp`の5枠`layerFilterWidgetTypeAndConstructionSchemaRemainStable`、`layerFilterWidgetQueryAndGeometrySignaturesRemainStable`、`layerFilterWidgetMutationPresentationAndNotificationSignaturesRemainStable`、`layerFilterWidgetToolButtonTypeLifetimeAndControlSchemaRemainStable`、`mouseClickIgnoreTypeConstructionAndEventFilterSchemaRemainStable`へ2・8・4・6・3件で対応付ける。許可pathは新規試験sourceと`libs/ui/tests/CMakeLists.txt`の新target固有節だけで、公開headerと製品sourceを変更しない。
+- 第1枠は`KisLayerFilterWidget`型とparent既定構築、第2枠はactive色・寸法・文字filter・filter有無・filter中・使用色走査・size hint、第3枠はfilter通知・reset・show event・色label更新、第4枠はtool button型・parent既定構築・copy構築・選択色と文字filter設定・destructor、第5枠は`MouseClickIgnore`型・parent既定構築・event filterである。識別子集合SHA-256は`6c88dd7693501cd7ebff7dabad878b162dade4ed9c944aac38031f1f792fead4`である。
+- 新targetはQt Core・Testだけを直接接続し、application・image・global探索路、Qt Gui・Widgets interface、`kritaapplicationui_EXPORTS`、`kritaimage_EXPORTS`、`kritaglobal_EXPORTS`だけを使う。`KisAsyncColorSamplerHelperSchemaContractTest`を軽量近傍とし、4工程・8入力、停止線5工程・11入力を維持する。最初に新target不存在、次に5枠の宣言だけで同5枠の未定義link失敗を確認し、型特性・厳密な関数pointer・既定parent省略の未評価式だけで実装する。
+- 担当は追加5枠の単発と各20回反復、対象`libs-ui-KisLayerFilterWidgetSchemaContractTest`と近傍`libs-ui-KisAsyncColorSamplerHelperSchemaContractTest`、AUTOMOC後の二回目計画、無作業再構築2回、動的接続・未解決記号・構文・書式、公開API検査、`verify-quick`を確認する。5工程・11入力超過、計画外の探索路・定義・link、Qt Gui・Widgetsの動的接続、製品shared・OBJECT・`kritatestsdk`の接続、候補headerのAUTOMOC入力化、meta-object・node・共有pointer等の製品未解決記号、対象・Qt値・inline本文の実体化または実行、許可path外変更が必要なら停止する。macOSの対象限定構築だけを許可し、製品target、全体build・`verify`、Linux、Nix再評価は実行しない。Git権限は許可pathだけの1受渡しcommitで、追加委任は禁止する。
 
 ### 第218便の先行監査担当票（第217便確定待ち）
 
