@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 10:11 JST
+- 更新日時: 2026-09-05 10:15 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -739,6 +739,12 @@
 ### 第227便の先行監査担当票
 
 - `g227-tool-canvas-schema-formal-review`の状態は`completed-ready`、担当は`g208_raster_keyframe_schema`、基点は`56546e199a`である。第226便後の正式入力`build/tdd-macos/public-api-missing-g227.json`でも`libs/canvas/KisToolCanvas.h`の残存全21 APIは一意で台帳と重複せず、集合SHA-256 `49a9b0a729216cd237770cc4ec8b486da9c88ad5aefc166caadcf1227875502d`、新規`libs/canvas/tests/KisToolCanvasSchemaContractTest.cpp`の5枠5・5・5・4・2に一致した。同抽象型はcanvasが所有し、toolが起動中だけ借用する画像・選択・入力接続・stroke制御・表示操作の境界である。新targetはimage・global探索路と3 export定義、Qt Core・Testだけで初回・AUTOMOC後とも4工程・8入力へ閉じられる。軽量近傍`KisCoordinatesConverterSchemaContractTest`も4工程・8入力、AUTOMOC `HEADERS=[]`、製品辺なしである。event filter優先順位、callback寿命、入力mask所有、stroke終了・取消・待機順序、借用寿命、cursor・outline・message表示、thread affinityは後続の動的契約で扱う。
+
+### 第227便の担当計画
+
+- 実装基点は`4dc1920dec`である。`g227-tool-canvas-schema`の状態は`implementing`、専用作業treeは`/Users/masato/Documents/librepaint-g227-tool-canvas-schema`、branchは`agent/g227-tool-canvas-schema`である。開始`libs/canvas/KisToolCanvas.h`の残存全21 APIを、新規`libs/canvas/tests/KisToolCanvasSchemaContractTest.cpp`の5枠へ固定する。許可pathは同試験sourceと`libs/canvas/tests/CMakeLists.txt`の新target固有節だけで、公開header、製品source、既存targetを変更しない。調整担当だけが`AGENTS.md`、architecture文書、`docs/architecture/public-api-test-contracts.json`、共通不足報告を変更する。担当のGit権限は許可pathだけの受渡しcommit 1件で、追加委任は禁止する。
+- 5枠は`toolCanvasTypeLifetimeAndContextSchemaRemainStable`へclass、破棄、`coordinatesConverter`、`currentImage`、`toolConfigNotifier`の5件、`toolCanvasSelectionStateAndCursorSignaturesRemainStable`へ`currentSelectionForTool`、`selectedNodesForTool`、`selectionEditableForTool`、`selectionModifierMappingSwapsCtrlAndAltForTool`、`moveSelectionCursorForTool`の5件、`toolCanvasInputBindingSignaturesRemainStable`へevent filterの着脱、2 callback設定、`inputActionGroupsMaskInterface`の5件、`toolCanvasStrokeControlSignaturesRemainStable`へstroke終了・取消と通常・強制待機の4件、`toolCanvasPresentationSignaturesRemainStable`へmessage表示とtool輪郭描画の2件を対応付ける。正式入力の完全な21識別子と集合SHA-256 `49a9b0a729216cd237770cc4ec8b486da9c88ad5aefc166caadcf1227875502d`を維持する。
+- 新targetはcanvas source・generated、image・global source・generated探索路、`kritacanvas_EXPORTS`、`kritaimage_EXPORTS`、`kritaglobal_EXPORTS`、Qt Core・Testだけに限定し、予測閉包4工程・8入力、停止線5工程・11入力とする。型特性、厳密なmember pointer、既定引数の未評価呼出しだけで観測し、canvas、画像、選択、node、event filter、callback、stroke、cursor、painter、輪郭、通知器を実体化しない。担当は編集前target不存在、直接依存、初回計画、5枠宣言段階の期待link失敗、5枠単発・各20回、全target、正式CTest、近傍`KisCoordinatesConverterSchemaContractTest`、AUTOMOC後二回目計画、無作業再構築2回、動的接続・未解決記号・AUTOMOC入力・構文・書式、差分、公開API検査、`verify-quick`を確認する。5工程・11入力超過、追加探索路・定義・link、製品shared・OBJECT・`kritatestsdk`の動的接続、候補headerのAUTOMOC入力化、製品未解決記号、対象実体化、許可path外の変更が必要なら停止する。製品target、全体build・`verify`、Linux、Nix再評価は禁止する。
 
 ### 第228便の先行監査担当票（第227便確定待ち）
 
