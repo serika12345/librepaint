@@ -13,6 +13,7 @@
 #include <opengl/kis_opengl.h>
 
 #include <QAbstractItemView>
+#include <QAction>
 #include <QBitmap>
 #include <QCheckBox>
 #include <QComboBox>

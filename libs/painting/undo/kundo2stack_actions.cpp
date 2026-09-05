@@ -7,6 +7,8 @@
 
 #include "kundo2stack.h"
 
+#include <QAction>
+
 #include <KoIcon.h>
 #include <kactioncollection.h>
 #include <klocalizedstring.h>
