@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 11:07 JST
+- 更新日時: 2026-09-05 11:10 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -784,6 +784,12 @@
 ### 第230便の先行監査担当票
 
 - `g230-overlay-paint-device-schema-formal-review`の状態は`completed-ready`、担当は`g178_shape_hierarchy_schema`、基点は`6d7ba00f9e`である。第229便後の正式入力`build/tdd-macos/public-api-missing-g230.json`でも`libs/image/KisOverlayPaintDeviceWrapper.h`の残存全19 APIは一意で台帳と重複せず、識別子整列集合SHA-256 `22af76cc5d0f0bb8e6c002a9eebef0861546ac5c7cf6d36b452e39394d91c843`、新規`libs/image/tests/KisOverlayPaintDeviceWrapperSchemaContractTest.cpp`の5枠7・3・3・4・2に一致した。既存動的試験は1,200工程・2,423入力で製品libraryへ接続するため追記せず、新targetはimage・global探索路、2 export定義、Qt Core・Testだけで初回・AUTOMOC後とも4工程・8入力へ閉じられる。軽量近傍`KisProcessingApplicatorSchemaContractTest`も4工程・8入力、AUTOMOC `HEADERS=[]`、製品辺なしである。既存動的試験はPrecise方式の2 overlay、領域読書きと性能経路を保護する。Normal・LazyPrecise方式、強制色空間、外部destination、複数矩形、index境界、undo transactionは既存または後続の動的契約で扱う。
+
+### 第230便の担当計画
+
+- 実装基点は`05a7e82dea`である。`g230-overlay-paint-device-schema`の状態は`planned`、専用作業treeは`/Users/masato/Documents/librepaint-g230-overlay-paint-device-schema`、branchは`agent/g230-overlay-paint-device-schema`である。開始`libs/image/KisOverlayPaintDeviceWrapper.h`の残存全19 APIを、新規`libs/image/tests/KisOverlayPaintDeviceWrapperSchemaContractTest.cpp`の5枠へ固定する。許可pathは同試験sourceと`libs/image/tests/CMakeLists.txt`の新target固有節だけで、公開header、製品source、既存targetを変更しない。調整担当だけがarchitecture文書、公開API台帳、共通不足報告を変更する。担当のGit権限は許可pathだけの受渡しcommit 1件で、追加委任は禁止する。
+- 5枠は`overlayWrapperTypeModeAndLifetimeSchemaRemainStable`へ型、方式列挙、3列挙値、構築・破棄の7件、`overlayWrapperSourceAndOverlaySignaturesRemainStable`へsource、overlay、overlay色空間の3件、`overlayWrapperDestinationAndCompositionSignaturesRemainStable`へ外部destinationの設定・取得と精密合成source生成の3件、`overlayWrapperRegionTransferSignaturesRemainStable`へ単一・複数矩形の読込み・書込み4件、`overlayWrapperTransactionSignaturesRemainStable`へ取引開始・終了2件を対応付ける。正式入力の完全な19識別子と識別子整列集合SHA-256 `22af76cc5d0f0bb8e6c002a9eebef0861546ac5c7cf6d36b452e39394d91c843`を維持する。
+- 新targetはimage・global source/generated探索路、`kritaimage_EXPORTS`と`kritaglobal_EXPORTS`、Qt Core・Testだけに限定し、予測閉包4工程・8入力、停止線5工程・11入力とする。型特性、列挙値、厳密なmember pointer、既定引数の未評価式だけで観測し、wrapper、描画装置、色空間、矩形、undo commandを実体化しない。担当は編集前target不存在、直接依存、初回計画、5枠宣言段階の期待link失敗、5枠単発・各20回、全target、正式CTest、近傍`KisProcessingApplicatorSchemaContractTest`、AUTOMOC後二回目計画、無作業再構築2回、動的接続・未解決記号・AUTOMOC入力・構文・書式、差分、公開API検査、`verify-quick`を確認する。5工程・11入力超過、追加探索路・定義・link、製品shared・OBJECT・`kritatestsdk`の動的接続、候補headerのAUTOMOC入力化、製品未解決記号、対象実体化、許可path外の変更が必要なら停止する。製品target、全体build・`verify`、Linux、Nix再評価は禁止する。
 
 ### 第231便の先行監査担当票（第230便確定待ち）
 
