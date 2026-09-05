@@ -266,6 +266,16 @@ target_include_directories(KisActionRegistrySchemaContractTest PRIVATE
 target_compile_definitions(KisActionRegistrySchemaContractTest PRIVATE kritawidgetutils_EXPORTS)
 
 kis_add_test(
+    KoProgressUpdaterSchemaContractTest.cpp
+    LINK_LIBRARIES Qt${QT_MAJOR_VERSION}::Core Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KoProgressUpdaterSchemaContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+)
+target_compile_definitions(KoProgressUpdaterSchemaContractTest PRIVATE kritawidgetutils_EXPORTS)
+
+kis_add_test(
     KStandardActionEnumContractTest.cpp
     LINK_LIBRARIES
         Qt${QT_MAJOR_VERSION}::Test
