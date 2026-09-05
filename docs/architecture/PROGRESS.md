@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-06 00:41 JST
+- 更新日時: 2026-09-06 00:53 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1362,8 +1362,16 @@
 ### 第267便の監査結果と構造準備計画
 
 - `libs/image/layerstyles/gimp_bump_map.h`の残存全19 APIは一意かつ台帳と非重複で、識別子整列集合SHA-256 `6783a3f2dab1bb13c85bfe3da9a922281c5f1735ffc4d95bfc16a8de17a270b7`を持つ。列挙型と3値4、設定構造体・構築・固定配置値7、照明値4、補正・反転・方式3、適用関数署名1の5枠へ割り当てる。設定値を実体化して18 APIの列挙値・既定値・型を決定的に固定し、製品実装の`bumpmap()`だけを厳密関数pointerで観測する。画素変換は固定画像・選択・色空間を持つ後続の動的契約で扱う。
-- `g267a-bump-map-header-boundary`の状態は`in_progress`、実装基点は`f672f8bce3`、専用作業treeは`/Users/masato/Documents/librepaint-g267a-bump-map-header-boundary`、branchは`agent/g267a-bump-map-header-boundary`、macOSのheader・実装元・軽量近傍に限る構築実行許可は`granted`である。開始`libs/image/layerstyles/gimp_bump_map.h`の広域`kis_types.h`を、直接所有する`kritaimage_export.h`と`KisSharedPtr`・`KisPixelSelection`・`QRect`の前方宣言、既存と同型の`KisPixelSelectionSP` typedefへ置き換える。開始headerだけを許可し、`gimp_bump_map.cpp`は既に`QRect`と`kis_pixel_selection.h`を直接所有するため変更しない。調整担当だけが文書、台帳、共通不足報告を変更する。担当のGit権限は許可pathだけの受渡しcommit 1件、追加委任は禁止する。公開API、ABI、値、挙動を維持し、追加利用元の補正が必要なら停止する。変更前後のheader-first探索面と実読込み、直接実装元の厳格構文、軽量image契約、公開API集合、無作業再構築、書式、差分、公開API検査、`verify-quick`を確認する。
+- `g267a-bump-map-header-boundary`の状態は`integrated`、実装基点は`f672f8bce3`、専用作業treeは`/Users/masato/Documents/librepaint-g267a-bump-map-header-boundary`、branchは`agent/g267a-bump-map-header-boundary`、macOSのheader・実装元・軽量近傍に限る構築実行許可は`granted`である。開始`libs/image/layerstyles/gimp_bump_map.h`の広域`kis_types.h`を、直接所有する`kritaimage_export.h`と`KisSharedPtr`・`KisPixelSelection`・`QRect`の前方宣言、既存と同型の`KisPixelSelectionSP` typedefへ置き換える。開始headerだけを許可し、`gimp_bump_map.cpp`は既に`QRect`と`kis_pixel_selection.h`を直接所有するため変更しない。調整担当だけが文書、台帳、共通不足報告を変更する。担当のGit権限は許可pathだけの受渡しcommit 1件、追加委任は禁止する。公開API、ABI、値、挙動を維持し、追加利用元の補正が必要なら停止する。変更前後のheader-first探索面と実読込み、直接実装元の厳格構文、軽量image契約、公開API集合、無作業再構築、書式、差分、公開API検査、`verify-quick`を確認する。
 - 続く`g267-bump-map-schema`は新規`libs/image/tests/GimpBumpMapSchemaContractTest.cpp`と`libs/image/tests/CMakeLists.txt`の新target固有節だけを許可する。新targetはimage source/generated探索路、`kritaimage_EXPORTS`、Qt Core・Testだけの直接linkによる4工程・8入力を予測し、停止線5工程・11入力とする。AUTOMOCへの候補header入力、global・pigment・resources・Boost・Qt Gui・Widgets・Xml・KF、製品shared・OBJECT、`kritatestsdk`、`bumpmap()`実装の実行、製品未解決記号、許可path外変更が必要なら停止する。第266便完了後にG267aから開始する。
+
+### 第267a便の構造準備結果と第267便の担当計画
+
+- 開始`libs/image/layerstyles/gimp_bump_map.h`から`kis_types.h`を除去し、公開指定と共有pointer・画素選択・矩形の宣言だけを直接所有させた。実読込みは1,224行から863行、固有headerは951件から695件へ減り、image/globalのsource探索路を持たないheader-first検査に成功した。公開API 29,804件、対象19識別子、全体指紋と対象指紋を維持し、追加利用元の補正は発生していない。受渡しcommit `7a67f51a22`を中央commit `4e6484f6cb`として取り込んだ。
+- 担当側で実装元と全3利用元の厳格構文、軽量近傍`KisPSDLayerStyleSchemaContractTest`、二回の無作業再構築、書式、差分、公開API検査、`verify-quick`に成功した。近傍は前後とも4工程・8入力、command SHA-256 `b9363191a04587011f6a0ea6629031578003ffbb638bb59d10e071e6af7b4e70`、input SHA-256 `108ee5e8a2e2f09e44b871b6dd5c656303422c5175c0b5526221ca02a7c886ce`、AUTOMOC `HEADERS=[]`と製品未解決記号0を維持した。中央でも実装元の厳格構文、近傍CTest、二回の無作業再構築に成功した。cleanな専用作業tree、299,420 KiBの構築木、branchを削除して890,324 KiBを回収した。製品target、重量試験、全体build・`verify`、Linux、Nix再評価は実行していない。
+- `g267-bump-map-schema`の状態は`in_progress`、実装基点は`4e6484f6cb`、専用作業treeは`/Users/masato/Documents/librepaint-g267-bump-map-schema`、branchは`agent/g267-bump-map-schema`、macOSの対象と近傍に限る構築実行許可は`granted`である。許可pathは新規`libs/image/tests/GimpBumpMapSchemaContractTest.cpp`と`libs/image/tests/CMakeLists.txt`の新target固有節だけで、調整担当だけが文書、台帳、共通不足報告を変更する。担当のGit権限は許可pathだけの受渡しcommit 1件、追加委任は禁止する。
+- 残存19 APIを`bumpMapModeValuesRemainStable`へ列挙型と3値4件、`bumpMapPlacementDefaultsRemainStable`へ構造体・構築と配置既定値7件、`bumpMapLightingDefaultsRemainStable`へ照明既定値4件、`bumpMapFlagsAndTypeDefaultsRemainStable`へ補正・反転・方式3件、`bumpMapFunctionSignatureRemainsStable`へ適用関数1件として対応付ける。設定値は実体化して既定値を観測し、`bumpmap()`は厳密関数pointerだけで固定して実行しない。
+- 新targetはimage source/generated探索路、`kritaimage_EXPORTS`、Qt Core・Testだけの直接linkによる4工程・8入力、停止線5工程・11入力とする。変更前target不存在、5枠宣言段階の期待link失敗、5枠単発・各20回、全target・正式CTest・近傍、AUTOMOC後の二回目計画、二回の無作業再構築、動的接続・未解決記号・厳格構文・書式・差分・公開API検査・`verify-quick`を確認する。候補headerのAUTOMOC入力化、global・pigment・resources・Boost・Qt Gui・Widgets・Xml・KF、製品shared・OBJECT、`kritatestsdk`、`bumpmap()`実装の実行、製品未解決記号、許可path外変更が必要なら停止する。
 
 ### 第268便の先行監査担当票
 
