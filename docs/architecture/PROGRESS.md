@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-06 00:22 JST
+- 更新日時: 2026-09-06 00:25 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1382,6 +1382,12 @@
 - `libs/image/floodfill/kis_scanline_fill.h`の残存全19 APIは一意かつ台帳と非重複で、識別子整列集合SHA-256 `0c433dce70e4a12be0a9314a37a2028ca5ae02a10579eb1f80d21309a46b35a9`を持つ。型・構築・寿命3、色塗り4、通常selection塗り2、境界色・透明境界selection塗り4、消去・連結group・閾値・不透明度・隙間・結果範囲6の5枠へ割り当てる。全19 APIを型特性と厳密member pointerで固定し、画素色差、閾値、不透明度、隙間閉鎖、境界、連結group、処理範囲は固定画像・色空間を持つ既存または後続の動的契約で扱う。
 - `g269a-scanline-fill-header-boundary`の状態は`planned`とする。開始`libs/image/floodfill/kis_scanline_fill.h`から完全型を使わない`kis_paint_device.h`を除去し、`KoColor`と`QRect`を前方宣言する。`libs/image/floodfill/kis_scanline_fill.cpp`へ`kis_paint_device.h`を直接追加し、完全型の所有を実装へ移す。許可pathはこの2ファイルだけとし、追加利用元の補正が必要なら停止する。変更前後のheader-first探索面と実読込み、直接実装元の厳格構文、軽量image契約、公開API集合、無作業再構築、書式、差分、公開API検査、`verify-quick`を確認する。
 - 続く`g269-scanline-fill-schema`は新規`libs/image/tests/KisScanlineFillSchemaContractTest.cpp`と`libs/image/tests/CMakeLists.txt`の新target固有節だけを許可する。image・global探索路、`kritaimage_EXPORTS`、Qt Core・Testだけの直接linkによる4工程・8入力を予測し、停止線5工程・11入力とする。候補headerのAUTOMOC入力、製品shared・OBJECT、`kritatestsdk`、`kritaimage`、Qt Gui・Widgets・Xml、実paint device・selection・色、製品未解決記号、許可path外変更が必要なら停止する。第268便完了後にG269aから開始する。
+
+### 第270便の先行監査担当票
+
+- 監査共通基点は`600eb63604`、正式入力は`build/tdd-macos/public-api-missing-g266.json`である。第266便から第269便までの選定済みAPIを除外し、`libs/resources/KoResourceServer.h`の残存24 API、`libs/image/brushengine/kis_paintop_factory.h`の残存23 API、`plugins/paintops/libpaintop/kis_brush_based_paintop_settings.h`の残存22 API、`libs/brush/KisColorfulBrush.h`の残存19 APIを比較し、一責務を最大5枠の契約へ閉じられる次候補を選ぶ。主作業treeと正式不足一覧の読み取りだけを許可し、変更、構成、構築、試験、Git操作、生成物作成、追加委任を行わず、G266の専用構築木を共有しない。
+- `g270-public-api-candidate-audit`の状態は`in_progress`である。各候補の正式識別子、責務、所有・寿命・値挙動、最大5枠の完全割当を比較し、実資源登録簿、brush、paintop、画像、UI、大域状態を生成せず固定できる候補を優先する。
+- `g270-build-closure-review`の状態は`in_progress`である。各候補headerの直接依存、既存軽量・重量対象、新規限定対象・既存追記・具体的実装所有分割の閉包と依存方向、先行include整理の効果、AUTOMOC、許可pathと停止線を独立に比較する。
 
 ### 第239便の先行監査担当票
 
