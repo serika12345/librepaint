@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 10:31 JST
+- 更新日時: 2026-09-05 10:33 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -754,6 +754,12 @@
 ### 第228便の先行監査担当票
 
 - `g228-canvas-update-info-schema-formal-review`の状態は`completed-ready`、担当は`g178_shape_hierarchy_schema`、基点は`03f4311c63`である。第227便後の正式入力`build/tdd-macos/public-api-missing-g228.json`でも`libs/canvas/kis_update_info.h`の残存全19 APIと`libs/canvas/kis_projection_update_info.h`の残存全16 APIは一意で台帳と重複せず、大域整列集合SHA-256 `d612d9b06780110a5b8833f4fad906980e29980a10e6aee64390b50fd431ca7d`、新規`libs/canvas/tests/KisCanvasUpdateInfoSchemaContractTest.cpp`の5枠8・7・4・9・7に一致した。両型は基底更新領域、batch・LOD marker、projection転送値をcanvas更新配送の一責務として所有する。新targetはcanvas・global探索路、Qt Gui interface、`kritacanvas_EXPORTS`と`kritaglobal_EXPORTS`、Qt Core・Testだけで初回・AUTOMOC後とも4工程・8入力へ閉じられる。軽量近傍`KisProjectionPixelFilterContractTest`も4工程・8入力、AUTOMOC `HEADERS=[]`、製品辺なしである。dirty矩形計算、LOD・圧縮、markerのqueue効果、Direct・Patch転送、描画hint反映、共有pointer・metatype配送は既存または後続の動的契約で扱う。
+
+### 第228便の担当計画
+
+- 実装基点は`c0faf1233b`である。`g228-canvas-update-info-schema`の状態は`implementing`、専用作業treeは`/Users/masato/Documents/librepaint-g228-canvas-update-info-schema`、branchは`agent/g228-canvas-update-info-schema`である。開始`libs/canvas/kis_update_info.h`の19 APIと`libs/canvas/kis_projection_update_info.h`の16 APIを、新規`libs/canvas/tests/KisCanvasUpdateInfoSchemaContractTest.cpp`の5枠へ固定する。許可pathは同試験sourceと`libs/canvas/tests/CMakeLists.txt`の新target固有節だけで、公開header、製品source、既存targetを変更しない。調整担当だけがarchitecture文書、公開API台帳、共通不足報告を変更する。担当のGit権限は許可pathだけの受渡しcommit 1件で、追加委任は禁止する。
+- 5枠は`updateInfoTypeLifetimeAndVirtualQuerySchemaRemainStable`へ`KisUpdateInfoSP`、`KisUpdateInfo`、構築・破棄と4仮想照会の8件、`markerUpdateInfoTypeBatchAndConstructionSchemaRemainStable`へ`KisMarkerUpdateInfo`、`Type`、4列挙値、構築の7件、`markerUpdateInfoQuerySignaturesRemainStable`へ4照会の4件、`projectionUpdateInfoTypeTransferAndQuerySchemaRemainStable`へ`KisProjectionUpdateInfoSP`、`KisProjectionUpdateInfo`、`TransferType`、2列挙値、構築、3照会の9件、`projectionUpdateInfoTransferValueMembersRemainStable`へ`imageRect`、`viewportRect`、`scaleX`、`scaleY`、`transfer`、`renderHints`、`borderWidth`の7件を対応付ける。正式入力の完全な35識別子と大域整列集合SHA-256 `d612d9b06780110a5b8833f4fad906980e29980a10e6aee64390b50fd431ca7d`を維持する。
+- 新targetはcanvas・global source/generated探索路、Qt Gui interface、`kritacanvas_EXPORTS`と`kritaglobal_EXPORTS`、Qt Core・Testだけに限定し、予測閉包4工程・8入力、停止線5工程・11入力とする。型特性、alias同一性、列挙値、厳密なmember pointer、member型と既定引数の未評価式だけで観測し、更新情報、矩形、描画器、共有pointerを実体化しない。担当は編集前target不存在、直接依存、初回計画、5枠宣言段階の期待link失敗、5枠単発・各20回、全target、正式CTest、近傍`KisProjectionPixelFilterContractTest`、AUTOMOC後二回目計画、無作業再構築2回、動的接続・未解決記号・AUTOMOC入力・構文・書式、差分、公開API検査、`verify-quick`を確認する。5工程・11入力超過、追加探索路・定義・link、Qt Guiまたは製品shared・OBJECT・`kritatestsdk`の動的接続、候補headerのAUTOMOC入力化、製品未解決記号、対象実体化、許可path外の変更が必要なら停止する。製品target、全体build・`verify`、Linux、Nix再評価は禁止する。
 
 ### 第229便の先行監査担当票（第228便確定待ち）
 
