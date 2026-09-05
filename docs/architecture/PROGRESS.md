@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 13:13 JST
+- 更新日時: 2026-09-05 13:31 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -887,15 +887,26 @@
 
 ### 第236便の担当計画
 
-- 実装基点は`1ccb42c84c`である。`g236-application-arguments-schema`の状態は`planned`、専用作業treeは`/Users/masato/Documents/librepaint-g236-application-arguments-schema`、branchは`agent/g236-application-arguments-schema`である。開始`libs/application/ui/orchestration/KisApplicationArguments.h`の残存全21 APIを、新規`libs/application/tests/KisApplicationArgumentsSchemaContractTest.cpp`の5枠へ固定する。許可pathは同試験sourceと`libs/application/tests/CMakeLists.txt`の新target固有節だけで、公開header、製品source、既存targetを変更しない。調整担当だけがarchitecture文書、公開API台帳、共通不足報告を変更する。担当のGit権限は許可pathだけの受渡しcommit 1件で、追加委任は禁止する。
+- 実装基点は`1ccb42c84c`である。`g236-application-arguments-schema`の状態は`integrated`で、専用作業treeは`/Users/masato/Documents/librepaint-g236-application-arguments-schema`、branchは`agent/g236-application-arguments-schema`を使用した。開始`libs/application/ui/orchestration/KisApplicationArguments.h`の残存全21 APIを、新規`libs/application/tests/KisApplicationArgumentsSchemaContractTest.cpp`の5枠へ固定した。許可pathは同試験sourceと`libs/application/tests/CMakeLists.txt`の新target固有節だけで、公開header、製品source、既存targetを変更していない。受渡しcommit `79a7c761f3`を中央commit `6307eed582`として取り込んだ。調整担当だけがarchitecture文書、公開API台帳、共通不足報告を変更した。担当のGit権限は許可pathだけの受渡しcommit 1件で、追加委任は禁止した。
 - 5枠は`applicationArgumentsTypeLifetimeAndValueSemanticsSchemaRemainStable`へ型、application・複製構築、代入、破棄の5件、`applicationArgumentsSerializationSignaturesRemainStable`へ直列化・復元2件、`applicationArgumentsDocumentInputSignaturesRemainStable`へ文書生成、新規画像、file layer、filename群4件、`applicationArgumentsTemplateAndExportSignaturesRemainStable`へtemplate、export方式、export filename、連番exportの4件、`applicationArgumentsPresentationAndWorkspaceSignaturesRemainStable`へcanvas限定、全画面、splash抑止、session、window layout、workspaceの6件を対応付ける。正式入力の完全な21識別子と識別子整列集合SHA-256 `2bbdc6dfcfe61c50bd17532abc541f61710473908371522c4a719534be8f5b3b`を維持する。
 - 新targetはapplication・global source/generated探索路、application側の生成`kritaui_export.h`を選ぶ`kritaapplicationui_EXPORTS`、Qt Core・Testだけに限定し、予測閉包4工程・8入力、停止線5工程・11入力とする。型特性と厳密な関数・member pointerだけで観測し、引数値、application、Qt値、文書、private実装を実体化せず本文を実行しない。担当は編集前target不存在、直接依存、初回計画、5枠宣言段階の期待link失敗、5枠単発・各20回、全target、正式CTest、近傍`KisActionEnumContractTest`、AUTOMOC後二回目計画、無作業再構築2回、動的接続・未解決記号・AUTOMOC入力・export header解決・構文・書式、差分、公開API検査、`verify-quick`を確認する。5工程・11入力超過、libs/ui側export header、新しい探索路・定義・link、Qt Gui・Widgets・KF・Boost・製品shared・OBJECT・`kritatestsdk`の接続、候補headerのAUTOMOC入力化、製品未解決記号、対象実体化、許可path外変更が必要なら停止する。製品target、全体build・`verify`、Linux、Nix再評価は禁止する。
+
+### 第236便の契約統合結果
+
+- 開始`libs/application/ui/orchestration/KisApplicationArguments.h`から新規`libs/application/tests/KisApplicationArgumentsSchemaContractTest.cpp`へ21 API・5枠を追加した。担当側と中央のmacOSで5枠を各20回、対象全7件、正式CTestと近傍`KisActionEnumContractTest`、AUTOMOC後の二回目計画、無作業再構築2回に成功した。中央実測は4工程・8入力、command SHA-256 `43126e6f70eb11b0a3a87ae299881e669df6a2f0a09af2e88b8071f152db8b93`、input SHA-256 `d396bd55ed135e1a3b0216c6b40d7f4c2e09780b50819ccedb34348d7511b083`、AUTOMOC `HEADERS=[]`、Qt Core・TestとOS frameworkだけの動的接続、製品未解決記号なしである。依存記録はapplication側`libs/application/kritaui_export.h`だけを解決し、libs/ui側を参照しない。正しいcompile commandによる`clang-check -Werror`、書式、差分、macOSのpackage境界1,876対象、公開API検査に成功し、台帳は21,565件対応、8,239件未対応となった。引数option優先順位、複数filename、無効直列化入力、直列化互換性、複製後の独立性、session・workspace解決、文書生成副作用は既存または後続の動的契約で扱う。
+- 統合済みpatchとclean状態を確認後に専用作業tree、301,888 KiBのlane構築木、branchを削除して892,328 KiBを回収した。旧`public-api-missing-g236.json`を削除し、主Ninja木5,763,808 KiB、共有compiler cache 982,876 KiB、最新`build/tdd-macos/public-api-missing-g237.json` 2,189,943 bytes、SHA-256 `460c5a7c77df70a142a341a0f2ed6ca56f2a3591c4c0a4f4313a31c14d6ad45a`だけを次便へ再利用する。compiler cacheは143,100件中120,230件、84.02%がhitしている。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 
 ### 第237便と第238便の先行監査担当票
 
 - 監査入力は最新`build/tdd-macos/public-api-missing-g236.json`であり、変更、構成、構築、試験、Git操作、追加委任を行わない読み取り専用監査として、全識別子、集合SHA、台帳非重複、既存試験との非重複、閉包計画を再照合した。
 - `g237-memory-storage-schema-formal-review`の状態は`completed-ready`、担当は`g208_raster_keyframe_schema`である。`libs/resources/KisMemoryStorage.h`の残存17 APIは一意で台帳と重複せず、識別子整列集合SHA-256 `ea51ddf6c9cd429fce0ffba7c89ddbd0f5c90bea0f09a8c9992af84ef5645dbe`、新規`libs/resources/tests/KisMemoryStorageSchemaContractTest.cpp`の5枠4・4・4・3・2に一致する。同型は一時・文書内資源の保管、複製、metadata、入出力、版管理、走査を一責務として所有する。新targetはresources探索路、Qt Gui・KF I18n interface、`kritaresources_EXPORTS`、Qt Core・Testとheader-only Boostだけで4工程・8入力を予測し、停止線を5工程・11入力とする。既存`TestMemoryStorage`は動的挙動を保護するが813工程・1,654入力であり、新しい静的契約からは製品接続を除く。複製深度、資源所有、metadata上書き、版番号、装置失敗、iterator寿命は既存または後続の動的契約で扱う。
 - `g238-asl-xml-writer-schema-formal-review`の状態は`completed-ready`、担当は`g178_paintop_settings_schema`である。`libs/psdutils/asl/kis_asl_xml_writer.h`の残存28 APIは一意で台帳と重複せず、識別子整列集合SHA-256 `0061035dcb7a9082aa4cdc4a81dda3f28ad02e9dbf9c2b68481c660360e1e83d`、新規`libs/psdutils/tests/KisAslXmlWriterSchemaContractTest.cpp`の5枠4・4・7・8・5に一致する。同型はPSD/ASLの階層記述子、基本値、幾何値、色・pattern・gradientを一つのXML文書へ書き出す責務を所有する。新targetはpsdutils・pigment・resources・global探索路、Qt Gui・KF I18n・Imath interface、4 export定義、Qt Core・Testとheader-only Boostだけで4工程・8入力を予測し、停止線を5工程・11入力とする。既存`KisAslWriterUtilsContractTest`は製品OBJECTへ接続するため追記しない。XML階層・属性・色・gradientの実出力は既存parser試験が保護する。
+
+### 第237便の担当計画
+
+- 実装基点は`6307eed582`である。`g237-memory-storage-schema`の状態は`planned`、専用作業treeは`/Users/masato/Documents/librepaint-g237-memory-storage-schema`、branchは`agent/g237-memory-storage-schema`である。開始`libs/resources/KisMemoryStorage.h`の残存全17 APIを、新規`libs/resources/tests/KisMemoryStorageSchemaContractTest.cpp`の5枠へ固定する。許可pathは同試験sourceと`libs/resources/tests/CMakeLists.txt`の新target固有節だけで、公開header、製品source、既存targetを変更しない。調整担当だけがarchitecture文書、公開API台帳、共通不足報告を変更する。担当のGit権限は許可pathだけの受渡しcommit 1件で、追加委任は禁止する。
+- 5枠は`memoryStorageTypeLifetimeAndConstructionSchemaRemainStable`へ型、複製・location構築、破棄の4件、`memoryStorageCopyAndResourceMutationSignaturesRemainStable`へ代入、資源追加、版読込み、新版保存の4件、`memoryStorageResourceTransferAndLookupSignaturesRemainStable`へexport、import、資源項目、MD5の4件、`memoryStorageMetadataSignaturesRemainStable`へmetadata取得、key群、設定の3件、`memoryStorageIteratorSignaturesRemainStable`へ資源・tag走査の2件を対応付ける。正式入力`build/tdd-macos/public-api-missing-g237.json`の完全な17識別子と識別子整列集合SHA-256 `ea51ddf6c9cd429fce0ffba7c89ddbd0f5c90bea0f09a8c9992af84ef5645dbe`を維持する。
+- 新targetはresources source/generated探索路、Qt Gui・KF I18n interface探索路、`kritaresources_EXPORTS`、Qt Core・Testとheader-only Boostだけに限定し、予測閉包4工程・8入力、停止線5工程・11入力とする。型特性と厳密な関数・member pointerだけで観測し、storage、資源、装置、iterator、Qt値を実体化せず本文を実行しない。担当は編集前target不存在、直接依存、初回計画、5枠宣言段階の期待link失敗、5枠単発・各20回、全target、正式CTest、近傍`KisResourceIteratorSchemaContractTest`、AUTOMOC後二回目計画、無作業再構築2回、動的接続・未解決記号・AUTOMOC入力・構文・書式、差分、公開API検査、`verify-quick`を確認する。5工程・11入力超過、新しい探索路・定義・link、Qt Gui・KF I18nの動的接続、製品shared・OBJECT・`kritatestsdk`の接続、候補headerのAUTOMOC入力化、製品未解決記号、対象実体化、許可path外変更が必要なら停止する。既存`TestMemoryStorage`、製品target、全体build・`verify`、Linux、Nix再評価は禁止する。
 
 ### 第239便の先行監査担当票
 

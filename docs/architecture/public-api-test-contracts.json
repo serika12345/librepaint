@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 8260
+    "expectedMissingApis": 8239
   },
   "contracts": [
     {
@@ -59953,6 +59953,72 @@
       "apis": [
         "method:KisSeExprScript::script() const",
         "method:KisSeExprScript::setScript(const QString & script)"
+      ]
+    },
+    {
+      "target": "KisApplicationArgumentsSchemaContractTest",
+      "source": "libs/application/tests/KisApplicationArgumentsSchemaContractTest.cpp",
+      "test": "KisApplicationArgumentsSchemaContractTest::applicationArgumentsTypeLifetimeAndValueSemanticsSchemaRemainStable",
+      "behavior": "起動引数はQt applicationからの構築、複製、代入、破棄を備える公開値構成を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisApplicationArguments",
+        "method:KisApplicationArguments::KisApplicationArguments(const KisApplicationArguments & rhs)",
+        "method:KisApplicationArguments::KisApplicationArguments(const QApplication & app)",
+        "method:KisApplicationArguments::operator =(const KisApplicationArguments & rhs)",
+        "method:KisApplicationArguments::~KisApplicationArguments()"
+      ]
+    },
+    {
+      "target": "KisApplicationArgumentsSchemaContractTest",
+      "source": "libs/application/tests/KisApplicationArgumentsSchemaContractTest.cpp",
+      "test": "KisApplicationArgumentsSchemaContractTest::applicationArgumentsSerializationSignaturesRemainStable",
+      "behavior": "起動引数はbyte列との直列化・復元を提供する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisApplicationArguments::deserialize(QByteArray & serialized)",
+        "method:KisApplicationArguments::serialize()"
+      ]
+    },
+    {
+      "target": "KisApplicationArgumentsSchemaContractTest",
+      "source": "libs/application/tests/KisApplicationArgumentsSchemaContractTest.cpp",
+      "test": "KisApplicationArgumentsSchemaContractTest::applicationArgumentsDocumentInputSignaturesRemainStable",
+      "behavior": "起動引数は新規文書作成、file layer指定、入力filenameを解釈する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisApplicationArguments::createDocumentFromArguments() const",
+        "method:KisApplicationArguments::doNewImage() const",
+        "method:KisApplicationArguments::fileLayer() const",
+        "method:KisApplicationArguments::filenames() const"
+      ]
+    },
+    {
+      "target": "KisApplicationArgumentsSchemaContractTest",
+      "source": "libs/application/tests/KisApplicationArgumentsSchemaContractTest.cpp",
+      "test": "KisApplicationArgumentsSchemaContractTest::applicationArgumentsTemplateAndExportSignaturesRemainStable",
+      "behavior": "起動引数はtemplate利用と単一・連続書出しの指定を取得する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisApplicationArguments::doTemplate() const",
+        "method:KisApplicationArguments::exportAs() const",
+        "method:KisApplicationArguments::exportFileName() const",
+        "method:KisApplicationArguments::exportSequence() const"
+      ]
+    },
+    {
+      "target": "KisApplicationArgumentsSchemaContractTest",
+      "source": "libs/application/tests/KisApplicationArgumentsSchemaContractTest.cpp",
+      "test": "KisApplicationArgumentsSchemaContractTest::applicationArgumentsPresentationAndWorkspaceSignaturesRemainStable",
+      "behavior": "起動引数は画面表示、splash抑制、session、作業空間、window配置の指定を取得する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisApplicationArguments::canvasOnly() const",
+        "method:KisApplicationArguments::fullScreen() const",
+        "method:KisApplicationArguments::noSplash() const",
+        "method:KisApplicationArguments::session() const",
+        "method:KisApplicationArguments::windowLayout() const",
+        "method:KisApplicationArguments::workspace() const"
       ]
     }
   ]
