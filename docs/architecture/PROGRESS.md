@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 11:58 JST
+- 更新日時: 2026-09-05 12:01 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -825,6 +825,12 @@
 
 - 開始`libs/image/kis_cross_device_color_sampler.h`の暗黙依存を、同headerから`libs/pigment/KoColor.h`と`libs/image/kis_paint_device.h`を直接取り込む構造へ変更した。修正前は候補headerの強制先頭includeで`KisPaintDevice`の不完全型member access 3件と`KoColor`未知型1件が発生し、修正後は同じ構文検査が成功した。6つの製品consumerと`libs/painting/tests/TestPublicImageHeaders.cpp`を既存compile databaseで個別に`clang-check -Werror`し、公開API検査、差分、追加行の書式、`verify-quick`に成功した。公開APIは21,472件対応、8,332件未対応で不変である。
 - 集約`TestPublicImageHeaders`の1,222工程・2,465入力と製品targetを構築せず、既存4工程・8入力の軽量構文環境だけを利用した。cleanな専用作業tree、306,184 KiBのlane構築木、branchを削除して590,376 KiBを回収した。主Ninja木5,756,412 KiB、共有compiler cache 983,296 KiB、`build/tdd-macos/public-api-missing-g232.json`を後続契約へ保持する。header全体には今回の2追加行と無関係な既存書式差分があるため、全面整形を構造準備へ混在させていない。全体build・`verify`、Linux、Nix再評価は実行していない。
+
+### 第232便の契約実装計画
+
+- 実装基点は`fd2ae30bfe`である。`g232-cross-device-color-sampler-schema`の状態は`planned`、専用作業treeは`/Users/masato/Documents/librepaint-g232-cross-device-color-sampler-schema`、branchは`agent/g232-cross-device-color-sampler-schema`である。開始`libs/image/kis_cross_device_color_sampler.h`の残存全19 APIを、新規`libs/image/tests/KisCrossDeviceColorSamplerSchemaContractTest.cpp`の5枠へ固定する。許可pathは同試験sourceと`libs/image/tests/CMakeLists.txt`の新target固有節だけで、公開header、製品source、既存targetを変更しない。調整担当だけがarchitecture文書、公開API台帳、共通不足報告を変更する。担当のGit権限は許可pathだけの受渡しcommit 1件で、追加委任は禁止する。
+- 5枠は`realTraitSchemaRemainStable`へ実数座標trait、座標・accessor別名、accessor生成、現行・旧画素採取templateの5件、`integerTraitSchemaRemainStable`へ整数座標traitの同5件、`samplerTypeAliasesRemainStable`へsampler template型と実数・整数別名の3件、`samplerConstructionAndLifetimeSchemaRemainStable`へ3種類の出力先を受ける構築と破棄の4件、`samplerSamplingSignaturesRemainStable`へ現行・旧色採取の2件を対応付ける。正式入力の完全な19識別子と識別子整列集合SHA-256 `11ea4757d5a03fcb661aa073f82b79eea091c3edc25f7ebf1310950d42527313`を維持する。
+- 新targetはimage・global・pigment source/generated探索路、Qt Gui・KF I18n interface、`kritaimage_EXPORTS`と`kritapigment_EXPORTS`、Qt Core・Testとheader-only Boostだけに限定し、予測閉包4工程・8入力、停止線5工程・11入力とする。型特性、別名同一性、厳密な関数・member pointer、未評価構築式だけで観測し、sampler、accessor、描画装置、色、画素bufferを実体化しない。担当は編集前target不存在、直接依存、初回計画、5枠宣言段階の期待link失敗、5枠単発・各20回、全target、正式CTest、近傍`KisPaintLayerSchemaContractTest`、AUTOMOC後二回目計画、無作業再構築2回、動的接続・未解決記号・AUTOMOC入力・構文・書式、差分、公開API検査、`verify-quick`を確認する。5工程・11入力超過、追加探索路・定義・link、製品shared・OBJECT・`kritatestsdk`の動的接続、Qt Guiの動的接続、候補headerのAUTOMOC入力化、製品未解決記号、対象実体化、許可path外の変更が必要なら停止する。製品target、集約header target、全体build・`verify`、Linux、Nix再評価は禁止する。
 
 ### 第233便の先行監査担当票（第232便確定待ち）
 
