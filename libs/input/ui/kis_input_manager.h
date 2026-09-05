@@ -12,12 +12,13 @@
 
 #include <kritainputui_export.h>
 
-#include <input/ui/kis_tool_proxy.h>
-
+class QEvent;
 class QPointF;
 class QTouchEvent;
 class KoCanvasBase;
+class KisPopupWidgetInterface;
 class KisToolCanvas;
+class KisToolProxy;
 /**
  * \brief Central object to manage canvas input.
  *

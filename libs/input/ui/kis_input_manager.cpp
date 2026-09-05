@@ -8,6 +8,7 @@
 
 #include "kis_input_manager.h"
 
+#include <KisMpl.h>
 #include <kis_debug.h>
 #include <QQueue>
 #include <klocalizedstring.h>
