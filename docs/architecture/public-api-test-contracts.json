@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 7655
+    "expectedMissingApis": 7638
   },
   "contracts": [
     {
@@ -61908,6 +61908,68 @@
       "apis": [
         "method:KisFigurePaintingStroke::paintPainterPathQPen(const QPainterPath path,const QPen & pen,const KoColor & color)",
         "method:KisFigurePaintingStroke::paintPainterPathQPenFill(const QPainterPath path,const QPen & pen,const KoColor & color)"
+      ]
+    },
+    {
+      "target": "KisBezierGradientMeshContractTest",
+      "source": "libs/image/tests/KisBezierGradientMeshContractTest.cpp",
+      "test": "KisBezierGradientMeshContractTest::gradientMeshTypesAndAliasSchemaRemainStable",
+      "behavior": "Bezier gradient meshは公開別名、mesh本体、node、patchの型構造を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisBezierGradientMesh",
+        "class:KisBezierGradientMeshDetail::KisBezierGradientMesh",
+        "struct:KisBezierGradientMeshDetail::GradientMeshNode",
+        "struct:KisBezierGradientMeshDetail::GradientMeshPatch"
+      ]
+    },
+    {
+      "target": "KisBezierGradientMeshContractTest",
+      "source": "libs/image/tests/KisBezierGradientMeshContractTest.cpp",
+      "test": "KisBezierGradientMeshContractTest::gradientMeshPublicColorDataSchemaRemainStable",
+      "behavior": "Bezier gradient meshのnodeとpatchは各点と四隅の色を公開値として保持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisBezierGradientMeshDetail::GradientMeshNode::color",
+        "member:KisBezierGradientMeshDetail::GradientMeshPatch::colors"
+      ]
+    },
+    {
+      "target": "KisBezierGradientMeshContractTest",
+      "source": "libs/image/tests/KisBezierGradientMeshContractTest.cpp",
+      "test": "KisBezierGradientMeshContractTest::gradientMeshInlineColorOperationsRemainStable",
+      "behavior": "Bezier gradient meshはRGBAを線形補間し、node補間で幾何を保持し、patchへ単位矩形とTL・TR・BL・BR順の色を割り当て、nodeの幾何と色の双方で等価性を判定する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisBezierGradientMeshDetail::assignPatchData(GradientMeshPatch * patch,const QRectF & srcRect,const GradientMeshNode & tl,const GradientMeshNode & tr,const GradientMeshNode & bl,const GradientMeshNode & br)",
+        "function:KisBezierGradientMeshDetail::lerp(const QColor & c1,const QColor & c2,qreal t)",
+        "function:KisBezierGradientMeshDetail::lerpNodeData(const GradientMeshNode & left,const GradientMeshNode & right,qreal t,GradientMeshNode & dst)",
+        "method:KisBezierGradientMeshDetail::GradientMeshNode::operator ==(const GradientMeshNode & rhs) const"
+      ]
+    },
+    {
+      "target": "KisBezierGradientMeshContractTest",
+      "source": "libs/image/tests/KisBezierGradientMeshContractTest.cpp",
+      "test": "KisBezierGradientMeshContractTest::gradientMeshHitTestAndRenderingSignaturesRemainStable",
+      "behavior": "Bezier gradient meshはpatch命中判定とpatch・mesh描画の公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisBezierGradientMeshDetail::KisBezierGradientMesh::hitTestPatch(const QPointF & pt,QPointF * localPointResult) const",
+        "method:KisBezierGradientMeshDetail::KisBezierGradientMesh::renderMesh(const QPoint & dstQImageOffset,QImage * dstImage) const",
+        "method:KisBezierGradientMeshDetail::KisBezierGradientMesh::renderPatch(const GradientMeshPatch & patch,const QPoint & dstQImageOffset,QImage * dstImage)"
+      ]
+    },
+    {
+      "target": "KisBezierGradientMeshContractTest",
+      "source": "libs/image/tests/KisBezierGradientMeshContractTest.cpp",
+      "test": "KisBezierGradientMeshContractTest::gradientMeshSerializationSignaturesRemainStable",
+      "behavior": "Bezier gradient meshはnodeとmeshをXMLへ保存・読込みする公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisBezierGradientMeshDetail::loadValue(const QDomElement & parent,GradientMeshNode * node)",
+        "function:KisBezierGradientMeshDetail::loadValue(const QDomElement & parent,const QString & tag,KisBezierGradientMesh * mesh)",
+        "function:KisBezierGradientMeshDetail::saveValue(QDomElement * parent,const QString & tag,const GradientMeshNode & node)",
+        "function:KisBezierGradientMeshDetail::saveValue(QDomElement * parent,const QString & tag,const KisBezierGradientMesh & mesh)"
       ]
     }
   ]
