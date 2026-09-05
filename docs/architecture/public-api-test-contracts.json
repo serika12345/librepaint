@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 8080
+    "expectedMissingApis": 8063
   },
   "contracts": [
     {
@@ -49371,6 +49371,68 @@
         "method:PinnedFontsSeparator::setSeparatorAdded()",
         "method:PinnedFontsSeparator::setSeparatorIndex(int index)",
         "method:PinnedFontsSeparator::sizeHint(const QStyleOptionViewItem & option,const QModelIndex & index) const"
+      ]
+    },
+    {
+      "target": "KLanguageButtonSchemaContractTest",
+      "source": "libs/widgetutils/tests/KLanguageButtonSchemaContractTest.cpp",
+      "test": "KLanguageButtonSchemaContractTest::languageButtonTypeLifetimeAndConstructionSchemaRemainStable",
+      "behavior": "言語選択ボタンはwidgetとして親省略可能な既定表示と表示文指定の構築面、および多相的な寿命境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KLanguageButton",
+        "method:KLanguageButton::KLanguageButton(QWidget * parent=0)",
+        "method:KLanguageButton::KLanguageButton(const QString & text,QWidget * parent=0)",
+        "method:KLanguageButton::~KLanguageButton()"
+      ]
+    },
+    {
+      "target": "KLanguageButtonSchemaContractTest",
+      "source": "libs/widgetutils/tests/KLanguageButtonSchemaContractTest.cpp",
+      "test": "KLanguageButtonSchemaContractTest::languageButtonLocaleAndPresentationSignaturesRemainStable",
+      "behavior": "言語選択ボタンはlocale、表示文、言語codeの表示方針を変更する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KLanguageButton::setLocale(const QString & locale)",
+        "method:KLanguageButton::setText(const QString & text)",
+        "method:KLanguageButton::showLanguageCodes(bool show)"
+      ]
+    },
+    {
+      "target": "KLanguageButtonSchemaContractTest",
+      "source": "libs/widgetutils/tests/KLanguageButtonSchemaContractTest.cpp",
+      "test": "KLanguageButtonSchemaContractTest::languageButtonPopulationSignaturesRemainStable",
+      "behavior": "言語選択ボタンは候補の消去、名前省略可能な言語追加、位置省略可能な区切り追加、全言語読込みの公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KLanguageButton::clear()",
+        "method:KLanguageButton::insertLanguage(const QString & languageCode,const QString & name=QString (),int index=-1)",
+        "method:KLanguageButton::insertSeparator(int index=-1)",
+        "method:KLanguageButton::loadAllLanguages()"
+      ]
+    },
+    {
+      "target": "KLanguageButtonSchemaContractTest",
+      "source": "libs/widgetutils/tests/KLanguageButtonSchemaContractTest.cpp",
+      "test": "KLanguageButtonSchemaContractTest::languageButtonSelectionAndQuerySignaturesRemainStable",
+      "behavior": "言語選択ボタンは候補の包含、件数、現在の言語codeを照会し、言語codeで現在項目を変更する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KLanguageButton::contains(const QString & languageCode) const",
+        "method:KLanguageButton::count() const",
+        "method:KLanguageButton::current() const",
+        "method:KLanguageButton::setCurrentItem(const QString & languageCode)"
+      ]
+    },
+    {
+      "target": "KLanguageButtonSchemaContractTest",
+      "source": "libs/widgetutils/tests/KLanguageButtonSchemaContractTest.cpp",
+      "test": "KLanguageButtonSchemaContractTest::languageButtonNotificationSignaturesRemainStable",
+      "behavior": "言語選択ボタンは選択確定と候補強調を言語code付きで通知する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KLanguageButton::activated(const QString & languageCode)",
+        "method:KLanguageButton::highlighted(const QString & languageCode)"
       ]
     },
     {

@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 15:26 JST
+- 更新日時: 2026-09-05 15:38 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -984,6 +984,17 @@
 - 実装基点は`5e880865f1`である。`g244-language-button-schema`の状態は`planned`、専用作業treeは`/Users/masato/Documents/librepaint-g244-language-button-schema`、branchは`agent/g244-language-button-schema`である。開始`libs/widgetutils/config/klanguagebutton.h`の残存全17 APIを、新規`libs/widgetutils/tests/KLanguageButtonSchemaContractTest.cpp`の5枠へ固定する。許可pathは同試験sourceと`libs/widgetutils/tests/CMakeLists.txt`の新target固有節だけで、公開header、製品source、既存targetを変更しない。調整担当だけがarchitecture文書、公開API台帳、共通不足報告を変更する。担当のGit権限は許可pathだけの受渡しcommit 1件で、追加委任は禁止する。
 - 5枠は`languageButtonTypeLifetimeAndConstructionSchemaRemainStable`へ型、二つの構築、破棄の4件、`languageButtonLocaleAndPresentationSignaturesRemainStable`へlocale・表示文・言語code表示の3件、`languageButtonPopulationSignaturesRemainStable`へ消去・言語追加・区切り追加・全言語読込みの4件、`languageButtonSelectionAndQuerySignaturesRemainStable`へ包含・件数・現在値・選択変更の4件、`languageButtonNotificationSignaturesRemainStable`へ選択・強調通知の2件を対応付ける。正式入力`build/tdd-macos/public-api-missing-g244.json`の完全な17識別子と識別子整列集合SHA-256 `6995b0c509683ddcf095e148da3efc64992fd96b9b288be39c4df80916f84879`を維持する。
 - 新target `KLanguageButtonSchemaContractTest`はwidgetutils source/generated探索路、Qt Gui・Widgets interface探索路、`kritawidgetutils_EXPORTS`、Qt Core・Testだけに限定し、予測閉包4工程・8入力、停止線5工程・11入力とする。候補headerを最初にincludeし、型特性、厳密なmember pointer、構築可能性、既定引数の未評価呼出しだけで観測する。button、widget、文字列、menu、localeを実体化せず製品本文を実行しない。担当は編集前target不存在、直接依存、初回計画、5枠宣言段階の期待link失敗、追加5枠単発・各20回、全target、正式CTest、軽量近傍`KisFontFamilyComboBoxSchemaContractTest`、AUTOMOC後二回目計画、無作業再構築2回、動的接続・未解決記号・AUTOMOC入力・構文・書式、差分、公開API検査、`verify-quick`を確認する。5工程・11入力超過、新しい探索路・定義・link、Qt Gui・WidgetsまたはKFの動的接続、製品shared・OBJECT・`kritatestsdk`の接続、候補headerのAUTOMOC入力化、製品未解決記号、対象実体化、許可path外変更が必要なら停止する。製品target、全体build・`verify`、Linux、Nix再評価は禁止する。
+
+### 第244便の契約統合結果
+
+- 開始`libs/widgetutils/config/klanguagebutton.h`から新規`libs/widgetutils/tests/KLanguageButtonSchemaContractTest.cpp`へ17 API・5枠を追加し、`libs/widgetutils/tests/CMakeLists.txt`へ専用targetを分離した。公開header、製品source、既存targetを変更せず、受渡しcommit `92f2c4d1f1`を中央commit `8ba363fd90`として取り込んだ。担当側と中央のmacOSで追加5枠を各20回、対象全5枠、正式CTestと軽量近傍`KisFontFamilyComboBoxSchemaContractTest`、AUTOMOC後の二回目計画、無作業再構築2回に成功した。中央実測は4工程・8入力、command SHA-256 `f99b637f5bac16c509f2680cb7e75c0a31145f242aa854a122b602db79ff2daa`、input SHA-256 `f23e4c35bed714f2b66e652a5af725174c293eccca59656a95f5d3fba8fc91e8`、AUTOMOC `HEADERS=[]`、Qt Core・TestとOS frameworkだけの動的接続、製品未解決記号なしである。Qt Gui・Widgetsは探索界面だけに限定した。正しいcompile commandによる`clang-check -Werror`、書式、差分、macOSのpackage境界1,882対象、公開API検査に成功し、台帳は21,741件対応、8,063件未対応となった。locale一覧の内容と並び、表示切替、現在項目、menu操作、通知発火は既存または後続の動的契約で扱う。
+- 統合patchの同一性とclean状態を確認後に専用作業tree、297,748 KiBのlane構築木、branchを削除して590,548 KiBを回収した。旧`public-api-missing-g244.json`を削除し、主Ninja木5,771,848 KiB、共有compiler cache 981,772 KiB、最新`build/tdd-macos/public-api-missing-g245.json` 2,145,122 bytes、SHA-256 `51096723d0feac9e07e31e4129dec9856696199b4b4579670d35363c62ed903f`だけを次便へ再利用する。compiler cacheは143,165件中120,246件、83.99%がhitしている。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+
+### 第245便の担当計画
+
+- 実装基点は`8ba363fd90`である。`g245-composite-op-selector-schema`の状態は`planned`、専用作業treeは`/Users/masato/Documents/librepaint-g245-composite-op-selector-schema`、branchは`agent/g245-composite-op-selector-schema`である。開始`libs/tools/ui/kis_cmb_composite.h`の残存全17 APIを、新規`libs/tools/ui/tests/KisCompositeOpSelectorSchemaContractTest.cpp`の5枠へ固定する。許可pathは同試験sourceと`libs/tools/ui/tests/CMakeLists.txt`の新target固有節だけで、公開header、製品source、既存targetを変更しない。調整担当だけがarchitecture文書、公開API台帳、共通不足報告を変更する。担当のGit権限は許可pathだけの受渡しcommit 1件で、追加委任は禁止する。
+- 5枠は`compositeOpComboBoxTypeLifetimeAndConstructionSchemaRemainStable`へ複合box型、layer style用派生型、二つの構築、破棄の5件、`compositeOpComboBoxSelectionAndSpecializationSignaturesRemainStable`へ選択設定・取得、色空間検証、派生型構築の4件、`compositeOpComboBoxPopupAndInputSignaturesRemainStable`へpopup、key、wheel入力の3件、`compositeOpListWidgetTypeLifetimeAndConstructionSchemaRemainStable`へ一覧型、構築、破棄の3件、`compositeOpListWidgetSelectionSignaturesRemainStable`へ選択取得・設定の2件を対応付ける。正式入力`build/tdd-macos/public-api-missing-g245.json`の完全な17識別子と識別子整列集合SHA-256 `c147b7d13d1c13e33bf22f07e020e13264ce0cb0fdb9fc130731f6c96a794727`を維持する。
+- 新target `KisCompositeOpSelectorSchemaContractTest`はtools-uiとwidgetutilsのsource/generated探索路、Qt Gui・Widgets interface探索路、`kritatoolsui_EXPORTS`と`kritawidgetutils_EXPORTS`、Qt Core・Testだけに限定し、予測閉包4工程・8入力、停止線5工程・11入力とする。候補headerを最初にincludeし、型特性、継承、厳密なmember pointer、構築可能性だけで観測する。widget、`KoID`、色空間、event、modelを実体化せず製品本文を実行しない。担当は編集前target不存在、直接依存、初回計画、5枠宣言段階の期待link失敗、追加5枠単発・各20回、全target、正式CTest、軽量近傍`KisCategorizedListModelSchemaContractTest`、AUTOMOC後二回目計画、無作業再構築2回、動的接続・未解決記号・AUTOMOC入力・構文・書式、差分、公開API検査、`verify-quick`を確認する。5工程・11入力超過、新しい探索路・定義・link、Qt Gui・Widgetsの動的接続、製品shared・OBJECT・`kritatestsdk`の接続、候補headerのAUTOMOC入力化、製品未解決記号、対象実体化、許可path外変更が必要なら停止する。製品target、既存の重いcomposite model試験、全体build・`verify`、Linux、Nix再評価は禁止する。
 
 ### 第239便の先行監査担当票
 
