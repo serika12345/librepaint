@@ -8,12 +8,13 @@
 
 #include "kis_input_manager.h"
 
-#include <kis_debug.h>
-#include <QQueue>
-#include <klocalizedstring.h>
+#include <KisMpl.h>
 #include <QApplication>
+#include <QQueue>
 #include <QTouchEvent>
 #include <QWidget>
+#include <kis_debug.h>
+#include <klocalizedstring.h>
 
 #include <KoToolManager.h>
 #include <KoPointerEvent.h>
