@@ -3,12 +3,15 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "KisTranslateLayerNamesVisitor.h"
+
 #include "kis_node_visitor.h"
 
 #include <QTest>
 
 #include <array>
 #include <cstddef>
+#include <type_traits>
 
 namespace
 {
@@ -178,6 +181,11 @@ private Q_SLOTS:
     void constructsAndDestroysThroughBase();
     void dispatchesNodeAndLayerVisits();
     void dispatchesMaskVisits();
+    void translateLayerNamesVisitorTypeConstructionAndDictionarySchemaRemainStable();
+    void translateLayerNamesVisitorBaseAndPaintLayerSignaturesRemainStable();
+    void translateLayerNamesVisitorGeneratedAndExternalLayerSignaturesRemainStable();
+    void translateLayerNamesVisitorCloneAndFilterMaskSignaturesRemainStable();
+    void translateLayerNamesVisitorRemainingMaskSignaturesRemainStable();
 };
 
 void KisNodeVisitorContractTest::constructsAndDestroysThroughBase()
@@ -224,6 +232,76 @@ void KisNodeVisitorContractTest::dispatchesMaskVisits()
     verifyVisit(visitor, probe, VisitKind::ColorizeMask, reinterpret_cast<KisColorizeMask *>(&storage[4]), false);
 
     QCOMPARE(probe.totalCallCount(), 5);
+}
+
+void KisNodeVisitorContractTest::translateLayerNamesVisitorTypeConstructionAndDictionarySchemaRemainStable()
+{
+    using Visitor = KisTranslateLayerNamesVisitor;
+    using Dictionary = QMap<QString, QString>;
+    using DictionaryQuery = Dictionary (Visitor::*)();
+
+    static_assert(std::is_class_v<Visitor>);
+    static_assert(std::is_base_of_v<KisNodeVisitor, Visitor>);
+    static_assert(std::is_constructible_v<Visitor, Dictionary>);
+    static_assert(std::is_same_v<decltype(static_cast<DictionaryQuery>(&Visitor::defaultDictionary)), DictionaryQuery>);
+
+    QVERIFY(true);
+}
+
+void KisNodeVisitorContractTest::translateLayerNamesVisitorBaseAndPaintLayerSignaturesRemainStable()
+{
+    using Visitor = KisTranslateLayerNamesVisitor;
+
+    static_assert(std::is_same_v<decltype(static_cast<bool (Visitor::*)(KisNode *)>(&Visitor::visit)),
+                                 bool (Visitor::*)(KisNode *)>);
+    static_assert(std::is_same_v<decltype(static_cast<bool (Visitor::*)(KisPaintLayer *)>(&Visitor::visit)),
+                                 bool (Visitor::*)(KisPaintLayer *)>);
+    static_assert(std::is_same_v<decltype(static_cast<bool (Visitor::*)(KisGroupLayer *)>(&Visitor::visit)),
+                                 bool (Visitor::*)(KisGroupLayer *)>);
+
+    QVERIFY(true);
+}
+
+void KisNodeVisitorContractTest::translateLayerNamesVisitorGeneratedAndExternalLayerSignaturesRemainStable()
+{
+    using Visitor = KisTranslateLayerNamesVisitor;
+
+    static_assert(std::is_same_v<decltype(static_cast<bool (Visitor::*)(KisAdjustmentLayer *)>(&Visitor::visit)),
+                                 bool (Visitor::*)(KisAdjustmentLayer *)>);
+    static_assert(std::is_same_v<decltype(static_cast<bool (Visitor::*)(KisExternalLayer *)>(&Visitor::visit)),
+                                 bool (Visitor::*)(KisExternalLayer *)>);
+    static_assert(std::is_same_v<decltype(static_cast<bool (Visitor::*)(KisGeneratorLayer *)>(&Visitor::visit)),
+                                 bool (Visitor::*)(KisGeneratorLayer *)>);
+
+    QVERIFY(true);
+}
+
+void KisNodeVisitorContractTest::translateLayerNamesVisitorCloneAndFilterMaskSignaturesRemainStable()
+{
+    using Visitor = KisTranslateLayerNamesVisitor;
+
+    static_assert(std::is_same_v<decltype(static_cast<bool (Visitor::*)(KisCloneLayer *)>(&Visitor::visit)),
+                                 bool (Visitor::*)(KisCloneLayer *)>);
+    static_assert(std::is_same_v<decltype(static_cast<bool (Visitor::*)(KisFilterMask *)>(&Visitor::visit)),
+                                 bool (Visitor::*)(KisFilterMask *)>);
+    static_assert(std::is_same_v<decltype(static_cast<bool (Visitor::*)(KisTransformMask *)>(&Visitor::visit)),
+                                 bool (Visitor::*)(KisTransformMask *)>);
+
+    QVERIFY(true);
+}
+
+void KisNodeVisitorContractTest::translateLayerNamesVisitorRemainingMaskSignaturesRemainStable()
+{
+    using Visitor = KisTranslateLayerNamesVisitor;
+
+    static_assert(std::is_same_v<decltype(static_cast<bool (Visitor::*)(KisTransparencyMask *)>(&Visitor::visit)),
+                                 bool (Visitor::*)(KisTransparencyMask *)>);
+    static_assert(std::is_same_v<decltype(static_cast<bool (Visitor::*)(KisSelectionMask *)>(&Visitor::visit)),
+                                 bool (Visitor::*)(KisSelectionMask *)>);
+    static_assert(std::is_same_v<decltype(static_cast<bool (Visitor::*)(KisColorizeMask *)>(&Visitor::visit)),
+                                 bool (Visitor::*)(KisColorizeMask *)>);
+
+    QVERIFY(true);
 }
 
 QTEST_GUILESS_MAIN(KisNodeVisitorContractTest)
