@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 23:28 JST
+- 更新日時: 2026-09-05 23:40 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1287,6 +1287,12 @@
 - 5枠は`baseProcessorTypeLifetimeAndConstructionSchemaRemainStable`へ型・構築・仮想破棄3件、`baseProcessorIdentityMenuAndShortcutSignaturesRemainStable`へ識別・名称・menu分類・menu表示・shortcut 5件、`baseProcessorConfigurationFactorySignaturesRemainStable`へ既定構成・factory構成・構成widget 3件、`baseProcessorCapabilitySignaturesRemainStable`へ色空間・描画・調整layer・thread対応4件、`baseProcessorBookmarkAndPresentationSignaturesRemainStable`へbookmarkのconst・非const取得と構成表示3件を対応付ける。型特性と厳密member pointerだけを使い、processor、設定、paint device、資源interface、widget、Qt値を実体化しない。
 - 新targetはimage・global・pigmentのsource/generated探索路、Qt Gui・KF I18nのinterface探索、global・image・pigmentのexport定義、Qt Core・Testとheader-only Boostだけの直接linkによる4工程・8入力、停止線5工程・11入力とする。軽量近傍は`KisProcessingApplicatorSchemaContractTest`とし、宣言だけのlink失敗、5枠単発・各20回、全target・正式CTest・近傍、AUTOMOC後の二回目計画、二回の無作業再構築、動的接続・未解決記号・厳格構文・書式・差分・公開API検査・`verify-quick`を確認する。候補headerのAUTOMOC入力化、Qt Gui・Widgets・Xmlの動的接続、resources・painting/undo探索路、製品shared・OBJECT、`kritatestsdk`、製品未解決記号、実体化または許可path外変更が必要なら停止する。
 
+### 第263便の契約統合結果
+
+- 開始`libs/image/kis_base_processor.h`から新規`libs/image/tests/KisBaseProcessorSchemaContractTest.cpp`へ、型・構築・寿命、識別・menu・shortcut、設定生成、対応能力、bookmark・設定表示を担う残存全18 API・5枠を追加した。`libs/image/tests/CMakeLists.txt`には新target固有節だけを追加し、公開header、製品source、既存targetを変更していない。完成差分から再開したため宣言だけの未定義link診断は保存していない。受渡しcommit `1d6c079860`を中央commit `7181abe7b2`として取り込んだ。
+- 担当側のmacOSで5枠を各20回、全7試験、正式CTest `libs-image-KisBaseProcessorSchemaContractTest`、軽量近傍`libs-image-KisProcessingApplicatorSchemaContractTest`、AUTOMOC後の二回目計画、二回の無作業再構築に成功した。新targetは4工程・8入力、command SHA-256 `acc520f138d2159476002fd02c0555bbd7e5b547c96624e422bfde8f28f2406c`、input SHA-256 `8e1821606ea8365b449c60f07f2ccfee7fa5f883e615b5ec6d74a6eef73d680a`、AUTOMOC `HEADERS=[]`、Qt Core・Testだけの動的接続、processor・configuration・widget・KoIDを含む製品未解決記号0である。厳格構文、書式、差分、公開API検査、`verify-quick`にも成功し、中央でも対象と近傍、二回の無作業再構築に成功した。
+- 台帳へ18 APIを追加して22,114件対応、7,690件未対応となり、旧基準7,708件に対する実測7,690件の期待不一致を確認してから基準を更新した。cleanな専用作業tree、298,028 KiBの構築木、branchを削除して888,868 KiBを回収し、旧`public-api-missing-g263.json` 2,050,781 bytesを削除した。主Ninja木5,787,872 KiB、共有compiler cache 982,780 KiB、最新`build/tdd-macos/public-api-missing-g264.json` 2,046,363 bytes、SHA-256 `7c812a3b4ddd6e129fd92156f1aba72729f25ad24687d77f05e65582e3089d12`だけを再利用対象として保持する。compiler cacheは143,434件中120,276件、83.85%がhitしている。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+
 ### 第264便の先行監査担当票
 
 - 監査共通基点は`248c408e89`、正式入力は`build/tdd-macos/public-api-missing-g262.json`である。第262便と第263便の選定済みAPIを除外し、`libs/image/commands/kis_node_operation_batch.h`の残存18 APIを、連続するnode操作の非同期undo単位を固定する一責務候補として監査する。主作業treeの読み取りだけを許可し、変更、構成、構築、試験、Git操作、追加委任を行わず、G262の専用構築木と生成物を共有しない。
@@ -1313,8 +1319,13 @@
 ### 第266便の先行監査担当票
 
 - 監査共通基点は`29697c3912`、正式入力は`build/tdd-macos/public-api-missing-g263.json`である。第263便から第265便までの選定済みAPIを除外し、`libs/image/KisBezierGradientMesh.h`の残存17 APIを、Bezier gradient meshのnode・patch・描画・直列化を固定する一責務候補として監査する。主作業treeの読み取りだけを許可し、変更、構成、構築、試験、Git操作、追加委任を行わず、G263の専用構築木と生成物を共有しない。
-- `g266-bezier-gradient-mesh-api-audit`の状態は`in_progress`である。正式不足一覧と台帳に対する残存識別子の完全性、一意性、整列指紋、型・別名・公開data・補間・patch割当・検索・描画・XML直列化の責務別割当、最大5枠で静的または決定的な値契約へ固定できる範囲を調べる。既存mesh変換試験が保護する画素描画と変換の意味は分離して報告する。
-- `g266-bezier-gradient-mesh-closure-review`の状態は`in_progress`である。候補headerの直接依存、imageの既存軽量契約、新規専用targetと既存mesh試験追記の責務・閉包差、必要探索路・定義・動的接続、製品shared・OBJECTと`kritatestsdk`の回避、候補headerのAUTOMOC非入力化、許可path、停止線を独立に調べる。inline関数を実行する値契約と署名だけの契約で閉包が変わる場合は分けて報告し、先行include整理の必要性も判定する。
+- `g266-bezier-gradient-mesh-api-audit`の状態は`completed`である。正式不足一覧と台帳に対する残存識別子の完全性、一意性、整列指紋、型・別名・公開data・補間・patch割当・検索・描画・XML直列化の責務別割当を確認した。
+- `g266-bezier-gradient-mesh-closure-review`の状態は`completed`である。新規専用targetは4工程・8入力と製品非接続に閉じ、4つのinline APIだけを値契約として実行しても同じ工程・入力数を維持できると予測した。既存mesh変換試験への追記は1,200工程・2,423入力、global側の値契約への追記は依存方向逆転となるため棄却し、先行include整理は不要と判定した。
+
+### 第266便の監査結果と担当計画
+
+- `libs/image/KisBezierGradientMesh.h`の残存全17 APIは一意かつ台帳と非重複で、識別子整列集合SHA-256 `910261c05c59bda89c0400c3a4384f3c387ead9d4d32f75a9d5987b4cd170aef`を持つ。型・別名・2構造体4、公開色data 2、色補間・node補間・patch割当・node等価4、命中判定・patch/mesh描画3、XML保存・読込4の5枠へ割り当てる。inline 4 APIはRGBA補間、幾何保持、単位矩形と色順序、幾何・色の等価性を値契約として固定し、残る13 APIは型特性と厳密な関数pointerで観測する。命中境界、画素描画、XML往復と不正入力は後続の動的契約で扱う。
+- `g266-bezier-gradient-mesh-contract`の状態は`planned`とする。許可pathは新規`libs/image/tests/KisBezierGradientMeshContractTest.cpp`と`libs/image/tests/CMakeLists.txt`の新target固有節だけである。image・globalのsource/generated探索路、image・globalのexport定義、Qt Core・Gui・Testとheader-only Boostだけの直接linkによる4工程・8入力を予測し、停止線5工程・11入力とする。軽量な構築形状の近傍`KisGradientPainterSchemaContractTest`は4工程・8入力、command SHA-256 `6b707c282d229ff1efa0393cba82c52c707025a0e634c5bc9eb6e93625761ff1`、input SHA-256 `362d01b8ab708148281833cdc70ed66cec6beb16d8677dcc28af9b6be9c83e62`である。Qt Widgets・Xml、KF、Eigen、Imath、pigment、resources、painting、製品shared・OBJECT、`kritatestsdk`、候補headerのAUTOMOC入力化、QColor以外の製品未解決記号、非inline実装の実体化または許可path外変更が必要なら停止する。G265完了後に開始する。
 
 ### 第239便の先行監査担当票
 

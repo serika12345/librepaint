@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 7708
+    "expectedMissingApis": 7690
   },
   "contracts": [
     {
@@ -61720,6 +61720,69 @@
         "method:GroupShape::children()",
         "method:GroupShape::type() const",
         "method:GroupShape::~GroupShape()"
+      ]
+    },
+    {
+      "target": "KisBaseProcessorSchemaContractTest",
+      "source": "libs/image/tests/KisBaseProcessorSchemaContractTest.cpp",
+      "test": "KisBaseProcessorSchemaContractTest::baseProcessorTypeLifetimeAndConstructionSchemaRemainStable",
+      "behavior": "画素処理器基底は共有所有され、識別子・分類・表示名から構築でき、基底参照から安全に破棄できる公開面を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisBaseProcessor",
+        "method:KisBaseProcessor::KisBaseProcessor(const KoID & id,const KoID & category,const QString & entry)",
+        "method:KisBaseProcessor::~KisBaseProcessor()"
+      ]
+    },
+    {
+      "target": "KisBaseProcessorSchemaContractTest",
+      "source": "libs/image/tests/KisBaseProcessorSchemaContractTest.cpp",
+      "test": "KisBaseProcessorSchemaContractTest::baseProcessorIdentityMenuAndShortcutSignaturesRemainStable",
+      "behavior": "画素処理器基底は識別子、名称、メニュー分類・表示名、ショートカットを取得する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisBaseProcessor::id() const",
+        "method:KisBaseProcessor::menuCategory() const",
+        "method:KisBaseProcessor::menuEntry() const",
+        "method:KisBaseProcessor::name() const",
+        "method:KisBaseProcessor::shortcut() const"
+      ]
+    },
+    {
+      "target": "KisBaseProcessorSchemaContractTest",
+      "source": "libs/image/tests/KisBaseProcessorSchemaContractTest.cpp",
+      "test": "KisBaseProcessorSchemaContractTest::baseProcessorConfigurationFactorySignaturesRemainStable",
+      "behavior": "画素処理器基底は既定・初期設定と対象装置用の設定画面を生成する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisBaseProcessor::createConfigurationWidget(QWidget * parent,const KisPaintDeviceSP dev,bool useForMasks) const",
+        "method:KisBaseProcessor::defaultConfiguration(KisResourcesInterfaceSP resourcesInterface) const",
+        "method:KisBaseProcessor::factoryConfiguration(KisResourcesInterfaceSP resourcesInterface) const"
+      ]
+    },
+    {
+      "target": "KisBaseProcessorSchemaContractTest",
+      "source": "libs/image/tests/KisBaseProcessorSchemaContractTest.cpp",
+      "test": "KisBaseProcessorSchemaContractTest::baseProcessorCapabilitySignaturesRemainStable",
+      "behavior": "画素処理器基底は色空間独立性、描画、調整レイヤー、並列処理への対応能力を示す公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisBaseProcessor::colorSpaceIndependence() const",
+        "method:KisBaseProcessor::supportsAdjustmentLayers() const",
+        "method:KisBaseProcessor::supportsPainting() const",
+        "method:KisBaseProcessor::supportsThreading() const"
+      ]
+    },
+    {
+      "target": "KisBaseProcessorSchemaContractTest",
+      "source": "libs/image/tests/KisBaseProcessorSchemaContractTest.cpp",
+      "test": "KisBaseProcessorSchemaContractTest::baseProcessorBookmarkAndPresentationSignaturesRemainStable",
+      "behavior": "画素処理器基底は設定ブックマーク管理器の可変・読取専用参照と設定画面の表示可否を提供する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisBaseProcessor::bookmarkManager()",
+        "method:KisBaseProcessor::bookmarkManager() const",
+        "method:KisBaseProcessor::showConfigurationWidget()"
       ]
     }
   ]
