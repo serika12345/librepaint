@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 8239
+    "expectedMissingApis": 8222
   },
   "contracts": [
     {
@@ -60019,6 +60019,68 @@
         "method:KisApplicationArguments::session() const",
         "method:KisApplicationArguments::windowLayout() const",
         "method:KisApplicationArguments::workspace() const"
+      ]
+    },
+    {
+      "target": "KisMemoryStorageSchemaContractTest",
+      "source": "libs/resources/tests/KisMemoryStorageSchemaContractTest.cpp",
+      "test": "KisMemoryStorageSchemaContractTest::memoryStorageTypeLifetimeAndConstructionSchemaRemainStable",
+      "behavior": "メモリー内資源保管はlocation指定・既定構築、複製、破棄を備える公開型構成を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisMemoryStorage",
+        "method:KisMemoryStorage::KisMemoryStorage(const KisMemoryStorage & rhs)",
+        "method:KisMemoryStorage::KisMemoryStorage(const QString & location=QString (\"memory\"))",
+        "method:KisMemoryStorage::~KisMemoryStorage()"
+      ]
+    },
+    {
+      "target": "KisMemoryStorageSchemaContractTest",
+      "source": "libs/resources/tests/KisMemoryStorageSchemaContractTest.cpp",
+      "test": "KisMemoryStorageSchemaContractTest::memoryStorageCopyAndResourceMutationSignaturesRemainStable",
+      "behavior": "メモリー内資源保管は複製代入、資源追加、版読込み、新版保存を行う公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMemoryStorage::addResource(const QString & resourceType,KoResourceSP resource)",
+        "method:KisMemoryStorage::loadVersionedResource(KoResourceSP resource)",
+        "method:KisMemoryStorage::operator =(const KisMemoryStorage & rhs)",
+        "method:KisMemoryStorage::saveAsNewVersion(const QString & resourceType,KoResourceSP resource)"
+      ]
+    },
+    {
+      "target": "KisMemoryStorageSchemaContractTest",
+      "source": "libs/resources/tests/KisMemoryStorageSchemaContractTest.cpp",
+      "test": "KisMemoryStorageSchemaContractTest::memoryStorageResourceTransferAndLookupSignaturesRemainStable",
+      "behavior": "メモリー内資源保管は装置との資源移送とURLによる資源項目・MD5照会を行う公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMemoryStorage::exportResource(const QString & url,QIODevice * device)",
+        "method:KisMemoryStorage::importResource(const QString & url,QIODevice * device)",
+        "method:KisMemoryStorage::resourceItem(const QString & url)",
+        "method:KisMemoryStorage::resourceMd5(const QString & url)"
+      ]
+    },
+    {
+      "target": "KisMemoryStorageSchemaContractTest",
+      "source": "libs/resources/tests/KisMemoryStorageSchemaContractTest.cpp",
+      "test": "KisMemoryStorageSchemaContractTest::memoryStorageMetadataSignaturesRemainStable",
+      "behavior": "メモリー内資源保管はmetadataのkey一覧・値を取得し値を設定する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMemoryStorage::metaData(const QString & key) const",
+        "method:KisMemoryStorage::metaDataKeys() const",
+        "method:KisMemoryStorage::setMetaData(const QString & key,const QVariant & value)"
+      ]
+    },
+    {
+      "target": "KisMemoryStorageSchemaContractTest",
+      "source": "libs/resources/tests/KisMemoryStorageSchemaContractTest.cpp",
+      "test": "KisMemoryStorageSchemaContractTest::memoryStorageIteratorSignaturesRemainStable",
+      "behavior": "メモリー内資源保管は種別ごとの資源とtagを走査する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMemoryStorage::resources(const QString & resourceType)",
+        "method:KisMemoryStorage::tags(const QString & resourceType)"
       ]
     }
   ]
