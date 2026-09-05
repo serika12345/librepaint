@@ -7,9 +7,10 @@
 #include "commands/kis_node_operation_batch.h"
 
 #include <QHash>
-#include <QSharedPointer>
-#include <QPointer>
 #include <QMutexLocker>
+#include <QPointer>
+#include <QSharedPointer>
+#include <kundo2magicstring.h>
 
 #include "kis_image.h"
 #include "kis_processing_applicator.h"

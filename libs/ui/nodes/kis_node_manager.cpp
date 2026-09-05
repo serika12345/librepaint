@@ -7,11 +7,12 @@
 #include "nodes/kis_node_manager.h"
 #include "kis_filter_mask.h"
 
-#include <QStandardPaths>
-#include <QMessageBox>
 #include <KisSignalMapper.h>
 #include <QApplication>
+#include <QMessageBox>
+#include <QStandardPaths>
 #include <kactioncollection.h>
+#include <kundo2magicstring.h>
 
 #include <QKeySequence>
 

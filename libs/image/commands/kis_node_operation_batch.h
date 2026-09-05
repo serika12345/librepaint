@@ -10,10 +10,11 @@
 #include <QObject>
 #include <QScopedPointer>
 
-#include <kritaimage_export.h>
-#include <kundo2command.h>
 #include "kis_types.h"
+#include <kritaimage_export.h>
 
+class KUndo2MagicString;
+class QString;
 
 /**
  * Batches consecutive image node operations into one asynchronous undo entry.
