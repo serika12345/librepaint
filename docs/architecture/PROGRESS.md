@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 09:24 JST
+- 更新日時: 2026-09-05 09:27 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -715,7 +715,7 @@
 
 ### 第228便の先行監査担当票（第227便確定待ち）
 
-- `g228-canvas-update-info-schema-formal-review`の状態は`auditing`、担当は`g178_shape_hierarchy_schema`、基点は`03f4311c63`、正式入力は`build/tdd-macos/public-api-missing-g224.json`である。開始公開headerは`libs/canvas/kis_update_info.h`の残存全19 APIと`libs/canvas/kis_projection_update_info.h`の残存全16 API、合計35 API、全識別子を大域整列した集合SHA-256 `d612d9b06780110a5b8833f4fad906980e29980a10e6aee64390b50fd431ca7d`である。契約候補は新規`libs/canvas/tests/KisCanvasUpdateInfoSchemaContractTest.cpp`の最大5枠、所有候補CMakeは`libs/canvas/tests/CMakeLists.txt`の新target固有節である。主作業treeと既存Ninja graphを読み取り専用で使い、変更、構成、構築、試験、Git操作、追加委任を行わない。基底更新、batch marker、projection転送値を一責務にまとめる根拠、全識別子と枠対応、必要include・定義・直接・interface link、現在とAUTOMOC後の予測工程・入力、最小近傍、製品辺、共有pointer・Qt矩形・描画hintの実体化有無、停止条件を独立確認し、正式第228便不足報告で再照合する条件を返す。
+- `g228-canvas-update-info-schema-formal-review`の状態は`completed-ready`、担当は`g178_shape_hierarchy_schema`、基点は`03f4311c63`である。正式入力`build/tdd-macos/public-api-missing-g224.json`でも`libs/canvas/kis_update_info.h`の残存全19 APIと`libs/canvas/kis_projection_update_info.h`の残存全16 APIは一意で台帳と重複せず、大域整列集合SHA-256 `d612d9b06780110a5b8833f4fad906980e29980a10e6aee64390b50fd431ca7d`、新規`libs/canvas/tests/KisCanvasUpdateInfoSchemaContractTest.cpp`の5枠8・7・4・9・7に一致した。両型は基底更新領域、batch・LOD marker、projection転送値をcanvas更新配送の一責務として所有する。新targetはcanvas・global探索路、Qt Gui interface、`kritacanvas_EXPORTS`と`kritaglobal_EXPORTS`、Qt Core・Testだけで初回・AUTOMOC後とも4工程・8入力へ閉じられる。軽量近傍`KisProjectionPixelFilterContractTest`も4工程・8入力、AUTOMOC `HEADERS=[]`、製品辺なしである。dirty矩形計算、LOD・圧縮、markerのqueue効果、Direct・Patch転送、描画hint反映、共有pointer・metatype配送は既存または後続の動的契約で扱い、正式第228便不足報告で35件と集合SHAを再照合する。
 
 ### 第229便の先行監査担当票（第228便確定待ち）
 
