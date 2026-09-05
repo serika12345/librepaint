@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 7690
+    "expectedMissingApis": 7672
   },
   "contracts": [
     {
@@ -61783,6 +61783,69 @@
         "method:KisBaseProcessor::bookmarkManager()",
         "method:KisBaseProcessor::bookmarkManager() const",
         "method:KisBaseProcessor::showConfigurationWidget()"
+      ]
+    },
+    {
+      "target": "KisNodeOperationBatchSchemaContractTest",
+      "source": "libs/image/tests/KisNodeOperationBatchSchemaContractTest.cpp",
+      "test": "KisNodeOperationBatchSchemaContractTest::nodeOperationBatchTypeLifetimeAndStateSchemaRemainStable",
+      "behavior": "node操作バッチは操作名・画像・待機時間から構築され、仮想破棄、終了状態、自己破棄方針の公開面を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisNodeOperationBatch",
+        "method:KisNodeOperationBatch::KisNodeOperationBatch(const KUndo2MagicString & actionName,KisImageSP image,int timeout)",
+        "method:KisNodeOperationBatch::isEnded() const",
+        "method:KisNodeOperationBatch::setAutoDelete(bool value)",
+        "method:KisNodeOperationBatch::~KisNodeOperationBatch()"
+      ]
+    },
+    {
+      "target": "KisNodeOperationBatchSchemaContractTest",
+      "source": "libs/image/tests/KisNodeOperationBatchSchemaContractTest.cpp",
+      "test": "KisNodeOperationBatchSchemaContractTest::nodeOperationBatchHierarchyOrderingSignaturesRemainStable",
+      "behavior": "node操作バッチはnode群の追加・削除・複製と階層内の昇降を行う公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeOperationBatch::addNode(const KisNodeList & nodes,KisNodeSP dstParent,KisNodeSP dstAbove,KisNodeSP activeNode)",
+        "method:KisNodeOperationBatch::duplicateNode(const KisNodeList & nodes,KisNodeSP activeNode)",
+        "method:KisNodeOperationBatch::lowerNode(const KisNodeList & nodes,KisNodeSP activeNode)",
+        "method:KisNodeOperationBatch::raiseNode(const KisNodeList & nodes,KisNodeSP activeNode)",
+        "method:KisNodeOperationBatch::removeNode(const KisNodeList & nodes,KisNodeSP activeNode)"
+      ]
+    },
+    {
+      "target": "KisNodeOperationBatchSchemaContractTest",
+      "source": "libs/image/tests/KisNodeOperationBatchSchemaContractTest.cpp",
+      "test": "KisNodeOperationBatchSchemaContractTest::nodeOperationBatchDestinationMutationSignaturesRemainStable",
+      "behavior": "node操作バッチは単一または複数nodeの移動と、指定階層への複写を行う公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeOperationBatch::copyNode(const KisNodeList & nodes,KisNodeSP dstParent,KisNodeSP dstAbove,KisNodeSP activeNode)",
+        "method:KisNodeOperationBatch::moveNode(KisNodeSP node,KisNodeSP parent,KisNodeSP above)",
+        "method:KisNodeOperationBatch::moveNode(const KisNodeList & nodes,KisNodeSP dstParent,KisNodeSP dstAbove,KisNodeSP activeNode)"
+      ]
+    },
+    {
+      "target": "KisNodeOperationBatchSchemaContractTest",
+      "source": "libs/image/tests/KisNodeOperationBatchSchemaContractTest.cpp",
+      "test": "KisNodeOperationBatchSchemaContractTest::nodeOperationBatchGroupingAndMergeSignaturesRemainStable",
+      "behavior": "node操作バッチはgroup化・group解除と同名操作への結合可否を扱う公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeOperationBatch::canMergeAction(const KUndo2MagicString & actionName) const",
+        "method:KisNodeOperationBatch::createGroup(const KisNodeList & nodes,KisNodeSP activeNode,const QString & groupName,KisNodeSP * newGroup,KisNodeSP * newLastChild)",
+        "method:KisNodeOperationBatch::ungroupNodes(const KisNodeList & selectedNodes,KisNodeSP activeNode,KisNodeSP * incompatibleNode,KisNodeSP * destinationParent)"
+      ]
+    },
+    {
+      "target": "KisNodeOperationBatchSchemaContractTest",
+      "source": "libs/image/tests/KisNodeOperationBatchSchemaContractTest.cpp",
+      "test": "KisNodeOperationBatchSchemaContractTest::nodeOperationBatchCompletionAndNotificationSignaturesRemainStable",
+      "behavior": "node操作バッチは処理終了とcommandからの非同期更新通知を受け取る公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeOperationBatch::end()",
+        "method:KisNodeOperationBatch::requestUpdateAsyncFromCommand()"
       ]
     }
   ]

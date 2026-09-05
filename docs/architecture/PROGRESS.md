@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 23:56 JST
+- 更新日時: 2026-09-06 00:07 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1309,9 +1309,15 @@
 
 - 開始`libs/image/commands/kis_node_operation_batch.h`から`<kundo2command.h>`を除去して`KUndo2MagicString`と`QString`を前方宣言し、完全型の所有を`libs/image/commands/kis_node_operation_batch.cpp`、`libs/image/tests/kis_node_operation_batch_test.cpp`、`libs/ui/nodes/kis_node_manager.cpp`の`<kundo2magicstring.h>`へ移した。変更前の縮小探索面は`kundo2command.h`不足で失敗し、変更後は同じ面でheader-firstに成功した。実読込みは1,292行から1,226行、固有行は1,001行から954行、kundo系headerは4件から0件へ減少した。追加利用元の補正はない。受渡しcommit `4a550a3a2e`を中央commit `1b98050dae`として取り込んだ。
 - 4つの開始header・完全型利用元の厳格構文、軽量近傍`libs-image-KisNodeCommandsAdapterSchemaContractTest`、AUTOMOC、二回の無作業再構築、公開API検査、書式、差分、`verify-quick`に担当側と中央で成功した。近傍は前後とも4工程・8入力、command SHA-256 `bba0a9e4489d2113b1c2d6c2337c713f91c72e5a6892aa648b525c189959d9c1`、input SHA-256 `7c107eea92932209598fd738837604265ae09c43e84860bfce750c3f0f54a183`、AUTOMOC `HEADERS=[]`、Qt Core・Testだけの直接接続を維持した。公開API 29,804件、対象18識別子と指紋は不変である。cleanな専用作業tree、304,900 KiBの構築木、branchを削除して895,756 KiBを回収した。製品target、重量`KisNodeOperationBatchTest`、全体build・`verify`、Linux、Nix再評価は実行していない。
-- `g264-node-operation-batch-schema`の状態は`in_progress`、実装基点は`1b98050dae`、専用作業treeは`/Users/masato/Documents/librepaint-g264-node-operation-batch-schema`、branchは`agent/g264-node-operation-batch-schema`、macOSの対象と近傍に限る構築実行許可は`granted`である。許可pathは新規`libs/image/tests/KisNodeOperationBatchSchemaContractTest.cpp`と`libs/image/tests/CMakeLists.txt`の新target固有節だけで、調整担当だけが文書、台帳、共通不足報告を変更する。Git権限は許可pathだけの受渡しcommit 1件、追加委任は禁止する。
+- `g264-node-operation-batch-schema`の状態は`integrated`、実装基点は`1b98050dae`、専用作業treeは`/Users/masato/Documents/librepaint-g264-node-operation-batch-schema`、branchは`agent/g264-node-operation-batch-schema`、macOSの対象と近傍に限る構築実行許可は`granted`である。許可pathは新規`libs/image/tests/KisNodeOperationBatchSchemaContractTest.cpp`と`libs/image/tests/CMakeLists.txt`の新target固有節だけで、調整担当だけが文書、台帳、共通不足報告を変更した。Git権限は許可pathだけの受渡しcommit 1件、追加委任は禁止した。
 - 正式不足一覧の残存全18 APIを、`nodeOperationBatchTypeLifetimeAndStateSchemaRemainStable`へ型・構築・破棄・auto-delete・終了状態5件、`nodeOperationBatchHierarchyOrderingSignaturesRemainStable`へ追加・削除・複製・昇順・降順5件、`nodeOperationBatchDestinationMutationSignaturesRemainStable`へ単一移動・複数移動・複写3件、`nodeOperationBatchGroupingAndMergeSignaturesRemainStable`へgroup化・group解除・結合判定3件、`nodeOperationBatchCompletionAndNotificationSignaturesRemainStable`へ終了・非同期更新通知2件として対応付ける。型特性、厳密member pointer、未評価構築式だけを使い、batch、image、node、文字列、stroke、signal配送を実体化しない。
 - 新targetはimage・globalのsource/generated探索路、`kritaimage_EXPORTS`、Qt Core・Testだけの直接linkによる4工程・8入力、停止線5工程・11入力とする。軽量近傍は`KisNodeCommandsAdapterSchemaContractTest`とし、変更前target不存在、5枠宣言段階の期待link失敗、5枠単発・各20回、全target・正式CTest・近傍、AUTOMOC後の二回目計画、二回の無作業再構築、動的接続・未解決記号・厳格構文・書式・差分・公開API検査・`verify-quick`を確認する。候補headerのAUTOMOC入力化、painting/undo、pigment、KF、Boost、Qt Gui・Widgets・Xmlまたは製品libraryの接続、製品・metaobject未解決記号、実体化または許可path外変更が必要なら停止する。
+
+### 第264便の契約統合結果
+
+- 開始`libs/image/commands/kis_node_operation_batch.h`から新規`libs/image/tests/KisNodeOperationBatchSchemaContractTest.cpp`へ、型・構築・寿命・状態、階層順序操作、移動先を伴う操作、group化・結合、完了・更新通知を担う残存全18 API・5枠を追加した。`libs/image/tests/CMakeLists.txt`には新target固有節だけを追加し、公開header、製品source、既存targetを変更していない。5枠宣言段階では全5試験関数の未定義link失敗を確認した。受渡しcommit `774462eae5`を中央commit `d46532f29d`として取り込んだ。
+- 担当側のmacOSで5枠を各20回、全7試験、正式CTest `libs-image-KisNodeOperationBatchSchemaContractTest`、軽量近傍`libs-image-KisNodeCommandsAdapterSchemaContractTest`、AUTOMOC後の二回目計画、二回の無作業再構築に成功した。新targetは4工程・8入力、command SHA-256 `566341c388cf04034b4813d88244a0ba4233b0d1574155cf4fe68eb18d6ad613`、input SHA-256 `06a9425aa3f0370401f740ad04438c44e13e13c28bdda16cc123105988a13be2`、AUTOMOC `HEADERS=[]`、Qt Core・Testだけの動的接続、製品・metaobject未解決記号0である。厳格構文、書式、差分、公開API検査、`verify-quick`にも成功し、中央でも対象と近傍、二回の無作業再構築に成功した。
+- 台帳へ18 APIを追加して22,132件対応、7,672件未対応となり、旧基準7,690件に対する実測7,672件の期待不一致を確認してから基準を更新した。cleanな専用作業tree、301,256 KiBの構築木、branchを削除して892,116 KiBを回収し、旧`public-api-missing-g264.json` 2,046,363 bytesを削除した。主Ninja木5,787,792 KiB、共有compiler cache 983,132 KiB、最新`build/tdd-macos/public-api-missing-g265.json` 2,040,655 bytes、SHA-256 `c9fb00a297b3a01e0f2fd2095cbc7f3079337202d96fb6a75a2a074cd58fc9ef`だけを再利用対象として保持する。compiler cacheは143,444件中120,279件、83.85%がhitしている。製品target、重量`KisNodeOperationBatchTest`、全体build・`verify`、Linux、Nix再評価は実行していない。
 
 ### 第265便の先行監査担当票
 
@@ -1322,7 +1328,7 @@
 ### 第265便の監査結果と担当計画
 
 - `libs/painting/kis_figure_painting_stroke.h`の残存全17 APIは識別子整列集合SHA-256 `a50c6bf3a2c0d6ec9ee5deed1fe6881720215426f9112d3f1743cd4bcac6a862`を持つ。型・寿命・構築・非copy性5、前景・背景色・brush・選択上書き4、線・折れ線・polygon・矩形・楕円5、painter path 1、pen付きpath描画・塗潰し2の5枠へ割り当てる。削除copy構築・代入は否定型特性、fill transformの既定値は必須6引数だけの未評価構築式、残るmethodは厳密member pointerで観測する。stroke開始・終了、資源snapshot、上書き反映、画素結果、stroke queueとundoは既存重量試験へ残す。
-- `g265-figure-painting-stroke-schema`の状態は`planned`とする。許可pathは新規`libs/painting/tests/KisFigurePaintingStrokeSchemaContractTest.cpp`と`libs/painting/tests/CMakeLists.txt`の新target固有節だけである。新targetはpainting・strokes・painting/undo・global・image・brushengine・filter・pigment・pigment/resources・resourcesのsource/generated探索路、Qt Gui・Xml、KF I18n、Eigen、Imathのinterface探索、6 export定義、Qt Core・Testとheader-only Boostだけの直接linkによる4工程・8入力を予測し、停止線5工程・11入力とする。軽量近傍`KisResourcesSnapshotSchemaContractTest`は4工程・8入力、command SHA-256 `748cf4371e3c3c7fb67ca9763c2dae1d8fdc9b9ce71fdf1338a93d90495e65dc`、input SHA-256 `c2059b5e4a87dbc220b714d394c8b6f3c4e49e57d358fe0079f9c0ff4e83bd9a`である。Qt Gui・Xml・KF・Imathの動的接続、製品shared・OBJECT、`kritatestsdk`、候補headerのAUTOMOC入力化、製品未解決記号、実体化または許可path外変更が必要なら停止する。G264完了後に開始する。
+- `g265-figure-painting-stroke-schema`の状態は`in_progress`、実装基点は`d46532f29d`、専用作業treeは`/Users/masato/Documents/librepaint-g265-figure-painting-stroke-schema`、branchは`agent/g265-figure-painting-stroke-schema`、macOSの対象と近傍に限る構築実行許可は`granted`である。許可pathは新規`libs/painting/tests/KisFigurePaintingStrokeSchemaContractTest.cpp`と`libs/painting/tests/CMakeLists.txt`の新target固有節だけで、調整担当だけが文書、台帳、共通不足報告を変更する。担当のGit権限は許可pathだけの受渡しcommit 1件、追加委任は禁止する。新targetはpainting・strokes・painting/undo・global・image・brushengine・filter・pigment・pigment/resources・resourcesのsource/generated探索路、Qt Gui・Xml、KF I18n、Eigen、Imathのinterface探索、6 export定義、Qt Core・Testとheader-only Boostだけの直接linkによる4工程・8入力を予測し、停止線5工程・11入力とする。軽量近傍`KisResourcesSnapshotSchemaContractTest`は4工程・8入力、command SHA-256 `748cf4371e3c3c7fb67ca9763c2dae1d8fdc9b9ce71fdf1338a93d90495e65dc`、input SHA-256 `c2059b5e4a87dbc220b714d394c8b6f3c4e49e57d358fe0079f9c0ff4e83bd9a`である。Qt Gui・Xml・KF・Imathの動的接続、製品shared・OBJECT、`kritatestsdk`、候補headerのAUTOMOC入力化、製品未解決記号、実体化または許可path外変更が必要なら停止する。
 
 ### 第266便の先行監査担当票
 
@@ -1350,8 +1356,14 @@
 ### 第268便の先行監査担当票
 
 - 監査共通基点は`a5f7b80df5`、正式入力は`build/tdd-macos/public-api-missing-g264.json`である。第264便から第267便までの選定済みAPIを除外し、`libs/canvas/KisCanvasState.h`の残存全19 APIを、canvas表示状態の値契約候補として監査する。主作業treeと既存構築記録の読み取りだけを許可し、変更、構成、構築、試験、Git操作、生成物作成、追加委任を行わず、G264の専用構築木を共有しない。
-- `g268-canvas-state-api-audit`の状態は`in_progress`である。正式識別子の完全性、一意性、台帳非重複、整列指紋、公開field・等価性・zoom写像・converter採取の責務別割当を確認し、未初期化値を読まずに固定できる決定的な値契約と動的契約へ残す範囲を確定する。
-- `g268-canvas-state-closure-review`の状態は`in_progress`である。`KisCanvasState.cpp`に同居する純粋値処理と座標converter依存処理の所有を調べ、実装object分割、既存対象追記、新規限定対象の依存方向・閉包・製品集約方法を比較する。構造整理が現在の製品責務も明確にし、4工程・8入力程度の反復対象を実現する場合だけ具体的な開始→移動先、許可path、停止線を提案する。
+- `g268-canvas-state-api-audit`の状態は`completed`である。正式識別子の完全性、一意性、台帳非重複、整列指紋、公開field・等価性・zoom写像・converter採取の責務別割当と、全fieldを明示初期化する値fixtureを確認した。
+- `g268-canvas-state-closure-review`の状態は`completed`である。`KisCanvasState.cpp`に同居する純粋値処理と座標converter依存処理の所有を調べ、既存converter翻訳単位への移動と純粋値object対象への所有移管が製品工程数を増やさず、5工程・11入力の反復対象を実現できると確認した。
+
+### 第268便の監査結果と構造準備計画
+
+- `libs/canvas/KisCanvasState.h`の残存全19 APIは一意かつ台帳と非重複で、識別子整列集合SHA-256 `ca53d53dfe197d2b2db192066f04a0f30753f31e6c9ca07acac2081a42799fc3`を持つ。型・zoom値5を含む6、mode・反転・位置6、範囲・寸法4、全値の等価性1、zoom状態写像・converter採取2の5枠へ割り当てる。15 fieldをすべて明示初期化して読書き・型・全field比較を固定し、5つのqrealは正の隣接表現で`qFuzzyCompare`等価性、`zoomState()`はmode・zoom・上下限の写像を値契約として観測する。`fromConverter()`の15項目採取と不整合警告は実converterを使う後続の動的契約で扱う。
+- `g268a-canvas-state-value-boundary`の状態は`planned`とする。開始`libs/canvas/KisCanvasState.cpp`の`KisCanvasState::fromConverter()`を既存`libs/canvas/kis_coordinates_converter.cpp`へ移し、元ファイルには`operator==`と`zoomState()`だけを残す。`libs/canvas/CMakeLists.txt`で元ファイルを製品直接source一覧から新規`kritacanvasstateobjects`へ移し、製品`kritacanvas`が生成objectを一度だけ集約する。これにより純粋値処理からconverter経由のimage・global・Qt Gui依存を除く。許可pathはこの2 cppとcanvas CMakeだけで、公開headerと翻訳単位数を変更しない。
+- 続く`g268-canvas-state-contract`は新規`libs/canvas/tests/KisCanvasStateContractTest.cpp`と`libs/canvas/tests/CMakeLists.txt`の新target固有節だけを許可する。`kritacanvasstateobjects`はAUTOMOCを無効化し、canvas・flake探索路、`kritacanvas_EXPORTS`、BoostとQt Coreだけで1工程・3入力を予測する。契約targetは同objectとQt Testを直接接続する5工程・11入力を予測し、停止線6工程・14入力とする。製品`kritacanvas`は1,220工程以下・2,461入力以下、objectの単一集約を条件とする。Qt Gui・Widgets・Xml、KF、image・global・pigment・resources、製品shared、`kritatestsdk`、`fromConverter()`実行、候補headerのAUTOMOC入力、公開API変更、許可path外変更が必要なら停止する。第267便完了後にG268aから開始する。
 
 ### 第239便の先行監査担当票
 
