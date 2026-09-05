@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 11:28 JST
+- 更新日時: 2026-09-05 11:41 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -802,13 +802,18 @@
 
 ### 第231便の担当計画
 
-- 実装基点は`bc6e023f78`である。`g231-safe-projection-store-schema`の状態は`planned`、専用作業treeは`/Users/masato/Documents/librepaint-g231-safe-projection-store-schema`、branchは`agent/g231-safe-projection-store-schema`である。開始`libs/image/KisSafeNodeProjectionStore.h`の残存全19 APIを、新規`libs/image/tests/KisSafeNodeProjectionStoreSchemaContractTest.cpp`の5枠へ固定する。許可pathは同試験sourceと`libs/image/tests/CMakeLists.txt`の新target固有節だけで、公開header、製品source、既存targetを変更しない。調整担当だけがarchitecture文書、公開API台帳、共通不足報告を変更する。担当のGit権限は許可pathだけの受渡しcommit 1件で、追加委任は禁止する。
+- 実装基点は`bc6e023f78`である。`g231-safe-projection-store-schema`の状態は`integrated`で、開始`libs/image/KisSafeNodeProjectionStore.h`の残存全19 APIを、新規`libs/image/tests/KisSafeNodeProjectionStoreSchemaContractTest.cpp`の5枠へ固定した。許可pathは同試験sourceと`libs/image/tests/CMakeLists.txt`の新target固有節だけで、公開header、製品source、既存targetを変更していない。受渡しcommit `3a7d957fc7`を統合commit `9871588b16`として取り込んだ。
 - 5枠は`baseTypeAndLifetimeSchemaRemainStable`へ基底型、強参照別名、複製構築、破棄の4件、`baseControlSchemaRemainStable`へ装置解放、画像設定、内部cleanup通知の3件、`paintDeviceStoreSchemaRemainStable`へ描画装置用型、強・弱参照別名、既定・複製構築、遅延取得の6件、`selectionStoreTypeAndLifetimeSchemaRemainStable`へ選択用型、強・弱参照別名、既定構築の4件、`selectionStoreCopyAndDeviceSchemaRemainStable`へ複製構築と遅延取得の2件を対応付ける。正式入力の完全な19識別子と識別子整列集合SHA-256 `76fad9e2666155c6b95e43ff8d410d6dbce7c81784a934b208d091b8fb871617`を維持する。`KisSafeNodeProjectionStoreBaseWSP`は正式集合外であり、所有header側の別契約へ残す。
 - 新targetはimage・global source/generated探索路、`kritaimage_EXPORTS`、Qt Core・Testだけに限定し、予測閉包4工程・8入力、停止線5工程・11入力とする。型特性、別名同一性、厳密なmember pointerだけで観測し、QObject、共有pointer、画像、描画装置、選択、保管型を実体化しない。担当は編集前target不存在、直接依存、初回計画、5枠宣言段階の期待link失敗、5枠単発・各20回、全target、正式CTest、近傍`KisUpdateSchedulerSchemaContractTest`、AUTOMOC後二回目計画、無作業再構築2回、動的接続・未解決記号・AUTOMOC入力・構文・書式、差分、公開API検査、`verify-quick`を確認する。5工程・11入力超過、追加探索路・定義・link、製品shared・OBJECT・`kritatestsdk`の動的接続、候補headerのAUTOMOC入力化、製品未解決記号、対象実体化、許可path外の変更が必要なら停止する。製品target、全体build・`verify`、Linux、Nix再評価は禁止する。
 
-### 第232便の先行監査担当票（第231便確定待ち）
+### 第231便の統合結果
 
-- `g232-cross-device-color-sampler-schema-formal-review`の状態は`completed-preparation-required`、担当は`g208_raster_keyframe_schema`、基点は`66c906977f`である。正式入力`build/tdd-macos/public-api-missing-g226.json`でも`libs/image/kis_cross_device_color_sampler.h`の残存全19 APIは一意で台帳と重複せず、識別子整列集合SHA-256 `11ea4757d5a03fcb661aa073f82b79eea091c3edc25f7ebf1310950d42527313`、5枠5・5・3・4・2に一致した。実数・整数座標traitとsampler templateは、異なる座標精度のaccessorから新旧画素を読み、出力先色空間へ変換する一責務である。ただし候補headerはinline本文で完全な`KisPaintDevice`と`KoColor`を使いながら直接includeせず、単独includeが成立しない。試験source側の前置includeで隠さず、実装前に同headerへ必要な直接includeを与える自己完結性修正を独立変更として監査する。修正後の新targetはimage・global・pigment探索路、Qt Gui・KF I18n interface、2 export定義、Qt Core・Testとheader-only Boostだけの4工程・8入力を見込む。色空間取得、座標補間、新旧tile読取り、変換結果、accessor cache寿命は既存または後続の動的契約で扱う。
+- 開始`libs/image/KisSafeNodeProjectionStore.h`から新規`libs/image/tests/KisSafeNodeProjectionStoreSchemaContractTest.cpp`へ19 API・5枠を追加した。担当側と中央のmacOSで5枠を各20回、対象全7件、正式CTestと近傍`KisUpdateSchedulerSchemaContractTest`、AUTOMOC後の二回目計画、無作業再構築2回に成功した。中央実測は4工程・8入力、command SHA-256 `7c3d8d0387547385c7f6777f57cae409128628b5e59d46f414090684fde7b857`、input SHA-256 `7ea70950e6c6ab4366c64e6d26a24070ccdd84f46c440b60988b0b857c55b4a4`、AUTOMOC `HEADERS=[]`、Qt Core・Testと非製品runtimeだけの動的接続、製品未解決記号なしである。正しいcompile commandによる`clang-check -Werror`、書式、差分、macOSのpackage境界1,872対象、公開API検査、`verify-quick`に成功し、台帳は21,472件対応、8,332件未対応となった。遅延装置生成、cleanup signal配送、画像消滅時のcache破棄、ABA対策、複製時の内容、QObject寿命の実行時挙動は既存または後続の動的契約で扱う。
+- 統合済みpatchとclean状態を確認後に専用作業tree、300,352 KiBのlane構築木、branchを削除して890,716 KiBを回収した。旧`public-api-missing-g231.json`を削除し、主Ninja木5,758,580 KiB、共有compiler cache 983,296 KiB、最新`build/tdd-macos/public-api-missing-g232.json` 2,213,815 bytes、SHA-256 `897bb0e39ff7ec1b24b1f828ce1bdd4b483a3e2d555fe4572b89708467aae56b`だけを次便へ再利用する。compiler cacheは143,062件中120,220件、84.03%がhitしている。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+
+### 第232便の先行監査担当票
+
+- `g232-cross-device-color-sampler-schema-formal-review`の状態は`completed-preparation-required`、担当は`g208_raster_keyframe_schema`、基点は`66c906977f`である。第231便後の正式入力`build/tdd-macos/public-api-missing-g232.json`でも`libs/image/kis_cross_device_color_sampler.h`の残存全19 APIは一意で台帳と重複せず、識別子整列集合SHA-256 `11ea4757d5a03fcb661aa073f82b79eea091c3edc25f7ebf1310950d42527313`、5枠5・5・3・4・2に一致した。実数・整数座標traitとsampler templateは、異なる座標精度のaccessorから新旧画素を読み、出力先色空間へ変換する一責務である。ただし候補headerはinline本文で完全な`KisPaintDevice`と`KoColor`を使いながら直接includeせず、単独includeが成立しない。試験source側の前置includeで隠さず、実装前に同headerへ必要な直接includeを与える自己完結性修正を独立変更として監査する。修正後の新targetはimage・global・pigment探索路、Qt Gui・KF I18n interface、2 export定義、Qt Core・Testとheader-only Boostだけの4工程・8入力を見込む。色空間取得、座標補間、新旧tile読取り、変換結果、accessor cache寿命は既存または後続の動的契約で扱う。
 
 ### 第233便の先行監査担当票（第232便確定待ち）
 

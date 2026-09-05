@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 8351
+    "expectedMissingApis": 8332
   },
   "contracts": [
     {
@@ -59637,6 +59637,70 @@
       "apis": [
         "method:KisOverlayPaintDeviceWrapper::beginTransaction(KUndo2Command * parent=0)",
         "method:KisOverlayPaintDeviceWrapper::endTransaction()"
+      ]
+    },
+    {
+      "target": "KisSafeNodeProjectionStoreSchemaContractTest",
+      "source": "libs/image/tests/KisSafeNodeProjectionStoreSchemaContractTest.cpp",
+      "test": "KisSafeNodeProjectionStoreSchemaContractTest::baseTypeAndLifetimeSchemaRemainStable",
+      "behavior": "安全なnode投影保管の基底は強参照別名、複製構築、仮想破棄を備える公開型構成を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisSafeNodeProjectionStoreBaseSP",
+        "class:KisSafeNodeProjectionStoreBase",
+        "method:KisSafeNodeProjectionStoreBase::KisSafeNodeProjectionStoreBase(const KisSafeNodeProjectionStoreBase & rhs)",
+        "method:KisSafeNodeProjectionStoreBase::~KisSafeNodeProjectionStoreBase()"
+      ]
+    },
+    {
+      "target": "KisSafeNodeProjectionStoreSchemaContractTest",
+      "source": "libs/image/tests/KisSafeNodeProjectionStoreSchemaContractTest.cpp",
+      "test": "KisSafeNodeProjectionStoreSchemaContractTest::baseControlSchemaRemainStable",
+      "behavior": "安全なnode投影保管の基底は装置を解放し、画像の弱参照を設定し、内部cleanup開始を通知する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSafeNodeProjectionStoreBase::internalInitiateProjectionsCleanup()",
+        "method:KisSafeNodeProjectionStoreBase::releaseDevice()",
+        "method:KisSafeNodeProjectionStoreBase::setImage(KisImageWSP image)"
+      ]
+    },
+    {
+      "target": "KisSafeNodeProjectionStoreSchemaContractTest",
+      "source": "libs/image/tests/KisSafeNodeProjectionStoreSchemaContractTest.cpp",
+      "test": "KisSafeNodeProjectionStoreSchemaContractTest::paintDeviceStoreSchemaRemainStable",
+      "behavior": "描画装置用の安全なnode投影保管は強・弱参照別名、既定・複製構築、描画装置の遅延取得を備える公開構成を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisSafeNodeProjectionStoreSP",
+        "alias:KisSafeNodeProjectionStoreWSP",
+        "class:KisSafeNodeProjectionStore",
+        "method:KisSafeNodeProjectionStore::KisSafeNodeProjectionStore()",
+        "method:KisSafeNodeProjectionStore::KisSafeNodeProjectionStore(const KisSafeNodeProjectionStore & rhs)",
+        "method:KisSafeNodeProjectionStore::getDeviceLazy(KisPaintDeviceSP prototype)"
+      ]
+    },
+    {
+      "target": "KisSafeNodeProjectionStoreSchemaContractTest",
+      "source": "libs/image/tests/KisSafeNodeProjectionStoreSchemaContractTest.cpp",
+      "test": "KisSafeNodeProjectionStoreSchemaContractTest::selectionStoreTypeAndLifetimeSchemaRemainStable",
+      "behavior": "選択用の安全なnode投影保管は強・弱参照別名と既定構築を備える公開型構成を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisSafeSelectionNodeProjectionStoreSP",
+        "alias:KisSafeSelectionNodeProjectionStoreWSP",
+        "class:KisSafeSelectionNodeProjectionStore",
+        "method:KisSafeSelectionNodeProjectionStore::KisSafeSelectionNodeProjectionStore()"
+      ]
+    },
+    {
+      "target": "KisSafeNodeProjectionStoreSchemaContractTest",
+      "source": "libs/image/tests/KisSafeNodeProjectionStoreSchemaContractTest.cpp",
+      "test": "KisSafeNodeProjectionStoreSchemaContractTest::selectionStoreCopyAndDeviceSchemaRemainStable",
+      "behavior": "選択用の安全なnode投影保管は複製構築と選択装置の遅延取得を行う公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSafeSelectionNodeProjectionStore::KisSafeSelectionNodeProjectionStore(const KisSafeSelectionNodeProjectionStore & rhs)",
+        "method:KisSafeSelectionNodeProjectionStore::getDeviceLazy(KisSelectionSP prototype)"
       ]
     }
   ]
