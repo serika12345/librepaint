@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 17:17 JST
+- 更新日時: 2026-09-05 17:21 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1046,6 +1046,12 @@
 - 開始`libs/input/ui/kis_alternate_invocation_action.h`から`libs/input/ui/kis_alternate_invocation_action.cpp`へprivate `shortcutToToolAction(int)`と`kis_tool.h`依存を移し、公開headerの直接依存を抽象入力action、`QScopedPointer`、export宣言まで縮小した。受渡しcommit `f38493dd58`を中央commit `d742920dbb`として取り込み、列挙値、工具action変換、入力event転送順、公開APIを維持した。正確な製品objectのNinja dry planは所有targetの集約order-only辺により1,355工程・2,719入力へ広がるため実構築を行わず、当該翻訳単位のcompile commandを使う`clang-check`で変更を検査した。既存の非推奨`QMouseEvent`構築4診断だけをerrorから除外して成功し、依存整理後の契約targetは変更前と同じ4工程・8入力を維持した。
 - 開始headerの残存全18 APIを既存`libs/input/ui/tests/KisToolInvocationActionSchemaContractTest.cpp`の5枠へ追加し、受渡しcommit `a0deb19684`を中央commit `aeb7671355`として取り込んだ。CMake、公開API、既存10枠を変更していない。担当側と中央のmacOSで追加5枠を各20回、既存を含む全15枠、正式CTestと軽量近傍`libs-canvas-KisInputActionGroupContractTest`、AUTOMOC後の二回目計画、無作業再構築2回に成功した。中央実測は4工程・8入力、変更前と同じcommand SHA-256 `e3a590c73ad41e74b9c42f2fbd843a7359765c621f6f8e58108d39d1b52d171e`、input SHA-256 `e1715686d374cad9c0db1a52dd4b6586745228d3ebcfdec7c822c48e7c69827c`、AUTOMOC `HEADERS=[]`、Qt Core・TestとOS frameworkだけの動的接続、製品未解決記号なしである。試験sourceの厳格`clang-check`、変更行の書式、差分、macOSのpackage境界1,886対象、公開API検査に成功し、台帳は21,826件対応、7,978件未対応となった。shortcutから工具actionへの変換、色採取先、入力event配送、priority、高解像度入力判定の実行結果は既存または後続の動的契約で扱う。
 - 統合patchの同一性とclean状態を確認後に専用作業tree、304,836 KiBのlane構築木、branchを削除して895,452 KiBを回収した。旧`public-api-missing-g249.json`を削除し、主Ninja木5,775,200 KiB、共有compiler cache 983,036 KiB、最新`build/tdd-macos/public-api-missing-g250.json` 2,124,346 bytes、SHA-256 `401f18887900fc1784cc5da43efc7297ac96a78e03dd631970914f3245d25d00`だけを次便へ再利用する。compiler cacheは143,204件中120,258件、83.98%がhitしている。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+
+### 第250便の担当計画
+
+- 実装基点は`8d853572cf`である。`g250-folder-storage-schema`の状態は`planned`、専用作業treeは`/Users/masato/Documents/librepaint-g250-folder-storage-schema`、branchは`agent/g250-folder-storage-schema`とする。開始`libs/resources/KisFolderStorage.h`の残存全15 APIを、既存`libs/resources/tests/KisMemoryStorageSchemaContractTest.cpp`の5枠へ固定する。許可pathは同試験sourceだけで、CMake、公開header、製品source、既存5枠を変更しない。調整担当だけがarchitecture文書、公開API台帳、共通不足報告を変更する。担当のGit権限は許可pathだけの受渡しcommit 1件で、追加委任は禁止する。
+- 5枠は`folderStorageTypeLifetimeAndConstructionSchemaRemainStable`へ型・構築・破棄3件、`folderStorageResourceMutationSignaturesRemainStable`へ資源追加・版付読込・新規版保存3件、`folderStorageImportExportAndPathSignaturesRemainStable`へ取込・出力・path・MD5 4件、`folderStorageLookupAndIteratorSignaturesRemainStable`へ資源項目・資源iterator・tag iterator 3件、`folderStorageMetadataSignaturesRemainStable`へmetadata値・key一覧2件を対応付ける。正式入力`build/tdd-macos/public-api-missing-g250.json`の完全な15識別子と識別子整列集合SHA-256 `7a186d498c3dadbbf331a44534f561a62d85e7209871251a25cdebe092eafa1c`を維持する。
+- 事前の構築範囲監査では候補headerの直接依存が公開継承とnested iterator型に必要な`KisStoragePlugin.h`および自身のexport宣言だけで、移すべき不要includeはない。既存targetはresources source/generated探索路、`kritaresources_EXPORTS`、Qt Gui・KF I18nのinterface探索、Qt Core・Testとheader-only Boostだけの4工程・8入力であり、同じstorage plugin責務とcompile界面を再利用する方が新target追加より小さい。停止線は5工程・11入力とする。候補headerを最初にincludeし、継承・寿命特性と厳密なmember pointerだけで観測する。storage、基底、resource、device、iterator、Qt値を実体化せず製品本文を実行しない。担当は変更前plan・直接依存・空閉包、5枠宣言段階の期待link失敗、追加5枠単発・各20回、既存を含む全target、正式CTest、軽量近傍`KisResourceIteratorSchemaContractTest`、AUTOMOC後二回目plan、無作業build 2回、4/8とhash、動的接続・未解決記号・AUTOMOC入力・構文・書式、差分、公開API検査、`verify-quick`を確認する。CMake変更、5工程・11入力超過、新しい探索路・定義・link、Qt Gui・KF I18n・resources製品libraryの動的接続、製品shared・OBJECT・`kritatestsdk`、候補headerのAUTOMOC入力化、製品未解決記号、対象実体化、許可path外変更が必要なら停止する。製品target、重量`TestFolderStorage`、全体build・`verify`、Linux、Nix再評価は禁止する。
 
 ### 第239便の先行監査担当票
 
