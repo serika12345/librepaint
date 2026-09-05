@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 11:25 JST
+- 更新日時: 2026-09-05 11:28 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -799,6 +799,12 @@
 ### 第231便の先行監査担当票
 
 - `g231-safe-projection-store-schema-formal-review`の状態は`completed-ready`、担当は`g178_paintop_settings_schema`、基点は`d9d66f7f4f`である。第230便後の正式入力`build/tdd-macos/public-api-missing-g231.json`でも`libs/image/KisSafeNodeProjectionStore.h`の残存全19 APIは一意で台帳と重複せず、識別子整列集合SHA-256 `76fad9e2666155c6b95e43ff8d410d6dbce7c81784a934b208d091b8fb871617`、新規`libs/image/tests/KisSafeNodeProjectionStoreSchemaContractTest.cpp`の5枠4・3・6・4・2に一致した。3型はnode projectionの安全な所有・遅延生成・解放調整を共通責務とする。動的consumer試験は1,200工程・2,423入力で製品libraryへ接続し、既存の軽量試験はconsumer責務へ分散するため、新targetを採用する。同targetはimage・global探索路、`kritaimage_EXPORTS`、Qt Core・Testだけで初回・AUTOMOC後とも4工程・8入力へ閉じられ、軽量近傍`KisUpdateSchedulerSchemaContractTest`も同じ4工程・8入力、AUTOMOC `HEADERS=[]`、製品辺なしである。正式集合外の`KisSafeNodeProjectionStoreBaseWSP`は`KisRecycleProjectionsJob.h`所有として別記録する。thread affinity、signal配送、画像消滅時のcache破棄、ABA対策、copy時複製、実際の共有・QObject二重寿命は既存または後続の動的契約で扱う。
+
+### 第231便の担当計画
+
+- 実装基点は`bc6e023f78`である。`g231-safe-projection-store-schema`の状態は`planned`、専用作業treeは`/Users/masato/Documents/librepaint-g231-safe-projection-store-schema`、branchは`agent/g231-safe-projection-store-schema`である。開始`libs/image/KisSafeNodeProjectionStore.h`の残存全19 APIを、新規`libs/image/tests/KisSafeNodeProjectionStoreSchemaContractTest.cpp`の5枠へ固定する。許可pathは同試験sourceと`libs/image/tests/CMakeLists.txt`の新target固有節だけで、公開header、製品source、既存targetを変更しない。調整担当だけがarchitecture文書、公開API台帳、共通不足報告を変更する。担当のGit権限は許可pathだけの受渡しcommit 1件で、追加委任は禁止する。
+- 5枠は`baseTypeAndLifetimeSchemaRemainStable`へ基底型、強参照別名、複製構築、破棄の4件、`baseControlSchemaRemainStable`へ装置解放、画像設定、内部cleanup通知の3件、`paintDeviceStoreSchemaRemainStable`へ描画装置用型、強・弱参照別名、既定・複製構築、遅延取得の6件、`selectionStoreTypeAndLifetimeSchemaRemainStable`へ選択用型、強・弱参照別名、既定構築の4件、`selectionStoreCopyAndDeviceSchemaRemainStable`へ複製構築と遅延取得の2件を対応付ける。正式入力の完全な19識別子と識別子整列集合SHA-256 `76fad9e2666155c6b95e43ff8d410d6dbce7c81784a934b208d091b8fb871617`を維持する。`KisSafeNodeProjectionStoreBaseWSP`は正式集合外であり、所有header側の別契約へ残す。
+- 新targetはimage・global source/generated探索路、`kritaimage_EXPORTS`、Qt Core・Testだけに限定し、予測閉包4工程・8入力、停止線5工程・11入力とする。型特性、別名同一性、厳密なmember pointerだけで観測し、QObject、共有pointer、画像、描画装置、選択、保管型を実体化しない。担当は編集前target不存在、直接依存、初回計画、5枠宣言段階の期待link失敗、5枠単発・各20回、全target、正式CTest、近傍`KisUpdateSchedulerSchemaContractTest`、AUTOMOC後二回目計画、無作業再構築2回、動的接続・未解決記号・AUTOMOC入力・構文・書式、差分、公開API検査、`verify-quick`を確認する。5工程・11入力超過、追加探索路・定義・link、製品shared・OBJECT・`kritatestsdk`の動的接続、候補headerのAUTOMOC入力化、製品未解決記号、対象実体化、許可path外の変更が必要なら停止する。製品target、全体build・`verify`、Linux、Nix再評価は禁止する。
 
 ### 第232便の先行監査担当票（第231便確定待ち）
 
