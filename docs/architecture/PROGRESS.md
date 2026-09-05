@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 15:05 JST
+- 更新日時: 2026-09-05 15:26 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -973,6 +973,17 @@
 - 実装基点は`989934cf4b`である。`g243-translate-layer-names-visitor-schema`の状態は`planned`、専用作業treeは`/Users/masato/Documents/librepaint-g243-translate-layer-names-visitor-schema`、branchは`agent/g243-translate-layer-names-visitor-schema`である。開始`libs/image/KisTranslateLayerNamesVisitor.h`の残存全15 APIを、既存`libs/image/tests/KisNodeVisitorContractTest.cpp`の5枠へ追加する。許可pathは同試験sourceだけで、CMake、公開header、製品source、既存3枠を変更しない。調整担当だけがarchitecture文書、公開API台帳、共通不足報告を変更する。担当のGit権限は許可pathだけの受渡しcommit 1件で、追加委任は禁止する。
 - 5枠は`translateLayerNamesVisitorTypeConstructionAndDictionarySchemaRemainStable`へ型、辞書構築、既定辞書の3件、`translateLayerNamesVisitorBaseAndPaintLayerSignaturesRemainStable`へnode・paint・group layer訪問の3件、`translateLayerNamesVisitorGeneratedAndExternalLayerSignaturesRemainStable`へadjustment・external・generator layer訪問の3件、`translateLayerNamesVisitorCloneAndFilterMaskSignaturesRemainStable`へclone layer・filter mask・transform mask訪問の3件、`translateLayerNamesVisitorRemainingMaskSignaturesRemainStable`へtransparency・selection・colorize mask訪問の3件を対応付ける。正式入力`build/tdd-macos/public-api-missing-g243.json`の完全な15識別子と識別子整列集合SHA-256 `89c47e41d29538961907377d24ffa273b779b3e51adca618d5c05f3e0682f488`を維持する。
 - 既存target `KisNodeVisitorContractTest`はimage source/generated探索路、`kritaimage_EXPORTS`、Qt Core・Testだけの4工程・8入力を維持し、停止線5工程・11入力とする。候補headerを先頭includeし、型特性と厳密な関数・member pointerだけで観測する。visitor、辞書、node、layer、mask、Qt値を実体化せず翻訳本文を実行しない。担当は変更前計画・直接依存・空閉包、5枠宣言段階の期待link失敗、追加5枠単発・各20回、既存を含む全target、正式CTest、軽量近傍、AUTOMOC後二回目計画、無作業再構築2回、動的接続・未解決記号・AUTOMOC入力・構文・書式、差分、公開API検査、`verify-quick`を確認する。CMake変更、新しい探索路・定義・link、5工程・11入力超過、製品shared・OBJECT・`kritatestsdk`の接続、候補headerのAUTOMOC入力化、製品未解決記号、対象実体化、許可path外変更が必要なら停止する。製品target、全体build・`verify`、Linux、Nix再評価は禁止する。
+
+### 第243便の契約統合結果
+
+- 開始`libs/image/KisTranslateLayerNamesVisitor.h`から既存`libs/image/tests/KisNodeVisitorContractTest.cpp`へ15 API・5枠を追加した。公開header、製品source、CMake、既存3枠を変更せず、受渡しcommit `b8a68a07a0`を中央commit `5e880865f1`として取り込んだ。担当側と中央のmacOSで追加5枠を各20回、既存を含む対象全8枠、正式CTestと軽量近傍`KisSpontaneousJobContractTest`、AUTOMOC後の二回目計画、無作業再構築2回に成功した。中央実測は4工程・8入力、command SHA-256 `91057853ea360ff79743d6cc44b9f27153e061754ede0ae3229fc1ce1875d9b8`、input SHA-256 `d28770e56083cefd9385f4b5450ec7b46e60fafebe8cece4dc8acd92f814e0a8`、AUTOMOC `HEADERS=[]`、Qt Core・TestとOS frameworkだけの動的接続、製品未解決記号なしである。正しいcompile commandによる`clang-check -Werror`、書式、差分、macOSのpackage境界1,881対象、公開API検査に成功し、台帳は21,724件対応、8,080件未対応となった。既定辞書の内容、実際の名称変換、node種別ごとの訪問結果は既存または後続の動的契約で扱う。
+- 統合patchの同一性とclean状態を確認後に専用作業tree、305,076 KiBのlane構築木、branchを削除して895,612 KiBを回収した。旧`public-api-missing-g243.json`を削除し、主Ninja木5,769,992 KiB、共有compiler cache 983,324 KiB、最新`build/tdd-macos/public-api-missing-g244.json` 2,149,256 bytes、SHA-256 `bc6a3554795222ce1ac36df23f493c28f9ba817c8214433dfcc21614cb508d18`だけを次便へ再利用する。compiler cacheは143,157件中120,244件、83.99%がhitしている。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+
+### 第244便の担当計画
+
+- 実装基点は`5e880865f1`である。`g244-language-button-schema`の状態は`planned`、専用作業treeは`/Users/masato/Documents/librepaint-g244-language-button-schema`、branchは`agent/g244-language-button-schema`である。開始`libs/widgetutils/config/klanguagebutton.h`の残存全17 APIを、新規`libs/widgetutils/tests/KLanguageButtonSchemaContractTest.cpp`の5枠へ固定する。許可pathは同試験sourceと`libs/widgetutils/tests/CMakeLists.txt`の新target固有節だけで、公開header、製品source、既存targetを変更しない。調整担当だけがarchitecture文書、公開API台帳、共通不足報告を変更する。担当のGit権限は許可pathだけの受渡しcommit 1件で、追加委任は禁止する。
+- 5枠は`languageButtonTypeLifetimeAndConstructionSchemaRemainStable`へ型、二つの構築、破棄の4件、`languageButtonLocaleAndPresentationSignaturesRemainStable`へlocale・表示文・言語code表示の3件、`languageButtonPopulationSignaturesRemainStable`へ消去・言語追加・区切り追加・全言語読込みの4件、`languageButtonSelectionAndQuerySignaturesRemainStable`へ包含・件数・現在値・選択変更の4件、`languageButtonNotificationSignaturesRemainStable`へ選択・強調通知の2件を対応付ける。正式入力`build/tdd-macos/public-api-missing-g244.json`の完全な17識別子と識別子整列集合SHA-256 `6995b0c509683ddcf095e148da3efc64992fd96b9b288be39c4df80916f84879`を維持する。
+- 新target `KLanguageButtonSchemaContractTest`はwidgetutils source/generated探索路、Qt Gui・Widgets interface探索路、`kritawidgetutils_EXPORTS`、Qt Core・Testだけに限定し、予測閉包4工程・8入力、停止線5工程・11入力とする。候補headerを最初にincludeし、型特性、厳密なmember pointer、構築可能性、既定引数の未評価呼出しだけで観測する。button、widget、文字列、menu、localeを実体化せず製品本文を実行しない。担当は編集前target不存在、直接依存、初回計画、5枠宣言段階の期待link失敗、追加5枠単発・各20回、全target、正式CTest、軽量近傍`KisFontFamilyComboBoxSchemaContractTest`、AUTOMOC後二回目計画、無作業再構築2回、動的接続・未解決記号・AUTOMOC入力・構文・書式、差分、公開API検査、`verify-quick`を確認する。5工程・11入力超過、新しい探索路・定義・link、Qt Gui・WidgetsまたはKFの動的接続、製品shared・OBJECT・`kritatestsdk`の接続、候補headerのAUTOMOC入力化、製品未解決記号、対象実体化、許可path外変更が必要なら停止する。製品target、全体build・`verify`、Linux、Nix再評価は禁止する。
 
 ### 第239便の先行監査担当票
 

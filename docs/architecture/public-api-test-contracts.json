@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 8095
+    "expectedMissingApis": 8080
   },
   "contracts": [
     {
@@ -20573,6 +20573,66 @@
         "method:KisNodeVisitor::visit(KisSelectionMask * mask)",
         "method:KisNodeVisitor::visit(KisTransformMask * mask)",
         "method:KisNodeVisitor::visit(KisTransparencyMask * mask)"
+      ]
+    },
+    {
+      "target": "KisNodeVisitorContractTest",
+      "source": "libs/image/tests/KisNodeVisitorContractTest.cpp",
+      "test": "KisNodeVisitorContractTest::translateLayerNamesVisitorTypeConstructionAndDictionarySchemaRemainStable",
+      "behavior": "レイヤー名翻訳visitorはノードvisitorの具象型であり、翻訳辞書を受け取る構築面と既定辞書の取得署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisTranslateLayerNamesVisitor",
+        "method:KisTranslateLayerNamesVisitor::KisTranslateLayerNamesVisitor(QMap<QString,QString> dictionary)",
+        "method:KisTranslateLayerNamesVisitor::defaultDictionary()"
+      ]
+    },
+    {
+      "target": "KisNodeVisitorContractTest",
+      "source": "libs/image/tests/KisNodeVisitorContractTest.cpp",
+      "test": "KisNodeVisitorContractTest::translateLayerNamesVisitorBaseAndPaintLayerSignaturesRemainStable",
+      "behavior": "レイヤー名翻訳visitorは基底ノード、描画レイヤー、グループレイヤーを借用ポインターで受け取る訪問署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTranslateLayerNamesVisitor::visit(KisGroupLayer * layer)",
+        "method:KisTranslateLayerNamesVisitor::visit(KisNode * node)",
+        "method:KisTranslateLayerNamesVisitor::visit(KisPaintLayer * layer)"
+      ]
+    },
+    {
+      "target": "KisNodeVisitorContractTest",
+      "source": "libs/image/tests/KisNodeVisitorContractTest.cpp",
+      "test": "KisNodeVisitorContractTest::translateLayerNamesVisitorGeneratedAndExternalLayerSignaturesRemainStable",
+      "behavior": "レイヤー名翻訳visitorは調整、外部、生成レイヤーを借用ポインターで受け取る個別の訪問署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTranslateLayerNamesVisitor::visit(KisAdjustmentLayer * layer)",
+        "method:KisTranslateLayerNamesVisitor::visit(KisExternalLayer * layer)",
+        "method:KisTranslateLayerNamesVisitor::visit(KisGeneratorLayer * layer)"
+      ]
+    },
+    {
+      "target": "KisNodeVisitorContractTest",
+      "source": "libs/image/tests/KisNodeVisitorContractTest.cpp",
+      "test": "KisNodeVisitorContractTest::translateLayerNamesVisitorCloneAndFilterMaskSignaturesRemainStable",
+      "behavior": "レイヤー名翻訳visitorは複製レイヤー、フィルターマスク、変形マスクを借用ポインターで受け取る個別の訪問署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTranslateLayerNamesVisitor::visit(KisCloneLayer * layer)",
+        "method:KisTranslateLayerNamesVisitor::visit(KisFilterMask * mask)",
+        "method:KisTranslateLayerNamesVisitor::visit(KisTransformMask * mask)"
+      ]
+    },
+    {
+      "target": "KisNodeVisitorContractTest",
+      "source": "libs/image/tests/KisNodeVisitorContractTest.cpp",
+      "test": "KisNodeVisitorContractTest::translateLayerNamesVisitorRemainingMaskSignaturesRemainStable",
+      "behavior": "レイヤー名翻訳visitorは色付け、選択、透明度マスクを借用ポインターで受け取る個別の訪問署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTranslateLayerNamesVisitor::visit(KisColorizeMask * mask)",
+        "method:KisTranslateLayerNamesVisitor::visit(KisSelectionMask * mask)",
+        "method:KisTranslateLayerNamesVisitor::visit(KisTransparencyMask * mask)"
       ]
     },
     {
