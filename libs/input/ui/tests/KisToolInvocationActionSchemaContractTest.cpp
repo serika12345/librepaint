@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "kis_abstract_input_action.h"
+
 #include "kis_tool_invocation_action.h"
 
 #include <QTest>
@@ -19,6 +21,11 @@ private Q_SLOTS:
     void toolInvocationTemporaryToolShortcutOrdinalsRemainStable();
     void toolInvocationActivationAndEventSignaturesRemainStable();
     void toolInvocationPolicySignaturesRemainStable();
+    void abstractInputActionTypeLifetimeAndConstructionSchemaRemainStable();
+    void abstractInputActionActivationAndCompletionSignaturesRemainStable();
+    void abstractInputActionEventAndGroupSignaturesRemainStable();
+    void abstractInputActionIdentityAndPrioritySignaturesRemainStable();
+    void abstractInputActionAvailabilityPolicySignaturesRemainStable();
 };
 
 void KisToolInvocationActionSchemaContractTest::toolInvocationTypeAndLifecycleSchemaRemainStable()
@@ -96,6 +103,78 @@ void KisToolInvocationActionSchemaContractTest::toolInvocationPolicySignaturesRe
     static_assert(std::is_same_v<decltype(static_cast<ShortcutBooleanQuery>(&Action::supportsHiResInputEvents)),
                                  ShortcutBooleanQuery>);
     static_assert(std::is_same_v<decltype(static_cast<GroupQuery>(&Action::inputActionGroup)), GroupQuery>);
+
+    QVERIFY(true);
+}
+
+void KisToolInvocationActionSchemaContractTest::abstractInputActionTypeLifetimeAndConstructionSchemaRemainStable()
+{
+    using Action = KisAbstractInputAction;
+
+    static_assert(std::is_class_v<Action>);
+    static_assert(std::is_constructible_v<Action, const QString &>);
+    static_assert(std::has_virtual_destructor_v<Action>);
+
+    QVERIFY(true);
+}
+
+void KisToolInvocationActionSchemaContractTest::abstractInputActionActivationAndCompletionSignaturesRemainStable()
+{
+    using Action = KisAbstractInputAction;
+    using ShortcutOperation = void (Action::*)(int);
+    using BeginOperation = void (Action::*)(int, QEvent *);
+    using EventOperation = void (Action::*)(QEvent *);
+
+    static_assert(std::is_same_v<decltype(static_cast<ShortcutOperation>(&Action::activate)), ShortcutOperation>);
+    static_assert(std::is_same_v<decltype(static_cast<ShortcutOperation>(&Action::deactivate)), ShortcutOperation>);
+    static_assert(std::is_same_v<decltype(static_cast<BeginOperation>(&Action::begin)), BeginOperation>);
+    static_assert(std::is_same_v<decltype(static_cast<EventOperation>(&Action::end)), EventOperation>);
+
+    QVERIFY(true);
+}
+
+void KisToolInvocationActionSchemaContractTest::abstractInputActionEventAndGroupSignaturesRemainStable()
+{
+    using Action = KisAbstractInputAction;
+    using EventOperation = void (Action::*)(QEvent *);
+    using ShortcutBooleanQuery = bool (Action::*)(int) const;
+    using GroupQuery = KisInputActionGroup (Action::*)(int) const;
+    using ShortcutIndexesQuery = QHash<QString, int> (Action::*)() const;
+
+    static_assert(std::is_same_v<decltype(static_cast<EventOperation>(&Action::inputEvent)), EventOperation>);
+    static_assert(std::is_same_v<decltype(static_cast<ShortcutBooleanQuery>(&Action::supportsHiResInputEvents)),
+                                 ShortcutBooleanQuery>);
+    static_assert(std::is_same_v<decltype(static_cast<GroupQuery>(&Action::inputActionGroup)), GroupQuery>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<ShortcutIndexesQuery>(&Action::shortcutIndexes)), ShortcutIndexesQuery>);
+
+    QVERIFY(true);
+}
+
+void KisToolInvocationActionSchemaContractTest::abstractInputActionIdentityAndPrioritySignaturesRemainStable()
+{
+    using Action = KisAbstractInputAction;
+    using TextQuery = QString (Action::*)() const;
+    using PriorityQuery = int (Action::*)() const;
+
+    static_assert(std::is_same_v<decltype(static_cast<TextQuery>(&Action::id)), TextQuery>);
+    static_assert(std::is_same_v<decltype(static_cast<TextQuery>(&Action::name)), TextQuery>);
+    static_assert(std::is_same_v<decltype(static_cast<TextQuery>(&Action::description)), TextQuery>);
+    static_assert(std::is_same_v<decltype(static_cast<PriorityQuery>(&Action::priority)), PriorityQuery>);
+
+    QVERIFY(true);
+}
+
+void KisToolInvocationActionSchemaContractTest::abstractInputActionAvailabilityPolicySignaturesRemainStable()
+{
+    using Action = KisAbstractInputAction;
+    using BooleanQuery = bool (Action::*)() const;
+    using ShortcutBooleanQuery = bool (Action::*)(int) const;
+
+    static_assert(std::is_same_v<decltype(static_cast<BooleanQuery>(&Action::canIgnoreModifiers)), BooleanQuery>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<ShortcutBooleanQuery>(&Action::isShortcutRequired)), ShortcutBooleanQuery>);
+    static_assert(std::is_same_v<decltype(static_cast<BooleanQuery>(&Action::isAvailable)), BooleanQuery>);
 
     QVERIFY(true);
 }
