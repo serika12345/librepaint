@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 8524
+    "expectedMissingApis": 8471
   },
   "contracts": [
     {
@@ -59194,6 +59194,104 @@
         "method:KisCIETongueWidget::loadingFailed()",
         "method:KisCIETongueWidget::loadingStarted()",
         "method:KisCIETongueWidget::uncalibratedColor()"
+      ]
+    },
+    {
+      "target": "KisEncloseAndFillPainterSchemaContractTest",
+      "source": "libs/image/tests/KisEncloseAndFillPainterSchemaContractTest.cpp",
+      "test": "KisEncloseAndFillPainterSchemaContractTest::fillPainterTypeConstructionAndRegionModeSchemaRemainStable",
+      "behavior": "塗り潰し描画器は描画装置・選択の有無に応じた構築と、連結領域または境界領域を選ぶ公開方式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisFillPainter",
+        "enum:KisFillPainter::RegionFillingMode",
+        "enumerator:KisFillPainter::RegionFillingMode::RegionFillingMode_BoundaryFill",
+        "enumerator:KisFillPainter::RegionFillingMode::RegionFillingMode_FloodFill",
+        "method:KisFillPainter::KisFillPainter()",
+        "method:KisFillPainter::KisFillPainter(KisPaintDeviceSP device)",
+        "method:KisFillPainter::KisFillPainter(KisPaintDeviceSP device,KisSelectionSP selection)"
+      ]
+    },
+    {
+      "target": "KisEncloseAndFillPainterSchemaContractTest",
+      "source": "libs/image/tests/KisEncloseAndFillPainterSchemaContractTest.cpp",
+      "test": "KisEncloseAndFillPainterSchemaContractTest::fillPainterSelectionGenerationSignaturesRemainStable",
+      "behavior": "塗り潰し描画器は開始点の連結領域と参照色に近い領域から選択を生成する公開署名と既定の進捗補助を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisFillPainter::createFloodSelection(KisPixelSelectionSP newSelection,int startX,int startY,KisPaintDeviceSP sourceDevice,KisPaintDeviceSP existingSelection)",
+        "method:KisFillPainter::createFloodSelection(int startX,int startY,KisPaintDeviceSP sourceDevice,KisPaintDeviceSP existingSelection)",
+        "method:KisFillPainter::createSimilarColorsSelection(KisPixelSelectionSP outSelection,const KoColor & referenceColor,KisPaintDeviceSP referenceDevice,const QRect & rect,KisPixelSelectionSP mask)",
+        "method:KisFillPainter::createSimilarColorsSelectionJobs(KisPixelSelectionSP outSelection,const QSharedPointer<KoColor> referenceColor,KisPaintDeviceSP referenceDevice,const QRect & rect,KisPixelSelectionSP mask,QSharedPointer<KisProcessingVisitor::ProgressHelper> progressHelper=nullptr)"
+      ]
+    },
+    {
+      "target": "KisEncloseAndFillPainterSchemaContractTest",
+      "source": "libs/image/tests/KisEncloseAndFillPainterSchemaContractTest.cpp",
+      "test": "KisEncloseAndFillPainterSchemaContractTest::fillPainterFillOperationSignaturesRemainStable",
+      "behavior": "塗り潰し描画器は矩形・選択・開始点へ色、pattern、描画装置、生成器の内容を適用または消去する公開overloadと既定変換を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisFillPainter::eraseRect(const QRect & rc)",
+        "method:KisFillPainter::eraseRect(qint32 x1,qint32 y1,qint32 w,qint32 h)",
+        "method:KisFillPainter::fillColor(int startX,int startY,KisPaintDeviceSP sourceDevice)",
+        "method:KisFillPainter::fillPattern(int startX,int startY,KisPaintDeviceSP sourceDevice,QTransform patternTransform=QTransform ())",
+        "method:KisFillPainter::fillRect(const QRect & rc,const KisPaintDeviceSP device,const QRect & deviceRect)",
+        "method:KisFillPainter::fillRect(const QRect & rc,const KoColor & c)",
+        "method:KisFillPainter::fillRect(const QRect & rc,const KoColor & c,quint8 opacity)",
+        "method:KisFillPainter::fillRect(const QRect & rc,const KoPatternSP pattern,const QPoint & offset=QPoint ())",
+        "method:KisFillPainter::fillRect(qint32 x,qint32 y,qint32 w,qint32 h,const KoColor & c)",
+        "method:KisFillPainter::fillRect(qint32 x,qint32 y,qint32 w,qint32 h,const KoColor & c,quint8 opacity)",
+        "method:KisFillPainter::fillRect(qint32 x1,qint32 y1,qint32 w,qint32 h,const KisFilterConfigurationSP generator)",
+        "method:KisFillPainter::fillRect(qint32 x1,qint32 y1,qint32 w,qint32 h,const KisPaintDeviceSP device,const QRect & deviceRect)",
+        "method:KisFillPainter::fillRect(qint32 x1,qint32 y1,qint32 w,qint32 h,const KoPatternSP pattern,const QPoint & offset=QPoint ())",
+        "method:KisFillPainter::fillRectNoCompose(const QRect & rc,const KoPatternSP pattern,const QTransform transform)",
+        "method:KisFillPainter::fillRectNoCompose(qint32 x1,qint32 y1,qint32 w,qint32 h,const KisPaintDeviceSP device,const QRect & deviceRect,const QTransform transform)",
+        "method:KisFillPainter::fillSelection(const QRect & rc,const KoColor & color)"
+      ]
+    },
+    {
+      "target": "KisEncloseAndFillPainterSchemaContractTest",
+      "source": "libs/image/tests/KisEncloseAndFillPainterSchemaContractTest.cpp",
+      "test": "KisEncloseAndFillPainterSchemaContractTest::fillPainterOptionQuerySignaturesRemainStable",
+      "behavior": "塗り潰し描画器は境界判定、選択制限、合成、閾値、拡散、隙間閉鎖、縁処理の現在値を返す公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisFillPainter::antiAlias() const",
+        "method:KisFillPainter::careForSelection() const",
+        "method:KisFillPainter::closeGap() const",
+        "method:KisFillPainter::feather() const",
+        "method:KisFillPainter::fillThreshold() const",
+        "method:KisFillPainter::opacitySpread() const",
+        "method:KisFillPainter::regionFillingBoundaryColor() const",
+        "method:KisFillPainter::regionFillingMode() const",
+        "method:KisFillPainter::sizemod() const",
+        "method:KisFillPainter::stopGrowingAtDarkestPixel() const",
+        "method:KisFillPainter::useCompositing() const",
+        "method:KisFillPainter::useSelectionAsBoundary() const"
+      ]
+    },
+    {
+      "target": "KisEncloseAndFillPainterSchemaContractTest",
+      "source": "libs/image/tests/KisEncloseAndFillPainterSchemaContractTest.cpp",
+      "test": "KisEncloseAndFillPainterSchemaContractTest::fillPainterOptionMutationSignaturesRemainStable",
+      "behavior": "塗り潰し描画器は対象寸法と境界判定、選択制限、合成、閾値、拡散、隙間閉鎖、縁処理の設定を更新する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisFillPainter::setAntiAlias(bool antiAlias)",
+        "method:KisFillPainter::setCareForSelection(bool set)",
+        "method:KisFillPainter::setCloseGap(int gap)",
+        "method:KisFillPainter::setFeather(int feather)",
+        "method:KisFillPainter::setFillThreshold(int threshold)",
+        "method:KisFillPainter::setHeight(int h)",
+        "method:KisFillPainter::setOpacitySpread(int opacitySpread)",
+        "method:KisFillPainter::setRegionFillingBoundaryColor(const KoColor & regionFillingBoundaryColor)",
+        "method:KisFillPainter::setRegionFillingMode(RegionFillingMode regionFillingMode)",
+        "method:KisFillPainter::setSizemod(int sizemod)",
+        "method:KisFillPainter::setStopGrowingAtDarkestPixel(bool stopGrowingAtDarkestPixel)",
+        "method:KisFillPainter::setUseCompositing(bool useCompositing)",
+        "method:KisFillPainter::setUseSelectionAsBoundary(bool useSelectionAsBoundary)",
+        "method:KisFillPainter::setWidth(int w)"
       ]
     }
   ]
