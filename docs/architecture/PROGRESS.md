@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 23:26 JST
+- 更新日時: 2026-09-05 23:28 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1309,6 +1309,12 @@
 
 - `libs/painting/kis_figure_painting_stroke.h`の残存全17 APIは識別子整列集合SHA-256 `a50c6bf3a2c0d6ec9ee5deed1fe6881720215426f9112d3f1743cd4bcac6a862`を持つ。型・寿命・構築・非copy性5、前景・背景色・brush・選択上書き4、線・折れ線・polygon・矩形・楕円5、painter path 1、pen付きpath描画・塗潰し2の5枠へ割り当てる。削除copy構築・代入は否定型特性、fill transformの既定値は必須6引数だけの未評価構築式、残るmethodは厳密member pointerで観測する。stroke開始・終了、資源snapshot、上書き反映、画素結果、stroke queueとundoは既存重量試験へ残す。
 - `g265-figure-painting-stroke-schema`の状態は`planned`とする。許可pathは新規`libs/painting/tests/KisFigurePaintingStrokeSchemaContractTest.cpp`と`libs/painting/tests/CMakeLists.txt`の新target固有節だけである。新targetはpainting・strokes・painting/undo・global・image・brushengine・filter・pigment・pigment/resources・resourcesのsource/generated探索路、Qt Gui・Xml、KF I18n、Eigen、Imathのinterface探索、6 export定義、Qt Core・Testとheader-only Boostだけの直接linkによる4工程・8入力を予測し、停止線5工程・11入力とする。軽量近傍`KisResourcesSnapshotSchemaContractTest`は4工程・8入力、command SHA-256 `748cf4371e3c3c7fb67ca9763c2dae1d8fdc9b9ce71fdf1338a93d90495e65dc`、input SHA-256 `c2059b5e4a87dbc220b714d394c8b6f3c4e49e57d358fe0079f9c0ff4e83bd9a`である。Qt Gui・Xml・KF・Imathの動的接続、製品shared・OBJECT、`kritatestsdk`、候補headerのAUTOMOC入力化、製品未解決記号、実体化または許可path外変更が必要なら停止する。G264完了後に開始する。
+
+### 第266便の先行監査担当票
+
+- 監査共通基点は`29697c3912`、正式入力は`build/tdd-macos/public-api-missing-g263.json`である。第263便から第265便までの選定済みAPIを除外し、`libs/image/KisBezierGradientMesh.h`の残存17 APIを、Bezier gradient meshのnode・patch・描画・直列化を固定する一責務候補として監査する。主作業treeの読み取りだけを許可し、変更、構成、構築、試験、Git操作、追加委任を行わず、G263の専用構築木と生成物を共有しない。
+- `g266-bezier-gradient-mesh-api-audit`の状態は`in_progress`である。正式不足一覧と台帳に対する残存識別子の完全性、一意性、整列指紋、型・別名・公開data・補間・patch割当・検索・描画・XML直列化の責務別割当、最大5枠で静的または決定的な値契約へ固定できる範囲を調べる。既存mesh変換試験が保護する画素描画と変換の意味は分離して報告する。
+- `g266-bezier-gradient-mesh-closure-review`の状態は`in_progress`である。候補headerの直接依存、imageの既存軽量契約、新規専用targetと既存mesh試験追記の責務・閉包差、必要探索路・定義・動的接続、製品shared・OBJECTと`kritatestsdk`の回避、候補headerのAUTOMOC非入力化、許可path、停止線を独立に調べる。inline関数を実行する値契約と署名だけの契約で閉包が変わる場合は分けて報告し、先行include整理の必要性も判定する。
 
 ### 第239便の先行監査担当票
 
