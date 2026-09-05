@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 09:27 JST
+- 更新日時: 2026-09-05 09:35 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -697,13 +697,18 @@
 
 ### 第224便の担当計画
 
-- 実装基点は`4c3a61a686`である。`g224-cie-tongue-schema`の状態は`implementing`、開始公開headerは`libs/ui/widgets/kis_cie_tongue_widget.h`、許可pathは新規`libs/ui/tests/KisCIETongueWidgetSchemaContractTest.cpp`と`libs/ui/tests/CMakeLists.txt`の新target固有節だけである。新targetは`KisCIETongueWidgetSchemaContractTest`、軽量近傍は`KisDisplayConfigSchemaContractTest`、対象platformはmacOS、対象・近傍だけの構築権限は`granted`とする。専用作業treeは`/Users/masato/Documents/librepaint-g224-cie-tongue-schema`、branchは`agent/g224-cie-tongue-schema`、作業tree固有の`build/tdd-macos`と主作業treeの共有compiler cacheを使う。Git権限は許可pathだけの1受渡しcommit、追加委任は禁止し、調整担当だけが文書、台帳、不足報告を変更する。
+- 実装基点は`4c3a61a686`である。`g224-cie-tongue-schema`の状態は`integrated`で、開始`libs/ui/widgets/kis_cie_tongue_widget.h`の残存全22 APIを、新規`libs/ui/tests/KisCIETongueWidgetSchemaContractTest.cpp`の5枠へ固定した。許可pathは同試験sourceと`libs/ui/tests/CMakeLists.txt`の新target固有節だけで、公開header、製品source、既存targetを変更していない。受渡しcommit `35793c1636`を統合commit `28f5e0bd46`として取り込んだ。
 - 5枠は`cieTongueWidgetTypeLifetimeAndModelSchemaRemainStable`へclass、model enum、6 enumerator、構築、破棄の10件、`cieTongueWidgetProfileAndGamutSignaturesRemainStable`へ`setGamut`、`setProfileData`、`setProfileDataAvailable`の3件、`cieTongueWidgetRgbCmykAndXyzDataSignaturesRemainStable`へ`setCMYKData`、`setRGBData`、`setXYZData`の3件、`cieTongueWidgetGrayLabAndYCbCrDataSignaturesRemainStable`へ`setGrayData`、`setLABData`、`setYCbCrData`の3件、`cieTongueWidgetLegacyStatusDeclarationSignaturesRemainStable`へ`loadingFailed`、`loadingStarted`、`uncalibratedColor`の3件を対応付ける。各method識別子は正式入力の完全な引数・既定値・修飾をそのまま台帳へ登録し、全22識別子の集合SHA-256 `b678ccb9a147df3837d9ff7e3f3550e9de69b3623a48283178ad03f8e36ded82`を維持する。
 - 新targetはui source・generated、application generated、pigment・global source・generated探索路、`kritaapplicationui_EXPORTS`、`kritapigment_EXPORTS`、`kritaglobal_EXPORTS`、Qt Gui・Widgets・KF I18n・Imath interface、Qt Core・Testとheader-only Boostの直接接続だけを許可し、予測閉包4工程・8入力、停止線5工程・11入力とする。型特性、列挙値、厳密なmember pointer、既定引数の未評価呼出しだけで観測し、Widget、色度値、QVector、QPolygonF、profile、painterを実体化しない。担当は変更前計画・直接依存・target不存在と宣言段階のlink失敗、5枠単発・各20回、全target、正式CTest、近傍、AUTOMOC後二回目計画、無作業再構築2回、動的接続・未解決記号・AUTOMOC入力・構文・書式、差分、公開API検査、`verify-quick`を確認する。5工程・11入力超過、追加探索路・定義・link、Qt Gui・Widgets・KF・Imath・製品shared・OBJECT・`kritatestsdk`の動的接続、候補headerのAUTOMOC入力化、製品未解決記号、対象実体化、公開header・製品source・既存target・許可path外の変更が必要なら停止する。製品target、全体build・`verify`、Linux、Nix再評価は禁止する。
 
-### 第225便の先行監査担当票（第224便確定待ち）
+### 第224便の統合結果
 
-- `g225-fill-painter-schema-formal-review`の状態は`completed-ready`、担当は`g208_raster_keyframe_schema`、基点は`84827b3b18`である。正式入力`build/tdd-macos/public-api-missing-g222.json`でも`libs/image/kis_fill_painter.h`の残存全53 APIは一意で台帳と重複せず、集合SHA-256 `bb2bbc772dd0392eda08fe0c4f56644c04cacd02bb77412b5981ce3994ede724`、既存`libs/image/tests/KisEncloseAndFillPainterSchemaContractTest.cpp`へ追加する5枠7・4・16・12・14に一致した。既存sourceは119行・5枠で、共通署名別名と検査macroにより追加後270〜295行・10枠を見込む。CMake変更と新targetは不要で、対象と近傍`KisGradientPainterSchemaContractTest`は4工程・8入力、候補headerのAUTOMOC `HEADERS=[]`、Qt Core・Gui・TestとmacOS system frameworksだけの動的接続、製品辺なしである。画素塗り、境界探索、閾値・拡散・隙間閉鎖、anti-alias・feather、pattern変換、selection制限、類似色job分割・進捗、setter後の状態は既存または後続の動的契約で扱い、正式第225便不足報告で53件・集合SHA・source上限を再照合する。
+- 開始`libs/ui/widgets/kis_cie_tongue_widget.h`から新規`libs/ui/tests/KisCIETongueWidgetSchemaContractTest.cpp`へ22 API・5枠を追加した。担当側と中央のmacOSで5枠を各20回、対象全7件、正式CTestと近傍`KisDisplayConfigSchemaContractTest`、AUTOMOC後の二回目計画、無作業再構築2回に成功した。中央実測は4工程・8入力、command SHA-256 `c7023c6f396d7bf1b87e4d831c70de71fab3c948be70446bb9cca44cc33c5b18`、input SHA-256 `dbf7292a50581a28805f93e5bbf7b42246bdb31fd82e80ac5ae2bf394879f9fc`、AUTOMOC `HEADERS=[]`、Qt Core・Testと非製品runtimeだけの動的接続、製品未解決記号なしである。正しいcompile commandによる`clang-check -Werror`、書式、差分、公開API検査に成功し、台帳は21,280件対応、8,524件未対応となった。profile読込み、色域描画、再描画、従来状態宣言の実行時効果は既存または後続の動的契約で扱う。
+- 統合済みpatchとclean状態を確認後に専用作業tree、295,648 KiBのlane構築木、branchを削除して885,900 KiBを回収した。旧`public-api-missing-g224.json`を削除し、主Ninja木5,748,648 KiB、共有compiler cache 983,296 KiB、最新`build/tdd-macos/public-api-missing-g225.json` 2,262,623 bytes、SHA-256 `90bbe938c5fed1e0162d70f499147c996b1378ba9ce5e15f2ff2e95623736e70`だけを次便へ再利用する。compiler cacheは143,010件中120,206件、84.05%がhitしている。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+
+### 第225便の先行監査担当票
+
+- `g225-fill-painter-schema-formal-review`の状態は`completed-ready`、担当は`g208_raster_keyframe_schema`、基点は`84827b3b18`である。第224便後の正式入力`build/tdd-macos/public-api-missing-g225.json`でも`libs/image/kis_fill_painter.h`の残存全53 APIは一意で台帳と重複せず、集合SHA-256 `bb2bbc772dd0392eda08fe0c4f56644c04cacd02bb77412b5981ce3994ede724`、既存`libs/image/tests/KisEncloseAndFillPainterSchemaContractTest.cpp`へ追加する5枠7・4・16・12・14に一致した。既存sourceは119行・5枠で、共通署名別名と検査macroにより追加後270〜295行・10枠を見込む。CMake変更と新targetは不要で、対象と近傍`KisGradientPainterSchemaContractTest`は4工程・8入力、候補headerのAUTOMOC `HEADERS=[]`、Qt Core・Gui・TestとmacOS system frameworksだけの動的接続、製品辺なしである。画素塗り、境界探索、閾値・拡散・隙間閉鎖、anti-alias・feather、pattern変換、selection制限、類似色job分割・進捗、setter後の状態は既存または後続の動的契約で扱う。
 
 ### 第226便の先行監査担当票（第225便確定待ち）
 
@@ -719,7 +724,7 @@
 
 ### 第229便の先行監査担当票（第228便確定待ち）
 
-- `g229-image-shared-pointer-hooks-schema-formal-review`の状態は`auditing`、担当は`g178_paintop_settings_schema`、基点は`7df1b3f44e`、正式入力は`build/tdd-macos/public-api-missing-g224.json`である。開始公開headerは`libs/image/kis_types.h`の残存全19 API、識別子整列集合SHA-256 `73ca00770404b4a105c6b723330fd6e999afca81dd2bc58ec1051daf722d9a35`である。対象は7型の参照追加・解放hook各2件、強参照・弱参照のQt hash各1件、標準hash特殊化とその呼出し各1件を所有する。既存`libs/image/tests/kis_types_test.cpp`への追加と新規header限定targetを比較し、製品library接続を避けて最大5枠へ全識別子を対応付ける。主作業treeと既存Ninja graphを読み取り専用で使い、変更、構成、構築、試験、Git操作、追加委任を行わない。必要include・export定義・直接・interface link、現在とAUTOMOC後の予測工程・入力、最小近傍、製品辺、不完全型の共有pointerを実体化せず関数型・特殊化を観測する方法、停止条件を独立確認し、正式第229便不足報告で19件と集合SHAを再照合する条件を返す。
+- `g229-image-shared-pointer-hooks-schema-formal-review`の状態は`completed-ready`、担当は`g178_paintop_settings_schema`、基点は`7df1b3f44e`である。正式入力`build/tdd-macos/public-api-missing-g224.json`でも`libs/image/kis_types.h`の残存全19 APIは一意で台帳と重複せず、識別子整列集合SHA-256 `73ca00770404b4a105c6b723330fd6e999afca81dd2bc58ec1051daf722d9a35`、新規`libs/image/tests/KisImageSharedPointerHooksSchemaContractTest.cpp`の5枠6・4・4・2・3に一致した。既存`kis_types_test`は1,200工程・2,423入力で製品libraryへ接続するため追記せず、新targetはimage・global探索路、`kritaimage_EXPORTS`、Qt Core・Testだけで初回・AUTOMOC後とも4工程・8入力へ閉じられる。軽量近傍`KisUpdateSchedulerSchemaContractTest`も4工程・8入力、AUTOMOC `HEADERS=[]`、製品辺なしである。7具象型を前方宣言のまま、参照追加・解放hookの厳密関数型、強・弱参照のQt hash、標準hash特殊化を非実体化観測する。実際の参照増減・解放、weak失効、hash値・衝突、動的libraryのABI解決は既存または後続の動的契約で扱い、正式第229便不足報告で19件と集合SHAを再照合する。
 
 ### 第201便の先行監査担当票
 

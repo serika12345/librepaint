@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 8546
+    "expectedMissingApis": 8524
   },
   "contracts": [
     {
@@ -59127,6 +59127,73 @@
         "method:KisClipboard::setClip(KisPaintDeviceSP dev,const QPoint & topLeft)",
         "method:KisClipboard::setClip(KisPaintDeviceSP dev,const QPoint & topLeft,const KisTimeSpan & range)",
         "method:KisClipboard::setLayers(KisNodeList nodes,KisImageSP image,bool forceCopy=false)"
+      ]
+    },
+    {
+      "target": "KisCIETongueWidgetSchemaContractTest",
+      "source": "libs/ui/tests/KisCIETongueWidgetSchemaContractTest.cpp",
+      "test": "KisCIETongueWidgetSchemaContractTest::cieTongueWidgetTypeLifetimeAndModelSchemaRemainStable",
+      "behavior": "CIE色度図widgetは表示対象の色モデルを識別する列挙値と、widgetとしての構築・仮想破棄を行う公開構成を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisCIETongueWidget",
+        "enum:KisCIETongueWidget::model",
+        "enumerator:KisCIETongueWidget::model::CMYKA",
+        "enumerator:KisCIETongueWidget::model::GRAYA",
+        "enumerator:KisCIETongueWidget::model::LABA",
+        "enumerator:KisCIETongueWidget::model::RGBA",
+        "enumerator:KisCIETongueWidget::model::XYZA",
+        "enumerator:KisCIETongueWidget::model::YCbCrA",
+        "method:KisCIETongueWidget::KisCIETongueWidget(QWidget * parent=nullptr)",
+        "method:KisCIETongueWidget::~KisCIETongueWidget()"
+      ]
+    },
+    {
+      "target": "KisCIETongueWidgetSchemaContractTest",
+      "source": "libs/ui/tests/KisCIETongueWidgetSchemaContractTest.cpp",
+      "test": "KisCIETongueWidgetSchemaContractTest::cieTongueWidgetProfileAndGamutSignaturesRemainStable",
+      "behavior": "CIE色度図widgetは色域、多原色profile、profile利用可能状態を受け取る公開署名と既定引数を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCIETongueWidget::setGamut(QPolygonF gamut)",
+        "method:KisCIETongueWidget::setProfileData(QVector<KoColorimetryUtils::xyY> p,KoColorimetryUtils::xyY w,bool profileData=false)",
+        "method:KisCIETongueWidget::setProfileDataAvailable(bool dataAvailable)"
+      ]
+    },
+    {
+      "target": "KisCIETongueWidgetSchemaContractTest",
+      "source": "libs/ui/tests/KisCIETongueWidgetSchemaContractTest.cpp",
+      "test": "KisCIETongueWidgetSchemaContractTest::cieTongueWidgetRgbCmykAndXyzDataSignaturesRemainStable",
+      "behavior": "CIE色度図widgetはRGB、CMYK、XYZ profileの白色点と原色情報を受け取る公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCIETongueWidget::setCMYKData(KoColorimetryUtils::xyY whitepoint)",
+        "method:KisCIETongueWidget::setRGBData(KoColorimetryUtils::xyY whitepoint,QVector<KoColorimetryUtils::xyY> colorants)",
+        "method:KisCIETongueWidget::setXYZData(KoColorimetryUtils::xyY whitepoint)"
+      ]
+    },
+    {
+      "target": "KisCIETongueWidgetSchemaContractTest",
+      "source": "libs/ui/tests/KisCIETongueWidgetSchemaContractTest.cpp",
+      "test": "KisCIETongueWidgetSchemaContractTest::cieTongueWidgetGrayLabAndYCbCrDataSignaturesRemainStable",
+      "behavior": "CIE色度図widgetはGray、Lab、YCbCr profileの白色点情報を受け取る公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCIETongueWidget::setGrayData(KoColorimetryUtils::xyY whitepoint)",
+        "method:KisCIETongueWidget::setLABData(KoColorimetryUtils::xyY whitepoint)",
+        "method:KisCIETongueWidget::setYCbCrData(KoColorimetryUtils::xyY whitepoint)"
+      ]
+    },
+    {
+      "target": "KisCIETongueWidgetSchemaContractTest",
+      "source": "libs/ui/tests/KisCIETongueWidgetSchemaContractTest.cpp",
+      "test": "KisCIETongueWidgetSchemaContractTest::cieTongueWidgetLegacyStatusDeclarationSignaturesRemainStable",
+      "behavior": "CIE色度図widgetは読込み開始・失敗と未校正色を表す従来の公開状態宣言を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCIETongueWidget::loadingFailed()",
+        "method:KisCIETongueWidget::loadingStarted()",
+        "method:KisCIETongueWidget::uncalibratedColor()"
       ]
     }
   ]
