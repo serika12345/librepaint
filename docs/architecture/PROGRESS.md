@@ -1411,8 +1411,14 @@
 ### 第271便の先行監査担当票
 
 - 監査共通基点は`1b05f19d04`、正式入力は`build/tdd-macos/public-api-missing-g267.json`である。第267便から第270便までの選定済みAPIを除外し、`libs/resources/KoResourceServer.h`の残存24 API、`libs/psd/psd_layer_record.h`の残存23 API、`plugins/paintops/libpaintop/kis_brush_based_paintop_settings.h`の残存22 API、`libs/image/lazybrush/kis_lazy_fill_tools.h`の残存19 APIを比較し、一責務を最大5枠の契約へ閉じられる次候補を選ぶ。主作業treeと正式不足一覧の読み取りだけを許可し、変更、構成、構築、試験、Git操作、生成物作成、追加委任を行わず、G267aの専用構築木を共有しない。
-- `g271-public-api-candidate-audit`の状態は`in_progress`である。各候補の正式識別子、責務、公開値・所有・寿命、最大5枠の完全割当を比較し、実資源登録簿、paint device、brush、paintop、filesystem、UI、大域状態を生成せず固定できる候補を優先する。
-- `g271-build-closure-review`の状態は`in_progress`である。各候補headerと実装の直接依存、既存軽量・重量対象、新規限定対象・既存追記・具体的source/object所有分割の閉包と依存方向、先行include整理の効果、AUTOMOC、許可pathと停止線を独立に比較する。lazy-fillは設定値実装だけを分ける構造が試験専用ではなく製品責務を明確にするかも判定する。
+- `g271-public-api-candidate-audit`の状態は`completed`である。4候補の正式識別子、責務、公開値・所有・寿命、最大5枠の完全割当を比較し、実資源登録簿、paint device、brush、paintop、filesystem、UI、大域状態を生成せず固定できる候補を優先した。
+- `g271-build-closure-review`の状態は`completed`である。各候補headerと実装の直接依存、既存軽量・重量対象、新規限定対象・既存追記・具体的source/object所有分割の閉包と依存方向、先行include整理の効果、AUTOMOC、許可pathと停止線を独立に比較した。lazy-fillの設定値実装だけを分けると、製品の画像分割算法と純粋値設定の責務が明確になり、最も多い決定的挙動を限定閉包で固定できることを確認した。
+
+### 第271便の監査結果と構造準備計画
+
+- `libs/image/lazybrush/kis_lazy_fill_tools.h`の残存全19 APIは一意かつ台帳と非重複で、識別子整列集合SHA-256 `6daa8af10b316948c06c94453f43115814c47a145cd3675bff75492f9794d763`を持つ。alpha正規化2、領域分割2、KeyStroke型・構築3、KeyStroke公開値・等価性4、FilteringOptions型・構築・公開値・等価性8の5枠へ割り当てる。FilteringOptionsは既定値`false/4/0/0`、全値構築、4値すべての等価判定を動的契約で観測し、残る11 APIは型特性と厳密関数pointerで固定する。KoColor既定構築が大域色空間登録簿を使うためKeyStrokeを実体化せず、画素算法と入力装置消去の副作用は固定画像・色空間を持つ後続動的契約で扱う。
+- `g271a-lazy-fill-filtering-options-boundary`の状態は`planned`とする。開始`libs/image/lazybrush/kis_lazy_fill_tools.cpp`からFilteringOptionsの全値constructorと等価演算子を新規`libs/image/lazybrush/kis_lazy_fill_filtering_options.cpp`へ移し、`libs/image/CMakeLists.txt`で新規`kritaimagelazyfillfilteringoptionsobjects`が所有し、製品`kritaimage`が生成objectを一度だけ集約する。許可pathはこの2 cppとimage CMakeだけとし、公開header、KeyStroke、画像算法を変更しない。新objectはAUTOMOC無効、位置独立コード有効、image・global・pigmentの必要最小探索路、`kritaimage_EXPORTS`、Qt Core・Guiとheader-only Boostに閉じる。
+- 続く`g271-lazy-fill-tools-contract`は新規`libs/image/tests/KisLazyFillToolsContractTest.cpp`と`libs/image/tests/CMakeLists.txt`の新target固有節だけを許可する。契約targetは同objectとQt Core・Gui・Test、header-only Boostだけを直接接続し、5工程・10入力を予測して停止線を5工程・11入力とする。製品`kritaimage`は1,196工程・2,416入力以下、objectの単一集約を条件とする。`kritaimage`・`kritapigment`・`kritatestsdk`の製品接続、KeyStrokeの実装移動または実体化、画像算法の実行、新規公開header、抽象層、公開API変更、許可path外変更が必要なら停止する。第270便完了後にG271aから開始する。
 
 ### 第239便の先行監査担当票
 
