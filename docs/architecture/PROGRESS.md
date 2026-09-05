@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-06 01:09 JST
+- 更新日時: 2026-09-06 01:12 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1436,6 +1436,12 @@
 
 - `plugins/color/colorspaceextensions/kis_hsv_adjustment.h`の残存全18 APIは一意かつ台帳と非重複で、識別子整列集合SHA-256 `41edeb9be329144f39c1e7d8b62ab4dd00a17763904b83646959ac2e1a57f138`を持つ。HSV工場の型・構築2、対応形式・変換生成2、HSV曲線工場の型・構築2、対応形式・変換生成2、曲線channel列挙型と9値10の5枠へ割り当てる。列挙値`0..8`を値契約で固定し、工場と生成関数は型特性と厳密member pointerで観測する。実色空間と変換実体を使う生成結果は後続の動的契約で扱う。
 - `g272-hsv-adjustment-schema`の状態は`planned`とする。許可pathは新規`plugins/color/colorspaceextensions/tests/KisHSVAdjustmentSchemaContractTest.cpp`、新規`plugins/color/colorspaceextensions/tests/CMakeLists.txt`、親`plugins/color/colorspaceextensions/CMakeLists.txt`のtest subdirectory追加だけとし、候補header、製品source、製品targetを変更しない。新targetはcolorspaceextensionsとpigmentのsource/generated探索路、`kritapigment_EXPORTS`、Qt Core・Testだけの直接linkによる4工程・8入力を予測し、停止線5工程・11入力とする。候補headerのAUTOMOC入力化、Qt Gui・Widgets・Xml、KF、OpenEXR・Imath、Boost、`kritapigment`・`kritaglobal`・plugin製品target・OBJECT、`kritatestsdk`、`KoID`完全型、工場実体化、製品未解決記号、許可path外変更が必要なら停止する。第271便完了後に開始する。
+
+### 第273便の先行監査担当票
+
+- 監査共通基点は`369187fdd9`、正式入力は`build/tdd-macos/public-api-missing-g268.json`である。第268便から第272便までの選定済みAPIを除外し、`plugins/paintops/defaultpaintops/brush/KisDabRenderingQueue.h`、`libs/image/layerstyles/kis_ls_utils.h`、`libs/image/commands_new/KisMergeLabeledLayersCommand.h`、`libs/image/kis_cached_paint_device.h`の各残存18 APIを比較し、一責務を最大5枠の契約へ閉じられる次候補を選ぶ。主作業treeと正式不足一覧の読み取りだけを許可し、変更、構成、構築、試験、Git操作、生成物作成、追加委任を行わず、G268aの専用構築木を共有しない。
+- `g273-public-api-candidate-audit`の状態は`in_progress`である。各候補の正式識別子、責務、公開値・所有・寿命、最大5枠の完全割当を比較し、実画像、paint device、色空間登録簿、描画queue、大域状態を生成せず固定できる決定的な値挙動を優先する。
+- `g273-build-closure-review`の状態は`in_progress`である。各候補headerと実装の直接依存、既存軽量・重量対象、新規限定対象・既存追記・具体的source/object所有分割の閉包と依存方向、先行include整理の効果、AUTOMOC、許可pathと停止線を独立に比較する。
 
 ### 第239便の先行監査担当票
 
