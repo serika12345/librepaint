@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 8222
+    "expectedMissingApis": 8194
   },
   "contracts": [
     {
@@ -60081,6 +60081,79 @@
       "apis": [
         "method:KisMemoryStorage::resources(const QString & resourceType)",
         "method:KisMemoryStorage::tags(const QString & resourceType)"
+      ]
+    },
+    {
+      "target": "KisAslXmlWriterSchemaContractTest",
+      "source": "libs/psdutils/tests/KisAslXmlWriterSchemaContractTest.cpp",
+      "test": "KisAslXmlWriterSchemaContractTest::aslXmlWriterTypeLifetimeAndDocumentSchemaRemainStable",
+      "behavior": "ASL XML書出し器は既定構築・破棄と生成文書の取得を備える公開型構成を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisAslXmlWriter",
+        "method:KisAslXmlWriter::KisAslXmlWriter()",
+        "method:KisAslXmlWriter::document() const",
+        "method:KisAslXmlWriter::~KisAslXmlWriter()"
+      ]
+    },
+    {
+      "target": "KisAslXmlWriterSchemaContractTest",
+      "source": "libs/psdutils/tests/KisAslXmlWriterSchemaContractTest.cpp",
+      "test": "KisAslXmlWriterSchemaContractTest::aslXmlWriterDescriptorAndListContainerSignaturesRemainStable",
+      "behavior": "ASL XML書出し器はdescriptorとlistの階層を開始・終了する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAslXmlWriter::enterDescriptor(const QString & key,const QString & name,const QString & classId)",
+        "method:KisAslXmlWriter::enterList(const QString & key)",
+        "method:KisAslXmlWriter::leaveDescriptor()",
+        "method:KisAslXmlWriter::leaveList()"
+      ]
+    },
+    {
+      "target": "KisAslXmlWriterSchemaContractTest",
+      "source": "libs/psdutils/tests/KisAslXmlWriterSchemaContractTest.cpp",
+      "test": "KisAslXmlWriterSchemaContractTest::aslXmlWriterScalarValueSignaturesRemainStable",
+      "behavior": "ASL XML書出し器は真偽、数値、列挙、生data、文字列、単位付き数値を書き出す公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAslXmlWriter::writeBoolean(const QString & key,bool value)",
+        "method:KisAslXmlWriter::writeDouble(const QString & key,double value)",
+        "method:KisAslXmlWriter::writeEnum(const QString & key,const QString & typeId,const QString & value)",
+        "method:KisAslXmlWriter::writeInteger(const QString & key,int value)",
+        "method:KisAslXmlWriter::writeRawData(const QString key,const QByteArray * rawData)",
+        "method:KisAslXmlWriter::writeText(const QString & key,const QString & value)",
+        "method:KisAslXmlWriter::writeUnitFloat(const QString & key,const QString & unit,double value)"
+      ]
+    },
+    {
+      "target": "KisAslXmlWriterSchemaContractTest",
+      "source": "libs/psdutils/tests/KisAslXmlWriterSchemaContractTest.cpp",
+      "test": "KisAslXmlWriterSchemaContractTest::aslXmlWriterGeometrySignaturesRemainStable",
+      "behavior": "ASL XML書出し器はcurve、点、矩形、変換を幾何値として書き出す公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAslXmlWriter::writeCurve(const QString & key,const QString & name,const QVector<QPointF> & points)",
+        "method:KisAslXmlWriter::writeFloatRect(const QString & key,const QRectF & rect)",
+        "method:KisAslXmlWriter::writeOffsetPoint(const QString & key,const QPointF & value)",
+        "method:KisAslXmlWriter::writePhasePoint(const QString & key,const QPointF & value)",
+        "method:KisAslXmlWriter::writePoint(const QString & key,const QPointF & value)",
+        "method:KisAslXmlWriter::writePointRect(const QString & key,const QPolygonF & transformedRect)",
+        "method:KisAslXmlWriter::writeTransform(const QString & key,const QTransform & transform)",
+        "method:KisAslXmlWriter::writeUnitRect(const QString & key,const QString & unit,const QRectF & rect)"
+      ]
+    },
+    {
+      "target": "KisAslXmlWriterSchemaContractTest",
+      "source": "libs/psdutils/tests/KisAslXmlWriterSchemaContractTest.cpp",
+      "test": "KisAslXmlWriterSchemaContractTest::aslXmlWriterColorPatternAndGradientSignaturesRemainStable",
+      "behavior": "ASL XML書出し器は色、pattern、segment・stop gradientを書き出す公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAslXmlWriter::writeColor(const QString & key,const KoColor & value)",
+        "method:KisAslXmlWriter::writePattern(const QString & key,const KoPatternSP pattern)",
+        "method:KisAslXmlWriter::writePatternRef(const QString & key,const KoPatternSP pattern,const QString & uuid)",
+        "method:KisAslXmlWriter::writeSegmentGradient(const QString & key,const KoSegmentGradient & gradient)",
+        "method:KisAslXmlWriter::writeStopGradient(const QString & key,const KoStopGradient & gradient)"
       ]
     }
   ]
