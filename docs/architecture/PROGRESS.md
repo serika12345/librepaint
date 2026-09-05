@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 22:37 JST
+- 更新日時: 2026-09-05 22:49 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1238,10 +1238,16 @@
 
 ### 第261便の監査結果と担当計画
 
-- 最新`build/tdd-macos/public-api-missing-g261.json`で`libs/painting/strokes/KisMaskedFreehandStrokePainter.h`の残存全17 APIが一意かつ台帳と非重複で、識別子整列集合SHA-256 `132e93a443c384e9cf2679ef60f4f465d70e7b85a178dc568dc93d7ee7a5d989`を持つことを再確認した。`g261-masked-freehand-schema`の状態は`in_progress`、実装基点は`bd07b45f27`、専用作業treeは`/Users/masato/Documents/librepaint-g261-masked-freehand-schema`、branchは`agent/g261-masked-freehand-schema`、macOSの対象と近傍に限る構築実行許可は`granted`である。許可pathは新規`libs/painting/tests/KisMaskedFreehandStrokePainterSchemaContractTest.cpp`と`libs/painting/tests/CMakeLists.txt`の新target固有節だけとする。公開header、製品source、既存targetを変更せず、調整担当だけが文書、台帳、共通不足報告を変更する。担当のGit権限は許可pathだけの受渡しcommit 1件で、追加委任は禁止する。
-- 5枠は`maskedFreehandPainterTypeLifetimeAndPresetSchemaRemainStable`へ型・構築・preset 3件、`maskedFreehandPainterDabLineAndBezierSignaturesRemainStable`へ点・線・Bezier描画3件、`maskedFreehandPainterGeometryPrimitiveSignaturesRemainStable`へpolyline・polygon・矩形・楕円・path 5件、`maskedFreehandPainterPathDrawingSignaturesRemainStable`へpath描線・描線塗潰し2件、`maskedFreehandPainterAsynchronousDirtyAndMaskSignaturesRemainStable`へ非同期更新、dirty状態・取得、mask状態4件を対応付ける。厳密member pointer、型特性、polyline既定引数の未評価呼出しだけで観測し、painter、stroke情報、paint情報、色、job、Qt値を実体化しない。
+- 最新`build/tdd-macos/public-api-missing-g261.json`で`libs/painting/strokes/KisMaskedFreehandStrokePainter.h`の残存全17 APIが一意かつ台帳と非重複で、識別子整列集合SHA-256 `132e93a443c384e9cf2679ef60f4f465d70e7b85a178dc568dc93d7ee7a5d989`を持つことを再確認した。`g261-masked-freehand-schema`の状態は`integrated`、実装基点は`bd07b45f27`である。許可pathは新規`libs/painting/tests/KisMaskedFreehandStrokePainterSchemaContractTest.cpp`と`libs/painting/tests/CMakeLists.txt`の新target固有節だけで、公開header、製品source、既存targetを変更していない。受渡しcommit `050d2aa872`を中央commit `267568833f`として取り込んだ。
+- 5枠は`maskedFreehandPainterTypeLifetimeAndPresetSchemaRemainStable`へ型・構築・preset 3件、`maskedFreehandPainterDabLineAndBezierSignaturesRemainStable`へ点・線・Bezier描画3件、`maskedFreehandPainterGeometryPrimitiveSignaturesRemainStable`へpolyline・polygon・矩形・楕円・path 5件、`maskedFreehandPainterPathDrawingSignaturesRemainStable`へpath描線・描線塗潰し2件、`maskedFreehandPainterAsyncDirtyAndMaskSignaturesRemainStable`へ非同期更新、dirty状態・取得、mask状態4件を対応付ける。厳密member pointer、型特性、polyline既定引数の未評価呼出しだけで観測し、painter、stroke情報、paint情報、色、job、Qt値を実体化しない。
 - 新規targetはpaintingのsource/generated探索路、`kritapainting_EXPORTS`、Qt Core・Testだけを直接接続する4工程・8入力を予測し、停止線を5工程・11入力とする。軽量近傍`KisStrokeEfficiencyMeasurerSchemaContractTest`は4工程・8入力、command SHA-256 `5f6bb10d33d083868a01526eeedfcf83afd07fa2ad8f6c99868846055def26e5`、input SHA-256 `be7e1f2dae639fb855f68a127cc8e88980f447951266c6b25396db34c2213448`である。既存`FreehandStrokeSchemaContractTest`は4工程・8入力だがQt Gui・Xmlと広い探索面を持つため追記せず、1,307工程・2,632入力の動的`FreehandStrokeContractTest`と製品objectも反復対象にしない。実描画の主・mask二重配送、非同期更新統合、dirty領域、mask合成は後続の動的契約で扱う。
 - 実装担当は専用worktree-local構築木で編集前target不存在、5枠宣言段階の期待link失敗、追加5枠単発・各20回、全target、正式CTest、軽量近傍、AUTOMOC後の二回目計画、無作業build 2回、4/8とhash、動的接続・未解決記号・AUTOMOC入力・厳格構文・書式、差分、公開API検査、`verify-quick`を逐次確認する。5工程・11入力超過、追加探索路・定義・Qt Gui・Widgets・Xmlまたは製品link、製品shared・OBJECT・`kritatestsdk`、候補headerのAUTOMOC入力化、masked painter・painter・paintop・preset・jobの製品未解決記号、実体化、許可path外変更が必要なら停止する。製品target、既存動的試験、全体build・`verify`、Linux、Nix再評価は禁止する。
+
+### 第261便の契約統合結果
+
+- 開始`libs/painting/strokes/KisMaskedFreehandStrokePainter.h`から新規`libs/painting/tests/KisMaskedFreehandStrokePainterSchemaContractTest.cpp`へ、型・構築・preset、描点・線・Bezier、幾何図形、path描線・塗潰し、非同期更新・dirty領域・mask状態を担う残存全17 API・5枠を追加した。折れ線は厳密署名に加えて引数1個の未評価呼出しにより2つの既定引数も固定した。`libs/painting/tests/CMakeLists.txt`には新target固有のpainting探索路・export定義とQt Core・Test接続だけを追加し、公開header、製品source、既存targetを変更していない。完成差分から再開したため宣言だけの未定義link診断は保存していない。
+- 担当側のmacOSで5枠を各20回、全7試験、正式CTest `libs-painting-KisMaskedFreehandStrokePainterSchemaContractTest`、軽量近傍`libs-painting-KisStrokeEfficiencyMeasurerSchemaContractTest`、AUTOMOC後の二回目計画、二回の無作業再構築に成功した。新targetは4工程・8入力、command SHA-256 `03ff6798085859c80f7efd41ca6e31b99f00d8638df1f20b5d39343387cbd90f`、input SHA-256 `50aed23db6e70edd6e385651a4ac6443edb2ea74240c3adb11213f699d40dc49`、AUTOMOC `HEADERS=[]`、Qt Core・Testだけの動的接続、masked painter・painter・paintop・preset・jobを含む製品未解決記号0である。厳格構文、書式、差分、公開API検査、`verify-quick`にも成功し、中央でも対象と近傍、二回の無作業再構築に成功した。
+- 最長の試験名は自動整形による定義行の改行を台帳検査器が認識できなかったため、意味を保つ`maskedFreehandPainterAsyncDirtyAndMaskSignaturesRemainStable`へ短縮し、対象試験を再構築して成功した。台帳へ17 APIを追加して22,077件対応、7,727件未対応となり、旧基準7,744件に対する実測7,727件の期待不一致を確認してから基準を更新した。cleanな専用作業tree、298,700 KiBの構築木、branchを削除して889,512 KiBを回収し、旧`public-api-missing-g261.json` 2,060,542 bytesを削除した。主Ninja木5,783,876 KiB、共有compiler cache 982,824 KiB、最新`build/tdd-macos/public-api-missing-g262.json` 2,054,984 bytes、SHA-256 `e2e8da1d785981d01cfcca2d66616b5330422fefdfcbf70e3b10764366acd713`だけを再利用対象として保持する。compiler cacheは143,415件中120,271件、83.86%がhitしている。製品target、動的`FreehandStrokeContractTest`、全体build・`verify`、Linux、Nix再評価は実行していない。
 
 ### 第262便の先行監査担当票
 
@@ -1251,15 +1257,21 @@
 
 ### 第262便の監査結果と担当計画
 
-- `libs/libkis/VectorLayer.h`の残存13 APIと`libs/libkis/GroupShape.h`の残存6 APIは一意かつ台帳と非重複で、合計19件の識別子整列集合SHA-256 `ee4c88e5863f8949bbb5da91349f5656b1983976ac9f1f3d6829cf9bc969f1a3`を持つ。両型はvector layer上の最上位図形とgroup子階層を表す一責務に収まり、`g262-vector-group-schema`の状態は`planned`とする。実装時の許可pathは新規`libs/libkis/tests/VectorGroupShapeSchemaContractTest.cpp`と`libs/libkis/tests/CMakeLists.txt`の新target固有節だけで、公開header、製品source、既存targetを変更しない。
+- 最新`build/tdd-macos/public-api-missing-g262.json`で`libs/libkis/VectorLayer.h`の残存13 APIと`libs/libkis/GroupShape.h`の残存6 APIが一意かつ台帳と非重複であり、合計19件の識別子整列集合SHA-256 `ee4c88e5863f8949bbb5da91349f5656b1983976ac9f1f3d6829cf9bc969f1a3`を維持することを再確認した。両型はvector layer上の最上位図形とgroup子階層を表す一責務に収まり、`g262-vector-group-schema`の状態は`planned`とする。実装時の許可pathは新規`libs/libkis/tests/VectorGroupShapeSchemaContractTest.cpp`と`libs/libkis/tests/CMakeLists.txt`の新target固有節だけで、公開header、製品source、既存targetを変更しない。
 - 5枠は`vectorLayerTypeLifetimeAndConstructionSchemaRemainStable`へ型・2構築・破棄4件、`vectorLayerIdentityAndRenderingPolicySignaturesRemainStable`へ型識別とantialias設定3件、`vectorLayerShapeQuerySignaturesRemainStable`へ位置・一覧・矩形検索3件、`vectorLayerSvgAndGroupingSignaturesRemainStable`へSVG入出力とgroup生成3件、`groupShapeTypeLifetimeAndHierarchySignaturesRemainStable`へ型・2構築・子取得・型識別・破棄6件を対応付ける。型特性、厳密member pointer、constructorと矩形検索の既定引数を確認する未評価式だけを使い、wrapper、図形、layer、controller、image、Qt値を実体化しない。
 - 新規targetはlibkis、global、image、image/filter、painting、painting/undo、pigment、pigment/resources、resources、flakeのsource/generated探索路、Qt Gui・Xml、KF I18n、Eigen、Imathのinterface探索、libkis・global・image・flakeのexport定義、Qt Core・Testとheader-only Boostだけの直接linkを使う4工程・8入力を予測し、停止線を5工程・11入力とする。軽量近傍`NodeSchemaContractTest`は4工程・8入力、command SHA-256 `545563ce94c608312d5319dfbf7a9f6b974d327f14f0ef572a34dba14ef65592`、input SHA-256 `179b7cb4cecd12291fd5658403eb0d52c2c1ded0491c0e28df03fccc97633a99`である。Qt Gui・Xmlの動的接続、UI・application探索路、製品shared・OBJECT、`kritatestsdk`、候補headerのAUTOMOC入力化、製品・metaobject未解決記号、実体化または許可path外変更が必要なら停止する。SVG入出力、検索条件、group再親化・順序・undo、所有寿命、antialiasの描画反映は既存重量試験または後続の動的契約で扱い、第261便完了後に開始する。
 
 ### 第263便の先行監査担当票
 
 - 監査共通基点は`0888cdbf4e`、正式入力は`build/tdd-macos/public-api-missing-g261.json`である。第261便と第262便の選定済みAPIを除外し、`libs/image/kis_base_processor.h`の残存18 APIを、画素処理器の識別・設定・対応能力を固定する一責務候補として監査する。主作業treeの読み取りだけを許可し、変更、構成、構築、試験、Git操作、追加委任を行わず、G261の専用構築木と生成物を共有しない。
-- `g263-base-processor-api-audit`の状態は`in_progress`である。正式不足一覧と台帳に対する残存識別子の完全性、一意性、整列指紋、型・寿命・識別・構成・対応能力の責務別割当、最大5枠で静的契約へ固定できる範囲を調べる。既存のfilter・generator動的試験が保護する実行時意味は分離して報告する。
-- `g263-base-processor-closure-review`の状態は`in_progress`である。候補headerの直接依存、imageの既存軽量契約、専用targetと既存target追記の責務・閉包差、必要探索路・定義・動的接続、製品shared・OBJECTと`kritatestsdk`の回避、候補headerのAUTOMOC非入力化、許可path、停止線を独立に調べる。先行include整理が限定構築範囲を縮小する場合は、その根拠と所有先を報告する。
+- `g263-base-processor-api-audit`の状態は`completed`である。正式不足一覧の残存全18 APIが一意かつ台帳と非重複で、型・寿命・識別・構成・対応能力の一責務として5枠へ固定できることを確認した。
+- `g263-base-processor-closure-review`の状態は`completed`である。専用header限定targetは4工程・8入力と製品非接続に閉じるが、その前に開始headerの未使用includeを整理するとimage/filter、resources、painting/undo、Qt Xml等の不要な探索面を除外できることを独立確認した。
+
+### 第263便の監査結果と第263a便の構造準備計画
+
+- `libs/image/kis_base_processor.h`の残存全18 APIは識別子整列集合SHA-256 `d6ae3c7fb8b1233faed3f685aee3459327be946ac8562f566ae0d373af12a1c4`を持つ。型・寿命・構築3、識別・menu・shortcut 5、既定・factory構成と構成widget 3、色空間・描画・調整layer・thread対応4、bookmark・構成表示3の5枠へ割り当てる。すべて型特性と厳密member pointerで観測でき、既定引数はない。設定生成内容、資源伝播、bookmark寿命、識別値、shortcut保存、能力flagの値、構成widgetの生成は既存または後続の動的契約で扱う。
+- `g263a-base-processor-header-boundary`の状態は`planned`とする。開始`libs/image/kis_base_processor.h`の公開宣言で使わない`<list>`、`<klocalizedstring.h>`、`kis_image.h`、`kis_filter_configuration.h`を除去する。`kis_shared.h`は完全基底、`KoColorSpace.h`は`ColorSpaceIndependence`定義、`KoID.h`、`kis_types.h`、`QString`、`QKeySequence`、export headerは公開面の直接所有として残す。直接利用元は`kis_base_processor.cpp`、`filter/kis_filter.h`、`generator/kis_generator.h`の3件であり、実装sourceは構成・paint device・資源interfaceを、派生headerは必要型を既に直接includeする。許可pathは開始headerだけとし、利用元補正が必要なら停止する。
+- G263aは変更前後のheader-first探索面、3利用元の厳格構文、軽量`KisProcessingApplicatorSchemaContractTest`、公開API 29,804件と18識別子・指紋、二回の無作業再構築、書式、差分、公開API検査、`verify-quick`を確認する。続く`g263-base-processor-schema`は新規`libs/image/tests/KisBaseProcessorSchemaContractTest.cpp`と`libs/image/tests/CMakeLists.txt`の新target固有節だけを許可し、image・global・pigmentのsource/generated探索路、Qt Gui・KF I18nのinterface探索、global・image・pigmentのexport定義、Qt Core・Testとheader-only Boostだけの直接linkによる4工程・8入力、停止線5工程・11入力を予測する。候補headerのAUTOMOC入力化、Qt Gui・Widgets・Xmlの動的接続、resources・painting/undo探索路、製品shared・OBJECT、`kritatestsdk`、製品未解決記号、実体化または許可path外変更が必要なら停止する。第262便完了後にG263aを開始する。
 
 ### 第239便の先行監査担当票
 

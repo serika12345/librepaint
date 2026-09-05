@@ -19,7 +19,7 @@ private Q_SLOTS:
     void maskedFreehandPainterDabLineAndBezierSignaturesRemainStable();
     void maskedFreehandPainterGeometryPrimitiveSignaturesRemainStable();
     void maskedFreehandPainterPathDrawingSignaturesRemainStable();
-    void maskedFreehandPainterAsynchronousDirtyAndMaskSignaturesRemainStable();
+    void maskedFreehandPainterAsyncDirtyAndMaskSignaturesRemainStable();
 };
 
 using Subject = KisMaskedFreehandStrokePainter;
@@ -70,8 +70,7 @@ void KisMaskedFreehandStrokePainterSchemaContractTest::maskedFreehandPainterPath
     ASSERT_SIGNATURE(drawPainterPath, Draw);
 }
 
-void KisMaskedFreehandStrokePainterSchemaContractTest::
-    maskedFreehandPainterAsynchronousDirtyAndMaskSignaturesRemainStable()
+void KisMaskedFreehandStrokePainterSchemaContractTest::maskedFreehandPainterAsyncDirtyAndMaskSignaturesRemainStable()
 {
     using Update = std::pair<int, bool> (Subject::*)(QVector<KisRunnableStrokeJobData *> &);
     using Boolean = bool (Subject::*)() const;

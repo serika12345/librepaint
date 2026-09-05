@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 7744
+    "expectedMissingApis": 7727
   },
   "contracts": [
     {
@@ -61594,6 +61594,68 @@
         "method:KisToolSelectBase::endSelectInteraction()",
         "method:KisToolSelectBase::locateSelectionMaskUnderCursor(const QPointF & pos,Qt::KeyboardModifiers modifiers) const",
         "method:KisToolSelectBase::popupWidget()"
+      ]
+    },
+    {
+      "target": "KisMaskedFreehandStrokePainterSchemaContractTest",
+      "source": "libs/painting/tests/KisMaskedFreehandStrokePainterSchemaContractTest.cpp",
+      "test": "KisMaskedFreehandStrokePainterSchemaContractTest::maskedFreehandPainterTypeLifetimeAndPresetSchemaRemainStable",
+      "behavior": "mask対応freehand描画器は主描画情報とmask描画情報から構築でき、使用中presetを取得する公開面を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisMaskedFreehandStrokePainter",
+        "method:KisMaskedFreehandStrokePainter::KisMaskedFreehandStrokePainter(KisFreehandStrokeInfo * strokeData,KisFreehandStrokeInfo * maskData)",
+        "method:KisMaskedFreehandStrokePainter::preset() const"
+      ]
+    },
+    {
+      "target": "KisMaskedFreehandStrokePainterSchemaContractTest",
+      "source": "libs/painting/tests/KisMaskedFreehandStrokePainterSchemaContractTest.cpp",
+      "test": "KisMaskedFreehandStrokePainterSchemaContractTest::maskedFreehandPainterDabLineAndBezierSignaturesRemainStable",
+      "behavior": "mask対応freehand描画器は描点、線分、Bezier曲線を描く正確な公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMaskedFreehandStrokePainter::paintAt(const KisPaintInformation & pi)",
+        "method:KisMaskedFreehandStrokePainter::paintBezierCurve(const KisPaintInformation & pi1,const QPointF & control1,const QPointF & control2,const KisPaintInformation & pi2)",
+        "method:KisMaskedFreehandStrokePainter::paintLine(const KisPaintInformation & pi1,const KisPaintInformation & pi2)"
+      ]
+    },
+    {
+      "target": "KisMaskedFreehandStrokePainterSchemaContractTest",
+      "source": "libs/painting/tests/KisMaskedFreehandStrokePainterSchemaContractTest.cpp",
+      "test": "KisMaskedFreehandStrokePainterSchemaContractTest::maskedFreehandPainterGeometryPrimitiveSignaturesRemainStable",
+      "behavior": "mask対応freehand描画器は折れ線の省略可能範囲、polygon、矩形、楕円、painter pathを描く公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMaskedFreehandStrokePainter::paintEllipse(const QRectF & rect)",
+        "method:KisMaskedFreehandStrokePainter::paintPainterPath(const QPainterPath & path)",
+        "method:KisMaskedFreehandStrokePainter::paintPolygon(const QVector<QPointF> & points)",
+        "method:KisMaskedFreehandStrokePainter::paintPolyline(const QVector<QPointF> & points,int index=0,int numPoints=-1)",
+        "method:KisMaskedFreehandStrokePainter::paintRect(const QRectF & rect)"
+      ]
+    },
+    {
+      "target": "KisMaskedFreehandStrokePainterSchemaContractTest",
+      "source": "libs/painting/tests/KisMaskedFreehandStrokePainterSchemaContractTest.cpp",
+      "test": "KisMaskedFreehandStrokePainterSchemaContractTest::maskedFreehandPainterPathDrawingSignaturesRemainStable",
+      "behavior": "mask対応freehand描画器はpenによるpath描線と任意色による描線・塗潰しの公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMaskedFreehandStrokePainter::drawAndFillPainterPath(const QPainterPath & path,const QPen & pen,const KoColor & customColor)",
+        "method:KisMaskedFreehandStrokePainter::drawPainterPath(const QPainterPath & path,const QPen & pen)"
+      ]
+    },
+    {
+      "target": "KisMaskedFreehandStrokePainterSchemaContractTest",
+      "source": "libs/painting/tests/KisMaskedFreehandStrokePainterSchemaContractTest.cpp",
+      "test": "KisMaskedFreehandStrokePainterSchemaContractTest::maskedFreehandPainterAsyncDirtyAndMaskSignaturesRemainStable",
+      "behavior": "mask対応freehand描画器は非同期更新job、dirty領域の有無と受渡し、mask有無を扱う公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMaskedFreehandStrokePainter::doAsynchronousUpdate(QVector<KisRunnableStrokeJobData * > & jobs)",
+        "method:KisMaskedFreehandStrokePainter::hasDirtyRegion() const",
+        "method:KisMaskedFreehandStrokePainter::hasMasking() const",
+        "method:KisMaskedFreehandStrokePainter::takeDirtyRegion()"
       ]
     }
   ]
