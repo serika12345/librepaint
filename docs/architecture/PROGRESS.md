@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 19:34 JST
+- 更新日時: 2026-09-05 20:11 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1122,10 +1122,16 @@
 
 ### 第256便の担当計画
 
-- 実装基点は`7c87bfc90d`である。`g256-tool-proxy-schema`の状態は`in_progress`、専用作業treeは`/Users/masato/Documents/librepaint-g256-tool-proxy-schema`、branchは`agent/g256-tool-proxy-schema`とする。開始`libs/input/ui/kis_tool_proxy.h`の残存全16 APIを、新規`libs/input/ui/tests/KisToolProxySchemaContractTest.cpp`の5枠へ固定する。許可pathは同試験sourceと`libs/input/ui/tests/CMakeLists.txt`の新target固有節だけで、公開header、製品source、既存targetを変更しない。調整担当だけがarchitecture文書、公開API台帳、共通不足報告を変更する。担当のGit権限は許可pathだけの受渡しcommit 1件で、追加委任は禁止する。
+- 実装基点は`7c87bfc90d`である。`g256-tool-proxy-schema`の状態は`integrated`、専用作業treeは`/Users/masato/Documents/librepaint-g256-tool-proxy-schema`、branchは`agent/g256-tool-proxy-schema`とする。開始`libs/input/ui/kis_tool_proxy.h`の残存全16 APIを、新規`libs/input/ui/tests/KisToolProxySchemaContractTest.cpp`の5枠へ固定する。許可pathは同試験sourceと`libs/input/ui/tests/CMakeLists.txt`の新target固有節だけで、公開header、製品source、既存targetを変更しない。調整担当だけがarchitecture文書、公開API台帳、共通不足報告を変更する。担当のGit権限は許可pathだけの受渡しcommit 1件で、追加委任は禁止する。
 - 5枠は`toolProxyTypeLifetimeAndConstructionSchemaRemainStable`へ型・構築2件、`toolProxyActionStateOrdinalsRemainStable`へ状態列挙型と3値4件、`toolProxyImageAndActiveToolSignaturesRemainStable`へimage初期化・active tool設定2件、`toolProxyEventForwardingAndCapabilitySignaturesRemainStable`へevent転送・hover転送・高解像度入力・描画補助方針5件、`toolProxyActionLifecycleAndNotificationSignaturesRemainStable`へtool action開始・終了・通知3件を対応付ける。正式入力`build/tdd-macos/public-api-missing-g256.json`の完全な16識別子と識別子整列集合SHA-256 `17bba097a53858df7ac73e47fea63dd4029449388a9c670a631d339aab596c6d`を維持する。
 - 事前の構築範囲監査では、既存動的`KisToolProxyContractTest`は製品libraryと`kritatestsdk`へ接続し、軽量`KisToolInvocationActionSchemaContractTest.cpp`は254行・15枠で追記後に300行を超えるため、製品非接続の専用targetを選ぶ。新targetはinput/ui、tools、flake、flake/resources、global、image、pigment、pigment/compositeops、pigment/resources、resourcesのsource/generated探索路、7つの所有export定義、Qt Gui・KF I18n・Imathのinterface探索、Qt Core・Testとheader-only Boostだけに限定する。予測4工程・8入力、停止線5工程・11入力とする。軽量近傍は実測4工程・8入力、command SHA-256 `e3a590c73ad41e74b9c42f2fbd843a7359765c621f6f8e58108d39d1b52d171e`、input SHA-256 `e1715686d374cad9c0db1a52dd4b6586745228d3ebcfdec7c822c48e7c69827c`である。比較用の製品`kritainputui`は読取基線1,386工程・2,781入力であり構築しない。公開署名の`KisTool::ToolAction`と`AlternateAction`に完全な型が必要なため`kis_tool.h`は直接依存として維持し、先行構造変更は不要と判断した。
 - 候補headerを最初にincludeし、型・公開基底・構築可能性、列挙値、厳密なmember・signal pointerだけで観測する。proxy、canvas、tool、image共有pointer、eventを実体化せず、metaobjectと製品本文を実行しない。担当は編集前target不存在、直接依存、初回plan、5枠宣言段階の期待link失敗、追加5枠単発・各20回、全target、正式CTest、軽量近傍`KisToolInvocationActionSchemaContractTest`、AUTOMOC後二回目plan、無作業build 2回、4/8とhash、動的接続・未解決記号・AUTOMOC入力・構文・書式、差分、公開API検査、`verify-quick`を確認する。5工程・11入力超過、指定外探索路・定義・link、Qt Gui・Widgets・Xml、KF I18n・Imathまたは製品libraryの動的接続、製品shared・OBJECT・`kritatestsdk`、候補headerのAUTOMOC入力化、proxy・signal・metaobject・tool・image・eventの製品未解決記号、対象実体化、許可path外変更が必要なら停止する。重量動的試験、製品target、全体build・`verify`、Linux、Nix再評価は禁止する。
+
+### 第256便の契約統合結果
+
+- 開始`libs/input/ui/kis_tool_proxy.h`から新規`libs/input/ui/tests/KisToolProxySchemaContractTest.cpp`へ、proxy型・構築、操作状態、image・active tool、event転送・能力照会、action周期・通知を担う残存全16 API・5枠を固定した。新target固有節を`libs/input/ui/tests/CMakeLists.txt`へ追加し、公開headerと製品sourceは変更していない。受渡しcommit `d4853c4ec1fc6e1409f6261cfd84b0b0b13db71d`を中央commit `91cbf6a951`として取り込んだ。
+- 担当側と中央のmacOSで5枠を各20回、全7試験、正式CTest `libs-input-ui-KisToolProxySchemaContractTest`、軽量近傍`libs-input-ui-KisToolInvocationActionSchemaContractTest`、AUTOMOC後の二回目計画、無作業再構築2回に成功した。中央実測は4工程・8入力、command SHA-256 `729f58a95b75750486118ab3d68d1d9f367fc43189fe998c971675ea423e6b06`、input SHA-256 `e026f067eb7d879cf8a3e5f3ef1a52faf18a3e1be49c3f2d1ee6053d521b3a66`、AUTOMOC `HEADERS=[]`、Qt Core・TestとOS frameworkだけの動的接続、proxy・signal・metaobjectを含む製品未解決記号なしである。厳格`clang-check`、書式、差分、macOSのpackage境界1,889対象、公開API検査、`verify-quick`に成功し、台帳は21,981件対応、7,823件未対応となった。event座標変換・受理状態、入力種別別の転送順、active tool・image寿命、signal発火、高解像度入力と描画補助の実行時方針は既存または後続の動的契約で扱う。
+- 中央検証後にcleanな専用作業tree、298,428 KiBのlane構築木、branchを削除して889,144 KiBを回収した。旧`public-api-missing-g256.json`を削除し、主Ninja木5,777,780 KiB、共有compiler cache 983,400 KiB、最新`build/tdd-macos/public-api-missing-g257.json` 2,084,396 bytes、SHA-256 `e5cd6cb4b322cbd4f64164c041b637b761234e5bc92663338125df2e644e56a4`だけを次便へ再利用する。compiler cacheは143,256件中120,263件、83.95%がhitしている。製品target、重量`KisToolProxyContractTest`、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第257便のgradient conversion 18 APIを正式不足報告で再照合し、既存gradient値契約への追記可否と限定構築範囲を確定することである。
 
 ### 第239便の先行監査担当票
 

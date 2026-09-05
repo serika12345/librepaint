@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 7839
+    "expectedMissingApis": 7823
   },
   "contracts": [
     {
@@ -61274,6 +61274,67 @@
       "classification": "maintained",
       "apis": [
         "function:operator <<(QDebug debug,const KisMetaData::Schema & c)"
+      ]
+    },
+    {
+      "target": "KisToolProxySchemaContractTest",
+      "source": "libs/input/ui/tests/KisToolProxySchemaContractTest.cpp",
+      "test": "KisToolProxySchemaContractTest::toolProxyTypeLifetimeAndConstructionSchemaRemainStable",
+      "behavior": "入力tool代理はcanvasと任意の親objectから構築される公開型と継承関係を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisToolProxy",
+        "method:KisToolProxy::KisToolProxy(KoCanvasBase * canvas,QObject * parent=0)"
+      ]
+    },
+    {
+      "target": "KisToolProxySchemaContractTest",
+      "source": "libs/input/ui/tests/KisToolProxySchemaContractTest.cpp",
+      "test": "KisToolProxySchemaContractTest::toolProxyActionStateOrdinalsRemainStable",
+      "behavior": "入力tool代理は操作の開始、継続、終了を表す列挙型と安定した値を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KisToolProxy::ActionState",
+        "enumerator:KisToolProxy::ActionState::BEGIN",
+        "enumerator:KisToolProxy::ActionState::CONTINUE",
+        "enumerator:KisToolProxy::ActionState::END"
+      ]
+    },
+    {
+      "target": "KisToolProxySchemaContractTest",
+      "source": "libs/input/ui/tests/KisToolProxySchemaContractTest.cpp",
+      "test": "KisToolProxySchemaContractTest::toolProxyImageAndActiveToolSignaturesRemainStable",
+      "behavior": "入力tool代理は対象画像の初期化とactive toolの設定について正確な公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisToolProxy::initializeImage(KisImageSP image)",
+        "method:KisToolProxy::setActiveTool(KoToolBase * tool)"
+      ]
+    },
+    {
+      "target": "KisToolProxySchemaContractTest",
+      "source": "libs/input/ui/tests/KisToolProxySchemaContractTest.cpp",
+      "test": "KisToolProxySchemaContractTest::toolProxyEventForwardingAndCapabilitySignaturesRemainStable",
+      "behavior": "入力tool代理はevent転送、高解像度入力と描画補助対応の照会について正確な関数型とconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisToolProxy::alternateActionSupportsHiResEvents(KisTool::AlternateAction action) const",
+        "method:KisToolProxy::forwardEvent(ActionState state,KisTool::ToolAction action,QEvent * event,QEvent * originalEvent)",
+        "method:KisToolProxy::forwardHoverEvent(QEvent * event)",
+        "method:KisToolProxy::primaryActionSupportsHiResEvents() const",
+        "method:KisToolProxy::supportsPaintingAssistants() const"
+      ]
+    },
+    {
+      "target": "KisToolProxySchemaContractTest",
+      "source": "libs/input/ui/tests/KisToolProxySchemaContractTest.cpp",
+      "test": "KisToolProxySchemaContractTest::toolProxyActionLifecycleAndNotificationSignaturesRemainStable",
+      "behavior": "入力tool代理はtool actionの開始・終了と主操作状態の通知について正確な公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisToolProxy::activateToolAction(KisTool::ToolAction action)",
+        "method:KisToolProxy::deactivateToolAction(KisTool::ToolAction action)",
+        "method:KisToolProxy::toolPrimaryActionActivated(bool activated)"
       ]
     }
   ]
