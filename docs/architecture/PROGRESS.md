@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 09:56 JST
+- 更新日時: 2026-09-05 09:59 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -750,6 +750,14 @@
 ### 第231便の先行監査担当票（第230便確定待ち）
 
 - `g231-safe-projection-store-schema-formal-review`の状態は`completed-ready`、担当は`g178_paintop_settings_schema`、基点は`d9d66f7f4f`である。正式入力`build/tdd-macos/public-api-missing-g225.json`でも`libs/image/KisSafeNodeProjectionStore.h`の残存全19 APIは一意で台帳と重複せず、識別子整列集合SHA-256 `76fad9e2666155c6b95e43ff8d410d6dbce7c81784a934b208d091b8fb871617`、新規`libs/image/tests/KisSafeNodeProjectionStoreSchemaContractTest.cpp`の5枠4・3・6・4・2に一致した。3型はnode projectionの安全な所有・遅延生成・解放調整を共通責務とする。動的consumer試験は1,200工程・2,423入力で製品libraryへ接続し、既存の軽量試験はconsumer責務へ分散するため、新targetを採用する。同targetはimage・global探索路、`kritaimage_EXPORTS`、Qt Core・Testだけで初回・AUTOMOC後とも4工程・8入力へ閉じられ、軽量近傍`KisUpdateSchedulerSchemaContractTest`も同じ4工程・8入力、AUTOMOC `HEADERS=[]`、製品辺なしである。正式集合外の`KisSafeNodeProjectionStoreBaseWSP`は`KisRecycleProjectionsJob.h`所有として別記録する。thread affinity、signal配送、画像消滅時のcache破棄、ABA対策、copy時複製、実際の共有・QObject二重寿命は既存または後続の動的契約で扱い、正式第231便不足報告で19件・集合SHA・別header帰属を再照合する。
+
+### 第232便の先行監査担当票（第231便確定待ち）
+
+- `g232-cross-device-color-sampler-schema-formal-review`の状態は`auditing`、担当は`g208_raster_keyframe_schema`、基点は`66c906977f`、正式入力は`build/tdd-macos/public-api-missing-g226.json`である。開始公開headerは`libs/image/kis_cross_device_color_sampler.h`の残存全19 API、識別子整列集合SHA-256 `11ea4757d5a03fcb661aa073f82b79eea091c3edc25f7ebf1310950d42527313`である。契約候補は新規`libs/image/tests/KisCrossDeviceColorSamplerSchemaContractTest.cpp`の最大5枠、所有候補CMakeは`libs/image/tests/CMakeLists.txt`の新target固有節である。主作業treeと既存Ninja graphを読み取り専用で使い、変更、構成、構築、試験、Git操作、追加委任を行わない。実数・整数座標traitの型・accessor生成・新旧画素採取と、3種類の出力先を持つsampler templateの型・構築・破棄・新旧色採取を一責務にまとめる根拠、全識別子対応、template inline本文を実体化しない観測、必要include・定義・直接・interface link、現在とAUTOMOC後の予測工程・入力、最小近傍、製品辺、停止条件を独立確認し、正式第232便不足報告で19件と集合SHAを再照合する条件を返す。
+
+### 第233便の先行監査担当票（第232便確定待ち）
+
+- `g233-resource-paths-schema-formal-review`の状態は`auditing`、担当は`g178_paintop_settings_schema`、基点は`66c906977f`、正式入力は`build/tdd-macos/public-api-missing-g226.json`である。開始公開headerは`libs/resources/KoResourcePaths.h`の残存全20 API、識別子整列集合SHA-256 `52353b0c1e952be6a2d8c6943de6b85e705377f4238a17fd2195575cea0af6f0`である。契約候補は新規`libs/resources/tests/KoResourcePathsSchemaContractTest.cpp`の最大5枠、所有候補CMakeは`libs/resources/tests/CMakeLists.txt`の新target固有節である。主作業treeと既存Ninja graphを読み取り専用で使い、変更、構成、構築、試験、Git操作、追加委任を行わない。検索optionと上書き位置、asset種別・directory登録、root・data位置、単一・複数検索、保存・local位置解決の全識別子対応、既存filesystem試験への追記との比較、既定引数を含む非実体化観測、必要include・定義・直接・interface link、現在とAUTOMOC後の予測工程・入力、最小近傍、製品辺、停止条件を独立確認し、正式第233便不足報告で20件と集合SHAを再照合する条件を返す。
 
 ### 第201便の先行監査担当票
 
