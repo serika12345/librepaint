@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 8370
+    "expectedMissingApis": 8351
   },
   "contracts": [
     {
@@ -59573,6 +59573,70 @@
         "method:std::hash::operator ()(const KisSharedPtr<T> & ptr) const",
         "method:std::hash::operator ()(const KisWeakSharedPtr<T> & ptr) const",
         "struct:std::hash"
+      ]
+    },
+    {
+      "target": "KisOverlayPaintDeviceWrapperSchemaContractTest",
+      "source": "libs/image/tests/KisOverlayPaintDeviceWrapperSchemaContractTest.cpp",
+      "test": "KisOverlayPaintDeviceWrapperSchemaContractTest::overlayWrapperTypeModeAndLifetimeSchemaRemainStable",
+      "behavior": "重ね合わせ描画装置は通常・精密・遅延精密の方式、入力装置と重ね合わせ数・強制色空間を受け取る構築、破棄の公開構成を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisOverlayPaintDeviceWrapper",
+        "enum:KisOverlayPaintDeviceWrapper::OverlayMode",
+        "enumerator:KisOverlayPaintDeviceWrapper::OverlayMode::LazyPreciseMode",
+        "enumerator:KisOverlayPaintDeviceWrapper::OverlayMode::NormalMode",
+        "enumerator:KisOverlayPaintDeviceWrapper::OverlayMode::PreciseMode",
+        "method:KisOverlayPaintDeviceWrapper::KisOverlayPaintDeviceWrapper(KisPaintDeviceSP source,int numOverlays=1,OverlayMode mode=NormalMode,const KoColorSpace * forcedOverlayColorSpace=nullptr)",
+        "method:KisOverlayPaintDeviceWrapper::~KisOverlayPaintDeviceWrapper()"
+      ]
+    },
+    {
+      "target": "KisOverlayPaintDeviceWrapperSchemaContractTest",
+      "source": "libs/image/tests/KisOverlayPaintDeviceWrapperSchemaContractTest.cpp",
+      "test": "KisOverlayPaintDeviceWrapperSchemaContractTest::overlayWrapperSourceAndOverlaySignaturesRemainStable",
+      "behavior": "重ね合わせ描画装置は入力装置、指定位置の重ね合わせ装置、重ね合わせ色空間を返す公開署名と既定位置を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisOverlayPaintDeviceWrapper::overlay(int index=0) const",
+        "method:KisOverlayPaintDeviceWrapper::overlayColorSpace() const",
+        "method:KisOverlayPaintDeviceWrapper::source() const"
+      ]
+    },
+    {
+      "target": "KisOverlayPaintDeviceWrapperSchemaContractTest",
+      "source": "libs/image/tests/KisOverlayPaintDeviceWrapperSchemaContractTest.cpp",
+      "test": "KisOverlayPaintDeviceWrapperSchemaContractTest::overlayWrapperDestinationAndCompositionSignaturesRemainStable",
+      "behavior": "重ね合わせ描画装置は外部出力装置を設定・取得し、精密合成用の入力装置を生成する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisOverlayPaintDeviceWrapper::createPreciseCompositionSourceDevice()",
+        "method:KisOverlayPaintDeviceWrapper::externalDestination() const",
+        "method:KisOverlayPaintDeviceWrapper::setExternalDestination(KisPaintDeviceSP device)"
+      ]
+    },
+    {
+      "target": "KisOverlayPaintDeviceWrapperSchemaContractTest",
+      "source": "libs/image/tests/KisOverlayPaintDeviceWrapperSchemaContractTest.cpp",
+      "test": "KisOverlayPaintDeviceWrapperSchemaContractTest::overlayWrapperRegionTransferSignaturesRemainStable",
+      "behavior": "重ね合わせ描画装置は単一・複数矩形を入力装置から読み込み、指定位置の重ね合わせから書き戻す公開署名と既定位置を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisOverlayPaintDeviceWrapper::readRect(const QRect & rc)",
+        "method:KisOverlayPaintDeviceWrapper::readRects(const QVector<QRect> & rects)",
+        "method:KisOverlayPaintDeviceWrapper::writeRect(const QRect & rc,int index=0)",
+        "method:KisOverlayPaintDeviceWrapper::writeRects(const QVector<QRect> & rects,int index=0)"
+      ]
+    },
+    {
+      "target": "KisOverlayPaintDeviceWrapperSchemaContractTest",
+      "source": "libs/image/tests/KisOverlayPaintDeviceWrapperSchemaContractTest.cpp",
+      "test": "KisOverlayPaintDeviceWrapperSchemaContractTest::overlayWrapperTransactionSignaturesRemainStable",
+      "behavior": "重ね合わせ描画装置は任意の親undo commandで取引を開始し、完了したundo commandを返す公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisOverlayPaintDeviceWrapper::beginTransaction(KUndo2Command * parent=0)",
+        "method:KisOverlayPaintDeviceWrapper::endTransaction()"
       ]
     }
   ]

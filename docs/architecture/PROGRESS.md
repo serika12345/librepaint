@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 11:10 JST
+- 更新日時: 2026-09-05 11:25 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -787,13 +787,18 @@
 
 ### 第230便の担当計画
 
-- 実装基点は`05a7e82dea`である。`g230-overlay-paint-device-schema`の状態は`planned`、専用作業treeは`/Users/masato/Documents/librepaint-g230-overlay-paint-device-schema`、branchは`agent/g230-overlay-paint-device-schema`である。開始`libs/image/KisOverlayPaintDeviceWrapper.h`の残存全19 APIを、新規`libs/image/tests/KisOverlayPaintDeviceWrapperSchemaContractTest.cpp`の5枠へ固定する。許可pathは同試験sourceと`libs/image/tests/CMakeLists.txt`の新target固有節だけで、公開header、製品source、既存targetを変更しない。調整担当だけがarchitecture文書、公開API台帳、共通不足報告を変更する。担当のGit権限は許可pathだけの受渡しcommit 1件で、追加委任は禁止する。
+- 実装基点は`05a7e82dea`である。`g230-overlay-paint-device-schema`の状態は`integrated`で、開始`libs/image/KisOverlayPaintDeviceWrapper.h`の残存全19 APIを、新規`libs/image/tests/KisOverlayPaintDeviceWrapperSchemaContractTest.cpp`の5枠へ固定した。許可pathは同試験sourceと`libs/image/tests/CMakeLists.txt`の新target固有節だけで、公開header、製品source、既存targetを変更していない。受渡しcommit `7fc3d1e804`を統合commit `c3b72c6d88`として取り込んだ。
 - 5枠は`overlayWrapperTypeModeAndLifetimeSchemaRemainStable`へ型、方式列挙、3列挙値、構築・破棄の7件、`overlayWrapperSourceAndOverlaySignaturesRemainStable`へsource、overlay、overlay色空間の3件、`overlayWrapperDestinationAndCompositionSignaturesRemainStable`へ外部destinationの設定・取得と精密合成source生成の3件、`overlayWrapperRegionTransferSignaturesRemainStable`へ単一・複数矩形の読込み・書込み4件、`overlayWrapperTransactionSignaturesRemainStable`へ取引開始・終了2件を対応付ける。正式入力の完全な19識別子と識別子整列集合SHA-256 `22af76cc5d0f0bb8e6c002a9eebef0861546ac5c7cf6d36b452e39394d91c843`を維持する。
 - 新targetはimage・global source/generated探索路、`kritaimage_EXPORTS`と`kritaglobal_EXPORTS`、Qt Core・Testだけに限定し、予測閉包4工程・8入力、停止線5工程・11入力とする。型特性、列挙値、厳密なmember pointer、既定引数の未評価式だけで観測し、wrapper、描画装置、色空間、矩形、undo commandを実体化しない。担当は編集前target不存在、直接依存、初回計画、5枠宣言段階の期待link失敗、5枠単発・各20回、全target、正式CTest、近傍`KisProcessingApplicatorSchemaContractTest`、AUTOMOC後二回目計画、無作業再構築2回、動的接続・未解決記号・AUTOMOC入力・構文・書式、差分、公開API検査、`verify-quick`を確認する。5工程・11入力超過、追加探索路・定義・link、製品shared・OBJECT・`kritatestsdk`の動的接続、候補headerのAUTOMOC入力化、製品未解決記号、対象実体化、許可path外の変更が必要なら停止する。製品target、全体build・`verify`、Linux、Nix再評価は禁止する。
 
-### 第231便の先行監査担当票（第230便確定待ち）
+### 第230便の統合結果
 
-- `g231-safe-projection-store-schema-formal-review`の状態は`completed-ready`、担当は`g178_paintop_settings_schema`、基点は`d9d66f7f4f`である。正式入力`build/tdd-macos/public-api-missing-g225.json`でも`libs/image/KisSafeNodeProjectionStore.h`の残存全19 APIは一意で台帳と重複せず、識別子整列集合SHA-256 `76fad9e2666155c6b95e43ff8d410d6dbce7c81784a934b208d091b8fb871617`、新規`libs/image/tests/KisSafeNodeProjectionStoreSchemaContractTest.cpp`の5枠4・3・6・4・2に一致した。3型はnode projectionの安全な所有・遅延生成・解放調整を共通責務とする。動的consumer試験は1,200工程・2,423入力で製品libraryへ接続し、既存の軽量試験はconsumer責務へ分散するため、新targetを採用する。同targetはimage・global探索路、`kritaimage_EXPORTS`、Qt Core・Testだけで初回・AUTOMOC後とも4工程・8入力へ閉じられ、軽量近傍`KisUpdateSchedulerSchemaContractTest`も同じ4工程・8入力、AUTOMOC `HEADERS=[]`、製品辺なしである。正式集合外の`KisSafeNodeProjectionStoreBaseWSP`は`KisRecycleProjectionsJob.h`所有として別記録する。thread affinity、signal配送、画像消滅時のcache破棄、ABA対策、copy時複製、実際の共有・QObject二重寿命は既存または後続の動的契約で扱い、正式第231便不足報告で19件・集合SHA・別header帰属を再照合する。
+- 開始`libs/image/KisOverlayPaintDeviceWrapper.h`から新規`libs/image/tests/KisOverlayPaintDeviceWrapperSchemaContractTest.cpp`へ19 API・5枠を追加した。担当側と中央のmacOSで5枠を各20回、対象全7件、正式CTestと近傍`KisProcessingApplicatorSchemaContractTest`、AUTOMOC後の二回目計画、無作業再構築2回に成功した。中央実測は4工程・8入力、command SHA-256 `827cf4868774b021c92023dd92b6a7afb99deecb5b4e399a72d5ed33abc3c062`、input SHA-256 `9df03ebb2e31ece72094b365dfd5bd0c1ad21edc41700e9d09e0dc8022b5aea2`、AUTOMOC `HEADERS=[]`、Qt Core・Testと非製品runtimeだけの動的接続、製品未解決記号なしである。正しいcompile commandによる`clang-check -Werror`、書式、差分、macOSのpackage境界1,871対象、公開API検査、`verify-quick`に成功し、台帳は21,453件対応、8,351件未対応となった。Normal・LazyPrecise方式、強制色空間、外部destination、複数矩形、index境界、undo transactionの実行時効果は既存または後続の動的契約で扱う。
+- 統合済みpatchとclean状態を確認後に専用作業tree、299,080 KiBのlane構築木、branchを削除して889,432 KiBを回収した。旧`public-api-missing-g230.json`を削除し、主Ninja木5,758,192 KiB、共有compiler cache 983,004 KiB、最新`build/tdd-macos/public-api-missing-g231.json` 2,218,903 bytes、SHA-256 `de6a600355a913ae213da27b7ba6f5b1dd6ca3c4932c5875c8e41fb23c24232d`だけを次便へ再利用する。compiler cacheは143,054件中120,218件、84.04%がhitしている。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+
+### 第231便の先行監査担当票
+
+- `g231-safe-projection-store-schema-formal-review`の状態は`completed-ready`、担当は`g178_paintop_settings_schema`、基点は`d9d66f7f4f`である。第230便後の正式入力`build/tdd-macos/public-api-missing-g231.json`でも`libs/image/KisSafeNodeProjectionStore.h`の残存全19 APIは一意で台帳と重複せず、識別子整列集合SHA-256 `76fad9e2666155c6b95e43ff8d410d6dbce7c81784a934b208d091b8fb871617`、新規`libs/image/tests/KisSafeNodeProjectionStoreSchemaContractTest.cpp`の5枠4・3・6・4・2に一致した。3型はnode projectionの安全な所有・遅延生成・解放調整を共通責務とする。動的consumer試験は1,200工程・2,423入力で製品libraryへ接続し、既存の軽量試験はconsumer責務へ分散するため、新targetを採用する。同targetはimage・global探索路、`kritaimage_EXPORTS`、Qt Core・Testだけで初回・AUTOMOC後とも4工程・8入力へ閉じられ、軽量近傍`KisUpdateSchedulerSchemaContractTest`も同じ4工程・8入力、AUTOMOC `HEADERS=[]`、製品辺なしである。正式集合外の`KisSafeNodeProjectionStoreBaseWSP`は`KisRecycleProjectionsJob.h`所有として別記録する。thread affinity、signal配送、画像消滅時のcache破棄、ABA対策、copy時複製、実際の共有・QObject二重寿命は既存または後続の動的契約で扱う。
 
 ### 第232便の先行監査担当票（第231便確定待ち）
 
