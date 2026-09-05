@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 8275
+    "expectedMissingApis": 8260
   },
   "contracts": [
     {
@@ -59893,6 +59893,66 @@
       "apis": [
         "method:KisMetaData::Validator::invalidEntries() const",
         "method:KisMetaData::Validator::revalidate()"
+      ]
+    },
+    {
+      "target": "KisSeExprScriptSchemaContractTest",
+      "source": "libs/flake/tests/KisSeExprScriptSchemaContractTest.cpp",
+      "test": "KisSeExprScriptSchemaContractTest::seExprScriptTypeLifetimeAndAliasSchemaRemainStable",
+      "behavior": "SeExpr式資源は共有参照別名と多態的な破棄を備える公開型構成を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisSeExprScriptSP",
+        "class:KisSeExprScript",
+        "method:KisSeExprScript::~KisSeExprScript()"
+      ]
+    },
+    {
+      "target": "KisSeExprScriptSchemaContractTest",
+      "source": "libs/flake/tests/KisSeExprScriptSchemaContractTest.cpp",
+      "test": "KisSeExprScriptSchemaContractTest::seExprScriptConstructionAndCloneSchemaRemainStable",
+      "behavior": "SeExpr式資源はfilename、画像・式・名称・folder、既存資源から構築し複製する公開構成を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSeExprScript::KisSeExprScript(KisSeExprScript * rhs)",
+        "method:KisSeExprScript::KisSeExprScript(const KisSeExprScript & rhs)",
+        "method:KisSeExprScript::KisSeExprScript(const QImage & image,const QString & script,const QString & name,const QString & folderName)",
+        "method:KisSeExprScript::KisSeExprScript(const QString & filename)",
+        "method:KisSeExprScript::clone() const"
+      ]
+    },
+    {
+      "target": "KisSeExprScriptSchemaContractTest",
+      "source": "libs/flake/tests/KisSeExprScriptSchemaContractTest.cpp",
+      "test": "KisSeExprScriptSchemaContractTest::seExprScriptPersistenceAndClassificationSignaturesRemainStable",
+      "behavior": "SeExpr式資源は装置との入出力と資源分類を提供する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSeExprScript::loadFromDevice(QIODevice * dev,KisResourcesInterfaceSP resourcesInterface)",
+        "method:KisSeExprScript::resourceType() const",
+        "method:KisSeExprScript::saveToDevice(QIODevice * dev) const"
+      ]
+    },
+    {
+      "target": "KisSeExprScriptSchemaContractTest",
+      "source": "libs/flake/tests/KisSeExprScriptSchemaContractTest.cpp",
+      "test": "KisSeExprScriptSchemaContractTest::seExprScriptIdentityAndExtensionSignaturesRemainStable",
+      "behavior": "SeExpr式資源は表示名と既定ファイル拡張子を返す公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSeExprScript::defaultFileExtension() const",
+        "method:KisSeExprScript::name() const"
+      ]
+    },
+    {
+      "target": "KisSeExprScriptSchemaContractTest",
+      "source": "libs/flake/tests/KisSeExprScriptSchemaContractTest.cpp",
+      "test": "KisSeExprScriptSchemaContractTest::seExprScriptContentSignaturesRemainStable",
+      "behavior": "SeExpr式資源は式内容を取得・設定する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSeExprScript::script() const",
+        "method:KisSeExprScript::setScript(const QString & script)"
       ]
     }
   ]

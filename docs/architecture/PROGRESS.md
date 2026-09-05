@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 12:58 JST
+- 更新日時: 2026-09-05 13:10 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -872,19 +872,28 @@
 
 ### 第235便の担当計画
 
-- 実装基点は`600270839c`である。`g235-seexpr-script-schema`の状態は`planned`、専用作業treeは`/Users/masato/Documents/librepaint-g235-seexpr-script-schema`、branchは`agent/g235-seexpr-script-schema`である。開始`libs/flake/resources/KisSeExprScript.h`の残存全15 APIを、新規`libs/flake/tests/KisSeExprScriptSchemaContractTest.cpp`の5枠へ固定する。許可pathは同試験sourceと`libs/flake/tests/CMakeLists.txt`の新target固有節だけで、公開header、製品source、既存targetを変更しない。調整担当だけがarchitecture文書、公開API台帳、共通不足報告を変更する。担当のGit権限は許可pathだけの受渡しcommit 1件で、追加委任は禁止する。
+- 実装基点は`600270839c`である。`g235-seexpr-script-schema`の状態は`integrated`で、開始`libs/flake/resources/KisSeExprScript.h`の残存全15 APIを、新規`libs/flake/tests/KisSeExprScriptSchemaContractTest.cpp`の5枠へ固定した。許可pathは同試験sourceと`libs/flake/tests/CMakeLists.txt`の新target固有節だけで、公開header、製品source、既存targetを変更していない。受渡しcommit `926aab7456`を統合commit `654c474fd4`として取り込んだ。
 - 5枠は`seExprScriptTypeLifetimeAndAliasSchemaRemainStable`へ型、強参照別名、破棄の3件、`seExprScriptConstructionAndCloneSchemaRemainStable`へfilename、画像・式・名称・folder、pointer・参照複製による4構築とcloneの5件、`seExprScriptPersistenceAndClassificationSignaturesRemainStable`へ装置からの読込み・保存と資源分類の3件、`seExprScriptIdentityAndExtensionSignaturesRemainStable`へ既定拡張子と名称2件、`seExprScriptContentSignaturesRemainStable`へ式の取得・設定2件を対応付ける。正式入力の完全な15識別子と識別子整列集合SHA-256 `00980c0b3aff5f956e1cf49d85f5970e243d84f8149b1ffbe06a260b4e40f48a`を維持する。
 - 新targetはflake・resources source/generated探索路、Qt Gui・KF I18n interface、`kritaflake_EXPORTS`と`kritaresources_EXPORTS`、Qt Core・Testとheader-only Boostだけに限定し、予測閉包4工程・8入力、停止線5工程・11入力とする。型特性、別名同一性、厳密なmember pointerだけで観測し、script資源、画像、文字列、装置、資源interfaceを実体化せず製品本文を実行しない。担当は編集前target不存在、直接依存、初回計画、5枠宣言段階の期待link失敗、5枠単発・各20回、全target、正式CTest、近傍`KoCssStylePresetSchemaContractTest`、AUTOMOC後二回目計画、無作業再構築2回、動的接続・未解決記号・AUTOMOC入力・構文・書式、差分、公開API検査、`verify-quick`を確認する。5工程・11入力超過、追加探索路・定義・link、Qt Gui・KF I18n・製品shared・OBJECT・`kritatestsdk`の動的接続、候補headerのAUTOMOC入力化、製品未解決記号、対象実体化、許可path外変更が必要なら停止する。製品target、既存generator試験、全体build・`verify`、Linux、Nix再評価は禁止する。
 
-### 第236便の先行監査担当票（第235便確定待ち）
+### 第235便の契約統合結果
 
-- `g236-ui-contract-audit`の状態は`completed-ready`、担当は`g178_shape_hierarchy_schema`、監査基点は`17be08ecb2`で、application起動引数21 APIを選定した。`libs/application/ui/orchestration/KisApplicationArguments.h`の残存21 APIは一意で台帳と重複せず、識別子整列集合SHA-256 `2bbdc6dfcfe61c50bd17532abc541f61710473908371522c4a719534be8f5b3b`、新規`libs/application/tests/KisApplicationArgumentsSchemaContractTest.cpp`の5枠5・2・4・4・6に一致する。同型はprocess起動時の文書入力、表示方式、export・workspace指定を一つの値として保持・複製・直列化する境界である。新targetはapplication・global探索路、`kritaapplicationui_EXPORTS`、Qt Core・Testだけで4工程・8入力を予測し、停止線を5工程・11入力とする。同名`kritaui_export.h`はapplication生成版だけを解決する。引数option優先順位、複数filename、無効直列化入力、直列化互換性、複製後の独立性、session・workspace解決、文書生成副作用は既存または後続の動的契約で扱い、正式第236便不足報告で21件と集合SHAを再照合する。
+- 開始`libs/flake/resources/KisSeExprScript.h`から新規`libs/flake/tests/KisSeExprScriptSchemaContractTest.cpp`へ15 API・5枠を追加した。担当側と中央のmacOSで5枠を各20回、対象全7件、正式CTestと近傍`KoCssStylePresetSchemaContractTest`、AUTOMOC後の二回目計画、無作業再構築2回に成功した。中央実測は4工程・8入力、command SHA-256 `d0965603ef74021de51a72ac0351a9fa4ce65b25c0f4ca8ca37dd54dbd8a4a5d`、input SHA-256 `7809e47451fd01c5b772a561fb21755b4d7ca3d8b8174fb26ad8bdc87574c813`、AUTOMOC `HEADERS=[]`、Qt Core・Testと非製品runtimeだけの動的接続、製品未解決記号なしである。Qt Gui・KF I18nは探索界面だけに限定した。正しいcompile commandによる`clang-check -Werror`、書式、差分、macOSのpackage境界1,875対象、公開API検査に成功し、台帳は21,544件対応、8,260件未対応となった。式のUTF-8保証、破損入力、保存失敗、複製後の独立性、変更通知、thumbnail・metadata整合は既存または後続の動的契約で扱う。
+- 統合済みpatchとclean状態を確認後に専用作業tree、296,648 KiBのlane構築木、branchを削除して887,076 KiBを回収した。旧`public-api-missing-g235.json`を削除し、主Ninja木5,763,508 KiB、共有compiler cache 982,320 KiB、最新`build/tdd-macos/public-api-missing-g236.json` 2,195,493 bytes、SHA-256 `eab44e1482c97cfea1f2488a20628bbc8655256d13c7fa724008b82def315e52`だけを次便へ再利用する。compiler cacheは143,092件中120,228件、84.02%がhitしている。製品target、既存generator試験、全体build・`verify`、Linux、Nix再評価は実行していない。
 
-### 第237便と第238便の先行監査担当票（第236便確定待ち）
+### 第236便の先行監査担当票
 
-- 監査共通基点は`9b2ee67349`、入力は`build/tdd-macos/public-api-missing-g228.json`である。第228便から第236便までに選定済みの責務を除外し、変更、構成、構築、試験、Git操作、追加委任を行わない読み取り専用監査を先行する。候補は一つの公開責務から15〜80 APIを最大5枠へ固定でき、既存限定対象またはheader限定の4〜10工程程度を見込めるものとする。各正式便の直前に最新不足報告で全識別子、集合SHA、台帳非重複、対象不存在、閉包計画を再照合する。
-- `g237-resource-contract-audit`の状態は`completed-ready`、担当は`g178_paintop_settings_schema`で、memory資源保管17 APIを選定した。`libs/resources/KisMemoryStorage.h`の残存17 APIは一意で台帳と重複せず、識別子整列集合SHA-256 `ea51ddf6c9cd429fce0ffba7c89ddbd0f5c90bea0f09a8c9992af84ef5645dbe`、新規`libs/resources/tests/KisMemoryStorageSchemaContractTest.cpp`の5枠4・4・4・3・2に一致する。同型は一時・文書内資源の保管、複製、metadata、入出力、版管理、走査を一責務として所有する。新targetはresources探索路、Qt Gui・KF I18n interface、`kritaresources_EXPORTS`、Qt Core・Testとheader-only Boostだけで4工程・8入力を予測し、停止線を5工程・11入力とする。既存`TestMemoryStorage`は動的挙動を保護するが813工程・1,654入力であり、新しい静的契約からは製品接続を除く。複製深度、資源所有、metadata上書き、版番号、装置失敗、iterator寿命は既存または後続の動的契約で扱い、正式第237便不足報告で17件と集合SHAを再照合する。
-- `g238-impex-contract-audit`の状態は`completed-ready`、担当は`g208_raster_keyframe_schema`で、ASL記述子XML書出し28 APIを選定した。`libs/psdutils/asl/kis_asl_xml_writer.h`の残存28 APIは一意で台帳と重複せず、識別子整列集合SHA-256 `0061035dcb7a9082aa4cdc4a81dda3f28ad02e9dbf9c2b68481c660360e1e83d`、新規`libs/psdutils/tests/KisAslXmlWriterSchemaContractTest.cpp`の5枠4・4・7・8・5に一致する。同型はPSD/ASLの階層記述子、基本値、幾何値、色・pattern・gradientを一つのXML文書へ書き出す責務を所有する。新targetはpsdutils・pigment・resources・global探索路、Qt Gui・KF I18n・Imath interface、4 export定義、Qt Core・Testとheader-only Boostだけで4工程・8入力を予測し、停止線を5工程・11入力とする。既存`KisAslWriterUtilsContractTest`は製品OBJECTへ接続するため追記しない。XML階層・属性・色・gradientの実出力は既存parser試験が保護し、正式第238便不足報告で28件と集合SHAを再照合する。
+- `g236-application-arguments-schema-formal-review`の状態は`completed-ready`、担当は`g178_paintop_settings_schema`、入力は最新`build/tdd-macos/public-api-missing-g236.json`である。`libs/application/ui/orchestration/KisApplicationArguments.h`の残存21 APIは一意で台帳と重複せず、識別子整列集合SHA-256 `2bbdc6dfcfe61c50bd17532abc541f61710473908371522c4a719534be8f5b3b`、新規`libs/application/tests/KisApplicationArgumentsSchemaContractTest.cpp`の5枠5・2・4・4・6に一致する。同型はprocess起動時の文書入力、表示方式、export・workspace指定を一つの値として保持・複製・直列化する境界である。新targetはapplication・global探索路、application側の生成`kritaui_export.h`を選ぶ`kritaapplicationui_EXPORTS`、Qt Core・Testだけで4工程・8入力を予測し、停止線を5工程・11入力とする。引数option優先順位、複数filename、無効直列化入力、直列化互換性、複製後の独立性、session・workspace解決、文書生成副作用は既存または後続の動的契約で扱う。
+
+### 第237便と第238便の先行監査担当票
+
+- 監査入力は最新`build/tdd-macos/public-api-missing-g236.json`であり、変更、構成、構築、試験、Git操作、追加委任を行わない読み取り専用監査として、全識別子、集合SHA、台帳非重複、既存試験との非重複、閉包計画を再照合した。
+- `g237-memory-storage-schema-formal-review`の状態は`completed-ready`、担当は`g208_raster_keyframe_schema`である。`libs/resources/KisMemoryStorage.h`の残存17 APIは一意で台帳と重複せず、識別子整列集合SHA-256 `ea51ddf6c9cd429fce0ffba7c89ddbd0f5c90bea0f09a8c9992af84ef5645dbe`、新規`libs/resources/tests/KisMemoryStorageSchemaContractTest.cpp`の5枠4・4・4・3・2に一致する。同型は一時・文書内資源の保管、複製、metadata、入出力、版管理、走査を一責務として所有する。新targetはresources探索路、Qt Gui・KF I18n interface、`kritaresources_EXPORTS`、Qt Core・Testとheader-only Boostだけで4工程・8入力を予測し、停止線を5工程・11入力とする。既存`TestMemoryStorage`は動的挙動を保護するが813工程・1,654入力であり、新しい静的契約からは製品接続を除く。複製深度、資源所有、metadata上書き、版番号、装置失敗、iterator寿命は既存または後続の動的契約で扱う。
+- `g238-asl-xml-writer-schema-formal-review`の状態は`completed-ready`、担当は`g178_paintop_settings_schema`である。`libs/psdutils/asl/kis_asl_xml_writer.h`の残存28 APIは一意で台帳と重複せず、識別子整列集合SHA-256 `0061035dcb7a9082aa4cdc4a81dda3f28ad02e9dbf9c2b68481c660360e1e83d`、新規`libs/psdutils/tests/KisAslXmlWriterSchemaContractTest.cpp`の5枠4・4・7・8・5に一致する。同型はPSD/ASLの階層記述子、基本値、幾何値、色・pattern・gradientを一つのXML文書へ書き出す責務を所有する。新targetはpsdutils・pigment・resources・global探索路、Qt Gui・KF I18n・Imath interface、4 export定義、Qt Core・Testとheader-only Boostだけで4工程・8入力を予測し、停止線を5工程・11入力とする。既存`KisAslWriterUtilsContractTest`は製品OBJECTへ接続するため追記しない。XML階層・属性・色・gradientの実出力は既存parser試験が保護する。
+
+### 第239便の先行監査担当票
+
+- `g239-resources-snapshot-schema-audit`の状態は`completed-ready`、担当は`g178_shape_hierarchy_schema`、入力は最新`build/tdd-macos/public-api-missing-g236.json`である。`libs/painting/kis_resources_snapshot.h`の残存全45 APIは一意で台帳と重複せず、識別子整列集合SHA-256 `bbaf9402fb5a27bbd027e419277cd23410c51b62854924183b6ff7fa0f958ec3`、新規`libs/painting/tests/KisResourcesSnapshotSchemaContractTest.cpp`の5枠5・12・13・9・6に一致する。同型は描画開始時のimage・node、前景・背景色、brush、pattern、gradient、選択、描画方針とLOD状態を一つのsnapshotとして固定する責務を所有する。新targetはpainting・global・image・pigment・resources・painting/undo探索路、Eigen・Imath・KF I18n interface、6 export定義、Qt Core・Gui・Test・Xmlとheader-only Boostだけで4工程・8入力を予測し、停止線を5工程・11入力とする。軽量近傍`KisFilterStrokeStrategySchemaContractTest`と同じ1,557 headerのcompile閉包を使うが、専用targetにより将来の対象限定再構築を分離する。`kis_paintop_factory.h`はX11条件宣言、`KisExiv2IODevice.h`はExiv2版条件署名のため単一macOS構成で正式集合を全観測できず棄却した。間接描画、masking、LOD、署名getter、選択例外条件の実行時意味は既存または後続の動的契約で扱う。
 
 ### 第201便の先行監査担当票
 
