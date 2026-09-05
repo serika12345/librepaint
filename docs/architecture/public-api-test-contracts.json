@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 7672
+    "expectedMissingApis": 7655
   },
   "contracts": [
     {
@@ -61846,6 +61846,68 @@
       "apis": [
         "method:KisNodeOperationBatch::end()",
         "method:KisNodeOperationBatch::requestUpdateAsyncFromCommand()"
+      ]
+    },
+    {
+      "target": "KisFigurePaintingStrokeSchemaContractTest",
+      "source": "libs/painting/tests/KisFigurePaintingStrokeSchemaContractTest.cpp",
+      "test": "KisFigurePaintingStrokeSchemaContractTest::figurePaintingStrokeTypeLifetimeAndConstructionSchemaRemainStable",
+      "behavior": "図形描画ストロークは操作名・画像・node・資源・描画方式から構築され、複製を禁止して寿命を一個体へ限定する公開面を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisFigurePaintingStroke",
+        "method:KisFigurePaintingStroke::KisFigurePaintingStroke(const KUndo2MagicString & name,KisImageWSP image,KisNodeSP currentNode,KoCanvasResourceProvider * resourceManager,KisFigurePaintingOptions::StrokeStyle strokeStyle,KisFigurePaintingOptions::FillStyle fillStyle,QTransform fillTransform=QTransform ())",
+        "method:KisFigurePaintingStroke::KisFigurePaintingStroke(const KisFigurePaintingStroke &)",
+        "method:KisFigurePaintingStroke::operator =(const KisFigurePaintingStroke &)",
+        "method:KisFigurePaintingStroke::~KisFigurePaintingStroke()"
+      ]
+    },
+    {
+      "target": "KisFigurePaintingStrokeSchemaContractTest",
+      "source": "libs/painting/tests/KisFigurePaintingStrokeSchemaContractTest.cpp",
+      "test": "KisFigurePaintingStrokeSchemaContractTest::figurePaintingStrokeResourceOverrideSignaturesRemainStable",
+      "behavior": "図形描画ストロークは前景色・背景色・brush・選択を上書きする公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisFigurePaintingStroke::setBGColorOverride(const KoColor & color)",
+        "method:KisFigurePaintingStroke::setBrush(const KisPaintOpPresetSP & brush)",
+        "method:KisFigurePaintingStroke::setFGColorOverride(const KoColor & color)",
+        "method:KisFigurePaintingStroke::setSelectionOverride(KisSelectionSP m_selection)"
+      ]
+    },
+    {
+      "target": "KisFigurePaintingStrokeSchemaContractTest",
+      "source": "libs/painting/tests/KisFigurePaintingStrokeSchemaContractTest.cpp",
+      "test": "KisFigurePaintingStrokeSchemaContractTest::figurePaintingStrokeGeometrySignaturesRemainStable",
+      "behavior": "図形描画ストロークは線分・折れ線・多角形・矩形・楕円を描く公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisFigurePaintingStroke::paintEllipse(const QRectF & rect)",
+        "method:KisFigurePaintingStroke::paintLine(const KisPaintInformation & pi0,const KisPaintInformation & pi1)",
+        "method:KisFigurePaintingStroke::paintPolygon(const vQPointF & points)",
+        "method:KisFigurePaintingStroke::paintPolyline(const vQPointF & points)",
+        "method:KisFigurePaintingStroke::paintRect(const QRectF & rect)"
+      ]
+    },
+    {
+      "target": "KisFigurePaintingStrokeSchemaContractTest",
+      "source": "libs/painting/tests/KisFigurePaintingStrokeSchemaContractTest.cpp",
+      "test": "KisFigurePaintingStrokeSchemaContractTest::figurePaintingStrokePainterPathSignatureRemainsStable",
+      "behavior": "図形描画ストロークはpainter pathを描く公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisFigurePaintingStroke::paintPainterPath(const QPainterPath & path)"
+      ]
+    },
+    {
+      "target": "KisFigurePaintingStrokeSchemaContractTest",
+      "source": "libs/painting/tests/KisFigurePaintingStrokeSchemaContractTest.cpp",
+      "test": "KisFigurePaintingStrokeSchemaContractTest::figurePaintingStrokePenPathSignaturesRemainStable",
+      "behavior": "図形描画ストロークはpenと色を指定してpainter pathを描線または描線・塗潰しする公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisFigurePaintingStroke::paintPainterPathQPen(const QPainterPath path,const QPen & pen,const KoColor & color)",
+        "method:KisFigurePaintingStroke::paintPainterPathQPenFill(const QPainterPath path,const QPen & pen,const KoColor & color)"
       ]
     }
   ]

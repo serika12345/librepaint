@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-06 00:10 JST
+- 更新日時: 2026-09-06 00:22 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1328,7 +1328,13 @@
 ### 第265便の監査結果と担当計画
 
 - `libs/painting/kis_figure_painting_stroke.h`の残存全17 APIは識別子整列集合SHA-256 `a50c6bf3a2c0d6ec9ee5deed1fe6881720215426f9112d3f1743cd4bcac6a862`を持つ。型・寿命・構築・非copy性5、前景・背景色・brush・選択上書き4、線・折れ線・polygon・矩形・楕円5、painter path 1、pen付きpath描画・塗潰し2の5枠へ割り当てる。削除copy構築・代入は否定型特性、fill transformの既定値は必須6引数だけの未評価構築式、残るmethodは厳密member pointerで観測する。stroke開始・終了、資源snapshot、上書き反映、画素結果、stroke queueとundoは既存重量試験へ残す。
-- `g265-figure-painting-stroke-schema`の状態は`in_progress`、実装基点は`d46532f29d`、専用作業treeは`/Users/masato/Documents/librepaint-g265-figure-painting-stroke-schema`、branchは`agent/g265-figure-painting-stroke-schema`、macOSの対象と近傍に限る構築実行許可は`granted`である。許可pathは新規`libs/painting/tests/KisFigurePaintingStrokeSchemaContractTest.cpp`と`libs/painting/tests/CMakeLists.txt`の新target固有節だけで、調整担当だけが文書、台帳、共通不足報告を変更する。担当のGit権限は許可pathだけの受渡しcommit 1件、追加委任は禁止する。新targetはpainting・strokes・painting/undo・global・image・brushengine・filter・pigment・pigment/resources・resourcesのsource/generated探索路、Qt Gui・Xml、KF I18n、Eigen、Imathのinterface探索、6 export定義、Qt Core・Testとheader-only Boostだけの直接linkによる4工程・8入力を予測し、停止線5工程・11入力とする。軽量近傍`KisResourcesSnapshotSchemaContractTest`は4工程・8入力、command SHA-256 `748cf4371e3c3c7fb67ca9763c2dae1d8fdc9b9ce71fdf1338a93d90495e65dc`、input SHA-256 `c2059b5e4a87dbc220b714d394c8b6f3c4e49e57d358fe0079f9c0ff4e83bd9a`である。Qt Gui・Xml・KF・Imathの動的接続、製品shared・OBJECT、`kritatestsdk`、候補headerのAUTOMOC入力化、製品未解決記号、実体化または許可path外変更が必要なら停止する。
+- `g265-figure-painting-stroke-schema`の状態は`integrated`、実装基点は`d46532f29d`、専用作業treeは`/Users/masato/Documents/librepaint-g265-figure-painting-stroke-schema`、branchは`agent/g265-figure-painting-stroke-schema`、macOSの対象と近傍に限る構築実行許可は`granted`である。許可pathは新規`libs/painting/tests/KisFigurePaintingStrokeSchemaContractTest.cpp`と`libs/painting/tests/CMakeLists.txt`の新target固有節だけで、調整担当だけが文書、台帳、共通不足報告を変更した。担当のGit権限は許可pathだけの受渡しcommit 1件、追加委任は禁止した。新targetはpainting・strokes・painting/undo・global・image・brushengine・filter・pigment・pigment/resources・resourcesのsource/generated探索路、Qt Gui・Xml、KF I18n、Eigen、Imathのinterface探索、6 export定義、Qt Core・Testとheader-only Boostだけの直接linkによる4工程・8入力、停止線5工程・11入力とした。
+
+### 第265便の契約統合結果
+
+- 開始`libs/painting/kis_figure_painting_stroke.h`から新規`libs/painting/tests/KisFigurePaintingStrokeSchemaContractTest.cpp`へ、型・構築・寿命・複製禁止、描画資源上書き、基本図形、painter path、pen付きpathを担う残存全17 API・5枠を追加した。fill transformの既定引数は必須6引数だけの未評価構築式、削除copy操作は否定型特性、残るmethodは厳密member pointerで固定した。`libs/painting/tests/CMakeLists.txt`には新target固有節だけを追加し、公開header、製品source、既存targetを変更していない。変更前target不存在、探索路追加前の`QPainterPath`不足、5枠宣言段階の全5試験関数の未定義link失敗を確認した。受渡しcommit `57f27bab65`を中央commit `8eebdbfad2`として取り込んだ。
+- 担当側のmacOSで5枠を各20回、全7試験、正式CTest `libs-painting-KisFigurePaintingStrokeSchemaContractTest`、軽量近傍`libs-painting-KisResourcesSnapshotSchemaContractTest`、AUTOMOC後の二回目計画、二回の無作業再構築に成功した。早期差分確認でGUI event loopを不要に起動する入口を`QTEST_APPLESS_MAIN`へ修正した。新targetは4工程・8入力、command SHA-256 `2b99b7fe034fe5faa256faa9089171bab68b0013ff60ff2d051ee3de7590d7eb`、input SHA-256 `74a7dc54e9f3b14d672e6876caf2a925a010d9abf980587a6620f9b1eafc797a`、AUTOMOC `HEADERS=[]`、Qt Core・Testだけの動的接続、製品未解決記号0である。厳格構文、書式、差分、公開API検査、`verify-quick`にも成功し、中央でも対象と近傍、二回の無作業再構築に成功した。
+- 台帳へ17 APIを追加して22,149件対応、7,655件未対応となり、旧基準7,672件に対する実測7,655件の期待不一致を確認してから基準を更新した。cleanな専用作業tree、302,636 KiBの構築木、branchを削除して893,512 KiBを回収し、旧`public-api-missing-g265.json` 2,040,655 bytesを削除した。主Ninja木5,788,896 KiB、共有compiler cache 982,888 KiB、最新`build/tdd-macos/public-api-missing-g266.json` 2,035,295 bytes、SHA-256 `010c57fead9e4d9cda4b4180b07477e0a6363b3fbfc86a128524a9e789315d50`だけを再利用対象として保持する。compiler cacheは143,454件中120,283件、83.85%がhitしている。製品target、重量試験、全体build・`verify`、Linux、Nix再評価は実行していない。
 
 ### 第266便の先行監査担当票
 
@@ -1339,7 +1345,7 @@
 ### 第266便の監査結果と担当計画
 
 - `libs/image/KisBezierGradientMesh.h`の残存全17 APIは一意かつ台帳と非重複で、識別子整列集合SHA-256 `910261c05c59bda89c0400c3a4384f3c387ead9d4d32f75a9d5987b4cd170aef`を持つ。型・別名・2構造体4、公開色data 2、色補間・node補間・patch割当・node等価4、命中判定・patch/mesh描画3、XML保存・読込4の5枠へ割り当てる。inline 4 APIはRGBA補間、幾何保持、単位矩形と色順序、幾何・色の等価性を値契約として固定し、残る13 APIは型特性と厳密な関数pointerで観測する。命中境界、画素描画、XML往復と不正入力は後続の動的契約で扱う。
-- `g266-bezier-gradient-mesh-contract`の状態は`planned`とする。許可pathは新規`libs/image/tests/KisBezierGradientMeshContractTest.cpp`と`libs/image/tests/CMakeLists.txt`の新target固有節だけである。image・globalのsource/generated探索路、image・globalのexport定義、Qt Core・Gui・Testとheader-only Boostだけの直接linkによる4工程・8入力を予測し、停止線5工程・11入力とする。軽量な構築形状の近傍`KisGradientPainterSchemaContractTest`は4工程・8入力、command SHA-256 `6b707c282d229ff1efa0393cba82c52c707025a0e634c5bc9eb6e93625761ff1`、input SHA-256 `362d01b8ab708148281833cdc70ed66cec6beb16d8677dcc28af9b6be9c83e62`である。Qt Widgets・Xml、KF、Eigen、Imath、pigment、resources、painting、製品shared・OBJECT、`kritatestsdk`、候補headerのAUTOMOC入力化、QColor以外の製品未解決記号、非inline実装の実体化または許可path外変更が必要なら停止する。G265完了後に開始する。
+- `g266-bezier-gradient-mesh-contract`の状態は`in_progress`、実装基点は`8eebdbfad2`、専用作業treeは`/Users/masato/Documents/librepaint-g266-bezier-gradient-mesh-contract`、branchは`agent/g266-bezier-gradient-mesh-contract`、macOSの対象と近傍に限る構築実行許可は`granted`である。許可pathは新規`libs/image/tests/KisBezierGradientMeshContractTest.cpp`と`libs/image/tests/CMakeLists.txt`の新target固有節だけで、調整担当だけが文書、台帳、共通不足報告を変更する。担当のGit権限は許可pathだけの受渡しcommit 1件、追加委任は禁止する。image・globalのsource/generated探索路、image・globalのexport定義、Qt Core・Gui・Testとheader-only Boostだけの直接linkによる4工程・8入力を予測し、停止線5工程・11入力とする。軽量な構築形状の近傍`KisGradientPainterSchemaContractTest`は4工程・8入力、command SHA-256 `6b707c282d229ff1efa0393cba82c52c707025a0e634c5bc9eb6e93625761ff1`、input SHA-256 `362d01b8ab708148281833cdc70ed66cec6beb16d8677dcc28af9b6be9c83e62`である。Qt Widgets・Xml、KF、Eigen、Imath、pigment、resources、painting、製品shared・OBJECT、`kritatestsdk`、候補headerのAUTOMOC入力化、QColor以外の製品未解決記号、非inline実装の実体化または許可path外変更が必要なら停止する。
 
 ### 第267便の先行監査担当票
 
@@ -1368,8 +1374,14 @@
 ### 第269便の先行監査担当票
 
 - 監査共通基点は`0cc02a4510`、正式入力は`build/tdd-macos/public-api-missing-g265.json`である。第265便から第268便までの選定済みAPIを除外し、`plugins/paintops/libpaintop/kis_brush_based_paintop_settings.h`の残存22 API、`libs/image/floodfill/kis_scanline_fill.h`の残存19 API、`libs/brush/KisColorfulBrush.h`の残存19 API、`libs/image/lazybrush/kis_lazy_fill_tools.h`の残存19 APIを比較し、一責務を最大5枠の契約へ閉じられる次候補を選ぶ。主作業treeと正式不足一覧の読み取りだけを許可し、変更、構成、構築、試験、Git操作、生成物作成、追加委任を行わず、G265の専用構築木を共有しない。
-- `g269-public-api-candidate-audit`の状態は`in_progress`である。各候補の正式識別子、責務、静的契約と決定的な値契約の境界を比較し、実paint device、画像、brush、資源、UI、大域状態を生成せず有意味に固定できる候補を優先する。
-- `g269-build-closure-review`の状態は`in_progress`である。各候補headerの直接依存・自己完結性、既存軽量・重量対象、新規専用targetまたは既存target追記の依存方向・予測閉包、先行include整理または実装所有分割の効果、AUTOMOC、許可pathと停止線を独立に比較する。
+- `g269-public-api-candidate-audit`の状態は`completed`である。4候補の正式識別子、責務、最大5枠の完全割当、静的契約と決定的な値契約の境界を比較した。
+- `g269-build-closure-review`の状態は`completed`である。4候補の直接依存、既存軽量・重量対象、新規限定対象または実装分離の閉包を比較し、scanline fillが2ファイル内の先行include整理で4工程・8入力の専用契約へ閉じられることを独立確認した。
+
+### 第269便の監査結果と構造準備計画
+
+- `libs/image/floodfill/kis_scanline_fill.h`の残存全19 APIは一意かつ台帳と非重複で、識別子整列集合SHA-256 `0c433dce70e4a12be0a9314a37a2028ca5ae02a10579eb1f80d21309a46b35a9`を持つ。型・構築・寿命3、色塗り4、通常selection塗り2、境界色・透明境界selection塗り4、消去・連結group・閾値・不透明度・隙間・結果範囲6の5枠へ割り当てる。全19 APIを型特性と厳密member pointerで固定し、画素色差、閾値、不透明度、隙間閉鎖、境界、連結group、処理範囲は固定画像・色空間を持つ既存または後続の動的契約で扱う。
+- `g269a-scanline-fill-header-boundary`の状態は`planned`とする。開始`libs/image/floodfill/kis_scanline_fill.h`から完全型を使わない`kis_paint_device.h`を除去し、`KoColor`と`QRect`を前方宣言する。`libs/image/floodfill/kis_scanline_fill.cpp`へ`kis_paint_device.h`を直接追加し、完全型の所有を実装へ移す。許可pathはこの2ファイルだけとし、追加利用元の補正が必要なら停止する。変更前後のheader-first探索面と実読込み、直接実装元の厳格構文、軽量image契約、公開API集合、無作業再構築、書式、差分、公開API検査、`verify-quick`を確認する。
+- 続く`g269-scanline-fill-schema`は新規`libs/image/tests/KisScanlineFillSchemaContractTest.cpp`と`libs/image/tests/CMakeLists.txt`の新target固有節だけを許可する。image・global探索路、`kritaimage_EXPORTS`、Qt Core・Testだけの直接linkによる4工程・8入力を予測し、停止線5工程・11入力とする。候補headerのAUTOMOC入力、製品shared・OBJECT、`kritatestsdk`、`kritaimage`、Qt Gui・Widgets・Xml、実paint device・selection・色、製品未解決記号、許可path外変更が必要なら停止する。第268便完了後にG269aから開始する。
 
 ### 第239便の先行監査担当票
 
