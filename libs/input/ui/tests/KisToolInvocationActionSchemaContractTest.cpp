@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "kis_alternate_invocation_action.h"
+
 #include "kis_abstract_input_action.h"
 
 #include "kis_tool_invocation_action.h"
@@ -26,6 +28,11 @@ private Q_SLOTS:
     void abstractInputActionEventAndGroupSignaturesRemainStable();
     void abstractInputActionIdentityAndPrioritySignaturesRemainStable();
     void abstractInputActionAvailabilityPolicySignaturesRemainStable();
+    void alternateInvocationTypeAndLifetimeSchemaRemainStable();
+    void alternateInvocationModeShortcutOrdinalsRemainStable();
+    void alternateInvocationSamplingShortcutOrdinalsRemainStable();
+    void alternateInvocationActivationLifecycleSignaturesRemainStable();
+    void alternateInvocationEventAndPolicySignaturesRemainStable();
 };
 
 void KisToolInvocationActionSchemaContractTest::toolInvocationTypeAndLifecycleSchemaRemainStable()
@@ -175,6 +182,69 @@ void KisToolInvocationActionSchemaContractTest::abstractInputActionAvailabilityP
     static_assert(
         std::is_same_v<decltype(static_cast<ShortcutBooleanQuery>(&Action::isShortcutRequired)), ShortcutBooleanQuery>);
     static_assert(std::is_same_v<decltype(static_cast<BooleanQuery>(&Action::isAvailable)), BooleanQuery>);
+
+    QVERIFY(true);
+}
+
+void KisToolInvocationActionSchemaContractTest::alternateInvocationTypeAndLifetimeSchemaRemainStable()
+{
+    using Action = KisAlternateInvocationAction;
+
+    static_assert(std::is_class_v<Action>);
+    static_assert(std::is_base_of_v<KisAbstractInputAction, Action>);
+    static_assert(std::is_default_constructible_v<Action>);
+    static_assert(std::is_destructible_v<Action>);
+    static_assert(std::has_virtual_destructor_v<Action>);
+
+    QVERIFY(true);
+}
+
+void KisToolInvocationActionSchemaContractTest::alternateInvocationModeShortcutOrdinalsRemainStable()
+{
+    using Shortcut = KisAlternateInvocationAction::Shortcut;
+
+    static_assert(std::is_enum_v<Shortcut>);
+    QCOMPARE(static_cast<int>(Shortcut::PrimaryAlternateModeShortcut), 0);
+    QCOMPARE(static_cast<int>(Shortcut::SecondaryAlternateModeShortcut), 1);
+    QCOMPARE(static_cast<int>(Shortcut::TertiaryAlternateModeShortcut), 6);
+}
+
+void KisToolInvocationActionSchemaContractTest::alternateInvocationSamplingShortcutOrdinalsRemainStable()
+{
+    using Shortcut = KisAlternateInvocationAction::Shortcut;
+
+    QCOMPARE(static_cast<int>(Shortcut::SampleColorFgLayerModeShortcut), 2);
+    QCOMPARE(static_cast<int>(Shortcut::SampleColorBgLayerModeShortcut), 3);
+    QCOMPARE(static_cast<int>(Shortcut::SampleColorFgImageModeShortcut), 4);
+    QCOMPARE(static_cast<int>(Shortcut::SampleColorBgImageModeShortcut), 5);
+}
+
+void KisToolInvocationActionSchemaContractTest::alternateInvocationActivationLifecycleSignaturesRemainStable()
+{
+    using Action = KisAlternateInvocationAction;
+    using ShortcutOperation = void (Action::*)(int);
+    using BeginOperation = void (Action::*)(int, QEvent *);
+    using EventOperation = void (Action::*)(QEvent *);
+
+    static_assert(std::is_same_v<decltype(static_cast<ShortcutOperation>(&Action::activate)), ShortcutOperation>);
+    static_assert(std::is_same_v<decltype(static_cast<ShortcutOperation>(&Action::deactivate)), ShortcutOperation>);
+    static_assert(std::is_same_v<decltype(static_cast<BeginOperation>(&Action::begin)), BeginOperation>);
+    static_assert(std::is_same_v<decltype(static_cast<EventOperation>(&Action::end)), EventOperation>);
+
+    QVERIFY(true);
+}
+
+void KisToolInvocationActionSchemaContractTest::alternateInvocationEventAndPolicySignaturesRemainStable()
+{
+    using Action = KisAlternateInvocationAction;
+    using EventOperation = void (Action::*)(QEvent *);
+    using PriorityQuery = int (Action::*)() const;
+    using ShortcutBooleanQuery = bool (Action::*)(int) const;
+
+    static_assert(std::is_same_v<decltype(static_cast<EventOperation>(&Action::inputEvent)), EventOperation>);
+    static_assert(std::is_same_v<decltype(static_cast<PriorityQuery>(&Action::priority)), PriorityQuery>);
+    static_assert(std::is_same_v<decltype(static_cast<ShortcutBooleanQuery>(&Action::supportsHiResInputEvents)),
+                                 ShortcutBooleanQuery>);
 
     QVERIFY(true);
 }
