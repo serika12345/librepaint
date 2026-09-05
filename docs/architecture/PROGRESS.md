@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 22:49 JST
+- 更新日時: 2026-09-05 22:52 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1257,9 +1257,9 @@
 
 ### 第262便の監査結果と担当計画
 
-- 最新`build/tdd-macos/public-api-missing-g262.json`で`libs/libkis/VectorLayer.h`の残存13 APIと`libs/libkis/GroupShape.h`の残存6 APIが一意かつ台帳と非重複であり、合計19件の識別子整列集合SHA-256 `ee4c88e5863f8949bbb5da91349f5656b1983976ac9f1f3d6829cf9bc969f1a3`を維持することを再確認した。両型はvector layer上の最上位図形とgroup子階層を表す一責務に収まり、`g262-vector-group-schema`の状態は`planned`とする。実装時の許可pathは新規`libs/libkis/tests/VectorGroupShapeSchemaContractTest.cpp`と`libs/libkis/tests/CMakeLists.txt`の新target固有節だけで、公開header、製品source、既存targetを変更しない。
+- 最新`build/tdd-macos/public-api-missing-g262.json`で`libs/libkis/VectorLayer.h`の残存13 APIと`libs/libkis/GroupShape.h`の残存6 APIが一意かつ台帳と非重複であり、合計19件の識別子整列集合SHA-256 `ee4c88e5863f8949bbb5da91349f5656b1983976ac9f1f3d6829cf9bc969f1a3`を維持することを再確認した。両型はvector layer上の最上位図形とgroup子階層を表す一責務に収まる。`g262-vector-group-schema`の状態は`in_progress`、実装基点は`c0e5911577`、専用作業treeは`/Users/masato/Documents/librepaint-g262-vector-group-schema`、branchは`agent/g262-vector-group-schema`、macOSの対象と近傍に限る構築実行許可は`granted`である。許可pathは新規`libs/libkis/tests/VectorGroupShapeSchemaContractTest.cpp`と`libs/libkis/tests/CMakeLists.txt`の新target固有節だけで、公開header、製品source、既存targetを変更しない。調整担当だけが文書、台帳、共通不足報告を変更し、担当のGit権限は許可pathだけの受渡しcommit 1件、追加委任は禁止する。
 - 5枠は`vectorLayerTypeLifetimeAndConstructionSchemaRemainStable`へ型・2構築・破棄4件、`vectorLayerIdentityAndRenderingPolicySignaturesRemainStable`へ型識別とantialias設定3件、`vectorLayerShapeQuerySignaturesRemainStable`へ位置・一覧・矩形検索3件、`vectorLayerSvgAndGroupingSignaturesRemainStable`へSVG入出力とgroup生成3件、`groupShapeTypeLifetimeAndHierarchySignaturesRemainStable`へ型・2構築・子取得・型識別・破棄6件を対応付ける。型特性、厳密member pointer、constructorと矩形検索の既定引数を確認する未評価式だけを使い、wrapper、図形、layer、controller、image、Qt値を実体化しない。
-- 新規targetはlibkis、global、image、image/filter、painting、painting/undo、pigment、pigment/resources、resources、flakeのsource/generated探索路、Qt Gui・Xml、KF I18n、Eigen、Imathのinterface探索、libkis・global・image・flakeのexport定義、Qt Core・Testとheader-only Boostだけの直接linkを使う4工程・8入力を予測し、停止線を5工程・11入力とする。軽量近傍`NodeSchemaContractTest`は4工程・8入力、command SHA-256 `545563ce94c608312d5319dfbf7a9f6b974d327f14f0ef572a34dba14ef65592`、input SHA-256 `179b7cb4cecd12291fd5658403eb0d52c2c1ded0491c0e28df03fccc97633a99`である。Qt Gui・Xmlの動的接続、UI・application探索路、製品shared・OBJECT、`kritatestsdk`、候補headerのAUTOMOC入力化、製品・metaobject未解決記号、実体化または許可path外変更が必要なら停止する。SVG入出力、検索条件、group再親化・順序・undo、所有寿命、antialiasの描画反映は既存重量試験または後続の動的契約で扱い、第261便完了後に開始する。
+- 新規targetはlibkis、global、image、image/filter、painting、painting/undo、pigment、pigment/resources、resources、flakeのsource/generated探索路、Qt Gui・Xml、KF I18n、Eigen、Imathのinterface探索、libkis・global・image・flakeのexport定義、Qt Core・Testとheader-only Boostだけの直接linkを使う4工程・8入力を予測し、停止線を5工程・11入力とする。軽量近傍`NodeSchemaContractTest`は4工程・8入力、command SHA-256 `545563ce94c608312d5319dfbf7a9f6b974d327f14f0ef572a34dba14ef65592`、input SHA-256 `179b7cb4cecd12291fd5658403eb0d52c2c1ded0491c0e28df03fccc97633a99`である。Qt Gui・Xmlの動的接続、UI・application探索路、製品shared・OBJECT、`kritatestsdk`、候補headerのAUTOMOC入力化、製品・metaobject未解決記号、実体化または許可path外変更が必要なら停止する。SVG入出力、検索条件、group再親化・順序・undo、所有寿命、antialiasの描画反映は既存重量試験または後続の動的契約で扱う。
 
 ### 第263便の先行監査担当票
 
