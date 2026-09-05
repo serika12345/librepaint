@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-06 01:12 JST
+- 更新日時: 2026-09-06 01:23 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1388,8 +1388,16 @@
 ### 第268便の監査結果と構造準備計画
 
 - `libs/canvas/KisCanvasState.h`の残存全19 APIは一意かつ台帳と非重複で、識別子整列集合SHA-256 `ca53d53dfe197d2b2db192066f04a0f30753f31e6c9ca07acac2081a42799fc3`を持つ。型・zoom値5を含む6、mode・反転・位置6、範囲・寸法4、全値の等価性1、zoom状態写像・converter採取2の5枠へ割り当てる。15 fieldをすべて明示初期化して読書き・型・全field比較を固定し、5つのqrealは正の隣接表現で`qFuzzyCompare`等価性、`zoomState()`はmode・zoom・上下限の写像を値契約として観測する。`fromConverter()`の15項目採取と不整合警告は実converterを使う後続の動的契約で扱う。
-- `g268a-canvas-state-value-boundary`の状態は`in_progress`、実装基点は`1f9178bc7e`、専用作業treeは`/Users/masato/Documents/librepaint-g268a-canvas-state-value-boundary`、branchは`agent/g268a-canvas-state-value-boundary`、macOSのobject・軽量近傍と製品計画に限る構築実行許可は`granted`である。開始`libs/canvas/KisCanvasState.cpp`の`KisCanvasState::fromConverter()`を既存`libs/canvas/kis_coordinates_converter.cpp`へ移し、元ファイルには`operator==`と`zoomState()`だけを残す。`libs/canvas/CMakeLists.txt`で元ファイルを製品直接source一覧から新規`kritacanvasstateobjects`へ移し、製品`kritacanvas`が生成objectを一度だけ集約する。これにより純粋値処理からconverter経由のimage・global・Qt Gui依存を除く。許可pathはこの2 cppとcanvas CMakeだけで、公開headerと翻訳単位数を変更しない。調整担当だけが文書、台帳、共通不足報告を変更し、担当のGit権限は許可pathだけの受渡しcommit 1件、追加委任は禁止する。
+- `g268a-canvas-state-value-boundary`の状態は`integrated`、実装基点は`1f9178bc7e`、専用作業treeは`/Users/masato/Documents/librepaint-g268a-canvas-state-value-boundary`、branchは`agent/g268a-canvas-state-value-boundary`、macOSのobject・軽量近傍と製品計画に限る構築実行許可は`granted`である。開始`libs/canvas/KisCanvasState.cpp`の`KisCanvasState::fromConverter()`を既存`libs/canvas/kis_coordinates_converter.cpp`へ移し、元ファイルには`operator==`と`zoomState()`だけを残す。`libs/canvas/CMakeLists.txt`で元ファイルを製品直接source一覧から新規`kritacanvasstateobjects`へ移し、製品`kritacanvas`が生成objectを一度だけ集約する。これにより純粋値処理からconverter経由のimage・global・Qt Gui依存を除く。許可pathはこの2 cppとcanvas CMakeだけで、公開headerと翻訳単位数を変更しない。調整担当だけが文書、台帳、共通不足報告を変更し、担当のGit権限は許可pathだけの受渡しcommit 1件、追加委任は禁止する。
 - 続く`g268-canvas-state-contract`は新規`libs/canvas/tests/KisCanvasStateContractTest.cpp`と`libs/canvas/tests/CMakeLists.txt`の新target固有節だけを許可する。`kritacanvasstateobjects`はAUTOMOCを無効化し、canvas・flake探索路、`kritacanvas_EXPORTS`、BoostとQt Coreだけで1工程・3入力を予測する。契約targetは同objectとQt Testを直接接続する5工程・11入力を予測し、停止線6工程・14入力とする。製品`kritacanvas`は1,220工程以下・2,461入力以下、objectの単一集約を条件とする。Qt Gui・Widgets・Xml、KF、image・global・pigment・resources、製品shared、`kritatestsdk`、`fromConverter()`実行、候補headerのAUTOMOC入力、公開API変更、許可path外変更が必要なら停止する。第267便完了後にG268aから開始する。
+
+### 第268a便の構造準備結果と第268便の担当計画
+
+- 開始`libs/canvas/KisCanvasState.cpp`から`KisCanvasState::fromConverter()`を`libs/canvas/kis_coordinates_converter.cpp`へ本文不変で移し、比較とzoom写像だけを新規`kritacanvasstateobjects`へ移管した。元sourceからconverter依存を除き、製品`kritacanvas`は生成objectを一度だけ集約する。公開header、ABI、翻訳単位数を変更していない。受渡しcommit `2dbbe22658`を中央commit `fcbde2716b`として取り込んだ。
+- 担当側と中央のmacOSで新objectの構築、軽量近傍`libs-canvas-KisCoordinatesConverterSchemaContractTest`、両cppの厳格構文、二回の無作業再構築に成功した。objectは1工程・3入力、AUTOMOC無効、Qt Core・Boostだけで、`operator==()`と`zoomState()`だけを公開し`fromConverter()`を含まない。近傍は4工程・8入力、製品計画は1,220工程・2,460入力を維持し、中央の変更後command SHA-256は`b4e239d23fe127f8e4451900e1767a91ae3fab3ecd6bd91bb8a2267bca6006b8`、input SHA-256は`64e0be99f8fcd22a4467472fc3ddbc3a7ac96be3a675924c21f801b784e01ca2`である。cleanな専用作業tree、301,092 KiBの構築木、branchを削除して892,028 KiBを回収した。主Ninja木5,789,824 KiB、共有compiler cache 981,740 KiBを保持し、compiler cacheは143,476件中120,291件、83.84%がhitしている。製品`kritacanvas`実構築、全体build・`verify`、Linux、Nix再評価は実行していない。
+- `g268-canvas-state-contract`の状態は`in_progress`、実装基点は`fcbde2716b`、専用作業treeは`/Users/masato/Documents/librepaint-g268-canvas-state-contract`、branchは`agent/g268-canvas-state-contract`、macOSの対象と近傍に限る構築実行許可は`granted`である。許可pathは新規`libs/canvas/tests/KisCanvasStateContractTest.cpp`と`libs/canvas/tests/CMakeLists.txt`の新target固有節だけで、調整担当だけが文書、台帳、共通不足報告を変更する。担当のGit権限は許可pathだけの受渡しcommit 1件、追加委任は禁止する。
+- 残存19 APIをcanvas状態型とzoom値6、向き・反転・位置6、範囲・寸法4、全値の等価性1、zoom状態写像・converter採取2の5枠へ対応付ける。15 fieldをすべて明示初期化して型と読書きを固定し、5つのqrealは正の隣接表現を等価とする`qFuzzyCompare`契約、`zoomState()`はmode・zoom・上下限の写像を値契約として観測する。`fromConverter()`は厳密関数pointerだけで固定し、実converterを生成しない。
+- 新targetは`kritacanvasstateobjects`とQt Testを直接接続する5工程・11入力、停止線6工程・14入力とする。軽量近傍は`KisCoordinatesConverterSchemaContractTest`とし、変更前target不存在、5枠宣言段階の期待link失敗、5枠単発・各20回、全target・正式CTest・近傍、AUTOMOC後の二回目計画、二回の無作業再構築、動的接続・未解決記号・厳格構文・書式・差分・公開API検査・`verify-quick`を確認する。Qt Gui・Widgets・Xml、KF、image・global・pigment・resources、製品shared、`kritatestsdk`、`fromConverter()`実行、候補headerのAUTOMOC入力化、公開API変更、許可path外変更が必要なら停止する。
 
 ### 第269便の先行監査担当票
 
@@ -1440,8 +1448,14 @@
 ### 第273便の先行監査担当票
 
 - 監査共通基点は`369187fdd9`、正式入力は`build/tdd-macos/public-api-missing-g268.json`である。第268便から第272便までの選定済みAPIを除外し、`plugins/paintops/defaultpaintops/brush/KisDabRenderingQueue.h`、`libs/image/layerstyles/kis_ls_utils.h`、`libs/image/commands_new/KisMergeLabeledLayersCommand.h`、`libs/image/kis_cached_paint_device.h`の各残存18 APIを比較し、一責務を最大5枠の契約へ閉じられる次候補を選ぶ。主作業treeと正式不足一覧の読み取りだけを許可し、変更、構成、構築、試験、Git操作、生成物作成、追加委任を行わず、G268aの専用構築木を共有しない。
-- `g273-public-api-candidate-audit`の状態は`in_progress`である。各候補の正式識別子、責務、公開値・所有・寿命、最大5枠の完全割当を比較し、実画像、paint device、色空間登録簿、描画queue、大域状態を生成せず固定できる決定的な値挙動を優先する。
-- `g273-build-closure-review`の状態は`in_progress`である。各候補headerと実装の直接依存、既存軽量・重量対象、新規限定対象・既存追記・具体的source/object所有分割の閉包と依存方向、先行include整理の効果、AUTOMOC、許可pathと停止線を独立に比較する。
+- `g273-public-api-candidate-audit`の状態は`completed`である。各候補の正式識別子、責務、公開値・所有・寿命、最大5枠の完全割当を比較し、実画像、paint device、色空間登録簿、描画queue、大域状態を生成せず固定できる決定的な値挙動を優先した。
+- `g273-build-closure-review`の状態は`completed`である。各候補headerと実装の直接依存、既存軽量・重量対象、新規限定対象・既存追記・具体的source/object所有分割の閉包と依存方向、先行include整理の効果、AUTOMOC、許可pathと停止線を独立に比較した。node結合commandは未使用の画像完全includeを除けば既存限定対象へ4工程・8入力のまま追加できることを確認した。
+
+### 第273便の監査結果と構造準備計画
+
+- `libs/image/commands_new/KisMergeLabeledLayersCommand.h`の残存全18 APIは一意かつ台帳と非重複で、識別子整列集合SHA-256 `9603d11464211c01354f3c1a7224828c9e7cc579f4975aca50690f46a13af762`を持つ。型・2構築・寿命4、group選択方針4、参照node情報5、list・共有所有別名2、undo・redo・参照装置生成3の5枠へ割り当てる。方針3値、固定UUIDと整数による全field等価性、list順序と共有寿命の11 APIを値契約で固定し、command実行と画像生成は型特性・未評価構築式・厳密関数pointerで観測する。
+- `g273a-merge-labeled-layers-header-boundary`の状態は`planned`とする。開始`libs/image/commands_new/KisMergeLabeledLayersCommand.h`から公開宣言に不要な`kis_image.h`を除去し、inline比較が所有する`QUuid`を直接includeする。実装`libs/image/commands_new/KisMergeLabeledLayersCommand.cpp`は既に`kis_image.h`を直接所有するため変更しない。許可pathは開始headerだけとし、追加利用元の補正が必要なら停止する。変更前後のheader-first探索面と実読込み、実装元と全利用元の厳格構文、軽量image契約、公開API集合、無作業再構築、書式、差分、公開API検査、`verify-quick`を確認する。
+- 続く`g273-merge-labeled-layers-contract`は既存`libs/image/tests/KisNodeCommandsAdapterSchemaContractTest.cpp`への5枠追加だけを許可し、CMake、公開header、製品sourceを変更しない。対象は4工程・8入力、AUTOMOC `HEADERS=[]`、製品非接続を維持する。CMakeまたは探索路・定義・linkの変更、5工程・11入力超過、Qt Gui・Widgets・Xml、pigment・stroke・製品shared・OBJECT、`kritatestsdk`、command・画像・node・paint deviceの実体化、製品未解決記号、許可path外変更が必要なら停止する。第272便完了後にG273aから開始する。
 
 ### 第239便の先行監査担当票
 
