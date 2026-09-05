@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 22:01 JST
+- 更新日時: 2026-09-05 22:05 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1212,10 +1212,16 @@
 
 ### 第260便の監査結果と担当計画
 
-- 最新`build/tdd-macos/public-api-missing-g260.json`で`libs/tools/kis_tool_select_base.h`の残存全27 APIが一意かつ台帳と非重複であり、識別子整列集合SHA-256 `a13c858f0dd0c08c0e6931a0f3f9b144d960541fa2370a08a8800e5ec0e02436`を持つことを再確認した。`g260-tool-select-base-schema`の状態は`in_progress`、実装基点は本計画commit、専用作業treeは`/Users/masato/Documents/librepaint-g260-tool-select-base-schema`、branchは`agent/g260-tool-select-base-schema`とする。許可pathは新規`libs/tools/tests/KisToolSelectBaseSchemaContractTest.cpp`と`libs/tools/tests/CMakeLists.txt`の新target固有節だけで、公開header、製品source、既存targetを変更しない。調整担当だけが文書、台帳、共通不足報告を変更し、担当のGit権限は許可pathだけの受渡しcommit 1件、追加委任は禁止する。
+- 最新`build/tdd-macos/public-api-missing-g260.json`で`libs/tools/kis_tool_select_base.h`の残存全27 APIが一意かつ台帳と非重複であり、識別子整列集合SHA-256 `a13c858f0dd0c08c0e6931a0f3f9b144d960541fa2370a08a8800e5ec0e02436`を持つことを再確認した。`g260-tool-select-base-schema`の状態は`paused`、専用作業treeは`/Users/masato/Documents/librepaint-g260-tool-select-base-schema`、branchは`agent/g260-tool-select-base-schema`とする。許可pathは新規`libs/tools/tests/KisToolSelectBaseSchemaContractTest.cpp`と`libs/tools/tests/CMakeLists.txt`の新target固有節だけで、公開header、製品source、既存targetを変更しない。調整担当だけが文書、台帳、共通不足報告を変更し、担当のGit権限は許可pathだけの受渡しcommit 1件、追加委任は禁止する。
 - 5枠は`toolSelectBaseTypeAndConstructionSchemaRemainStable`へ型と3構築4件、`toolSelectBaseSelectionActionAndStateSignaturesRemainStable`へ選択動作と状態6件、`toolSelectBasePrimaryInputSignaturesRemainStable`へキー・pointer・主操作6件、`toolSelectBaseAlternateActionSignaturesRemainStable`へ代替操作5件、`toolSelectBaseInteractionLookupAndPopupSignaturesRemainStable`へ移動・選択相互作用、mask検索、popup 6件を対応付ける。試験内の完全な局所BaseClass probeと`configuredSelectionAction()`だけを実装する具体probeに対し、型特性、厳密member pointer、未評価式だけを使う。probe、canvas、event、image、selection、stroke、toolを実体化または実行しない。
 - 新規専用targetはtools、canvas、flake、global、image、painting、painting/undo、pigment、resources、widgetsの必要なsource/generated探索路とexport定義、Qt Gui・KF I18n・Imathのinterface探索、Qt Core・Testとheader-only Boostだけの直接linkを使い、AUTOMOC `HEADERS=[]`と4工程・8入力、停止線5工程・11入力を予測する。既存`KisToolSchemaContractTest`は4工程・8入力、command SHA-256 `99e59311008e7209ac9fdb68e93ef160d5800126f8401f0035c0ba60b29e9e8e`、input SHA-256 `f2467da36c35df9f69e1a05f8471b1b7e2513fbdabefea6e9bf5aecf79e7544d`だが、既存5枠と責務を結合するため追記しない。製品接続を持つ`TestToolCoreContract`は1,272工程・2,559入力なので反復対象から除外する。
 - 担当は編集前target不存在、5枠宣言段階の期待link失敗、追加5枠単発・各20回、全target、正式CTest、軽量近傍`KisToolSchemaContractTest`、AUTOMOC後の二回目計画、無作業build 2回、4/8とhash、動的接続・未解決記号・AUTOMOC入力・厳格構文・書式、差分、公開API検査、`verify-quick`を確認する。5工程・11入力超過、Qt Widgets・Xml探索路またはQt Gui・Widgets・Xml動的link、製品shared・OBJECT・`kritatestsdk`、候補headerのAUTOMOC入力化、`KisToolSelectBase`・`MoveStrokeStrategy`・image・selection・tool canvas・probeの未解決記号、製品実体化、許可path外変更が必要なら停止する。製品target、重量`TestToolCoreContract`、全体build・`verify`、Linux、Nix再評価は禁止する。
+
+### 第260便の初期診断と第260a便の構造準備計画
+
+- G260の候補header-firstは計画したQt Core・Test直接接続とQt Gui・KF I18n・Imathのinterface探索で、`kis_tool_select_base.h`から`move_stroke_strategy.h`、`kis_lod_transform.h`、`kis_paint_information.h`を経由し、`kis_distance_information.h:13`の`QDomDocument`完全include不足を診断した。試験だけへQt Xml探索路を追加せず停止した。担当は未コミットの試験sourceとCMake節を除去してcleanへ戻し、298,584 KiBの不完全構築木を含む専用作業tree、branchを削除して889,180 KiBを回収した。
+- `g260a-distance-xml-header-boundary`の状態は`in_progress`、実装基点は本計画commit、専用作業treeは`/Users/masato/Documents/librepaint-g260a-distance-xml-header-boundary`、branchは`agent/g260a-distance-xml-header-boundary`とする。開始`libs/image/kis_distance_information.h`の公開XML署名は`QDomDocument`と`QDomElement`を参照だけで使うため、両完全includeを前方宣言へ置き換える。完全型の所有先を`libs/image/kis_distance_information.cpp`へ移し、両Qt Xml headerを直接includeする。許可pathはこの2ファイルだけで、公開署名、ABI、挙動、CMake、試験、文書、台帳を変更しない。担当のGit権限は許可pathだけの受渡しcommit 1件、追加委任は禁止する。
+- 直接利用元16ファイルのうちXML値を実体化する`kis_distance_information_test.cpp`は既に両headerを直接includeし、`kis_paint_information.h`は独自に両型を前方宣言する。構造準備は変更前のG260 header-first `QDomDocument`不足と変更後のQt Xmlなし成功、利用元16件の厳格構文検査、`kis_distance_information.cpp`単一object構築、4工程・8入力の`KisImageTypesContractTest`とG260軽量近傍、公開API集合とG260の27識別子・指紋、書式、差分、公開API検査、`verify-quick`を確認する。追加利用元補正、公開API・ABI変更、CMake変更、製品target link、全体build・`verify`、Linux、Nix再評価が必要なら停止する。
 
 ### 第261便の先行監査担当票
 
