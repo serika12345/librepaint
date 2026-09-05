@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 8013
+    "expectedMissingApis": 7996
   },
   "contracts": [
     {
@@ -60740,6 +60740,68 @@
       "classification": "maintained",
       "apis": [
         "method:Document::importAnimation(const QList<QString> & files,int firstFrame,int step)"
+      ]
+    },
+    {
+      "target": "KisStrokeSpeedMonitorSchemaContractTest",
+      "source": "libs/painting/tests/KisStrokeSpeedMonitorSchemaContractTest.cpp",
+      "test": "KisStrokeSpeedMonitorSchemaContractTest::strokeSpeedMonitorTypeLifetimeAndAccessSchemaRemainStable",
+      "behavior": "筆画速度統計は既定構築・破棄と共有instance取得が可能な公開型構成を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisStrokeSpeedMonitor",
+        "method:KisStrokeSpeedMonitor::KisStrokeSpeedMonitor()",
+        "method:KisStrokeSpeedMonitor::instance()",
+        "method:KisStrokeSpeedMonitor::~KisStrokeSpeedMonitor()"
+      ]
+    },
+    {
+      "target": "KisStrokeSpeedMonitorSchemaContractTest",
+      "source": "libs/painting/tests/KisStrokeSpeedMonitorSchemaContractTest.cpp",
+      "test": "KisStrokeSpeedMonitorSchemaContractTest::strokeSpeedMonitorMeasurementStateAndRecordingSignaturesRemainStable",
+      "behavior": "筆画速度統計は計測状態を取得・設定し、完了した筆画の速度とpresetを記録する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisStrokeSpeedMonitor::haveStrokeSpeedMeasurement() const",
+        "method:KisStrokeSpeedMonitor::notifyStrokeFinished(qreal cursorSpeed,qreal renderingSpeed,qreal fps,KisPaintOpPresetSP preset)",
+        "method:KisStrokeSpeedMonitor::setHaveStrokeSpeedMeasurement(bool value)"
+      ]
+    },
+    {
+      "target": "KisStrokeSpeedMonitorSchemaContractTest",
+      "source": "libs/painting/tests/KisStrokeSpeedMonitorSchemaContractTest.cpp",
+      "test": "KisStrokeSpeedMonitorSchemaContractTest::strokeSpeedMonitorLastStrokeSignaturesRemainStable",
+      "behavior": "筆画速度統計は直近のcursor速度、frame速度、preset情報、描画速度、飽和状態を取得する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisStrokeSpeedMonitor::lastCursorSpeed() const",
+        "method:KisStrokeSpeedMonitor::lastFps() const",
+        "method:KisStrokeSpeedMonitor::lastPresetName() const",
+        "method:KisStrokeSpeedMonitor::lastPresetSize() const",
+        "method:KisStrokeSpeedMonitor::lastRenderingSpeed() const",
+        "method:KisStrokeSpeedMonitor::lastStrokeSaturated() const"
+      ]
+    },
+    {
+      "target": "KisStrokeSpeedMonitorSchemaContractTest",
+      "source": "libs/painting/tests/KisStrokeSpeedMonitorSchemaContractTest.cpp",
+      "test": "KisStrokeSpeedMonitorSchemaContractTest::strokeSpeedMonitorAverageMetricSignaturesRemainStable",
+      "behavior": "筆画速度統計は平均cursor速度、frame速度、描画速度を取得する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisStrokeSpeedMonitor::avgCursorSpeed() const",
+        "method:KisStrokeSpeedMonitor::avgFps() const",
+        "method:KisStrokeSpeedMonitor::avgRenderingSpeed() const"
+      ]
+    },
+    {
+      "target": "KisStrokeSpeedMonitorSchemaContractTest",
+      "source": "libs/painting/tests/KisStrokeSpeedMonitorSchemaContractTest.cpp",
+      "test": "KisStrokeSpeedMonitorSchemaContractTest::strokeSpeedMonitorNotificationSignatureRemainsStable",
+      "behavior": "筆画速度統計は集計値の更新を通知する公開signal署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisStrokeSpeedMonitor::sigStatsUpdated()"
       ]
     }
   ]
