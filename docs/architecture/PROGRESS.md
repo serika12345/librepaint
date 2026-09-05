@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 16:55 JST
+- 更新日時: 2026-09-05 17:02 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1033,6 +1033,13 @@
 
 - 開始`libs/painting/KisStrokeSpeedMonitor.h`から新規`libs/painting/tests/KisStrokeSpeedMonitorSchemaContractTest.cpp`へ17 API・5枠を追加し、`libs/painting/tests/CMakeLists.txt`へ専用targetを分離した。公開header、製品source、既存targetを変更せず、受渡しcommit `840d460a43`を中央commit `a7715c3d82`として取り込んだ。担当側と中央のmacOSで追加5枠を各20回、対象全5枠、正式CTestと軽量近傍`KisStrokeEfficiencyMeasurerSchemaContractTest`、AUTOMOC後の二回目計画、無作業再構築2回に成功した。中央実測は4工程・8入力、command SHA-256 `3ce15151512c232dcc64c1f3009b68a62f5b80a43e900d3353819738d3ebb4a3`、input SHA-256 `627fd2eb72e258028629e0a9a6422c324800f954bcf73a0436cd6b7c8a133e9d`、AUTOMOC `HEADERS=[]`、Qt Core・TestとOS frameworkだけの動的接続、製品未解決記号なしである。正しいcompile commandによる`clang-check -Werror`、書式、差分、macOSのpackage境界1,886対象、公開API検査に成功し、台帳は21,808件対応、7,996件未対応となった。速度集計、singleton寿命、preset記録、飽和判定、signal配送の実行結果は既存または後続の動的契約で扱う。
 - 統合patchの同一性とclean状態を確認後に専用作業tree、301,480 KiBのlane構築木、branchを削除して892,080 KiBを回収した。旧`public-api-missing-g248.json`を削除し、主Ninja木5,775,184 KiB、共有compiler cache 983,448 KiB、最新`build/tdd-macos/public-api-missing-g249.json` 2,129,217 bytes、SHA-256 `a4d3f9c99f033dc5e95a2ec2e29575fab35609cc15bffba1ca27e1945fb9a07a`だけを次便へ再利用する。compiler cacheは143,197件中120,255件、83.98%がhitしている。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+
+### 第249便の担当計画
+
+- 実装基点は`a7890616ee`である。`g249-alternate-invocation-action-schema`の状態は`planned`、専用作業treeは`/Users/masato/Documents/librepaint-g249-alternate-invocation-action-schema`、branchは`agent/g249-alternate-invocation-action-schema`とする。開始`libs/input/ui/kis_alternate_invocation_action.h`の公開契約は残存全18 APIで、識別子整列集合SHA-256は`37516661af480a0c41bffafeb271c7305b68b3e0a54571502155c311cdde953c`である。先行監査ではprivate補助関数の戻り型だけが公開headerから`kis_tool.h`を要求し、input/uiとcanvasだけだった既存入力action契約のcompile界面をtools・flake・image・pigment・resourcesへ広げることを確認した。この推移依存は局所変更の対象限定構築を恒常的に重くするため、契約追加より先に除去する。
+- 構造整理は`libs/input/ui/kis_alternate_invocation_action.h`のprivate `shortcutToToolAction(int)`宣言と`kis_tool.h` includeを、`libs/input/ui/kis_alternate_invocation_action.cpp`の翻訳単位内補助関数と明示includeへ移す。開始headerから実装sourceへの依存移設であり、公開class、列挙値、override署名、private状態、実行順と返却値は維持する。第一受渡しcommitの許可pathはこのheaderと実装sourceだけで、正確な製品object `libs/input/ui/CMakeFiles/kritainputui.dir/kis_alternate_invocation_action.cpp.o`、公開API検査、`verify-quick`を確認する。製品target全体は構築しない。
+- 依存整理後、既存`libs/input/ui/tests/KisToolInvocationActionSchemaContractTest.cpp`へ5枠を追加する。`alternateInvocationTypeAndLifetimeSchemaRemainStable`へ型・構築・破棄3件、`alternateInvocationModeShortcutOrdinalsRemainStable`へ列挙型とprimary・secondary・tertiary値4件、`alternateInvocationSamplingShortcutOrdinalsRemainStable`へ前景・背景とlayer・imageの4値4件、`alternateInvocationActivationLifecycleSignaturesRemainStable`へactivate・deactivate・begin・end 4件、`alternateInvocationEventAndPolicySignaturesRemainStable`へinputEvent・priority・高解像度入力対応3件を対応付ける。第二受渡しcommitの許可pathは同試験sourceだけで、CMake、公開API、製品実装、既存10枠を変更しない。調整担当だけがarchitecture文書、公開API台帳、共通不足報告を変更する。担当のGit権限は許可path内の構造整理と契約を分けた受渡しcommit 2件までで、追加委任は禁止する。
+- 既存target `KisToolInvocationActionSchemaContractTest`は依存整理後もinput/ui・canvas source/generated探索路、`kritainputui_EXPORTS`・`kritacanvas_EXPORTS`、Qt Core・Testだけの4工程・8入力を維持し、停止線5工程・11入力とする。候補headerを最初にincludeし、型特性、列挙値、厳密なmember pointerだけで観測する。action、tool、event、Qt値、private状態を実体化せず製品本文を実行しない。担当は変更前の直接includeと既存target計画、構造整理後のheader依存差分、正確な製品object、5枠宣言段階の期待link失敗、追加5枠単発・各20回、既存を含む全target、正式CTest、軽量近傍`KisInputActionGroupContractTest`、AUTOMOC後二回目計画、無作業再構築2回、動的接続・未解決記号・AUTOMOC入力・構文・書式、差分、公開API検査、`verify-quick`を確認する。CMake変更、新しい探索路・定義・link、5工程・11入力超過、製品shared・OBJECT・`kritatestsdk`の接続、Qt Gui・Widgets・Xml・KF・Imath・製品libraryの動的接続、候補headerのAUTOMOC入力化、製品未解決記号、対象実体化、許可path外変更が必要なら停止する。全体build・`verify`、Linux、Nix再評価は禁止する。
 
 ### 第239便の先行監査担当票
 
