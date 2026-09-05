@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 23:53 JST
+- 更新日時: 2026-09-05 23:56 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1338,8 +1338,20 @@
 ### 第267便の先行監査担当票
 
 - 監査共通基点は`06956b84a8`、正式入力は`build/tdd-macos/public-api-missing-g264.json`である。第264便から第266便までの選定済みAPIを除外し、`plugins/paintops/libpaintop/kis_brush_based_paintop_settings.h`の残存22 API、`libs/canvas/KisCanvasState.h`の残存19 API、`libs/image/floodfill/kis_scanline_fill.h`の残存19 API、`libs/image/layerstyles/gimp_bump_map.h`の残存19 APIを比較し、一責務を最大5枠の契約へ閉じられる次候補を選ぶ。主作業treeと正式不足一覧の読み取りだけを許可し、変更、構成、構築、試験、Git操作、生成物作成、追加委任を行わず、G264aの専用構築木を共有しない。
-- `g267-public-api-candidate-audit`の状態は`in_progress`である。各候補の残存識別子の完全性、一意性、台帳非重複、整列指紋、公開責務、最大5枠の割当、静的契約と決定的な値契約の境界を比較する。実画像、paint device、資源、canvas、UI、大域状態を生成せずに固定できる候補を優先する。
-- `g267-build-closure-review`の状態は`in_progress`である。各候補headerの直接依存と自己完結性、既存軽量契約、新規専用targetと既存target追記の責務・依存方向・予測閉包、必要探索路・定義・動的接続、製品shared・OBJECTと`kritatestsdk`の回避、AUTOMOC、先行include整理の要否、許可pathと停止線を独立に比較する。
+- `g267-public-api-candidate-audit`の状態は`completed`である。4候補の正式残存識別子の完全性、一意性、台帳非重複、整列指紋、責務、最大5枠の割当、静的契約と決定的な値契約の境界を比較した。
+- `g267-build-closure-review`の状態は`completed`である。4候補の直接依存、既存軽量・重量対象、新規専用targetの依存方向と予測閉包、AUTOMOC、先行include整理の要否を比較し、bump map設定値が最小閉包で最多の値挙動を固定できることを独立確認した。
+
+### 第267便の監査結果と構造準備計画
+
+- `libs/image/layerstyles/gimp_bump_map.h`の残存全19 APIは一意かつ台帳と非重複で、識別子整列集合SHA-256 `6783a3f2dab1bb13c85bfe3da9a922281c5f1735ffc4d95bfc16a8de17a270b7`を持つ。列挙型と3値4、設定構造体・構築・固定配置値7、照明値4、補正・反転・方式3、適用関数署名1の5枠へ割り当てる。設定値を実体化して18 APIの列挙値・既定値・型を決定的に固定し、製品実装の`bumpmap()`だけを厳密関数pointerで観測する。画素変換は固定画像・選択・色空間を持つ後続の動的契約で扱う。
+- `g267a-bump-map-header-boundary`の状態は`planned`とする。開始`libs/image/layerstyles/gimp_bump_map.h`の広域`kis_types.h`を、直接所有する`kritaimage_export.h`と`KisSharedPtr`・`KisPixelSelection`・`QRect`の前方宣言、既存と同型の`KisPixelSelectionSP` typedefへ置き換える。開始headerだけを許可し、`gimp_bump_map.cpp`は既に`QRect`と`kis_pixel_selection.h`を直接所有するため変更しない。公開API、ABI、値、挙動を維持し、追加利用元の補正が必要なら停止する。変更前後のheader-first探索面と実読込み、直接実装元の厳格構文、軽量image契約、公開API集合、無作業再構築、書式、差分、公開API検査、`verify-quick`を確認する。
+- 続く`g267-bump-map-schema`は新規`libs/image/tests/GimpBumpMapSchemaContractTest.cpp`と`libs/image/tests/CMakeLists.txt`の新target固有節だけを許可する。新targetはimage source/generated探索路、`kritaimage_EXPORTS`、Qt Core・Testだけの直接linkによる4工程・8入力を予測し、停止線5工程・11入力とする。AUTOMOCへの候補header入力、global・pigment・resources・Boost・Qt Gui・Widgets・Xml・KF、製品shared・OBJECT、`kritatestsdk`、`bumpmap()`実装の実行、製品未解決記号、許可path外変更が必要なら停止する。第266便完了後にG267aから開始する。
+
+### 第268便の先行監査担当票
+
+- 監査共通基点は`a5f7b80df5`、正式入力は`build/tdd-macos/public-api-missing-g264.json`である。第264便から第267便までの選定済みAPIを除外し、`libs/canvas/KisCanvasState.h`の残存全19 APIを、canvas表示状態の値契約候補として監査する。主作業treeと既存構築記録の読み取りだけを許可し、変更、構成、構築、試験、Git操作、生成物作成、追加委任を行わず、G264の専用構築木を共有しない。
+- `g268-canvas-state-api-audit`の状態は`in_progress`である。正式識別子の完全性、一意性、台帳非重複、整列指紋、公開field・等価性・zoom写像・converter採取の責務別割当を確認し、未初期化値を読まずに固定できる決定的な値契約と動的契約へ残す範囲を確定する。
+- `g268-canvas-state-closure-review`の状態は`in_progress`である。`KisCanvasState.cpp`に同居する純粋値処理と座標converter依存処理の所有を調べ、実装object分割、既存対象追記、新規限定対象の依存方向・閉包・製品集約方法を比較する。構造整理が現在の製品責務も明確にし、4工程・8入力程度の反復対象を実現する場合だけ具体的な開始→移動先、許可path、停止線を提案する。
 
 ### 第239便の先行監査担当票
 
