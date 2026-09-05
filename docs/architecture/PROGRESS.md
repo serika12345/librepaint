@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 20:54 JST
+- 更新日時: 2026-09-05 20:58 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1160,9 +1160,10 @@
 
 ### 第258a便の構造準備計画
 
-- 実装基点は本計画commitである。`g258a-input-manager-header-boundary`の状態は`planned`、専用作業treeは`/Users/masato/Documents/librepaint-g258a-input-manager-header-boundary`、branchは`agent/g258a-input-manager-header-boundary`とする。開始・到達先はともに`libs/input/ui/kis_input_manager.h`であり、pointerと`QPointer`の宣言だけに使う`kis_tool_proxy.h`の推移includeを`KisToolProxy`、`KisPopupWidgetInterface`、`QEvent`の前方宣言へ置き換える。許可pathは同headerだけで、公開宣言、ABI、製品source、試験、CMake、文書、台帳を変更しない。担当のGit権限は許可pathだけの受渡しcommit 1件で、追加委任は禁止する。
+- 実装基点は本計画commitである。`g258a-input-manager-header-boundary`の状態は`in_progress`、専用作業treeは`/Users/masato/Documents/librepaint-g258a-input-manager-header-boundary`、branchは`agent/g258a-input-manager-header-boundary`とする。開始・到達先はともに`libs/input/ui/kis_input_manager.h`であり、pointerと`QPointer`の宣言だけに使う`kis_tool_proxy.h`の推移includeを`KisToolProxy`、`KisPopupWidgetInterface`、`QEvent`の前方宣言へ置き換える。許可pathは同headerだけで、公開宣言、ABI、製品source、試験、CMake、文書、台帳を変更しない。担当のGit権限は許可pathだけの受渡しcommit 1件で、追加委任は禁止する。
 - 正式入力`build/tdd-macos/public-api-missing-g258.json`では開始headerの残存全15 APIが一意で台帳・G259以降の予約集合と交差せず、識別子整列集合SHA-256は`38fa1ea9e2c295c0109ed4cc276456986dc4c85408cb1aa291bc55a23b36276c`である。現headerは`kis_tool_proxy.h`からflake、tools、image、pigment、resourcesまでを推移させるが、製品実装とprivate headerはtool proxyとpopup interfaceの完全型を既に直接includeする。構造準備後はinput/uiのsource/generated探索路、`kritainputui_EXPORTS`、Qt Core・Testだけで次の専用宣言契約を4工程・8入力へ閉じる見込みである。
 - 担当は既存`KisInputProfileManagerSchemaContractTest`の4工程・8入力、command SHA-256 `bb7b2b3de14f94cb2fda33eb0c29b63a49cfcb26805d70ef430ed8cbf9b58a28`、input SHA-256 `5a5f3a0ba6e88ff4970d001e294c350aa4eb3692eb513e8e398b50d491b70a88`を比較基線とする。変更前に同compile面のheader-first構文失敗を記録し、変更後の成功、compile databaseにある直接consumerの厳格構文検査、公開API 29,804件と候補15識別子・SHAの不変、書式、差分、公開API検査、`verify-quick`を確認する。consumerの直接include補正、許可path外変更、公開宣言変更、CMake変更、製品target・重量`KisInputManagerTest`・全体build・`verify`・Linux・Nix再評価が必要なら停止する。
+- 最初の担当範囲では候補header-first検査が変更前の`kis_tool_proxy.h`欠落から変更後の成功へ変わった一方、compile database上の直接consumer 19件を厳格構文検査すると`libs/input/ui/kis_input_manager.cpp`が従来の推移includeから得ていた`kismpl::mem_equal_to`と`kismpl::mem_greater`を失うことが判明した。公開headerの`kis_tool_proxy.h`推移依存を削除する開始`libs/input/ui/kis_input_manager.h`から同headerへの到達に加え、`KisMpl.h`の所有を推移経路から直接利用元`libs/input/ui/kis_input_manager.cpp`へ移す。担当状態を`in_progress`へ進め、許可pathをこの2ファイルへ拡張する。ほかのconsumerは変更せず、今回の差分に起因する追加の不足includeがあれば停止する。変更後はheader-first検査と19 consumerの厳格構文検査を再実行し、既存Qt非推奨警告または未生成UIによる基線診断と今回起因の失敗を区別する。
 
 ### 第239便の先行監査担当票
 
