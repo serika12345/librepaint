@@ -24,6 +24,24 @@ target_include_directories(KisProjectionPixelFilterContractTest PRIVATE
 target_compile_definitions(KisProjectionPixelFilterContractTest PRIVATE kritacanvas_EXPORTS)
 
 kis_add_test(
+    KisCanvasUpdateInfoSchemaContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KisCanvasUpdateInfoSchemaContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Gui,INTERFACE_INCLUDE_DIRECTORIES>
+)
+target_compile_definitions(KisCanvasUpdateInfoSchemaContractTest PRIVATE
+    kritacanvas_EXPORTS
+    kritaglobal_EXPORTS
+)
+
+kis_add_test(
     KisFrameDataSerializerSchemaContractTest.cpp
     LINK_LIBRARIES
         Qt${QT_MAJOR_VERSION}::Core
