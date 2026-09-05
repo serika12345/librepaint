@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 22:52 JST
+- 更新日時: 2026-09-05 22:55 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1272,6 +1272,12 @@
 - `libs/image/kis_base_processor.h`の残存全18 APIは識別子整列集合SHA-256 `d6ae3c7fb8b1233faed3f685aee3459327be946ac8562f566ae0d373af12a1c4`を持つ。型・寿命・構築3、識別・menu・shortcut 5、既定・factory構成と構成widget 3、色空間・描画・調整layer・thread対応4、bookmark・構成表示3の5枠へ割り当てる。すべて型特性と厳密member pointerで観測でき、既定引数はない。設定生成内容、資源伝播、bookmark寿命、識別値、shortcut保存、能力flagの値、構成widgetの生成は既存または後続の動的契約で扱う。
 - `g263a-base-processor-header-boundary`の状態は`planned`とする。開始`libs/image/kis_base_processor.h`の公開宣言で使わない`<list>`、`<klocalizedstring.h>`、`kis_image.h`、`kis_filter_configuration.h`を除去する。`kis_shared.h`は完全基底、`KoColorSpace.h`は`ColorSpaceIndependence`定義、`KoID.h`、`kis_types.h`、`QString`、`QKeySequence`、export headerは公開面の直接所有として残す。直接利用元は`kis_base_processor.cpp`、`filter/kis_filter.h`、`generator/kis_generator.h`の3件であり、実装sourceは構成・paint device・資源interfaceを、派生headerは必要型を既に直接includeする。許可pathは開始headerだけとし、利用元補正が必要なら停止する。
 - G263aは変更前後のheader-first探索面、3利用元の厳格構文、軽量`KisProcessingApplicatorSchemaContractTest`、公開API 29,804件と18識別子・指紋、二回の無作業再構築、書式、差分、公開API検査、`verify-quick`を確認する。続く`g263-base-processor-schema`は新規`libs/image/tests/KisBaseProcessorSchemaContractTest.cpp`と`libs/image/tests/CMakeLists.txt`の新target固有節だけを許可し、image・global・pigmentのsource/generated探索路、Qt Gui・KF I18nのinterface探索、global・image・pigmentのexport定義、Qt Core・Testとheader-only Boostだけの直接linkによる4工程・8入力、停止線5工程・11入力を予測する。候補headerのAUTOMOC入力化、Qt Gui・Widgets・Xmlの動的接続、resources・painting/undo探索路、製品shared・OBJECT、`kritatestsdk`、製品未解決記号、実体化または許可path外変更が必要なら停止する。第262便完了後にG263aを開始する。
+
+### 第264便の先行監査担当票
+
+- 監査共通基点は`248c408e89`、正式入力は`build/tdd-macos/public-api-missing-g262.json`である。第262便と第263便の選定済みAPIを除外し、`libs/image/commands/kis_node_operation_batch.h`の残存18 APIを、連続するnode操作の非同期undo単位を固定する一責務候補として監査する。主作業treeの読み取りだけを許可し、変更、構成、構築、試験、Git操作、追加委任を行わず、G262の専用構築木と生成物を共有しない。
+- `g264-node-operation-batch-api-audit`の状態は`in_progress`である。正式不足一覧と台帳に対する残存識別子の完全性、一意性、整列指紋、型・寿命・単一node操作・複数node操作・group化・完了通知の責務別割当、最大5枠で静的契約へ固定できる範囲を調べる。既存動的試験が保護するtimeout、非同期適用、undo、選択復元の意味は分離して報告する。
+- `g264-node-operation-batch-closure-review`の状態は`in_progress`である。候補headerの直接依存、image commandの既存軽量契約、専用targetと既存target追記の責務・閉包差、必要探索路・定義・動的接続、製品shared・OBJECTと`kritatestsdk`の回避、Q_OBJECTを持つ候補headerのAUTOMOC非入力化、許可path、停止線を独立に調べる。先行include整理が限定構築範囲を縮小する場合は、その根拠と所有先を報告する。
 
 ### 第239便の先行監査担当票
 
