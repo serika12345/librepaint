@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 09:14 JST
+- 更新日時: 2026-09-05 09:17 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -697,7 +697,7 @@
 
 ### 第224便の担当計画
 
-- 実装基点は`faa9e2ac2e`である。`g224-cie-tongue-schema`の状態は`planned`、開始公開headerは`libs/ui/widgets/kis_cie_tongue_widget.h`、許可pathは新規`libs/ui/tests/KisCIETongueWidgetSchemaContractTest.cpp`と`libs/ui/tests/CMakeLists.txt`の新target固有節だけである。新targetは`KisCIETongueWidgetSchemaContractTest`、軽量近傍は`KisDisplayConfigSchemaContractTest`、対象platformはmacOS、対象・近傍だけの構築権限は`granted`とする。専用作業treeは`/Users/masato/Documents/librepaint-g224-cie-tongue-schema`、branchは`agent/g224-cie-tongue-schema`、作業tree固有の`build/tdd-macos`と主作業treeの共有compiler cacheを使う。Git権限は許可pathだけの1受渡しcommit、追加委任は禁止し、調整担当だけが文書、台帳、不足報告を変更する。
+- 実装基点は`4c3a61a686`である。`g224-cie-tongue-schema`の状態は`implementing`、開始公開headerは`libs/ui/widgets/kis_cie_tongue_widget.h`、許可pathは新規`libs/ui/tests/KisCIETongueWidgetSchemaContractTest.cpp`と`libs/ui/tests/CMakeLists.txt`の新target固有節だけである。新targetは`KisCIETongueWidgetSchemaContractTest`、軽量近傍は`KisDisplayConfigSchemaContractTest`、対象platformはmacOS、対象・近傍だけの構築権限は`granted`とする。専用作業treeは`/Users/masato/Documents/librepaint-g224-cie-tongue-schema`、branchは`agent/g224-cie-tongue-schema`、作業tree固有の`build/tdd-macos`と主作業treeの共有compiler cacheを使う。Git権限は許可pathだけの1受渡しcommit、追加委任は禁止し、調整担当だけが文書、台帳、不足報告を変更する。
 - 5枠は`cieTongueWidgetTypeLifetimeAndModelSchemaRemainStable`へclass、model enum、6 enumerator、構築、破棄の10件、`cieTongueWidgetProfileAndGamutSignaturesRemainStable`へ`setGamut`、`setProfileData`、`setProfileDataAvailable`の3件、`cieTongueWidgetRgbCmykAndXyzDataSignaturesRemainStable`へ`setCMYKData`、`setRGBData`、`setXYZData`の3件、`cieTongueWidgetGrayLabAndYCbCrDataSignaturesRemainStable`へ`setGrayData`、`setLABData`、`setYCbCrData`の3件、`cieTongueWidgetLegacyStatusDeclarationSignaturesRemainStable`へ`loadingFailed`、`loadingStarted`、`uncalibratedColor`の3件を対応付ける。各method識別子は正式入力の完全な引数・既定値・修飾をそのまま台帳へ登録し、全22識別子の集合SHA-256 `b678ccb9a147df3837d9ff7e3f3550e9de69b3623a48283178ad03f8e36ded82`を維持する。
 - 新targetはui source・generated、application generated、pigment・global source・generated探索路、`kritaapplicationui_EXPORTS`、`kritapigment_EXPORTS`、`kritaglobal_EXPORTS`、Qt Gui・Widgets・KF I18n・Imath interface、Qt Core・Testとheader-only Boostの直接接続だけを許可し、予測閉包4工程・8入力、停止線5工程・11入力とする。型特性、列挙値、厳密なmember pointer、既定引数の未評価呼出しだけで観測し、Widget、色度値、QVector、QPolygonF、profile、painterを実体化しない。担当は変更前計画・直接依存・target不存在と宣言段階のlink失敗、5枠単発・各20回、全target、正式CTest、近傍、AUTOMOC後二回目計画、無作業再構築2回、動的接続・未解決記号・AUTOMOC入力・構文・書式、差分、公開API検査、`verify-quick`を確認する。5工程・11入力超過、追加探索路・定義・link、Qt Gui・Widgets・KF・Imath・製品shared・OBJECT・`kritatestsdk`の動的接続、候補headerのAUTOMOC入力化、製品未解決記号、対象実体化、公開header・製品source・既存target・許可path外の変更が必要なら停止する。製品target、全体build・`verify`、Linux、Nix再評価は禁止する。
 
