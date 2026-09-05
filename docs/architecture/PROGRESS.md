@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 17:35 JST
+- 更新日時: 2026-09-05 17:42 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1057,6 +1057,12 @@
 
 - 開始`libs/resources/KisFolderStorage.h`から既存`libs/resources/tests/KisMemoryStorageSchemaContractTest.cpp`へ15 API・5枠を追加した。CMake、公開header、製品source、既存5枠を変更せず、受渡しcommit `8c29014122`を中央commit `30f30bfe86`として取り込んだ。担当側と中央のmacOSで追加5枠を各20回、既存を含む全10枠、正式CTestと軽量近傍`KisResourceIteratorSchemaContractTest`、AUTOMOC後の二回目計画、無作業再構築2回に成功した。中央実測は4工程・8入力、command SHA-256 `0af2386357da213a77f743458eb9c31b8c10bdd2a49068d417c911c3dcb44bd7`、input SHA-256 `ac6687e86922bd4c19058bd27a27854d2c041984f5032ddbfcbe888eb33e2f6d`、AUTOMOC `HEADERS=[]`、Qt Core・TestとOS frameworkだけの動的接続、製品未解決記号なしである。試験sourceの厳格`clang-check`、変更行の書式、差分、macOSのpackage境界1,886対象、公開API検査に成功し、台帳は21,841件対応、7,963件未対応となった。実ファイル入出力、版管理、MD5内容、iterator順序・絞り込み、metadata値、失敗時cleanupは既存または後続の動的契約で扱う。
 - 統合patchの同一性とclean状態を確認後に専用作業tree、297,652 KiBのlane構築木、branchを削除して888,284 KiBを回収した。旧`public-api-missing-g250.json`を削除し、主Ninja木5,775,268 KiB、共有compiler cache 982,796 KiB、最新`build/tdd-macos/public-api-missing-g251.json` 2,120,452 bytes、SHA-256 `53d463c9b7047191a51c37d2acc660b1ae5cb513660b5dd8378e7376f843103e`だけを次便へ再利用する。compiler cacheは143,211件中120,260件、83.97%がhitしている。製品target、重量`TestFolderStorage`、全体build・`verify`、Linux、Nix再評価は実行していない。
+
+### 第251便の担当計画
+
+- 実装基点は`c8e6005407`である。`g251-selection-options-schema`の状態は`planned`、専用作業treeは`/Users/masato/Documents/librepaint-g251-selection-options-schema`、branchは`agent/g251-selection-options-schema`とする。開始`libs/tools/ui/kis_selection_options.h`の残存全37 APIを、新規`libs/tools/ui/tests/KisSelectionOptionsSchemaContractTest.cpp`の5枠へ固定する。許可pathは同試験sourceと`libs/tools/ui/tests/CMakeLists.txt`の新target固有節だけで、公開header、製品source、既存targetを変更しない。調整担当だけがarchitecture文書、公開API台帳、共通不足報告を変更する。担当のGit権限は許可pathだけの受渡しcommit 1件で、追加委任は禁止する。
+- 5枠は`selectionOptionsTypeLifetimeAndReferenceLayerSchemaRemainStable`へ型、参照layer列挙型・3値、構築、破棄7件、`selectionOptionsModeActionAndAntialiasSignaturesRemainStable`へmode・action・antialiasの取得・設定・通知9件、`selectionOptionsAdjustmentSignaturesRemainStable`へgrow・feather・最暗画素停止の取得・設定・通知9件、`selectionOptionsReferenceAndColorLabelSignaturesRemainStable`へ参照layer・選択色labelの取得・設定・通知6件、`selectionOptionsPresentationSignaturesRemainStable`へ5区画の表示切替とaction tooltip更新6件を対応付ける。正式入力`build/tdd-macos/public-api-missing-g251.json`の完全な37識別子と識別子整列集合SHA-256 `e0272679026663e3cdabd7a946dced253e6137805f1b0b2ecd87bc77452d14d0`を維持する。
+- 事前の構築範囲監査では`KisOptionCollectionWidget.h`が公開基底の完全型、`KisSelectionTags.h`が値渡しする列挙定義に必要で、移すべき不要includeはない。新targetはtools/ui・widgetutils・imageのsource/generated探索路、`kritatoolsui_EXPORTS`と`kritawidgetutils_EXPORTS`、Qt Gui・Widgetsのinterface探索、Qt Core・Testだけに限定する。予測4工程・8入力、停止線5工程・11入力とする。候補headerを最初にincludeし、継承・寿命特性、列挙値、厳密なmember・signal pointerだけで観測する。widget、event、key列、list、private状態、metaobjectを実体化せず製品本文を実行しない。担当は編集前target不存在、直接依存、初回plan、5枠宣言段階の期待link失敗、追加5枠単発・各20回、全target、正式CTest、軽量近傍`KisCompositeOpSelectorSchemaContractTest`、AUTOMOC後二回目plan、無作業build 2回、4/8とhash、動的接続・未解決記号・AUTOMOC入力・構文・書式、差分、公開API検査、`verify-quick`を確認する。5工程・11入力超過、指定外探索路・定義・link、Qt Gui・Widgets・製品libraryの動的接続、製品shared・OBJECT・`kritatestsdk`、候補headerのAUTOMOC入力化、signal・metaobject・製品未解決記号、対象実体化、許可path外変更が必要なら停止する。重量`TestToolSettingsUiContract`、製品target、全体build・`verify`、Linux、Nix再評価は禁止する。
 
 ### 第239便の先行監査担当票
 
