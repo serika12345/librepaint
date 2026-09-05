@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include <kis_meta_data_validator.h>
+
 #include <kis_meta_data_entry.h>
 #include <kis_meta_data_store.h>
 
@@ -28,6 +30,11 @@ private Q_SLOTS:
     void metaDataStoreLookupSignaturesRemainStable();
     void metaDataStoreQuerySignaturesRemainStable();
     void metaDataStoreIterationFilterAndDebugSignaturesRemainStable();
+    void metaDataValidationReasonTypeSchemaRemainStable();
+    void metaDataValidationReasonValueSemanticsSchemaRemainStable();
+    void metaDataValidatorTypeAndLifetimeSchemaRemainStable();
+    void metaDataValidatorCountSignaturesRemainStable();
+    void metaDataValidatorEntryAndRevalidationSignaturesRemainStable();
 };
 
 void KisMetaDataStoreSchemaContractTest::metaDataStoreIdentityAndLifecycleSignaturesRemainStable()
@@ -81,6 +88,59 @@ void KisMetaDataStoreSchemaContractTest::metaDataStoreIterationFilterAndDebugSig
     ASSERT_STORE_SIGNATURE(begin, StoreConstIterator (KisMetaData::Store::*)() const);
     ASSERT_STORE_SIGNATURE(debugDump, void (KisMetaData::Store::*)() const);
     ASSERT_STORE_SIGNATURE(end, StoreConstIterator (KisMetaData::Store::*)() const);
+}
+
+void KisMetaDataStoreSchemaContractTest::metaDataValidationReasonTypeSchemaRemainStable()
+{
+    using Reason = KisMetaData::Validator::Reason;
+    using ReasonType = Reason::Type;
+
+    static_assert(std::is_class_v<Reason>);
+    static_assert(std::is_enum_v<ReasonType>);
+    static_assert(Reason::UNKNOWN_REASON == 0);
+    static_assert(Reason::UNKNOWN_ENTRY == 1);
+    static_assert(Reason::INVALID_TYPE == 2);
+    static_assert(Reason::INVALID_VALUE == 3);
+}
+
+void KisMetaDataStoreSchemaContractTest::metaDataValidationReasonValueSemanticsSchemaRemainStable()
+{
+    using Reason = KisMetaData::Validator::Reason;
+    using ReasonType = Reason::Type;
+
+    static_assert(std::is_default_constructible_v<Reason>);
+    static_assert(std::is_constructible_v<Reason, ReasonType>);
+    static_assert(std::is_copy_constructible_v<Reason>);
+    static_assert(std::is_same_v<decltype(static_cast<Reason &(Reason::*)(const Reason &)>(&Reason::operator=)),
+                                 Reason &(Reason::*)(const Reason &)>);
+    static_assert(std::is_destructible_v<Reason>);
+    static_assert(std::is_same_v<decltype(&Reason::type), ReasonType (Reason::*)() const>);
+}
+
+void KisMetaDataStoreSchemaContractTest::metaDataValidatorTypeAndLifetimeSchemaRemainStable()
+{
+    using Validator = KisMetaData::Validator;
+
+    static_assert(std::is_class_v<Validator>);
+    static_assert(std::is_constructible_v<Validator, const KisMetaData::Store *>);
+    static_assert(std::is_destructible_v<Validator>);
+}
+
+void KisMetaDataStoreSchemaContractTest::metaDataValidatorCountSignaturesRemainStable()
+{
+    using Validator = KisMetaData::Validator;
+
+    static_assert(std::is_same_v<decltype(&Validator::countInvalidEntries), int (Validator::*)() const>);
+    static_assert(std::is_same_v<decltype(&Validator::countValidEntries), int (Validator::*)() const>);
+}
+
+void KisMetaDataStoreSchemaContractTest::metaDataValidatorEntryAndRevalidationSignaturesRemainStable()
+{
+    using InvalidEntries = QMap<QString, KisMetaData::Validator::Reason>;
+    using Validator = KisMetaData::Validator;
+
+    static_assert(std::is_same_v<decltype(&Validator::invalidEntries), const InvalidEntries &(Validator::*)() const>);
+    static_assert(std::is_same_v<decltype(&Validator::revalidate), void (Validator::*)()>);
 }
 
 QTEST_APPLESS_MAIN(KisMetaDataStoreSchemaContractTest)
