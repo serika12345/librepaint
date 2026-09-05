@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-06 00:37 JST
+- 更新日時: 2026-09-06 00:41 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1399,6 +1399,12 @@
 
 - `libs/brush/KisColorfulBrush.h`の残存全19 APIは一意かつ台帳と非重複で、識別子整列集合SHA-256 `a4668af97989e5d61fe26c6510dc7325666a9283a38ae1cfefcb8d1e6c52337a`を持つ。型・3構築4、中点・自動補正6、明度・contrast 4、画像分類・色透明性4、XML出力1の5枠へ割り当てる。既存`libs/brush/tests/KisBrushSchemaContractTest.cpp`の先頭includeを`kis_brush.h`から`KisColorfulBrush.h`へ置き換え、型特性と厳密member pointerで候補headerの自己完結性と全19 APIを固定する。既定値、setter/getter、copy、画像分類、XML値は製品brush実装と固定画像を持つ既存または後続の動的契約で扱う。
 - `g270-colorful-brush-schema`の状態は`planned`とする。許可pathは既存`libs/brush/tests/KisBrushSchemaContractTest.cpp`だけで、CMake、公開header、製品sourceを変更しない。対象は変更前後とも4工程・8入力、command SHA-256 `51306c4c24d9000b0420383d973f6699bcd5725b2acf87972b584d2b2f70b003`、input SHA-256 `b833549ce4453dd3ddd6f7e24375d23b924a184c64621945c9a932b4fb56161a`を維持し、Qt Core・Gui・Testだけを動的接続する。CMake変更、閉包またはhash変更、製品shared・OBJECT、`kritatestsdk`、`KisColorfulBrush.cpp`、候補実体化、製品未解決記号、許可path外変更が必要なら停止する。第269便完了後に開始する。
+
+### 第271便の先行監査担当票
+
+- 監査共通基点は`1b05f19d04`、正式入力は`build/tdd-macos/public-api-missing-g267.json`である。第267便から第270便までの選定済みAPIを除外し、`libs/resources/KoResourceServer.h`の残存24 API、`libs/psd/psd_layer_record.h`の残存23 API、`plugins/paintops/libpaintop/kis_brush_based_paintop_settings.h`の残存22 API、`libs/image/lazybrush/kis_lazy_fill_tools.h`の残存19 APIを比較し、一責務を最大5枠の契約へ閉じられる次候補を選ぶ。主作業treeと正式不足一覧の読み取りだけを許可し、変更、構成、構築、試験、Git操作、生成物作成、追加委任を行わず、G267aの専用構築木を共有しない。
+- `g271-public-api-candidate-audit`の状態は`in_progress`である。各候補の正式識別子、責務、公開値・所有・寿命、最大5枠の完全割当を比較し、実資源登録簿、paint device、brush、paintop、filesystem、UI、大域状態を生成せず固定できる候補を優先する。
+- `g271-build-closure-review`の状態は`in_progress`である。各候補headerと実装の直接依存、既存軽量・重量対象、新規限定対象・既存追記・具体的source/object所有分割の閉包と依存方向、先行include整理の効果、AUTOMOC、許可pathと停止線を独立に比較する。lazy-fillは設定値実装だけを分ける構造が試験専用ではなく製品責務を明確にするかも判定する。
 
 ### 第239便の先行監査担当票
 
