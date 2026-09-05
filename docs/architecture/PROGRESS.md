@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 09:53 JST
+- 更新日時: 2026-09-05 09:56 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -724,6 +724,12 @@
 ### 第226便の先行監査担当票
 
 - `g226-path-creation-tools-schema-formal-review`の状態は`completed-ready`、担当は`g178_shape_hierarchy_schema`、基点は`4f58d5c6fb`である。第225便後の正式入力`build/tdd-macos/public-api-missing-g226.json`でも`libs/basicflakes/tools/KoCreatePathTool.h`の16 APIと`KoPencilTool.h`の10 APIは一意で台帳と重複せず、大域整列集合SHA-256 `67b27852761c75f751c31df653f5139aafb41c47182c1b7bf62c4a0520ef387b`、新規`libs/basicflakes/tests/KoPathCreationToolSchemaContractTest.cpp`の5枠6・6・6・4・4に一致した。両型は同じbasicflakes所有下で、節点入力と自由線入力からvector pathを生成する対の対話toolである。新targetはflake・global探索路、Qt Gui・KF ConfigCore interface、`kritabasicflakes_EXPORTS`と`kritaflake_EXPORTS`、Qt Core・Testだけで初回・AUTOMOC後とも4工程・8入力へ閉じられる。軽量近傍`KoToolBaseSchemaContractTest`も4工程・8入力、AUTOMOC `HEADERS=[]`、製品辺なしである。入力系列、path節点生成・結合、平滑化、resource反映、装飾描画、状態遷移は後続の動的契約で扱う。
+
+### 第226便の担当計画
+
+- 実装基点は`2359c453d6`である。`g226-path-creation-tools-schema`の状態は`implementing`、開始公開headerは`libs/basicflakes/tools/KoCreatePathTool.h`と`libs/basicflakes/tools/KoPencilTool.h`、許可pathは新規`libs/basicflakes/tests/KoPathCreationToolSchemaContractTest.cpp`と`libs/basicflakes/CMakeLists.txt`の新target固有節だけである。対象は`KoPathCreationToolSchemaContractTest`、軽量近傍は`KoToolBaseSchemaContractTest`、対象platformはmacOS、対象・近傍だけの構築権限は`granted`とする。専用作業treeは`/Users/masato/Documents/librepaint-g226-path-creation-tools-schema`、branchは`agent/g226-path-creation-tools-schema`、作業tree固有の`build/tdd-macos`と主作業treeの共有compiler cacheを使う。Git権限は許可pathだけの1受渡しcommit、追加委任は禁止し、調整担当だけが文書、台帳、不足報告を変更する。
+- 5枠は`createPathToolTypeLifetimeAndPathStateSchemaRemainStable`へcreate tool型・構築・破棄とpath状態操作の6件、`createPathToolInputAndRenderingSignaturesRemainStable`へpointer入力4件・装飾領域・描画の6件、`pathCreationToolActivationResourceAndNotificationSignaturesRemainStable`へ両toolのactivate・deactivateとcreate toolのresource変更・通知の6件、`pencilToolTypeLifetimeAndRenderingSchemaRemainStable`へpencil tool型・構築・破棄・描画の4件、`pencilToolInputSignaturesRemainStable`へkey入力とpointer入力3件の4件を対応付ける。正式入力の完全な26識別子と大域整列集合SHA-256 `67b27852761c75f751c31df653f5139aafb41c47182c1b7bf62c4a0520ef387b`を維持する。
+- 新targetはbasicflakes tools・generated、flake・global探索路、Qt Gui・KF ConfigCore interface、`kritabasicflakes_EXPORTS`と`kritaflake_EXPORTS`、Qt Core・Testだけに限定し、4工程・8入力、停止線5工程・11入力とする。型特性、厳密なmember pointerだけで観測し、両tool、canvas、shape、path、event、painter、converter、Qt値を実体化しない。担当は編集前target不存在、直接依存、初回計画、5枠宣言段階の期待link失敗、5枠単発・各20回、全target、正式CTest、近傍、AUTOMOC後二回目計画、無作業再構築2回、動的接続・未解決記号・AUTOMOC入力・構文・書式、差分、公開API検査、`verify-quick`を確認する。5工程・11入力超過、追加探索路・定義・link、Qt Gui・KF ConfigCoreまたは製品shared・OBJECT・`kritatestsdk`の動的接続、候補headerのAUTOMOC入力化、製品未解決記号、対象実体化、許可path外の変更が必要なら停止する。製品target、全体build・`verify`、Linux、Nix再評価は禁止する。
 
 ### 第227便の先行監査担当票（第226便確定待ち）
 
