@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 20:50 JST
+- 更新日時: 2026-09-05 20:54 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1157,6 +1157,12 @@
 - 開始`libs/pigment/resources/KisGradientConversion.h`から既存`libs/pigment/tests/KoStopGradientSchemaContractTest.cpp`へ、抽象・区間・停止点・Qtグラデーション間の変換を担う残存全18 API・5枠を追加した。構造準備済みheaderを最初のrepository includeに置き、CMake、公開header、製品source、既存10枠を変更していない。受渡しcommit `6bab83a1e9d4595578093174e27cf71179f2bdb7`を中央commit `70667b62e3`として取り込み、最終sourceは278行・15枠である。
 - 担当側と中央のmacOSで5枠を各20回、既存を含む全17試験、正式CTest `libs-pigment-KoStopGradientSchemaContractTest`、軽量近傍`libs-pigment-KoGradientSegmentSchemaContractTest`、AUTOMOC後の二回目計画、無作業再構築2回に成功した。中央実測は変更前と同じ4工程・8入力、command SHA-256 `9bcbdcc81a6df936d2970df7b50edab900578421c96a77bccf06ff3138718769`、input SHA-256 `57556558e684b9f9b0287440adab7a9c7c9988c8dca55e257642e63511529a37`、AUTOMOC `HEADERS=[]`、Qt Core・Gui・TestとOS frameworkだけの動的接続、変換関数を含む製品未解決記号なしである。厳格`clang-check`、変更行の書式、差分、macOSのpackage境界1,889対象、公開API検査に成功し、台帳は21,999件対応、7,805件未対応となった。停止点統合、可変色解決、区間情報の変換、返却pointer所有権の実行時意味は既存または後続の動的契約で扱う。
 - 中央検証後にcleanな専用作業tree、300,300 KiBのlane構築木、branchを削除して891,028 KiBを回収した。旧`public-api-missing-g257.json`を削除し、主Ninja木5,777,908 KiB、共有compiler cache 982,700 KiB、最新`build/tdd-macos/public-api-missing-g258.json` 2,077,543 bytes、SHA-256 `3dd312d35e0860a13ee5898d5913e22d891c3d3b257ccb4864af56be44bd8974`だけを次便へ再利用する。compiler cacheは143,266件中120,264件、83.94%がhitしている。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第258便のinput manager公開APIを正式不足報告で再照合し、重量動的試験から分離した対象限定の構築範囲を確定することである。
+
+### 第258a便の構造準備計画
+
+- 実装基点は本計画commitである。`g258a-input-manager-header-boundary`の状態は`planned`、専用作業treeは`/Users/masato/Documents/librepaint-g258a-input-manager-header-boundary`、branchは`agent/g258a-input-manager-header-boundary`とする。開始・到達先はともに`libs/input/ui/kis_input_manager.h`であり、pointerと`QPointer`の宣言だけに使う`kis_tool_proxy.h`の推移includeを`KisToolProxy`、`KisPopupWidgetInterface`、`QEvent`の前方宣言へ置き換える。許可pathは同headerだけで、公開宣言、ABI、製品source、試験、CMake、文書、台帳を変更しない。担当のGit権限は許可pathだけの受渡しcommit 1件で、追加委任は禁止する。
+- 正式入力`build/tdd-macos/public-api-missing-g258.json`では開始headerの残存全15 APIが一意で台帳・G259以降の予約集合と交差せず、識別子整列集合SHA-256は`38fa1ea9e2c295c0109ed4cc276456986dc4c85408cb1aa291bc55a23b36276c`である。現headerは`kis_tool_proxy.h`からflake、tools、image、pigment、resourcesまでを推移させるが、製品実装とprivate headerはtool proxyとpopup interfaceの完全型を既に直接includeする。構造準備後はinput/uiのsource/generated探索路、`kritainputui_EXPORTS`、Qt Core・Testだけで次の専用宣言契約を4工程・8入力へ閉じる見込みである。
+- 担当は既存`KisInputProfileManagerSchemaContractTest`の4工程・8入力、command SHA-256 `bb7b2b3de14f94cb2fda33eb0c29b63a49cfcb26805d70ef430ed8cbf9b58a28`、input SHA-256 `5a5f3a0ba6e88ff4970d001e294c350aa4eb3692eb513e8e398b50d491b70a88`を比較基線とする。変更前に同compile面のheader-first構文失敗を記録し、変更後の成功、compile databaseにある直接consumerの厳格構文検査、公開API 29,804件と候補15識別子・SHAの不変、書式、差分、公開API検査、`verify-quick`を確認する。consumerの直接include補正、許可path外変更、公開宣言変更、CMake変更、製品target・重量`KisInputManagerTest`・全体build・`verify`・Linux・Nix再評価が必要なら停止する。
 
 ### 第239便の先行監査担当票
 
