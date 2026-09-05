@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 7856
+    "expectedMissingApis": 7839
   },
   "contracts": [
     {
@@ -61212,6 +61212,68 @@
         "method:KisPaletteEditor::endEditing(bool applyChanges=true)",
         "method:KisPaletteEditor::isModified() const",
         "method:KisPaletteEditor::startEditing()"
+      ]
+    },
+    {
+      "target": "KisMetaDataStoreSchemaContractTest",
+      "source": "libs/painting/metadata/tests/KisMetaDataStoreSchemaContractTest.cpp",
+      "test": "KisMetaDataStoreSchemaContractTest::metaDataSchemaTypeAndLifetimeSchemaRemainStable",
+      "behavior": "メタデータschemaは仮想破棄される公開型構成を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisMetaData::Schema",
+        "method:KisMetaData::Schema::~Schema()"
+      ]
+    },
+    {
+      "target": "KisMetaDataStoreSchemaContractTest",
+      "source": "libs/painting/metadata/tests/KisMetaDataStoreSchemaContractTest.cpp",
+      "test": "KisMetaDataStoreSchemaContractTest::metaDataSchemaStandardUriMembersRemainStable",
+      "behavior": "メタデータschemaは標準schemaを識別する9個の公開URI文字列memberを維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisMetaData::Schema::DublinCoreSchemaUri",
+        "member:KisMetaData::Schema::EXIFSchemaUri",
+        "member:KisMetaData::Schema::IPTCSchemaUri",
+        "member:KisMetaData::Schema::MakerNoteSchemaUri",
+        "member:KisMetaData::Schema::PhotoshopSchemaUri",
+        "member:KisMetaData::Schema::TIFFSchemaUri",
+        "member:KisMetaData::Schema::XMPMediaManagementUri",
+        "member:KisMetaData::Schema::XMPRightsSchemaUri",
+        "member:KisMetaData::Schema::XMPSchemaUri"
+      ]
+    },
+    {
+      "target": "KisMetaDataStoreSchemaContractTest",
+      "source": "libs/painting/metadata/tests/KisMetaDataStoreSchemaContractTest.cpp",
+      "test": "KisMetaDataStoreSchemaContractTest::metaDataSchemaTypeLookupSignaturesRemainStable",
+      "behavior": "メタデータschemaはpropertyまたはstructure名から型情報を照会する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMetaData::Schema::propertyType(const QString & _propertyName) const",
+        "method:KisMetaData::Schema::structure(const QString & _structureName) const"
+      ]
+    },
+    {
+      "target": "KisMetaDataStoreSchemaContractTest",
+      "source": "libs/painting/metadata/tests/KisMetaDataStoreSchemaContractTest.cpp",
+      "test": "KisMetaDataStoreSchemaContractTest::metaDataSchemaIdentityAndQualificationSignaturesRemainStable",
+      "behavior": "メタデータschemaはURIとprefixを照会し、propertyの修飾名を生成する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMetaData::Schema::generateQualifiedName(const QString &) const",
+        "method:KisMetaData::Schema::prefix() const",
+        "method:KisMetaData::Schema::uri() const"
+      ]
+    },
+    {
+      "target": "KisMetaDataStoreSchemaContractTest",
+      "source": "libs/painting/metadata/tests/KisMetaDataStoreSchemaContractTest.cpp",
+      "test": "KisMetaDataStoreSchemaContractTest::metaDataSchemaDebugSignatureRemainsStable",
+      "behavior": "メタデータschemaはQtの診断出力へ値渡しで書き込む公開演算子署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:operator <<(QDebug debug,const KisMetaData::Schema & c)"
       ]
     }
   ]
