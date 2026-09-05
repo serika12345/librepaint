@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 20:58 JST
+- 更新日時: 2026-09-05 21:08 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1160,10 +1160,23 @@
 
 ### 第258a便の構造準備計画
 
-- 実装基点は本計画commitである。`g258a-input-manager-header-boundary`の状態は`in_progress`、専用作業treeは`/Users/masato/Documents/librepaint-g258a-input-manager-header-boundary`、branchは`agent/g258a-input-manager-header-boundary`とする。開始・到達先はともに`libs/input/ui/kis_input_manager.h`であり、pointerと`QPointer`の宣言だけに使う`kis_tool_proxy.h`の推移includeを`KisToolProxy`、`KisPopupWidgetInterface`、`QEvent`の前方宣言へ置き換える。許可pathは同headerだけで、公開宣言、ABI、製品source、試験、CMake、文書、台帳を変更しない。担当のGit権限は許可pathだけの受渡しcommit 1件で、追加委任は禁止する。
+- 実装基点は本計画commitである。`g258a-input-manager-header-boundary`の状態は`integrated`、専用作業treeは`/Users/masato/Documents/librepaint-g258a-input-manager-header-boundary`、branchは`agent/g258a-input-manager-header-boundary`とする。開始・到達先はともに`libs/input/ui/kis_input_manager.h`であり、pointerと`QPointer`の宣言だけに使う`kis_tool_proxy.h`の推移includeを`KisToolProxy`、`KisPopupWidgetInterface`、`QEvent`の前方宣言へ置き換える。許可pathは同headerだけで、公開宣言、ABI、製品source、試験、CMake、文書、台帳を変更しない。担当のGit権限は許可pathだけの受渡しcommit 1件で、追加委任は禁止する。
 - 正式入力`build/tdd-macos/public-api-missing-g258.json`では開始headerの残存全15 APIが一意で台帳・G259以降の予約集合と交差せず、識別子整列集合SHA-256は`38fa1ea9e2c295c0109ed4cc276456986dc4c85408cb1aa291bc55a23b36276c`である。現headerは`kis_tool_proxy.h`からflake、tools、image、pigment、resourcesまでを推移させるが、製品実装とprivate headerはtool proxyとpopup interfaceの完全型を既に直接includeする。構造準備後はinput/uiのsource/generated探索路、`kritainputui_EXPORTS`、Qt Core・Testだけで次の専用宣言契約を4工程・8入力へ閉じる見込みである。
 - 担当は既存`KisInputProfileManagerSchemaContractTest`の4工程・8入力、command SHA-256 `bb7b2b3de14f94cb2fda33eb0c29b63a49cfcb26805d70ef430ed8cbf9b58a28`、input SHA-256 `5a5f3a0ba6e88ff4970d001e294c350aa4eb3692eb513e8e398b50d491b70a88`を比較基線とする。変更前に同compile面のheader-first構文失敗を記録し、変更後の成功、compile databaseにある直接consumerの厳格構文検査、公開API 29,804件と候補15識別子・SHAの不変、書式、差分、公開API検査、`verify-quick`を確認する。consumerの直接include補正、許可path外変更、公開宣言変更、CMake変更、製品target・重量`KisInputManagerTest`・全体build・`verify`・Linux・Nix再評価が必要なら停止する。
 - 最初の担当範囲では候補header-first検査が変更前の`kis_tool_proxy.h`欠落から変更後の成功へ変わった一方、compile database上の直接consumer 19件を厳格構文検査すると`libs/input/ui/kis_input_manager.cpp`が従来の推移includeから得ていた`kismpl::mem_equal_to`と`kismpl::mem_greater`を失うことが判明した。公開headerの`kis_tool_proxy.h`推移依存を削除する開始`libs/input/ui/kis_input_manager.h`から同headerへの到達に加え、`KisMpl.h`の所有を推移経路から直接利用元`libs/input/ui/kis_input_manager.cpp`へ移す。担当状態を`in_progress`へ進め、許可pathをこの2ファイルへ拡張する。ほかのconsumerは変更せず、今回の差分に起因する追加の不足includeがあれば停止する。変更後はheader-first検査と19 consumerの厳格構文検査を再実行し、既存Qt非推奨警告または未生成UIによる基線診断と今回起因の失敗を区別する。
+
+### 第258a便の構造統合結果
+
+- 開始・到達先`libs/input/ui/kis_input_manager.h`で`kis_tool_proxy.h`の推移includeを`QEvent`、`KisPopupWidgetInterface`、`KisToolProxy`の前方宣言へ置き換え、推移経路から得ていた`KisMpl.h`の所有を直接利用元`libs/input/ui/kis_input_manager.cpp`へ移した。受渡しcommit `d0aa0b60817c382314c80018f5bc5f9cd6074aad`を中央commit `a36b0b00b6`として取り込み、中央では変更したinclude群だけを書式規則へ整列した。公開宣言、ABI、試験、CMake、残存15 APIと識別子整列集合SHA-256 `38fa1ea9e2c295c0109ed4cc276456986dc4c85408cb1aa291bc55a23b36276c`は不変である。
+- 変更前の最小header-first検査は`kis_tool_proxy.h`欠落で失敗し、変更後はinput/uiのsource/generated探索路、`kritainputui_EXPORTS`、Qt Core・Testだけで成功した。compile database上の直接consumer 19件を担当側で再検査し、9件は厳格成功、10件は既存のQt非推奨・enum比較または未生成UI headerだけを報告した。今回起因の不足includeは0件であり、非推奨・enum比較を基線として分離した検査では18件が成功し、残る1件は未生成`ui_wdggeneralsettings.h`だけである。中央でも変更した実装を検査し、厳格時の既存Qt非推奨・enum比較だけを確認したうえで、それらを基線として分離した構文検査に成功した。
+- 担当側と中央のmacOSで軽量`KisInputProfileManagerSchemaContractTest`のbuild・CTest、AUTOMOC後の計画、無作業再構築2回に成功し、4工程・8入力、AUTOMOC `HEADERS=[]`を維持した。中央の現raw command SHA-256は`9a668f6a3427963d228e7cca27a246db1554dbba22ed9db548331df911dd74ea`、input SHA-256は`5a5f3a0ba6e88ff4970d001e294c350aa4eb3692eb513e8e398b50d491b70a88`である。事前値との差はCMake再生成によるAUTOMOC depfile識別子だけで、試験sourceのcompile command、link、入力数、直接依存は不変である。公開API検査、`verify-quick`、変更行の書式と差分に成功した。cleanな専用作業tree、300,452 KiBのlane構築木、branchを削除して891,188 KiBを回収し、主Ninja木、共有compiler cache、最新G258不足報告だけを保持する。製品target、重量`KisInputManagerTest`、全体build・`verify`、Linux、Nix再評価は実行していない。
+
+### 第258便の担当計画
+
+- 実装基点は本計画commitである。`g258-input-manager-schema`の状態は`in_progress`、専用作業treeは`/Users/masato/Documents/librepaint-g258-input-manager-schema`、branchは`agent/g258-input-manager-schema`とする。開始`libs/input/ui/kis_input_manager.h`の残存全15 APIを、新規`libs/input/ui/tests/KisInputManagerSchemaContractTest.cpp`の5枠へ固定する。許可pathは同試験sourceと`libs/input/ui/tests/CMakeLists.txt`の新target固有節だけで、公開header、製品source、既存targetを変更しない。調整担当だけがarchitecture文書、公開API台帳、共通不足報告を変更する。担当のGit権限は許可pathだけの受渡しcommit 1件で、追加委任は禁止する。
+- 5枠は`inputManagerTypeLifetimeAndConstructionSchemaRemainStable`へ型・構築・破棄3件、`inputManagerCanvasTrackingSignaturesRemainStable`へcanvas追加・除去2件、`inputManagerCanvasAndToolContextSignaturesRemainStable`へcanvas・tool canvas・tool proxy照会3件、`inputManagerEventFilterSignaturesRemainStable`へ優先filter追加・除去、event filter、receiver設定4件、`inputManagerPopupConfigurationAndDiagnosticsSignaturesRemainStable`へpopup登録、設定再読込、tablet診断切替3件を対応付ける。正式入力`build/tdd-macos/public-api-missing-g258.json`の完全な15識別子と識別子整列集合SHA-256 `38fa1ea9e2c295c0109ed4cc276456986dc4c85408cb1aa291bc55a23b36276c`を維持する。
+- 構造準備後の新targetは`${CMAKE_CURRENT_SOURCE_DIR}/..`と`${CMAKE_CURRENT_BINARY_DIR}/..`、`kritainputui_EXPORTS`、Qt Core・Testだけを使い、4工程・8入力、停止線5工程・11入力を予測する。比較する`KisInputProfileManagerSchemaContractTest`は中央で4工程・8入力、command SHA-256 `9a668f6a3427963d228e7cca27a246db1554dbba22ed9db548331df911dd74ea`、input SHA-256 `5a5f3a0ba6e88ff4970d001e294c350aa4eb3692eb513e8e398b50d491b70a88`である。既存動的`KisInputManagerTest`は1,390工程・2,788入力、command SHA-256 `b9f163b858d3096c6b17a0727693ae34e19e7f7b557440ad91159811b96ca747`、input SHA-256 `c9b68c56bfbda8dabe491be2acd4c420b7d2a1c7144d4954562cc2d3b42d903b`であり、今回の反復対象にしない。
+- 候補headerを最初にincludeし、QObject派生・構築可能性・仮想破棄、厳密member pointer、`attachPriorityEventFilter(QObject *)`の未評価呼出しだけで観測する。manager、canvas、tool proxy、popup、QObject、QEvent、Qt値を実体化せず、metaobjectと製品本文を実行しない。担当は編集前target不存在、5枠宣言段階の期待link失敗、追加5枠単発・各20回、全target、正式CTest、軽量近傍`KisInputProfileManagerSchemaContractTest`、AUTOMOC後の二回目計画、無作業build 2回、4/8とhash、動的接続・未解決記号・AUTOMOC入力・厳格構文・書式、差分、公開API検査、`verify-quick`を確認する。5工程・11入力超過、指定外探索路・定義・link、Qt Gui・Widgets、Boost、KFまたは製品libraryの接続、製品shared・OBJECT・`kritatestsdk`、候補headerのAUTOMOC入力化、manager・metaobject・canvas・tool・popup・eventの製品未解決記号、対象実体化、許可path外変更が必要なら停止する。製品target、重量動的試験、全体build・`verify`、Linux、Nix再評価は禁止する。
 
 ### 第239便の先行監査担当票
 
