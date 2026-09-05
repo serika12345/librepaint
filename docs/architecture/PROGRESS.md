@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-06 00:07 JST
+- 更新日時: 2026-09-06 00:10 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1364,6 +1364,12 @@
 - `libs/canvas/KisCanvasState.h`の残存全19 APIは一意かつ台帳と非重複で、識別子整列集合SHA-256 `ca53d53dfe197d2b2db192066f04a0f30753f31e6c9ca07acac2081a42799fc3`を持つ。型・zoom値5を含む6、mode・反転・位置6、範囲・寸法4、全値の等価性1、zoom状態写像・converter採取2の5枠へ割り当てる。15 fieldをすべて明示初期化して読書き・型・全field比較を固定し、5つのqrealは正の隣接表現で`qFuzzyCompare`等価性、`zoomState()`はmode・zoom・上下限の写像を値契約として観測する。`fromConverter()`の15項目採取と不整合警告は実converterを使う後続の動的契約で扱う。
 - `g268a-canvas-state-value-boundary`の状態は`planned`とする。開始`libs/canvas/KisCanvasState.cpp`の`KisCanvasState::fromConverter()`を既存`libs/canvas/kis_coordinates_converter.cpp`へ移し、元ファイルには`operator==`と`zoomState()`だけを残す。`libs/canvas/CMakeLists.txt`で元ファイルを製品直接source一覧から新規`kritacanvasstateobjects`へ移し、製品`kritacanvas`が生成objectを一度だけ集約する。これにより純粋値処理からconverter経由のimage・global・Qt Gui依存を除く。許可pathはこの2 cppとcanvas CMakeだけで、公開headerと翻訳単位数を変更しない。
 - 続く`g268-canvas-state-contract`は新規`libs/canvas/tests/KisCanvasStateContractTest.cpp`と`libs/canvas/tests/CMakeLists.txt`の新target固有節だけを許可する。`kritacanvasstateobjects`はAUTOMOCを無効化し、canvas・flake探索路、`kritacanvas_EXPORTS`、BoostとQt Coreだけで1工程・3入力を予測する。契約targetは同objectとQt Testを直接接続する5工程・11入力を予測し、停止線6工程・14入力とする。製品`kritacanvas`は1,220工程以下・2,461入力以下、objectの単一集約を条件とする。Qt Gui・Widgets・Xml、KF、image・global・pigment・resources、製品shared、`kritatestsdk`、`fromConverter()`実行、候補headerのAUTOMOC入力、公開API変更、許可path外変更が必要なら停止する。第267便完了後にG268aから開始する。
+
+### 第269便の先行監査担当票
+
+- 監査共通基点は`0cc02a4510`、正式入力は`build/tdd-macos/public-api-missing-g265.json`である。第265便から第268便までの選定済みAPIを除外し、`plugins/paintops/libpaintop/kis_brush_based_paintop_settings.h`の残存22 API、`libs/image/floodfill/kis_scanline_fill.h`の残存19 API、`libs/brush/KisColorfulBrush.h`の残存19 API、`libs/image/lazybrush/kis_lazy_fill_tools.h`の残存19 APIを比較し、一責務を最大5枠の契約へ閉じられる次候補を選ぶ。主作業treeと正式不足一覧の読み取りだけを許可し、変更、構成、構築、試験、Git操作、生成物作成、追加委任を行わず、G265の専用構築木を共有しない。
+- `g269-public-api-candidate-audit`の状態は`in_progress`である。各候補の正式識別子、責務、静的契約と決定的な値契約の境界を比較し、実paint device、画像、brush、資源、UI、大域状態を生成せず有意味に固定できる候補を優先する。
+- `g269-build-closure-review`の状態は`in_progress`である。各候補headerの直接依存・自己完結性、既存軽量・重量対象、新規専用targetまたは既存target追記の依存方向・予測閉包、先行include整理または実装所有分割の効果、AUTOMOC、許可pathと停止線を独立に比較する。
 
 ### 第239便の先行監査担当票
 
