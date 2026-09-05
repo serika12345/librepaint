@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 16:17 JST
+- 更新日時: 2026-09-05 16:36 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1017,6 +1017,17 @@
 - 実装基点は`9d7e872575`である。`g247-document-animation-schema`の状態は`planned`、専用作業treeは`/Users/masato/Documents/librepaint-g247-document-animation-schema`、branchは`agent/g247-document-animation-schema`とする。開始`libs/libkis/Document.h`の残存17 APIを、新規`libs/libkis/tests/DocumentAnimationSchemaContractTest.cpp`の5枠へ固定する。許可pathは同試験sourceと`libs/libkis/tests/CMakeLists.txt`の新target固有節だけで、公開header、製品source、既存targetを変更しない。調整担当だけがarchitecture文書、公開API台帳、共通不足報告を変更する。担当のGit権限は許可pathだけの受渡しcommit 1件で、追加委任は禁止する。
 - 5枠は`documentAnimationTimelineQuerySignaturesRemainStable`へanimation長、現在時刻、FPS、clip範囲と再生範囲の取得7件、`documentAnimationTimelineMutationSignaturesRemainStable`へ現在時刻、FPS、clip開始・終了、再生範囲の設定5件、`documentAudioLevelSignaturesRemainStable`へ音量の取得・設定2件、`documentAudioTrackSignaturesRemainStable`へ音声track一覧の取得・設定2件、`documentAnimationImportSignatureRemainsStable`へ画像列取込み1件を対応付ける。正式入力`build/tdd-macos/public-api-missing-g247.json`の完全な17識別子と識別子整列集合SHA-256 `61d37a753c7d648db344b49b1ea90edf17bc8ba994d14321f5e21672d3bece46`を維持する。
 - 新target `DocumentAnimationSchemaContractTest`は既存`DocumentGeometrySchemaContractTest`と同じDocument専用compile interfaceを使い、libkis・image/filter・global・painting/undo・pigment/resources・flake・ui/canvas・application生成の探索路、対応するexport定義、Qt Gui・Xml・KF I18n・Eigen・Imathのinterface探索、Qt Core・Testとheader-only Boostだけに限定する。予測閉包4工程・8入力、停止線5工程・11入力とする。候補headerを最初にincludeし、厳密なmember pointerだけで観測する。文書、文字列一覧、Qt値を実体化せず、時刻変更、音声設定、画像列取込みの本文を実行しない。担当は編集前target不存在、直接依存、初回計画、5枠宣言段階の期待link失敗、追加5枠単発・各20回、全target、正式CTest、軽量近傍`DocumentGeometrySchemaContractTest`、AUTOMOC後二回目計画、無作業再構築2回、動的接続・未解決記号・AUTOMOC入力・構文・書式、差分、公開API検査、`verify-quick`を確認する。5工程・11入力超過、新しい探索路・定義・link、製品shared・OBJECT・`kritatestsdk`の接続、候補headerのAUTOMOC入力化、製品未解決記号、対象実体化、許可path外変更が必要なら停止する。製品target、既存の重量`TestDocument`、全体build・`verify`、Linux、Nix再評価は禁止する。
+
+### 第247便の契約統合結果
+
+- 開始`libs/libkis/Document.h`から新規`libs/libkis/tests/DocumentAnimationSchemaContractTest.cpp`へ17 API・5枠を追加し、`libs/libkis/tests/CMakeLists.txt`へ専用targetを分離した。公開header、製品source、既存targetを変更せず、受渡しcommit `aa49019661`を中央commit `7de8401548`として取り込んだ。担当側と中央のmacOSで追加5枠を各20回、対象全5枠、正式CTestと軽量近傍`DocumentGeometrySchemaContractTest`、AUTOMOC後の二回目計画、無作業再構築2回に成功した。中央実測は4工程・8入力、command SHA-256 `6f1561c9140f10394618e36cb14415febe58e6bc7d579d7504bf1ad2ecf32c91`、input SHA-256 `bc7528a89da0e44bdd964f6f1f5b0ffa4f4c53e563a4147e943f9cb777f609aa`、AUTOMOC `HEADERS=[]`、Qt Core・TestとOS frameworkだけの動的接続、製品未解決記号なしである。構文、書式、差分、macOSのpackage境界1,885対象、公開API検査に成功し、台帳は21,791件対応、8,013件未対応となった。再生範囲変更、音量・音声track設定、画像列取込みの副作用と失敗処理は別の効果契約で扱う。
+- 統合patchの同一性とclean状態を確認後に専用作業tree、300,180 KiBのlane構築木、branchを削除して890,768 KiBを回収した。旧`public-api-missing-g247.json`を削除し、主Ninja木5,773,772 KiB、共有compiler cache 983,340 KiB、最新`build/tdd-macos/public-api-missing-g248.json` 2,133,328 bytes、SHA-256 `61ad2d9435d022530df15bb7248ee2a149eb6c755e0ac53ac9e68abb2d5693f3`だけを次便へ再利用する。compiler cacheは143,189件中120,253件、83.98%がhitしている。製品target、重量`TestDocument`、全体build・`verify`、Linux、Nix再評価は実行していない。
+
+### 第248便の担当計画
+
+- 実装基点は`7de8401548`である。`g248-stroke-speed-monitor-schema`の状態は`planned`、専用作業treeは`/Users/masato/Documents/librepaint-g248-stroke-speed-monitor-schema`、branchは`agent/g248-stroke-speed-monitor-schema`とする。開始`libs/painting/KisStrokeSpeedMonitor.h`の残存全17 APIを、新規`libs/painting/tests/KisStrokeSpeedMonitorSchemaContractTest.cpp`の5枠へ固定する。許可pathは同試験sourceと`libs/painting/tests/CMakeLists.txt`の新target固有節だけで、公開header、製品source、既存targetを変更しない。調整担当だけがarchitecture文書、公開API台帳、共通不足報告を変更する。担当のGit権限は許可pathだけの受渡しcommit 1件で、追加委任は禁止する。
+- 5枠は`strokeSpeedMonitorTypeLifetimeAndAccessSchemaRemainStable`へ型、構築、singleton取得、破棄の4件、`strokeSpeedMonitorMeasurementStateAndRecordingSignaturesRemainStable`へ計測状態取得、筆画完了記録、状態設定の3件、`strokeSpeedMonitorLastStrokeSignaturesRemainStable`へ直近cursor速度・FPS・preset名・寸法・描画速度・飽和状態の6件、`strokeSpeedMonitorAverageMetricSignaturesRemainStable`へ平均cursor速度・FPS・描画速度の3件、`strokeSpeedMonitorNotificationSignatureRemainsStable`へ統計更新通知1件を対応付ける。正式入力`build/tdd-macos/public-api-missing-g248.json`の完全な17識別子と識別子整列集合SHA-256 `6b2e2a7308d6ec763ff93fdb0a27f1fdcd752d3e431ac3a23ff8da4d88e57411`を維持する。
+- 新target `KisStrokeSpeedMonitorSchemaContractTest`は直前の`KisStrokeEfficiencyMeasurerSchemaContractTest`と同じpainting source/generated探索路、`kritapainting_EXPORTS`、Qt Core・Testだけに限定し、予測閉包4工程・8入力、停止線5工程・11入力とする。候補headerを最初にincludeし、QObject継承・寿命特性と厳密なstatic/member/signal pointerだけで観測する。monitor、singleton、preset共有pointer、文字列、内部`Private`を実体化せず製品本文を実行しない。担当は編集前target不存在、直接依存、初回計画、5枠宣言段階の期待link失敗、追加5枠単発・各20回、全target、正式CTest、軽量近傍`KisStrokeEfficiencyMeasurerSchemaContractTest`、AUTOMOC後二回目計画、無作業再構築2回、動的接続・未解決記号・AUTOMOC入力・構文・書式、差分、公開API検査、`verify-quick`を確認する。5工程・11入力超過、新しい探索路・定義・link、製品shared・OBJECT・`kritatestsdk`の接続、候補headerのAUTOMOC入力化、metaobject・singleton・signal・preset関連の製品未解決記号、対象実体化、許可path外変更が必要なら停止する。製品target、全体build・`verify`、Linux、Nix再評価は禁止する。
 
 ### 第239便の先行監査担当票
 

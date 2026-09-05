@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 8030
+    "expectedMissingApis": 8013
   },
   "contracts": [
     {
@@ -60678,6 +60678,68 @@
         "method:KisStrokeEfficiencyMeasurer::averageCursorSpeed() const",
         "method:KisStrokeEfficiencyMeasurer::averageFps() const",
         "method:KisStrokeEfficiencyMeasurer::averageRenderingSpeed() const"
+      ]
+    },
+    {
+      "target": "DocumentAnimationSchemaContractTest",
+      "source": "libs/libkis/tests/DocumentAnimationSchemaContractTest.cpp",
+      "test": "DocumentAnimationSchemaContractTest::documentAnimationTimelineQuerySignaturesRemainStable",
+      "behavior": "文書はanimationの長さ、現在時刻、frame速度、clip範囲、再生範囲を取得する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:Document::animationLength()",
+        "method:Document::currentTime()",
+        "method:Document::framesPerSecond()",
+        "method:Document::fullClipRangeEndTime()",
+        "method:Document::fullClipRangeStartTime()",
+        "method:Document::playBackEndTime()",
+        "method:Document::playBackStartTime()"
+      ]
+    },
+    {
+      "target": "DocumentAnimationSchemaContractTest",
+      "source": "libs/libkis/tests/DocumentAnimationSchemaContractTest.cpp",
+      "test": "DocumentAnimationSchemaContractTest::documentAnimationTimelineMutationSignaturesRemainStable",
+      "behavior": "文書はanimationの現在時刻、frame速度、clip範囲、再生範囲を設定する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:Document::setCurrentTime(int time)",
+        "method:Document::setFramesPerSecond(int fps)",
+        "method:Document::setFullClipRangeEndTime(int endTime)",
+        "method:Document::setFullClipRangeStartTime(int startTime)",
+        "method:Document::setPlayBackRange(int start,int stop)"
+      ]
+    },
+    {
+      "target": "DocumentAnimationSchemaContractTest",
+      "source": "libs/libkis/tests/DocumentAnimationSchemaContractTest.cpp",
+      "test": "DocumentAnimationSchemaContractTest::documentAudioLevelSignaturesRemainStable",
+      "behavior": "文書はanimation再生の音量を取得・設定する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:Document::audioLevel() const",
+        "method:Document::setAudioLevel(const qreal level)"
+      ]
+    },
+    {
+      "target": "DocumentAnimationSchemaContractTest",
+      "source": "libs/libkis/tests/DocumentAnimationSchemaContractTest.cpp",
+      "test": "DocumentAnimationSchemaContractTest::documentAudioTrackSignaturesRemainStable",
+      "behavior": "文書はanimation再生に使用する音声track一覧を取得・設定する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:Document::audioTracks() const",
+        "method:Document::setAudioTracks(const QList<QString> files) const"
+      ]
+    },
+    {
+      "target": "DocumentAnimationSchemaContractTest",
+      "source": "libs/libkis/tests/DocumentAnimationSchemaContractTest.cpp",
+      "test": "DocumentAnimationSchemaContractTest::documentAnimationImportSignatureRemainsStable",
+      "behavior": "文書は開始frameと間隔を指定して画像列をanimationへ取り込む公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:Document::importAnimation(const QList<QString> & files,int firstFrame,int step)"
       ]
     }
   ]
