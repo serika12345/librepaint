@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 22:35 JST
+- 更新日時: 2026-09-05 22:37 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1254,6 +1254,12 @@
 - `libs/libkis/VectorLayer.h`の残存13 APIと`libs/libkis/GroupShape.h`の残存6 APIは一意かつ台帳と非重複で、合計19件の識別子整列集合SHA-256 `ee4c88e5863f8949bbb5da91349f5656b1983976ac9f1f3d6829cf9bc969f1a3`を持つ。両型はvector layer上の最上位図形とgroup子階層を表す一責務に収まり、`g262-vector-group-schema`の状態は`planned`とする。実装時の許可pathは新規`libs/libkis/tests/VectorGroupShapeSchemaContractTest.cpp`と`libs/libkis/tests/CMakeLists.txt`の新target固有節だけで、公開header、製品source、既存targetを変更しない。
 - 5枠は`vectorLayerTypeLifetimeAndConstructionSchemaRemainStable`へ型・2構築・破棄4件、`vectorLayerIdentityAndRenderingPolicySignaturesRemainStable`へ型識別とantialias設定3件、`vectorLayerShapeQuerySignaturesRemainStable`へ位置・一覧・矩形検索3件、`vectorLayerSvgAndGroupingSignaturesRemainStable`へSVG入出力とgroup生成3件、`groupShapeTypeLifetimeAndHierarchySignaturesRemainStable`へ型・2構築・子取得・型識別・破棄6件を対応付ける。型特性、厳密member pointer、constructorと矩形検索の既定引数を確認する未評価式だけを使い、wrapper、図形、layer、controller、image、Qt値を実体化しない。
 - 新規targetはlibkis、global、image、image/filter、painting、painting/undo、pigment、pigment/resources、resources、flakeのsource/generated探索路、Qt Gui・Xml、KF I18n、Eigen、Imathのinterface探索、libkis・global・image・flakeのexport定義、Qt Core・Testとheader-only Boostだけの直接linkを使う4工程・8入力を予測し、停止線を5工程・11入力とする。軽量近傍`NodeSchemaContractTest`は4工程・8入力、command SHA-256 `545563ce94c608312d5319dfbf7a9f6b974d327f14f0ef572a34dba14ef65592`、input SHA-256 `179b7cb4cecd12291fd5658403eb0d52c2c1ded0491c0e28df03fccc97633a99`である。Qt Gui・Xmlの動的接続、UI・application探索路、製品shared・OBJECT、`kritatestsdk`、候補headerのAUTOMOC入力化、製品・metaobject未解決記号、実体化または許可path外変更が必要なら停止する。SVG入出力、検索条件、group再親化・順序・undo、所有寿命、antialiasの描画反映は既存重量試験または後続の動的契約で扱い、第261便完了後に開始する。
+
+### 第263便の先行監査担当票
+
+- 監査共通基点は`0888cdbf4e`、正式入力は`build/tdd-macos/public-api-missing-g261.json`である。第261便と第262便の選定済みAPIを除外し、`libs/image/kis_base_processor.h`の残存18 APIを、画素処理器の識別・設定・対応能力を固定する一責務候補として監査する。主作業treeの読み取りだけを許可し、変更、構成、構築、試験、Git操作、追加委任を行わず、G261の専用構築木と生成物を共有しない。
+- `g263-base-processor-api-audit`の状態は`in_progress`である。正式不足一覧と台帳に対する残存識別子の完全性、一意性、整列指紋、型・寿命・識別・構成・対応能力の責務別割当、最大5枠で静的契約へ固定できる範囲を調べる。既存のfilter・generator動的試験が保護する実行時意味は分離して報告する。
+- `g263-base-processor-closure-review`の状態は`in_progress`である。候補headerの直接依存、imageの既存軽量契約、専用targetと既存target追記の責務・閉包差、必要探索路・定義・動的接続、製品shared・OBJECTと`kritatestsdk`の回避、候補headerのAUTOMOC非入力化、許可path、停止線を独立に調べる。先行include整理が限定構築範囲を縮小する場合は、その根拠と所有先を報告する。
 
 ### 第239便の先行監査担当票
 
