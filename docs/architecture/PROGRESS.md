@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 20:25 JST
+- 更新日時: 2026-09-05 20:29 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1143,7 +1143,7 @@
 ### 第257便の初期診断と第257a便の構造準備計画
 
 - `g257-gradient-conversion-schema`は候補headerを最初にincludeした赤段階で、同じ`libs/pigment/resources`にある`KoAbstractGradient.h`、`KoStopGradient.h`、`KoSegmentGradient.h`を山括弧includeから解決できず停止した。既存targetへ同directoryの探索rootを重複追加すると局所targetのコンパイル界面を広げるため棄却した。差分を復元したcleanな専用作業treeと297,736 KiBのlane構築木、branchを削除し、888,892 KiBを回収した。
-- `g257a-gradient-header-boundary`の状態は`planned`、実装基点は`8f44b5613f`、専用作業treeは`/Users/masato/Documents/librepaint-g257a-gradient-header-boundary`、branchは`agent/g257a-gradient-header-boundary`とする。開始・到達先はともに`libs/pigment/resources/KisGradientConversion.h`であり、同じdirectoryが所有する上記3 headerのincludeを引用符形式へ直して自己完結性を回復する。許可pathは同headerだけで、公開宣言、製品source、試験、CMake、文書、台帳を変更しない。担当のGit権限は許可pathだけの受渡しcommit 1件で、追加委任は禁止する。
+- `g257a-gradient-header-boundary`の状態は`in_progress`、実装基点は`8f44b5613f`、専用作業treeは`/Users/masato/Documents/librepaint-g257a-gradient-header-boundary`、branchは`agent/g257a-gradient-header-boundary`とする。開始・到達先はともに`libs/pigment/resources/KisGradientConversion.h`であり、同じdirectoryが所有する上記3 headerのincludeを引用符形式へ直して自己完結性を回復する。許可pathは同headerだけで、公開宣言、製品source、試験、CMake、文書、台帳を変更しない。担当のGit権限は許可pathだけの受渡しcommit 1件で、追加委任は禁止する。
 - 構造準備は`KoStopGradientSchemaContractTest`の現行compile commandから候補directory固有の探索rootを加えないheader-first構文検査を作り、変更前の3 header欠落と変更後の成功を確認する。公開API 29,804件の指紋、候補18識別子とSHA、既存targetの4工程・8入力・直接依存が不変であること、`clang-check`、書式、差分、公開API検査、`verify-quick`を確認する。公開宣言や3箇所以外のinclude変更、CMake探索路追加、製品target構築、全体build・`verify`、Linux、Nix再評価が必要なら停止する。構造準備の統合・削除後、元のG257担当票を新基点で再開する。
 
 ### 第239便の先行監査担当票
