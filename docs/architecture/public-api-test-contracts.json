@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 8063
+    "expectedMissingApis": 8046
   },
   "contracts": [
     {
@@ -45063,6 +45063,68 @@
         "method:KisSortedCategorizedListModel::KisSortedCategorizedListModel(QObject * parent)",
         "method:KisSortedCategorizedListModel::entryAt(Entry_Type & entry,QModelIndex index) const",
         "method:KisSortedCategorizedListModel::indexOf(const Entry_Type & entry) const"
+      ]
+    },
+    {
+      "target": "KisCompositeOpSelectorSchemaContractTest",
+      "source": "libs/tools/ui/tests/KisCompositeOpSelectorSchemaContractTest.cpp",
+      "test": "KisCompositeOpSelectorSchemaContractTest::compositeOpComboBoxTypeLifetimeAndConstructionSchemaRemainStable",
+      "behavior": "描画合成方式の複合ボックスは通常型とレイヤースタイル専用派生型、親省略可能な二つの構築面、多相的な寿命境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisCompositeOpComboBox",
+        "class:KisLayerStyleCompositeOpComboBox",
+        "method:KisCompositeOpComboBox::KisCompositeOpComboBox(QWidget * parent=0)",
+        "method:KisCompositeOpComboBox::KisCompositeOpComboBox(bool limitToLayerStyles,QWidget * parent=0)",
+        "method:KisCompositeOpComboBox::~KisCompositeOpComboBox()"
+      ]
+    },
+    {
+      "target": "KisCompositeOpSelectorSchemaContractTest",
+      "source": "libs/tools/ui/tests/KisCompositeOpSelectorSchemaContractTest.cpp",
+      "test": "KisCompositeOpSelectorSchemaContractTest::compositeOpComboBoxSelectionAndSpecializationSignaturesRemainStable",
+      "behavior": "描画合成方式の複合ボックスは合成方式の選択・取得と色空間による検証、およびレイヤースタイル専用型の親省略可能な構築面を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCompositeOpComboBox::selectCompositeOp(const KoID & op)",
+        "method:KisCompositeOpComboBox::selectedCompositeOp() const",
+        "method:KisCompositeOpComboBox::validate(const KoColorSpace * cs)",
+        "method:KisLayerStyleCompositeOpComboBox::KisLayerStyleCompositeOpComboBox(QWidget * parent=0)"
+      ]
+    },
+    {
+      "target": "KisCompositeOpSelectorSchemaContractTest",
+      "source": "libs/tools/ui/tests/KisCompositeOpSelectorSchemaContractTest.cpp",
+      "test": "KisCompositeOpSelectorSchemaContractTest::compositeOpComboBoxPopupAndInputSignaturesRemainStable",
+      "behavior": "描画合成方式の複合ボックスはpopup制御とkey・wheel入力を処理する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCompositeOpComboBox::hidePopup()",
+        "method:KisCompositeOpComboBox::keyPressEvent(QKeyEvent * e)",
+        "method:KisCompositeOpComboBox::wheelEvent(QWheelEvent * e)"
+      ]
+    },
+    {
+      "target": "KisCompositeOpSelectorSchemaContractTest",
+      "source": "libs/tools/ui/tests/KisCompositeOpSelectorSchemaContractTest.cpp",
+      "test": "KisCompositeOpSelectorSchemaContractTest::compositeOpListWidgetTypeLifetimeAndConstructionSchemaRemainStable",
+      "behavior": "描画合成方式の一覧ウィジェットは分類一覧の派生型として、親省略可能な構築面と多相的な寿命境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisCompositeOpListWidget",
+        "method:KisCompositeOpListWidget::KisCompositeOpListWidget(QWidget * parent=0)",
+        "method:KisCompositeOpListWidget::~KisCompositeOpListWidget()"
+      ]
+    },
+    {
+      "target": "KisCompositeOpSelectorSchemaContractTest",
+      "source": "libs/tools/ui/tests/KisCompositeOpSelectorSchemaContractTest.cpp",
+      "test": "KisCompositeOpSelectorSchemaContractTest::compositeOpListWidgetSelectionSignaturesRemainStable",
+      "behavior": "描画合成方式の一覧ウィジェットは識別子による現在選択の取得・設定署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCompositeOpListWidget::selectedCompositeOp() const",
+        "method:KisCompositeOpListWidget::setCompositeOp(const KoID & id)"
       ]
     },
     {

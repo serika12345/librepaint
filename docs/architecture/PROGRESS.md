@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 15:38 JST
+- 更新日時: 2026-09-05 15:55 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -995,6 +995,17 @@
 - 実装基点は`8ba363fd90`である。`g245-composite-op-selector-schema`の状態は`planned`、専用作業treeは`/Users/masato/Documents/librepaint-g245-composite-op-selector-schema`、branchは`agent/g245-composite-op-selector-schema`である。開始`libs/tools/ui/kis_cmb_composite.h`の残存全17 APIを、新規`libs/tools/ui/tests/KisCompositeOpSelectorSchemaContractTest.cpp`の5枠へ固定する。許可pathは同試験sourceと`libs/tools/ui/tests/CMakeLists.txt`の新target固有節だけで、公開header、製品source、既存targetを変更しない。調整担当だけがarchitecture文書、公開API台帳、共通不足報告を変更する。担当のGit権限は許可pathだけの受渡しcommit 1件で、追加委任は禁止する。
 - 5枠は`compositeOpComboBoxTypeLifetimeAndConstructionSchemaRemainStable`へ複合box型、layer style用派生型、二つの構築、破棄の5件、`compositeOpComboBoxSelectionAndSpecializationSignaturesRemainStable`へ選択設定・取得、色空間検証、派生型構築の4件、`compositeOpComboBoxPopupAndInputSignaturesRemainStable`へpopup、key、wheel入力の3件、`compositeOpListWidgetTypeLifetimeAndConstructionSchemaRemainStable`へ一覧型、構築、破棄の3件、`compositeOpListWidgetSelectionSignaturesRemainStable`へ選択取得・設定の2件を対応付ける。正式入力`build/tdd-macos/public-api-missing-g245.json`の完全な17識別子と識別子整列集合SHA-256 `c147b7d13d1c13e33bf22f07e020e13264ce0cb0fdb9fc130731f6c96a794727`を維持する。
 - 新target `KisCompositeOpSelectorSchemaContractTest`はtools-uiとwidgetutilsのsource/generated探索路、Qt Gui・Widgets interface探索路、`kritatoolsui_EXPORTS`と`kritawidgetutils_EXPORTS`、Qt Core・Testだけに限定し、予測閉包4工程・8入力、停止線5工程・11入力とする。候補headerを最初にincludeし、型特性、継承、厳密なmember pointer、構築可能性だけで観測する。widget、`KoID`、色空間、event、modelを実体化せず製品本文を実行しない。担当は編集前target不存在、直接依存、初回計画、5枠宣言段階の期待link失敗、追加5枠単発・各20回、全target、正式CTest、軽量近傍`KisCategorizedListModelSchemaContractTest`、AUTOMOC後二回目計画、無作業再構築2回、動的接続・未解決記号・AUTOMOC入力・構文・書式、差分、公開API検査、`verify-quick`を確認する。5工程・11入力超過、新しい探索路・定義・link、Qt Gui・Widgetsの動的接続、製品shared・OBJECT・`kritatestsdk`の接続、候補headerのAUTOMOC入力化、製品未解決記号、対象実体化、許可path外変更が必要なら停止する。製品target、既存の重いcomposite model試験、全体build・`verify`、Linux、Nix再評価は禁止する。
+
+### 第245便の契約統合結果
+
+- 開始`libs/tools/ui/kis_cmb_composite.h`から新規`libs/tools/ui/tests/KisCompositeOpSelectorSchemaContractTest.cpp`へ17 API・5枠を追加し、`libs/tools/ui/tests/CMakeLists.txt`へ専用targetを分離した。公開header、製品source、既存targetを変更せず、受渡しcommit `610e0f1bfa`を中央commit `99838bf079`として取り込んだ。担当側と中央のmacOSで追加5枠を各20回、対象全5枠、正式CTestと軽量近傍`KisCategorizedListModelSchemaContractTest`、AUTOMOC後の二回目計画、無作業再構築2回に成功した。中央実測は4工程・8入力、command SHA-256 `db33571be0757dba109964c545a2afedfd35f3b92d70f47cd0438468e37cb41f`、input SHA-256 `75c2cf8b28f6f578cc02ee5990a58d74917c91346e0a4e4f83c6329e48f08712`、AUTOMOC `HEADERS=[]`、Qt Core・TestとOS frameworkだけの動的接続、製品未解決記号なしである。Qt Gui・Widgetsは探索界面だけに限定した。正しいcompile commandによる`clang-check -Werror`、書式、差分、macOSのpackage境界1,883対象、公開API検査に成功し、台帳は21,758件対応、8,046件未対応となった。実際の合成方式一覧、色空間による有効性判定、popup抑制、key・wheel操作、一覧と派生boxの選択同期は既存または後続の動的契約で扱う。
+- 統合patchの同一性とclean状態を確認後に専用作業tree、300,608 KiBのlane構築木、branchを削除して590,560 KiBを回収した。旧`public-api-missing-g245.json`を削除し、主Ninja木5,773,252 KiB、共有compiler cache 982,920 KiB、最新`build/tdd-macos/public-api-missing-g246.json` 2,141,008 bytes、SHA-256 `14c0da0ef12b94433ec7386eb2a7d68dbb2091f7dcf327ffe5650e8ba13ed118`だけを次便へ再利用する。compiler cacheは143,173件中120,249件、83.99%がhitしている。製品target、既存の重いcomposite model試験、全体build・`verify`、Linux、Nix再評価は実行していない。
+
+### 第246便の担当計画
+
+- 実装基点は`99838bf079`である。`g246-stroke-efficiency-measurer-schema`の状態は`planned`、専用作業treeは`/Users/masato/Documents/librepaint-g246-stroke-efficiency-measurer-schema`、branchは`agent/g246-stroke-efficiency-measurer-schema`である。開始`libs/painting/strokes/KisStrokeEfficiencyMeasurer.h`の残存全16 APIを、新規`libs/painting/tests/KisStrokeEfficiencyMeasurerSchemaContractTest.cpp`の5枠へ固定する。許可pathは同試験sourceと`libs/painting/tests/CMakeLists.txt`の新target固有節だけで、公開header、製品source、既存targetを変更しない。調整担当だけがarchitecture文書、公開API台帳、共通不足報告を変更する。担当のGit権限は許可pathだけの受渡しcommit 1件で、追加委任は禁止する。
+- 5枠は`strokeEfficiencyMeasurerTypeAndLifetimeSchemaRemainStable`へ型、構築、破棄の3件、`strokeEfficiencyMeasurerStateControlSignaturesRemainStable`へ有効状態の取得、reset、設定の3件、`strokeEfficiencyMeasurerCursorSamplingSignaturesRemainStable`へ単一点・複数点sampleとcursor移動開始・終了の4件、`strokeEfficiencyMeasurerRenderingNotificationSignaturesRemainStable`へframe描画開始、描画開始・終了の3件、`strokeEfficiencyMeasurerMetricQuerySignaturesRemainStable`へ平均cursor速度・FPS・描画速度の3件を対応付ける。正式入力`build/tdd-macos/public-api-missing-g246.json`の完全な16識別子と識別子整列集合SHA-256 `a3fde768ec85026605ee113890b6d8d9de9e92a9fdf872fa3b24036c5f84cc21`を維持する。
+- 新target `KisStrokeEfficiencyMeasurerSchemaContractTest`はpainting source/generated探索路、`kritapainting_EXPORTS`、Qt Core・Testだけに限定し、予測閉包4工程・8入力、停止線5工程・11入力とする。候補headerを最初にincludeし、型特性、構築・破棄可能性、厳密なmember pointerだけで観測する。計測器、`QPointF`、`QVector`、内部`Private`を実体化せず製品本文を実行しない。公開`reset()`は現行製品sourceに定義がないため未評価文脈に限定し、製品linkまたは実行契約を要求しない。担当は編集前target不存在、直接依存、初回計画、5枠宣言段階の期待link失敗、追加5枠単発・各20回、全target、正式CTest、軽量近傍`KisMaskingBrushCompositeOpBaseContractTest`、AUTOMOC後二回目計画、無作業再構築2回、動的接続・未解決記号・AUTOMOC入力・構文・書式、差分、公開API検査、`verify-quick`を確認する。5工程・11入力超過、新しい探索路・定義・link、製品shared・OBJECT・`kritatestsdk`の接続、候補headerのAUTOMOC入力化、製品未解決記号、`reset()`のODR-use、対象実体化、許可path外変更が必要なら停止する。製品target、全体build・`verify`、Linux、Nix再評価は禁止する。
 
 ### 第239便の先行監査担当票
 
