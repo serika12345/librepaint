@@ -156,6 +156,18 @@ target_include_directories(KisMaskingBrushCompositeOpBaseContractTest PRIVATE
 )
 
 kis_add_test(
+    KisStrokeEfficiencyMeasurerSchemaContractTest.cpp
+    LINK_LIBRARIES Qt${QT_MAJOR_VERSION}::Core Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KisStrokeEfficiencyMeasurerSchemaContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+)
+target_compile_definitions(KisStrokeEfficiencyMeasurerSchemaContractTest PRIVATE
+    kritapainting_EXPORTS
+)
+
+kis_add_test(
     KUndo2CommandExtraDataContractTest.cpp
     ../undo/kundo2commandextradata.cpp
     TEST_NAME KUndo2CommandExtraDataContractTest
