@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 8445
+    "expectedMissingApis": 8424
   },
   "contracts": [
     {
@@ -59363,6 +59363,72 @@
         "method:KoPencilTool::mouseMoveEvent(KoPointerEvent * event)",
         "method:KoPencilTool::mousePressEvent(KoPointerEvent * event)",
         "method:KoPencilTool::mouseReleaseEvent(KoPointerEvent * event)"
+      ]
+    },
+    {
+      "target": "KisToolCanvasSchemaContractTest",
+      "source": "libs/canvas/tests/KisToolCanvasSchemaContractTest.cpp",
+      "test": "KisToolCanvasSchemaContractTest::toolCanvasTypeLifetimeAndContextSchemaRemainStable",
+      "behavior": "tool用canvas境界は座標変換器、現在画像、設定通知器を借用取得し、抽象型として仮想破棄できる公開構成を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisToolCanvas",
+        "method:KisToolCanvas::coordinatesConverter() const",
+        "method:KisToolCanvas::currentImage() const",
+        "method:KisToolCanvas::toolConfigNotifier() const",
+        "method:KisToolCanvas::~KisToolCanvas()"
+      ]
+    },
+    {
+      "target": "KisToolCanvasSchemaContractTest",
+      "source": "libs/canvas/tests/KisToolCanvasSchemaContractTest.cpp",
+      "test": "KisToolCanvasSchemaContractTest::toolCanvasSelectionStateAndCursorSignaturesRemainStable",
+      "behavior": "tool用canvas境界は現在の選択・選択node・編集可能性・修飾key対応と選択移動cursorを照会する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisToolCanvas::currentSelectionForTool() const",
+        "method:KisToolCanvas::moveSelectionCursorForTool() const",
+        "method:KisToolCanvas::selectedNodesForTool() const",
+        "method:KisToolCanvas::selectionEditableForTool() const",
+        "method:KisToolCanvas::selectionModifierMappingSwapsCtrlAndAltForTool() const"
+      ]
+    },
+    {
+      "target": "KisToolCanvasSchemaContractTest",
+      "source": "libs/canvas/tests/KisToolCanvasSchemaContractTest.cpp",
+      "test": "KisToolCanvasSchemaContractTest::toolCanvasInputBindingSignaturesRemainStable",
+      "behavior": "tool用canvas境界は優先度付き入力filterの着脱、入力接続callback、canvas widget変更callback、入力action群maskを扱う公開署名と既定優先度を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisToolCanvas::attachPriorityEventFilterForTool(QObject * filter,int priority=0)",
+        "method:KisToolCanvas::detachPriorityEventFilterForTool(QObject * filter)",
+        "method:KisToolCanvas::inputActionGroupsMaskInterface()",
+        "method:KisToolCanvas::setInputCanvasWidgetChangedCallback(std::function<void ()> callback)",
+        "method:KisToolCanvas::setInputEventFilterConnection(std::function<void (QObject *,bool,int)> connection)"
+      ]
+    },
+    {
+      "target": "KisToolCanvasSchemaContractTest",
+      "source": "libs/canvas/tests/KisToolCanvasSchemaContractTest.cpp",
+      "test": "KisToolCanvasSchemaContractTest::toolCanvasStrokeControlSignaturesRemainStable",
+      "behavior": "tool用canvas境界はstrokeの終了・取消を要求し、画像操作の通常完了または強制完了を待つ公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisToolCanvas::blockUntilOperationsFinishedForTool(KisImageSP image)",
+        "method:KisToolCanvas::blockUntilOperationsFinishedForToolForced(KisImageSP image)",
+        "method:KisToolCanvas::requestStrokeCancellationForTool()",
+        "method:KisToolCanvas::requestStrokeEndForTool()"
+      ]
+    },
+    {
+      "target": "KisToolCanvasSchemaContractTest",
+      "source": "libs/canvas/tests/KisToolCanvasSchemaContractTest.cpp",
+      "test": "KisToolCanvasSchemaContractTest::toolCanvasPresentationSignaturesRemainStable",
+      "behavior": "tool用canvas境界は利用者向けmessageと描画器上のtool輪郭を提示する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisToolCanvas::drawToolOutline(QPainter * painter,const KisOptimizedBrushOutline & path,int thickness)",
+        "method:KisToolCanvas::showToolMessage(const QString & message,const QString & iconName)"
       ]
     }
   ]

@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 10:24 JST
+- 更新日時: 2026-09-05 10:31 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -742,13 +742,18 @@
 
 ### 第227便の担当計画
 
-- 実装基点は`4dc1920dec`である。`g227-tool-canvas-schema`の状態は`implementing`、専用作業treeは`/Users/masato/Documents/librepaint-g227-tool-canvas-schema`、branchは`agent/g227-tool-canvas-schema`である。開始`libs/canvas/KisToolCanvas.h`の残存全21 APIを、新規`libs/canvas/tests/KisToolCanvasSchemaContractTest.cpp`の5枠へ固定する。許可pathは同試験sourceと`libs/canvas/tests/CMakeLists.txt`の新target固有節だけで、公開header、製品source、既存targetを変更しない。調整担当だけが`AGENTS.md`、architecture文書、`docs/architecture/public-api-test-contracts.json`、共通不足報告を変更する。担当のGit権限は許可pathだけの受渡しcommit 1件で、追加委任は禁止する。
+- 実装基点は`4dc1920dec`である。`g227-tool-canvas-schema`の状態は`integrated`で、開始`libs/canvas/KisToolCanvas.h`の残存全21 APIを、新規`libs/canvas/tests/KisToolCanvasSchemaContractTest.cpp`の5枠へ固定した。許可pathは同試験sourceと`libs/canvas/tests/CMakeLists.txt`の新target固有節だけで、公開header、製品source、既存targetを変更していない。受渡しcommit `fdce9bf531`を統合commit `9fa96bc898`として取り込んだ。
 - 5枠は`toolCanvasTypeLifetimeAndContextSchemaRemainStable`へclass、破棄、`coordinatesConverter`、`currentImage`、`toolConfigNotifier`の5件、`toolCanvasSelectionStateAndCursorSignaturesRemainStable`へ`currentSelectionForTool`、`selectedNodesForTool`、`selectionEditableForTool`、`selectionModifierMappingSwapsCtrlAndAltForTool`、`moveSelectionCursorForTool`の5件、`toolCanvasInputBindingSignaturesRemainStable`へevent filterの着脱、2 callback設定、`inputActionGroupsMaskInterface`の5件、`toolCanvasStrokeControlSignaturesRemainStable`へstroke終了・取消と通常・強制待機の4件、`toolCanvasPresentationSignaturesRemainStable`へmessage表示とtool輪郭描画の2件を対応付ける。正式入力の完全な21識別子と集合SHA-256 `49a9b0a729216cd237770cc4ec8b486da9c88ad5aefc166caadcf1227875502d`を維持する。
 - 新targetはcanvas source・generated、image・global source・generated探索路、`kritacanvas_EXPORTS`、`kritaimage_EXPORTS`、`kritaglobal_EXPORTS`、Qt Core・Testだけに限定し、予測閉包4工程・8入力、停止線5工程・11入力とする。型特性、厳密なmember pointer、既定引数の未評価呼出しだけで観測し、canvas、画像、選択、node、event filter、callback、stroke、cursor、painter、輪郭、通知器を実体化しない。担当は編集前target不存在、直接依存、初回計画、5枠宣言段階の期待link失敗、5枠単発・各20回、全target、正式CTest、近傍`KisCoordinatesConverterSchemaContractTest`、AUTOMOC後二回目計画、無作業再構築2回、動的接続・未解決記号・AUTOMOC入力・構文・書式、差分、公開API検査、`verify-quick`を確認する。5工程・11入力超過、追加探索路・定義・link、製品shared・OBJECT・`kritatestsdk`の動的接続、候補headerのAUTOMOC入力化、製品未解決記号、対象実体化、許可path外の変更が必要なら停止する。製品target、全体build・`verify`、Linux、Nix再評価は禁止する。
 
-### 第228便の先行監査担当票（第227便確定待ち）
+### 第227便の統合結果
 
-- `g228-canvas-update-info-schema-formal-review`の状態は`completed-ready`、担当は`g178_shape_hierarchy_schema`、基点は`03f4311c63`である。正式入力`build/tdd-macos/public-api-missing-g224.json`でも`libs/canvas/kis_update_info.h`の残存全19 APIと`libs/canvas/kis_projection_update_info.h`の残存全16 APIは一意で台帳と重複せず、大域整列集合SHA-256 `d612d9b06780110a5b8833f4fad906980e29980a10e6aee64390b50fd431ca7d`、新規`libs/canvas/tests/KisCanvasUpdateInfoSchemaContractTest.cpp`の5枠8・7・4・9・7に一致した。両型は基底更新領域、batch・LOD marker、projection転送値をcanvas更新配送の一責務として所有する。新targetはcanvas・global探索路、Qt Gui interface、`kritacanvas_EXPORTS`と`kritaglobal_EXPORTS`、Qt Core・Testだけで初回・AUTOMOC後とも4工程・8入力へ閉じられる。軽量近傍`KisProjectionPixelFilterContractTest`も4工程・8入力、AUTOMOC `HEADERS=[]`、製品辺なしである。dirty矩形計算、LOD・圧縮、markerのqueue効果、Direct・Patch転送、描画hint反映、共有pointer・metatype配送は既存または後続の動的契約で扱い、正式第228便不足報告で35件と集合SHAを再照合する。
+- 開始`libs/canvas/KisToolCanvas.h`から新規`libs/canvas/tests/KisToolCanvasSchemaContractTest.cpp`へ21 API・5枠を追加した。担当側と中央のmacOSで5枠を各20回、対象全7件、正式CTestと近傍`KisCoordinatesConverterSchemaContractTest`、AUTOMOC後の二回目計画、無作業再構築2回に成功した。中央実測は4工程・8入力、command SHA-256 `2453caa72228cc8450e7a386cf457f3b282f2711c05c4797207e75b913b109a7`、input SHA-256 `3dbfb6555cb06ba2785cf96e0e6dd2ee567ffcb71e281d7f532cf9653caebc7f`、AUTOMOC `HEADERS=[]`、Qt Core・Testと非製品runtimeだけの動的接続、製品未解決記号なしである。正しいcompile commandによる`clang-check -Werror`、書式、差分、macOSのpackage境界1,868対象、公開API検査、`verify-quick`に成功し、台帳は21,380件対応、8,424件未対応となった。実選択状態、入力接続、stroke待機、message表示、輪郭描画の実行時挙動は既存または後続の動的契約で扱う。
+- 統合済みpatchとclean状態を確認後に専用作業tree、295,072 KiBのlane構築木、branchを削除して885,376 KiBを回収した。旧`public-api-missing-g227.json`を削除し、主Ninja木5,751,144 KiB、共有compiler cache 982,996 KiB、最新`build/tdd-macos/public-api-missing-g228.json` 2,236,241 bytes、SHA-256 `132e714550899f83723fb1e501b88d7f90a51de62d761607115d8b883410c0e8`だけを次便へ再利用する。compiler cacheは143,031件中120,213件、84.05%がhitしている。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+
+### 第228便の先行監査担当票
+
+- `g228-canvas-update-info-schema-formal-review`の状態は`completed-ready`、担当は`g178_shape_hierarchy_schema`、基点は`03f4311c63`である。第227便後の正式入力`build/tdd-macos/public-api-missing-g228.json`でも`libs/canvas/kis_update_info.h`の残存全19 APIと`libs/canvas/kis_projection_update_info.h`の残存全16 APIは一意で台帳と重複せず、大域整列集合SHA-256 `d612d9b06780110a5b8833f4fad906980e29980a10e6aee64390b50fd431ca7d`、新規`libs/canvas/tests/KisCanvasUpdateInfoSchemaContractTest.cpp`の5枠8・7・4・9・7に一致した。両型は基底更新領域、batch・LOD marker、projection転送値をcanvas更新配送の一責務として所有する。新targetはcanvas・global探索路、Qt Gui interface、`kritacanvas_EXPORTS`と`kritaglobal_EXPORTS`、Qt Core・Testだけで初回・AUTOMOC後とも4工程・8入力へ閉じられる。軽量近傍`KisProjectionPixelFilterContractTest`も4工程・8入力、AUTOMOC `HEADERS=[]`、製品辺なしである。dirty矩形計算、LOD・圧縮、markerのqueue効果、Direct・Patch転送、描画hint反映、共有pointer・metatype配送は既存または後続の動的契約で扱う。
 
 ### 第229便の先行監査担当票（第228便確定待ち）
 
@@ -778,7 +783,7 @@
 
 ### 第236便の先行監査担当票（第235便確定待ち）
 
-- `g236-ui-contract-audit`の状態は`auditing`、担当は`g178_shape_hierarchy_schema`、監査基点は`c9093961cc`、入力は`build/tdd-macos/public-api-missing-g227.json`である。`libs/ui`、`libs/widgetutils`、`libs/libkis`、`libs/application`から、第227便から第235便までに選定済みまたは契約済みのheaderを除外し、一つの公開責務から15〜80 APIを最大5枠へ固定できる候補を比較する。変更、構成、構築、試験、Git操作、追加委任は行わず、完全な識別子、集合SHA、台帳非重複、責務、既存契約との重複、最小source・CMake・近傍、予測閉包、必要依存、実体化回避、動的危険、停止条件を報告する。正式第236便の直前に最新不足報告で再照合する。
+- `g236-ui-contract-audit`の状態は`completed-ready`、担当は`g178_shape_hierarchy_schema`、監査基点は`17be08ecb2`で、application起動引数21 APIを選定した。`libs/application/ui/orchestration/KisApplicationArguments.h`の残存21 APIは一意で台帳と重複せず、識別子整列集合SHA-256 `2bbdc6dfcfe61c50bd17532abc541f61710473908371522c4a719534be8f5b3b`、新規`libs/application/tests/KisApplicationArgumentsSchemaContractTest.cpp`の5枠5・2・4・4・6に一致する。同型はprocess起動時の文書入力、表示方式、export・workspace指定を一つの値として保持・複製・直列化する境界である。新targetはapplication・global探索路、`kritaapplicationui_EXPORTS`、Qt Core・Testだけで4工程・8入力を予測し、停止線を5工程・11入力とする。同名`kritaui_export.h`はapplication生成版だけを解決する。引数option優先順位、複数filename、無効直列化入力、直列化互換性、複製後の独立性、session・workspace解決、文書生成副作用は既存または後続の動的契約で扱い、正式第236便不足報告で21件と集合SHAを再照合する。
 
 ### 第201便の先行監査担当票
 
