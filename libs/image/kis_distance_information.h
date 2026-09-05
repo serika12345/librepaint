@@ -10,8 +10,6 @@
 
 #include <QPointF>
 #include <QVector2D>
-#include <QDomDocument>
-#include <QDomElement>
 #include "kritaimage_export.h"
 #include <boost/optional.hpp>
 #include <boost/operators.hpp>
@@ -20,6 +18,8 @@ class KisPaintInformation;
 class KisSpacingInformation;
 class KisTimingInformation;
 class KisDistanceInformation;
+class QDomDocument;
+class QDomElement;
 
 /**
  * Represents some information that can be used to initialize a KisDistanceInformation object. The

@@ -11,6 +11,8 @@
 #include "kis_timing_information.h"
 #include "kis_debug.h"
 #include <QtCore/qmath.h>
+#include <QDomDocument>
+#include <QDomElement>
 #include <QVector2D>
 #include <QTransform>
 #include "kis_algebra_2d.h"
@@ -613,4 +615,3 @@ qreal KisDistanceInformation::scalarDistanceApprox() const
 {
     return m_d->totalDistance;
 }
-
