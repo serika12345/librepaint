@@ -121,6 +121,21 @@ target_include_directories(KisResourceIteratorSchemaContractTest PRIVATE
 target_compile_definitions(KisResourceIteratorSchemaContractTest PRIVATE kritaresources_EXPORTS)
 
 kis_add_test(
+    KisMemoryStorageSchemaContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+        Boost::boost
+)
+target_include_directories(KisMemoryStorageSchemaContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Gui,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
+)
+target_compile_definitions(KisMemoryStorageSchemaContractTest PRIVATE kritaresources_EXPORTS)
+
+kis_add_test(
     KoResourcePathsSchemaContractTest.cpp
     LINK_LIBRARIES
         Qt${QT_MAJOR_VERSION}::Core
