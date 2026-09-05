@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 14:53 JST
+- 更新日時: 2026-09-05 15:05 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -959,9 +959,20 @@
 
 ### 第242便の担当計画
 
-- 実装基点は`b7f402bff1`である。`g242-abstract-input-action-schema`の状態は`planned`、専用作業treeは`/Users/masato/Documents/librepaint-g242-abstract-input-action-schema`、branchは`agent/g242-abstract-input-action-schema`である。開始`libs/input/ui/kis_abstract_input_action.h`の残存全18 APIを、既存`libs/input/ui/tests/KisToolInvocationActionSchemaContractTest.cpp`の5枠へ追加する。許可pathは同試験sourceだけで、CMake、公開header、製品source、既存5枠を変更しない。調整担当だけがarchitecture文書、公開API台帳、共通不足報告を変更する。担当のGit権限は許可pathだけの受渡しcommit 1件で、追加委任は禁止する。
+- 実装基点は`b7f402bff1`である。`g242-abstract-input-action-schema`の状態は`integrated`、専用作業treeは`/Users/masato/Documents/librepaint-g242-abstract-input-action-schema`、branchは`agent/g242-abstract-input-action-schema`を使用した。開始`libs/input/ui/kis_abstract_input_action.h`の残存全18 APIを、既存`libs/input/ui/tests/KisToolInvocationActionSchemaContractTest.cpp`の5枠へ追加した。許可pathは同試験sourceだけで、CMake、公開header、製品source、既存5枠を変更していない。受渡しcommit `9046e4e6f0`を中央commit `989934cf4b`として取り込んだ。調整担当だけがarchitecture文書、公開API台帳、共通不足報告を変更した。担当のGit権限は許可pathだけの受渡しcommit 1件で、追加委任は禁止した。
 - 5枠は`abstractInputActionTypeLifetimeAndConstructionSchemaRemainStable`へ型、識別子構築、破棄の3件、`abstractInputActionActivationAndCompletionSignaturesRemainStable`へactivate・deactivate・begin・endの4件、`abstractInputActionEventAndGroupSignaturesRemainStable`へevent入力、高精度入力方針、action group、shortcut索引の4件、`abstractInputActionIdentityAndPrioritySignaturesRemainStable`へ識別子・名前・説明・優先度の4件、`abstractInputActionAvailabilityPolicySignaturesRemainStable`へ修飾key無視、必須shortcut、利用可能性の3件を対応付ける。正式入力`build/tdd-macos/public-api-missing-g242.json`の完全な18識別子と識別子整列集合SHA-256 `82b40066ae2efdf38bc913207a78af6550635443e9dc31d7573a14f90d307f01`を維持する。
 - 既存target `KisToolInvocationActionSchemaContractTest`はinput/ui・canvas source/generated探索路、`kritainputui_EXPORTS`・`kritacanvas_EXPORTS`、Qt Core・Testとheader-only Boostだけの4工程・8入力を維持し、停止線5工程・11入力とする。型特性と厳密な関数・member pointerだけで観測し、action、manager、event、Qt値を実体化せず本文を実行しない。担当は変更前計画・直接依存・空閉包、5枠宣言段階の期待link失敗、追加5枠単発・各20回、既存を含む全target、正式CTest、軽量近傍、AUTOMOC後二回目計画、無作業再構築2回、動的接続・未解決記号・AUTOMOC入力・構文・書式、差分、公開API検査、`verify-quick`を確認する。CMake変更、新しい探索路・定義・link、5工程・11入力超過、製品shared・OBJECT・`kritatestsdk`の接続、候補headerのAUTOMOC入力化、製品未解決記号、対象実体化、許可path外変更が必要なら停止する。製品target、全体build・`verify`、Linux、Nix再評価は禁止する。
+
+### 第242便の契約統合結果
+
+- 開始`libs/input/ui/kis_abstract_input_action.h`から既存`libs/input/ui/tests/KisToolInvocationActionSchemaContractTest.cpp`へ18 API・5枠を追加した。担当側と中央のmacOSで追加5枠を各20回、既存を含む対象全12件、正式CTestと近傍`KisInputActionGroupContractTest`、AUTOMOC後の二回目計画、無作業再構築2回に成功した。CMakeを変更せず、中央実測は4工程・8入力、command SHA-256 `b024041c26598eab1802d2152461c488e4469d9083d18e506012dc5e611ddda8`、input SHA-256 `e1715686d374cad9c0db1a52dd4b6586745228d3ebcfdec7c822c48e7c69827c`、AUTOMOC `HEADERS=[]`、Qt Core・TestとOS frameworkだけの動的接続、製品未解決記号なしである。正しいcompile commandによる`clang-check -Werror`、書式、差分、macOSのpackage境界1,881対象、公開API検査に成功し、台帳は21,709件対応、8,095件未対応となった。実event配送、activate・deactivate順序、利用可能性判定、修飾key・shortcut方針は既存または後続の動的契約で扱う。
+- 統合patchの同一性とclean状態を確認後に専用作業tree、301,468 KiBのlane構築木、branchを削除して891,992 KiBを回収した。旧`public-api-missing-g242.json`を削除し、主Ninja木5,766,844 KiB、共有compiler cache 982,332 KiB、最新`build/tdd-macos/public-api-missing-g243.json` 2,153,280 bytes、SHA-256 `3b8873fb016e0cd26e4f19f7321835b6dc3bba8db5312681e135107cfde8d698`だけを次便へ再利用する。compiler cacheは143,148件中120,242件、84.00%がhitしている。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+
+### 第243便の担当計画
+
+- 実装基点は`989934cf4b`である。`g243-translate-layer-names-visitor-schema`の状態は`planned`、専用作業treeは`/Users/masato/Documents/librepaint-g243-translate-layer-names-visitor-schema`、branchは`agent/g243-translate-layer-names-visitor-schema`である。開始`libs/image/KisTranslateLayerNamesVisitor.h`の残存全15 APIを、既存`libs/image/tests/KisNodeVisitorContractTest.cpp`の5枠へ追加する。許可pathは同試験sourceだけで、CMake、公開header、製品source、既存3枠を変更しない。調整担当だけがarchitecture文書、公開API台帳、共通不足報告を変更する。担当のGit権限は許可pathだけの受渡しcommit 1件で、追加委任は禁止する。
+- 5枠は`translateLayerNamesVisitorTypeConstructionAndDictionarySchemaRemainStable`へ型、辞書構築、既定辞書の3件、`translateLayerNamesVisitorBaseAndPaintLayerSignaturesRemainStable`へnode・paint・group layer訪問の3件、`translateLayerNamesVisitorGeneratedAndExternalLayerSignaturesRemainStable`へadjustment・external・generator layer訪問の3件、`translateLayerNamesVisitorCloneAndFilterMaskSignaturesRemainStable`へclone layer・filter mask・transform mask訪問の3件、`translateLayerNamesVisitorRemainingMaskSignaturesRemainStable`へtransparency・selection・colorize mask訪問の3件を対応付ける。正式入力`build/tdd-macos/public-api-missing-g243.json`の完全な15識別子と識別子整列集合SHA-256 `89c47e41d29538961907377d24ffa273b779b3e51adca618d5c05f3e0682f488`を維持する。
+- 既存target `KisNodeVisitorContractTest`はimage source/generated探索路、`kritaimage_EXPORTS`、Qt Core・Testだけの4工程・8入力を維持し、停止線5工程・11入力とする。候補headerを先頭includeし、型特性と厳密な関数・member pointerだけで観測する。visitor、辞書、node、layer、mask、Qt値を実体化せず翻訳本文を実行しない。担当は変更前計画・直接依存・空閉包、5枠宣言段階の期待link失敗、追加5枠単発・各20回、既存を含む全target、正式CTest、軽量近傍、AUTOMOC後二回目計画、無作業再構築2回、動的接続・未解決記号・AUTOMOC入力・構文・書式、差分、公開API検査、`verify-quick`を確認する。CMake変更、新しい探索路・定義・link、5工程・11入力超過、製品shared・OBJECT・`kritatestsdk`の接続、候補headerのAUTOMOC入力化、製品未解決記号、対象実体化、許可path外変更が必要なら停止する。製品target、全体build・`verify`、Linux、Nix再評価は禁止する。
 
 ### 第239便の先行監査担当票
 

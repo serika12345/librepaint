@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 8113
+    "expectedMissingApis": 8095
   },
   "contracts": [
     {
@@ -60370,6 +60370,69 @@
       "apis": [
         "method:KoProgressUpdater::removePersistentSubtask(QPointer<KoUpdater> updater)",
         "method:KoProgressUpdater::startSubtask(int weight=1,const QString & name=QString (),bool isPersistent=false)"
+      ]
+    },
+    {
+      "target": "KisToolInvocationActionSchemaContractTest",
+      "source": "libs/input/ui/tests/KisToolInvocationActionSchemaContractTest.cpp",
+      "test": "KisToolInvocationActionSchemaContractTest::abstractInputActionTypeLifetimeAndConstructionSchemaRemainStable",
+      "behavior": "入力操作基底は識別子から構築し、派生型を基底型から破棄できる公開型構成を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisAbstractInputAction",
+        "method:KisAbstractInputAction::KisAbstractInputAction(const QString & id)",
+        "method:KisAbstractInputAction::~KisAbstractInputAction()"
+      ]
+    },
+    {
+      "target": "KisToolInvocationActionSchemaContractTest",
+      "source": "libs/input/ui/tests/KisToolInvocationActionSchemaContractTest.cpp",
+      "test": "KisToolInvocationActionSchemaContractTest::abstractInputActionActivationAndCompletionSignaturesRemainStable",
+      "behavior": "入力操作基底はshortcut候補の有効化・解除と入力開始・終了を受け取る公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAbstractInputAction::activate(int shortcut)",
+        "method:KisAbstractInputAction::begin(int shortcut,QEvent * event)",
+        "method:KisAbstractInputAction::deactivate(int shortcut)",
+        "method:KisAbstractInputAction::end(QEvent * event)"
+      ]
+    },
+    {
+      "target": "KisToolInvocationActionSchemaContractTest",
+      "source": "libs/input/ui/tests/KisToolInvocationActionSchemaContractTest.cpp",
+      "test": "KisToolInvocationActionSchemaContractTest::abstractInputActionEventAndGroupSignaturesRemainStable",
+      "behavior": "入力操作基底はeventを受け取り、高精度入力方針、action group、shortcut索引を返す公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAbstractInputAction::inputActionGroup(int shortcut) const",
+        "method:KisAbstractInputAction::inputEvent(QEvent * event)",
+        "method:KisAbstractInputAction::shortcutIndexes() const",
+        "method:KisAbstractInputAction::supportsHiResInputEvents(int shortcut) const"
+      ]
+    },
+    {
+      "target": "KisToolInvocationActionSchemaContractTest",
+      "source": "libs/input/ui/tests/KisToolInvocationActionSchemaContractTest.cpp",
+      "test": "KisToolInvocationActionSchemaContractTest::abstractInputActionIdentityAndPrioritySignaturesRemainStable",
+      "behavior": "入力操作基底は識別子、名前、説明、競合解決優先度を返す公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAbstractInputAction::description() const",
+        "method:KisAbstractInputAction::id() const",
+        "method:KisAbstractInputAction::name() const",
+        "method:KisAbstractInputAction::priority() const"
+      ]
+    },
+    {
+      "target": "KisToolInvocationActionSchemaContractTest",
+      "source": "libs/input/ui/tests/KisToolInvocationActionSchemaContractTest.cpp",
+      "test": "KisToolInvocationActionSchemaContractTest::abstractInputActionAvailabilityPolicySignaturesRemainStable",
+      "behavior": "入力操作基底は修飾key無視、必須shortcut、現在の利用可能性を判定する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAbstractInputAction::canIgnoreModifiers() const",
+        "method:KisAbstractInputAction::isAvailable() const",
+        "method:KisAbstractInputAction::isShortcutRequired(int shortcut) const"
       ]
     }
   ]
