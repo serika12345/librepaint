@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 11:41 JST
+- 更新日時: 2026-09-05 11:45 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -814,6 +814,12 @@
 ### 第232便の先行監査担当票
 
 - `g232-cross-device-color-sampler-schema-formal-review`の状態は`completed-preparation-required`、担当は`g208_raster_keyframe_schema`、基点は`66c906977f`である。第231便後の正式入力`build/tdd-macos/public-api-missing-g232.json`でも`libs/image/kis_cross_device_color_sampler.h`の残存全19 APIは一意で台帳と重複せず、識別子整列集合SHA-256 `11ea4757d5a03fcb661aa073f82b79eea091c3edc25f7ebf1310950d42527313`、5枠5・5・3・4・2に一致した。実数・整数座標traitとsampler templateは、異なる座標精度のaccessorから新旧画素を読み、出力先色空間へ変換する一責務である。ただし候補headerはinline本文で完全な`KisPaintDevice`と`KoColor`を使いながら直接includeせず、単独includeが成立しない。試験source側の前置includeで隠さず、実装前に同headerへ必要な直接includeを与える自己完結性修正を独立変更として監査する。修正後の新targetはimage・global・pigment探索路、Qt Gui・KF I18n interface、2 export定義、Qt Core・Testとheader-only Boostだけの4工程・8入力を見込む。色空間取得、座標補間、新旧tile読取り、変換結果、accessor cache寿命は既存または後続の動的契約で扱う。
+
+### 第232便の構造準備計画
+
+- 構造準備基点は`e1ed1360d7`である。`g232-cross-device-sampler-header-self-containment`の状態は`planned`、専用作業treeは`/Users/masato/Documents/librepaint-g232-cross-device-sampler-header-self-containment`、branchは`agent/g232-cross-device-sampler-header-self-containment`である。開始・変更先はいずれも`libs/image/kis_cross_device_color_sampler.h`で、同headerがinline本文で使う`KisPaintDevice`の完全定義を`libs/image/kis_paint_device.h`から、公開構築署名で使う`KoColor`の完全定義を`libs/pigment/KoColor.h`から直接取り込む。許可pathは同headerだけで、製品source、試験、CMake、architecture文書、公開API台帳、共通不足報告を変更しない。担当のGit権限は許可pathだけの受渡しcommit 1件で、追加委任は禁止する。
+- 現在のheaderを既存4工程・8入力の`KisPaintLayerSchemaContractTest.cpp`より先に強制includeすると、`KisPaintDevice`の不完全型member access 3件と`KoColor`未知型1件で構文検査が失敗する。構造準備はこの4診断を直接includeだけで解消し、呼出し側のinclude順への依存を除く。集約`TestPublicImageHeaders`は1,222工程・2,465入力のため構築せず、同翻訳単位と6つの直接consumerは既存compile databaseによる翻訳単位単独の`clang-check -Werror`で確認する。
+- 担当は変更前診断、直接include差分、強制先頭includeの再検査、直接consumer 7翻訳単位の`clang-check -Werror`、headerの書式・差分、公開API件数・識別子指紋の不変、`verify-quick`を確認する。公開API宣言変更、2 header以外の新規依存、CMake・link変更、製品構築、追加実装、許可path外変更が必要なら停止する。構造準備の統合後に、新規4工程・8入力の静的契約targetを独立変更として追加する。製品target、集約header target、全体build・`verify`、Linux、Nix再評価は禁止する。
 
 ### 第233便の先行監査担当票（第232便確定待ち）
 
