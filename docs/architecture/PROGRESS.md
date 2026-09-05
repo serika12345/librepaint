@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 08:57 JST
+- 更新日時: 2026-09-05 09:00 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -692,6 +692,10 @@
 ### 第225便の先行監査担当票（第224便確定待ち）
 
 - `g225-fill-painter-schema-formal-review`の状態は`completed-ready`、担当は`g208_raster_keyframe_schema`、基点は`84827b3b18`である。正式入力`build/tdd-macos/public-api-missing-g222.json`でも`libs/image/kis_fill_painter.h`の残存全53 APIは一意で台帳と重複せず、集合SHA-256 `bb2bbc772dd0392eda08fe0c4f56644c04cacd02bb77412b5981ce3994ede724`、既存`libs/image/tests/KisEncloseAndFillPainterSchemaContractTest.cpp`へ追加する5枠7・4・16・12・14に一致した。既存sourceは119行・5枠で、共通署名別名と検査macroにより追加後270〜295行・10枠を見込む。CMake変更と新targetは不要で、対象と近傍`KisGradientPainterSchemaContractTest`は4工程・8入力、候補headerのAUTOMOC `HEADERS=[]`、Qt Core・Gui・TestとmacOS system frameworksだけの動的接続、製品辺なしである。画素塗り、境界探索、閾値・拡散・隙間閉鎖、anti-alias・feather、pattern変換、selection制限、類似色job分割・進捗、setter後の状態は既存または後続の動的契約で扱い、正式第225便不足報告で53件・集合SHA・source上限を再照合する。
+
+### 第226便の先行監査担当票（第225便確定待ち）
+
+- `g226-path-creation-tools-schema-formal-review`の状態は`auditing`、担当は`g178_shape_hierarchy_schema`、基点は`4f58d5c6fb`、正式入力は`build/tdd-macos/public-api-missing-g223.json`である。開始公開headerは`libs/basicflakes/tools/KoCreatePathTool.h`の残存全16 APIと`libs/basicflakes/tools/KoPencilTool.h`の残存全10 API、合計26 API、全識別子を大域整列した集合SHA-256 `67b27852761c75f751c31df653f5139aafb41c47182c1b7bf62c4a0520ef387b`である。契約候補は新規`libs/basicflakes/tests/KoPathCreationToolSchemaContractTest.cpp`の5枠6・6・6・4・4、所有候補CMakeは`libs/basicflakes/CMakeLists.txt`の`BUILD_TESTING`内の新target固有節である。主作業treeと既存Ninja graphを読み取り専用で使い、変更、構成、構築、試験、Git操作、追加委任を行わない。全識別子、両toolを一責務にまとめる根拠、枠対応、必要include・定義・直接・interface link、現在とAUTOMOC後の予測工程・入力、最小近傍、製品辺、実体化有無、停止条件を独立確認し、正式第226便不足報告で再照合する条件を返す。
 
 ### 第201便の先行監査担当票
 
