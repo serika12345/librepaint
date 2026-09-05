@@ -3,12 +3,15 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include <resources/KisGradientConversion.h>
+
 #include <resources/KoAbstractGradient.h>
 #include <resources/KoStopGradient.h>
 
 #include <QTest>
 
 #include <type_traits>
+#include <utility>
 
 namespace
 {
@@ -17,6 +20,9 @@ namespace
 
 #define ASSERT_ABSTRACT_GRADIENT_SIGNATURE(method, signature)                                                          \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KoAbstractGradient::method)), signature>)
+
+#define ASSERT_GRADIENT_CONVERSION_SIGNATURE(method, signature)                                                        \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KisGradientConversion::method)), signature>)
 
 class AbstractGradientConstructionProbe final : public KoAbstractGradient
 {
@@ -44,6 +50,11 @@ private Q_SLOTS:
     void stopGradientLifetimeAndResourceSchemaRemainsStable();
     void stopGradientCollectionAndVariableColorSchemaRemainsStable();
     void stopGradientConversionAndPersistenceSchemaRemainsStable();
+    void gradientConversionToQGradientStopsSignaturesRemainStable();
+    void gradientConversionToQGradientSignaturesRemainStable();
+    void gradientConversionToAbstractGradientSignaturesRemainStable();
+    void gradientConversionToStopGradientSignaturesRemainStable();
+    void gradientConversionToSegmentGradientSignaturesRemainStable();
 };
 
 void KoStopGradientSchemaContractTest::abstractGradientTypeAndLifetimeSchemaRemainStable()
@@ -182,6 +193,84 @@ void KoStopGradientSchemaContractTest::stopGradientConversionAndPersistenceSchem
     ASSERT_STOP_GRADIENT_SIGNATURE(saveToDevice, bool (KoStopGradient::*)(QIODevice *) const);
     ASSERT_STOP_GRADIENT_SIGNATURE(toQGradient, QGradient * (KoStopGradient::*)() const);
     ASSERT_STOP_GRADIENT_SIGNATURE(toXML, void (KoStopGradient::*)(QDomDocument &, QDomElement &) const);
+}
+
+void KoStopGradientSchemaContractTest::gradientConversionToQGradientStopsSignaturesRemainStable()
+{
+    using FromAbstractSignature = QGradientStops (*)(KoAbstractGradientSP, KoCanvasResourcesInterfaceSP);
+    using FromSegmentSignature = QGradientStops (*)(KoSegmentGradientSP, KoCanvasResourcesInterfaceSP);
+    using FromStopSignature = QGradientStops (*)(KoStopGradientSP, KoCanvasResourcesInterfaceSP);
+
+    ASSERT_GRADIENT_CONVERSION_SIGNATURE(toQGradientStops, FromAbstractSignature);
+    ASSERT_GRADIENT_CONVERSION_SIGNATURE(toQGradientStops, FromSegmentSignature);
+    ASSERT_GRADIENT_CONVERSION_SIGNATURE(toQGradientStops, FromStopSignature);
+    static_assert(
+        std::is_same_v<decltype(KisGradientConversion::toQGradientStops(std::declval<KoAbstractGradientSP>())),
+                       QGradientStops>);
+    static_assert(std::is_same_v<decltype(KisGradientConversion::toQGradientStops(std::declval<KoSegmentGradientSP>())),
+                                 QGradientStops>);
+    static_assert(std::is_same_v<decltype(KisGradientConversion::toQGradientStops(std::declval<KoStopGradientSP>())),
+                                 QGradientStops>);
+}
+
+void KoStopGradientSchemaContractTest::gradientConversionToQGradientSignaturesRemainStable()
+{
+    using FromAbstractSignature = QGradient *(*)(KoAbstractGradientSP, KoCanvasResourcesInterfaceSP);
+    using FromSegmentSignature = QGradient *(*)(KoSegmentGradientSP, KoCanvasResourcesInterfaceSP);
+    using FromStopSignature = QGradient *(*)(KoStopGradientSP, KoCanvasResourcesInterfaceSP);
+
+    ASSERT_GRADIENT_CONVERSION_SIGNATURE(toQGradient, FromAbstractSignature);
+    ASSERT_GRADIENT_CONVERSION_SIGNATURE(toQGradient, FromSegmentSignature);
+    ASSERT_GRADIENT_CONVERSION_SIGNATURE(toQGradient, FromStopSignature);
+    static_assert(std::is_same_v<decltype(KisGradientConversion::toQGradient(std::declval<KoAbstractGradientSP>())),
+                                 QGradient *>);
+    static_assert(
+        std::is_same_v<decltype(KisGradientConversion::toQGradient(std::declval<KoSegmentGradientSP>())), QGradient *>);
+    static_assert(
+        std::is_same_v<decltype(KisGradientConversion::toQGradient(std::declval<KoStopGradientSP>())), QGradient *>);
+}
+
+void KoStopGradientSchemaContractTest::gradientConversionToAbstractGradientSignaturesRemainStable()
+{
+    using FromSegmentSignature = KoAbstractGradientSP (*)(KoSegmentGradientSP);
+    using FromStopSignature = KoAbstractGradientSP (*)(KoStopGradientSP);
+    using FromQGradientSignature = KoAbstractGradientSP (*)(const QGradient *);
+    using FromStopsSignature = KoAbstractGradientSP (*)(const QGradientStops &);
+
+    ASSERT_GRADIENT_CONVERSION_SIGNATURE(toAbstractGradient, FromSegmentSignature);
+    ASSERT_GRADIENT_CONVERSION_SIGNATURE(toAbstractGradient, FromStopSignature);
+    ASSERT_GRADIENT_CONVERSION_SIGNATURE(toAbstractGradient, FromQGradientSignature);
+    ASSERT_GRADIENT_CONVERSION_SIGNATURE(toAbstractGradient, FromStopsSignature);
+}
+
+void KoStopGradientSchemaContractTest::gradientConversionToStopGradientSignaturesRemainStable()
+{
+    using FromAbstractSignature = KoStopGradientSP (*)(KoAbstractGradientSP, KoCanvasResourcesInterfaceSP);
+    using FromSegmentSignature = KoStopGradientSP (*)(KoSegmentGradientSP, KoCanvasResourcesInterfaceSP);
+    using FromQGradientSignature = KoStopGradientSP (*)(const QGradient *);
+    using FromStopsSignature = KoStopGradientSP (*)(const QGradientStops &);
+
+    ASSERT_GRADIENT_CONVERSION_SIGNATURE(toStopGradient, FromAbstractSignature);
+    ASSERT_GRADIENT_CONVERSION_SIGNATURE(toStopGradient, FromSegmentSignature);
+    ASSERT_GRADIENT_CONVERSION_SIGNATURE(toStopGradient, FromQGradientSignature);
+    ASSERT_GRADIENT_CONVERSION_SIGNATURE(toStopGradient, FromStopsSignature);
+    static_assert(std::is_same_v<decltype(KisGradientConversion::toStopGradient(std::declval<KoAbstractGradientSP>())),
+                                 KoStopGradientSP>);
+    static_assert(std::is_same_v<decltype(KisGradientConversion::toStopGradient(std::declval<KoSegmentGradientSP>())),
+                                 KoStopGradientSP>);
+}
+
+void KoStopGradientSchemaContractTest::gradientConversionToSegmentGradientSignaturesRemainStable()
+{
+    using FromAbstractSignature = KoSegmentGradientSP (*)(KoAbstractGradientSP);
+    using FromStopSignature = KoSegmentGradientSP (*)(KoStopGradientSP);
+    using FromQGradientSignature = KoSegmentGradientSP (*)(const QGradient *);
+    using FromStopsSignature = KoSegmentGradientSP (*)(const QGradientStops &);
+
+    ASSERT_GRADIENT_CONVERSION_SIGNATURE(toSegmentGradient, FromAbstractSignature);
+    ASSERT_GRADIENT_CONVERSION_SIGNATURE(toSegmentGradient, FromStopSignature);
+    ASSERT_GRADIENT_CONVERSION_SIGNATURE(toSegmentGradient, FromQGradientSignature);
+    ASSERT_GRADIENT_CONVERSION_SIGNATURE(toSegmentGradient, FromStopsSignature);
 }
 
 QTEST_GUILESS_MAIN(KoStopGradientSchemaContractTest)
