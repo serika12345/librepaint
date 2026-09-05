@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 22:21 JST
+- 更新日時: 2026-09-05 22:31 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1212,7 +1212,7 @@
 
 ### 第260便の監査結果と担当計画
 
-- 最新`build/tdd-macos/public-api-missing-g260.json`で`libs/tools/kis_tool_select_base.h`の残存全27 APIが一意かつ台帳と非重複であり、識別子整列集合SHA-256 `a13c858f0dd0c08c0e6931a0f3f9b144d960541fa2370a08a8800e5ec0e02436`を持つことを再確認した。`g260-tool-select-base-schema`の状態は`in_progress`、実装基点は本計画commit、専用作業treeは`/Users/masato/Documents/librepaint-g260-tool-select-base-schema`、branchは`agent/g260-tool-select-base-schema`とする。許可pathは新規`libs/tools/tests/KisToolSelectBaseSchemaContractTest.cpp`と`libs/tools/tests/CMakeLists.txt`の新target固有節だけで、公開header、製品source、既存targetを変更しない。調整担当だけが文書、台帳、共通不足報告を変更し、担当のGit権限は許可pathだけの受渡しcommit 1件、追加委任は禁止する。
+- 最新`build/tdd-macos/public-api-missing-g260.json`で`libs/tools/kis_tool_select_base.h`の残存全27 APIが一意かつ台帳と非重複であり、識別子整列集合SHA-256 `a13c858f0dd0c08c0e6931a0f3f9b144d960541fa2370a08a8800e5ec0e02436`を持つことを再確認した。`g260-tool-select-base-schema`の状態は`integrated`、再開実装基点は`381b01082e`である。許可pathは新規`libs/tools/tests/KisToolSelectBaseSchemaContractTest.cpp`と`libs/tools/tests/CMakeLists.txt`の新target固有節だけで、公開header、製品source、既存targetを変更していない。受渡しcommit `07889d5d8d`を中央commit `8e65c1ec0c`として取り込んだ。
 - 5枠は`toolSelectBaseTypeAndConstructionSchemaRemainStable`へ型と3構築4件、`toolSelectBaseSelectionActionAndStateSignaturesRemainStable`へ選択動作と状態6件、`toolSelectBasePrimaryInputSignaturesRemainStable`へキー・pointer・主操作6件、`toolSelectBaseAlternateActionSignaturesRemainStable`へ代替操作5件、`toolSelectBaseInteractionLookupAndPopupSignaturesRemainStable`へ移動・選択相互作用、mask検索、popup 6件を対応付ける。試験内の完全な局所BaseClass probeと`configuredSelectionAction()`だけを実装する具体probeに対し、型特性、厳密member pointer、未評価式だけを使う。probe、canvas、event、image、selection、stroke、toolを実体化または実行しない。
 - 新規専用targetはtools、canvas、flake、global、image、painting、painting/undo、pigment、resources、widgetsの必要なsource/generated探索路とexport定義、Qt Gui・KF I18n・Imathのinterface探索、Qt Core・Testとheader-only Boostだけの直接linkを使い、AUTOMOC `HEADERS=[]`と4工程・8入力、停止線5工程・11入力を予測する。既存`KisToolSchemaContractTest`は4工程・8入力、command SHA-256 `99e59311008e7209ac9fdb68e93ef160d5800126f8401f0035c0ba60b29e9e8e`、input SHA-256 `f2467da36c35df9f69e1a05f8471b1b7e2513fbdabefea6e9bf5aecf79e7544d`だが、既存5枠と責務を結合するため追記しない。製品接続を持つ`TestToolCoreContract`は1,272工程・2,559入力なので反復対象から除外する。
 - 担当は編集前target不存在、5枠宣言段階の期待link失敗、追加5枠単発・各20回、全target、正式CTest、軽量近傍`KisToolSchemaContractTest`、AUTOMOC後の二回目計画、無作業build 2回、4/8とhash、動的接続・未解決記号・AUTOMOC入力・厳格構文・書式、差分、公開API検査、`verify-quick`を確認する。5工程・11入力超過、Qt Widgets・Xml探索路またはQt Gui・Widgets・Xml動的link、製品shared・OBJECT・`kritatestsdk`、候補headerのAUTOMOC入力化、`KisToolSelectBase`・`MoveStrokeStrategy`・image・selection・tool canvas・probeの未解決記号、製品実体化、許可path外変更が必要なら停止する。製品target、重量`TestToolCoreContract`、全体build・`verify`、Linux、Nix再評価は禁止する。
@@ -1223,6 +1223,12 @@
 - `g260a-distance-xml-header-boundary`の状態は`integrated`、実装基点は`fe93964f0e`である。開始`libs/image/kis_distance_information.h`の公開XML署名は`QDomDocument`と`QDomElement`を参照だけで使うため、両完全includeを前方宣言へ置き換えた。完全型の所有先を`libs/image/kis_distance_information.cpp`へ移し、両Qt Xml headerを直接includeした。公開署名、ABI、挙動、CMake、試験、台帳は変更していない。受渡しcommit `2d35bfcd96`を中央commit `0d53e23d49`として取り込んだ。
 - 変更後のG260 header-firstはQt Xml探索路なしで成功し、直接利用元16ファイルのうち10翻訳単位と`kis_distance_information.cpp`は厳格構文検査へ全件成功した。残る6 headerはXML値を実体化せず、値を使う`kis_distance_information_test.cpp`は既に両headerを直接includeするため追加補正は0件だった。`KisImageTypesContractTest`は4工程・8入力、command SHA-256 `665d54d03d2968e855cbee4e3a1b037473eb3f3d95852303ebcb3d60a5b61ea0`、input SHA-256 `36c22403a7f58009c89127a825521d18813957b82196b08f1e5fb42f88c66c3a`で、担当側と中央のCTest、無作業再構築、公開API 29,804件、G260の27識別子と指紋、差分、公開API検査、`verify-quick`に成功した。
 - 単一object名による初回確認はNinjaの順序依存を通じて854工程へ展開したため、約96工程・link前で停止して検証対象から除外し、以後はコンパイルデータベースの厳格構文検査へ置き換えた。cleanな専用作業tree、395,132 KiBの構築木、branchを削除して985,916 KiBを回収した。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+
+### 第260便の契約統合結果
+
+- 開始`libs/tools/kis_tool_select_base.h`から新規`libs/tools/tests/KisToolSelectBaseSchemaContractTest.cpp`へ、選択tool基底の型・構築、選択動作・状態、主入力、代替操作、選択・移動相互作用とmask検索・popup取得を担う残存全27 API・5枠を追加した。`libs/tools/tests/CMakeLists.txt`には新target固有節だけを追加し、公開header、製品source、既存targetを変更していない。完成差分から再開したため宣言だけの未定義link診断は保存しておらず、実装後の限定検証を完了条件とした。
+- 担当側のmacOSで5枠を各20回、全7試験、正式CTest `libs-tools-KisToolSelectBaseSchemaContractTest`、軽量近傍`libs-tools-KisToolSchemaContractTest`、AUTOMOC後の二回目計画、二回の無作業再構築に成功した。新targetは4工程・8入力、command SHA-256 `e47b657b73c0526a2b99d00ed6e31373bf77f5df388fbda2bf23d47299f5b175`、input SHA-256 `80140b641f76ca6d7b1226ad385679c3a248be54924410a53d1dc5498225857d`、AUTOMOC `HEADERS=[]`、Qt Core・Testだけの動的接続、選択tool・移動stroke・image・selection・canvas・probeを含む製品未解決記号0である。厳格構文、書式、差分、公開API検査、`verify-quick`にも成功した。中央でも対象と近傍、二回の無作業再構築に成功した。
+- 台帳へ27 APIを追加して22,060件対応、7,744件未対応となり、旧基準7,771件に対する実測7,744件の期待不一致を確認してから基準を更新した。cleanな専用作業tree、298,644 KiBの構築木、branchを削除して889,436 KiBを回収し、旧`public-api-missing-g260.json` 2,067,654 bytesを削除した。主Ninja木5,782,112 KiB、共有compiler cache 982,740 KiB、最新`build/tdd-macos/public-api-missing-g261.json` 2,060,542 bytes、SHA-256 `70e8518a35b4c7276b7e77d68e9258e6e45ecdfd64dbaeeb2b3e518ab1e73bff`だけを再利用対象として保持する。compiler cacheは143,406件中120,271件、83.87%がhitしている。製品target、重量`TestToolCoreContract`、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第261便のmasked freehand painter契約を専用の最小targetで実装することである。
 
 ### 第261便の先行監査担当票
 
@@ -1239,9 +1245,15 @@
 
 ### 第262便の先行監査担当票
 
-- 監査共通基点は`381b01082e`、正式入力は`build/tdd-macos/public-api-missing-g260.json`である。第260便と第261便の選定済みAPIを除外し、`libs/libkis/VectorLayer.h`と`libs/libkis/GroupShape.h`の残存公開面を、vector layerからgroup図形を取得・操作する一責務候補として監査する。主作業treeの読み取りだけを許可し、変更、構成、構築、試験、Git操作、追加委任を行わず、第260便の専用構築木と生成物を共有しない。
-- `g262-vector-group-api-audit`の状態は`in_progress`である。両headerの残存識別子の完全性、一意性、整列指紋、台帳非重複、所有・寿命・図形階層操作の責務境界、最大5枠の割当、型特性・厳密member pointer・未評価式で固定できる範囲を調べる。
-- `g262-vector-group-closure-review`の状態は`in_progress`である。両headerの直接依存、libkisの既存契約、同一targetと分離targetの責務・閉包差、必要探索路・定義・動的接続、製品shared・OBJECT・`kritatestsdk`の回避、許可path、停止線を独立に調べる。実図形操作が必要なら静的公開面と動的挙動を分離して報告する。
+- 監査共通基点は`2c6f909708`、正式入力は`build/tdd-macos/public-api-missing-g260.json`である。第260便と第261便の選定済みAPIを除外し、`libs/libkis/VectorLayer.h`と`libs/libkis/GroupShape.h`の残存公開面を、vector layerからgroup図形を取得・操作する一責務候補として監査した。主作業treeの読み取りだけを許可し、変更、構成、構築、試験、Git操作、追加委任を行わず、第260便の専用構築木と生成物を共有していない。
+- `g262-vector-group-api-audit`の状態は`completed`である。両headerの残存識別子の完全性、一意性、整列指紋、台帳非重複、所有・寿命・図形階層操作の責務境界、最大5枠の割当、型特性・厳密member pointer・未評価式で固定できる範囲を確認した。
+- `g262-vector-group-closure-review`の状態は`completed`である。両headerを一つの新規header限定targetにまとめる案が、責務を分断せず4工程・8入力に閉じることを独立確認した。既存target追記は一般nodeまたはdocument生成責務と混在し、header別の2 targetは総工程を倍増させるため棄却した。
+
+### 第262便の監査結果と担当計画
+
+- `libs/libkis/VectorLayer.h`の残存13 APIと`libs/libkis/GroupShape.h`の残存6 APIは一意かつ台帳と非重複で、合計19件の識別子整列集合SHA-256 `ee4c88e5863f8949bbb5da91349f5656b1983976ac9f1f3d6829cf9bc969f1a3`を持つ。両型はvector layer上の最上位図形とgroup子階層を表す一責務に収まり、`g262-vector-group-schema`の状態は`planned`とする。実装時の許可pathは新規`libs/libkis/tests/VectorGroupShapeSchemaContractTest.cpp`と`libs/libkis/tests/CMakeLists.txt`の新target固有節だけで、公開header、製品source、既存targetを変更しない。
+- 5枠は`vectorLayerTypeLifetimeAndConstructionSchemaRemainStable`へ型・2構築・破棄4件、`vectorLayerIdentityAndRenderingPolicySignaturesRemainStable`へ型識別とantialias設定3件、`vectorLayerShapeQuerySignaturesRemainStable`へ位置・一覧・矩形検索3件、`vectorLayerSvgAndGroupingSignaturesRemainStable`へSVG入出力とgroup生成3件、`groupShapeTypeLifetimeAndHierarchySignaturesRemainStable`へ型・2構築・子取得・型識別・破棄6件を対応付ける。型特性、厳密member pointer、constructorと矩形検索の既定引数を確認する未評価式だけを使い、wrapper、図形、layer、controller、image、Qt値を実体化しない。
+- 新規targetはlibkis、global、image、image/filter、painting、painting/undo、pigment、pigment/resources、resources、flakeのsource/generated探索路、Qt Gui・Xml、KF I18n、Eigen、Imathのinterface探索、libkis・global・image・flakeのexport定義、Qt Core・Testとheader-only Boostだけの直接linkを使う4工程・8入力を予測し、停止線を5工程・11入力とする。軽量近傍`NodeSchemaContractTest`は4工程・8入力、command SHA-256 `545563ce94c608312d5319dfbf7a9f6b974d327f14f0ef572a34dba14ef65592`、input SHA-256 `179b7cb4cecd12291fd5658403eb0d52c2c1ded0491c0e28df03fccc97633a99`である。Qt Gui・Xmlの動的接続、UI・application探索路、製品shared・OBJECT、`kritatestsdk`、候補headerのAUTOMOC入力化、製品・metaobject未解決記号、実体化または許可path外変更が必要なら停止する。SVG入出力、検索条件、group再親化・順序・undo、所有寿命、antialiasの描画反映は既存重量試験または後続の動的契約で扱い、第261便完了後に開始する。
 
 ### 第239便の先行監査担当票
 

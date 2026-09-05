@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 7771
+    "expectedMissingApis": 7744
   },
   "contracts": [
     {
@@ -61522,6 +61522,78 @@
         "method:KisNodeCommandsAdapter::setCompositeOp(KisNodeSP node,const KoCompositeOp * compositeOp)",
         "method:KisNodeCommandsAdapter::setNodeName(KisNodeSP node,const QString & name)",
         "method:KisNodeCommandsAdapter::setOpacity(KisNodeSP node,qint32 opacity)"
+      ]
+    },
+    {
+      "target": "KisToolSelectBaseSchemaContractTest",
+      "source": "libs/tools/tests/KisToolSelectBaseSchemaContractTest.cpp",
+      "test": "KisToolSelectBaseSchemaContractTest::toolSelectBaseTypeAndConstructionSchemaRemainStable",
+      "behavior": "選択tool基底は型として存在し、canvas、cursor、委譲toolを組み合わせた3つの公開構築経路を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisToolSelectBase",
+        "method:KisToolSelectBase::KisToolSelectBase(KoCanvasBase * canvas)",
+        "method:KisToolSelectBase::KisToolSelectBase(KoCanvasBase * canvas,const QCursor & cursor)",
+        "method:KisToolSelectBase::KisToolSelectBase(KoCanvasBase * canvas,const QCursor & cursor,KoToolBase * delegateTool)"
+      ]
+    },
+    {
+      "target": "KisToolSelectBaseSchemaContractTest",
+      "source": "libs/tools/tests/KisToolSelectBaseSchemaContractTest.cpp",
+      "test": "KisToolSelectBaseSchemaContractTest::toolSelectBaseSelectionActionAndStateSignaturesRemainStable",
+      "behavior": "選択tool基底は通常・代替選択動作と、移動中・選択中・移動済み状態を照会する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisToolSelectBase::alternateSelectionAction() const",
+        "method:KisToolSelectBase::isMovingSelection() const",
+        "method:KisToolSelectBase::isSelecting() const",
+        "method:KisToolSelectBase::selectionAction() const",
+        "method:KisToolSelectBase::selectionDidMove() const",
+        "method:KisToolSelectBase::setAlternateSelectionAction(SelectionAction action)"
+      ]
+    },
+    {
+      "target": "KisToolSelectBaseSchemaContractTest",
+      "source": "libs/tools/tests/KisToolSelectBaseSchemaContractTest.cpp",
+      "test": "KisToolSelectBaseSchemaContractTest::toolSelectBasePrimaryInputSignaturesRemainStable",
+      "behavior": "選択tool基底はキー・pointer eventと主操作の開始・継続・終了を受け取る公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisToolSelectBase::beginPrimaryAction(KoPointerEvent * event)",
+        "method:KisToolSelectBase::continuePrimaryAction(KoPointerEvent * event)",
+        "method:KisToolSelectBase::endPrimaryAction(KoPointerEvent * event)",
+        "method:KisToolSelectBase::keyPressEvent(QKeyEvent * event)",
+        "method:KisToolSelectBase::keyReleaseEvent(QKeyEvent * event)",
+        "method:KisToolSelectBase::mouseMoveEvent(KoPointerEvent * event)"
+      ]
+    },
+    {
+      "target": "KisToolSelectBaseSchemaContractTest",
+      "source": "libs/tools/tests/KisToolSelectBaseSchemaContractTest.cpp",
+      "test": "KisToolSelectBaseSchemaContractTest::toolSelectBaseAlternateActionSignaturesRemainStable",
+      "behavior": "選択tool基底は代替操作の有効化・無効化とpointer操作の開始・継続・終了を受け取る公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisToolSelectBase::activateAlternateAction(KisTool::AlternateAction action)",
+        "method:KisToolSelectBase::beginAlternateAction(KoPointerEvent * event,KisTool::AlternateAction action)",
+        "method:KisToolSelectBase::continueAlternateAction(KoPointerEvent * event,KisTool::AlternateAction action)",
+        "method:KisToolSelectBase::deactivateAlternateAction(KisTool::AlternateAction action)",
+        "method:KisToolSelectBase::endAlternateAction(KoPointerEvent * event,KisTool::AlternateAction action)"
+      ]
+    },
+    {
+      "target": "KisToolSelectBaseSchemaContractTest",
+      "source": "libs/tools/tests/KisToolSelectBaseSchemaContractTest.cpp",
+      "test": "KisToolSelectBaseSchemaContractTest::toolSelectBaseInteractionLookupAndPopupSignaturesRemainStable",
+      "behavior": "選択tool基底は選択・移動相互作用の開始終了、位置からの選択mask検索、popup取得の公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisToolSelectBase::beginMoveSelectionInteraction()",
+        "method:KisToolSelectBase::beginSelectInteraction()",
+        "method:KisToolSelectBase::endMoveSelectionInteraction()",
+        "method:KisToolSelectBase::endSelectInteraction()",
+        "method:KisToolSelectBase::locateSelectionMaskUnderCursor(const QPointF & pos,Qt::KeyboardModifiers modifiers) const",
+        "method:KisToolSelectBase::popupWidget()"
       ]
     }
   ]
