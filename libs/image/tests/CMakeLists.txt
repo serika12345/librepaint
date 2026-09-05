@@ -1407,6 +1407,23 @@ target_compile_definitions(KisNodeCommandsAdapterSchemaContractTest PRIVATE
 )
 
 kis_add_test(
+    KisNodeOperationBatchSchemaContractTest.cpp
+    TEST_NAME KisNodeOperationBatchSchemaContractTest
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KisNodeOperationBatchSchemaContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+)
+target_compile_definitions(KisNodeOperationBatchSchemaContractTest PRIVATE
+    kritaimage_EXPORTS
+)
+
+kis_add_test(
     KisOverlayPaintDeviceWrapperSchemaContractTest.cpp
     LINK_LIBRARIES
         Qt${QT_MAJOR_VERSION}::Core
