@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 09:59 JST
+- 更新日時: 2026-09-05 10:11 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -727,13 +727,18 @@
 
 ### 第226便の担当計画
 
-- 実装基点は`2359c453d6`である。`g226-path-creation-tools-schema`の状態は`implementing`、開始公開headerは`libs/basicflakes/tools/KoCreatePathTool.h`と`libs/basicflakes/tools/KoPencilTool.h`、許可pathは新規`libs/basicflakes/tests/KoPathCreationToolSchemaContractTest.cpp`と`libs/basicflakes/CMakeLists.txt`の新target固有節だけである。対象は`KoPathCreationToolSchemaContractTest`、軽量近傍は`KoToolBaseSchemaContractTest`、対象platformはmacOS、対象・近傍だけの構築権限は`granted`とする。専用作業treeは`/Users/masato/Documents/librepaint-g226-path-creation-tools-schema`、branchは`agent/g226-path-creation-tools-schema`、作業tree固有の`build/tdd-macos`と主作業treeの共有compiler cacheを使う。Git権限は許可pathだけの1受渡しcommit、追加委任は禁止し、調整担当だけが文書、台帳、不足報告を変更する。
+- 実装基点は`2359c453d6`である。`g226-path-creation-tools-schema`の状態は`integrated`で、開始`libs/basicflakes/tools/KoCreatePathTool.h`の16 APIと`libs/basicflakes/tools/KoPencilTool.h`の10 APIを、新規`libs/basicflakes/tests/KoPathCreationToolSchemaContractTest.cpp`の5枠へ固定した。許可pathは同試験sourceと`libs/basicflakes/CMakeLists.txt`の新target固有節だけで、公開header、製品source、既存targetを変更していない。受渡しcommit `e6a29ff9da`を統合commit `c800d1d092`として取り込んだ。
 - 5枠は`createPathToolTypeLifetimeAndPathStateSchemaRemainStable`へcreate tool型・構築・破棄とpath状態操作の6件、`createPathToolInputAndRenderingSignaturesRemainStable`へpointer入力4件・装飾領域・描画の6件、`pathCreationToolActivationResourceAndNotificationSignaturesRemainStable`へ両toolのactivate・deactivateとcreate toolのresource変更・通知の6件、`pencilToolTypeLifetimeAndRenderingSchemaRemainStable`へpencil tool型・構築・破棄・描画の4件、`pencilToolInputSignaturesRemainStable`へkey入力とpointer入力3件の4件を対応付ける。正式入力の完全な26識別子と大域整列集合SHA-256 `67b27852761c75f751c31df653f5139aafb41c47182c1b7bf62c4a0520ef387b`を維持する。
 - 新targetはbasicflakes tools・generated、flake・global探索路、Qt Gui・KF ConfigCore interface、`kritabasicflakes_EXPORTS`と`kritaflake_EXPORTS`、Qt Core・Testだけに限定し、4工程・8入力、停止線5工程・11入力とする。型特性、厳密なmember pointerだけで観測し、両tool、canvas、shape、path、event、painter、converter、Qt値を実体化しない。担当は編集前target不存在、直接依存、初回計画、5枠宣言段階の期待link失敗、5枠単発・各20回、全target、正式CTest、近傍、AUTOMOC後二回目計画、無作業再構築2回、動的接続・未解決記号・AUTOMOC入力・構文・書式、差分、公開API検査、`verify-quick`を確認する。5工程・11入力超過、追加探索路・定義・link、Qt Gui・KF ConfigCoreまたは製品shared・OBJECT・`kritatestsdk`の動的接続、候補headerのAUTOMOC入力化、製品未解決記号、対象実体化、許可path外の変更が必要なら停止する。製品target、全体build・`verify`、Linux、Nix再評価は禁止する。
 
-### 第227便の先行監査担当票（第226便確定待ち）
+### 第226便の統合結果
 
-- `g227-tool-canvas-schema-formal-review`の状態は`completed-ready`、担当は`g208_raster_keyframe_schema`、基点は`56546e199a`である。正式入力`build/tdd-macos/public-api-missing-g223.json`でも`libs/canvas/KisToolCanvas.h`の残存全21 APIは一意で台帳と重複せず、集合SHA-256 `49a9b0a729216cd237770cc4ec8b486da9c88ad5aefc166caadcf1227875502d`、新規`libs/canvas/tests/KisToolCanvasSchemaContractTest.cpp`の5枠5・5・5・4・2に一致した。同抽象型はcanvasが所有し、toolが起動中だけ借用する画像・選択・入力接続・stroke制御・表示操作の境界である。新targetはimage・global探索路と3 export定義、Qt Core・Testだけで初回・AUTOMOC後とも4工程・8入力へ閉じられる。軽量近傍`KisCoordinatesConverterSchemaContractTest`も4工程・8入力、AUTOMOC `HEADERS=[]`、製品辺なしである。event filter優先順位、callback寿命、入力mask所有、stroke終了・取消・待機順序、借用寿命、cursor・outline・message表示、thread affinityは後続の動的契約で扱い、正式第227便不足報告で21件と集合SHAを再照合する。
+- 開始`libs/basicflakes/tools/KoCreatePathTool.h`と`libs/basicflakes/tools/KoPencilTool.h`から新規`libs/basicflakes/tests/KoPathCreationToolSchemaContractTest.cpp`へ合計26 API・5枠を追加した。担当側と中央のmacOSで5枠を各20回、対象全7件、正式CTestと近傍`KoToolBaseSchemaContractTest`、AUTOMOC後の二回目計画、無作業再構築2回に成功した。中央実測は4工程・8入力、command SHA-256 `18be25ed3ff2ea2f32f9d48d589781c46f137ffdc1732e733976bc6f81f9bf8e`、input SHA-256 `610026c86a66a3c47685e98ba747d839973591650dd823e38331364c46517dba`、AUTOMOC `HEADERS=[]`、Qt Core・Testと非製品runtimeだけの動的接続、製品未解決記号なしである。正しいcompile commandによる`clang-check -Werror`、書式、差分、公開API検査に成功し、台帳は21,359件対応、8,445件未対応となった。実入力系列、path節点生成・結合、自由線平滑化、resource反映、装飾描画、有効化状態遷移は既存または後続の動的契約で扱う。
+- 統合済みpatchとclean状態を確認後に専用作業tree、298,884 KiBのlane構築木、branchを削除して889,172 KiBを回収した。旧`public-api-missing-g226.json`を削除し、主Ninja木5,750,072 KiB、共有compiler cache 983,116 KiB、最新`build/tdd-macos/public-api-missing-g227.json` 2,241,546 bytes、SHA-256 `1b93dcd8cca99fc7da1f391d9df58334402399ba84fca1a31a4739311395318c`だけを次便へ再利用する。compiler cacheは143,024件中120,211件、84.05%がhitしている。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+
+### 第227便の先行監査担当票
+
+- `g227-tool-canvas-schema-formal-review`の状態は`completed-ready`、担当は`g208_raster_keyframe_schema`、基点は`56546e199a`である。第226便後の正式入力`build/tdd-macos/public-api-missing-g227.json`でも`libs/canvas/KisToolCanvas.h`の残存全21 APIは一意で台帳と重複せず、集合SHA-256 `49a9b0a729216cd237770cc4ec8b486da9c88ad5aefc166caadcf1227875502d`、新規`libs/canvas/tests/KisToolCanvasSchemaContractTest.cpp`の5枠5・5・5・4・2に一致した。同抽象型はcanvasが所有し、toolが起動中だけ借用する画像・選択・入力接続・stroke制御・表示操作の境界である。新targetはimage・global探索路と3 export定義、Qt Core・Testだけで初回・AUTOMOC後とも4工程・8入力へ閉じられる。軽量近傍`KisCoordinatesConverterSchemaContractTest`も4工程・8入力、AUTOMOC `HEADERS=[]`、製品辺なしである。event filter優先順位、callback寿命、入力mask所有、stroke終了・取消・待機順序、借用寿命、cursor・outline・message表示、thread affinityは後続の動的契約で扱う。
 
 ### 第228便の先行監査担当票（第227便確定待ち）
 
@@ -753,11 +758,11 @@
 
 ### 第232便の先行監査担当票（第231便確定待ち）
 
-- `g232-cross-device-color-sampler-schema-formal-review`の状態は`auditing`、担当は`g208_raster_keyframe_schema`、基点は`66c906977f`、正式入力は`build/tdd-macos/public-api-missing-g226.json`である。開始公開headerは`libs/image/kis_cross_device_color_sampler.h`の残存全19 API、識別子整列集合SHA-256 `11ea4757d5a03fcb661aa073f82b79eea091c3edc25f7ebf1310950d42527313`である。契約候補は新規`libs/image/tests/KisCrossDeviceColorSamplerSchemaContractTest.cpp`の最大5枠、所有候補CMakeは`libs/image/tests/CMakeLists.txt`の新target固有節である。主作業treeと既存Ninja graphを読み取り専用で使い、変更、構成、構築、試験、Git操作、追加委任を行わない。実数・整数座標traitの型・accessor生成・新旧画素採取と、3種類の出力先を持つsampler templateの型・構築・破棄・新旧色採取を一責務にまとめる根拠、全識別子対応、template inline本文を実体化しない観測、必要include・定義・直接・interface link、現在とAUTOMOC後の予測工程・入力、最小近傍、製品辺、停止条件を独立確認し、正式第232便不足報告で19件と集合SHAを再照合する条件を返す。
+- `g232-cross-device-color-sampler-schema-formal-review`の状態は`completed-preparation-required`、担当は`g208_raster_keyframe_schema`、基点は`66c906977f`である。正式入力`build/tdd-macos/public-api-missing-g226.json`でも`libs/image/kis_cross_device_color_sampler.h`の残存全19 APIは一意で台帳と重複せず、識別子整列集合SHA-256 `11ea4757d5a03fcb661aa073f82b79eea091c3edc25f7ebf1310950d42527313`、5枠5・5・3・4・2に一致した。実数・整数座標traitとsampler templateは、異なる座標精度のaccessorから新旧画素を読み、出力先色空間へ変換する一責務である。ただし候補headerはinline本文で完全な`KisPaintDevice`と`KoColor`を使いながら直接includeせず、単独includeが成立しない。試験source側の前置includeで隠さず、実装前に同headerへ必要な直接includeを与える自己完結性修正を独立変更として監査する。修正後の新targetはimage・global・pigment探索路、Qt Gui・KF I18n interface、2 export定義、Qt Core・Testとheader-only Boostだけの4工程・8入力を見込む。色空間取得、座標補間、新旧tile読取り、変換結果、accessor cache寿命は既存または後続の動的契約で扱う。
 
 ### 第233便の先行監査担当票（第232便確定待ち）
 
-- `g233-resource-paths-schema-formal-review`の状態は`auditing`、担当は`g178_paintop_settings_schema`、基点は`66c906977f`、正式入力は`build/tdd-macos/public-api-missing-g226.json`である。開始公開headerは`libs/resources/KoResourcePaths.h`の残存全20 API、識別子整列集合SHA-256 `52353b0c1e952be6a2d8c6943de6b85e705377f4238a17fd2195575cea0af6f0`である。契約候補は新規`libs/resources/tests/KoResourcePathsSchemaContractTest.cpp`の最大5枠、所有候補CMakeは`libs/resources/tests/CMakeLists.txt`の新target固有節である。主作業treeと既存Ninja graphを読み取り専用で使い、変更、構成、構築、試験、Git操作、追加委任を行わない。検索optionと上書き位置、asset種別・directory登録、root・data位置、単一・複数検索、保存・local位置解決の全識別子対応、既存filesystem試験への追記との比較、既定引数を含む非実体化観測、必要include・定義・直接・interface link、現在とAUTOMOC後の予測工程・入力、最小近傍、製品辺、停止条件を独立確認し、正式第233便不足報告で20件と集合SHAを再照合する条件を返す。
+- `g233-resource-paths-schema-formal-review`の状態は`completed-ready`、担当は`g178_paintop_settings_schema`、基点は`66c906977f`である。正式入力`build/tdd-macos/public-api-missing-g226.json`でも`libs/resources/KoResourcePaths.h`の残存全20 APIは一意で台帳と重複せず、識別子整列集合SHA-256 `52353b0c1e952be6a2d8c6943de6b85e705377f4238a17fd2195575cea0af6f0`、新規`libs/resources/tests/KoResourcePathsSchemaContractTest.cpp`の5枠8・3・3・4・2に一致した。同型はapplication assetの検索path登録・解決・書込先選択を一責務とする。既存filesystem試験は813工程・1,654入力で製品libraryへ接続するため追記せず、新targetはresources source・generated、`kritaresources_EXPORTS`、Qt Core・Testだけで初回・AUTOMOC後とも4工程・8入力へ閉じられる。軽量近傍`KisResourceIteratorSchemaContractTest`も4工程・8入力、AUTOMOC `HEADERS=[]`、製品辺なしである。登録優先順位、再帰filter、実行bit、上書きdata位置、bundle root、path正規化、writable判定、directory作成、global同期は既存または後続の動的契約で扱い、正式第233便不足報告で20件と集合SHAを再照合する。
 
 ### 第201便の先行監査担当票
 

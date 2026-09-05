@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 8471
+    "expectedMissingApis": 8445
   },
   "contracts": [
     {
@@ -59292,6 +59292,77 @@
         "method:KisFillPainter::setUseCompositing(bool useCompositing)",
         "method:KisFillPainter::setUseSelectionAsBoundary(bool useSelectionAsBoundary)",
         "method:KisFillPainter::setWidth(int w)"
+      ]
+    },
+    {
+      "target": "KoPathCreationToolSchemaContractTest",
+      "source": "libs/basicflakes/tests/KoPathCreationToolSchemaContractTest.cpp",
+      "test": "KoPathCreationToolSchemaContractTest::createPathToolTypeLifetimeAndPathStateSchemaRemainStable",
+      "behavior": "節点path生成toolはcanvasに接続して構築・仮想破棄でき、path開始状態、閉路shortcut、既存pathへの結合を扱う公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoCreatePathTool",
+        "method:KoCreatePathTool::KoCreatePathTool(KoCanvasBase * canvas)",
+        "method:KoCreatePathTool::pathStarted() const",
+        "method:KoCreatePathTool::setEnableClosePathShortcut(bool value)",
+        "method:KoCreatePathTool::tryMergeInPathShape(KoPathShape * pathShape)",
+        "method:KoCreatePathTool::~KoCreatePathTool()"
+      ]
+    },
+    {
+      "target": "KoPathCreationToolSchemaContractTest",
+      "source": "libs/basicflakes/tests/KoPathCreationToolSchemaContractTest.cpp",
+      "test": "KoPathCreationToolSchemaContractTest::createPathToolInputAndRenderingSignaturesRemainStable",
+      "behavior": "節点path生成toolはpointer入力系列を受け、装飾更新領域とcanvas上の補助表示を提供する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoCreatePathTool::decorationsRect() const",
+        "method:KoCreatePathTool::mouseDoubleClickEvent(KoPointerEvent * event)",
+        "method:KoCreatePathTool::mouseMoveEvent(KoPointerEvent * event)",
+        "method:KoCreatePathTool::mousePressEvent(KoPointerEvent * event)",
+        "method:KoCreatePathTool::mouseReleaseEvent(KoPointerEvent * event)",
+        "method:KoCreatePathTool::paint(QPainter & painter,const KoViewConverter & converter)"
+      ]
+    },
+    {
+      "target": "KoPathCreationToolSchemaContractTest",
+      "source": "libs/basicflakes/tests/KoPathCreationToolSchemaContractTest.cpp",
+      "test": "KoPathCreationToolSchemaContractTest::pathCreationToolActivationResourceAndNotificationSignaturesRemainStable",
+      "behavior": "path生成toolは選択図形に対する有効化・無効化を行い、節点方式ではcanvas資源変更と自動平滑化状態を通知する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoCreatePathTool::activate(const QSet<KoShape * > & shapes)",
+        "method:KoCreatePathTool::canvasResourceChanged(int key,const QVariant & res)",
+        "method:KoCreatePathTool::deactivate()",
+        "method:KoCreatePathTool::sigUpdateAutoSmoothCurvesGUI(bool value)",
+        "method:KoPencilTool::activate(const QSet<KoShape * > & shapes)",
+        "method:KoPencilTool::deactivate()"
+      ]
+    },
+    {
+      "target": "KoPathCreationToolSchemaContractTest",
+      "source": "libs/basicflakes/tests/KoPathCreationToolSchemaContractTest.cpp",
+      "test": "KoPathCreationToolSchemaContractTest::pencilToolTypeLifetimeAndRenderingSchemaRemainStable",
+      "behavior": "自由線path生成toolはcanvasに接続して構築・仮想破棄でき、canvas上の補助表示を描画する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoPencilTool",
+        "method:KoPencilTool::KoPencilTool(KoCanvasBase * canvas)",
+        "method:KoPencilTool::paint(QPainter & painter,const KoViewConverter & converter)",
+        "method:KoPencilTool::~KoPencilTool()"
+      ]
+    },
+    {
+      "target": "KoPathCreationToolSchemaContractTest",
+      "source": "libs/basicflakes/tests/KoPathCreationToolSchemaContractTest.cpp",
+      "test": "KoPathCreationToolSchemaContractTest::pencilToolInputSignaturesRemainStable",
+      "behavior": "自由線path生成toolはkey入力とpointerの押下・移動・解放系列を受け取る公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoPencilTool::keyPressEvent(QKeyEvent * event)",
+        "method:KoPencilTool::mouseMoveEvent(KoPointerEvent * event)",
+        "method:KoPencilTool::mousePressEvent(KoPointerEvent * event)",
+        "method:KoPencilTool::mouseReleaseEvent(KoPointerEvent * event)"
       ]
     }
   ]
