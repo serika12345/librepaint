@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 18:04 JST
+- 更新日時: 2026-09-05 18:18 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1075,6 +1075,12 @@
 - 実装基点は`570480f6db`である。`g252-metadata-entry-schema`の状態は`planned`、専用作業treeは`/Users/masato/Documents/librepaint-g252-metadata-entry-schema`、branchは`agent/g252-metadata-entry-schema`とする。開始`libs/painting/metadata/kis_meta_data_entry.h`の残存全15 APIを、既存`libs/painting/metadata/tests/KisMetaDataStoreSchemaContractTest.cpp`の5枠へ固定する。許可pathは同試験sourceだけで、CMake、公開header、製品source、既存10枠を変更しない。調整担当だけがarchitecture文書、公開API台帳、共通不足報告を変更する。担当のGit権限は許可pathだけの受渡しcommit 1件で、追加委任は禁止する。
 - 5枠は`metaDataEntryTypeLifetimeAndConstructionSchemaRemainStable`へ型、既定・複製・schema/name/value付き構築、破棄5件、`metaDataEntryIdentityAndSchemaSignaturesRemainStable`へname・qualified name・schema照会3件、`metaDataEntryValueAndAssignmentSignaturesRemainStable`へ代入と可変・const値参照3件、`metaDataEntryValidationAndEqualitySignaturesRemainStable`へ有効性・name検証・等値比較3件、`metaDataEntryDebugSignatureRemainsStable`へdebug出力1件を対応付ける。正式入力`build/tdd-macos/public-api-missing-g252.json`の完全な15識別子と識別子整列集合SHA-256 `ac4f1970ec02887c44d70ce963903f574056015590d19dc189c6413098932d0e`を維持する。
 - 事前の構築範囲監査では既存sourceが148行・10枠で、同じmetadata値の保持・照合・検証責務を追加後も約210行・15枠に収められるため新targetとCMake変更は不要である。既存targetはmetadata・globalのsource/generated探索路、`kritapaintingmetadata_EXPORTS`、Qt Core・Testだけの4工程・8入力、command SHA-256 `157ff59c212fea719d103838bd32fc72b7f1cc3bf0e53cbafa4fdc004b342c9e`、input SHA-256 `efb0a78e7ec95e5a0b3bf9c74c634d4cdd2d3f36df78bc88f5818ed3b92fe259`を持ち、停止線を5工程・11入力とする。製品`kritapaintingmetadata`の294工程・619入力は読取基線に限定して構築しない。型特性と厳密なmember・static・自由関数pointerだけで観測し、Entry、Value、Schema、QString、QDebugを実体化せず製品本文を実行しない。担当は変更前計画、5枠宣言段階の期待link失敗、追加5枠単発・各20回、既存を含む全target、正式CTest、軽量近傍`KisMetaDataIOBackendContractTest`、AUTOMOC後二回目計画、無作業build 2回、4/8とhash、動的接続・未解決記号・AUTOMOC入力・構文・書式、差分、公開API検査、`verify-quick`を確認する。CMake変更、5工程・11入力超過、新しい探索路・定義・link、製品shared・OBJECT・`kritatestsdk`、候補headerのAUTOMOC入力化、metadata製品未解決記号、対象実体化、許可path外変更が必要なら停止する。製品target、重量`kis_meta_data_test`、全体build・`verify`、Linux、Nix再評価は禁止する。
+
+### 第252便の契約統合結果
+
+- 開始`libs/painting/metadata/kis_meta_data_entry.h`から既存`libs/painting/metadata/tests/KisMetaDataStoreSchemaContractTest.cpp`へ、項目の構築・値意味、名前・schema、値参照、有効性・等値比較、診断出力を担う残存全15 API・5枠を追加した。CMake、公開header、製品source、既存10枠を変更せず、受渡しcommit `725b67a550c540928adc49611fdc5f4ed18452d8`を中央commit `04b91067cf`として取り込んだ。最終sourceは192行・15枠である。
+- 担当側と中央のmacOSで5枠を各20回、既存を含む全17試験、正式CTest `libs-painting-metadata-KisMetaDataStoreSchemaContractTest`、軽量近傍`libs-painting-metadata-KisMetaDataIOBackendContractTest`、AUTOMOC後の二回目計画、無作業再構築2回に成功した。中央実測は変更前と同じ4工程・8入力、command SHA-256 `157ff59c212fea719d103838bd32fc72b7f1cc3bf0e53cbafa4fdc004b342c9e`、input SHA-256 `efb0a78e7ec95e5a0b3bf9c74c634d4cdd2d3f36df78bc88f5818ed3b92fe259`、AUTOMOC `HEADERS=[]`、Qt Core・TestとOS frameworkだけの動的接続、製品未解決記号なしである。厳格`clang-check`、変更行の書式、差分、macOSのpackage境界1,887対象、公開API検査に成功し、台帳は21,893件対応、7,911件未対応となった。値変更、名前検証、複製、等値比較、診断文面の実行時意味は既存または後続の動的契約で扱う。
+- 中央検証後にcleanな専用作業tree、299,624 KiBのlane構築木、branchを削除して890,284 KiBを回収した。旧`public-api-missing-g252.json`を削除し、主Ninja木5,773,080 KiB、共有compiler cache 983,408 KiB、最新`build/tdd-macos/public-api-missing-g253.json` 2,107,247 bytes、SHA-256 `6eed0a2b7bd2df488081278dfdec90c20a6115401d6275f4d39e3541b23fa40b`だけを次便へ再利用する。compiler cacheは143,226件中120,262件、83.97%がhitしている。製品target、重量`kis_meta_data_test`、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第253便の選択tool設定補助29 APIを正式不足報告で再照合し、既存の選択設定UI契約へCMake変更なしで追加できることを確定することである。
 
 ### 第239便の先行監査担当票
 

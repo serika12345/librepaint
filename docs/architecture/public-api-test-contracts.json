@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 7926
+    "expectedMissingApis": 7911
   },
   "contracts": [
     {
@@ -61007,6 +61007,66 @@
         "method:KisSelectionOptions::setReferenceSectionVisible(bool visible)",
         "method:KisSelectionOptions::setStopGrowingAtDarkestPixelButtonVisible(bool visible)",
         "method:KisSelectionOptions::updateActionButtonToolTip(SelectionAction action,const QKeySequence & shortcut)"
+      ]
+    },
+    {
+      "target": "KisMetaDataStoreSchemaContractTest",
+      "source": "libs/painting/metadata/tests/KisMetaDataStoreSchemaContractTest.cpp",
+      "test": "KisMetaDataStoreSchemaContractTest::metaDataEntryTypeLifetimeAndConstructionSchemaRemainStable",
+      "behavior": "メタデータ項目は無効な既定値、複製値、schema・名前・値を持つ値として構築・破棄できる公開型構成を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisMetaData::Entry",
+        "method:KisMetaData::Entry::Entry()",
+        "method:KisMetaData::Entry::Entry(const Entry &)",
+        "method:KisMetaData::Entry::Entry(const KisMetaData::Schema * schema,QString name,const KisMetaData::Value & value)",
+        "method:KisMetaData::Entry::~Entry()"
+      ]
+    },
+    {
+      "target": "KisMetaDataStoreSchemaContractTest",
+      "source": "libs/painting/metadata/tests/KisMetaDataStoreSchemaContractTest.cpp",
+      "test": "KisMetaDataStoreSchemaContractTest::metaDataEntryIdentityAndSchemaSignaturesRemainStable",
+      "behavior": "メタデータ項目は名前、修飾名、所有schemaを照会する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMetaData::Entry::name() const",
+        "method:KisMetaData::Entry::qualifiedName() const",
+        "method:KisMetaData::Entry::schema() const"
+      ]
+    },
+    {
+      "target": "KisMetaDataStoreSchemaContractTest",
+      "source": "libs/painting/metadata/tests/KisMetaDataStoreSchemaContractTest.cpp",
+      "test": "KisMetaDataStoreSchemaContractTest::metaDataEntryValueAndAssignmentSignaturesRemainStable",
+      "behavior": "メタデータ項目は他項目を代入し、保持値を可変または読み取り専用参照として取得する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMetaData::Entry::operator =(const Entry & entry)",
+        "method:KisMetaData::Entry::value()",
+        "method:KisMetaData::Entry::value() const"
+      ]
+    },
+    {
+      "target": "KisMetaDataStoreSchemaContractTest",
+      "source": "libs/painting/metadata/tests/KisMetaDataStoreSchemaContractTest.cpp",
+      "test": "KisMetaDataStoreSchemaContractTest::metaDataEntryValidationAndEqualitySignaturesRemainStable",
+      "behavior": "メタデータ項目は項目と名前の有効性を判定し、他項目と等値比較する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMetaData::Entry::isValid() const",
+        "method:KisMetaData::Entry::isValidName(const QString & _name)",
+        "method:KisMetaData::Entry::operator ==(const Entry &) const"
+      ]
+    },
+    {
+      "target": "KisMetaDataStoreSchemaContractTest",
+      "source": "libs/painting/metadata/tests/KisMetaDataStoreSchemaContractTest.cpp",
+      "test": "KisMetaDataStoreSchemaContractTest::metaDataEntryDebugSignatureRemainsStable",
+      "behavior": "メタデータ項目はQtの診断出力へ値渡しで書き込む公開演算子署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:operator <<(QDebug debug,const KisMetaData::Entry & c)"
       ]
     }
   ]
