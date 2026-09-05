@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 09:35 JST
+- 更新日時: 2026-09-05 09:38 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -709,6 +709,12 @@
 ### 第225便の先行監査担当票
 
 - `g225-fill-painter-schema-formal-review`の状態は`completed-ready`、担当は`g208_raster_keyframe_schema`、基点は`84827b3b18`である。第224便後の正式入力`build/tdd-macos/public-api-missing-g225.json`でも`libs/image/kis_fill_painter.h`の残存全53 APIは一意で台帳と重複せず、集合SHA-256 `bb2bbc772dd0392eda08fe0c4f56644c04cacd02bb77412b5981ce3994ede724`、既存`libs/image/tests/KisEncloseAndFillPainterSchemaContractTest.cpp`へ追加する5枠7・4・16・12・14に一致した。既存sourceは119行・5枠で、共通署名別名と検査macroにより追加後270〜295行・10枠を見込む。CMake変更と新targetは不要で、対象と近傍`KisGradientPainterSchemaContractTest`は4工程・8入力、候補headerのAUTOMOC `HEADERS=[]`、Qt Core・Gui・TestとmacOS system frameworksだけの動的接続、製品辺なしである。画素塗り、境界探索、閾値・拡散・隙間閉鎖、anti-alias・feather、pattern変換、selection制限、類似色job分割・進捗、setter後の状態は既存または後続の動的契約で扱う。
+
+### 第225便の担当計画
+
+- 実装基点は`128fe40b83`である。`g225-fill-painter-schema`の状態は`planned`、開始公開headerは`libs/image/kis_fill_painter.h`、許可pathは既存`libs/image/tests/KisEncloseAndFillPainterSchemaContractTest.cpp`だけである。CMake、公開header、製品source、他の試験sourceを変更しない。対象は`KisEncloseAndFillPainterSchemaContractTest`、軽量近傍は`KisGradientPainterSchemaContractTest`、対象platformはmacOS、対象・近傍だけの構築権限は`granted`とする。専用作業treeは`/Users/masato/Documents/librepaint-g225-fill-painter-schema`、branchは`agent/g225-fill-painter-schema`、作業tree固有の`build/tdd-macos`と主作業treeの共有compiler cacheを使う。Git権限は許可pathだけの1受渡しcommit、追加委任は禁止し、調整担当だけが文書、台帳、不足報告を変更する。
+- 5枠は`fillPainterTypeConstructionAndRegionModeSchemaRemainStable`へclass、region mode enum・2列挙値、3 constructorの7件、`fillPainterSelectionGenerationSignaturesRemainStable`へ2 flood selection overloadと2 similar-color selection APIの4件、`fillPainterFillOperationSignaturesRemainStable`へ2 erase、color・pattern fill、9 fillRect overload、2 no-compose fill、selection fillの16件、`fillPainterOptionQuerySignaturesRemainStable`へ12 query、`fillPainterOptionMutationSignaturesRemainStable`へ14 setterを対応付ける。正式入力の完全な53識別子と集合SHA-256 `bb2bbc772dd0392eda08fe0c4f56644c04cacd02bb77412b5981ce3994ede724`を維持し、追加後sourceを300行以内とする。
+- 既存targetのCMakeと4工程・8入力を変更せず、型特性、列挙値、厳密なoverload pointer、既定引数の未評価呼出しだけで観測する。painter、描画装置、selection、色、pattern、変換、生成器、進捗helperを実体化しない。担当は変更前計画・直接依存、5枠宣言段階の期待link失敗、5枠単発・各20回、全target、正式CTest、近傍、AUTOMOC後二回目計画、無作業再構築2回、動的接続・未解決記号・AUTOMOC入力・構文・書式、差分、公開API検査、`verify-quick`を確認する。5工程・11入力超過、CMake変更、追加探索路・定義・link、製品shared・OBJECT・`kritatestsdk`、候補headerのAUTOMOC入力化、製品未解決記号、対象実体化、300行超過、許可path外の変更が必要なら停止する。製品target、全体build・`verify`、Linux、Nix再評価は禁止する。
 
 ### 第226便の先行監査担当票（第225便確定待ち）
 
