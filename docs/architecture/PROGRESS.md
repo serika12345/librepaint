@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 23:10 JST
+- 更新日時: 2026-09-05 23:12 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1276,7 +1276,7 @@
 ### 第263便の監査結果と第263a便の構造準備計画
 
 - `libs/image/kis_base_processor.h`の残存全18 APIは識別子整列集合SHA-256 `d6ae3c7fb8b1233faed3f685aee3459327be946ac8562f566ae0d373af12a1c4`を持つ。型・寿命・構築3、識別・menu・shortcut 5、既定・factory構成と構成widget 3、色空間・描画・調整layer・thread対応4、bookmark・構成表示3の5枠へ割り当てる。すべて型特性と厳密member pointerで観測でき、既定引数はない。設定生成内容、資源伝播、bookmark寿命、識別値、shortcut保存、能力flagの値、構成widgetの生成は既存または後続の動的契約で扱う。
-- `g263a-base-processor-header-boundary`の状態は`planned`とする。開始`libs/image/kis_base_processor.h`の公開宣言で使わない`<list>`、`<klocalizedstring.h>`、`kis_image.h`、`kis_filter_configuration.h`を除去する。`kis_shared.h`は完全基底、`KoColorSpace.h`は`ColorSpaceIndependence`定義、`KoID.h`、`kis_types.h`、`QString`、`QKeySequence`、export headerは公開面の直接所有として残す。直接利用元は`kis_base_processor.cpp`、`filter/kis_filter.h`、`generator/kis_generator.h`の3件であり、実装sourceは構成・paint device・資源interfaceを、派生headerは必要型を既に直接includeする。許可pathは開始headerだけとし、利用元補正が必要なら停止する。
+- `g263a-base-processor-header-boundary`の状態は`in_progress`、実装基点は`2d19ef82fc`、専用作業treeは`/Users/masato/Documents/librepaint-g263a-base-processor-header-boundary`、branchは`agent/g263a-base-processor-header-boundary`、macOSのheader-first・利用元構文・軽量近傍に限る検証許可は`granted`である。開始`libs/image/kis_base_processor.h`の公開宣言で使わない`<list>`、`<klocalizedstring.h>`、`kis_image.h`、`kis_filter_configuration.h`を除去する。`kis_shared.h`は完全基底、`KoColorSpace.h`は`ColorSpaceIndependence`定義、`KoID.h`、`kis_types.h`、`QString`、`QKeySequence`、export headerは公開面の直接所有として残す。直接利用元は`kis_base_processor.cpp`、`filter/kis_filter.h`、`generator/kis_generator.h`の3件であり、実装sourceは構成・paint device・資源interfaceを、派生headerは必要型を既に直接includeする。許可pathは開始headerだけ、Git権限は同pathの受渡しcommit 1件、追加委任は禁止し、利用元補正が必要なら停止する。
 - G263aは変更前後のheader-first探索面、3利用元の厳格構文、軽量`KisProcessingApplicatorSchemaContractTest`、公開API 29,804件と18識別子・指紋、二回の無作業再構築、書式、差分、公開API検査、`verify-quick`を確認する。続く`g263-base-processor-schema`は新規`libs/image/tests/KisBaseProcessorSchemaContractTest.cpp`と`libs/image/tests/CMakeLists.txt`の新target固有節だけを許可し、image・global・pigmentのsource/generated探索路、Qt Gui・KF I18nのinterface探索、global・image・pigmentのexport定義、Qt Core・Testとheader-only Boostだけの直接linkによる4工程・8入力、停止線5工程・11入力を予測する。候補headerのAUTOMOC入力化、Qt Gui・Widgets・Xmlの動的接続、resources・painting/undo探索路、製品shared・OBJECT、`kritatestsdk`、製品未解決記号、実体化または許可path外変更が必要なら停止する。第262便完了後にG263aを開始する。
 
 ### 第264便の先行監査担当票
