@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 09:00 JST
+- 更新日時: 2026-09-05 09:03 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -696,6 +696,10 @@
 ### 第226便の先行監査担当票（第225便確定待ち）
 
 - `g226-path-creation-tools-schema-formal-review`の状態は`auditing`、担当は`g178_shape_hierarchy_schema`、基点は`4f58d5c6fb`、正式入力は`build/tdd-macos/public-api-missing-g223.json`である。開始公開headerは`libs/basicflakes/tools/KoCreatePathTool.h`の残存全16 APIと`libs/basicflakes/tools/KoPencilTool.h`の残存全10 API、合計26 API、全識別子を大域整列した集合SHA-256 `67b27852761c75f751c31df653f5139aafb41c47182c1b7bf62c4a0520ef387b`である。契約候補は新規`libs/basicflakes/tests/KoPathCreationToolSchemaContractTest.cpp`の5枠6・6・6・4・4、所有候補CMakeは`libs/basicflakes/CMakeLists.txt`の`BUILD_TESTING`内の新target固有節である。主作業treeと既存Ninja graphを読み取り専用で使い、変更、構成、構築、試験、Git操作、追加委任を行わない。全識別子、両toolを一責務にまとめる根拠、枠対応、必要include・定義・直接・interface link、現在とAUTOMOC後の予測工程・入力、最小近傍、製品辺、実体化有無、停止条件を独立確認し、正式第226便不足報告で再照合する条件を返す。
+
+### 第227便の先行監査担当票（第226便確定待ち）
+
+- `g227-tool-canvas-schema-formal-review`の状態は`auditing`、担当は`g208_raster_keyframe_schema`、基点は`56546e199a`、正式入力は`build/tdd-macos/public-api-missing-g223.json`である。開始公開headerは`libs/canvas/KisToolCanvas.h`の残存全21 API、集合SHA-256 `49a9b0a729216cd237770cc4ec8b486da9c88ad5aefc166caadcf1227875502d`である。契約候補は新規`libs/canvas/tests/KisToolCanvasSchemaContractTest.cpp`の最大5枠、所有候補CMakeは`libs/canvas/tests/CMakeLists.txt`の新target固有節である。主作業treeと既存Ninja graphを読み取り専用で使い、変更、構成、構築、試験、Git操作、追加委任を行わない。全識別子、canvasからtoolへ提供する操作境界としての枠対応、必要include・定義・直接・interface link、現在とAUTOMOC後の予測工程・入力、最小近傍、製品辺、抽象型・callback・Qt戻り値の実体化有無、停止条件を独立確認し、正式第227便不足報告で再照合する条件を返す。
 
 ### 第201便の先行監査担当票
 
