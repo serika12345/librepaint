@@ -114,6 +114,25 @@ target_compile_definitions(KisCompositeOpSelectorSchemaContractTest PRIVATE
 )
 
 kis_add_test(
+    KisSelectionOptionsSchemaContractTest.cpp
+    LINK_LIBRARIES Qt${QT_MAJOR_VERSION}::Core Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KisSelectionOptionsSchemaContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/widgetutils
+    ${CMAKE_BINARY_DIR}/libs/widgetutils
+    ${CMAKE_SOURCE_DIR}/libs/image
+    ${CMAKE_BINARY_DIR}/libs/image
+    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Gui,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Widgets,INTERFACE_INCLUDE_DIRECTORIES>
+)
+target_compile_definitions(KisSelectionOptionsSchemaContractTest PRIVATE
+    kritatoolsui_EXPORTS
+    kritawidgetutils_EXPORTS
+)
+
+kis_add_test(
     kis_categorized_list_model_test.cpp
     ../../../ui/tests/modeltest.cpp
     TEST_NAME KisCategorizedListModelTest
