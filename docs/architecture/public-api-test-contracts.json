@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 7805
+    "expectedMissingApis": 7790
   },
   "contracts": [
     {
@@ -59147,6 +59147,66 @@
         "method:KisInputProfileManager::saveProfile(KisInputProfile * profile,QString storagePath)",
         "method:KisInputProfileManager::saveProfiles()",
         "method:KisInputProfileManager::setProfileLocations(const QStringList & profileFiles,const QString & profileStorageDirectory)"
+      ]
+    },
+    {
+      "target": "KisInputManagerSchemaContractTest",
+      "source": "libs/input/ui/tests/KisInputManagerSchemaContractTest.cpp",
+      "test": "KisInputManagerSchemaContractTest::inputManagerTypeLifetimeAndConstructionSchemaRemainStable",
+      "behavior": "入力管理器はQObjectを親として構築でき、QObject派生として仮想破棄される公開型契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisInputManager",
+        "method:KisInputManager::KisInputManager(QObject * parent)",
+        "method:KisInputManager::~KisInputManager()"
+      ]
+    },
+    {
+      "target": "KisInputManagerSchemaContractTest",
+      "source": "libs/input/ui/tests/KisInputManagerSchemaContractTest.cpp",
+      "test": "KisInputManagerSchemaContractTest::inputManagerCanvasTrackingSignaturesRemainStable",
+      "behavior": "入力管理器は借用canvasを追跡対象へ追加し、追跡対象から除去する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisInputManager::addTrackedCanvas(KoCanvasBase * canvas)",
+        "method:KisInputManager::removeTrackedCanvas(KoCanvasBase * canvas)"
+      ]
+    },
+    {
+      "target": "KisInputManagerSchemaContractTest",
+      "source": "libs/input/ui/tests/KisInputManagerSchemaContractTest.cpp",
+      "test": "KisInputManagerSchemaContractTest::inputManagerCanvasAndToolContextSignaturesRemainStable",
+      "behavior": "入力管理器は現在のcanvas、tool用canvas、tool proxyを照会する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisInputManager::canvas() const",
+        "method:KisInputManager::toolCanvas() const",
+        "method:KisInputManager::toolProxy() const"
+      ]
+    },
+    {
+      "target": "KisInputManagerSchemaContractTest",
+      "source": "libs/input/ui/tests/KisInputManagerSchemaContractTest.cpp",
+      "test": "KisInputManagerSchemaContractTest::inputManagerEventFilterSignaturesRemainStable",
+      "behavior": "入力管理器は受信先のevent filterとなり、優先度付きfilterを既定優先度で追加・除去する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisInputManager::attachPriorityEventFilter(QObject * filter,int priority=0)",
+        "method:KisInputManager::detachPriorityEventFilter(QObject * filter)",
+        "method:KisInputManager::eventFilter(QObject * object,QEvent * event)",
+        "method:KisInputManager::setupAsEventFilter(QObject * receiver)"
+      ]
+    },
+    {
+      "target": "KisInputManagerSchemaContractTest",
+      "source": "libs/input/ui/tests/KisInputManagerSchemaContractTest.cpp",
+      "test": "KisInputManagerSchemaContractTest::inputManagerPopupConfigurationAndDiagnosticsSignaturesRemainStable",
+      "behavior": "入力管理器はpopup widgetを登録し、入力設定の再読込とtablet診断の切替を受け付ける公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisInputManager::registerPopupWidget(KisPopupWidgetInterface * popupWidget)",
+        "method:KisInputManager::reloadSettings()",
+        "method:KisInputManager::toggleTabletLogger()"
       ]
     },
     {

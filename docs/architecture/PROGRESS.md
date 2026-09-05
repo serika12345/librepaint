@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 21:08 JST
+- 更新日時: 2026-09-05 21:18 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1173,10 +1173,16 @@
 
 ### 第258便の担当計画
 
-- 実装基点は本計画commitである。`g258-input-manager-schema`の状態は`in_progress`、専用作業treeは`/Users/masato/Documents/librepaint-g258-input-manager-schema`、branchは`agent/g258-input-manager-schema`とする。開始`libs/input/ui/kis_input_manager.h`の残存全15 APIを、新規`libs/input/ui/tests/KisInputManagerSchemaContractTest.cpp`の5枠へ固定する。許可pathは同試験sourceと`libs/input/ui/tests/CMakeLists.txt`の新target固有節だけで、公開header、製品source、既存targetを変更しない。調整担当だけがarchitecture文書、公開API台帳、共通不足報告を変更する。担当のGit権限は許可pathだけの受渡しcommit 1件で、追加委任は禁止する。
+- 実装基点は本計画commitである。`g258-input-manager-schema`の状態は`integrated`、専用作業treeは`/Users/masato/Documents/librepaint-g258-input-manager-schema`、branchは`agent/g258-input-manager-schema`とする。開始`libs/input/ui/kis_input_manager.h`の残存全15 APIを、新規`libs/input/ui/tests/KisInputManagerSchemaContractTest.cpp`の5枠へ固定する。許可pathは同試験sourceと`libs/input/ui/tests/CMakeLists.txt`の新target固有節だけで、公開header、製品source、既存targetを変更しない。調整担当だけがarchitecture文書、公開API台帳、共通不足報告を変更する。担当のGit権限は許可pathだけの受渡しcommit 1件で、追加委任は禁止する。
 - 5枠は`inputManagerTypeLifetimeAndConstructionSchemaRemainStable`へ型・構築・破棄3件、`inputManagerCanvasTrackingSignaturesRemainStable`へcanvas追加・除去2件、`inputManagerCanvasAndToolContextSignaturesRemainStable`へcanvas・tool canvas・tool proxy照会3件、`inputManagerEventFilterSignaturesRemainStable`へ優先filter追加・除去、event filter、receiver設定4件、`inputManagerPopupConfigurationAndDiagnosticsSignaturesRemainStable`へpopup登録、設定再読込、tablet診断切替3件を対応付ける。正式入力`build/tdd-macos/public-api-missing-g258.json`の完全な15識別子と識別子整列集合SHA-256 `38fa1ea9e2c295c0109ed4cc276456986dc4c85408cb1aa291bc55a23b36276c`を維持する。
 - 構造準備後の新targetは`${CMAKE_CURRENT_SOURCE_DIR}/..`と`${CMAKE_CURRENT_BINARY_DIR}/..`、`kritainputui_EXPORTS`、Qt Core・Testだけを使い、4工程・8入力、停止線5工程・11入力を予測する。比較する`KisInputProfileManagerSchemaContractTest`は中央で4工程・8入力、command SHA-256 `9a668f6a3427963d228e7cca27a246db1554dbba22ed9db548331df911dd74ea`、input SHA-256 `5a5f3a0ba6e88ff4970d001e294c350aa4eb3692eb513e8e398b50d491b70a88`である。既存動的`KisInputManagerTest`は1,390工程・2,788入力、command SHA-256 `b9f163b858d3096c6b17a0727693ae34e19e7f7b557440ad91159811b96ca747`、input SHA-256 `c9b68c56bfbda8dabe491be2acd4c420b7d2a1c7144d4954562cc2d3b42d903b`であり、今回の反復対象にしない。
 - 候補headerを最初にincludeし、QObject派生・構築可能性・仮想破棄、厳密member pointer、`attachPriorityEventFilter(QObject *)`の未評価呼出しだけで観測する。manager、canvas、tool proxy、popup、QObject、QEvent、Qt値を実体化せず、metaobjectと製品本文を実行しない。担当は編集前target不存在、5枠宣言段階の期待link失敗、追加5枠単発・各20回、全target、正式CTest、軽量近傍`KisInputProfileManagerSchemaContractTest`、AUTOMOC後の二回目計画、無作業build 2回、4/8とhash、動的接続・未解決記号・AUTOMOC入力・厳格構文・書式、差分、公開API検査、`verify-quick`を確認する。5工程・11入力超過、指定外探索路・定義・link、Qt Gui・Widgets、Boost、KFまたは製品libraryの接続、製品shared・OBJECT・`kritatestsdk`、候補headerのAUTOMOC入力化、manager・metaobject・canvas・tool・popup・eventの製品未解決記号、対象実体化、許可path外変更が必要なら停止する。製品target、重量動的試験、全体build・`verify`、Linux、Nix再評価は禁止する。
+
+### 第258便の契約統合結果
+
+- 開始`libs/input/ui/kis_input_manager.h`から新規`libs/input/ui/tests/KisInputManagerSchemaContractTest.cpp`へ、入力管理器の型・寿命、canvas追跡、canvas・tool context、event filter、popup・設定・診断を担う残存全15 API・5枠を追加した。`libs/input/ui/tests/CMakeLists.txt`には新target固有のCore/Test最小節だけを追加し、公開header、製品source、既存targetを変更していない。受渡しcommit `b1b4745c1cb37af547712ac24cbc4d74c6490ac6`を中央commit `e24c1f6806`として取り込んだ。
+- 担当側と中央のmacOSで5枠を各20回、全7試験、正式CTest `libs-input-ui-KisInputManagerSchemaContractTest`、軽量近傍`libs-input-ui-KisInputProfileManagerSchemaContractTest`、AUTOMOC後の二回目計画、無作業再構築2回に成功した。中央実測は4工程・8入力、command SHA-256 `fcf7dcd634f3b5b85bb0c0f4b2e86a1736c7a22ff3a212717fe80369f2b05572`、input SHA-256 `904aca4bbe78c9dfb237992d0e5a5ba3b88fc758cfd459e813a36b8f2caf9a0d`、AUTOMOC `HEADERS=[]`、Qt Core・TestとOS frameworkだけの動的接続、入力管理器・canvas・tool・popupを含む製品未解決記号なしである。厳格`clang-check`、書式、差分、macOSのpackage境界1,890対象、公開API検査に成功し、台帳は22,014件対応、7,790件未対応となった。event配送、追跡canvasの接続とfocus、popup寿命、設定再読込、tablet loggerの副作用は既存または後続の動的契約で扱う。
+- 中央検証後にcleanな専用作業tree、297,772 KiBのlane構築木、branchを削除して888,520 KiBを回収した。旧`public-api-missing-g258.json`を削除し、主Ninja木5,779,520 KiB、共有compiler cache 982,672 KiB、最新`build/tdd-macos/public-api-missing-g259.json` 2,074,008 bytes、SHA-256 `87a5deb8def7de5a52dd310db4934e6563b564a01147bbe03ee3b74588d3e712`だけを次便へ再利用する。compiler cacheは143,276件中120,264件、83.94%がhitしている。製品target、重量`KisInputManagerTest`、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第259便のnode commands adapter公開APIを正式不足報告で再照合し、限定構築範囲を確定することである。
 
 ### 第239便の先行監査担当票
 
