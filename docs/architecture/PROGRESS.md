@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 12:21 JST
+- 更新日時: 2026-09-05 12:24 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -841,6 +841,12 @@
 ### 第233便の先行監査担当票
 
 - `g233-resource-paths-schema-formal-review`の状態は`completed-ready`、担当は`g178_paintop_settings_schema`、基点は`66c906977f`である。第232便後の正式入力`build/tdd-macos/public-api-missing-g233.json`でも`libs/resources/KoResourcePaths.h`の残存全20 APIは一意で台帳と重複せず、識別子整列集合SHA-256 `52353b0c1e952be6a2d8c6943de6b85e705377f4238a17fd2195575cea0af6f0`、新規`libs/resources/tests/KoResourcePathsSchemaContractTest.cpp`の5枠8・3・3・4・2に一致した。同型はapplication assetの検索path登録・解決・書込先選択を一責務とする。既存filesystem試験は813工程・1,654入力で製品libraryへ接続するため追記せず、新targetはresources source・generated、`kritaresources_EXPORTS`、Qt Core・Testだけで初回・AUTOMOC後とも4工程・8入力へ閉じられる。軽量近傍`KisResourceIteratorSchemaContractTest`も4工程・8入力、AUTOMOC `HEADERS=[]`、製品辺なしである。登録優先順位、再帰filter、実行bit、上書きdata位置、bundle root、path正規化、writable判定、directory作成、global同期は既存または後続の動的契約で扱う。
+
+### 第233便の担当計画
+
+- 実装基点は`621c26551a`である。`g233-resource-paths-schema`の状態は`planned`、専用作業treeは`/Users/masato/Documents/librepaint-g233-resource-paths-schema`、branchは`agent/g233-resource-paths-schema`である。開始`libs/resources/KoResourcePaths.h`の残存全20 APIを、新規`libs/resources/tests/KoResourcePathsSchemaContractTest.cpp`の5枠へ固定する。許可pathは同試験sourceと`libs/resources/tests/CMakeLists.txt`の新target固有節だけで、公開header、製品source、既存targetを変更しない。調整担当だけがarchitecture文書、公開API台帳、共通不足報告を変更する。担当のGit権限は許可pathだけの受渡しcommit 1件で、追加委任は禁止する。
+- 5枠は`typeOptionsAndLifetimeSchemaRemainStable`へ型、検索option列挙・flags別名、3列挙値、構築・破棄の8件、`applicationLocationsSchemaRemainStable`へapplication root・data位置と上書きdata位置の3件、`assetRegistrationSchemaRemainStable`へasset種別・絶対directory登録と種別directory照会の3件、`assetLookupSignaturesRemainStable`へ単一・全asset、directory、既存位置の検索4件、`writableLocationSignaturesRemainStable`へ保存先と書込み用位置の選択2件を対応付ける。正式入力の完全な20識別子と識別子整列集合SHA-256 `52353b0c1e952be6a2d8c6943de6b85e705377f4238a17fd2195575cea0af6f0`を維持する。
+- 新targetはresources source/generated探索路、`kritaresources_EXPORTS`、Qt Core・Testだけに限定し、予測閉包4工程・8入力、停止線5工程・11入力とする。型特性、flags別名、列挙値、公開静的member型、厳密な関数pointer、既定引数の未評価式だけで観測し、`KoResourcePaths`、文字列、flags、filesystem、global状態を実体化しない。担当は編集前target不存在、直接依存、初回計画、5枠宣言段階の期待link失敗、5枠単発・各20回、全target、正式CTest、近傍`KisResourceIteratorSchemaContractTest`、AUTOMOC後二回目計画、無作業再構築2回、動的接続・未解決記号・AUTOMOC入力・構文・書式、差分、公開API検査、`verify-quick`を確認する。5工程・11入力超過、追加探索路・定義・link、製品shared・OBJECT・`kritatestsdk`の動的接続、候補headerのAUTOMOC入力化、製品未解決記号、対象実体化、許可path外の変更が必要なら停止する。製品target、既存filesystem試験、全体build・`verify`、Linux、Nix再評価は禁止する。
 
 ### 第234便と第235便の先行監査担当票（第233便確定待ち）
 
