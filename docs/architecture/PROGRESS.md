@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 10:15 JST
+- 更新日時: 2026-09-05 10:17 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -769,6 +769,12 @@
 ### 第233便の先行監査担当票（第232便確定待ち）
 
 - `g233-resource-paths-schema-formal-review`の状態は`completed-ready`、担当は`g178_paintop_settings_schema`、基点は`66c906977f`である。正式入力`build/tdd-macos/public-api-missing-g226.json`でも`libs/resources/KoResourcePaths.h`の残存全20 APIは一意で台帳と重複せず、識別子整列集合SHA-256 `52353b0c1e952be6a2d8c6943de6b85e705377f4238a17fd2195575cea0af6f0`、新規`libs/resources/tests/KoResourcePathsSchemaContractTest.cpp`の5枠8・3・3・4・2に一致した。同型はapplication assetの検索path登録・解決・書込先選択を一責務とする。既存filesystem試験は813工程・1,654入力で製品libraryへ接続するため追記せず、新targetはresources source・generated、`kritaresources_EXPORTS`、Qt Core・Testだけで初回・AUTOMOC後とも4工程・8入力へ閉じられる。軽量近傍`KisResourceIteratorSchemaContractTest`も4工程・8入力、AUTOMOC `HEADERS=[]`、製品辺なしである。登録優先順位、再帰filter、実行bit、上書きdata位置、bundle root、path正規化、writable判定、directory作成、global同期は既存または後続の動的契約で扱い、正式第233便不足報告で20件と集合SHAを再照合する。
+
+### 第234便と第235便の先行監査担当票（第233便確定待ち）
+
+- 監査共通基点は`7b8ca44662`、入力は最新`build/tdd-macos/public-api-missing-g227.json`である。第227便から第233便までに選定済みのcanvas tool境界、canvas更新情報、image共有pointer hook、overlay描画装置、安全なprojection保管、異装置色採取、資源pathを除外し、変更、構成、構築、試験、Git操作、追加委任を行わない読み取り専用監査を先行する。候補は一つの公開責務から15〜80 APIを最大5枠へ固定でき、既存限定対象またはheader限定の4〜10工程程度を見込めるものとする。各正式便の直前に最新不足報告で全識別子、集合SHA、台帳非重複、対象不存在、閉包計画を再照合する。
+- `g234-brush-contract-audit`の状態は`auditing`、担当は`g178_paintop_settings_schema`である。`libs/brush`、`libs/painting`、`libs/pigment`、`plugins/paintops`から、選定済みまたは契約済みheaderを除外して第234便候補を比較する。公開責務、完全なAPI識別子と分類、既存試験との重複、最小契約source・所有CMake・近傍、予測工程・入力、必要な探索路・定義・interface・直接link、実体化回避、動的危険、停止条件を報告する。
+- `g235-flake-contract-audit`の状態は`auditing`、担当は`g178_shape_hierarchy_schema`である。`libs/flake`、`libs/basicflakes`、`libs/svg`から、選定済みまたは契約済みheaderを除外して第235便候補を比較する。公開責務、完全なAPI識別子と分類、既存試験との重複、最小契約source・所有CMake・近傍、予測工程・入力、必要な探索路・定義・interface・直接link、実体化回避、動的危険、停止条件を報告する。
 
 ### 第201便の先行監査担当票
 
