@@ -1643,6 +1643,25 @@ target_compile_definitions(KisGradientPainterSchemaContractTest PRIVATE
 )
 
 kis_add_test(
+    KisBezierGradientMeshContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Test
+        Boost::boost
+)
+target_include_directories(KisBezierGradientMeshContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+)
+target_compile_definitions(KisBezierGradientMeshContractTest PRIVATE
+    kritaimage_EXPORTS
+    kritaglobal_EXPORTS
+)
+
+kis_add_test(
     KisEncloseAndFillPainterSchemaContractTest.cpp
     LINK_LIBRARIES
         Qt${QT_MAJOR_VERSION}::Core
