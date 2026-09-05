@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 13:10 JST
+- 更新日時: 2026-09-05 13:13 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -884,6 +884,12 @@
 ### 第236便の先行監査担当票
 
 - `g236-application-arguments-schema-formal-review`の状態は`completed-ready`、担当は`g178_paintop_settings_schema`、入力は最新`build/tdd-macos/public-api-missing-g236.json`である。`libs/application/ui/orchestration/KisApplicationArguments.h`の残存21 APIは一意で台帳と重複せず、識別子整列集合SHA-256 `2bbdc6dfcfe61c50bd17532abc541f61710473908371522c4a719534be8f5b3b`、新規`libs/application/tests/KisApplicationArgumentsSchemaContractTest.cpp`の5枠5・2・4・4・6に一致する。同型はprocess起動時の文書入力、表示方式、export・workspace指定を一つの値として保持・複製・直列化する境界である。新targetはapplication・global探索路、application側の生成`kritaui_export.h`を選ぶ`kritaapplicationui_EXPORTS`、Qt Core・Testだけで4工程・8入力を予測し、停止線を5工程・11入力とする。引数option優先順位、複数filename、無効直列化入力、直列化互換性、複製後の独立性、session・workspace解決、文書生成副作用は既存または後続の動的契約で扱う。
+
+### 第236便の担当計画
+
+- 実装基点は`1ccb42c84c`である。`g236-application-arguments-schema`の状態は`planned`、専用作業treeは`/Users/masato/Documents/librepaint-g236-application-arguments-schema`、branchは`agent/g236-application-arguments-schema`である。開始`libs/application/ui/orchestration/KisApplicationArguments.h`の残存全21 APIを、新規`libs/application/tests/KisApplicationArgumentsSchemaContractTest.cpp`の5枠へ固定する。許可pathは同試験sourceと`libs/application/tests/CMakeLists.txt`の新target固有節だけで、公開header、製品source、既存targetを変更しない。調整担当だけがarchitecture文書、公開API台帳、共通不足報告を変更する。担当のGit権限は許可pathだけの受渡しcommit 1件で、追加委任は禁止する。
+- 5枠は`applicationArgumentsTypeLifetimeAndValueSemanticsSchemaRemainStable`へ型、application・複製構築、代入、破棄の5件、`applicationArgumentsSerializationSignaturesRemainStable`へ直列化・復元2件、`applicationArgumentsDocumentInputSignaturesRemainStable`へ文書生成、新規画像、file layer、filename群4件、`applicationArgumentsTemplateAndExportSignaturesRemainStable`へtemplate、export方式、export filename、連番exportの4件、`applicationArgumentsPresentationAndWorkspaceSignaturesRemainStable`へcanvas限定、全画面、splash抑止、session、window layout、workspaceの6件を対応付ける。正式入力の完全な21識別子と識別子整列集合SHA-256 `2bbdc6dfcfe61c50bd17532abc541f61710473908371522c4a719534be8f5b3b`を維持する。
+- 新targetはapplication・global source/generated探索路、application側の生成`kritaui_export.h`を選ぶ`kritaapplicationui_EXPORTS`、Qt Core・Testだけに限定し、予測閉包4工程・8入力、停止線5工程・11入力とする。型特性と厳密な関数・member pointerだけで観測し、引数値、application、Qt値、文書、private実装を実体化せず本文を実行しない。担当は編集前target不存在、直接依存、初回計画、5枠宣言段階の期待link失敗、5枠単発・各20回、全target、正式CTest、近傍`KisActionEnumContractTest`、AUTOMOC後二回目計画、無作業再構築2回、動的接続・未解決記号・AUTOMOC入力・export header解決・構文・書式、差分、公開API検査、`verify-quick`を確認する。5工程・11入力超過、libs/ui側export header、新しい探索路・定義・link、Qt Gui・Widgets・KF・Boost・製品shared・OBJECT・`kritatestsdk`の接続、候補headerのAUTOMOC入力化、製品未解決記号、対象実体化、許可path外変更が必要なら停止する。製品target、全体build・`verify`、Linux、Nix再評価は禁止する。
 
 ### 第237便と第238便の先行監査担当票
 
