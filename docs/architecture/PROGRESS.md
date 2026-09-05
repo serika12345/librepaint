@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 21:44 JST
+- 更新日時: 2026-09-05 21:47 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1197,6 +1197,12 @@
 - `g259a-undo-action-header-boundary`の状態は`integrated`である。開始`libs/painting/undo/kundo2stack.h`から返却pointerだけに使う`QAction`の完全includeを除去し、既存前方宣言を公開面の所有とした。完全型の所有先をaction生成・操作実装`libs/painting/undo/kundo2stack_actions.cpp`と、設定画面で返却pointerを操作する`libs/ui/dialogs/kis_dlg_preferences.cc`へ移し、両sourceへ`QAction`を直接includeした。公開宣言、ABI、製品挙動、試験、CMake、台帳は変更していない。受渡しcommit `7e9327a78df0370b05d6c4dacfebe44e056f645a`を中央commit `09e74a2d15`として取り込んだ。
 - `kundo2stack_p.h`は`KUndo2Action`のQAction継承を所有して既に完全includeし、`kundo2stack.cpp`と`kundo2group.cpp`は同private headerを直接includeするため変更しない。構造準備は変更前のG259 header-first `QAction`欠落と変更後のQt Guiなし成功、compile database上の`kundo2stack.h`・`kundo2command.h`利用元の厳格構文検査、action実装と設定画面の直接所有を確認する。既存の具体所有検証として`KUndo2StackContractTest`は11工程・26入力だが、公開stack header、core object、action objectを一体で構築する最小の既存対象なのでこの構造便に限り許可する。さらにG259の軽量近傍、対象object、公開API 29,804件とG259の19識別子・SHA、書式、差分、公開API検査、`verify-quick`を確認する。2 source以外の直接include補正、公開API・ABI変更、CMake変更、製品全体・全体build・`verify`・Linux・Nix再評価が必要なら停止する。
 - 変更前のG259 header-firstは`kundo2stack.h:54`で`QAction`不足を診断し、変更後はQt Gui探索路なしで同診断を解消した。compile database上の直接利用元70件は54件が厳格構文検査に成功し、16件は未生成moc 4件、未生成UI 6件、既存の非推奨診断3件、未使用・符号比較診断3件だけで、変更起因の失敗と追加include補正は0件だった。`KUndo2StackContractTest`の構築とCTest、11工程・26入力、command SHA-256 `83b03f8fe8cd310e24dc745ffc9064737dd51bbee95605efccf7cc51dc2557d1`、input SHA-256 `bf2b5e0b0921fe2c0d8cd65c9c071cb6f7380c0ba8756d523471ffaa62cd1fda`、二回の無作業再構築、公開API 29,804件、G259の19識別子と指紋、差分、公開API検査、`verify-quick`に成功した。中央でも同限定対象のCTestと二回の無作業再構築に成功した。cleanな専用作業tree、306,244 KiBの構築木、branchを削除して897,004 KiBを回収した。設定画面sourceの構文検査は既存の生成UI不足を基線とし、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+
+### 第260便の先行監査担当票
+
+- 監査共通基点は`be5bb78739`、正式入力は`build/tdd-macos/public-api-missing-g259.json`である。第259便の19 APIを除外し、`libs/tools/kis_tool_select_base.h`の残存公開面を次候補として監査する。監査は主作業treeの読み取りだけを許可し、変更、構成、構築、試験、Git操作、追加委任を行わない。第259便の実装・構築とは生成物を共有しない。
+- `g260-tool-select-base-api-audit`の状態は`in_progress`である。正式不足一覧と台帳に対する残存識別子の完全性、一意性、整列指紋、template基底の条件付き公開面、最大5枠への責務別割当、未評価式で固定できる範囲を調べる。
+- `g260-tool-select-base-closure-review`の状態は`in_progress`である。候補headerの直接includeとtemplate実体化条件、既存の最小契約、専用targetと既存target追記の閉包差、必要な探索路・定義・動的接続、製品shared・OBJECTと`kritatestsdk`の回避、許可path、停止線を独立に調べる。公開面がBaseClassまたは製品実装の実体化を要求する場合は、必要な先行構造整理と試験責務を分離して報告する。
 
 ### 第239便の先行監査担当票
 
