@@ -88,6 +88,22 @@ target_include_directories(KisInputProfileManagerSchemaContractTest
 )
 
 kis_add_test(
+    KisInputManagerSchemaContractTest.cpp
+    TEST_NAME KisInputManagerSchemaContractTest
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(KisInputManagerSchemaContractTest
+    PRIVATE kritainputui_EXPORTS
+)
+target_include_directories(KisInputManagerSchemaContractTest
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/..
+        ${CMAKE_CURRENT_BINARY_DIR}/..
+)
+
+kis_add_test(
     KisToolProxySchemaContractTest.cpp
     TEST_NAME KisToolProxySchemaContractTest
     LINK_LIBRARIES
