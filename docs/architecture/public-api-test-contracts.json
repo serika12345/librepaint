@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 7882
+    "expectedMissingApis": 7856
   },
   "contracts": [
     {
@@ -61141,6 +61141,77 @@
       "apis": [
         "method:KisSelectionToolConfigWidgetHelper::selectionActionChanged(SelectionAction newAction)",
         "method:KisSelectionToolConfigWidgetHelper::slotToolActivatedChanged(bool isActivated)"
+      ]
+    },
+    {
+      "target": "KisPaletteEditorSchemaContractTest",
+      "source": "libs/tools/ui/tests/KisPaletteEditorSchemaContractTest.cpp",
+      "test": "KisPaletteEditorSchemaContractTest::paletteEditorTypeLifetimeAndContextSchemaRemainStable",
+      "behavior": "パレット編集器はQObjectとして所有され、対象模型、文書資源context、保存場所を設定する公開型構成を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisPaletteEditor",
+        "method:KisPaletteEditor::KisPaletteEditor(QObject * parent=0)",
+        "method:KisPaletteEditor::clearDocumentContext()",
+        "method:KisPaletteEditor::setDocumentContext(QWidget * dialogParent,const QString & linkedResourcesStorageId)",
+        "method:KisPaletteEditor::setPaletteModel(KisPaletteModel * model)",
+        "method:KisPaletteEditor::setStorageLocation(QString location)",
+        "method:KisPaletteEditor::~KisPaletteEditor()"
+      ]
+    },
+    {
+      "target": "KisPaletteEditorSchemaContractTest",
+      "source": "libs/tools/ui/tests/KisPaletteEditorSchemaContractTest.cpp",
+      "test": "KisPaletteEditorSchemaContractTest::paletteEditorPaletteResourceSignaturesRemainStable",
+      "behavior": "パレット編集器はパレットの追加、取込、除去、新version保存と文書資源変更通知の公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPaletteEditor::addPalette()",
+        "method:KisPaletteEditor::documentResourceModified()",
+        "method:KisPaletteEditor::importPalette()",
+        "method:KisPaletteEditor::removePalette(KoColorSetSP)",
+        "method:KisPaletteEditor::saveNewPaletteVersion()"
+      ]
+    },
+    {
+      "target": "KisPaletteEditorSchemaContractTest",
+      "source": "libs/tools/ui/tests/KisPaletteEditorSchemaContractTest.cpp",
+      "test": "KisPaletteEditorSchemaContractTest::paletteEditorGroupIdentityAndLayoutSignaturesRemainStable",
+      "behavior": "パレット編集器はパレットとgroupの名前、行列数、追加、除去を段階変更する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPaletteEditor::addGroup()",
+        "method:KisPaletteEditor::changeColumnCount(int)",
+        "method:KisPaletteEditor::changeGroupRowCount(const QString & name,int newRowCount)",
+        "method:KisPaletteEditor::oldNameFromNewName(const QString & newName) const",
+        "method:KisPaletteEditor::removeGroup(const QString & name)",
+        "method:KisPaletteEditor::rename(const QString & newName)",
+        "method:KisPaletteEditor::renameGroup(const QString & oldName)",
+        "method:KisPaletteEditor::rowCountOfGroup(const QString & originalName) const"
+      ]
+    },
+    {
+      "target": "KisPaletteEditorSchemaContractTest",
+      "source": "libs/tools/ui/tests/KisPaletteEditorSchemaContractTest.cpp",
+      "test": "KisPaletteEditorSchemaContractTest::paletteEditorEntryMutationSignaturesRemainStable",
+      "behavior": "パレット編集器は模型indexで色項目を設定または除去する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPaletteEditor::removeEntry(const QModelIndex & index)",
+        "method:KisPaletteEditor::setEntry(const KoColor & color,const QModelIndex & index)"
+      ]
+    },
+    {
+      "target": "KisPaletteEditorSchemaContractTest",
+      "source": "libs/tools/ui/tests/KisPaletteEditorSchemaContractTest.cpp",
+      "test": "KisPaletteEditorSchemaContractTest::paletteEditorEditingLifecycleSignaturesRemainStable",
+      "behavior": "パレット編集器は編集開始、変更照会、適用または破棄を含む編集周期の公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPaletteEditor::clearStagedChanges()",
+        "method:KisPaletteEditor::endEditing(bool applyChanges=true)",
+        "method:KisPaletteEditor::isModified() const",
+        "method:KisPaletteEditor::startEditing()"
       ]
     }
   ]
