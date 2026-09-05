@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 12:39 JST
+- 更新日時: 2026-09-05 12:43 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -858,6 +858,12 @@
 - 監査入力は最新`build/tdd-macos/public-api-missing-g234.json`である。第233便までに選定済みの責務を除外し、変更、構成、構築、試験、Git操作、追加委任を行わない読み取り専用監査として、全識別子、集合SHA、台帳非重複、既存試験との非重複、閉包計画を再照合した。
 - `g234-metadata-validator-schema-formal-review`の状態は`completed-ready`、担当は`g178_shape_hierarchy_schema`である。`libs/painting/metadata/kis_meta_data_validator.h`の残存18 APIは一意で台帳と重複せず、識別子整列集合SHA-256 `6c559bb48fdc5e560be58010717e1227db05547a6dd6f4161b5e629e5a46b285`、既存`libs/painting/metadata/tests/KisMetaDataStoreSchemaContractTest.cpp`へ追加する5枠6・5・3・2・2に一致する。既存sourceは88行・5枠で追加後も約160行・10枠に収まり、CMake変更なしで4工程・8入力を維持できる。検証理由の型・列挙順・値、値寿命、検証器寿命、正常・異常件数、異常entry取得・再検証の署名を非実体化観測し、実Store上の分類と再検証は既存動的試験が保護する。候補headerの直接include閉包は成立し、軽量近傍`KisMetaDataIOBackendContractTest`も4工程・8入力である。
 - `g235-seexpr-script-schema-formal-review`の状態は`completed-ready`、担当は`g208_raster_keyframe_schema`である。`libs/flake/resources/KisSeExprScript.h`の残存15 APIは一意で台帳と重複せず、識別子整列集合SHA-256 `00980c0b3aff5f956e1cf49d85f5970e243d84f8149b1ffbe06a260b4e40f48a`、新規`libs/flake/tests/KisSeExprScriptSchemaContractTest.cpp`の5枠3・5・3・2・2へ固定できる。同型はSeExpr式、表示名、thumbnailを持つ資源の構築・複製・永続化・資源分類を一責務として所有する。新targetはflake・resources探索路、Qt Gui・KF I18n interface、2 export定義、Qt Core・Testとheader-only Boostだけで4工程・8入力を予測し、停止線を5工程・11入力とする。`KoCssStylePresetSchemaContractTest`への追記は異なる資源責務を混在させるため棄却した。式のUTF-8保証、破損入力、保存失敗、複製後の独立性、変更通知、thumbnail・metadata整合は既存または後続の動的契約で扱う。
+
+### 第234便の担当計画
+
+- 実装基点は`1c5b9b7715`である。`g234-metadata-validator-schema`の状態は`planned`、専用作業treeは`/Users/masato/Documents/librepaint-g234-metadata-validator-schema`、branchは`agent/g234-metadata-validator-schema`である。開始`libs/painting/metadata/kis_meta_data_validator.h`の残存全18 APIを、既存`libs/painting/metadata/tests/KisMetaDataStoreSchemaContractTest.cpp`の5枠へ追加する。許可pathは同試験sourceだけで、CMake、公開header、製品source、既存5枠を変更しない。調整担当だけがarchitecture文書、公開API台帳、共通不足報告を変更する。担当のGit権限は許可pathだけの受渡しcommit 1件で、追加委任は禁止する。
+- 5枠は`metaDataValidationReasonTypeSchemaRemainStable`へ理由型、種別列挙と4列挙値の6件、`metaDataValidationReasonValueSemanticsSchemaRemainStable`へ既定・複製構築、代入、破棄、種別取得の5件、`metaDataValidatorTypeAndLifetimeSchemaRemainStable`へ検証器型、storeを受ける構築、破棄の3件、`metaDataValidatorCountSignaturesRemainStable`へ正常・異常件数2件、`metaDataValidatorEntryAndRevalidationSignaturesRemainStable`へ異常entry取得・再検証2件を対応付ける。正式入力の完全な18識別子と識別子整列集合SHA-256 `6c559bb48fdc5e560be58010717e1227db05547a6dd6f4161b5e629e5a46b285`を維持する。
+- 既存target `KisMetaDataStoreSchemaContractTest`はmetadata・global source/generated探索路、`kritapaintingmetadata_EXPORTS`、Qt Core・Testだけの4工程・8入力を維持し、停止線5工程・11入力とする。型特性、列挙値、厳密なmember pointerだけで観測し、理由、検証器、store、Qt値を実体化せず検証本文を実行しない。担当は変更前計画・直接依存、5枠宣言段階の期待link失敗、追加5枠単発・各20回、既存を含む全target、正式CTest、近傍`KisMetaDataIOBackendContractTest`、AUTOMOC後二回目計画、無作業再構築2回、動的接続・未解決記号・AUTOMOC入力・構文・書式、差分、公開API検査、`verify-quick`を確認する。CMake変更、新しい探索路・定義・link、5工程・11入力超過、製品shared・OBJECT・`kritatestsdk`の動的接続、候補headerのAUTOMOC入力化、完全型補完、製品未解決記号、対象実体化、許可path外変更が必要なら停止する。製品target、全体build・`verify`、Linux、Nix再評価は禁止する。
 
 ### 第236便の先行監査担当票（第235便確定待ち）
 
