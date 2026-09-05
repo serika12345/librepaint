@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 11:45 JST
+- 更新日時: 2026-09-05 11:58 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -817,9 +817,14 @@
 
 ### 第232便の構造準備計画
 
-- 構造準備基点は`e1ed1360d7`である。`g232-cross-device-sampler-header-self-containment`の状態は`planned`、専用作業treeは`/Users/masato/Documents/librepaint-g232-cross-device-sampler-header-self-containment`、branchは`agent/g232-cross-device-sampler-header-self-containment`である。開始・変更先はいずれも`libs/image/kis_cross_device_color_sampler.h`で、同headerがinline本文で使う`KisPaintDevice`の完全定義を`libs/image/kis_paint_device.h`から、公開構築署名で使う`KoColor`の完全定義を`libs/pigment/KoColor.h`から直接取り込む。許可pathは同headerだけで、製品source、試験、CMake、architecture文書、公開API台帳、共通不足報告を変更しない。担当のGit権限は許可pathだけの受渡しcommit 1件で、追加委任は禁止する。
+- 構造準備基点は`e1ed1360d7`である。`g232-cross-device-sampler-header-self-containment`の状態は`integrated`で、開始・変更先はいずれも`libs/image/kis_cross_device_color_sampler.h`である。同headerがinline本文で使う`KisPaintDevice`の完全定義を`libs/image/kis_paint_device.h`から、公開構築署名で使う`KoColor`の完全定義を`libs/pigment/KoColor.h`から直接取り込んだ。許可pathは同headerだけで、製品source、試験、CMake、公開API宣言を変更していない。受渡しcommit `154b6b42b8`を統合commit `5eed6dd080`として取り込んだ。
 - 現在のheaderを既存4工程・8入力の`KisPaintLayerSchemaContractTest.cpp`より先に強制includeすると、`KisPaintDevice`の不完全型member access 3件と`KoColor`未知型1件で構文検査が失敗する。構造準備はこの4診断を直接includeだけで解消し、呼出し側のinclude順への依存を除く。集約`TestPublicImageHeaders`は1,222工程・2,465入力のため構築せず、同翻訳単位と6つの直接consumerは既存compile databaseによる翻訳単位単独の`clang-check -Werror`で確認する。
 - 担当は変更前診断、直接include差分、強制先頭includeの再検査、直接consumer 7翻訳単位の`clang-check -Werror`、headerの書式・差分、公開API件数・識別子指紋の不変、`verify-quick`を確認する。公開API宣言変更、2 header以外の新規依存、CMake・link変更、製品構築、追加実装、許可path外変更が必要なら停止する。構造準備の統合後に、新規4工程・8入力の静的契約targetを独立変更として追加する。製品target、集約header target、全体build・`verify`、Linux、Nix再評価は禁止する。
+
+### 第232便の構造準備結果
+
+- 開始`libs/image/kis_cross_device_color_sampler.h`の暗黙依存を、同headerから`libs/pigment/KoColor.h`と`libs/image/kis_paint_device.h`を直接取り込む構造へ変更した。修正前は候補headerの強制先頭includeで`KisPaintDevice`の不完全型member access 3件と`KoColor`未知型1件が発生し、修正後は同じ構文検査が成功した。6つの製品consumerと`libs/painting/tests/TestPublicImageHeaders.cpp`を既存compile databaseで個別に`clang-check -Werror`し、公開API検査、差分、追加行の書式、`verify-quick`に成功した。公開APIは21,472件対応、8,332件未対応で不変である。
+- 集約`TestPublicImageHeaders`の1,222工程・2,465入力と製品targetを構築せず、既存4工程・8入力の軽量構文環境だけを利用した。cleanな専用作業tree、306,184 KiBのlane構築木、branchを削除して590,376 KiBを回収した。主Ninja木5,756,412 KiB、共有compiler cache 983,296 KiB、`build/tdd-macos/public-api-missing-g232.json`を後続契約へ保持する。header全体には今回の2追加行と無関係な既存書式差分があるため、全面整形を構造準備へ混在させていない。全体build・`verify`、Linux、Nix再評価は実行していない。
 
 ### 第233便の先行監査担当票（第232便確定待ち）
 
