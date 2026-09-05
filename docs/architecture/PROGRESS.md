@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 23:47 JST
+- 更新日時: 2026-09-05 23:53 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1302,8 +1302,16 @@
 ### 第264便の監査結果と第264a便の構造準備計画
 
 - `libs/image/commands/kis_node_operation_batch.h`の残存全18 APIは識別子整列集合SHA-256 `83dc735d599d3f3518f7650cc2581182eeae6ddf3036f3db5ee461a2b3c78d33`を持つ。型・寿命・状態5、階層順序変更5、移動先を伴う変更3、group化・結合判定3、完了・更新通知2の5枠へ割り当てる。型特性、厳密member pointer、未評価構築式だけでpublic slotとsignalを含む全件を観測する。timeout、非同期stroke、undo後の階層・選択復元、group化結果、signal配送、auto-delete寿命は既存動的`KisNodeOperationBatchTest`へ残す。
-- `g264a-node-operation-batch-header-boundary`の状態は`in_progress`、実装基点は`7ad02c5e88`、専用作業treeは`/Users/masato/Documents/librepaint-g264a-node-operation-batch-header-boundary`、branchは`agent/g264a-node-operation-batch-header-boundary`、macOSのheader・直接利用元・軽量近傍に限る構築実行許可は`granted`である。開始`libs/image/commands/kis_node_operation_batch.h`でconst参照だけに使う`<kundo2command.h>`を`KUndo2MagicString`の前方宣言へ置き換え、同じくconst参照だけの`QString`を明示的に前方宣言する。完全型と`kundo2_i18n`の所有先として`libs/image/commands/kis_node_operation_batch.cpp`、`libs/image/tests/kis_node_operation_batch_test.cpp`、`libs/ui/nodes/kis_node_manager.cpp`へ`<kundo2magicstring.h>`を直接追加する。公開API、ABI、挙動は変更しない。許可pathはこの4ファイルだけとし、調整担当だけが文書、台帳、共通不足報告を変更する。担当のGit権限は許可pathだけの受渡しcommit 1件、追加委任は禁止し、追加利用元の補正が必要なら停止する。
+- `g264a-node-operation-batch-header-boundary`の状態は`integrated`、実装基点は`7ad02c5e88`、専用作業treeは`/Users/masato/Documents/librepaint-g264a-node-operation-batch-header-boundary`、branchは`agent/g264a-node-operation-batch-header-boundary`、macOSのheader・直接利用元・軽量近傍に限る構築実行許可は`granted`である。開始`libs/image/commands/kis_node_operation_batch.h`でconst参照だけに使う`<kundo2command.h>`を`KUndo2MagicString`の前方宣言へ置き換え、同じくconst参照だけの`QString`を明示的に前方宣言する。完全型と`kundo2_i18n`の所有先として`libs/image/commands/kis_node_operation_batch.cpp`、`libs/image/tests/kis_node_operation_batch_test.cpp`、`libs/ui/nodes/kis_node_manager.cpp`へ`<kundo2magicstring.h>`を直接追加した。公開API、ABI、挙動は変更していない。許可pathはこの4ファイルだけとし、調整担当だけが文書、台帳、共通不足報告を変更する。担当のGit権限は許可pathだけの受渡しcommit 1件、追加委任は禁止した。
 - G264aは変更前後のheader-first探索面、直接利用元と完全型所有先の厳格構文、軽量`KisNodeCommandsAdapterSchemaContractTest`、公開API 29,804件と18識別子・指紋、二回の無作業再構築、書式、差分、公開API検査、`verify-quick`を確認する。続く`g264-node-operation-batch-schema`は新規`libs/image/tests/KisNodeOperationBatchSchemaContractTest.cpp`と`libs/image/tests/CMakeLists.txt`の新target固有節だけを許可し、image・globalのsource/generated探索路、`kritaimage_EXPORTS`、Qt Core・Testだけの直接linkによる4工程・8入力、停止線5工程・11入力を予測する。候補headerのAUTOMOC入力化、painting/undo、pigment、KF、Boost、Qt Gui・Widgets・Xmlまたは製品libraryの接続、製品・metaobject未解決記号、実体化または許可path外変更が必要なら停止する。G263完了後にG264aを開始する。
+
+### 第264a便の構造準備結果と第264便の担当計画
+
+- 開始`libs/image/commands/kis_node_operation_batch.h`から`<kundo2command.h>`を除去して`KUndo2MagicString`と`QString`を前方宣言し、完全型の所有を`libs/image/commands/kis_node_operation_batch.cpp`、`libs/image/tests/kis_node_operation_batch_test.cpp`、`libs/ui/nodes/kis_node_manager.cpp`の`<kundo2magicstring.h>`へ移した。変更前の縮小探索面は`kundo2command.h`不足で失敗し、変更後は同じ面でheader-firstに成功した。実読込みは1,292行から1,226行、固有行は1,001行から954行、kundo系headerは4件から0件へ減少した。追加利用元の補正はない。受渡しcommit `4a550a3a2e`を中央commit `1b98050dae`として取り込んだ。
+- 4つの開始header・完全型利用元の厳格構文、軽量近傍`libs-image-KisNodeCommandsAdapterSchemaContractTest`、AUTOMOC、二回の無作業再構築、公開API検査、書式、差分、`verify-quick`に担当側と中央で成功した。近傍は前後とも4工程・8入力、command SHA-256 `bba0a9e4489d2113b1c2d6c2337c713f91c72e5a6892aa648b525c189959d9c1`、input SHA-256 `7c107eea92932209598fd738837604265ae09c43e84860bfce750c3f0f54a183`、AUTOMOC `HEADERS=[]`、Qt Core・Testだけの直接接続を維持した。公開API 29,804件、対象18識別子と指紋は不変である。cleanな専用作業tree、304,900 KiBの構築木、branchを削除して895,756 KiBを回収した。製品target、重量`KisNodeOperationBatchTest`、全体build・`verify`、Linux、Nix再評価は実行していない。
+- `g264-node-operation-batch-schema`の状態は`in_progress`、実装基点は`1b98050dae`、専用作業treeは`/Users/masato/Documents/librepaint-g264-node-operation-batch-schema`、branchは`agent/g264-node-operation-batch-schema`、macOSの対象と近傍に限る構築実行許可は`granted`である。許可pathは新規`libs/image/tests/KisNodeOperationBatchSchemaContractTest.cpp`と`libs/image/tests/CMakeLists.txt`の新target固有節だけで、調整担当だけが文書、台帳、共通不足報告を変更する。Git権限は許可pathだけの受渡しcommit 1件、追加委任は禁止する。
+- 正式不足一覧の残存全18 APIを、`nodeOperationBatchTypeLifetimeAndStateSchemaRemainStable`へ型・構築・破棄・auto-delete・終了状態5件、`nodeOperationBatchHierarchyOrderingSignaturesRemainStable`へ追加・削除・複製・昇順・降順5件、`nodeOperationBatchDestinationMutationSignaturesRemainStable`へ単一移動・複数移動・複写3件、`nodeOperationBatchGroupingAndMergeSignaturesRemainStable`へgroup化・group解除・結合判定3件、`nodeOperationBatchCompletionAndNotificationSignaturesRemainStable`へ終了・非同期更新通知2件として対応付ける。型特性、厳密member pointer、未評価構築式だけを使い、batch、image、node、文字列、stroke、signal配送を実体化しない。
+- 新targetはimage・globalのsource/generated探索路、`kritaimage_EXPORTS`、Qt Core・Testだけの直接linkによる4工程・8入力、停止線5工程・11入力とする。軽量近傍は`KisNodeCommandsAdapterSchemaContractTest`とし、変更前target不存在、5枠宣言段階の期待link失敗、5枠単発・各20回、全target・正式CTest・近傍、AUTOMOC後の二回目計画、二回の無作業再構築、動的接続・未解決記号・厳格構文・書式・差分・公開API検査・`verify-quick`を確認する。候補headerのAUTOMOC入力化、painting/undo、pigment、KF、Boost、Qt Gui・Widgets・Xmlまたは製品libraryの接続、製品・metaobject未解決記号、実体化または許可path外変更が必要なら停止する。
 
 ### 第265便の先行監査担当票
 
