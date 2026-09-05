@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 8313
+    "expectedMissingApis": 8293
   },
   "contracts": [
     {
@@ -59765,6 +59765,71 @@
       "apis": [
         "method:KisCrossDeviceColorSamplerImpl::sampleColor(typename Traits::coord_type x,typename Traits::coord_type y,quint8 * dst)",
         "method:KisCrossDeviceColorSamplerImpl::sampleOldColor(typename Traits::coord_type x,typename Traits::coord_type y,quint8 * dst)"
+      ]
+    },
+    {
+      "target": "KoResourcePathsSchemaContractTest",
+      "source": "libs/resources/tests/KoResourcePathsSchemaContractTest.cpp",
+      "test": "KoResourcePathsSchemaContractTest::typeOptionsAndLifetimeSchemaRemainStable",
+      "behavior": "資源path管理は検索option、flags別名、構築・破棄を備える公開型構成を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KoResourcePaths::SearchOptions",
+        "class:KoResourcePaths",
+        "enum:KoResourcePaths::SearchOption",
+        "enumerator:KoResourcePaths::SearchOption::IgnoreExecBit",
+        "enumerator:KoResourcePaths::SearchOption::NoSearchOptions",
+        "enumerator:KoResourcePaths::SearchOption::Recursive",
+        "method:KoResourcePaths::KoResourcePaths()",
+        "method:KoResourcePaths::~KoResourcePaths()"
+      ]
+    },
+    {
+      "target": "KoResourcePathsSchemaContractTest",
+      "source": "libs/resources/tests/KoResourcePathsSchemaContractTest.cpp",
+      "test": "KoResourcePathsSchemaContractTest::applicationLocationsSchemaRemainStable",
+      "behavior": "資源path管理はapplication root、data位置、その上書き値を公開する署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KoResourcePaths::s_overrideAppDataLocation",
+        "method:KoResourcePaths::getAppDataLocation()",
+        "method:KoResourcePaths::getApplicationRoot()"
+      ]
+    },
+    {
+      "target": "KoResourcePathsSchemaContractTest",
+      "source": "libs/resources/tests/KoResourcePathsSchemaContractTest.cpp",
+      "test": "KoResourcePathsSchemaContractTest::assetRegistrationSchemaRemainStable",
+      "behavior": "資源path管理はasset種別と検索directoryを登録し、種別ごとのdirectoryを照会する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoResourcePaths::addAssetDir(const QString & type,const QString & dir,bool priority=true)",
+        "method:KoResourcePaths::addAssetType(const QString & type,const char * basetype,const QString & relativeName,bool priority=true)",
+        "method:KoResourcePaths::assetDirs(const QString & type)"
+      ]
+    },
+    {
+      "target": "KoResourcePathsSchemaContractTest",
+      "source": "libs/resources/tests/KoResourcePathsSchemaContractTest.cpp",
+      "test": "KoResourcePathsSchemaContractTest::assetLookupSignaturesRemainStable",
+      "behavior": "資源path管理は単一・複数asset、directory、既存位置を検索する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoResourcePaths::findAllAssets(const QString & type,const QString & filter=QString (),SearchOptions options=NoSearchOptions)",
+        "method:KoResourcePaths::findAsset(const QString & type,const QString & fileName)",
+        "method:KoResourcePaths::findDirs(const QString & type)",
+        "method:KoResourcePaths::locate(const QString & type,const QString & filename)"
+      ]
+    },
+    {
+      "target": "KoResourcePathsSchemaContractTest",
+      "source": "libs/resources/tests/KoResourcePathsSchemaContractTest.cpp",
+      "test": "KoResourcePathsSchemaContractTest::writableLocationSignaturesRemainStable",
+      "behavior": "資源path管理は書込み用の既存位置と保存先directoryを選択する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoResourcePaths::locateLocal(const QString & type,const QString & filename,bool createDir=false)",
+        "method:KoResourcePaths::saveLocation(const QString & type,const QString & suffix=QString (),bool create=true)"
       ]
     }
   ]

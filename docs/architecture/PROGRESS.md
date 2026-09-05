@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 12:24 JST
+- 更新日時: 2026-09-05 12:39 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -844,15 +844,20 @@
 
 ### 第233便の担当計画
 
-- 実装基点は`621c26551a`である。`g233-resource-paths-schema`の状態は`planned`、専用作業treeは`/Users/masato/Documents/librepaint-g233-resource-paths-schema`、branchは`agent/g233-resource-paths-schema`である。開始`libs/resources/KoResourcePaths.h`の残存全20 APIを、新規`libs/resources/tests/KoResourcePathsSchemaContractTest.cpp`の5枠へ固定する。許可pathは同試験sourceと`libs/resources/tests/CMakeLists.txt`の新target固有節だけで、公開header、製品source、既存targetを変更しない。調整担当だけがarchitecture文書、公開API台帳、共通不足報告を変更する。担当のGit権限は許可pathだけの受渡しcommit 1件で、追加委任は禁止する。
+- 実装基点は`621c26551a`である。`g233-resource-paths-schema`の状態は`integrated`で、開始`libs/resources/KoResourcePaths.h`の残存全20 APIを、新規`libs/resources/tests/KoResourcePathsSchemaContractTest.cpp`の5枠へ固定した。許可pathは同試験sourceと`libs/resources/tests/CMakeLists.txt`の新target固有節だけで、公開header、製品source、既存targetを変更していない。受渡しcommit `9eda134625`を統合commit `00743b4537`として取り込んだ。
 - 5枠は`typeOptionsAndLifetimeSchemaRemainStable`へ型、検索option列挙・flags別名、3列挙値、構築・破棄の8件、`applicationLocationsSchemaRemainStable`へapplication root・data位置と上書きdata位置の3件、`assetRegistrationSchemaRemainStable`へasset種別・絶対directory登録と種別directory照会の3件、`assetLookupSignaturesRemainStable`へ単一・全asset、directory、既存位置の検索4件、`writableLocationSignaturesRemainStable`へ保存先と書込み用位置の選択2件を対応付ける。正式入力の完全な20識別子と識別子整列集合SHA-256 `52353b0c1e952be6a2d8c6943de6b85e705377f4238a17fd2195575cea0af6f0`を維持する。
 - 新targetはresources source/generated探索路、`kritaresources_EXPORTS`、Qt Core・Testだけに限定し、予測閉包4工程・8入力、停止線5工程・11入力とする。型特性、flags別名、列挙値、公開静的member型、厳密な関数pointer、既定引数の未評価式だけで観測し、`KoResourcePaths`、文字列、flags、filesystem、global状態を実体化しない。担当は編集前target不存在、直接依存、初回計画、5枠宣言段階の期待link失敗、5枠単発・各20回、全target、正式CTest、近傍`KisResourceIteratorSchemaContractTest`、AUTOMOC後二回目計画、無作業再構築2回、動的接続・未解決記号・AUTOMOC入力・構文・書式、差分、公開API検査、`verify-quick`を確認する。5工程・11入力超過、追加探索路・定義・link、製品shared・OBJECT・`kritatestsdk`の動的接続、候補headerのAUTOMOC入力化、製品未解決記号、対象実体化、許可path外の変更が必要なら停止する。製品target、既存filesystem試験、全体build・`verify`、Linux、Nix再評価は禁止する。
 
-### 第234便と第235便の先行監査担当票（第233便確定待ち）
+### 第233便の契約統合結果
 
-- 監査共通基点は`7b8ca44662`、入力は最新`build/tdd-macos/public-api-missing-g227.json`である。第227便から第233便までに選定済みのcanvas tool境界、canvas更新情報、image共有pointer hook、overlay描画装置、安全なprojection保管、異装置色採取、資源pathを除外し、変更、構成、構築、試験、Git操作、追加委任を行わない読み取り専用監査を先行する。候補は一つの公開責務から15〜80 APIを最大5枠へ固定でき、既存限定対象またはheader限定の4〜10工程程度を見込めるものとする。各正式便の直前に最新不足報告で全識別子、集合SHA、台帳非重複、対象不存在、閉包計画を再照合する。
-- `g234-brush-contract-audit`の状態は`completed-ready`、担当は`g178_paintop_settings_schema`で、metadata検証18 APIを選定した。`libs/painting/metadata/kis_meta_data_validator.h`の残存18 APIは一意で台帳と重複せず、識別子整列集合SHA-256 `6c559bb48fdc5e560be58010717e1227db05547a6dd6f4161b5e629e5a46b285`、既存`libs/painting/metadata/tests/KisMetaDataStoreSchemaContractTest.cpp`へ追加する5枠6・5・3・2・2に一致する。既存sourceは88行・5枠で追加後も約160行・10枠に収まり、CMake変更なしで4工程・8入力を維持できる。検証理由の型・列挙順・値、値寿命、検証器寿命、正常・異常件数、異常entry取得・再検証の署名を非実体化観測し、実Store上の分類と再検証は既存動的試験が保護する。候補headerの直接include閉包は成立し、軽量近傍`KisMetaDataIOBackendContractTest`も4工程・8入力である。正式第234便不足報告で18件と集合SHAを再照合する。
-- `g235-flake-contract-audit`の状態は`completed-ready`、担当は`g178_shape_hierarchy_schema`で、SeExpr script資源15 APIを選定した。`libs/flake/resources/KisSeExprScript.h`の残存15 APIは一意で台帳と重複せず、識別子整列集合SHA-256 `00980c0b3aff5f956e1cf49d85f5970e243d84f8149b1ffbe06a260b4e40f48a`、新規`libs/flake/tests/KisSeExprScriptSchemaContractTest.cpp`の5枠3・5・3・2・2へ固定できる。同型はSeExpr式、表示名、thumbnailを持つ資源の構築・複製・永続化・資源分類を一責務として所有する。新targetはflake・resources探索路、Qt Gui・KF I18n interface、2 export定義、Qt Core・Testとheader-only Boostだけで4工程・8入力を予測し、停止線を5工程・11入力とする。`KoCssStylePresetSchemaContractTest`への追記は異なる資源責務を混在させるため棄却した。式のUTF-8保証、破損入力、保存失敗、複製後の独立性、変更通知、thumbnail・metadata整合は既存または後続の動的契約で扱い、正式第235便不足報告で15件と集合SHAを再照合する。
+- 開始`libs/resources/KoResourcePaths.h`から新規`libs/resources/tests/KoResourcePathsSchemaContractTest.cpp`へ20 API・5枠を追加した。担当側と中央のmacOSで5枠を各20回、対象全7件、正式CTestと近傍`KisResourceIteratorSchemaContractTest`、AUTOMOC後の二回目計画、無作業再構築2回に成功した。中央実測は4工程・8入力、command SHA-256 `4b31f1f17b60951bb7b010c3e4123fe852449e2743eab5325a7df567a0b023e1`、input SHA-256 `de4a1b60ee2d64039fe0181e73fc3dce35b04c47f1179474d1b1c81aff20997b`、AUTOMOC `HEADERS=[]`、Qt Core・Testと非製品runtimeだけの動的接続、製品未解決記号なしである。正しいcompile commandによる`clang-check -Werror`、書式、差分、macOSのpackage境界1,874対象、公開API検査に成功し、台帳は21,511件対応、8,293件未対応となった。実際の検索優先順位、再帰filter、実行bit、上書きdata位置、path正規化、書込み可否、directory作成、filesystem障害とglobal同期は既存または後続の動的契約で扱う。
+- 統合済みpatchとclean状態を確認後に専用作業tree、296,504 KiBのlane構築木、branchを削除して886,912 KiBを回収した。旧`public-api-missing-g233.json`を削除し、主Ninja木5,761,192 KiB、共有compiler cache 983,380 KiB、最新`build/tdd-macos/public-api-missing-g234.json` 2,203,520 bytes、SHA-256 `9497d9f805b7883035f70be0eef116edd2b4ebe281cf39600ac1fe30000b959b`だけを次便へ再利用する。compiler cacheは143,079件中120,225件、84.03%がhitしている。製品target、既存filesystem試験、全体build・`verify`、Linux、Nix再評価は実行していない。
+
+### 第234便と第235便の先行監査担当票
+
+- 監査入力は最新`build/tdd-macos/public-api-missing-g234.json`である。第233便までに選定済みの責務を除外し、変更、構成、構築、試験、Git操作、追加委任を行わない読み取り専用監査として、全識別子、集合SHA、台帳非重複、既存試験との非重複、閉包計画を再照合した。
+- `g234-metadata-validator-schema-formal-review`の状態は`completed-ready`、担当は`g178_shape_hierarchy_schema`である。`libs/painting/metadata/kis_meta_data_validator.h`の残存18 APIは一意で台帳と重複せず、識別子整列集合SHA-256 `6c559bb48fdc5e560be58010717e1227db05547a6dd6f4161b5e629e5a46b285`、既存`libs/painting/metadata/tests/KisMetaDataStoreSchemaContractTest.cpp`へ追加する5枠6・5・3・2・2に一致する。既存sourceは88行・5枠で追加後も約160行・10枠に収まり、CMake変更なしで4工程・8入力を維持できる。検証理由の型・列挙順・値、値寿命、検証器寿命、正常・異常件数、異常entry取得・再検証の署名を非実体化観測し、実Store上の分類と再検証は既存動的試験が保護する。候補headerの直接include閉包は成立し、軽量近傍`KisMetaDataIOBackendContractTest`も4工程・8入力である。
+- `g235-seexpr-script-schema-formal-review`の状態は`completed-ready`、担当は`g208_raster_keyframe_schema`である。`libs/flake/resources/KisSeExprScript.h`の残存15 APIは一意で台帳と重複せず、識別子整列集合SHA-256 `00980c0b3aff5f956e1cf49d85f5970e243d84f8149b1ffbe06a260b4e40f48a`、新規`libs/flake/tests/KisSeExprScriptSchemaContractTest.cpp`の5枠3・5・3・2・2へ固定できる。同型はSeExpr式、表示名、thumbnailを持つ資源の構築・複製・永続化・資源分類を一責務として所有する。新targetはflake・resources探索路、Qt Gui・KF I18n interface、2 export定義、Qt Core・Testとheader-only Boostだけで4工程・8入力を予測し、停止線を5工程・11入力とする。`KoCssStylePresetSchemaContractTest`への追記は異なる資源責務を混在させるため棄却した。式のUTF-8保証、破損入力、保存失敗、複製後の独立性、変更通知、thumbnail・metadata整合は既存または後続の動的契約で扱う。
 
 ### 第236便の先行監査担当票（第235便確定待ち）
 
