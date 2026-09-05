@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 21:58 JST
+- 更新日時: 2026-09-05 22:01 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1216,6 +1216,12 @@
 - 5枠は`toolSelectBaseTypeAndConstructionSchemaRemainStable`へ型と3構築4件、`toolSelectBaseSelectionActionAndStateSignaturesRemainStable`へ選択動作と状態6件、`toolSelectBasePrimaryInputSignaturesRemainStable`へキー・pointer・主操作6件、`toolSelectBaseAlternateActionSignaturesRemainStable`へ代替操作5件、`toolSelectBaseInteractionLookupAndPopupSignaturesRemainStable`へ移動・選択相互作用、mask検索、popup 6件を対応付ける。試験内の完全な局所BaseClass probeと`configuredSelectionAction()`だけを実装する具体probeに対し、型特性、厳密member pointer、未評価式だけを使う。probe、canvas、event、image、selection、stroke、toolを実体化または実行しない。
 - 新規専用targetはtools、canvas、flake、global、image、painting、painting/undo、pigment、resources、widgetsの必要なsource/generated探索路とexport定義、Qt Gui・KF I18n・Imathのinterface探索、Qt Core・Testとheader-only Boostだけの直接linkを使い、AUTOMOC `HEADERS=[]`と4工程・8入力、停止線5工程・11入力を予測する。既存`KisToolSchemaContractTest`は4工程・8入力、command SHA-256 `99e59311008e7209ac9fdb68e93ef160d5800126f8401f0035c0ba60b29e9e8e`、input SHA-256 `f2467da36c35df9f69e1a05f8471b1b7e2513fbdabefea6e9bf5aecf79e7544d`だが、既存5枠と責務を結合するため追記しない。製品接続を持つ`TestToolCoreContract`は1,272工程・2,559入力なので反復対象から除外する。
 - 担当は編集前target不存在、5枠宣言段階の期待link失敗、追加5枠単発・各20回、全target、正式CTest、軽量近傍`KisToolSchemaContractTest`、AUTOMOC後の二回目計画、無作業build 2回、4/8とhash、動的接続・未解決記号・AUTOMOC入力・厳格構文・書式、差分、公開API検査、`verify-quick`を確認する。5工程・11入力超過、Qt Widgets・Xml探索路またはQt Gui・Widgets・Xml動的link、製品shared・OBJECT・`kritatestsdk`、候補headerのAUTOMOC入力化、`KisToolSelectBase`・`MoveStrokeStrategy`・image・selection・tool canvas・probeの未解決記号、製品実体化、許可path外変更が必要なら停止する。製品target、重量`TestToolCoreContract`、全体build・`verify`、Linux、Nix再評価は禁止する。
+
+### 第261便の先行監査担当票
+
+- 監査共通基点は`f7cd5a9be1`、正式入力は`build/tdd-macos/public-api-missing-g260.json`である。第260便の27 APIを除外し、`libs/painting/strokes/KisMaskedFreehandStrokePainter.h`の残存公開面を次候補として監査する。監査は主作業treeの読み取りだけを許可し、変更、構成、構築、試験、Git操作、追加委任を行わず、第260便の専用構築木と生成物を共有しない。
+- `g261-masked-freehand-api-audit`の状態は`in_progress`である。正式不足一覧と台帳に対する残存識別子の完全性、一意性、整列指紋、描画・更新・mask状態の責務別割当、最大5枠で静的または小さい動的契約へ固定できる範囲を調べる。
+- `g261-masked-freehand-closure-review`の状態は`in_progress`である。開始headerと既存実装の直接依存、既存試験、製品sourceの構築所有を調べ、header限定target、実装object分離、既存target追記の閉包を比較する。公開メソッドの実行時意味が実装objectを必要とする場合は最小の構築所有分離、製品への一重再集約、許可path、停止線を具体化する。
 
 ### 第239便の先行監査担当票
 
