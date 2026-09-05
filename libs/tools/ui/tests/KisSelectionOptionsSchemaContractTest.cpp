@@ -2,6 +2,8 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "kis_selection_tool_config_widget_helper.h"
+
 #include "kis_selection_options.h"
 
 #include <QTest>
@@ -11,9 +13,12 @@
 namespace
 {
 using Options = KisSelectionOptions;
+using Helper = KisSelectionToolConfigWidgetHelper;
 
 #define ASSERT_SELECTION_OPTIONS_SIGNATURE(method, signature)                                                          \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&Options::method)), signature>)
+#define ASSERT_SELECTION_TOOL_CONFIG_HELPER_SIGNATURE(method, signature)                                               \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&Helper::method)), signature>)
 } // namespace
 
 class KisSelectionOptionsSchemaContractTest : public QObject
@@ -26,6 +31,11 @@ private Q_SLOTS:
     void selectionOptionsAdjustmentSignaturesRemainStable();
     void selectionOptionsReferenceAndColorLabelSignaturesRemainStable();
     void selectionOptionsPresentationSignaturesRemainStable();
+    void selectionToolConfigHelperTypeConstructionAndWidgetSignaturesRemainStable();
+    void selectionToolConfigHelperSelectionQueryAndConfigurationSignaturesRemainStable();
+    void selectionToolConfigHelperWidgetStateChangeSignaturesRemainStable();
+    void selectionToolConfigHelperActionRequestSignaturesRemainStable();
+    void selectionToolConfigHelperActivationAndNotificationSignaturesRemainStable();
 };
 
 void KisSelectionOptionsSchemaContractTest::selectionOptionsTypeLifetimeAndReferenceLayerSchemaRemainStable()
@@ -86,6 +96,60 @@ void KisSelectionOptionsSchemaContractTest::selectionOptionsPresentationSignatur
     ASSERT_SELECTION_OPTIONS_SIGNATURE(setStopGrowingAtDarkestPixelButtonVisible, void (Options::*)(bool));
     ASSERT_SELECTION_OPTIONS_SIGNATURE(updateActionButtonToolTip,
                                        void (Options::*)(SelectionAction, const QKeySequence &));
+}
+
+void KisSelectionOptionsSchemaContractTest::selectionToolConfigHelperTypeConstructionAndWidgetSignaturesRemainStable()
+{
+    static_assert(std::is_class_v<Helper>);
+    static_assert(std::is_base_of_v<QObject, Helper>);
+    static_assert(std::is_constructible_v<Helper, const QString &>);
+    ASSERT_SELECTION_TOOL_CONFIG_HELPER_SIGNATURE(createOptionWidget, void (Helper::*)(const QString &));
+    ASSERT_SELECTION_TOOL_CONFIG_HELPER_SIGNATURE(optionWidget, KisSelectionOptions * (Helper::*)() const);
+}
+
+// clang-format off
+void KisSelectionOptionsSchemaContractTest::selectionToolConfigHelperSelectionQueryAndConfigurationSignaturesRemainStable()
+// clang-format on
+{
+    ASSERT_SELECTION_TOOL_CONFIG_HELPER_SIGNATURE(action, int (Helper::*)() const);
+    ASSERT_SELECTION_TOOL_CONFIG_HELPER_SIGNATURE(antiAliasSelection, bool (Helper::*)() const);
+    ASSERT_SELECTION_TOOL_CONFIG_HELPER_SIGNATURE(featherSelection, int (Helper::*)() const);
+    ASSERT_SELECTION_TOOL_CONFIG_HELPER_SIGNATURE(growSelection, int (Helper::*)() const);
+    ASSERT_SELECTION_TOOL_CONFIG_HELPER_SIGNATURE(referenceLayers,
+                                                  KisSelectionOptions::ReferenceLayers (Helper::*)() const);
+    ASSERT_SELECTION_TOOL_CONFIG_HELPER_SIGNATURE(selectedColorLabels, QList<int> (Helper::*)() const);
+    ASSERT_SELECTION_TOOL_CONFIG_HELPER_SIGNATURE(selectionAction, SelectionAction (Helper::*)() const);
+    ASSERT_SELECTION_TOOL_CONFIG_HELPER_SIGNATURE(selectionMode, SelectionMode (Helper::*)() const);
+    ASSERT_SELECTION_TOOL_CONFIG_HELPER_SIGNATURE(setConfigGroupForExactTool, void (Helper::*)(QString));
+    ASSERT_SELECTION_TOOL_CONFIG_HELPER_SIGNATURE(stopGrowingAtDarkestPixel, bool (Helper::*)() const);
+}
+
+void KisSelectionOptionsSchemaContractTest::selectionToolConfigHelperWidgetStateChangeSignaturesRemainStable()
+{
+    ASSERT_SELECTION_TOOL_CONFIG_HELPER_SIGNATURE(slotReferenceLayersChanged,
+                                                  void (Helper::*)(KisSelectionOptions::ReferenceLayers));
+    ASSERT_SELECTION_TOOL_CONFIG_HELPER_SIGNATURE(slotSelectedColorLabelsChanged, void (Helper::*)());
+    ASSERT_SELECTION_TOOL_CONFIG_HELPER_SIGNATURE(slotWidgetActionChanged, void (Helper::*)(SelectionAction));
+    ASSERT_SELECTION_TOOL_CONFIG_HELPER_SIGNATURE(slotWidgetAntiAliasChanged, void (Helper::*)(bool));
+    ASSERT_SELECTION_TOOL_CONFIG_HELPER_SIGNATURE(slotWidgetFeatherChanged, void (Helper::*)(int));
+    ASSERT_SELECTION_TOOL_CONFIG_HELPER_SIGNATURE(slotWidgetGrowChanged, void (Helper::*)(int));
+    ASSERT_SELECTION_TOOL_CONFIG_HELPER_SIGNATURE(slotWidgetModeChanged, void (Helper::*)(SelectionMode));
+    ASSERT_SELECTION_TOOL_CONFIG_HELPER_SIGNATURE(slotWidgetStopGrowingAtDarkestPixelChanged, void (Helper::*)(bool));
+}
+
+void KisSelectionOptionsSchemaContractTest::selectionToolConfigHelperActionRequestSignaturesRemainStable()
+{
+    ASSERT_SELECTION_TOOL_CONFIG_HELPER_SIGNATURE(slotAddModeRequested, void (Helper::*)());
+    ASSERT_SELECTION_TOOL_CONFIG_HELPER_SIGNATURE(slotIntersectModeRequested, void (Helper::*)());
+    ASSERT_SELECTION_TOOL_CONFIG_HELPER_SIGNATURE(slotReplaceModeRequested, void (Helper::*)());
+    ASSERT_SELECTION_TOOL_CONFIG_HELPER_SIGNATURE(slotSubtractModeRequested, void (Helper::*)());
+    ASSERT_SELECTION_TOOL_CONFIG_HELPER_SIGNATURE(slotSymmetricDifferenceModeRequested, void (Helper::*)());
+}
+
+void KisSelectionOptionsSchemaContractTest::selectionToolConfigHelperActivationAndNotificationSignaturesRemainStable()
+{
+    ASSERT_SELECTION_TOOL_CONFIG_HELPER_SIGNATURE(selectionActionChanged, void (Helper::*)(SelectionAction));
+    ASSERT_SELECTION_TOOL_CONFIG_HELPER_SIGNATURE(slotToolActivatedChanged, void (Helper::*)(bool));
 }
 
 QTEST_GUILESS_MAIN(KisSelectionOptionsSchemaContractTest)
