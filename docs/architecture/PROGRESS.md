@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 12:55 JST
+- 更新日時: 2026-09-05 12:58 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -869,6 +869,12 @@
 
 - 開始`libs/painting/metadata/kis_meta_data_validator.h`から既存`libs/painting/metadata/tests/KisMetaDataStoreSchemaContractTest.cpp`へ18 API・5枠を追加した。担当側と中央のmacOSで追加5枠を各20回、既存を含む対象全12件、正式CTestと近傍`KisMetaDataIOBackendContractTest`、AUTOMOC後の二回目計画、無作業再構築2回に成功した。CMakeを変更せず、中央実測は4工程・8入力、command SHA-256 `157ff59c212fea719d103838bd32fc72b7f1cc3bf0e53cbafa4fdc004b342c9e`、input SHA-256 `efb0a78e7ec95e5a0b3bf9c74c634d4cdd2d3f36df78bc88f5818ed3b92fe259`、AUTOMOC `HEADERS=[]`、Qt Core・Testと非製品runtimeだけの動的接続、製品未解決記号なしである。正しいcompile commandによる`clang-check -Werror`、書式、差分、macOSのpackage境界1,874対象、公開API検査に成功し、台帳は21,529件対応、8,275件未対応となった。実Store上の理由分類、再検証、異常entry生成は既存動的試験が保護する。
 - 統合済みpatchとclean状態を確認後に専用作業tree、298,868 KiBのlane構築木、branchを削除して889,284 KiBを回収した。旧`public-api-missing-g234.json`を削除し、主Ninja木5,761,292 KiB、共有compiler cache 983,416 KiB、最新`build/tdd-macos/public-api-missing-g235.json` 2,199,138 bytes、SHA-256 `f1429958c57fda87ce7a4d50e27c7170d0217d045bc31234161e30b7936c9cdc`だけを次便へ再利用する。compiler cacheは143,085件中120,226件、84.02%がhitしている。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+
+### 第235便の担当計画
+
+- 実装基点は`600270839c`である。`g235-seexpr-script-schema`の状態は`planned`、専用作業treeは`/Users/masato/Documents/librepaint-g235-seexpr-script-schema`、branchは`agent/g235-seexpr-script-schema`である。開始`libs/flake/resources/KisSeExprScript.h`の残存全15 APIを、新規`libs/flake/tests/KisSeExprScriptSchemaContractTest.cpp`の5枠へ固定する。許可pathは同試験sourceと`libs/flake/tests/CMakeLists.txt`の新target固有節だけで、公開header、製品source、既存targetを変更しない。調整担当だけがarchitecture文書、公開API台帳、共通不足報告を変更する。担当のGit権限は許可pathだけの受渡しcommit 1件で、追加委任は禁止する。
+- 5枠は`seExprScriptTypeLifetimeAndAliasSchemaRemainStable`へ型、強参照別名、破棄の3件、`seExprScriptConstructionAndCloneSchemaRemainStable`へfilename、画像・式・名称・folder、pointer・参照複製による4構築とcloneの5件、`seExprScriptPersistenceAndClassificationSignaturesRemainStable`へ装置からの読込み・保存と資源分類の3件、`seExprScriptIdentityAndExtensionSignaturesRemainStable`へ既定拡張子と名称2件、`seExprScriptContentSignaturesRemainStable`へ式の取得・設定2件を対応付ける。正式入力の完全な15識別子と識別子整列集合SHA-256 `00980c0b3aff5f956e1cf49d85f5970e243d84f8149b1ffbe06a260b4e40f48a`を維持する。
+- 新targetはflake・resources source/generated探索路、Qt Gui・KF I18n interface、`kritaflake_EXPORTS`と`kritaresources_EXPORTS`、Qt Core・Testとheader-only Boostだけに限定し、予測閉包4工程・8入力、停止線5工程・11入力とする。型特性、別名同一性、厳密なmember pointerだけで観測し、script資源、画像、文字列、装置、資源interfaceを実体化せず製品本文を実行しない。担当は編集前target不存在、直接依存、初回計画、5枠宣言段階の期待link失敗、5枠単発・各20回、全target、正式CTest、近傍`KoCssStylePresetSchemaContractTest`、AUTOMOC後二回目計画、無作業再構築2回、動的接続・未解決記号・AUTOMOC入力・構文・書式、差分、公開API検査、`verify-quick`を確認する。5工程・11入力超過、追加探索路・定義・link、Qt Gui・KF I18n・製品shared・OBJECT・`kritatestsdk`の動的接続、候補headerのAUTOMOC入力化、製品未解決記号、対象実体化、許可path外変更が必要なら停止する。製品target、既存generator試験、全体build・`verify`、Linux、Nix再評価は禁止する。
 
 ### 第236便の先行監査担当票（第235便確定待ち）
 
