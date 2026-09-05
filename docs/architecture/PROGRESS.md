@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 20:38 JST
+- 更新日時: 2026-09-05 20:50 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1135,7 +1135,7 @@
 
 ### 第257便の担当計画
 
-- 実装基点は`bfb2a2f20a`である。`g257-gradient-conversion-schema`の状態は`in_progress`、専用作業treeは`/Users/masato/Documents/librepaint-g257-gradient-conversion-schema`、branchは`agent/g257-gradient-conversion-schema`とする。開始`libs/pigment/resources/KisGradientConversion.h`の残存全18 APIを、既存`libs/pigment/tests/KoStopGradientSchemaContractTest.cpp`の5枠へ固定する。許可pathは同試験sourceだけで、CMake、公開header、製品source、既存10枠を変更しない。調整担当だけがarchitecture文書、公開API台帳、共通不足報告を変更する。担当のGit権限は許可pathだけの受渡しcommit 1件で、追加委任は禁止する。
+- 実装基点は`bfb2a2f20a`である。`g257-gradient-conversion-schema`の状態は`integrated`、専用作業treeは`/Users/masato/Documents/librepaint-g257-gradient-conversion-schema`、branchは`agent/g257-gradient-conversion-schema`とする。開始`libs/pigment/resources/KisGradientConversion.h`の残存全18 APIを、既存`libs/pigment/tests/KoStopGradientSchemaContractTest.cpp`の5枠へ固定する。許可pathは同試験sourceだけで、CMake、公開header、製品source、既存10枠を変更しない。調整担当だけがarchitecture文書、公開API台帳、共通不足報告を変更する。担当のGit権限は許可pathだけの受渡しcommit 1件で、追加委任は禁止する。
 - 5枠は`gradientConversionToQGradientStopsSignaturesRemainStable`へ抽象・segment・stop gradientからQt stop列への変換3件、`gradientConversionToQGradientSignaturesRemainStable`へ同3種からQt gradientへの変換3件、`gradientConversionToAbstractGradientSignaturesRemainStable`へsegment・stop・Qt gradient・Qt stop列から抽象gradientへの変換4件、`gradientConversionToStopGradientSignaturesRemainStable`へ抽象・segment・Qt gradient・Qt stop列からstop gradientへの変換4件、`gradientConversionToSegmentGradientSignaturesRemainStable`へ抽象・stop・Qt gradient・Qt stop列からsegment gradientへの変換4件を対応付ける。正式入力`build/tdd-macos/public-api-missing-g257.json`の完全な18識別子と識別子整列集合SHA-256 `6cd30111de5b27bf757d6ac3c394901f7bb1b8b944299cecf69a48b8d5e67141`を維持する。
 - 事前の構築範囲監査では、既存sourceが189行・10枠で同じgradient値表現・変換責務を追加後も300行・20枠以内に収められるため、新targetとCMake変更は不要である。既存targetはpigment、resources、globalのsource/generated探索路、KF I18n・Imathのinterface探索、3つの所有export定義、Qt Core・Gui・Testとheader-only Boostだけの4工程・8入力である。command SHA-256は`9bcbdcc81a6df936d2970df7b50edab900578421c96a77bccf06ff3138718769`、input SHA-256は`57556558e684b9f9b0287440adab7a9c7c9988c8dca55e257642e63511529a37`、停止線は5工程・11入力とする。候補headerの同directory依存は第257a便で引用符includeへ修正し、既存探索路だけで自己完結する。
 - 候補headerを最初のrepository includeにし、厳密な自由関数pointerと既定引数を省略した未評価式だけで観測する。gradient、共有pointer、canvas資源、`QGradient`、戻り値を実体化せず変換本文を実行しない。担当は変更前計画、5枠宣言段階の期待link失敗、追加5枠単発・各20回、既存を含む全target、正式CTest、軽量近傍`KoGradientSegmentSchemaContractTest`、AUTOMOC後二回目plan、無作業build 2回、4/8とhash、動的接続・未解決記号・AUTOMOC入力・構文・書式、差分、公開API検査、`verify-quick`を確認する。CMake変更、5工程・11入力超過、新しい探索路・定義・link、製品shared・OBJECT・`kritatestsdk`、候補headerのAUTOMOC入力化、変換関数の製品未解決記号、対象実体化・本文実行、許可path外変更が必要なら停止する。製品target、全体build・`verify`、Linux、Nix再評価は禁止する。
@@ -1151,6 +1151,12 @@
 - 開始・到達先`libs/pigment/resources/KisGradientConversion.h`で、同一directory所有の`KoAbstractGradient.h`、`KoSegmentGradient.h`、`KoStopGradient.h`を引用符includeへ変更し、include群を変更行の書式規則へ整列した。受渡しcommit `0ca9827cff76bfff97a7b57db9279876f142b9ad`を中央commit `bfb2a2f20a`として取り込み、公開宣言、製品source、試験、CMakeを変更していない。
 - 担当側と中央で、既存compile commandから候補directory固有の探索rootを加えないheader-first構文検査に成功した。既存`KoStopGradientSchemaContractTest`のbuild・CTest、4工程・8入力、中央command SHA-256 `9bcbdcc81a6df936d2970df7b50edab900578421c96a77bccf06ff3138718769`、input SHA-256 `57556558e684b9f9b0287440adab7a9c7c9988c8dca55e257642e63511529a37`、AUTOMOC `HEADERS=[]`は不変である。候補18識別子とSHA、公開API 29,804件の指紋、変更行の書式、差分、公開API検査、`verify-quick`に成功した。構文検査scratchは削除済みである。
 - cleanな専用作業tree、298,816 KiBのlane構築木、branchを削除して889,540 KiBを回収した。公開API台帳と最新不足報告は変更せず、G257を新基点で再開する。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+
+### 第257便の契約統合結果
+
+- 開始`libs/pigment/resources/KisGradientConversion.h`から既存`libs/pigment/tests/KoStopGradientSchemaContractTest.cpp`へ、抽象・区間・停止点・Qtグラデーション間の変換を担う残存全18 API・5枠を追加した。構造準備済みheaderを最初のrepository includeに置き、CMake、公開header、製品source、既存10枠を変更していない。受渡しcommit `6bab83a1e9d4595578093174e27cf71179f2bdb7`を中央commit `70667b62e3`として取り込み、最終sourceは278行・15枠である。
+- 担当側と中央のmacOSで5枠を各20回、既存を含む全17試験、正式CTest `libs-pigment-KoStopGradientSchemaContractTest`、軽量近傍`libs-pigment-KoGradientSegmentSchemaContractTest`、AUTOMOC後の二回目計画、無作業再構築2回に成功した。中央実測は変更前と同じ4工程・8入力、command SHA-256 `9bcbdcc81a6df936d2970df7b50edab900578421c96a77bccf06ff3138718769`、input SHA-256 `57556558e684b9f9b0287440adab7a9c7c9988c8dca55e257642e63511529a37`、AUTOMOC `HEADERS=[]`、Qt Core・Gui・TestとOS frameworkだけの動的接続、変換関数を含む製品未解決記号なしである。厳格`clang-check`、変更行の書式、差分、macOSのpackage境界1,889対象、公開API検査に成功し、台帳は21,999件対応、7,805件未対応となった。停止点統合、可変色解決、区間情報の変換、返却pointer所有権の実行時意味は既存または後続の動的契約で扱う。
+- 中央検証後にcleanな専用作業tree、300,300 KiBのlane構築木、branchを削除して891,028 KiBを回収した。旧`public-api-missing-g257.json`を削除し、主Ninja木5,777,908 KiB、共有compiler cache 982,700 KiB、最新`build/tdd-macos/public-api-missing-g258.json` 2,077,543 bytes、SHA-256 `3dd312d35e0860a13ee5898d5913e22d891c3d3b257ccb4864af56be44bd8974`だけを次便へ再利用する。compiler cacheは143,266件中120,264件、83.94%がhitしている。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第258便のinput manager公開APIを正式不足報告で再照合し、重量動的試験から分離した対象限定の構築範囲を確定することである。
 
 ### 第239便の先行監査担当票
 

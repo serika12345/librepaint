@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 7823
+    "expectedMissingApis": 7805
   },
   "contracts": [
     {
@@ -54149,6 +54149,69 @@
       "classification": "maintained",
       "apis": [
         "function:operator <<(QDebug dbg,const KoAbstractGradientSP res)"
+      ]
+    },
+    {
+      "target": "KoStopGradientSchemaContractTest",
+      "source": "libs/pigment/tests/KoStopGradientSchemaContractTest.cpp",
+      "test": "KoStopGradientSchemaContractTest::gradientConversionToQGradientStopsSignaturesRemainStable",
+      "behavior": "グラデーション変換は抽象・区間・停止点グラデーションと任意のcanvas資源からQt停止点列を生成する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisGradientConversion::toQGradientStops(KoAbstractGradientSP gradient,KoCanvasResourcesInterfaceSP canvasResourcesInterface=nullptr)",
+        "function:KisGradientConversion::toQGradientStops(KoSegmentGradientSP gradient,KoCanvasResourcesInterfaceSP canvasResourcesInterface=nullptr)",
+        "function:KisGradientConversion::toQGradientStops(KoStopGradientSP gradient,KoCanvasResourcesInterfaceSP canvasResourcesInterface=nullptr)"
+      ]
+    },
+    {
+      "target": "KoStopGradientSchemaContractTest",
+      "source": "libs/pigment/tests/KoStopGradientSchemaContractTest.cpp",
+      "test": "KoStopGradientSchemaContractTest::gradientConversionToQGradientSignaturesRemainStable",
+      "behavior": "グラデーション変換は抽象・区間・停止点グラデーションと任意のcanvas資源からQtグラデーションpointerを生成する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisGradientConversion::toQGradient(KoAbstractGradientSP gradient,KoCanvasResourcesInterfaceSP canvasResourcesInterface=nullptr)",
+        "function:KisGradientConversion::toQGradient(KoSegmentGradientSP gradient,KoCanvasResourcesInterfaceSP canvasResourcesInterface=nullptr)",
+        "function:KisGradientConversion::toQGradient(KoStopGradientSP gradient,KoCanvasResourcesInterfaceSP canvasResourcesInterface=nullptr)"
+      ]
+    },
+    {
+      "target": "KoStopGradientSchemaContractTest",
+      "source": "libs/pigment/tests/KoStopGradientSchemaContractTest.cpp",
+      "test": "KoStopGradientSchemaContractTest::gradientConversionToAbstractGradientSignaturesRemainStable",
+      "behavior": "グラデーション変換は区間・停止点・Qtグラデーション・Qt停止点列から抽象グラデーション共有参照を生成する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisGradientConversion::toAbstractGradient(KoSegmentGradientSP gradient)",
+        "function:KisGradientConversion::toAbstractGradient(KoStopGradientSP gradient)",
+        "function:KisGradientConversion::toAbstractGradient(const QGradient * gradient)",
+        "function:KisGradientConversion::toAbstractGradient(const QGradientStops & gradient)"
+      ]
+    },
+    {
+      "target": "KoStopGradientSchemaContractTest",
+      "source": "libs/pigment/tests/KoStopGradientSchemaContractTest.cpp",
+      "test": "KoStopGradientSchemaContractTest::gradientConversionToStopGradientSignaturesRemainStable",
+      "behavior": "グラデーション変換は抽象・区間・Qtグラデーション・Qt停止点列から停止点グラデーション共有参照を生成する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisGradientConversion::toStopGradient(KoAbstractGradientSP gradient,KoCanvasResourcesInterfaceSP canvasResourcesInterface=nullptr)",
+        "function:KisGradientConversion::toStopGradient(KoSegmentGradientSP gradient,KoCanvasResourcesInterfaceSP canvasResourcesInterface=nullptr)",
+        "function:KisGradientConversion::toStopGradient(const QGradient * gradient)",
+        "function:KisGradientConversion::toStopGradient(const QGradientStops & gradient)"
+      ]
+    },
+    {
+      "target": "KoStopGradientSchemaContractTest",
+      "source": "libs/pigment/tests/KoStopGradientSchemaContractTest.cpp",
+      "test": "KoStopGradientSchemaContractTest::gradientConversionToSegmentGradientSignaturesRemainStable",
+      "behavior": "グラデーション変換は抽象・停止点・Qtグラデーション・Qt停止点列から区間グラデーション共有参照を生成する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisGradientConversion::toSegmentGradient(KoAbstractGradientSP gradient)",
+        "function:KisGradientConversion::toSegmentGradient(KoStopGradientSP gradient)",
+        "function:KisGradientConversion::toSegmentGradient(const QGradient * gradient)",
+        "function:KisGradientConversion::toSegmentGradient(const QGradientStops & gradient)"
       ]
     },
     {
