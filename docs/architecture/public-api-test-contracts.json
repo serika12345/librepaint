@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 7911
+    "expectedMissingApis": 7882
   },
   "contracts": [
     {
@@ -61067,6 +61067,80 @@
       "classification": "maintained",
       "apis": [
         "function:operator <<(QDebug debug,const KisMetaData::Entry & c)"
+      ]
+    },
+    {
+      "target": "KisSelectionOptionsSchemaContractTest",
+      "source": "libs/tools/ui/tests/KisSelectionOptionsSchemaContractTest.cpp",
+      "test": "KisSelectionOptionsSchemaContractTest::selectionToolConfigHelperTypeConstructionAndWidgetSignaturesRemainStable",
+      "behavior": "選択tool設定補助は題名を指定して構築し、設定widgetを生成・照会する公開型構成を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisSelectionToolConfigWidgetHelper",
+        "method:KisSelectionToolConfigWidgetHelper::KisSelectionToolConfigWidgetHelper(const QString & windowTitle)",
+        "method:KisSelectionToolConfigWidgetHelper::createOptionWidget(const QString & toolId)",
+        "method:KisSelectionToolConfigWidgetHelper::optionWidget() const"
+      ]
+    },
+    {
+      "target": "KisSelectionOptionsSchemaContractTest",
+      "source": "libs/tools/ui/tests/KisSelectionOptionsSchemaContractTest.cpp",
+      "test": "KisSelectionOptionsSchemaContractTest::selectionToolConfigHelperSelectionQueryAndConfigurationSignaturesRemainStable",
+      "behavior": "選択tool設定補助は選択方式・action・調整値・参照範囲・色labelを照会し、tool別設定群を選ぶ公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSelectionToolConfigWidgetHelper::action() const",
+        "method:KisSelectionToolConfigWidgetHelper::antiAliasSelection() const",
+        "method:KisSelectionToolConfigWidgetHelper::featherSelection() const",
+        "method:KisSelectionToolConfigWidgetHelper::growSelection() const",
+        "method:KisSelectionToolConfigWidgetHelper::referenceLayers() const",
+        "method:KisSelectionToolConfigWidgetHelper::selectedColorLabels() const",
+        "method:KisSelectionToolConfigWidgetHelper::selectionAction() const",
+        "method:KisSelectionToolConfigWidgetHelper::selectionMode() const",
+        "method:KisSelectionToolConfigWidgetHelper::setConfigGroupForExactTool(QString toolId)",
+        "method:KisSelectionToolConfigWidgetHelper::stopGrowingAtDarkestPixel() const"
+      ]
+    },
+    {
+      "target": "KisSelectionOptionsSchemaContractTest",
+      "source": "libs/tools/ui/tests/KisSelectionOptionsSchemaContractTest.cpp",
+      "test": "KisSelectionOptionsSchemaContractTest::selectionToolConfigHelperWidgetStateChangeSignaturesRemainStable",
+      "behavior": "選択tool設定補助は設定widgetからmode・action・調整値・参照範囲・色labelの変更を受け取る公開slot署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSelectionToolConfigWidgetHelper::slotReferenceLayersChanged(KisSelectionOptions::ReferenceLayers referenceLayers)",
+        "method:KisSelectionToolConfigWidgetHelper::slotSelectedColorLabelsChanged()",
+        "method:KisSelectionToolConfigWidgetHelper::slotWidgetActionChanged(SelectionAction action)",
+        "method:KisSelectionToolConfigWidgetHelper::slotWidgetAntiAliasChanged(bool value)",
+        "method:KisSelectionToolConfigWidgetHelper::slotWidgetFeatherChanged(int value)",
+        "method:KisSelectionToolConfigWidgetHelper::slotWidgetGrowChanged(int value)",
+        "method:KisSelectionToolConfigWidgetHelper::slotWidgetModeChanged(SelectionMode mode)",
+        "method:KisSelectionToolConfigWidgetHelper::slotWidgetStopGrowingAtDarkestPixelChanged(bool value)"
+      ]
+    },
+    {
+      "target": "KisSelectionOptionsSchemaContractTest",
+      "source": "libs/tools/ui/tests/KisSelectionOptionsSchemaContractTest.cpp",
+      "test": "KisSelectionOptionsSchemaContractTest::selectionToolConfigHelperActionRequestSignaturesRemainStable",
+      "behavior": "選択tool設定補助は追加・交差・置換・減算・対称差の選択action要求を受け取る公開slot署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSelectionToolConfigWidgetHelper::slotAddModeRequested()",
+        "method:KisSelectionToolConfigWidgetHelper::slotIntersectModeRequested()",
+        "method:KisSelectionToolConfigWidgetHelper::slotReplaceModeRequested()",
+        "method:KisSelectionToolConfigWidgetHelper::slotSubtractModeRequested()",
+        "method:KisSelectionToolConfigWidgetHelper::slotSymmetricDifferenceModeRequested()"
+      ]
+    },
+    {
+      "target": "KisSelectionOptionsSchemaContractTest",
+      "source": "libs/tools/ui/tests/KisSelectionOptionsSchemaContractTest.cpp",
+      "test": "KisSelectionOptionsSchemaContractTest::selectionToolConfigHelperActivationAndNotificationSignaturesRemainStable",
+      "behavior": "選択tool設定補助はtoolの有効状態を受け取り、選択actionの変更を通知する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSelectionToolConfigWidgetHelper::selectionActionChanged(SelectionAction newAction)",
+        "method:KisSelectionToolConfigWidgetHelper::slotToolActivatedChanged(bool isActivated)"
       ]
     }
   ]

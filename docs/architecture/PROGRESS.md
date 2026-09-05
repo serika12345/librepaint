@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 18:25 JST
+- 更新日時: 2026-09-05 18:39 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1087,6 +1087,12 @@
 - 実装基点は`53e5176132`である。`g253-selection-tool-config-helper-schema`の状態は`planned`、専用作業treeは`/Users/masato/Documents/librepaint-g253-selection-tool-config-helper-schema`、branchは`agent/g253-selection-tool-config-helper-schema`とする。開始`libs/tools/ui/kis_selection_tool_config_widget_helper.h`の残存全29 APIを、既存`libs/tools/ui/tests/KisSelectionOptionsSchemaContractTest.cpp`の5枠へ固定する。許可pathは同試験sourceだけで、CMake、公開header、製品source、既存5枠を変更しない。調整担当だけがarchitecture文書、公開API台帳、共通不足報告を変更する。担当のGit権限は許可pathだけの受渡しcommit 1件で、追加委任は禁止する。
 - 5枠は`selectionToolConfigHelperTypeConstructionAndWidgetSignaturesRemainStable`へ型、構築、option widget生成・照会4件、`selectionToolConfigHelperSelectionQueryAndConfigurationSignaturesRemainStable`へ選択mode・action・antialias・調整値・参照layer・色label照会とtool別設定10件、`selectionToolConfigHelperWidgetStateChangeSignaturesRemainStable`へwidget状態変更slot 8件、`selectionToolConfigHelperActionRequestSignaturesRemainStable`へ5種類の選択action要求slot 5件、`selectionToolConfigHelperActivationAndNotificationSignaturesRemainStable`へaction変更通知とtool有効化slot 2件を対応付ける。正式入力`build/tdd-macos/public-api-missing-g253.json`の完全な29識別子と識別子整列集合SHA-256 `d9c4da81b0a3c8f7cf3ad1e55c57442be10acb9b1a4d77af4e38255dd7163df6`を維持する。
 - 事前の構築範囲監査では既存sourceが93行・5枠で、同じ選択設定UI責務を追加後も約165行・10枠に収められるため新targetとCMake変更は不要である。既存targetはtools/ui・widgetutils・imageのsource/generated探索路、`kritatoolsui_EXPORTS`・`kritawidgetutils_EXPORTS`、Qt Gui・Widgetsのinterface探索、Qt Core・Testだけの4工程・8入力、command SHA-256 `dfbb70975be40911ef339384abf74ef17d35aea6cf4e172eb530d41e58dee650`、input SHA-256 `5be2424209fa894815b337d8ae01fb9370048c957e48286cd1096b4408033f2b`を持ち、停止線を5工程・11入力とする。型特性と厳密なmember・signal pointerだけで観測し、helper、widget、QString、QList、metaobjectを実体化せず、inline `action()`を含む製品本文を実行しない。担当は変更前計画、5枠宣言段階の期待link失敗、追加5枠単発・各20回、既存を含む全target、正式CTest、軽量近傍`KisCompositeOpSelectorSchemaContractTest`、AUTOMOC後二回目計画、無作業build 2回、4/8とhash、動的接続・未解決記号・AUTOMOC入力・構文・書式、差分、公開API検査、`verify-quick`を確認する。CMake変更、5工程・11入力超過、新しい探索路・定義・link、Qt Gui・Widgets・製品libraryの動的接続、製品shared・OBJECT・`kritatestsdk`、候補headerのAUTOMOC入力化、helper・signal・metaobjectの未解決記号、対象実体化、許可path外変更が必要なら停止する。重量`TestToolSettingsUiContract`、製品target、全体build・`verify`、Linux、Nix再評価は禁止する。
+
+### 第253便の契約統合結果
+
+- 開始`libs/tools/ui/kis_selection_tool_config_widget_helper.h`から既存`libs/tools/ui/tests/KisSelectionOptionsSchemaContractTest.cpp`へ、設定widget生成、選択状態照会、widget変更slot、選択action要求、tool有効化・通知を担う残存全29 API・5枠を追加した。CMake、公開header、製品source、既存5枠を変更せず、受渡しcommit `1562a3488d6f0ed0b192a3dc77c5602a93c1c571`を中央commit `3ac70bc315`として取り込んだ。最終sourceは157行・10枠である。
+- 担当側と中央のmacOSで5枠を各20回、既存を含む全12試験、正式CTest `libs-tools-ui-KisSelectionOptionsSchemaContractTest`、軽量近傍`libs-tools-ui-KisCompositeOpSelectorSchemaContractTest`、AUTOMOC後の二回目計画、無作業再構築2回に成功した。中央実測は変更前と同じ4工程・8入力、command SHA-256 `dfbb70975be40911ef339384abf74ef17d35aea6cf4e172eb530d41e58dee650`、input SHA-256 `5be2424209fa894815b337d8ae01fb9370048c957e48286cd1096b4408033f2b`、AUTOMOC `HEADERS=[]`、Qt Core・TestとOS frameworkだけの動的接続、helper・signal・metaobjectを含む製品未解決記号なしである。厳格`clang-check`、変更行の書式、差分、macOSのpackage境界1,887対象、公開API検査に成功し、台帳は21,922件対応、7,882件未対応となった。設定保存・再読込、widget所有、action要求、signal配送の実行時意味は既存`TestToolSettingsUiContract`または後続の動的契約で扱う。
+- 中央検証後にcleanな専用作業tree、306,872 KiBのlane構築木、branchを削除して897,548 KiBを回収した。旧`public-api-missing-g253.json`を削除し、主Ninja木5,773,128 KiB、共有compiler cache 983,000 KiB、最新`build/tdd-macos/public-api-missing-g254.json` 2,098,471 bytes、SHA-256 `a5a9265000070e41af4e29b6b7dbcd61627f6d9496dea2da7769be91910474bc`だけを次便へ再利用する。compiler cacheは143,233件中120,262件、83.96%がhitしている。製品target、重量`TestToolSettingsUiContract`、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第254便のpalette編集調整26 APIを正式不足報告で再照合し、公開headerの直接依存と最小構築範囲を先に確定することである。
 
 ### 第239便の先行監査担当票
 
