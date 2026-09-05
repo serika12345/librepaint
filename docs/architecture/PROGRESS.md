@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-06 01:06 JST
+- 更新日時: 2026-09-06 01:09 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1388,7 +1388,7 @@
 ### 第268便の監査結果と構造準備計画
 
 - `libs/canvas/KisCanvasState.h`の残存全19 APIは一意かつ台帳と非重複で、識別子整列集合SHA-256 `ca53d53dfe197d2b2db192066f04a0f30753f31e6c9ca07acac2081a42799fc3`を持つ。型・zoom値5を含む6、mode・反転・位置6、範囲・寸法4、全値の等価性1、zoom状態写像・converter採取2の5枠へ割り当てる。15 fieldをすべて明示初期化して読書き・型・全field比較を固定し、5つのqrealは正の隣接表現で`qFuzzyCompare`等価性、`zoomState()`はmode・zoom・上下限の写像を値契約として観測する。`fromConverter()`の15項目採取と不整合警告は実converterを使う後続の動的契約で扱う。
-- `g268a-canvas-state-value-boundary`の状態は`planned`とする。開始`libs/canvas/KisCanvasState.cpp`の`KisCanvasState::fromConverter()`を既存`libs/canvas/kis_coordinates_converter.cpp`へ移し、元ファイルには`operator==`と`zoomState()`だけを残す。`libs/canvas/CMakeLists.txt`で元ファイルを製品直接source一覧から新規`kritacanvasstateobjects`へ移し、製品`kritacanvas`が生成objectを一度だけ集約する。これにより純粋値処理からconverter経由のimage・global・Qt Gui依存を除く。許可pathはこの2 cppとcanvas CMakeだけで、公開headerと翻訳単位数を変更しない。
+- `g268a-canvas-state-value-boundary`の状態は`in_progress`、実装基点は`1f9178bc7e`、専用作業treeは`/Users/masato/Documents/librepaint-g268a-canvas-state-value-boundary`、branchは`agent/g268a-canvas-state-value-boundary`、macOSのobject・軽量近傍と製品計画に限る構築実行許可は`granted`である。開始`libs/canvas/KisCanvasState.cpp`の`KisCanvasState::fromConverter()`を既存`libs/canvas/kis_coordinates_converter.cpp`へ移し、元ファイルには`operator==`と`zoomState()`だけを残す。`libs/canvas/CMakeLists.txt`で元ファイルを製品直接source一覧から新規`kritacanvasstateobjects`へ移し、製品`kritacanvas`が生成objectを一度だけ集約する。これにより純粋値処理からconverter経由のimage・global・Qt Gui依存を除く。許可pathはこの2 cppとcanvas CMakeだけで、公開headerと翻訳単位数を変更しない。調整担当だけが文書、台帳、共通不足報告を変更し、担当のGit権限は許可pathだけの受渡しcommit 1件、追加委任は禁止する。
 - 続く`g268-canvas-state-contract`は新規`libs/canvas/tests/KisCanvasStateContractTest.cpp`と`libs/canvas/tests/CMakeLists.txt`の新target固有節だけを許可する。`kritacanvasstateobjects`はAUTOMOCを無効化し、canvas・flake探索路、`kritacanvas_EXPORTS`、BoostとQt Coreだけで1工程・3入力を予測する。契約targetは同objectとQt Testを直接接続する5工程・11入力を予測し、停止線6工程・14入力とする。製品`kritacanvas`は1,220工程以下・2,461入力以下、objectの単一集約を条件とする。Qt Gui・Widgets・Xml、KF、image・global・pigment・resources、製品shared、`kritatestsdk`、`fromConverter()`実行、候補headerのAUTOMOC入力、公開API変更、許可path外変更が必要なら停止する。第267便完了後にG268aから開始する。
 
 ### 第269便の先行監査担当票
@@ -1429,8 +1429,13 @@
 ### 第272便の先行監査担当票
 
 - 監査共通基点は`e6528cff7c`、正式入力は`build/tdd-macos/public-api-missing-g267.json`である。第267便から第271便までの選定済みAPIを除外し、`plugins/color/colorspaceextensions/kis_hsv_adjustment.h`の残存18 API、`plugins/paintops/libpaintop/KisCurveRangeModel.h`の残存17 API、`plugins/paintops/libpaintop/KisPaintOpOptionWidgetUtils.h`の残存17 API、`plugins/filters/colorsfilters/virtual_channel_info.h`の残存16 APIを比較し、一責務を最大5枠の契約へ閉じられる次候補を選ぶ。主作業treeと正式不足一覧の読み取りだけを許可し、変更、構成、構築、試験、Git操作、生成物作成、追加委任を行わず、G267の専用構築木を共有しない。
-- `g272-public-api-candidate-audit`の状態は`in_progress`である。各候補の正式識別子、責務、公開値・所有・寿命、最大5枠の完全割当を比較し、実画像、色空間登録簿、paintop、UI、大域状態を生成せず固定できる決定的な値挙動を優先する。
-- `g272-build-closure-review`の状態は`in_progress`である。各候補headerと実装の直接依存、既存軽量・重量対象、新規限定対象・既存追記・具体的source/object所有分割の閉包と依存方向、先行include整理の効果、AUTOMOC、許可pathと停止線を独立に比較する。
+- `g272-public-api-candidate-audit`の状態は`completed`である。各候補の正式識別子、責務、公開値・所有・寿命、最大5枠の完全割当を比較し、実画像、色空間登録簿、paintop、UI、大域状態を生成せず固定できる決定的な値挙動を優先した。
+- `g272-build-closure-review`の状態は`completed`である。各候補headerと実装の直接依存、既存軽量・重量対象、新規限定対象・既存追記・具体的source/object所有分割の閉包と依存方向、先行include整理の効果、AUTOMOC、許可pathと停止線を独立に比較した。HSV adjustmentだけが製品実装を分けずに全残存APIを4工程・8入力へ閉じられることを確認した。
+
+### 第272便の監査結果と担当計画
+
+- `plugins/color/colorspaceextensions/kis_hsv_adjustment.h`の残存全18 APIは一意かつ台帳と非重複で、識別子整列集合SHA-256 `41edeb9be329144f39c1e7d8b62ab4dd00a17763904b83646959ac2e1a57f138`を持つ。HSV工場の型・構築2、対応形式・変換生成2、HSV曲線工場の型・構築2、対応形式・変換生成2、曲線channel列挙型と9値10の5枠へ割り当てる。列挙値`0..8`を値契約で固定し、工場と生成関数は型特性と厳密member pointerで観測する。実色空間と変換実体を使う生成結果は後続の動的契約で扱う。
+- `g272-hsv-adjustment-schema`の状態は`planned`とする。許可pathは新規`plugins/color/colorspaceextensions/tests/KisHSVAdjustmentSchemaContractTest.cpp`、新規`plugins/color/colorspaceextensions/tests/CMakeLists.txt`、親`plugins/color/colorspaceextensions/CMakeLists.txt`のtest subdirectory追加だけとし、候補header、製品source、製品targetを変更しない。新targetはcolorspaceextensionsとpigmentのsource/generated探索路、`kritapigment_EXPORTS`、Qt Core・Testだけの直接linkによる4工程・8入力を予測し、停止線5工程・11入力とする。候補headerのAUTOMOC入力化、Qt Gui・Widgets・Xml、KF、OpenEXR・Imath、Boost、`kritapigment`・`kritaglobal`・plugin製品target・OBJECT、`kritatestsdk`、`KoID`完全型、工場実体化、製品未解決記号、許可path外変更が必要なら停止する。第271便完了後に開始する。
 
 ### 第239便の先行監査担当票
 
