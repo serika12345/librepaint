@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 10:33 JST
+- 更新日時: 2026-09-05 10:35 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -790,6 +790,12 @@
 ### 第236便の先行監査担当票（第235便確定待ち）
 
 - `g236-ui-contract-audit`の状態は`completed-ready`、担当は`g178_shape_hierarchy_schema`、監査基点は`17be08ecb2`で、application起動引数21 APIを選定した。`libs/application/ui/orchestration/KisApplicationArguments.h`の残存21 APIは一意で台帳と重複せず、識別子整列集合SHA-256 `2bbdc6dfcfe61c50bd17532abc541f61710473908371522c4a719534be8f5b3b`、新規`libs/application/tests/KisApplicationArgumentsSchemaContractTest.cpp`の5枠5・2・4・4・6に一致する。同型はprocess起動時の文書入力、表示方式、export・workspace指定を一つの値として保持・複製・直列化する境界である。新targetはapplication・global探索路、`kritaapplicationui_EXPORTS`、Qt Core・Testだけで4工程・8入力を予測し、停止線を5工程・11入力とする。同名`kritaui_export.h`はapplication生成版だけを解決する。引数option優先順位、複数filename、無効直列化入力、直列化互換性、複製後の独立性、session・workspace解決、文書生成副作用は既存または後続の動的契約で扱い、正式第236便不足報告で21件と集合SHAを再照合する。
+
+### 第237便と第238便の先行監査担当票（第236便確定待ち）
+
+- 監査共通基点は`9b2ee67349`、入力は`build/tdd-macos/public-api-missing-g228.json`である。第228便から第236便までに選定済みの責務を除外し、変更、構成、構築、試験、Git操作、追加委任を行わない読み取り専用監査を先行する。候補は一つの公開責務から15〜80 APIを最大5枠へ固定でき、既存限定対象またはheader限定の4〜10工程程度を見込めるものとする。各正式便の直前に最新不足報告で全識別子、集合SHA、台帳非重複、対象不存在、閉包計画を再照合する。
+- `g237-resource-contract-audit`の状態は`auditing`、担当は`g178_paintop_settings_schema`である。`libs/resources`と`libs/brush`から、資源pathとSeExpr script資源を含む選定済みまたは契約済みheaderを除外して候補を比較する。完全な識別子、責務、5枠、既存契約との重複、最小source・CMake・近傍、予測閉包、必要依存、自己完結性、実体化回避、動的危険、停止条件を報告する。
+- `g238-impex-contract-audit`の状態は`auditing`、担当は`g208_raster_keyframe_schema`である。`libs/impex`、`libs/psd`、`libs/psdutils`、`plugins/impex`、`plugins/metadata`から、選定済みまたは契約済みheaderを除外して候補を比較する。完全な識別子、責務、5枠、既存契約との重複、最小source・CMake・近傍、予測閉包、必要依存、自己完結性、実体化回避、動的危険、停止条件を報告する。
 
 ### 第201便の先行監査担当票
 
