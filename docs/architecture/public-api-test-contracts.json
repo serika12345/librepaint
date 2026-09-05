@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 8194
+    "expectedMissingApis": 8149
   },
   "contracts": [
     {
@@ -60154,6 +60154,96 @@
         "method:KisAslXmlWriter::writePatternRef(const QString & key,const KoPatternSP pattern,const QString & uuid)",
         "method:KisAslXmlWriter::writeSegmentGradient(const QString & key,const KoSegmentGradient & gradient)",
         "method:KisAslXmlWriter::writeStopGradient(const QString & key,const KoStopGradient & gradient)"
+      ]
+    },
+    {
+      "target": "KisResourcesSnapshotSchemaContractTest",
+      "source": "libs/painting/tests/KisResourcesSnapshotSchemaContractTest.cpp",
+      "test": "KisResourcesSnapshotSchemaContractTest::resourcesSnapshotTypeLifetimeAndConstructionSchemaRemainStable",
+      "behavior": "描画資源snapshotは共有参照別名、image・node・資源を入力とする構築、破棄を備える公開型構成を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisResourcesSnapshotSP",
+        "class:KisResourcesSnapshot",
+        "method:KisResourcesSnapshot::KisResourcesSnapshot(KisImageSP image,KisNodeSP currentNode,KisDefaultBoundsBaseSP bounds=0)",
+        "method:KisResourcesSnapshot::KisResourcesSnapshot(KisImageSP image,KisNodeSP currentNode,KoCanvasResourcesInterfaceSP resources,KisDefaultBoundsBaseSP bounds=0,KisNodeList selectedNodes=KisNodeList (),KisPaintOpPresetSP presetOverride=0)",
+        "method:KisResourcesSnapshot::~KisResourcesSnapshot()"
+      ]
+    },
+    {
+      "target": "KisResourcesSnapshotSchemaContractTest",
+      "source": "libs/painting/tests/KisResourcesSnapshotSchemaContractTest.cpp",
+      "test": "KisResourcesSnapshotSchemaContractTest::resourcesSnapshotPaintingContextSignaturesRemainStable",
+      "behavior": "描画資源snapshotはimage・node・selection・undo・fill変換を取得し、painterと描画contextを設定する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisResourcesSnapshot::activeSelection() const",
+        "method:KisResourcesSnapshot::currentNode() const",
+        "method:KisResourcesSnapshot::fillTransform() const",
+        "method:KisResourcesSnapshot::image() const",
+        "method:KisResourcesSnapshot::postExecutionUndoAdapter() const",
+        "method:KisResourcesSnapshot::selectedNodes() const",
+        "method:KisResourcesSnapshot::setCurrentNode(KisNodeSP node)",
+        "method:KisResourcesSnapshot::setFillStyle(KisPainter::FillStyle fillStyle)",
+        "method:KisResourcesSnapshot::setFillTransform(QTransform transform)",
+        "method:KisResourcesSnapshot::setStrokeStyle(KisPainter::StrokeStyle strokeStyle)",
+        "method:KisResourcesSnapshot::setupMaskingBrushPainter(KisPainter * painter)",
+        "method:KisResourcesSnapshot::setupPainter(KisPainter * painter)"
+      ]
+    },
+    {
+      "target": "KisResourcesSnapshotSchemaContractTest",
+      "source": "libs/painting/tests/KisResourcesSnapshotSchemaContractTest.cpp",
+      "test": "KisResourcesSnapshotSchemaContractTest::resourcesSnapshotResourceValueSignaturesRemainStable",
+      "behavior": "描画資源snapshotはchannel、合成方式、色、pattern、paintop preset、gradient、generatorと各資源署名を取得する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisResourcesSnapshot::channelLockFlags() const",
+        "method:KisResourcesSnapshot::compositeOpId() const",
+        "method:KisResourcesSnapshot::currentBgColor() const",
+        "method:KisResourcesSnapshot::currentFgColor() const",
+        "method:KisResourcesSnapshot::currentGenerator() const",
+        "method:KisResourcesSnapshot::currentGradient() const",
+        "method:KisResourcesSnapshot::currentGradientSignature() const",
+        "method:KisResourcesSnapshot::currentPaintOpPreset() const",
+        "method:KisResourcesSnapshot::currentPaintOpPresetSignature() const",
+        "method:KisResourcesSnapshot::currentPattern() const",
+        "method:KisResourcesSnapshot::currentPatternSignature() const",
+        "method:KisResourcesSnapshot::isUsingOtherColor() const",
+        "method:KisResourcesSnapshot::opacity() const"
+      ]
+    },
+    {
+      "target": "KisResourcesSnapshotSchemaContractTest",
+      "source": "libs/painting/tests/KisResourcesSnapshotSchemaContractTest.cpp",
+      "test": "KisResourcesSnapshotSchemaContractTest::resourcesSnapshotPaintingPolicyAndLodSignaturesRemainStable",
+      "behavior": "描画資源snapshotはairbrush・間接描画・masking・spacing・zoom・LOD・非同期更新の方針を返す公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisResourcesSnapshot::airbrushingInterval() const",
+        "method:KisResourcesSnapshot::effectiveZoom() const",
+        "method:KisResourcesSnapshot::indirectPaintingCompositeOp() const",
+        "method:KisResourcesSnapshot::needsAirbrushing() const",
+        "method:KisResourcesSnapshot::needsIndirectPainting() const",
+        "method:KisResourcesSnapshot::needsMaskingBrushRendering() const",
+        "method:KisResourcesSnapshot::needsSpacingUpdates() const",
+        "method:KisResourcesSnapshot::presetAllowsLod() const",
+        "method:KisResourcesSnapshot::presetNeedsAsynchronousUpdates() const"
+      ]
+    },
+    {
+      "target": "KisResourcesSnapshotSchemaContractTest",
+      "source": "libs/painting/tests/KisResourcesSnapshotSchemaContractTest.cpp",
+      "test": "KisResourcesSnapshotSchemaContractTest::resourcesSnapshotOverrideAndBrushSignaturesRemainStable",
+      "behavior": "描画資源snapshotは前景・背景色、brush、mirror、opacity、selectionを描画単位で上書きする公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisResourcesSnapshot::setBGColorOverride(const KoColor & color)",
+        "method:KisResourcesSnapshot::setBrush(const KisPaintOpPresetSP & brush)",
+        "method:KisResourcesSnapshot::setFGColorOverride(const KoColor & color)",
+        "method:KisResourcesSnapshot::setMirroring(bool horizontal,bool vertical)",
+        "method:KisResourcesSnapshot::setOpacity(qreal opacity)",
+        "method:KisResourcesSnapshot::setSelectionOverride(KisSelectionSP selection)"
       ]
     }
   ]

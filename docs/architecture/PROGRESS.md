@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 14:04 JST
+- 更新日時: 2026-09-05 14:25 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -926,9 +926,20 @@
 
 ### 第239便の担当計画
 
-- 実装基点は`1ca013776e`である。`g239-resources-snapshot-schema`の状態は`planned`、専用作業treeは`/Users/masato/Documents/librepaint-g239-resources-snapshot-schema`、branchは`agent/g239-resources-snapshot-schema`である。開始`libs/painting/kis_resources_snapshot.h`の残存全45 APIを、新規`libs/painting/tests/KisResourcesSnapshotSchemaContractTest.cpp`の5枠へ固定する。許可pathは同試験sourceと`libs/painting/tests/CMakeLists.txt`の新target固有節だけで、公開header、製品source、既存targetを変更しない。調整担当だけがarchitecture文書、公開API台帳、共通不足報告を変更する。担当のGit権限は許可pathだけの受渡しcommit 1件で、追加委任は禁止する。
+- 実装基点は`1ca013776e`である。`g239-resources-snapshot-schema`の状態は`integrated`、専用作業treeは`/Users/masato/Documents/librepaint-g239-resources-snapshot-schema`、branchは`agent/g239-resources-snapshot-schema`を使用した。開始`libs/painting/kis_resources_snapshot.h`の残存全45 APIを、新規`libs/painting/tests/KisResourcesSnapshotSchemaContractTest.cpp`の5枠へ固定した。許可pathは同試験sourceと`libs/painting/tests/CMakeLists.txt`の新target固有節だけで、公開header、製品source、既存targetを変更していない。受渡しcommit `f61c272acd`を中央commit `bb43493bb7`として取り込んだ。調整担当だけがarchitecture文書、公開API台帳、共通不足報告を変更した。担当のGit権限は許可pathだけの受渡しcommit 1件で、追加委任は禁止した。
 - 5枠は`resourcesSnapshotTypeLifetimeAndConstructionSchemaRemainStable`へ共有別名、型、2構築、破棄の5件、`resourcesSnapshotPaintingContextSignaturesRemainStable`へimage・node・selection・undo、fill変換、painter設定の12件、`resourcesSnapshotResourceValueSignaturesRemainStable`へchannel lock、opacity・合成方式、pattern・前景背景色・paintop preset・gradient・generatorと各資源署名の13件、`resourcesSnapshotPaintingPolicyAndLodSignaturesRemainStable`へairbrush・間接描画・masking・spacing・zoom・LOD・非同期更新の9件、`resourcesSnapshotOverrideAndBrushSignaturesRemainStable`へ前景背景色・brush・mirror・opacity・selection上書きの6件を対応付ける。正式入力`build/tdd-macos/public-api-missing-g239.json`の完全な45識別子と識別子整列集合SHA-256 `bbaf9402fb5a27bbd027e419277cd23410c51b62854924183b6ff7fa0f958ec3`を維持する。
 - 新targetは既存`KisFilterStrokeStrategySchemaContractTest`と同じpainting・global・image・pigment・pigment/resources・resources・painting/undo source/generated探索路、Eigen・Imath・KF I18n interface探索路、`kritaglobal_EXPORTS`・`kritaimage_EXPORTS`・`kritapainting_EXPORTS`・`kritapaintingundo_EXPORTS`・`kritapigment_EXPORTS`・`kritaresources_EXPORTS`、Qt Core・Gui・Test・Xmlとheader-only Boostだけに限定し、予測閉包4工程・8入力、停止線5工程・11入力とする。型特性と厳密な関数・member pointerだけで観測し、snapshot、image、node、painter、資源、選択、Qt値を実体化せず本文を実行しない。担当は編集前target不存在、直接依存、初回計画、5枠宣言段階の期待link失敗、5枠単発・各20回、全target、正式CTest、近傍`KisFilterStrokeStrategySchemaContractTest`、AUTOMOC後二回目計画、無作業再構築2回、動的接続・未解決記号・AUTOMOC入力・構文・書式、差分、公開API検査、`verify-quick`を確認する。5工程・11入力超過、近傍を超える探索路・定義・link、製品shared・OBJECT・`kritatestsdk`の接続、候補headerのAUTOMOC入力化、製品未解決記号、対象実体化、許可path外変更が必要なら停止する。製品target、全体build・`verify`、Linux、Nix再評価は禁止する。
+
+### 第239便の契約統合結果
+
+- 開始`libs/painting/kis_resources_snapshot.h`から新規`libs/painting/tests/KisResourcesSnapshotSchemaContractTest.cpp`へ45 API・5枠を追加した。担当側と中央のmacOSで5枠を各20回、対象全7件、正式CTestと近傍`KisFilterStrokeStrategySchemaContractTest`、AUTOMOC後の二回目計画、無作業再構築2回に成功した。中央実測は4工程・8入力、command SHA-256 `748cf4371e3c3c7fb67ca9763c2dae1d8fdc9b9ce71fdf1338a93d90495e65dc`、input SHA-256 `c2059b5e4a87dbc220b714d394c8b6f3c4e49e57d358fe0079f9c0ff4e83bd9a`、AUTOMOC `HEADERS=[]`、Qt Core・Gui・Test・XmlとOS frameworkだけの動的接続、製品未解決記号なしである。Eigen・Imath・KF I18nは探索界面、Boostはheaderだけに限定した。正しいcompile commandによる`clang-check -Werror`、書式、差分、macOSのpackage境界1,879対象、公開API検査に成功し、台帳は21,655件対応、8,149件未対応となった。snapshot取得値、painter設定、LoD・airbrush判断、資源上書きの実行時意味は既存または後続の動的契約で扱う。
+- 統合済みpatchとclean状態を確認後に専用作業tree、300,100 KiBのlane構築木、branchを削除して890,576 KiBを回収した。旧`public-api-missing-g239.json`を削除し、主Ninja木5,764,932 KiB、共有compiler cache 982,348 KiB、最新`build/tdd-macos/public-api-missing-g240.json` 2,165,873 bytes、SHA-256 `5c669aaa64a87e4c4b77d809ccb6018b085c3b260ea22e239727af90273fbd40`だけを次便へ再利用する。compiler cacheは143,125件中120,237件、84.01%がhitしている。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+
+### 第240便の担当計画
+
+- 実装基点は`bb43493bb7`である。`g240-pattern-schema`の状態は`planned`、専用作業treeは`/Users/masato/Documents/librepaint-g240-pattern-schema`、branchは`agent/g240-pattern-schema`である。開始`libs/pigment/resources/KoPattern.h`の残存全19 APIを、新規`libs/pigment/tests/KoPatternSchemaContractTest.cpp`の5枠へ固定する。許可pathは同試験sourceと`libs/pigment/tests/CMakeLists.txt`の新target固有節だけで、公開header、製品source、既存targetを変更しない。調整担当だけがarchitecture文書、公開API台帳、共通不足報告を変更する。担当のGit権限は許可pathだけの受渡しcommit 1件で、追加委任は禁止する。
+- 5枠は`patternTypeLifetimeAndValueSemanticsSchemaRemainStable`へ共有別名、型、複製構築、代入、破棄の5件、`patternConstructionAndCloneSchemaRemainStable`へfile構築、画像・名前・file構築、複製、alpha除去複製の4件、`patternPersistenceSignaturesRemainStable`へ既定拡張子、通常・PAT読込み、通常・PAT保存の5件、`patternImageAndGeometrySignaturesRemainStable`へ高さ、画像、幅の3件、`patternClassificationAndAlphaSignaturesRemainStable`へalpha有無と資源種別の2件を対応付ける。正式入力`build/tdd-macos/public-api-missing-g240.json`の完全な19識別子と識別子整列集合SHA-256 `2aa424750d22af4e726f1c14b30764a46c27832bd13238aa479ff3891bd0007b`を維持する。
+- 新targetはpigment・resources source/generated探索路、KF I18n interface探索路、`kritapigment_EXPORTS`・`kritaresources_EXPORTS`、Qt Core・Gui・Testとheader-only Boostだけに限定し、予測閉包4工程・8入力、停止線5工程・11入力とする。`KoPattern.h`はglobalやImathを含まないため、それらの探索路・定義・接続を加えない。型特性、別名同一性、厳密な関数・member pointer、未評価構築式だけで観測し、pattern、画像、装置、資源interface、Qt値を実体化せず本文を実行しない。担当は編集前target不存在、直接依存、初回計画、5枠宣言段階の期待link失敗、5枠単発・各20回、全target、正式CTest、近傍`KoStopGradientSchemaContractTest`、AUTOMOC後二回目計画、無作業再構築2回、動的接続・未解決記号・AUTOMOC入力・構文・書式、差分、公開API検査、`verify-quick`を確認する。5工程・11入力超過、新しい探索路・定義・link、KF I18nまたは製品shared・OBJECT・`kritatestsdk`の接続、候補headerのAUTOMOC入力化、製品未解決記号、対象実体化、許可path外変更が必要なら停止する。製品target、全体build・`verify`、Linux、Nix再評価は禁止する。
 
 ### 第239便の先行監査担当票
 
