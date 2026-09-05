@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 20:15 JST
+- 更新日時: 2026-09-05 20:19 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1135,7 +1135,7 @@
 
 ### 第257便の担当計画
 
-- 実装基点は`59a62aedd3`である。`g257-gradient-conversion-schema`の状態は`planned`、専用作業treeは`/Users/masato/Documents/librepaint-g257-gradient-conversion-schema`、branchは`agent/g257-gradient-conversion-schema`とする。開始`libs/pigment/resources/KisGradientConversion.h`の残存全18 APIを、既存`libs/pigment/tests/KoStopGradientSchemaContractTest.cpp`の5枠へ固定する。許可pathは同試験sourceだけで、CMake、公開header、製品source、既存10枠を変更しない。調整担当だけがarchitecture文書、公開API台帳、共通不足報告を変更する。担当のGit権限は許可pathだけの受渡しcommit 1件で、追加委任は禁止する。
+- 実装基点は`59a62aedd3`である。`g257-gradient-conversion-schema`の状態は`in_progress`、専用作業treeは`/Users/masato/Documents/librepaint-g257-gradient-conversion-schema`、branchは`agent/g257-gradient-conversion-schema`とする。開始`libs/pigment/resources/KisGradientConversion.h`の残存全18 APIを、既存`libs/pigment/tests/KoStopGradientSchemaContractTest.cpp`の5枠へ固定する。許可pathは同試験sourceだけで、CMake、公開header、製品source、既存10枠を変更しない。調整担当だけがarchitecture文書、公開API台帳、共通不足報告を変更する。担当のGit権限は許可pathだけの受渡しcommit 1件で、追加委任は禁止する。
 - 5枠は`gradientConversionToQGradientStopsSignaturesRemainStable`へ抽象・segment・stop gradientからQt stop列への変換3件、`gradientConversionToQGradientSignaturesRemainStable`へ同3種からQt gradientへの変換3件、`gradientConversionToAbstractGradientSignaturesRemainStable`へsegment・stop・Qt gradient・Qt stop列から抽象gradientへの変換4件、`gradientConversionToStopGradientSignaturesRemainStable`へ抽象・segment・Qt gradient・Qt stop列からstop gradientへの変換4件、`gradientConversionToSegmentGradientSignaturesRemainStable`へ抽象・stop・Qt gradient・Qt stop列からsegment gradientへの変換4件を対応付ける。正式入力`build/tdd-macos/public-api-missing-g257.json`の完全な18識別子と識別子整列集合SHA-256 `6cd30111de5b27bf757d6ac3c394901f7bb1b8b944299cecf69a48b8d5e67141`を維持する。
 - 事前の構築範囲監査では、既存sourceが189行・10枠で同じgradient値表現・変換責務を追加後も300行・20枠以内に収められるため、新targetとCMake変更は不要である。既存targetはpigment、resources、globalのsource/generated探索路、KF I18n・Imathのinterface探索、3つの所有export定義、Qt Core・Gui・Testとheader-only Boostだけの4工程・8入力である。command SHA-256は`9bcbdcc81a6df936d2970df7b50edab900578421c96a77bccf06ff3138718769`、input SHA-256は`57556558e684b9f9b0287440adab7a9c7c9988c8dca55e257642e63511529a37`、停止線は5工程・11入力とする。候補headerは署名に必要なgradient型とcanvas資源interfaceを直接includeしており、先行構造改善は不要である。
 - 候補headerを最初のrepository includeにし、厳密な自由関数pointerと既定引数を省略した未評価式だけで観測する。gradient、共有pointer、canvas資源、`QGradient`、戻り値を実体化せず変換本文を実行しない。担当は変更前計画、5枠宣言段階の期待link失敗、追加5枠単発・各20回、既存を含む全target、正式CTest、軽量近傍`KoGradientSegmentSchemaContractTest`、AUTOMOC後二回目plan、無作業build 2回、4/8とhash、動的接続・未解決記号・AUTOMOC入力・構文・書式、差分、公開API検査、`verify-quick`を確認する。CMake変更、5工程・11入力超過、新しい探索路・定義・link、製品shared・OBJECT・`kritatestsdk`、候補headerのAUTOMOC入力化、変換関数の製品未解決記号、対象実体化・本文実行、許可path外変更が必要なら停止する。製品target、全体build・`verify`、Linux、Nix再評価は禁止する。
