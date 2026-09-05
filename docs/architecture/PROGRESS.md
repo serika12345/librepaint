@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 21:47 JST
+- 更新日時: 2026-09-05 21:58 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1186,7 +1186,7 @@
 
 ### 第259便の担当計画
 
-- 実装基点は本計画commitである。`g259-node-commands-adapter-schema`の状態は`in_progress`、専用作業treeは`/Users/masato/Documents/librepaint-g259-node-commands-adapter-schema`、branchは`agent/g259-node-commands-adapter-schema`とする。R1で旧`libs/ui/kis_node_commands_adapter.h`から移設された現開始`libs/image/commands/kis_node_commands_adapter.h`の残存全19 APIを、新規`libs/image/tests/KisNodeCommandsAdapterSchemaContractTest.cpp`の5枠へ固定する。許可pathは同試験sourceと`libs/image/tests/CMakeLists.txt`の新target固有節だけで、公開header、製品source、既存targetを変更しない。調整担当だけがarchitecture文書、公開API台帳、共通不足報告を変更する。担当のGit権限は許可pathだけの受渡しcommit 1件で、追加委任は禁止する。
+- 実装基点は`be5bb78739`である。`g259-node-commands-adapter-schema`の状態は`integrated`で、R1で旧`libs/ui/kis_node_commands_adapter.h`から移設された現開始`libs/image/commands/kis_node_commands_adapter.h`の残存全19 APIを、新規`libs/image/tests/KisNodeCommandsAdapterSchemaContractTest.cpp`の5枠へ固定した。許可pathは同試験sourceと`libs/image/tests/CMakeLists.txt`の新target固有節だけで、公開header、製品source、既存targetを変更していない。受渡しcommit `34b71f70101dcd142030474a73edb7330b1a0547`を中央commit `9c5c2b5882`として取り込んだ。
 - 5枠は`nodeCommandsAdapterTypeLifetimeAndImageBindingSchemaRemainStable`へ型・既定構築・破棄・image再束縛4件、`nodeCommandsAdapterCommandTransactionSignaturesRemainStable`へ追加command・macro開始終了・直前command取消4件、`nodeCommandsAdapterSynchronousHierarchyMutationSignaturesRemainStable`へnode同期追加2種・移動2種・除去5件、`nodeCommandsAdapterAsynchronousApplicationSignaturesRemainStable`へnode非同期追加2種・単一command非同期適用3件、`nodeCommandsAdapterNodePropertyMutationSignaturesRemainStable`へ合成方式・名称・不透明度変更3件を対応付ける。正式入力`build/tdd-macos/public-api-missing-g259.json`の完全な19識別子と識別子整列集合SHA-256 `7d093f54513314d309057f1317409d11240a0e90bec103cef1c08b7881e1713e`を維持する。
 - 新targetはimage、global、pigment、painting/undoのsource/generated探索路、KF I18nのinterface探索、`kritaimage_EXPORTS`と`kritapigment_EXPORTS`、Qt Core・Testとheader-only Boostだけを使う。比較する`KisProcessingApplicatorSchemaContractTest`は4工程・8入力、command SHA-256 `aebc43df061dfd6cb27cd1f01813305de7a85965eb7268dd12b7d7f825ac50e8`、input SHA-256 `ef65832c613a467e9fd10c4af072b8718b9043f966c8104b8aff5bd39bd3c090`であり、新targetも4工程・8入力、停止線5工程・11入力を予測する。候補headerはimage commandからpaint device型を推移させるが、この面でも4/8に閉じるため未使用include整理は別の構造変更として扱う。製品接続を持つ動的`KisNodeCommandsAdapterTest`は今回の反復対象にしない。
 - 候補headerを最初にincludeし、QObject派生・既定構築・仮想破棄、厳密member pointer、constructor、同期・非同期追加と単一command適用の既定引数を未評価式だけで観測する。adapter、image、node、command、applicator、Qt値を実体化せず、製品本文を実行しない。担当は編集前target不存在、5枠宣言段階の期待link失敗、追加5枠単発・各20回、全target、正式CTest、軽量近傍`KisProcessingApplicatorSchemaContractTest`、AUTOMOC後の二回目計画、無作業build 2回、4/8とhash、動的接続・未解決記号・AUTOMOC入力・厳格構文・書式、差分、公開API検査、`verify-quick`を確認する。5工程・11入力超過、指定外探索路・定義・link、Qt Gui、Imath、resourcesまたは製品libraryの接続、製品shared・OBJECT・`kritatestsdk`、候補headerのAUTOMOC入力化、adapter・image・node・command・applicatorの製品未解決記号、対象実体化、許可path外変更が必要なら停止する。製品target、重量動的試験、全体build・`verify`、Linux、Nix再評価は禁止する。
@@ -1198,11 +1198,24 @@
 - `kundo2stack_p.h`は`KUndo2Action`のQAction継承を所有して既に完全includeし、`kundo2stack.cpp`と`kundo2group.cpp`は同private headerを直接includeするため変更しない。構造準備は変更前のG259 header-first `QAction`欠落と変更後のQt Guiなし成功、compile database上の`kundo2stack.h`・`kundo2command.h`利用元の厳格構文検査、action実装と設定画面の直接所有を確認する。既存の具体所有検証として`KUndo2StackContractTest`は11工程・26入力だが、公開stack header、core object、action objectを一体で構築する最小の既存対象なのでこの構造便に限り許可する。さらにG259の軽量近傍、対象object、公開API 29,804件とG259の19識別子・SHA、書式、差分、公開API検査、`verify-quick`を確認する。2 source以外の直接include補正、公開API・ABI変更、CMake変更、製品全体・全体build・`verify`・Linux・Nix再評価が必要なら停止する。
 - 変更前のG259 header-firstは`kundo2stack.h:54`で`QAction`不足を診断し、変更後はQt Gui探索路なしで同診断を解消した。compile database上の直接利用元70件は54件が厳格構文検査に成功し、16件は未生成moc 4件、未生成UI 6件、既存の非推奨診断3件、未使用・符号比較診断3件だけで、変更起因の失敗と追加include補正は0件だった。`KUndo2StackContractTest`の構築とCTest、11工程・26入力、command SHA-256 `83b03f8fe8cd310e24dc745ffc9064737dd51bbee95605efccf7cc51dc2557d1`、input SHA-256 `bf2b5e0b0921fe2c0d8cd65c9c071cb6f7380c0ba8756d523471ffaa62cd1fda`、二回の無作業再構築、公開API 29,804件、G259の19識別子と指紋、差分、公開API検査、`verify-quick`に成功した。中央でも同限定対象のCTestと二回の無作業再構築に成功した。cleanな専用作業tree、306,244 KiBの構築木、branchを削除して897,004 KiBを回収した。設定画面sourceの構文検査は既存の生成UI不足を基線とし、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 
+### 第259便の契約統合結果
+
+- `KisNodeCommandsAdapterSchemaContractTest`は型・寿命・画像束縛4、command取引4、同期階層変更5、非同期適用3、node属性変更3の全19 APIを重複なく固定した。宣言だけの5枠が未定義linkで失敗する赤段階から、厳密member pointer、型特性、既定引数の未評価呼出しによる実装後の成功までを確認した。非同期適用順、macro grouping、undo・更新通知、選択maskの実行時意味は既存重量試験または後続の動的契約で扱う。
+- 担当側と中央のmacOSで5枠を各20回、全7試験、正式CTest `libs-image-KisNodeCommandsAdapterSchemaContractTest`、軽量近傍`libs-image-KisProcessingApplicatorSchemaContractTest`、AUTOMOC後の二回目計画、二回の無作業再構築に成功した。新targetは4工程・8入力、command SHA-256 `962eadbed82232f1c30756c5a32e1a19f2075a72891cc889a1a7dd305f17b676`、input SHA-256 `9126947bd3f980f6179ce29846226d9a0491c19be7360273cad2146f90d320ea`、AUTOMOC `HEADERS=[]`、Qt Core・Testだけの動的接続、adapter・image・node・command・applicatorを含む製品未解決記号0である。厳格構文、書式、差分、公開API検査、`verify-quick`にも成功した。
+- 台帳は22,033件対応、7,771件未対応となった。cleanな専用作業tree、300,964 KiBの構築木、branchを削除して891,732 KiBを回収し、旧`public-api-missing-g259.json` 2,074,008 bytesを削除した。主Ninja木5,780,044 KiB、共有compiler cache 983,388 KiB、最新`build/tdd-macos/public-api-missing-g260.json` 2,067,654 bytes、SHA-256 `2c76f88ca2c3388a3132677c06194b2a16b3e615d7d73bcbbed8f9b2fb2d46af`だけを再利用対象として保持する。compiler cacheは143,299件中120,267件、83.93%がhitしている。製品target、重量`KisNodeCommandsAdapterTest`、全体build・`verify`、Linux、Nix再評価は実行していない。
+
 ### 第260便の先行監査担当票
 
 - 監査共通基点は`be5bb78739`、正式入力は`build/tdd-macos/public-api-missing-g259.json`である。第259便の19 APIを除外し、`libs/tools/kis_tool_select_base.h`の残存公開面を次候補として監査する。監査は主作業treeの読み取りだけを許可し、変更、構成、構築、試験、Git操作、追加委任を行わない。第259便の実装・構築とは生成物を共有しない。
-- `g260-tool-select-base-api-audit`の状態は`in_progress`である。正式不足一覧と台帳に対する残存識別子の完全性、一意性、整列指紋、template基底の条件付き公開面、最大5枠への責務別割当、未評価式で固定できる範囲を調べる。
-- `g260-tool-select-base-closure-review`の状態は`in_progress`である。候補headerの直接includeとtemplate実体化条件、既存の最小契約、専用targetと既存target追記の閉包差、必要な探索路・定義・動的接続、製品shared・OBJECTと`kritatestsdk`の回避、許可path、停止線を独立に調べる。公開面がBaseClassまたは製品実装の実体化を要求する場合は、必要な先行構造整理と試験責務を分離して報告する。
+- `g260-tool-select-base-api-audit`の状態は`completed`である。正式不足一覧と台帳に対する残存識別子の完全性、一意性、整列指紋、template基底の条件付き公開面、最大5枠への責務別割当、未評価式で固定できる範囲を確認した。
+- `g260-tool-select-base-closure-review`の状態は`completed`である。候補headerの直接includeとtemplate実体化条件、既存の最小契約、専用targetと既存target追記の閉包差、必要な探索路・定義・動的接続、製品shared・OBJECTと`kritatestsdk`の回避、許可path、停止線を独立確認し、先行構造整理は不要と判定した。
+
+### 第260便の監査結果と担当計画
+
+- 最新`build/tdd-macos/public-api-missing-g260.json`で`libs/tools/kis_tool_select_base.h`の残存全27 APIが一意かつ台帳と非重複であり、識別子整列集合SHA-256 `a13c858f0dd0c08c0e6931a0f3f9b144d960541fa2370a08a8800e5ec0e02436`を持つことを再確認した。`g260-tool-select-base-schema`の状態は`in_progress`、実装基点は本計画commit、専用作業treeは`/Users/masato/Documents/librepaint-g260-tool-select-base-schema`、branchは`agent/g260-tool-select-base-schema`とする。許可pathは新規`libs/tools/tests/KisToolSelectBaseSchemaContractTest.cpp`と`libs/tools/tests/CMakeLists.txt`の新target固有節だけで、公開header、製品source、既存targetを変更しない。調整担当だけが文書、台帳、共通不足報告を変更し、担当のGit権限は許可pathだけの受渡しcommit 1件、追加委任は禁止する。
+- 5枠は`toolSelectBaseTypeAndConstructionSchemaRemainStable`へ型と3構築4件、`toolSelectBaseSelectionActionAndStateSignaturesRemainStable`へ選択動作と状態6件、`toolSelectBasePrimaryInputSignaturesRemainStable`へキー・pointer・主操作6件、`toolSelectBaseAlternateActionSignaturesRemainStable`へ代替操作5件、`toolSelectBaseInteractionLookupAndPopupSignaturesRemainStable`へ移動・選択相互作用、mask検索、popup 6件を対応付ける。試験内の完全な局所BaseClass probeと`configuredSelectionAction()`だけを実装する具体probeに対し、型特性、厳密member pointer、未評価式だけを使う。probe、canvas、event、image、selection、stroke、toolを実体化または実行しない。
+- 新規専用targetはtools、canvas、flake、global、image、painting、painting/undo、pigment、resources、widgetsの必要なsource/generated探索路とexport定義、Qt Gui・KF I18n・Imathのinterface探索、Qt Core・Testとheader-only Boostだけの直接linkを使い、AUTOMOC `HEADERS=[]`と4工程・8入力、停止線5工程・11入力を予測する。既存`KisToolSchemaContractTest`は4工程・8入力、command SHA-256 `99e59311008e7209ac9fdb68e93ef160d5800126f8401f0035c0ba60b29e9e8e`、input SHA-256 `f2467da36c35df9f69e1a05f8471b1b7e2513fbdabefea6e9bf5aecf79e7544d`だが、既存5枠と責務を結合するため追記しない。製品接続を持つ`TestToolCoreContract`は1,272工程・2,559入力なので反復対象から除外する。
+- 担当は編集前target不存在、5枠宣言段階の期待link失敗、追加5枠単発・各20回、全target、正式CTest、軽量近傍`KisToolSchemaContractTest`、AUTOMOC後の二回目計画、無作業build 2回、4/8とhash、動的接続・未解決記号・AUTOMOC入力・厳格構文・書式、差分、公開API検査、`verify-quick`を確認する。5工程・11入力超過、Qt Widgets・Xml探索路またはQt Gui・Widgets・Xml動的link、製品shared・OBJECT・`kritatestsdk`、候補headerのAUTOMOC入力化、`KisToolSelectBase`・`MoveStrokeStrategy`・image・selection・tool canvas・probeの未解決記号、製品実体化、許可path外変更が必要なら停止する。製品target、重量`TestToolCoreContract`、全体build・`verify`、Linux、Nix再評価は禁止する。
 
 ### 第239便の先行監査担当票
 

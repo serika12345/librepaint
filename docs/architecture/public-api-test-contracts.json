@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 7790
+    "expectedMissingApis": 7771
   },
   "contracts": [
     {
@@ -61458,6 +61458,70 @@
         "method:KisToolProxy::activateToolAction(KisTool::ToolAction action)",
         "method:KisToolProxy::deactivateToolAction(KisTool::ToolAction action)",
         "method:KisToolProxy::toolPrimaryActionActivated(bool activated)"
+      ]
+    },
+    {
+      "target": "KisNodeCommandsAdapterSchemaContractTest",
+      "source": "libs/image/tests/KisNodeCommandsAdapterSchemaContractTest.cpp",
+      "test": "KisNodeCommandsAdapterSchemaContractTest::nodeCommandsAdapterTypeLifetimeAndImageBindingSchemaRemainStable",
+      "behavior": "node命令仲介は画像を任意指定してQObjectとして構築・仮想破棄でき、処理対象画像を再設定する公開署名と既定引数を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisNodeCommandsAdapter",
+        "method:KisNodeCommandsAdapter::KisNodeCommandsAdapter(KisImageWSP image=KisImageWSP (),QObject * parent=nullptr)",
+        "method:KisNodeCommandsAdapter::setImage(KisImageWSP image)",
+        "method:KisNodeCommandsAdapter::~KisNodeCommandsAdapter()"
+      ]
+    },
+    {
+      "target": "KisNodeCommandsAdapterSchemaContractTest",
+      "source": "libs/image/tests/KisNodeCommandsAdapterSchemaContractTest.cpp",
+      "test": "KisNodeCommandsAdapterSchemaContractTest::nodeCommandsAdapterCommandTransactionSignaturesRemainStable",
+      "behavior": "node命令仲介は追加command、macroの開始・終了、直前commandの取消を扱う公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeCommandsAdapter::addExtraCommand(KUndo2Command * command)",
+        "method:KisNodeCommandsAdapter::beginMacro(const KUndo2MagicString & macroName)",
+        "method:KisNodeCommandsAdapter::endMacro()",
+        "method:KisNodeCommandsAdapter::undoLastCommand()"
+      ]
+    },
+    {
+      "target": "KisNodeCommandsAdapterSchemaContractTest",
+      "source": "libs/image/tests/KisNodeCommandsAdapterSchemaContractTest.cpp",
+      "test": "KisNodeCommandsAdapterSchemaContractTest::nodeCommandsAdapterSynchronousHierarchyMutationSignaturesRemainStable",
+      "behavior": "node命令仲介は親・上側nodeまたは位置番号を指定した同期追加・移動と、node除去の公開署名および更新flagの既定値を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeCommandsAdapter::addNode(KisNodeSP node,KisNodeSP parent,KisNodeSP aboveThis,KisImageLayerAddCommand::Flags flags=KisImageLayerAddCommand::DoRedoUpdates|KisImageLayerAddCommand::DoUndoUpdates)",
+        "method:KisNodeCommandsAdapter::addNode(KisNodeSP node,KisNodeSP parent,quint32 index,KisImageLayerAddCommand::Flags flags=KisImageLayerAddCommand::DoRedoUpdates|KisImageLayerAddCommand::DoUndoUpdates)",
+        "method:KisNodeCommandsAdapter::moveNode(KisNodeSP node,KisNodeSP parent,KisNodeSP aboveThis)",
+        "method:KisNodeCommandsAdapter::moveNode(KisNodeSP node,KisNodeSP parent,quint32 indexaboveThis)",
+        "method:KisNodeCommandsAdapter::removeNode(KisNodeSP node)"
+      ]
+    },
+    {
+      "target": "KisNodeCommandsAdapterSchemaContractTest",
+      "source": "libs/image/tests/KisNodeCommandsAdapterSchemaContractTest.cpp",
+      "test": "KisNodeCommandsAdapterSchemaContractTest::nodeCommandsAdapterAsynchronousApplicationSignaturesRemainStable",
+      "behavior": "node命令仲介は更新指定と任意の処理適用器を伴う非同期node追加、および単一commandの非同期適用について公開署名と既定引数を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeCommandsAdapter::addNodeAsync(KisNodeSP node,KisNodeSP parent,KisNodeSP aboveThis,bool doRedoUpdates=true,bool doUndoUpdates=true,KisProcessingApplicator * applicator=0)",
+        "method:KisNodeCommandsAdapter::addNodeAsync(KisNodeSP node,KisNodeSP parent,quint32 index,bool doRedoUpdates=true,bool doUndoUpdates=true,KisProcessingApplicator * applicator=0)",
+        "method:KisNodeCommandsAdapter::applyOneCommandAsync(KUndo2Command * cmd,KisProcessingApplicator * applicator=0)"
+      ]
+    },
+    {
+      "target": "KisNodeCommandsAdapterSchemaContractTest",
+      "source": "libs/image/tests/KisNodeCommandsAdapterSchemaContractTest.cpp",
+      "test": "KisNodeCommandsAdapterSchemaContractTest::nodeCommandsAdapterNodePropertyMutationSignaturesRemainStable",
+      "behavior": "node命令仲介はnodeの合成方式、名称、不透明度をcommandとして変更する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeCommandsAdapter::setCompositeOp(KisNodeSP node,const KoCompositeOp * compositeOp)",
+        "method:KisNodeCommandsAdapter::setNodeName(KisNodeSP node,const QString & name)",
+        "method:KisNodeCommandsAdapter::setOpacity(KisNodeSP node,qint32 opacity)"
       ]
     }
   ]
