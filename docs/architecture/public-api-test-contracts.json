@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 7727
+    "expectedMissingApis": 7708
   },
   "contracts": [
     {
@@ -61656,6 +61656,70 @@
         "method:KisMaskedFreehandStrokePainter::hasDirtyRegion() const",
         "method:KisMaskedFreehandStrokePainter::hasMasking() const",
         "method:KisMaskedFreehandStrokePainter::takeDirtyRegion()"
+      ]
+    },
+    {
+      "target": "VectorGroupShapeSchemaContractTest",
+      "source": "libs/libkis/tests/VectorGroupShapeSchemaContractTest.cpp",
+      "test": "VectorGroupShapeSchemaContractTest::vectorLayerTypeLifetimeAndConstructionSchemaRemainStable",
+      "behavior": "vector layerは既存layerまたは図形制御器・画像・名称から親を省略して構築でき、Node派生として仮想破棄される公開面を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:VectorLayer",
+        "method:VectorLayer::VectorLayer(KisShapeLayerSP layer,QObject * parent=0)",
+        "method:VectorLayer::VectorLayer(KoShapeControllerBase * shapeController,KisImageSP image,QString name,QObject * parent=0)",
+        "method:VectorLayer::~VectorLayer()"
+      ]
+    },
+    {
+      "target": "VectorGroupShapeSchemaContractTest",
+      "source": "libs/libkis/tests/VectorGroupShapeSchemaContractTest.cpp",
+      "test": "VectorGroupShapeSchemaContractTest::vectorLayerIdentityAndRenderingPolicySignaturesRemainStable",
+      "behavior": "vector layerは型識別とantialias描画方針の取得・設定について正確な公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:VectorLayer::isAntialiased() const",
+        "method:VectorLayer::setAntialiased(const bool antialiased)",
+        "method:VectorLayer::type() const"
+      ]
+    },
+    {
+      "target": "VectorGroupShapeSchemaContractTest",
+      "source": "libs/libkis/tests/VectorGroupShapeSchemaContractTest.cpp",
+      "test": "VectorGroupShapeSchemaContractTest::vectorLayerShapeQuerySignaturesRemainStable",
+      "behavior": "vector layerは全図形、位置上の図形、hidden除外と包含方式を省略可能な矩形内図形を照会する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:VectorLayer::shapeAtPosition(const QPointF & position) const",
+        "method:VectorLayer::shapes() const",
+        "method:VectorLayer::shapesInRect(const QRectF & rect,bool omitHiddenShapes=true,bool containedMode=false) const"
+      ]
+    },
+    {
+      "target": "VectorGroupShapeSchemaContractTest",
+      "source": "libs/libkis/tests/VectorGroupShapeSchemaContractTest.cpp",
+      "test": "VectorGroupShapeSchemaContractTest::vectorLayerSvgAndGroupingSignaturesRemainStable",
+      "behavior": "vector layerはSVGからの図形追加、図形群のgroup化、SVGへの直列化を行う公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:VectorLayer::addShapesFromSvg(const QString & svg)",
+        "method:VectorLayer::createGroupShape(const QString & name,QList<Shape * > shapes) const",
+        "method:VectorLayer::toSvg()"
+      ]
+    },
+    {
+      "target": "VectorGroupShapeSchemaContractTest",
+      "source": "libs/libkis/tests/VectorGroupShapeSchemaContractTest.cpp",
+      "test": "VectorGroupShapeSchemaContractTest::groupShapeTypeLifetimeAndHierarchySignaturesRemainStable",
+      "behavior": "group shapeは空または既存図形groupから親を省略して構築でき、Shape派生として子一覧・型識別・仮想破棄の公開面を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:GroupShape",
+        "method:GroupShape::GroupShape(KoShapeGroup * shape,QObject * parent=0)",
+        "method:GroupShape::GroupShape(QObject * parent=0)",
+        "method:GroupShape::children()",
+        "method:GroupShape::type() const",
+        "method:GroupShape::~GroupShape()"
       ]
     }
   ]

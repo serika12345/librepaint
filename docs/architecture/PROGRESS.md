@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 22:55 JST
+- 更新日時: 2026-09-05 23:10 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1257,9 +1257,15 @@
 
 ### 第262便の監査結果と担当計画
 
-- 最新`build/tdd-macos/public-api-missing-g262.json`で`libs/libkis/VectorLayer.h`の残存13 APIと`libs/libkis/GroupShape.h`の残存6 APIが一意かつ台帳と非重複であり、合計19件の識別子整列集合SHA-256 `ee4c88e5863f8949bbb5da91349f5656b1983976ac9f1f3d6829cf9bc969f1a3`を維持することを再確認した。両型はvector layer上の最上位図形とgroup子階層を表す一責務に収まる。`g262-vector-group-schema`の状態は`in_progress`、実装基点は`c0e5911577`、専用作業treeは`/Users/masato/Documents/librepaint-g262-vector-group-schema`、branchは`agent/g262-vector-group-schema`、macOSの対象と近傍に限る構築実行許可は`granted`である。許可pathは新規`libs/libkis/tests/VectorGroupShapeSchemaContractTest.cpp`と`libs/libkis/tests/CMakeLists.txt`の新target固有節だけで、公開header、製品source、既存targetを変更しない。調整担当だけが文書、台帳、共通不足報告を変更し、担当のGit権限は許可pathだけの受渡しcommit 1件、追加委任は禁止する。
+- 最新`build/tdd-macos/public-api-missing-g262.json`で`libs/libkis/VectorLayer.h`の残存13 APIと`libs/libkis/GroupShape.h`の残存6 APIが一意かつ台帳と非重複であり、合計19件の識別子整列集合SHA-256 `ee4c88e5863f8949bbb5da91349f5656b1983976ac9f1f3d6829cf9bc969f1a3`を維持することを再確認した。両型はvector layer上の最上位図形とgroup子階層を表す一責務に収まる。`g262-vector-group-schema`の状態は`integrated`、実装基点は`c0e5911577`である。許可pathは新規`libs/libkis/tests/VectorGroupShapeSchemaContractTest.cpp`と`libs/libkis/tests/CMakeLists.txt`の新target固有節だけで、公開header、製品source、既存targetを変更していない。受渡しcommit `69142e8856`を中央commit `fdbd6c7950`として取り込んだ。
 - 5枠は`vectorLayerTypeLifetimeAndConstructionSchemaRemainStable`へ型・2構築・破棄4件、`vectorLayerIdentityAndRenderingPolicySignaturesRemainStable`へ型識別とantialias設定3件、`vectorLayerShapeQuerySignaturesRemainStable`へ位置・一覧・矩形検索3件、`vectorLayerSvgAndGroupingSignaturesRemainStable`へSVG入出力とgroup生成3件、`groupShapeTypeLifetimeAndHierarchySignaturesRemainStable`へ型・2構築・子取得・型識別・破棄6件を対応付ける。型特性、厳密member pointer、constructorと矩形検索の既定引数を確認する未評価式だけを使い、wrapper、図形、layer、controller、image、Qt値を実体化しない。
 - 新規targetはlibkis、global、image、image/filter、painting、painting/undo、pigment、pigment/resources、resources、flakeのsource/generated探索路、Qt Gui・Xml、KF I18n、Eigen、Imathのinterface探索、libkis・global・image・flakeのexport定義、Qt Core・Testとheader-only Boostだけの直接linkを使う4工程・8入力を予測し、停止線を5工程・11入力とする。軽量近傍`NodeSchemaContractTest`は4工程・8入力、command SHA-256 `545563ce94c608312d5319dfbf7a9f6b974d327f14f0ef572a34dba14ef65592`、input SHA-256 `179b7cb4cecd12291fd5658403eb0d52c2c1ded0491c0e28df03fccc97633a99`である。Qt Gui・Xmlの動的接続、UI・application探索路、製品shared・OBJECT、`kritatestsdk`、候補headerのAUTOMOC入力化、製品・metaobject未解決記号、実体化または許可path外変更が必要なら停止する。SVG入出力、検索条件、group再親化・順序・undo、所有寿命、antialiasの描画反映は既存重量試験または後続の動的契約で扱う。
+
+### 第262便の契約統合結果
+
+- 開始`libs/libkis/VectorLayer.h`と`libs/libkis/GroupShape.h`から新規`libs/libkis/tests/VectorGroupShapeSchemaContractTest.cpp`へ、vector layerの型・構築・描画方針・図形検索・SVG入出力・group化と、group shapeの型・構築・子階層を担う残存全19 API・5枠を追加した。constructorの親と矩形検索の2条件は未評価呼出しで既定引数も固定した。`libs/libkis/tests/CMakeLists.txt`には新target固有節だけを追加し、公開header、製品source、既存targetを変更していない。
+- 5枠宣言だけの初期段階ではAUTOMOC生成コードが参照する全5関数の未定義link失敗を確認した。担当側のmacOSで5枠を各20回、全7試験、正式CTest `libs-libkis-VectorGroupShapeSchemaContractTest`、軽量近傍`libs-libkis-NodeSchemaContractTest`、AUTOMOC後の二回目計画、二回の無作業再構築に成功した。新targetは4工程・8入力、command SHA-256 `c958dd267a25144874eaaad5b2f5f574bc573bfb7640936c9ab7722b6b720458`、input SHA-256 `82b795dc6b82bb005b1a6e2f219645012145fd59a1750f6b8ac9d1b724956556`、AUTOMOC `HEADERS=[]`、Qt Core・Testだけの動的接続、vector layer・group shape・Kis/Ko製品・metaobjectを含む製品未解決記号0である。厳格構文、書式、差分、公開API検査、`verify-quick`にも成功し、中央でも対象と近傍、二回の無作業再構築に成功した。
+- 台帳へ19 APIを追加して22,096件対応、7,708件未対応となり、旧基準7,727件に対する実測7,708件の期待不一致を確認してから基準を更新した。cleanな専用作業tree、297,588 KiBの構築木、branchを削除して888,416 KiBを回収し、旧`public-api-missing-g262.json` 2,054,984 bytesを削除した。主Ninja木5,785,424 KiB、共有compiler cache 982,684 KiB、最新`build/tdd-macos/public-api-missing-g263.json` 2,050,781 bytes、SHA-256 `bbcdb11125e6bce61a3f2db70b0a23108cf695e0a2537bec8ed822d0a898bdce`だけを再利用対象として保持する。compiler cacheは143,425件中120,272件、83.86%がhitしている。製品target、重量`TestVectorLayer`・`TestShape`、全体build・`verify`、Linux、Nix再評価は実行していない。
 
 ### 第263便の先行監査担当票
 
@@ -1276,8 +1282,14 @@
 ### 第264便の先行監査担当票
 
 - 監査共通基点は`248c408e89`、正式入力は`build/tdd-macos/public-api-missing-g262.json`である。第262便と第263便の選定済みAPIを除外し、`libs/image/commands/kis_node_operation_batch.h`の残存18 APIを、連続するnode操作の非同期undo単位を固定する一責務候補として監査する。主作業treeの読み取りだけを許可し、変更、構成、構築、試験、Git操作、追加委任を行わず、G262の専用構築木と生成物を共有しない。
-- `g264-node-operation-batch-api-audit`の状態は`in_progress`である。正式不足一覧と台帳に対する残存識別子の完全性、一意性、整列指紋、型・寿命・単一node操作・複数node操作・group化・完了通知の責務別割当、最大5枠で静的契約へ固定できる範囲を調べる。既存動的試験が保護するtimeout、非同期適用、undo、選択復元の意味は分離して報告する。
-- `g264-node-operation-batch-closure-review`の状態は`in_progress`である。候補headerの直接依存、image commandの既存軽量契約、専用targetと既存target追記の責務・閉包差、必要探索路・定義・動的接続、製品shared・OBJECTと`kritatestsdk`の回避、Q_OBJECTを持つ候補headerのAUTOMOC非入力化、許可path、停止線を独立に調べる。先行include整理が限定構築範囲を縮小する場合は、その根拠と所有先を報告する。
+- `g264-node-operation-batch-api-audit`の状態は`completed`である。正式不足一覧の残存全18 APIが一意かつ台帳と非重複で、連続するnode操作を一つの非同期undo単位へまとめる責務として5枠へ固定できることを確認した。
+- `g264-node-operation-batch-closure-review`の状態は`completed`である。専用header限定targetは4工程・8入力に閉じるが、その前に公開headerのundo command完全includeを値の所有先へ移すとpainting/undo、KF I18n、Boostを契約面から除外できることを独立確認した。
+
+### 第264便の監査結果と第264a便の構造準備計画
+
+- `libs/image/commands/kis_node_operation_batch.h`の残存全18 APIは識別子整列集合SHA-256 `83dc735d599d3f3518f7650cc2581182eeae6ddf3036f3db5ee461a2b3c78d33`を持つ。型・寿命・状態5、階層順序変更5、移動先を伴う変更3、group化・結合判定3、完了・更新通知2の5枠へ割り当てる。型特性、厳密member pointer、未評価構築式だけでpublic slotとsignalを含む全件を観測する。timeout、非同期stroke、undo後の階層・選択復元、group化結果、signal配送、auto-delete寿命は既存動的`KisNodeOperationBatchTest`へ残す。
+- `g264a-node-operation-batch-header-boundary`の状態は`planned`とする。開始`libs/image/commands/kis_node_operation_batch.h`でconst参照だけに使う`<kundo2command.h>`を`KUndo2MagicString`の前方宣言へ置き換え、同じくconst参照だけの`QString`を明示的に前方宣言する。完全型と`kundo2_i18n`の所有先として`libs/image/commands/kis_node_operation_batch.cpp`、`libs/image/tests/kis_node_operation_batch_test.cpp`、`libs/ui/nodes/kis_node_manager.cpp`へ`<kundo2magicstring.h>`を直接追加する。公開API、ABI、挙動は変更しない。許可pathはこの4ファイルだけとし、追加利用元の補正が必要なら停止する。
+- G264aは変更前後のheader-first探索面、直接利用元と完全型所有先の厳格構文、軽量`KisNodeCommandsAdapterSchemaContractTest`、公開API 29,804件と18識別子・指紋、二回の無作業再構築、書式、差分、公開API検査、`verify-quick`を確認する。続く`g264-node-operation-batch-schema`は新規`libs/image/tests/KisNodeOperationBatchSchemaContractTest.cpp`と`libs/image/tests/CMakeLists.txt`の新target固有節だけを許可し、image・globalのsource/generated探索路、`kritaimage_EXPORTS`、Qt Core・Testだけの直接linkによる4工程・8入力、停止線5工程・11入力を予測する。候補headerのAUTOMOC入力化、painting/undo、pigment、KF、Boost、Qt Gui・Widgets・Xmlまたは製品libraryの接続、製品・metaobject未解決記号、実体化または許可path外変更が必要なら停止する。G263完了後にG264aを開始する。
 
 ### 第239便の先行監査担当票
 
