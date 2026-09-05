@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 18:39 JST
+- 更新日時: 2026-09-05 18:50 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1093,6 +1093,13 @@
 - 開始`libs/tools/ui/kis_selection_tool_config_widget_helper.h`から既存`libs/tools/ui/tests/KisSelectionOptionsSchemaContractTest.cpp`へ、設定widget生成、選択状態照会、widget変更slot、選択action要求、tool有効化・通知を担う残存全29 API・5枠を追加した。CMake、公開header、製品source、既存5枠を変更せず、受渡しcommit `1562a3488d6f0ed0b192a3dc77c5602a93c1c571`を中央commit `3ac70bc315`として取り込んだ。最終sourceは157行・10枠である。
 - 担当側と中央のmacOSで5枠を各20回、既存を含む全12試験、正式CTest `libs-tools-ui-KisSelectionOptionsSchemaContractTest`、軽量近傍`libs-tools-ui-KisCompositeOpSelectorSchemaContractTest`、AUTOMOC後の二回目計画、無作業再構築2回に成功した。中央実測は変更前と同じ4工程・8入力、command SHA-256 `dfbb70975be40911ef339384abf74ef17d35aea6cf4e172eb530d41e58dee650`、input SHA-256 `5be2424209fa894815b337d8ae01fb9370048c957e48286cd1096b4408033f2b`、AUTOMOC `HEADERS=[]`、Qt Core・TestとOS frameworkだけの動的接続、helper・signal・metaobjectを含む製品未解決記号なしである。厳格`clang-check`、変更行の書式、差分、macOSのpackage境界1,887対象、公開API検査に成功し、台帳は21,922件対応、7,882件未対応となった。設定保存・再読込、widget所有、action要求、signal配送の実行時意味は既存`TestToolSettingsUiContract`または後続の動的契約で扱う。
 - 中央検証後にcleanな専用作業tree、306,872 KiBのlane構築木、branchを削除して897,548 KiBを回収した。旧`public-api-missing-g253.json`を削除し、主Ninja木5,773,128 KiB、共有compiler cache 983,000 KiB、最新`build/tdd-macos/public-api-missing-g254.json` 2,098,471 bytes、SHA-256 `a5a9265000070e41af4e29b6b7dbcd61627f6d9496dea2da7769be91910474bc`だけを次便へ再利用する。compiler cacheは143,233件中120,262件、83.96%がhitしている。製品target、重量`TestToolSettingsUiContract`、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第254便のpalette編集調整26 APIを正式不足報告で再照合し、公開headerの直接依存と最小構築範囲を先に確定することである。
+
+### 第254便の担当計画
+
+- 実装基点は`e35e675f1d`である。`g254-palette-editor-schema`の状態は`planned`、専用作業treeは`/Users/masato/Documents/librepaint-g254-palette-editor-schema`、branchは`agent/g254-palette-editor-schema`とする。開始`libs/tools/ui/KisPaletteEditor.h`の残存全26 APIを、新規`libs/tools/ui/tests/KisPaletteEditorSchemaContractTest.cpp`の5枠へ固定する。許可pathは同試験sourceと`libs/tools/ui/tests/CMakeLists.txt`の新target固有節だけで、公開header、製品source、既存targetを変更しない。調整担当だけがarchitecture文書、公開API台帳、共通不足報告を変更する。担当のGit権限は許可pathだけの受渡しcommit 1件で、追加委任は禁止する。
+- 5枠は`paletteEditorTypeLifetimeAndContextSchemaRemainStable`へ型、構築・破棄、模型・文書context・保存場所7件、`paletteEditorPaletteResourceSignaturesRemainStable`へpalette追加・取込・除去・新version保存・文書資源変更通知5件、`paletteEditorGroupIdentityAndLayoutSignaturesRemainStable`へgroup追加・除去・改名・行列数・名前対応・palette改名8件、`paletteEditorEntryMutationSignaturesRemainStable`へentry設定・除去2件、`paletteEditorEditingLifecycleSignaturesRemainStable`へ編集開始・終了・変更照会・段階変更破棄4件を対応付ける。正式入力`build/tdd-macos/public-api-missing-g254.json`の完全な26識別子と識別子整列集合SHA-256 `6b1b3b00faf550eff6feb471e1289c482053ed440a5b744c0a849136789b5b4a`を維持する。
+- 事前の構築範囲監査では、候補headerから`KisSwatch.h`だけを除いても`KoColorSet.h`経由の公開閉包は縮まらず、`KoColorSetSP`の所有元を変更する別の公開構造整理が必要になるため今回は分離する。新targetはtools/ui、pigment、pigment/resources、resources、globalのsource/generated探索路、`kritatoolsui_EXPORTS`・`kritapigment_EXPORTS`・`kritaresources_EXPORTS`・`kritaglobal_EXPORTS`、Qt Gui・KF I18n・Imathのinterface探索、Qt Core・Testとheader-only Boostだけに限定する。予測4工程・8入力、停止線5工程・11入力とする。比較用の製品`kritatoolsui`は読取基線1,249工程・2,518入力、command SHA-256 `ff10333773c2d7fec6c810e282558017841675c17cc42a238ce531953006dab1`、input SHA-256 `9fa8903e13913463f04da836e2485fbb7f7345770ac0e35825e99a9eaa7a4314`であり構築しない。
+- 候補headerを最初にincludeし、QObject継承、構築可能性、仮想破棄、厳密なmember・signal pointer、`endEditing()`の既定引数省略形だけで観測する。editor、palette、swatch、色、model、index、widget、QString、共有pointer、metaobjectを実体化せず製品本文を実行しない。担当は編集前target不存在、直接依存、初回plan、5枠宣言段階の期待link失敗、追加5枠単発・各20回、全target、正式CTest、軽量近傍`KisPaletteModelSchemaContractTest`、AUTOMOC後二回目plan、無作業build 2回、4/8とhash、動的接続・未解決記号・AUTOMOC入力・構文・書式、差分、公開API検査、`verify-quick`を確認する。5工程・11入力超過、指定外探索路・定義・link、Qt Gui・KF I18n・Imathまたは製品libraryの動的接続、Qt Widgets・Xml、製品shared・OBJECT・`kritatestsdk`、候補headerのAUTOMOC入力化、editor・signal・metaobjectを含む製品未解決記号、対象実体化、許可path外変更が必要なら停止する。重量palette編集試験、製品target、全体build・`verify`、Linux、Nix再評価は禁止する。
 
 ### 第239便の先行監査担当票
 
