@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 8130
+    "expectedMissingApis": 8113
   },
   "contracts": [
     {
@@ -60308,6 +60308,68 @@
       "apis": [
         "method:KoPattern::hasAlpha() const",
         "method:KoPattern::resourceType() const"
+      ]
+    },
+    {
+      "target": "KoProgressUpdaterSchemaContractTest",
+      "source": "libs/widgetutils/tests/KoProgressUpdaterSchemaContractTest.cpp",
+      "test": "KoProgressUpdaterSchemaContractTest::progressUpdaterTypeAndModeSchemaRemainStable",
+      "behavior": "進捗更新器はthread使用・非使用のmodeを持つ公開型構成を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoProgressUpdater",
+        "enum:KoProgressUpdater::Mode",
+        "enumerator:KoProgressUpdater::Mode::Threaded",
+        "enumerator:KoProgressUpdater::Mode::Unthreaded"
+      ]
+    },
+    {
+      "target": "KoProgressUpdaterSchemaContractTest",
+      "source": "libs/widgetutils/tests/KoProgressUpdaterSchemaContractTest.cpp",
+      "test": "KoProgressUpdaterSchemaContractTest::progressUpdaterConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "進捗更新器は進捗表示先または自己破棄型更新器から構築し、基底型から破棄できる公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoProgressUpdater::KoProgressUpdater(KoProgressProxy * progressProxy,Mode mode=Threaded)",
+        "method:KoProgressUpdater::KoProgressUpdater(QPointer<KoUpdater> updater)",
+        "method:KoProgressUpdater::~KoProgressUpdater()"
+      ]
+    },
+    {
+      "target": "KoProgressUpdaterSchemaContractTest",
+      "source": "libs/widgetutils/tests/KoProgressUpdaterSchemaContractTest.cpp",
+      "test": "KoProgressUpdaterSchemaContractTest::progressUpdaterExecutionAndCancellationSignaturesRemainStable",
+      "behavior": "進捗更新器は中断状態を照会し、取消と非同期更新を通知する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoProgressUpdater::cancel()",
+        "method:KoProgressUpdater::interrupted() const",
+        "method:KoProgressUpdater::triggerUpdateAsynchronously()"
+      ]
+    },
+    {
+      "target": "KoProgressUpdaterSchemaContractTest",
+      "source": "libs/widgetutils/tests/KoProgressUpdaterSchemaContractTest.cpp",
+      "test": "KoProgressUpdaterSchemaContractTest::progressUpdaterConfigurationAndStartSignaturesRemainStable",
+      "behavior": "進捗更新器は自動入れ子名と更新間隔を設定・取得し、範囲と表示文で処理を開始する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoProgressUpdater::autoNestNames() const",
+        "method:KoProgressUpdater::setAutoNestNames(bool value)",
+        "method:KoProgressUpdater::setUpdateInterval(int ms)",
+        "method:KoProgressUpdater::start(int range=100,const QString & text=\"\")",
+        "method:KoProgressUpdater::updateInterval() const"
+      ]
+    },
+    {
+      "target": "KoProgressUpdaterSchemaContractTest",
+      "source": "libs/widgetutils/tests/KoProgressUpdaterSchemaContractTest.cpp",
+      "test": "KoProgressUpdaterSchemaContractTest::progressUpdaterSubtaskSignaturesRemainStable",
+      "behavior": "進捗更新器は重み・名前・永続性を持つsubtaskを開始し、永続subtaskを除去する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoProgressUpdater::removePersistentSubtask(QPointer<KoUpdater> updater)",
+        "method:KoProgressUpdater::startSubtask(int weight=1,const QString & name=QString (),bool isPersistent=false)"
       ]
     }
   ]
