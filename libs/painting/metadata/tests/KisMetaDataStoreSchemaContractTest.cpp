@@ -3,8 +3,9 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#include <kis_meta_data_entry.h>
+#include <kis_meta_data_schema.h>
 
+#include <kis_meta_data_entry.h>
 #include <kis_meta_data_store.h>
 #include <kis_meta_data_validator.h>
 
@@ -16,11 +17,14 @@ namespace
 {
 using StoreConstIterator = QHash<QString, KisMetaData::Entry>::const_iterator;
 using Entry = KisMetaData::Entry;
+using Schema = KisMetaData::Schema;
 
 #define ASSERT_STORE_SIGNATURE(method, signature)                                                                      \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisMetaData::Store::method)), signature>)
 #define ASSERT_ENTRY_SIGNATURE(method, signature)                                                                      \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&Entry::method)), signature>)
+#define ASSERT_SCHEMA_SIGNATURE(method, signature)                                                                     \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&Schema::method)), signature>)
 } // namespace
 
 class KisMetaDataStoreSchemaContractTest : public QObject
@@ -43,6 +47,11 @@ private Q_SLOTS:
     void metaDataEntryValueAndAssignmentSignaturesRemainStable();
     void metaDataEntryValidationAndEqualitySignaturesRemainStable();
     void metaDataEntryDebugSignatureRemainsStable();
+    void metaDataSchemaTypeAndLifetimeSchemaRemainStable();
+    void metaDataSchemaStandardUriMembersRemainStable();
+    void metaDataSchemaTypeLookupSignaturesRemainStable();
+    void metaDataSchemaIdentityAndQualificationSignaturesRemainStable();
+    void metaDataSchemaDebugSignatureRemainsStable();
 };
 
 void KisMetaDataStoreSchemaContractTest::metaDataStoreIdentityAndLifecycleSignaturesRemainStable()
@@ -184,6 +193,44 @@ void KisMetaDataStoreSchemaContractTest::metaDataEntryValidationAndEqualitySigna
 void KisMetaDataStoreSchemaContractTest::metaDataEntryDebugSignatureRemainsStable()
 {
     using DebugSignature = QDebug (*)(QDebug, const Entry &);
+    static_assert(std::is_same_v<decltype(static_cast<DebugSignature>(&operator<<)), DebugSignature>);
+}
+
+void KisMetaDataStoreSchemaContractTest::metaDataSchemaTypeAndLifetimeSchemaRemainStable()
+{
+    static_assert(std::is_class_v<Schema>);
+    static_assert(std::has_virtual_destructor_v<Schema>);
+}
+
+void KisMetaDataStoreSchemaContractTest::metaDataSchemaStandardUriMembersRemainStable()
+{
+    static_assert(std::is_same_v<decltype(Schema::DublinCoreSchemaUri), const QString>);
+    static_assert(std::is_same_v<decltype(Schema::EXIFSchemaUri), const QString>);
+    static_assert(std::is_same_v<decltype(Schema::IPTCSchemaUri), const QString>);
+    static_assert(std::is_same_v<decltype(Schema::MakerNoteSchemaUri), const QString>);
+    static_assert(std::is_same_v<decltype(Schema::PhotoshopSchemaUri), const QString>);
+    static_assert(std::is_same_v<decltype(Schema::TIFFSchemaUri), const QString>);
+    static_assert(std::is_same_v<decltype(Schema::XMPMediaManagementUri), const QString>);
+    static_assert(std::is_same_v<decltype(Schema::XMPRightsSchemaUri), const QString>);
+    static_assert(std::is_same_v<decltype(Schema::XMPSchemaUri), const QString>);
+}
+
+void KisMetaDataStoreSchemaContractTest::metaDataSchemaTypeLookupSignaturesRemainStable()
+{
+    ASSERT_SCHEMA_SIGNATURE(propertyType, const KisMetaData::TypeInfo *(Schema::*)(const QString &) const);
+    ASSERT_SCHEMA_SIGNATURE(structure, const KisMetaData::TypeInfo *(Schema::*)(const QString &) const);
+}
+
+void KisMetaDataStoreSchemaContractTest::metaDataSchemaIdentityAndQualificationSignaturesRemainStable()
+{
+    ASSERT_SCHEMA_SIGNATURE(generateQualifiedName, QString (Schema::*)(const QString &) const);
+    ASSERT_SCHEMA_SIGNATURE(prefix, QString (Schema::*)() const);
+    ASSERT_SCHEMA_SIGNATURE(uri, QString (Schema::*)() const);
+}
+
+void KisMetaDataStoreSchemaContractTest::metaDataSchemaDebugSignatureRemainsStable()
+{
+    using DebugSignature = QDebug (*)(QDebug, const Schema &);
     static_assert(std::is_same_v<decltype(static_cast<DebugSignature>(&operator<<)), DebugSignature>);
 }
 
