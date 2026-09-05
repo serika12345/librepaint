@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 21:20 JST
+- 更新日時: 2026-09-05 21:32 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1186,10 +1186,16 @@
 
 ### 第259便の担当計画
 
-- 実装基点は本計画commitである。`g259-node-commands-adapter-schema`の状態は`in_progress`、専用作業treeは`/Users/masato/Documents/librepaint-g259-node-commands-adapter-schema`、branchは`agent/g259-node-commands-adapter-schema`とする。R1で旧`libs/ui/kis_node_commands_adapter.h`から移設された現開始`libs/image/commands/kis_node_commands_adapter.h`の残存全19 APIを、新規`libs/image/tests/KisNodeCommandsAdapterSchemaContractTest.cpp`の5枠へ固定する。許可pathは同試験sourceと`libs/image/tests/CMakeLists.txt`の新target固有節だけで、公開header、製品source、既存targetを変更しない。調整担当だけがarchitecture文書、公開API台帳、共通不足報告を変更する。担当のGit権限は許可pathだけの受渡しcommit 1件で、追加委任は禁止する。
+- 実装基点は本計画commitである。`g259-node-commands-adapter-schema`の状態は`paused`、専用作業treeは`/Users/masato/Documents/librepaint-g259-node-commands-adapter-schema`、branchは`agent/g259-node-commands-adapter-schema`とする。R1で旧`libs/ui/kis_node_commands_adapter.h`から移設された現開始`libs/image/commands/kis_node_commands_adapter.h`の残存全19 APIを、新規`libs/image/tests/KisNodeCommandsAdapterSchemaContractTest.cpp`の5枠へ固定する。許可pathは同試験sourceと`libs/image/tests/CMakeLists.txt`の新target固有節だけで、公開header、製品source、既存targetを変更しない。調整担当だけがarchitecture文書、公開API台帳、共通不足報告を変更する。担当のGit権限は許可pathだけの受渡しcommit 1件で、追加委任は禁止する。
 - 5枠は`nodeCommandsAdapterTypeLifetimeAndImageBindingSchemaRemainStable`へ型・既定構築・破棄・image再束縛4件、`nodeCommandsAdapterCommandTransactionSignaturesRemainStable`へ追加command・macro開始終了・直前command取消4件、`nodeCommandsAdapterSynchronousHierarchyMutationSignaturesRemainStable`へnode同期追加2種・移動2種・除去5件、`nodeCommandsAdapterAsynchronousApplicationSignaturesRemainStable`へnode非同期追加2種・単一command非同期適用3件、`nodeCommandsAdapterNodePropertyMutationSignaturesRemainStable`へ合成方式・名称・不透明度変更3件を対応付ける。正式入力`build/tdd-macos/public-api-missing-g259.json`の完全な19識別子と識別子整列集合SHA-256 `7d093f54513314d309057f1317409d11240a0e90bec103cef1c08b7881e1713e`を維持する。
 - 新targetはimage、global、pigment、painting/undoのsource/generated探索路、KF I18nのinterface探索、`kritaimage_EXPORTS`と`kritapigment_EXPORTS`、Qt Core・Testとheader-only Boostだけを使う。比較する`KisProcessingApplicatorSchemaContractTest`は4工程・8入力、command SHA-256 `aebc43df061dfd6cb27cd1f01813305de7a85965eb7268dd12b7d7f825ac50e8`、input SHA-256 `ef65832c613a467e9fd10c4af072b8718b9043f966c8104b8aff5bd39bd3c090`であり、新targetも4工程・8入力、停止線5工程・11入力を予測する。候補headerはimage commandからpaint device型を推移させるが、この面でも4/8に閉じるため未使用include整理は別の構造変更として扱う。製品接続を持つ動的`KisNodeCommandsAdapterTest`は今回の反復対象にしない。
 - 候補headerを最初にincludeし、QObject派生・既定構築・仮想破棄、厳密member pointer、constructor、同期・非同期追加と単一command適用の既定引数を未評価式だけで観測する。adapter、image、node、command、applicator、Qt値を実体化せず、製品本文を実行しない。担当は編集前target不存在、5枠宣言段階の期待link失敗、追加5枠単発・各20回、全target、正式CTest、軽量近傍`KisProcessingApplicatorSchemaContractTest`、AUTOMOC後の二回目計画、無作業build 2回、4/8とhash、動的接続・未解決記号・AUTOMOC入力・厳格構文・書式、差分、公開API検査、`verify-quick`を確認する。5工程・11入力超過、指定外探索路・定義・link、Qt Gui、Imath、resourcesまたは製品libraryの接続、製品shared・OBJECT・`kritatestsdk`、候補headerのAUTOMOC入力化、adapter・image・node・command・applicatorの製品未解決記号、対象実体化、許可path外変更が必要なら停止する。製品target、重量動的試験、全体build・`verify`、Linux、Nix再評価は禁止する。
+
+### 第259便の初期診断と第259a便の構造準備計画
+
+- G259の最初の専用構築木では同じ`plan`を誤って二重起動し、CMake再生成が競合した。調整担当が両processを終了し、source変更前の作業treeと不完全な構築木を削除して同じ基点から再作成した。再開後は全命令を逐次実行し、軽量近傍の4工程・8入力と新target不存在を確認した。候補header-firstの赤段階で`kis_node_commands_adapter.h`から`kundo2stack.h`までの公開include連鎖が`QAction`完全型を推移させ、Qt Gui探索路のない予定面では`QAction`欠落となった。試験へQt Gui探索路を追加する案を棄却し、未コミットの試験・CMake差分を担当自身が復元したcleanな作業tree、300,832 KiBの不完全構築木、branchを削除して891,404 KiBを回収した。
+- `g259a-undo-action-header-boundary`の状態は`in_progress`、実装基点は本計画commit、専用作業treeは`/Users/masato/Documents/librepaint-g259a-undo-action-header-boundary`、branchは`agent/g259a-undo-action-header-boundary`とする。開始・到達先`libs/painting/undo/kundo2stack.h`では返却pointerだけに使う`QAction`の既存前方宣言を所有させて完全includeを除去する。完全型の所有先をaction生成・操作実装`libs/painting/undo/kundo2stack_actions.cpp`と、設定画面で返却pointerを操作する`libs/ui/dialogs/kis_dlg_preferences.cc`へ移し、両sourceへ`QAction`を直接includeする。許可pathはこの3ファイルだけで、公開宣言、ABI、製品挙動、試験、CMake、文書、台帳を変更しない。担当のGit権限は許可pathだけの受渡しcommit 1件で、追加委任は禁止する。
+- `kundo2stack_p.h`は`KUndo2Action`のQAction継承を所有して既に完全includeし、`kundo2stack.cpp`と`kundo2group.cpp`は同private headerを直接includeするため変更しない。構造準備は変更前のG259 header-first `QAction`欠落と変更後のQt Guiなし成功、compile database上の`kundo2stack.h`・`kundo2command.h`利用元の厳格構文検査、action実装と設定画面の直接所有を確認する。既存の具体所有検証として`KUndo2StackContractTest`は11工程・26入力だが、公開stack header、core object、action objectを一体で構築する最小の既存対象なのでこの構造便に限り許可する。さらにG259の軽量近傍、対象object、公開API 29,804件とG259の19識別子・SHA、書式、差分、公開API検査、`verify-quick`を確認する。2 source以外の直接include補正、公開API・ABI変更、CMake変更、製品全体・全体build・`verify`・Linux・Nix再評価が必要なら停止する。
 
 ### 第239便の先行監査担当票
 
