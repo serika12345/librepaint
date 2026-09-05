@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 10:35 JST
+- 更新日時: 2026-09-05 10:47 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -757,13 +757,18 @@
 
 ### 第228便の担当計画
 
-- 実装基点は`c0faf1233b`である。`g228-canvas-update-info-schema`の状態は`implementing`、専用作業treeは`/Users/masato/Documents/librepaint-g228-canvas-update-info-schema`、branchは`agent/g228-canvas-update-info-schema`である。開始`libs/canvas/kis_update_info.h`の19 APIと`libs/canvas/kis_projection_update_info.h`の16 APIを、新規`libs/canvas/tests/KisCanvasUpdateInfoSchemaContractTest.cpp`の5枠へ固定する。許可pathは同試験sourceと`libs/canvas/tests/CMakeLists.txt`の新target固有節だけで、公開header、製品source、既存targetを変更しない。調整担当だけがarchitecture文書、公開API台帳、共通不足報告を変更する。担当のGit権限は許可pathだけの受渡しcommit 1件で、追加委任は禁止する。
+- 実装基点は`c0faf1233b`である。`g228-canvas-update-info-schema`の状態は`integrated`で、開始`libs/canvas/kis_update_info.h`の19 APIと`libs/canvas/kis_projection_update_info.h`の16 APIを、新規`libs/canvas/tests/KisCanvasUpdateInfoSchemaContractTest.cpp`の5枠へ固定した。許可pathは同試験sourceと`libs/canvas/tests/CMakeLists.txt`の新target固有節だけで、公開header、製品source、既存targetを変更していない。受渡しcommit `2fef1fdc54`を統合commit `23dd3d8871`として取り込んだ。
 - 5枠は`updateInfoTypeLifetimeAndVirtualQuerySchemaRemainStable`へ`KisUpdateInfoSP`、`KisUpdateInfo`、構築・破棄と4仮想照会の8件、`markerUpdateInfoTypeBatchAndConstructionSchemaRemainStable`へ`KisMarkerUpdateInfo`、`Type`、4列挙値、構築の7件、`markerUpdateInfoQuerySignaturesRemainStable`へ4照会の4件、`projectionUpdateInfoTypeTransferAndQuerySchemaRemainStable`へ`KisProjectionUpdateInfoSP`、`KisProjectionUpdateInfo`、`TransferType`、2列挙値、構築、3照会の9件、`projectionUpdateInfoTransferValueMembersRemainStable`へ`imageRect`、`viewportRect`、`scaleX`、`scaleY`、`transfer`、`renderHints`、`borderWidth`の7件を対応付ける。正式入力の完全な35識別子と大域整列集合SHA-256 `d612d9b06780110a5b8833f4fad906980e29980a10e6aee64390b50fd431ca7d`を維持する。
 - 新targetはcanvas・global source/generated探索路、Qt Gui interface、`kritacanvas_EXPORTS`と`kritaglobal_EXPORTS`、Qt Core・Testだけに限定し、予測閉包4工程・8入力、停止線5工程・11入力とする。型特性、alias同一性、列挙値、厳密なmember pointer、member型と既定引数の未評価式だけで観測し、更新情報、矩形、描画器、共有pointerを実体化しない。担当は編集前target不存在、直接依存、初回計画、5枠宣言段階の期待link失敗、5枠単発・各20回、全target、正式CTest、近傍`KisProjectionPixelFilterContractTest`、AUTOMOC後二回目計画、無作業再構築2回、動的接続・未解決記号・AUTOMOC入力・構文・書式、差分、公開API検査、`verify-quick`を確認する。5工程・11入力超過、追加探索路・定義・link、Qt Guiまたは製品shared・OBJECT・`kritatestsdk`の動的接続、候補headerのAUTOMOC入力化、製品未解決記号、対象実体化、許可path外の変更が必要なら停止する。製品target、全体build・`verify`、Linux、Nix再評価は禁止する。
 
-### 第229便の先行監査担当票（第228便確定待ち）
+### 第228便の統合結果
 
-- `g229-image-shared-pointer-hooks-schema-formal-review`の状態は`completed-ready`、担当は`g178_paintop_settings_schema`、基点は`7df1b3f44e`である。正式入力`build/tdd-macos/public-api-missing-g224.json`でも`libs/image/kis_types.h`の残存全19 APIは一意で台帳と重複せず、識別子整列集合SHA-256 `73ca00770404b4a105c6b723330fd6e999afca81dd2bc58ec1051daf722d9a35`、新規`libs/image/tests/KisImageSharedPointerHooksSchemaContractTest.cpp`の5枠6・4・4・2・3に一致した。既存`kis_types_test`は1,200工程・2,423入力で製品libraryへ接続するため追記せず、新targetはimage・global探索路、`kritaimage_EXPORTS`、Qt Core・Testだけで初回・AUTOMOC後とも4工程・8入力へ閉じられる。軽量近傍`KisUpdateSchedulerSchemaContractTest`も4工程・8入力、AUTOMOC `HEADERS=[]`、製品辺なしである。7具象型を前方宣言のまま、参照追加・解放hookの厳密関数型、強・弱参照のQt hash、標準hash特殊化を非実体化観測する。実際の参照増減・解放、weak失効、hash値・衝突、動的libraryのABI解決は既存または後続の動的契約で扱い、正式第229便不足報告で19件と集合SHAを再照合する。
+- 開始`libs/canvas/kis_update_info.h`と`libs/canvas/kis_projection_update_info.h`から新規`libs/canvas/tests/KisCanvasUpdateInfoSchemaContractTest.cpp`へ合計35 API・5枠を追加した。担当側と中央のmacOSで5枠を各20回、対象全7件、正式CTestと近傍`KisProjectionPixelFilterContractTest`、AUTOMOC後の二回目計画、無作業再構築2回に成功した。中央実測は4工程・8入力、command SHA-256 `83e48cfaaefefc572803f0ddb5a7526e51080551accf8347936da74a250faa53`、input SHA-256 `9353733df3ec37f22b93902664d3e50c5a2736058d876db742174bed54ba720f`、AUTOMOC `HEADERS=[]`、Qt Core・Testと非製品runtimeだけの動的接続、製品未解決記号なしである。正しいcompile commandによる`clang-check -Werror`、書式、差分、macOSのpackage境界1,869対象、公開API検査、`verify-quick`に成功し、台帳は21,415件対応、8,389件未対応となった。圧縮判断、領域変換、markerのqueue効果、転送方式と描画hintの実行時反映は既存または後続の動的契約で扱う。
+- 統合済みpatchとclean状態を確認後に専用作業tree、298,856 KiBのlane構築木、branchを削除して889,180 KiBを回収した。旧`public-api-missing-g228.json`を削除し、主Ninja木5,752,608 KiB、共有compiler cache 982,672 KiB、最新`build/tdd-macos/public-api-missing-g229.json` 2,228,695 bytes、SHA-256 `b91906b42f0e4c1761f0b5146ffbed19efcf842b20ea6cb71ae6d61ebc9cabc5`だけを次便へ再利用する。compiler cacheは143,038件中120,214件、84.04%がhitしている。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+
+### 第229便の先行監査担当票
+
+- `g229-image-shared-pointer-hooks-schema-formal-review`の状態は`completed-ready`、担当は`g178_paintop_settings_schema`、基点は`7df1b3f44e`である。第228便後の正式入力`build/tdd-macos/public-api-missing-g229.json`でも`libs/image/kis_types.h`の残存全19 APIは一意で台帳と重複せず、識別子整列集合SHA-256 `73ca00770404b4a105c6b723330fd6e999afca81dd2bc58ec1051daf722d9a35`、新規`libs/image/tests/KisImageSharedPointerHooksSchemaContractTest.cpp`の5枠6・4・4・2・3に一致した。既存`kis_types_test`は1,200工程・2,423入力で製品libraryへ接続するため追記せず、新targetはimage・global探索路、`kritaimage_EXPORTS`、Qt Core・Testだけで初回・AUTOMOC後とも4工程・8入力へ閉じられる。軽量近傍`KisUpdateSchedulerSchemaContractTest`も4工程・8入力、AUTOMOC `HEADERS=[]`、製品辺なしである。7具象型を前方宣言のまま、参照追加・解放hookの厳密関数型、強・弱参照のQt hash、標準hash特殊化を非実体化観測する。実際の参照増減・解放、weak失効、hash値・衝突、動的libraryのABI解決は既存または後続の動的契約で扱う。
 
 ### 第230便の先行監査担当票（第229便確定待ち）
 
@@ -794,8 +799,8 @@
 ### 第237便と第238便の先行監査担当票（第236便確定待ち）
 
 - 監査共通基点は`9b2ee67349`、入力は`build/tdd-macos/public-api-missing-g228.json`である。第228便から第236便までに選定済みの責務を除外し、変更、構成、構築、試験、Git操作、追加委任を行わない読み取り専用監査を先行する。候補は一つの公開責務から15〜80 APIを最大5枠へ固定でき、既存限定対象またはheader限定の4〜10工程程度を見込めるものとする。各正式便の直前に最新不足報告で全識別子、集合SHA、台帳非重複、対象不存在、閉包計画を再照合する。
-- `g237-resource-contract-audit`の状態は`auditing`、担当は`g178_paintop_settings_schema`である。`libs/resources`と`libs/brush`から、資源pathとSeExpr script資源を含む選定済みまたは契約済みheaderを除外して候補を比較する。完全な識別子、責務、5枠、既存契約との重複、最小source・CMake・近傍、予測閉包、必要依存、自己完結性、実体化回避、動的危険、停止条件を報告する。
-- `g238-impex-contract-audit`の状態は`auditing`、担当は`g208_raster_keyframe_schema`である。`libs/impex`、`libs/psd`、`libs/psdutils`、`plugins/impex`、`plugins/metadata`から、選定済みまたは契約済みheaderを除外して候補を比較する。完全な識別子、責務、5枠、既存契約との重複、最小source・CMake・近傍、予測閉包、必要依存、自己完結性、実体化回避、動的危険、停止条件を報告する。
+- `g237-resource-contract-audit`の状態は`completed-ready`、担当は`g178_paintop_settings_schema`で、memory資源保管17 APIを選定した。`libs/resources/KisMemoryStorage.h`の残存17 APIは一意で台帳と重複せず、識別子整列集合SHA-256 `ea51ddf6c9cd429fce0ffba7c89ddbd0f5c90bea0f09a8c9992af84ef5645dbe`、新規`libs/resources/tests/KisMemoryStorageSchemaContractTest.cpp`の5枠4・4・4・3・2に一致する。同型は一時・文書内資源の保管、複製、metadata、入出力、版管理、走査を一責務として所有する。新targetはresources探索路、Qt Gui・KF I18n interface、`kritaresources_EXPORTS`、Qt Core・Testとheader-only Boostだけで4工程・8入力を予測し、停止線を5工程・11入力とする。既存`TestMemoryStorage`は動的挙動を保護するが813工程・1,654入力であり、新しい静的契約からは製品接続を除く。複製深度、資源所有、metadata上書き、版番号、装置失敗、iterator寿命は既存または後続の動的契約で扱い、正式第237便不足報告で17件と集合SHAを再照合する。
+- `g238-impex-contract-audit`の状態は`completed-ready`、担当は`g208_raster_keyframe_schema`で、ASL記述子XML書出し28 APIを選定した。`libs/psdutils/asl/kis_asl_xml_writer.h`の残存28 APIは一意で台帳と重複せず、識別子整列集合SHA-256 `0061035dcb7a9082aa4cdc4a81dda3f28ad02e9dbf9c2b68481c660360e1e83d`、新規`libs/psdutils/tests/KisAslXmlWriterSchemaContractTest.cpp`の5枠4・4・7・8・5に一致する。同型はPSD/ASLの階層記述子、基本値、幾何値、色・pattern・gradientを一つのXML文書へ書き出す責務を所有する。新targetはpsdutils・pigment・resources・global探索路、Qt Gui・KF I18n・Imath interface、4 export定義、Qt Core・Testとheader-only Boostだけで4工程・8入力を予測し、停止線を5工程・11入力とする。既存`KisAslWriterUtilsContractTest`は製品OBJECTへ接続するため追記しない。XML階層・属性・色・gradientの実出力は既存parser試験が保護し、正式第238便不足報告で28件と集合SHAを再照合する。
 
 ### 第201便の先行監査担当票
 

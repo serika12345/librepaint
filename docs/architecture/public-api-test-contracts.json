@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 8424
+    "expectedMissingApis": 8389
   },
   "contracts": [
     {
@@ -59429,6 +59429,86 @@
       "apis": [
         "method:KisToolCanvas::drawToolOutline(QPainter * painter,const KisOptimizedBrushOutline & path,int thickness)",
         "method:KisToolCanvas::showToolMessage(const QString & message,const QString & iconName)"
+      ]
+    },
+    {
+      "target": "KisCanvasUpdateInfoSchemaContractTest",
+      "source": "libs/canvas/tests/KisCanvasUpdateInfoSchemaContractTest.cpp",
+      "test": "KisCanvasUpdateInfoSchemaContractTest::updateInfoTypeLifetimeAndVirtualQuerySchemaRemainStable",
+      "behavior": "canvas更新情報の基底は共有pointer別名、構築・仮想破棄、画像・表示領域、詳細度、圧縮可能性を照会する公開構成を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisUpdateInfoSP",
+        "class:KisUpdateInfo",
+        "method:KisUpdateInfo::KisUpdateInfo()",
+        "method:KisUpdateInfo::canBeCompressed() const",
+        "method:KisUpdateInfo::dirtyImageRect() const",
+        "method:KisUpdateInfo::dirtyViewportRect()",
+        "method:KisUpdateInfo::levelOfDetail() const",
+        "method:KisUpdateInfo::~KisUpdateInfo()"
+      ]
+    },
+    {
+      "target": "KisCanvasUpdateInfoSchemaContractTest",
+      "source": "libs/canvas/tests/KisCanvasUpdateInfoSchemaContractTest.cpp",
+      "test": "KisCanvasUpdateInfoSchemaContractTest::markerUpdateInfoTypeBatchAndConstructionSchemaRemainStable",
+      "behavior": "canvas更新markerはbatch開始・終了とLOD更新の遮断・再開を識別し、汚れた画像領域とともに構築する公開構成を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisMarkerUpdateInfo",
+        "enum:KisMarkerUpdateInfo::Type",
+        "enumerator:KisMarkerUpdateInfo::Type::BlockLodUpdates",
+        "enumerator:KisMarkerUpdateInfo::Type::EndBatch",
+        "enumerator:KisMarkerUpdateInfo::Type::StartBatch",
+        "enumerator:KisMarkerUpdateInfo::Type::UnblockLodUpdates",
+        "method:KisMarkerUpdateInfo::KisMarkerUpdateInfo(Type type,const QRect & dirtyImageRect)"
+      ]
+    },
+    {
+      "target": "KisCanvasUpdateInfoSchemaContractTest",
+      "source": "libs/canvas/tests/KisCanvasUpdateInfoSchemaContractTest.cpp",
+      "test": "KisCanvasUpdateInfoSchemaContractTest::markerUpdateInfoQuerySignaturesRemainStable",
+      "behavior": "canvas更新markerは圧縮可能性、汚れた画像領域、詳細度、marker種別を返す公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMarkerUpdateInfo::canBeCompressed() const",
+        "method:KisMarkerUpdateInfo::dirtyImageRect() const",
+        "method:KisMarkerUpdateInfo::levelOfDetail() const",
+        "method:KisMarkerUpdateInfo::type() const"
+      ]
+    },
+    {
+      "target": "KisCanvasUpdateInfoSchemaContractTest",
+      "source": "libs/canvas/tests/KisCanvasUpdateInfoSchemaContractTest.cpp",
+      "test": "KisCanvasUpdateInfoSchemaContractTest::projectionUpdateInfoTypeTransferAndQuerySchemaRemainStable",
+      "behavior": "projection更新情報は直接転送またはpatch転送を識別し、既定または指定画像領域から構築して画像・表示領域と詳細度を返す公開構成を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisProjectionUpdateInfoSP",
+        "class:KisProjectionUpdateInfo",
+        "enum:KisProjectionUpdateInfo::TransferType",
+        "enumerator:KisProjectionUpdateInfo::TransferType::Direct",
+        "enumerator:KisProjectionUpdateInfo::TransferType::Patch",
+        "method:KisProjectionUpdateInfo::KisProjectionUpdateInfo(const QRect & dirtyImageRect=QRect ())",
+        "method:KisProjectionUpdateInfo::dirtyImageRect() const",
+        "method:KisProjectionUpdateInfo::dirtyViewportRect()",
+        "method:KisProjectionUpdateInfo::levelOfDetail() const"
+      ]
+    },
+    {
+      "target": "KisCanvasUpdateInfoSchemaContractTest",
+      "source": "libs/canvas/tests/KisCanvasUpdateInfoSchemaContractTest.cpp",
+      "test": "KisCanvasUpdateInfoSchemaContractTest::projectionUpdateInfoTransferValueMembersRemainStable",
+      "behavior": "projection更新情報は転送対象の画像・表示領域、拡大率、転送方式、描画hint、境界幅を公開値として保持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisProjectionUpdateInfo::borderWidth",
+        "member:KisProjectionUpdateInfo::imageRect",
+        "member:KisProjectionUpdateInfo::renderHints",
+        "member:KisProjectionUpdateInfo::scaleX",
+        "member:KisProjectionUpdateInfo::scaleY",
+        "member:KisProjectionUpdateInfo::transfer",
+        "member:KisProjectionUpdateInfo::viewportRect"
       ]
     }
   ]
