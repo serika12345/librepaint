@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 10:47 JST
+- 更新日時: 2026-09-05 10:49 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -769,6 +769,12 @@
 ### 第229便の先行監査担当票
 
 - `g229-image-shared-pointer-hooks-schema-formal-review`の状態は`completed-ready`、担当は`g178_paintop_settings_schema`、基点は`7df1b3f44e`である。第228便後の正式入力`build/tdd-macos/public-api-missing-g229.json`でも`libs/image/kis_types.h`の残存全19 APIは一意で台帳と重複せず、識別子整列集合SHA-256 `73ca00770404b4a105c6b723330fd6e999afca81dd2bc58ec1051daf722d9a35`、新規`libs/image/tests/KisImageSharedPointerHooksSchemaContractTest.cpp`の5枠6・4・4・2・3に一致した。既存`kis_types_test`は1,200工程・2,423入力で製品libraryへ接続するため追記せず、新targetはimage・global探索路、`kritaimage_EXPORTS`、Qt Core・Testだけで初回・AUTOMOC後とも4工程・8入力へ閉じられる。軽量近傍`KisUpdateSchedulerSchemaContractTest`も4工程・8入力、AUTOMOC `HEADERS=[]`、製品辺なしである。7具象型を前方宣言のまま、参照追加・解放hookの厳密関数型、強・弱参照のQt hash、標準hash特殊化を非実体化観測する。実際の参照増減・解放、weak失効、hash値・衝突、動的libraryのABI解決は既存または後続の動的契約で扱う。
+
+### 第229便の担当計画
+
+- 実装基点は`bcbd202a88`である。`g229-image-shared-pointer-hooks-schema`の状態は`implementing`、専用作業treeは`/Users/masato/Documents/librepaint-g229-image-shared-pointer-hooks-schema`、branchは`agent/g229-image-shared-pointer-hooks-schema`である。開始`libs/image/kis_types.h`の残存全19 APIを、新規`libs/image/tests/KisImageSharedPointerHooksSchemaContractTest.cpp`の5枠へ固定する。許可pathは同試験sourceと`libs/image/tests/CMakeLists.txt`の新target固有節だけで、公開header、製品source、既存targetを変更しない。調整担当だけがarchitecture文書、公開API台帳、共通不足報告を変更する。担当のGit権限は許可pathだけの受渡しcommit 1件で、追加委任は禁止する。
+- 5枠は`imageSharedPointerNodeAndLayerHooksRemainStable`へ`KisNode`、`KisGroupLayer`、`KisFilterMask`の参照追加・解放6件、`imageSharedPointerConfigurationHooksRemainStable`へ`KisPaintOpSettings`と`KisPropertiesConfiguration`の参照追加・解放4件、`imageSharedPointerSelectionHooksRemainStable`へ`KisSelection`と`KisSelectionMask`の参照追加・解放4件、`imageSharedPointerQtHashSignaturesRemainStable`へ強・弱共有pointerの`qHash` 2件、`imageSharedPointerStandardHashSchemaRemainStable`へ標準hash特殊化構造と強・弱共有pointerの呼出し2件の3件を対応付ける。正式入力の完全な19識別子と識別子整列集合SHA-256 `73ca00770404b4a105c6b723330fd6e999afca81dd2bc58ec1051daf722d9a35`を維持する。
+- 新targetはimage・global source/generated探索路、`kritaimage_EXPORTS`、Qt Core・Testだけに限定し、予測閉包4工程・8入力、停止線5工程・11入力とする。厳密なoverload関数pointer、template戻り型、標準hash特殊化と呼出しoperatorの型特性だけで観測し、7具象型、共有・弱共有pointer、参照計数、hash値を実体化しない。担当は編集前target不存在、直接依存、初回計画、5枠宣言段階の期待link失敗、5枠単発・各20回、全target、正式CTest、近傍`KisUpdateSchedulerSchemaContractTest`、AUTOMOC後二回目計画、無作業再構築2回、動的接続・未解決記号・AUTOMOC入力・構文・書式、差分、公開API検査、`verify-quick`を確認する。5工程・11入力超過、追加探索路・定義・link、製品shared・OBJECT・`kritatestsdk`の動的接続、候補headerのAUTOMOC入力化、製品未解決記号、対象実体化、許可path外の変更が必要なら停止する。製品target、全体build・`verify`、Linux、Nix再評価は禁止する。
 
 ### 第230便の先行監査担当票（第229便確定待ち）
 
