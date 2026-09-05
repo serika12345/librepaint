@@ -92,6 +92,28 @@ set_target_properties(kritacanvasimagepatchobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritacanvasstateobjects OBJECT
+    KisCanvasState.cpp
+)
+target_compile_definitions(kritacanvasstateobjects PRIVATE kritacanvas_EXPORTS)
+target_include_directories(kritacanvasstateobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/flake>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/flake>
+)
+target_link_libraries(kritacanvasstateobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Boost::boost
+)
+set_target_properties(kritacanvasstateobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 set(kritacanvas_LIB_SRCS
     animation/kis_animation_frame_cache_index.h
     animation/kis_frame_data_serializer.h
@@ -116,7 +138,6 @@ set(kritacanvas_LIB_SRCS
     kis_update_info.h
     kis_update_info.cpp
     KisToolCanvas.h
-    KisCanvasState.cpp
 )
 
 kis_add_library(kritacanvas SHARED
@@ -125,6 +146,7 @@ kis_add_library(kritacanvas SHARED
     $<TARGET_OBJECTS:kritacanvasanimationframecacheindexobjects>
     $<TARGET_OBJECTS:kritacanvastiledatapoolobjects>
     $<TARGET_OBJECTS:kritacanvasimagepatchobjects>
+    $<TARGET_OBJECTS:kritacanvasstateobjects>
 )
 generate_export_header(kritacanvas BASE_NAME kritacanvas)
 

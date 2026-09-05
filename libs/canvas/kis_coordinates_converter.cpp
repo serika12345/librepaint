@@ -8,6 +8,8 @@
 #include <cmath>
 
 #include "kis_coordinates_converter.h"
+
+#include "KisCanvasState.h"
 #include "KoViewTransformStillPoint.h"
 
 #include <QtMath>
@@ -20,6 +22,33 @@
 #include <KisValueCache.h>
 #include <KisPortingUtils.h>
 
+KisCanvasState KisCanvasState::fromConverter(const KisCoordinatesConverter &converter)
+{
+    KisCanvasState state;
+    state.zoom = converter.zoom();
+    state.effectiveZoom = converter.effectiveZoom();
+    state.zoomMode = converter.zoomMode();
+    state.rotation = converter.rotationAngle();
+    state.mirrorHorizontally = converter.xAxisMirrored();
+    state.mirrorVertically = converter.yAxisMirrored();
+    state.documentOffset = converter.documentOffset();
+    state.documentOffsetF = converter.documentOffsetF();
+    state.viewportOffsetF = converter.imageRectInViewportPixels().topLeft();
+    state.minimumOffset = converter.minimumOffset();
+    state.maximumOffset = converter.maximumOffset();
+    state.canvasSize = converter.getCanvasWidgetSize();
+    state.minimumZoom = converter.minZoom();
+    state.maximumZoom = converter.maxZoom();
+    state.imageRectInWidgetPixels = converter.imageRectInWidgetPixels();
+
+    if (state.imageRectInWidgetPixels.topLeft() != -state.documentOffsetF) {
+        qWarning() << "The imageRectInWidgetPixels topLeft() does not match the documentOffsetF!";
+        qWarning() << "    imageRectInWidgetPixels:" << state.imageRectInWidgetPixels;
+        qWarning() << "    documentOffsetF:" << state.documentOffsetF;
+    }
+
+    return state;
+}
 
 struct KisCoordinatesConverter::Private {
     Private():
