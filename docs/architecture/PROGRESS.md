@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 22:31 JST
+- 更新日時: 2026-09-05 22:35 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1238,10 +1238,10 @@
 
 ### 第261便の監査結果と担当計画
 
-- `libs/painting/strokes/KisMaskedFreehandStrokePainter.h`の残存全17 APIは一意かつ台帳と非重複で、識別子整列集合SHA-256 `132e93a443c384e9cf2679ef60f4f465d70e7b85a178dc568dc93d7ee7a5d989`を持つ。`g261-masked-freehand-schema`の状態は`planned`で、実装時の許可pathは新規`libs/painting/tests/KisMaskedFreehandStrokePainterSchemaContractTest.cpp`と`libs/painting/tests/CMakeLists.txt`の新target固有節だけとする。公開header、製品source、既存targetを変更せず、調整担当だけが文書、台帳、共通不足報告を変更する。
+- 最新`build/tdd-macos/public-api-missing-g261.json`で`libs/painting/strokes/KisMaskedFreehandStrokePainter.h`の残存全17 APIが一意かつ台帳と非重複で、識別子整列集合SHA-256 `132e93a443c384e9cf2679ef60f4f465d70e7b85a178dc568dc93d7ee7a5d989`を持つことを再確認した。`g261-masked-freehand-schema`の状態は`in_progress`、実装基点は`bd07b45f27`、専用作業treeは`/Users/masato/Documents/librepaint-g261-masked-freehand-schema`、branchは`agent/g261-masked-freehand-schema`、macOSの対象と近傍に限る構築実行許可は`granted`である。許可pathは新規`libs/painting/tests/KisMaskedFreehandStrokePainterSchemaContractTest.cpp`と`libs/painting/tests/CMakeLists.txt`の新target固有節だけとする。公開header、製品source、既存targetを変更せず、調整担当だけが文書、台帳、共通不足報告を変更する。担当のGit権限は許可pathだけの受渡しcommit 1件で、追加委任は禁止する。
 - 5枠は`maskedFreehandPainterTypeLifetimeAndPresetSchemaRemainStable`へ型・構築・preset 3件、`maskedFreehandPainterDabLineAndBezierSignaturesRemainStable`へ点・線・Bezier描画3件、`maskedFreehandPainterGeometryPrimitiveSignaturesRemainStable`へpolyline・polygon・矩形・楕円・path 5件、`maskedFreehandPainterPathDrawingSignaturesRemainStable`へpath描線・描線塗潰し2件、`maskedFreehandPainterAsynchronousDirtyAndMaskSignaturesRemainStable`へ非同期更新、dirty状態・取得、mask状態4件を対応付ける。厳密member pointer、型特性、polyline既定引数の未評価呼出しだけで観測し、painter、stroke情報、paint情報、色、job、Qt値を実体化しない。
 - 新規targetはpaintingのsource/generated探索路、`kritapainting_EXPORTS`、Qt Core・Testだけを直接接続する4工程・8入力を予測し、停止線を5工程・11入力とする。軽量近傍`KisStrokeEfficiencyMeasurerSchemaContractTest`は4工程・8入力、command SHA-256 `5f6bb10d33d083868a01526eeedfcf83afd07fa2ad8f6c99868846055def26e5`、input SHA-256 `be7e1f2dae639fb855f68a127cc8e88980f447951266c6b25396db34c2213448`である。既存`FreehandStrokeSchemaContractTest`は4工程・8入力だがQt Gui・Xmlと広い探索面を持つため追記せず、1,307工程・2,632入力の動的`FreehandStrokeContractTest`と製品objectも反復対象にしない。実描画の主・mask二重配送、非同期更新統合、dirty領域、mask合成は後続の動的契約で扱う。
-- 実装担当は専用worktree-local構築木で編集前target不存在、5枠宣言段階の期待link失敗、追加5枠単発・各20回、全target、正式CTest、軽量近傍、AUTOMOC後の二回目計画、無作業build 2回、4/8とhash、動的接続・未解決記号・AUTOMOC入力・厳格構文・書式、差分、公開API検査、`verify-quick`を逐次確認する。Git権限は許可pathだけの受渡しcommit 1件で、追加委任は禁止する。5工程・11入力超過、追加探索路・定義・Qt Gui・Widgets・Xmlまたは製品link、製品shared・OBJECT・`kritatestsdk`、候補headerのAUTOMOC入力化、masked painter・painter・paintop・preset・jobの製品未解決記号、実体化、許可path外変更が必要なら停止する。製品target、既存動的試験、全体build・`verify`、Linux、Nix再評価は禁止し、第260便完了後に開始する。
+- 実装担当は専用worktree-local構築木で編集前target不存在、5枠宣言段階の期待link失敗、追加5枠単発・各20回、全target、正式CTest、軽量近傍、AUTOMOC後の二回目計画、無作業build 2回、4/8とhash、動的接続・未解決記号・AUTOMOC入力・厳格構文・書式、差分、公開API検査、`verify-quick`を逐次確認する。5工程・11入力超過、追加探索路・定義・Qt Gui・Widgets・Xmlまたは製品link、製品shared・OBJECT・`kritatestsdk`、候補headerのAUTOMOC入力化、masked painter・painter・paintop・preset・jobの製品未解決記号、実体化、許可path外変更が必要なら停止する。製品target、既存動的試験、全体build・`verify`、Linux、Nix再評価は禁止する。
 
 ### 第262便の先行監査担当票
 
