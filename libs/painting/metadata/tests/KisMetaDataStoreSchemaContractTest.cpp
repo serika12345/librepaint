@@ -3,10 +3,10 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#include <kis_meta_data_validator.h>
-
 #include <kis_meta_data_entry.h>
+
 #include <kis_meta_data_store.h>
+#include <kis_meta_data_validator.h>
 
 #include <QTest>
 
@@ -15,9 +15,12 @@
 namespace
 {
 using StoreConstIterator = QHash<QString, KisMetaData::Entry>::const_iterator;
+using Entry = KisMetaData::Entry;
 
 #define ASSERT_STORE_SIGNATURE(method, signature)                                                                      \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisMetaData::Store::method)), signature>)
+#define ASSERT_ENTRY_SIGNATURE(method, signature)                                                                      \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&Entry::method)), signature>)
 } // namespace
 
 class KisMetaDataStoreSchemaContractTest : public QObject
@@ -35,6 +38,11 @@ private Q_SLOTS:
     void metaDataValidatorTypeAndLifetimeSchemaRemainStable();
     void metaDataValidatorCountSignaturesRemainStable();
     void metaDataValidatorEntryAndRevalidationSignaturesRemainStable();
+    void metaDataEntryTypeLifetimeAndConstructionSchemaRemainStable();
+    void metaDataEntryIdentityAndSchemaSignaturesRemainStable();
+    void metaDataEntryValueAndAssignmentSignaturesRemainStable();
+    void metaDataEntryValidationAndEqualitySignaturesRemainStable();
+    void metaDataEntryDebugSignatureRemainsStable();
 };
 
 void KisMetaDataStoreSchemaContractTest::metaDataStoreIdentityAndLifecycleSignaturesRemainStable()
@@ -141,6 +149,42 @@ void KisMetaDataStoreSchemaContractTest::metaDataValidatorEntryAndRevalidationSi
 
     static_assert(std::is_same_v<decltype(&Validator::invalidEntries), const InvalidEntries &(Validator::*)() const>);
     static_assert(std::is_same_v<decltype(&Validator::revalidate), void (Validator::*)()>);
+}
+
+void KisMetaDataStoreSchemaContractTest::metaDataEntryTypeLifetimeAndConstructionSchemaRemainStable()
+{
+    static_assert(std::is_class_v<Entry>);
+    static_assert(std::is_default_constructible_v<Entry>);
+    static_assert(std::is_copy_constructible_v<Entry>);
+    static_assert(std::is_constructible_v<Entry, const KisMetaData::Schema *, QString, const KisMetaData::Value &>);
+    static_assert(std::is_destructible_v<Entry>);
+}
+
+void KisMetaDataStoreSchemaContractTest::metaDataEntryIdentityAndSchemaSignaturesRemainStable()
+{
+    ASSERT_ENTRY_SIGNATURE(name, QString (Entry::*)() const);
+    ASSERT_ENTRY_SIGNATURE(qualifiedName, QString (Entry::*)() const);
+    ASSERT_ENTRY_SIGNATURE(schema, const KisMetaData::Schema *(Entry::*)() const);
+}
+
+void KisMetaDataStoreSchemaContractTest::metaDataEntryValueAndAssignmentSignaturesRemainStable()
+{
+    ASSERT_ENTRY_SIGNATURE(operator=, Entry & (Entry::*)(const Entry &));
+    ASSERT_ENTRY_SIGNATURE(value, KisMetaData::Value & (Entry::*)());
+    ASSERT_ENTRY_SIGNATURE(value, const KisMetaData::Value &(Entry::*)() const);
+}
+
+void KisMetaDataStoreSchemaContractTest::metaDataEntryValidationAndEqualitySignaturesRemainStable()
+{
+    ASSERT_ENTRY_SIGNATURE(isValid, bool (Entry::*)() const);
+    ASSERT_ENTRY_SIGNATURE(isValidName, bool (*)(const QString &));
+    ASSERT_ENTRY_SIGNATURE(operator==, bool (Entry::*)(const Entry &) const);
+}
+
+void KisMetaDataStoreSchemaContractTest::metaDataEntryDebugSignatureRemainsStable()
+{
+    using DebugSignature = QDebug (*)(QDebug, const Entry &);
+    static_assert(std::is_same_v<decltype(static_cast<DebugSignature>(&operator<<)), DebugSignature>);
 }
 
 QTEST_APPLESS_MAIN(KisMetaDataStoreSchemaContractTest)
