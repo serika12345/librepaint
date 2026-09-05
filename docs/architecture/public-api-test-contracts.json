@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 7978
+    "expectedMissingApis": 7963
   },
   "contracts": [
     {
@@ -60865,6 +60865,66 @@
         "method:KisAlternateInvocationAction::inputEvent(QEvent * event)",
         "method:KisAlternateInvocationAction::priority() const",
         "method:KisAlternateInvocationAction::supportsHiResInputEvents(int shortcut) const"
+      ]
+    },
+    {
+      "target": "KisMemoryStorageSchemaContractTest",
+      "source": "libs/resources/tests/KisMemoryStorageSchemaContractTest.cpp",
+      "test": "KisMemoryStorageSchemaContractTest::folderStorageTypeLifetimeAndConstructionSchemaRemainStable",
+      "behavior": "フォルダー資源保管は保管pluginを継承し、場所を指定して構築・破棄できる公開型構成を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisFolderStorage",
+        "method:KisFolderStorage::KisFolderStorage(const QString & location)",
+        "method:KisFolderStorage::~KisFolderStorage()"
+      ]
+    },
+    {
+      "target": "KisMemoryStorageSchemaContractTest",
+      "source": "libs/resources/tests/KisMemoryStorageSchemaContractTest.cpp",
+      "test": "KisMemoryStorageSchemaContractTest::folderStorageResourceMutationSignaturesRemainStable",
+      "behavior": "フォルダー資源保管は資源の追加、版付読込み、新規版保存を行う公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisFolderStorage::addResource(const QString & resourceType,KoResourceSP resource)",
+        "method:KisFolderStorage::loadVersionedResource(KoResourceSP resource)",
+        "method:KisFolderStorage::saveAsNewVersion(const QString & resourceType,KoResourceSP resource)"
+      ]
+    },
+    {
+      "target": "KisMemoryStorageSchemaContractTest",
+      "source": "libs/resources/tests/KisMemoryStorageSchemaContractTest.cpp",
+      "test": "KisMemoryStorageSchemaContractTest::folderStorageImportExportAndPathSignaturesRemainStable",
+      "behavior": "フォルダー資源保管は資源の取込・出力と、格納path・MD5の照会を行う公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisFolderStorage::exportResource(const QString & url,QIODevice * device)",
+        "method:KisFolderStorage::importResource(const QString & url,QIODevice * device)",
+        "method:KisFolderStorage::resourceFilePath(const QString & url)",
+        "method:KisFolderStorage::resourceMd5(const QString & url)"
+      ]
+    },
+    {
+      "target": "KisMemoryStorageSchemaContractTest",
+      "source": "libs/resources/tests/KisMemoryStorageSchemaContractTest.cpp",
+      "test": "KisMemoryStorageSchemaContractTest::folderStorageLookupAndIteratorSignaturesRemainStable",
+      "behavior": "フォルダー資源保管は資源項目を取得し、資源とtagを列挙する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisFolderStorage::resourceItem(const QString & url)",
+        "method:KisFolderStorage::resources(const QString & resourceType)",
+        "method:KisFolderStorage::tags(const QString & resourceType)"
+      ]
+    },
+    {
+      "target": "KisMemoryStorageSchemaContractTest",
+      "source": "libs/resources/tests/KisMemoryStorageSchemaContractTest.cpp",
+      "test": "KisMemoryStorageSchemaContractTest::folderStorageMetadataSignaturesRemainStable",
+      "behavior": "フォルダー資源保管はmetadataの値と利用可能なkey一覧を照会する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisFolderStorage::metaData(const QString & key) const",
+        "method:KisFolderStorage::metaDataKeys() const"
       ]
     }
   ]
