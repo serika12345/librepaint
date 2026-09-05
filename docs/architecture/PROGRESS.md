@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 23:12 JST
+- 更新日時: 2026-09-05 23:14 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1290,6 +1290,12 @@
 - `libs/image/commands/kis_node_operation_batch.h`の残存全18 APIは識別子整列集合SHA-256 `83dc735d599d3f3518f7650cc2581182eeae6ddf3036f3db5ee461a2b3c78d33`を持つ。型・寿命・状態5、階層順序変更5、移動先を伴う変更3、group化・結合判定3、完了・更新通知2の5枠へ割り当てる。型特性、厳密member pointer、未評価構築式だけでpublic slotとsignalを含む全件を観測する。timeout、非同期stroke、undo後の階層・選択復元、group化結果、signal配送、auto-delete寿命は既存動的`KisNodeOperationBatchTest`へ残す。
 - `g264a-node-operation-batch-header-boundary`の状態は`planned`とする。開始`libs/image/commands/kis_node_operation_batch.h`でconst参照だけに使う`<kundo2command.h>`を`KUndo2MagicString`の前方宣言へ置き換え、同じくconst参照だけの`QString`を明示的に前方宣言する。完全型と`kundo2_i18n`の所有先として`libs/image/commands/kis_node_operation_batch.cpp`、`libs/image/tests/kis_node_operation_batch_test.cpp`、`libs/ui/nodes/kis_node_manager.cpp`へ`<kundo2magicstring.h>`を直接追加する。公開API、ABI、挙動は変更しない。許可pathはこの4ファイルだけとし、追加利用元の補正が必要なら停止する。
 - G264aは変更前後のheader-first探索面、直接利用元と完全型所有先の厳格構文、軽量`KisNodeCommandsAdapterSchemaContractTest`、公開API 29,804件と18識別子・指紋、二回の無作業再構築、書式、差分、公開API検査、`verify-quick`を確認する。続く`g264-node-operation-batch-schema`は新規`libs/image/tests/KisNodeOperationBatchSchemaContractTest.cpp`と`libs/image/tests/CMakeLists.txt`の新target固有節だけを許可し、image・globalのsource/generated探索路、`kritaimage_EXPORTS`、Qt Core・Testだけの直接linkによる4工程・8入力、停止線5工程・11入力を予測する。候補headerのAUTOMOC入力化、painting/undo、pigment、KF、Boost、Qt Gui・Widgets・Xmlまたは製品libraryの接続、製品・metaobject未解決記号、実体化または許可path外変更が必要なら停止する。G263完了後にG264aを開始する。
+
+### 第265便の先行監査担当票
+
+- 監査共通基点は`7494331b09`、正式入力は`build/tdd-macos/public-api-missing-g263.json`である。第263便と第264便の選定済みAPIを除外し、`libs/painting/kis_figure_painting_stroke.h`の残存17 APIを、図形描画strokeの構築・描画・資源上書きを固定する一責務候補として監査する。主作業treeの読み取りだけを許可し、変更、構成、構築、試験、Git操作、追加委任を行わず、G263aの専用構築木と生成物を共有しない。
+- `g265-figure-painting-stroke-api-audit`の状態は`in_progress`である。正式不足一覧と台帳に対する残存識別子の完全性、一意性、整列指紋、型・寿命・非copy性・幾何描画・pen描画・描画資源上書きの責務別割当、最大5枠で静的契約へ固定できる範囲を調べる。既存動的試験が保護するstroke開始・終了、資源snapshot、実描画の意味は分離して報告する。
+- `g265-figure-painting-stroke-closure-review`の状態は`in_progress`である。候補headerの直接依存、paintingの既存軽量契約、専用target・既存`FreehandStrokeSchemaContractTest`追記・重量`TestPaintingBoundary`の責務と閉包差、必要探索路・定義・動的接続、製品shared・OBJECTと`kritatestsdk`の回避、候補headerのAUTOMOC非入力化、許可path、停止線を独立に調べる。先行include整理が限定構築範囲を縮小する場合は、その根拠と所有先を報告する。
 
 ### 第239便の先行監査担当票
 
