@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 7963
+    "expectedMissingApis": 7926
   },
   "contracts": [
     {
@@ -60925,6 +60925,88 @@
       "apis": [
         "method:KisFolderStorage::metaData(const QString & key) const",
         "method:KisFolderStorage::metaDataKeys() const"
+      ]
+    },
+    {
+      "target": "KisSelectionOptionsSchemaContractTest",
+      "source": "libs/tools/ui/tests/KisSelectionOptionsSchemaContractTest.cpp",
+      "test": "KisSelectionOptionsSchemaContractTest::selectionOptionsTypeLifetimeAndReferenceLayerSchemaRemainStable",
+      "behavior": "選択設定UIは設定collectionを継承し、参照layerの選択肢、親付き構築、仮想破棄を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisSelectionOptions",
+        "enum:KisSelectionOptions::ReferenceLayers",
+        "enumerator:KisSelectionOptions::ReferenceLayers::AllLayers",
+        "enumerator:KisSelectionOptions::ReferenceLayers::ColorLabeledLayers",
+        "enumerator:KisSelectionOptions::ReferenceLayers::CurrentLayer",
+        "method:KisSelectionOptions::KisSelectionOptions(QWidget * parent=nullptr)",
+        "method:KisSelectionOptions::~KisSelectionOptions()"
+      ]
+    },
+    {
+      "target": "KisSelectionOptionsSchemaContractTest",
+      "source": "libs/tools/ui/tests/KisSelectionOptionsSchemaContractTest.cpp",
+      "test": "KisSelectionOptionsSchemaContractTest::selectionOptionsModeActionAndAntialiasSignaturesRemainStable",
+      "behavior": "選択設定UIは選択mode・選択action・アンチエイリアスの取得、設定、変更通知を行う公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSelectionOptions::action() const",
+        "method:KisSelectionOptions::actionChanged(SelectionAction action)",
+        "method:KisSelectionOptions::antiAliasSelection() const",
+        "method:KisSelectionOptions::antiAliasSelectionChanged(bool antiAliasSelection)",
+        "method:KisSelectionOptions::mode() const",
+        "method:KisSelectionOptions::modeChanged(SelectionMode mode)",
+        "method:KisSelectionOptions::setAction(SelectionAction newAction)",
+        "method:KisSelectionOptions::setAntiAliasSelection(bool newAntiAliasSelection)",
+        "method:KisSelectionOptions::setMode(SelectionMode newMode)"
+      ]
+    },
+    {
+      "target": "KisSelectionOptionsSchemaContractTest",
+      "source": "libs/tools/ui/tests/KisSelectionOptionsSchemaContractTest.cpp",
+      "test": "KisSelectionOptionsSchemaContractTest::selectionOptionsAdjustmentSignaturesRemainStable",
+      "behavior": "選択設定UIは拡張量・ぼかし量・最暗画素での拡張停止を取得、設定、通知する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSelectionOptions::featherSelection() const",
+        "method:KisSelectionOptions::featherSelectionChanged(int featherSelection)",
+        "method:KisSelectionOptions::growSelection() const",
+        "method:KisSelectionOptions::growSelectionChanged(int growSelection)",
+        "method:KisSelectionOptions::setFeatherSelection(int newFeatherSelection)",
+        "method:KisSelectionOptions::setGrowSelection(int newGrowSelection)",
+        "method:KisSelectionOptions::setStopGrowingAtDarkestPixel(bool newStopGrowingAtDarkestPixel)",
+        "method:KisSelectionOptions::stopGrowingAtDarkestPixel() const",
+        "method:KisSelectionOptions::stopGrowingAtDarkestPixelChanged(bool stopGrowingAtDarkestPixel)"
+      ]
+    },
+    {
+      "target": "KisSelectionOptionsSchemaContractTest",
+      "source": "libs/tools/ui/tests/KisSelectionOptionsSchemaContractTest.cpp",
+      "test": "KisSelectionOptionsSchemaContractTest::selectionOptionsReferenceAndColorLabelSignaturesRemainStable",
+      "behavior": "選択設定UIは参照layer範囲と対象色labelを取得、設定、通知する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSelectionOptions::referenceLayers() const",
+        "method:KisSelectionOptions::referenceLayersChanged(ReferenceLayers referenceLayers)",
+        "method:KisSelectionOptions::selectedColorLabels() const",
+        "method:KisSelectionOptions::selectedColorLabelsChanged()",
+        "method:KisSelectionOptions::setReferenceLayers(ReferenceLayers newReferenceLayers)",
+        "method:KisSelectionOptions::setSelectedColorLabels(const QList<int> & newSelectedColorLabels)"
+      ]
+    },
+    {
+      "target": "KisSelectionOptionsSchemaContractTest",
+      "source": "libs/tools/ui/tests/KisSelectionOptionsSchemaContractTest.cpp",
+      "test": "KisSelectionOptionsSchemaContractTest::selectionOptionsPresentationSignaturesRemainStable",
+      "behavior": "選択設定UIは各設定区画の表示とactionのshortcut説明を更新する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSelectionOptions::setActionSectionVisible(bool visible)",
+        "method:KisSelectionOptions::setAdjustmentsSectionVisible(bool visible)",
+        "method:KisSelectionOptions::setModeSectionVisible(bool visible)",
+        "method:KisSelectionOptions::setReferenceSectionVisible(bool visible)",
+        "method:KisSelectionOptions::setStopGrowingAtDarkestPixelButtonVisible(bool visible)",
+        "method:KisSelectionOptions::updateActionButtonToolTip(SelectionAction action,const QKeySequence & shortcut)"
       ]
     }
   ]
