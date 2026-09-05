@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 8149
+    "expectedMissingApis": 8130
   },
   "contracts": [
     {
@@ -60244,6 +60244,70 @@
         "method:KisResourcesSnapshot::setMirroring(bool horizontal,bool vertical)",
         "method:KisResourcesSnapshot::setOpacity(qreal opacity)",
         "method:KisResourcesSnapshot::setSelectionOverride(KisSelectionSP selection)"
+      ]
+    },
+    {
+      "target": "KoPatternSchemaContractTest",
+      "source": "libs/pigment/tests/KoPatternSchemaContractTest.cpp",
+      "test": "KoPatternSchemaContractTest::patternTypeLifetimeAndValueSemanticsSchemaRemainStable",
+      "behavior": "pattern画像資源は共有参照別名、複製構築、代入禁止、基底型からの破棄を備える公開型構成を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KoPatternSP",
+        "class:KoPattern",
+        "method:KoPattern::KoPattern(const KoPattern & rhs)",
+        "method:KoPattern::operator =(const KoPattern & rhs)",
+        "method:KoPattern::~KoPattern()"
+      ]
+    },
+    {
+      "target": "KoPatternSchemaContractTest",
+      "source": "libs/pigment/tests/KoPatternSchemaContractTest.cpp",
+      "test": "KoPatternSchemaContractTest::patternConstructionAndCloneSchemaRemainStable",
+      "behavior": "pattern画像資源はfileまたは画像・名前・fileから構築し、通常複製とalpha除去複製を返す公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoPattern::KoPattern(const QImage & image,const QString & name,const QString & filename)",
+        "method:KoPattern::KoPattern(const QString & filename)",
+        "method:KoPattern::clone() const",
+        "method:KoPattern::cloneWithoutAlpha() const"
+      ]
+    },
+    {
+      "target": "KoPatternSchemaContractTest",
+      "source": "libs/pigment/tests/KoPatternSchemaContractTest.cpp",
+      "test": "KoPatternSchemaContractTest::patternPersistenceSignaturesRemainStable",
+      "behavior": "pattern画像資源は既定拡張子を示し、通常形式とPAT形式を装置から読み書きする公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoPattern::defaultFileExtension() const",
+        "method:KoPattern::loadFromDevice(QIODevice * dev,KisResourcesInterfaceSP resourcesInterface)",
+        "method:KoPattern::loadPatFromDevice(QIODevice * dev)",
+        "method:KoPattern::savePatToDevice(QIODevice * dev) const",
+        "method:KoPattern::saveToDevice(QIODevice * dev) const"
+      ]
+    },
+    {
+      "target": "KoPatternSchemaContractTest",
+      "source": "libs/pigment/tests/KoPatternSchemaContractTest.cpp",
+      "test": "KoPatternSchemaContractTest::patternImageAndGeometrySignaturesRemainStable",
+      "behavior": "pattern画像資源は画像内容と幅・高さを取得する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoPattern::height() const",
+        "method:KoPattern::pattern() const",
+        "method:KoPattern::width() const"
+      ]
+    },
+    {
+      "target": "KoPatternSchemaContractTest",
+      "source": "libs/pigment/tests/KoPatternSchemaContractTest.cpp",
+      "test": "KoPatternSchemaContractTest::patternClassificationAndAlphaSignaturesRemainStable",
+      "behavior": "pattern画像資源はalpha有無と資源種別を取得する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoPattern::hasAlpha() const",
+        "method:KoPattern::resourceType() const"
       ]
     }
   ]

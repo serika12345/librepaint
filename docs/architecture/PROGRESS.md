@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 14:25 JST
+- 更新日時: 2026-09-05 14:40 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -937,9 +937,20 @@
 
 ### 第240便の担当計画
 
-- 実装基点は`bb43493bb7`である。`g240-pattern-schema`の状態は`planned`、専用作業treeは`/Users/masato/Documents/librepaint-g240-pattern-schema`、branchは`agent/g240-pattern-schema`である。開始`libs/pigment/resources/KoPattern.h`の残存全19 APIを、新規`libs/pigment/tests/KoPatternSchemaContractTest.cpp`の5枠へ固定する。許可pathは同試験sourceと`libs/pigment/tests/CMakeLists.txt`の新target固有節だけで、公開header、製品source、既存targetを変更しない。調整担当だけがarchitecture文書、公開API台帳、共通不足報告を変更する。担当のGit権限は許可pathだけの受渡しcommit 1件で、追加委任は禁止する。
+- 実装基点は`bb43493bb7`である。`g240-pattern-schema`の状態は`integrated`、専用作業treeは`/Users/masato/Documents/librepaint-g240-pattern-schema`、branchは`agent/g240-pattern-schema`を使用した。開始`libs/pigment/resources/KoPattern.h`の残存全19 APIを、新規`libs/pigment/tests/KoPatternSchemaContractTest.cpp`の5枠へ固定した。許可pathは同試験sourceと`libs/pigment/tests/CMakeLists.txt`の新target固有節だけで、公開header、製品source、既存targetを変更していない。受渡しcommit `bfc1afabe1`を中央commit `13baef642b`として取り込んだ。調整担当だけがarchitecture文書、公開API台帳、共通不足報告を変更した。担当のGit権限は許可pathだけの受渡しcommit 1件で、追加委任は禁止した。
 - 5枠は`patternTypeLifetimeAndValueSemanticsSchemaRemainStable`へ共有別名、型、複製構築、代入、破棄の5件、`patternConstructionAndCloneSchemaRemainStable`へfile構築、画像・名前・file構築、複製、alpha除去複製の4件、`patternPersistenceSignaturesRemainStable`へ既定拡張子、通常・PAT読込み、通常・PAT保存の5件、`patternImageAndGeometrySignaturesRemainStable`へ高さ、画像、幅の3件、`patternClassificationAndAlphaSignaturesRemainStable`へalpha有無と資源種別の2件を対応付ける。正式入力`build/tdd-macos/public-api-missing-g240.json`の完全な19識別子と識別子整列集合SHA-256 `2aa424750d22af4e726f1c14b30764a46c27832bd13238aa479ff3891bd0007b`を維持する。
 - 新targetはpigment・resources source/generated探索路、KF I18n interface探索路、`kritapigment_EXPORTS`・`kritaresources_EXPORTS`、Qt Core・Gui・Testとheader-only Boostだけに限定し、予測閉包4工程・8入力、停止線5工程・11入力とする。`KoPattern.h`はglobalやImathを含まないため、それらの探索路・定義・接続を加えない。型特性、別名同一性、厳密な関数・member pointer、未評価構築式だけで観測し、pattern、画像、装置、資源interface、Qt値を実体化せず本文を実行しない。担当は編集前target不存在、直接依存、初回計画、5枠宣言段階の期待link失敗、5枠単発・各20回、全target、正式CTest、近傍`KoStopGradientSchemaContractTest`、AUTOMOC後二回目計画、無作業再構築2回、動的接続・未解決記号・AUTOMOC入力・構文・書式、差分、公開API検査、`verify-quick`を確認する。5工程・11入力超過、新しい探索路・定義・link、KF I18nまたは製品shared・OBJECT・`kritatestsdk`の接続、候補headerのAUTOMOC入力化、製品未解決記号、対象実体化、許可path外変更が必要なら停止する。製品target、全体build・`verify`、Linux、Nix再評価は禁止する。
+
+### 第240便の契約統合結果
+
+- 開始`libs/pigment/resources/KoPattern.h`から新規`libs/pigment/tests/KoPatternSchemaContractTest.cpp`へ19 API・5枠を追加した。担当側と中央のmacOSで5枠を各20回、対象全7件、正式CTestと近傍`KoStopGradientSchemaContractTest`、AUTOMOC後の二回目計画、無作業再構築2回に成功した。中央実測は4工程・8入力、command SHA-256 `ecab8a92b0f3d827750e503406c64e8048c477a5cbb4f98bcd02636b7a058040`、input SHA-256 `11834a0583808e593018d86c5c68ab30ef908df96712a747c2c2710e196c4dd2`、AUTOMOC `HEADERS=[]`、Qt Core・Gui・TestとOS frameworkだけの動的接続、製品未解決記号なしである。KF I18nは探索界面、Boostはheaderだけに限定し、global・Eigen・Imathを追加していない。正しいcompile commandによる`clang-check -Werror`、書式、差分、macOSのpackage境界1,880対象、公開API検査に成功し、台帳は21,674件対応、8,130件未対応となった。画像内容、alpha判定、複製内容、通常・PAT入出力の実行時意味は既存または後続の動的契約で扱う。
+- 統合patchの同一性とclean状態を確認後に専用作業tree、293,536 KiBのlane構築木、branchを削除して884,036 KiBを回収した。旧`public-api-missing-g240.json`を削除し、主Ninja木5,767,036 KiB、共有compiler cache 982,328 KiB、最新`build/tdd-macos/public-api-missing-g241.json` 2,161,728 bytes、SHA-256 `981c7f1c675e82b8bfcee3425c6dbd49773264de4aa09b67a9c310b706c1d6d5`だけを次便へ再利用する。compiler cacheは143,133件中120,239件、84.01%がhitしている。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+
+### 第241便の担当計画
+
+- 実装基点は`13baef642b`である。`g241-progress-updater-schema`の状態は`planned`、専用作業treeは`/Users/masato/Documents/librepaint-g241-progress-updater-schema`、branchは`agent/g241-progress-updater-schema`である。開始`libs/widgetutils/KoProgressUpdater.h`の残存全17 APIを、新規`libs/widgetutils/tests/KoProgressUpdaterSchemaContractTest.cpp`の5枠へ固定する。許可pathは同試験sourceと`libs/widgetutils/tests/CMakeLists.txt`の新target固有節だけで、公開header、製品source、既存targetを変更しない。調整担当だけがarchitecture文書、公開API台帳、共通不足報告を変更する。担当のGit権限は許可pathだけの受渡しcommit 1件で、追加委任は禁止する。
+- 5枠は`progressUpdaterTypeAndModeSchemaRemainStable`へ型、mode列挙と2列挙値の4件、`progressUpdaterConstructionAndLifetimeSchemaRemainStable`へprogress proxy・updater構築と破棄の3件、`progressUpdaterExecutionAndCancellationSignaturesRemainStable`へ中断照会、取消、非同期更新通知の3件、`progressUpdaterConfigurationAndStartSignaturesRemainStable`へ自動入れ子名の取得・設定、更新間隔の取得・設定、開始の5件、`progressUpdaterSubtaskSignaturesRemainStable`へsubtask開始と永続subtask除去の2件を対応付ける。正式入力`build/tdd-macos/public-api-missing-g241.json`の完全な17識別子と識別子整列集合SHA-256 `3dfa1fc414380eac8846070eb08b053cdc2c8aed587bbe35a56290d26caca789`を維持する。
+- 新targetはwidgetutils source/generated探索路、`kritawidgetutils_EXPORTS`、Qt Core・Testだけに限定し、予測閉包4工程・8入力、停止線5工程・11入力とする。既存の意味契約`TestKoProgressUpdater`は9工程・18入力かつ製品生成物へ接続するため構築せず、軽量近傍`KisActionRegistrySchemaContractTest`を使う。型特性、列挙値、厳密な関数・member pointer、未評価構築式だけで観測し、updater、proxy、QObject、Qt値を実体化せず本文を実行しない。担当は編集前target不存在、直接依存、初回計画、5枠宣言段階の期待link失敗、5枠単発・各20回、全target、正式CTest、軽量近傍、AUTOMOC後二回目計画、無作業再構築2回、動的接続・未解決記号・AUTOMOC入力・構文・書式、差分、公開API検査、`verify-quick`を確認する。5工程・11入力超過、新しい探索路・定義・link、製品shared・OBJECT・`kritatestsdk`の接続、候補headerのAUTOMOC入力化、製品未解決記号、対象実体化、許可path外変更が必要なら停止する。製品target、`TestKoProgressUpdater`、全体build・`verify`、Linux、Nix再評価は禁止する。
 
 ### 第239便の先行監査担当票
 
