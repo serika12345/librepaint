@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 8046
+    "expectedMissingApis": 8030
   },
   "contracts": [
     {
@@ -60617,6 +60617,67 @@
         "method:KisAbstractInputAction::canIgnoreModifiers() const",
         "method:KisAbstractInputAction::isAvailable() const",
         "method:KisAbstractInputAction::isShortcutRequired(int shortcut) const"
+      ]
+    },
+    {
+      "target": "KisStrokeEfficiencyMeasurerSchemaContractTest",
+      "source": "libs/painting/tests/KisStrokeEfficiencyMeasurerSchemaContractTest.cpp",
+      "test": "KisStrokeEfficiencyMeasurerSchemaContractTest::strokeEfficiencyMeasurerTypeAndLifetimeSchemaRemainStable",
+      "behavior": "筆画効率計測器は既定構築と破棄が可能な公開型構成を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisStrokeEfficiencyMeasurer",
+        "method:KisStrokeEfficiencyMeasurer::KisStrokeEfficiencyMeasurer()",
+        "method:KisStrokeEfficiencyMeasurer::~KisStrokeEfficiencyMeasurer()"
+      ]
+    },
+    {
+      "target": "KisStrokeEfficiencyMeasurerSchemaContractTest",
+      "source": "libs/painting/tests/KisStrokeEfficiencyMeasurerSchemaContractTest.cpp",
+      "test": "KisStrokeEfficiencyMeasurerSchemaContractTest::strokeEfficiencyMeasurerStateControlSignaturesRemainStable",
+      "behavior": "筆画効率計測器は計測の有効状態を取得・設定し、蓄積状態を初期化する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisStrokeEfficiencyMeasurer::isEnabled() const",
+        "method:KisStrokeEfficiencyMeasurer::reset()",
+        "method:KisStrokeEfficiencyMeasurer::setEnabled(bool value)"
+      ]
+    },
+    {
+      "target": "KisStrokeEfficiencyMeasurerSchemaContractTest",
+      "source": "libs/painting/tests/KisStrokeEfficiencyMeasurerSchemaContractTest.cpp",
+      "test": "KisStrokeEfficiencyMeasurerSchemaContractTest::strokeEfficiencyMeasurerCursorSamplingSignaturesRemainStable",
+      "behavior": "筆画効率計測器は単一点・複数点のcursor標本とcursor移動の開始・終了を受け取る公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisStrokeEfficiencyMeasurer::addSample(const QPointF & pt)",
+        "method:KisStrokeEfficiencyMeasurer::addSamples(const QVector<QPointF> & points)",
+        "method:KisStrokeEfficiencyMeasurer::notifyCursorMoveFinished()",
+        "method:KisStrokeEfficiencyMeasurer::notifyCursorMoveStarted()"
+      ]
+    },
+    {
+      "target": "KisStrokeEfficiencyMeasurerSchemaContractTest",
+      "source": "libs/painting/tests/KisStrokeEfficiencyMeasurerSchemaContractTest.cpp",
+      "test": "KisStrokeEfficiencyMeasurerSchemaContractTest::strokeEfficiencyMeasurerRenderingNotificationSignaturesRemainStable",
+      "behavior": "筆画効率計測器はframe描画開始と描画処理の開始・終了を受け取る公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisStrokeEfficiencyMeasurer::notifyFrameRenderingStarted()",
+        "method:KisStrokeEfficiencyMeasurer::notifyRenderingFinished()",
+        "method:KisStrokeEfficiencyMeasurer::notifyRenderingStarted()"
+      ]
+    },
+    {
+      "target": "KisStrokeEfficiencyMeasurerSchemaContractTest",
+      "source": "libs/painting/tests/KisStrokeEfficiencyMeasurerSchemaContractTest.cpp",
+      "test": "KisStrokeEfficiencyMeasurerSchemaContractTest::strokeEfficiencyMeasurerMetricQuerySignaturesRemainStable",
+      "behavior": "筆画効率計測器は平均cursor速度、frame速度、描画速度を取得する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisStrokeEfficiencyMeasurer::averageCursorSpeed() const",
+        "method:KisStrokeEfficiencyMeasurer::averageFps() const",
+        "method:KisStrokeEfficiencyMeasurer::averageRenderingSpeed() const"
       ]
     }
   ]
