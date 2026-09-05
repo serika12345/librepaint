@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 21:18 JST
+- 更新日時: 2026-09-05 21:20 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1183,6 +1183,13 @@
 - 開始`libs/input/ui/kis_input_manager.h`から新規`libs/input/ui/tests/KisInputManagerSchemaContractTest.cpp`へ、入力管理器の型・寿命、canvas追跡、canvas・tool context、event filter、popup・設定・診断を担う残存全15 API・5枠を追加した。`libs/input/ui/tests/CMakeLists.txt`には新target固有のCore/Test最小節だけを追加し、公開header、製品source、既存targetを変更していない。受渡しcommit `b1b4745c1cb37af547712ac24cbc4d74c6490ac6`を中央commit `e24c1f6806`として取り込んだ。
 - 担当側と中央のmacOSで5枠を各20回、全7試験、正式CTest `libs-input-ui-KisInputManagerSchemaContractTest`、軽量近傍`libs-input-ui-KisInputProfileManagerSchemaContractTest`、AUTOMOC後の二回目計画、無作業再構築2回に成功した。中央実測は4工程・8入力、command SHA-256 `fcf7dcd634f3b5b85bb0c0f4b2e86a1736c7a22ff3a212717fe80369f2b05572`、input SHA-256 `904aca4bbe78c9dfb237992d0e5a5ba3b88fc758cfd459e813a36b8f2caf9a0d`、AUTOMOC `HEADERS=[]`、Qt Core・TestとOS frameworkだけの動的接続、入力管理器・canvas・tool・popupを含む製品未解決記号なしである。厳格`clang-check`、書式、差分、macOSのpackage境界1,890対象、公開API検査に成功し、台帳は22,014件対応、7,790件未対応となった。event配送、追跡canvasの接続とfocus、popup寿命、設定再読込、tablet loggerの副作用は既存または後続の動的契約で扱う。
 - 中央検証後にcleanな専用作業tree、297,772 KiBのlane構築木、branchを削除して888,520 KiBを回収した。旧`public-api-missing-g258.json`を削除し、主Ninja木5,779,520 KiB、共有compiler cache 982,672 KiB、最新`build/tdd-macos/public-api-missing-g259.json` 2,074,008 bytes、SHA-256 `87a5deb8def7de5a52dd310db4934e6563b564a01147bbe03ee3b74588d3e712`だけを次便へ再利用する。compiler cacheは143,276件中120,264件、83.94%がhitしている。製品target、重量`KisInputManagerTest`、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第259便のnode commands adapter公開APIを正式不足報告で再照合し、限定構築範囲を確定することである。
+
+### 第259便の担当計画
+
+- 実装基点は本計画commitである。`g259-node-commands-adapter-schema`の状態は`in_progress`、専用作業treeは`/Users/masato/Documents/librepaint-g259-node-commands-adapter-schema`、branchは`agent/g259-node-commands-adapter-schema`とする。R1で旧`libs/ui/kis_node_commands_adapter.h`から移設された現開始`libs/image/commands/kis_node_commands_adapter.h`の残存全19 APIを、新規`libs/image/tests/KisNodeCommandsAdapterSchemaContractTest.cpp`の5枠へ固定する。許可pathは同試験sourceと`libs/image/tests/CMakeLists.txt`の新target固有節だけで、公開header、製品source、既存targetを変更しない。調整担当だけがarchitecture文書、公開API台帳、共通不足報告を変更する。担当のGit権限は許可pathだけの受渡しcommit 1件で、追加委任は禁止する。
+- 5枠は`nodeCommandsAdapterTypeLifetimeAndImageBindingSchemaRemainStable`へ型・既定構築・破棄・image再束縛4件、`nodeCommandsAdapterCommandTransactionSignaturesRemainStable`へ追加command・macro開始終了・直前command取消4件、`nodeCommandsAdapterSynchronousHierarchyMutationSignaturesRemainStable`へnode同期追加2種・移動2種・除去5件、`nodeCommandsAdapterAsynchronousApplicationSignaturesRemainStable`へnode非同期追加2種・単一command非同期適用3件、`nodeCommandsAdapterNodePropertyMutationSignaturesRemainStable`へ合成方式・名称・不透明度変更3件を対応付ける。正式入力`build/tdd-macos/public-api-missing-g259.json`の完全な19識別子と識別子整列集合SHA-256 `7d093f54513314d309057f1317409d11240a0e90bec103cef1c08b7881e1713e`を維持する。
+- 新targetはimage、global、pigment、painting/undoのsource/generated探索路、KF I18nのinterface探索、`kritaimage_EXPORTS`と`kritapigment_EXPORTS`、Qt Core・Testとheader-only Boostだけを使う。比較する`KisProcessingApplicatorSchemaContractTest`は4工程・8入力、command SHA-256 `aebc43df061dfd6cb27cd1f01813305de7a85965eb7268dd12b7d7f825ac50e8`、input SHA-256 `ef65832c613a467e9fd10c4af072b8718b9043f966c8104b8aff5bd39bd3c090`であり、新targetも4工程・8入力、停止線5工程・11入力を予測する。候補headerはimage commandからpaint device型を推移させるが、この面でも4/8に閉じるため未使用include整理は別の構造変更として扱う。製品接続を持つ動的`KisNodeCommandsAdapterTest`は今回の反復対象にしない。
+- 候補headerを最初にincludeし、QObject派生・既定構築・仮想破棄、厳密member pointer、constructor、同期・非同期追加と単一command適用の既定引数を未評価式だけで観測する。adapter、image、node、command、applicator、Qt値を実体化せず、製品本文を実行しない。担当は編集前target不存在、5枠宣言段階の期待link失敗、追加5枠単発・各20回、全target、正式CTest、軽量近傍`KisProcessingApplicatorSchemaContractTest`、AUTOMOC後の二回目計画、無作業build 2回、4/8とhash、動的接続・未解決記号・AUTOMOC入力・厳格構文・書式、差分、公開API検査、`verify-quick`を確認する。5工程・11入力超過、指定外探索路・定義・link、Qt Gui、Imath、resourcesまたは製品libraryの接続、製品shared・OBJECT・`kritatestsdk`、候補headerのAUTOMOC入力化、adapter・image・node・command・applicatorの製品未解決記号、対象実体化、許可path外変更が必要なら停止する。製品target、重量動的試験、全体build・`verify`、Linux、Nix再評価は禁止する。
 
 ### 第239便の先行監査担当票
 
