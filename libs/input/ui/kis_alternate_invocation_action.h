@@ -11,7 +11,6 @@
 
 #include "kis_abstract_input_action.h"
 #include <QScopedPointer>
-#include "kis_tool.h"
 
 /**
  * \brief Alternate Invocation implementation of KisAbstractInputAction.
@@ -49,10 +48,6 @@ public:
     void inputEvent(QEvent* event) override;
 
     bool supportsHiResInputEvents(int shortcut) const override;
-
-
-private:
-    KisTool::ToolAction shortcutToToolAction(int shortcut) const;
 
 private:
     struct Private;

@@ -11,9 +11,44 @@
 
 #include <klocalizedstring.h>
 
+#include <kis_tool.h>
 #include <kis_tool_proxy.h>
 
 #include "kis_input_manager.h"
+
+namespace
+{
+KisTool::ToolAction shortcutToToolAction(int shortcut)
+{
+    KisTool::ToolAction action = KisTool::Alternate_NONE;
+
+    switch (static_cast<KisAlternateInvocationAction::Shortcut>(shortcut)) {
+    case KisAlternateInvocationAction::SampleColorFgLayerModeShortcut:
+        action = KisTool::AlternateSampleFgNode;
+        break;
+    case KisAlternateInvocationAction::SampleColorBgLayerModeShortcut:
+        action = KisTool::AlternateSampleBgNode;
+        break;
+    case KisAlternateInvocationAction::SampleColorFgImageModeShortcut:
+        action = KisTool::AlternateSampleFgImage;
+        break;
+    case KisAlternateInvocationAction::SampleColorBgImageModeShortcut:
+        action = KisTool::AlternateSampleBgImage;
+        break;
+    case KisAlternateInvocationAction::PrimaryAlternateModeShortcut:
+        action = KisTool::AlternateSecondary;
+        break;
+    case KisAlternateInvocationAction::SecondaryAlternateModeShortcut:
+        action = KisTool::AlternateThird;
+        break;
+    case KisAlternateInvocationAction::TertiaryAlternateModeShortcut:
+        action = KisTool::AlternateFourth;
+        break;
+    }
+
+    return action;
+}
+} // namespace
 
 struct KisAlternateInvocationAction::Private
 {
@@ -43,37 +78,6 @@ KisAlternateInvocationAction::KisAlternateInvocationAction()
 
 KisAlternateInvocationAction::~KisAlternateInvocationAction()
 {
-}
-
-KisTool::ToolAction KisAlternateInvocationAction::shortcutToToolAction(int shortcut) const
-{
-    KisTool::ToolAction action = KisTool::Alternate_NONE;
-
-    switch ((Shortcut)shortcut) {
-    case SampleColorFgLayerModeShortcut:
-        action = KisTool::AlternateSampleFgNode;
-        break;
-    case SampleColorBgLayerModeShortcut:
-        action = KisTool::AlternateSampleBgNode;
-        break;
-    case SampleColorFgImageModeShortcut:
-        action = KisTool::AlternateSampleFgImage;
-        break;
-    case SampleColorBgImageModeShortcut:
-        action = KisTool::AlternateSampleBgImage;
-        break;
-    case PrimaryAlternateModeShortcut:
-        action = KisTool::AlternateSecondary;
-        break;
-    case SecondaryAlternateModeShortcut:
-        action = KisTool::AlternateThird;
-        break;
-    case TertiaryAlternateModeShortcut:
-        action = KisTool::AlternateFourth;
-        break;
-    }
-
-    return action;
 }
 
 void KisAlternateInvocationAction::activate(int shortcut)
