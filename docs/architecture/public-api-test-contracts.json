@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 8332
+    "expectedMissingApis": 8313
   },
   "contracts": [
     {
@@ -59701,6 +59701,70 @@
       "apis": [
         "method:KisSafeSelectionNodeProjectionStore::KisSafeSelectionNodeProjectionStore(const KisSafeSelectionNodeProjectionStore & rhs)",
         "method:KisSafeSelectionNodeProjectionStore::getDeviceLazy(KisSelectionSP prototype)"
+      ]
+    },
+    {
+      "target": "KisCrossDeviceColorSamplerSchemaContractTest",
+      "source": "libs/image/tests/KisCrossDeviceColorSamplerSchemaContractTest.cpp",
+      "test": "KisCrossDeviceColorSamplerSchemaContractTest::realTraitSchemaRemainStable",
+      "behavior": "実数座標の異装置色採取traitは座標・accessor型、accessor生成、現行・旧画素採取templateの公開構成を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:SamplerTraitReal::accessor_type",
+        "alias:SamplerTraitReal::coord_type",
+        "method:SamplerTraitReal::createAccessor(KisPaintDeviceSP dev)",
+        "method:SamplerTraitReal::sampleData(accessor_type accessor,quint8 * data,const KoColorSpace *)",
+        "struct:SamplerTraitReal"
+      ]
+    },
+    {
+      "target": "KisCrossDeviceColorSamplerSchemaContractTest",
+      "source": "libs/image/tests/KisCrossDeviceColorSamplerSchemaContractTest.cpp",
+      "test": "KisCrossDeviceColorSamplerSchemaContractTest::integerTraitSchemaRemainStable",
+      "behavior": "整数座標の異装置色採取traitは座標・accessor型、accessor生成、現行・旧画素採取templateの公開構成を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:SamplerTraitInt::accessor_type",
+        "alias:SamplerTraitInt::coord_type",
+        "method:SamplerTraitInt::createAccessor(KisPaintDeviceSP dev)",
+        "method:SamplerTraitInt::sampleData(accessor_type accessor,quint8 * data,const KoColorSpace * cs)",
+        "struct:SamplerTraitInt"
+      ]
+    },
+    {
+      "target": "KisCrossDeviceColorSamplerSchemaContractTest",
+      "source": "libs/image/tests/KisCrossDeviceColorSamplerSchemaContractTest.cpp",
+      "test": "KisCrossDeviceColorSamplerSchemaContractTest::samplerTypeAliasesRemainStable",
+      "behavior": "異装置色採取器はtraitで座標方式を選ぶtemplate型と実数・整数方式の公開別名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisCrossDeviceColorSampler",
+        "alias:KisCrossDeviceColorSamplerInt",
+        "class:KisCrossDeviceColorSamplerImpl"
+      ]
+    },
+    {
+      "target": "KisCrossDeviceColorSamplerSchemaContractTest",
+      "source": "libs/image/tests/KisCrossDeviceColorSamplerSchemaContractTest.cpp",
+      "test": "KisCrossDeviceColorSamplerSchemaContractTest::samplerConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "異装置色採取器は描画装置・固定描画装置・色を出力先として受け取る構築と破棄の公開構成を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCrossDeviceColorSamplerImpl::KisCrossDeviceColorSamplerImpl(KisPaintDeviceSP src,KisFixedPaintDeviceSP dst)",
+        "method:KisCrossDeviceColorSamplerImpl::KisCrossDeviceColorSamplerImpl(KisPaintDeviceSP src,KisPaintDeviceSP dst)",
+        "method:KisCrossDeviceColorSamplerImpl::KisCrossDeviceColorSamplerImpl(KisPaintDeviceSP src,const KoColor & dst)",
+        "method:KisCrossDeviceColorSamplerImpl::~KisCrossDeviceColorSamplerImpl()"
+      ]
+    },
+    {
+      "target": "KisCrossDeviceColorSamplerSchemaContractTest",
+      "source": "libs/image/tests/KisCrossDeviceColorSamplerSchemaContractTest.cpp",
+      "test": "KisCrossDeviceColorSamplerSchemaContractTest::samplerSamplingSignaturesRemainStable",
+      "behavior": "異装置色採取器は指定座標から現行または旧色を出力bufferへ採取する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCrossDeviceColorSamplerImpl::sampleColor(typename Traits::coord_type x,typename Traits::coord_type y,quint8 * dst)",
+        "method:KisCrossDeviceColorSamplerImpl::sampleOldColor(typename Traits::coord_type x,typename Traits::coord_type y,quint8 * dst)"
       ]
     }
   ]

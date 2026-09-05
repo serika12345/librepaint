@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 12:07 JST
+- 更新日時: 2026-09-05 12:21 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -828,14 +828,19 @@
 
 ### 第232便の契約実装計画
 
-- 実装基点は`fd2ae30bfe`である。`g232-cross-device-color-sampler-schema`の状態は`planned`、専用作業treeは`/Users/masato/Documents/librepaint-g232-cross-device-color-sampler-schema`、branchは`agent/g232-cross-device-color-sampler-schema`である。開始`libs/image/kis_cross_device_color_sampler.h`の残存全19 APIを、新規`libs/image/tests/KisCrossDeviceColorSamplerSchemaContractTest.cpp`の5枠へ固定する。許可pathは同試験sourceと`libs/image/tests/CMakeLists.txt`の新target固有節だけで、公開header、製品source、既存targetを変更しない。調整担当だけがarchitecture文書、公開API台帳、共通不足報告を変更する。担当のGit権限は許可pathだけの受渡しcommit 1件で、追加委任は禁止する。
+- 実装基点は`fd2ae30bfe`である。`g232-cross-device-color-sampler-schema`の状態は`integrated`で、開始`libs/image/kis_cross_device_color_sampler.h`の残存全19 APIを、新規`libs/image/tests/KisCrossDeviceColorSamplerSchemaContractTest.cpp`の5枠へ固定した。許可pathは同試験sourceと`libs/image/tests/CMakeLists.txt`の新target固有節だけで、公開header、製品source、既存targetを変更していない。受渡しcommit `4ae48dd237`を統合commit `c9ca84e250`として取り込んだ。
 - 5枠は`realTraitSchemaRemainStable`へ実数座標trait、座標・accessor別名、accessor生成、現行・旧画素採取templateの5件、`integerTraitSchemaRemainStable`へ整数座標traitの同5件、`samplerTypeAliasesRemainStable`へsampler template型と実数・整数別名の3件、`samplerConstructionAndLifetimeSchemaRemainStable`へ3種類の出力先を受ける構築と破棄の4件、`samplerSamplingSignaturesRemainStable`へ現行・旧色採取の2件を対応付ける。正式入力の完全な19識別子と識別子整列集合SHA-256 `11ea4757d5a03fcb661aa073f82b79eea091c3edc25f7ebf1310950d42527313`を維持する。
 - 新targetはimage・global・pigment source/generated探索路、Qt Gui・KF I18n・Imath interface、`kritaimage_EXPORTS`と`kritapigment_EXPORTS`、Qt Core・Testとheader-only Boostだけに限定し、予測閉包4工程・8入力、停止線5工程・11入力とする。型特性、別名同一性、厳密な関数・member pointer、未評価構築式だけで観測し、sampler、accessor、描画装置、色、画素bufferを実体化しない。担当は編集前target不存在、直接依存、初回計画、5枠宣言段階の期待link失敗、5枠単発・各20回、全target、正式CTest、近傍`KisPaintLayerSchemaContractTest`、AUTOMOC後二回目計画、無作業再構築2回、動的接続・未解決記号・AUTOMOC入力・構文・書式、差分、公開API検査、`verify-quick`を確認する。5工程・11入力超過、追加探索路・定義・link、製品shared・OBJECT・`kritatestsdk`の動的接続、Qt Gui・Imathの動的接続、候補headerのAUTOMOC入力化、製品未解決記号、対象実体化、許可path外の変更が必要なら停止する。製品target、集約header target、全体build・`verify`、Linux、Nix再評価は禁止する。
 - 最初の新target計画は4工程・8入力とQt Core・Testだけの動的接続を維持したが、構造準備で直接化した`KoColor.h`から`KoColorSpaceTraits.h`、`KoColorSpaceMaths.h`を経由してImathの`half.h`を探索できず、5枠の期待link失敗より前に停止した。`KisPaintLayerSchemaContractTest`を含む既存の同種限定targetもImathのinclude interfaceを明示しているため、新target固有節へ`Imath::Imath`の`INTERFACE_INCLUDE_DIRECTORIES`だけを追加する。commands・inputs・動的接続を増やさず、追加後に4工程・8入力とQt Core・Testだけの接続を再確認する。
 
-### 第233便の先行監査担当票（第232便確定待ち）
+### 第232便の契約統合結果
 
-- `g233-resource-paths-schema-formal-review`の状態は`completed-ready`、担当は`g178_paintop_settings_schema`、基点は`66c906977f`である。正式入力`build/tdd-macos/public-api-missing-g226.json`でも`libs/resources/KoResourcePaths.h`の残存全20 APIは一意で台帳と重複せず、識別子整列集合SHA-256 `52353b0c1e952be6a2d8c6943de6b85e705377f4238a17fd2195575cea0af6f0`、新規`libs/resources/tests/KoResourcePathsSchemaContractTest.cpp`の5枠8・3・3・4・2に一致した。同型はapplication assetの検索path登録・解決・書込先選択を一責務とする。既存filesystem試験は813工程・1,654入力で製品libraryへ接続するため追記せず、新targetはresources source・generated、`kritaresources_EXPORTS`、Qt Core・Testだけで初回・AUTOMOC後とも4工程・8入力へ閉じられる。軽量近傍`KisResourceIteratorSchemaContractTest`も4工程・8入力、AUTOMOC `HEADERS=[]`、製品辺なしである。登録優先順位、再帰filter、実行bit、上書きdata位置、bundle root、path正規化、writable判定、directory作成、global同期は既存または後続の動的契約で扱い、正式第233便不足報告で20件と集合SHAを再照合する。
+- 開始`libs/image/kis_cross_device_color_sampler.h`から新規`libs/image/tests/KisCrossDeviceColorSamplerSchemaContractTest.cpp`へ19 API・5枠を追加した。Imathの探索界面追加後、担当側と中央のmacOSで5枠を各20回、対象全7件、正式CTestと近傍`KisPaintLayerSchemaContractTest`全12件、AUTOMOC後の二回目計画、無作業再構築2回に成功した。中央実測は4工程・8入力、command SHA-256 `595a43bc89e33a7e0ac5ddb23025a6438228508ac5ae2faa05e141a2f9480796`、input SHA-256 `4fa26c4a542e9ca2684a4214a6acb1735ac1d5ba14398acb0595d9db7e0bb1e2`、AUTOMOC `HEADERS=[]`、Qt Core・Testと非製品runtimeだけの動的接続、製品・Imath未解決記号なしである。正しいcompile commandによる`clang-check -Werror`、書式、差分、macOSのpackage境界1,873対象、公開API検査、`verify-quick`に成功し、台帳は21,491件対応、8,313件未対応となった。accessor生成、現在・旧tileの画素採取、色空間変換、出力bufferと寿命の実行時挙動は既存または後続の動的契約で扱う。
+- 統合済みpatchとclean状態を確認後に専用作業tree、303,652 KiBのlane構築木、branchを削除して894,044 KiBを回収した。旧`public-api-missing-g232.json`を削除し、主Ninja木5,760,796 KiB、共有compiler cache 983,444 KiB、最新`build/tdd-macos/public-api-missing-g233.json` 2,208,632 bytes、SHA-256 `9c75b643eeb6dc88fa84d7eb7c9cb4e9e2ba3214c949ba952588cb688ac1fa21`だけを次便へ再利用する。compiler cacheは143,071件中120,223件、84.03%がhitしている。製品target、集約header target、全体build・`verify`、Linux、Nix再評価は実行していない。
+
+### 第233便の先行監査担当票
+
+- `g233-resource-paths-schema-formal-review`の状態は`completed-ready`、担当は`g178_paintop_settings_schema`、基点は`66c906977f`である。第232便後の正式入力`build/tdd-macos/public-api-missing-g233.json`でも`libs/resources/KoResourcePaths.h`の残存全20 APIは一意で台帳と重複せず、識別子整列集合SHA-256 `52353b0c1e952be6a2d8c6943de6b85e705377f4238a17fd2195575cea0af6f0`、新規`libs/resources/tests/KoResourcePathsSchemaContractTest.cpp`の5枠8・3・3・4・2に一致した。同型はapplication assetの検索path登録・解決・書込先選択を一責務とする。既存filesystem試験は813工程・1,654入力で製品libraryへ接続するため追記せず、新targetはresources source・generated、`kritaresources_EXPORTS`、Qt Core・Testだけで初回・AUTOMOC後とも4工程・8入力へ閉じられる。軽量近傍`KisResourceIteratorSchemaContractTest`も4工程・8入力、AUTOMOC `HEADERS=[]`、製品辺なしである。登録優先順位、再帰filter、実行bit、上書きdata位置、bundle root、path正規化、writable判定、directory作成、global同期は既存または後続の動的契約で扱う。
 
 ### 第234便と第235便の先行監査担当票（第233便確定待ち）
 
