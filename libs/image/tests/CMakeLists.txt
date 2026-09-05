@@ -1747,6 +1747,20 @@ target_compile_definitions(KisPSDLayerStyleSchemaContractTest PRIVATE
 )
 
 kis_add_test(
+    GimpBumpMapSchemaContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(GimpBumpMapSchemaContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+)
+target_compile_definitions(GimpBumpMapSchemaContractTest PRIVATE
+    kritaimage_EXPORTS
+)
+
+kis_add_test(
     KisMaskSchemaContractTest.cpp
     LINK_LIBRARIES
         Qt${QT_MAJOR_VERSION}::Core
