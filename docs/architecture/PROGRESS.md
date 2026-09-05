@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 23:43 JST
+- 更新日時: 2026-09-05 23:47 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1326,6 +1326,12 @@
 
 - `libs/image/KisBezierGradientMesh.h`の残存全17 APIは一意かつ台帳と非重複で、識別子整列集合SHA-256 `910261c05c59bda89c0400c3a4384f3c387ead9d4d32f75a9d5987b4cd170aef`を持つ。型・別名・2構造体4、公開色data 2、色補間・node補間・patch割当・node等価4、命中判定・patch/mesh描画3、XML保存・読込4の5枠へ割り当てる。inline 4 APIはRGBA補間、幾何保持、単位矩形と色順序、幾何・色の等価性を値契約として固定し、残る13 APIは型特性と厳密な関数pointerで観測する。命中境界、画素描画、XML往復と不正入力は後続の動的契約で扱う。
 - `g266-bezier-gradient-mesh-contract`の状態は`planned`とする。許可pathは新規`libs/image/tests/KisBezierGradientMeshContractTest.cpp`と`libs/image/tests/CMakeLists.txt`の新target固有節だけである。image・globalのsource/generated探索路、image・globalのexport定義、Qt Core・Gui・Testとheader-only Boostだけの直接linkによる4工程・8入力を予測し、停止線5工程・11入力とする。軽量な構築形状の近傍`KisGradientPainterSchemaContractTest`は4工程・8入力、command SHA-256 `6b707c282d229ff1efa0393cba82c52c707025a0e634c5bc9eb6e93625761ff1`、input SHA-256 `362d01b8ab708148281833cdc70ed66cec6beb16d8677dcc28af9b6be9c83e62`である。Qt Widgets・Xml、KF、Eigen、Imath、pigment、resources、painting、製品shared・OBJECT、`kritatestsdk`、候補headerのAUTOMOC入力化、QColor以外の製品未解決記号、非inline実装の実体化または許可path外変更が必要なら停止する。G265完了後に開始する。
+
+### 第267便の先行監査担当票
+
+- 監査共通基点は`06956b84a8`、正式入力は`build/tdd-macos/public-api-missing-g264.json`である。第264便から第266便までの選定済みAPIを除外し、`plugins/paintops/libpaintop/kis_brush_based_paintop_settings.h`の残存22 API、`libs/canvas/KisCanvasState.h`の残存19 API、`libs/image/floodfill/kis_scanline_fill.h`の残存19 API、`libs/image/layerstyles/gimp_bump_map.h`の残存19 APIを比較し、一責務を最大5枠の契約へ閉じられる次候補を選ぶ。主作業treeと正式不足一覧の読み取りだけを許可し、変更、構成、構築、試験、Git操作、生成物作成、追加委任を行わず、G264aの専用構築木を共有しない。
+- `g267-public-api-candidate-audit`の状態は`in_progress`である。各候補の残存識別子の完全性、一意性、台帳非重複、整列指紋、公開責務、最大5枠の割当、静的契約と決定的な値契約の境界を比較する。実画像、paint device、資源、canvas、UI、大域状態を生成せずに固定できる候補を優先する。
+- `g267-build-closure-review`の状態は`in_progress`である。各候補headerの直接依存と自己完結性、既存軽量契約、新規専用targetと既存target追記の責務・依存方向・予測閉包、必要探索路・定義・動的接続、製品shared・OBJECTと`kritatestsdk`の回避、AUTOMOC、先行include整理の要否、許可pathと停止線を独立に比較する。
 
 ### 第239便の先行監査担当票
 
