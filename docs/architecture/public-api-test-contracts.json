@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 8389
+    "expectedMissingApis": 8370
   },
   "contracts": [
     {
@@ -59509,6 +59509,70 @@
         "member:KisProjectionUpdateInfo::scaleY",
         "member:KisProjectionUpdateInfo::transfer",
         "member:KisProjectionUpdateInfo::viewportRect"
+      ]
+    },
+    {
+      "target": "KisImageSharedPointerHooksSchemaContractTest",
+      "source": "libs/image/tests/KisImageSharedPointerHooksSchemaContractTest.cpp",
+      "test": "KisImageSharedPointerHooksSchemaContractTest::imageSharedPointerNodeAndLayerHooksRemainStable",
+      "behavior": "画像のnode・group layer・filter mask用共有pointerは参照追加と解放を各具象型へ配送する公開hook署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:kisSharedPtrAddReference(KisFilterMask * pointer)",
+        "function:kisSharedPtrAddReference(KisGroupLayer * pointer)",
+        "function:kisSharedPtrAddReference(KisNode * pointer)",
+        "function:kisSharedPtrRelease(KisFilterMask * pointer)",
+        "function:kisSharedPtrRelease(KisGroupLayer * pointer)",
+        "function:kisSharedPtrRelease(KisNode * pointer)"
+      ]
+    },
+    {
+      "target": "KisImageSharedPointerHooksSchemaContractTest",
+      "source": "libs/image/tests/KisImageSharedPointerHooksSchemaContractTest.cpp",
+      "test": "KisImageSharedPointerHooksSchemaContractTest::imageSharedPointerConfigurationHooksRemainStable",
+      "behavior": "描画設定と一般設定用共有pointerは参照追加と解放を各具象型へ配送する公開hook署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:kisSharedPtrAddReference(KisPaintOpSettings * pointer)",
+        "function:kisSharedPtrAddReference(KisPropertiesConfiguration * pointer)",
+        "function:kisSharedPtrRelease(KisPaintOpSettings * pointer)",
+        "function:kisSharedPtrRelease(KisPropertiesConfiguration * pointer)"
+      ]
+    },
+    {
+      "target": "KisImageSharedPointerHooksSchemaContractTest",
+      "source": "libs/image/tests/KisImageSharedPointerHooksSchemaContractTest.cpp",
+      "test": "KisImageSharedPointerHooksSchemaContractTest::imageSharedPointerSelectionHooksRemainStable",
+      "behavior": "選択範囲と選択mask用共有pointerは参照追加と解放を各具象型へ配送する公開hook署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:kisSharedPtrAddReference(KisSelection * pointer)",
+        "function:kisSharedPtrAddReference(KisSelectionMask * pointer)",
+        "function:kisSharedPtrRelease(KisSelection * pointer)",
+        "function:kisSharedPtrRelease(KisSelectionMask * pointer)"
+      ]
+    },
+    {
+      "target": "KisImageSharedPointerHooksSchemaContractTest",
+      "source": "libs/image/tests/KisImageSharedPointerHooksSchemaContractTest.cpp",
+      "test": "KisImageSharedPointerHooksSchemaContractTest::imageSharedPointerQtHashSignaturesRemainStable",
+      "behavior": "画像の強参照・弱参照共有pointerはQt hash値を返す公開関数署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:qHash(KisSharedPtr<T> ptr)",
+        "function:qHash(KisWeakSharedPtr<T> ptr)"
+      ]
+    },
+    {
+      "target": "KisImageSharedPointerHooksSchemaContractTest",
+      "source": "libs/image/tests/KisImageSharedPointerHooksSchemaContractTest.cpp",
+      "test": "KisImageSharedPointerHooksSchemaContractTest::imageSharedPointerStandardHashSchemaRemainStable",
+      "behavior": "画像の強参照・弱参照共有pointerは標準hash特殊化と呼出し演算子の公開構成を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:std::hash::operator ()(const KisSharedPtr<T> & ptr) const",
+        "method:std::hash::operator ()(const KisWeakSharedPtr<T> & ptr) const",
+        "struct:std::hash"
       ]
     }
   ]

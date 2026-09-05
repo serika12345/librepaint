@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 10:49 JST
+- 更新日時: 2026-09-05 11:07 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -772,13 +772,18 @@
 
 ### 第229便の担当計画
 
-- 実装基点は`bcbd202a88`である。`g229-image-shared-pointer-hooks-schema`の状態は`implementing`、専用作業treeは`/Users/masato/Documents/librepaint-g229-image-shared-pointer-hooks-schema`、branchは`agent/g229-image-shared-pointer-hooks-schema`である。開始`libs/image/kis_types.h`の残存全19 APIを、新規`libs/image/tests/KisImageSharedPointerHooksSchemaContractTest.cpp`の5枠へ固定する。許可pathは同試験sourceと`libs/image/tests/CMakeLists.txt`の新target固有節だけで、公開header、製品source、既存targetを変更しない。調整担当だけがarchitecture文書、公開API台帳、共通不足報告を変更する。担当のGit権限は許可pathだけの受渡しcommit 1件で、追加委任は禁止する。
+- 実装基点は`bcbd202a88`である。`g229-image-shared-pointer-hooks-schema`の状態は`integrated`で、開始`libs/image/kis_types.h`の残存全19 APIを、新規`libs/image/tests/KisImageSharedPointerHooksSchemaContractTest.cpp`の5枠へ固定した。許可pathは同試験sourceと`libs/image/tests/CMakeLists.txt`の新target固有節だけで、公開header、製品source、既存targetを変更していない。受渡しcommit `b9c931750b`を統合commit `22eea79572`として取り込んだ。
 - 5枠は`imageSharedPointerNodeAndLayerHooksRemainStable`へ`KisNode`、`KisGroupLayer`、`KisFilterMask`の参照追加・解放6件、`imageSharedPointerConfigurationHooksRemainStable`へ`KisPaintOpSettings`と`KisPropertiesConfiguration`の参照追加・解放4件、`imageSharedPointerSelectionHooksRemainStable`へ`KisSelection`と`KisSelectionMask`の参照追加・解放4件、`imageSharedPointerQtHashSignaturesRemainStable`へ強・弱共有pointerの`qHash` 2件、`imageSharedPointerStandardHashSchemaRemainStable`へ標準hash特殊化構造と強・弱共有pointerの呼出し2件の3件を対応付ける。正式入力の完全な19識別子と識別子整列集合SHA-256 `73ca00770404b4a105c6b723330fd6e999afca81dd2bc58ec1051daf722d9a35`を維持する。
 - 新targetはimage・global source/generated探索路、`kritaimage_EXPORTS`、Qt Core・Testだけに限定し、予測閉包4工程・8入力、停止線5工程・11入力とする。厳密なoverload関数pointer、template戻り型、標準hash特殊化と呼出しoperatorの型特性だけで観測し、7具象型、共有・弱共有pointer、参照計数、hash値を実体化しない。担当は編集前target不存在、直接依存、初回計画、5枠宣言段階の期待link失敗、5枠単発・各20回、全target、正式CTest、近傍`KisUpdateSchedulerSchemaContractTest`、AUTOMOC後二回目計画、無作業再構築2回、動的接続・未解決記号・AUTOMOC入力・構文・書式、差分、公開API検査、`verify-quick`を確認する。5工程・11入力超過、追加探索路・定義・link、製品shared・OBJECT・`kritatestsdk`の動的接続、候補headerのAUTOMOC入力化、製品未解決記号、対象実体化、許可path外の変更が必要なら停止する。製品target、全体build・`verify`、Linux、Nix再評価は禁止する。
 
-### 第230便の先行監査担当票（第229便確定待ち）
+### 第229便の統合結果
 
-- `g230-overlay-paint-device-schema-formal-review`の状態は`completed-ready`、担当は`g178_shape_hierarchy_schema`、基点は`6d7ba00f9e`である。正式入力`build/tdd-macos/public-api-missing-g225.json`でも`libs/image/KisOverlayPaintDeviceWrapper.h`の残存全19 APIは一意で台帳と重複せず、識別子整列集合SHA-256 `22af76cc5d0f0bb8e6c002a9eebef0861546ac5c7cf6d36b452e39394d91c843`、新規`libs/image/tests/KisOverlayPaintDeviceWrapperSchemaContractTest.cpp`の5枠7・3・3・4・2に一致した。既存動的試験は1,200工程・2,423入力で製品libraryへ接続するため追記せず、新targetはimage・global探索路、2 export定義、Qt Core・Testだけで初回・AUTOMOC後とも4工程・8入力へ閉じられる。軽量近傍`KisProcessingApplicatorSchemaContractTest`も4工程・8入力、AUTOMOC `HEADERS=[]`、製品辺なしである。既存動的試験はPrecise方式の2 overlay、領域読書きと性能経路を保護する。Normal・LazyPrecise方式、強制色空間、外部destination、複数矩形、index境界、undo transactionは既存または後続の動的契約で扱い、正式第230便不足報告で19件と集合SHAを再照合する。
+- 開始`libs/image/kis_types.h`から新規`libs/image/tests/KisImageSharedPointerHooksSchemaContractTest.cpp`へ19 API・5枠を追加した。担当側と中央のmacOSで5枠を各20回、対象全7件、正式CTestと近傍`KisUpdateSchedulerSchemaContractTest`、AUTOMOC後の二回目計画、無作業再構築2回に成功した。中央実測は4工程・8入力、command SHA-256 `267a46973f44e0ed83e3b6c8c869f9978ced732dc519400127b64ed20f8a8bad`、input SHA-256 `3764e9f1ce0ac1aa62151f8f4b9ac36d2934b4a93019023d7b12a97bad2248a1`、AUTOMOC `HEADERS=[]`、Qt Core・Testと非製品runtimeだけの動的接続、製品未解決記号なしである。正しいcompile commandによる`clang-check -Werror`、書式、差分、macOSのpackage境界1,870対象、公開API検査、`verify-quick`に成功し、台帳は21,434件対応、8,370件未対応となった。実際の参照増減・解放、weak失効、hash値・衝突、動的libraryのABI解決は既存または後続の動的契約で扱う。
+- 統合済みpatchとclean状態を確認後に専用作業tree、303,256 KiBのlane構築木、branchを削除して893,596 KiBを回収した。旧`public-api-missing-g229.json`を削除し、主Ninja木5,756,824 KiB、共有compiler cache 983,476 KiB、最新`build/tdd-macos/public-api-missing-g230.json` 2,224,208 bytes、SHA-256 `30bc0f0238e025710b6a4a70f995f2ab0f917c0281f0da530f529cc45b8e7a46`だけを次便へ再利用する。compiler cacheは143,046件中120,216件、84.04%がhitしている。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+
+### 第230便の先行監査担当票
+
+- `g230-overlay-paint-device-schema-formal-review`の状態は`completed-ready`、担当は`g178_shape_hierarchy_schema`、基点は`6d7ba00f9e`である。第229便後の正式入力`build/tdd-macos/public-api-missing-g230.json`でも`libs/image/KisOverlayPaintDeviceWrapper.h`の残存全19 APIは一意で台帳と重複せず、識別子整列集合SHA-256 `22af76cc5d0f0bb8e6c002a9eebef0861546ac5c7cf6d36b452e39394d91c843`、新規`libs/image/tests/KisOverlayPaintDeviceWrapperSchemaContractTest.cpp`の5枠7・3・3・4・2に一致した。既存動的試験は1,200工程・2,423入力で製品libraryへ接続するため追記せず、新targetはimage・global探索路、2 export定義、Qt Core・Testだけで初回・AUTOMOC後とも4工程・8入力へ閉じられる。軽量近傍`KisProcessingApplicatorSchemaContractTest`も4工程・8入力、AUTOMOC `HEADERS=[]`、製品辺なしである。既存動的試験はPrecise方式の2 overlay、領域読書きと性能経路を保護する。Normal・LazyPrecise方式、強制色空間、外部destination、複数矩形、index境界、undo transactionは既存または後続の動的契約で扱う。
 
 ### 第231便の先行監査担当票（第230便確定待ち）
 
