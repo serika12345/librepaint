@@ -6,20 +6,15 @@
 #ifndef _KIS_BASE_PROCESSOR_H_
 #define _KIS_BASE_PROCESSOR_H_
 
-#include <list>
-
 #include <QString>
 
-#include <klocalizedstring.h>
 #include <QKeySequence>
 
 #include "KoID.h"
 #include "KoColorSpace.h"
 
-#include "kis_types.h"
 #include "kis_shared.h"
-#include "kis_image.h"
-#include "kis_filter_configuration.h"
+#include "kis_types.h"
 #include "kritaimage_export.h"
 
 class QWidget;
