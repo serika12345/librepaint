@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 7996
+    "expectedMissingApis": 7978
   },
   "contracts": [
     {
@@ -60802,6 +60802,69 @@
       "classification": "maintained",
       "apis": [
         "method:KisStrokeSpeedMonitor::sigStatsUpdated()"
+      ]
+    },
+    {
+      "target": "KisToolInvocationActionSchemaContractTest",
+      "source": "libs/input/ui/tests/KisToolInvocationActionSchemaContractTest.cpp",
+      "test": "KisToolInvocationActionSchemaContractTest::alternateInvocationTypeAndLifetimeSchemaRemainStable",
+      "behavior": "代替入力actionは抽象入力actionを継承し、既定構築と仮想破棄が可能な公開型構成を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisAlternateInvocationAction",
+        "method:KisAlternateInvocationAction::KisAlternateInvocationAction()",
+        "method:KisAlternateInvocationAction::~KisAlternateInvocationAction()"
+      ]
+    },
+    {
+      "target": "KisToolInvocationActionSchemaContractTest",
+      "source": "libs/input/ui/tests/KisToolInvocationActionSchemaContractTest.cpp",
+      "test": "KisToolInvocationActionSchemaContractTest::alternateInvocationModeShortcutOrdinalsRemainStable",
+      "behavior": "代替入力actionは主要・副次・第三の工具modeを永続設定と互換な列挙値で公開する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KisAlternateInvocationAction::Shortcut",
+        "enumerator:KisAlternateInvocationAction::Shortcut::PrimaryAlternateModeShortcut",
+        "enumerator:KisAlternateInvocationAction::Shortcut::SecondaryAlternateModeShortcut",
+        "enumerator:KisAlternateInvocationAction::Shortcut::TertiaryAlternateModeShortcut"
+      ]
+    },
+    {
+      "target": "KisToolInvocationActionSchemaContractTest",
+      "source": "libs/input/ui/tests/KisToolInvocationActionSchemaContractTest.cpp",
+      "test": "KisToolInvocationActionSchemaContractTest::alternateInvocationSamplingShortcutOrdinalsRemainStable",
+      "behavior": "代替入力actionは前景・背景色を現在layerまたは統合画像から採取するshortcut列挙値を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "enumerator:KisAlternateInvocationAction::Shortcut::SampleColorBgImageModeShortcut",
+        "enumerator:KisAlternateInvocationAction::Shortcut::SampleColorBgLayerModeShortcut",
+        "enumerator:KisAlternateInvocationAction::Shortcut::SampleColorFgImageModeShortcut",
+        "enumerator:KisAlternateInvocationAction::Shortcut::SampleColorFgLayerModeShortcut"
+      ]
+    },
+    {
+      "target": "KisToolInvocationActionSchemaContractTest",
+      "source": "libs/input/ui/tests/KisToolInvocationActionSchemaContractTest.cpp",
+      "test": "KisToolInvocationActionSchemaContractTest::alternateInvocationActivationLifecycleSignaturesRemainStable",
+      "behavior": "代替入力actionはshortcutの有効化・無効化と入力開始・終了を受け取る公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAlternateInvocationAction::activate(int shortcut)",
+        "method:KisAlternateInvocationAction::begin(int shortcut,QEvent * event)",
+        "method:KisAlternateInvocationAction::deactivate(int shortcut)",
+        "method:KisAlternateInvocationAction::end(QEvent * event)"
+      ]
+    },
+    {
+      "target": "KisToolInvocationActionSchemaContractTest",
+      "source": "libs/input/ui/tests/KisToolInvocationActionSchemaContractTest.cpp",
+      "test": "KisToolInvocationActionSchemaContractTest::alternateInvocationEventAndPolicySignaturesRemainStable",
+      "behavior": "代替入力actionは継続event、優先度、高解像度入力対応を照会する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAlternateInvocationAction::inputEvent(QEvent * event)",
+        "method:KisAlternateInvocationAction::priority() const",
+        "method:KisAlternateInvocationAction::supportsHiResInputEvents(int shortcut) const"
       ]
     }
   ]

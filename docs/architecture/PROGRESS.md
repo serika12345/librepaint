@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-05 17:02 JST
+- 更新日時: 2026-09-05 17:17 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1040,6 +1040,12 @@
 - 構造整理は`libs/input/ui/kis_alternate_invocation_action.h`のprivate `shortcutToToolAction(int)`宣言と`kis_tool.h` includeを、`libs/input/ui/kis_alternate_invocation_action.cpp`の翻訳単位内補助関数と明示includeへ移す。開始headerから実装sourceへの依存移設であり、公開class、列挙値、override署名、private状態、実行順と返却値は維持する。第一受渡しcommitの許可pathはこのheaderと実装sourceだけで、正確な製品object `libs/input/ui/CMakeFiles/kritainputui.dir/kis_alternate_invocation_action.cpp.o`、公開API検査、`verify-quick`を確認する。製品target全体は構築しない。
 - 依存整理後、既存`libs/input/ui/tests/KisToolInvocationActionSchemaContractTest.cpp`へ5枠を追加する。`alternateInvocationTypeAndLifetimeSchemaRemainStable`へ型・構築・破棄3件、`alternateInvocationModeShortcutOrdinalsRemainStable`へ列挙型とprimary・secondary・tertiary値4件、`alternateInvocationSamplingShortcutOrdinalsRemainStable`へ前景・背景とlayer・imageの4値4件、`alternateInvocationActivationLifecycleSignaturesRemainStable`へactivate・deactivate・begin・end 4件、`alternateInvocationEventAndPolicySignaturesRemainStable`へinputEvent・priority・高解像度入力対応3件を対応付ける。第二受渡しcommitの許可pathは同試験sourceだけで、CMake、公開API、製品実装、既存10枠を変更しない。調整担当だけがarchitecture文書、公開API台帳、共通不足報告を変更する。担当のGit権限は許可path内の構造整理と契約を分けた受渡しcommit 2件までで、追加委任は禁止する。
 - 既存target `KisToolInvocationActionSchemaContractTest`は依存整理後もinput/ui・canvas source/generated探索路、`kritainputui_EXPORTS`・`kritacanvas_EXPORTS`、Qt Core・Testだけの4工程・8入力を維持し、停止線5工程・11入力とする。候補headerを最初にincludeし、型特性、列挙値、厳密なmember pointerだけで観測する。action、tool、event、Qt値、private状態を実体化せず製品本文を実行しない。担当は変更前の直接includeと既存target計画、構造整理後のheader依存差分、正確な製品object、5枠宣言段階の期待link失敗、追加5枠単発・各20回、既存を含む全target、正式CTest、軽量近傍`KisInputActionGroupContractTest`、AUTOMOC後二回目計画、無作業再構築2回、動的接続・未解決記号・AUTOMOC入力・構文・書式、差分、公開API検査、`verify-quick`を確認する。CMake変更、新しい探索路・定義・link、5工程・11入力超過、製品shared・OBJECT・`kritatestsdk`の接続、Qt Gui・Widgets・Xml・KF・Imath・製品libraryの動的接続、候補headerのAUTOMOC入力化、製品未解決記号、対象実体化、許可path外変更が必要なら停止する。全体build・`verify`、Linux、Nix再評価は禁止する。
+
+### 第249便の契約統合結果
+
+- 開始`libs/input/ui/kis_alternate_invocation_action.h`から`libs/input/ui/kis_alternate_invocation_action.cpp`へprivate `shortcutToToolAction(int)`と`kis_tool.h`依存を移し、公開headerの直接依存を抽象入力action、`QScopedPointer`、export宣言まで縮小した。受渡しcommit `f38493dd58`を中央commit `d742920dbb`として取り込み、列挙値、工具action変換、入力event転送順、公開APIを維持した。正確な製品objectのNinja dry planは所有targetの集約order-only辺により1,355工程・2,719入力へ広がるため実構築を行わず、当該翻訳単位のcompile commandを使う`clang-check`で変更を検査した。既存の非推奨`QMouseEvent`構築4診断だけをerrorから除外して成功し、依存整理後の契約targetは変更前と同じ4工程・8入力を維持した。
+- 開始headerの残存全18 APIを既存`libs/input/ui/tests/KisToolInvocationActionSchemaContractTest.cpp`の5枠へ追加し、受渡しcommit `a0deb19684`を中央commit `aeb7671355`として取り込んだ。CMake、公開API、既存10枠を変更していない。担当側と中央のmacOSで追加5枠を各20回、既存を含む全15枠、正式CTestと軽量近傍`libs-canvas-KisInputActionGroupContractTest`、AUTOMOC後の二回目計画、無作業再構築2回に成功した。中央実測は4工程・8入力、変更前と同じcommand SHA-256 `e3a590c73ad41e74b9c42f2fbd843a7359765c621f6f8e58108d39d1b52d171e`、input SHA-256 `e1715686d374cad9c0db1a52dd4b6586745228d3ebcfdec7c822c48e7c69827c`、AUTOMOC `HEADERS=[]`、Qt Core・TestとOS frameworkだけの動的接続、製品未解決記号なしである。試験sourceの厳格`clang-check`、変更行の書式、差分、macOSのpackage境界1,886対象、公開API検査に成功し、台帳は21,826件対応、7,978件未対応となった。shortcutから工具actionへの変換、色採取先、入力event配送、priority、高解像度入力判定の実行結果は既存または後続の動的契約で扱う。
+- 統合patchの同一性とclean状態を確認後に専用作業tree、304,836 KiBのlane構築木、branchを削除して895,452 KiBを回収した。旧`public-api-missing-g249.json`を削除し、主Ninja木5,775,200 KiB、共有compiler cache 983,036 KiB、最新`build/tdd-macos/public-api-missing-g250.json` 2,124,346 bytes、SHA-256 `401f18887900fc1784cc5da43efc7297ac96a78e03dd631970914f3245d25d00`だけを次便へ再利用する。compiler cacheは143,204件中120,258件、83.98%がhitしている。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 
 ### 第239便の先行監査担当票
 
