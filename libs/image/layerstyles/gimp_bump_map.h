@@ -14,9 +14,16 @@
 #define __GIMP_BUMP_MAP_H
 
 #include <QtGlobal>
-#include "kis_types.h"
 
+#include "kritaimage_export.h"
 
+template<class T>
+class KisSharedPtr;
+
+class KisPixelSelection;
+class QRect;
+
+typedef KisSharedPtr<KisPixelSelection> KisPixelSelectionSP;
 
 enum BumpmapType
 {
