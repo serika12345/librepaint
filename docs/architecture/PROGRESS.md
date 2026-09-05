@@ -1422,7 +1422,7 @@
 
 ### 第272便の先行監査担当票
 
-- 監査共通基点は`e6528cff7c`、正式入力は`build/tdd-macos/public-api-missing-g267.json`である。第267便から第271便までの選定済みAPIを除外し、`plugins/filters/colorsfilters/kis_hsv_adjustment.h`の残存18 API、`plugins/paintops/libpaintop/KisCurveRangeModel.h`の残存17 API、`plugins/paintops/libpaintop/KisPaintOpOptionWidgetUtils.h`の残存17 API、`plugins/filters/colorsfilters/virtual_channel_info.h`の残存16 APIを比較し、一責務を最大5枠の契約へ閉じられる次候補を選ぶ。主作業treeと正式不足一覧の読み取りだけを許可し、変更、構成、構築、試験、Git操作、生成物作成、追加委任を行わず、G267の専用構築木を共有しない。
+- 監査共通基点は`e6528cff7c`、正式入力は`build/tdd-macos/public-api-missing-g267.json`である。第267便から第271便までの選定済みAPIを除外し、`plugins/color/colorspaceextensions/kis_hsv_adjustment.h`の残存18 API、`plugins/paintops/libpaintop/KisCurveRangeModel.h`の残存17 API、`plugins/paintops/libpaintop/KisPaintOpOptionWidgetUtils.h`の残存17 API、`plugins/filters/colorsfilters/virtual_channel_info.h`の残存16 APIを比較し、一責務を最大5枠の契約へ閉じられる次候補を選ぶ。主作業treeと正式不足一覧の読み取りだけを許可し、変更、構成、構築、試験、Git操作、生成物作成、追加委任を行わず、G267の専用構築木を共有しない。
 - `g272-public-api-candidate-audit`の状態は`in_progress`である。各候補の正式識別子、責務、公開値・所有・寿命、最大5枠の完全割当を比較し、実画像、色空間登録簿、paintop、UI、大域状態を生成せず固定できる決定的な値挙動を優先する。
 - `g272-build-closure-review`の状態は`in_progress`である。各候補headerと実装の直接依存、既存軽量・重量対象、新規限定対象・既存追記・具体的source/object所有分割の閉包と依存方向、先行include整理の効果、AUTOMOC、許可pathと停止線を独立に比較する。
 
