@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-06 01:23 JST
+- 更新日時: 2026-09-06 01:27 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1456,6 +1456,12 @@
 - `libs/image/commands_new/KisMergeLabeledLayersCommand.h`の残存全18 APIは一意かつ台帳と非重複で、識別子整列集合SHA-256 `9603d11464211c01354f3c1a7224828c9e7cc579f4975aca50690f46a13af762`を持つ。型・2構築・寿命4、group選択方針4、参照node情報5、list・共有所有別名2、undo・redo・参照装置生成3の5枠へ割り当てる。方針3値、固定UUIDと整数による全field等価性、list順序と共有寿命の11 APIを値契約で固定し、command実行と画像生成は型特性・未評価構築式・厳密関数pointerで観測する。
 - `g273a-merge-labeled-layers-header-boundary`の状態は`planned`とする。開始`libs/image/commands_new/KisMergeLabeledLayersCommand.h`から公開宣言に不要な`kis_image.h`を除去し、inline比較が所有する`QUuid`を直接includeする。実装`libs/image/commands_new/KisMergeLabeledLayersCommand.cpp`は既に`kis_image.h`を直接所有するため変更しない。許可pathは開始headerだけとし、追加利用元の補正が必要なら停止する。変更前後のheader-first探索面と実読込み、実装元と全利用元の厳格構文、軽量image契約、公開API集合、無作業再構築、書式、差分、公開API検査、`verify-quick`を確認する。
 - 続く`g273-merge-labeled-layers-contract`は既存`libs/image/tests/KisNodeCommandsAdapterSchemaContractTest.cpp`への5枠追加だけを許可し、CMake、公開header、製品sourceを変更しない。対象は4工程・8入力、AUTOMOC `HEADERS=[]`、製品非接続を維持する。CMakeまたは探索路・定義・linkの変更、5工程・11入力超過、Qt Gui・Widgets・Xml、pigment・stroke・製品shared・OBJECT、`kritatestsdk`、command・画像・node・paint deviceの実体化、製品未解決記号、許可path外変更が必要なら停止する。第272便完了後にG273aから開始する。
+
+### 第274便の先行監査担当票
+
+- 監査共通基点は`43a15cc9af`、正式入力は`build/tdd-macos/public-api-missing-g268.json`である。第268便から第273便までの選定済みAPIを除外し、`plugins/filters/colorsfilters/virtual_channel_info.h`、`libs/pigment/resources/KisSwatch.h`、`libs/psd/psd_layer_section.h`、`libs/image/kis_exif_info_visitor.h`の各残存16 APIを比較し、一責務を最大5枠の契約へ閉じられる次候補を選ぶ。主作業treeと正式不足一覧の読み取りだけを許可し、変更、構成、構築、試験、Git操作、生成物作成、追加委任を行わず、G268の専用構築木を共有しない。
+- `g274-public-api-candidate-audit`の状態は`in_progress`である。各候補の正式識別子、責務、公開値・所有・寿命、最大5枠の完全割当を比較し、実画像、paint device、色空間登録簿、PSD入出力、大域状態を生成せず固定できる決定的な値挙動を優先する。
+- `g274-build-closure-review`の状態は`in_progress`である。各候補headerと実装の直接依存、既存軽量・重量対象、新規限定対象・既存追記・具体的source/object所有分割の閉包と依存方向、先行include整理の効果、AUTOMOC、許可pathと停止線を独立に比較する。
 
 ### 第239便の先行監査担当票
 
