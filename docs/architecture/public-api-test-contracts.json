@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 8293
+    "expectedMissingApis": 8275
   },
   "contracts": [
     {
@@ -59830,6 +59830,69 @@
       "apis": [
         "method:KoResourcePaths::locateLocal(const QString & type,const QString & filename,bool createDir=false)",
         "method:KoResourcePaths::saveLocation(const QString & type,const QString & suffix=QString (),bool create=true)"
+      ]
+    },
+    {
+      "target": "KisMetaDataStoreSchemaContractTest",
+      "source": "libs/painting/metadata/tests/KisMetaDataStoreSchemaContractTest.cpp",
+      "test": "KisMetaDataStoreSchemaContractTest::metaDataValidationReasonTypeSchemaRemainStable",
+      "behavior": "メタデータ検証理由は未知・未登録・型不正・値不正を区別する公開型と列挙値を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisMetaData::Validator::Reason",
+        "enum:KisMetaData::Validator::Reason::Type",
+        "enumerator:KisMetaData::Validator::Reason::Type::INVALID_TYPE",
+        "enumerator:KisMetaData::Validator::Reason::Type::INVALID_VALUE",
+        "enumerator:KisMetaData::Validator::Reason::Type::UNKNOWN_ENTRY",
+        "enumerator:KisMetaData::Validator::Reason::Type::UNKNOWN_REASON"
+      ]
+    },
+    {
+      "target": "KisMetaDataStoreSchemaContractTest",
+      "source": "libs/painting/metadata/tests/KisMetaDataStoreSchemaContractTest.cpp",
+      "test": "KisMetaDataStoreSchemaContractTest::metaDataValidationReasonValueSemanticsSchemaRemainStable",
+      "behavior": "メタデータ検証理由は既定・複製構築、代入、破棄と理由種別取得の公開値構成を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMetaData::Validator::Reason::Reason(Type type=UNKNOWN_REASON)",
+        "method:KisMetaData::Validator::Reason::Reason(const Reason &)",
+        "method:KisMetaData::Validator::Reason::operator =(const Reason &)",
+        "method:KisMetaData::Validator::Reason::type() const",
+        "method:KisMetaData::Validator::Reason::~Reason()"
+      ]
+    },
+    {
+      "target": "KisMetaDataStoreSchemaContractTest",
+      "source": "libs/painting/metadata/tests/KisMetaDataStoreSchemaContractTest.cpp",
+      "test": "KisMetaDataStoreSchemaContractTest::metaDataValidatorTypeAndLifetimeSchemaRemainStable",
+      "behavior": "メタデータ検証器は保管内容を入力とする構築と破棄の公開型構成を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisMetaData::Validator",
+        "method:KisMetaData::Validator::Validator(const Store *)",
+        "method:KisMetaData::Validator::~Validator()"
+      ]
+    },
+    {
+      "target": "KisMetaDataStoreSchemaContractTest",
+      "source": "libs/painting/metadata/tests/KisMetaDataStoreSchemaContractTest.cpp",
+      "test": "KisMetaDataStoreSchemaContractTest::metaDataValidatorCountSignaturesRemainStable",
+      "behavior": "メタデータ検証器は正常・異常entry数を照会する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMetaData::Validator::countInvalidEntries() const",
+        "method:KisMetaData::Validator::countValidEntries() const"
+      ]
+    },
+    {
+      "target": "KisMetaDataStoreSchemaContractTest",
+      "source": "libs/painting/metadata/tests/KisMetaDataStoreSchemaContractTest.cpp",
+      "test": "KisMetaDataStoreSchemaContractTest::metaDataValidatorEntryAndRevalidationSignaturesRemainStable",
+      "behavior": "メタデータ検証器は異常entryと理由を取得し、保管内容を再検証する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMetaData::Validator::invalidEntries() const",
+        "method:KisMetaData::Validator::revalidate()"
       ]
     }
   ]
