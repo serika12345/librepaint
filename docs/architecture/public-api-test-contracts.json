@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 8578
+    "expectedMissingApis": 8546
   },
   "contracts": [
     {
@@ -59050,6 +59050,83 @@
         "method:KoDualColorButton::foregroundColorChanged(const KoColor & color)",
         "method:KoDualColorButton::slotSetBackgroundColorFromDialog(const KoColor color)",
         "method:KoDualColorButton::slotSetForegroundColorFromDialog(const KoColor color)"
+      ]
+    },
+    {
+      "target": "KisClipboardSchemaContractTest",
+      "source": "libs/impex/tests/KisClipboardSchemaContractTest.cpp",
+      "test": "KisClipboardSchemaContractTest::clipboardTypeLifetimeAndSingletonSchemaRemainStable",
+      "behavior": "clipboard境界はQObject所有の非copy型として既定構築・仮想破棄でき、共有instanceを取得する公開構成を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisClipboard",
+        "method:KisClipboard::KisClipboard()",
+        "method:KisClipboard::instance()",
+        "method:KisClipboard::~KisClipboard()"
+      ]
+    },
+    {
+      "target": "KisClipboardSchemaContractTest",
+      "source": "libs/impex/tests/KisClipboardSchemaContractTest.cpp",
+      "test": "KisClipboardSchemaContractTest::clipboardPastePolicySchemaRemainStable",
+      "behavior": "clipboard境界は画像由来と形式の選択方針を表す公開列挙型と列挙値を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KisClipboard::PasteBehaviour",
+        "enum:KisClipboard::PasteFormatBehaviour",
+        "enumerator:KisClipboard::PasteBehaviour::PASTE_ASK",
+        "enumerator:KisClipboard::PasteBehaviour::PASTE_ASSUME_MONITOR",
+        "enumerator:KisClipboard::PasteBehaviour::PASTE_ASSUME_WEB",
+        "enumerator:KisClipboard::PasteFormatBehaviour::PASTE_FORMAT_ASK",
+        "enumerator:KisClipboard::PasteFormatBehaviour::PASTE_FORMAT_CLIP",
+        "enumerator:KisClipboard::PasteFormatBehaviour::PASTE_FORMAT_DOWNLOAD",
+        "enumerator:KisClipboard::PasteFormatBehaviour::PASTE_FORMAT_LOCAL"
+      ]
+    },
+    {
+      "target": "KisClipboardSchemaContractTest",
+      "source": "libs/impex/tests/KisClipboardSchemaContractTest.cpp",
+      "test": "KisClipboardSchemaContractTest::clipboardContentExtractionSignaturesRemainStable",
+      "behavior": "clipboard境界はMIME・画像・URL・layer内容から貼付け元を選択し、描画装置を抽出する公開署名と既定引数を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisClipboard::askUserForSource(const QMimeData * data,bool useClipboardFallback=false) const",
+        "method:KisClipboard::askUserForSourceWithData(QImage qimage,const QList<QUrl> urls,bool useClipboardFallback=false) const",
+        "method:KisClipboard::clip(const QRect & imageBounds,bool showPopup,int overridePasteBehaviour=-1,KisTimeSpan * clipRange=nullptr) const",
+        "method:KisClipboard::clipFromBoardContents(const QMimeData * data,const QRect & imageBounds,bool showPopup,int overridePasteBehaviour=-1,bool useClipboardFallback=false,QPair<bool,PasteFormatBehaviour> source={ false, PasteFormatBehaviour::PASTE_FORMAT_ASK}) const",
+        "method:KisClipboard::clipFromBoardContentsWithData(QImage image,const QList<QUrl> urls,const QRect & imageBounds,bool showPopup,int overridePasteBehaviour=-1,bool useClipboardFallback=false,QPair<bool,PasteFormatBehaviour> source={false, PasteFormatBehaviour::PASTE_FORMAT_ASK}) const",
+        "method:KisClipboard::clipFromKritaLayers(const KoColorSpace * cs) const",
+        "method:KisClipboard::clipFromMimeData(const QMimeData * data,const QRect & imageBounds,bool showPopup,int overridePasteBehaviour=-1,KisTimeSpan * clipRange=nullptr,bool useClipboardFallback=false) const",
+        "method:KisClipboard::getImageWithFallback(const QMimeData * cbData,bool useClipboardFallback=false) const"
+      ]
+    },
+    {
+      "target": "KisClipboardSchemaContractTest",
+      "source": "libs/impex/tests/KisClipboardSchemaContractTest.cpp",
+      "test": "KisClipboardSchemaContractTest::clipboardContentAvailabilitySignaturesRemainStable",
+      "behavior": "clipboard境界はclip寸法と画像・layer・style・URL内容の有無を照会する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisClipboard::clipSize() const",
+        "method:KisClipboard::hasClip() const",
+        "method:KisClipboard::hasImage() const",
+        "method:KisClipboard::hasLayerStyles() const",
+        "method:KisClipboard::hasLayers() const",
+        "method:KisClipboard::hasUrls() const"
+      ]
+    },
+    {
+      "target": "KisClipboardSchemaContractTest",
+      "source": "libs/impex/tests/KisClipboardSchemaContractTest.cpp",
+      "test": "KisClipboardSchemaContractTest::clipboardMutationLayerExchangeAndNotificationSignaturesRemainStable",
+      "behavior": "clipboard境界は描画装置・時間範囲・layer集合を設定し、layer MIMEを取得して内容変更を通知する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisClipboard::clipChanged()",
+        "method:KisClipboard::layersMimeData() const",
+        "method:KisClipboard::setClip(KisPaintDeviceSP dev,const QPoint & topLeft)",
+        "method:KisClipboard::setClip(KisPaintDeviceSP dev,const QPoint & topLeft,const KisTimeSpan & range)",
+        "method:KisClipboard::setLayers(KisNodeList nodes,KisImageSP image,bool forceCopy=false)"
       ]
     }
   ]
