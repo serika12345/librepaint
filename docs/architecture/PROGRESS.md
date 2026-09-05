@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-06 00:55 JST
+- 更新日時: 2026-09-06 01:06 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1369,9 +1369,15 @@
 
 - 開始`libs/image/layerstyles/gimp_bump_map.h`から`kis_types.h`を除去し、公開指定と共有pointer・画素選択・矩形の宣言だけを直接所有させた。実読込みは1,224行から863行、固有headerは951件から695件へ減り、image/globalのsource探索路を持たないheader-first検査に成功した。公開API 29,804件、対象19識別子、全体指紋と対象指紋を維持し、追加利用元の補正は発生していない。受渡しcommit `7a67f51a22`を中央commit `4e6484f6cb`として取り込んだ。
 - 担当側で実装元と全3利用元の厳格構文、軽量近傍`KisPSDLayerStyleSchemaContractTest`、二回の無作業再構築、書式、差分、公開API検査、`verify-quick`に成功した。近傍は前後とも4工程・8入力、command SHA-256 `b9363191a04587011f6a0ea6629031578003ffbb638bb59d10e071e6af7b4e70`、input SHA-256 `108ee5e8a2e2f09e44b871b6dd5c656303422c5175c0b5526221ca02a7c886ce`、AUTOMOC `HEADERS=[]`と製品未解決記号0を維持した。中央でも実装元の厳格構文、近傍CTest、二回の無作業再構築に成功した。cleanな専用作業tree、299,420 KiBの構築木、branchを削除して890,324 KiBを回収した。製品target、重量試験、全体build・`verify`、Linux、Nix再評価は実行していない。
-- `g267-bump-map-schema`の状態は`in_progress`、実装基点は`4e6484f6cb`、専用作業treeは`/Users/masato/Documents/librepaint-g267-bump-map-schema`、branchは`agent/g267-bump-map-schema`、macOSの対象と近傍に限る構築実行許可は`granted`である。許可pathは新規`libs/image/tests/GimpBumpMapSchemaContractTest.cpp`と`libs/image/tests/CMakeLists.txt`の新target固有節だけで、調整担当だけが文書、台帳、共通不足報告を変更する。担当のGit権限は許可pathだけの受渡しcommit 1件、追加委任は禁止する。
+- `g267-bump-map-schema`の状態は`integrated`、実装基点は`4e6484f6cb`、専用作業treeは`/Users/masato/Documents/librepaint-g267-bump-map-schema`、branchは`agent/g267-bump-map-schema`、macOSの対象と近傍に限る構築実行許可は`granted`である。許可pathは新規`libs/image/tests/GimpBumpMapSchemaContractTest.cpp`と`libs/image/tests/CMakeLists.txt`の新target固有節だけで、調整担当だけが文書、台帳、共通不足報告を変更する。担当のGit権限は許可pathだけの受渡しcommit 1件、追加委任は禁止する。
 - 残存19 APIを`bumpMapModeValuesRemainStable`へ列挙型と3値4件、`bumpMapPlacementDefaultsRemainStable`へ構造体・構築と配置既定値7件、`bumpMapLightingDefaultsRemainStable`へ照明既定値4件、`bumpMapFlagsAndTypeDefaultsRemainStable`へ補正・反転・方式3件、`bumpMapFunctionSignatureRemainsStable`へ適用関数1件として対応付ける。設定値は実体化して既定値を観測し、`bumpmap()`は厳密関数pointerだけで固定して実行しない。
 - 新targetはimage source/generated探索路、`kritaimage_EXPORTS`、Qt Core・Testだけの直接linkによる4工程・8入力、停止線5工程・11入力とする。変更前target不存在、5枠宣言段階の期待link失敗、5枠単発・各20回、全target・正式CTest・近傍、AUTOMOC後の二回目計画、二回の無作業再構築、動的接続・未解決記号・厳格構文・書式・差分・公開API検査・`verify-quick`を確認する。候補headerのAUTOMOC入力化、global・pigment・resources・Boost・Qt Gui・Widgets・Xml・KF、製品shared・OBJECT、`kritatestsdk`、`bumpmap()`実装の実行、製品未解決記号、許可path外変更が必要なら停止する。
+
+### 第267便の契約統合結果
+
+- 開始`libs/image/layerstyles/gimp_bump_map.h`から新規`libs/image/tests/GimpBumpMapSchemaContractTest.cpp`へ、方式、配置・tile、照明、補正・反転、適用関数を担う残存全19 API・5枠を追加した。設定構造体を実体化して列挙値と12 fieldの型・既定値を固定し、`bumpmap()`は厳密関数pointerだけで観測した。`libs/image/tests/CMakeLists.txt`には新target固有節だけを追加し、公開header、製品source、既存targetを変更していない。変更前target不存在と、5枠宣言段階の全5試験関数の未定義link失敗を確認した。受渡しcommit `8f4820ee04`を中央commit `3e0838388d`として取り込んだ。
+- 担当側のmacOSで5枠を各20回、全7試験、正式CTest `libs-image-GimpBumpMapSchemaContractTest`、軽量近傍`libs-image-KisPSDLayerStyleSchemaContractTest`、AUTOMOC後の二回目計画、二回の無作業再構築に成功した。新targetは4工程・8入力、command SHA-256 `d7391792ff37e54cfc3c05046ad537bf81960a43f6cba77c2ff87e036f897811`、input SHA-256 `1efa4ecbf64c79d79c1e8e13fb2c8dedf6bcf657ffefda2a37b0c13213da7eee`、AUTOMOC `HEADERS=[]`、Qt Core・Testだけの動的接続、製品未解決記号0である。厳格構文、書式、差分、公開API検査、`verify-quick`にも成功し、中央でも対象と近傍、厳格構文、二回の無作業再構築に成功した。
+- 台帳へ19 APIを追加して22,185件対応、7,619件未対応となり、旧基準7,638件に対する実測7,619件の期待不一致を確認してから基準を更新した。cleanな専用作業tree、295,840 KiBの構築木、branchを削除して886,760 KiBを回収し、旧`public-api-missing-g267.json` 2,029,580 bytesを削除した。主Ninja木5,791,360 KiB、共有compiler cache 983,300 KiB、最新`build/tdd-macos/public-api-missing-g268.json` 2,025,851 bytes、SHA-256 `bb4f98e1b7182901fd279f9a20b0ea44643c46063f5774a7f8c3b493c682b1b5`だけを再利用対象として保持する。compiler cacheは143,472件中120,289件、83.84%がhitしている。製品target、重量画素試験、全体build・`verify`、Linux、Nix再評価は実行していない。
 
 ### 第268便の先行監査担当票
 

@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 7638
+    "expectedMissingApis": 7619
   },
   "contracts": [
     {
@@ -61970,6 +61970,70 @@
         "function:KisBezierGradientMeshDetail::loadValue(const QDomElement & parent,const QString & tag,KisBezierGradientMesh * mesh)",
         "function:KisBezierGradientMeshDetail::saveValue(QDomElement * parent,const QString & tag,const GradientMeshNode & node)",
         "function:KisBezierGradientMeshDetail::saveValue(QDomElement * parent,const QString & tag,const KisBezierGradientMesh & mesh)"
+      ]
+    },
+    {
+      "target": "GimpBumpMapSchemaContractTest",
+      "source": "libs/image/tests/GimpBumpMapSchemaContractTest.cpp",
+      "test": "GimpBumpMapSchemaContractTest::bumpMapModeValuesRemainStable",
+      "behavior": "bump mapは線形・球面・正弦波の方式と各列挙値を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:BumpmapType",
+        "enumerator:BumpmapType::LINEAR",
+        "enumerator:BumpmapType::SINUSOIDAL",
+        "enumerator:BumpmapType::SPHERICAL"
+      ]
+    },
+    {
+      "target": "GimpBumpMapSchemaContractTest",
+      "source": "libs/image/tests/GimpBumpMapSchemaContractTest.cpp",
+      "test": "GimpBumpMapSchemaContractTest::bumpMapPlacementDefaultsRemainStable",
+      "behavior": "bump map設定はmap識別子、配置、water level、tile指定の公開型と既定値を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:bumpmap_vals_t::bumpmap_id",
+        "member:bumpmap_vals_t::tiled",
+        "member:bumpmap_vals_t::waterlevel",
+        "member:bumpmap_vals_t::xofs",
+        "member:bumpmap_vals_t::yofs",
+        "method:bumpmap_vals_t::bumpmap_vals_t()",
+        "struct:bumpmap_vals_t"
+      ]
+    },
+    {
+      "target": "GimpBumpMapSchemaContractTest",
+      "source": "libs/image/tests/GimpBumpMapSchemaContractTest.cpp",
+      "test": "GimpBumpMapSchemaContractTest::bumpMapLightingDefaultsRemainStable",
+      "behavior": "bump map設定は光源方位・仰角・深度・環境光の公開型と既定値を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:bumpmap_vals_t::ambient",
+        "member:bumpmap_vals_t::azimuth",
+        "member:bumpmap_vals_t::depth",
+        "member:bumpmap_vals_t::elevation"
+      ]
+    },
+    {
+      "target": "GimpBumpMapSchemaContractTest",
+      "source": "libs/image/tests/GimpBumpMapSchemaContractTest.cpp",
+      "test": "GimpBumpMapSchemaContractTest::bumpMapFlagsAndTypeDefaultsRemainStable",
+      "behavior": "bump map設定は補正・反転・方式指定の公開型と既定値を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:bumpmap_vals_t::compensate",
+        "member:bumpmap_vals_t::invert",
+        "member:bumpmap_vals_t::type"
+      ]
+    },
+    {
+      "target": "GimpBumpMapSchemaContractTest",
+      "source": "libs/image/tests/GimpBumpMapSchemaContractTest.cpp",
+      "test": "GimpBumpMapSchemaContractTest::bumpMapFunctionSignatureRemainsStable",
+      "behavior": "bump map適用関数は画素選択、選択矩形、設定値を受け取る公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:bumpmap(KisPixelSelectionSP device,const QRect & selectionRect,const bumpmap_vals_t & bmvals)"
       ]
     }
   ]
