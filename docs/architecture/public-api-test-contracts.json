@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 7076
+    "expectedMissingApis": 7061
   },
   "contracts": [
     {
@@ -40262,6 +40262,57 @@
         "method:KoSegmentGradient::loadFromDevice(QIODevice * dev,KisResourcesInterfaceSP resourcesInterface)",
         "method:KoSegmentGradient::saveToDevice(QIODevice * dev) const",
         "method:KoSegmentGradient::toXML(QDomDocument & doc,QDomElement & gradientElt) const"
+      ]
+    },
+    {
+      "target": "KoGradientSegmentSchemaContractTest",
+      "source": "libs/pigment/tests/KoGradientSegmentSchemaContractTest.cpp",
+      "test": "KoGradientSegmentSchemaContractTest::cachedGradientTypeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "色を段階別に保持する勾配資源は抽象勾配との継承関係、既定または対象・段階数・色空間による構築、および多相的な寿命境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoCachedGradient",
+        "method:KoCachedGradient::KoCachedGradient()",
+        "method:KoCachedGradient::KoCachedGradient(const KoAbstractGradientSP gradient,qint32 steps,const KoColorSpace * cs)",
+        "method:KoCachedGradient::~KoCachedGradient()"
+      ]
+    },
+    {
+      "target": "KoGradientSegmentSchemaContractTest",
+      "source": "libs/pigment/tests/KoGradientSegmentSchemaContractTest.cpp",
+      "test": "KoGradientSegmentSchemaContractTest::cachedGradientEvaluationSignaturesRemainStable",
+      "behavior": "段階保持勾配は位置から保持済み画素または実色を評価し、Qt勾配へ変換する公開署名とconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoCachedGradient::cachedAt(qreal t) const",
+        "method:KoCachedGradient::colorAt(KoColor & color,qreal t) const",
+        "method:KoCachedGradient::toQGradient() const"
+      ]
+    },
+    {
+      "target": "KoGradientSegmentSchemaContractTest",
+      "source": "libs/pigment/tests/KoGradientSegmentSchemaContractTest.cpp",
+      "test": "KoGradientSegmentSchemaContractTest::cachedGradientSubjectAndColorSpaceSignaturesRemainStable",
+      "behavior": "段階保持勾配は参照元勾配と段階数を色空間の明示有無で設定し、参照元と色空間を取得・変更する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoCachedGradient::colorSpace() const",
+        "method:KoCachedGradient::gradient()",
+        "method:KoCachedGradient::setColorSpace(const KoColorSpace * colorSpace)",
+        "method:KoCachedGradient::setGradient(const KoAbstractGradientSP gradient,qint32 steps)",
+        "method:KoCachedGradient::setGradient(const KoAbstractGradientSP gradient,qint32 steps,const KoColorSpace * cs)"
+      ]
+    },
+    {
+      "target": "KoGradientSegmentSchemaContractTest",
+      "source": "libs/pigment/tests/KoGradientSegmentSchemaContractTest.cpp",
+      "test": "KoGradientSegmentSchemaContractTest::cachedGradientResourceSignaturesRemainStable",
+      "behavior": "段階保持勾配は複製、装置からの読込、および資源種別取得について抽象勾配資源と一致する公開署名とconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoCachedGradient::clone() const",
+        "method:KoCachedGradient::loadFromDevice(QIODevice * dev,KisResourcesInterfaceSP resourcesInterface)",
+        "method:KoCachedGradient::resourceType() const"
       ]
     },
     {
