@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-07 08:25 JST
+- 更新日時: 2026-09-07 08:28 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -2685,6 +2685,13 @@
 - `g353-config-persistence-schema`は`completed`である。`libs/application/kis_config.h`の`QObject`完全headerを`QtCore/qobjectdefs.h`と`QDebug`前方宣言へ置換し、実装だけが使う`ksharedconfig.h`を`libs/application/kis_config.cc`へ移した。開始実装と3直接利用元の厳格`clang-check`は診断0件で、構造変更前後の公開API報告はSHA-256 `580ba00cdac869efcab53164e34d9449df52f83caff344c8544a7a0970b31302`で同一だった。構造変更は`634d3e0445`である。
 - 新規`libs/application/tests/KisConfigPersistenceSchemaContractTest.cpp`は10枠・172行で、設定accessorの寿命・診断、vector取込、色履歴、KoColorと汎用entryの永続化、保存通知、widget・snap、session・banner、初回起動・assistant色、およびAndroid固有の入力回避策と拡大率の全44公開APIを固定する。最初の対象構築は追加10枠の未定義symbolだけで停止した。CMake targetは製品libraryを接続せず、最終閉包4工程・8入力、command SHA-256 `47aa50e8ddb23dc75cd47ecf8912872d1fabeeaa97de2788e36c901f5d4563ec`、input SHA-256 `e3673caf2a09101ec57ee5fbeb9ac4172a562f156bb1106c398bbecc3749bf97`で、動的接続はQt Core・Test、gettextとmacOS frameworkだけである。近傍targetの15入力から7入力を削減した実装は`e1f147ff3b`である。
 - macOSで対象と近傍`KisConfigEnumContractTest`のCTest、追加10枠の20回反復、開始実装・試験source・3直接利用元の厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`に成功した。Android固有12 APIの署名本体は`Q_OS_ANDROID`構成で有効になるためmacOSではslot登録までを検証し、後続のAndroid検査段階に条件付きcompileを残す。台帳へ44 APIを追加して24,494件対応、5,310件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g353.json`を削除し、主Ninja木5,919,376 KiB、共有compiler cache 1.0 GB、最新`build/tdd-macos/public-api-missing-g354.json` 1,405,980 bytes、SHA-256 `57dca70b59089bb47d5c5be4624b407b56e58f673121a37acb869662f478f3d8`だけを保持する。compiler cacheは144,193件中120,492件、83.56%がhitしている。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第354便で次の高密度なmacOS対象と最小構築面を選定することである。
+
+### 第354便の監査結果と実装計画
+
+- 正式入力`build/tdd-macos/public-api-missing-g354.json`は公開header 1,548、公開API 29,804、対応済み24,494、未対応5,310、1,405,980 bytes、SHA-256 `57dca70b59089bb47d5c5be4624b407b56e58f673121a37acb869662f478f3d8`を記録する。`libs/impex/animation/KisMediaEncoderWrapper.h`の残存全21 APIを、実行器型・取消、完了通知、失敗・進捗通知、wrapper型・寿命、開始・形式検索、wrapper通知・resetの6枠へ完全に対応付ける。識別子整列集合のSHA-256は`335ae88debdfacda853f45e92a2d2abed2729cccda0bbaa457f29cb3ed19f932`である。
+- 開始headerの`QDir`完全headerは公開宣言・inline実装・対応実装のいずれにも利用がないため削除する。開始`KisMediaEncoderWrapper.cpp`の厳格`clang-check`は診断0件であり、変更後も公開API指紋と7直接利用元の診断を不変に保つ。
+- 既存`libs/impex/tests/KisMediaEncoderFormatAndSettingsContractTest.cpp`は191行・5枠で、追加6枠後も300行・20枠未満に収める。既存targetは4工程・8入力、command SHA-256 `5396218daf70b994ca00db11f16b98af52874f9dc9c70b854283c2cd6238a20a`、input SHA-256 `cf0648c4ad31097ad0543338b2b00c8a749956145bd8ffe647cc078a2e343e9c`で、製品libraryを接続せずQt Core・Testだけへ動的接続する。CMakeを変更せずこの閉包を維持し、停止線を5工程・11入力、300行・20枠とする。
+- `g354-media-encoder-wrapper-schema`の状態は`in_progress`、実装基点は`e5bfd55d64`である。構造整理は開始header、契約は既存試験sourceだけに限定する。macOSの対象、追加6枠の20回反復、開始実装・試験source・直接利用元の厳格`clang-check`、書式、二回の無作業再構築、公開API指紋不変、公開API検査、`verify-quick`だけを実行する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
 
 ### 第239便の先行監査担当票
 
