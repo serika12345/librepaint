@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 6391
+    "expectedMissingApis": 6352
   },
   "contracts": [
     {
@@ -65773,6 +65773,90 @@
         "variable:KisAnimUtils::removeLayerActionName",
         "variable:KisAnimUtils::removeOpacityKeyframeActionName",
         "variable:KisAnimUtils::removeTransformKeyframeActionName"
+      ]
+    },
+    {
+      "target": "KisAnimUtilsSchemaContractTest",
+      "source": "plugins/dockers/animation/tests/KisAnimUtilsSchemaContractTest.cpp",
+      "test": "KisAnimUtilsSchemaContractTest::timeBasedModelTypeAndRoleSchemaRemainStable",
+      "behavior": "時間軸項目模型は抽象表模型の専用型と、能動frameから利用者領域まで連続する表示役割値を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisTimeBasedItemModel",
+        "enum:KisTimeBasedItemModel::ItemDataRole",
+        "enumerator:KisTimeBasedItemModel::ItemDataRole::ActiveFrameRole",
+        "enumerator:KisTimeBasedItemModel::ItemDataRole::CloneCount",
+        "enumerator:KisTimeBasedItemModel::ItemDataRole::CloneOfActiveFrame",
+        "enumerator:KisTimeBasedItemModel::ItemDataRole::FrameCachedRole",
+        "enumerator:KisTimeBasedItemModel::ItemDataRole::FrameEditableRole",
+        "enumerator:KisTimeBasedItemModel::ItemDataRole::FrameExistsRole",
+        "enumerator:KisTimeBasedItemModel::ItemDataRole::FrameHasContent",
+        "enumerator:KisTimeBasedItemModel::ItemDataRole::FramesPerSecondRole",
+        "enumerator:KisTimeBasedItemModel::ItemDataRole::ScrubToRole",
+        "enumerator:KisTimeBasedItemModel::ItemDataRole::SpecialKeyframeExists",
+        "enumerator:KisTimeBasedItemModel::ItemDataRole::UserRole",
+        "enumerator:KisTimeBasedItemModel::ItemDataRole::WithinClipRange"
+      ]
+    },
+    {
+      "target": "KisAnimUtilsSchemaContractTest",
+      "source": "plugins/dockers/animation/tests/KisAnimUtilsSchemaContractTest.cpp",
+      "test": "KisAnimUtilsSchemaContractTest::timeBasedModelOwnershipAndContextSignaturesRemainStable",
+      "behavior": "時間軸項目模型は親所有による構築・多相破棄と、image・frame cache・再生器・文書の接続およびcache照会の公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTimeBasedItemModel::KisTimeBasedItemModel(QObject * parent)",
+        "method:KisTimeBasedItemModel::document() const",
+        "method:KisTimeBasedItemModel::isFrameCached(const int frame)",
+        "method:KisTimeBasedItemModel::setAnimationPlayer(KisCanvasAnimationState * player)",
+        "method:KisTimeBasedItemModel::setDocument(class KisDocument * document)",
+        "method:KisTimeBasedItemModel::setFrameCache(KisAnimationFrameCacheSP cache)",
+        "method:KisTimeBasedItemModel::setImage(KisImageWSP image)",
+        "method:KisTimeBasedItemModel::~KisTimeBasedItemModel()"
+      ]
+    },
+    {
+      "target": "KisAnimUtilsSchemaContractTest",
+      "source": "plugins/dockers/animation/tests/KisAnimUtilsSchemaContractTest.cpp",
+      "test": "KisAnimUtilsSchemaContractTest::timeBasedModelTableAndHeaderSignaturesRemainStable",
+      "behavior": "時間軸項目模型は表示終端、列数、項目・headerの読書き、scrub header更新の正確な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTimeBasedItemModel::columnCount(const QModelIndex & parent=QModelIndex ()) const",
+        "method:KisTimeBasedItemModel::data(const QModelIndex & index,int role) const",
+        "method:KisTimeBasedItemModel::headerData(int section,Qt::Orientation orientation,int role) const",
+        "method:KisTimeBasedItemModel::scrubHorizontalHeaderUpdate(int activeHeader)",
+        "method:KisTimeBasedItemModel::setData(const QModelIndex & index,const QVariant & value,int role)",
+        "method:KisTimeBasedItemModel::setHeaderData(int section,Qt::Orientation orientation,const QVariant & value,int role)",
+        "method:KisTimeBasedItemModel::setLastVisibleFrame(int time)"
+      ]
+    },
+    {
+      "target": "KisAnimUtilsSchemaContractTest",
+      "source": "plugins/dockers/animation/tests/KisAnimUtilsSchemaContractTest.cpp",
+      "test": "KisAnimUtilsSchemaContractTest::timeBasedModelFrameEditingAndScrubSignaturesRemainStable",
+      "behavior": "時間軸項目模型はframeの削除・offset付き削除・鏡映、およびscrub状態の設定・照会の正確な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTimeBasedItemModel::isScrubbing()",
+        "method:KisTimeBasedItemModel::mirrorFrames(QModelIndexList indexes)",
+        "method:KisTimeBasedItemModel::removeFrames(const QModelIndexList & indexes)",
+        "method:KisTimeBasedItemModel::removeFramesAndOffset(QModelIndexList indicesToRemove)",
+        "method:KisTimeBasedItemModel::setScrubState(bool active)"
+      ]
+    },
+    {
+      "target": "KisAnimUtilsSchemaContractTest",
+      "source": "plugins/dockers/animation/tests/KisAnimUtilsSchemaContractTest.cpp",
+      "test": "KisAnimUtilsSchemaContractTest::timeBasedModelPlaybackSignaturesRemainStable",
+      "behavior": "時間軸項目模型は再生範囲、稼働・一時停止状態、停止要求、現在時刻の正確な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTimeBasedItemModel::currentTime() const",
+        "method:KisTimeBasedItemModel::isPlaybackActive() const",
+        "method:KisTimeBasedItemModel::isPlaybackPaused() const",
+        "method:KisTimeBasedItemModel::setPlaybackRange(const KisTimeSpan & range)",
+        "method:KisTimeBasedItemModel::stopPlayback() const"
       ]
     }
   ]

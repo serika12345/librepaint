@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-07 03:58 JST
+- 更新日時: 2026-09-07 04:05 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -2381,7 +2381,15 @@
 - 開始headerの`KisKineticScroller.h`は宣言・inline・実装のいずれでも使用されず、4直接利用元へwidgetutils解析を波及させている。開始`plugins/dockers/animation/KisTimeBasedItemModel.h`から同includeを削除し、private所有型に必要な`QScopedPointer`を直接includeする。開始実装`plugins/dockers/animation/KisTimeBasedItemModel.cpp`の変更前厳格`clang-check`は成功しており、公開API指紋を維持したまま依存だけを縮小する。
 - 既存動的`timeline_model_test`はanimation docker製品群へ接続する2,011工程・4,020入力で反復対象にしない。拡張前`KisAnimUtilsSchemaContractTest`は4工程・8入力、command SHA-256 `c803a58160de7c7de934ccf99bc7f2cd7b55a8891ff86a41c549aa3997ee64fe`、input SHA-256 `a1c9cebe30044a986ed75cb4ac28108e7cdf944ae58e78810ab6731eb156fbb4`であり、軽量近傍も兼ねる。
 - 依存整理後に既存試験sourceへ5枠を追加し、対象固有CMake節へUI source探索路だけを加える。模型、image、cache、player、document、時刻範囲、Qt値を実体化せず、列挙値と全公開関数型を固定する。既存targetは4工程・8入力を維持すると予測し、停止線を5工程・11入力とする。
-- `g334-time-based-item-model-schema`の状態は`planned`、実装基点は`6f8fff1973`である。構造整理は開始header、契約は既存試験sourceと同target固有CMake節だけに限定する。macOSの対象、近傍、追加5枠の20回反復、開始実装と試験sourceの厳格`clang-check`、書式、二回の無作業再構築、公開API指紋不変、公開API検査、`verify-quick`だけを実行する。製品static・MODULE・OBJECT・shared target、全体build・`verify`、Linux、Nix再評価は実行しない。
+- `g334-time-based-item-model-schema`の状態は`integrated`、実装基点は`2ff5f48e0a`、依存整理commitは`6e39afc90e`、契約実装commitは`8120547a70`である。構造整理は開始header、契約は既存試験sourceと同target固有CMake節だけに限定した。macOSの対象、近傍、追加5枠の20回反復、開始実装と試験sourceの厳格`clang-check`、書式、二回の無作業再構築、公開API指紋不変、公開API検査に成功した。製品static・MODULE・OBJECT・shared target、全体build・`verify`、Linux、Nix再評価は実行していない。
+
+### 第334便の契約統合結果
+
+- 時間軸模型の利用元へ無関係なwidgetutils解析が波及する問題を解消した。開始`plugins/dockers/animation/KisTimeBasedItemModel.h`から宣言・inline・実装のいずれにも使わない`KisKineticScroller.h`を削除し、private所有型に必要な`QScopedPointer`の直接includeへ置き換えた。4直接利用元の閉包を狭め、公開API 29,804件と対象39識別子は不変である。
+- 同開始headerの残存全39 APIから既存`plugins/dockers/animation/tests/KisAnimUtilsSchemaContractTest.cpp`へ、型・表示役割14、所有・文書・cache接続8、表模型・header更新7、frame編集・scrub 5、再生範囲・状態5を追加し、試験source全体を255行・10枠に収めた。模型、image、cache、player、document、時刻範囲、Qt値を実体化せず、抽象基底、具象化可能な構築面、多相寿命、列挙値、全公開関数型を固定した。
+- 追加5枠は期待どおり5件失敗し、契約実装後に成功した。拡張targetは4工程・8入力を維持し、command SHA-256は`c80543394dae85bb0e2ce88f2d9024f9ff9b5428c93030be8900744c7a0ad581`、input SHA-256は`a1c9cebe30044a986ed75cb4ac28108e7cdf944ae58e78810ab6731eb156fbb4`である。AUTOMOC header入力は空、Qt Test・Core、gettext、OS frameworkだけへ動的接続し、製品未解決記号は0である。
+- macOSで対象と軽量近傍`libs-canvas-KisFrameDataSerializerSchemaContractTest`のCTest 2/2、対象の20回反復、開始実装と試験sourceの厳格`clang-check`、書式、二回の無作業再構築、公開API検査に成功した。2,011工程・4,020入力の既存動的timeline模型試験、製品static・MODULE・OBJECT・shared target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 台帳へ39 APIを追加して23,452件対応、6,352件未対応となった。旧`public-api-missing-g334.json`は最新報告の検証後に削除し、追加作業tree・構築木は作成していない。主Ninja木5,904,544 KiB、共有compiler cache 982,848 KiB、最新`build/tdd-macos/public-api-missing-g335.json` 1,685,101 bytes、SHA-256 `c477b89df37b9d39cbb0653c99fb9e7f3c499c271611bcc49c93545796b7d192`だけを再利用対象として保持する。compiler cacheは144,093件中120,470件、83.61%がhitしている。次の永続作業は第335便で次の高密度なmacOS対象と最小構築面を選定することである。
 
 ### 第239便の先行監査担当票
 
