@@ -35,6 +35,29 @@ set_target_properties(kritaapplicationsnapconfigobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaapplicationpreferencesetregistryobjects OBJECT
+    ui/workspace/kis_preference_set_registry.cpp
+    ui/workspace/kis_preference_set_registry.h
+)
+target_compile_definitions(kritaapplicationpreferencesetregistryobjects PRIVATE
+    kritaapplicationui_EXPORTS
+    kritaglobal_EXPORTS
+)
+target_include_directories(kritaapplicationpreferencesetregistryobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/application>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritaapplicationpreferencesetregistryobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Widgets
+)
+set_target_properties(kritaapplicationpreferencesetregistryobjects PROPERTIES
+    POSITION_INDEPENDENT_CODE ON
+)
+
 set(kritaapplication_LIB_SRCS
     kis_config.cc
     platform-adapters/KisAndroidFileProxy.cpp
@@ -136,8 +159,7 @@ set(kritaapplicationui_LIB_SRCS
     ui/workspace/KisWindowLayoutResource.h
     ui/workspace/kis_mainwindow_observer.cpp
     ui/workspace/kis_mainwindow_observer.h
-    ui/workspace/kis_preference_set_registry.cpp
-    ui/workspace/kis_preference_set_registry.h
+    $<TARGET_OBJECTS:kritaapplicationpreferencesetregistryobjects>
     ui/workspace/kis_splash_screen.cpp
     ui/workspace/kis_splash_screen.h
 )
