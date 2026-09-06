@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-06 01:27 JST
+- 更新日時: 2026-09-06 10:40 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1395,9 +1395,15 @@
 
 - 開始`libs/canvas/KisCanvasState.cpp`から`KisCanvasState::fromConverter()`を`libs/canvas/kis_coordinates_converter.cpp`へ本文不変で移し、比較とzoom写像だけを新規`kritacanvasstateobjects`へ移管した。元sourceからconverter依存を除き、製品`kritacanvas`は生成objectを一度だけ集約する。公開header、ABI、翻訳単位数を変更していない。受渡しcommit `2dbbe22658`を中央commit `fcbde2716b`として取り込んだ。
 - 担当側と中央のmacOSで新objectの構築、軽量近傍`libs-canvas-KisCoordinatesConverterSchemaContractTest`、両cppの厳格構文、二回の無作業再構築に成功した。objectは1工程・3入力、AUTOMOC無効、Qt Core・Boostだけで、`operator==()`と`zoomState()`だけを公開し`fromConverter()`を含まない。近傍は4工程・8入力、製品計画は1,220工程・2,460入力を維持し、中央の変更後command SHA-256は`b4e239d23fe127f8e4451900e1767a91ae3fab3ecd6bd91bb8a2267bca6006b8`、input SHA-256は`64e0be99f8fcd22a4467472fc3ddbc3a7ac96be3a675924c21f801b784e01ca2`である。cleanな専用作業tree、301,092 KiBの構築木、branchを削除して892,028 KiBを回収した。主Ninja木5,789,824 KiB、共有compiler cache 981,740 KiBを保持し、compiler cacheは143,476件中120,291件、83.84%がhitしている。製品`kritacanvas`実構築、全体build・`verify`、Linux、Nix再評価は実行していない。
-- `g268-canvas-state-contract`の状態は`in_progress`、実装基点は`fcbde2716b`、専用作業treeは`/Users/masato/Documents/librepaint-g268-canvas-state-contract`、branchは`agent/g268-canvas-state-contract`、macOSの対象と近傍に限る構築実行許可は`granted`である。許可pathは新規`libs/canvas/tests/KisCanvasStateContractTest.cpp`と`libs/canvas/tests/CMakeLists.txt`の新target固有節だけで、調整担当だけが文書、台帳、共通不足報告を変更する。担当のGit権限は許可pathだけの受渡しcommit 1件、追加委任は禁止する。
+- `g268-canvas-state-contract`の状態は`integrated`、実装基点は`fcbde2716b`、専用作業treeは`/Users/masato/Documents/librepaint-g268-canvas-state-contract`、branchは`agent/g268-canvas-state-contract`、macOSの対象と近傍に限る構築実行許可は`granted`である。許可pathは新規`libs/canvas/tests/KisCanvasStateContractTest.cpp`と`libs/canvas/tests/CMakeLists.txt`の新target固有節だけで、調整担当だけが文書、台帳、共通不足報告を変更する。担当のGit権限は許可pathだけの受渡しcommit 1件、追加委任は禁止する。
 - 残存19 APIをcanvas状態型とzoom値6、向き・反転・位置6、範囲・寸法4、全値の等価性1、zoom状態写像・converter採取2の5枠へ対応付ける。15 fieldをすべて明示初期化して型と読書きを固定し、5つのqrealは正の隣接表現を等価とする`qFuzzyCompare`契約、`zoomState()`はmode・zoom・上下限の写像を値契約として観測する。`fromConverter()`は厳密関数pointerだけで固定し、実converterを生成しない。
 - 新targetは`kritacanvasstateobjects`とQt Testを直接接続する5工程・11入力、停止線6工程・14入力とする。軽量近傍は`KisCoordinatesConverterSchemaContractTest`とし、変更前target不存在、5枠宣言段階の期待link失敗、5枠単発・各20回、全target・正式CTest・近傍、AUTOMOC後の二回目計画、二回の無作業再構築、動的接続・未解決記号・厳格構文・書式・差分・公開API検査・`verify-quick`を確認する。Qt Gui・Widgets・Xml、KF、image・global・pigment・resources、製品shared、`kritatestsdk`、`fromConverter()`実行、候補headerのAUTOMOC入力化、公開API変更、許可path外変更が必要なら停止する。
+
+### 第268便の契約統合結果
+
+- 開始`libs/canvas/KisCanvasState.h`から新規`libs/canvas/tests/KisCanvasStateContractTest.cpp`へ、zoom、向き・位置、範囲・寸法、全値等価性、zoom写像・converter採取を担う残存全19 API・5枠を追加した。15 fieldをすべて明示初期化して各一項目差分と5つのqreal隣接表現を観測し、`zoomState()`を実行、`fromConverter()`を厳密関数pointerだけで固定した。`libs/canvas/tests/CMakeLists.txt`には新target固有節だけを追加し、公開header、製品source、既存targetを変更していない。変更前target不存在と、5枠宣言段階の全5試験関数の未定義link失敗を確認した。受渡しcommit `18ac267c1d`を中央commit `83790d03db`として取り込んだ。
+- macOSで5枠を各20回、全7試験、正式CTest `libs-canvas-KisCanvasStateContractTest`、軽量近傍`libs-canvas-KisCoordinatesConverterSchemaContractTest`、AUTOMOC後の二回目計画、二回の無作業再構築に成功した。新targetは5工程・11入力、担当側command SHA-256 `abab8707009d2a490d7d366738ef8a5fcd4bf6b07dd612e9e994bb4280488e67`、input SHA-256 `84e83d6b0fba1b67ed5a2001b6db38563042739135c824b2e5f8d8bd3192ac49`、AUTOMOC `HEADERS=[]`、Qt Core・Testだけの動的接続、製品未解決記号0である。厳格構文、書式、差分、公開API検査、`verify-quick`にも成功し、中央でも対象と近傍、厳格構文、二回の無作業再構築に成功した。
+- 台帳へ19 APIを追加して22,204件対応、7,600件未対応となり、旧基準7,619件に対する実測7,600件の期待不一致を確認してから基準を更新した。cleanな専用作業tree、298,772 KiBの構築木、branchを削除して889,724 KiBを回収し、旧`public-api-missing-g268.json` 2,025,851 bytesを削除した。主Ninja木5,792,920 KiB、共有compiler cache 983,188 KiB、最新`build/tdd-macos/public-api-missing-g269.json` 2,022,048 bytes、SHA-256 `96c9566f29c1399f777913bd496af0267d592c0230407b7107e0a146c90d8fa4`だけを再利用対象として保持する。compiler cacheは143,485件中120,294件、83.84%がhitしている。製品target、converter動的試験、全体build・`verify`、Linux、Nix再評価は実行していない。
 
 ### 第269便の先行監査担当票
 
@@ -1460,8 +1466,8 @@
 ### 第274便の先行監査担当票
 
 - 監査共通基点は`43a15cc9af`、正式入力は`build/tdd-macos/public-api-missing-g268.json`である。第268便から第273便までの選定済みAPIを除外し、`plugins/filters/colorsfilters/virtual_channel_info.h`、`libs/pigment/resources/KisSwatch.h`、`libs/psd/psd_layer_section.h`、`libs/image/kis_exif_info_visitor.h`の各残存16 APIを比較し、一責務を最大5枠の契約へ閉じられる次候補を選ぶ。主作業treeと正式不足一覧の読み取りだけを許可し、変更、構成、構築、試験、Git操作、生成物作成、追加委任を行わず、G268の専用構築木を共有しない。
-- `g274-public-api-candidate-audit`の状態は`in_progress`である。各候補の正式識別子、責務、公開値・所有・寿命、最大5枠の完全割当を比較し、実画像、paint device、色空間登録簿、PSD入出力、大域状態を生成せず固定できる決定的な値挙動を優先する。
-- `g274-build-closure-review`の状態は`in_progress`である。各候補headerと実装の直接依存、既存軽量・重量対象、新規限定対象・既存追記・具体的source/object所有分割の閉包と依存方向、先行include整理の効果、AUTOMOC、許可pathと停止線を独立に比較する。
+- `g274-public-api-candidate-audit`の状態は`completed`である。各候補の正式識別子、責務、公開値・所有・寿命、最大5枠の完全割当を比較し、実画像、paint device、色空間登録簿、PSD入出力、大域状態を生成せず固定できる決定的な値挙動を優先した。virtual channel情報が制約内で全accessorを最も広く観測できることを確認した。
+- `g274-build-closure-review`の状態は`paused`である。実装開始前に調整担当が各候補の限定target、既存target追記、実装分離の工程・入力数と依存方向を完了し、API監査のvirtual channel候補を採用できるか判定することを再開条件とする。
 
 ### 第239便の先行監査担当票
 

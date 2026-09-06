@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 7619
+    "expectedMissingApis": 7600
   },
   "contracts": [
     {
@@ -62034,6 +62034,70 @@
       "classification": "maintained",
       "apis": [
         "function:bumpmap(KisPixelSelectionSP device,const QRect & selectionRect,const bumpmap_vals_t & bmvals)"
+      ]
+    },
+    {
+      "target": "KisCanvasStateContractTest",
+      "source": "libs/canvas/tests/KisCanvasStateContractTest.cpp",
+      "test": "KisCanvasStateContractTest::canvasStateZoomValuesRemainStable",
+      "behavior": "canvas状態はzoom方式、要求・実効zoom、上下限を公開値として保持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisCanvasState",
+        "member:KisCanvasState::effectiveZoom",
+        "member:KisCanvasState::maximumZoom",
+        "member:KisCanvasState::minimumZoom",
+        "member:KisCanvasState::zoom",
+        "member:KisCanvasState::zoomMode"
+      ]
+    },
+    {
+      "target": "KisCanvasStateContractTest",
+      "source": "libs/canvas/tests/KisCanvasStateContractTest.cpp",
+      "test": "KisCanvasStateContractTest::canvasStateOrientationAndPositionValuesRemainStable",
+      "behavior": "canvas状態は回転、水平・垂直反転、文書・viewport位置を公開値として保持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisCanvasState::documentOffset",
+        "member:KisCanvasState::documentOffsetF",
+        "member:KisCanvasState::mirrorHorizontally",
+        "member:KisCanvasState::mirrorVertically",
+        "member:KisCanvasState::rotation",
+        "member:KisCanvasState::viewportOffsetF"
+      ]
+    },
+    {
+      "target": "KisCanvasStateContractTest",
+      "source": "libs/canvas/tests/KisCanvasStateContractTest.cpp",
+      "test": "KisCanvasStateContractTest::canvasStateBoundsAndDimensionsRemainStable",
+      "behavior": "canvas状態は移動範囲、canvas寸法、widget内画像矩形を公開値として保持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisCanvasState::canvasSize",
+        "member:KisCanvasState::imageRectInWidgetPixels",
+        "member:KisCanvasState::maximumOffset",
+        "member:KisCanvasState::minimumOffset"
+      ]
+    },
+    {
+      "target": "KisCanvasStateContractTest",
+      "source": "libs/canvas/tests/KisCanvasStateContractTest.cpp",
+      "test": "KisCanvasStateContractTest::canvasStateEqualityRemainsStable",
+      "behavior": "canvas状態は全15公開値を比較し、浮動小数点値にはQtの近似等価性を適用する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCanvasState::operator ==(const KisCanvasState & other) const"
+      ]
+    },
+    {
+      "target": "KisCanvasStateContractTest",
+      "source": "libs/canvas/tests/KisCanvasStateContractTest.cpp",
+      "test": "KisCanvasStateContractTest::canvasStateConversionSignatureAndZoomStateRemainStable",
+      "behavior": "canvas状態は座標変換器から採取する公開署名とzoom方式・値・上下限への写像を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCanvasState::fromConverter(const KisCoordinatesConverter & converter)",
+        "method:KisCanvasState::zoomState() const"
       ]
     }
   ]
