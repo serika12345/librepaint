@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 7047
+    "expectedMissingApis": 7034
   },
   "contracts": [
     {
@@ -25213,6 +25213,55 @@
       "classification": "maintained",
       "apis": [
         "method:KoColorProofingConversionTransformation::proofingSpace() const"
+      ]
+    },
+    {
+      "target": "KoOptimizedCompositeOpFactorySchemaContractTest",
+      "source": "libs/pigment/tests/KoOptimizedCompositeOpFactorySchemaContractTest.cpp",
+      "test": "KoOptimizedCompositeOpFactorySchemaContractTest::factoryTypeSchemaRemainsStable",
+      "behavior": "最適化済み合成演算factoryは独立した公開型として利用できる。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoOptimizedCompositeOpFactory"
+      ]
+    },
+    {
+      "target": "KoOptimizedCompositeOpFactorySchemaContractTest",
+      "source": "libs/pigment/tests/KoOptimizedCompositeOpFactorySchemaContractTest.cpp",
+      "test": "KoOptimizedCompositeOpFactorySchemaContractTest::factory32BitSignaturesRemainStable",
+      "behavior": "32-bit画素向けのhard・creamy alpha darken、over、copy生成関数は色空間を借用し合成演算pointerを返す公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoOptimizedCompositeOpFactory::createAlphaDarkenOpCreamy32(const KoColorSpace * cs)",
+        "method:KoOptimizedCompositeOpFactory::createAlphaDarkenOpHard32(const KoColorSpace * cs)",
+        "method:KoOptimizedCompositeOpFactory::createCopyOp32(const KoColorSpace * cs)",
+        "method:KoOptimizedCompositeOpFactory::createOverOp32(const KoColorSpace * cs)"
+      ]
+    },
+    {
+      "target": "KoOptimizedCompositeOpFactorySchemaContractTest",
+      "source": "libs/pigment/tests/KoOptimizedCompositeOpFactorySchemaContractTest.cpp",
+      "test": "KoOptimizedCompositeOpFactorySchemaContractTest::factory128BitSignaturesRemainStable",
+      "behavior": "128-bit画素向けのhard・creamy alpha darken、over、copy生成関数は色空間を借用し合成演算pointerを返す公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoOptimizedCompositeOpFactory::createAlphaDarkenOpCreamy128(const KoColorSpace * cs)",
+        "method:KoOptimizedCompositeOpFactory::createAlphaDarkenOpHard128(const KoColorSpace * cs)",
+        "method:KoOptimizedCompositeOpFactory::createCopyOp128(const KoColorSpace * cs)",
+        "method:KoOptimizedCompositeOpFactory::createOverOp128(const KoColorSpace * cs)"
+      ]
+    },
+    {
+      "target": "KoOptimizedCompositeOpFactorySchemaContractTest",
+      "source": "libs/pigment/tests/KoOptimizedCompositeOpFactorySchemaContractTest.cpp",
+      "test": "KoOptimizedCompositeOpFactorySchemaContractTest::factoryU64SignaturesRemainStable",
+      "behavior": "U64画素向けのhard・creamy alpha darken、over、copy生成関数は色空間を借用し合成演算pointerを返す公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoOptimizedCompositeOpFactory::createAlphaDarkenOpCreamyU64(const KoColorSpace * cs)",
+        "method:KoOptimizedCompositeOpFactory::createAlphaDarkenOpHardU64(const KoColorSpace * cs)",
+        "method:KoOptimizedCompositeOpFactory::createCopyOpU64(const KoColorSpace * cs)",
+        "method:KoOptimizedCompositeOpFactory::createOverOpU64(const KoColorSpace * cs)"
       ]
     },
     {

@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-06 22:34 JST
+- 更新日時: 2026-09-06 22:46 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1960,7 +1960,14 @@
 
 - 正式入力`build/tdd-macos/public-api-missing-g303.json`は公開header 1,548、公開API 29,804、対応済み22,757、未対応7,047、1,871,782 bytes、SHA-256 `fcf1bcbadd463434a6c56e86fee6ba8289e932a17081062db45114603042054e`を記録する。`libs/pigment/compositeops/KoOptimizedCompositeOpFactory.h`の残存全13 APIは重複なく、識別子整列集合SHA-256は`75436f4f69c5d0514d37e04e7cf6240bc757dc098f7b64358f0e1de6d9543a87`である。factory型1、32-bit演算4、128-bit演算4、U64演算4の4枠へ完全に割り当てる。
 - 既存`KoCompositeOpSchemaContractTest`は実装生成物を含む5工程・11入力であり、前方宣言型だけを使う生成factoryの公開署名には広すぎる。新規`libs/pigment/tests/KoOptimizedCompositeOpFactorySchemaContractTest.cpp`を作り、pigment source/generated探索路、`kritapigment_EXPORTS`、Qt Testだけへ直接接続する。軽量近傍`KoCompositeOpIdsContractTest`は4工程・8入力、command SHA-256 `88ef085f3266d54f130a3795795512d63788541b012529e637c38c86e628ddbf`、input SHA-256 `26a4e2129a10d32fdd4437a77ce94eabb9caaaf9622ba64fa7e8d0d055a6c50e`であり、新targetも4工程・8入力以内を予測して停止線を5工程・11入力とする。色空間と合成演算を実体化せず、製品`kritapigment`の367工程・764入力を避ける。
-- `g303-optimized-composite-factory-schema`の状態は`planned`、実装基点は`95d9008c7f`である。許可pathを新規試験sourceと`libs/pigment/tests/CMakeLists.txt`の新target固有節だけに限定し、公開headerと製品sourceを変更しない。macOSの対象`libs-pigment-KoOptimizedCompositeOpFactorySchemaContractTest`、近傍`libs-pigment-KoCompositeOpIdsContractTest`、追加4枠の各20回反復、厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
+- `g303-optimized-composite-factory-schema`の状態は`integrated`、実装基点は`95d9008c7f`である。許可pathを新規試験sourceと`libs/pigment/tests/CMakeLists.txt`の新target固有節だけに限定し、公開headerと製品sourceを変更しなかった。受渡しcommit `e88664988a`をpatch-id `069fc4dc9380ee1266dd3e1ab23029d418b31e36`で照合し、統合commit `6d223d577b`として取り込んだ。
+
+### 第303便の契約統合結果
+
+- 開始`libs/pigment/compositeops/KoOptimizedCompositeOpFactory.h`から新規`libs/pigment/tests/KoOptimizedCompositeOpFactorySchemaContractTest.cpp`へ残存全13 APIを対応付けた。factory型1、32-bit演算4、128-bit演算4、U64演算4の4枠で、色空間の借用pointerを受け取り合成演算pointerを返す全生成関数の正確な公開署名を固定した。新規試験sourceは61行・4枠である。
+- 対象未登録の初回限定構築は未知の対象、登録後の宣言だけの追加4枠は4個の未定義symbolとして期待どおり失敗した。新targetは担当側・中央とも4工程・8入力で停止線以内に収まった。担当側command SHA-256は`410573bf89ae040bf154cedc0811cc485a218e2faba4e1d28f44d92c9522d3e9`、input SHA-256は`4e81642a33b9d0978464f07451b8fd7de87a0a6f68ff92f015c8c9285a2b46fb`、中央command SHA-256は`d2801b83ac928ce3a2c6104afb39805b78583bca3668e2cee965d04eb9b30cfc`、input SHA-256は`d959ee2f9245ebad9821e83903c3a22c5370efe38171591d5e92fdbd7ef7d528`である。候補headerのAUTOMOC `HEADERS`は空で、Qt Test・Core、gettext、OS frameworkだけへ動的接続し、製品未解決記号は0である。
+- 担当側と中央のmacOSで追加4枠を各20回、対象CTest `libs-pigment-KoOptimizedCompositeOpFactorySchemaContractTest`、近傍`libs-pigment-KoCompositeOpIdsContractTest`、厳格`clang-check`、書式、二回の無作業再構築に成功した。担当側`verify-quick`と中央の公開API検査にも成功し、台帳へ13 APIを追加して22,770件対応、7,034件未対応、対象headerの残存0件となった。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- cleanな専用作業treeと構築木306,872 KiB、branchを統合直後に削除した。旧`public-api-missing-g303.json` 1,871,782 bytesを削除し、主Ninja木5,861,964 KiB、共有compiler cache 983,432 KiB、最新`build/tdd-macos/public-api-missing-g304.json` 1,867,630 bytes、SHA-256 `837fed8c56cea1b1c4ec9864ae4e714c42f04e0e7f9369320d0c2f93520e81a3`だけを再利用対象として保持する。compiler cacheは143,974件中120,457件、83.67%がhitしている。次の永続作業は第304便の正式不足報告から、全APIを最小閉包で固定できる責務を再選定することである。
 
 ### 第239便の先行監査担当票
 
