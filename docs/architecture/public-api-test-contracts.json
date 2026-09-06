@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 5657
+    "expectedMissingApis": 5621
   },
   "contracts": [
     {
@@ -66957,6 +66957,87 @@
       "apis": [
         "method:KisGuidesManager::sigRequestUpdateGuidesConfig(const KisGuidesConfig & config)",
         "method:KisGuidesManager::slotUploadConfigToDocument()"
+      ]
+    },
+    {
+      "target": "KisLayerFilterWidgetSchemaContractTest",
+      "source": "libs/ui/tests/KisLayerFilterWidgetSchemaContractTest.cpp",
+      "test": "KisLayerFilterWidgetSchemaContractTest::doubleFilterParameterValueSchemaRemainStable",
+      "behavior": "複数double filterのparameter値は範囲・初期値・表示名・設定名とvector別名の型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:vKisDoubleWidgetParam",
+        "member:KisDoubleWidgetParam::initvalue",
+        "member:KisDoubleWidgetParam::label",
+        "member:KisDoubleWidgetParam::max",
+        "member:KisDoubleWidgetParam::min",
+        "member:KisDoubleWidgetParam::name",
+        "method:KisDoubleWidgetParam::KisDoubleWidgetParam(double nmin,double nmax,double ninitvalue,const QString & label,const QString & nname)",
+        "struct:KisDoubleWidgetParam"
+      ]
+    },
+    {
+      "target": "KisLayerFilterWidgetSchemaContractTest",
+      "source": "libs/ui/tests/KisLayerFilterWidgetSchemaContractTest.cpp",
+      "test": "KisLayerFilterWidgetSchemaContractTest::integerFilterParameterValueSchemaRemainStable",
+      "behavior": "複数integer filterのparameter値は範囲・初期値・表示名・設定名・連動名とvector別名の型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:vKisIntegerWidgetParam",
+        "member:KisIntegerWidgetParam::initvalue",
+        "member:KisIntegerWidgetParam::label",
+        "member:KisIntegerWidgetParam::lockerName",
+        "member:KisIntegerWidgetParam::max",
+        "member:KisIntegerWidgetParam::min",
+        "member:KisIntegerWidgetParam::name",
+        "method:KisIntegerWidgetParam::KisIntegerWidgetParam(qint32 nmin,qint32 nmax,qint32 ninitvalue,const QString & label,const QString & nname,const QString & lockerName=QString ())",
+        "struct:KisIntegerWidgetParam"
+      ]
+    },
+    {
+      "target": "KisLayerFilterWidgetSchemaContractTest",
+      "source": "libs/ui/tests/KisLayerFilterWidgetSchemaContractTest.cpp",
+      "test": "KisLayerFilterWidgetSchemaContractTest::delayedNumericInputSchemaRemainStable",
+      "behavior": "double・integer遅延入力はslider基底、親・設定名による構築、保留通知の取消と遅延値通知の正確な公開型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisDelayedActionDoubleInput",
+        "class:KisDelayedActionIntegerInput",
+        "method:KisDelayedActionDoubleInput::KisDelayedActionDoubleInput(QWidget * parent,const QString & name)",
+        "method:KisDelayedActionDoubleInput::cancelDelayedSignal()",
+        "method:KisDelayedActionDoubleInput::valueChangedDelayed(double value)",
+        "method:KisDelayedActionIntegerInput::KisDelayedActionIntegerInput(QWidget * parent,const QString & name)",
+        "method:KisDelayedActionIntegerInput::cancelDelayedSignal()",
+        "method:KisDelayedActionIntegerInput::valueChangedDelayed(int value)"
+      ]
+    },
+    {
+      "target": "KisLayerFilterWidgetSchemaContractTest",
+      "source": "libs/ui/tests/KisLayerFilterWidgetSchemaContractTest.cpp",
+      "test": "KisLayerFilterWidgetSchemaContractTest::multiDoubleFilterWidgetSchemaRemainStable",
+      "behavior": "複数double filter widgetは設定widget基底、filter・親・caption・parameterによる構築、設定入出力と公開値照会の正確な型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisMultiDoubleFilterWidget",
+        "method:KisMultiDoubleFilterWidget::KisMultiDoubleFilterWidget(const QString & filterid,QWidget * parent,const QString & caption,vKisDoubleWidgetParam dwparam)",
+        "method:KisMultiDoubleFilterWidget::configuration() const",
+        "method:KisMultiDoubleFilterWidget::nbValues() const",
+        "method:KisMultiDoubleFilterWidget::setConfiguration(const KisPropertiesConfigurationSP cfg)",
+        "method:KisMultiDoubleFilterWidget::valueAt(qint32 i)"
+      ]
+    },
+    {
+      "target": "KisLayerFilterWidgetSchemaContractTest",
+      "source": "libs/ui/tests/KisLayerFilterWidgetSchemaContractTest.cpp",
+      "test": "KisLayerFilterWidgetSchemaContractTest::multiIntegerFilterWidgetSchemaRemainStable",
+      "behavior": "複数integer filter widgetは設定widget基底、filter・親・caption・parameterによる構築、多相破棄と設定入出力の正確な型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisMultiIntegerFilterWidget",
+        "method:KisMultiIntegerFilterWidget::KisMultiIntegerFilterWidget(const QString & filterid,QWidget * parent,const QString & caption,vKisIntegerWidgetParam iwparam)",
+        "method:KisMultiIntegerFilterWidget::configuration() const",
+        "method:KisMultiIntegerFilterWidget::setConfiguration(const KisPropertiesConfigurationSP config)",
+        "method:KisMultiIntegerFilterWidget::~KisMultiIntegerFilterWidget()"
       ]
     }
   ]
