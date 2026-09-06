@@ -61,6 +61,18 @@ target_compile_definitions(KisActionEnumContractTest PRIVATE
 )
 
 kis_add_test(
+    KisPreferenceSetRegistryContractTest.cpp
+    TEST_NAME KisPreferenceSetRegistryContractTest
+    LINK_LIBRARIES
+        kritaapplicationpreferencesetregistryobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(KisPreferenceSetRegistryContractTest PRIVATE
+    kritaapplicationui_EXPORTS
+    kritaglobal_EXPORTS
+)
+
+kis_add_test(
     KisApplicationArgumentsSchemaContractTest.cpp
     LINK_LIBRARIES
         Qt${QT_MAJOR_VERSION}::Core
