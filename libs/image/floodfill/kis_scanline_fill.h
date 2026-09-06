@@ -11,10 +11,11 @@
 
 #include <kritaimage_export.h>
 #include <kis_types.h>
-#include <kis_paint_device.h>
 
+class KoColor;
 class KisFillInterval;
 class KisFillIntervalMap;
+class QRect;
 
 class KRITAIMAGE_EXPORT KisScanlineFill
 {
