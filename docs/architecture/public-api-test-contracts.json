@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 6578
+    "expectedMissingApis": 6549
   },
   "contracts": [
     {
@@ -65370,6 +65370,80 @@
         "function:KritaUtils::rasterizePolylineDDA(const QVector<QPoint> & polylinePoints,Visitor visitor)",
         "function:KritaUtils::rasterizeVLine(const QPoint & startPoint,const QPoint & endPoint)",
         "function:KritaUtils::rasterizeVLine(const QPoint & startPoint,const QPoint & endPoint,Visitor visitor)"
+      ]
+    },
+    {
+      "target": "KisProjectionLifecycleSchemaContractTest",
+      "source": "libs/canvas/tests/KisProjectionLifecycleSchemaContractTest.cpp",
+      "test": "KisProjectionLifecycleSchemaContractTest::projectionBackendTypeAndConfigurationSchemaRemainStable",
+      "behavior": "投影backendは抽象型と多相破棄、および画像・寸法・表示色・channel・表示filterを設定する正確な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisProjectionBackend",
+        "method:KisProjectionBackend::setChannelFlags(const QBitArray & channelFlags)",
+        "method:KisProjectionBackend::setDisplayFilter(QSharedPointer<KisProjectionPixelFilter> displayFilter)",
+        "method:KisProjectionBackend::setImage(KisImageWSP image)",
+        "method:KisProjectionBackend::setImageSize(qint32 w,qint32 h)",
+        "method:KisProjectionBackend::setMonitorProfile(const KoColorProfile * monitorProfile,KoColorConversionTransformation::Intent renderingIntent,KoColorConversionTransformation::ConversionFlags conversionFlags)",
+        "method:KisProjectionBackend::~KisProjectionBackend()"
+      ]
+    },
+    {
+      "target": "KisProjectionLifecycleSchemaContractTest",
+      "source": "libs/canvas/tests/KisProjectionLifecycleSchemaContractTest.cpp",
+      "test": "KisProjectionLifecycleSchemaContractTest::projectionBackendCacheAndDrawingSchemaRemainStable",
+      "behavior": "投影backendはcache更新・再計算・領域整列・patch取得・原画像描画を行う正確な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisProjectionBackend::alignSourceRect(QRect & rect,qreal scale)",
+        "method:KisProjectionBackend::drawFromOriginalImage(QPainter & gc,KisProjectionUpdateInfoSP info)",
+        "method:KisProjectionBackend::getNearestPatch(KisProjectionUpdateInfoSP info)",
+        "method:KisProjectionBackend::recalculateCache(KisProjectionUpdateInfoSP info)",
+        "method:KisProjectionBackend::updateCache(const QRect & dirtyImageRect)"
+      ]
+    },
+    {
+      "target": "KisProjectionLifecycleSchemaContractTest",
+      "source": "libs/canvas/tests/KisProjectionLifecycleSchemaContractTest.cpp",
+      "test": "KisProjectionLifecycleSchemaContractTest::prescaledProjectionTypeAndLifetimeSchemaRemainStable",
+      "behavior": "事前拡縮投影は専用型・共有pointer別名・backend所有権を受け取る構築・多相破棄の公開寿命を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisPrescaledProjectionSP",
+        "class:KisPrescaledProjection",
+        "method:KisPrescaledProjection::KisPrescaledProjection(std::unique_ptr<KisProjectionBackend> projectionBackend,const QSize & updatePatchSize)",
+        "method:KisPrescaledProjection::~KisPrescaledProjection()"
+      ]
+    },
+    {
+      "target": "KisProjectionLifecycleSchemaContractTest",
+      "source": "libs/canvas/tests/KisProjectionLifecycleSchemaContractTest.cpp",
+      "test": "KisProjectionLifecycleSchemaContractTest::prescaledProjectionImageAndDisplayStateSchemaRemainStable",
+      "behavior": "事前拡縮投影は画像・座標変換器・canvas状態・表示色・channel・表示filterを受け取る正確な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPrescaledProjection::notifyCanvasStateChanged(const KisCanvasState & state)",
+        "method:KisPrescaledProjection::setChannelFlags(const QBitArray & channelFlags)",
+        "method:KisPrescaledProjection::setCoordinatesConverter(KisCoordinatesConverter * coordinatesConverter)",
+        "method:KisPrescaledProjection::setDisplayFilter(QSharedPointer<KisProjectionPixelFilter> displayFilter)",
+        "method:KisPrescaledProjection::setImage(KisImageWSP image)",
+        "method:KisPrescaledProjection::setMonitorProfile(const KoColorProfile * monitorProfile,KoColorConversionTransformation::Intent renderingIntent,KoColorConversionTransformation::ConversionFlags conversionFlags)"
+      ]
+    },
+    {
+      "target": "KisProjectionLifecycleSchemaContractTest",
+      "source": "libs/canvas/tests/KisProjectionLifecycleSchemaContractTest.cpp",
+      "test": "KisProjectionLifecycleSchemaContractTest::prescaledProjectionCacheAndScalingSchemaRemainStable",
+      "behavior": "事前拡縮投影はcanvas・画像寸法、更新patch、cache更新・再計算・拡縮、および表示画像取得の正確な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPrescaledProjection::notifyCanvasSizeChanged(const QSize & widgetSize)",
+        "method:KisPrescaledProjection::preScale()",
+        "method:KisPrescaledProjection::prescaledQImage() const",
+        "method:KisPrescaledProjection::recalculateCache(KisUpdateInfoSP info)",
+        "method:KisPrescaledProjection::setUpdatePatchSize(const QSize & updatePatchSize)",
+        "method:KisPrescaledProjection::slotImageSizeChanged(qint32 w,qint32 h)",
+        "method:KisPrescaledProjection::updateCache(const QRect & dirtyImageRect)"
       ]
     }
   ]
