@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-07 04:09 JST
+- 更新日時: 2026-09-07 04:18 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -2397,7 +2397,15 @@
 - 開始headerの`nodes/kis_node_model.h`は公開宣言とinline本文で使われず、開始実装`plugins/dockers/animation/KisAnimTimelineFramesModel.cpp`の孤立group照会だけが完全型を必要とする。開始headerから同includeを開始実装へ移し、他5直接利用元からnode modelのUI解析閉包を除く。開始実装の変更前厳格`clang-check`は成功しており、公開API指紋を維持したまま依存だけを縮小する。
 - 既存動的`timeline_model_test`はanimation docker製品群へ接続する2,011工程・4,020入力で反復対象にしない。軽量近傍`KisAnimUtilsSchemaContractTest`は4工程・8入力、command SHA-256 `c80543394dae85bb0e2ce88f2d9024f9ff9b5428c93030be8900744c7a0ad581`、input SHA-256 `a1c9cebe30044a986ed75cb4ac28108e7cdf944ae58e78810ab6731eb156fbb4`である。
 - 依存整理後に新規`plugins/dockers/animation/tests/KisAnimTimelineFramesModelSchemaContractTest.cpp`を作り、animation docker・UI・image・global・flake・pigment・painting/undoのsource/generated探索路、Qt Core・Test、Qt Gui・Eigen・KF I18n・Imathのinterface探索路、header-only Boost、関係export定義だけへ接続する。timeline選択値はnull共有pointerだけで観測し、模型、実node、image、mime、操作interfaceを実体化せず残る列挙値・別名・全公開関数型を固定する。新targetは4工程・8入力を予測し、停止線を5工程・11入力とする。
-- `g335-animation-timeline-frames-model-schema`の状態は`planned`、実装基点は`db7b00cafa`である。構造整理は開始headerと開始実装、契約は新規試験sourceと同target固有CMake節だけに限定する。macOSの対象、近傍、追加5枠の20回反復、開始実装と試験sourceの厳格`clang-check`、書式、二回の無作業再構築、公開API指紋不変、公開API検査、`verify-quick`だけを実行する。製品static・MODULE・OBJECT・shared target、全体build・`verify`、Linux、Nix再評価は実行しない。
+- `g335-animation-timeline-frames-model-schema`の状態は`integrated`、実装基点は`f732b5bbde`、依存整理commitは`2f205d2dc9`、契約実装commitは`feb8502516`である。構造整理は開始headerと開始実装、契約は新規試験sourceと同target固有CMake節だけに限定した。macOSの対象、近傍、追加5枠の20回反復、開始実装と試験sourceの厳格`clang-check`、書式、二回の無作業再構築、公開API指紋不変、公開API検査に成功した。製品static・MODULE・OBJECT・shared target、全体build・`verify`、Linux、Nix再評価は実行していない。
+
+### 第335便の契約統合結果
+
+- Timeline frame模型の利用元へnode modelのUI解析が波及する問題を解消した。開始`plugins/dockers/animation/KisAnimTimelineFramesModel.h`の`nodes/kis_node_model.h`直接includeを、孤立group照会で完全型を使う開始`plugins/dockers/animation/KisAnimTimelineFramesModel.cpp`へ移した。他5直接利用元の閉包を狭め、公開API 29,804件と対象73識別子は不変である。
+- 同開始headerの残存全73 APIから新規`plugins/dockers/animation/tests/KisAnimTimelineFramesModelSchemaContractTest.cpp`へ、timeline選択値・模型役割・別名22、模型・canvas・node操作interface 14、frame・音声・clip・cache状態16、表・mime・行操作15、公開slot・通知6を193行・5枠で対応付けた。null keyframeの選択値比較・hashだけを実行し、模型、実node、image、mime、操作interfaceを実体化せず残る型、列挙値、別名、全公開関数型を固定した。
+- 対象登録後の追加5枠は期待どおり5件失敗し、契約実装後に成功した。新targetは4工程・8入力で停止線以内に収まり、command SHA-256は`8eee745639b37544a3276e058a3bce7dffadfdd046b99eca43ef4efa9050831b`、input SHA-256は`c050a60c75cc608fa21219132a37aef71247a46976a86ee0621c756a10293b2e`である。AUTOMOC header入力は空、Qt Test・Core、gettext、OS frameworkだけへ動的接続し、製品未解決記号は0である。
+- macOSで対象と軽量近傍`plugins-dockers-animation-KisAnimUtilsSchemaContractTest`のCTest 2/2、対象の20回反復、開始実装と試験sourceの厳格`clang-check`、書式、二回の無作業再構築、公開API検査に成功した。2,011工程・4,020入力の既存動的timeline模型試験、製品static・MODULE・OBJECT・shared target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 台帳へ73 APIを追加して23,525件対応、6,279件未対応となった。旧`public-api-missing-g335.json`は最新報告の検証後に削除し、追加作業tree・構築木は作成していない。主Ninja木5,906,244 KiB、共有compiler cache 981,528 KiB、最新`build/tdd-macos/public-api-missing-g336.json` 1,663,216 bytes、SHA-256 `12a527b33054d2d9bbbf594091c4329e5a22257fbb51c32cd7521d83ad16b6d4`だけを再利用対象として保持する。compiler cacheは144,097件中120,470件、83.60%がhitしている。次の永続作業は第336便で次の高密度なmacOS対象と最小構築面を選定することである。
 
 ### 第239便の先行監査担当票
 

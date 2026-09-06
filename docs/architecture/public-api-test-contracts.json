@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 6352
+    "expectedMissingApis": 6279
   },
   "contracts": [
     {
@@ -65857,6 +65857,124 @@
         "method:KisTimeBasedItemModel::isPlaybackPaused() const",
         "method:KisTimeBasedItemModel::setPlaybackRange(const KisTimeSpan & range)",
         "method:KisTimeBasedItemModel::stopPlayback() const"
+      ]
+    },
+    {
+      "target": "KisAnimTimelineFramesModelSchemaContractTest",
+      "source": "plugins/dockers/animation/tests/KisAnimTimelineFramesModelSchemaContractTest.cpp",
+      "test": "KisAnimTimelineFramesModelSchemaContractTest::timelineSelectionAndModelRoleSchemaRemainStable",
+      "behavior": "timeline選択値はchannel・時刻・keyframeによる等値比較とhashを維持し、frame模型はcopy方針・表示役割と基底property・他layer別名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisAnimTimelineFramesModel::OtherLayer",
+        "alias:KisAnimTimelineFramesModel::OtherLayersList",
+        "alias:KisAnimTimelineFramesModel::Property",
+        "alias:KisAnimTimelineFramesModel::PropertyList",
+        "class:KisAnimTimelineFramesModel",
+        "enum:KisAnimTimelineFramesModel::ItemDataRole",
+        "enum:KisAnimTimelineFramesModel::MimeCopyPolicy",
+        "enumerator:KisAnimTimelineFramesModel::ItemDataRole::ActiveLayerRole",
+        "enumerator:KisAnimTimelineFramesModel::ItemDataRole::FrameColorLabelIndexRole",
+        "enumerator:KisAnimTimelineFramesModel::ItemDataRole::OtherLayersRole",
+        "enumerator:KisAnimTimelineFramesModel::ItemDataRole::PinnedToTimelineRole",
+        "enumerator:KisAnimTimelineFramesModel::ItemDataRole::TimelinePropertiesRole",
+        "enumerator:KisAnimTimelineFramesModel::MimeCopyPolicy::CloneFramesPolicy",
+        "enumerator:KisAnimTimelineFramesModel::MimeCopyPolicy::CopyFramesPolicy",
+        "enumerator:KisAnimTimelineFramesModel::MimeCopyPolicy::MoveFramesPolicy",
+        "enumerator:KisAnimTimelineFramesModel::MimeCopyPolicy::UndefinedPolicy",
+        "function:operator ==(const TimelineSelectionEntry & lhs,const TimelineSelectionEntry & rhs)",
+        "function:qHash(const TimelineSelectionEntry & key)",
+        "member:TimelineSelectionEntry::channel",
+        "member:TimelineSelectionEntry::keyframe",
+        "member:TimelineSelectionEntry::time",
+        "struct:TimelineSelectionEntry"
+      ]
+    },
+    {
+      "target": "KisAnimTimelineFramesModelSchemaContractTest",
+      "source": "plugins/dockers/animation/tests/KisAnimTimelineFramesModelSchemaContractTest.cpp",
+      "test": "KisAnimTimelineFramesModelSchemaContractTest::modelCanvasAndNodeManipulationSchemaRemainStable",
+      "behavior": "timeline frame模型は親所有・多相寿命、canvas接続、dummy・image・表示mode接続、drop判定・他layer挿入・能動行照会と、所有するnode操作interfaceを維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAnimTimelineFramesModel::KisAnimTimelineFramesModel(QObject * parent)",
+        "method:KisAnimTimelineFramesModel::NodeManipulationInterface::addPaintLayer() const",
+        "method:KisAnimTimelineFramesModel::NodeManipulationInterface::removeNode(KisNodeSP node) const",
+        "method:KisAnimTimelineFramesModel::NodeManipulationInterface::setNodeProperties(KisNodeSP node,KisImageSP image,KisBaseNode::PropertyList properties) const",
+        "method:KisAnimTimelineFramesModel::NodeManipulationInterface::~NodeManipulationInterface()",
+        "method:KisAnimTimelineFramesModel::activeLayerRow() const",
+        "method:KisAnimTimelineFramesModel::canDropFrameData(const QMimeData * data,const QModelIndex & index)",
+        "method:KisAnimTimelineFramesModel::hasConnectionToCanvas() const",
+        "method:KisAnimTimelineFramesModel::insertOtherLayer(int index,int dstRow)",
+        "method:KisAnimTimelineFramesModel::nodeAt(QModelIndex index) const",
+        "method:KisAnimTimelineFramesModel::setDummiesFacade(KisDummiesFacadeBase * dummiesFacade,KisImageSP image,KisNodeDisplayModeAdapter * displayModeAdapter)",
+        "method:KisAnimTimelineFramesModel::setNodeManipulationInterface(NodeManipulationInterface * iface)",
+        "method:KisAnimTimelineFramesModel::~KisAnimTimelineFramesModel()",
+        "struct:KisAnimTimelineFramesModel::NodeManipulationInterface"
+      ]
+    },
+    {
+      "target": "KisAnimTimelineFramesModelSchemaContractTest",
+      "source": "plugins/dockers/animation/tests/KisAnimTimelineFramesModelSchemaContractTest.cpp",
+      "test": "KisAnimTimelineFramesModelSchemaContractTest::frameAudioClipAndCacheSignaturesRemainStable",
+      "behavior": "timeline frame模型はframe生成・copy・clone一意化・挿入、音声file・mute・volume、文書clip端、cache消去、選択時刻と最終indexの正確な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAnimTimelineFramesModel::audioChannelFileName() const",
+        "method:KisAnimTimelineFramesModel::audioVolume() const",
+        "method:KisAnimTimelineFramesModel::clearEntireCache()",
+        "method:KisAnimTimelineFramesModel::copyFrame(const QModelIndex & dstIndex)",
+        "method:KisAnimTimelineFramesModel::createFrame(const QModelIndexList & dstIndex)",
+        "method:KisAnimTimelineFramesModel::insertFrames(int dstColumn,const QList<int> & dstRows,int count,int timing=1)",
+        "method:KisAnimTimelineFramesModel::insertHoldFrames(const QModelIndexList & selectedIndexes,int insertCount)",
+        "method:KisAnimTimelineFramesModel::isAudioMuted() const",
+        "method:KisAnimTimelineFramesModel::makeClonesUnique(const QModelIndexList & indices)",
+        "method:KisAnimTimelineFramesModel::setActiveLayerSelectedTimes(const QSet<int> & times)",
+        "method:KisAnimTimelineFramesModel::setAudioChannelFileName(const QFileInfo & fileName)",
+        "method:KisAnimTimelineFramesModel::setAudioMuted(bool value)",
+        "method:KisAnimTimelineFramesModel::setAudioVolume(qreal value)",
+        "method:KisAnimTimelineFramesModel::setDocumentClipRangeEnd(int column)",
+        "method:KisAnimTimelineFramesModel::setDocumentClipRangeStart(int column)",
+        "method:KisAnimTimelineFramesModel::setLastClickedIndex(const QModelIndex & index)"
+      ]
+    },
+    {
+      "target": "KisAnimTimelineFramesModelSchemaContractTest",
+      "source": "plugins/dockers/animation/tests/KisAnimTimelineFramesModelSchemaContractTest.cpp",
+      "test": "KisAnimTimelineFramesModelSchemaContractTest::tableMimeAndRowOperationSignaturesRemainStable",
+      "behavior": "timeline frame模型は表data・header、drag/drop方針、MIME直列化・drop、項目flag、行挿入・除去の正確な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAnimTimelineFramesModel::data(const QModelIndex & index,int role) const",
+        "method:KisAnimTimelineFramesModel::dropMimeData(const QMimeData * data,Qt::DropAction action,int row,int column,const QModelIndex & parent)",
+        "method:KisAnimTimelineFramesModel::dropMimeDataExtended(const QMimeData * data,Qt::DropAction action,const QModelIndex & parent,bool * dataMoved=0)",
+        "method:KisAnimTimelineFramesModel::flags(const QModelIndex & index) const",
+        "method:KisAnimTimelineFramesModel::headerData(int section,Qt::Orientation orientation,int role) const",
+        "method:KisAnimTimelineFramesModel::insertRows(int row,int count,const QModelIndex & parent)",
+        "method:KisAnimTimelineFramesModel::mimeData(const QModelIndexList & indexes) const",
+        "method:KisAnimTimelineFramesModel::mimeDataExtended(const QModelIndexList & indexes,const QModelIndex & baseIndex,MimeCopyPolicy copyPolicy) const",
+        "method:KisAnimTimelineFramesModel::mimeTypes() const",
+        "method:KisAnimTimelineFramesModel::removeRows(int row,int count,const QModelIndex & parent)",
+        "method:KisAnimTimelineFramesModel::rowCount(const QModelIndex & parent=QModelIndex ()) const",
+        "method:KisAnimTimelineFramesModel::setData(const QModelIndex & index,const QVariant & value,int role)",
+        "method:KisAnimTimelineFramesModel::setHeaderData(int section,Qt::Orientation orientation,const QVariant & value,int role)",
+        "method:KisAnimTimelineFramesModel::supportedDragActions() const",
+        "method:KisAnimTimelineFramesModel::supportedDropActions() const"
+      ]
+    },
+    {
+      "target": "KisAnimTimelineFramesModelSchemaContractTest",
+      "source": "plugins/dockers/animation/tests/KisAnimTimelineFramesModelSchemaContractTest.cpp",
+      "test": "KisAnimTimelineFramesModelSchemaContractTest::publicSlotAndNotificationSignaturesRemainStable",
+      "behavior": "timeline frame模型は現在node変更slotと、node変更・無限timeline更新・行表示・行間選択転送・全clip範囲変更の通知関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAnimTimelineFramesModel::requestCurrentNodeChanged(KisNodeSP node)",
+        "method:KisAnimTimelineFramesModel::requestTransferSelectionBetweenRows(int rowFrom,int rowTo)",
+        "method:KisAnimTimelineFramesModel::sigEnsureRowVisible(int row)",
+        "method:KisAnimTimelineFramesModel::sigFullClipRangeChanged()",
+        "method:KisAnimTimelineFramesModel::sigInfiniteTimelineUpdateNeeded()",
+        "method:KisAnimTimelineFramesModel::slotCurrentNodeChanged(KisNodeSP node)"
       ]
     }
   ]
