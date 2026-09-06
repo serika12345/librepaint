@@ -9,13 +9,13 @@
 #define __KIS_MERGE_LABELED_LAYERS_H
 
 #include <QList>
-#include <QString>
 #include <QSharedPointer>
+#include <QString>
+#include <QUuid>
 
-#include "kundo2command.h"
-#include "kritaimage_export.h"
 #include "kis_types.h"
-#include "kis_image.h"
+#include "kritaimage_export.h"
+#include "kundo2command.h"
 
 class KisUpdatesFacade;
 
