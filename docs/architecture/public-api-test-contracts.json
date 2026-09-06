@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 7241
+    "expectedMissingApis": 7227
   },
   "contracts": [
     {
@@ -63294,6 +63294,47 @@
         "method:KisReselectActiveSelectionCommand::KisReselectActiveSelectionCommand(KisNodeSP activeNode,KisImageWSP image,KUndo2Command * parent=0)",
         "method:KisReselectActiveSelectionCommand::redo()",
         "method:KisReselectActiveSelectionCommand::undo()"
+      ]
+    },
+    {
+      "target": "KisAnimationTimeCommandsSchemaContractTest",
+      "source": "libs/image/tests/KisAnimationTimeCommandsSchemaContractTest.cpp",
+      "test": "KisAnimationTimeCommandsSchemaContractTest::currentTimeCommandTypeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "animation時刻切替commandはundo commandを基底とし、画像animation接続、旧時刻、新時刻、任意の親commandから構築・破棄できる。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisSwitchCurrentTimeCommand",
+        "method:KisSwitchCurrentTimeCommand::KisSwitchCurrentTimeCommand(KisImageAnimationInterface * animation,int oldTime,int newTime,KUndo2Command * parent=0)",
+        "method:KisSwitchCurrentTimeCommand::~KisSwitchCurrentTimeCommand()"
+      ]
+    },
+    {
+      "target": "KisAnimationTimeCommandsSchemaContractTest",
+      "source": "libs/image/tests/KisAnimationTimeCommandsSchemaContractTest.cpp",
+      "test": "KisAnimationTimeCommandsSchemaContractTest::currentTimeCommandHistoryAndExecutionSchemaRemainStable",
+      "behavior": "animation時刻切替commandはundo履歴の識別と結合、新時刻の適用、旧時刻への取消し操作を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSwitchCurrentTimeCommand::id() const",
+        "method:KisSwitchCurrentTimeCommand::mergeWith(const KUndo2Command * command)",
+        "method:KisSwitchCurrentTimeCommand::redo()",
+        "method:KisSwitchCurrentTimeCommand::undo()"
+      ]
+    },
+    {
+      "target": "KisAnimationTimeCommandsSchemaContractTest",
+      "source": "libs/image/tests/KisAnimationTimeCommandsSchemaContractTest.cpp",
+      "test": "KisAnimationTimeCommandsSchemaContractTest::keyframeTimeCommandSchemaRemainStable",
+      "behavior": "キーフレーム時刻切替commandはundo commandを基底とし、animation接続、旧時刻、node、channel、対象keyframe、任意の親commandから構築でき、履歴と適用・取消し操作を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisSwitchCurrentTimeToKeyframeCommand",
+        "method:KisSwitchCurrentTimeToKeyframeCommand::KisSwitchCurrentTimeToKeyframeCommand(KisImageAnimationInterface * animation,int oldTime,KisNodeSP node,KoID channelId,KisKeyframeSP targetKeyframe,KUndo2Command * parent=0)",
+        "method:KisSwitchCurrentTimeToKeyframeCommand::id() const",
+        "method:KisSwitchCurrentTimeToKeyframeCommand::mergeWith(const KUndo2Command * command)",
+        "method:KisSwitchCurrentTimeToKeyframeCommand::redo()",
+        "method:KisSwitchCurrentTimeToKeyframeCommand::undo()",
+        "method:KisSwitchCurrentTimeToKeyframeCommand::~KisSwitchCurrentTimeToKeyframeCommand()"
       ]
     }
   ]

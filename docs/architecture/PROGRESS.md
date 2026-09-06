@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-06 18:52 JST
+- 更新日時: 2026-09-06 19:06 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1765,7 +1765,14 @@
 
 - 正式入力`build/tdd-macos/public-api-missing-g288.json`は公開header 1,548、公開API 29,804、対応済み22,563、未対応7,241、1,923,948 bytes、SHA-256 `a4f2907b6be8cac2dfea32aef6cde07427c38e9c6af260486b5bdd55a64599f7`を記録する。`libs/image/commands_new/kis_switch_current_time_command.h`の残存全14 APIは重複なく、識別子整列集合SHA-256は`726e49ef04ac4871cdef32488e0732e89e937d476cd7cbbaef7ad071c150bacf`である。通常時刻切替の型・構築・寿命3、履歴識別・結合・適用・取消し4、キーフレーム時刻切替7の3枠へ完全に割り当てる。両構築APIは完全な引数型と親command省略時の構築可能性を併せて固定する。
 - 新規`KisAnimationTimeCommandsSchemaContractTest`を、最寄りの`KisSelectionStateCommandsSchemaContractTest`と同じimage・global・pigment・painting/undo探索路、KF I18n interface、Qt Core・Test、header-only Boost、既存export定義だけへ接続する。最寄りは4工程・8入力、command SHA-256 `7b0fac3b8e0e6393af09a2f62d7be180e35ab217cf0387aff648298b8cef501c`、input SHA-256 `b2d87b82d92808dd329539381a5f12323be5117e708a4bdf9ac9715faee069f1`である。時刻切替責務を選択状態command試験へ混在させず、新規targetも4工程・8入力を予測して停止線を5工程・11入力とする。製品`kritaimage`の1,197工程・2,418入力を避け、animation interface、node、keyframe、commandを実体化せず、候補headerをAUTOMOC入力にしない。
-- `g288-animation-time-commands-schema`の状態は`planned`、実装基点は`72ae690a20`である。許可pathを新規`libs/image/tests/KisAnimationTimeCommandsSchemaContractTest.cpp`と`libs/image/tests/CMakeLists.txt`の新target固有節だけに限定する。一つの専用worktree-local `build/tdd-macos`を使い、target不存在と宣言段階の期待失敗、追加3枠の単発と各20回反復、対象と近傍CTest、厳格`clang-check`、書式、AUTOMOC入力、動的接続、製品未解決記号、二回目計画、二回の無作業再構築、公開API検査、`verify-quick`をmacOSで確認する。許可pathだけの受渡しcommitを認め、公開header、製品source、製品target、全体build・`verify`、Linux、Nix再評価、追加委任は対象外とする。
+- `g288-animation-time-commands-schema`の状態は`integrated`、実装基点は`72ae690a20`である。許可pathを新規`libs/image/tests/KisAnimationTimeCommandsSchemaContractTest.cpp`と`libs/image/tests/CMakeLists.txt`の新target固有節だけに限定した。受渡しcommit `d767152e7f`をpatch-id `9c4e29a2eddb17754c5888ce8b5b0eedefc7f4bf`で照合し、統合commit `2df24043bf`として取り込んだ。公開headerと製品sourceは変更していない。
+
+### 第288便の契約統合結果
+
+- 開始`libs/image/commands_new/kis_switch_current_time_command.h`から新規`libs/image/tests/KisAnimationTimeCommandsSchemaContractTest.cpp`へ残存全14 APIを対応付けた。通常時刻切替の型・構築・寿命3、履歴識別・結合・適用・取消し4、キーフレーム時刻切替7の3枠で、両commandのundo基底、親command省略可能な構築、仮想寿命、履歴と実行の正確な署名を固定した。
+- target不存在と、宣言だけの追加3枠が未定義symbolとなる期待失敗を順に記録した。対象は担当側・中央とも計画どおり4工程・8入力である。担当側command SHA-256は`2e43f094c2bcdb804b2bad38415b28b51f357982f2e9425fd0201d7789e6beeb`、input SHA-256は`73877876d770e0a43471100ba799657a4f3e561df20d868678d8a8e395f5c944`、中央command SHA-256は`6aeab532f45bc71d80542cb2d3705ac589b698f567c094a00d439169618b562c`、input SHA-256は`f978f51f4e306330beae70bb5c3785d23e4e0c52f78961ba8dd351c80a449128`である。候補headerはAUTOMOC入力外で、Qt Test・Core、gettext、OS frameworkだけへ動的接続し、製品未解決記号は0である。
+- 担当側と中央のmacOSで追加3枠を各20回、対象CTest `libs-image-KisAnimationTimeCommandsSchemaContractTest`、近傍`libs-image-KisSelectionStateCommandsSchemaContractTest`、厳格`clang-check`、書式、二回目計画と二回の無作業再構築に成功した。担当側の`verify-quick`と中央の公開API検査にも成功し、台帳へ14 APIを追加して22,577件対応、7,227件未対応、対象headerの残存0件となった。
+- cleanな専用作業tree、305,012 KiBの構築木、branchを統合直後に削除し、作業tree全体896,308 KiBを回収した。旧`public-api-missing-g288.json` 1,923,948 bytesを削除し、主Ninja木5,853,752 KiB、共有compiler cache 982,632 KiB、最新`build/tdd-macos/public-api-missing-g289.json` 1,919,796 bytes、SHA-256 `e69c195b6aad988aaff0fdcd909cbc9d14e1c531bb5b49a3637a7a71cd050c14`だけを再利用対象として保持する。compiler cacheは143,865件中120,421件、83.70%がhitしている。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第289便の正式不足報告から、全APIを最小閉包で固定できる責務を再選定することである。
 
 ### 第239便の先行監査担当票
 
