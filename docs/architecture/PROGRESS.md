@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-07 01:50 JST
+- 更新日時: 2026-09-07 01:54 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -2191,6 +2191,12 @@
 - 追加5枠は期待どおり5件失敗し、型特性と正確な関数pointer検査を有効化して成功した。CMake変更なしで4工程・8入力、command SHA-256 `b578e6ee679d2f232899fc0b33f827c534860d8138d9f4812d540f893cef3cfe`、input SHA-256 `3797ba0b78631e157a2983b93433d8d7fedf41024e55327da464b57eb129c395`を維持した。AUTOMOC header入力は空、Qt Test・Core、gettext、OS frameworkだけへ動的接続し、製品未解決記号は0である。
 - macOSで対象CTest、対象の20回反復、厳格`clang-check`、書式、二回の無作業再構築、公開API検査に成功した。製品`kritamacosutils`、Objective-C++実装、Foundation・Security操作、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 台帳へ19 APIを追加して23,111件対応、6,693件未対応、`libs/macosutils`対象headerの残存0件となった。旧`public-api-missing-g320.json`を削除し、追加作業tree・構築木は作成していない。主Ninja木5,884,200 KiB、共有compiler cache 982,536 KiB、最新`build/tdd-macos/public-api-missing-g321.json` 1,779,363 bytes、SHA-256 `031bf381d02c48f279995bf25393deda27aa8c4bc2cdda7ca6c32e8873c060ef`だけを再利用対象として保持する。compiler cacheは144,046件中120,468件、83.63%がhitしている。次の永続作業は第321便の正式不足報告から、全APIを最小閉包で固定できる責務を再選定することである。
+
+### 第321便の監査結果と実装計画
+
+- 正式入力`build/tdd-macos/public-api-missing-g321.json`は公開header 1,548、公開API 29,804、対応済み23,111、未対応6,693、1,779,363 bytes、SHA-256 `031bf381d02c48f279995bf25393deda27aa8c4bc2cdda7ca6c32e8873c060ef`を記録する。`libs/widgetutils/KisActionsSnapshot.h`の残存5 API、`katecommandbar.h`の残存4 API、`config/khelpclient.h`の残存1 API、`xmlgui/kundoactions.h`の残存2 APIは重複せず、合計12識別子の整列集合SHA-256は`eba07041cd6991460237e74e100f2ccef686b7450374f994ebde8d7672e5f9f0`である。操作snapshot、command bar、help、undo・redo action生成の型・寿命・公開関数型を5枠へ完全に割り当てる。
+- 既存`KisActionsSnapshotTest`は製品`kritawidgetutils`・`kritaimage`・`kritatestsdk`へ接続する1,201工程・2,425入力であり、宣言面だけの追加対象として広すぎる。新規`libs/widgetutils/tests/KisActionUtilitySchemaContractTest.cpp`を作り、widgetutils source・generated探索路、Qt Core・Gui・Widgets・Test、widgetutils export定義だけへ接続する。同じ操作領域の軽量近傍`KisActionRegistrySchemaContractTest`は4工程・8入力、command SHA-256 `b921d92b24fe832318b90afef3361016b466cc9539d241fbbf6946e5404ac041`、input SHA-256 `5f0fce5a7e1735c6d328e1e7f1b27b3a3eef054113244325f658dad7e5e12557`である。新targetも4工程・8入力を予測し、停止線を5工程・11入力とする。
+- `g321-action-utility-schema`の状態は`planned`、実装基点は`b5f0493a29`である。許可pathを新規試験sourceと`libs/widgetutils/tests/CMakeLists.txt`の新target固有節だけに限定し、公開headerと製品sourceを変更しない。snapshot、menu、action、undo stackを実体化せず、helpを起動しない。macOSの対象、近傍、追加5枠の20回反復、厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
 
 ### 第239便の先行監査担当票
 
