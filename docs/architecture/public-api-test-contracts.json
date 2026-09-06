@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 7107
+    "expectedMissingApis": 7090
   },
   "contracts": [
     {
@@ -63743,6 +63743,59 @@
         "method:KisUniqueColorSet::sigColorRemoved(int position)",
         "method:KisUniqueColorSet::sigReset()",
         "method:KisUniqueColorSet::size() const"
+      ]
+    },
+    {
+      "target": "KoColorValueSchemaContractTest",
+      "source": "libs/pigment/tests/KoColorValueSchemaContractTest.cpp",
+      "test": "KoColorValueSchemaContractTest::colorSpaceConversionSignaturesRemainStable",
+      "behavior": "色値は既定の変換方針または明示した描画意図・変換flagにより、自己を更新する変換と変換済み複製の生成を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoColor::convertTo(const KoColorSpace * cs)",
+        "method:KoColor::convertTo(const KoColorSpace * cs,KoColorConversionTransformation::Intent renderingIntent,KoColorConversionTransformation::ConversionFlags conversionFlags)",
+        "method:KoColor::convertedTo(const KoColorSpace * cs) const",
+        "method:KoColor::convertedTo(const KoColorSpace * cs,KoColorConversionTransformation::Intent renderingIntent,KoColorConversionTransformation::ConversionFlags conversionFlags) const"
+      ]
+    },
+    {
+      "target": "KoColorValueSchemaContractTest",
+      "source": "libs/pigment/tests/KoColorValueSchemaContractTest.cpp",
+      "test": "KoColorValueSchemaContractTest::colorSerializationSignaturesRemainStable",
+      "behavior": "色値はXML要素・XML文字列・SVG 1.1表現との相互変換を公開し、SVG復元では現在色を省略できる。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoColor::fromSVG11(const QString value,QHash<QString,const KoColorProfile * > profileList,KoColor current=KoColor ())",
+        "method:KoColor::fromXML(const QDomElement & elt,const QString & channelDepthId)",
+        "method:KoColor::fromXML(const QDomElement & elt,const QString & channelDepthId,bool * ok)",
+        "method:KoColor::fromXML(const QString & xml)",
+        "method:KoColor::toSVG11(QHash<QString,const KoColorProfile * > * profileList) const",
+        "method:KoColor::toXML() const",
+        "method:KoColor::toXML(QDomDocument & doc,QDomElement & colorElt) const"
+      ]
+    },
+    {
+      "target": "KoColorValueSchemaContractTest",
+      "source": "libs/pigment/tests/KoColorValueSchemaContractTest.cpp",
+      "test": "KoColorValueSchemaContractTest::colorMetadataSignaturesRemainStable",
+      "behavior": "色値は名前付きmetadataの追加、一覧照会、全消去を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoColor::addMetadata(QString key,QVariant value)",
+        "method:KoColor::clearMetadata()",
+        "method:KoColor::metadata() const"
+      ]
+    },
+    {
+      "target": "KoColorValueSchemaContractTest",
+      "source": "libs/pigment/tests/KoColorValueSchemaContractTest.cpp",
+      "test": "KoColorValueSchemaContractTest::colorFormattingAndDiagnosticSignaturesRemainStable",
+      "behavior": "色値は利用者向け文字列化、debug出力演算子、内部状態の診断出力を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "function:operator <<(QDebug dbg,const KoColor & color)",
+        "method:KoColor::dump() const",
+        "method:KoColor::toQString(const KoColor & color)"
       ]
     }
   ]

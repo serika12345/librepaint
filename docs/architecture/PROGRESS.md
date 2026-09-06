@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-06 21:21 JST
+- 更新日時: 2026-09-06 21:29 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1893,9 +1893,16 @@
 
 ### 第298便の監査結果と実装計画
 
-- 正式入力`build/tdd-macos/public-api-missing-g298.json`は公開header 1,548、公開API 29,804、対応済み22,697、未対応7,107、1,888,681 bytes、SHA-256 `dbccc688ed77ff04f474848b22982599b7eb4d2362f03eb13abcd830e36e3acf`を記録する。`libs/pigment/KoColor.h`の残存全17 APIは重複なく、識別子整列集合SHA-256は`127374e6669df7ba6096b35844a49eb6524e3be73454bf7483a7a674d1625daa`である。色空間変換4、XML・SVG直列化7、metadata 3、文字列・診断3の4枠へ完全に割り当て、変換、SVG復元、XML復元の既定引数を省略する呼出しも固定する。
+- 正式入力`build/tdd-macos/public-api-missing-g298.json`は公開header 1,548、公開API 29,804、対応済み22,697、未対応7,107、1,888,681 bytes、SHA-256 `dbccc688ed77ff04f474848b22982599b7eb4d2362f03eb13abcd830e36e3acf`を記録する。`libs/pigment/KoColor.h`の残存全17 APIは重複なく、識別子整列集合SHA-256は`127374e6669df7ba6096b35844a49eb6524e3be73454bf7483a7a674d1625daa`である。色空間変換4、XML・SVG直列化7、metadata 3、文字列・診断3の4枠へ完全に割り当て、色変換とXML復元のoverload、およびSVG復元の現在色を省略する呼出しを固定する。
 - 既存`libs/pigment/tests/KoColorValueSchemaContractTest.cpp`は84行・5枠であり、追記後も180行・10枠未満に収まる。色値の変換・永続化・付帯情報として同targetへ4枠だけを追加し、CMakeを変更しない。変更前閉包は4工程・7入力、command SHA-256 `9e3324f1ce46aeb8008a4d269c2f23325991d2ffda25d621546221effc9720f5`、input SHA-256 `d17596da32aaefe59efb2da21d31345089ed67e4a6cd9907f0fd687b1edb315e`であり、停止線を5工程・11入力とする。製品`kritapigment`の367工程・764入力を避け、色値、色空間、XML値を実体化せず、公開関数本文を実行しない。
-- `g298-color-conversion-serialization-schema`の状態は`planned`、実装基点は`cfd9a0cd14`である。許可pathを既存試験sourceだけに限定する。CMake、公開header、製品source、製品target、全体build・`verify`、Linux、Nix再評価、追加委任を対象外とし、macOSの対象・近傍に限る構築実行を許可する。専用Git作業treeとworktree-local Ninja木を一つだけ作り、宣言だけの期待失敗、対象CTest、追加4枠の各20回反復、近傍、厳格`clang-check`、書式、公開記号、AUTOMOC非入力、製品非接続、二回目計画、二回の無作業再構築、公開API検査、`verify-quick`を確認してから統合する。
+- `g298-color-conversion-serialization-schema`の状態は`integrated`、実装基点は`cfd9a0cd14`である。許可pathを既存試験sourceだけに限定した。受渡しcommit `c4184f66e6`をpatch-id `39816f547577e8ada6bd218de27bdab1379a874c`で照合し、統合commit `39d4702fd9`として取り込んだ。CMake、公開header、製品sourceを変更していない。
+
+### 第298便の契約統合結果
+
+- 開始`libs/pigment/KoColor.h`から既存`libs/pigment/tests/KoColorValueSchemaContractTest.cpp`へ残存全17 APIを対応付けた。色空間変換4、XML・SVG直列化7、metadata 3、文字列・診断3の4枠で、明示・簡易変換overload、XML・SVGの相互変換、SVG現在色の既定値、metadata、文字列化・debug出力の正確な署名を固定した。試験sourceは131行・9枠となった。
+- 宣言だけの追加4枠が未定義symbolとなる期待失敗を記録した。対象は担当側・中央とも4工程・7入力を維持した。担当側command SHA-256は`afd793606dad41bfe2689aadef2a9fb6a80e4f0bb1aab0d96398915be3792825`、input SHA-256は`fee2e78c4177d5097e6e7e355702d922aabea1387be04cfdc1cf2892b9510668`、中央command SHA-256は変更前と同じ`9e3324f1ce46aeb8008a4d269c2f23325991d2ffda25d621546221effc9720f5`、input SHA-256は`d17596da32aaefe59efb2da21d31345089ed67e4a6cd9907f0fd687b1edb315e`である。候補headerのAUTOMOC入力は0で、Qt Gui・Test・Core、gettext、OS frameworkだけへ動的接続し、製品未解決記号は0である。
+- 担当側と中央のmacOSで追加4枠を各20回、対象CTest `libs-pigment-KoColorValueSchemaContractTest`、近傍`libs-pigment-KoColorSpaceSchemaContractTest`、厳格`clang-check`、書式、二回の無作業再構築に成功した。担当側の`verify-quick`と中央の公開API検査にも成功し、台帳へ17 APIを追加して22,714件対応、7,090件未対応、対象headerの残存0件となった。
+- cleanな専用作業treeと構築木899,776 KiB、branchを統合直後に削除した。旧`public-api-missing-g298.json` 1,888,681 bytesを削除し、主Ninja木5,860,684 KiB、共有compiler cache 983,144 KiB、最新`build/tdd-macos/public-api-missing-g299.json` 1,884,211 bytes、SHA-256 `2b916100bc215f58fa00a5677b5071baab56b6994efb1fa0b5a44359aadaba4d`だけを再利用対象として保持する。compiler cacheは143,940件中120,445件、83.68%がhitしている。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第299便の正式不足報告から、全APIを最小閉包で固定できる責務を再選定することである。
 
 ### 第239便の先行監査担当票
 
