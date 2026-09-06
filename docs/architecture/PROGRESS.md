@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-06 21:18 JST
+- 更新日時: 2026-09-06 21:21 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1890,6 +1890,12 @@
 - 宣言だけの追加5枠が未定義symbolとなる期待失敗を記録した。対象は担当側・中央とも4工程・7入力で、近傍と同じ規模に収まった。担当側command SHA-256は`717dd6240dd75fc938ed42c5bd552a55ca7e6da278c41f24a8b710d0022c6037`、input SHA-256は`163791edade9288ea040da1df6e1a49c6fffb3cf4e03cea8ce66dbf69b73d061`、中央command SHA-256は`11a53e8eda4344e6fe7f7e8631d29cef9bf4ace11d2455e2585d025bd38493cc`、input SHA-256は`46465b0468fd7983296b27a85e1b20093ba11ac674ba10ed835952b3337d86ab`である。候補headerのAUTOMOC入力は0で、Qt Gui・Test・Core、gettext、OS frameworkだけへ動的接続し、製品未解決記号は0である。
 - 担当側と中央のmacOSで追加5枠を各20回、対象CTest `libs-pigment-KisPaletteResourcesSchemaContractTest`、近傍`libs-pigment-KoColorSetSchemaContractTest`、厳格`clang-check`、書式、二回の無作業再構築に成功した。担当側の`verify-quick`と中央の公開API検査にも成功し、台帳へ30 APIを追加して22,697件対応、7,107件未対応、対象2 headerの残存0件となった。
 - cleanな専用作業treeと構築木893,168 KiB、branchを統合直後に削除した。旧`public-api-missing-g297.json` 1,895,626 bytesを削除し、主Ninja木5,860,496 KiB、共有compiler cache 983,136 KiB、最新`build/tdd-macos/public-api-missing-g298.json` 1,888,681 bytes、SHA-256 `dbccc688ed77ff04f474848b22982599b7eb4d2362f03eb13abcd830e36e3acf`だけを再利用対象として保持する。compiler cacheは143,934件中120,443件、83.68%がhitしている。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第298便の正式不足報告から、全APIを最小閉包で固定できる責務を再選定することである。
+
+### 第298便の監査結果と実装計画
+
+- 正式入力`build/tdd-macos/public-api-missing-g298.json`は公開header 1,548、公開API 29,804、対応済み22,697、未対応7,107、1,888,681 bytes、SHA-256 `dbccc688ed77ff04f474848b22982599b7eb4d2362f03eb13abcd830e36e3acf`を記録する。`libs/pigment/KoColor.h`の残存全17 APIは重複なく、識別子整列集合SHA-256は`127374e6669df7ba6096b35844a49eb6524e3be73454bf7483a7a674d1625daa`である。色空間変換4、XML・SVG直列化7、metadata 3、文字列・診断3の4枠へ完全に割り当て、変換、SVG復元、XML復元の既定引数を省略する呼出しも固定する。
+- 既存`libs/pigment/tests/KoColorValueSchemaContractTest.cpp`は84行・5枠であり、追記後も180行・10枠未満に収まる。色値の変換・永続化・付帯情報として同targetへ4枠だけを追加し、CMakeを変更しない。変更前閉包は4工程・7入力、command SHA-256 `9e3324f1ce46aeb8008a4d269c2f23325991d2ffda25d621546221effc9720f5`、input SHA-256 `d17596da32aaefe59efb2da21d31345089ed67e4a6cd9907f0fd687b1edb315e`であり、停止線を5工程・11入力とする。製品`kritapigment`の367工程・764入力を避け、色値、色空間、XML値を実体化せず、公開関数本文を実行しない。
+- `g298-color-conversion-serialization-schema`の状態は`planned`、実装基点は`cfd9a0cd14`である。許可pathを既存試験sourceだけに限定する。CMake、公開header、製品source、製品target、全体build・`verify`、Linux、Nix再評価、追加委任を対象外とし、macOSの対象・近傍に限る構築実行を許可する。専用Git作業treeとworktree-local Ninja木を一つだけ作り、宣言だけの期待失敗、対象CTest、追加4枠の各20回反復、近傍、厳格`clang-check`、書式、公開記号、AUTOMOC非入力、製品非接続、二回目計画、二回の無作業再構築、公開API検査、`verify-quick`を確認してから統合する。
 
 ### 第239便の先行監査担当票
 
