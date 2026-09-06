@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 6671
+    "expectedMissingApis": 6662
   },
   "contracts": [
     {
@@ -65079,6 +65079,51 @@
         "method:KoColorTransformationFactoryRegistry::addColorTransformationFactory(KoColorTransformationFactory * factory)",
         "method:KoColorTransformationFactoryRegistry::removeColorTransformationFactory(KoColorTransformationFactory * factory)",
         "method:KoColorTransformationFactoryRegistry::~KoColorTransformationFactoryRegistry()"
+      ]
+    },
+    {
+      "target": "KisCmykDitherAndCompositeSchemaContractTest",
+      "source": "libs/pigment/tests/KisCmykDitherAndCompositeSchemaContractTest.cpp",
+      "test": "KisCmykDitherAndCompositeSchemaContractTest::alphaCompositeTypeAndConstructionSchemaRemainStable",
+      "behavior": "alpha付き複合演算基底は専用template型と色空間・識別子・分類を受け取る公開構築経路を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoCompositeOpAlphaBase",
+        "method:KoCompositeOpAlphaBase::KoCompositeOpAlphaBase(const KoColorSpace * cs,const QString & id,const QString & category)"
+      ]
+    },
+    {
+      "target": "KisCmykDitherAndCompositeSchemaContractTest",
+      "source": "libs/pigment/tests/KisCmykDitherAndCompositeSchemaContractTest.cpp",
+      "test": "KisCmykDitherAndCompositeSchemaContractTest::alphaCompositeDispatchSchemaRemainsStable",
+      "behavior": "alpha付き複合演算基底は画素領域の引数集合を読み取るconst公開配送関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoCompositeOpAlphaBase::composite(const KoCompositeOp::ParameterInfo & params) const"
+      ]
+    },
+    {
+      "target": "KisCmykDitherAndCompositeSchemaContractTest",
+      "source": "libs/pigment/tests/KisCmykDitherAndCompositeSchemaContractTest.cpp",
+      "test": "KisCmykDitherAndCompositeSchemaContractTest::cmykDitherTypeAndConstructionSchemaRemainStable",
+      "behavior": "CMYKディザ実装は専用template型と変換元・変換先識別子を受け取る公開構築経路を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisCmykDitherOpImpl",
+        "method:KisCmykDitherOpImpl::KisCmykDitherOpImpl(const KoID & srcId,const KoID & dstId)"
+      ]
+    },
+    {
+      "target": "KisCmykDitherAndCompositeSchemaContractTest",
+      "source": "libs/pigment/tests/KisCmykDitherAndCompositeSchemaContractTest.cpp",
+      "test": "KisCmykDitherAndCompositeSchemaContractTest::cmykDitherDispatchAndRegistrationSchemaRemainStable",
+      "behavior": "CMYKディザは単画素・矩形領域への配送と色空間への深度別・標準処理登録の正確な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:addCmykDitherOpsByDepth(KoColorSpace * cs,const KoID & dstDepth)",
+        "function:addStandardDitherOps(KoColorSpace * cs)",
+        "method:KisCmykDitherOpImpl::dither(const quint8 * src,quint8 * dst,int x,int y) const",
+        "method:KisCmykDitherOpImpl::dither(const quint8 * srcRowStart,int srcRowStride,quint8 * dstRowStart,int dstRowStride,int x,int y,int columns,int rows) const"
       ]
     }
   ]
