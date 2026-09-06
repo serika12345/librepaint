@@ -1683,6 +1683,53 @@ set_target_properties(kritauiopenglupdateinfoobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritauiabstractframecacheswapperobjects OBJECT
+    animation/cache/KisAbstractFrameCacheSwapper.cpp
+)
+target_compile_definitions(kritauiabstractframecacheswapperobjects PRIVATE
+    kritaapplicationui_EXPORTS
+)
+target_include_directories(kritauiabstractframecacheswapperobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/application>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritauiabstractframecacheswapperobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+)
+set_target_properties(kritauiabstractframecacheswapperobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritauiinmemoryframecacheswapperobjects OBJECT
+    animation/cache/KisInMemoryFrameCacheSwapper.cpp
+)
+target_compile_definitions(kritauiinmemoryframecacheswapperobjects PRIVATE
+    kritaapplicationui_EXPORTS
+    kritacanvas_EXPORTS
+    kritaglobal_EXPORTS
+    kritaimage_EXPORTS
+    kritapigment_EXPORTS
+)
+target_include_directories(kritauiinmemoryframecacheswapperobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritauiinmemoryframecacheswapperobjects
+    PUBLIC
+        kritauiabstractframecacheswapperobjects
+        kritauiopenglupdateinfoobjects
+        Qt${QT_MAJOR_VERSION}::Core
+)
+set_target_properties(kritauiinmemoryframecacheswapperobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritauiopenglupdateinfobuilderstateobjects OBJECT
     opengl/KisOpenGLUpdateInfoBuilderState.cpp
 )
@@ -1745,6 +1792,8 @@ add_subdirectory( tests )
 set(kritaui_LIB_SRCS
     $<TARGET_OBJECTS:kritauiopenglrendererconfigobjects>
     $<TARGET_OBJECTS:kritauiopenglupdateinfoobjects>
+    $<TARGET_OBJECTS:kritauiabstractframecacheswapperobjects>
+    $<TARGET_OBJECTS:kritauiinmemoryframecacheswapperobjects>
     $<TARGET_OBJECTS:kritauiopenglupdateinfobuilderstateobjects>
     $<TARGET_OBJECTS:kritauimodelindexconverterbaseobjects>
     $<TARGET_OBJECTS:kritauispinboxsplineunitconverterobjects>
@@ -2166,8 +2215,6 @@ endif()
         dialogs/KisAsyncAnimationFramesSaveDialog.cpp
         canvas/KisCanvasAnimationState.cpp	
         animation/cache/KisFrameCacheSwapper.cpp
-        animation/cache/KisAbstractFrameCacheSwapper.cpp
-        animation/cache/KisInMemoryFrameCacheSwapper.cpp
 
     )
 
