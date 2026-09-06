@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#include <kis_brush.h>
+#include <KisColorfulBrush.h>
 
 #include <QTest>
 
@@ -14,6 +14,8 @@ namespace
 {
 #define ASSERT_BRUSH_SIGNATURE(method, signature)                                                                      \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisBrush::method)), signature>)
+#define ASSERT_COLORFUL_BRUSH_SIGNATURE(method, signature)                                                             \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KisColorfulBrush::method)), signature>)
 } // namespace
 
 class BrushConstructionProbe final : public KisBrush
@@ -40,6 +42,28 @@ public:
     void setUserEffectiveSize(qreal) override;
 };
 
+class ColorfulBrushConstructionProbe final : public KisColorfulBrush
+{
+public:
+    ColorfulBrushConstructionProbe()
+        : KisColorfulBrush()
+    {
+    }
+
+    explicit ColorfulBrushConstructionProbe(const QString &filename)
+        : KisColorfulBrush(filename)
+    {
+    }
+
+    ColorfulBrushConstructionProbe(const ColorfulBrushConstructionProbe &rhs)
+        : KisColorfulBrush(rhs)
+    {
+    }
+
+    KoResourceSP clone() const override;
+    bool loadFromDevice(QIODevice *, KisResourcesInterfaceSP) override;
+};
+
 class KisBrushSchemaContractTest : public QObject
 {
     Q_OBJECT
@@ -55,6 +79,11 @@ private Q_SLOTS:
     void brushDabAndMaskGenerationSignaturesRemainStable();
     void brushStrokePreparationAndCacheSignaturesRemainStable();
     void brushSerializationAndGradientSignaturesRemainStable();
+    void colorfulBrushTypeAndConstructionSchemaRemainStable();
+    void colorfulBrushMidPointAndAutoAdjustmentSignaturesRemainStable();
+    void colorfulBrushToneAdjustmentSignaturesRemainStable();
+    void colorfulBrushImageAndTransparencySignaturesRemainStable();
+    void colorfulBrushSerializationSignatureRemainsStable();
 };
 
 void KisBrushSchemaContractTest::brushIdentityAndTypeSchemaRemainsStable()
@@ -244,6 +273,47 @@ void KisBrushSchemaContractTest::brushSerializationAndGradientSignaturesRemainSt
                                  FromXmlLoadResultSignature>);
     ASSERT_BRUSH_SIGNATURE(setGradient, void (KisBrush::*)(KoAbstractGradientSP));
     ASSERT_BRUSH_SIGNATURE(toXML, void (KisBrush::*)(QDomDocument &, QDomElement &) const);
+}
+
+void KisBrushSchemaContractTest::colorfulBrushTypeAndConstructionSchemaRemainStable()
+{
+    using Probe = ColorfulBrushConstructionProbe;
+
+    static_assert(std::is_class_v<KisColorfulBrush>);
+    static_assert(std::is_default_constructible_v<Probe>);
+    static_assert(std::is_copy_constructible_v<Probe>);
+    static_assert(std::is_constructible_v<Probe, const QString &>);
+}
+
+void KisBrushSchemaContractTest::colorfulBrushMidPointAndAutoAdjustmentSignaturesRemainStable()
+{
+    ASSERT_COLORFUL_BRUSH_SIGNATURE(setAdjustmentMidPoint, void (KisColorfulBrush::*)(quint8));
+    ASSERT_COLORFUL_BRUSH_SIGNATURE(adjustmentMidPoint, quint8 (KisColorfulBrush::*)() const);
+    ASSERT_COLORFUL_BRUSH_SIGNATURE(estimatedSourceMidPoint, qreal (KisColorfulBrush::*)() const);
+    ASSERT_COLORFUL_BRUSH_SIGNATURE(adjustedMidPoint, qreal (KisColorfulBrush::*)() const);
+    ASSERT_COLORFUL_BRUSH_SIGNATURE(autoAdjustMidPoint, bool (KisColorfulBrush::*)() const);
+    ASSERT_COLORFUL_BRUSH_SIGNATURE(setAutoAdjustMidPoint, void (KisColorfulBrush::*)(bool));
+}
+
+void KisBrushSchemaContractTest::colorfulBrushToneAdjustmentSignaturesRemainStable()
+{
+    ASSERT_COLORFUL_BRUSH_SIGNATURE(setBrightnessAdjustment, void (KisColorfulBrush::*)(qreal));
+    ASSERT_COLORFUL_BRUSH_SIGNATURE(brightnessAdjustment, qreal (KisColorfulBrush::*)() const);
+    ASSERT_COLORFUL_BRUSH_SIGNATURE(setContrastAdjustment, void (KisColorfulBrush::*)(qreal));
+    ASSERT_COLORFUL_BRUSH_SIGNATURE(contrastAdjustment, qreal (KisColorfulBrush::*)() const);
+}
+
+void KisBrushSchemaContractTest::colorfulBrushImageAndTransparencySignaturesRemainStable()
+{
+    ASSERT_COLORFUL_BRUSH_SIGNATURE(brushTipImage, QImage (KisColorfulBrush::*)() const);
+    ASSERT_COLORFUL_BRUSH_SIGNATURE(isImageType, bool (KisColorfulBrush::*)() const);
+    ASSERT_COLORFUL_BRUSH_SIGNATURE(setHasColorAndTransparency, void (KisColorfulBrush::*)(bool));
+    ASSERT_COLORFUL_BRUSH_SIGNATURE(hasColorAndTransparency, bool (KisColorfulBrush::*)() const);
+}
+
+void KisBrushSchemaContractTest::colorfulBrushSerializationSignatureRemainsStable()
+{
+    ASSERT_COLORFUL_BRUSH_SIGNATURE(toXML, void (KisColorfulBrush::*)(QDomDocument &, QDomElement &) const);
 }
 
 QTEST_GUILESS_MAIN(KisBrushSchemaContractTest)
