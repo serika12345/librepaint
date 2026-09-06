@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-06 16:28 JST
+- 更新日時: 2026-09-06 16:37 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1662,7 +1662,13 @@
 - 現在の`libs/image/CMakeLists.txt`では`kritaimage_LIB_SRCS`が`kis_surrogate_undo_adapter.cpp`を直接所有し、製品`kritaimage`は1,197工程・2,418入力、command SHA-256 `d9ed76dec7b98d303bb4927160268fe50ce7e8356b45c4c99ae9ce9f2ffca684`、input SHA-256 `1d293a0e5483707c207c747da895fea828dd05247472f57fc53c5ea37d0a9719`である。開始sourceを新規AUTOMOC不要・位置独立`kritaimagesurrogateundoadapterobjects`へ移し、元の製品へ1回だけ再集約する。既存`kritaimageundoadapterobjects`、`kritapaintingundostoreobjects`、`kritapaintingundokundo2coreobjects`の一方向依存を再利用し、公開header、実装本文、ABI、製品の最終link内容を維持する。
 - 最寄りの`KisUndoStoresContractTest`は14工程・29入力、command SHA-256 `1733a24667d226ce6fee61027b888dc918e0b7b6b9b28177dc81aa822922b626`、input SHA-256 `00c94d154dfd14865adb389b26fa44d09e6e77daaf4b900e1bc6085927f38671`である。同sourceへ追記するとpainting undo storeとimage adapterの責務を混在させるため、新規`KisSurrogateUndoAdapterContractTest`を分離object、既存adapter・store・KUndo2 core、Qt Core・Widgets・Testだけへ接続する。既存閉包へ2 objectを加えた16工程・33入力を予測し、停止線を17工程・36入力とする。
 - 比較した残存object候補の`KisTimeSpan` 4 APIはnode・keyframe channel再帰へ到達し、1工程の値objectだけでは実行できない。`KisAnimatedOpacityProperty`は画像・keyframe・既定境界、`KisTemplateGroup`は未分離のtemplate画像読込、`KisImageResolutionProxy`は画像寿命signal、`KisUniqueColorSet`は色空間registryを要する。surrogate undo adapterは既に分離済みのundo基底とstoreを組み合わせるだけで全12 APIを動的に観測できるため先行する。
-- `g282a-surrogate-undo-adapter-build-boundary`の状態は`planned`、実装基点は`50c2e54c75`である。許可pathを`libs/image/CMakeLists.txt`だけに限定し、一つの専用worktree-local `build/tdd-macos`で新object単独構築、製品計画内のcompile・再集約各1回、厳格構文、近傍undo adapter・store契約、二回の無作業再構築、公開API検査、`verify-quick`をmacOSで確認する。構造準備の統合・削除後に別の専用worktreeで契約を実装する。製品target、全体build・`verify`、Linux、Nix再評価を実行しない。
+- `g282a-surrogate-undo-adapter-build-boundary`の状態は`integrated`、計画基点は`50c2e54c75`、実装基点は`33568831da`である。許可pathを`libs/image/CMakeLists.txt`だけに限定し、開始`kritaimage_LIB_SRCS`の`kis_surrogate_undo_adapter.cpp`を専用`kritaimagesurrogateundoadapterobjects`へ移し、元の製品へobjectを1回だけ再集約した。公開header、実装本文、ABI、製品link内容を変更していない。受渡しcommit `5026f886ba`を中央commit `9b89669154`として取り込み、patch ID `8e479cfb850a4693331263b35e6b006e931cd294`の一致を確認した。
+
+### 第282便の構造準備統合結果
+
+- 専用objectは担当側・中央とも2工程・6入力である。担当側command SHA-256 `074424d7a8fdee29e245ffe53fc3f9574f8ba7bad321cb0e00b84e4991b3c177`、input SHA-256 `984e9f467c5095c87eb2f482ba2cdc8b9dcedee64c13a3694c8fa0d0343dcdfd`、中央command SHA-256 `bebfc6fa09340a73cd92e63fb8985a7f4209fa232563ce9a6efeaba299fcd9ac`、input SHA-256 `d37784c47a03ca08d77431f75ed4643cad2ac85fdf09b912a55ffb6314b43b06`である。製品計画は1,197工程・2,418入力を維持し、移動sourceのcompile 1回と製品linkへのobject再集約1回を確認した。中央の製品計画はcommand SHA-256 `85bc8fa205de0ec26062ec253a853790ef61caaa1ae4f3f05f68a73099826295`、input SHA-256 `292ca642f8f0b115b902792f31adaa4c1ff505ecee87404ffe0a1400b9150bd2`である。
+- 担当側と中央のmacOSで専用object構築、厳格`clang-check`、近傍`libs-image-KisUndoAdapterContractTest`と`libs-painting-undo-KisUndoStoresContractTest`、二回の無作業再構築に成功し、担当側では公開API検査を含む`verify-quick`にも成功した。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- cleanな専用作業tree、313,632 KiBの構築木、branchを統合直後に削除し、合計904,816 KiBを回収した。主Ninja木、共有compiler cache、最新`build/tdd-macos/public-api-missing-g282.json`は次の契約実装へ再利用する。次の永続作業は、別の専用worktreeで新規`KisSurrogateUndoAdapterContractTest`を実装し、残存全12 APIの履歴状態遷移を固定することである。
 
 ### 第239便の先行監査担当票
 
