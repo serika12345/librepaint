@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 7155
+    "expectedMissingApis": 7137
   },
   "contracts": [
     {
@@ -63605,6 +63605,69 @@
       "classification": "maintained",
       "apis": [
         "method:KoMarkerCollection::loadMarkersFromFile(const QString & svgFile)"
+      ]
+    },
+    {
+      "target": "KoSvgTextAddRemoveShapeCommandsSchemaContractTest",
+      "source": "libs/flake/tests/KoSvgTextAddRemoveShapeCommandsSchemaContractTest.cpp",
+      "test": "KoSvgTextAddRemoveShapeCommandsSchemaContractTest::mergeTextPropertiesTypeSchema",
+      "behavior": "図形のSVG text属性変更commandはundo commandを基底とし、図形一覧と属性から既定の削除対象・親を用いて構築でき、基底所有から仮想破棄できる。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoShapeMergeTextPropertiesCommand",
+        "method:KoShapeMergeTextPropertiesCommand::KoShapeMergeTextPropertiesCommand(const QList<KoShape * > & shapes,const KoSvgTextProperties & props,const QSet<KoSvgTextProperties::PropertyId> removeProperties=QSet<KoSvgTextProperties::PropertyId> (),KUndo2Command * parent=nullptr)",
+        "method:KoShapeMergeTextPropertiesCommand::~KoShapeMergeTextPropertiesCommand()"
+      ]
+    },
+    {
+      "target": "KoSvgTextAddRemoveShapeCommandsSchemaContractTest",
+      "source": "libs/flake/tests/KoSvgTextAddRemoveShapeCommandsSchemaContractTest.cpp",
+      "test": "KoSvgTextAddRemoveShapeCommandsSchemaContractTest::mergeTextPropertiesHistorySchema",
+      "behavior": "図形のSVG text属性変更commandはundo履歴の識別・結合と変更の適用・取消し操作を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShapeMergeTextPropertiesCommand::id() const",
+        "method:KoShapeMergeTextPropertiesCommand::mergeWith(const KUndo2Command * command)",
+        "method:KoShapeMergeTextPropertiesCommand::redo()",
+        "method:KoShapeMergeTextPropertiesCommand::undo()"
+      ]
+    },
+    {
+      "target": "KoSvgTextAddRemoveShapeCommandsSchemaContractTest",
+      "source": "libs/flake/tests/KoSvgTextAddRemoveShapeCommandsSchemaContractTest.cpp",
+      "test": "KoSvgTextAddRemoveShapeCommandsSchemaContractTest::textPathInfoTypeSchema",
+      "behavior": "SVG text path情報変更commandはundo commandを基底とし、図形・位置・path情報から既定の親を用いて構築できる。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoSvgTextPathInfoChangeCommand",
+        "method:KoSvgTextPathInfoChangeCommand::KoSvgTextPathInfoChangeCommand(KoSvgTextShape * shape,int pos,KoSvgText::TextOnPathInfo textPathInfo,KUndo2Command * parent=nullptr)"
+      ]
+    },
+    {
+      "target": "KoSvgTextAddRemoveShapeCommandsSchemaContractTest",
+      "source": "libs/flake/tests/KoSvgTextAddRemoveShapeCommandsSchemaContractTest.cpp",
+      "test": "KoSvgTextAddRemoveShapeCommandsSchemaContractTest::textPathInfoHistorySchema",
+      "behavior": "SVG text path情報変更commandはundo履歴の識別・結合と変更の適用・取消し操作を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoSvgTextPathInfoChangeCommand::id() const",
+        "method:KoSvgTextPathInfoChangeCommand::mergeWith(const KUndo2Command * other)",
+        "method:KoSvgTextPathInfoChangeCommand::redo()",
+        "method:KoSvgTextPathInfoChangeCommand::undo()"
+      ]
+    },
+    {
+      "target": "KoSvgTextAddRemoveShapeCommandsSchemaContractTest",
+      "source": "libs/flake/tests/KoSvgTextAddRemoveShapeCommandsSchemaContractTest.cpp",
+      "test": "KoSvgTextAddRemoveShapeCommandsSchemaContractTest::convertTextTypeSchema",
+      "behavior": "SVG text種別変換commandはundo commandを基底とし、図形・変換種別・位置から既定の親を用いて構築でき、仮想寿命と適用・取消し操作を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoSvgConvertTextTypeCommand",
+        "method:KoSvgConvertTextTypeCommand::KoSvgConvertTextTypeCommand(KoSvgTextShape * shape,KoSvgTextShape::TextType type,int pos,KUndo2Command * parent=0)",
+        "method:KoSvgConvertTextTypeCommand::redo()",
+        "method:KoSvgConvertTextTypeCommand::undo()",
+        "method:KoSvgConvertTextTypeCommand::~KoSvgConvertTextTypeCommand()"
       ]
     }
   ]
