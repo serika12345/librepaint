@@ -1,0 +1,98 @@
+/*
+ * SPDX-FileCopyrightText: 2026 LibrePaint contributors
+ * SPDX-License-Identifier: GPL-2.0-or-later
+ */
+
+#include <KisResourceModel.h>
+
+#include <QTest>
+
+#include <type_traits>
+#include <utility>
+
+class KisAbstractResourceModelSchemaContractTest : public QObject
+{
+    Q_OBJECT
+
+private Q_SLOTS:
+    void filterTypeLifetimeAndConfigurationSignaturesRemainStable();
+    void modelTypeLifetimeAndLookupSignaturesRemainStable();
+    void resourceActivationAndUpdateSignaturesRemainStable();
+    void resourceImportAndExportSignaturesRemainStable();
+    void resourceAdditionNameAndMetadataSignaturesRemainStable();
+};
+
+#define ASSERT_RESOURCE_MODEL_SIGNATURE(Type, Method, Signature)                                                       \
+    static_assert(std::is_same_v<decltype(static_cast<Signature>(&Type::Method)), Signature>)
+
+void KisAbstractResourceModelSchemaContractTest::filterTypeLifetimeAndConfigurationSignaturesRemainStable()
+{
+    using Filter = KisAbstractResourceFilterInterface;
+    using ResourceFilterSetter = void (Filter::*)(Filter::ResourceFilter);
+    using StorageFilterSetter = void (Filter::*)(Filter::StorageFilter);
+
+    static_assert(std::is_class_v<Filter>);
+    static_assert(std::has_virtual_destructor_v<Filter>);
+    ASSERT_RESOURCE_MODEL_SIGNATURE(Filter, setResourceFilter, ResourceFilterSetter);
+    ASSERT_RESOURCE_MODEL_SIGNATURE(Filter, setStorageFilter, StorageFilterSetter);
+}
+
+void KisAbstractResourceModelSchemaContractTest::modelTypeLifetimeAndLookupSignaturesRemainStable()
+{
+    using Model = KisAbstractResourceModel;
+    using IndexForId = QModelIndex (Model::*)(int) const;
+    using IndexForResource = QModelIndex (Model::*)(KoResourceSP) const;
+    using ResourceForIndex = KoResourceSP (Model::*)(QModelIndex) const;
+
+    static_assert(std::is_class_v<Model>);
+    static_assert(std::has_virtual_destructor_v<Model>);
+    ASSERT_RESOURCE_MODEL_SIGNATURE(Model, resourceForIndex, ResourceForIndex);
+    ASSERT_RESOURCE_MODEL_SIGNATURE(Model, indexForResource, IndexForResource);
+    ASSERT_RESOURCE_MODEL_SIGNATURE(Model, indexForResourceId, IndexForId);
+    static_assert(std::is_same_v<decltype(std::declval<const Model &>().resourceForIndex()), KoResourceSP>);
+}
+
+void KisAbstractResourceModelSchemaContractTest::resourceActivationAndUpdateSignaturesRemainStable()
+{
+    using Model = KisAbstractResourceModel;
+    using ActiveSetter = bool (Model::*)(const QModelIndex &, bool);
+    using InactiveSetter = bool (Model::*)(const QModelIndex &);
+    using ResourceMutation = bool (Model::*)(KoResourceSP);
+
+    ASSERT_RESOURCE_MODEL_SIGNATURE(Model, setResourceActive, ActiveSetter);
+    ASSERT_RESOURCE_MODEL_SIGNATURE(Model, setResourceInactive, InactiveSetter);
+    ASSERT_RESOURCE_MODEL_SIGNATURE(Model, updateResource, ResourceMutation);
+    ASSERT_RESOURCE_MODEL_SIGNATURE(Model, reloadResource, ResourceMutation);
+}
+
+void KisAbstractResourceModelSchemaContractTest::resourceImportAndExportSignaturesRemainStable()
+{
+    using Model = KisAbstractResourceModel;
+    using Export = bool (Model::*)(KoResourceSP, QIODevice *);
+    using Import = KoResourceSP (Model::*)(const QString &, QIODevice *, bool, const QString &);
+    using ImportFile = KoResourceSP (Model::*)(const QString &, bool, const QString &);
+    using WillOverwrite = bool (Model::*)(const QString &, const QString &) const;
+
+    ASSERT_RESOURCE_MODEL_SIGNATURE(Model, importResourceFile, ImportFile);
+    ASSERT_RESOURCE_MODEL_SIGNATURE(Model, importResource, Import);
+    ASSERT_RESOURCE_MODEL_SIGNATURE(Model, importWillOverwriteResource, WillOverwrite);
+    ASSERT_RESOURCE_MODEL_SIGNATURE(Model, exportResource, Export);
+}
+
+void KisAbstractResourceModelSchemaContractTest::resourceAdditionNameAndMetadataSignaturesRemainStable()
+{
+    using Model = KisAbstractResourceModel;
+    using Add = bool (Model::*)(KoResourceSP, const QString &);
+    using Metadata = bool (Model::*)(KoResourceSP, QMap<QString, QVariant>);
+
+    ASSERT_RESOURCE_MODEL_SIGNATURE(Model, addResource, Add);
+    ASSERT_RESOURCE_MODEL_SIGNATURE(Model, addResourceDeduplicateFileName, Add);
+    ASSERT_RESOURCE_MODEL_SIGNATURE(Model, renameResource, Add);
+    ASSERT_RESOURCE_MODEL_SIGNATURE(Model, setResourceMetaData, Metadata);
+}
+
+#undef ASSERT_RESOURCE_MODEL_SIGNATURE
+
+QTEST_APPLESS_MAIN(KisAbstractResourceModelSchemaContractTest)
+
+#include "KisAbstractResourceModelSchemaContractTest.moc"
