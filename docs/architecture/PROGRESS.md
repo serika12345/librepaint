@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-06 23:37 JST
+- 更新日時: 2026-09-06 23:40 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -2020,6 +2020,12 @@
 - 対象未登録の初回限定構築は未知の対象、登録後の宣言だけの5枠は5個の未定義symbolとして期待どおり失敗した。新targetは4工程・8入力で停止線以内に収まり、command SHA-256は`5ffde6e5cc6bd3c181b7c74aa008901f4180b95630c62bd1fbedaa7df173e5e3`、input SHA-256は`367c000feb88704394e3c0c0d9897dbb01219725ed2387ac1acce045bac4f2de`である。候補headerのAUTOMOC `HEADERS`は空で、Qt Gui・Test・Core、gettext、OS frameworkだけへ動的接続し、製品未解決記号は0である。
 - macOSで対象と近傍`libs-pigment-KoColorSpaceSchemaContractTest`のCTest 2/2、対象の20回反復、厳格`clang-check`、書式、二回の無作業再構築、公開API検査に成功した。既存`TestKoColorSpaceAbstract`の371工程・771入力は構築していない。色空間、変換、画素処理、mask applicator、registryの実体とinline処理結果は既存または後続の効果契約で扱う。
 - 台帳へ32 APIを追加して22,851件対応、6,953件未対応、対象headerの残存0件となった。旧`public-api-missing-g307.json`を削除し、追加作業tree・構築木は作成していない。主Ninja木5,867,240 KiB、共有compiler cache 983,452 KiB、最新`build/tdd-macos/public-api-missing-g308.json` 1,845,115 bytes、SHA-256 `2af6b0eb0ec943eea6cd2e8a192dccc23c721d135d758daabdc3a297686fa498`だけを再利用対象として保持する。compiler cacheは144,001件中120,465件、83.66%がhitしている。製品target、既存の大規模実行試験、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第308便の正式不足報告から、全APIを最小閉包で固定できる責務を再選定することである。
+
+### 第308便の監査結果と実装計画
+
+- 正式入力`build/tdd-macos/public-api-missing-g308.json`は公開header 1,548、公開API 29,804、対応済み22,851、未対応6,953、1,845,115 bytes、SHA-256 `2af6b0eb0ec943eea6cd2e8a192dccc23c721d135d758daabdc3a297686fa498`を記録する。`libs/brush/kis_abr_brush.h`と`libs/brush/kis_abr_brush_collection.h`の残存全16 APIずつは重複なく、合計32識別子の整列集合SHA-256は`3397716df69e5f2a9fd52d6ece33a223a723a4e718aa5c9929b67ba67d45d7f4`である。brush型・構築7、資源I/O 5、tip画像・直列化4、collection型・I/O 9、内容・metadata 7の5枠へ完全に割り当てる。
+- 既存`TestAbrStorage`は製品`kritaimage`・`kritalibbrush`と`kritatestsdk`へ接続する1,227工程・2,475入力であり、ABR公開型の宣言面だけを追加する対象として広すぎる。新規`libs/brush/tests/KisAbrBrushSchemaContractTest.cpp`を作り、既存`KisBrushSchemaContractTest`と同じbrush・global・image・resources探索路、Qt Core・Gui・Test、header-only Boost、KF I18nのinterface探索路、brush・resources export定義だけへ接続する。近傍は4工程・8入力、command SHA-256 `51306c4c24d9000b0420383d973f6699bcd5725b2acf87972b584d2b2f70b003`、input SHA-256 `b833549ce4453dd3ddd6f7e24375d23b924a184c64621945c9a932b4fb56161a`である。新targetも4工程・8入力を予測し、停止線を5工程・11入力とする。
+- `g308-abr-brush-schema`の状態は`planned`、実装基点は`0af86991d9`である。許可pathを新規試験sourceと`libs/brush/tests/CMakeLists.txt`の新target固有節だけに限定し、公開headerと製品sourceを変更しない。ABR brush・collection、画像、装置、XML、資源を実体化せず、inline本文を実行しない。macOSの対象、近傍、追加5枠の20回反復、厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。製品target、既存の大規模ABR実行試験、全体build・`verify`、Linux、Nix再評価は実行しない。
 
 ### 第239便の先行監査担当票
 
