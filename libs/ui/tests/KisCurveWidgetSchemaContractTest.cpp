@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "widgets/KisCurveWidgetControlsManager.h"
 #include "widgets/kis_curve_widget.h"
 
 #include <QTest>
@@ -14,6 +15,23 @@ namespace
 {
 #define ASSERT_CURVE_WIDGET_SIGNATURE(method, signature)                                                               \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisCurveWidget::method)), signature>)
+
+class CurveControlsManagerProbe final : public KisCurveWidgetControlsManagerBase
+{
+public:
+    using KisCurveWidgetControlsManagerBase::KisCurveWidgetControlsManagerBase;
+
+private:
+    void inOutChanged() override
+    {
+    }
+    void syncIOControls() override
+    {
+    }
+    void focusIOControls() override
+    {
+    }
+};
 } // namespace
 
 class KisCurveWidgetSchemaContractTest : public QObject
@@ -26,6 +44,11 @@ private Q_SLOTS:
     void curveWidgetPointSelectionAndEditingSignaturesRemainStable();
     void curveWidgetInputOutputControlSignaturesRemainStable();
     void curveWidgetNotificationSignaturesRemainStable();
+    void curveControlsValueTypeSchemaRemainsStable();
+    void curveControlsBaseTypeAndLifetimeSchemaRemainStable();
+    void curveControlsConcreteAliasSchemaRemainsStable();
+    void curveControlsConstructionSchemaRemainsStable();
+    void curveControlsConnectionSignaturesRemainStable();
 };
 
 void KisCurveWidgetSchemaContractTest::curveWidgetTypeLifetimeAndConstraintSchemaRemainStable()
@@ -82,6 +105,65 @@ void KisCurveWidgetSchemaContractTest::curveWidgetNotificationSignaturesRemainSt
     ASSERT_CURVE_WIDGET_SIGNATURE(curveChanged, void (KisCurveWidget::*)(const KisCubicCurve &));
     ASSERT_CURVE_WIDGET_SIGNATURE(modified, void (KisCurveWidget::*)());
     ASSERT_CURVE_WIDGET_SIGNATURE(pointSelectedChanged, void (KisCurveWidget::*)());
+}
+
+void KisCurveWidgetSchemaContractTest::curveControlsValueTypeSchemaRemainsStable()
+{
+    static_assert(std::is_class_v<detail::value_of_spin_box<QSpinBox>>);
+    static_assert(std::is_same_v<typename detail::value_of_spin_box<QSpinBox>::type, int>);
+    static_assert(std::is_same_v<typename detail::value_of_spin_box<QDoubleSpinBox>::type, qreal>);
+    static_assert(std::is_same_v<detail::value_of_spin_box_t<QSpinBox>, int>);
+    static_assert(std::is_same_v<detail::value_of_spin_box_t<QDoubleSpinBox>, qreal>);
+}
+
+void KisCurveWidgetSchemaContractTest::curveControlsBaseTypeAndLifetimeSchemaRemainStable()
+{
+    using Base = KisCurveWidgetControlsManagerBase;
+    static_assert(std::is_class_v<Base> && std::is_base_of_v<QObject, Base>);
+    static_assert(std::is_abstract_v<Base>);
+    static_assert(std::is_constructible_v<CurveControlsManagerProbe, KisCurveWidget *>);
+    static_assert(std::has_virtual_destructor_v<Base>);
+}
+
+void KisCurveWidgetSchemaContractTest::curveControlsConcreteAliasSchemaRemainsStable()
+{
+    using IntManager = KisCurveWidgetControlsManager<QSpinBox>;
+    using DoubleManager = KisCurveWidgetControlsManager<QDoubleSpinBox>;
+    static_assert(std::is_class_v<IntManager> && std::is_class_v<DoubleManager>);
+    static_assert(std::is_same_v<KisCurveWidgetControlsManagerInt, IntManager>);
+    static_assert(std::is_same_v<KisCurveWidgetControlsManagerDouble, DoubleManager>);
+    static_assert(std::is_same_v<typename IntManager::ValueType, int>);
+    static_assert(std::is_same_v<typename DoubleManager::ValueType, qreal>);
+}
+
+void KisCurveWidgetSchemaContractTest::curveControlsConstructionSchemaRemainsStable()
+{
+    using IntManager = KisCurveWidgetControlsManagerInt;
+    using DoubleManager = KisCurveWidgetControlsManagerDouble;
+    static_assert(std::is_constructible_v<IntManager, KisCurveWidget *>);
+    static_assert(std::is_constructible_v<IntManager, KisCurveWidget *, QSpinBox *, QSpinBox *, int, int, int, int>);
+    static_assert(std::is_constructible_v<DoubleManager, KisCurveWidget *>);
+    static_assert(std::is_constructible_v<DoubleManager,
+                                          KisCurveWidget *,
+                                          QDoubleSpinBox *,
+                                          QDoubleSpinBox *,
+                                          qreal,
+                                          qreal,
+                                          qreal,
+                                          qreal>);
+    static_assert(std::has_virtual_destructor_v<IntManager> && std::has_virtual_destructor_v<DoubleManager>);
+}
+
+void KisCurveWidgetSchemaContractTest::curveControlsConnectionSignaturesRemainStable()
+{
+    using IntManager = KisCurveWidgetControlsManagerInt;
+    using DoubleManager = KisCurveWidgetControlsManagerDouble;
+    using IntSetup = void (IntManager::*)(QSpinBox *, QSpinBox *, int, int, int, int);
+    using DoubleSetup = void (DoubleManager::*)(QDoubleSpinBox *, QDoubleSpinBox *, qreal, qreal, qreal, qreal);
+    static_assert(std::is_same_v<decltype(&IntManager::setupInOutControls), IntSetup>);
+    static_assert(std::is_same_v<decltype(&DoubleManager::setupInOutControls), DoubleSetup>);
+    static_assert(std::is_same_v<decltype(&IntManager::dropInOutControls), void (IntManager::*)()>);
+    static_assert(std::is_same_v<decltype(&DoubleManager::dropInOutControls), void (DoubleManager::*)()>);
 }
 
 QTEST_APPLESS_MAIN(KisCurveWidgetSchemaContractTest)
