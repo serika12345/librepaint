@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 7370
+    "expectedMissingApis": 7358
   },
   "contracts": [
     {
@@ -62904,6 +62904,63 @@
       "classification": "maintained",
       "apis": [
         "method:KisBusyWaitBroker::setFeedbackCallback(std::function<void (KisImageSP)> callback)"
+      ]
+    },
+    {
+      "target": "KisSurrogateUndoAdapterContractTest",
+      "source": "libs/image/tests/KisSurrogateUndoAdapterContractTest.cpp",
+      "test": "KisSurrogateUndoAdapterContractTest::typeLifetimeAndEmptyHistoryRemainStable",
+      "behavior": "代替undo adapterはundo adapter基底として既定構築・仮想破棄でき、空履歴では現在commandを返さない。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisSurrogateUndoAdapter",
+        "method:KisSurrogateUndoAdapter::KisSurrogateUndoAdapter()",
+        "method:KisSurrogateUndoAdapter::presentCommand()",
+        "method:KisSurrogateUndoAdapter::~KisSurrogateUndoAdapter()"
+      ]
+    },
+    {
+      "target": "KisSurrogateUndoAdapterContractTest",
+      "source": "libs/image/tests/KisSurrogateUndoAdapterContractTest.cpp",
+      "test": "KisSurrogateUndoAdapterContractTest::commandAdditionAndLastUndoRemainStable",
+      "behavior": "command追加は直ちにredoして現在commandとして所有し、直前取消しはそのcommandをundoして現在位置を空へ戻す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSurrogateUndoAdapter::addCommand(KUndo2Command * command)",
+        "method:KisSurrogateUndoAdapter::undoLastCommand()"
+      ]
+    },
+    {
+      "target": "KisSurrogateUndoAdapterContractTest",
+      "source": "libs/image/tests/KisSurrogateUndoAdapterContractTest.cpp",
+      "test": "KisSurrogateUndoAdapterContractTest::singleStepUndoAndRedoRemainStable",
+      "behavior": "単一undoとredoは履歴位置を一段ずつ移動し、commandの状態値と現在commandを対応する段階へ戻す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSurrogateUndoAdapter::redo()",
+        "method:KisSurrogateUndoAdapter::undo()"
+      ]
+    },
+    {
+      "target": "KisSurrogateUndoAdapterContractTest",
+      "source": "libs/image/tests/KisSurrogateUndoAdapterContractTest.cpp",
+      "test": "KisSurrogateUndoAdapterContractTest::macroGroupsCommandsIntoOneHistoryStep",
+      "behavior": "macro開始から終了までのcommandは名前と子順序を保つ一つの履歴項目となり、undoは逆順、redoは順方向にまとめて実行する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSurrogateUndoAdapter::beginMacro(const KUndo2MagicString & macroName)",
+        "method:KisSurrogateUndoAdapter::endMacro()"
+      ]
+    },
+    {
+      "target": "KisSurrogateUndoAdapterContractTest",
+      "source": "libs/image/tests/KisSurrogateUndoAdapterContractTest.cpp",
+      "test": "KisSurrogateUndoAdapterContractTest::wholeHistoryUndoAndRedoRemainStable",
+      "behavior": "全履歴undoは新しいcommandから逆順に空位置まで戻し、全履歴redoは古いcommandから順方向に末尾まで再実行する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSurrogateUndoAdapter::redoAll()",
+        "method:KisSurrogateUndoAdapter::undoAll()"
       ]
     }
   ]
