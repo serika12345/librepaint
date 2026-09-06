@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-06 16:52 JST
+- 更新日時: 2026-09-06 17:01 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1680,6 +1680,14 @@
 - 開始`libs/image/kis_surrogate_undo_adapter.h`から新規`libs/image/tests/KisSurrogateUndoAdapterContractTest.cpp`へ、型・構築・破棄・空履歴4、command追加・直前取消し2、単一undo・redo 2、macro開始・終了2、全履歴undo・redo 2の全12 APIを5枠で対応付けた。追加時の即時redoと所有、現在command、履歴位置、macro名・子順序・一括移動、全履歴の逆順undoと順方向redoを状態値と呼出し順で動的に固定した。
 - target不存在と、5枠宣言段階で追加5試験関数および直接objectが要求する安全検査関数だけが未定義になる期待link失敗を確認した。担当側と中央のmacOSで追加5枠を各20回、対象CTest `libs-image-KisSurrogateUndoAdapterContractTest`、近傍`libs-image-KisUndoAdapterContractTest`と`libs-painting-undo-KisUndoStoresContractTest`、厳格`clang-check`、書式、二回の無作業再構築に成功した。対象は16工程・34入力で停止線内にあり、担当側command SHA-256 `784d92256a649cf7966251ba8b3ad1523ae40699e065c7674c37d027c3fd1271`、input SHA-256 `ff308fc7b9987b4d44d8aa390323d55a5d5fce4a4b3f1a61de2a22d11cfb4b4e`、中央command SHA-256 `750af7ce32daf82d019060a951e257e146d7f07fa735b9dc60f398d47d04b4bb`、input SHA-256 `060c305126ea8ac54e14c4c35e5f29d74144783c070bdde3299e7a63420e645d`である。候補headerはAUTOMOC入力外で、基底`kis_undo_adapter.h`だけを生成対象とし、KF I18n・Qt Widgets・Test・Gui・CoreとOS frameworkだけの動的接続、未解決製品記号0、公開API検査、`verify-quick`を確認した。
 - 台帳へ12 APIを追加して22,446件対応、7,358件未対応となり、対象headerの残存は0である。cleanな専用作業tree、315,228 KiBの構築木、branchを統合直後に削除し、合計906,420 KiBを回収した。旧`public-api-missing-g282.json` 1,959,943 bytesを削除し、主Ninja木5,838,972 KiB、共有compiler cache 983,052 KiB、最新`build/tdd-macos/public-api-missing-g283.json` 1,957,192 bytes、SHA-256 `a9ee873f1f776603705ad1f2ac13ec4780fcc4b49df838946e94bd0a53ba8c50`だけを再利用対象として保持する。compiler cacheは143,799件中120,395件、83.72%がhitしている。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第283便の正式不足報告から、全APIを動的に固定できる最小閉包の責務を再選定することである。
+
+### 第283便の監査結果と構造準備計画
+
+- 正式入力`build/tdd-macos/public-api-missing-g283.json`で、`libs/ui/animation/cache/KisAbstractFrameCacheSwapper.h`と`KisInMemoryFrameCacheSwapper.h`の残存各10、合計20 APIが一意かつ台帳と非重複であることを確認した。識別子整列集合SHA-256は`096cf557cb53e004afa6d48ab13e0afdfdeac7ca249b942b295842d8f4131de4`である。型・共有参照・構築・仮想破棄6、保存・読込・存在照会6、詳細度・更新矩形4、frame移動2、frame破棄2の5枠へ完全に割り当てる。抽象境界を通したメモリ内実装の空状態、共有所有、識別番号移動、metadata保持、破棄を動的に固定する。
+- 現在の`libs/ui/CMakeLists.txt`では`KisAbstractFrameCacheSwapper.cpp`と`KisInMemoryFrameCacheSwapper.cpp`が製品`kritaapplicationui`のsource集合に直接入り、製品計画は1,975工程・3,950入力、command SHA-256 `b5ff66951f0f0c536e67ca5934ed5ab5383d0dda658a10ff72ad30d6d4b743d7`、input SHA-256 `eaa81c54926f7bdafa7260bd8e6cba31875593beb2982f7b7842ec622cfe42f1`である。開始2 sourceをAUTOMOC不要・位置独立の`kritauiabstractframecacheswapperobjects`と`kritauiinmemoryframecacheswapperobjects`へ移し、製品へ各1回だけ再集約する。後者から前者と既存`kritauiopenglupdateinfoobjects`へ一方向に接続し、公開header、実装本文、ABI、製品の最終link内容を維持する。具象object単独は3工程・7入力を予測し、4工程・10入力を構造準備の停止線とする。
+- 最寄りの`KisOpenGLUpdateInfoContractTest`は7工程・15入力、command SHA-256 `924a00a6cc6a36a61202ad6e1a43545331e29b027f1b40265bc382e0eee5c366`、input SHA-256 `b705be48ae39ee29630a55859d7b7cda0dbeba00af1ffd9671574c9a5184be2a`である。同sourceへframe cache所有責務を混在させず、新規`KisInMemoryFrameCacheSwapperContractTest`を2分離object、既存OpenGL更新情報・更新情報基底・共有参照object、Qt Core・Testへ接続する。9工程・19入力を予測し、停止線を10工程・22入力とする。
+- 比較した`KisStabilizedEventsSampler`の10 APIは時刻進行と未分離の`KisPaintInformation`実装、`KisLodAvailabilityData`の7 APIは設定表と描画方式登録簿、`kis_stroke_job.h`の3試験補助APIは未定義か別試験headerだけの実装を含む。メモリ内frame cache交換器は72行の具象実装と10行の抽象破棄だけを分離し、既存の更新情報値objectで全20 APIを外部状態なしに観測できるため先行する。
+- `g283a-frame-cache-swapper-build-boundary`の状態は`planned`、実装基点は`55d6bbe3e7`である。許可pathを`libs/ui/CMakeLists.txt`だけに限定し、一つの専用worktree-local `build/tdd-macos`で新object単独構築、製品計画内の2 source compile・再集約各1回、厳格構文、近傍OpenGL更新情報契約、二回の無作業再構築、公開API検査、`verify-quick`をmacOSで確認する。構造準備の統合・削除後に別の専用worktreeで契約を実装する。製品target、全体build・`verify`、Linux、Nix再評価を実行しない。
 
 ### 第239便の先行監査担当票
 
