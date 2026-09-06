@@ -7,9 +7,10 @@
 #ifndef __KIS_ACS_TYPES_H
 #define __KIS_ACS_TYPES_H
 
+#include <cstring>
+
 #include <QPoint>
 #include <KoColor.h>
-#include "kis_iterator_ng.h"
 
 
 namespace Acs {
