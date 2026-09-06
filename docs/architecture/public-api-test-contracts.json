@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 6822
+    "expectedMissingApis": 6807
   },
   "contracts": [
     {
@@ -44694,6 +44694,48 @@
         "method:psd_layer_effects_shadow_base::gradientLink() const",
         "method:psd_layer_effects_shadow_base::setContourLookupTable(const quint8 * value)",
         "method:psd_layer_effects_shadow_base::setGradient(KoAbstractGradientSP value)"
+      ]
+    },
+    {
+      "target": "KisGbrBrushSchemaContractTest",
+      "source": "libs/brush/tests/KisGbrBrushSchemaContractTest.cpp",
+      "test": "KisGbrBrushSchemaContractTest::typeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "GBR brushは共有pointer別名、filename・埋込みdata・描画装置領域・画像・複写による構築、多相破棄、および複写代入を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisGbrBrushSP",
+        "class:KisGbrBrush",
+        "method:KisGbrBrush::KisGbrBrush(KisPaintDeviceSP image,int x,int y,int w,int h)",
+        "method:KisGbrBrush::KisGbrBrush(const KisGbrBrush & rhs)",
+        "method:KisGbrBrush::KisGbrBrush(const QImage & image,const QString & name=QString ())",
+        "method:KisGbrBrush::KisGbrBrush(const QString & filename)",
+        "method:KisGbrBrush::KisGbrBrush(const QString & filename,const QByteArray & data,qint32 & dataPos)",
+        "method:KisGbrBrush::operator =(const KisGbrBrush & rhs)",
+        "method:KisGbrBrush::~KisGbrBrush()"
+      ]
+    },
+    {
+      "target": "KisGbrBrushSchemaContractTest",
+      "source": "libs/brush/tests/KisGbrBrushSchemaContractTest.cpp",
+      "test": "KisGbrBrushSchemaContractTest::resourceIoSchemaRemainsStable",
+      "behavior": "GBR brushは複製、既定拡張子、装置からの読込・保存、およびGBR brush資源種別を正確な公開関数型で提供する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisGbrBrush::clone() const",
+        "method:KisGbrBrush::defaultFileExtension() const",
+        "method:KisGbrBrush::loadFromDevice(QIODevice * dev,KisResourcesInterfaceSP resourcesInterface)",
+        "method:KisGbrBrush::resourceType() const",
+        "method:KisGbrBrush::saveToDevice(QIODevice * dev) const"
+      ]
+    },
+    {
+      "target": "KisGbrBrushSchemaContractTest",
+      "source": "libs/brush/tests/KisGbrBrushSchemaContractTest.cpp",
+      "test": "KisGbrBrushSchemaContractTest::maskImageSignatureRemainsStable",
+      "behavior": "GBR brushはalpha保持指定を受け取ってbrush dataをmask画像へ変換する公開入口を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisGbrBrush::makeMaskImage(bool preserveAlpha)"
       ]
     },
     {
