@@ -3,12 +3,14 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#include "kis_global.h"
 #include "KisAndroidExitInfo.h"
+#include "KisAndroidUtils.h"
+#include "kis_global.h"
 
 #include <QTest>
 
 #include <limits>
+#include <type_traits>
 
 class KisGlobalValuesContractTest : public QObject
 {
@@ -21,6 +23,8 @@ private Q_SLOTS:
     void geometryHelpersTransformValues();
     void trimmingHelpersSplitAndAdvanceRectangles();
     void androidExitCodesMatchPlatformContract();
+    void androidExitInfoSignaturesRemainStable();
+    void androidUtilitySignaturesRemainStable();
 };
 
 void KisGlobalValuesContractTest::numericLimitsAndSelectionConstantsRemainStable()
@@ -112,16 +116,12 @@ void KisGlobalValuesContractTest::geometryHelpersTransformValues()
     QCOMPARE(kisSquareDistanceToLine(QPointF(3.0, 5.0), horizontal), 9.0);
 
     QCOMPARE(kisGrowRect(QRect(1, 2, 3, 4), 2), QRect(-1, 0, 7, 8));
-    QCOMPARE(kisEnsureInRect(QRect(8, 8, 4, 4), QRect(0, 0, 10, 10)),
-             QRect(6, 6, 4, 4));
-    QCOMPARE(kisProjectOnVector(QPointF(2.0, 0.0), QPointF(3.0, 4.0)),
-             QPointF(3.0, 0.0));
+    QCOMPARE(kisEnsureInRect(QRect(8, 8, 4, 4), QRect(0, 0, 10, 10)), QRect(6, 6, 4, 4));
+    QCOMPARE(kisProjectOnVector(QPointF(2.0, 0.0), QPointF(3.0, 4.0)), QPointF(3.0, 0.0));
     QCOMPARE(snapToClosestAxis(QPointF(2.0, 5.0)), QPointF(0.0, 5.0));
     QCOMPARE(snapToClosestAxis(QPointF(5.0, 2.0)), QPointF(5.0, 0.0));
 
-    const QPointF snapped = snapToClosestNiceAngle(QPointF(3.0, 2.0),
-                                                    QPointF(1.0, 1.0),
-                                                    M_PI / 2.0);
+    const QPointF snapped = snapToClosestNiceAngle(QPointF(3.0, 2.0), QPointF(1.0, 1.0), M_PI / 2.0);
     QVERIFY(qFuzzyCompare(snapped.x(), 1.0 + std::sqrt(5.0)));
     QCOMPARE(snapped.y(), 1.0);
 }
@@ -179,6 +179,34 @@ void KisGlobalValuesContractTest::androidExitCodesMatchPlatformContract()
     QCOMPARE(static_cast<int>(Importance::Cached), 400);
     QCOMPARE(static_cast<int>(Importance::Empty), 500);
     QCOMPARE(static_cast<int>(Importance::Gone), 1000);
+}
+
+void KisGlobalValuesContractTest::androidExitInfoSignaturesRemainStable()
+{
+    static_assert(std::is_class_v<KisAndroidExitInfo>);
+    static_assert(std::is_same_v<decltype(&KisAndroidExitInfo::getLast), KisAndroidExitInfo (*)()>);
+    static_assert(std::is_same_v<decltype(&KisAndroidExitInfo::isValid), bool (KisAndroidExitInfo::*)() const>);
+    static_assert(std::is_same_v<decltype(&KisAndroidExitInfo::reasonCode), int (KisAndroidExitInfo::*)() const>);
+    static_assert(std::is_same_v<decltype(&KisAndroidExitInfo::exitOrSignalCode), int (KisAndroidExitInfo::*)() const>);
+    static_assert(std::is_same_v<decltype(&KisAndroidExitInfo::importanceCode), int (KisAndroidExitInfo::*)() const>);
+    static_assert(
+        std::is_same_v<decltype(&KisAndroidExitInfo::description), const QString &(KisAndroidExitInfo::*)() const>);
+    static_assert(
+        std::is_same_v<decltype(&KisAndroidExitInfo::buildLogString), QString (KisAndroidExitInfo::*)() const>);
+}
+
+void KisGlobalValuesContractTest::androidUtilitySignaturesRemainStable()
+{
+    static_assert(std::is_same_v<decltype(&KisAndroidUtils::performInitialSetup), void (*)()>);
+    static_assert(std::is_same_v<decltype(&KisAndroidUtils::looksLikeXiaomiDevice), bool (*)()>);
+    static_assert(std::is_same_v<decltype(&KisAndroidUtils::isLowMemoryKillReportSupported), bool (*)()>);
+    static_assert(std::is_same_v<decltype(&KisAndroidUtils::clearJniException), void (*)(const QString &)>);
+    static_assert(std::is_same_v<decltype(&KisAndroidUtils::isInFullScreen), bool (*)()>);
+    static_assert(std::is_same_v<decltype(&KisAndroidUtils::setFullScreen), void (*)(bool)>);
+    static_assert(
+        std::is_same_v<decltype(&KisAndroidUtils::copyFile), bool (*)(const QString &, const QString &, QString *)>);
+    static_assert(std::is_same_v<decltype(&KisAndroidUtils::copyFileToTemporary),
+                                 bool (*)(const QString &, QTemporaryFile &, QString *)>);
 }
 
 QTEST_GUILESS_MAIN(KisGlobalValuesContractTest)
