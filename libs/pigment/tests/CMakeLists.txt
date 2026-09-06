@@ -582,6 +582,26 @@ target_include_directories(KoCompositeOpFunctionsContractTest PRIVATE
 target_compile_definitions(KoCompositeOpFunctionsContractTest PRIVATE kritapigment_EXPORTS)
 
 kis_add_test(
+    KoCompositeOpsSchemaContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Test
+        Imath::ImathConfig
+        Boost::boost
+)
+target_include_directories(KoCompositeOpsSchemaContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_SOURCE_DIR}/../compositeops
+    ${CMAKE_BINARY_DIR}/libs/pigment
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+    ${CMAKE_SOURCE_DIR}/libs/multiarch
+    $<TARGET_PROPERTY:KF6::I18n,INTERFACE_INCLUDE_DIRECTORIES>
+)
+target_compile_definitions(KoCompositeOpsSchemaContractTest PRIVATE kritapigment_EXPORTS)
+
+kis_add_test(
     KoStreamedMathContractTest.cpp
     LINK_LIBRARIES
         Qt${QT_MAJOR_VERSION}::Core
