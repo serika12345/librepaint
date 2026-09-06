@@ -55,6 +55,18 @@ target_include_directories(KisGlobalValuesContractTest PRIVATE
 target_compile_definitions(KisGlobalValuesContractTest PRIVATE kritaglobal_EXPORTS)
 
 kis_add_test(
+    KisGlobalDiagnosticsSchemaContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KisGlobalDiagnosticsSchemaContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+)
+target_compile_definitions(KisGlobalDiagnosticsSchemaContractTest PRIVATE kritaglobal_EXPORTS)
+
+kis_add_test(
     KisBezierMeshValuesContractTest.cpp
     LINK_LIBRARIES
         kritaglobalalgebradirectionobjects
