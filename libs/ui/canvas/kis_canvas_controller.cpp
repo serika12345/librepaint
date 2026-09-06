@@ -18,6 +18,7 @@
 #include "opengl/kis_opengl_canvas2.h"
 #include "document/KisDocument.h"
 #include "kis_image.h"
+#include "kis_properties_configuration.h"
 #include "application/ui/workspace/KisViewManager.h"
 #include "application/ui/workspace/KisView.h"
 #include "krita_utils.h"
