@@ -37,14 +37,13 @@ class KoColorTransformationVariantsSchemaContractTest : public QObject
     Q_OBJECT
 
 private Q_SLOTS:
-    void fallbackTransformationTypeConstructionAndLifetimeSchemaRemainStable();
-    void fallbackTransformationOperationSignaturesRemainStable();
-    void proofingTransformationTypeConstructionAndLifetimeSchemaRemainStable();
-    void proofingTransformationSpaceSignatureRemainsStable();
+    void fallbackTypeConstructionAndLifetimeSchemaRemainStable();
+    void fallbackOperationSignaturesRemainStable();
+    void proofingTypeConstructionAndLifetimeSchemaRemainStable();
+    void proofingSpaceSignatureRemainsStable();
 };
 
-void KoColorTransformationVariantsSchemaContractTest::
-    fallbackTransformationTypeConstructionAndLifetimeSchemaRemainStable()
+void KoColorTransformationVariantsSchemaContractTest::fallbackTypeConstructionAndLifetimeSchemaRemainStable()
 {
     using Transformation = KoFallBackColorTransformation;
 
@@ -59,7 +58,7 @@ void KoColorTransformationVariantsSchemaContractTest::
     static_assert(std::has_virtual_destructor_v<Transformation>);
 }
 
-void KoColorTransformationVariantsSchemaContractTest::fallbackTransformationOperationSignaturesRemainStable()
+void KoColorTransformationVariantsSchemaContractTest::fallbackOperationSignaturesRemainStable()
 {
     ASSERT_FALLBACK_TRANSFORMATION_SIGNATURE(transform,
                                              void (KoFallBackColorTransformation::*)(const quint8 *, quint8 *, qint32)
@@ -71,8 +70,7 @@ void KoColorTransformationVariantsSchemaContractTest::fallbackTransformationOper
                                              void (KoFallBackColorTransformation::*)(int, const QVariant &));
 }
 
-void KoColorTransformationVariantsSchemaContractTest::
-    proofingTransformationTypeConstructionAndLifetimeSchemaRemainStable()
+void KoColorTransformationVariantsSchemaContractTest::proofingTypeConstructionAndLifetimeSchemaRemainStable()
 {
     using Transformation = KoColorProofingConversionTransformation;
 
@@ -83,7 +81,7 @@ void KoColorTransformationVariantsSchemaContractTest::
     static_assert(std::has_virtual_destructor_v<Transformation>);
 }
 
-void KoColorTransformationVariantsSchemaContractTest::proofingTransformationSpaceSignatureRemainsStable()
+void KoColorTransformationVariantsSchemaContractTest::proofingSpaceSignatureRemainsStable()
 {
     ASSERT_PROOFING_TRANSFORMATION_SIGNATURE(proofingSpace,
                                              const KoColorSpace *(KoColorProofingConversionTransformation::*)() const);
