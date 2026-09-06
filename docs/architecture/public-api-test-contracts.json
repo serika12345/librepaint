@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 6536
+    "expectedMissingApis": 6476
   },
   "contracts": [
     {
@@ -65493,6 +65493,111 @@
       "apis": [
         "method:KisWorkspaceResource::dockerState()",
         "method:KisWorkspaceResource::setDockerState(const QByteArray & state)"
+      ]
+    },
+    {
+      "target": "KisDerivedResourcesSchemaContractTest",
+      "source": "libs/ui/tests/KisDerivedResourcesSchemaContractTest.cpp",
+      "test": "KisDerivedResourcesSchemaContractTest::presetUpdateMediatorSchemaRemainsStable",
+      "behavior": "preset更新仲介は専用型・既定構築・多相破棄と値による資源接続の公開接続面を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisPresetUpdateMediator",
+        "method:KisPresetUpdateMediator::KisPresetUpdateMediator()",
+        "method:KisPresetUpdateMediator::connectResource(QVariant sourceResource)",
+        "method:KisPresetUpdateMediator::~KisPresetUpdateMediator()"
+      ]
+    },
+    {
+      "target": "KisDerivedResourcesSchemaContractTest",
+      "source": "libs/ui/tests/KisDerivedResourcesSchemaContractTest.cpp",
+      "test": "KisDerivedResourcesSchemaContractTest::compositeAndOpacityConverterSchemaRemainsStable",
+      "behavior": "合成方法・実効合成方法・preset opacityの派生資源変換器は専用型、既定構築、双方向変換の公開接続面を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisCompositeOpResourceConverter",
+        "class:KisEffectiveCompositeOpResourceConverter",
+        "class:KisOpacityToPresetOpacityResourceConverter",
+        "method:KisCompositeOpResourceConverter::KisCompositeOpResourceConverter()",
+        "method:KisCompositeOpResourceConverter::fromSource(const QVariant & value)",
+        "method:KisCompositeOpResourceConverter::toSource(const QVariant & value,const QVariant & sourceValue)",
+        "method:KisEffectiveCompositeOpResourceConverter::KisEffectiveCompositeOpResourceConverter()",
+        "method:KisEffectiveCompositeOpResourceConverter::fromSource(const QVariant & value)",
+        "method:KisEffectiveCompositeOpResourceConverter::toSource(const QVariant & value,const QVariant & sourceValue)",
+        "method:KisOpacityToPresetOpacityResourceConverter::KisOpacityToPresetOpacityResourceConverter()",
+        "method:KisOpacityToPresetOpacityResourceConverter::fromSource(const QVariant & value)",
+        "method:KisOpacityToPresetOpacityResourceConverter::toSource(const QVariant & value,const QVariant & sourceValue)"
+      ]
+    },
+    {
+      "target": "KisDerivedResourcesSchemaContractTest",
+      "source": "libs/ui/tests/KisDerivedResourcesSchemaContractTest.cpp",
+      "test": "KisDerivedResourcesSchemaContractTest::paintingDynamicsConverterSchemaRemainsStable",
+      "behavior": "flow・fade・scatter・sizeの派生資源変換器は専用型、既定構築、双方向変換の公開接続面を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisFadeResourceConverter",
+        "class:KisFlowResourceConverter",
+        "class:KisScatterResourceConverter",
+        "class:KisSizeResourceConverter",
+        "method:KisFadeResourceConverter::KisFadeResourceConverter()",
+        "method:KisFadeResourceConverter::fromSource(const QVariant & value)",
+        "method:KisFadeResourceConverter::toSource(const QVariant & value,const QVariant & sourceValue)",
+        "method:KisFlowResourceConverter::KisFlowResourceConverter()",
+        "method:KisFlowResourceConverter::fromSource(const QVariant & value)",
+        "method:KisFlowResourceConverter::toSource(const QVariant & value,const QVariant & sourceValue)",
+        "method:KisScatterResourceConverter::KisScatterResourceConverter()",
+        "method:KisScatterResourceConverter::fromSource(const QVariant & value)",
+        "method:KisScatterResourceConverter::toSource(const QVariant & value,const QVariant & sourceValue)",
+        "method:KisSizeResourceConverter::KisSizeResourceConverter()",
+        "method:KisSizeResourceConverter::fromSource(const QVariant & value)",
+        "method:KisSizeResourceConverter::toSource(const QVariant & value,const QVariant & sourceValue)"
+      ]
+    },
+    {
+      "target": "KisDerivedResourcesSchemaContractTest",
+      "source": "libs/ui/tests/KisDerivedResourcesSchemaContractTest.cpp",
+      "test": "KisDerivedResourcesSchemaContractTest::brushGeometryConverterSchemaRemainsStable",
+      "behavior": "brush回転・pattern寸法・brush名の派生資源変換器は専用型、既定構築、双方向変換の公開接続面を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisBrushNameResourceConverter",
+        "class:KisBrushRotationResourceConverter",
+        "class:KisPatternSizeResourceConverter",
+        "method:KisBrushNameResourceConverter::KisBrushNameResourceConverter()",
+        "method:KisBrushNameResourceConverter::fromSource(const QVariant & value)",
+        "method:KisBrushNameResourceConverter::toSource(const QVariant & value,const QVariant & sourceValue)",
+        "method:KisBrushRotationResourceConverter::KisBrushRotationResourceConverter()",
+        "method:KisBrushRotationResourceConverter::fromSource(const QVariant & value)",
+        "method:KisBrushRotationResourceConverter::toSource(const QVariant & value,const QVariant & sourceValue)",
+        "method:KisPatternSizeResourceConverter::KisPatternSizeResourceConverter()",
+        "method:KisPatternSizeResourceConverter::fromSource(const QVariant & value)",
+        "method:KisPatternSizeResourceConverter::toSource(const QVariant & value,const QVariant & sourceValue)"
+      ]
+    },
+    {
+      "target": "KisDerivedResourcesSchemaContractTest",
+      "source": "libs/ui/tests/KisDerivedResourcesSchemaContractTest.cpp",
+      "test": "KisDerivedResourcesSchemaContractTest::lodAndEraserConverterSchemaRemainsStable",
+      "behavior": "LOD可用性・寸法閾値・閾値対応・消去modeの派生資源変換器は専用型、既定構築、双方向変換の公開接続面を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisEraserModeResourceConverter",
+        "class:KisLodAvailabilityResourceConverter",
+        "class:KisLodSizeThresholdResourceConverter",
+        "class:KisLodSizeThresholdSupportedResourceConverter",
+        "method:KisEraserModeResourceConverter::KisEraserModeResourceConverter()",
+        "method:KisEraserModeResourceConverter::fromSource(const QVariant & value)",
+        "method:KisEraserModeResourceConverter::toSource(const QVariant & value,const QVariant & sourceValue)",
+        "method:KisLodAvailabilityResourceConverter::KisLodAvailabilityResourceConverter()",
+        "method:KisLodAvailabilityResourceConverter::fromSource(const QVariant & value)",
+        "method:KisLodAvailabilityResourceConverter::toSource(const QVariant & value,const QVariant & sourceValue)",
+        "method:KisLodSizeThresholdResourceConverter::KisLodSizeThresholdResourceConverter()",
+        "method:KisLodSizeThresholdResourceConverter::fromSource(const QVariant & value)",
+        "method:KisLodSizeThresholdResourceConverter::toSource(const QVariant & value,const QVariant & sourceValue)",
+        "method:KisLodSizeThresholdSupportedResourceConverter::KisLodSizeThresholdSupportedResourceConverter()",
+        "method:KisLodSizeThresholdSupportedResourceConverter::fromSource(const QVariant & value)",
+        "method:KisLodSizeThresholdSupportedResourceConverter::toSource(const QVariant & value,const QVariant & sourceValue)"
       ]
     }
   ]
