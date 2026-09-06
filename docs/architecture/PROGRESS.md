@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-07 07:18 JST
+- 更新日時: 2026-09-07 07:21 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -2598,6 +2598,13 @@
 - 初回限定構築は期待どおり追加5試験関数の未定義linkだけで失敗し、契約実装後に成功した。台帳検査が整形で二行化された最長試験定義を未登録として診断したため、物理一行を維持する短い名称へ宣言・定義・台帳を一致させた。最終targetは4工程・8入力、command SHA-256 `63618181e541d99dfc3e96a40831d0e2278aefe993c758228a4acc86d4db7262`、input SHA-256 `76e978e9352c259a71963e5684fa9ee88c3b57e77dc90491db97e8544d37447a`を維持した。AUTOMOC header入力は空、Qt Gui・Test・Core、gettext、OS frameworkだけへ動的接続し、製品未解決記号は0件である。
 - macOSで対象と軽量近傍`libs-ui-KisDisplayConfigSchemaContractTest`のCTest、追加5枠の各20回反復、試験sourceの厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`に成功した。依存移動後の5直接利用元は4件が厳格検査に成功し、残る`kis_texture_chooser.cpp`も候補headerへ到達する前の既存生成`ui_wdgtexturechooser.h`欠落だけで停止した。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 台帳へ64 APIを追加して24,320件対応、5,484件未対応となり、二つの開始headerの残存は0件である。旧`public-api-missing-g347.json`と一時報告を最新報告の検証後に削除し、追加作業tree・構築木は作成していない。主Ninja木5,917,720 KiB、共有compiler cache 982,256 KiB、最新`build/tdd-macos/public-api-missing-g348.json` 1,450,575 bytes、SHA-256 `8eccd43e0060edd6870a1ad13c1722703472bd365986c243b2740522ebaa513d`だけを再利用対象として保持する。compiler cacheは144,167件中120,484件、83.57%がhitしている。次の永続作業は第348便で次の高密度なmacOS対象と最小構築面を選定することである。
+
+### 第348便の監査結果と実装計画
+
+- 正式入力`build/tdd-macos/public-api-missing-g348.json`は公開header 1,548、公開API 29,804、対応済み24,320、未対応5,484、1,450,575 bytes、SHA-256 `8eccd43e0060edd6870a1ad13c1722703472bd365986c243b2740522ebaa513d`を記録する。`libs/ui/widgets/KisCurveWidgetControlsManager.h`の残存全15 APIを、spinbox値型特性3、基底型・構築・寿命3、具象template型・別名4、具象構築・寿命3、入出力接続・解除2の5枠へ完全に対応付ける。識別子整列集合のSHA-256は`51e756fb61b3798b7d38efd6f8166a0ad4d610926dd3a01ce7b760a6a386343f`である。
+- 開始headerは公開export指定、QObject基底、spinbox前方宣言と値型特性を直接所有し、削減すべき推移includeはない。4直接利用翻訳単位へ到達するが、既存対象が製品非接続の4工程・8入力であり、開始実装の厳格`clang-check`も診断0件であるため、先行する構造変更は不要である。
+- 既存`libs/ui/tests/KisCurveWidgetSchemaContractTest.cpp`は89行・5枠で、追加5枠後も300行・20枠未満に収まる。既存targetはCMake File API上で自動生成依存だけを持ち、CMake変更なしで4工程・8入力、command SHA-256 `2fd2333e6346d01423e20800bfce381fd83721eb9f92c232178a130deb1c61e3`、input SHA-256 `31435d9f7a205793998a8724341732c968fe583bc13b837b78a787f1fa0a299a`である。Qt Test・Core、gettext、OS frameworkだけへ動的接続し、製品libraryを要求しない。停止線を5工程・11入力、300行・20枠とする。
+- `g348-curve-controls-manager-schema`の状態は`in_progress`、実装基点は`731952eaf6`である。変更は既存試験sourceの追加5枠だけに限定し、型特性、具象template別名、構築可能性、厳密な公開関数pointerで入出力制御管理器の公開接続面を固定する。macOSの対象、追加5枠の20回反復、試験sourceの厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。CMake、公開header、製品source、製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
 
 ### 第239便の先行監査担当票
 
