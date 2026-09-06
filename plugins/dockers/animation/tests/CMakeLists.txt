@@ -18,6 +18,7 @@ target_include_directories(KisAnimUtilsSchemaContractTest PRIVATE
     ${CMAKE_BINARY_DIR}/libs/image
     ${CMAKE_SOURCE_DIR}/libs/global
     ${CMAKE_BINARY_DIR}/libs/global
+    ${CMAKE_SOURCE_DIR}/libs/ui
 )
 target_compile_definitions(KisAnimUtilsSchemaContractTest PRIVATE
     kritaanimationdocker_static_EXPORTS

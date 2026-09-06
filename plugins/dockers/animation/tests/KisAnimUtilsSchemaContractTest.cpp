@@ -8,6 +8,7 @@
 #include <type_traits>
 
 #include "KisAnimUtils.h"
+#include "KisTimeBasedItemModel.h"
 
 void kisSharedPtrAddReference(KisNode *)
 {
@@ -17,6 +18,24 @@ bool kisSharedPtrRelease(KisNode *)
 {
     return true;
 }
+
+namespace
+{
+
+class ConcreteTimeBasedItemModel : public KisTimeBasedItemModel
+{
+public:
+    using KisTimeBasedItemModel::KisTimeBasedItemModel;
+
+    int rowCount(const QModelIndex &parent = QModelIndex()) const override;
+
+protected:
+    KisNodeSP nodeAt(QModelIndex index) const override;
+    QMap<QString, KisKeyframeChannel *> channelsAt(QModelIndex index) const override;
+    KisKeyframeChannel *channelByID(QModelIndex index, const QString &id) const override;
+};
+
+} // namespace
 
 class KisAnimUtilsSchemaContractTest : public QObject
 {
@@ -28,6 +47,11 @@ private Q_SLOTS:
     void keyframeCreationAndMoveSignaturesRemainStable();
     void keyframeEditingAndQuerySignaturesRemainStable();
     void animationActionNameTypesRemainStable();
+    void timeBasedModelTypeAndRoleSchemaRemainStable();
+    void timeBasedModelOwnershipAndContextSignaturesRemainStable();
+    void timeBasedModelTableAndHeaderSignaturesRemainStable();
+    void timeBasedModelFrameEditingAndScrubSignaturesRemainStable();
+    void timeBasedModelPlaybackSignaturesRemainStable();
 };
 
 void KisAnimUtilsSchemaContractTest::frameItemTypeAndDefaultStateRemainStable()
@@ -123,6 +147,105 @@ void KisAnimUtilsSchemaContractTest::animationActionNameTypesRemainStable()
     static_assert(std::is_same_v<decltype(addTransformKeyframeActionName), const QString>);
     static_assert(std::is_same_v<decltype(removeOpacityKeyframeActionName), const QString>);
     static_assert(std::is_same_v<decltype(removeTransformKeyframeActionName), const QString>);
+
+    QVERIFY(true);
+}
+
+void KisAnimUtilsSchemaContractTest::timeBasedModelTypeAndRoleSchemaRemainStable()
+{
+    using Role = KisTimeBasedItemModel::ItemDataRole;
+
+    static_assert(std::is_class_v<KisTimeBasedItemModel>);
+    static_assert(std::is_base_of_v<QAbstractTableModel, KisTimeBasedItemModel>);
+    static_assert(std::is_abstract_v<KisTimeBasedItemModel>);
+    static_assert(std::is_enum_v<Role>);
+    static_assert(KisTimeBasedItemModel::ActiveFrameRole == Qt::UserRole + 101);
+    static_assert(KisTimeBasedItemModel::ScrubToRole == KisTimeBasedItemModel::ActiveFrameRole + 1);
+    static_assert(KisTimeBasedItemModel::CloneOfActiveFrame == KisTimeBasedItemModel::ScrubToRole + 1);
+    static_assert(KisTimeBasedItemModel::CloneCount == KisTimeBasedItemModel::CloneOfActiveFrame + 1);
+    static_assert(KisTimeBasedItemModel::FrameExistsRole == KisTimeBasedItemModel::CloneCount + 1);
+    static_assert(KisTimeBasedItemModel::SpecialKeyframeExists == KisTimeBasedItemModel::FrameExistsRole + 1);
+    static_assert(KisTimeBasedItemModel::FrameCachedRole == KisTimeBasedItemModel::SpecialKeyframeExists + 1);
+    static_assert(KisTimeBasedItemModel::FrameEditableRole == KisTimeBasedItemModel::FrameCachedRole + 1);
+    static_assert(KisTimeBasedItemModel::FramesPerSecondRole == KisTimeBasedItemModel::FrameEditableRole + 1);
+    static_assert(KisTimeBasedItemModel::FrameHasContent == KisTimeBasedItemModel::FramesPerSecondRole + 1);
+    static_assert(KisTimeBasedItemModel::WithinClipRange == KisTimeBasedItemModel::FrameHasContent + 1);
+    static_assert(KisTimeBasedItemModel::UserRole == KisTimeBasedItemModel::WithinClipRange + 1);
+
+    QVERIFY(true);
+}
+
+void KisAnimUtilsSchemaContractTest::timeBasedModelOwnershipAndContextSignaturesRemainStable()
+{
+    using SetImage = void (KisTimeBasedItemModel::*)(KisImageWSP);
+    using SetFrameCache = void (KisTimeBasedItemModel::*)(KisAnimationFrameCacheSP);
+    using IsFrameCached = bool (KisTimeBasedItemModel::*)(int);
+    using SetAnimationPlayer = void (KisTimeBasedItemModel::*)(KisCanvasAnimationState *);
+    using SetDocument = void (KisTimeBasedItemModel::*)(KisDocument *);
+    using Document = KisDocument *(KisTimeBasedItemModel::*)() const;
+
+    static_assert(std::is_constructible_v<ConcreteTimeBasedItemModel, QObject *>);
+    static_assert(std::has_virtual_destructor_v<KisTimeBasedItemModel>);
+    static_assert(std::is_same_v<decltype(&KisTimeBasedItemModel::setImage), SetImage>);
+    static_assert(std::is_same_v<decltype(&KisTimeBasedItemModel::setFrameCache), SetFrameCache>);
+    static_assert(std::is_same_v<decltype(&KisTimeBasedItemModel::isFrameCached), IsFrameCached>);
+    static_assert(std::is_same_v<decltype(&KisTimeBasedItemModel::setAnimationPlayer), SetAnimationPlayer>);
+    static_assert(std::is_same_v<decltype(&KisTimeBasedItemModel::setDocument), SetDocument>);
+    static_assert(std::is_same_v<decltype(&KisTimeBasedItemModel::document), Document>);
+
+    QVERIFY(true);
+}
+
+void KisAnimUtilsSchemaContractTest::timeBasedModelTableAndHeaderSignaturesRemainStable()
+{
+    using SetLastVisibleFrame = void (KisTimeBasedItemModel::*)(int);
+    using ColumnCount = int (KisTimeBasedItemModel::*)(const QModelIndex &) const;
+    using Data = QVariant (KisTimeBasedItemModel::*)(const QModelIndex &, int) const;
+    using SetData = bool (KisTimeBasedItemModel::*)(const QModelIndex &, const QVariant &, int);
+    using HeaderData = QVariant (KisTimeBasedItemModel::*)(int, Qt::Orientation, int) const;
+    using SetHeaderData = bool (KisTimeBasedItemModel::*)(int, Qt::Orientation, const QVariant &, int);
+    using ScrubHeader = void (KisTimeBasedItemModel::*)(int);
+
+    static_assert(std::is_same_v<decltype(&KisTimeBasedItemModel::setLastVisibleFrame), SetLastVisibleFrame>);
+    static_assert(std::is_same_v<decltype(&KisTimeBasedItemModel::columnCount), ColumnCount>);
+    static_assert(std::is_same_v<decltype(&KisTimeBasedItemModel::data), Data>);
+    static_assert(std::is_same_v<decltype(&KisTimeBasedItemModel::setData), SetData>);
+    static_assert(std::is_same_v<decltype(&KisTimeBasedItemModel::headerData), HeaderData>);
+    static_assert(std::is_same_v<decltype(&KisTimeBasedItemModel::setHeaderData), SetHeaderData>);
+    static_assert(std::is_same_v<decltype(&KisTimeBasedItemModel::scrubHorizontalHeaderUpdate), ScrubHeader>);
+
+    QVERIFY(true);
+}
+
+void KisAnimUtilsSchemaContractTest::timeBasedModelFrameEditingAndScrubSignaturesRemainStable()
+{
+    using RemoveFrames = bool (KisTimeBasedItemModel::*)(const QModelIndexList &);
+    using RemoveFramesAndOffset = bool (KisTimeBasedItemModel::*)(QModelIndexList);
+    using MirrorFrames = bool (KisTimeBasedItemModel::*)(QModelIndexList);
+    using SetScrubState = void (KisTimeBasedItemModel::*)(bool);
+    using IsScrubbing = bool (KisTimeBasedItemModel::*)();
+
+    static_assert(std::is_same_v<decltype(&KisTimeBasedItemModel::removeFrames), RemoveFrames>);
+    static_assert(std::is_same_v<decltype(&KisTimeBasedItemModel::removeFramesAndOffset), RemoveFramesAndOffset>);
+    static_assert(std::is_same_v<decltype(&KisTimeBasedItemModel::mirrorFrames), MirrorFrames>);
+    static_assert(std::is_same_v<decltype(&KisTimeBasedItemModel::setScrubState), SetScrubState>);
+    static_assert(std::is_same_v<decltype(&KisTimeBasedItemModel::isScrubbing), IsScrubbing>);
+
+    QVERIFY(true);
+}
+
+void KisAnimUtilsSchemaContractTest::timeBasedModelPlaybackSignaturesRemainStable()
+{
+    using SetPlaybackRange = void (KisTimeBasedItemModel::*)(const KisTimeSpan &);
+    using PlaybackQuery = bool (KisTimeBasedItemModel::*)() const;
+    using StopPlayback = void (KisTimeBasedItemModel::*)() const;
+    using CurrentTime = int (KisTimeBasedItemModel::*)() const;
+
+    static_assert(std::is_same_v<decltype(&KisTimeBasedItemModel::setPlaybackRange), SetPlaybackRange>);
+    static_assert(std::is_same_v<decltype(&KisTimeBasedItemModel::isPlaybackActive), PlaybackQuery>);
+    static_assert(std::is_same_v<decltype(&KisTimeBasedItemModel::isPlaybackPaused), PlaybackQuery>);
+    static_assert(std::is_same_v<decltype(&KisTimeBasedItemModel::stopPlayback), StopPlayback>);
+    static_assert(std::is_same_v<decltype(&KisTimeBasedItemModel::currentTime), CurrentTime>);
 
     QVERIFY(true);
 }
