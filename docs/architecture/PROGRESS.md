@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-07 02:00 JST
+- 更新日時: 2026-09-07 02:02 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -2204,6 +2204,12 @@
 - 対象未登録の初回限定構築は未知の対象として失敗し、追加5枠は期待どおり5件失敗した。型特性と正確な関数pointer検査を有効化して成功した。新targetは4工程・8入力で停止線以内に収まり、command SHA-256は`360b8f96d209c47ed7216b068e51807bd4358b5c4d05a5aaad2ba936460ff3b0`、input SHA-256は`05d2b3b883a0edfe9a6ca08bae8ac96f3c6b3063ba868a289665994e40df09d2`である。AUTOMOC header入力は空、Qt Widgets・Test・Gui・Core、gettext、OS frameworkだけへ動的接続し、製品未解決記号は0である。
 - macOSで対象と近傍`libs-widgetutils-KisActionRegistrySchemaContractTest`のCTest 2/2、対象の20回反復、厳格`clang-check`、書式、二回の無作業再構築、公開API検査に成功した。既存`KisActionsSnapshotTest`の1,201工程・2,425入力、製品target、help起動、undo stack操作、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 台帳へ12 APIを追加して23,123件対応、6,681件未対応、`libs/widgetutils`対象headerの残存0件となった。旧`public-api-missing-g321.json`を削除し、追加作業tree・構築木は作成していない。主Ninja木5,885,520 KiB、共有compiler cache 983,096 KiB、最新`build/tdd-macos/public-api-missing-g322.json` 1,776,036 bytes、SHA-256 `265b44b8b7c207536e53ac7a887993c0dffa1323c623d88a385b6b7218be8440`だけを再利用対象として保持する。compiler cacheは144,049件中120,468件、83.63%がhitしている。次の永続作業は第322便の正式不足報告から、全APIを最小閉包で固定できる責務を再選定することである。
+
+### 第322便の監査結果と実装計画
+
+- 正式入力`build/tdd-macos/public-api-missing-g322.json`は公開header 1,548、公開API 29,804、対応済み23,123、未対応6,681、1,776,036 bytes、SHA-256 `265b44b8b7c207536e53ac7a887993c0dffa1323c623d88a385b6b7218be8440`を記録する。`libs/pigment/KoAlphaMaskApplicatorFactory.h`と`KoAlphaMaskApplicatorFactoryImpl.h`の残存各2 API、`KoOptimizedPixelDataScalerU8ToU16FactoryImpl.h`の残存2 API、`KoColorTransformationFactoryRegistry.h`の残存4 APIは重複せず、合計10識別子の整列集合SHA-256は`c542144fcc7b0aa9fbc1d774dfee06e0243b2f673d3f6b1872a3918640f4d85e`である。alpha mask適用器、U8/U16画素拡張器のCPU実装選択、および色変換生成器登録の型・寿命・公開関数型を3枠へ完全に割り当てる。
+- 新規`libs/pigment/tests/KoColorOperationFactorySchemaContractTest.cpp`を作り、pigment・global・multiarchのsource・generated探索路、Qt Core・Gui・Test、header-only Boost・xsimd、3 export定義だけへ接続する。近傍`KoOptimizedCompositeOpFactorySchemaContractTest`は4工程・8入力、command SHA-256 `d2801b83ac928ce3a2c6104afb39805b78583bca3668e2cee965d04eb9b30cfc`、input SHA-256 `d959ee2f9245ebad9821e83903c3a22c5370efe38171591d5e92fdbd7ef7d528`である。新targetもテンプレート本文と生成物を実体化しない4工程・8入力を予測し、停止線を5工程・11入力とする。
+- `g322-color-operation-factory-schema`の状態は`planned`、実装基点は`af89f6532f`である。許可pathを新規試験sourceと`libs/pigment/tests/CMakeLists.txt`の新target固有節だけに限定し、公開header、製品source、CPU別生成物を変更しない。適用器、画素拡張器、色変換生成器を生成・登録せず、局所CPU型による未評価の関数pointerだけを検査する。macOSの対象、近傍、追加3枠の20回反復、厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。製品target、CPU別OBJECT、全体build・`verify`、Linux、Nix再評価は実行しない。
 
 ### 第239便の先行監査担当票
 
