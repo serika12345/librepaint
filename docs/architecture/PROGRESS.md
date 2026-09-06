@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-07 07:42 JST
+- 更新日時: 2026-09-07 07:45 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -2644,6 +2644,13 @@
 - 対象固有CMake節へQt Widgets interface探索路だけを追加した。初回限定構築は期待どおり追加5試験関数の未定義linkだけで失敗し、契約実装後に成功した。最終targetは4工程・8入力、command SHA-256 `f6980597cb77f357d7cff7c8bc5bb5d7c146224767eef23e5ce50e3ccfc1632e`、input SHA-256 `af905ae01c2fb52319d77d689f78b23285045921c376f383f2b8c05c3b4a6523`を維持した。AUTOMOC header入力は空、Qt Core・Test、gettext、OS frameworkだけへ動的接続し、製品未解決記号は0件である。
 - macOSで対象と軽量近傍`libs-ui-KisCurveWidgetSchemaContractTest`のCTest、追加5枠の各20回反復、試験sourceの厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`に成功した。開始実装の厳格検査は既存Qt 6非推奨`QMouseEvent::y()`の3件だけで停止した。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 台帳へ16 APIを追加して24,370件対応、5,434件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g350.json`を最新報告の検証後に削除し、追加作業tree・構築木は作成していない。主Ninja木5,918,064 KiB、共有compiler cache 982,312 KiB、最新`build/tdd-macos/public-api-missing-g351.json` 1,437,513 bytes、SHA-256 `08e502981a41d54b190e1d0797255ac2f14b3c7ccf2eab30875f03ffad12bd03`だけを再利用対象として保持する。compiler cacheは144,178件中120,486件、83.57%がhitしている。次の永続作業は第351便で次の高密度なmacOS対象と最小構築面を選定することである。
+
+### 第351便の監査結果と実装計画
+
+- 正式入力`build/tdd-macos/public-api-missing-g351.json`は公開header 1,548、公開API 29,804、対応済み24,370、未対応5,434、1,437,513 bytes、SHA-256 `08e502981a41d54b190e1d0797255ac2f14b3c7ccf2eab30875f03ffad12bd03`を記録する。`libs/ui/actions/KisPasteActionFactories.h`の残存全21 APIを、基本paste型・flag6、基本paste構築・配送3、paste-into型3、paste-new・reference型6、shape-style型3の5枠へ完全に対応付ける。識別子整列集合のSHA-256は`e46b8a5d3efce1ef0697c69579365dbe5232bb5f01d872ef1ace48511a4843a6`である。
+- 開始headerはoperation基底、設定値と引数なしfactory基底を、inline XML配送と5具象型の公開定義に直接必要な所有headerへ対応付けている。重複includeを除いても同じ基底経路から閉包が残り、2直接利用翻訳単位だけであるため構築範囲は縮まらない。開始実装の厳格`clang-check`は診断0件であり、先行する構造変更は不要である。
+- 既存`libs/ui/tests/KisSelectionActionFactoriesSchemaContractTest.cpp`は110行・5枠で、追加5枠後も300行・20枠未満に収まる。既存targetはCMake File API上で自動生成依存だけを持ち、CMake変更なしで4工程・8入力、command SHA-256 `ad5bf96739a5a1a01c0d8d4a8639476fd2c0f543e0a495cd90176cd5ea7eee07`、input SHA-256 `d540cd78822c18f3fdc3f681bf3729bd79338640d41fca3dd1fe5c45f294376e`である。Qt Core・Test、gettext、OS frameworkだけへ動的接続し、製品libraryを要求しない。停止線を5工程・11入力、300行・20枠とする。
+- `g351-paste-action-factories-schema`の状態は`in_progress`、実装基点は`0b0f6b6e79`である。変更は既存試験sourceの追加5枠だけに限定し、型特性、flag値、具象構築、厳密な公開関数pointerで貼り付け操作factoryの公開接続面を固定する。macOSの対象、追加5枠の20回反復、試験sourceの厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。CMake、公開header、製品source、製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
 
 ### 第239便の先行監査担当票
 
