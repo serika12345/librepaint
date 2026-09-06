@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-06 11:41 JST
+- 更新日時: 2026-09-06 11:44 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1461,7 +1461,7 @@
 ### 第272便の監査結果と担当計画
 
 - `plugins/color/colorspaceextensions/kis_hsv_adjustment.h`の残存全18 APIは一意かつ台帳と非重複で、識別子整列集合SHA-256 `41edeb9be329144f39c1e7d8b62ab4dd00a17763904b83646959ac2e1a57f138`を持つ。HSV工場の型・構築2、対応形式・変換生成2、HSV曲線工場の型・構築2、対応形式・変換生成2、曲線channel列挙型と9値10の5枠へ割り当てる。列挙値`0..8`を値契約で固定し、工場と生成関数は型特性と厳密member pointerで観測する。実色空間と変換実体を使う生成結果は後続の動的契約で扱う。
-- `g272-hsv-adjustment-schema`の状態は`planned`とする。許可pathは新規`plugins/color/colorspaceextensions/tests/KisHSVAdjustmentSchemaContractTest.cpp`、新規`plugins/color/colorspaceextensions/tests/CMakeLists.txt`、親`plugins/color/colorspaceextensions/CMakeLists.txt`のtest subdirectory追加だけとし、候補header、製品source、製品targetを変更しない。新targetはcolorspaceextensionsとpigmentのsource/generated探索路、`kritapigment_EXPORTS`、Qt Core・Testだけの直接linkによる4工程・8入力を予測し、停止線5工程・11入力とする。候補headerのAUTOMOC入力化、Qt Gui・Widgets・Xml、KF、OpenEXR・Imath、Boost、`kritapigment`・`kritaglobal`・plugin製品target・OBJECT、`kritatestsdk`、`KoID`完全型、工場実体化、製品未解決記号、許可path外変更が必要なら停止する。第271便完了後に開始する。
+- `g272-hsv-adjustment-schema`の状態は`in_progress`、実装基点は`7a4bebab69`、専用作業treeは`/Users/masato/Documents/librepaint-g272-hsv-adjustment-schema`、branchは`agent/g272-hsv-adjustment-schema`、macOSの対象と軽量近傍に限る構築実行許可は`granted`である。許可pathは新規`plugins/color/colorspaceextensions/tests/KisHSVAdjustmentSchemaContractTest.cpp`、新規`plugins/color/colorspaceextensions/tests/CMakeLists.txt`、親`plugins/color/colorspaceextensions/CMakeLists.txt`のtest subdirectory追加だけとし、候補header、製品source、製品targetを変更しない。最新`public-api-missing-g272.json`で残存18 APIと台帳非重複を再確認した。新targetはcolorspaceextensionsとpigmentのsource/generated探索路、`kritapigment_EXPORTS`、Qt Core・Testだけの直接linkによる4工程・8入力を予測し、停止線5工程・11入力とする。候補headerのAUTOMOC入力化、Qt Gui・Widgets・Xml、KF、OpenEXR・Imath、Boost、`kritapigment`・`kritaglobal`・plugin製品target・OBJECT、`kritatestsdk`、`KoID`完全型、工場実体化、製品未解決記号、許可path外変更が必要なら停止する。
 
 ### 第273便の先行監査担当票
 
