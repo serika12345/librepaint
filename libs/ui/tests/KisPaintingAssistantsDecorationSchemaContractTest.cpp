@@ -142,8 +142,8 @@ void KisPaintingAssistantsDecorationSchemaContractTest::assistantSelectionVisibi
     QVERIFY(true);
 }
 
-void KisPaintingAssistantsDecorationSchemaContractTest::
-    assistantAdjustmentSnappingColorAndNotificationSchemaRemainStable()
+// clang-format off
+void KisPaintingAssistantsDecorationSchemaContractTest::assistantAdjustmentSnappingColorAndNotificationSchemaRemainStable()
 {
     using Decoration = KisPaintingAssistantsDecoration;
     using NoArgument = void (Decoration::*)();
@@ -166,6 +166,7 @@ void KisPaintingAssistantsDecorationSchemaContractTest::
 
     QVERIFY(true);
 }
+// clang-format on
 
 QTEST_GUILESS_MAIN(KisPaintingAssistantsDecorationSchemaContractTest)
 

@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 5940
+    "expectedMissingApis": 5858
   },
   "contracts": [
     {
@@ -66494,6 +66494,133 @@
         "method:KisPaintingAssistantFactoryRegistry::KisPaintingAssistantFactoryRegistry()",
         "method:KisPaintingAssistantFactoryRegistry::instance()",
         "method:KisPaintingAssistantFactoryRegistry::~KisPaintingAssistantFactoryRegistry()"
+      ]
+    },
+    {
+      "target": "KisPaintingAssistantsDecorationSchemaContractTest",
+      "source": "libs/ui/tests/KisPaintingAssistantsDecorationSchemaContractTest.cpp",
+      "test": "KisPaintingAssistantsDecorationSchemaContractTest::canvasDecorationTypeAndControlSchemaRemainStable",
+      "behavior": "canvas装飾基底は共有所有、view接続、識別・表示・優先度、描画入口、canvas widget接続とwindow最小化通知の正確な公開型と関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisCanvasDecorationSP",
+        "class:KisCanvasDecoration",
+        "method:KisCanvasDecoration::KisCanvasDecoration(const QString & id,QPointer<KisView> parent)",
+        "method:KisCanvasDecoration::comparePriority(KisCanvasDecorationSP decoration1,KisCanvasDecorationSP decoration2)",
+        "method:KisCanvasDecoration::id() const",
+        "method:KisCanvasDecoration::notifyWindowMinimized(bool minimized)",
+        "method:KisCanvasDecoration::paint(QPainter & gc,const QRectF & updateRect,const KisCoordinatesConverter * converter,KisCanvas2 * canvas)",
+        "method:KisCanvasDecoration::priority() const",
+        "method:KisCanvasDecoration::setCanvasWidget(KisCanvasWidgetBase * canvas)",
+        "method:KisCanvasDecoration::setView(QPointer<KisView> imageView)",
+        "method:KisCanvasDecoration::setVisible(bool v)",
+        "method:KisCanvasDecoration::toggleVisibility()",
+        "method:KisCanvasDecoration::visible() const",
+        "method:KisCanvasDecoration::~KisCanvasDecoration()"
+      ]
+    },
+    {
+      "target": "KisPaintingAssistantsDecorationSchemaContractTest",
+      "source": "libs/ui/tests/KisPaintingAssistantsDecorationSchemaContractTest.cpp",
+      "test": "KisPaintingAssistantsDecorationSchemaContractTest::assistantEditorDataSchemaRemainStable",
+      "behavior": "assistant editor dataはbutton状態・寸法・配置、drag幅、表示領域と操作iconを保持する公開memberの正確な型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:AssistantEditorData::boundingSize",
+        "member:AssistantEditorData::buttonPadding",
+        "member:AssistantEditorData::buttonSize",
+        "member:AssistantEditorData::buttoncount",
+        "member:AssistantEditorData::deleteButtonActivated",
+        "member:AssistantEditorData::deleteIconPosition",
+        "member:AssistantEditorData::dragDecorationWidth",
+        "member:AssistantEditorData::duplicateButtonActivated",
+        "member:AssistantEditorData::duplicateIconPosition",
+        "member:AssistantEditorData::horizontalButtonLimit",
+        "member:AssistantEditorData::lockButtonActivated",
+        "member:AssistantEditorData::lockedIconPosition",
+        "member:AssistantEditorData::m_iconDelete",
+        "member:AssistantEditorData::m_iconDuplicate",
+        "member:AssistantEditorData::m_iconLockOff",
+        "member:AssistantEditorData::m_iconLockOn",
+        "member:AssistantEditorData::m_iconMove",
+        "member:AssistantEditorData::m_iconSnapOff",
+        "member:AssistantEditorData::m_iconSnapOn",
+        "member:AssistantEditorData::moveButtonActivated",
+        "member:AssistantEditorData::moveIconPosition",
+        "member:AssistantEditorData::snapButtonActivated",
+        "member:AssistantEditorData::snapIconPosition",
+        "member:AssistantEditorData::widgetActivated",
+        "member:AssistantEditorData::widgetOffset",
+        "struct:AssistantEditorData"
+      ]
+    },
+    {
+      "target": "KisPaintingAssistantsDecorationSchemaContractTest",
+      "source": "libs/ui/tests/KisPaintingAssistantsDecorationSchemaContractTest.cpp",
+      "test": "KisPaintingAssistantsDecorationSchemaContractTest::assistantDecorationTypeAndCollectionSchemaRemainStable",
+      "behavior": "painting assistant装飾はcanvas装飾継承、共有所有、editor data、assistantとhandle集合の追加・並替え・除去・置換・照会・cache無効化の正確な公開面を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisPaintingAssistantsDecorationSP",
+        "class:KisPaintingAssistantsDecoration",
+        "member:KisPaintingAssistantsDecoration::globalEditorWidgetData",
+        "method:KisPaintingAssistantsDecoration::KisPaintingAssistantsDecoration(QPointer<KisView> parent)",
+        "method:KisPaintingAssistantsDecoration::addAssistant(KisPaintingAssistantSP assistant)",
+        "method:KisPaintingAssistantsDecoration::assistants() const",
+        "method:KisPaintingAssistantsDecoration::handles()",
+        "method:KisPaintingAssistantsDecoration::hasPaintableAssistants() const",
+        "method:KisPaintingAssistantsDecoration::raiseAssistant(KisPaintingAssistantSP assistant)",
+        "method:KisPaintingAssistantsDecoration::removeAll()",
+        "method:KisPaintingAssistantsDecoration::removeAssistant(KisPaintingAssistantSP assistant)",
+        "method:KisPaintingAssistantsDecoration::setAssistants(const QList<KisPaintingAssistantSP> & assistants)",
+        "method:KisPaintingAssistantsDecoration::uncache()",
+        "method:KisPaintingAssistantsDecoration::~KisPaintingAssistantsDecoration()"
+      ]
+    },
+    {
+      "target": "KisPaintingAssistantsDecorationSchemaContractTest",
+      "source": "libs/ui/tests/KisPaintingAssistantsDecorationSchemaContractTest.cpp",
+      "test": "KisPaintingAssistantsDecorationSchemaContractTest::assistantSelectionVisibilityAndSizeSchemaRemainStable",
+      "behavior": "painting assistant装飾はeditor活性状態、選択assistant、assistant・outline表示、単一assistant・eraser snap方針とhandle寸法の正確な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPaintingAssistantsDecoration::activateAssistantsEditor()",
+        "method:KisPaintingAssistantsDecoration::assistantVisibility()",
+        "method:KisPaintingAssistantsDecoration::deactivateAssistantsEditor()",
+        "method:KisPaintingAssistantsDecoration::deselectAssistant()",
+        "method:KisPaintingAssistantsDecoration::handleSize()",
+        "method:KisPaintingAssistantsDecoration::isEditingAssistants()",
+        "method:KisPaintingAssistantsDecoration::outlineVisibility()",
+        "method:KisPaintingAssistantsDecoration::selectedAssistant()",
+        "method:KisPaintingAssistantsDecoration::setAssistantVisible(bool set)",
+        "method:KisPaintingAssistantsDecoration::setEraserSnap(bool assistant)",
+        "method:KisPaintingAssistantsDecoration::setHandleSize(int handleSize)",
+        "method:KisPaintingAssistantsDecoration::setOnlyOneAssistantSnap(bool assistant)",
+        "method:KisPaintingAssistantsDecoration::setOutlineVisible(bool set)",
+        "method:KisPaintingAssistantsDecoration::setSelectedAssistant(KisPaintingAssistantSP assistant)"
+      ]
+    },
+    {
+      "target": "KisPaintingAssistantsDecorationSchemaContractTest",
+      "source": "libs/ui/tests/KisPaintingAssistantsDecorationSchemaContractTest.cpp",
+      "test": "KisPaintingAssistantsDecorationSchemaContractTest::assistantAdjustmentSnappingColorAndNotificationSchemaRemainStable",
+      "behavior": "painting assistant装飾はstroke位置補正、guide snap、global色、表示切替・設定更新slotとassistant変更通知の正確な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPaintingAssistantsDecoration::adjustLine(QPointF & point,QPointF & strokeBegin)",
+        "method:KisPaintingAssistantsDecoration::adjustPosition(const QPointF & point,const QPointF & strokeBegin)",
+        "method:KisPaintingAssistantsDecoration::assistantChanged()",
+        "method:KisPaintingAssistantsDecoration::endStroke()",
+        "method:KisPaintingAssistantsDecoration::globalAssistantsColor()",
+        "method:KisPaintingAssistantsDecoration::selectedAssistantChanged()",
+        "method:KisPaintingAssistantsDecoration::setAdjustedBrushPosition(const QPointF position)",
+        "method:KisPaintingAssistantsDecoration::setGlobalAssistantsColor(QColor color)",
+        "method:KisPaintingAssistantsDecoration::slotConfigChanged()",
+        "method:KisPaintingAssistantsDecoration::slotUpdateDecorationVisibility()",
+        "method:KisPaintingAssistantsDecoration::snapToGuide(KoPointerEvent * e,const QPointF & offset,bool useModifiers)",
+        "method:KisPaintingAssistantsDecoration::snapToGuide(const QPointF & pt,const QPointF & offset)",
+        "method:KisPaintingAssistantsDecoration::toggleAssistantVisible()",
+        "method:KisPaintingAssistantsDecoration::toggleOutlineVisible()"
       ]
     }
   ]
