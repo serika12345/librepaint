@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-07 00:13 JST
+- 更新日時: 2026-09-07 00:16 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -2072,6 +2072,12 @@
 - 対象未登録の初回限定構築は未知の対象、登録後の宣言だけの5枠は5個の未定義symbolとして期待どおり失敗した。新targetは4工程・8入力で停止線以内に収まり、command SHA-256は`78cc1c993c95b615959c7f3edaf7e981f5fe8181822efb24650e789aa353cba8`、input SHA-256は`1a4a00ff307e1ccd133fbfb2b4e1fee0d22c079a5deedd0f3c78b5c9bd501459`である。候補headerのAUTOMOC `HEADERS`は空で、Qt Gui・Test・Core、gettext、OS frameworkだけへ動的接続し、製品未解決記号は0である。
 - macOSで対象と近傍`libs-brush-KisAutoBrushSchemaContractTest`のCTest 2/2、対象の20回反復、厳格`clang-check`、書式、二回の無作業再構築、公開API検査に成功した。既存text brush効果枠を含む`kis_imagepipe_brush_test`の1,227工程・2,475入力は構築していない。実書体描画、pipe選択、dab画素、XML内容は既存または後続の効果契約で扱う。
 - 台帳へ28 APIを追加して22,982件対応、6,822件未対応、対象headerの残存0件となった。旧`public-api-missing-g311.json`を削除し、追加作業tree・構築木は作成していない。主Ninja木5,872,584 KiB、共有compiler cache 983,404 KiB、最新`build/tdd-macos/public-api-missing-g312.json` 1,812,056 bytes、SHA-256 `96abc84368785d59b2f6c238a6e931629384f521cc2cc95664c5b1bc54de689d`だけを再利用対象として保持する。compiler cacheは144,016件中120,465件、83.65%がhitしている。製品target、既存の大規模text brush効果試験、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第312便の正式不足報告から、全APIを最小閉包で固定できる責務を再選定することである。
+
+### 第312便の監査結果と実装計画
+
+- 正式入力`build/tdd-macos/public-api-missing-g312.json`は公開header 1,548、公開API 29,804、対応済み22,982、未対応6,822、1,812,056 bytes、SHA-256 `96abc84368785d59b2f6c238a6e931629384f521cc2cc95664c5b1bc54de689d`を記録する。`libs/brush/kis_gbr_brush.h`の残存全15 APIは重複なく、識別子整列集合SHA-256は`ef76bd5d3afb2712bad1ae5c56015ae9dbebb576e70b3db60c20162b0f15809c`である。型・構築・寿命9、資源I/O 5、mask画像化1の3枠へ完全に割り当てる。
+- 既存`kis_gbr_brush_test`は製品`kritaimage`・`kritalibbrush`と`kritatestsdk`へ接続する1,227工程・2,475入力であり、GBR brushの公開宣言面だけを追加する対象として広すぎる。新規`libs/brush/tests/KisGbrBrushSchemaContractTest.cpp`を作り、直前の`KisTextBrushSchemaContractTest`と同じbrush・global・image・resources探索路、Qt Core・Gui・Test、header-only Boost、KF I18nのinterface探索路、brush・resources export定義だけへ接続する。近傍は4工程・8入力、command SHA-256 `78cc1c993c95b615959c7f3edaf7e981f5fe8181822efb24650e789aa353cba8`、input SHA-256 `1a4a00ff307e1ccd133fbfb2b4e1fee0d22c079a5deedd0f3c78b5c9bd501459`である。新targetも4工程・8入力を予測し、停止線を5工程・11入力とする。
+- `g312-gbr-brush-schema`の状態は`planned`、実装基点は`80c9a181f5`である。許可pathを新規試験sourceと`libs/brush/tests/CMakeLists.txt`の新target固有節だけに限定し、公開headerと製品sourceを変更しない。GBR brush・画像・描画装置・資源装置を実体化せず、inline本文を実行しない。macOSの対象、近傍、追加3枠の20回反復、厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。製品target、既存の大規模GBR brush効果試験、全体build・`verify`、Linux、Nix再評価は実行しない。
 
 ### 第239便の先行監査担当票
 
