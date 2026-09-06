@@ -1636,6 +1636,50 @@ set_target_properties(kritauiscreeninformationobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritauiopenglupdateinfoobjects OBJECT
+    opengl/kis_opengl_update_info.cpp
+)
+target_compile_definitions(kritauiopenglupdateinfoobjects PRIVATE
+    kritaapplicationui_EXPORTS
+    kritacanvas_EXPORTS
+    kritaglobal_EXPORTS
+    kritaimage_EXPORTS
+    kritapigment_EXPORTS
+)
+target_include_directories(kritauiopenglupdateinfoobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/application>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/canvas>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/canvas>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/image>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/image>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/pigment>
+        $<TARGET_PROPERTY:KF${KF_MAJOR}::ConfigCore,INTERFACE_INCLUDE_DIRECTORIES>
+        $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
+)
+target_link_libraries(kritauiopenglupdateinfoobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Widgets
+        Qt${QT_MAJOR_VERSION}::Xml
+        Boost::boost
+        Eigen3::Eigen
+        Imath::ImathConfig
+)
+set_target_properties(kritauiopenglupdateinfoobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 if(WIN32)
     target_link_libraries(kritauiscreeninformationobjects PUBLIC dxgi)
     set_source_files_properties(
@@ -1650,6 +1694,7 @@ add_subdirectory( tests )
 
 set(kritaui_LIB_SRCS
     $<TARGET_OBJECTS:kritauiopenglrendererconfigobjects>
+    $<TARGET_OBJECTS:kritauiopenglupdateinfoobjects>
     $<TARGET_OBJECTS:kritauimodelindexconverterbaseobjects>
     $<TARGET_OBJECTS:kritauispinboxsplineunitconverterobjects>
     $<TARGET_OBJECTS:kritauiexposuregammacorrectionobjects>
@@ -1831,7 +1876,6 @@ set(kritaui_LIB_SRCS
     opengl/kis_opengl_image_textures.cpp
     opengl/kis_texture_tile.cpp
     opengl/kis_opengl_shader_loader.cpp
-    opengl/kis_opengl_update_info.cpp
     opengl/KisOpenGLUpdateInfoBuilder.cpp
     opengl/KisOpenGLModeProber.cpp
     $<TARGET_OBJECTS:kritauiscreeninformationobjects>
