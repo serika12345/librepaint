@@ -26,6 +26,10 @@ private Q_SLOTS:
     void colorValueQColorInterchangeSignaturesRemainStable();
     void colorValueOpacitySignaturesRemainStable();
     void colorValueChannelArithmeticSignaturesRemainStable();
+    void colorSpaceConversionSignaturesRemainStable();
+    void colorSerializationSignaturesRemainStable();
+    void colorMetadataSignaturesRemainStable();
+    void colorFormattingAndDiagnosticSignaturesRemainStable();
 };
 
 void KoColorValueSchemaContractTest::colorValueConstructionAndCopySchemaRemainsStable()
@@ -77,6 +81,49 @@ void KoColorValueSchemaContractTest::colorValueChannelArithmeticSignaturesRemain
     ASSERT_KO_COLOR_SIGNATURE(added, KoColor (KoColor::*)(const KoColor &) const);
     ASSERT_KO_COLOR_SIGNATURE(subtract, void (KoColor::*)(const KoColor &));
     ASSERT_KO_COLOR_SIGNATURE(subtracted, KoColor (KoColor::*)(const KoColor &) const);
+}
+
+void KoColorValueSchemaContractTest::colorSpaceConversionSignaturesRemainStable()
+{
+    using Intent = KoColorConversionTransformation::Intent;
+    using ConversionFlags = KoColorConversionTransformation::ConversionFlags;
+
+    ASSERT_KO_COLOR_SIGNATURE(convertTo, void (KoColor::*)(const KoColorSpace *));
+    ASSERT_KO_COLOR_SIGNATURE(convertTo, void (KoColor::*)(const KoColorSpace *, Intent, ConversionFlags));
+    ASSERT_KO_COLOR_SIGNATURE(convertedTo, KoColor (KoColor::*)(const KoColorSpace *) const);
+    ASSERT_KO_COLOR_SIGNATURE(convertedTo, KoColor (KoColor::*)(const KoColorSpace *, Intent, ConversionFlags) const);
+}
+
+void KoColorValueSchemaContractTest::colorSerializationSignaturesRemainStable()
+{
+    using ProfileMap = QHash<QString, const KoColorProfile *>;
+
+    ASSERT_KO_COLOR_SIGNATURE(fromSVG11, KoColor (*)(QString, ProfileMap, KoColor));
+    ASSERT_KO_COLOR_SIGNATURE(fromXML, KoColor (*)(const QDomElement &, const QString &));
+    ASSERT_KO_COLOR_SIGNATURE(fromXML, KoColor (*)(const QDomElement &, const QString &, bool *));
+    ASSERT_KO_COLOR_SIGNATURE(fromXML, KoColor (*)(const QString &));
+    ASSERT_KO_COLOR_SIGNATURE(toSVG11, QString (KoColor::*)(ProfileMap *) const);
+    ASSERT_KO_COLOR_SIGNATURE(toXML, QString (KoColor::*)() const);
+    ASSERT_KO_COLOR_SIGNATURE(toXML, void (KoColor::*)(QDomDocument &, QDomElement &) const);
+
+    static_assert(std::is_same_v<decltype(KoColor::fromSVG11(QString(), ProfileMap())), KoColor>);
+}
+
+void KoColorValueSchemaContractTest::colorMetadataSignaturesRemainStable()
+{
+    using Metadata = QMap<QString, QVariant>;
+
+    ASSERT_KO_COLOR_SIGNATURE(addMetadata, void (KoColor::*)(QString, QVariant));
+    ASSERT_KO_COLOR_SIGNATURE(clearMetadata, void (KoColor::*)());
+    ASSERT_KO_COLOR_SIGNATURE(metadata, Metadata (KoColor::*)() const);
+}
+
+void KoColorValueSchemaContractTest::colorFormattingAndDiagnosticSignaturesRemainStable()
+{
+    ASSERT_KO_COLOR_SIGNATURE(dump, void (KoColor::*)() const);
+    ASSERT_KO_COLOR_SIGNATURE(toQString, QString (*)(const KoColor &));
+    static_assert(std::is_same_v<decltype(static_cast<QDebug (*)(QDebug, const KoColor &)>(&operator<<)),
+                                 QDebug (*)(QDebug, const KoColor &)>);
 }
 
 QTEST_GUILESS_MAIN(KoColorValueSchemaContractTest)
