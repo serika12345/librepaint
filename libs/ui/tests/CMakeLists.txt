@@ -247,6 +247,20 @@ target_compile_definitions(KisGridConfigValueContractTest PRIVATE
 )
 
 kis_add_test(
+    KisDerivedResourcesSchemaContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KisDerivedResourcesSchemaContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/flake
+    ${CMAKE_BINARY_DIR}/libs/flake
+)
+target_compile_definitions(KisDerivedResourcesSchemaContractTest PRIVATE kritaflake_EXPORTS)
+
+kis_add_test(
     KisGuidesConfigSchemaContractTest.cpp
     LINK_LIBRARIES
         Qt${QT_MAJOR_VERSION}::Test
