@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-06 15:35 JST
+- 更新日時: 2026-09-06 15:47 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1623,8 +1623,9 @@
 - `libs/ui/opengl/KisOpenGLUpdateInfoBuilder.h`の残存全18 APIは一意かつ台帳と非重複で、識別子整列集合SHA-256 `162ecaf291ef67d399e85429cdfc22bfbcf1419acca50c7026bdc00222ee4242`を持つ。型・構築・寿命3、texture寸法・境界・2矩形算出4、x・y tile位置変換2、色変換・channel指定3、tile pool・proofing設定4と2更新構築経路2の5枠へ完全に割り当てる。設定値の保持、矩形の画像境界切詰め、境界拡張とLoD整列、負座標を含むtile位置変換、借用色空間と共有設定の同一性を動的に固定し、画像・paint deviceを要する2更新構築経路は厳密署名で固定する。
 - 現在の`libs/ui/opengl/KisOpenGLUpdateInfoBuilder.cpp`は設定保持・tile幾何と、画像・paint device・色変換・proofingを伴う更新構築を同じ製品compile単位に所有する。製品`kritaapplicationui`は1,974工程・3,948入力、command SHA-256 `2626349d86f3f509bad3e4b3457c4d69a2c291ac8f7e9aa31781c1fea634d087`、input SHA-256 `a776fd8aec0d3ace7e23950e933deb6e4ddb9ea23bbca83407a42930fbfe6748`である。最寄りの`KisOpenGLUpdateInfoContractTest`は7工程・15入力、command SHA-256 `924a00a6cc6a36a61202ad6e1a43545331e29b027f1b40265bc382e0eee5c366`、input SHA-256 `b705be48ae39ee29630a55859d7b7cda0dbeba00af1ffd9671574c9a5184be2a`であり、製品libraryや既存重量`KisFrameCacheSwapperTest`へ契約を接続する案を棄却する。
 - 比較したmulti-double filter widgetはslider・timer・設定とglobal資源、paint device cacheとlayer style補助は画像・選択・色空間・効果設定、dab描画queueは既存動的試験でも2,139工程・4,273入力を要する。自動keyframeは既存動的試験が1,201工程・2,425入力であり、stroke互換情報は既定値と等価比較だけでも色・資源値実装が必要である。更新情報ビルダーは主要状態と幾何計算を具体的所有単位へ分離すれば、18 API中16件の挙動を小さい閉包で観測できるため先行する。
-- `g280a-update-info-builder-state-boundary`の状態は`planned`、実装基点は`5d4a42889a`である。開始`libs/ui/opengl/KisOpenGLUpdateInfoBuilder.cpp`のprivate状態定義を新規内部実装断片`libs/ui/opengl/KisOpenGLUpdateInfoBuilderPrivate.inc`へ、構築・破棄、tile矩形・位置計算、色変換・channel・texture・tile pool・proofing設定を新規`libs/ui/opengl/KisOpenGLUpdateInfoBuilderState.cpp`へ移す。2つの`buildUpdateInfo()`は開始sourceに残し、`libs/ui/CMakeLists.txt`の製品直接sourceを、重い開始sourceと新規AUTOMOC不要・位置独立`kritauiopenglupdateinfobuilderstateobjects`の再集約へ置き換える。公開header、API、ABI、実装本文、同期方法、利用元を変更しない。
-- 新objectを1工程・3入力程度、続く新規`KisOpenGLUpdateInfoBuilderContractTest`を8工程・20入力以内と見積もる。担当側と中央でobject単独構築、厳格構文、近傍2契約、二回の無作業再構築、製品への再集約1回、製品計画の増分、公開API検査、`verify-quick`を確認する。製品target、既存重量試験、全体build・`verify`、Linux、Nix再評価を実行しない。
+- `g280a-update-info-builder-state-boundary`の状態は`integrated`、実装基点は`5d4a42889a`である。開始`libs/ui/opengl/KisOpenGLUpdateInfoBuilder.cpp`のprivate状態定義を新規内部実装断片`libs/ui/opengl/KisOpenGLUpdateInfoBuilderPrivate.inc`へ、構築・破棄、tile矩形・位置計算、色変換・channel・texture・tile pool・proofing設定を新規`libs/ui/opengl/KisOpenGLUpdateInfoBuilderState.cpp`へ移した。2つの`buildUpdateInfo()`は開始sourceに残し、`libs/ui/CMakeLists.txt`で新規AUTOMOC不要・位置独立`kritauiopenglupdateinfobuilderstateobjects`を製品へ1回だけ再集約した。公開headerとして採取された初期private `.h`案は内部`.inc`へ改め、公開header 1,548件・API 29,804件、API、ABI、実装本文、同期方法、利用元を維持した。受渡しcommit `2c32921473`を中央commit `a01f3039ff`として取り込んだ。
+- 新objectは担当側と中央で1工程・3入力となり、担当側command SHA-256 `60b6610ca9daa08e48b01710495d5139b3b80f14489b108f35fbcf9069c8c460`、input SHA-256 `1bc6588a87a7d7f83a586b259822e350ef6d32d5069680f5ab808c7733eac3d5`、中央command SHA-256 `409e4c75d11852404571be7fb3e512e8b22fb3a36a4574aa34f1576cab61f334`、input SHA-256 `cbbfa0059a93b1b8378c127a42d55d8390854de647d07b25f20bb22d232f91a5`である。製品`kritaapplicationui`は1,975工程・3,950入力となり、分離した状態sourceの1工程・2入力だけ増えた。状態objectと重い開始sourceの厳格`clang-check`、近傍`KisOpenGLUpdateInfoContractTest`・`KisScreenInformationAdapterContractTest`、二回の無作業再構築、製品への再集約1回、公開API検査、`verify-quick`に成功した。受渡し差分と中央差分のpatch ID `b94bb6c3a2fd6924e4b6beaad7252bb9aea3d182`の一致と専用作業treeのcleanを確認し、305,472 KiBの構築木を含む591,152 KiBの作業treeとbranchを削除した。
+- 続く`g280-update-info-builder-contract`の状態は`planned`、実装基点は`a01f3039ff`である。新規`libs/ui/tests/KisOpenGLUpdateInfoBuilderContractTest.cpp`と同target固有の`libs/ui/tests/CMakeLists.txt`節だけへ18 API・5枠を追加し、新しい状態objectとQt Testを直接接続する。停止線は8工程・20入力、試験側AUTOMOC `HEADERS=[]`、Qt Test・CoreとOS frameworkだけの動的接続、製品未解決記号0である。担当側と中央で追加5枠を各20回、対象と近傍2契約、厳格構文、二回の無作業再構築、動的接続・未解決記号、公開API検査、`verify-quick`を確認する。製品target、既存重量試験、全体build・`verify`、Linux、Nix再評価を実行しない。
 
 ### 第239便の先行監査担当票
 
