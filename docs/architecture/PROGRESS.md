@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-06 23:30 JST
+- 更新日時: 2026-09-06 23:37 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -2012,7 +2012,14 @@
 
 - 正式入力`build/tdd-macos/public-api-missing-g307.json`は公開header 1,548、公開API 29,804、対応済み22,819、未対応6,985、1,855,005 bytes、SHA-256 `ab5c51fda130ac877c7a2e8ea1698933454699a9c0961b887630668e921699fc`を記録する。`libs/pigment/KoColorSpaceAbstract.h`の残存全32 APIは重複なく、識別子整列集合SHA-256は`65d6bd510ff2f9846c38384703df4a1ceb187fdbf522d5da8c4e7a2c5702dcaf`である。型・構築3、channel構造・表現8、opacity・alpha mask 10、channel可視化・brush充填7、強度・変換生成4の5枠へ完全に割り当てる。
 - 既存`TestKoColorSpaceAbstract`は製品`kritapigment`と`kritatestsdk`へ接続する371工程・771入力であり、template基底の公開委譲面だけを追加する対象として広すぎる。新規`libs/pigment/tests/KoColorSpaceAbstractSchemaContractTest.cpp`を作り、既存`KoColorSpaceSchemaContractTest`と`KoCompositeOpsSchemaContractTest`の探索路を再利用し、Qt Core・Gui・Test、Imath・Boost header interface、KF I18nのinterface探索路だけへ接続する。近傍`KoColorSpaceSchemaContractTest`は4工程・8入力、command SHA-256 `d378193cb6c3164cbb73a2a31040e4fdbd5e76db19ddd26e3372634128af2462`、input SHA-256 `b2f84cf956475e56944f8b016b636477d0efcc682a59f214e67ccf1020d411b2`である。新targetも4工程・8入力を予測し、停止線を5工程・11入力とする。
-- `g307-color-space-abstract-schema`の状態は`planned`、実装基点は`506fb7aac9`である。許可pathを新規試験sourceと`libs/pigment/tests/CMakeLists.txt`の新target固有節だけに限定し、公開headerと製品sourceを変更しない。代表的な8-bit RGB traitsに特殊化した型の公開署名を未評価式で固定し、色空間、変換、画素処理、mask applicator、registryを実体化せず、inline本文を実行しない。macOSの対象、近傍、追加5枠の各20回反復、厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。製品target、既存の大規模実行試験、全体build・`verify`、Linux、Nix再評価は実行しない。
+- `g307-color-space-abstract-schema`の状態は`integrated`、実装基点は`506fb7aac9`である。許可pathを新規試験sourceと`libs/pigment/tests/CMakeLists.txt`の新target固有節だけに限定し、公開headerと製品sourceを変更しなかった。並列担当用の作業treeを作らず主作業treeで限定周期を実行し、実装commit `d4955913bb`として取り込んだ。
+
+### 第307便の契約統合結果
+
+- 開始`libs/pigment/KoColorSpaceAbstract.h`から新規`libs/pigment/tests/KoColorSpaceAbstractSchemaContractTest.cpp`へ残存全32 APIを対応付けた。型・構築3、channel構造・表現8、opacity・alpha mask 10、channel可視化・brush充填7、強度・変換生成4の5枠で、代表的な8-bit RGB traitsに対する継承、構築委譲、型別名と全override署名を固定した。新規試験sourceは102行・5枠である。
+- 対象未登録の初回限定構築は未知の対象、登録後の宣言だけの5枠は5個の未定義symbolとして期待どおり失敗した。新targetは4工程・8入力で停止線以内に収まり、command SHA-256は`5ffde6e5cc6bd3c181b7c74aa008901f4180b95630c62bd1fbedaa7df173e5e3`、input SHA-256は`367c000feb88704394e3c0c0d9897dbb01219725ed2387ac1acce045bac4f2de`である。候補headerのAUTOMOC `HEADERS`は空で、Qt Gui・Test・Core、gettext、OS frameworkだけへ動的接続し、製品未解決記号は0である。
+- macOSで対象と近傍`libs-pigment-KoColorSpaceSchemaContractTest`のCTest 2/2、対象の20回反復、厳格`clang-check`、書式、二回の無作業再構築、公開API検査に成功した。既存`TestKoColorSpaceAbstract`の371工程・771入力は構築していない。色空間、変換、画素処理、mask applicator、registryの実体とinline処理結果は既存または後続の効果契約で扱う。
+- 台帳へ32 APIを追加して22,851件対応、6,953件未対応、対象headerの残存0件となった。旧`public-api-missing-g307.json`を削除し、追加作業tree・構築木は作成していない。主Ninja木5,867,240 KiB、共有compiler cache 983,452 KiB、最新`build/tdd-macos/public-api-missing-g308.json` 1,845,115 bytes、SHA-256 `2af6b0eb0ec943eea6cd2e8a192dccc23c721d135d758daabdc3a297686fa498`だけを再利用対象として保持する。compiler cacheは144,001件中120,465件、83.66%がhitしている。製品target、既存の大規模実行試験、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第308便の正式不足報告から、全APIを最小閉包で固定できる責務を再選定することである。
 
 ### 第239便の先行監査担当票
 

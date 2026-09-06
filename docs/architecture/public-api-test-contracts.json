@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 6985
+    "expectedMissingApis": 6953
   },
   "contracts": [
     {
@@ -36397,6 +36397,83 @@
         "method:KisResourceStorage::timeStampForResource(const QString & resourceType,const QString & filename) const",
         "method:KisResourceStorage::timestamp() const",
         "method:KisResourceStorage::valid() const"
+      ]
+    },
+    {
+      "target": "KoColorSpaceAbstractSchemaContractTest",
+      "source": "libs/pigment/tests/KoColorSpaceAbstractSchemaContractTest.cpp",
+      "test": "KoColorSpaceAbstractSchemaContractTest::typeAndConstructionSchemaRemainStable",
+      "behavior": "同一channel型の色空間実装基底はtrait型を公開し、色空間基底を継承して識別子と表示名を受け取る構築経路を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KoColorSpaceAbstract::ColorSpaceTraits",
+        "class:KoColorSpaceAbstract",
+        "method:KoColorSpaceAbstract::KoColorSpaceAbstract(const QString & id,const QString & name)"
+      ]
+    },
+    {
+      "target": "KoColorSpaceAbstractSchemaContractTest",
+      "source": "libs/pigment/tests/KoColorSpaceAbstractSchemaContractTest.cpp",
+      "test": "KoColorSpaceAbstractSchemaContractTest::channelTopologyAndTextSchemaRemainStable",
+      "behavior": "trait実装色空間はalpha位置、channel数、画素寸法、channel文字列表現、および正規化値との双方向変換を正確な公開関数型で委譲する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoColorSpaceAbstract::alphaPos() const",
+        "method:KoColorSpaceAbstract::channelCount() const",
+        "method:KoColorSpaceAbstract::channelValueText(const quint8 * pixel,quint32 channelIndex) const",
+        "method:KoColorSpaceAbstract::colorChannelCount() const",
+        "method:KoColorSpaceAbstract::fromNormalisedChannelsValue(quint8 * pixel,const QVector<float> & values) const",
+        "method:KoColorSpaceAbstract::normalisedChannelValueText(const quint8 * pixel,quint32 channelIndex) const",
+        "method:KoColorSpaceAbstract::normalisedChannelsValue(const quint8 * pixel,QVector<float> & channels) const",
+        "method:KoColorSpaceAbstract::pixelSize() const"
+      ]
+    },
+    {
+      "target": "KoColorSpaceAbstractSchemaContractTest",
+      "source": "libs/pigment/tests/KoColorSpaceAbstractSchemaContractTest.cpp",
+      "test": "KoColorSpaceAbstractSchemaContractTest::opacityAndAlphaMaskSchemaRemainStable",
+      "behavior": "trait実装色空間は不透明度の読書き・複写・乗算と8-bit・正規化浮動小数alpha maskの適用を正確な画素buffer契約で公開する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoColorSpaceAbstract::applyAlphaNormedFloatMask(quint8 * pixels,const float * alpha,qint32 nPixels) const",
+        "method:KoColorSpaceAbstract::applyAlphaU8Mask(quint8 * pixels,const quint8 * alpha,qint32 nPixels) const",
+        "method:KoColorSpaceAbstract::applyInverseAlphaU8Mask(quint8 * pixels,const quint8 * alpha,qint32 nPixels) const",
+        "method:KoColorSpaceAbstract::applyInverseNormedFloatMask(quint8 * pixels,const float * alpha,qint32 nPixels) const",
+        "method:KoColorSpaceAbstract::copyOpacityU8(quint8 * src,quint8 * dst,qint32 nPixels) const",
+        "method:KoColorSpaceAbstract::multiplyAlpha(quint8 * pixels,quint8 alpha,qint32 nPixels) const",
+        "method:KoColorSpaceAbstract::opacityF(const quint8 * U8_pixel) const",
+        "method:KoColorSpaceAbstract::opacityU8(const quint8 * U8_pixel) const",
+        "method:KoColorSpaceAbstract::setOpacity(quint8 * pixels,qreal alpha,qint32 nPixels) const",
+        "method:KoColorSpaceAbstract::setOpacity(quint8 * pixels,quint8 alpha,qint32 nPixels) const"
+      ]
+    },
+    {
+      "target": "KoColorSpaceAbstractSchemaContractTest",
+      "source": "libs/pigment/tests/KoColorSpaceAbstractSchemaContractTest.cpp",
+      "test": "KoColorSpaceAbstractSchemaContractTest::channelVisualizationAndBrushSchemaRemainStable",
+      "behavior": "trait実装色空間は単一channelの8-bit化・画素化、channel可視化、alpha反転色充填、gray brush着色、および16-bit相当QColor変換の公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoColorSpaceAbstract::convertChannelToVisualRepresentation(const quint8 * src,quint8 * dst,quint32 nPixels,const QBitArray selectedChannels) const",
+        "method:KoColorSpaceAbstract::convertChannelToVisualRepresentation(const quint8 * src,quint8 * dst,quint32 nPixels,const qint32 selectedChannelIndex) const",
+        "method:KoColorSpaceAbstract::fillGrayBrushWithColor(quint8 * dst,const QRgb * brush,quint8 * brushColor,qint32 nPixels) const",
+        "method:KoColorSpaceAbstract::fillInverseAlphaNormedFloatMaskWithColor(quint8 * pixels,const float * alpha,const quint8 * brushColor,qint32 nPixels) const",
+        "method:KoColorSpaceAbstract::scaleToU8(const quint8 * srcPixel,qint32 channelIndex) const",
+        "method:KoColorSpaceAbstract::singleChannelPixel(quint8 * dstPixel,const quint8 * srcPixel,quint32 channelIndex) const",
+        "method:KoColorSpaceAbstract::toQColor16(const quint8 * src,QColor * c) const"
+      ]
+    },
+    {
+      "target": "KoColorSpaceAbstractSchemaContractTest",
+      "source": "libs/pigment/tests/KoColorSpaceAbstractSchemaContractTest.cpp",
+      "test": "KoColorSpaceAbstractSchemaContractTest::intensityAndTransformationSchemaRemainStable",
+      "behavior": "trait実装色空間は8-bit・浮動小数の強度取得と、反転・暗化色変換の生成入口を正確な戻り型とconst性で公開する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoColorSpaceAbstract::createDarkenAdjustment(qint32 shade,bool compensate,qreal compensation) const",
+        "method:KoColorSpaceAbstract::createInvertTransformation() const",
+        "method:KoColorSpaceAbstract::intensity8(const quint8 * src) const",
+        "method:KoColorSpaceAbstract::intensityF(const quint8 * src) const"
       ]
     },
     {
