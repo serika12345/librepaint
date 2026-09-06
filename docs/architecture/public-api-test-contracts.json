@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 7059
+    "expectedMissingApis": 7047
   },
   "contracts": [
     {
@@ -25165,6 +25165,54 @@
         "class:KoColorConversionTransformationAbstractFactory",
         "method:KoColorConversionTransformationAbstractFactory::KoColorConversionTransformationAbstractFactory()",
         "method:KoColorConversionTransformationAbstractFactory::~KoColorConversionTransformationAbstractFactory()"
+      ]
+    },
+    {
+      "target": "KoColorTransformationVariantsSchemaContractTest",
+      "source": "libs/pigment/tests/KoColorTransformationVariantsSchemaContractTest.cpp",
+      "test": "KoColorTransformationVariantsSchemaContractTest::fallbackTypeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "fallback色変換は通常変換基底を継承し、色空間対または変換対と所有対象変換から構築できる多相寿命の公開型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoFallBackColorTransformation",
+        "method:KoFallBackColorTransformation::KoFallBackColorTransformation(KoColorConversionTransformation * _csToFallBack,KoColorConversionTransformation * _fallBackToCs,KoColorTransformation * _transfo)",
+        "method:KoFallBackColorTransformation::KoFallBackColorTransformation(const KoColorSpace * _cs,const KoColorSpace * _fallBackCS,KoColorTransformation * _transfo)",
+        "method:KoFallBackColorTransformation::~KoFallBackColorTransformation()"
+      ]
+    },
+    {
+      "target": "KoColorTransformationVariantsSchemaContractTest",
+      "source": "libs/pigment/tests/KoColorTransformationVariantsSchemaContractTest.cpp",
+      "test": "KoColorTransformationVariantsSchemaContractTest::fallbackOperationSignaturesRemainStable",
+      "behavior": "fallback色変換は画素列の変換、parameter一覧と識別子の照会、およびparameter設定について正確な公開関数型とconst性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoFallBackColorTransformation::parameterId(const QString & name) const",
+        "method:KoFallBackColorTransformation::parameters() const",
+        "method:KoFallBackColorTransformation::setParameter(int id,const QVariant & parameter)",
+        "method:KoFallBackColorTransformation::transform(const quint8 * src,quint8 * dst,qint32 nPixels) const"
+      ]
+    },
+    {
+      "target": "KoColorTransformationVariantsSchemaContractTest",
+      "source": "libs/pigment/tests/KoColorTransformationVariantsSchemaContractTest.cpp",
+      "test": "KoColorTransformationVariantsSchemaContractTest::proofingTypeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "校正色変換は色変換基底を継承し、入力・出力・校正色空間、描画intent、変換flagsを受け取る抽象的な多相寿命の公開型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoColorProofingConversionTransformation",
+        "method:KoColorProofingConversionTransformation::KoColorProofingConversionTransformation(const KoColorSpace * srcCs,const KoColorSpace * dstCs,const KoColorSpace * proofingSpace,Intent renderingIntent,ConversionFlags conversionFlags)",
+        "method:KoColorProofingConversionTransformation::~KoColorProofingConversionTransformation()"
+      ]
+    },
+    {
+      "target": "KoColorTransformationVariantsSchemaContractTest",
+      "source": "libs/pigment/tests/KoColorTransformationVariantsSchemaContractTest.cpp",
+      "test": "KoColorTransformationVariantsSchemaContractTest::proofingSpaceSignatureRemainsStable",
+      "behavior": "校正色変換は借用する校正色空間をconst pointerとして取得する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoColorProofingConversionTransformation::proofingSpace() const"
       ]
     },
     {

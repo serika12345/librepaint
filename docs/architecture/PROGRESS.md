@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-06 22:16 JST
+- 更新日時: 2026-09-06 22:31 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1947,7 +1947,14 @@
 
 - 正式入力`build/tdd-macos/public-api-missing-g302.json`は公開header 1,548、公開API 29,804、対応済み22,745、未対応7,059、1,875,867 bytes、SHA-256 `e97f02fa5e60443d41e1e3c352521dc048c5ae21e7d782c966ad04f9db6affee`を記録する。`libs/pigment/KoFallBackColorTransformation.h`の残存全8 APIと`libs/pigment/KoColorProofingConversionTransformation.h`の残存全4 APIは重複なく、合計12識別子の整列集合SHA-256は`a28b860b521dacb0710781f11821dfab55460b8fad931fc569e216bca418485c`である。fallback変換の型・構築・寿命4と変換・parameter操作4、校正変換の型・構築・寿命3と校正色空間1の4枠へ完全に割り当てる。
 - 既存`KoColorTransformationContractTest`は製品生成物を含む6工程・13入力であり、2具体変換の公開型だけを固定する責務には広すぎる。新規`libs/pigment/tests/KoColorTransformationVariantsSchemaContractTest.cpp`を作り、近傍`KoColorConversionTransformationAbstractFactoryContractTest`と同じpigment source/generated探索路、`kritapigment_EXPORTS`、Qt Core・Testだけへ直接接続する。近傍は4工程・8入力、command SHA-256 `443026e4b103e04c449c48f80bbd825f2bc2149ccda63d3b82ad8e193b40e4eb`、input SHA-256 `23e48be7551981cebd84416e39163fb9efffe92a3aa311680ced3ae115ca6152`であり、新targetも4工程・8入力以内を予測して停止線を5工程・11入力とする。変換、色空間、画素buffer、parameterを実体化せず、製品`kritapigment`の367工程・764入力を避ける。
-- `g302-color-transformation-variants-schema`の状態は`planned`、実装基点は`6fd7a5c085`である。許可pathを新規試験sourceと`libs/pigment/tests/CMakeLists.txt`の新target固有節だけに限定し、公開headerと製品sourceを変更しない。macOSの対象`libs-pigment-KoColorTransformationVariantsSchemaContractTest`、近傍`libs-pigment-KoColorConversionTransformationAbstractFactoryContractTest`、追加4枠の各20回反復、厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
+- `g302-color-transformation-variants-schema`の状態は`integrated`、実装基点は`6fd7a5c085`である。許可pathを新規試験sourceと`libs/pigment/tests/CMakeLists.txt`の新target固有節だけに限定した。受渡しcommit `456c524ad6`と試験名補正`1fe8e7842e`をpatch-id `9b595f352fa40fae383ff48681c09cec968adcdc`と`519806cc0958a731a4d2babde16fd1b27adc9241`で照合し、統合commit `39f5c8cfc5`と`225ada8980`として取り込んだ。公開headerと製品sourceは変更していない。
+
+### 第302便の契約統合結果
+
+- 開始`libs/pigment/KoFallBackColorTransformation.h`と`libs/pigment/KoColorProofingConversionTransformation.h`から新規`libs/pigment/tests/KoColorTransformationVariantsSchemaContractTest.cpp`へ残存全12 APIを対応付けた。fallback変換の型・構築・寿命4と変換・parameter操作4、校正変換の型・構築・寿命3と校正色空間1の4枠で、2具体変換の継承、構築、多相寿命、画素・parameter操作、校正色空間取得の正確な公開署名を固定した。新規試験sourceは94行・4枠である。
+- 対象未登録の初回限定構築は未知の対象、登録後の宣言だけの追加4枠は未定義symbolとして期待どおり失敗した。新targetは担当側・中央とも4工程・8入力で停止線以内に収まった。担当側command SHA-256は`b6952222d457460b8ea27c7a8834383d8936bc8bb980e3f0efd0dcd5a8958492`、input SHA-256は`87af08e5c40a69916529eba2647ae3e0e2cf1155cfd41b1a3c11493fd38612a5`、中央command SHA-256は`8211880c0b0b406c7594c9063d2b8e7fb5790fab5bef26d8b2d7ce851c5e9876`、input SHA-256は`09985f6aebee034166c6d58f96bc3d8fbeff140652b208ebc52ee6242dfa3b9b`である。候補headerのAUTOMOC `HEADERS`は空で、Qt Test・Core、gettext、OS frameworkだけへ動的接続し、製品未解決記号は0である。
+- 担当側と中央のmacOSで追加4枠を各20回、対象CTest `libs-pigment-KoColorTransformationVariantsSchemaContractTest`、近傍`libs-pigment-KoColorConversionTransformationAbstractFactoryContractTest`、厳格`clang-check`、書式、二回の無作業再構築に成功した。最初の中央公開API検査は、書式整形で2試験定義名が改行されて登録試験を発見できず失敗した。試験名を短縮して全定義を1物理行へ固定した後、担当側`verify-quick`と中央の公開API検査に成功し、台帳へ12 APIを追加して22,757件対応、7,047件未対応、対象2 headerの残存0件となった。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- cleanな専用作業treeと構築木591,432 KiB、branchを統合直後に削除した。旧`public-api-missing-g302.json` 1,875,867 bytesを削除し、主Ninja木5,860,712 KiB、共有compiler cache 982,884 KiB、最新`build/tdd-macos/public-api-missing-g303.json` 1,871,782 bytes、SHA-256 `fcf1bcbadd463434a6c56e86fee6ba8289e932a17081062db45114603042054e`だけを再利用対象として保持する。compiler cacheは143,970件中120,456件、83.67%がhitしている。次の永続作業は第303便の正式不足報告から、全APIを最小閉包で固定できる責務を再選定することである。
 
 ### 第239便の先行監査担当票
 
