@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 6549
+    "expectedMissingApis": 6536
   },
   "contracts": [
     {
@@ -65444,6 +65444,55 @@
         "method:KisPrescaledProjection::setUpdatePatchSize(const QSize & updatePatchSize)",
         "method:KisPrescaledProjection::slotImageSizeChanged(qint32 w,qint32 h)",
         "method:KisPrescaledProjection::updateCache(const QRect & dirtyImageRect)"
+      ]
+    },
+    {
+      "target": "KisWorkspaceResourceSchemaContractTest",
+      "source": "libs/canvas/tests/KisWorkspaceResourceSchemaContractTest.cpp",
+      "test": "KisWorkspaceResourceSchemaContractTest::workspaceResourceTypeAndLifetimeSchemaRemainsStable",
+      "behavior": "作業空間資源は専用型・共有pointer別名・名前と複製による構築・代入禁止・多相破棄の公開寿命を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisWorkspaceResourceSP",
+        "class:KisWorkspaceResource",
+        "method:KisWorkspaceResource::KisWorkspaceResource(const KisWorkspaceResource & rhs)",
+        "method:KisWorkspaceResource::KisWorkspaceResource(const QString & filename)",
+        "method:KisWorkspaceResource::operator =(const KisWorkspaceResource & rhs)",
+        "method:KisWorkspaceResource::~KisWorkspaceResource()"
+      ]
+    },
+    {
+      "target": "KisWorkspaceResourceSchemaContractTest",
+      "source": "libs/canvas/tests/KisWorkspaceResourceSchemaContractTest.cpp",
+      "test": "KisWorkspaceResourceSchemaContractTest::workspaceResourceCloneAndIdentitySchemaRemainsStable",
+      "behavior": "作業空間資源は複製、既定拡張子、資源種別を返す正確な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisWorkspaceResource::clone() const",
+        "method:KisWorkspaceResource::defaultFileExtension() const",
+        "method:KisWorkspaceResource::resourceType() const"
+      ]
+    },
+    {
+      "target": "KisWorkspaceResourceSchemaContractTest",
+      "source": "libs/canvas/tests/KisWorkspaceResourceSchemaContractTest.cpp",
+      "test": "KisWorkspaceResourceSchemaContractTest::workspaceResourceDeviceIoSchemaRemainsStable",
+      "behavior": "作業空間資源は資源接続面を伴う装置読込みとconst装置保存の正確な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisWorkspaceResource::loadFromDevice(QIODevice * dev,KisResourcesInterfaceSP resourcesInterface)",
+        "method:KisWorkspaceResource::saveToDevice(QIODevice * dev) const"
+      ]
+    },
+    {
+      "target": "KisWorkspaceResourceSchemaContractTest",
+      "source": "libs/canvas/tests/KisWorkspaceResourceSchemaContractTest.cpp",
+      "test": "KisWorkspaceResourceSchemaContractTest::workspaceResourceDockerStateSchemaRemainsStable",
+      "behavior": "作業空間資源はdocker状態の設定と取得に用いる正確な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisWorkspaceResource::dockerState()",
+        "method:KisWorkspaceResource::setDockerState(const QByteArray & state)"
       ]
     }
   ]
