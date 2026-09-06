@@ -6,6 +6,8 @@
 
 #include "kis_selection_action_factories.h"
 
+#include "dialogs/kis_dlg_stroke_selection_properties.h"
+
 #include <QMimeData>
 
 #include <klocalizedstring.h>

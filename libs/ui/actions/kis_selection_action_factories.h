@@ -11,8 +11,8 @@
 #include "operations/kis_operation.h"
 #include "operations/kis_operation_configuration.h"
 #include "operations/kis_filter_selection_operation.h"
-#include "dialogs/kis_dlg_stroke_selection_properties.h"
 
+struct StrokeSelectionOptions;
 
 struct KRITAUI_EXPORT KisSelectAllActionFactory : public KisNoParameterActionFactory {
     KisSelectAllActionFactory() : KisNoParameterActionFactory("select-all-ui-action") {}
