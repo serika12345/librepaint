@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-06 23:49 JST
+- 更新日時: 2026-09-06 23:55 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -2038,7 +2038,14 @@
 
 - 正式入力`build/tdd-macos/public-api-missing-g309.json`は公開header 1,548、公開API 29,804、対応済み22,883、未対応6,921、1,837,795 bytes、SHA-256 `150fb65da1bfb9542f45bdfb3653456a1a055a9d4c4f171146470859858a951d`を記録する。`libs/brush/kis_imagepipe_brush.h`の残存全44 APIは重複なく、識別子整列集合SHA-256は`8ab1b98dd87f7514bc3a1d49cc3e3ca0cadca3cc2dd6760f573e03cfb074b899`である。型・選択mode 11、構築・資源I/O 9、dab描画7、brush設定9、pipe選択・内容8の5枠へ完全に割り当てる。
 - 既存`kis_imagepipe_brush_test`は製品`kritaimage`・`kritalibbrush`と`kritatestsdk`へ接続する1,227工程・2,475入力であり、image-pipe brushの公開宣言面だけを追加する対象として広すぎる。新規`libs/brush/tests/KisImagePipeBrushSchemaContractTest.cpp`を作り、直前の`KisAbrBrushSchemaContractTest`と同じbrush・global・image・resources探索路、Qt Core・Gui・Test、header-only Boost、KF I18nのinterface探索路、brush・resources export定義だけへ接続する。近傍は4工程・8入力、command SHA-256 `1f0edc0f79da0b9a04ba3255e442c5714b248106a57991df5cd6be589462a73b`、input SHA-256 `549faa2146101327e940a77c3b1885b0967eb401a2f1417baec7417522113703`である。新targetも4工程・8入力を予測し、停止線を5工程・11入力とする。
-- `g309-image-pipe-brush-schema`の状態は`planned`、実装基点は`8e1363a633`である。許可pathを新規試験sourceと`libs/brush/tests/CMakeLists.txt`の新target固有節だけに限定し、公開headerと製品sourceを変更しない。pipe brush・子brush・描画装置・parasite・色空間・maskを実体化せず、inline本文を実行しない。macOSの対象、近傍、追加5枠の20回反復、厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。製品target、既存の大規模image-pipe実行試験、全体build・`verify`、Linux、Nix再評価は実行しない。
+- `g309-image-pipe-brush-schema`の状態は`integrated`、実装基点は`8e1363a633`である。許可pathを新規試験sourceと`libs/brush/tests/CMakeLists.txt`の新target固有節だけに限定し、公開headerと製品sourceを変更しなかった。並列担当用の作業treeを作らず主作業treeで限定周期を実行し、実装commit `1ae397b00e`として取り込んだ。
+
+### 第309便の契約統合結果
+
+- 開始`libs/brush/kis_imagepipe_brush.h`から新規`libs/brush/tests/KisImagePipeBrushSchemaContractTest.cpp`へ残存全44 APIを対応付けた。型・選択mode 11、構築・資源I/O 9、dab描画7、brush設定9、pipe選択・内容8の5枠で、image-pipe brushの選択方針、構築・寿命、装置I/O、dab生成、補正・幾何設定、子brush・parasite接続の正確な公開署名を固定した。新規試験sourceは113行・5枠である。
+- 対象未登録の初回限定構築は未知の対象、登録後の宣言だけの5枠は5個の未定義symbolとして期待どおり失敗した。新targetは4工程・8入力で停止線以内に収まり、command SHA-256は`d1b65e6915b79081516732be6ff2a873c205e3a6ebe2e91d69cb3252ed6366bb`、input SHA-256は`6181d37cd590d6dd8d848e2b6c784d9d07fbdf142d5dd4d9eb659d0efd695237`である。候補headerのAUTOMOC `HEADERS`は空で、Qt Gui・Test・Core、gettext、OS frameworkだけへ動的接続し、製品未解決記号は0である。
+- macOSで対象と近傍`libs-brush-KisAbrBrushSchemaContractTest`のCTest 2/2、対象の20回反復、厳格`clang-check`、書式、二回の無作業再構築、公開API検査に成功した。既存`kis_imagepipe_brush_test`の1,227工程・2,475入力は構築していない。実brush file、選択進行、dab画素、mask、stroke通知の結果は既存または後続の効果契約で扱う。
+- 台帳へ44 APIを追加して22,927件対応、6,877件未対応、対象headerの残存0件となった。旧`public-api-missing-g309.json`を削除し、追加作業tree・構築木は作成していない。主Ninja木5,869,820 KiB、共有compiler cache 983,084 KiB、最新`build/tdd-macos/public-api-missing-g310.json` 1,826,161 bytes、SHA-256 `a58b1fa70abf1699de726324c2881dbac5ff2487b5d0908b7b333d965f1f0e98`だけを再利用対象として保持する。compiler cacheは144,008件中120,465件、83.65%がhitしている。製品target、既存の大規模image-pipe実行試験、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第310便の正式不足報告から、全APIを最小閉包で固定できる責務を再選定することである。
 
 ### 第239便の先行監査担当票
 

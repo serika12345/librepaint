@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 6921
+    "expectedMissingApis": 6877
   },
   "contracts": [
     {
@@ -44694,6 +44694,95 @@
         "method:psd_layer_effects_shadow_base::gradientLink() const",
         "method:psd_layer_effects_shadow_base::setContourLookupTable(const quint8 * value)",
         "method:psd_layer_effects_shadow_base::setGradient(KoAbstractGradientSP value)"
+      ]
+    },
+    {
+      "target": "KisImagePipeBrushSchemaContractTest",
+      "source": "libs/brush/tests/KisImagePipeBrushSchemaContractTest.cpp",
+      "test": "KisImagePipeBrushSchemaContractTest::typeAndSelectionModeSchemaRemainStable",
+      "behavior": "image-pipe brushは共有pointer別名と公開型を持ち、定数・増分・角度・速度・乱数・筆圧・傾きによる8種の選択modeと値順を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisImagePipeBrushSP",
+        "class:KisImagePipeBrush",
+        "enum:KisParasite::SelectionMode",
+        "enumerator:KisParasite::SelectionMode::Angular",
+        "enumerator:KisParasite::SelectionMode::Constant",
+        "enumerator:KisParasite::SelectionMode::Incremental",
+        "enumerator:KisParasite::SelectionMode::Pressure",
+        "enumerator:KisParasite::SelectionMode::Random",
+        "enumerator:KisParasite::SelectionMode::TiltX",
+        "enumerator:KisParasite::SelectionMode::TiltY",
+        "enumerator:KisParasite::SelectionMode::Velocity"
+      ]
+    },
+    {
+      "target": "KisImagePipeBrushSchemaContractTest",
+      "source": "libs/brush/tests/KisImagePipeBrushSchemaContractTest.cpp",
+      "test": "KisImagePipeBrushSchemaContractTest::constructionAndResourceIoSchemaRemainStable",
+      "behavior": "image-pipe brushはfilename・装置列・複写の構築、多相破棄、代入禁止、複製、装置I/O、および既定拡張子を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisImagePipeBrush::KisImagePipeBrush(const KisImagePipeBrush & rhs)",
+        "method:KisImagePipeBrush::KisImagePipeBrush(const QString & filename)",
+        "method:KisImagePipeBrush::KisImagePipeBrush(const QString & name,int w,int h,QVector<QVector<KisPaintDevice * >> devices,QVector<KisParasite::SelectionMode> modes)",
+        "method:KisImagePipeBrush::clone() const",
+        "method:KisImagePipeBrush::defaultFileExtension() const",
+        "method:KisImagePipeBrush::loadFromDevice(QIODevice * dev,KisResourcesInterfaceSP resourcesInterface)",
+        "method:KisImagePipeBrush::operator =(const KisImagePipeBrush & rhs)",
+        "method:KisImagePipeBrush::saveToDevice(QIODevice * dev) const",
+        "method:KisImagePipeBrush::~KisImagePipeBrush()"
+      ]
+    },
+    {
+      "target": "KisImagePipeBrushSchemaContractTest",
+      "source": "libs/brush/tests/KisImagePipeBrushSchemaContractTest.cpp",
+      "test": "KisImagePipeBrushSchemaContractTest::dabRenderingSchemaRemainStable",
+      "behavior": "image-pipe brushは描画可能性、mask寸法、描画装置、dab生成、輪郭、およびmask画像化を画素位置と描画情報を含む正確な署名で公開する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisImagePipeBrush::canPaintFor(const KisPaintInformation & info)",
+        "method:KisImagePipeBrush::generateMaskAndApplyMaskOrCreateDab(KisFixedPaintDeviceSP dst,KisBrush::ColoringInformation * coloringInformation,KisDabShape const &,const KisPaintInformation & info,double subPixelX=0,double subPixelY=0,qreal softnessFactor=DEFAULT_SOFTNESS_FACTOR,qreal lightnessStrength=DEFAULT_LIGHTNESS_STRENGTH) const",
+        "method:KisImagePipeBrush::makeMaskImage(bool preserveAlpha)",
+        "method:KisImagePipeBrush::maskHeight(KisDabShape const &,double subPixelX,double subPixelY,const KisPaintInformation & info) const",
+        "method:KisImagePipeBrush::maskWidth(KisDabShape const &,double subPixelX,double subPixelY,const KisPaintInformation & info) const",
+        "method:KisImagePipeBrush::outline(bool forcePreciseOutline=false) const",
+        "method:KisImagePipeBrush::paintDevice(const KoColorSpace * colorSpace,KisDabShape const &,const KisPaintInformation & info,double subPixelX=0,double subPixelY=0) const"
+      ]
+    },
+    {
+      "target": "KisImagePipeBrushSchemaContractTest",
+      "source": "libs/brush/tests/KisImagePipeBrushSchemaContractTest.cpp",
+      "test": "KisImagePipeBrushSchemaContractTest::brushConfigurationSchemaRemainStable",
+      "behavior": "image-pipe brushは中間点・明度・contrast・自動補正、角度・倍率・間隔を設定し、現在brush番号と低温初期化入口を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisImagePipeBrush::brushIndex() const",
+        "method:KisImagePipeBrush::coldInitBrush()",
+        "method:KisImagePipeBrush::setAdjustmentMidPoint(quint8 value)",
+        "method:KisImagePipeBrush::setAngle(qreal _angle)",
+        "method:KisImagePipeBrush::setAutoAdjustMidPoint(bool value)",
+        "method:KisImagePipeBrush::setBrightnessAdjustment(qreal value)",
+        "method:KisImagePipeBrush::setContrastAdjustment(qreal value)",
+        "method:KisImagePipeBrush::setScale(qreal _scale)",
+        "method:KisImagePipeBrush::setSpacing(double _spacing)"
+      ]
+    },
+    {
+      "target": "KisImagePipeBrushSchemaContractTest",
+      "source": "libs/brush/tests/KisImagePipeBrushSchemaContractTest.cpp",
+      "test": "KisImagePipeBrushSchemaContractTest::pipeSelectionAndContentSchemaRemainStable",
+      "behavior": "image-pipe brushは子brush列とparasiteを照会・設定し、描画装置列、stroke開始・複製前通知、および連番準備から選択状態を進める公開入口を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisImagePipeBrush::brushes() const",
+        "method:KisImagePipeBrush::notifyBrushIsGoingToBeClonedForStroke()",
+        "method:KisImagePipeBrush::notifyStrokeStarted()",
+        "method:KisImagePipeBrush::parasite() const",
+        "method:KisImagePipeBrush::parasiteSelection()",
+        "method:KisImagePipeBrush::prepareForSeqNo(const KisPaintInformation & info,int seqNo)",
+        "method:KisImagePipeBrush::setDevices(QVector<QVector<KisPaintDevice * >> devices,int w,int h)",
+        "method:KisImagePipeBrush::setParasite(const KisPipeBrushParasite & parasite)"
       ]
     },
     {
