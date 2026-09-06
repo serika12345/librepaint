@@ -600,6 +600,8 @@ kis_add_test(
     LINK_LIBRARIES
         Qt${QT_MAJOR_VERSION}::Core
         Qt${QT_MAJOR_VERSION}::Test
+        Boost::boost
+        Eigen3::Eigen
 )
 target_include_directories(KisLayerFilterWidgetSchemaContractTest PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/..
@@ -608,13 +610,24 @@ target_include_directories(KisLayerFilterWidgetSchemaContractTest PRIVATE
     ${CMAKE_BINARY_DIR}/libs/image
     ${CMAKE_SOURCE_DIR}/libs/global
     ${CMAKE_BINARY_DIR}/libs/global
+    ${CMAKE_SOURCE_DIR}/libs/pigment
+    ${CMAKE_BINARY_DIR}/libs/pigment
+    ${CMAKE_SOURCE_DIR}/libs/widgets
+    ${CMAKE_BINARY_DIR}/libs/widgets
+    ${CMAKE_SOURCE_DIR}/libs/widgetutils
+    ${CMAKE_BINARY_DIR}/libs/widgetutils
     $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Gui,INTERFACE_INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Widgets,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:Imath::Imath,INTERFACE_INCLUDE_DIRECTORIES>
 )
 target_compile_definitions(KisLayerFilterWidgetSchemaContractTest PRIVATE
     kritaapplicationui_EXPORTS
     kritaimage_EXPORTS
     kritaglobal_EXPORTS
+    kritapigment_EXPORTS
+    kritawidgets_EXPORTS
+    kritawidgetutils_EXPORTS
 )
 
 kis_add_test(
