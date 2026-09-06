@@ -1609,6 +1609,43 @@ set_target_properties(kritauiopenglrendererconfigobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritauiscreeninformationobjects OBJECT
+    opengl/KisScreenInformationAdapter.cpp
+)
+target_compile_definitions(kritauiscreeninformationobjects PRIVATE
+    kritaapplicationui_EXPORTS
+    kritacanvas_EXPORTS
+)
+target_include_directories(kritauiscreeninformationobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/application>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/canvas>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/canvas>
+)
+target_link_libraries(kritauiscreeninformationobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Gui
+        Boost::boost
+)
+set_target_properties(kritauiscreeninformationobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+if(WIN32)
+    target_link_libraries(kritauiscreeninformationobjects PUBLIC dxgi)
+    set_source_files_properties(
+        opengl/KisScreenInformationAdapter.cpp
+        TARGET_DIRECTORY kritauiscreeninformationobjects
+        PROPERTIES
+        INCLUDE_DIRECTORIES "${Qt${QT_MAJOR_VERSION}Gui_PRIVATE_INCLUDE_DIRS}"
+    )
+endif()
+
 add_subdirectory( tests )
 
 set(kritaui_LIB_SRCS
@@ -1797,7 +1834,7 @@ set(kritaui_LIB_SRCS
     opengl/kis_opengl_update_info.cpp
     opengl/KisOpenGLUpdateInfoBuilder.cpp
     opengl/KisOpenGLModeProber.cpp
-    opengl/KisScreenInformationAdapter.cpp
+    $<TARGET_OBJECTS:kritauiscreeninformationobjects>
     opengl/KisOpenGLBufferCircularStorage.cpp
     opengl/KisOpenGLSync.cpp
     opengl/KisOpenGLBufferCreationGuard.cpp
@@ -2243,11 +2280,9 @@ if(WIN32)
 
     # Private headers are needed for:
     #    * KisDlgCustomTabletResolution
-    #    * KisScreenInformationAdapter
     #    * dialogs/kis_dlg_preferences.cc
     set_source_files_properties(
         dialogs/KisDlgCustomTabletResolution.cpp
-        opengl/KisScreenInformationAdapter.cpp
         dialogs/kis_dlg_preferences.cc # for WinTab switching API
         TARGET_DIRECTORY kritaapplicationui
         PROPERTIES
