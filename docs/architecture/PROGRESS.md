@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-06 13:24 JST
+- 更新日時: 2026-09-06 13:29 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1531,6 +1531,14 @@
 
 - 正式入力は`build/tdd-macos/public-api-missing-g276.json`である。第275便で保留した`libs/image/kis_cached_paint_device.h`、`libs/image/layerstyles/kis_ls_utils.h`、`plugins/paintops/defaultpaintops/brush/KisDabRenderingQueue.h`を再候補とし、同程度の残存APIを持つ別責務も比較する。公開値・所有・寿命・決定的挙動を最大5枠へ完全割当できること、既存限定targetへの追記または具体的実装所有分離で製品targetより十分小さい閉包になることを確認してから実装する。
 - 監査中は正式不足報告、候補header・実装、既存試験、CMake File APIの読み取りとNinja計画測定だけを行う。構造整理が必要なら契約実装より先に独立変更として計画し、製品target、全体build・`verify`、Linux、Nix再評価を実行しない。
+
+### 第276便の監査結果と構造準備計画
+
+- `libs/painting/strokes/move_stroke_strategy.h`の残存全23 APIは一意かつ台帳と非重複で、識別子整列集合SHA-256 `765b41dad3120fc0fa8c8235081eb7e37c5686e08a1684d9e70cda32e90af081`を持つ。移動job data 4、layer選択job data 4、barrier更新data 3、strategy型・2構築・寿命4、callback・LoD clone・3通知8の5枠へ完全に割り当てる。最初の3枠は座標、逐次・排他方針、強制更新値、LoD座標縮小と複製独立性を動的に固定し、後2枠は実node・更新・undoを生成せず型と厳密署名を固定する。
+- 既存`libs/painting/tests/KisFilterStrokeStrategySchemaContractTest.cpp`は108行・5枠で、追記後も300行・20枠未満に収まる。対象は4工程・8入力、command SHA-256 `463898b29acf97550dac6be87e7d546157a815e7fd9a41715b2870f9e3acf5b2`、input SHA-256 `7c099d95667583bcfef3e2fd7106bf18812d64a536623b6488ce8b7d629206a3`、製品`kritapainting`は1,219工程・2,460入力、command SHA-256 `83ce004291e22a03f53dd13791e3ece4647b94e7478cb4ff15fbf3776f7e5e1c`、input SHA-256 `842c9df22d0ce5d1c13ea4bc5cd8e6b90fc3f757a7b3f6ecd1a9064978d59645`である。既存compile interfaceへ候補headerを先行入力した厳格構文検査は追加依存なしで成功した。
+- 比較した媒体encoder 21 APIは既存対象4工程・8入力でも実行時にencoder backend・QObjectメタ情報・thread pool・進捗UIを要し、製品は1,233工程・2,488入力である。swatch 16 APIは静的targetが4工程・8入力でも色値・直列化の実行に色空間登録簿を要し、既存動的対象は371工程・771入力である。第275便のcache、layer style、dab queue候補も主要挙動に画像・paint device・効果設定またはpaintop資源を要する。これらは静的署名だけを先に数えるより、具体的実装所有を分離できる便で扱う。
+- `g276a-move-stroke-job-data-build-boundary`の状態は`planned`である。開始`libs/painting/strokes/move_stroke_strategy.cpp`末尾の`MoveStrokeStrategy::Data`、`PickLayerData`、`BarrierUpdateData`の構築・LoD複製実装を、新規`libs/painting/strokes/MoveStrokeJobData.cpp`へ移す。`libs/painting/CMakeLists.txt`にAUTOMOC不要・位置独立の`kritapaintingmovestrokejobdataobjects`を置き、製品`kritapainting`へ1回だけ再集約する。既存`move_stroke_strategy.cpp`はstrategy実行だけを所有し、公開header、ABI、製品link、実行順を変更しない。
+- 新objectは1工程・3入力、製品は小さな実装単位の追加に必要な1工程・2入力増分を予測する。続く限定試験は新objectと既存`kritaimagejobstrategyobjects`へ直接接続して6工程・13入力を予測し、構造準備の停止線をobject 2工程・5入力、製品1,221工程・2,464入力、契約の停止線を7工程・15入力とする。製品shared、`kritatestsdk`、新しい動的依存、候補headerのAUTOMOC入力化、node・画像・undo・更新処理の未解決記号、許可path外変更が必要なら停止する。
 
 ### 第239便の先行監査担当票
 
