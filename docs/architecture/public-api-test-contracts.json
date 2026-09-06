@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 6476
+    "expectedMissingApis": 6424
   },
   "contracts": [
     {
@@ -65598,6 +65598,103 @@
         "method:KisLodSizeThresholdSupportedResourceConverter::KisLodSizeThresholdSupportedResourceConverter()",
         "method:KisLodSizeThresholdSupportedResourceConverter::fromSource(const QVariant & value)",
         "method:KisLodSizeThresholdSupportedResourceConverter::toSource(const QVariant & value,const QVariant & sourceValue)"
+      ]
+    },
+    {
+      "target": "KisSelectionActionFactoriesSchemaContractTest",
+      "source": "libs/ui/tests/KisSelectionActionFactoriesSchemaContractTest.cpp",
+      "test": "KisSelectionActionFactoriesSchemaContractTest::basicSelectionStateActionSchemaRemainsStable",
+      "behavior": "全選択・選択解除・再選択・消去・選択範囲への画像寸法変更は専用factory型、既定構築、viewへの実行関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisClearActionFactory::KisClearActionFactory()",
+        "method:KisClearActionFactory::run(KisViewManager * view)",
+        "method:KisDeselectActionFactory::KisDeselectActionFactory()",
+        "method:KisDeselectActionFactory::run(KisViewManager * view)",
+        "method:KisImageResizeToSelectionActionFactory::KisImageResizeToSelectionActionFactory()",
+        "method:KisImageResizeToSelectionActionFactory::run(KisViewManager * view)",
+        "method:KisReselectActionFactory::KisReselectActionFactory()",
+        "method:KisReselectActionFactory::run(KisViewManager * view)",
+        "method:KisSelectAllActionFactory::KisSelectAllActionFactory()",
+        "method:KisSelectAllActionFactory::run(KisViewManager * view)",
+        "struct:KisClearActionFactory",
+        "struct:KisDeselectActionFactory",
+        "struct:KisImageResizeToSelectionActionFactory",
+        "struct:KisReselectActionFactory",
+        "struct:KisSelectAllActionFactory"
+      ]
+    },
+    {
+      "target": "KisSelectionActionFactoriesSchemaContractTest",
+      "source": "libs/ui/tests/KisSelectionActionFactoriesSchemaContractTest.cpp",
+      "test": "KisSelectionActionFactoriesSchemaContractTest::fillAndInvertActionSchemaRemainsStable",
+      "behavior": "fillと選択反転は専用操作型、既定構築、XML設定配送、およびfill source付き実行の公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisFillActionFactory::KisFillActionFactory()",
+        "method:KisFillActionFactory::run(const QString & fillSource,KisViewManager * view)",
+        "method:KisFillActionFactory::runFromXML(KisViewManager * view,const KisOperationConfiguration & config)",
+        "method:KisInvertSelectionOperation::KisInvertSelectionOperation()",
+        "method:KisInvertSelectionOperation::runFromXML(KisViewManager * view,const KisOperationConfiguration & config)",
+        "struct:KisFillActionFactory",
+        "struct:KisInvertSelectionOperation"
+      ]
+    },
+    {
+      "target": "KisSelectionActionFactoriesSchemaContractTest",
+      "source": "libs/ui/tests/KisSelectionActionFactoriesSchemaContractTest.cpp",
+      "test": "KisSelectionActionFactoriesSchemaContractTest::cutAndCopyActionSchemaRemainsStable",
+      "behavior": "cut・sharp clipのflag値と集合型、XML設定配送、cut/copy実行、統合copyの公開接続面を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisCutCopyActionFactory::Flags",
+        "enum:KisCutCopyActionFactory::Flag",
+        "enumerator:KisCutCopyActionFactory::Flag::CutClip",
+        "enumerator:KisCutCopyActionFactory::Flag::None",
+        "enumerator:KisCutCopyActionFactory::Flag::SharpClip",
+        "method:KisCopyMergedActionFactory::KisCopyMergedActionFactory()",
+        "method:KisCopyMergedActionFactory::run(KisViewManager * view)",
+        "method:KisCutCopyActionFactory::KisCutCopyActionFactory()",
+        "method:KisCutCopyActionFactory::run(Flags flags,KisViewManager * view)",
+        "method:KisCutCopyActionFactory::runFromXML(KisViewManager * view,const KisOperationConfiguration & config)",
+        "struct:KisCopyMergedActionFactory",
+        "struct:KisCutCopyActionFactory"
+      ]
+    },
+    {
+      "target": "KisSelectionActionFactoriesSchemaContractTest",
+      "source": "libs/ui/tests/KisSelectionActionFactoriesSchemaContractTest.cpp",
+      "test": "KisSelectionActionFactoriesSchemaContractTest::selectionRepresentationActionSchemaRemainsStable",
+      "behavior": "選択のvector化・raster化・図形からのvector選択生成・選択からの図形生成は専用factory型、既定構築、viewへの実行関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSelectionToRasterActionFactory::KisSelectionToRasterActionFactory()",
+        "method:KisSelectionToRasterActionFactory::run(KisViewManager * view)",
+        "method:KisSelectionToShapeActionFactory::KisSelectionToShapeActionFactory()",
+        "method:KisSelectionToShapeActionFactory::run(KisViewManager * view)",
+        "method:KisSelectionToVectorActionFactory::KisSelectionToVectorActionFactory()",
+        "method:KisSelectionToVectorActionFactory::run(KisViewManager * view)",
+        "method:KisShapesToVectorSelectionActionFactory::KisShapesToVectorSelectionActionFactory()",
+        "method:KisShapesToVectorSelectionActionFactory::run(KisViewManager * view)",
+        "struct:KisSelectionToRasterActionFactory",
+        "struct:KisSelectionToShapeActionFactory",
+        "struct:KisSelectionToVectorActionFactory",
+        "struct:KisShapesToVectorSelectionActionFactory"
+      ]
+    },
+    {
+      "target": "KisSelectionActionFactoriesSchemaContractTest",
+      "source": "libs/ui/tests/KisSelectionActionFactoriesSchemaContractTest.cpp",
+      "test": "KisSelectionActionFactoriesSchemaContractTest::strokeSelectionActionSchemaRemainsStable",
+      "behavior": "現在の描画方法とbrushによる選択境界描画は専用操作型、既定構築、借用viewとconst設定参照の公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisStrokeBrushSelectionActionFactory::KisStrokeBrushSelectionActionFactory()",
+        "method:KisStrokeBrushSelectionActionFactory::run(KisViewManager * view,const StrokeSelectionOptions & params)",
+        "method:KisStrokeSelectionActionFactory::KisStrokeSelectionActionFactory()",
+        "method:KisStrokeSelectionActionFactory::run(KisViewManager * view,const StrokeSelectionOptions & params)",
+        "struct:KisStrokeBrushSelectionActionFactory",
+        "struct:KisStrokeSelectionActionFactory"
       ]
     }
   ]

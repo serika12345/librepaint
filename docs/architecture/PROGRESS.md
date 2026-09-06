@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-07 03:37 JST
+- 更新日時: 2026-09-07 03:45 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -2351,7 +2351,15 @@
 - 開始headerは`StrokeSelectionOptions`をconst参照で宣言するだけなのに`dialogs/kis_dlg_stroke_selection_properties.h`を取り込み、生成UI、画面部品、canvas、imageの解析を3直接利用元へ波及させている。開始`libs/ui/actions/kis_selection_action_factories.h`の同includeを`struct StrokeSelectionOptions`前方宣言へ置き換え、完全型を使用する開始実装`libs/ui/actions/kis_selection_action_factories.cpp`へ移す。これにより`libs/ui/operations/kis_operation_registry.cpp`から不要なダイアログ閉包を除き、既に同ダイアログを直接使う`libs/ui/selection/kis_selection_manager.cc`の閉包は変えない。開始実装とregistry実装の変更前厳格`clang-check`は成功している。
 - 既存動的`KisSelectionManagerTest`は製品群へ接続する1,979工程・3,957入力で反復対象にしない。軽量近傍`KisActionEnumContractTest`は4工程・8入力、command SHA-256 `5a782b4795893786c7993348753128af96b96a04ea2c97342b7b4831863ddb5a`、input SHA-256 `50bd9129b07de44f458fc48281f2038086ebf317c3edc9941ba4d50a9318009c`である。
 - 依存整理後に新規`libs/ui/tests/KisSelectionActionFactoriesSchemaContractTest.cpp`を作り、UI・image・global・pigment・painting/undoのsource/generated探索路、Qt Core・Test、Qt Gui・Eigen・KF I18n・Imathのinterface探索路、header-only Boost、関係export定義だけへ接続する。action factory、設定、view、stroke値を実体化しない。新targetは4工程・8入力を予測し、停止線を5工程・11入力とする。
-- `g332-selection-action-factories-schema`の状態は`planned`、実装基点は`034cb0503f`である。構造整理は開始headerと開始実装、契約は新規試験sourceと`libs/ui/tests/CMakeLists.txt`の新target固有節だけに限定する。macOSの対象、近傍、追加5枠の20回反復、両直接consumerの変更後厳格`clang-check`、書式、二回の無作業再構築、公開API指紋不変、公開API検査、`verify-quick`だけを実行する。製品OBJECT・shared target、全体build・`verify`、Linux、Nix再評価は実行しない。
+- `g332-selection-action-factories-schema`の状態は`integrated`、実装基点は`5657c5a2cd`、依存整理commitは`89fd59e8ab`、契約実装commitは`8b183e7aff`である。構造整理は開始headerと開始実装、契約は新規試験sourceと`libs/ui/tests/CMakeLists.txt`の新target固有節だけに限定した。macOSの対象、近傍、追加5枠の20回反復、両直接consumerの変更後厳格`clang-check`、書式、二回の無作業再構築、公開API指紋不変、公開API検査に成功した。製品OBJECT・shared target、全体build・`verify`、Linux、Nix再評価は実行していない。
+
+### 第332便の契約統合結果
+
+- 選択操作の公開宣言だけを使う利用元へダイアログ・生成UI・canvas・imageの解析が波及する問題を解消した。開始`libs/ui/actions/kis_selection_action_factories.h`の`dialogs/kis_dlg_stroke_selection_properties.h`直接includeを同型の前方宣言へ置き換え、完全型を使用する開始`libs/ui/actions/kis_selection_action_factories.cpp`の直接includeへ移した。`libs/ui/operations/kis_operation_registry.cpp`は不要な閉包を受けなくなり、公開API 29,804件と対象52識別子は不変である。
+- 同開始headerの残存全52 APIから新規`libs/ui/tests/KisSelectionActionFactoriesSchemaContractTest.cpp`へ、基本選択状態操作15、fill・invert 7、cut・copy 12、選択表現変換12、stroke選択6を110行・5枠で対応付けた。factory、設定、view、stroke値を実体化せず、基底関係、構築特性、flag値・集合型、全公開関数型を固定した。
+- 対象登録後の追加5枠は期待どおり5件失敗し、契約実装後に成功した。新targetは4工程・8入力で停止線以内に収まり、command SHA-256は`ad5bf96739a5a1a01c0d8d4a8639476fd2c0f543e0a495cd90176cd5ea7eee07`、input SHA-256は`d540cd78822c18f3fdc3f681bf3729bd79338640d41fca3dd1fe5c45f294376e`である。AUTOMOC header入力は空、Qt Test・Core、gettext、OS frameworkだけへ動的接続し、製品未解決記号は0である。
+- macOSで対象と軽量近傍`libs-application-KisActionEnumContractTest`のCTest 2/2、対象の20回反復、試験source・選択操作実装・操作registry実装の厳格`clang-check`、書式、二回の無作業再構築、公開API検査に成功した。1,979工程・3,957入力の既存動的選択管理試験、製品OBJECT・shared target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 台帳へ52 APIを追加して23,380件対応、6,424件未対応となった。旧`public-api-missing-g332.json`は最新報告の検証後に削除し、追加作業tree・構築木は作成していない。主Ninja木5,903,208 KiB、共有compiler cache 983,164 KiB、最新`build/tdd-macos/public-api-missing-g333.json` 1,704,901 bytes、SHA-256 `f6ad15859f2c964604336f26daa63cb33d86a898c9ce6b269acc85512961517f`だけを再利用対象として保持する。compiler cacheは144,086件中120,469件、83.61%がhitしている。次の永続作業は第333便で次の高密度なmacOS対象と最小構築面を選定することである。
 
 ### 第239便の先行監査担当票
 
