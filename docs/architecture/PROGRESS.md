@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-07 00:36 JST
+- 更新日時: 2026-09-07 00:43 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -2103,7 +2103,14 @@
 
 - 正式入力`build/tdd-macos/public-api-missing-g314.json`は公開header 1,548、公開API 29,804、対応済み23,017、未対応6,787、1,804,134 bytes、SHA-256 `b332feefe3118ded10e46a75d1bbe26483bf3c707c33a4c9c14538451dc09627`を記録する。`libs/brush/kis_auto_brush_factory.h`の残存全9 API、`libs/brush/kis_predefined_brush_factory.h`と`libs/brush/kis_text_brush_factory.h`の残存全8 APIずつは重複なく、合計25識別子の整列集合SHA-256は`384333dd3f98bbcb809e781adb729aad9c951cc350815842260315bcb89f4557`である。auto factoryの型・寿命・識別4と生成・直列化5、predefined factoryの型・識別3と生成・変換・直列化5、text factoryの型・寿命・識別4と生成・直列化4の6枠へ完全に割り当てる。
 - 既存`kis_auto_brush_factory_test`は製品`kritaimage`・`kritalibbrush`と`kritatestsdk`へ接続する1,227工程・2,475入力であり、3種の具象brush factoryの公開宣言面だけを追加する対象として広すぎる。既存`KisBrushFactoryContractTest`も資源値objectを含む12工程・26入力である。新規`libs/brush/tests/KisConcreteBrushFactoriesSchemaContractTest.cpp`を作り、軽量近傍`KisBrushModelValuesContractTest`と同じbrush・global・image・brushengine・resources探索路、Qt Core・Gui・Test、header-only Boost・lager、KF I18nのinterface探索路へQt Xmlだけを加え、brush・resources export定義だけへ接続する。近傍は4工程・8入力、command SHA-256 `3f5ded35d09484fca0d60b27b253da1d35c87300ec5e813eb8f10ac5f955ee87`、input SHA-256 `f534d9f267e77f55eb8bf7aff466b0fad2e1b160e8f70ab5a669b92120052b19`である。新targetも4工程・8入力を予測し、停止線を5工程・11入力とする。
-- `g314-concrete-brush-factories-schema`の状態は`planned`、実装基点は`cabe4f32d8`である。許可pathを新規試験sourceと`libs/brush/tests/CMakeLists.txt`の新target固有節だけに限定し、公開headerと製品sourceを変更しない。factory、brush、資源装置、XMLを実体化せず、inline本文を実行しない。macOSの対象、近傍、追加6枠の20回反復、厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。製品target、既存の大規模factory効果試験、全体build・`verify`、Linux、Nix再評価は実行しない。
+- `g314-concrete-brush-factories-schema`の状態は`integrated`、実装基点は`cabe4f32d8`である。許可pathを新規試験sourceと`libs/brush/tests/CMakeLists.txt`の新target固有節だけに限定し、公開headerと製品sourceを変更しなかった。追加作業treeを作らず主作業treeで限定周期を実行し、実装commit `4a7be28e0c`として取り込んだ。
+
+### 第314便の契約統合結果
+
+- 開始`libs/brush/kis_auto_brush_factory.h`、`libs/brush/kis_predefined_brush_factory.h`、`libs/brush/kis_text_brush_factory.h`から新規`libs/brush/tests/KisConcreteBrushFactoriesSchemaContractTest.cpp`へ残存全9・8・8 APIを対応付けた。各生成器の型・構築・寿命・識別、XMLまたは模型からのbrush生成、模型復元、XML書出しとpredefined資源補完の正確な公開署名を6枠で固定した。新規試験sourceは118行・6枠である。
+- 対象未登録の初回限定構築は未知の対象だった。登録後の初回翻訳でauto factoryが直接読む`kis_fixed_paint_device.h`から`KoColorSpace.h`への探索路不足を検出し、新targetにpigmentのsource・生成・resources探索路だけを追加した後、宣言だけの6枠は期待どおり6件失敗した。製品libraryを接続せず、最終targetは4工程・8入力で停止線以内に収まった。command SHA-256は`4e41730fec7c78727370e92cc9d2e347ff0d9f966d025400bfe0b6b23a27ccba`、input SHA-256は`bd793123b39d33ccfb40525da58373d538ce70b98d359738a7c84e46eff054ee`である。候補headerのAUTOMOC `HEADERS`は空で、Qt Gui・Xml・Test・Core、gettext、OS frameworkだけへ動的接続し、製品未解決記号は0である。
+- macOSで対象と近傍`libs-brush-KisBrushModelValuesContractTest`のCTest 2/2、対象の20回反復、厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`に成功した。既存`kis_auto_brush_factory_test`の1,227工程・2,475入力と、資源値objectを含む既存`KisBrushFactoryContractTest`の12工程・26入力は構築していない。実brush生成、資源照会、模型変換、XML内容は既存または後続の効果契約で扱う。
+- 台帳へ25 APIを追加して23,042件対応、6,762件未対応、3対象headerの残存0件となった。旧`public-api-missing-g314.json`を削除し、追加作業tree・構築木は作成していない。主Ninja木5,876,876 KiB、共有compiler cache 982,524 KiB、最新`build/tdd-macos/public-api-missing-g315.json` 1,796,164 bytes、SHA-256 `a00a89ca2529d7279d19eb4d9aadc22ca8406bd317f4ebbc7dbaa5ca47bd3260`だけを再利用対象として保持する。compiler cacheは144,026件中120,466件、83.64%がhitしている。製品target、既存の大規模factory効果試験、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第315便の正式不足報告から、全APIを最小閉包で固定できる責務を再選定することである。
 
 ### 第239便の先行監査担当票
 

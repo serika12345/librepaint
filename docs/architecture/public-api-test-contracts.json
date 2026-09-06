@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 6787
+    "expectedMissingApis": 6762
   },
   "contracts": [
     {
@@ -64612,6 +64612,85 @@
         "method:KisSvgBrush::resourceType() const",
         "method:KisSvgBrush::saveToDevice(QIODevice * dev) const",
         "method:KisSvgBrush::toXML(QDomDocument & d,QDomElement & e) const"
+      ]
+    },
+    {
+      "target": "KisConcreteBrushFactoriesSchemaContractTest",
+      "source": "libs/brush/tests/KisConcreteBrushFactoriesSchemaContractTest.cpp",
+      "test": "KisConcreteBrushFactoriesSchemaContractTest::autoFactoryIdentityAndLifetimeSchemaRemainStable",
+      "behavior": "auto brush生成器は専用型、既定構築、多相破棄、および安定した生成器IDの公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisAutoBrushFactory",
+        "method:KisAutoBrushFactory::KisAutoBrushFactory()",
+        "method:KisAutoBrushFactory::id() const",
+        "method:KisAutoBrushFactory::~KisAutoBrushFactory()"
+      ]
+    },
+    {
+      "target": "KisConcreteBrushFactoriesSchemaContractTest",
+      "source": "libs/brush/tests/KisConcreteBrushFactoriesSchemaContractTest.cpp",
+      "test": "KisConcreteBrushFactoriesSchemaContractTest::autoFactoryCreationAndSerializationSchemaRemainStable",
+      "behavior": "auto brush生成器はXML・汎用brush模型・auto brush模型からの生成、XMLからの模型復元、および模型のXML書出しを正確な公開関数型で提供する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAutoBrushFactory::createBrush(const KisBrushModel::BrushData & data,KisResourcesInterfaceSP resourcesInterface)",
+        "method:KisAutoBrushFactory::createBrush(const KisBrushModel::CommonData & commonData,const KisBrushModel::AutoBrushData & autoBrushData,KisResourcesInterfaceSP resourcesInterface)",
+        "method:KisAutoBrushFactory::createBrush(const QDomElement & brushDefinition,KisResourcesInterfaceSP resourcesInterface)",
+        "method:KisAutoBrushFactory::createBrushModel(const QDomElement & element,KisResourcesInterfaceSP resourcesInterface)",
+        "method:KisAutoBrushFactory::toXML(QDomDocument & doc,QDomElement & element,const KisBrushModel::BrushData & model)"
+      ]
+    },
+    {
+      "target": "KisConcreteBrushFactoriesSchemaContractTest",
+      "source": "libs/brush/tests/KisConcreteBrushFactoriesSchemaContractTest.cpp",
+      "test": "KisConcreteBrushFactoriesSchemaContractTest::predefinedFactoryIdentitySchemaRemainsStable",
+      "behavior": "predefined brush生成器は専用型、brush種別による構築、および生成器IDの公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisPredefinedBrushFactory",
+        "method:KisPredefinedBrushFactory::KisPredefinedBrushFactory(const QString & brushType)",
+        "method:KisPredefinedBrushFactory::id() const"
+      ]
+    },
+    {
+      "target": "KisConcreteBrushFactoriesSchemaContractTest",
+      "source": "libs/brush/tests/KisConcreteBrushFactoriesSchemaContractTest.cpp",
+      "test": "KisConcreteBrushFactoriesSchemaContractTest::predefinedFactoryCreationAndSerializationSchemaRemainStable",
+      "behavior": "predefined brush生成器はXML・brush模型からの生成、XMLからの模型復元、資源からの模型補完、および模型のXML書出しを正確な公開関数型で提供する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPredefinedBrushFactory::createBrush(const KisBrushModel::BrushData & brushData,KisResourcesInterfaceSP resourcesInterface)",
+        "method:KisPredefinedBrushFactory::createBrush(const QDomElement & brushDefinition,KisResourcesInterfaceSP resourcesInterface)",
+        "method:KisPredefinedBrushFactory::createBrushModel(const QDomElement & element,KisResourcesInterfaceSP resourcesInterface)",
+        "method:KisPredefinedBrushFactory::loadFromBrushResource(KisBrushModel::CommonData & commonData,KisBrushModel::PredefinedBrushData & predefinedBrushData,KisBrushSP brushResource)",
+        "method:KisPredefinedBrushFactory::toXML(QDomDocument & doc,QDomElement & element,const KisBrushModel::BrushData & model)"
+      ]
+    },
+    {
+      "target": "KisConcreteBrushFactoriesSchemaContractTest",
+      "source": "libs/brush/tests/KisConcreteBrushFactoriesSchemaContractTest.cpp",
+      "test": "KisConcreteBrushFactoriesSchemaContractTest::textFactoryIdentityAndLifetimeSchemaRemainStable",
+      "behavior": "text brush生成器は専用型、既定構築、多相破棄、および安定した生成器IDの公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisTextBrushFactory",
+        "method:KisTextBrushFactory::KisTextBrushFactory()",
+        "method:KisTextBrushFactory::id() const",
+        "method:KisTextBrushFactory::~KisTextBrushFactory()"
+      ]
+    },
+    {
+      "target": "KisConcreteBrushFactoriesSchemaContractTest",
+      "source": "libs/brush/tests/KisConcreteBrushFactoriesSchemaContractTest.cpp",
+      "test": "KisConcreteBrushFactoriesSchemaContractTest::textFactoryCreationAndSerializationSchemaRemainStable",
+      "behavior": "text brush生成器はXML・brush模型からの生成、XMLからの模型復元、および模型のXML書出しを正確な公開関数型で提供する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTextBrushFactory::createBrush(const KisBrushModel::BrushData & data,KisResourcesInterfaceSP resourcesInterface)",
+        "method:KisTextBrushFactory::createBrush(const QDomElement & brushDefinition,KisResourcesInterfaceSP resourcesInterface)",
+        "method:KisTextBrushFactory::createBrushModel(const QDomElement & element,KisResourcesInterfaceSP resourcesInterface)",
+        "method:KisTextBrushFactory::toXML(QDomDocument & doc,QDomElement & element,const KisBrushModel::BrushData & model)"
       ]
     }
   ]
