@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-07 03:54 JST
+- 更新日時: 2026-09-07 03:58 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -2374,6 +2374,14 @@
 - 対象登録後の追加5枠は期待どおり5件失敗した。最初の契約リンクは空`KisNodeSP`の破棄が`kisSharedPtrRelease(KisNode *)`を要求して失敗し、nullだけを扱う試験協調定義を追加して製品library接続を避けた。新targetは4工程・8入力で停止線以内に収まり、command SHA-256は`c803a58160de7c7de934ccf99bc7f2cd7b55a8891ff86a41c549aa3997ee64fe`、input SHA-256は`a1c9cebe30044a986ed75cb4ac28108e7cdf944ae58e78810ab6731eb156fbb4`である。AUTOMOC header入力は空、Qt Test・Core、gettext、OS frameworkだけへ動的接続し、製品未解決記号は0である。
 - macOSで対象と軽量近傍`libs-canvas-KisFrameDataSerializerSchemaContractTest`のCTest 2/2、対象の20回反復、厳格`clang-check`、書式、二回の無作業再構築、公開API検査に成功した。2,011工程・4,020入力の既存動的animation utility試験、製品static・MODULE・OBJECT・shared target、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 台帳へ33 APIを追加して23,413件対応、6,391件未対応となった。旧`public-api-missing-g333.json`は最新報告の検証後に削除し、追加作業tree・構築木は作成していない。主Ninja木5,904,528 KiB、共有compiler cache 983,204 KiB、最新`build/tdd-macos/public-api-missing-g334.json` 1,695,624 bytes、SHA-256 `ddb2bbadec50afb8827ab85d12a258e689092ccdbd7276001d1a96a0cc2c4d9c`だけを再利用対象として保持する。compiler cacheは144,090件中120,469件、83.61%がhitしている。次の永続作業は第334便で次の高密度なmacOS対象と最小構築面を選定することである。
+
+### 第334便の監査結果と実装計画
+
+- 正式入力`build/tdd-macos/public-api-missing-g334.json`は公開header 1,548、公開API 29,804、対応済み23,413、未対応6,391、1,695,624 bytes、SHA-256 `ddb2bbadec50afb8827ab85d12a258e689092ccdbd7276001d1a96a0cc2c4d9c`を記録する。`plugins/dockers/animation/KisTimeBasedItemModel.h`の残存全39 APIを、型・表示役割14、所有・文書・cache接続8、表模型・header更新7、frame編集・scrub 5、再生範囲・状態5として既存`KisAnimUtilsSchemaContractTest.cpp`の追加5枠へ完全に割り当てる。対象識別子の整列集合SHA-256は`d201955d342ab3d678cb86b39046649e3ccffd2926c531412f8019af40853c45`である。
+- 開始headerの`KisKineticScroller.h`は宣言・inline・実装のいずれでも使用されず、4直接利用元へwidgetutils解析を波及させている。開始`plugins/dockers/animation/KisTimeBasedItemModel.h`から同includeを削除し、private所有型に必要な`QScopedPointer`を直接includeする。開始実装`plugins/dockers/animation/KisTimeBasedItemModel.cpp`の変更前厳格`clang-check`は成功しており、公開API指紋を維持したまま依存だけを縮小する。
+- 既存動的`timeline_model_test`はanimation docker製品群へ接続する2,011工程・4,020入力で反復対象にしない。拡張前`KisAnimUtilsSchemaContractTest`は4工程・8入力、command SHA-256 `c803a58160de7c7de934ccf99bc7f2cd7b55a8891ff86a41c549aa3997ee64fe`、input SHA-256 `a1c9cebe30044a986ed75cb4ac28108e7cdf944ae58e78810ab6731eb156fbb4`であり、軽量近傍も兼ねる。
+- 依存整理後に既存試験sourceへ5枠を追加し、対象固有CMake節へUI source探索路だけを加える。模型、image、cache、player、document、時刻範囲、Qt値を実体化せず、列挙値と全公開関数型を固定する。既存targetは4工程・8入力を維持すると予測し、停止線を5工程・11入力とする。
+- `g334-time-based-item-model-schema`の状態は`planned`、実装基点は`6f8fff1973`である。構造整理は開始header、契約は既存試験sourceと同target固有CMake節だけに限定する。macOSの対象、近傍、追加5枠の20回反復、開始実装と試験sourceの厳格`clang-check`、書式、二回の無作業再構築、公開API指紋不変、公開API検査、`verify-quick`だけを実行する。製品static・MODULE・OBJECT・shared target、全体build・`verify`、Linux、Nix再評価は実行しない。
 
 ### 第239便の先行監査担当票
 
