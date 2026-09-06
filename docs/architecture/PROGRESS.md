@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-07 07:28 JST
+- 更新日時: 2026-09-07 07:34 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -2620,6 +2620,15 @@
 - 開始headerはpointer引数だけの`QEvent`・`QMouseEvent`完全型と、公開宣言に値で現れるが完全型を必要としない`KoColor`を直接includeし、3直接利用翻訳単位へ定義を伝播している。3型を明示的な前方宣言へ置き換え、`QKeyEvent`を含む実装に必要な完全型を開始`libs/ui/widgets/KisScreenColorSampler.cpp`へ移す。開始実装の厳格`clang-check`は既存Qt 6非推奨`QMouseEvent::globalPos()`の2件だけで停止しており、移動後は公開API指紋不変と3直接利用元の厳格構文検査で推移利用がないことを確認する。
 - 既存`libs/ui/tests/KisAsyncColorSamplerHelperSchemaContractTest.cpp`は73行・5枠で、追加5枠後も300行・20枠未満に収まる。既存targetはCMake File API上で自動生成依存だけを持ち、4工程・8入力、command SHA-256 `556e9e0288a67f121cb750818af891e32658a0f95302ff0716bc5c5617a1e0a0`、input SHA-256 `4a8a13177400f734847e4c5bec0bae4873aa09109dc5523bfc4dab30f65f6896`である。対象固有CMake節へwidgetsのsource・generated探索路、Qt Gui・Widgets interface探索路と`kritawidgets_EXPORTS`だけを加え、Qt Core・Testだけの動的接続と4工程・8入力を維持する。停止線を5工程・11入力、300行・20枠とする。
 - `g349-screen-color-sampler-schema`の状態は`in_progress`、実装基点は`97ca02228d`である。構造整理は開始headerと実装、契約は既存試験sourceと対象固有CMake節だけに限定する。macOSの対象、追加5枠の20回反復、開始実装・試験source・直接利用元の厳格`clang-check`、書式、二回の無作業再構築、公開API指紋不変、公開API検査、`verify-quick`だけを実行する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
+- `g349-screen-color-sampler-schema`の状態は`integrated`、計画commitは`c4ea259314`、依存整理commitは`ff6f52f7bc`、契約実装commitは`6f77b7d8d6`である。
+
+### 第349便の契約統合結果
+
+- 画面色採取器の公開headerがpointer引数だけのevent完全型と色値完全型を3直接利用翻訳単位へ伝播させる構造を解消した。開始`libs/ui/widgets/KisScreenColorSampler.h`から`QEvent`・`QMouseEvent`・`KoColor`の完全型includeを除き、4型の明示的な前方宣言へ置き換えた。開始`libs/ui/widgets/KisScreenColorSampler.cpp`へ`QEvent`・`QKeyEvent`・`QMouseEvent`・`KoColor`の完全型includeを移し、実装が入力判定と色値実体を直接所有する。公開API報告は変更前後で同一SHA-256 `f0e4e9476bad117a1b71cdf223c974d700c5ac28e559a830dc92387c5947c02c`を維持した。
+- 開始`libs/ui/widgets/KisScreenColorSampler.h`から既存`libs/ui/tests/KisAsyncColorSamplerHelperSchemaContractTest.cpp`へ残存全19 APIを、採取器型・構築・寿命・factory4、色状態4、入力処理・取消4、採取開始・表示・通知4、event filter型・構築・配送3として追加した。試験sourceは124行・計10枠で停止線以内に収まり、公開headerと製品動作を変更していない。
+- 対象固有CMake節へwidgetsのsource・generated探索路、Qt Gui・Widgets interface探索路と`kritawidgets_EXPORTS`だけを追加した。初回限定構築は期待どおり追加5試験関数の未定義linkだけで失敗し、契約実装後に成功した。最終targetは4工程・8入力、command SHA-256 `b0b80459f336fdd96096a6663b9b435679eafac84877b88321778460e20e14d5`、input SHA-256 `4a8a13177400f734847e4c5bec0bae4873aa09109dc5523bfc4dab30f65f6896`を維持した。AUTOMOC header入力は空、Qt Test・Core、gettext、OS frameworkだけへ動的接続し、製品未解決記号は0件である。
+- macOSで対象と軽量近傍`libs-ui-KisCurveWidgetSchemaContractTest`のCTest、追加5枠の各20回反復、試験sourceの厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`に成功した。依存移動後の開始実装は既存Qt 6非推奨`QMouseEvent::globalPos()`の2件、残る2直接利用元は既存生成MOCまたはUI header欠落だけで停止し、候補header由来の診断は0件である。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 台帳へ19 APIを追加して24,354件対応、5,450件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g349.json`と一時報告を最新報告の検証後に削除し、追加作業tree・構築木は作成していない。主Ninja木5,917,948 KiB、共有compiler cache 982,960 KiB、最新`build/tdd-macos/public-api-missing-g350.json` 1,441,394 bytes、SHA-256 `88fb0e1dd8d4429fb609ef55905fe02422e184599cbf5ac8aaa1d78d49b2af22`だけを再利用対象として保持する。compiler cacheは144,174件中120,485件、83.57%がhitしている。次の永続作業は第350便で次の高密度なmacOS対象と最小構築面を選定することである。
 
 ### 第239便の先行監査担当票
 

@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 5469
+    "expectedMissingApis": 5450
   },
   "contracts": [
     {
@@ -67370,6 +67370,70 @@
       "apis": [
         "method:KisCurveWidgetControlsManager::dropInOutControls()",
         "method:KisCurveWidgetControlsManager::setupInOutControls(SpinBox * in,SpinBox * out,ValueType inMin,ValueType inMax,ValueType outMin,ValueType outMax)"
+      ]
+    },
+    {
+      "target": "KisAsyncColorSamplerHelperSchemaContractTest",
+      "source": "libs/ui/tests/KisAsyncColorSamplerHelperSchemaContractTest.cpp",
+      "test": "KisAsyncColorSamplerHelperSchemaContractTest::screenColorSamplerTypeConstructionAndFactorySchemaRemainStable",
+      "behavior": "画面色採取器の型、既定値を含む構築、factory署名と仮想寿命を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisScreenColorSampler",
+        "method:KisScreenColorSampler::KisScreenColorSampler(bool showInfoLabel=false,QWidget * parent=0)",
+        "method:KisScreenColorSampler::createScreenColorSampler(QWidget * parent=0)",
+        "method:KisScreenColorSampler::~KisScreenColorSampler()"
+      ]
+    },
+    {
+      "target": "KisAsyncColorSamplerHelperSchemaContractTest",
+      "source": "libs/ui/tests/KisAsyncColorSamplerHelperSchemaContractTest.cpp",
+      "test": "KisAsyncColorSamplerHelperSchemaContractTest::screenColorSamplerColorStateSignaturesRemainStable",
+      "behavior": "画面色採取器の現在色と実canvas採取方針に対する照会・変更署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisScreenColorSampler::currentColor()",
+        "method:KisScreenColorSampler::performRealColorSamplingOfCanvas() const",
+        "method:KisScreenColorSampler::setCurrentColor(KoColor c)",
+        "method:KisScreenColorSampler::setPerformRealColorSamplingOfCanvas(bool enable)"
+      ]
+    },
+    {
+      "target": "KisAsyncColorSamplerHelperSchemaContractTest",
+      "source": "libs/ui/tests/KisAsyncColorSamplerHelperSchemaContractTest.cpp",
+      "test": "KisAsyncColorSamplerHelperSchemaContractTest::screenColorSamplerInputAndCancellationSignaturesRemainStable",
+      "behavior": "画面色採取器のキー・mouse入力処理と取消操作の正確な公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisScreenColorSampler::cancel()",
+        "method:KisScreenColorSampler::handleColorSamplingKeyPress(QKeyEvent * e)",
+        "method:KisScreenColorSampler::handleColorSamplingMouseButtonRelease(QMouseEvent * e)",
+        "method:KisScreenColorSampler::handleColorSamplingMouseMove(QMouseEvent * e)"
+      ]
+    },
+    {
+      "target": "KisAsyncColorSamplerHelperSchemaContractTest",
+      "source": "libs/ui/tests/KisAsyncColorSamplerHelperSchemaContractTest.cpp",
+      "test": "KisAsyncColorSamplerHelperSchemaContractTest::screenColorSamplerActivationAndNotificationSignaturesRemainStable",
+      "behavior": "画面色採取器の採取開始、表示更新、新規色とhover色通知の正確な公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisScreenColorSampler::sampleScreenColor()",
+        "method:KisScreenColorSampler::sigNewColorHovered(KoColor c)",
+        "method:KisScreenColorSampler::sigNewColorSampled(KoColor c)",
+        "method:KisScreenColorSampler::updateIcons()"
+      ]
+    },
+    {
+      "target": "KisAsyncColorSamplerHelperSchemaContractTest",
+      "source": "libs/ui/tests/KisAsyncColorSamplerHelperSchemaContractTest.cpp",
+      "test": "KisAsyncColorSamplerHelperSchemaContractTest::screenColorSamplingEventFilterSchemaRemainStable",
+      "behavior": "画面色採取event filterの型、採取器・親所有を受ける構築とevent配送署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisScreenColorSamplingEventFilter",
+        "method:KisScreenColorSamplingEventFilter::KisScreenColorSamplingEventFilter(KisScreenColorSampler * w,QObject * parent=0)",
+        "method:KisScreenColorSamplingEventFilter::eventFilter(QObject *,QEvent * event)"
       ]
     }
   ]
