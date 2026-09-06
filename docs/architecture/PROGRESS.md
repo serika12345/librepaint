@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-06 21:45 JST
+- 更新日時: 2026-09-06 21:49 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1916,6 +1916,12 @@
 - 宣言段階では、最初に生成`kritapigment_export.h`の探索不足を記録し、対象固有CMake節へpigment生成探索路、globalのsource/generated探索路、KF I18n interface、header-only Boost、global・pigment export定義だけを追加した。その後の追加4枠が未定義symbolだけとなる期待失敗を確認した。対象は担当側・中央とも4工程・7入力を維持した。担当側command SHA-256は`47aa7aa5f8ac0a01a3e1f5f2569f372857b00016698fe386cfef9e2ca4c766bb`、input SHA-256は`5f412c36bdb1b9d8458256435a8e085409764c73fde28ee7baa3bb9585720832`、中央command SHA-256は`88ef085f3266d54f130a3795795512d63788541b012529e637c38c86e628ddbf`、input SHA-256は変更前と同じ`e95f7386f745e3dd1dd5af3deaed1777865dfe0dfe0295df8e31e3882c051b4b`である。候補headerのAUTOMOC入力は0で、Qt Test・Core、gettext、OS frameworkだけへ動的接続し、製品未解決記号は0である。
 - 担当側と中央のmacOSで追加4枠を各20回、対象CTest `libs-pigment-KoCompositeOpIdsContractTest`、近傍`libs-pigment-KoCompositeOpSchemaContractTest`、厳格`clang-check`、書式、二回の無作業再構築に成功した。担当側の`verify-quick`と中央の公開API検査にも成功し、台帳へ14 APIを追加して22,728件対応、7,076件未対応、対象headerの残存0件となった。
 - cleanな専用作業treeと構築木895,956 KiB、branchを統合直後に削除した。旧`public-api-missing-g299.json` 1,884,211 bytesを削除し、主Ninja木5,860,940 KiB、共有compiler cache 982,236 KiB、最新`build/tdd-macos/public-api-missing-g300.json` 1,880,246 bytes、SHA-256 `3aa377e0d0ee80da52bf3e439ae7c4160cfc2726e1c8b5a7fb4213eb65e94e68`だけを再利用対象として保持する。compiler cacheは143,949件中120,450件、83.68%がhitしている。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第300便の正式不足報告から、全APIを最小閉包で固定できる責務を再選定することである。
+
+### 第300便の監査結果と実装計画
+
+- 正式入力`build/tdd-macos/public-api-missing-g300.json`は公開header 1,548、公開API 29,804、対応済み22,728、未対応7,076、1,880,246 bytes、SHA-256 `3aa377e0d0ee80da52bf3e439ae7c4160cfc2726e1c8b5a7fb4213eb65e94e68`を記録する。`libs/pigment/resources/KoCachedGradient.h`の残存全15 APIは重複なく、識別子整列集合SHA-256は`c466994abfa2737dcf144019870ee4ad908a172eb546068864390543ac2ec260`である。型・構築・寿命4、評価3、参照gradient・色空間5、資源面3の4枠へ完全に割り当てる。
+- 既存`libs/pigment/tests/KoGradientSegmentSchemaContractTest.cpp`は217行・10枠であり、追加後も300行・15枠未満に収まる。区分gradientと同じgradient評価・資源責務として4枠だけを追加し、CMakeを変更しない。変更前閉包は4工程・7入力、command SHA-256 `f1cdf3afee41f0f2069be68dd126f4f85b0821aac2400aa65c1798e7d2b63253`、input SHA-256 `9330f10dffdafaeeb6883af9e3940329c2e1a90cc25b350321ae5d21f5af4cfe`であり、停止線を5工程・11入力とする。製品`kritapigment`の367工程・764入力を避け、gradient、色、色空間、deviceを実体化せず、inline本文を実行しない。
+- `g300-cached-gradient-schema`の状態は`planned`、実装基点は`0643c3e574`である。許可pathを既存試験sourceだけに限定し、CMake、公開header、製品sourceを変更しない。macOSの対象`libs-pigment-KoGradientSegmentSchemaContractTest`、近傍`libs-pigment-KoStopGradientSchemaContractTest`、追加4枠の各20回反復、厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
 
 ### 第239便の先行監査担当票
 
