@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-07 07:52 JST
+- 更新日時: 2026-09-07 08:13 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -2666,6 +2666,12 @@
 - 三つの開始headerは図形tool基底、cursor既定値と各interaction値memberの完全型を直接必要とし、削減すべき推移includeはない。開始`KisToolOutlineBase.cpp`と`kis_tool_rectangle_base.cpp`の厳格`clang-check`は診断0件だが、開始`kis_tool_polyline_base.cpp`は`image()->bounds()`で使う`KisImage`完全型を直接includeせず停止する。`kis_image.h`を同実装へ追加して依存を明示し、公開API指紋不変と12直接利用元の候補header診断0件を確認する。
 - 既存`libs/tools/tests/KisToolSelectBaseSchemaContractTest.cpp`は132行・5枠で、追加10枠後も300行・20枠未満に収める。既存targetはCMake File API上で自動生成依存だけを持ち、4工程・8入力、command SHA-256 `860796e98eec647b9e7f00f5f5d8cef1ecc31d2a5fced23d3d06f290279cf642`、input SHA-256 `1c87db84f4d7f873552114f0baaa920f6a47b28a344383a5cb86748398ffa26e`である。対象固有CMake節へui・widgetutilsのsource・generated探索路、`kritaui_EXPORTS`と`kritawidgetutils_EXPORTS`だけを加え、Qt Core・Testだけの動的接続と4工程・8入力を維持する。停止線を5工程・11入力、300行・20枠とする。
 - `g352-shape-input-tool-bases-schema`の状態は`in_progress`、実装基点は`fce1932264`である。構造整理は折れ線実装、契約は既存試験sourceと対象固有CMake節だけに限定する。macOSの対象、追加10枠の20回反復、開始実装・試験source・直接利用元の厳格`clang-check`、書式、二回の無作業再構築、公開API指紋不変、公開API検査、`verify-quick`だけを実行する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
+
+### 第352便の実装結果
+
+- `g352-shape-input-tool-bases-schema`は`completed`である。`libs/ui/tool/kis_tool_polyline_base.cpp`へ実際に使う`kis_image.h`を直接追加し、偶然の推移includeへの依存を除いた。開始3実装の厳格`clang-check`は診断0件となり、構造変更前後の公開API報告はSHA-256 `13b74f98b251b054d8b1a2a41f686f1d82ade61411a552dbb33b87b75db89416`で同一だった。構造変更は`6671d1079a`へ分離した。
+- `libs/tools/tests/KisToolSelectBaseSchemaContractTest.cpp`へ10枠を追加し、輪郭21 API、矩形21 API、折れ線17 APIの型、種別値、構築、入力、表示、設定通知、寿命署名を固定した。対象は299行・15枠である。対象固有CMake節には公開headerの自己完結したcompileに必要なui・tool・widgetutils・imageの探索路とQt Widgets・Eigen・KF Configのinterface探索路およびexport定義だけを追加し、製品library接続は追加していない。最初の赤は対象探索路の不足を順に露出した後、追加10枠の未定義symbolだけで停止した。実装は`839f53acf7`である。最終閉包は4工程・8入力、command SHA-256 `7d72107257a30cdc9ee717390876221296ca6984d3f79575a3a9c4907203d90a`、input SHA-256 `1c87db84f4d7f873552114f0baaa920f6a47b28a344383a5cb86748398ffa26e`で、動的接続はQt Core・Test、gettextとmacOS frameworkだけである。
+- macOSで対象と軽量近傍`KisToolSchemaContractTest`のCTest、追加10枠を含む対象の20回反復、開始3実装・試験source・9直接利用headerの厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`に成功した。台帳へ59 APIを追加して24,450件対応、5,354件未対応となり、開始3 headerの残存は0件である。旧`public-api-missing-g352.json`を削除し、主Ninja木5,916,944 KiB、共有compiler cache 1.0 GB、最新`build/tdd-macos/public-api-missing-g353.json` 1,417,520 bytes、SHA-256 `580ba00cdac869efcab53164e34d9449df52f83caff344c8544a7a0970b31302`だけを保持する。compiler cacheは144,189件中120,492件、83.57%がhitしている。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第353便で次の高密度なmacOS対象と最小構築面を選定することである。
 
 ### 第239便の先行監査担当票
 

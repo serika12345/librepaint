@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 5413
+    "expectedMissingApis": 5354
   },
   "contracts": [
     {
@@ -67561,6 +67561,155 @@
         "method:KisPasteShapeStyleActionFactory::KisPasteShapeStyleActionFactory()",
         "method:KisPasteShapeStyleActionFactory::run(KisViewManager * view)",
         "struct:KisPasteShapeStyleActionFactory"
+      ]
+    },
+    {
+      "target": "KisToolSelectBaseSchemaContractTest",
+      "source": "libs/tools/tests/KisToolSelectBaseSchemaContractTest.cpp",
+      "test": "KisToolSelectBaseSchemaContractTest::outlineTypeAndConstructionSchemaRemainStable",
+      "behavior": "輪郭tool基底は描画・選択の種別値、canvasとcursorによる構築、および仮想破棄を備えた公開型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisToolOutlineBase",
+        "enum:KisToolOutlineBase::ToolType",
+        "enumerator:KisToolOutlineBase::ToolType::PAINT",
+        "enumerator:KisToolOutlineBase::ToolType::SELECT",
+        "method:KisToolOutlineBase::KisToolOutlineBase(KoCanvasBase * canvas,ToolType type,const QCursor & cursor=KisCursor::load (\"tool_outline_selection_cursor.png\",6,6))",
+        "method:KisToolOutlineBase::~KisToolOutlineBase()"
+      ]
+    },
+    {
+      "target": "KisToolSelectBaseSchemaContractTest",
+      "source": "libs/tools/tests/KisToolSelectBaseSchemaContractTest.cpp",
+      "test": "KisToolSelectBaseSchemaContractTest::outlinePrimaryInputSignaturesRemainStable",
+      "behavior": "輪郭tool基底は主pointer操作の開始・継続・終了と移動を受け取る公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisToolOutlineBase::beginPrimaryAction(KoPointerEvent * event)",
+        "method:KisToolOutlineBase::continuePrimaryAction(KoPointerEvent * event)",
+        "method:KisToolOutlineBase::endPrimaryAction(KoPointerEvent * event)",
+        "method:KisToolOutlineBase::mouseMoveEvent(KoPointerEvent * event)"
+      ]
+    },
+    {
+      "target": "KisToolSelectBaseSchemaContractTest",
+      "source": "libs/tools/tests/KisToolSelectBaseSchemaContractTest.cpp",
+      "test": "KisToolSelectBaseSchemaContractTest::outlineAuxiliaryInputSignaturesRemainStable",
+      "behavior": "輪郭tool基底はキーとevent filterを扱い、対話状態を照会して直前点を取り消す公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisToolOutlineBase::eventFilter(QObject * obj,QEvent * event)",
+        "method:KisToolOutlineBase::hasUserInteractionRunning() const",
+        "method:KisToolOutlineBase::keyPressEvent(QKeyEvent * event)",
+        "method:KisToolOutlineBase::keyReleaseEvent(QKeyEvent * event)",
+        "method:KisToolOutlineBase::undoLastPoint()"
+      ]
+    },
+    {
+      "target": "KisToolSelectBaseSchemaContractTest",
+      "source": "libs/tools/tests/KisToolSelectBaseSchemaContractTest.cpp",
+      "test": "KisToolSelectBaseSchemaContractTest::outlinePresentationAndLifecycleSignaturesRemainStable",
+      "behavior": "輪郭tool基底は表示・popup取得、有効化・無効化、およびstrokeの確定・取消を行う公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisToolOutlineBase::activate(const QSet<KoShape * > & shapes)",
+        "method:KisToolOutlineBase::deactivate()",
+        "method:KisToolOutlineBase::paint(QPainter & gc,const KoViewConverter & converter)",
+        "method:KisToolOutlineBase::popupWidget()",
+        "method:KisToolOutlineBase::requestStrokeCancellation()",
+        "method:KisToolOutlineBase::requestStrokeEnd()"
+      ]
+    },
+    {
+      "target": "KisToolSelectBaseSchemaContractTest",
+      "source": "libs/tools/tests/KisToolSelectBaseSchemaContractTest.cpp",
+      "test": "KisToolSelectBaseSchemaContractTest::rectangleTypeAndConstructionSchemaRemainStable",
+      "behavior": "矩形tool基底は描画・選択の種別値と、canvas・種別・cursorによる構築を備えた公開型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisToolRectangleBase",
+        "enum:KisToolRectangleBase::ToolType",
+        "enumerator:KisToolRectangleBase::ToolType::PAINT",
+        "enumerator:KisToolRectangleBase::ToolType::SELECT",
+        "method:KisToolRectangleBase::KisToolRectangleBase(KoCanvasBase * canvas,KisToolRectangleBase::ToolType type,const QCursor & cursor=KisCursor::load (\"tool_rectangle_cursor.png\",6,6))"
+      ]
+    },
+    {
+      "target": "KisToolSelectBaseSchemaContractTest",
+      "source": "libs/tools/tests/KisToolSelectBaseSchemaContractTest.cpp",
+      "test": "KisToolSelectBaseSchemaContractTest::rectanglePrimaryInputSignaturesRemainStable",
+      "behavior": "矩形tool基底は主pointer操作の開始・継続・終了とキー入力を受け取る公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisToolRectangleBase::beginPrimaryAction(KoPointerEvent * event)",
+        "method:KisToolRectangleBase::continuePrimaryAction(KoPointerEvent * event)",
+        "method:KisToolRectangleBase::endPrimaryAction(KoPointerEvent * event)",
+        "method:KisToolRectangleBase::keyPressEvent(QKeyEvent * event)",
+        "method:KisToolRectangleBase::keyReleaseEvent(QKeyEvent * event)"
+      ]
+    },
+    {
+      "target": "KisToolSelectBaseSchemaContractTest",
+      "source": "libs/tools/tests/KisToolSelectBaseSchemaContractTest.cpp",
+      "test": "KisToolSelectBaseSchemaContractTest::rectangleConfigurationAndNotificationSignaturesRemainStable",
+      "behavior": "矩形tool基底は縦横制約と角丸設定を受け取り、矩形変更と設定再読込を通知する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisToolRectangleBase::constraintsChanged(bool forceRatio,bool forceWidth,bool forceHeight,float ratio,float width,float height)",
+        "method:KisToolRectangleBase::rectangleChanged(const QRectF & newRect)",
+        "method:KisToolRectangleBase::roundCornersChanged(int rx,int ry)",
+        "method:KisToolRectangleBase::sigRequestReloadConfig()"
+      ]
+    },
+    {
+      "target": "KisToolSelectBaseSchemaContractTest",
+      "source": "libs/tools/tests/KisToolSelectBaseSchemaContractTest.cpp",
+      "test": "KisToolSelectBaseSchemaContractTest::rectanglePresentationAndLifecycleSignaturesRemainStable",
+      "behavior": "矩形tool基底は表示と選択肢widgetを提供し、有効化・無効化、寸法表示、strokeの確定・取消を行う公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisToolRectangleBase::activate(const QSet<KoShape * > & shapes)",
+        "method:KisToolRectangleBase::createOptionWidgets()",
+        "method:KisToolRectangleBase::deactivate()",
+        "method:KisToolRectangleBase::paint(QPainter & gc,const KoViewConverter & converter)",
+        "method:KisToolRectangleBase::requestStrokeCancellation()",
+        "method:KisToolRectangleBase::requestStrokeEnd()",
+        "method:KisToolRectangleBase::showSize()"
+      ]
+    },
+    {
+      "target": "KisToolSelectBaseSchemaContractTest",
+      "source": "libs/tools/tests/KisToolSelectBaseSchemaContractTest.cpp",
+      "test": "KisToolSelectBaseSchemaContractTest::polylineTypeAndPrimaryInputSignaturesRemainStable",
+      "behavior": "折れ線tool基底は描画・選択の種別値と構築経路を持ち、主操作の開始・終了・二重click・移動を受け取る公開面を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisToolPolylineBase",
+        "enum:KisToolPolylineBase::ToolType",
+        "enumerator:KisToolPolylineBase::ToolType::PAINT",
+        "enumerator:KisToolPolylineBase::ToolType::SELECT",
+        "method:KisToolPolylineBase::KisToolPolylineBase(KoCanvasBase * canvas,KisToolPolylineBase::ToolType type,const QCursor & cursor=KisCursor::load (\"tool_polygon_cursor.png\",6,6))",
+        "method:KisToolPolylineBase::beginPrimaryAction(KoPointerEvent * event)",
+        "method:KisToolPolylineBase::beginPrimaryDoubleClickAction(KoPointerEvent * event)",
+        "method:KisToolPolylineBase::endPrimaryAction(KoPointerEvent * event)",
+        "method:KisToolPolylineBase::mouseMoveEvent(KoPointerEvent * event)"
+      ]
+    },
+    {
+      "target": "KisToolSelectBaseSchemaContractTest",
+      "source": "libs/tools/tests/KisToolSelectBaseSchemaContractTest.cpp",
+      "test": "KisToolSelectBaseSchemaContractTest::polylineAuxiliaryAndLifecycleSignaturesRemainStable",
+      "behavior": "折れ線tool基底は代替入力とevent filter、表示・popup取得、有効化・無効化、およびstrokeの確定・取消を行う公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisToolPolylineBase::activate(const QSet<KoShape * > & shapes)",
+        "method:KisToolPolylineBase::beginAlternateAction(KoPointerEvent * event,AlternateAction action)",
+        "method:KisToolPolylineBase::deactivate()",
+        "method:KisToolPolylineBase::eventFilter(QObject * obj,QEvent * event)",
+        "method:KisToolPolylineBase::paint(QPainter & gc,const KoViewConverter & converter)",
+        "method:KisToolPolylineBase::popupWidget()",
+        "method:KisToolPolylineBase::requestStrokeCancellation()",
+        "method:KisToolPolylineBase::requestStrokeEnd()"
       ]
     }
   ]
