@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 6625
+    "expectedMissingApis": 6578
   },
   "contracts": [
     {
@@ -65278,6 +65278,98 @@
       "classification": "maintained",
       "apis": [
         "method:Acs::PixelCacheRenderer::render(Sampler * sampler,const KisDisplayColorConverter * converter,const QRect & sampleRect,KisPaintDeviceSP & realPixelCache,QImage & pixelCache,QPoint & pixelCacheOffset,qreal devicePixelRatioF)"
+      ]
+    },
+    {
+      "target": "KritaImageUtilitySchemaContractTest",
+      "source": "libs/image/tests/KritaImageUtilitySchemaContractTest.cpp",
+      "test": "KritaImageUtilitySchemaContractTest::partitioningAndFormattingSchemaRemainsStable",
+      "behavior": "画像補助は矩形・領域・三角形・pathの分割、実数表示、最大寸法計算に関する正確な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KritaUtils::maxDimensionPortion(const QRectF & bounds,qreal portion,qreal minValue)",
+        "function:KritaUtils::optimalPatchSize()",
+        "function:KritaUtils::prettyFormatReal(qreal value)",
+        "function:KritaUtils::splitDisjointPaths(const QPainterPath & path)",
+        "function:KritaUtils::splitPath(const QPainterPath & path)",
+        "function:KritaUtils::splitRectIntoPatches(const QRect & rc,const QSize & patchSize)",
+        "function:KritaUtils::splitRectIntoPatchesTight(const QRect & rc,const QSize & patchSize)",
+        "function:KritaUtils::splitRegionIntoPatches(const KisRegion & region,const QSize & patchSize)",
+        "function:KritaUtils::splitRegionIntoPatches(const QRegion & region,const QSize & patchSize)",
+        "function:KritaUtils::splitTriangles(const QPointF & center,const QVector<QPointF> & points)"
+      ]
+    },
+    {
+      "target": "KritaImageUtilitySchemaContractTest",
+      "source": "libs/image/tests/KritaImageUtilitySchemaContractTest.cpp",
+      "test": "KritaImageUtilitySchemaContractTest::opacityChannelNodeAndPaintingSchemaRemainsStable",
+      "behavior": "画像補助はopacity・channel flagの統合、node選択、矩形描画、グレースケール変換、局所化表示に関する正確な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KritaUtils::compareChannelFlags(QBitArray f1,QBitArray f2)",
+        "function:KritaUtils::convertQImageToGrayA(const QImage & image)",
+        "function:KritaUtils::mergeChannelFlags(const QBitArray & flags,const QBitArray & parentFlags)",
+        "function:KritaUtils::mergeOpacityF(qreal opacity,qreal parentOpacity)",
+        "function:KritaUtils::mergeOpacityU8(quint8 opacity,quint8 parentOpacity)",
+        "function:KritaUtils::nearestNodeAfterRemoval(KisNodeSP node)",
+        "function:KritaUtils::renderExactRect(QPainter * p,const QRect & rc)",
+        "function:KritaUtils::renderExactRect(QPainter * p,const QRect & rc,const QPen & pen)",
+        "function:KritaUtils::toLocalizedOnOff(bool value)"
+      ]
+    },
+    {
+      "target": "KritaImageUtilitySchemaContractTest",
+      "source": "libs/image/tests/KritaImageUtilitySchemaContractTest.cpp",
+      "test": "KritaImageUtilitySchemaContractTest::deviceAndGeometryMutationSchemaRemainsStable",
+      "behavior": "画像補助はalpha画素処理、透明率推定、dab・矩形・点の鏡映、およびpath座標変換の正確な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KritaUtils::applyToAlpha8Device(KisPaintDeviceSP dev,const QRect & rc,std::function<void (quint8)> func)",
+        "function:KritaUtils::estimatePortionOfTransparentPixels(KisPaintDeviceSP dev,const QRect & rect,qreal samplePortion)",
+        "function:KritaUtils::filterAlpha8Device(KisPaintDeviceSP dev,const QRect & rc,std::function<quint8 (quint8)> func)",
+        "function:KritaUtils::mirrorDab(Qt::Orientation dir,const QPoint & center,KisRenderedDab * dab,bool skipMirrorPixels=false)",
+        "function:KritaUtils::mirrorDab(Qt::Orientation dir,const QPointF & center,KisRenderedDab * dab,bool skipMirrorPixels=false)",
+        "function:KritaUtils::mirrorPoint(Qt::Orientation dir,const QPoint & center,QPointF * pt)",
+        "function:KritaUtils::mirrorPoint(Qt::Orientation dir,const QPointF & center,QPointF * pt)",
+        "function:KritaUtils::mirrorRect(Qt::Orientation dir,const QPoint & center,QRect * rc)",
+        "function:KritaUtils::mirrorRect(Qt::Orientation dir,const QPointF & center,QRect * rc)",
+        "function:KritaUtils::pathShapeBooleanSpaceWorkaround(KisImageSP image)",
+        "function:KritaUtils::tryCloseTornSubpathsAfterIntersection(QPainterPath path)"
+      ]
+    },
+    {
+      "target": "KritaImageUtilitySchemaContractTest",
+      "source": "libs/image/tests/KritaImageUtilitySchemaContractTest.cpp",
+      "test": "KritaImageUtilitySchemaContractTest::thresholdSchemaRemainsStable",
+      "behavior": "画像補助のthreshold処理は4つの方式と通常・alpha8 paint device入口の正確な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KritaUtils::ThresholdMode",
+        "enumerator:KritaUtils::ThresholdMode::ThresholdCeil",
+        "enumerator:KritaUtils::ThresholdMode::ThresholdFloor",
+        "enumerator:KritaUtils::ThresholdMode::ThresholdMaxOut",
+        "enumerator:KritaUtils::ThresholdMode::ThresholdNone",
+        "function:KritaUtils::thresholdOpacity(KisPaintDeviceSP device,const QRect & rect,ThresholdMode mode)",
+        "function:KritaUtils::thresholdOpacityAlpha8(KisPaintDeviceSP device,const QRect & rect,ThresholdMode mode)"
+      ]
+    },
+    {
+      "target": "KritaImageUtilitySchemaContractTest",
+      "source": "libs/image/tests/KritaImageUtilitySchemaContractTest.cpp",
+      "test": "KritaImageUtilitySchemaContractTest::rasterizationSchemaRemainsStable",
+      "behavior": "画像補助は水平線・垂直線・任意線・折線・polygonをvisitorまたは点列へraster化する公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KritaUtils::rasterizeHLine(const QPoint & startPoint,const QPoint & endPoint)",
+        "function:KritaUtils::rasterizeHLine(const QPoint & startPoint,const QPoint & endPoint,Visitor visitor)",
+        "function:KritaUtils::rasterizeLineDDA(const QPoint & startPoint,const QPoint & endPoint)",
+        "function:KritaUtils::rasterizeLineDDA(const QPoint & startPoint,const QPoint & endPoint,Visitor visitor)",
+        "function:KritaUtils::rasterizePolygonDDA(const QVector<QPoint> & polygonPoints)",
+        "function:KritaUtils::rasterizePolygonDDA(const QVector<QPoint> & polygonPoints,Visitor visitor)",
+        "function:KritaUtils::rasterizePolylineDDA(const QVector<QPoint> & polylinePoints)",
+        "function:KritaUtils::rasterizePolylineDDA(const QVector<QPoint> & polylinePoints,Visitor visitor)",
+        "function:KritaUtils::rasterizeVLine(const QPoint & startPoint,const QPoint & endPoint)",
+        "function:KritaUtils::rasterizeVLine(const QPoint & startPoint,const QPoint & endPoint,Visitor visitor)"
       ]
     }
   ]

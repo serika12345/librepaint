@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-07 02:56 JST
+- 更新日時: 2026-09-07 03:06 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -2293,7 +2293,15 @@
 - 正式入力`build/tdd-macos/public-api-missing-g328.json`は公開header 1,548、公開API 29,804、対応済み23,179、未対応6,625、1,760,373 bytes、SHA-256 `a64533382775857d2b12464db7cd80a68a91f1def93677379b226f83b77bf5d1`を記録する。`libs/image/krita_utils.h`の残存全47 APIを、領域分割・表示10、opacity・channel・node・描画9、device・鏡映・path変換11、threshold 7、線・折線・polygon raster化10として5枠へ完全に割り当てる。対象識別子の整列集合SHA-256は`ea77877128b4fe660c357937f127ac7307e308213495f21069bb787720fda5c9`である。
 - 開始headerは`krita_container_utils.h`を取り込むが、同headerの補助関数と型特性を一切使用せず、`QList`だけを推移includeしている。71直接利用元へ不要なhelper template解析を波及させるため、契約追加前に同includeを直接`<QList>`へ置換する。開始実装`libs/image/krita_utils.cpp`は変更前の厳格`clang-check`に成功しており、変更後も同検査と公開API 29,804件・対象識別子集合の不変を確認する。
 - 既存`KisImageTypesContractTest.cpp`は4,105行まで成長しているため追記せず、新規`libs/image/tests/KritaImageUtilitySchemaContractTest.cpp`を作る。image・globalのsource/generated探索路、Qt Core・Gui・Test、header-only Boost、image・global export定義だけへ接続する。既存巨大契約の構築閉包自体は4工程・8入力、command SHA-256 `860901e6bedec4afd10214e6f9e56ccd61a1e8182c0e7d050a1092b2c13c25d1`、input SHA-256 `42c0bdca62da9111fd79736a3055bd233ee32342bc2c9ae69fc577a83a88cf81`だが、source責務と再構築を分離する。新targetも4工程・8入力を予測し、停止線を5工程・11入力とする。
-- `g328-krita-image-utility-schema`の状態は`planned`、実装基点は`71295a0c99`である。構造準備は`libs/image/krita_utils.h`だけ、契約実装は新規試験sourceと`libs/image/tests/CMakeLists.txt`の新target固有節だけを変更する。macOSの開始実装構文、対象、軽量近傍、追加5枠の20回反復、厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。paint device、image、node、painter、path、領域を実体化せず、製品OBJECT・shared target、全体build・`verify`、Linux、Nix再評価は実行しない。
+- `g328-krita-image-utility-schema`の状態は`integrated`、実装基点は`71295a0c99`である。構造準備は`libs/image/krita_utils.h`だけを変更してcommit `1cbd6d1f4a`、契約実装は新規試験sourceと`libs/image/tests/CMakeLists.txt`の新target固有節だけを変更してcommit `955a32d224`とした。
+
+### 第328便の契約統合結果
+
+- 開始`libs/image/krita_utils.h`から未使用`krita_container_utils.h`を除去し、実際に使う`<QList>`を直接includeした。71直接利用元へ汎用container helper templateの解析を波及させない構造へ狭めた。開始実装`libs/image/krita_utils.cpp`は変更前後の厳格`clang-check`に成功し、公開API 29,804件、指紋、対象47識別子は不変である。
+- 同開始headerから新規`libs/image/tests/KritaImageUtilitySchemaContractTest.cpp`へ、領域分割・表示10 API、opacity・channel・node・描画9 API、device・鏡映・path変換11 API、threshold 7 API、線・折線・polygon raster化10 APIを152行・5枠で対応付けた。paint device、image、node、painter、path、領域を実体化せず、列挙値と全関数型を固定した。
+- 対象未登録の初回限定構築は未知の対象として失敗し、登録後の追加5枠は期待どおり5件失敗した。新targetは4工程・8入力で停止線以内に収まり、command SHA-256は`4a647b93cc71571147e00551926cfee647402697189000852d3687e9418ed3dd`、input SHA-256は`76dc9e97d5043413be2d0086cd6bad63d14ef6114fc3472ae61c178bb65e3b52`である。AUTOMOC header入力は空、Qt Gui・Test・Core、gettext、OS frameworkだけへ動的接続し、製品未解決記号は0である。
+- macOSで対象と軽量近傍`libs-image-KisCrossDeviceColorSamplerSchemaContractTest`のCTest 2/2、対象の20回反復、試験sourceと開始実装の厳格`clang-check`、書式、二回の無作業再構築、公開API検査に成功した。4,105行の既存`KisImageTypesContractTest`、製品OBJECT・shared target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 台帳へ47 APIを追加して23,226件対応、6,578件未対応となった。旧`public-api-missing-g328.json`は最新報告の検証後に削除し、追加作業tree・構築木は作成していない。主Ninja木5,895,536 KiB、共有compiler cache 983,476 KiB、最新`build/tdd-macos/public-api-missing-g329.json` 1,746,486 bytes、SHA-256 `306e8d77d593338bdc9542f91fdc2cb8c47e6ad88a5e77fceb75072968050a1f`だけを再利用対象として保持する。compiler cacheは144,074件中120,469件、83.62%がhitしている。次の永続作業は第329便で次の高密度なmacOS対象と最小構築面を選定することである。
 
 ### 第239便の先行監査担当票
 
