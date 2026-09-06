@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-06 19:58 JST
+- 更新日時: 2026-09-06 20:02 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1812,6 +1812,12 @@
 - 宣言段階の最初の構築は`kis_base_node.h`が直接使用する`QIcon`の探索不足で失敗し、対象固有CMake節へQt Guiのinterface探索路だけを追加した後、宣言だけの追加3枠が未定義symbolとなる期待失敗を記録した。対象は担当側・中央とも4工程・8入力を維持した。担当側command SHA-256は`9c64bd315e51bb8aec779205bf002a4f8016a39ab7ca032e16f4dc3e836dc12b`、input SHA-256は`934c45f6f2de5f09b3328ce64cd3aff216affdb9a29ef84af2d896946df398e7`、中央command SHA-256は`7a500b33ba8fe89ff4878fd9a7c2b271a49ffbbd4e990543c5e45670afe6c1d5`、input SHA-256は変更前と同じ`de390929d1a8ba7076f1c53ed878147539ff70e638545ff1fd8e1329a31671eb`である。候補headerはAUTOMOC入力外で、Qt Guiを動的接続せず、Qt Test・Core、gettext、OS frameworkだけへ接続し、製品未解決記号は0である。
 - 担当側と中央のmacOSで追加3枠を各20回、対象CTest `libs-image-KisNodeVisualPropertyCommandsSchemaContractTest`、近傍`libs-image-KisNodeCommandsAdapterSchemaContractTest`、厳格`clang-check`、書式、二回目計画と二回の無作業再構築に成功した。担当側の`verify-quick`と中央の公開API検査にも成功し、台帳へ10 APIを追加して22,615件対応、7,189件未対応、対象headerの残存0件となった。
 - cleanな専用作業tree、305,856 KiBの構築木、branchを統合直後に削除し、作業tree全体897,184 KiBを回収した。旧`public-api-missing-g291.json` 1,912,832 bytesを削除し、主Ninja木5,855,056 KiB、共有compiler cache 982,904 KiB、最新`build/tdd-macos/public-api-missing-g292.json` 1,910,010 bytes、SHA-256 `e30c0c45d6cd031a866bc4667c1351758d0297c4064a7bc153cd0675d9c2e307`だけを再利用対象として保持する。compiler cacheは143,890件中120,429件、83.70%がhitしている。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第292便の正式不足報告から、全APIを最小閉包で固定できる責務を再選定することである。
+
+### 第292便の監査結果と実装計画
+
+- 正式入力`build/tdd-macos/public-api-missing-g292.json`は公開header 1,548、公開API 29,804、対応済み22,615、未対応7,189、1,910,010 bytes、SHA-256 `e30c0c45d6cd031a866bc4667c1351758d0297c4064a7bc153cd0675d9c2e307`を記録する。`libs/image/KisImageResolutionProxy.h`の残存全12 APIは重複なく、識別子整列集合SHA-256は`4ddb491686931be5d6f0eadefd5f46a2a05372cd7b144072e7a1e38eaafce715`である。proxy型・共有所有・構築・寿命6、解像度照会・比較・分離複製4、画像接続または分離複製と単位解像度生成2の3枠へ完全に割り当てる。
+- 既存`libs/image/tests/KisImageProjectionAndResolutionCommandsSchemaContractTest.cpp`は87行・4枠であり、追加後も200行・10枠未満に収まる。画像解像度commandと同じ解像度境界の責務として3枠を追加し、CMakeを変更しない。既存targetの変更前閉包は4工程・8入力、command SHA-256 `39e933b54a0ffe02cf936c16b275d21b8405564d01bc72905b67810042f52ef3`、input SHA-256 `c9add6423344ddb3fa43d2492a02ab6ef3284f0438fed3ee2dd2e2d81c31fec8`であり、停止線を5工程・11入力とする。別targetは同じ解像度header閉包にCMake再構成と生成物を追加するため棄却する。製品`kritaimage`の1,197工程・2,418入力を避け、imageとproxyを実体化せず、公開関数本文を実行しない。
+- `g292-image-resolution-proxy-schema`の状態は`planned`、実装基点は`27fe7751d5`である。許可pathを既存`libs/image/tests/KisImageProjectionAndResolutionCommandsSchemaContractTest.cpp`だけに限定する。CMake、公開header、製品source、製品target、全体build・`verify`、Linux、Nix再評価、追加委任を対象外とし、macOSの対象・近傍に限る構築実行を許可する。専用Git作業treeとworktree-local Ninja木を一つだけ作り、宣言だけの期待失敗、対象CTest、追加3枠の各20回反復、近傍、厳格`clang-check`、書式、公開記号、AUTOMOC非入力、製品非接続、二回目計画、二回の無作業再構築、公開API検査、`verify-quick`を確認してから統合する。
 
 ### 第239便の先行監査担当票
 
