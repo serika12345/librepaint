@@ -9,9 +9,12 @@
 #include <type_traits>
 
 #include "canvas/kis_canvas2.h"
+#include "canvas/kis_canvas_controller.h"
 
 #define ASSERT_CANVAS_SIGNATURE(method, signature)                                                                     \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisCanvas2::method)), signature>)
+#define ASSERT_CANVAS_CONTROLLER_SIGNATURE(method, signature)                                                          \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KisCanvasController::method)), signature>)
 
 class KisCanvas2SchemaContractTest : public QObject
 {
@@ -23,6 +26,11 @@ private Q_SLOTS:
     void imageRenderingAndColorStateSignaturesRemainStable();
     void notificationAndCanvasUpdateSignaturesRemainStable();
     void controllerStateAndLifetimeSignaturesRemainStable();
+    void canvasControllerTypeConstructionAndEventSchemaRemainStable();
+    void canvasControllerCenterZoomAndSynchronizationSchemaRemainStable();
+    void canvasControllerStatePersistenceAndResolutionSchemaRemainStable();
+    void canvasControllerMirrorAndRotationSchemaRemainStable();
+    void canvasControllerModeAndNotificationSchemaRemainStable();
 };
 
 void KisCanvas2SchemaContractTest::canvasTypeConstructionAndBaseSchemaRemainStable()
@@ -192,6 +200,93 @@ void KisCanvas2SchemaContractTest::controllerStateAndLifetimeSignaturesRemainSta
     ASSERT_CANVAS_SIGNATURE(handleColorDrop, QString (Canvas::*)(QDropEvent *, KisViewManager *, const KisNodeSP &, const QPoint &, QIcon *));
     ASSERT_CANVAS_SIGNATURE(setFavoriteResourceManager, void (Canvas::*)(KisFavoriteResourceManager *));
 
+    QVERIFY(true);
+}
+// clang-format on
+
+void KisCanvas2SchemaContractTest::canvasControllerTypeConstructionAndEventSchemaRemainStable()
+{
+    using Controller = KisCanvasController;
+    static_assert(std::is_class_v<Controller>);
+    static_assert(std::is_base_of_v<KoCanvasControllerWidget, Controller>);
+    static_assert(std::is_constructible_v<Controller, QPointer<KisView>, KoCanvasSupervisor *, KisKActionCollection *>);
+    static_assert(std::has_virtual_destructor_v<Controller>);
+    ASSERT_CANVAS_CONTROLLER_SIGNATURE(activate, void (Controller::*)());
+    ASSERT_CANVAS_CONTROLLER_SIGNATURE(canvasState, KisCanvasState (Controller::*)() const);
+    ASSERT_CANVAS_CONTROLLER_SIGNATURE(currentCursorPosition, QPointF (Controller::*)() const);
+    ASSERT_CANVAS_CONTROLLER_SIGNATURE(ensureVisibleDoc, void (Controller::*)(const QRectF &, bool));
+    ASSERT_CANVAS_CONTROLLER_SIGNATURE(eventFilter, bool (Controller::*)(QObject *, QEvent *));
+    ASSERT_CANVAS_CONTROLLER_SIGNATURE(keyPressEvent, void (Controller::*)(QKeyEvent *));
+    ASSERT_CANVAS_CONTROLLER_SIGNATURE(setCanvas, void (Controller::*)(KoCanvasBase *));
+    ASSERT_CANVAS_CONTROLLER_SIGNATURE(wheelEvent, void (Controller::*)(QWheelEvent *));
+    ASSERT_CANVAS_CONTROLLER_SIGNATURE(zoomState, KoZoomState (Controller::*)() const);
+    QVERIFY(true);
+}
+
+void KisCanvas2SchemaContractTest::canvasControllerCenterZoomAndSynchronizationSchemaRemainStable()
+{
+    using Controller = KisCanvasController;
+    ASSERT_CANVAS_CONTROLLER_SIGNATURE(preferredCenter, QPointF (Controller::*)() const);
+    ASSERT_CANVAS_CONTROLLER_SIGNATURE(setPreferredCenter, void (Controller::*)(const QPointF &));
+    ASSERT_CANVAS_CONTROLLER_SIGNATURE(syncOnReferencesChange, void (Controller::*)(const QRectF &));
+    ASSERT_CANVAS_CONTROLLER_SIGNATURE(syncOnImageResolutionChange, void (Controller::*)());
+    ASSERT_CANVAS_CONTROLLER_SIGNATURE(syncOnImageSizeChange, void (Controller::*)(const QPointF &, const QPointF &));
+    ASSERT_CANVAS_CONTROLLER_SIGNATURE(
+        rotateCanvas,
+        void (Controller::*)(qreal, const std::optional<KoViewTransformStillPoint> &, bool));
+    ASSERT_CANVAS_CONTROLLER_SIGNATURE(zoomIn, void (Controller::*)());
+    ASSERT_CANVAS_CONTROLLER_SIGNATURE(zoomIn, void (Controller::*)(const KoViewTransformStillPoint &));
+    ASSERT_CANVAS_CONTROLLER_SIGNATURE(zoomOut, void (Controller::*)());
+    ASSERT_CANVAS_CONTROLLER_SIGNATURE(zoomOut, void (Controller::*)(const KoViewTransformStillPoint &));
+    QVERIFY(true);
+}
+
+void KisCanvas2SchemaContractTest::canvasControllerStatePersistenceAndResolutionSchemaRemainStable()
+{
+    using Controller = KisCanvasController;
+    ASSERT_CANVAS_CONTROLLER_SIGNATURE(effectiveCanvasResolutionX, qreal (Controller::*)() const);
+    ASSERT_CANVAS_CONTROLLER_SIGNATURE(effectiveCanvasResolutionY, qreal (Controller::*)() const);
+    ASSERT_CANVAS_CONTROLLER_SIGNATURE(levelOfDetailMode, bool (Controller::*)() const);
+    ASSERT_CANVAS_CONTROLLER_SIGNATURE(resetScrollBars, void (Controller::*)());
+    ASSERT_CANVAS_CONTROLLER_SIGNATURE(restoreCanvasState, void (Controller::*)(const KisPropertiesConfiguration &));
+    ASSERT_CANVAS_CONTROLLER_SIGNATURE(saveCanvasState, void (Controller::*)(KisPropertiesConfiguration &) const);
+    ASSERT_CANVAS_CONTROLLER_SIGNATURE(updateScreenResolution, void (Controller::*)(QWidget *));
+    ASSERT_CANVAS_CONTROLLER_SIGNATURE(usePrintResolutionMode, bool (Controller::*)());
+    ASSERT_CANVAS_CONTROLLER_SIGNATURE(wrapAroundMode, bool (Controller::*)() const);
+    ASSERT_CANVAS_CONTROLLER_SIGNATURE(wrapAroundModeAxis, WrapAroundAxis (Controller::*)() const);
+    QVERIFY(true);
+}
+
+void KisCanvas2SchemaContractTest::canvasControllerMirrorAndRotationSchemaRemainStable()
+{
+    using Controller = KisCanvasController;
+    ASSERT_CANVAS_CONTROLLER_SIGNATURE(beginCanvasRotation, void (Controller::*)());
+    ASSERT_CANVAS_CONTROLLER_SIGNATURE(endCanvasRotation, void (Controller::*)());
+    ASSERT_CANVAS_CONTROLLER_SIGNATURE(mirrorCanvas, void (Controller::*)(bool));
+    ASSERT_CANVAS_CONTROLLER_SIGNATURE(mirrorCanvasAroundCanvas, void (Controller::*)(bool));
+    ASSERT_CANVAS_CONTROLLER_SIGNATURE(mirrorCanvasAroundCursor, void (Controller::*)(bool));
+    ASSERT_CANVAS_CONTROLLER_SIGNATURE(resetCanvasRotation, void (Controller::*)());
+    ASSERT_CANVAS_CONTROLLER_SIGNATURE(rotateCanvas, void (Controller::*)(qreal));
+    ASSERT_CANVAS_CONTROLLER_SIGNATURE(rotateCanvasLeft15, void (Controller::*)());
+    ASSERT_CANVAS_CONTROLLER_SIGNATURE(rotateCanvasRight15, void (Controller::*)());
+    ASSERT_CANVAS_CONTROLLER_SIGNATURE(rotation, qreal (Controller::*)() const);
+    QVERIFY(true);
+}
+
+// clang-format off
+void KisCanvas2SchemaContractTest::canvasControllerModeAndNotificationSchemaRemainStable()
+{
+    using Controller = KisCanvasController;
+    ASSERT_CANVAS_CONTROLLER_SIGNATURE(documentSizeChanged, void (Controller::*)());
+    ASSERT_CANVAS_CONTROLLER_SIGNATURE(setUsePrintResolutionMode, void (Controller::*)(bool));
+    ASSERT_CANVAS_CONTROLLER_SIGNATURE(sigUsePrintResolutionModeChanged, void (Controller::*)(bool));
+    ASSERT_CANVAS_CONTROLLER_SIGNATURE(slotSetWrapAroundModeAxis, void (Controller::*)(WrapAroundAxis));
+    ASSERT_CANVAS_CONTROLLER_SIGNATURE(slotSetWrapAroundModeAxisH, void (Controller::*)());
+    ASSERT_CANVAS_CONTROLLER_SIGNATURE(slotSetWrapAroundModeAxisHV, void (Controller::*)());
+    ASSERT_CANVAS_CONTROLLER_SIGNATURE(slotSetWrapAroundModeAxisV, void (Controller::*)());
+    ASSERT_CANVAS_CONTROLLER_SIGNATURE(slotToggleLevelOfDetailMode, void (Controller::*)(bool));
+    ASSERT_CANVAS_CONTROLLER_SIGNATURE(slotTogglePixelGrid, void (Controller::*)(bool));
+    ASSERT_CANVAS_CONTROLLER_SIGNATURE(slotToggleWrapAroundMode, void (Controller::*)(bool));
     QVERIFY(true);
 }
 // clang-format on
