@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-06 11:27 JST
+- 更新日時: 2026-09-06 11:41 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1444,7 +1444,13 @@
 - `g271a-lazy-fill-filtering-options-boundary`の状態は`integrated`である。開始`libs/image/lazybrush/kis_lazy_fill_tools.cpp`から`FilteringOptions`の全値constructorと等価演算子を新規`libs/image/lazybrush/kis_lazy_fill_filtering_options.cpp`へ本文不変で移し、`libs/image/CMakeLists.txt`の新規`kritaimagelazyfillfilteringoptionsobjects`へ構築所有を移管した。製品`kritaimage`は同objectを1回だけ再集約し、公開header、KeyStroke、画像算法を変更していない。受渡しcommit `236652530f`を中央commit `32a9c6eee8`として取り込んだ。
 - 新object不存在の初期診断後、最初の構築で`klocalizedstring.h`、次に`half.h`の推移探索不足を検出し、KF I18nとImathのinterface探索路だけを明示して解消した。objectは1工程・3入力、中央command SHA-256 `37006a027236a5c94ca910ed014a6e25c1d0967a48d2d08a7b5a5f709c9e7bcf`、input SHA-256 `88e1b3346ea9179ed9db18537dfea0427a6279b1af64bc166c2a75ac7e0c49df`、AUTOMOC無効、位置独立コード有効である。新旧両sourceの厳格構文、移動先の公開記号、元sourceの定義不存在、単一集約、軽量近傍`KisFillIntervalMapContractTest`、二回の無作業再構築、公開API検査、`verify-quick`に成功した。
 - 製品計画は新しい具体的値ownerの1翻訳単位に対応して1,196工程・2,416入力から1,197工程・2,418入力へ増える。製品所属の旧source objectを直接指定する経路は854工程へ展開したため111工程で停止し、検証経路から除外した。製品を実構築せずcompile databaseによる厳格構文へ置き換え、完了作業treeと部分生成物、388,764 KiBの構築木、branchを削除して979,748 KiBを回収した。製品shared、全体build・`verify`、Linux、Nix再評価は実行していない。
-- 続く`g271-lazy-fill-tools-contract`の状態は`in_progress`、実装基点は`32a9c6eee8`、専用作業treeは`/Users/masato/Documents/librepaint-g271-lazy-fill-tools-contract`、branchは`agent/g271-lazy-fill-tools-contract`、macOSの対象と軽量近傍に限る構築実行許可は`granted`である。許可pathは新規`libs/image/tests/KisLazyFillToolsContractTest.cpp`と`libs/image/tests/CMakeLists.txt`の新target固有節だけで、調整担当だけが文書、台帳、共通不足報告を変更する。残存19 APIをalpha正規化2、領域分割2、KeyStroke型・構築3、KeyStroke公開値・等価性4、FilteringOptions型・構築・公開値・等価性8の5枠へ対応付ける。FilteringOptionsは既定値、全値構築、全4値比較を動的に観測し、KeyStroke、画素算法、入力装置消去は実体化・実行しない。契約targetは同objectとQt Core・Gui・Test、header-only Boost、KF I18n・Imathのinterface探索路だけを接続し、5工程・10入力を予測して停止線を5工程・11入力とする。変更前target不存在、宣言段階の初期失敗、5枠単発・各20回、正式CTestと軽量近傍、二回の無作業再構築、動的接続・未解決記号・厳格構文・書式・差分・公開API検査・`verify-quick`を確認する。`kritaimage`・`kritapigment`・`kritatestsdk`の製品接続、KeyStroke実体化、画像算法実行、公開API変更、許可path外変更が必要なら停止する。
+- 続く`g271-lazy-fill-tools-contract`の状態は`integrated`である。実装基点`32a9c6eee8`から開始し、新規`libs/image/tests/KisLazyFillToolsContractTest.cpp`と`libs/image/tests/CMakeLists.txt`の新target固有節だけを変更した。残存19 APIをalpha正規化2、領域分割2、KeyStroke型・構築3、KeyStroke公開値・等価性4、FilteringOptions型・構築・公開値・等価性8の5枠へ対応付けた。FilteringOptionsの既定値`false/4/0/0`、全値構築、全4値比較を動的に観測し、KeyStroke、画素算法、入力装置消去は実体化・実行していない。受渡しcommit `d7891c2573`を中央commit `8a96cb8d29`として取り込んだ。
+
+### 第271便の契約統合結果
+
+- 変更前target不存在と、5枠宣言段階で全5試験関数だけが未定義になる期待link失敗を確認した。担当側のmacOSで5枠を各20回、全7試験、正式CTest `libs-image-KisLazyFillToolsContractTest`、軽量近傍`libs-image-KisFillIntervalMapContractTest`、AUTOMOC後の二回目計画、二回の無作業再構築に成功した。中央でも対象と近傍、厳格構文、二回の無作業再構築に成功した。
+- 対象は5工程・11入力で停止線内に収まり、担当側command SHA-256 `0161d03582b2dbe25a5ee89017fc6c6ff2de53d7c7690c05a0e026cd15a9b7c2`、input SHA-256 `2139ac3902f8de3e13507b554ded5219bc10ffc80c0d87e01105079b5076853c`、中央command SHA-256 `687e14d326620813e2ddf98d765026a63f60f24ca0a8be1fa60e2cb89d6f5d40`、input SHA-256 `772fdefcf105617d67bb0fe31e1019b7cb7804303d92f63a108d89ad2ca69b90`である。AUTOMOC `HEADERS=[]`、Qt Core・Gui・Testだけの動的接続、製品未解決記号0を確認した。書式、差分、公開API検査、`verify-quick`にも成功した。
+- 台帳へ19 APIを追加して22,261件対応、7,543件未対応となり、旧基準7,562件に対する実測7,543件の期待不一致を確認してから基準を更新した。cleanな専用作業tree、300,988 KiBの構築木、branchを削除して891,988 KiBを回収し、旧`public-api-missing-g271.json` 2,011,932 bytesを削除した。主Ninja木5,792,704 KiB、共有compiler cache 982,880 KiB、最新`build/tdd-macos/public-api-missing-g272.json` 2,006,320 bytes、SHA-256 `5dbe6a21a56d96d31ef127bd11029672648a2ca1233486de3898f1a5283cee67`だけを再利用対象として保持する。compiler cacheは143,607件中120,306件、83.77%がhitしている。製品target、KeyStroke実体、画像算法、全体build・`verify`、Linux、Nix再評価は実行していない。
 
 ### 第272便の先行監査担当票
 

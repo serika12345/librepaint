@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 7562
+    "expectedMissingApis": 7543
   },
   "contracts": [
     {
@@ -62226,6 +62226,70 @@
       "classification": "maintained",
       "apis": [
         "method:KisColorfulBrush::toXML(QDomDocument & d,QDomElement & e) const"
+      ]
+    },
+    {
+      "target": "KisLazyFillToolsContractTest",
+      "source": "libs/image/tests/KisLazyFillToolsContractTest.cpp",
+      "test": "KisLazyFillToolsContractTest::alphaNormalizationSignaturesRemainStable",
+      "behavior": "遅延塗りつぶしは8ビットalpha装置の正規化と反転付き正規化に用いる公開関数署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisLazyFillTools::normalizeAlpha8Device(KisPaintDeviceSP dev,const QRect & rect)",
+        "function:KisLazyFillTools::normalizeAndInvertAlpha8Device(KisPaintDeviceSP dev,const QRect & rect)"
+      ]
+    },
+    {
+      "target": "KisLazyFillToolsContractTest",
+      "source": "libs/image/tests/KisLazyFillToolsContractTest.cpp",
+      "test": "KisLazyFillToolsContractTest::componentSegmentationSignaturesRemainStable",
+      "behavior": "遅延塗りつぶしは指定範囲の前景分離と連結成分抽出に用いる公開関数署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisLazyFillTools::cutOneWay(const KoColor & color,KisPaintDeviceSP src,KisPaintDeviceSP colorScribble,KisPaintDeviceSP backgroundScribble,KisPaintDeviceSP resultDevice,KisPaintDeviceSP maskDevice,const QRect & boundingRect)",
+        "function:KisLazyFillTools::splitIntoConnectedComponents(KisPaintDeviceSP src,const QRect & boundingRect)"
+      ]
+    },
+    {
+      "target": "KisLazyFillToolsContractTest",
+      "source": "libs/image/tests/KisLazyFillToolsContractTest.cpp",
+      "test": "KisLazyFillToolsContractTest::keyStrokeTypeAndConstructionSchemaRemainStable",
+      "behavior": "色指定ストロークは既定値、画素装置、色、透明指定から構築できる公開値型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisLazyFillTools::KeyStroke::KeyStroke()",
+        "method:KisLazyFillTools::KeyStroke::KeyStroke(KisPaintDeviceSP _dev,const KoColor & _color,bool isTransparent=false)",
+        "struct:KisLazyFillTools::KeyStroke"
+      ]
+    },
+    {
+      "target": "KisLazyFillToolsContractTest",
+      "source": "libs/image/tests/KisLazyFillToolsContractTest.cpp",
+      "test": "KisLazyFillToolsContractTest::keyStrokeValueAndEqualitySchemaRemainStable",
+      "behavior": "色指定ストロークは画素装置、色、透明指定を公開値として保持し、それらを比較する等価演算を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisLazyFillTools::operator ==(const KeyStroke & t1,const KeyStroke & t2)",
+        "member:KisLazyFillTools::KeyStroke::color",
+        "member:KisLazyFillTools::KeyStroke::dev",
+        "member:KisLazyFillTools::KeyStroke::isTransparent"
+      ]
+    },
+    {
+      "target": "KisLazyFillToolsContractTest",
+      "source": "libs/image/tests/KisLazyFillToolsContractTest.cpp",
+      "test": "KisLazyFillToolsContractTest::filteringOptionsValuesAndEqualityRemainStable",
+      "behavior": "塗り領域のフィルタ設定は既定値と指定値を保持し、4つの公開値すべてを比較する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisLazyFillTools::operator ==(const FilteringOptions & t1,const FilteringOptions & t2)",
+        "member:KisLazyFillTools::FilteringOptions::cleanUpAmount",
+        "member:KisLazyFillTools::FilteringOptions::edgeDetectionSize",
+        "member:KisLazyFillTools::FilteringOptions::fuzzyRadius",
+        "member:KisLazyFillTools::FilteringOptions::useEdgeDetection",
+        "method:KisLazyFillTools::FilteringOptions::FilteringOptions()",
+        "method:KisLazyFillTools::FilteringOptions::FilteringOptions(bool _useEdgeDetection,qreal _edgeDetectionSize,qreal _fuzzyRadius,qreal _cleanUpAmount)",
+        "struct:KisLazyFillTools::FilteringOptions"
       ]
     }
   ]
