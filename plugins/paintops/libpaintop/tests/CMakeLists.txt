@@ -264,6 +264,8 @@ target_include_directories(KisCurveOptionSchemaContractTest PRIVATE
     ${CMAKE_SOURCE_DIR}/libs/image/brushengine
     ${CMAKE_SOURCE_DIR}/libs/pigment
     ${CMAKE_BINARY_DIR}/libs/pigment
+    ${CMAKE_SOURCE_DIR}/libs/tools/ui
+    ${CMAKE_BINARY_DIR}/libs/tools/ui
 )
 target_include_directories(KisCurveOptionSchemaContractTest SYSTEM PRIVATE
     $<TARGET_PROPERTY:Eigen3::Eigen,INTERFACE_INCLUDE_DIRECTORIES>
@@ -275,6 +277,7 @@ target_compile_definitions(KisCurveOptionSchemaContractTest PRIVATE
     kritaimage_EXPORTS
     kritalibpaintop_EXPORTS
     kritapigment_EXPORTS
+    kritatoolsui_EXPORTS
 )
 
 kis_add_test(

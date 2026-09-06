@@ -4,6 +4,8 @@
  */
 
 #include "KisCurveOption.h"
+#include "KisCurveOptionWidget.h"
+#include "KisCurveRangeModel.h"
 #include "KisStandardOptionData.h"
 #include "KisStandardOptions.h"
 
@@ -21,6 +23,10 @@ namespace
     static_assert(                                                                                                     \
         std::is_same_v<decltype(static_cast<KisCurveOptionWidget *(*)()>(&KisPaintOpOptionWidgetUtils::function)),     \
                        KisCurveOptionWidget *(*)()>)
+#define ASSERT_CURVE_RANGE_MODEL_SIGNATURE(function, signature)                                                        \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KisCurveRangeModel::function)), signature>)
+#define ASSERT_CURVE_OPTION_WIDGET_SIGNATURE(function, signature)                                                      \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KisCurveOptionWidget::function)), signature>)
 
 template<template<typename> class Option>
 struct StandardOptionTemplateProbe {
@@ -43,6 +49,11 @@ private Q_SLOTS:
     void standardOptionCoreWidgetFactorySignaturesRemainStable();
     void standardOptionColorAndStrengthWidgetFactorySignaturesRemainStable();
     void standardOptionMaskingWidgetFactorySignaturesRemainStable();
+    void curveRangeModelConstructionAndFactorySchemaRemainStable();
+    void curveRangeModelReaderSignaturesRemainStable();
+    void curveOptionWidgetTypeAndFlagSchemaRemainStable();
+    void curveOptionWidgetConstructionAndLifetimeSchemaRemainStable();
+    void curveOptionWidgetSettingAndPresentationSignaturesRemainStable();
 };
 
 void KisCurveOptionSchemaContractTest::curveOptionOwnershipAndPolicySchemaRemainsStable()
@@ -174,6 +185,98 @@ void KisCurveOptionSchemaContractTest::standardOptionMaskingWidgetFactorySignatu
     ASSERT_STANDARD_OPTION_WIDGET_FACTORY_SIGNATURE(createMaskingScatterOptionWidget);
     ASSERT_STANDARD_OPTION_WIDGET_FACTORY_SIGNATURE(createMaskingSizeOptionWidget);
 }
+
+void KisCurveOptionSchemaContractTest::curveRangeModelConstructionAndFactorySchemaRemainStable()
+{
+    using Model = KisCurveRangeModel;
+
+    static_assert(std::is_class_v<Model>);
+    static_assert(std::is_base_of_v<KisCurveRangeModelInterface, Model>);
+    static_assert(std::is_constructible_v<Model,
+                                          lager::cursor<QString>,
+                                          lager::reader<QString>,
+                                          lager::reader<int>,
+                                          const QString &,
+                                          const QString &,
+                                          int,
+                                          int,
+                                          const QString &>);
+    static_assert(std::has_virtual_destructor_v<Model>);
+    ASSERT_CURVE_RANGE_MODEL_SIGNATURE(
+        factory,
+        KisCurveRangeModelFactory (*)(const QString &, const QString &, int, int, const QString &));
+    ASSERT_CURVE_RANGE_MODEL_SIGNATURE(calcXMinValueWithFactory, qreal (*)(const QString &));
+    ASSERT_CURVE_RANGE_MODEL_SIGNATURE(calcXMaxValueWithFactory, qreal (*)(const QString &, const int));
+}
+
+void KisCurveOptionSchemaContractTest::curveRangeModelReaderSignaturesRemainStable()
+{
+    using Model = KisCurveRangeModel;
+
+    ASSERT_CURVE_RANGE_MODEL_SIGNATURE(curve, lager::cursor<QString> (Model::*)());
+    ASSERT_CURVE_RANGE_MODEL_SIGNATURE(xMinLabel, lager::reader<QString> (Model::*)());
+    ASSERT_CURVE_RANGE_MODEL_SIGNATURE(xMaxLabel, lager::reader<QString> (Model::*)());
+    ASSERT_CURVE_RANGE_MODEL_SIGNATURE(yMinLabel, lager::reader<QString> (Model::*)());
+    ASSERT_CURVE_RANGE_MODEL_SIGNATURE(yMaxLabel, lager::reader<QString> (Model::*)());
+    ASSERT_CURVE_RANGE_MODEL_SIGNATURE(yMinValue, lager::reader<qreal> (Model::*)());
+    ASSERT_CURVE_RANGE_MODEL_SIGNATURE(yMaxValue, lager::reader<qreal> (Model::*)());
+    ASSERT_CURVE_RANGE_MODEL_SIGNATURE(yValueSuffix, lager::reader<QString> (Model::*)());
+    ASSERT_CURVE_RANGE_MODEL_SIGNATURE(xMinValue, lager::reader<qreal> (Model::*)());
+    ASSERT_CURVE_RANGE_MODEL_SIGNATURE(xMaxValue, lager::reader<qreal> (Model::*)());
+    ASSERT_CURVE_RANGE_MODEL_SIGNATURE(xValueSuffix, lager::reader<QString> (Model::*)());
+}
+
+void KisCurveOptionSchemaContractTest::curveOptionWidgetTypeAndFlagSchemaRemainStable()
+{
+    using Widget = KisCurveOptionWidget;
+
+    static_assert(std::is_class_v<Widget>);
+    static_assert(std::is_enum_v<Widget::Flag>);
+    static_assert(std::is_same_v<Widget::Flags, QFlags<Widget::Flag>>);
+    static_assert(std::is_same_v<Widget::data_type, KisCurveOptionDataCommon>);
+    QCOMPARE(int(Widget::None), 0x0);
+    QCOMPARE(int(Widget::SupportsCommonCurve), 0x1);
+    QCOMPARE(int(Widget::SupportsCurveMode), 0x2);
+    QCOMPARE(int(Widget::UseFloatingPointStrength), 0x4);
+}
+
+void KisCurveOptionSchemaContractTest::curveOptionWidgetConstructionAndLifetimeSchemaRemainStable()
+{
+    using Widget = KisCurveOptionWidget;
+    using Cursor = lager::cursor<KisCurveOptionDataCommon>;
+    using Category = KisPaintOpOption::PaintopCategory;
+
+    static_assert(std::is_base_of_v<KisPaintOpOption, Widget>);
+    static_assert(std::is_constructible_v<Widget, Cursor, Category>);
+    static_assert(std::is_constructible_v<Widget, Cursor, Category, const QString &, const QString &>);
+    static_assert(
+        std::is_constructible_v<Widget, Cursor, Category, const QString &, const QString &, int, int, const QString &>);
+    static_assert(std::is_constructible_v<Widget,
+                                          Cursor,
+                                          Category,
+                                          const QString &,
+                                          const QString &,
+                                          int,
+                                          int,
+                                          const QString &,
+                                          const QString &,
+                                          const QString &,
+                                          qreal>);
+    static_assert(std::has_virtual_destructor_v<Widget>);
+}
+
+void KisCurveOptionSchemaContractTest::curveOptionWidgetSettingAndPresentationSignaturesRemainStable()
+{
+    using Widget = KisCurveOptionWidget;
+
+    ASSERT_CURVE_OPTION_WIDGET_SIGNATURE(writeOptionSetting, void (Widget::*)(KisPropertiesConfigurationSP) const);
+    ASSERT_CURVE_OPTION_WIDGET_SIGNATURE(readOptionSetting, void (Widget::*)(const KisPropertiesConfigurationSP));
+    ASSERT_CURVE_OPTION_WIDGET_SIGNATURE(isCheckable, bool (Widget::*)() const);
+    ASSERT_CURVE_OPTION_WIDGET_SIGNATURE(show, void (Widget::*)());
+}
+
+#undef ASSERT_CURVE_OPTION_WIDGET_SIGNATURE
+#undef ASSERT_CURVE_RANGE_MODEL_SIGNATURE
 
 QTEST_GUILESS_MAIN(KisCurveOptionSchemaContractTest)
 
