@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-06 22:46 JST
+- 更新日時: 2026-09-06 22:51 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1968,6 +1968,12 @@
 - 対象未登録の初回限定構築は未知の対象、登録後の宣言だけの追加4枠は4個の未定義symbolとして期待どおり失敗した。新targetは担当側・中央とも4工程・8入力で停止線以内に収まった。担当側command SHA-256は`410573bf89ae040bf154cedc0811cc485a218e2faba4e1d28f44d92c9522d3e9`、input SHA-256は`4e81642a33b9d0978464f07451b8fd7de87a0a6f68ff92f015c8c9285a2b46fb`、中央command SHA-256は`d2801b83ac928ce3a2c6104afb39805b78583bca3668e2cee965d04eb9b30cfc`、input SHA-256は`d959ee2f9245ebad9821e83903c3a22c5370efe38171591d5e92fdbd7ef7d528`である。候補headerのAUTOMOC `HEADERS`は空で、Qt Test・Core、gettext、OS frameworkだけへ動的接続し、製品未解決記号は0である。
 - 担当側と中央のmacOSで追加4枠を各20回、対象CTest `libs-pigment-KoOptimizedCompositeOpFactorySchemaContractTest`、近傍`libs-pigment-KoCompositeOpIdsContractTest`、厳格`clang-check`、書式、二回の無作業再構築に成功した。担当側`verify-quick`と中央の公開API検査にも成功し、台帳へ13 APIを追加して22,770件対応、7,034件未対応、対象headerの残存0件となった。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 - cleanな専用作業treeと構築木306,872 KiB、branchを統合直後に削除した。旧`public-api-missing-g303.json` 1,871,782 bytesを削除し、主Ninja木5,861,964 KiB、共有compiler cache 983,432 KiB、最新`build/tdd-macos/public-api-missing-g304.json` 1,867,630 bytes、SHA-256 `837fed8c56cea1b1c4ec9864ae4e714c42f04e0e7f9369320d0c2f93520e81a3`だけを再利用対象として保持する。compiler cacheは143,974件中120,457件、83.67%がhitしている。次の永続作業は第304便の正式不足報告から、全APIを最小閉包で固定できる責務を再選定することである。
+
+### 第304便の監査結果と実装計画
+
+- 正式入力`build/tdd-macos/public-api-missing-g304.json`は公開header 1,548、公開API 29,804、対応済み22,770、未対応7,034、1,867,630 bytes、SHA-256 `837fed8c56cea1b1c4ec9864ae4e714c42f04e0e7f9369320d0c2f93520e81a3`を記録する。`libs/pigment/compositeops/KoStreamedMath.h`の残存全8 APIは重複なく、識別子整列集合SHA-256は`700f49687ceb699b08059e750ca2bf5d5461eb77ce7fa11d8ba83e1d6713de35`である。vector利用の汎用・32・64・128-bit入口4と非vectorの同4入口を一つの署名枠へ完全に割り当てる。
+- 既存`libs/pigment/tests/KoStreamedMathContractTest.cpp`は同じ演算補助責務を281行・4枠で固定済みであり、1枠追加後も300行未満・5枠に収まる。新targetとCMake変更は重複した対象所有を生むため棄却し、既存targetのQt Core・Gui・Test、Imath header interface、pigment・global・multiarch探索路を維持する。対象は4工程・8入力、command SHA-256 `a67e948521d0a2f5e7219ea775c6f110c8e641daf4aff6341d5feca1acd006ab`、input SHA-256 `98a6fc6f6fce2fdbdff38bd26a8a1254df9116edbb2c154392741db22e73f887`である。軽量近傍`KoOptimizedCompositeOpFactorySchemaContractTest`も4工程・8入力、command SHA-256 `d2801b83ac928ce3a2c6104afb39805b78583bca3668e2cee965d04eb9b30cfc`、input SHA-256 `d959ee2f9245ebad9821e83903c3a22c5370efe38171591d5e92fdbd7ef7d528`であり、停止線を5工程・11入力とする。
+- `g304-streamed-math-composite-schema`の状態は`planned`、実装基点は`dda013a45f`である。許可pathを既存試験sourceだけに限定し、CMake、公開header、製品sourceを変更しない。未評価の関数template特殊化で全8入口の正確な引数・返値型を固定し、合成演算本文を実体化しない。macOSの対象`libs-pigment-KoStreamedMathContractTest`、近傍`libs-pigment-KoOptimizedCompositeOpFactorySchemaContractTest`、追加1枠の20回反復、厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
 
 ### 第239便の先行監査担当票
 
