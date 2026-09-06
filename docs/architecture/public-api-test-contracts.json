@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 7161
+    "expectedMissingApis": 7155
   },
   "contracts": [
     {
@@ -63572,6 +63572,39 @@
         "method:KoSnapProxy::canvas()",
         "method:KoSnapProxy::shapes(bool omitEditedShape=false)",
         "method:KoSnapProxy::shapesInRect(const QRectF & rect,bool omitEditedShape=false)"
+      ]
+    },
+    {
+      "target": "KoMarkerSchemaContractTest",
+      "source": "libs/flake/tests/KoMarkerSchemaContractTest.cpp",
+      "test": "KoMarkerSchemaContractTest::markerCollectionTypeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "marker collectionはQObjectを基底とし、親なしまたは明示した親から構築でき、基底所有から仮想破棄できる。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoMarkerCollection",
+        "method:KoMarkerCollection::KoMarkerCollection(QObject * parent=0)",
+        "method:KoMarkerCollection::~KoMarkerCollection()"
+      ]
+    },
+    {
+      "target": "KoMarkerSchemaContractTest",
+      "source": "libs/flake/tests/KoMarkerSchemaContractTest.cpp",
+      "test": "KoMarkerSchemaContractTest::markerCollectionAccessAndMutationSignaturesRemainStable",
+      "behavior": "marker collectionは所有するmarker一覧と、重複を解決しながらmarker所有を受け入れる追加関数境界を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoMarkerCollection::addMarker(KoMarker * marker)",
+        "method:KoMarkerCollection::markers() const"
+      ]
+    },
+    {
+      "target": "KoMarkerSchemaContractTest",
+      "source": "libs/flake/tests/KoMarkerSchemaContractTest.cpp",
+      "test": "KoMarkerSchemaContractTest::markerCollectionFileLoadingSignatureRemainStable",
+      "behavior": "marker collectionは指定SVGファイルからmarkerを読み込む関数境界を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoMarkerCollection::loadMarkersFromFile(const QString & svgFile)"
       ]
     }
   ]
