@@ -1683,6 +1683,53 @@ set_target_properties(kritauiopenglupdateinfoobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritauiopenglupdateinfobuilderstateobjects OBJECT
+    opengl/KisOpenGLUpdateInfoBuilderState.cpp
+)
+target_compile_definitions(kritauiopenglupdateinfobuilderstateobjects PRIVATE
+    QT_GUI_LIB
+    QT_WIDGETS_LIB
+    QT_XML_LIB
+    kritaapplicationui_EXPORTS
+    kritacanvas_EXPORTS
+    kritaglobal_EXPORTS
+    kritaimage_EXPORTS
+    kritapigment_EXPORTS
+)
+target_include_directories(kritauiopenglupdateinfobuilderstateobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/application>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/canvas>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/canvas>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/image>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/image>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/pigment>
+        $<TARGET_PROPERTY:KF${KF_MAJOR}::ConfigCore,INTERFACE_INCLUDE_DIRECTORIES>
+        $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
+        $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Gui,INTERFACE_INCLUDE_DIRECTORIES>
+        $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Widgets,INTERFACE_INCLUDE_DIRECTORIES>
+        $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Xml,INTERFACE_INCLUDE_DIRECTORIES>
+)
+target_link_libraries(kritauiopenglupdateinfobuilderstateobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Boost::boost
+        Eigen3::Eigen
+        Imath::ImathConfig
+)
+set_target_properties(kritauiopenglupdateinfobuilderstateobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 if(WIN32)
     target_link_libraries(kritauiscreeninformationobjects PUBLIC dxgi)
     set_source_files_properties(
@@ -1698,6 +1745,7 @@ add_subdirectory( tests )
 set(kritaui_LIB_SRCS
     $<TARGET_OBJECTS:kritauiopenglrendererconfigobjects>
     $<TARGET_OBJECTS:kritauiopenglupdateinfoobjects>
+    $<TARGET_OBJECTS:kritauiopenglupdateinfobuilderstateobjects>
     $<TARGET_OBJECTS:kritauimodelindexconverterbaseobjects>
     $<TARGET_OBJECTS:kritauispinboxsplineunitconverterobjects>
     $<TARGET_OBJECTS:kritauiexposuregammacorrectionobjects>
