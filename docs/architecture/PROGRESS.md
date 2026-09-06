@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-07 00:24 JST
+- 更新日時: 2026-09-07 00:32 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -2090,7 +2090,14 @@
 
 - 正式入力`build/tdd-macos/public-api-missing-g313.json`は公開header 1,548、公開API 29,804、対応済み22,997、未対応6,807、1,808,622 bytes、SHA-256 `404ee53548cd3ebd84179177dc5e902384e97d91c78b24857980c303f9331601`を記録する。`libs/brush/kis_png_brush.h`と`libs/brush/kis_svg_brush.h`の残存全10 APIずつは重複なく、合計20識別子の整列集合SHA-256は`691c73318bdc14cd50beeb08d1b1f97078099fdab6a70494faa4b7dd7eb701b6`である。PNG構築・寿命4と資源I/O 6、SVG構築・寿命4と資源I/O 6の4枠へ完全に割り当てる。
 - 既存`kis_png_brush_test`は製品`kritaimage`・`kritalibbrush`と`kritatestsdk`へ接続する1,227工程・2,475入力であり、同じ単一画像brush形式であるPNG・SVGの公開宣言面だけを追加する対象として広すぎる。新規`libs/brush/tests/KisSingleImageBrushSchemaContractTest.cpp`を作り、直前の`KisGbrBrushSchemaContractTest`と同じbrush・global・image・resources探索路、Qt Core・Gui・Test、header-only Boost、KF I18nのinterface探索路、brush・resources export定義だけへ接続する。近傍は4工程・8入力、command SHA-256 `f818c39b29060cbed4eababbb733ada828f741e715d8fd1e8b978dc6fcc54c99`、input SHA-256 `6952416573bcea1d4c335ea75d3882848caea4010d83a399ce181998b23b4bfa`である。新targetも4工程・8入力を予測し、停止線を5工程・11入力とする。
-- `g313-single-image-brush-schema`の状態は`planned`、実装基点は`32209ded75`である。許可pathを新規試験sourceと`libs/brush/tests/CMakeLists.txt`の新target固有節だけに限定し、公開headerと製品sourceを変更しない。PNG・SVG brush、画像、資源装置、XMLを実体化せず、inline本文を実行しない。macOSの対象、近傍、追加4枠の20回反復、厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。製品target、既存の大規模PNG brush効果試験、全体build・`verify`、Linux、Nix再評価は実行しない。
+- `g313-single-image-brush-schema`の状態は`integrated`、実装基点は`32209ded75`である。許可pathを新規試験sourceと`libs/brush/tests/CMakeLists.txt`の新target固有節だけに限定し、公開headerと製品sourceを変更しなかった。追加作業treeを作らず主作業treeで限定周期を実行し、実装commit `ad9b8385c6`として取り込んだ。
+
+### 第313便の契約統合結果
+
+- 開始`libs/brush/kis_png_brush.h`と`libs/brush/kis_svg_brush.h`から新規`libs/brush/tests/KisSingleImageBrushSchemaContractTest.cpp`へ残存全10 APIずつを対応付けた。PNG構築・寿命4と資源I/O 6、SVG構築・寿命4と資源I/O 6の4枠で、各形式の型、filename・複写構築、代入禁止、複製、装置I/O、既定拡張子、資源種別、XML書出しの正確な公開署名を固定した。新規試験sourceは74行・4枠である。
+- 対象未登録の初回限定構築は未知の対象、登録後の宣言だけの4枠は期待どおり4件失敗した。新targetは4工程・8入力で停止線以内に収まり、command SHA-256は`ba332c49a3e762a9c72704351ec0dd4924726a9fe6d9c29146372afa6956c7b1`、input SHA-256は`95fd105ad35731dfb897a965328943285c0824468f371fba8f262fbe3140c220`である。候補headerのAUTOMOC `HEADERS`は空で、Qt Gui・Test・Core、gettext、OS frameworkだけへ動的接続し、製品未解決記号は0である。
+- macOSで対象と近傍`libs-brush-KisGbrBrushSchemaContractTest`のCTest 2/2、対象の20回反復、厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`に成功した。既存`kis_png_brush_test`の1,227工程・2,475入力は構築していない。実PNG・SVG data読込・保存、画像内容、XML内容は既存または後続の効果契約で扱う。
+- 台帳へ20 APIを追加して23,017件対応、6,787件未対応、両対象headerの残存0件となった。旧`public-api-missing-g313.json`を削除し、追加作業tree・構築木は作成していない。主Ninja木5,874,992 KiB、共有compiler cache 982,928 KiB、最新`build/tdd-macos/public-api-missing-g314.json` 1,804,134 bytes、SHA-256 `b332feefe3118ded10e46a75d1bbe26483bf3c707c33a4c9c14538451dc09627`だけを再利用対象として保持する。compiler cacheは144,022件中120,465件、83.64%がhitしている。製品target、既存の大規模PNG brush効果試験、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第314便の正式不足報告から、全APIを最小閉包で固定できる責務を再選定することである。
 
 ### 第239便の先行監査担当票
 

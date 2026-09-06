@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 6807
+    "expectedMissingApis": 6787
   },
   "contracts": [
     {
@@ -64556,6 +64556,62 @@
       "apis": [
         "method:KoCompositeOpRegistry::colorSpaceHasCompositeOp(const KoColorSpace * colorSpace,const KoID & compositeOp) const",
         "method:KoCompositeOpRegistry::filterCompositeOps(TKoIdIterator begin,TKoIdIterator end,const KoColorSpace * colorSpace,bool removeInvalidOps=true) const"
+      ]
+    },
+    {
+      "target": "KisSingleImageBrushSchemaContractTest",
+      "source": "libs/brush/tests/KisSingleImageBrushSchemaContractTest.cpp",
+      "test": "KisSingleImageBrushSchemaContractTest::pngConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "PNG brushは専用型、filename・複写による構築、および複写代入禁止を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisPngBrush",
+        "method:KisPngBrush::KisPngBrush(const KisPngBrush & rhs)",
+        "method:KisPngBrush::KisPngBrush(const QString & filename)",
+        "method:KisPngBrush::operator =(const KisPngBrush & rhs)"
+      ]
+    },
+    {
+      "target": "KisSingleImageBrushSchemaContractTest",
+      "source": "libs/brush/tests/KisSingleImageBrushSchemaContractTest.cpp",
+      "test": "KisSingleImageBrushSchemaContractTest::pngResourceIoSchemaRemainStable",
+      "behavior": "PNG brushは複製、既定拡張子、装置からの読込・保存、PNG brush資源種別、およびXML書出しを正確な公開関数型で提供する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPngBrush::clone() const",
+        "method:KisPngBrush::defaultFileExtension() const",
+        "method:KisPngBrush::loadFromDevice(QIODevice * dev,KisResourcesInterfaceSP resourcesInterface)",
+        "method:KisPngBrush::resourceType() const",
+        "method:KisPngBrush::saveToDevice(QIODevice * dev) const",
+        "method:KisPngBrush::toXML(QDomDocument & d,QDomElement & e) const"
+      ]
+    },
+    {
+      "target": "KisSingleImageBrushSchemaContractTest",
+      "source": "libs/brush/tests/KisSingleImageBrushSchemaContractTest.cpp",
+      "test": "KisSingleImageBrushSchemaContractTest::svgConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "SVG brushは専用型、filename・複写による構築、および複写代入禁止を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisSvgBrush",
+        "method:KisSvgBrush::KisSvgBrush(const KisSvgBrush & rhs)",
+        "method:KisSvgBrush::KisSvgBrush(const QString & filename)",
+        "method:KisSvgBrush::operator =(const KisSvgBrush & rhs)"
+      ]
+    },
+    {
+      "target": "KisSingleImageBrushSchemaContractTest",
+      "source": "libs/brush/tests/KisSingleImageBrushSchemaContractTest.cpp",
+      "test": "KisSingleImageBrushSchemaContractTest::svgResourceIoSchemaRemainStable",
+      "behavior": "SVG brushは複製、既定拡張子、装置からの読込・保存、SVG brush資源種別、およびXML書出しを正確な公開関数型で提供する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSvgBrush::clone() const",
+        "method:KisSvgBrush::defaultFileExtension() const",
+        "method:KisSvgBrush::loadFromDevice(QIODevice * dev,KisResourcesInterfaceSP resourcesInterface)",
+        "method:KisSvgBrush::resourceType() const",
+        "method:KisSvgBrush::saveToDevice(QIODevice * dev) const",
+        "method:KisSvgBrush::toXML(QDomDocument & d,QDomElement & e) const"
       ]
     }
   ]
