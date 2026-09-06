@@ -10,7 +10,6 @@
 #include <QObject>
 
 #include <KoColor.h>
-#include <KoID.h>
 #include <KoCanvasResourceProvider.h>
 #include <KoResource.h>
 
@@ -24,7 +23,6 @@
 #include "resources/KisPresetShadowUpdater.h"
 
 class KoColorProfile;
-class KoAbstractGradient;
 struct KoSvgTextPropertyData;
 
 class KoCanvasBase;
@@ -33,8 +31,6 @@ class KisViewManager;
 
 class KisFilterConfiguration;
 class KisUniqueColorSet;
-
-#include <canvas/kis_abstract_perspective_grid.h>
 
 /**
  * KisCanvasResourceProvider contains the per-window current settings that
