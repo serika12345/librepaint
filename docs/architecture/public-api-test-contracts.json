@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 7137
+    "expectedMissingApis": 7107
   },
   "contracts": [
     {
@@ -63668,6 +63668,81 @@
         "method:KoSvgConvertTextTypeCommand::redo()",
         "method:KoSvgConvertTextTypeCommand::undo()",
         "method:KoSvgConvertTextTypeCommand::~KoSvgConvertTextTypeCommand()"
+      ]
+    },
+    {
+      "target": "KisPaletteResourcesSchemaContractTest",
+      "source": "libs/pigment/tests/KisPaletteResourcesSchemaContractTest.cpp",
+      "test": "KisPaletteResourcesSchemaContractTest::swatchTypeConstructionAndEqualitySchemaRemainStable",
+      "behavior": "palette swatchは専用値型として既定構築でき、色と既定名または明示名から構築でき、別swatchとの等価比較を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisSwatch",
+        "method:KisSwatch::KisSwatch()",
+        "method:KisSwatch::KisSwatch(const KoColor & color,const QString & name=QString ())",
+        "method:KisSwatch::operator ==(const KisSwatch & rhs) const"
+      ]
+    },
+    {
+      "target": "KisPaletteResourcesSchemaContractTest",
+      "source": "libs/pigment/tests/KisPaletteResourcesSchemaContractTest.cpp",
+      "test": "KisPaletteResourcesSchemaContractTest::swatchStateSignaturesRemainStable",
+      "behavior": "palette swatchは表示名、識別子、色、特色指定、有効性の照会と変更に必要な関数境界を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSwatch::color() const",
+        "method:KisSwatch::id() const",
+        "method:KisSwatch::isValid() const",
+        "method:KisSwatch::name() const",
+        "method:KisSwatch::setColor(const KoColor & color)",
+        "method:KisSwatch::setId(const QString & id)",
+        "method:KisSwatch::setName(const QString & name)",
+        "method:KisSwatch::setSpotColor(bool spotColor)",
+        "method:KisSwatch::spotColor() const"
+      ]
+    },
+    {
+      "target": "KisPaletteResourcesSchemaContractTest",
+      "source": "libs/pigment/tests/KisPaletteResourcesSchemaContractTest.cpp",
+      "test": "KisPaletteResourcesSchemaContractTest::swatchSerializationSignaturesRemainStable",
+      "behavior": "palette swatchはgroup名と元座標を伴うstream書込み、および付帯情報あり・なしのbyte列復元を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSwatch::fromByteArray(QByteArray & data)",
+        "method:KisSwatch::fromByteArray(QByteArray & data,QString & groupName,int & originalRow,int & originalColumn)",
+        "method:KisSwatch::writeToStream(QDataStream & stream,const QString & groupName,int originalRow,int originalColumn)"
+      ]
+    },
+    {
+      "target": "KisPaletteResourcesSchemaContractTest",
+      "source": "libs/pigment/tests/KisPaletteResourcesSchemaContractTest.cpp",
+      "test": "KisPaletteResourcesSchemaContractTest::uniqueColorSetTypeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "一意色集合はQObjectを基底とし、既定または明示した親と既存集合から構築でき、基底所有から仮想破棄できる。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisUniqueColorSet",
+        "method:KisUniqueColorSet::KisUniqueColorSet(QObject * parent=nullptr)",
+        "method:KisUniqueColorSet::KisUniqueColorSet(const KisUniqueColorSet & rhs,QObject * parent=nullptr)",
+        "method:KisUniqueColorSet::~KisUniqueColorSet()"
+      ]
+    },
+    {
+      "target": "KisPaletteResourcesSchemaContractTest",
+      "source": "libs/pigment/tests/KisPaletteResourcesSchemaContractTest.cpp",
+      "test": "KisPaletteResourcesSchemaContractTest::uniqueColorSetContentsAndNotificationSignaturesRemainStable",
+      "behavior": "一意色集合は色の追加・全消去・個別照会・一覧置換・件数照会と、reset・追加・移動・削除の通知面を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisUniqueColorSet::addColor(const KoColor & color)",
+        "method:KisUniqueColorSet::clear()",
+        "method:KisUniqueColorSet::color(int index) const",
+        "method:KisUniqueColorSet::colorList() const",
+        "method:KisUniqueColorSet::setColorList(const QList<KoColor> & colors)",
+        "method:KisUniqueColorSet::sigColorAdded(int position)",
+        "method:KisUniqueColorSet::sigColorMoved(int from,int to)",
+        "method:KisUniqueColorSet::sigColorRemoved(int position)",
+        "method:KisUniqueColorSet::sigReset()",
+        "method:KisUniqueColorSet::size() const"
       ]
     }
   ]

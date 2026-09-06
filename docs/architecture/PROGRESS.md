@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-06 21:09 JST
+- 更新日時: 2026-09-06 21:18 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1882,7 +1882,14 @@
 
 - 正式入力`build/tdd-macos/public-api-missing-g297.json`は公開header 1,548、公開API 29,804、対応済み22,667、未対応7,137、1,895,626 bytes、SHA-256 `02aaef0aba92e94807ebc5570138f23d952d61866f77bf7ef6270557c58a14cc`を記録する。`libs/pigment/resources/KisSwatch.h`の残存全16 APIと`KisUniqueColorSet.h`の残存全14 APIは重複なく、合計30識別子の整列集合SHA-256は`5c3260736abb2dab82fccb17197b639fa323126cdc758f7b38dd66f837d6614d`である。swatchの型・構築・比較4、状態9、直列化3、一意色集合の型・構築・寿命4、内容・通知10の5枠へ完全に割り当て、swatch名とQObject親の既定引数も省略した呼出しで固定する。
 - 既存`libs/pigment/tests/KoColorSetSchemaContractTest.cpp`は222行・10枠であり、5枠の追記は局所契約の保守範囲を越える。パレットの色値と一意色集合を新規`libs/pigment/tests/KisPaletteResourcesSchemaContractTest.cpp`へ分離し、既存色集合契約と同じpigment・resources・globalのsource/generated探索路、KF I18n・Imath interface、既存3 export定義、Qt Core・Gui・Testとheader-only Boostを使う。近傍`KoColorSetSchemaContractTest`は4工程・7入力、command SHA-256 `a064f2b7349048eb99ce8924fe0fd92edb04ff311f1871737e2340735dad8f3e`、input SHA-256 `3220403733803e30db7b95a2ef41c6e47aede315856c4c986f1bb8e85a6c5acc`である。新targetも4工程・8入力以内を予測し、停止線を5工程・11入力とする。候補headerをAUTOMOC入力にせず、swatch、一意色集合、色値を実体化せず、公開関数本文を実行しない。
-- `g297-palette-resources-schema`の状態は`planned`、実装基点は`760bed20f4`である。許可pathを新規試験sourceと`libs/pigment/tests/CMakeLists.txt`の新target固有節だけに限定する。公開header、他のCMake節、製品source、製品target、全体build・`verify`、Linux、Nix再評価、追加委任を対象外とし、macOSの対象・近傍に限る構築実行を許可する。専用Git作業treeとworktree-local Ninja木を一つだけ作り、宣言だけの期待失敗、対象CTest、追加5枠の各20回反復、近傍、厳格`clang-check`、書式、公開記号、AUTOMOC非入力、製品非接続、二回目計画、二回の無作業再構築、公開API検査、`verify-quick`を確認してから統合する。
+- `g297-palette-resources-schema`の状態は`integrated`、実装基点は`760bed20f4`である。許可pathを新規試験sourceと`libs/pigment/tests/CMakeLists.txt`の新target固有節だけに限定した。受渡しcommit `a1439d504c`をpatch-id `031da7149bfa0da5820522ee1279b85486072763`で照合し、統合commit `35eefd2685`として取り込んだ。公開header、他のCMake節、製品sourceを変更していない。
+
+### 第297便の契約統合結果
+
+- 開始`libs/pigment/resources/KisSwatch.h`と`libs/pigment/resources/KisUniqueColorSet.h`から新規`libs/pigment/tests/KisPaletteResourcesSchemaContractTest.cpp`へ残存全30 APIを対応付けた。swatchの型・構築・比較4、状態9、直列化3、一意色集合の型・構築・寿命4、内容・通知10の5枠で、既定引数を含む構築、値の照会・変更、stream入出力、QObject寿命、色一覧、通知面の正確な署名を固定した。新規試験sourceは92行・5枠である。
+- 宣言だけの追加5枠が未定義symbolとなる期待失敗を記録した。対象は担当側・中央とも4工程・7入力で、近傍と同じ規模に収まった。担当側command SHA-256は`717dd6240dd75fc938ed42c5bd552a55ca7e6da278c41f24a8b710d0022c6037`、input SHA-256は`163791edade9288ea040da1df6e1a49c6fffb3cf4e03cea8ce66dbf69b73d061`、中央command SHA-256は`11a53e8eda4344e6fe7f7e8631d29cef9bf4ace11d2455e2585d025bd38493cc`、input SHA-256は`46465b0468fd7983296b27a85e1b20093ba11ac674ba10ed835952b3337d86ab`である。候補headerのAUTOMOC入力は0で、Qt Gui・Test・Core、gettext、OS frameworkだけへ動的接続し、製品未解決記号は0である。
+- 担当側と中央のmacOSで追加5枠を各20回、対象CTest `libs-pigment-KisPaletteResourcesSchemaContractTest`、近傍`libs-pigment-KoColorSetSchemaContractTest`、厳格`clang-check`、書式、二回の無作業再構築に成功した。担当側の`verify-quick`と中央の公開API検査にも成功し、台帳へ30 APIを追加して22,697件対応、7,107件未対応、対象2 headerの残存0件となった。
+- cleanな専用作業treeと構築木893,168 KiB、branchを統合直後に削除した。旧`public-api-missing-g297.json` 1,895,626 bytesを削除し、主Ninja木5,860,496 KiB、共有compiler cache 983,136 KiB、最新`build/tdd-macos/public-api-missing-g298.json` 1,888,681 bytes、SHA-256 `dbccc688ed77ff04f474848b22982599b7eb4d2362f03eb13abcd830e36e3acf`だけを再利用対象として保持する。compiler cacheは143,934件中120,443件、83.68%がhitしている。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第298便の正式不足報告から、全APIを最小閉包で固定できる責務を再選定することである。
 
 ### 第239便の先行監査担当票
 
