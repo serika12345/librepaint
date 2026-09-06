@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-06 22:51 JST
+- 更新日時: 2026-09-06 22:57 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1973,7 +1973,14 @@
 
 - 正式入力`build/tdd-macos/public-api-missing-g304.json`は公開header 1,548、公開API 29,804、対応済み22,770、未対応7,034、1,867,630 bytes、SHA-256 `837fed8c56cea1b1c4ec9864ae4e714c42f04e0e7f9369320d0c2f93520e81a3`を記録する。`libs/pigment/compositeops/KoStreamedMath.h`の残存全8 APIは重複なく、識別子整列集合SHA-256は`700f49687ceb699b08059e750ca2bf5d5461eb77ce7fa11d8ba83e1d6713de35`である。vector利用の汎用・32・64・128-bit入口4と非vectorの同4入口を一つの署名枠へ完全に割り当てる。
 - 既存`libs/pigment/tests/KoStreamedMathContractTest.cpp`は同じ演算補助責務を281行・4枠で固定済みであり、1枠追加後も300行未満・5枠に収まる。新targetとCMake変更は重複した対象所有を生むため棄却し、既存targetのQt Core・Gui・Test、Imath header interface、pigment・global・multiarch探索路を維持する。対象は4工程・8入力、command SHA-256 `a67e948521d0a2f5e7219ea775c6f110c8e641daf4aff6341d5feca1acd006ab`、input SHA-256 `98a6fc6f6fce2fdbdff38bd26a8a1254df9116edbb2c154392741db22e73f887`である。軽量近傍`KoOptimizedCompositeOpFactorySchemaContractTest`も4工程・8入力、command SHA-256 `d2801b83ac928ce3a2c6104afb39805b78583bca3668e2cee965d04eb9b30cfc`、input SHA-256 `d959ee2f9245ebad9821e83903c3a22c5370efe38171591d5e92fdbd7ef7d528`であり、停止線を5工程・11入力とする。
-- `g304-streamed-math-composite-schema`の状態は`planned`、実装基点は`dda013a45f`である。許可pathを既存試験sourceだけに限定し、CMake、公開header、製品sourceを変更しない。未評価の関数template特殊化で全8入口の正確な引数・返値型を固定し、合成演算本文を実体化しない。macOSの対象`libs-pigment-KoStreamedMathContractTest`、近傍`libs-pigment-KoOptimizedCompositeOpFactorySchemaContractTest`、追加1枠の20回反復、厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
+- `g304-streamed-math-composite-schema`の状態は`integrated`、実装基点は`dda013a45f`である。許可pathを既存試験sourceだけに限定し、CMake、公開header、製品sourceを変更しなかった。受渡しcommit `a145b6bc77`をpatch-id `9567810fc4579b667b91e9970deba4c1a11f0c8c`で照合し、統合commit `2c09807c19`として取り込んだ。
+
+### 第304便の契約統合結果
+
+- 開始`libs/pigment/compositeops/KoStreamedMath.h`から既存`libs/pigment/tests/KoStreamedMathContractTest.cpp`へ残存全8 APIを対応付けた。vector利用の汎用・32・64・128-bit入口4と非vectorの同4入口を1枠で、合成条件template引数、返値、共通parameter参照の正確な公開署名として固定した。既存試験sourceは298行・5枠となった。
+- 宣言だけの追加1枠が1個の未定義symbolとなる期待失敗を記録した。対象は担当側・中央とも4工程・8入力を維持した。担当側command SHA-256は`051c715d081897c3a8c0ff44d1ad5520308d7ec29a9d2a5a427c52f90f2b9ea5`、input SHA-256は`83de30c0ec4736d1e454685b6a6783194f18e1e438f811fa853edbcd78393897`、中央command SHA-256は変更前と同じ`a67e948521d0a2f5e7219ea775c6f110c8e641daf4aff6341d5feca1acd006ab`、input SHA-256は変更前と同じ`98a6fc6f6fce2fdbdff38bd26a8a1254df9116edbb2c154392741db22e73f887`である。候補headerのAUTOMOC `HEADERS`は空で、Qt Gui・Test・Core、gettext、OS frameworkだけへ動的接続し、製品未解決記号は0である。
+- 担当側と中央のmacOSで追加1枠を各20回、対象CTest `libs-pigment-KoStreamedMathContractTest`、近傍`libs-pigment-KoOptimizedCompositeOpFactorySchemaContractTest`、厳格`clang-check`、書式、二回の無作業再構築に成功した。担当側`verify-quick`と中央の公開API検査にも成功し、台帳へ8 APIを追加して22,778件対応、7,026件未対応、対象headerの残存0件となった。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- cleanな専用作業treeと構築木305,892 KiB、branchを統合直後に削除した。旧`public-api-missing-g304.json` 1,867,630 bytesを削除し、主Ninja木5,862,116 KiB、共有compiler cache 983,476 KiB、最新`build/tdd-macos/public-api-missing-g305.json` 1,865,106 bytes、SHA-256 `69501762ac684fe15e46e5a32ce16a6fcab8a0046b8dfb6c13ae14ad7e94279d`だけを再利用対象として保持する。compiler cacheは143,980件中120,458件、83.66%がhitしている。次の永続作業は第305便の正式不足報告から、全APIを最小閉包で固定できる責務を再選定することである。
 
 ### 第239便の先行監査担当票
 

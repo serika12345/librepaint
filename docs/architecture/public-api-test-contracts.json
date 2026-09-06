@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 7034
+    "expectedMissingApis": 7026
   },
   "contracts": [
     {
@@ -29000,6 +29000,23 @@
       "apis": [
         "method:PixelStateRecoverHelper::PixelStateRecoverHelper(const float_v & c1,const float_v & c2,const float_v & c3)",
         "method:PixelStateRecoverHelper::recoverPixels(const float_m & mask,float_v & c1,float_v & c2,float_v & c3) const"
+      ]
+    },
+    {
+      "target": "KoStreamedMathContractTest",
+      "source": "libs/pigment/tests/KoStreamedMathContractTest.cpp",
+      "test": "KoStreamedMathContractTest::genericCompositeSignaturesRemainStable",
+      "behavior": "流式画素演算はvector利用と非vectorの汎用・32・64・128-bit合成入口について、合成条件をtemplate引数で受け、同じ合成parameterを参照する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoStreamedMath::genericComposite(const KoCompositeOp::ParameterInfo & params)",
+        "method:KoStreamedMath::genericComposite128(const KoCompositeOp::ParameterInfo & params)",
+        "method:KoStreamedMath::genericComposite128_novector(const KoCompositeOp::ParameterInfo & params)",
+        "method:KoStreamedMath::genericComposite32(const KoCompositeOp::ParameterInfo & params)",
+        "method:KoStreamedMath::genericComposite32_novector(const KoCompositeOp::ParameterInfo & params)",
+        "method:KoStreamedMath::genericComposite64(const KoCompositeOp::ParameterInfo & params)",
+        "method:KoStreamedMath::genericComposite64_novector(const KoCompositeOp::ParameterInfo & params)",
+        "method:KoStreamedMath::genericComposite_novector(const KoCompositeOp::ParameterInfo & params)"
       ]
     },
     {
