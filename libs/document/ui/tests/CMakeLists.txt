@@ -24,6 +24,30 @@ kis_add_tests(
     LINK_LIBRARIES kritadocumentundoobjects kritapaintingundo Qt${QT_MAJOR_VERSION}::Test
 )
 
+kis_add_test(
+    KisDocumentUiLifecycleSchemaContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Widgets
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KisDocumentUiLifecycleSchemaContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_CURRENT_SOURCE_DIR}/../..
+    ${CMAKE_CURRENT_BINARY_DIR}/../../files
+    ${CMAKE_SOURCE_DIR}/libs/widgets
+    ${CMAKE_BINARY_DIR}/libs/widgets
+    $<TARGET_PROPERTY:KF${KF_MAJOR}::ConfigCore,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:KF${KF_MAJOR}::WidgetsAddons,INTERFACE_INCLUDE_DIRECTORIES>
+)
+target_compile_definitions(KisDocumentUiLifecycleSchemaContractTest PRIVATE
+    kritadocumentfiles_EXPORTS
+    kritadocumentui_EXPORTS
+    kritawidgets_EXPORTS
+)
+
 set(kritadocumentui_TEST_TARGETS
     kis_document_autosave_recovery_dialog_test
     kis_document_info_dialog_test
