@@ -5,6 +5,7 @@
 
 #include <commands/kis_node_compositeop_command.h>
 #include <commands/kis_node_opacity_command.h>
+#include <commands/kis_node_property_list_command.h>
 
 #include <QTest>
 
@@ -27,6 +28,9 @@ private Q_SLOTS:
     void reversibleExecutionSignaturesRemainStable();
     void historyIdentityAndMergeSignaturesRemainStable();
     void annihilationSignaturesRemainStable();
+    void propertyListTypeAndConstructionSchemaRemainStable();
+    void propertyListHistoryAndExecutionSchemaRemainStable();
+    void propertyListApplicationSchemaRemainStable();
 };
 
 void KisNodeVisualPropertyCommandsSchemaContractTest::typeLifetimeAndConstructionSchemaRemainStable()
@@ -86,6 +90,45 @@ void KisNodeVisualPropertyCommandsSchemaContractTest::annihilationSignaturesRema
     ASSERT_COMMAND_SIGNATURE(KisNodeOpacityCommand,
                              canAnnihilateWith,
                              bool (KisNodeOpacityCommand::*)(const KUndo2Command *) const);
+
+    QVERIFY(true);
+}
+
+void KisNodeVisualPropertyCommandsSchemaContractTest::propertyListTypeAndConstructionSchemaRemainStable()
+{
+    using Command = KisNodePropertyListCommand;
+
+    static_assert(std::is_class_v<Command>);
+    static_assert(std::is_base_of_v<KisNodeCommand, Command>);
+    static_assert(std::is_base_of_v<KisAsynchronouslyMergeableCommandInterface, Command>);
+    static_assert(std::has_virtual_destructor_v<Command>);
+    static_assert(std::is_same_v<Command::PropertyList, KisBaseNode::PropertyList>);
+    static_assert(std::is_constructible_v<Command, KisNodeSP, KisBaseNode::PropertyList>);
+
+    QVERIFY(true);
+}
+
+void KisNodeVisualPropertyCommandsSchemaContractTest::propertyListHistoryAndExecutionSchemaRemainStable()
+{
+    using Command = KisNodePropertyListCommand;
+
+    ASSERT_COMMAND_SIGNATURE(Command, canAnnihilateWith, bool (Command::*)(const KUndo2Command *) const);
+    ASSERT_COMMAND_SIGNATURE(Command, canMergeWith, bool (Command::*)(const KUndo2Command *) const);
+    ASSERT_COMMAND_SIGNATURE(Command, id, int (Command::*)() const);
+    ASSERT_COMMAND_SIGNATURE(Command, mergeWith, bool (Command::*)(const KUndo2Command *));
+    ASSERT_COMMAND_SIGNATURE(Command, redo, void (Command::*)());
+    ASSERT_COMMAND_SIGNATURE(Command, undo, void (Command::*)());
+
+    QVERIFY(true);
+}
+
+void KisNodeVisualPropertyCommandsSchemaContractTest::propertyListApplicationSchemaRemainStable()
+{
+    using Command = KisNodePropertyListCommand;
+    using ApplyFunction = void (*)(KisNodeSP, KisImageSP, Command::PropertyList);
+
+    static_assert(
+        std::is_same_v<decltype(static_cast<ApplyFunction>(&Command::setNodePropertiesAutoUndo)), ApplyFunction>);
 
     QVERIFY(true);
 }

@@ -1443,6 +1443,7 @@ target_include_directories(KisNodeVisualPropertyCommandsSchemaContractTest PRIVA
     ${CMAKE_BINARY_DIR}/libs/pigment
     ${CMAKE_SOURCE_DIR}/libs/painting/undo
     ${CMAKE_BINARY_DIR}/libs/painting/undo
+    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Gui,INTERFACE_INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
 )
 target_compile_definitions(KisNodeVisualPropertyCommandsSchemaContractTest PRIVATE
