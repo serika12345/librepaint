@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-07 01:16 JST
+- 更新日時: 2026-09-07 01:27 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -2155,7 +2155,15 @@
 
 - 正式入力`build/tdd-macos/public-api-missing-g318.json`は公開header 1,548、公開API 29,804、対応済み23,082、未対応6,722、1,786,738 bytes、SHA-256 `1c337c5adbbf5e9d678aa217a2742d7862a50cef048c2a266be93158072812cf`を記録する。`libs/color/kis_color_manager.h`と`libs/color/colord/KisColord.h`の残存は各2 APIで重複せず、合計4識別子の整列集合SHA-256は`420df2d3003cf750532db2fc0306650faa95e76211d6bed0ed3f95131ff25de6`である。色管理器とcolord接続の多相破棄・変更通知を各1枠へ完全に割り当てる。
 - 既存`KisColorManagerPublicApiTest`は製品`kritacolor`へ接続する9工程・16入力、既存`KisColordPublicApiTest`はLinuxかつDBus有効時だけ製品`kritacolor`・`kritacolord`・私設DBus serviceとともに生成され、macOS対象には存在しない。新規`libs/color/tests/KisColorLifecycleSchemaContractTest.cpp`を作り、color・colord探索路、Qt Core・Test、Qt DBusのinterface探索路、color・colord export定義だけへ接続する。既存macOS対象のcommand SHA-256は`54d93068d3dfa3b08d33c94db1f8f868368dd5b2b0209db1f3acf55f2318789e`、input SHA-256は`0ddf3efc6bad270c1b1a789cece6b5966ed8aabb512f2035a5ac8aeb2fed2a85`である。新targetは4工程・8入力を予測し、停止線を5工程・11入力とする。
-- `g318-color-lifecycle-schema`の状態は`planned`、実装基点は`dcfa50871a`である。許可pathを新規試験sourceと`libs/color/tests/CMakeLists.txt`の新target固有節だけに限定し、公開headerと製品sourceを変更しない。色管理器、colord接続、DBusを実体化せず、signalを発火しない。macOSの対象、近傍、追加2枠の20回反復、厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。製品target、私設DBus service、全体build・`verify`、Linux、Nix再評価は実行しない。
+- `g318-color-lifecycle-schema`の状態は`integrated`、実装基点は`dcfa50871a`である。許可pathを新規試験sourceと`libs/color/tests/CMakeLists.txt`の新target固有節だけに限定し、公開headerと製品sourceを変更しなかった。色管理器、colord接続、DBusを実体化せず、signalを発火していない。実装commitは`0d3972f92b`である。
+
+### 第318便の契約統合結果
+
+- 開始`libs/color/kis_color_manager.h`から新規`libs/color/tests/KisColorLifecycleSchemaContractTest.cpp`へ残存2 API、開始`libs/color/colord/KisColord.h`から同試験sourceへ残存2 APIを対応付けた。色管理器とcolord接続の多相破棄および変更通知の正確な公開関数型を2枠で固定した。新規試験sourceは40行・2枠である。
+- 対象未登録の初回限定構築は未知の対象として失敗した。macOSではLinux専用colord製品targetを構成しないため、対象登録後は生成export header不足を検出した。試験専用binary directoryへ40 bytesの最小`kritacolord_export.h`を生成し、Qt DBusはinterface探索路だけを利用することで、製品targetや私設DBus serviceを構築せず解消した。宣言だけの2枠は期待どおり2件失敗し、公開関数型と多相破棄の検査を有効化して成功した。
+- 新targetは4工程・8入力で停止線以内に収まり、command SHA-256は`bbea95b720146836eaa5f512599544a4ca0d0648c5e3571525ccecac01ec5334`、input SHA-256は`051746efbe8b8a2ffec507a95d5f9e8b93919defbe00e7913a9fd256f9f62069`である。候補headerのAUTOMOC入力はなく、Qt Test・Core、gettext、OS frameworkだけへ動的接続し、製品未解決記号は0である。
+- macOSで対象と近傍`libs-color-KisColorManagerPublicApiTest`のCTest 2/2、対象の20回反復、厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`に成功した。製品`kritacolor`・`kritacolord`、私設DBus service、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 台帳へ4 APIを追加して23,086件対応、6,718件未対応、`libs/color`対象headerの残存0件となった。旧`public-api-missing-g318.json`を削除し、追加作業tree・構築木は作成していない。主Ninja木5,882,720 KiB、共有compiler cache 981,156 KiB、最新`build/tdd-macos/public-api-missing-g319.json` 1,785,960 bytes、SHA-256 `b65e44d1c933d23cfcd21d3af5810863e08d04527aa381d836449aeda7ab14cb`だけを再利用対象として保持する。compiler cacheは144,039件中120,467件、83.63%がhitしている。次の永続作業は第319便の正式不足報告から、全APIを最小閉包で固定できる責務を再選定することである。
 
 ### 第239便の先行監査担当票
 

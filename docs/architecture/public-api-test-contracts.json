@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 6722
+    "expectedMissingApis": 6718
   },
   "contracts": [
     {
@@ -64848,6 +64848,28 @@
       "apis": [
         "method:KisScalingSizeBrush::setUserEffectiveSize(qreal value)",
         "method:KisScalingSizeBrush::userEffectiveSize() const"
+      ]
+    },
+    {
+      "target": "KisColorLifecycleSchemaContractTest",
+      "source": "libs/color/tests/KisColorLifecycleSchemaContractTest.cpp",
+      "test": "KisColorLifecycleSchemaContractTest::colorManagerLifetimeAndNotificationSchemaRemainStable",
+      "behavior": "色管理器は多相破棄と装置識別子を伴う変更通知の公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisColorManager::changed(const QString device)",
+        "method:KisColorManager::~KisColorManager()"
+      ]
+    },
+    {
+      "target": "KisColorLifecycleSchemaContractTest",
+      "source": "libs/color/tests/KisColorLifecycleSchemaContractTest.cpp",
+      "test": "KisColorLifecycleSchemaContractTest::colordLifetimeAndNotificationSchemaRemainStable",
+      "behavior": "colord接続は多相破棄と変更通知の公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisColord::changed()",
+        "method:KisColord::~KisColord()"
       ]
     }
   ]
