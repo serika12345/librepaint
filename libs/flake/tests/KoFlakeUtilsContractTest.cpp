@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: LGPL-2.0-or-later
  */
 
+#include "KoFlake.h"
 #include "KoFlakeUtils.h"
 
 #include <QHash>
@@ -10,6 +11,9 @@
 
 #include <array>
 #include <type_traits>
+
+#define ASSERT_FLAKE_SIGNATURE(function, signature)                                                                    \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KoFlake::function)), signature>)
 
 namespace
 {
@@ -86,6 +90,9 @@ private Q_SLOTS:
     void multipleShapePropertiesRespectNullAndValueEquality();
     void defaultPolicyEntryConstructsAndUsesThePolicy();
     void emptyStrokeModificationReturnsNullWithoutCallingModifier();
+    void anchorAndCoordinateConversionSchemaRemainStable();
+    void scaleOperationSchemaRemainStable();
+    void resizeOperationSchemaRemainStable();
 };
 
 void KoFlakeUtilsContractTest::emptyAndSingleShapePropertiesAreEqualWithoutFetching()
@@ -155,6 +162,35 @@ void KoFlakeUtilsContractTest::emptyStrokeModificationReturnsNullWithoutCallingM
     QCOMPARE(command, nullptr);
     QCOMPARE(modificationCount, 0);
 }
+
+void KoFlakeUtilsContractTest::anchorAndCoordinateConversionSchemaRemainStable()
+{
+    ASSERT_FLAKE_SIGNATURE(anchorToPoint, QPointF (*)(KoFlake::AnchorPosition, const QRectF, bool *));
+    ASSERT_FLAKE_SIGNATURE(toRelative, QPointF (*)(const QPointF &, const QSizeF &));
+    ASSERT_FLAKE_SIGNATURE(toAbsolute, QPointF (*)(const QPointF &, const QSizeF &));
+
+    QVERIFY(true);
+}
+
+void KoFlakeUtilsContractTest::scaleOperationSchemaRemainStable()
+{
+    ASSERT_FLAKE_SIGNATURE(significantScaleOrientation, Qt::Orientation (*)(qreal, qreal));
+    ASSERT_FLAKE_SIGNATURE(scaleShape, void (*)(KoShape *, qreal, qreal, const QPointF &, const QTransform &));
+    ASSERT_FLAKE_SIGNATURE(scaleShapeGlobal, void (*)(KoShape *, qreal, qreal, const QPointF &));
+
+    QVERIFY(true);
+}
+
+void KoFlakeUtilsContractTest::resizeOperationSchemaRemainStable()
+{
+    ASSERT_FLAKE_SIGNATURE(resizeShape, void (*)(KoShape *, qreal, qreal, const QPointF &, bool));
+    ASSERT_FLAKE_SIGNATURE(resizeShapeCommon,
+                           void (*)(KoShape *, qreal, qreal, const QPointF &, bool, bool, const QTransform &));
+
+    QVERIFY(true);
+}
+
+#undef ASSERT_FLAKE_SIGNATURE
 
 QTEST_GUILESS_MAIN(KoFlakeUtilsContractTest)
 
