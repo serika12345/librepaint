@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-06 12:32 JST
+- 更新日時: 2026-09-06 12:38 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1493,7 +1493,13 @@
 
 - 監査共通基点は`43a15cc9af`、正式入力は`build/tdd-macos/public-api-missing-g268.json`である。第268便から第273便までの選定済みAPIを除外し、`plugins/filters/colorsfilters/virtual_channel_info.h`、`libs/pigment/resources/KisSwatch.h`、`libs/psd/psd_layer_section.h`、`libs/image/kis_exif_info_visitor.h`の各残存16 APIを比較し、一責務を最大5枠の契約へ閉じられる次候補を選ぶ。主作業treeと正式不足一覧の読み取りだけを許可し、変更、構成、構築、試験、Git操作、生成物作成、追加委任を行わず、G268の専用構築木を共有しない。
 - `g274-public-api-candidate-audit`の状態は`completed`である。各候補の正式識別子、責務、公開値・所有・寿命、最大5枠の完全割当を比較し、実画像、paint device、色空間登録簿、PSD入出力、大域状態を生成せず固定できる決定的な値挙動を優先した。virtual channel情報が制約内で全accessorを最も広く観測できることを確認した。
-- `g274-build-closure-review`の状態は`paused`である。実装開始前に調整担当が各候補の限定target、既存target追記、実装分離の工程・入力数と依存方向を完了し、API監査のvirtual channel候補を採用できるか判定することを再開条件とする。
+- `g274-build-closure-review`の担当実行は利用上限で終了し、調整担当が監査を完了した。最新の正式入力`build/tdd-macos/public-api-missing-g274.json`でも4候補は各16件、virtual channel情報の識別子整列集合SHA-256は`b0b26603012e3745bb6f8b8efba33046a331f3d51f69835b8a4ce6c48967db23`で台帳との交差0を維持する。`kritacolorsfilters`は1,987工程・3,973入力、`kritapigment`は367工程・764入力であり、いずれかを試験へ接続する案は棄却した。plugin実装をpigment試験へ追加する案も所有と依存方向を逆転するため棄却した。最寄りの`KoChannelInfoContractTest`は4工程・8入力である。
+
+### 第274便の構造準備計画
+
+- `plugins/filters/colorsfilters/virtual_channel_info.cpp`を`plugins/filters/colorsfilters/CMakeLists.txt`のplugin source直接収容から、新規AUTOMOC不要・位置独立`kritafiltersvirtualchannelinfoobjects`へ構築所有だけ移し、製品`kritacolorsfilters`は同objectを1回だけ再集約する。objectは同じsource・binary directoryとglobal・pigment探索路、Qt Core・Gui、KF I18n、header-only Boostの直接依存だけを持つ1工程・3入力を予測し、停止線を2工程・5入力とする。公開header、製品本文、製品link、他のsourceを変更せず、製品計画は開始時の1,987工程・3,973入力から増やさない。
+- `g274a-virtual-channel-info-build-boundary`の状態は`planned`、実装基点は`7b7aa910c8`である。許可pathは`plugins/filters/colorsfilters/CMakeLists.txt`だけとし、object不存在の初期診断、object単独構築、製品への単一再集約、開始実装の厳格構文、製品計画、AUTOMOC、二回の無作業再構築、公開API検査、`verify-quick`をmacOSで確認する。2工程・5入力超過、Qt Widgets・Xmlまたは製品sharedへの直接接続、製品計画増加、公開面・本文変更、許可path外変更が必要なら停止する。
+- 構造準備後の`g274-virtual-channel-info-contract`は新規`plugins/filters/colorsfilters/tests/VirtualChannelInfoContractTest.cpp`、同directoryの新規`CMakeLists.txt`、親CMakeの試験subdirectory追加だけを許可する。新objectと、既存の標準色模型ID・`KoID`の限定objectだけを一重集約し、`KoColorSpace::channels()`は試験内の非実行協調定義で外部色空間境界を閉じる。型・channel種別7、構築2、種別・位置・借用channel 3、channel表現3、alpha分類1の全16 APIを5枠へ対応付ける。既定値と局所`KoChannelInfo`によるREAL経路を動的に観測し、実色空間を要するALL_COLORSは型契約に留める。7工程・14入力を予測し、停止線を8工程・17入力とする。製品shared、`kritatestsdk`、色空間登録簿、実色空間、画像の接続または実体化が必要なら停止する。
 
 ### 第239便の先行監査担当票
 
