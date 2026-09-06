@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include <KisImageResolutionProxy.h>
 #include <commands_new/kis_change_projection_color_command.h>
 #include <commands_new/kis_image_set_resolution_command.h>
 
@@ -22,6 +23,9 @@ private Q_SLOTS:
     void projectionColorCommandHistoryAndExecutionSchemaRemainStable();
     void imageResolutionCommandSchemaRemainStable();
     void resetShapesCommandSchemaRemainStable();
+    void resolutionProxyTypeAndConstructionSchemaRemainStable();
+    void resolutionProxyQueryAndCloneSchemaRemainStable();
+    void resolutionProxyCreationSchemaRemainStable();
 };
 
 void KisImagePropertyCommandsSchemaContractTest::projectionColorCommandTypeConstructionAndLifetimeSchemaRemainStable()
@@ -76,6 +80,43 @@ void KisImagePropertyCommandsSchemaContractTest::resetShapesCommandSchemaRemainS
     static_assert(std::is_constructible_v<Command, KisNodeSP>);
     ASSERT_COMMAND_SIGNATURE(Command, redo, void (Command::*)());
     ASSERT_COMMAND_SIGNATURE(Command, undo, void (Command::*)());
+
+    QVERIFY(true);
+}
+
+void KisImagePropertyCommandsSchemaContractTest::resolutionProxyTypeAndConstructionSchemaRemainStable()
+{
+    using Proxy = KisImageResolutionProxy;
+
+    static_assert(std::is_same_v<KisImageResolutionProxySP, QSharedPointer<Proxy>>);
+    static_assert(std::is_class_v<Proxy>);
+    static_assert(std::is_base_of_v<QObject, Proxy>);
+    static_assert(std::has_virtual_destructor_v<Proxy>);
+    static_assert(std::is_default_constructible_v<Proxy>);
+    static_assert(std::is_constructible_v<Proxy, KisImageWSP>);
+    static_assert(std::is_constructible_v<Proxy, const Proxy &>);
+
+    QVERIFY(true);
+}
+
+void KisImagePropertyCommandsSchemaContractTest::resolutionProxyQueryAndCloneSchemaRemainStable()
+{
+    using Proxy = KisImageResolutionProxy;
+
+    ASSERT_COMMAND_SIGNATURE(Proxy, xRes, qreal (Proxy::*)() const);
+    ASSERT_COMMAND_SIGNATURE(Proxy, yRes, qreal (Proxy::*)() const);
+    ASSERT_COMMAND_SIGNATURE(Proxy, compareResolution, bool (Proxy::*)(const Proxy &) const);
+    ASSERT_COMMAND_SIGNATURE(Proxy, cloneDetached, KisImageResolutionProxySP (Proxy::*)() const);
+
+    QVERIFY(true);
+}
+
+void KisImagePropertyCommandsSchemaContractTest::resolutionProxyCreationSchemaRemainStable()
+{
+    using Proxy = KisImageResolutionProxy;
+
+    ASSERT_COMMAND_SIGNATURE(Proxy, createOrCloneDetached, KisImageResolutionProxySP (Proxy::*)(KisImageWSP) const);
+    ASSERT_COMMAND_SIGNATURE(Proxy, identity, KisImageResolutionProxySP (*)());
 
     QVERIFY(true);
 }
