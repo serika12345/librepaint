@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-06 15:09 JST
+- 更新日時: 2026-09-06 15:31 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1605,7 +1605,18 @@
 - `g279a-update-info-build-boundaries`の状態は`integrated`、実装基点は`484b13a750`である。開始`libs/canvas/CMakeLists.txt`の`kritacanvas_LIB_SRCS`が直接所有していた`kis_update_info.cpp`を新規AUTOMOC不要・位置独立`kritacanvasupdateinfoobjects`へ、開始`libs/ui/CMakeLists.txt`の`kritaui_LIB_SRCS`が直接所有していた`opengl/kis_opengl_update_info.cpp`を新規AUTOMOC不要・位置独立`kritauiopenglupdateinfoobjects`へ移し、それぞれ元の製品libraryへ1回だけ再集約した。公開API、ABI、実装本文、利用元を変更していない。推移header内の非負indexと符号なしchannel数の比較は、非負確認後の明示変換で従来と同じ条件を保ちながら厳格構文警告を解消した。受渡しcommit `a2e7da68c6`を中央commit `42a4a00d12`として取り込んだ。
 - canvas objectは担当側と中央で1工程・3入力となり、担当側command SHA-256 `97b2664958c08eb7981041422d56196bd549313ba821fa1580988929f7d7ad51`、input SHA-256 `54ea3250b54bb4f6f831e516119f1133dbf474cb196d4b696b498b627987e67a`、中央command SHA-256 `59e8ca7ea02045c792b74bcdf8c92b3b379028a0ea46e23fc20e9fc01914eae6`、input SHA-256 `80e35a35cf248a84bbbd89634b5edc950041d0e80e5385241aef3a7b51cf6f6e`である。UI objectも1工程・3入力で、担当側command SHA-256 `d96565de2ec82911eb9c97d33c8109d2f08f9ee83597feaaf7ac9f3e71148ed1`、input SHA-256 `8e39a4325280a55d19152ba5486770a749f5e00ca5a9dad57599125dc650c3fe`、中央command SHA-256 `d25487e0f999abb557eb6a787d42d624db69533559199dd16bf5de173a5db3f9`、input SHA-256 `6bd6991473cbe589d28fc4d26041b48ab408098452000a64b56e29f1462fe4de`である。
 - 製品計画は`kritacanvas` 1,221工程・2,462入力、`kritaapplicationui` 1,974工程・3,948入力のまま増えず、各移動実装のcompileと製品への再集約が各1回であることを確認した。担当側と中央で両object単独構築、厳格構文、二回の無作業再構築、近傍`KisCanvasStateContractTest`と`KisScreenInformationAdapterContractTest`、公開API検査、`verify-quick`に成功した。受渡し差分と中央差分のpatch ID `c12f51a12e16950fd9973587162b9df17595d23f`の一致、専用作業treeのcleanを確認し、306,964 KiBの構築木を含む898,088 KiBの作業treeとbranchを削除した。主Ninja木5,825,332 KiBと共有compiler cache 983,452 KiBを保持し、cacheは143,705件中120,345件、83.74%がhitしている。
-- 続く`g279-update-info-contract`の状態は`planned`、実装基点は`42a4a00d12`である。新規`libs/ui/tests/KisOpenGLUpdateInfoContractTest.cpp`と同target固有の`libs/ui/tests/CMakeLists.txt`節だけへ16 API・5枠を追加し、既存shared所有objectと新しい2 objectを直接接続する。7工程程度、停止線8工程・20入力、試験側AUTOMOC `HEADERS=[]`、製品非接続を予測する。追加5枠の各20回反復、対象と近傍2契約、厳格構文、無作業再構築、動的接続・未解決記号、公開API検査、`verify-quick`を完了条件とする。
+- 続く`g279-update-info-contract`の状態は`integrated`、実装基点は`6e2e88d265`である。契約実装前に`libs/ui/CMakeLists.txt`の`kritauiopenglupdateinfoobjects`が公開していたQt Gui・Widgets・Xmlのlink辺を、同target内のprivate compile定義とinterface探索路へ限定した。公開header、実装source、ABI、製品への再集約を変更せず、受渡しcommit `a6750c37b8`を中央commit `5cf91756e9`として取り込んだ。UI objectは中央で1工程・3入力、command SHA-256 `6a1e14eeec9ff1c01b3d5030adb7a47c93d340e8d2cbb8981ec6b39e034067bf`、input SHA-256 `6bd6991473cbe589d28fc4d26041b48ab408098452000a64b56e29f1462fe4de`となり、製品`kritaapplicationui`は1,974工程・3,948入力を維持した。
+
+### 第279便の契約統合結果
+
+- 開始`libs/ui/opengl/kis_opengl_update_info.h`の残存全16 APIから、新規`libs/ui/tests/KisOpenGLUpdateInfoContractTest.cpp`の5枠へ、変換条件の型・2構築・4 field 7、更新情報型・構築・tile列3、dirty画像矩形2、詳細度2、統合・viewport矩形2を対応付けた。変換条件の既定値と明示値、矩形・詳細度の更新、同一詳細度での矩形和とtile列追記、異なる詳細度での統合拒否を動的に固定し、現在即時失敗するviewport矩形は厳密署名で固定した。受渡しcommit `424a4e2934`を中央commit `37e96a7711`として取り込み、公開headerと製品実装を変更していない。
+- target不存在と、5枠宣言段階で追加5試験関数だけが未定義になる期待link失敗を確認した。担当側と中央のmacOSで追加5枠を各20回、対象CTest `libs-ui-KisOpenGLUpdateInfoContractTest`と軽量近傍`libs-ui-KisScreenInformationAdapterContractTest`・`libs-canvas-KisCanvasStateContractTest`、厳格`clang-check`、二回の無作業再構築に成功した。対象は7工程・15入力で停止線内に収まり、担当側command SHA-256 `3156341adac0c87e78af24f1fb9a0e8d06fd96c96053b4dcd4c25bd0bc8df251`、input SHA-256 `52aafeebf9ef09cf6d642179fc607405e24738e6bf5ccfcbd9645d01835b02b1`、中央command SHA-256 `924a00a6cc6a36a61202ad6e1a43545331e29b027f1b40265bc382e0eee5c366`、input SHA-256 `b705be48ae39ee29630a55859d7b7cda0dbeba00af1ffd9671574c9a5184be2a`である。試験側AUTOMOC `HEADERS=[]`、Qt Test・CoreとOS frameworkだけの動的接続、製品未解決記号0、書式、公開API検査、`verify-quick`を確認した。
+- 台帳へ16 APIを追加して22,406件対応、7,398件未対応となった。受渡し差分と中央差分のpatch ID `067df2acce2090fca3cc8925e5789b588068b315`、link範囲差分のpatch ID `d25f96e596b7a17fb7daff3db85f290e92c4c0ef`の一致と専用作業treeのcleanを確認し、305,932 KiBの構築木を含む591,136 KiBの作業treeとbranchを削除した。旧`public-api-missing-g279.json` 1,971,715 bytesを削除し、主Ninja木5,828,116 KiB、共有compiler cache 983,328 KiB、最新`build/tdd-macos/public-api-missing-g280.json` 1,967,715 bytes、SHA-256 `9ea39980f068062d2e9388dea9e8765848572525b42173333a1075d1ffab6826`だけを再利用対象として保持する。compiler cacheは143,724件中120,354件、83.74%がhitしている。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+
+### 第280便の先行監査計画
+
+- 正式入力は`build/tdd-macos/public-api-missing-g280.json`である。第279便で保留したmulti-double filter widget 18 API、paint device cache 18 API、layer style補助18 API、dab描画queue 18 APIと、同程度の残存APIを持つ未選定責務を比較する。全公開APIを最大5枠へ完全に割り当て、主要な値・所有・寿命を動的に観測でき、既存限定targetへの追記または具体的実装所有分離により製品targetより十分小さい候補を選ぶ。
+- 次の永続作業は、正式不足報告、候補header・実装、既存試験、CMake File APIを読み取り専用で再照合し、契約実装前に必要な構造整理と停止線を確定することである。製品target、全体build・`verify`、Linux、Nix再評価を実行しない。
 
 ### 第239便の先行監査担当票
 

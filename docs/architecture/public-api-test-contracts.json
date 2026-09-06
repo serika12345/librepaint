@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 7414
+    "expectedMissingApis": 7398
   },
   "contracts": [
     {
@@ -62734,6 +62734,67 @@
         "method:KisScreenInformationAdapter::errorString() const",
         "method:KisScreenInformationAdapter::infoForScreen(QScreen * screen) const",
         "method:KisScreenInformationAdapter::isValid() const"
+      ]
+    },
+    {
+      "target": "KisOpenGLUpdateInfoContractTest",
+      "source": "libs/ui/tests/KisOpenGLUpdateInfoContractTest.cpp",
+      "test": "KisOpenGLUpdateInfoContractTest::conversionOptionsDefaultsAndExplicitValuesRemainStable",
+      "behavior": "色変換指定は変換不要の既定状態と、借用色空間、描画意図、変換flagsを伴う明示状態を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:ConversionOptions::m_conversionFlags",
+        "member:ConversionOptions::m_destinationColorSpace",
+        "member:ConversionOptions::m_needsConversion",
+        "member:ConversionOptions::m_renderingIntent",
+        "method:ConversionOptions::ConversionOptions()",
+        "method:ConversionOptions::ConversionOptions(const KoColorSpace * destinationColorSpace,KoColorConversionTransformation::Intent renderingIntent,KoColorConversionTransformation::ConversionFlags conversionFlags)",
+        "struct:ConversionOptions"
+      ]
+    },
+    {
+      "target": "KisOpenGLUpdateInfoContractTest",
+      "source": "libs/ui/tests/KisOpenGLUpdateInfoContractTest.cpp",
+      "test": "KisOpenGLUpdateInfoContractTest::openGLUpdateInfoTypeConstructionAndTileStorageRemainStable",
+      "behavior": "OpenGL更新情報は更新情報基底として空のtile列を持って構築され、共有tile情報を格納できる。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisOpenGLUpdateInfo",
+        "member:KisOpenGLUpdateInfo::tileList",
+        "method:KisOpenGLUpdateInfo::KisOpenGLUpdateInfo()"
+      ]
+    },
+    {
+      "target": "KisOpenGLUpdateInfoContractTest",
+      "source": "libs/ui/tests/KisOpenGLUpdateInfoContractTest.cpp",
+      "test": "KisOpenGLUpdateInfoContractTest::dirtyImageRectangleMutationRemainsStable",
+      "behavior": "OpenGL更新情報は空の画像更新矩形から始まり、割り当てた矩形を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisOpenGLUpdateInfo::assignDirtyImageRect(const QRect & rect)",
+        "method:KisOpenGLUpdateInfo::dirtyImageRect() const"
+      ]
+    },
+    {
+      "target": "KisOpenGLUpdateInfoContractTest",
+      "source": "libs/ui/tests/KisOpenGLUpdateInfoContractTest.cpp",
+      "test": "KisOpenGLUpdateInfoContractTest::levelOfDetailMutationRemainsStable",
+      "behavior": "OpenGL更新情報は詳細度0から始まり、割り当てた詳細度を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisOpenGLUpdateInfo::assignLevelOfDetail(int lod)",
+        "method:KisOpenGLUpdateInfo::levelOfDetail() const"
+      ]
+    },
+    {
+      "target": "KisOpenGLUpdateInfoContractTest",
+      "source": "libs/ui/tests/KisOpenGLUpdateInfoContractTest.cpp",
+      "test": "KisOpenGLUpdateInfoContractTest::mergeAndViewportContractRemainStable",
+      "behavior": "OpenGL更新情報は同じ詳細度の矩形とtile列だけを統合し、異なる詳細度では状態を保ったまま統合を拒否する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisOpenGLUpdateInfo::dirtyViewportRect()",
+        "method:KisOpenGLUpdateInfo::tryMergeWith(const KisOpenGLUpdateInfo & rhs)"
       ]
     }
   ]
