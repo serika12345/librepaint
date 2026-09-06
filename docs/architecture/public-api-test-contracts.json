@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 6645
+    "expectedMissingApis": 6637
   },
   "contracts": [
     {
@@ -65186,6 +65186,32 @@
       "apis": [
         "function:KisAndroidLogHandler::handler_init()",
         "function:KisMessageBoxWrapper::doNotAskAgainMessageBoxWrapper(QMessageBox * messageBox,const QString & identifier)"
+      ]
+    },
+    {
+      "target": "KisAlgebraExtendedSchemaContractTest",
+      "source": "libs/global/tests/KisAlgebraExtendedSchemaContractTest.cpp",
+      "test": "KisAlgebraExtendedSchemaContractTest::coordinateAndShapeTransformationSchemaRemainsStable",
+      "behavior": "座標・形状演算はpolygon境界補正、拡大率整列、線分交差索引、円交点、弾性点移動、楕円変換の正確な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisAlgebra2D::adjustIfOnPolygonBoundary(const QPolygonF & poly,int polygonDirection,QPointF * pt)",
+        "function:KisAlgebra2D::alignForZoom(const QPointF & pt,qreal zoom)",
+        "function:KisAlgebra2D::getLineSegmentCrossingLineIndexes(const QLineF & line,const QPainterPath & shape)",
+        "function:KisAlgebra2D::intersectTwoCircles(const QPointF & c1,qreal r1,const QPointF & c2,qreal r2)",
+        "function:KisAlgebra2D::moveElasticPoint(const QPointF & pt,const QPointF & base,const QPointF & newBase,const QVector<QPointF> & anchorPoints)",
+        "function:KisAlgebra2D::transformEllipse(const QPointF & axes,const QTransform & fullLocalToGlobal)"
+      ]
+    },
+    {
+      "target": "KisAlgebraExtendedSchemaContractTest",
+      "source": "libs/global/tests/KisAlgebraExtendedSchemaContractTest.cpp",
+      "test": "KisAlgebraExtendedSchemaContractTest::vectorPathIntersectionSchemaRemainsStable",
+      "behavior": "vector path交差演算は線とsegmentまたは両端点を受け取る二つの公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAlgebra2D::VectorPath::intersectSegmentWithLineBounded(const QLineF & line,const Segment & segment)",
+        "method:KisAlgebra2D::VectorPath::intersectSegmentWithLineBounded(const QLineF & line,const VectorPathPoint & p1,const VectorPathPoint & p2)"
       ]
     }
   ]
