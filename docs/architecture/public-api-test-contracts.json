@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 7227
+    "expectedMissingApis": 7211
   },
   "contracts": [
     {
@@ -63335,6 +63335,58 @@
         "method:KisSwitchCurrentTimeToKeyframeCommand::redo()",
         "method:KisSwitchCurrentTimeToKeyframeCommand::undo()",
         "method:KisSwitchCurrentTimeToKeyframeCommand::~KisSwitchCurrentTimeToKeyframeCommand()"
+      ]
+    },
+    {
+      "target": "KisImageProjectionAndResolutionCommandsSchemaContractTest",
+      "source": "libs/image/tests/KisImageProjectionAndResolutionCommandsSchemaContractTest.cpp",
+      "test": "KisImagePropertyCommandsSchemaContractTest::projectionColorCommandTypeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "投影背景色変更commandはundo commandと非同期結合interfaceを基底とし、画像、新しい色、任意の親commandから構築・破棄できる。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisChangeProjectionColorCommand",
+        "method:KisChangeProjectionColorCommand::KisChangeProjectionColorCommand(KisImageSP image,const KoColor & newColor,KUndo2Command * parent=0)",
+        "method:KisChangeProjectionColorCommand::~KisChangeProjectionColorCommand()"
+      ]
+    },
+    {
+      "target": "KisImageProjectionAndResolutionCommandsSchemaContractTest",
+      "source": "libs/image/tests/KisImageProjectionAndResolutionCommandsSchemaContractTest.cpp",
+      "test": "KisImagePropertyCommandsSchemaContractTest::projectionColorCommandHistoryAndExecutionSchemaRemainStable",
+      "behavior": "投影背景色変更commandはundo履歴の識別、同期・非同期の結合判定、新しい色の適用、元の色への取消し操作を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisChangeProjectionColorCommand::canMergeWith(const KUndo2Command * command) const",
+        "method:KisChangeProjectionColorCommand::id() const",
+        "method:KisChangeProjectionColorCommand::mergeWith(const KUndo2Command * command)",
+        "method:KisChangeProjectionColorCommand::redo()",
+        "method:KisChangeProjectionColorCommand::undo()"
+      ]
+    },
+    {
+      "target": "KisImageProjectionAndResolutionCommandsSchemaContractTest",
+      "source": "libs/image/tests/KisImageProjectionAndResolutionCommandsSchemaContractTest.cpp",
+      "test": "KisImagePropertyCommandsSchemaContractTest::imageResolutionCommandSchemaRemainStable",
+      "behavior": "画像解像度変更commandはundo commandを基底とし、画像、水平・垂直解像度、任意の親commandから構築でき、変更の適用と取消しを公開する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisImageSetResolutionCommand",
+        "method:KisImageSetResolutionCommand::KisImageSetResolutionCommand(KisImageWSP image,qreal newXRes,qreal newYRes,KUndo2Command * parent=0)",
+        "method:KisImageSetResolutionCommand::redo()",
+        "method:KisImageSetResolutionCommand::undo()"
+      ]
+    },
+    {
+      "target": "KisImageProjectionAndResolutionCommandsSchemaContractTest",
+      "source": "libs/image/tests/KisImageProjectionAndResolutionCommandsSchemaContractTest.cpp",
+      "test": "KisImagePropertyCommandsSchemaContractTest::resetShapesCommandSchemaRemainStable",
+      "behavior": "図形再設定commandはundo commandを基底とし、根nodeから構築でき、解像度変更後の図形再設定を適用時と取消し時に公開する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisResetShapesCommand",
+        "method:KisResetShapesCommand::KisResetShapesCommand(KisNodeSP rootNode)",
+        "method:KisResetShapesCommand::redo()",
+        "method:KisResetShapesCommand::undo()"
       ]
     }
   ]

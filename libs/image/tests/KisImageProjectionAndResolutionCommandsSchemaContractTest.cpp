@@ -13,7 +13,7 @@
 #define ASSERT_COMMAND_SIGNATURE(command, method, signature)                                                           \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&command::method)), signature>)
 
-class KisImageProjectionAndResolutionCommandsSchemaContractTest : public QObject
+class KisImagePropertyCommandsSchemaContractTest : public QObject
 {
     Q_OBJECT
 
@@ -24,8 +24,7 @@ private Q_SLOTS:
     void resetShapesCommandSchemaRemainStable();
 };
 
-void KisImageProjectionAndResolutionCommandsSchemaContractTest::
-    projectionColorCommandTypeConstructionAndLifetimeSchemaRemainStable()
+void KisImagePropertyCommandsSchemaContractTest::projectionColorCommandTypeConstructionAndLifetimeSchemaRemainStable()
 {
     using Command = KisChangeProjectionColorCommand;
 
@@ -39,8 +38,7 @@ void KisImageProjectionAndResolutionCommandsSchemaContractTest::
     QVERIFY(true);
 }
 
-void KisImageProjectionAndResolutionCommandsSchemaContractTest::
-    projectionColorCommandHistoryAndExecutionSchemaRemainStable()
+void KisImagePropertyCommandsSchemaContractTest::projectionColorCommandHistoryAndExecutionSchemaRemainStable()
 {
     using Command = KisChangeProjectionColorCommand;
 
@@ -53,7 +51,7 @@ void KisImageProjectionAndResolutionCommandsSchemaContractTest::
     QVERIFY(true);
 }
 
-void KisImageProjectionAndResolutionCommandsSchemaContractTest::imageResolutionCommandSchemaRemainStable()
+void KisImagePropertyCommandsSchemaContractTest::imageResolutionCommandSchemaRemainStable()
 {
     using Command = KisImageSetResolutionCommand;
 
@@ -68,7 +66,7 @@ void KisImageProjectionAndResolutionCommandsSchemaContractTest::imageResolutionC
     QVERIFY(true);
 }
 
-void KisImageProjectionAndResolutionCommandsSchemaContractTest::resetShapesCommandSchemaRemainStable()
+void KisImagePropertyCommandsSchemaContractTest::resetShapesCommandSchemaRemainStable()
 {
     using Command = KisResetShapesCommand;
 
@@ -84,6 +82,6 @@ void KisImageProjectionAndResolutionCommandsSchemaContractTest::resetShapesComma
 
 #undef ASSERT_COMMAND_SIGNATURE
 
-QTEST_APPLESS_MAIN(KisImageProjectionAndResolutionCommandsSchemaContractTest)
+QTEST_APPLESS_MAIN(KisImagePropertyCommandsSchemaContractTest)
 
 #include "KisImageProjectionAndResolutionCommandsSchemaContractTest.moc"

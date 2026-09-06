@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-06 19:10 JST
+- 更新日時: 2026-09-06 19:25 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1778,7 +1778,14 @@
 
 - 正式入力`build/tdd-macos/public-api-missing-g289.json`は公開header 1,548、公開API 29,804、対応済み22,577、未対応7,227、1,919,796 bytes、SHA-256 `e69c195b6aad988aaff0fdcd909cbc9d14e1c531bb5b49a3637a7a71cd050c14`を記録する。`libs/image/commands_new/kis_change_projection_color_command.h`と`kis_image_set_resolution_command.h`の残存各8 API、合計16 APIは重複なく、識別子整列集合SHA-256は`dde93eed95a8794e454d15f1e808204aeea73ac5a486c8f3fb336480aa1e4467`である。投影背景色commandの型・構築・寿命3と履歴・実行5、画像解像度command 4、図形再設定command 4の4枠へ完全に割り当てる。投影背景色と解像度の構築APIは完全な引数型と親command省略時の構築可能性を併せて固定する。
 - 新規`KisImageProjectionAndResolutionCommandsSchemaContractTest`を、直前のanimation時刻command契約のimage・global・pigment・painting/undo探索路、KF I18n interface、Qt Core・Test、header-only Boost、既存export定義へ接続し、`KoColor`の公開header閉包に必要なQt GuiとImathのinterface探索路だけを加える。最寄りの色値header契約`KisCrossDeviceColorSamplerSchemaContractTest`は4工程・8入力、command SHA-256 `595a43bc89e33a7e0ac5ddb23025a6438228508ac5ae2faa05e141a2f9480796`、input SHA-256 `4fa26c4a542e9ca2684a4214a6acb1735ac1d5ba14398acb0595d9db7e0bb1e2`である。新規targetも4工程・8入力を予測して停止線を5工程・11入力とする。製品`kritaimage`の1,197工程・2,418入力を避け、画像、色値、node、commandを実体化せず、候補headerをAUTOMOC入力にしない。
-- `g289-image-projection-resolution-commands-schema`の状態は`planned`、実装基点は`3f57c1686f`である。許可pathを新規`libs/image/tests/KisImageProjectionAndResolutionCommandsSchemaContractTest.cpp`と`libs/image/tests/CMakeLists.txt`の新target固有節だけに限定する。一つの専用worktree-local `build/tdd-macos`を使い、target不存在と宣言段階の期待失敗、追加4枠の単発と各20回反復、対象と近傍CTest、厳格`clang-check`、書式、AUTOMOC入力、動的接続、製品未解決記号、二回目計画、二回の無作業再構築、公開API検査、`verify-quick`をmacOSで確認する。許可pathだけの受渡しcommitを認め、公開header、製品source、製品target、全体build・`verify`、Linux、Nix再評価、追加委任は対象外とする。
+- `g289-image-projection-resolution-commands-schema`の状態は`integrated`、実装基点は`3f57c1686f`である。許可pathを新規`libs/image/tests/KisImageProjectionAndResolutionCommandsSchemaContractTest.cpp`と`libs/image/tests/CMakeLists.txt`の新target固有節だけに限定した。受渡しcommit `bf968d8ee8`をpatch-id `5eae9a181fa24d29bc1c36874bb107602a541763`で照合し、統合commit `de8080dd26`として取り込んだ。公開headerと製品sourceは変更していない。
+
+### 第289便の契約統合結果
+
+- 開始`libs/image/commands_new/kis_change_projection_color_command.h`から新規`libs/image/tests/KisImageProjectionAndResolutionCommandsSchemaContractTest.cpp`へ8 API、開始`libs/image/commands_new/kis_image_set_resolution_command.h`から同試験へ8 APIを対応付けた。投影背景色commandの型・構築・寿命3と履歴・実行5、画像解像度command 4、図形再設定command 4の4枠で、undo基底、非同期結合interface、親command省略可能な構築、寿命、履歴と実行の正確な署名を固定した。
+- target不存在と、宣言だけの追加4枠が未定義symbolとなる期待失敗を順に記録した。対象は担当側・中央とも計画どおり4工程・8入力である。担当側command SHA-256は`65e0fa927969a56b1c621dc770946abc3ba6ed7aca8ab5d5fa25df96a80d5924`、input SHA-256は`8c8ba111b2b47e3d7183887431de02f2b857bab01e12a3492c4930d8e1439996`、中央command SHA-256は`39e933b54a0ffe02cf936c16b275d21b8405564d01bc72905b67810042f52ef3`、input SHA-256は`c9add6423344ddb3fa43d2492a02ab6ef3284f0438fed3ee2dd2e2d81c31fec8`である。候補headerはAUTOMOC入力外で、Qt Test・Core、gettext、OS frameworkだけへ動的接続し、製品未解決記号は0である。
+- 担当側と中央のmacOSで追加4枠を各20回、対象CTest `libs-image-KisImageProjectionAndResolutionCommandsSchemaContractTest`、近傍`libs-image-KisCrossDeviceColorSamplerSchemaContractTest`、厳格`clang-check`、書式、二回目計画と二回の無作業再構築に成功した。中央の公開API検査では標準整形が長い試験class修飾名を改行して関数照合から外したため、targetとsource名を維持したまま試験classを`KisImagePropertyCommandsSchemaContractTest`へ短縮し、再構築、対象CTest、追加4枠の各20回、厳格検査、公開API検査に成功した。台帳へ16 APIを追加して22,593件対応、7,211件未対応、対象2 headerの残存0件となった。
+- cleanな専用作業tree、312,160 KiBの構築木、branchを統合直後に削除し、作業tree全体903,468 KiBを回収した。旧`public-api-missing-g289.json` 1,919,796 bytesを削除し、主Ninja木5,855,368 KiB、共有compiler cache 982,532 KiB、最新`build/tdd-macos/public-api-missing-g290.json` 1,915,437 bytes、SHA-256 `97d71c06363f8ea628774bef3da141a82fb05f857be74d8e58eb03e2e244cd70`だけを再利用対象として保持する。compiler cacheは143,874件中120,423件、83.70%がhitしている。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第290便の正式不足報告から、全APIを最小閉包で固定できる責務を再選定することである。
 
 ### 第239便の先行監査担当票
 
