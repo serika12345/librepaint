@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 6693
+    "expectedMissingApis": 6681
   },
   "contracts": [
     {
@@ -64985,6 +64985,63 @@
       "classification": "maintained",
       "apis": [
         "function:iskritaRunningActivate(void)"
+      ]
+    },
+    {
+      "target": "KisActionUtilitySchemaContractTest",
+      "source": "libs/widgetutils/tests/KisActionUtilitySchemaContractTest.cpp",
+      "test": "KisActionUtilitySchemaContractTest::actionsSnapshotTypeLifetimeAndConstructionSchemaRemainStable",
+      "behavior": "操作snapshotは専用型として既定構築と明示的な破棄が可能な公開寿命を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisActionsSnapshot",
+        "method:KisActionsSnapshot::KisActionsSnapshot()",
+        "method:KisActionsSnapshot::~KisActionsSnapshot()"
+      ]
+    },
+    {
+      "target": "KisActionUtilitySchemaContractTest",
+      "source": "libs/widgetutils/tests/KisActionUtilitySchemaContractTest.cpp",
+      "test": "KisActionUtilitySchemaContractTest::actionsSnapshotAccessSchemaRemainsStable",
+      "behavior": "操作snapshotは名前付き操作の追加と分類済み操作集合の取得を正確な公開関数型で提供する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisActionsSnapshot::actionCollections()",
+        "method:KisActionsSnapshot::addAction(const QString & name,QAction * action)"
+      ]
+    },
+    {
+      "target": "KisActionUtilitySchemaContractTest",
+      "source": "libs/widgetutils/tests/KisActionUtilitySchemaContractTest.cpp",
+      "test": "KisActionUtilitySchemaContractTest::commandBarTypeAndConstructionSchemaRemainStable",
+      "behavior": "command barは専用menu型として親widgetを受け取る公開構築経路を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KateCommandBar",
+        "method:KateCommandBar::KateCommandBar(QWidget * parent=nullptr)"
+      ]
+    },
+    {
+      "target": "KisActionUtilitySchemaContractTest",
+      "source": "libs/widgetutils/tests/KisActionUtilitySchemaContractTest.cpp",
+      "test": "KisActionUtilitySchemaContractTest::commandBarUpdateSchemaRemainsStable",
+      "behavior": "command barは操作集合と総数による内容更新、および表示領域に応じた幾何更新の公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KateCommandBar::updateBar(const QList<KisKActionCollection * > & actions,int totalActions)",
+        "method:KateCommandBar::updateViewGeometry()"
+      ]
+    },
+    {
+      "target": "KisActionUtilitySchemaContractTest",
+      "source": "libs/widgetutils/tests/KisActionUtilitySchemaContractTest.cpp",
+      "test": "KisActionUtilitySchemaContractTest::helpAndUndoActionFactorySchemaRemainStable",
+      "behavior": "widget操作補助はhelp起動とundo・redo action生成の正確な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KHelpClient::invokeHelp(const QString & anchor=QString (),const QString & appname=QString ())",
+        "function:KisKUndoActions::createRedoAction(QUndoStack * undoStack,KisKActionCollection * actionCollection,const QString & actionName=QString ())",
+        "function:KisKUndoActions::createUndoAction(QUndoStack * undoStack,KisKActionCollection * actionCollection,const QString & actionName=QString ())"
       ]
     }
   ]

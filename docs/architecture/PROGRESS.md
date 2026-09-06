@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-07 01:54 JST
+- 更新日時: 2026-09-07 02:00 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -2196,7 +2196,14 @@
 
 - 正式入力`build/tdd-macos/public-api-missing-g321.json`は公開header 1,548、公開API 29,804、対応済み23,111、未対応6,693、1,779,363 bytes、SHA-256 `031bf381d02c48f279995bf25393deda27aa8c4bc2cdda7ca6c32e8873c060ef`を記録する。`libs/widgetutils/KisActionsSnapshot.h`の残存5 API、`katecommandbar.h`の残存4 API、`config/khelpclient.h`の残存1 API、`xmlgui/kundoactions.h`の残存2 APIは重複せず、合計12識別子の整列集合SHA-256は`eba07041cd6991460237e74e100f2ccef686b7450374f994ebde8d7672e5f9f0`である。操作snapshot、command bar、help、undo・redo action生成の型・寿命・公開関数型を5枠へ完全に割り当てる。
 - 既存`KisActionsSnapshotTest`は製品`kritawidgetutils`・`kritaimage`・`kritatestsdk`へ接続する1,201工程・2,425入力であり、宣言面だけの追加対象として広すぎる。新規`libs/widgetutils/tests/KisActionUtilitySchemaContractTest.cpp`を作り、widgetutils source・generated探索路、Qt Core・Gui・Widgets・Test、widgetutils export定義だけへ接続する。同じ操作領域の軽量近傍`KisActionRegistrySchemaContractTest`は4工程・8入力、command SHA-256 `b921d92b24fe832318b90afef3361016b466cc9539d241fbbf6946e5404ac041`、input SHA-256 `5f0fce5a7e1735c6d328e1e7f1b27b3a3eef054113244325f658dad7e5e12557`である。新targetも4工程・8入力を予測し、停止線を5工程・11入力とする。
-- `g321-action-utility-schema`の状態は`planned`、実装基点は`b5f0493a29`である。許可pathを新規試験sourceと`libs/widgetutils/tests/CMakeLists.txt`の新target固有節だけに限定し、公開headerと製品sourceを変更しない。snapshot、menu、action、undo stackを実体化せず、helpを起動しない。macOSの対象、近傍、追加5枠の20回反復、厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
+- `g321-action-utility-schema`の状態は`integrated`、実装基点は`b5f0493a29`である。許可pathを新規試験sourceと`libs/widgetutils/tests/CMakeLists.txt`の新target固有節だけに限定し、公開headerと製品sourceを変更しなかった。snapshot、menu、action、undo stackを実体化せず、helpを起動していない。実装commitは`ba4172a6ee`である。
+
+### 第321便の契約統合結果
+
+- 開始`libs/widgetutils/KisActionsSnapshot.h`、`libs/widgetutils/katecommandbar.h`、`libs/widgetutils/config/khelpclient.h`、`libs/widgetutils/xmlgui/kundoactions.h`から新規`libs/widgetutils/tests/KisActionUtilitySchemaContractTest.cpp`へ残存5・4・1・2 APIを対応付けた。操作snapshot、command bar、help起動、undo・redo action生成の型・寿命・公開関数型を70行・5枠で固定した。
+- 対象未登録の初回限定構築は未知の対象として失敗し、追加5枠は期待どおり5件失敗した。型特性と正確な関数pointer検査を有効化して成功した。新targetは4工程・8入力で停止線以内に収まり、command SHA-256は`360b8f96d209c47ed7216b068e51807bd4358b5c4d05a5aaad2ba936460ff3b0`、input SHA-256は`05d2b3b883a0edfe9a6ca08bae8ac96f3c6b3063ba868a289665994e40df09d2`である。AUTOMOC header入力は空、Qt Widgets・Test・Gui・Core、gettext、OS frameworkだけへ動的接続し、製品未解決記号は0である。
+- macOSで対象と近傍`libs-widgetutils-KisActionRegistrySchemaContractTest`のCTest 2/2、対象の20回反復、厳格`clang-check`、書式、二回の無作業再構築、公開API検査に成功した。既存`KisActionsSnapshotTest`の1,201工程・2,425入力、製品target、help起動、undo stack操作、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 台帳へ12 APIを追加して23,123件対応、6,681件未対応、`libs/widgetutils`対象headerの残存0件となった。旧`public-api-missing-g321.json`を削除し、追加作業tree・構築木は作成していない。主Ninja木5,885,520 KiB、共有compiler cache 983,096 KiB、最新`build/tdd-macos/public-api-missing-g322.json` 1,776,036 bytes、SHA-256 `265b44b8b7c207536e53ac7a887993c0dffa1323c623d88a385b6b7218be8440`だけを再利用対象として保持する。compiler cacheは144,049件中120,468件、83.63%がhitしている。次の永続作業は第322便の正式不足報告から、全APIを最小閉包で固定できる責務を再選定することである。
 
 ### 第239便の先行監査担当票
 
