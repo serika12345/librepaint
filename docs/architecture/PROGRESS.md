@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-07 08:37 JST
+- 更新日時: 2026-09-07 08:41 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -2705,6 +2705,12 @@
 - 開始headerの`QAbstractTableModel`、`QSortFilterProxyModel`、`KoResource`、`KisTag`完全型は同じ公開header内の派生modelと値memberが直接必要とするため、削減できる推移includeはない。所有実装`KisResourceModel.cpp`の厳格`clang-check`には開始時からQt 6 `invalidateFilter()`非推奨3件があり、抽象interface署名の固定とは独立した既知診断として維持する。
 - 既存`libs/resources/tests/KisResourceModelEnumContractTest.cpp`は1,001行・58枠で分割条件を超えているため追記しない。新規`KisAbstractResourceModelSchemaContractTest.cpp`を300行・20枠未満に限定する。軽量近傍`KisResourceIteratorSchemaContractTest`は4工程・8入力、command SHA-256 `4a8579bb8f2ffa5946a21cb5272fa196590a4eb1371d2d8cf53d29733cc9f256`、input SHA-256 `6a7826115638afb0a632dd7f662005ac6aff574b9898a81ef8c1d9bd993c8fd4`である。新targetも製品libraryを接続せず、Qt Core・Testとheader-only Boost、Qt Gui・KF I18nのinterface探索路だけを使って同じ4工程・8入力を目標とし、停止線を5工程・11入力とする。
 - `g355-abstract-resource-model-schema`の状態は`in_progress`、実装基点は`d8a2a00744`である。契約は新規試験sourceとresources試験CMake節だけに限定する。macOSの対象、追加5枠の20回反復、所有実装・試験sourceの厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
+
+### 第355便の実装結果
+
+- `g355-abstract-resource-model-schema`は`completed`である。新規`libs/resources/tests/KisAbstractResourceModelSchemaContractTest.cpp`は5枠・98行で、資源filter interfaceの型・寿命・条件設定と、抽象資源modelの型・寿命・検索・活性化・更新・入出力・追加・名称・metadataの全21公開APIを固定する。最初の対象構築は追加5枠の未定義symbolだけで停止した。開始headerの完全型は同header内の具象modelが直接必要とするため変更していない。
+- 新targetは製品libraryを接続せず、最終閉包4工程・8入力、command SHA-256 `adb6574af8d20f5ff63a32f98d6861209e77a5c64876225e5e5280a64d751382`、input SHA-256 `57ddb30c6499c0e0b50b928f0f0c2039fe09086c7eae73cc86614cdd344eb1f4`で、動的接続はQt Core・Test、gettextとmacOS frameworkだけである。実装は`d9cd9362ee`である。所有実装の厳格`clang-check`には開始時からのQt 6 `invalidateFilter()`非推奨3件だけが残り、試験sourceは診断0件である。
+- macOSで対象と軽量近傍`KisResourceIteratorSchemaContractTest`のCTest、追加5枠の20回反復、試験sourceの厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`に成功した。台帳へ21 APIを追加して24,536件対応、5,268件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g355.json`を削除し、主Ninja木5,920,840 KiB、共有compiler cache 1.0 GB、最新`build/tdd-macos/public-api-missing-g356.json` 1,394,298 bytes、SHA-256 `72f6bf7009852073d3c5741b8d06e458f071b13789d8d4bd0824874875462b7b`だけを保持する。compiler cacheは144,198件中120,492件、83.56%がhitしている。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第356便で次の高密度なmacOS対象と最小構築面を選定することである。
 
 ### 第239便の先行監査担当票
 

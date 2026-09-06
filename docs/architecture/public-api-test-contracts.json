@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 5289
+    "expectedMissingApis": 5268
   },
   "contracts": [
     {
@@ -67919,6 +67919,72 @@
         "method:KisMediaEncoderWrapper::sigFinishedWithError(QString message)",
         "method:KisMediaEncoderWrapper::sigProgressUpdated(int frameNo)",
         "method:KisMediaEncoderWrapper::sigStarted()"
+      ]
+    },
+    {
+      "target": "KisAbstractResourceModelSchemaContractTest",
+      "source": "libs/resources/tests/KisAbstractResourceModelSchemaContractTest.cpp",
+      "test": "KisAbstractResourceModelSchemaContractTest::filterTypeLifetimeAndConfigurationSignaturesRemainStable",
+      "behavior": "資源filter interfaceは仮想寿命を持ち、資源とstorageの活性状態による絞込み条件を設定する公開面を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisAbstractResourceFilterInterface",
+        "method:KisAbstractResourceFilterInterface::setResourceFilter(ResourceFilter filter)",
+        "method:KisAbstractResourceFilterInterface::setStorageFilter(StorageFilter filter)",
+        "method:KisAbstractResourceFilterInterface::~KisAbstractResourceFilterInterface()"
+      ]
+    },
+    {
+      "target": "KisAbstractResourceModelSchemaContractTest",
+      "source": "libs/resources/tests/KisAbstractResourceModelSchemaContractTest.cpp",
+      "test": "KisAbstractResourceModelSchemaContractTest::modelTypeLifetimeAndLookupSignaturesRemainStable",
+      "behavior": "抽象資源modelは仮想寿命を持ち、model index、資源、資源IDを相互に検索する公開面を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisAbstractResourceModel",
+        "method:KisAbstractResourceModel::indexForResource(KoResourceSP resource) const",
+        "method:KisAbstractResourceModel::indexForResourceId(int resourceId) const",
+        "method:KisAbstractResourceModel::resourceForIndex(QModelIndex index=QModelIndex ()) const",
+        "method:KisAbstractResourceModel::~KisAbstractResourceModel()"
+      ]
+    },
+    {
+      "target": "KisAbstractResourceModelSchemaContractTest",
+      "source": "libs/resources/tests/KisAbstractResourceModelSchemaContractTest.cpp",
+      "test": "KisAbstractResourceModelSchemaContractTest::resourceActivationAndUpdateSignaturesRemainStable",
+      "behavior": "抽象資源modelは資源の活性・非活性化、内容更新、storageからの再読込を行う公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAbstractResourceModel::reloadResource(KoResourceSP resource)",
+        "method:KisAbstractResourceModel::setResourceActive(const QModelIndex & index,bool value)",
+        "method:KisAbstractResourceModel::setResourceInactive(const QModelIndex & index)",
+        "method:KisAbstractResourceModel::updateResource(KoResourceSP resource)"
+      ]
+    },
+    {
+      "target": "KisAbstractResourceModelSchemaContractTest",
+      "source": "libs/resources/tests/KisAbstractResourceModelSchemaContractTest.cpp",
+      "test": "KisAbstractResourceModelSchemaContractTest::resourceImportAndExportSignaturesRemainStable",
+      "behavior": "抽象資源modelはfileまたはdeviceから資源を取り込み、上書き有無を照会し、deviceへ書き出す公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAbstractResourceModel::exportResource(KoResourceSP resource,QIODevice * device)",
+        "method:KisAbstractResourceModel::importResource(const QString & filename,QIODevice * device,const bool allowOverwrite,const QString & storageId=QString (\"\"))",
+        "method:KisAbstractResourceModel::importResourceFile(const QString & filename,const bool allowOverwrite,const QString & storageId=QString (\"\"))",
+        "method:KisAbstractResourceModel::importWillOverwriteResource(const QString & fileName,const QString & storageLocation=QString ()) const"
+      ]
+    },
+    {
+      "target": "KisAbstractResourceModelSchemaContractTest",
+      "source": "libs/resources/tests/KisAbstractResourceModelSchemaContractTest.cpp",
+      "test": "KisAbstractResourceModelSchemaContractTest::resourceAdditionNameAndMetadataSignaturesRemainStable",
+      "behavior": "抽象資源modelは通常または重複file名回避で資源を追加し、名称とmetadataを更新する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAbstractResourceModel::addResource(KoResourceSP resource,const QString & storageId=QString (\"\"))",
+        "method:KisAbstractResourceModel::addResourceDeduplicateFileName(KoResourceSP resource,const QString & storageId)",
+        "method:KisAbstractResourceModel::renameResource(KoResourceSP resource,const QString & name)",
+        "method:KisAbstractResourceModel::setResourceMetaData(KoResourceSP resource,QMap<QString,QVariant> metadata)"
       ]
     }
   ]
