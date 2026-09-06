@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-07 07:45 JST
+- 更新日時: 2026-09-07 07:49 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -2651,6 +2651,14 @@
 - 開始headerはoperation基底、設定値と引数なしfactory基底を、inline XML配送と5具象型の公開定義に直接必要な所有headerへ対応付けている。重複includeを除いても同じ基底経路から閉包が残り、2直接利用翻訳単位だけであるため構築範囲は縮まらない。開始実装の厳格`clang-check`は診断0件であり、先行する構造変更は不要である。
 - 既存`libs/ui/tests/KisSelectionActionFactoriesSchemaContractTest.cpp`は110行・5枠で、追加5枠後も300行・20枠未満に収まる。既存targetはCMake File API上で自動生成依存だけを持ち、CMake変更なしで4工程・8入力、command SHA-256 `ad5bf96739a5a1a01c0d8d4a8639476fd2c0f543e0a495cd90176cd5ea7eee07`、input SHA-256 `d540cd78822c18f3fdc3f681bf3729bd79338640d41fca3dd1fe5c45f294376e`である。Qt Core・Test、gettext、OS frameworkだけへ動的接続し、製品libraryを要求しない。停止線を5工程・11入力、300行・20枠とする。
 - `g351-paste-action-factories-schema`の状態は`in_progress`、実装基点は`0b0f6b6e79`である。変更は既存試験sourceの追加5枠だけに限定し、型特性、flag値、具象構築、厳密な公開関数pointerで貼り付け操作factoryの公開接続面を固定する。macOSの対象、追加5枠の20回反復、試験sourceの厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。CMake、公開header、製品source、製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
+- `g351-paste-action-factories-schema`の状態は`integrated`、計画commitは`b4a00f73c2`、契約実装commitは`b3eb8210a8`である。
+
+### 第351便の契約統合結果
+
+- 開始`libs/ui/actions/KisPasteActionFactories.h`から既存`libs/ui/tests/KisSelectionActionFactoriesSchemaContractTest.cpp`へ残存全21 APIを、基本paste型・flag6、基本paste構築・配送3、paste-into型3、paste-new・reference型6、shape-style型3として追加した。試験sourceは162行・計10枠で停止線以内に収まり、CMake、公開header、製品sourceを変更していない。
+- 初回限定構築は期待どおり追加5試験関数の未定義linkだけで失敗し、既存の引数なし操作factory検査を再利用した契約実装後に成功した。最終targetは4工程・8入力、command SHA-256 `ad5bf96739a5a1a01c0d8d4a8639476fd2c0f543e0a495cd90176cd5ea7eee07`、input SHA-256 `d540cd78822c18f3fdc3f681bf3729bd79338640d41fca3dd1fe5c45f294376e`を維持した。AUTOMOC header入力は空、Qt Core・Test、gettext、OS frameworkだけへ動的接続し、製品未解決記号は0件である。
+- macOSで対象と軽量近傍`libs-ui-KisGuidesConfigSchemaContractTest`のCTest、追加5枠の各20回反復、開始実装と試験sourceの厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`に成功した。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 台帳へ21 APIを追加して24,391件対応、5,413件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g351.json`を最新報告の検証後に削除し、追加作業tree・構築木は作成していない。主Ninja木5,918,060 KiB、共有compiler cache 983,416 KiB、最新`build/tdd-macos/public-api-missing-g352.json` 1,432,563 bytes、SHA-256 `13b74f98b251b054d8b1a2a41f686f1d82ade61411a552dbb33b87b75db89416`だけを再利用対象として保持する。compiler cacheは144,181件中120,486件、83.57%がhitしている。次の永続作業は第352便で次の高密度なmacOS対象と最小構築面を選定することである。
 
 ### 第239便の先行監査担当票
 

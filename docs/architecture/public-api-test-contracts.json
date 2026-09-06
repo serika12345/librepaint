@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 5434
+    "expectedMissingApis": 5413
   },
   "contracts": [
     {
@@ -67495,6 +67495,72 @@
       "apis": [
         "method:KisHistogramView::isLogarithmic() const",
         "method:KisHistogramView::setLogarithmic(bool logarithmic)"
+      ]
+    },
+    {
+      "target": "KisSelectionActionFactoriesSchemaContractTest",
+      "source": "libs/ui/tests/KisSelectionActionFactoriesSchemaContractTest.cpp",
+      "test": "KisSelectionActionFactoriesSchemaContractTest::pasteActionTypeAndFlagSchemaRemainStable",
+      "behavior": "基本貼り付け操作の型、flag集合と貼り付け位置・新規layer方針の全flag値を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisPasteActionFactory::Flags",
+        "enum:KisPasteActionFactory::Flag",
+        "enumerator:KisPasteActionFactory::Flag::ForceNewLayer",
+        "enumerator:KisPasteActionFactory::Flag::None",
+        "enumerator:KisPasteActionFactory::Flag::PasteAtCursor",
+        "struct:KisPasteActionFactory"
+      ]
+    },
+    {
+      "target": "KisSelectionActionFactoriesSchemaContractTest",
+      "source": "libs/ui/tests/KisSelectionActionFactoriesSchemaContractTest.cpp",
+      "test": "KisSelectionActionFactoriesSchemaContractTest::pasteActionDispatchSignaturesRemainStable",
+      "behavior": "基本貼り付け操作の既定構築、XML設定配送とflag付き実行の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPasteActionFactory::KisPasteActionFactory()",
+        "method:KisPasteActionFactory::run(Flags flags,KisViewManager * view)",
+        "method:KisPasteActionFactory::runFromXML(KisViewManager * view,const KisOperationConfiguration & config)"
+      ]
+    },
+    {
+      "target": "KisSelectionActionFactoriesSchemaContractTest",
+      "source": "libs/ui/tests/KisSelectionActionFactoriesSchemaContractTest.cpp",
+      "test": "KisSelectionActionFactoriesSchemaContractTest::pasteIntoActionSchemaRemainsStable",
+      "behavior": "範囲内貼り付け操作の型、既定構築と引数なし実行の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPasteIntoActionFactory::KisPasteIntoActionFactory()",
+        "method:KisPasteIntoActionFactory::run(KisViewManager * view)",
+        "struct:KisPasteIntoActionFactory"
+      ]
+    },
+    {
+      "target": "KisSelectionActionFactoriesSchemaContractTest",
+      "source": "libs/ui/tests/KisSelectionActionFactoriesSchemaContractTest.cpp",
+      "test": "KisSelectionActionFactoriesSchemaContractTest::pasteNewAndReferenceActionSchemaRemainStable",
+      "behavior": "新規文書・参照画像貼り付け操作の型、既定構築と引数なし実行の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPasteNewActionFactory::KisPasteNewActionFactory()",
+        "method:KisPasteNewActionFactory::run(KisViewManager * view)",
+        "method:KisPasteReferenceActionFactory::KisPasteReferenceActionFactory()",
+        "method:KisPasteReferenceActionFactory::run(KisViewManager * view)",
+        "struct:KisPasteNewActionFactory",
+        "struct:KisPasteReferenceActionFactory"
+      ]
+    },
+    {
+      "target": "KisSelectionActionFactoriesSchemaContractTest",
+      "source": "libs/ui/tests/KisSelectionActionFactoriesSchemaContractTest.cpp",
+      "test": "KisSelectionActionFactoriesSchemaContractTest::pasteShapeStyleActionSchemaRemainsStable",
+      "behavior": "図形style貼り付け操作の型、既定構築と引数なし実行の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPasteShapeStyleActionFactory::KisPasteShapeStyleActionFactory()",
+        "method:KisPasteShapeStyleActionFactory::run(KisViewManager * view)",
+        "struct:KisPasteShapeStyleActionFactory"
       ]
     }
   ]
