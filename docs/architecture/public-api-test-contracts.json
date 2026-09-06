@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 6627
+    "expectedMissingApis": 6625
   },
   "contracts": [
     {
@@ -65258,6 +65258,26 @@
       "classification": "maintained",
       "apis": [
         "function:Acs::setColorWithIterator(Iterator & it,const KoColor & color,const int pixelSize)"
+      ]
+    },
+    {
+      "target": "KisAcsPixelCacheRendererSchemaContractTest",
+      "source": "libs/global/tests/KisAcsPixelCacheRendererSchemaContractTest.cpp",
+      "test": "KisAcsPixelCacheRendererSchemaContractTest::pixelCacheRendererTypeSchemaRemainsStable",
+      "behavior": "ACSの画素cache描画器は専用型と公開既定構築経路を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:Acs::PixelCacheRenderer"
+      ]
+    },
+    {
+      "target": "KisAcsPixelCacheRendererSchemaContractTest",
+      "source": "libs/global/tests/KisAcsPixelCacheRendererSchemaContractTest.cpp",
+      "test": "KisAcsPixelCacheRendererSchemaContractTest::pixelCacheRenderEntrypointSchemaRemainsStable",
+      "behavior": "ACSの画素cache描画入口は標本器、表示変換器、標本領域、実画素・表示cache、位置、画素比率を受け取る正確な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:Acs::PixelCacheRenderer::render(Sampler * sampler,const KisDisplayColorConverter * converter,const QRect & sampleRect,KisPaintDeviceSP & realPixelCache,QImage & pixelCache,QPoint & pixelCacheOffset,qreal devicePixelRatioF)"
       ]
     }
   ]

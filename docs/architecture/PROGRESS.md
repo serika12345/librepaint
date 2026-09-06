@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-07 02:48 JST
+- 更新日時: 2026-09-07 02:53 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -2279,7 +2279,14 @@
 - 正式入力`build/tdd-macos/public-api-missing-g327.json`は公開header 1,548、公開API 29,804、対応済み23,177、未対応6,627、1,761,151 bytes、SHA-256 `b2deccc4fc24a7a07cfdc59282d9d2035557e37c91fef201f2c86c3e56e83fba`を記録する。`libs/global/kis_acs_pixel_cache_renderer.h`の残存は画素cache描画器の型とtemplate描画入口の2 APIだけで、識別子の整列集合SHA-256は`71b3be294fa2958fc326a28198b65b509e28926871b7813130498168bad78131`である。
 - 開始headerの直接includeは色空間、paint device、逐次iterator、表示色変換器のtemplate本文ですべて使用される。配置をadvanced color selector pluginへ移す変更は公開header所有と3利用元を同時に変えるため、この挙動固定便の構築最適化には含めない。既存動的`kis_display_color_converter_contract_test`は製品群へ接続する2,027工程・4,051入力であり棄却する。新targetはtemplateを実体化せず、関数pointer型だけを観測して製品実装を接続しない。
 - 新規`libs/global/tests/KisAcsPixelCacheRendererSchemaContractTest.cpp`を作り、global・canvas・image・pigment・UI canvasのsource/generated探索路、KF I18n・Imathのinterface探索路、Qt Core・Gui・Test、header-only Boost、各公開headerのexport定義だけへ接続する。軽量近傍`KisCrossDeviceColorSamplerSchemaContractTest`は4工程・8入力、command SHA-256 `595a43bc89e33a7e0ac5ddb23025a6438228508ac5ae2faa05e141a2f9480796`、input SHA-256 `4fa26c4a542e9ca2684a4214a6acb1735ac1d5ba14398acb0595d9db7e0bb1e2`である。新targetも4工程・8入力を予測し、停止線を5工程・11入力とする。
-- `g327-acs-pixel-cache-renderer-schema`の状態は`planned`、実装基点は`4b05546d37`である。許可pathを新規試験sourceと`libs/global/tests/CMakeLists.txt`の新target固有節だけに限定する。macOSの対象、近傍、追加2枠の20回反復、厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。paint device、iterator、表示変換器、色空間の実体、製品plugin・OBJECT・shared target、全体build・`verify`、Linux、Nix再評価は実行しない。
+- `g327-acs-pixel-cache-renderer-schema`の状態は`integrated`、実装基点は`4b05546d37`である。許可pathを新規試験sourceと`libs/global/tests/CMakeLists.txt`の新target固有節だけに限定し、公開headerと製品sourceを変更しなかった。実装commitは`8e027ad92e`である。
+
+### 第327便の契約統合結果
+
+- 開始`libs/global/kis_acs_pixel_cache_renderer.h`から新規`libs/global/tests/KisAcsPixelCacheRendererSchemaContractTest.cpp`へ、画素cache描画器の型とtemplate描画入口の2 APIを52行・2枠で対応付けた。色空間、paint device、逐次iterator、表示色変換器を実体化せず、描画入口の全引数と返却型を固定した。
+- 対象未登録の初回限定構築は未知の対象として失敗し、登録後の追加2枠は期待どおり2件失敗した。新targetは4工程・8入力で停止線以内に収まり、command SHA-256は`00d414d7a0489104f2255b80729c8cabac810c8bb124cb9aec1fd1f73e3f7054`、input SHA-256は`37ee52c085d986349a8331053cf1bd6a1e5b49d12f67e3d4eb72a1498aa76ac8`である。AUTOMOC header入力は空、Qt Gui・Test・Core、gettext、OS frameworkだけへ動的接続し、製品未解決記号は0である。
+- macOSで対象と近傍`libs-image-KisCrossDeviceColorSamplerSchemaContractTest`のCTest 2/2、対象の20回反復、厳格`clang-check`、書式、二回の無作業再構築、公開API検査に成功した。2,027工程・4,051入力の既存表示色変換試験、template描画本文、製品plugin・OBJECT・shared target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 台帳へ2 APIを追加して23,179件対応、6,625件未対応となった。`libs/global`のmacOSで構文解析可能な残存は0件で、JNI依存のAndroid障害処理1件だけを別プラットフォーム契約として残す。旧`public-api-missing-g327.json`は最新報告の検証後に削除し、追加作業tree・構築木は作成していない。主Ninja木5,894,192 KiB、共有compiler cache 982,916 KiB、最新`build/tdd-macos/public-api-missing-g328.json` 1,760,373 bytes、SHA-256 `a64533382775857d2b12464db7cd80a68a91f1def93677379b226f83b77bf5d1`だけを再利用対象として保持する。compiler cacheは144,071件中120,469件、83.62%がhitしている。次の永続作業は第328便でmacOS対象の次の未対応責務と最小構築面を選定することである。
 
 ### 第239便の先行監査担当票
 
