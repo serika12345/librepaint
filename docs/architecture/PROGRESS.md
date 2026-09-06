@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-07 02:34 JST
+- 更新日時: 2026-09-07 02:39 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -2258,6 +2258,13 @@
 - 対象未登録の初回限定構築は未知の対象として失敗し、登録後の追加2枠は期待どおり2件失敗した。正確な関数pointer検査へ置き換えて成功した。新targetは4工程・8入力で停止線以内に収まり、command SHA-256は`76d8093842c2dce6b14cb6d5c5fc1c85e82f7235bc0ea65ee29eaa0672152b6b`、input SHA-256は`9f8ac1fc336a67126804e565ac5fc4e5e46ea5af27d3802ca810bbb89463a5ed`である。AUTOMOC header入力は空、Qt Gui・Test・Core、gettext、OS frameworkだけへ動的接続し、製品未解決記号は0である。
 - macOSで対象と近傍`libs-global-KisAlgebraGeometryPrimitivesContractTest`のCTest 2/2、対象の20回反復、厳格`clang-check`、書式、二回の無作業再構築、公開API検査に成功した。幾何関数本文、製品OBJECT・shared target、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 台帳へ8 APIを追加して23,167件対応、6,637件未対応となった。`libs/global`の残存はACS色操作12件とJNI依存のAndroid障害処理1件の合計13件である。旧`public-api-missing-g325.json`は最新報告の検証後に削除し、追加作業tree・構築木は作成していない。主Ninja木5,891,176 KiB、共有compiler cache 982,996 KiB、最新`build/tdd-macos/public-api-missing-g326.json` 1,763,591 bytes、SHA-256 `57ad09ad281fd8be07a63a094a771596c41f0f01acd0b6591290a425470644ec`だけを再利用対象として保持する。compiler cacheは144,065件中120,469件、83.62%がhitしている。次の永続作業は第326便でACS色操作12 APIの最小閉包を比較することである。
+
+### 第326便の監査結果と実装計画
+
+- 正式入力`build/tdd-macos/public-api-missing-g326.json`は公開header 1,548、公開API 29,804、対応済み23,167、未対応6,637、1,763,591 bytes、SHA-256 `57ad09ad281fd8be07a63a094a771596c41f0f01acd0b6591290a425470644ec`を記録する。ACS残存12 APIのうち`libs/global/kis_acs_types.h`の色役割、mouse button変換、資源色配送、画素読書き10 APIを先行し、画像・表示変換器を実体参照する`kis_acs_pixel_cache_renderer.h`の2 APIは構築面を分離して次便で扱う。対象10識別子の整列集合SHA-256は`0e1e4faf21f4dec3472deef2382f7fef9769bdda0322129a06992fb1c7d631c3`である。
+- 開始headerは`kis_iterator_ng.h`を取り込むが同headerの型を一切使用せず、`memcpy`だけを推移includeへ依存している。この不要なimage依存を契約追加前に除去し、標準`<cstring>`を直接includeする。advanced・artistic color selectorの3直接header利用元と対応する翻訳単位を厳格構文検査し、公開API 29,804件と対象識別子集合が不変であることを確認する。公開関数、型、挙動は変更しない。
+- 新規`libs/global/tests/KisAcsTypesSchemaContractTest.cpp`を作り、global・pigmentのsource/generated探索路、KF I18n・Imathのinterface探索路、Qt Core・Gui・Test、header-only Boost、global・pigment export定義だけへ接続する。近傍`KoColorValueSchemaContractTest`は4工程・8入力、command SHA-256 `9e3324f1ce46aeb8008a4d269c2f23325991d2ffda25d621546221effc9720f5`、input SHA-256 `d4259ea079b0d328ff759ae1a68f8edc95fbe6a64a44933ecc24b5a41390773c`である。新targetも4工程・8入力を予測して停止線を5工程・11入力とし、色値、資源provider、paint device、iteratorを実体化せず、mouse buttonから色役割へのinline変換だけを実行する。
+- `g326-acs-types-schema`の状態は`planned`、実装基点は`e4f85e4bac`である。構造準備は`libs/global/kis_acs_types.h`だけ、契約実装は新規試験sourceと`libs/global/tests/CMakeLists.txt`の新target固有節だけを変更する。macOSの直接利用元構文、対象、近傍、追加4枠の20回反復、厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。製品plugin・OBJECT・shared target、全体build・`verify`、Linux、Nix再評価は実行しない。
 
 ### 第239便の先行監査担当票
 
