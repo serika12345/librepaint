@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 5621
+    "expectedMissingApis": 5587
   },
   "contracts": [
     {
@@ -67038,6 +67038,85 @@
         "method:KisMultiIntegerFilterWidget::configuration() const",
         "method:KisMultiIntegerFilterWidget::setConfiguration(const KisPropertiesConfigurationSP config)",
         "method:KisMultiIntegerFilterWidget::~KisMultiIntegerFilterWidget()"
+      ]
+    },
+    {
+      "target": "KisCurveOptionSchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisCurveOptionSchemaContractTest.cpp",
+      "test": "KisCurveOptionSchemaContractTest::curveRangeModelConstructionAndFactorySchemaRemainStable",
+      "behavior": "曲線範囲modelはinterface基底、反応型の値と表示情報による構築、多相破棄、factoryとsensor範囲計算の正確な公開型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisCurveRangeModel",
+        "method:KisCurveRangeModel::KisCurveRangeModel(lager::cursor<QString> curve,lager::reader<QString> activeSensorId,lager::reader<int> activeSensorLength,const QString & yMinLabel,const QString & yMaxLabel,int yMinValue,int yMaxValue,const QString & yValueSuffix)",
+        "method:KisCurveRangeModel::calcXMaxValueWithFactory(const QString & activeSensorId,const int length)",
+        "method:KisCurveRangeModel::calcXMinValueWithFactory(const QString & sensorId)",
+        "method:KisCurveRangeModel::factory(const QString & yMinLabel,const QString & yMaxLabel,int curveMinValue,int curveMaxValue,const QString & curveValueSuffix)",
+        "method:KisCurveRangeModel::~KisCurveRangeModel()"
+      ]
+    },
+    {
+      "target": "KisCurveOptionSchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisCurveOptionSchemaContractTest.cpp",
+      "test": "KisCurveOptionSchemaContractTest::curveRangeModelReaderSignaturesRemainStable",
+      "behavior": "曲線範囲modelは曲線cursor、軸の範囲・表示名・接尾辞を反応型readerとして公開する正確な関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCurveRangeModel::curve()",
+        "method:KisCurveRangeModel::xMaxLabel()",
+        "method:KisCurveRangeModel::xMaxValue()",
+        "method:KisCurveRangeModel::xMinLabel()",
+        "method:KisCurveRangeModel::xMinValue()",
+        "method:KisCurveRangeModel::xValueSuffix()",
+        "method:KisCurveRangeModel::yMaxLabel()",
+        "method:KisCurveRangeModel::yMaxValue()",
+        "method:KisCurveRangeModel::yMinLabel()",
+        "method:KisCurveRangeModel::yMinValue()",
+        "method:KisCurveRangeModel::yValueSuffix()"
+      ]
+    },
+    {
+      "target": "KisCurveOptionSchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisCurveOptionSchemaContractTest.cpp",
+      "test": "KisCurveOptionSchemaContractTest::curveOptionWidgetTypeAndFlagSchemaRemainStable",
+      "behavior": "曲線option widgetはoption data別名と、共通曲線・曲線mode・浮動小数点strength対応を表すflag値を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisCurveOptionWidget::Flags",
+        "alias:KisCurveOptionWidget::data_type",
+        "class:KisCurveOptionWidget",
+        "enum:KisCurveOptionWidget::Flag",
+        "enumerator:KisCurveOptionWidget::Flag::None",
+        "enumerator:KisCurveOptionWidget::Flag::SupportsCommonCurve",
+        "enumerator:KisCurveOptionWidget::Flag::SupportsCurveMode",
+        "enumerator:KisCurveOptionWidget::Flag::UseFloatingPointStrength"
+      ]
+    },
+    {
+      "target": "KisCurveOptionSchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisCurveOptionSchemaContractTest.cpp",
+      "test": "KisCurveOptionSchemaContractTest::curveOptionWidgetConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "曲線option widgetはcategory、曲線範囲、strength表示と反応型状態を段階的に指定する4公開構築経路と多相破棄を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCurveOptionWidget::KisCurveOptionWidget(lager::cursor<KisCurveOptionDataCommon> optionData,KisPaintOpOption::PaintopCategory category,const QString & curveMinLabel,const QString & curveMaxLabel,int curveMinValue,int curveMaxValue,const QString & curveValueSuffix,lager::reader<bool> enabledLink=lager::make_constant (true),std::optional<lager::reader<std::tuple<qreal,qreal>>> strengthRangeReader=std::nullopt)",
+        "method:KisCurveOptionWidget::KisCurveOptionWidget(lager::cursor<KisCurveOptionDataCommon> optionData,KisPaintOpOption::PaintopCategory category,const QString & curveMinLabel,const QString & curveMaxLabel,lager::reader<bool> enabledLink=lager::make_constant (true),std::optional<lager::reader<std::tuple<qreal,qreal>>> strengthRangeReader=std::nullopt)",
+        "method:KisCurveOptionWidget::KisCurveOptionWidget(lager::cursor<KisCurveOptionDataCommon> optionData,KisPaintOpOption::PaintopCategory category,lager::reader<bool> enabledLink=lager::make_constant (true),std::optional<lager::reader<std::tuple<qreal,qreal>>> strengthRangeReader=std::nullopt)",
+        "method:KisCurveOptionWidget::KisCurveOptionWidget(lager::cursor<KisCurveOptionDataCommon> optionData,PaintopCategory category,const QString & curveMinLabel,const QString & curveMaxLabel,int curveMinValue,int curveMaxValue,const QString & curveValueSuffix,const QString & strengthPrefix,const QString & strengthSuffix,qreal strengthDisplayMultiplier,lager::reader<bool> enabledLink=lager::make_constant (true),std::optional<lager::reader<std::tuple<qreal,qreal>>> strengthRangeReader=std::nullopt)",
+        "method:KisCurveOptionWidget::~KisCurveOptionWidget()"
+      ]
+    },
+    {
+      "target": "KisCurveOptionSchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisCurveOptionSchemaContractTest.cpp",
+      "test": "KisCurveOptionSchemaContractTest::curveOptionWidgetSettingAndPresentationSignaturesRemainStable",
+      "behavior": "曲線option widgetは設定の読込・書出し、検査可能性と表示開始の正確な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCurveOptionWidget::isCheckable() const",
+        "method:KisCurveOptionWidget::readOptionSetting(const KisPropertiesConfigurationSP setting)",
+        "method:KisCurveOptionWidget::show()",
+        "method:KisCurveOptionWidget::writeOptionSetting(KisPropertiesConfigurationSP setting) const"
       ]
     }
   ]

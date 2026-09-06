@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-07 06:49 JST
+- 更新日時: 2026-09-07 06:55 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -2559,6 +2559,14 @@
 - 二つの開始headerは公開基底・factory別名・lager値member・既定引数に必要な定義を直接所有し、削減すべき推移includeはない。開始`KisCurveRangeModel.cpp`の厳格`clang-check`は診断0件、開始`KisCurveOptionWidget.cpp`は今回と無関係な生成`ui_wdgcurveoption2.h`欠落だけで停止するため、公開headerと製品sourceの変更は不要である。
 - 既存`plugins/paintops/libpaintop/tests/KisCurveOptionSchemaContractTest.cpp`は180行・10枠で、追加5枠後も300行・20枠未満に収まる。既存targetはCMake File API上で自動生成依存だけを持ち、CMake変更なしで4工程・8入力、command SHA-256 `d1fcb549b61fe1487a76407fb22fd71b2215c67a9da7f7cb382a5331a026211b`、input SHA-256 `a84e08f953c5892bb3c940461497e24573a0fc8c7aedf0fc1f487f9d6ea25ced`である。Qt Gui・Test・Xml・CoreとOS frameworkだけへ動的接続し、製品libraryを要求しない。停止線を5工程・11入力、300行・20枠とする。
 - `g345-curve-range-widget-schema`の状態は`in_progress`、実装基点は`c2636d13bd`である。変更は既存試験sourceの追加5枠だけに限定し、型特性、厳密な公開関数pointer、未評価式で曲線範囲modelとoption widgetの公開接続面を固定する。macOSの対象、追加5枠の20回反復、試験sourceの厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。CMake、公開header、製品source、製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
+- `g345-curve-range-widget-schema`の状態は`integrated`、計画commitは`fe6c7859da`、契約実装commitは`5a4ac23d4e`である。
+
+### 第345便の契約統合結果
+
+- 開始`plugins/paintops/libpaintop/KisCurveRangeModel.h`と`KisCurveOptionWidget.h`から既存`plugins/paintops/libpaintop/tests/KisCurveOptionSchemaContractTest.cpp`へ残存全34 APIを、範囲model型・構築・factory 6、範囲model reader 11、option widget型・flag・別名8、option widget構築・寿命5、option設定・表示4として追加した。試験sourceは283行・計15枠で停止線以内に収まり、公開headerと製品sourceを変更していない。
+- 初回限定構築はoption widgetの公開基底を所有する`kis_paintop_option.h`の探索路不足を検出した。対象固有CMake節へ`libs/tools/ui`のsource・generated探索路と`kritatoolsui_EXPORTS`だけを追加すると、期待どおり追加5試験関数の未定義linkだけで赤になり、契約実装後に成功した。製品libraryは要求せず、最終targetは4工程・8入力、command SHA-256 `cb25fa5e65461d857dd8d457a8c8afbd1897e76413d53201d2d5a1daf5d7fb7f`、input SHA-256 `a84e08f953c5892bb3c940461497e24573a0fc8c7aedf0fc1f487f9d6ea25ced`である。AUTOMOC header入力は空、Qt Gui・Test・Xml・Core、gettext、OS frameworkだけへ動的接続し、製品未解決記号は0件である。
+- macOSで対象と軽量近傍`plugins-paintops-libpaintop-KisDabCacheUtilsSchemaContractTest`のCTest、追加5枠の各20回反復、試験sourceの厳格`clang-check`、書式、二回の無作業再構築、公開API検査に成功した。範囲model実装の厳格検査は診断0件、option widget実装は今回と無関係な生成UI欠落だけで停止した。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 台帳へ34 APIを追加して24,217件対応、5,587件未対応となり、二つの開始headerの残存は0件である。旧`public-api-missing-g345.json`を最新報告の検証後に削除し、追加作業tree・構築木は作成していない。主Ninja木5,916,060 KiB、共有compiler cache 982,676 KiB、最新`build/tdd-macos/public-api-missing-g346.json` 1,480,119 bytes、SHA-256 `a3ea25d825b53476ad8d8cbb8ade88819d71616aeabbccfbe4edc526d8c74702`だけを再利用対象として保持する。compiler cacheは144,159件中120,482件、83.58%がhitしている。次の永続作業は第346便で次の高密度なmacOS対象と最小構築面を選定することである。
 
 ### 第239便の先行監査担当票
 
