@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-06 12:48 JST
+- 更新日時: 2026-09-06 13:01 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1501,7 +1501,18 @@
 - `g274a-virtual-channel-info-build-boundary`の状態は`integrated`、実装基点は`7b7aa910c8`である。開始`plugins/filters/colorsfilters/CMakeLists.txt`の`kritacolorsfilters_SOURCES`から`virtual_channel_info.cpp`を新規AUTOMOC不要・位置独立`kritafiltersvirtualchannelinfoobjects`へ構築所有だけ移し、同CMakeで製品pluginへ1回だけ再集約した。公開header、製品本文、製品link、他のsourceを変更せず、受渡しcommit `608b12905e`を中央commit `ec3b190d49`として取り込んだ。
 - object不存在の初期診断後、追加依存なしで単独構築に成功した。担当側と中央のobjectは1工程・3入力、担当側command SHA-256 `91ba8b130c49a44518540b21a98d4d61e8514fe1931007fe66921d0d70085883`、input SHA-256 `426b158a554d086e8a5f1f8b51061be7323d018f0e2487964ffc2be8652497a9`、中央command SHA-256 `e3c015a020fa826e94fe7940f9a33758eaaf686e51c2cf7ea40342c83c8fb690`、input SHA-256 `b4d711c56dc67614e9013082e050c582eb161b592ef4dd998848e708ee3fb8dc`である。製品計画は1,987工程・3,973入力のまま、`virtual_channel_info.cpp`のcompile 1回とobjectのlink入力1回を維持した。開始実装の厳格構文、二回の無作業再構築、公開API検査、`verify-quick`に成功した。製品pluginは構築していない。
 - cleanな専用作業tree、305,760 KiBの構築木、branchを削除して591,032 KiBを回収した。主Ninja木5,794,952 KiB、共有compiler cache 981,876 KiB、最新`public-api-missing-g274.json`だけを保持する。compiler cacheは143,626件中120,312件、83.77%がhitしている。
-- 続く`g274-virtual-channel-info-contract`の状態は`in_progress`、実装基点は`ec3b190d49`、専用作業treeは`/Users/masato/Documents/librepaint-g274-virtual-channel-info-contract`、branchは`agent/g274-virtual-channel-info-contract`、macOSの対象と軽量近傍に限る構築実行許可は`granted`である。新規`plugins/filters/colorsfilters/tests/VirtualChannelInfoContractTest.cpp`、同directoryの新規`CMakeLists.txt`、親CMakeの試験subdirectory追加だけを許可する。新objectと、既存の標準色模型ID・`KoID`の限定objectだけを一重集約し、`KoColorSpace::channels()`は試験内の非実行協調定義で外部色空間境界を閉じる。型・channel種別7、構築2、種別・位置・借用channel 3、channel表現3、alpha分類1の全16 APIを5枠へ対応付ける。既定値と局所`KoChannelInfo`によるREAL経路を動的に観測し、実色空間を要するALL_COLORSは型契約に留める。7工程・14入力を予測し、停止線を8工程・17入力とする。製品shared、`kritatestsdk`、色空間登録簿、実色空間、画像の接続または実体化が必要なら停止する。
+- 続く`g274-virtual-channel-info-contract`の状態は`integrated`である。実装基点`ec3b190d49`から開始し、新規`plugins/filters/colorsfilters/tests/VirtualChannelInfoContractTest.cpp`、同directoryの新規`CMakeLists.txt`、親`plugins/filters/colorsfilters/CMakeLists.txt`の試験subdirectory追加だけを変更した。開始`plugins/filters/colorsfilters/virtual_channel_info.h`から、型・channel種別7、構築2、種別・位置・借用channel 3、channel表現3、alpha分類1の残存全16 APIを5枠へ対応付けた。受渡しcommit `50d19cebf2`を中央commit `15c6f2b45a`として取り込んだ。
+
+### 第274便の契約統合結果
+
+- 対象不存在の初期診断と、5枠宣言段階で全5試験関数だけが未定義になる期待link失敗を確認した。担当側のmacOSで追加5枠を各20回、全7試験、正式CTest `plugins-filters-colorsfilters-VirtualChannelInfoContractTest`、軽量近傍`libs-pigment-KoChannelInfoContractTest`、AUTOMOC後の二回目計画、二回の無作業再構築に成功した。中央でも対象と近傍、厳格構文、二回の無作業再構築に成功した。
+- 既定状態の明度・位置なし・借用先なし・空表示・32 bit浮動小数点4 byte・非alphaと、局所`KoChannelInfo`を借用するREAL経路の種別・位置・pointer・表示名・値型・byte数・alpha分類を動的に固定した。色channel、alpha channel、仮想channelの分類を区別し、実色空間を要するALL_COLORSは列挙型契約へ留めた。`KoColorSpace::channels()`の試験内協調定義は実色空間経路へ入った場合に即時失敗する。
+- 対象は7工程・16入力で停止線内に収まり、担当側command SHA-256 `74ad635c925dce42938f293de5453d5003ed777a0273ea4e53ed88eac37e6e33`、input SHA-256 `d4dddaf554a2fabbaf1c56a1e3bdb23caf61686606a93f3badd03f1aa94d6618`、中央command SHA-256 `5184fccb7773522b5ad014fa05f1578e82bea2373ef1c4f7ae545887f10badce`、input SHA-256 `d64614000b6345229ecbd495b30c4117d71eea9ed691dce09755eadda62e1231`である。AUTOMOC `HEADERS=[]`、Qt Core・Gui・TestとKF I18nだけの動的接続、製品未解決記号0を確認した。書式、差分、公開API検査、`verify-quick`にも成功した。
+- 台帳へ16 APIを追加して22,313件対応、7,491件未対応となり、旧基準7,507件に対する実測7,491件の期待不一致を確認してから基準を更新した。cleanな専用作業tree、306,456 KiBの構築木、branchを削除して591,040 KiBを回収し、旧`public-api-missing-g274.json` 1,995,500 bytesを削除した。主Ninja木5,797,780 KiB、共有compiler cache 983,404 KiB、最新`build/tdd-macos/public-api-missing-g275.json` 1,991,711 bytes、SHA-256 `364bb7e203a43dd42a9c29c300399bc9eee2ccae9efc24525adc5fdb58993e3b`だけを再利用対象として保持する。compiler cacheは143,636件中120,316件、83.76%がhitしている。製品plugin、実色空間、画像、全体build・`verify`、Linux、Nix再評価は実行していない。
+
+### 第275便の先行監査計画
+
+- 正式入力は`build/tdd-macos/public-api-missing-g275.json`である。第273便と第274便の選定済みAPIを除外し、`libs/canvas/kis_coordinates_converter.h`、`libs/image/kis_cached_paint_device.h`、`libs/image/layerstyles/kis_ls_utils.h`、`plugins/paintops/defaultpaintops/brush/KisDabRenderingQueue.h`の各残存18 APIを比較する。各headerの責務、所有・寿命・決定的挙動、最大5枠の完全割当と、既存target追記・新規限定target・具体的実装所有分離の工程・入力数を確認し、最小閉包を確定してから実装する。
 
 ### 第239便の先行監査担当票
 

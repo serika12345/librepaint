@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 7507
+    "expectedMissingApis": 7491
   },
   "contracts": [
     {
@@ -62416,6 +62416,67 @@
         "method:KisMergeLabeledLayersCommand::createRefPaintDevice(KisImageSP originalImage,QString name=\"Merge Labeled Layers Reference Paint Device\")",
         "method:KisMergeLabeledLayersCommand::redo()",
         "method:KisMergeLabeledLayersCommand::undo()"
+      ]
+    },
+    {
+      "target": "VirtualChannelInfoContractTest",
+      "source": "plugins/filters/colorsfilters/tests/VirtualChannelInfoContractTest.cpp",
+      "test": "VirtualChannelInfoContractTest::typeAndChannelKindsRemainStable",
+      "behavior": "曲線フィルターのchannel情報は実channel、色相、彩度、明度、全色を0から4の安定値で識別する。",
+      "classification": "maintained",
+      "apis": [
+        "class:VirtualChannelInfo",
+        "enum:VirtualChannelInfo::Type",
+        "enumerator:VirtualChannelInfo::Type::ALL_COLORS",
+        "enumerator:VirtualChannelInfo::Type::HUE",
+        "enumerator:VirtualChannelInfo::Type::LIGHTNESS",
+        "enumerator:VirtualChannelInfo::Type::REAL",
+        "enumerator:VirtualChannelInfo::Type::SATURATION"
+      ]
+    },
+    {
+      "target": "VirtualChannelInfoContractTest",
+      "source": "plugins/filters/colorsfilters/tests/VirtualChannelInfoContractTest.cpp",
+      "test": "VirtualChannelInfoContractTest::constructionDefaultsRemainStable",
+      "behavior": "曲線フィルターのchannel情報は明度・位置なし・借用先なし・32 bit浮動小数点4 byteを安全な既定状態とし、明示構築経路を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:VirtualChannelInfo::VirtualChannelInfo()",
+        "method:VirtualChannelInfo::VirtualChannelInfo(Type type,int pixelIndex,KoChannelInfo * realChannelInfo,const KoColorSpace * cs)"
+      ]
+    },
+    {
+      "target": "VirtualChannelInfoContractTest",
+      "source": "plugins/filters/colorsfilters/tests/VirtualChannelInfoContractTest.cpp",
+      "test": "VirtualChannelInfoContractTest::typePositionAndBorrowedChannelRemainStable",
+      "behavior": "実channel情報は種別と画素内位置を保持し、呼出し元所有のchannel記述を同じpointerで返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:VirtualChannelInfo::channelInfo() const",
+        "method:VirtualChannelInfo::pixelIndex() const",
+        "method:VirtualChannelInfo::type() const"
+      ]
+    },
+    {
+      "target": "VirtualChannelInfoContractTest",
+      "source": "plugins/filters/colorsfilters/tests/VirtualChannelInfoContractTest.cpp",
+      "test": "VirtualChannelInfoContractTest::channelRepresentationRemainStable",
+      "behavior": "実channel情報は借用した記述の表示名、値型、byte数を公開表現として返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:VirtualChannelInfo::channelSize() const",
+        "method:VirtualChannelInfo::name() const",
+        "method:VirtualChannelInfo::valueType() const"
+      ]
+    },
+    {
+      "target": "VirtualChannelInfoContractTest",
+      "source": "plugins/filters/colorsfilters/tests/VirtualChannelInfoContractTest.cpp",
+      "test": "VirtualChannelInfoContractTest::alphaClassificationRemainsStable",
+      "behavior": "channel情報は実alpha channelだけをalphaとして分類し、色channelと仮想channelを除外する。",
+      "classification": "maintained",
+      "apis": [
+        "method:VirtualChannelInfo::isAlpha() const"
       ]
     }
   ]
