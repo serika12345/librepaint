@@ -5,6 +5,8 @@
  */
 
 #include "KisAnimTimelineFramesModel.h"
+
+#include "nodes/kis_node_model.h"
 #include <QFont>
 #include <QSize>
 #include <QColor>
