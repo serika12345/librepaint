@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-07 00:06 JST
+- 更新日時: 2026-09-07 00:13 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -2064,7 +2064,14 @@
 
 - 正式入力`build/tdd-macos/public-api-missing-g311.json`は公開header 1,548、公開API 29,804、対応済み22,954、未対応6,850、1,819,040 bytes、SHA-256 `8345f0d2825672649127dc0ee7edd60b24581a76d709ced7fd00c61936bd4d7d`を記録する。`libs/brush/kis_text_brush.h`の残存全28 APIは重複なく、識別子整列集合SHA-256は`1d5866ad91c96f076b7b4e692e1400879a23c51f6caf1c7a2445234ede7df39c`である。型・構築・資源I/O 10、文字・書体・pipe 7、stroke選択3、幾何・設定5、dab描画・直列化3の5枠へ完全に割り当てる。
 - text brushの既存効果試験は1,227工程・2,475入力の`kis_imagepipe_brush_test`へ同居し、製品`kritaimage`・`kritalibbrush`と`kritatestsdk`へ接続するため、公開宣言面だけを追加する対象として広すぎる。新規`libs/brush/tests/KisTextBrushSchemaContractTest.cpp`を作り、直前の`KisAutoBrushSchemaContractTest`と同じbrush・global・image・resources探索路、Qt Core・Gui・Test、header-only Boost、KF I18nのinterface探索路、brush・resources export定義だけへ接続する。近傍は4工程・8入力、command SHA-256 `311896120c4215529d8576caf681095230ddb2997997851d5dd279b319ef1eb8`、input SHA-256 `afc4c2ac6321607c177056bfbc6156a3fdf52317d40c687a8b85bc33d5f10d08`である。新targetも4工程・8入力を予測し、停止線を5工程・11入力とする。
-- `g311-text-brush-schema`の状態は`planned`、実装基点は`31b9adc74c`である。許可pathを新規試験sourceと`libs/brush/tests/CMakeLists.txt`の新target固有節だけに限定し、公開headerと製品sourceを変更しない。text brush・書体・文字画像・pipe・描画装置・XMLを実体化せず、inline本文を実行しない。macOSの対象、近傍、追加5枠の20回反復、厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。製品target、既存の大規模text brush効果試験、全体build・`verify`、Linux、Nix再評価は実行しない。
+- `g311-text-brush-schema`の状態は`integrated`、実装基点は`31b9adc74c`である。許可pathを新規試験sourceと`libs/brush/tests/CMakeLists.txt`の新target固有節だけに限定し、公開headerと製品sourceを変更しなかった。並列担当用の作業treeを作らず主作業treeで限定周期を実行し、実装commit `f6eccb3fd0`として取り込んだ。
+
+### 第311便の契約統合結果
+
+- 開始`libs/brush/kis_text_brush.h`から新規`libs/brush/tests/KisTextBrushSchemaContractTest.cpp`へ残存全28 APIを対応付けた。型・構築・資源I/O 10、文字・書体・pipe 7、stroke選択3、幾何・設定5、dab描画・直列化3の5枠で、text brushの構築・寿命、装置I/O、文字・書体・pipe状態、選択進行、mask幾何、dab生成とXMLの正確な公開署名を固定した。新規試験sourceは94行・5枠である。
+- 対象未登録の初回限定構築は未知の対象、登録後の宣言だけの5枠は5個の未定義symbolとして期待どおり失敗した。新targetは4工程・8入力で停止線以内に収まり、command SHA-256は`78cc1c993c95b615959c7f3edaf7e981f5fe8181822efb24650e789aa353cba8`、input SHA-256は`1a4a00ff307e1ccd133fbfb2b4e1fee0d22c079a5deedd0f3c78b5c9bd501459`である。候補headerのAUTOMOC `HEADERS`は空で、Qt Gui・Test・Core、gettext、OS frameworkだけへ動的接続し、製品未解決記号は0である。
+- macOSで対象と近傍`libs-brush-KisAutoBrushSchemaContractTest`のCTest 2/2、対象の20回反復、厳格`clang-check`、書式、二回の無作業再構築、公開API検査に成功した。既存text brush効果枠を含む`kis_imagepipe_brush_test`の1,227工程・2,475入力は構築していない。実書体描画、pipe選択、dab画素、XML内容は既存または後続の効果契約で扱う。
+- 台帳へ28 APIを追加して22,982件対応、6,822件未対応、対象headerの残存0件となった。旧`public-api-missing-g311.json`を削除し、追加作業tree・構築木は作成していない。主Ninja木5,872,584 KiB、共有compiler cache 983,404 KiB、最新`build/tdd-macos/public-api-missing-g312.json` 1,812,056 bytes、SHA-256 `96abc84368785d59b2f6c238a6e931629384f521cc2cc95664c5b1bc54de689d`だけを再利用対象として保持する。compiler cacheは144,016件中120,465件、83.65%がhitしている。製品target、既存の大規模text brush効果試験、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第312便の正式不足報告から、全APIを最小閉包で固定できる責務を再選定することである。
 
 ### 第239便の先行監査担当票
 

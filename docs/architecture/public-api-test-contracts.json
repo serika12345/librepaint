@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 6850
+    "expectedMissingApis": 6822
   },
   "contracts": [
     {
@@ -44694,6 +44694,79 @@
         "method:psd_layer_effects_shadow_base::gradientLink() const",
         "method:psd_layer_effects_shadow_base::setContourLookupTable(const quint8 * value)",
         "method:psd_layer_effects_shadow_base::setGradient(KoAbstractGradientSP value)"
+      ]
+    },
+    {
+      "target": "KisTextBrushSchemaContractTest",
+      "source": "libs/brush/tests/KisTextBrushSchemaContractTest.cpp",
+      "test": "KisTextBrushSchemaContractTest::typeConstructionAndResourceIoSchemaRemainStable",
+      "behavior": "text brushは共有pointer別名、既定・複写構築、多相破棄、代入禁止、複製、一時性、および装置I/Oを維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisTextBrushSP",
+        "class:KisTextBrush",
+        "method:KisTextBrush::KisTextBrush()",
+        "method:KisTextBrush::KisTextBrush(const KisTextBrush & rhs)",
+        "method:KisTextBrush::clone() const",
+        "method:KisTextBrush::isEphemeral() const",
+        "method:KisTextBrush::loadFromDevice(QIODevice * dev,KisResourcesInterfaceSP resourcesInterface)",
+        "method:KisTextBrush::operator =(const KisTextBrush & rhs)",
+        "method:KisTextBrush::saveToDevice(QIODevice * dev) const",
+        "method:KisTextBrush::~KisTextBrush()"
+      ]
+    },
+    {
+      "target": "KisTextBrushSchemaContractTest",
+      "source": "libs/brush/tests/KisTextBrushSchemaContractTest.cpp",
+      "test": "KisTextBrushSchemaContractTest::textFontAndPipeSchemaRemainStable",
+      "behavior": "text brushは文字列、書体、pipe modeの取得・設定とbrush画像更新入口を正確な公開関数型で提供する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTextBrush::font()",
+        "method:KisTextBrush::pipeMode() const",
+        "method:KisTextBrush::setFont(const QFont & font)",
+        "method:KisTextBrush::setPipeMode(bool pipe)",
+        "method:KisTextBrush::setText(const QString & txt)",
+        "method:KisTextBrush::text(void) const",
+        "method:KisTextBrush::updateBrush()"
+      ]
+    },
+    {
+      "target": "KisTextBrushSchemaContractTest",
+      "source": "libs/brush/tests/KisTextBrushSchemaContractTest.cpp",
+      "test": "KisTextBrushSchemaContractTest::strokeSelectionSchemaRemainStable",
+      "behavior": "text brushはstroke開始、連番準備、および現在の子brush番号を通じてpipe選択状態を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTextBrush::brushIndex() const",
+        "method:KisTextBrush::notifyStrokeStarted()",
+        "method:KisTextBrush::prepareForSeqNo(const KisPaintInformation & info,int seqNo)"
+      ]
+    },
+    {
+      "target": "KisTextBrushSchemaContractTest",
+      "source": "libs/brush/tests/KisTextBrushSchemaContractTest.cpp",
+      "test": "KisTextBrushSchemaContractTest::geometryAndConfigurationSchemaRemainStable",
+      "behavior": "text brushはdab形状・小数位置・入力情報からmask寸法を算出し、角度・倍率・間隔の設定入口を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTextBrush::maskHeight(KisDabShape const &,double subPixelX,double subPixelY,const KisPaintInformation & info) const",
+        "method:KisTextBrush::maskWidth(KisDabShape const &,double subPixelX,double subPixelY,const KisPaintInformation & info) const",
+        "method:KisTextBrush::setAngle(qreal _angle)",
+        "method:KisTextBrush::setScale(qreal _scale)",
+        "method:KisTextBrush::setSpacing(double _spacing)"
+      ]
+    },
+    {
+      "target": "KisTextBrushSchemaContractTest",
+      "source": "libs/brush/tests/KisTextBrushSchemaContractTest.cpp",
+      "test": "KisTextBrushSchemaContractTest::dabRenderingAndSerializationSchemaRemainStable",
+      "behavior": "text brushは色空間・形状・入力情報・小数位置による描画装置とdab生成、およびXML書出しの正確な公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTextBrush::generateMaskAndApplyMaskOrCreateDab(KisFixedPaintDeviceSP dst,KisBrush::ColoringInformation * coloringInformation,KisDabShape const &,const KisPaintInformation & info,double subPixelX=0,double subPixelY=0,qreal softnessFactor=DEFAULT_SOFTNESS_FACTOR,qreal lightnessStrength=1.0) const",
+        "method:KisTextBrush::paintDevice(const KoColorSpace * colorSpace,KisDabShape const &,const KisPaintInformation & info,double subPixelX,double subPixelY) const",
+        "method:KisTextBrush::toXML(QDomDocument &,QDomElement &) const"
       ]
     },
     {
