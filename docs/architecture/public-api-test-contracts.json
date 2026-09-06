@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 6209
+    "expectedMissingApis": 6148
   },
   "contracts": [
     {
@@ -66090,6 +66090,112 @@
         "method:KisAnimTimelineFramesView::slotSelectAudioChannelFile()",
         "method:KisAnimTimelineFramesView::slotUpdateDragInfiniteFramesCount()",
         "method:KisAnimTimelineFramesView::slotZoom(qreal zoom)"
+      ]
+    },
+    {
+      "target": "StoryboardModelSchemaContractTest",
+      "source": "plugins/dockers/storyboarddocker/tests/StoryboardModelSchemaContractTest.cpp",
+      "test": "StoryboardModelSchemaContractTest::typeRoleLifetimeAndLockSchemaRemainStable",
+      "behavior": "storyboard模型は追加表示役割、項目模型継承、親所有と多相寿命、keyframe並替えlockの範囲寿命、freeze・lock状態の正確な公開型と関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:StoryboardModel",
+        "class:StoryboardModel::KeyframeReorderLock",
+        "enum:StoryboardModel::AdditionalRoles",
+        "enumerator:StoryboardModel::AdditionalRoles::TotalSceneDurationInFrames",
+        "enumerator:StoryboardModel::AdditionalRoles::TotalSceneDurationInSeconds",
+        "method:StoryboardModel::KeyframeReorderLock::KeyframeReorderLock(StoryboardModel * model)",
+        "method:StoryboardModel::KeyframeReorderLock::~KeyframeReorderLock()",
+        "method:StoryboardModel::StoryboardModel(QObject * parent)",
+        "method:StoryboardModel::isFrozen() const",
+        "method:StoryboardModel::isLocked() const",
+        "method:StoryboardModel::setFreeze(bool)",
+        "method:StoryboardModel::setLocked(bool)",
+        "method:StoryboardModel::~StoryboardModel()"
+      ]
+    },
+    {
+      "target": "StoryboardModelSchemaContractTest",
+      "source": "plugins/dockers/storyboarddocker/tests/StoryboardModelSchemaContractTest.cpp",
+      "test": "StoryboardModelSchemaContractTest::tableMimeAndRowSchemaRemainStable",
+      "behavior": "storyboard模型は階層index・親・表data・flag・行挿入移動除去と、MIME drag・drop方針の正確な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:StoryboardModel::columnCount(const QModelIndex & parent=QModelIndex ()) const",
+        "method:StoryboardModel::data(const QModelIndex & index,int role=Qt::DisplayRole) const",
+        "method:StoryboardModel::dropMimeData(const QMimeData * data,Qt::DropAction action,int row,int column,const QModelIndex & parent)",
+        "method:StoryboardModel::flags(const QModelIndex & index) const",
+        "method:StoryboardModel::index(int row,int column,const QModelIndex & parent=QModelIndex ()) const",
+        "method:StoryboardModel::insertRows(int position,int rows,const QModelIndex & index=QModelIndex ())",
+        "method:StoryboardModel::mimeData(const QModelIndexList & indexes) const",
+        "method:StoryboardModel::mimeTypes() const",
+        "method:StoryboardModel::moveRows(const QModelIndex & sourceParent,int sourceRow,int count,const QModelIndex & destinationParent,int destinationChild)",
+        "method:StoryboardModel::parent(const QModelIndex & index) const",
+        "method:StoryboardModel::removeRows(int position,int rows,const QModelIndex & index=QModelIndex ())",
+        "method:StoryboardModel::rowCount(const QModelIndex & parent=QModelIndex ()) const",
+        "method:StoryboardModel::setData(const QModelIndex & index,const QVariant & value,int role=Qt::EditRole)",
+        "method:StoryboardModel::supportedDragActions() const",
+        "method:StoryboardModel::supportedDropActions() const"
+      ]
+    },
+    {
+      "target": "StoryboardModelSchemaContractTest",
+      "source": "plugins/dockers/storyboarddocker/tests/StoryboardModelSchemaContractTest.cpp",
+      "test": "StoryboardModelSchemaContractTest::commentAndStoryboardDataSchemaRemainStable",
+      "behavior": "storyboard模型はcomment定義・可視数・scroll値、項目list、child・項目挿入、全data置換、comment模型接続と変更通知の正確な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:StoryboardModel::getComment(int row) const",
+        "method:StoryboardModel::getData()",
+        "method:StoryboardModel::insertChildRows(int position,KUndo2Command * cmd=nullptr)",
+        "method:StoryboardModel::insertChildRows(int position,StoryboardItemSP item)",
+        "method:StoryboardModel::insertItem(QModelIndex index,bool after)",
+        "method:StoryboardModel::resetData(StoryboardItemList list)",
+        "method:StoryboardModel::setCommentModel(StoryboardCommentModel * commentModel)",
+        "method:StoryboardModel::setCommentScrollData(const QModelIndex & index,const QVariant & value)",
+        "method:StoryboardModel::sigStoryboardItemListChanged()",
+        "method:StoryboardModel::totalCommentCount()",
+        "method:StoryboardModel::visibleCommentCount() const",
+        "method:StoryboardModel::visibleCommentsUpto(QModelIndex index) const"
+      ]
+    },
+    {
+      "target": "StoryboardModelSchemaContractTest",
+      "source": "plugins/dockers/storyboarddocker/tests/StoryboardModelSchemaContractTest.cpp",
+      "test": "StoryboardModelSchemaContractTest::frameTimelineAndUndoSchemaRemainStable",
+      "behavior": "storyboard模型はframe範囲・scene長・keyframe生成並替え移動除去、frame index探索、undo command接続、duration更新とscene可視化の正確な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:StoryboardModel::affectedIndexes(KisTimeSpan range) const",
+        "method:StoryboardModel::changeSceneHoldLength(int oldDuration,QModelIndex itemIndex)",
+        "method:StoryboardModel::createBlankKeyframes(const QModelIndex & index,KUndo2Command * cmd=nullptr)",
+        "method:StoryboardModel::createDuplicateKeyframes(const QModelIndex & index,KUndo2Command * cmd=nullptr)",
+        "method:StoryboardModel::getFramesPerSecond() const",
+        "method:StoryboardModel::indexFromFrame(int frame,bool framePerfect=true) const",
+        "method:StoryboardModel::lastIndexBeforeFrame(int frame) const",
+        "method:StoryboardModel::lastKeyframeGlobal() const",
+        "method:StoryboardModel::lastKeyframeWithin(QModelIndex index)",
+        "method:StoryboardModel::nextKeyframeGlobal(int keyframeTime) const",
+        "method:StoryboardModel::pushUndoCommand(KUndo2Command * command)",
+        "method:StoryboardModel::removeItem(QModelIndex index,KUndo2Command * command=nullptr)",
+        "method:StoryboardModel::reorderKeyframes()",
+        "method:StoryboardModel::shiftKeyframes(KisTimeSpan affected,int offset,KUndo2Command * cmd=nullptr)",
+        "method:StoryboardModel::updateDurationData(const QModelIndex & parentIndex)",
+        "method:StoryboardModel::visualizeScene(const QModelIndex & index,bool useUndo=true)"
+      ]
+    },
+    {
+      "target": "StoryboardModelSchemaContractTest",
+      "source": "plugins/dockers/storyboarddocker/tests/StoryboardModelSchemaContractTest.cpp",
+      "test": "StoryboardModelSchemaContractTest::imageViewThumbnailAndActiveNodeSchemaRemainStable",
+      "behavior": "storyboard模型はimage・view・能動nodeの借用接続、thumbnail投影更新と項目群の再描画要求の正確な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:StoryboardModel::setImage(KisImageWSP image)",
+        "method:StoryboardModel::setThumbnailPixmapData(const QModelIndex & parentIndex,const KisPaintDeviceSP & dev)",
+        "method:StoryboardModel::setView(StoryboardView * view)",
+        "method:StoryboardModel::slotSetActiveNode(KisNodeSP)",
+        "method:StoryboardModel::slotUpdateThumbnailsForItems(QModelIndexList indices)"
       ]
     }
   ]

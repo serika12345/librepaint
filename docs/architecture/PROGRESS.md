@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-07 04:37 JST
+- 更新日時: 2026-09-07 04:47 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -2427,10 +2427,18 @@
 ### 第337便の監査結果と実装計画
 
 - 正式入力`build/tdd-macos/public-api-missing-g337.json`は公開header 1,548、公開API 29,804、対応済み23,595、未対応6,209、1,644,277 bytes、SHA-256 `17dbde112002dbc10ad35c941edd336379d63c0dc936216f3d53d0798902ec65`を記録する。`plugins/dockers/storyboarddocker/StoryboardModel.h`の残存全61 APIを、型・役割・寿命・lock 13、表・mime・行15、comment・storyboard data 12、frame・timeline・undo 16、image・view・thumbnail・能動node 5として5枠へ完全に割り当てる。対象識別子の整列集合SHA-256は`15276d0183f0ccce6c2ae2a730c1a793e2c6f0bacb0cfb5f29a29343e741b183`である。
-- 開始headerは`KisImageWSP`・`KisNodeWSP`の値所有に必要なpointer定義を得るために全`kis_image.h`を読み、借用pointerだけに使う`kis_keyframe_channel.h`も読む。さらに基底より広い`QAbstractListModel`と未使用の`QItemSelection`を含む。開始`plugins/dockers/storyboarddocker/StoryboardModel.h`を、`QAbstractItemModel`、`kis_types.h`、`kis_shared_ptr.h`、`KisKeyframeChannel`前方宣言へ絞り、完全型を使う開始実装`plugins/dockers/storyboarddocker/StoryboardModel.cpp`へkeyframe channelの直接includeを置く。他9直接利用元からimage本体とkeyframe channelの解析閉包を除き、公開API指紋を維持したまま依存だけを縮小する。開始実装の変更前厳格`clang-check`は診断0である。
+- 開始headerは`KisImageWSP`・`KisNodeWSP`の値所有に必要なpointer定義を得るために全`kis_image.h`を読み、借用pointerだけに使う`kis_keyframe_channel.h`も読む。さらに基底より広い`QAbstractListModel`と未使用の`QItemSelection`を含む。開始`plugins/dockers/storyboarddocker/StoryboardModel.h`を、`QAbstractItemModel`、`kis_types.h`、`kis_shared_ptr.h`、`KisKeyframeChannel`前方宣言へ絞り、完全型を使う開始実装`plugins/dockers/storyboarddocker/StoryboardModel.cpp`へimage本体とkeyframe channelの直接includeを置く。他8直接利用元からimage本体とkeyframe channelの解析閉包を除き、公開API指紋を維持したまま依存だけを縮小する。開始実装の変更前厳格`clang-check`は診断0である。
 - 既存動的`StoryboardModelTest`はstoryboard docker製品群へ接続する1,998工程・3,994入力、command SHA-256 `35d0006c6bc25e3ad1dc50bc8480e824ffd14b8a225be48c935c4ff14c1aba51`、input SHA-256 `c83266f40cf7178f665a61ac6b3348378f27e1db9c35e4c35567ca9dcb6cbf1f`であり、反復対象にしない。
 - 依存整理後に新規`plugins/dockers/storyboarddocker/tests/StoryboardModelSchemaContractTest.cpp`を作り、storyboard docker・UI・image・globalのsource/generated探索路、Qt Gui・Test、Qt Widgetsのinterface探索路、関係export定義だけへ接続する。模型、item、comment、image、node、view、undo commandを実体化せず、追加役割値、継承、構築・寿命・lock特性、全公開関数型を固定する。新targetは4工程・8入力を予測し、停止線を5工程・11入力とする。
-- `g337-storyboard-model-schema`の状態は`planned`、実装基点は`0232538a19`である。構造整理は開始headerと開始実装、契約は新規試験sourceと同target固有CMake節だけに限定する。macOSの対象、追加5枠の20回反復、開始実装と試験sourceの厳格`clang-check`、書式、二回の無作業再構築、公開API指紋不変、公開API検査、`verify-quick`だけを実行する。製品static・MODULE・OBJECT・shared target、全体build・`verify`、Linux、Nix再評価は実行しない。
+- `g337-storyboard-model-schema`の状態は`integrated`、実装基点は`b4fdf9d09f`、依存整理commitは`b7382004d7`、契約実装commitは`37708b8e7a`である。構造整理は開始headerと開始実装、契約は新規試験sourceと同target固有CMake節だけに限定した。macOSの対象、追加5枠の20回反復、開始実装と試験sourceの厳格`clang-check`、書式、二回の無作業再構築、公開API指紋不変、公開API検査に成功した。製品static・MODULE・OBJECT・shared target、全体build・`verify`、Linux、Nix再評価は実行していない。
+
+### 第337便の契約統合結果
+
+- Storyboard模型の利用元へimage本体とkeyframe実装の解析が波及する問題を解消した。開始`plugins/dockers/storyboarddocker/StoryboardModel.h`の全`kis_image.h`と`kis_keyframe_channel.h`を、弱参照値に必要な`kis_types.h`・`kis_shared_ptr.h`と`KisKeyframeChannel`前方宣言へ置き換え、完全型を使う開始`plugins/dockers/storyboarddocker/StoryboardModel.cpp`へ両直接includeを移した。基底includeを`QAbstractListModel`から`QAbstractItemModel`へ絞り、未使用`QItemSelection`も削除した。他8直接利用元の閉包を狭め、公開API報告のSHA-256 `17dbde112002dbc10ad35c941edd336379d63c0dc936216f3d53d0798902ec65`は変更前後で一致した。
+- 同開始headerの残存全61 APIから新規`plugins/dockers/storyboarddocker/tests/StoryboardModelSchemaContractTest.cpp`へ、型・役割・寿命・lock 13、表・mime・行15、comment・storyboard data 12、frame・timeline・undo 16、image・view・thumbnail・能動node 5を139行・5枠で対応付けた。模型、item、comment、image、node、view、undo commandを実体化せず、追加表示役割値、項目模型継承、構築・多相寿命・lock特性、全公開関数型を固定した。
+- 追加5枠は期待どおり5件失敗し、契約実装後に成功した。新targetは4工程・8入力で停止線以内に収まり、command SHA-256は`5a43fe66f466b55f71df43d306166046e55698531a394b98411c1d8af364e97d`、input SHA-256は`83965d793a03fd856b81d37292a6424564d341802e7af7a626f743614198f409`である。AUTOMOC header入力は空、Qt Gui・Test・Core、gettext、OS frameworkだけへ動的接続し、製品未解決記号は0である。
+- macOSで対象CTest、対象の20回反復、開始実装と試験sourceの厳格`clang-check`、書式、二回の無作業再構築、公開API検査に成功した。開始実装は変更前後とも厳格診断0である。他8直接利用元のうち6翻訳単位は解析に成功し、`DlgExportStoryboard.cpp`とそれを読む`StoryboardDockerDock.cpp`は製品構築で作る`ui_wdgexportstoryboard.h`が未生成のため開始header到達前に停止した。1,998工程・3,994入力の既存動的storyboard試験、製品static・MODULE・OBJECT・shared target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 台帳へ61 APIを追加して23,656件対応、6,148件未対応となった。旧`public-api-missing-g337.json`と一時診断報告は最新報告の検証後に削除し、追加作業tree・構築木は作成していない。主Ninja木5,907,416 KiB、共有compiler cache 982,288 KiB、最新`build/tdd-macos/public-api-missing-g338.json` 1,627,170 bytes、SHA-256 `3e0f1a15bda03f1f4a592c6d10f99bf2bc86432461016eee9fe230de0d3b5bc3`だけを再利用対象として保持する。compiler cacheは144,121件中120,471件、83.59%がhitしている。次の永続作業は第338便で次の高密度なmacOS対象と最小構築面を選定することである。
 
 ### 第239便の先行監査担当票
 
