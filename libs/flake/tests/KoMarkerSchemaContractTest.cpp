@@ -4,6 +4,7 @@
  */
 
 #include <KoMarker.h>
+#include <KoMarkerCollection.h>
 
 #include <QTest>
 
@@ -19,6 +20,9 @@ private Q_SLOTS:
     void markerOrientationNameAndEqualitySignaturesRemainStable();
     void markerShapeAndGeometrySignaturesRemainStable();
     void markerPaintingAndStrokeSignaturesRemainStable();
+    void markerCollectionTypeConstructionAndLifetimeSchemaRemainStable();
+    void markerCollectionAccessAndMutationSignaturesRemainStable();
+    void markerCollectionFileLoadingSignatureRemainStable();
 };
 
 void KoMarkerSchemaContractTest::markerIdentityLifecycleAndCoordinateEnumSchemaRemainsStable()
@@ -108,6 +112,41 @@ void KoMarkerSchemaContractTest::markerPaintingAndStrokeSignaturesRemainStable()
     static_assert(std::is_same_v<decltype(static_cast<DrawPreview>(&KoMarker::drawPreview)), DrawPreview>);
     static_assert(
         std::is_same_v<decltype(static_cast<ApplyShapeStroke>(&KoMarker::applyShapeStroke)), ApplyShapeStroke>);
+}
+
+void KoMarkerSchemaContractTest::markerCollectionTypeConstructionAndLifetimeSchemaRemainStable()
+{
+    using Collection = KoMarkerCollection;
+
+    static_assert(std::is_class_v<Collection>);
+    static_assert(std::is_base_of_v<QObject, Collection>);
+    static_assert(std::is_default_constructible_v<Collection>);
+    static_assert(std::is_constructible_v<Collection, QObject *>);
+    static_assert(std::has_virtual_destructor_v<Collection>);
+
+    QVERIFY(true);
+}
+
+void KoMarkerSchemaContractTest::markerCollectionAccessAndMutationSignaturesRemainStable()
+{
+    using Collection = KoMarkerCollection;
+    using Markers = QList<KoMarker *> (Collection::*)() const;
+    using AddMarker = KoMarker *(Collection::*)(KoMarker *);
+
+    static_assert(std::is_same_v<decltype(&Collection::markers), Markers>);
+    static_assert(std::is_same_v<decltype(&Collection::addMarker), AddMarker>);
+
+    QVERIFY(true);
+}
+
+void KoMarkerSchemaContractTest::markerCollectionFileLoadingSignatureRemainStable()
+{
+    using Collection = KoMarkerCollection;
+    using LoadMarkers = void (Collection::*)(const QString &);
+
+    static_assert(std::is_same_v<decltype(&Collection::loadMarkersFromFile), LoadMarkers>);
+
+    QVERIFY(true);
 }
 
 QTEST_GUILESS_MAIN(KoMarkerSchemaContractTest)
