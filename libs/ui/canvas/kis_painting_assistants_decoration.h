@@ -11,8 +11,6 @@
 #include <QPointF>
 #include <QColor>
 
-#include "KoPointerEvent.h"
-#include "KoSnapGuide.h"
 #include "kis_icon_utils.h"
 #include "canvas/kis_canvas_decoration.h"
 #include "canvas/kis_painting_assistant.h"
@@ -20,6 +18,8 @@
 
 class KisView;
 class KoColorDisplayRendererInterface;
+class KoPointerEvent;
+class KoSnapGuide;
 
 class KisPaintingAssistantsDecoration;
 typedef KisSharedPtr<KisPaintingAssistantsDecoration> KisPaintingAssistantsDecorationSP;

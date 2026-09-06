@@ -17,12 +17,15 @@
 #include <kis_algebra_2d.h>
 #include "kis_debug.h"
 #include "document/KisDocument.h"
+#include "application/ui/workspace/KisView.h"
 #include "kis_canvas2.h"
 #include "application/ui/workspace/KisViewManager.h"
 #include <KoCanvasResourceProvider.h>
 #include <KoCanvasResourcesIds.h>
 #include <KoCompositeOpRegistry.h>
 #include <KoColorDisplayRendererInterface.h>
+#include <KoPointerEvent.h>
+#include <KoSnapGuide.h>
 
 #include <QPainter>
 #include <QPainterPath>

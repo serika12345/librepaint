@@ -27,6 +27,7 @@
 #include <canvas/kis_canvas_resource_provider.h>
 
 // Krita/image
+#include <kis_image.h>
 #include <kis_layer.h>
 #include <kis_paint_layer.h>
 #include <kis_painter.h>
@@ -494,4 +495,3 @@ KisOptimizedBrushOutline KisToolFreehand::getOutlinePath(const QPointF &document
     else
         return KisOptimizedBrushOutline();
 }
-
