@@ -7,13 +7,15 @@
 #define KISSCREENCOLORSAMPLER_H
 
 #include <QScopedPointer>
-#include <QEvent>
-#include <QMouseEvent>
 
-#include "KoColor.h"
 #include <KisScreenColorSamplerBase.h>
 
 #include "kritaui_export.h"
+
+class KoColor;
+class QEvent;
+class QKeyEvent;
+class QMouseEvent;
 
 /**
  * @brief The KisScreenColorSampler class
