@@ -92,6 +92,20 @@ target_compile_definitions(KisCoordinatesConverterSchemaContractTest PRIVATE
 )
 
 kis_add_test(
+    KisCanvasStateContractTest.cpp
+    LINK_LIBRARIES
+        kritacanvasstateobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KisCanvasStateContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/flake
+    ${CMAKE_BINARY_DIR}/libs/flake
+)
+target_compile_definitions(KisCanvasStateContractTest PRIVATE kritacanvas_EXPORTS)
+
+kis_add_test(
     KisToolCanvasSchemaContractTest.cpp
     LINK_LIBRARIES
         Qt${QT_MAJOR_VERSION}::Core
