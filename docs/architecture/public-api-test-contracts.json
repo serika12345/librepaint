@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 7525
+    "expectedMissingApis": 7507
   },
   "contracts": [
     {
@@ -62353,6 +62353,69 @@
         "enumerator:KisHSVCurve::ColorChannel::RGBChannel2",
         "enumerator:KisHSVCurve::ColorChannel::Saturation",
         "enumerator:KisHSVCurve::ColorChannel::Value"
+      ]
+    },
+    {
+      "target": "KisNodeCommandsAdapterSchemaContractTest",
+      "source": "libs/image/tests/KisNodeCommandsAdapterSchemaContractTest.cpp",
+      "test": "KisNodeCommandsAdapterSchemaContractTest::mergeLabeledLayersTypeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "色ラベル指定の統合commandは公開型、cache有無の構築経路、破棄可能性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisMergeLabeledLayersCommand",
+        "method:KisMergeLabeledLayersCommand::KisMergeLabeledLayersCommand(KisImageSP image,KisPaintDeviceSP newRefPaintDevice,QList<int> selectedLabels,GroupSelectionPolicy groupSelectionPolicy=GroupSelectionPolicy_SelectAlways)",
+        "method:KisMergeLabeledLayersCommand::KisMergeLabeledLayersCommand(KisImageSP image,ReferenceNodeInfoListSP prevRefNodeInfoList,ReferenceNodeInfoListSP newRefNodeInfoList,KisPaintDeviceSP prevRefPaintDevice,KisPaintDeviceSP newRefPaintDevice,QList<int> selectedLabels,GroupSelectionPolicy groupSelectionPolicy=GroupSelectionPolicy_SelectAlways,bool forceRegeneration=false,KisNodeSP activeNode=nullptr)",
+        "method:KisMergeLabeledLayersCommand::~KisMergeLabeledLayersCommand()"
+      ]
+    },
+    {
+      "target": "KisNodeCommandsAdapterSchemaContractTest",
+      "source": "libs/image/tests/KisNodeCommandsAdapterSchemaContractTest.cpp",
+      "test": "KisNodeCommandsAdapterSchemaContractTest::mergeLabeledLayersGroupSelectionPolicyValuesRemainStable",
+      "behavior": "group選択方針は常時選択、明示色ラベル時の選択、選択除外を0から2の安定値で表す。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KisMergeLabeledLayersCommand::GroupSelectionPolicy",
+        "enumerator:KisMergeLabeledLayersCommand::GroupSelectionPolicy::GroupSelectionPolicy_NeverSelect",
+        "enumerator:KisMergeLabeledLayersCommand::GroupSelectionPolicy::GroupSelectionPolicy_SelectAlways",
+        "enumerator:KisMergeLabeledLayersCommand::GroupSelectionPolicy::GroupSelectionPolicy_SelectIfColorLabeled"
+      ]
+    },
+    {
+      "target": "KisNodeCommandsAdapterSchemaContractTest",
+      "source": "libs/image/tests/KisNodeCommandsAdapterSchemaContractTest.cpp",
+      "test": "KisNodeCommandsAdapterSchemaContractTest::mergeLabeledLayersReferenceNodeInfoValuesRemainStable",
+      "behavior": "参照node情報は識別子、並び順番号、不透明度を保持し、全項目一致で同値と判定する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisMergeLabeledLayersCommand::ReferenceNodeInfo::nodeId",
+        "member:KisMergeLabeledLayersCommand::ReferenceNodeInfo::opacity",
+        "member:KisMergeLabeledLayersCommand::ReferenceNodeInfo::sequenceNumber",
+        "method:KisMergeLabeledLayersCommand::ReferenceNodeInfo::operator ==(const ReferenceNodeInfo & other) const",
+        "struct:KisMergeLabeledLayersCommand::ReferenceNodeInfo"
+      ]
+    },
+    {
+      "target": "KisNodeCommandsAdapterSchemaContractTest",
+      "source": "libs/image/tests/KisNodeCommandsAdapterSchemaContractTest.cpp",
+      "test": "KisNodeCommandsAdapterSchemaContractTest::mergeLabeledLayersReferenceNodeListAndOwnershipRemainStable",
+      "behavior": "参照node情報列は順序付き値列と共有所有の公開別名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisMergeLabeledLayersCommand::ReferenceNodeInfoList",
+        "alias:KisMergeLabeledLayersCommand::ReferenceNodeInfoListSP"
+      ]
+    },
+    {
+      "target": "KisNodeCommandsAdapterSchemaContractTest",
+      "source": "libs/image/tests/KisNodeCommandsAdapterSchemaContractTest.cpp",
+      "test": "KisNodeCommandsAdapterSchemaContractTest::mergeLabeledLayersExecutionSignaturesRemainStable",
+      "behavior": "色ラベル指定の統合commandは再実行、取消、既定名付き参照描画先生成の公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMergeLabeledLayersCommand::createRefPaintDevice(KisImageSP originalImage,QString name=\"Merge Labeled Layers Reference Paint Device\")",
+        "method:KisMergeLabeledLayersCommand::redo()",
+        "method:KisMergeLabeledLayersCommand::undo()"
       ]
     }
   ]
