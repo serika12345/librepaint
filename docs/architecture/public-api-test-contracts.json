@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 7433
+    "expectedMissingApis": 7414
   },
   "contracts": [
     {
@@ -62670,6 +62670,70 @@
         "method:KisPreferenceSetRegistry::KisPreferenceSetRegistry()",
         "method:KisPreferenceSetRegistry::instance()",
         "method:KisPreferenceSetRegistry::~KisPreferenceSetRegistry()"
+      ]
+    },
+    {
+      "target": "KisScreenInformationAdapterContractTest",
+      "source": "libs/ui/tests/KisScreenInformationAdapterContractTest.cpp",
+      "test": "KisScreenInformationAdapterContractTest::screenInformationAdapterTypeConstructionAndLifetimeRemainStable",
+      "behavior": "画面情報adapterはOpenGL contextを借用して構築でき、非copy型として自身の寿命を管理する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisScreenInformationAdapter",
+        "method:KisScreenInformationAdapter::KisScreenInformationAdapter(QOpenGLContext * context)",
+        "method:KisScreenInformationAdapter::~KisScreenInformationAdapter()"
+      ]
+    },
+    {
+      "target": "KisScreenInformationAdapterContractTest",
+      "source": "libs/ui/tests/KisScreenInformationAdapterContractTest.cpp",
+      "test": "KisScreenInformationAdapterContractTest::screenInformationIdentityDefaultsRemainStable",
+      "behavior": "画面情報値は画面、色深度、表面色空間を独立して保持し、既定状態では画面なし、色深度0、既定色空間を表す。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisScreenInformationAdapter::ScreenInfo::bitsPerColor",
+        "member:KisScreenInformationAdapter::ScreenInfo::colorSpace",
+        "member:KisScreenInformationAdapter::ScreenInfo::screen",
+        "struct:KisScreenInformationAdapter::ScreenInfo"
+      ]
+    },
+    {
+      "target": "KisScreenInformationAdapterContractTest",
+      "source": "libs/ui/tests/KisScreenInformationAdapterContractTest.cpp",
+      "test": "KisScreenInformationAdapterContractTest::screenInformationChromaticityFieldsRemainIndependent",
+      "behavior": "画面情報値は赤・緑・青の原色座標と白色点座標を各2成分で独立して保持し、既定値0から個別に更新できる。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisScreenInformationAdapter::ScreenInfo::bluePrimary",
+        "member:KisScreenInformationAdapter::ScreenInfo::greenPrimary",
+        "member:KisScreenInformationAdapter::ScreenInfo::redPrimary",
+        "member:KisScreenInformationAdapter::ScreenInfo::whitePoint"
+      ]
+    },
+    {
+      "target": "KisScreenInformationAdapterContractTest",
+      "source": "libs/ui/tests/KisScreenInformationAdapterContractTest.cpp",
+      "test": "KisScreenInformationAdapterContractTest::screenInformationLuminanceAndValidityRemainStable",
+      "behavior": "画面情報値は最小・最大・全面最大輝度を独立して保持し、対応画面の有無を有効性として返す。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisScreenInformationAdapter::ScreenInfo::maxFullFrameLuminance",
+        "member:KisScreenInformationAdapter::ScreenInfo::maxLuminance",
+        "member:KisScreenInformationAdapter::ScreenInfo::minLuminance",
+        "method:KisScreenInformationAdapter::ScreenInfo::isValid() const"
+      ]
+    },
+    {
+      "target": "KisScreenInformationAdapterContractTest",
+      "source": "libs/ui/tests/KisScreenInformationAdapterContractTest.cpp",
+      "test": "KisScreenInformationAdapterContractTest::screenInformationAdapterDiagnosticsAndFormattingRemainStable",
+      "behavior": "画面情報adapterは利用可否、失敗理由、画面別情報を公開し、無効な画面情報を識別可能な診断文字列へ整形する。",
+      "classification": "maintained",
+      "apis": [
+        "function:operator <<(QDebug,const KisScreenInformationAdapter::ScreenInfo &)",
+        "method:KisScreenInformationAdapter::errorString() const",
+        "method:KisScreenInformationAdapter::infoForScreen(QScreen * screen) const",
+        "method:KisScreenInformationAdapter::isValid() const"
       ]
     }
   ]

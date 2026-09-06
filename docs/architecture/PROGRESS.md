@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-06 14:30 JST
+- 更新日時: 2026-09-06 14:43 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1583,7 +1583,19 @@
 - `g278a-screen-information-build-boundary`の状態は`integrated`、実装基点は`6dee809e56`である。開始`libs/ui/CMakeLists.txt`の`kritaui_LIB_SRCS`が直接所有していた`opengl/KisScreenInformationAdapter.cpp`を、新規AUTOMOC不要・位置独立`kritauiscreeninformationobjects`へ移し、製品`kritaapplicationui`へ同objectを1回だけ再集約した。公開header、ABI、実装本文、利用元を変更せず、WindowsのQt Gui private探索路とDXGI接続も新objectへ移した。受渡しcommit `182b693caa`を中央commit `4b9649595b`として取り込んだ。
 - 新objectは担当側と中央で予測どおり1工程・3入力となり、担当側command SHA-256 `53adb9ed413683e1140f4bcdbedf90955c1bd13008dec950cf7ca1781c8cb260`、input SHA-256 `2510c763d97ac9bd3bd212efb95cf53c01e6fd134fb6cd1a27eab8b32a00be7c`、中央command SHA-256 `469aa6992f4575dfffafffe1bb3725a57860cb360a38500fab328efcb57097a1`、input SHA-256 `c494ce4cf8aa3c3bcf47b6d257d3e0c061bed8c607acb94130cd8279d69afd60`である。製品計画は1,974工程・3,948入力のまま、実装compileとobject再集約各1回を維持した。製品本体は構築していない。
 - 担当側と中央でobject単独構築、厳格構文、二回の無作業再構築、既存`KisOpenGLRendererConfigContractTest`、公開API検査、`verify-quick`に成功した。受渡し差分と中央差分のpatch ID一致、専用作業treeのcleanを確認し、304,348 KiBの構築木を含む895,456 KiBの作業treeとbranchを削除した。主Ninja木5,821,120 KiB、共有compiler cache 982,616 KiBを保持し、cacheは143,682件中120,336件、83.75%がhitしている。
-- 続く`g278-screen-information-contract`の状態は`planned`、実装基点は`4b9649595b`である。新規`libs/ui/tests/KisScreenInformationAdapterContractTest.cpp`と同target固有の`libs/ui/tests/CMakeLists.txt`節だけへ19 API・5枠を追加し、新objectを直接接続する。契約targetは5工程・11入力、停止線6工程・14入力、試験側AUTOMOC `HEADERS=[]`、製品非接続を予測する。追加5枠の各20回反復、対象と近傍`KisOpenGLRendererConfigContractTest`、厳格構文、無作業再構築、動的接続・未解決記号、公開API検査、`verify-quick`を完了条件とする。
+- 続く`g278-screen-information-contract`の状態は`integrated`、実装基点は`3583aac2d9`である。新規`libs/ui/tests/KisScreenInformationAdapterContractTest.cpp`と同target固有の`libs/ui/tests/CMakeLists.txt`節だけへ19 API・5枠を追加し、新objectを直接接続した。公開header、製品実装、既存試験を変更せず、受渡しcommit `acbf1b2a6e`を中央commit `90ac0f6601`として取り込んだ。
+
+### 第278便の契約統合結果
+
+- 開始`libs/ui/opengl/KisScreenInformationAdapter.h`の残存全19 APIから、新規`libs/ui/tests/KisScreenInformationAdapterContractTest.cpp`の5枠へ、adapter型・構築・寿命3、画面情報型・画面・bit深度・色空間4、RGB原色・白色点4、輝度・妥当性4、adapter妥当性・診断・画面照会・診断表現4を対応付けた。画面情報の既定値、色度・輝度fieldの独立性、画面pointerによる妥当性、macOSの未対応診断、無効情報の診断表現を動的に固定した。
+- target不存在と、5枠宣言段階で追加5試験関数だけが未定義になる期待link失敗を確認した。最初の動的実行で観測した`QDebug`終端空白は比較時に正規化し、診断本体を契約値とした。担当側と中央のmacOSで追加5枠を各20回、対象CTest `libs-ui-KisScreenInformationAdapterContractTest`と軽量近傍`libs-ui-KisOpenGLRendererConfigContractTest`、厳格`clang-check`、二回の無作業再構築に成功した。
+- 対象は予測どおり5工程・11入力で、担当側command SHA-256 `38bfd6e186114fc13f9d668b5cdafb44db3e58a79bf2c9b5189994664b433ae6`、input SHA-256 `fd62403848609863efb18f3dc87310f5e2709e14a36eb662fc11ad769183842a`、中央command SHA-256 `df2d5368063bfc4fc1cb63b8194b499ccdaca2ac535513c9629ac8fce3f9e1fd`、input SHA-256 `4ce64492b87dddf62fa873538db8ed17c815941637d0e90ad952a96872d37f7e`である。試験側AUTOMOC `HEADERS=[]`、Qt Test・Gui・CoreとOS frameworkだけの動的接続、製品未解決記号0を確認した。差分、書式、公開API検査、`verify-quick`にも成功した。
+- 台帳へ19 APIを追加して22,390件対応、7,414件未対応となり、旧基準7,433件に対する実測7,414件の期待不一致を確認してから基準を更新した。受渡し差分と中央差分のpatch ID `9564b7bcec3c5a5c1c69063d13f2454831efd82c`の一致、専用作業treeのcleanを確認し、305,624 KiBの構築木を含む896,740 KiBの作業treeとbranchを削除した。旧`public-api-missing-g278.json` 1,976,619 bytesを削除し、主Ninja木5,822,748 KiB、共有compiler cache 983,268 KiB、最新`build/tdd-macos/public-api-missing-g279.json` 1,971,715 bytes、SHA-256 `506b3796c2005ec296767d68602dfd3761279cffd94caba325ee8f7ad0209cde`だけを再利用対象として保持する。compiler cacheは143,693件中120,340件、83.75%がhitしている。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+
+### 第279便の先行監査計画
+
+- 正式入力は`build/tdd-macos/public-api-missing-g279.json`である。第278便で比較したmulti-double filter widget 18 API、第275便から保留中のpaint device cache・layer style補助・dab描画queue各18 APIと、同程度の残存APIを持つ未選定責務を比較する。主要な値・所有・寿命を最大5枠で観測でき、既存限定targetへの追記または具体的実装所有分離により製品targetより十分小さい閉包になる候補を選ぶ。
+- 次の永続作業は、正式不足報告、候補header・実装、既存試験、CMake File APIを読み取り専用で再照合し、契約実装前に必要な構造整理と停止線を確定することである。製品target、全体build・`verify`、Linux、Nix再評価を実行しない。
 
 ### 第239便の先行監査担当票
 
