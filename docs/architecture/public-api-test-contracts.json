@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 7271
+    "expectedMissingApis": 7241
   },
   "contracts": [
     {
@@ -63219,6 +63219,81 @@
         "method:KisImageLayerRemoveCommandImpl::redo()",
         "method:KisImageLayerRemoveCommandImpl::undo()",
         "method:KisImageLayerRemoveCommandImpl::~KisImageLayerRemoveCommandImpl()"
+      ]
+    },
+    {
+      "target": "KisSelectionStateCommandsSchemaContractTest",
+      "source": "libs/image/tests/KisSelectionStateCommandsSchemaContractTest.cpp",
+      "test": "KisSelectionStateCommandsSchemaContractTest::deselectedMaskChangeSchemaRemainStable",
+      "behavior": "選択解除mask変更commandは画像だけ、または画像と新しいmaskから構築でき、変更の適用と取消しを公開する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisChangeDeselectedMaskCommand",
+        "method:KisChangeDeselectedMaskCommand::KisChangeDeselectedMaskCommand(KisImageWSP image)",
+        "method:KisChangeDeselectedMaskCommand::KisChangeDeselectedMaskCommand(KisImageWSP image,KisSelectionMaskSP newDeselectedMask)",
+        "method:KisChangeDeselectedMaskCommand::redo()",
+        "method:KisChangeDeselectedMaskCommand::undo()"
+      ]
+    },
+    {
+      "target": "KisSelectionStateCommandsSchemaContractTest",
+      "source": "libs/image/tests/KisSelectionStateCommandsSchemaContractTest.cpp",
+      "test": "KisSelectionStateCommandsSchemaContractTest::globalSelectionSetAndNotificationSchemaRemainStable",
+      "behavior": "global選択の設定commandは選択または空選択を受け取って子commandを構成し、変更通知commandは初期・最終状態に応じた通知段階を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisNotifySelectionChangedCommand",
+        "class:KisSetEmptyGlobalSelectionCommand",
+        "class:KisSetGlobalSelectionCommand",
+        "method:KisNotifySelectionChangedCommand::KisNotifySelectionChangedCommand(KisImageWSP image,State state)",
+        "method:KisNotifySelectionChangedCommand::partB()",
+        "method:KisSetEmptyGlobalSelectionCommand::KisSetEmptyGlobalSelectionCommand(KisImageWSP image)",
+        "method:KisSetGlobalSelectionCommand::KisSetGlobalSelectionCommand(KisImageWSP image,KisSelectionSP selection)",
+        "method:KisSetGlobalSelectionCommand::populateChildCommands()"
+      ]
+    },
+    {
+      "target": "KisSelectionStateCommandsSchemaContractTest",
+      "source": "libs/image/tests/KisSelectionStateCommandsSchemaContractTest.cpp",
+      "test": "KisSelectionStateCommandsSchemaContractTest::globalSelectionDeselectSchemaRemainStable",
+      "behavior": "global選択解除commandは任意の親commandを伴って構築・破棄でき、解除用の子command構成操作を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisDeselectGlobalSelectionCommand",
+        "method:KisDeselectGlobalSelectionCommand::KisDeselectGlobalSelectionCommand(KisImageWSP image,KUndo2Command * parent=0)",
+        "method:KisDeselectGlobalSelectionCommand::populateChildCommands()",
+        "method:KisDeselectGlobalSelectionCommand::~KisDeselectGlobalSelectionCommand()"
+      ]
+    },
+    {
+      "target": "KisSelectionStateCommandsSchemaContractTest",
+      "source": "libs/image/tests/KisSelectionStateCommandsSchemaContractTest.cpp",
+      "test": "KisSelectionStateCommandsSchemaContractTest::globalSelectionReselectSchemaRemainStable",
+      "behavior": "global再選択commandは任意の親commandを伴って構築・破棄でき、再選択用の子command構成操作を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisReselectGlobalSelectionCommand",
+        "method:KisReselectGlobalSelectionCommand::KisReselectGlobalSelectionCommand(KisImageWSP image,KUndo2Command * parent=nullptr)",
+        "method:KisReselectGlobalSelectionCommand::populateChildCommands()",
+        "method:KisReselectGlobalSelectionCommand::~KisReselectGlobalSelectionCommand()"
+      ]
+    },
+    {
+      "target": "KisSelectionStateCommandsSchemaContractTest",
+      "source": "libs/image/tests/KisSelectionStateCommandsSchemaContractTest.cpp",
+      "test": "KisSelectionStateCommandsSchemaContractTest::activeSelectionDeselectAndReselectSchemaRemainStable",
+      "behavior": "active選択の解除・再選択commandは対応するglobal選択commandを基底とし、任意の親commandを伴って構築でき、変更の適用と取消しを公開する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisDeselectActiveSelectionCommand",
+        "class:KisReselectActiveSelectionCommand",
+        "method:KisDeselectActiveSelectionCommand::KisDeselectActiveSelectionCommand(KisSelectionSP activeSelection,KisImageWSP image,KUndo2Command * parent=0)",
+        "method:KisDeselectActiveSelectionCommand::redo()",
+        "method:KisDeselectActiveSelectionCommand::undo()",
+        "method:KisDeselectActiveSelectionCommand::~KisDeselectActiveSelectionCommand()",
+        "method:KisReselectActiveSelectionCommand::KisReselectActiveSelectionCommand(KisNodeSP activeNode,KisImageWSP image,KUndo2Command * parent=0)",
+        "method:KisReselectActiveSelectionCommand::redo()",
+        "method:KisReselectActiveSelectionCommand::undo()"
       ]
     }
   ]

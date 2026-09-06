@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-06 18:37 JST
+- 更新日時: 2026-09-06 18:49 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1752,7 +1752,14 @@
 
 - 正式入力`build/tdd-macos/public-api-missing-g287.json`は公開header 1,548、公開API 29,804、対応済み22,533、未対応7,271、1,932,459 bytes、SHA-256 `ce98b9f906406521d023935a4800d0aeb98ef3504ab469ae1b4e8a55be948a59`を記録する。`libs/image/commands/KisChangeDeselectedMaskCommand.h`と`KisDeselectActiveSelectionCommand.h`の残存各5 API、`KisReselectActiveSelectionCommand.h`の4 API、`KisNotifySelectionChangedCommand.h`の3 API、`kis_set_global_selection_command.h`の5 API、`kis_deselect_global_selection_command.h`と`kis_reselect_global_selection_command.h`の各4 APIは重複なく、合計30識別子の整列集合SHA-256は`0bce685fcd5a110b411ab2517b0d5c13831f6b1b07052d76f4b2b65f30b1b064`である。選択解除mask 5、global選択設定・通知8、global選択解除4、global再選択4、active選択解除・再選択9の5枠へ完全に割り当てる。既定の親commandを持つ全構築APIは完全な引数型と省略時の構築可能性を併せて固定する。
 - 新規`KisSelectionStateCommandsSchemaContractTest`を、最寄りの`KisImageLayerHierarchyCommandsSchemaContractTest`と同じimage・global・pigment・painting/undo探索路、KF I18n interface、Qt Core・Test、header-only Boost、既存export定義だけへ接続する。最寄りは4工程・8入力、command SHA-256 `063324cead1952f782045d5c944f50ad6391c9444ffdef9bc11269e24cc39cc0`、input SHA-256 `f523d0cd78e3081cf20cf00eafe61692f31e84cbda7743657b33626a08e9b227`である。選択状態commandをlayer階層command試験へ混在させず、新規targetも4工程・8入力を予測して停止線を5工程・11入力とする。製品`kritaimage`の1,197工程・2,418入力を避け、image、selection、node、commandを実体化せず、候補headerをAUTOMOC入力にしない。
-- `g287-selection-state-commands-schema`の状態は`planned`、実装基点は`f13faa737f`である。許可pathを新規`libs/image/tests/KisSelectionStateCommandsSchemaContractTest.cpp`と`libs/image/tests/CMakeLists.txt`の新target固有節だけに限定する。一つの専用worktree-local `build/tdd-macos`を使い、target不存在と宣言段階の期待失敗、追加5枠の単発と各20回反復、対象と近傍CTest、厳格`clang-check`、書式、AUTOMOC入力、動的接続、製品未解決記号、二回目計画、二回の無作業再構築、公開API検査、`verify-quick`をmacOSで確認する。許可pathだけの受渡しcommitを認め、公開header、製品source、製品target、全体build・`verify`、Linux、Nix再評価、追加委任は対象外とする。
+- `g287-selection-state-commands-schema`の状態は`integrated`、実装基点は`f13faa737f`である。許可pathを新規`libs/image/tests/KisSelectionStateCommandsSchemaContractTest.cpp`と`libs/image/tests/CMakeLists.txt`の新target固有節だけに限定し、受渡しcommit `863e2f857a`を中央commit `05509d41cc`として取り込んだ。patch ID `bc6597b74fef583ecc324aa9cfcee2190ffd76ae`の一致を確認した。公開header、製品source、製品target、全体build・`verify`、Linux、Nix再評価、追加委任は対象外として維持した。
+
+### 第287便の契約統合結果
+
+- 開始`libs/image/commands/KisChangeDeselectedMaskCommand.h`から新規`libs/image/tests/KisSelectionStateCommandsSchemaContractTest.cpp`へ5 API、開始`libs/image/commands/KisDeselectActiveSelectionCommand.h`から同試験へ5 API、開始`libs/image/commands/KisReselectActiveSelectionCommand.h`から同試験へ4 API、開始`libs/image/commands/KisNotifySelectionChangedCommand.h`から同試験へ3 API、開始`libs/image/commands/kis_set_global_selection_command.h`から同試験へ5 API、開始`libs/image/commands/kis_deselect_global_selection_command.h`と`kis_reselect_global_selection_command.h`から同試験へ各4 APIを対応付けた。選択解除mask 5、global選択設定・通知8、global選択解除4、global再選択4、active選択解除・再選択9の5枠で、選択状態変更commandの型、既定の親command、子command構成、適用・取消し境界を固定した。公開headerと製品sourceを変更していない。
+- target不存在と、宣言だけの追加5枠が未定義symbolとなる期待失敗を順に記録した。対象は担当側・中央とも計画どおり4工程・8入力である。担当側command SHA-256は`e40d9eebc3022037aded782c8542050971c4ff1e9907268e7385a44928c3668a`、input SHA-256は`42916687a421bb3f692871aaba2ad2d59d91fe7474246cd8ba0ce08f336be4bd`、中央command SHA-256は`7b0fac3b8e0e6393af09a2f62d7be180e35ab217cf0387aff648298b8cef501c`、input SHA-256は`b2d87b82d92808dd329539381a5f12323be5117e708a4bdf9ac9715faee069f1`である。候補headerはAUTOMOC入力外で、Qt Test・Core、gettext、OS frameworkだけへ動的接続し、製品未解決記号は0である。
+- 担当側と中央のmacOSで追加5枠を各20回、対象CTest `libs-image-KisSelectionStateCommandsSchemaContractTest`、近傍`libs-image-KisImageLayerHierarchyCommandsSchemaContractTest`、厳格`clang-check`、書式、二回目計画と二回の無作業再構築に成功した。担当側の`verify-quick`と中央の公開API検査にも成功し、台帳へ30 APIを追加して22,563件対応、7,241件未対応、対象7 headerの残存0件となった。
+- cleanな専用作業tree、304,924 KiBの構築木、branchを統合直後に削除し、作業tree全体896,204 KiBを回収した。旧`public-api-missing-g287.json` 1,932,459 bytesを削除し、主Ninja木5,853,536 KiB、共有compiler cache 982,812 KiB、最新`build/tdd-macos/public-api-missing-g288.json` 1,923,948 bytes、SHA-256 `a4f2907b6be8cac2dfea32aef6cde07427c38e9c6af260486b5bdd55a64599f7`だけを再利用対象として保持する。compiler cacheは143,857件中120,419件、83.71%がhitしている。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第288便の正式不足報告から、全APIを最小閉包で固定できる責務を再選定することである。
 
 ### 第239便の先行監査担当票
 
