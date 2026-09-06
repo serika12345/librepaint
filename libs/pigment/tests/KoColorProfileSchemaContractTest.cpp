@@ -14,6 +14,25 @@ namespace
 {
 #define ASSERT_KO_COLOR_PROFILE_SIGNATURE(method, signature)                                                           \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KoColorProfile::method)), signature>)
+
+class ColorProfileConstructorProbe : public KoColorProfile
+{
+protected:
+    ColorProfileConstructorProbe()
+        : KoColorProfile()
+    {
+    }
+
+    explicit ColorProfileConstructorProbe(const QString &fileName)
+        : KoColorProfile(fileName)
+    {
+    }
+
+    ColorProfileConstructorProbe(const ColorProfileConstructorProbe &profile)
+        : KoColorProfile(profile)
+    {
+    }
+};
 } // namespace
 
 class KoColorProfileSchemaContractTest : public QObject
@@ -26,6 +45,7 @@ private Q_SLOTS:
     void profileChromaticitySignaturesRemainStable();
     void profileTransferFunctionSignaturesRemainStable();
     void profileSerializationSignaturesRemainStable();
+    void profileConstructionSchemaRemainsStable();
 };
 
 void KoColorProfileSchemaContractTest::profileIdentityAndLifetimeSignaturesRemainStable()
@@ -103,6 +123,12 @@ void KoColorProfileSchemaContractTest::profileSerializationSignaturesRemainStabl
     ASSERT_KO_COLOR_PROFILE_SIGNATURE(load, bool (KoColorProfile::*)());
     ASSERT_KO_COLOR_PROFILE_SIGNATURE(rawData, QByteArray (KoColorProfile::*)() const);
     ASSERT_KO_COLOR_PROFILE_SIGNATURE(save, bool (KoColorProfile::*)(const QString &));
+}
+
+void KoColorProfileSchemaContractTest::profileConstructionSchemaRemainsStable()
+{
+    static_assert(std::is_base_of_v<KoColorProfile, ColorProfileConstructorProbe>);
+    static_assert(std::is_abstract_v<ColorProfileConstructorProbe>);
 }
 
 QTEST_GUILESS_MAIN(KoColorProfileSchemaContractTest)
