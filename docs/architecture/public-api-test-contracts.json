@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 7026
+    "expectedMissingApis": 7010
   },
   "contracts": [
     {
@@ -7802,6 +7802,40 @@
         "enumerator:KisAndroidExitInfo::Reason::Unknown",
         "enumerator:KisAndroidExitInfo::Reason::UserRequested",
         "enumerator:KisAndroidExitInfo::Reason::UserStopped"
+      ]
+    },
+    {
+      "target": "KisGlobalValuesContractTest",
+      "source": "libs/global/tests/KisGlobalValuesContractTest.cpp",
+      "test": "KisGlobalValuesContractTest::androidExitInfoSignaturesRemainStable",
+      "behavior": "Android終了診断は最終情報を値で取得し、妥当性、理由、終了code、重要度、説明、記録文字列をconst照会する公開型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisAndroidExitInfo",
+        "method:KisAndroidExitInfo::buildLogString() const",
+        "method:KisAndroidExitInfo::description() const",
+        "method:KisAndroidExitInfo::exitOrSignalCode() const",
+        "method:KisAndroidExitInfo::getLast()",
+        "method:KisAndroidExitInfo::importanceCode() const",
+        "method:KisAndroidExitInfo::isValid() const",
+        "method:KisAndroidExitInfo::reasonCode() const"
+      ]
+    },
+    {
+      "target": "KisGlobalValuesContractTest",
+      "source": "libs/global/tests/KisGlobalValuesContractTest.cpp",
+      "test": "KisGlobalValuesContractTest::androidUtilitySignaturesRemainStable",
+      "behavior": "Android補助接続面は初期化、端末判定、低memory報告、JNI例外処理、全画面状態、sandbox file複製について正確な引数・返値型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisAndroidUtils::clearJniException(const QString & location)",
+        "function:KisAndroidUtils::copyFile(const QString & inputPath,const QString & outputPath,QString * outErrorMessage=nullptr)",
+        "function:KisAndroidUtils::copyFileToTemporary(const QString & inputPath,QTemporaryFile & outputFile,QString * outErrorMessage=nullptr)",
+        "function:KisAndroidUtils::isInFullScreen()",
+        "function:KisAndroidUtils::isLowMemoryKillReportSupported()",
+        "function:KisAndroidUtils::looksLikeXiaomiDevice()",
+        "function:KisAndroidUtils::performInitialSetup()",
+        "function:KisAndroidUtils::setFullScreen(bool fullScreen)"
       ]
     },
     {

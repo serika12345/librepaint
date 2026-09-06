@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-06 23:02 JST
+- 更新日時: 2026-09-06 23:10 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1986,7 +1986,14 @@
 
 - 正式入力`build/tdd-macos/public-api-missing-g305.json`は公開header 1,548、公開API 29,804、対応済み22,778、未対応7,026、1,865,106 bytes、SHA-256 `69501762ac684fe15e46e5a32ce16a6fcab8a0046b8dfb6c13ae14ad7e94279d`を記録する。`libs/global/KisAndroidExitInfo.h`と`libs/global/KisAndroidUtils.h`の残存全8 APIずつは重複なく、合計16識別子の整列集合SHA-256は`2b69203845e8e6e9cddd846672e731bb3f1f7002ee8d1a665b7914c3bfe9924a`である。終了診断型・取得値7とAndroid初期化・端末状態・JNI・全画面・sandbox file操作8の2枠へ完全に割り当てる。
 - 既存`libs/global/tests/KisGlobalValuesContractTest.cpp`は同じplatform値責務でAndroid終了理由・重要度を186行・6枠として固定済みであり、2枠追加後も300行・20枠未満に収まる。新targetとCMake変更は重複した対象所有を生むため棄却し、Qt Core・Testだけの既存接続を維持する。対象は4工程・8入力、command SHA-256 `bccf169f1eecb23b2074a645e37f88f21082ebf43222a2bbe4cf4b686691c726`、input SHA-256 `f6ae5ed041d4452af977dc62c1e1131d05611301b4473925e1b7a4330bacdec0`である。近傍`KisGlobalTest`は5工程・11入力、command SHA-256 `21db1177f84f9496adbf1da7e9eaa4dd54a9b9e4a498d726f69fe7a94651d723`、input SHA-256 `546270c316cb2209d61f84dc63f95d4420c807b8e450f2f77d46caffe17e377e`であり、対象停止線を5工程・11入力とする。
-- `g305-android-platform-schema`の状態は`planned`、実装基点は`b199af949d`である。許可pathを既存試験sourceだけに限定し、CMake、公開header、製品sourceを変更しない。macOSで全16 APIの正確な公開関数型を固定し、Android JNIと端末・sandbox効果の実行はplatform検証段階に残す。対象`libs-global-KisGlobalValuesContractTest`、近傍`libs-global-KisGlobalTest`、追加2枠の各20回反復、厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
+- `g305-android-platform-schema`の状態は`integrated`、実装基点は`b199af949d`である。許可pathを既存試験sourceだけに限定し、CMake、公開header、製品sourceを変更しなかった。受渡しcommit `3c9d006621`をpatch-id `09c2cd0966f3cef1546fdea3a8be89f193a1df51`で照合し、統合commit `62f494b0c8`として取り込んだ。
+
+### 第305便の契約統合結果
+
+- 開始`libs/global/KisAndroidExitInfo.h`と`libs/global/KisAndroidUtils.h`から既存`libs/global/tests/KisGlobalValuesContractTest.cpp`へ残存全16 APIを対応付けた。終了診断型・取得値8とAndroid初期化・端末状態・JNI・全画面・sandbox file操作8の2枠で、macOSから観測できる正確な公開引数・返値・const性を固定した。既存試験sourceは214行・8枠となった。
+- 宣言だけの追加2枠が2個の未定義symbolとなる期待失敗を記録した。対象は担当側・中央とも4工程・8入力を維持した。担当側command SHA-256は`c6fc6adb57a20ff2b515050536aeab702954d64ab582ccb418515a24fac77bfb`、input SHA-256は`90fa4f60f91a651f53ba8a9cafd389d16f805bb14514583231c928063cf88a4e`、中央command SHA-256は変更前と同じ`bccf169f1eecb23b2074a645e37f88f21082ebf43222a2bbe4cf4b686691c726`、input SHA-256は変更前と同じ`f6ae5ed041d4452af977dc62c1e1131d05611301b4473925e1b7a4330bacdec0`である。候補headerのAUTOMOC `HEADERS`は空で、Qt Test・Core、OS frameworkだけへ動的接続し、製品未解決記号は0である。
+- 担当側と中央のmacOSで追加2枠を各20回、対象CTest `libs-global-KisGlobalValuesContractTest`、近傍`libs-global-KisGlobalTest`、厳格`clang-check`、書式、二回の無作業再構築に成功した。担当側`verify-quick`と中央の公開API検査にも成功し、台帳へ16 APIを追加して22,794件対応、7,010件未対応、対象2 headerの残存0件となった。JNI、端末状態、sandbox file操作のAndroid実行、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- cleanな専用作業treeと構築木302,180 KiB、branchを統合直後に削除した。旧`public-api-missing-g305.json` 1,865,106 bytesを削除し、主Ninja木5,862,272 KiB、共有compiler cache 982,360 KiB、最新`build/tdd-macos/public-api-missing-g306.json` 1,861,123 bytes、SHA-256 `114e3c4650d797ccd23bf5c97655830be006e6784133453324e3607c43e52745`だけを再利用対象として保持する。compiler cacheは143,987件中120,460件、83.66%がhitしている。次の永続作業は第306便の正式不足報告から、全APIを最小閉包で固定できる責務を再選定することである。
 
 ### 第239便の先行監査担当票
 
