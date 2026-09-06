@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-07 05:46 JST
+- 更新日時: 2026-09-07 06:06 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -2494,6 +2494,15 @@
 - 最近傍`KisPaintingAssistantsDecorationSchemaContractTest`は4工程・8入力、command SHA-256 `50af115bfe2cd4378772befbe2936ca273adc236ca75f1966128b78f3fdc933e`、input SHA-256 `3b0b6cf38796f9a7e15eaf6cc8c411af285382a650bf6aefe35c56850a3476b1`である。依存整理後に新規`libs/ui/tests/KisCanvas2SchemaContractTest.cpp`を作り、UI・canvas・flake・image・globalの必要な探索路とexport定義、Qt Gui・Testとheader-only interfaceだけを対象固有CMake節で接続する。canvas本体、基底、画像、表示、装飾、Qt値を実体化せず、型特性、厳密な公開関数pointer、未評価式で固定する。新targetは4工程・8入力を予測し、停止線を5工程・11入力とする。
 - `g341-canvas2-schema`の状態は`in_progress`、実装基点は`b2ace3dfee`である。構造整理は開始headerと、推移include除去で実利用が顧在化した`plugins/tools/basictools/kis_tool_line.cc`・`plugins/tools/tool_smart_patch/kis_tool_smart_patch.cpp`・`libs/ui/canvas/kis_mirror_axis.cpp`への直接include追加、契約は新規試験sourceと同target固有CMake節だけに限定する。macOSの対象、軽量近傍、追加5枠の20回反復、開始実装と試験sourceの厳格`clang-check`、直接利用元の構文確認、書式、二回の無作業再構築、公開API指紋不変、公開API検査、`verify-quick`だけを実行する。製品static・MODULE・OBJECT・shared target、全体build・`verify`、Linux、Nix再評価は実行しない。
 - 構造整理後の開始実装、新たに直接includeを所有する3利用元、関連直接利用元のうち18翻訳単位は厳格構文検査に成功した。残る12件は生成UI欠落2件、既存Qt 6非推奨診断9件、既存unused parameter 1件だけである。公開API報告は変更前後で同一SHA-256 `c9d88d0fc509219c81fa152916c78b10a4c54aec6ad383699a45c4e1ce102d7a`を維持した。
+- `g341-canvas2-schema`の状態は`integrated`、計画commitは`8ec619df9b`、依存整理commitは`938616a28f`、契約実装commitは`89400ff398`である。
+
+### 第341便の契約統合結果
+
+- Canvas adapterの公開headerが設定・色変換・pointer event・座標変換の定義を183直接利用翻訳単位へ不要に伝播させる構造を解消した。開始`libs/ui/canvas/kis_canvas2.h`から`KoConfig.h`・`KoColorConversionTransformation.h`・`KoPointerEvent.h`・`kis_coordinates_converter.h`を除き、`KisMainWindow`を直接前方宣言した。推移経路から利用が顧在化した画像定義は開始header経由から`plugins/tools/basictools/kis_tool_line.cc`と`plugins/tools/tool_smart_patch/kis_tool_smart_patch.cpp`の直接`kis_image.h`へ、座標変換は後者の直接`kis_coordinates_converter.h`へ、pointer eventは後者と`libs/ui/canvas/kis_mirror_axis.cpp`の直接`KoPointerEvent.h`へ所有を移した。公開API指紋と実行時挙動は変更していない。
+- 開始headerの残存全118 APIから新規`libs/ui/tests/KisCanvas2SchemaContractTest.cpp`へ、canvas型・構築・基底接続26、図形・tool・入力接続22、画像・描画・色管理状態23、公開通知・画面更新24、controller状態・寿命制御23を201行・5枠で対応付けた。canvas、画像、表示、装飾、Qt値を実体化せず、多重継承・構築・多相破棄と全公開関数の正確な型を固定した。
+- 対象未登録の初回限定構築は未知の対象として失敗した。新target登録後は`ksharedconfig.h`、application export生成header、`KoZoomHandler.h`、canvas装飾headerの探索路不足を順に検出し、KF ConfigCore・application・widgets・canvasのcompile用探索路とexport定義だけで解消した。その後は期待どおり5試験関数の未定義linkで赤となり、契約実装後に成功した。最終targetは4工程・8入力で停止線以内、command SHA-256 `bc29da8c640940c753d920e812ec6fd04ab89a825edbc4c2cc560d93eba206c9`、input SHA-256 `f81e09d52468c18355e8cf9865fad097e615cdb1740996e3bce08afc81504ec4`である。AUTOMOC header入力は空、Qt Gui・Test・Core、gettext、OS frameworkだけへ動的接続し、製品未解決記号は0件である。
+- macOSで対象と軽量近傍`libs-ui-KisPaintingAssistantsDecorationSchemaContractTest`のCTest、対象の20回反復、開始実装・構造整理利用元・試験sourceの厳格`clang-check`、書式、二回の無作業再構築、公開API検査に成功した。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 台帳へ118 APIを追加して24,064件対応、5,740件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g341.json`と一時診断・構築計画を最新報告の検証後に削除し、追加作業tree・構築木は作成していない。主Ninja木5,914,276 KiB、共有compiler cache 981,912 KiB、最新`build/tdd-macos/public-api-missing-g342.json` 1,522,010 bytes、SHA-256 `6a520657798c6f462a237d43254c2ebe73bd2c8a14f90bad769801a7bbf46a55`だけを再利用対象として保持する。compiler cacheは144,146件中120,479件、83.58%がhitしている。次の永続作業は第342便で次の高密度なmacOS対象と最小構築面を選定することである。
 
 ### 第239便の先行監査担当票
 
