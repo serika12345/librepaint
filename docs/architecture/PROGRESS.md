@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-07 01:42 JST
+- 更新日時: 2026-09-07 01:45 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -2178,6 +2178,12 @@
 - 新targetは4工程・8入力で停止線以内に収まり、command SHA-256は`4a6b1577b1dbde19355e3203c81f960247668c2086583aa64bdf3b035cb55657`、input SHA-256は`e2c948ac5033409eda9f492a6116097185b23f3873fcb7265a3ff9c8a78235da`である。既存最小近傍の8工程・17入力より狭く、候補headerのAUTOMOC入力は空で、Qt Widgets・Test・Gui・Core、gettext、OS frameworkだけへ動的接続し、製品未解決記号は0である。
 - macOSで対象と近傍`libs-document-ui-kis_document_named_autosave_dialog_test`のCTest 2/2、対象の20回反復、厳格`clang-check`、書式、二回の無作業再構築、公開API検査に成功した。製品OBJECT・shared target、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 台帳へ6 APIを追加して23,092件対応、6,712件未対応、`libs/document`対象headerの残存0件となった。旧`public-api-missing-g319.json`を削除し、追加作業tree・構築木は作成していない。主Ninja木5,884,100 KiB、共有compiler cache 981,720 KiB、最新`build/tdd-macos/public-api-missing-g320.json` 1,784,488 bytes、SHA-256 `73f9d8aeea09afebb2708bef4597dfe7776e8d0b312519f58c626ce34224f6a7`だけを再利用対象として保持する。compiler cacheは144,043件中120,468件、83.63%がhitしている。次の永続作業は第320便の正式不足報告から、全APIを最小閉包で固定できる責務を再選定することである。
+
+### 第320便の監査結果と実装計画
+
+- 正式入力`build/tdd-macos/public-api-missing-g320.json`は公開header 1,548、公開API 29,804、対応済み23,092、未対応6,712、1,784,488 bytes、SHA-256 `73f9d8aeea09afebb2708bef4597dfe7776e8d0b312519f58c626ce34224f6a7`を記録する。`libs/macosutils/KisMacosEntitlements.h`の残存6 API、`KisMacosSecurityBookmarkManager.h`の残存12 API、`KisMacosSystemProber.h`の残存1 APIは重複せず、合計19識別子の整列集合SHA-256は`1dee27f7730a0e733cf66684e97dfab88a1f55006ba23bff7a13bed2e2d9ab5d`である。macOSの権限、security bookmark、単一起動照会の型・寿命・公開関数型を5枠へ完全に割り当てる。
+- 既存`libs/macosutils/KisMacosValuesContractTest.cpp`は37行・2枠、4工程・8入力、command SHA-256 `b578e6ee679d2f232899fc0b33f827c534860d8138d9f4812d540f893cef3cfe`、input SHA-256 `3797ba0b78631e157a2983b93433d8d7fedf41024e55327da464b57eb129c395`である。Qt Test・Core、gettext、OS frameworkだけへ動的接続し、AUTOMOC header入力は空である。新規targetは同じ閉包へ重複するため棄却し、既存sourceだけへ5枠を追加して4工程・8入力を維持する。停止線は5工程・11入力とする。
+- `g320-macos-security-schema`の状態は`planned`、実装基点は`aac14a5969`である。許可pathを既存試験sourceだけに限定し、CMake、公開header、Objective-C++製品sourceを変更しない。対象型、Foundation・Security機能を実体化せず、権限やbookmarkを操作しない。macOSの対象、追加5枠の20回反復、厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。製品`kritamacosutils`、全体build・`verify`、Linux、Nix再評価は実行しない。
 
 ### 第239便の先行監査担当票
 
