@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-07 01:36 JST
+- 更新日時: 2026-09-07 01:42 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -2169,7 +2169,15 @@
 
 - 正式入力`build/tdd-macos/public-api-missing-g319.json`は公開header 1,548、公開API 29,804、対応済み23,086、未対応6,718、1,785,960 bytes、SHA-256 `b65e44d1c933d23cfcd21d3af5810863e08d04527aa381d836449aeda7ab14cb`を記録する。`libs/document`の残存は5 headerの全6 APIだけで重複せず、識別子の整列集合SHA-256は`f0850dccd9a86ecd3f8caa7f807a981f1eb2c9d8c5d572fe703bad9cf9200224`である。文書UIのundo・自動保存回復・I/O表示・文書情報について、多相破棄4件と公開通知2件を5枠へ完全に割り当てる。
 - 既存の各効果試験は製品OBJECT targetを実体接続し、最小の`kis_document_named_autosave_dialog_test`でも8工程・17入力、command SHA-256 `947ddf5c87298d3ae9e4353b0e9464af29fafcd413a07ae58baf5b4266ea3350`、input SHA-256 `8b47a1c766d947a548a33eb8060d1151add2a8e6850b885a5e54d35fab6de2e4`である。既存対象への追記は製品実装と生成UIを毎回構築するため棄却する。新規`libs/document/ui/tests/KisDocumentUiLifecycleSchemaContractTest.cpp`を作り、document・document/ui・widgetutilsの探索路、KF WidgetsAddonsのinterface探索路、Qt Core・Gui・Widgets・Test、document UI export定義だけへ接続する。新targetは宣言だけを検査する4工程・8入力を予測し、停止線を5工程・11入力とする。
-- `g319-document-ui-lifecycle-schema`の状態は`planned`、実装基点は`6440ecc84a`である。許可pathを新規試験sourceと`libs/document/ui/tests/CMakeLists.txt`の新target固有節だけに限定し、公開header、製品source、生成UIを変更しない。dialog、undo view、I/O表示、文書情報を実体化せず、signalを発火しない。macOSの対象、最小近傍、追加5枠の20回反復、厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。製品OBJECT・shared target、全体build・`verify`、Linux、Nix再評価は実行しない。
+- `g319-document-ui-lifecycle-schema`の状態は`integrated`、実装基点は`6440ecc84a`である。許可pathを新規試験sourceと`libs/document/ui/tests/CMakeLists.txt`の新target固有節だけに限定し、公開header、製品source、生成UIを変更しなかった。dialog、undo view、I/O表示、文書情報を実体化せず、signalを発火していない。実装commitは`e8cd7453c7`である。
+
+### 第319便の契約統合結果
+
+- 開始`libs/document/ui/undo/kundo2view.h`、`libs/document/ui/recovery/KisAutoSaveRecoveryDialog.h`、`libs/document/ui/io/kis_document_io_presentation.h`、`libs/document/ui/recovery/KisRecoverNamedAutosaveDialog.h`、`libs/document/ui/info/KoDocumentInfoDlg.h`から新規`libs/document/ui/tests/KisDocumentUiLifecycleSchemaContractTest.cpp`へ残存1・1・1・1・2 APIを対応付けた。undo表示、自動保存回復、文書I/O表示、文書情報の多相破棄と公開通知を63行・5枠で固定した。
+- 対象未登録の初回限定構築は未知の対象として失敗した。対象登録後は`KoDialog.h`が公開宣言で使用するKF ConfigCore探索路不足を検出し、同interface探索路だけを対象へ追加して解消した。製品実装、生成UI、対象型を実体化していない。
+- 新targetは4工程・8入力で停止線以内に収まり、command SHA-256は`4a6b1577b1dbde19355e3203c81f960247668c2086583aa64bdf3b035cb55657`、input SHA-256は`e2c948ac5033409eda9f492a6116097185b23f3873fcb7265a3ff9c8a78235da`である。既存最小近傍の8工程・17入力より狭く、候補headerのAUTOMOC入力は空で、Qt Widgets・Test・Gui・Core、gettext、OS frameworkだけへ動的接続し、製品未解決記号は0である。
+- macOSで対象と近傍`libs-document-ui-kis_document_named_autosave_dialog_test`のCTest 2/2、対象の20回反復、厳格`clang-check`、書式、二回の無作業再構築、公開API検査に成功した。製品OBJECT・shared target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 台帳へ6 APIを追加して23,092件対応、6,712件未対応、`libs/document`対象headerの残存0件となった。旧`public-api-missing-g319.json`を削除し、追加作業tree・構築木は作成していない。主Ninja木5,884,100 KiB、共有compiler cache 981,720 KiB、最新`build/tdd-macos/public-api-missing-g320.json` 1,784,488 bytes、SHA-256 `73f9d8aeea09afebb2708bef4597dfe7776e8d0b312519f58c626ce34224f6a7`だけを再利用対象として保持する。compiler cacheは144,043件中120,468件、83.63%がhitしている。次の永続作業は第320便の正式不足報告から、全APIを最小閉包で固定できる責務を再選定することである。
 
 ### 第239便の先行監査担当票
 

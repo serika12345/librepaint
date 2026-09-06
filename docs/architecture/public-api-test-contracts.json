@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 6718
+    "expectedMissingApis": 6712
   },
   "contracts": [
     {
@@ -64870,6 +64870,57 @@
       "apis": [
         "method:KisColord::changed()",
         "method:KisColord::~KisColord()"
+      ]
+    },
+    {
+      "target": "KisDocumentUiLifecycleSchemaContractTest",
+      "source": "libs/document/ui/tests/KisDocumentUiLifecycleSchemaContractTest.cpp",
+      "test": "KisDocumentUiLifecycleSchemaContractTest::undoViewLifetimeSchemaRemainsStable",
+      "behavior": "undo履歴表示は基底viewを通じて安全に破棄できる多相寿命を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KUndo2View::~KUndo2View()"
+      ]
+    },
+    {
+      "target": "KisDocumentUiLifecycleSchemaContractTest",
+      "source": "libs/document/ui/tests/KisDocumentUiLifecycleSchemaContractTest.cpp",
+      "test": "KisDocumentUiLifecycleSchemaContractTest::autoSaveRecoveryLifetimeSchemaRemainsStable",
+      "behavior": "自動保存回復dialogは基底dialogを通じて安全に破棄できる多相寿命を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAutoSaveRecoveryDialog::~KisAutoSaveRecoveryDialog()"
+      ]
+    },
+    {
+      "target": "KisDocumentUiLifecycleSchemaContractTest",
+      "source": "libs/document/ui/tests/KisDocumentUiLifecycleSchemaContractTest.cpp",
+      "test": "KisDocumentUiLifecycleSchemaContractTest::ioPresentationNotificationSchemaRemainsStable",
+      "behavior": "文書I/O表示は文面と表示時間を伴う状態欄通知の公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDocumentIoPresentation::statusBarMessage(const QString & text,int timeout)"
+      ]
+    },
+    {
+      "target": "KisDocumentUiLifecycleSchemaContractTest",
+      "source": "libs/document/ui/tests/KisDocumentUiLifecycleSchemaContractTest.cpp",
+      "test": "KisDocumentUiLifecycleSchemaContractTest::namedAutoSaveRecoveryLifetimeSchemaRemainsStable",
+      "behavior": "名前付き自動保存回復dialogは基底dialogを通じて安全に破棄できる多相寿命を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisRecoverNamedAutosaveDialog::~KisRecoverNamedAutosaveDialog()"
+      ]
+    },
+    {
+      "target": "KisDocumentUiLifecycleSchemaContractTest",
+      "source": "libs/document/ui/tests/KisDocumentUiLifecycleSchemaContractTest.cpp",
+      "test": "KisDocumentUiLifecycleSchemaContractTest::documentInfoLifetimeAndNotificationSchemaRemainStable",
+      "behavior": "文書情報dialogは多相破棄と保存要求通知の公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoDocumentInfoDlg::saveRequested()",
+        "method:KoDocumentInfoDlg::~KoDocumentInfoDlg()"
       ]
     }
   ]
