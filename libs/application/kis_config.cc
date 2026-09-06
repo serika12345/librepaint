@@ -17,6 +17,7 @@
 #include <QFileInfo>
 
 #include <kconfig.h>
+#include <ksharedconfig.h>
 
 #include <KisResourceLocator.h>
 

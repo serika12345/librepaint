@@ -10,9 +10,8 @@
 #include <QStringList>
 #include <QList>
 #include <QColor>
-#include <QObject>
+#include <QtCore/qobjectdefs.h>
 
-#include <ksharedconfig.h>
 #include <kconfiggroup.h>
 
 #include <KoColor.h>
@@ -21,6 +20,7 @@
 
 class KoColorSpace;
 class KisSnapConfig;
+class QDebug;
 class QSettings;
 class KisOcioConfiguration;
 struct KisCumulativeUndoData;
