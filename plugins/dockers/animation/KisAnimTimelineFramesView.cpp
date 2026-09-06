@@ -37,6 +37,7 @@
 #include "kis_canvas2.h"
 #include "kis_custom_modifiers_catcher.h"
 #include "application/ui/orchestration/kis_action.h"
+#include "application/ui/orchestration/kis_action_manager.h"
 #include "kis_signal_compressor.h"
 #include "kis_time_span.h"
 #include "kis_color_label_selector_widget.h"

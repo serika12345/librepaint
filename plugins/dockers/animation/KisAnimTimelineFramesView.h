@@ -11,11 +11,10 @@
 #include <QScopedPointer>
 #include <QTableView>
 #include <QScroller>
-#include <QScrollBar>
-#include "application/ui/orchestration/kis_action_manager.h"
 #include "kritaanimationdocker_export.h"
 
 class KisAction;
+class KisActionManager;
 class TimelineWidget;
 
 enum TimelineDirection : short
