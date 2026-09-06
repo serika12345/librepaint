@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-06 16:37 JST
+- 更新日時: 2026-09-06 16:39 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1669,6 +1669,11 @@
 - 専用objectは担当側・中央とも2工程・6入力である。担当側command SHA-256 `074424d7a8fdee29e245ffe53fc3f9574f8ba7bad321cb0e00b84e4991b3c177`、input SHA-256 `984e9f467c5095c87eb2f482ba2cdc8b9dcedee64c13a3694c8fa0d0343dcdfd`、中央command SHA-256 `bebfc6fa09340a73cd92e63fb8985a7f4209fa232563ce9a6efeaba299fcd9ac`、input SHA-256 `d37784c47a03ca08d77431f75ed4643cad2ac85fdf09b912a55ffb6314b43b06`である。製品計画は1,197工程・2,418入力を維持し、移動sourceのcompile 1回と製品linkへのobject再集約1回を確認した。中央の製品計画はcommand SHA-256 `85bc8fa205de0ec26062ec253a853790ef61caaa1ae4f3f05f68a73099826295`、input SHA-256 `292ca642f8f0b115b902792f31adaa4c1ff505ecee87404ffe0a1400b9150bd2`である。
 - 担当側と中央のmacOSで専用object構築、厳格`clang-check`、近傍`libs-image-KisUndoAdapterContractTest`と`libs-painting-undo-KisUndoStoresContractTest`、二回の無作業再構築に成功し、担当側では公開API検査を含む`verify-quick`にも成功した。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 - cleanな専用作業tree、313,632 KiBの構築木、branchを統合直後に削除し、合計904,816 KiBを回収した。主Ninja木、共有compiler cache、最新`build/tdd-macos/public-api-missing-g282.json`は次の契約実装へ再利用する。次の永続作業は、別の専用worktreeで新規`KisSurrogateUndoAdapterContractTest`を実装し、残存全12 APIの履歴状態遷移を固定することである。
+
+### 第282便の契約実装計画
+
+- `g282b-surrogate-undo-adapter-contract`の状態は`planned`、実装基点は`d2e630b8d5`である。開始`libs/image/kis_surrogate_undo_adapter.h`の残存全12 APIを、新規`libs/image/tests/KisSurrogateUndoAdapterContractTest.cpp`の5枠`typeLifetimeAndEmptyHistoryRemainStable`、`commandAdditionAndLastUndoRemainStable`、`singleStepUndoAndRedoRemainStable`、`macroGroupsCommandsIntoOneHistoryStep`、`wholeHistoryUndoAndRedoRemainStable`へ4・2・2・2・2件で対応付ける。許可pathは新規試験sourceと`libs/image/tests/CMakeLists.txt`の新target固有節だけで、公開header、製品source、製品CMakeを変更しない。
+- 一つの専用worktree-local `build/tdd-macos`を使い、構造準備済みの`kritaimagesurrogateundoadapterobjects`、既存`kritaimageundoadapterobjects`、`kritapaintingundostoreobjects`、`kritapaintingundokundo2coreobjects`へ接続する。対象16工程・33入力を予測し、17工程・36入力を停止線とする。最寄りは`KisUndoAdapterContractTest`と`KisUndoStoresContractTest`である。macOSの対象・近傍に限る構築実行と受渡しcommitを許可し、追加委任を行わない。target不存在と試験枠未定義の期待red、全5枠各20回、厳格構文、書式、AUTOMOC入力、動的接続、未解決製品記号、二回の無作業再構築、公開API検査、`verify-quick`を確認してから中央へ統合する。製品target、全体build・`verify`、Linux、Nix再評価を実行しない。
 
 ### 第239便の先行監査担当票
 
