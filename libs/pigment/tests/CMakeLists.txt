@@ -358,6 +358,29 @@ target_compile_definitions(KoColorSpaceSchemaContractTest PRIVATE
 )
 
 kis_add_test(
+    KoColorSpaceAbstractSchemaContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Test
+        Imath::ImathConfig
+        Boost::boost
+)
+target_include_directories(KoColorSpaceAbstractSchemaContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_SOURCE_DIR}/../compositeops
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+    ${CMAKE_SOURCE_DIR}/libs/multiarch
+    $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
+)
+target_compile_definitions(KoColorSpaceAbstractSchemaContractTest PRIVATE
+    kritaglobal_EXPORTS
+    kritapigment_EXPORTS
+)
+
+kis_add_test(
     KoColorValueSchemaContractTest.cpp
     LINK_LIBRARIES
         Qt${QT_MAJOR_VERSION}::Core
