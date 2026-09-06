@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-07 04:23 JST
+- 更新日時: 2026-09-07 04:33 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -2413,7 +2413,16 @@
 - 開始headerの`QScrollBar`は公開宣言とinline本文で使われず、`application/ui/orchestration/kis_action_manager.h`は借用pointer宣言に完全型を要求しない。開始`plugins/dockers/animation/KisAnimTimelineFramesView.h`から前者を削除し、後者を前方宣言へ置き換え、完全型を使う開始実装`plugins/dockers/animation/KisAnimTimelineFramesView.cpp`へaction managerの直接includeを移す。他3直接利用元からapplication orchestrationの解析閉包を除き、公開API指紋を維持したまま依存だけを縮小する。
 - 開始実装の変更前厳格`clang-check`にはQt 6非推奨のevent位置・modifier APIによる既存10診断があり、SHA-256は`9163d3b0b5d0c7d054fa1c9600fa8fde80f8d3cfed6349e224d9f737c8c80f93`である。今回の責務外として改修せず、構造整理後に同一診断集合であることと通常の対象物コンパイル成功を確認する。既存動的`timeline_model_test`はanimation docker製品群へ接続する2,011工程・4,020入力、command SHA-256 `f65e518ac0b369f518b6f8c0f4c01a74044dd9e7dcd953e6380ff0841eab43b7`、input SHA-256 `335625e6c0e873f090e581ef9c20aaf0a14f9edc7ea2e88343d0d2fc9b332219`であり、反復対象にしない。
 - 依存整理後に新規`plugins/dockers/animation/tests/KisAnimTimelineFramesViewSchemaContractTest.cpp`を作り、animation dockerのsource/generated探索路、Qt Gui・Test、Qt Widgetsのinterface探索路、関係export定義だけへ接続する。view、模型、canvas、action、eventを実体化せず、方向値、継承、構築・寿命特性、全公開関数型を固定する。新targetは4工程・8入力を予測し、停止線を5工程・11入力とする。軽量近傍`KisAnimTimelineFramesModelSchemaContractTest`も4工程・8入力である。
-- `g336-animation-timeline-frames-view-schema`の状態は`planned`、実装基点は`575012d8fe`である。構造整理は開始headerと開始実装、契約は新規試験sourceと同target固有CMake節だけに限定する。macOSの対象、軽量近傍、追加5枠の20回反復、試験sourceの厳格`clang-check`、開始実装の既存厳格診断不変、通常の対象物コンパイル、書式、二回の無作業再構築、公開API指紋不変、公開API検査、`verify-quick`だけを実行する。製品static・MODULE・OBJECT・shared target、全体build・`verify`、Linux、Nix再評価は実行しない。
+- `g336-animation-timeline-frames-view-schema`の状態は`integrated`、実装基点は`83fcb59492`、依存整理commitは`ec80557fd5`、契約実装commitは`e9ad897777`である。構造整理は開始headerと開始実装、契約は新規試験sourceと同target固有CMake節だけに限定した。macOSの対象、軽量近傍、追加5枠の20回反復、試験sourceの厳格`clang-check`、開始実装の既存厳格診断不変、書式、二回の無作業再構築、公開API指紋不変、公開API検査に成功した。製品objectへの直接構築は順序制約から835工程へ拡大するため有効な対象検証にならず、既存flake分割物の不完全型診断で対象翻訳単位へ到達する前に停止した。以後は製品static・MODULE・OBJECT・shared targetを実行していない。全体build・`verify`、Linux、Nix再評価は実行していない。
+
+### 第336便の契約統合結果
+
+- Timeline frame viewの利用元へapplication orchestrationの解析が波及する問題を解消した。開始`plugins/dockers/animation/KisAnimTimelineFramesView.h`から未使用の`QScrollBar`を削除し、借用pointerだけに使う`application/ui/orchestration/kis_action_manager.h`を前方宣言へ置き換え、完全型を使う開始`plugins/dockers/animation/KisAnimTimelineFramesView.cpp`へ直接includeを移した。他3直接利用元の閉包を狭め、公開API報告のSHA-256 `12a527b33054d2d9bbbf594091c4329e5a22257fbb51c32cd7521d83ad16b6d4`は変更前後で一致した。
+- 同開始headerの残存全70 APIから新規`plugins/dockers/animation/tests/KisAnimTimelineFramesViewSchemaContractTest.cpp`へ、型・模型・寿命・表示15、選択・範囲更新11、layer・keyframe挿入16、frame削除・転送・cache 18、音声・scroll 10を145行・5枠で対応付けた。view、模型、canvas、action、eventを実体化せず、方向値、表view継承、構築・多相寿命特性、全公開関数型を固定した。
+- 追加5枠は期待どおり5件失敗し、契約実装後に成功した。新targetは4工程・8入力で停止線以内に収まり、command SHA-256は`0612ee21ddeae2815300ccdad0e4fb4d18a4b6b258859e72f1851cf6e94d40c1`、input SHA-256は`35cc3759b42a517be10b8a905f591140dc508690eb6423f477765cfcc6907bea`である。AUTOMOC header入力は空、Qt Gui・Test・Core、gettext、OS frameworkだけへ動的接続し、製品未解決記号は0である。
+- macOSで対象と軽量近傍`plugins-dockers-animation-KisAnimTimelineFramesModelSchemaContractTest`のCTest 2/2、対象の20回反復、試験sourceの厳格`clang-check`、書式、二回の無作業再構築、公開API検査に成功した。開始実装の厳格解析はQt 6非推奨APIによる既存10診断を維持し、行番号を正規化した変更前後の診断SHA-256は`2ce7901f8fb9a966cd288cb059926caf7043728f137cbb012cbbf0dbffb1f7f7`で一致した。
+- `ninja -C build/tdd-macos plugins/dockers/animation/CMakeFiles/kritaanimationdocker_static.dir/KisAnimTimelineFramesView.cpp.o`は対象objectだけを指定しても製品依存の順序制約により835工程へ拡大した。25工程時点で既存`KoShapeAlignCommand.cpp`・`KoShapeDistributeCommand.cpp`・`KoShapeResizeCommand.cpp`の`QRectF`・`QTransform`不完全型診断により停止し、対象viewは構築されていない。この経路を対象検証から除外し、その後は4工程の専用試験だけを構築した。2,011工程・4,020入力の既存動的timeline模型試験、製品static・MODULE・shared target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 台帳へ70 APIを追加して23,595件対応、6,209件未対応となった。旧`public-api-missing-g336.json`と一時診断報告は最新報告の検証後に削除し、追加作業tree・構築木は作成していない。主Ninja木5,905,716 KiB、共有compiler cache 982,608 KiB、最新`build/tdd-macos/public-api-missing-g337.json` 1,644,277 bytes、SHA-256 `17dbde112002dbc10ad35c941edd336379d63c0dc936216f3d53d0798902ec65`だけを再利用対象として保持する。compiler cacheは144,117件中120,471件、83.59%がhitしている。次の永続作業は第337便で次の高密度なmacOS対象と最小構築面を選定することである。
 
 ### 第239便の先行監査担当票
 

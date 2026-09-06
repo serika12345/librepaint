@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 6279
+    "expectedMissingApis": 6209
   },
   "contracts": [
     {
@@ -65975,6 +65975,121 @@
         "method:KisAnimTimelineFramesModel::sigFullClipRangeChanged()",
         "method:KisAnimTimelineFramesModel::sigInfiniteTimelineUpdateNeeded()",
         "method:KisAnimTimelineFramesModel::slotCurrentNodeChanged(KisNodeSP node)"
+      ]
+    },
+    {
+      "target": "KisAnimTimelineFramesViewSchemaContractTest",
+      "source": "plugins/dockers/animation/tests/KisAnimTimelineFramesViewSchemaContractTest.cpp",
+      "test": "KisAnimTimelineFramesViewSchemaContractTest::typeModelLifetimeAndDisplaySchemaRemainStable",
+      "behavior": "timeline frame viewは方向値、表view継承、親widgetによる構築と多相寿命、模型・action manager・canvas接続、data・header・表示領域更新の正確な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisAnimTimelineFramesView",
+        "enum:TimelineDirection",
+        "enumerator:TimelineDirection::AFTER",
+        "enumerator:TimelineDirection::BEFORE",
+        "enumerator:TimelineDirection::LEFT",
+        "enumerator:TimelineDirection::RIGHT",
+        "method:KisAnimTimelineFramesView::KisAnimTimelineFramesView(QWidget * parent)",
+        "method:KisAnimTimelineFramesView::calculateActiveLayerSelectedTimes(const QModelIndexList & selection)",
+        "method:KisAnimTimelineFramesView::setActionManager(KisActionManager * actionManager)",
+        "method:KisAnimTimelineFramesView::setModel(QAbstractItemModel * model)",
+        "method:KisAnimTimelineFramesView::slotCanvasUpdate(class KoCanvasBase * canvas)",
+        "method:KisAnimTimelineFramesView::slotDataChanged(const QModelIndex & topLeft,const QModelIndex & bottomRight)",
+        "method:KisAnimTimelineFramesView::slotHeaderDataChanged(Qt::Orientation orientation,int first,int last)",
+        "method:KisAnimTimelineFramesView::updateGeometries()",
+        "method:KisAnimTimelineFramesView::~KisAnimTimelineFramesView()"
+      ]
+    },
+    {
+      "target": "KisAnimTimelineFramesViewSchemaContractTest",
+      "source": "plugins/dockers/animation/tests/KisAnimTimelineFramesViewSchemaContractTest.cpp",
+      "test": "KisAnimTimelineFramesViewSchemaContractTest::selectionAndRangeUpdateSchemaRemainStable",
+      "behavior": "timeline frame viewは色label、現在選択、行間選択転送、再生範囲、frame・icon・layer・無限範囲表示更新の正確な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAnimTimelineFramesView::slotColorLabelChanged(int)",
+        "method:KisAnimTimelineFramesView::slotReselectCurrentIndex()",
+        "method:KisAnimTimelineFramesView::slotSelectionChanged()",
+        "method:KisAnimTimelineFramesView::slotSetEndTimeToCurrentPosition()",
+        "method:KisAnimTimelineFramesView::slotSetStartTimeToCurrentPosition()",
+        "method:KisAnimTimelineFramesView::slotTryTransferSelectionBetweenRows(int fromRow,int toRow)",
+        "method:KisAnimTimelineFramesView::slotUpdateFrameActions()",
+        "method:KisAnimTimelineFramesView::slotUpdateIcons()",
+        "method:KisAnimTimelineFramesView::slotUpdateInfiniteFramesCount()",
+        "method:KisAnimTimelineFramesView::slotUpdateLayersMenu()",
+        "method:KisAnimTimelineFramesView::slotUpdatePlaybackRange()"
+      ]
+    },
+    {
+      "target": "KisAnimTimelineFramesViewSchemaContractTest",
+      "source": "plugins/dockers/animation/tests/KisAnimTimelineFramesViewSchemaContractTest.cpp",
+      "test": "KisAnimTimelineFramesViewSchemaContractTest::layerAndKeyframeInsertionSchemaRemainStable",
+      "behavior": "timeline frame viewはlayerの追加・除去・文脈menuと、空・複製・hold・複数frameおよび列の左右挿入操作の正確な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAnimTimelineFramesView::slotAddBlankFrame()",
+        "method:KisAnimTimelineFramesView::slotAddDuplicateFrame()",
+        "method:KisAnimTimelineFramesView::slotAddExistingLayer(QAction * action)",
+        "method:KisAnimTimelineFramesView::slotAddNewLayer()",
+        "method:KisAnimTimelineFramesView::slotInsertHoldFrame()",
+        "method:KisAnimTimelineFramesView::slotInsertHoldFrameColumn()",
+        "method:KisAnimTimelineFramesView::slotInsertKeyframeColumnLeft()",
+        "method:KisAnimTimelineFramesView::slotInsertKeyframeColumnRight()",
+        "method:KisAnimTimelineFramesView::slotInsertKeyframeLeft()",
+        "method:KisAnimTimelineFramesView::slotInsertKeyframeRight()",
+        "method:KisAnimTimelineFramesView::slotInsertMultipleHoldFrameColumns()",
+        "method:KisAnimTimelineFramesView::slotInsertMultipleHoldFrames()",
+        "method:KisAnimTimelineFramesView::slotInsertMultipleKeyframeColumns()",
+        "method:KisAnimTimelineFramesView::slotInsertMultipleKeyframes()",
+        "method:KisAnimTimelineFramesView::slotLayerContextMenuRequested(const QPoint & globalPos)",
+        "method:KisAnimTimelineFramesView::slotRemoveLayer()"
+      ]
+    },
+    {
+      "target": "KisAnimTimelineFramesViewSchemaContractTest",
+      "source": "plugins/dockers/animation/tests/KisAnimTimelineFramesViewSchemaContractTest.cpp",
+      "test": "KisAnimTimelineFramesViewSchemaContractTest::frameRemovalTransferAndCacheSchemaRemainStable",
+      "behavior": "timeline frame viewはframe・列のcopy・cut・paste、clone一意化、鏡映、hold・選択frameの除去とshift、cache消去の正確な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAnimTimelineFramesView::slotClearCache()",
+        "method:KisAnimTimelineFramesView::slotCopyColumns()",
+        "method:KisAnimTimelineFramesView::slotCopyFrames()",
+        "method:KisAnimTimelineFramesView::slotCutColumns()",
+        "method:KisAnimTimelineFramesView::slotCutFrames()",
+        "method:KisAnimTimelineFramesView::slotMakeClonesUnique()",
+        "method:KisAnimTimelineFramesView::slotMirrorColumns()",
+        "method:KisAnimTimelineFramesView::slotMirrorFrames(bool entireColumn=false)",
+        "method:KisAnimTimelineFramesView::slotPasteColumns()",
+        "method:KisAnimTimelineFramesView::slotPasteFrames(bool entireColumn=false)",
+        "method:KisAnimTimelineFramesView::slotRemoveHoldFrame()",
+        "method:KisAnimTimelineFramesView::slotRemoveHoldFrameColumn()",
+        "method:KisAnimTimelineFramesView::slotRemoveMultipleHoldFrameColumns()",
+        "method:KisAnimTimelineFramesView::slotRemoveMultipleHoldFrames()",
+        "method:KisAnimTimelineFramesView::slotRemoveSelectedColumns()",
+        "method:KisAnimTimelineFramesView::slotRemoveSelectedColumnsAndShift()",
+        "method:KisAnimTimelineFramesView::slotRemoveSelectedFrames(bool entireColumn=false,bool pull=false)",
+        "method:KisAnimTimelineFramesView::slotRemoveSelectedFramesAndShift()"
+      ]
+    },
+    {
+      "target": "KisAnimTimelineFramesViewSchemaContractTest",
+      "source": "plugins/dockers/animation/tests/KisAnimTimelineFramesViewSchemaContractTest.cpp",
+      "test": "KisAnimTimelineFramesViewSchemaContractTest::audioAndScrollSchemaRemainStable",
+      "behavior": "timeline frame viewは音声file・mute・volumeと、行表示、frame範囲適合、scroll位置整列、kinetic scroll状態、drag範囲更新、zoomの正確な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAnimTimelineFramesView::slotAudioChannelMute(bool value)",
+        "method:KisAnimTimelineFramesView::slotAudioChannelRemove()",
+        "method:KisAnimTimelineFramesView::slotAudioVolumeChanged(int value)",
+        "method:KisAnimTimelineFramesView::slotEnsureRowVisible(int row)",
+        "method:KisAnimTimelineFramesView::slotFitViewToFrameRange(int start,int end)",
+        "method:KisAnimTimelineFramesView::slotRealignScrollBars()",
+        "method:KisAnimTimelineFramesView::slotScrollerStateChanged(QScroller::State state)",
+        "method:KisAnimTimelineFramesView::slotSelectAudioChannelFile()",
+        "method:KisAnimTimelineFramesView::slotUpdateDragInfiniteFramesCount()",
+        "method:KisAnimTimelineFramesView::slotZoom(qreal zoom)"
       ]
     }
   ]
