@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include <resources/KoCachedGradient.h>
 #include <resources/KoSegmentGradient.h>
 
 #include <QTest>
@@ -15,6 +16,8 @@ namespace
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KoGradientSegment::method)), signature>)
 #define ASSERT_SEGMENT_GRADIENT_SIGNATURE(method, signature)                                                           \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KoSegmentGradient::method)), signature>)
+#define ASSERT_CACHED_GRADIENT_SIGNATURE(method, signature)                                                            \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KoCachedGradient::method)), signature>)
 } // namespace
 
 class KoGradientSegmentSchemaContractTest : public QObject
@@ -32,6 +35,10 @@ private Q_SLOTS:
     void segmentGradientCreationAndCollectionSignaturesRemainStable();
     void segmentGradientEditingSignaturesRemainStable();
     void segmentGradientSerializationSignaturesRemainStable();
+    void cachedGradientTypeConstructionAndLifetimeSchemaRemainStable();
+    void cachedGradientEvaluationSignaturesRemainStable();
+    void cachedGradientSubjectAndColorSpaceSignaturesRemainStable();
+    void cachedGradientResourceSignaturesRemainStable();
 };
 
 void KoGradientSegmentSchemaContractTest::gradientSegmentInterpolationAndEndpointOrdinalsRemainStable()
@@ -210,6 +217,43 @@ void KoGradientSegmentSchemaContractTest::segmentGradientSerializationSignatures
 
     using FromXml = KoSegmentGradient (*)(const QDomElement &);
     static_assert(std::is_same_v<decltype(static_cast<FromXml>(&KoSegmentGradient::fromXML)), FromXml>);
+}
+
+void KoGradientSegmentSchemaContractTest::cachedGradientTypeConstructionAndLifetimeSchemaRemainStable()
+{
+    static_assert(std::is_class_v<KoCachedGradient>);
+    static_assert(std::is_base_of_v<KoAbstractGradient, KoCachedGradient>);
+    static_assert(std::is_default_constructible_v<KoCachedGradient>);
+    static_assert(std::is_constructible_v<KoCachedGradient, KoAbstractGradientSP, qint32, const KoColorSpace *>);
+    static_assert(std::has_virtual_destructor_v<KoCachedGradient>);
+}
+
+void KoGradientSegmentSchemaContractTest::cachedGradientEvaluationSignaturesRemainStable()
+{
+    ASSERT_CACHED_GRADIENT_SIGNATURE(cachedAt, const quint8 *(KoCachedGradient::*)(qreal) const);
+    ASSERT_CACHED_GRADIENT_SIGNATURE(colorAt, void (KoCachedGradient::*)(KoColor &, qreal) const);
+    ASSERT_CACHED_GRADIENT_SIGNATURE(toQGradient, QGradient * (KoCachedGradient::*)() const);
+}
+
+void KoGradientSegmentSchemaContractTest::cachedGradientSubjectAndColorSpaceSignaturesRemainStable()
+{
+    using SetGradient = void (KoCachedGradient::*)(KoAbstractGradientSP, qint32);
+    using SetGradientWithColorSpace = void (KoCachedGradient::*)(KoAbstractGradientSP, qint32, const KoColorSpace *);
+
+    ASSERT_CACHED_GRADIENT_SIGNATURE(setGradient, SetGradient);
+    ASSERT_CACHED_GRADIENT_SIGNATURE(setGradient, SetGradientWithColorSpace);
+    ASSERT_CACHED_GRADIENT_SIGNATURE(gradient, KoAbstractGradientSP (KoCachedGradient::*)());
+    ASSERT_CACHED_GRADIENT_SIGNATURE(setColorSpace, void (KoCachedGradient::*)(const KoColorSpace *));
+    ASSERT_CACHED_GRADIENT_SIGNATURE(colorSpace, const KoColorSpace *(KoCachedGradient::*)() const);
+}
+
+void KoGradientSegmentSchemaContractTest::cachedGradientResourceSignaturesRemainStable()
+{
+    using ResourceType = QPair<QString, QString>;
+
+    ASSERT_CACHED_GRADIENT_SIGNATURE(clone, KoResourceSP (KoCachedGradient::*)() const);
+    ASSERT_CACHED_GRADIENT_SIGNATURE(loadFromDevice, bool (KoCachedGradient::*)(QIODevice *, KisResourcesInterfaceSP));
+    ASSERT_CACHED_GRADIENT_SIGNATURE(resourceType, ResourceType (KoCachedGradient::*)() const);
 }
 
 QTEST_GUILESS_MAIN(KoGradientSegmentSchemaContractTest)
