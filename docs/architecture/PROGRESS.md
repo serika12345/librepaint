@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-06 15:47 JST
+- 更新日時: 2026-09-06 16:00 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1625,7 +1625,18 @@
 - 比較したmulti-double filter widgetはslider・timer・設定とglobal資源、paint device cacheとlayer style補助は画像・選択・色空間・効果設定、dab描画queueは既存動的試験でも2,139工程・4,273入力を要する。自動keyframeは既存動的試験が1,201工程・2,425入力であり、stroke互換情報は既定値と等価比較だけでも色・資源値実装が必要である。更新情報ビルダーは主要状態と幾何計算を具体的所有単位へ分離すれば、18 API中16件の挙動を小さい閉包で観測できるため先行する。
 - `g280a-update-info-builder-state-boundary`の状態は`integrated`、実装基点は`5d4a42889a`である。開始`libs/ui/opengl/KisOpenGLUpdateInfoBuilder.cpp`のprivate状態定義を新規内部実装断片`libs/ui/opengl/KisOpenGLUpdateInfoBuilderPrivate.inc`へ、構築・破棄、tile矩形・位置計算、色変換・channel・texture・tile pool・proofing設定を新規`libs/ui/opengl/KisOpenGLUpdateInfoBuilderState.cpp`へ移した。2つの`buildUpdateInfo()`は開始sourceに残し、`libs/ui/CMakeLists.txt`で新規AUTOMOC不要・位置独立`kritauiopenglupdateinfobuilderstateobjects`を製品へ1回だけ再集約した。公開headerとして採取された初期private `.h`案は内部`.inc`へ改め、公開header 1,548件・API 29,804件、API、ABI、実装本文、同期方法、利用元を維持した。受渡しcommit `2c32921473`を中央commit `a01f3039ff`として取り込んだ。
 - 新objectは担当側と中央で1工程・3入力となり、担当側command SHA-256 `60b6610ca9daa08e48b01710495d5139b3b80f14489b108f35fbcf9069c8c460`、input SHA-256 `1bc6588a87a7d7f83a586b259822e350ef6d32d5069680f5ab808c7733eac3d5`、中央command SHA-256 `409e4c75d11852404571be7fb3e512e8b22fb3a36a4574aa34f1576cab61f334`、input SHA-256 `cbbfa0059a93b1b8378c127a42d55d8390854de647d07b25f20bb22d232f91a5`である。製品`kritaapplicationui`は1,975工程・3,950入力となり、分離した状態sourceの1工程・2入力だけ増えた。状態objectと重い開始sourceの厳格`clang-check`、近傍`KisOpenGLUpdateInfoContractTest`・`KisScreenInformationAdapterContractTest`、二回の無作業再構築、製品への再集約1回、公開API検査、`verify-quick`に成功した。受渡し差分と中央差分のpatch ID `b94bb6c3a2fd6924e4b6beaad7252bb9aea3d182`の一致と専用作業treeのcleanを確認し、305,472 KiBの構築木を含む591,152 KiBの作業treeとbranchを削除した。
-- 続く`g280-update-info-builder-contract`の状態は`planned`、実装基点は`a01f3039ff`である。新規`libs/ui/tests/KisOpenGLUpdateInfoBuilderContractTest.cpp`と同target固有の`libs/ui/tests/CMakeLists.txt`節だけへ18 API・5枠を追加し、新しい状態objectとQt Testを直接接続する。停止線は8工程・20入力、試験側AUTOMOC `HEADERS=[]`、Qt Test・CoreとOS frameworkだけの動的接続、製品未解決記号0である。担当側と中央で追加5枠を各20回、対象と近傍2契約、厳格構文、二回の無作業再構築、動的接続・未解決記号、公開API検査、`verify-quick`を確認する。製品target、既存重量試験、全体build・`verify`、Linux、Nix再評価を実行しない。
+- 続く`g280-update-info-builder-contract`の状態は`integrated`、実装基点は`a01f3039ff`である。新規`libs/ui/tests/KisOpenGLUpdateInfoBuilderContractTest.cpp`と同target固有の`libs/ui/tests/CMakeLists.txt`節だけへ18 API・5枠を追加し、新しい状態objectとQt Testを直接接続した。受渡しcommit `f09defd688`を中央commit `196fbcc9d2`として取り込み、公開headerと製品実装を変更していない。
+
+### 第280便の契約統合結果
+
+- 開始`libs/ui/opengl/KisOpenGLUpdateInfoBuilder.h`の残存全18 APIから、新規`libs/ui/tests/KisOpenGLUpdateInfoBuilderContractTest.cpp`の5枠へ、型・構築・寿命3、texture寸法・境界・2矩形算出4、x・y tile位置変換2、色変換・channel指定3、tile pool・proofing設定4と2更新構築経路2を対応付けた。空の共有設定、非複製寿命、矩形の画像境界切詰め、境界拡張とLoD整列、正負座標のtile位置変換、借用色空間、tile pool・proofing設定の共有所有と解除を動的に固定し、画像・paint deviceを要する2更新構築経路は厳密署名で固定した。
+- target不存在と、5枠宣言段階で追加5試験関数だけが未定義になる期待link失敗を確認した。担当側と中央のmacOSで追加5枠を各20回、対象CTest `libs-ui-KisOpenGLUpdateInfoBuilderContractTest`と軽量近傍`libs-ui-KisOpenGLUpdateInfoContractTest`・`libs-ui-KisScreenInformationAdapterContractTest`、厳格`clang-check`、二回の無作業再構築に成功した。対象は5工程・11入力で、担当側command SHA-256 `16db3ea95e46182afffbf33cd0f894b20db003030faa60b8631469e1b246aa87`、input SHA-256 `31db99a300ac1939cb8288ff2385fddd6036fdf009f8a434f187714eb158ea49`、中央command SHA-256 `6cf96b5e861eee09dadf12e2c4e5560a22d58922152b26f45763527a91b03e75`、input SHA-256 `d122ae7bac83227f6f49818128488a21d72a74d02b071cae437bc6bdb93838ad`である。試験側AUTOMOC `HEADERS=[]`、Qt Test・CoreとOS frameworkだけの動的接続、製品未解決記号0、書式、公開API検査、`verify-quick`を確認した。
+- 台帳へ18 APIを追加して22,424件対応、7,380件未対応となった。受渡し差分と中央差分のpatch ID `8e3432c98108f7a9e19882e6302313361aa91a2a`の一致と専用作業treeのcleanを確認し、311,096 KiBの構築木を含む591,164 KiBの作業treeとbranchを削除した。旧`public-api-missing-g280.json` 1,967,715 bytesを削除し、主Ninja木5,833,152 KiB、共有compiler cache 982,232 KiB、最新`build/tdd-macos/public-api-missing-g281.json` 1,962,248 bytes、SHA-256 `1770d36d37f5c65eed417ecf34d1954f2f7e378a3325674c1311acebaa09f48c`だけを再利用対象として保持する。compiler cacheは143,749件中120,368件、83.73%がhitしている。製品target、既存重量試験、全体build・`verify`、Linux、Nix再評価は実行していない。
+
+### 第281便の先行監査計画
+
+- 正式入力は`build/tdd-macos/public-api-missing-g281.json`である。第280便で保留したmulti-double filter widget、paint device cache、layer style補助、dab描画queue、自動keyframe、stroke互換情報と、同程度の残存APIを持つ未選定責務を比較する。全公開APIを最大5枠へ完全に割り当て、主要な値・所有・寿命を動的に観測でき、既存限定targetへの追記または具体的実装所有分離により製品targetより十分小さい候補を選ぶ。
+- 次の永続作業は、正式不足報告、候補header・実装、既存試験、CMake File APIを読み取り専用で再照合し、契約実装前に必要な構造整理と停止線を確定することである。製品target、既存重量試験、全体build・`verify`、Linux、Nix再評価を実行しない。
 
 ### 第239便の先行監査担当票
 

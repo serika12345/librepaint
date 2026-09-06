@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 7398
+    "expectedMissingApis": 7380
   },
   "contracts": [
     {
@@ -62795,6 +62795,69 @@
       "apis": [
         "method:KisOpenGLUpdateInfo::dirtyViewportRect()",
         "method:KisOpenGLUpdateInfo::tryMergeWith(const KisOpenGLUpdateInfo & rhs)"
+      ]
+    },
+    {
+      "target": "KisOpenGLUpdateInfoBuilderContractTest",
+      "source": "libs/ui/tests/KisOpenGLUpdateInfoBuilderContractTest.cpp",
+      "test": "KisOpenGLUpdateInfoBuilderContractTest::builderTypeConstructionAndLifetimeRemainStable",
+      "behavior": "OpenGL更新情報builderは空の共有設定で構築され、複製を許さず自身の内部状態を破棄する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisOpenGLUpdateInfoBuilder",
+        "method:KisOpenGLUpdateInfoBuilder::KisOpenGLUpdateInfoBuilder()",
+        "method:KisOpenGLUpdateInfoBuilder::~KisOpenGLUpdateInfoBuilder()"
+      ]
+    },
+    {
+      "target": "KisOpenGLUpdateInfoBuilderContractTest",
+      "source": "libs/ui/tests/KisOpenGLUpdateInfoBuilderContractTest.cpp",
+      "test": "KisOpenGLUpdateInfoBuilderContractTest::textureGeometryRemainsStable",
+      "behavior": "OpenGL更新情報builderはtexture寸法でtile矩形を作り、画像境界で切り詰めた後に境界幅と詳細度の整列を適用する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisOpenGLUpdateInfoBuilder::calculateEffectiveTileRect(int col,int row,const QRect & imageBounds) const",
+        "method:KisOpenGLUpdateInfoBuilder::calculatePhysicalTileRect(int col,int row,const QRect & imageBounds,int levelOfDetail) const",
+        "method:KisOpenGLUpdateInfoBuilder::setEffectiveTextureSize(const QSize & size)",
+        "method:KisOpenGLUpdateInfoBuilder::setTextureBorder(int value)"
+      ]
+    },
+    {
+      "target": "KisOpenGLUpdateInfoBuilderContractTest",
+      "source": "libs/ui/tests/KisOpenGLUpdateInfoBuilderContractTest.cpp",
+      "test": "KisOpenGLUpdateInfoBuilderContractTest::tileIndexMappingRemainsStable",
+      "behavior": "OpenGL更新情報builderは座標をtexture寸法で除算し、正座標と負座標を現在の整数除算規則でtile番号へ写像する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisOpenGLUpdateInfoBuilder::xToCol(int x) const",
+        "method:KisOpenGLUpdateInfoBuilder::yToRow(int y) const"
+      ]
+    },
+    {
+      "target": "KisOpenGLUpdateInfoBuilderContractTest",
+      "source": "libs/ui/tests/KisOpenGLUpdateInfoBuilderContractTest.cpp",
+      "test": "KisOpenGLUpdateInfoBuilderContractTest::conversionAndChannelConfigurationRemainStable",
+      "behavior": "OpenGL更新情報builderは借用色空間を含む変換指定と選択channel指定を受け取り、宛先色空間を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisOpenGLUpdateInfoBuilder::destinationColorSpace() const",
+        "method:KisOpenGLUpdateInfoBuilder::setChannelFlags(const QBitArray & channelFrags,bool onlyOneChannelSelected,int selectedChannelIndex)",
+        "method:KisOpenGLUpdateInfoBuilder::setConversionOptions(const ConversionOptions & options)"
+      ]
+    },
+    {
+      "target": "KisOpenGLUpdateInfoBuilderContractTest",
+      "source": "libs/ui/tests/KisOpenGLUpdateInfoBuilderContractTest.cpp",
+      "test": "KisOpenGLUpdateInfoBuilderContractTest::sharedConfigurationAndBuildSignaturesRemainStable",
+      "behavior": "OpenGL更新情報builderはtile poolとproofing設定の共有所有を保持・解除し、画像またはpaint deviceから更新情報を構築する公開形を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisOpenGLUpdateInfoBuilder::buildUpdateInfo(const QRect & rect,KisImageSP srcImage,bool convertColorSpace)",
+        "method:KisOpenGLUpdateInfoBuilder::buildUpdateInfo(const QRect & rect,KisPaintDeviceSP projection,const QRect & bounds,int levelOfDetail,bool convertColorSpace)",
+        "method:KisOpenGLUpdateInfoBuilder::proofingConfig() const",
+        "method:KisOpenGLUpdateInfoBuilder::setProofingConfig(KisProofingConfigurationSP config)",
+        "method:KisOpenGLUpdateInfoBuilder::setTileDataPool(KisTileDataPoolSP pool)",
+        "method:KisOpenGLUpdateInfoBuilder::tileDataPool() const"
       ]
     }
   ]
