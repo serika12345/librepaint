@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-06 17:37 JST
+- 更新日時: 2026-09-06 17:57 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1713,7 +1713,14 @@
 - 正式入力`build/tdd-macos/public-api-missing-g284.json`で、`plugins/paintops/libpaintop/KisPaintOpOptionWidgetUtils.h`の残存全17 APIが一意かつ台帳と非重複であることを確認した。識別子整列集合SHA-256は`835f6f128decd203ac252e792b5be9a679ba13d5a346aa9b638f531875bd2269`である。状態格納3、wrapper選択・構築6、詳細度制約wrapper 3、一般・詳細度制約widget生成4、curve widget生成1の5枠へ完全に割り当てる。最終1 APIは実`KisCurveOptionWidget`を生成せず厳密なtemplate関数形を固定し、ほか16 APIは試験用の値型とwidget型で状態初期化、基底値変換、追加引数転送、詳細度制約reader合成、既定生成を動的に観測する。
 - 対象はheader-onlyで製品sourceを持たない。最寄りの`KisCurveOptionSchemaContractTest`は曲線計算と標準option factoryの別責務10枠を既に持つため追記せず、新規`KisPaintOpOptionWidgetUtilsContractTest`を同じ探索路・export定義、Qt Core・Gui・Test・Xml、header-only Boostだけへ接続する。最寄りは4工程・8入力、command SHA-256 `05cf3b83dc6159c8e2766ea73d26250d9c40e966492b5195c60929783cc1831b`、input SHA-256 `a84e08f953c5892bb3c940461497e24573a0fc8c7aedf0fc1f487f9d6ea25ced`である。初回構成後、公開headerが`libs/tools/ui/kis_paintop_option.h`と生成export headerを直接必要とすること、および詳細度制約readerの動的合成が`QSet<KoID>`の和集合を実体化することを確認した。製品libraryを接続せず、`libs/tools/ui`のsource/generated探索路と1工程・3入力の既存`kritaglobalidobjects`だけを加えた実測は5工程・12入力である。当初の5工程・11入力停止線を発動して確認し、動的契約を維持する最小の具体所有者閉包として停止線を5工程・12入力へ改訂する。製品`kritapaintopruntime`は1,295工程・2,610入力、`kritalibpaintop`は2,115工程・4,228入力であり、どちらにも接続しない。
 - 比較した`KoStreamedMath.h`の残存8 APIはSIMDとscalarの画素走査、`libs/global/kis_acs_types.h`の10 APIは`KoColor`実体、`KisFrameCacheSwapper.h`の11 APIはframe storeと更新情報builderを要する。option widget生成補助は実装が全てheader内にあり、試験用型だけで17 API中16 APIの実行結果を外部状態なしに観測できるため先行する。先行構造変更は不要である。
-- `g284-paintop-option-widget-utils-contract`の状態は`in_progress`、実装基点は`37317ba3b5`である。許可pathを新規`plugins/paintops/libpaintop/tests/KisPaintOpOptionWidgetUtilsContractTest.cpp`と`plugins/paintops/libpaintop/tests/CMakeLists.txt`の新target固有節だけに限定する。一つの専用worktree-local `build/tdd-macos`を使い、target不存在、直接header探索路の不足、宣言だけの5枠が未定義symbolとなる期待失敗までを順に記録し、最小所有者閉包による緑化に成功した。続いて追加5枠の単発と各20回反復、対象と近傍CTest、厳格`clang-check`、書式、AUTOMOC入力、動的接続、製品未解決記号、二回目計画、二回の無作業再構築、公開API検査、`verify-quick`をmacOSで確認する。許可pathだけの受渡しcommitを認め、公開header、製品source、製品target、全体build・`verify`、Linux、Nix再評価、追加委任は対象外とする。
+- `g284-paintop-option-widget-utils-contract`の状態は`integrated`、実装基点は`37317ba3b5`である。許可pathを新規`plugins/paintops/libpaintop/tests/KisPaintOpOptionWidgetUtilsContractTest.cpp`と`plugins/paintops/libpaintop/tests/CMakeLists.txt`の新target固有節だけに限定した。受渡しcommit `df9a13d2a7`を中央commit `c2f7a7f11b`として取り込み、patch ID `c7c4553a2beb8f2d446f49ac0fee26a1fe288884`の一致を確認した。公開header、製品source、製品target、全体build・`verify`、Linux、Nix再評価、追加委任は対象外として維持した。
+
+### 第284便の契約統合結果
+
+- 開始`plugins/paintops/libpaintop/KisPaintOpOptionWidgetUtils.h`から新規`plugins/paintops/libpaintop/tests/KisPaintOpOptionWidgetUtilsContractTest.cpp`へ残存全17 APIを移し、状態格納3、wrapper選択・構築6、詳細度制約wrapper 3、一般・詳細度制約widget生成4、curve widget生成1の5枠へ対応付けた。前4枠は試験用型で状態初期化、基底値変換、追加引数転送、reader合成、既定生成を動的に観測し、curve widget生成は実widgetを生成せず厳密なtemplate関数形を固定した。公開headerと製品sourceを変更していない。
+- target不存在、`libs/tools/ui`の直接header探索路不足、宣言だけの5枠が未定義symbolとなる期待失敗を順に記録した。動的な`QSet<KoID>`合成に既存`kritaglobalidobjects`を加え、製品libraryを接続しない5工程・12入力へ収めた。担当側command SHA-256は`fecca0eaca49836d0282e7034b18ba1f2dc1d3c6441c50cd722187097839f598`、input SHA-256は`c7f36b8d5f62b5c46d6433671074fd34de2306d26ee383f32b80f4b29b87fe01`、中央command SHA-256は`fab94161a0626ddd1cbb2963c83a8172c20df496118f23e1a1351eb817238de6`、input SHA-256は`3f295c0c4e896bb66f867678b77d5a03717baee20edc26a6ad378dc4c6d48a71`である。候補headerはAUTOMOC入力外で、Qt Core・Gui・Test・Xml、KF I18n、gettext、OS frameworkだけへ動的接続し、製品未解決記号は0である。
+- 担当側と中央のmacOSで追加5枠を各20回、対象CTest `plugins-paintops-libpaintop-KisPaintOpOptionWidgetUtilsContractTest`、近傍`plugins-paintops-libpaintop-KisCurveOptionSchemaContractTest`、厳格`clang-check`、書式、二回目計画と二回の無作業再構築に成功した。担当側と中央の`verify-quick`、中央の公開API検査にも成功し、台帳へ17 APIを追加して22,483件対応、7,321件未対応、対象headerの残存0件となった。
+- cleanな専用作業tree、311,036 KiBの構築木、branchを統合直後に削除し、作業tree全体902,264 KiBを回収した。旧`public-api-missing-g284.json` 1,951,567 bytesを削除し、主Ninja木5,849,692 KiB、共有compiler cache 983,244 KiB、最新`build/tdd-macos/public-api-missing-g285.json` 1,946,079 bytes、SHA-256 `7620fc7c76372ac9de2930aa4b5f046120baaa3a61fc67255a147de7905999c7`だけを再利用対象として保持する。compiler cacheは143,834件中120,413件、83.72%がhitしている。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第285便の正式不足報告から、全APIを最小閉包で固定できる責務を再選定することである。
 
 ### 第239便の先行監査担当票
 

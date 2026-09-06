@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 7338
+    "expectedMissingApis": 7321
   },
   "contracts": [
     {
@@ -63026,6 +63026,68 @@
       "apis": [
         "method:KisAbstractFrameCacheSwapper::forgetFrame(int frameId)",
         "method:KisInMemoryFrameCacheSwapper::forgetFrame(int frameId)"
+      ]
+    },
+    {
+      "target": "KisPaintOpOptionWidgetUtilsContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisPaintOpOptionWidgetUtilsContractTest.cpp",
+      "test": "KisPaintOpOptionWidgetUtilsContractTest::stateStorageRemainsStable",
+      "behavior": "option値の格納器は渡された値で反応状態を初期化し、同じ値型と自動更新方式を公開状態として保持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisPaintOpOptionWidgetUtils::detail::DataStorage::m_data",
+        "method:KisPaintOpOptionWidgetUtils::detail::DataStorage::DataStorage(Data && data)",
+        "struct:KisPaintOpOptionWidgetUtils::detail::DataStorage"
+      ]
+    },
+    {
+      "target": "KisPaintOpOptionWidgetUtilsContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisPaintOpOptionWidgetUtilsContractTest.cpp",
+      "test": "KisPaintOpOptionWidgetUtilsContractTest::wrapperSelectionAndConstructionRemainStable",
+      "behavior": "widget wrapperはdata_typeの有無と基底値変換の要否に対応する基底を選び、初期値と追加引数をwidgetへ渡しつつ派生値全体を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisPaintOpOptionWidgetUtils::detail::WidgetWrapper::BaseClass",
+        "alias:KisPaintOpOptionWidgetUtils::detail::WidgetWrapperDataTypeChecker::BaseClass",
+        "method:KisPaintOpOptionWidgetUtils::detail::WidgetWrapperConversionChecker::WidgetWrapperConversionChecker(Data && data,Args...args)",
+        "struct:KisPaintOpOptionWidgetUtils::detail::WidgetWrapper",
+        "struct:KisPaintOpOptionWidgetUtils::detail::WidgetWrapperConversionChecker",
+        "struct:KisPaintOpOptionWidgetUtils::detail::WidgetWrapperDataTypeChecker"
+      ]
+    },
+    {
+      "target": "KisPaintOpOptionWidgetUtilsContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisPaintOpOptionWidgetUtilsContractTest.cpp",
+      "test": "KisPaintOpOptionWidgetUtilsContractTest::lodWrapperCompositionRemainsStable",
+      "behavior": "詳細度制約wrapperは通常wrapperを基底とし、値状態から得た制約をwidget側readerと合成して読取り可能にする。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisPaintOpOptionWidgetUtils::detail::WidgetWrapperWithLodLimitations::BaseClass",
+        "method:KisPaintOpOptionWidgetUtils::detail::WidgetWrapperWithLodLimitations::lodLimitationsReader() const",
+        "struct:KisPaintOpOptionWidgetUtils::detail::WidgetWrapperWithLodLimitations"
+      ]
+    },
+    {
+      "target": "KisPaintOpOptionWidgetUtilsContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisPaintOpOptionWidgetUtilsContractTest.cpp",
+      "test": "KisPaintOpOptionWidgetUtilsContractTest::optionWidgetFactoriesRemainStable",
+      "behavior": "一般用と詳細度制約用のfactoryは明示値またはwidgetのdata_type既定値からwrapperを生成し、初期値と追加引数をwidgetへ反映する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisPaintOpOptionWidgetUtils::createOptionWidget()",
+        "function:KisPaintOpOptionWidgetUtils::createOptionWidget(Data && data,Args...args)",
+        "function:KisPaintOpOptionWidgetUtils::createOptionWidgetWithLodLimitations()",
+        "function:KisPaintOpOptionWidgetUtils::createOptionWidgetWithLodLimitations(Data && data,Args...args)"
+      ]
+    },
+    {
+      "target": "KisPaintOpOptionWidgetUtilsContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisPaintOpOptionWidgetUtilsContractTest.cpp",
+      "test": "KisPaintOpOptionWidgetUtilsContractTest::curveWidgetFactorySignatureRemainsStable",
+      "behavior": "曲線option用factoryは値と追加引数を受け取って曲線option widgetを返すtemplate関数形を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisPaintOpOptionWidgetUtils::createCurveOptionWidget(Data && data,Args...args)"
       ]
     }
   ]
