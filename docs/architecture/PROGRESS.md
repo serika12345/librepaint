@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-07 08:33 JST
+- 更新日時: 2026-09-07 08:37 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -2698,6 +2698,13 @@
 - `g354-media-encoder-wrapper-schema`は`completed`である。`libs/impex/animation/KisMediaEncoderWrapper.h`から公開宣言、inline実装、対応実装のいずれも使わない`QDir`完全headerを削除した。構造変更前後の公開API報告はSHA-256 `57dca70b59089bb47d5c5be4624b407b56e58f673121a37acb869662f478f3d8`で同一だった。開始実装、2直接利用header、4直接利用sourceの厳格`clang-check`は診断0件である。残る直接利用元では開始時からのQt 6 `Q_FOREACH`非推奨1件と生成`ui_recorder_export.h`探索不足1件だけを再確認し、範囲外として維持した。構造変更は`923d29d54e`である。
 - `libs/impex/tests/KisMediaEncoderFormatAndSettingsContractTest.cpp`へ6枠を追加し、符号化実行器の実行・取消・完了・失敗・進捗通知と、wrapperの型・構築・寿命・開始・形式検索・reset・状態通知の全21公開APIを固定した。最初の対象構築は追加6枠の未定義symbolだけで停止した。対象は276行・11枠、CMake変更なし、最終閉包4工程・8入力、command SHA-256 `5396218daf70b994ca00db11f16b98af52874f9dc9c70b854283c2cd6238a20a`、input SHA-256 `cf0648c4ad31097ad0543338b2b00c8a749956145bd8ffe647cc078a2e343e9c`で、動的接続はQt Core・Test、gettextとmacOS frameworkだけである。実装は`c94b80df5c`である。
 - macOSで対象CTest、追加6枠を含む対象の20回反復、開始実装・試験source・直接利用元の厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`に成功した。台帳へ21 APIを追加して24,515件対応、5,289件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g354.json`を削除し、主Ninja木5,919,496 KiB、共有compiler cache 1.0 GB、最新`build/tdd-macos/public-api-missing-g355.json` 1,400,682 bytes、SHA-256 `cc4d0c07a9ce47dc992eb97aaca02d12048db3ea8c080ec83a19f706c6502344`だけを保持する。compiler cacheは144,195件中120,492件、83.56%がhitしている。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第355便で次の高密度なmacOS対象と最小構築面を選定することである。
+
+### 第355便の監査結果と実装計画
+
+- 正式入力`build/tdd-macos/public-api-missing-g355.json`は公開header 1,548、公開API 29,804、対応済み24,515、未対応5,289、1,400,682 bytes、SHA-256 `cc4d0c07a9ce47dc992eb97aaca02d12048db3ea8c080ec83a19f706c6502344`を記録する。`libs/resources/KisResourceModel.h`の残存全21 APIを、filter型・設定、model型・検索、活性・更新、入出力、追加・名称・metadataの5枠へ完全に対応付ける。識別子整列集合のSHA-256は`22c6d6d62dfaef5d82a49bbcc01afa11862895be1b56761c991f0ef714f3ce46`である。
+- 開始headerの`QAbstractTableModel`、`QSortFilterProxyModel`、`KoResource`、`KisTag`完全型は同じ公開header内の派生modelと値memberが直接必要とするため、削減できる推移includeはない。所有実装`KisResourceModel.cpp`の厳格`clang-check`には開始時からQt 6 `invalidateFilter()`非推奨3件があり、抽象interface署名の固定とは独立した既知診断として維持する。
+- 既存`libs/resources/tests/KisResourceModelEnumContractTest.cpp`は1,001行・58枠で分割条件を超えているため追記しない。新規`KisAbstractResourceModelSchemaContractTest.cpp`を300行・20枠未満に限定する。軽量近傍`KisResourceIteratorSchemaContractTest`は4工程・8入力、command SHA-256 `4a8579bb8f2ffa5946a21cb5272fa196590a4eb1371d2d8cf53d29733cc9f256`、input SHA-256 `6a7826115638afb0a632dd7f662005ac6aff574b9898a81ef8c1d9bd993c8fd4`である。新targetも製品libraryを接続せず、Qt Core・Testとheader-only Boost、Qt Gui・KF I18nのinterface探索路だけを使って同じ4工程・8入力を目標とし、停止線を5工程・11入力とする。
+- `g355-abstract-resource-model-schema`の状態は`in_progress`、実装基点は`d8a2a00744`である。契約は新規試験sourceとresources試験CMake節だけに限定する。macOSの対象、追加5枠の20回反復、所有実装・試験sourceの厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
 
 ### 第239便の先行監査担当票
 
