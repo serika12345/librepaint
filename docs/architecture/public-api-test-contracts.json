@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 6662
+    "expectedMissingApis": 6645
   },
   "contracts": [
     {
@@ -65124,6 +65124,68 @@
         "function:addStandardDitherOps(KoColorSpace * cs)",
         "method:KisCmykDitherOpImpl::dither(const quint8 * src,quint8 * dst,int x,int y) const",
         "method:KisCmykDitherOpImpl::dither(const quint8 * srcRowStart,int srcRowStride,quint8 * dstRowStart,int dstRowStride,int x,int y,int columns,int rows) const"
+      ]
+    },
+    {
+      "target": "KisGlobalDiagnosticsSchemaContractTest",
+      "source": "libs/global/tests/KisGlobalDiagnosticsSchemaContractTest.cpp",
+      "test": "KisGlobalDiagnosticsSchemaContractTest::usageLoggerTypeLifetimeAndConstructionSchemaRemainStable",
+      "behavior": "利用記録器は専用型として既定構築と明示的な破棄が可能な公開寿命を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisUsageLogger",
+        "method:KisUsageLogger::KisUsageLogger()",
+        "method:KisUsageLogger::~KisUsageLogger()"
+      ]
+    },
+    {
+      "target": "KisGlobalDiagnosticsSchemaContractTest",
+      "source": "libs/global/tests/KisGlobalDiagnosticsSchemaContractTest.cpp",
+      "test": "KisGlobalDiagnosticsSchemaContractTest::usageLoggerLifecycleAndInformationSchemaRemainStable",
+      "behavior": "利用記録器は初期化・終了と基本システム・画面情報取得の正確な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisUsageLogger::basicSystemInfo()",
+        "method:KisUsageLogger::close()",
+        "method:KisUsageLogger::initialize()",
+        "method:KisUsageLogger::screenInformation()"
+      ]
+    },
+    {
+      "target": "KisGlobalDiagnosticsSchemaContractTest",
+      "source": "libs/global/tests/KisGlobalDiagnosticsSchemaContractTest.cpp",
+      "test": "KisGlobalDiagnosticsSchemaContractTest::usageLoggerRecordingSchemaRemainsStable",
+      "behavior": "利用記録器は時刻付き記録、system情報、header、およびlocale情報を書き出す正確な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisUsageLogger::log(const QString & message)",
+        "method:KisUsageLogger::writeHeader()",
+        "method:KisUsageLogger::writeLocaleSysInfo()",
+        "method:KisUsageLogger::writeSysInfo(const QString & message)"
+      ]
+    },
+    {
+      "target": "KisGlobalDiagnosticsSchemaContractTest",
+      "source": "libs/global/tests/KisGlobalDiagnosticsSchemaContractTest.cpp",
+      "test": "KisGlobalDiagnosticsSchemaContractTest::assertionEntrypointSchemaRemainsStable",
+      "behavior": "表明診断は式・場所・行と任意の文脈を受け取る通常・回復可能・安全回復可能の公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:kis_assert_exception(const char * assertion,const char * file,int line)",
+        "function:kis_assert_recoverable(const char * assertion,const char * file,int line)",
+        "function:kis_assert_x_exception(const char * assertion,const char * where,const char * what,const char * file,int line)",
+        "function:kis_safe_assert_recoverable(const char * assertion,const char * file,int line)"
+      ]
+    },
+    {
+      "target": "KisGlobalDiagnosticsSchemaContractTest",
+      "source": "libs/global/tests/KisGlobalDiagnosticsSchemaContractTest.cpp",
+      "test": "KisGlobalDiagnosticsSchemaContractTest::messageAndAndroidLogEntrypointSchemaRemainStable",
+      "behavior": "共通診断入口は再表示抑制付き確認表示とAndroidログ初期化の正確な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisAndroidLogHandler::handler_init()",
+        "function:KisMessageBoxWrapper::doNotAskAgainMessageBoxWrapper(QMessageBox * messageBox,const QString & identifier)"
       ]
     }
   ]

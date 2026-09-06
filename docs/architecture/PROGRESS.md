@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-07 02:19 JST
+- 更新日時: 2026-09-07 02:25 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -2237,7 +2237,14 @@
 
 - 正式入力`build/tdd-macos/public-api-missing-g324.json`は公開header 1,548、公開API 29,804、対応済み23,142、未対応6,662、1,770,542 bytes、SHA-256 `70d1934a9de04b68b8b9a9dbd421e8ad3454b62c91fa367606d3ec0a918d78dd`を記録する。`libs/global/KisUsageLogger.h`の残存11 API、`kis_assert.h`の残存4 API、`KisMessageBoxWrapper.h`と`KisAndroidLogHandler.h`の残存各1 APIは重複せず、合計17識別子の整列集合SHA-256は`bc738a2257a360b1935268741ab98c26c82cec1ccc859c8b299267695e137e95`である。利用記録、表明診断、確認表示、Androidログ初期化の型・寿命・公開関数型を5枠へ完全に割り当てる。JNI headerを必要とするAndroid障害処理は別便とする。
 - 新規`libs/global/tests/KisGlobalDiagnosticsSchemaContractTest.cpp`を作り、global source・generated探索路、Qt Core・Test、global export定義だけへ接続する。近傍`KisGlobalValuesContractTest`は4工程・8入力、command SHA-256 `bccf169f1eecb23b2074a645e37f88f21082ebf43222a2bbe4cf4b686691c726`、input SHA-256 `f6ae5ed041d4452af977dc62c1e1131d05611301b4473925e1b7a4330bacdec0`である。新targetも4工程・8入力を予測し、停止線を5工程・11入力とする。
-- `g324-global-diagnostics-schema`の状態は`planned`、実装基点は`19ca93406d`である。許可pathを新規試験sourceと`libs/global/tests/CMakeLists.txt`の新target固有節だけに限定し、公開headerと製品sourceを変更しない。logger、file、画面、message box、Android loggingを実体化・初期化せず、公開関数型だけを検査する。macOSの対象、近傍、追加5枠の20回反復、厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。製品target、全体build・`verify`、Linux・Android、Nix再評価は実行しない。
+- `g324-global-diagnostics-schema`の状態は`integrated`、実装基点は`19ca93406d`である。許可pathを新規試験sourceと`libs/global/tests/CMakeLists.txt`の新target固有節だけに限定し、公開headerと製品sourceを変更しなかった。logger、file、画面、message box、Android loggingを実体化・初期化せず、公開関数型だけを検査した。実装commitは`3d34af9493`である。
+
+### 第324便の契約統合結果
+
+- 開始`libs/global/KisUsageLogger.h`、`libs/global/kis_assert.h`、`libs/global/KisMessageBoxWrapper.h`、`libs/global/KisAndroidLogHandler.h`から新規`libs/global/tests/KisGlobalDiagnosticsSchemaContractTest.cpp`へ残存11・4・1・1 APIを対応付けた。利用記録、表明診断、確認表示、Androidログ初期化の型・寿命・公開関数型を78行・5枠で固定した。
+- 対象未登録の初回限定構築は未知の対象として失敗し、追加5枠は期待どおり5件失敗した。型特性と正確な関数pointer検査を有効化して成功した。新targetは4工程・8入力で停止線以内に収まり、command SHA-256は`8888a36015db1c73b89cef32b17a3b5fdd776e3e423a0168a1ab7bfd7585928b`、input SHA-256は`7195e08ed4bd9dd811b061b3b99ef2022c6e44aa0b157272855a819574268235`である。AUTOMOC header入力は空、Qt Test・Core、gettext、OS frameworkだけへ動的接続し、製品未解決記号は0である。
+- macOSで対象と近傍`libs-global-KisGlobalValuesContractTest`のCTest 2/2、対象の20回反復、厳格`clang-check`、書式、二回の無作業再構築、公開API検査に成功した。logger I/O、画面照会、message box、Androidログ初期化、製品target、全体build・`verify`、Linux・Android、Nix再評価は実行していない。
+- 台帳へ17 APIを追加して23,159件対応、6,645件未対応となった。`libs/global`の残存はACS色操作12件、幾何演算8件、JNI依存のAndroid障害処理1件の合計21件である。旧`public-api-missing-g324.json`を削除し、追加作業tree・構築木は作成していない。主Ninja木5,889,756 KiB、共有compiler cache 982,428 KiB、最新`build/tdd-macos/public-api-missing-g325.json` 1,766,468 bytes、SHA-256 `4133ca2204b7b40eeb6fbb37841b4eeced92298f593ec6af4f19417f6a7adc95`だけを再利用対象として保持する。compiler cacheは144,062件中120,469件、83.62%がhitしている。次の永続作業は第325便でglobal残存の最小閉包を比較することである。
 
 ### 第239便の先行監査担当票
 
