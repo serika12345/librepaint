@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-07 07:21 JST
+- 更新日時: 2026-09-07 07:25 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -2605,6 +2605,14 @@
 - 開始headerは公開export指定、QObject基底、spinbox前方宣言と値型特性を直接所有し、削減すべき推移includeはない。4直接利用翻訳単位へ到達するが、既存対象が製品非接続の4工程・8入力であり、開始実装の厳格`clang-check`も診断0件であるため、先行する構造変更は不要である。
 - 既存`libs/ui/tests/KisCurveWidgetSchemaContractTest.cpp`は89行・5枠で、追加5枠後も300行・20枠未満に収まる。既存targetはCMake File API上で自動生成依存だけを持ち、CMake変更なしで4工程・8入力、command SHA-256 `2fd2333e6346d01423e20800bfce381fd83721eb9f92c232178a130deb1c61e3`、input SHA-256 `31435d9f7a205793998a8724341732c968fe583bc13b837b78a787f1fa0a299a`である。Qt Test・Core、gettext、OS frameworkだけへ動的接続し、製品libraryを要求しない。停止線を5工程・11入力、300行・20枠とする。
 - `g348-curve-controls-manager-schema`の状態は`in_progress`、実装基点は`731952eaf6`である。変更は既存試験sourceの追加5枠だけに限定し、型特性、具象template別名、構築可能性、厳密な公開関数pointerで入出力制御管理器の公開接続面を固定する。macOSの対象、追加5枠の20回反復、試験sourceの厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。CMake、公開header、製品source、製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
+- `g348-curve-controls-manager-schema`の状態は`integrated`、計画commitは`a87c251fab`、契約実装commitは`39773ce946`である。
+
+### 第348便の契約統合結果
+
+- 開始`libs/ui/widgets/KisCurveWidgetControlsManager.h`から既存`libs/ui/tests/KisCurveWidgetSchemaContractTest.cpp`へ残存全15 APIを、spinbox値型特性3、基底型・構築・寿命3、具象template型・別名4、具象構築・寿命3、入出力接続・解除2として追加した。試験sourceは171行・計10枠で停止線以内に収まり、CMake、公開header、製品sourceを変更していない。
+- 初回限定構築は期待どおり追加5試験関数の未定義linkだけで失敗した。最初の型特性実装は純粋仮想操作を持つ基底を直接構築可能として扱ったため静的assertで停止し、最小派生検査型で基底の抽象性、公開構築、仮想寿命を同時に固定する契約へ修正した。最終targetは4工程・8入力、command SHA-256 `2fd2333e6346d01423e20800bfce381fd83721eb9f92c232178a130deb1c61e3`、input SHA-256 `31435d9f7a205793998a8724341732c968fe583bc13b837b78a787f1fa0a299a`を維持した。AUTOMOC header入力は空、Qt Test・Core、gettext、OS frameworkだけへ動的接続し、製品未解決記号は0件である。
+- macOSで対象と軽量近傍`libs-ui-KisLayerFilterWidgetSchemaContractTest`のCTest、追加5枠の各20回反復、開始実装と試験sourceの厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`に成功した。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 台帳へ15 APIを追加して24,335件対応、5,469件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g348.json`を最新報告の検証後に削除し、追加作業tree・構築木は作成していない。主Ninja木5,917,784 KiB、共有compiler cache 983,120 KiB、最新`build/tdd-macos/public-api-missing-g349.json` 1,446,318 bytes、SHA-256 `f0e4e9476bad117a1b71cdf223c974d700c5ac28e559a830dc92387c5947c02c`だけを再利用対象として保持する。compiler cacheは144,170件中120,484件、83.57%がhitしている。次の永続作業は第349便で次の高密度なmacOS対象と最小構築面を選定することである。
 
 ### 第239便の先行監査担当票
 

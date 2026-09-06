@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 5484
+    "expectedMissingApis": 5469
   },
   "contracts": [
     {
@@ -67310,6 +67310,66 @@
         "method:KisGenericGradientEditor::setUseGradientPresetChooserPopUp(bool use)",
         "method:KisGenericGradientEditor::sigGradientChanged()",
         "method:KisGenericGradientEditor::useGradientPresetChooserPopUp() const"
+      ]
+    },
+    {
+      "target": "KisCurveWidgetSchemaContractTest",
+      "source": "libs/ui/tests/KisCurveWidgetSchemaContractTest.cpp",
+      "test": "KisCurveWidgetSchemaContractTest::curveControlsValueTypeSchemaRemainsStable",
+      "behavior": "曲線入出力制御管理器のspinbox値型特性と整数・倍精度への対応を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:detail::value_of_spin_box::type",
+        "alias:detail::value_of_spin_box_t",
+        "struct:detail::value_of_spin_box"
+      ]
+    },
+    {
+      "target": "KisCurveWidgetSchemaContractTest",
+      "source": "libs/ui/tests/KisCurveWidgetSchemaContractTest.cpp",
+      "test": "KisCurveWidgetSchemaContractTest::curveControlsBaseTypeAndLifetimeSchemaRemainStable",
+      "behavior": "曲線入出力制御管理器の抽象基底型、曲線widgetを受ける構築と仮想寿命を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisCurveWidgetControlsManagerBase",
+        "method:KisCurveWidgetControlsManagerBase::KisCurveWidgetControlsManagerBase(KisCurveWidget * curveWidget)",
+        "method:KisCurveWidgetControlsManagerBase::~KisCurveWidgetControlsManagerBase()"
+      ]
+    },
+    {
+      "target": "KisCurveWidgetSchemaContractTest",
+      "source": "libs/ui/tests/KisCurveWidgetSchemaContractTest.cpp",
+      "test": "KisCurveWidgetSchemaContractTest::curveControlsConcreteAliasSchemaRemainsStable",
+      "behavior": "曲線入出力制御管理器templateの公開値型と整数・倍精度具象別名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisCurveWidgetControlsManager::ValueType",
+        "alias:KisCurveWidgetControlsManagerDouble",
+        "alias:KisCurveWidgetControlsManagerInt",
+        "class:KisCurveWidgetControlsManager"
+      ]
+    },
+    {
+      "target": "KisCurveWidgetSchemaContractTest",
+      "source": "libs/ui/tests/KisCurveWidgetSchemaContractTest.cpp",
+      "test": "KisCurveWidgetSchemaContractTest::curveControlsConstructionSchemaRemainsStable",
+      "behavior": "整数・倍精度の曲線入出力制御管理器について単純構築、範囲付き構築と仮想寿命を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCurveWidgetControlsManager::KisCurveWidgetControlsManager(KisCurveWidget * curveWidget)",
+        "method:KisCurveWidgetControlsManager::KisCurveWidgetControlsManager(KisCurveWidget * curveWidget,SpinBox * in,SpinBox * out,ValueType inMin,ValueType inMax,ValueType outMin,ValueType outMax)",
+        "method:KisCurveWidgetControlsManager::~KisCurveWidgetControlsManager()"
+      ]
+    },
+    {
+      "target": "KisCurveWidgetSchemaContractTest",
+      "source": "libs/ui/tests/KisCurveWidgetSchemaContractTest.cpp",
+      "test": "KisCurveWidgetSchemaContractTest::curveControlsConnectionSignaturesRemainStable",
+      "behavior": "整数・倍精度spinboxに対する入出力接続と解除の正確な公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCurveWidgetControlsManager::dropInOutControls()",
+        "method:KisCurveWidgetControlsManager::setupInOutControls(SpinBox * in,SpinBox * out,ValueType inMin,ValueType inMax,ValueType outMin,ValueType outMax)"
       ]
     }
   ]
