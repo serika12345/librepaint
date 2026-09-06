@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 5548
+    "expectedMissingApis": 5484
   },
   "contracts": [
     {
@@ -67201,6 +67201,115 @@
         "method:KisDisplayColorConverter::getHsv(const KoColor & srcColor,int * h,int * s,int * v,int * a=0) const",
         "method:KisDisplayColorConverter::getHsvF(const KoColor & srcColor,qreal * h,qreal * s,qreal * v,qreal * a=0)",
         "method:KisDisplayColorConverter::getHsyF(const KoColor & srcColor,qreal * h,qreal * s,qreal * y,qreal R=0.2126,qreal G=0.7152,qreal B=0.0722,qreal gamma=2.2)"
+      ]
+    },
+    {
+      "target": "KisSegmentGradientSliderSchemaContractTest",
+      "source": "libs/ui/tests/KisSegmentGradientSliderSchemaContractTest.cpp",
+      "test": "KisSegmentGradientSliderSchemaContractTest::gradientChooserTypeAndEnumerationSchemaRemainStable",
+      "behavior": "勾配chooserの公開型、表示方式と項目寸法の列挙型および全列挙値を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisGradientChooser",
+        "enum:KisGradientChooser::ItemSize",
+        "enum:KisGradientChooser::ViewMode",
+        "enumerator:KisGradientChooser::ItemSize::ItemSize_Custom",
+        "enumerator:KisGradientChooser::ItemSize::ItemSize_Large",
+        "enumerator:KisGradientChooser::ItemSize::ItemSize_Medium",
+        "enumerator:KisGradientChooser::ItemSize::ItemSize_Small",
+        "enumerator:KisGradientChooser::ViewMode::ViewMode_Icon",
+        "enumerator:KisGradientChooser::ViewMode::ViewMode_List"
+      ]
+    },
+    {
+      "target": "KisSegmentGradientSliderSchemaContractTest",
+      "source": "libs/ui/tests/KisSegmentGradientSliderSchemaContractTest.cpp",
+      "test": "KisSegmentGradientSliderSchemaContractTest::gradientChooserResourceAndPresentationSignaturesRemainStable",
+      "behavior": "勾配chooserの既定構築と寿命、資源・表示状態照会の正確な公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisGradientChooser::KisGradientChooser(QWidget * parent=0,const char * name=0,bool useGlobalViewOptions=true)",
+        "method:KisGradientChooser::areEditOptionsVisible() const",
+        "method:KisGradientChooser::canvasResourcesInterface() const",
+        "method:KisGradientChooser::currentResource(bool includeHidden=false)",
+        "method:KisGradientChooser::isNameLabelVisible() const",
+        "method:KisGradientChooser::itemSize() const",
+        "method:KisGradientChooser::itemSizeCustom() const",
+        "method:KisGradientChooser::resourceItemChooser() const",
+        "method:KisGradientChooser::viewMode() const",
+        "method:KisGradientChooser::~KisGradientChooser()"
+      ]
+    },
+    {
+      "target": "KisSegmentGradientSliderSchemaContractTest",
+      "source": "libs/ui/tests/KisSegmentGradientSliderSchemaContractTest.cpp",
+      "test": "KisSegmentGradientSliderSchemaContractTest::gradientChooserConfigurationAndNotificationSignaturesRemainStable",
+      "behavior": "勾配chooserの資源選択、表示設定、項目更新と選択・編集通知の正確な公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisGradientChooser::gradientEdited(KoAbstractGradientSP resource)",
+        "method:KisGradientChooser::loadViewSettings(const QString & prefix=QString ())",
+        "method:KisGradientChooser::resourceClicked(KoResourceSP resource)",
+        "method:KisGradientChooser::resourceSelected(KoResourceSP resource)",
+        "method:KisGradientChooser::saveViewSettings(const QString & prefix=QString ())",
+        "method:KisGradientChooser::setCanvasResourcesInterface(KoCanvasResourcesInterfaceSP canvasResourcesInterface)",
+        "method:KisGradientChooser::setCurrentItem(int row)",
+        "method:KisGradientChooser::setCurrentResource(KoResourceSP resource)",
+        "method:KisGradientChooser::setEditOptionsVisible(bool newEditOptionsVisible)",
+        "method:KisGradientChooser::setItemSize(ItemSize newItemSize)",
+        "method:KisGradientChooser::setItemSizeCustom(int newSize)",
+        "method:KisGradientChooser::setNameLabelVisible(bool newNameLabelVisible)",
+        "method:KisGradientChooser::setViewMode(ViewMode newViewMode)",
+        "method:KisGradientChooser::slotUpdateIcons()"
+      ]
+    },
+    {
+      "target": "KisSegmentGradientSliderSchemaContractTest",
+      "source": "libs/ui/tests/KisSegmentGradientSliderSchemaContractTest.cpp",
+      "test": "KisSegmentGradientSliderSchemaContractTest::genericGradientEditorTypeAndPresentationSchemaRemainStable",
+      "behavior": "汎用勾配editorの型、既定構築と寿命、寸法・資源・主要表示状態照会の正確な公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisGenericGradientEditor",
+        "method:KisGenericGradientEditor::KisGenericGradientEditor(QWidget * parent=0)",
+        "method:KisGenericGradientEditor::canvasResourcesInterface() const",
+        "method:KisGenericGradientEditor::compactMode() const",
+        "method:KisGenericGradientEditor::event(QEvent * e)",
+        "method:KisGenericGradientEditor::gradient() const",
+        "method:KisGenericGradientEditor::isConvertGradientButtonVisible() const",
+        "method:KisGenericGradientEditor::isUpdateGradientButtonVisible() const",
+        "method:KisGenericGradientEditor::minimumSizeHint() const",
+        "method:KisGenericGradientEditor::sizeHint() const",
+        "method:KisGenericGradientEditor::~KisGenericGradientEditor()"
+      ]
+    },
+    {
+      "target": "KisSegmentGradientSliderSchemaContractTest",
+      "source": "libs/ui/tests/KisSegmentGradientSliderSchemaContractTest.cpp",
+      "test": "KisSegmentGradientSliderSchemaContractTest::genericGradientEditorConfigurationSignaturesRemainStable",
+      "behavior": "汎用勾配editorの資源、詳細表示状態、設定変更と変更通知の正確な公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisGenericGradientEditor::compactGradientEditorMode() const",
+        "method:KisGenericGradientEditor::compactGradientPresetChooserMode() const",
+        "method:KisGenericGradientEditor::isAddGradientButtonVisible() const",
+        "method:KisGenericGradientEditor::isGradientPresetChooserOptionsButtonVisible() const",
+        "method:KisGenericGradientEditor::isGradientPresetChooserVisible() const",
+        "method:KisGenericGradientEditor::loadUISettings(const QString & prefix=QString ())",
+        "method:KisGenericGradientEditor::saveUISettings(const QString & prefix=QString ())",
+        "method:KisGenericGradientEditor::setAddGradientButtonVisible(bool visible)",
+        "method:KisGenericGradientEditor::setCanvasResourcesInterface(KoCanvasResourcesInterfaceSP newCanvasResourcesInterface)",
+        "method:KisGenericGradientEditor::setCompactGradientEditorMode(bool compact)",
+        "method:KisGenericGradientEditor::setCompactGradientPresetChooserMode(bool compact)",
+        "method:KisGenericGradientEditor::setCompactMode(bool compact)",
+        "method:KisGenericGradientEditor::setConvertGradientButtonVisible(bool visible)",
+        "method:KisGenericGradientEditor::setGradient(KoAbstractGradientSP newGradient)",
+        "method:KisGenericGradientEditor::setGradientPresetChooserOptionsButtonVisible(bool visible)",
+        "method:KisGenericGradientEditor::setGradientPresetChooserVisible(bool visible)",
+        "method:KisGenericGradientEditor::setUpdateGradientButtonVisible(bool visible)",
+        "method:KisGenericGradientEditor::setUseGradientPresetChooserPopUp(bool use)",
+        "method:KisGenericGradientEditor::sigGradientChanged()",
+        "method:KisGenericGradientEditor::useGradientPresetChooserPopUp() const"
       ]
     }
   ]
