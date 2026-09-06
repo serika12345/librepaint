@@ -70,6 +70,8 @@ kis_add_test(
     KisFilterStrokeStrategySchemaContractTest.cpp
     TEST_NAME KisFilterStrokeStrategySchemaContractTest
     LINK_LIBRARIES
+        kritapaintingmovestrokejobdataobjects
+        kritaimagejobstrategyobjects
         Qt${QT_MAJOR_VERSION}::Core
         Qt${QT_MAJOR_VERSION}::Gui
         Qt${QT_MAJOR_VERSION}::Test
