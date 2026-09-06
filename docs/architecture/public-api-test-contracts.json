@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 6424
+    "expectedMissingApis": 6391
   },
   "contracts": [
     {
@@ -65695,6 +65695,84 @@
         "method:KisStrokeSelectionActionFactory::run(KisViewManager * view,const StrokeSelectionOptions & params)",
         "struct:KisStrokeBrushSelectionActionFactory",
         "struct:KisStrokeSelectionActionFactory"
+      ]
+    },
+    {
+      "target": "KisAnimUtilsSchemaContractTest",
+      "source": "plugins/dockers/animation/tests/KisAnimUtilsSchemaContractTest.cpp",
+      "test": "KisAnimUtilsSchemaContractTest::frameItemTypeAndDefaultStateRemainStable",
+      "behavior": "animation frame項目はnode・channel・時刻を持つ専用値型、既定のnull・空channel・時刻-1、一覧別名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisAnimUtils::FrameItemList",
+        "member:KisAnimUtils::FrameItem::channel",
+        "member:KisAnimUtils::FrameItem::node",
+        "member:KisAnimUtils::FrameItem::time",
+        "method:KisAnimUtils::FrameItem::FrameItem()",
+        "struct:KisAnimUtils::FrameItem"
+      ]
+    },
+    {
+      "target": "KisAnimUtilsSchemaContractTest",
+      "source": "plugins/dockers/animation/tests/KisAnimUtilsSchemaContractTest.cpp",
+      "test": "KisAnimUtilsSchemaContractTest::frameItemValueAndComparisonContractsRemainStable",
+      "behavior": "animation frame項目はnode・channel・時刻の値構築、全値による等値比較、等値間の同一hash、診断出力、および移動対別名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisAnimUtils::FrameMovePair",
+        "alias:KisAnimUtils::FrameMovePairList",
+        "function:KisAnimUtils::operator <<(QDebug dbg,const FrameItem & item)",
+        "function:KisAnimUtils::qHash(const FrameItem & item)",
+        "method:KisAnimUtils::FrameItem::FrameItem(KisNodeSP _node,const QString & _channel,int _time)",
+        "method:KisAnimUtils::FrameItem::operator ==(const FrameItem & rhs) const"
+      ]
+    },
+    {
+      "target": "KisAnimUtilsSchemaContractTest",
+      "source": "plugins/dockers/animation/tests/KisAnimUtilsSchemaContractTest.cpp",
+      "test": "KisAnimUtilsSchemaContractTest::keyframeCreationAndMoveSignaturesRemainStable",
+      "behavior": "keyframeの生成、遅延生成、一覧または移動対による移動、clone生成は全引数・返却命令型を含む公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisAnimUtils::createCloneKeyframesCommand(const FrameMovePairList & srcDstPairs,KUndo2Command * parentCommand)",
+        "function:KisAnimUtils::createKeyframeCommand(KisImageSP image,KisNodeSP node,const QString & channelId,int time,bool copy,KUndo2Command * parentCommand=0)",
+        "function:KisAnimUtils::createKeyframeLazy(KisImageSP image,KisNodeSP node,const QString & channel,int time,bool copy)",
+        "function:KisAnimUtils::createMoveKeyframesCommand(const FrameItemList & srcFrames,const FrameItemList & dstFrames,bool copy,bool moveEmpty,KUndo2Command * parentCommand=0)",
+        "function:KisAnimUtils::createMoveKeyframesCommand(const FrameMovePairList & movePairs,bool copy,bool moveEmptyFrames,KUndo2Command * parentCommand=0)"
+      ]
+    },
+    {
+      "target": "KisAnimUtilsSchemaContractTest",
+      "source": "plugins/dockers/animation/tests/KisAnimUtilsSchemaContractTest.cpp",
+      "test": "KisAnimUtilsSchemaContractTest::keyframeEditingAndQuerySignaturesRemainStable",
+      "behavior": "keyframeの単一・一覧削除、channelの単一・一覧reset、clone一意化、内容frame対応照会、安全な点整列は正確な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisAnimUtils::makeClonesUnique(KisImageSP image,const FrameItemList & frames)",
+        "function:KisAnimUtils::removeKeyframe(KisImageSP image,KisNodeSP node,const QString & channel,int time)",
+        "function:KisAnimUtils::removeKeyframes(KisImageSP image,const FrameItemList & frames)",
+        "function:KisAnimUtils::resetChannel(KisImageSP image,KisNodeSP node,const QString & channelID)",
+        "function:KisAnimUtils::resetChannels(KisImageSP image,KisNodeSP node,const QList<QString> & channelIDs)",
+        "function:KisAnimUtils::sortPointsForSafeMove(QModelIndexList * points,const QPoint & offset)",
+        "function:KisAnimUtils::supportsContentFrames(KisNodeSP node)"
+      ]
+    },
+    {
+      "target": "KisAnimUtilsSchemaContractTest",
+      "source": "plugins/dockers/animation/tests/KisAnimUtilsSchemaContractTest.cpp",
+      "test": "KisAnimUtilsSchemaContractTest::animationActionNameTypesRemainStable",
+      "behavior": "frame作成・drop、layer作成・固定・除去、opacity・変形keyframe追加・除去の操作名はconst文字列の公開型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "variable:KisAnimUtils::addOpacityKeyframeActionName",
+        "variable:KisAnimUtils::addTransformKeyframeActionName",
+        "variable:KisAnimUtils::dropFramesActionName",
+        "variable:KisAnimUtils::lazyFrameCreationActionName",
+        "variable:KisAnimUtils::newLayerActionName",
+        "variable:KisAnimUtils::pinExistingLayerActionName",
+        "variable:KisAnimUtils::removeLayerActionName",
+        "variable:KisAnimUtils::removeOpacityKeyframeActionName",
+        "variable:KisAnimUtils::removeTransformKeyframeActionName"
       ]
     }
   ]

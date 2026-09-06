@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-07 03:49 JST
+- 更新日時: 2026-09-07 03:54 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -2366,7 +2366,14 @@
 - 正式入力`build/tdd-macos/public-api-missing-g333.json`は公開header 1,548、公開API 29,804、対応済み23,380、未対応6,424、1,704,901 bytes、SHA-256 `f6ad15859f2c964604336f26daa63cb33d86a898c9ce6b269acc85512961517f`を記録する。`plugins/dockers/animation/KisAnimUtils.h`の残存全33 APIを、frame項目型・既定状態6、値構築・比較・移動別名6、keyframe生成・移動5、削除・reset・複製・対応照会・安全整列7、操作名9として5枠へ完全に割り当てる。対象識別子の整列集合SHA-256は`30ffe17b8b463b34330d3bf881c3c6c930b9acf6b7743cd705419e27294a39e9`である。
 - 開始headerの`kis_types.h`、header-only Boost、`QModelIndexList`、生成export headerは公開引数・返却型、inline値型・比較・hashに直接使われており、移動可能な未使用includeはない。既存動的`kis_animation_utils_test`はanimation docker製品群へ接続する2,011工程・4,020入力で反復対象にしない。軽量近傍`KisFrameDataSerializerSchemaContractTest`は4工程・8入力、command SHA-256 `5a407d02965d620076f23d36ee701fddd577fde4b8c4253e21a4593018952d6f`、input SHA-256 `3b9d4ab3393168ed9467e1028d6019007e0c5d608b30e780580e23e91087086c`である。
 - 新規`plugins/dockers/animation/tests/KisAnimUtilsSchemaContractTest.cpp`を作り、animation docker・image・globalのsource/generated探索路、Qt Core・Test、header-only Boost、関係export定義だけへ接続する。frame項目の既定値・値構築・比較・hashだけを値で観測し、image、node、commandを実体化せず残る関数・操作名を型で固定する。新targetは4工程・8入力を予測し、停止線を5工程・11入力とする。
-- `g333-animation-utility-schema`の状態は`planned`、実装基点は`a63a1c9e3c`である。許可pathを新規試験sourceと`plugins/dockers/animation/tests/CMakeLists.txt`の新target固有節だけに限定する。macOSの対象、近傍、追加5枠の20回反復、厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。製品static・MODULE・OBJECT・shared target、全体build・`verify`、Linux、Nix再評価は実行しない。
+- `g333-animation-utility-schema`の状態は`integrated`、実装基点は`b70e47d701`、実装commitは`f51be1f4bd`である。許可pathを新規試験sourceと`plugins/dockers/animation/tests/CMakeLists.txt`の新target固有節だけに限定し、公開headerと製品sourceを変更しなかった。macOSの対象、近傍、追加5枠の20回反復、厳格`clang-check`、書式、二回の無作業再構築、公開API検査に成功した。製品static・MODULE・OBJECT・shared target、全体build・`verify`、Linux、Nix再評価は実行していない。
+
+### 第333便の契約統合結果
+
+- 開始`plugins/dockers/animation/KisAnimUtils.h`の残存全33 APIから新規`plugins/dockers/animation/tests/KisAnimUtilsSchemaContractTest.cpp`へ、frame項目型・既定状態6、値構築・比較・移動別名6、keyframe生成・移動5、削除・reset・複製・対応照会・安全整列7、操作名9を132行・5枠で対応付けた。空node・channel・時刻による値構築、比較、hashを実行し、image、実node、commandを実体化せず残る公開関数型と操作名型を固定した。
+- 対象登録後の追加5枠は期待どおり5件失敗した。最初の契約リンクは空`KisNodeSP`の破棄が`kisSharedPtrRelease(KisNode *)`を要求して失敗し、nullだけを扱う試験協調定義を追加して製品library接続を避けた。新targetは4工程・8入力で停止線以内に収まり、command SHA-256は`c803a58160de7c7de934ccf99bc7f2cd7b55a8891ff86a41c549aa3997ee64fe`、input SHA-256は`a1c9cebe30044a986ed75cb4ac28108e7cdf944ae58e78810ab6731eb156fbb4`である。AUTOMOC header入力は空、Qt Test・Core、gettext、OS frameworkだけへ動的接続し、製品未解決記号は0である。
+- macOSで対象と軽量近傍`libs-canvas-KisFrameDataSerializerSchemaContractTest`のCTest 2/2、対象の20回反復、厳格`clang-check`、書式、二回の無作業再構築、公開API検査に成功した。2,011工程・4,020入力の既存動的animation utility試験、製品static・MODULE・OBJECT・shared target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 台帳へ33 APIを追加して23,413件対応、6,391件未対応となった。旧`public-api-missing-g333.json`は最新報告の検証後に削除し、追加作業tree・構築木は作成していない。主Ninja木5,904,528 KiB、共有compiler cache 983,204 KiB、最新`build/tdd-macos/public-api-missing-g334.json` 1,695,624 bytes、SHA-256 `ddb2bbadec50afb8827ab85d12a258e689092ccdbd7276001d1a96a0cc2c4d9c`だけを再利用対象として保持する。compiler cacheは144,090件中120,469件、83.61%がhitしている。次の永続作業は第334便で次の高密度なmacOS対象と最小構築面を選定することである。
 
 ### 第239便の先行監査担当票
 
