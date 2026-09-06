@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-07 08:18 JST
+- 更新日時: 2026-09-07 08:25 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -2679,6 +2679,12 @@
 - 開始headerは`Q_SLOTS`のためだけに重量な`QObject`、実装だけが使う`KSharedConfig`のために`ksharedconfig.h`を公開面へ含めている。`QObject`を`QtCore/qobjectdefs.h`と`QDebug`前方宣言へ置換し、`ksharedconfig.h`を`libs/application/kis_config.cc`へ移してheader閉包を縮小する。開始実装の厳格`clang-check`は診断0件で、変更後も公開API指紋と4直接利用元の診断を不変に保つ。
 - 既存`libs/application/tests/KisConfigEnumContractTest.cpp`は1,188行・60枠で分割条件を超えているため追記しない。新規`KisConfigPersistenceSchemaContractTest.cpp`を300行・20枠未満に限定する。近傍targetは4工程・15入力、command SHA-256 `a62ef0a3256fb3263ec9a52c9cc304c63d4606c27eb089d3165bfed44240d787`、input SHA-256 `9e0f4c721d6cb133bdc3619651c9d6d6322f62af8539aa8d64212854a17f9ee5`だが、新targetは製品libraryとOpenEXRを接続せず、Qt Core・Testとheader-only Boost、Qt Gui・KF Config・KF I18n・Imathのinterface探索路だけを使って4工程・8入力を目標とする。停止線を5工程・11入力とする。
 - `g353-config-persistence-schema`の状態は`in_progress`、実装基点は`a8f1473c3d`である。構造整理は`kis_config.h`と`kis_config.cc`、契約は新規試験sourceとapplication試験CMake節だけに限定する。macOSの対象、追加10枠の20回反復、開始実装・試験source・直接利用元の厳格`clang-check`、書式、二回の無作業再構築、公開API指紋不変、公開API検査、`verify-quick`だけを実行する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
+
+### 第353便の実装結果
+
+- `g353-config-persistence-schema`は`completed`である。`libs/application/kis_config.h`の`QObject`完全headerを`QtCore/qobjectdefs.h`と`QDebug`前方宣言へ置換し、実装だけが使う`ksharedconfig.h`を`libs/application/kis_config.cc`へ移した。開始実装と3直接利用元の厳格`clang-check`は診断0件で、構造変更前後の公開API報告はSHA-256 `580ba00cdac869efcab53164e34d9449df52f83caff344c8544a7a0970b31302`で同一だった。構造変更は`634d3e0445`である。
+- 新規`libs/application/tests/KisConfigPersistenceSchemaContractTest.cpp`は10枠・172行で、設定accessorの寿命・診断、vector取込、色履歴、KoColorと汎用entryの永続化、保存通知、widget・snap、session・banner、初回起動・assistant色、およびAndroid固有の入力回避策と拡大率の全44公開APIを固定する。最初の対象構築は追加10枠の未定義symbolだけで停止した。CMake targetは製品libraryを接続せず、最終閉包4工程・8入力、command SHA-256 `47aa50e8ddb23dc75cd47ecf8912872d1fabeeaa97de2788e36c901f5d4563ec`、input SHA-256 `e3673caf2a09101ec57ee5fbeb9ac4172a562f156bb1106c398bbecc3749bf97`で、動的接続はQt Core・Test、gettextとmacOS frameworkだけである。近傍targetの15入力から7入力を削減した実装は`e1f147ff3b`である。
+- macOSで対象と近傍`KisConfigEnumContractTest`のCTest、追加10枠の20回反復、開始実装・試験source・3直接利用元の厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`に成功した。Android固有12 APIの署名本体は`Q_OS_ANDROID`構成で有効になるためmacOSではslot登録までを検証し、後続のAndroid検査段階に条件付きcompileを残す。台帳へ44 APIを追加して24,494件対応、5,310件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g353.json`を削除し、主Ninja木5,919,376 KiB、共有compiler cache 1.0 GB、最新`build/tdd-macos/public-api-missing-g354.json` 1,405,980 bytes、SHA-256 `57dca70b59089bb47d5c5be4624b407b56e58f673121a37acb869662f478f3d8`だけを保持する。compiler cacheは144,193件中120,492件、83.56%がhitしている。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第354便で次の高密度なmacOS対象と最小構築面を選定することである。
 
 ### 第239便の先行監査担当票
 

@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 5354
+    "expectedMissingApis": 5310
   },
   "contracts": [
     {
@@ -67710,6 +67710,140 @@
         "method:KisToolPolylineBase::popupWidget()",
         "method:KisToolPolylineBase::requestStrokeCancellation()",
         "method:KisToolPolylineBase::requestStrokeEnd()"
+      ]
+    },
+    {
+      "target": "KisConfigPersistenceSchemaContractTest",
+      "source": "libs/application/tests/KisConfigPersistenceSchemaContractTest.cpp",
+      "test": "KisConfigPersistenceSchemaContractTest::lifetimeAndDiagnosticSchemaRemainStable",
+      "behavior": "設定accessorはread-only指定で構築・破棄でき、重要設定の記録とcanvas表示方式の診断出力を提供する公開面を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:operator <<(QDebug debug,const KisConfig::CanvasSurfaceBitDepthMode & mode)",
+        "function:operator <<(QDebug debug,const KisConfig::CanvasSurfaceMode & mode)",
+        "method:KisConfig::KisConfig(bool readOnly)",
+        "method:KisConfig::logImportantSettings() const",
+        "method:KisConfig::~KisConfig()"
+      ]
+    },
+    {
+      "target": "KisConfigPersistenceSchemaContractTest",
+      "source": "libs/application/tests/KisConfigPersistenceSchemaContractTest.cpp",
+      "test": "KisConfigPersistenceSchemaContractTest::vectorImportAndColorHistorySignaturesRemainStable",
+      "behavior": "設定accessorはvector取込解像度の取得・設定と文書別の色履歴方針を公開署名として維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisConfig::colorHistoryPerDocument(bool defaultValue=false) const",
+        "method:KisConfig::preferredVectorImportResolutionPPI(bool defaultValue=false) const",
+        "method:KisConfig::setPreferredVectorImportResolutionPPI(int value) const"
+      ]
+    },
+    {
+      "target": "KisConfigPersistenceSchemaContractTest",
+      "source": "libs/application/tests/KisConfigPersistenceSchemaContractTest.cpp",
+      "test": "KisConfigPersistenceSchemaContractTest::koColorPersistenceSignaturesRemainStable",
+      "behavior": "設定accessorは単一または複数のKoColorを名前付きentryへ読み書きする公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisConfig::readKoColor(const QString & name,const KoColor & color=KoColor ()) const",
+        "method:KisConfig::readKoColors(const QString & name) const",
+        "method:KisConfig::writeKoColor(const QString & name,const KoColor & color) const",
+        "method:KisConfig::writeKoColors(const QString & name,const QList<KoColor> & colors) const"
+      ]
+    },
+    {
+      "target": "KisConfigPersistenceSchemaContractTest",
+      "source": "libs/application/tests/KisConfigPersistenceSchemaContractTest.cpp",
+      "test": "KisConfigPersistenceSchemaContractTest::genericEntryPersistenceSignaturesRemainStable",
+      "behavior": "設定accessorは任意値と値列を名前付きentryへ読み書きし、読取時の既定値を受け取るtemplate公開面を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisConfig::readEntry(const QString & name,const T & defaultValue=T ())",
+        "method:KisConfig::readList(const QString & name,const QList<T> & defaultValue=QList<T> ())",
+        "method:KisConfig::writeEntry(const QString & name,const T & value)",
+        "method:KisConfig::writeList(const QString & name,const QList<T> & value)"
+      ]
+    },
+    {
+      "target": "KisConfigPersistenceSchemaContractTest",
+      "source": "libs/application/tests/KisConfigPersistenceSchemaContractTest.cpp",
+      "test": "KisConfigPersistenceSchemaContractTest::saveMessagePolicySignaturesRemainStable",
+      "behavior": "設定accessorは保存と自動保存の通知表示方針を取得・設定する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisConfig::forceShowAutosaveMessages(bool defaultValue=true) const",
+        "method:KisConfig::forceShowSaveMessages(bool defaultValue=true) const",
+        "method:KisConfig::setForceShowAutosaveMessages(bool ShowAutosaveMessages) const",
+        "method:KisConfig::setForceShowSaveMessages(bool value) const"
+      ]
+    },
+    {
+      "target": "KisConfigPersistenceSchemaContractTest",
+      "source": "libs/application/tests/KisConfigPersistenceSchemaContractTest.cpp",
+      "test": "KisConfigPersistenceSchemaContractTest::widgetAndSnapConfigurationSignaturesRemainStable",
+      "behavior": "設定accessorはwidget styleの取得・設定とsnap設定の読込・保存を行う公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisConfig::loadSnapConfig(KisSnapConfig * config,bool defaultValue=false) const",
+        "method:KisConfig::saveSnapConfig(const KisSnapConfig & config)",
+        "method:KisConfig::setWidgetStyle(QString name)",
+        "method:KisConfig::widgetStyle(bool defaultValue=false)"
+      ]
+    },
+    {
+      "target": "KisConfigPersistenceSchemaContractTest",
+      "source": "libs/application/tests/KisConfigPersistenceSchemaContractTest.cpp",
+      "test": "KisConfigPersistenceSchemaContractTest::sessionAndBannerPolicySignaturesRemainStable",
+      "behavior": "設定accessorは終了時session保存と開発支援banner表示の方針を取得・設定する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisConfig::hideDevFundBanner(bool defaultValue=false) const",
+        "method:KisConfig::saveSessionOnQuit(bool defaultValue) const",
+        "method:KisConfig::setHideDevFundBanner(bool value=true)",
+        "method:KisConfig::setSaveSessionOnQuit(bool value)"
+      ]
+    },
+    {
+      "target": "KisConfigPersistenceSchemaContractTest",
+      "source": "libs/application/tests/KisConfigPersistenceSchemaContractTest.cpp",
+      "test": "KisConfigPersistenceSchemaContractTest::androidInputWorkaroundSignaturesRemainStable",
+      "behavior": "Android設定accessorはPageUp・PageDown、高機能key、過去tablet eventの各入力回避策を取得・設定する条件付き公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisConfig::setUseHighFunctionKeyMouseButtonEmulationWorkaround(bool value)",
+        "method:KisConfig::setUseIgnoreHistoricTabletEventsWorkaround(bool value)",
+        "method:KisConfig::setUsePageUpDownMouseButtonEmulationWorkaround(bool value)",
+        "method:KisConfig::useHighFunctionKeyMouseButtonEmulationWorkaround(bool defaultValue=false) const",
+        "method:KisConfig::useIgnoreHistoricTabletEventsWorkaround(bool defaultValue=false) const",
+        "method:KisConfig::usePageUpDownMouseButtonEmulationWorkaround(bool defaultValue=false) const"
+      ]
+    },
+    {
+      "target": "KisConfigPersistenceSchemaContractTest",
+      "source": "libs/application/tests/KisConfigPersistenceSchemaContractTest.cpp",
+      "test": "KisConfigPersistenceSchemaContractTest::androidScalingSignaturesRemainStable",
+      "behavior": "Android設定accessorは直前と目標の拡大率、および起動時確認方針を取得・設定する条件付き公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisConfig::androidScalingAskOnStartup(bool defaultValue=false) const",
+        "method:KisConfig::androidScalingLastInitialScale(bool defaultValue=false) const",
+        "method:KisConfig::androidScalingTargetScale(bool defaultValue=false) const",
+        "method:KisConfig::setAndroidScalingAskOnStartup(bool value)",
+        "method:KisConfig::setAndroidScalingLastInitialScale(qreal value)",
+        "method:KisConfig::setAndroidScalingTargetScale(qreal value)"
+      ]
+    },
+    {
+      "target": "KisConfigPersistenceSchemaContractTest",
+      "source": "libs/application/tests/KisConfigPersistenceSchemaContractTest.cpp",
+      "test": "KisConfigPersistenceSchemaContractTest::firstRunAndAssistantColorSignaturesRemainStable",
+      "behavior": "設定accessorは初回起動状態とassistant既定色を取得・設定する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisConfig::defaultAssistantsColor(bool defaultValue=false) const",
+        "method:KisConfig::firstRun(bool defaultValue=false) const",
+        "method:KisConfig::setDefaultAssistantsColor(const QColor & color) const",
+        "method:KisConfig::setFirstRun(const bool firstRun) const"
       ]
     }
   ]
