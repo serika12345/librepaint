@@ -8,16 +8,15 @@
 #define KIS_CANVAS_CONTROLLER_H
 
 #include <KoCanvasControllerWidget.h>
-#include <libs/flake/KoCanvasSupervisor.h>
 
 #include "kritaui_export.h"
-#include "kis_types.h"
 #include "KisWraparoundAxis.h"
 
 class KisCanvasState;
-class KConfigGroup;
+class KisKActionCollection;
+class KisPropertiesConfiguration;
+class KoCanvasSupervisor;
 class KisView;
-class KisCanvasState;
 
 
 class KRITAUI_EXPORT KisCanvasController : public KoCanvasControllerWidget

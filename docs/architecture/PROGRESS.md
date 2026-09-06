@@ -2510,7 +2510,8 @@
 - 開始headerは参照だけの`KisPropertiesConfiguration`のために画像共有pointer一覧`kis_types.h`を読み、構築時の借用pointerだけの`KoCanvasSupervisor`に完全定義を要求し、17直接利用翻訳単位へ波及させている。開始`libs/ui/canvas/kis_canvas_controller.h`から`kis_types.h`と`libs/flake/KoCanvasSupervisor.h`を除き、`KisPropertiesConfiguration`・`KoCanvasSupervisor`・`KisKActionCollection`を直接前方宣言する。開始実装の変更前厳格`clang-check`は既存Qt 6非推奨`QTabletEvent::pos()` 1件だけで停止し、今回の依存整理判定と区別する。
 
 - 既存`libs/ui/tests/KisCanvas2SchemaContractTest.cpp`は201行・5枠で、追加5枠後も300行・20枠未満に収まる。同targetはCMake変更なしで4工程・8入力を維持し、製品libraryへ接続しない。新targetはCMakeと生成物を増やすため棄却し、停止線を5工程・11入力、300行・20枠とする。
-- `g342-canvas-controller-schema`の状態は`planned`、実装基点は`d9d83c1bd3`である。構造整理は開始headerと実利用が顕在化した直接利用元だけ、契約は既存試験sourceの追加5枠だけに限定する。macOSの対象、追加5枠の20回反復、開始実装・試験source・直接利用元の厳格`clang-check`、書式、二回の無作業再構築、公開API指紋不変、公開API検査、`verify-quick`だけを実行する。CMake、製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
+- `g342-canvas-controller-schema`の状態は`in_progress`、実装基点は`d9d83c1bd3`である。構造整理は開始headerと実利用が顕在化した直接利用元だけ、契約は既存試験sourceの追加5枠だけに限定する。macOSの対象、追加5枠の20回反復、開始実装・試験source・直接利用元の厳格`clang-check`、書式、二回の無作業再構築、公開API指紋不変、公開API検査、`verify-quick`だけを実行する。CMake、製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
+- 構造整理後の公開API報告は変更前後で同一SHA-256 `6a520657798c6f462a237d43254c2ebe73bd2c8a14f90bad769801a7bbf46a55`を維持した。17直接利用元のうち5翻訳単位は厳格構文検査に成功し、残る12件は既存Qt 6非推奨診断10件、生成UI欠落1件、既存探索路診断1件だけで、今回由来の不完全型または未宣言型は0件である。
 
 ### 第239便の先行監査担当票
 
