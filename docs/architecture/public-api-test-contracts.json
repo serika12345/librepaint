@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 6749
+    "expectedMissingApis": 6734
   },
   "contracts": [
     {
@@ -64740,6 +64740,66 @@
       "apis": [
         "class:KisBrushTypeMetaDataFixup",
         "method:KisBrushTypeMetaDataFixup::executeFix()"
+      ]
+    },
+    {
+      "target": "KisBrushRegistrySchemaContractTest",
+      "source": "libs/brush/tests/KisBrushRegistrySchemaContractTest.cpp",
+      "test": "KisBrushRegistrySchemaContractTest::registryTypeLifetimeAndSingletonSchemaRemainStable",
+      "behavior": "brush登録表は専用型、既定構築、多相破棄、および共有singletonへの公開入口を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisBrushRegistry",
+        "method:KisBrushRegistry::KisBrushRegistry()",
+        "method:KisBrushRegistry::instance()",
+        "method:KisBrushRegistry::~KisBrushRegistry()"
+      ]
+    },
+    {
+      "target": "KisBrushRegistrySchemaContractTest",
+      "source": "libs/brush/tests/KisBrushRegistrySchemaContractTest.cpp",
+      "test": "KisBrushRegistrySchemaContractTest::registryLoaderRegistrationSchemaRemainsStable",
+      "behavior": "brush登録表は資源loaderと資源cache補正器を指定されたloader登録表へ登録する公開入口を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisBrushRegistry::registerResourceCacheFixup(KisResourceLoaderRegistry & registry)",
+        "method:KisBrushRegistry::registerResourceLoaders(KisResourceLoaderRegistry & registry)"
+      ]
+    },
+    {
+      "target": "KisBrushRegistrySchemaContractTest",
+      "source": "libs/brush/tests/KisBrushRegistrySchemaContractTest.cpp",
+      "test": "KisBrushRegistrySchemaContractTest::registryBrushCreationSchemaRemainsStable",
+      "behavior": "brush登録表はXMLまたはbrush模型から資源interfaceを用いてbrushを生成する正確な公開関数型を提供する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisBrushRegistry::createBrush(const KisBrushModel::BrushData & data,KisResourcesInterfaceSP resourcesInterface)",
+        "method:KisBrushRegistry::createBrush(const QDomElement & element,KisResourcesInterfaceSP resourcesInterface)"
+      ]
+    },
+    {
+      "target": "KisBrushRegistrySchemaContractTest",
+      "source": "libs/brush/tests/KisBrushRegistrySchemaContractTest.cpp",
+      "test": "KisBrushRegistrySchemaContractTest::registryModelAndSerializationSchemaRemainStable",
+      "behavior": "brush登録表はXMLからbrush模型を復元し、brush模型をXMLへ書き出す正確な公開関数型を提供する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisBrushRegistry::createBrushModel(const QDomElement & element,KisResourcesInterfaceSP resourcesInterface)",
+        "method:KisBrushRegistry::toXML(QDomDocument & doc,QDomElement & element,const KisBrushModel::BrushData & model)"
+      ]
+    },
+    {
+      "target": "KisBrushRegistrySchemaContractTest",
+      "source": "libs/brush/tests/KisBrushRegistrySchemaContractTest.cpp",
+      "test": "KisBrushRegistrySchemaContractTest::serverProviderSchemaRemainsStable",
+      "behavior": "brush資源server提供者は専用型、既定構築、多相破棄、共有singleton、およびbrush server照会の公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisBrushServerProvider",
+        "method:KisBrushServerProvider::KisBrushServerProvider()",
+        "method:KisBrushServerProvider::brushServer()",
+        "method:KisBrushServerProvider::instance()",
+        "method:KisBrushServerProvider::~KisBrushServerProvider()"
       ]
     }
   ]

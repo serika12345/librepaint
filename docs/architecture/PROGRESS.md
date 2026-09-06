@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-07 00:58 JST
+- 更新日時: 2026-09-07 01:02 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -2129,7 +2129,14 @@
 
 - 正式入力`build/tdd-macos/public-api-missing-g316.json`は公開header 1,548、公開API 29,804、対応済み23,055、未対応6,749、1,793,252 bytes、SHA-256 `a7f78eb717c48b381f28fbec8265959d231c1587ea42440788718cf089a301b7`を記録する。`libs/brush/kis_brush_registry.h`の残存全10 APIと`libs/brush/KisBrushServerProvider.h`の残存全5 APIは重複なく、合計15識別子の整列集合SHA-256は`4b7497186671c6d3074f4c18c928a5d81c12d827d93eaa606dece1b1a16b78f0`である。brush登録表の型・寿命・singleton 4、資源loader登録2、brush生成2、模型復元・直列化2、brush server提供者の型・寿命・singleton 4とserver照会1の5枠へ完全に割り当てる。
 - `KisBrushServerProvider.h`が含む`KoResourceServer.h`はQt Widgets・KF Config・資源modelを参照するが、同型を扱う軽量`KoResourceSelectionSchemaContractTest`はそれらのinterface探索路だけを使い4工程・8入力で固定している。新規`libs/brush/tests/KisBrushRegistrySchemaContractTest.cpp`を作り、brush・global・image・brushengine・pigment・resources探索路、Qt Core・Gui・Test、header-only Boost・lager、KF ConfigCore・I18n、Imath、Qt Widgets・Xmlのinterface探索路、brush・global・pigment・resources export定義だけへ接続する。近傍のcommand SHA-256は`6fe620c840cdb53464c4b74901d17ee27cac57f50086f22916984b6a824f31f4`、input SHA-256は`0c4ddf41923a35e8587324d52d0bb26d2efd6c7618ae395291125243083d364f`である。新targetも4工程・8入力を予測し、停止線を5工程・11入力とする。
-- `g316-brush-registry-schema`の状態は`planned`、実装基点は`12f407b8d3`である。許可pathを新規試験sourceと`libs/brush/tests/CMakeLists.txt`の新target固有節だけに限定し、公開headerと製品sourceを変更しない。登録表、生成器、brush、資源server、資源model、XMLを実体化せず、inline本文とtemplate本文を実行しない。macOSの対象、近傍、追加5枠の20回反復、厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
+- `g316-brush-registry-schema`の状態は`integrated`、実装基点は`12f407b8d3`である。許可pathを新規試験sourceと`libs/brush/tests/CMakeLists.txt`の新target固有節だけに限定し、公開headerと製品sourceを変更しなかった。追加作業treeを作らず主作業treeで限定周期を実行し、実装commit `76e445f70c`として取り込んだ。
+
+### 第316便の契約統合結果
+
+- 開始`libs/brush/kis_brush_registry.h`と`libs/brush/KisBrushServerProvider.h`から新規`libs/brush/tests/KisBrushRegistrySchemaContractTest.cpp`へ残存全10・5 APIを対応付けた。brush登録表の型・構築・多相破棄・singleton、資源loader登録、XML・模型からのbrush生成、模型復元・直列化、およびbrush server提供者の型・構築・多相破棄・singleton・server照会を5枠で固定した。新規試験sourceは78行・5枠である。
+- 対象未登録の初回限定構築は未知の対象、登録後の宣言だけの5枠は期待どおり5件失敗した。Qt Widgets・KF Config・Imath・Qt Xmlはinterface探索路に留め、製品libraryを接続しなかった。新targetは4工程・8入力で停止線以内に収まり、command SHA-256は`480e3eafd6c782e4aa1156597dd2d259b4bcc7aa37b84ceb8ada6eddca540261`、input SHA-256は`48d65872fdb8102bc87ddbca08eac202efdf269cee344f901178267ee2eab2f8`である。候補headerのAUTOMOC `HEADERS`は空で、Qt Gui・Test・Core、gettext、OS frameworkだけへ動的接続し、製品未解決記号は0である。
+- macOSで対象と同型近傍`libs-widgets-KoResourceSelectionSchemaContractTest`のCTest 2/2、対象の20回反復、厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`に成功した。登録表、生成器、brush、資源server、資源model、XMLを実体化せず、inline本文とtemplate本文を実行していない。実登録順、生成結果、singleton寿命、資源server内容は既存または後続の効果契約で扱う。
+- 台帳へ15 APIを追加して23,070件対応、6,734件未対応、両対象headerの残存0件となった。旧`public-api-missing-g316.json`を削除し、追加作業tree・構築木は作成していない。主Ninja木5,879,732 KiB、共有compiler cache 982,572 KiB、最新`build/tdd-macos/public-api-missing-g317.json` 1,789,309 bytes、SHA-256 `f6ab68d462c8a1b11f0e67d344c34edd40eb9d17f2646f350b7bc61d1a028843`だけを再利用対象として保持する。compiler cacheは144,032件中120,466件、83.64%がhitしている。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第317便の正式不足報告から、全APIを最小閉包で固定できる責務を再選定することである。
 
 ### 第239便の先行監査担当票
 
