@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 6734
+    "expectedMissingApis": 6722
   },
   "contracts": [
     {
@@ -64800,6 +64800,54 @@
         "method:KisBrushServerProvider::brushServer()",
         "method:KisBrushServerProvider::instance()",
         "method:KisBrushServerProvider::~KisBrushServerProvider()"
+      ]
+    },
+    {
+      "target": "KisBrushGeometrySchemaContractTest",
+      "source": "libs/brush/tests/KisBrushGeometrySchemaContractTest.cpp",
+      "test": "KisBrushGeometrySchemaContractTest::boundaryTypeAndLifetimeSchemaRemainStable",
+      "behavior": "brush境界は専用型として固定描画装置から構築でき、明示的な破棄可能性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisBoundary",
+        "method:KisBoundary::KisBoundary(KisFixedPaintDeviceSP dev)",
+        "method:KisBoundary::~KisBoundary()"
+      ]
+    },
+    {
+      "target": "KisBrushGeometrySchemaContractTest",
+      "source": "libs/brush/tests/KisBrushGeometrySchemaContractTest.cpp",
+      "test": "KisBrushGeometrySchemaContractTest::boundaryGenerationAndRenderingSchemaRemainStable",
+      "behavior": "brush境界は輪郭を生成し、描画器へ描き、保持した輪郭pathを返す正確な公開関数型を提供する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisBoundary::generateBoundary()",
+        "method:KisBoundary::paint(QPainter & painter) const",
+        "method:KisBoundary::path() const"
+      ]
+    },
+    {
+      "target": "KisBrushGeometrySchemaContractTest",
+      "source": "libs/brush/tests/KisBrushGeometrySchemaContractTest.cpp",
+      "test": "KisBrushGeometrySchemaContractTest::scalingBrushConstructionSchemaRemainsStable",
+      "behavior": "拡縮brushは専用抽象型として、既定・filename・複写の各公開コンストラクタを具象派生型へ継承可能に保つ。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisScalingSizeBrush",
+        "method:KisScalingSizeBrush::KisScalingSizeBrush()",
+        "method:KisScalingSizeBrush::KisScalingSizeBrush(const KisScalingSizeBrush & rhs)",
+        "method:KisScalingSizeBrush::KisScalingSizeBrush(const QString & filename)"
+      ]
+    },
+    {
+      "target": "KisBrushGeometrySchemaContractTest",
+      "source": "libs/brush/tests/KisBrushGeometrySchemaContractTest.cpp",
+      "test": "KisBrushGeometrySchemaContractTest::scalingBrushEffectiveSizeSchemaRemainsStable",
+      "behavior": "拡縮brushは利用者向け実効寸法の照会と設定を正確な公開関数型で提供する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisScalingSizeBrush::setUserEffectiveSize(qreal value)",
+        "method:KisScalingSizeBrush::userEffectiveSize() const"
       ]
     }
   ]
