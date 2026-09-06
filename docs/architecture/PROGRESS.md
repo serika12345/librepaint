@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-07 03:24 JST
+- 更新日時: 2026-09-07 03:28 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -2330,6 +2330,13 @@
 - 対象登録後の追加4枠は期待どおり4件失敗し、契約実装後に成功した。新targetは4工程・8入力で停止線以内に収まり、command SHA-256は`ae336d36fcbaf018bd5915f17b68e15fda6a3c79e2abf413ed219c8d47800dfc`、input SHA-256は`7c06d960556c1f15e7b02a365143fc45542bf452b88a46c6bee474b4e26945fb`である。AUTOMOC header入力は空、Qt Gui・Test・Core、gettext、OS frameworkだけへ動的接続し、製品未解決記号は0である。
 - macOSで対象と軽量近傍`libs-image-KisPropertiesConfigurationSchemaContractTest`のCTest 2/2、対象の20回反復、厳格`clang-check`、書式、二回の無作業再構築、公開API検査に成功した。2,027工程・4,051入力の既存動的作業空間永続化試験、製品OBJECT・shared target、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 台帳へ13 APIを追加して23,268件対応、6,536件未対応となり、macOSで観測可能な`libs/canvas`の残存は0件になった。旧`public-api-missing-g330.json`は最新報告の検証後に削除し、追加作業tree・構築木は作成していない。主Ninja木5,899,696 KiB、共有compiler cache 981,760 KiB、最新`build/tdd-macos/public-api-missing-g331.json` 1,734,675 bytes、SHA-256 `1ce922953f3d2956cd8fc9c5fb2055357ba6b6d40f4e393f326f496bf90c66e7`だけを再利用対象として保持する。compiler cacheは144,080件中120,469件、83.61%がhitしている。次の永続作業は第331便で次の高密度なmacOS対象と最小構築面を選定することである。
+
+### 第331便の監査結果と実装計画
+
+- 正式入力`build/tdd-macos/public-api-missing-g331.json`は公開header 1,548、公開API 29,804、対応済み23,268、未対応6,536、1,734,675 bytes、SHA-256 `1ce922953f3d2956cd8fc9c5fb2055357ba6b6d40f4e393f326f496bf90c66e7`を記録する。`libs/ui/resources/kis_derived_resources.h`の残存全60 APIを、preset更新仲介4、合成・実効合成・opacity変換12、flow・fade・scatter・size変換16、brush回転・pattern寸法・brush名変換12、LOD可用性・閾値・閾値対応・消去mode変換16として5枠へ完全に割り当てる。対象識別子の整列集合SHA-256は`b1afef2acbf1ae86af1e693789822631fc552866fa794a7be2202dcc8ba4d234`である。
+- 開始headerは二つの基底型とprivateな`QScopedPointer`を直接使用しており、公開宣言閉包をさらに狭める未使用includeはない。既存動的`kis_derived_resources_test`は製品群へ接続する2,027工程・4,051入力で反復対象にしない。基底登録を観測する軽量近傍`KoResourceManagerSchemaContractTest`は4工程・8入力、command SHA-256 `5463348520852589351b82761c718cae14fe362d5db4fb7cd253237d60d7217c`、input SHA-256 `f21067efebfbb2d1cc15ff89c84348c948b469912e4d5de3ae44803e88461645`である。
+- 新規`libs/ui/tests/KisDerivedResourcesSchemaContractTest.cpp`を作り、UI・flakeのsource/generated探索路、Qt Core・Test、`kritaflake_EXPORTS`だけへ接続する。型特性と関数pointerだけを使い、更新仲介、変換器、`QVariant`を実体化しない。新targetは4工程・8入力を予測し、停止線を5工程・11入力とする。
+- `g331-derived-resources-schema`の状態は`planned`、実装基点は`5a7d0555c5`である。許可pathを新規試験sourceと`libs/ui/tests/CMakeLists.txt`の新target固有節だけに限定する。macOSの対象、近傍、追加5枠の20回反復、厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。製品OBJECT・shared target、全体build・`verify`、Linux、Nix再評価は実行しない。
 
 ### 第239便の先行監査担当票
 
