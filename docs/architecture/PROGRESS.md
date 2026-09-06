@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-06 14:22 JST
+- 更新日時: 2026-09-06 14:30 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1580,9 +1580,10 @@
 
 - `libs/ui/opengl/KisScreenInformationAdapter.h`の残存全19 APIは一意かつ台帳と非重複で、識別子整列集合SHA-256 `e9839c7af65f9f3e64c38903285404e8cc4a5d7cde89f8116f06767b763081f5`を持つ。adapter型・構築・寿命3、画面情報型・画面・bit深度・色空間4、RGB原色・白色点4、輝度3・妥当性1、adapter妥当性・診断・画面照会・診断表現4の5枠へ完全に割り当てる。既定値、field独立性、画面pointerによる妥当性、macOSの未対応診断経路、無効情報の表示を動的に固定する。
 - 最寄りの`libs/ui/tests/KisOpenGLRendererConfigContractTest.cpp`は5工程・12入力、command SHA-256 `59d6ab78e41eaec3eb0b6fca1693481452016b0387916555b671d8c6851f9b99`、input SHA-256 `570be7c8748914990ae337c311e985fff6c2f39cbc98c9d081089df7d7ac07ea`である。現状の実装所有者`kritaapplicationui`は1,974工程・3,948入力、command SHA-256 `c391b5151db12ebcd70da8c64aa8fd587dd04bc58bb3a7ef07cd69b8c3a0d3ac`、input SHA-256 `efe0d73147c08a8bc3cdb0565c0fa0b067885c1d7b2b493e1b86519601c1c323`であり、製品libraryを契約へ接続する案を棄却する。
-- `g278a-screen-information-build-boundary`の状態は`planned`、実装基点は`21d22b3957`である。開始`libs/ui/CMakeLists.txt`の`kritaui_LIB_SRCS`が直接所有する`opengl/KisScreenInformationAdapter.cpp`を、新規AUTOMOC不要・位置独立`kritauiscreeninformationobjects`へ移し、製品`kritaapplicationui`は同objectを1回だけ再集約する。公開header、ABI、実装本文、利用元を変更せず、ui・application・canvas・rootのsource・binary探索路、2 export定義、Qt Gui・header-only Boostだけを直接宣言する。WindowsではsourceのQt Gui private探索路とDXGI接続も新objectへ移し、製品の既存DXGI接続を維持する。
-- 新objectは1工程・3入力を予測し、停止線を2工程・5入力とする。製品計画の増分はobject境界の1工程・2入力までに限定し、製品を構築しない。object単独構築、二回目計画、無作業再構築、厳格構文、製品へのcompile・再集約各1回、既存`KisOpenGLRendererConfigContractTest`、公開API検査、`verify-quick`を完了条件とする。追加製品library、AUTOMOC、Qt Widgets・Network・Xml、UI生成物、許可path外変更、3工程・6入力以上が必要なら停止する。
-- 構造整理後は新規`libs/ui/tests/KisScreenInformationAdapterContractTest.cpp`と同target固有の`libs/ui/tests/CMakeLists.txt`節だけへ19 API・5枠を追加し、新objectを直接接続する。契約targetは5工程・11入力、停止線6工程・14入力、試験側AUTOMOC `HEADERS=[]`、製品非接続を予測する。
+- `g278a-screen-information-build-boundary`の状態は`integrated`、実装基点は`6dee809e56`である。開始`libs/ui/CMakeLists.txt`の`kritaui_LIB_SRCS`が直接所有していた`opengl/KisScreenInformationAdapter.cpp`を、新規AUTOMOC不要・位置独立`kritauiscreeninformationobjects`へ移し、製品`kritaapplicationui`へ同objectを1回だけ再集約した。公開header、ABI、実装本文、利用元を変更せず、WindowsのQt Gui private探索路とDXGI接続も新objectへ移した。受渡しcommit `182b693caa`を中央commit `4b9649595b`として取り込んだ。
+- 新objectは担当側と中央で予測どおり1工程・3入力となり、担当側command SHA-256 `53adb9ed413683e1140f4bcdbedf90955c1bd13008dec950cf7ca1781c8cb260`、input SHA-256 `2510c763d97ac9bd3bd212efb95cf53c01e6fd134fb6cd1a27eab8b32a00be7c`、中央command SHA-256 `469aa6992f4575dfffafffe1bb3725a57860cb360a38500fab328efcb57097a1`、input SHA-256 `c494ce4cf8aa3c3bcf47b6d257d3e0c061bed8c607acb94130cd8279d69afd60`である。製品計画は1,974工程・3,948入力のまま、実装compileとobject再集約各1回を維持した。製品本体は構築していない。
+- 担当側と中央でobject単独構築、厳格構文、二回の無作業再構築、既存`KisOpenGLRendererConfigContractTest`、公開API検査、`verify-quick`に成功した。受渡し差分と中央差分のpatch ID一致、専用作業treeのcleanを確認し、304,348 KiBの構築木を含む895,456 KiBの作業treeとbranchを削除した。主Ninja木5,821,120 KiB、共有compiler cache 982,616 KiBを保持し、cacheは143,682件中120,336件、83.75%がhitしている。
+- 続く`g278-screen-information-contract`の状態は`planned`、実装基点は`4b9649595b`である。新規`libs/ui/tests/KisScreenInformationAdapterContractTest.cpp`と同target固有の`libs/ui/tests/CMakeLists.txt`節だけへ19 API・5枠を追加し、新objectを直接接続する。契約targetは5工程・11入力、停止線6工程・14入力、試験側AUTOMOC `HEADERS=[]`、製品非接続を予測する。追加5枠の各20回反復、対象と近傍`KisOpenGLRendererConfigContractTest`、厳格構文、無作業再構築、動的接続・未解決記号、公開API検査、`verify-quick`を完了条件とする。
 
 ### 第239便の先行監査担当票
 
