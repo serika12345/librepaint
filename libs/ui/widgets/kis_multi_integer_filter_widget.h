@@ -9,11 +9,8 @@
 
 #include <kis_config_widget.h>
 #include "kritaui_export.h"
-#include <kis_debug.h>
 #include <QVector>
-#include <QSpinBox>
 #include "kis_slider_spin_box.h"
-#include "kis_int_parse_spin_box.h"
 #include "KoAspectButton.h"
 
 #include <vector>

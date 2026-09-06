@@ -9,12 +9,9 @@
 
 #include <vector>
 
-#include <QDoubleSpinBox>
-
 #include <kis_config_widget.h>
 #include "kritaui_export.h"
 #include "kis_slider_spin_box.h"
-#include "kis_double_parse_spin_box.h"
 
 class KisDelayedActionDoubleInput : public KisDoubleSliderSpinBox
 {
