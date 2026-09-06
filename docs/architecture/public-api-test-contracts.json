@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 6953
+    "expectedMissingApis": 6921
   },
   "contracts": [
     {
@@ -44694,6 +44694,83 @@
         "method:psd_layer_effects_shadow_base::gradientLink() const",
         "method:psd_layer_effects_shadow_base::setContourLookupTable(const quint8 * value)",
         "method:psd_layer_effects_shadow_base::setGradient(KoAbstractGradientSP value)"
+      ]
+    },
+    {
+      "target": "KisAbrBrushSchemaContractTest",
+      "source": "libs/brush/tests/KisAbrBrushSchemaContractTest.cpp",
+      "test": "KisAbrBrushSchemaContractTest::brushTypeAndConstructionSchemaRemainStable",
+      "behavior": "ABR brushは画像maskとbrushの共有pointer別名、brush型、親collectionを伴うfilename・複写構築、および代入禁止を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisAbrBrushSP",
+        "alias:KisQImagemaskSP",
+        "class:KisAbrBrush",
+        "method:KisAbrBrush::KisAbrBrush(const KisAbrBrush & rhs)",
+        "method:KisAbrBrush::KisAbrBrush(const KisAbrBrush & rhs,KisAbrBrushCollection * parent)",
+        "method:KisAbrBrush::KisAbrBrush(const QString & filename,KisAbrBrushCollection * parent)",
+        "method:KisAbrBrush::operator =(const KisAbrBrush & rhs)"
+      ]
+    },
+    {
+      "target": "KisAbrBrushSchemaContractTest",
+      "source": "libs/brush/tests/KisAbrBrushSchemaContractTest.cpp",
+      "test": "KisAbrBrushSchemaContractTest::brushResourceIoSchemaRemainsStable",
+      "behavior": "ABR brushは複製、直列化能力、装置からの読込・保存、およびbrush資源種別を正確な公開関数型で提供する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAbrBrush::clone() const",
+        "method:KisAbrBrush::isSerializable() const",
+        "method:KisAbrBrush::loadFromDevice(QIODevice * dev,KisResourcesInterfaceSP resourcesInterface)",
+        "method:KisAbrBrush::resourceType() const",
+        "method:KisAbrBrush::saveToDevice(QIODevice * dev) const"
+      ]
+    },
+    {
+      "target": "KisAbrBrushSchemaContractTest",
+      "source": "libs/brush/tests/KisAbrBrushSchemaContractTest.cpp",
+      "test": "KisAbrBrushSchemaContractTest::brushImageAndSerializationSchemaRemainStable",
+      "behavior": "ABR brushは既定拡張子、tip画像の取得・設定、およびXMLへの書出しを正確な公開関数型で提供する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAbrBrush::brushTipImage() const",
+        "method:KisAbrBrush::defaultFileExtension() const",
+        "method:KisAbrBrush::setBrushTipImage(const QImage & image)",
+        "method:KisAbrBrush::toXML(QDomDocument & d,QDomElement & e) const"
+      ]
+    },
+    {
+      "target": "KisAbrBrushSchemaContractTest",
+      "source": "libs/brush/tests/KisAbrBrushSchemaContractTest.cpp",
+      "test": "KisAbrBrushSchemaContractTest::collectionTypeAndIoSchemaRemainStable",
+      "behavior": "ABR collectionは共有pointer別名と値寿命を持ち、filename構築、file・装置の読込と保存、および読込状態照会を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisAbrBrushCollectionSP",
+        "class:KisAbrBrushCollection",
+        "method:KisAbrBrushCollection::KisAbrBrushCollection(const QString & filename)",
+        "method:KisAbrBrushCollection::isLoaded() const",
+        "method:KisAbrBrushCollection::load()",
+        "method:KisAbrBrushCollection::loadFromDevice(QIODevice * dev)",
+        "method:KisAbrBrushCollection::save()",
+        "method:KisAbrBrushCollection::saveToDevice(QIODevice * dev) const",
+        "method:KisAbrBrushCollection::~KisAbrBrushCollection()"
+      ]
+    },
+    {
+      "target": "KisAbrBrushSchemaContractTest",
+      "source": "libs/brush/tests/KisAbrBrushSchemaContractTest.cpp",
+      "test": "KisAbrBrushSchemaContractTest::collectionContentAndMetadataSchemaRemainStable",
+      "behavior": "ABR collectionはpreview、拡張子、brush一覧・map・名前検索、最終更新時刻、およびfilenameをconst照会として公開する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAbrBrushCollection::brushByName(QString name) const",
+        "method:KisAbrBrushCollection::brushes() const",
+        "method:KisAbrBrushCollection::brushesMap() const",
+        "method:KisAbrBrushCollection::defaultFileExtension() const",
+        "method:KisAbrBrushCollection::filename() const",
+        "method:KisAbrBrushCollection::image() const",
+        "method:KisAbrBrushCollection::lastModified() const"
       ]
     },
     {
