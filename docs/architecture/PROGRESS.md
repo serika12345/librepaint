@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-06 19:25 JST
+- 更新日時: 2026-09-06 19:28 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1786,6 +1786,12 @@
 - target不存在と、宣言だけの追加4枠が未定義symbolとなる期待失敗を順に記録した。対象は担当側・中央とも計画どおり4工程・8入力である。担当側command SHA-256は`65e0fa927969a56b1c621dc770946abc3ba6ed7aca8ab5d5fa25df96a80d5924`、input SHA-256は`8c8ba111b2b47e3d7183887431de02f2b857bab01e12a3492c4930d8e1439996`、中央command SHA-256は`39e933b54a0ffe02cf936c16b275d21b8405564d01bc72905b67810042f52ef3`、input SHA-256は`c9add6423344ddb3fa43d2492a02ab6ef3284f0438fed3ee2dd2e2d81c31fec8`である。候補headerはAUTOMOC入力外で、Qt Test・Core、gettext、OS frameworkだけへ動的接続し、製品未解決記号は0である。
 - 担当側と中央のmacOSで追加4枠を各20回、対象CTest `libs-image-KisImageProjectionAndResolutionCommandsSchemaContractTest`、近傍`libs-image-KisCrossDeviceColorSamplerSchemaContractTest`、厳格`clang-check`、書式、二回目計画と二回の無作業再構築に成功した。中央の公開API検査では標準整形が長い試験class修飾名を改行して関数照合から外したため、targetとsource名を維持したまま試験classを`KisImagePropertyCommandsSchemaContractTest`へ短縮し、再構築、対象CTest、追加4枠の各20回、厳格検査、公開API検査に成功した。台帳へ16 APIを追加して22,593件対応、7,211件未対応、対象2 headerの残存0件となった。
 - cleanな専用作業tree、312,160 KiBの構築木、branchを統合直後に削除し、作業tree全体903,468 KiBを回収した。旧`public-api-missing-g289.json` 1,919,796 bytesを削除し、主Ninja木5,855,368 KiB、共有compiler cache 982,532 KiB、最新`build/tdd-macos/public-api-missing-g290.json` 1,915,437 bytes、SHA-256 `97d71c06363f8ea628774bef3da141a82fb05f857be74d8e58eb03e2e244cd70`だけを再利用対象として保持する。compiler cacheは143,874件中120,423件、83.70%がhitしている。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第290便の正式不足報告から、全APIを最小閉包で固定できる責務を再選定することである。
+
+### 第290便の監査結果と実装計画
+
+- 正式入力`build/tdd-macos/public-api-missing-g290.json`は公開header 1,548、公開API 29,804、対応済み22,593、未対応7,211、1,915,437 bytes、SHA-256 `97d71c06363f8ea628774bef3da141a82fb05f857be74d8e58eb03e2e244cd70`を記録する。`libs/image/KisAnimAutoKey.h`の残存全12 APIは重複なく、識別子整列集合SHA-256は`ea0aa2af0ff200e898a01e19b3bcc9113edce2033d1094dd59bf115c93b03dbb`である。自動keyframe mode・flag 9、mode取得・試験設定2、自動複製frame生成1の3枠へ完全に割り当て、列挙値、flag型、関数署名、生成flagの既定値を固定する。
+- 既存`libs/image/tests/KisAnimationTimeCommandsSchemaContractTest.cpp`は77行・3枠であり、追加後も200行・10枠未満に収まる。同じanimation時刻・keyframe状態遷移の責務として3枠を追加し、CMakeを変更せず、4工程・8入力、command SHA-256 `6aeab532f45bc71d80542cb2d3705ac589b698f567c094a00d439169618b562c`、input SHA-256 `f978f51f4e306330beae70bb5c3785d23e4e0c52f78961ba8dd351c80a449128`を維持する。別targetは同じ閉包にCMake再構成と生成物を追加するため棄却する。製品`kritaimage`の1,197工程・2,418入力を避け、paint deviceとcommandを実体化せず、公開関数本文を実行しない。
+- `g290-animation-auto-key-schema`の状態は`planned`、実装基点は`341680e22a`である。許可pathを既存`libs/image/tests/KisAnimationTimeCommandsSchemaContractTest.cpp`だけに限定する。一つの専用worktree-local `build/tdd-macos`を使い、宣言段階の期待失敗、追加3枠の単発と各20回反復、対象と近傍CTest、厳格`clang-check`、書式、AUTOMOC入力、動的接続、製品未解決記号、二回目計画、二回の無作業再構築、公開API検査、`verify-quick`をmacOSで確認する。許可pathだけの受渡しcommitを認め、公開header、CMake、製品source、製品target、全体build・`verify`、Linux、Nix再評価、追加委任は対象外とする。
 
 ### 第239便の先行監査担当票
 
