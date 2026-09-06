@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 6712
+    "expectedMissingApis": 6693
   },
   "contracts": [
     {
@@ -64921,6 +64921,70 @@
       "apis": [
         "method:KoDocumentInfoDlg::saveRequested()",
         "method:KoDocumentInfoDlg::~KoDocumentInfoDlg()"
+      ]
+    },
+    {
+      "target": "KisMacosValuesContractTest",
+      "source": "libs/macosutils/KisMacosValuesContractTest.cpp",
+      "test": "KisMacosValuesContractTest::entitlementsTypeLifetimeAndConstructionSchemaRemainStable",
+      "behavior": "macOS権限検査器は専用型、既定構築、およびQObject基底を通じた多相破棄を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisMacosEntitlements",
+        "method:KisMacosEntitlements::KisMacosEntitlements()",
+        "method:KisMacosEntitlements::~KisMacosEntitlements()"
+      ]
+    },
+    {
+      "target": "KisMacosValuesContractTest",
+      "source": "libs/macosutils/KisMacosValuesContractTest.cpp",
+      "test": "KisMacosValuesContractTest::entitlementsQuerySchemaRemainsStable",
+      "behavior": "macOS権限検査器は利用可能権限の読込み、個別権限、およびsandbox状態を照会する公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMacosEntitlements::hasEntitlement(Entitlements)",
+        "method:KisMacosEntitlements::loadAvailableEntitlements(void)",
+        "method:KisMacosEntitlements::sandbox()"
+      ]
+    },
+    {
+      "target": "KisMacosValuesContractTest",
+      "source": "libs/macosutils/KisMacosValuesContractTest.cpp",
+      "test": "KisMacosValuesContractTest::securityBookmarkTypeLifetimeAndConstructionSchemaRemainStable",
+      "behavior": "macOS security bookmark管理器は専用型、既定構築、およびQObject基底を通じた多相破棄を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisMacosSecurityBookmarkManager",
+        "method:KisMacosSecurityBookmarkManager::KisMacosSecurityBookmarkManager()",
+        "method:KisMacosSecurityBookmarkManager::~KisMacosSecurityBookmarkManager()"
+      ]
+    },
+    {
+      "target": "KisMacosValuesContractTest",
+      "source": "libs/macosutils/KisMacosValuesContractTest.cpp",
+      "test": "KisMacosValuesContractTest::securityBookmarkAccessSchemaRemainsStable",
+      "behavior": "macOS security bookmark管理器は権限照会、bookmark生成・読込み、および資源利用開始・終了の正確な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMacosSecurityBookmarkManager::addBookmarkAndCheckParentDir(const QUrl & url)",
+        "method:KisMacosSecurityBookmarkManager::createBookmarkFromPath(const QString & path,const QString & refpath,SecurityBookmarkType type=SecurityBookmarkType::File)",
+        "method:KisMacosSecurityBookmarkManager::isSandboxed()",
+        "method:KisMacosSecurityBookmarkManager::loadSecurityScopedResources()",
+        "method:KisMacosSecurityBookmarkManager::parentDirHasPermissions(const QString & path)",
+        "method:KisMacosSecurityBookmarkManager::requestAccessToDir(const QString & path)",
+        "method:KisMacosSecurityBookmarkManager::slotCreateBookmark(const QString & path)",
+        "method:KisMacosSecurityBookmarkManager::startAccessingSecurityScopedResources()",
+        "method:KisMacosSecurityBookmarkManager::stopAccessingSecurityScopedResources()"
+      ]
+    },
+    {
+      "target": "KisMacosValuesContractTest",
+      "source": "libs/macosutils/KisMacosValuesContractTest.cpp",
+      "test": "KisMacosValuesContractTest::systemProberSchemaRemainsStable",
+      "behavior": "macOS単一起動検査は引数を取らず真偽値を返すC公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:iskritaRunningActivate(void)"
       ]
     }
   ]

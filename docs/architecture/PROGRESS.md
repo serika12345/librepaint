@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-07 01:45 JST
+- 更新日時: 2026-09-07 01:50 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -2183,7 +2183,14 @@
 
 - 正式入力`build/tdd-macos/public-api-missing-g320.json`は公開header 1,548、公開API 29,804、対応済み23,092、未対応6,712、1,784,488 bytes、SHA-256 `73f9d8aeea09afebb2708bef4597dfe7776e8d0b312519f58c626ce34224f6a7`を記録する。`libs/macosutils/KisMacosEntitlements.h`の残存6 API、`KisMacosSecurityBookmarkManager.h`の残存12 API、`KisMacosSystemProber.h`の残存1 APIは重複せず、合計19識別子の整列集合SHA-256は`1dee27f7730a0e733cf66684e97dfab88a1f55006ba23bff7a13bed2e2d9ab5d`である。macOSの権限、security bookmark、単一起動照会の型・寿命・公開関数型を5枠へ完全に割り当てる。
 - 既存`libs/macosutils/KisMacosValuesContractTest.cpp`は37行・2枠、4工程・8入力、command SHA-256 `b578e6ee679d2f232899fc0b33f827c534860d8138d9f4812d540f893cef3cfe`、input SHA-256 `3797ba0b78631e157a2983b93433d8d7fedf41024e55327da464b57eb129c395`である。Qt Test・Core、gettext、OS frameworkだけへ動的接続し、AUTOMOC header入力は空である。新規targetは同じ閉包へ重複するため棄却し、既存sourceだけへ5枠を追加して4工程・8入力を維持する。停止線は5工程・11入力とする。
-- `g320-macos-security-schema`の状態は`planned`、実装基点は`aac14a5969`である。許可pathを既存試験sourceだけに限定し、CMake、公開header、Objective-C++製品sourceを変更しない。対象型、Foundation・Security機能を実体化せず、権限やbookmarkを操作しない。macOSの対象、追加5枠の20回反復、厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。製品`kritamacosutils`、全体build・`verify`、Linux、Nix再評価は実行しない。
+- `g320-macos-security-schema`の状態は`integrated`、実装基点は`aac14a5969`である。許可pathを既存試験sourceだけに限定し、CMake、公開header、Objective-C++製品sourceを変更しなかった。対象型、Foundation・Security機能を実体化せず、権限やbookmarkを操作していない。実装commitは`b4c85760f5`である。
+
+### 第320便の契約統合結果
+
+- 開始`libs/macosutils/KisMacosEntitlements.h`、`libs/macosutils/KisMacosSecurityBookmarkManager.h`、`libs/macosutils/KisMacosSystemProber.h`から既存`libs/macosutils/KisMacosValuesContractTest.cpp`へ残存6・12・1 APIを対応付けた。macOS権限検査器とsecurity bookmark管理器の型・構築・多相破棄・公開操作、および単一起動照会のC関数型を5枠で固定し、試験sourceは106行・7枠となった。
+- 追加5枠は期待どおり5件失敗し、型特性と正確な関数pointer検査を有効化して成功した。CMake変更なしで4工程・8入力、command SHA-256 `b578e6ee679d2f232899fc0b33f827c534860d8138d9f4812d540f893cef3cfe`、input SHA-256 `3797ba0b78631e157a2983b93433d8d7fedf41024e55327da464b57eb129c395`を維持した。AUTOMOC header入力は空、Qt Test・Core、gettext、OS frameworkだけへ動的接続し、製品未解決記号は0である。
+- macOSで対象CTest、対象の20回反復、厳格`clang-check`、書式、二回の無作業再構築、公開API検査に成功した。製品`kritamacosutils`、Objective-C++実装、Foundation・Security操作、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 台帳へ19 APIを追加して23,111件対応、6,693件未対応、`libs/macosutils`対象headerの残存0件となった。旧`public-api-missing-g320.json`を削除し、追加作業tree・構築木は作成していない。主Ninja木5,884,200 KiB、共有compiler cache 982,536 KiB、最新`build/tdd-macos/public-api-missing-g321.json` 1,779,363 bytes、SHA-256 `031bf381d02c48f279995bf25393deda27aa8c4bc2cdda7ca6c32e8873c060ef`だけを再利用対象として保持する。compiler cacheは144,046件中120,468件、83.63%がhitしている。次の永続作業は第321便の正式不足報告から、全APIを最小閉包で固定できる責務を再選定することである。
 
 ### 第239便の先行監査担当票
 
