@@ -10,6 +10,10 @@
 
 #include <type_traits>
 
+#define ASSERT_COORDINATE_CONVERSION_SIGNATURE(member)                                                                 \
+    static_assert(std::is_same_v<decltype(static_cast<PointConversion>(&KisCoordinatesConverter::member<QPointF>)),    \
+                                 PointConversion>)
+
 class KisCoordinatesConverterSchemaContractTest : public QObject
 {
     Q_OBJECT
@@ -20,6 +24,11 @@ private Q_SLOTS:
     void coordinatesConverterTransformAndStillPointSignaturesRemainStable();
     void coordinatesConverterImageGeometrySignaturesRemainStable();
     void coordinatesConverterCheckerProjectionSignaturesRemainStable();
+    void coordinateTraitsMappingRemainsStable();
+    void imageViewportAndDocumentConversionSignaturesRemainStable();
+    void documentFlakeAndWidgetConversionSignaturesRemainStable();
+    void widgetAndViewportConversionSignaturesRemainStable();
+    void imageAndWidgetConversionSignaturesRemainStable();
 };
 
 void KisCoordinatesConverterSchemaContractTest::coordinatesConverterIdentityAndCanvasStateSignaturesRemainStable()
@@ -136,6 +145,80 @@ void KisCoordinatesConverterSchemaContractTest::coordinatesConverterCheckerProje
     static_assert(std::is_same_v<decltype(&Converter::getQPainterCheckersInfo),
                                  void (Converter::*)(QTransform *, QPointF *, QPolygonF *, bool) const>);
 }
+
+void KisCoordinatesConverterSchemaContractTest::coordinateTraitsMappingRemainsStable()
+{
+    using PointTraits = _Private::Traits<QPointF>;
+    using RectTraits = _Private::Traits<QRectF>;
+
+    static_assert(std::is_class_v<PointTraits>);
+    static_assert(std::is_same_v<typename PointTraits::Result, QPointF>);
+    static_assert(std::is_same_v<typename RectTraits::Result, QRectF>);
+    static_assert(std::is_same_v<typename _Private::Traits<QRect>::Result, QRectF>);
+    static_assert(std::is_same_v<typename _Private::Traits<QPoint>::Result, QPointF>);
+    static_assert(std::is_same_v<typename _Private::Traits<QPolygon>::Result, QPolygonF>);
+    static_assert(std::is_same_v<typename _Private::Traits<QLine>::Result, QLineF>);
+    static_assert(std::is_same_v<decltype(&PointTraits::map), QPointF (*)(const QTransform &, const QPointF &)>);
+    static_assert(std::is_same_v<decltype(&RectTraits::map), QRectF (*)(const QTransform &, const QRectF &)>);
+
+    QTransform transform;
+    transform.translate(7.0, -3.0);
+    transform.rotate(30.0);
+    transform.scale(2.0, 0.5);
+
+    const QPointF point(1.25, -4.5);
+    const QRectF rect(-2.0, 3.0, 5.0, 7.0);
+    QCOMPARE(PointTraits::map(transform, point), transform.map(point));
+    QCOMPARE(RectTraits::map(transform, rect), transform.mapRect(rect));
+}
+
+void KisCoordinatesConverterSchemaContractTest::imageViewportAndDocumentConversionSignaturesRemainStable()
+{
+    using PointConversion = QPointF (KisCoordinatesConverter::*)(const QPointF &) const;
+
+    ASSERT_COORDINATE_CONVERSION_SIGNATURE(imageToViewport);
+    ASSERT_COORDINATE_CONVERSION_SIGNATURE(viewportToImage);
+    ASSERT_COORDINATE_CONVERSION_SIGNATURE(imageToDocument);
+    ASSERT_COORDINATE_CONVERSION_SIGNATURE(documentToImage);
+
+    QVERIFY(true);
+}
+
+void KisCoordinatesConverterSchemaContractTest::documentFlakeAndWidgetConversionSignaturesRemainStable()
+{
+    using PointConversion = QPointF (KisCoordinatesConverter::*)(const QPointF &) const;
+
+    ASSERT_COORDINATE_CONVERSION_SIGNATURE(documentToFlake);
+    ASSERT_COORDINATE_CONVERSION_SIGNATURE(flakeToDocument);
+    ASSERT_COORDINATE_CONVERSION_SIGNATURE(flakeToWidget);
+    ASSERT_COORDINATE_CONVERSION_SIGNATURE(widgetToFlake);
+    ASSERT_COORDINATE_CONVERSION_SIGNATURE(documentToWidget);
+    ASSERT_COORDINATE_CONVERSION_SIGNATURE(widgetToDocument);
+
+    QVERIFY(true);
+}
+
+void KisCoordinatesConverterSchemaContractTest::widgetAndViewportConversionSignaturesRemainStable()
+{
+    using PointConversion = QPointF (KisCoordinatesConverter::*)(const QPointF &) const;
+
+    ASSERT_COORDINATE_CONVERSION_SIGNATURE(widgetToViewport);
+    ASSERT_COORDINATE_CONVERSION_SIGNATURE(viewportToWidget);
+
+    QVERIFY(true);
+}
+
+void KisCoordinatesConverterSchemaContractTest::imageAndWidgetConversionSignaturesRemainStable()
+{
+    using PointConversion = QPointF (KisCoordinatesConverter::*)(const QPointF &) const;
+
+    ASSERT_COORDINATE_CONVERSION_SIGNATURE(imageToWidget);
+    ASSERT_COORDINATE_CONVERSION_SIGNATURE(widgetToImage);
+
+    QVERIFY(true);
+}
+
+#undef ASSERT_COORDINATE_CONVERSION_SIGNATURE
 
 QTEST_APPLESS_MAIN(KisCoordinatesConverterSchemaContractTest)
 
