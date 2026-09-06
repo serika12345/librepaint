@@ -9,8 +9,6 @@
 #include <QFrame>
 #include <QScopedPointer>
 
-#include <KoDialog.h>
-#include <KoColor.h>
 #include <KoResource.h>
 #include <kritaui_export.h>
 #include <KoCanvasResourcesInterface.h>
@@ -205,4 +203,3 @@ private:
 };
 
 #endif // KIS_GRADIENT_CHOOSER_H_
-
