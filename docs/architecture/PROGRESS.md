@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-07 05:02 JST
+- 更新日時: 2026-09-07 05:19 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -2458,9 +2458,18 @@
 ### 第339便の監査結果と実装計画
 
 - 正式入力`build/tdd-macos/public-api-missing-g339.json`は公開header 1,548、公開API 29,804、対応済み23,761、未対応6,043、1,598,658 bytes、SHA-256 `02e1e4a7bb340b23ca784b759663d23707a332280512820cdc02d9b712d6e7b5`を記録する。`libs/ui/canvas/kis_painting_assistant.h`の残存全103 APIを、handle型・種別・寿命18、assistant型・識別・状態24、handle集合・位置29、補正・描画17、永続化・factory・registry 15として5枠へ完全に割り当てる。対象識別子の整列集合SHA-256は`82c2cf9f88b91ab2102bf6f0e7a3e854b91208e12f1e9428e3a87a27924a9956`である。
-- 開始headerは使用しない`QFile`と`QObject`、前方宣言だけで足りる`QRect`とXML stream writerを読み、painting assistant共有pointer別名だけのために全`kis_types.h`を読む。開始`libs/ui/canvas/kis_painting_assistant.h`から不要なQt includeを削除し、`QXmlStreamReader`・`QXmlStreamWriter`を前方宣言へ変え、`KisPaintingAssistantSP`を直接の`QSharedPointer`別名として所有する。これにより20直接利用元からimage型一覧と不要なQt解析を除く。開始実装`libs/ui/canvas/kis_painting_assistant.cc`の変更前厳格`clang-check`は診断0であり、公開API指紋を維持したまま依存だけを縮小する。
-- 軽量近傍`KisCanvasResourceProviderSchemaContractTest`は4工程・8入力である。依存整理後に新規`libs/ui/tests/KisPaintingAssistantSchemaContractTest.cpp`を作り、UI・flake・globalのsource/generated探索路、Qt Gui・Test、header-only Boost、関係export定義だけへ接続する。image探索路と`kritaimage_EXPORTS`は開始headerから除外し、assistant、factory、registry、描画器、canvas、座標変換器、XML値を実体化せず、handle種別値、継承、構築・寿命特性、全公開関数型を固定する。新targetは4工程・8入力を予測し、停止線を5工程・11入力とする。
-- `g339-painting-assistant-schema`の状態は`planned`、実装基点は`f233cd6973`である。構造整理は開始header、契約は新規試験sourceと同target固有CMake節だけに限定する。macOSの対象、軽量近傍、追加5枠の20回反復、開始実装と試験sourceの厳格`clang-check`、直接利用元の構文確認、書式、二回の無作業再構築、公開API指紋不変、公開API検査、`verify-quick`だけを実行する。製品static・MODULE・OBJECT・shared target、全体build・`verify`、Linux、Nix再評価は実行しない。
+- 開始headerは使用しない`QFile`と`QObject`、前方宣言だけで足りる`QRect`を読み、painting assistant共有pointer別名だけのために全`kis_types.h`を読む。開始`libs/ui/canvas/kis_painting_assistant.h`から不要なQt includeを削除し、`KisPaintingAssistantSP`を直接の`QSharedPointer`別名として所有する。XML stream型の完全定義を利用する5実装があるため`QXmlStreamWriter`は保持する。これにより23直接利用元からimage型一覧と不要なQt解析を除く。開始実装`libs/ui/canvas/kis_painting_assistant.cc`の変更前厳格`clang-check`は診断0であり、公開API指紋を維持したまま依存だけを縮小する。
+- 軽量近傍`KisCanvasResourceProviderSchemaContractTest`は4工程・8入力である。依存整理後に新規`libs/ui/tests/KisPaintingAssistantSchemaContractTest.cpp`を作り、UI・globalのsource/generated探索路、Qt Gui・Testと関係export定義だけへ接続する。image探索路と`kritaimage_EXPORTS`は開始headerから除外し、assistant、factory、registry、描画器、canvas、座標変換器、XML値を実体化せず、handle種別値、継承、構築・寿命特性、全公開関数型を固定する。新targetは4工程・8入力を予測し、停止線を5工程・11入力とする。
+- `g339-painting-assistant-schema`の状態は`integrated`、実装基点は`618b565b2b`、依存整理commitは`e00f94a8c0`、契約実装commitは`414a811dfa`である。構造整理は開始header、契約は新規試験sourceと同target固有CMake節だけに限定した。macOSの対象、軽量近傍、追加5枠の20回反復、開始実装と試験sourceの厳格`clang-check`、直接利用元の構文確認、書式、二回の無作業再構築、公開API指紋不変、公開API検査に成功した。製品static・MODULE・OBJECT・shared target、全体build・`verify`、Linux、Nix再評価は実行していない。
+
+### 第339便の契約統合結果
+
+- Painting assistantの利用元へimage型一覧と不要なQt解析が波及する問題を解消した。開始`libs/ui/canvas/kis_painting_assistant.h`から未使用の`QFile`・`QObject`と前方宣言だけで足りる`QRect`、共有pointer別名だけに使う`kis_types.h`を削除し、`KisPaintingAssistantSP`を直接の`QSharedPointer`別名として所有させた。23直接利用元の閉包を狭め、公開API報告は変更前後で同一SHA-256 `02e1e4a7bb340b23ca784b759663d23707a332280512820cdc02d9b712d6e7b5`、開始実装は厳格診断0件を維持した。XML完全型を直接利用する5実装があるため`QXmlStreamWriter`は開始headerに保持した。
+- 構造整理後の直接利用元に対応する21翻訳単位のうち20件は厳格`clang-check`に成功した。`plugins/assistants/Assistants/kis_assistant_tool.cc`だけは製品構築が生成する`ui_AssistantsToolOptions.h`が未生成のため開始header到達前に停止し、構造変更由来の診断はなかった。
+- 同開始headerの残存全103 APIから新規`libs/ui/tests/KisPaintingAssistantSchemaContractTest.cpp`へ、handle型・種別・寿命18、assistant型・識別・状態24、handle集合・位置29、補正・描画17、永続化・factory・registry 15を225行・5枠で対応付けた。assistant、factory、registry、描画器、canvas、座標変換器、XML値を実体化せず、handle種別値、抽象性、構築・多相寿命特性、全公開関数型を固定した。
+- 新target登録後は期待どおり5枠の未定義記号でlinkに失敗し、契約実装後に成功した。新targetは4工程・8入力で停止線以内に収まり、command SHA-256は`567bcff5a7a6c08c19ac032765362d898e89db2545b2364c0da46b0cf297fb25`、input SHA-256は`06ee5de1354abd97185cdd5c5adf94b63338e8cf8bab8bfca914401cc40cd827`である。AUTOMOC header入力は空、Qt Gui・Test・Core、gettext、OS frameworkだけへ動的接続し、製品未解決記号は0である。
+- macOSで対象と軽量近傍`libs-ui-KisCanvasResourceProviderSchemaContractTest`のCTest 2/2、対象の20回反復、直接利用元20件と試験sourceの厳格`clang-check`、書式、二回の無作業再構築、公開API検査に成功した。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 台帳へ103 APIを追加して23,864件対応、5,940件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g339.json`と一時診断・構築計画を最新報告の検証後に削除し、追加作業tree・構築木は作成していない。主Ninja木5,910,820 KiB、共有compiler cache 981,580 KiB、最新`build/tdd-macos/public-api-missing-g340.json` 1,571,264 bytes、SHA-256 `91ad7e94bfb1c29e294a283d068bfd77e60c808d37974ff23d57b66d10cb05fb`だけを再利用対象として保持する。compiler cacheは144,131件中120,473件、83.59%がhitしている。次の永続作業は第340便で次の高密度なmacOS対象と最小構築面を選定することである。
 
 ### 第239便の先行監査担当票
 

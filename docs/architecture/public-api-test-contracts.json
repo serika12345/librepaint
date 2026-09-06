@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 6043
+    "expectedMissingApis": 5940
   },
   "contracts": [
     {
@@ -66346,6 +66346,154 @@
         "method:KisCanvasResourceProvider::slotPatternActivated(KoResourceSP pattern)",
         "method:KisCanvasResourceProvider::slotSetBGColor(const KoColor & c)",
         "method:KisCanvasResourceProvider::slotSetFGColor(const KoColor & c)"
+      ]
+    },
+    {
+      "target": "KisPaintingAssistantSchemaContractTest",
+      "source": "libs/ui/tests/KisPaintingAssistantSchemaContractTest.cpp",
+      "test": "KisPaintingAssistantSchemaContractTest::handleTypeAndLifetimeSchemaRemainStable",
+      "behavior": "painting assistant handleは共有所有別名、handle種別の値、点と共有寿命の継承、構築・破棄、種別設定、assistant接続とcache無効化の正確な公開面を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisPaintingAssistantHandleSP",
+        "class:KisPaintingAssistantHandle",
+        "enum:HandleType",
+        "enumerator:HandleType::ANCHOR",
+        "enumerator:HandleType::CORNER",
+        "enumerator:HandleType::NORMAL",
+        "enumerator:HandleType::SIDE",
+        "enumerator:HandleType::VANISHING_POINT",
+        "method:KisPaintingAssistantHandle::KisPaintingAssistantHandle(QPointF p)",
+        "method:KisPaintingAssistantHandle::KisPaintingAssistantHandle(const KisPaintingAssistantHandle &)",
+        "method:KisPaintingAssistantHandle::KisPaintingAssistantHandle(double x,double y)",
+        "method:KisPaintingAssistantHandle::chiefAssistant() const",
+        "method:KisPaintingAssistantHandle::handleType() const",
+        "method:KisPaintingAssistantHandle::mergeWith(KisPaintingAssistantHandleSP)",
+        "method:KisPaintingAssistantHandle::operator =(const QPointF &)",
+        "method:KisPaintingAssistantHandle::setType(char type)",
+        "method:KisPaintingAssistantHandle::uncache()",
+        "method:KisPaintingAssistantHandle::~KisPaintingAssistantHandle()"
+      ]
+    },
+    {
+      "target": "KisPaintingAssistantSchemaContractTest",
+      "source": "libs/ui/tests/KisPaintingAssistantSchemaContractTest.cpp",
+      "test": "KisPaintingAssistantSchemaContractTest::assistantIdentityAndStateSchemaRemainStable",
+      "behavior": "painting assistantは識別、snapping・局所化・lock・複製状態、editor位置、装飾色と太さ、共有状態複製の正確な公開型と関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisPaintingAssistant",
+        "method:KisPaintingAssistant::KisPaintingAssistant(const QString & id,const QString & name)",
+        "method:KisPaintingAssistant::assistantCustomColor()",
+        "method:KisPaintingAssistant::canBeLocal() const",
+        "method:KisPaintingAssistant::copySharedData(KisPaintingAssistantSP assistant)",
+        "method:KisPaintingAssistant::editorWidgetOffset()",
+        "method:KisPaintingAssistant::effectiveAssistantColor() const",
+        "method:KisPaintingAssistant::id() const",
+        "method:KisPaintingAssistant::isDuplicating()",
+        "method:KisPaintingAssistant::isLocal() const",
+        "method:KisPaintingAssistant::isLocked()",
+        "method:KisPaintingAssistant::isSnappingActive() const",
+        "method:KisPaintingAssistant::name() const",
+        "method:KisPaintingAssistant::setAssistantCustomColor(QColor color)",
+        "method:KisPaintingAssistant::setAssistantGlobalColorCache(const QColor & color)",
+        "method:KisPaintingAssistant::setDecorationThickness(int thickness)",
+        "method:KisPaintingAssistant::setDuplicating(bool value)",
+        "method:KisPaintingAssistant::setEditorWidgetOffset(QPointF offset)",
+        "method:KisPaintingAssistant::setLocal(bool value)",
+        "method:KisPaintingAssistant::setLocked(bool value)",
+        "method:KisPaintingAssistant::setSnappingActive(bool set)",
+        "method:KisPaintingAssistant::setUseCustomColor(bool useCustomColor)",
+        "method:KisPaintingAssistant::useCustomColor()",
+        "method:KisPaintingAssistant::~KisPaintingAssistant()"
+      ]
+    },
+    {
+      "target": "KisPaintingAssistantSchemaContractTest",
+      "source": "libs/ui/tests/KisPaintingAssistantSchemaContractTest.cpp",
+      "test": "KisPaintingAssistantSchemaContractTest::assistantHandleCollectionAndPositionSchemaRemainStable",
+      "behavior": "painting assistantは通常・side・corner handle集合、editor表示位置、局所・対向・最近接handle、handle置換追加とassistant一覧複製の正確な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPaintingAssistant::addHandle(KisPaintingAssistantHandleSP handle,HandleType type)",
+        "method:KisPaintingAssistant::areTwoPointsClose(const QPointF & pointOne,const QPointF & pointTwo)",
+        "method:KisPaintingAssistant::bottomLeft()",
+        "method:KisPaintingAssistant::bottomLeft() const",
+        "method:KisPaintingAssistant::bottomMiddle()",
+        "method:KisPaintingAssistant::bottomMiddle() const",
+        "method:KisPaintingAssistant::bottomRight()",
+        "method:KisPaintingAssistant::bottomRight() const",
+        "method:KisPaintingAssistant::cloneAssistantList(const QList<KisPaintingAssistantSP> & list)",
+        "method:KisPaintingAssistant::closestCornerHandleFromPoint(QPointF point)",
+        "method:KisPaintingAssistant::findPerspectiveAssistantHandleLocation()",
+        "method:KisPaintingAssistant::handles()",
+        "method:KisPaintingAssistant::handles() const",
+        "method:KisPaintingAssistant::isAssistantComplete() const",
+        "method:KisPaintingAssistant::leftMiddle()",
+        "method:KisPaintingAssistant::leftMiddle() const",
+        "method:KisPaintingAssistant::oppHandleOne()",
+        "method:KisPaintingAssistant::replaceHandle(KisPaintingAssistantHandleSP _handle,KisPaintingAssistantHandleSP _with)",
+        "method:KisPaintingAssistant::rightMiddle()",
+        "method:KisPaintingAssistant::rightMiddle() const",
+        "method:KisPaintingAssistant::sideHandles()",
+        "method:KisPaintingAssistant::sideHandles() const",
+        "method:KisPaintingAssistant::topLeft()",
+        "method:KisPaintingAssistant::topLeft() const",
+        "method:KisPaintingAssistant::topMiddle()",
+        "method:KisPaintingAssistant::topMiddle() const",
+        "method:KisPaintingAssistant::topRight()",
+        "method:KisPaintingAssistant::topRight() const",
+        "method:KisPaintingAssistant::viewportConstrainedEditorPosition(const KisCoordinatesConverter * converter,const QSize editorSize)"
+      ]
+    },
+    {
+      "target": "KisPaintingAssistantSchemaContractTest",
+      "source": "libs/ui/tests/KisPaintingAssistantSchemaContractTest.cpp",
+      "test": "KisPaintingAssistantSchemaContractTest::assistantAdjustmentAndDrawingSchemaRemainStable",
+      "behavior": "painting assistantはstroke位置補正、brush追従、editor位置、複製、各描画入口、変形とcache無効化の正確な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPaintingAssistant::adjustLine(QPointF & point,QPointF & strokeBegin)",
+        "method:KisPaintingAssistant::adjustPosition(const QPointF & point,const QPointF & strokeBegin,bool snapToAny,qreal moveThresholdPt)",
+        "method:KisPaintingAssistant::clone(QMap<KisPaintingAssistantHandleSP,KisPaintingAssistantHandleSP> & handleMap) const",
+        "method:KisPaintingAssistant::drawAssistant(QPainter & gc,const QRectF & updateRect,const KisCoordinatesConverter * converter,const KoColorDisplayRendererInterface * displayRenderInterface,bool cached,KisCanvas2 * canvas=0,bool assistantVisible=true,bool previewVisible=true)",
+        "method:KisPaintingAssistant::drawError(QPainter & painter,const QPainterPath & path,const KoColorDisplayRendererInterface * displayRenderInterface)",
+        "method:KisPaintingAssistant::drawPath(QPainter & painter,const QPainterPath & path,const KoColorDisplayRendererInterface * displayRenderInterface,bool drawActive=true)",
+        "method:KisPaintingAssistant::drawPreview(QPainter & painter,const QPainterPath & path,const KoColorDisplayRendererInterface * displayRenderInterface)",
+        "method:KisPaintingAssistant::drawX(QPainter & painter,const QPointF & pt,const KoColorDisplayRendererInterface * displayRenderInterface)",
+        "method:KisPaintingAssistant::endStroke()",
+        "method:KisPaintingAssistant::getDefaultEditorPosition() const",
+        "method:KisPaintingAssistant::getEditorPosition() const",
+        "method:KisPaintingAssistant::norm2(const QPointF & p)",
+        "method:KisPaintingAssistant::numHandles() const",
+        "method:KisPaintingAssistant::setAdjustedBrushPosition(const QPointF position)",
+        "method:KisPaintingAssistant::setFollowBrushPosition(bool follow)",
+        "method:KisPaintingAssistant::transform(const QTransform & transform)",
+        "method:KisPaintingAssistant::uncache()"
+      ]
+    },
+    {
+      "target": "KisPaintingAssistantSchemaContractTest",
+      "source": "libs/ui/tests/KisPaintingAssistantSchemaContractTest.cpp",
+      "test": "KisPaintingAssistantSchemaContractTest::assistantPersistenceFactoryAndRegistrySchemaRemainStable",
+      "behavior": "painting assistantはXML保存読込の拡張面と、assistant factoryの生成・識別・名称、factory registryの生成・寿命・単一取得口の正確な公開型と関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisPaintingAssistantFactory",
+        "class:KisPaintingAssistantFactoryRegistry",
+        "method:KisPaintingAssistant::loadCustomXml(QXmlStreamReader * xml)",
+        "method:KisPaintingAssistant::loadXml(KoStore * store,QMap<int,KisPaintingAssistantHandleSP> & handleMap,QString path)",
+        "method:KisPaintingAssistant::saveCustomXml(QXmlStreamWriter * xml)",
+        "method:KisPaintingAssistant::saveXml(QMap<KisPaintingAssistantHandleSP,int> & handleMap)",
+        "method:KisPaintingAssistant::saveXmlList(QDomDocument & doc,QDomElement & assistantsElement,int count)",
+        "method:KisPaintingAssistantFactory::KisPaintingAssistantFactory()",
+        "method:KisPaintingAssistantFactory::createPaintingAssistant() const",
+        "method:KisPaintingAssistantFactory::id() const",
+        "method:KisPaintingAssistantFactory::name() const",
+        "method:KisPaintingAssistantFactory::~KisPaintingAssistantFactory()",
+        "method:KisPaintingAssistantFactoryRegistry::KisPaintingAssistantFactoryRegistry()",
+        "method:KisPaintingAssistantFactoryRegistry::instance()",
+        "method:KisPaintingAssistantFactoryRegistry::~KisPaintingAssistantFactoryRegistry()"
       ]
     }
   ]
