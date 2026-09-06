@@ -4,8 +4,18 @@
  */
 
 #include "KoCompositeOpIds.h"
+#include "KoCompositeOpRegistry.h"
 
 #include <QTest>
+
+#include <type_traits>
+#include <utility>
+
+namespace
+{
+#define ASSERT_COMPOSITE_REGISTRY_SIGNATURE(method, signature)                                                         \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KoCompositeOpRegistry::method)), signature>)
+} // namespace
 
 class KoCompositeOpIdsContractTest : public QObject
 {
@@ -13,6 +23,10 @@ class KoCompositeOpIdsContractTest : public QObject
 
 private Q_SLOTS:
     void compositeOperationIdsRemainStable();
+    void compositeRegistryTypeAndDefaultSchemaRemainStable();
+    void compositeRegistryIdentityAndCategorySignaturesRemainStable();
+    void compositeRegistryListingSignaturesRemainStable();
+    void compositeRegistryValidationSignaturesRemainStable();
 };
 
 void KoCompositeOpIdsContractTest::compositeOperationIdsRemainStable()
@@ -166,6 +180,67 @@ void KoCompositeOpIdsContractTest::compositeOperationIdsRemainStable()
     QCOMPARE(COMPOSITE_LAMBERT_LIGHTING, QStringLiteral("lambert_lighting"));
     QCOMPARE(COMPOSITE_LAMBERT_LIGHTING_GAMMA_2_2, QStringLiteral("lambert_lighting_gamma2.2"));
 }
+
+void KoCompositeOpIdsContractTest::compositeRegistryTypeAndDefaultSchemaRemainStable()
+{
+    using Registry = KoCompositeOpRegistry;
+
+    static_assert(std::is_class_v<Registry>);
+    static_assert(std::is_default_constructible_v<Registry>);
+    static_assert(std::is_same_v<decltype(&Registry::instance), const Registry &(*)()>);
+    ASSERT_COMPOSITE_REGISTRY_SIGNATURE(getDefaultCompositeOp, KoID (Registry::*)() const);
+}
+
+void KoCompositeOpIdsContractTest::compositeRegistryIdentityAndCategorySignaturesRemainStable()
+{
+    using Registry = KoCompositeOpRegistry;
+    using IdList = QList<KoID>;
+
+    ASSERT_COMPOSITE_REGISTRY_SIGNATURE(getKoID, KoID (Registry::*)(const QString &) const);
+    ASSERT_COMPOSITE_REGISTRY_SIGNATURE(getCompositeOpDisplayName, QString (Registry::*)(const QString &) const);
+    ASSERT_COMPOSITE_REGISTRY_SIGNATURE(getCategories, IdList (Registry::*)() const);
+    ASSERT_COMPOSITE_REGISTRY_SIGNATURE(getCategoryDisplayName, QString (Registry::*)(const QString &) const);
+}
+
+void KoCompositeOpIdsContractTest::compositeRegistryListingSignaturesRemainStable()
+{
+    using Registry = KoCompositeOpRegistry;
+    using IdList = QList<KoID>;
+    using IdMap = QMultiMap<KoID, KoID>;
+
+    ASSERT_COMPOSITE_REGISTRY_SIGNATURE(getCompositeOps, IdMap (Registry::*)() const);
+    ASSERT_COMPOSITE_REGISTRY_SIGNATURE(getLayerStylesCompositeOps, IdMap (Registry::*)() const);
+    ASSERT_COMPOSITE_REGISTRY_SIGNATURE(getCompositeOps, IdList (Registry::*)(const KoColorSpace *) const);
+    ASSERT_COMPOSITE_REGISTRY_SIGNATURE(getCompositeOps,
+                                        IdList (Registry::*)(const KoID &, const KoColorSpace *) const);
+
+    static_assert(
+        std::is_same_v<decltype(std::declval<const Registry &>().getCompositeOps(std::declval<const KoID &>())),
+                       IdList>);
+}
+
+void KoCompositeOpIdsContractTest::compositeRegistryValidationSignaturesRemainStable()
+{
+    using Registry = KoCompositeOpRegistry;
+    using IdList = QList<KoID>;
+    using Iterator = IdList::const_iterator;
+
+    ASSERT_COMPOSITE_REGISTRY_SIGNATURE(colorSpaceHasCompositeOp,
+                                        bool (Registry::*)(const KoColorSpace *, const KoID &) const);
+    static_assert(std::is_same_v<decltype(std::declval<const Registry &>().filterCompositeOps(
+                                     std::declval<Iterator>(),
+                                     std::declval<Iterator>(),
+                                     std::declval<const KoColorSpace *>())),
+                                 IdList>);
+    static_assert(std::is_same_v<decltype(std::declval<const Registry &>().filterCompositeOps(
+                                     std::declval<Iterator>(),
+                                     std::declval<Iterator>(),
+                                     std::declval<const KoColorSpace *>(),
+                                     false)),
+                                 IdList>);
+}
+
+#undef ASSERT_COMPOSITE_REGISTRY_SIGNATURE
 
 QTEST_GUILESS_MAIN(KoCompositeOpIdsContractTest)
 
