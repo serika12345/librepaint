@@ -96,6 +96,18 @@ target_compile_definitions(KisOpenGLRendererConfigContractTest PRIVATE
     kritaapplicationui_EXPORTS
 )
 
+kis_add_test(
+    KisScreenInformationAdapterContractTest.cpp
+    TEST_NAME KisScreenInformationAdapterContractTest
+    LINK_LIBRARIES
+        kritauiscreeninformationobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(KisScreenInformationAdapterContractTest PRIVATE
+    kritaapplicationui_EXPORTS
+    kritacanvas_EXPORTS
+)
+
 kis_add_tests(
     kis_doc2_test.cpp
     kis_file_layer_test.cpp
