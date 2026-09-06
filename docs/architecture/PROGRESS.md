@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-06 20:12 JST
+- 更新日時: 2026-09-06 20:16 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1825,6 +1825,12 @@
 - 宣言だけの追加3枠が未定義symbolとなる期待失敗を記録した。対象は担当側・中央とも4工程・8入力を維持した。担当側command SHA-256は`e0e7a709dea2264ae8554b21aca78bfe4ad60ff588f47d257a15c96072e3a332`、input SHA-256は`72c8da1436571ac2212f4d4c7be80933574d33bf89bd3d6033ae76222f599a56`、中央command SHA-256は変更前と同じ`39e933b54a0ffe02cf936c16b275d21b8405564d01bc72905b67810042f52ef3`、input SHA-256は`c9add6423344ddb3fa43d2492a02ab6ef3284f0438fed3ee2dd2e2d81c31fec8`である。候補headerはAUTOMOC入力外で、Qt Test・Core、gettext、OS frameworkだけへ動的接続し、製品未解決記号は0である。
 - 担当側と中央のmacOSで追加3枠を各20回、対象CTest `libs-image-KisImageProjectionAndResolutionCommandsSchemaContractTest`、近傍`libs-image-KisCrossDeviceColorSamplerSchemaContractTest`、厳格`clang-check`、書式、二回目計画と二回の無作業再構築に成功した。担当側の`verify-quick`と中央の公開API検査にも成功し、台帳へ12 APIを追加して22,627件対応、7,177件未対応、対象headerの残存0件となった。
 - cleanな専用作業tree、304,444 KiBの構築木、branchを統合直後に削除し、作業tree全体895,784 KiBを回収した。旧`public-api-missing-g292.json` 1,910,010 bytesを削除し、主Ninja木5,853,184 KiB、共有compiler cache 982,816 KiB、最新`build/tdd-macos/public-api-missing-g293.json` 1,907,016 bytes、SHA-256 `d31df53c4cd55a8505b95ac5507e497248306e39ce521680f79f5ef31e5f7e4a`だけを再利用対象として保持する。compiler cacheは143,896件中120,431件、83.69%がhitしている。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第293便の正式不足報告から、全APIを最小閉包で固定できる責務を再選定することである。
+
+### 第293便の監査結果と実装計画
+
+- 正式入力`build/tdd-macos/public-api-missing-g293.json`は公開header 1,548、公開API 29,804、対応済み22,627、未対応7,177、1,907,016 bytes、SHA-256 `d31df53c4cd55a8505b95ac5507e497248306e39ce521680f79f5ef31e5f7e4a`を記録する。`libs/flake/KoFlake.h`の残存全8 APIは重複なく、識別子整列集合SHA-256は`083059e168832635ad8184b5c553d26b7c4a5a0e2c773cc0327d9a9292f07368`である。anchor・相対絶対座標変換3、拡縮方向・scale操作3、resize操作2の3枠へ完全に割り当てる。
+- 既存`libs/flake/tests/KoFlakeUtilsContractTest.cpp`は161行・4枠であり、追加後も300行・20枠未満に収まる。図形集合の共通操作と同じ`KoFlake`幾何補助責務として3枠を追加し、CMakeを変更しない。既存targetの変更前閉包は4工程・9入力、command SHA-256 `5adeae917820eeddb1f68851921e3a2bc58b829ba1c6f8bd35942ad759b29321`、input SHA-256 `6bb97d2dbc6b0f18385cb6c183b4520b100ee8f8f6cf0f3213a120e3b6506579`であり、停止線を5工程・12入力とする。別targetは同じ`KoFlake`公開header閉包にCMake再構成と生成物を追加するため棄却する。製品`kritaflake`の621工程・1,274入力を避け、図形とQt幾何値を実体化せず、公開関数本文を実行しない。
+- `g293-flake-geometry-schema`の状態は`planned`、実装基点は`408c25baea`である。許可pathを既存`libs/flake/tests/KoFlakeUtilsContractTest.cpp`だけに限定する。CMake、公開header、製品source、製品target、全体build・`verify`、Linux、Nix再評価、追加委任を対象外とし、macOSの対象・近傍に限る構築実行を許可する。専用Git作業treeとworktree-local Ninja木を一つだけ作り、宣言だけの期待失敗、対象CTest、追加3枠の各20回反復、近傍、厳格`clang-check`、書式、公開記号、AUTOMOC非入力、製品非接続、二回目計画、二回の無作業再構築、公開API検査、`verify-quick`を確認してから統合する。
 
 ### 第239便の先行監査担当票
 
