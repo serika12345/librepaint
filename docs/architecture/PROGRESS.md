@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-07 02:25 JST
+- 更新日時: 2026-09-07 02:27 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -2245,6 +2245,12 @@
 - 対象未登録の初回限定構築は未知の対象として失敗し、追加5枠は期待どおり5件失敗した。型特性と正確な関数pointer検査を有効化して成功した。新targetは4工程・8入力で停止線以内に収まり、command SHA-256は`8888a36015db1c73b89cef32b17a3b5fdd776e3e423a0168a1ab7bfd7585928b`、input SHA-256は`7195e08ed4bd9dd811b061b3b99ef2022c6e44aa0b157272855a819574268235`である。AUTOMOC header入力は空、Qt Test・Core、gettext、OS frameworkだけへ動的接続し、製品未解決記号は0である。
 - macOSで対象と近傍`libs-global-KisGlobalValuesContractTest`のCTest 2/2、対象の20回反復、厳格`clang-check`、書式、二回の無作業再構築、公開API検査に成功した。logger I/O、画面照会、message box、Androidログ初期化、製品target、全体build・`verify`、Linux・Android、Nix再評価は実行していない。
 - 台帳へ17 APIを追加して23,159件対応、6,645件未対応となった。`libs/global`の残存はACS色操作12件、幾何演算8件、JNI依存のAndroid障害処理1件の合計21件である。旧`public-api-missing-g324.json`を削除し、追加作業tree・構築木は作成していない。主Ninja木5,889,756 KiB、共有compiler cache 982,428 KiB、最新`build/tdd-macos/public-api-missing-g325.json` 1,766,468 bytes、SHA-256 `4133ca2204b7b40eeb6fbb37841b4eeced92298f593ec6af4f19417f6a7adc95`だけを再利用対象として保持する。compiler cacheは144,062件中120,469件、83.62%がhitしている。次の永続作業は第325便でglobal残存の最小閉包を比較することである。
+
+### 第325便の監査結果と実装計画
+
+- 正式入力`build/tdd-macos/public-api-missing-g325.json`は公開header 1,548、公開API 29,804、対応済み23,159、未対応6,645、1,766,468 bytes、SHA-256 `4133ca2204b7b40eeb6fbb37841b4eeced92298f593ec6af4f19417f6a7adc95`を記録する。`libs/global/kis_algebra_2d.h`の残存は座標・形状変換6 APIとvector path交差2 APIの合計8件だけで、識別子の整列集合SHA-256は`fde1897f896edbefdc12d31720831820cb9a4e3c4c0d45f40c9811d7c4fd7b28`である。点・楕円・円・線分・pathの変換と交差に関する正確な公開関数型を2枠へ完全に割り当てる。
+- 既存`KisAlgebraGeometryPrimitivesContractTest`は817行・31枠で複数の製品OBJECTへ接続する8工程・17入力、command SHA-256 `044a0ce2ed32820961c468c8e42bd3498545cbe68935e830feae465fbda61f35`、input SHA-256 `c47451f4ee8954ae8923f3b76d927f2aa6868f36623c577f95d3117c453c0f5c`であり、追記上限と停止線を超える。新規`libs/global/tests/KisAlgebraExtendedSchemaContractTest.cpp`を作り、global source・generated探索路、Qt Core・Gui・Test、global export定義だけへ接続する。関数本文を実行しない4工程・8入力を予測し、停止線を5工程・11入力とする。
+- `g325-algebra-extended-schema`の状態は`planned`、実装基点は`89e0f1a653`である。許可pathを新規試験sourceと`libs/global/tests/CMakeLists.txt`の新target固有節だけに限定し、公開headerと製品sourceを変更しない。点、path、変換を実体化せず、公開関数pointerだけを検査する。macOSの対象、近傍、追加2枠の20回反復、厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。製品OBJECT・shared target、全体build・`verify`、Linux、Nix再評価は実行しない。
 
 ### 第239便の先行監査担当票
 
