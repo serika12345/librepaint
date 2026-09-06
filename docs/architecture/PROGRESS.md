@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-06 22:04 JST
+- 更新日時: 2026-09-06 22:13 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1934,7 +1934,14 @@
 
 - 正式入力`build/tdd-macos/public-api-missing-g301.json`は公開header 1,548、公開API 29,804、対応済み22,743、未対応7,061、1,876,381 bytes、SHA-256 `1ff28962988270e90b8fab507bd376e2d2b8d823ecfbb4e2ea87b38cece0bff6`を記録する。`libs/pigment/KoColorProfile.h`の残存全2 APIは重複なく、識別子整列集合SHA-256は`e008ee9e43bc5cd3c2f012b867046f2786e49e237f20dcf67a4d80c4b3f67d2d`である。ファイル名を省略または指定する構築と基底部分の複写構築を1枠へ完全に割り当てる。
 - 既存`libs/pigment/tests/KoColorProfileSchemaContractTest.cpp`は110行・5枠であり、追加後も150行・10枠未満に収まる。同じ色profile公開型責務として構築probeと1枠だけを追加し、CMakeを変更しない。変更前閉包は4工程・8入力、command SHA-256 `4b17c4b4c4f2bfffe10d84f54b549e4cdfebd2f252454ed384b1361ea0829126`、input SHA-256 `a4a1d0be1410ed1285a0b8569ddb35087956dcc74c514d82cf54db5625922a34`であり、停止線を5工程・11入力とする。抽象profileは実体化せず、公開構築子へ委譲する抽象probeの定義だけを型検査する。製品`kritapigment`の367工程・764入力を避ける。
-- `g301-color-profile-construction-schema`の状態は`planned`、実装基点は`738915c0cf`である。許可pathを既存試験sourceだけに限定し、CMake、公開header、製品sourceを変更しない。macOSの対象`libs-pigment-KoColorProfileSchemaContractTest`、近傍`libs-pigment-KoColorProfileConstantsContractTest`、追加1枠の20回反復、厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
+- `g301-color-profile-construction-schema`の状態は`integrated`、実装基点は`738915c0cf`である。許可pathを既存試験sourceだけに限定した。受渡しcommit `f378a05e0c`をpatch-id `d43d56a19a08a0765c70b37039ed7f9f9ae334c9`で照合し、統合commit `f65e7af4c5`として取り込んだ。CMake、公開header、製品sourceは変更していない。
+
+### 第301便の契約統合結果
+
+- 開始`libs/pigment/KoColorProfile.h`から既存`libs/pigment/tests/KoColorProfileSchemaContractTest.cpp`へ残存全2 APIを対応付けた。公開構築子へ委譲する抽象probeと1枠で、filenameを省略または指定する構築と基底部分の複写構築を固定した。試験sourceは136行・6枠となった。
+- 宣言だけの追加1枠が未定義symbolとなる期待失敗を記録した。対象は担当側・中央とも4工程・8入力を維持した。担当側command SHA-256は`2f5e48f13f48da6678ba2df23f045b54ae5c2e2ce2228f6e1933372a8c19ce1a`、input SHA-256は`c327c25d19cd45850dbef5a2713b9d69e41d4846d9dd071f38bced591aa9b49e`、中央command SHA-256は変更前と同じ`4b17c4b4c4f2bfffe10d84f54b549e4cdfebd2f252454ed384b1361ea0829126`、input SHA-256は変更前と同じ`a4a1d0be1410ed1285a0b8569ddb35087956dcc74c514d82cf54db5625922a34`である。候補headerのAUTOMOC `HEADERS`は空で、Qt Gui・Test・Core、gettext、OS frameworkだけへ動的接続し、製品未解決記号は0である。
+- 担当側と中央のmacOSで追加1枠を各20回、対象CTest `libs-pigment-KoColorProfileSchemaContractTest`、近傍`libs-pigment-KoColorProfileConstantsContractTest`、厳格`clang-check`、書式、二回の無作業再構築に成功した。担当側の`verify-quick`と中央の公開API検査にも成功し、台帳へ2 APIを追加して22,745件対応、7,059件未対応、対象headerの残存0件となった。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- cleanな専用作業treeと構築木591,420 KiB、branchを統合直後に削除した。旧`public-api-missing-g301.json` 1,876,381 bytesを削除し、主Ninja木5,859,392 KiB、共有compiler cache 983,200 KiB、最新`build/tdd-macos/public-api-missing-g302.json` 1,875,867 bytes、SHA-256 `e97f02fa5e60443d41e1e3c352521dc048c5ae21e7d782c966ad04f9db6affee`だけを再利用対象として保持する。compiler cacheは143,961件中120,454件、83.67%がhitしている。次の永続作業は第302便の正式不足報告から、全APIを最小閉包で固定できる責務を再選定することである。
 
 ### 第239便の先行監査担当票
 

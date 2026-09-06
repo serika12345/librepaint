@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 7061
+    "expectedMissingApis": 7059
   },
   "contracts": [
     {
@@ -35738,6 +35738,17 @@
         "method:KoColorProfile::valid() const",
         "method:KoColorProfile::version() const",
         "method:KoColorProfile::~KoColorProfile()"
+      ]
+    },
+    {
+      "target": "KoColorProfileSchemaContractTest",
+      "source": "libs/pigment/tests/KoColorProfileSchemaContractTest.cpp",
+      "test": "KoColorProfileSchemaContractTest::profileConstructionSchemaRemainsStable",
+      "behavior": "抽象色profileはfilenameを省略または指定する基底構築と、既存profileからの基底部分の複写構築を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoColorProfile::KoColorProfile(const KoColorProfile & profile)",
+        "method:KoColorProfile::KoColorProfile(const QString & fileName=QString ())"
       ]
     },
     {
