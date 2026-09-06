@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-07 01:12 JST
+- 更新日時: 2026-09-07 01:16 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -2150,6 +2150,12 @@
 - 対象未登録の初回限定構築は未知の対象、登録後の宣言だけの4枠は期待どおり4件失敗した。拡縮brushは公開コンストラクタを持つ抽象型なので型自体の構築可能性検査が3件失敗し、公開コンストラクタを継承して純粋仮想関数を宣言だけで充足する専用probeへ切り替えた。probeを実体化せず製品libraryを接続しないまま、新targetは4工程・8入力で停止線以内に収まった。command SHA-256は`80c25f4833293c01a5b9ed4a133043adb1580faf8afb19de23769227db257028`、input SHA-256は`6938ea991ad9cd07343f09e1edb745825cfc4e7faa2a267bb8d4311e18e601bf`である。候補headerのAUTOMOC `HEADERS`は空で、Qt Gui・Test・Core、gettext、OS frameworkだけへ動的接続し、製品未解決記号は0である。
 - macOSで対象と近傍`libs-brush-KisBrushSchemaContractTest`のCTest 2/2、対象の20回反復、厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`に成功した。既存`kis_boundary_test`の1,227工程・2,475入力は構築していない。実輪郭画素、描画結果、path形状、寸法変換結果は既存または後続の効果契約で扱う。
 - 台帳へ12 APIを追加して23,082件対応、6,722件未対応、`libs/brush`対象headerの残存0件となった。旧`public-api-missing-g317.json`を削除し、追加作業tree・構築木は作成していない。主Ninja木5,881,220 KiB、共有compiler cache 983,128 KiB、最新`build/tdd-macos/public-api-missing-g318.json` 1,786,738 bytes、SHA-256 `1c337c5adbbf5e9d678aa217a2742d7862a50cef048c2a266be93158072812cf`だけを再利用対象として保持する。compiler cacheは144,035件中120,466件、83.64%がhitしている。製品target、既存の大規模境界効果試験、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第318便の正式不足報告から、全APIを最小閉包で固定できる責務を再選定することである。
+
+### 第318便の監査結果と実装計画
+
+- 正式入力`build/tdd-macos/public-api-missing-g318.json`は公開header 1,548、公開API 29,804、対応済み23,082、未対応6,722、1,786,738 bytes、SHA-256 `1c337c5adbbf5e9d678aa217a2742d7862a50cef048c2a266be93158072812cf`を記録する。`libs/color/kis_color_manager.h`と`libs/color/colord/KisColord.h`の残存は各2 APIで重複せず、合計4識別子の整列集合SHA-256は`420df2d3003cf750532db2fc0306650faa95e76211d6bed0ed3f95131ff25de6`である。色管理器とcolord接続の多相破棄・変更通知を各1枠へ完全に割り当てる。
+- 既存`KisColorManagerPublicApiTest`は製品`kritacolor`へ接続する9工程・16入力、既存`KisColordPublicApiTest`はLinuxかつDBus有効時だけ製品`kritacolor`・`kritacolord`・私設DBus serviceとともに生成され、macOS対象には存在しない。新規`libs/color/tests/KisColorLifecycleSchemaContractTest.cpp`を作り、color・colord探索路、Qt Core・Test、Qt DBusのinterface探索路、color・colord export定義だけへ接続する。既存macOS対象のcommand SHA-256は`54d93068d3dfa3b08d33c94db1f8f868368dd5b2b0209db1f3acf55f2318789e`、input SHA-256は`0ddf3efc6bad270c1b1a789cece6b5966ed8aabb512f2035a5ac8aeb2fed2a85`である。新targetは4工程・8入力を予測し、停止線を5工程・11入力とする。
+- `g318-color-lifecycle-schema`の状態は`planned`、実装基点は`dcfa50871a`である。許可pathを新規試験sourceと`libs/color/tests/CMakeLists.txt`の新target固有節だけに限定し、公開headerと製品sourceを変更しない。色管理器、colord接続、DBusを実体化せず、signalを発火しない。macOSの対象、近傍、追加2枠の20回反復、厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。製品target、私設DBus service、全体build・`verify`、Linux、Nix再評価は実行しない。
 
 ### 第239便の先行監査担当票
 
