@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-07 06:06 JST
+- 更新日時: 2026-09-07 06:10 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -2503,6 +2503,14 @@
 - 対象未登録の初回限定構築は未知の対象として失敗した。新target登録後は`ksharedconfig.h`、application export生成header、`KoZoomHandler.h`、canvas装飾headerの探索路不足を順に検出し、KF ConfigCore・application・widgets・canvasのcompile用探索路とexport定義だけで解消した。その後は期待どおり5試験関数の未定義linkで赤となり、契約実装後に成功した。最終targetは4工程・8入力で停止線以内、command SHA-256 `bc29da8c640940c753d920e812ec6fd04ab89a825edbc4c2cc560d93eba206c9`、input SHA-256 `f81e09d52468c18355e8cf9865fad097e615cdb1740996e3bce08afc81504ec4`である。AUTOMOC header入力は空、Qt Gui・Test・Core、gettext、OS frameworkだけへ動的接続し、製品未解決記号は0件である。
 - macOSで対象と軽量近傍`libs-ui-KisPaintingAssistantsDecorationSchemaContractTest`のCTest、対象の20回反復、開始実装・構造整理利用元・試験sourceの厳格`clang-check`、書式、二回の無作業再構築、公開API検査に成功した。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 台帳へ118 APIを追加して24,064件対応、5,740件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g341.json`と一時診断・構築計画を最新報告の検証後に削除し、追加作業tree・構築木は作成していない。主Ninja木5,914,276 KiB、共有compiler cache 981,912 KiB、最新`build/tdd-macos/public-api-missing-g342.json` 1,522,010 bytes、SHA-256 `6a520657798c6f462a237d43254c2ebe73bd2c8a14f90bad769801a7bbf46a55`だけを再利用対象として保持する。compiler cacheは144,146件中120,479件、83.58%がhitしている。次の永続作業は第342便で次の高密度なmacOS対象と最小構築面を選定することである。
+
+### 第342便の監査結果と実装計画
+
+- 正式入力`build/tdd-macos/public-api-missing-g342.json`は公開header 1,548、公開API 29,804、対応済み24,064、未対応5,740、1,522,010 bytes、SHA-256 `6a520657798c6f462a237d43254c2ebe73bd2c8a14f90bad769801a7bbf46a55`を記録する。`libs/ui/canvas/kis_canvas_controller.h`の残存全52 APIを、controller型・構築・基底event 12、中心・zoom・参照同期10、wraparound・LOD・永続化・解像度10、mirror・回転操作10、状態切替・通知10の5枠へ完全に対応付ける。識別子整列集合のSHA-256は`cbbd9d802e59b68fe4605eefcc738971a67fe3a402098001127164ce652087cb`である。
+- 開始headerは参照だけの`KisPropertiesConfiguration`のために画像共有pointer一覧`kis_types.h`を読み、構築時の借用pointerだけの`KoCanvasSupervisor`に完全定義を要求し、17直接利用翻訳単位へ波及させている。開始`libs/ui/canvas/kis_canvas_controller.h`から`kis_types.h`と`libs/flake/KoCanvasSupervisor.h`を除き、`KisPropertiesConfiguration`・`KoCanvasSupervisor`・`KisKActionCollection`を直接前方宣言する。開始実装の変更前厳格`clang-check`は既存Qt 6非推奨`QTabletEvent::pos()` 1件だけで停止し、今回の依存整理判定と区別する。
+
+- 既存`libs/ui/tests/KisCanvas2SchemaContractTest.cpp`は201行・5枠で、追加5枠後も300行・20枠未満に収まる。同targetはCMake変更なしで4工程・8入力を維持し、製品libraryへ接続しない。新targetはCMakeと生成物を増やすため棄却し、停止線を5工程・11入力、300行・20枠とする。
+- `g342-canvas-controller-schema`の状態は`planned`、実装基点は`d9d83c1bd3`である。構造整理は開始headerと実利用が顕在化した直接利用元だけ、契約は既存試験sourceの追加5枠だけに限定する。macOSの対象、追加5枠の20回反復、開始実装・試験source・直接利用元の厳格`clang-check`、書式、二回の無作業再構築、公開API指紋不変、公開API検査、`verify-quick`だけを実行する。CMake、製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
 
 ### 第239便の先行監査担当票
 
