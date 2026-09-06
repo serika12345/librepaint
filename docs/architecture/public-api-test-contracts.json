@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 6681
+    "expectedMissingApis": 6671
   },
   "contracts": [
     {
@@ -65042,6 +65042,43 @@
         "function:KHelpClient::invokeHelp(const QString & anchor=QString (),const QString & appname=QString ())",
         "function:KisKUndoActions::createRedoAction(QUndoStack * undoStack,KisKActionCollection * actionCollection,const QString & actionName=QString ())",
         "function:KisKUndoActions::createUndoAction(QUndoStack * undoStack,KisKActionCollection * actionCollection,const QString & actionName=QString ())"
+      ]
+    },
+    {
+      "target": "KoColorOperationFactorySchemaContractTest",
+      "source": "libs/pigment/tests/KoColorOperationFactorySchemaContractTest.cpp",
+      "test": "KoColorOperationFactorySchemaContractTest::alphaMaskApplicatorFactorySchemaRemainsStable",
+      "behavior": "alpha mask適用器生成基盤は汎用入口とCPU実装別入口の専用型および正確な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoAlphaMaskApplicatorFactory",
+        "class:KoAlphaMaskApplicatorFactoryImpl",
+        "method:KoAlphaMaskApplicatorFactory::create(KoID depthId,int numChannels,int alphaPos)",
+        "method:KoAlphaMaskApplicatorFactoryImpl::create()"
+      ]
+    },
+    {
+      "target": "KoColorOperationFactorySchemaContractTest",
+      "source": "libs/pigment/tests/KoColorOperationFactorySchemaContractTest.cpp",
+      "test": "KoColorOperationFactorySchemaContractTest::optimizedPixelScalerFactorySchemaRemainsStable",
+      "behavior": "U8/U16画素拡張器のCPU実装選択は専用型とchannel数を受け取る公開生成関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoOptimizedPixelDataScalerU8ToU16FactoryImpl",
+        "method:KoOptimizedPixelDataScalerU8ToU16FactoryImpl::create(int)"
+      ]
+    },
+    {
+      "target": "KoColorOperationFactorySchemaContractTest",
+      "source": "libs/pigment/tests/KoColorOperationFactorySchemaContractTest.cpp",
+      "test": "KoColorOperationFactorySchemaContractTest::colorTransformationFactoryRegistrySchemaRemainsStable",
+      "behavior": "色変換生成器登録表は専用型、多相破棄、および生成器の追加・除去を行う公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoColorTransformationFactoryRegistry",
+        "method:KoColorTransformationFactoryRegistry::addColorTransformationFactory(KoColorTransformationFactory * factory)",
+        "method:KoColorTransformationFactoryRegistry::removeColorTransformationFactory(KoColorTransformationFactory * factory)",
+        "method:KoColorTransformationFactoryRegistry::~KoColorTransformationFactoryRegistry()"
       ]
     }
   ]

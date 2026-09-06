@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-07 02:02 JST
+- 更新日時: 2026-09-07 02:08 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -2209,7 +2209,15 @@
 
 - 正式入力`build/tdd-macos/public-api-missing-g322.json`は公開header 1,548、公開API 29,804、対応済み23,123、未対応6,681、1,776,036 bytes、SHA-256 `265b44b8b7c207536e53ac7a887993c0dffa1323c623d88a385b6b7218be8440`を記録する。`libs/pigment/KoAlphaMaskApplicatorFactory.h`と`KoAlphaMaskApplicatorFactoryImpl.h`の残存各2 API、`KoOptimizedPixelDataScalerU8ToU16FactoryImpl.h`の残存2 API、`KoColorTransformationFactoryRegistry.h`の残存4 APIは重複せず、合計10識別子の整列集合SHA-256は`c542144fcc7b0aa9fbc1d774dfee06e0243b2f673d3f6b1872a3918640f4d85e`である。alpha mask適用器、U8/U16画素拡張器のCPU実装選択、および色変換生成器登録の型・寿命・公開関数型を3枠へ完全に割り当てる。
 - 新規`libs/pigment/tests/KoColorOperationFactorySchemaContractTest.cpp`を作り、pigment・global・multiarchのsource・generated探索路、Qt Core・Gui・Test、header-only Boost・xsimd、3 export定義だけへ接続する。近傍`KoOptimizedCompositeOpFactorySchemaContractTest`は4工程・8入力、command SHA-256 `d2801b83ac928ce3a2c6104afb39805b78583bca3668e2cee965d04eb9b30cfc`、input SHA-256 `d959ee2f9245ebad9821e83903c3a22c5370efe38171591d5e92fdbd7ef7d528`である。新targetもテンプレート本文と生成物を実体化しない4工程・8入力を予測し、停止線を5工程・11入力とする。
-- `g322-color-operation-factory-schema`の状態は`planned`、実装基点は`af89f6532f`である。許可pathを新規試験sourceと`libs/pigment/tests/CMakeLists.txt`の新target固有節だけに限定し、公開header、製品source、CPU別生成物を変更しない。適用器、画素拡張器、色変換生成器を生成・登録せず、局所CPU型による未評価の関数pointerだけを検査する。macOSの対象、近傍、追加3枠の20回反復、厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。製品target、CPU別OBJECT、全体build・`verify`、Linux、Nix再評価は実行しない。
+- `g322-color-operation-factory-schema`の状態は`integrated`、実装基点は`af89f6532f`である。許可pathを新規試験sourceと`libs/pigment/tests/CMakeLists.txt`の新target固有節だけに限定し、公開header、製品source、CPU別生成物を変更しなかった。適用器、画素拡張器、色変換生成器を生成・登録せず、局所CPU型による未評価の関数pointerだけを検査した。実装commitは`7feb575b3f`である。
+
+### 第322便の契約統合結果
+
+- 開始`libs/pigment/KoAlphaMaskApplicatorFactory.h`、`libs/pigment/KoAlphaMaskApplicatorFactoryImpl.h`、`libs/pigment/KoOptimizedPixelDataScalerU8ToU16FactoryImpl.h`、`libs/pigment/KoColorTransformationFactoryRegistry.h`から新規`libs/pigment/tests/KoColorOperationFactorySchemaContractTest.cpp`へ残存2・2・2・4 APIを対応付けた。alpha mask適用器とU8/U16画素拡張器のCPU実装選択、および色変換生成器登録表の型・寿命・公開関数型を66行・3枠で固定した。
+- 対象未登録の初回限定構築は未知の対象として失敗した。対象登録後は`KoID.h`が公開宣言で使用するKF I18n探索路不足を検出し、同interface探索路だけを対象へ追加して解消した。追加3枠は期待どおり3件失敗し、型特性と局所CPU型による正確な関数pointer検査を有効化して成功した。
+- 新targetは4工程・8入力で停止線以内に収まり、command SHA-256は`8ee77fb0625039a26ef73a111b4e150c2c23adc0295c6f5feb58d5b1a956dba2`、input SHA-256は`8b2ab80749f6d12455499620446903de993f5099035c795d1748d6e1211d4644`である。AUTOMOC header入力は空、Qt Gui・Test・Core、gettext、OS frameworkだけへ動的接続し、製品・CPU選択の未解決記号は0である。
+- macOSで対象と近傍`libs-pigment-KoOptimizedCompositeOpFactorySchemaContractTest`のCTest 2/2、対象の20回反復、厳格`clang-check`、書式、二回の無作業再構築、公開API検査に成功した。製品target、CPU別OBJECT、適用器・拡張器の生成、登録表変更、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 台帳へ10 APIを追加して23,133件対応、6,671件未対応となった。`libs/pigment`の残存は複合演算3件とCMYKディザ6件の合計9件である。旧`public-api-missing-g322.json`を削除し、追加作業tree・構築木は作成していない。主Ninja木5,886,728 KiB、共有compiler cache 982,708 KiB、最新`build/tdd-macos/public-api-missing-g323.json` 1,773,207 bytes、SHA-256 `75e6d4ede3608daa2f712e344cc4252ca6025108e2db8435174ddb04010b91cb`だけを再利用対象として保持する。compiler cacheは144,054件中120,469件、83.63%がhitしている。次の永続作業は第323便で`libs/pigment`の残存9 APIを最小閉包へ固定することである。
 
 ### 第239便の先行監査担当票
 
