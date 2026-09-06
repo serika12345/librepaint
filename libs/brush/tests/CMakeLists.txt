@@ -247,6 +247,36 @@ target_compile_definitions(KisBrushFactoryContractTest PRIVATE
 )
 
 kis_add_test(
+    KisConcreteBrushFactoriesSchemaContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Xml
+        Qt${QT_MAJOR_VERSION}::Test
+        Boost::boost
+        lager
+)
+target_include_directories(KisConcreteBrushFactoriesSchemaContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+    ${CMAKE_SOURCE_DIR}/libs/image
+    ${CMAKE_BINARY_DIR}/libs/image
+    ${CMAKE_SOURCE_DIR}/libs/image/brushengine
+    ${CMAKE_SOURCE_DIR}/libs/pigment
+    ${CMAKE_BINARY_DIR}/libs/pigment
+    ${CMAKE_SOURCE_DIR}/libs/pigment/resources
+    ${CMAKE_SOURCE_DIR}/libs/resources
+    ${CMAKE_BINARY_DIR}/libs/resources
+    $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
+)
+target_compile_definitions(KisConcreteBrushFactoriesSchemaContractTest PRIVATE
+    kritalibbrush_EXPORTS
+    kritaresources_EXPORTS
+)
+
+kis_add_test(
     KisQImagePyramidContractTest.cpp
     LINK_LIBRARIES
         kritabrushqimagepyramidobjects
