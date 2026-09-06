@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 5450
+    "expectedMissingApis": 5434
   },
   "contracts": [
     {
@@ -67434,6 +67434,67 @@
         "class:KisScreenColorSamplingEventFilter",
         "method:KisScreenColorSamplingEventFilter::KisScreenColorSamplingEventFilter(KisScreenColorSampler * w,QObject * parent=0)",
         "method:KisScreenColorSamplingEventFilter::eventFilter(QObject *,QEvent * event)"
+      ]
+    },
+    {
+      "target": "KisHistogramPainterSchemaContractTest",
+      "source": "libs/ui/tests/KisHistogramPainterSchemaContractTest.cpp",
+      "test": "KisHistogramPainterSchemaContractTest::histogramViewTypeLifetimeAndSetupSchemaRemainStable",
+      "behavior": "histogram表示widgetの型、構築、仮想寿命と複数histogram設定の既定引数を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisHistogramView",
+        "method:KisHistogramView::KisHistogramView(QWidget * parent)",
+        "method:KisHistogramView::setup(const QVector<KisHistogram * > & histograms,const QVector<const KoColorSpace * > & colorSpaces,const QVector<QVector<int>> & channels={})",
+        "method:KisHistogramView::~KisHistogramView()"
+      ]
+    },
+    {
+      "target": "KisHistogramPainterSchemaContractTest",
+      "source": "libs/ui/tests/KisHistogramPainterSchemaContractTest.cpp",
+      "test": "KisHistogramPainterSchemaContractTest::histogramViewChannelQuerySignaturesRemainStable",
+      "behavior": "histogram表示widgetが現在選択中のchannel集合をconst参照で返す公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisHistogramView::channels() const"
+      ]
+    },
+    {
+      "target": "KisHistogramPainterSchemaContractTest",
+      "source": "libs/ui/tests/KisHistogramPainterSchemaContractTest.cpp",
+      "test": "KisHistogramPainterSchemaContractTest::histogramViewChannelSelectionSignaturesRemainStable",
+      "behavior": "histogram表示widgetの単一・複数channel選択、既定histogram番号と選択解除の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisHistogramView::clearChannels()",
+        "method:KisHistogramView::setChannel(int channel,int histogramIndex=0)",
+        "method:KisHistogramView::setChannels(const QVector<int> & channels,int histogramIndex=0)"
+      ]
+    },
+    {
+      "target": "KisHistogramPainterSchemaContractTest",
+      "source": "libs/ui/tests/KisHistogramPainterSchemaContractTest.cpp",
+      "test": "KisHistogramPainterSchemaContractTest::histogramViewColorAndScaleSignaturesRemainStable",
+      "behavior": "histogram表示widgetの既定色とscale照会、変更、全体表示と長いpeak切詰め操作の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisHistogramView::defaultColor() const",
+        "method:KisHistogramView::scale() const",
+        "method:KisHistogramView::setDefaultColor(const QColor & newDefaultColor)",
+        "method:KisHistogramView::setScale(qreal newScale)",
+        "method:KisHistogramView::setScaleToCutLongPeaks()",
+        "method:KisHistogramView::setScaleToFit()"
+      ]
+    },
+    {
+      "target": "KisHistogramPainterSchemaContractTest",
+      "source": "libs/ui/tests/KisHistogramPainterSchemaContractTest.cpp",
+      "test": "KisHistogramPainterSchemaContractTest::histogramViewLogarithmicPolicySignaturesRemainStable",
+      "behavior": "histogram表示widgetの対数表示方針に対する照会・変更の公開署名を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisHistogramView::isLogarithmic() const",
+        "method:KisHistogramView::setLogarithmic(bool logarithmic)"
       ]
     }
   ]
