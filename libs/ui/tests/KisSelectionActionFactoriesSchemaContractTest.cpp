@@ -7,6 +7,7 @@
 
 #include <type_traits>
 
+#include "actions/KisPasteActionFactories.h"
 #include "actions/kis_selection_action_factories.h"
 
 #define ASSERT_NO_PARAMETER_ACTION_SCHEMA(Type)                                                                        \
@@ -32,6 +33,11 @@ private Q_SLOTS:
     void cutAndCopyActionSchemaRemainsStable();
     void selectionRepresentationActionSchemaRemainsStable();
     void strokeSelectionActionSchemaRemainsStable();
+    void pasteActionTypeAndFlagSchemaRemainStable();
+    void pasteActionDispatchSignaturesRemainStable();
+    void pasteIntoActionSchemaRemainsStable();
+    void pasteNewAndReferenceActionSchemaRemainStable();
+    void pasteShapeStyleActionSchemaRemainsStable();
 };
 
 void KisSelectionActionFactoriesSchemaContractTest::basicSelectionStateActionSchemaRemainsStable()
@@ -98,6 +104,52 @@ void KisSelectionActionFactoriesSchemaContractTest::strokeSelectionActionSchemaR
 {
     ASSERT_STROKE_SELECTION_ACTION_SCHEMA(KisStrokeSelectionActionFactory);
     ASSERT_STROKE_SELECTION_ACTION_SCHEMA(KisStrokeBrushSelectionActionFactory);
+
+    QVERIFY(true);
+}
+
+void KisSelectionActionFactoriesSchemaContractTest::pasteActionTypeAndFlagSchemaRemainStable()
+{
+    using Paste = KisPasteActionFactory;
+    static_assert(std::is_class_v<Paste> && std::is_base_of_v<KisOperation, Paste>);
+    static_assert(std::is_enum_v<Paste::Flag> && std::is_same_v<Paste::Flags, QFlags<Paste::Flag>>);
+    static_assert(Paste::None == 0x0);
+    static_assert(Paste::PasteAtCursor == 0x1);
+    static_assert(Paste::ForceNewLayer == 0x2);
+
+    QVERIFY(true);
+}
+
+void KisSelectionActionFactoriesSchemaContractTest::pasteActionDispatchSignaturesRemainStable()
+{
+    using Paste = KisPasteActionFactory;
+    using FromXml = void (Paste::*)(KisViewManager *, const KisOperationConfiguration &);
+    using Run = void (Paste::*)(Paste::Flags, KisViewManager *);
+    static_assert(std::is_default_constructible_v<Paste>);
+    static_assert(std::is_same_v<decltype(&Paste::runFromXML), FromXml>);
+    static_assert(std::is_same_v<decltype(&Paste::run), Run>);
+
+    QVERIFY(true);
+}
+
+void KisSelectionActionFactoriesSchemaContractTest::pasteIntoActionSchemaRemainsStable()
+{
+    ASSERT_NO_PARAMETER_ACTION_SCHEMA(KisPasteIntoActionFactory);
+
+    QVERIFY(true);
+}
+
+void KisSelectionActionFactoriesSchemaContractTest::pasteNewAndReferenceActionSchemaRemainStable()
+{
+    ASSERT_NO_PARAMETER_ACTION_SCHEMA(KisPasteNewActionFactory);
+    ASSERT_NO_PARAMETER_ACTION_SCHEMA(KisPasteReferenceActionFactory);
+
+    QVERIFY(true);
+}
+
+void KisSelectionActionFactoriesSchemaContractTest::pasteShapeStyleActionSchemaRemainsStable()
+{
+    ASSERT_NO_PARAMETER_ACTION_SCHEMA(KisPasteShapeStyleActionFactory);
 
     QVERIFY(true);
 }
