@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 6762
+    "expectedMissingApis": 6749
   },
   "contracts": [
     {
@@ -64691,6 +64691,55 @@
         "method:KisTextBrushFactory::createBrush(const QDomElement & brushDefinition,KisResourcesInterfaceSP resourcesInterface)",
         "method:KisTextBrushFactory::createBrushModel(const QDomElement & element,KisResourcesInterfaceSP resourcesInterface)",
         "method:KisTextBrushFactory::toXML(QDomDocument & doc,QDomElement & element,const KisBrushModel::BrushData & model)"
+      ]
+    },
+    {
+      "target": "KisBrushStorageSchemaContractTest",
+      "source": "libs/brush/tests/KisBrushStorageSchemaContractTest.cpp",
+      "test": "KisBrushStorageSchemaContractTest::abrStorageTypeOwnershipAndLifetimeSchemaRemainStable",
+      "behavior": "ABR storageは専用型、場所による構築、多相破棄、および読込済みbrush collectionの公開所有型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisAbrStorage",
+        "member:KisAbrStorage::m_brushCollection",
+        "method:KisAbrStorage::KisAbrStorage(const QString & location)",
+        "method:KisAbrStorage::~KisAbrStorage()"
+      ]
+    },
+    {
+      "target": "KisBrushStorageSchemaContractTest",
+      "source": "libs/brush/tests/KisBrushStorageSchemaContractTest.cpp",
+      "test": "KisBrushStorageSchemaContractTest::abrStorageResourceLookupAndVersioningSchemaRemainStable",
+      "behavior": "ABR storageはURLから資源項目と資源を照会し、版付き資源の読込と版管理対応方針を正確な公開関数型で提供する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAbrStorage::loadVersionedResource(KoResourceSP resource)",
+        "method:KisAbrStorage::resource(const QString & url)",
+        "method:KisAbrStorage::resourceItem(const QString & url)",
+        "method:KisAbrStorage::supportsVersioning() const"
+      ]
+    },
+    {
+      "target": "KisBrushStorageSchemaContractTest",
+      "source": "libs/brush/tests/KisBrushStorageSchemaContractTest.cpp",
+      "test": "KisBrushStorageSchemaContractTest::abrStorageIterationAndThumbnailSchemaRemainStable",
+      "behavior": "ABR storageは資源種別ごとの資源・tag反復器とstorage代表画像を正確な公開関数型で提供する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAbrStorage::resources(const QString & resourceType)",
+        "method:KisAbrStorage::tags(const QString & resourceType)",
+        "method:KisAbrStorage::thumbnail() const"
+      ]
+    },
+    {
+      "target": "KisBrushStorageSchemaContractTest",
+      "source": "libs/brush/tests/KisBrushStorageSchemaContractTest.cpp",
+      "test": "KisBrushStorageSchemaContractTest::metadataFixupSchemaRemainsStable",
+      "behavior": "brush種別metadata補正器は専用型として補正を実行し、処理した資源の識別一覧を返す公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisBrushTypeMetaDataFixup",
+        "method:KisBrushTypeMetaDataFixup::executeFix()"
       ]
     }
   ]

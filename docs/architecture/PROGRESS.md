@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-07 00:47 JST
+- 更新日時: 2026-09-07 00:53 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -2116,7 +2116,14 @@
 
 - 正式入力`build/tdd-macos/public-api-missing-g315.json`は公開header 1,548、公開API 29,804、対応済み23,042、未対応6,762、1,796,164 bytes、SHA-256 `a00a89ca2529d7279d19eb4d9aadc22ca8406bd317f4ebbc7dbaa5ca47bd3260`を記録する。`libs/brush/KisAbrStorage.h`の残存全11 APIと`libs/brush/KisBrushTypeMetaDataFixup.h`の残存全2 APIは重複なく、合計13識別子の整列集合SHA-256は`81e9c63fd758263e09e5b34dd7d36af8a1792f6db387ea330ad542e726d23680`である。ABR storageの型・寿命・collection所有4、資源照会・版管理4、反復・表示3、brush種別metadata補正の型・実行2の4枠へ完全に割り当てる。
 - `KisBrushServerProvider.h`は同じ資源領域に属するが、`KoResourceServer.h`を通じてQt Widgets・KF Config・資源model全体を要求するため、今回の軽量なstorage・loader補正対象から分離する。既存`TestAbrStorage`は製品`kritaimage`・`kritalibbrush`と`kritatestsdk`へ接続する1,227工程・2,475入力であり、公開宣言面だけを追加する対象として広すぎる。新規`libs/brush/tests/KisBrushStorageSchemaContractTest.cpp`を作り、軽量近傍`KisAbrBrushSchemaContractTest`と同じbrush・global・image・resources探索路、Qt Core・Gui・Test、header-only Boost、KF I18nのinterface探索路、brush・resources export定義だけへ接続する。近傍は4工程・8入力、command SHA-256 `1f0edc0f79da0b9a04ba3255e442c5714b248106a57991df5cd6be589462a73b`、input SHA-256 `549faa2146101327e940a77c3b1885b0967eb401a2f1417baec7417522113703`である。新targetも4工程・8入力を予測し、停止線を5工程・11入力とする。
-- `g315-brush-storage-schema`の状態は`planned`、実装基点は`ef7ede3bd0`である。許可pathを新規試験sourceと`libs/brush/tests/CMakeLists.txt`の新target固有節だけに限定し、公開headerと製品sourceを変更しない。storage、brush collection、資源、iterator、画像、loader registryを実体化せず、inline本文を実行しない。macOSの対象、近傍、追加4枠の20回反復、厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。製品target、既存の大規模ABR storage効果試験、全体build・`verify`、Linux、Nix再評価は実行しない。
+- `g315-brush-storage-schema`の状態は`integrated`、実装基点は`ef7ede3bd0`である。許可pathを新規試験sourceと`libs/brush/tests/CMakeLists.txt`の新target固有節だけに限定し、公開headerと製品sourceを変更しなかった。追加作業treeを作らず主作業treeで限定周期を実行し、実装commit `ca05690ba9`として取り込んだ。
+
+### 第315便の契約統合結果
+
+- 開始`libs/brush/KisAbrStorage.h`と`libs/brush/KisBrushTypeMetaDataFixup.h`から新規`libs/brush/tests/KisBrushStorageSchemaContractTest.cpp`へ残存全11・2 APIを対応付けた。ABR storageの型・構築・多相破棄・collection所有、資源照会・版管理、資源・tag反復・代表画像、およびbrush種別metadata補正の型と実行署名を4枠で固定した。新規試験sourceは66行・4枠である。
+- 対象未登録の初回限定構築は未知の対象、登録後の宣言だけの4枠は期待どおり4件失敗した。新targetは追加探索路や製品libraryを必要とせず4工程・8入力で停止線以内に収まり、command SHA-256は`b248f7c973e5f0ebeac43807f6f923cfd32c3c2f85539ada1230fd4417599d5a`、input SHA-256は`abbb0f1740be938d130c2b601b3edd74e6114ba214a13c03013fe50f29a7a2e6`である。候補headerのAUTOMOC `HEADERS`は空で、Qt Gui・Test・Core、gettext、OS frameworkだけへ動的接続し、製品未解決記号は0である。
+- macOSで対象と近傍`libs-brush-KisAbrBrushSchemaContractTest`のCTest 2/2、対象の20回反復、厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`に成功した。既存`TestAbrStorage`の1,227工程・2,475入力は構築していない。実ABR解析、資源・tag反復結果、画像内容、metadata更新結果は既存または後続の効果契約で扱う。
+- 台帳へ13 APIを追加して23,055件対応、6,749件未対応、両対象headerの残存0件となった。旧`public-api-missing-g315.json`を削除し、追加作業tree・構築木は作成していない。主Ninja木5,878,420 KiB、共有compiler cache 983,092 KiB、最新`build/tdd-macos/public-api-missing-g316.json` 1,793,252 bytes、SHA-256 `a7f78eb717c48b381f28fbec8265959d231c1587ea42440788718cf089a301b7`だけを再利用対象として保持する。compiler cacheは144,029件中120,466件、83.64%がhitしている。製品target、既存の大規模ABR storage効果試験、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第316便の正式不足報告から、全APIを最小閉包で固定できる責務を再選定することである。
 
 ### 第239便の先行監査担当票
 
