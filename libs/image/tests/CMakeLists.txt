@@ -2594,6 +2594,31 @@ target_include_directories(KisUndoAdapterContractTest PRIVATE
 )
 target_compile_definitions(KisUndoAdapterContractTest PRIVATE kritaimage_EXPORTS)
 
+kis_add_test(
+    KisSurrogateUndoAdapterContractTest.cpp
+    LINK_LIBRARIES
+        kritaimagesurrogateundoadapterobjects
+        kritaimageundoadapterobjects
+        kritapaintingundokundo2coreobjects
+        kritapaintingundostoreinterfaceobjects
+        kritapaintingundostoreobjects
+        KF${KF_MAJOR}::I18n
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Widgets
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_sources(KisSurrogateUndoAdapterContractTest PRIVATE ../kis_undo_adapter.h)
+target_include_directories(KisSurrogateUndoAdapterContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/painting/undo
+    ${CMAKE_BINARY_DIR}/libs/painting/undo
+)
+target_compile_definitions(KisSurrogateUndoAdapterContractTest PRIVATE
+    kritaimage_EXPORTS
+    kritapaintingundo_EXPORTS
+)
+
 
 include_directories(${QUAZIP_INCLUDE_DIRS})
 
