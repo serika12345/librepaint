@@ -593,6 +593,27 @@ target_compile_definitions(KoColorOperationFactorySchemaContractTest PRIVATE
 )
 
 kis_add_test(
+    KisCmykDitherAndCompositeSchemaContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Test
+        Boost::boost
+        Imath::ImathConfig
+)
+target_include_directories(KisCmykDitherAndCompositeSchemaContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+    $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
+)
+target_compile_definitions(KisCmykDitherAndCompositeSchemaContractTest PRIVATE
+    kritaglobal_EXPORTS
+    kritapigment_EXPORTS
+)
+
+kis_add_test(
     KoCompositeOpSchemaContractTest.cpp
     LINK_LIBRARIES
         Qt${QT_MAJOR_VERSION}::Core
