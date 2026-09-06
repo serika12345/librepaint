@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-07 01:27 JST
+- 更新日時: 2026-09-07 01:36 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -2164,6 +2164,12 @@
 - 新targetは4工程・8入力で停止線以内に収まり、command SHA-256は`bbea95b720146836eaa5f512599544a4ca0d0648c5e3571525ccecac01ec5334`、input SHA-256は`051746efbe8b8a2ffec507a95d5f9e8b93919defbe00e7913a9fd256f9f62069`である。候補headerのAUTOMOC入力はなく、Qt Test・Core、gettext、OS frameworkだけへ動的接続し、製品未解決記号は0である。
 - macOSで対象と近傍`libs-color-KisColorManagerPublicApiTest`のCTest 2/2、対象の20回反復、厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`に成功した。製品`kritacolor`・`kritacolord`、私設DBus service、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 台帳へ4 APIを追加して23,086件対応、6,718件未対応、`libs/color`対象headerの残存0件となった。旧`public-api-missing-g318.json`を削除し、追加作業tree・構築木は作成していない。主Ninja木5,882,720 KiB、共有compiler cache 981,156 KiB、最新`build/tdd-macos/public-api-missing-g319.json` 1,785,960 bytes、SHA-256 `b65e44d1c933d23cfcd21d3af5810863e08d04527aa381d836449aeda7ab14cb`だけを再利用対象として保持する。compiler cacheは144,039件中120,467件、83.63%がhitしている。次の永続作業は第319便の正式不足報告から、全APIを最小閉包で固定できる責務を再選定することである。
+
+### 第319便の監査結果と実装計画
+
+- 正式入力`build/tdd-macos/public-api-missing-g319.json`は公開header 1,548、公開API 29,804、対応済み23,086、未対応6,718、1,785,960 bytes、SHA-256 `b65e44d1c933d23cfcd21d3af5810863e08d04527aa381d836449aeda7ab14cb`を記録する。`libs/document`の残存は5 headerの全6 APIだけで重複せず、識別子の整列集合SHA-256は`f0850dccd9a86ecd3f8caa7f807a981f1eb2c9d8c5d572fe703bad9cf9200224`である。文書UIのundo・自動保存回復・I/O表示・文書情報について、多相破棄4件と公開通知2件を5枠へ完全に割り当てる。
+- 既存の各効果試験は製品OBJECT targetを実体接続し、最小の`kis_document_named_autosave_dialog_test`でも8工程・17入力、command SHA-256 `947ddf5c87298d3ae9e4353b0e9464af29fafcd413a07ae58baf5b4266ea3350`、input SHA-256 `8b47a1c766d947a548a33eb8060d1151add2a8e6850b885a5e54d35fab6de2e4`である。既存対象への追記は製品実装と生成UIを毎回構築するため棄却する。新規`libs/document/ui/tests/KisDocumentUiLifecycleSchemaContractTest.cpp`を作り、document・document/ui・widgetutilsの探索路、KF WidgetsAddonsのinterface探索路、Qt Core・Gui・Widgets・Test、document UI export定義だけへ接続する。新targetは宣言だけを検査する4工程・8入力を予測し、停止線を5工程・11入力とする。
+- `g319-document-ui-lifecycle-schema`の状態は`planned`、実装基点は`6440ecc84a`である。許可pathを新規試験sourceと`libs/document/ui/tests/CMakeLists.txt`の新target固有節だけに限定し、公開header、製品source、生成UIを変更しない。dialog、undo view、I/O表示、文書情報を実体化せず、signalを発火しない。macOSの対象、最小近傍、追加5枠の20回反復、厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。製品OBJECT・shared target、全体build・`verify`、Linux、Nix再評価は実行しない。
 
 ### 第239便の先行監査担当票
 
