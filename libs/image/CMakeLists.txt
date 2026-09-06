@@ -1986,6 +1986,32 @@ set_target_properties(kritaimagenodetimespanobjects PROPERTIES
    POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaimagelazyfillfilteringoptionsobjects OBJECT
+   lazybrush/kis_lazy_fill_filtering_options.cpp
+)
+target_compile_definitions(kritaimagelazyfillfilteringoptionsobjects PRIVATE kritaimage_EXPORTS)
+target_include_directories(kritaimagelazyfillfilteringoptionsobjects
+   PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment>
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/pigment>
+      $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
+      $<TARGET_PROPERTY:Imath::Imath,INTERFACE_INCLUDE_DIRECTORIES>
+)
+target_link_libraries(kritaimagelazyfillfilteringoptionsobjects
+   PUBLIC
+      Qt${QT_MAJOR_VERSION}::Core
+      Qt${QT_MAJOR_VERSION}::Gui
+      Boost::boost
+)
+set_target_properties(kritaimagelazyfillfilteringoptionsobjects PROPERTIES
+   AUTOMOC OFF
+   POSITION_INDEPENDENT_CODE ON
+)
+
 set(kritaimage_LIB_SRCS
    tiles3/kis_tile.cc
    tiles3/kis_tile_data.cc
@@ -2384,6 +2410,7 @@ kis_add_library(kritaimage SHARED
    $<TARGET_OBJECTS:kritaimageproofingconfigurationobjects>
    $<TARGET_OBJECTS:kritaimagetimespanvalueobjects>
    $<TARGET_OBJECTS:kritaimagenodetimespanobjects>
+   $<TARGET_OBJECTS:kritaimagelazyfillfilteringoptionsobjects>
 )
 
 generate_export_header(kritaimage BASE_NAME kritaimage)
