@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-06 11:59 JST
+- 更新日時: 2026-09-06 12:12 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1478,8 +1478,10 @@
 ### 第273便の監査結果と構造準備計画
 
 - `libs/image/commands_new/KisMergeLabeledLayersCommand.h`の残存全18 APIは一意かつ台帳と非重複で、識別子整列集合SHA-256 `9603d11464211c01354f3c1a7224828c9e7cc579f4975aca50690f46a13af762`を持つ。型・2構築・寿命4、group選択方針4、参照node情報5、list・共有所有別名2、undo・redo・参照装置生成3の5枠へ割り当てる。方針3値、固定UUIDと整数による全field等価性、list順序と共有寿命の11 APIを値契約で固定し、command実行と画像生成は型特性・未評価構築式・厳密関数pointerで観測する。
-- `g273a-merge-labeled-layers-header-boundary`の状態は`in_progress`、実装基点は`a6af9d824a`、専用作業treeは`/Users/masato/Documents/librepaint-g273a-merge-labeled-layers-header-boundary`、branchは`agent/g273a-merge-labeled-layers-header-boundary`、macOSのheader、直接利用元、軽量近傍に限る構築実行許可は`granted`である。開始`libs/image/commands_new/KisMergeLabeledLayersCommand.h`から公開宣言に不要な`kis_image.h`を除去し、inline比較が所有する`QUuid`を直接includeする。実装`libs/image/commands_new/KisMergeLabeledLayersCommand.cpp`は既に`kis_image.h`を直接所有するため変更しない。許可pathは開始headerだけとし、追加利用元の補正が必要なら停止する。最新`public-api-missing-g273.json`で残存18 APIと台帳非重複を再確認した。変更前後のheader-first探索面と実読込み、実装元と全利用元の厳格構文、4工程・8入力の軽量`KisNodeCommandsAdapterSchemaContractTest`、公開API集合、無作業再構築、書式、差分、公開API検査、`verify-quick`を確認する。
-- 続く`g273-merge-labeled-layers-contract`は既存`libs/image/tests/KisNodeCommandsAdapterSchemaContractTest.cpp`への5枠追加だけを許可し、CMake、公開header、製品sourceを変更しない。対象は4工程・8入力、AUTOMOC `HEADERS=[]`、製品非接続を維持する。CMakeまたは探索路・定義・linkの変更、5工程・11入力超過、Qt Gui・Widgets・Xml、pigment・stroke・製品shared・OBJECT、`kritatestsdk`、command・画像・node・paint deviceの実体化、製品未解決記号、許可path外変更が必要なら停止する。第272便完了後にG273aから開始する。
+- `g273a-merge-labeled-layers-header-boundary`の状態は`integrated`である。開始`libs/image/commands_new/KisMergeLabeledLayersCommand.h`内の型所有を、推移的な`kis_image.h`から直接の`QUuid`へ置き換えた。実装`libs/image/commands_new/KisMergeLabeledLayersCommand.cpp`は既に`kis_image.h`を直接所有するため変更していない。公開API、ABI、製品本文、直接利用元を変更せず、受渡しcommit `4ad755ae17`を中央commit `3d04473c37`として取り込んだ。
+- 変更前のQt Guiなしheader-first検査は`kis_image.h`経由の`QPainter`不足で失敗し、1,430行相当・固有header 1,112件を読んだ。変更後は同じ探索面で成功し、`kis_image.h`到達を0として1,298行相当・1,003件へ132行・109件削減した。実装元、selection2利用元、enclose-and-fill利用元は厳格構文に成功した。canvas利用元のQt 6非推奨2件、fill利用元の`QKeySequence`直接所有不足、plugin集約元の未生成UI・MOCは中央の変更前にも同一診断となる既存基線であり、各基線だけを補った検査では変更起因の不足が0件だった。
+- 軽量近傍`KisNodeCommandsAdapterSchemaContractTest`は担当側と中央でCTest、二回の無作業再構築に成功し、4工程・8入力、担当側command SHA-256 `0ad6a1f62be7f151fa5a96f8dc7e085ebe6be7703a3d6332e2e41e35da41353f`、input SHA-256 `0685b8bb04a1c982eb2e6d862ebdaa68809d19243e8fca862f0b3a1d969abd3b`、中央command SHA-256 `fb74518ec245c9f6538c09d45a834089e8db6d86037268f0e57f5c52f2f306f0`、input SHA-256 `375a3cb251632bcc9f3776f040635540231acec2bd2722cc7a3f31b44e6ed6e9`、AUTOMOC `HEADERS=[]`を維持した。書式、差分、公開API検査、`verify-quick`にも成功した。cleanな専用作業tree、306,540 KiBの構築木、branchを削除して897,556 KiBを回収した。主Ninja木5,793,880 KiB、共有compiler cache 982,900 KiB、最新`public-api-missing-g273.json`を保持する。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 続く`g273-merge-labeled-layers-contract`の状態は`in_progress`、実装基点は`3d04473c37`、専用作業treeは`/Users/masato/Documents/librepaint-g273-merge-labeled-layers-contract`、branchは`agent/g273-merge-labeled-layers-contract`、macOSの対象と軽量近傍に限る構築実行許可は`granted`である。既存`libs/image/tests/KisNodeCommandsAdapterSchemaContractTest.cpp`への5枠追加だけを許可し、CMake、公開header、製品sourceを変更しない。対象は4工程・8入力、AUTOMOC `HEADERS=[]`、製品非接続を維持する。CMakeまたは探索路・定義・linkの変更、5工程・11入力超過、Qt Gui・Widgets・Xml、pigment・stroke・製品shared・OBJECT、`kritatestsdk`、command・画像・node・paint deviceの実体化、製品未解決記号、許可path外変更が必要なら停止する。
 
 ### 第274便の先行監査担当票
 
