@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-07 08:28 JST
+- 更新日時: 2026-09-07 08:33 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -2692,6 +2692,12 @@
 - 開始headerの`QDir`完全headerは公開宣言・inline実装・対応実装のいずれにも利用がないため削除する。開始`KisMediaEncoderWrapper.cpp`の厳格`clang-check`は診断0件であり、変更後も公開API指紋と7直接利用元の診断を不変に保つ。
 - 既存`libs/impex/tests/KisMediaEncoderFormatAndSettingsContractTest.cpp`は191行・5枠で、追加6枠後も300行・20枠未満に収める。既存targetは4工程・8入力、command SHA-256 `5396218daf70b994ca00db11f16b98af52874f9dc9c70b854283c2cd6238a20a`、input SHA-256 `cf0648c4ad31097ad0543338b2b00c8a749956145bd8ffe647cc078a2e343e9c`で、製品libraryを接続せずQt Core・Testだけへ動的接続する。CMakeを変更せずこの閉包を維持し、停止線を5工程・11入力、300行・20枠とする。
 - `g354-media-encoder-wrapper-schema`の状態は`in_progress`、実装基点は`e5bfd55d64`である。構造整理は開始header、契約は既存試験sourceだけに限定する。macOSの対象、追加6枠の20回反復、開始実装・試験source・直接利用元の厳格`clang-check`、書式、二回の無作業再構築、公開API指紋不変、公開API検査、`verify-quick`だけを実行する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
+
+### 第354便の実装結果
+
+- `g354-media-encoder-wrapper-schema`は`completed`である。`libs/impex/animation/KisMediaEncoderWrapper.h`から公開宣言、inline実装、対応実装のいずれも使わない`QDir`完全headerを削除した。構造変更前後の公開API報告はSHA-256 `57dca70b59089bb47d5c5be4624b407b56e58f673121a37acb869662f478f3d8`で同一だった。開始実装、2直接利用header、4直接利用sourceの厳格`clang-check`は診断0件である。残る直接利用元では開始時からのQt 6 `Q_FOREACH`非推奨1件と生成`ui_recorder_export.h`探索不足1件だけを再確認し、範囲外として維持した。構造変更は`923d29d54e`である。
+- `libs/impex/tests/KisMediaEncoderFormatAndSettingsContractTest.cpp`へ6枠を追加し、符号化実行器の実行・取消・完了・失敗・進捗通知と、wrapperの型・構築・寿命・開始・形式検索・reset・状態通知の全21公開APIを固定した。最初の対象構築は追加6枠の未定義symbolだけで停止した。対象は276行・11枠、CMake変更なし、最終閉包4工程・8入力、command SHA-256 `5396218daf70b994ca00db11f16b98af52874f9dc9c70b854283c2cd6238a20a`、input SHA-256 `cf0648c4ad31097ad0543338b2b00c8a749956145bd8ffe647cc078a2e343e9c`で、動的接続はQt Core・Test、gettextとmacOS frameworkだけである。実装は`c94b80df5c`である。
+- macOSで対象CTest、追加6枠を含む対象の20回反復、開始実装・試験source・直接利用元の厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`に成功した。台帳へ21 APIを追加して24,515件対応、5,289件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g354.json`を削除し、主Ninja木5,919,496 KiB、共有compiler cache 1.0 GB、最新`build/tdd-macos/public-api-missing-g355.json` 1,400,682 bytes、SHA-256 `cc4d0c07a9ce47dc992eb97aaca02d12048db3ea8c080ec83a19f706c6502344`だけを保持する。compiler cacheは144,195件中120,492件、83.56%がhitしている。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第355便で次の高密度なmacOS対象と最小構築面を選定することである。
 
 ### 第239便の先行監査担当票
 

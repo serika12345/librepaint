@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 5310
+    "expectedMissingApis": 5289
   },
   "contracts": [
     {
@@ -67844,6 +67844,81 @@
         "method:KisConfig::firstRun(bool defaultValue=false) const",
         "method:KisConfig::setDefaultAssistantsColor(const QColor & color) const",
         "method:KisConfig::setFirstRun(const bool firstRun) const"
+      ]
+    },
+    {
+      "target": "KisMediaEncoderFormatAndSettingsContractTest",
+      "source": "libs/impex/tests/KisMediaEncoderFormatAndSettingsContractTest.cpp",
+      "test": "KisMediaEncoderFormatAndSettingsContractTest::runnableExecutionAndCancellationSignaturesRemainStable",
+      "behavior": "映像符号化実行器はQObjectとQRunnableとして実行でき、取消要求を受け取る公開面を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisMediaEncoderRunnable",
+        "method:KisMediaEncoderRunnable::run()",
+        "method:KisMediaEncoderRunnable::slotHandleCancelRequested()"
+      ]
+    },
+    {
+      "target": "KisMediaEncoderFormatAndSettingsContractTest",
+      "source": "libs/impex/tests/KisMediaEncoderFormatAndSettingsContractTest.cpp",
+      "test": "KisMediaEncoderFormatAndSettingsContractTest::runnableCompletionSignalSignaturesRemainStable",
+      "behavior": "映像符号化実行器は開始、完了、取消を引数なしsignalとして通知する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMediaEncoderRunnable::sigCancelled()",
+        "method:KisMediaEncoderRunnable::sigCompleted()",
+        "method:KisMediaEncoderRunnable::sigStarted()"
+      ]
+    },
+    {
+      "target": "KisMediaEncoderFormatAndSettingsContractTest",
+      "source": "libs/impex/tests/KisMediaEncoderFormatAndSettingsContractTest.cpp",
+      "test": "KisMediaEncoderFormatAndSettingsContractTest::runnableFailureAndProgressSignalSignaturesRemainStable",
+      "behavior": "映像符号化実行器は失敗理由と処理中frame番号をsignalとして通知する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMediaEncoderRunnable::sigFailed(const QString & errorMessage)",
+        "method:KisMediaEncoderRunnable::sigProgressUpdated(int frameNo)"
+      ]
+    },
+    {
+      "target": "KisMediaEncoderFormatAndSettingsContractTest",
+      "source": "libs/impex/tests/KisMediaEncoderFormatAndSettingsContractTest.cpp",
+      "test": "KisMediaEncoderFormatAndSettingsContractTest::wrapperTypeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "映像符号化wrapperは任意のQObject親を持って構築でき、QObjectの仮想寿命規則に従う公開型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisMediaEncoderWrapper",
+        "method:KisMediaEncoderWrapper::KisMediaEncoderWrapper(QObject * parent=nullptr)",
+        "method:KisMediaEncoderWrapper::~KisMediaEncoderWrapper()"
+      ]
+    },
+    {
+      "target": "KisMediaEncoderFormatAndSettingsContractTest",
+      "source": "libs/impex/tests/KisMediaEncoderFormatAndSettingsContractTest.cpp",
+      "test": "KisMediaEncoderFormatAndSettingsContractTest::wrapperExecutionAndFormatLookupSignaturesRemainStable",
+      "behavior": "映像符号化wrapperは同期・非同期の開始と、対応形式一覧およびkeyによる形式検索の公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMediaEncoderWrapper::getFormatByKey(const QString & key)",
+        "method:KisMediaEncoderWrapper::getSupportedFormats()",
+        "method:KisMediaEncoderWrapper::start(const KisMediaEncoderWrapperSettings & settings,bool batchMode)",
+        "method:KisMediaEncoderWrapper::startNonBlocking(const KisMediaEncoderWrapperSettings & settings)"
+      ]
+    },
+    {
+      "target": "KisMediaEncoderFormatAndSettingsContractTest",
+      "source": "libs/impex/tests/KisMediaEncoderFormatAndSettingsContractTest.cpp",
+      "test": "KisMediaEncoderFormatAndSettingsContractTest::wrapperLifecycleSignalSignaturesRemainStable",
+      "behavior": "映像符号化wrapperは状態をresetし、開始、正常・異常終了、進捗、取消要求をsignalとして通知する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMediaEncoderWrapper::reset()",
+        "method:KisMediaEncoderWrapper::sigCancelRequested()",
+        "method:KisMediaEncoderWrapper::sigFinished()",
+        "method:KisMediaEncoderWrapper::sigFinishedWithError(QString message)",
+        "method:KisMediaEncoderWrapper::sigProgressUpdated(int frameNo)",
+        "method:KisMediaEncoderWrapper::sigStarted()"
       ]
     }
   ]
