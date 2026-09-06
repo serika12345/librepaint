@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-07 03:15 JST
+- 更新日時: 2026-09-07 03:18 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -2316,6 +2316,13 @@
 - 対象未登録の初回限定構築は未知の対象として失敗し、登録後の追加5枠は期待どおり5件失敗した。新targetは4工程・8入力で停止線以内に収まり、command SHA-256は`7d13eefb17650bb776658a3d77e5f088aab28d0285b163858fb8982ecba9d769`、input SHA-256は`f23d37795788aace7718983809e01d4e33fdb1d2a44c2dd633cc8121086379e6`である。AUTOMOC header入力は空、Qt Test・Core、gettext、OS frameworkだけへ動的接続し、製品未解決記号は0である。
 - macOSで対象と軽量近傍`libs-canvas-KisCanvasUpdateInfoSchemaContractTest`のCTest 2/2、対象の20回反復、厳格`clang-check`、書式、二回の無作業再構築、公開API検査に成功した。1,225工程・2,469入力の既存動的投影試験、製品OBJECT・shared target、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 台帳へ29 APIを追加して23,255件対応、6,549件未対応となった。`libs/canvas`の残存はworkspace資源13件だけである。旧`public-api-missing-g329.json`は最新報告の検証後に削除し、追加作業tree・構築木は作成していない。主Ninja木5,896,920 KiB、共有compiler cache 980,856 KiB、最新`build/tdd-macos/public-api-missing-g330.json` 1,738,059 bytes、SHA-256 `ebfb188dbf5d53f3599179b07a93f90e0cdba340575b5e6057f5e8a01089474c`だけを再利用対象として保持する。compiler cacheは144,077件中120,469件、83.61%がhitしている。次の永続作業は第330便でcanvas workspace資源13 APIの最小構築面を確定することである。
+
+### 第330便の監査結果と実装計画
+
+- 正式入力`build/tdd-macos/public-api-missing-g330.json`は公開header 1,548、公開API 29,804、対応済み23,255、未対応6,549、1,738,059 bytes、SHA-256 `ebfb188dbf5d53f3599179b07a93f90e0cdba340575b5e6057f5e8a01089474c`を記録する。`libs/canvas/workspace/kis_workspace_resource.h`の残存全13 APIを、型・共有pointer・寿命6、複製・資源識別3、device入出力2、docker状態2として4枠へ完全に割り当てる。対象識別子の整列集合SHA-256は`62361a4a9c85b26790475131221874380706f2480ca1cb2ab2da2609a70382a0`である。
+- 開始headerは資源と設定値の二基底型、公開引数・返却型、docker状態値に直接includeを使用している。`KRITAUI_EXPORT`はR1でworkspace表示資源をcanvas-presentationへ移しながらABIを維持した意図的な所有境界であるため変更しない。既存動的`KisWorkspacePersistenceTest`は製品群へ接続する2,027工程・4,051入力であり、公開宣言面の反復対象として棄却する。
+- 新規`libs/canvas/tests/KisWorkspaceResourceSchemaContractTest.cpp`を作り、canvas・UI・resources・image・global・pigmentのsource/generated探索路、Eigen・KF I18n・Imathのinterface探索路、Qt Core・Gui・Test、header-only Boost、各export定義だけへ接続する。軽量近傍`KisPropertiesConfigurationSchemaContractTest`は4工程・8入力、command SHA-256 `282355594e99c2a85549fa5513532648b3702d14c3782f5f39aa91c5e3445dd4`、input SHA-256 `e6727f5be16f79cd9b836e3d6ce523211d11a4efcccb4f84ffb8f382bf8a8022`である。新targetも4工程・8入力を予測し、停止線を5工程・11入力とする。
+- `g330-workspace-resource-schema`の状態は`planned`、実装基点は`86cdc99812`である。許可pathを新規試験sourceと`libs/canvas/tests/CMakeLists.txt`の新target固有節だけに限定する。macOSの対象、近傍、追加4枠の20回反復、厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。資源、設定、device、resources interfaceを実体化せず、製品OBJECT・shared target、全体build・`verify`、Linux、Nix再評価は実行しない。
 
 ### 第239便の先行監査担当票
 
