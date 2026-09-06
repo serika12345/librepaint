@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-06 16:23 JST
+- 更新日時: 2026-09-06 16:28 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1655,6 +1655,14 @@
 
 - 正式入力は`build/tdd-macos/public-api-missing-g282.json`である。第281便で保留した候補に加え、既存の単一objectまたは軽量契約targetへ接続できる10〜20 APIの責務を再比較する。全公開APIを最大5枠へ完全に割り当て、主要状態を動的に観測できる候補を優先し、既存targetが別責務を含む場合は専用targetの工程数と入力数を先に比較する。
 - 次の永続作業は、正式不足報告、候補header・実装、既存試験、CMake File APIを読み取り専用で再照合し、契約実装前に必要な構造整理と停止線を確定することである。製品target、既存重量試験、全体build・`verify`、Linux、Nix再評価を実行しない。
+
+### 第282便の監査結果と構造準備計画
+
+- `libs/image/kis_surrogate_undo_adapter.h`の残存全12 APIは一意かつ台帳と非重複で、識別子整列集合SHA-256 `3d69b69aa014256cfebe3ac0e4776377f3b5cf899740784953ce5643a4aab4c2`を持つ。型・構築・破棄・現在command 4、command追加・直前取消し2、単一undo・redo 2、macro開始・終了2、全undo・redo 2の5枠へ完全に割り当てる。空履歴、追加時の即時実行と所有、現在command、単一移動、macroの一括移動、全履歴移動を状態値と呼出し順で動的に固定する。
+- 現在の`libs/image/CMakeLists.txt`では`kritaimage_LIB_SRCS`が`kis_surrogate_undo_adapter.cpp`を直接所有し、製品`kritaimage`は1,197工程・2,418入力、command SHA-256 `d9ed76dec7b98d303bb4927160268fe50ce7e8356b45c4c99ae9ce9f2ffca684`、input SHA-256 `1d293a0e5483707c207c747da895fea828dd05247472f57fc53c5ea37d0a9719`である。開始sourceを新規AUTOMOC不要・位置独立`kritaimagesurrogateundoadapterobjects`へ移し、元の製品へ1回だけ再集約する。既存`kritaimageundoadapterobjects`、`kritapaintingundostoreobjects`、`kritapaintingundokundo2coreobjects`の一方向依存を再利用し、公開header、実装本文、ABI、製品の最終link内容を維持する。
+- 最寄りの`KisUndoStoresContractTest`は14工程・29入力、command SHA-256 `1733a24667d226ce6fee61027b888dc918e0b7b6b9b28177dc81aa822922b626`、input SHA-256 `00c94d154dfd14865adb389b26fa44d09e6e77daaf4b900e1bc6085927f38671`である。同sourceへ追記するとpainting undo storeとimage adapterの責務を混在させるため、新規`KisSurrogateUndoAdapterContractTest`を分離object、既存adapter・store・KUndo2 core、Qt Core・Widgets・Testだけへ接続する。既存閉包へ2 objectを加えた16工程・33入力を予測し、停止線を17工程・36入力とする。
+- 比較した残存object候補の`KisTimeSpan` 4 APIはnode・keyframe channel再帰へ到達し、1工程の値objectだけでは実行できない。`KisAnimatedOpacityProperty`は画像・keyframe・既定境界、`KisTemplateGroup`は未分離のtemplate画像読込、`KisImageResolutionProxy`は画像寿命signal、`KisUniqueColorSet`は色空間registryを要する。surrogate undo adapterは既に分離済みのundo基底とstoreを組み合わせるだけで全12 APIを動的に観測できるため先行する。
+- `g282a-surrogate-undo-adapter-build-boundary`の状態は`planned`、実装基点は`50c2e54c75`である。許可pathを`libs/image/CMakeLists.txt`だけに限定し、一つの専用worktree-local `build/tdd-macos`で新object単独構築、製品計画内のcompile・再集約各1回、厳格構文、近傍undo adapter・store契約、二回の無作業再構築、公開API検査、`verify-quick`をmacOSで確認する。構造準備の統合・削除後に別の専用worktreeで契約を実装する。製品target、全体build・`verify`、Linux、Nix再評価を実行しない。
 
 ### 第239便の先行監査担当票
 
