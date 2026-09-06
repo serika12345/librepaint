@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-06 17:01 JST
+- 更新日時: 2026-09-06 17:11 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1687,7 +1687,13 @@
 - 現在の`libs/ui/CMakeLists.txt`では`KisAbstractFrameCacheSwapper.cpp`と`KisInMemoryFrameCacheSwapper.cpp`が製品`kritaapplicationui`のsource集合に直接入り、製品計画は1,975工程・3,950入力、command SHA-256 `b5ff66951f0f0c536e67ca5934ed5ab5383d0dda658a10ff72ad30d6d4b743d7`、input SHA-256 `eaa81c54926f7bdafa7260bd8e6cba31875593beb2982f7b7842ec622cfe42f1`である。開始2 sourceをAUTOMOC不要・位置独立の`kritauiabstractframecacheswapperobjects`と`kritauiinmemoryframecacheswapperobjects`へ移し、製品へ各1回だけ再集約する。後者から前者と既存`kritauiopenglupdateinfoobjects`へ一方向に接続し、公開header、実装本文、ABI、製品の最終link内容を維持する。具象object単独は3工程・7入力を予測し、4工程・10入力を構造準備の停止線とする。
 - 最寄りの`KisOpenGLUpdateInfoContractTest`は7工程・15入力、command SHA-256 `924a00a6cc6a36a61202ad6e1a43545331e29b027f1b40265bc382e0eee5c366`、input SHA-256 `b705be48ae39ee29630a55859d7b7cda0dbeba00af1ffd9671574c9a5184be2a`である。同sourceへframe cache所有責務を混在させず、新規`KisInMemoryFrameCacheSwapperContractTest`を2分離object、既存OpenGL更新情報・更新情報基底・共有参照object、Qt Core・Testへ接続する。9工程・19入力を予測し、停止線を10工程・22入力とする。
 - 比較した`KisStabilizedEventsSampler`の10 APIは時刻進行と未分離の`KisPaintInformation`実装、`KisLodAvailabilityData`の7 APIは設定表と描画方式登録簿、`kis_stroke_job.h`の3試験補助APIは未定義か別試験headerだけの実装を含む。メモリ内frame cache交換器は72行の具象実装と10行の抽象破棄だけを分離し、既存の更新情報値objectで全20 APIを外部状態なしに観測できるため先行する。
-- `g283a-frame-cache-swapper-build-boundary`の状態は`planned`、実装基点は`55d6bbe3e7`である。許可pathを`libs/ui/CMakeLists.txt`だけに限定し、一つの専用worktree-local `build/tdd-macos`で新object単独構築、製品計画内の2 source compile・再集約各1回、厳格構文、近傍OpenGL更新情報契約、二回の無作業再構築、公開API検査、`verify-quick`をmacOSで確認する。構造準備の統合・削除後に別の専用worktreeで契約を実装する。製品target、全体build・`verify`、Linux、Nix再評価を実行しない。
+- `g283a-frame-cache-swapper-build-boundary`の状態は`integrated`、実装基点は`55d6bbe3e7`である。許可pathを`libs/ui/CMakeLists.txt`だけに限定し、受渡しcommit `8bb4818f98`を中央commit `f6926ee319`として取り込み、patch ID `8b2b8fc67eccc842af426e98f4290789763e7bb9`の一致を確認した。開始`libs/ui/animation/cache/KisAbstractFrameCacheSwapper.cpp`を`kritaapplicationui`のsource集合から`kritauiabstractframecacheswapperobjects`へ、開始`libs/ui/animation/cache/KisInMemoryFrameCacheSwapper.cpp`を同じsource集合から`kritauiinmemoryframecacheswapperobjects`へ移し、製品へ各objectを1回だけ再集約した。後者から前者と`kritauiopenglupdateinfoobjects`へ接続し、公開header、実装本文、ABI、製品の最終link内容を維持した。
+
+### 第283便の構造準備統合結果
+
+- 抽象交換器とメモリ内交換器の専用objectは、担当側・中央とも各1工程・3入力であり、予測3工程・7入力を下回った。担当側の抽象交換器はcommand SHA-256 `b915be68a9ddd7b929bd2531d98a8ab5aa4570afc59667f772ca2d0bc5dcc79b`、input SHA-256 `5e81219fc175116d925d406b368fb8234d416cba658209060caf9b044bc5a511`、メモリ内交換器はcommand SHA-256 `a208a5cd3ce88fddf36a55dcb575ff542afd99c66a75c1a1bdbd20cb69c1f253`、input SHA-256 `82611621f5dad914da37cac773bd0b3e8deb19c38d4c5f0c31de93a528ae4b73`である。中央の抽象交換器はcommand SHA-256 `7c7a46b1a6674a2d4a4068f11325f72d72b06aab7c8e1c00fb3712374fd3d1b7`、input SHA-256 `69ed802991a13f38ec04c064f46c4b664294507db12f403f06e988a50b481c63`、メモリ内交換器はcommand SHA-256 `d641d64e2a99f311379594ce01bf6c4f7f0a19e39b3425736d757d95c0e42241`、input SHA-256 `9cde368193e338e12407c13f2bcc8020675c7ba0e06bef37946e288ababa4d46`である。
+- 最初の抽象object構築は生成済み`kritaui_export.h`の探索路不足を診断し、直接必要な`build/tdd-macos/libs/application`だけを公開探索路として追加して解消した。製品計画は1,975工程・3,950入力を維持し、移動2 sourceのcompile各1回と製品linkへのobject再集約各1回を確認した。担当側製品計画はcommand SHA-256 `1ecbc74b15cddaec075ed13c37a26e233552a74f9c2e7f070cc7538ad9aa87ec`、input SHA-256 `ce9380655e6781675b4258ee38b8b8c32efd821d450a05f70f8d277b36081ee2`、中央製品計画はcommand SHA-256 `2e182e5592f4b01bfd3c8d12961597c4011ff8af9dc9e078d218139a27c5a0b4`、input SHA-256 `2dd6300f1ac8292cf5765b55844b7a0cbd2c215a9d5b6ec7b651d90f25e073ac`である。
+- 担当側と中央のmacOSで両専用object構築、両sourceの厳格`clang-check`、近傍`libs-ui-KisOpenGLUpdateInfoContractTest`、二回の無作業再構築に成功し、担当側では公開API検査を含む`verify-quick`にも成功した。cleanな専用作業tree、306,336 KiBの構築木、branchを統合直後に削除し、合計897,536 KiBを回収した。主Ninja木、共有compiler cache、最新`build/tdd-macos/public-api-missing-g283.json`は次の契約実装へ再利用する。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 
 ### 第239便の先行監査担当票
 
