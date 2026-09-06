@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-06 21:36 JST
+- 更新日時: 2026-09-06 21:45 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1908,7 +1908,14 @@
 
 - 正式入力`build/tdd-macos/public-api-missing-g299.json`は公開header 1,548、公開API 29,804、対応済み22,714、未対応7,090、1,884,211 bytes、SHA-256 `2b916100bc215f58fa00a5677b5071baab56b6994efb1fa0b5a44359aadaba4d`を記録する。`libs/pigment/KoCompositeOpRegistry.h`の残存全14 APIは重複なく、識別子整列集合SHA-256は`62270713f89b7749ea5680f82a049c4ddc30efe39a0d8d935e67aa31b3e6924b`である。型・構築・singleton・既定方式4、識別・分類名4、一覧4、色空間適合・絞り込み2の4枠へ完全に割り当て、分類別一覧と絞り込みの既定引数も省略した呼出しで固定する。
 - 既存`libs/pigment/tests/KoCompositeOpIdsContractTest.cpp`は172行・1枠であり、追記後も260行・6枠未満に収まる。合成方式の安定IDとその登録表として同targetへ4枠を追加する。宣言段階の最初の構築は、対象ヘッダーが直接必要とする生成`kritapigment_export.h`の探索不足で失敗したため、対象固有CMake節へpigment生成探索路、globalのsource/generated探索路、KF I18n interface、header-only Boost、global・pigment export定義だけを加える。変更前閉包は4工程・7入力、command SHA-256 `4d2e7a28119e4b85f38c8f5a4470205a685066b172f88a57b64791466ab992bf`、input SHA-256 `e95f7386f745e3dd1dd5af3deaed1777865dfe0dfe0295df8e31e3882c051b4b`であり、停止線を5工程・11入力とする。製品`kritapigment`の367工程・764入力を避け、登録表、色空間、ID一覧を実体化せず、公開関数本文を実行しない。
-- `g299-composite-op-registry-schema`の状態は`planned`、実装基点は`9712cb4122`である。許可pathを既存試験sourceと`libs/pigment/tests/CMakeLists.txt`の同target固有節だけに限定する。公開header、他のCMake節、製品source、製品target、全体build・`verify`、Linux、Nix再評価、追加委任を対象外とし、macOSの対象・近傍に限る構築実行を許可する。専用Git作業treeとworktree-local Ninja木を一つだけ作り、探索路不足と宣言だけの期待失敗、対象CTest、追加4枠の各20回反復、近傍、厳格`clang-check`、書式、公開記号、AUTOMOC非入力、製品非接続、二回目計画、二回の無作業再構築、公開API検査、`verify-quick`を確認してから統合する。
+- `g299-composite-op-registry-schema`の状態は`integrated`、実装基点は`9712cb4122`である。許可pathを既存試験sourceと`libs/pigment/tests/CMakeLists.txt`の同target固有節だけに限定した。受渡しcommit `318df561c5`をpatch-id `5cdfe03a0e02c63aa20458c0e1b1b2e7491704d1`で照合し、統合commit `43a119d2ac`として取り込んだ。公開header、他のCMake節、製品sourceを変更していない。
+
+### 第299便の契約統合結果
+
+- 開始`libs/pigment/KoCompositeOpRegistry.h`から既存`libs/pigment/tests/KoCompositeOpIdsContractTest.cpp`へ残存全14 APIを対応付けた。型・構築・singleton・既定方式4、識別・分類名4、一覧4、色空間適合・絞り込み2の4枠で、安定IDを所有する登録表の照会面、分類別一覧と絞り込みの既定引数を固定した。試験sourceは247行・5枠となった。
+- 宣言段階では、最初に生成`kritapigment_export.h`の探索不足を記録し、対象固有CMake節へpigment生成探索路、globalのsource/generated探索路、KF I18n interface、header-only Boost、global・pigment export定義だけを追加した。その後の追加4枠が未定義symbolだけとなる期待失敗を確認した。対象は担当側・中央とも4工程・7入力を維持した。担当側command SHA-256は`47aa7aa5f8ac0a01a3e1f5f2569f372857b00016698fe386cfef9e2ca4c766bb`、input SHA-256は`5f412c36bdb1b9d8458256435a8e085409764c73fde28ee7baa3bb9585720832`、中央command SHA-256は`88ef085f3266d54f130a3795795512d63788541b012529e637c38c86e628ddbf`、input SHA-256は変更前と同じ`e95f7386f745e3dd1dd5af3deaed1777865dfe0dfe0295df8e31e3882c051b4b`である。候補headerのAUTOMOC入力は0で、Qt Test・Core、gettext、OS frameworkだけへ動的接続し、製品未解決記号は0である。
+- 担当側と中央のmacOSで追加4枠を各20回、対象CTest `libs-pigment-KoCompositeOpIdsContractTest`、近傍`libs-pigment-KoCompositeOpSchemaContractTest`、厳格`clang-check`、書式、二回の無作業再構築に成功した。担当側の`verify-quick`と中央の公開API検査にも成功し、台帳へ14 APIを追加して22,728件対応、7,076件未対応、対象headerの残存0件となった。
+- cleanな専用作業treeと構築木895,956 KiB、branchを統合直後に削除した。旧`public-api-missing-g299.json` 1,884,211 bytesを削除し、主Ninja木5,860,940 KiB、共有compiler cache 982,236 KiB、最新`build/tdd-macos/public-api-missing-g300.json` 1,880,246 bytes、SHA-256 `3aa377e0d0ee80da52bf3e439ae7c4160cfc2726e1c8b5a7fb4213eb65e94e68`だけを再利用対象として保持する。compiler cacheは143,949件中120,450件、83.68%がhitしている。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第300便の正式不足報告から、全APIを最小閉包で固定できる責務を再選定することである。
 
 ### 第239便の先行監査担当票
 

@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 7090
+    "expectedMissingApis": 7076
   },
   "contracts": [
     {
@@ -63796,6 +63796,56 @@
         "function:operator <<(QDebug dbg,const KoColor & color)",
         "method:KoColor::dump() const",
         "method:KoColor::toQString(const KoColor & color)"
+      ]
+    },
+    {
+      "target": "KoCompositeOpIdsContractTest",
+      "source": "libs/pigment/tests/KoCompositeOpIdsContractTest.cpp",
+      "test": "KoCompositeOpIdsContractTest::compositeRegistryTypeAndDefaultSchemaRemainStable",
+      "behavior": "合成方式登録表は専用型として構築でき、共有singletonへの参照と既定の合成方式IDを公開する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoCompositeOpRegistry",
+        "method:KoCompositeOpRegistry::KoCompositeOpRegistry()",
+        "method:KoCompositeOpRegistry::getDefaultCompositeOp() const",
+        "method:KoCompositeOpRegistry::instance()"
+      ]
+    },
+    {
+      "target": "KoCompositeOpIdsContractTest",
+      "source": "libs/pigment/tests/KoCompositeOpIdsContractTest.cpp",
+      "test": "KoCompositeOpIdsContractTest::compositeRegistryIdentityAndCategorySignaturesRemainStable",
+      "behavior": "合成方式登録表は方式IDと表示名の対応、分類一覧、分類表示名の照会を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoCompositeOpRegistry::getCategories() const",
+        "method:KoCompositeOpRegistry::getCategoryDisplayName(const QString & categoryID) const",
+        "method:KoCompositeOpRegistry::getCompositeOpDisplayName(const QString & compositeOpID) const",
+        "method:KoCompositeOpRegistry::getKoID(const QString & compositeOpID) const"
+      ]
+    },
+    {
+      "target": "KoCompositeOpIdsContractTest",
+      "source": "libs/pigment/tests/KoCompositeOpIdsContractTest.cpp",
+      "test": "KoCompositeOpIdsContractTest::compositeRegistryListingSignaturesRemainStable",
+      "behavior": "合成方式登録表は全方式、layer style用方式、色空間別方式、既定色空間を含む分類別方式の一覧を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoCompositeOpRegistry::getCompositeOps() const",
+        "method:KoCompositeOpRegistry::getCompositeOps(const KoColorSpace * colorSpace) const",
+        "method:KoCompositeOpRegistry::getCompositeOps(const KoID & category,const KoColorSpace * colorSpace=0) const",
+        "method:KoCompositeOpRegistry::getLayerStylesCompositeOps() const"
+      ]
+    },
+    {
+      "target": "KoCompositeOpIdsContractTest",
+      "source": "libs/pigment/tests/KoCompositeOpIdsContractTest.cpp",
+      "test": "KoCompositeOpIdsContractTest::compositeRegistryValidationSignaturesRemainStable",
+      "behavior": "合成方式登録表は色空間が方式へ対応するかを照会し、既定または明示した除外方針でID範囲を絞り込む。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoCompositeOpRegistry::colorSpaceHasCompositeOp(const KoColorSpace * colorSpace,const KoID & compositeOp) const",
+        "method:KoCompositeOpRegistry::filterCompositeOps(TKoIdIterator begin,TKoIdIterator end,const KoColorSpace * colorSpace,bool removeInvalidOps=true) const"
       ]
     }
   ]
