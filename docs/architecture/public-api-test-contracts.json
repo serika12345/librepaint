@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 7473
+    "expectedMissingApis": 7450
   },
   "contracts": [
     {
@@ -62540,6 +62540,74 @@
       "apis": [
         "method:KisCoordinatesConverter::imageToWidget(const T & obj) const",
         "method:KisCoordinatesConverter::widgetToImage(const T & obj) const"
+      ]
+    },
+    {
+      "target": "KisFilterStrokeStrategySchemaContractTest",
+      "source": "libs/painting/tests/KisFilterStrokeStrategySchemaContractTest.cpp",
+      "test": "KisFilterStrokeStrategySchemaContractTest::moveStrokeDataValuesAndLodCloneRemainStable",
+      "behavior": "移動job dataは指定座標を逐次処理値として保持し、詳細度に応じて縮小した独立cloneを生成する。",
+      "classification": "maintained",
+      "apis": [
+        "class:MoveStrokeStrategy::Data",
+        "member:MoveStrokeStrategy::Data::offset",
+        "method:MoveStrokeStrategy::Data::Data(QPoint _offset)",
+        "method:MoveStrokeStrategy::Data::createLodClone(int levelOfDetail)"
+      ]
+    },
+    {
+      "target": "KisFilterStrokeStrategySchemaContractTest",
+      "source": "libs/painting/tests/KisFilterStrokeStrategySchemaContractTest.cpp",
+      "test": "KisFilterStrokeStrategySchemaContractTest::moveStrokePickLayerDataValuesAndLodCloneRemainStable",
+      "behavior": "layer選択job dataは指定位置を逐次処理値として保持し、詳細度に応じて縮小した独立cloneを生成する。",
+      "classification": "maintained",
+      "apis": [
+        "class:MoveStrokeStrategy::PickLayerData",
+        "member:MoveStrokeStrategy::PickLayerData::pos",
+        "method:MoveStrokeStrategy::PickLayerData::PickLayerData(QPoint _pos)",
+        "method:MoveStrokeStrategy::PickLayerData::createLodClone(int levelOfDetail)"
+      ]
+    },
+    {
+      "target": "KisFilterStrokeStrategySchemaContractTest",
+      "source": "libs/painting/tests/KisFilterStrokeStrategySchemaContractTest.cpp",
+      "test": "KisFilterStrokeStrategySchemaContractTest::moveStrokeBarrierUpdateDataValuesAndLodCloneRemainStable",
+      "behavior": "barrier更新dataは強制更新値と排他的barrier方針を保持し、同じ値を持つ独立cloneを生成する。",
+      "classification": "maintained",
+      "apis": [
+        "method:MoveStrokeStrategy::BarrierUpdateData::BarrierUpdateData(bool forceUpdate)",
+        "method:MoveStrokeStrategy::BarrierUpdateData::createLodClone(int levelOfDetail)",
+        "struct:MoveStrokeStrategy::BarrierUpdateData"
+      ]
+    },
+    {
+      "target": "KisFilterStrokeStrategySchemaContractTest",
+      "source": "libs/painting/tests/KisFilterStrokeStrategySchemaContractTest.cpp",
+      "test": "KisFilterStrokeStrategySchemaContractTest::moveStrokeStrategyTypeLifetimeAndConstructionSchemaRemainStable",
+      "behavior": "移動stroke strategyは選択条件またはnode一覧と更新・取り消し所有者から構築でき、QObjectを介した仮想寿命を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:MoveStrokeStrategy",
+        "method:MoveStrokeStrategy::MoveStrokeStrategy(KisNodeList nodes,KisUpdatesFacade * updatesFacade,KisStrokeUndoFacade * undoFacade)",
+        "method:MoveStrokeStrategy::MoveStrokeStrategy(KisNodeSelectionRecipe nodeSelection,KisUpdatesFacade * updatesFacade,KisStrokeUndoFacade * undoFacade)",
+        "method:MoveStrokeStrategy::~MoveStrokeStrategy()"
+      ]
+    },
+    {
+      "target": "KisFilterStrokeStrategySchemaContractTest",
+      "source": "libs/painting/tests/KisFilterStrokeStrategySchemaContractTest.cpp",
+      "test": "KisFilterStrokeStrategySchemaContractTest::moveStrokeStrategyCallbacksAndNotificationsRemainStable",
+      "behavior": "移動stroke strategyは開始・実行・完了・取消・詳細度cloneのcallbackと、選択layer・操作範囲・空開始の通知署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:MoveStrokeStrategy::cancelStrokeCallback()",
+        "method:MoveStrokeStrategy::createLodClone(int levelOfDetail)",
+        "method:MoveStrokeStrategy::doStrokeCallback(KisStrokeJobData * data)",
+        "method:MoveStrokeStrategy::finishStrokeCallback()",
+        "method:MoveStrokeStrategy::initStrokeCallback()",
+        "method:MoveStrokeStrategy::sigHandlesRectCalculated(const QRect & handlesRect)",
+        "method:MoveStrokeStrategy::sigLayersPicked(const KisNodeList & nodes)",
+        "method:MoveStrokeStrategy::sigStrokeStartedEmpty()"
       ]
     }
   ]

@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-06 13:39 JST
+- 更新日時: 2026-09-06 13:52 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1539,7 +1539,20 @@
 - 比較した媒体encoder 21 APIは既存対象4工程・8入力でも実行時にencoder backend・QObjectメタ情報・thread pool・進捗UIを要し、製品は1,233工程・2,488入力である。swatch 16 APIは静的targetが4工程・8入力でも色値・直列化の実行に色空間登録簿を要し、既存動的対象は371工程・771入力である。第275便のcache、layer style、dab queue候補も主要挙動に画像・paint device・効果設定またはpaintop資源を要する。これらは静的署名だけを先に数えるより、具体的実装所有を分離できる便で扱う。
 - `g276a-move-stroke-job-data-build-boundary`の状態は`integrated`、実装基点は`d98cf1907e`である。開始`libs/painting/strokes/move_stroke_strategy.cpp`末尾の`MoveStrokeStrategy::Data`、`PickLayerData`、`BarrierUpdateData`の構築・LoD複製実装を、新規`libs/painting/strokes/MoveStrokeJobData.cpp`へ移した。`libs/painting/CMakeLists.txt`にAUTOMOC不要・位置独立の`kritapaintingmovestrokejobdataobjects`を置き、製品`kritapainting`へ1回だけ再集約した。公開header、ABI、製品link、実行順を変更せず、受渡しcommit `87fb0dd679`を中央commit `a899ddf26b`として取り込んだ。
 - 新objectは担当側と中央で1工程・3入力、担当側command SHA-256 `4a14d3dbd0eb4dc4444a90f8206974865fa1f4e07ad78d32ecd54ebf4e1c8968`、input SHA-256 `40bea6f7d1d17420e95421ac43f45e1d301ba260eb3004762281aeaf0c057463`、中央command SHA-256 `7c8b1afc427b2f49e9b1599740c23eeb33010846eab35a4ca2af578deb48dd07`、input SHA-256 `aed6eadb45fac5fdb36c4b88ed114991759f1d6fc3e4708d77f16726e025e352`である。製品計画は1,220工程・2,462入力となり、分離した小単位の1工程・2入力だけ増えた。新objectの単独構築、厳格構文、既存軽量契約、二回の無作業再構築、公開API検査、`verify-quick`に成功し、node・画像・undo・更新処理の未解決記号0、製品への再集約1回を確認した。製品本体は構築していない。
-- 受渡し差分と中央差分のpatch ID一致、専用作業treeのcleanを確認し、299,104 KiBの構築木を含む591,068 KiBの作業treeとbranchを削除した。`g276-move-stroke-contract`の状態は`planned`、実装基点は`a899ddf26b`である。許可pathは既存`libs/painting/tests/KisFilterStrokeStrategySchemaContractTest.cpp`と同target固有の`libs/painting/tests/CMakeLists.txt`節だけとし、新objectと既存`kritaimagejobstrategyobjects`を直接接続する。対象6工程・13入力、停止線7工程・15入力、AUTOMOC `HEADERS=[]`、製品非接続を維持し、5枠の初期失敗、各20回反復、対象と近傍`KisAsynchronousStrokeUpdateHelperContractTest`、厳格構文、無作業再構築、動的接続・未解決記号を確認する。
+- 受渡し差分と中央差分のpatch ID一致、専用作業treeのcleanを確認し、299,104 KiBの構築木を含む591,068 KiBの作業treeとbranchを削除した。続く`g276-move-stroke-contract`の状態は`integrated`、実装基点は`a899ddf26b`である。既存`libs/painting/tests/KisFilterStrokeStrategySchemaContractTest.cpp`と同target固有の`libs/painting/tests/CMakeLists.txt`節だけを変更し、新objectと既存`kritaimagejobstrategyobjects`を直接接続した。受渡しcommit `ec4b9d5491`を中央commit `cf31094432`として取り込んだ。
+
+### 第276便の契約統合結果
+
+- 開始`libs/painting/strokes/move_stroke_strategy.h`の残存全23 APIから、既存`libs/painting/tests/KisFilterStrokeStrategySchemaContractTest.cpp`の5枠へ、移動job data 4、layer選択job data 4、barrier更新data 3、strategy型・2構築・寿命4、callback・LoD clone・3通知8を対応付けた。CMakeの対象固有節以外の構築定義、公開header、製品実装を変更していない。
+- 移動・layer選択job dataが指定座標、逐次方針、詳細度に応じた座標縮小とclone独立性を維持することを動的に固定した。barrier更新dataは強制更新値と排他的barrier方針、strategyは2構築経路・仮想寿命・5 callback・3通知の厳密署名を固定し、実node・更新処理・undoを生成していない。
+- 5枠宣言段階では既存のjob data基底objectを明示接続したうえで追加5試験関数だけが未定義になる期待link失敗を確認した。担当側と中央のmacOSで追加5枠を各20回、対象CTest `libs-painting-KisFilterStrokeStrategySchemaContractTest`と軽量近傍`libs-painting-KisAsynchronousStrokeUpdateHelperContractTest`、厳格`clang-check`、AUTOMOC後の二回目計画と二回の無作業再構築に成功した。
+- 対象は6工程・13入力で停止線内に収まり、担当側command SHA-256 `070b093c143c50f7b1a7a32fc4c1e95e696ee239471262e658d9e0b1bf80f7e6`、input SHA-256 `e0b64feca6e5c27efd0730cb56b7ee8712377ba2ce9149f05bb982e06f6b10cc`、中央command SHA-256 `31b120eb615d591196a4cb9945faf093d0a540d3a9a5ae841fe3551231f54356`、input SHA-256 `529e4da2e3b3e972c01ca77570df38828a2a42be277a694baf79f11f00218dbd`である。AUTOMOC `HEADERS=[]`、Qt Gui・Test・Xml・Core、OS framework、KF I18nだけの動的接続、製品未解決記号0を確認した。差分、公開API検査、`verify-quick`にも成功した。製品`kritapainting`は1,220工程・2,462入力の計画だけを確認し、構築していない。
+- 台帳へ23 APIを追加して22,354件対応、7,450件未対応となり、旧基準7,473件に対する実測7,450件の期待不一致を確認してから基準を更新した。受渡し差分と中央差分のpatch ID一致、専用作業treeのcleanを確認し、302,592 KiBの構築木を含む893,664 KiBの作業treeとbranchを削除した。旧`public-api-missing-g276.json` 1,986,724 bytesを削除し、主Ninja木5,799,480 KiB、共有compiler cache 983,432 KiB、最新`build/tdd-macos/public-api-missing-g277.json` 1,980,716 bytes、SHA-256 `b14604627977dc8d7887cf82b97165a04881d4752c111d098dc308287418dcc4`だけを再利用対象として保持する。compiler cacheは143,660件中120,326件、83.76%がhitしている。全体build・`verify`、Linux、Nix再評価は実行していない。
+
+### 第277便の先行監査計画
+
+- 正式入力は`build/tdd-macos/public-api-missing-g277.json`である。第275便から保留している`libs/image/kis_cached_paint_device.h`、`libs/image/layerstyles/kis_ls_utils.h`、`plugins/paintops/defaultpaintops/brush/KisDabRenderingQueue.h`と、同程度の残存APIを持つ未選定責務を再比較する。最大5枠で主要な公開値・所有・寿命を観測でき、既存限定targetへの追記または具体的実装所有分離により製品targetより十分小さい閉包になる候補を選ぶ。
+- 次の永続作業は、候補header・実装・既存試験・CMake File APIの読み取りとNinja計画測定を行い、契約実装前に必要な構造整理と停止線を確定することである。製品target、全体build・`verify`、Linux、Nix再評価を実行しない。
 
 ### 第239便の先行監査担当票
 
