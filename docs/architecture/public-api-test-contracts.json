@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 7358
+    "expectedMissingApis": 7338
   },
   "contracts": [
     {
@@ -62961,6 +62961,71 @@
       "apis": [
         "method:KisSurrogateUndoAdapter::redoAll()",
         "method:KisSurrogateUndoAdapter::undoAll()"
+      ]
+    },
+    {
+      "target": "KisInMemoryFrameCacheSwapperContractTest",
+      "source": "libs/ui/tests/KisInMemoryFrameCacheSwapperContractTest.cpp",
+      "test": "KisInMemoryFrameCacheSwapperContractTest::typeLifetimeAndEmptyStateRemainStable",
+      "behavior": "メモリ内frame cache交換器は抽象交換器基底として既定構築・仮想破棄でき、空状態では指定frameを保持しない。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisOpenGLUpdateInfoSP",
+        "class:KisAbstractFrameCacheSwapper",
+        "class:KisInMemoryFrameCacheSwapper",
+        "method:KisAbstractFrameCacheSwapper::~KisAbstractFrameCacheSwapper()",
+        "method:KisInMemoryFrameCacheSwapper::KisInMemoryFrameCacheSwapper()",
+        "method:KisInMemoryFrameCacheSwapper::~KisInMemoryFrameCacheSwapper()"
+      ]
+    },
+    {
+      "target": "KisInMemoryFrameCacheSwapperContractTest",
+      "source": "libs/ui/tests/KisInMemoryFrameCacheSwapperContractTest.cpp",
+      "test": "KisInMemoryFrameCacheSwapperContractTest::saveLoadAndPresenceRemainStable",
+      "behavior": "抽象交換器を通した保存は更新情報を共有所有し、存在照会と読込が同じ識別個体を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAbstractFrameCacheSwapper::hasFrame(int frameId) const",
+        "method:KisAbstractFrameCacheSwapper::loadFrame(int frameId)",
+        "method:KisAbstractFrameCacheSwapper::saveFrame(int frameId,KisOpenGLUpdateInfoSP info,const QRect & imageBounds)",
+        "method:KisInMemoryFrameCacheSwapper::hasFrame(int frameId) const",
+        "method:KisInMemoryFrameCacheSwapper::loadFrame(int frameId)",
+        "method:KisInMemoryFrameCacheSwapper::saveFrame(int frameId,KisOpenGLUpdateInfoSP info,const QRect & imageBounds)"
+      ]
+    },
+    {
+      "target": "KisInMemoryFrameCacheSwapperContractTest",
+      "source": "libs/ui/tests/KisInMemoryFrameCacheSwapperContractTest.cpp",
+      "test": "KisInMemoryFrameCacheSwapperContractTest::frameMetadataRemainsStable",
+      "behavior": "保存したframeは更新情報の詳細度と更新矩形を保持し、抽象交換器を通して同じ値を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAbstractFrameCacheSwapper::frameDirtyRect(int frameId) const",
+        "method:KisAbstractFrameCacheSwapper::frameLevelOfDetail(int frameId) const",
+        "method:KisInMemoryFrameCacheSwapper::frameDirtyRect(int frameId) const",
+        "method:KisInMemoryFrameCacheSwapper::frameLevelOfDetail(int frameId) const"
+      ]
+    },
+    {
+      "target": "KisInMemoryFrameCacheSwapperContractTest",
+      "source": "libs/ui/tests/KisInMemoryFrameCacheSwapperContractTest.cpp",
+      "test": "KisInMemoryFrameCacheSwapperContractTest::moveFrameTransfersIdentityAndMetadata",
+      "behavior": "frame移動は保存済み識別個体とmetadataを移動先へ移し、移動元の存在状態を解除する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAbstractFrameCacheSwapper::moveFrame(int srcFrameId,int dstFrameId)",
+        "method:KisInMemoryFrameCacheSwapper::moveFrame(int srcFrameId,int dstFrameId)"
+      ]
+    },
+    {
+      "target": "KisInMemoryFrameCacheSwapperContractTest",
+      "source": "libs/ui/tests/KisInMemoryFrameCacheSwapperContractTest.cpp",
+      "test": "KisInMemoryFrameCacheSwapperContractTest::forgetFrameDropsStoredIdentity",
+      "behavior": "frame破棄は指定した保存済み識別番号をcacheから除去し、以後の存在照会を偽にする。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAbstractFrameCacheSwapper::forgetFrame(int frameId)",
+        "method:KisInMemoryFrameCacheSwapper::forgetFrame(int frameId)"
       ]
     }
   ]

@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-06 17:14 JST
+- 更新日時: 2026-09-06 17:28 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1697,9 +1697,16 @@
 
 ### 第283便の契約実装計画
 
-- `g283b-in-memory-frame-cache-swapper-contract`の状態は`planned`、実装基点は`ed8a40d0ac`である。開始`libs/ui/animation/cache/KisAbstractFrameCacheSwapper.h`と`KisInMemoryFrameCacheSwapper.h`の残存各10 APIを、新規`libs/ui/tests/KisInMemoryFrameCacheSwapperContractTest.cpp`の5枠`typeLifetimeAndEmptyStateRemainStable`、`saveLoadAndPresenceRemainStable`、`frameMetadataRemainsStable`、`moveFrameTransfersIdentityAndMetadata`、`forgetFrameDropsStoredIdentity`へ6・6・4・2・2件で対応付ける。抽象境界を通して空状態、共有所有、詳細度、更新矩形、識別番号移動、破棄を動的に観測する。
+- `g283b-in-memory-frame-cache-swapper-contract`の状態は`integrated`、実装基点は`ed8a40d0ac`である。開始`libs/ui/animation/cache/KisAbstractFrameCacheSwapper.h`と`KisInMemoryFrameCacheSwapper.h`の残存各10 APIを、新規`libs/ui/tests/KisInMemoryFrameCacheSwapperContractTest.cpp`の5枠`typeLifetimeAndEmptyStateRemainStable`、`saveLoadAndPresenceRemainStable`、`frameMetadataRemainsStable`、`moveFrameTransfersIdentityAndMetadata`、`forgetFrameDropsStoredIdentity`へ6・6・4・2・2件で対応付けた。受渡しcommit `e0aa8706ff`を中央commit `e1813f7c8d`として取り込み、patch ID `dd3d737b729f6f96a7d37ec093caf3b94d4857e9`の一致を確認した。
 - 許可pathは新規試験sourceと`libs/ui/tests/CMakeLists.txt`の新target固有節だけである。一つの専用worktree-local `build/tdd-macos`を使い、構造準備済みの`kritauiabstractframecacheswapperobjects`と`kritauiinmemoryframecacheswapperobjects`、既存`kritauiopenglupdateinfoobjects`、`kritacanvasupdateinfoobjects`、`kritaglobalsharedobjects`、Qt Core・Testへ接続する。対象9工程・19入力を予測し、停止線を10工程・22入力とする。最寄りは`KisOpenGLUpdateInfoContractTest`である。
 - macOSの対象・近傍に限る構築実行と許可pathだけの受渡しcommitを認める。target不存在と宣言段階の期待失敗、追加5枠の単発と各20回反復、厳格`clang-check`、書式、AUTOMOC入力、動的接続、製品未解決記号、二回目計画、二回の無作業再構築、公開API検査、`verify-quick`を確認する。公開header、製品source、製品CMake、製品target、全体build・`verify`、Linux、Nix再評価、追加委任は対象外とする。
+
+### 第283便の契約統合結果
+
+- 抽象境界を通したメモリ内交換器について、空状態、保存後の共有所有と同一個体読込、詳細度と更新矩形、移動後の識別個体・metadata保持と移動元除去、破棄後の不存在を動的に固定した。公開header、製品source、製品CMakeを変更していない。target不存在と、宣言段階で追加5試験関数だけが未定義になる期待link失敗を確認し、実装コンパイル時に検出した共有参照のconst性を試験側だけで修正した。
+- 対象は担当側・中央とも計画どおり9工程・19入力である。担当側command SHA-256 `4d0ba6f7fe4bc20d11de6e17d22528f8214aec9c056c66dd078eb28f2cfee76e`、input SHA-256 `80eae66b5a77418e1862b554b37b50969aa0308fb0e79330fda39d937598e098`、中央command SHA-256 `42d70235b9605e2084cfd9e46398cce8d0eddfb96e6950c9d1eb95e449e2de00`、input SHA-256 `61b82642cd252e803d663655eb396d8264f877a6ccd4673ecc4d09a499f189d1`である。候補headerはAUTOMOC入力外で、Qt Test・Core、gettext、OS frameworkだけへ動的接続し、製品未解決記号は0である。
+- 担当側と中央のmacOSで追加5枠を各20回、対象CTest `libs-ui-KisInMemoryFrameCacheSwapperContractTest`、近傍`libs-ui-KisOpenGLUpdateInfoContractTest`、厳格`clang-check`、書式、二回の無作業再構築に成功し、担当側の`verify-quick`と中央の公開API検査にも成功した。台帳へ20 APIを追加して22,466件対応、7,338件未対応となり、対象2 headerの残存は0である。
+- cleanな専用作業tree、315,052 KiBの構築木、branchを統合直後に削除し、合計591,212 KiBを回収した。旧`public-api-missing-g283.json` 1,957,192 bytesを削除し、主Ninja木5,844,296 KiB、共有compiler cache 981,480 KiB、最新`build/tdd-macos/public-api-missing-g284.json` 1,951,567 bytes、SHA-256 `7244138217991049c38c7d6df2dcf51aff57b9dee1f5abc5a22a77f1535161c2`だけを再利用対象として保持する。compiler cacheは143,823件中120,408件、83.72%がhitしている。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第284便の正式不足報告から、全APIを動的に固定できる最小閉包の責務を再選定することである。
 
 ### 第239便の先行監査担当票
 
