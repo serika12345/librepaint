@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-06 13:01 JST
+- 更新日時: 2026-09-06 13:05 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1513,6 +1513,12 @@
 ### 第275便の先行監査計画
 
 - 正式入力は`build/tdd-macos/public-api-missing-g275.json`である。第273便と第274便の選定済みAPIを除外し、`libs/canvas/kis_coordinates_converter.h`、`libs/image/kis_cached_paint_device.h`、`libs/image/layerstyles/kis_ls_utils.h`、`plugins/paintops/defaultpaintops/brush/KisDabRenderingQueue.h`の各残存18 APIを比較する。各headerの責務、所有・寿命・決定的挙動、最大5枠の完全割当と、既存target追記・新規限定target・具体的実装所有分離の工程・入力数を確認し、最小閉包を確定してから実装する。
+
+### 第275便の監査結果と担当計画
+
+- 4候補は正式不足報告で各18件を維持し、座標変換templateの識別子整列集合SHA-256は`2f2f5c6340521aef4edfb3170a61e1441b740ae98f0b0529fcb9fedcd0c6bd97`、台帳との交差は0である。paint device・selection cacheは全APIがheader内にあるがguardと再利用挙動の観測に画像状態を要し、layer style補助は13関数の実行に画素選択・効果設定を要する。dab描画queueはjob順序、資源cache、統計値の観測にpaintop実装を要する。これら3候補は限定targetの静的署名だけでは主要挙動を固定できないため後続の実装所有分離または動的契約候補として保留する。
+- `libs/canvas/kis_coordinates_converter.h`の残存18 APIは公開inline座標変換templateとその型変換規則で一責務に収まる。既存`libs/canvas/tests/KisCoordinatesConverterSchemaContractTest.cpp`は142行・5枠で、5枠追加後も300行・20枠未満、CMake変更なし、Qt Core・Gui・Testだけの4工程・8入力を維持できる。重量`kis_coordinates_converter_test`は1,225工程・2,469入力で既に変換実行を広く固定するため、限定対象では汎用・矩形traitsの写像を`QTransform`で動的に観測し、14変換templateを`QPointF`特殊化の厳密署名で固定する。新規targetと製品実装分離は既存限定対象より広いため棄却する。
+- `g275-coordinate-template-schema`の状態は`in_progress`、実装基点は`5506b933d7`、専用作業treeは`/Users/masato/Documents/librepaint-g275-coordinate-template-schema`、branchは`agent/g275-coordinate-template-schema`、macOSの対象と軽量近傍に限る構築実行許可は`granted`である。許可pathは既存試験sourceだけとし、traits型・写像4、画像・viewport・文書変換4、文書・flake・widget変換6、widget・viewport変換2、画像・widget変換2の5枠へ全18 APIを割り当てる。対象は4工程・8入力、停止線5工程・11入力、AUTOMOC `HEADERS=[]`、製品非接続を維持する。CMake、公開header、製品source、探索路・定義・link変更、製品未解決記号、許可path外変更が必要なら停止する。
 
 ### 第239便の先行監査担当票
 
