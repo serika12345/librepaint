@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-07 04:18 JST
+- 更新日時: 2026-09-07 04:23 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -2406,6 +2406,14 @@
 - 対象登録後の追加5枠は期待どおり5件失敗し、契約実装後に成功した。新targetは4工程・8入力で停止線以内に収まり、command SHA-256は`8eee745639b37544a3276e058a3bce7dffadfdd046b99eca43ef4efa9050831b`、input SHA-256は`c050a60c75cc608fa21219132a37aef71247a46976a86ee0621c756a10293b2e`である。AUTOMOC header入力は空、Qt Test・Core、gettext、OS frameworkだけへ動的接続し、製品未解決記号は0である。
 - macOSで対象と軽量近傍`plugins-dockers-animation-KisAnimUtilsSchemaContractTest`のCTest 2/2、対象の20回反復、開始実装と試験sourceの厳格`clang-check`、書式、二回の無作業再構築、公開API検査に成功した。2,011工程・4,020入力の既存動的timeline模型試験、製品static・MODULE・OBJECT・shared target、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 台帳へ73 APIを追加して23,525件対応、6,279件未対応となった。旧`public-api-missing-g335.json`は最新報告の検証後に削除し、追加作業tree・構築木は作成していない。主Ninja木5,906,244 KiB、共有compiler cache 981,528 KiB、最新`build/tdd-macos/public-api-missing-g336.json` 1,663,216 bytes、SHA-256 `12a527b33054d2d9bbbf594091c4329e5a22257fbb51c32cd7521d83ad16b6d4`だけを再利用対象として保持する。compiler cacheは144,097件中120,470件、83.60%がhitしている。次の永続作業は第336便で次の高密度なmacOS対象と最小構築面を選定することである。
+
+### 第336便の監査結果と実装計画
+
+- 正式入力`build/tdd-macos/public-api-missing-g336.json`は公開header 1,548、公開API 29,804、対応済み23,525、未対応6,279、1,663,216 bytes、SHA-256 `12a527b33054d2d9bbbf594091c4329e5a22257fbb51c32cd7521d83ad16b6d4`を記録する。`plugins/dockers/animation/KisAnimTimelineFramesView.h`の残存全70 APIを、型・模型・寿命・表示15、選択・範囲更新11、layer・keyframe挿入16、frame削除・転送・cache 18、音声・scroll 10として5枠へ完全に割り当てる。対象識別子の整列集合SHA-256は`4241e0f67bae960ae148fe52762696596086551cb7e9cc43d289b7c6f8a7098e`である。
+- 開始headerの`QScrollBar`は公開宣言とinline本文で使われず、`application/ui/orchestration/kis_action_manager.h`は借用pointer宣言に完全型を要求しない。開始`plugins/dockers/animation/KisAnimTimelineFramesView.h`から前者を削除し、後者を前方宣言へ置き換え、完全型を使う開始実装`plugins/dockers/animation/KisAnimTimelineFramesView.cpp`へaction managerの直接includeを移す。他3直接利用元からapplication orchestrationの解析閉包を除き、公開API指紋を維持したまま依存だけを縮小する。
+- 開始実装の変更前厳格`clang-check`にはQt 6非推奨のevent位置・modifier APIによる既存10診断があり、SHA-256は`9163d3b0b5d0c7d054fa1c9600fa8fde80f8d3cfed6349e224d9f737c8c80f93`である。今回の責務外として改修せず、構造整理後に同一診断集合であることと通常の対象物コンパイル成功を確認する。既存動的`timeline_model_test`はanimation docker製品群へ接続する2,011工程・4,020入力、command SHA-256 `f65e518ac0b369f518b6f8c0f4c01a74044dd9e7dcd953e6380ff0841eab43b7`、input SHA-256 `335625e6c0e873f090e581ef9c20aaf0a14f9edc7ea2e88343d0d2fc9b332219`であり、反復対象にしない。
+- 依存整理後に新規`plugins/dockers/animation/tests/KisAnimTimelineFramesViewSchemaContractTest.cpp`を作り、animation dockerのsource/generated探索路、Qt Gui・Test、Qt Widgetsのinterface探索路、関係export定義だけへ接続する。view、模型、canvas、action、eventを実体化せず、方向値、継承、構築・寿命特性、全公開関数型を固定する。新targetは4工程・8入力を予測し、停止線を5工程・11入力とする。軽量近傍`KisAnimTimelineFramesModelSchemaContractTest`も4工程・8入力である。
+- `g336-animation-timeline-frames-view-schema`の状態は`planned`、実装基点は`575012d8fe`である。構造整理は開始headerと開始実装、契約は新規試験sourceと同target固有CMake節だけに限定する。macOSの対象、軽量近傍、追加5枠の20回反復、試験sourceの厳格`clang-check`、開始実装の既存厳格診断不変、通常の対象物コンパイル、書式、二回の無作業再構築、公開API指紋不変、公開API検査、`verify-quick`だけを実行する。製品static・MODULE・OBJECT・shared target、全体build・`verify`、Linux、Nix再評価は実行しない。
 
 ### 第239便の先行監査担当票
 
