@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 7321
+    "expectedMissingApis": 7305
   },
   "contracts": [
     {
@@ -63088,6 +63088,58 @@
       "classification": "maintained",
       "apis": [
         "function:KisPaintOpOptionWidgetUtils::createCurveOptionWidget(Data && data,Args...args)"
+      ]
+    },
+    {
+      "target": "KisNodeVisualPropertyCommandsSchemaContractTest",
+      "source": "libs/image/tests/KisNodeVisualPropertyCommandsSchemaContractTest.cpp",
+      "test": "KisNodeVisualPropertyCommandsSchemaContractTest::typeLifetimeAndConstructionSchemaRemainStable",
+      "behavior": "nodeの合成方法と不透明度を変更するcommandはnode commandと非同期結合commandの境界を共有し、対象nodeと新しい属性値から構築できる。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisNodeCompositeOpCommand",
+        "class:KisNodeOpacityCommand",
+        "method:KisNodeCompositeOpCommand::KisNodeCompositeOpCommand(KisNodeSP node,const QString & newCompositeOp)",
+        "method:KisNodeOpacityCommand::KisNodeOpacityCommand(KisNodeSP node,quint8 newOpacity)"
+      ]
+    },
+    {
+      "target": "KisNodeVisualPropertyCommandsSchemaContractTest",
+      "source": "libs/image/tests/KisNodeVisualPropertyCommandsSchemaContractTest.cpp",
+      "test": "KisNodeVisualPropertyCommandsSchemaContractTest::reversibleExecutionSignaturesRemainStable",
+      "behavior": "合成方法と不透明度のcommandは変更の適用と取消しを引数なしの可逆操作として公開する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeCompositeOpCommand::redo()",
+        "method:KisNodeCompositeOpCommand::undo()",
+        "method:KisNodeOpacityCommand::redo()",
+        "method:KisNodeOpacityCommand::undo()"
+      ]
+    },
+    {
+      "target": "KisNodeVisualPropertyCommandsSchemaContractTest",
+      "source": "libs/image/tests/KisNodeVisualPropertyCommandsSchemaContractTest.cpp",
+      "test": "KisNodeVisualPropertyCommandsSchemaContractTest::historyIdentityAndMergeSignaturesRemainStable",
+      "behavior": "合成方法と不透明度のcommandはundo履歴の識別番号を返し、別commandとの結合可否判定と結合操作を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeCompositeOpCommand::canMergeWith(const KUndo2Command * command) const",
+        "method:KisNodeCompositeOpCommand::id() const",
+        "method:KisNodeCompositeOpCommand::mergeWith(const KUndo2Command * command)",
+        "method:KisNodeOpacityCommand::canMergeWith(const KUndo2Command * command) const",
+        "method:KisNodeOpacityCommand::id() const",
+        "method:KisNodeOpacityCommand::mergeWith(const KUndo2Command * command)"
+      ]
+    },
+    {
+      "target": "KisNodeVisualPropertyCommandsSchemaContractTest",
+      "source": "libs/image/tests/KisNodeVisualPropertyCommandsSchemaContractTest.cpp",
+      "test": "KisNodeVisualPropertyCommandsSchemaContractTest::annihilationSignaturesRemainStable",
+      "behavior": "合成方法と不透明度のcommandは別commandと互いに相殺できるかを履歴変更なしで判定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeCompositeOpCommand::canAnnihilateWith(const KUndo2Command * command) const",
+        "method:KisNodeOpacityCommand::canAnnihilateWith(const KUndo2Command * command) const"
       ]
     }
   ]
