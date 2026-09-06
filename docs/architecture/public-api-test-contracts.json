@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 7581
+    "expectedMissingApis": 7562
   },
   "contracts": [
     {
@@ -62162,6 +62162,70 @@
         "method:KisScanlineFill::setCloseGap(int closeGap)",
         "method:KisScanlineFill::setOpacitySpread(int opacitySpread)",
         "method:KisScanlineFill::setThreshold(int threshold)"
+      ]
+    },
+    {
+      "target": "KisBrushSchemaContractTest",
+      "source": "libs/brush/tests/KisBrushSchemaContractTest.cpp",
+      "test": "KisBrushSchemaContractTest::colorfulBrushTypeAndConstructionSchemaRemainStable",
+      "behavior": "色付きbrushは既定、ファイル名、複製から構築できる公開型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisColorfulBrush",
+        "method:KisColorfulBrush::KisColorfulBrush()",
+        "method:KisColorfulBrush::KisColorfulBrush(const KisColorfulBrush & rhs)",
+        "method:KisColorfulBrush::KisColorfulBrush(const QString & filename)"
+      ]
+    },
+    {
+      "target": "KisBrushSchemaContractTest",
+      "source": "libs/brush/tests/KisBrushSchemaContractTest.cpp",
+      "test": "KisBrushSchemaContractTest::colorfulBrushMidPointAndAutoAdjustmentSignaturesRemainStable",
+      "behavior": "色付きbrushは中点の設定・推定・補正値と自動補正指定の公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisColorfulBrush::adjustedMidPoint() const",
+        "method:KisColorfulBrush::adjustmentMidPoint() const",
+        "method:KisColorfulBrush::autoAdjustMidPoint() const",
+        "method:KisColorfulBrush::estimatedSourceMidPoint() const",
+        "method:KisColorfulBrush::setAdjustmentMidPoint(quint8 value)",
+        "method:KisColorfulBrush::setAutoAdjustMidPoint(bool autoAdjustMidPoint)"
+      ]
+    },
+    {
+      "target": "KisBrushSchemaContractTest",
+      "source": "libs/brush/tests/KisBrushSchemaContractTest.cpp",
+      "test": "KisBrushSchemaContractTest::colorfulBrushToneAdjustmentSignaturesRemainStable",
+      "behavior": "色付きbrushは明度とcontrastの設定・取得に用いる公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisColorfulBrush::brightnessAdjustment() const",
+        "method:KisColorfulBrush::contrastAdjustment() const",
+        "method:KisColorfulBrush::setBrightnessAdjustment(qreal value)",
+        "method:KisColorfulBrush::setContrastAdjustment(qreal value)"
+      ]
+    },
+    {
+      "target": "KisBrushSchemaContractTest",
+      "source": "libs/brush/tests/KisBrushSchemaContractTest.cpp",
+      "test": "KisBrushSchemaContractTest::colorfulBrushImageAndTransparencySignaturesRemainStable",
+      "behavior": "色付きbrushは先端画像、画像型判定、色と透明度の併有指定に用いる公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisColorfulBrush::brushTipImage() const",
+        "method:KisColorfulBrush::hasColorAndTransparency() const",
+        "method:KisColorfulBrush::isImageType() const",
+        "method:KisColorfulBrush::setHasColorAndTransparency(bool value)"
+      ]
+    },
+    {
+      "target": "KisBrushSchemaContractTest",
+      "source": "libs/brush/tests/KisBrushSchemaContractTest.cpp",
+      "test": "KisBrushSchemaContractTest::colorfulBrushSerializationSignatureRemainsStable",
+      "behavior": "色付きbrushは文書と要素へ設定を書き出す公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisColorfulBrush::toXML(QDomDocument & d,QDomElement & e) const"
       ]
     }
   ]
