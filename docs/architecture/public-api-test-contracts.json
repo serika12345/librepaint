@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 7211
+    "expectedMissingApis": 7199
   },
   "contracts": [
     {
@@ -63387,6 +63387,45 @@
         "method:KisResetShapesCommand::KisResetShapesCommand(KisNodeSP rootNode)",
         "method:KisResetShapesCommand::redo()",
         "method:KisResetShapesCommand::undo()"
+      ]
+    },
+    {
+      "target": "KisAnimationTimeCommandsSchemaContractTest",
+      "source": "libs/image/tests/KisAnimationTimeCommandsSchemaContractTest.cpp",
+      "test": "KisAnimationTimeCommandsSchemaContractTest::autoKeyModesAndFlagsRemainStable",
+      "behavior": "自動keyframe方針は無効・空frame・複製frameのmodeと、空frame許可・LOD対応の直交flagおよびflag集合型を安定値で公開する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisAutoKey::AutoCreateKeyframeFlags",
+        "enum:KisAutoKey::AutoCreateKeyframeFlag",
+        "enum:KisAutoKey::Mode",
+        "enumerator:KisAutoKey::AutoCreateKeyframeFlag::AllowBlankMode",
+        "enumerator:KisAutoKey::AutoCreateKeyframeFlag::None",
+        "enumerator:KisAutoKey::AutoCreateKeyframeFlag::SupportsLod",
+        "enumerator:KisAutoKey::Mode::BLANK",
+        "enumerator:KisAutoKey::Mode::DUPLICATE",
+        "enumerator:KisAutoKey::Mode::NONE"
+      ]
+    },
+    {
+      "target": "KisAnimationTimeCommandsSchemaContractTest",
+      "source": "libs/image/tests/KisAnimationTimeCommandsSchemaContractTest.cpp",
+      "test": "KisAnimationTimeCommandsSchemaContractTest::autoKeyModeAccessSchemaRemainStable",
+      "behavior": "自動keyframe方針は現在のmodeを取得し、試験から明示modeを設定する関数境界を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisAutoKey::activeMode()",
+        "function:KisAutoKey::testingSetActiveMode(Mode mode)"
+      ]
+    },
+    {
+      "target": "KisAnimationTimeCommandsSchemaContractTest",
+      "source": "libs/image/tests/KisAnimationTimeCommandsSchemaContractTest.cpp",
+      "test": "KisAnimationTimeCommandsSchemaContractTest::autoKeyFrameCreationSchemaRemainStable",
+      "behavior": "自動keyframe方針はpaint deviceと任意の生成flagを受け取り、既定では追加flagなしで複製frame用undo commandを返す関数境界を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisAutoKey::tryAutoCreateDuplicatedFrame(KisPaintDeviceSP device,AutoCreateKeyframeFlags flags=None)"
       ]
     }
   ]
