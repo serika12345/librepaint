@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-06 18:21 JST
+- 更新日時: 2026-09-06 18:34 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1739,7 +1739,14 @@
 
 - 正式入力`build/tdd-macos/public-api-missing-g286.json`は公開header 1,548、公開API 29,804、対応済み22,499、未対応7,305、1,941,931 bytes、SHA-256 `83147dbdb4df7f432d8823f7ab57fb6db27982543ab158920a0ce47bde1a0998`を記録する。`libs/image/commands/kis_image_command.h`の6 API、`kis_image_layer_add_command.h`の13 API、`kis_image_layer_move_command.h`の5 API、`kis_image_layer_remove_command.h`の5 API、`kis_image_layer_remove_command_impl.h`の5 APIは重複なく、合計34識別子の整列集合SHA-256は`5e3e5289a2a73ec2d5e4c498e6601b2a63a7798b8b9cbf731c60cca11f3ee335`である。画像変更command基底とlayer階層への追加・移動・除去を一責務として、基底型・更新対象6、追加型・flag 7、追加構築・実行6、移動・外部除去10、内部除去5の5枠へ完全に割り当てる。既定引数を持つ全構築APIは完全な引数型と省略時の構築可能性を併せて固定する。
 - 新規`KisImageLayerHierarchyCommandsSchemaContractTest`を、最寄りの`KisNodeVisualPropertyCommandsSchemaContractTest`と同じimage・global・pigment・painting/undo探索路、KF I18n interface、Qt Core・Test、header-only Boost、既存export定義だけへ接続する。最寄りは97行・4枠、4工程・8入力、command SHA-256 `f6508d15aaecbdb5c470a91b32b36048c777aa41f5a461b7881f5bc763f575f1`、input SHA-256 `de390929d1a8ba7076f1c53ed878147539ff70e638545ff1fd8e1329a31671eb`である。階層変更責務を表示属性command試験へ混在させず、新規targetも4工程・8入力を予測して停止線を5工程・11入力とする。製品`kritaimage`の1,197工程・2,418入力を避け、image、node、commandを実体化せず、候補headerをAUTOMOC入力にしない。
-- `g286-image-layer-hierarchy-commands-schema`の状態は`planned`、実装基点は`6ff99da811`である。許可pathを新規`libs/image/tests/KisImageLayerHierarchyCommandsSchemaContractTest.cpp`と`libs/image/tests/CMakeLists.txt`の新target固有節だけに限定する。一つの専用worktree-local `build/tdd-macos`を使い、target不存在と宣言段階の期待失敗、追加5枠の単発と各20回反復、対象と近傍CTest、厳格`clang-check`、書式、AUTOMOC入力、動的接続、製品未解決記号、二回目計画、二回の無作業再構築、公開API検査、`verify-quick`をmacOSで確認する。許可pathだけの受渡しcommitを認め、公開header、製品source、製品target、全体build・`verify`、Linux、Nix再評価、追加委任は対象外とする。
+- `g286-image-layer-hierarchy-commands-schema`の状態は`integrated`、実装基点は`6ff99da811`である。許可pathを新規`libs/image/tests/KisImageLayerHierarchyCommandsSchemaContractTest.cpp`と`libs/image/tests/CMakeLists.txt`の新target固有節だけに限定し、受渡しcommit `1e5ad3d68e`を中央commit `abd4cb866b`として取り込んだ。patch ID `b73e97294464b70c593d92c1f5502782669279d3`の一致を確認した。公開header、製品source、製品target、全体build・`verify`、Linux、Nix再評価、追加委任は対象外として維持した。
+
+### 第286便の契約統合結果
+
+- 開始`libs/image/commands/kis_image_command.h`から新規`libs/image/tests/KisImageLayerHierarchyCommandsSchemaContractTest.cpp`へ6 API、開始`libs/image/commands/kis_image_layer_add_command.h`から同試験へ13 API、開始`libs/image/commands/kis_image_layer_move_command.h`、`kis_image_layer_remove_command.h`、`kis_image_layer_remove_command_impl.h`から同試験へ各5 APIを対応付けた。画像変更command基底・更新対象6、追加型・flag 7、追加構築・実行6、移動・外部除去10、内部除去5の5枠で、layer階層変更の型、既定引数、適用・取消し境界を固定した。公開headerと製品sourceを変更していない。
+- target不存在と、宣言だけの追加5枠が未定義symbolとなる期待失敗を順に記録した。対象は担当側・中央とも計画どおり4工程・8入力である。担当側command SHA-256は`8f529a8366b1d35382f440a43144c6c874b42594af4e5876f5526438981ccbb3`、input SHA-256は`99ab271dc4f4669c4d2a4f80fec6d8f21f1d49e9c25d35fed0bb102dd1333051`、中央command SHA-256は`063324cead1952f782045d5c944f50ad6391c9444ffdef9bc11269e24cc39cc0`、input SHA-256は`f523d0cd78e3081cf20cf00eafe61692f31e84cbda7743657b33626a08e9b227`である。候補headerはAUTOMOC入力外で、Qt Test・Core、gettext、OS frameworkだけへ動的接続し、製品未解決記号は0である。
+- 担当側と中央のmacOSで追加5枠を各20回、対象CTest `libs-image-KisImageLayerHierarchyCommandsSchemaContractTest`、近傍`libs-image-KisNodeVisualPropertyCommandsSchemaContractTest`、厳格`clang-check`、書式、二回目計画と二回の無作業再構築に成功した。担当側の`verify-quick`と中央の公開API検査にも成功し、台帳へ34 APIを追加して22,533件対応、7,271件未対応、対象5 headerの残存0件となった。G287初回生成でAPI配列の辞書順違反を検出し、移動・除去commandの配列順だけを正規化して再生成に成功した。
+- cleanな専用作業tree、308,512 KiBの構築木、branchを統合直後に削除し、作業tree全体899,772 KiBを回収した。旧`public-api-missing-g286.json` 1,941,931 bytesを削除し、主Ninja木5,852,104 KiB、共有compiler cache 983,360 KiB、最新`build/tdd-macos/public-api-missing-g287.json` 1,932,459 bytes、SHA-256 `ce98b9f906406521d023935a4800d0aeb98ef3504ab469ae1b4e8a55be948a59`だけを再利用対象として保持する。compiler cacheは143,850件中120,417件、83.71%がhitしている。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第287便の正式不足報告から、全APIを最小閉包で固定できる責務を再選定することである。
 
 ### 第239便の先行監査担当票
 

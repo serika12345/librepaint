@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 7305
+    "expectedMissingApis": 7271
   },
   "contracts": [
     {
@@ -63140,6 +63140,85 @@
       "apis": [
         "method:KisNodeCompositeOpCommand::canAnnihilateWith(const KUndo2Command * command) const",
         "method:KisNodeOpacityCommand::canAnnihilateWith(const KUndo2Command * command) const"
+      ]
+    },
+    {
+      "target": "KisImageLayerHierarchyCommandsSchemaContractTest",
+      "source": "libs/image/tests/KisImageLayerHierarchyCommandsSchemaContractTest.cpp",
+      "test": "KisImageLayerHierarchyCommandsSchemaContractTest::imageCommandBaseAndUpdateTargetSchemaRemainStable",
+      "behavior": "画像変更commandの基底はundo commandとして画像共有参照と任意の親commandから構築でき、除去node周辺の更新対象は画像、node、矩形を受け取る更新操作を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisImageCommand",
+        "class:KisImageCommand::UpdateTarget",
+        "method:KisImageCommand::KisImageCommand(const KUndo2MagicString & name,KisImageWSP image,KUndo2Command * parent=0)",
+        "method:KisImageCommand::UpdateTarget::UpdateTarget(KisImageWSP image,KisNodeSP removedNode,const QRect & updateRect)",
+        "method:KisImageCommand::UpdateTarget::update()",
+        "method:KisImageCommand::~KisImageCommand()"
+      ]
+    },
+    {
+      "target": "KisImageLayerHierarchyCommandsSchemaContractTest",
+      "source": "libs/image/tests/KisImageLayerHierarchyCommandsSchemaContractTest.cpp",
+      "test": "KisImageLayerHierarchyCommandsSchemaContractTest::layerAdditionTypeAndFlagsSchemaRemainStable",
+      "behavior": "layer追加commandはredo更新、undo更新、追加時の非起動を独立したbit flagとして公開し、組合せ値をFlags型で保持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisImageLayerAddCommand::Flags",
+        "class:KisImageLayerAddCommand",
+        "enum:KisImageLayerAddCommand::Flag",
+        "enumerator:KisImageLayerAddCommand::Flag::DoRedoUpdates",
+        "enumerator:KisImageLayerAddCommand::Flag::DoUndoUpdates",
+        "enumerator:KisImageLayerAddCommand::Flag::DontActivateOnAddition",
+        "enumerator:KisImageLayerAddCommand::Flag::None"
+      ]
+    },
+    {
+      "target": "KisImageLayerHierarchyCommandsSchemaContractTest",
+      "source": "libs/image/tests/KisImageLayerHierarchyCommandsSchemaContractTest.cpp",
+      "test": "KisImageLayerHierarchyCommandsSchemaContractTest::layerAdditionConstructionAndExecutionSchemaRemainStable",
+      "behavior": "layer追加commandは基準nodeまたは索引と、既定の更新方針または明示flagから構築でき、追加の適用と取消しを公開する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisImageLayerAddCommand::KisImageLayerAddCommand(KisImageWSP image,KisNodeSP layer,KisNodeSP parent,KisNodeSP aboveThis,Flags flags)",
+        "method:KisImageLayerAddCommand::KisImageLayerAddCommand(KisImageWSP image,KisNodeSP layer,KisNodeSP parent,KisNodeSP aboveThis,bool doRedoUpdates=true,bool doUndoUpdates=true)",
+        "method:KisImageLayerAddCommand::KisImageLayerAddCommand(KisImageWSP image,KisNodeSP layer,KisNodeSP parent,quint32 index,Flags flags)",
+        "method:KisImageLayerAddCommand::KisImageLayerAddCommand(KisImageWSP image,KisNodeSP layer,KisNodeSP parent,quint32 index,bool doRedoUpdates=true,bool doUndoUpdates=true)",
+        "method:KisImageLayerAddCommand::redo()",
+        "method:KisImageLayerAddCommand::undo()"
+      ]
+    },
+    {
+      "target": "KisImageLayerHierarchyCommandsSchemaContractTest",
+      "source": "libs/image/tests/KisImageLayerHierarchyCommandsSchemaContractTest.cpp",
+      "test": "KisImageLayerHierarchyCommandsSchemaContractTest::layerMoveAndRemovalSchemaRemainStable",
+      "behavior": "layer移動と外部向け除去commandは画像変更commandを基底とし、移動先または除去対象と更新方針から構築でき、変更の適用と取消しを公開する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisImageLayerMoveCommand",
+        "class:KisImageLayerRemoveCommand",
+        "method:KisImageLayerMoveCommand::KisImageLayerMoveCommand(KisImageWSP image,KisNodeSP node,KisNodeSP newParent,KisNodeSP newAbove,bool doUpdates=true)",
+        "method:KisImageLayerMoveCommand::KisImageLayerMoveCommand(KisImageWSP image,KisNodeSP node,KisNodeSP newParent,quint32 index)",
+        "method:KisImageLayerMoveCommand::redo()",
+        "method:KisImageLayerMoveCommand::undo()",
+        "method:KisImageLayerRemoveCommand::KisImageLayerRemoveCommand(KisImageWSP image,KisNodeSP node,bool doRedoUpdates=true,bool doUndoUpdates=true)",
+        "method:KisImageLayerRemoveCommand::redo()",
+        "method:KisImageLayerRemoveCommand::undo()",
+        "method:KisImageLayerRemoveCommand::~KisImageLayerRemoveCommand()"
+      ]
+    },
+    {
+      "target": "KisImageLayerHierarchyCommandsSchemaContractTest",
+      "source": "libs/image/tests/KisImageLayerHierarchyCommandsSchemaContractTest.cpp",
+      "test": "KisImageLayerHierarchyCommandsSchemaContractTest::layerRemovalImplementationSchemaRemainStable",
+      "behavior": "単一node除去の内部commandは画像変更commandを基底とし、任意の親commandを伴って構築・破棄でき、除去の適用と取消しを公開する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisImageLayerRemoveCommandImpl",
+        "method:KisImageLayerRemoveCommandImpl::KisImageLayerRemoveCommandImpl(KisImageWSP image,KisNodeSP node,KUndo2Command * parent=0)",
+        "method:KisImageLayerRemoveCommandImpl::redo()",
+        "method:KisImageLayerRemoveCommandImpl::undo()",
+        "method:KisImageLayerRemoveCommandImpl::~KisImageLayerRemoveCommandImpl()"
       ]
     }
   ]
