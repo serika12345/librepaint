@@ -278,6 +278,42 @@ target_compile_definitions(KisCurveOptionSchemaContractTest PRIVATE
 )
 
 kis_add_test(
+    KisPaintOpOptionWidgetUtilsContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Xml
+        Boost::boost
+        kritaglobalidobjects
+)
+target_include_directories(KisPaintOpOptionWidgetUtilsContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/brush
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+    ${CMAKE_SOURCE_DIR}/libs/image
+    ${CMAKE_BINARY_DIR}/libs/image
+    ${CMAKE_SOURCE_DIR}/libs/image/brushengine
+    ${CMAKE_SOURCE_DIR}/libs/pigment
+    ${CMAKE_BINARY_DIR}/libs/pigment
+    ${CMAKE_SOURCE_DIR}/libs/tools/ui
+    ${CMAKE_BINARY_DIR}/libs/tools/ui
+)
+target_include_directories(KisPaintOpOptionWidgetUtilsContractTest SYSTEM PRIVATE
+    $<TARGET_PROPERTY:Eigen3::Eigen,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:Imath::ImathConfig,INTERFACE_INCLUDE_DIRECTORIES>
+)
+target_compile_definitions(KisPaintOpOptionWidgetUtilsContractTest PRIVATE
+    kritaglobal_EXPORTS
+    kritaimage_EXPORTS
+    kritalibpaintop_EXPORTS
+    kritapigment_EXPORTS
+)
+
+kis_add_test(
     KisColorSourceSchemaContractTest.cpp
     LINK_LIBRARIES
         Qt${QT_MAJOR_VERSION}::Core
