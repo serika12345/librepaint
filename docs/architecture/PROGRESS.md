@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-06 19:40 JST
+- 更新日時: 2026-09-06 19:43 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1799,6 +1799,12 @@
 - 宣言だけの追加3枠が未定義symbolとなる期待失敗を記録した。対象は担当側・中央とも4工程・8入力を維持した。担当側command SHA-256は`6a3837fe237e32842439cdf0bd9217be08827a6992f2f26998e759406cea94e6`、input SHA-256は`4737a04368d5fd0696176c9fb99d83fdf0abd06d1977a78de3e1e6b7761f07eb`、中央command SHA-256は変更前と同じ`6aeab532f45bc71d80542cb2d3705ac589b698f567c094a00d439169618b562c`、input SHA-256は`f978f51f4e306330beae70bb5c3785d23e4e0c52f78961ba8dd351c80a449128`である。候補headerはAUTOMOC入力外で、Qt Test・Core、gettext、OS frameworkだけへ動的接続し、製品未解決記号は0である。
 - 担当側と中央のmacOSで追加3枠を各20回、対象CTest `libs-image-KisAnimationTimeCommandsSchemaContractTest`、近傍`libs-image-KisImageProjectionAndResolutionCommandsSchemaContractTest`、厳格`clang-check`、書式、二回目計画と二回の無作業再構築に成功した。担当側の`verify-quick`と中央の公開API検査にも成功し、台帳へ12 APIを追加して22,605件対応、7,199件未対応、対象headerの残存0件となった。
 - cleanな専用作業tree、301,300 KiBの構築木、branchを統合直後に削除し、作業tree全体892,620 KiBを回収した。旧`public-api-missing-g290.json` 1,915,437 bytesを削除し、主Ninja木5,855,420 KiB、共有compiler cache 982,092 KiB、最新`build/tdd-macos/public-api-missing-g291.json` 1,912,832 bytes、SHA-256 `a705f585a0b23e29a89cef2b84507fc3d349e5ee1424f8403a6f5ff78aca7100`だけを再利用対象として保持する。compiler cacheは143,881件中120,425件、83.70%がhitしている。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第291便の正式不足報告から、全APIを最小閉包で固定できる責務を再選定することである。
+
+### 第291便の監査結果と実装計画
+
+- 正式入力`build/tdd-macos/public-api-missing-g291.json`は公開header 1,548、公開API 29,804、対応済み22,605、未対応7,199、1,912,832 bytes、SHA-256 `a705f585a0b23e29a89cef2b84507fc3d349e5ee1424f8403a6f5ff78aca7100`を記録する。`libs/image/commands/kis_node_property_list_command.h`の残存全10 APIは重複なく、識別子整列集合SHA-256は`070390ad6ede15fd88bbd6c15dfe319f230dfcb23fc601ac9939aceecc434769`である。property list型・構築3、履歴・適用・取消し6、自動undo適用1の3枠へ完全に割り当てる。
+- 既存`libs/image/tests/KisNodeVisualPropertyCommandsSchemaContractTest.cpp`は101行・4枠であり、追加後も200行・10枠未満に収まる。合成方式・不透明度と同じnode視覚属性変更責務として3枠を追加し、CMakeを変更せず、4工程・8入力、command SHA-256 `f6508d15aaecbdb5c470a91b32b36048c777aa41f5a461b7881f5bc763f575f1`、input SHA-256 `de390929d1a8ba7076f1c53ed878147539ff70e638545ff1fd8e1329a31671eb`を維持する。別targetは同じ閉包にCMake再構成と生成物を追加するため棄却する。製品`kritaimage`の1,197工程・2,418入力を避け、node、property list、画像を実体化せず、公開関数本文を実行しない。
+- `g291-node-property-list-command-schema`の状態は`planned`、実装基点は`fdeae8c9b8`である。許可pathを既存`libs/image/tests/KisNodeVisualPropertyCommandsSchemaContractTest.cpp`だけに限定する。一つの専用worktree-local `build/tdd-macos`を使い、宣言段階の期待失敗、追加3枠の単発と各20回反復、対象と近傍CTest、厳格`clang-check`、書式、AUTOMOC入力、動的接続、製品未解決記号、二回目計画、二回の無作業再構築、公開API検査、`verify-quick`をmacOSで確認する。許可pathだけの受渡しcommitを認め、公開header、CMake、製品source、製品target、全体build・`verify`、Linux、Nix再評価、追加委任は対象外とする。
 
 ### 第239便の先行監査担当票
 
