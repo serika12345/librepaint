@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-07 08:41 JST
+- 更新日時: 2026-09-07 08:46 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -2711,6 +2711,13 @@
 - `g355-abstract-resource-model-schema`は`completed`である。新規`libs/resources/tests/KisAbstractResourceModelSchemaContractTest.cpp`は5枠・98行で、資源filter interfaceの型・寿命・条件設定と、抽象資源modelの型・寿命・検索・活性化・更新・入出力・追加・名称・metadataの全21公開APIを固定する。最初の対象構築は追加5枠の未定義symbolだけで停止した。開始headerの完全型は同header内の具象modelが直接必要とするため変更していない。
 - 新targetは製品libraryを接続せず、最終閉包4工程・8入力、command SHA-256 `adb6574af8d20f5ff63a32f98d6861209e77a5c64876225e5e5280a64d751382`、input SHA-256 `57ddb30c6499c0e0b50b928f0f0c2039fe09086c7eae73cc86614cdd344eb1f4`で、動的接続はQt Core・Test、gettextとmacOS frameworkだけである。実装は`d9cd9362ee`である。所有実装の厳格`clang-check`には開始時からのQt 6 `invalidateFilter()`非推奨3件だけが残り、試験sourceは診断0件である。
 - macOSで対象と軽量近傍`KisResourceIteratorSchemaContractTest`のCTest、追加5枠の20回反復、試験sourceの厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`に成功した。台帳へ21 APIを追加して24,536件対応、5,268件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g355.json`を削除し、主Ninja木5,920,840 KiB、共有compiler cache 1.0 GB、最新`build/tdd-macos/public-api-missing-g356.json` 1,394,298 bytes、SHA-256 `72f6bf7009852073d3c5741b8d06e458f071b13789d8d4bd0824874875462b7b`だけを保持する。compiler cacheは144,198件中120,492件、83.56%がhitしている。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第356便で次の高密度なmacOS対象と最小構築面を選定することである。
+
+### 第356便の監査結果と実装計画
+
+- 正式入力`build/tdd-macos/public-api-missing-g356.json`は公開header 1,548、公開API 29,804、対応済み24,536、未対応5,268、1,394,298 bytes、SHA-256 `72f6bf7009852073d3c5741b8d06e458f071b13789d8d4bd0824874875462b7b`を記録する。`plugins/dockers/animation/timeline_node_list_keeper.h`の残存全22 APIを、keeper型・寿命・構築、行照会・能動node更新、他layer値、外部通知model型・構築、model通知橋渡しの5枠へ完全に対応付ける。識別子整列集合のSHA-256は`4d43a2c8545e8e923fc93921f1d9f361ec211d1a5ac4dadc21725d5c7d5bc4fa`である。
+- 開始headerは`QPointer`をprivate slot引数で直接使用しながら推移includeに依存し、同時に`KisTimeBasedItemModel.h`が所有する`QAbstractTableModel`を重複includeしている。開始headerへ`QPointer`を直接追加し、重複する`QAbstractTableModel`を除去して自己完結性とinclude所有を一致させる。公開API指紋を不変に保ち、開始実装と直接利用headerの厳格`clang-check`で影響を確認する。
+- 既存`plugins/dockers/animation/tests/KisAnimTimelineFramesModelSchemaContractTest.cpp`は193行・5枠で、追加5枠後も300行・20枠未満に収める。既存targetはCMake File API上で自動生成依存だけを持ち、CMake変更なしで4工程・8入力、command SHA-256 `8eee745639b37544a3276e058a3bce7dffadfdd046b99eca43ef4efa9050831b`、input SHA-256 `c050a60c75cc608fa21219132a37aef71247a46976a86ee0621c756a10293b2e`である。Qt Core・Test、gettext、OS frameworkだけへ動的接続し、製品libraryを要求しない。停止線を5工程・11入力、300行・20枠とする。
+- `g356-timeline-node-list-keeper-schema`の状態は`in_progress`、実装基点は`66bd6f386b`である。構造整理は開始header、契約は既存試験sourceだけに限定する。macOSの対象、追加5枠の20回反復、開始実装・直接利用header・試験sourceの厳格`clang-check`、書式、二回の無作業再構築、公開API指紋不変、公開API検査、`verify-quick`だけを実行する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
 
 ### 第239便の先行監査担当票
 
