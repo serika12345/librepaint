@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 5688
+    "expectedMissingApis": 5657
   },
   "contracts": [
     {
@@ -66881,6 +66881,82 @@
         "method:KisCanvasController::slotToggleLevelOfDetailMode(bool value)",
         "method:KisCanvasController::slotTogglePixelGrid(bool value)",
         "method:KisCanvasController::slotToggleWrapAroundMode(bool value)"
+      ]
+    },
+    {
+      "target": "KisGuidesConfigSchemaContractTest",
+      "source": "libs/ui/tests/KisGuidesConfigSchemaContractTest.cpp",
+      "test": "KisGuidesConfigSchemaContractTest::guidesManagerTypeLifetimeAndEventSchemaRemainStable",
+      "behavior": "guide管理器はQObject基底、既定または親付き構築、多相破棄と入力event filterの正確な公開型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisGuidesManager",
+        "method:KisGuidesManager::KisGuidesManager(QObject * parent=0)",
+        "method:KisGuidesManager::eventFilter(QObject * obj,QEvent * event)",
+        "method:KisGuidesManager::~KisGuidesManager()"
+      ]
+    },
+    {
+      "target": "KisGuidesConfigSchemaContractTest",
+      "source": "libs/ui/tests/KisGuidesConfigSchemaContractTest.cpp",
+      "test": "KisGuidesConfigSchemaContractTest::guidesManagerViewAndStateQuerySignaturesRemainStable",
+      "behavior": "guide管理器はaction・view接続と表示・固定・吸着・定規倍率・単位状態を照会する正確な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisGuidesManager::lockGuides() const",
+        "method:KisGuidesManager::rulersMultiple2() const",
+        "method:KisGuidesManager::setView(QPointer<KisView> view)",
+        "method:KisGuidesManager::setup(KisActionManager * actionManager)",
+        "method:KisGuidesManager::showGuides() const",
+        "method:KisGuidesManager::snapToGuides() const",
+        "method:KisGuidesManager::unitType() const"
+      ]
+    },
+    {
+      "target": "KisGuidesConfigSchemaContractTest",
+      "source": "libs/ui/tests/KisGuidesConfigSchemaContractTest.cpp",
+      "test": "KisGuidesConfigSchemaContractTest::guidesManagerConfigurationAndPrimaryStateSignaturesRemainStable",
+      "behavior": "guide管理器は文書由来設定と表示・固定・吸着・定規倍率・単位の主要状態を反映する正確な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisGuidesManager::setGuidesConfig(const KisGuidesConfig & config)",
+        "method:KisGuidesManager::setLockGuides(bool value)",
+        "method:KisGuidesManager::setRulersMultiple2(bool value)",
+        "method:KisGuidesManager::setShowGuides(bool value)",
+        "method:KisGuidesManager::setSnapToGuides(bool value)",
+        "method:KisGuidesManager::setUnitType(KoUnit::Type type)",
+        "method:KisGuidesManager::slotDocumentRequestedConfig(const KisGuidesConfig & config)"
+      ]
+    },
+    {
+      "target": "KisGuidesConfigSchemaContractTest",
+      "source": "libs/ui/tests/KisGuidesConfigSchemaContractTest.cpp",
+      "test": "KisGuidesConfigSchemaContractTest::guidesManagerCreationAndSnappingSignaturesRemainStable",
+      "behavior": "guide管理器はguide作成の進行・完了と直交・node・延長・交点・境界・中心・pixelへの吸着方針を切り替える正確な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisGuidesManager::setSnapBoundingBox(bool value)",
+        "method:KisGuidesManager::setSnapExtension(bool value)",
+        "method:KisGuidesManager::setSnapImageBounds(bool value)",
+        "method:KisGuidesManager::setSnapImageCenter(bool value)",
+        "method:KisGuidesManager::setSnapIntersection(bool value)",
+        "method:KisGuidesManager::setSnapNode(bool value)",
+        "method:KisGuidesManager::setSnapOrthogonal(bool value)",
+        "method:KisGuidesManager::setSnapToPixel(bool value)",
+        "method:KisGuidesManager::slotGuideCreationFinished(Qt::Orientation orientation,const QPoint & globalPos)",
+        "method:KisGuidesManager::slotGuideCreationInProgress(Qt::Orientation orientation,const QPoint & globalPos)",
+        "method:KisGuidesManager::slotShowSnapOptions()"
+      ]
+    },
+    {
+      "target": "KisGuidesConfigSchemaContractTest",
+      "source": "libs/ui/tests/KisGuidesConfigSchemaContractTest.cpp",
+      "test": "KisGuidesConfigSchemaContractTest::guidesManagerPersistenceAndNotificationSignaturesRemainStable",
+      "behavior": "guide管理器は現在設定を文書へ反映し、設定更新要求を通知する正確な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisGuidesManager::sigRequestUpdateGuidesConfig(const KisGuidesConfig & config)",
+        "method:KisGuidesManager::slotUploadConfigToDocument()"
       ]
     }
   ]

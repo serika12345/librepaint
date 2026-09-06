@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-07 06:28 JST
+- 更新日時: 2026-09-07 06:33 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -2528,6 +2528,14 @@
 - 開始headerの完全定義は`QObject`基底、`QScopedPointer`値member、`KoUnit::Type`公開型に直接必要であり、削減すべき推移includeはない。未使用の`KisCanvasDecoration`前方宣言は構築閉包を増やさず、今回の契約責務と無関係なため変更しない。開始実装の厳格`clang-check`は既存Qt 6非推奨`QEnterEvent::pos()`と`QTabletEvent::pos()`の2件だけで停止し、製品source変更は不要である。
 - 既存`libs/ui/tests/KisGuidesConfigSchemaContractTest.cpp`は89行・5枠で、追加5枠後も300行・20枠未満に収まる。既存targetはCMake File API上で自動生成依存だけを持ち、CMake変更なしで4工程・8入力、command SHA-256 `9ca3f88615a1a6ddc85b90095d93e9e533068cc964924bbb5a546c30a53e88e5`、input SHA-256 `466380a5da52a1e773e9b5544839a3a97352a37fdbe3df0796ccb465f265e2f8`である。Qt Test・Gui・CoreとOS frameworkだけへ動的接続し、製品libraryを要求しない。停止線を5工程・11入力、300行・20枠とする。
 - `g343-guides-manager-schema`の状態は`in_progress`、実装基点は`446cd29066`である。変更は既存試験sourceの追加5枠だけに限定し、型特性、厳密な公開関数pointer、未評価式でガイド管理の公開接続面を固定する。macOSの対象、追加5枠の20回反復、試験sourceの厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。CMake、公開header、製品source、製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
+- `g343-guides-manager-schema`の状態は`integrated`、計画commitは`21091c616f`、契約実装commitは`36dd54ac5c`である。
+
+### 第343便の契約統合結果
+
+- 開始`libs/ui/canvas/kis_guides_manager.h`から既存`libs/ui/tests/KisGuidesConfigSchemaContractTest.cpp`へ残存全31 APIを、型・構築・寿命・event 4、action・view・状態照会7、設定・主要状態変更7、guide作成・snap方針11、文書反映・通知2として追加した。試験sourceは153行・計10枠で停止線以内に収まり、CMake、公開header、製品sourceを変更していない。
+- 初回限定構築は期待どおり追加5試験関数の未定義linkだけで失敗し、契約実装後に成功した。最終targetは4工程・8入力を維持し、command SHA-256 `9ca3f88615a1a6ddc85b90095d93e9e533068cc964924bbb5a546c30a53e88e5`、input SHA-256 `466380a5da52a1e773e9b5544839a3a97352a37fdbe3df0796ccb465f265e2f8`である。AUTOMOC header入力は空、Qt Test・Gui・Core、gettext、OS frameworkだけへ動的接続し、製品未解決記号は0件である。
+- macOSで対象と軽量近傍`libs-ui-KisDisplayConfigSchemaContractTest`のCTest、追加5枠の各20回反復、試験sourceの厳格`clang-check`、書式、二回の無作業再構築、公開API検査に成功した。開始実装の厳格検査は今回と無関係な既存Qt 6非推奨2件だけで停止した。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 台帳へ31 APIを追加して24,147件対応、5,657件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g343.json`を最新報告の検証後に削除し、追加作業tree・構築木は作成していない。主Ninja木5,914,320 KiB、共有compiler cache 982,736 KiB、最新`build/tdd-macos/public-api-missing-g344.json` 1,501,148 bytes、SHA-256 `5a9f8df3449610eb6eb8fc0fa530de5989d2a54f870e92322283374444bf3a1c`だけを再利用対象として保持する。compiler cacheは144,151件中120,479件、83.58%がhitしている。次の永続作業は第344便で次の高密度なmacOS対象と最小構築面を選定することである。
 
 ### 第239便の先行監査担当票
 
