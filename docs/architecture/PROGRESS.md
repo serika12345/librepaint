@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-07 04:47 JST
+- 更新日時: 2026-09-07 04:51 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -2439,6 +2439,13 @@
 - 追加5枠は期待どおり5件失敗し、契約実装後に成功した。新targetは4工程・8入力で停止線以内に収まり、command SHA-256は`5a43fe66f466b55f71df43d306166046e55698531a394b98411c1d8af364e97d`、input SHA-256は`83965d793a03fd856b81d37292a6424564d341802e7af7a626f743614198f409`である。AUTOMOC header入力は空、Qt Gui・Test・Core、gettext、OS frameworkだけへ動的接続し、製品未解決記号は0である。
 - macOSで対象CTest、対象の20回反復、開始実装と試験sourceの厳格`clang-check`、書式、二回の無作業再構築、公開API検査に成功した。開始実装は変更前後とも厳格診断0である。他8直接利用元のうち6翻訳単位は解析に成功し、`DlgExportStoryboard.cpp`とそれを読む`StoryboardDockerDock.cpp`は製品構築で作る`ui_wdgexportstoryboard.h`が未生成のため開始header到達前に停止した。1,998工程・3,994入力の既存動的storyboard試験、製品static・MODULE・OBJECT・shared target、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 台帳へ61 APIを追加して23,656件対応、6,148件未対応となった。旧`public-api-missing-g337.json`と一時診断報告は最新報告の検証後に削除し、追加作業tree・構築木は作成していない。主Ninja木5,907,416 KiB、共有compiler cache 982,288 KiB、最新`build/tdd-macos/public-api-missing-g338.json` 1,627,170 bytes、SHA-256 `3e0f1a15bda03f1f4a592c6d10f99bf2bc86432461016eee9fe230de0d3b5bc3`だけを再利用対象として保持する。compiler cacheは144,121件中120,471件、83.59%がhitしている。次の永続作業は第338便で次の高密度なmacOS対象と最小構築面を選定することである。
+
+### 第338便の監査結果と実装計画
+
+- 正式入力`build/tdd-macos/public-api-missing-g338.json`は公開header 1,548、公開API 29,804、対応済み23,656、未対応6,148、1,627,170 bytes、SHA-256 `3e0f1a15bda03f1f4a592c6d10f99bf2bc86432461016eee9fe230de0d3b5bc3`を記録する。`libs/ui/canvas/kis_canvas_resource_provider.h`の残存全105 APIを、型・所有・resource接続20、色・文字・履歴・合成19、描画動特性23、鏡映・workspace 21、resource活性化slot・通知22として5枠へ完全に割り当てる。対象識別子の整列集合SHA-256は`f9243ed964fd7fc9a3fda46e1120dc4074a792d3dd7923988a71955cf069911d`である。
+- 開始headerは宣言、inline、値memberのいずれにも使わない`KoID.h`と`canvas/kis_abstract_perspective_grid.h`を読み、78翻訳単位へ無関係な識別子・perspective grid解析を波及させている。開始`libs/ui/canvas/kis_canvas_resource_provider.h`から両includeと、完全定義済み`KoAbstractGradient`の重複前方宣言を削除する。`KoCanvasResourceProvider`完全型の前方宣言化は、返却pointerを即時利用する既存利用元の直接include補完を伴うため本便の最小範囲から除外する。開始実装`libs/ui/canvas/kis_canvas_resource_provider.cpp`の変更前厳格`clang-check`は診断0である。
+- 軽量近傍`KisDerivedResourcesSchemaContractTest`は4工程・8入力、command SHA-256 `2bd2ae473e722605ff1a2562615a4f88870cad197076364f2d2f705f406117d5`、input SHA-256 `cd20ea998f3d88716f444711476d05e92e6a91a62880f3063f4d96c49d32f105`である。依存整理後に新規`libs/ui/tests/KisCanvasResourceProviderSchemaContractTest.cpp`を作り、UI・flake・canvas・image・global・resources・pigmentのsource/generated探索路、Qt Gui・Test、Qt Widgets・Eigen・KF I18n・Imathのinterface探索路、header-only Boost、関係export定義だけへ接続する。provider、resource、色、画像、node、preset、gradient、pattern、gamut mask、workspace、文字propertyを実体化せず、継承、構築・寿命特性、全公開関数型を固定する。新targetは4工程・8入力を予測し、停止線を5工程・11入力とする。
+- `g338-canvas-resource-provider-schema`の状態は`planned`、実装基点は`ce6aee1c54`である。構造整理は開始header、契約は新規試験sourceと同target固有CMake節だけに限定する。macOSの対象、軽量近傍、追加5枠の20回反復、開始実装と試験sourceの厳格`clang-check`、書式、二回の無作業再構築、公開API指紋不変、公開API検査、`verify-quick`だけを実行する。製品static・MODULE・OBJECT・shared target、全体build・`verify`、Linux、Nix再評価は実行しない。
 
 ### 第239便の先行監査担当票
 
