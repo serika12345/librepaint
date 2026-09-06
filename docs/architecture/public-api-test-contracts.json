@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 7189
+    "expectedMissingApis": 7177
   },
   "contracts": [
     {
@@ -63463,6 +63463,45 @@
       "classification": "maintained",
       "apis": [
         "method:KisNodePropertyListCommand::setNodePropertiesAutoUndo(KisNodeSP node,KisImageSP image,PropertyList proplist)"
+      ]
+    },
+    {
+      "target": "KisImageProjectionAndResolutionCommandsSchemaContractTest",
+      "source": "libs/image/tests/KisImageProjectionAndResolutionCommandsSchemaContractTest.cpp",
+      "test": "KisImagePropertyCommandsSchemaContractTest::resolutionProxyTypeAndConstructionSchemaRemainStable",
+      "behavior": "画像解像度proxyは共有所有別名、QObject基底、仮想寿命を持ち、既定値、画像弱参照、既存proxyから構築できる。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisImageResolutionProxySP",
+        "class:KisImageResolutionProxy",
+        "method:KisImageResolutionProxy::KisImageResolutionProxy()",
+        "method:KisImageResolutionProxy::KisImageResolutionProxy(KisImageWSP image)",
+        "method:KisImageResolutionProxy::KisImageResolutionProxy(const KisImageResolutionProxy & rhs)",
+        "method:KisImageResolutionProxy::~KisImageResolutionProxy()"
+      ]
+    },
+    {
+      "target": "KisImageProjectionAndResolutionCommandsSchemaContractTest",
+      "source": "libs/image/tests/KisImageProjectionAndResolutionCommandsSchemaContractTest.cpp",
+      "test": "KisImagePropertyCommandsSchemaContractTest::resolutionProxyQueryAndCloneSchemaRemainStable",
+      "behavior": "画像解像度proxyは水平・垂直解像度の照会、別proxyとの比較、画像から分離した共有複製を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisImageResolutionProxy::cloneDetached() const",
+        "method:KisImageResolutionProxy::compareResolution(const KisImageResolutionProxy & rhs) const",
+        "method:KisImageResolutionProxy::xRes() const",
+        "method:KisImageResolutionProxy::yRes() const"
+      ]
+    },
+    {
+      "target": "KisImageProjectionAndResolutionCommandsSchemaContractTest",
+      "source": "libs/image/tests/KisImageProjectionAndResolutionCommandsSchemaContractTest.cpp",
+      "test": "KisImagePropertyCommandsSchemaContractTest::resolutionProxyCreationSchemaRemainStable",
+      "behavior": "画像解像度proxyは画像が利用可能な場合の接続proxyまたは分離複製と、単位解像度の共有proxyを生成する関数境界を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisImageResolutionProxy::createOrCloneDetached(KisImageWSP image) const",
+        "method:KisImageResolutionProxy::identity()"
       ]
     }
   ]
