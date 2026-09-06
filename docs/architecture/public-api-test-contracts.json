@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 5268
+    "expectedMissingApis": 5246
   },
   "contracts": [
     {
@@ -67985,6 +67985,73 @@
         "method:KisAbstractResourceModel::addResourceDeduplicateFileName(KoResourceSP resource,const QString & storageId)",
         "method:KisAbstractResourceModel::renameResource(KoResourceSP resource,const QString & name)",
         "method:KisAbstractResourceModel::setResourceMetaData(KoResourceSP resource,QMap<QString,QVariant> metadata)"
+      ]
+    },
+    {
+      "target": "KisAnimTimelineFramesModelSchemaContractTest",
+      "source": "plugins/dockers/animation/tests/KisAnimTimelineFramesModelSchemaContractTest.cpp",
+      "test": "KisAnimTimelineFramesModelSchemaContractTest::nodeListKeeperTypeAndLifetimeSchemaRemainStable",
+      "behavior": "時間軸node一覧keeperはQObjectの寿命規則に従い、外部通知model、dummy facade、表示mode adapterを借用して構築する公開面を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:TimelineNodeListKeeper",
+        "method:TimelineNodeListKeeper::TimelineNodeListKeeper(ModelWithExternalNotifications * model,KisDummiesFacadeBase * dummiesFacade,KisNodeDisplayModeAdapter * displayModeAdapter)",
+        "method:TimelineNodeListKeeper::~TimelineNodeListKeeper()"
+      ]
+    },
+    {
+      "target": "KisAnimTimelineFramesModelSchemaContractTest",
+      "source": "plugins/dockers/animation/tests/KisAnimTimelineFramesModelSchemaContractTest.cpp",
+      "test": "KisAnimTimelineFramesModelSchemaContractTest::nodeListKeeperRowQuerySignaturesRemainStable",
+      "behavior": "時間軸node一覧keeperは行とdummyの相互照会、行数と補助layer一覧の取得、能動dummy更新の公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:TimelineNodeListKeeper::dummyFromRow(int row)",
+        "method:TimelineNodeListKeeper::otherLayersList() const",
+        "method:TimelineNodeListKeeper::rowCount()",
+        "method:TimelineNodeListKeeper::rowForDummy(KisNodeDummy * dummy)",
+        "method:TimelineNodeListKeeper::updateActiveDummy(KisNodeDummy * dummy)"
+      ]
+    },
+    {
+      "target": "KisAnimTimelineFramesModelSchemaContractTest",
+      "source": "plugins/dockers/animation/tests/KisAnimTimelineFramesModelSchemaContractTest.cpp",
+      "test": "KisAnimTimelineFramesModelSchemaContractTest::nodeListKeeperOtherLayerValueContractRemainsStable",
+      "behavior": "時間軸の補助layer値は名称と借用dummyを保持し、その一覧をQt listとして公開する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:TimelineNodeListKeeper::OtherLayersList",
+        "member:TimelineNodeListKeeper::OtherLayer::dummy",
+        "member:TimelineNodeListKeeper::OtherLayer::name",
+        "method:TimelineNodeListKeeper::OtherLayer::OtherLayer(const QString & _name,KisNodeDummy * _dummy)",
+        "struct:TimelineNodeListKeeper::OtherLayer"
+      ]
+    },
+    {
+      "target": "KisAnimTimelineFramesModelSchemaContractTest",
+      "source": "plugins/dockers/animation/tests/KisAnimTimelineFramesModelSchemaContractTest.cpp",
+      "test": "KisAnimTimelineFramesModelSchemaContractTest::nodeListKeeperModelTypeAndConstructionSchemaRemainStable",
+      "behavior": "外部通知modelは時間基準表modelを継承し、QObject親を借用する公開構築面を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:TimelineNodeListKeeper::ModelWithExternalNotifications::ModelWithExternalNotifications(QObject * parent)",
+        "struct:TimelineNodeListKeeper::ModelWithExternalNotifications"
+      ]
+    },
+    {
+      "target": "KisAnimTimelineFramesModelSchemaContractTest",
+      "source": "plugins/dockers/animation/tests/KisAnimTimelineFramesModelSchemaContractTest.cpp",
+      "test": "KisAnimTimelineFramesModelSchemaContractTest::nodeListKeeperModelNotificationSignaturesRemainStable",
+      "behavior": "外部通知modelはreset、行挿入・削除、index変更の開始と完了を公開橋渡し操作として提供する。",
+      "classification": "maintained",
+      "apis": [
+        "method:TimelineNodeListKeeper::ModelWithExternalNotifications::callBeginInsertRows(const QModelIndex & parent,int first,int last)",
+        "method:TimelineNodeListKeeper::ModelWithExternalNotifications::callBeginRemoveRows(const QModelIndex & parent,int first,int last)",
+        "method:TimelineNodeListKeeper::ModelWithExternalNotifications::callBeginResetModel()",
+        "method:TimelineNodeListKeeper::ModelWithExternalNotifications::callEndInsertRows()",
+        "method:TimelineNodeListKeeper::ModelWithExternalNotifications::callEndRemoveRows()",
+        "method:TimelineNodeListKeeper::ModelWithExternalNotifications::callEndResetModel()",
+        "method:TimelineNodeListKeeper::ModelWithExternalNotifications::callIndexChanged(const QModelIndex & index0,const QModelIndex & index1)"
       ]
     }
   ]
