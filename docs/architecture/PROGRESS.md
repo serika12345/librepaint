@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-07 02:08 JST
+- 更新日時: 2026-09-07 02:11 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -2218,6 +2218,12 @@
 - 新targetは4工程・8入力で停止線以内に収まり、command SHA-256は`8ee77fb0625039a26ef73a111b4e150c2c23adc0295c6f5feb58d5b1a956dba2`、input SHA-256は`8b2ab80749f6d12455499620446903de993f5099035c795d1748d6e1211d4644`である。AUTOMOC header入力は空、Qt Gui・Test・Core、gettext、OS frameworkだけへ動的接続し、製品・CPU選択の未解決記号は0である。
 - macOSで対象と近傍`libs-pigment-KoOptimizedCompositeOpFactorySchemaContractTest`のCTest 2/2、対象の20回反復、厳格`clang-check`、書式、二回の無作業再構築、公開API検査に成功した。製品target、CPU別OBJECT、適用器・拡張器の生成、登録表変更、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 台帳へ10 APIを追加して23,133件対応、6,671件未対応となった。`libs/pigment`の残存は複合演算3件とCMYKディザ6件の合計9件である。旧`public-api-missing-g322.json`を削除し、追加作業tree・構築木は作成していない。主Ninja木5,886,728 KiB、共有compiler cache 982,708 KiB、最新`build/tdd-macos/public-api-missing-g323.json` 1,773,207 bytes、SHA-256 `75e6d4ede3608daa2f712e344cc4252ca6025108e2db8435174ddb04010b91cb`だけを再利用対象として保持する。compiler cacheは144,054件中120,469件、83.63%がhitしている。次の永続作業は第323便で`libs/pigment`の残存9 APIを最小閉包へ固定することである。
+
+### 第323便の監査結果と実装計画
+
+- 正式入力`build/tdd-macos/public-api-missing-g323.json`は公開header 1,548、公開API 29,804、対応済み23,133、未対応6,671、1,773,207 bytes、SHA-256 `75e6d4ede3608daa2f712e344cc4252ca6025108e2db8435174ddb04010b91cb`を記録する。`libs/pigment/compositeops/KoCompositeOpAlphaBase.h`の残存3 APIと`libs/pigment/dithering/KisCmykDitherOpFactory.h`の残存6 APIは重複せず、合計9識別子の整列集合SHA-256は`a25fe8198cc63f5231b66d81d71b2b64c5596e81d26b365516ef117d736eb6e4`である。alpha付き複合演算の型・構築・配送とCMYKディザの型・構築・単画素・矩形配送・登録関数型を4枠へ完全に割り当てる。
+- 既存`KisDitherOpContractTest`はglobal ID製品OBJECTへ接続する5工程・12入力、command SHA-256 `aa080c5e0a9c39b2b46d5300e726006ee6942eadedc990e4224d751733ebcf34`、input SHA-256 `27098ff6ee59839a091192fbee11a79a65a5f705821c307ccfad026f11765384`であり、停止線を超える。新規`libs/pigment/tests/KisCmykDitherAndCompositeSchemaContractTest.cpp`を作り、pigment・global探索路、Qt Core・Gui・Test、header-only Boost・Imath、KF I18n interface、pigment・global export定義だけへ接続する。実Cmyk traitと宣言だけの複合演算型を用い、製品OBJECTを外した4工程・8入力を予測し、停止線を5工程・11入力とする。
+- `g323-cmyk-dither-composite-schema`の状態は`planned`、実装基点は`3dd04c970a`である。許可pathを新規試験sourceと`libs/pigment/tests/CMakeLists.txt`の新target固有節だけに限定し、公開headerと製品sourceを変更しない。画素buffer、色空間、複合演算を実体化せず、テンプレートの公開関数型だけを検査する。macOSの対象、近傍、追加4枠の20回反復、厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。製品OBJECT・shared target、全体build・`verify`、Linux、Nix再評価は実行しない。
 
 ### 第239便の先行監査担当票
 
