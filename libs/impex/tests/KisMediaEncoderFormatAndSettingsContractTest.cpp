@@ -7,6 +7,8 @@
 
 #include <QTest>
 
+#include <type_traits>
+
 namespace
 {
 struct WidgetToken {
@@ -96,6 +98,12 @@ private Q_SLOTS:
     void settingsPreserveTextAndInputOrder();
     void settingsPreserveFormatMapAndDimensions();
     void settingsPreserveTimelineAndCopyIndependence();
+    void runnableExecutionAndCancellationSignaturesRemainStable();
+    void runnableCompletionSignalSignaturesRemainStable();
+    void runnableFailureAndProgressSignalSignaturesRemainStable();
+    void wrapperTypeConstructionAndLifetimeSchemaRemainStable();
+    void wrapperExecutionAndFormatLookupSignaturesRemainStable();
+    void wrapperLifecycleSignalSignaturesRemainStable();
 };
 
 void KisMediaEncoderFormatAndSettingsContractTest::formatIdentityPreservesStableMetadata()
@@ -185,6 +193,83 @@ void KisMediaEncoderFormatAndSettingsContractTest::settingsPreserveTimelineAndCo
     QCOMPARE(original.inputFps, 30);
     QCOMPARE(original.firstFrameSec, 5);
 }
+
+#define ASSERT_MEDIA_ENCODER_SIGNATURE(Type, Method, Signature)                                                        \
+    static_assert(std::is_same_v<decltype(static_cast<Signature>(&Type::Method)), Signature>)
+
+void KisMediaEncoderFormatAndSettingsContractTest::runnableExecutionAndCancellationSignaturesRemainStable()
+{
+    using Runnable = KisMediaEncoderRunnable;
+    using VoidMember = void (Runnable::*)();
+
+    static_assert(std::is_class_v<Runnable>);
+    static_assert(std::is_base_of_v<QObject, Runnable>);
+    static_assert(std::is_base_of_v<QRunnable, Runnable>);
+    ASSERT_MEDIA_ENCODER_SIGNATURE(Runnable, run, VoidMember);
+    ASSERT_MEDIA_ENCODER_SIGNATURE(Runnable, slotHandleCancelRequested, VoidMember);
+}
+
+void KisMediaEncoderFormatAndSettingsContractTest::runnableCompletionSignalSignaturesRemainStable()
+{
+    using Runnable = KisMediaEncoderRunnable;
+    using VoidMember = void (Runnable::*)();
+
+    ASSERT_MEDIA_ENCODER_SIGNATURE(Runnable, sigStarted, VoidMember);
+    ASSERT_MEDIA_ENCODER_SIGNATURE(Runnable, sigCompleted, VoidMember);
+    ASSERT_MEDIA_ENCODER_SIGNATURE(Runnable, sigCancelled, VoidMember);
+}
+
+void KisMediaEncoderFormatAndSettingsContractTest::runnableFailureAndProgressSignalSignaturesRemainStable()
+{
+    using Runnable = KisMediaEncoderRunnable;
+    using Failure = void (Runnable::*)(const QString &);
+    using Progress = void (Runnable::*)(int);
+
+    ASSERT_MEDIA_ENCODER_SIGNATURE(Runnable, sigFailed, Failure);
+    ASSERT_MEDIA_ENCODER_SIGNATURE(Runnable, sigProgressUpdated, Progress);
+}
+
+void KisMediaEncoderFormatAndSettingsContractTest::wrapperTypeConstructionAndLifetimeSchemaRemainStable()
+{
+    using Wrapper = KisMediaEncoderWrapper;
+
+    static_assert(std::is_class_v<Wrapper>);
+    static_assert(std::is_base_of_v<QObject, Wrapper>);
+    static_assert(std::is_constructible_v<Wrapper, QObject *>);
+    static_assert(std::is_default_constructible_v<Wrapper>);
+    static_assert(std::has_virtual_destructor_v<Wrapper>);
+}
+
+void KisMediaEncoderFormatAndSettingsContractTest::wrapperExecutionAndFormatLookupSignaturesRemainStable()
+{
+    using Wrapper = KisMediaEncoderWrapper;
+    using FormatLookup = KisMediaEncoderFormat *(*)(const QString &);
+    using Formats = const QVector<KisMediaEncoderFormat *> &(*)();
+    using Start = KisImportExportErrorCode (Wrapper::*)(const KisMediaEncoderWrapperSettings &, bool);
+    using StartNonBlocking = void (Wrapper::*)(const KisMediaEncoderWrapperSettings &);
+
+    ASSERT_MEDIA_ENCODER_SIGNATURE(Wrapper, start, Start);
+    ASSERT_MEDIA_ENCODER_SIGNATURE(Wrapper, startNonBlocking, StartNonBlocking);
+    ASSERT_MEDIA_ENCODER_SIGNATURE(Wrapper, getFormatByKey, FormatLookup);
+    ASSERT_MEDIA_ENCODER_SIGNATURE(Wrapper, getSupportedFormats, Formats);
+}
+
+void KisMediaEncoderFormatAndSettingsContractTest::wrapperLifecycleSignalSignaturesRemainStable()
+{
+    using Wrapper = KisMediaEncoderWrapper;
+    using Error = void (Wrapper::*)(QString);
+    using Progress = void (Wrapper::*)(int);
+    using VoidMember = void (Wrapper::*)();
+
+    ASSERT_MEDIA_ENCODER_SIGNATURE(Wrapper, reset, VoidMember);
+    ASSERT_MEDIA_ENCODER_SIGNATURE(Wrapper, sigStarted, VoidMember);
+    ASSERT_MEDIA_ENCODER_SIGNATURE(Wrapper, sigFinished, VoidMember);
+    ASSERT_MEDIA_ENCODER_SIGNATURE(Wrapper, sigFinishedWithError, Error);
+    ASSERT_MEDIA_ENCODER_SIGNATURE(Wrapper, sigProgressUpdated, Progress);
+    ASSERT_MEDIA_ENCODER_SIGNATURE(Wrapper, sigCancelRequested, VoidMember);
+}
+
+#undef ASSERT_MEDIA_ENCODER_SIGNATURE
 
 QTEST_GUILESS_MAIN(KisMediaEncoderFormatAndSettingsContractTest)
 
