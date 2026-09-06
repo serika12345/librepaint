@@ -8,6 +8,34 @@
 #include <type_traits>
 
 #include "KisAnimTimelineFramesModel.h"
+#include "timeline_node_list_keeper.h"
+
+namespace
+{
+class ExternalNotificationsProbe final : public TimelineNodeListKeeper::ModelWithExternalNotifications
+{
+public:
+    using ModelWithExternalNotifications::ModelWithExternalNotifications;
+    int rowCount(const QModelIndex &) const override
+    {
+        return 0;
+    }
+
+protected:
+    KisNodeSP nodeAt(QModelIndex) const override
+    {
+        return {};
+    }
+    QMap<QString, KisKeyframeChannel *> channelsAt(QModelIndex) const override
+    {
+        return {};
+    }
+    KisKeyframeChannel *channelByID(QModelIndex, const QString &) const override
+    {
+        return nullptr;
+    }
+};
+} // namespace
 
 class KisAnimTimelineFramesModelSchemaContractTest : public QObject
 {
@@ -19,6 +47,11 @@ private Q_SLOTS:
     void frameAudioClipAndCacheSignaturesRemainStable();
     void tableMimeAndRowOperationSignaturesRemainStable();
     void publicSlotAndNotificationSignaturesRemainStable();
+    void nodeListKeeperTypeAndLifetimeSchemaRemainStable();
+    void nodeListKeeperRowQuerySignaturesRemainStable();
+    void nodeListKeeperOtherLayerValueContractRemainsStable();
+    void nodeListKeeperModelTypeAndConstructionSchemaRemainStable();
+    void nodeListKeeperModelNotificationSignaturesRemainStable();
 };
 
 void KisAnimTimelineFramesModelSchemaContractTest::timelineSelectionAndModelRoleSchemaRemainStable()
@@ -185,6 +218,74 @@ void KisAnimTimelineFramesModelSchemaContractTest::publicSlotAndNotificationSign
     static_assert(std::is_same_v<decltype(&Model::requestTransferSelectionBetweenRows), RowTransferNotification>);
     static_assert(std::is_same_v<decltype(&Model::sigFullClipRangeChanged), NoArgumentNotification>);
 
+    QVERIFY(true);
+}
+
+void KisAnimTimelineFramesModelSchemaContractTest::nodeListKeeperTypeAndLifetimeSchemaRemainStable()
+{
+    using Keeper = TimelineNodeListKeeper;
+    using Model = Keeper::ModelWithExternalNotifications;
+
+    static_assert(std::is_class_v<Keeper>);
+    static_assert(std::is_base_of_v<QObject, Keeper>);
+    static_assert(std::is_constructible_v<Keeper, Model *, KisDummiesFacadeBase *, KisNodeDisplayModeAdapter *>);
+    static_assert(std::has_virtual_destructor_v<Keeper>);
+    QVERIFY(true);
+}
+
+void KisAnimTimelineFramesModelSchemaContractTest::nodeListKeeperRowQuerySignaturesRemainStable()
+{
+    using Keeper = TimelineNodeListKeeper;
+
+    static_assert(std::is_same_v<decltype(&Keeper::dummyFromRow), KisNodeDummy *(Keeper::*)(int)>);
+    static_assert(std::is_same_v<decltype(&Keeper::rowForDummy), int (Keeper::*)(KisNodeDummy *)>);
+    static_assert(std::is_same_v<decltype(&Keeper::rowCount), int (Keeper::*)()>);
+    static_assert(std::is_same_v<decltype(&Keeper::otherLayersList), Keeper::OtherLayersList (Keeper::*)() const>);
+    static_assert(std::is_same_v<decltype(&Keeper::updateActiveDummy), void (Keeper::*)(KisNodeDummy *)>);
+    QVERIFY(true);
+}
+
+void KisAnimTimelineFramesModelSchemaContractTest::nodeListKeeperOtherLayerValueContractRemainsStable()
+{
+    using Keeper = TimelineNodeListKeeper;
+    using OtherLayer = Keeper::OtherLayer;
+
+    static_assert(std::is_class_v<OtherLayer>);
+    static_assert(std::is_same_v<Keeper::OtherLayersList, QList<OtherLayer>>);
+    static_assert(std::is_constructible_v<OtherLayer, const QString &, KisNodeDummy *>);
+    static_assert(std::is_same_v<decltype(OtherLayer::name), QString>);
+    static_assert(std::is_same_v<decltype(OtherLayer::dummy), KisNodeDummy *>);
+
+    const OtherLayer layer(QStringLiteral("Paint Layer"), nullptr);
+    QCOMPARE(layer.name, QStringLiteral("Paint Layer"));
+    QVERIFY(!layer.dummy);
+}
+
+void KisAnimTimelineFramesModelSchemaContractTest::nodeListKeeperModelTypeAndConstructionSchemaRemainStable()
+{
+    using Model = TimelineNodeListKeeper::ModelWithExternalNotifications;
+
+    static_assert(std::is_class_v<Model>);
+    static_assert(std::is_base_of_v<KisTimeBasedItemModel, Model>);
+    static_assert(std::is_abstract_v<Model>);
+    static_assert(std::is_constructible_v<ExternalNotificationsProbe, QObject *>);
+    QVERIFY(true);
+}
+
+void KisAnimTimelineFramesModelSchemaContractTest::nodeListKeeperModelNotificationSignaturesRemainStable()
+{
+    using Model = TimelineNodeListKeeper::ModelWithExternalNotifications;
+    using NoArgument = void (Model::*)();
+    using Rows = void (Model::*)(const QModelIndex &, int, int);
+
+    static_assert(std::is_same_v<decltype(&Model::callBeginResetModel), NoArgument>);
+    static_assert(std::is_same_v<decltype(&Model::callEndResetModel), NoArgument>);
+    static_assert(std::is_same_v<decltype(&Model::callBeginInsertRows), Rows>);
+    static_assert(std::is_same_v<decltype(&Model::callEndInsertRows), NoArgument>);
+    static_assert(std::is_same_v<decltype(&Model::callBeginRemoveRows), Rows>);
+    static_assert(std::is_same_v<decltype(&Model::callEndRemoveRows), NoArgument>);
+    static_assert(
+        std::is_same_v<decltype(&Model::callIndexChanged), void (Model::*)(const QModelIndex &, const QModelIndex &)>);
     QVERIFY(true);
 }
 
