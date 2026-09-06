@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 6877
+    "expectedMissingApis": 6850
   },
   "contracts": [
     {
@@ -44694,6 +44694,78 @@
         "method:psd_layer_effects_shadow_base::gradientLink() const",
         "method:psd_layer_effects_shadow_base::setContourLookupTable(const quint8 * value)",
         "method:psd_layer_effects_shadow_base::setGradient(KoAbstractGradientSP value)"
+      ]
+    },
+    {
+      "target": "KisAutoBrushSchemaContractTest",
+      "source": "libs/brush/tests/KisAutoBrushSchemaContractTest.cpp",
+      "test": "KisAutoBrushSchemaContractTest::typeConstructionAndResourceIoSchemaRemainStable",
+      "behavior": "auto brushはmask生成器と補正値による構築・既定density、複写、多相破棄、代入禁止、複製、および装置I/Oを維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisAutoBrush",
+        "method:KisAutoBrush::KisAutoBrush(KisMaskGenerator * as,qreal angle,qreal randomness,qreal density=1.0)",
+        "method:KisAutoBrush::KisAutoBrush(const KisAutoBrush & rhs)",
+        "method:KisAutoBrush::clone() const",
+        "method:KisAutoBrush::loadFromDevice(QIODevice * dev,KisResourcesInterfaceSP resourcesInterface)",
+        "method:KisAutoBrush::operator =(const KisAutoBrush & rhs)",
+        "method:KisAutoBrush::saveToDevice(QIODevice * dev) const",
+        "method:KisAutoBrush::~KisAutoBrush()"
+      ]
+    },
+    {
+      "target": "KisAutoBrushSchemaContractTest",
+      "source": "libs/brush/tests/KisAutoBrushSchemaContractTest.cpp",
+      "test": "KisAutoBrushSchemaContractTest::maskGeneratorAndAttributeSchemaRemainStable",
+      "behavior": "auto brushはmask生成器、randomness、density、利用者向け実効寸法、および一時性・貫通・cache対応方針をconst照会と設定として公開する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAutoBrush::density() const",
+        "method:KisAutoBrush::isEphemeral() const",
+        "method:KisAutoBrush::isPiercedApprox() const",
+        "method:KisAutoBrush::maskGenerator() const",
+        "method:KisAutoBrush::randomness() const",
+        "method:KisAutoBrush::setUserEffectiveSize(qreal value)",
+        "method:KisAutoBrush::supportsCaching() const",
+        "method:KisAutoBrush::userEffectiveSize() const"
+      ]
+    },
+    {
+      "target": "KisAutoBrushSchemaContractTest",
+      "source": "libs/brush/tests/KisAutoBrushSchemaContractTest.cpp",
+      "test": "KisAutoBrushSchemaContractTest::geometryAndOutlineSchemaRemainStable",
+      "behavior": "auto brushはdab形状と入力位置からmask寸法・特徴寸法を算出し、精密度指定付き輪郭と輪郭元装置を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAutoBrush::characteristicSize(KisDabShape const &) const",
+        "method:KisAutoBrush::maskHeight(KisDabShape const & shape,qreal subPixelX,qreal subPixelY,const KisPaintInformation & info) const",
+        "method:KisAutoBrush::maskWidth(KisDabShape const & shape,qreal subPixelX,qreal subPixelY,const KisPaintInformation & info) const",
+        "method:KisAutoBrush::outline(bool forcePreciseOutline=false) const",
+        "method:KisAutoBrush::outlineSourceImage() const"
+      ]
+    },
+    {
+      "target": "KisAutoBrushSchemaContractTest",
+      "source": "libs/brush/tests/KisAutoBrushSchemaContractTest.cpp",
+      "test": "KisAutoBrushSchemaContractTest::dabRenderingSchemaRemainStable",
+      "behavior": "auto brushは色空間・形状・入力情報・小数位置から描画装置を取得し、着色情報とsoftness・lightnessを伴うdab生成入口を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAutoBrush::generateMaskAndApplyMaskOrCreateDab(KisFixedPaintDeviceSP dst,KisBrush::ColoringInformation * src,KisDabShape const &,const KisPaintInformation & info,double subPixelX=0,double subPixelY=0,qreal softnessFactor=DEFAULT_SOFTNESS_FACTOR,qreal lightnessStrength=DEFAULT_LIGHTNESS_STRENGTH) const",
+        "method:KisAutoBrush::paintDevice(const KoColorSpace *,KisDabShape const &,const KisPaintInformation &,double=0,double=0) const"
+      ]
+    },
+    {
+      "target": "KisAutoBrushSchemaContractTest",
+      "source": "libs/brush/tests/KisAutoBrushSchemaContractTest.cpp",
+      "test": "KisAutoBrushSchemaContractTest::initializationAndSerializationSchemaRemainStable",
+      "behavior": "auto brushはstroke複製前通知、低温初期化、XML書出し、および詳細度制約の報告入口を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAutoBrush::coldInitBrush()",
+        "method:KisAutoBrush::lodLimitations(KisPaintopLodLimitations * l) const",
+        "method:KisAutoBrush::notifyBrushIsGoingToBeClonedForStroke()",
+        "method:KisAutoBrush::toXML(QDomDocument &,QDomElement &) const"
       ]
     },
     {
