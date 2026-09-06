@@ -4,12 +4,14 @@
  */
 
 #include <KoSnapGuide.h>
+#include <KoSnapProxy.h>
 #include <KoSnapStrategy.h>
 
 #include <QFlags>
 #include <QTest>
 
 #include <type_traits>
+#include <utility>
 
 namespace
 {
@@ -38,6 +40,9 @@ private Q_SLOTS:
     void snapStrategyPointAndOrthogonalSignaturesRemainStable();
     void snapStrategyExtensionAndIntersectionSignaturesRemainStable();
     void snapStrategyGridAndBoundingBoxSignaturesRemainStable();
+    void snapProxyTypeAndConstructionSchemaRemainStable();
+    void snapProxyPointAndSegmentQuerySchemaRemainStable();
+    void snapProxyShapeAndCanvasQuerySchemaRemainStable();
 };
 
 void KoSnapGuideSchemaContractTest::snapGuideTypeAndStrategySchemaRemainsStable()
@@ -220,6 +225,47 @@ void KoSnapGuideSchemaContractTest::snapStrategyGridAndBoundingBoxSignaturesRema
     static_assert(std::is_default_constructible_v<BoundingBoxSnapStrategy>);
     static_assert(std::is_same_v<decltype(&BoundingBoxSnapStrategy::snap), BoundingBoxSnap>);
     static_assert(std::is_same_v<decltype(&BoundingBoxSnapStrategy::decoration), BoundingBoxDecoration>);
+}
+
+void KoSnapGuideSchemaContractTest::snapProxyTypeAndConstructionSchemaRemainStable()
+{
+    using Proxy = KoSnapProxy;
+
+    static_assert(std::is_class_v<Proxy>);
+    static_assert(std::is_constructible_v<Proxy, KoSnapGuide *>);
+
+    QVERIFY(true);
+}
+
+void KoSnapGuideSchemaContractTest::snapProxyPointAndSegmentQuerySchemaRemainStable()
+{
+    using Proxy = KoSnapProxy;
+    using PointsInRect = QList<QPointF> (Proxy::*)(const QRectF &, bool);
+    using PointsFromShape = QList<QPointF> (Proxy::*)(KoShape *);
+    using SegmentsInRect = QList<KoPathSegment> (Proxy::*)(const QRectF &, bool);
+
+    static_assert(std::is_same_v<decltype(&Proxy::pointsInRect), PointsInRect>);
+    static_assert(std::is_same_v<decltype(&Proxy::pointsFromShape), PointsFromShape>);
+    static_assert(std::is_same_v<decltype(&Proxy::segmentsInRect), SegmentsInRect>);
+
+    QVERIFY(true);
+}
+
+void KoSnapGuideSchemaContractTest::snapProxyShapeAndCanvasQuerySchemaRemainStable()
+{
+    using Proxy = KoSnapProxy;
+    using ShapesInRect = QList<KoShape *> (Proxy::*)(const QRectF &, bool);
+    using Shapes = QList<KoShape *> (Proxy::*)(bool);
+    using Canvas = KoCanvasBase *(Proxy::*)();
+
+    static_assert(std::is_same_v<decltype(&Proxy::shapesInRect), ShapesInRect>);
+    static_assert(std::is_same_v<decltype(&Proxy::shapes), Shapes>);
+    static_assert(std::is_same_v<decltype(&Proxy::canvas), Canvas>);
+    static_assert(std::is_same_v<decltype(std::declval<Proxy &>().shapes()), QList<KoShape *>>);
+    static_assert(std::is_same_v<decltype(std::declval<Proxy &>().shapesInRect(std::declval<const QRectF &>())),
+                                 QList<KoShape *>>);
+
+    QVERIFY(true);
 }
 
 QTEST_GUILESS_MAIN(KoSnapGuideSchemaContractTest)
