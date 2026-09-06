@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 6637
+    "expectedMissingApis": 6627
   },
   "contracts": [
     {
@@ -65212,6 +65212,52 @@
       "apis": [
         "method:KisAlgebra2D::VectorPath::intersectSegmentWithLineBounded(const QLineF & line,const Segment & segment)",
         "method:KisAlgebra2D::VectorPath::intersectSegmentWithLineBounded(const QLineF & line,const VectorPathPoint & p1,const VectorPathPoint & p2)"
+      ]
+    },
+    {
+      "target": "KisAcsTypesSchemaContractTest",
+      "source": "libs/global/tests/KisAcsTypesSchemaContractTest.cpp",
+      "test": "KisAcsTypesSchemaContractTest::colorRoleAndMouseButtonMappingRemainStable",
+      "behavior": "ACSの色役割は前景・背景の列挙値と、単独または同時押しmouse buttonから色役割への変換結果を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:Acs::ColorRole",
+        "enumerator:Acs::ColorRole::Background",
+        "enumerator:Acs::ColorRole::Foreground",
+        "function:Acs::buttonToRole(Qt::MouseButton button)",
+        "function:Acs::buttonsToRole(Qt::MouseButton button,Qt::MouseButtons buttons)"
+      ]
+    },
+    {
+      "target": "KisAcsTypesSchemaContractTest",
+      "source": "libs/global/tests/KisAcsTypesSchemaContractTest.cpp",
+      "test": "KisAcsTypesSchemaContractTest::currentColorDispatchSchemaRemainsStable",
+      "behavior": "ACSの現在色配送は資源providerと色役割を受け取る読取り・書込みの正確な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:Acs::currentColor(ResourceProvider * provider,ColorRole role)",
+        "function:Acs::setCurrentColor(ResourceProvider * provider,ColorRole role,const KoColor & color)"
+      ]
+    },
+    {
+      "target": "KisAcsTypesSchemaContractTest",
+      "source": "libs/global/tests/KisAcsTypesSchemaContractTest.cpp",
+      "test": "KisAcsTypesSchemaContractTest::paintDeviceColorAccessSchemaRemainsStable",
+      "behavior": "ACSの画素色操作はpaint deviceと座標を受け取る色標本化・書込みの正確な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:Acs::sampleColor(PaintDeviceSP device,const QPoint & pt)",
+        "function:Acs::setColor(PaintDeviceSP device,const QPoint & pt,const KoColor & color)"
+      ]
+    },
+    {
+      "target": "KisAcsTypesSchemaContractTest",
+      "source": "libs/global/tests/KisAcsTypesSchemaContractTest.cpp",
+      "test": "KisAcsTypesSchemaContractTest::iteratorColorWriteSchemaRemainsStable",
+      "behavior": "ACSのiterator色書込みはiterator、色値、画素寸法を受け取る正確な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:Acs::setColorWithIterator(Iterator & it,const KoColor & color,const int pixelSize)"
       ]
     }
   ]
