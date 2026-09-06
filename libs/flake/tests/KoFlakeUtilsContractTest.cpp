@@ -11,6 +11,7 @@
 
 #include <array>
 #include <type_traits>
+#include <utility>
 
 #define ASSERT_FLAKE_SIGNATURE(function, signature)                                                                    \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KoFlake::function)), signature>)
@@ -166,6 +167,8 @@ void KoFlakeUtilsContractTest::emptyStrokeModificationReturnsNullWithoutCallingM
 void KoFlakeUtilsContractTest::anchorAndCoordinateConversionSchemaRemainStable()
 {
     ASSERT_FLAKE_SIGNATURE(anchorToPoint, QPointF (*)(KoFlake::AnchorPosition, const QRectF, bool *));
+    static_assert(
+        std::is_same_v<decltype(KoFlake::anchorToPoint(KoFlake::TopLeft, std::declval<const QRectF>())), QPointF>);
     ASSERT_FLAKE_SIGNATURE(toRelative, QPointF (*)(const QPointF &, const QSizeF &));
     ASSERT_FLAKE_SIGNATURE(toAbsolute, QPointF (*)(const QPointF &, const QSizeF &));
 
