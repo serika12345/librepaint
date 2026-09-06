@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-06 14:43 JST
+- 更新日時: 2026-09-06 14:51 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1595,7 +1595,15 @@
 ### 第279便の先行監査計画
 
 - 正式入力は`build/tdd-macos/public-api-missing-g279.json`である。第278便で比較したmulti-double filter widget 18 API、第275便から保留中のpaint device cache・layer style補助・dab描画queue各18 APIと、同程度の残存APIを持つ未選定責務を比較する。主要な値・所有・寿命を最大5枠で観測でき、既存限定targetへの追記または具体的実装所有分離により製品targetより十分小さい閉包になる候補を選ぶ。
-- 次の永続作業は、正式不足報告、候補header・実装、既存試験、CMake File APIを読み取り専用で再照合し、契約実装前に必要な構造整理と停止線を確定することである。製品target、全体build・`verify`、Linux、Nix再評価を実行しない。
+- 正式不足報告、候補header・実装、既存試験、CMake File APIを読み取り専用で再照合し、契約実装前に必要な構造整理と停止線を確定する。製品target、全体build・`verify`、Linux、Nix再評価を実行しない。
+
+### 第279便の監査結果と構造準備計画
+
+- `libs/ui/opengl/kis_opengl_update_info.h`の残存全16 APIは一意かつ台帳と非重複で、識別子整列集合SHA-256 `a8cc2eec9aa8cfa871afeb14bde683c978c0b479d1ec2115a3f733a58cbfb45b`を持つ。変換条件の型・2構築・4 field 7、更新情報型・構築・tile列3、dirty画像矩形2、詳細度2、統合・viewport矩形2の5枠へ完全に割り当てる。変換条件の既定値と明示値、矩形・詳細度の更新、同一詳細度での矩形和とtile列追記、異なる詳細度での統合拒否を動的に固定し、現在即時失敗するviewport矩形は厳密署名で固定する。
+- 最寄りの`KisScreenInformationAdapterContractTest`と`KisCanvasStateContractTest`は各5工程・11入力である。現在の具象実装所有者`kritaapplicationui`は1,974工程・3,948入力、基底実装所有者`kritacanvas`は1,221工程・2,462入力であり、いずれかの製品libraryを契約へ接続する案を棄却する。新規契約targetは、既存`kritaglobalsharedobjects`と構造準備で分ける2 objectを直接接続する7工程程度を予測し、停止線を8工程・20入力とする。
+- 比較したmulti-double filter widget 18 APIは、値parameter以外の動的観測にslider、timer、設定、global資源を含むUI実体が必要である。paint device cache 18 APIとlayer style補助18 APIは画像・選択・色空間・効果設定を、dab描画queue 18 APIは既存動的試験でも2,139工程・4,273入力を要する。画面更新情報は全公開状態と統合判断を小さい具象所有単位で観測できるため先行する。
+- `g279a-update-info-build-boundaries`の状態は`planned`、実装基点は`484b13a750`である。開始`libs/canvas/CMakeLists.txt`が`kritacanvas_LIB_SRCS`で直接所有する`kis_update_info.cpp`を新規`kritacanvasupdateinfoobjects`へ、開始`libs/ui/CMakeLists.txt`が`kritaui_LIB_SRCS`で直接所有する`opengl/kis_opengl_update_info.cpp`を新規`kritauiopenglupdateinfoobjects`へ移し、それぞれ元の製品libraryへ1回だけ再集約する。公開header、ABI、実装本文、利用元を変更しない。各object単独構築、製品計画の非増加、厳格構文、近傍2契約、無作業再構築、公開API検査、`verify-quick`を完了条件とする。
+- 構造準備の完了後、新規`libs/ui/tests/KisOpenGLUpdateInfoContractTest.cpp`と同target固有の`libs/ui/tests/CMakeLists.txt`節だけへ16 API・5枠を追加する。試験側AUTOMOC `HEADERS=[]`、製品非接続、追加5枠の各20回反復、対象と近傍2契約、厳格構文、無作業再構築、動的接続・未解決記号、公開API検査、`verify-quick`を完了条件とする。
 
 ### 第239便の先行監査担当票
 
