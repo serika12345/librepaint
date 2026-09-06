@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-06 16:00 JST
+- 更新日時: 2026-09-06 16:06 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1637,6 +1637,13 @@
 
 - 正式入力は`build/tdd-macos/public-api-missing-g281.json`である。第280便で保留したmulti-double filter widget、paint device cache、layer style補助、dab描画queue、自動keyframe、stroke互換情報と、同程度の残存APIを持つ未選定責務を比較する。全公開APIを最大5枠へ完全に割り当て、主要な値・所有・寿命を動的に観測でき、既存限定targetへの追記または具体的実装所有分離により製品targetより十分小さい候補を選ぶ。
 - 次の永続作業は、正式不足報告、候補header・実装、既存試験、CMake File APIを読み取り専用で再照合し、契約実装前に必要な構造整理と停止線を確定することである。製品target、既存重量試験、全体build・`verify`、Linux、Nix再評価を実行しない。
+
+### 第281便の監査結果と実装計画
+
+- `libs/image/KisBusyWaitBroker.h`の残存全10 APIは一意かつ台帳と非重複で、識別子整列集合SHA-256 `533b4b1285d028473120fd1478e061d1a1ebe6597c24eb109d4ed807620fd29b`を持つ。型・構築・破棄・singleton 4、一般待機の開始・終了・状態3、画像待機の開始・終了2、feedback callback設定1の最大5枠へ完全に割り当てる。独立instanceとsingletonの初期状態、一般待機と画像待機の入れ子計数、worker threadからの通知無視、callbackの解除を動的に固定する。実画像を要するcallback呼出し条件は厳密署名で固定し、画像待機の計数自体はcallback未設定のnull識別tokenで実行する。
+- 既存の具象所有`kritaimagebusywaitbrokerobjects`は既にAUTOMOC不要・位置独立の1工程・3入力で、command SHA-256 `176b6a8d6bf33b33fa0ca51d780bec466b7f00e0551e5f4e36b08b9cb6bdf6bf`、input SHA-256 `2ae9b8eb65a93c33684eaf740ec8fb8dfdf5d34732aac30d9eadf6eee051905c`である。既存`KisSafeBlockingQueueConnectionProxyContractTest`は別責務2 objectを併合する10工程・21入力であるため追記せず、新規`KisBusyWaitBrokerContractTest`を同objectとQt Core・Widgets・Testだけへ接続する。最寄りの単一object契約は5工程・11〜12入力であり、停止線を6工程・14入力とする。既存objectは製品`kritaimage`へ既に再集約済みで、公開header、製品source、製品targetを変更せずに対象限定の再構築単位を得られるため、先行構造変更は不要である。
+- 比較した`KisImageResolutionProxy`は画像寿命と解像度signal、`KisBezierTransformMesh`はmesh基底・画素変換、`KisUniqueColorSet`は`KoColor`と色空間registryを具象実行に要する。`KisAutoLevels`は15 API中、単独分離できる動的処理がgamma計算に限られる。第280便から保留した6候補も製品または既存試験の1,000工程超の閉包を解消する追加分離が必要である。待機brokerは全10 API中、実画像callback条件を除く状態遷移を既存の1工程具象所有で観測できるため先行する。
+- `g281-busy-wait-broker-contract`の状態は`planned`、実装基点は`52c73292f9`である。許可pathは新規`libs/image/tests/KisBusyWaitBrokerContractTest.cpp`、`libs/image/tests/CMakeLists.txt`の新target固有節、調整担当が統合後に変更する`docs/architecture/public-api-test-contracts.json`と本snapshotだけである。一度に一つの専用worktree-local `build/tdd-macos`を共有compiler cacheとともに使い、対象・既存近傍、追加枠の20回反復、厳格構文、AUTOMOC後の二回目計画、二回の無作業再構築、動的接続・未解決記号、公開API検査、`verify-quick`をmacOSで確認する。製品target、既存重量試験、全体build・`verify`、Linux、Nix再評価を実行しない。
 
 ### 第239便の先行監査担当票
 
