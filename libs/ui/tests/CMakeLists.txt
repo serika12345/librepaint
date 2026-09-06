@@ -126,6 +126,26 @@ target_compile_definitions(KisOpenGLUpdateInfoContractTest PRIVATE
 )
 
 kis_add_test(
+    KisInMemoryFrameCacheSwapperContractTest.cpp
+    TEST_NAME KisInMemoryFrameCacheSwapperContractTest
+    LINK_LIBRARIES
+        kritauiinmemoryframecacheswapperobjects
+        kritauiabstractframecacheswapperobjects
+        kritauiopenglupdateinfoobjects
+        kritacanvasupdateinfoobjects
+        kritaglobalsharedobjects
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(KisInMemoryFrameCacheSwapperContractTest PRIVATE
+    kritaapplicationui_EXPORTS
+    kritacanvas_EXPORTS
+    kritaglobal_EXPORTS
+    kritaimage_EXPORTS
+    kritapigment_EXPORTS
+)
+
+kis_add_test(
     KisOpenGLUpdateInfoBuilderContractTest.cpp
     TEST_NAME KisOpenGLUpdateInfoBuilderContractTest
     LINK_LIBRARIES
