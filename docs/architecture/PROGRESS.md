@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-06 13:52 JST
+- 更新日時: 2026-09-06 13:58 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1553,6 +1553,15 @@
 
 - 正式入力は`build/tdd-macos/public-api-missing-g277.json`である。第275便から保留している`libs/image/kis_cached_paint_device.h`、`libs/image/layerstyles/kis_ls_utils.h`、`plugins/paintops/defaultpaintops/brush/KisDabRenderingQueue.h`と、同程度の残存APIを持つ未選定責務を再比較する。最大5枠で主要な公開値・所有・寿命を観測でき、既存限定targetへの追記または具体的実装所有分離により製品targetより十分小さい閉包になる候補を選ぶ。
 - 次の永続作業は、候補header・実装・既存試験・CMake File APIの読み取りとNinja計画測定を行い、契約実装前に必要な構造整理と停止線を確定することである。製品target、全体build・`verify`、Linux、Nix再評価を実行しない。
+
+### 第277便の監査結果と構造準備計画
+
+- `libs/application/ui/workspace/kis_preference_set_registry.h`の残存全17 APIは一意かつ台帳と非重複で、識別子整列集合SHA-256 `30160d756909ee3b8a95953bb3d03a7c7ea7698b3fadfa36b54b062892041a77`を持つ。設定画面型・構築2、識別・表示4、保存・読込3、工場型・寿命・生成・識別4、登録簿型・構築・寿命・singleton 4の5枠へ完全に割り当てる。局所設定画面と工場で仮想dispatchと状態変化を動的に固定し、登録簿では空の初期状態、singleton同一性、登録した工場の所有破棄を観測する。
+- 最寄りの`libs/application/tests/KisActionEnumContractTest.cpp`は4工程・8入力、command SHA-256 `6f57cd73d459875b34e902e6e43ade91ef624930c1a85a751be7eab8f0729d19`、input SHA-256 `50bd9129b07de44f458fc48281f2038086ebf317c3edc9941ba4d50a9318009c`である。現状の実装所有者`kritaapplicationui`は1,972工程・3,944入力、command SHA-256 `2230b9fbb449c4748bfc972dcf026491390811b02930340baba831dc5a96d5f6`、input SHA-256 `f474eed56f9e6195b39f1df28ffee81ffae551a84ffb81863ca38aee71ad376a`であり、製品libraryを契約へ接続する案を棄却する。
+- 比較した`KisScreenInformationAdapter` 19 APIはmacOSで実画面情報を取得する経路がなく、Windows固有のQPA・DXGI依存を含む。multi-double filter widget 18 APIは値構造体以外の観測にconfig widget、slider、timer、設定実体を要する。第275便から保留中のpaint device cache、layer style補助、dab描画queueも画像・選択・効果設定・paintop資源を要する。主要挙動を局所値と所有関係で固定でき、分離後の直接依存がQt Core・Gui・Widgetsとglobal headerに閉じる設定拡張登録簿を優先する。
+- `g277a-preference-set-registry-build-boundary`の状態は`planned`、実装基点は`167f0cd11d`である。開始`libs/application/CMakeLists.txt`の`kritaapplicationui_LIB_SRCS`が直接所有する`ui/workspace/kis_preference_set_registry.cpp`と同headerを、新規AUTOMOC・位置独立`kritaapplicationpreferencesetregistryobjects`へ移し、製品`kritaapplicationui`は同objectを1回だけ再集約する。公開header、ABI、実装本文、利用元を変更せず、objectのsource・binary、libs・global探索路、`kritaapplicationui_EXPORTS`、Qt Widgetsだけを直接宣言する。
+- 新objectはAUTOMOC、MOC compile、実装compileの3工程を予測し、停止線を4工程・8入力とする。製品計画の増分はobject境界とメタ情報所有の2工程程度に限定し、製品を構築しない。object単独構築、二回目計画、無作業再構築、厳格構文、製品への実装・MOC再集約各1回、既存`KisActionEnumContractTest`、公開API検査、`verify-quick`を完了条件とする。追加製品library、Qt Network・Xml、UI生成物、許可path外変更、5工程・9入力以上が必要なら停止する。
+- 構造整理後は新規`libs/application/tests/KisPreferenceSetRegistryContractTest.cpp`と同target固有の`libs/application/tests/CMakeLists.txt`節だけへ17 API・5枠を追加し、新objectを直接接続する。契約targetは7工程・16入力、停止線8工程・19入力、QTESTの画面外実行、候補headerの単一MOC所有、製品非接続を予測する。
 
 ### 第239便の先行監査担当票
 
