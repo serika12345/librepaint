@@ -1,3 +1,5 @@
+add_subdirectory(tests)
+
 set( extensions_plugin_SOURCES 
     extensions_plugin.cc
     kis_hsv_adjustment.cpp
