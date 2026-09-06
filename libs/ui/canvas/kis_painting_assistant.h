@@ -10,16 +10,13 @@
 
 #include <QString>
 #include <QPointF>
-#include <QRect>
-#include <QFile>
-#include <QObject>
 #include <QColor>
-#include <QXmlStreamWriter>
 #include <QMap>
+#include <QSharedPointer>
+#include <QXmlStreamWriter>
 
 #include <kritaui_export.h>
 #include <kis_shared.h>
-#include <kis_types.h>
 
 class QPainter;
 class QRect;
@@ -37,6 +34,7 @@ class KoColorDisplayRendererInterface;
 class KisPaintingAssistantHandle;
 typedef KisSharedPtr<KisPaintingAssistantHandle> KisPaintingAssistantHandleSP;
 class KisPaintingAssistant;
+typedef QSharedPointer<KisPaintingAssistant> KisPaintingAssistantSP;
 class QPainterPath;
 
 enum HandleType {
