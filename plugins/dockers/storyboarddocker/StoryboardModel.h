@@ -9,15 +9,15 @@
 #include "document/StoryboardItem.h"
 #include "CommentModel.h"
 
-#include <QAbstractListModel>
-#include <QItemSelection>
+#include <QAbstractItemModel>
 
-#include <kis_keyframe_channel.h>
 #include "kis_idle_watcher.h"
+#include "kis_shared_ptr.h"
+#include "kis_types.h"
 #include <kritastoryboarddocker_export.h>
-#include <kis_image.h>
 #include <kis_signal_compressor.h>
 
+class KisKeyframeChannel;
 class StoryboardView;
 class KisTimeSpan;
 class KisStoryboardThumbnailRenderScheduler;
