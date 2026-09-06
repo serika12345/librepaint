@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 7169
+    "expectedMissingApis": 7161
   },
   "contracts": [
     {
@@ -63537,6 +63537,41 @@
       "apis": [
         "function:KoFlake::resizeShape(KoShape * shape,qreal scaleX,qreal scaleY,const QPointF & absoluteStillPoint,bool useGlobalMode)",
         "function:KoFlake::resizeShapeCommon(KoShape * shape,qreal scaleX,qreal scaleY,const QPointF & absoluteStillPoint,bool useGlobalMode,bool usePostScaling,const QTransform & postScalingCoveringTransform)"
+      ]
+    },
+    {
+      "target": "KoSnapGuideSchemaContractTest",
+      "source": "libs/flake/tests/KoSnapGuideSchemaContractTest.cpp",
+      "test": "KoSnapGuideSchemaContractTest::snapProxyTypeAndConstructionSchemaRemainStable",
+      "behavior": "スナップ照会proxyは専用型としてguideへの借用pointerから構築できる。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoSnapProxy",
+        "method:KoSnapProxy::KoSnapProxy(KoSnapGuide * snapGuide)"
+      ]
+    },
+    {
+      "target": "KoSnapGuideSchemaContractTest",
+      "source": "libs/flake/tests/KoSnapGuideSchemaContractTest.cpp",
+      "test": "KoSnapGuideSchemaContractTest::snapProxyPointAndSegmentQuerySchemaRemainStable",
+      "behavior": "スナップ照会proxyは指定矩形内の点と線分、および指定図形から抽出した点を返す関数境界を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoSnapProxy::pointsFromShape(KoShape * shape)",
+        "method:KoSnapProxy::pointsInRect(const QRectF & rect,bool omitEditedShape)",
+        "method:KoSnapProxy::segmentsInRect(const QRectF & rect,bool omitEditedShape)"
+      ]
+    },
+    {
+      "target": "KoSnapGuideSchemaContractTest",
+      "source": "libs/flake/tests/KoSnapGuideSchemaContractTest.cpp",
+      "test": "KoSnapGuideSchemaContractTest::snapProxyShapeAndCanvasQuerySchemaRemainStable",
+      "behavior": "スナップ照会proxyは編集図形を含む既定条件または明示条件で図形一覧を返し、関連canvasへの借用pointerを公開する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoSnapProxy::canvas()",
+        "method:KoSnapProxy::shapes(bool omitEditedShape=false)",
+        "method:KoSnapProxy::shapesInRect(const QRectF & rect,bool omitEditedShape=false)"
       ]
     }
   ]

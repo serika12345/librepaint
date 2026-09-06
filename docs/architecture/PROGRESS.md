@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-06 20:28 JST
+- 更新日時: 2026-09-06 20:36 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1843,7 +1843,14 @@
 
 - 正式入力`build/tdd-macos/public-api-missing-g294.json`は公開header 1,548、公開API 29,804、対応済み22,635、未対応7,169、1,904,150 bytes、SHA-256 `cf5cb21f53924ca44bf8446ba09a25c0731e5704f87db4fd22bc867d57585ec7`を記録する。`libs/flake/KoSnapProxy.h`の残存全8 APIは重複なく、識別子整列集合SHA-256は`8d78c97be684d77b70bdfc06c5bae222671b62e383c185b9c23ac2094229b901`である。proxy型・構築2、点・線分照会3、図形・canvas照会3の3枠へ完全に割り当て、図形一覧2 APIは編集図形を含む既定呼出しも固定する。
 - 既存`libs/flake/tests/KoSnapGuideSchemaContractTest.cpp`は227行・10枠であり、追加後も300行・20枠未満に収まる。strategyが受け取るproxyと同じスナップ照会責務として3枠を追加し、CMakeを変更しない。既存targetの変更前閉包は4工程・8入力、command SHA-256 `68afaa87d2b5d68bdc4d6ce5e183ae4f0e7996ceab7d68bb9e39b0cab6caf041`、input SHA-256 `a9878d0d607a5dc579c972e8463299b47311956a7b2bdfb69ca4cfd550f75f9f`であり、停止線を5工程・11入力とする。別targetは同じスナップ公開header閉包にCMake再構成と生成物を追加するため棄却する。製品`kritaflake`の621工程・1,274入力を避け、guide、proxy、図形、canvas、点・線分を実体化せず、公開関数本文を実行しない。
-- `g294-snap-proxy-schema`の状態は`planned`、実装基点は`462897c177`である。許可pathを既存`libs/flake/tests/KoSnapGuideSchemaContractTest.cpp`だけに限定する。CMake、公開header、製品source、製品target、全体build・`verify`、Linux、Nix再評価、追加委任を対象外とし、macOSの対象・近傍に限る構築実行を許可する。専用Git作業treeとworktree-local Ninja木を一つだけ作り、宣言だけの期待失敗、対象CTest、追加3枠の各20回反復、近傍、厳格`clang-check`、書式、公開記号、AUTOMOC非入力、製品非接続、二回目計画、二回の無作業再構築、公開API検査、`verify-quick`を確認してから統合する。
+- `g294-snap-proxy-schema`の状態は`integrated`、実装基点は`462897c177`である。許可pathを既存`libs/flake/tests/KoSnapGuideSchemaContractTest.cpp`だけに限定した。受渡しcommit `09cbb1f84f`をpatch-id `ac9e69511c40828035e930b4a40a0649c3494443`で照合し、統合commit `790e3f22a1`として取り込んだ。CMake、公開header、製品sourceは変更していない。
+
+### 第294便の契約統合結果
+
+- 開始`libs/flake/KoSnapProxy.h`から既存`libs/flake/tests/KoSnapGuideSchemaContractTest.cpp`へ残存全8 APIを対応付けた。proxy型・構築2、点・線分照会3、図形・canvas照会3の3枠で、guideとの構築境界、各照会の正確な署名、図形一覧2 APIで編集図形を含む既定呼出しを固定した。試験sourceは273行・13枠となり、既存限定targetの責務と再構築範囲を維持した。
+- 宣言だけの追加3枠が未定義symbolとなる期待失敗を記録した。対象は担当側・中央とも4工程・8入力を維持した。担当側command SHA-256は`db51504b69e2be132786af5eb31a02d447064ccaaad309cbbc5874b5977f1dff`、input SHA-256は`e3b388a22bea573854035ddc286f7be2fa477a8d10c203c3df26b577aa91e7e9`、中央command SHA-256は変更前と同じ`68afaa87d2b5d68bdc4d6ce5e183ae4f0e7996ceab7d68bb9e39b0cab6caf041`、input SHA-256は`a9878d0d607a5dc579c972e8463299b47311956a7b2bdfb69ca4cfd550f75f9f`である。候補headerはAUTOMOC入力外で、Qt Test・Core、gettext、OS frameworkだけへ動的接続し、製品未解決記号は0である。
+- 担当側と中央のmacOSで追加3枠を各20回、対象CTest `libs-flake-KoSnapGuideSchemaContractTest`、近傍`libs-flake-KoSnapDataContractTest`、厳格`clang-check`、書式、二回目計画と二回の無作業再構築に成功した。担当側の`verify-quick`と中央の公開API検査にも成功し、台帳へ8 APIを追加して22,643件対応、7,161件未対応、対象headerの残存0件となった。
+- cleanな専用作業tree、298,324 KiBの構築木、branchを統合直後に削除し、作業tree全体889,676 KiBを回収した。旧`public-api-missing-g294.json` 1,904,150 bytesを削除し、主Ninja木5,854,372 KiB、共有compiler cache 983,384 KiB、最新`build/tdd-macos/public-api-missing-g295.json` 1,902,284 bytes、SHA-256 `de8c0a45023268bc26e784492fbce6cd84721abd99dd2d42f7614a005b2ef826`だけを再利用対象として保持する。compiler cacheは143,911件中120,435件、83.69%がhitしている。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第295便の正式不足報告から、全APIを最小閉包で固定できる責務を再選定することである。
 
 ### 第239便の先行監査担当票
 
