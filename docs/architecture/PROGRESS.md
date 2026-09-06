@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-07 03:06 JST
+- 更新日時: 2026-09-07 03:10 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -2302,6 +2302,13 @@
 - 対象未登録の初回限定構築は未知の対象として失敗し、登録後の追加5枠は期待どおり5件失敗した。新targetは4工程・8入力で停止線以内に収まり、command SHA-256は`4a647b93cc71571147e00551926cfee647402697189000852d3687e9418ed3dd`、input SHA-256は`76dc9e97d5043413be2d0086cd6bad63d14ef6114fc3472ae61c178bb65e3b52`である。AUTOMOC header入力は空、Qt Gui・Test・Core、gettext、OS frameworkだけへ動的接続し、製品未解決記号は0である。
 - macOSで対象と軽量近傍`libs-image-KisCrossDeviceColorSamplerSchemaContractTest`のCTest 2/2、対象の20回反復、試験sourceと開始実装の厳格`clang-check`、書式、二回の無作業再構築、公開API検査に成功した。4,105行の既存`KisImageTypesContractTest`、製品OBJECT・shared target、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 台帳へ47 APIを追加して23,226件対応、6,578件未対応となった。旧`public-api-missing-g328.json`は最新報告の検証後に削除し、追加作業tree・構築木は作成していない。主Ninja木5,895,536 KiB、共有compiler cache 983,476 KiB、最新`build/tdd-macos/public-api-missing-g329.json` 1,746,486 bytes、SHA-256 `306e8d77d593338bdc9542f91fdc2cb8c47e6ad88a5e77fceb75072968050a1f`だけを再利用対象として保持する。compiler cacheは144,074件中120,469件、83.62%がhitしている。次の永続作業は第329便で次の高密度なmacOS対象と最小構築面を選定することである。
+
+### 第329便の監査結果と実装計画
+
+- 正式入力`build/tdd-macos/public-api-missing-g329.json`は公開header 1,548、公開API 29,804、対応済み23,226、未対応6,578、1,746,486 bytes、SHA-256 `306e8d77d593338bdc9542f91fdc2cb8c47e6ad88a5e77fceb75072968050a1f`を記録する。`libs/canvas/kis_projection_backend.h`の残存全12 APIと`kis_prescaled_projection.h`の残存全17 APIを、backend型・設定7、cache更新・描画5、prescaled型・寿命4、画像・表示状態6、cache・拡縮7として5枠へ完全に割り当てる。合計29識別子の整列集合SHA-256は`6ab3f8b8926be23dddf372837e719743b10ac59a323b67f31e64c213246f3f5b`である。
+- 両開始headerの直接includeは公開引数・返却型、基底型、共有pointer別名、inline所有型に使われている。`kis_image_patch.h`を前方宣言へ変える案は、返却値を使用する既存直接利用元へ完全型includeを移すため今回の対象限定再構築を狭めず、互換面だけを広げるので棄却する。既存動的`kis_prescaled_projection_contract_test`は製品`kritacanvas`と試験基盤へ接続する1,225工程・2,469入力であり反復対象にしない。
+- 新規`libs/canvas/tests/KisProjectionLifecycleSchemaContractTest.cpp`を作り、canvas・image・global・pigmentのsource/generated探索路、KF I18n・ImathとQt Guiのinterface探索路、Qt Core・Test、header-only Boost、各export定義だけへ接続する。軽量近傍`KisCanvasUpdateInfoSchemaContractTest`は4工程・8入力、command SHA-256 `83e48cfaaefefc572803f0ddb5a7526e51080551accf8347936da74a250faa53`、input SHA-256 `9353733df3ec37f22b93902664d3e50c5a2736058d876db742174bed54ba720f`である。新targetも4工程・8入力を予測し、停止線を5工程・11入力とする。
+- `g329-projection-lifecycle-schema`の状態は`planned`、実装基点は`1678cc3ccd`である。許可pathを新規試験sourceと`libs/canvas/tests/CMakeLists.txt`の新target固有節だけに限定する。macOSの対象、近傍、追加5枠の20回反復、厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。backend、projection、image、patch、painter、表示filterを実体化せず、製品OBJECT・shared target、全体build・`verify`、Linux、Nix再評価は実行しない。
 
 ### 第239便の先行監査担当票
 
