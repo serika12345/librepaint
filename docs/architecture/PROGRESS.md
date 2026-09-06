@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-06 17:57 JST
+- 更新日時: 2026-09-06 18:06 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1721,6 +1721,12 @@
 - target不存在、`libs/tools/ui`の直接header探索路不足、宣言だけの5枠が未定義symbolとなる期待失敗を順に記録した。動的な`QSet<KoID>`合成に既存`kritaglobalidobjects`を加え、製品libraryを接続しない5工程・12入力へ収めた。担当側command SHA-256は`fecca0eaca49836d0282e7034b18ba1f2dc1d3c6441c50cd722187097839f598`、input SHA-256は`c7f36b8d5f62b5c46d6433671074fd34de2306d26ee383f32b80f4b29b87fe01`、中央command SHA-256は`fab94161a0626ddd1cbb2963c83a8172c20df496118f23e1a1351eb817238de6`、input SHA-256は`3f295c0c4e896bb66f867678b77d5a03717baee20edc26a6ad378dc4c6d48a71`である。候補headerはAUTOMOC入力外で、Qt Core・Gui・Test・Xml、KF I18n、gettext、OS frameworkだけへ動的接続し、製品未解決記号は0である。
 - 担当側と中央のmacOSで追加5枠を各20回、対象CTest `plugins-paintops-libpaintop-KisPaintOpOptionWidgetUtilsContractTest`、近傍`plugins-paintops-libpaintop-KisCurveOptionSchemaContractTest`、厳格`clang-check`、書式、二回目計画と二回の無作業再構築に成功した。担当側と中央の`verify-quick`、中央の公開API検査にも成功し、台帳へ17 APIを追加して22,483件対応、7,321件未対応、対象headerの残存0件となった。
 - cleanな専用作業tree、311,036 KiBの構築木、branchを統合直後に削除し、作業tree全体902,264 KiBを回収した。旧`public-api-missing-g284.json` 1,951,567 bytesを削除し、主Ninja木5,849,692 KiB、共有compiler cache 983,244 KiB、最新`build/tdd-macos/public-api-missing-g285.json` 1,946,079 bytes、SHA-256 `7620fc7c76372ac9de2930aa4b5f046120baaa3a61fc67255a147de7905999c7`だけを再利用対象として保持する。compiler cacheは143,834件中120,413件、83.72%がhitしている。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第285便の正式不足報告から、全APIを最小閉包で固定できる責務を再選定することである。
+
+### 第285便の監査結果と実装計画
+
+- 正式入力`build/tdd-macos/public-api-missing-g285.json`は公開header 1,548、公開API 29,804、対応済み22,483、未対応7,321、1,946,079 bytes、SHA-256 `7620fc7c76372ac9de2930aa4b5f046120baaa3a61fc67255a147de7905999c7`を記録する。`libs/image/commands/kis_node_compositeop_command.h`と`kis_node_opacity_command.h`の残存各8 APIは重複なく、計16識別子の整列集合SHA-256は`7121b1ed8ce118110d23b942493a55627ceb2c4677b6b7d7fad9a14738fd3285`である。nodeの表示合成属性を可逆変更する一責務として、型・構築4、redo・undo 4、履歴識別・結合6、相殺判定2の4枠へ完全に割り当てる。
+- 最寄りの`KisNodeCommandsAdapterSchemaContractTest`は同じimage・global・pigment・painting/undo探索路、KF I18n interface、Qt Core・Test、header-only Boost、既存export定義だけで4工程・8入力であるが、249行・10枠で追記上限に達している。新規`KisNodeVisualPropertyCommandsSchemaContractTest`を同じcompile interfaceへ分け、4工程・8入力を予測して停止線を5工程・11入力とする。最寄りのcommand SHA-256は`fb74518ec245c9f6538c09d45a834089e8db6d86037268f0e57f5c52f2f306f0`、input SHA-256は`375a3cb251632bcc9f3776f040635540231acec2bd2722cc7a3f31b44e6ed6e9`である。製品`kritaimage`の1,197工程・2,418入力を避け、command、node、undo履歴を実体化せず、候補headerをAUTOMOC入力にしない。
+- `g285-node-visual-property-commands-schema`の状態は`planned`、実装基点は`0d9ac228fb`である。許可pathを新規`libs/image/tests/KisNodeVisualPropertyCommandsSchemaContractTest.cpp`と`libs/image/tests/CMakeLists.txt`の新target固有節だけに限定する。一つの専用worktree-local `build/tdd-macos`を使い、target不存在と宣言段階の期待失敗、追加4枠の単発と各20回反復、対象と近傍CTest、厳格`clang-check`、書式、AUTOMOC入力、動的接続、製品未解決記号、二回目計画、二回の無作業再構築、公開API検査、`verify-quick`をmacOSで確認する。許可pathだけの受渡しcommitを認め、公開header、製品source、製品target、全体build・`verify`、Linux、Nix再評価、追加委任は対象外とする。
 
 ### 第239便の先行監査担当票
 
