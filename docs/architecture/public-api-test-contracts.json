@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 7600
+    "expectedMissingApis": 7581
   },
   "contracts": [
     {
@@ -62098,6 +62098,70 @@
       "apis": [
         "method:KisCanvasState::fromConverter(const KisCoordinatesConverter & converter)",
         "method:KisCanvasState::zoomState() const"
+      ]
+    },
+    {
+      "target": "KisScanlineFillSchemaContractTest",
+      "source": "libs/image/tests/KisScanlineFillSchemaContractTest.cpp",
+      "test": "KisScanlineFillSchemaContractTest::typeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "走査線塗りは画素装置、開始点、範囲から構築でき、公開destructorで寿命を終了する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisScanlineFill",
+        "method:KisScanlineFill::KisScanlineFill(KisPaintDeviceSP device,const QPoint & startPoint,const QRect & boundingRect)",
+        "method:KisScanlineFill::~KisScanlineFill()"
+      ]
+    },
+    {
+      "target": "KisScanlineFillSchemaContractTest",
+      "source": "libs/image/tests/KisScanlineFillSchemaContractTest.cpp",
+      "test": "KisScanlineFillSchemaContractTest::colorFillSignaturesRemainStable",
+      "behavior": "走査線塗りは対象装置または外部装置を色で塗り、境界色までに制限する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisScanlineFill::fill(const KoColor & fillColor)",
+        "method:KisScanlineFill::fill(const KoColor & fillColor,KisPaintDeviceSP externalDevice)",
+        "method:KisScanlineFill::fillUntilColor(const KoColor & fillColor,const KoColor & boundaryColor)",
+        "method:KisScanlineFill::fillUntilColor(const KoColor & fillColor,const KoColor & boundaryColor,KisPaintDeviceSP externalDevice)"
+      ]
+    },
+    {
+      "target": "KisScanlineFillSchemaContractTest",
+      "source": "libs/image/tests/KisScanlineFillSchemaContractTest.cpp",
+      "test": "KisScanlineFillSchemaContractTest::selectionFillSignaturesRemainStable",
+      "behavior": "走査線塗りは画素選択へ連結領域を書き込み、既存境界選択を任意に受け取る公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisScanlineFill::fillSelection(KisPixelSelectionSP pixelSelection)",
+        "method:KisScanlineFill::fillSelection(KisPixelSelectionSP pixelSelection,KisPaintDeviceSP boundarySelection)"
+      ]
+    },
+    {
+      "target": "KisScanlineFillSchemaContractTest",
+      "source": "libs/image/tests/KisScanlineFillSchemaContractTest.cpp",
+      "test": "KisScanlineFillSchemaContractTest::boundarySelectionFillSignaturesRemainStable",
+      "behavior": "走査線塗りは境界色または境界色と透明画素まで選択を塗り、既存境界選択を任意に受け取る公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisScanlineFill::fillSelectionUntilColor(KisPixelSelectionSP pixelSelection,const KoColor & boundaryColor)",
+        "method:KisScanlineFill::fillSelectionUntilColor(KisPixelSelectionSP pixelSelection,const KoColor & boundaryColor,KisPaintDeviceSP boundarySelection)",
+        "method:KisScanlineFill::fillSelectionUntilColorOrTransparent(KisPixelSelectionSP pixelSelection,const KoColor & boundaryColor)",
+        "method:KisScanlineFill::fillSelectionUntilColorOrTransparent(KisPixelSelectionSP pixelSelection,const KoColor & boundaryColor,KisPaintDeviceSP boundarySelection)"
+      ]
+    },
+    {
+      "target": "KisScanlineFillSchemaContractTest",
+      "source": "libs/image/tests/KisScanlineFillSchemaContractTest.cpp",
+      "test": "KisScanlineFillSchemaContractTest::operationConfigurationSignaturesRemainStable",
+      "behavior": "走査線塗りは非零領域消去、連結group作成、閾値・不透明度・隙間設定、結果範囲取得の公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisScanlineFill::clearNonZeroComponent()",
+        "method:KisScanlineFill::fillContiguousGroup(KisPaintDeviceSP groupMapDevice,qint32 groupIndex)",
+        "method:KisScanlineFill::fillExtent() const",
+        "method:KisScanlineFill::setCloseGap(int closeGap)",
+        "method:KisScanlineFill::setOpacitySpread(int opacitySpread)",
+        "method:KisScanlineFill::setThreshold(int threshold)"
       ]
     }
   ]

@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-06 10:53 JST
+- 更新日時: 2026-09-06 11:04 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1415,7 +1415,9 @@
 
 - `libs/image/floodfill/kis_scanline_fill.h`の残存全19 APIは一意かつ台帳と非重複で、識別子整列集合SHA-256 `0c433dce70e4a12be0a9314a37a2028ca5ae02a10579eb1f80d21309a46b35a9`を持つ。型・構築・寿命3、色塗り4、通常selection塗り2、境界色・透明境界selection塗り4、消去・連結group・閾値・不透明度・隙間・結果範囲6の5枠へ割り当てる。全19 APIを型特性と厳密member pointerで固定し、画素色差、閾値、不透明度、隙間閉鎖、境界、連結group、処理範囲は固定画像・色空間を持つ既存または後続の動的契約で扱う。
 - `g269a-scanline-fill-header-boundary`の状態は`integrated`である。開始`libs/image/floodfill/kis_scanline_fill.h`から完全型を使わない`kis_paint_device.h`を除去して`KoColor`と`QRect`を前方宣言し、`libs/image/floodfill/kis_scanline_fill.cpp`へ`kis_paint_device.h`の直接includeを移した。受渡しcommit `d1a014c6c8`を中央commit `55c8442821`として取り込み、公開API、ABI、製品本文を変更していない。header-first実読込みは1,242行から1,221行、固有headerは968件から949件へ減った。担当側と中央のmacOSで実装元と直接利用元9件の厳格構文、軽量近傍`KisFillIntervalMapContractTest`、二回の無作業再構築、公開API検査、`verify-quick`に成功した。中央の近傍は前後とも5工程・11入力、command SHA-256 `d47cbe43d6fdb2429b23125a07928cd570ba87061edef1577159539f55bee596`、input SHA-256 `bfa0443a7fbc9c7ac9549d00464c21f796dd24651e4bc3daf885f26a42b59bbd`、AUTOMOC `HEADERS=[]`を維持した。cleanな専用作業tree、構築木、branchを削除して893,472 KiBを回収した。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
-- 続く`g269-scanline-fill-schema`の状態は`in_progress`、実装基点は`55c8442821`、専用作業treeは`/Users/masato/Documents/librepaint-g269-scanline-fill-schema`、branchは`agent/g269-scanline-fill-schema`、macOSの対象と軽量近傍に限る構築実行許可は`granted`である。許可pathは新規`libs/image/tests/KisScanlineFillSchemaContractTest.cpp`と`libs/image/tests/CMakeLists.txt`の新target固有節だけで、調整担当だけが文書、台帳、共通不足報告を変更する。残存19 APIを型・構築・寿命3、色塗り4、通常selection塗り2、境界色・透明境界selection塗り4、消去・連結group・閾値・不透明度・隙間・結果範囲6の5枠へ型特性と厳密member pointerで対応付ける。新targetはimage・global探索路、`kritaimage_EXPORTS`、Qt Core・Testだけの直接linkによる4工程・8入力を予測し、停止線5工程・11入力とする。変更前target不存在、5枠宣言段階の期待link失敗、5枠単発・各20回、全target・正式CTest・軽量近傍、AUTOMOC後の二回目計画、二回の無作業再構築、動的接続・未解決記号・厳格構文・書式・差分・公開API検査・`verify-quick`を確認する。候補headerのAUTOMOC入力、製品shared・OBJECT、`kritatestsdk`、`kritaimage`、Qt Gui・Widgets・Xml、実paint device・selection・色、製品未解決記号、許可path外変更が必要なら停止する。
+- 続く`g269-scanline-fill-schema`の状態は`integrated`である。開始`libs/image/floodfill/kis_scanline_fill.h`から新規`libs/image/tests/KisScanlineFillSchemaContractTest.cpp`へ、型・構築・寿命3、色塗り4、通常selection塗り2、境界色・透明境界selection塗り4、消去・連結group・閾値・不透明度・隙間・結果範囲6の残存全19 API・5枠を対応付けた。`libs/image/tests/CMakeLists.txt`には新target固有節だけを追加し、公開header、製品source、既存targetを変更していない。変更前target不存在と、5枠宣言段階で全5試験関数だけが未定義になる期待link失敗を確認した。受渡しcommit `bfcc3a5488`を中央commit `11d15fca88`として取り込んだ。
+- 担当側のmacOSで5枠を各20回、全7試験、正式CTest `libs-image-KisScanlineFillSchemaContractTest`、軽量近傍`libs-image-KisFillIntervalMapContractTest`、AUTOMOC後の二回目計画、二回の無作業再構築に成功した。新targetは4工程・8入力、中央command SHA-256 `01d036db1c9c6fb35ebef6446e45e76bc0009f6564e8570bab7079abe29250cb`、input SHA-256 `8e5f3cc9e756e4cb117dddf2e2cb379211101cacb4853f8d4db1e26457c6d013`、AUTOMOC `HEADERS=[]`、Qt Core・Testだけの動的接続、製品未解決記号0である。厳格構文、書式、差分、公開API検査、`verify-quick`にも成功し、中央でも対象と近傍、厳格構文、二回の無作業再構築に成功した。
+- 台帳へ19 APIを追加して22,223件対応、7,581件未対応となり、旧基準7,600件に対する実測7,581件の期待不一致を確認してから基準を更新した。cleanな専用作業tree、298,576 KiBの構築木、branchを削除して889,548 KiBを回収し、旧`public-api-missing-g269.json` 2,022,048 bytesを削除した。主Ninja木5,794,368 KiB、共有compiler cache 983,136 KiB、最新`build/tdd-macos/public-api-missing-g270.json` 2,016,314 bytes、SHA-256 `f9782af915060daaf36a143c6bdf419f4add60774d080d6322ec3048a1e9b62a`だけを再利用対象として保持する。compiler cacheは143,497件中120,297件、83.83%がhitしている。実fill算法、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 
 ### 第270便の先行監査担当票
 
@@ -1426,7 +1428,7 @@
 ### 第270便の監査結果と担当計画
 
 - `libs/brush/KisColorfulBrush.h`の残存全19 APIは一意かつ台帳と非重複で、識別子整列集合SHA-256 `a4668af97989e5d61fe26c6510dc7325666a9283a38ae1cfefcb8d1e6c52337a`を持つ。型・3構築4、中点・自動補正6、明度・contrast 4、画像分類・色透明性4、XML出力1の5枠へ割り当てる。既存`libs/brush/tests/KisBrushSchemaContractTest.cpp`の先頭includeを`kis_brush.h`から`KisColorfulBrush.h`へ置き換え、型特性と厳密member pointerで候補headerの自己完結性と全19 APIを固定する。既定値、setter/getter、copy、画像分類、XML値は製品brush実装と固定画像を持つ既存または後続の動的契約で扱う。
-- `g270-colorful-brush-schema`の状態は`planned`とする。許可pathは既存`libs/brush/tests/KisBrushSchemaContractTest.cpp`だけで、CMake、公開header、製品sourceを変更しない。対象は変更前後とも4工程・8入力、command SHA-256 `51306c4c24d9000b0420383d973f6699bcd5725b2acf87972b584d2b2f70b003`、input SHA-256 `b833549ce4453dd3ddd6f7e24375d23b924a184c64621945c9a932b4fb56161a`を維持し、Qt Core・Gui・Testだけを動的接続する。CMake変更、閉包またはhash変更、製品shared・OBJECT、`kritatestsdk`、`KisColorfulBrush.cpp`、候補実体化、製品未解決記号、許可path外変更が必要なら停止する。第269便完了後に開始する。
+- `g270-colorful-brush-schema`の状態は`in_progress`、実装基点は`11d15fca88`、専用作業treeは`/Users/masato/Documents/librepaint-g270-colorful-brush-schema`、branchは`agent/g270-colorful-brush-schema`、macOSの対象と軽量近傍に限る構築実行許可は`granted`である。許可pathは既存`libs/brush/tests/KisBrushSchemaContractTest.cpp`だけで、CMake、公開header、製品sourceを変更しない。対象は変更前後とも4工程・8入力、command SHA-256 `51306c4c24d9000b0420383d973f6699bcd5725b2acf87972b584d2b2f70b003`、input SHA-256 `b833549ce4453dd3ddd6f7e24375d23b924a184c64621945c9a932b4fb56161a`を維持し、Qt Core・Gui・Testだけを動的接続する。残存19 APIを型・3構築4、中点・自動補正6、明度・contrast 4、画像分類・色透明性4、XML出力1の5枠へ対応付ける。追加5枠の不存在、宣言段階の初期失敗、各枠単発・20回反復、正式CTestと軽量近傍、AUTOMOC後の二回目計画、二回の無作業再構築、動的接続・未解決記号・厳格構文・書式・差分・公開API検査・`verify-quick`を確認する。CMake変更、閉包またはhash変更、製品shared・OBJECT、`kritatestsdk`、`KisColorfulBrush.cpp`、候補実体化、製品未解決記号、許可path外変更が必要なら停止する。
 
 ### 第271便の先行監査担当票
 
