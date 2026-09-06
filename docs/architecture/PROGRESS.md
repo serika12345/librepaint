@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-07 08:13 JST
+- 更新日時: 2026-09-07 08:18 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -2672,6 +2672,13 @@
 - `g352-shape-input-tool-bases-schema`は`completed`である。`libs/ui/tool/kis_tool_polyline_base.cpp`へ実際に使う`kis_image.h`を直接追加し、偶然の推移includeへの依存を除いた。開始3実装の厳格`clang-check`は診断0件となり、構造変更前後の公開API報告はSHA-256 `13b74f98b251b054d8b1a2a41f686f1d82ade61411a552dbb33b87b75db89416`で同一だった。構造変更は`6671d1079a`へ分離した。
 - `libs/tools/tests/KisToolSelectBaseSchemaContractTest.cpp`へ10枠を追加し、輪郭21 API、矩形21 API、折れ線17 APIの型、種別値、構築、入力、表示、設定通知、寿命署名を固定した。対象は299行・15枠である。対象固有CMake節には公開headerの自己完結したcompileに必要なui・tool・widgetutils・imageの探索路とQt Widgets・Eigen・KF Configのinterface探索路およびexport定義だけを追加し、製品library接続は追加していない。最初の赤は対象探索路の不足を順に露出した後、追加10枠の未定義symbolだけで停止した。実装は`839f53acf7`である。最終閉包は4工程・8入力、command SHA-256 `7d72107257a30cdc9ee717390876221296ca6984d3f79575a3a9c4907203d90a`、input SHA-256 `1c87db84f4d7f873552114f0baaa920f6a47b28a344383a5cb86748398ffa26e`で、動的接続はQt Core・Test、gettextとmacOS frameworkだけである。
 - macOSで対象と軽量近傍`KisToolSchemaContractTest`のCTest、追加10枠を含む対象の20回反復、開始3実装・試験source・9直接利用headerの厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`に成功した。台帳へ59 APIを追加して24,450件対応、5,354件未対応となり、開始3 headerの残存は0件である。旧`public-api-missing-g352.json`を削除し、主Ninja木5,916,944 KiB、共有compiler cache 1.0 GB、最新`build/tdd-macos/public-api-missing-g353.json` 1,417,520 bytes、SHA-256 `580ba00cdac869efcab53164e34d9449df52f83caff344c8544a7a0970b31302`だけを保持する。compiler cacheは144,189件中120,492件、83.57%がhitしている。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第353便で次の高密度なmacOS対象と最小構築面を選定することである。
+
+### 第353便の監査結果と実装計画
+
+- 正式入力`build/tdd-macos/public-api-missing-g353.json`は公開header 1,548、公開API 29,804、対応済み24,450、未対応5,354、1,417,520 bytes、SHA-256 `580ba00cdac869efcab53164e34d9449df52f83caff344c8544a7a0970b31302`を記録する。`libs/application/kis_config.h`の残存全44 APIを、寿命・診断、vector・色履歴、KoColor永続化、汎用entry、保存通知、widget・snap、session・banner、Android入力回避策、Android拡大率、初回起動・assistant色の10枠へ完全に対応付ける。識別子整列集合のSHA-256は`7dfc0c75f83a71dc162bb0d28ab014485c6be29478d7397fbb553fe33cd05ea0`である。Android固有12 APIの署名検査は`Q_OS_ANDROID`で有効になり、macOSでは同一slotの存在を固定する。
+- 開始headerは`Q_SLOTS`のためだけに重量な`QObject`、実装だけが使う`KSharedConfig`のために`ksharedconfig.h`を公開面へ含めている。`QObject`を`QtCore/qobjectdefs.h`と`QDebug`前方宣言へ置換し、`ksharedconfig.h`を`libs/application/kis_config.cc`へ移してheader閉包を縮小する。開始実装の厳格`clang-check`は診断0件で、変更後も公開API指紋と4直接利用元の診断を不変に保つ。
+- 既存`libs/application/tests/KisConfigEnumContractTest.cpp`は1,188行・60枠で分割条件を超えているため追記しない。新規`KisConfigPersistenceSchemaContractTest.cpp`を300行・20枠未満に限定する。近傍targetは4工程・15入力、command SHA-256 `a62ef0a3256fb3263ec9a52c9cc304c63d4606c27eb089d3165bfed44240d787`、input SHA-256 `9e0f4c721d6cb133bdc3619651c9d6d6322f62af8539aa8d64212854a17f9ee5`だが、新targetは製品libraryとOpenEXRを接続せず、Qt Core・Testとheader-only Boost、Qt Gui・KF Config・KF I18n・Imathのinterface探索路だけを使って4工程・8入力を目標とする。停止線を5工程・11入力とする。
+- `g353-config-persistence-schema`の状態は`in_progress`、実装基点は`a8f1473c3d`である。構造整理は`kis_config.h`と`kis_config.cc`、契約は新規試験sourceとapplication試験CMake節だけに限定する。macOSの対象、追加10枠の20回反復、開始実装・試験source・直接利用元の厳格`clang-check`、書式、二回の無作業再構築、公開API指紋不変、公開API検査、`verify-quick`だけを実行する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
 
 ### 第239便の先行監査担当票
 
