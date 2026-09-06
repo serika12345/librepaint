@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-06 13:29 JST
+- 更新日時: 2026-09-06 13:39 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1537,8 +1537,9 @@
 - `libs/painting/strokes/move_stroke_strategy.h`の残存全23 APIは一意かつ台帳と非重複で、識別子整列集合SHA-256 `765b41dad3120fc0fa8c8235081eb7e37c5686e08a1684d9e70cda32e90af081`を持つ。移動job data 4、layer選択job data 4、barrier更新data 3、strategy型・2構築・寿命4、callback・LoD clone・3通知8の5枠へ完全に割り当てる。最初の3枠は座標、逐次・排他方針、強制更新値、LoD座標縮小と複製独立性を動的に固定し、後2枠は実node・更新・undoを生成せず型と厳密署名を固定する。
 - 既存`libs/painting/tests/KisFilterStrokeStrategySchemaContractTest.cpp`は108行・5枠で、追記後も300行・20枠未満に収まる。対象は4工程・8入力、command SHA-256 `463898b29acf97550dac6be87e7d546157a815e7fd9a41715b2870f9e3acf5b2`、input SHA-256 `7c099d95667583bcfef3e2fd7106bf18812d64a536623b6488ce8b7d629206a3`、製品`kritapainting`は1,219工程・2,460入力、command SHA-256 `83ce004291e22a03f53dd13791e3ece4647b94e7478cb4ff15fbf3776f7e5e1c`、input SHA-256 `842c9df22d0ce5d1c13ea4bc5cd8e6b90fc3f757a7b3f6ecd1a9064978d59645`である。既存compile interfaceへ候補headerを先行入力した厳格構文検査は追加依存なしで成功した。
 - 比較した媒体encoder 21 APIは既存対象4工程・8入力でも実行時にencoder backend・QObjectメタ情報・thread pool・進捗UIを要し、製品は1,233工程・2,488入力である。swatch 16 APIは静的targetが4工程・8入力でも色値・直列化の実行に色空間登録簿を要し、既存動的対象は371工程・771入力である。第275便のcache、layer style、dab queue候補も主要挙動に画像・paint device・効果設定またはpaintop資源を要する。これらは静的署名だけを先に数えるより、具体的実装所有を分離できる便で扱う。
-- `g276a-move-stroke-job-data-build-boundary`の状態は`planned`である。開始`libs/painting/strokes/move_stroke_strategy.cpp`末尾の`MoveStrokeStrategy::Data`、`PickLayerData`、`BarrierUpdateData`の構築・LoD複製実装を、新規`libs/painting/strokes/MoveStrokeJobData.cpp`へ移す。`libs/painting/CMakeLists.txt`にAUTOMOC不要・位置独立の`kritapaintingmovestrokejobdataobjects`を置き、製品`kritapainting`へ1回だけ再集約する。既存`move_stroke_strategy.cpp`はstrategy実行だけを所有し、公開header、ABI、製品link、実行順を変更しない。
-- 新objectは1工程・3入力、製品は小さな実装単位の追加に必要な1工程・2入力増分を予測する。続く限定試験は新objectと既存`kritaimagejobstrategyobjects`へ直接接続して6工程・13入力を予測し、構造準備の停止線をobject 2工程・5入力、製品1,221工程・2,464入力、契約の停止線を7工程・15入力とする。製品shared、`kritatestsdk`、新しい動的依存、候補headerのAUTOMOC入力化、node・画像・undo・更新処理の未解決記号、許可path外変更が必要なら停止する。
+- `g276a-move-stroke-job-data-build-boundary`の状態は`integrated`、実装基点は`d98cf1907e`である。開始`libs/painting/strokes/move_stroke_strategy.cpp`末尾の`MoveStrokeStrategy::Data`、`PickLayerData`、`BarrierUpdateData`の構築・LoD複製実装を、新規`libs/painting/strokes/MoveStrokeJobData.cpp`へ移した。`libs/painting/CMakeLists.txt`にAUTOMOC不要・位置独立の`kritapaintingmovestrokejobdataobjects`を置き、製品`kritapainting`へ1回だけ再集約した。公開header、ABI、製品link、実行順を変更せず、受渡しcommit `87fb0dd679`を中央commit `a899ddf26b`として取り込んだ。
+- 新objectは担当側と中央で1工程・3入力、担当側command SHA-256 `4a14d3dbd0eb4dc4444a90f8206974865fa1f4e07ad78d32ecd54ebf4e1c8968`、input SHA-256 `40bea6f7d1d17420e95421ac43f45e1d301ba260eb3004762281aeaf0c057463`、中央command SHA-256 `7c8b1afc427b2f49e9b1599740c23eeb33010846eab35a4ca2af578deb48dd07`、input SHA-256 `aed6eadb45fac5fdb36c4b88ed114991759f1d6fc3e4708d77f16726e025e352`である。製品計画は1,220工程・2,462入力となり、分離した小単位の1工程・2入力だけ増えた。新objectの単独構築、厳格構文、既存軽量契約、二回の無作業再構築、公開API検査、`verify-quick`に成功し、node・画像・undo・更新処理の未解決記号0、製品への再集約1回を確認した。製品本体は構築していない。
+- 受渡し差分と中央差分のpatch ID一致、専用作業treeのcleanを確認し、299,104 KiBの構築木を含む591,068 KiBの作業treeとbranchを削除した。`g276-move-stroke-contract`の状態は`planned`、実装基点は`a899ddf26b`である。許可pathは既存`libs/painting/tests/KisFilterStrokeStrategySchemaContractTest.cpp`と同target固有の`libs/painting/tests/CMakeLists.txt`節だけとし、新objectと既存`kritaimagejobstrategyobjects`を直接接続する。対象6工程・13入力、停止線7工程・15入力、AUTOMOC `HEADERS=[]`、製品非接続を維持し、5枠の初期失敗、各20回反復、対象と近傍`KisAsynchronousStrokeUpdateHelperContractTest`、厳格構文、無作業再構築、動的接続・未解決記号を確認する。
 
 ### 第239便の先行監査担当票
 
