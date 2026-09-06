@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-07 07:34 JST
+- 更新日時: 2026-09-07 07:38 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -2629,6 +2629,13 @@
 - 対象固有CMake節へwidgetsのsource・generated探索路、Qt Gui・Widgets interface探索路と`kritawidgets_EXPORTS`だけを追加した。初回限定構築は期待どおり追加5試験関数の未定義linkだけで失敗し、契約実装後に成功した。最終targetは4工程・8入力、command SHA-256 `b0b80459f336fdd96096a6663b9b435679eafac84877b88321778460e20e14d5`、input SHA-256 `4a8a13177400f734847e4c5bec0bae4873aa09109dc5523bfc4dab30f65f6896`を維持した。AUTOMOC header入力は空、Qt Test・Core、gettext、OS frameworkだけへ動的接続し、製品未解決記号は0件である。
 - macOSで対象と軽量近傍`libs-ui-KisCurveWidgetSchemaContractTest`のCTest、追加5枠の各20回反復、試験sourceの厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`に成功した。依存移動後の開始実装は既存Qt 6非推奨`QMouseEvent::globalPos()`の2件、残る2直接利用元は既存生成MOCまたはUI header欠落だけで停止し、候補header由来の診断は0件である。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 台帳へ19 APIを追加して24,354件対応、5,450件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g349.json`と一時報告を最新報告の検証後に削除し、追加作業tree・構築木は作成していない。主Ninja木5,917,948 KiB、共有compiler cache 982,960 KiB、最新`build/tdd-macos/public-api-missing-g350.json` 1,441,394 bytes、SHA-256 `88fb0e1dd8d4429fb609ef55905fe02422e184599cbf5ac8aaa1d78d49b2af22`だけを再利用対象として保持する。compiler cacheは144,174件中120,485件、83.57%がhitしている。次の永続作業は第350便で次の高密度なmacOS対象と最小構築面を選定することである。
+
+### 第350便の監査結果と実装計画
+
+- 正式入力`build/tdd-macos/public-api-missing-g350.json`は公開header 1,548、公開API 29,804、対応済み24,354、未対応5,450、1,441,394 bytes、SHA-256 `88fb0e1dd8d4429fb609ef55905fe02422e184599cbf5ac8aaa1d78d49b2af22`を記録する。`libs/ui/widgets/KisHistogramView.h`の残存全16 APIを、型・構築・寿命3、設定・channel照会3、channel選択・解除3、色・scale5、対数表示2の5枠へ完全に対応付ける。識別子整列集合のSHA-256は`550298f8f10ad425844403b4ca746f6edd0bafdd075fbf3764a0095cb4a2bbbb`である。
+- 開始headerはQWidget基底、非公開実装pointer、公開値・容器型に必要な定義と前方宣言を所有し、削減すべき推移includeはない。直接利用元は開始実装1件であり、その厳格`clang-check`は既存Qt 6非推奨`QMouseEvent::y()`の3件だけで停止するため、先行する構造変更は不要である。
+- 既存`libs/ui/tests/KisHistogramPainterSchemaContractTest.cpp`は80行・5枠で、追加5枠後も300行・20枠未満に収まる。既存targetはCMake File API上で自動生成依存だけを持ち、4工程・8入力、command SHA-256 `423b193f8d4599d70b73b4e27bfe5117c41df5809854fcd2d8fc81dc52b39622`、input SHA-256 `af905ae01c2fb52319d77d689f78b23285045921c376f383f2b8c05c3b4a6523`である。対象固有CMake節へQt Widgets interface探索路だけを加え、Qt Core・Testだけの動的接続と4工程・8入力を維持する。停止線を5工程・11入力、300行・20枠とする。
+- `g350-histogram-view-schema`の状態は`in_progress`、実装基点は`b3eac3a38a`である。変更は既存試験sourceと対象固有CMake節だけに限定し、型特性、既定引数、厳密な公開関数pointerでhistogram表示widgetの公開接続面を固定する。macOSの対象、追加5枠の20回反復、試験sourceの厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。公開header、製品source、製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
 
 ### 第239便の先行監査担当票
 
