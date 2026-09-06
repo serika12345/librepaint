@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 5587
+    "expectedMissingApis": 5548
   },
   "contracts": [
     {
@@ -67117,6 +67117,90 @@
         "method:KisCurveOptionWidget::readOptionSetting(const KisPropertiesConfigurationSP setting)",
         "method:KisCurveOptionWidget::show()",
         "method:KisCurveOptionWidget::writeOptionSetting(KisPropertiesConfigurationSP setting) const"
+      ]
+    },
+    {
+      "target": "KisDisplayConfigSchemaContractTest",
+      "source": "libs/ui/tests/KisDisplayConfigSchemaContractTest.cpp",
+      "test": "KisDisplayConfigSchemaContractTest::displayColorConverterTypeConstructionAndRendererSchemaRemainStable",
+      "behavior": "表示色変換器はQObject基底、変換option別名、既定・資源付き構築、多相破棄、共有変換器と表示renderer接続の正確な公開型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisDisplayColorConverter::ConversionOptions",
+        "class:KisDisplayColorConverter",
+        "method:KisDisplayColorConverter::KisDisplayColorConverter()",
+        "method:KisDisplayColorConverter::KisDisplayColorConverter(KoCanvasResourceProvider * resourceManager,QObject * parent)",
+        "method:KisDisplayColorConverter::displayRendererInterface() const",
+        "method:KisDisplayColorConverter::dumbConverterInstance()",
+        "method:KisDisplayColorConverter::~KisDisplayColorConverter()"
+      ]
+    },
+    {
+      "target": "KisDisplayConfigSchemaContractTest",
+      "source": "libs/ui/tests/KisDisplayConfigSchemaContractTest.cpp",
+      "test": "KisDisplayConfigSchemaContractTest::displayColorConverterImageAndConfigurationSignaturesRemainStable",
+      "behavior": "表示色変換器は画像・node・描画色空間、表示filter、複数surface設定と変換optionを更新・照会する正確な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDisplayColorConverter::conversionOptions() const",
+        "method:KisDisplayColorConverter::displayConfig() const",
+        "method:KisDisplayColorConverter::displayFilter() const",
+        "method:KisDisplayColorConverter::multiSurfaceDisplayConfig() const",
+        "method:KisDisplayColorConverter::nodeColorSpace() const",
+        "method:KisDisplayColorConverter::paintingColorSpace() const",
+        "method:KisDisplayColorConverter::setDisplayFilter(QSharedPointer<KisDisplayFilter> displayFilter)",
+        "method:KisDisplayColorConverter::setImage(KisImageSP image)",
+        "method:KisDisplayColorConverter::setImageColorSpace(const KoColorSpace * cs)",
+        "method:KisDisplayColorConverter::setMultiSurfaceDisplayConfig(const KisMultiSurfaceDisplayConfig & config)"
+      ]
+    },
+    {
+      "target": "KisDisplayConfigSchemaContractTest",
+      "source": "libs/ui/tests/KisDisplayConfigSchemaContractTest.cpp",
+      "test": "KisDisplayConfigSchemaContractTest::displayColorConverterColorAndPaletteSignaturesRemainStable",
+      "behavior": "表示色変換器は単色の順変換・近似逆変換・表示filter適用と、canvas装飾用palette生成の正確な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDisplayColorConverter::applyDisplayFiltering(const KoColor & srcColor,const KoID & bitDepthId) const",
+        "method:KisDisplayColorConverter::approximateFromRenderedQColor(const QColor & c) const",
+        "method:KisDisplayColorConverter::canSkipDisplayConversion(const KoColorSpace * cs) const",
+        "method:KisDisplayColorConverter::convertColorToDisplayColorSpace(const KoColor color,bool applyOcio=false) const",
+        "method:KisDisplayColorConverter::handlePaletteForDisplayColorSpace() const",
+        "method:KisDisplayColorConverter::systemPaletteForDisplayColorSpace() const",
+        "method:KisDisplayColorConverter::toQColor(const KoColor & c,bool proofToPaintColors=false) const"
+      ]
+    },
+    {
+      "target": "KisDisplayConfigSchemaContractTest",
+      "source": "libs/ui/tests/KisDisplayConfigSchemaContractTest.cpp",
+      "test": "KisDisplayConfigSchemaContractTest::displayColorConverterDeviceImageAndNotificationSignaturesRemainStable",
+      "behavior": "表示色変換器は固定・通常paint deviceと生pixelを表示画像へ変換し、表示設定変更を通知する正確な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDisplayColorConverter::applyDisplayFilteringF32(KisFixedPaintDeviceSP device,const KoColorSpace * dstColorSpace) const",
+        "method:KisDisplayColorConverter::convertImageToDisplayColorSpace(KisPaintDeviceSP srcDevice,QRect source=QRect (),bool applyOcio=false) const",
+        "method:KisDisplayColorConverter::displayConfigurationChanged()",
+        "method:KisDisplayColorConverter::toQImage(KisPaintDeviceSP srcDevice,bool proofPaintColors=false) const",
+        "method:KisDisplayColorConverter::toQImage(const KoColorSpace * srcColorSpace,const quint8 * data,QSize size,bool proofPaintColors=false) const"
+      ]
+    },
+    {
+      "target": "KisDisplayConfigSchemaContractTest",
+      "source": "libs/ui/tests/KisDisplayConfigSchemaContractTest.cpp",
+      "test": "KisDisplayConfigSchemaContractTest::displayColorConverterComponentSignaturesRemainStable",
+      "behavior": "表示色変換器はHSV・HSL・HSI・HSY成分とKoColorの相互変換に対する正確な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDisplayColorConverter::fromHsiF(qreal h,qreal s,qreal i)",
+        "method:KisDisplayColorConverter::fromHslF(qreal h,qreal s,qreal l,qreal a=1.0)",
+        "method:KisDisplayColorConverter::fromHsv(int h,int s,int v,int a=255) const",
+        "method:KisDisplayColorConverter::fromHsvF(qreal h,qreal s,qreal v,qreal a=1.0)",
+        "method:KisDisplayColorConverter::fromHsyF(qreal h,qreal s,qreal y,qreal R=0.2126,qreal G=0.7152,qreal B=0.0722,qreal gamma=2.2)",
+        "method:KisDisplayColorConverter::getHsiF(const KoColor & srcColor,qreal * h,qreal * s,qreal * i)",
+        "method:KisDisplayColorConverter::getHslF(const KoColor & srcColor,qreal * h,qreal * s,qreal * l,qreal * a=0)",
+        "method:KisDisplayColorConverter::getHsv(const KoColor & srcColor,int * h,int * s,int * v,int * a=0) const",
+        "method:KisDisplayColorConverter::getHsvF(const KoColor & srcColor,qreal * h,qreal * s,qreal * v,qreal * a=0)",
+        "method:KisDisplayColorConverter::getHsyF(const KoColor & srcColor,qreal * h,qreal * s,qreal * y,qreal R=0.2126,qreal G=0.7152,qreal B=0.0722,qreal gamma=2.2)"
       ]
     }
   ]

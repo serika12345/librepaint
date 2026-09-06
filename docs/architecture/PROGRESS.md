@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-07 06:57 JST
+- 更新日時: 2026-09-07 07:05 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -2574,6 +2574,14 @@
 - 開始headerが読む色renderer、表示filter、handle palette、画像共有pointer、変換optionの定義は公開型・別名を現在の所有headerへ対応付けている。これらを前方宣言や別名再宣言へ置き換えると公開API所属が変わるため、今回の挙動契約では保持する。41直接利用翻訳単位へ及ぶが、既存対象は4工程・8入力で製品非接続を維持でき、開始実装の厳格`clang-check`も診断0件であるため、先行する製品構造変更は不要である。
 - 既存`libs/ui/tests/KisDisplayConfigSchemaContractTest.cpp`は93行・5枠で、追加5枠後も300行・20枠未満に収まる。既存targetはCMake File API上で自動生成依存だけを持ち、4工程・8入力、command SHA-256 `45b4c6dc19107eac16608f1384cc88823ee492b578e9e000411b0c6d2c8f4ea9`、input SHA-256 `0f5781b1ac2dec2ed9954f2948ac1d5b605eed4e419085ff8415d097846cb8ce`である。対象固有CMake節へcanvas・global・imageのsource・generated探索路、Qt Gui interface探索路と3 export定義だけを加え、Qt Test・Coreだけの動的接続と4工程・8入力を維持する。停止線を5工程・11入力、300行・20枠とする。
 - `g346-display-color-converter-schema`の状態は`in_progress`、実装基点は`3cd7afb284`である。変更は既存試験sourceと対象固有CMake節だけに限定し、型特性、厳密な公開関数pointer、未評価式で表示色変換器の公開接続面を固定する。macOSの対象、追加5枠の20回反復、試験sourceの厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。公開header、製品source、製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
+- `g346-display-color-converter-schema`の状態は`integrated`、計画commitは`04376dff23`、契約実装commitは`ecc8b95eff`である。
+
+### 第346便の契約統合結果
+
+- 開始`libs/ui/canvas/kis_display_color_converter.h`から既存`libs/ui/tests/KisDisplayConfigSchemaContractTest.cpp`へ残存全39 APIを、型・別名・構築・renderer 7、画像・色空間・表示設定状態10、単色・palette変換7、device・画像変換・通知5、HSV・HSL・HSI・HSY変換10として追加した。試験sourceは196行・計10枠で停止線以内に収まり、公開headerと製品sourceを変更していない。
+- 初回限定構築は`QColor`、次に`klocalizedstring.h`の探索路不足を検出した。対象固有CMake節へcanvas・global・imageのsource・generated探索路、Qt Gui・KF I18n・Imathのinterface探索路と3 export定義だけを追加すると、期待どおり追加5試験関数の未定義linkだけで赤になり、契約実装後に成功した。製品libraryは要求せず、最終targetは4工程・8入力、command SHA-256 `1486a6825ec2708ac11f7319e3f08e21aedcf1d596afa1e9a2b99e9e7885dd23`、input SHA-256 `0f5781b1ac2dec2ed9954f2948ac1d5b605eed4e419085ff8415d097846cb8ce`である。AUTOMOC header入力は空、Qt Test・Core、gettext、OS frameworkだけへ動的接続し、製品未解決記号は0件である。
+- macOSで対象と軽量近傍`libs-ui-KisGuidesConfigSchemaContractTest`のCTest、追加5枠の各20回反復、開始実装と試験sourceの厳格`clang-check`、書式、二回の無作業再構築、公開API検査に成功した。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 台帳へ39 APIを追加して24,256件対応、5,548件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g346.json`を最新報告の検証後に削除し、追加作業tree・構築木は作成していない。主Ninja木5,916,160 KiB、共有compiler cache 983,260 KiB、最新`build/tdd-macos/public-api-missing-g347.json` 1,467,838 bytes、SHA-256 `8cf56d81a69c69b2963b27731047a2aa3879b9ce951d5d921d80932d4f3f9c5b`だけを再利用対象として保持する。compiler cacheは144,163件中120,484件、83.57%がhitしている。次の永続作業は第347便で次の高密度なmacOS対象と最小構築面を選定することである。
 
 ### 第239便の先行監査担当票
 
