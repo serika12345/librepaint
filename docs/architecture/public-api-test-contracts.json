@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 7543
+    "expectedMissingApis": 7525
   },
   "contracts": [
     {
@@ -62290,6 +62290,69 @@
         "method:KisLazyFillTools::FilteringOptions::FilteringOptions()",
         "method:KisLazyFillTools::FilteringOptions::FilteringOptions(bool _useEdgeDetection,qreal _edgeDetectionSize,qreal _fuzzyRadius,qreal _cleanUpAmount)",
         "struct:KisLazyFillTools::FilteringOptions"
+      ]
+    },
+    {
+      "target": "KisHSVAdjustmentSchemaContractTest",
+      "source": "plugins/color/colorspaceextensions/tests/KisHSVAdjustmentSchemaContractTest.cpp",
+      "test": "KisHSVAdjustmentSchemaContractTest::hsvFactoryTypeAndConstructionSchemaRemainStable",
+      "behavior": "HSV調整工場は公開型と既定構築経路を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisHSVAdjustmentFactory",
+        "method:KisHSVAdjustmentFactory::KisHSVAdjustmentFactory()"
+      ]
+    },
+    {
+      "target": "KisHSVAdjustmentSchemaContractTest",
+      "source": "plugins/color/colorspaceextensions/tests/KisHSVAdjustmentSchemaContractTest.cpp",
+      "test": "KisHSVAdjustmentSchemaContractTest::hsvFactoryTransformationSignaturesRemainStable",
+      "behavior": "HSV調整工場は対応色形式の照会と色変換生成に用いる公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisHSVAdjustmentFactory::createTransformation(const KoColorSpace * colorSpace,QHash<QString,QVariant> parameters) const",
+        "method:KisHSVAdjustmentFactory::supportedModels() const"
+      ]
+    },
+    {
+      "target": "KisHSVAdjustmentSchemaContractTest",
+      "source": "plugins/color/colorspaceextensions/tests/KisHSVAdjustmentSchemaContractTest.cpp",
+      "test": "KisHSVAdjustmentSchemaContractTest::hsvCurveFactoryTypeAndConstructionSchemaRemainStable",
+      "behavior": "HSV曲線調整工場は公開型と既定構築経路を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisHSVCurveAdjustmentFactory",
+        "method:KisHSVCurveAdjustmentFactory::KisHSVCurveAdjustmentFactory()"
+      ]
+    },
+    {
+      "target": "KisHSVAdjustmentSchemaContractTest",
+      "source": "plugins/color/colorspaceextensions/tests/KisHSVAdjustmentSchemaContractTest.cpp",
+      "test": "KisHSVAdjustmentSchemaContractTest::hsvCurveFactoryTransformationSignaturesRemainStable",
+      "behavior": "HSV曲線調整工場は対応色形式の照会と色変換生成に用いる公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisHSVCurveAdjustmentFactory::createTransformation(const KoColorSpace * colorSpace,QHash<QString,QVariant> parameters) const",
+        "method:KisHSVCurveAdjustmentFactory::supportedModels() const"
+      ]
+    },
+    {
+      "target": "KisHSVAdjustmentSchemaContractTest",
+      "source": "plugins/color/colorspaceextensions/tests/KisHSVAdjustmentSchemaContractTest.cpp",
+      "test": "KisHSVAdjustmentSchemaContractTest::hsvCurveChannelValuesRemainStable",
+      "behavior": "HSV曲線の色channelはRGB、alpha、全色、色相、彩度、明度と総数を0から8の安定値で表す。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KisHSVCurve::ColorChannel",
+        "enumerator:KisHSVCurve::ColorChannel::AllColors",
+        "enumerator:KisHSVCurve::ColorChannel::Alpha",
+        "enumerator:KisHSVCurve::ColorChannel::ChannelCount",
+        "enumerator:KisHSVCurve::ColorChannel::Hue",
+        "enumerator:KisHSVCurve::ColorChannel::RGBChannel0",
+        "enumerator:KisHSVCurve::ColorChannel::RGBChannel1",
+        "enumerator:KisHSVCurve::ColorChannel::RGBChannel2",
+        "enumerator:KisHSVCurve::ColorChannel::Saturation",
+        "enumerator:KisHSVCurve::ColorChannel::Value"
       ]
     }
   ]

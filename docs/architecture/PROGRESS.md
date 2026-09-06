@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-06 11:44 JST
+- 更新日時: 2026-09-06 11:55 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1461,7 +1461,13 @@
 ### 第272便の監査結果と担当計画
 
 - `plugins/color/colorspaceextensions/kis_hsv_adjustment.h`の残存全18 APIは一意かつ台帳と非重複で、識別子整列集合SHA-256 `41edeb9be329144f39c1e7d8b62ab4dd00a17763904b83646959ac2e1a57f138`を持つ。HSV工場の型・構築2、対応形式・変換生成2、HSV曲線工場の型・構築2、対応形式・変換生成2、曲線channel列挙型と9値10の5枠へ割り当てる。列挙値`0..8`を値契約で固定し、工場と生成関数は型特性と厳密member pointerで観測する。実色空間と変換実体を使う生成結果は後続の動的契約で扱う。
-- `g272-hsv-adjustment-schema`の状態は`in_progress`、実装基点は`7a4bebab69`、専用作業treeは`/Users/masato/Documents/librepaint-g272-hsv-adjustment-schema`、branchは`agent/g272-hsv-adjustment-schema`、macOSの対象と軽量近傍に限る構築実行許可は`granted`である。許可pathは新規`plugins/color/colorspaceextensions/tests/KisHSVAdjustmentSchemaContractTest.cpp`、新規`plugins/color/colorspaceextensions/tests/CMakeLists.txt`、親`plugins/color/colorspaceextensions/CMakeLists.txt`のtest subdirectory追加だけとし、候補header、製品source、製品targetを変更しない。最新`public-api-missing-g272.json`で残存18 APIと台帳非重複を再確認した。新targetはcolorspaceextensionsとpigmentのsource/generated探索路、`kritapigment_EXPORTS`、Qt Core・Testだけの直接linkによる4工程・8入力を予測し、停止線5工程・11入力とする。候補headerのAUTOMOC入力化、Qt Gui・Widgets・Xml、KF、OpenEXR・Imath、Boost、`kritapigment`・`kritaglobal`・plugin製品target・OBJECT、`kritatestsdk`、`KoID`完全型、工場実体化、製品未解決記号、許可path外変更が必要なら停止する。
+- `g272-hsv-adjustment-schema`の状態は`integrated`である。実装基点`7a4bebab69`から開始し、新規`plugins/color/colorspaceextensions/tests/KisHSVAdjustmentSchemaContractTest.cpp`、新規`plugins/color/colorspaceextensions/tests/CMakeLists.txt`、親`plugins/color/colorspaceextensions/CMakeLists.txt`の試験subdirectory追加だけを変更した。開始`plugins/color/colorspaceextensions/kis_hsv_adjustment.h`から、HSV工場の型・構築2、対応形式・変換生成2、HSV曲線工場の型・構築2、対応形式・変換生成2、曲線channel列挙型と9値10の残存全18 API・5枠を対応付けた。候補header、製品source、製品targetを変更せず、工場、色空間、変換、`KoID`を実体化していない。受渡しcommit `cda2b31d58`を中央commit `016cb899ba`として取り込んだ。
+
+### 第272便の契約統合結果
+
+- 編集前の対象不存在と、5枠宣言段階で全5試験関数だけが未定義になる期待link失敗を確認した。担当側のmacOSで5枠を各20回、全7試験、正式CTest `plugins-color-colorspaceextensions-KisHSVAdjustmentSchemaContractTest`、軽量近傍`plugins-color-lcms2engine-LcmsColorProfileContainerSchemaContractTest`、AUTOMOC後の二回目計画、二回の無作業再構築に成功した。中央でも対象と近傍、厳格構文、二回の無作業再構築に成功した。
+- 最寄りの既存契約は4工程・8入力、製品pluginは380工程・789入力である。新対象は計画どおり4工程・8入力で、担当側command SHA-256 `ef2a492817e0173bef94b9597122b75d506f32769f24bc94b1c31f98209bc5f4`、input SHA-256 `cf09d9ddb3c063e3295e034bb4ce163182116837ac0ae287723431a306a9c746`、中央command SHA-256 `2b561a9faaa6b4bf9d3f8500e04c0ef5b361f12dce5c86f10e5d1185cfbe4fe4`、input SHA-256 `49eb3832ce7785dcd0f63e7798152abea06922bd302403b058951290ec67a201`である。AUTOMOC `HEADERS=[]`、Qt Core・Testだけの動的接続、製品未解決記号0を確認した。書式、差分、公開API検査、`verify-quick`にも成功した。
+- 台帳へ18 APIを追加して22,279件対応、7,525件未対応となり、旧基準7,543件に対する実測7,525件の期待不一致を確認してから基準を更新した。cleanな専用作業tree、298,240 KiBの構築木、branchを削除して889,252 KiBを回収し、旧`public-api-missing-g272.json` 2,006,320 bytesを削除した。主Ninja木5,793,876 KiB、共有compiler cache 982,624 KiB、最新`build/tdd-macos/public-api-missing-g273.json` 2,001,676 bytes、SHA-256 `fe795e4b01aa6113b4bb7f34f9e6b320f512659ccd69886453e6bc90aff4ff6e`だけを再利用対象として保持する。compiler cacheは143,615件中120,308件、83.77%がhitしている。製品plugin、色変換生成、全体build・`verify`、Linux、Nix再評価は実行していない。
 
 ### 第273便の先行監査担当票
 
