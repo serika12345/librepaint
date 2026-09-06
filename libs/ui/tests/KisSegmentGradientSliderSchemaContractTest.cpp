@@ -25,7 +25,7 @@ private Q_SLOTS:
     void gradientChooserResourceAndPresentationSignaturesRemainStable();
     void gradientChooserConfigurationAndNotificationSignaturesRemainStable();
     void genericGradientEditorTypeAndPresentationSchemaRemainStable();
-    void genericGradientEditorResourceConfigurationAndNotificationSignaturesRemainStable();
+    void genericGradientEditorConfigurationSignaturesRemainStable();
 };
 
 void KisSegmentGradientSliderSchemaContractTest::segmentGradientSliderHandleSchemaRemainsStable()
@@ -164,8 +164,7 @@ void KisSegmentGradientSliderSchemaContractTest::genericGradientEditorTypeAndPre
     static_assert(std::is_same_v<decltype(&Editor::isUpdateGradientButtonVisible), bool (Editor::*)() const>);
 }
 
-void KisSegmentGradientSliderSchemaContractTest::
-    genericGradientEditorResourceConfigurationAndNotificationSignaturesRemainStable()
+void KisSegmentGradientSliderSchemaContractTest::genericGradientEditorConfigurationSignaturesRemainStable()
 {
     using Editor = KisGenericGradientEditor;
     using BooleanSetter = void (Editor::*)(bool);
