@@ -1,3 +1,5 @@
+add_subdirectory(tests)
+
 add_library(kritafiltersvirtualchannelinfoobjects OBJECT
     virtual_channel_info.cpp
 )
