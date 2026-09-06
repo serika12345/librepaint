@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 7380
+    "expectedMissingApis": 7370
   },
   "contracts": [
     {
@@ -62858,6 +62858,52 @@
         "method:KisOpenGLUpdateInfoBuilder::setProofingConfig(KisProofingConfigurationSP config)",
         "method:KisOpenGLUpdateInfoBuilder::setTileDataPool(KisTileDataPoolSP pool)",
         "method:KisOpenGLUpdateInfoBuilder::tileDataPool() const"
+      ]
+    },
+    {
+      "target": "KisBusyWaitBrokerContractTest",
+      "source": "libs/image/tests/KisBusyWaitBrokerContractTest.cpp",
+      "test": "KisBusyWaitBrokerContractTest::typeLifetimeAndSingletonRemainStable",
+      "behavior": "待機brokerは複製できない独立instanceとして構築・破棄でき、process内で同一のsingletonを返す。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisBusyWaitBroker",
+        "method:KisBusyWaitBroker::KisBusyWaitBroker()",
+        "method:KisBusyWaitBroker::instance()",
+        "method:KisBusyWaitBroker::~KisBusyWaitBroker()"
+      ]
+    },
+    {
+      "target": "KisBusyWaitBrokerContractTest",
+      "source": "libs/image/tests/KisBusyWaitBrokerContractTest.cpp",
+      "test": "KisBusyWaitBrokerContractTest::generalWaitNestingTracksGuiThreadState",
+      "behavior": "一般待機通知はGUI thread上の入れ子数を保持し、最後の終了通知まで待機中状態を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisBusyWaitBroker::guiThreadIsWaitingForBetterWeather() const",
+        "method:KisBusyWaitBroker::notifyGeneralWaitEnded()",
+        "method:KisBusyWaitBroker::notifyGeneralWaitStarted()"
+      ]
+    },
+    {
+      "target": "KisBusyWaitBrokerContractTest",
+      "source": "libs/image/tests/KisBusyWaitBrokerContractTest.cpp",
+      "test": "KisBusyWaitBrokerContractTest::imageWaitNestingTracksGuiThreadState",
+      "behavior": "画像待機通知は同じ画像識別tokenの入れ子数を保持し、最後の終了通知で一般待機状態を解除する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisBusyWaitBroker::notifyWaitOnImageEnded(KisImage * image)",
+        "method:KisBusyWaitBroker::notifyWaitOnImageStarted(KisImage * image)"
+      ]
+    },
+    {
+      "target": "KisBusyWaitBrokerContractTest",
+      "source": "libs/image/tests/KisBusyWaitBrokerContractTest.cpp",
+      "test": "KisBusyWaitBrokerContractTest::feedbackCallbackSignatureAndResetRemainStable",
+      "behavior": "待機brokerは画像共有参照を受け取るfeedback callbackを値として設定し、空のcallbackへ戻せる。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisBusyWaitBroker::setFeedbackCallback(std::function<void (KisImageSP)> callback)"
       ]
     }
   ]

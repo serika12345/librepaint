@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-06 16:06 JST
+- 更新日時: 2026-09-06 16:23 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1643,7 +1643,18 @@
 - `libs/image/KisBusyWaitBroker.h`の残存全10 APIは一意かつ台帳と非重複で、識別子整列集合SHA-256 `533b4b1285d028473120fd1478e061d1a1ebe6597c24eb109d4ed807620fd29b`を持つ。型・構築・破棄・singleton 4、一般待機の開始・終了・状態3、画像待機の開始・終了2、feedback callback設定1の最大5枠へ完全に割り当てる。独立instanceとsingletonの初期状態、一般待機と画像待機の入れ子計数、worker threadからの通知無視、callbackの解除を動的に固定する。実画像を要するcallback呼出し条件は厳密署名で固定し、画像待機の計数自体はcallback未設定のnull識別tokenで実行する。
 - 既存の具象所有`kritaimagebusywaitbrokerobjects`は既にAUTOMOC不要・位置独立の1工程・3入力で、command SHA-256 `176b6a8d6bf33b33fa0ca51d780bec466b7f00e0551e5f4e36b08b9cb6bdf6bf`、input SHA-256 `2ae9b8eb65a93c33684eaf740ec8fb8dfdf5d34732aac30d9eadf6eee051905c`である。既存`KisSafeBlockingQueueConnectionProxyContractTest`は別責務2 objectを併合する10工程・21入力であるため追記せず、新規`KisBusyWaitBrokerContractTest`を同objectとQt Core・Widgets・Testだけへ接続する。最寄りの単一object契約は5工程・11〜12入力であり、停止線を6工程・14入力とする。既存objectは製品`kritaimage`へ既に再集約済みで、公開header、製品source、製品targetを変更せずに対象限定の再構築単位を得られるため、先行構造変更は不要である。
 - 比較した`KisImageResolutionProxy`は画像寿命と解像度signal、`KisBezierTransformMesh`はmesh基底・画素変換、`KisUniqueColorSet`は`KoColor`と色空間registryを具象実行に要する。`KisAutoLevels`は15 API中、単独分離できる動的処理がgamma計算に限られる。第280便から保留した6候補も製品または既存試験の1,000工程超の閉包を解消する追加分離が必要である。待機brokerは全10 API中、実画像callback条件を除く状態遷移を既存の1工程具象所有で観測できるため先行する。
-- `g281-busy-wait-broker-contract`の状態は`planned`、実装基点は`52c73292f9`である。許可pathは新規`libs/image/tests/KisBusyWaitBrokerContractTest.cpp`、`libs/image/tests/CMakeLists.txt`の新target固有節、調整担当が統合後に変更する`docs/architecture/public-api-test-contracts.json`と本snapshotだけである。一度に一つの専用worktree-local `build/tdd-macos`を共有compiler cacheとともに使い、対象・既存近傍、追加枠の20回反復、厳格構文、AUTOMOC後の二回目計画、二回の無作業再構築、動的接続・未解決記号、公開API検査、`verify-quick`をmacOSで確認する。製品target、既存重量試験、全体build・`verify`、Linux、Nix再評価を実行しない。
+- `g281-busy-wait-broker-contract`の状態は`integrated`、実装基点は`52c73292f9`である。許可pathを新規`libs/image/tests/KisBusyWaitBrokerContractTest.cpp`と`libs/image/tests/CMakeLists.txt`の新target固有節に限定し、受渡しcommit `b4174ed520`を中央commit `5f0a0e22a2`として取り込んだ。公開headerと製品sourceを変更していない。
+
+### 第281便の契約統合結果
+
+- 開始`libs/image/KisBusyWaitBroker.h`の残存全10 APIから、新規`libs/image/tests/KisBusyWaitBrokerContractTest.cpp`の5枠へ、型・構築・破棄・singleton 4、一般待機の開始・終了・状態3、worker thread通知無視の補足挙動、画像待機の開始・終了2、feedback callback設定1を対応付けた。独立instanceとsingletonの初期状態、GUI thread上の一般・画像待機の入れ子計数、worker threadからの一般待機通知無視、callbackの空値設定を動的に固定し、実画像を要するcallback呼出し条件は厳密署名で固定した。
+- target不存在と、5枠宣言段階で追加5試験関数および直接objectが要求する安全検査関数だけが未定義になる期待link失敗を確認した。担当側と中央のmacOSで追加5枠を各20回、対象CTest `libs-image-KisBusyWaitBrokerContractTest`と近傍`libs-image-KisSafeBlockingQueueConnectionProxyContractTest`、厳格`clang-check`、書式、二回の無作業再構築に成功した。対象は5工程・11入力で、担当側command SHA-256 `0f5e38ab0a65040a0985df78c5df426c4e3479d83090094c71da3ca4bb5d820b`、input SHA-256 `6af1fa14155c18734b69e1616f28db2d343578713fc58d364adda65b5009e5a2`、中央command SHA-256 `65d361985484f745f449c855f1839f049ef23e260c1dc49c76c16285660cfa41`、input SHA-256 `536af7472215932263f4d5afb62dbe406c797e91a9bacd787dd26a18f037887c`である。試験側AUTOMOC `HEADERS=[]`、Qt Widgets・Test・Gui・CoreとOS frameworkだけの動的接続、製品未解決記号0、公開API検査、`verify-quick`を確認した。
+- 台帳へ10 APIを追加して22,434件対応、7,370件未対応となった。受渡し差分と中央差分のpatch ID `d2d95a82b9c9c1643a2d50ae909b9808b6042cab`の一致と専用作業treeのcleanを確認し、308,992 KiBの構築木を含む591,176 KiBの作業treeとbranchを削除した。旧`public-api-missing-g281.json` 1,962,248 bytesを削除し、主Ninja木5,835,716 KiB、共有compiler cache 983,276 KiB、最新`build/tdd-macos/public-api-missing-g282.json` 1,959,943 bytes、SHA-256 `4d76d332a8ed4a05d1af8d5e12c1e9ef9e37355b44fb6a1bf55588ff438798a4`だけを再利用対象として保持する。compiler cacheは143,762件中120,372件、83.73%がhitしている。製品target、既存重量試験、全体build・`verify`、Linux、Nix再評価は実行していない。
+
+### 第282便の先行監査計画
+
+- 正式入力は`build/tdd-macos/public-api-missing-g282.json`である。第281便で保留した候補に加え、既存の単一objectまたは軽量契約targetへ接続できる10〜20 APIの責務を再比較する。全公開APIを最大5枠へ完全に割り当て、主要状態を動的に観測できる候補を優先し、既存targetが別責務を含む場合は専用targetの工程数と入力数を先に比較する。
+- 次の永続作業は、正式不足報告、候補header・実装、既存試験、CMake File APIを読み取り専用で再照合し、契約実装前に必要な構造整理と停止線を確定することである。製品target、既存重量試験、全体build・`verify`、Linux、Nix再評価を実行しない。
 
 ### 第239便の先行監査担当票
 
