@@ -21,6 +21,7 @@
 #include <application/ui/orchestration/kis_action.h>
 #include <kactioncollection.h>
 #include <kis_icon.h>
+#include <kis_image.h>
 
 
 #define SNAPPING_THRESHOLD 10
