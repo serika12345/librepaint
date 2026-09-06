@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 7199
+    "expectedMissingApis": 7189
   },
   "contracts": [
     {
@@ -63426,6 +63426,43 @@
       "classification": "maintained",
       "apis": [
         "function:KisAutoKey::tryAutoCreateDuplicatedFrame(KisPaintDeviceSP device,AutoCreateKeyframeFlags flags=None)"
+      ]
+    },
+    {
+      "target": "KisNodeVisualPropertyCommandsSchemaContractTest",
+      "source": "libs/image/tests/KisNodeVisualPropertyCommandsSchemaContractTest.cpp",
+      "test": "KisNodeVisualPropertyCommandsSchemaContractTest::propertyListTypeAndConstructionSchemaRemainStable",
+      "behavior": "node属性一覧変更commandはnode commandと非同期結合interfaceを基底とし、nodeと属性一覧から構築でき、基底nodeの属性一覧型を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisNodePropertyListCommand::PropertyList",
+        "class:KisNodePropertyListCommand",
+        "method:KisNodePropertyListCommand::KisNodePropertyListCommand(KisNodeSP node,KisBaseNode::PropertyList newPropertyList)"
+      ]
+    },
+    {
+      "target": "KisNodeVisualPropertyCommandsSchemaContractTest",
+      "source": "libs/image/tests/KisNodeVisualPropertyCommandsSchemaContractTest.cpp",
+      "test": "KisNodeVisualPropertyCommandsSchemaContractTest::propertyListHistoryAndExecutionSchemaRemainStable",
+      "behavior": "node属性一覧変更commandはundo履歴の識別、結合・相殺判定、属性一覧変更の適用と取消し操作を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodePropertyListCommand::canAnnihilateWith(const KUndo2Command * other) const",
+        "method:KisNodePropertyListCommand::canMergeWith(const KUndo2Command * command) const",
+        "method:KisNodePropertyListCommand::id() const",
+        "method:KisNodePropertyListCommand::mergeWith(const KUndo2Command * command)",
+        "method:KisNodePropertyListCommand::redo()",
+        "method:KisNodePropertyListCommand::undo()"
+      ]
+    },
+    {
+      "target": "KisNodeVisualPropertyCommandsSchemaContractTest",
+      "source": "libs/image/tests/KisNodeVisualPropertyCommandsSchemaContractTest.cpp",
+      "test": "KisNodeVisualPropertyCommandsSchemaContractTest::propertyListApplicationSchemaRemainStable",
+      "behavior": "node属性一覧変更commandはnode、画像、属性一覧を受け取り、undo履歴へ自動追加して適用する静的関数境界を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodePropertyListCommand::setNodePropertiesAutoUndo(KisNodeSP node,KisImageSP image,PropertyList proplist)"
       ]
     }
   ]
