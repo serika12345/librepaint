@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 7010
+    "expectedMissingApis": 6985
   },
   "contracts": [
     {
@@ -28947,6 +28947,76 @@
         "struct:CFReorientedNormalMapCombine",
         "struct:CFTangentNormalmap",
         "struct:CFTint"
+      ]
+    },
+    {
+      "target": "KoCompositeOpsSchemaContractTest",
+      "source": "libs/pigment/tests/KoCompositeOpsSchemaContractTest.cpp",
+      "test": "KoCompositeOpsSchemaContractTest::generalRegistrationSchemaRemainsStable",
+      "behavior": "一般合成演算の登録方針は画素channel型、二項合成関数型、alpha位置、整数色空間判定、および一括・名前付き登録入口を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:_Private::AddGeneralOps::Arg",
+        "alias:_Private::AddGeneralOps::CompositeFunc",
+        "member:_Private::AddGeneralOps::IsIntegerSpace",
+        "member:_Private::AddGeneralOps::alpha_pos",
+        "method:_Private::AddGeneralOps::add(KoColorSpace * cs)",
+        "method:_Private::AddGeneralOps::add(KoColorSpace * cs,const QString & id,const QString & category)",
+        "struct:_Private::AddGeneralOps"
+      ]
+    },
+    {
+      "target": "KoCompositeOpsSchemaContractTest",
+      "source": "libs/pigment/tests/KoCompositeOpsSchemaContractTest.cpp",
+      "test": "KoCompositeOpsSchemaContractTest::alphaRegistrationSchemaRemainsStable",
+      "behavior": "alpha合成演算の登録方針は浮動小数引数型、alpha位置、および一括・名前付き登録入口を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:_Private::AddGeneralAlphaOps::Arg",
+        "member:_Private::AddGeneralAlphaOps::alpha_pos",
+        "method:_Private::AddGeneralAlphaOps::add(KoColorSpace * cs)",
+        "method:_Private::AddGeneralAlphaOps::add(KoColorSpace * cs,const QString & id,const QString & category)",
+        "struct:_Private::AddGeneralAlphaOps"
+      ]
+    },
+    {
+      "target": "KoCompositeOpsSchemaContractTest",
+      "source": "libs/pigment/tests/KoCompositeOpsSchemaContractTest.cpp",
+      "test": "KoCompositeOpsSchemaContractTest::rgbRegistrationSchemaRemainsStable",
+      "behavior": "RGB合成演算の登録方針はchannel型、赤・緑・青位置、および一括・名前付き登録入口を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:_Private::AddRGBOps::channels_type",
+        "member:_Private::AddRGBOps::blue_pos",
+        "member:_Private::AddRGBOps::green_pos",
+        "member:_Private::AddRGBOps::red_pos",
+        "method:_Private::AddRGBOps::add(KoColorSpace * cs)",
+        "method:_Private::AddRGBOps::add(KoColorSpace * cs,const QString & id,const QString & category)",
+        "struct:_Private::AddRGBOps"
+      ]
+    },
+    {
+      "target": "KoCompositeOpsSchemaContractTest",
+      "source": "libs/pigment/tests/KoCompositeOpsSchemaContractTest.cpp",
+      "test": "KoCompositeOpsSchemaContractTest::optimizedSelectionSchemaRemainsStable",
+      "behavior": "最適化演算選択方針は同じ借用色空間からalpha darken、copy、overの合成演算pointerを生成する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:_Private::OptimizedOpsSelector::createAlphaDarkenOp(const KoColorSpace * cs)",
+        "method:_Private::OptimizedOpsSelector::createCopyOp(const KoColorSpace * cs)",
+        "method:_Private::OptimizedOpsSelector::createOverOp(const KoColorSpace * cs)",
+        "struct:_Private::OptimizedOpsSelector"
+      ]
+    },
+    {
+      "target": "KoCompositeOpsSchemaContractTest",
+      "source": "libs/pigment/tests/KoCompositeOpsSchemaContractTest.cpp",
+      "test": "KoCompositeOpsSchemaContractTest::standardEntryPointSchemaRemainsStable",
+      "behavior": "標準合成演算の一括登録とalpha darken単独生成は色空間を受け取るtemplate公開入口を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:addStandardCompositeOps(KoColorSpace * cs)",
+        "function:createAlphaDarkenCompositeOp(const KoColorSpace * cs)"
       ]
     },
     {

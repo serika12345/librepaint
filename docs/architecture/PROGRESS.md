@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-06 23:15 JST
+- 更新日時: 2026-09-06 23:25 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1999,7 +1999,14 @@
 
 - 正式入力`build/tdd-macos/public-api-missing-g306.json`は公開header 1,548、公開API 29,804、対応済み22,794、未対応7,010、1,861,123 bytes、SHA-256 `114e3c4650d797ccd23bf5c97655830be006e6784133453324e3607c43e52745`を記録する。`libs/pigment/compositeops/KoCompositeOps.h`の残存全25 APIは重複なく、識別子整列集合SHA-256は`d32363bd0523f2a1371c47e3104545dbfac3e6eb524c2dfbf77e69117d89a2ff`である。一般演算登録7、alpha演算登録5、RGB演算登録7、最適化演算選択4、標準登録入口2の5枠へ完全に割り当てる。
 - 同headerを実際にincludeする製品翻訳単位は`libs/pigment/colorspaces/KoAlphaColorSpace.cpp`だけであり、製品閉包を契約へ持ち込む必要はない。新規`libs/pigment/tests/KoCompositeOpsSchemaContractTest.cpp`を作り、pigment・compositeops・globalのsource/generated探索路、Qt Core・Gui・Test、Imath・Boost header interface、`kritapigment_EXPORTS`だけへ直接接続する。近傍`KoStreamedMathContractTest`は4工程・8入力、command SHA-256 `a67e948521d0a2f5e7219ea775c6f110c8e641daf4aff6341d5feca1acd006ab`、input SHA-256 `98a6fc6f6fce2fdbdff38bd26a8a1254df9116edbb2c154392741db22e73f887`である。新targetは4工程・8〜9入力を予測し、停止線を5工程・11入力とする。
-- `g306-composite-ops-schema`の状態は`planned`、実装基点は`9c57c1034a`である。許可pathを新規試験sourceと`libs/pigment/tests/CMakeLists.txt`の新target固有節だけに限定し、公開headerと製品sourceを変更しない。具体的な色空間、合成演算個体、登録処理を実体化せず、代表的な8-bit RGB traitsによる未評価template特殊化で型・定数・登録入口の公開署名を固定する。macOSの対象`libs-pigment-KoCompositeOpsSchemaContractTest`、近傍`libs-pigment-KoStreamedMathContractTest`、追加5枠の各20回反復、厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
+- `g306-composite-ops-schema`の状態は`integrated`、実装基点は`9c57c1034a`である。許可pathを新規試験sourceと`libs/pigment/tests/CMakeLists.txt`の新target固有節だけに限定し、公開headerと製品sourceを変更しなかった。受渡しcommit `fe4eb58041`をpatch-id `0d32b85a9c1cf5992b4b7796378cc5903c20880b`で照合し、統合commit `64e8f7b5dd`として取り込んだ。
+
+### 第306便の契約統合結果
+
+- 開始`libs/pigment/compositeops/KoCompositeOps.h`から新規`libs/pigment/tests/KoCompositeOpsSchemaContractTest.cpp`へ残存全25 APIを対応付けた。一般演算登録7、alpha演算登録5、RGB演算登録7、最適化演算選択4、標準登録入口2の5枠で、8-bit RGB traitsに対する型・位置定数・一括／名前付き登録と標準生成入口の正確な公開署名を固定した。新規試験sourceは84行・5枠である。
+- 対象未登録の初回限定構築は未知の対象として失敗し、登録後は対象headerが直接必要とする`klocalizedstring.h`の探索不足を記録した。最初のKF I18n library接続では4工程・9入力と動的依存が増えたため、`KF6::I18n`のinterface探索路だけへ狭め、最終的に4工程・8入力とQt Gui・Test・Coreだけの動的接続へ戻した。宣言だけの5枠が5個の未定義symbolとなる期待失敗も確認した。候補headerのAUTOMOC `HEADERS`は空で、製品未解決記号は0である。
+- 担当側と中央のmacOSで追加5枠を各20回、対象CTest `libs-pigment-KoCompositeOpsSchemaContractTest`、近傍`libs-pigment-KoStreamedMathContractTest`、厳格`clang-check`、書式、二回の無作業再構築、`verify-quick`に成功した。担当側command SHA-256は`98f4b8dd10fad27eae2f46165a49f7b606ed17c9281cf24554dfd79f37fea144`、input SHA-256は`a599efc572f920600eb710fa069ee1123a4ad6d569d4efbdf3020560fe7cdf50`、中央command SHA-256は`784b1d4ddf72b7b00103acc021d53711f09d281855a095d2aa918f1051f7ca0f`、input SHA-256は`1cac7cbed2af627ef433f12fa2f3f74a98b84a2c6f01e585e2a94598a636cd99`である。
+- 公開API検査に成功し、台帳へ25 APIを追加して22,819件対応、6,985件未対応、対象headerの残存0件となった。cleanな専用作業tree、その300,480 KiBの構築木、branch、旧`public-api-missing-g306.json`を統合直後に削除した。主Ninja木5,863,868 KiB、共有compiler cache 982,596 KiB、最新`build/tdd-macos/public-api-missing-g307.json` 1,855,005 bytes、SHA-256 `ab5c51fda130ac877c7a2e8ea1698933454699a9c0961b887630668e921699fc`だけを再利用対象として保持する。compiler cacheは143,997件中120,464件、83.66%がhitしている。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第307便の正式不足報告から、全APIを最小閉包で固定できる責務を再選定することである。
 
 ### 第239便の先行監査担当票
 
