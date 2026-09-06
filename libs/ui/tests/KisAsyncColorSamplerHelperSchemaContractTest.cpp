@@ -4,6 +4,7 @@
  */
 
 #include "tool/KisAsyncColorSamplerHelper.h"
+#include "widgets/KisScreenColorSampler.h"
 
 #include <QTest>
 
@@ -25,6 +26,11 @@ private Q_SLOTS:
     void asyncColorSamplerPreviewAndPaintingSignaturesRemainStable();
     void asyncColorSamplerGlobalColorAndOutlineSignaturesRemainStable();
     void asyncColorSamplerColorNotificationSignaturesRemainStable();
+    void screenColorSamplerTypeConstructionAndFactorySchemaRemainStable();
+    void screenColorSamplerColorStateSignaturesRemainStable();
+    void screenColorSamplerInputAndCancellationSignaturesRemainStable();
+    void screenColorSamplerActivationAndNotificationSignaturesRemainStable();
+    void screenColorSamplingEventFilterSchemaRemainStable();
 };
 
 void KisAsyncColorSamplerHelperSchemaContractTest::asyncColorSamplerTypeLifetimeAndStateSchemaRemainStable()
@@ -66,6 +72,51 @@ void KisAsyncColorSamplerHelperSchemaContractTest::asyncColorSamplerColorNotific
     ASSERT_ASYNC_COLOR_SAMPLER_SIGNATURE(sigColorSelected, void (KisAsyncColorSamplerHelper::*)(const KoColor &));
     ASSERT_ASYNC_COLOR_SAMPLER_SIGNATURE(sigFinalColorSelected, void (KisAsyncColorSamplerHelper::*)(const KoColor &));
     ASSERT_ASYNC_COLOR_SAMPLER_SIGNATURE(sigRawColorSelected, void (KisAsyncColorSamplerHelper::*)(const KoColor &));
+}
+
+void KisAsyncColorSamplerHelperSchemaContractTest::screenColorSamplerTypeConstructionAndFactorySchemaRemainStable()
+{
+    using Sampler = KisScreenColorSampler;
+    static_assert(std::is_class_v<Sampler> && std::is_base_of_v<KisScreenColorSamplerBase, Sampler>);
+    static_assert(std::has_virtual_destructor_v<Sampler> && std::is_default_constructible_v<Sampler>);
+    static_assert(std::is_constructible_v<Sampler, bool, QWidget *>);
+    static_assert(std::is_same_v<decltype(&Sampler::createScreenColorSampler), Sampler *(*)(QWidget *)>);
+}
+
+void KisAsyncColorSamplerHelperSchemaContractTest::screenColorSamplerColorStateSignaturesRemainStable()
+{
+    using Sampler = KisScreenColorSampler;
+    static_assert(std::is_same_v<decltype(&Sampler::currentColor), KoColor (Sampler::*)()>);
+    static_assert(std::is_same_v<decltype(&Sampler::performRealColorSamplingOfCanvas), bool (Sampler::*)() const>);
+    static_assert(std::is_same_v<decltype(&Sampler::setCurrentColor), void (Sampler::*)(KoColor)>);
+    static_assert(std::is_same_v<decltype(&Sampler::setPerformRealColorSamplingOfCanvas), void (Sampler::*)(bool)>);
+}
+
+void KisAsyncColorSamplerHelperSchemaContractTest::screenColorSamplerInputAndCancellationSignaturesRemainStable()
+{
+    using Sampler = KisScreenColorSampler;
+    static_assert(std::is_same_v<decltype(&Sampler::handleColorSamplingMouseMove), bool (Sampler::*)(QMouseEvent *)>);
+    static_assert(
+        std::is_same_v<decltype(&Sampler::handleColorSamplingMouseButtonRelease), bool (Sampler::*)(QMouseEvent *)>);
+    static_assert(std::is_same_v<decltype(&Sampler::handleColorSamplingKeyPress), bool (Sampler::*)(QKeyEvent *)>);
+    static_assert(std::is_same_v<decltype(&Sampler::cancel), void (Sampler::*)()>);
+}
+
+void KisAsyncColorSamplerHelperSchemaContractTest::screenColorSamplerActivationAndNotificationSignaturesRemainStable()
+{
+    using Sampler = KisScreenColorSampler;
+    static_assert(std::is_same_v<decltype(&Sampler::sampleScreenColor), void (Sampler::*)()>);
+    static_assert(std::is_same_v<decltype(&Sampler::updateIcons), void (Sampler::*)()>);
+    static_assert(std::is_same_v<decltype(&Sampler::sigNewColorSampled), void (Sampler::*)(KoColor)>);
+    static_assert(std::is_same_v<decltype(&Sampler::sigNewColorHovered), void (Sampler::*)(KoColor)>);
+}
+
+void KisAsyncColorSamplerHelperSchemaContractTest::screenColorSamplingEventFilterSchemaRemainStable()
+{
+    using Filter = KisScreenColorSamplingEventFilter;
+    static_assert(std::is_class_v<Filter> && std::is_base_of_v<QObject, Filter>);
+    static_assert(std::is_constructible_v<Filter, KisScreenColorSampler *, QObject *>);
+    static_assert(std::is_same_v<decltype(&Filter::eventFilter), bool (Filter::*)(QObject *, QEvent *)>);
 }
 
 QTEST_MAIN(KisAsyncColorSamplerHelperSchemaContractTest)
