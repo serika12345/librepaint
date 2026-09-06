@@ -13,19 +13,15 @@
 #include <QSize>
 #include <QString>
 
-#include <KoConfig.h>
-#include <KoColorConversionTransformation.h>
 #include <KoCanvasBase.h>
 #include <kritaui_export.h>
 #include <kis_types.h>
 #include <animation/kis_animation_frame_cache_fwd.h>
-#include <KoPointerEvent.h>
 #include <KisToolCanvas.h>
 #include <KisNodeAdditionFlags.h>
 
 #include "opengl/kis_opengl.h"
 
-#include "kis_coordinates_converter.h"
 #include "kis_canvas_decoration.h"
 #include "canvas/kis_painting_assistants_decoration.h"
 #include <KisInputActionGroup.h>
@@ -55,6 +51,7 @@ class KisCoordinatesConverter;
 class KoViewConverter;
 class KisAbstractCanvasWidget;
 class KisPopupPalette;
+class KisMainWindow;
 
 
 /**

@@ -8,6 +8,7 @@
 #include "kis_mirror_axis.h"
 
 #include "KoConfig.h"
+#include <KoPointerEvent.h>
 
 #include <QPainter>
 #include <QApplication>
