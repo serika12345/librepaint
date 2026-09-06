@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 7491
+    "expectedMissingApis": 7473
   },
   "contracts": [
     {
@@ -62477,6 +62477,69 @@
       "classification": "maintained",
       "apis": [
         "method:VirtualChannelInfo::isAlpha() const"
+      ]
+    },
+    {
+      "target": "KisCoordinatesConverterSchemaContractTest",
+      "source": "libs/canvas/tests/KisCoordinatesConverterSchemaContractTest.cpp",
+      "test": "KisCoordinatesConverterSchemaContractTest::coordinateTraitsMappingRemainsStable",
+      "behavior": "座標変換traitsは整数・浮動小数点の点、矩形、線、多角形を対応する浮動小数点型へ写像し、点と矩形へQTransformの変換規則を適用する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:_Private::Traits::Result",
+        "method:_Private::Traits::map(const QTransform & transform,const QRectF & rc)",
+        "method:_Private::Traits::map(const QTransform & transform,const T & obj)",
+        "struct:_Private::Traits"
+      ]
+    },
+    {
+      "target": "KisCoordinatesConverterSchemaContractTest",
+      "source": "libs/canvas/tests/KisCoordinatesConverterSchemaContractTest.cpp",
+      "test": "KisCoordinatesConverterSchemaContractTest::imageViewportAndDocumentConversionSignaturesRemainStable",
+      "behavior": "画像・viewport・文書間の変換templateは入力と同じ点型を受け、QPointFへ変換した結果を返す公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCoordinatesConverter::documentToImage(const T & obj) const",
+        "method:KisCoordinatesConverter::imageToDocument(const T & obj) const",
+        "method:KisCoordinatesConverter::imageToViewport(const T & obj) const",
+        "method:KisCoordinatesConverter::viewportToImage(const T & obj) const"
+      ]
+    },
+    {
+      "target": "KisCoordinatesConverterSchemaContractTest",
+      "source": "libs/canvas/tests/KisCoordinatesConverterSchemaContractTest.cpp",
+      "test": "KisCoordinatesConverterSchemaContractTest::documentFlakeAndWidgetConversionSignaturesRemainStable",
+      "behavior": "文書・flake・widget間の変換templateはQPointFの双方向変換署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCoordinatesConverter::documentToFlake(const T & obj) const",
+        "method:KisCoordinatesConverter::documentToWidget(const T & obj) const",
+        "method:KisCoordinatesConverter::flakeToDocument(const T & obj) const",
+        "method:KisCoordinatesConverter::flakeToWidget(const T & obj) const",
+        "method:KisCoordinatesConverter::widgetToDocument(const T & obj) const",
+        "method:KisCoordinatesConverter::widgetToFlake(const T & obj) const"
+      ]
+    },
+    {
+      "target": "KisCoordinatesConverterSchemaContractTest",
+      "source": "libs/canvas/tests/KisCoordinatesConverterSchemaContractTest.cpp",
+      "test": "KisCoordinatesConverterSchemaContractTest::widgetAndViewportConversionSignaturesRemainStable",
+      "behavior": "widget・viewport間の変換templateはQPointFの双方向変換署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCoordinatesConverter::viewportToWidget(const T & obj) const",
+        "method:KisCoordinatesConverter::widgetToViewport(const T & obj) const"
+      ]
+    },
+    {
+      "target": "KisCoordinatesConverterSchemaContractTest",
+      "source": "libs/canvas/tests/KisCoordinatesConverterSchemaContractTest.cpp",
+      "test": "KisCoordinatesConverterSchemaContractTest::imageAndWidgetConversionSignaturesRemainStable",
+      "behavior": "画像・widget間の変換templateはQPointFの双方向変換署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCoordinatesConverter::imageToWidget(const T & obj) const",
+        "method:KisCoordinatesConverter::widgetToImage(const T & obj) const"
       ]
     }
   ]

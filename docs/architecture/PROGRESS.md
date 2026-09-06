@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-06 13:05 JST
+- 更新日時: 2026-09-06 13:24 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1518,7 +1518,19 @@
 
 - 4候補は正式不足報告で各18件を維持し、座標変換templateの識別子整列集合SHA-256は`2f2f5c6340521aef4edfb3170a61e1441b740ae98f0b0529fcb9fedcd0c6bd97`、台帳との交差は0である。paint device・selection cacheは全APIがheader内にあるがguardと再利用挙動の観測に画像状態を要し、layer style補助は13関数の実行に画素選択・効果設定を要する。dab描画queueはjob順序、資源cache、統計値の観測にpaintop実装を要する。これら3候補は限定targetの静的署名だけでは主要挙動を固定できないため後続の実装所有分離または動的契約候補として保留する。
 - `libs/canvas/kis_coordinates_converter.h`の残存18 APIは公開inline座標変換templateとその型変換規則で一責務に収まる。既存`libs/canvas/tests/KisCoordinatesConverterSchemaContractTest.cpp`は142行・5枠で、5枠追加後も300行・20枠未満、CMake変更なし、Qt Core・Gui・Testだけの4工程・8入力を維持できる。重量`kis_coordinates_converter_test`は1,225工程・2,469入力で既に変換実行を広く固定するため、限定対象では汎用・矩形traitsの写像を`QTransform`で動的に観測し、14変換templateを`QPointF`特殊化の厳密署名で固定する。新規targetと製品実装分離は既存限定対象より広いため棄却する。
-- `g275-coordinate-template-schema`の状態は`in_progress`、実装基点は`5506b933d7`、専用作業treeは`/Users/masato/Documents/librepaint-g275-coordinate-template-schema`、branchは`agent/g275-coordinate-template-schema`、macOSの対象と軽量近傍に限る構築実行許可は`granted`である。許可pathは既存試験sourceだけとし、traits型・写像4、画像・viewport・文書変換4、文書・flake・widget変換6、widget・viewport変換2、画像・widget変換2の5枠へ全18 APIを割り当てる。対象は4工程・8入力、停止線5工程・11入力、AUTOMOC `HEADERS=[]`、製品非接続を維持する。CMake、公開header、製品source、探索路・定義・link変更、製品未解決記号、許可path外変更が必要なら停止する。
+- `g275-coordinate-template-schema`の状態は`integrated`、実装基点は`5506b933d7`である。許可pathを既存`libs/canvas/tests/KisCoordinatesConverterSchemaContractTest.cpp`だけに限定し、traits型・写像4、画像・viewport・文書変換4、文書・flake・widget変換6、widget・viewport変換2、画像・widget変換2の5枠へ全18 APIを割り当てた。CMake、公開header、製品source、探索路・定義・linkを変更せず、受渡しcommit `63cb924476`を中央commit `4bbe75b772`として取り込んだ。
+
+### 第275便の契約統合結果
+
+- 汎用traitsの点写像と矩形専用の外接矩形写像を、移動・回転・非等方拡縮を含む`QTransform`で動的に固定した。整数・浮動小数点の点、矩形、線、多角形に対する結果型と、画像・viewport・文書・flake・widget間の14変換templateを`QPointF`特殊化の厳密署名で固定した。既存の重量座標変換試験が保持するconverter状態を重複実体化していない。
+- 5枠宣言段階で追加した全5試験関数だけが未定義になる期待link失敗を確認した。担当側と中央のmacOSで追加5枠を各20回、対象CTest `libs-canvas-KisCoordinatesConverterSchemaContractTest`と軽量近傍`libs-canvas-KisCanvasStateContractTest`、AUTOMOC後の二回目計画、二回の無作業再構築に成功した。厳格`clang-check`、差分検査にも成功した。
+- 対象は変更前後とも4工程・8入力で、担当側command SHA-256 `a4f23e42af239c12ee9e7cfad17f2ca749938ae9f15a090f713a95c34592679d`、input SHA-256 `a198e23f03d9eb6a7796688b155d4b8c0e0f04ca11be238cb742c7197951203c`、中央command SHA-256 `3efeda824312c1eab4cdeae7fd95f6d25747e9963f4f1801cd5fd5b8be71b3a8`、input SHA-256 `552d37abf674e531044f14f18ad56d36400d1b08c27bdeb687128ba5b35ac44b`である。AUTOMOC `HEADERS=[]`、Qt Core・Gui・TestとOS frameworkだけの動的接続、製品未解決記号0を確認した。
+- 台帳へ18 APIを追加して22,331件対応、7,473件未対応となり、旧基準7,491件に対する実測7,473件の期待不一致を確認してから基準を更新した。受渡し差分と中央差分のpatch ID一致、専用作業treeのcleanを確認し、302,960 KiBの構築木を含む591,048 KiBの作業treeとbranchを削除した。旧`public-api-missing-g275.json` 1,991,711 bytesを削除し、主Ninja木5,799,892 KiB、共有compiler cache 982,692 KiB、最新`build/tdd-macos/public-api-missing-g276.json` 1,986,724 bytes、SHA-256 `86d3ae1b2e528e16dcc59c695fdb4de168bbba648de01ef92636f6f6f74edf91`だけを再利用対象として保持する。compiler cacheは143,645件中120,319件、83.76%がhitしている。製品target、重量座標変換target、全体build・`verify`、Linux、Nix再評価は実行していない。
+
+### 第276便の先行監査計画
+
+- 正式入力は`build/tdd-macos/public-api-missing-g276.json`である。第275便で保留した`libs/image/kis_cached_paint_device.h`、`libs/image/layerstyles/kis_ls_utils.h`、`plugins/paintops/defaultpaintops/brush/KisDabRenderingQueue.h`を再候補とし、同程度の残存APIを持つ別責務も比較する。公開値・所有・寿命・決定的挙動を最大5枠へ完全割当できること、既存限定targetへの追記または具体的実装所有分離で製品targetより十分小さい閉包になることを確認してから実装する。
+- 監査中は正式不足報告、候補header・実装、既存試験、CMake File APIの読み取りとNinja計画測定だけを行う。構造整理が必要なら契約実装より先に独立変更として計画し、製品target、全体build・`verify`、Linux、Nix再評価を実行しない。
 
 ### 第239便の先行監査担当票
 
