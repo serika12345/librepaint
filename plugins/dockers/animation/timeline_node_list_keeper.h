@@ -7,10 +7,10 @@
 #ifndef __TIMELINE_NODE_LIST_KEEPER_H
 #define __TIMELINE_NODE_LIST_KEEPER_H
 
-#include <QObject>
 #include <QList>
+#include <QObject>
+#include <QPointer>
 #include <QScopedPointer>
-#include <QAbstractTableModel>
 
 #include "kritaanimationdocker_export.h"
 
