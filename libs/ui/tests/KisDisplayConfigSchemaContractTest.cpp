@@ -4,11 +4,18 @@
  */
 
 #include <canvas/KisDisplayConfig.h>
+#include <canvas/kis_display_color_converter.h>
 
 #include <QDebug>
 #include <QTest>
 
 #include <type_traits>
+
+namespace
+{
+#define ASSERT_DISPLAY_COLOR_CONVERTER_SIGNATURE(method, signature)                                                    \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KisDisplayColorConverter::method)), signature>)
+} // namespace
 
 class KisDisplayConfigSchemaContractTest : public QObject
 {
@@ -20,6 +27,11 @@ private Q_SLOTS:
     void displayConfigExternalPolicySignaturesRemainStable();
     void multiSurfaceDisplayConfigValueSchemaRemainsStable();
     void multiSurfaceDisplayConfigProjectionSchemaRemainsStable();
+    void displayColorConverterTypeConstructionAndRendererSchemaRemainStable();
+    void displayColorConverterImageAndConfigurationSignaturesRemainStable();
+    void displayColorConverterColorAndPaletteSignaturesRemainStable();
+    void displayColorConverterDeviceImageAndNotificationSignaturesRemainStable();
+    void displayColorConverterComponentSignaturesRemainStable();
 };
 
 void KisDisplayConfigSchemaContractTest::displayConfigTypeAndConstructionSchemaRemainsStable()
@@ -87,6 +99,97 @@ void KisDisplayConfigSchemaContractTest::multiSurfaceDisplayConfigProjectionSche
     static_assert(std::is_same_v<decltype(&Config::options), Config::Options (Config::*)() const>);
     static_assert(std::is_same_v<decltype(&Config::setOptions), void (Config::*)(const Config::Options &)>);
 }
+
+void KisDisplayConfigSchemaContractTest::displayColorConverterTypeConstructionAndRendererSchemaRemainStable()
+{
+    using Converter = KisDisplayColorConverter;
+    using Options =
+        std::pair<KoColorConversionTransformation::Intent, KoColorConversionTransformation::ConversionFlags>;
+
+    static_assert(std::is_class_v<Converter>);
+    static_assert(std::is_base_of_v<QObject, Converter>);
+    static_assert(std::is_same_v<Converter::ConversionOptions, Options>);
+    static_assert(std::is_default_constructible_v<Converter>);
+    static_assert(std::is_constructible_v<Converter, KoCanvasResourceProvider *, QObject *>);
+    static_assert(std::has_virtual_destructor_v<Converter>);
+    ASSERT_DISPLAY_COLOR_CONVERTER_SIGNATURE(dumbConverterInstance, Converter * (*)());
+    ASSERT_DISPLAY_COLOR_CONVERTER_SIGNATURE(displayRendererInterface,
+                                             KoColorDisplayRendererInterface * (Converter::*)() const);
+}
+
+void KisDisplayConfigSchemaContractTest::displayColorConverterImageAndConfigurationSignaturesRemainStable()
+{
+    using Converter = KisDisplayColorConverter;
+
+    ASSERT_DISPLAY_COLOR_CONVERTER_SIGNATURE(setImage, void (Converter::*)(KisImageSP));
+    ASSERT_DISPLAY_COLOR_CONVERTER_SIGNATURE(setImageColorSpace, void (Converter::*)(const KoColorSpace *));
+    ASSERT_DISPLAY_COLOR_CONVERTER_SIGNATURE(paintingColorSpace, const KoColorSpace *(Converter::*)() const);
+    ASSERT_DISPLAY_COLOR_CONVERTER_SIGNATURE(nodeColorSpace, const KoColorSpace *(Converter::*)() const);
+    ASSERT_DISPLAY_COLOR_CONVERTER_SIGNATURE(setMultiSurfaceDisplayConfig,
+                                             void (Converter::*)(const KisMultiSurfaceDisplayConfig &));
+    ASSERT_DISPLAY_COLOR_CONVERTER_SIGNATURE(setDisplayFilter, void (Converter::*)(QSharedPointer<KisDisplayFilter>));
+    ASSERT_DISPLAY_COLOR_CONVERTER_SIGNATURE(displayConfig, KisDisplayConfig (Converter::*)() const);
+    ASSERT_DISPLAY_COLOR_CONVERTER_SIGNATURE(displayFilter, QSharedPointer<KisDisplayFilter> (Converter::*)() const);
+    ASSERT_DISPLAY_COLOR_CONVERTER_SIGNATURE(multiSurfaceDisplayConfig,
+                                             KisMultiSurfaceDisplayConfig (Converter::*)() const);
+    ASSERT_DISPLAY_COLOR_CONVERTER_SIGNATURE(conversionOptions, Converter::ConversionOptions (Converter::*)() const);
+}
+
+void KisDisplayConfigSchemaContractTest::displayColorConverterColorAndPaletteSignaturesRemainStable()
+{
+    using Converter = KisDisplayColorConverter;
+
+    ASSERT_DISPLAY_COLOR_CONVERTER_SIGNATURE(toQColor, QColor (Converter::*)(const KoColor &, bool) const);
+    ASSERT_DISPLAY_COLOR_CONVERTER_SIGNATURE(approximateFromRenderedQColor,
+                                             KoColor (Converter::*)(const QColor &) const);
+    ASSERT_DISPLAY_COLOR_CONVERTER_SIGNATURE(canSkipDisplayConversion, bool (Converter::*)(const KoColorSpace *) const);
+    ASSERT_DISPLAY_COLOR_CONVERTER_SIGNATURE(applyDisplayFiltering,
+                                             KoColor (Converter::*)(const KoColor &, const KoID &) const);
+    ASSERT_DISPLAY_COLOR_CONVERTER_SIGNATURE(convertColorToDisplayColorSpace,
+                                             QColor (Converter::*)(const KoColor, bool) const);
+    ASSERT_DISPLAY_COLOR_CONVERTER_SIGNATURE(handlePaletteForDisplayColorSpace,
+                                             KisHandlePalette (Converter::*)() const);
+    ASSERT_DISPLAY_COLOR_CONVERTER_SIGNATURE(systemPaletteForDisplayColorSpace, QPalette (Converter::*)() const);
+}
+
+void KisDisplayConfigSchemaContractTest::displayColorConverterDeviceImageAndNotificationSignaturesRemainStable()
+{
+    using Converter = KisDisplayColorConverter;
+
+    ASSERT_DISPLAY_COLOR_CONVERTER_SIGNATURE(applyDisplayFilteringF32,
+                                             void (Converter::*)(KisFixedPaintDeviceSP, const KoColorSpace *) const);
+    ASSERT_DISPLAY_COLOR_CONVERTER_SIGNATURE(convertImageToDisplayColorSpace,
+                                             QImage (Converter::*)(KisPaintDeviceSP, QRect, bool) const);
+    ASSERT_DISPLAY_COLOR_CONVERTER_SIGNATURE(toQImage, QImage (Converter::*)(KisPaintDeviceSP, bool) const);
+    ASSERT_DISPLAY_COLOR_CONVERTER_SIGNATURE(toQImage,
+                                             QImage (Converter::*)(const KoColorSpace *, const quint8 *, QSize, bool)
+                                                 const);
+    ASSERT_DISPLAY_COLOR_CONVERTER_SIGNATURE(displayConfigurationChanged, void (Converter::*)());
+}
+
+void KisDisplayConfigSchemaContractTest::displayColorConverterComponentSignaturesRemainStable()
+{
+    using Converter = KisDisplayColorConverter;
+
+    ASSERT_DISPLAY_COLOR_CONVERTER_SIGNATURE(fromHsv, KoColor (Converter::*)(int, int, int, int) const);
+    ASSERT_DISPLAY_COLOR_CONVERTER_SIGNATURE(fromHsvF, KoColor (Converter::*)(qreal, qreal, qreal, qreal));
+    ASSERT_DISPLAY_COLOR_CONVERTER_SIGNATURE(fromHslF, KoColor (Converter::*)(qreal, qreal, qreal, qreal));
+    ASSERT_DISPLAY_COLOR_CONVERTER_SIGNATURE(fromHsiF, KoColor (Converter::*)(qreal, qreal, qreal));
+    ASSERT_DISPLAY_COLOR_CONVERTER_SIGNATURE(fromHsyF,
+                                             KoColor (Converter::*)(qreal, qreal, qreal, qreal, qreal, qreal, qreal));
+    ASSERT_DISPLAY_COLOR_CONVERTER_SIGNATURE(getHsv,
+                                             void (Converter::*)(const KoColor &, int *, int *, int *, int *) const);
+    ASSERT_DISPLAY_COLOR_CONVERTER_SIGNATURE(getHsvF,
+                                             void (Converter::*)(const KoColor &, qreal *, qreal *, qreal *, qreal *));
+    ASSERT_DISPLAY_COLOR_CONVERTER_SIGNATURE(getHslF,
+                                             void (Converter::*)(const KoColor &, qreal *, qreal *, qreal *, qreal *));
+    ASSERT_DISPLAY_COLOR_CONVERTER_SIGNATURE(getHsiF, void (Converter::*)(const KoColor &, qreal *, qreal *, qreal *));
+    ASSERT_DISPLAY_COLOR_CONVERTER_SIGNATURE(
+        getHsyF,
+        void (Converter::*)(const KoColor &, qreal *, qreal *, qreal *, qreal, qreal, qreal, qreal));
+}
+
+#undef ASSERT_DISPLAY_COLOR_CONVERTER_SIGNATURE
 
 QTEST_GUILESS_MAIN(KisDisplayConfigSchemaContractTest)
 
