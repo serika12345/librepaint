@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-06 20:47 JST
+- 更新日時: 2026-09-06 20:50 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1864,6 +1864,12 @@
 - 宣言だけの追加3枠が未定義symbolとなる期待失敗を記録した。対象は担当側・中央とも4工程・8入力を維持した。担当側command SHA-256は`8a72bfd18658d04609be1657d4063fca185123e44030c7758c2beac4006fba2f`、input SHA-256は`268278377e8ddab20dc348fb7b57d51be24abaec7f838a2572d8180edd3be767`、中央command SHA-256は変更前と同じ`5a681d471358ce376bb5cb7df019c9b230c1c6dbc9b1dab3b08f423a15d19e7d`、input SHA-256は`28f0a00b848d5a016ba3595f901264a3d65f9d9f36dfb3480fbb8bfa6f18c574`である。候補headerはAUTOMOC入力外で、Qt Gui・Test・Xml・CoreとOS frameworkだけへ動的接続し、製品未解決記号は0である。
 - 担当側と中央のmacOSで追加3枠を各20回、対象CTest `libs-flake-KoMarkerSchemaContractTest`、近傍`libs-flake-KoPathShapeMarkerCommandContractTest`、厳格`clang-check`、書式、二回目計画と二回の無作業再構築に成功した。担当側の`verify-quick`と中央の公開API検査にも成功し、台帳へ6 APIを追加して22,649件対応、7,155件未対応、対象headerの残存0件となった。
 - cleanな専用作業tree、304,404 KiBの構築木、branchを統合直後に削除し、作業tree全体895,764 KiBを回収した。旧`public-api-missing-g295.json` 1,902,284 bytesを削除し、主Ninja木5,855,272 KiB、共有compiler cache 982,572 KiB、最新`build/tdd-macos/public-api-missing-g296.json` 1,900,934 bytes、SHA-256 `bcf6d9376796eda0fa54848f11be62f8f017cc48dc9a437380553b4bc3571996`だけを再利用対象として保持する。compiler cacheは143,920件中120,438件、83.68%がhitしている。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第296便の正式不足報告から、全APIを最小閉包で固定できる責務を再選定することである。
+
+### 第296便の監査結果と実装計画
+
+- 正式入力`build/tdd-macos/public-api-missing-g296.json`は公開header 1,548、公開API 29,804、対応済み22,649、未対応7,155、1,900,934 bytes、SHA-256 `bcf6d9376796eda0fa54848f11be62f8f017cc48dc9a437380553b4bc3571996`を記録する。`libs/flake/commands/KoShapeMergeTextPropertiesCommand.h`の残存全7 API、`KoSvgTextPathInfoChangeCommand.h`の全6 API、`KoSvgConvertTextTypeCommand.h`の全5 APIは重複なく、合計18識別子の整列集合SHA-256は`6881e006219cbbf9365ba5b05d626a0fa1a2d804b5e9a7b60c73722d155dc07a`である。図形text属性結合commandの型・構築・寿命3と履歴・実行4、text path情報commandの型・構築2と履歴・実行4、text型変換command 5の5枠へ完全に割り当て、3構築APIは親commandと属性削除集合を省略する呼出しも固定する。
+- 既存`libs/flake/tests/KoSvgTextAddRemoveShapeCommandsSchemaContractTest.cpp`は88行・5枠であり、追加後も250行・15枠未満に収まる。SVGテキスト構造編集と同じundo command責務として5枠を追加し、CMakeを変更しない。既存targetの変更前閉包は4工程・8入力、command SHA-256 `e42d24abe403c61571449a95bbad1a26db0772121129a5ffca45cc56416a9884`、input SHA-256 `84a8e0d492e9f29d066ba47beb67cfde542e6956a9d10949bc72b002f30b7ef8`であり、停止線を5工程・11入力とする。別targetは同じSVGテキストとundo公開header閉包にCMake再構成と生成物を追加するため棄却する。製品`kritaflake`の621工程・1,274入力を避け、図形、text属性、path情報、commandを実体化せず、公開関数本文を実行しない。
+- `g296-svg-text-edit-commands-schema`の状態は`planned`、実装基点は`5fdfefd96f`である。許可pathを既存`libs/flake/tests/KoSvgTextAddRemoveShapeCommandsSchemaContractTest.cpp`だけに限定する。CMake、公開header、製品source、製品target、全体build・`verify`、Linux、Nix再評価、追加委任を対象外とし、macOSの対象・近傍に限る構築実行を許可する。専用Git作業treeとworktree-local Ninja木を一つだけ作り、宣言だけの期待失敗、対象CTest、追加5枠の各20回反復、近傍、厳格`clang-check`、書式、公開記号、AUTOMOC非入力、製品非接続、二回目計画、二回の無作業再構築、公開API検査、`verify-quick`を確認してから統合する。
 
 ### 第239便の先行監査担当票
 
