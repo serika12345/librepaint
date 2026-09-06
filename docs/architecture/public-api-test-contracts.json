@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 7450
+    "expectedMissingApis": 7433
   },
   "contracts": [
     {
@@ -62608,6 +62608,68 @@
         "method:MoveStrokeStrategy::sigHandlesRectCalculated(const QRect & handlesRect)",
         "method:MoveStrokeStrategy::sigLayersPicked(const KisNodeList & nodes)",
         "method:MoveStrokeStrategy::sigStrokeStartedEmpty()"
+      ]
+    },
+    {
+      "target": "KisPreferenceSetRegistryContractTest",
+      "source": "libs/application/tests/KisPreferenceSetRegistryContractTest.cpp",
+      "test": "KisPreferenceSetRegistryContractTest::preferenceSetTypeConstructionAndLifetimeRemainStable",
+      "behavior": "設定画面基底はQWidgetの抽象型として親widgetを受け取り、Qtの親子所有で破棄される。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisPreferenceSet",
+        "method:KisPreferenceSet::KisPreferenceSet(QWidget * parent=0)"
+      ]
+    },
+    {
+      "target": "KisPreferenceSetRegistryContractTest",
+      "source": "libs/application/tests/KisPreferenceSetRegistryContractTest.cpp",
+      "test": "KisPreferenceSetRegistryContractTest::preferenceSetIdentityAndPresentationRemainStable",
+      "behavior": "設定画面実装は識別子、名称、見出し、iconを仮想dispatchで提供する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPreferenceSet::header()",
+        "method:KisPreferenceSet::icon()",
+        "method:KisPreferenceSet::id()",
+        "method:KisPreferenceSet::name()"
+      ]
+    },
+    {
+      "target": "KisPreferenceSetRegistryContractTest",
+      "source": "libs/application/tests/KisPreferenceSetRegistryContractTest.cpp",
+      "test": "KisPreferenceSetRegistryContractTest::preferenceSetPersistenceDispatchRemainsStable",
+      "behavior": "設定画面実装は現在値の保存、保存値の読込、既定値の読込を独立した仮想操作として受け取る。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPreferenceSet::loadDefaultPreferences()",
+        "method:KisPreferenceSet::loadPreferences()",
+        "method:KisPreferenceSet::savePreferences() const"
+      ]
+    },
+    {
+      "target": "KisPreferenceSetRegistryContractTest",
+      "source": "libs/application/tests/KisPreferenceSetRegistryContractTest.cpp",
+      "test": "KisPreferenceSetRegistryContractTest::preferenceSetFactoryLifecycleAndCreationRemainStable",
+      "behavior": "設定画面工場は識別子を返し、呼出し元所有の設定画面を生成し、基底pointerから安全に破棄できる。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisAbstractPreferenceSetFactory",
+        "method:KisAbstractPreferenceSetFactory::createPreferenceSet()",
+        "method:KisAbstractPreferenceSetFactory::id() const",
+        "method:KisAbstractPreferenceSetFactory::~KisAbstractPreferenceSetFactory()"
+      ]
+    },
+    {
+      "target": "KisPreferenceSetRegistryContractTest",
+      "source": "libs/application/tests/KisPreferenceSetRegistryContractTest.cpp",
+      "test": "KisPreferenceSetRegistryContractTest::preferenceSetRegistryOwnershipAndSingletonRemainStable",
+      "behavior": "設定画面工場の登録簿は空で構築でき、登録した工場を破棄時に所有解放し、同一singletonを返す。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisPreferenceSetRegistry",
+        "method:KisPreferenceSetRegistry::KisPreferenceSetRegistry()",
+        "method:KisPreferenceSetRegistry::instance()",
+        "method:KisPreferenceSetRegistry::~KisPreferenceSetRegistry()"
       ]
     }
   ]

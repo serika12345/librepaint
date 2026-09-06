@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-06 14:07 JST
+- 更新日時: 2026-09-06 14:18 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1562,7 +1562,19 @@
 - `g277a-preference-set-registry-build-boundary`の状態は`integrated`、実装基点は`51554f6a8f`である。開始`libs/application/CMakeLists.txt`の`kritaapplicationui_LIB_SRCS`が直接所有していた`ui/workspace/kis_preference_set_registry.cpp`と同headerを、新規AUTOMOC・位置独立`kritaapplicationpreferencesetregistryobjects`へ移し、製品`kritaapplicationui`へ同objectを1回だけ再集約した。公開header、ABI、実装本文、利用元を変更せず、受渡しcommit `e99b3e810d`を中央commit `87c1536edd`として取り込んだ。
 - 新objectは担当側と中央で予測どおり3工程・7入力となり、担当側command SHA-256 `7620228cf9a7c18799fe704a6501c02c70319f770c51eda69bc9110b204389fb`、input SHA-256 `985a6e652ffffb2a818a214957099340291f32afe02c20a75744f1e61b28cb2b`、中央command SHA-256 `e66b05f769b2ff8e667825a93d76a03b128ff6fdc28a848035fb9c99f9c9a3e9`、input SHA-256 `d7d2766a175b7b9d425e9b90fbf03777ef76c4a4b8681447a7575e9158ea0d4b`である。製品計画は1,974工程・3,948入力となり、分離前からAUTOMOC・MOC compileの2工程・4入力だけ増えた。実装compileとMOC objectの再集約各1回を確認し、製品本体は構築していない。
 - 担当側と中央でobject単独構築、厳格構文、二回の無作業再構築、既存`KisActionEnumContractTest`、公開API検査、`verify-quick`に成功した。受渡し差分と中央差分のpatch ID一致、専用作業treeのcleanを確認し、304,732 KiBの構築木を含む895,820 KiBの作業treeとbranchを削除した。主Ninja木5,817,804 KiB、共有compiler cache 982,760 KiBを保持し、cacheは143,666件中120,329件、83.76%がhitしている。
-- 続く`g277-preference-set-registry-contract`の状態は`planned`、実装基点は`87c1536edd`である。新規`libs/application/tests/KisPreferenceSetRegistryContractTest.cpp`と同target固有の`libs/application/tests/CMakeLists.txt`節だけへ17 API・5枠を追加し、新objectを直接接続する。契約targetは7工程・16入力、停止線8工程・19入力、QTESTの画面外実行、候補headerの単一MOC所有、製品非接続を予測する。追加5枠の各20回反復、対象と近傍`KisActionEnumContractTest`、厳格構文、無作業再構築、動的接続・未解決記号、公開API検査、`verify-quick`を完了条件とする。
+- 続く`g277-preference-set-registry-contract`の状態は`integrated`、実装基点は`ce6350285f`である。新規`libs/application/tests/KisPreferenceSetRegistryContractTest.cpp`と同target固有の`libs/application/tests/CMakeLists.txt`節だけへ17 API・5枠を追加し、新objectを直接接続した。公開header、製品実装、既存試験を変更せず、受渡しcommit `1daeb1aa19`を中央commit `02094c67ef`として取り込んだ。
+
+### 第277便の契約統合結果
+
+- 開始`libs/application/ui/workspace/kis_preference_set_registry.h`の残存全17 APIから、新規`libs/application/tests/KisPreferenceSetRegistryContractTest.cpp`の5枠へ、設定画面型・構築2、識別・表示4、保存・読込3、工場型・寿命・生成・識別4、登録簿型・構築・寿命・singleton 4を対応付けた。設定画面はQt親子所有による破棄、4表示値、3永続化操作の仮想dispatchを固定し、工場は生成物と基底pointer寿命、登録簿は空の初期状態、工場の所有破棄、singleton同一性を動的に固定した。
+- target不存在と、5枠宣言段階で追加5試験関数だけが未定義になる期待link失敗を確認した。有効工場登録が参照するassertion関数は、既存の汎用登録簿契約と同じ即時失敗の試験内協調定義で閉じ、製品`kritaglobal`を接続していない。担当側と中央のmacOSで追加5枠を各20回、対象CTest `libs-application-KisPreferenceSetRegistryContractTest`と軽量近傍`libs-application-KisActionEnumContractTest`、厳格`clang-check`、AUTOMOC後の二回目計画、二回の無作業再構築に成功した。
+- 対象は7工程・14入力で停止線内に収まり、担当側command SHA-256 `b79074f7f1e166c78106c7da764fa0fd2b48b3a649ace66986abbc4b9c7f8d46`、input SHA-256 `a3beb8db3384066fe46c86e6b976feaf940452c474979f7de892dd5c179fbc1e`、中央command SHA-256 `d6dccbb448e890653f3438558f9eb53d60050656724eaa732980ffbf2d4ec438`、input SHA-256 `8e1cffc99054df147de64e2eaacf6e61bbf61efa400077bb229a85867898f298`である。試験側AUTOMOC `HEADERS=[]`、Qt Test・Widgets・Gui・CoreとOS frameworkだけの動的接続、製品未解決記号0を確認した。差分、書式、公開API検査、`verify-quick`にも成功した。
+- 台帳へ17 APIを追加して22,371件対応、7,433件未対応となり、旧基準7,450件に対する実測7,433件の期待不一致を確認してから基準を更新した。受渡し差分と中央差分のpatch ID一致、専用作業treeのcleanを確認し、307,576 KiBの構築木を含む898,672 KiBの作業treeとbranchを削除した。旧`public-api-missing-g277.json` 1,980,716 bytesを削除し、主Ninja木5,820,412 KiB、共有compiler cache 982,884 KiB、最新`build/tdd-macos/public-api-missing-g278.json` 1,976,619 bytes、SHA-256 `8b9f69c28648fdcf362749d860c105f6a10296bade4eaef14b8603bdf01b9d5e`だけを再利用対象として保持する。compiler cacheは143,677件中120,333件、83.75%がhitしている。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+
+### 第278便の先行監査計画
+
+- 正式入力は`build/tdd-macos/public-api-missing-g278.json`である。第277便で比較した画面情報19 API、multi-double filter widget 18 API、第275便から保留中のpaint device cache・layer style補助・dab描画queue各18 APIと、同程度の未選定責務を比較する。主要な値・所有・寿命を最大5枠で観測し、既存限定targetへの追記または具体的実装所有分離で製品targetより十分小さい閉包になる候補を選ぶ。
+- 次の永続作業は、候補の正式識別子と台帳非重複、実装責務、既存契約、直接依存、Ninja工程・入力数を読み取り専用で再計測し、必要な構造整理と停止線を契約実装前に確定することである。製品target、全体build・`verify`、Linux、Nix再評価を実行しない。
 
 ### 第239便の先行監査担当票
 
