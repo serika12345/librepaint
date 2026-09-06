@@ -545,6 +545,7 @@ target_include_directories(KisHistogramPainterSchemaContractTest PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/..
     ${CMAKE_BINARY_DIR}/libs/application
     $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Gui,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Widgets,INTERFACE_INCLUDE_DIRECTORIES>
 )
 target_compile_definitions(KisHistogramPainterSchemaContractTest PRIVATE
     kritaapplicationui_EXPORTS

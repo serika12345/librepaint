@@ -4,6 +4,7 @@
  */
 
 #include "widgets/KisHistogramPainter.h"
+#include "widgets/KisHistogramView.h"
 
 #include <QTest>
 
@@ -26,6 +27,11 @@ private Q_SLOTS:
     void histogramPainterChannelSelectionSignaturesRemainStable();
     void histogramPainterColorAndScaleSignaturesRemainStable();
     void histogramPainterPeakAndLogarithmicPolicySignaturesRemainStable();
+    void histogramViewTypeLifetimeAndSetupSchemaRemainStable();
+    void histogramViewChannelQuerySignaturesRemainStable();
+    void histogramViewChannelSelectionSignaturesRemainStable();
+    void histogramViewColorAndScaleSignaturesRemainStable();
+    void histogramViewLogarithmicPolicySignaturesRemainStable();
 };
 
 void KisHistogramPainterSchemaContractTest::histogramPainterTypeLifetimeAndSetupSchemaRemainStable()
@@ -73,6 +79,55 @@ void KisHistogramPainterSchemaContractTest::histogramPainterPeakAndLogarithmicPo
     ASSERT_HISTOGRAM_PAINTER_SIGNATURE(isLogarithmic, bool (KisHistogramPainter::*)() const);
     ASSERT_HISTOGRAM_PAINTER_SIGNATURE(setLogarithmic, void (KisHistogramPainter::*)(bool));
     ASSERT_HISTOGRAM_PAINTER_SIGNATURE(setScaleToCutLongPeaks, void (KisHistogramPainter::*)());
+}
+
+void KisHistogramPainterSchemaContractTest::histogramViewTypeLifetimeAndSetupSchemaRemainStable()
+{
+    using View = KisHistogramView;
+    using Setup = void (
+        View::*)(const QVector<KisHistogram *> &, const QVector<const KoColorSpace *> &, const QVector<QVector<int>> &);
+    static_assert(std::is_class_v<View> && std::is_base_of_v<QWidget, View>);
+    static_assert(std::is_constructible_v<View, QWidget *> && std::has_virtual_destructor_v<View>);
+    static_assert(std::is_same_v<decltype(&View::setup), Setup>);
+    static_assert(
+        std::is_same_v<decltype(std::declval<View &>().setup(std::declval<const QVector<KisHistogram *> &>(),
+                                                             std::declval<const QVector<const KoColorSpace *> &>())),
+                       void>);
+}
+
+void KisHistogramPainterSchemaContractTest::histogramViewChannelQuerySignaturesRemainStable()
+{
+    using View = KisHistogramView;
+    static_assert(std::is_same_v<decltype(&View::channels), const QVector<int> &(View::*)() const>);
+}
+
+void KisHistogramPainterSchemaContractTest::histogramViewChannelSelectionSignaturesRemainStable()
+{
+    using View = KisHistogramView;
+    static_assert(std::is_same_v<decltype(&View::setChannel), void (View::*)(int, int)>);
+    static_assert(std::is_same_v<decltype(&View::setChannels), void (View::*)(const QVector<int> &, int)>);
+    static_assert(std::is_same_v<decltype(&View::clearChannels), void (View::*)()>);
+    static_assert(std::is_same_v<decltype(std::declval<View &>().setChannel(int{})), void>);
+    static_assert(
+        std::is_same_v<decltype(std::declval<View &>().setChannels(std::declval<const QVector<int> &>())), void>);
+}
+
+void KisHistogramPainterSchemaContractTest::histogramViewColorAndScaleSignaturesRemainStable()
+{
+    using View = KisHistogramView;
+    static_assert(std::is_same_v<decltype(&View::defaultColor), QColor (View::*)() const>);
+    static_assert(std::is_same_v<decltype(&View::scale), qreal (View::*)() const>);
+    static_assert(std::is_same_v<decltype(&View::setDefaultColor), void (View::*)(const QColor &)>);
+    static_assert(std::is_same_v<decltype(&View::setScale), void (View::*)(qreal)>);
+    static_assert(std::is_same_v<decltype(&View::setScaleToFit), void (View::*)()>);
+    static_assert(std::is_same_v<decltype(&View::setScaleToCutLongPeaks), void (View::*)()>);
+}
+
+void KisHistogramPainterSchemaContractTest::histogramViewLogarithmicPolicySignaturesRemainStable()
+{
+    using View = KisHistogramView;
+    static_assert(std::is_same_v<decltype(&View::isLogarithmic), bool (View::*)() const>);
+    static_assert(std::is_same_v<decltype(&View::setLogarithmic), void (View::*)(bool)>);
 }
 
 QTEST_MAIN(KisHistogramPainterSchemaContractTest)
