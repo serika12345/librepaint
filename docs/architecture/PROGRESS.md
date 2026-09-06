@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-06 10:44 JST
+- 更新日時: 2026-09-06 10:53 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1414,8 +1414,8 @@
 ### 第269便の監査結果と構造準備計画
 
 - `libs/image/floodfill/kis_scanline_fill.h`の残存全19 APIは一意かつ台帳と非重複で、識別子整列集合SHA-256 `0c433dce70e4a12be0a9314a37a2028ca5ae02a10579eb1f80d21309a46b35a9`を持つ。型・構築・寿命3、色塗り4、通常selection塗り2、境界色・透明境界selection塗り4、消去・連結group・閾値・不透明度・隙間・結果範囲6の5枠へ割り当てる。全19 APIを型特性と厳密member pointerで固定し、画素色差、閾値、不透明度、隙間閉鎖、境界、連結group、処理範囲は固定画像・色空間を持つ既存または後続の動的契約で扱う。
-- `g269a-scanline-fill-header-boundary`の状態は`in_progress`、実装基点は`b136cafe86`、専用作業treeは`/Users/masato/Documents/librepaint-g269a-scanline-fill-header-boundary`、branchは`agent/g269a-scanline-fill-header-boundary`、macOSのheader・実装元・軽量近傍に限る構築実行許可は`granted`である。開始`libs/image/floodfill/kis_scanline_fill.h`から完全型を使わない`kis_paint_device.h`を除去し、`KoColor`と`QRect`を前方宣言する。`libs/image/floodfill/kis_scanline_fill.cpp`へ`kis_paint_device.h`を直接追加し、完全型の所有を実装へ移す。許可pathはこの2ファイルだけとし、追加利用元の補正が必要なら停止する。調整担当だけが文書、台帳、共通不足報告を変更し、Git権限は許可pathだけの受渡しcommit 1件とする。変更前後のheader-first探索面と実読込み、直接実装元と利用元の厳格構文、軽量近傍`KisFillIntervalMapContractTest`、公開API集合、無作業再構築、書式、差分、公開API検査、`verify-quick`を確認する。近傍は5工程・11入力、command SHA-256 `d47cbe43d6fdb2429b23125a07928cd570ba87061edef1577159539f55bee596`、input SHA-256 `bfa0443a7fbc9c7ac9549d00464c21f796dd24651e4bc3daf885f26a42b59bbd`を維持する。
-- 続く`g269-scanline-fill-schema`は新規`libs/image/tests/KisScanlineFillSchemaContractTest.cpp`と`libs/image/tests/CMakeLists.txt`の新target固有節だけを許可する。image・global探索路、`kritaimage_EXPORTS`、Qt Core・Testだけの直接linkによる4工程・8入力を予測し、停止線5工程・11入力とする。候補headerのAUTOMOC入力、製品shared・OBJECT、`kritatestsdk`、`kritaimage`、Qt Gui・Widgets・Xml、実paint device・selection・色、製品未解決記号、許可path外変更が必要なら停止する。第268便完了後にG269aから開始する。
+- `g269a-scanline-fill-header-boundary`の状態は`integrated`である。開始`libs/image/floodfill/kis_scanline_fill.h`から完全型を使わない`kis_paint_device.h`を除去して`KoColor`と`QRect`を前方宣言し、`libs/image/floodfill/kis_scanline_fill.cpp`へ`kis_paint_device.h`の直接includeを移した。受渡しcommit `d1a014c6c8`を中央commit `55c8442821`として取り込み、公開API、ABI、製品本文を変更していない。header-first実読込みは1,242行から1,221行、固有headerは968件から949件へ減った。担当側と中央のmacOSで実装元と直接利用元9件の厳格構文、軽量近傍`KisFillIntervalMapContractTest`、二回の無作業再構築、公開API検査、`verify-quick`に成功した。中央の近傍は前後とも5工程・11入力、command SHA-256 `d47cbe43d6fdb2429b23125a07928cd570ba87061edef1577159539f55bee596`、input SHA-256 `bfa0443a7fbc9c7ac9549d00464c21f796dd24651e4bc3daf885f26a42b59bbd`、AUTOMOC `HEADERS=[]`を維持した。cleanな専用作業tree、構築木、branchを削除して893,472 KiBを回収した。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 続く`g269-scanline-fill-schema`の状態は`in_progress`、実装基点は`55c8442821`、専用作業treeは`/Users/masato/Documents/librepaint-g269-scanline-fill-schema`、branchは`agent/g269-scanline-fill-schema`、macOSの対象と軽量近傍に限る構築実行許可は`granted`である。許可pathは新規`libs/image/tests/KisScanlineFillSchemaContractTest.cpp`と`libs/image/tests/CMakeLists.txt`の新target固有節だけで、調整担当だけが文書、台帳、共通不足報告を変更する。残存19 APIを型・構築・寿命3、色塗り4、通常selection塗り2、境界色・透明境界selection塗り4、消去・連結group・閾値・不透明度・隙間・結果範囲6の5枠へ型特性と厳密member pointerで対応付ける。新targetはimage・global探索路、`kritaimage_EXPORTS`、Qt Core・Testだけの直接linkによる4工程・8入力を予測し、停止線5工程・11入力とする。変更前target不存在、5枠宣言段階の期待link失敗、5枠単発・各20回、全target・正式CTest・軽量近傍、AUTOMOC後の二回目計画、二回の無作業再構築、動的接続・未解決記号・厳格構文・書式・差分・公開API検査・`verify-quick`を確認する。候補headerのAUTOMOC入力、製品shared・OBJECT、`kritatestsdk`、`kritaimage`、Qt Gui・Widgets・Xml、実paint device・selection・色、製品未解決記号、許可path外変更が必要なら停止する。
 
 ### 第270便の先行監査担当票
 
