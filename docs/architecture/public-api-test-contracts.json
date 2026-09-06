@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 7177
+    "expectedMissingApis": 7169
   },
   "contracts": [
     {
@@ -63502,6 +63502,41 @@
       "apis": [
         "method:KisImageResolutionProxy::createOrCloneDetached(KisImageWSP image) const",
         "method:KisImageResolutionProxy::identity()"
+      ]
+    },
+    {
+      "target": "KoFlakeUtilsContractTest",
+      "source": "libs/flake/tests/KoFlakeUtilsContractTest.cpp",
+      "test": "KoFlakeUtilsContractTest::anchorAndCoordinateConversionSchemaRemainStable",
+      "behavior": "図形幾何補助は矩形上のanchor位置を既定の妥当性出力なしで座標へ変換し、絶対座標と寸法比の相対座標を相互変換する関数境界を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KoFlake::anchorToPoint(AnchorPosition anchor,const QRectF rect,bool * valid=0)",
+        "function:KoFlake::toAbsolute(const QPointF & relative,const QSizeF & size)",
+        "function:KoFlake::toRelative(const QPointF & absolute,const QSizeF & size)"
+      ]
+    },
+    {
+      "target": "KoFlakeUtilsContractTest",
+      "source": "libs/flake/tests/KoFlakeUtilsContractTest.cpp",
+      "test": "KoFlakeUtilsContractTest::scaleOperationSchemaRemainStable",
+      "behavior": "図形幾何補助は水平・垂直倍率から主要方向を選び、絶対固定点を保つ局所または大域scale操作を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KoFlake::scaleShape(KoShape * shape,qreal scaleX,qreal scaleY,const QPointF & absoluteStillPoint,const QTransform & postScalingCoveringTransform)",
+        "function:KoFlake::scaleShapeGlobal(KoShape * shape,qreal scaleX,qreal scaleY,const QPointF & absoluteStillPoint)",
+        "function:KoFlake::significantScaleOrientation(qreal scaleX,qreal scaleY)"
+      ]
+    },
+    {
+      "target": "KoFlakeUtilsContractTest",
+      "source": "libs/flake/tests/KoFlakeUtilsContractTest.cpp",
+      "test": "KoFlakeUtilsContractTest::resizeOperationSchemaRemainStable",
+      "behavior": "図形幾何補助は絶対固定点と座標modeによるresize、および後段scale適用を明示した共通resize関数境界を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KoFlake::resizeShape(KoShape * shape,qreal scaleX,qreal scaleY,const QPointF & absoluteStillPoint,bool useGlobalMode)",
+        "function:KoFlake::resizeShapeCommon(KoShape * shape,qreal scaleX,qreal scaleY,const QPointF & absoluteStillPoint,bool useGlobalMode,bool usePostScaling,const QTransform & postScalingCoveringTransform)"
       ]
     }
   ]
