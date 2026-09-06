@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-07 06:55 JST
+- 更新日時: 2026-09-07 06:57 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -2567,6 +2567,13 @@
 - 初回限定構築はoption widgetの公開基底を所有する`kis_paintop_option.h`の探索路不足を検出した。対象固有CMake節へ`libs/tools/ui`のsource・generated探索路と`kritatoolsui_EXPORTS`だけを追加すると、期待どおり追加5試験関数の未定義linkだけで赤になり、契約実装後に成功した。製品libraryは要求せず、最終targetは4工程・8入力、command SHA-256 `cb25fa5e65461d857dd8d457a8c8afbd1897e76413d53201d2d5a1daf5d7fb7f`、input SHA-256 `a84e08f953c5892bb3c940461497e24573a0fc8c7aedf0fc1f487f9d6ea25ced`である。AUTOMOC header入力は空、Qt Gui・Test・Xml・Core、gettext、OS frameworkだけへ動的接続し、製品未解決記号は0件である。
 - macOSで対象と軽量近傍`plugins-paintops-libpaintop-KisDabCacheUtilsSchemaContractTest`のCTest、追加5枠の各20回反復、試験sourceの厳格`clang-check`、書式、二回の無作業再構築、公開API検査に成功した。範囲model実装の厳格検査は診断0件、option widget実装は今回と無関係な生成UI欠落だけで停止した。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 台帳へ34 APIを追加して24,217件対応、5,587件未対応となり、二つの開始headerの残存は0件である。旧`public-api-missing-g345.json`を最新報告の検証後に削除し、追加作業tree・構築木は作成していない。主Ninja木5,916,060 KiB、共有compiler cache 982,676 KiB、最新`build/tdd-macos/public-api-missing-g346.json` 1,480,119 bytes、SHA-256 `a3ea25d825b53476ad8d8cbb8ade88819d71616aeabbccfbe4edc526d8c74702`だけを再利用対象として保持する。compiler cacheは144,159件中120,482件、83.58%がhitしている。次の永続作業は第346便で次の高密度なmacOS対象と最小構築面を選定することである。
+
+### 第346便の監査結果と実装計画
+
+- 正式入力`build/tdd-macos/public-api-missing-g346.json`は公開header 1,548、公開API 29,804、対応済み24,217、未対応5,587、1,480,119 bytes、SHA-256 `a3ea25d825b53476ad8d8cbb8ade88819d71616aeabbccfbe4edc526d8c74702`を記録する。`libs/ui/canvas/kis_display_color_converter.h`の残存全39 APIを、型・別名・構築・renderer 7、画像・色空間・表示設定状態10、単色・palette変換7、device・画像変換・通知5、HSV・HSL・HSI・HSY変換10の5枠へ完全に対応付ける。識別子整列集合のSHA-256は`c21ab7d84375b20682986dad7abde95d776c349147bf5dafdc85a9af0fb8ae98`である。
+- 開始headerが読む色renderer、表示filter、handle palette、画像共有pointer、変換optionの定義は公開型・別名を現在の所有headerへ対応付けている。これらを前方宣言や別名再宣言へ置き換えると公開API所属が変わるため、今回の挙動契約では保持する。41直接利用翻訳単位へ及ぶが、既存対象は4工程・8入力で製品非接続を維持でき、開始実装の厳格`clang-check`も診断0件であるため、先行する製品構造変更は不要である。
+- 既存`libs/ui/tests/KisDisplayConfigSchemaContractTest.cpp`は93行・5枠で、追加5枠後も300行・20枠未満に収まる。既存targetはCMake File API上で自動生成依存だけを持ち、4工程・8入力、command SHA-256 `45b4c6dc19107eac16608f1384cc88823ee492b578e9e000411b0c6d2c8f4ea9`、input SHA-256 `0f5781b1ac2dec2ed9954f2948ac1d5b605eed4e419085ff8415d097846cb8ce`である。対象固有CMake節へcanvas・global・imageのsource・generated探索路、Qt Gui interface探索路と3 export定義だけを加え、Qt Test・Coreだけの動的接続と4工程・8入力を維持する。停止線を5工程・11入力、300行・20枠とする。
+- `g346-display-color-converter-schema`の状態は`in_progress`、実装基点は`3cd7afb284`である。変更は既存試験sourceと対象固有CMake節だけに限定し、型特性、厳密な公開関数pointer、未評価式で表示色変換器の公開接続面を固定する。macOSの対象、追加5枠の20回反復、試験sourceの厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。公開header、製品source、製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
 
 ### 第239便の先行監査担当票
 
