@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-06 18:18 JST
+- 更新日時: 2026-09-06 18:21 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -1734,6 +1734,12 @@
 - target不存在と、宣言だけの追加4枠が未定義symbolとなる期待失敗を順に記録した。対象は担当側・中央とも計画どおり4工程・8入力である。担当側command SHA-256は`84836b219cb79ceb2a129c04924c24a11d7f504827d7c72cc9ae889c79e9b00f`、input SHA-256は`1d7f1b715b120b0ebf1124efef55f1111c14e40668472f4213ade2ea7038e485`、中央command SHA-256は`f6508d15aaecbdb5c470a91b32b36048c777aa41f5a461b7881f5bc763f575f1`、input SHA-256は`de390929d1a8ba7076f1c53ed878147539ff70e638545ff1fd8e1329a31671eb`である。候補headerはAUTOMOC入力外で、Qt Test・Core、gettext、OS frameworkだけへ動的接続し、製品未解決記号は0である。
 - 担当側と中央のmacOSで追加4枠を各20回、対象CTest `libs-image-KisNodeVisualPropertyCommandsSchemaContractTest`、近傍`libs-image-KisNodeCommandsAdapterSchemaContractTest`、厳格`clang-check`、書式、二回目計画と二回の無作業再構築に成功した。担当側の`verify-quick`と中央の公開API検査にも成功し、台帳へ16 APIを追加して22,499件対応、7,305件未対応、対象2 headerの残存0件となった。
 - cleanな専用作業tree、308,188 KiBの構築木、branchを統合直後に削除し、作業tree全体899,432 KiBを回収した。旧`public-api-missing-g285.json` 1,946,079 bytesを削除し、主Ninja木5,850,760 KiB、共有compiler cache 982,520 KiB、最新`build/tdd-macos/public-api-missing-g286.json` 1,941,931 bytes、SHA-256 `83147dbdb4df7f432d8823f7ab57fb6db27982543ab158920a0ce47bde1a0998`だけを再利用対象として保持する。compiler cacheは143,842件中120,415件、83.71%がhitしている。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第286便の正式不足報告から、全APIを最小閉包で固定できる責務を再選定することである。
+
+### 第286便の監査結果と実装計画
+
+- 正式入力`build/tdd-macos/public-api-missing-g286.json`は公開header 1,548、公開API 29,804、対応済み22,499、未対応7,305、1,941,931 bytes、SHA-256 `83147dbdb4df7f432d8823f7ab57fb6db27982543ab158920a0ce47bde1a0998`を記録する。`libs/image/commands/kis_image_command.h`の6 API、`kis_image_layer_add_command.h`の13 API、`kis_image_layer_move_command.h`の5 API、`kis_image_layer_remove_command.h`の5 API、`kis_image_layer_remove_command_impl.h`の5 APIは重複なく、合計34識別子の整列集合SHA-256は`5e3e5289a2a73ec2d5e4c498e6601b2a63a7798b8b9cbf731c60cca11f3ee335`である。画像変更command基底とlayer階層への追加・移動・除去を一責務として、基底型・更新対象6、追加型・flag 7、追加構築・実行6、移動・外部除去10、内部除去5の5枠へ完全に割り当てる。既定引数を持つ全構築APIは完全な引数型と省略時の構築可能性を併せて固定する。
+- 新規`KisImageLayerHierarchyCommandsSchemaContractTest`を、最寄りの`KisNodeVisualPropertyCommandsSchemaContractTest`と同じimage・global・pigment・painting/undo探索路、KF I18n interface、Qt Core・Test、header-only Boost、既存export定義だけへ接続する。最寄りは97行・4枠、4工程・8入力、command SHA-256 `f6508d15aaecbdb5c470a91b32b36048c777aa41f5a461b7881f5bc763f575f1`、input SHA-256 `de390929d1a8ba7076f1c53ed878147539ff70e638545ff1fd8e1329a31671eb`である。階層変更責務を表示属性command試験へ混在させず、新規targetも4工程・8入力を予測して停止線を5工程・11入力とする。製品`kritaimage`の1,197工程・2,418入力を避け、image、node、commandを実体化せず、候補headerをAUTOMOC入力にしない。
+- `g286-image-layer-hierarchy-commands-schema`の状態は`planned`、実装基点は`6ff99da811`である。許可pathを新規`libs/image/tests/KisImageLayerHierarchyCommandsSchemaContractTest.cpp`と`libs/image/tests/CMakeLists.txt`の新target固有節だけに限定する。一つの専用worktree-local `build/tdd-macos`を使い、target不存在と宣言段階の期待失敗、追加5枠の単発と各20回反復、対象と近傍CTest、厳格`clang-check`、書式、AUTOMOC入力、動的接続、製品未解決記号、二回目計画、二回の無作業再構築、公開API検査、`verify-quick`をmacOSで確認する。許可pathだけの受渡しcommitを認め、公開header、製品source、製品target、全体build・`verify`、Linux、Nix再評価、追加委任は対象外とする。
 
 ### 第239便の先行監査担当票
 
