@@ -1640,6 +1640,9 @@ add_library(kritauiopenglupdateinfoobjects OBJECT
     opengl/kis_opengl_update_info.cpp
 )
 target_compile_definitions(kritauiopenglupdateinfoobjects PRIVATE
+    QT_GUI_LIB
+    QT_WIDGETS_LIB
+    QT_XML_LIB
     kritaapplicationui_EXPORTS
     kritacanvas_EXPORTS
     kritaglobal_EXPORTS
@@ -1664,13 +1667,13 @@ target_include_directories(kritauiopenglupdateinfoobjects
         $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/pigment>
         $<TARGET_PROPERTY:KF${KF_MAJOR}::ConfigCore,INTERFACE_INCLUDE_DIRECTORIES>
         $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
+        $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Gui,INTERFACE_INCLUDE_DIRECTORIES>
+        $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Widgets,INTERFACE_INCLUDE_DIRECTORIES>
+        $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Xml,INTERFACE_INCLUDE_DIRECTORIES>
 )
 target_link_libraries(kritauiopenglupdateinfoobjects
     PUBLIC
         Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Gui
-        Qt${QT_MAJOR_VERSION}::Widgets
-        Qt${QT_MAJOR_VERSION}::Xml
         Boost::boost
         Eigen3::Eigen
         Imath::ImathConfig
