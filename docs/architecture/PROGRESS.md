@@ -2,8 +2,8 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-07 12:43 JST
-- 状態: `in_progress`
+- 更新日時: 2026-09-07 12:57 JST
+- 状態: `planned`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
@@ -2878,6 +2878,14 @@
 - 構造変更前の厳格`clang-check`は`libs/ui/document/KisDocument.cpp`、`libs/ui/toolbox/KoToolBox.cpp`、`libs/libkis/Window.cpp`で診断0件である。開始実装には既存の`KSharedConfig`完全型不足3件、log dockerとtransform toolには各生成UI header不足があり、変更後の同一診断維持を確認する。除去対象記号を使う直接利用元の機械照合、開始header単独compile、公開API報告のbyte一致、試験sourceの診断0件を完了条件とする。
 - 新規`libs/application/tests/KisViewManagerSchemaContractTest.cpp`を200行・10枠未満で作り、application・uiのsource・generated探索路、Qt Widgets interface探索路、`kritaui_EXPORTS`だけを持つ専用targetへ分離する。Qt Core・Testだけを動的接続し、開始headerが公開する型を実体化せず、型特性と厳密な関数pointerで固定する。近傍`KisMainWindowSchemaContractTest`は4工程・8入力、command SHA-256 `57a65195fdda2a754bb6dfe44fe1b834b5e3c1683eb4e0e7b3f722df49976f51`、input SHA-256 `b27d6a2c14eede0dadfa3a8ca92a0a958eacd0fd43a1281530b9eedd6e60b2be`である。新規targetの停止線を5工程・11入力とする。
 - `g369-view-manager-schema`の状態は`in_progress`、実装基点は`2b49776c7a`である。構造先行commit後に、新規試験sourceと`libs/application/tests/CMakeLists.txt`の対象固有節だけへ契約を追加する。macOSの対象、8枠の20回反復、関係sourceの厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
+
+### 第369便の実装結果
+
+- `g369-view-manager-schema`は`completed`である。開始`libs/application/ui/workspace/KisViewManager.h`から`QQueue`、`QMainWindow`、`KoToolManager.h`を除き、基底の`QObject`を直接includeして借用型を前方宣言した。実利用所有は`QQueue`を`libs/ui/document/KisDocument.cpp`と`plugins/dockers/logdocker/LogDockerDock.cpp`へ、`KoToolManager`を`libs/ui/toolbox/KoToolBox.cpp`と`plugins/tools/tool_transform2/kis_tool_transform.cc`へ直接移した。開始実装は既存の直接includeを維持する。構造変更commitは`7c54acd131`である。
+- 変更後も`libs/ui/document/KisDocument.cpp`、`libs/ui/toolbox/KoToolBox.cpp`、`libs/libkis/Window.cpp`の厳格`clang-check`は診断0件である。開始実装は既存の`KSharedConfig`完全型不足3件、log dockerとtransform toolは既存の生成UI header不足だけを維持した。新規試験sourceによる開始header単独compileに成功し、公開API報告は変更前後で同じSHA-256 `4e0c6d1fcac5a3720aef17c5530b1edc120c4baec452691c113e4d2da9b0438c`となった。
+- 開始headerの残存全63 APIを、新規`libs/application/tests/KisViewManagerSchemaContractTest.cpp`の型・構築・view接続7、canvas・画像・現在内容13、manager取得11、進捗・操作待機・control 7、window・資源・tool接続7、floating表示・GUI更新8、view・author・tool操作7、通知3の8枠へ対応付けた。対象は135行で、最初の赤は追加依存を要求せず8試験関数の未定義symbolだけで停止した。契約実装commitは`f1db925709`である。
+- 最終targetは4工程・8入力、command SHA-256 `0b86cf5b0b37dbf88d2837d48b6b563aa8c387034be4e3119d5ffb312f704ddc`、input SHA-256 `57ebed086e92adde6d4554f8315cd2fedde5517bccadd2aeee2083650235cd3e`である。動的接続はQt Core・Test、gettext、OS frameworkだけで、製品libraryを接続しない。macOSで対象`libs-application-KisViewManagerSchemaContractTest`、軽量近傍`libs-application-KisMainWindowSchemaContractTest`、対象の20回反復、試験sourceの厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`に成功した。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 台帳へ63 APIを追加して25,524件対応、4,280件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g369.json`と一時報告を最新報告の検証後に削除し、追加作業tree・構築木は作成していない。主Ninja木5,936,120 KiB、共有compiler cache 983,112 KiB、最新`build/tdd-macos/public-api-missing-g370.json` 1,148,338 bytes、SHA-256 `6361ed2b64f7e1f63ed291fe3b56f8ee09a2bbf6afbf339fd999fa1319a50cb6`だけを再利用対象として保持する。compiler cacheは144,252件中120,500件、83.53%がhitしている。次の永続作業は第370便で次の高密度なmacOS対象と最小構築面を選定することである。
 
 ### 第239便の先行監査担当票
 

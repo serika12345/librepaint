@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 4343
+    "expectedMissingApis": 4280
   },
   "contracts": [
     {
@@ -69882,6 +69882,141 @@
         "method:KisMainWindow::loadCompleted()",
         "method:KisMainWindow::restoringDone()",
         "method:KisMainWindow::themeChanged()"
+      ]
+    },
+    {
+      "target": "KisViewManagerSchemaContractTest",
+      "source": "libs/application/tests/KisViewManagerSchemaContractTest.cpp",
+      "test": "KisViewManagerSchemaContractTest::typeConstructionAndViewConnectionSchemaRemainStable",
+      "behavior": "view管理器はpaint device共有所有型、windowへの構築、action集合、現在viewとview数の公開接続を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisPaintDeviceSP",
+        "class:KisViewManager",
+        "method:KisViewManager::KisViewManager(QWidget * parent,KisKActionCollection * actionCollection)",
+        "method:KisViewManager::actionCollection() const",
+        "method:KisViewManager::setCurrentView(KisView * view)",
+        "method:KisViewManager::viewCount() const",
+        "method:KisViewManager::~KisViewManager()"
+      ]
+    },
+    {
+      "target": "KisViewManagerSchemaContractTest",
+      "source": "libs/application/tests/KisViewManagerSchemaContractTest.cpp",
+      "test": "KisViewManagerSchemaContractTest::canvasImageAndCurrentContentSignaturesRemainStable",
+      "behavior": "view管理器は現在のcanvas、画像、node、layer、paint device、選択、文書と表示部品への接続を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisViewManager::activeDevice()",
+        "method:KisViewManager::activeLayer()",
+        "method:KisViewManager::activeNode()",
+        "method:KisViewManager::activeNodeIsAnimated()",
+        "method:KisViewManager::canvas() const",
+        "method:KisViewManager::canvasBase() const",
+        "method:KisViewManager::canvasResourceProvider()",
+        "method:KisViewManager::document() const",
+        "method:KisViewManager::image() const",
+        "method:KisViewManager::paintOpBox() const",
+        "method:KisViewManager::selection()",
+        "method:KisViewManager::selectionEditable()",
+        "method:KisViewManager::statusBar() const"
+      ]
+    },
+    {
+      "target": "KisViewManagerSchemaContractTest",
+      "source": "libs/application/tests/KisViewManagerSchemaContractTest.cpp",
+      "test": "KisViewManagerSchemaContractTest::managerAccessSignaturesRemainStable",
+      "behavior": "view管理器は選択、node、action、filter、画像、入力、待機task、文字属性、undo、grid、guideの各管理器を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisViewManager::actionManager() const",
+        "method:KisViewManager::filterManager()",
+        "method:KisViewManager::gridManager() const",
+        "method:KisViewManager::guidesManager() const",
+        "method:KisViewManager::idleTasksManager()",
+        "method:KisViewManager::imageManager()",
+        "method:KisViewManager::inputManager() const",
+        "method:KisViewManager::nodeManager() const",
+        "method:KisViewManager::selectionManager()",
+        "method:KisViewManager::textPropertyManager() const",
+        "method:KisViewManager::undoAdapter()"
+      ]
+    },
+    {
+      "target": "KisViewManagerSchemaContractTest",
+      "source": "libs/application/tests/KisViewManagerSchemaContractTest.cpp",
+      "test": "KisViewManagerSchemaContractTest::progressOperationAndControlSignaturesRemainStable",
+      "behavior": "view管理器は進捗更新器、画像操作完了待機、workspace読込通知と操作controlの有効状態を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisViewManager::blockUntilOperationsFinished(KisImageSP image)",
+        "method:KisViewManager::blockUntilOperationsFinishedForced(KisImageSP image)",
+        "method:KisViewManager::createThreadedUpdater(const QString & name)",
+        "method:KisViewManager::createUnthreadedUpdater(const QString & name)",
+        "method:KisViewManager::disableControls()",
+        "method:KisViewManager::enableControls()",
+        "method:KisViewManager::notifyWorkspaceLoaded()"
+      ]
+    },
+    {
+      "target": "KisViewManagerSchemaContractTest",
+      "source": "libs/application/tests/KisViewManagerSchemaContractTest.cpp",
+      "test": "KisViewManagerSchemaContractTest::windowResourceAndToolSignaturesRemainStable",
+      "behavior": "view管理器は主window、Qt window、canvas資源初期化と外部paint deviceによる変形tool起動の接続を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisViewManager::activateTransformToolWithExternalSource(KisPaintDeviceSP externalSource)",
+        "method:KisViewManager::initializeResourceManager(KoCanvasResourceProvider * resourceManager)",
+        "method:KisViewManager::mainWindow() const",
+        "method:KisViewManager::mainWindowAsQWidget() const",
+        "method:KisViewManager::qtMainWindow() const",
+        "method:KisViewManager::setQtMainWindow(QMainWindow * newMainWindow)",
+        "method:KisViewManager::testingInitializeOpacityToPresetResourceConverter(KoCanvasResourceProvider * resourceManager)"
+      ]
+    },
+    {
+      "target": "KisViewManagerSchemaContractTest",
+      "source": "libs/application/tests/KisViewManagerSchemaContractTest.cpp",
+      "test": "KisViewManagerSchemaContractTest::floatingPresentationAndGuiUpdateSignaturesRemainStable",
+      "behavior": "view管理器はfloating message、canvas限定表示、scrollbar、GUIとiconの更新操作を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisViewManager::setShowFloatingMessage(bool show)",
+        "method:KisViewManager::showFloatingMessage(const QString & message,const QIcon & icon,int timeout=4500,KisFloatingMessage::Priority priority=KisFloatingMessage::Medium,int alignment=Qt::AlignCenter|Qt::TextWordWrap)",
+        "method:KisViewManager::showFloatingRotationMessage(const QString & message)",
+        "method:KisViewManager::showFloatingZoomMessage(const QString & message)",
+        "method:KisViewManager::showHideScrollbars()",
+        "method:KisViewManager::switchCanvasOnly(bool toggled)",
+        "method:KisViewManager::updateGUI()",
+        "method:KisViewManager::updateIcons()"
+      ]
+    },
+    {
+      "target": "KisViewManagerSchemaContractTest",
+      "source": "libs/application/tests/KisViewManagerSchemaContractTest.cpp",
+      "test": "KisViewManagerSchemaContractTest::viewAuthorAndToolActionSignaturesRemainStable",
+      "behavior": "view管理器はview追加・除去、変形tool、著者profile、前景背景色とbrush輪郭の操作を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisViewManager::changeAuthorProfile(const QString & profileName)",
+        "method:KisViewManager::slotActivateTransformTool()",
+        "method:KisViewManager::slotToggleBrushOutline()",
+        "method:KisViewManager::slotToggleFgBg()",
+        "method:KisViewManager::slotUpdateAuthorProfileActions()",
+        "method:KisViewManager::slotViewAdded(KisView * view)",
+        "method:KisViewManager::slotViewRemoved(KisView * view)"
+      ]
+    },
+    {
+      "target": "KisViewManagerSchemaContractTest",
+      "source": "libs/application/tests/KisViewManagerSchemaContractTest.cpp",
+      "test": "KisViewManagerSchemaContractTest::notificationSignaturesRemainStable",
+      "behavior": "view管理器はfloating message要求、view変更、brush輪郭切替を通知する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisViewManager::brushOutlineToggled()",
+        "method:KisViewManager::floatingMessageRequested(const QString & message,const QString & iconName)",
+        "method:KisViewManager::viewChanged()"
       ]
     }
   ]
