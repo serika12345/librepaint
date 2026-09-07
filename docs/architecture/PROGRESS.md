@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-07 11:53 JST
+- 更新日時: 2026-09-07 11:58 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -2845,6 +2845,13 @@
 - `g366-document-schema`の状態は`in_progress`、実装基点は`fb2345b002`である。契約は新規試験sourceと対象固有CMake節だけに限定する。macOSの対象、15枠の20回反復、開始実装・試験sourceの厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
 - `g366-document-schema`は`completed`である。206直接利用元を持つ公開headerの推移依存移管を避け、製品header・実装を変更せず、`libs/ui/document/KisDocument.h`から新規`libs/ui/tests/KisDocumentSchemaContractTest.cpp`へ全148 APIを15枠で対応付けた。対象は258行・15枠で、最初の赤は追加探索路を要求せず15試験関数の未定義symbolだけで停止した。契約実装commitは`ac35776364`である。
 - 最終閉包は4工程・8入力、command SHA-256 `ff30af19727f970057104d58d36086c9c05a0fe901dc1fba471cfceb8e57ce23`、input SHA-256 `d43483f270b92d83f175e8edb6663869d3ae46265cc9c399f9d9e38439308b60`である。動的接続はQt Core・Test、gettextとOS frameworkだけで、未解決Kis・Ko記号はない。macOSで対象と近傍`KisCanvas2SchemaContractTest`のCTest、対象の20回反復、開始実装・試験sourceの厳格`clang-check`、試験sourceの書式、二回の無作業再構築、公開API検査、`verify-quick`に成功した。試験内の137 callable観測と不足一覧の全methodを多重度込みで照合した。台帳へ148 APIを追加して25,320件対応、4,484件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g366.json`を削除し、主Ninja木5,930,884 KiB、共有compiler cache 983,144 KiB、最新`build/tdd-macos/public-api-missing-g367.json` 1,196,951 bytes、SHA-256 `121cbda3009706c2f06bbb37f1023613132332481c674e08be40fdef5aee42a3`だけを保持する。compiler cacheは144,240件中120,499件、83.54%がhitしている。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第367便で次の高密度なmacOS対象と最小構築面を選定することである。
+
+### 第367便の監査結果と実装計画
+
+- 正式入力`build/tdd-macos/public-api-missing-g367.json`は公開header 1,548、公開API 29,804、対応済み25,320、未対応4,484、1,196,951 bytes、SHA-256 `121cbda3009706c2f06bbb37f1023613132332481c674e08be40fdef5aee42a3`を記録する。`libs/ui/dialogs/kis_dlg_preferences.h`に残る全77 APIを、入出力設定値、生成UI基底型、色設定、shortcut・tablet、性能・表示、全画面・popup・dialogの6枠へ完全に対応付ける。識別子整列集合のSHA-256は`b412504606e9edbc28e11e8b67018501a5ed0d463c96800ee28df85179fc7155`である。
+- 既存`KisDlgPreferencesEnumContractTest`は11工程・31入力である。通常の4工程・8入力に、開始headerが直接includeする7個の生成UI headerの生成工程・入力が加わるため、新規対象でも縮小できない。既存対象へ追記すれば重複対象を作らず、CMake変更なしで同じ閉包を維持できるため、この構築単位を選ぶ。開始試験sourceの厳格`clang-check`は診断0件である。
+- 開始実装`libs/ui/dialogs/kis_dlg_preferences.cc`の厳格`clang-check`は、`KSharedConfig`の直接include不足8件とmacOS構成での未使用変数2件という既存10診断を返す。製品実装を変更・構築しない契約便から分離し、試験sourceの診断0件を必須とする。既存source 206行・12枠へ6枠を追加し、20枠未満、320行未満に保つ。既存閉包のcommand SHA-256は`40efd7c95d9d8bee3f930a11a3f7d0fb5b291bcb3762f428226f98420b39ebc4`、input SHA-256は`23574038726550232a0fe73d835ed4d54a5160a8b4a836cfd493ddeecb72582b`である。
+- `g367-preferences-structure-schema`の状態は`in_progress`、実装基点は`9d03cf5396`である。契約は既存`libs/ui/tests/KisDlgPreferencesEnumContractTest.cpp`だけに限定する。macOSの対象、追加6枠の20回反復、試験sourceの厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。CMake、製品source・header、製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
 
 ### 第239便の先行監査担当票
 
