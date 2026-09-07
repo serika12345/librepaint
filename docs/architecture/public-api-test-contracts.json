@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 5185
+    "expectedMissingApis": 5162
   },
   "contracts": [
     {
@@ -68248,6 +68248,74 @@
         "method:KoResourceServer::reloadResource(QSharedPointer<T> resource)",
         "method:KoResourceServer::removeObserver(ObserverType * observer)",
         "method:KoResourceServer::updateResource(QSharedPointer<T> resource)"
+      ]
+    },
+    {
+      "target": "KisApplicationArgumentsSchemaContractTest",
+      "source": "libs/application/tests/KisApplicationArgumentsSchemaContractTest.cpp",
+      "test": "KisApplicationArgumentsSchemaContractTest::applicationTypeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "applicationは単一instance applicationの寿命規則に従い、識別keyとprocess引数から構築する公開面を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisApplication",
+        "method:KisApplication::KisApplication(const QString & key,int & argc,char ** argv)",
+        "method:KisApplication::~KisApplication()"
+      ]
+    },
+    {
+      "target": "KisApplicationArgumentsSchemaContractTest",
+      "source": "libs/application/tests/KisApplicationArgumentsSchemaContractTest.cpp",
+      "test": "KisApplicationArgumentsSchemaContractTest::applicationStartupAndEventSignaturesRemainStable",
+      "behavior": "applicationは起動引数を処理し、設定初期化の確認と通常・例外保護event配送を行う公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisApplication::askResetConfig()",
+        "method:KisApplication::event(QEvent * event)",
+        "method:KisApplication::notify(QObject * receiver,QEvent * event)",
+        "method:KisApplication::start(const KisApplicationArguments & args)"
+      ]
+    },
+    {
+      "target": "KisApplicationArgumentsSchemaContractTest",
+      "source": "libs/application/tests/KisApplicationArgumentsSchemaContractTest.cpp",
+      "test": "KisApplicationArgumentsSchemaContractTest::applicationResourceAndPluginInitializationSignaturesRemainStable",
+      "behavior": "applicationは資源種別・資源・plugin・大域状態・遅延同期を初期化し、metatype登録とwidget styleを検証・設定する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisApplication::addResourceTypes()",
+        "method:KisApplication::initializeGlobals(const KisApplicationArguments & args)",
+        "method:KisApplication::loadPlugins()",
+        "method:KisApplication::processPostponedSynchronizationEvents()",
+        "method:KisApplication::registerResources()",
+        "method:KisApplication::setWidgetStyle(const QString & styleName)",
+        "method:KisApplication::verifyMetatypeRegistration()"
+      ]
+    },
+    {
+      "target": "KisApplicationArgumentsSchemaContractTest",
+      "source": "libs/application/tests/KisApplicationArgumentsSchemaContractTest.cpp",
+      "test": "KisApplicationArgumentsSchemaContractTest::applicationSplashAndExternalInterfaceSignaturesRemainStable",
+      "behavior": "applicationはsplash画面と読込表示、拡張modifier interfaceを公開し、Android構成ではsplashと拡大率adapterを公開する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisApplication::androidScaling()",
+        "method:KisApplication::androidSplash()",
+        "method:KisApplication::extendedModifiersPluginInterface()",
+        "method:KisApplication::hideSplashScreen()",
+        "method:KisApplication::setSplashScreen(QWidget * splash)",
+        "method:KisApplication::setSplashScreenLoadingText(const QString &)"
+      ]
+    },
+    {
+      "target": "KisApplicationArgumentsSchemaContractTest",
+      "source": "libs/application/tests/KisApplicationArgumentsSchemaContractTest.cpp",
+      "test": "KisApplicationArgumentsSchemaContractTest::applicationRemoteArgumentAndFileNotificationSignaturesRemainStable",
+      "behavior": "applicationは別instanceからの引数を受信・実行し、OSからのfile open要求を通知する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisApplication::executeRemoteArguments(QByteArray message,KisMainWindow * mainWindow)",
+        "method:KisApplication::fileOpenRequested(const QString & url)",
+        "method:KisApplication::remoteArguments(const QString & message)"
       ]
     }
   ]

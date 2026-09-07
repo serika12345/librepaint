@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-07 10:07 JST
+- 更新日時: 2026-09-07 10:16 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -2771,6 +2771,13 @@
 - 開始headerの`KisImportExportManager.h`は公開宣言、inline実装、値memberのいずれにも利用がない。重量なimport/export公開headerを削除して9直接利用元へ配布されるcompile閉包を縮小する。同型を使う3直接利用元は既に自身で同headerをincludeしている。開始実装の厳格`clang-check`には開始時からQt 6 `QMetaType::type()`非推奨1件があり、公開署名固定と独立した既知診断として維持する。
 - 既存`libs/application/tests/KisApplicationArgumentsSchemaContractTest.cpp`は77行・5枠で、追加5枠後も300行・20枠未満に収める。既存targetは4工程・8入力、command SHA-256 `d62cc3c90a2b6e4c53ca0ff1e66f9440769ea2413a8c6593957e05ababddf3bb`、input SHA-256 `d396bd55ed135e1a3b0216c6b40d7f4c2e09780b50819ccedb34348d7511b083`である。対象固有CMake節へuiのsource・generated探索路、Qt Widgets interface探索路、`kritaui_EXPORTS`だけを加え、Qt Core・Testだけの動的接続と4工程・8入力を維持する。停止線を5工程・11入力、300行・20枠とする。
 - `g360-application-schema`の状態は`in_progress`、実装基点は`8b784aef3d`である。構造整理は開始header、契約は既存試験sourceと対象固有CMake節だけに限定する。macOSの対象、追加5枠の20回反復、開始実装・直接利用source・試験sourceの厳格`clang-check`、書式、二回の無作業再構築、公開API指紋不変、公開API検査、`verify-quick`だけを実行する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
+
+### 第360便の実装結果
+
+- `g360-application-schema`は`completed`である。開始`libs/application/ui/orchestration/KisApplication.h`から未使用の重量な`KisImportExportManager.h`を削除した。これにより露出した`KisMpl.h`の実利用所有を推移経路から`libs/application/ui/workspace/KisMainWindow.cpp`へ移した。同型を使う他3直接利用元は既に直接includeを所有していた。構造変更前後の公開API報告はSHA-256 `4efd2b4451a7e41c4031d5a5eaf242a44ae836a5a3e97571cff15acd9914b2e4`で同一で、構造変更は`e8cf7c7082`である。
+- 9直接利用sourceの厳格`clang-check`で4 sourceは診断0件となり、`KisMainWindow.cpp`の推移include不足解消後は開始時からのQt 6 event座標非推奨だけになった。残る診断は開始実装のQt 6 metatype非推奨、Android専用header不足2件、Python runnerの生成探索路不足1件で、今回の公開署名と独立する既知診断である。
+- 既存`libs/application/tests/KisApplicationArgumentsSchemaContractTest.cpp`へ5枠を追加し、applicationの型・構築・寿命、起動・event配送、資源・plugin初期化、splash・外部interface、遠隔引数・file通知の全23公開APIを固定した。Android固有2 APIは`Q_OS_ANDROID`構成で署名検査を有効にする。対象は133行・10枠である。最初のcompile赤はui探索路不足、対象固有CMake節の追加後は追加5試験関数の未定義symbolだけで停止した。製品libraryを接続せず、最終閉包4工程・8入力、command SHA-256 `94caa193f640f28e43b9589ff6612ec820c742cf64fd5144b694bfaea8103972`、input SHA-256 `d396bd55ed135e1a3b0216c6b40d7f4c2e09780b50819ccedb34348d7511b083`で、動的接続はQt Core・Test、gettextとOS frameworkだけである。実装は`d801ec21a9`である。
+- macOSで対象と軽量近傍`KisActionEnumContractTest`のCTest、対象の20回反復、試験sourceの厳格`clang-check`、変更範囲と試験sourceの書式、二回の無作業再構築、公開API検査、`verify-quick`に成功した。台帳へ23 APIを追加して24,642件対応、5,162件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g360.json`を削除し、主Ninja木5,924,740 KiB、共有compiler cache 983,232 KiB、最新`build/tdd-macos/public-api-missing-g361.json` 1,367,242 bytes、SHA-256 `bc7bf007dace6b1fab50919ee0215088a138bdd2eed6b3872082cd913551b7cd`だけを保持する。compiler cacheは144,215件中120,493件、83.55%がhitしている。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第361便で次の高密度なmacOS対象と最小構築面を選定することである。
 
 ### 第239便の先行監査担当票
 
