@@ -12,9 +12,6 @@
 #include <QMap>
 #include <QVariant>
 
-#include <KoColorSpace.h>
-#include <KoColorProfile.h>
-
 #include "kritaui_export.h"
 #include <KisNodeAdditionFlags.h>
 
@@ -40,6 +37,8 @@ typedef KisSharedPtr<KisMask> KisMaskSP;
 class KisSelection;
 typedef KisSharedPtr<KisSelection> KisSelectionSP;
 class KisPropertiesConfiguration;
+class KoColorProfile;
+class KoColorSpace;
 
 class KisDocument;
 class KisMainWindow;
