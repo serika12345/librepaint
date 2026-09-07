@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-07 08:55 JST
+- 更新日時: 2026-09-07 08:58 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -2724,6 +2724,13 @@
 - `g356-timeline-node-list-keeper-schema`は`completed`である。開始`plugins/dockers/animation/timeline_node_list_keeper.h`へprivate slot引数で直接使う`QPointer`を追加し、基底headerが所有する重複`QAbstractTableModel`を除去した。開始実装と直接利用実装の厳格`clang-check`は診断0件で、構造変更前後の公開API報告はSHA-256 `72f6bf7009852073d3c5741b8d06e458f071b13789d8d4bd0824874875462b7b`で同一だった。構造変更は`8c2837147a`である。
 - 既存`plugins/dockers/animation/tests/KisAnimTimelineFramesModelSchemaContractTest.cpp`へ5枠を追加し、keeperの型・構築・寿命・行照会・能動dummy更新、他layerの値保持、外部通知modelの型・構築・通知橋渡しの全22公開APIを固定した。対象は294行・10枠である。最初の赤は追加5試験関数の未定義symbolだけで停止した。CMake変更なし、最終閉包4工程・8入力、command SHA-256 `8eee745639b37544a3276e058a3bce7dffadfdd046b99eca43ef4efa9050831b`、input SHA-256 `c050a60c75cc608fa21219132a37aef71247a46976a86ee0621c756a10293b2e`を維持し、動的接続はQt Core・Test、gettextとOS frameworkだけである。実装は`ece6c7a5eb`である。
 - macOSで対象と軽量近傍`KisAnimUtilsSchemaContractTest`のCTest、対象の20回反復、開始実装・直接利用実装・試験sourceの厳格`clang-check`、変更範囲と試験sourceの書式、二回の無作業再構築、公開API検査、`verify-quick`に成功した。台帳へ22 APIを追加して24,558件対応、5,246件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g356.json`を削除し、主Ninja木5,923,468 KiB、共有compiler cache 981,564 KiB、最新`build/tdd-macos/public-api-missing-g357.json` 1,387,673 bytes、SHA-256 `386e103ad476774385a31cae5e103ff564c8e690b92c09871fefd8c05a40464e`だけを保持する。compiler cacheは144,201件中120,492件、83.56%がhitしている。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第357便で次の高密度なmacOS対象と最小構築面を選定することである。
+
+### 第357便の監査結果と実装計画
+
+- 正式入力`build/tdd-macos/public-api-missing-g357.json`は公開header 1,548、公開API 29,804、対応済み24,558、未対応5,246、1,387,673 bytes、SHA-256 `386e103ad476774385a31cae5e103ff564c8e690b92c09871fefd8c05a40464e`を記録する。`libs/ui/widgets/kis_preset_chooser.h`の残存全21 APIを、型・表示mode・寿命、資源選択、表示・filter、表示設定、通知の5枠へ完全に対応付ける。識別子整列集合のSHA-256は`50a7a9879e4ad4d49cd8abff966f39edf49f67cd9ed70b152aed24a8caf168d5`である。
+- 開始headerの`KoID.h`は公開宣言、inline実装、値member、対応実装のいずれにも利用がない。未使用includeを削除して公開headerのcompile閉包を縮小する。開始実装と直接利用実装の厳格`clang-check`は変更前に診断0件であり、変更後も診断0件と公開API指紋を維持する。
+- 既存`libs/libkis/tests/ResourcePresetSchemaContractTest.cpp`は101行・5枠で、追加5枠後も300行・20枠未満に収める。既存targetはCMake File API上で自動生成依存だけを持ち、CMake変更なしで4工程・8入力、command SHA-256 `2d0f8b98edfa742f8a4617f44594230e2cef66f644ab0152ba6da00e759e38d2`、input SHA-256 `9deae3667cc682888a4c909a4059ec0b8d0a93034b2ff7f274983481e85cfe2e`である。Qt Core・Test、gettext、OS frameworkだけへ動的接続し、製品libraryを要求しない。停止線を5工程・11入力、300行・20枠とする。
+- `g357-preset-chooser-schema`の状態は`in_progress`、実装基点は`e4e26f548b`である。構造整理は開始header、契約は既存試験sourceだけに限定する。macOSの対象、追加5枠の20回反復、開始実装・直接利用実装・試験sourceの厳格`clang-check`、書式、二回の無作業再構築、公開API指紋不変、公開API検査、`verify-quick`だけを実行する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
 
 ### 第239便の先行監査担当票
 
