@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-07 10:53 JST
+- 更新日時: 2026-09-07 10:57 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -2805,6 +2805,13 @@
 - 12直接利用translation unitの厳格`clang-check`で9本は診断0件となった。残る診断は`LayerBox.cpp`の未構築生成UI、`NodeDelegate.cpp`のQt 6 event座標非推奨、`kis_kra_loader.cpp`の既存後方互換関数非推奨だけで、今回露出した推移include不足は全て解消した。既存`KisPaintLayerSchemaContractTest`のCTestと厳格`clang-check`にも成功した。
 - 新規`libs/image/tests/KisBaseNodeSchemaContractTest.cpp`の10枠で、property値、型・構築・寿命、paint device・合成、識別・表示、opacity・編集、任意property、thumbnail、幾何・LOD、keyframe・animation、visitor・imageの全87公開APIを固定した。対象は229行・10枠である。最初のcompile赤は`KoID.h`が要求するKF I18n探索路不足で、対象固有の公開探索路追加後は10試験関数の未定義symbolだけで停止した。製品libraryを接続せず、最終閉包4工程・8入力、command SHA-256 `9570101f071b41c39850f50e33014f04d5ebc2cf08c5c8dd2e7f834b043d6376`、input SHA-256 `057e7f7fd450ce8c1c6aaee29e04aeda61a8908a47964b21e3d0869049596d7b`である。動的接続はQt Core・Gui・Test、gettextとOS frameworkだけで、未解決Kis・Ko記号はない。契約実装は`2fdd2199e4`である。
 - macOSで対象と軽量近傍`KisImageSharedPointerHooksSchemaContractTest`のCTest、対象の20回反復、開始実装・直接利用source・既存近傍・新規試験sourceの厳格`clang-check`、変更範囲と試験sourceの書式、二回の無作業再構築、公開API検査、`verify-quick`に成功した。台帳へ87 APIを追加して24,748件対応、5,056件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g362.json`を削除し、主Ninja木5,926,252 KiB、共有compiler cache 982,660 KiB、最新`build/tdd-macos/public-api-missing-g363.json` 1,342,351 bytes、SHA-256 `edd441981ceceab65e719363d428ee6bfe904f4d3e3f60f2dfde0bd0583a42a6`だけを保持する。compiler cacheは144,224件中120,496件、83.55%がhitしている。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第363便で次の高密度なmacOS対象と最小構築面を選定することである。
+
+### 第363便の監査結果と実装計画
+
+- 正式入力`build/tdd-macos/public-api-missing-g363.json`は公開header 1,548、公開API 29,804、対応済み24,748、未対応5,056、1,342,351 bytes、SHA-256 `edd441981ceceab65e719363d428ee6bfe904f4d3e3f60f2dfde0bd0583a42a6`を記録する。最大密度の`libs/image/kis_image.h`に残る全176 APIを、型・構築、graph通知、同期、stroke、更新filter、幾何・座標、変形、色管理、階層・選択、注釈・構図、回り込み・LOD・隔離、undo、状態通知、node通知、stroke通知の15枠へ完全に対応付ける。識別子整列集合のSHA-256は`3e057b37bdb76bc95617aadead2d601d80a249e7db1681dd24d39ede00be314f`である。
+- 開始実装の厳格`clang-check`は診断0件である。開始headerの`QPainter`は宣言に現れないが、406直接利用元が推移includeへ依存し得るため、この契約便では除去しない。専用契約の工程数はheader内容で増えず、同依存の安全な移管には製品利用元を含む独立した検証範囲が必要である。
+- 新規`libs/image/tests/KisImageSchemaContractTest.cpp`を300行・20枠未満で作成する。対象固有CMake節はimage・global・pigmentのsource・generated探索路、必要なKF I18n・Imath公開探索路、Qt Core・Gui・Test、`kritaimage_EXPORTS`と`kritapigment_EXPORTS`だけを所有する。近傍`KisImageProjectionAndResolutionCommandsSchemaContractTest`は4工程・8入力、command SHA-256 `2293e2605f119c8515437881bdf781693fdbfa53162dfeb88e804453c16f5cf3`、input SHA-256 `c9add6423344ddb3fa43d2492a02ab6ef3284f0438fed3ee2dd2e2d81c31fec8`である。製品library、製品OBJECT、追加frameworkを接続せず、停止線を5工程・11入力とする。
+- `g363-image-schema`の状態は`in_progress`、実装基点は`5d65939915`である。契約は新規試験sourceと対象固有CMake節だけに限定する。macOSの対象、15枠の20回反復、開始実装・試験sourceの厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
 
 ### 第239便の先行監査担当票
 
