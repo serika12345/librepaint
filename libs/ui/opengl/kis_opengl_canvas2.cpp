@@ -16,6 +16,7 @@
 #include <QWindow>
 
 #include "opengl/kis_opengl_canvas2.h"
+#include "opengl/kis_opengl_image_textures.h"
 #include "opengl/KisOpenGLCanvasRenderer.h"
 #include "opengl/KisOpenGLSync.h"
 #include "opengl/kis_opengl_canvas_debugger.h"

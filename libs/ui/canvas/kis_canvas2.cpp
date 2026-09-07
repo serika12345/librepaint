@@ -71,6 +71,7 @@
 #include "KisCanvasAnimationState.h"
 #include <animation/kis_animation_frame_cache.h>
 #include "opengl/kis_opengl_canvas2.h"
+#include "opengl/kis_opengl_image_textures.h"
 #include "opengl/kis_opengl.h"
 #include "canvas/kis_fps_decoration.h"
 
