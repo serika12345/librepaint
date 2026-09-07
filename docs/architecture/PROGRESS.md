@@ -2,8 +2,8 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-07 14:02 JST
-- 状態: `in_progress`
+- 更新日時: 2026-09-07 14:11 JST
+- 状態: `planned`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
@@ -2939,6 +2939,14 @@
 - 開始`libs/ui/opengl/kis_opengl_canvas2.h`は戻り値の共有pointer別名だけに必要な`opengl/kis_opengl_image_textures.h`を完全includeし、texture tile・buffer・update builderまで推移公開している。開始headerの完全includeを`kis_shared_ptr.h`と`KisOpenGLImageTextures`前方宣言・別名へ置き換え、完全型の所有を開始実装`libs/ui/opengl/kis_opengl_canvas2.cpp`の直接includeへ移す。5直接利用元の変更前の厳格`clang-check`は4件が診断0件、`libs/ui/canvas/kis_canvas_controller.cpp`だけが既存Qt 6 `QTabletEvent::pos()`非推奨診断1件で停止する。変更後に終了状態と診断本文の一致を検査し、公開契約追加より先に独立commitする。
 - 新規`libs/ui/tests/KisOpenGLCanvas2SchemaContractTest.cpp`を200行・10枠未満で作り、型と寿命、Qt event、描画、表示設定、wrap-around、projection更新、状態照会と設定slotに全39 APIを対応付ける。実体化せず型特性と厳密な関数pointerで固定し、`libs/ui/tests/CMakeLists.txt`の専用targetは製品libraryを接続しない。最も近い`KisCanvas2SchemaContractTest`は4工程・8入力、command SHA-256 `bc29da8c640940c753d920e812ec6fd04ab89a825edbc4c2cc560d93eba206c9`、input SHA-256 `f81e09d52468c18355e8cf9865fad097e615cdb1740996e3bce08afc81504ec4`である。新規targetの停止線を5工程・11入力とする。
 - `g373-opengl-canvas-schema`の状態は`in_progress`、実装基点は`a25cf6b6f0`である。構造先行commit後に、新規試験sourceと`libs/ui/tests/CMakeLists.txt`の対象固有節だけへ契約を追加する。macOSの対象、8枠の20回反復、5直接利用元と試験sourceの厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
+
+### 第373便の実装結果
+
+- `g373-opengl-canvas-schema`は`completed`である。開始`libs/ui/opengl/kis_opengl_canvas2.h`の`opengl/kis_opengl_image_textures.h`完全includeを`kis_shared_ptr.h`と`KisOpenGLImageTextures`前方宣言・別名へ置き換えた。完全型依存は開始実装`libs/ui/opengl/kis_opengl_canvas2.cpp`と、共有pointer一時値を破棄する`libs/ui/canvas/kis_canvas2.cpp`の直接includeへ移した。構造変更commitは`04ed2fb6ae`である。
+- 5直接利用元の変更前後の厳格`clang-check`は、診断0件4件と既存Qt 6 `QTabletEvent::pos()`非推奨診断1件の終了状態・診断本文が完全一致した。最初の移動検査で`libs/ui/canvas/kis_canvas2.cpp`の不完全型破棄を検出したため、完全型includeの必要な値消費元として明示した。比較用一時診断は再検査直後に削除し、公開API報告は変更前後で同じSHA-256 `2b4459bbdd116fcaba80d6c784e96829a795e7b91304abdf99372ddfa1d5d706`となった。
+- 開始headerの残存全39 APIを、新規`libs/ui/tests/KisOpenGLCanvas2SchemaContractTest.cpp`の型・構築・寿命3、widget event 9、OpenGL描画5、表示構成4、wrap-around表示4、projection更新6、canvas状態5、構成slot 3の8枠へ対応付けた。対象は120行で、最初の赤は追加依存を要求せず8試験関数の未定義symbolだけで停止した。契約実装commitは`14575bf0af`である。
+- 最終targetは4工程・8入力、command SHA-256 `151c2b28a06ca707944c9c4680e5adf8874134fd091ceffa19ba4b3196aa063c`、input SHA-256 `9dc654405ecfef27885c714b8f63ef3b76cdabc22cea47d88908eea9c3b134e0`で停止線内に収まる。動的接続はQt Gui・Test・CoreとそのOS framework、gettextだけで、製品libraryを接続しない。macOSで対象`libs-ui-KisOpenGLCanvas2SchemaContractTest`、軽量近傍`libs-ui-KisCanvas2SchemaContractTest`、対象の20回反復、試験sourceの厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`に成功した。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 台帳へ39 APIを追加して25,728件対応、4,076件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g373.json`を最新報告の検証後に削除し、追加作業tree・構築木は作成していない。主Ninja木5,942,484 KiB、共有compiler cache 983,108 KiB、最新`build/tdd-macos/public-api-missing-g374.json` 1,100,464 bytes、SHA-256 `597c6c1cceff704d747650dcab3a6bde9bfc1f1c08df9ecba20132d172523c7c`だけを再利用対象として保持する。compiler cacheは144,278件中120,512件、83.53%がhitしている。次の永続作業は第374便で次の高密度なmacOS対象と最小構築面を選定することである。
 
 ### 第239便の先行監査担当票
 

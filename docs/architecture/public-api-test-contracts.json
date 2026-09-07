@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 4115
+    "expectedMissingApis": 4076
   },
   "contracts": [
     {
@@ -70380,6 +70380,117 @@
         "method:KisScratchPad::scaleChanged(qreal scale)",
         "method:KisScratchPad::sigUpdateCanvas(const QRect & rect)",
         "method:KisScratchPad::viewportChanged(const QRect rect)"
+      ]
+    },
+    {
+      "target": "KisOpenGLCanvas2SchemaContractTest",
+      "source": "libs/ui/tests/KisOpenGLCanvas2SchemaContractTest.cpp",
+      "test": "KisOpenGLCanvas2SchemaContractTest::typeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "OpenGL canvasはOpenGL widgetと共通canvas責務を継承し、canvas・座標変換・画像・表示設定による構築と仮想寿命を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisOpenGLCanvas2",
+        "method:KisOpenGLCanvas2::KisOpenGLCanvas2(KisCanvas2 * canvas,KisCoordinatesConverter * coordinatesConverter,QWidget * parent,KisImageWSP image,const KisDisplayConfig & displayConfig,QSharedPointer<KisDisplayFilter> displayFilter,BitDepthMode bitDepthRequest)",
+        "method:KisOpenGLCanvas2::~KisOpenGLCanvas2()"
+      ]
+    },
+    {
+      "target": "KisOpenGLCanvas2SchemaContractTest",
+      "source": "libs/ui/tests/KisOpenGLCanvas2SchemaContractTest.cpp",
+      "test": "KisOpenGLCanvas2SchemaContractTest::widgetEventSignaturesRemainStable",
+      "behavior": "OpenGL canvasは一般event、入力method、focus、表示、描画と寸法変更のQt widget event受渡しを維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisOpenGLCanvas2::event(QEvent * e)",
+        "method:KisOpenGLCanvas2::focusInEvent(QFocusEvent * event)",
+        "method:KisOpenGLCanvas2::focusOutEvent(QFocusEvent * event)",
+        "method:KisOpenGLCanvas2::hideEvent(QHideEvent * event)",
+        "method:KisOpenGLCanvas2::inputMethodEvent(QInputMethodEvent * event)",
+        "method:KisOpenGLCanvas2::inputMethodQuery(Qt::InputMethodQuery query) const",
+        "method:KisOpenGLCanvas2::paintEvent(QPaintEvent * e)",
+        "method:KisOpenGLCanvas2::resizeEvent(QResizeEvent * e)",
+        "method:KisOpenGLCanvas2::showEvent(QShowEvent * event)"
+      ]
+    },
+    {
+      "target": "KisOpenGLCanvas2SchemaContractTest",
+      "source": "libs/ui/tests/KisOpenGLCanvas2SchemaContractTest.cpp",
+      "test": "KisOpenGLCanvas2SchemaContractTest::openGLRenderingSignaturesRemainStable",
+      "behavior": "OpenGL canvasはOpenGL初期化・寸法変更・描画、tool輪郭描画と画像texture参照を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisOpenGLCanvas2::initializeGL()",
+        "method:KisOpenGLCanvas2::openGLImageTextures() const",
+        "method:KisOpenGLCanvas2::paintGL()",
+        "method:KisOpenGLCanvas2::paintToolOutline(const KisOptimizedBrushOutline & path,int thickness=1)",
+        "method:KisOpenGLCanvas2::resizeGL(int width,int height)"
+      ]
+    },
+    {
+      "target": "KisOpenGLCanvas2SchemaContractTest",
+      "source": "libs/ui/tests/KisOpenGLCanvas2SchemaContractTest.cpp",
+      "test": "KisOpenGLCanvas2SchemaContractTest::displayConfigurationSignaturesRemainStable",
+      "behavior": "OpenGL canvasはchannel選択、画像色空間、表示構成と表示filterの更新を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisOpenGLCanvas2::channelSelectionChanged(const QBitArray & channelFlags)",
+        "method:KisOpenGLCanvas2::notifyImageColorSpaceChanged(const KoColorSpace * cs)",
+        "method:KisOpenGLCanvas2::setDisplayConfig(const KisDisplayConfig & config)",
+        "method:KisOpenGLCanvas2::setDisplayFilter(QSharedPointer<KisDisplayFilter> displayFilter)"
+      ]
+    },
+    {
+      "target": "KisOpenGLCanvas2SchemaContractTest",
+      "source": "libs/ui/tests/KisOpenGLCanvas2SchemaContractTest.cpp",
+      "test": "KisOpenGLCanvas2SchemaContractTest::wrapAroundViewingSignaturesRemainStable",
+      "behavior": "OpenGL canvasはwrap-around表示の有効状態と適用軸の設定・照会を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisOpenGLCanvas2::setWrapAroundViewingMode(bool value)",
+        "method:KisOpenGLCanvas2::setWrapAroundViewingModeAxis(WrapAroundAxis value)",
+        "method:KisOpenGLCanvas2::wrapAroundViewingMode() const",
+        "method:KisOpenGLCanvas2::wrapAroundViewingModeAxis() const"
+      ]
+    },
+    {
+      "target": "KisOpenGLCanvas2SchemaContractTest",
+      "source": "libs/ui/tests/KisOpenGLCanvas2SchemaContractTest.cpp",
+      "test": "KisOpenGLCanvas2SchemaContractTest::projectionUpdateSignaturesRemainStable",
+      "behavior": "OpenGL canvasは画像寸法変更完了、projection更新開始・適用と画像・装飾の部分更新を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisOpenGLCanvas2::finishResizingImage(qint32 w,qint32 h)",
+        "method:KisOpenGLCanvas2::startUpdateCanvasProjection(const QRect & rc)",
+        "method:KisOpenGLCanvas2::updateCanvasDecorations(const QRect & decoUpdateRect)",
+        "method:KisOpenGLCanvas2::updateCanvasImage(const QRect & imageUpdateRect)",
+        "method:KisOpenGLCanvas2::updateCanvasProjection(KisUpdateInfoSP info)",
+        "method:KisOpenGLCanvas2::updateCanvasProjection(const QVector<KisUpdateInfoSP> & infoObjects)"
+      ]
+    },
+    {
+      "target": "KisOpenGLCanvas2SchemaContractTest",
+      "source": "libs/ui/tests/KisOpenGLCanvas2SchemaContractTest.cpp",
+      "test": "KisOpenGLCanvas2SchemaContractTest::canvasStateSignaturesRemainStable",
+      "behavior": "OpenGL canvasはbit depth状態、処理中状態、LOD復帰状態、利用widgetと利用者向けbit depth報告を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisOpenGLCanvas2::currentBitDepthMode() const",
+        "method:KisOpenGLCanvas2::currentBitDepthUserReport() const",
+        "method:KisOpenGLCanvas2::isBusy() const",
+        "method:KisOpenGLCanvas2::setLodResetInProgress(bool value)",
+        "method:KisOpenGLCanvas2::widget()"
+      ]
+    },
+    {
+      "target": "KisOpenGLCanvas2SchemaContractTest",
+      "source": "libs/ui/tests/KisOpenGLCanvas2SchemaContractTest.cpp",
+      "test": "KisOpenGLCanvas2SchemaContractTest::configurationSlotSignaturesRemainStable",
+      "behavior": "OpenGL canvasは構成、pixel grid modeとcursor色の変更通知を受け取る。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisOpenGLCanvas2::slotConfigChanged()",
+        "method:KisOpenGLCanvas2::slotPixelGridModeChanged()",
+        "method:KisOpenGLCanvas2::slotUpdateCursorColor()"
       ]
     }
   ]
