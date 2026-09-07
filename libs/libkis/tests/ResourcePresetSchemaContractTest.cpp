@@ -6,6 +6,7 @@
 #include <Preset.h>
 #include <PresetChooser.h>
 #include <Resource.h>
+#include <kis_preset_chooser.h>
 
 #include <QTest>
 
@@ -23,6 +24,9 @@ namespace
 #define ASSERT_PRESET_CHOOSER_SIGNATURE(method, signature)                                                             \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&PresetChooser::method)), signature>)
 
+#define ASSERT_NATIVE_PRESET_CHOOSER_SIGNATURE(method, signature)                                                      \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KisPresetChooser::method)), signature>)
+
 } // namespace
 
 class ResourcePresetSchemaContractTest : public QObject
@@ -35,6 +39,11 @@ private Q_SLOTS:
     void presetTypeLifetimeAndPersistenceSchemaRemainStable();
     void presetChooserTypeLifetimeAndSelectionSchemaRemainStable();
     void presetChooserNotificationSignaturesRemainStable();
+    void nativePresetChooserTypeViewModeAndLifetimeSchemaRemainStable();
+    void nativePresetChooserResourceSelectionSignaturesRemainStable();
+    void nativePresetChooserPresentationAndFilterSignaturesRemainStable();
+    void nativePresetChooserViewSettingsSignaturesRemainStable();
+    void nativePresetChooserNotificationSignaturesRemainStable();
 };
 
 void ResourcePresetSchemaContractTest::resourceTypeLifetimeAndValueSemanticsSchemaRemainStable()
@@ -94,6 +103,50 @@ void ResourcePresetSchemaContractTest::presetChooserNotificationSignaturesRemain
 {
     ASSERT_PRESET_CHOOSER_SIGNATURE(presetClicked, void (PresetChooser::*)(Resource));
     ASSERT_PRESET_CHOOSER_SIGNATURE(presetSelected, void (PresetChooser::*)(Resource));
+}
+
+void ResourcePresetSchemaContractTest::nativePresetChooserTypeViewModeAndLifetimeSchemaRemainStable()
+{
+    using Chooser = KisPresetChooser;
+
+    static_assert(std::is_class_v<Chooser>);
+    static_assert(std::is_base_of_v<QWidget, Chooser>);
+    static_assert(std::is_constructible_v<Chooser, QWidget *>);
+    static_assert(std::has_virtual_destructor_v<Chooser>);
+    static_assert(std::is_enum_v<Chooser::ViewMode>);
+    static_assert(Chooser::THUMBNAIL == 0);
+    static_assert(Chooser::DETAIL == 1);
+}
+
+void ResourcePresetSchemaContractTest::nativePresetChooserResourceSelectionSignaturesRemainStable()
+{
+    ASSERT_NATIVE_PRESET_CHOOSER_SIGNATURE(currentResource, KoResourceSP (KisPresetChooser::*)() const);
+    ASSERT_NATIVE_PRESET_CHOOSER_SIGNATURE(setCurrentResource, void (KisPresetChooser::*)(KoResourceSP));
+}
+
+void ResourcePresetSchemaContractTest::nativePresetChooserPresentationAndFilterSignaturesRemainStable()
+{
+    ASSERT_NATIVE_PRESET_CHOOSER_SIGNATURE(iconSize, int (KisPresetChooser::*)());
+    ASSERT_NATIVE_PRESET_CHOOSER_SIGNATURE(itemChooser, KisResourceItemChooser * (KisPresetChooser::*)());
+    ASSERT_NATIVE_PRESET_CHOOSER_SIGNATURE(setPresetFilter, void (KisPresetChooser::*)(const QString &));
+    ASSERT_NATIVE_PRESET_CHOOSER_SIGNATURE(showTaggingBar, void (KisPresetChooser::*)(bool));
+}
+
+void ResourcePresetSchemaContractTest::nativePresetChooserViewSettingsSignaturesRemainStable()
+{
+    ASSERT_NATIVE_PRESET_CHOOSER_SIGNATURE(setViewMode, void (KisPresetChooser::*)(KisPresetChooser::ViewMode));
+    ASSERT_NATIVE_PRESET_CHOOSER_SIGNATURE(setViewModeToThumbnail, void (KisPresetChooser::*)());
+    ASSERT_NATIVE_PRESET_CHOOSER_SIGNATURE(setViewModeToDetail, void (KisPresetChooser::*)());
+    ASSERT_NATIVE_PRESET_CHOOSER_SIGNATURE(updateViewSettings, void (KisPresetChooser::*)());
+    ASSERT_NATIVE_PRESET_CHOOSER_SIGNATURE(setIconSize, void (KisPresetChooser::*)(int));
+    ASSERT_NATIVE_PRESET_CHOOSER_SIGNATURE(saveIconSize, void (KisPresetChooser::*)());
+    ASSERT_NATIVE_PRESET_CHOOSER_SIGNATURE(showHideBrushNames, void (KisPresetChooser::*)(ListViewMode));
+}
+
+void ResourcePresetSchemaContractTest::nativePresetChooserNotificationSignaturesRemainStable()
+{
+    ASSERT_NATIVE_PRESET_CHOOSER_SIGNATURE(resourceSelected, void (KisPresetChooser::*)(KoResourceSP));
+    ASSERT_NATIVE_PRESET_CHOOSER_SIGNATURE(resourceClicked, void (KisPresetChooser::*)(KoResourceSP));
 }
 
 QTEST_APPLESS_MAIN(ResourcePresetSchemaContractTest)
