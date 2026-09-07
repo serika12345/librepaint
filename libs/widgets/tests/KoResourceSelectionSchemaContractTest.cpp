@@ -4,6 +4,7 @@
  */
 
 #include <KoResourcePopupAction.h>
+#include <KoResourceServer.h>
 #include <KoResourceServerProvider.h>
 
 #include <QTest>
@@ -20,6 +21,11 @@ private Q_SLOTS:
     void resourcePopupActionTypeLifetimeAndControlSchemaRemainStable();
     void resourcePopupActionBackgroundSignaturesRemainStable();
     void resourcePopupActionResourceSignaturesRemainStable();
+    void resourceServerObserverTypeAndNotificationSchemaRemainStable();
+    void resourceServerTypeConstructionAndLifetimeSchemaRemainStable();
+    void resourceServerModelAndQuerySignaturesRemainStable();
+    void resourceServerResolutionAndPersistenceSignaturesRemainStable();
+    void resourceServerObserverAndMutationSignaturesRemainStable();
 };
 
 void KoResourceSelectionSchemaContractTest::resourceServerProviderTypeAndLifetimeSchemaRemainStable()
@@ -107,6 +113,69 @@ void KoResourceSelectionSchemaContractTest::resourcePopupActionResourceSignature
                                  CurrentResourceSignature>);
     static_assert(std::is_same_v<decltype(static_cast<SetCurrentResourceSignature>(&Action::setCurrentResource)),
                                  SetCurrentResourceSignature>);
+}
+
+void KoResourceSelectionSchemaContractTest::resourceServerObserverTypeAndNotificationSchemaRemainStable()
+{
+    using Observer = KoResourceServerObserver<KoResource>;
+    using Resource = QSharedPointer<KoResource>;
+    using Notification = void (Observer::*)(Resource);
+
+    static_assert(std::is_class_v<Observer>);
+    static_assert(std::is_abstract_v<Observer>);
+    static_assert(std::has_virtual_destructor_v<Observer>);
+    static_assert(std::is_same_v<decltype(&Observer::unsetResourceServer), void (Observer::*)()>);
+    static_assert(std::is_same_v<decltype(&Observer::resourceAdded), Notification>);
+    static_assert(std::is_same_v<decltype(&Observer::removingResource), Notification>);
+    static_assert(std::is_same_v<decltype(&Observer::resourceChanged), Notification>);
+}
+
+void KoResourceSelectionSchemaContractTest::resourceServerTypeConstructionAndLifetimeSchemaRemainStable()
+{
+    using Server = KoResourceServer<KoResource>;
+
+    static_assert(std::is_class_v<Server>);
+    static_assert(std::is_same_v<Server::ObserverType, KoResourceServerObserver<KoResource>>);
+    static_assert(std::is_constructible_v<Server, const QString &>);
+    static_assert(std::has_virtual_destructor_v<Server>);
+}
+
+void KoResourceSelectionSchemaContractTest::resourceServerModelAndQuerySignaturesRemainStable()
+{
+    using Server = KoResourceServer<KoResource>;
+
+    static_assert(std::is_same_v<decltype(&Server::resourceModel), KisResourceModel *(Server::*)() const>);
+    static_assert(std::is_same_v<decltype(&Server::firstResource), QSharedPointer<KoResource> (Server::*)() const>);
+    static_assert(std::is_same_v<decltype(&Server::resourceCount), int (Server::*)() const>);
+    static_assert(
+        std::is_same_v<decltype(&Server::assignedTagsList), QVector<KisTagSP> (Server::*)(KoResourceSP) const>);
+}
+
+void KoResourceSelectionSchemaContractTest::resourceServerResolutionAndPersistenceSignaturesRemainStable()
+{
+    using Server = KoResourceServer<KoResource>;
+    using Resource = QSharedPointer<KoResource>;
+
+    static_assert(std::is_same_v<decltype(&Server::addResource), bool (Server::*)(Resource, bool)>);
+    static_assert(std::is_same_v<decltype(&Server::removeResourceFromServer), bool (Server::*)(Resource)>);
+    static_assert(
+        std::is_same_v<decltype(&Server::importResourceFile), KoResourceSP (Server::*)(const QString &, const bool)>);
+    static_assert(std::is_same_v<decltype(&Server::removeResourceFile), void (Server::*)(const QString &)>);
+    static_assert(std::is_same_v<decltype(&Server::resource),
+                                 Resource (Server::*)(const QString &, const QString &, const QString &)>);
+    static_assert(std::is_same_v<decltype(&Server::saveLocation), QString (Server::*)()>);
+}
+
+void KoResourceSelectionSchemaContractTest::resourceServerObserverAndMutationSignaturesRemainStable()
+{
+    using Server = KoResourceServer<KoResource>;
+    using Observer = Server::ObserverType;
+    using Resource = QSharedPointer<KoResource>;
+
+    static_assert(std::is_same_v<decltype(&Server::addObserver), void (Server::*)(Observer *)>);
+    static_assert(std::is_same_v<decltype(&Server::removeObserver), void (Server::*)(Observer *)>);
+    static_assert(std::is_same_v<decltype(&Server::updateResource), bool (Server::*)(Resource)>);
+    static_assert(std::is_same_v<decltype(&Server::reloadResource), bool (Server::*)(Resource)>);
 }
 
 QTEST_APPLESS_MAIN(KoResourceSelectionSchemaContractTest)
