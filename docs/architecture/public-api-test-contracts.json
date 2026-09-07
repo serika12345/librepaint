@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 4632
+    "expectedMissingApis": 4484
   },
   "contracts": [
     {
@@ -69332,6 +69332,289 @@
         "method:KisPaintDevice::setSupportsWraparoundMode(bool value)",
         "method:KisPaintDevice::supportsWraproundMode() const",
         "method:KisPaintDevice::testingFetchLodDevice(KisPaintDeviceSP targetDevice)"
+      ]
+    },
+    {
+      "target": "KisDocumentSchemaContractTest",
+      "source": "libs/ui/tests/KisDocumentSchemaContractTest.cpp",
+      "test": "KisDocumentSchemaContractTest::typeFlagsRecoveryAndLifetimeSchemaRemainStable",
+      "behavior": "文書は通常・最近使用除外・復旧fileのopen flag、復旧自動保存の開始結果と多態的寿命境界を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisDocument::OpenFlags",
+        "class:KisDocument",
+        "enum:KisDocument::OpenFlag",
+        "enum:KisDocument::RecoveryAutoSaveStartResult",
+        "enumerator:KisDocument::OpenFlag::DontAddToRecent",
+        "enumerator:KisDocument::OpenFlag::None",
+        "enumerator:KisDocument::OpenFlag::RecoveryFile",
+        "enumerator:KisDocument::RecoveryAutoSaveStartResult::AlreadySaving",
+        "enumerator:KisDocument::RecoveryAutoSaveStartResult::Failed",
+        "enumerator:KisDocument::RecoveryAutoSaveStartResult::NoChanges",
+        "enumerator:KisDocument::RecoveryAutoSaveStartResult::Started"
+      ]
+    },
+    {
+      "target": "KisDocumentSchemaContractTest",
+      "source": "libs/ui/tests/KisDocumentSchemaContractTest.cpp",
+      "test": "KisDocumentSchemaContractTest::storageMimeAndDiagnosticSignaturesRemainStable",
+      "behavior": "文書は埋込み・参照資源storage、native・現在MIME、batch modeと読書き診断を取得・設定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDocument::embeddedResourcesStorageId() const",
+        "method:KisDocument::errorMessage() const",
+        "method:KisDocument::extraNativeMimeTypes()",
+        "method:KisDocument::fileBatchMode() const",
+        "method:KisDocument::isNativeFormat(const QByteArray & mimeType) const",
+        "method:KisDocument::linkedResourcesStorageId() const",
+        "method:KisDocument::mimeType() const",
+        "method:KisDocument::nativeFormatMimeType()",
+        "method:KisDocument::setErrorMessage(const QString & errMsg)",
+        "method:KisDocument::setFileBatchMode(const bool batchMode)",
+        "method:KisDocument::setMimeType(const QByteArray & mimeType)",
+        "method:KisDocument::setWarningMessage(const QString & warningMsg)",
+        "method:KisDocument::warningMessage() const"
+      ]
+    },
+    {
+      "target": "KisDocumentSchemaContractTest",
+      "source": "libs/ui/tests/KisDocumentSchemaContractTest.cpp",
+      "test": "KisDocumentSchemaContractTest::importExportAndSaveSignaturesRemainStable",
+      "behavior": "文書はpathのopen・import・export・保存、native読込み、入出力管理とnative byte列化を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDocument::closePath(bool promptToSave=true)",
+        "method:KisDocument::exportDocument(const QString & path,const QByteArray & mimeType,bool isAdvancedExporting=false,bool showWarnings=false,KisPropertiesConfigurationSP exportConfiguration=0)",
+        "method:KisDocument::exportDocumentSync(const QString & path,const QByteArray & mimeType,KisPropertiesConfigurationSP exportConfiguration=0)",
+        "method:KisDocument::importDocument(const QString & path)",
+        "method:KisDocument::importExportManager() const",
+        "method:KisDocument::loadNativeFormat(const QString & file)",
+        "method:KisDocument::openPath(const QString & path,OpenFlags flags=None)",
+        "method:KisDocument::save(bool showWarnings,KisPropertiesConfigurationSP exportConfiguration)",
+        "method:KisDocument::saveAs(const QString & path,const QByteArray & mimeType,bool showWarnings,KisPropertiesConfigurationSP exportConfiguration=0)",
+        "method:KisDocument::serializeToNativeByteArray()"
+      ]
+    },
+    {
+      "target": "KisDocumentSchemaContractTest",
+      "source": "libs/ui/tests/KisDocumentSchemaContractTest.cpp",
+      "test": "KisDocumentSchemaContractTest::autosaveAndStateSignaturesRemainStable",
+      "behavior": "文書は自動保存間隔・実行状態、保存待機、変更・復旧・空・読書き状態と編集時間を管理する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDocument::autoSaveOnPause()",
+        "method:KisDocument::isAutoSaveActive()",
+        "method:KisDocument::isAutosaving() const",
+        "method:KisDocument::isInSaving() const",
+        "method:KisDocument::isModified() const",
+        "method:KisDocument::isReadWrite() const",
+        "method:KisDocument::isRecovered() const",
+        "method:KisDocument::isSaving() const",
+        "method:KisDocument::requestRecoveryAutoSave()",
+        "method:KisDocument::setAutoSaveActive(bool autoSaveIsActive)",
+        "method:KisDocument::setEmergencyAutoSaveInterval()",
+        "method:KisDocument::setEmpty(bool empty=true)",
+        "method:KisDocument::setInfiniteAutoSaveInterval()",
+        "method:KisDocument::setModified(bool _mod)",
+        "method:KisDocument::setNormalAutoSaveInterval()",
+        "method:KisDocument::setReadWrite(bool readwrite=true)",
+        "method:KisDocument::setRecovered(bool value)",
+        "method:KisDocument::updateEditingTime(bool forceStoreElapsed)",
+        "method:KisDocument::waitForSavingToComplete()"
+      ]
+    },
+    {
+      "target": "KisDocumentSchemaContractTest",
+      "source": "libs/ui/tests/KisDocumentSchemaContractTest.cpp",
+      "test": "KisDocumentSchemaContractTest::documentInfoPathAndUnitSignaturesRemainStable",
+      "behavior": "文書は情報dialog・表題・DOM生成、local・表示path、MIME読込み後処理と表示単位を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDocument::caption() const",
+        "method:KisDocument::createDocumentInfoDialog(QWidget * parent,KoDocumentInfo * docInfo) const",
+        "method:KisDocument::createDomDocument(const QString & appName,const QString & tagName,const QString & version)",
+        "method:KisDocument::createDomDocument(const QString & tagName,const QString & version) const",
+        "method:KisDocument::documentInfo() const",
+        "method:KisDocument::localFilePath() const",
+        "method:KisDocument::path() const",
+        "method:KisDocument::resetPath()",
+        "method:KisDocument::setLocalFilePath(const QString & localFilePath)",
+        "method:KisDocument::setMimeTypeAfterLoading(const QString & mimeType)",
+        "method:KisDocument::setPath(const QString & path)",
+        "method:KisDocument::setUnit(const KoUnit & unit)",
+        "method:KisDocument::unit() const"
+      ]
+    },
+    {
+      "target": "KisDocumentSchemaContractTest",
+      "source": "libs/ui/tests/KisDocumentSchemaContractTest.cpp",
+      "test": "KisDocumentSchemaContractTest::resourceStoryboardAndAudioSignaturesRemainStable",
+      "behavior": "文書は参照資源、palette、storyboard項目・注釈とaudio track・音量を取得・設定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDocument::getAudioLevel()",
+        "method:KisDocument::getAudioTracks() const",
+        "method:KisDocument::getStoryboardCommentsList()",
+        "method:KisDocument::getStoryboardItemList()",
+        "method:KisDocument::linkedDocumentResources()",
+        "method:KisDocument::setAudioTracks(QVector<QFileInfo> f)",
+        "method:KisDocument::setAudioVolume(qreal level)",
+        "method:KisDocument::setPaletteList(const QList<KoColorSetSP> & paletteList,bool emitSignal=false)",
+        "method:KisDocument::setStoryboardCommentList(const QVector<StoryboardComment> & storyboardCommentList,bool emitSignal=false)",
+        "method:KisDocument::setStoryboardItemList(const StoryboardItemList & storyboardItemList,bool emitSignal=false)"
+      ]
+    },
+    {
+      "target": "KisDocumentSchemaContractTest",
+      "source": "libs/ui/tests/KisDocumentSchemaContractTest.cpp",
+      "test": "KisDocumentSchemaContractTest::imageLifetimeAndStateSignaturesRemainStable",
+      "behavior": "文書は画像の生成・保持・識別・memory量、保存用画像と読込み途中を含む現在画像の設定を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDocument::hackPreliminarySetImage(KisImageSP image)",
+        "method:KisDocument::hasImage() const",
+        "method:KisDocument::image() const",
+        "method:KisDocument::imageMemorySize() const",
+        "method:KisDocument::imageObjectName() const",
+        "method:KisDocument::newImage(const QString & name,qint32 width,qint32 height,const KoColorSpace * cs,const KoColor & bgColor,KisConfig::BackgroundStyle bgStyle,int numberOfLayers,const QString & imageDescription,const double imageResolution)",
+        "method:KisDocument::savingImage() const",
+        "method:KisDocument::setCurrentImage(KisImageSP image,bool forceInitialUpdate=true,KisNodeSP preActivatedNode=nullptr)"
+      ]
+    },
+    {
+      "target": "KisDocumentSchemaContractTest",
+      "source": "libs/ui/tests/KisDocumentSchemaContractTest.cpp",
+      "test": "KisDocumentSchemaContractTest::imageProgressAndAnimationSignaturesRemainStable",
+      "behavior": "文書は画像進捗proxy・undo adapter、animation範囲・timing、投影同期とtemplate root名変換を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDocument::addImageProgressProxy(KoProgressProxy * proxy) const",
+        "method:KisDocument::animationLength() const",
+        "method:KisDocument::connectImageMemoryStatisticsUpdates(QObject * receiver,const char * method) const",
+        "method:KisDocument::hasAnimation() const",
+        "method:KisDocument::imageUndoAdapter() const",
+        "method:KisDocument::refreshProjectionAndWait()",
+        "method:KisDocument::removeImageProgressProxy(KoProgressProxy * proxy) const",
+        "method:KisDocument::setAnimationRange(int firstFrame,int lastFrame)",
+        "method:KisDocument::setAnimationTiming(int frameRate,int firstFrame,int lastFrame)",
+        "method:KisDocument::translateTemplateRootLayerName(const QMap<QString,QString> & dictionary)"
+      ]
+    },
+    {
+      "target": "KisDocumentSchemaContractTest",
+      "source": "libs/ui/tests/KisDocumentSchemaContractTest.cpp",
+      "test": "KisDocumentSchemaContractTest::shapeNodeAssistantAndReferenceSignaturesRemainStable",
+      "behavior": "文書は図形controller・node図形対応、事前選択node、assistantと参照画像layerを管理する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDocument::assistants() const",
+        "method:KisDocument::assistantsGlobalColor()",
+        "method:KisDocument::preActivatedNode() const",
+        "method:KisDocument::referenceImagesLayer() const",
+        "method:KisDocument::setAssistants(const QList<KisPaintingAssistantSP> & value)",
+        "method:KisDocument::setAssistantsGlobalColor(QColor color)",
+        "method:KisDocument::setPreActivatedNode(KisNodeSP activatedNode)",
+        "method:KisDocument::setReferenceImagesLayer(KisSharedPtr<KisReferenceImagesLayer> layer,bool updateImage)",
+        "method:KisDocument::shapeController() const",
+        "method:KisDocument::shapeForNode(KisNodeSP layer) const"
+      ]
+    },
+    {
+      "target": "KisDocumentSchemaContractTest",
+      "source": "libs/ui/tests/KisDocumentSchemaContractTest.cpp",
+      "test": "KisDocumentSchemaContractTest::cloneSnapshotAndUndoSignaturesRemainStable",
+      "behavior": "文書は通常・読取lock・保存・snapshotの複製、別文書からの複写とundo store・stackを公開する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDocument::clearUndoHistory()",
+        "method:KisDocument::clone(bool addStorage=false)",
+        "method:KisDocument::cloneWithImageReadLock()",
+        "method:KisDocument::copyFromDocument(const KisDocument & rhs)",
+        "method:KisDocument::createUndoStore()",
+        "method:KisDocument::lockAndCloneForSaving()",
+        "method:KisDocument::lockAndCreateSnapshot()",
+        "method:KisDocument::undoStack()"
+      ]
+    },
+    {
+      "target": "KisDocumentSchemaContractTest",
+      "source": "libs/ui/tests/KisDocumentSchemaContractTest.cpp",
+      "test": "KisDocumentSchemaContractTest::presentationConfigurationAndColorHistorySignaturesRemainStable",
+      "behavior": "文書はpreview・表示領域、grid・guide・鏡映軸設定と文書別色履歴を管理する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDocument::colorHistoryColors() const",
+        "method:KisDocument::colorHistoryModel()",
+        "method:KisDocument::documentBounds() const",
+        "method:KisDocument::generatePreview(const QSize & size)",
+        "method:KisDocument::gridConfig() const",
+        "method:KisDocument::guidesConfig() const",
+        "method:KisDocument::mirrorAxisConfig() const",
+        "method:KisDocument::setColorHistoryColors(const QList<KoColor> & colors)",
+        "method:KisDocument::setGridConfig(const KisGridConfig & config)",
+        "method:KisDocument::setGuidesConfig(const KisGuidesConfig & data)",
+        "method:KisDocument::setMirrorAxisConfig(const KisMirrorAxisConfig & config)"
+      ]
+    },
+    {
+      "target": "KisDocumentSchemaContractTest",
+      "source": "libs/ui/tests/KisDocumentSchemaContractTest.cpp",
+      "test": "KisDocumentSchemaContractTest::generalNotificationSignaturesRemainStable",
+      "behavior": "文書は単位、status、変更、読書き、復旧、pathと読込み完了を通知する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDocument::clearStatusBarMessage()",
+        "method:KisDocument::modified(bool)",
+        "method:KisDocument::sigLoadingFinished()",
+        "method:KisDocument::sigPathChanged(const QString & path)",
+        "method:KisDocument::sigReadWriteChanged(bool value)",
+        "method:KisDocument::sigRecoveredChanged(bool value)",
+        "method:KisDocument::statusBarMessage(const QString & text,int timeout=0)",
+        "method:KisDocument::unitChanged(const KoUnit & unit)"
+      ]
+    },
+    {
+      "target": "KisDocumentSchemaContractTest",
+      "source": "libs/ui/tests/KisDocumentSchemaContractTest.cpp",
+      "test": "KisDocumentSchemaContractTest::savingNotificationSignaturesRemainStable",
+      "behavior": "文書は通常・background・完了処理・復旧の保存完了状態を通知する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDocument::sigBackgroundSavingFinished(KisImportExportErrorCode status,const QString & errorMessage,const QString & warningMessage)",
+        "method:KisDocument::sigCompleteBackgroundSaving(const KritaUtils::ExportFileJob & job,KisImportExportErrorCode status,const QString & errorMessage,const QString & warningMessage)",
+        "method:KisDocument::sigRecoveryAutoSaveFinished(const QString & filePath,bool success)",
+        "method:KisDocument::sigSavingFinished(const QString & filePath)"
+      ]
+    },
+    {
+      "target": "KisDocumentSchemaContractTest",
+      "source": "libs/ui/tests/KisDocumentSchemaContractTest.cpp",
+      "test": "KisDocumentSchemaContractTest::resourceAndPresentationNotificationSignaturesRemainStable",
+      "behavior": "文書はgrid・guide・鏡映軸、参照画像、paletteとassistantの変更を通知する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDocument::sigAssistantsChanged()",
+        "method:KisDocument::sigGridConfigChanged(const KisGridConfig & config)",
+        "method:KisDocument::sigGuidesConfigChanged(const KisGuidesConfig & config)",
+        "method:KisDocument::sigMirrorAxisConfigChanged()",
+        "method:KisDocument::sigPaletteListChanged(const QList<KoColorSetSP> & oldPaletteList,const QList<KoColorSetSP> & newPaletteList)",
+        "method:KisDocument::sigReferenceImagesChanged()",
+        "method:KisDocument::sigReferenceImagesLayerChanged(KisSharedPtr<KisReferenceImagesLayer> layer)"
+      ]
+    },
+    {
+      "target": "KisDocumentSchemaContractTest",
+      "source": "libs/ui/tests/KisDocumentSchemaContractTest.cpp",
+      "test": "KisDocumentSchemaContractTest::storyboardAudioAndCompletionNotificationSignaturesRemainStable",
+      "behavior": "文書はstoryboard・audio変更と処理の完了・取消を通知する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDocument::canceled(const QString &)",
+        "method:KisDocument::completed()",
+        "method:KisDocument::sigAudioLevelChanged(qreal level)",
+        "method:KisDocument::sigAudioTracksChanged()",
+        "method:KisDocument::sigStoryboardCommentListChanged()",
+        "method:KisDocument::sigStoryboardItemListChanged()"
       ]
     }
   ]
