@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 4076
+    "expectedMissingApis": 4043
   },
   "contracts": [
     {
@@ -70491,6 +70491,93 @@
         "method:KisOpenGLCanvas2::slotConfigChanged()",
         "method:KisOpenGLCanvas2::slotPixelGridModeChanged()",
         "method:KisOpenGLCanvas2::slotUpdateCursorColor()"
+      ]
+    },
+    {
+      "target": "KisOpenGLImageTexturesSchemaContractTest",
+      "source": "libs/ui/tests/KisOpenGLImageTexturesSchemaContractTest.cpp",
+      "test": "KisOpenGLImageTexturesSchemaContractTest::typeConstantsConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "OpenGL画像texture管理器はQObject・共有所有の型関係、背景模様定数、既定構築、factory生成と仮想寿命を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisOpenGLImageTextures",
+        "member:KisOpenGLImageTextures::BACKGROUND_TEXTURE_CHECK_SIZE",
+        "member:KisOpenGLImageTextures::BACKGROUND_TEXTURE_SIZE",
+        "method:KisOpenGLImageTextures::KisOpenGLImageTextures()",
+        "method:KisOpenGLImageTextures::createImageTextures(KisImageWSP image,const KoColorProfile * monitorProfile,KoColorConversionTransformation::Intent renderingIntent,KoColorConversionTransformation::ConversionFlags conversionFlags)",
+        "method:KisOpenGLImageTextures::~KisOpenGLImageTextures()"
+      ]
+    },
+    {
+      "target": "KisOpenGLImageTexturesSchemaContractTest",
+      "source": "libs/ui/tests/KisOpenGLImageTexturesSchemaContractTest.cpp",
+      "test": "KisOpenGLImageTexturesSchemaContractTest::imageAndColorManagementSignaturesRemainStable",
+      "behavior": "OpenGL画像texture管理器は画像参照、monitor profile、画像色空間、channel選択、校正設定と内部色管理状態の受渡しを維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisOpenGLImageTextures::image() const",
+        "method:KisOpenGLImageTextures::internalColorManagementActive() const",
+        "method:KisOpenGLImageTextures::monitorProfile()",
+        "method:KisOpenGLImageTextures::setChannelFlags(const QBitArray & channelFlags)",
+        "method:KisOpenGLImageTextures::setImageColorSpace(const KoColorSpace * cs)",
+        "method:KisOpenGLImageTextures::setInternalColorManagementActive(bool value,bool iniializing=false)",
+        "method:KisOpenGLImageTextures::setMonitorProfile(const KoColorProfile * monitorProfile,KoColorConversionTransformation::Intent renderingIntent,KoColorConversionTransformation::ConversionFlags conversionFlags)",
+        "method:KisOpenGLImageTextures::setProofingConfig(KisProofingConfigurationSP)"
+      ]
+    },
+    {
+      "target": "KisOpenGLImageTexturesSchemaContractTest",
+      "source": "libs/ui/tests/KisOpenGLImageTexturesSchemaContractTest.cpp",
+      "test": "KisOpenGLImageTexturesSchemaContractTest::openGLInitializationAndBufferSignaturesRemainStable",
+      "behavior": "OpenGL画像texture管理器はOpenGL初期化、背景模様texture生成、mipmap構成、初期化試験操作と頂点・texture座標buffer参照を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisOpenGLImageTextures::checkerTexture()",
+        "method:KisOpenGLImageTextures::generateCheckerTexture(const QImage & checkImage)",
+        "method:KisOpenGLImageTextures::initGL(QOpenGLFunctions * f)",
+        "method:KisOpenGLImageTextures::testingForceInitialized()",
+        "method:KisOpenGLImageTextures::tileTexCoordBuffer()",
+        "method:KisOpenGLImageTextures::tileVertexBuffer()",
+        "method:KisOpenGLImageTextures::updateConfig(bool useBuffer,int NumMipmapLevels)"
+      ]
+    },
+    {
+      "target": "KisOpenGLImageTexturesSchemaContractTest",
+      "source": "libs/ui/tests/KisOpenGLImageTexturesSchemaContractTest.cpp",
+      "test": "KisOpenGLImageTexturesSchemaContractTest::tileGeometrySignaturesRemainStable",
+      "behavior": "OpenGL画像texture管理器は画像範囲、画素座標からtile座標への変換、tile・buffer索引参照とtexel寸法を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisOpenGLImageTextures::getTextureBufferIndexCR(int col,int row)",
+        "method:KisOpenGLImageTextures::getTextureTileCR(int col,int row)",
+        "method:KisOpenGLImageTextures::storedImageBounds()",
+        "method:KisOpenGLImageTextures::texelSize() const",
+        "method:KisOpenGLImageTextures::xToCol(int x)",
+        "method:KisOpenGLImageTextures::yToRow(int y)"
+      ]
+    },
+    {
+      "target": "KisOpenGLImageTexturesSchemaContractTest",
+      "source": "libs/ui/tests/KisOpenGLImageTexturesSchemaContractTest.cpp",
+      "test": "KisOpenGLImageTexturesSchemaContractTest::cacheUpdateSignaturesRemainStable",
+      "behavior": "OpenGL画像texture管理器は変換あり・なしのcache更新、cache再計算、画像寸法変更と更新情報構築器の受渡しを維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisOpenGLImageTextures::recalculateCache(KisUpdateInfoSP info,bool blockMipmapRegeneration)",
+        "method:KisOpenGLImageTextures::slotImageSizeChanged(qint32 w,qint32 h)",
+        "method:KisOpenGLImageTextures::updateCache(const QRect & rect,KisImageSP srcImage)",
+        "method:KisOpenGLImageTextures::updateCacheNoConversion(const QRect & rect)",
+        "method:KisOpenGLImageTextures::updateInfoBuilder()"
+      ]
+    },
+    {
+      "target": "KisOpenGLImageTexturesSchemaContractTest",
+      "source": "libs/ui/tests/KisOpenGLImageTexturesSchemaContractTest.cpp",
+      "test": "KisOpenGLImageTexturesSchemaContractTest::notificationSignatureRemainsStable",
+      "behavior": "OpenGL画像texture管理器は優先度と表示時間を伴うfloating message通知を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisOpenGLImageTextures::sigShowFloatingMessage(const QString & message,int timeout,bool priority)"
       ]
     }
   ]

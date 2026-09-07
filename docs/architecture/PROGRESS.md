@@ -2,8 +2,8 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-07 14:14 JST
-- 状態: `in_progress`
+- 更新日時: 2026-09-07 14:24 JST
+- 状態: `planned`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
@@ -2954,6 +2954,13 @@
 - 開始`libs/ui/opengl/kis_opengl_image_textures.h`は宣言にも保持状態にも使わない`QMap`をincludeしている。開始headerからこのincludeだけを除き、移動先は作らない。5直接利用翻訳単位の変更前の厳格`clang-check`はすべて診断0件である。内部header利用路はそれをincludeする開始実装とOpenGL canvas実装のcompileで観測する。変更後に終了状態と診断本文の一致を検査し、公開契約追加より先に独立commitする。
 - 新規`libs/ui/tests/KisOpenGLImageTexturesSchemaContractTest.cpp`を200行・10枠未満で作り、型・定数・寿命、画像・色管理、OpenGL初期化・buffer、tile座標、cache更新、通知に全33 APIを対応付ける。実体化せず型特性、定数値と厳密な関数pointerで固定し、`libs/ui/tests/CMakeLists.txt`の専用targetは製品libraryを接続しない。最も近い`KisOpenGLCanvas2SchemaContractTest`は4工程・8入力、command SHA-256 `151c2b28a06ca707944c9c4680e5adf8874134fd091ceffa19ba4b3196aa063c`、input SHA-256 `9dc654405ecfef27885c714b8f63ef3b76cdabc22cea47d88908eea9c3b134e0`である。新規targetの停止線を5工程・11入力とする。
 - `g374-opengl-image-textures-schema`の状態は`in_progress`、実装基点は`92362ac3c7`である。構造先行commit後に、新規試験sourceと`libs/ui/tests/CMakeLists.txt`の対象固有節だけへ契約を追加する。macOSの対象、6枠の20回反復、5直接利用翻訳単位と試験sourceの厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
+
+### 第374便の実装結果
+
+- `g374-opengl-image-textures-schema`は`completed`である。開始`libs/ui/opengl/kis_opengl_image_textures.h`から宣言と保持状態に不要な`QMap`を除去し、移動先を作らなかった。5直接利用翻訳単位の変更前後の厳格`clang-check`はすべて診断0件で一致し、内部header利用路も開始実装とOpenGL canvas実装で維持した。公開API報告は変更前後で同じSHA-256 `597c6c1cceff704d747650dcab3a6bde9bfc1f1c08df9ecba20132d172523c7c`となり、構造変更commitは`ee0b075649`である。
+- 開始headerの残存全33 APIを、新規`libs/ui/tests/KisOpenGLImageTexturesSchemaContractTest.cpp`の型・定数・構築・寿命6、画像・色管理8、OpenGL初期化・buffer 7、tile座標6、cache更新5、通知1の6枠へ対応付けた。対象は112行である。最初の限定構築は`QOpenGLBuffer`の直接探索路不足を検出し、対象固有のQt OpenGL interface探索路だけで解消した。その後の挙動上の赤は6試験関数の未定義symbolだけで停止した。契約実装commitは`6f4cbd3bc6`である。
+- 最終targetは4工程・8入力、command SHA-256 `d77e8d2750e89b0f107cb18e64f9d1cefb04d1f418b293962d585b3f39d110e3`、input SHA-256 `a769061cef1fb086aca34ed6989dd2170154262959aa4985b26587d32c87f55d`で停止線内に収まる。動的接続はQt Gui・Test・Core、OpenGLとそのOS framework、gettextだけで、製品libraryを接続しない。macOSで対象`libs-ui-KisOpenGLImageTexturesSchemaContractTest`、軽量近傍`libs-ui-KisOpenGLCanvas2SchemaContractTest`、対象の20回反復、試験sourceの厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`に成功した。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 台帳へ33 APIを追加して25,761件対応、4,043件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g374.json`を最新報告の検証後に削除し、追加作業tree・構築木は作成していない。主Ninja木5,943,592 KiB、共有compiler cache 981,776 KiB、最新`build/tdd-macos/public-api-missing-g375.json` 1,091,102 bytes、SHA-256 `8a7a233fc5e0c1d1486407a7bb3dd7a720e1b6fc1bf938a5bfa703cedd31a43e`だけを再利用対象として保持する。compiler cacheは144,282件中120,513件、83.53%がhitしている。次の永続作業は第375便で次の高密度なmacOS対象と最小構築面を選定することである。
 
 ### 第239便の先行監査担当票
 
