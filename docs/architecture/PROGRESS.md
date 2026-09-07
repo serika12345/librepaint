@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-07 10:16 JST
+- 更新日時: 2026-09-07 10:19 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -2778,6 +2778,13 @@
 - 9直接利用sourceの厳格`clang-check`で4 sourceは診断0件となり、`KisMainWindow.cpp`の推移include不足解消後は開始時からのQt 6 event座標非推奨だけになった。残る診断は開始実装のQt 6 metatype非推奨、Android専用header不足2件、Python runnerの生成探索路不足1件で、今回の公開署名と独立する既知診断である。
 - 既存`libs/application/tests/KisApplicationArgumentsSchemaContractTest.cpp`へ5枠を追加し、applicationの型・構築・寿命、起動・event配送、資源・plugin初期化、splash・外部interface、遠隔引数・file通知の全23公開APIを固定した。Android固有2 APIは`Q_OS_ANDROID`構成で署名検査を有効にする。対象は133行・10枠である。最初のcompile赤はui探索路不足、対象固有CMake節の追加後は追加5試験関数の未定義symbolだけで停止した。製品libraryを接続せず、最終閉包4工程・8入力、command SHA-256 `94caa193f640f28e43b9589ff6612ec820c742cf64fd5144b694bfaea8103972`、input SHA-256 `d396bd55ed135e1a3b0216c6b40d7f4c2e09780b50819ccedb34348d7511b083`で、動的接続はQt Core・Test、gettextとOS frameworkだけである。実装は`d801ec21a9`である。
 - macOSで対象と軽量近傍`KisActionEnumContractTest`のCTest、対象の20回反復、試験sourceの厳格`clang-check`、変更範囲と試験sourceの書式、二回の無作業再構築、公開API検査、`verify-quick`に成功した。台帳へ23 APIを追加して24,642件対応、5,162件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g360.json`を削除し、主Ninja木5,924,740 KiB、共有compiler cache 983,232 KiB、最新`build/tdd-macos/public-api-missing-g361.json` 1,367,242 bytes、SHA-256 `bc7bf007dace6b1fab50919ee0215088a138bdd2eed6b3872082cd913551b7cd`だけを保持する。compiler cacheは144,215件中120,493件、83.55%がhitしている。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第361便で次の高密度なmacOS対象と最小構築面を選定することである。
+
+### 第361便の監査結果と実装計画
+
+- 正式入力`build/tdd-macos/public-api-missing-g361.json`は公開header 1,548、公開API 29,804、対応済み24,642、未対応5,162、1,367,242 bytes、SHA-256 `bc7bf007dace6b1fab50919ee0215088a138bdd2eed6b3872082cd913551b7cd`を記録する。`libs/ui/canvas/kis_canvas_widget_base.h`の残存全19 APIを、型・構築・寿命、canvas接続、装飾集合、表示mode・描画更新、色・bit depth報告の5枠へ完全に対応付ける。識別子整列集合のSHA-256は`33bf5abfcde12a096d919e017cca04a80ba70c165c7eb64d41fa7fe58ae15e27`である。
+- 開始headerの完全型は抽象canvas基底、値返却list、Qt列挙を直接必要とし、前方宣言は参照・pointer境界に限定済みである。開始実装の厳格`clang-check`は診断0件で、削減すべき推移includeや製品構築所有はない。
+- 既存`libs/ui/tests/KisPaintingAssistantsDecorationSchemaContractTest.cpp`は173行・6枠で、追加5枠後も300行・20枠未満に収める。既存targetはCMake File API上で自動生成依存だけを持ち、CMake変更なしで4工程・8入力、command SHA-256 `50af115bfe2cd4378772befbe2936ca273adc236ca75f1966128b78f3fdc933e`、input SHA-256 `3b0b6cf38796f9a7e15eaf6cc8c411af285382a650bf6aefe35c56850a3476b1`である。Qt Core・Gui・Test、gettext、OS frameworkだけへ動的接続し、製品libraryを要求しない。停止線を5工程・11入力、300行・20枠とする。
+- `g361-canvas-widget-base-schema`の状態は`in_progress`、実装基点は`59efb4821c`である。契約は既存試験sourceだけに限定する。macOSの対象、追加5枠の20回反復、開始実装・試験sourceの厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
 
 ### 第239便の先行監査担当票
 
