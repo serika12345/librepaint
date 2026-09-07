@@ -9,8 +9,8 @@
 
 #include <QWidgetAction>
 #include <kritaui_export.h>
-#include <kis_debug.h>
-#include <QIcon>
+
+class QIcon;
 class KisActionManager;
 
 
