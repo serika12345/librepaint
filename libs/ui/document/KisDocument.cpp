@@ -68,6 +68,7 @@
 #include <QImage>
 #include <QList>
 #include <QMutex>
+#include <QQueue>
 #include <QPainter>
 #include <QRect>
 #include <QScopedPointer>

@@ -13,6 +13,7 @@
 #include <QDateTime>
 #include <QCheckBox>
 #include <QMessageBox>
+#include <QQueue>
 
 #include <klocalizedstring.h>
 #include <ksharedconfig.h>

@@ -7,11 +7,8 @@
 #ifndef KIS_GUI_CLIENT_H
 #define KIS_GUI_CLIENT_H
 
-#include <QQueue>
+#include <QObject>
 #include <QPointer>
-#include <QMainWindow>
-
-#include <KoToolManager.h>
 
 #include <kritaui_export.h>
 
@@ -35,6 +32,9 @@ class KisSelection;
 typedef KisSharedPtr<KisSelection> KisSelectionSP;
 
 class QPoint;
+class QIcon;
+class QMainWindow;
+class QWidget;
 class KisView;
 
 class KisCanvas2;
@@ -54,6 +54,8 @@ class KisZoomManager;
 class KisPaintopBox;
 class KisActionManager;
 class KisInputManager;
+class KisKActionCollection;
+class KoToolBase;
 class KoUpdater;
 class KoProgressUpdater;
 class KisMainWindow;

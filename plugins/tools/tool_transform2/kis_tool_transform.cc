@@ -29,6 +29,7 @@
 #include <KoCanvasBase.h>
 #include <KoViewConverter.h>
 #include <KoSelection.h>
+#include <KoToolManager.h>
 #include <KoCompositeOp.h>
 #include <KisCursorOverrideLock.h>
 

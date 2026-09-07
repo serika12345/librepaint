@@ -35,6 +35,7 @@
 #include <application/ui/workspace/KisViewManager.h>
 #include <KoCanvasController.h>
 #include <KoShapeLayer.h>
+#include <KoToolManager.h>
 
 #define BUTTON_MARGIN 10
 
