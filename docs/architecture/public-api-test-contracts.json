@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 4484
+    "expectedMissingApis": 4407
   },
   "contracts": [
     {
@@ -69615,6 +69615,137 @@
         "method:KisDocument::sigAudioTracksChanged()",
         "method:KisDocument::sigStoryboardCommentListChanged()",
         "method:KisDocument::sigStoryboardItemListChanged()"
+      ]
+    },
+    {
+      "target": "KisDlgPreferencesEnumContractTest",
+      "source": "libs/ui/tests/KisDlgPreferencesEnumContractTest.cpp",
+      "test": "KisDlgPreferencesEnumContractTest::importExportOptionsSchemaRemainsStable",
+      "behavior": "設定dialogはexport MIME型と貼付け元・形式ごとの選択値を一つの入出力設定値として公開する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisImportExportPreferenceOptions::exportMimeTypes",
+        "member:KisImportExportPreferenceOptions::pasteAsk",
+        "member:KisImportExportPreferenceOptions::pasteAssumeMonitor",
+        "member:KisImportExportPreferenceOptions::pasteAssumeWeb",
+        "member:KisImportExportPreferenceOptions::pasteFormatAsk",
+        "member:KisImportExportPreferenceOptions::pasteFormatBitmap",
+        "member:KisImportExportPreferenceOptions::pasteFormatDownload",
+        "member:KisImportExportPreferenceOptions::pasteFormatLocal",
+        "struct:KisImportExportPreferenceOptions"
+      ]
+    },
+    {
+      "target": "KisDlgPreferencesEnumContractTest",
+      "source": "libs/ui/tests/KisDlgPreferencesEnumContractTest.cpp",
+      "test": "KisDlgPreferencesEnumContractTest::generatedSettingsWidgetSchemaRemainsStable",
+      "behavior": "設定dialogは一般、shortcut、色、tablet、性能、表示、全画面、popup paletteの生成UI基底widgetを公開する。",
+      "classification": "maintained",
+      "apis": [
+        "class:WdgColorSettings",
+        "class:WdgDisplaySettings",
+        "class:WdgFullscreenSettingsBase",
+        "class:WdgGeneralSettings",
+        "class:WdgPerformanceSettings",
+        "class:WdgPopupPaletteSettingsBase",
+        "class:WdgShortcutSettings",
+        "class:WdgTabletSettings",
+        "method:WdgColorSettings::WdgColorSettings(QWidget * parent)",
+        "method:WdgDisplaySettings::WdgDisplaySettings(QWidget * parent,const char * name)",
+        "method:WdgFullscreenSettingsBase::WdgFullscreenSettingsBase(QWidget * parent)",
+        "method:WdgGeneralSettings::WdgGeneralSettings(QWidget * parent,const char * name)",
+        "method:WdgPerformanceSettings::WdgPerformanceSettings(QWidget * parent,const char * name)",
+        "method:WdgPopupPaletteSettingsBase::WdgPopupPaletteSettingsBase(QWidget * parent,const char * name)",
+        "method:WdgShortcutSettings::WdgShortcutSettings(QWidget * parent)",
+        "method:WdgTabletSettings::WdgTabletSettings(QWidget * parent)"
+      ]
+    },
+    {
+      "target": "KisDlgPreferencesEnumContractTest",
+      "source": "libs/ui/tests/KisDlgPreferencesEnumContractTest.cpp",
+      "test": "KisDlgPreferencesEnumContractTest::colorSettingsStructureSchemaRemainsStable",
+      "behavior": "色設定tabは設定の初期化と、profile・画面・canvas色管理・色空間表示を担う公開状態を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:ColorSettingsTab",
+        "member:ColorSettingsTab::m_canvasSurfaceBitDepth",
+        "member:ColorSettingsTab::m_canvasSurfaceColorSpace",
+        "member:ColorSettingsTab::m_chkEnableCanvasColorSpaceManagement",
+        "member:ColorSettingsTab::m_colorManagedByOS",
+        "member:ColorSettingsTab::m_monitorProfileLabels",
+        "member:ColorSettingsTab::m_monitorProfileWidgets",
+        "member:ColorSettingsTab::m_page",
+        "member:ColorSettingsTab::m_pasteBehaviourGroup",
+        "member:ColorSettingsTab::m_preferredSpaceGraphic",
+        "member:ColorSettingsTab::m_preferredSpaceGraphicMode",
+        "member:ColorSettingsTab::m_proofModel",
+        "member:ColorSettingsTab::m_screenMigrationTracker",
+        "method:ColorSettingsTab::ColorSettingsTab(QWidget * parent,const KisImportExportPreferenceOptions & importExportOptions,const char * name=0)",
+        "method:ColorSettingsTab::setDefault()"
+      ]
+    },
+    {
+      "target": "KisDlgPreferencesEnumContractTest",
+      "source": "libs/ui/tests/KisDlgPreferencesEnumContractTest.cpp",
+      "test": "KisDlgPreferencesEnumContractTest::shortcutAndTabletStructureSchemaRemainsStable",
+      "behavior": "shortcut設定tabは確定・取消可能な編集snapshotを、tablet設定tabは既定化可能な生成UI pageを公開する。",
+      "classification": "maintained",
+      "apis": [
+        "class:ShortcutSettingsTab",
+        "class:TabletSettingsTab",
+        "member:ShortcutSettingsTab::m_page",
+        "member:ShortcutSettingsTab::m_snapshot",
+        "member:TabletSettingsTab::m_page",
+        "method:ShortcutSettingsTab::ShortcutSettingsTab(QWidget * parent=0,const char * name=0)",
+        "method:ShortcutSettingsTab::cancelChanges()",
+        "method:ShortcutSettingsTab::saveChanges()",
+        "method:ShortcutSettingsTab::setDefault()",
+        "method:ShortcutSettingsTab::~ShortcutSettingsTab()",
+        "method:TabletSettingsTab::TabletSettingsTab(QWidget * parent=0,const char * name=0)",
+        "method:TabletSettingsTab::setDefault()"
+      ]
+    },
+    {
+      "target": "KisDlgPreferencesEnumContractTest",
+      "source": "libs/ui/tests/KisDlgPreferencesEnumContractTest.cpp",
+      "test": "KisDlgPreferencesEnumContractTest::performanceAndDisplayStructureSchemaRemainsStable",
+      "behavior": "性能設定tabは設定の読込み・保存を、表示設定tabは表示設定の既定化を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "class:DisplaySettingsTab",
+        "class:PerformanceTab",
+        "method:DisplaySettingsTab::DisplaySettingsTab(QWidget * parent=0,const char * name=0)",
+        "method:DisplaySettingsTab::setDefault()",
+        "method:PerformanceTab::PerformanceTab(QWidget * parent=0,const char * name=0)",
+        "method:PerformanceTab::load(bool requestDefault)",
+        "method:PerformanceTab::save()",
+        "method:PerformanceTab::~PerformanceTab()"
+      ]
+    },
+    {
+      "target": "KisDlgPreferencesEnumContractTest",
+      "source": "libs/ui/tests/KisDlgPreferencesEnumContractTest.cpp",
+      "test": "KisDlgPreferencesEnumContractTest::fullscreenPopupAndDialogStructureSchemaRemainsStable",
+      "behavior": "全画面・popup palette設定tabと設定dialogはpage・tab選択、編集開始、画像設定通知と表示eventを公開する。",
+      "classification": "maintained",
+      "apis": [
+        "class:FullscreenSettingsTab",
+        "class:KisDlgPreferences",
+        "class:PopupPaletteTab",
+        "member:KisDlgPreferences::PageDesc::page",
+        "member:KisDlgPreferences::PageDesc::tab",
+        "method:FullscreenSettingsTab::FullscreenSettingsTab(QWidget * parent)",
+        "method:FullscreenSettingsTab::setDefault()",
+        "method:KisDlgPreferences::KisDlgPreferences(QWidget * parent,const KisImportExportPreferenceOptions & importExportOptions,const char * name=0)",
+        "method:KisDlgPreferences::editPreferences(std::optional<PageDesc> page)",
+        "method:KisDlgPreferences::notifyImageSettingsChanged()",
+        "method:KisDlgPreferences::showEvent(QShowEvent * event)",
+        "method:KisDlgPreferences::~KisDlgPreferences()",
+        "method:PopupPaletteTab::PopupPaletteTab(QWidget * parent=0,const char * name=0)",
+        "method:PopupPaletteTab::load()",
+        "method:PopupPaletteTab::save()",
+        "method:PopupPaletteTab::setDefault()",
+        "struct:KisDlgPreferences::PageDesc"
       ]
     }
   ]
