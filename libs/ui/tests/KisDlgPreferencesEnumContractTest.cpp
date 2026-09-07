@@ -15,6 +15,11 @@ namespace
 {
 #define ASSERT_GENERAL_TAB_SIGNATURE(method, signature)                                                                \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&GeneralTab::method)), signature>)
+
+#define ASSERT_PREFERENCE_MEMBER(type, member) static_assert(std::is_member_object_pointer_v<decltype(&type::member)>)
+#define ASSERT_PREFERENCE_CALLABLE(type, method)                                                                       \
+    static_assert(std::is_pointer_v<decltype(&type::method)>                                                           \
+                  || std::is_member_function_pointer_v<decltype(&type::method)>)
 } // namespace
 
 class KisDlgPreferencesEnumContractTest : public QObject
@@ -34,6 +39,12 @@ private Q_SLOTS:
     void generalTabSessionAndDocumentSchemaRemainsStable();
     void generalTabInteractionAndNavigationSchemaRemainsStable();
     void generalTabAnimationSchemaRemainsStable();
+    void importExportOptionsSchemaRemainsStable();
+    void generatedSettingsWidgetSchemaRemainsStable();
+    void colorSettingsStructureSchemaRemainsStable();
+    void shortcutAndTabletStructureSchemaRemainsStable();
+    void performanceAndDisplayStructureSchemaRemainsStable();
+    void fullscreenPopupAndDialogStructureSchemaRemainsStable();
 };
 
 void KisDlgPreferencesEnumContractTest::preferredSpaceValuesRemainStable()
@@ -44,15 +55,13 @@ void KisDlgPreferencesEnumContractTest::preferredSpaceValuesRemainStable()
 
 void KisDlgPreferencesEnumContractTest::canvasSurfaceAliasesRemainStable()
 {
-    QVERIFY((std::is_same_v<ColorSettingsTab::CanvasSurfaceMode,
-                            KisConfig::CanvasSurfaceMode>));
-    QVERIFY((std::is_same_v<ColorSettingsTab::CanvasSurfaceBitDepthMode,
-                            KisConfig::CanvasSurfaceBitDepthMode>));
+    QVERIFY((std::is_same_v<ColorSettingsTab::CanvasSurfaceMode, KisConfig::CanvasSurfaceMode>));
+    QVERIFY((std::is_same_v<ColorSettingsTab::CanvasSurfaceBitDepthMode, KisConfig::CanvasSurfaceBitDepthMode>));
 }
 
 void KisDlgPreferencesEnumContractTest::pageValuesRemainStable()
 {
-    const std::array<KisDlgPreferences::Page, 9> pages {{
+    const std::array<KisDlgPreferences::Page, 9> pages{{
         KisDlgPreferences::General,
         KisDlgPreferences::Shortucts,
         KisDlgPreferences::Color,
@@ -71,7 +80,7 @@ void KisDlgPreferencesEnumContractTest::pageValuesRemainStable()
 
 void KisDlgPreferencesEnumContractTest::generalTabValuesRemainStable()
 {
-    const std::array<KisDlgPreferences::GeneralTabs, 8> tabs {{
+    const std::array<KisDlgPreferences::GeneralTabs, 8> tabs{{
         KisDlgPreferences::File,
         KisDlgPreferences::Pasting,
         KisDlgPreferences::Window,
@@ -89,7 +98,7 @@ void KisDlgPreferencesEnumContractTest::generalTabValuesRemainStable()
 
 void KisDlgPreferencesEnumContractTest::colorTabValuesRemainStable()
 {
-    const std::array<KisDlgPreferences::ColorTabs, 3> tabs {{
+    const std::array<KisDlgPreferences::ColorTabs, 3> tabs{{
         KisDlgPreferences::GeneralColor,
         KisDlgPreferences::DisplayTab,
         KisDlgPreferences::SoftProofing,
@@ -102,7 +111,7 @@ void KisDlgPreferencesEnumContractTest::colorTabValuesRemainStable()
 
 void KisDlgPreferencesEnumContractTest::displayTabValuesRemainStable()
 {
-    const std::array<KisDlgPreferences::DisplayTabs, 4> tabs {{
+    const std::array<KisDlgPreferences::DisplayTabs, 4> tabs{{
         KisDlgPreferences::CanvasAcceleration,
         KisDlgPreferences::HDR,
         KisDlgPreferences::CanvasDecoration,
@@ -116,7 +125,7 @@ void KisDlgPreferencesEnumContractTest::displayTabValuesRemainStable()
 
 void KisDlgPreferencesEnumContractTest::performanceTabValuesRemainStable()
 {
-    const std::array<KisDlgPreferences::PerformaceTabs, 4> tabs {{
+    const std::array<KisDlgPreferences::PerformaceTabs, 4> tabs{{
         KisDlgPreferences::GeneralPerformance,
         KisDlgPreferences::Advanced,
         KisDlgPreferences::AnimationCache,
@@ -200,6 +209,92 @@ void KisDlgPreferencesEnumContractTest::generalTabAnimationSchemaRemainsStable()
     ASSERT_GENERAL_TAB_SIGNATURE(adaptivePlaybackRange, bool (GeneralTab::*)());
     ASSERT_GENERAL_TAB_SIGNATURE(autoZoomTimelineToPlaybackRange, bool (GeneralTab::*)());
 }
+
+// clang-format off
+void KisDlgPreferencesEnumContractTest::importExportOptionsSchemaRemainsStable()
+{
+    static_assert(std::is_class_v<KisImportExportPreferenceOptions>);
+    ASSERT_PREFERENCE_MEMBER(KisImportExportPreferenceOptions, exportMimeTypes);
+    ASSERT_PREFERENCE_MEMBER(KisImportExportPreferenceOptions, pasteFormatAsk);
+    ASSERT_PREFERENCE_MEMBER(KisImportExportPreferenceOptions, pasteFormatDownload);
+    ASSERT_PREFERENCE_MEMBER(KisImportExportPreferenceOptions, pasteFormatLocal);
+    ASSERT_PREFERENCE_MEMBER(KisImportExportPreferenceOptions, pasteFormatBitmap);
+    ASSERT_PREFERENCE_MEMBER(KisImportExportPreferenceOptions, pasteAssumeWeb);
+    ASSERT_PREFERENCE_MEMBER(KisImportExportPreferenceOptions, pasteAssumeMonitor);
+    ASSERT_PREFERENCE_MEMBER(KisImportExportPreferenceOptions, pasteAsk);
+}
+
+void KisDlgPreferencesEnumContractTest::generatedSettingsWidgetSchemaRemainsStable()
+{
+    static_assert(std::is_class_v<WdgGeneralSettings> && std::is_constructible_v<WdgGeneralSettings, QWidget *, const char *>);
+    static_assert(std::is_class_v<WdgShortcutSettings> && std::is_constructible_v<WdgShortcutSettings, QWidget *>);
+    static_assert(std::is_class_v<WdgColorSettings> && std::is_constructible_v<WdgColorSettings, QWidget *>);
+    static_assert(std::is_class_v<WdgTabletSettings> && std::is_constructible_v<WdgTabletSettings, QWidget *>);
+    static_assert(std::is_class_v<WdgPerformanceSettings> && std::is_constructible_v<WdgPerformanceSettings, QWidget *, const char *>);
+    static_assert(std::is_class_v<WdgDisplaySettings> && std::is_constructible_v<WdgDisplaySettings, QWidget *, const char *>);
+    static_assert(std::is_class_v<WdgFullscreenSettingsBase> && std::is_constructible_v<WdgFullscreenSettingsBase, QWidget *>);
+    static_assert(std::is_class_v<WdgPopupPaletteSettingsBase> && std::is_constructible_v<WdgPopupPaletteSettingsBase, QWidget *, const char *>);
+}
+
+void KisDlgPreferencesEnumContractTest::colorSettingsStructureSchemaRemainsStable()
+{
+    static_assert(std::is_class_v<ColorSettingsTab> && std::is_constructible_v<ColorSettingsTab, QWidget *, const KisImportExportPreferenceOptions &, const char *>);
+    ASSERT_PREFERENCE_CALLABLE(ColorSettingsTab, setDefault);
+    ASSERT_PREFERENCE_MEMBER(ColorSettingsTab, m_page);
+    ASSERT_PREFERENCE_MEMBER(ColorSettingsTab, m_pasteBehaviourGroup);
+    ASSERT_PREFERENCE_MEMBER(ColorSettingsTab, m_monitorProfileLabels);
+    ASSERT_PREFERENCE_MEMBER(ColorSettingsTab, m_monitorProfileWidgets);
+    ASSERT_PREFERENCE_MEMBER(ColorSettingsTab, m_proofModel);
+    ASSERT_PREFERENCE_MEMBER(ColorSettingsTab, m_screenMigrationTracker);
+    ASSERT_PREFERENCE_MEMBER(ColorSettingsTab, m_colorManagedByOS);
+    ASSERT_PREFERENCE_MEMBER(ColorSettingsTab, m_chkEnableCanvasColorSpaceManagement);
+    ASSERT_PREFERENCE_MEMBER(ColorSettingsTab, m_canvasSurfaceColorSpace);
+    ASSERT_PREFERENCE_MEMBER(ColorSettingsTab, m_canvasSurfaceBitDepth);
+    ASSERT_PREFERENCE_MEMBER(ColorSettingsTab, m_preferredSpaceGraphic);
+    ASSERT_PREFERENCE_MEMBER(ColorSettingsTab, m_preferredSpaceGraphicMode);
+}
+
+void KisDlgPreferencesEnumContractTest::shortcutAndTabletStructureSchemaRemainsStable()
+{
+    static_assert(std::is_class_v<ShortcutSettingsTab> && std::is_constructible_v<ShortcutSettingsTab, QWidget *, const char *> && std::has_virtual_destructor_v<ShortcutSettingsTab>);
+    ASSERT_PREFERENCE_CALLABLE(ShortcutSettingsTab, setDefault);
+    ASSERT_PREFERENCE_CALLABLE(ShortcutSettingsTab, saveChanges);
+    ASSERT_PREFERENCE_CALLABLE(ShortcutSettingsTab, cancelChanges);
+    ASSERT_PREFERENCE_MEMBER(ShortcutSettingsTab, m_page);
+    ASSERT_PREFERENCE_MEMBER(ShortcutSettingsTab, m_snapshot);
+    static_assert(std::is_class_v<TabletSettingsTab> && std::is_constructible_v<TabletSettingsTab, QWidget *, const char *>);
+    ASSERT_PREFERENCE_CALLABLE(TabletSettingsTab, setDefault);
+    ASSERT_PREFERENCE_MEMBER(TabletSettingsTab, m_page);
+}
+
+void KisDlgPreferencesEnumContractTest::performanceAndDisplayStructureSchemaRemainsStable()
+{
+    static_assert(std::is_class_v<PerformanceTab> && std::is_constructible_v<PerformanceTab, QWidget *, const char *> && std::has_virtual_destructor_v<PerformanceTab>);
+    ASSERT_PREFERENCE_CALLABLE(PerformanceTab, load);
+    ASSERT_PREFERENCE_CALLABLE(PerformanceTab, save);
+    static_assert(std::is_class_v<DisplaySettingsTab> && std::is_constructible_v<DisplaySettingsTab, QWidget *, const char *>);
+    ASSERT_PREFERENCE_CALLABLE(DisplaySettingsTab, setDefault);
+}
+
+void KisDlgPreferencesEnumContractTest::fullscreenPopupAndDialogStructureSchemaRemainsStable()
+{
+    static_assert(std::is_class_v<FullscreenSettingsTab> && std::is_constructible_v<FullscreenSettingsTab, QWidget *>);
+    ASSERT_PREFERENCE_CALLABLE(FullscreenSettingsTab, setDefault);
+    static_assert(std::is_class_v<PopupPaletteTab> && std::is_constructible_v<PopupPaletteTab, QWidget *, const char *>);
+    ASSERT_PREFERENCE_CALLABLE(PopupPaletteTab, load);
+    ASSERT_PREFERENCE_CALLABLE(PopupPaletteTab, save);
+    ASSERT_PREFERENCE_CALLABLE(PopupPaletteTab, setDefault);
+    static_assert(std::is_class_v<KisDlgPreferences> && std::is_class_v<KisDlgPreferences::PageDesc> && std::is_constructible_v<KisDlgPreferences, QWidget *, const KisImportExportPreferenceOptions &, const char *> && std::has_virtual_destructor_v<KisDlgPreferences>);
+    ASSERT_PREFERENCE_MEMBER(KisDlgPreferences::PageDesc, page);
+    ASSERT_PREFERENCE_MEMBER(KisDlgPreferences::PageDesc, tab);
+    ASSERT_PREFERENCE_CALLABLE(KisDlgPreferences, editPreferences);
+    ASSERT_PREFERENCE_CALLABLE(KisDlgPreferences, notifyImageSettingsChanged);
+    ASSERT_PREFERENCE_CALLABLE(KisDlgPreferences, showEvent);
+}
+// clang-format on
+
+#undef ASSERT_PREFERENCE_CALLABLE
+#undef ASSERT_PREFERENCE_MEMBER
 
 QTEST_GUILESS_MAIN(KisDlgPreferencesEnumContractTest)
 
