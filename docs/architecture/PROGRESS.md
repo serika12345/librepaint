@@ -2,8 +2,8 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-07 12:12 JST
-- 状態: `in_progress`
+- 更新日時: 2026-09-07 12:37 JST
+- 状態: `planned`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
@@ -2862,6 +2862,14 @@
 - 開始実装`libs/application/ui/workspace/KisMainWindow.cpp`の厳格`clang-check`は、Qt 6で非推奨のmouse event `pos()`利用1件という既存診断を返す。別の挙動変更として分離し、構造変更の診断増加0と新規試験sourceの診断0を必須とする。新規`libs/application/tests/KisMainWindowSchemaContractTest.cpp`を200行・10枠未満で作成し、application・ui・flake・global・resources・widgetutilsのsource・generated探索路と必要なinterface探索路だけを持つ専用対象へ分離する。
 - 近傍`KisApplicationArgumentsSchemaContractTest`は4工程・8入力、command SHA-256 `94caa193f640f28e43b9589ff6612ec820c742cf64fd5144b694bfaea8103972`、input SHA-256 `d396bd55ed135e1a3b0216c6b40d7f4c2e09780b50819ccedb34348d7511b083`である。新規対象はQt Core・Test、header-only Boostと公開headerのexport定義だけを動的接続し、停止線を5工程・11入力とする。
 - `g368-main-window-schema`の状態は`in_progress`、実装基点は`8d44d510ef`である。構造先行commit後に、新規試験sourceと`libs/application/tests/CMakeLists.txt`の対象固有節だけへ契約を追加する。macOSの対象、8枠の20回反復、関係sourceの厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
+
+### 第368便の実装結果
+
+- `g368-main-window-schema`は`completed`である。開始`libs/application/ui/workspace/KisMainWindow.h`から公開宣言に不要な`application/ui/workspace/KisView.h`を除き、完全型の実利用所有を`libs/application/ui/workspace/KisSessionResource.cpp`、`libs/application/ui/workspace/KisWindowLayoutManager.cpp`、`libs/application/ui/workspace/KisWindowLayoutResource.cpp`、`libs/libkis/Krita.cpp`の直接includeへ移した。`QMdiSubWindow`は開始headerの直接前方宣言へ移した。25直接利用翻訳単位の変更前後を比較し、診断0件12件、既存診断だけ13件を維持した。公開API報告は変更前後で同じSHA-256 `fd0ddeedfb746e77165437a3484e85dbaf8b17160cdba89e4bb531885cc8fde0`となり、構造変更commitは`47b7d21069`である。
+- 開始`libs/application/ui/workspace/KisMainWindow.h`の残存全64 APIを、新規`libs/application/tests/KisMainWindowSchemaContractTest.cpp`の型・open flag・寿命9、識別・view・canvas 10、文書open・save 8、docker・workspace・資源7、表示・session操作13、view寿命操作7、状態検査・同期3、通知7の8枠へ対応付けた。Android固有`slotFlashWindowHack`は同一枠へ登録し、署名検査を`Q_OS_ANDROID`構成で有効にする。対象は137行で、契約実装commitは`8b34dc843e`である。
+- 初回対象構成は内部XML GUI headerを外部`KF XmlGui`対象として指定したため構成時に停止し、その指定を除去した。次に`KoResource.h`が公開する地域化型の探索路不足を検出し、対象固有のKF I18n interface探索路で解消した。その後は期待どおり8試験関数の未定義symbolだけで赤となった。最終targetは4工程・8入力、command SHA-256 `57a65195fdda2a754bb6dfe44fe1b834b5e3c1683eb4e0e7b3f722df49976f51`、input SHA-256 `b27d6a2c14eede0dadfa3a8ca92a0a958eacd0fd43a1281530b9eedd6e60b2be`である。動的接続はQt Core・Test、gettext、OS frameworkだけで、製品libraryを接続しない。
+- macOSで対象`libs-application-KisMainWindowSchemaContractTest`、軽量近傍`libs-application-KisApplicationArgumentsSchemaContractTest`、対象の20回反復、試験sourceの厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`に成功した。開始実装の厳格検査は計画時と同じQt 6 mouse event座標非推奨1件だけを返した。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 台帳へ64 APIを追加して25,461件対応、4,343件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g368.json`と一時構築計画を最新報告の検証後に削除し、追加作業tree・構築木は作成していない。主Ninja木5,935,152 KiB、共有compiler cache 983,020 KiB、最新`build/tdd-macos/public-api-missing-g369.json` 1,164,071 bytes、SHA-256 `4e0c6d1fcac5a3720aef17c5530b1edc120c4baec452691c113e4d2da9b0438c`だけを再利用対象として保持する。compiler cacheは144,248件中120,500件、83.54%がhitしている。次の永続作業は第369便で次の高密度なmacOS対象と最小構築面を選定することである。
 
 ### 第239便の先行監査担当票
 

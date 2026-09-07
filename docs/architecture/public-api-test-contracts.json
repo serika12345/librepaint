@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 4407
+    "expectedMissingApis": 4343
   },
   "contracts": [
     {
@@ -69746,6 +69746,142 @@
         "method:PopupPaletteTab::save()",
         "method:PopupPaletteTab::setDefault()",
         "struct:KisDlgPreferences::PageDesc"
+      ]
+    },
+    {
+      "target": "KisMainWindowSchemaContractTest",
+      "source": "libs/application/tests/KisMainWindowSchemaContractTest.cpp",
+      "test": "KisMainWindowSchemaContractTest::typeOpenFlagsAndLifetimeSchemaRemainStable",
+      "behavior": "主windowは文書open方式のflag値、識別子指定による構築、多相破棄可能な公開型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisMainWindow::OpenFlags",
+        "class:KisMainWindow",
+        "enum:KisMainWindow::OpenFlag",
+        "enumerator:KisMainWindow::OpenFlag::BatchMode",
+        "enumerator:KisMainWindow::OpenFlag::Import",
+        "enumerator:KisMainWindow::OpenFlag::None",
+        "enumerator:KisMainWindow::OpenFlag::RecoveryFile",
+        "method:KisMainWindow::KisMainWindow(QUuid id=QUuid ())",
+        "method:KisMainWindow::~KisMainWindow()"
+      ]
+    },
+    {
+      "target": "KisMainWindowSchemaContractTest",
+      "source": "libs/application/tests/KisMainWindowSchemaContractTest.cpp",
+      "test": "KisMainWindowSchemaContractTest::identityViewAndCanvasSignaturesRemainStable",
+      "behavior": "主windowは識別子、active view、canvas、observer、資源・view管理への公開接続を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMainWindow::activeView() const",
+        "method:KisMainWindow::canvasDetached() const",
+        "method:KisMainWindow::canvasObservers() const",
+        "method:KisMainWindow::canvasWindow() const",
+        "method:KisMainWindow::createPopupMenu()",
+        "method:KisMainWindow::id() const",
+        "method:KisMainWindow::resourceManager() const",
+        "method:KisMainWindow::showView(KisView * view,QMdiSubWindow * subWindow=0)",
+        "method:KisMainWindow::viewCount() const",
+        "method:KisMainWindow::viewManager() const"
+      ]
+    },
+    {
+      "target": "KisMainWindowSchemaContractTest",
+      "source": "libs/application/tests/KisMainWindowSchemaContractTest.cpp",
+      "test": "KisMainWindowSchemaContractTest::documentOpenAndSaveSignaturesRemainStable",
+      "behavior": "主windowは文書のopen・表示・保存、view追加、file選択、bundle導入とlayout画像取得の公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMainWindow::addViewAndNotifyLoadingCompleted(KisDocument * document,QMdiSubWindow * subWindow=0)",
+        "method:KisMainWindow::hackIsSaving() const",
+        "method:KisMainWindow::installBundle(const QString & fileName) const",
+        "method:KisMainWindow::layoutThumbnail()",
+        "method:KisMainWindow::openDocument(const QString & path,OpenFlags flags)",
+        "method:KisMainWindow::saveDocument(KisDocument * document,bool saveas,bool isExporting,bool isAdvancedExporting=false)",
+        "method:KisMainWindow::showDocument(KisDocument * document)",
+        "method:KisMainWindow::showOpenFileDialog(bool isImporting)"
+      ]
+    },
+    {
+      "target": "KisMainWindowSchemaContractTest",
+      "source": "libs/application/tests/KisMainWindowSchemaContractTest.cpp",
+      "test": "KisMainWindowSchemaContractTest::dockerWorkspaceAndResourceSignaturesRemainStable",
+      "behavior": "主windowはdocker参照、window状態の保存・復元、workspace資源の復元とwindow間交換を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMainWindow::dockWidget(const QString & id)",
+        "method:KisMainWindow::dockWidgets() const",
+        "method:KisMainWindow::restoreWorkspace(KoResourceSP res)",
+        "method:KisMainWindow::restoreWorkspaceState(const QByteArray & state)",
+        "method:KisMainWindow::saveWindowState(bool restoreNormalState=false)",
+        "method:KisMainWindow::swapWorkspaces(KisMainWindow * a,KisMainWindow * b)",
+        "method:KisMainWindow::windowStateConfig() const"
+      ]
+    },
+    {
+      "target": "KisMainWindowSchemaContractTest",
+      "source": "libs/application/tests/KisMainWindowSchemaContractTest.cpp",
+      "test": "KisMainWindowSchemaContractTest::presentationAndSessionActionSignaturesRemainStable",
+      "behavior": "主windowはwelcome表示、recent file、file操作、設定、session、interface倍率、canvas分離と全画面操作を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMainWindow::clearRecentFiles()",
+        "method:KisMainWindow::removeRecentFile(QString url)",
+        "method:KisMainWindow::setCanvasDetached(bool detached)",
+        "method:KisMainWindow::showWelcomeScreen(bool show)",
+        "method:KisMainWindow::slotChangeInterfaceScale()",
+        "method:KisMainWindow::slotFileNew()",
+        "method:KisMainWindow::slotFileOpen(bool isImporting=false)",
+        "method:KisMainWindow::slotFileOpenRecent(const QUrl &)",
+        "method:KisMainWindow::slotFileSave()",
+        "method:KisMainWindow::slotFlashWindowHack()",
+        "method:KisMainWindow::slotPreferences()",
+        "method:KisMainWindow::slotShowSessionManager()",
+        "method:KisMainWindow::viewFullscreen(bool fullScreen)"
+      ]
+    },
+    {
+      "target": "KisMainWindowSchemaContractTest",
+      "source": "libs/application/tests/KisMainWindowSchemaContractTest.cpp",
+      "test": "KisMainWindowSchemaContractTest::viewLifecycleActionSignaturesRemainStable",
+      "behavior": "主windowはoption widget更新、view生成・破棄通知・active切替とsubwindow・window focus通知を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMainWindow::newOptionWidgets(KoCanvasController * controller,const QList<QPointer<QWidget>> & optionWidgetList)",
+        "method:KisMainWindow::newView(QObject * document,QMdiSubWindow * subWindow=0)",
+        "method:KisMainWindow::notifyChildViewDestroyed(KisView * view)",
+        "method:KisMainWindow::setActiveView(KisView * view)",
+        "method:KisMainWindow::subWindowActivated()",
+        "method:KisMainWindow::unsetActiveView()",
+        "method:KisMainWindow::windowFocused()"
+      ]
+    },
+    {
+      "target": "KisMainWindowSchemaContractTest",
+      "source": "libs/application/tests/KisMainWindowSchemaContractTest.cpp",
+      "test": "KisMainWindowSchemaContractTest::availabilityAndSynchronizationSignaturesRemainStable",
+      "behavior": "主windowは利用可能なbundle・paint operationの確認と動的action同期を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMainWindow::checkActiveBundlesAvailable()",
+        "method:KisMainWindow::checkPaintOpAvailable()",
+        "method:KisMainWindow::synchronizeDynamicActions()"
+      ]
+    },
+    {
+      "target": "KisMainWindowSchemaContractTest",
+      "source": "libs/application/tests/KisMainWindowSchemaContractTest.cpp",
+      "test": "KisMainWindowSchemaContractTest::notificationSignaturesRemainStable",
+      "behavior": "主windowは文書保存・読込・復元、theme・key binding・GUI読込・active view変更を通知する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMainWindow::activeViewChanged()",
+        "method:KisMainWindow::documentSaved()",
+        "method:KisMainWindow::guiLoadingFinished()",
+        "method:KisMainWindow::keyBindingsChanged()",
+        "method:KisMainWindow::loadCompleted()",
+        "method:KisMainWindow::restoringDone()",
+        "method:KisMainWindow::themeChanged()"
       ]
     }
   ]
