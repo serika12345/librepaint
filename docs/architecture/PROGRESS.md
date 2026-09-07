@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-07 11:12 JST
+- 更新日時: 2026-09-07 11:24 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -2825,6 +2825,8 @@
 - 開始実装の厳格`clang-check`は診断0件である。開始headerの具体的なpattern・gradient・色変換型は列挙、共有pointer別名、既定引数を公開宣言で直接必要とする。167直接利用元へ影響する推移include変更に対して、この契約便で削減できる安全な完全型依存はない。
 - 新規`libs/image/tests/KisPainterSchemaContractTest.cpp`を300行・20枠未満で作成する。対象固有CMake節はimage・filter・global・pigment・pigment/resources・resources・painting/undoのsource・generated探索路、Eigen・KF I18n・Imath公開探索路、Qt Core・Gui・Test、header-only Boost、`kritaimage_EXPORTS`と`kritapigment_EXPORTS`だけを所有する。近傍`KisGradientPainterSchemaContractTest`は4工程・8入力、command SHA-256 `cd9cf08054ac1995a94543bf6d2ad1e59d82941e8eeb0d1435138b66680f7cd9`、input SHA-256 `362d01b8ab708148281833cdc70ed66cec6beb16d8677dcc28af9b6be9c83e62`である。製品library、製品OBJECTを接続せず、停止線を5工程・11入力とする。
 - `g364-painter-schema`の状態は`in_progress`、実装基点は`a2b9e4b0fe`である。契約は新規試験sourceと対象固有CMake節だけに限定する。macOSの対象、12枠の20回反復、開始実装・試験sourceの厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
+- `g364-painter-schema`は`completed`である。開始headerは具体的なpattern・gradient・色変換型を公開宣言で直接必要とし、167直接利用元へ移す推移includeに対して今回の専用契約閉包で削減できる安全な完全型依存がないため、製品構造は変更していない。`libs/image/kis_painter.h`から新規`libs/image/tests/KisPainterSchemaContractTest.cpp`へ全133 APIを12枠で対応付けた。対象は233行・12枠で、最初の赤は追加探索路を要求せず12試験関数の未定義symbolだけで停止した。契約実装commitは`ef2afc2ee6`である。
+- 最終閉包は4工程・8入力、command SHA-256 `3e74903fc578a08572e7bcc63c26fac06dedea3ee8660582065ef0fe47de95ad`、input SHA-256 `f58bdaf52da2afb5c89381fd30e57f20f8116a62f16f034495bd2eb94d60de83`である。動的接続はQt Core・Gui・Test、gettextとOS frameworkだけで、未解決Kis・Ko記号はない。macOSで対象と軽量近傍`KisGradientPainterSchemaContractTest`のCTest、対象の20回反復、開始実装・試験sourceの厳格`clang-check`、試験sourceの書式、二回の無作業再構築、公開API検査、`verify-quick`に成功した。試験内の厳密署名119件と不足一覧のconstructor・destructor以外の全methodを多重度込みで照合した。台帳へ133 APIを追加して25,057件対応、4,747件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g364.json`を削除し、主Ninja木5,927,500 KiB、共有compiler cache 983,080 KiB、最新`build/tdd-macos/public-api-missing-g365.json` 1,266,524 bytes、SHA-256 `d1f59fd6f584771eb9755628e914b175105b8a7453966dc5e10a6baecc184442`だけを保持する。compiler cacheは144,231件中120,497件、83.54%がhitしている。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第365便で次の高密度なmacOS対象と最小構築面を選定することである。
 
 ### 第239便の先行監査担当票
 

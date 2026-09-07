@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 4880
+    "expectedMissingApis": 4747
   },
   "contracts": [
     {
@@ -68868,6 +68868,247 @@
         "method:KisImage::sigStrokeEndRequested()",
         "method:KisImage::sigStrokeEndRequestedActiveNodeFiltered()",
         "method:KisImage::sigUndoDuringStrokeRequested()"
+      ]
+    },
+    {
+      "target": "KisPainterSchemaContractTest",
+      "source": "libs/image/tests/KisPainterSchemaContractTest.cpp",
+      "test": "KisPainterSchemaContractTest::typeAndDrawingStyleSchemaRemainStable",
+      "behavior": "描画器は塗潰し・輪郭style列挙を公開し、空または描画装置・選択から構築される多態的寿命境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisPainter",
+        "enum:KisPainter::FillStyle",
+        "enum:KisPainter::StrokeStyle",
+        "enumerator:KisPainter::FillStyle::FillStyleBackgroundColor",
+        "enumerator:KisPainter::FillStyle::FillStyleForegroundColor",
+        "enumerator:KisPainter::FillStyle::FillStyleGenerator",
+        "enumerator:KisPainter::FillStyle::FillStyleNone",
+        "enumerator:KisPainter::FillStyle::FillStylePattern",
+        "enumerator:KisPainter::StrokeStyle::StrokeStyleBrush",
+        "enumerator:KisPainter::StrokeStyle::StrokeStyleNone",
+        "method:KisPainter::KisPainter()",
+        "method:KisPainter::KisPainter(KisPaintDeviceSP device)",
+        "method:KisPainter::KisPainter(KisPaintDeviceSP device,KisSelectionSP selection)",
+        "method:KisPainter::~KisPainter()"
+      ]
+    },
+    {
+      "target": "KisPainterSchemaContractTest",
+      "source": "libs/image/tests/KisPainterSchemaContractTest.cpp",
+      "test": "KisPainterSchemaContractTest::deviceSelectionAndSessionSignaturesRemainStable",
+      "behavior": "描画器は描画装置と任意選択を設定してsessionを開始・終了し、現在の接続を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPainter::begin(KisPaintDeviceSP device)",
+        "method:KisPainter::begin(KisPaintDeviceSP device,KisSelectionSP selection)",
+        "method:KisPainter::device()",
+        "method:KisPainter::device() const",
+        "method:KisPainter::end()",
+        "method:KisPainter::selection()",
+        "method:KisPainter::setSelection(KisSelectionSP selection)"
+      ]
+    },
+    {
+      "target": "KisPainterSchemaContractTest",
+      "source": "libs/image/tests/KisPainterSchemaContractTest.cpp",
+      "test": "KisPainterSchemaContractTest::transactionSignaturesRemainStable",
+      "behavior": "描画器はtransactionの開始、確定、取消、取得、移管とundo adapterへの完了を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPainter::beginTransaction(const KUndo2MagicString & transactionName=KUndo2MagicString (),int timedID=-1)",
+        "method:KisPainter::deleteTransaction()",
+        "method:KisPainter::endAndTakeTransaction()",
+        "method:KisPainter::endTransaction(KisPostExecutionUndoAdapter * undoAdapter)",
+        "method:KisPainter::endTransaction(KisUndoAdapter * undoAdapter)",
+        "method:KisPainter::putTransaction(KisTransaction * transaction)",
+        "method:KisPainter::revertTransaction()",
+        "method:KisPainter::takeTransaction()"
+      ]
+    },
+    {
+      "target": "KisPainterSchemaContractTest",
+      "source": "libs/image/tests/KisPainterSchemaContractTest.cpp",
+      "test": "KisPainterSchemaContractTest::dirtyAndCompositionSignaturesRemainStable",
+      "behavior": "描画器はdirty領域、channel、合成方式、色変換方針、塗潰し・輪郭styleとpolygon平滑化を管理する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPainter::addDirtyRect(const QRect & r)",
+        "method:KisPainter::addDirtyRects(const QVector<QRect> & rects)",
+        "method:KisPainter::antiAliasPolygonFill()",
+        "method:KisPainter::channelFlags()",
+        "method:KisPainter::compositeOpId()",
+        "method:KisPainter::fillStyle() const",
+        "method:KisPainter::hasDirtyRegion() const",
+        "method:KisPainter::setAntiAliasPolygonFill(bool antiAliasPolygonFill)",
+        "method:KisPainter::setChannelFlags(QBitArray channelFlags)",
+        "method:KisPainter::setColorConversionFlags(KoColorConversionTransformation::ConversionFlags conversionFlags)",
+        "method:KisPainter::setCompositeOpId(const KoCompositeOp * op)",
+        "method:KisPainter::setCompositeOpId(const QString & op)",
+        "method:KisPainter::setFillStyle(FillStyle fillStyle)",
+        "method:KisPainter::setRenderingIntent(KoColorConversionTransformation::Intent intent)",
+        "method:KisPainter::setStrokeStyle(StrokeStyle strokeStyle)",
+        "method:KisPainter::strokeStyle() const",
+        "method:KisPainter::takeDirtyRegion()"
+      ]
+    },
+    {
+      "target": "KisPainterSchemaContractTest",
+      "source": "libs/image/tests/KisPainterSchemaContractTest.cpp",
+      "test": "KisPainterSchemaContractTest::paintDeviceTransferSignaturesRemainStable",
+      "behavior": "描画器は通常・旧data・固定選択による描画装置間の領域転送と最適化copyを公開する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPainter::bitBlt(const QPoint & pos,const KisPaintDeviceSP srcDev,const QRect & srcRect)",
+        "method:KisPainter::bitBlt(qint32 dstX,qint32 dstY,const KisPaintDeviceSP srcDev,qint32 srcX,qint32 srcY,qint32 srcWidth,qint32 srcHeight)",
+        "method:KisPainter::bitBltOldData(const QPoint & pos,const KisPaintDeviceSP srcDev,const QRect & srcRect)",
+        "method:KisPainter::bitBltOldData(qint32 dstX,qint32 dstY,const KisPaintDeviceSP srcDev,qint32 srcX,qint32 srcY,qint32 srcWidth,qint32 srcHeight)",
+        "method:KisPainter::bitBltWithFixedSelection(qint32 dstX,qint32 dstY,const KisPaintDeviceSP srcDev,const KisFixedPaintDeviceSP selection,qint32 selX,qint32 selY,qint32 srcX,qint32 srcY,qint32 srcWidth,qint32 srcHeight)",
+        "method:KisPainter::bitBltWithFixedSelection(qint32 dstX,qint32 dstY,const KisPaintDeviceSP srcDev,const KisFixedPaintDeviceSP selection,qint32 srcWidth,qint32 srcHeight)",
+        "method:KisPainter::copyAreaOptimized(const QPoint & dstPt,KisPaintDeviceSP src,KisPaintDeviceSP dst,const QRect & originalSrcRect)",
+        "method:KisPainter::copyAreaOptimized(const QPoint & dstPt,KisPaintDeviceSP src,KisPaintDeviceSP dst,const QRect & originalSrcRect,KisSelectionSP selection)",
+        "method:KisPainter::copyAreaOptimizedOldData(const QPoint & dstPt,KisPaintDeviceSP src,KisPaintDeviceSP dst,const QRect & originalSrcRect)"
+      ]
+    },
+    {
+      "target": "KisPainterSchemaContractTest",
+      "source": "libs/image/tests/KisPainterSchemaContractTest.cpp",
+      "test": "KisPainterSchemaContractTest::fixedDeviceTransferSignaturesRemainStable",
+      "behavior": "描画器は固定描画装置とmaskの転送、および鏡映mask描画の多重定義を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPainter::bltFixed(const QPoint & pos,const KisFixedPaintDeviceSP srcDev,const QRect & srcRect)",
+        "method:KisPainter::bltFixed(const QRect & rc,const QList<KisRenderedDab> allSrcDevices)",
+        "method:KisPainter::bltFixed(qint32 dstX,qint32 dstY,const KisFixedPaintDeviceSP srcDev,qint32 srcX,qint32 srcY,qint32 srcWidth,qint32 srcHeight)",
+        "method:KisPainter::bltFixedWithFixedSelection(qint32 dstX,qint32 dstY,const KisFixedPaintDeviceSP srcDev,const KisFixedPaintDeviceSP selection,qint32 selX,qint32 selY,qint32 srcX,qint32 srcY,quint32 srcWidth,quint32 srcHeight)",
+        "method:KisPainter::bltFixedWithFixedSelection(qint32 dstX,qint32 dstY,const KisFixedPaintDeviceSP srcDev,const KisFixedPaintDeviceSP selection,quint32 srcWidth,quint32 srcHeight)",
+        "method:KisPainter::renderDabWithMirroringNonIncremental(QRect rc,KisPaintDeviceSP dab)",
+        "method:KisPainter::renderMirrorMask(QRect rc,KisFixedPaintDeviceSP dab)",
+        "method:KisPainter::renderMirrorMask(QRect rc,KisFixedPaintDeviceSP dab,KisFixedPaintDeviceSP mask)",
+        "method:KisPainter::renderMirrorMask(QRect rc,KisPaintDeviceSP dab)",
+        "method:KisPainter::renderMirrorMask(QRect rc,KisPaintDeviceSP dab,int sx,int sy,KisFixedPaintDeviceSP mask)",
+        "method:KisPainter::renderMirrorMaskSafe(QRect rc,KisFixedPaintDeviceSP dab,KisFixedPaintDeviceSP mask,bool preserveDab)",
+        "method:KisPainter::renderMirrorMaskSafe(QRect rc,KisFixedPaintDeviceSP dab,bool preserveDab)",
+        "method:KisPainter::renderMirrorMaskSafe(QRect rc,KisPaintDeviceSP dab,int sx,int sy,KisFixedPaintDeviceSP mask,bool preserveMask)"
+      ]
+    },
+    {
+      "target": "KisPainterSchemaContractTest",
+      "source": "libs/image/tests/KisPainterSchemaContractTest.cpp",
+      "test": "KisPainterSchemaContractTest::mirroringSignaturesRemainStable",
+      "behavior": "描画器は鏡映点・領域の算出、鏡映状態・軸情報、dab・矩形鏡映とmask画像寸法を管理する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPainter::calculateAllMirroredPoints(const QPair<QPointF,QPointF> & pair)",
+        "method:KisPainter::calculateAllMirroredPoints(const QPointF & pos)",
+        "method:KisPainter::calculateAllMirroredRects(const QRect & rc)",
+        "method:KisPainter::copyMirrorInformationFrom(const KisPainter * other)",
+        "method:KisPainter::hasHorizontalMirroring() const",
+        "method:KisPainter::hasMirroring() const",
+        "method:KisPainter::hasVerticalMirroring() const",
+        "method:KisPainter::mirrorDab(Qt::Orientation direction,KisRenderedDab * dab,bool skipMirrorPixels=false) const",
+        "method:KisPainter::mirrorRect(Qt::Orientation direction,QRect * rc) const",
+        "method:KisPainter::setMaskImageSize(qint32 width,qint32 height)",
+        "method:KisPainter::setMirrorInformation(const QPointF & axesCenter,bool mirrorHorizontally,bool mirrorVertically)"
+      ]
+    },
+    {
+      "target": "KisPainterSchemaContractTest",
+      "source": "libs/image/tests/KisPainterSchemaContractTest.cpp",
+      "test": "KisPainterSchemaContractTest::primitiveDrawingSignaturesRemainStable",
+      "behavior": "描画器は線、path、楕円、矩形、多角形、折線、塗潰しとBezier制御点生成を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPainter::drawDDALine(const QPointF & start,const QPointF & end)",
+        "method:KisPainter::drawLine(const QPointF & start,const QPointF & end)",
+        "method:KisPainter::drawLine(const QPointF & start,const QPointF & end,qreal width,bool antialias)",
+        "method:KisPainter::drawPainterPath(const QPainterPath & path,const QPen & pen)",
+        "method:KisPainter::drawPainterPath(const QPainterPath & path,const QPen & pen,const QRect & requestedRect)",
+        "method:KisPainter::drawThickLine(const QPointF & start,const QPointF & end,int startWidth,int endWidth)",
+        "method:KisPainter::drawWobblyLine(const QPointF & start,const QPointF & end)",
+        "method:KisPainter::drawWuLine(const QPointF & start,const QPointF & end)",
+        "method:KisPainter::fill(qint32 x,qint32 y,qint32 width,qint32 height,const KoColor & color)",
+        "method:KisPainter::fillPainterPath(const QPainterPath & path)",
+        "method:KisPainter::fillPainterPath(const QPainterPath & path,const QRect & requestedRect)",
+        "method:KisPainter::getBezierCurvePoints(const QPointF & pos1,const QPointF & control1,const QPointF & control2,const QPointF & pos2,vQPointF & points) const",
+        "method:KisPainter::paintEllipse(const QRectF & rect)",
+        "method:KisPainter::paintEllipse(const qreal x,const qreal y,const qreal w,const qreal h)",
+        "method:KisPainter::paintPainterPath(const QPainterPath & path)",
+        "method:KisPainter::paintPolygon(const vQPointF & points)",
+        "method:KisPainter::paintPolyline(const QVector<QPointF> & points,int index=0,int numPoints=-1)",
+        "method:KisPainter::paintRect(const QRectF & rect)",
+        "method:KisPainter::paintRect(const qreal x,const qreal y,const qreal w,const qreal h)"
+      ]
+    },
+    {
+      "target": "KisPainterSchemaContractTest",
+      "source": "libs/image/tests/KisPainterSchemaContractTest.cpp",
+      "test": "KisPainterSchemaContractTest::paintOpStrokeSignaturesRemainStable",
+      "behavior": "描画器はpaintop、preset、paint情報に基づくdab・線・Bezier strokeと非同期job interfaceを管理する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPainter::paintAt(const KisPaintInformation & pos,KisDistanceInformation * savedDist)",
+        "method:KisPainter::paintBezierCurve(const KisPaintInformation & pi1,const QPointF & control1,const QPointF & control2,const KisPaintInformation & pi2,KisDistanceInformation * currentDistance)",
+        "method:KisPainter::paintLine(const KisPaintInformation & pi1,const KisPaintInformation & pi2,KisDistanceInformation * currentDistance)",
+        "method:KisPainter::paintOp() const",
+        "method:KisPainter::preset() const",
+        "method:KisPainter::runnableStrokeJobsInterface() const",
+        "method:KisPainter::setPaintOpPreset(KisPaintOpPresetSP preset,KisNodeSP node,KisImageSP image)",
+        "method:KisPainter::setRunnableStrokeJobsInterface(KisRunnableStrokeJobsInterface * interface)"
+      ]
+    },
+    {
+      "target": "KisPainterSchemaContractTest",
+      "source": "libs/image/tests/KisPainterSchemaContractTest.cpp",
+      "test": "KisPainterSchemaContractTest::colorFillAndResourceSignaturesRemainStable",
+      "behavior": "描画器は前景・背景色、generator、gradient、patternとpattern変換を取得・設定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPainter::backgroundColor() const",
+        "method:KisPainter::generator() const",
+        "method:KisPainter::gradient() const",
+        "method:KisPainter::paintColor() const",
+        "method:KisPainter::pattern() const",
+        "method:KisPainter::patternTransform()",
+        "method:KisPainter::setBackgroundColor(const KoColor & color)",
+        "method:KisPainter::setGenerator(KisFilterConfigurationSP generator)",
+        "method:KisPainter::setGradient(const KoAbstractGradientSP gradient)",
+        "method:KisPainter::setPaintColor(const KoColor & color)",
+        "method:KisPainter::setPattern(const KoPatternSP pattern)",
+        "method:KisPainter::setPatternTransform(QTransform transform)"
+      ]
+    },
+    {
+      "target": "KisPainterSchemaContractTest",
+      "source": "libs/image/tests/KisPainterSchemaContractTest.cpp",
+      "test": "KisPainterSchemaContractTest::opacityAndFlowSignaturesRemainStable",
+      "behavior": "描画器はflow、opacity、平均opacityと単位opacity状態を管理し、平均opacity計算を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPainter::blendAverageOpacity(qreal opacity,qreal averageOpacity)",
+        "method:KisPainter::flow() const",
+        "method:KisPainter::isOpacityUnit() const",
+        "method:KisPainter::opacityF() const",
+        "method:KisPainter::setAverageOpacity(qreal averageOpacity)",
+        "method:KisPainter::setFlow(qreal flow)",
+        "method:KisPainter::setOpacityF(qreal opacity)",
+        "method:KisPainter::setOpacityToUnit()",
+        "method:KisPainter::setOpacityU8(quint8 opacity)",
+        "method:KisPainter::setOpacityUpdateAverage(qreal opacity)"
+      ]
+    },
+    {
+      "target": "KisPainterSchemaContractTest",
+      "source": "libs/image/tests/KisPainterSchemaContractTest.cpp",
+      "test": "KisPainterSchemaContractTest::conversionProgressAndJobSignaturesRemainStable",
+      "behavior": "描画器は透明性判定、三種類のalpha変換と進捗通知先を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPainter::checkDeviceHasTransparency(KisPaintDeviceSP dev)",
+        "method:KisPainter::convertToAlphaAsAlpha(KisPaintDeviceSP src)",
+        "method:KisPainter::convertToAlphaAsGray(KisPaintDeviceSP src)",
+        "method:KisPainter::convertToAlphaAsPureAlpha(KisPaintDeviceSP src)",
+        "method:KisPainter::setProgress(KoUpdater * progressUpdater)"
       ]
     }
   ]
