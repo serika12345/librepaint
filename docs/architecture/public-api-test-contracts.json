@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 5209
+    "expectedMissingApis": 5185
   },
   "contracts": [
     {
@@ -68179,6 +68179,75 @@
         "method:KisAction::setExcludedNodeTypes(const QStringList & nodeTypes)",
         "method:KisAction::setOperationID(const QString & id)",
         "method:KisAction::sigEnableSlaves(bool value)"
+      ]
+    },
+    {
+      "target": "KoResourceSelectionSchemaContractTest",
+      "source": "libs/widgets/tests/KoResourceSelectionSchemaContractTest.cpp",
+      "test": "KoResourceSelectionSchemaContractTest::resourceServerObserverTypeAndNotificationSchemaRemainStable",
+      "behavior": "資源server observerは仮想寿命を持ち、server解除と資源の追加・削除・変更を共有資源付き操作として受け取る。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoResourceServerObserver",
+        "method:KoResourceServerObserver::removingResource(QSharedPointer<T> resource)",
+        "method:KoResourceServerObserver::resourceAdded(QSharedPointer<T> resource)",
+        "method:KoResourceServerObserver::resourceChanged(QSharedPointer<T> resource)",
+        "method:KoResourceServerObserver::unsetResourceServer()",
+        "method:KoResourceServerObserver::~KoResourceServerObserver()"
+      ]
+    },
+    {
+      "target": "KoResourceSelectionSchemaContractTest",
+      "source": "libs/widgets/tests/KoResourceSelectionSchemaContractTest.cpp",
+      "test": "KoResourceSelectionSchemaContractTest::resourceServerTypeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "型付き資源serverは資源種別から構築され、型付きobserver別名と仮想寿命を持つ公開面を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KoResourceServer::ObserverType",
+        "class:KoResourceServer",
+        "method:KoResourceServer::KoResourceServer(const QString & type)",
+        "method:KoResourceServer::~KoResourceServer()"
+      ]
+    },
+    {
+      "target": "KoResourceSelectionSchemaContractTest",
+      "source": "libs/widgets/tests/KoResourceSelectionSchemaContractTest.cpp",
+      "test": "KoResourceSelectionSchemaContractTest::resourceServerModelAndQuerySignaturesRemainStable",
+      "behavior": "型付き資源serverは基底model、先頭資源、資源数、資源に割り当てたtag一覧を照会する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoResourceServer::assignedTagsList(KoResourceSP resource) const",
+        "method:KoResourceServer::firstResource() const",
+        "method:KoResourceServer::resourceCount() const",
+        "method:KoResourceServer::resourceModel() const"
+      ]
+    },
+    {
+      "target": "KoResourceSelectionSchemaContractTest",
+      "source": "libs/widgets/tests/KoResourceSelectionSchemaContractTest.cpp",
+      "test": "KoResourceSelectionSchemaContractTest::resourceServerResolutionAndPersistenceSignaturesRemainStable",
+      "behavior": "型付き資源serverは資源の追加・除去・file取込と削除、識別情報による解決、保存場所の取得を行う公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoResourceServer::addResource(QSharedPointer<T> resource,bool save=true)",
+        "method:KoResourceServer::importResourceFile(const QString & filename,const bool allowOverwrite)",
+        "method:KoResourceServer::removeResourceFile(const QString & filename)",
+        "method:KoResourceServer::removeResourceFromServer(QSharedPointer<T> resource)",
+        "method:KoResourceServer::resource(const QString & md5,const QString & fileName,const QString & name)",
+        "method:KoResourceServer::saveLocation()"
+      ]
+    },
+    {
+      "target": "KoResourceSelectionSchemaContractTest",
+      "source": "libs/widgets/tests/KoResourceSelectionSchemaContractTest.cpp",
+      "test": "KoResourceSelectionSchemaContractTest::resourceServerObserverAndMutationSignaturesRemainStable",
+      "behavior": "型付き資源serverはobserverを登録・解除し、既存資源の内容更新と再読込を通知付きで行う公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoResourceServer::addObserver(ObserverType * observer)",
+        "method:KoResourceServer::reloadResource(QSharedPointer<T> resource)",
+        "method:KoResourceServer::removeObserver(ObserverType * observer)",
+        "method:KoResourceServer::updateResource(QSharedPointer<T> resource)"
       ]
     }
   ]
