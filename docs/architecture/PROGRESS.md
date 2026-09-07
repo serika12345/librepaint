@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-07 10:19 JST
+- 更新日時: 2026-09-07 10:31 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -2785,6 +2785,12 @@
 - 開始headerの完全型は抽象canvas基底、値返却list、Qt列挙を直接必要とし、前方宣言は参照・pointer境界に限定済みである。開始実装の厳格`clang-check`は診断0件で、削減すべき推移includeや製品構築所有はない。
 - 既存`libs/ui/tests/KisPaintingAssistantsDecorationSchemaContractTest.cpp`は173行・6枠で、追加5枠後も300行・20枠未満に収める。既存targetはCMake File API上で自動生成依存だけを持ち、CMake変更なしで4工程・8入力、command SHA-256 `50af115bfe2cd4378772befbe2936ca273adc236ca75f1966128b78f3fdc933e`、input SHA-256 `3b0b6cf38796f9a7e15eaf6cc8c411af285382a650bf6aefe35c56850a3476b1`である。Qt Core・Gui・Test、gettext、OS frameworkだけへ動的接続し、製品libraryを要求しない。停止線を5工程・11入力、300行・20枠とする。
 - `g361-canvas-widget-base-schema`の状態は`in_progress`、実装基点は`59efb4821c`である。契約は既存試験sourceだけに限定する。macOSの対象、追加5枠の20回反復、開始実装・試験sourceの厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
+
+### 第361便の実装結果
+
+- `g361-canvas-widget-base-schema`は`completed`である。開始headerは完全型と前方宣言の境界が既に最小で、開始実装の厳格`clang-check`も診断0件だったため製品構造を変更していない。
+- 既存`libs/ui/tests/KisPaintingAssistantsDecorationSchemaContractTest.cpp`へ5枠を追加し、canvas表示基底の型・構築・寿命、canvas接続、装飾集合、表示mode・描画更新、色・bit depth報告の全19公開APIを固定した。抽象型の公開構築は不足する抽象操作を宣言だけで満たす局所probeにconstructorを継承して検査する。対象は269行・10枠である。最初のcompile赤で開始headerが直接要求するcanvas・image探索路不足が判明したため、対象固有CMake節へ`ui/canvas`、`canvas`、`image`のsource・必要なgenerated探索路だけを追加した。その後の赤は追加5試験関数の未定義symbolだけで停止した。製品libraryを接続せず、最終閉包4工程・8入力、command SHA-256 `82be598f05377bb6dded6291c3612a519e0f0f5ecee838f4b6a0f4986166592f`、input SHA-256 `3b0b6cf38796f9a7e15eaf6cc8c411af285382a650bf6aefe35c56850a3476b1`である。動的接続はQt Core・Gui・Test、gettextとOS frameworkだけで、未解決Kis・Ko記号はない。実装は`d2a839a752`である。
+- macOSで対象と軽量近傍`KisPaintingAssistantSchemaContractTest`のCTest、対象の20回反復、開始実装・試験sourceの厳格`clang-check`、試験sourceの書式、二回の無作業再構築、公開API検査、`verify-quick`に成功した。台帳へ19 APIを追加して24,661件対応、5,143件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g361.json`を削除し、主Ninja木5,924,720 KiB、共有compiler cache 982,844 KiB、最新`build/tdd-macos/public-api-missing-g362.json` 1,362,152 bytes、SHA-256 `6c5c80802a507ccb7745cd5f7c7f03047797a0b4dcf19cd73cb735ff3994579c`だけを保持する。compiler cacheは144,219件中120,495件、83.55%がhitしている。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第362便で次の高密度なmacOS対象と最小構築面を選定することである。
 
 ### 第239便の先行監査担当票
 

@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 5162
+    "expectedMissingApis": 5143
   },
   "contracts": [
     {
@@ -68316,6 +68316,70 @@
         "method:KisApplication::executeRemoteArguments(QByteArray message,KisMainWindow * mainWindow)",
         "method:KisApplication::fileOpenRequested(const QString & url)",
         "method:KisApplication::remoteArguments(const QString & message)"
+      ]
+    },
+    {
+      "target": "KisPaintingAssistantsDecorationSchemaContractTest",
+      "source": "libs/ui/tests/KisPaintingAssistantsDecorationSchemaContractTest.cpp",
+      "test": "KisPaintingAssistantsDecorationSchemaContractTest::canvasWidgetBaseTypeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "canvas表示基底は抽象canvas契約を継承し、canvasと座標変換器を借用して構築される多態的な寿命境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisCanvasWidgetBase",
+        "method:KisCanvasWidgetBase::KisCanvasWidgetBase(KisCanvas2 * canvas,KisCoordinatesConverter * coordinatesConverter)",
+        "method:KisCanvasWidgetBase::~KisCanvasWidgetBase()"
+      ]
+    },
+    {
+      "target": "KisPaintingAssistantsDecorationSchemaContractTest",
+      "source": "libs/ui/tests/KisPaintingAssistantsDecorationSchemaContractTest.cpp",
+      "test": "KisPaintingAssistantsDecorationSchemaContractTest::canvasWidgetBaseCanvasConnectionSignaturesRemainStable",
+      "behavior": "canvas表示基底は入力tool代理と座標変換器への借用接続を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCanvasWidgetBase::coordinatesConverter() const",
+        "method:KisCanvasWidgetBase::toolProxy() const"
+      ]
+    },
+    {
+      "target": "KisPaintingAssistantsDecorationSchemaContractTest",
+      "source": "libs/ui/tests/KisPaintingAssistantsDecorationSchemaContractTest.cpp",
+      "test": "KisPaintingAssistantsDecorationSchemaContractTest::canvasWidgetBaseDecorationCollectionSignaturesRemainStable",
+      "behavior": "canvas表示基底は識別子付き装飾の追加・取得・除去、集合置換・列挙、window最小化通知を管理する公開面を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCanvasWidgetBase::addDecoration(KisCanvasDecorationSP deco)",
+        "method:KisCanvasWidgetBase::decoration(const QString & id) const",
+        "method:KisCanvasWidgetBase::decorations() const",
+        "method:KisCanvasWidgetBase::notifyDecorationsWindowMinimized(bool minimized)",
+        "method:KisCanvasWidgetBase::removeDecoration(const QString & id)",
+        "method:KisCanvasWidgetBase::setDecorations(const QList<KisCanvasDecorationSP> &)"
+      ]
+    },
+    {
+      "target": "KisPaintingAssistantsDecorationSchemaContractTest",
+      "source": "libs/ui/tests/KisPaintingAssistantsDecorationSchemaContractTest.cpp",
+      "test": "KisPaintingAssistantsDecorationSchemaContractTest::canvasWidgetBaseViewingAndProjectionSignaturesRemainStable",
+      "behavior": "canvas表示基底は装飾描画、回り込み表示と軸の設定、複数投影更新結果を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCanvasWidgetBase::drawDecorations(QPainter & gc,const QRect & updateWidgetRect) const",
+        "method:KisCanvasWidgetBase::setWrapAroundViewingMode(bool value)",
+        "method:KisCanvasWidgetBase::setWrapAroundViewingModeAxis(WrapAroundAxis value)",
+        "method:KisCanvasWidgetBase::updateCanvasProjection(const QVector<KisUpdateInfoSP> & infoObjects)"
+      ]
+    },
+    {
+      "target": "KisPaintingAssistantsDecorationSchemaContractTest",
+      "source": "libs/ui/tests/KisPaintingAssistantsDecorationSchemaContractTest.cpp",
+      "test": "KisPaintingAssistantsDecorationSchemaContractTest::canvasWidgetBaseColorAndBitDepthSignaturesRemainStable",
+      "behavior": "canvas表示基底は外周色、checker画像生成、現在のbit depth modeと利用者向け報告を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCanvasWidgetBase::borderColor() const",
+        "method:KisCanvasWidgetBase::createCheckersImage(qint32 checkSize=-1)",
+        "method:KisCanvasWidgetBase::currentBitDepthMode() const",
+        "method:KisCanvasWidgetBase::currentBitDepthUserReport() const"
       ]
     }
   ]
