@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-07 09:16 JST
+- 更新日時: 2026-09-07 09:54 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -2750,6 +2750,13 @@
 - `g358-action-schema`は`completed`である。開始`libs/application/ui/orchestration/kis_action.h`から未使用`kis_debug.h`を削除し、参照引数だけに使う`QIcon`完全headerを前方宣言へ置換した。開始実装と既存試験sourceの厳格`clang-check`は診断0件で、構造変更前後の公開API報告はSHA-256 `5eb3aca900c943f6c40a0055b79a789afef083128a908185aeb4bbe7f4bd3a4d`で同一だった。構造変更は`554f1dbb56`である。
 - 既存`libs/application/tests/KisActionEnumContractTest.cpp`へ5枠を追加し、actionの型・三構築・寿命、既定shortcut、活性化flag、活性化条件、除外node種別・外部有効状態・操作ID・通知の全16公開APIを固定した。対象は126行・7枠である。最初の赤は追加5試験関数の未定義symbolだけで停止した。CMake変更なし、最終閉包4工程・8入力、command SHA-256 `5a782b4795893786c7993348753128af96b96a04ea2c97342b7b4831863ddb5a`、input SHA-256 `50bd9129b07de44f458fc48281f2038086ebf317c3edc9941ba4d50a9318009c`を維持し、動的接続はQt Core・Gui・Widgets・Test、gettextとOS frameworkだけである。実装は`527f93df2b`である。
 - macOSで対象と軽量近傍`KisApplicationArgumentsSchemaContractTest`のCTest、対象の20回反復、開始実装・試験sourceの厳格`clang-check`、変更範囲と試験sourceの書式、二回の無作業再構築、公開API検査、`verify-quick`に成功した。台帳へ16 APIを追加して24,595件対応、5,209件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g358.json`を削除し、主Ninja木5,923,524 KiB、共有compiler cache 982,336 KiB、最新`build/tdd-macos/public-api-missing-g359.json` 1,379,051 bytes、SHA-256 `c49e1ddaeeffe4654fe7c1695a955105980394ec2366ac18e95836bc483bc54a`だけを保持する。compiler cacheは144,208件中120,492件、83.55%がhitしている。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第359便で次の高密度なmacOS対象と最小構築面を選定することである。
+
+### 第359便の監査結果と実装計画
+
+- 正式入力`build/tdd-macos/public-api-missing-g359.json`は公開header 1,548、公開API 29,804、対応済み24,595、未対応5,209、1,379,051 bytes、SHA-256 `c49e1ddaeeffe4654fe7c1695a955105980394ec2366ac18e95836bc483bc54a`を記録する。`libs/resources/KoResourceServer.h`の残存全24 APIを、observer型・寿命・通知、server型・構築・寿命、model・照会、資源の解決・永続化、observer登録・資源更新の5枠へ完全に対応付ける。識別子整列集合のSHA-256は`b0cc445d0e98e6a1bbd1038eec5e802802d9a5a82e04429676004acad956422f`である。
+- 開始headerの`QDir`、`QTemporaryFile`、`KoResourcePaths.h`、`ksharedconfig.h`はtemplate本文、公開宣言、値memberのいずれにも利用がない。4未使用includeを削除して30直接利用元へ配布されるcompile閉包を縮小する。限定対象と16直接利用sourceの厳格`clang-check`で推移include利用を検出し、必要なら各利用元へ直接includeを移す。公開API指紋は不変に保つ。
+- 既存`libs/widgets/tests/KoResourceSelectionSchemaContractTest.cpp`は114行・5枠で、追加5枠後も300行・20枠未満に収める。既存targetはCMake File API上で自動生成依存だけを持ち、CMake変更なしで4工程・8入力、command SHA-256 `9e9c58069ad06d67dac22cc7c8f744e2121b39961ab9751a68e3e10daf52f4ea`、input SHA-256 `0c4ddf41923a35e8587324d52d0bb26d2efd6c7618ae395291125243083d364f`である。Qt Core・Gui・Test、gettext、OS frameworkだけへ動的接続し、製品libraryを要求しない。停止線を5工程・11入力、300行・20枠とする。
+- `g359-resource-server-schema`の状態は`in_progress`、実装基点は`77931ff083`である。構造整理は開始headerと推移includeを実際に利用する直接source、契約は既存試験sourceだけに限定する。macOSの対象、追加5枠の20回反復、直接利用source・試験sourceの厳格`clang-check`、書式、二回の無作業再構築、公開API指紋不変、公開API検査、`verify-quick`だけを実行する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
 
 ### 第239便の先行監査担当票
 
