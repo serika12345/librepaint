@@ -110,7 +110,11 @@ target_include_directories(KisApplicationArgumentsSchemaContractTest PRIVATE
     ${CMAKE_CURRENT_BINARY_DIR}/..
     ${CMAKE_SOURCE_DIR}/libs/global
     ${CMAKE_BINARY_DIR}/libs/global
+    ${CMAKE_SOURCE_DIR}/libs/ui
+    ${CMAKE_BINARY_DIR}/libs/ui
+    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Widgets,INTERFACE_INCLUDE_DIRECTORIES>
 )
 target_compile_definitions(KisApplicationArgumentsSchemaContractTest PRIVATE
     kritaapplicationui_EXPORTS
+    kritaui_EXPORTS
 )

@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include <ui/orchestration/KisApplication.h>
 #include <ui/orchestration/KisApplicationArguments.h>
 
 #include <QTest>
@@ -13,6 +14,8 @@ namespace
 {
 #define ASSERT_APPLICATION_ARGUMENTS_SIGNATURE(method, signature)                                                      \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisApplicationArguments::method)), signature>)
+#define ASSERT_APPLICATION_SIGNATURE(method, signature)                                                                \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KisApplication::method)), signature>)
 } // namespace
 
 class KisApplicationArgumentsSchemaContractTest : public QObject
@@ -25,6 +28,11 @@ private Q_SLOTS:
     void applicationArgumentsDocumentInputSignaturesRemainStable();
     void applicationArgumentsTemplateAndExportSignaturesRemainStable();
     void applicationArgumentsPresentationAndWorkspaceSignaturesRemainStable();
+    void applicationTypeConstructionAndLifetimeSchemaRemainStable();
+    void applicationStartupAndEventSignaturesRemainStable();
+    void applicationResourceAndPluginInitializationSignaturesRemainStable();
+    void applicationSplashAndExternalInterfaceSignaturesRemainStable();
+    void applicationRemoteArgumentAndFileNotificationSignaturesRemainStable();
 };
 
 void KisApplicationArgumentsSchemaContractTest::applicationArgumentsTypeLifetimeAndValueSemanticsSchemaRemainStable()
@@ -70,7 +78,55 @@ void KisApplicationArgumentsSchemaContractTest::applicationArgumentsPresentation
     ASSERT_APPLICATION_ARGUMENTS_SIGNATURE(workspace, QString (KisApplicationArguments::*)() const);
 }
 
+void KisApplicationArgumentsSchemaContractTest::applicationTypeConstructionAndLifetimeSchemaRemainStable()
+{
+    static_assert(std::is_class_v<KisApplication>);
+    static_assert(std::is_base_of_v<QtSingleApplication, KisApplication>);
+    static_assert(std::is_constructible_v<KisApplication, const QString &, int &, char **>);
+    static_assert(std::has_virtual_destructor_v<KisApplication>);
+}
+
+void KisApplicationArgumentsSchemaContractTest::applicationStartupAndEventSignaturesRemainStable()
+{
+    ASSERT_APPLICATION_SIGNATURE(start, bool (KisApplication::*)(const KisApplicationArguments &));
+    ASSERT_APPLICATION_SIGNATURE(event, bool (KisApplication::*)(QEvent *));
+    ASSERT_APPLICATION_SIGNATURE(notify, bool (KisApplication::*)(QObject *, QEvent *));
+    ASSERT_APPLICATION_SIGNATURE(askResetConfig, void (KisApplication::*)());
+}
+
+void KisApplicationArgumentsSchemaContractTest::applicationResourceAndPluginInitializationSignaturesRemainStable()
+{
+    ASSERT_APPLICATION_SIGNATURE(addResourceTypes, void (KisApplication::*)());
+    ASSERT_APPLICATION_SIGNATURE(registerResources, bool (KisApplication::*)());
+    ASSERT_APPLICATION_SIGNATURE(loadPlugins, void (KisApplication::*)());
+    ASSERT_APPLICATION_SIGNATURE(initializeGlobals, void (KisApplication::*)(const KisApplicationArguments &));
+    ASSERT_APPLICATION_SIGNATURE(processPostponedSynchronizationEvents, void (KisApplication::*)());
+    static_assert(std::is_same_v<decltype(&KisApplication::verifyMetatypeRegistration), void (*)()>);
+    static_assert(std::is_same_v<decltype(&KisApplication::setWidgetStyle), void (*)(const QString &)>);
+}
+
+void KisApplicationArgumentsSchemaContractTest::applicationSplashAndExternalInterfaceSignaturesRemainStable()
+{
+    ASSERT_APPLICATION_SIGNATURE(setSplashScreen, void (KisApplication::*)(QWidget *));
+    ASSERT_APPLICATION_SIGNATURE(hideSplashScreen, void (KisApplication::*)());
+    ASSERT_APPLICATION_SIGNATURE(setSplashScreenLoadingText, void (KisApplication::*)(const QString &));
+    ASSERT_APPLICATION_SIGNATURE(extendedModifiersPluginInterface,
+                                 KisExtendedModifiersMapperPluginInterface * (KisApplication::*)());
+#ifdef Q_OS_ANDROID
+    ASSERT_APPLICATION_SIGNATURE(androidSplash, KisAndroidSplash * (KisApplication::*)());
+    ASSERT_APPLICATION_SIGNATURE(androidScaling, KisAndroidScaling * (KisApplication::*)());
+#endif
+}
+
+void KisApplicationArgumentsSchemaContractTest::applicationRemoteArgumentAndFileNotificationSignaturesRemainStable()
+{
+    ASSERT_APPLICATION_SIGNATURE(executeRemoteArguments, void (KisApplication::*)(QByteArray, KisMainWindow *));
+    ASSERT_APPLICATION_SIGNATURE(remoteArguments, void (KisApplication::*)(const QString &));
+    ASSERT_APPLICATION_SIGNATURE(fileOpenRequested, void (KisApplication::*)(const QString &));
+}
+
 #undef ASSERT_APPLICATION_ARGUMENTS_SIGNATURE
+#undef ASSERT_APPLICATION_SIGNATURE
 
 QTEST_GUILESS_MAIN(KisApplicationArgumentsSchemaContractTest)
 
