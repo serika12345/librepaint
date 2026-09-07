@@ -13,8 +13,6 @@
 
 #include <KoColor.h>
 
-
-#include <brushengine/kis_paintop_preset.h>
 #include <kis_types.h>
 #include <kis_gradient_painter.h>
 #include <kritaui_export.h>
