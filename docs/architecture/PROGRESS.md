@@ -2,8 +2,8 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-07 13:30 JST
-- 状態: `planned`
+- 更新日時: 2026-09-07 13:37 JST
+- 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
@@ -2918,6 +2918,13 @@
 - 開始headerの残存全61 APIを、新規`libs/ui/tests/KisSelectionManagerSchemaContractTest.cpp`の型・構築・view・表示7、clipboard転送13、基本選択操作8、塗りつぶし6、変換・図形操作8、UI・設定操作7、状態照会8、通知4の8枠へ対応付けた。対象は130行で、最初の赤は追加依存を要求せず8試験関数の未定義symbolだけで停止した。契約実装commitは`aa4a12e5e6`である。
 - 最終targetは4工程・8入力、command SHA-256 `ac08a97819cb534579627cdead2f3d2d6c54849330eab01a79c05e8161e1448c`、input SHA-256 `017a3b3505d44868054e58c115b13e33ea7be868245dfa0ca9d18a01e6929deb`である。動的接続はQt Core・Test、gettext、OS frameworkだけで、製品libraryを接続しない。macOSで対象`libs-ui-KisSelectionManagerSchemaContractTest`、軽量近傍`libs-ui-KisSelectionActionFactoriesSchemaContractTest`、対象の20回反復、試験sourceの厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`に成功した。既存破損`KisSelectionManagerTest`、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 台帳へ61 APIを追加して25,642件対応、4,162件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g371.json`と一時報告を最新報告の検証後に削除し、追加作業tree・構築木は作成していない。主Ninja木5,939,144 KiB、共有compiler cache 983,028 KiB、最新`build/tdd-macos/public-api-missing-g372.json` 1,121,130 bytes、SHA-256 `71098d64b4c98c596326aaa649e928c6bc9f3d453c3dbd2ca22f28068e85e9ed`だけを再利用対象として保持する。compiler cacheは144,260件中120,500件、83.53%がhitしている。次の永続作業は第372便で次の高密度なmacOS対象と最小構築面を選定することである。
+
+### 第372便の公開API契約計画
+
+- 第372便は`libs/ui/tool/kis_scratch_pad.h`の残存全47 APIを対象とする。最多候補`libs/application/ui/orchestration/KisPart.h`は54 APIに対して直接利用元が111ファイルあり、開始headerの依存削減確認が過大になる。`kis_scratch_pad.h`は直接利用元が`libs/ui/tool/kis_scratch_pad.cpp`、`libs/ui/widgets/kis_scratch_pad_event_filter.cpp`、`libs/libkis/Scratchpad.cpp`、`libs/ui/tests/TestApplicationWorkspaceToolUiPublicHeaders.cpp`の4翻訳単位に限定され、構造監査と契約追加を対象範囲内で完結できる。
+- 開始`libs/ui/tool/kis_scratch_pad.h`は宣言にも保持状態にも使わない`brushengine/kis_paintop_preset.h`を公開headerから推移公開している。開始headerからこのincludeだけを除き、移動先は作らない。4直接利用元の変更前の厳格`clang-check`は3件が診断0件、`libs/ui/widgets/kis_scratch_pad_event_filter.cpp`だけが既存Qt 6 `QTabletEvent::posF()`非推奨診断1件で停止する。変更後に終了状態と診断本文の一致を検査し、公開契約追加より先に独立commitする。
+- 新規`libs/ui/tests/KisScratchPadSchemaContractTest.cpp`を200行・10枠未満で作り、型と寿命、設定、拡大縮小と移動、領域照会と入力、背景塗り、画像転送、通知に全47 APIを対応付ける。実体化せず型特性と厳密な関数pointerで固定し、`libs/ui/tests/CMakeLists.txt`の専用targetは製品libraryを接続しない。最も近い`KisDisplayConfigSchemaContractTest`は4工程・8入力、command SHA-256 `1486a6825ec2708ac11f7319e3f08e21aedcf1d596afa1e9a2b99e9e7885dd23`、input SHA-256 `0f5781b1ac2dec2ed9954f2948ac1d5b605eed4e419085ff8415d097846cb8ce`である。新規targetの停止線を5工程・11入力とする。
+- `g372-scratch-pad-schema`の状態は`in_progress`、実装基点は`3995ed9cf7`である。構造先行commit後に、新規試験sourceと`libs/ui/tests/CMakeLists.txt`の対象固有節だけへ契約を追加する。macOSの対象、7枠の20回反復、4直接利用元と試験sourceの厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
 
 ### 第239便の先行監査担当票
 
