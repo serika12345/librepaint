@@ -12,7 +12,6 @@
 #include <QPointer>
 
 #include <KoResource.h>
-#include <KoID.h>
 #include "kis_signal_auto_connection.h"
 #include "ResourceListViewModes.h"
 
@@ -97,4 +96,3 @@ private:
 };
 
 #endif
-
