@@ -150,3 +150,21 @@ target_compile_definitions(KisMainWindowSchemaContractTest PRIVATE
     kritaui_EXPORTS
     kritawidgetutils_EXPORTS
 )
+
+kis_add_test(
+    KisViewManagerSchemaContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KisViewManagerSchemaContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/ui
+    ${CMAKE_BINARY_DIR}/libs/ui
+    ${CMAKE_SOURCE_DIR}/libs/ui/widgets
+    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Widgets,INTERFACE_INCLUDE_DIRECTORIES>
+)
+target_compile_definitions(KisViewManagerSchemaContractTest PRIVATE
+    kritaui_EXPORTS
+)
