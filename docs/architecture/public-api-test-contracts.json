@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 4747
+    "expectedMissingApis": 4632
   },
   "contracts": [
     {
@@ -69109,6 +69109,229 @@
         "method:KisPainter::convertToAlphaAsGray(KisPaintDeviceSP src)",
         "method:KisPainter::convertToAlphaAsPureAlpha(KisPaintDeviceSP src)",
         "method:KisPainter::setProgress(KoUpdater * progressUpdater)"
+      ]
+    },
+    {
+      "target": "KisPaintDeviceSchemaContractTest",
+      "source": "libs/image/tests/KisPaintDeviceSchemaContractTest.cpp",
+      "test": "KisPaintDeviceSchemaContractTest::typeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "描画装置はdata manager共有pointer別名、全frame複製mode、三つの構築経路と多態的な本体・memory解放・LOD dataの寿命境界を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisDataManagerSP",
+        "class:KisPaintDevice",
+        "enum:KritaUtils::DeviceCopyMode",
+        "enumerator:KritaUtils::DeviceCopyMode::CopyAllFrames",
+        "enumerator:KritaUtils::DeviceCopyMode::CopySnapshot",
+        "method:KisPaintDevice::KisPaintDevice(KisNodeWSP parent,const KoColorSpace * colorSpace,KisDefaultBoundsBaseSP defaultBounds=KisDefaultBoundsBaseSP (),const QString & name=QString ())",
+        "method:KisPaintDevice::KisPaintDevice(const KisPaintDevice & rhs,KritaUtils::DeviceCopyMode copyMode=KritaUtils::CopySnapshot,KisNode * newParentNode=0)",
+        "method:KisPaintDevice::KisPaintDevice(const KoColorSpace * colorSpace,const QString & name=QString ())",
+        "method:KisPaintDevice::LodDataStruct::~LodDataStruct()",
+        "method:KisPaintDevice::MemoryReleaseObject::~MemoryReleaseObject()",
+        "method:KisPaintDevice::~KisPaintDevice()",
+        "struct:KisPaintDevice::LodDataStruct",
+        "struct:KisPaintDevice::MemoryReleaseObject"
+      ]
+    },
+    {
+      "target": "KisPaintDeviceSchemaContractTest",
+      "source": "libs/image/tests/KisPaintDeviceSchemaContractTest.cpp",
+      "test": "KisPaintDeviceSchemaContractTest::persistenceParentAndPositionSignaturesRemainStable",
+      "behavior": "描画装置は画素storeの読書き、親node・既定境界の設定と整数座標での位置取得・移動を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPaintDevice::defaultBounds() const",
+        "method:KisPaintDevice::moveTo(const QPoint & pt)",
+        "method:KisPaintDevice::moveTo(qint32 x,qint32 y)",
+        "method:KisPaintDevice::offset() const",
+        "method:KisPaintDevice::read(QIODevice * stream)",
+        "method:KisPaintDevice::setDefaultBounds(KisDefaultBoundsBaseSP bounds)",
+        "method:KisPaintDevice::setParentNode(KisNodeWSP parent)",
+        "method:KisPaintDevice::setX(qint32 x)",
+        "method:KisPaintDevice::setY(qint32 y)",
+        "method:KisPaintDevice::write(KisPaintDeviceWriter & store)",
+        "method:KisPaintDevice::x() const",
+        "method:KisPaintDevice::y() const"
+      ]
+    },
+    {
+      "target": "KisPaintDeviceSchemaContractTest",
+      "source": "libs/image/tests/KisPaintDeviceSchemaContractTest.cpp",
+      "test": "KisPaintDeviceSchemaContractTest::boundsRegionAndClearingSignaturesRemainStable",
+      "behavior": "描画装置は概算・厳密・非既定画素の領域を報告し、切抜き、全体・矩形消去と既定画素領域の解放を行う。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPaintDevice::clear()",
+        "method:KisPaintDevice::clear(const QRect & rc)",
+        "method:KisPaintDevice::crop(const QRect & r)",
+        "method:KisPaintDevice::crop(qint32 x,qint32 y,qint32 w,qint32 h)",
+        "method:KisPaintDevice::exactBounds() const",
+        "method:KisPaintDevice::exactBoundsAmortized() const",
+        "method:KisPaintDevice::extent() const",
+        "method:KisPaintDevice::extent(qint32 & x,qint32 & y,qint32 & w,qint32 & h) const",
+        "method:KisPaintDevice::nonDefaultPixelArea() const",
+        "method:KisPaintDevice::purgeDefaultPixels()",
+        "method:KisPaintDevice::region() const",
+        "method:KisPaintDevice::regionExact() const"
+      ]
+    },
+    {
+      "target": "KisPaintDeviceSchemaContractTest",
+      "source": "libs/image/tests/KisPaintDeviceSchemaContractTest.cpp",
+      "test": "KisPaintDeviceSchemaContractTest::defaultPixelFillAndCloneSignaturesRemainStable",
+      "behavior": "描画装置は既定画素、矩形塗潰しと完全・正確・概算の複製経路を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPaintDevice::defaultPixel() const",
+        "method:KisPaintDevice::fill(const QRect & rc,const KoColor & color)",
+        "method:KisPaintDevice::fill(qint32 x,qint32 y,qint32 w,qint32 h,const quint8 * fillPixel)",
+        "method:KisPaintDevice::makeCloneFrom(KisPaintDeviceSP src,const QRect & rect)",
+        "method:KisPaintDevice::makeCloneFromRough(KisPaintDeviceSP src,const QRect & minimalRect)",
+        "method:KisPaintDevice::makeFullCopyFrom(const KisPaintDevice & rhs,KritaUtils::DeviceCopyMode copyMode=KritaUtils::CopySnapshot,KisNode * newParentNode=0)",
+        "method:KisPaintDevice::prepareClone(KisPaintDeviceSP src)",
+        "method:KisPaintDevice::setDefaultPixel(const KoColor & defPixel)"
+      ]
+    },
+    {
+      "target": "KisPaintDeviceSchemaContractTest",
+      "source": "libs/image/tests/KisPaintDeviceSchemaContractTest.cpp",
+      "test": "KisPaintDeviceSchemaContractTest::byteAndPlanarTransferSignaturesRemainStable",
+      "behavior": "描画装置は交錯画素byte列とchannel別平面byte列の矩形読書きを公開する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPaintDevice::readBytes(quint8 * data,const QRect & rect) const",
+        "method:KisPaintDevice::readBytes(quint8 * data,qint32 x,qint32 y,qint32 w,qint32 h) const",
+        "method:KisPaintDevice::readPlanarBytes(qint32 x,qint32 y,qint32 w,qint32 h) const",
+        "method:KisPaintDevice::writeBytes(const quint8 * data,const QRect & rect)",
+        "method:KisPaintDevice::writeBytes(const quint8 * data,qint32 x,qint32 y,qint32 w,qint32 h)",
+        "method:KisPaintDevice::writePlanarBytes(QVector<quint8 * > planes,qint32 x,qint32 y,qint32 w,qint32 h)"
+      ]
+    },
+    {
+      "target": "KisPaintDeviceSchemaContractTest",
+      "source": "libs/image/tests/KisPaintDeviceSchemaContractTest.cpp",
+      "test": "KisPaintDeviceSchemaContractTest::colorConversionAndThumbnailSignaturesRemainStable",
+      "behavior": "描画装置は色空間・profile・QImage間変換と、描画装置またはQImageの縮小画像生成を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPaintDevice::convertFromQImage(const QImage & image,const KoColorProfile * profile,qint32 offsetX=0,qint32 offsetY=0)",
+        "method:KisPaintDevice::convertTo(const KoColorSpace * dstColorSpace,KoColorConversionTransformation::Intent renderingIntent=KoColorConversionTransformation::internalRenderingIntent (),KoColorConversionTransformation::ConversionFlags conversionFlags=KoColorConversionTransformation::internalConversionFlags (),KUndo2Command * parentCommand=nullptr,KoUpdater * progressUpdater=nullptr)",
+        "method:KisPaintDevice::convertToQImage(const KoColorProfile * dstProfile,KoColorConversionTransformation::Intent renderingIntent=KoColorConversionTransformation::internalRenderingIntent (),KoColorConversionTransformation::ConversionFlags conversionFlags=KoColorConversionTransformation::internalConversionFlags ()) const",
+        "method:KisPaintDevice::convertToQImage(const KoColorProfile * dstProfile,const QRect & rc,KoColorConversionTransformation::Intent renderingIntent=KoColorConversionTransformation::internalRenderingIntent (),KoColorConversionTransformation::ConversionFlags conversionFlags=KoColorConversionTransformation::internalConversionFlags ()) const",
+        "method:KisPaintDevice::convertToQImage(const KoColorProfile * dstProfile,qint32 x,qint32 y,qint32 w,qint32 h,KoColorConversionTransformation::Intent renderingIntent=KoColorConversionTransformation::internalRenderingIntent (),KoColorConversionTransformation::ConversionFlags conversionFlags=KoColorConversionTransformation::internalConversionFlags ()) const",
+        "method:KisPaintDevice::createThumbnail(qint32 maxw,qint32 maxh,KisThumbnailBoundsMode boundsMode=KisThumbnailBoundsMode::Precise,qreal oversample=1,KoColorConversionTransformation::Intent renderingIntent=KoColorConversionTransformation::internalRenderingIntent (),KoColorConversionTransformation::ConversionFlags conversionFlags=KoColorConversionTransformation::internalConversionFlags ())",
+        "method:KisPaintDevice::createThumbnail(qint32 maxw,qint32 maxh,Qt::AspectRatioMode aspectRatioMode,KisThumbnailBoundsMode boundsMode=KisThumbnailBoundsMode::Precise,qreal oversample=1,KoColorConversionTransformation::Intent renderingIntent=KoColorConversionTransformation::internalRenderingIntent (),KoColorConversionTransformation::ConversionFlags conversionFlags=KoColorConversionTransformation::internalConversionFlags ())",
+        "method:KisPaintDevice::createThumbnailDevice(qint32 w,qint32 h,QRect rect=QRect (),QRect outputRect=QRect ()) const",
+        "method:KisPaintDevice::createThumbnailDeviceOversampled(qint32 w,qint32 h,qreal oversample,QRect rect=QRect (),QRect outputRect=QRect ()) const",
+        "method:KisPaintDevice::createThumbnailUncached(qint32 maxw,qint32 maxh,QRect rect,qreal oversample=1,KoColorConversionTransformation::Intent renderingIntent=KoColorConversionTransformation::internalRenderingIntent (),KoColorConversionTransformation::ConversionFlags conversionFlags=KoColorConversionTransformation::internalConversionFlags ())",
+        "method:KisPaintDevice::setProfile(const KoColorProfile * profile,KUndo2Command * parentCommand)"
+      ]
+    },
+    {
+      "target": "KisPaintDeviceSchemaContractTest",
+      "source": "libs/image/tests/KisPaintDeviceSchemaContractTest.cpp",
+      "test": "KisPaintDeviceSchemaContractTest::pixelColorSpaceAndCompositionSignaturesRemainStable",
+      "behavior": "描画装置は単一画素、色空間、合成source装置と内部data manager・画素寸法を取得・設定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPaintDevice::channelCount() const",
+        "method:KisPaintDevice::colorSpace() const",
+        "method:KisPaintDevice::compositionSourceColorSpace() const",
+        "method:KisPaintDevice::createCompositionSourceDevice() const",
+        "method:KisPaintDevice::createCompositionSourceDevice(KisPaintDeviceSP cloneSource) const",
+        "method:KisPaintDevice::createCompositionSourceDevice(KisPaintDeviceSP cloneSource,const QRect roughRect) const",
+        "method:KisPaintDevice::createCompositionSourceDeviceFixed() const",
+        "method:KisPaintDevice::dataManager() const",
+        "method:KisPaintDevice::pixel(const QPoint & pos) const",
+        "method:KisPaintDevice::pixel(qint32 x,qint32 y,KoColor * kc) const",
+        "method:KisPaintDevice::pixel(qint32 x,qint32 y,QColor * c) const",
+        "method:KisPaintDevice::pixelSize() const",
+        "method:KisPaintDevice::setDataManager(KisDataManagerSP data,const KoColorSpace * colorSpace=0)",
+        "method:KisPaintDevice::setPixel(qint32 x,qint32 y,const KoColor & kc)",
+        "method:KisPaintDevice::setPixel(qint32 x,qint32 y,const QColor & c)"
+      ]
+    },
+    {
+      "target": "KisPaintDeviceSchemaContractTest",
+      "source": "libs/image/tests/KisPaintDeviceSchemaContractTest.cpp",
+      "test": "KisPaintDeviceSchemaContractTest::interstrokeKeyframeAndDirtySignaturesRemainStable",
+      "behavior": "描画装置はstroke間data、raster keyframe、dirty通知、時刻切替要求、状態番号とmemory見積りを管理する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPaintDevice::burnKeyframe()",
+        "method:KisPaintDevice::burnKeyframe(int frameID)",
+        "method:KisPaintDevice::createChangeInterstrokeDataCommand(KisInterstrokeDataSP data)",
+        "method:KisPaintDevice::createKeyframeChannel(const KoID & id)",
+        "method:KisPaintDevice::estimateMemoryStats(qint64 & imageData,qint64 & temporaryData,qint64 & lodData) const",
+        "method:KisPaintDevice::framesInterface()",
+        "method:KisPaintDevice::interstrokeData() const",
+        "method:KisPaintDevice::keyframeChannel() const",
+        "method:KisPaintDevice::requestTimeSwitch(int time)",
+        "method:KisPaintDevice::sequenceNumber() const",
+        "method:KisPaintDevice::setDirty()",
+        "method:KisPaintDevice::setDirty(const KisRegion & region)",
+        "method:KisPaintDevice::setDirty(const QRect & rc)",
+        "method:KisPaintDevice::setDirty(const QVector<QRect> & rects)"
+      ]
+    },
+    {
+      "target": "KisPaintDeviceSchemaContractTest",
+      "source": "libs/image/tests/KisPaintDeviceSchemaContractTest.cpp",
+      "test": "KisPaintDeviceSchemaContractTest::iteratorSelectionAndHistorySignaturesRemainStable",
+      "behavior": "描画装置は水平・垂直・反復・random iterator、選択消去と現在面の履歴分離を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPaintDevice::clearSelection(KisSelectionSP selection)",
+        "method:KisPaintDevice::createHLineConstIteratorNG(qint32 x,qint32 y,qint32 w) const",
+        "method:KisPaintDevice::createHLineIteratorNG(qint32 x,qint32 y,qint32 w)",
+        "method:KisPaintDevice::createRandomAccessorNG()",
+        "method:KisPaintDevice::createRandomConstAccessorNG() const",
+        "method:KisPaintDevice::createRandomSubAccessor() const",
+        "method:KisPaintDevice::createRepeatHLineConstIterator(qint32 x,qint32 y,qint32 w,const QRect & _dataWidth) const",
+        "method:KisPaintDevice::createRepeatVLineConstIterator(qint32 x,qint32 y,qint32 h,const QRect & _dataWidth) const",
+        "method:KisPaintDevice::createVLineConstIteratorNG(qint32 x,qint32 y,qint32 h) const",
+        "method:KisPaintDevice::createVLineIteratorNG(qint32 x,qint32 y,qint32 h)",
+        "method:KisPaintDevice::reincarnateWithDetachedHistory(bool copyContent)"
+      ]
+    },
+    {
+      "target": "KisPaintDeviceSchemaContractTest",
+      "source": "libs/image/tests/KisPaintDeviceSchemaContractTest.cpp",
+      "test": "KisPaintDeviceSchemaContractTest::notificationBoundsAndMemorySignaturesRemainStable",
+      "behavior": "描画装置はprofile・色空間変更を通知し、厳密領域計算とmemory解放object生成を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPaintDevice::calculateExactBounds(bool nonDefaultOnly) const",
+        "method:KisPaintDevice::colorSpaceChanged(const KoColorSpace * colorspace)",
+        "method:KisPaintDevice::createMemoryReleaseObject()",
+        "method:KisPaintDevice::profileChanged(const KoColorProfile * profile)"
+      ]
+    },
+    {
+      "target": "KisPaintDeviceSchemaContractTest",
+      "source": "libs/image/tests/KisPaintDeviceSchemaContractTest.cpp",
+      "test": "KisPaintDeviceSchemaContractTest::lodSignaturesRemainStable",
+      "behavior": "描画装置はLOD同期領域、LOD dataの生成・更新・反映とLOD複製装置生成を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPaintDevice::createLodDataStruct(int lod)",
+        "method:KisPaintDevice::generateLodCloneDevice(KisPaintDeviceSP dst,const QRect & originalRect,int lod)",
+        "method:KisPaintDevice::regionForLodSyncing() const",
+        "method:KisPaintDevice::updateLodDataStruct(LodDataStruct * dst,const QRect & srcRect)",
+        "method:KisPaintDevice::uploadLodDataStruct(LodDataStruct * dst)"
+      ]
+    },
+    {
+      "target": "KisPaintDeviceSchemaContractTest",
+      "source": "libs/image/tests/KisPaintDeviceSchemaContractTest.cpp",
+      "test": "KisPaintDeviceSchemaContractTest::wraparoundProjectionAndTestingSignaturesRemainStable",
+      "behavior": "描画装置は回り込み対応、投影装置状態と試験用LOD装置取得を管理する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPaintDevice::setProjectionDevice(bool value)",
+        "method:KisPaintDevice::setSupportsWraparoundMode(bool value)",
+        "method:KisPaintDevice::supportsWraproundMode() const",
+        "method:KisPaintDevice::testingFetchLodDevice(KisPaintDeviceSP targetDevice)"
       ]
     }
   ]
