@@ -2,8 +2,8 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-07 13:00 JST
-- 状態: `in_progress`
+- 更新日時: 2026-09-07 13:13 JST
+- 状態: `planned`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
@@ -2890,10 +2890,18 @@
 ### 第370便の監査結果と実装計画
 
 - 正式入力`build/tdd-macos/public-api-missing-g370.json`は公開header 1,548、公開API 29,804、対応済み25,524、未対応4,280、1,148,338 bytes、SHA-256 `6361ed2b64f7e1f63ed291fe3b56f8ee09a2bbf6afbf339fd999fa1319a50cb6`を記録する。`libs/application/ui/workspace/KisView.h`に残る全57 APIを、型・共有所有・view管理10、文書・window・status 10、canvas・入力・画像8、現在内容・proofing 10、floating表示・view状態4、表示・読込slot 12、通知3の7枠へ完全に対応付ける。識別子整列集合のSHA-256は`b7116a7caf1239ad9b348388841f1e773f7d654e04e932b39af3e6afa115dea2`である。
-- 開始headerは公開通知で`KoColorSpace`と`KoColorProfile`をpointerとしてだけ使う一方、両方の完全定義を直接includeして38直接利用翻訳単位へ伝播させている。両型を前方宣言し、実利用所有を開始`libs/application/ui/workspace/KisView.cpp`、`libs/ui/canvas/kis_canvas2.cpp`、`libs/ui/canvas/KisMultiSurfaceStateManager.cpp`の直接includeへ移す。`QMap`、`QVariant`、`KisNodeAdditionFlags`、`KisFloatingMessage`は値型、基底、既定引数、private slotの型として現行所有を維持する。
+- 開始headerは公開通知で`KoColorSpace`と`KoColorProfile`をpointerとしてだけ使う一方、両方の完全定義を直接includeして38直接利用翻訳単位へ伝播させている。両型を開始headerで前方宣言する。`KoColorProfile`の完全型を必要とする`libs/ui/canvas/kis_canvas2.cpp`は既存の直接includeを所有し、`KoColorSpace`と他のprofile利用はpointerまたはQt信号文字列だけで完全型を必要としない。`QMap`、`QVariant`、`KisNodeAdditionFlags`、`KisFloatingMessage`は値型、基底、既定引数、private slotの型として現行所有を維持する。
 - 構造変更前の厳格`clang-check`は`libs/ui/canvas/kis_canvas2.cpp`と`libs/ui/canvas/KisMultiSurfaceStateManager.cpp`で診断0件である。開始実装はQt 6で非推奨のmouse event座標とkeyboard modifier取得の既存2診断だけを返す。変更後の同一診断維持、開始header単独compile、公開API報告のbyte一致、試験sourceの診断0件を完了条件とする。
 - 新規`libs/application/tests/KisViewSchemaContractTest.cpp`を200行・10枠未満で作り、application・global・uiのsource・generated探索路、ui/widgets、Qt Widgets interface探索路、`kritaui_EXPORTS`だけを持つ専用targetへ分離する。Qt Core・Testだけを動的接続し、view、文書、canvas、画像、node、選択、設定、Qt値を実体化せず、型特性と厳密な関数pointerで固定する。近傍`KisViewManagerSchemaContractTest`は4工程・8入力、command SHA-256 `0b86cf5b0b37dbf88d2837d48b6b563aa8c387034be4e3119d5ffb312f704ddc`、input SHA-256 `57ebed086e92adde6d4554f8315cd2fedde5517bccadd2aeee2083650235cd3e`である。新規targetの停止線を5工程・11入力とする。
 - `g370-view-schema`の状態は`in_progress`、実装基点は`213f1fd19c`である。構造先行commit後に、新規試験sourceと`libs/application/tests/CMakeLists.txt`の対象固有節だけへ契約を追加する。macOSの対象、7枠の20回反復、関係sourceの厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
+
+### 第370便の実装結果
+
+- `g370-view-schema`は`completed`である。開始`libs/application/ui/workspace/KisView.h`から`KoColorSpace.h`と`KoColorProfile.h`の完全型依存を除き、同じ開始headerの前方宣言へ置き換えた。完全型の既存所有は`libs/ui/canvas/kis_canvas2.cpp`の直接`KoColorProfile.h`だけで、追加includeは必要なかった。構造変更commitは`ccdde2041d`である。公開API報告は変更前後で同じSHA-256 `6361ed2b64f7e1f63ed291fe3b56f8ee09a2bbf6afbf339fd999fa1319a50cb6`となった。
+- 構造変更後も`libs/ui/canvas/kis_canvas2.cpp`と`libs/ui/canvas/KisMultiSurfaceStateManager.cpp`の厳格`clang-check`は診断0件である。開始実装は計画時と同じQt 6 mouse event座標・keyboard modifier非推奨の既存2診断だけを返した。新規試験sourceによる開始header単独compileに成功した。
+- 開始headerの残存全57 APIを、新規`libs/application/tests/KisViewSchemaContractTest.cpp`の型・共有所有・view管理10、文書・window・status 10、canvas・入力・画像8、現在内容・proofing 10、floating表示・view状態4、表示・読込slot 12、通知3の7枠へ対応付けた。対象は122行で、最初の赤は追加依存を要求せず7試験関数の未定義symbolだけで停止した。契約実装commitは`5def89ff96`である。
+- 最終targetは4工程・8入力、command SHA-256 `efc36e9b418e7884e81ab5e66c982bbefe7a12d2df55154ef206cbf0ee190ad1`、input SHA-256 `1c3fc908f8ab62940f8ec335656d8e25167fefcfccbe4ad03367e08d6d580535`である。動的接続はQt Core・Test、gettext、OS frameworkだけで、製品libraryを接続しない。macOSで対象`libs-application-KisViewSchemaContractTest`、軽量近傍`libs-application-KisViewManagerSchemaContractTest`、対象の20回反復、試験sourceの厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`に成功した。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 台帳へ57 APIを追加して25,581件対応、4,223件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g370.json`と一時報告を最新報告の検証後に削除し、追加作業tree・構築木は作成していない。主Ninja木5,938,200 KiB、共有compiler cache 982,216 KiB、最新`build/tdd-macos/public-api-missing-g371.json` 1,135,180 bytes、SHA-256 `26fa9b1ecfc79003c48c1e41c33a6e653696c05510ef383f5e9fb0b9ce64c2bc`だけを再利用対象として保持する。compiler cacheは144,256件中120,500件、83.53%がhitしている。次の永続作業は第371便で次の高密度なmacOS対象と最小構築面を選定することである。
 
 ### 第239便の先行監査担当票
 

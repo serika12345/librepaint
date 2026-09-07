@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 4280
+    "expectedMissingApis": 4223
   },
   "contracts": [
     {
@@ -70017,6 +70017,126 @@
         "method:KisViewManager::brushOutlineToggled()",
         "method:KisViewManager::floatingMessageRequested(const QString & message,const QString & iconName)",
         "method:KisViewManager::viewChanged()"
+      ]
+    },
+    {
+      "target": "KisViewSchemaContractTest",
+      "source": "libs/application/tests/KisViewSchemaContractTest.cpp",
+      "test": "KisViewSchemaContractTest::typeSharedOwnershipAndViewManagerSchemaRemainStable",
+      "behavior": "viewは画像・node・layer・mask・選択の共有所有型、文書とview管理器による構築、view管理器の切替を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisImageWSP",
+        "alias:KisLayerSP",
+        "alias:KisMaskSP",
+        "alias:KisNodeSP",
+        "alias:KisSelectionSP",
+        "class:KisView",
+        "method:KisView::KisView(KisDocument * document,KisViewManager * viewManager,QWidget * parent=0)",
+        "method:KisView::setViewManager(KisViewManager * view)",
+        "method:KisView::viewManager() const",
+        "method:KisView::~KisView()"
+      ]
+    },
+    {
+      "target": "KisViewSchemaContractTest",
+      "source": "libs/application/tests/KisViewSchemaContractTest.cpp",
+      "test": "KisViewSchemaContractTest::documentWindowAndStatusSignaturesRemainStable",
+      "behavior": "viewは文書置換、主window・subwindow・status bar、単位action、閉鎖と現在screenの公開接続を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisView::addStatusBarItem(QWidget * widget,int stretch=0,bool permanent=false)",
+        "method:KisView::closeView()",
+        "method:KisView::createChangeUnitActions(bool addPixelUnit=false)",
+        "method:KisView::currentScreen() const",
+        "method:KisView::document() const",
+        "method:KisView::mainWindow() const",
+        "method:KisView::removeStatusBarItem(QWidget * widget)",
+        "method:KisView::replaceBy(KisDocument * document)",
+        "method:KisView::setSubWindow(QMdiSubWindow * subWindow)",
+        "method:KisView::statusBar() const"
+      ]
+    },
+    {
+      "target": "KisViewSchemaContractTest",
+      "source": "libs/application/tests/KisViewSchemaContractTest.cpp",
+      "test": "KisViewSchemaContractTest::canvasInputAndImageSignaturesRemainStable",
+      "behavior": "viewはzoom・canvas・資源・入力・画像・座標変換とmirror状態への公開接続を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisView::canvasBase() const",
+        "method:KisView::canvasController() const",
+        "method:KisView::canvasIsMirrored() const",
+        "method:KisView::globalInputManager() const",
+        "method:KisView::image() const",
+        "method:KisView::resourceProvider() const",
+        "method:KisView::viewConverter() const",
+        "method:KisView::zoomManager() const"
+      ]
+    },
+    {
+      "target": "KisViewSchemaContractTest",
+      "source": "libs/application/tests/KisViewSchemaContractTest.cpp",
+      "test": "KisViewSchemaContractTest::currentContentAndProofingSignaturesRemainStable",
+      "behavior": "viewは現在node・layer・mask・選択、soft proofing、gamut確認、現在状態と文書同期を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisView::currentLayer() const",
+        "method:KisView::currentMask() const",
+        "method:KisView::currentNode() const",
+        "method:KisView::gamutCheck()",
+        "method:KisView::isCurrent() const",
+        "method:KisView::notifyCurrentStateChanged(bool isCurrent)",
+        "method:KisView::selection()",
+        "method:KisView::setCurrentNode(KisNodeSP node)",
+        "method:KisView::softProofing()",
+        "method:KisView::syncLastActiveNodeToDocument()"
+      ]
+    },
+    {
+      "target": "KisViewSchemaContractTest",
+      "source": "libs/application/tests/KisViewSchemaContractTest.cpp",
+      "test": "KisViewSchemaContractTest::floatingPresentationAndViewStateSignaturesRemainStable",
+      "behavior": "viewはfloating messageの表示可否・内容とview状態の保存・復元境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisView::restoreViewState(const KisPropertiesConfiguration & config)",
+        "method:KisView::saveViewState(KisPropertiesConfiguration & config) const",
+        "method:KisView::setShowFloatingMessage(bool show)",
+        "method:KisView::showFloatingMessage(const QString & message,const QIcon & icon,int timeout=4500,KisFloatingMessage::Priority priority=KisFloatingMessage::Medium,int alignment=Qt::AlignCenter|Qt::TextWordWrap)"
+      ]
+    },
+    {
+      "target": "KisViewSchemaContractTest",
+      "source": "libs/application/tests/KisViewSchemaContractTest.cpp",
+      "test": "KisViewSchemaContractTest::presentationAndLoadingSlotSignaturesRemainStable",
+      "behavior": "viewは保存状態、proofing、閉鎖確認、screen・theme・題名、読込・解像度・寸法変更の公開操作を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisView::queryClose()",
+        "method:KisView::slotClearStatusText()",
+        "method:KisView::slotGamutCheck(bool gamutCheck)",
+        "method:KisView::slotImageResolutionChanged()",
+        "method:KisView::slotImageSizeChanged(const QPointF & oldStillPoint,const QPointF & newStillPoint)",
+        "method:KisView::slotLoadingFinished()",
+        "method:KisView::slotMigratedToScreen(QScreen * screen)",
+        "method:KisView::slotSavingStatusMessage(const QString & text,int timeout,bool isAutoSaving=false)",
+        "method:KisView::slotScreenOrResolutionChanged()",
+        "method:KisView::slotSoftProofing(bool softProofing)",
+        "method:KisView::slotThemeChanged(QPalette pal)",
+        "method:KisView::slotUpdateDocumentTitle()"
+      ]
+    },
+    {
+      "target": "KisViewSchemaContractTest",
+      "source": "libs/application/tests/KisViewSchemaContractTest.cpp",
+      "test": "KisViewSchemaContractTest::notificationSignaturesRemainStable",
+      "behavior": "viewは表示寸法、色profile、色空間の変更を通知する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisView::sigColorSpaceChanged(const KoColorSpace * cs)",
+        "method:KisView::sigProfileChanged(const KoColorProfile * profile)",
+        "method:KisView::sigSizeChanged(const QPointF & oldStillPoint,const QPointF & newStillPoint)"
       ]
     }
   ]
