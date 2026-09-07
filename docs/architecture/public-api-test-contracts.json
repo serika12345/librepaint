@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 5225
+    "expectedMissingApis": 5209
   },
   "contracts": [
     {
@@ -68118,6 +68118,67 @@
       "apis": [
         "method:KisPresetChooser::resourceClicked(KoResourceSP resource)",
         "method:KisPresetChooser::resourceSelected(KoResourceSP resource)"
+      ]
+    },
+    {
+      "target": "KisActionEnumContractTest",
+      "source": "libs/application/tests/KisActionEnumContractTest.cpp",
+      "test": "KisActionEnumContractTest::actionTypeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "application actionはQWidgetActionの寿命規則に従い、親、表示文、iconを組み合わせる三つの公開構築面を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisAction",
+        "method:KisAction::KisAction(QObject * parent=0)",
+        "method:KisAction::KisAction(const QIcon & icon,const QString & text,QObject * parent=0)",
+        "method:KisAction::KisAction(const QString & text,QObject * parent=0)",
+        "method:KisAction::~KisAction()"
+      ]
+    },
+    {
+      "target": "KisActionEnumContractTest",
+      "source": "libs/application/tests/KisActionEnumContractTest.cpp",
+      "test": "KisActionEnumContractTest::actionDefaultShortcutSignaturesRemainStable",
+      "behavior": "application actionは既定shortcutを値として取得し参照から設定する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAction::defaultShortcut() const",
+        "method:KisAction::setDefaultShortcut(const QKeySequence & shortcut)"
+      ]
+    },
+    {
+      "target": "KisActionEnumContractTest",
+      "source": "libs/application/tests/KisActionEnumContractTest.cpp",
+      "test": "KisActionEnumContractTest::actionActivationFlagSignaturesRemainStable",
+      "behavior": "application actionは活性化flag集合を取得・設定する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAction::activationFlags()",
+        "method:KisAction::setActivationFlags(ActivationFlags flags)"
+      ]
+    },
+    {
+      "target": "KisActionEnumContractTest",
+      "source": "libs/application/tests/KisActionEnumContractTest.cpp",
+      "test": "KisActionEnumContractTest::actionActivationConditionSignaturesRemainStable",
+      "behavior": "application actionは活性化条件集合を取得・設定する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAction::activationConditions()",
+        "method:KisAction::setActivationConditions(ActivationConditions conditions)"
+      ]
+    },
+    {
+      "target": "KisActionEnumContractTest",
+      "source": "libs/application/tests/KisActionEnumContractTest.cpp",
+      "test": "KisActionEnumContractTest::actionNodeOperationAndNotificationSignaturesRemainStable",
+      "behavior": "application actionは除外node種別、外部有効状態、操作IDを設定し、従属actionへ有効状態を通知する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAction::excludedNodeTypes() const",
+        "method:KisAction::setActionEnabled(bool enabled)",
+        "method:KisAction::setExcludedNodeTypes(const QStringList & nodeTypes)",
+        "method:KisAction::setOperationID(const QString & id)",
+        "method:KisAction::sigEnableSlaves(bool value)"
       ]
     }
   ]
