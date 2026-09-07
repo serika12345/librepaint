@@ -14,17 +14,13 @@
 #ifndef KORESOURCESERVER_H
 #define KORESOURCESERVER_H
 
-#include <QString>
-#include <QList>
-#include <QFileInfo>
 #include <QApplication>
+#include <QFileInfo>
+#include <QList>
+#include <QString>
 #include <QThread>
-#include <QDir>
-#include <QTemporaryFile>
 
 #include "KoResource.h"
-#include "KoResourcePaths.h"
-#include "ksharedconfig.h"
 
 #include <KisGlobalResourcesInterface.h>
 #include <KisResourceLocator.h>

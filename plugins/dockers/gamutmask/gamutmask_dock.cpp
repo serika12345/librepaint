@@ -25,13 +25,14 @@
 #include <KisResourceItemChooser.h>
 #include <KisResourceUserOperations.h>
 
-#include <QWidget>
 #include <QButtonGroup>
-#include <QRegularExpressionValidator>
-#include <QRegularExpression>
+#include <QDir>
 #include <QFileInfo>
-#include <QMessageBox>
 #include <QInputDialog>
+#include <QMessageBox>
+#include <QRegularExpression>
+#include <QRegularExpressionValidator>
+#include <QWidget>
 
 #include <application/ui/workspace/KisViewManager.h>
 #include <canvas/kis_canvas_resource_provider.h>

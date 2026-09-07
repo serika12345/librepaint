@@ -21,9 +21,10 @@
 #include <QHBoxLayout>
 #include <QWidgetAction>
 
-#include <klocalizedstring.h>
 #include <QAction>
 #include <kactioncollection.h>
+#include <klocalizedstring.h>
+#include <ksharedconfig.h>
 
 #include <KoDualColorButton.h>
 #include <KoForegroundColour.h>

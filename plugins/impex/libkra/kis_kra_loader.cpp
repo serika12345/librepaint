@@ -7,6 +7,7 @@
 #include "kis_kra_loader.h"
 
 #include <QApplication>
+#include <QDir>
 #include <QStringList>
 
 #include <QMessageBox>
