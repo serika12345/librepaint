@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-07 11:38 JST
+- 更新日時: 2026-09-07 11:42 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -2836,6 +2836,13 @@
 - `g365-paint-device-schema`の状態は`in_progress`、実装基点は`3c87d4ae44`である。契約は新規試験sourceと対象固有CMake節だけに限定する。macOSの対象、12枠の20回反復、開始実装・試験sourceの厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
 - `g365-paint-device-schema`は`completed`である。337直接利用元の推移依存移管と広い製品検証を避け、製品header・実装を変更せず、`libs/image/kis_paint_device.h`から新規`libs/image/tests/KisPaintDeviceSchemaContractTest.cpp`へ全115 APIを12枠で対応付けた。対象は217行・12枠で、最初の赤は追加探索路を要求せず12試験関数の未定義symbolだけで停止した。契約実装commitは`ac75b57250`である。
 - 最終閉包は4工程・8入力、command SHA-256 `7224dfff3545b1702622ae37c4e977612cbea5a0c4387d7117405073e569819a`、input SHA-256 `0308928adcf91329ac415fc1656db826bb16b475a8c0753a57974d576891853d`である。動的接続はQt Core・Test、gettextとOS frameworkだけで、未解決Kis・Ko記号はない。macOSで対象と近傍`KisPaintLayerSchemaContractTest`のCTest、対象の20回反復、開始実装・試験sourceの厳格`clang-check`、試験sourceの書式、二回の無作業再構築、公開API検査、`verify-quick`に成功した。試験内の厳密署名102件と不足一覧のconstructor・destructor以外の全methodを多重度込みで照合した。台帳へ115 APIを追加して25,172件対応、4,632件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g365.json`を削除し、主Ninja木5,929,348 KiB、共有compiler cache 982,584 KiB、最新`build/tdd-macos/public-api-missing-g366.json` 1,232,964 bytes、SHA-256 `dedeb5eeaa7cd6276a6d1b1b3d6cb6e27cbb8ea4b447983dc3702c83074f8206`だけを保持する。compiler cacheは144,235件中120,498件、83.54%がhitしている。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第366便で次の高密度なmacOS対象と最小構築面を選定することである。
+
+### 第366便の監査結果と実装計画
+
+- 正式入力`build/tdd-macos/public-api-missing-g366.json`は公開header 1,548、公開API 29,804、対応済み25,172、未対応4,632、1,232,964 bytes、SHA-256 `dedeb5eeaa7cd6276a6d1b1b3d6cb6e27cbb8ea4b447983dc3702c83074f8206`を記録する。最大密度の`libs/ui/document/KisDocument.h`に残る全148 APIを、型・flag・寿命、storage・MIME・診断、import・export・save、自動保存・状態、文書情報・path・unit、資源・storyboard・audio、画像寿命・状態、画像進捗・animation、図形・node・assistant・参照画像、複製・snapshot・undo、表示設定・色履歴、一般通知、保存通知、資源・UI通知、storyboard・audio・完了通知の15枠へ完全に対応付ける。識別子整列集合のSHA-256は`1b71a0f180d57d024cc686ab385a01147de0573ab2938701c7624c88826b03f4`である。
+- 開始実装`libs/ui/document/KisDocument.cpp`の厳格`clang-check`は診断0件である。開始headerは画像、入出力、図形、資源、storyboardの具象型を公開値、既定引数、inline MIME関数で直接必要とし、206直接利用元の推移依存移管は広い製品検証を要する。今回の専用契約閉包を縮小できる安全な完全型依存がないため製品構造を変更しない。
+- 新規`libs/ui/tests/KisDocumentSchemaContractTest.cpp`を300行・20枠未満で作成する。対象固有CMake節はui・application・canvas・flake・global・image・impex・pigment・resources・widgetutils・widgets・painting/undoのsource・generated探索路、Qt Gui・Widgets・Xml、Eigen・KF ConfigCore・I18n・Imath公開探索路、Qt Core・Test、header-only Boostと各公開headerのexport定義だけを所有する。近傍`KisCanvas2SchemaContractTest`は4工程・8入力、command SHA-256 `bc29da8c640940c753d920e812ec6fd04ab89a825edbc4c2cc560d93eba206c9`、input SHA-256 `f81e09d52468c18355e8cf9865fad097e615cdb1740996e3bce08afc81504ec4`である。製品library、製品OBJECTを接続せず、停止線を5工程・11入力とする。
+- `g366-document-schema`の状態は`in_progress`、実装基点は`fb2345b002`である。契約は新規試験sourceと対象固有CMake節だけに限定する。macOSの対象、15枠の20回反復、開始実装・試験sourceの厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
 
 ### 第239便の先行監査担当票
 
