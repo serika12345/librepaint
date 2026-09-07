@@ -11,9 +11,9 @@
 #include <QWidget>
 #include <QPointer>
 
-#include <KoResource.h>
-#include "kis_signal_auto_connection.h"
 #include "ResourceListViewModes.h"
+#include "kis_signal_auto_connection.h"
+#include <KoResource.h>
 
 class KoAbstractResourceServerAdapter;
 class KisPresetDelegate;
