@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-07 12:07 JST
+- 更新日時: 2026-09-07 12:12 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -2854,6 +2854,14 @@
 - `g367-preferences-structure-schema`の状態は`in_progress`、実装基点は`9d03cf5396`である。契約は既存`libs/ui/tests/KisDlgPreferencesEnumContractTest.cpp`だけに限定する。macOSの対象、追加6枠の20回反復、試験sourceの厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。CMake、製品source・header、製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
 - `g367-preferences-structure-schema`は`completed`である。`libs/ui/dialogs/kis_dlg_preferences.h`から既存`libs/ui/tests/KisDlgPreferencesEnumContractTest.cpp`へ全77 APIを6枠で対応付けた。既存の型・列挙契約を含む対象は301行・18枠で、最初の赤は追加依存を要求せず6試験関数の未定義symbolだけで停止した。契約実装commitは`bc6c00f4b4`である。
 - 最終閉包は生成UI 7件を含む11工程・31入力を維持し、command SHA-256 `40efd7c95d9d8bee3f930a11a3f7d0fb5b291bcb3762f428226f98420b39ebc4`、input SHA-256 `23574038726550232a0fe73d835ed4d54a5160a8b4a836cfd493ddeecb72582b`である。動的接続はQt Core・Gui・Widgets・Test、KF Completion・ConfigCore・I18n・WidgetsAddons、OpenEXR・Imath、gettextとOS frameworkで、未解決Kis・Ko記号はない。macOSで対象CTest、対象の20回反復、試験sourceの厳格`clang-check`、試験sourceの書式、二回の無作業再構築、公開API検査、`verify-quick`に成功した。開始実装の直接include不足8件とmacOS条件の未使用変数2件は既存基準診断として製品非変更の今回から分離した。台帳へ77 APIを追加して25,397件対応、4,407件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g367.json`を削除し、主Ninja木5,931,876 KiB、共有compiler cache 982,996 KiB、最新`build/tdd-macos/public-api-missing-g368.json` 1,179,391 bytes、SHA-256 `fd0ddeedfb746e77165437a3484e85dbaf8b17160cdba89e4bb531885cc8fde0`だけを保持する。compiler cacheは144,243件中120,499件、83.54%がhitしている。CMake、製品source・header、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第368便で次の高密度なmacOS対象と最小構築面を選定することである。
+
+### 第368便の監査結果と実装計画
+
+- 正式入力`build/tdd-macos/public-api-missing-g368.json`は公開header 1,548、公開API 29,804、対応済み25,397、未対応4,407、1,179,391 bytes、SHA-256 `fd0ddeedfb746e77165437a3484e85dbaf8b17160cdba89e4bb531885cc8fde0`を記録する。`libs/application/ui/workspace/KisMainWindow.h`に残る全64 APIを、型・open flag・寿命、識別・view・canvas、文書open・save、docker・workspace・資源、表示・session操作、view寿命操作、状態検査・同期、通知の8枠へ完全に対応付ける。識別子整列集合のSHA-256は`f5bb6500bff9b4d4b24670230c2c6bb44421cbc0dce57cde454bd145ae227b5c`である。
+- 開始headerは`KisView`をpointerでしか使用せず、同型を前方宣言している一方で、`application/ui/workspace/KisView.h`を直接includeしている。開始実装は既に同headerを直接includeする。構造先行変更として`libs/application/ui/workspace/KisMainWindow.h`からこの不要includeを除き、77直接利用元のうち完全型利用の疑いがある25翻訳単位について変更前後の厳格診断を比較する。公開API報告のbyte一致、所有実装、既存近傍と新規試験sourceの診断増加0を完了条件とする。
+- 開始実装`libs/application/ui/workspace/KisMainWindow.cpp`の厳格`clang-check`は、Qt 6で非推奨のmouse event `pos()`利用1件という既存診断を返す。別の挙動変更として分離し、構造変更の診断増加0と新規試験sourceの診断0を必須とする。新規`libs/application/tests/KisMainWindowSchemaContractTest.cpp`を200行・10枠未満で作成し、application・ui・flake・global・resources・widgetutilsのsource・generated探索路と必要なinterface探索路だけを持つ専用対象へ分離する。
+- 近傍`KisApplicationArgumentsSchemaContractTest`は4工程・8入力、command SHA-256 `94caa193f640f28e43b9589ff6612ec820c742cf64fd5144b694bfaea8103972`、input SHA-256 `d396bd55ed135e1a3b0216c6b40d7f4c2e09780b50819ccedb34348d7511b083`である。新規対象はQt Core・Test、header-only Boostと公開headerのexport定義だけを動的接続し、停止線を5工程・11入力とする。
+- `g368-main-window-schema`の状態は`in_progress`、実装基点は`8d44d510ef`である。構造先行commit後に、新規試験sourceと`libs/application/tests/CMakeLists.txt`の対象固有節だけへ契約を追加する。macOSの対象、8枠の20回反復、関係sourceの厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
 
 ### 第239便の先行監査担当票
 
