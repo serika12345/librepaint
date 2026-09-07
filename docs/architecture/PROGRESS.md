@@ -2,8 +2,8 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-07 13:37 JST
-- 状態: `in_progress`
+- 更新日時: 2026-09-07 13:56 JST
+- 状態: `planned`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
@@ -2925,6 +2925,13 @@
 - 開始`libs/ui/tool/kis_scratch_pad.h`は宣言にも保持状態にも使わない`brushengine/kis_paintop_preset.h`を公開headerから推移公開している。開始headerからこのincludeだけを除き、移動先は作らない。4直接利用元の変更前の厳格`clang-check`は3件が診断0件、`libs/ui/widgets/kis_scratch_pad_event_filter.cpp`だけが既存Qt 6 `QTabletEvent::posF()`非推奨診断1件で停止する。変更後に終了状態と診断本文の一致を検査し、公開契約追加より先に独立commitする。
 - 新規`libs/ui/tests/KisScratchPadSchemaContractTest.cpp`を200行・10枠未満で作り、型と寿命、設定、拡大縮小と移動、領域照会と入力、背景塗り、画像転送、通知に全47 APIを対応付ける。実体化せず型特性と厳密な関数pointerで固定し、`libs/ui/tests/CMakeLists.txt`の専用targetは製品libraryを接続しない。最も近い`KisDisplayConfigSchemaContractTest`は4工程・8入力、command SHA-256 `1486a6825ec2708ac11f7319e3f08e21aedcf1d596afa1e9a2b99e9e7885dd23`、input SHA-256 `0f5781b1ac2dec2ed9954f2948ac1d5b605eed4e419085ff8415d097846cb8ce`である。新規targetの停止線を5工程・11入力とする。
 - `g372-scratch-pad-schema`の状態は`in_progress`、実装基点は`3995ed9cf7`である。構造先行commit後に、新規試験sourceと`libs/ui/tests/CMakeLists.txt`の対象固有節だけへ契約を追加する。macOSの対象、7枠の20回反復、4直接利用元と試験sourceの厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
+
+### 第372便の実装結果
+
+- `g372-scratch-pad-schema`は`completed`である。開始`libs/ui/tool/kis_scratch_pad.h`から宣言にも保持状態にも使わない`brushengine/kis_paintop_preset.h`を除き、移動先を作らず公開headerの推移依存を縮小した。4直接利用元の変更前後の厳格`clang-check`は、診断0件3件と既存Qt 6 `QTabletEvent::posF()`非推奨診断1件の終了状態・診断本文が完全一致した。比較用一時診断は検証直後に削除し、構造変更commitは`79fb7fd875`である。
+- 開始headerの残存全47 APIを、新規`libs/ui/tests/KisScratchPadSchemaContractTest.cpp`の型・寿命・mode 7、拡大縮小・移動9、領域・入力10、基本塗り7、gradient・document塗り4、画像転送5、通知5の7枠へ対応付けた。対象は118行である。最初のcompileは公開署名が推移要求するpigment resources、painting undo、image filter、Eigen、application設定の探索路不足を順に検出し、製品libraryを加えずheader-only閉包を明示した後、最初の挙動上の赤は7試験関数の未定義symbolだけで停止した。契約実装commitは`886f2eaee0`である。
+- 最終targetは4工程・8入力、command SHA-256 `4099c069a8a5d4eacc39c45457bf2ec2d9cba7d07f5bb0e3225c1e2b885ec594`、input SHA-256 `cd2727dd00fcfbb48263a36346ae2adb1cc281ca374c2fba3983ccf6937d597d`で停止線内に収まる。動的接続はQt Gui・Test・CoreとそのOS framework、gettextだけで、製品libraryを接続しない。macOSで対象`libs-ui-KisScratchPadSchemaContractTest`、軽量近傍`libs-ui-KisDisplayConfigSchemaContractTest`、対象の20回反復、試験sourceの厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`に成功した。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 台帳へ47 APIを追加して25,689件対応、4,115件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g372.json`を最新報告の検証後に削除し、追加作業tree・構築木は作成していない。主Ninja木5,940,504 KiB、共有compiler cache 982,540 KiB、最新`build/tdd-macos/public-api-missing-g373.json` 1,110,534 bytes、SHA-256 `2b4459bbdd116fcaba80d6c784e96829a795e7b91304abdf99372ddfa1d5d706`だけを再利用対象として保持する。compiler cacheは144,275件中120,512件、83.53%がhitしている。次の永続作業は第373便で次の高密度なmacOS対象と最小構築面を選定することである。
 
 ### 第239便の先行監査担当票
 

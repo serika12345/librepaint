@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 4162
+    "expectedMissingApis": 4115
   },
   "contracts": [
     {
@@ -70270,6 +70270,116 @@
         "method:KisSelectionManager::displaySelectionChanged()",
         "method:KisSelectionManager::signalUpdateGUI()",
         "method:KisSelectionManager::strokeSelected()"
+      ]
+    },
+    {
+      "target": "KisScratchPadSchemaContractTest",
+      "source": "libs/ui/tests/KisScratchPadSchemaContractTest.cpp",
+      "test": "KisScratchPadSchemaContractTest::typeLifetimeAndModeSchemaRemainStable",
+      "behavior": "scratch padはwidgetとしての寿命、資源提供元による設定、操作modeの選択と入力状態初期化を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisScratchPad",
+        "method:KisScratchPad::KisScratchPad(QWidget * parent=0)",
+        "method:KisScratchPad::resetState()",
+        "method:KisScratchPad::setModeManually(bool value)",
+        "method:KisScratchPad::setModeType(QString modeName)",
+        "method:KisScratchPad::setupScratchPad(KisCanvasResourceProvider * resourceProvider,const QColor & defaultColor)",
+        "method:KisScratchPad::~KisScratchPad()"
+      ]
+    },
+    {
+      "target": "KisScratchPadSchemaContractTest",
+      "source": "libs/ui/tests/KisScratchPadSchemaContractTest.cpp",
+      "test": "KisScratchPadSchemaContractTest::zoomAndPanSignaturesRemainStable",
+      "behavior": "scratch padはcanvasとの拡大率連動、独立拡大率、全体表示、等倍復帰と表示位置移動を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisScratchPad::canvasZoomLink()",
+        "method:KisScratchPad::panCenter()",
+        "method:KisScratchPad::panTo(qint32 x,qint32 y)",
+        "method:KisScratchPad::scaleReset()",
+        "method:KisScratchPad::scaleToFit()",
+        "method:KisScratchPad::scaleX()",
+        "method:KisScratchPad::scaleY()",
+        "method:KisScratchPad::setCanvasZoomLink(bool value)",
+        "method:KisScratchPad::setScale(qreal scaleX,qreal scaleY)"
+      ]
+    },
+    {
+      "target": "KisScratchPadSchemaContractTest",
+      "source": "libs/ui/tests/KisScratchPadSchemaContractTest.cpp",
+      "test": "KisScratchPadSchemaContractTest::boundsAndInputSignaturesRemainStable",
+      "behavior": "scratch padは切抜き、画像・内容・表示領域の境界とwheel・pointer入力の受渡しを維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisScratchPad::contentBounds() const",
+        "method:KisScratchPad::cutoutOverlay() const",
+        "method:KisScratchPad::imageBounds() const",
+        "method:KisScratchPad::imageUpdated(const QRect & rect)",
+        "method:KisScratchPad::pointerMove(KoPointerEvent * event)",
+        "method:KisScratchPad::pointerPress(KoPointerEvent * event)",
+        "method:KisScratchPad::pointerRelease(KoPointerEvent * event)",
+        "method:KisScratchPad::setCutoutOverlayRect(const QRect & rc)",
+        "method:KisScratchPad::viewportBounds() const",
+        "method:KisScratchPad::wheelDelta(QWheelEvent * event)"
+      ]
+    },
+    {
+      "target": "KisScratchPadSchemaContractTest",
+      "source": "libs/ui/tests/KisScratchPadSchemaContractTest.cpp",
+      "test": "KisScratchPadSchemaContractTest::basicFillSignaturesRemainStable",
+      "behavior": "scratch padは既定・pattern・背景・前景・透明・指定色・canvas layerによる塗りつぶしを維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisScratchPad::fillBackground()",
+        "method:KisScratchPad::fillDefault()",
+        "method:KisScratchPad::fillForeground()",
+        "method:KisScratchPad::fillLayer(bool fullContent)",
+        "method:KisScratchPad::fillPattern(QTransform transform)",
+        "method:KisScratchPad::fillTransparent()",
+        "method:KisScratchPad::setFillColor(QColor newColor)"
+      ]
+    },
+    {
+      "target": "KisScratchPadSchemaContractTest",
+      "source": "libs/ui/tests/KisScratchPadSchemaContractTest.cpp",
+      "test": "KisScratchPadSchemaContractTest::gradientAndDocumentFillSignaturesRemainStable",
+      "behavior": "scratch padは設定済みまたは指定したgradientと、表示範囲または全内容によるdocument塗りつぶしを維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisScratchPad::fillDocument()",
+        "method:KisScratchPad::fillDocument(bool fullContent)",
+        "method:KisScratchPad::fillGradient()",
+        "method:KisScratchPad::fillGradient(const QPoint & gradientVectorStart,const QPoint & gradientVectorEnd,KisGradientPainter::enumGradientShape gradientShape,KisGradientPainter::enumGradientRepeat gradientRepeat,bool reverseGradient,bool dither)"
+      ]
+    },
+    {
+      "target": "KisScratchPadSchemaContractTest",
+      "source": "libs/ui/tests/KisScratchPadSchemaContractTest.cpp",
+      "test": "KisScratchPadSchemaContractTest::imageTransferSignaturesRemainStable",
+      "behavior": "scratch padはpreset画像と任意画像の描画、scratch-pad画像の読込みと複写を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisScratchPad::copyScratchpadImageData()",
+        "method:KisScratchPad::loadScratchpadImage(QImage image)",
+        "method:KisScratchPad::paintCustomImage(const QImage & loadedImage)",
+        "method:KisScratchPad::paintPresetImage()",
+        "method:KisScratchPad::setPresetImage(const QImage & image)"
+      ]
+    },
+    {
+      "target": "KisScratchPadSchemaContractTest",
+      "source": "libs/ui/tests/KisScratchPadSchemaContractTest.cpp",
+      "test": "KisScratchPadSchemaContractTest::notificationSignaturesRemainStable",
+      "behavior": "scratch padは拡大率、内容、表示領域、選択色とcanvas更新を通知する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisScratchPad::colorSelected(const KoColor & color)",
+        "method:KisScratchPad::contentChanged()",
+        "method:KisScratchPad::scaleChanged(qreal scale)",
+        "method:KisScratchPad::sigUpdateCanvas(const QRect & rect)",
+        "method:KisScratchPad::viewportChanged(const QRect rect)"
       ]
     }
   ]
