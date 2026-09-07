@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-07 10:04 JST
+- 更新日時: 2026-09-07 10:07 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -2764,6 +2764,13 @@
 - 16直接利用sourceの厳格`clang-check`で推移include不足を検出し、修正後は7 sourceが診断0件となった。残る診断は開始時からのQt 6非推奨1 source、互換読込の非推奨1 source、未構築pluginの生成UI header不足7 sourceで、今回のinclude変更とは独立する。限定対象の再構築とCTestは成功し、変更範囲の書式も一致した。
 - 既存`libs/widgets/tests/KoResourceSelectionSchemaContractTest.cpp`へ5枠を追加し、observerの型・寿命・通知、serverの型・構築・寿命、model・資源照会、解決・永続化、observer登録・資源更新の全24公開APIを固定した。対象は183行・10枠である。最初の赤は追加5試験関数の未定義symbolだけで停止した。CMake変更なし、最終閉包4工程・8入力、command SHA-256 `9e9c58069ad06d67dac22cc7c8f744e2121b39961ab9751a68e3e10daf52f4ea`、input SHA-256 `0c4ddf41923a35e8587324d52d0bb26d2efd6c7618ae395291125243083d364f`を維持し、動的接続はQt Core・Gui・Test、gettextとOS frameworkだけである。実装は`64ab150ad4`である。
 - macOSで対象と軽量近傍`KoZoomControlSchemaContractTest`のCTest、対象の20回反復、試験sourceの厳格`clang-check`、変更範囲と試験sourceの書式、二回の無作業再構築、公開API検査、`verify-quick`に成功した。台帳へ24 APIを追加して24,619件対応、5,185件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g359.json`を削除し、主Ninja木5,924,700 KiB、共有compiler cache 983,148 KiB、最新`build/tdd-macos/public-api-missing-g360.json` 1,373,059 bytes、SHA-256 `4efd2b4451a7e41c4031d5a5eaf242a44ae836a5a3e97571cff15acd9914b2e4`だけを保持する。compiler cacheは144,212件中120,492件、83.55%がhitしている。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第360便で次の高密度なmacOS対象と最小構築面を選定することである。
+
+### 第360便の監査結果と実装計画
+
+- 正式入力`build/tdd-macos/public-api-missing-g360.json`は公開header 1,548、公開API 29,804、対応済み24,619、未対応5,185、1,373,059 bytes、SHA-256 `4efd2b4451a7e41c4031d5a5eaf242a44ae836a5a3e97571cff15acd9914b2e4`を記録する。`libs/application/ui/orchestration/KisApplication.h`の残存全23 APIを、型・構築・寿命、起動・event配送、資源・plugin初期化、splash・外部interface、遠隔引数・file通知の5枠へ完全に対応付ける。識別子整列集合のSHA-256は`743849cdca4a295b38f4f75d809bafa1832b335a02bef7da5e56b6b6562e61c5`である。Android固有2 APIの署名検査は`Q_OS_ANDROID`で有効になり、macOSでは同一slotの存在を固定する。
+- 開始headerの`KisImportExportManager.h`は公開宣言、inline実装、値memberのいずれにも利用がない。重量なimport/export公開headerを削除して9直接利用元へ配布されるcompile閉包を縮小する。同型を使う3直接利用元は既に自身で同headerをincludeしている。開始実装の厳格`clang-check`には開始時からQt 6 `QMetaType::type()`非推奨1件があり、公開署名固定と独立した既知診断として維持する。
+- 既存`libs/application/tests/KisApplicationArgumentsSchemaContractTest.cpp`は77行・5枠で、追加5枠後も300行・20枠未満に収める。既存targetは4工程・8入力、command SHA-256 `d62cc3c90a2b6e4c53ca0ff1e66f9440769ea2413a8c6593957e05ababddf3bb`、input SHA-256 `d396bd55ed135e1a3b0216c6b40d7f4c2e09780b50819ccedb34348d7511b083`である。対象固有CMake節へuiのsource・generated探索路、Qt Widgets interface探索路、`kritaui_EXPORTS`だけを加え、Qt Core・Testだけの動的接続と4工程・8入力を維持する。停止線を5工程・11入力、300行・20枠とする。
+- `g360-application-schema`の状態は`in_progress`、実装基点は`8b784aef3d`である。構造整理は開始header、契約は既存試験sourceと対象固有CMake節だけに限定する。macOSの対象、追加5枠の20回反復、開始実装・直接利用source・試験sourceの厳格`clang-check`、書式、二回の無作業再構築、公開API指紋不変、公開API検査、`verify-quick`だけを実行する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
 
 ### 第239便の先行監査担当票
 
