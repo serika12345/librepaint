@@ -21,8 +21,6 @@ class KisExtendedModifiersMapperPluginInterface;
 class KisAndroidSplash;
 class KisAndroidScaling;
 
-#include <KisImportExportManager.h>
-
 /**
  *  @brief Base class for the %Krita app
  *

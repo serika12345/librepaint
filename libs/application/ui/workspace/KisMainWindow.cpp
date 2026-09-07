@@ -98,20 +98,21 @@
 #include <KisAndroidUtils.h>
 #endif
 
-#include <KisUsageLogger.h>
-#include <animation/KisPlaybackEngine.h>
+#include "application/kis_config.h"
+#include "application/ui/orchestration/KisApplication.h"
+#include "application/ui/orchestration/kis_action_manager.h"
+#include "canvas/kis_canvas_resource_provider.h"
 #include "dialogs/kis_about_application.h"
 #include "dialogs/kis_delayed_save_dialog.h"
 #include "dialogs/kis_dlg_preferences.h"
-#include "application/ui/orchestration/kis_action_manager.h"
-#include "application/ui/orchestration/KisApplication.h"
 #include "kis_canvas2.h"
 #include "kis_canvas_controller.h"
-#include "canvas/kis_canvas_resource_provider.h"
 #include "kis_clipboard.h"
-#include "application/kis_config.h"
 #include "kis_config_notifier.h"
 #include "kis_custom_image_widget.h"
+#include <KisMpl.h>
+#include <KisUsageLogger.h>
+#include <animation/KisPlaybackEngine.h>
 #ifndef Q_OS_IOS
 #include <KisAnimationRender.h>
 #include <KisDlgAnimationRenderer.h>
