@@ -16,12 +16,13 @@
 
 #include <KoProperties.h>
 
-#include "kis_node_graph_listener.h"
-#include "kis_node_visitor.h"
-#include "kis_processing_visitor.h"
-#include "kis_node_progress_proxy.h"
-#include "kis_busy_progress_indicator.h"
 #include "KisFrameChangeUpdateRecipe.h"
+#include "kis_busy_progress_indicator.h"
+#include "kis_node_graph_listener.h"
+#include "kis_node_progress_proxy.h"
+#include "kis_node_visitor.h"
+#include "kis_paint_device.h"
+#include "kis_processing_visitor.h"
 
 #include "kis_clone_layer.h"
 

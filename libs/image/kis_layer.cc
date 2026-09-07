@@ -25,14 +25,15 @@
 
 #include "kis_image.h"
 
-#include "kis_painter.h"
-#include "kis_mask.h"
 #include "kis_effect_mask.h"
 #include "kis_filter_mask.h"
-#include "kis_selection_mask.h"
+#include "kis_mask.h"
 #include "kis_meta_data_store.h"
+#include "kis_paint_device.h"
 #include "kis_paint_layer.h"
+#include "kis_painter.h"
 #include "kis_raster_keyframe_channel.h"
+#include "kis_selection_mask.h"
 
 #include "kis_clone_layer.h"
 
@@ -1042,4 +1043,3 @@ KisMetaData::Store* KisLayer::metaData()
 {
     return m_d->metaDataStore;
 }
-

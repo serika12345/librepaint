@@ -6,6 +6,7 @@
 #include "NodeToolTip.h"
 #include "nodes/kis_node_model.h"
 
+#include <KisMpl.h>
 #include <QImage>
 #include <QModelIndex>
 #include <QTextDocument>

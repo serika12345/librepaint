@@ -4,6 +4,7 @@
  */
 
 #include "kis_layer.h"
+#include "kis_paint_device.h"
 #include "kis_paint_layer.h"
 
 #include <QTest>
