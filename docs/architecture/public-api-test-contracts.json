@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 5246
+    "expectedMissingApis": 5225
   },
   "contracts": [
     {
@@ -68052,6 +68052,72 @@
         "method:TimelineNodeListKeeper::ModelWithExternalNotifications::callEndRemoveRows()",
         "method:TimelineNodeListKeeper::ModelWithExternalNotifications::callEndResetModel()",
         "method:TimelineNodeListKeeper::ModelWithExternalNotifications::callIndexChanged(const QModelIndex & index0,const QModelIndex & index1)"
+      ]
+    },
+    {
+      "target": "ResourcePresetSchemaContractTest",
+      "source": "libs/libkis/tests/ResourcePresetSchemaContractTest.cpp",
+      "test": "ResourcePresetSchemaContractTest::nativePresetChooserTypeViewModeAndLifetimeSchemaRemainStable",
+      "behavior": "native preset選択器はQWidgetの寿命規則に従い、thumbnailと詳細の表示modeを持つ公開型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisPresetChooser",
+        "enum:KisPresetChooser::ViewMode",
+        "enumerator:KisPresetChooser::ViewMode::DETAIL",
+        "enumerator:KisPresetChooser::ViewMode::THUMBNAIL",
+        "method:KisPresetChooser::KisPresetChooser(QWidget * parent=0)",
+        "method:KisPresetChooser::~KisPresetChooser()"
+      ]
+    },
+    {
+      "target": "ResourcePresetSchemaContractTest",
+      "source": "libs/libkis/tests/ResourcePresetSchemaContractTest.cpp",
+      "test": "ResourcePresetSchemaContractTest::nativePresetChooserResourceSelectionSignaturesRemainStable",
+      "behavior": "native preset選択器は共有資源による現在値の取得と設定の公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPresetChooser::currentResource() const",
+        "method:KisPresetChooser::setCurrentResource(KoResourceSP resource)"
+      ]
+    },
+    {
+      "target": "ResourcePresetSchemaContractTest",
+      "source": "libs/libkis/tests/ResourcePresetSchemaContractTest.cpp",
+      "test": "ResourcePresetSchemaContractTest::nativePresetChooserPresentationAndFilterSignaturesRemainStable",
+      "behavior": "native preset選択器は資源一覧、icon寸法、paint operation filter、tag操作欄の表示を制御する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPresetChooser::iconSize()",
+        "method:KisPresetChooser::itemChooser()",
+        "method:KisPresetChooser::setPresetFilter(const QString & paintOpId)",
+        "method:KisPresetChooser::showTaggingBar(bool show)"
+      ]
+    },
+    {
+      "target": "ResourcePresetSchemaContractTest",
+      "source": "libs/libkis/tests/ResourcePresetSchemaContractTest.cpp",
+      "test": "ResourcePresetSchemaContractTest::nativePresetChooserViewSettingsSignaturesRemainStable",
+      "behavior": "native preset選択器は表示mode、icon寸法、brush名表示を設定して現在の表示設定を保存・反映する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPresetChooser::saveIconSize()",
+        "method:KisPresetChooser::setIconSize(int newSize)",
+        "method:KisPresetChooser::setViewMode(ViewMode mode)",
+        "method:KisPresetChooser::setViewModeToDetail()",
+        "method:KisPresetChooser::setViewModeToThumbnail()",
+        "method:KisPresetChooser::showHideBrushNames(ListViewMode newViewMode)",
+        "method:KisPresetChooser::updateViewSettings()"
+      ]
+    },
+    {
+      "target": "ResourcePresetSchemaContractTest",
+      "source": "libs/libkis/tests/ResourcePresetSchemaContractTest.cpp",
+      "test": "ResourcePresetSchemaContractTest::nativePresetChooserNotificationSignaturesRemainStable",
+      "behavior": "native preset選択器は資源の選択とclickを共有資源付きsignalとして通知する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPresetChooser::resourceClicked(KoResourceSP resource)",
+        "method:KisPresetChooser::resourceSelected(KoResourceSP resource)"
       ]
     }
   ]
