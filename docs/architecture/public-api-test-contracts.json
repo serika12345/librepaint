@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 5143
+    "expectedMissingApis": 5056
   },
   "contracts": [
     {
@@ -68380,6 +68380,183 @@
         "method:KisCanvasWidgetBase::createCheckersImage(qint32 checkSize=-1)",
         "method:KisCanvasWidgetBase::currentBitDepthMode() const",
         "method:KisCanvasWidgetBase::currentBitDepthUserReport() const"
+      ]
+    },
+    {
+      "target": "KisBaseNodeSchemaContractTest",
+      "source": "libs/image/tests/KisBaseNodeSchemaContractTest.cpp",
+      "test": "KisBaseNodeSchemaContractTest::propertyValueSchemaRemainsStable",
+      "behavior": "node property値は識別子、表示名、可変性、状態、stasis状態、表示iconを保持し、可変・stasis対応・表示専用の構築と比較・診断出力を提供する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisBaseNode::PropertyList",
+        "function:operator <<(QDebug dbg,const KisBaseNode::Property & prop)",
+        "member:KisBaseNode::Property::canHaveStasis",
+        "member:KisBaseNode::Property::id",
+        "member:KisBaseNode::Property::isInStasis",
+        "member:KisBaseNode::Property::isMutable",
+        "member:KisBaseNode::Property::name",
+        "member:KisBaseNode::Property::offIcon",
+        "member:KisBaseNode::Property::onIcon",
+        "member:KisBaseNode::Property::state",
+        "member:KisBaseNode::Property::stateInStasis",
+        "method:KisBaseNode::Property::Property()",
+        "method:KisBaseNode::Property::Property(const KoID & n,const QIcon & on,const QIcon & off,bool isOn)",
+        "method:KisBaseNode::Property::Property(const KoID & n,const QIcon & on,const QIcon & off,bool isOn,bool _isInStasis,bool _stateInStasis=false)",
+        "method:KisBaseNode::Property::Property(const KoID & n,const QString & s)",
+        "method:KisBaseNode::Property::operator ==(const Property & rhs) const",
+        "struct:KisBaseNode::Property"
+      ]
+    },
+    {
+      "target": "KisBaseNodeSchemaContractTest",
+      "source": "libs/image/tests/KisBaseNodeSchemaContractTest.cpp",
+      "test": "KisBaseNodeSchemaContractTest::baseNodeTypeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "画像node基底はQObjectと共有寿命を併せ持つ抽象型で、画像への弱参照または既存nodeから構築される多態的寿命境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisBaseNode",
+        "method:KisBaseNode::KisBaseNode(KisImageWSP image)",
+        "method:KisBaseNode::KisBaseNode(const KisBaseNode & rhs)",
+        "method:KisBaseNode::~KisBaseNode()"
+      ]
+    },
+    {
+      "target": "KisBaseNodeSchemaContractTest",
+      "source": "libs/image/tests/KisBaseNodeSchemaContractTest.cpp",
+      "test": "KisBaseNodeSchemaContractTest::deviceColorAndCompositionSignaturesRemainStable",
+      "behavior": "画像node基底は編集元・原本・投影・採色元の描画装置、色空間、合成方式とその識別子を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisBaseNode::colorSampleSourceDevice() const",
+        "method:KisBaseNode::colorSpace() const",
+        "method:KisBaseNode::compositeOp() const",
+        "method:KisBaseNode::compositeOpId() const",
+        "method:KisBaseNode::original() const",
+        "method:KisBaseNode::paintDevice() const",
+        "method:KisBaseNode::projection() const",
+        "method:KisBaseNode::setCompositeOpId(const QString & compositeOpId)"
+      ]
+    },
+    {
+      "target": "KisBaseNodeSchemaContractTest",
+      "source": "libs/image/tests/KisBaseNodeSchemaContractTest.cpp",
+      "test": "KisBaseNodeSchemaContractTest::identityAndPresentationSignaturesRemainStable",
+      "behavior": "画像node基底は永続識別子、名称、icon、折畳み状態、色labelを取得・設定する公開面を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisBaseNode::collapsed() const",
+        "method:KisBaseNode::colorLabelIndex() const",
+        "method:KisBaseNode::icon() const",
+        "method:KisBaseNode::name() const",
+        "method:KisBaseNode::setCollapsed(bool collapsed)",
+        "method:KisBaseNode::setColorLabelIndex(int index)",
+        "method:KisBaseNode::setName(const QString & name)",
+        "method:KisBaseNode::setUuid(const QUuid & id)",
+        "method:KisBaseNode::uuid() const"
+      ]
+    },
+    {
+      "target": "KisBaseNodeSchemaContractTest",
+      "source": "libs/image/tests/KisBaseNodeSchemaContractTest.cpp",
+      "test": "KisBaseNodeSchemaContractTest::opacityVisibilityAndEditingSignaturesRemainStable",
+      "behavior": "画像node基底はopacity、可視性、利用者lock、隔離状態と編集可能性を公開し、opacity変更を通知する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisBaseNode::belongsToIsolatedGroup() const",
+        "method:KisBaseNode::hasEditablePaintDevice() const",
+        "method:KisBaseNode::isEditable(bool checkVisibility=true) const",
+        "method:KisBaseNode::isIsolatedRoot() const",
+        "method:KisBaseNode::opacity() const",
+        "method:KisBaseNode::opacityChanged(quint8 value)",
+        "method:KisBaseNode::percentOpacity() const",
+        "method:KisBaseNode::setOpacity(quint8 val)",
+        "method:KisBaseNode::setPercentOpacity(quint8 val)",
+        "method:KisBaseNode::setUserLocked(bool l)",
+        "method:KisBaseNode::setVisible(bool visible,bool loading=false)",
+        "method:KisBaseNode::userLocked() const",
+        "method:KisBaseNode::visible(bool recursive=false) const"
+      ]
+    },
+    {
+      "target": "KisBaseNodeSchemaContractTest",
+      "source": "libs/image/tests/KisBaseNodeSchemaContractTest.cpp",
+      "test": "KisBaseNodeSchemaContractTest::arbitraryPropertySignaturesRemainStable",
+      "behavior": "画像node基底は層一覧向けproperty集合と任意の直列化propertyを取得・設定・統合・比較する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisBaseNode::check(const KoProperties & properties) const",
+        "method:KisBaseNode::mergeNodeProperties(const KoProperties & properties)",
+        "method:KisBaseNode::nodeProperties() const",
+        "method:KisBaseNode::sectionModelProperties() const",
+        "method:KisBaseNode::setNodeProperty(const QString & name,const QVariant & value)",
+        "method:KisBaseNode::setSectionModelProperties(const PropertyList & properties)"
+      ]
+    },
+    {
+      "target": "KisBaseNodeSchemaContractTest",
+      "source": "libs/image/tests/KisBaseNodeSchemaContractTest.cpp",
+      "test": "KisBaseNodeSchemaContractTest::thumbnailSignaturesRemainStable",
+      "behavior": "画像node基底は現在時刻・指定frameのthumbnail生成、優先境界mode、変更順序番号を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisBaseNode::createPreferredThumbnail(qint32 w,qint32 h,Qt::AspectRatioMode aspectRatioMode=Qt::IgnoreAspectRatio)",
+        "method:KisBaseNode::createPreferredThumbnailForFrame(qint32 w,qint32 h,int time,Qt::AspectRatioMode aspectRatioMode=Qt::IgnoreAspectRatio)",
+        "method:KisBaseNode::createThumbnail(qint32 w,qint32 h,Qt::AspectRatioMode aspectRatioMode=Qt::IgnoreAspectRatio,KisThumbnailBoundsMode boundsMode=KisThumbnailBoundsMode::Precise)",
+        "method:KisBaseNode::createThumbnailForFrame(qint32 w,qint32 h,int time,Qt::AspectRatioMode aspectRatioMode=Qt::IgnoreAspectRatio,KisThumbnailBoundsMode boundsMode=KisThumbnailBoundsMode::Precise)",
+        "method:KisBaseNode::preferredThumbnailBoundsMode() const",
+        "method:KisBaseNode::setPreferredThumbnailBoundsMode(KisThumbnailBoundsMode value) const",
+        "method:KisBaseNode::thumbnailSeqNo() const"
+      ]
+    },
+    {
+      "target": "KisBaseNodeSchemaContractTest",
+      "source": "libs/image/tests/KisBaseNodeSchemaContractTest.cpp",
+      "test": "KisBaseNodeSchemaContractTest::geometryAndLodSignaturesRemainStable",
+      "behavior": "画像node基底は位置、概算・厳密境界、LOD移動・描画対応を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisBaseNode::exactBounds() const",
+        "method:KisBaseNode::extent() const",
+        "method:KisBaseNode::setX(qint32)",
+        "method:KisBaseNode::setY(qint32)",
+        "method:KisBaseNode::supportsLodMoves() const",
+        "method:KisBaseNode::supportsLodPainting() const",
+        "method:KisBaseNode::x() const",
+        "method:KisBaseNode::y() const"
+      ]
+    },
+    {
+      "target": "KisBaseNodeSchemaContractTest",
+      "source": "libs/image/tests/KisBaseNodeSchemaContractTest.cpp",
+      "test": "KisBaseNodeSchemaContractTest::keyframeAndAnimationSignaturesRemainStable",
+      "behavior": "画像node基底はkeyframe channelの列挙・取得・対応照会と追加通知、timeline固定、animation有効化を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisBaseNode::enableAnimation()",
+        "method:KisBaseNode::getKeyframeChannel(const QString & id) const",
+        "method:KisBaseNode::getKeyframeChannel(const QString & id,bool create)",
+        "method:KisBaseNode::isAnimated() const",
+        "method:KisBaseNode::isPinnedToTimeline() const",
+        "method:KisBaseNode::keyframeChannelAdded(KisKeyframeChannel * channel)",
+        "method:KisBaseNode::keyframeChannels() const",
+        "method:KisBaseNode::setPinnedToTimeline(bool pinned)",
+        "method:KisBaseNode::supportsKeyframeChannel(const QString & id)"
+      ]
+    },
+    {
+      "target": "KisBaseNodeSchemaContractTest",
+      "source": "libs/image/tests/KisBaseNodeSchemaContractTest.cpp",
+      "test": "KisBaseNodeSchemaContractTest::visitorImageAndSettingsSignaturesRemainStable",
+      "behavior": "画像node基底は通常・処理visitorを受け入れ、所有画像の弱参照、設定再読込、仮想node判定を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisBaseNode::accept(KisNodeVisitor &)",
+        "method:KisBaseNode::accept(KisProcessingVisitor & visitor,KisUndoAdapter * undoAdapter)",
+        "method:KisBaseNode::image() const",
+        "method:KisBaseNode::isFakeNode() const",
+        "method:KisBaseNode::setImage(KisImageWSP image)",
+        "method:KisBaseNode::updateSettings()"
       ]
     }
   ]
