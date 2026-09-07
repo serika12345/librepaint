@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 5056
+    "expectedMissingApis": 4880
   },
   "contracts": [
     {
@@ -68557,6 +68557,317 @@
         "method:KisBaseNode::isFakeNode() const",
         "method:KisBaseNode::setImage(KisImageWSP image)",
         "method:KisBaseNode::updateSettings()"
+      ]
+    },
+    {
+      "target": "KisImageSchemaContractTest",
+      "source": "libs/image/tests/KisImageSchemaContractTest.cpp",
+      "test": "KisImageSchemaContractTest::typeConstructionFactoryAndCopySchemaRemainStable",
+      "behavior": "画像はundo保存先、寸法、色空間、名称から構築され、画像変換、複製、内容置換と多態的寿命の公開面を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisImage",
+        "method:KisImage::KisImage(KisUndoStore * undoStore,qint32 width,qint32 height,const KoColorSpace * colorSpace,const QString & name)",
+        "method:KisImage::clone(bool exactCopy=false)",
+        "method:KisImage::copyFromImage(const KisImage & rhs)",
+        "method:KisImage::fromQImage(const QImage & image,KisUndoStore * undoStore)",
+        "method:KisImage::~KisImage()"
+      ]
+    },
+    {
+      "target": "KisImageSchemaContractTest",
+      "source": "libs/image/tests/KisImageSchemaContractTest.cpp",
+      "test": "KisImageSchemaContractTest::graphListenerSignaturesRemainStable",
+      "behavior": "画像はnode graph、keyframe、選択、投影、時刻切替の通知を受け取り、graph overlayを公開する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisImage::aboutToAddANode(KisNode * parent,int index)",
+        "method:KisImage::aboutToRemoveANode(KisNode * parent,int index)",
+        "method:KisImage::graphOverlayNode() const",
+        "method:KisImage::invalidateAllFrames()",
+        "method:KisImage::invalidateFrames(const KisTimeSpan & range,const QRect & rect)",
+        "method:KisImage::keyframeChannelAboutToBeRemoved(KisNode * node,KisKeyframeChannel * channel)",
+        "method:KisImage::keyframeChannelHasBeenAdded(KisNode * node,KisKeyframeChannel * channel)",
+        "method:KisImage::nodeChanged(KisNode * node)",
+        "method:KisImage::nodeCollapsedChanged(KisNode * node)",
+        "method:KisImage::nodeHasBeenAdded(KisNode * parent,int index,KisNodeAdditionFlags flags)",
+        "method:KisImage::notifyProjectionUpdated(const QRect & rc)",
+        "method:KisImage::notifySelectionChanged()",
+        "method:KisImage::requestProjectionUpdate(KisNode * node,const QVector<QRect> & rects,KisProjectionUpdateFlags flags)",
+        "method:KisImage::requestTimeSwitch(int time)"
+      ]
+    },
+    {
+      "target": "KisImageSchemaContractTest",
+      "source": "libs/image/tests/KisImageSchemaContractTest.cpp",
+      "test": "KisImageSchemaContractTest::lockingAndSchedulerStateSignaturesRemainStable",
+      "behavior": "画像は同期・即時読取lock、解放、完了待機、idle・lock状態と作業thread上限を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisImage::barrierLock(bool readOnly=false)",
+        "method:KisImage::immediateLockForReadOnly()",
+        "method:KisImage::isIdle(bool allowLocked=false)",
+        "method:KisImage::locked() const",
+        "method:KisImage::setWorkingThreadsLimit(int value)",
+        "method:KisImage::tryBarrierLock(bool readOnly=false)",
+        "method:KisImage::unlock()",
+        "method:KisImage::waitForDone()",
+        "method:KisImage::workingThreadsLimit() const"
+      ]
+    },
+    {
+      "target": "KisImageSchemaContractTest",
+      "source": "libs/image/tests/KisImageSchemaContractTest.cpp",
+      "test": "KisImageSchemaContractTest::strokeAndUndoRequestSignaturesRemainStable",
+      "behavior": "画像はstrokeの開始・job追加・終了・取消と、進行中strokeへのundo・redo・終了・取消要求を仲介する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisImage::addJob(KisStrokeId id,KisStrokeJobData * data)",
+        "method:KisImage::cancelStroke(KisStrokeId id)",
+        "method:KisImage::endStroke(KisStrokeId id)",
+        "method:KisImage::requestRedoDuringStroke()",
+        "method:KisImage::requestStrokeCancellation()",
+        "method:KisImage::requestStrokeEnd()",
+        "method:KisImage::requestStrokeEndActiveNode()",
+        "method:KisImage::requestUndoDuringStroke()",
+        "method:KisImage::startStroke(KisStrokeStrategy * strokeStrategy)",
+        "method:KisImage::tryUndoUnfinishedLod0Stroke()"
+      ]
+    },
+    {
+      "target": "KisImageSchemaContractTest",
+      "source": "libs/image/tests/KisImageSchemaContractTest.cpp",
+      "test": "KisImageSchemaContractTest::updateFilteringAndRefreshSignaturesRemainStable",
+      "behavior": "画像は投影更新filter、更新抑制、UI batch通知、graph再生成と自発jobを管理する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisImage::addProjectionUpdatesFilter(KisProjectionUpdatesFilterSP filter)",
+        "method:KisImage::addSpontaneousJob(KisSpontaneousJob * spontaneousJob)",
+        "method:KisImage::blockUpdates()",
+        "method:KisImage::currentProjectionUpdatesFilter() const",
+        "method:KisImage::disableDirtyRequests()",
+        "method:KisImage::disableUIUpdates()",
+        "method:KisImage::enableDirtyRequests()",
+        "method:KisImage::enableUIUpdates()",
+        "method:KisImage::hasUpdatesRunning() const",
+        "method:KisImage::initialRefreshGraph()",
+        "method:KisImage::notifyBatchUpdateEnded()",
+        "method:KisImage::notifyBatchUpdateStarted()",
+        "method:KisImage::notifyUIUpdateCompleted(const QRect & rc)",
+        "method:KisImage::refreshGraphAsync(KisNodeSP root,const QVector<QRect> & rects,const QRect & cropRect,KisProjectionUpdateFlags flags=KisProjectionUpdateFlag::None)",
+        "method:KisImage::removeProjectionUpdatesFilter(KisProjectionUpdatesFilterCookie cookie)",
+        "method:KisImage::unblockUpdates()"
+      ]
+    },
+    {
+      "target": "KisImageSchemaContractTest",
+      "source": "libs/image/tests/KisImageSchemaContractTest.cpp",
+      "test": "KisImageSchemaContractTest::geometryResolutionAndCoordinateSignaturesRemainStable",
+      "behavior": "画像は寸法・境界・解像度を公開し、文書座標と画素座標を相互変換する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisImage::bounds() const",
+        "method:KisImage::documentToImagePixelFloored(const QPointF & documentCoord) const",
+        "method:KisImage::documentToPixel(const QPointF & documentCoord) const",
+        "method:KisImage::documentToPixel(const QRectF & documentRect) const",
+        "method:KisImage::effectiveLodBounds() const",
+        "method:KisImage::height() const",
+        "method:KisImage::pixelToDocument(const QPoint & pixelCoord) const",
+        "method:KisImage::pixelToDocument(const QPointF & pixelCoord) const",
+        "method:KisImage::pixelToDocument(const QRectF & pixelCoord) const",
+        "method:KisImage::setResolution(double xres,double yres)",
+        "method:KisImage::size() const",
+        "method:KisImage::width() const",
+        "method:KisImage::xRes() const",
+        "method:KisImage::yRes() const"
+      ]
+    },
+    {
+      "target": "KisImageSchemaContractTest",
+      "source": "libs/image/tests/KisImageSchemaContractTest.cpp",
+      "test": "KisImageSchemaContractTest::imageAndNodeTransformSignaturesRemainStable",
+      "behavior": "画像は画像全体またはnode集合の切抜き、拡縮、回転、剪断、統合と未使用data除去を要求する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisImage::cropImage(const QRect & newRect)",
+        "method:KisImage::cropNode(KisNodeSP node,const QRect & newRect,const bool activeFrameOnly=false)",
+        "method:KisImage::cropNodes(KisNodeList nodes,const QRect & newRect,const bool activeFrameOnly=false)",
+        "method:KisImage::flatten(KisNodeSP activeNode)",
+        "method:KisImage::flattenLayer(KisLayerSP layer)",
+        "method:KisImage::mergeDown(KisLayerSP l,const KisMetaData::MergeStrategy * strategy)",
+        "method:KisImage::mergeMultipleLayers(QList<KisNodeSP> mergedLayers,KisNodeSP putAfter)",
+        "method:KisImage::purgeUnusedData(bool isCancellable)",
+        "method:KisImage::resizeImage(const QRect & newRect)",
+        "method:KisImage::rotateImage(double radians)",
+        "method:KisImage::rotateNode(KisNodeSP node,double radians,KisSelectionSP selection)",
+        "method:KisImage::rotateNodes(KisNodeList nodes,double radians,KisSelectionSP selection)",
+        "method:KisImage::scaleImage(const QSize & size,qreal xres,qreal yres,KisFilterStrategy * filterStrategy)",
+        "method:KisImage::scaleNode(KisNodeSP node,const QPointF & center,qreal scaleX,qreal scaleY,KisFilterStrategy * filterStrategy,KisSelectionSP selection)",
+        "method:KisImage::scaleNodes(KisNodeList nodes,const QPointF & center,qreal scaleX,qreal scaleY,KisFilterStrategy * filterStrategy,KisSelectionSP selection)",
+        "method:KisImage::shear(double angleX,double angleY)",
+        "method:KisImage::shearNode(KisNodeSP node,double angleX,double angleY,KisSelectionSP selection)",
+        "method:KisImage::shearNodes(KisNodeList nodes,double angleX,double angleY,KisSelectionSP selection)"
+      ]
+    },
+    {
+      "target": "KisImageSchemaContractTest",
+      "source": "libs/image/tests/KisImageSchemaContractTest.cpp",
+      "test": "KisImageSchemaContractTest::colorProfileAndProofingSignaturesRemainStable",
+      "behavior": "画像は色空間・profile・校正設定・投影背景色を管理し、画像・layer・QImage間の色変換を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisImage::assignImageProfile(const KoColorProfile * profile,bool blockAllUpdates=false)",
+        "method:KisImage::assignLayerProfile(KisNodeSP node,const KoColorProfile * profile)",
+        "method:KisImage::colorSpace() const",
+        "method:KisImage::convertImageColorSpace(const KoColorSpace * dstColorSpace,KoColorConversionTransformation::Intent renderingIntent,KoColorConversionTransformation::ConversionFlags conversionFlags)",
+        "method:KisImage::convertImageProjectionColorSpace(const KoColorSpace * dstColorSpace)",
+        "method:KisImage::convertLayerColorSpace(KisNodeSP node,const KoColorSpace * dstColorSpace,KoColorConversionTransformation::Intent renderingIntent,KoColorConversionTransformation::ConversionFlags conversionFlags)",
+        "method:KisImage::convertToQImage(QRect imageRect,const KoColorProfile * profile)",
+        "method:KisImage::convertToQImage(const QSize & scaledImageSize,const KoColorProfile * profile)",
+        "method:KisImage::convertToQImage(qint32 x1,qint32 y1,qint32 width,qint32 height,const KoColorProfile * profile)",
+        "method:KisImage::defaultProjectionColor() const",
+        "method:KisImage::profile() const",
+        "method:KisImage::proofingConfiguration() const",
+        "method:KisImage::setDefaultProjectionColor(const KoColor & color)",
+        "method:KisImage::setProofingConfiguration(KisProofingConfigurationSP proofingConfig)",
+        "method:KisImage::unifyLayersColorSpace()"
+      ]
+    },
+    {
+      "target": "KisImageSchemaContractTest",
+      "source": "libs/image/tests/KisImageSchemaContractTest.cpp",
+      "test": "KisImageSchemaContractTest::layerHierarchyAndSelectionSignaturesRemainStable",
+      "behavior": "画像はroot、投影、layer数、overlay・大域選択、root mask許可とlayer変更通知を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisImage::allowMasksOnRootNode() const",
+        "method:KisImage::canReselectGlobalSelection()",
+        "method:KisImage::globalSelection() const",
+        "method:KisImage::globalSelectionManagementInterface() const",
+        "method:KisImage::hasOverlaySelectionMask() const",
+        "method:KisImage::nChildLayers() const",
+        "method:KisImage::nHiddenLayers() const",
+        "method:KisImage::nextLayerName(const QString & baseName=\"\") const",
+        "method:KisImage::nlayers() const",
+        "method:KisImage::notifyLayersChanged()",
+        "method:KisImage::overlaySelectionMask() const",
+        "method:KisImage::projection() const",
+        "method:KisImage::rootLayer() const",
+        "method:KisImage::setAllowMasksOnRootNode(bool value)",
+        "method:KisImage::setOverlaySelectionMask(KisSelectionMaskSP mask)",
+        "method:KisImage::setRootLayer(KisGroupLayerSP rootLayer)"
+      ]
+    },
+    {
+      "target": "KisImageSchemaContractTest",
+      "source": "libs/image/tests/KisImageSchemaContractTest.cpp",
+      "test": "KisImageSchemaContractTest::annotationAndCompositionSignaturesRemainStable",
+      "behavior": "画像は注釈の反復・追加・取得・除去と、layer構図の列挙・並替え・追加・除去を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisImage::addAnnotation(KisAnnotationSP annotation)",
+        "method:KisImage::addComposition(KisLayerCompositionSP composition)",
+        "method:KisImage::annotation(const QString & type)",
+        "method:KisImage::beginAnnotations()",
+        "method:KisImage::compositions()",
+        "method:KisImage::endAnnotations()",
+        "method:KisImage::moveCompositionDown(KisLayerCompositionSP composition)",
+        "method:KisImage::moveCompositionUp(KisLayerCompositionSP composition)",
+        "method:KisImage::removeAnnotation(const QString & type)",
+        "method:KisImage::removeComposition(KisLayerCompositionSP composition)"
+      ]
+    },
+    {
+      "target": "KisImageSchemaContractTest",
+      "source": "libs/image/tests/KisImageSchemaContractTest.cpp",
+      "test": "KisImageSchemaContractTest::wraparoundLodAndIsolationSignaturesRemainStable",
+      "behavior": "画像は回り込み軸、LOD方針、鏡映中心、animation interfaceとlayer隔離状態を管理する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisImage::animationInterface() const",
+        "method:KisImage::currentLevelOfDetail() const",
+        "method:KisImage::explicitRegenerateLevelOfDetail()",
+        "method:KisImage::isIsolatingGroup() const",
+        "method:KisImage::isIsolatingLayer() const",
+        "method:KisImage::isolationRootNode() const",
+        "method:KisImage::lodPreferences() const",
+        "method:KisImage::mirrorAxesCenter() const",
+        "method:KisImage::setLodPreferences(const KisLodPreferences & value)",
+        "method:KisImage::setMirrorAxesCenter(const QPointF & value) const",
+        "method:KisImage::setWrapAroundModeAxis(WrapAroundAxis value)",
+        "method:KisImage::setWrapAroundModePermitted(bool value)",
+        "method:KisImage::startIsolatedMode(KisNodeSP node,bool isolateLayer,bool isolateGroup)",
+        "method:KisImage::stopIsolatedMode()",
+        "method:KisImage::wrapAroundModeActive() const",
+        "method:KisImage::wrapAroundModeAxis() const",
+        "method:KisImage::wrapAroundModePermitted() const"
+      ]
+    },
+    {
+      "target": "KisImageSchemaContractTest",
+      "source": "libs/image/tests/KisImageSchemaContractTest.cpp",
+      "test": "KisImageSchemaContractTest::undoAdapterAndModificationSignaturesRemainStable",
+      "behavior": "画像はundo保存先とadapter、直近command、変更通知入口、進捗・signal仲介を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisImage::compositeProgressProxy()",
+        "method:KisImage::lastExecutedCommand() const",
+        "method:KisImage::notifyAboutToBeDeleted()",
+        "method:KisImage::postExecutionUndoAdapter() const",
+        "method:KisImage::setModifiedWithoutUndo()",
+        "method:KisImage::setUndoStore(KisUndoStore * undoStore)",
+        "method:KisImage::signalRouter()",
+        "method:KisImage::undoAdapter() const",
+        "method:KisImage::undoStore()"
+      ]
+    },
+    {
+      "target": "KisImageSchemaContractTest",
+      "source": "libs/image/tests/KisImageSchemaContractTest.cpp",
+      "test": "KisImageSchemaContractTest::imageAndLifecycleSignalSignaturesRemainStable",
+      "behavior": "画像は寿命、画像更新、変更、寸法・解像度・色空間・profile・校正設定の変化を通知する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisImage::sigAboutToBeDeleted()",
+        "method:KisImage::sigColorSpaceChanged(const KoColorSpace * cs)",
+        "method:KisImage::sigImageModified()",
+        "method:KisImage::sigImageModifiedWithoutUndo()",
+        "method:KisImage::sigImageUpdated(const QRect &)",
+        "method:KisImage::sigProfileChanged(const KoColorProfile * profile)",
+        "method:KisImage::sigProofingConfigChanged()",
+        "method:KisImage::sigResolutionChanged(double xRes,double yRes)",
+        "method:KisImage::sigSizeChanged(const QPointF & oldStillPoint,const QPointF & newStillPoint)"
+      ]
+    },
+    {
+      "target": "KisImageSchemaContractTest",
+      "source": "libs/image/tests/KisImageSchemaContractTest.cpp",
+      "test": "KisImageSchemaContractTest::nodeAndIsolationSignalSignaturesRemainStable",
+      "behavior": "画像はnode追加・除去・変更・折畳み、layer集合、再選択と隔離状態の変化を通知する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisImage::sigInternalStopIsolatedModeRequested()",
+        "method:KisImage::sigIsolatedModeChanged()",
+        "method:KisImage::sigLayersChangedAsync()",
+        "method:KisImage::sigNodeAddedAsync(KisNodeSP node,KisNodeAdditionFlags flags)",
+        "method:KisImage::sigNodeChanged(KisNodeSP node)",
+        "method:KisImage::sigNodeCollapsedChanged()",
+        "method:KisImage::sigRemoveNodeAsync(KisNodeSP node)",
+        "method:KisImage::sigRequestNodeReselection(KisNodeSP activeNode,const KisNodeList & selectedNodes)"
+      ]
+    },
+    {
+      "target": "KisImageSchemaContractTest",
+      "source": "libs/image/tests/KisImageSchemaContractTest.cpp",
+      "test": "KisImageSchemaContractTest::strokeRequestSignalSignaturesRemainStable",
+      "behavior": "画像は進行中strokeへのundo・redo・取消・終了要求をsignalとして公開する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisImage::sigRedoDuringStrokeRequested()",
+        "method:KisImage::sigStrokeCancellationRequested()",
+        "method:KisImage::sigStrokeEndRequested()",
+        "method:KisImage::sigStrokeEndRequestedActiveNodeFiltered()",
+        "method:KisImage::sigUndoDuringStrokeRequested()"
       ]
     }
   ]
