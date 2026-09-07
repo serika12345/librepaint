@@ -7,8 +7,11 @@
 
 #include <type_traits>
 
+#include "canvas/kis_canvas_widget_base.h"
 #include "canvas/kis_painting_assistants_decoration.h"
 
+#define ASSERT_CANVAS_WIDGET_SIGNATURE(method, signature)                                                              \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KisCanvasWidgetBase::method)), signature>)
 #define ASSERT_CANVAS_DECORATION_SIGNATURE(method, signature)                                                          \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisCanvasDecoration::method)), signature>)
 #define ASSERT_ASSISTANTS_DECORATION_SIGNATURE(method, signature)                                                      \
@@ -25,12 +28,42 @@ protected:
     void drawDecoration(QPainter &, const QRectF &, const KisCoordinatesConverter *, KisCanvas2 *) override;
 };
 
+class CanvasWidgetProbe final : public KisCanvasWidgetBase
+{
+public:
+    using KisCanvasWidgetBase::KisCanvasWidgetBase;
+    using KisCanvasWidgetBase::updateCanvasProjection;
+
+    QWidget *widget() override;
+    void setDisplayFilter(QSharedPointer<KisDisplayFilter>) override;
+    void notifyImageColorSpaceChanged(const KoColorSpace *) override;
+    bool wrapAroundViewingMode() const override;
+    WrapAroundAxis wrapAroundViewingModeAxis() const override;
+    void channelSelectionChanged(const QBitArray &) override;
+    void setDisplayConfig(const KisDisplayConfig &) override;
+    void finishResizingImage(qint32, qint32) override;
+    KisUpdateInfoSP startUpdateCanvasProjection(const QRect &) override;
+    QRect updateCanvasProjection(KisUpdateInfoSP) override;
+    void updateCanvasImage(const QRect &) override;
+    void updateCanvasDecorations(const QRect &) override;
+    bool isBusy() const override;
+    void setLodResetInProgress(bool) override;
+
+protected:
+    bool callFocusNextPrevChild(bool) override;
+};
+
 class KisPaintingAssistantsDecorationSchemaContractTest : public QObject
 {
     Q_OBJECT
 
 private Q_SLOTS:
     void canvasDecorationTypeAndControlSchemaRemainStable();
+    void canvasWidgetBaseTypeConstructionAndLifetimeSchemaRemainStable();
+    void canvasWidgetBaseCanvasConnectionSignaturesRemainStable();
+    void canvasWidgetBaseDecorationCollectionSignaturesRemainStable();
+    void canvasWidgetBaseViewingAndProjectionSignaturesRemainStable();
+    void canvasWidgetBaseColorAndBitDepthSignaturesRemainStable();
     void assistantEditorDataSchemaRemainStable();
     void assistantDecorationTypeAndCollectionSchemaRemainStable();
     void assistantSelectionVisibilityAndSizeSchemaRemainStable();
@@ -59,6 +92,69 @@ void KisPaintingAssistantsDecorationSchemaContractTest::canvasDecorationTypeAndC
     ASSERT_CANVAS_DECORATION_SIGNATURE(setVisible, void (Decoration::*)(bool));
     ASSERT_CANVAS_DECORATION_SIGNATURE(toggleVisibility, void (Decoration::*)());
     ASSERT_CANVAS_DECORATION_SIGNATURE(visible, bool (Decoration::*)() const);
+
+    QVERIFY(true);
+}
+
+void KisPaintingAssistantsDecorationSchemaContractTest::canvasWidgetBaseTypeConstructionAndLifetimeSchemaRemainStable()
+{
+    using Widget = KisCanvasWidgetBase;
+
+    static_assert(std::is_class_v<Widget>);
+    static_assert(std::is_base_of_v<KisAbstractCanvasWidget, Widget>);
+    static_assert(std::is_abstract_v<Widget>);
+    static_assert(std::is_constructible_v<CanvasWidgetProbe, KisCanvas2 *, KisCoordinatesConverter *>);
+    static_assert(std::has_virtual_destructor_v<Widget>);
+
+    QVERIFY(true);
+}
+
+void KisPaintingAssistantsDecorationSchemaContractTest::canvasWidgetBaseCanvasConnectionSignaturesRemainStable()
+{
+    using Widget = KisCanvasWidgetBase;
+
+    ASSERT_CANVAS_WIDGET_SIGNATURE(toolProxy, KoToolProxy * (Widget::*)() const);
+    ASSERT_CANVAS_WIDGET_SIGNATURE(coordinatesConverter, KisCoordinatesConverter * (Widget::*)() const);
+
+    QVERIFY(true);
+}
+
+void KisPaintingAssistantsDecorationSchemaContractTest::canvasWidgetBaseDecorationCollectionSignaturesRemainStable()
+{
+    using Widget = KisCanvasWidgetBase;
+    using DecorationList = QList<KisCanvasDecorationSP>;
+
+    ASSERT_CANVAS_WIDGET_SIGNATURE(addDecoration, void (Widget::*)(KisCanvasDecorationSP));
+    ASSERT_CANVAS_WIDGET_SIGNATURE(removeDecoration, void (Widget::*)(const QString &));
+    ASSERT_CANVAS_WIDGET_SIGNATURE(decoration, KisCanvasDecorationSP (Widget::*)(const QString &) const);
+    ASSERT_CANVAS_WIDGET_SIGNATURE(setDecorations, void (Widget::*)(const DecorationList &));
+    ASSERT_CANVAS_WIDGET_SIGNATURE(decorations, DecorationList (Widget::*)() const);
+    ASSERT_CANVAS_WIDGET_SIGNATURE(notifyDecorationsWindowMinimized, void (Widget::*)(bool));
+
+    QVERIFY(true);
+}
+
+void KisPaintingAssistantsDecorationSchemaContractTest::canvasWidgetBaseViewingAndProjectionSignaturesRemainStable()
+{
+    using Widget = KisCanvasWidgetBase;
+
+    ASSERT_CANVAS_WIDGET_SIGNATURE(drawDecorations, void (Widget::*)(QPainter &, const QRect &) const);
+    ASSERT_CANVAS_WIDGET_SIGNATURE(setWrapAroundViewingMode, void (Widget::*)(bool));
+    ASSERT_CANVAS_WIDGET_SIGNATURE(setWrapAroundViewingModeAxis, void (Widget::*)(WrapAroundAxis));
+    ASSERT_CANVAS_WIDGET_SIGNATURE(updateCanvasProjection,
+                                   QVector<QRect> (Widget::*)(const QVector<KisUpdateInfoSP> &));
+
+    QVERIFY(true);
+}
+
+void KisPaintingAssistantsDecorationSchemaContractTest::canvasWidgetBaseColorAndBitDepthSignaturesRemainStable()
+{
+    using Widget = KisCanvasWidgetBase;
+
+    ASSERT_CANVAS_WIDGET_SIGNATURE(borderColor, QColor (Widget::*)() const);
+    ASSERT_CANVAS_WIDGET_SIGNATURE(createCheckersImage, QImage (*)(qint32));
+    ASSERT_CANVAS_WIDGET_SIGNATURE(currentBitDepthMode, Widget::BitDepthMode (Widget::*)() const);
+    ASSERT_CANVAS_WIDGET_SIGNATURE(currentBitDepthUserReport, QString (Widget::*)() const);
 
     QVERIFY(true);
 }
