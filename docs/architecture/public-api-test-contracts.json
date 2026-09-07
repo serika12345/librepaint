@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 4223
+    "expectedMissingApis": 4162
   },
   "contracts": [
     {
@@ -70137,6 +70137,139 @@
         "method:KisView::sigColorSpaceChanged(const KoColorSpace * cs)",
         "method:KisView::sigProfileChanged(const KoColorProfile * profile)",
         "method:KisView::sigSizeChanged(const QPointF & oldStillPoint,const QPointF & newStillPoint)"
+      ]
+    },
+    {
+      "target": "KisSelectionManagerSchemaContractTest",
+      "source": "libs/ui/tests/KisSelectionManagerSchemaContractTest.cpp",
+      "test": "KisSelectionManagerSchemaContractTest::typeConstructionViewAndDisplaySchemaRemainStable",
+      "behavior": "選択管理器はview管理器による構築、action管理器とviewの接続、選択表示状態を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisSelectionManager",
+        "method:KisSelectionManager::KisSelectionManager(KisViewManager * view)",
+        "method:KisSelectionManager::displaySelection()",
+        "method:KisSelectionManager::setView(QPointer<KisView> imageView)",
+        "method:KisSelectionManager::setup(KisActionManager * actionManager)",
+        "method:KisSelectionManager::showSelectionAsMask() const",
+        "method:KisSelectionManager::~KisSelectionManager()"
+      ]
+    },
+    {
+      "target": "KisSelectionManagerSchemaContractTest",
+      "source": "libs/ui/tests/KisSelectionManagerSchemaContractTest.cpp",
+      "test": "KisSelectionManagerSchemaContractTest::clipboardTransferSignaturesRemainStable",
+      "behavior": "選択管理器はclipboard変更、切取り、複写、貼付けと新規layerへの転送操作を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSelectionManager::clipboardDataChanged()",
+        "method:KisSelectionManager::copy()",
+        "method:KisSelectionManager::copyMerged()",
+        "method:KisSelectionManager::copySharp()",
+        "method:KisSelectionManager::cut()",
+        "method:KisSelectionManager::cutSharp()",
+        "method:KisSelectionManager::cutToNewLayer()",
+        "method:KisSelectionManager::paste()",
+        "method:KisSelectionManager::pasteAsReference()",
+        "method:KisSelectionManager::pasteAt()",
+        "method:KisSelectionManager::pasteInto()",
+        "method:KisSelectionManager::pasteNew()",
+        "method:KisSelectionManager::pasteShapeStyle()"
+      ]
+    },
+    {
+      "target": "KisSelectionManagerSchemaContractTest",
+      "source": "libs/ui/tests/KisSelectionManagerSchemaContractTest.cpp",
+      "test": "KisSelectionManagerSchemaContractTest::basicSelectionActionSignaturesRemainStable",
+      "behavior": "選択管理器は全選択、解除、反転、消去、再選択、編集、layer複写と選択範囲への画像寸法変更を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSelectionManager::clear()",
+        "method:KisSelectionManager::copySelectionToNewLayer()",
+        "method:KisSelectionManager::deselect()",
+        "method:KisSelectionManager::editSelection()",
+        "method:KisSelectionManager::imageResizeToSelection()",
+        "method:KisSelectionManager::invert()",
+        "method:KisSelectionManager::reselect()",
+        "method:KisSelectionManager::selectAll()"
+      ]
+    },
+    {
+      "target": "KisSelectionManagerSchemaContractTest",
+      "source": "libs/ui/tests/KisSelectionManagerSchemaContractTest.cpp",
+      "test": "KisSelectionManagerSchemaContractTest::fillActionSignaturesRemainStable",
+      "behavior": "選択管理器は前景色・背景色・patternによる通常および不透明度保持の塗りつぶし操作を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSelectionManager::fillBackgroundColor()",
+        "method:KisSelectionManager::fillBackgroundColorOpacity()",
+        "method:KisSelectionManager::fillForegroundColor()",
+        "method:KisSelectionManager::fillForegroundColorOpacity()",
+        "method:KisSelectionManager::fillPattern()",
+        "method:KisSelectionManager::fillPatternOpacity()"
+      ]
+    },
+    {
+      "target": "KisSelectionManagerSchemaContractTest",
+      "source": "libs/ui/tests/KisSelectionManagerSchemaContractTest.cpp",
+      "test": "KisSelectionManagerSchemaContractTest::conversionAndShapeActionSignaturesRemainStable",
+      "behavior": "選択管理器はvector・raster・shape間の変換、図形描画、輪郭描画とnode不透明領域選択を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSelectionManager::convertShapesToVectorSelection()",
+        "method:KisSelectionManager::convertToRasterSelection()",
+        "method:KisSelectionManager::convertToShape()",
+        "method:KisSelectionManager::convertToVectorSelection()",
+        "method:KisSelectionManager::paintSelectedShapes()",
+        "method:KisSelectionManager::selectOpaqueOnNode(KisNodeSP node,SelectionAction action)",
+        "method:KisSelectionManager::shapeSelectionChanged()",
+        "method:KisSelectionManager::slotStrokeSelection()"
+      ]
+    },
+    {
+      "target": "KisSelectionManagerSchemaContractTest",
+      "source": "libs/ui/tests/KisSelectionManagerSchemaContractTest.cpp",
+      "test": "KisSelectionManagerSchemaContractTest::uiAndConfigurationActionSignaturesRemainStable",
+      "behavior": "選択管理器はGUI更新、選択変更、action panel、設定、選択表示・装飾とpanel固定の操作を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSelectionManager::configChanged()",
+        "method:KisSelectionManager::enableSelectionActionsPanel(bool enabled)",
+        "method:KisSelectionManager::selectionChanged()",
+        "method:KisSelectionManager::slotToggleSelectionDecoration()",
+        "method:KisSelectionManager::toggleDisplaySelection()",
+        "method:KisSelectionManager::toggleSAPpin()",
+        "method:KisSelectionManager::updateGUI()"
+      ]
+    },
+    {
+      "target": "KisSelectionManagerSchemaContractTest",
+      "source": "libs/ui/tests/KisSelectionManagerSchemaContractTest.cpp",
+      "test": "KisSelectionManagerSchemaContractTest::selectionStateQuerySignaturesRemainStable",
+      "behavior": "選択管理器はpixel・shapeの選択状態、clipboard内容、編集可能な選択と再選択可否を照会する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSelectionManager::canReselectDeactivatedSelection()",
+        "method:KisSelectionManager::haveAnySelectionWithPixels()",
+        "method:KisSelectionManager::havePixelsInClipboard()",
+        "method:KisSelectionManager::havePixelsSelected()",
+        "method:KisSelectionManager::haveRasterSelectionWithPixels()",
+        "method:KisSelectionManager::haveShapeSelectionWithShapes()",
+        "method:KisSelectionManager::haveShapesInClipboard()",
+        "method:KisSelectionManager::haveShapesSelected()"
+      ]
+    },
+    {
+      "target": "KisSelectionManagerSchemaContractTest",
+      "source": "libs/ui/tests/KisSelectionManagerSchemaContractTest.cpp",
+      "test": "KisSelectionManagerSchemaContractTest::notificationSignaturesRemainStable",
+      "behavior": "選択管理器は現在選択、GUI更新、表示状態と輪郭描画完了を通知する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSelectionManager::currentSelectionChanged()",
+        "method:KisSelectionManager::displaySelectionChanged()",
+        "method:KisSelectionManager::signalUpdateGUI()",
+        "method:KisSelectionManager::strokeSelected()"
       ]
     }
   ]

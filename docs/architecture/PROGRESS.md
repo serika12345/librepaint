@@ -2,8 +2,8 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-07 13:17 JST
-- 状態: `in_progress`
+- 更新日時: 2026-09-07 13:30 JST
+- 状態: `planned`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
@@ -2910,6 +2910,14 @@
 - 構造変更前の21直接利用翻訳単位を4並列の厳格`clang-check`で測定し、13件は診断0件、8件は既存診断を返した。変更後に全21件の終了状態と診断本文を比較し、診断増加0、開始header単独compile、公開API報告のbyte一致、試験sourceの診断0件を完了条件とする。開始実装自身は診断0件である。
 - 新規`libs/ui/tests/KisSelectionManagerSchemaContractTest.cpp`を200行・10枠未満で作り、ui・imageのsource・generated探索路、`kritaui_EXPORTS`だけを持つ専用targetへ分離する。Qt Core・Testだけを動的接続し、選択管理器、view、node、clipboard、actionを実体化せず、型特性と厳密な関数pointerで固定する。製品接続を持たない近傍`KisSelectionActionFactoriesSchemaContractTest`は4工程・8入力、command SHA-256 `ad5bf96739a5a1a01c0d8d4a8639476fd2c0f543e0a495cd90176cd5ea7eee07`、input SHA-256 `d540cd78822c18f3fdc3f681bf3729bd79338640d41fca3dd1fe5c45f294376e`である。新規targetの停止線を5工程・11入力とする。
 - `g371-selection-manager-schema`の状態は`in_progress`、実装基点は`7a8e6a78ba`である。構造先行commit後に、新規試験sourceと`libs/ui/tests/CMakeLists.txt`の対象固有節だけへ契約を追加する。macOSの対象、8枠の20回反復、全直接利用元と試験sourceの厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。製品target、既存破損`KisSelectionManagerTest`、全体build・`verify`、Linux、Nix再評価は実行しない。
+
+### 第371便の実装結果
+
+- `g371-selection-manager-schema`は`completed`である。開始`libs/ui/selection/kis_selection_manager.h`から`kis_image.h`と`application/ui/workspace/KisView.h`の完全型依存を除き、同じ開始headerへ`KisSharedPtr<KisNode>`別名、`KisView`、`KoColor`の宣言を置いた。開始実装`libs/ui/selection/kis_selection_manager.cc`は必要な完全型を既存の直接includeで所有する。構造変更commitは`0f685b43b7`である。
+- 変更前後の全21直接利用翻訳単位を4並列の厳格`clang-check`で比較し、診断0件13件、既存診断8件の終了状態と診断本文が完全一致した。比較用一時診断は検証直後に削除した。公開API報告も変更前後で同じSHA-256 `26fa9b1ecfc79003c48c1e41c33a6e653696c05510ef383f5e9fb0b9ce64c2bc`となり、新規試験sourceによる開始header単独compileに成功した。
+- 開始headerの残存全61 APIを、新規`libs/ui/tests/KisSelectionManagerSchemaContractTest.cpp`の型・構築・view・表示7、clipboard転送13、基本選択操作8、塗りつぶし6、変換・図形操作8、UI・設定操作7、状態照会8、通知4の8枠へ対応付けた。対象は130行で、最初の赤は追加依存を要求せず8試験関数の未定義symbolだけで停止した。契約実装commitは`aa4a12e5e6`である。
+- 最終targetは4工程・8入力、command SHA-256 `ac08a97819cb534579627cdead2f3d2d6c54849330eab01a79c05e8161e1448c`、input SHA-256 `017a3b3505d44868054e58c115b13e33ea7be868245dfa0ca9d18a01e6929deb`である。動的接続はQt Core・Test、gettext、OS frameworkだけで、製品libraryを接続しない。macOSで対象`libs-ui-KisSelectionManagerSchemaContractTest`、軽量近傍`libs-ui-KisSelectionActionFactoriesSchemaContractTest`、対象の20回反復、試験sourceの厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`に成功した。既存破損`KisSelectionManagerTest`、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 台帳へ61 APIを追加して25,642件対応、4,162件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g371.json`と一時報告を最新報告の検証後に削除し、追加作業tree・構築木は作成していない。主Ninja木5,939,144 KiB、共有compiler cache 983,028 KiB、最新`build/tdd-macos/public-api-missing-g372.json` 1,121,130 bytes、SHA-256 `71098d64b4c98c596326aaa649e928c6bc9f3d453c3dbd2ca22f28068e85e9ed`だけを再利用対象として保持する。compiler cacheは144,260件中120,500件、83.53%がhitしている。次の永続作業は第372便で次の高密度なmacOS対象と最小構築面を選定することである。
 
 ### 第239便の先行監査担当票
 
