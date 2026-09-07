@@ -2,8 +2,8 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-07 13:56 JST
-- 状態: `planned`
+- 更新日時: 2026-09-07 14:02 JST
+- 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
@@ -2932,6 +2932,13 @@
 - 開始headerの残存全47 APIを、新規`libs/ui/tests/KisScratchPadSchemaContractTest.cpp`の型・寿命・mode 7、拡大縮小・移動9、領域・入力10、基本塗り7、gradient・document塗り4、画像転送5、通知5の7枠へ対応付けた。対象は118行である。最初のcompileは公開署名が推移要求するpigment resources、painting undo、image filter、Eigen、application設定の探索路不足を順に検出し、製品libraryを加えずheader-only閉包を明示した後、最初の挙動上の赤は7試験関数の未定義symbolだけで停止した。契約実装commitは`886f2eaee0`である。
 - 最終targetは4工程・8入力、command SHA-256 `4099c069a8a5d4eacc39c45457bf2ec2d9cba7d07f5bb0e3225c1e2b885ec594`、input SHA-256 `cd2727dd00fcfbb48263a36346ae2adb1cc281ca374c2fba3983ccf6937d597d`で停止線内に収まる。動的接続はQt Gui・Test・CoreとそのOS framework、gettextだけで、製品libraryを接続しない。macOSで対象`libs-ui-KisScratchPadSchemaContractTest`、軽量近傍`libs-ui-KisDisplayConfigSchemaContractTest`、対象の20回反復、試験sourceの厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`に成功した。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 台帳へ47 APIを追加して25,689件対応、4,115件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g372.json`を最新報告の検証後に削除し、追加作業tree・構築木は作成していない。主Ninja木5,940,504 KiB、共有compiler cache 982,540 KiB、最新`build/tdd-macos/public-api-missing-g373.json` 1,110,534 bytes、SHA-256 `2b4459bbdd116fcaba80d6c784e96829a795e7b91304abdf99372ddfa1d5d706`だけを再利用対象として保持する。compiler cacheは144,275件中120,512件、83.53%がhitしている。次の永続作業は第373便で次の高密度なmacOS対象と最小構築面を選定することである。
+
+### 第373便の公開API契約計画
+
+- 第373便は`libs/ui/opengl/kis_opengl_canvas2.h`の残存全39 APIを対象とする。より多い`KisPart.h`は54 API・111直接利用元、`kis_shape_layer.h`は51 API・51直接利用元、`kis_node.h`は46 API・143直接利用元である。開始headerは5直接利用元に限定され、構造監査と契約追加を局所化できる。
+- 開始`libs/ui/opengl/kis_opengl_canvas2.h`は戻り値の共有pointer別名だけに必要な`opengl/kis_opengl_image_textures.h`を完全includeし、texture tile・buffer・update builderまで推移公開している。開始headerの完全includeを`kis_shared_ptr.h`と`KisOpenGLImageTextures`前方宣言・別名へ置き換え、完全型の所有を開始実装`libs/ui/opengl/kis_opengl_canvas2.cpp`の直接includeへ移す。5直接利用元の変更前の厳格`clang-check`は4件が診断0件、`libs/ui/canvas/kis_canvas_controller.cpp`だけが既存Qt 6 `QTabletEvent::pos()`非推奨診断1件で停止する。変更後に終了状態と診断本文の一致を検査し、公開契約追加より先に独立commitする。
+- 新規`libs/ui/tests/KisOpenGLCanvas2SchemaContractTest.cpp`を200行・10枠未満で作り、型と寿命、Qt event、描画、表示設定、wrap-around、projection更新、状態照会と設定slotに全39 APIを対応付ける。実体化せず型特性と厳密な関数pointerで固定し、`libs/ui/tests/CMakeLists.txt`の専用targetは製品libraryを接続しない。最も近い`KisCanvas2SchemaContractTest`は4工程・8入力、command SHA-256 `bc29da8c640940c753d920e812ec6fd04ab89a825edbc4c2cc560d93eba206c9`、input SHA-256 `f81e09d52468c18355e8cf9865fad097e615cdb1740996e3bce08afc81504ec4`である。新規targetの停止線を5工程・11入力とする。
+- `g373-opengl-canvas-schema`の状態は`in_progress`、実装基点は`a25cf6b6f0`である。構造先行commit後に、新規試験sourceと`libs/ui/tests/CMakeLists.txt`の対象固有節だけへ契約を追加する。macOSの対象、8枠の20回反復、5直接利用元と試験sourceの厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
 
 ### 第239便の先行監査担当票
 
