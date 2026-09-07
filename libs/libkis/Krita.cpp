@@ -25,6 +25,7 @@
 #include <kactioncollection.h>
 #include <application/ui/orchestration/KisPart.h>
 #include <application/ui/workspace/KisMainWindow.h>
+#include <application/ui/workspace/KisView.h>
 #include <document/KisDocument.h>
 #include <kis_image.h>
 #include <application/ui/orchestration/kis_action.h>

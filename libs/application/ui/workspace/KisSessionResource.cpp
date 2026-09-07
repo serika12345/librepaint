@@ -15,6 +15,7 @@
 #include <ksharedconfig.h>
 #include <application/ui/workspace/KisViewManager.h>
 #include <application/ui/workspace/KisMainWindow.h>
+#include <application/ui/workspace/KisView.h>
 
 
 struct KisSessionResource::Private

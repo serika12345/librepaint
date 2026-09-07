@@ -17,11 +17,11 @@
 #include <xmlgui/kxmlguiwindow.h>
 #include <KoCanvasObserverBase.h>
 #include <KoCanvasSupervisor.h>
-#include "application/ui/workspace/KisView.h"
 #include <KoResource.h>
 
 class QCloseEvent;
 class QMoveEvent;
+class QMdiSubWindow;
 
 class KoCanvasResourceProvider;
 

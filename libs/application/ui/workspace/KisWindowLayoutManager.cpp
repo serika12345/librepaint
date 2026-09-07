@@ -15,6 +15,7 @@
 
 #include <application/ui/orchestration/KisApplication.h>
 #include <application/ui/workspace/KisMainWindow.h>
+#include <application/ui/workspace/KisView.h>
 #include <application/ui/orchestration/KisPart.h>
 #include <kis_dom_utils.h>
 #include <application/ui/orchestration/KisResourceServerProvider.h>

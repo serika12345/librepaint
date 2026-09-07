@@ -20,6 +20,7 @@
 #include <document/KisDocument.h>
 #include <kis_dom_utils.h>
 #include <application/ui/workspace/KisMainWindow.h>
+#include <application/ui/workspace/KisView.h>
 
 static const int WINDOW_LAYOUT_VERSION = 1;
 
