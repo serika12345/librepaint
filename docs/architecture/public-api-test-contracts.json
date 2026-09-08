@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 3227
+    "expectedMissingApis": 3208
   },
   "contracts": [
     {
@@ -72951,6 +72951,70 @@
         "method:KisImageManager::rotateCurrentImage(double radians)",
         "method:KisImageManager::scaleCurrentImage(const QSize & size,qreal xres,qreal yres,KisFilterStrategy * filterStrategy)",
         "method:KisImageManager::shearCurrentImage(double angleX,double angleY)"
+      ]
+    },
+    {
+      "target": "KoToolBasePrivateSchemaContractTest",
+      "source": "libs/flake/tests/KoToolBasePrivateSchemaContractTest.cpp",
+      "test": "KoToolBasePrivateSchemaContractTest::privateTypeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "toolの私有状態はtoolとcanvasから構築でき、仮想寿命境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoToolBasePrivate",
+        "method:KoToolBasePrivate::KoToolBasePrivate(KoToolBase * qq,KoCanvasBase * canvas_)",
+        "method:KoToolBasePrivate::~KoToolBasePrivate()"
+      ]
+    },
+    {
+      "target": "KoToolBasePrivateSchemaContractTest",
+      "source": "libs/flake/tests/KoToolBasePrivateSchemaContractTest.cpp",
+      "test": "KoToolBasePrivateSchemaContractTest::toolCanvasResourcesSchemaRemainsStable",
+      "behavior": "toolのcanvas資源集合は抽象資源と派生資源変換器を識別子別に保持する型境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KoToolBasePrivate::ToolCanvasResources::abstractResources",
+        "member:KoToolBasePrivate::ToolCanvasResources::converters",
+        "struct:KoToolBasePrivate::ToolCanvasResources"
+      ]
+    },
+    {
+      "target": "KoToolBasePrivateSchemaContractTest",
+      "source": "libs/flake/tests/KoToolBasePrivateSchemaContractTest.cpp",
+      "test": "KoToolBasePrivateSchemaContractTest::presentationAndOwnershipStateSchemaRemainsStable",
+      "behavior": "toolの私有状態はoption widget、cursor、tool本体、factoryへの現行接続型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KoToolBasePrivate::currentCursor",
+        "member:KoToolBasePrivate::factory",
+        "member:KoToolBasePrivate::optionWidgets",
+        "member:KoToolBasePrivate::q"
+      ]
+    },
+    {
+      "target": "KoToolBasePrivateSchemaContractTest",
+      "source": "libs/flake/tests/KoToolBasePrivateSchemaContractTest.cpp",
+      "test": "KoToolBasePrivateSchemaContractTest::modeAndActivationStateSchemaRemainsStable",
+      "behavior": "toolの私有状態はoption生成、文字入力、合成event抑止、活動、opacity presetの真偽状態を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KoToolBasePrivate::isActivated",
+        "member:KoToolBasePrivate::isInTextMode",
+        "member:KoToolBasePrivate::isOpacityPresetMode",
+        "member:KoToolBasePrivate::maskSyntheticEvents",
+        "member:KoToolBasePrivate::optionWidgetsCreated"
+      ]
+    },
+    {
+      "target": "KoToolBasePrivateSchemaContractTest",
+      "source": "libs/flake/tests/KoToolBasePrivateSchemaContractTest.cpp",
+      "test": "KoToolBasePrivateSchemaContractTest::canvasResourceAndSignalConnectionSchemaRemainStable",
+      "behavior": "toolの私有状態はcanvas、装飾領域、canvas資源集合を保持し、資源変更signalへ接続する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KoToolBasePrivate::canvas",
+        "member:KoToolBasePrivate::lastDecorationsRect",
+        "member:KoToolBasePrivate::toolCanvasResources",
+        "method:KoToolBasePrivate::connectSignals()"
       ]
     }
   ]
