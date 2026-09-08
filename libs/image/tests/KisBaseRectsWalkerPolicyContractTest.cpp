@@ -6,6 +6,7 @@
 #include "kis_paint_device.h"
 
 #include "kis_base_rects_walker.h"
+#include "kis_merge_walker.h"
 #include "kis_refresh_subtree_walker.h"
 
 #include <QTest>
@@ -19,6 +20,8 @@ namespace
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisBaseRectsWalker::method)), signature>)
 #define ASSERT_REFRESH_WALKER_SIGNATURE(method, signature)                                                             \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisRefreshSubtreeWalker::method)), signature>)
+#define ASSERT_MERGE_WALKER_SIGNATURE(method, signature)                                                               \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KisMergeWalker::method)), signature>)
 
 class WalkerPolicyProbe final : public KisBaseRectsWalker
 {
@@ -49,6 +52,9 @@ private Q_SLOTS:
     void refreshWalkerTypeAndFlagsSchemaRemainStable();
     void refreshWalkerConstructionAndLifetimeSchemaRemainStable();
     void refreshWalkerObservationSignaturesRemainStable();
+    void mergeWalkerTypeAndFlagsSchemaRemainStable();
+    void mergeWalkerConstructionAndLifetimeSchemaRemainStable();
+    void mergeWalkerObservationSignatureRemainsStable();
 };
 
 void KisBaseRectsWalkerPolicyContractTest::updateTypesKeepStableOrdinals()
@@ -229,6 +235,37 @@ void KisBaseRectsWalkerPolicyContractTest::refreshWalkerObservationSignaturesRem
     ASSERT_REFRESH_WALKER_SIGNATURE(flags, Walker::Flags (Walker::*)() const);
 }
 
+void KisBaseRectsWalkerPolicyContractTest::mergeWalkerTypeAndFlagsSchemaRemainStable()
+{
+    using Walker = KisMergeWalker;
+
+    static_assert(std::is_class_v<Walker>);
+    static_assert(std::is_same_v<KisMergeWalkerSP, KisSharedPtr<Walker>>);
+    static_assert(std::is_enum_v<Walker::Flag>);
+    static_assert(std::is_same_v<Walker::Flags, QFlags<Walker::Flag>>);
+
+    QCOMPARE(static_cast<int>(Walker::DEFAULT), 0x0);
+    QCOMPARE(static_cast<int>(Walker::NO_FILTHY), 0x1);
+    QCOMPARE(static_cast<int>(Walker::CLONES_DONT_INVALIDATE_FRAMES), 0x2);
+}
+
+void KisBaseRectsWalkerPolicyContractTest::mergeWalkerConstructionAndLifetimeSchemaRemainStable()
+{
+    using Walker = KisMergeWalker;
+
+    static_assert(std::is_constructible_v<Walker, QRect>);
+    static_assert(std::is_constructible_v<Walker, QRect, Walker::Flags>);
+    static_assert(std::has_virtual_destructor_v<Walker>);
+}
+
+void KisBaseRectsWalkerPolicyContractTest::mergeWalkerObservationSignatureRemainsStable()
+{
+    using Walker = KisMergeWalker;
+
+    ASSERT_MERGE_WALKER_SIGNATURE(type, KisBaseRectsWalker::UpdateType (Walker::*)() const);
+}
+
+#undef ASSERT_MERGE_WALKER_SIGNATURE
 #undef ASSERT_REFRESH_WALKER_SIGNATURE
 #undef ASSERT_RECTS_WALKER_SIGNATURE
 
