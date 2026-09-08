@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-08 19:27 JST
+- 更新日時: 2026-09-08 19:33 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3386,6 +3386,12 @@
 - 第406便は`libs/libkis/Document.h`に残る全18 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g406.json`は公開header 1,548、公開API 29,804、対応済み26,493、未対応3,311、897,524 bytes、SHA-256 `a42ac9433bf76fa830c42e4f7bd73d9f9902a5e25081fbfaa4f2d516d27ad92b`である。対象識別子整列集合のSHA-256は`a0d147992adc765a726792d98669c615fc47f153ac0b25fd9c9228049da97d49`で、注釈5、grid・guide設定4、従来guide状態4、従来guide線4、投影更新1の5枠へ固定する。
 - 既存`libs/libkis/tests/DocumentGeometrySchemaContractTest.cpp`は文書の寸法、位置、解像度、canvas範囲、幾何変換を所有し、70行・5枠から追加後も300行・20枠未満に収まる。既存compile interfaceが`Document.h`の公開依存を満たすため、CMake変更なしで4工程・8入力を維持する。文書、設定、注釈値と投影本文を実体化せず、厳密な関数pointerだけで公開境界を観測する。非推奨guide APIもスクリプト互換面として現存する間は契約対象に含める。
 - `g406-document-annotation-guide-schema`の状態は`in_progress`、実装基点は`0b02347691`である。開始headerから既存試験sourceの5枠だけへ追加し、CMake、公開header、製品sourceは変更しない。macOSの対象、追加5枠の20回反復、軽量近傍`DocumentAnimationSchemaContractTest`、試験sourceの厳格`clang-check`、書式、二回の無作業再構築、動的接続・未解決symbol、公開API検査、`verify-quick`だけを実行する。製品libkis・OBJECT・shared target、文書動作試験、全体build・`verify`、Linux、Nix再評価は実行しない。
+
+### 第406便の実装結果
+
+- `g406-document-annotation-guide-schema`は`completed`である。開始`libs/libkis/Document.h`から既存`libs/libkis/tests/DocumentGeometrySchemaContractTest.cpp`へ18 API・5枠を追加した。注釈5、grid・guide設定4、従来guide状態4、従来guide線4、投影更新1を厳密な関数pointerで固定した。非推奨guide APIは現存するスクリプト互換面を検査する8参照の範囲だけ非推奨診断を抑制した。試験sourceは128行・10枠で、文書、設定、注釈値と投影本文は実体化していない。初回redは未定義の5検査関数だけで失敗し、契約実装commitは`817b63a3a3`である。
+- CMake変更なしで、macOSの対象`libs-libkis-DocumentGeometrySchemaContractTest`、軽量近傍`libs-libkis-DocumentAnimationSchemaContractTest`、対象の20回反復、試験sourceの厳格`clang-check`、書式、二回の無作業再構築に成功した。4工程・8入力、command SHA-256 `3f50d4a26157519af196572f37bb680cadd09443730fa0f163de2b0d84bf442b`、input SHA-256 `e1fa814fde44001392333716985b07e040d5c58d877ce1b3bfc3e3819af609c5`、AUTOMOC `HEADERS=[]`、直接接続はQt Core・Testとheader-only Boost、製品未解決symbol 0である。製品libkis targetと文書動作試験は実行していない。
+- 台帳へ18 APIを追加して26,511件対応、3,293件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g406.json`と一時計測物を削除し、追加作業tree・構築木は作成していない。主Ninja木5,977,808 KiB、共有compiler cache 982,544 KiB、最新`build/tdd-macos/public-api-missing-g407.json` 893,450 bytes、SHA-256 `69c6cb74caaf7db85c9863cd87c8d015664d9997bb5ada16941c0d7b9e044151`だけを再利用対象として保持する。compiler cacheは144,416件中120,537件、83.47%がhitしている。次の永続作業は第407便で次の高密度なmacOS対象と最小構築面を選定することである。
 
 ### 第239便の先行監査担当票
 

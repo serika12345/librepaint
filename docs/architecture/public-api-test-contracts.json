@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 3311
+    "expectedMissingApis": 3293
   },
   "contracts": [
     {
@@ -72687,6 +72687,69 @@
       "apis": [
         "method:KisConvolutionPainter::applyMatrix(const KisConvolutionKernelSP kernel,const KisPaintDeviceSP src,QPoint srcPos,QPoint dstPos,QSize areaSize,KisConvolutionBorderOp borderOp=BORDER_REPEAT)",
         "method:KisConvolutionPainter::needsTransaction(const KisConvolutionKernelSP kernel) const"
+      ]
+    },
+    {
+      "target": "DocumentGeometrySchemaContractTest",
+      "source": "libs/libkis/tests/DocumentGeometrySchemaContractTest.cpp",
+      "test": "DocumentGeometrySchemaContractTest::documentAnnotationSignaturesRemainStable",
+      "behavior": "スクリプト文書は注釈種別・説明・内容の照会、設定、削除を行う公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:Document::annotation(const QString & type)",
+        "method:Document::annotationDescription(const QString & type) const",
+        "method:Document::annotationTypes() const",
+        "method:Document::removeAnnotation(const QString & type)",
+        "method:Document::setAnnotation(const QString & type,const QString & description,const QByteArray & annotation)"
+      ]
+    },
+    {
+      "target": "DocumentGeometrySchemaContractTest",
+      "source": "libs/libkis/tests/DocumentGeometrySchemaContractTest.cpp",
+      "test": "DocumentGeometrySchemaContractTest::documentGridAndGuidesConfigSignaturesRemainStable",
+      "behavior": "スクリプト文書はgrid・guide設定模型を取得し、更新済み設定を適用する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:Document::gridConfig()",
+        "method:Document::guidesConfig()",
+        "method:Document::setGridConfig(GridConfig * gridConfig)",
+        "method:Document::setGuidesConfig(GuidesConfig * guidesConfig)"
+      ]
+    },
+    {
+      "target": "DocumentGeometrySchemaContractTest",
+      "source": "libs/libkis/tests/DocumentGeometrySchemaContractTest.cpp",
+      "test": "DocumentGeometrySchemaContractTest::documentLegacyGuideStateSignaturesRemainStable",
+      "behavior": "スクリプト文書は従来guide互換面の表示・固定状態を照会して設定する境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:Document::guidesLocked() const",
+        "method:Document::guidesVisible() const",
+        "method:Document::setGuidesLocked(bool locked)",
+        "method:Document::setGuidesVisible(bool visible)"
+      ]
+    },
+    {
+      "target": "DocumentGeometrySchemaContractTest",
+      "source": "libs/libkis/tests/DocumentGeometrySchemaContractTest.cpp",
+      "test": "DocumentGeometrySchemaContractTest::documentLegacyGuideLineSignaturesRemainStable",
+      "behavior": "スクリプト文書は従来guide互換面の水平・垂直位置一覧を照会して設定する境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:Document::horizontalGuides() const",
+        "method:Document::setHorizontalGuides(const QList<qreal> & lines)",
+        "method:Document::setVerticalGuides(const QList<qreal> & lines)",
+        "method:Document::verticalGuides() const"
+      ]
+    },
+    {
+      "target": "DocumentGeometrySchemaContractTest",
+      "source": "libs/libkis/tests/DocumentGeometrySchemaContractTest.cpp",
+      "test": "DocumentGeometrySchemaContractTest::documentRefreshProjectionSignatureRemainsStable",
+      "behavior": "スクリプト文書は同期的な投影再構成を要求する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:Document::refreshProjection()"
       ]
     }
   ]
