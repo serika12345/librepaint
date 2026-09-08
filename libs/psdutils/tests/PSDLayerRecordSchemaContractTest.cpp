@@ -5,6 +5,7 @@
 
 #include <psd_layer_record.h>
 #include <psd_layer_section.h>
+#include <psd_resource_block.h>
 
 #include <QTest>
 
@@ -16,6 +17,8 @@ namespace
     static_assert(std::is_same_v<decltype(static_cast<signature>(&PSDLayerRecord::method)), signature>)
 #define ASSERT_PSD_LAYER_SECTION_SIGNATURE(method, signature)                                                          \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&PSDLayerMaskSection::method)), signature>)
+#define ASSERT_PSD_RESOURCE_BLOCK_SIGNATURE(method, signature)                                                         \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&PSDResourceBlock::method)), signature>)
 } // namespace
 
 class PSDLayerRecordSchemaContractTest : public QObject
@@ -32,6 +35,11 @@ private Q_SLOTS:
     void layerMaskSectionGlobalMaskValueSchemaRemainsStable();
     void layerMaskSectionStateMemberSchemaRemainsStable();
     void layerMaskSectionIoSignaturesRemainStable();
+    void resourceBlockTypeConstructionAndLifetimeSchemaRemainStable();
+    void resourceBlockSerializedValueMemberSchemaRemainsStable();
+    void resourceBlockOwnershipAndCloneSchemaRemainStable();
+    void resourceBlockDisplayAndValiditySignaturesRemainStable();
+    void resourceBlockIoSignaturesRemainStable();
 };
 
 void PSDLayerRecordSchemaContractTest::layerRecordTypeLifetimeAndValiditySchemaRemainStable()
@@ -129,6 +137,42 @@ void PSDLayerRecordSchemaContractTest::layerMaskSectionIoSignaturesRemainStable(
                                        bool (PSDLayerMaskSection::*)(QIODevice &, KisNodeSP, psd_compression_type));
 }
 
+void PSDLayerRecordSchemaContractTest::resourceBlockTypeConstructionAndLifetimeSchemaRemainStable()
+{
+    static_assert(std::is_class_v<PSDResourceBlock>);
+    static_assert(std::is_default_constructible_v<PSDResourceBlock>);
+    static_assert(std::is_destructible_v<PSDResourceBlock>);
+    static_assert(std::has_virtual_destructor_v<PSDResourceBlock>);
+}
+
+void PSDLayerRecordSchemaContractTest::resourceBlockSerializedValueMemberSchemaRemainsStable()
+{
+    static_assert(std::is_same_v<decltype(&PSDResourceBlock::data), QByteArray PSDResourceBlock::*>);
+    static_assert(std::is_same_v<decltype(&PSDResourceBlock::dataSize), quint32 PSDResourceBlock::*>);
+    static_assert(std::is_same_v<decltype(&PSDResourceBlock::error), QString PSDResourceBlock::*>);
+    static_assert(std::is_same_v<decltype(&PSDResourceBlock::identifier), quint16 PSDResourceBlock::*>);
+    static_assert(std::is_same_v<decltype(&PSDResourceBlock::name), QString PSDResourceBlock::*>);
+}
+
+void PSDLayerRecordSchemaContractTest::resourceBlockOwnershipAndCloneSchemaRemainStable()
+{
+    static_assert(std::is_same_v<decltype(&PSDResourceBlock::resource), PSDInterpretedResource * PSDResourceBlock::*>);
+    ASSERT_PSD_RESOURCE_BLOCK_SIGNATURE(clone, KisAnnotation * (PSDResourceBlock::*)() const);
+}
+
+void PSDLayerRecordSchemaContractTest::resourceBlockDisplayAndValiditySignaturesRemainStable()
+{
+    ASSERT_PSD_RESOURCE_BLOCK_SIGNATURE(displayText, QString (PSDResourceBlock::*)() const);
+    ASSERT_PSD_RESOURCE_BLOCK_SIGNATURE(valid, bool (PSDResourceBlock::*)());
+}
+
+void PSDLayerRecordSchemaContractTest::resourceBlockIoSignaturesRemainStable()
+{
+    ASSERT_PSD_RESOURCE_BLOCK_SIGNATURE(read, bool (PSDResourceBlock::*)(QIODevice &));
+    ASSERT_PSD_RESOURCE_BLOCK_SIGNATURE(write, bool (PSDResourceBlock::*)(QIODevice &) const);
+}
+
+#undef ASSERT_PSD_RESOURCE_BLOCK_SIGNATURE
 #undef ASSERT_PSD_LAYER_SECTION_SIGNATURE
 #undef ASSERT_PSD_LAYER_RECORD_SIGNATURE
 
