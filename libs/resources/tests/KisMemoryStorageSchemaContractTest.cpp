@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "KisBundleStorage.h"
 #include "KisFolderStorage.h"
 
 #include "KisMemoryStorage.h"
@@ -20,6 +21,10 @@ using FolderStorage = KisFolderStorage;
     static_assert(std::is_same_v<decltype(static_cast<signature>(&Storage::method)), signature>)
 #define ASSERT_FOLDER_STORAGE_SIGNATURE(method, signature)                                                             \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&FolderStorage::method)), signature>)
+#define ASSERT_BUNDLE_STORAGE_SIGNATURE(method, signature)                                                             \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&BundleStorage::method)), signature>)
+
+using BundleStorage = KisBundleStorage;
 } // namespace
 
 class KisMemoryStorageSchemaContractTest : public QObject
@@ -37,6 +42,11 @@ private Q_SLOTS:
     void folderStorageImportExportAndPathSignaturesRemainStable();
     void folderStorageLookupAndIteratorSignaturesRemainStable();
     void folderStorageMetadataSignaturesRemainStable();
+    void bundleStorageTypeLifetimeAndConstructionSchemaRemainStable();
+    void bundleStorageResourceLookupAndLoadingSignaturesRemainStable();
+    void bundleStorageIteratorSignaturesRemainStable();
+    void bundleStorageMetadataAndThumbnailSignaturesRemainStable();
+    void bundleStorageExportAndVersioningSignaturesRemainStable();
 };
 
 void KisMemoryStorageSchemaContractTest::memoryStorageTypeLifetimeAndConstructionSchemaRemainStable()
@@ -119,6 +129,44 @@ void KisMemoryStorageSchemaContractTest::folderStorageMetadataSignaturesRemainSt
 {
     ASSERT_FOLDER_STORAGE_SIGNATURE(metaData, QVariant (FolderStorage::*)(const QString &) const);
     ASSERT_FOLDER_STORAGE_SIGNATURE(metaDataKeys, QStringList (FolderStorage::*)() const);
+}
+
+void KisMemoryStorageSchemaContractTest::bundleStorageTypeLifetimeAndConstructionSchemaRemainStable()
+{
+    static_assert(std::is_class_v<BundleStorage>);
+    static_assert(std::is_base_of_v<KisStoragePlugin, BundleStorage>);
+    static_assert(std::is_constructible_v<BundleStorage, const QString &>);
+    static_assert(std::has_virtual_destructor_v<BundleStorage>);
+}
+
+void KisMemoryStorageSchemaContractTest::bundleStorageResourceLookupAndLoadingSignaturesRemainStable()
+{
+    ASSERT_BUNDLE_STORAGE_SIGNATURE(loadVersionedResource, bool (BundleStorage::*)(KoResourceSP));
+    ASSERT_BUNDLE_STORAGE_SIGNATURE(resourceItem, KisResourceStorage::ResourceItem (BundleStorage::*)(const QString &));
+    ASSERT_BUNDLE_STORAGE_SIGNATURE(resourceMd5, QString (BundleStorage::*)(const QString &));
+}
+
+void KisMemoryStorageSchemaContractTest::bundleStorageIteratorSignaturesRemainStable()
+{
+    ASSERT_BUNDLE_STORAGE_SIGNATURE(
+        resources,
+        QSharedPointer<KisResourceStorage::ResourceIterator> (BundleStorage::*)(const QString &));
+    ASSERT_BUNDLE_STORAGE_SIGNATURE(
+        tags,
+        QSharedPointer<KisResourceStorage::TagIterator> (BundleStorage::*)(const QString &));
+}
+
+void KisMemoryStorageSchemaContractTest::bundleStorageMetadataAndThumbnailSignaturesRemainStable()
+{
+    ASSERT_BUNDLE_STORAGE_SIGNATURE(metaData, QVariant (BundleStorage::*)(const QString &) const);
+    ASSERT_BUNDLE_STORAGE_SIGNATURE(metaDataKeys, QStringList (BundleStorage::*)() const);
+    ASSERT_BUNDLE_STORAGE_SIGNATURE(thumbnail, QImage (BundleStorage::*)() const);
+}
+
+void KisMemoryStorageSchemaContractTest::bundleStorageExportAndVersioningSignaturesRemainStable()
+{
+    ASSERT_BUNDLE_STORAGE_SIGNATURE(exportResource, bool (BundleStorage::*)(const QString &, QIODevice *));
+    ASSERT_BUNDLE_STORAGE_SIGNATURE(saveAsNewVersion, bool (BundleStorage::*)(const QString &, KoResourceSP));
 }
 
 QTEST_GUILESS_MAIN(KisMemoryStorageSchemaContractTest)
