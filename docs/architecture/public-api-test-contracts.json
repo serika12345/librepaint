@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 3110
+    "expectedMissingApis": 3091
   },
   "contracts": [
     {
@@ -73365,6 +73365,70 @@
         "method:KisReferenceImagesLayer::convertTo(const KoColorSpace * dstColorSpace,KoColorConversionTransformation::Intent renderingIntent=KoColorConversionTransformation::internalRenderingIntent (),KoColorConversionTransformation::ConversionFlags conversionFlags=KoColorConversionTransformation::internalConversionFlags ())",
         "method:KisReferenceImagesLayer::setProfile(const KoColorProfile * profile)",
         "method:KisReferenceImagesLayer::sigUpdateCanvas(const QRectF & rect)"
+      ]
+    },
+    {
+      "target": "KisMainWindowSchemaContractTest",
+      "source": "libs/application/tests/KisMainWindowSchemaContractTest.cpp",
+      "test": "KisMainWindowSchemaContractTest::windowLayoutManagerTypeAndLifetimeSchemaRemainStable",
+      "behavior": "window layout managerはQObject型として既定構築・仮想破棄でき、共有個体を取得できる公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisWindowLayoutManager",
+        "method:KisWindowLayoutManager::KisWindowLayoutManager()",
+        "method:KisWindowLayoutManager::instance()",
+        "method:KisWindowLayoutManager::~KisWindowLayoutManager()"
+      ]
+    },
+    {
+      "target": "KisMainWindowSchemaContractTest",
+      "source": "libs/application/tests/KisMainWindowSchemaContractTest.cpp",
+      "test": "KisMainWindowSchemaContractTest::windowLayoutDisplaySchemaRemainsStable",
+      "behavior": "display記述は解像度を保持し、画面がその記述と一致するか判定する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisWindowLayoutManager::Display::resolution",
+        "method:KisWindowLayoutManager::Display::matches(QScreen * screen) const",
+        "struct:KisWindowLayoutManager::Display"
+      ]
+    },
+    {
+      "target": "KisMainWindowSchemaContractTest",
+      "source": "libs/application/tests/KisMainWindowSchemaContractTest.cpp",
+      "test": "KisMainWindowSchemaContractTest::windowLayoutDisplayLayoutSchemaRemainsStable",
+      "behavior": "display layoutは名前、display群、優先window layoutを保持し、現在の画面群との一致を判定する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisWindowLayoutManager::DisplayLayout::displays",
+        "member:KisWindowLayoutManager::DisplayLayout::name",
+        "member:KisWindowLayoutManager::DisplayLayout::preferredWindowLayout",
+        "method:KisWindowLayoutManager::DisplayLayout::matches(QList<QScreen * > screens) const",
+        "struct:KisWindowLayoutManager::DisplayLayout"
+      ]
+    },
+    {
+      "target": "KisMainWindowSchemaContractTest",
+      "source": "libs/application/tests/KisMainWindowSchemaContractTest.cpp",
+      "test": "KisMainWindowSchemaContractTest::primaryWorkspaceSignaturesRemainStable",
+      "behavior": "window layout managerは主workspaceのfocus追従状態と主window識別子を照会・設定する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisWindowLayoutManager::primaryWindowId() const",
+        "method:KisWindowLayoutManager::primaryWorkspaceFollowsFocus() const",
+        "method:KisWindowLayoutManager::setPrimaryWorkspaceFollowsFocus(bool enabled,QUuid primaryWindow)"
+      ]
+    },
+    {
+      "target": "KisMainWindowSchemaContractTest",
+      "source": "libs/application/tests/KisMainWindowSchemaContractTest.cpp",
+      "test": "KisMainWindowSchemaContractTest::synchronizedDocumentAndLayoutSignaturesRemainStable",
+      "behavior": "window layout managerは全windowの画像同期状態、active文書変更、最終利用layoutを受け取る公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisWindowLayoutManager::activeDocumentChanged(KisDocument * document)",
+        "method:KisWindowLayoutManager::isShowImageInAllWindowsEnabled() const",
+        "method:KisWindowLayoutManager::setLastUsedLayout(KisWindowLayoutResource * layout)",
+        "method:KisWindowLayoutManager::setShowImageInAllWindowsEnabled(bool showInAll)"
       ]
     }
   ]

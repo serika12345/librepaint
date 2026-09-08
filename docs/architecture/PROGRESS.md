@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-08 21:37 JST
+- 更新日時: 2026-09-08 21:48 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3525,6 +3525,12 @@
 - 第417便は`libs/application/ui/workspace/KisWindowLayoutManager.h`に残る全19 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g417.json`は公開header 1,548、公開API 29,804、対応済み26,694、未対応3,110、842,175 bytes、SHA-256 `2c679d77b0aa5b71d2be6fef44ddb4105a536b43db445694b936cc719346152e`である。対象識別子整列集合のSHA-256は`dffdb81bef00b93b2664be98e64ba3d3014e7776db618265cca6c3ea2d6754b9`で、manager型・構築・寿命・共有取得4、display型・解像度・照合3、display layout型・名前・表示群・優先配置・照合5、primary workspace状態3、全window表示・文書・最終配置4の5枠へ固定する。
 - 既存`libs/application/tests/KisMainWindowSchemaContractTest.cpp`はwindow・workspace表示境界を所有し、137行・8枠から追加後も300行・20枠未満に収まる。対象固有CMake節へheader内の`application/...` includeに必要な`${CMAKE_SOURCE_DIR}/libs`だけを加え、Qt Core・Testだけの動的接続と4工程・8入力を維持する。現行command SHA-256は`57a65195fdda2a754bb6dfe44fe1b834b5e3c1683eb4e0e7b3f722df49976f51`、input SHA-256は`b27d6a2c14eede0dadfa3a8ca92a0a958eacd0fd43a1281530b9eedd6e60b2be`である。manager、screen、文書、配置資源と本文を実体化せず、型特性、member型、構築可能性、厳密な関数pointerだけで公開境界を観測する。製品`kritaapplicationui`は1,975工程・3,950入力で反復先から除外する。
 - `g417-window-layout-manager-schema`の状態は`in_progress`、実装基点は`91e3c59cc2`である。開始headerから既存試験sourceの5枠と対象固有CMake節だけへ追加し、公開header、製品source、製品targetは変更しない。停止線は5工程・11入力とし、計画外の探索路・定義・link、製品OBJECT・shared・`kritatestsdk`接続、候補headerのAUTOMOC入力化、製品未解決symbol、対象値または本文の実体化が必要なら候補を保留する。macOSの対象、追加5枠の20回反復、軽量近傍、試験sourceの厳格`clang-check`、書式、二回の無作業再構築、動的接続・未解決symbol、公開API検査、`verify-quick`だけを実行する。製品application UI・UI・resources target、全体build・`verify`、Linux、Nix再評価は実行しない。
+
+### 第417便の実装結果
+
+- `g417-window-layout-manager-schema`は`completed`である。構築範囲の先行変更では`libs/application/tests/CMakeLists.txt`内の既存`KisMainWindowSchemaContractTest`固有節へ`${CMAKE_SOURCE_DIR}/libs`探索路だけを追加した。`libs/application/ui/workspace/KisWindowLayoutManager.h`から既存`libs/application/tests/KisMainWindowSchemaContractTest.cpp`へ19 API・5枠を移し、manager型・構築・寿命・共有取得4、display型・解像度・照合3、display layout型・名前・表示群・優先配置・照合5、primary workspace状態3、全window表示・文書・最終配置4を型特性、member型、構築可能性、厳密な関数pointerで固定した。試験sourceは196行・13枠で、manager、screen、文書、配置資源と本文を実体化していない。初回redは未定義の5検査関数だけで失敗し、構築範囲commitは`1823a7e7b7`、契約実装commitは`3c5ca5a221`である。
+- macOSの対象`libs-application-KisMainWindowSchemaContractTest`、軽量近傍`libs-application-KisPartSchemaContractTest`、対象の20回反復、試験sourceの厳格`clang-check`、書式、最終計画、連続二回の無作業再構築に成功した。対象は4工程・8入力、command SHA-256 `631ecd85515c8854216a7aaafbb8344f8af1b1755cddd723df0d0911b4c23e6d`、input SHA-256 `b27d6a2c14eede0dadfa3a8ca92a0a958eacd0fd43a1281530b9eedd6e60b2be`、AUTOMOC `HEADERS=[]`、直接接続はQt Core・Test、製品未解決symbol 0である。1,975工程・3,950入力の製品application UI、製品UI・resources target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 台帳へ19 APIを追加して26,713件対応、3,091件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g417.json`と一時計画ログを削除し、追加作業tree・構築木は作成していない。主Ninja木5,982,032 KiB、共有compiler cache 982,520 KiB、最新`build/tdd-macos/public-api-missing-g418.json` 837,066 bytes、SHA-256 `d868d548c0c2ca4a9d38b0c628b99c57922e78e6f7132efaec1379886d5e34a0`だけを再利用対象として保持する。compiler cacheは144,465件中120,550件、83.45%がhitしている。公開API検査と`verify-quick`に成功した。次の永続作業は第418便で次の高密度なmacOS対象と最小構築面を選定することである。
 
 ### 第239便の先行監査担当票
 
