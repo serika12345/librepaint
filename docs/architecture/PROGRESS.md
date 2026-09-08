@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 00:16 JST
+- 更新日時: 2026-09-09 00:24 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3694,9 +3694,10 @@
 
 ### 第431便の公開API契約計画
 
-- 第431便は`libs/image/kis_exif_info_visitor.h`に残る全16 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g431.json`は公開header 1,548、公開API 29,804、対応済み26,917、未対応2,887、786,900 bytes、SHA-256 `249588ad8c619db9e8025abf4917085be5400d27c71f12025519bed8a6cf4e37`である。対象識別子整列集合のSHA-256は`8fd0f76cebf87a36386342c130ac5328bc20e43bb3c8c083896392f8238c83c4`で、visitor型・既定構築・metadata照会4、node・clone・external・generator訪問4、filter・transform・transparency・selection・colorize訪問5、adjustment・paint・group訪問3の4枠へ固定する。
-- 既存`libs/image/tests/KisCountVisitorSchemaContractTest.cpp`はnode visitorの全layer種別への公開配送境界を持ち、65行・5枠から追加後も300行・20枠以内に収まる。現状はQt Core・Testだけへ動的接続する4工程・8入力、command SHA-256 `555ed3709ed4e48d867f8bedfb45948b26f7ac3ca8f10a7e8dd0181f946f8d27`、input SHA-256 `ff3f4b2b979f553b4f739ca50a0a8208c0ee9e58b256583e40b7cd469c089f1d`、AUTOMOC `HEADERS=[]`である。対象headerが未使用の`kis_meta_data_filter_registry_model.h`を介してflake側のregistry modelまで公開include閉包へ持ち込んでいるため、このincludeを先に除去し、試験targetには実際に使用する`kis_meta_data_store.h`のmetadata source/generated探索路と`kritapaintingmetadata_EXPORTS`だけを明示する。新規targetは同じ閉包に別のCMake登録と生成物を加えるため棄却する。
-- `g431-exif-info-visitor-schema`の状態は`in_progress`、実装基点は`d144c30a12`である。開始headerの未使用include除去と既存試験target固有の探索路・export定義を独立した構造整理commitにし、その後に既存試験sourceの4枠だけへ16 APIを追加する。停止線は5工程・11入力とし、metadata以外の新たな探索路・定義・link、製品OBJECT・shared・`kritatestsdk`接続、候補headerのAUTOMOC入力化、製品未解決symbol、visitor・layer・metadata storeまたはinline本文の実体化が必要なら候補を保留する。macOSの対象、追加4枠の20回反復、軽量近傍、試験sourceと公開headerの厳格`clang-check`、書式、再計画、連続二回の無作業再構築、動的接続・未解決symbol、公開API検査、`verify-quick`だけを実行する。1,197工程・2,418入力の製品image target、全体build・`verify`、Linux、Nix再評価は実行しない。
+- 最初に選定した`libs/image/kis_exif_info_visitor.h`の16 APIは保留した。未使用`kis_meta_data_filter_registry_model.h`を除去しても、公開header内のpaint・group layer用inline本文がglobal、Qt Gui、KF I18nへ完全型依存を連鎖させ、既存のQt Core・Test限定visitor契約へ計画外の依存を要求したためである。完全型本文の製品翻訳単位への移設には新しい製品sourceと公開symbol輸出の設計が必要であり、今回の契約追加と分離して後続の構造課題で扱う。診断後は候補header、試験source、CMakeをすべて開始状態へ戻した。
+- 再選定した対象は`libs/image/kis_update_time_monitor.h`に残る全12 APIである。正式入力`build/tdd-macos/public-api-missing-g431.json`は公開header 1,548、公開API 29,804、対応済み26,917、未対応2,887、786,900 bytes、SHA-256 `249588ad8c619db9e8025abf4917085be5400d27c71f12025519bed8a6cf4e37`である。対象識別子整列集合のSHA-256は`a26e292df498b8269e3ee483b1d058718f7ec47c9a12be11247a9e43be826169`で、monitor型・構築・寿命・singleton取得4、stroke計測開始・終了・preset報告3、mouse移動・値出力・更新完了報告3、job開始・完了報告2の4枠へ固定する。
+- 既存`libs/image/tests/KisImageSharedPointerHooksSchemaContractTest.cpp`はimageの共有pointer型と公開監視引数の境界を持ち、91行・5枠から追加後も300行・20枠以内に収まる。CMake変更なしでimage・globalの既存探索路と`kritaimage_EXPORTS`、Qt Core・Testだけを使う4工程・8入力を維持する。現行command SHA-256は`738e9a2294824102758649a11e386aa98b9c8bda3bc94a9e16cb42f948d1334a`、input SHA-256は`3764e9f1ce0ac1aa62151f8f4b9ac36d2934b4a93019023d7b12a97bad2248a1`である。monitor、preset共有pointer、Qt値と本文を実体化せず、型特性と厳密な関数pointerだけで公開境界を観測する。新規targetは同じ閉包に別のCMake登録と生成物を加えるため棄却する。
+- `g431-update-time-monitor-schema`の状態は`in_progress`、実装基点は`013f15973a`である。開始headerから既存試験sourceの4枠だけへ追加し、CMake、公開header、製品source、製品targetは変更しない。停止線は5工程・11入力とし、新たな探索路・定義・link、製品OBJECT・shared・`kritatestsdk`接続、候補headerのAUTOMOC入力化、製品未解決symbol、monitor・preset・Qt値または本文の実体化が必要なら候補を保留する。macOSの対象、追加4枠の20回反復、軽量近傍、試験sourceの厳格`clang-check`、書式、再計画、連続二回の無作業再構築、動的接続・未解決symbol、公開API検査、`verify-quick`だけを実行する。1,197工程・2,418入力の製品image target、全体build・`verify`、Linux、Nix再評価は実行しない。
 
 ### 第239便の先行監査担当票
 
