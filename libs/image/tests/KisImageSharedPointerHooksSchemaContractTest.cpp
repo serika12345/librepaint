@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "kis_idle_watcher.h"
 #include "kis_types.h"
 #include "kis_update_time_monitor.h"
 
@@ -14,6 +15,9 @@
 
 #define ASSERT_UPDATE_TIME_MONITOR_SIGNATURE(member, signature)                                                        \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisUpdateTimeMonitor::member)), signature>)
+
+#define ASSERT_IDLE_WATCHER_SIGNATURE(member, signature)                                                               \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KisIdleWatcher::member)), signature>)
 
 class KisImageSharedPointerHooksSchemaContractTest : public QObject
 {
@@ -29,6 +33,10 @@ private Q_SLOTS:
     void updateTimeMonitorStrokeMeasurementSignaturesRemainStable();
     void updateTimeMonitorInteractionAndUpdateSignaturesRemainStable();
     void updateTimeMonitorJobSignaturesRemainStable();
+    void idleWatcherTypeLifetimeAndConstructionSchemaRemainStable();
+    void idleWatcherStateAndImageTrackingSignaturesRemainStable();
+    void idleWatcherMemoryAndCountdownSignaturesRemainStable();
+    void idleWatcherNotificationSignaturesRemainStable();
 };
 
 void KisImageSharedPointerHooksSchemaContractTest::imageSharedPointerNodeAndLayerHooksRemainStable()
@@ -121,6 +129,36 @@ void KisImageSharedPointerHooksSchemaContractTest::updateTimeMonitorJobSignature
     ASSERT_UPDATE_TIME_MONITOR_SIGNATURE(reportJobStarted, void (KisUpdateTimeMonitor::*)(void *));
     ASSERT_UPDATE_TIME_MONITOR_SIGNATURE(reportJobFinished,
                                          void (KisUpdateTimeMonitor::*)(void *, const QVector<QRect> &));
+}
+
+void KisImageSharedPointerHooksSchemaContractTest::idleWatcherTypeLifetimeAndConstructionSchemaRemainStable()
+{
+    static_assert(std::is_class_v<KisIdleWatcher>);
+    static_assert(std::is_base_of_v<QObject, KisIdleWatcher>);
+    static_assert(std::is_constructible_v<KisIdleWatcher, int, QObject *>);
+    static_assert(std::has_virtual_destructor_v<KisIdleWatcher>);
+}
+
+void KisImageSharedPointerHooksSchemaContractTest::idleWatcherStateAndImageTrackingSignaturesRemainStable()
+{
+    ASSERT_IDLE_WATCHER_SIGNATURE(isIdle, bool (KisIdleWatcher::*)() const);
+    ASSERT_IDLE_WATCHER_SIGNATURE(isCounting, bool (KisIdleWatcher::*)() const);
+    ASSERT_IDLE_WATCHER_SIGNATURE(setTrackedImages, void (KisIdleWatcher::*)(const QVector<KisImageSP> &));
+    ASSERT_IDLE_WATCHER_SIGNATURE(setTrackedImage, void (KisIdleWatcher::*)(KisImageSP));
+}
+
+void KisImageSharedPointerHooksSchemaContractTest::idleWatcherMemoryAndCountdownSignaturesRemainStable()
+{
+    ASSERT_IDLE_WATCHER_SIGNATURE(connectMemoryStatisticsUpdates, void (KisIdleWatcher::*)());
+    ASSERT_IDLE_WATCHER_SIGNATURE(forceImageModified, void (KisIdleWatcher::*)());
+    ASSERT_IDLE_WATCHER_SIGNATURE(restartCountdown, void (KisIdleWatcher::*)());
+    ASSERT_IDLE_WATCHER_SIGNATURE(triggerCountdownNoDelay, void (KisIdleWatcher::*)());
+}
+
+void KisImageSharedPointerHooksSchemaContractTest::idleWatcherNotificationSignaturesRemainStable()
+{
+    ASSERT_IDLE_WATCHER_SIGNATURE(startedIdleMode, void (KisIdleWatcher::*)());
+    ASSERT_IDLE_WATCHER_SIGNATURE(imageModified, void (KisIdleWatcher::*)());
 }
 
 QTEST_APPLESS_MAIN(KisImageSharedPointerHooksSchemaContractTest)
