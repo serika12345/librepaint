@@ -10,7 +10,6 @@
 #define KISOPENGLMODEPROBER_H
 
 #include "kritaui_export.h"
-#include "application/kis_config.h"
 #include <QSurfaceFormat>
 #include <boost/optional.hpp>
 #include "kis_opengl.h"
