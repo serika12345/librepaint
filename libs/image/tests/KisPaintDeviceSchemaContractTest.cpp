@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "kis_cached_paint_device.h"
 #include "kis_paint_device.h"
 
 #include <QTest>
@@ -11,6 +12,10 @@
 
 #define ASSERT_DEVICE_SIGNATURE(method, signature)                                                                     \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisPaintDevice::method)), signature>)
+#define ASSERT_CACHED_DEVICE_SIGNATURE(method, signature)                                                              \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KisCachedPaintDevice::method)), signature>)
+#define ASSERT_CACHED_SELECTION_SIGNATURE(method, signature)                                                           \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KisCachedSelection::method)), signature>)
 
 class KisPaintDeviceSchemaContractTest : public QObject
 {
@@ -29,6 +34,11 @@ private Q_SLOTS:
     void notificationBoundsAndMemorySignaturesRemainStable();
     void lodSignaturesRemainStable();
     void wraparoundProjectionAndTestingSignaturesRemainStable();
+    void cachedPaintDeviceTypeSchemaRemainStable();
+    void cachedPaintDeviceOperationSignaturesRemainStable();
+    void cachedPaintDeviceGuardSchemaRemainStable();
+    void cachedSelectionOperationSignaturesRemainStable();
+    void cachedSelectionGuardSchemaRemainStable();
 };
 
 // clang-format off
@@ -208,8 +218,56 @@ void KisPaintDeviceSchemaContractTest::wraparoundProjectionAndTestingSignaturesR
     ASSERT_DEVICE_SIGNATURE(setProjectionDevice, void (Device::*)(bool));
     ASSERT_DEVICE_SIGNATURE(testingFetchLodDevice, void (Device::*)(KisPaintDeviceSP));
 }
+
+void KisPaintDeviceSchemaContractTest::cachedPaintDeviceTypeSchemaRemainStable()
+{
+    static_assert(std::is_class_v<KisCachedPaintDevice>);
+    static_assert(std::is_class_v<KisCachedPaintDevice::Guard>);
+    static_assert(std::is_class_v<KisCachedSelection>);
+    static_assert(std::is_class_v<KisCachedSelection::Guard>);
+}
+
+void KisPaintDeviceSchemaContractTest::cachedPaintDeviceOperationSignaturesRemainStable()
+{
+    using Cache = KisCachedPaintDevice;
+    ASSERT_CACHED_DEVICE_SIGNATURE(getDevice, KisPaintDeviceSP (Cache::*)(KisPaintDeviceSP));
+    ASSERT_CACHED_DEVICE_SIGNATURE(getDevice, KisPaintDeviceSP (Cache::*)(KisPaintDeviceSP, const KoColorSpace *));
+    ASSERT_CACHED_DEVICE_SIGNATURE(isEmpty, bool (Cache::*)() const);
+    ASSERT_CACHED_DEVICE_SIGNATURE(putDevice, void (Cache::*)(KisPaintDeviceSP));
+}
+
+void KisPaintDeviceSchemaContractTest::cachedPaintDeviceGuardSchemaRemainStable()
+{
+    using Cache = KisCachedPaintDevice;
+    using Guard = Cache::Guard;
+    static_assert(std::is_constructible_v<Guard, KisPaintDeviceSP, Cache &>);
+    static_assert(std::is_constructible_v<Guard, KisPaintDeviceSP, const KoColorSpace *, Cache &>);
+    static_assert(std::is_destructible_v<Guard>);
+    static_assert(std::is_same_v<decltype(static_cast<KisPaintDeviceSP (Guard::*)() const>(&Guard::device)),
+                                 KisPaintDeviceSP (Guard::*)() const>);
+}
+
+void KisPaintDeviceSchemaContractTest::cachedSelectionOperationSignaturesRemainStable()
+{
+    using Cache = KisCachedSelection;
+    ASSERT_CACHED_SELECTION_SIGNATURE(getSelection, KisSelectionSP (Cache::*)());
+    ASSERT_CACHED_SELECTION_SIGNATURE(isEmpty, bool (Cache::*)() const);
+    ASSERT_CACHED_SELECTION_SIGNATURE(putSelection, void (Cache::*)(KisSelectionSP));
+}
+
+void KisPaintDeviceSchemaContractTest::cachedSelectionGuardSchemaRemainStable()
+{
+    using Cache = KisCachedSelection;
+    using Guard = Cache::Guard;
+    static_assert(std::is_constructible_v<Guard, Cache &>);
+    static_assert(std::is_destructible_v<Guard>);
+    static_assert(std::is_same_v<decltype(static_cast<KisSelectionSP (Guard::*)() const>(&Guard::selection)),
+                                 KisSelectionSP (Guard::*)() const>);
+}
 // clang-format on
 
+#undef ASSERT_CACHED_SELECTION_SIGNATURE
+#undef ASSERT_CACHED_DEVICE_SIGNATURE
 #undef ASSERT_DEVICE_SIGNATURE
 
 QTEST_APPLESS_MAIN(KisPaintDeviceSchemaContractTest)
