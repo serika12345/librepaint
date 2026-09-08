@@ -7,7 +7,11 @@
 
 */
 #include <QtGui>
+#include <QGraphicsOpacityEffect>
 #include <QMenu>
+#include <QPushButton>
+#include <QSlider>
+#include <QSpacerItem>
 #include <QWhatsThis>
 #include <QVBoxLayout>
 
@@ -15,12 +19,16 @@
 
 #include "kis_canvas2.h"
 #include "application/kis_config.h"
+#include "application/ui/workspace/KisViewManager.h"
 #include "kis_popup_palette.h"
 #include "kis_favorite_resource_manager.h"
 #include "kis_icon_utils.h"
+#include "kactioncollection.h"
 #include <canvas/kis_canvas_resource_provider.h>
 #include <KoTriangleColorSelector.h>
 #include "KoColorDisplayRendererInterface.h"
+#include "KisColorSelectorInterface.h"
+#include "KisHighlightedToolButton.h"
 #include <KisVisualColorSelector.h>
 #include <kis_config_notifier.h>
 #include "kis_signal_compressor.h"

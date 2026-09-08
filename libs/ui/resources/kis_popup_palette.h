@@ -8,30 +8,43 @@
 #ifndef KIS_POPUP_PALETTE_H
 #define KIS_POPUP_PALETTE_H
 
-#include <QPushButton>
-#include <QSlider>
-#include <QGraphicsOpacityEffect>
-#include <QSpacerItem>
+#include <QLineF>
+#include <QPoint>
+#include <QRect>
+#include <QScopedPointer>
 #include <QWidget>
-#include "application/ui/workspace/KisViewManager.h"
-#include "kactioncollection.h"
-#include "kis_tool_button.h"
-#include "KisHighlightedToolButton.h"
-#include "KisColorSelectorInterface.h"
+
+#include <array>
+
 #include "input/ui/KisPopupWidgetInterface.h"
 
 class KisFavoriteResourceManager;
-class KoColor;
-class KoTriangleColorSelector;
-class KisSignalCompressor;
-class KisRoundHudButton;
-class KisDockerHud;
-class KisCanvasResourceProvider;
-class KisVisualColorSelector;
+class KisActionManager;
 class KisAcyclicSignalConnector;
-class KisMouseClickEater;
+class KisCanvasResourceProvider;
+class KisColorSelectorInterface;
 class KisCoordinatesConverter;
-
+class KisDockerHud;
+class KisHighlightedToolButton;
+class KisKActionCollection;
+class KisMouseClickEater;
+class KisRoundHudButton;
+class KisSignalCompressor;
+class KisViewManager;
+class KisVisualColorSelector;
+class KoColor;
+class KoColorDisplayRendererInterface;
+class KoTriangleColorSelector;
+class QGraphicsOpacityEffect;
+class QMouseEvent;
+class QPaintEvent;
+class QPainterPath;
+class QPushButton;
+class QResizeEvent;
+class QShowEvent;
+class QSlider;
+class QSpacerItem;
+class QTabletEvent;
 
 struct CachedPresetLayout {
     int ringCount{1};
