@@ -9,7 +9,6 @@
 
 #include <QSharedDataPointer>
 
-#include <KoColor.h>
 #include <KoShape.h>
 #include <kis_types.h>
 #include <kritaui_export.h>
@@ -19,6 +18,7 @@ class QImage;
 class QPointF;
 class QPainter;
 class QRectF;
+class KoColor;
 class KoStore;
 class KisCoordinatesConverter;
 class KisCanvas2;

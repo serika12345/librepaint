@@ -44,6 +44,7 @@
 #include <KisReferenceImagesLayer.h>
 
 #include "application/ui/orchestration/KisPart.h"
+#include "canvas/KisReferenceImage.h"
 #include "canvas/kis_canvas2.h"
 #include "kis_shape_controller.h"
 #include "canvas/kis_canvas_resource_provider.h"

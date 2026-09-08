@@ -5,9 +5,9 @@
  */
 
 #include "canvas/KisReferenceImage.h"
+#include "KoColor.h"
 #include "KoColorProfile.h"
 #include "KoColorSpaceRegistry.h"
-
 #include <QImage>
 #include <QMessageBox>
 #include <QPainter>

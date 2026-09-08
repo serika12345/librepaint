@@ -42,6 +42,7 @@
 #include "kis_raster_keyframe_channel.h"
 #include "kis_painter.h"
 #include <application/ui/orchestration/KisPart.h>
+#include <canvas/KisReferenceImage.h>
 #include <document/KisDocument.h>
 #include <KisReferenceImagesLayer.h>
 #include <KoShapeBackgroundCommand.h>
