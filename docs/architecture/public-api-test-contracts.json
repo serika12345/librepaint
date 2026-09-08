@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 3384
+    "expectedMissingApis": 3369
   },
   "contracts": [
     {
@@ -72389,6 +72389,66 @@
         "class:KisResourceLoader",
         "method:KisResourceLoader::KisResourceLoader(const QString & id,const QString & folder,const QString & name,const QStringList & mimetypes)",
         "method:KisResourceLoader::create(const QString & name)"
+      ]
+    },
+    {
+      "target": "KisAutoLevelsSchemaContractTest",
+      "source": "libs/image/tests/KisAutoLevelsSchemaContractTest.cpp",
+      "test": "KisAutoLevelsSchemaContractTest::adjustmentMethodEnumSchemaRemainsStable",
+      "behavior": "自動level計算は単色・channel別のcontrast方式と、無効・中央値・平均値のmidtone方式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KisAutoLevels::MidtonesAdjustmentMethod",
+        "enum:KisAutoLevels::ShadowsAndHighlightsAdjustmentMethod",
+        "enumerator:KisAutoLevels::MidtonesAdjustmentMethod::MidtonesAdjustmentMethod_None",
+        "enumerator:KisAutoLevels::MidtonesAdjustmentMethod::MidtonesAdjustmentMethod_UseMean",
+        "enumerator:KisAutoLevels::MidtonesAdjustmentMethod::MidtonesAdjustmentMethod_UseMedian",
+        "enumerator:KisAutoLevels::ShadowsAndHighlightsAdjustmentMethod::ShadowsAndHighlightsAdjustmentMethod_MonochromaticContrast",
+        "enumerator:KisAutoLevels::ShadowsAndHighlightsAdjustmentMethod::ShadowsAndHighlightsAdjustmentMethod_PerChannelContrast"
+      ]
+    },
+    {
+      "target": "KisAutoLevelsSchemaContractTest",
+      "source": "libs/image/tests/KisAutoLevelsSchemaContractTest.cpp",
+      "test": "KisAutoLevelsSchemaContractTest::channelHistogramValueSchemaRemainsStable",
+      "behavior": "自動level計算のchannel histogram値はhistogram参照とchannel索引を保持する公開構造を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisAutoLevels::ChannelHistogram::channel",
+        "member:KisAutoLevels::ChannelHistogram::histogram",
+        "struct:KisAutoLevels::ChannelHistogram"
+      ]
+    },
+    {
+      "target": "KisAutoLevelsSchemaContractTest",
+      "source": "libs/image/tests/KisAutoLevelsSchemaContractTest.cpp",
+      "test": "KisAutoLevelsSchemaContractTest::inputPointAndGammaSignaturesRemainStable",
+      "behavior": "自動level計算はhistogramから入力黒白点を求め、入出力中間値からgammaを求める公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisAutoLevels::getGamma(qreal blackPoint,qreal whitePoint,qreal inputIntensity,qreal outputIntensity)",
+        "function:KisAutoLevels::getInputBlackAndWhitePoints(ChannelHistogram histogram,qreal shadowsClipping,qreal highlightsClipping)"
+      ]
+    },
+    {
+      "target": "KisAutoLevelsSchemaContractTest",
+      "source": "libs/image/tests/KisAutoLevelsSchemaContractTest.cpp",
+      "test": "KisAutoLevelsSchemaContractTest::darkestAndWhitestColorSignatureRemainsStable",
+      "behavior": "自動level計算はpaint deviceと切捨て率から最暗色・最明色を求める公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisAutoLevels::getDarkestAndWhitestColors(const KisPaintDeviceSP device,qreal shadowsClipping,qreal highlightsClipping)"
+      ]
+    },
+    {
+      "target": "KisAutoLevelsSchemaContractTest",
+      "source": "libs/image/tests/KisAutoLevelsSchemaContractTest.cpp",
+      "test": "KisAutoLevelsSchemaContractTest::channelAdjustmentSignaturesRemainStable",
+      "behavior": "自動level計算は単色またはchannel別のhistogram群からlevel curve群を生成する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisAutoLevels::adjustMonochromaticContrast(ChannelHistogram lightnessHistogram,QVector<ChannelHistogram> & channelsHistograms,qreal shadowsClipping,qreal highlightsClipping,qreal maximumInputBlackAndWhiteOffset,MidtonesAdjustmentMethod midtonesAdjustmentMethod,qreal midtonesAdjustmentAmount,const QVector<qreal> & outputBlackPoints,const QVector<qreal> & outputWhitePoints,const QVector<qreal> & outputMidtones)",
+        "function:KisAutoLevels::adjustPerChannelContrast(QVector<ChannelHistogram> & channelsHistograms,qreal shadowsClipping,qreal highlightsClipping,qreal maximumInputBlackAndWhiteOffset,MidtonesAdjustmentMethod midtonesAdjustmentMethod,qreal midtonesAdjustmentAmount,const QVector<qreal> & outputBlackPoints,const QVector<qreal> & outputWhitePoints,const QVector<qreal> & outputMidtones)"
       ]
     }
   ]

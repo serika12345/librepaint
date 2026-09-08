@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-08 18:26 JST
+- 更新日時: 2026-09-08 18:37 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3324,6 +3324,13 @@
 - 第401便は`libs/image/KisAutoLevels.h`に残る全15 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g401.json`は公開header 1,548、公開API 29,804、対応済み26,420、未対応3,384、919,725 bytes、SHA-256 `b0c2bd5fffdd197339d88c2c08c97523f9e476c0ef6dbe557e3d1a6edf05e298`である。対象識別子整列集合のSHA-256は`cdd6619efa66d3242bd899eb27fda65d370a5a16e71d8ca4cc8cf77d917dc7f4`で、調整方式列挙7、channel histogram値3、点・gamma計算2、色範囲1、channel調整2の5枠へ固定する。
 - 開始headerは共有pointer別名`KisPaintDeviceSP`だけに完全な`kis_paint_device.h`を取り込み、画像・UI・filter利用元へpaint device実装宣言を伝播させている。構造先行変更では`libs/image/KisAutoLevels.h`内の同includeを`kis_types.h`へ置き換え、公開宣言・ABIを維持する。`libs/image/KisAutoLevels.cpp`、`libs/ui/widgets/KisAutoLevelsWidget.cpp`、`plugins/filters/levelfilter/KisLevelsConfigWidget.cpp`と既存UI schemaの変更前後厳格診断一致、公開API報告byte一致を完了条件とする。
 - 既存`libs/ui/tests/KisAutoLevelsWidgetSchemaContractTest.cpp`は同列挙型を使うが、UI生成物を含む5工程・10入力である。新規`libs/image/tests/KisAutoLevelsSchemaContractTest.cpp`と専用targetを作り、image・global・pigmentのsource/generated探索路、必要なheader-only interface・export定義、Qt Core・Testだけの直接接続による4工程・8入力へ分離する。`g401-auto-levels-schema`の状態は`in_progress`、実装基点は`8a300fe2e2`である。値型や画像を実体化せず、macOSの対象、追加5枠の20回反復、軽量近傍、4直接翻訳単位と試験sourceの厳格`clang-check`、書式、二回の無作業再構築、動的接続・未解決symbol、公開API検査、`verify-quick`だけを実行する。製品image・OBJECT・shared target、UI対象、全体build・`verify`、Linux、Nix再評価は実行しない。
+
+### 第401便の実装結果
+
+- `g401-auto-levels-schema`は`completed`である。構造先行変更では、開始`libs/image/KisAutoLevels.h`内の完全`kis_paint_device.h` includeを同header内の`kis_types.h`へ置き換え、共有pointer別名の所有だけへ縮めた。公開宣言・ABIは維持し、構造commitは`c3d4719804`である。変更前後の厳格診断は`libs/image/KisAutoLevels.cpp`、`libs/ui/widgets/KisAutoLevelsWidget.cpp`、既存UI schemaがclean、`plugins/filters/levelfilter/KisLevelsConfigWidget.cpp`は既存の生成UI header不足だけでSHA-256 `fa6a18ec27994e921104013e39493d53f497326a7e7cd44d3952b039d9d39915`が一致し、公開API報告もbyte一致した。
+- 開始`libs/image/KisAutoLevels.h`から新規`libs/image/tests/KisAutoLevelsSchemaContractTest.cpp`へ15 API・5枠を追加した。調整方式列挙7、channel histogram値3、点・gamma計算2、色範囲1、channel調整2を列挙値、厳密なmember・関数pointerで固定した。試験sourceは97行・5枠で、histogram、paint device、色、level curve、計算本文は実体化していない。初回redは未定義の5検査関数だけで失敗し、契約実装commitは`1c712003ca`である。
+- macOSで対象`libs-image-KisAutoLevelsSchemaContractTest`、軽量近傍`libs-image-KisPaintDeviceSchemaContractTest`、対象の20回反復、試験sourceの厳格`clang-check`、書式、二回の無作業再構築に成功した。4工程・8入力、command SHA-256 `0f1e259fd027041ee87f28dbf7f558bfe3e29e83ce297f76f7eaa45fce5218a2`、input SHA-256 `5baa52b518491c110426d53c7b0a673d1138ff1efbc8df2643a74ec54d6d85d5`、AUTOMOC `HEADERS=[]`、直接接続はQt Core・Testとheader-only Boost、製品未解決symbol 0である。UI生成物を含む既存5工程・10入力対象を反復先から分離した。
+- 台帳へ15 APIを追加して26,435件対応、3,369件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g401.json`、構造確認報告、一時計測物を削除し、追加作業tree・構築木は作成していない。主Ninja木5,977,600 KiB、共有compiler cache 983,396 KiB、最新`build/tdd-macos/public-api-missing-g402.json` 914,052 bytes、SHA-256 `a4f16575f6f40b0c00e17dafb61ede2ad366eea9926373d381ab4f1feeeb8b12`だけを再利用対象として保持する。compiler cacheは144,395件中120,532件、83.47%がhitしている。次の永続作業は第402便で次の高密度なmacOS対象と最小構築面を選定することである。
 
 ### 第239便の先行監査担当票
 
