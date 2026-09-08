@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 2990
+    "expectedMissingApis": 2973
   },
   "contracts": [
     {
@@ -73800,6 +73800,68 @@
         "method:KisTemplateGroup::add(KisTemplate * t,bool force=false,bool touch=true)",
         "method:KisTemplateGroup::find(const QString & name) const",
         "method:KisTemplateGroup::templates() const"
+      ]
+    },
+    {
+      "target": "KisQPainterCanvasSchemaContractTest",
+      "source": "libs/ui/tests/KisQPainterCanvasSchemaContractTest.cpp",
+      "test": "KisQPainterCanvasSchemaContractTest::zoomScrollbarTypeAndLifetimeSchemaRemainStable",
+      "behavior": "zoom scrollbarは親widgetまたは向きと親widgetから構築され、QScrollBarの仮想寿命境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisZoomableScrollBar",
+        "method:KisZoomableScrollBar::KisZoomableScrollBar(QWidget * parent=0)",
+        "method:KisZoomableScrollBar::KisZoomableScrollBar(Qt::Orientation orientation,QWidget * parent=0)",
+        "method:KisZoomableScrollBar::~KisZoomableScrollBar()"
+      ]
+    },
+    {
+      "target": "KisQPainterCanvasSchemaContractTest",
+      "source": "libs/ui/tests/KisQPainterCanvasSchemaContractTest.cpp",
+      "test": "KisQPainterCanvasSchemaContractTest::zoomScrollbarPositionAndScrollSignaturesRemainStable",
+      "behavior": "zoom scrollbarはbar位置を返し、teleport検出、window wrap、加速度scrollを受け付ける公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisZoomableScrollBar::barPosition()",
+        "method:KisZoomableScrollBar::catchTeleports(QMouseEvent * event)",
+        "method:KisZoomableScrollBar::handleScroll(const QPoint & accel)",
+        "method:KisZoomableScrollBar::handleWrap(const QPoint & accel,const QPoint & globalMouseCoord)"
+      ]
+    },
+    {
+      "target": "KisQPainterCanvasSchemaContractTest",
+      "source": "libs/ui/tests/KisQPainterCanvasSchemaContractTest.cpp",
+      "test": "KisQPainterCanvasSchemaContractTest::zoomScrollbarInputEventSignaturesRemainStable",
+      "behavior": "zoom scrollbarはtablet、mouseの押下・移動・解放、wheel入力を処理する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisZoomableScrollBar::mouseMoveEvent(QMouseEvent * event)",
+        "method:KisZoomableScrollBar::mousePressEvent(QMouseEvent * event)",
+        "method:KisZoomableScrollBar::mouseReleaseEvent(QMouseEvent * event)",
+        "method:KisZoomableScrollBar::tabletEvent(QTabletEvent * event)",
+        "method:KisZoomableScrollBar::wheelEvent(QWheelEvent * event)"
+      ]
+    },
+    {
+      "target": "KisQPainterCanvasSchemaContractTest",
+      "source": "libs/ui/tests/KisQPainterCanvasSchemaContractTest.cpp",
+      "test": "KisQPainterCanvasSchemaContractTest::zoomScrollbarConfigurationSignaturesRemainStable",
+      "behavior": "zoom scrollbarはzoom deadzoneとwheel overscroll感度を設定する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisZoomableScrollBar::setWheelOverscrollSensitivity(float sensitivity)",
+        "method:KisZoomableScrollBar::setZoomDeadzone(float value)"
+      ]
+    },
+    {
+      "target": "KisQPainterCanvasSchemaContractTest",
+      "source": "libs/ui/tests/KisQPainterCanvasSchemaContractTest.cpp",
+      "test": "KisQPainterCanvasSchemaContractTest::zoomScrollbarNotificationSignaturesRemainStable",
+      "behavior": "zoom scrollbarはzoom量とoverscroll量を通知する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisZoomableScrollBar::overscroll(qreal delta)",
+        "method:KisZoomableScrollBar::zoom(qreal delta)"
       ]
     }
   ]

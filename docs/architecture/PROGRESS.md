@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-08 22:55 JST
+- 更新日時: 2026-09-08 23:00 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3613,6 +3613,12 @@
 - 第424便は`libs/ui/widgets/kis_zoom_scrollbar.h`に残る全17 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g424.json`は公開header 1,548、公開API 29,804、対応済み26,814、未対応2,990、813,074 bytes、SHA-256 `fb7a613750c0716d36614b0d0638406d5ebabed113d8fcabb8b3f16ccecdc0a6`である。対象識別子整列集合のSHA-256は`0d3a8e98bdeee0065f06e9c5cabe8ca1347ad23225a2982c0939275805483869`で、scrollbar型・2構築路・寿命4、位置・teleport・wrap・scroll 4、tablet・mouse・wheel入力5、zoom deadzone・overscroll感度2、zoom・overscroll通知2の5枠へ固定する。
 - 既存`libs/ui/tests/KisQPainterCanvasSchemaContractTest.cpp`はcanvas widgetの表示・入力境界を持ち、102行・6枠から追加後も300行・20枠未満に収まる。CMake変更なしでQt Gui・Testだけの動的接続、header-only Boost、4工程・8入力を維持する。現行command SHA-256は`760a2b1da4d20c131fb2d7f8654d7b3f870ef3f67fb5e5161de1157305250e5a`、input SHA-256は`4c5ddca5f5f791c5b6f36430245002f0e536ee78fbd4295f3174fc935a6211a1`である。scrollbar、widget、mouse・tablet・wheel event、座標値と本文を実体化せず、型特性、構築可能性、厳密な関数pointerだけで公開境界を観測する。製品`kritaapplicationui`は1,975工程・3,950入力で反復先から除外する。
 - `g424-zoom-scrollbar-schema`の状態は`in_progress`、実装基点は`bc8b0b9232`である。開始headerから既存試験sourceの5枠だけへ追加し、CMake、公開header、製品source、製品targetは変更しない。停止線は5工程・11入力とし、新たな探索路・定義・link、製品OBJECT・shared・`kritatestsdk`接続、候補headerのAUTOMOC入力化、製品未解決symbol、対象値または本文の実体化が必要なら候補を保留する。macOSの対象、追加5枠の20回反復、軽量近傍、試験sourceの厳格`clang-check`、書式、二回の無作業再構築、動的接続・未解決symbol、公開API検査、`verify-quick`だけを実行する。製品application UI・UI target、全体build・`verify`、Linux、Nix再評価は実行しない。
+
+### 第424便の実装結果
+
+- `g424-zoom-scrollbar-schema`は`completed`である。`libs/ui/widgets/kis_zoom_scrollbar.h`から既存`libs/ui/tests/KisQPainterCanvasSchemaContractTest.cpp`へ17 API・5枠を移し、scrollbar型・2構築路・寿命4、位置・teleport・wrap・scroll 4、tablet・mouse・wheel入力5、zoom deadzone・overscroll感度2、zoom・overscroll通知2を型特性、構築可能性、厳密な関数pointerで固定した。試験sourceは158行・11枠で、scrollbar、widget、mouse・tablet・wheel event、座標値と本文を実体化していない。CMake変更なしの初回redは未定義の5検査関数だけで失敗し、契約実装commitは`91c4876584`である。
+- macOSの対象`libs-ui-KisQPainterCanvasSchemaContractTest`、軽量近傍`libs-ui-KisCanvas2SchemaContractTest`、対象の20回反復、試験sourceの厳格`clang-check`、書式、変更なし計画、連続二回の無作業再構築に成功した。対象は4工程・8入力、command SHA-256 `760a2b1da4d20c131fb2d7f8654d7b3f870ef3f67fb5e5161de1157305250e5a`、input SHA-256 `4c5ddca5f5f791c5b6f36430245002f0e536ee78fbd4295f3174fc935a6211a1`、AUTOMOC `HEADERS=[]`、直接接続はQt Gui・Test、製品未解決symbol 0である。1,975工程・3,950入力の製品application UI、製品UI target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 台帳へ17 APIを追加して26,831件対応、2,973件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g424.json`を削除し、追加作業tree・構築木・一時計画物は作成していない。主Ninja木5,981,428 KiB、共有compiler cache 982,920 KiB、最新`build/tdd-macos/public-api-missing-g425.json` 808,799 bytes、SHA-256 `04014b408d5aafad8c012c50a829dcd369bb02a77bddeb8dbc728c2d9243f90f`だけを再利用対象として保持する。compiler cacheは144,483件中120,553件、83.44%がhitしている。公開API検査と`verify-quick`に成功した。次の永続作業は第425便で次の高密度なmacOS対象と最小構築面を選定することである。
 
 ### 第239便の先行監査担当票
 
