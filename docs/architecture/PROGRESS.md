@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-08 19:57 JST
+- 更新日時: 2026-09-08 20:01 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3418,6 +3418,12 @@
 - 開始`libs/ui/flake/kis_node_dummies_graph.h`から既存`libs/ui/tests/KisNodeViewColorSchemeSchemaContractTest.cpp`へ22 API・5枠を追加した。dummy型・構築・寿命3、階層移動5、索引・node・表示5、graph型・構築・照会6、graph変更3を型特性と厳密な関数pointerで固定した。試験sourceは198行・15枠で、dummy、node、shape、graphと製品本文は実体化していない。初回redは未定義の5検査関数だけで失敗し、契約実装commitは`ab7d25d932`である。
 - macOSで対象`libs-ui-KisNodeViewColorSchemeSchemaContractTest`、軽量近傍`libs-ui-KisHistogramPainterSchemaContractTest`、対象の20回反復、試験sourceの厳格`clang-check`、書式、二回の無作業再構築に成功した。4工程・8入力、command SHA-256 `f195241ce35567ac57ecc9a0896a200c36f6789c6ea075fda75b8e768129b835`、input SHA-256 `da5492afa805b60bae42d79ac910c557ca2245a149097370102de9929d1b359e`、AUTOMOC `HEADERS=[]`、直接接続はQt Gui・Test、製品未解決symbol 0である。1,980工程・3,959入力の既存動作試験と製品UI・image targetは実行していない。
 - 台帳へ22 APIを追加して26,557件対応、3,247件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g408.json`と一時計測物を削除し、追加作業tree・構築木は作成していない。主Ninja木5,978,040 KiB、共有compiler cache 982,364 KiB、最新`build/tdd-macos/public-api-missing-g409.json` 882,788 bytes、SHA-256 `565a29c58c10e3e48807bd8ef4572014a4eaec3c6efe2aaac4cd0e3466cfd8d6`だけを再利用対象として保持する。compiler cacheは144,426件中120,540件、83.46%がhitしている。次の永続作業は第409便で次の高密度なmacOS対象と最小構築面を選定することである。
+
+### 第409便の公開API契約計画
+
+- 第409便は`libs/ui/document/kis_image_manager.h`に残る全20 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g409.json`は公開header 1,548、公開API 29,804、対応済み26,557、未対応3,247、882,788 bytes、SHA-256 `565a29c58c10e3e48807bd8ef4572014a4eaec3c6efe2aaac4cd0e3466cfd8d6`である。対象識別子整列集合のSHA-256は`0355b5f1bd08899189ec32844336d71733288fc62e5595b7f6df56f3d93565bd`で、型・構築・寿命3、view・action・画像dialog 4、layer取込み5、外部転送・drop 4、画像幾何変更4の5枠へ固定する。
+- 既存`TestDocumentStateUiPublicHeaders`は一括公開header検査として2,027工程・4,051入力、`KisDocumentSchemaContractTest.cpp`は258行・15枠で追加後のsource上限を超えるため、反復先から除外する。新規`libs/ui/tests/KisImageManagerSchemaContractTest.cpp`と専用targetを作り、UI・image・globalのsource/generated探索路、必要なheader-only interfaceとexport定義、Qt Core・Testだけの直接接続による4工程・8入力へ分離する。manager、view、action、paint device、画像、filter、drop event、temporary fileと本文を実体化せず、型特性と厳密な関数pointerだけで公開境界を観測する。
+- `g409-image-manager-schema`の状態は`in_progress`、実装基点は`c7e4e185d6`である。開始headerから新規試験sourceの5枠と専用CMake節だけへ追加し、公開header、製品source、製品targetは変更しない。macOSの対象、追加5枠の20回反復、軽量近傍、試験sourceの厳格`clang-check`、書式、二回の無作業再構築、動的接続・未解決symbol、公開API検査、`verify-quick`だけを実行する。製品UI・application・image shared target、一括公開header対象、全体build・`verify`、Linux、Nix再評価は実行しない。
 
 ### 第239便の先行監査担当票
 
