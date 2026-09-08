@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 2973
+    "expectedMissingApis": 2958
   },
   "contracts": [
     {
@@ -73862,6 +73862,57 @@
       "apis": [
         "method:KisZoomableScrollBar::overscroll(qreal delta)",
         "method:KisZoomableScrollBar::zoom(qreal delta)"
+      ]
+    },
+    {
+      "target": "KisQPainterCanvasSchemaContractTest",
+      "source": "libs/ui/tests/KisQPainterCanvasSchemaContractTest.cpp",
+      "test": "KisQPainterCanvasSchemaContractTest::selectionDecorationTypeAndLifetimeSchemaRemainStable",
+      "behavior": "selection decorationはview参照を受け取って構築され、canvas decorationの仮想寿命境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisSelectionDecoration",
+        "method:KisSelectionDecoration::KisSelectionDecoration(QPointer<KisView> view)",
+        "method:KisSelectionDecoration::~KisSelectionDecoration()"
+      ]
+    },
+    {
+      "target": "KisQPainterCanvasSchemaContractTest",
+      "source": "libs/ui/tests/KisQPainterCanvasSchemaContractTest.cpp",
+      "test": "KisQPainterCanvasSchemaContractTest::selectionDecorationModeSchemaRemainsStable",
+      "behavior": "selection decorationはants・maskの表示modeを持ち、現在値を照会・設定する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KisSelectionDecoration::Mode",
+        "enumerator:KisSelectionDecoration::Mode::Ants",
+        "enumerator:KisSelectionDecoration::Mode::Mask",
+        "method:KisSelectionDecoration::mode() const",
+        "method:KisSelectionDecoration::setMode(Mode mode)"
+      ]
+    },
+    {
+      "target": "KisQPainterCanvasSchemaContractTest",
+      "source": "libs/ui/tests/KisQPainterCanvasSchemaContractTest.cpp",
+      "test": "KisQPainterCanvasSchemaContractTest::selectionDecorationVisibilitySignaturesRemainStable",
+      "behavior": "selection decorationは装飾の表示状態を設定し、選択表示を切り替えて現在値を照会する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSelectionDecoration::selectionVisible()",
+        "method:KisSelectionDecoration::setVisible(bool v)",
+        "method:KisSelectionDecoration::toggleSelectionVisibility()"
+      ]
+    },
+    {
+      "target": "KisQPainterCanvasSchemaContractTest",
+      "source": "libs/ui/tests/KisQPainterCanvasSchemaContractTest.cpp",
+      "test": "KisQPainterCanvasSchemaContractTest::selectionDecorationCanvasAndNotificationSignaturesRemainStable",
+      "behavior": "selection decorationはwindow最小化とcanvas widget変更を受け取り、選択変更とants更新を処理する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSelectionDecoration::antsAttackEvent()",
+        "method:KisSelectionDecoration::notifyWindowMinimized(bool minimized)",
+        "method:KisSelectionDecoration::selectionChanged()",
+        "method:KisSelectionDecoration::setCanvasWidget(KisCanvasWidgetBase * canvas)"
       ]
     }
   ]
