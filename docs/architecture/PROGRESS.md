@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-08 19:37 JST
+- 更新日時: 2026-09-08 19:45 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3398,6 +3398,13 @@
 - 第407便は`plugins/dockers/layerdocker/NodeView.h`に残る全24 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g407.json`は公開header 1,548、公開API 29,804、対応済み26,511、未対応3,293、893,450 bytes、SHA-256 `69c6cb74caaf7db85c9863cd87c8d015664d9997bb5ada16941c0d7b9e044151`である。対象識別子整列集合のSHA-256は`0255738874676019dac160693466dc35675312e2a2bafeb3d80a44791e3b29c3`で、型・列・寿命7、model・描画4、drag・mouse 5、node操作3、通知・更新5の5枠へ固定する。
 - 既存`libs/ui/tests/KisNodeViewColorSchemeSchemaContractTest.cpp`はlayer node viewの色・寸法・配置を所有し、86行・5枠から追加後も300行・20枠未満に収まる。製品所有`kritalayerdocker_static`は1,988工程・3,975入力のため候補から除外する。既存schema targetの対象固有CMake節へ`plugins/dockers/layerdocker`のsource/generated探索路、Qt Widgetsのheader interface、静的export定義だけを追加し、Qt Gui・Testだけの直接接続と4工程・8入力を維持する。widget、model、menu、event、painter、Qt値を実体化せず、列挙値、型特性、厳密な関数pointerだけで公開境界を観測する。
 - `g407-node-view-schema`の状態は`in_progress`、実装基点は`6cd6257132`である。開始headerから既存試験sourceの5枠と対象固有CMake節だけへ追加し、公開header、製品source、製品targetは変更しない。macOSの対象、追加5枠の20回反復、軽量近傍、試験sourceの厳格`clang-check`、書式、二回の無作業再構築、動的接続・未解決symbol、公開API検査、`verify-quick`だけを実行する。製品layerdocker・application・UI shared target、全体build・`verify`、Linux、Nix再評価は実行しない。
+
+### 第407便の実装結果
+
+- `g407-node-view-schema`は`completed`である。構築範囲の先行変更では`libs/ui/tests/CMakeLists.txt`内の既存`KisNodeViewColorSchemeSchemaContractTest`固有節へ、`plugins/dockers/layerdocker`のsource/generated探索路、Qt Widgetsのheader interface、`KRITALAYERDOCKER_STATIC_DEFINE`だけを追加した。既存試験は4工程・8入力、Qt Gui・Testだけの動的接続を維持し、構築範囲commitは`263f564908`である。
+- 開始`plugins/dockers/layerdocker/NodeView.h`から既存`libs/ui/tests/KisNodeViewColorSchemeSchemaContractTest.cpp`へ24 API・5枠を追加した。型・列・寿命7、model・描画4、drag・mouse 5、node操作3、通知・更新5を列挙値、型特性、厳密な関数pointerで固定した。試験sourceは139行・10枠で、widget、model、menu、event、painter、Qt値と製品本文は実体化していない。初回redは未定義の5検査関数だけで失敗し、契約実装commitは`90b2eed036`である。
+- macOSで対象`libs-ui-KisNodeViewColorSchemeSchemaContractTest`、軽量近傍`libs-ui-KisHistogramPainterSchemaContractTest`、対象の20回反復、試験sourceの厳格`clang-check`、書式、二回の無作業再構築に成功した。4工程・8入力、command SHA-256 `fffee34e75e0587655018af5089b75b79e2e4263d7eec29213fe0a4ea78d950e`、input SHA-256 `da5492afa805b60bae42d79ac910c557ca2245a149097370102de9929d1b359e`、AUTOMOC `HEADERS=[]`、直接接続はQt Gui・Test、製品未解決symbol 0である。1,988工程・3,975入力の製品layerdocker targetは実行していない。
+- 台帳へ24 APIを追加して26,535件対応、3,269件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g407.json`と一時計測物を削除し、追加作業tree・構築木は作成していない。主Ninja木5,978,552 KiB、共有compiler cache 981,464 KiB、最新`build/tdd-macos/public-api-missing-g408.json` 887,918 bytes、SHA-256 `ca7ae9185e210440b42dd668af52944f42f2964df5abacf51385c2ceeedb4e29`だけを再利用対象として保持する。compiler cacheは144,421件中120,538件、83.46%がhitしている。次の永続作業は第408便で次の高密度なmacOS対象と最小構築面を選定することである。
 
 ### 第239便の先行監査担当票
 

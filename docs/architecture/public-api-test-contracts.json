@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 3293
+    "expectedMissingApis": 3269
   },
   "contracts": [
     {
@@ -72750,6 +72750,75 @@
       "classification": "maintained",
       "apis": [
         "method:Document::refreshProjection()"
+      ]
+    },
+    {
+      "target": "KisNodeViewColorSchemeSchemaContractTest",
+      "source": "libs/ui/tests/KisNodeViewColorSchemeSchemaContractTest.cpp",
+      "test": "KisNodeViewColorSchemeSchemaContractTest::nodeViewTypeColumnAndLifetimeSchemaRemainStable",
+      "behavior": "layer node viewは既定・可視性・選択列の安定した識別値とwidget基底の仮想寿命境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:NodeView",
+        "enum:NodeView::ColumnIndex",
+        "enumerator:NodeView::ColumnIndex::DEFAULT_COL",
+        "enumerator:NodeView::ColumnIndex::SELECTED_COL",
+        "enumerator:NodeView::ColumnIndex::VISIBILITY_COL",
+        "method:NodeView::NodeView(QWidget * parent=0)",
+        "method:NodeView::~NodeView()"
+      ]
+    },
+    {
+      "target": "KisNodeViewColorSchemeSchemaContractTest",
+      "source": "libs/ui/tests/KisNodeViewColorSchemeSchemaContractTest.cpp",
+      "test": "KisNodeViewColorSchemeSchemaContractTest::nodeViewModelAndPaintingSignaturesRemainStable",
+      "behavior": "layer node viewはmodel設定、寸法変更、widget描画、枝描画の公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:NodeView::drawBranches(QPainter * painter,const QRect & rect,const QModelIndex & index) const",
+        "method:NodeView::paintEvent(QPaintEvent * event)",
+        "method:NodeView::resizeEvent(QResizeEvent * event)",
+        "method:NodeView::setModel(QAbstractItemModel * model)"
+      ]
+    },
+    {
+      "target": "KisNodeViewColorSchemeSchemaContractTest",
+      "source": "libs/ui/tests/KisNodeViewColorSchemeSchemaContractTest.cpp",
+      "test": "KisNodeViewColorSchemeSchemaContractTest::nodeViewDragAndMouseEventSignaturesRemainStable",
+      "behavior": "layer node viewはdrag開始・移動・離脱・dropとmouse押下を受け取る公開event境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:NodeView::dragEnterEvent(QDragEnterEvent * e)",
+        "method:NodeView::dragLeaveEvent(QDragLeaveEvent * e)",
+        "method:NodeView::dragMoveEvent(QDragMoveEvent * ev)",
+        "method:NodeView::dropEvent(QDropEvent * ev)",
+        "method:NodeView::mousePressEvent(QMouseEvent * e)"
+      ]
+    },
+    {
+      "target": "KisNodeViewColorSchemeSchemaContractTest",
+      "source": "libs/ui/tests/KisNodeViewColorSchemeSchemaContractTest.cpp",
+      "test": "KisNodeViewColorSchemeSchemaContractTest::nodeViewNodeOperationSignaturesRemainStable",
+      "behavior": "layer node viewはnode属性menu追加、単独表示切替、指定node更新の公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:NodeView::addPropertyActions(QMenu * menu,const QModelIndex & index)",
+        "method:NodeView::toggleSolo(const QModelIndex & index)",
+        "method:NodeView::updateNode(const QModelIndex & index)"
+      ]
+    },
+    {
+      "target": "KisNodeViewColorSchemeSchemaContractTest",
+      "source": "libs/ui/tests/KisNodeViewColorSchemeSchemaContractTest.cpp",
+      "test": "KisNodeViewColorSchemeSchemaContractTest::nodeViewNotificationAndUpdateSignaturesRemainStable",
+      "behavior": "layer node viewはcontext menu・選択変更通知と設定・scroll・icon更新の公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:NodeView::contextMenuRequested(const QPoint & globalPos,const QModelIndex & index)",
+        "method:NodeView::selectionChanged(const QModelIndexList &)",
+        "method:NodeView::slotConfigurationChanged()",
+        "method:NodeView::slotScrollerStateChanged(QScroller::State state)",
+        "method:NodeView::slotUpdateIcons()"
       ]
     }
   ]
