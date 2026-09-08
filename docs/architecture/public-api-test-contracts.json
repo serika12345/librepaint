@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 3440
+    "expectedMissingApis": 3426
   },
   "contracts": [
     {
@@ -72171,6 +72171,65 @@
       "apis": [
         "method:KisCountVisitor::visit(KisColorizeMask * mask)",
         "method:KisCountVisitor::visit(KisSelectionMask * mask)"
+      ]
+    },
+    {
+      "target": "KisResourcesSnapshotSchemaContractTest",
+      "source": "libs/painting/tests/KisResourcesSnapshotSchemaContractTest.cpp",
+      "test": "KisResourcesSnapshotSchemaContractTest::strokeCompatibilityTypeConstructionAndEqualitySchemaRemainStable",
+      "behavior": "stroke互換情報は既定値または描画資源snapshotから構築でき、同じ比較結果型を返す値境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:operator ==(const KisStrokeCompatibilityInfo & lhs,const KisStrokeCompatibilityInfo & rhs)",
+        "method:KisStrokeCompatibilityInfo::KisStrokeCompatibilityInfo()",
+        "method:KisStrokeCompatibilityInfo::KisStrokeCompatibilityInfo(KisResourcesSnapshot & resourcesSnapshot)",
+        "struct:KisStrokeCompatibilityInfo"
+      ]
+    },
+    {
+      "target": "KisResourcesSnapshotSchemaContractTest",
+      "source": "libs/painting/tests/KisResourcesSnapshotSchemaContractTest.cpp",
+      "test": "KisResourcesSnapshotSchemaContractTest::strokeCompatibilityColorMembersSchemaRemainStable",
+      "behavior": "stroke互換情報は現在の前景色と背景色を値として保持する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisStrokeCompatibilityInfo::currentBgColor",
+        "member:KisStrokeCompatibilityInfo::currentFgColor"
+      ]
+    },
+    {
+      "target": "KisResourcesSnapshotSchemaContractTest",
+      "source": "libs/painting/tests/KisResourcesSnapshotSchemaContractTest.cpp",
+      "test": "KisResourcesSnapshotSchemaContractTest::strokeCompatibilityResourceSignatureMembersSchemaRemainStable",
+      "behavior": "stroke互換情報は現在のgradient・pattern・presetを資源署名として保持する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisStrokeCompatibilityInfo::currentGradient",
+        "member:KisStrokeCompatibilityInfo::currentPattern",
+        "member:KisStrokeCompatibilityInfo::currentPreset"
+      ]
+    },
+    {
+      "target": "KisResourcesSnapshotSchemaContractTest",
+      "source": "libs/painting/tests/KisResourcesSnapshotSchemaContractTest.cpp",
+      "test": "KisResourcesSnapshotSchemaContractTest::strokeCompatibilityGeneratorAndNodeMembersSchemaRemainStable",
+      "behavior": "stroke互換情報はgenerator設定と対象nodeを直列化可能な識別値として保持する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisStrokeCompatibilityInfo::currentGeneratorXml",
+        "member:KisStrokeCompatibilityInfo::currentNode"
+      ]
+    },
+    {
+      "target": "KisResourcesSnapshotSchemaContractTest",
+      "source": "libs/painting/tests/KisResourcesSnapshotSchemaContractTest.cpp",
+      "test": "KisResourcesSnapshotSchemaContractTest::strokeCompatibilityPaintingPolicyMembersSchemaRemainStable",
+      "behavior": "stroke互換情報はchannel固定、合成方式、不透明度を描画方針値として保持する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisStrokeCompatibilityInfo::channelLockFlags",
+        "member:KisStrokeCompatibilityInfo::compositeOpId",
+        "member:KisStrokeCompatibilityInfo::opacity"
       ]
     }
   ]

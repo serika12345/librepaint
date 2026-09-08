@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-08 17:41 JST
+- 更新日時: 2026-09-08 17:47 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3276,6 +3276,12 @@
 - 第397便は`libs/painting/KisStrokeCompatibilityInfo.h`に残る全14 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g397.json`は公開header 1,548、公開API 29,804、対応済み26,364、未対応3,440、934,170 bytes、SHA-256 `633cda68b599b9e818d1ffa3c626ee1f2873ca8160e7b98976780e688d283cdd`である。対象識別子整列集合のSHA-256は`0f11f7360f110f4b9e7247481cdfcede218ce11b7652ae15b869058a20255bee`で、型・構築・等価比較4、前景・背景色2、pattern・gradient・preset資源署名3、generator・node識別2、描画方針3の5枠へ固定する。
 - `KisStrokeCompatibilityInfo`は描画開始時の資源値を比較可能な値として保持し、既存`libs/painting/tests/KisResourcesSnapshotSchemaContractTest.cpp`が同じ描画資源snapshotの公開境界を所有する。既存試験sourceは122行・5枠であり、5枠追加後も300行・20枠未満に収まるため、新規targetとCMake変更は加えない。変更なし計画は4工程・8入力、直接接続はQt Core・Gui・Test・Xmlとheader-only Boostである。停止線を5工程・11入力とし、候補headerをtarget sourceやAUTOMOC入力へ登録せず、資源snapshot、色、資源署名、nodeを実体化しない。
 - `g397-stroke-compatibility-schema`の状態は`in_progress`、実装基点は`b22efe260b`である。開始`libs/painting/KisStrokeCompatibilityInfo.h`から既存`libs/painting/tests/KisResourcesSnapshotSchemaContractTest.cpp`の5枠だけへ追加し、CMake、公開header、製品sourceは変更しない。macOSの対象、追加5枠の20回反復、軽量近傍、試験sourceの厳格`clang-check`、書式、二回の無作業再構築、動的接続・未解決symbol、公開API検査、`verify-quick`だけを実行する。製品painting・OBJECT・shared target、全体build・`verify`、Linux、Nix再評価は実行しない。
+
+### 第397便の実装結果
+
+- `g397-stroke-compatibility-schema`は`completed`である。開始`libs/painting/KisStrokeCompatibilityInfo.h`から既存`libs/painting/tests/KisResourcesSnapshotSchemaContractTest.cpp`へ14 API・5枠を追加した。型・構築・等価比較4、前景・背景色2、pattern・gradient・preset資源署名3、generator・node識別2、描画方針3を型特性、未評価の等価式、厳密なmember pointerで固定した。試験sourceは172行・10枠となり、資源snapshot、色、資源署名、nodeと製品本文は実体化していない。初回redは未定義の5検査関数だけで失敗し、契約実装commitは`c3c37527ea`である。
+- CMake変更なしで、macOSの対象`libs-painting-KisResourcesSnapshotSchemaContractTest`、軽量近傍`libs-painting-KisFilterStrokeStrategySchemaContractTest`、対象の20回反復、試験sourceの厳格`clang-check`、書式、二回の無作業再構築に成功した。4工程・8入力、command SHA-256 `6300368d7a3ffa98858079c6aa879d3055ab8d90d6b4c03a92e375b9bf055cb3`、input SHA-256 `c2059b5e4a87dbc220b714d394c8b6f3c4e49e57d358fe0079f9c0ff4e83bd9a`、AUTOMOC `HEADERS=[]`、直接接続はQt Core・Gui・Test・Xmlとheader-only Boost、製品未解決symbol 0である。製品painting・OBJECT・shared target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 台帳へ14 APIを追加して26,378件対応、3,426件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g397.json`と一時計測物を削除し、追加作業tree・構築木は作成していない。主Ninja木5,972,016 KiB、共有compiler cache 981,764 KiB、最新`build/tdd-macos/public-api-missing-g398.json` 930,692 bytes、SHA-256 `54576ba12e05579505d0b82c5f4d948f2e3d422a3902d6d58aa433776b99bfaa`だけを再利用対象として保持する。compiler cacheは144,377件中120,530件、83.48%がhitしている。次の永続作業は第398便で次の高密度なmacOS対象と最小構築面を選定することである。
 
 ### 第239便の先行監査担当票
 
