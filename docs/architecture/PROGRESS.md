@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-08 13:36 JST
+- 更新日時: 2026-09-08 13:53 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3099,6 +3099,13 @@
 - 変更前の`libs/ui/resources/kis_favorite_resource_manager.cpp`と`libs/ui/canvas/kis_canvas2.cpp`は厳格`clang-check`に無診断で成功した。`libs/application/ui/workspace/KisViewManager.cpp`、`libs/ui/resources/kis_popup_palette.cpp`、`libs/ui/tool/kis_paintop_box.cc`は既存診断だけで停止した。変更後に5件の終了状態と診断本文をbyte比較し、公開API報告のbyte一致を完了条件とする。
 - 新規`libs/ui/tests/KisFavoriteResourceManagerSchemaContractTest.cpp`を200行・10枠未満で作り、型特性と厳密な関数pointerだけで27 APIを観測する。最も近い資源providerの`KisCanvasResourceProviderSchemaContractTest`は4工程・8入力、command SHA-256 `f76cc7f7336936d4ad164f57a3376939f87c067199a86a6127851bbba41c2399`、input SHA-256 `f4ea5e3798d5c121aacd9175a1433d675e15fc206c5984314de6b53ff966ff73`である。新規targetも4工程・8入力を予測し、停止線を5工程・11入力とする。候補headerをAUTOMOC入力にせず、製品shared・OBJECT、資源server・model・paintop box・色履歴実体を接続または実行しない。
 - `g384-favorite-resource-schema`の状態は`in_progress`、実装基点は`96df315ffa`である。構造先行commit後に新規試験sourceと`libs/ui/tests/CMakeLists.txt`の対象固有節だけへ契約を追加する。macOSの対象、5枠の20回反復、軽量近傍、5 risk翻訳単位と試験sourceの厳格`clang-check`、書式、AUTOMOC後の二回目計画、二回の無作業再構築、動的接続・未解決symbol、公開API検査、`verify-quick`だけを実行する。資源server・model・paintop box・色履歴実体、製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
+
+### 第384便の実装結果
+
+- `g384-favorite-resource-schema`は`completed`である。開始`libs/ui/resources/kis_favorite_resource_manager.h`から未使用の`QQueue`と`KoResource.h`、pointerだけに使う`KisTagFilterResourceProxyModel.h`を除き、`QScopedPointer`・`QVector`の直接includeと`QImage`・3 modelの前方宣言を置いた。資源model完全型と`QImage`の所有先は`libs/ui/resources/kis_favorite_resource_manager.cpp`へ移した。5 risk翻訳単位の変更前後は2件の無診断成功と3件の既存診断だけの停止が完全一致し、公開API報告もbyte一致した。構造変更commitは`3b0c5e9714`である。
+- 開始headerの残存全27 APIを、新規`libs/ui/tests/KisFavoriteResourceManagerSchemaContractTest.cpp`の管理器型・寿命・server 4、お気に入りpreset・tag 5、最近色・背景色7、資源・paintop変更5、palette通知6の5枠へ対応付けた。対象は94行で、公開headerと製品sourceをそれ以上変更していない。最初の赤は追加依存を要求せず5試験関数の未定義symbolだけで停止した。長い試験関数名を自動書式が2行へ折ったため最初の台帳検査が1枠を発見できず停止し、定義行だけを書式除外して物理1行へ固定した。契約実装commitは`f79af51f6f`である。
+- 最終targetは4工程・8入力、command SHA-256 `0a249ba95570504825058099e1c0f5b596114d8a6479ba3b1cc0efa25ebd09a9`、input SHA-256 `6e22d37e2d0c0671f2f4407d5eff49da226b23b49ce1d0317f4535d4ada75240`で停止線内に収まる。動的接続はQt Core・Gui・Test、macOS frameworkとgettextだけで、製品libraryの未解決symbolを持たない。macOSで対象`libs-ui-KisFavoriteResourceManagerSchemaContractTest`、軽量近傍`libs-ui-KisCanvasResourceProviderSchemaContractTest`、対象の20回反復、試験sourceの厳格`clang-check`、書式、AUTOMOC `HEADERS=[]`、二回の無作業再構築、公開API検査に成功した。資源server・model・paintop box・色履歴実体、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 台帳へ27 APIを追加して26,119件対応、3,685件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g384.json`を最新報告の検証後に削除し、追加作業tree・構築木は作成していない。主Ninja木5,958,704 KiB、共有compiler cache 982,888 KiB、最新`build/tdd-macos/public-api-missing-g385.json` 1,001,112 bytes、SHA-256 `f857222fd9bdf9bfbd0663d957412a8da93ae2c1aa6f2801fb61f50a043e7657`だけを再利用対象として保持する。compiler cacheは144,326件中120,518件、83.50%がhitしている。次の永続作業は第385便で次の高密度なmacOS対象と最小構築面を選定することである。
 
 ### 第239便の先行監査担当票
 

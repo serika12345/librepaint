@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 3712
+    "expectedMissingApis": 3685
   },
   "contracts": [
     {
@@ -71323,6 +71323,78 @@
         "method:KisShapeSelection::sigMoveShapes(const QPointF & diff)",
         "method:KisShapeSelectionFactory::createDefaultShape(KoDocumentResourceManager * documentResources=0) const",
         "method:KisShapeSelectionFactory::supports(const QDomElement & e,KoShapeLoadingContext & context) const"
+      ]
+    },
+    {
+      "target": "KisFavoriteResourceManagerSchemaContractTest",
+      "source": "libs/ui/tests/KisFavoriteResourceManagerSchemaContractTest.cpp",
+      "test": "KisFavoriteResourceManagerSchemaContractTest::favoriteResourceManagerTypeLifetimeAndServerSchemaRemainStable",
+      "behavior": "お気に入り資源管理器は型、paintop boxとの構築、多態的破棄と資源server解除の境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisFavoriteResourceManager",
+        "method:KisFavoriteResourceManager::KisFavoriteResourceManager(KisPaintopBox * paintopBox)",
+        "method:KisFavoriteResourceManager::unsetResourceServer()",
+        "method:KisFavoriteResourceManager::~KisFavoriteResourceManager()"
+      ]
+    },
+    {
+      "target": "KisFavoriteResourceManagerSchemaContractTest",
+      "source": "libs/ui/tests/KisFavoriteResourceManagerSchemaContractTest.cpp",
+      "test": "KisFavoriteResourceManagerSchemaContractTest::favoriteResourceManagerPresetAndTagSignaturesRemainStable",
+      "behavior": "お気に入り資源管理器はpreset画像・名称・件数、現在tagとお気に入り更新の境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisFavoriteResourceManager::favoritePresetImages()",
+        "method:KisFavoriteResourceManager::favoritePresetNamesList()",
+        "method:KisFavoriteResourceManager::numFavoritePresets()",
+        "method:KisFavoriteResourceManager::setCurrentTag(const KisTagSP tag)",
+        "method:KisFavoriteResourceManager::updateFavoritePresets()"
+      ]
+    },
+    {
+      "target": "KisFavoriteResourceManagerSchemaContractTest",
+      "source": "libs/ui/tests/KisFavoriteResourceManagerSchemaContractTest.cpp",
+      "test": "KisFavoriteResourceManagerSchemaContractTest::favoriteResourceManagerRecentAndBackgroundColorSignaturesRemainStable",
+      "behavior": "お気に入り資源管理器は最近色の件数・取得・追加・更新・消去と背景色の取得・設定境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisFavoriteResourceManager::bgColor() const",
+        "method:KisFavoriteResourceManager::recentColorAt(int pos)",
+        "method:KisFavoriteResourceManager::recentColorsTotal()",
+        "method:KisFavoriteResourceManager::slotAddRecentColor(const KoColor &)",
+        "method:KisFavoriteResourceManager::slotClearHistory()",
+        "method:KisFavoriteResourceManager::slotSetBGColor(const KoColor c)",
+        "method:KisFavoriteResourceManager::slotUpdateRecentColor(int)"
+      ]
+    },
+    {
+      "target": "KisFavoriteResourceManagerSchemaContractTest",
+      "source": "libs/ui/tests/KisFavoriteResourceManagerSchemaContractTest.cpp",
+      "test": "KisFavoriteResourceManagerSchemaContractTest::favoriteResourceManagerResourceAndPaintopSignaturesRemainStable",
+      "behavior": "お気に入り資源管理器はpresetの削除・追加・変更、active paintopと前景色選択の変更境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisFavoriteResourceManager::removingResource(QSharedPointer<KisPaintOpPreset> resource)",
+        "method:KisFavoriteResourceManager::resourceAdded(QSharedPointer<KisPaintOpPreset> resource)",
+        "method:KisFavoriteResourceManager::resourceChanged(QSharedPointer<KisPaintOpPreset> resource)",
+        "method:KisFavoriteResourceManager::slotChangeActivePaintop(int)",
+        "method:KisFavoriteResourceManager::slotChangeFGColorSelector(KoColor c)"
+      ]
+    },
+    {
+      "target": "KisFavoriteResourceManagerSchemaContractTest",
+      "source": "libs/ui/tests/KisFavoriteResourceManagerSchemaContractTest.cpp",
+      "test": "KisFavoriteResourceManagerSchemaContractTest::favoriteResourceManagerPaletteNotificationSignaturesRemainStable",
+      "behavior": "お気に入り資源管理器はpaletteの表示・更新と前景色・背景色・選択色を通知する境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisFavoriteResourceManager::hidePalettes()",
+        "method:KisFavoriteResourceManager::setSelectedColor(int)",
+        "method:KisFavoriteResourceManager::sigChangeFGColorSelector(const KoColor &)",
+        "method:KisFavoriteResourceManager::sigSetBGColor(const KoColor & c)",
+        "method:KisFavoriteResourceManager::sigSetFGColor(const KoColor & c)",
+        "method:KisFavoriteResourceManager::updatePalettes()"
       ]
     }
   ]
