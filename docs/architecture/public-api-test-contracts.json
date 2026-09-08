@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 3595
+    "expectedMissingApis": 3565
   },
   "contracts": [
     {
@@ -71656,6 +71656,81 @@
       "apis": [
         "method:PSDLayerMaskSection::read(QIODevice & io)",
         "method:PSDLayerMaskSection::write(QIODevice & io,KisNodeSP rootLayer,psd_compression_type compressionType)"
+      ]
+    },
+    {
+      "target": "KisDabCacheUtilsSchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisDabCacheUtilsSchemaContractTest.cpp",
+      "test": "KisDabCacheUtilsSchemaContractTest::simpleFactoryTypeAndCapabilityDetectionSchemaRemainStable",
+      "behavior": "単純paintop factoryは公開template型と、事前初期化・資源準備・interstroke生成・拡張widget構築の機能検出型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisSimplePaintOpFactory",
+        "struct:detail::has_create_interstroke_data_factory",
+        "struct:detail::has_preinitialize_statically",
+        "struct:detail::has_prepare_embedded_resources",
+        "struct:detail::has_prepare_linked_resources",
+        "struct:detail::supports_extended_initilization"
+      ]
+    },
+    {
+      "target": "KisDabCacheUtilsSchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisDabCacheUtilsSchemaContractTest.cpp",
+      "test": "KisDabCacheUtilsSchemaContractTest::simpleFactoryResourcePreparationHelperSignaturesRemainStable",
+      "behavior": "単純paintop factoryは対応有無に応じた埋込み資源と参照資源の準備補助境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:detail::prepareEmbeddedResources(const KisPaintOpSettingsSP settings,KisResourcesInterfaceSP resourcesInterface,std::enable_if_t<!has_prepare_embedded_resources<T>::value> * =0)",
+        "function:detail::prepareEmbeddedResources(const KisPaintOpSettingsSP settings,KisResourcesInterfaceSP resourcesInterface,std::enable_if_t<has_prepare_embedded_resources<T>::value> * =0)",
+        "function:detail::prepareLinkedResources(const KisPaintOpSettingsSP settings,KisResourcesInterfaceSP resourcesInterface,std::enable_if_t<!has_prepare_linked_resources<T>::value> * =0)",
+        "function:detail::prepareLinkedResources(const KisPaintOpSettingsSP settings,KisResourcesInterfaceSP resourcesInterface,std::enable_if_t<has_prepare_linked_resources<T>::value> * =0)"
+      ]
+    },
+    {
+      "target": "KisDabCacheUtilsSchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisDabCacheUtilsSchemaContractTest.cpp",
+      "test": "KisDabCacheUtilsSchemaContractTest::simpleFactoryCreationHelperSignaturesRemainStable",
+      "behavior": "単純paintop factoryは対応有無に応じた設定widget、interstroke data factory、事前初期化の生成補助境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:detail::createConfigWidget(QWidget * parent,KisResourcesInterfaceSP resourcesInterface,KoCanvasResourcesInterfaceSP canvasResourcesInterface,std::enable_if_t<!supports_extended_initilization<T>::value> * =0)",
+        "function:detail::createConfigWidget(QWidget * parent,KisResourcesInterfaceSP resourcesInterface,KoCanvasResourcesInterfaceSP canvasResourcesInterface,std::enable_if_t<supports_extended_initilization<T>::value> * =0)",
+        "function:detail::createInterstrokeDataFactory(const KisPaintOpSettingsSP settings,KisResourcesInterfaceSP resourcesInterface,std::enable_if_t<!has_create_interstroke_data_factory<T>::value> * =0)",
+        "function:detail::createInterstrokeDataFactory(const KisPaintOpSettingsSP settings,KisResourcesInterfaceSP resourcesInterface,std::enable_if_t<has_create_interstroke_data_factory<T>::value> * =0)",
+        "function:detail::preinitializeOpStatically(const KisPaintOpSettingsSP settings,typename std::enable_if_t<!has_preinitialize_statically<T>::value> * =0)",
+        "function:detail::preinitializeOpStatically(const KisPaintOpSettingsSP settings,typename std::enable_if_t<has_preinitialize_statically<T>::value> * =0)"
+      ]
+    },
+    {
+      "target": "KisDabCacheUtilsSchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisDabCacheUtilsSchemaContractTest.cpp",
+      "test": "KisDabCacheUtilsSchemaContractTest::simpleFactoryConstructionAndCreationSignaturesRemainStable",
+      "behavior": "単純paintop factoryは識別値による構築・破棄とpaintop、設定、設定widget、interstroke data factory、事前初期化の生成境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSimplePaintOpFactory::KisSimplePaintOpFactory(const QString & id,const QString & name,const QString & category,const QString & pixmap,const QString & model=QString (),const QStringList & whiteListedCompositeOps=QStringList (),int priority=100,bool lodSizeThresholdSupported=true)",
+        "method:KisSimplePaintOpFactory::createConfigWidget(QWidget * parent,KisResourcesInterfaceSP resourcesInterface,KoCanvasResourcesInterfaceSP canvasResourcesInterface)",
+        "method:KisSimplePaintOpFactory::createInterstrokeDataFactory(const KisPaintOpSettingsSP settings,KisResourcesInterfaceSP resourcesInterface) const",
+        "method:KisSimplePaintOpFactory::createOp(const KisPaintOpSettingsSP settings,KisPainter * painter,KisNodeSP node,KisImageSP image)",
+        "method:KisSimplePaintOpFactory::createSettings(KisResourcesInterfaceSP resourcesInterface)",
+        "method:KisSimplePaintOpFactory::preinitializePaintOpIfNeeded(const KisPaintOpSettingsSP settings)",
+        "method:KisSimplePaintOpFactory::~KisSimplePaintOpFactory()"
+      ]
+    },
+    {
+      "target": "KisDabCacheUtilsSchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisDabCacheUtilsSchemaContractTest.cpp",
+      "test": "KisDabCacheUtilsSchemaContractTest::simpleFactoryIdentityAndResourceSignaturesRemainStable",
+      "behavior": "単純paintop factoryは識別子、名称、分類、icon、LOD対応と埋込み・参照資源準備の公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSimplePaintOpFactory::category() const",
+        "method:KisSimplePaintOpFactory::icon()",
+        "method:KisSimplePaintOpFactory::id() const",
+        "method:KisSimplePaintOpFactory::lodSizeThresholdSupported() const",
+        "method:KisSimplePaintOpFactory::name() const",
+        "method:KisSimplePaintOpFactory::prepareEmbeddedResources(const KisPaintOpSettingsSP settings,KisResourcesInterfaceSP resourcesInterface)",
+        "method:KisSimplePaintOpFactory::prepareLinkedResources(const KisPaintOpSettingsSP settings,KisResourcesInterfaceSP resourcesInterface)"
       ]
     }
   ]
