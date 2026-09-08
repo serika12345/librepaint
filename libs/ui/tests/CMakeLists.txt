@@ -738,6 +738,38 @@ target_compile_definitions(KisOpenGLImageTexturesSchemaContractTest PRIVATE
 )
 
 kis_add_test(
+    KisOpenGLModeProberSchemaContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Test
+        Boost::boost
+)
+target_include_directories(KisOpenGLModeProberSchemaContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs
+    ${CMAKE_SOURCE_DIR}/libs/application
+    ${CMAKE_BINARY_DIR}/libs/application
+    ${CMAKE_SOURCE_DIR}/libs/canvas
+    ${CMAKE_BINARY_DIR}/libs/canvas
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+    ${CMAKE_SOURCE_DIR}/libs/pigment
+    ${CMAKE_BINARY_DIR}/libs/pigment
+    $<TARGET_PROPERTY:Eigen3::Eigen,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:KF${KF_MAJOR}::ConfigCore,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:Imath::Imath,INTERFACE_INCLUDE_DIRECTORIES>
+)
+target_compile_definitions(KisOpenGLModeProberSchemaContractTest PRIVATE
+    kritaapplication_EXPORTS
+    kritacanvas_EXPORTS
+    kritaglobal_EXPORTS
+    kritapigment_EXPORTS
+    kritaui_EXPORTS
+)
+
+kis_add_test(
     KisGuidesConfigSchemaContractTest.cpp
     LINK_LIBRARIES
         Qt${QT_MAJOR_VERSION}::Test
