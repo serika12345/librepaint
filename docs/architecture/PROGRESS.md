@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-08 23:16 JST
+- 更新日時: 2026-09-08 23:24 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3637,6 +3637,12 @@
 - 第426便は`libs/application/ui/workspace/KisWindowLayoutResource.h`に残る全13 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g426.json`は公開header 1,548、公開API 29,804、対応済み26,846、未対応2,958、805,291 bytes、SHA-256 `ddba537737a1ba99c5988cb4dfaafe488b0456bc15969d23512ee37523b68dcd`である。対象識別子整列集合のSHA-256は`0735421e3d1b5031b64b86127446bebfaf45f71ea44ed55105287732dd73335c`で、共有型・資源型・2構築路・寿命5、複製・代入境界2、現在windowからの生成・適用2、装置保存・読込2、資源型・既定拡張子2の5枠へ固定する。
 - 近傍`libs/application/tests/KisMainWindowSchemaContractTest.cpp`は同じworkspace責務とcompile interfaceを持つが、既に248行・18枠であり、追記すると300行・20枠の保守上限を超える。新規`libs/application/tests/KisWindowLayoutResourceSchemaContractTest.cpp`へ分け、近傍と同じapplication・flake・global・resources・UI・widgetutilsの探索路とexport定義、Qt Core・Test、Qt Widgets・KF ConfigCore・I18n interfaceだけを使う4工程・8入力を予測する。近傍のcommand SHA-256は`631ecd85515c8854216a7aaafbb8344f8af1b1755cddd723df0d0911b4c23e6d`、input SHA-256は`b27d6a2c14eede0dadfa3a8ca92a0a958eacd0fd43a1281530b9eedd6e60b2be`である。資源、主window、装置、資源interface、Qt値と本文を実体化せず、共有型、型特性、構築可能性、厳密な関数pointerだけで公開境界を観測する。
 - `g426-window-layout-resource-schema`の状態は`in_progress`、実装基点は`b3948d59f1`である。許可pathは新規試験source、`libs/application/tests/CMakeLists.txt`の新target固有節、調整担当所有の台帳と進捗だけで、公開header、製品source、既存target、製品targetは変更しない。停止線は5工程・11入力とし、近傍と異なる探索路・定義・link、製品OBJECT・shared・`kritatestsdk`接続、候補headerのAUTOMOC入力化、製品未解決symbol、対象値またはinline本文の実体化が必要なら候補を保留する。macOSの対象、5枠の20回反復、軽量近傍、試験sourceの厳格`clang-check`、書式、AUTOMOC後の二回目計画、連続二回の無作業再構築、動的接続・未解決symbol、公開API検査、`verify-quick`だけを実行する。製品application UI・UI・resources target、全体build・`verify`、Linux、Nix再評価は実行しない。
+
+### 第426便の実装結果
+
+- `g426-window-layout-resource-schema`は`completed`である。`libs/application/ui/workspace/KisWindowLayoutResource.h`から新規`libs/application/tests/KisWindowLayoutResourceSchemaContractTest.cpp`へ13 API・5枠を移し、共有型・資源型・2構築路・寿命5、複製・代入境界2、現在windowからの生成・適用2、装置保存・読込2、資源型・既定拡張子2を共有型、型特性、構築可能性、厳密な関数pointerで固定した。試験sourceは84行・5枠で、資源、主window、装置、資源interface、Qt値とinline本文を実体化していない。対象登録後の初回redは未定義の5検査関数だけで失敗し、`QPair`返値のカンマを型別名で表現する試験側の書式補正後に成功した。契約実装commitは`c196f7e70b`である。
+- macOSの対象`libs-application-KisWindowLayoutResourceSchemaContractTest`、軽量近傍`libs-application-KisMainWindowSchemaContractTest`、対象の20回反復、試験sourceの厳格`clang-check`、書式、AUTOMOC後の二回目計画、連続二回の無作業再構築に成功した。新対象は4工程・8入力、command SHA-256 `1be2eab23e05002a31675ed4fd85e19cd3faae310832ec9a715536c0b2b87485`、input SHA-256 `fa4be3305775fbadb4b9f207e9be6a1b1a905005c47652d7c1fcc6cce8bc7935`、AUTOMOC `HEADERS=[]`、直接接続はQt Core・Test、製品未解決symbol 0である。1,975工程・3,950入力の製品application UI、製品UI・resources target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 台帳へ13 APIを追加して26,859件対応、2,945件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g426.json`を削除し、追加作業tree・構築木・一時計画物は作成していない。主Ninja木5,982,852 KiB、共有compiler cache 982,908 KiB、最新`build/tdd-macos/public-api-missing-g427.json` 801,369 bytes、SHA-256 `f825ca0260a77930ddd25cde7e249f99650092b0fe9daef055c5e096ae405cba`だけを再利用対象として保持する。compiler cacheは144,489件中120,553件、83.43%がhitしている。公開API検査と`verify-quick`に成功した。次の永続作業は第427便で次の高密度なmacOS対象と最小構築面を選定することである。
 
 ### 第239便の先行監査担当票
 

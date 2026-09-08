@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 2958
+    "expectedMissingApis": 2945
   },
   "contracts": [
     {
@@ -73913,6 +73913,64 @@
         "method:KisSelectionDecoration::notifyWindowMinimized(bool minimized)",
         "method:KisSelectionDecoration::selectionChanged()",
         "method:KisSelectionDecoration::setCanvasWidget(KisCanvasWidgetBase * canvas)"
+      ]
+    },
+    {
+      "target": "KisWindowLayoutResourceSchemaContractTest",
+      "source": "libs/application/tests/KisWindowLayoutResourceSchemaContractTest.cpp",
+      "test": "KisWindowLayoutResourceSchemaContractTest::typeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "window layout資源は共有pointer型を公開し、filenameまたは同型資源から構築でき、資源基底の仮想寿命境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisWindowLayoutResourceSP",
+        "class:KisWindowLayoutResource",
+        "method:KisWindowLayoutResource::KisWindowLayoutResource(const KisWindowLayoutResource & rhs)",
+        "method:KisWindowLayoutResource::KisWindowLayoutResource(const QString & filename)",
+        "method:KisWindowLayoutResource::~KisWindowLayoutResource()"
+      ]
+    },
+    {
+      "target": "KisWindowLayoutResourceSchemaContractTest",
+      "source": "libs/application/tests/KisWindowLayoutResourceSchemaContractTest.cpp",
+      "test": "KisWindowLayoutResourceSchemaContractTest::copyAndAssignmentSchemaRemainStable",
+      "behavior": "window layout資源は基底資源として複製でき、代入を禁止して資源状態の置換境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisWindowLayoutResource::clone() const",
+        "method:KisWindowLayoutResource::operator =(const KisWindowLayoutResource & rhs)"
+      ]
+    },
+    {
+      "target": "KisWindowLayoutResourceSchemaContractTest",
+      "source": "libs/application/tests/KisWindowLayoutResourceSchemaContractTest.cpp",
+      "test": "KisWindowLayoutResourceSchemaContractTest::windowCreationAndApplicationSignaturesRemainStable",
+      "behavior": "window layout資源は現在の主window集合と表示方針から生成でき、保存した配置を適用する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisWindowLayoutResource::applyLayout()",
+        "method:KisWindowLayoutResource::fromCurrentWindows(const QString & filename,const QList<QPointer<KisMainWindow>> & mainWindows,bool showImageInAllWindows,bool primaryWorkspaceFollowsFocus,KisMainWindow * primaryWindow)"
+      ]
+    },
+    {
+      "target": "KisWindowLayoutResourceSchemaContractTest",
+      "source": "libs/application/tests/KisWindowLayoutResourceSchemaContractTest.cpp",
+      "test": "KisWindowLayoutResourceSchemaContractTest::devicePersistenceSignaturesRemainStable",
+      "behavior": "window layout資源は装置への保存と資源interfaceを伴う装置からの読込みを受け付ける公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisWindowLayoutResource::loadFromDevice(QIODevice * dev,KisResourcesInterfaceSP resourcesInterface)",
+        "method:KisWindowLayoutResource::saveToDevice(QIODevice * dev) const"
+      ]
+    },
+    {
+      "target": "KisWindowLayoutResourceSchemaContractTest",
+      "source": "libs/application/tests/KisWindowLayoutResourceSchemaContractTest.cpp",
+      "test": "KisWindowLayoutResourceSchemaContractTest::resourceIdentitySignaturesRemainStable",
+      "behavior": "window layout資源は資源種別と既定ファイル拡張子を返す公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisWindowLayoutResource::defaultFileExtension() const",
+        "method:KisWindowLayoutResource::resourceType() const"
       ]
     }
   ]
