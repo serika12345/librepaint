@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-08 22:06 JST
+- 更新日時: 2026-09-08 22:14 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3552,6 +3552,13 @@
 - 既存`libs/ui/tests/KisCanvasResourceProviderSchemaContractTest.cpp`はcanvas単位の資源・background task管理境界を所有し、190行・5枠から追加後も300行・20枠未満に収まる。CMake変更なしでQt Gui・Testだけの動的接続、header-only Boost、4工程・8入力を維持する。現行command SHA-256は`f76cc7f7336936d4ad164f57a3376939f87c067199a86a6127851bbba41c2399`、input SHA-256は`f4ea5e3798d5c121aacd9175a1433d675e15fc206c5984314de6b53ff966ff73`である。manager、guard、image、stroke strategy、factoryとinline本文を実体化せず、型特性、member型、構築可能性、厳密な関数pointerだけで公開境界を観測する。製品`kritaapplicationui`は1,975工程・3,950入力で反復先から除外する。
 - `g419-idle-tasks-manager-schema`の状態は`in_progress`、実装基点は`baa150df14`である。開始headerから既存試験sourceの5枠だけへ追加し、CMake、公開header、製品source、製品targetは変更しない。停止線は5工程・11入力とし、新たな探索路・定義・link、製品OBJECT・shared・`kritatestsdk`接続、候補headerのAUTOMOC入力化、製品未解決symbol、対象値またはinline本文の実体化が必要なら候補を保留する。macOSの対象、追加5枠の20回反復、軽量近傍、試験sourceの厳格`clang-check`、書式、二回の無作業再構築、動的接続・未解決symbol、公開API検査、`verify-quick`だけを実行する。製品application UI・image target、全体build・`verify`、Linux、Nix再評価は実行しない。
 - 最初のcompileはidle task stroke strategyが直接読む`kundo2magicstring.h`の探索路不足で停止した。対象固有CMake節へpainting/undoのsource/generated探索路と`kritapaintingundo_EXPORTS`だけを追加し、動的接続を増やさず4工程・8入力を維持する。それ以外の計画外探索路・定義・linkが必要なら候補を保留する。
+
+### 第419便の実装結果
+
+- `g419-idle-tasks-manager-schema`は`completed`である。構築範囲の先行変更では`libs/ui/tests/CMakeLists.txt`内の既存`KisCanvasResourceProviderSchemaContractTest`固有節へpainting/undoのsource/generated探索路と`kritapaintingundo_EXPORTS`だけを追加した。最初のcompileでidle task stroke strategyが直接読む`kundo2magicstring.h`不足を特定した後も動的接続を増やさず、構築範囲commitは`a95a32f9cb`である。
+- `libs/ui/canvas/KisIdleTasksManager.h`から既存`libs/ui/tests/KisCanvasResourceProviderSchemaContractTest.cpp`へ17 API・5枠を移し、manager型・構築・寿命3、task guard型・構築・寿命4、copy禁止・move構築代入4、guard状態・識別子・manager・trigger 4、画像・task登録2を型特性、member型、構築可能性、厳密な関数pointerで固定した。試験sourceは248行・10枠で、manager、guard、image、stroke strategy、factoryとinline本文を実体化していない。painting/undo interface追加後のredは未定義の5検査関数だけで失敗し、契約実装commitは`24c2990ced`である。
+- macOSの対象`libs-ui-KisCanvasResourceProviderSchemaContractTest`、軽量近傍`libs-ui-KisFavoriteResourceManagerSchemaContractTest`、対象の20回反復、試験sourceの厳格`clang-check`、書式、変更なし計画、連続二回の無作業再構築に成功した。対象は4工程・8入力、command SHA-256 `2ac2f87126ddd68b81e17b248fb074f00db07e2c0b3769b295b61fb012863906`、input SHA-256 `f4ea5e3798d5c121aacd9175a1433d675e15fc206c5984314de6b53ff966ff73`、AUTOMOC `HEADERS=[]`、直接接続はQt Gui・Test、製品未解決symbol 0である。1,975工程・3,950入力の製品application UI、製品image target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 台帳へ17 APIを追加して26,752件対応、3,052件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g419.json`と一時計画ログを削除し、追加作業tree・構築木は作成していない。主Ninja木5,981,428 KiB、共有compiler cache 982,092 KiB、最新`build/tdd-macos/public-api-missing-g420.json` 828,039 bytes、SHA-256 `9b26861c4b376c1a94979c6448e923f3f06dae73f56073267dcbc772d2e89719`だけを再利用対象として保持する。compiler cacheは144,473件中120,553件、83.44%がhitしている。公開API検査と`verify-quick`に成功した。次の永続作業は第420便で次の高密度なmacOS対象と最小構築面を選定することである。
 
 ### 第239便の先行監査担当票
 

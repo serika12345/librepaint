@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 3069
+    "expectedMissingApis": 3052
   },
   "contracts": [
     {
@@ -73496,6 +73496,68 @@
         "method:KisZoomManager::slotZoomToFitHeight()",
         "method:KisZoomManager::slotZoomToFitWidth()",
         "method:KisZoomManager::zoomTo100()"
+      ]
+    },
+    {
+      "target": "KisCanvasResourceProviderSchemaContractTest",
+      "source": "libs/ui/tests/KisCanvasResourceProviderSchemaContractTest.cpp",
+      "test": "KisCanvasResourceProviderSchemaContractTest::idleTasksManagerTypeAndLifetimeSchemaRemainStable",
+      "behavior": "idle tasks managerは既定構築でき、QObjectの仮想寿命境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisIdleTasksManager",
+        "method:KisIdleTasksManager::KisIdleTasksManager()",
+        "method:KisIdleTasksManager::~KisIdleTasksManager()"
+      ]
+    },
+    {
+      "target": "KisCanvasResourceProviderSchemaContractTest",
+      "source": "libs/ui/tests/KisCanvasResourceProviderSchemaContractTest.cpp",
+      "test": "KisCanvasResourceProviderSchemaContractTest::idleTaskGuardTypeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "idle task guardは空状態またはtask識別子とmanagerから構築でき、scope終了時に破棄される公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisIdleTasksManager::TaskGuard::TaskGuard()",
+        "method:KisIdleTasksManager::TaskGuard::TaskGuard(int _taskId,QPointer<KisIdleTasksManager> _manager)",
+        "method:KisIdleTasksManager::TaskGuard::~TaskGuard()",
+        "struct:KisIdleTasksManager::TaskGuard"
+      ]
+    },
+    {
+      "target": "KisCanvasResourceProviderSchemaContractTest",
+      "source": "libs/ui/tests/KisCanvasResourceProviderSchemaContractTest.cpp",
+      "test": "KisCanvasResourceProviderSchemaContractTest::idleTaskGuardCopyAndMoveSchemaRemainStable",
+      "behavior": "idle task guardは複製を禁止し、登録所有権をmove構築・move代入で移す公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisIdleTasksManager::TaskGuard::TaskGuard(TaskGuard && rhs)",
+        "method:KisIdleTasksManager::TaskGuard::TaskGuard(const TaskGuard & rhs)",
+        "method:KisIdleTasksManager::TaskGuard::operator =(TaskGuard && rhs)",
+        "method:KisIdleTasksManager::TaskGuard::operator =(const TaskGuard & rhs)"
+      ]
+    },
+    {
+      "target": "KisCanvasResourceProviderSchemaContractTest",
+      "source": "libs/ui/tests/KisCanvasResourceProviderSchemaContractTest.cpp",
+      "test": "KisCanvasResourceProviderSchemaContractTest::idleTaskGuardStateAndControlSchemaRemainStable",
+      "behavior": "idle task guardはtask識別子とmanager参照を保持し、有効性照会と明示的再起動操作を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisIdleTasksManager::TaskGuard::manager",
+        "member:KisIdleTasksManager::TaskGuard::taskId",
+        "method:KisIdleTasksManager::TaskGuard::isValid() const",
+        "method:KisIdleTasksManager::TaskGuard::trigger()"
+      ]
+    },
+    {
+      "target": "KisCanvasResourceProviderSchemaContractTest",
+      "source": "libs/ui/tests/KisCanvasResourceProviderSchemaContractTest.cpp",
+      "test": "KisCanvasResourceProviderSchemaContractTest::idleTasksManagerImageAndRegistrationSignaturesRemainStable",
+      "behavior": "idle tasks managerは対象画像を受け取り、stroke strategy factoryをguard付きtaskとして登録する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisIdleTasksManager::addIdleTaskWithGuard(KisIdleTaskStrokeStrategyFactory factory)",
+        "method:KisIdleTasksManager::setImage(KisImageSP image)"
       ]
     }
   ]
