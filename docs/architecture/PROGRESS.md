@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-08 19:50 JST
+- 更新日時: 2026-09-08 19:57 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3411,6 +3411,13 @@
 - 第408便は`libs/ui/flake/kis_node_dummies_graph.h`に残る全22 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g408.json`は公開header 1,548、公開API 29,804、対応済み26,535、未対応3,269、887,918 bytes、SHA-256 `ca7ae9185e210440b42dd668af52944f42f2964df5abacf51385c2ceeedb4e29`である。対象識別子整列集合のSHA-256は`ecf7212723fec8cbdc4f1af15e8cc7e64e28e99853e9f975edb70075016ea8e6`で、dummy型・構築・寿命3、階層移動5、索引・node・表示5、graph型・構築・照会6、graph変更3の5枠へ固定する。
 - 直前の`libs/ui/tests/KisNodeViewColorSchemeSchemaContractTest.cpp`はlayer node viewの表示と操作を所有し、139行・10枠から追加後も300行・20枠未満に収まる。既存`KisNodeDummiesGraphTest`は階層操作結果を動的に固定する一方、1,980工程・3,959入力である。schema targetの対象固有CMake節へimage・globalのsource/generated探索路、KF I18nのheader interface、image export定義だけを追加し、Qt Gui・Testだけの直接接続と4工程・8入力を維持する。dummy、node、shapeとgraph本文を実体化せず、型特性と厳密な関数pointerだけで公開境界を観測する。
 - `g408-node-dummies-graph-schema`の状態は`in_progress`、実装基点は`011512c11c`である。開始headerから既存試験sourceの5枠と対象固有CMake節だけへ追加し、公開header、製品source、製品targetは変更しない。macOSの対象、追加5枠の20回反復、軽量近傍、試験sourceの厳格`clang-check`、書式、二回の無作業再構築、動的接続・未解決symbol、公開API検査、`verify-quick`だけを実行する。既存動作試験、製品UI・image shared target、全体build・`verify`、Linux、Nix再評価は実行しない。
+
+### 第408便の実装結果
+
+- `g408-node-dummies-graph-schema`は`completed`である。構築範囲の先行変更では`libs/ui/tests/CMakeLists.txt`内の既存`KisNodeViewColorSchemeSchemaContractTest`固有節へ、image・globalのsource/generated探索路、KF I18nのheader interface、`kritaimage_EXPORTS`だけを追加した。既存試験は4工程・8入力、Qt Gui・Testだけの動的接続を維持し、構築範囲commitは`0fff5c729a`である。
+- 開始`libs/ui/flake/kis_node_dummies_graph.h`から既存`libs/ui/tests/KisNodeViewColorSchemeSchemaContractTest.cpp`へ22 API・5枠を追加した。dummy型・構築・寿命3、階層移動5、索引・node・表示5、graph型・構築・照会6、graph変更3を型特性と厳密な関数pointerで固定した。試験sourceは198行・15枠で、dummy、node、shape、graphと製品本文は実体化していない。初回redは未定義の5検査関数だけで失敗し、契約実装commitは`ab7d25d932`である。
+- macOSで対象`libs-ui-KisNodeViewColorSchemeSchemaContractTest`、軽量近傍`libs-ui-KisHistogramPainterSchemaContractTest`、対象の20回反復、試験sourceの厳格`clang-check`、書式、二回の無作業再構築に成功した。4工程・8入力、command SHA-256 `f195241ce35567ac57ecc9a0896a200c36f6789c6ea075fda75b8e768129b835`、input SHA-256 `da5492afa805b60bae42d79ac910c557ca2245a149097370102de9929d1b359e`、AUTOMOC `HEADERS=[]`、直接接続はQt Gui・Test、製品未解決symbol 0である。1,980工程・3,959入力の既存動作試験と製品UI・image targetは実行していない。
+- 台帳へ22 APIを追加して26,557件対応、3,247件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g408.json`と一時計測物を削除し、追加作業tree・構築木は作成していない。主Ninja木5,978,040 KiB、共有compiler cache 982,364 KiB、最新`build/tdd-macos/public-api-missing-g409.json` 882,788 bytes、SHA-256 `565a29c58c10e3e48807bd8ef4572014a4eaec3c6efe2aaac4cd0e3466cfd8d6`だけを再利用対象として保持する。compiler cacheは144,426件中120,540件、83.46%がhitしている。次の永続作業は第409便で次の高密度なmacOS対象と最小構築面を選定することである。
 
 ### 第239便の先行監査担当票
 

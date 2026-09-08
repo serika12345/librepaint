@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 3269
+    "expectedMissingApis": 3247
   },
   "contracts": [
     {
@@ -72819,6 +72819,73 @@
         "method:NodeView::slotConfigurationChanged()",
         "method:NodeView::slotScrollerStateChanged(QScroller::State state)",
         "method:NodeView::slotUpdateIcons()"
+      ]
+    },
+    {
+      "target": "KisNodeViewColorSchemeSchemaContractTest",
+      "source": "libs/ui/tests/KisNodeViewColorSchemeSchemaContractTest.cpp",
+      "test": "KisNodeViewColorSchemeSchemaContractTest::nodeDummyTypeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "UI node dummyはnode shapeと共有nodeから構築でき、QObject基底の仮想寿命境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisNodeDummy",
+        "method:KisNodeDummy::KisNodeDummy(KisNodeShape * nodeShape,KisNodeSP node)",
+        "method:KisNodeDummy::~KisNodeDummy()"
+      ]
+    },
+    {
+      "target": "KisNodeViewColorSchemeSchemaContractTest",
+      "source": "libs/ui/tests/KisNodeViewColorSchemeSchemaContractTest.cpp",
+      "test": "KisNodeViewColorSchemeSchemaContractTest::nodeDummyHierarchyNavigationSignaturesRemainStable",
+      "behavior": "UI node dummyは子、親、前後の兄弟を借用pointerでたどる公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeDummy::firstChild() const",
+        "method:KisNodeDummy::lastChild() const",
+        "method:KisNodeDummy::nextSibling() const",
+        "method:KisNodeDummy::parent() const",
+        "method:KisNodeDummy::prevSibling() const"
+      ]
+    },
+    {
+      "target": "KisNodeViewColorSchemeSchemaContractTest",
+      "source": "libs/ui/tests/KisNodeViewColorSchemeSchemaContractTest.cpp",
+      "test": "KisNodeViewColorSchemeSchemaContractTest::nodeDummyIndexNodeAndVisibilitySignaturesRemainStable",
+      "behavior": "UI node dummyは子の索引・件数、共有node、画面表示可否を照会する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeDummy::at(int index) const",
+        "method:KisNodeDummy::childCount() const",
+        "method:KisNodeDummy::indexOf(KisNodeDummy * child) const",
+        "method:KisNodeDummy::isGUIVisible(bool showGlobalSelection) const",
+        "method:KisNodeDummy::node() const"
+      ]
+    },
+    {
+      "target": "KisNodeViewColorSchemeSchemaContractTest",
+      "source": "libs/ui/tests/KisNodeViewColorSchemeSchemaContractTest.cpp",
+      "test": "KisNodeViewColorSchemeSchemaContractTest::nodeDummiesGraphTypeConstructionAndQuerySchemaRemainStable",
+      "behavior": "UI node dummy graphはroot・件数・node対応を保持し、所属有無を照会する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisNodeDummiesGraph",
+        "method:KisNodeDummiesGraph::KisNodeDummiesGraph()",
+        "method:KisNodeDummiesGraph::containsNode(KisNodeSP node) const",
+        "method:KisNodeDummiesGraph::dummiesCount() const",
+        "method:KisNodeDummiesGraph::nodeToDummy(KisNodeSP node)",
+        "method:KisNodeDummiesGraph::rootDummy() const"
+      ]
+    },
+    {
+      "target": "KisNodeViewColorSchemeSchemaContractTest",
+      "source": "libs/ui/tests/KisNodeViewColorSchemeSchemaContractTest.cpp",
+      "test": "KisNodeViewColorSchemeSchemaContractTest::nodeDummiesGraphMutationSignaturesRemainStable",
+      "behavior": "UI node dummy graphは親と上側nodeを指定した追加・移動、および階層からの切離し境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeDummiesGraph::addNode(KisNodeDummy * node,KisNodeDummy * parent,KisNodeDummy * aboveThis)",
+        "method:KisNodeDummiesGraph::moveNode(KisNodeDummy * node,KisNodeDummy * parent,KisNodeDummy * aboveThis)",
+        "method:KisNodeDummiesGraph::removeNode(KisNodeDummy * node)"
       ]
     }
   ]
