@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 3156
+    "expectedMissingApis": 3142
   },
   "contracts": [
     {
@@ -73202,6 +73202,56 @@
         "method:KisTransformProcessingVisitor::visit(KisSelectionMask * mask,KisUndoAdapter * undoAdapter)",
         "method:KisTransformProcessingVisitor::visit(KisTransformMask * mask,KisUndoAdapter * undoAdapter)",
         "method:KisTransformProcessingVisitor::visit(KisTransparencyMask * mask,KisUndoAdapter * undoAdapter)"
+      ]
+    },
+    {
+      "target": "KisProcessingApplicatorSchemaContractTest",
+      "source": "libs/image/tests/KisProcessingApplicatorSchemaContractTest.cpp",
+      "test": "KisProcessingApplicatorSchemaContractTest::simpleVisitorTypeAndLifetimeSchemaRemainStable",
+      "behavior": "単純処理visitorは処理visitor基底を継承する抽象型で、仮想寿命境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisSimpleProcessingVisitor",
+        "method:KisSimpleProcessingVisitor::~KisSimpleProcessingVisitor()"
+      ]
+    },
+    {
+      "target": "KisProcessingApplicatorSchemaContractTest",
+      "source": "libs/image/tests/KisProcessingApplicatorSchemaContractTest.cpp",
+      "test": "KisProcessingApplicatorSchemaContractTest::simpleVisitorNodeAndLayerSignaturesRemainStable",
+      "behavior": "単純処理visitorは基底node、paint layer、group layer、adjustment layerとundo adapterを訪問するoverload境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSimpleProcessingVisitor::visit(KisAdjustmentLayer * layer,KisUndoAdapter * undoAdapter)",
+        "method:KisSimpleProcessingVisitor::visit(KisGroupLayer * layer,KisUndoAdapter * undoAdapter)",
+        "method:KisSimpleProcessingVisitor::visit(KisNode * node,KisUndoAdapter * undoAdapter)",
+        "method:KisSimpleProcessingVisitor::visit(KisPaintLayer * layer,KisUndoAdapter * undoAdapter)"
+      ]
+    },
+    {
+      "target": "KisProcessingApplicatorSchemaContractTest",
+      "source": "libs/image/tests/KisProcessingApplicatorSchemaContractTest.cpp",
+      "test": "KisProcessingApplicatorSchemaContractTest::simpleVisitorExternalAndFilterSignaturesRemainStable",
+      "behavior": "単純処理visitorはexternal・generator・clone layerとfilter maskをundo adapter付きで訪問するoverload境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSimpleProcessingVisitor::visit(KisCloneLayer * layer,KisUndoAdapter * undoAdapter)",
+        "method:KisSimpleProcessingVisitor::visit(KisExternalLayer * layer,KisUndoAdapter * undoAdapter)",
+        "method:KisSimpleProcessingVisitor::visit(KisFilterMask * mask,KisUndoAdapter * undoAdapter)",
+        "method:KisSimpleProcessingVisitor::visit(KisGeneratorLayer * layer,KisUndoAdapter * undoAdapter)"
+      ]
+    },
+    {
+      "target": "KisProcessingApplicatorSchemaContractTest",
+      "source": "libs/image/tests/KisProcessingApplicatorSchemaContractTest.cpp",
+      "test": "KisProcessingApplicatorSchemaContractTest::simpleVisitorMaskSignaturesRemainStable",
+      "behavior": "単純処理visitorはtransform・transparency・selection・colorize maskをundo adapter付きで訪問するoverload境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSimpleProcessingVisitor::visit(KisColorizeMask * mask,KisUndoAdapter * undoAdapter)",
+        "method:KisSimpleProcessingVisitor::visit(KisSelectionMask * mask,KisUndoAdapter * undoAdapter)",
+        "method:KisSimpleProcessingVisitor::visit(KisTransformMask * mask,KisUndoAdapter * undoAdapter)",
+        "method:KisSimpleProcessingVisitor::visit(KisTransparencyMask * mask,KisUndoAdapter * undoAdapter)"
       ]
     }
   ]
