@@ -1165,8 +1165,12 @@ target_include_directories(KisNodeViewColorSchemeSchemaContractTest PRIVATE
     ${CMAKE_CURRENT_BINARY_DIR}/..
     ${CMAKE_SOURCE_DIR}/libs/application
     ${CMAKE_BINARY_DIR}/libs/application
+    ${CMAKE_SOURCE_DIR}/plugins/dockers/layerdocker
+    ${CMAKE_BINARY_DIR}/plugins/dockers/layerdocker
+    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Widgets,INTERFACE_INCLUDE_DIRECTORIES>
 )
 target_compile_definitions(KisNodeViewColorSchemeSchemaContractTest PRIVATE
+    KRITALAYERDOCKER_STATIC_DEFINE
     kritaui_EXPORTS
 )
 
