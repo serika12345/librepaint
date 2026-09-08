@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 2771
+    "expectedMissingApis": 2760
   },
   "contracts": [
     {
@@ -74613,6 +74613,53 @@
         "method:KisAslStorage::addResource(const QString & resourceType,KoResourceSP resource)",
         "method:KisAslStorage::isValid() const",
         "method:KisAslStorage::saveAsNewVersion(const QString & resourceType,KoResourceSP resource)"
+      ]
+    },
+    {
+      "target": "KisTransformMaskSchemaContractTest",
+      "source": "libs/image/tests/KisTransformMaskSchemaContractTest.cpp",
+      "test": "KisTransformMaskSchemaContractTest::transformFactoryAliasesSchemaRemainStable",
+      "behavior": "変形マスク生成登録は通常パラメータ、識別子別map、animation保持器の生成関数型を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisAnimatedTransformMaskParamsHolderFactory",
+        "alias:KisTransformMaskParamsFactory",
+        "alias:KisTransformMaskParamsFactoryMap"
+      ]
+    },
+    {
+      "target": "KisTransformMaskSchemaContractTest",
+      "source": "libs/image/tests/KisTransformMaskSchemaContractTest.cpp",
+      "test": "KisTransformMaskSchemaContractTest::transformFactoryRegistryTypeLifetimeAndAccessSchemaRemainStable",
+      "behavior": "変形マスク生成登録は構築・破棄できる登録型と共有instance取得境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisTransformMaskParamsFactoryRegistry",
+        "method:KisTransformMaskParamsFactoryRegistry::KisTransformMaskParamsFactoryRegistry()",
+        "method:KisTransformMaskParamsFactoryRegistry::instance()",
+        "method:KisTransformMaskParamsFactoryRegistry::~KisTransformMaskParamsFactoryRegistry()"
+      ]
+    },
+    {
+      "target": "KisTransformMaskSchemaContractTest",
+      "source": "libs/image/tests/KisTransformMaskSchemaContractTest.cpp",
+      "test": "KisTransformMaskSchemaContractTest::transformFactoryRegistrationAndCreationSignaturesRemainStable",
+      "behavior": "変形マスク生成登録は識別子ごとの通常パラメータ生成器を登録し、XML要素からパラメータを生成する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTransformMaskParamsFactoryRegistry::addFactory(const QString & id,const KisTransformMaskParamsFactory & factory)",
+        "method:KisTransformMaskParamsFactoryRegistry::createParams(const QString & id,const QDomElement & e)"
+      ]
+    },
+    {
+      "target": "KisTransformMaskSchemaContractTest",
+      "source": "libs/image/tests/KisTransformMaskSchemaContractTest.cpp",
+      "test": "KisTransformMaskSchemaContractTest::animatedTransformFactorySignaturesRemainStable",
+      "behavior": "変形マスク生成登録はanimation保持器の生成器を設定し、既定境界から保持器を生成する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTransformMaskParamsFactoryRegistry::createAnimatedParamsHolder(KisDefaultBoundsBaseSP defaultBounds)",
+        "method:KisTransformMaskParamsFactoryRegistry::setAnimatedParamsHolderFactory(const KisAnimatedTransformMaskParamsHolderFactory & factory)"
       ]
     }
   ]
