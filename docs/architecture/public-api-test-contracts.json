@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 2931
+    "expectedMissingApis": 2917
   },
   "contracts": [
     {
@@ -74021,6 +74021,56 @@
         "method:KisTransportControls::forward()",
         "method:KisTransportControls::playPause()",
         "method:KisTransportControls::skipForward()"
+      ]
+    },
+    {
+      "target": "KisCanvasResourceProviderSchemaContractTest",
+      "source": "libs/ui/tests/KisCanvasResourceProviderSchemaContractTest.cpp",
+      "test": "KisCanvasResourceProviderSchemaContractTest::layerThumbnailCacheTypeAndLifetimeSchemaRemainStable",
+      "behavior": "layer thumbnail cacheは既定構築でき、QObjectの仮想寿命境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisLayerThumbnailCache",
+        "method:KisLayerThumbnailCache::KisLayerThumbnailCache()",
+        "method:KisLayerThumbnailCache::~KisLayerThumbnailCache()"
+      ]
+    },
+    {
+      "target": "KisCanvasResourceProviderSchemaContractTest",
+      "source": "libs/ui/tests/KisCanvasResourceProviderSchemaContractTest.cpp",
+      "test": "KisCanvasResourceProviderSchemaContractTest::layerThumbnailCacheImageAndSizeSignaturesRemainStable",
+      "behavior": "layer thumbnail cacheは画像とidle task管理器を個別または同時に設定し、最大寸法を設定・照会する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisLayerThumbnailCache::maxSize() const",
+        "method:KisLayerThumbnailCache::setIdleTaskManager(KisIdleTasksManager * manager)",
+        "method:KisLayerThumbnailCache::setImage(KisImageSP image)",
+        "method:KisLayerThumbnailCache::setImage(KisImageSP image,KisIdleTasksManager * manager)",
+        "method:KisLayerThumbnailCache::setMaxSize(int maxSize)"
+      ]
+    },
+    {
+      "target": "KisCanvasResourceProviderSchemaContractTest",
+      "source": "libs/ui/tests/KisCanvasResourceProviderSchemaContractTest.cpp",
+      "test": "KisCanvasResourceProviderSchemaContractTest::layerThumbnailCacheNodeSignaturesRemainStable",
+      "behavior": "layer thumbnail cacheはnodeのthumbnailを返し、nodeの追加と削除を受け付ける公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisLayerThumbnailCache::notifyNodeAdded(KisNodeSP node)",
+        "method:KisLayerThumbnailCache::notifyNodeRemoved(KisNodeSP node)",
+        "method:KisLayerThumbnailCache::thumbnail(KisNodeSP node) const"
+      ]
+    },
+    {
+      "target": "KisCanvasResourceProviderSchemaContractTest",
+      "source": "libs/ui/tests/KisCanvasResourceProviderSchemaContractTest.cpp",
+      "test": "KisCanvasResourceProviderSchemaContractTest::layerThumbnailCacheUpdateSignaturesRemainStable",
+      "behavior": "layer thumbnail cacheは更新開始と消去を受け付け、更新したnodeを通知する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisLayerThumbnailCache::clear()",
+        "method:KisLayerThumbnailCache::sigLayerThumbnailUpdated(KisNodeSP node)",
+        "method:KisLayerThumbnailCache::startThumbnailsUpdate()"
       ]
     }
   ]

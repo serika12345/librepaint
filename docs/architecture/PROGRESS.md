@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-08 23:38 JST
+- 更新日時: 2026-09-08 23:43 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3661,6 +3661,12 @@
 - 第428便は`libs/ui/canvas/KisLayerThumbnailCache.h`に残る全14 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g428.json`は公開header 1,548、公開API 29,804、対応済み26,873、未対応2,931、798,238 bytes、SHA-256 `436d0d65c3f248542b5ed3d5960febdcf0ab75a8549857bd9cad9367b24ab633`である。対象識別子整列集合のSHA-256は`6505d2c0c1c35b8bcf2ef79980a277004fad58e7ab6e610d355f7191c1a84ffb`で、cache型・構築・寿命3、画像・idle manager・最大寸法5、thumbnail取得・node追加削除3、更新開始・消去・更新通知3の4枠へ固定する。
 - 既存`libs/ui/tests/KisCanvasResourceProviderSchemaContractTest.cpp`はcanvas資源とidle task管理の境界を持ち、248行・10枠から追加後も300行・20枠以内に収まる。CMake変更なしでUI・image・canvas・flake・global・resources・pigment・painting/undoの既存探索路とexport定義、Qt Gui・Testとheader-only Boostだけを使う4工程・8入力を維持する。現行command SHA-256は`2ac2f87126ddd68b81e17b248fb074f00db07e2c0b3769b295b61fb012863906`、input SHA-256は`f4ea5e3798d5c121aacd9175a1433d675e15fc206c5984314de6b53ff966ff73`である。cache、画像、node、idle manager、Qt値と本文を実体化せず、型特性、構築可能性、厳密な関数pointerだけで公開境界を観測する。新規targetは同じ閉包に別のCMake登録と生成物を加えるため棄却する。
 - `g428-layer-thumbnail-cache-schema`の状態は`in_progress`、実装基点は`d268681ba4`である。開始headerから既存試験sourceの4枠だけへ追加し、CMake、公開header、製品source、製品targetは変更しない。停止線は5工程・11入力とし、新たな探索路・定義・link、製品OBJECT・shared・`kritatestsdk`接続、候補headerのAUTOMOC入力化、製品未解決symbol、対象値または本文の実体化が必要なら候補を保留する。macOSの対象、追加4枠の20回反復、軽量近傍、試験sourceの厳格`clang-check`、書式、二回目計画、連続二回の無作業再構築、動的接続・未解決symbol、公開API検査、`verify-quick`だけを実行する。製品application UI・UI・image target、全体build・`verify`、Linux、Nix再評価は実行しない。
+
+### 第428便の実装結果
+
+- `g428-layer-thumbnail-cache-schema`は`completed`である。`libs/ui/canvas/KisLayerThumbnailCache.h`から既存`libs/ui/tests/KisCanvasResourceProviderSchemaContractTest.cpp`へ14 API・4枠を移し、cache型・構築・寿命3、画像・idle manager・最大寸法5、thumbnail取得・node追加削除3、更新開始・消去・更新通知3を型特性、構築可能性、厳密な関数pointerで固定した。試験sourceは294行・14枠で300行・20枠以内を維持し、cache、画像、node、idle manager、Qt値と本文を実体化していない。CMake変更なしの初回redは未定義の4検査関数だけで失敗し、契約実装commitは`6a5893dc4b`である。
+- macOSの対象`libs-ui-KisCanvasResourceProviderSchemaContractTest`、軽量近傍`libs-ui-KisFavoriteResourceManagerSchemaContractTest`、対象の20回反復、試験sourceの厳格`clang-check`、書式、二回目計画、連続二回の無作業再構築に成功した。対象は4工程・8入力、command SHA-256 `2ac2f87126ddd68b81e17b248fb074f00db07e2c0b3769b295b61fb012863906`、input SHA-256 `f4ea5e3798d5c121aacd9175a1433d675e15fc206c5984314de6b53ff966ff73`、AUTOMOC `HEADERS=[]`、直接接続はQt Gui・Test、製品未解決symbol 0である。1,975工程・3,950入力の製品application UI、製品UI・image target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 台帳へ14 APIを追加して26,887件対応、2,917件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g428.json`を削除し、追加作業tree・構築木・一時計画物は作成していない。主Ninja木5,982,936 KiB、共有compiler cache 982,508 KiB、最新`build/tdd-macos/public-api-missing-g429.json` 794,785 bytes、SHA-256 `051d2d12f6efc31497f5b4d7e3606ea81923e7fbd552f996e044bf0bd155c969`だけを再利用対象として保持する。compiler cacheは144,493件中120,553件、83.43%がhitしている。公開API検査と`verify-quick`に成功した。次の永続作業は第429便で次の高密度なmacOS対象と最小構築面を選定することである。
 
 ### 第239便の先行監査担当票
 
