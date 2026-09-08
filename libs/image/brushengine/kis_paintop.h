@@ -11,7 +11,10 @@
 #ifndef KIS_PAINTOP_H_
 #define KIS_PAINTOP_H_
 
-#include <kis_distance_information.h>
+#include <QVector>
+
+#include <utility>
+
 #include "kis_shared.h"
 #include "kis_types.h"
 
@@ -21,8 +24,11 @@ class QPointF;
 class KoColorSpace;
 
 class KisPainter;
+class KisDistanceInformation;
 class KisPaintInformation;
 class KisRunnableStrokeJobData;
+class KisSpacingInformation;
+class KisTimingInformation;
 
 /**
  * KisPaintOp are use by tools to draw on a paint device. A paintop takes settings
