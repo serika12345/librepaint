@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 3399
+    "expectedMissingApis": 3384
   },
   "contracts": [
     {
@@ -72338,6 +72338,57 @@
       "apis": [
         "method:KisDefaultBoundsNodeWrapper::externalFrameActive() const",
         "method:KisDefaultBoundsNodeWrapper::sourceCookie() const"
+      ]
+    },
+    {
+      "target": "KisResourceLoaderSchemaContractTest",
+      "source": "libs/resources/tests/KisResourceLoaderSchemaContractTest.cpp",
+      "test": "KisResourceLoaderSchemaContractTest::baseTypeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "資源loader基底は具体loaderへ継承でき、識別情報からの構築と仮想寿命境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisResourceLoaderBase",
+        "method:KisResourceLoaderBase::KisResourceLoaderBase(const QString & resourceSubType,const QString & resourceType,const QString & name,const QStringList & mimetypes)",
+        "method:KisResourceLoaderBase::~KisResourceLoaderBase()"
+      ]
+    },
+    {
+      "target": "KisResourceLoaderSchemaContractTest",
+      "source": "libs/resources/tests/KisResourceLoaderSchemaContractTest.cpp",
+      "test": "KisResourceLoaderSchemaContractTest::baseIdentityAndFormatSignaturesRemainStable",
+      "behavior": "資源loader基底は識別子、表示名、格納種別と対応形式を照会する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisResourceLoaderBase::filters() const",
+        "method:KisResourceLoaderBase::id() const",
+        "method:KisResourceLoaderBase::mimetypes() const",
+        "method:KisResourceLoaderBase::name() const",
+        "method:KisResourceLoaderBase::resourceSubType() const",
+        "method:KisResourceLoaderBase::resourceType() const"
+      ]
+    },
+    {
+      "target": "KisResourceLoaderSchemaContractTest",
+      "source": "libs/resources/tests/KisResourceLoaderSchemaContractTest.cpp",
+      "test": "KisResourceLoaderSchemaContractTest::baseCreationAndLoadingSignaturesRemainStable",
+      "behavior": "資源loader基底は空資源生成と既存または新規資源への装置入力を提供する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisResourceLoaderBase::create(const QString & name)",
+        "method:KisResourceLoaderBase::load(KoResourceSP resource,QIODevice & dev,KisResourcesInterfaceSP resourcesInterface)",
+        "method:KisResourceLoaderBase::load(const QString & name,QIODevice & dev,KisResourcesInterfaceSP resourcesInterface)"
+      ]
+    },
+    {
+      "target": "KisResourceLoaderSchemaContractTest",
+      "source": "libs/resources/tests/KisResourceLoaderSchemaContractTest.cpp",
+      "test": "KisResourceLoaderSchemaContractTest::templateLoaderSchemaRemainsStable",
+      "behavior": "型付き資源loaderは資源型と識別情報から具体資源を生成する公開template境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisResourceLoader",
+        "method:KisResourceLoader::KisResourceLoader(const QString & id,const QString & folder,const QString & name,const QStringList & mimetypes)",
+        "method:KisResourceLoader::create(const QString & name)"
       ]
     }
   ]

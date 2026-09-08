@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-08 18:15 JST
+- 更新日時: 2026-09-08 18:22 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3312,6 +3312,12 @@
 - 第400便は`libs/resources/KisResourceLoader.h`に残る全15 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g400.json`は公開header 1,548、公開API 29,804、対応済み26,405、未対応3,399、923,690 bytes、SHA-256 `645febf777eb898c4df89787bff99305ae87a43918a7c2c968eefbab95d8f01c`である。対象識別子整列集合のSHA-256は`5e5a2ede00f66f300c9bf3a2f30c5b09b5a0666c132f3224477ca3417b297411`で、基底型・構築・寿命3、識別・表示・形式6、生成・読込み3、template loader型・構築・生成3の4枠へ固定する。
 - 既存`libs/resources/tests/KisStoragePluginContractTest.cpp`はloaderを実行時に使うが13工程・28入力、旧`TestResourceLoaderRegistry`は813工程・1,654入力であり、停止線5工程・11入力を超えるため反復先から除外する。新規`libs/resources/tests/KisResourceLoaderSchemaContractTest.cpp`と専用targetを作り、resourcesのsource/generated探索路、Qt Gui・KF I18nのheader interface、header-only Boost、必要export定義、Qt Core・Testだけの直接接続による4工程・8入力へ分離する。CMakeは新target固有節だけを追加し、候補headerをtarget sourceやAUTOMOC入力へ登録しない。
 - `g400-resource-loader-schema`の状態は`in_progress`、実装基点は`32a7e19150`である。開始headerから新規試験sourceの4枠へ型特性、構築可能性、厳密な関数pointerを追加する。resource、入出力装置、resources interfaceを実体化せず、macOSの対象、追加4枠の20回反復、軽量近傍、試験sourceの厳格`clang-check`、書式、二回の無作業再構築、動的接続・未解決symbol、公開API検査、`verify-quick`だけを実行する。製品resources・OBJECT・shared target、既存13工程・813工程対象、全体build・`verify`、Linux、Nix再評価は実行しない。
+
+### 第400便の実装結果
+
+- `g400-resource-loader-schema`は`completed`である。開始`libs/resources/KisResourceLoader.h`から新規`libs/resources/tests/KisResourceLoaderSchemaContractTest.cpp`へ15 API・4枠を追加した。基底型・構築・寿命3、識別・表示・形式6、生成・読込み3、template loader型・構築・生成3を型特性、継承構築可能性、厳密な関数pointerで固定した。試験sourceは100行・4枠で、resource、入出力装置、resources interface、loader本文は実体化していない。初回redは未定義の4検査関数だけで失敗し、契約実装commitは`1d9092d758`である。
+- macOSで対象`libs-resources-KisResourceLoaderSchemaContractTest`、軽量近傍`libs-resources-KisResourceIteratorSchemaContractTest`、対象の20回反復、試験sourceの厳格`clang-check`、書式、二回の無作業再構築に成功した。4工程・8入力、command SHA-256 `b97c0a2ec12378fa128e19ae06a46874dd5cb2a8515d7e32c070a1ecf4b2f0e5`、input SHA-256 `17dade2e277da25d620bae254da61d24b8a421c85cd9d742fbda185318592ee5`、AUTOMOC `HEADERS=[]`、直接接続はQt Core・Testとheader-only Boost、製品未解決symbol 0である。既存のloader実行対象13工程・28入力と登録簿対象813工程・1,654入力を反復先から分離した。
+- 台帳へ15 APIを追加して26,420件対応、3,384件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g400.json`と一時計測物を削除し、追加作業tree・構築木は作成していない。主Ninja木5,975,528 KiB、共有compiler cache 983,364 KiB、最新`build/tdd-macos/public-api-missing-g401.json` 919,725 bytes、SHA-256 `b0c2bd5fffdd197339d88c2c08c97523f9e476c0ef6dbe557e3d1a6edf05e298`だけを再利用対象として保持する。compiler cacheは144,391件中120,532件、83.48%がhitしている。次の永続作業は第401便で次の高密度なmacOS対象と最小構築面を選定することである。
 
 ### 第239便の先行監査担当票
 
