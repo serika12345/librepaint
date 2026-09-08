@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 2760
+    "expectedMissingApis": 2748
   },
   "contracts": [
     {
@@ -74660,6 +74660,54 @@
       "apis": [
         "method:KisTransformMaskParamsFactoryRegistry::createAnimatedParamsHolder(KisDefaultBoundsBaseSP defaultBounds)",
         "method:KisTransformMaskParamsFactoryRegistry::setAnimatedParamsHolderFactory(const KisAnimatedTransformMaskParamsHolderFactory & factory)"
+      ]
+    },
+    {
+      "target": "KisRasterKeyframeChannelSchemaContractTest",
+      "source": "libs/image/tests/KisRasterKeyframeChannelSchemaContractTest.cpp",
+      "test": "KisRasterKeyframeChannelSchemaContractTest::animatedOpacityTypeAndConstructionSchemaRemainStable",
+      "behavior": "animation対応opacity propertyは既定境界、property保管先、既定値、任意のQObject親から構築する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisAnimatedOpacityProperty",
+        "method:KisAnimatedOpacityProperty::KisAnimatedOpacityProperty(KisDefaultBoundsBaseSP bounds,KoProperties * const props,quint8 defaultValue,QObject * parent=nullptr)"
+      ]
+    },
+    {
+      "target": "KisRasterKeyframeChannelSchemaContractTest",
+      "source": "libs/image/tests/KisRasterKeyframeChannelSchemaContractTest.cpp",
+      "test": "KisRasterKeyframeChannelSchemaContractTest::animatedOpacityValueAndChannelSignaturesRemainStable",
+      "behavior": "animation対応opacity propertyは現在値を取得・設定し、animation channelの有無と参照を返す公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAnimatedOpacityProperty::channel() const",
+        "method:KisAnimatedOpacityProperty::get()",
+        "method:KisAnimatedOpacityProperty::hasChannel()",
+        "method:KisAnimatedOpacityProperty::set(const quint8 value)"
+      ]
+    },
+    {
+      "target": "KisRasterKeyframeChannelSchemaContractTest",
+      "source": "libs/image/tests/KisRasterKeyframeChannelSchemaContractTest.cpp",
+      "test": "KisRasterKeyframeChannelSchemaContractTest::animatedOpacityAnimationAndBoundsSignaturesRemainStable",
+      "behavior": "animation対応opacity propertyはnodeへchannelを作成し、別propertyのkeyframeを転送し、既定境界を更新する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAnimatedOpacityProperty::makeAnimated(KisNode * parentNode)",
+        "method:KisAnimatedOpacityProperty::transferKeyframeData(const KisAnimatedOpacityProperty & rhs)",
+        "method:KisAnimatedOpacityProperty::updateDefaultBounds(KisDefaultBoundsBaseSP bounds)"
+      ]
+    },
+    {
+      "target": "KisRasterKeyframeChannelSchemaContractTest",
+      "source": "libs/image/tests/KisRasterKeyframeChannelSchemaContractTest.cpp",
+      "test": "KisRasterKeyframeChannelSchemaContractTest::animatedOpacityNotificationSignaturesRemainStable",
+      "behavior": "animation対応opacity propertyは値変更を通知し、keyframeの変更と削除を受け取る公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAnimatedOpacityProperty::changed(quint8 value)",
+        "method:KisAnimatedOpacityProperty::slotKeyChanged(const KisKeyframeChannel *,int time)",
+        "method:KisAnimatedOpacityProperty::slotKeyRemoval(const KisKeyframeChannel *,int)"
       ]
     }
   ]

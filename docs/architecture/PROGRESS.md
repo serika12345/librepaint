@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 02:23 JST
+- 更新日時: 2026-09-09 02:32 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3823,6 +3823,14 @@
 - 第441便は`libs/image/KisAnimatedOpacityProperty.h`に残る全12 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g441.json`は公開header 1,548、公開API 29,804、対応済み27,044、未対応2,760、753,296 bytes、SHA-256 `39932db1c41ed91cf50ced4006e0284a285c1ed608bbd7bffb60993ccd336491`である。対象識別子整列集合のSHA-256は`14153e5945d9cecdbade45a447b30b770855e21f4499d1fb5581bca378579764`で、型・構築2、値・channel照会変更4、animation化・転送・境界更新3、変更通知・key変更・削除slot 3の4枠へ固定する。
 - 構築範囲の先行最適化として、開始`libs/image/KisAnimatedOpacityProperty.h`から公開宣言に不要な`QVariant`、`kis_time_span.h`、`kis_image.h`、`KoProperties.h`の完全型includeを除き、`KoProperties`を前方宣言する。完全型利用先`libs/image/KisAnimatedOpacityProperty.cpp`へ`QVariant`、`KoProperties.h`、`kis_default_bounds_node_wrapper.h`を明示し、値変換、property操作、node境界生成の所有を実装側へ置く。公開宣言、QObject所有、scalar keyframe channel所有、信号・slotを保つ。
 - 既存`libs/image/tests/KisRasterKeyframeChannelSchemaContractTest.cpp`は107行・5枠で、追加後も300行・20枠未満に収まる。対象固有headerを同sourceへ加えるだけで`libs/image/tests/CMakeLists.txt`を変更せず、型、property、channel、node、境界を実体化しない。対象の変更前閉包は4工程・8入力、command hash `336652441f50149ca8e52751cd9b531342af26bea61504ef33a0d321b6614b06`、input hash `55fa4ae2ef299d3eb801631c7fd7dbe3a6da098174c0dda2ba9a2e0f2d88ebb0`である。停止線を5工程・11入力とし、計画外探索路・link・定義、AUTOMOC header入力、製品未解決記号、対象型の実体化または本文実行が必要なら停止する。macOSの対象と軽量近傍、追加4枠の20回反復、対象headerを含む試験sourceと全直接consumerの厳密構文、二回目計画、無作業再構築、公開API検査、`verify-quick`だけを実行し、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
+
+### 第441便の実装結果
+
+- 公開header閉包の問題は、開始`libs/image/KisAnimatedOpacityProperty.h`が公開宣言に使わない`QVariant`、時間範囲、画像本体、`KoProperties`完全型を取り込み、opacity property利用元へ画像全体の依存を推移させる構造だった。これら4 includeを除き`KoProperties`を前方宣言し、完全型利用先`libs/image/KisAnimatedOpacityProperty.cpp`へ`QVariant`、`KoProperties.h`、`kis_default_bounds_node_wrapper.h`を明示した。公開宣言、QObject所有、scalar keyframe channel所有、信号・slotを保ち、同sourceと唯一の別consumer `libs/image/kis_base_node.cpp`の既存コンパイル条件による厳密構文検査に成功した。計画commitは`6c0220c0bf`、依存整理commitは`6b78c9dcbe`である。
+- `libs/image/KisAnimatedOpacityProperty.h`から既存`libs/image/tests/KisRasterKeyframeChannelSchemaContractTest.cpp`へ全12 APIを4枠で固定した。型・構築2、値・channel照会変更4、animation化・転送・境界更新3、変更通知・key変更・削除slot 3を重複なく対応付けた。初回は既存5枠と追加3枠が成功し、`G441 animated opacity API schema is not fixed yet`だけで1件失敗した。契約commitは`eaa4fa70f4`である。
+- 最終sourceは154行・9枠、CMakeを変更していない。対象は変更前と同じ4工程・8入力、command hash `336652441f50149ca8e52751cd9b531342af26bea61504ef33a0d321b6614b06`、input hash `55fa4ae2ef299d3eb801631c7fd7dbe3a6da098174c0dda2ba9a2e0f2d88ebb0`を維持した。既存のQt Core・Xml・Testだけの動的接続、AUTOMOC `HEADERS=[]`、製品未解決記号0を確認した。
+- macOSで対象`libs-image-KisRasterKeyframeChannelSchemaContractTest`と近傍`libs-image-KisKeyframeChannelSchemaContractTest`、対象の20回反復、試験sourceと2つの直接consumerの`clang-check --extra-arg=-Werror`、試験sourceの書式、二回の無作業再構築に成功した。台帳は27,056件対応、2,748件未対応となり、開始headerの残存は0件である。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 旧`public-api-missing-g441.json`を削除し、追加作業tree・構築木・一時計画物は作成していない。主Ninja木5,986,272 KiB、共有compiler cache 982,764 KiB、最新`build/tdd-macos/public-api-missing-g442.json` 749,978 bytes、SHA-256 `819c5717c8d8b71f7cb59ffccc642380474e856cf141ffcb4ceb7ce2f3771cd1`だけを再利用対象として保持する。compiler cacheは144,537件中120,558件、83.41%がhitしている。次の永続作業は第442便で次の高密度なmacOS対象と最小構築面を選定することである。
 
 ### 第239便の先行監査担当票
 
