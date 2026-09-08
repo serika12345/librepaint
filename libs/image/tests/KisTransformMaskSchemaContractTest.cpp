@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "KisBezierTransformMesh.h"
 #include "kis_perspectivetransform_worker.h"
 #include "kis_transform_mask.h"
 #include "kis_transform_mask_params_factory_registry.h"
@@ -22,6 +23,8 @@ namespace
         std::is_same_v<decltype(static_cast<signature>(&KisTransformMaskParamsFactoryRegistry::method)), signature>)
 #define ASSERT_PERSPECTIVE_TRANSFORM_SIGNATURE(method, signature)                                                      \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisPerspectiveTransformWorker::method)), signature>)
+#define ASSERT_BEZIER_TRANSFORM_MESH_SIGNATURE(method, signature)                                                      \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KisBezierTransformMesh::method)), signature>)
 
 } // namespace
 
@@ -43,6 +46,11 @@ private Q_SLOTS:
     void perspectiveTransformConstructionAndLifetimeSchemaRemainStable();
     void perspectiveTransformExecutionSignaturesRemainStable();
     void perspectiveTransformMatrixAndSubpixelSignaturesRemainStable();
+    void bezierTransformMeshTypeAndConstructionSchemaRemainStable();
+    void bezierTransformMeshHitTestSignaturesRemainStable();
+    void bezierTransformMeshPatchTransformationSignaturesRemainStable();
+    void bezierTransformMeshExecutionAndApproximationSignaturesRemainStable();
+    void bezierTransformMeshRangeAndPersistenceSignaturesRemainStable();
 };
 
 void KisTransformMaskSchemaContractTest::transformMaskTypeLifetimeAndVisitorSchemaRemainStable()
@@ -213,6 +221,63 @@ void KisTransformMaskSchemaContractTest::perspectiveTransformMatrixAndSubpixelSi
     ASSERT_PERSPECTIVE_TRANSFORM_SIGNATURE(setForceSubPixelTranslation, void (Worker::*)(bool));
 }
 
+void KisTransformMaskSchemaContractTest::bezierTransformMeshTypeAndConstructionSchemaRemainStable()
+{
+    using Mesh = KisBezierTransformMeshDetail::KisBezierTransformMesh;
+
+    static_assert(std::is_same_v<KisBezierTransformMesh, Mesh>);
+    static_assert(std::is_class_v<Mesh>);
+    static_assert(std::is_base_of_v<KisBezierMesh, Mesh>);
+    static_assert(std::is_default_constructible_v<Mesh>);
+    static_assert(std::is_constructible_v<Mesh, const QRectF &, const QSize &>);
+    static_assert(std::is_constructible_v<Mesh, const QRectF &>);
+}
+
+void KisTransformMaskSchemaContractTest::bezierTransformMeshHitTestSignaturesRemainStable()
+{
+    using Mesh = KisBezierTransformMesh;
+
+    ASSERT_BEZIER_TRANSFORM_MESH_SIGNATURE(hitTestPatch, Mesh::PatchIndex (Mesh::*)(const QPointF &, QPointF *) const);
+    ASSERT_BEZIER_TRANSFORM_MESH_SIGNATURE(hitTestPatchInSourceSpace, QRect (Mesh::*)(const QRectF &) const);
+    static_assert(std::is_same_v<decltype(std::declval<const Mesh &>().hitTestPatch(std::declval<const QPointF &>())),
+                                 Mesh::PatchIndex>);
+}
+
+void KisTransformMaskSchemaContractTest::bezierTransformMeshPatchTransformationSignaturesRemainStable()
+{
+    using Mesh = KisBezierTransformMesh;
+    using ImageSignature = void (*)(const KisBezierPatch &, const QPoint &, const QImage &, const QPoint &, QImage *);
+    using DeviceSignature = void (*)(const KisBezierPatch &, KisPaintDeviceSP, KisPaintDeviceSP);
+
+    static_assert(std::is_same_v<decltype(static_cast<ImageSignature>(&Mesh::transformPatch)), ImageSignature>);
+    static_assert(std::is_same_v<decltype(static_cast<DeviceSignature>(&Mesh::transformPatch)), DeviceSignature>);
+}
+
+void KisTransformMaskSchemaContractTest::bezierTransformMeshExecutionAndApproximationSignaturesRemainStable()
+{
+    using Mesh = KisBezierTransformMesh;
+
+    ASSERT_BEZIER_TRANSFORM_MESH_SIGNATURE(transformMesh,
+                                           void (Mesh::*)(const QPoint &, const QImage &, const QPoint &, QImage *)
+                                               const);
+    ASSERT_BEZIER_TRANSFORM_MESH_SIGNATURE(transformMesh, void (Mesh::*)(KisPaintDeviceSP, KisPaintDeviceSP) const);
+    ASSERT_BEZIER_TRANSFORM_MESH_SIGNATURE(approxNeedRect, QRect (Mesh::*)(const QRect &) const);
+    ASSERT_BEZIER_TRANSFORM_MESH_SIGNATURE(approxChangeRect, QRect (Mesh::*)(const QRect &) const);
+}
+
+void KisTransformMaskSchemaContractTest::bezierTransformMeshRangeAndPersistenceSignaturesRemainStable()
+{
+    using Mesh = KisBezierTransformMesh;
+    using RangeSignature = QRectF (*)(const KisBezierPatch &, const QRectF &, qreal);
+    using SaveSignature = void (*)(QDomElement *, const QString &, const Mesh &);
+    using LoadSignature = bool (*)(const QDomElement &, Mesh *);
+
+    static_assert(std::is_same_v<decltype(&Mesh::calcTightSrcRectRangeInParamSpace), RangeSignature>);
+    static_assert(std::is_same_v<decltype(&KisBezierTransformMeshDetail::saveValue), SaveSignature>);
+    static_assert(std::is_same_v<decltype(&KisBezierTransformMeshDetail::loadValue), LoadSignature>);
+}
+
+#undef ASSERT_BEZIER_TRANSFORM_MESH_SIGNATURE
 #undef ASSERT_PERSPECTIVE_TRANSFORM_SIGNATURE
 #undef ASSERT_TRANSFORM_FACTORY_REGISTRY_SIGNATURE
 #undef ASSERT_TRANSFORM_MASK_SIGNATURE
