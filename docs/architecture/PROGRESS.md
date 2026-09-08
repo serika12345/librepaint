@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-08 14:42 JST
+- 更新日時: 2026-09-08 14:48 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3136,6 +3136,14 @@
 - 開始headerの残存全25 APIを、新規`libs/ui/tests/KisToolSelectUiBaseSchemaContractTest.cpp`のUI選択型・alias・構築8、参照layer mode 5、活性化・表示5、選択設定4、補正・色label・option 3の5枠へ対応付けた。対象は113行で、参照layer modeの既定序数は実行時比較し、抽象基底の構築経路はpaint overrideだけを持つ局所probe、その他は型特性と厳密な関数pointerで固定した。最初のredで不要な`KoShape`完全依存を除去した後、tools UIとPSD utilityの所有探索路だけを段階的に加え、最後は5試験関数の未定義symbolだけで停止した。契約実装commitは`e7b6b632cf`である。
 - 最終targetは4工程・8入力、command SHA-256 `dfa69d52c97147f5d25cdc794e3cd6dc2b37644303f8c0fdd5db3f5606734cc3`、input SHA-256 `6a0a85aa6ab162073c90b3d9c8b710b085223737161c5fae4a411c95763ae2da`で停止線内に収まる。動的接続はQt Core・Test、macOS frameworkとgettextだけで、製品libraryの未解決symbolを持たない。macOSで対象`libs-ui-KisToolSelectUiBaseSchemaContractTest`、下位近傍`libs-tools-KisToolSelectBaseSchemaContractTest`、対象の20回反復、試験sourceの厳格`clang-check`、書式、AUTOMOC `HEADERS=[]`、二回の無作業再構築、公開API検査に成功した。selection option widget、action、canvas、tool、node、stroke、menu、製品target、既存製品試験、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 台帳へ25 APIを追加して26,170件対応、3,634件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g386.json`を最新報告の検証後に削除し、追加作業tree・構築木は作成していない。主Ninja木5,964,856 KiB、共有compiler cache 983,184 KiB、最新`build/tdd-macos/public-api-missing-g387.json` 989,017 bytes、SHA-256 `5f914487bd7e37a4fec05410bc1e4839bf066f870d63ab4dbb85837f4f6e9d28`だけを再利用対象として保持する。compiler cacheは144,337件中120,522件、83.50%がhitしている。次の永続作業は第387便で次の高密度なmacOS対象と最小構築面を選定することである。
+
+### 第387便の公開API契約計画
+
+- 第387便は`libs/psd/psd_layer_record.h`の残存全23 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g387.json`は公開header 1,548、公開API 29,804、対応済み26,170、未対応3,634、989,017 bytes、SHA-256 `5f914487bd7e37a4fec05410bc1e4839bf066f870d63ab4dbb85837f4f6e9d28`である。対象識別子整列集合のSHA-256は`3754a3406e5227bad2eb4dfff6c6a59f312fb3c9dd191bd1fdc75d962ed3fb5c`で、record型・構築・寿命・妥当性4、直列化値member 8、読込4、path・書込4、診断出力3の5枠へ固定する。
+- 開始headerは`KisNodeSP`と`KisPaintDeviceSP`の共有pointer aliasを`kis_types.h`から得ている一方、`kis_node.h`と`kis_paint_device.h`の完全なimage実装閉包も重複して5直接利用元へ伝播させている。また公開値memberとinline診断出力に必要な`std::array`、`QDebug`、`QDomDocument`、`QPair`、`QRect`を推移includeへ依存している。構造先行変更では二つのimage完全includeを除き、値型を直接includeする。`KisPaintDevice`実体を複製する`libs/psd/psd_layer_record.cpp`だけへ完全型includeを移す。
+- 変更前の`libs/psd/psd_layer_record.cpp`、`psd_layer_section.cpp`、`psd_pixel_utils.cpp`、`libs/psdutils/tests/PsdFormatValuesContractTest.cpp`、`plugins/impex/psd/psd_image_data.cpp`は、それぞれ既存診断だけで厳格`clang-check`を停止した。変更後に5件の終了状態と診断本文を比較し、公開API報告のbyte一致を完了条件とする。
+- 既存`PsdFormatValuesContractTest.cpp`は2,000行超で、`kritaglobaldebugobjects`を含む6工程・14入力であるため追記しない。新規`libs/psdutils/tests/PSDLayerRecordSchemaContractTest.cpp`を200行・10枠未満で作り、型特性、厳密な関数・member pointerだけで23 APIを観測する。近傍`KisAslXmlWriterSchemaContractTest`は4工程・8入力、command SHA-256 `fdba2c8ce6c16eb4d73fe37da82f7c3483d516817b54a5a8dac535579de71157`、input SHA-256 `c0bad8b3cfd810dd10035e4d3316829be21fe48b5c601f17113b32a452f3b06e`である。新規targetも4工程・8入力を予測し、停止線を5工程・11入力とする。
+- `g387-psd-layer-record-schema`の状態は`in_progress`、実装基点は`f78ce16a86`である。構造先行commit後、新規試験sourceと`libs/psdutils/tests/CMakeLists.txt`の対象固有節だけへ契約を追加する。macOSの対象、5枠の20回反復、軽量近傍、5直接利用元と試験sourceの厳格`clang-check`、書式、AUTOMOC後の二回目計画、二回の無作業再構築、動的接続・未解決symbol、公開API検査、`verify-quick`だけを実行する。PSD record・device・node・path・I/Oの実体、既存`PsdFormatValuesContractTest`、製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
 
 ### 第239便の先行監査担当票
 
