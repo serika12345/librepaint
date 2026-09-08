@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 02:32 JST
+- 更新日時: 2026-09-09 02:36 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3831,6 +3831,12 @@
 - 最終sourceは154行・9枠、CMakeを変更していない。対象は変更前と同じ4工程・8入力、command hash `336652441f50149ca8e52751cd9b531342af26bea61504ef33a0d321b6614b06`、input hash `55fa4ae2ef299d3eb801631c7fd7dbe3a6da098174c0dda2ba9a2e0f2d88ebb0`を維持した。既存のQt Core・Xml・Testだけの動的接続、AUTOMOC `HEADERS=[]`、製品未解決記号0を確認した。
 - macOSで対象`libs-image-KisRasterKeyframeChannelSchemaContractTest`と近傍`libs-image-KisKeyframeChannelSchemaContractTest`、対象の20回反復、試験sourceと2つの直接consumerの`clang-check --extra-arg=-Werror`、試験sourceの書式、二回の無作業再構築に成功した。台帳は27,056件対応、2,748件未対応となり、開始headerの残存は0件である。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 旧`public-api-missing-g441.json`を削除し、追加作業tree・構築木・一時計画物は作成していない。主Ninja木5,986,272 KiB、共有compiler cache 982,764 KiB、最新`build/tdd-macos/public-api-missing-g442.json` 749,978 bytes、SHA-256 `819c5717c8d8b71f7cb59ffccc642380474e856cf141ffcb4ceb7ce2f3771cd1`だけを再利用対象として保持する。compiler cacheは144,537件中120,558件、83.41%がhitしている。次の永続作業は第442便で次の高密度なmacOS対象と最小構築面を選定することである。
+
+### 第442便の公開API契約計画
+
+- 第442便は`libs/image/kis_distance_information.h`の`KisDistanceInitInfo`に残る全12 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g442.json`は公開header 1,548、公開API 29,804、対応済み27,056、未対応2,748、749,978 bytes、SHA-256 `819c5717c8d8b71f7cb59ffccc642380474e856cf141ffcb4ceb7ce2f3771cd1`である。対象識別子整列集合のSHA-256は`b83dbbc757fc6166048e0b2c75344f992f3734017f0c4154eb27bc29ce83369f`で、型・5構築・寿命7、等価比較・代入2、距離情報生成1、XML保存・復元2の4枠へ固定する。
+- 構築範囲の先行最適化として、開始`libs/image/kis_distance_information.h`から公開宣言に使わない`QVector2D` includeを除く。完全型を使う`libs/image/kis_distance_information.cpp`は既に明示includeを持つ。推移includeへ依存して`QVector2D`を使う`libs/ui/tool/kis_tool_freehand_helper.cpp`へ明示includeを移し、image公開headerがQt Gui型を波及させない構造にする。
+- 既存`libs/image/tests/KisPainterSchemaContractTest.cpp`は233行・12枠で、4枠追加後も300行・20枠未満に収まる。対象固有headerを同sourceへ加えるだけで`libs/image/tests/CMakeLists.txt`を変更せず、初期情報、距離情報、XML文書・要素を実体化しない。対象の変更前閉包は4工程・8入力、command hash `3e74903fc578a08572e7bcc63c26fac06dedea3ee8660582065ef0fe47de95ad`、input hash `f58bdaf52da2afb5c89381fd30e57f20f8116a62f16f034495bd2eb94d60de83`である。停止線を5工程・11入力とし、計画外探索路・link・定義、AUTOMOC header入力、製品未解決記号、対象型の実体化または本文実行が必要なら停止する。macOSの対象と軽量近傍、追加4枠の20回反復、対象headerを含む試験sourceと完全型・推移依存consumerの厳密構文、二回目計画、無作業再構築、公開API検査、`verify-quick`だけを実行し、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
 
 ### 第239便の先行監査担当票
 
