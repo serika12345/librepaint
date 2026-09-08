@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include <canvas/kis_image_view_converter.h>
 #include <flake/kis_shape_selection.h>
 
 #include <QTest>
@@ -16,6 +17,8 @@ namespace
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisShapeSelection::method)), signature>)
 #define ASSERT_SHAPE_SELECTION_FACTORY_SIGNATURE(method, signature)                                                    \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisShapeSelectionFactory::method)), signature>)
+#define ASSERT_IMAGE_VIEW_CONVERTER_SIGNATURE(method, signature)                                                       \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KisImageViewConverter::method)), signature>)
 } // namespace
 
 class KisShapeSelectionSchemaContractTest : public QObject
@@ -28,6 +31,11 @@ private Q_SLOTS:
     void shapeSelectionOutlineAndGeometrySignaturesRemainStable();
     void shapeSelectionPersistenceAndIntegrationSignaturesRemainStable();
     void shapeSelectionFactoryAndNotificationSignaturesRemainStable();
+    void imageViewConverterTypeConstructionAndLifetimeSchemaRemainStable();
+    void imageViewConverterCloneAndImageSignaturesRemainStable();
+    void imageViewConverterZoomSignaturesRemainStable();
+    void imageViewConverterDocumentToViewSignaturesRemainStable();
+    void imageViewConverterViewToDocumentSignaturesRemainStable();
 };
 
 void KisShapeSelectionSchemaContractTest::shapeSelectionTypesLifetimeAndConstructionSchemaRemainStable()
@@ -92,8 +100,54 @@ void KisShapeSelectionSchemaContractTest::shapeSelectionFactoryAndNotificationSi
     static_assert(std::is_same_v<decltype(std::declval<const Factory &>().createDefaultShape()), KoShape *>);
 }
 
+void KisShapeSelectionSchemaContractTest::imageViewConverterTypeConstructionAndLifetimeSchemaRemainStable()
+{
+    using Converter = KisImageViewConverter;
+
+    static_assert(std::is_same_v<KisImageViewConverterSP, QSharedPointer<Converter>>);
+    static_assert(std::is_class_v<Converter>);
+    static_assert(std::is_default_constructible_v<Converter>);
+    static_assert(std::is_constructible_v<Converter, KisImageWSP>);
+    static_assert(std::is_constructible_v<Converter, KisImageResolutionProxySP>);
+    static_assert(std::is_copy_constructible_v<Converter>);
+    static_assert(std::has_virtual_destructor_v<Converter>);
+}
+
+void KisShapeSelectionSchemaContractTest::imageViewConverterCloneAndImageSignaturesRemainStable()
+{
+    using Converter = KisImageViewConverter;
+
+    ASSERT_IMAGE_VIEW_CONVERTER_SIGNATURE(clone, KisClonableViewConverter * (Converter::*)() const);
+    ASSERT_IMAGE_VIEW_CONVERTER_SIGNATURE(setImage, void (Converter::*)(KisImageWSP));
+}
+
+void KisShapeSelectionSchemaContractTest::imageViewConverterZoomSignaturesRemainStable()
+{
+    using Converter = KisImageViewConverter;
+
+    ASSERT_IMAGE_VIEW_CONVERTER_SIGNATURE(zoom, void (Converter::*)(qreal *, qreal *) const);
+    ASSERT_IMAGE_VIEW_CONVERTER_SIGNATURE(zoom, qreal (Converter::*)() const);
+}
+
+void KisShapeSelectionSchemaContractTest::imageViewConverterDocumentToViewSignaturesRemainStable()
+{
+    using Converter = KisImageViewConverter;
+
+    ASSERT_IMAGE_VIEW_CONVERTER_SIGNATURE(documentToViewX, qreal (Converter::*)(qreal) const);
+    ASSERT_IMAGE_VIEW_CONVERTER_SIGNATURE(documentToViewY, qreal (Converter::*)(qreal) const);
+}
+
+void KisShapeSelectionSchemaContractTest::imageViewConverterViewToDocumentSignaturesRemainStable()
+{
+    using Converter = KisImageViewConverter;
+
+    ASSERT_IMAGE_VIEW_CONVERTER_SIGNATURE(viewToDocumentX, qreal (Converter::*)(qreal) const);
+    ASSERT_IMAGE_VIEW_CONVERTER_SIGNATURE(viewToDocumentY, qreal (Converter::*)(qreal) const);
+}
+
 #undef ASSERT_SHAPE_SELECTION_SIGNATURE
 #undef ASSERT_SHAPE_SELECTION_FACTORY_SIGNATURE
+#undef ASSERT_IMAGE_VIEW_CONVERTER_SIGNATURE
 
 QTEST_APPLESS_MAIN(KisShapeSelectionSchemaContractTest)
 
