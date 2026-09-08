@@ -5,6 +5,7 @@
 
 #include "kis_stroke_strategy_undo_command_based.h"
 #include "kis_transaction.h"
+#include "kis_transaction_data.h"
 
 #include <QTest>
 
@@ -22,6 +23,8 @@ namespace
                                  signature>)
 #define ASSERT_TRANSACTION_SIGNATURE(method, signature)                                                                \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisTransaction::method)), signature>)
+#define ASSERT_TRANSACTION_DATA_SIGNATURE(method, signature)                                                           \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KisTransactionData::method)), signature>)
 } // namespace
 
 class KisStrokeStrategyUndoCommandBasedSchemaContractTest : public QObject
@@ -38,6 +41,8 @@ private Q_SLOTS:
     void transactionConstructionAndMoveSchemaRemainStable();
     void transactionCompletionAndInspectionSignaturesRemainStable();
     void transactionCommitAndRevertSignaturesRemainStable();
+    void transactionDataTypeConstructionAndLifetimeSchemaRemainStable();
+    void transactionDataLifecycleSignaturesRemainStable();
     void selectionTransactionTypeAndConstructionSchemaRemainStable();
 };
 
@@ -162,6 +167,31 @@ void KisStrokeStrategyUndoCommandBasedSchemaContractTest::transactionCommitAndRe
     ASSERT_TRANSACTION_SIGNATURE(revert, void (Transaction::*)());
 }
 
+void KisStrokeStrategyUndoCommandBasedSchemaContractTest::transactionDataTypeConstructionAndLifetimeSchemaRemainStable()
+{
+    using Data = KisTransactionData;
+
+    static_assert(std::is_class_v<Data>);
+    static_assert(std::is_base_of_v<KUndo2Command, Data>);
+    static_assert(std::is_constructible_v<Data,
+                                          const KUndo2MagicString &,
+                                          KisPaintDeviceSP,
+                                          bool,
+                                          KisTransactionWrapperFactory *,
+                                          KUndo2Command *,
+                                          bool>);
+    static_assert(std::has_virtual_destructor_v<Data>);
+}
+
+void KisStrokeStrategyUndoCommandBasedSchemaContractTest::transactionDataLifecycleSignaturesRemainStable()
+{
+    using Data = KisTransactionData;
+
+    ASSERT_TRANSACTION_DATA_SIGNATURE(endTransaction, void (Data::*)());
+    ASSERT_TRANSACTION_DATA_SIGNATURE(redo, void (Data::*)());
+    ASSERT_TRANSACTION_DATA_SIGNATURE(undo, void (Data::*)());
+}
+
 void KisStrokeStrategyUndoCommandBasedSchemaContractTest::selectionTransactionTypeAndConstructionSchemaRemainStable()
 {
     using SelectionTransaction = KisSelectionTransaction;
@@ -177,6 +207,11 @@ void KisStrokeStrategyUndoCommandBasedSchemaContractTest::selectionTransactionTy
                                                                std::declval<KisPixelSelectionSP>())),
                                  SelectionTransaction>);
 }
+
+#undef ASSERT_TRANSACTION_DATA_SIGNATURE
+#undef ASSERT_TRANSACTION_SIGNATURE
+#undef ASSERT_UNDO_COMMAND_MUTATION_SIGNATURE
+#undef ASSERT_UNDO_COMMAND_STRATEGY_SIGNATURE
 
 QTEST_APPLESS_MAIN(KisStrokeStrategyUndoCommandBasedSchemaContractTest)
 
