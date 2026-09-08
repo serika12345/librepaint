@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 00:07 JST
+- 更新日時: 2026-09-09 00:16 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3691,6 +3691,12 @@
 - `g430-async-animation-renderer-schema`は`completed`である。`libs/ui/animation/KisAsyncAnimationRendererBase.h`から既存`libs/ui/tests/KisAnimationFrameCacheSchemaContractTest.cpp`へ17 API・4枠を移し、renderer型・flag型・flags共有型・2値5、取消理由型・3値4、構築・寿命・2再生成路4、活動照会・取消・完了取消通知4を型特性、列挙値、最小派生probeの構築可能性、厳密な関数pointerで固定した。試験sourceは143行・9枠で、抽象renderer、画像、領域、frame生成lock、Qt値と本文を実体化していない。CMake変更なしの初回redは未定義の4検査関数だけで失敗し、長いmacroと取消署名の試験側書式を機械整形した。契約実装commitは`595c996f1b`である。
 - macOSの対象`libs-ui-KisAnimationFrameCacheSchemaContractTest`、軽量近傍`libs-ui-KisPlaybackEngineSchemaContractTest`、対象の20回反復、試験sourceの厳格`clang-check`、書式、二回目計画、連続二回の無作業再構築に成功した。対象は4工程・8入力、command SHA-256 `7690ce54e6c8bdb299c7b58e2a365c742500b462ebc667f77bab17d1f02687bb`、input SHA-256 `ac08635c102e391763900abf7ea53cc8d6e2d321930166b841b3a6e983b113cb`、AUTOMOC `HEADERS=[]`、直接接続はQt Core・Test、製品未解決symbol 0である。1,975工程・3,950入力の製品application UI、製品UI・image target、既存結合試験`KisFrameCacheSwapperTest`、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 台帳へ17 APIを追加して26,917件対応、2,887件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g430.json`を削除し、追加作業tree・構築木・一時計画物は作成していない。主Ninja木5,983,124 KiB、共有compiler cache 983,148 KiB、最新`build/tdd-macos/public-api-missing-g431.json` 786,900 bytes、SHA-256 `249588ad8c619db9e8025abf4917085be5400d27c71f12025519bed8a6cf4e37`だけを再利用対象として保持する。compiler cacheは144,498件中120,553件、83.43%がhitしている。公開API検査と`verify-quick`に成功した。次の永続作業は第431便で次の高密度なmacOS対象と最小構築面を選定することである。
+
+### 第431便の公開API契約計画
+
+- 第431便は`libs/image/kis_exif_info_visitor.h`に残る全16 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g431.json`は公開header 1,548、公開API 29,804、対応済み26,917、未対応2,887、786,900 bytes、SHA-256 `249588ad8c619db9e8025abf4917085be5400d27c71f12025519bed8a6cf4e37`である。対象識別子整列集合のSHA-256は`8fd0f76cebf87a36386342c130ac5328bc20e43bb3c8c083896392f8238c83c4`で、visitor型・既定構築・metadata照会4、node・clone・external・generator訪問4、filter・transform・transparency・selection・colorize訪問5、adjustment・paint・group訪問3の4枠へ固定する。
+- 既存`libs/image/tests/KisCountVisitorSchemaContractTest.cpp`はnode visitorの全layer種別への公開配送境界を持ち、65行・5枠から追加後も300行・20枠以内に収まる。現状はQt Core・Testだけへ動的接続する4工程・8入力、command SHA-256 `555ed3709ed4e48d867f8bedfb45948b26f7ac3ca8f10a7e8dd0181f946f8d27`、input SHA-256 `ff3f4b2b979f553b4f739ca50a0a8208c0ee9e58b256583e40b7cd469c089f1d`、AUTOMOC `HEADERS=[]`である。対象headerが未使用の`kis_meta_data_filter_registry_model.h`を介してflake側のregistry modelまで公開include閉包へ持ち込んでいるため、このincludeを先に除去し、試験targetには実際に使用する`kis_meta_data_store.h`のmetadata source/generated探索路と`kritapaintingmetadata_EXPORTS`だけを明示する。新規targetは同じ閉包に別のCMake登録と生成物を加えるため棄却する。
+- `g431-exif-info-visitor-schema`の状態は`in_progress`、実装基点は`d144c30a12`である。開始headerの未使用include除去と既存試験target固有の探索路・export定義を独立した構造整理commitにし、その後に既存試験sourceの4枠だけへ16 APIを追加する。停止線は5工程・11入力とし、metadata以外の新たな探索路・定義・link、製品OBJECT・shared・`kritatestsdk`接続、候補headerのAUTOMOC入力化、製品未解決symbol、visitor・layer・metadata storeまたはinline本文の実体化が必要なら候補を保留する。macOSの対象、追加4枠の20回反復、軽量近傍、試験sourceと公開headerの厳格`clang-check`、書式、再計画、連続二回の無作業再構築、動的接続・未解決symbol、公開API検査、`verify-quick`だけを実行する。1,197工程・2,418入力の製品image target、全体build・`verify`、Linux、Nix再評価は実行しない。
 
 ### 第239便の先行監査担当票
 
