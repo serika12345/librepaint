@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 3019
+    "expectedMissingApis": 3004
   },
   "contracts": [
     {
@@ -73681,6 +73681,66 @@
         "method:KisShapeController::currentLayerChanged(const KoShapeLayer *)",
         "method:KisShapeController::selectionChanged()",
         "method:KisShapeController::selectionContentChanged()"
+      ]
+    },
+    {
+      "target": "KisShapeSelectionSchemaContractTest",
+      "source": "libs/ui/tests/KisShapeSelectionSchemaContractTest.cpp",
+      "test": "KisShapeSelectionSchemaContractTest::imageViewConverterTypeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "画像view converterは共有型を持ち、空状態・画像・解像度proxy・同型から構築され、仮想破棄できる公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisImageViewConverterSP",
+        "class:KisImageViewConverter",
+        "method:KisImageViewConverter::KisImageViewConverter()",
+        "method:KisImageViewConverter::KisImageViewConverter(KisImageResolutionProxySP proxy)",
+        "method:KisImageViewConverter::KisImageViewConverter(const KisImageViewConverter & rhs)",
+        "method:KisImageViewConverter::KisImageViewConverter(const KisImageWSP image)",
+        "method:KisImageViewConverter::~KisImageViewConverter()"
+      ]
+    },
+    {
+      "target": "KisShapeSelectionSchemaContractTest",
+      "source": "libs/ui/tests/KisShapeSelectionSchemaContractTest.cpp",
+      "test": "KisShapeSelectionSchemaContractTest::imageViewConverterCloneAndImageSignaturesRemainStable",
+      "behavior": "画像view converterは複製可能なview converter個体を返し、変換対象画像を更新する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisImageViewConverter::clone() const",
+        "method:KisImageViewConverter::setImage(KisImageWSP image)"
+      ]
+    },
+    {
+      "target": "KisShapeSelectionSchemaContractTest",
+      "source": "libs/ui/tests/KisShapeSelectionSchemaContractTest.cpp",
+      "test": "KisShapeSelectionSchemaContractTest::imageViewConverterZoomSignaturesRemainStable",
+      "behavior": "画像view converterはX・Yのzoom倍率と単一zoom値を照会する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisImageViewConverter::zoom() const",
+        "method:KisImageViewConverter::zoom(qreal * zoomX,qreal * zoomY) const"
+      ]
+    },
+    {
+      "target": "KisShapeSelectionSchemaContractTest",
+      "source": "libs/ui/tests/KisShapeSelectionSchemaContractTest.cpp",
+      "test": "KisShapeSelectionSchemaContractTest::imageViewConverterDocumentToViewSignaturesRemainStable",
+      "behavior": "画像view converterは文書座標のX・Yをview座標へ変換する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisImageViewConverter::documentToViewX(qreal documentX) const",
+        "method:KisImageViewConverter::documentToViewY(qreal documentY) const"
+      ]
+    },
+    {
+      "target": "KisShapeSelectionSchemaContractTest",
+      "source": "libs/ui/tests/KisShapeSelectionSchemaContractTest.cpp",
+      "test": "KisShapeSelectionSchemaContractTest::imageViewConverterViewToDocumentSignaturesRemainStable",
+      "behavior": "画像view converterはview座標のX・Yを文書座標へ変換する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisImageViewConverter::viewToDocumentX(qreal viewX) const",
+        "method:KisImageViewConverter::viewToDocumentY(qreal viewY) const"
       ]
     }
   ]

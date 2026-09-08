@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-08 22:35 JST
+- 更新日時: 2026-09-08 22:42 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3589,6 +3589,12 @@
 - 第422便は`libs/ui/canvas/kis_image_view_converter.h`に残る全15 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g422.json`は公開header 1,548、公開API 29,804、対応済み26,785、未対応3,019、820,329 bytes、SHA-256 `7f33acc8a67cee2e43c38346f0f67b23ff698841df07baf6b2fe44d7a028e0e5`である。対象識別子整列集合のSHA-256は`c5dbe42e93d461542b4d9afe233b9ddfedc6c2a22fb0b66ca18c29d6491cd873`で、converter型・共有型・4構築路・寿命7、複製・画像設定2、zoom照会2、文書からview変換2、viewから文書変換2の5枠へ固定する。
 - 既存`libs/ui/tests/KisShapeSelectionSchemaContractTest.cpp`は解像度proxyと文書・view幾何境界を持ち、100行・5枠から追加後も300行・20枠未満に収まる。CMake変更なしでQt Core・Testだけの動的接続、header-only Boost、4工程・8入力を維持する。現行command SHA-256は`f7b3475cd54f1b9917816b7319932badb4731e5cef0f6eca28736e263426bf5c`、input SHA-256は`72ab64c109b9a7b31c3756c4906447d0d327e39c8d09910d583f362b4a921c1d`である。converter、画像、解像度proxy、Qt値と本文を実体化せず、共有型、型特性、構築可能性、厳密な関数pointerだけで公開境界を観測する。製品`kritaapplicationui`は1,975工程・3,950入力で反復先から除外する。
 - `g422-image-view-converter-schema`の状態は`in_progress`、実装基点は`d925ba71d5`である。開始headerから既存試験sourceの5枠だけへ追加し、CMake、公開header、製品source、製品targetは変更しない。停止線は5工程・11入力とし、新たな探索路・定義・link、製品OBJECT・shared・`kritatestsdk`接続、候補headerのAUTOMOC入力化、製品未解決symbol、対象値または本文の実体化が必要なら候補を保留する。macOSの対象、追加5枠の20回反復、軽量近傍、試験sourceの厳格`clang-check`、書式、二回の無作業再構築、動的接続・未解決symbol、公開API検査、`verify-quick`だけを実行する。既存製品結合の実行試験`kis_image_view_converter_test`、製品application UI・UI・image target、全体build・`verify`、Linux、Nix再評価は実行しない。
+
+### 第422便の実装結果
+
+- `g422-image-view-converter-schema`は`completed`である。`libs/ui/canvas/kis_image_view_converter.h`から既存`libs/ui/tests/KisShapeSelectionSchemaContractTest.cpp`へ15 API・5枠を移し、converter型・共有型・4構築路・寿命7、複製・画像設定2、zoom照会2、文書からview変換2、viewから文書変換2を共有型、型特性、構築可能性、厳密な関数pointerで固定した。試験sourceは154行・10枠で、converter、画像、解像度proxy、Qt値と本文を実体化していない。CMake変更なしの初回redは未定義の5検査関数だけで失敗し、契約実装commitは`6789467182`である。
+- macOSの対象`libs-ui-KisShapeSelectionSchemaContractTest`、軽量近傍`libs-ui-KisShapeLayerSchemaContractTest`、対象の20回反復、試験sourceの厳格`clang-check`、書式、変更なし計画、連続二回の無作業再構築に成功した。対象は4工程・8入力、command SHA-256 `f7b3475cd54f1b9917816b7319932badb4731e5cef0f6eca28736e263426bf5c`、input SHA-256 `72ab64c109b9a7b31c3756c4906447d0d327e39c8d09910d583f362b4a921c1d`、AUTOMOC `HEADERS=[]`、直接接続はQt Core・Test、製品未解決symbol 0である。1,975工程・3,950入力の製品application UI、既存製品結合の実行試験`kis_image_view_converter_test`、製品UI・image target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 台帳へ15 APIを追加して26,800件対応、3,004件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g422.json`を削除し、追加作業tree・構築木・一時計画物は作成していない。主Ninja木5,981,420 KiB、共有compiler cache 981,808 KiB、最新`build/tdd-macos/public-api-missing-g423.json` 816,541 bytes、SHA-256 `6279411ccb4417185db20c7daebacd6b71519840d7c468db3879f3f66f4b0567`だけを再利用対象として保持する。compiler cacheは144,479件中120,553件、83.44%がhitしている。公開API検査と`verify-quick`に成功した。次の永続作業は第423便で次の高密度なmacOS対象と最小構築面を選定することである。
 
 ### 第239便の先行監査担当票
 
