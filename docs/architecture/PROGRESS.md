@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 05:14 JST
+- 更新日時: 2026-09-09 05:18 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3982,6 +3982,12 @@
 - 開始`libs/image/kis_node_facade.h`から新規`libs/image/tests/KisNodeFacadeSchemaContractTest.cpp`へ全12 APIを4枠で固定した。型・2構築・寿命・root設定取得6、2 move署名2、3 add署名3、remove署名1を型特性と厳密な関数pointerで観測し、facade、node、共有pointer本文は実体化していない。初回は追加3枠が成功し、`G452 node facade API schema is not fixed yet`だけで1件失敗した。計画commitは`41e5eab97d`、契約commitは`a7a887527d`である。
 - 新規試験sourceは71行・4枠、専用targetは4工程・8入力、command SHA-256 `e7e14cdf3e40754c67209aa09529d71f8ff8e5e080bf3bd669ba4776986459fe`、input SHA-256 `3be9a9081adb005b1c61ccdaba4dbb9cf9fff9aa802aae4913e7f823140ee333`である。AUTOMOC `HEADERS=[]`、直接接続はQt Core・Test、製品未解決記号0である。macOSで対象、軽量近傍`KisNodeVisitorContractTest`、対象の20回反復、試験sourceの`clang-check --extra-arg=-Werror`と書式、連続二回の無作業再構築に成功した。1,201工程・2,425入力の既存動的試験を構築していない。
 - 台帳は27,207件対応、2,597件未対応となり、開始headerの残存は0件である。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。旧`public-api-missing-g452.json`を削除し、追加作業tree・構築木・一時計画物は作成していない。主Ninja木5,993,356 KiB、共有compiler cache 982,224 KiB、最新`build/tdd-macos/public-api-missing-g453.json` 706,934 bytes、SHA-256 `d5c1a465c21afbdff89bb65c1dcd34c8d9f8625146954428cdcd533f7263e6d5`だけを再利用対象として保持する。compiler cacheは144,574件中120,563件、83.39%がhitしている。次の永続作業は第453便で最新報告から高密度なmacOS対象と最小構築面を選定することである。
+
+### 第453便の公開API契約計画
+
+- 第453便は`libs/image/kis_refresh_subtree_walker.h`に残る全12 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g453.json`は公開header 1,548、公開API 29,804、対応済み27,207、未対応2,597、706,934 bytes、SHA-256 `d5c1a465c21afbdff89bb65c1dcd34c8d9f8625146954428cdcd533f7263e6d5`である。対象識別子整列集合のSHA-256は`770baecdbba8de402aa2f12ff58ee2268b9fad2f904976557c0af1420de88aad`で、型・flag型・5値8、構築・寿命2、更新種別・flag照会2の3枠へ固定する。
+- `KisRefreshSubtreeWalker`は矩形walker基底の公開派生で、inline構築・走査本文がprojection leaf完全型を使う。同じ責務の既存`libs/image/tests/KisBaseRectsWalkerPolicyContractTest.cpp`は189行・11枠であり、3枠追加後も300行・20枠未満に収まる。既存targetはimage・global・pigment・resources・psdutils探索路とimage export定義、Qt Gui・Testだけで4工程・8入力、command SHA-256 `44385decd9b30fadb1d78c7fc6b3f59148336211bc4003f256fb2ee8b8f9c24e`、input SHA-256 `da762dfa8f05ff1fc4b849ec24891cdefab1f7eb9376a623268e4277511c4271`である。公開inline本文を新しい製品翻訳単位へ移す構造変更は不要で、新規targetも同一header閉包へCMake登録と生成物を増やすため棄却する。
+- `g453-refresh-subtree-walker-schema`の状態は`in_progress`である。開始headerから既存試験sourceの3枠だけへ追加し、CMake、公開header、製品source、製品targetは変更しない。停止線は5工程・11入力とし、新たな探索路・定義・link、AUTOMOC header入力、製品未解決記号、walker・projection leaf・nodeまたは走査本文の実体化が必要なら停止する。macOSの対象、追加3枠の20回反復、軽量近傍、試験sourceの厳格構文、書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、既存動的walker試験、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
 
 ### 第239便の先行監査担当票
 
