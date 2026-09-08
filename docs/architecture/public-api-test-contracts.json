@@ -16,7 +16,7 @@
     "publicApiFingerprint": "5f05b2aa8e5bef4343af1d55a3852331e51d4369fe135b099327b1a91b6b8c4c"
   },
   "migration": {
-    "expectedMissingApis": 2526
+    "expectedMissingApis": 2522
   },
   "contracts": [
     {
@@ -32672,6 +32672,19 @@
         "function:KisDomUtils::loadValue(const QDomElement & parent,const QString & tag,KisTimeSpan * range)",
         "function:KisDomUtils::saveValue(QDomElement * parent,const QString & tag,const KisTimeSpan & range)",
         "function:operator <<(QDebug dbg,const KisTimeSpan & r)"
+      ]
+    },
+    {
+      "target": "KisNodeSchemaContractTest",
+      "source": "libs/image/tests/KisNodeSchemaContractTest.cpp",
+      "test": "KisNodeSchemaContractTest::timeSpanNodeFrameCalculationSignaturesRemainStable",
+      "behavior": "時間範囲は単一nodeまたは部分木について、指定時刻と同一内容を持つframe範囲と影響を受けるframe範囲を計算する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTimeSpan::calculateAffectedFramesRecursive(const KisNode * node,int time)",
+        "method:KisTimeSpan::calculateIdenticalFramesRecursive(const KisNode * node,int time)",
+        "method:KisTimeSpan::calculateNodeAffectedFrames(const KisNode * node,int time)",
+        "method:KisTimeSpan::calculateNodeIdenticalFrames(const KisNode * node,int time)"
       ]
     },
     {

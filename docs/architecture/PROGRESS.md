@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 07:08 JST
+- 更新日時: 2026-09-09 07:23 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4096,6 +4096,14 @@
 - 公開time spanはDOM保存・読込関数を宣言するだけだが、開始`libs/image/kis_time_span.h`の`kis_dom_utils.h`がDOM実装、locale、色、入出力、移植補助、国際化依存を63直接利用元へ伝播させている。構造先行変更では同includeを既存`libs/image/kis_time_span.cpp`へ移し、公開headerには`QDebug`、`QDomElement`、`QString`の前方宣言だけを置く。公開宣言、ABI、範囲演算とDOM直列化は変えず、直接翻訳単位を同時6件以下で変更前後厳格構文検査し、新規診断0、公開API不足報告byte一致を完了条件とする。
 - 既存`KisTimeSpanContractTest`は値・DOM・診断動作を固定するが7工程・16入力であり、`KisImageSchemaContractTest`は4工程・8入力でも294行で上限直前のため追記先から除外する。nodeの汚れ・animation境界を所有する既存`libs/image/tests/KisNodeSchemaContractTest.cpp`は149行・5枠で、1枠追加後も300行・20枠未満に収まる。同targetはimage・global探索路、image export定義、Qt Core・Gui・Testだけで4工程・8入力、command SHA-256 `dcced990e42f0162b444f410c9023bdcc96df7cd5ddd823f7098325f34523d83`、input SHA-256 `5581f5905d4c177bf7c4e1c21af06e9c06e8e4ac7f1ab31fa912b5fb887a0dca`である。
 - 構造変更を独立commit後、開始headerから既存node試験sourceの1枠だけへ追加し、CMakeは変更しない。停止線は5工程・11入力とし、新たな探索路・定義・link、AUTOMOC header入力、製品未解決記号、node・time spanまたは計算本文の実体化が必要なら停止する。macOSの対象、追加枠の20回反復、軽量近傍、直接利用元と試験sourceの厳格構文、書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、time span動作対象、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
+
+### 第461便の実装結果
+
+- 時間範囲の公開headerがDOM保存・読込関数を宣言するだけなのに、DOM実装、locale、色、入出力、移植補助、国際化依存を63直接利用元へ伝播させていた問題を解消した。開始`libs/image/kis_time_span.h`の`kis_dom_utils.h`を宛先`libs/image/kis_time_span.cpp`へ移し、公開headerは`QDebug`、`QDomElement`、`QString`前方宣言だけを持つ。公開宣言、ABI、範囲演算とDOM直列化は維持し、構造commitは`b84b073255`である。
+- 推移include依存として顕在化した機能は各所有sourceへ直接移した。container補助を開始公開header経由から`libs/image/kis_image.cc`と`libs/image/kis_layer_utils.cpp`へ、国際化を`libs/ui/dialogs/KisAsyncAnimationCacheRenderDialog.cpp`と`libs/ui/dialogs/KisAsyncAnimationFramesSaveDialog.cpp`へ、`QIODevice`を`plugins/dockers/storyboarddocker/StoryboardModel.cpp`へ移した。60直接翻訳単位を同時6件以下で変更前後に厳格構文検査し、両方とも37件clean・23件既存診断で、新規・解消診断は0件だった。公開image header包括試験もcleanで、公開API不足報告は変更前とbyte一致し、SHA-256 `94d93ac3fce3093907b27cd5d077e49d026408cf137eb4a1cd852d97ebbf9613`を維持した。
+- 開始`libs/image/kis_time_span.h`から既存`libs/image/tests/KisNodeSchemaContractTest.cpp`へ全4 API・1枠を追加した。単一nodeまたは部分木について同一frame・影響frame範囲を返す4静的署名を厳密な関数pointerで固定した。初回は既存5枠が成功し、`G461 time span node frame API schema is not fixed yet`だけで1件失敗した。node、time spanと計算本文は実体化していない。計画commitは`bec1f52579`、契約commitは`8529cb39c4`である。
+- 試験sourceは164行・6枠となり、CMakeを変更していない。既存targetは4工程・8入力、command SHA-256 `dcced990e42f0162b444f410c9023bdcc96df7cd5ddd823f7098325f34523d83`、input SHA-256 `5581f5905d4c177bf7c4e1c21af06e9c06e8e4ac7f1ab31fa912b5fb887a0dca`を変更前から維持した。AUTOMOC `HEADERS=[]`、直接接続はQt Core・Gui・Test、Qt Xml・製品未解決記号・製品動的接続は0である。macOSで対象、軽量近傍`KisNodeFacadeSchemaContractTest`、対象の20回反復、試験sourceの厳格構文と書式、連続二回の無作業再構築、公開API検査、`verify-quick`に成功した。time span動作対象、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 台帳は27,282件対応、2,522件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g461.json`、構造照合・対象閉包の一時情報を削除し、追加作業tree・構築木は作成していない。主Ninja木5,995,736 KiB、共有compiler cache 983,020 KiB、最新`build/tdd-macos/public-api-missing-g462.json` 687,987 bytes、SHA-256 `aeeae85e8bb112a1cef663ac1be955b29ea0311f35d52813dd700200ab9f4561`だけを再利用対象として保持する。compiler cacheは144,593件中120,563件、83.38%がhitしている。次の永続作業は第462便で最新報告から高密度なmacOS対象と最小構築面を選定することである。
 
 ### 第239便の先行監査担当票
 
