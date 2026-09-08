@@ -9,7 +9,6 @@
 #define _KIS_DISTANCE_INFORMATION_H_
 
 #include <QPointF>
-#include <QVector2D>
 #include "kritaimage_export.h"
 #include <boost/optional.hpp>
 #include <boost/operators.hpp>

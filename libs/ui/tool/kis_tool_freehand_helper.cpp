@@ -9,6 +9,7 @@
 #include <QTimer>
 #include <QElapsedTimer>
 #include <QQueue>
+#include <QVector2D>
 
 #include <klocalizedstring.h>
 
