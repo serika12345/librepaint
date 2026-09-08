@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include <canvas/kis_statusbar.h>
 #include <ui/workspace/KisViewManager.h>
 
 #include <QTest>
@@ -13,6 +14,8 @@ namespace
 {
 #define ASSERT_VIEW_MANAGER_SIGNATURE(method, signature)                                                               \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisViewManager::method)), signature>)
+#define ASSERT_STATUS_BAR_SIGNATURE(method, signature)                                                                 \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KisStatusBar::method)), signature>)
 } // namespace
 
 class KisViewManagerSchemaContractTest : public QObject
@@ -28,6 +31,11 @@ private Q_SLOTS:
     void floatingPresentationAndGuiUpdateSignaturesRemainStable();
     void viewAuthorAndToolActionSignaturesRemainStable();
     void notificationSignaturesRemainStable();
+    void statusBarTypeAndLifetimeSchemaRemainStable();
+    void statusBarSetupAndPresentationSignaturesRemainStable();
+    void statusBarProgressAndExtraWidgetSignaturesRemainStable();
+    void statusBarImageSelectionAndProfileSignaturesRemainStable();
+    void statusBarHelpUpdateAndNotificationSignaturesRemainStable();
 };
 
 void KisViewManagerSchemaContractTest::typeConstructionAndViewConnectionSchemaRemainStable()
@@ -128,7 +136,45 @@ void KisViewManagerSchemaContractTest::notificationSignaturesRemainStable()
     ASSERT_VIEW_MANAGER_SIGNATURE(brushOutlineToggled, void (KisViewManager::*)());
 }
 
+void KisViewManagerSchemaContractTest::statusBarTypeAndLifetimeSchemaRemainStable()
+{
+    static_assert(std::is_class_v<KisStatusBar>);
+    static_assert(std::is_constructible_v<KisStatusBar, KisViewManager *>);
+    static_assert(std::has_virtual_destructor_v<KisStatusBar>);
+}
+
+void KisViewManagerSchemaContractTest::statusBarSetupAndPresentationSignaturesRemainStable()
+{
+    ASSERT_STATUS_BAR_SIGNATURE(setup, void (KisStatusBar::*)());
+    ASSERT_STATUS_BAR_SIGNATURE(setView, void (KisStatusBar::*)(QPointer<KisView>));
+    ASSERT_STATUS_BAR_SIGNATURE(hideAllStatusBarItems, void (KisStatusBar::*)());
+    ASSERT_STATUS_BAR_SIGNATURE(showAllStatusBarItems, void (KisStatusBar::*)());
+}
+
+void KisViewManagerSchemaContractTest::statusBarProgressAndExtraWidgetSignaturesRemainStable()
+{
+    ASSERT_STATUS_BAR_SIGNATURE(progressUpdater, KoProgressUpdater * (KisStatusBar::*)());
+    ASSERT_STATUS_BAR_SIGNATURE(addExtraWidget, void (KisStatusBar::*)(QWidget *));
+    ASSERT_STATUS_BAR_SIGNATURE(removeExtraWidget, void (KisStatusBar::*)(QWidget *));
+}
+
+void KisViewManagerSchemaContractTest::statusBarImageSelectionAndProfileSignaturesRemainStable()
+{
+    ASSERT_STATUS_BAR_SIGNATURE(imageSizeChanged, void (KisStatusBar::*)());
+    ASSERT_STATUS_BAR_SIGNATURE(setSelection, void (KisStatusBar::*)(KisImageWSP));
+    ASSERT_STATUS_BAR_SIGNATURE(setProfile, void (KisStatusBar::*)(KisImageWSP));
+}
+
+void KisViewManagerSchemaContractTest::statusBarHelpUpdateAndNotificationSignaturesRemainStable()
+{
+    ASSERT_STATUS_BAR_SIGNATURE(setHelp, void (KisStatusBar::*)(const QString &));
+    ASSERT_STATUS_BAR_SIGNATURE(updateStatusBarProfileLabel, void (KisStatusBar::*)());
+    ASSERT_STATUS_BAR_SIGNATURE(updateSelectionToolTip, void (KisStatusBar::*)());
+    ASSERT_STATUS_BAR_SIGNATURE(sigCancellationRequested, void (KisStatusBar::*)());
+}
+
 #undef ASSERT_VIEW_MANAGER_SIGNATURE
+#undef ASSERT_STATUS_BAR_SIGNATURE
 
 QTEST_GUILESS_MAIN(KisViewManagerSchemaContractTest)
 
