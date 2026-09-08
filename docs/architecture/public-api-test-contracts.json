@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 2693
+    "expectedMissingApis": 2681
   },
   "contracts": [
     {
@@ -74916,6 +74916,54 @@
         "function:KisBezierTransformMeshDetail::loadValue(const QDomElement & parent,KisBezierTransformMesh * mesh)",
         "function:KisBezierTransformMeshDetail::saveValue(QDomElement * parent,const QString & tag,const KisBezierTransformMesh & mesh)",
         "method:KisBezierTransformMeshDetail::KisBezierTransformMesh::calcTightSrcRectRangeInParamSpace(const KisBezierPatch & patch,const QRectF & srcSpaceRect,qreal srcPrecision)"
+      ]
+    },
+    {
+      "target": "KisGeneratorLayerSchemaContractTest",
+      "source": "libs/image/tests/KisGeneratorLayerSchemaContractTest.cpp",
+      "test": "KisGeneratorLayerSchemaContractTest::multipleProjectionTypeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "複数投影管理は既定状態または別instanceから構築し、所有する投影集合とともに破棄する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisMultipleProjection",
+        "method:KisMultipleProjection::KisMultipleProjection()",
+        "method:KisMultipleProjection::KisMultipleProjection(const KisMultipleProjection & rhs)",
+        "method:KisMultipleProjection::~KisMultipleProjection()"
+      ]
+    },
+    {
+      "target": "KisGeneratorLayerSchemaContractTest",
+      "source": "libs/image/tests/KisGeneratorLayerSchemaContractTest.cpp",
+      "test": "KisGeneratorLayerSchemaContractTest::multipleProjectionIdentityAndAcquisitionSignaturesRemainStable",
+      "behavior": "複数投影管理は既定投影識別子を公開し、合成方式・opacity・channel指定と原型装置から識別子別投影を取得する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMultipleProjection::defaultProjectionId()",
+        "method:KisMultipleProjection::getProjection(const QString & id,const QString & compositeOpId,quint8 opacity,const QBitArray & channelFlags,KisPaintDeviceSP prototype)"
+      ]
+    },
+    {
+      "target": "KisGeneratorLayerSchemaContractTest",
+      "source": "libs/image/tests/KisGeneratorLayerSchemaContractTest.cpp",
+      "test": "KisGeneratorLayerSchemaContractTest::multipleProjectionReleaseAndClearSignaturesRemainStable",
+      "behavior": "複数投影管理は識別子別または全投影を解放し、指定領域の内容を消去する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMultipleProjection::clear(const QRect & rc)",
+        "method:KisMultipleProjection::freeAllProjections()",
+        "method:KisMultipleProjection::freeProjection(const QString & id)"
+      ]
+    },
+    {
+      "target": "KisGeneratorLayerSchemaContractTest",
+      "source": "libs/image/tests/KisGeneratorLayerSchemaContractTest.cpp",
+      "test": "KisGeneratorLayerSchemaContractTest::multipleProjectionApplicationAndStateSignaturesRemainStable",
+      "behavior": "複数投影管理はlayer style環境で投影を対象装置へ適用し、LoD同期装置と空状態を返す公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMultipleProjection::apply(KisPaintDeviceSP dstDevice,const QRect & rect,KisLayerStyleFilterEnvironment * env)",
+        "method:KisMultipleProjection::getLodCapableDevices() const",
+        "method:KisMultipleProjection::isEmpty() const"
       ]
     }
   ]
