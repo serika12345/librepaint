@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 2748
+    "expectedMissingApis": 2736
   },
   "contracts": [
     {
@@ -74708,6 +74708,54 @@
         "method:KisAnimatedOpacityProperty::changed(quint8 value)",
         "method:KisAnimatedOpacityProperty::slotKeyChanged(const KisKeyframeChannel *,int time)",
         "method:KisAnimatedOpacityProperty::slotKeyRemoval(const KisKeyframeChannel *,int)"
+      ]
+    },
+    {
+      "target": "KisPainterSchemaContractTest",
+      "source": "libs/image/tests/KisPainterSchemaContractTest.cpp",
+      "test": "KisPainterSchemaContractTest::distanceInitTypeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "距離初期情報は既定値、更新間隔、直前位置・角度、現在dab番号、別instanceから構築して破棄できる公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisDistanceInitInfo",
+        "method:KisDistanceInitInfo::KisDistanceInitInfo()",
+        "method:KisDistanceInitInfo::KisDistanceInitInfo(const KisDistanceInitInfo & rhs)",
+        "method:KisDistanceInitInfo::KisDistanceInitInfo(const QPointF & lastPosition,qreal lastAngle,int currentDabSeqNo)",
+        "method:KisDistanceInitInfo::KisDistanceInitInfo(const QPointF & lastPosition,qreal lastAngle,qreal spacingUpdateInterval,qreal timingUpdateInterval,int currentDabSeqNo)",
+        "method:KisDistanceInitInfo::KisDistanceInitInfo(qreal spacingUpdateInterval,qreal timingUpdateInterval,int currentDabSeqNo)",
+        "method:KisDistanceInitInfo::~KisDistanceInitInfo()"
+      ]
+    },
+    {
+      "target": "KisPainterSchemaContractTest",
+      "source": "libs/image/tests/KisPainterSchemaContractTest.cpp",
+      "test": "KisPainterSchemaContractTest::distanceInitEqualityAndAssignmentSignaturesRemainStable",
+      "behavior": "距離初期情報は別instanceとの等価比較と代入を提供する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDistanceInitInfo::operator =(const KisDistanceInitInfo & rhs)",
+        "method:KisDistanceInitInfo::operator ==(const KisDistanceInitInfo & other) const"
+      ]
+    },
+    {
+      "target": "KisPainterSchemaContractTest",
+      "source": "libs/image/tests/KisPainterSchemaContractTest.cpp",
+      "test": "KisPainterSchemaContractTest::distanceInitCreationSignatureRemainsStable",
+      "behavior": "距離初期情報は保持する設定からstroke距離情報を生成する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDistanceInitInfo::makeDistInfo()"
+      ]
+    },
+    {
+      "target": "KisPainterSchemaContractTest",
+      "source": "libs/image/tests/KisPainterSchemaContractTest.cpp",
+      "test": "KisPainterSchemaContractTest::distanceInitXmlSignaturesRemainStable",
+      "behavior": "距離初期情報はXML要素へ保存し、XML要素から復元する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDistanceInitInfo::fromXML(const QDomElement & elt)",
+        "method:KisDistanceInitInfo::toXML(QDomDocument & doc,QDomElement & elt) const"
       ]
     }
   ]

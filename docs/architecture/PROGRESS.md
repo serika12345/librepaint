@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 02:36 JST
+- 更新日時: 2026-09-09 02:45 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3837,6 +3837,14 @@
 - 第442便は`libs/image/kis_distance_information.h`の`KisDistanceInitInfo`に残る全12 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g442.json`は公開header 1,548、公開API 29,804、対応済み27,056、未対応2,748、749,978 bytes、SHA-256 `819c5717c8d8b71f7cb59ffccc642380474e856cf141ffcb4ceb7ce2f3771cd1`である。対象識別子整列集合のSHA-256は`b83dbbc757fc6166048e0b2c75344f992f3734017f0c4154eb27bc29ce83369f`で、型・5構築・寿命7、等価比較・代入2、距離情報生成1、XML保存・復元2の4枠へ固定する。
 - 構築範囲の先行最適化として、開始`libs/image/kis_distance_information.h`から公開宣言に使わない`QVector2D` includeを除く。完全型を使う`libs/image/kis_distance_information.cpp`は既に明示includeを持つ。推移includeへ依存して`QVector2D`を使う`libs/ui/tool/kis_tool_freehand_helper.cpp`へ明示includeを移し、image公開headerがQt Gui型を波及させない構造にする。
 - 既存`libs/image/tests/KisPainterSchemaContractTest.cpp`は233行・12枠で、4枠追加後も300行・20枠未満に収まる。対象固有headerを同sourceへ加えるだけで`libs/image/tests/CMakeLists.txt`を変更せず、初期情報、距離情報、XML文書・要素を実体化しない。対象の変更前閉包は4工程・8入力、command hash `3e74903fc578a08572e7bcc63c26fac06dedea3ee8660582065ef0fe47de95ad`、input hash `f58bdaf52da2afb5c89381fd30e57f20f8116a62f16f034495bd2eb94d60de83`である。停止線を5工程・11入力とし、計画外探索路・link・定義、AUTOMOC header入力、製品未解決記号、対象型の実体化または本文実行が必要なら停止する。macOSの対象と軽量近傍、追加4枠の20回反復、対象headerを含む試験sourceと完全型・推移依存consumerの厳密構文、二回目計画、無作業再構築、公開API検査、`verify-quick`だけを実行し、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
+
+### 第442便の実装結果
+
+- 公開header閉包の問題は、開始`libs/image/kis_distance_information.h`が公開宣言に使わない`QVector2D`を取り込み、stroke距離情報の全利用元へQt Gui型を推移させる構造だった。同includeを除き、完全型利用先`libs/image/kis_distance_information.cpp`の既存明示includeを維持し、推移includeへ依存していた`libs/ui/tool/kis_tool_freehand_helper.cpp`へ明示includeを移した。公開宣言と計算挙動を保ち、両sourceの既存コンパイル条件による厳密構文検査に成功した。計画commitは`b48f842d43`、依存整理commitは`1400749d02`である。
+- `libs/image/kis_distance_information.h`の`KisDistanceInitInfo`から既存`libs/image/tests/KisPainterSchemaContractTest.cpp`へ全12 APIを4枠で固定した。型・5構築・寿命7、等価比較・代入2、距離情報生成1、XML保存・復元2を重複なく対応付けた。初回は既存12枠と追加3枠が成功し、`G442 distance initialization API schema is not fixed yet`だけで1件失敗した。契約commitは`64aa97f754`である。
+- 最終sourceは274行・16枠、CMakeを変更していない。対象は変更前と同じ4工程・8入力、command hash `3e74903fc578a08572e7bcc63c26fac06dedea3ee8660582065ef0fe47de95ad`、input hash `f58bdaf52da2afb5c89381fd30e57f20f8116a62f16f034495bd2eb94d60de83`を維持した。既存のQt Core・Gui・Testだけの動的接続、AUTOMOC `HEADERS=[]`、製品未解決記号0を確認した。
+- macOSで対象`libs-image-KisPainterSchemaContractTest`と軽量近傍`libs-image-KisGradientPainterSchemaContractTest`、対象の20回反復、試験sourceと2つの完全型・推移依存consumerの`clang-check --extra-arg=-Werror`、試験sourceの書式、二回の無作業再構築に成功した。台帳は27,068件対応、2,736件未対応となり、開始対象の残存は0件である。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 旧`public-api-missing-g442.json`を削除し、追加作業tree・構築木・一時計画物は作成していない。主Ninja木5,986,272 KiB、共有compiler cache 983,372 KiB、最新`build/tdd-macos/public-api-missing-g443.json` 746,548 bytes、SHA-256 `452cf21bb8c34c31468bec81c134851e3c978a0a5fd13cb3cc15c26656e909f0`だけを再利用対象として保持する。compiler cacheは144,539件中120,558件、83.41%がhitしている。次の永続作業は第443便で次の高密度なmacOS対象と最小構築面を選定することである。
 
 ### 第239便の先行監査担当票
 
