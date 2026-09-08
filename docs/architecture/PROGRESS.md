@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-08 14:22 JST
+- 更新日時: 2026-09-08 14:42 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3129,6 +3129,13 @@
 - 既存`libs/tools/tests/KisToolSelectBaseSchemaContractTest.cpp`は下位interactionと複数の具体選択toolを299行・15枠で既に固定している。UI presentationを追加すると一試験sourceの責務と保守上限を越えるため追記しない。同targetの変更なし閉包は4工程・8入力、command SHA-256 `7d72107257a30cdc9ee717390876221296ca6984d3f79575a3a9c4907203d90a`、input SHA-256 `1c87db84f4d7f873552114f0baaa920f6a47b28a344383a5cb86748398ffa26e`である。
 - 新規`libs/ui/tests/KisToolSelectUiBaseSchemaContractTest.cpp`を200行・10枠未満で作り、型特性と厳密な関数pointerだけで25 APIを観測する。専用targetは下位契約と同じheader探索路・export定義を再利用し、4工程・8入力を予測して停止線を5工程・11入力とする。候補headerをAUTOMOC入力にせず、selection option widget、action、canvas、tool、node、stroke、menuを実体化または接続しない。
 - `g386-tool-select-ui-schema`の状態は`in_progress`、実装基点は`2a0d756add`である。構造先行commit後、新規試験sourceと`libs/ui/tests/CMakeLists.txt`の対象固有節だけへ契約を追加する。macOSの対象、5枠の20回反復、下位の軽量近傍、8直接利用元と試験sourceの厳格`clang-check`、書式、AUTOMOC後の二回目計画、二回の無作業再構築、動的接続・未解決symbol、公開API検査、`verify-quick`だけを実行する。製品templateの実体化、既存製品試験、製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
+
+### 第386便の実装結果
+
+- `g386-tool-select-ui-schema`は`completed`である。開始`libs/ui/tool/kis_tool_select_ui_base.h`のpointer集合から`KoShape.h`の完全依存を除き、`KoShape`を前方宣言した。図形実体の所有先は`plugins/tools/selectiontools/kis_tool_select_elliptical.cc`と`kis_tool_select_rectangular.cc`、XML文書実体の所有先は`kis_tool_select_contiguous.cc`として各直接includeへ移した。8直接利用元は7件が厳格`clang-check`に無診断で成功し、`KisToolSelectMagnetic.cc`だけが変更前と同一の既存診断で停止した。公開API報告もbyte一致した。構造変更commitは`b2d8d17db3`である。
+- 開始headerの残存全25 APIを、新規`libs/ui/tests/KisToolSelectUiBaseSchemaContractTest.cpp`のUI選択型・alias・構築8、参照layer mode 5、活性化・表示5、選択設定4、補正・色label・option 3の5枠へ対応付けた。対象は113行で、参照layer modeの既定序数は実行時比較し、抽象基底の構築経路はpaint overrideだけを持つ局所probe、その他は型特性と厳密な関数pointerで固定した。最初のredで不要な`KoShape`完全依存を除去した後、tools UIとPSD utilityの所有探索路だけを段階的に加え、最後は5試験関数の未定義symbolだけで停止した。契約実装commitは`e7b6b632cf`である。
+- 最終targetは4工程・8入力、command SHA-256 `dfa69d52c97147f5d25cdc794e3cd6dc2b37644303f8c0fdd5db3f5606734cc3`、input SHA-256 `6a0a85aa6ab162073c90b3d9c8b710b085223737161c5fae4a411c95763ae2da`で停止線内に収まる。動的接続はQt Core・Test、macOS frameworkとgettextだけで、製品libraryの未解決symbolを持たない。macOSで対象`libs-ui-KisToolSelectUiBaseSchemaContractTest`、下位近傍`libs-tools-KisToolSelectBaseSchemaContractTest`、対象の20回反復、試験sourceの厳格`clang-check`、書式、AUTOMOC `HEADERS=[]`、二回の無作業再構築、公開API検査に成功した。selection option widget、action、canvas、tool、node、stroke、menu、製品target、既存製品試験、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 台帳へ25 APIを追加して26,170件対応、3,634件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g386.json`を最新報告の検証後に削除し、追加作業tree・構築木は作成していない。主Ninja木5,964,856 KiB、共有compiler cache 983,184 KiB、最新`build/tdd-macos/public-api-missing-g387.json` 989,017 bytes、SHA-256 `5f914487bd7e37a4fec05410bc1e4839bf066f870d63ab4dbb85837f4f6e9d28`だけを再利用対象として保持する。compiler cacheは144,337件中120,522件、83.50%がhitしている。次の永続作業は第387便で次の高密度なmacOS対象と最小構築面を選定することである。
 
 ### 第239便の先行監査担当票
 

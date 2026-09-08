@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 3659
+    "expectedMissingApis": 3634
   },
   "contracts": [
     {
@@ -71466,6 +71466,76 @@
         "method:KisPopupPalette::sigUpdateRecentColor(int)",
         "method:KisPopupPalette::slotUpdateIcons()",
         "method:KisPopupPalette::zoomLevelChanged(int)"
+      ]
+    },
+    {
+      "target": "KisToolSelectUiBaseSchemaContractTest",
+      "source": "libs/ui/tests/KisToolSelectUiBaseSchemaContractTest.cpp",
+      "test": "KisToolSelectUiBaseSchemaContractTest::toolSelectUiTypeAliasAndConstructionSchemaRemainStable",
+      "behavior": "選択tool UI基底は公開template・標準alias・基底tool型と三つのUI構築経路を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisToolSelect",
+        "class:KisToolSelectUiBase",
+        "method:FakeBaseTool::FakeBaseTool(KoCanvasBase * canvas)",
+        "method:FakeBaseTool::FakeBaseTool(KoCanvasBase * canvas,const QCursor & cursor)",
+        "method:KisToolSelectUiBase::KisToolSelectUiBase(KoCanvasBase * canvas,const QCursor & cursor,const QString & toolName)",
+        "method:KisToolSelectUiBase::KisToolSelectUiBase(KoCanvasBase * canvas,const QCursor & cursor,const QString & toolName,KoToolBase * delegateTool)",
+        "method:KisToolSelectUiBase::KisToolSelectUiBase(KoCanvasBase * canvas,const QString & toolName)",
+        "struct:FakeBaseTool"
+      ]
+    },
+    {
+      "target": "KisToolSelectUiBaseSchemaContractTest",
+      "source": "libs/ui/tests/KisToolSelectUiBaseSchemaContractTest.cpp",
+      "test": "KisToolSelectUiBaseSchemaContractTest::toolSelectUiSampleLayersModeSchemaRemainsStable",
+      "behavior": "選択tool UI基底は全layer・現在layer・色label layerの参照方式と照会境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KisToolSelectUiBase::SampleLayersMode",
+        "enumerator:KisToolSelectUiBase::SampleLayersMode::SampleAllLayers",
+        "enumerator:KisToolSelectUiBase::SampleLayersMode::SampleColorLabeledLayers",
+        "enumerator:KisToolSelectUiBase::SampleLayersMode::SampleCurrentLayer",
+        "method:KisToolSelectUiBase::sampleLayersMode() const"
+      ]
+    },
+    {
+      "target": "KisToolSelectUiBaseSchemaContractTest",
+      "source": "libs/ui/tests/KisToolSelectUiBaseSchemaContractTest.cpp",
+      "test": "KisToolSelectUiBaseSchemaContractTest::toolSelectUiActivationAndPresentationSignaturesRemainStable",
+      "behavior": "選択tool UI基底は活性化・非活性化、option widget・popup menu生成とshortcut説明更新の境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisToolSelectUiBase::activate(const QSet<KoShape * > & shapes)",
+        "method:KisToolSelectUiBase::createOptionWidget()",
+        "method:KisToolSelectUiBase::deactivate()",
+        "method:KisToolSelectUiBase::popupActionsMenu()",
+        "method:KisToolSelectUiBase::updateActionShortcutToolTips()"
+      ]
+    },
+    {
+      "target": "KisToolSelectUiBaseSchemaContractTest",
+      "source": "libs/ui/tests/KisToolSelectUiBaseSchemaContractTest.cpp",
+      "test": "KisToolSelectUiBaseSchemaContractTest::toolSelectUiSelectionConfigurationSignaturesRemainStable",
+      "behavior": "選択tool UI基底は選択方式、アンチエイリアス、拡張量と最暗画素停止の設定照会境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisToolSelectUiBase::antiAliasSelection() const",
+        "method:KisToolSelectUiBase::growSelection() const",
+        "method:KisToolSelectUiBase::selectionMode() const",
+        "method:KisToolSelectUiBase::stopGrowingAtDarkestPixel() const"
+      ]
+    },
+    {
+      "target": "KisToolSelectUiBaseSchemaContractTest",
+      "source": "libs/ui/tests/KisToolSelectUiBaseSchemaContractTest.cpp",
+      "test": "KisToolSelectUiBaseSchemaContractTest::toolSelectUiAdjustmentAndOptionSignaturesRemainStable",
+      "behavior": "選択tool UI基底はぼかし量、選択色labelとoption widget参照の境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisToolSelectUiBase::colorLabelsSelected() const",
+        "method:KisToolSelectUiBase::featherSelection() const",
+        "method:KisToolSelectUiBase::selectionOptionWidget()"
       ]
     }
   ]
