@@ -8,10 +8,12 @@
 #ifndef KIS_LOCKED_PROPERTIES_SERVER_H
 #define KIS_LOCKED_PROPERTIES_SERVER_H
 
-#include <brushengine/kis_locked_properties_proxy.h>
-#include "kis_properties_configuration.h"
+#include <QObject>
 
-class KisLockedPropertiesProxy;
+#include "kis_shared_ptr.h"
+#include "kis_types.h"
+
+class QString;
 
 /**
  * The KisLockedPropertiesServer class

@@ -290,6 +290,10 @@ typedef KisPinnedSharedPtr<KisPropertiesConfiguration> KisPropertiesConfiguratio
 class KisLockedProperties;
 typedef KisSharedPtr<KisLockedProperties> KisLockedPropertiesSP;
 
+class KisLockedPropertiesProxy;
+typedef KisPinnedSharedPtr<KisLockedPropertiesProxy> KisLockedPropertiesProxySP;
+typedef KisWeakSharedPtr<KisLockedPropertiesProxy> KisLockedPropertiesProxyWSP;
+
 class KisProjectionUpdatesFilter;
 typedef QSharedPointer<KisProjectionUpdatesFilter> KisProjectionUpdatesFilterSP;
 using KisProjectionUpdatesFilterCookie = void*;

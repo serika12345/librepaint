@@ -6,6 +6,7 @@
  */
 #include <brushengine/kis_locked_properties_server.h>
 #include <brushengine/kis_locked_properties.h>
+#include <brushengine/kis_locked_properties_proxy.h>
 
 #include <QGlobalStatic>
 
@@ -70,6 +71,5 @@ bool KisLockedPropertiesServer::hasProperty(const QString &p)
 {
     return m_lockedProperties->hasProperty(p);
 }
-
 
 
