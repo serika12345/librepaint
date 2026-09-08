@@ -10,10 +10,12 @@
 #include <QWidget>
 
 #include "kis_canvas_widget_base.h"
-#include <kis_prescaled_projection.h>
+#include <kis_shared_ptr.h>
 
 class QPaintEvent;
 class KisCanvas2;
+class KisPrescaledProjection;
+using KisPrescaledProjectionSP = KisSharedPtr<KisPrescaledProjection>;
 
 /**
  *
