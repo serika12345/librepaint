@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 07:04 JST
+- 更新日時: 2026-09-09 07:08 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4089,6 +4089,13 @@
 - 開始`libs/image/brushengine/kis_locked_properties.h`から既存`libs/image/tests/KisPaintOpPresetSchemaContractTest.cpp`へ全9 API・3枠を追加した。型・共有基底・構築・寿命3、固定設定の追加・除去4、存在・集合照会2を型特性と厳密な関数pointerで固定した。初回は既存13枠と新しい型・変更2枠が成功し、`G460 locked properties API schema is not fixed yet`だけで1件失敗した。locked properties、設定値と本文は実体化していない。計画commitは`bea8c0b296`、契約commitは`86b1ea461f`である。
 - 試験sourceは256行・16枠となり、CMakeを変更していない。既存targetは4工程・8入力、command SHA-256 `0c32b72c9110304c0414146d4d0562b3228d14528e0f816521f51274008446d8`、input SHA-256 `d5fef47757220ffdb67b7e99cf6d1dd2d81f2ec0ff9972a54d3b3b8614760b9f`を変更前から維持した。AUTOMOC `HEADERS=[]`、直接接続はQt Core・Gui・Test、製品未解決記号と製品動的接続は0である。macOSで対象、軽量近傍`KisInterstrokeDataSchemaContractTest`、対象の20回反復、試験sourceの厳格構文と書式、連続二回の無作業再構築、公開API検査、`verify-quick`に成功した。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 台帳は27,278件対応、2,526件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g460.json`、棄却候補・構造照合・対象閉包の一時一覧を削除し、追加作業tree・構築木は作成していない。主Ninja木5,995,740 KiB、共有compiler cache 983,324 KiB、最新`build/tdd-macos/public-api-missing-g461.json` 689,139 bytes、SHA-256 `94d93ac3fce3093907b27cd5d077e49d026408cf137eb4a1cd852d97ebbf9613`だけを再利用対象として保持する。compiler cacheは144,591件中120,563件、83.38%がhitしている。次の永続作業は第461便で最新報告から高密度なmacOS対象と最小構築面を選定することである。
+
+### 第461便の公開API契約計画
+
+- 第461便は`libs/image/kis_time_span.h`に残る全4 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g461.json`は公開header 1,548、公開API 29,804、対応済み27,278、未対応2,526、689,139 bytes、SHA-256 `94d93ac3fce3093907b27cd5d077e49d026408cf137eb4a1cd852d97ebbf9613`である。対象識別子整列集合のSHA-256は`0e179d2890a7f1e9daa44436b241ee98dddcca6c055f9001d964ac91ff9c2824`で、node部分木・単一nodeそれぞれの同一frame・影響frame計算4を1枠へ固定する。
+- 公開time spanはDOM保存・読込関数を宣言するだけだが、開始`libs/image/kis_time_span.h`の`kis_dom_utils.h`がDOM実装、locale、色、入出力、移植補助、国際化依存を63直接利用元へ伝播させている。構造先行変更では同includeを既存`libs/image/kis_time_span.cpp`へ移し、公開headerには`QDebug`、`QDomElement`、`QString`の前方宣言だけを置く。公開宣言、ABI、範囲演算とDOM直列化は変えず、直接翻訳単位を同時6件以下で変更前後厳格構文検査し、新規診断0、公開API不足報告byte一致を完了条件とする。
+- 既存`KisTimeSpanContractTest`は値・DOM・診断動作を固定するが7工程・16入力であり、`KisImageSchemaContractTest`は4工程・8入力でも294行で上限直前のため追記先から除外する。nodeの汚れ・animation境界を所有する既存`libs/image/tests/KisNodeSchemaContractTest.cpp`は149行・5枠で、1枠追加後も300行・20枠未満に収まる。同targetはimage・global探索路、image export定義、Qt Core・Gui・Testだけで4工程・8入力、command SHA-256 `dcced990e42f0162b444f410c9023bdcc96df7cd5ddd823f7098325f34523d83`、input SHA-256 `5581f5905d4c177bf7c4e1c21af06e9c06e8e4ac7f1ab31fa912b5fb887a0dca`である。
+- 構造変更を独立commit後、開始headerから既存node試験sourceの1枠だけへ追加し、CMakeは変更しない。停止線は5工程・11入力とし、新たな探索路・定義・link、AUTOMOC header入力、製品未解決記号、node・time spanまたは計算本文の実体化が必要なら停止する。macOSの対象、追加枠の20回反復、軽量近傍、直接利用元と試験sourceの厳格構文、書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、time span動作対象、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
 
 ### 第239便の先行監査担当票
 
