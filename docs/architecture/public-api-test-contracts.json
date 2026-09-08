@@ -16,7 +16,7 @@
     "publicApiFingerprint": "5f05b2aa8e5bef4343af1d55a3852331e51d4369fe135b099327b1a91b6b8c4c"
   },
   "migration": {
-    "expectedMissingApis": 2551
+    "expectedMissingApis": 2541
   },
   "contracts": [
     {
@@ -75321,6 +75321,43 @@
       "apis": [
         "method:KisRefreshSubtreeWalker::flags() const",
         "method:KisRefreshSubtreeWalker::type() const"
+      ]
+    },
+    {
+      "target": "KisBaseRectsWalkerPolicyContractTest",
+      "source": "libs/image/tests/KisBaseRectsWalkerPolicyContractTest.cpp",
+      "test": "KisBaseRectsWalkerPolicyContractTest::mergeWalkerTypeAndFlagsSchemaRemainStable",
+      "behavior": "merge walkerは矩形walkerの共有型として、汚れ処理と複製frame無効化を制御する組合せ可能なflag値を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisMergeWalker::Flags",
+        "alias:KisMergeWalkerSP",
+        "class:KisMergeWalker",
+        "enum:KisMergeWalker::Flag",
+        "enumerator:KisMergeWalker::Flag::CLONES_DONT_INVALIDATE_FRAMES",
+        "enumerator:KisMergeWalker::Flag::DEFAULT",
+        "enumerator:KisMergeWalker::Flag::NO_FILTHY"
+      ]
+    },
+    {
+      "target": "KisBaseRectsWalkerPolicyContractTest",
+      "source": "libs/image/tests/KisBaseRectsWalkerPolicyContractTest.cpp",
+      "test": "KisBaseRectsWalkerPolicyContractTest::mergeWalkerConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "merge walkerは切抜き領域と更新flagから構築でき、矩形walkerとして仮想破棄する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMergeWalker::KisMergeWalker(QRect cropRect,Flags flags=DEFAULT)",
+        "method:KisMergeWalker::~KisMergeWalker()"
+      ]
+    },
+    {
+      "target": "KisBaseRectsWalkerPolicyContractTest",
+      "source": "libs/image/tests/KisBaseRectsWalkerPolicyContractTest.cpp",
+      "test": "KisBaseRectsWalkerPolicyContractTest::mergeWalkerObservationSignatureRemainsStable",
+      "behavior": "merge walkerはmerge走査で使う更新種別を照会する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMergeWalker::type() const"
       ]
     },
     {

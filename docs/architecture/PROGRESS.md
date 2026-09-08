@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 06:25 JST
+- 更新日時: 2026-09-09 06:33 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4054,6 +4054,13 @@
 - 第458便は`libs/image/kis_merge_walker.h`に残る全10 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g458.json`は公開header 1,548、公開API 29,804、対応済み27,253、未対応2,551、695,064 bytes、SHA-256 `2dcaa686b9591a2fe3641c24018331e0e8c0b6b34ce3f76dcd72f38de04acb23`である。対象識別子整列集合のSHA-256は`073d555ca04311f1790f51c91e25b88ce9f24831f0ff6a7b7c662bdceb45ec4d`で、型・共有pointer別名・flag型・3値7、構築・寿命2、更新種別照会1の3枠へ固定する。
 - 公開merge walkerはimage共有pointer別名と既に契約済みの矩形walker基底だけへ依存し、追加の完全型や実装詳細を伝播させていないため構造変更は不要である。同じ矩形走査方針を所有する既存`libs/image/tests/KisBaseRectsWalkerPolicyContractTest.cpp`は237行・13枠で、3枠追加後も300行・20枠未満に収まる。同targetはimage・global・pigment・resources・psdutils探索路とimage export定義、Qt Core・Gui・Testだけで4工程・8入力、command SHA-256 `44385decd9b30fadb1d78c7fc6b3f59148336211bc4003f256fb2ee8b8f9c24e`、input SHA-256 `da762dfa8f05ff1fc4b849ec24891cdefab1f7eb9376a623268e4277511c4271`である。新規targetは同じ閉包へCMake登録と生成物を増やすため棄却する。
 - 開始headerから既存試験sourceの3枠だけへ追加し、CMake、公開header、製品sourceは変更しない。停止線は5工程・11入力とし、新たな探索路・定義・link、AUTOMOC header入力、製品未解決記号、merge walker・projection leaf・nodeまたは走査本文の実体化が必要なら停止する。macOSの対象、追加3枠の20回反復、軽量近傍、試験sourceの厳格構文、書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、既存動的walker試験、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
+
+### 第458便の実装結果
+
+- 開始`libs/image/kis_merge_walker.h`から既存`libs/image/tests/KisBaseRectsWalkerPolicyContractTest.cpp`へ全10 API・3枠を追加した。型・共有pointer別名・flag型・3値7、既定flagを含む構築・寿命2、更新種別照会1を型特性、値比較と厳密な関数pointerで固定した。初回は既存13枠と新しい型・構築2枠が成功し、`G458 merge walker API schema is not fixed yet`だけで1件失敗した。merge walker、projection leaf、nodeと走査本文は実体化していない。計画commitは`96e41d8beb`、契約commitは`bd0365e10b`である。
+- 試験sourceは274行・16枠となり、CMake、公開header、製品sourceを変更していない。既存targetは4工程・8入力、command SHA-256 `44385decd9b30fadb1d78c7fc6b3f59148336211bc4003f256fb2ee8b8f9c24e`、input SHA-256 `da762dfa8f05ff1fc4b849ec24891cdefab1f7eb9376a623268e4277511c4271`を変更前から維持した。AUTOMOC `HEADERS=[]`、直接接続はQt Core・Gui・Test、製品未解決記号と製品動的接続は0である。
+- macOSで対象、軽量近傍`KisInterstrokeDataSchemaContractTest`、対象の20回反復、試験sourceの`clang-check --extra-arg=-Werror`と書式、連続二回の無作業再構築、公開API検査、`verify-quick`に成功した。既存動的walker試験、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 台帳は27,263件対応、2,541件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g458.json`と一時閉包一覧を削除し、追加作業tree・構築木は作成していない。主Ninja木5,995,656 KiB、共有compiler cache 983,020 KiB、最新`build/tdd-macos/public-api-missing-g459.json` 693,094 bytes、SHA-256 `5480ae6264644932bc04b33a7a6d9afb5469c69aade047af9e164eba915b376d`だけを再利用対象として保持する。compiler cacheは144,587件中120,563件、83.38%がhitしている。次の永続作業は第459便で最新報告から高密度なmacOS対象と最小構築面を選定することである。
 
 ### 第239便の先行監査担当票
 
