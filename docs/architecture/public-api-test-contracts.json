@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 3487
+    "expectedMissingApis": 3473
   },
   "contracts": [
     {
@@ -71989,6 +71989,65 @@
       "apis": [
         "method:PSDResourceBlock::read(QIODevice & io)",
         "method:PSDResourceBlock::write(QIODevice & io) const"
+      ]
+    },
+    {
+      "target": "PSDLayerRecordSchemaContractTest",
+      "source": "libs/psdutils/tests/PSDLayerRecordSchemaContractTest.cpp",
+      "test": "PSDLayerRecordSchemaContractTest::additionalLayerTextToolMemberSchemaRemainsStable",
+      "behavior": "PSD文字tool値は書体の設計vectorとface・line・style配列を生pointerで保持する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:psd_layer_type_face::vector",
+        "member:psd_layer_type_tool::face",
+        "member:psd_layer_type_tool::line",
+        "member:psd_layer_type_tool::style"
+      ]
+    },
+    {
+      "target": "PSDLayerRecordSchemaContractTest",
+      "source": "libs/psdutils/tests/PSDLayerRecordSchemaContractTest.cpp",
+      "test": "PSDLayerRecordSchemaContractTest::additionalLayerTextShapeConfigurationSignaturesRemainStable",
+      "behavior": "PSD文字shapeはengine dataの設定とASL callback購読を構成する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:psd_layer_type_shape::setEngineData(QByteArray ba)",
+        "method:psd_layer_type_shape::setupCatcher(const QString path,KisAslCallbackObjectCatcher & catcher,psd_layer_type_shape * data)"
+      ]
+    },
+    {
+      "target": "PSDLayerRecordSchemaContractTest",
+      "source": "libs/psdutils/tests/PSDLayerRecordSchemaContractTest.cpp",
+      "test": "PSDLayerRecordSchemaContractTest::additionalLayerTextShapeXmlSignaturesRemainStable",
+      "behavior": "PSD文字shapeは文字dataとwarp設定をASL XMLへ表現する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:psd_layer_type_shape::textDataASLXML()",
+        "method:psd_layer_type_shape::textWarpXML()"
+      ]
+    },
+    {
+      "target": "PSDLayerRecordSchemaContractTest",
+      "source": "libs/psdutils/tests/PSDLayerRecordSchemaContractTest.cpp",
+      "test": "PSDLayerRecordSchemaContractTest::additionalLayerVectorOriginationSignaturesRemainStable",
+      "behavior": "PSD vector生成元はASL表現の生成とcallback購読構成の公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:psd_vector_origination_data::getASL()",
+        "method:psd_vector_origination_data::setupCatcher(const QString path,KisAslCallbackObjectCatcher & catcher,psd_vector_origination_data * data)"
+      ]
+    },
+    {
+      "target": "PSDLayerRecordSchemaContractTest",
+      "source": "libs/psdutils/tests/PSDLayerRecordSchemaContractTest.cpp",
+      "test": "PSDLayerRecordSchemaContractTest::additionalLayerVectorStrokeSignaturesRemainStable",
+      "behavior": "PSD vector線は図形線との相互変換、ASL XML生成とcallback購読構成の公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:psd_vector_stroke_data::getASLXML()",
+        "method:psd_vector_stroke_data::loadFromShapeStroke(KoShapeStrokeSP stroke)",
+        "method:psd_vector_stroke_data::setupCatcher(const QString path,KisAslCallbackObjectCatcher & catcher,psd_vector_stroke_data * data)",
+        "method:psd_vector_stroke_data::setupShapeStroke(KoShapeStrokeSP stroke)"
       ]
     }
   ]

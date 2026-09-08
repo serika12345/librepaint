@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-08 16:53 JST
+- 更新日時: 2026-09-08 16:59 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3239,6 +3239,12 @@
 - 第394便は`libs/psd/psd_additional_layer_info_block.h`に残る全14 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g394.json`は公開header 1,548、公開API 29,804、対応済み26,317、未対応3,487、945,696 bytes、SHA-256 `546f7477e61333597980997683b95f6b8a14d75a96d105f5d7d6e088aab697fb`である。対象識別子整列集合のSHA-256は`7d08e3fa7e7f28f31f42a5499bc19a8fc1b3e789a438fb71c35085f2b59f9d2a`で、文字tool値member 4、文字shape設定2、文字shape XML 2、vector生成元2、vector線4の5枠へ固定する。
 - 既存`libs/psdutils/tests/PsdFormatValuesContractTest.cpp`は3,025行で6工程・14入力のため追記しない。`libs/psdutils/tests/PSDLayerRecordSchemaContractTest.cpp`は181行・14枠で、`psd_layer_record.h`と`psd_layer_section.h`が対象headerを直接includeしている。同sourceへ5枠を追加して300行・20枠以内に収め、CMake変更なしで4工程・8入力、command SHA-256 `51754fd123de29e7fbbe5b17678995eeaa7d5958f12c4225608aff39207a4aec`、input SHA-256 `598e0e334ab4cf08c266b29c2535393b8eaddc5851a447fab1e95f47c29869ab`を維持する。停止線は5工程・11入力とする。公開headerの依存は多数の公開値型とinline変換本文が直接使い、既存4/8閉包を縮小しないため先行構造変更は行わない。
 - `g394-psd-additional-layer-info-schema`の状態は`in_progress`、実装基点は`eabeed4267`である。開始`libs/psd/psd_additional_layer_info_block.h`から既存試験sourceの5枠だけへ契約を追加し、CMake、公開header、製品sourceは変更しない。macOSの対象、追加5枠の20回反復、軽量近傍、試験sourceの厳格`clang-check`、書式、二回の無作業再構築、動的接続・未解決symbol、公開API検査、`verify-quick`だけを実行する。文字shape、callback catcher、vector生成元、図形線、Qt値は実体化せず、製品PSD・OBJECT・shared target、重量PsdFormat対象、全体build・`verify`、Linux、Nix再評価は実行しない。
+
+### 第394便の実装結果
+
+- `g394-psd-additional-layer-info-schema`は`completed`である。開始`libs/psd/psd_additional_layer_info_block.h`から既存`libs/psdutils/tests/PSDLayerRecordSchemaContractTest.cpp`へ14 API・5枠を追加した。試験sourceは236行・19枠となり、文字tool値member 4、文字shape設定2、文字shape XML 2、vector生成元2、vector線4を厳密なmember・関数pointerで固定した。文字shape、callback catcher、vector生成元、図形線、Qt値は実体化していない。CMake、公開header、製品sourceは変更せず、契約実装commitは`e343ab3288`である。
+- macOSで対象`libs-psdutils-PSDLayerRecordSchemaContractTest`と近傍`libs-psdutils-KisAslXmlWriterSchemaContractTest`、対象の20回反復、試験sourceの厳格`clang-check`、書式、二回の無作業再構築に成功した。4工程・8入力、command SHA-256 `51754fd123de29e7fbbe5b17678995eeaa7d5958f12c4225608aff39207a4aec`、input SHA-256 `598e0e334ab4cf08c266b29c2535393b8eaddc5851a447fab1e95f47c29869ab`、AUTOMOC `HEADERS=[]`、Qt Core・Testだけの動的接続、追加layer情報製品未解決記号0を維持した。製品PSD・OBJECT・shared target、重量PsdFormat対象、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 台帳へ14 APIを追加して26,331件対応、3,473件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g394.json`を最新報告の検証後に削除し、追加作業tree・構築木は作成していない。主Ninja木5,968,664 KiB、共有compiler cache 983,388 KiB、最新`build/tdd-macos/public-api-missing-g395.json` 941,916 bytes、SHA-256 `106b86ddec19dcded2575216428454dd66cae5d5088afa866b90b49c3e6c0e71`だけを再利用対象として保持する。compiler cacheは144,367件中120,528件、83.49%がhitしている。次の永続作業は第395便で次の高密度なmacOS対象と最小構築面を選定することである。
 
 ### 第239便の先行監査担当票
 
