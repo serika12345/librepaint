@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 3052
+    "expectedMissingApis": 3035
   },
   "contracts": [
     {
@@ -73558,6 +73558,68 @@
       "apis": [
         "method:KisIdleTasksManager::addIdleTaskWithGuard(KisIdleTaskStrokeStrategyFactory factory)",
         "method:KisIdleTasksManager::setImage(KisImageSP image)"
+      ]
+    },
+    {
+      "target": "KisViewManagerSchemaContractTest",
+      "source": "libs/application/tests/KisViewManagerSchemaContractTest.cpp",
+      "test": "KisViewManagerSchemaContractTest::statusBarTypeAndLifetimeSchemaRemainStable",
+      "behavior": "status barはview managerを受け取って構築され、QObjectの仮想寿命境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisStatusBar",
+        "method:KisStatusBar::KisStatusBar(KisViewManager * view)",
+        "method:KisStatusBar::~KisStatusBar()"
+      ]
+    },
+    {
+      "target": "KisViewManagerSchemaContractTest",
+      "source": "libs/application/tests/KisViewManagerSchemaContractTest.cpp",
+      "test": "KisViewManagerSchemaContractTest::statusBarSetupAndPresentationSignaturesRemainStable",
+      "behavior": "status barは表示構成とviewを受け取り、全status項目の表示・非表示を切り替える公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisStatusBar::hideAllStatusBarItems()",
+        "method:KisStatusBar::setView(QPointer<KisView> imageView)",
+        "method:KisStatusBar::setup()",
+        "method:KisStatusBar::showAllStatusBarItems()"
+      ]
+    },
+    {
+      "target": "KisViewManagerSchemaContractTest",
+      "source": "libs/application/tests/KisViewManagerSchemaContractTest.cpp",
+      "test": "KisViewManagerSchemaContractTest::statusBarProgressAndExtraWidgetSignaturesRemainStable",
+      "behavior": "status barは進捗更新器を提供し、追加widgetの登録・解除を受け付ける公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisStatusBar::addExtraWidget(QWidget * widget)",
+        "method:KisStatusBar::progressUpdater()",
+        "method:KisStatusBar::removeExtraWidget(QWidget * widget)"
+      ]
+    },
+    {
+      "target": "KisViewManagerSchemaContractTest",
+      "source": "libs/application/tests/KisViewManagerSchemaContractTest.cpp",
+      "test": "KisViewManagerSchemaContractTest::statusBarImageSelectionAndProfileSignaturesRemainStable",
+      "behavior": "status barは画像寸法変更を受け取り、選択状態と色profile表示の対象画像を更新する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisStatusBar::imageSizeChanged()",
+        "method:KisStatusBar::setProfile(KisImageWSP image)",
+        "method:KisStatusBar::setSelection(KisImageWSP image)"
+      ]
+    },
+    {
+      "target": "KisViewManagerSchemaContractTest",
+      "source": "libs/application/tests/KisViewManagerSchemaContractTest.cpp",
+      "test": "KisViewManagerSchemaContractTest::statusBarHelpUpdateAndNotificationSignaturesRemainStable",
+      "behavior": "status barはhelp文、profile表示、選択説明を更新し、取消要求を通知する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisStatusBar::setHelp(const QString & t)",
+        "method:KisStatusBar::sigCancellationRequested()",
+        "method:KisStatusBar::updateSelectionToolTip()",
+        "method:KisStatusBar::updateStatusBarProfileLabel()"
       ]
     }
   ]

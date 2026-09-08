@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-08 22:17 JST
+- 更新日時: 2026-09-08 22:23 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3565,6 +3565,12 @@
 - 第420便は`libs/ui/canvas/kis_statusbar.h`に残る全17 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g420.json`は公開header 1,548、公開API 29,804、対応済み26,752、未対応3,052、828,039 bytes、SHA-256 `9b26861c4b376c1a94979c6448e923f3f06dae73f56073267dcbc772d2e89719`である。対象識別子整列集合のSHA-256は`4c3558c79498f4b8ffbea371bdb0fb270be672c528820edaee6554917729f597`で、status bar型・構築・寿命3、設定・view・全項目表示状態4、進捗・追加widget管理3、画像寸法・選択・profile 3、help・profile表示・選択説明・取消通知4の5枠へ固定する。
 - 既存`libs/application/tests/KisViewManagerSchemaContractTest.cpp`はview managerのstatus bar境界を所有し、135行・8枠から追加後も300行・20枠未満に収まる。CMake変更なしでQt Core・Testだけの動的接続と4工程・8入力を維持する。現行command SHA-256は`0b86cf5b0b37dbf88d2837d48b6b563aa8c387034be4e3119d5ffb312f704ddc`、input SHA-256は`57ebed086e92adde6d4554f8315cd2fedde5517bccadd2aeee2083650235cd3e`である。status bar、view manager、view、image、widget、進捗更新器と本文を実体化せず、型特性、構築可能性、厳密な関数pointerだけで公開境界を観測する。製品`kritaapplicationui`は1,975工程・3,950入力で反復先から除外する。
 - `g420-status-bar-schema`の状態は`in_progress`、実装基点は`911fc096c6`である。開始headerから既存試験sourceの5枠だけへ追加し、CMake、公開header、製品source、製品targetは変更しない。停止線は5工程・11入力とし、新たな探索路・定義・link、製品OBJECT・shared・`kritatestsdk`接続、候補headerのAUTOMOC入力化、製品未解決symbol、対象値または本文の実体化が必要なら候補を保留する。macOSの対象、追加5枠の20回反復、軽量近傍、試験sourceの厳格`clang-check`、書式、二回の無作業再構築、動的接続・未解決symbol、公開API検査、`verify-quick`だけを実行する。製品application UI・UI・widgets target、全体build・`verify`、Linux、Nix再評価は実行しない。
+
+### 第420便の実装結果
+
+- `g420-status-bar-schema`は`completed`である。`libs/ui/canvas/kis_statusbar.h`から既存`libs/application/tests/KisViewManagerSchemaContractTest.cpp`へ17 API・5枠を移し、status bar型・構築・寿命3、設定・view・全項目表示状態4、進捗・追加widget管理3、画像寸法・選択・profile 3、help・profile表示・選択説明・取消通知4を型特性、構築可能性、厳密な関数pointerで固定した。試験sourceは181行・13枠で、status bar、view manager、view、image、widget、進捗更新器と本文を実体化していない。CMake変更なしの初回redは未定義の5検査関数だけで失敗し、契約実装commitは`3ab1fd6792`である。
+- macOSの対象`libs-application-KisViewManagerSchemaContractTest`、軽量近傍`libs-application-KisViewSchemaContractTest`、対象の20回反復、試験sourceの厳格`clang-check`、書式、変更なし計画、連続二回の無作業再構築に成功した。対象は4工程・8入力、command SHA-256 `0b86cf5b0b37dbf88d2837d48b6b563aa8c387034be4e3119d5ffb312f704ddc`、input SHA-256 `57ebed086e92adde6d4554f8315cd2fedde5517bccadd2aeee2083650235cd3e`、AUTOMOC `HEADERS=[]`、直接接続はQt Core・Test、製品未解決symbol 0である。1,975工程・3,950入力の製品application UI、製品UI・widgets target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 台帳へ17 APIを追加して26,769件対応、3,035件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g420.json`を削除し、追加作業tree・構築木・一時計画物は作成していない。主Ninja木5,981,432 KiB、共有compiler cache 982,652 KiB、最新`build/tdd-macos/public-api-missing-g421.json` 824,437 bytes、SHA-256 `216d1e6c7a5040c71fa8e6e17ccc296ba45d603824d6e1a6da86ca80e69f3efd`だけを再利用対象として保持する。compiler cacheは144,475件中120,553件、83.44%がhitしている。公開API検査と`verify-quick`に成功した。次の永続作業は第421便で次の高密度なmacOS対象と最小構築面を選定することである。
 
 ### 第239便の先行監査担当票
 
