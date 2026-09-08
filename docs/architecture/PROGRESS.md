@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 07:23 JST
+- 更新日時: 2026-09-09 07:27 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4104,6 +4104,12 @@
 - 開始`libs/image/kis_time_span.h`から既存`libs/image/tests/KisNodeSchemaContractTest.cpp`へ全4 API・1枠を追加した。単一nodeまたは部分木について同一frame・影響frame範囲を返す4静的署名を厳密な関数pointerで固定した。初回は既存5枠が成功し、`G461 time span node frame API schema is not fixed yet`だけで1件失敗した。node、time spanと計算本文は実体化していない。計画commitは`bec1f52579`、契約commitは`8529cb39c4`である。
 - 試験sourceは164行・6枠となり、CMakeを変更していない。既存targetは4工程・8入力、command SHA-256 `dcced990e42f0162b444f410c9023bdcc96df7cd5ddd823f7098325f34523d83`、input SHA-256 `5581f5905d4c177bf7c4e1c21af06e9c06e8e4ac7f1ab31fa912b5fb887a0dca`を変更前から維持した。AUTOMOC `HEADERS=[]`、直接接続はQt Core・Gui・Test、Qt Xml・製品未解決記号・製品動的接続は0である。macOSで対象、軽量近傍`KisNodeFacadeSchemaContractTest`、対象の20回反復、試験sourceの厳格構文と書式、連続二回の無作業再構築、公開API検査、`verify-quick`に成功した。time span動作対象、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 台帳は27,282件対応、2,522件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g461.json`、構造照合・対象閉包の一時情報を削除し、追加作業tree・構築木は作成していない。主Ninja木5,995,736 KiB、共有compiler cache 983,020 KiB、最新`build/tdd-macos/public-api-missing-g462.json` 687,987 bytes、SHA-256 `aeeae85e8bb112a1cef663ac1be955b29ea0311f35d52813dd700200ab9f4561`だけを再利用対象として保持する。compiler cacheは144,593件中120,563件、83.38%がhitしている。次の永続作業は第462便で最新報告から高密度なmacOS対象と最小構築面を選定することである。
+
+### 第462便の公開API契約計画
+
+- 第462便は`libs/image/brushengine/kis_locked_properties_proxy.h`に残る全8 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g462.json`は公開header 1,548、公開API 29,804、対応済み27,282、未対応2,522、687,987 bytes、SHA-256 `aeeae85e8bb112a1cef663ac1be955b29ea0311f35d52813dd700200ab9f4561`である。対象識別子整列集合のSHA-256は`d9b99ff7d5438094c77108dbe28fe1eb65cc364f671f708ea0ea8e53e52998ac`で、型・構築・寿命3、property取得・設定・存在・key列・診断5の2枠へ固定する。
+- 公開proxyは設定型を継承して仮想関数を上書きするため`kis_properties_configuration.h`の完全型が必要であり、未使用依存や実装詳細を伝播させていないため構造変更は不要である。固定設定集合・server・paintop presetを所有する既存`libs/image/tests/KisPaintOpPresetSchemaContractTest.cpp`は256行・16枠で、2枠追加後も300行・20枠未満に収まる。同targetはimage・global・pigment・resources等の既存探索路とexport定義、Qt Core・Gui・Testだけで4工程・8入力、command SHA-256 `0c32b72c9110304c0414146d4d0562b3228d14528e0f816521f51274008446d8`、input SHA-256 `d5fef47757220ffdb67b7e99cf6d1dd2d81f2ec0ff9972a54d3b3b8614760b9f`である。新規targetは同じ閉包へCMake登録と生成物を増やすため棄却する。
+- 開始headerから既存試験sourceの2枠だけへ追加し、CMake、公開header、製品sourceは変更しない。停止線は5工程・11入力とし、新たな探索路・定義・link、AUTOMOC header入力、製品未解決記号、proxy・設定・固定集合または本文の実体化が必要なら停止する。macOSの対象、追加2枠の20回反復、軽量近傍、試験sourceの厳格構文、書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
 
 ### 第239便の先行監査担当票
 
