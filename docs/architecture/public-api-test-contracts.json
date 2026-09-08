@@ -16,7 +16,7 @@
     "publicApiFingerprint": "5f05b2aa8e5bef4343af1d55a3852331e51d4369fe135b099327b1a91b6b8c4c"
   },
   "migration": {
-    "expectedMissingApis": 2481
+    "expectedMissingApis": 2462
   },
   "contracts": [
     {
@@ -42871,6 +42871,79 @@
         "method:KisUniformPaintOpProperty::setValue(const QVariant & value)",
         "method:KisUniformPaintOpProperty::value() const",
         "method:KisUniformPaintOpProperty::valueChanged(const QVariant & value)"
+      ]
+    },
+    {
+      "target": "KisComboBasedPaintOpPropertySchemaContractTest",
+      "source": "libs/image/tests/KisComboBasedPaintOpPropertySchemaContractTest.cpp",
+      "test": "KisComboBasedPaintOpPropertySchemaContractTest::comboTypeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "選択式paint propertyは一様propertyを継承し、識別子・設定・親と任意の種別・副種別から構築して仮想破棄でき、callback特殊化別名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisComboBasedPaintOpPropertyCallback",
+        "class:KisComboBasedPaintOpProperty",
+        "method:KisComboBasedPaintOpProperty::KisComboBasedPaintOpProperty(Type type,SubType subType,const KoID & id,KisPaintOpSettingsRestrictedSP settings,QObject * parent)",
+        "method:KisComboBasedPaintOpProperty::KisComboBasedPaintOpProperty(Type type,const KoID & id,KisPaintOpSettingsRestrictedSP settings,QObject * parent)",
+        "method:KisComboBasedPaintOpProperty::KisComboBasedPaintOpProperty(const KoID & id,KisPaintOpSettingsRestrictedSP settings,QObject * parent)",
+        "method:KisComboBasedPaintOpProperty::~KisComboBasedPaintOpProperty()"
+      ]
+    },
+    {
+      "target": "KisComboBasedPaintOpPropertySchemaContractTest",
+      "source": "libs/image/tests/KisComboBasedPaintOpPropertySchemaContractTest.cpp",
+      "test": "KisComboBasedPaintOpPropertySchemaContractTest::comboItemSignaturesRemainStable",
+      "behavior": "選択式paint propertyは表示項目の文字列列を設定・取得する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisComboBasedPaintOpProperty::items() const",
+        "method:KisComboBasedPaintOpProperty::setItems(const QList<QString> & list)"
+      ]
+    },
+    {
+      "target": "KisComboBasedPaintOpPropertySchemaContractTest",
+      "source": "libs/image/tests/KisComboBasedPaintOpPropertySchemaContractTest.cpp",
+      "test": "KisComboBasedPaintOpPropertySchemaContractTest::comboIconSignaturesRemainStable",
+      "behavior": "選択式paint propertyは表示項目に対応するicon列を設定・取得する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisComboBasedPaintOpProperty::icons() const",
+        "method:KisComboBasedPaintOpProperty::setIcons(const QList<QIcon> & list)"
+      ]
+    },
+    {
+      "target": "KisComboBasedPaintOpPropertySchemaContractTest",
+      "source": "libs/image/tests/KisComboBasedPaintOpPropertySchemaContractTest.cpp",
+      "test": "KisComboBasedPaintOpPropertySchemaContractTest::callbackTypeAndAliasSchemaRemainStable",
+      "behavior": "callback式paint property templateは親propertyを継承し、値の読み書きと可視性判定に用いる関数型を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisCallbackBasedPaintopProperty::Callback",
+        "alias:KisCallbackBasedPaintopProperty::VisibleCallback",
+        "class:KisCallbackBasedPaintopProperty"
+      ]
+    },
+    {
+      "target": "KisComboBasedPaintOpPropertySchemaContractTest",
+      "source": "libs/image/tests/KisComboBasedPaintOpPropertySchemaContractTest.cpp",
+      "test": "KisComboBasedPaintOpPropertySchemaContractTest::callbackConstructionSchemaRemainsStable",
+      "behavior": "callback式paint propertyは親propertyの識別子・設定・親と任意の種別・副種別を受け取る3構築境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCallbackBasedPaintopProperty::KisCallbackBasedPaintopProperty(const KoID & id,KisPaintOpSettingsRestrictedSP settings,QObject * parent)",
+        "method:KisCallbackBasedPaintopProperty::KisCallbackBasedPaintopProperty(typename ParentClass::Type type,const KoID & id,KisPaintOpSettingsRestrictedSP settings,QObject * parent)",
+        "method:KisCallbackBasedPaintopProperty::KisCallbackBasedPaintopProperty(typename ParentClass::Type type,typename ParentClass::SubType subType,const KoID & id,KisPaintOpSettingsRestrictedSP settings,QObject * parent)"
+      ]
+    },
+    {
+      "target": "KisComboBasedPaintOpPropertySchemaContractTest",
+      "source": "libs/image/tests/KisComboBasedPaintOpPropertySchemaContractTest.cpp",
+      "test": "KisComboBasedPaintOpPropertySchemaContractTest::callbackSetterSignaturesRemainStable",
+      "behavior": "callback式paint propertyは値の読込み・書込みと可視性判定の関数を設定する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCallbackBasedPaintopProperty::setIsVisibleCallback(VisibleCallback func)",
+        "method:KisCallbackBasedPaintopProperty::setReadCallback(Callback func)",
+        "method:KisCallbackBasedPaintopProperty::setWriteCallback(Callback func)"
       ]
     },
     {
