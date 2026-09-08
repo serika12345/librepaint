@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 2850
+    "expectedMissingApis": 2838
   },
   "contracts": [
     {
@@ -74318,6 +74318,54 @@
       "apis": [
         "method:KisIdleWatcher::imageModified()",
         "method:KisIdleWatcher::startedIdleMode()"
+      ]
+    },
+    {
+      "target": "KisBaseProcessorSchemaContractTest",
+      "source": "libs/image/tests/KisBaseProcessorSchemaContractTest.cpp",
+      "test": "KisBaseProcessorSchemaContractTest::filterTypeLifetimeAndConstructionSchemaRemainStable",
+      "behavior": "filterは処理器基底から派生し、識別子・分類・表示名を指定して派生実装を構築し、仮想基底経由で破棄できる公開型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisFilter",
+        "method:KisFilter::KisFilter(const KoID & id,const KoID & category,const QString & entry)",
+        "method:KisFilter::~KisFilter()"
+      ]
+    },
+    {
+      "target": "KisBaseProcessorSchemaContractTest",
+      "source": "libs/image/tests/KisBaseProcessorSchemaContractTest.cpp",
+      "test": "KisBaseProcessorSchemaContractTest::filterProcessingSignaturesRemainStable",
+      "behavior": "filterは低水準処理実装、単一装置処理、入力装置から出力装置への選択付き処理の三つの公開入口を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisFilter::process(KisPaintDeviceSP device,const QRect & applyRect,const KisFilterConfigurationSP config,KoUpdater * progressUpdater=0) const",
+        "method:KisFilter::process(const KisPaintDeviceSP src,KisPaintDeviceSP dst,KisSelectionSP selection,const QRect & applyRect,const KisFilterConfigurationSP config,KoUpdater * progressUpdater=0) const",
+        "method:KisFilter::processImpl(KisPaintDeviceSP device,const QRect & applyRect,const KisFilterConfigurationSP config,KoUpdater * progressUpdater=0) const"
+      ]
+    },
+    {
+      "target": "KisBaseProcessorSchemaContractTest",
+      "source": "libs/image/tests/KisBaseProcessorSchemaContractTest.cpp",
+      "test": "KisBaseProcessorSchemaContractTest::filterProcessingExtentSignaturesRemainStable",
+      "behavior": "filterは設定とLODに対する必要領域・変更領域を返し、LOD処理能力を照会する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisFilter::changedRect(const QRect & rect,const KisFilterConfigurationSP config,int lod) const",
+        "method:KisFilter::neededRect(const QRect & rect,const KisFilterConfigurationSP config,int lod) const",
+        "method:KisFilter::supportsLevelOfDetail(const KisFilterConfigurationSP config,int lod) const"
+      ]
+    },
+    {
+      "target": "KisBaseProcessorSchemaContractTest",
+      "source": "libs/image/tests/KisBaseProcessorSchemaContractTest.cpp",
+      "test": "KisBaseProcessorSchemaContractTest::filterTransparencyAndMaskConfigurationSignaturesRemainStable",
+      "behavior": "filterは色空間に対する透明画素要否、maskへの設定可否、読込済み旧設定のmask用補正を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisFilter::configurationAllowedForMask(KisFilterConfigurationSP config) const",
+        "method:KisFilter::fixLoadedFilterConfigurationForMasks(KisFilterConfigurationSP config) const",
+        "method:KisFilter::needsTransparentPixels(const KisFilterConfigurationSP config,const KoColorSpace * cs) const"
       ]
     }
   ]

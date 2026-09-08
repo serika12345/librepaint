@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 00:56 JST
+- 更新日時: 2026-09-09 01:03 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3734,6 +3734,12 @@
 - 第434便は`libs/image/filter/kis_filter.h`に残る全12 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g434.json`は公開header 1,548、公開API 29,804、対応済み26,954、未対応2,850、777,641 bytes、SHA-256 `605fc03cb7bf6d390b612e07e36f66310191557bf7efa42ebad4d8a3e017291f`である。対象識別子整列集合のSHA-256は`b6895ddb9b3afc8ae0ae35fbb56f2f17763f56a5f67d7dadcd133c46403983e2`で、filter型・構築・寿命3、抽象処理・単一装置処理・入出力装置処理3、必要領域・変更領域・LOD対応3、透明画素要否・mask設定許可・旧設定補正3の4枠へ固定する。
 - 既存`libs/image/tests/KisBaseProcessorSchemaContractTest.cpp`はfilter基底の構築・設定・能力境界を持ち、123行・9枠から追加後も300行・20枠以内に収まる。CMake変更なしでimage・global・pigmentの既存探索路とexport定義、Qt Core・Test、header-only Boost、Qt Gui・KF I18nのheader interfaceだけを使う4工程・8入力を維持する。現行command SHA-256は`f68d9ea063480c3a37d6238bb27c9d13a763bf4b1699163d02a26fb6780ad2fa`、input SHA-256は`a718abc69bbbf687d60edfa5bd0ac28ba8efc71995d7c077415c1b3191c9acaa`である。抽象filter、paint device、selection、設定、色空間、進捗、Qt値と本文を実体化せず、最小派生probeの構築可能性、型特性、厳密な関数pointerだけで公開境界を観測する。新規targetは同じ閉包に別のCMake登録と生成物を加えるため棄却する。
 - `g434-filter-schema`の状態は`in_progress`、実装基点は`4f9a600977`である。開始headerから既存試験sourceの4枠だけへ追加し、CMake、公開header、製品source、製品targetは変更しない。停止線は5工程・11入力とし、新たな探索路・定義・link、製品OBJECT・shared・`kritatestsdk`接続、候補headerのAUTOMOC入力化、製品未解決symbol、対象値または本文の実体化が必要なら候補を保留する。macOSの対象、追加4枠の20回反復、軽量近傍、試験sourceの厳格`clang-check`、書式、再計画、連続二回の無作業再構築、動的接続・未解決symbol、公開API検査、`verify-quick`だけを実行する。1,197工程・2,418入力の製品image target、全体build・`verify`、Linux、Nix再評価は実行しない。
+
+### 第434便の実装結果
+
+- `g434-filter-schema`は`completed`である。`libs/image/filter/kis_filter.h`から既存`libs/image/tests/KisBaseProcessorSchemaContractTest.cpp`へ12 API・4枠を移し、filter型・構築・寿命3、抽象処理・単一装置処理・入出力装置処理3、必要領域・変更領域・LOD対応3、透明画素要否・mask設定許可・旧設定補正3を最小派生probeの構築可能性、型特性、厳密な関数pointerで固定した。試験sourceは184行・13枠で、抽象filter、paint device、selection、設定、色空間、進捗、Qt値と本文を実体化していない。CMake変更なしの初回redは未定義の4検査関数だけで失敗し、契約実装commitは`cf346b23e7`である。
+- macOSの対象`libs-image-KisBaseProcessorSchemaContractTest`、軽量近傍`libs-image-KisImageSharedPointerHooksSchemaContractTest`、対象の20回反復、試験sourceの厳格`clang-check`、書式、連続二回の無作業再構築に成功した。対象は4工程・8入力、command SHA-256 `f68d9ea063480c3a37d6238bb27c9d13a763bf4b1699163d02a26fb6780ad2fa`、input SHA-256 `a718abc69bbbf687d60edfa5bd0ac28ba8efc71995d7c077415c1b3191c9acaa`、AUTOMOC `HEADERS=[]`、直接接続はQt Core・Test、製品未解決symbol 0である。1,197工程・2,418入力の製品image target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 台帳へ12 APIを追加して26,966件対応、2,838件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g434.json`を削除し、追加作業tree・構築木・一時計画物は作成していない。主Ninja木5,984,376 KiB、共有compiler cache 982,540 KiB、最新`build/tdd-macos/public-api-missing-g435.json` 773,769 bytes、SHA-256 `388ceb7d993648215a73855c34111233692c0d0599d83e2bba83086541102bc5`だけを再利用対象として保持する。compiler cacheは144,514件中120,558件、83.42%がhitしている。公開API検査に成功した。次の永続作業は第435便で次の高密度なmacOS対象と最小構築面を選定することである。
 
 ### 第239便の先行監査担当票
 
