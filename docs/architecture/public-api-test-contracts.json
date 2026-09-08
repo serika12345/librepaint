@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 3426
+    "expectedMissingApis": 3413
   },
   "contracts": [
     {
@@ -72230,6 +72230,55 @@
         "member:KisStrokeCompatibilityInfo::channelLockFlags",
         "member:KisStrokeCompatibilityInfo::compositeOpId",
         "member:KisStrokeCompatibilityInfo::opacity"
+      ]
+    },
+    {
+      "target": "KisNodeSelectionRecipeSchemaContractTest",
+      "source": "libs/painting/tests/KisNodeSelectionRecipeSchemaContractTest.cpp",
+      "test": "KisNodeSelectionRecipeSchemaContractTest::typeAndSelectionModeSchemaRemainStable",
+      "behavior": "node選択recipeは公開型と選択layer・先頭layer・groupの選択方式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisNodeSelectionRecipe",
+        "enum:KisNodeSelectionRecipe::SelectionMode",
+        "enumerator:KisNodeSelectionRecipe::SelectionMode::FirstLayer",
+        "enumerator:KisNodeSelectionRecipe::SelectionMode::Group",
+        "enumerator:KisNodeSelectionRecipe::SelectionMode::SelectedLayer"
+      ]
+    },
+    {
+      "target": "KisNodeSelectionRecipeSchemaContractTest",
+      "source": "libs/painting/tests/KisNodeSelectionRecipeSchemaContractTest.cpp",
+      "test": "KisNodeSelectionRecipeSchemaContractTest::constructionSchemaRemainsStable",
+      "behavior": "node選択recipeはnode一覧、選択方式、位置またはLOD付き複製から構築できる公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeSelectionRecipe::KisNodeSelectionRecipe(KisNodeList _selectedNodes)",
+        "method:KisNodeSelectionRecipe::KisNodeSelectionRecipe(KisNodeList _selectedNodes,SelectionMode _mode,QPoint _pickPoint)",
+        "method:KisNodeSelectionRecipe::KisNodeSelectionRecipe(const KisNodeSelectionRecipe & rhs)",
+        "method:KisNodeSelectionRecipe::KisNodeSelectionRecipe(const KisNodeSelectionRecipe & rhs,int levelOfDetail)"
+      ]
+    },
+    {
+      "target": "KisNodeSelectionRecipeSchemaContractTest",
+      "source": "libs/painting/tests/KisNodeSelectionRecipeSchemaContractTest.cpp",
+      "test": "KisNodeSelectionRecipeSchemaContractTest::selectionStateMemberSchemaRemainsStable",
+      "behavior": "node選択recipeは選択node一覧、選択方式、抽出位置を公開状態として保持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisNodeSelectionRecipe::mode",
+        "member:KisNodeSelectionRecipe::pickPoint",
+        "member:KisNodeSelectionRecipe::selectedNodes"
+      ]
+    },
+    {
+      "target": "KisNodeSelectionRecipeSchemaContractTest",
+      "source": "libs/painting/tests/KisNodeSelectionRecipeSchemaContractTest.cpp",
+      "test": "KisNodeSelectionRecipeSchemaContractTest::processingSelectionSignatureRemainsStable",
+      "behavior": "node選択recipeは設定済み状態から処理対象node一覧を照会する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeSelectionRecipe::selectNodesToProcess() const"
       ]
     }
   ]
