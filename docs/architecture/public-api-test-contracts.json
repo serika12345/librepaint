@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 2904
+    "expectedMissingApis": 2887
   },
   "contracts": [
     {
@@ -74120,6 +74120,59 @@
         "method:KisResourceCacheDb::getForeignKeysStateImpl()",
         "method:KisResourceCacheDb::setForeignKeysStateImpl(bool isEnabled)",
         "method:KisResourceCacheDb::synchronizeForeignKeysState()"
+      ]
+    },
+    {
+      "target": "KisAnimationFrameCacheSchemaContractTest",
+      "source": "libs/ui/tests/KisAnimationFrameCacheSchemaContractTest.cpp",
+      "test": "KisAnimationFrameCacheSchemaContractTest::asyncRendererTypeAndFlagSchemaRemainStable",
+      "behavior": "非同期animation rendererは取消可能性を表すflag型・flags共有型と安定した2値を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisAsyncAnimationRendererBase::Flags",
+        "class:KisAsyncAnimationRendererBase",
+        "enum:KisAsyncAnimationRendererBase::Flag",
+        "enumerator:KisAsyncAnimationRendererBase::Flag::Cancellable",
+        "enumerator:KisAsyncAnimationRendererBase::Flag::None"
+      ]
+    },
+    {
+      "target": "KisAnimationFrameCacheSchemaContractTest",
+      "source": "libs/ui/tests/KisAnimationFrameCacheSchemaContractTest.cpp",
+      "test": "KisAnimationFrameCacheSchemaContractTest::asyncRendererCancellationReasonSchemaRemainStable",
+      "behavior": "非同期animation rendererは利用者取消・描画失敗・時間超過の安定した取消理由を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KisAsyncAnimationRendererBase::CancelReason",
+        "enumerator:KisAsyncAnimationRendererBase::CancelReason::RenderingFailed",
+        "enumerator:KisAsyncAnimationRendererBase::CancelReason::RenderingTimedOut",
+        "enumerator:KisAsyncAnimationRendererBase::CancelReason::UserCancelled"
+      ]
+    },
+    {
+      "target": "KisAnimationFrameCacheSchemaContractTest",
+      "source": "libs/ui/tests/KisAnimationFrameCacheSchemaContractTest.cpp",
+      "test": "KisAnimationFrameCacheSchemaContractTest::asyncRendererConstructionAndRegenerationSignaturesRemainStable",
+      "behavior": "非同期animation rendererは任意の親から派生構築でき、画像全体または関心領域のframe再生成をlockとflags付きで開始する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAsyncAnimationRendererBase::KisAsyncAnimationRendererBase(QObject * parent=0)",
+        "method:KisAsyncAnimationRendererBase::startFrameRegeneration(KisImageSP image,int frame,Flags flags,KisLockFrameGenerationLock && frameGenerationLock)",
+        "method:KisAsyncAnimationRendererBase::startFrameRegeneration(KisImageSP image,int frame,const KisRegion & regionOfInterest,Flags flags,KisLockFrameGenerationLock && frameGenerationLock)",
+        "method:KisAsyncAnimationRendererBase::~KisAsyncAnimationRendererBase()"
+      ]
+    },
+    {
+      "target": "KisAnimationFrameCacheSchemaContractTest",
+      "source": "libs/ui/tests/KisAnimationFrameCacheSchemaContractTest.cpp",
+      "test": "KisAnimationFrameCacheSchemaContractTest::asyncRendererStateControlAndNotificationSignaturesRemainStable",
+      "behavior": "非同期animation rendererは活動状態を照会し、理由付き取消を受け付け、frame完了と取消を通知する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAsyncAnimationRendererBase::cancelCurrentFrameRendering(CancelReason cancelReason)",
+        "method:KisAsyncAnimationRendererBase::isActive() const",
+        "method:KisAsyncAnimationRendererBase::sigFrameCancelled(int frame,KisAsyncAnimationRendererBase::CancelReason cancelReason)",
+        "method:KisAsyncAnimationRendererBase::sigFrameCompleted(int frame)"
       ]
     }
   ]
