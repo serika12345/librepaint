@@ -16,7 +16,7 @@
     "publicApiFingerprint": "5f05b2aa8e5bef4343af1d55a3852331e51d4369fe135b099327b1a91b6b8c4c"
   },
   "migration": {
-    "expectedMissingApis": 2656
+    "expectedMissingApis": 2641
   },
   "contracts": [
     {
@@ -75061,6 +75061,66 @@
       "apis": [
         "method:KisLayerComposition::apply()",
         "method:KisLayerComposition::save(QDomDocument & doc,QDomElement & element)"
+      ]
+    },
+    {
+      "target": "KisTransformWorkerSchemaContractTest",
+      "source": "libs/image/tests/KisTransformWorkerSchemaContractTest.cpp",
+      "test": "KisTransformWorkerSchemaContractTest::typeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "変形workerは描画装置、幾何変換値、進捗先、filter方針から構築し、保持状態とともに破棄する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisTransformWorker",
+        "method:KisTransformWorker::KisTransformWorker(KisPaintDeviceSP dev,double xscale,double yscale,double xshear,double yshear,double rotation,qreal xtranslate,qreal ytranslate,KoUpdaterPtr progress,KisFilterStrategy * filter)",
+        "method:KisTransformWorker::~KisTransformWorker()"
+      ]
+    },
+    {
+      "target": "KisTransformWorkerSchemaContractTest",
+      "source": "libs/image/tests/KisTransformWorkerSchemaContractTest.cpp",
+      "test": "KisTransformWorkerSchemaContractTest::mirroringSignaturesRemainStable",
+      "behavior": "変形workerは任意軸・方向または装置中心を基準に水平・垂直鏡像変換する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTransformWorker::mirror(KisPaintDeviceSP dev,qreal axis,Qt::Orientation orientation)",
+        "method:KisTransformWorker::mirrorX(KisPaintDeviceSP dev)",
+        "method:KisTransformWorker::mirrorX(KisPaintDeviceSP dev,qreal axis)",
+        "method:KisTransformWorker::mirrorY(KisPaintDeviceSP dev)",
+        "method:KisTransformWorker::mirrorY(KisPaintDeviceSP dev,qreal axis)"
+      ]
+    },
+    {
+      "target": "KisTransformWorkerSchemaContractTest",
+      "source": "libs/image/tests/KisTransformWorkerSchemaContractTest.cpp",
+      "test": "KisTransformWorkerSchemaContractTest::offsetAndExecutionSignaturesRemainStable",
+      "behavior": "変形workerは矩形境界で折返すoffsetと、対象全体または指定領域の変形実行を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTransformWorker::offset(KisPaintDeviceSP device,const QPoint & offsetPosition,const QRect & wrapRect)",
+        "method:KisTransformWorker::run()",
+        "method:KisTransformWorker::runPartial(const QRect & processRect)"
+      ]
+    },
+    {
+      "target": "KisTransformWorkerSchemaContractTest",
+      "source": "libs/image/tests/KisTransformWorkerSchemaContractTest.cpp",
+      "test": "KisTransformWorkerSchemaContractTest::transformAndSelectionSignaturesRemainStable",
+      "behavior": "変形workerは実行する変換行列を返し、pixel選択輪郭へ同じ変換を適用する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTransformWorker::transform() const",
+        "method:KisTransformWorker::transformPixelSelectionOutline(KisPixelSelectionSP pixelSelection) const"
+      ]
+    },
+    {
+      "target": "KisTransformWorkerSchemaContractTest",
+      "source": "libs/image/tests/KisTransformWorkerSchemaContractTest.cpp",
+      "test": "KisTransformWorkerSchemaContractTest::subpixelTranslationSignaturesRemainStable",
+      "behavior": "変形workerはsubpixel移動を強制する条件を設定・照会する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTransformWorker::forceSubPixelTranslation() const",
+        "method:KisTransformWorker::setForceSubPixelTranslation(bool value)"
       ]
     }
   ]

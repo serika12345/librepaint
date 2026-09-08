@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 04:14 JST
+- 更新日時: 2026-09-09 04:24 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3932,6 +3932,14 @@
 - 第449便は`libs/image/kis_transform_worker.h`に残る全15 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g449.json`は公開header 1,548、公開API 29,804、対応済み27,148、未対応2,656、722,736 bytes、SHA-256 `3e3cea1b3af550840cdb251d747340c4dc365f3f1602f858451e169d23289aa6`である。対象識別子整列集合のSHA-256は`c54414e6f4132e40c320bdc9b2c948ee2705c25753a19b1497b41a3178eb4eea`で、型・構築・寿命3、軸指定と中心基準の鏡像5、offset・全体実行・部分実行3、変換取得・選択輪郭変換2、subpixel移動条件の設定・照会2の5枠へ固定する。
 - 公開headerの依存を監査し、`KoUpdater.h`は公開署名とmemberが使う`KoUpdaterPtr`に対してKoUpdater完全型を不要にする一方、memberを表現するQPointer完全型だけは必要であることを確認した。同includeを`QPointer`へ置換し、実装は既存`kis_progress_update_helper.h`経由でKoUpdater完全型を所有する。全直接利用元を構文検査し、KoUpdater APIを実利用するsourceがあれば同sourceへ直接includeを移す。
 - 既存の変形mask試験は287行・18枠で上限に近いため、新規`libs/image/tests/KisTransformWorkerSchemaContractTest.cpp`と専用CMake targetを5枠で作り、将来の変更を同headerだけの再compileへ分離する。最寄りの`KisLayerCompositionSchemaContractTest`はQt Core・Test、globalとimage探索路、image export定義だけで4工程・8入力、command hash `fd8bd4991c9888e784c98f10ebb000d5ae7492fac4b7aed90e1a3c88a2a1d223`、input hash `9eb5d4b260f110a648f604ff75061e303d3a5045124a19650b0fb791fdbb582b`である。新targetも同じ構築面を上限予測とし、停止線を5工程・11入力に置く。計画外探索路・link・定義、AUTOMOC header入力、製品未解決記号、対象型の実体化または本文実行が必要なら停止する。macOSの対象と軽量近傍、追加5枠の20回反復、厳密構文、二回目計画、無作業再構築、公開API検査、`verify-quick`だけを実行し、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
+
+### 第449便の実装結果
+
+- `libs/image/kis_transform_worker.h`から新規`libs/image/tests/KisTransformWorkerSchemaContractTest.cpp`へ全15 APIを5枠で固定した。型・構築・寿命3、軸指定と中心基準の鏡像5、offset・全体実行・部分実行3、変換取得・選択輪郭変換2、subpixel移動条件の設定・照会2を重複なく対応付けた。初回は追加4枠が成功し、`G449 transform worker API schema is not fixed yet`だけで1件失敗した。計画commitは`a49bbc34f5`、構造commitは`e342586e05`、契約commitは`e77e62d2dd`である。
+- KoUpdater完全型のinclude所有を`libs/image/kis_transform_worker.h`から実利用する`plugins/tools/tool_smart_patch/kis_inpaint.cpp`と`plugins/tools/tool_transform2/kis_transform_utils.cpp`へ移し、公開headerはQPointer完全型だけを所有する構成へ縮小した。監査で判明した推移的依存は`libs/image/kis_transform_worker.cc`の`KisRegion.h`と`plugins/impex/tiff/kis_tiff_import.cc`の`psd_layer_record.h`を各実利用sourceへ明示した。
+- 新規試験sourceは89行・5枠、専用targetは4工程・8入力、command hash `6deca40b6d04f6c49622b011e8a5d5580fe2a25e5b7c32cd2bc43967a3e4b453`、input hash `09f9a53084747e5af3942a1f52a98f668f33eb498a36b112fe6d9de78d021c75`である。Qt Core・Testだけの動的接続、AUTOMOC `HEADERS=[]`、対象製品未解決記号0を確認し、予測した最小構築面を維持した。
+- macOSで対象`libs-image-KisTransformWorkerSchemaContractTest`と軽量近傍`libs-image-KisLayerCompositionSchemaContractTest`、対象の20回反復、試験sourceと直接利用元14 sourceの`clang-check --extra-arg=-Werror`、試験sourceの書式、二回の無作業再構築に成功した。残るTIFF直接利用元は不完全PSD型の診断を解消し、未構築製品targetの生成物`kis_tiff_import.moc`不在まで構文検査が進んだため、製品targetを構築しない範囲の残余とした。台帳は27,163件対応、2,641件未対応となり、開始headerの残存は0件である。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 旧`public-api-missing-g449.json`を削除し、追加作業tree・構築木・一時計画物は作成していない。主Ninja木5,988,580 KiB、共有compiler cache 982,896 KiB、最新`build/tdd-macos/public-api-missing-g450.json` 718,646 bytes、SHA-256 `ab050875eee34b0b22f8c748edee8b6ed25348f10920470dcdbe5e2ac311847e`だけを再利用対象として保持する。compiler cacheは144,558件中120,558件、83.40%がhitしている。次の永続作業は第450便で最新報告から高密度なmacOS対象と最小構築面を選定することである。
 
 ### 第239便の先行監査担当票
 
