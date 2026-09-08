@@ -10,7 +10,6 @@
 #include "kis_effect_mask.h"
 
 #include "kis_node_filter_interface.h"
-#include "kis_filter_configuration.h"
 
 
 /**
