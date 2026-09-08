@@ -23,6 +23,11 @@ private Q_SLOTS:
     void documentResolutionSignaturesRemainStable();
     void documentCanvasExtentMutationSignaturesRemainStable();
     void documentGeometricTransformSignaturesRemainStable();
+    void documentAnnotationSignaturesRemainStable();
+    void documentGridAndGuidesConfigSignaturesRemainStable();
+    void documentLegacyGuideStateSignaturesRemainStable();
+    void documentLegacyGuideLineSignaturesRemainStable();
+    void documentRefreshProjectionSignatureRemainsStable();
 };
 
 void DocumentGeometrySchemaContractTest::documentBoundsAndDimensionSignaturesRemainStable()
@@ -63,6 +68,59 @@ void DocumentGeometrySchemaContractTest::documentGeometricTransformSignaturesRem
 {
     ASSERT_DOCUMENT_SIGNATURE(rotateImage, void (Document::*)(double));
     ASSERT_DOCUMENT_SIGNATURE(shearImage, void (Document::*)(double, double));
+}
+
+void DocumentGeometrySchemaContractTest::documentAnnotationSignaturesRemainStable()
+{
+    ASSERT_DOCUMENT_SIGNATURE(annotation, QByteArray (Document::*)(const QString &));
+    ASSERT_DOCUMENT_SIGNATURE(annotationDescription, QString (Document::*)(const QString &) const);
+    ASSERT_DOCUMENT_SIGNATURE(annotationTypes, QStringList (Document::*)() const);
+    ASSERT_DOCUMENT_SIGNATURE(removeAnnotation, void (Document::*)(const QString &));
+    ASSERT_DOCUMENT_SIGNATURE(setAnnotation, void (Document::*)(const QString &, const QString &, const QByteArray &));
+}
+
+void DocumentGeometrySchemaContractTest::documentGridAndGuidesConfigSignaturesRemainStable()
+{
+    ASSERT_DOCUMENT_SIGNATURE(gridConfig, GridConfig * (Document::*)());
+    ASSERT_DOCUMENT_SIGNATURE(guidesConfig, GuidesConfig * (Document::*)());
+    ASSERT_DOCUMENT_SIGNATURE(setGridConfig, void (Document::*)(GridConfig *));
+    ASSERT_DOCUMENT_SIGNATURE(setGuidesConfig, void (Document::*)(GuidesConfig *));
+}
+
+// Deprecated scripting entry points remain a public compatibility surface and are intentionally referenced here.
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+#elif defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
+void DocumentGeometrySchemaContractTest::documentLegacyGuideStateSignaturesRemainStable()
+{
+    ASSERT_DOCUMENT_SIGNATURE(guidesLocked, bool (Document::*)() const);
+    ASSERT_DOCUMENT_SIGNATURE(guidesVisible, bool (Document::*)() const);
+    ASSERT_DOCUMENT_SIGNATURE(setGuidesLocked, void (Document::*)(bool));
+    ASSERT_DOCUMENT_SIGNATURE(setGuidesVisible, void (Document::*)(bool));
+}
+
+void DocumentGeometrySchemaContractTest::documentLegacyGuideLineSignaturesRemainStable()
+{
+    using GuideLines = QList<qreal>;
+
+    ASSERT_DOCUMENT_SIGNATURE(horizontalGuides, GuideLines (Document::*)() const);
+    ASSERT_DOCUMENT_SIGNATURE(setHorizontalGuides, void (Document::*)(const GuideLines &));
+    ASSERT_DOCUMENT_SIGNATURE(setVerticalGuides, void (Document::*)(const GuideLines &));
+    ASSERT_DOCUMENT_SIGNATURE(verticalGuides, GuideLines (Document::*)() const);
+}
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#elif defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
+
+void DocumentGeometrySchemaContractTest::documentRefreshProjectionSignatureRemainsStable()
+{
+    ASSERT_DOCUMENT_SIGNATURE(refreshProjection, void (Document::*)());
 }
 
 QTEST_APPLESS_MAIN(DocumentGeometrySchemaContractTest)
