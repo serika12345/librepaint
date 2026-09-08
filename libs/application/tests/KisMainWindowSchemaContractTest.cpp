@@ -4,6 +4,7 @@
  */
 
 #include <ui/workspace/KisMainWindow.h>
+#include <ui/workspace/KisTemplateGroup.h>
 #include <ui/workspace/KisWindowLayoutManager.h>
 
 #include <QTest>
@@ -16,6 +17,8 @@ namespace
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisMainWindow::method)), signature>)
 #define ASSERT_WINDOW_LAYOUT_MANAGER_SIGNATURE(method, signature)                                                      \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisWindowLayoutManager::method)), signature>)
+#define ASSERT_TEMPLATE_GROUP_SIGNATURE(method, signature)                                                             \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KisTemplateGroup::method)), signature>)
 } // namespace
 
 class KisMainWindowSchemaContractTest : public QObject
@@ -36,6 +39,11 @@ private Q_SLOTS:
     void windowLayoutDisplayLayoutSchemaRemainsStable();
     void primaryWorkspaceSignaturesRemainStable();
     void synchronizedDocumentAndLayoutSignaturesRemainStable();
+    void templateGroupTypeAndLifetimeSchemaRemainStable();
+    void templateGroupIdentityAndDirectorySignaturesRemainStable();
+    void templateGroupSortingSignaturesRemainStable();
+    void templateGroupVisibilitySignaturesRemainStable();
+    void templateGroupCollectionSignaturesRemainStable();
 };
 
 void KisMainWindowSchemaContractTest::typeOpenFlagsAndLifetimeSchemaRemainStable()
@@ -187,8 +195,53 @@ void KisMainWindowSchemaContractTest::synchronizedDocumentAndLayoutSignaturesRem
                                            void (KisWindowLayoutManager::*)(KisWindowLayoutResource *));
 }
 
+void KisMainWindowSchemaContractTest::templateGroupTypeAndLifetimeSchemaRemainStable()
+{
+    using Group = KisTemplateGroup;
+
+    static_assert(std::is_class_v<Group>);
+    static_assert(std::is_constructible_v<Group, const QString &, const QString &, int, bool>);
+    static_assert(std::is_destructible_v<Group>);
+}
+
+void KisMainWindowSchemaContractTest::templateGroupIdentityAndDirectorySignaturesRemainStable()
+{
+    using Group = KisTemplateGroup;
+
+    ASSERT_TEMPLATE_GROUP_SIGNATURE(name, QString (Group::*)() const);
+    ASSERT_TEMPLATE_GROUP_SIGNATURE(dirs, QStringList (Group::*)() const);
+    ASSERT_TEMPLATE_GROUP_SIGNATURE(addDir, void (Group::*)(const QString &));
+    ASSERT_TEMPLATE_GROUP_SIGNATURE(touched, bool (Group::*)() const);
+}
+
+void KisMainWindowSchemaContractTest::templateGroupSortingSignaturesRemainStable()
+{
+    using Group = KisTemplateGroup;
+
+    ASSERT_TEMPLATE_GROUP_SIGNATURE(sortingWeight, int (Group::*)() const);
+    ASSERT_TEMPLATE_GROUP_SIGNATURE(setSortingWeight, void (Group::*)(int));
+}
+
+void KisMainWindowSchemaContractTest::templateGroupVisibilitySignaturesRemainStable()
+{
+    using Group = KisTemplateGroup;
+
+    ASSERT_TEMPLATE_GROUP_SIGNATURE(isHidden, bool (Group::*)() const);
+    ASSERT_TEMPLATE_GROUP_SIGNATURE(setHidden, void (Group::*)(bool) const);
+}
+
+void KisMainWindowSchemaContractTest::templateGroupCollectionSignaturesRemainStable()
+{
+    using Group = KisTemplateGroup;
+
+    ASSERT_TEMPLATE_GROUP_SIGNATURE(templates, QList<KisTemplate *> (Group::*)() const);
+    ASSERT_TEMPLATE_GROUP_SIGNATURE(add, bool (Group::*)(KisTemplate *, bool, bool));
+    ASSERT_TEMPLATE_GROUP_SIGNATURE(find, KisTemplate * (Group::*)(const QString &) const);
+}
+
 #undef ASSERT_MAIN_WINDOW_SIGNATURE
 #undef ASSERT_WINDOW_LAYOUT_MANAGER_SIGNATURE
+#undef ASSERT_TEMPLATE_GROUP_SIGNATURE
 
 QTEST_GUILESS_MAIN(KisMainWindowSchemaContractTest)
 
