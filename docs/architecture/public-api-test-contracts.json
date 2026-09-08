@@ -16,7 +16,7 @@
     "publicApiFingerprint": "5f05b2aa8e5bef4343af1d55a3852331e51d4369fe135b099327b1a91b6b8c4c"
   },
   "migration": {
-    "expectedMissingApis": 2669
+    "expectedMissingApis": 2656
   },
   "contracts": [
     {
@@ -75012,6 +75012,55 @@
       "apis": [
         "method:KisLockedPropertiesServer::createLockedPropertiesProxy(KisPropertiesConfiguration * settings)",
         "method:KisLockedPropertiesServer::createLockedPropertiesProxy(KisPropertiesConfigurationSP settings)"
+      ]
+    },
+    {
+      "target": "KisLayerCompositionSchemaContractTest",
+      "source": "libs/image/tests/KisLayerCompositionSchemaContractTest.cpp",
+      "test": "KisLayerCompositionSchemaContractTest::typeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "layer構成はimageと名前または別構成と移行先imageから構築し、保持状態とともに破棄する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisLayerComposition",
+        "method:KisLayerComposition::KisLayerComposition(KisImageWSP image,const QString & name)",
+        "method:KisLayerComposition::KisLayerComposition(const KisLayerComposition & rhs,KisImageWSP otherImage=0)",
+        "method:KisLayerComposition::~KisLayerComposition()"
+      ]
+    },
+    {
+      "target": "KisLayerCompositionSchemaContractTest",
+      "source": "libs/image/tests/KisLayerCompositionSchemaContractTest.cpp",
+      "test": "KisLayerCompositionSchemaContractTest::identityAndExportStateSignaturesRemainStable",
+      "behavior": "layer構成は表示名とexport対象状態を設定・照会する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisLayerComposition::isExportEnabled()",
+        "method:KisLayerComposition::name()",
+        "method:KisLayerComposition::setExportEnabled(bool enabled)",
+        "method:KisLayerComposition::setName(const QString & name)"
+      ]
+    },
+    {
+      "target": "KisLayerCompositionSchemaContractTest",
+      "source": "libs/image/tests/KisLayerCompositionSchemaContractTest.cpp",
+      "test": "KisLayerCompositionSchemaContractTest::storedNodeStateSignaturesRemainStable",
+      "behavior": "layer構成はnode識別子別の可視・折畳み状態を設定し、現在のimage階層状態を保存する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisLayerComposition::setCollapsed(QUuid id,bool collapsed)",
+        "method:KisLayerComposition::setVisible(QUuid id,bool visible)",
+        "method:KisLayerComposition::store()"
+      ]
+    },
+    {
+      "target": "KisLayerCompositionSchemaContractTest",
+      "source": "libs/image/tests/KisLayerCompositionSchemaContractTest.cpp",
+      "test": "KisLayerCompositionSchemaContractTest::applicationAndSerializationSignaturesRemainStable",
+      "behavior": "layer構成は保存済み状態をimage階層へ適用し、XML文書要素へ直列化する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisLayerComposition::apply()",
+        "method:KisLayerComposition::save(QDomDocument & doc,QDomElement & element)"
       ]
     }
   ]

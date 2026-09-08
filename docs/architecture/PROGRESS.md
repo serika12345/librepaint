@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 04:02 JST
+- 更新日時: 2026-09-09 04:11 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3918,6 +3918,14 @@
 - 第448便は`libs/image/kis_layer_composition.h`に残る全13 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g448.json`は公開header 1,548、公開API 29,804、対応済み27,135、未対応2,669、725,820 bytes、SHA-256 `cbeb37947402e7c3d86e173963206355247e543e12bafb74fb298f63a11ed7e7`である。対象識別子整列集合のSHA-256は`6dc306e0d514b487f24f0f31f5bd67bdcdc74d150ca7d311d441c8fd3f473883`で、型・2構築・寿命4、名前とexport状態の設定・照会4、可視・折畳み状態設定と保存3、適用とXML保存2の4枠へ固定する。
 - 公開headerの依存を監査し、`kis_image.h`は公開署名とmemberで使う`KisImageWSP`に対して完全型を不要にし、`QDomDocument`と`QDomElement`も参照引数だけであることを確認した。`KisImageWSP`の共有pointer型、値memberの`QMap`・`QString`・`QUuid`だけをheaderへ残し、image完全型とXML完全型のinclude所有を`libs/image/kis_layer_composition.cpp`へ移す。全直接利用元を構文検査し、失われた推移的includeは各実利用sourceへ明示する。
 - 新規`libs/image/tests/KisLayerCompositionSchemaContractTest.cpp`と専用CMake targetを4枠で作り、将来の変更を同headerだけの再compileへ分離する。最寄りの`KisSafeNodeProjectionStoreSchemaContractTest`はQt Core・Test、globalとimage探索路、image export定義だけで4工程・8入力、command hash `ae5e4b8202351ef30787dc565e669ef398f3bbd049e35635329a50124151d336`、input hash `7ea70950e6c6ab4366c64e6d26a24070ccdd84f46c440b60988b0b857c55b4a4`である。新targetも同じ構築面を上限予測とし、停止線を5工程・11入力に置く。計画外探索路・link・定義、AUTOMOC header入力、製品未解決記号、対象型の実体化または本文実行が必要なら停止する。macOSの対象と軽量近傍、追加4枠の20回反復、厳密構文、二回目計画、無作業再構築、公開API検査、`verify-quick`だけを実行し、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
+
+### 第448便の実装結果
+
+- `libs/image/kis_layer_composition.h`から新規`libs/image/tests/KisLayerCompositionSchemaContractTest.cpp`へ全13 APIを4枠で固定した。型・2構築・寿命4、名前とexport状態の設定・照会4、可視・折畳み状態設定と保存3、適用とXML保存2を重複なく対応付けた。初回は追加3枠が成功し、`G448 layer composition API schema is not fixed yet`だけで1件失敗した。計画commitは`9e17ee328c`、構造commitは`a62dc2e51b`、契約commitは`371232f83e`である。
+- imageとXMLの完全型include所有を`libs/image/kis_layer_composition.h`から`libs/image/kis_layer_composition.cpp`へ移した。これにより公開headerは共有pointer型と値memberだけを所有する。推移的includeを実利用していた`plugins/impex/libkra/kis_kra_saver.cpp`は`kis_paint_device.h`を直接所有する構成へ直し、保存処理の依存を明示した。
+- 新規試験sourceは72行・4枠、専用targetは4工程・8入力、command hash `fd8bd4991c9888e784c98f10ebb000d5ae7492fac4b7aed90e1a3c88a2a1d223`、input hash `9eb5d4b260f110a648f604ff75061e303d3a5045124a19650b0fb791fdbb582b`である。Qt Core・Testだけの動的接続、AUTOMOC `HEADERS=[]`、対象製品未解決記号0を確認し、予測した最小構築面を維持した。
+- macOSで対象`libs-image-KisLayerCompositionSchemaContractTest`と軽量近傍`libs-image-KisSafeNodeProjectionStoreSchemaContractTest`、対象の20回反復、試験sourceと直接利用元4 sourceの`clang-check --extra-arg=-Werror`、KRA loaderの通常構文、試験sourceの書式、二回の無作業再構築に成功した。変更していないKRA loaderの非推奨互換処理は厳密構文で既存警告を再現した。composition model headerは自身のsourceで厳密検査済みであり、さらに間接利用する未構築docker sourceは既存生成header `ui_wdgcompositiondocker.h`がないため単独構文検査の対象外である。台帳は27,148件対応、2,656件未対応となり、開始headerの残存は0件である。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 旧`public-api-missing-g448.json`を削除し、追加作業tree・構築木・一時計画物は作成していない。主Ninja木5,987,236 KiB、共有compiler cache 982,980 KiB、最新`build/tdd-macos/public-api-missing-g449.json` 722,736 bytes、SHA-256 `3e3cea1b3af550840cdb251d747340c4dc365f3f1602f858451e169d23289aa6`だけを再利用対象として保持する。compiler cacheは144,555件中120,558件、83.40%がhitしている。次の永続作業は第449便で最新報告から高密度なmacOS対象と最小構築面を選定することである。
 
 ### 第239便の先行監査担当票
 
