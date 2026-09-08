@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 3208
+    "expectedMissingApis": 3190
   },
   "contracts": [
     {
@@ -73015,6 +73015,69 @@
         "member:KoToolBasePrivate::lastDecorationsRect",
         "member:KoToolBasePrivate::toolCanvasResources",
         "method:KoToolBasePrivate::connectSignals()"
+      ]
+    },
+    {
+      "target": "KisPSDLayerStyleSchemaContractTest",
+      "source": "libs/image/tests/KisPSDLayerStyleSchemaContractTest.cpp",
+      "test": "KisPSDLayerStyleSchemaContractTest::layerStyleConstantsAndLodWrapperSchemaRemainStable",
+      "behavior": "layer style補助は百分率範囲とnoise境界の整数型、およびLoD設定包装の構築・参照型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisLsUtils::LodWrapper::config",
+        "method:KisLsUtils::LodWrapper::LodWrapper(int lod,const ConfigStruct * srcStruct)",
+        "struct:KisLsUtils::LodWrapper",
+        "variable:KisLsUtils::FULL_PERCENT_RANGE",
+        "variable:KisLsUtils::noiseNeedBorder"
+      ]
+    },
+    {
+      "target": "KisPSDLayerStyleSchemaContractTest",
+      "source": "libs/image/tests/KisPSDLayerStyleSchemaContractTest.cpp",
+      "test": "KisPSDLayerStyleSchemaContractTest::layerStyleSelectionAndGeometrySignaturesRemainStable",
+      "behavior": "layer style補助はalphaからの選択生成、均一拡張、edge抽出、半径に応じた領域拡張の公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisLsUtils::findEdge(KisPixelSelectionSP selection,const QRect & applyRect,const bool edgeHidden)",
+        "function:KisLsUtils::growRectFromRadius(const QRect & rc,int radius)",
+        "function:KisLsUtils::growSelectionUniform(KisPixelSelectionSP selection,int growSize,const QRect & applyRect)",
+        "function:KisLsUtils::selectionFromAlphaChannel(KisPaintDeviceSP srcDevice,KisSelectionSP dstSelection,const QRect & srcRect)"
+      ]
+    },
+    {
+      "target": "KisPSDLayerStyleSchemaContractTest",
+      "source": "libs/image/tests/KisPSDLayerStyleSchemaContractTest.cpp",
+      "test": "KisPSDLayerStyleSchemaContractTest::layerStyleAdjustmentSignaturesRemainStable",
+      "behavior": "layer style補助はGaussian処理、range調整、輪郭補正、noise適用の全入力型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisLsUtils::adjustRange(KisPixelSelectionSP selection,const QRect & applyRect,const int range)",
+        "function:KisLsUtils::applyContourCorrection(KisPixelSelectionSP selection,const QRect & applyRect,const quint8 * lookup_table,bool antiAliased,bool edgeHidden)",
+        "function:KisLsUtils::applyGaussianWithTransaction(KisPixelSelectionSP selection,const QRect & applyRect,qreal radius)",
+        "function:KisLsUtils::applyNoise(KisPixelSelectionSP selection,const QRect & applyRect,int noise,const psd_layer_effects_context * context,KisLayerStyleFilterEnvironment * env)"
+      ]
+    },
+    {
+      "target": "KisPSDLayerStyleSchemaContractTest",
+      "source": "libs/image/tests/KisPSDLayerStyleSchemaContractTest.cpp",
+      "test": "KisPSDLayerStyleSchemaContractTest::layerStyleKnockoutAndFillSignaturesRemainStable",
+      "behavior": "layer style補助は選択打抜き、pattern塗り、overlay塗りの公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisLsUtils::fillOverlayDevice(KisPaintDeviceSP fillDevice,const QRect & applyRect,const psd_layer_effects_overlay_base * config,KisResourcesInterfaceSP resourcesInterface,KisLayerStyleFilterEnvironment * env)",
+        "function:KisLsUtils::fillPattern(KisPaintDeviceSP fillDevice,const QRect & applyRect,KisLayerStyleFilterEnvironment * env,int scale,KoPatternSP pattern,int horizontalPhase,int verticalPhase,bool alignWithLayer)",
+        "function:KisLsUtils::knockOutSelection(KisPixelSelectionSP selection,KisPixelSelectionSP knockOutSelection,const QRect & srcRect,const QRect & dstRect,const QRect & totalNeedRect,const bool knockOutInverted)"
+      ]
+    },
+    {
+      "target": "KisPSDLayerStyleSchemaContractTest",
+      "source": "libs/image/tests/KisPSDLayerStyleSchemaContractTest.cpp",
+      "test": "KisPSDLayerStyleSchemaContractTest::layerStyleFinalSelectionAndEffectSignaturesRemainStable",
+      "behavior": "layer style補助は最終選択を投影へ適用し、効果設定と投影から有効性を判定する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisLsUtils::applyFinalSelection(const QString & projectionId,KisSelectionSP baseSelection,KisPaintDeviceSP srcDevice,KisMultipleProjection * dst,const QRect & srcRect,const QRect & dstRect,const psd_layer_effects_context * context,const psd_layer_effects_shadow_base * config,KisResourcesInterfaceSP resourcesInterface,const KisLayerStyleFilterEnvironment * env)",
+        "function:KisLsUtils::checkEffectEnabled(const psd_layer_effects_shadow_base * config,KisMultipleProjection * dst)"
       ]
     }
   ]

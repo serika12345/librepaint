@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-08 20:30 JST
+- 更新日時: 2026-09-08 20:36 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3449,6 +3449,12 @@
 - 第411便は`libs/image/layerstyles/kis_ls_utils.h`に残る全18 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g411.json`は公開header 1,548、公開API 29,804、対応済み26,596、未対応3,208、873,553 bytes、SHA-256 `6e240cfe442cf978ff8b3deb9128e53f4385c0d50839c4cecdea00acd4dca59b`である。対象識別子整列集合のSHA-256は`7fb829867de3b64248bab0a050ee22effb6d686f1eab21b646fec15c57b1ad10`で、定数・LoD包装型5、選択生成・領域4、ぼかし・range・輪郭・noise 4、打抜き・pattern・overlay 3、最終選択・効果判定2の5枠へ固定する。
 - 既存`libs/image/tests/KisPSDLayerStyleSchemaContractTest.cpp`はlayer styleの資源・直列化境界を所有し、200行・10枠から追加後も300行・20枠未満に収まる。対象はCMake変更なしで4工程・8入力、command SHA-256 `17997f14a0935823da1da73e7e87fb3464fba401d80543a3bccfbae1babadca0`、input SHA-256 `299259db044314cfa0c48510d5c4a269d97473c183b9236c24f68190ef76508e`を維持できる。既存のlayer style動作試験は製品image接続を含む1,201工程・2,425入力であるため反復先から除外する。選択、paint device、projection、効果設定、資源、環境、LoD包装本文を実体化せず、定数値、型特性、厳密な関数pointerだけで公開境界を観測する。
 - `g411-layer-style-utils-schema`の状態は`in_progress`、実装基点は`3692d0c2cb`である。開始headerから既存試験sourceの5枠だけへ追加し、CMake、公開header、製品source、製品targetは変更しない。停止線は5工程・11入力とし、新たな探索路・定義・link、製品OBJECT・shared・`kritatestsdk`接続、候補headerのAUTOMOC入力化、製品未解決symbol、対象値またはinline本文の実体化が必要なら候補を保留する。macOSの対象、追加5枠の20回反復、軽量近傍、試験sourceの厳格`clang-check`、書式、二回の無作業再構築、動的接続・未解決symbol、公開API検査、`verify-quick`だけを実行する。既存動作試験、製品image target、全体build・`verify`、Linux、Nix再評価は実行しない。
+
+### 第411便の実装結果
+
+- `g411-layer-style-utils-schema`は`completed`である。開始`libs/image/layerstyles/kis_ls_utils.h`から既存`libs/image/tests/KisPSDLayerStyleSchemaContractTest.cpp`へ18 API・5枠を追加した。百分率範囲100とnoise境界の型、LoD包装の型・構築・設定参照、選択生成・領域4、ぼかし・range・輪郭・noise 4、打抜き・pattern・overlay 3、最終選択・効果判定2を定数値、型特性、厳密な関数pointerで固定した。試験sourceは294行・15枠で、選択、paint device、projection、効果設定、資源、環境、LoD包装本文を実体化していない。初回redは未定義の5検査関数だけで失敗し、契約実装commitは`13dd121a46`である。
+- CMake変更なしで、macOSの対象`libs-image-KisPSDLayerStyleSchemaContractTest`、軽量近傍`libs-image-KisPaintLayerSchemaContractTest`、対象の20回反復、試験sourceの厳格`clang-check`、書式、AUTOMOC後の二回目計画、二回の無作業再構築に成功した。対象は4工程・8入力、command SHA-256 `17997f14a0935823da1da73e7e87fb3464fba401d80543a3bccfbae1babadca0`、input SHA-256 `299259db044314cfa0c48510d5c4a269d97473c183b9236c24f68190ef76508e`、AUTOMOC `HEADERS=[]`、直接接続はQt Core・Gui・Test・Xml、製品未解決symbol 0である。1,201工程・2,425入力の既存layer style動作試験、製品image target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 台帳へ18 APIを追加して26,614件対応、3,190件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g411.json`と一時計測物を削除し、追加作業tree・構築木は作成していない。主Ninja木5,981,052 KiB、共有compiler cache 983,436 KiB、最新`build/tdd-macos/public-api-missing-g412.json` 866,587 bytes、SHA-256 `cf0a403c2ebef186a1cde71bc7c209b85d441cb4d42039b1a7716ebb6b361c1f`だけを再利用対象として保持する。compiler cacheは144,440件中120,541件、83.45%がhitしている。公開API検査に成功した。次の永続作業は第412便で次の高密度なmacOS対象と最小構築面を選定することである。
 
 ### 第239便の先行監査担当票
 
