@@ -4,6 +4,7 @@
  */
 
 #include "kis_idle_watcher.h"
+#include "kis_onion_skin_compositor.h"
 #include "kis_types.h"
 #include "kis_update_time_monitor.h"
 
@@ -18,6 +19,9 @@
 
 #define ASSERT_IDLE_WATCHER_SIGNATURE(member, signature)                                                               \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisIdleWatcher::member)), signature>)
+
+#define ASSERT_ONION_SKIN_COMPOSITOR_SIGNATURE(member, signature)                                                      \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KisOnionSkinCompositor::member)), signature>)
 
 class KisImageSharedPointerHooksSchemaContractTest : public QObject
 {
@@ -37,6 +41,10 @@ private Q_SLOTS:
     void idleWatcherStateAndImageTrackingSignaturesRemainStable();
     void idleWatcherMemoryAndCountdownSignaturesRemainStable();
     void idleWatcherNotificationSignaturesRemainStable();
+    void onionSkinCompositorTypeLifetimeAndSingletonSchemaRemainStable();
+    void onionSkinCompositorCompositeAndFullExtentSignaturesRemainStable();
+    void onionSkinCompositorExtentSignaturesRemainStable();
+    void onionSkinCompositorConfigurationAndNotificationSignaturesRemainStable();
 };
 
 void KisImageSharedPointerHooksSchemaContractTest::imageSharedPointerNodeAndLayerHooksRemainStable()
@@ -159,6 +167,41 @@ void KisImageSharedPointerHooksSchemaContractTest::idleWatcherNotificationSignat
 {
     ASSERT_IDLE_WATCHER_SIGNATURE(startedIdleMode, void (KisIdleWatcher::*)());
     ASSERT_IDLE_WATCHER_SIGNATURE(imageModified, void (KisIdleWatcher::*)());
+}
+
+void KisImageSharedPointerHooksSchemaContractTest::onionSkinCompositorTypeLifetimeAndSingletonSchemaRemainStable()
+{
+    static_assert(std::is_class_v<KisOnionSkinCompositor>);
+    static_assert(std::is_base_of_v<QObject, KisOnionSkinCompositor>);
+    static_assert(std::is_default_constructible_v<KisOnionSkinCompositor>);
+    static_assert(std::has_virtual_destructor_v<KisOnionSkinCompositor>);
+    ASSERT_ONION_SKIN_COMPOSITOR_SIGNATURE(instance, KisOnionSkinCompositor * (*)());
+}
+
+void KisImageSharedPointerHooksSchemaContractTest::onionSkinCompositorCompositeAndFullExtentSignaturesRemainStable()
+{
+    ASSERT_ONION_SKIN_COMPOSITOR_SIGNATURE(
+        composite,
+        void (KisOnionSkinCompositor::*)(KisPaintDeviceSP, KisPaintDeviceSP, const QRect &));
+    ASSERT_ONION_SKIN_COMPOSITOR_SIGNATURE(calculateFullExtent, QRect (KisOnionSkinCompositor::*)(KisPaintDeviceSP));
+}
+
+void KisImageSharedPointerHooksSchemaContractTest::onionSkinCompositorExtentSignaturesRemainStable()
+{
+    ASSERT_ONION_SKIN_COMPOSITOR_SIGNATURE(calculateExtent, QRect (KisOnionSkinCompositor::*)(KisPaintDeviceSP));
+    ASSERT_ONION_SKIN_COMPOSITOR_SIGNATURE(calculateExtent, QRect (KisOnionSkinCompositor::*)(KisPaintDeviceSP, int));
+    ASSERT_ONION_SKIN_COMPOSITOR_SIGNATURE(updateExtentOnAddition,
+                                           QRect (KisOnionSkinCompositor::*)(KisPaintDeviceSP, int));
+}
+
+void KisImageSharedPointerHooksSchemaContractTest::
+    onionSkinCompositorConfigurationAndNotificationSignaturesRemainStable()
+{
+    ASSERT_ONION_SKIN_COMPOSITOR_SIGNATURE(configSeqNo, int (KisOnionSkinCompositor::*)() const);
+    ASSERT_ONION_SKIN_COMPOSITOR_SIGNATURE(setColorLabelFilter, void (KisOnionSkinCompositor::*)(QSet<int>));
+    ASSERT_ONION_SKIN_COMPOSITOR_SIGNATURE(colorLabelFilter, QSet<int> (KisOnionSkinCompositor::*)());
+    ASSERT_ONION_SKIN_COMPOSITOR_SIGNATURE(configChanged, void (KisOnionSkinCompositor::*)());
+    ASSERT_ONION_SKIN_COMPOSITOR_SIGNATURE(sigOnionSkinChanged, void (KisOnionSkinCompositor::*)());
 }
 
 QTEST_APPLESS_MAIN(KisImageSharedPointerHooksSchemaContractTest)
