@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-08 19:23 JST
+- 更新日時: 2026-09-08 19:27 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3380,6 +3380,12 @@
 - `g405-convolution-painter-schema`は`completed`である。開始`libs/image/kis_convolution_painter.h`から既存`libs/image/tests/KisGaussianKernelSchemaContractTest.cpp`へ16 API・5枠を追加した。境界処理列挙3、型・実行方式列挙5、構築4、方式設定・対応能力2、行列適用・取引要否2を列挙値、型特性、厳密な関数pointerで固定した。試験sourceは141行・10枠で、painter、device、selection、kernelと製品本文は実体化していない。初回redは未定義の5検査関数だけで失敗し、契約実装commitは`6b5677bf14`である。
 - CMake変更なしで、macOSの対象`libs-image-KisGaussianKernelSchemaContractTest`、軽量近傍`libs-image-KisAutoLevelsSchemaContractTest`、対象の20回反復、試験sourceの厳格`clang-check`、書式、二回の無作業再構築に成功した。4工程・8入力、command SHA-256 `97714a51be3fda7a3dd1ea9552d00eec9ae6c3ba0f30f0a69e1231388dfcc708`、input SHA-256 `2de082262ef59931066fe06fec2a7427ecbbba3a619e4813640ef30dfe7fb26f`、AUTOMOC `HEADERS=[]`、直接接続はQt Core・Testとheader-only Boost、製品未解決symbol 0である。1,201工程・2,425入力の既存畳込み動作試験と製品image targetは実行していない。
 - 台帳へ16 APIを追加して26,493件対応、3,311件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g405.json`と一時計測物を削除し、追加作業tree・構築木は作成していない。主Ninja木5,977,596 KiB、共有compiler cache 982,632 KiB、最新`build/tdd-macos/public-api-missing-g406.json` 897,524 bytes、SHA-256 `a42ac9433bf76fa830c42e4f7bd73d9f9902a5e25081fbfaa4f2d516d27ad92b`だけを再利用対象として保持する。compiler cacheは144,412件中120,537件、83.47%がhitしている。次の永続作業は第406便で次の高密度なmacOS対象と最小構築面を選定することである。
+
+### 第406便の公開API契約計画
+
+- 第406便は`libs/libkis/Document.h`に残る全18 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g406.json`は公開header 1,548、公開API 29,804、対応済み26,493、未対応3,311、897,524 bytes、SHA-256 `a42ac9433bf76fa830c42e4f7bd73d9f9902a5e25081fbfaa4f2d516d27ad92b`である。対象識別子整列集合のSHA-256は`a0d147992adc765a726792d98669c615fc47f153ac0b25fd9c9228049da97d49`で、注釈5、grid・guide設定4、従来guide状態4、従来guide線4、投影更新1の5枠へ固定する。
+- 既存`libs/libkis/tests/DocumentGeometrySchemaContractTest.cpp`は文書の寸法、位置、解像度、canvas範囲、幾何変換を所有し、70行・5枠から追加後も300行・20枠未満に収まる。既存compile interfaceが`Document.h`の公開依存を満たすため、CMake変更なしで4工程・8入力を維持する。文書、設定、注釈値と投影本文を実体化せず、厳密な関数pointerだけで公開境界を観測する。非推奨guide APIもスクリプト互換面として現存する間は契約対象に含める。
+- `g406-document-annotation-guide-schema`の状態は`in_progress`、実装基点は`0b02347691`である。開始headerから既存試験sourceの5枠だけへ追加し、CMake、公開header、製品sourceは変更しない。macOSの対象、追加5枠の20回反復、軽量近傍`DocumentAnimationSchemaContractTest`、試験sourceの厳格`clang-check`、書式、二回の無作業再構築、動的接続・未解決symbol、公開API検査、`verify-quick`だけを実行する。製品libkis・OBJECT・shared target、文書動作試験、全体build・`verify`、Linux、Nix再評価は実行しない。
 
 ### 第239便の先行監査担当票
 
