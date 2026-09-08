@@ -12,6 +12,7 @@
 #define KIS_PART_H
 
 #include <QList>
+#include <QObject>
 #include <QPointer>
 #include <QUrl>
 #include <QUuid>
@@ -19,8 +20,6 @@
 #include <application/ui/workspace/KisSessionResource.h>
 
 #include "kritaui_export.h"
-#include <kconfiggroup.h>
-#include <KoConfig.h>
 
 template<class T>
 class KisSharedPtr;
@@ -34,12 +33,12 @@ namespace KIO {
 class KisAction;
 class KisDocument;
 class KisView;
-class KisDocument;
 class KisIdleWatcher;
 class KisAnimationCachePopulator;
 class KisMainWindow;
 class KisInputManager;
 class KisViewManager;
+class QWidget;
 
 
 /**
