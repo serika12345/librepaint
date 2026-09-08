@@ -3,7 +3,10 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "kis_paint_device.h"
+
 #include "kis_base_rects_walker.h"
+#include "kis_refresh_subtree_walker.h"
 
 #include <QTest>
 
@@ -14,6 +17,8 @@ namespace
 
 #define ASSERT_RECTS_WALKER_SIGNATURE(method, signature)                                                               \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisBaseRectsWalker::method)), signature>)
+#define ASSERT_REFRESH_WALKER_SIGNATURE(method, signature)                                                             \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KisRefreshSubtreeWalker::method)), signature>)
 
 class WalkerPolicyProbe final : public KisBaseRectsWalker
 {
@@ -41,6 +46,9 @@ private Q_SLOTS:
     void rectsWalkerStatePolicySignaturesRemainStable();
     void rectsWalkerCollectionAndConfigurationSignaturesRemainStable();
     void rectsWalkerCloneNotificationSchemaRemainsStable();
+    void refreshWalkerTypeAndFlagsSchemaRemainStable();
+    void refreshWalkerConstructionAndLifetimeSchemaRemainStable();
+    void refreshWalkerObservationSignaturesRemainStable();
 };
 
 void KisBaseRectsWalkerPolicyContractTest::updateTypesKeepStableOrdinals()
@@ -182,6 +190,46 @@ void KisBaseRectsWalkerPolicyContractTest::rectsWalkerCloneNotificationSchemaRem
                                  void (CloneNotification::*)()>);
 }
 
+void KisBaseRectsWalkerPolicyContractTest::refreshWalkerTypeAndFlagsSchemaRemainStable()
+{
+    using Walker = KisRefreshSubtreeWalker;
+
+    static_assert(std::is_class_v<Walker>);
+    static_assert(std::is_base_of_v<KisBaseRectsWalker, Walker>);
+    static_assert(std::is_enum_v<Walker::Flag>);
+    static_assert(std::is_same_v<Walker::Flags, QFlags<Walker::Flag>>);
+
+    QCOMPARE(static_cast<int>(Walker::None), 0x0);
+    QCOMPARE(static_cast<int>(Walker::SkipNonRenderableNodes), 0x1);
+    QCOMPARE(static_cast<int>(Walker::NoFilthyMode), 0x2);
+    QCOMPARE(static_cast<int>(Walker::DontAdjustChangeRect), 0x4);
+    QCOMPARE(static_cast<int>(Walker::ClonesDontInvalidateFrames), 0x8);
+
+    const Walker::Flags flags = Walker::SkipNonRenderableNodes | Walker::DontAdjustChangeRect;
+    QVERIFY(flags.testFlag(Walker::SkipNonRenderableNodes));
+    QVERIFY(flags.testFlag(Walker::DontAdjustChangeRect));
+    QVERIFY(!flags.testFlag(Walker::NoFilthyMode));
+
+    QVERIFY(true);
+}
+
+void KisBaseRectsWalkerPolicyContractTest::refreshWalkerConstructionAndLifetimeSchemaRemainStable()
+{
+    using Walker = KisRefreshSubtreeWalker;
+
+    static_assert(std::is_constructible_v<Walker, QRect, Walker::Flags>);
+    static_assert(std::has_virtual_destructor_v<Walker>);
+}
+
+void KisBaseRectsWalkerPolicyContractTest::refreshWalkerObservationSignaturesRemainStable()
+{
+    using Walker = KisRefreshSubtreeWalker;
+
+    ASSERT_REFRESH_WALKER_SIGNATURE(type, KisBaseRectsWalker::UpdateType (Walker::*)() const);
+    ASSERT_REFRESH_WALKER_SIGNATURE(flags, Walker::Flags (Walker::*)() const);
+}
+
+#undef ASSERT_REFRESH_WALKER_SIGNATURE
 #undef ASSERT_RECTS_WALKER_SIGNATURE
 
 QTEST_GUILESS_MAIN(KisBaseRectsWalkerPolicyContractTest)
