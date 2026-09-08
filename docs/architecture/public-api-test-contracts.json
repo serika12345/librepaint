@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 2812
+    "expectedMissingApis": 2798
   },
   "contracts": [
     {
@@ -74464,6 +74464,56 @@
       "apis": [
         "method:KisAdjustmentLayer::setChannelFlags(const QBitArray & channelFlags)",
         "method:KisAdjustmentLayer::setFilter(KisFilterConfigurationSP filterConfig,bool checkCompareConfig=true)"
+      ]
+    },
+    {
+      "target": "KisGeneratorLayerSchemaContractTest",
+      "source": "libs/image/tests/KisGeneratorLayerSchemaContractTest.cpp",
+      "test": "KisGeneratorLayerSchemaContractTest::filterMaskTypeLifetimeAndCloneSchemaRemainStable",
+      "behavior": "filter maskは画像と任意名または既存maskから構築・破棄でき、node共有所有値として複製する公開型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisFilterMask",
+        "method:KisFilterMask::KisFilterMask(KisImageWSP image,const QString & name=QString ())",
+        "method:KisFilterMask::KisFilterMask(const KisFilterMask & rhs)",
+        "method:KisFilterMask::clone() const",
+        "method:KisFilterMask::~KisFilterMask()"
+      ]
+    },
+    {
+      "target": "KisGeneratorLayerSchemaContractTest",
+      "source": "libs/image/tests/KisGeneratorLayerSchemaContractTest.cpp",
+      "test": "KisGeneratorLayerSchemaContractTest::filterMaskVisitorSignaturesRemainStable",
+      "behavior": "filter maskはnode visitorとundo adapter付き処理visitorを受け付ける二つの公開配送境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisFilterMask::accept(KisNodeVisitor & v)",
+        "method:KisFilterMask::accept(KisProcessingVisitor & visitor,KisUndoAdapter * undoAdapter)"
+      ]
+    },
+    {
+      "target": "KisGeneratorLayerSchemaContractTest",
+      "source": "libs/image/tests/KisGeneratorLayerSchemaContractTest.cpp",
+      "test": "KisGeneratorLayerSchemaContractTest::filterMaskPresentationAndConfigurationSignaturesRemainStable",
+      "behavior": "filter maskはiconを返し、比較指定付きfilter設定を受け取る公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisFilterMask::icon() const",
+        "method:KisFilterMask::setFilter(KisFilterConfigurationSP filterConfig,bool checkCompareConfig=true)"
+      ]
+    },
+    {
+      "target": "KisGeneratorLayerSchemaContractTest",
+      "source": "libs/image/tests/KisGeneratorLayerSchemaContractTest.cpp",
+      "test": "KisGeneratorLayerSchemaContractTest::filterMaskGeometrySignaturesRemainStable",
+      "behavior": "filter maskは入力・出力装置と描画条件から領域を装飾し、内容範囲・厳密範囲・変更領域・必要領域を返す公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisFilterMask::changeRect(const QRect & rect,PositionToFilthy pos=N_FILTHY) const",
+        "method:KisFilterMask::decorateRect(KisPaintDeviceSP & src,KisPaintDeviceSP & dst,const QRect & rc,PositionToFilthy maskPos,KisRenderPassFlags flags) const",
+        "method:KisFilterMask::exactBounds() const",
+        "method:KisFilterMask::extent() const",
+        "method:KisFilterMask::needRect(const QRect & rect,PositionToFilthy pos=N_FILTHY) const"
       ]
     }
   ]
