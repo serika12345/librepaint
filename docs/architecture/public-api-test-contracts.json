@@ -16,7 +16,7 @@
     "publicApiFingerprint": "5f05b2aa8e5bef4343af1d55a3852331e51d4369fe135b099327b1a91b6b8c4c"
   },
   "migration": {
-    "expectedMissingApis": 2625
+    "expectedMissingApis": 2609
   },
   "contracts": [
     {
@@ -75182,6 +75182,58 @@
       "classification": "maintained",
       "apis": [
         "method:KisLayerStyleProjectionPlane::getLodCapableDevices() const"
+      ]
+    },
+    {
+      "target": "KisExifInfoVisitorSchemaContractTest",
+      "source": "libs/image/tests/KisExifInfoVisitorSchemaContractTest.cpp",
+      "test": "KisExifInfoVisitorSchemaContractTest::typeAndMetadataAccessSchemaRemainStable",
+      "behavior": "EXIF情報訪問者はnode訪問者として既定構築でき、検出したmetadata件数と所有元layerのmetadata参照を返す公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisExifInfoVisitor",
+        "method:KisExifInfoVisitor::KisExifInfoVisitor()",
+        "method:KisExifInfoVisitor::exifInfo()",
+        "method:KisExifInfoVisitor::metaDataCount()"
+      ]
+    },
+    {
+      "target": "KisExifInfoVisitorSchemaContractTest",
+      "source": "libs/image/tests/KisExifInfoVisitorSchemaContractTest.cpp",
+      "test": "KisExifInfoVisitorSchemaContractTest::nodeAndStandardLayerVisitSignaturesRemainStable",
+      "behavior": "EXIF情報訪問者は汎用nodeとpaint・group layerを受け取る訪問境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisExifInfoVisitor::visit(KisGroupLayer * layer)",
+        "method:KisExifInfoVisitor::visit(KisNode *)",
+        "method:KisExifInfoVisitor::visit(KisPaintLayer * layer)"
+      ]
+    },
+    {
+      "target": "KisExifInfoVisitorSchemaContractTest",
+      "source": "libs/image/tests/KisExifInfoVisitorSchemaContractTest.cpp",
+      "test": "KisExifInfoVisitorSchemaContractTest::specializedLayerVisitSignaturesRemainStable",
+      "behavior": "EXIF情報訪問者は調整・複製・外部・生成layerを受け取る訪問境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisExifInfoVisitor::visit(KisAdjustmentLayer *)",
+        "method:KisExifInfoVisitor::visit(KisCloneLayer *)",
+        "method:KisExifInfoVisitor::visit(KisExternalLayer *)",
+        "method:KisExifInfoVisitor::visit(KisGeneratorLayer *)"
+      ]
+    },
+    {
+      "target": "KisExifInfoVisitorSchemaContractTest",
+      "source": "libs/image/tests/KisExifInfoVisitorSchemaContractTest.cpp",
+      "test": "KisExifInfoVisitorSchemaContractTest::maskVisitSignaturesRemainStable",
+      "behavior": "EXIF情報訪問者はcolorize・filter・selection・変形・透明maskを受け取る訪問境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisExifInfoVisitor::visit(KisColorizeMask *)",
+        "method:KisExifInfoVisitor::visit(KisFilterMask *)",
+        "method:KisExifInfoVisitor::visit(KisSelectionMask *)",
+        "method:KisExifInfoVisitor::visit(KisTransformMask *)",
+        "method:KisExifInfoVisitor::visit(KisTransparencyMask *)"
       ]
     }
   ]

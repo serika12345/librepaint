@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 04:50 JST
+- 更新日時: 2026-09-09 05:00 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3961,6 +3961,14 @@
 - 公開headerの依存を監査し、`kis_node_visitor.h`は公開基底、`kis_meta_data_store.h`・`kis_paint_layer.h`・`kis_group_layer.h`はinline本文の型操作に必要である。一方、`kis_meta_data_filter_registry_model.h`の型は宣言・inline本文・memberのいずれにも使われないため削除し、metadata filter modelとそのQt model依存を公開訪問者のcompile閉包から外す。全直接利用元を構文検査し、失われた推移的includeを実利用するsourceがあれば同sourceへ明示する。
 - 最初に選んだ既存`libs/image/tests/KisCountVisitorSchemaContractTest.cpp`への追記は棄却した。初回限定構築ではmetadataのsource・generated探索路に続いてglobal探索路も必要となり、対象headerのpaint layer完全型がさらにpigment・resourcesへ依存を連鎖させる。これはQt Core・Test限定のCount visitor対象へ別責務の重いheader閉包を恒久的に混ぜ、同対象の将来の限定再構築を広げるため、追加した試験枠と探索路を開始状態へ戻す。
 - 新規`libs/image/tests/KisExifInfoVisitorSchemaContractTest.cpp`と専用targetへ4枠を分離する。探索路・定義の上限は同じpaint layer完全型を既に観測する`KisPaintLayerSchemaContractTest`にpainting metadataのsource・generated探索路を加えた範囲とし、Qt Gui・Xmlはheader探索路だけ、動的接続はQt Core・Testだけを予定する。専用化によりCount visitor対象の4工程・8入力とcommand・input hashを維持し、EXIF header変更時の再compileを独立させる。新targetも4工程・8入力を予測し、停止線は5工程・11入力、計画外link・定義、AUTOMOC header入力、製品未解決記号、対象型の実体化または訪問本文実行が必要なら停止する。macOSの新対象と軽量近傍、追加4枠の20回反復、厳密構文、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
+
+### 第451便の実装結果
+
+- 公開EXIF訪問者が使わないmetadata filter modelまで全利用元へ伝播させていた問題を解消した。開始`libs/image/kis_exif_info_visitor.h`から未使用`kis_meta_data_filter_registry_model.h` includeを削除し、推移includeでfilter設定の完全型を得ていた`libs/impex/FillLayerTypeCheck.h`へ`filter/kis_filter_configuration.h`を直接移した。公開宣言、inline訪問順、所有権は維持し、構造commitは`8ea1840c05`である。`libs/painting/tests/TestPublicImageHeaders.cpp`と`libs/impex/KisExportCheckRegistry.cpp`の厳格構文検査はcleanで、HEIF・JXL・WebP直接利用元は既存の未使用引数または未生成UI header診断だけだったため製品targetを構築していない。
+- 開始`libs/image/kis_exif_info_visitor.h`から新規`libs/image/tests/KisExifInfoVisitorSchemaContractTest.cpp`へ全16 APIを4枠で固定した。型・既定構築・metadata件数・EXIF取得4、node・paint・group layer訪問3、調整・複製・外部・生成layer訪問4、colorize・filter・selection・変形・透明mask訪問5を型特性と厳密な関数pointerで観測し、訪問者、layer、mask、metadataとinline本文は実体化していない。初回は追加3枠が成功し、`G451 EXIF visitor API schema is not fixed yet`だけで1件失敗した。計画変更commitは`2eff7a48ed`、契約commitは`66f311b343`である。
+- 当初の既存Count visitor対象への追記は、metadata source・generated探索路に続いてglobal探索路も必要になった時点で停止し、試験sourceとCMakeを開始状態へ戻した。専用EXIF対象は76行・4枠、4工程・8入力、command SHA-256 `8e0e51fac091cea5657215158f5ce513ebd81271e65947f09d6cb2a8866890c3`、input SHA-256 `3088819b2c798014df8b8e49f1f6c8738d70a803b6bdcb158ad3167982f03f5f`である。AUTOMOC `HEADERS=[]`、直接接続はQt Core・Test、製品未解決記号0である。近傍`KisCountVisitorSchemaContractTest`はcommand SHA-256 `555ed3709ed4e48d867f8bedfb45948b26f7ac3ca8f10a7e8dd0181f946f8d27`、input SHA-256 `ff3f4b2b979f553b4f739ca50a0a8208c0ee9e58b256583e40b7cd469c089f1d`へ復帰した。
+- macOSで新対象、近傍Count visitor、対象の20回反復、試験sourceの`clang-check --extra-arg=-Werror`と書式、連続二回の無作業再構築に成功した。台帳は27,195件対応、2,609件未対応となり、開始headerの残存は0件である。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 旧`public-api-missing-g451.json`を削除し、追加作業tree・構築木・一時計画物は作成していない。主Ninja木5,991,980 KiB、共有compiler cache 982,948 KiB、最新`build/tdd-macos/public-api-missing-g452.json` 710,013 bytes、SHA-256 `373441bd8344349bc33fcc81b2c8d208c601ef195b0db0daf9fe14b0f890ca61`だけを再利用対象として保持する。compiler cacheは144,571件中120,563件、83.39%がhitしている。次の永続作業は第452便で最新報告から高密度なmacOS対象と最小構築面を選定することである。
 
 ### 第239便の先行監査担当票
 
