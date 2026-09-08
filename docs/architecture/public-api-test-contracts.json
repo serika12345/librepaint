@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 2708
+    "expectedMissingApis": 2693
   },
   "contracts": [
     {
@@ -74856,6 +74856,66 @@
         "method:KisPerspectiveTransformWorker::forwardTransform() const",
         "method:KisPerspectiveTransformWorker::setForceSubPixelTranslation(bool value)",
         "method:KisPerspectiveTransformWorker::setForwardTransform(const QTransform & transform)"
+      ]
+    },
+    {
+      "target": "KisTransformMaskSchemaContractTest",
+      "source": "libs/image/tests/KisTransformMaskSchemaContractTest.cpp",
+      "test": "KisTransformMaskSchemaContractTest::bezierTransformMeshTypeAndConstructionSchemaRemainStable",
+      "behavior": "Bezier変形meshは公開別名から基底mesh型として、既定値または入力矩形・mesh寸法で構築する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisBezierTransformMesh",
+        "class:KisBezierTransformMeshDetail::KisBezierTransformMesh",
+        "method:KisBezierTransformMeshDetail::KisBezierTransformMesh::KisBezierTransformMesh()",
+        "method:KisBezierTransformMeshDetail::KisBezierTransformMesh::KisBezierTransformMesh(const QRectF & srcRect,const QSize & size=QSize (2,2))"
+      ]
+    },
+    {
+      "target": "KisTransformMaskSchemaContractTest",
+      "source": "libs/image/tests/KisTransformMaskSchemaContractTest.cpp",
+      "test": "KisTransformMaskSchemaContractTest::bezierTransformMeshHitTestSignaturesRemainStable",
+      "behavior": "Bezier変形meshは出力点に対応するpatchと局所座標を探し、入力空間矩形と交差するpatch領域を返す公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisBezierTransformMeshDetail::KisBezierTransformMesh::hitTestPatch(const QPointF & pt,QPointF * localPointResult=0) const",
+        "method:KisBezierTransformMeshDetail::KisBezierTransformMesh::hitTestPatchInSourceSpace(const QRectF & rect) const"
+      ]
+    },
+    {
+      "target": "KisTransformMaskSchemaContractTest",
+      "source": "libs/image/tests/KisTransformMaskSchemaContractTest.cpp",
+      "test": "KisTransformMaskSchemaContractTest::bezierTransformMeshPatchTransformationSignaturesRemainStable",
+      "behavior": "Bezier変形meshは一つのpatchをQImageまたは描画装置間で変形する静的公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisBezierTransformMeshDetail::KisBezierTransformMesh::transformPatch(const KisBezierPatch & patch,KisPaintDeviceSP srcDevice,KisPaintDeviceSP dstDevice)",
+        "method:KisBezierTransformMeshDetail::KisBezierTransformMesh::transformPatch(const KisBezierPatch & patch,const QPoint & srcQImageOffset,const QImage & srcImage,const QPoint & dstQImageOffset,QImage * dstImage)"
+      ]
+    },
+    {
+      "target": "KisTransformMaskSchemaContractTest",
+      "source": "libs/image/tests/KisTransformMaskSchemaContractTest.cpp",
+      "test": "KisTransformMaskSchemaContractTest::bezierTransformMeshExecutionAndApproximationSignaturesRemainStable",
+      "behavior": "Bezier変形meshはmesh全体をQImageまたは描画装置間で変形し、必要・変更領域の概算を返す公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisBezierTransformMeshDetail::KisBezierTransformMesh::approxChangeRect(const QRect & rc) const",
+        "method:KisBezierTransformMeshDetail::KisBezierTransformMesh::approxNeedRect(const QRect & rc) const",
+        "method:KisBezierTransformMeshDetail::KisBezierTransformMesh::transformMesh(KisPaintDeviceSP srcDevice,KisPaintDeviceSP dstDevice) const",
+        "method:KisBezierTransformMeshDetail::KisBezierTransformMesh::transformMesh(const QPoint & srcQImageOffset,const QImage & srcImage,const QPoint & dstQImageOffset,QImage * dstImage) const"
+      ]
+    },
+    {
+      "target": "KisTransformMaskSchemaContractTest",
+      "source": "libs/image/tests/KisTransformMaskSchemaContractTest.cpp",
+      "test": "KisTransformMaskSchemaContractTest::bezierTransformMeshRangeAndPersistenceSignaturesRemainStable",
+      "behavior": "Bezier変形meshは入力矩形の厳密なparameter範囲を計算し、XML要素へ保存・復元する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisBezierTransformMeshDetail::loadValue(const QDomElement & parent,KisBezierTransformMesh * mesh)",
+        "function:KisBezierTransformMeshDetail::saveValue(QDomElement * parent,const QString & tag,const KisBezierTransformMesh & mesh)",
+        "method:KisBezierTransformMeshDetail::KisBezierTransformMesh::calcTightSrcRectRangeInParamSpace(const KisBezierPatch & patch,const QRectF & srcSpaceRect,qreal srcPrecision)"
       ]
     }
   ]

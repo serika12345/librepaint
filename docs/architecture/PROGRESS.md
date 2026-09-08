@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 03:16 JST
+- 更新日時: 2026-09-09 03:23 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3878,6 +3878,13 @@
 - 第445便は`libs/image/KisBezierTransformMesh.h`に残る全15 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g445.json`は公開header 1,548、公開API 29,804、対応済み27,096、未対応2,708、738,340 bytes、SHA-256 `eee9ee95bebb760cac3f2d5d5f8f9b5e788f222a34b15865eff8a9462befc495`である。対象識別子整列集合のSHA-256は`d5d54066e28628fbfc518f2eed5983ab28046bf5142881c527900186042d5e48`で、公開別名・型・2構築4、対象patch探索2、2媒体のstatic patch変形2、2媒体のmesh変形・概算必要変更領域4、入力範囲計算・XML保存復元3の5枠へ固定する。
 - 公開headerの依存を監査し、`KisBezierMesh.h`は公開継承とpatch・index型、`kis_types.h`は描画装置共有pointerの公開署名に必要である。`QImage`、`QDomElement`、`QString`は参照またはpointer署名で、既存所有headerの宣言だけを使う。実装側へ移せる不要な完全型依存はない。
 - 既存`libs/image/tests/KisTransformMaskSchemaContractTest.cpp`は222行・13枠で、5枠追加後も300行・20枠未満に収まる。対象固有headerと署名検査を同sourceへ加えるだけで`libs/image/tests/CMakeLists.txt`を変更せず、mesh、patch、装置、画像、XMLを実体化しない。対象の変更前閉包は4工程・8入力、command hash `f0bacabbc5e99602c061069d2f4101e49722026e6251620a0d22905651f02009`、input hash `226642f6eb0597b6d48f1e4473cc31fd9f989cd4ae40157591d3c02e0d8f5f79`である。停止線を5工程・11入力とし、計画外探索路・link・定義、AUTOMOC header入力、製品未解決記号、対象型の実体化または本文実行が必要なら停止する。macOSの対象と軽量近傍、追加5枠の20回反復、厳密構文、二回目計画、無作業再構築、公開API検査、`verify-quick`だけを実行し、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
+
+### 第445便の実装結果
+
+- `libs/image/KisBezierTransformMesh.h`から既存`libs/image/tests/KisTransformMaskSchemaContractTest.cpp`へ全15 APIを5枠で固定した。公開別名・型・2構築4、対象patch探索2、2媒体のstatic patch変形2、2媒体のmesh変形・概算必要変更領域4、入力範囲計算・XML保存復元3を重複なく対応付けた。初回は既存13枠と追加4枠が成功し、`G445 Bezier transform mesh API schema is not fixed yet`だけで1件失敗した。計画commitは`8fd80164c0`、契約commitは`8e1be9ce0c`である。
+- 最終sourceは287行・18枠で両上限内に収まり、CMake、公開header、製品sourceを変更していない。対象は変更前と同じ4工程・8入力、command hash `f0bacabbc5e99602c061069d2f4101e49722026e6251620a0d22905651f02009`、input hash `226642f6eb0597b6d48f1e4473cc31fd9f989cd4ae40157591d3c02e0d8f5f79`を維持した。既存のQt Core・Gui・Test・Xmlだけの動的接続、AUTOMOC `HEADERS=[]`、製品未解決記号0を確認した。この既存対象は残り2枠のため、後続責務を別対象へ配置する。
+- macOSで対象`libs-image-KisTransformMaskSchemaContractTest`と軽量近傍`libs-image-KisGeneratorLayerSchemaContractTest`、対象の20回反復、試験sourceの`clang-check --extra-arg=-Werror`と書式、二回の無作業再構築に成功した。台帳は27,111件対応、2,693件未対応となり、開始headerの残存は0件である。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 旧`public-api-missing-g445.json`を削除し、追加作業tree・構築木・一時計画物は作成していない。主Ninja木5,986,304 KiB、共有compiler cache 983,348 KiB、最新`build/tdd-macos/public-api-missing-g446.json` 732,669 bytes、SHA-256 `673fe8e01b405ffa3ab4847f2dc89441adf678a395c16b08032ade84896772a8`だけを再利用対象として保持する。compiler cacheは144,545件中120,558件、83.41%がhitしている。次の永続作業は第446便で次の高密度なmacOS対象と最小構築面を選定することである。
 
 ### 第239便の先行監査担当票
 
