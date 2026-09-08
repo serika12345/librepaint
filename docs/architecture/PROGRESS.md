@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 06:37 JST
+- 更新日時: 2026-09-09 06:44 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4067,6 +4067,13 @@
 - 第459便は`libs/image/kis_transaction_data.h`に残る全6 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g459.json`は公開header 1,548、公開API 29,804、対応済み27,263、未対応2,541、693,094 bytes、SHA-256 `5480ae6264644932bc04b33a7a6d9afb5469c69aade047af9e164eba915b376d`である。対象識別子整列集合のSHA-256は`71f17c55f48e3f5e0eefcac63817ff554b2ae66fc3424f3ddff95647d6e234c7`で、型・構築・寿命3、取引終了・redo・undo 3の2枠へ固定する。
 - 公開transaction dataはundo command基底の完全型、image共有pointer別名とwrapper factory前方宣言を必要な形で持ち、未使用依存や実装詳細を伝播させていないため構造変更は不要である。直前のstroke間対象へはpainting/undo探索路追加が必要なため追記先から除外する。通常取引・選択取引・undo-command型stroke方針を所有する既存`libs/image/tests/KisStrokeStrategyUndoCommandBasedSchemaContractTest.cpp`は183行・10枠で、2枠追加後も300行・20枠未満に収まる。同targetはpainting/undoを含む既存探索路、image・pigment export定義、Qt Core・Testだけで4工程・8入力、command SHA-256 `6baf33872768cb0cbe45449a7fb493fdc29b647b1386520f4368622ab35b17ce`、input SHA-256 `b25e5059e87a568c270ce9e1fe072b4b0be1b07f0b4509e641e1c7e7873e834b`である。新規targetとinterstroke対象のCMake拡張は恒久的な対象・探索路を増やすため棄却する。
 - 開始headerから既存試験sourceの2枠だけへ追加し、CMake、公開header、製品sourceは変更しない。停止線は5工程・11入力とし、新たな探索路・定義・link、AUTOMOC header入力、製品未解決記号、transaction data・paint device・wrapper factory・undo commandまたは取引本文の実体化が必要なら停止する。macOSの対象、追加2枠の20回反復、軽量近傍、試験sourceの厳格構文、書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、既存動作試験、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
+
+### 第459便の実装結果
+
+- 開始`libs/image/kis_transaction_data.h`から既存`libs/image/tests/KisStrokeStrategyUndoCommandBasedSchemaContractTest.cpp`へ全6 API・2枠を追加した。型・undo command派生・構築・寿命3、取引終了・redo・undo 3を型特性と厳密な関数pointerで固定した。初回は既存10枠と新しい型枠が成功し、`G459 transaction data API schema is not fixed yet`だけで1件失敗した。transaction data、paint device、wrapper factory、undo commandと取引本文は実体化していない。計画commitは`d7db8e723e`、契約commitは`a62de58ae4`である。
+- 試験sourceは218行・12枠となり、CMake、公開header、製品sourceを変更していない。既存targetは4工程・8入力、command SHA-256 `6baf33872768cb0cbe45449a7fb493fdc29b647b1386520f4368622ab35b17ce`、input SHA-256 `b25e5059e87a568c270ce9e1fe072b4b0be1b07f0b4509e641e1c7e7873e834b`を変更前から維持した。AUTOMOC `HEADERS=[]`、直接接続はQt Core・Test、製品未解決記号と製品動的接続は0である。
+- macOSで対象、軽量近傍`KisInterstrokeDataSchemaContractTest`、対象の20回反復、試験sourceの`clang-check --extra-arg=-Werror`と書式、連続二回の無作業再構築、公開API検査、`verify-quick`に成功した。既存動作試験、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 台帳は27,269件対応、2,535件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g459.json`と一時閉包一覧を削除し、追加作業tree・構築木は作成していない。主Ninja木5,995,732 KiB、共有compiler cache 982,764 KiB、最新`build/tdd-macos/public-api-missing-g460.json` 691,538 bytes、SHA-256 `b187d3971c03ffe401b91ed86b6a06ea3b399dced1bf29f1266dde54fe2a1ff5`だけを再利用対象として保持する。compiler cacheは144,589件中120,563件、83.38%がhitしている。次の永続作業は第460便で最新報告から高密度なmacOS対象と最小構築面を選定することである。
 
 ### 第239便の先行監査担当票
 

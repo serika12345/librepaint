@@ -16,7 +16,7 @@
     "publicApiFingerprint": "5f05b2aa8e5bef4343af1d55a3852331e51d4369fe135b099327b1a91b6b8c4c"
   },
   "migration": {
-    "expectedMissingApis": 2541
+    "expectedMissingApis": 2535
   },
   "contracts": [
     {
@@ -56426,6 +56426,30 @@
         "method:KisTransaction::commit(KisPostExecutionUndoAdapter * undoAdapter)",
         "method:KisTransaction::commit(KisUndoAdapter * undoAdapter)",
         "method:KisTransaction::revert()"
+      ]
+    },
+    {
+      "target": "KisStrokeStrategyUndoCommandBasedSchemaContractTest",
+      "source": "libs/image/tests/KisStrokeStrategyUndoCommandBasedSchemaContractTest.cpp",
+      "test": "KisStrokeStrategyUndoCommandBasedSchemaContractTest::transactionDataTypeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "tile変更transaction dataはundo command派生として名称、描画装置、選択輪郭cache条件、stroke間wrapper、親command、更新抑止条件から構築・仮想破棄する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisTransactionData",
+        "method:KisTransactionData::KisTransactionData(const KUndo2MagicString & name,KisPaintDeviceSP device,bool resetSelectionOutlineCache,KisTransactionWrapperFactory * interstrokeDataFactory,KUndo2Command * parent,bool suppressUpdates)",
+        "method:KisTransactionData::~KisTransactionData()"
+      ]
+    },
+    {
+      "target": "KisStrokeStrategyUndoCommandBasedSchemaContractTest",
+      "source": "libs/image/tests/KisStrokeStrategyUndoCommandBasedSchemaContractTest.cpp",
+      "test": "KisStrokeStrategyUndoCommandBasedSchemaContractTest::transactionDataLifecycleSignaturesRemainStable",
+      "behavior": "tile変更transaction dataは変更記録を終了し、保存済みtile変更をredoまたはundoする公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTransactionData::endTransaction()",
+        "method:KisTransactionData::redo()",
+        "method:KisTransactionData::undo()"
       ]
     },
     {
