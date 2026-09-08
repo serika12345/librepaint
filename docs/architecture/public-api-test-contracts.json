@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 2917
+    "expectedMissingApis": 2904
   },
   "contracts": [
     {
@@ -74071,6 +74071,55 @@
         "method:KisLayerThumbnailCache::clear()",
         "method:KisLayerThumbnailCache::sigLayerThumbnailUpdated(KisNodeSP node)",
         "method:KisLayerThumbnailCache::startThumbnailsUpdate()"
+      ]
+    },
+    {
+      "target": "KisMemoryStorageSchemaContractTest",
+      "source": "libs/resources/tests/KisMemoryStorageSchemaContractTest.cpp",
+      "test": "KisMemoryStorageSchemaContractTest::resourceCacheDbTypeAndStateSchemaRemainStable",
+      "behavior": "resource cache DBはDB filename・schema版・storage種別・無効bundle一覧の公開静的状態型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisResourceCacheDb",
+        "member:KisResourceCacheDb::databaseVersion",
+        "member:KisResourceCacheDb::disabledBundles",
+        "member:KisResourceCacheDb::resourceCacheDbFilename",
+        "member:KisResourceCacheDb::storageTypes"
+      ]
+    },
+    {
+      "target": "KisMemoryStorageSchemaContractTest",
+      "source": "libs/resources/tests/KisMemoryStorageSchemaContractTest.cpp",
+      "test": "KisMemoryStorageSchemaContractTest::resourceCacheDbStatusAndInitializationSignaturesRemainStable",
+      "behavior": "resource cache DBは指定場所から初期化でき、妥当性と最終errorを照会する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisResourceCacheDb::initialize(const QString & location)",
+        "method:KisResourceCacheDb::isValid()",
+        "method:KisResourceCacheDb::lastError()"
+      ]
+    },
+    {
+      "target": "KisMemoryStorageSchemaContractTest",
+      "source": "libs/resources/tests/KisMemoryStorageSchemaContractTest.cpp",
+      "test": "KisMemoryStorageSchemaContractTest::resourceCacheDbMaintenanceSignaturesRemainStable",
+      "behavior": "resource cache DBは一時資源の削除と終了時保守を実行する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisResourceCacheDb::deleteTemporaryResources()",
+        "method:KisResourceCacheDb::performHouseKeepingOnExit()"
+      ]
+    },
+    {
+      "target": "KisMemoryStorageSchemaContractTest",
+      "source": "libs/resources/tests/KisMemoryStorageSchemaContractTest.cpp",
+      "test": "KisMemoryStorageSchemaContractTest::resourceCacheDbForeignKeySignaturesRemainStable",
+      "behavior": "resource cache DBは外部key制約の状態を設定・照会し、release方針へ同期する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisResourceCacheDb::getForeignKeysStateImpl()",
+        "method:KisResourceCacheDb::setForeignKeysStateImpl(bool isEnabled)",
+        "method:KisResourceCacheDb::synchronizeForeignKeysState()"
       ]
     }
   ]
