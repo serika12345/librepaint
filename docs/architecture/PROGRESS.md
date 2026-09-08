@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-08 12:40 JST
+- 更新日時: 2026-09-08 12:46 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3048,6 +3048,14 @@
 - `g380-shape-layer-schema`は`completed`である。開始`libs/ui/flake/kis_shape_layer.h`から新規`libs/ui/tests/KisShapeLayerSchemaContractTest.cpp`へ残存全51 APIを、図形layerの型・構築8、node・layer状態14、device・幾何13、図形・永続化8、区画・遅延更新・通知8の5枠で対応付けた。対象は146行で、公開headerと製品sourceを変更していない。最初の対象限定compileは推移headerの`kis_icon_utils.h`、次に`psd.h`の探索路不足を検出したため、`libs/ui/tests/CMakeLists.txt`の新target固有節へwidgetutils・psdutilsと必要な既存interface探索路・export定義だけを加えた。その後の赤は5試験関数の未定義symbolだけで停止した。契約実装commitは`c7c6b3e2d1`である。
 - 最終targetは4工程・8入力、command SHA-256 `29a2b50034dd03ba47221cb65681708ef41747e40449d56b2555fb2316c8959e`、input SHA-256 `d125ea61bbaa6e4bd60b4a775c49acc2c4a4cbac4f72962a0aacecaa254b2b73`で停止線内に収まる。動的接続はQt Core・Test、macOS frameworkとgettextだけで、製品libraryの未解決symbolを持たない。macOSで対象`libs-ui-KisShapeLayerSchemaContractTest`、軽量近傍`libs-image-KisTransformMaskSchemaContractTest`、対象の20回反復、試験sourceの厳格`clang-check`、書式、AUTOMOC `HEADERS=[]`、二回の無作業再構築、公開API検査に成功した。既存`kis_shape_layer_test`の2,027工程・4,051入力、図形・文書・画像実体、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 台帳へ51 APIを追加して25,990件対応、3,814件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g380.json`を最新報告の検証後に削除し、追加作業tree・構築木は作成していない。主Ninja木5,952,580 KiB、共有compiler cache 983,044 KiB、最新`build/tdd-macos/public-api-missing-g381.json` 1,032,073 bytes、SHA-256 `9c8038b4805fa1f331fb6caecc0e29a10c56bf364c5bce3aefb920505337145c`だけを再利用対象として保持する。compiler cacheは144,311件中120,518件、83.51%がhitしている。次の永続作業は第381便で次の高密度なmacOS対象と最小構築面を選定することである。
+
+### 第381便の公開API契約計画
+
+- 第381便は`libs/image/kis_node.h`の残存全46 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g381.json`は公開header 1,548、公開API 29,804、対応済み25,990、未対応3,814、1,032,073 bytes、SHA-256 `9c8038b4805fa1f331fb6caecc0e29a10c56bf364c5bce3aefb920505337145c`である。対象識別子整列集合のSHA-256は`350253aaae7871f4a6afbe5b85f431a7feb5abeeb40be71f63219de9f50daecb`で、node型・位置分類・構築9、訪問・layer・projection 9、dirty・animation 13、graph階層12、進捗・通知3の5枠へ固定する。
+- 開始`libs/image/kis_node.h`は`KisRegion`を参照引数だけに使う一方、`KisRegion.h`のQt矩形・Boost operator閉包を143の直接利用元へ伝播させている。完全型を使う`libs/image/kis_node.cpp`は既に所有headerを直接includeする。構造先行変更では開始headerを前方宣言へ縮小し、推移依存で完全型を使っていた`libs/image/kis_processing_applicator.cpp`と`libs/image/krita_utils.cpp`へ`KisRegion.h`を移す。前者の重複した`kis_node.h`も一つに整理する。直接利用元と`KisRegion`参照の交差を全件走査し、他の実利用元は所有headerを既に直接includeすることを確認した。
+- 変更前の`libs/image/kis_node.cpp`、`libs/image/kis_processing_applicator.cpp`、`libs/image/krita_utils.cpp`、`libs/image/kis_paint_device.cc`、`libs/ui/nodes/kis_node_model.cpp`は厳格`clang-check`にすべて無診断で成功した。変更後も5件を無診断で成功させ、公開API報告のbyte一致を完了条件とする。
+- 新規`libs/image/tests/KisNodeSchemaContractTest.cpp`を200行・10枠未満で作り、型特性、列挙値、厳密な関数pointerだけで46 APIを観測する。最も近い`KisBaseNodeSchemaContractTest`は4工程・8入力、command SHA-256 `9570101f071b41c39850f50e33014f04d5ebc2cf08c5c8dd2e7f834b043d6376`、input SHA-256 `057e7f7fd450ce8c1c6aaee29e04aeda61a8908a47964b21e3d0869049596d7b`である。新規targetも4工程・8入力を予測し、停止線を5工程・11入力とする。候補headerをAUTOMOC入力にせず、製品`kritaimage` 1,197工程・2,418入力、製品shared・OBJECT、`kritatestsdk`、node・画像・描画device・訪問者実体を接続または実行しない。
+- `g381-node-schema`の状態は`in_progress`、実装基点は`63e8615278`である。構造先行commit後に新規試験sourceと`libs/image/tests/CMakeLists.txt`の対象固有節だけへ契約を追加する。macOSの対象、5枠の20回反復、軽量近傍、5 risk翻訳単位と試験sourceの厳格`clang-check`、書式、AUTOMOC後の二回目計画、二回の無作業再構築、動的接続・未解決symbol、公開API検査、`verify-quick`だけを実行する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
 
 ### 第239便の先行監査担当票
 
