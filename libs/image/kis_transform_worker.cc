@@ -10,6 +10,8 @@
 
 #include "kis_transform_worker.h"
 
+#include "KisRegion.h"
+
 #include <qmath.h>
 #include <klocalizedstring.h>
 
@@ -707,5 +709,4 @@ void KisTransformWorker::offset(KisPaintDeviceSP device, const QPoint& offsetPos
     QRect resultRect(sx, sy, wrapRect.width(), wrapRect.height());
     KisPainter::copyAreaOptimized(resultRect.topLeft(), offsetDevice, device, resultRect);
 }
-
 

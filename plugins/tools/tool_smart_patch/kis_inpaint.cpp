@@ -35,6 +35,7 @@
 #include "KoMixColorsOp.h"
 #include "KoColorModelStandardIds.h"
 #include "KoColorSpaceRegistry.h"
+#include <KoUpdater.h>
 
 const int MAX_DIST = 65535;
 const quint8 MASK_SET = 255;
@@ -990,4 +991,3 @@ QRect patchImage(const KisPaintDeviceSP imageDev, const KisPaintDeviceSP maskDev
 
     return maskRect;
 }
-
