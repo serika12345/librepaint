@@ -934,6 +934,23 @@ target_include_directories(KoToolBaseSchemaContractTest PRIVATE
 target_compile_definitions(KoToolBaseSchemaContractTest PRIVATE kritaflake_EXPORTS)
 
 kis_add_test(
+    KoToolBasePrivateSchemaContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KoToolBasePrivateSchemaContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+    ${CMAKE_SOURCE_DIR}/libs/resources
+    ${CMAKE_BINARY_DIR}/libs/resources
+    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Widgets,INTERFACE_INCLUDE_DIRECTORIES>
+)
+target_compile_definitions(KoToolBasePrivateSchemaContractTest PRIVATE kritaflake_EXPORTS)
+
+kis_add_test(
     KoToolManagerSchemaContractTest.cpp
     LINK_LIBRARIES
         Boost::boost
