@@ -9,18 +9,21 @@
 
 #include <QObject>
 #include <kis_types.h>
-#include <QQueue>
 #include <QList>
+#include <QScopedPointer>
+#include <QVector>
 #include "KoResourceServer.h"
 #include <KisTag.h>
-#include "KisTagFilterResourceProxyModel.h"
 
 #include <KoColor.h>
-#include <KoResource.h>
 
+class QImage;
 class QString;
 class KisPaintopBox;
 class KisPaintOpPreset;
+class KisResourceModel;
+class KisTagFilterResourceProxyModel;
+class KisTagModel;
 template <typename T>
 class KisSortedHistoryList;
 

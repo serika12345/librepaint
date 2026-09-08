@@ -9,6 +9,7 @@
 #include <QPoint>
 #include <QString>
 #include <QColor>
+#include <QImage>
 #include <brushengine/kis_paintop_registry.h>
 #include <brushengine/kis_paintop_preset.h>
 #include <KoID.h>
@@ -20,6 +21,9 @@
 #include <KisPaintResourceServerProvider.h>
 #include "application/kis_config.h"
 #include "kis_config_notifier.h"
+#include <KisResourceModel.h>
+#include <KisTagFilterResourceProxyModel.h>
+#include <KisTagModel.h>
 #include <kis_paintop_preset.h>
 #include <KisSortedHistoryList.h>
 
@@ -243,4 +247,3 @@ void KisFavoriteResourceManager::init()
         updateFavoritePresets();
     }
 }
-
