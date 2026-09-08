@@ -8,12 +8,15 @@
 #include <type_traits>
 
 #include "canvas/KisIdleTasksManager.h"
+#include "canvas/KisLayerThumbnailCache.h"
 #include "canvas/kis_canvas_resource_provider.h"
 
 #define ASSERT_PROVIDER_SIGNATURE(method, signature)                                                                   \
     static_assert(std::is_same_v<decltype(&KisCanvasResourceProvider::method), signature>)
 #define ASSERT_IDLE_TASKS_MANAGER_SIGNATURE(method, signature)                                                         \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisIdleTasksManager::method)), signature>)
+#define ASSERT_LAYER_THUMBNAIL_CACHE_SIGNATURE(method, signature)                                                      \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KisLayerThumbnailCache::method)), signature>)
 
 class KisCanvasResourceProviderSchemaContractTest : public QObject
 {
@@ -30,6 +33,10 @@ private Q_SLOTS:
     void idleTaskGuardCopyAndMoveSchemaRemainStable();
     void idleTaskGuardStateAndControlSchemaRemainStable();
     void idleTasksManagerImageAndRegistrationSignaturesRemainStable();
+    void layerThumbnailCacheTypeAndLifetimeSchemaRemainStable();
+    void layerThumbnailCacheImageAndSizeSignaturesRemainStable();
+    void layerThumbnailCacheNodeSignaturesRemainStable();
+    void layerThumbnailCacheUpdateSignaturesRemainStable();
 };
 
 void KisCanvasResourceProviderSchemaContractTest::typeOwnershipAndResourceConnectionSchemaRemainStable()
@@ -241,7 +248,46 @@ void KisCanvasResourceProviderSchemaContractTest::idleTasksManagerImageAndRegist
                                         Manager::TaskGuard (Manager::*)(KisIdleTaskStrokeStrategyFactory));
 }
 
+void KisCanvasResourceProviderSchemaContractTest::layerThumbnailCacheTypeAndLifetimeSchemaRemainStable()
+{
+    using Cache = KisLayerThumbnailCache;
+
+    static_assert(std::is_class_v<Cache>);
+    static_assert(std::is_default_constructible_v<Cache>);
+    static_assert(std::has_virtual_destructor_v<Cache>);
+}
+
+void KisCanvasResourceProviderSchemaContractTest::layerThumbnailCacheImageAndSizeSignaturesRemainStable()
+{
+    using Cache = KisLayerThumbnailCache;
+
+    ASSERT_LAYER_THUMBNAIL_CACHE_SIGNATURE(setImage, void (Cache::*)(KisImageSP));
+    ASSERT_LAYER_THUMBNAIL_CACHE_SIGNATURE(setIdleTaskManager, void (Cache::*)(KisIdleTasksManager *));
+    ASSERT_LAYER_THUMBNAIL_CACHE_SIGNATURE(setImage, void (Cache::*)(KisImageSP, KisIdleTasksManager *));
+    ASSERT_LAYER_THUMBNAIL_CACHE_SIGNATURE(setMaxSize, void (Cache::*)(int));
+    ASSERT_LAYER_THUMBNAIL_CACHE_SIGNATURE(maxSize, int (Cache::*)() const);
+}
+
+void KisCanvasResourceProviderSchemaContractTest::layerThumbnailCacheNodeSignaturesRemainStable()
+{
+    using Cache = KisLayerThumbnailCache;
+
+    ASSERT_LAYER_THUMBNAIL_CACHE_SIGNATURE(thumbnail, QImage (Cache::*)(KisNodeSP) const);
+    ASSERT_LAYER_THUMBNAIL_CACHE_SIGNATURE(notifyNodeAdded, void (Cache::*)(KisNodeSP));
+    ASSERT_LAYER_THUMBNAIL_CACHE_SIGNATURE(notifyNodeRemoved, void (Cache::*)(KisNodeSP));
+}
+
+void KisCanvasResourceProviderSchemaContractTest::layerThumbnailCacheUpdateSignaturesRemainStable()
+{
+    using Cache = KisLayerThumbnailCache;
+
+    ASSERT_LAYER_THUMBNAIL_CACHE_SIGNATURE(startThumbnailsUpdate, void (Cache::*)());
+    ASSERT_LAYER_THUMBNAIL_CACHE_SIGNATURE(clear, void (Cache::*)());
+    ASSERT_LAYER_THUMBNAIL_CACHE_SIGNATURE(sigLayerThumbnailUpdated, void (Cache::*)(KisNodeSP));
+}
+
 #undef ASSERT_IDLE_TASKS_MANAGER_SIGNATURE
+#undef ASSERT_LAYER_THUMBNAIL_CACHE_SIGNATURE
 
 QTEST_GUILESS_MAIN(KisCanvasResourceProviderSchemaContractTest)
 
