@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 3542
+    "expectedMissingApis": 3520
   },
   "contracts": [
     {
@@ -71799,6 +71799,73 @@
       "apis": [
         "method:KisPaintOpFactory::priority() const",
         "method:KisPaintOpFactory::setPriority(int newPriority)"
+      ]
+    },
+    {
+      "target": "KisPaintOpFactorySchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisPaintOpFactorySchemaContractTest.cpp",
+      "test": "KisPaintOpFactorySchemaContractTest::brushBasedSettingsTypeAliasAndLifetimeSchemaRemainStable",
+      "behavior": "brush-based paintop設定は公開型、共有pointer別名、資源interface指定構築と破棄の境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisBrushBasedPaintOpSettingsSP",
+        "class:KisBrushBasedPaintOpSettings",
+        "method:KisBrushBasedPaintOpSettings::KisBrushBasedPaintOpSettings(KisResourcesInterfaceSP resourcesInterface)",
+        "method:KisBrushBasedPaintOpSettings::~KisBrushBasedPaintOpSettings()"
+      ]
+    },
+    {
+      "target": "KisPaintOpFactorySchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisPaintOpFactorySchemaContractTest.cpp",
+      "test": "KisPaintOpFactorySchemaContractTest::brushBasedSettingsBrushOutlineAndCloneSignaturesRemainStable",
+      "behavior": "brush-based paintop設定はbrush取得、入力・輪郭方式・倍率による輪郭生成と設定複製の公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisBrushBasedPaintOpSettings::brush() const",
+        "method:KisBrushBasedPaintOpSettings::brushOutline(const KisPaintInformation & info,const OutlineMode & mode,qreal alignForZoom)",
+        "method:KisBrushBasedPaintOpSettings::clone() const"
+      ]
+    },
+    {
+      "target": "KisPaintOpFactorySchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisPaintOpFactorySchemaContractTest.cpp",
+      "test": "KisPaintOpFactorySchemaContractTest::brushBasedSettingsSpacingAndIncrementalSignaturesRemainStable",
+      "behavior": "brush-based paintop設定は増分描画、固定間隔、自動間隔の有効状態と係数の設定・照会境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisBrushBasedPaintOpSettings::autoSpacingActive()",
+        "method:KisBrushBasedPaintOpSettings::autoSpacingCoeff()",
+        "method:KisBrushBasedPaintOpSettings::paintIncremental()",
+        "method:KisBrushBasedPaintOpSettings::setAutoSpacing(bool active,qreal coeff)",
+        "method:KisBrushBasedPaintOpSettings::setSpacing(qreal spacing)",
+        "method:KisBrushBasedPaintOpSettings::spacing()"
+      ]
+    },
+    {
+      "target": "KisPaintOpFactorySchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisPaintOpFactorySchemaContractTest.cpp",
+      "test": "KisPaintOpFactorySchemaContractTest::brushBasedSettingsSizeAndAngleSignaturesRemainStable",
+      "behavior": "brush-based paintop設定は描画寸法と角度の設定・照会境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisBrushBasedPaintOpSettings::paintOpAngle() const",
+        "method:KisBrushBasedPaintOpSettings::paintOpSize() const",
+        "method:KisBrushBasedPaintOpSettings::setPaintOpAngle(qreal value)",
+        "method:KisBrushBasedPaintOpSettings::setPaintOpSize(qreal value)"
+      ]
+    },
+    {
+      "target": "KisPaintOpFactorySchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisPaintOpFactorySchemaContractTest.cpp",
+      "test": "KisPaintOpFactorySchemaContractTest::brushBasedSettingsResourceAndPropertySignaturesRemainStable",
+      "behavior": "brush-based paintop設定はpattern利用、必要canvas資源、資源cacheの設定・再生成と統一property一覧の公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisBrushBasedPaintOpSettings::hasPatternSettings() const",
+        "method:KisBrushBasedPaintOpSettings::regenerateResourceCache(KoResourceCacheInterfaceSP cacheInterface)",
+        "method:KisBrushBasedPaintOpSettings::requiredCanvasResources() const",
+        "method:KisBrushBasedPaintOpSettings::setResourceCacheInterface(KoResourceCacheInterfaceSP cacheInterface)",
+        "method:KisBrushBasedPaintOpSettings::uniformProperties(KisPaintOpSettingsSP settings,QPointer<KisPaintOpPresetUpdateProxy> updateProxy)"
       ]
     }
   ]
