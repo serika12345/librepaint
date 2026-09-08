@@ -121,6 +121,26 @@ target_include_directories(KisAbstractResourceModelSchemaContractTest PRIVATE
 target_compile_definitions(KisAbstractResourceModelSchemaContractTest PRIVATE kritaresources_EXPORTS)
 
 kis_add_test(
+    KisResourceLoaderSchemaContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+        Boost::boost
+)
+target_include_directories(KisResourceLoaderSchemaContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Gui,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
+)
+target_compile_definitions(KisResourceLoaderSchemaContractTest PRIVATE
+    kritaglobal_EXPORTS
+    kritaresources_EXPORTS
+)
+
+kis_add_test(
     KisResourceIteratorSchemaContractTest.cpp
     LINK_LIBRARIES
         Qt${QT_MAJOR_VERSION}::Core
