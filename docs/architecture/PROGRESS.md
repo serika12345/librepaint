@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 01:58 JST
+- 更新日時: 2026-09-09 02:10 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3797,6 +3797,13 @@
 - 構築範囲の先行最適化として、開始`libs/image/KisAslStorage.h`が公開宣言に不要な`kis_asl_layer_style_serializer.h`の完全型を取り込む状態を、前方宣言へ置き換える。完全型の所有先は`libs/image/KisAslStorage.cpp`であり、同sourceへ明示includeを移す。この変更は公開宣言と所有形態を保ち、ASL文書、PSD効果、pattern、gradient、pigment、psdutils、Qt Xmlを公開header閉包から除く。
 - 契約は新規`libs/image/tests/KisAslStorageSchemaContractTest.cpp`と同target固有の`libs/image/tests/CMakeLists.txt`節へ置く。image・global・resourcesのsource/generated探索路、KF I18n interface、`kritaimage_EXPORTS`と`kritaresources_EXPORTS`、Qt Core・Gui・Testとheader-only Boostだけを使い、製品shared・OBJECT、`kritatestsdk`、ASL直列化器、資源、反復器、Qt値を実体化しない。既存の最寄り`KisPSDLayerStyleSchemaContractTest`は4工程・8入力だが294行・15枠で追記上限に近いため、新規の責務別対象を選ぶ。
 - 最寄り対象の初期閉包は4工程・8入力、command hash `17997f14a0935823da1da73e7e87fb3464fba401d80543a3bccfbae1babadca0`、input hash `299259db044314cfa0c48510d5c4a269d97473c183b9236c24f68190ef76508e`である。新規対象も4工程・8入力を予測し、停止線を5工程・11入力とする。計画外探索路・link・定義、AUTOMOC header入力、製品未解決記号、対象型の実体化または本文実行が必要なら停止する。macOSの対象と軽量近傍、4枠の各20回反復、公開headerと製品sourceの厳密構文検査、二回目計画、無作業再構築、公開API検査、`verify-quick`だけを実行し、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
+
+### 第439便の実装結果
+
+- 公開header閉包の問題は、開始`libs/image/KisAslStorage.h`が公開宣言に不要なASL直列化器の完全型を取り込み、ASL文書、PSD効果、pattern、gradient、pigment、psdutils、Qt Xmlまで推移させる構造だった。`kis_asl_layer_style_serializer.h`を同headerの前方宣言へ置き換え、完全型の利用先`libs/image/KisAslStorage.cpp`へ明示includeを移した。公開宣言、共有所有、寿命、実行挙動を保ち、製品sourceの既存コンパイル条件による厳密構文検査に成功した。計画commitは`19dcd77aee`、依存整理commitは`c494c753a5`である。
+- `libs/image/KisAslStorage.h`から新規`libs/image/tests/KisAslStorageSchemaContractTest.cpp`へ全13 APIを4枠で固定し、`libs/image/tests/CMakeLists.txt`へ責務別対象を追加した。初回は13件の型検査が成立し、`G439 ASL storage API schema is not fixed yet`だけで1件失敗した。契約commitは`06e5e82736`である。最終sourceは64行・4枠、対象は4工程・8入力、command hash `ce89a66991694a8a7e6147e08d932cb311178ba1153f68483066c0ea9e341343`、input hash `ea34a6e08de909089eae96da543c5d28e321747e90db0c1b9a53f83b34b5d81c`で停止線内に収まった。
+- macOSで対象`libs-image-KisAslStorageSchemaContractTest`と近傍`libs-image-KisPSDLayerStyleSchemaContractTest`、対象の20回反復、試験sourceと`KisAslStorage.cpp`の`clang-check --extra-arg=-Werror`、試験sourceの書式、AUTOMOC `HEADERS=[]`、製品未解決記号0、Qt Core・Gui・Testだけの動的接続、二回の無作業再構築に成功した。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 台帳へ13 APIを追加して27,033件対応、2,771件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g439.json`を削除し、追加作業tree・構築木・一時計画物は作成していない。主Ninja木5,986,016 KiB、共有compiler cache 983,172 KiB、最新`build/tdd-macos/public-api-missing-g440.json` 756,746 bytes、SHA-256 `e461db0dc4360c8ba253575a0fcb645ca769e0f1f7ab8beb61bcb9e8ada8d699`だけを再利用対象として保持する。compiler cacheは144,532件中120,558件、83.41%がhitしている。次の永続作業は第440便で次の高密度なmacOS対象と最小構築面を選定することである。
 
 ### 第239便の先行監査担当票
 

@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 2784
+    "expectedMissingApis": 2771
   },
   "contracts": [
     {
@@ -74564,6 +74564,55 @@
         "method:KisOnionSkinCompositor::configSeqNo() const",
         "method:KisOnionSkinCompositor::setColorLabelFilter(QSet<int> colors)",
         "method:KisOnionSkinCompositor::sigOnionSkinChanged()"
+      ]
+    },
+    {
+      "target": "KisAslStorageSchemaContractTest",
+      "source": "libs/image/tests/KisAslStorageSchemaContractTest.cpp",
+      "test": "KisAslStorageSchemaContractTest::aslStorageTypeOwnershipAndLifetimeSchemaRemainStable",
+      "behavior": "ASL保管機構は資源保管pluginとして構築・破棄でき、共有ASL直列化器を所有する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisAslStorage",
+        "member:KisAslStorage::m_aslSerializer",
+        "method:KisAslStorage::KisAslStorage(const QString & location)",
+        "method:KisAslStorage::~KisAslStorage()"
+      ]
+    },
+    {
+      "target": "KisAslStorageSchemaContractTest",
+      "source": "libs/image/tests/KisAslStorageSchemaContractTest.cpp",
+      "test": "KisAslStorageSchemaContractTest::aslStorageResourceLookupAndVersioningSchemaRemainStable",
+      "behavior": "ASL保管機構はURLから資源情報と資源を取得し、版付き資源の読込可否と版管理対応を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAslStorage::loadVersionedResource(KoResourceSP resource)",
+        "method:KisAslStorage::resource(const QString & url)",
+        "method:KisAslStorage::resourceItem(const QString & url)",
+        "method:KisAslStorage::supportsVersioning() const"
+      ]
+    },
+    {
+      "target": "KisAslStorageSchemaContractTest",
+      "source": "libs/image/tests/KisAslStorageSchemaContractTest.cpp",
+      "test": "KisAslStorageSchemaContractTest::aslStorageIterationSignaturesRemainStable",
+      "behavior": "ASL保管機構は資源種別ごとの資源反復器とtag反復器を返す公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAslStorage::resources(const QString & resourceType)",
+        "method:KisAslStorage::tags(const QString & resourceType)"
+      ]
+    },
+    {
+      "target": "KisAslStorageSchemaContractTest",
+      "source": "libs/image/tests/KisAslStorageSchemaContractTest.cpp",
+      "test": "KisAslStorageSchemaContractTest::aslStorageMutationAndValiditySignaturesRemainStable",
+      "behavior": "ASL保管機構は資源追加と新規版保存を受け付け、保管内容の妥当性を返す公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAslStorage::addResource(const QString & resourceType,KoResourceSP resource)",
+        "method:KisAslStorage::isValid() const",
+        "method:KisAslStorage::saveAsNewVersion(const QString & resourceType,KoResourceSP resource)"
       ]
     }
   ]
