@@ -16,7 +16,7 @@
     "publicApiFingerprint": "5f05b2aa8e5bef4343af1d55a3852331e51d4369fe135b099327b1a91b6b8c4c"
   },
   "migration": {
-    "expectedMissingApis": 2492
+    "expectedMissingApis": 2481
   },
   "contracts": [
     {
@@ -3514,6 +3514,53 @@
       "apis": [
         "function:KisPaintOpUtils::paintFan(PaintOp & op,const KisPaintInformation & pi1,const KisPaintInformation & pi2,KisDistanceInformation * currentDistance,qreal fanCornersStep)",
         "function:KisPaintOpUtils::paintLine(PaintOp & op,const KisPaintInformation & pi1,const KisPaintInformation & pi2,KisDistanceInformation * currentDistance,bool fanCornersEnabled,qreal fanCornersStep)"
+      ]
+    },
+    {
+      "target": "KisPaintOpSchemaContractTest",
+      "source": "libs/image/tests/KisPaintOpSchemaContractTest.cpp",
+      "test": "KisPaintOpSchemaContractTest::abstractTypeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "描画操作基底は共有所有される抽象型として描画器から派生実装を構築し、仮想破棄する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisPaintOp",
+        "method:KisPaintOp::KisPaintOp(KisPainter * painter)",
+        "method:KisPaintOp::~KisPaintOp()"
+      ]
+    },
+    {
+      "target": "KisPaintOpSchemaContractTest",
+      "source": "libs/image/tests/KisPaintOpSchemaContractTest.cpp",
+      "test": "KisPaintOpSchemaContractTest::paintingOperationSignaturesRemainStable",
+      "behavior": "描画操作基底は単一入力標本、二標本間の直線、制御点付きBezier曲線を描画し、現在の描画可否を返す公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPaintOp::canPaint() const",
+        "method:KisPaintOp::paintAt(const KisPaintInformation & info,KisDistanceInformation * currentDistance)",
+        "method:KisPaintOp::paintBezierCurve(const KisPaintInformation & pi1,const QPointF & control1,const QPointF & control2,const KisPaintInformation & pi2,KisDistanceInformation * currentDistance)",
+        "method:KisPaintOp::paintLine(const KisPaintInformation & pi1,const KisPaintInformation & pi2,KisDistanceInformation * currentDistance)"
+      ]
+    },
+    {
+      "target": "KisPaintOpSchemaContractTest",
+      "source": "libs/image/tests/KisPaintOpSchemaContractTest.cpp",
+      "test": "KisPaintOpSchemaContractTest::spacingAndTimingUpdateSignaturesRemainStable",
+      "behavior": "描画操作基底は現在の入力標本から距離状態の描画間隔と時機を更新する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPaintOp::updateSpacing(const KisPaintInformation & info,KisDistanceInformation & currentDistance) const",
+        "method:KisPaintOp::updateTiming(const KisPaintInformation & info,KisDistanceInformation & currentDistance) const"
+      ]
+    },
+    {
+      "target": "KisPaintOpSchemaContractTest",
+      "source": "libs/image/tests/KisPaintOpSchemaContractTest.cpp",
+      "test": "KisPaintOpSchemaContractTest::coordinateAndAsynchronousUpdateSignaturesRemainStable",
+      "behavior": "描画操作基底は座標を整数部と非負小数部へ分割し、非同期更新用の処理列と継続状態を受け渡す公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPaintOp::doAsynchronousUpdate(QVector<KisRunnableStrokeJobData * > & jobs)",
+        "method:KisPaintOp::splitCoordinate(qreal coordinate,qint32 * whole,qreal * fraction)"
       ]
     },
     {

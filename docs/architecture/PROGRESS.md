@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 08:19 JST
+- 更新日時: 2026-09-09 08:28 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4143,6 +4143,10 @@
 - 公開headerは`KisDistanceInformation`を参照・pointerでのみ使う一方、`QVector`と`std::pair`を距離headerから間接取得している。開始`libs/image/brushengine/kis_paintop.h`の`kis_distance_information.h` includeを、`QVector`・`utility`の直接includeと距離・間隔・時機型の前方宣言へ置き換える。実装`libs/image/brushengine/kis_paintop.cc`は既に距離headerを直接includeしている。直接利用元17件の変更前厳密構文検査は12件成功・5件既存診断であり、変更後の新規悪化0を完了条件とする。
 - 新規`libs/image/tests/KisPaintOpSchemaContractTest.cpp`は120行・5枠未満とする。公開constructorを宣言だけの最小派生型から観測し、公開関数は厳密な関数pointerで観測して抽象型と製品本文を実体化しない。image・globalのsource・binary探索路、`kritaimage_EXPORTS`、Qt Core・Testだけを与え、4工程・8入力を予測する。既存`libs/image/tests/kis_paintop_test.cpp`は製品image試験集合へ接続され、単一公開面の変更なし再構築境界を持たないため統合先から除外する。
 - header依存の限定を独立commitした後、開始headerから新規試験sourceとpackage-local CMake登録だけへ追加する。停止線は5工程・11入力で、新たな探索路・定義・製品接続、AUTOMOC header入力、製品未解決記号、派生型または描画本文の実体化が必要なら停止する。macOSの対象、最軽量近傍、対象の20回反復、試験sourceの厳格構文、書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
+- 構造整理では開始`libs/image/brushengine/kis_paintop.h`の`kis_distance_information.h` includeを除去し、実際に公開署名で使う`QVector`・`utility`の直接includeと距離・間隔・時機型の前方宣言へ置き換えた。距離計算を所有する既存`libs/image/brushengine/kis_paintop.cc`は直接includeを維持する。直接利用元17件の変更後厳密構文検査も12件成功・5件既存診断で、変更前から新規悪化0・改善0・対象増減0である。公開面は1,548 header・29,804 APIと両指紋を維持した。構造commitは`61bddc5972`である。
+- 開始`libs/image/brushengine/kis_paintop.h`から新規`libs/image/tests/KisPaintOpSchemaContractTest.cpp`へ全11 API・4枠を追加した。抽象型の公開constructorを宣言だけの最小派生型で観測し、単点・直線・Bezier描画、可否、間隔・時機更新、座標分割、非同期処理列を厳密な関数pointerで固定した。初回は`std::pair<int, bool>`を固定引数macroが分割する試験記述で停止し、可変引数macroへ修正後は既存3枠が成功して`G465 paint operation base API schema is not fixed yet`だけで1件失敗した。抽象派生型と製品本文は実体化していない。計画commitは`a2d3bda3f9`、契約commitは`9112891c0b`である。
+- 新規試験sourceは87行・4枠で、targetは4工程・8入力、command SHA-256 `a4a8e5aa9513dfddfd9c204847e488e84cb835c7266d58a5bd43e83dca6a71ed`、input SHA-256 `5b98adb969b3db3568f3afe757b541493e5e605b52181e987b20d00b75a269f2`となった。AUTOMOC `HEADERS=[]`、直接接続はQt Core・Testで、製品未解決記号・製品動的接続は0である。macOSで対象、最軽量近傍`KisPaintOpUtilsSchemaContractTest`、対象の20回反復、試験sourceの厳格構文と書式、連続二回の無作業再構築、公開API検査、`verify-quick`に成功した。描画操作の動作対象、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 台帳は27,323件対応、2,481件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g465.json`を削除し、直接利用元比較はディスクへ一時一覧を作らず、追加作業tree・構築木も作成していない。主Ninja木5,999,636 KiB、共有compiler cache 983,008 KiB、最新`build/tdd-macos/public-api-missing-g466.json` 675,175 bytes、SHA-256 `355d18f161ae8e9e46656d053b6c0a4c0a85dd9a204ae5d5a93c5c22e58ccb79`だけを再利用対象として保持する。compiler cacheは144,608件中120,565件、83.37%がhitしている。次の永続作業は第466便で最新報告から高密度なmacOS対象と最小構築面を選定することである。
 
 ### 第239便の先行監査担当票
 
