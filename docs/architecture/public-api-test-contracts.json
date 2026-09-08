@@ -16,7 +16,7 @@
     "publicApiFingerprint": "5f05b2aa8e5bef4343af1d55a3852331e51d4369fe135b099327b1a91b6b8c4c"
   },
   "migration": {
-    "expectedMissingApis": 2504
+    "expectedMissingApis": 2492
   },
   "contracts": [
     {
@@ -3457,6 +3457,63 @@
         "variable:KisPaintOpUtils::MaskingBrushPaintOpId",
         "variable:KisPaintOpUtils::MaskingBrushPresetPrefix",
         "variable:KisPaintOpUtils::MaskingBrushUseMasterSizeTag"
+      ]
+    },
+    {
+      "target": "KisPaintOpUtilsSchemaContractTest",
+      "source": "libs/image/tests/KisPaintOpUtilsSchemaContractTest.cpp",
+      "test": "KisPaintOpUtilsSchemaContractTest::positionHistoryTypeAndUpdateBehaviorRemainStable",
+      "behavior": "描画位置履歴は初期位置を設定し、現在位置と異なる直前位置を二段階で保持して筆先輪郭のちらつきを抑える。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisPaintOpUtils::PositionHistory",
+        "method:KisPaintOpUtils::PositionHistory::pushThroughHistory(const QPointF & pt,qreal zoom)",
+        "method:KisPaintOpUtils::PositionHistory::reset(const QPointF & pt)"
+      ]
+    },
+    {
+      "target": "KisPaintOpUtilsSchemaContractTest",
+      "source": "libs/image/tests/KisPaintOpUtilsSchemaContractTest.cpp",
+      "test": "KisPaintOpUtilsSchemaContractTest::sizeAndAutomaticSpacingBehaviorRemainStable",
+      "behavior": "描画操作補助は縮尺適用後の極小寸法を判定し、寸法と二次元位置から自動間隔を算出する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisPaintOpUtils::calcAutoSpacing(const QPointF & pt,qreal coeff,qreal lodScale)",
+        "function:KisPaintOpUtils::calcAutoSpacing(qreal value,qreal coeff)",
+        "function:KisPaintOpUtils::checkSizeTooSmall(qreal scale,qreal width,qreal height)"
+      ]
+    },
+    {
+      "target": "KisPaintOpUtilsSchemaContractTest",
+      "source": "libs/image/tests/KisPaintOpUtilsSchemaContractTest.cpp",
+      "test": "KisPaintOpUtilsSchemaContractTest::effectiveSpacingAndTimingSignaturesRemainStable",
+      "behavior": "描画操作補助はdab寸法・縮尺・回転・反転・自動間隔条件から有効間隔を、時間設定と速度縮尺から有効時機を返す。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisPaintOpUtils::effectiveSpacing(qreal dabWidth,qreal dabHeight,qreal extraScale,bool distanceSpacingEnabled,bool isotropicSpacing,qreal rotation,bool axesFlipped,qreal spacingVal,bool autoSpacingActive,qreal autoSpacingCoeff,qreal lodScale)",
+        "function:KisPaintOpUtils::effectiveTiming(bool timingEnabled,qreal timingInterval,qreal rateExtraScale)"
+      ]
+    },
+    {
+      "target": "KisPaintOpUtilsSchemaContractTest",
+      "source": "libs/image/tests/KisPaintOpUtilsSchemaContractTest.cpp",
+      "test": "KisPaintOpUtilsSchemaContractTest::dabRectangleSplittingSignaturesRemainStable",
+      "behavior": "描画操作補助はdab矩形列を理想patch寸法または矩形数・直径・間隔に基づいて分割・濾過する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisPaintOpUtils::splitAndFilterDabRect(const QRect & totalRect,const QVector<QRect> & dabRects,int idealPatchSize)",
+        "function:KisPaintOpUtils::splitDabsIntoRects(const QVector<QRect> & dabRects,int idealNumRects,int diameter,qreal spacing)"
+      ]
+    },
+    {
+      "target": "KisPaintOpUtilsSchemaContractTest",
+      "source": "libs/image/tests/KisPaintOpUtilsSchemaContractTest.cpp",
+      "test": "KisPaintOpUtilsSchemaContractTest::fanAndLinePaintingTemplateSignaturesRemainStable",
+      "behavior": "描画操作補助は入力標本間を扇形補間または直線補間し、距離状態と角間隔条件を描画操作templateへ渡す公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisPaintOpUtils::paintFan(PaintOp & op,const KisPaintInformation & pi1,const KisPaintInformation & pi2,KisDistanceInformation * currentDistance,qreal fanCornersStep)",
+        "function:KisPaintOpUtils::paintLine(PaintOp & op,const KisPaintInformation & pi1,const KisPaintInformation & pi2,KisDistanceInformation * currentDistance,bool fanCornersEnabled,qreal fanCornersStep)"
       ]
     },
     {

@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 08:05 JST
+- 更新日時: 2026-09-09 08:14 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4133,6 +4133,9 @@
 - 公開headerの`kis_global.h`、paint information、distance information、spacing information、timing informationはinline・template本文または公開返値の完全型に使われている。未使用includeはなく、未使用の`KisRenderedDab`前方宣言は構築閉包を拡大しないため構造変更は不要である。位置履歴とinline寸法・間隔計算は値で実行時観測し、非inline関数と描画templateは関数pointer型を未評価のまま観測して製品実装を接続しない。
 - 新規`libs/image/tests/KisPaintOpUtilsSchemaContractTest.cpp`は160行・6枠未満とする。既存header限定schema対象と同じimage・globalのsource・binary探索路、`kritaimage_EXPORTS`、Qt Core・Gui・Testとheader-only Boostだけを与え、4工程・8入力を予測する。巨大な既存`KisImageTypesContractTest.cpp`は4,105行・214枠で責務分離と局所再構築性を悪化させるため統合先から除外する。
 - 開始headerから新規試験sourceとpackage-local CMake登録だけへ追加する。停止線は5工程・11入力で、新たな探索路・定義・製品接続、AUTOMOC header入力、製品未解決記号、描画template本文または非inline関数の実体化が必要なら停止する。macOSの対象、最軽量近傍、対象の20回反復、試験sourceの厳格構文、書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
+- 開始`libs/image/brushengine/kis_paintop_utils.h`から新規`libs/image/tests/KisPaintOpUtilsSchemaContractTest.cpp`へ全12 API・5枠を追加した。位置履歴の初期化と二段階更新、極小寸法境界、自動間隔の線形・平方根分岐と二次元結果を値で固定し、有効間隔・時機、dab矩形分割、fan・line描画templateを厳密な関数pointerで固定した。初回は実行時4枠が成功し、`G464 paint operation utility API schema is not fixed yet`だけで1件失敗した。描画template本文と非inline関数は実体化していない。計画commitは`b293f499d4`、契約commitは`7ccf43d009`である。
+- 新規試験sourceは120行・5枠で、targetは4工程・8入力、command SHA-256 `60d4be472e508c99aadb0ef8af4956cfc3ec2ac04e194bfe9b0d64bd8e7dab51`、input SHA-256 `f2dc25b3af0fe57d76bcc2ff5755519fa8032511f8957a75c868c7bd567361f7`となった。AUTOMOC `HEADERS=[]`、直接接続はQt Core・Gui・Testで、製品未解決記号・製品動的接続は0である。macOSで対象、最軽量近傍`KisPaintopSettingsIdsContractTest`、対象の20回反復、試験sourceの厳格構文と書式、連続二回の無作業再構築、公開API検査、`verify-quick`に成功した。非inline描画補助の動作対象、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 台帳は27,312件対応、2,492件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g464.json`を削除し、一時閉包一覧、追加作業tree・構築木は作成していない。主Ninja木5,998,336 KiB、共有compiler cache 982,456 KiB、最新`build/tdd-macos/public-api-missing-g465.json` 678,491 bytes、SHA-256 `841b891eae416a32760bfad2b55ef2ea3962c8f605b8193254ca18a7141c6449`だけを再利用対象として保持する。compiler cacheは144,605件中120,565件、83.38%がhitしている。次の永続作業は第465便で最新報告から高密度なmacOS対象と最小構築面を選定することである。
 
 ### 第239便の先行監査担当票
 
