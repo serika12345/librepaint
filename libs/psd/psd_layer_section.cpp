@@ -6,6 +6,8 @@
  */
 #include "psd_layer_section.h"
 
+#include "psd_layer_record.h"
+
 #include <QBuffer>
 #include <QIODevice>
 
