@@ -13,10 +13,10 @@
     "publicHeaderCount": 1548,
     "publicHeaderFingerprint": "d78d86e437112ee4e870fc718ef12536c8e810f419ab643636d4ebd6e47fd765",
     "publicApiCount": 29804,
-    "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
+    "publicApiFingerprint": "5f05b2aa8e5bef4343af1d55a3852331e51d4369fe135b099327b1a91b6b8c4c"
   },
   "migration": {
-    "expectedMissingApis": 2681
+    "expectedMissingApis": 2669
   },
   "contracts": [
     {
@@ -74964,6 +74964,54 @@
         "method:KisMultipleProjection::apply(KisPaintDeviceSP dstDevice,const QRect & rect,KisLayerStyleFilterEnvironment * env)",
         "method:KisMultipleProjection::getLodCapableDevices() const",
         "method:KisMultipleProjection::isEmpty() const"
+      ]
+    },
+    {
+      "target": "KisPaintOpPresetSchemaContractTest",
+      "source": "libs/image/tests/KisPaintOpPresetSchemaContractTest.cpp",
+      "test": "KisPaintOpPresetSchemaContractTest::lockedPropertiesServerTypeLifetimeAndAccessSchemaRemainStable",
+      "behavior": "固定property管理serverはQObjectとして既定構築・仮想破棄でき、共有instanceを取得する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisLockedPropertiesServer",
+        "method:KisLockedPropertiesServer::KisLockedPropertiesServer()",
+        "method:KisLockedPropertiesServer::instance()",
+        "method:KisLockedPropertiesServer::~KisLockedPropertiesServer()"
+      ]
+    },
+    {
+      "target": "KisPaintOpPresetSchemaContractTest",
+      "source": "libs/image/tests/KisPaintOpPresetSchemaContractTest.cpp",
+      "test": "KisPaintOpPresetSchemaContractTest::lockedPropertiesServerCollectionSignaturesRemainStable",
+      "behavior": "固定property管理serverは現在の固定集合を返し、設定集合のpropertyを追加・削除する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisLockedPropertiesServer::addToLockedProperties(KisPropertiesConfigurationSP p)",
+        "method:KisLockedPropertiesServer::lockedProperties()",
+        "method:KisLockedPropertiesServer::removeFromLockedProperties(KisPropertiesConfigurationSP p)"
+      ]
+    },
+    {
+      "target": "KisPaintOpPresetSchemaContractTest",
+      "source": "libs/image/tests/KisPaintOpPresetSchemaContractTest.cpp",
+      "test": "KisPaintOpPresetSchemaContractTest::lockedPropertiesServerSourceAndQuerySignaturesRemainStable",
+      "behavior": "固定property管理serverは固定値を設定へ反映する状態を設定・照会し、指定propertyの保持状態を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisLockedPropertiesServer::hasProperty(const QString & p)",
+        "method:KisLockedPropertiesServer::propertiesFromLocked()",
+        "method:KisLockedPropertiesServer::setPropertiesFromLocked(bool value)"
+      ]
+    },
+    {
+      "target": "KisPaintOpPresetSchemaContractTest",
+      "source": "libs/image/tests/KisPaintOpPresetSchemaContractTest.cpp",
+      "test": "KisPaintOpPresetSchemaContractTest::lockedPropertiesServerProxyCreationSignaturesRemainStable",
+      "behavior": "固定property管理serverは生pointerまたは共有pointerの設定から固定値を重ねるproxyを生成する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisLockedPropertiesServer::createLockedPropertiesProxy(KisPropertiesConfiguration * settings)",
+        "method:KisLockedPropertiesServer::createLockedPropertiesProxy(KisPropertiesConfigurationSP settings)"
       ]
     }
   ]

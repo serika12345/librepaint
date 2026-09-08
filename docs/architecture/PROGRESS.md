@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 03:43 JST
+- 更新日時: 2026-09-09 03:56 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3904,6 +3904,14 @@
 - 第447便は`libs/image/brushengine/kis_locked_properties_server.h`に残る全12 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g447.json`は公開header 1,548、公開API 29,804、対応済み27,123、未対応2,681、729,328 bytes、SHA-256 `50f28023cf3c03c34e552b2f5c09bfbce5495a7dc72c1f1270f407807814c382`である。対象識別子整列集合のSHA-256は`d5487a130ff29953575e7dcbc3fd82d068d282c4af002c18d91b676a3907769a`で、型・構築・寿命・singleton取得4、固定property取得・追加・削除3、固定値利用設定照会・property有無3、生・共有設定からのproxy生成2の4枠へ固定する。
 - 公開headerの依存を監査し、`kis_locked_properties_proxy.h`は公開返値のproxy共有pointer別名を所有し、同headerの基底として`kis_properties_configuration.h`を必要とすることを確認した。初回compileで後者が`Eigen/Sparse`を取り込み、既存対象には不要だったEigen探索路が必要になると判明した。serverの署名はproxyも設定も不完全型で表現できるため、proxy pointer別名を`kis_types.h`へ集約し、server headerはQObjectと共有pointer型だけに依存させる。proxy実装に必要な完全型includeは実装sourceが直接所有する。
 - 既存`libs/image/tests/KisPaintOpPresetSchemaContractTest.cpp`は112行・5枠で、4枠追加後も300行・20枠未満に収まる。対象固有headerと署名検査を同sourceへ加えるだけで`libs/image/tests/CMakeLists.txt`を変更せず、server、設定、固定property、proxyを実体化しない。対象の変更前閉包は4工程・8入力、command hash `0c32b72c9110304c0414146d4d0562b3228d14528e0f816521f51274008446d8`、input hash `d5fef47757220ffdb67b7e99cf6d1dd2d81f2ec0ff9972a54d3b3b8614760b9f`である。停止線を5工程・11入力とし、対象へのEigen探索路追加、計画外link・定義、AUTOMOC header入力、製品未解決記号、対象型の実体化または本文実行が必要なら停止する。macOSの対象と軽量近傍、追加4枠の20回反復、厳密構文、二回目計画、無作業再構築、公開API検査、`verify-quick`だけを実行し、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
+
+### 第447便の実装結果
+
+- `libs/image/brushengine/kis_locked_properties_server.h`から既存`libs/image/tests/KisPaintOpPresetSchemaContractTest.cpp`へ全12 APIを4枠で固定した。型・構築・寿命・singleton取得4、固定property取得・追加・削除3、固定値利用設定照会・property有無3、生・共有設定からのproxy生成2を重複なく対応付けた。最初のcompile診断は`Eigen/Sparse`探索路の欠落であり、公開header依存の過大さを検出した。依存縮小後の初回試験は既存5枠と追加3枠が成功し、`G447 locked properties API schema is not fixed yet`だけで1件失敗した。計画commitは`7b8dad6e48`、改訂計画commitは`7fdee85b3b`、構造commitは`855b672483`、契約commitは`a2764d3dc2`である。
+- 公開pointer別名の所有を`libs/image/brushengine/kis_locked_properties_proxy.h`から`libs/image/kis_types.h`へ移し、完全型依存を`libs/image/brushengine/kis_locked_properties_server.h`から`libs/image/brushengine/kis_locked_properties_server.cpp`へ移した。これによりserver headerはQObjectと共有pointer型だけに依存し、試験targetへEigen探索路や新しいlink依存を追加せずに済んだ。公開API数29,804は維持され、別名2件の所有header移動を公開面指紋`5f05b2aa8e5bef4343af1d55a3852331e51d4369fe135b099327b1a91b6b8c4c`へ同期した。
+- 最終sourceは163行・9枠、CMakeは変更していない。対象は変更前と同じ4工程・8入力、command hash `0c32b72c9110304c0414146d4d0562b3228d14528e0f816521f51274008446d8`、input hash `d5fef47757220ffdb67b7e99cf6d1dd2d81f2ec0ff9972a54d3b3b8614760b9f`を維持した。既存のQt Core・Gui・TestとOS frameworkだけの動的接続、AUTOMOC `HEADERS=[]`、対象製品未解決記号0を確認した。
+- macOSで対象`libs-image-KisPaintOpPresetSchemaContractTest`と軽量近傍`libs-image-KisPropertiesConfigurationSchemaContractTest`、対象の20回反復、試験sourceと直接利用元4 sourceの`clang-check --extra-arg=-Werror`、全7直接利用元の通常構文、試験sourceの書式、二回の無作業再構築に成功した。変更していない`kis_paintop_settings.cpp`の未使用引数と`kis_paintop_settings_widget.cpp`経由の既存deprecated-copy警告は厳密構文で再現し、今回の範囲外の基準線診断として分離した。台帳は27,135件対応、2,669件未対応となり、開始headerの残存は0件である。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 旧`public-api-missing-g447.json`を削除し、追加作業tree・構築木・一時計画物は作成していない。主Ninja木5,985,764 KiB、共有compiler cache 982,204 KiB、最新`build/tdd-macos/public-api-missing-g448.json` 725,820 bytes、SHA-256 `cbeb37947402e7c3d86e173963206355247e543e12bafb74fb298f63a11ed7e7`だけを再利用対象として保持する。compiler cacheは144,551件中120,558件、83.40%がhitしている。次の永続作業は第448便で最新報告から高密度なmacOS対象と最小構築面を選定することである。
 
 ### 第239便の先行監査担当票
 
