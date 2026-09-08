@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 3455
+    "expectedMissingApis": 3440
   },
   "contracts": [
     {
@@ -72111,6 +72111,66 @@
         "method:KisCachedSelection::Guard::Guard(KisCachedSelection & parent)",
         "method:KisCachedSelection::Guard::selection() const",
         "method:KisCachedSelection::Guard::~Guard()"
+      ]
+    },
+    {
+      "target": "KisCountVisitorSchemaContractTest",
+      "source": "libs/image/tests/KisCountVisitorSchemaContractTest.cpp",
+      "test": "KisCountVisitorSchemaContractTest::typeConstructionAndCountSchemaRemainStable",
+      "behavior": "件数訪問者はnode訪問者として構築でき、照合済みnode件数を返す公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisCountVisitor",
+        "method:KisCountVisitor::KisCountVisitor(const QStringList & nodeTypes,const KoProperties & properties)",
+        "method:KisCountVisitor::count()"
+      ]
+    },
+    {
+      "target": "KisCountVisitorSchemaContractTest",
+      "source": "libs/image/tests/KisCountVisitorSchemaContractTest.cpp",
+      "test": "KisCountVisitorSchemaContractTest::nodeAndStandardLayerVisitSignaturesRemainStable",
+      "behavior": "件数訪問者は汎用nodeとpaint・group・調整layerを受け取る訪問境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCountVisitor::visit(KisAdjustmentLayer * layer)",
+        "method:KisCountVisitor::visit(KisGroupLayer * layer)",
+        "method:KisCountVisitor::visit(KisNode * node)",
+        "method:KisCountVisitor::visit(KisPaintLayer * layer)"
+      ]
+    },
+    {
+      "target": "KisCountVisitorSchemaContractTest",
+      "source": "libs/image/tests/KisCountVisitorSchemaContractTest.cpp",
+      "test": "KisCountVisitorSchemaContractTest::generatedExternalAndCloneLayerVisitSignaturesRemainStable",
+      "behavior": "件数訪問者は生成・外部・複製layerを受け取る訪問境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCountVisitor::visit(KisCloneLayer * layer)",
+        "method:KisCountVisitor::visit(KisExternalLayer * layer)",
+        "method:KisCountVisitor::visit(KisGeneratorLayer * layer)"
+      ]
+    },
+    {
+      "target": "KisCountVisitorSchemaContractTest",
+      "source": "libs/image/tests/KisCountVisitorSchemaContractTest.cpp",
+      "test": "KisCountVisitorSchemaContractTest::filterTransformAndTransparencyMaskVisitSignaturesRemainStable",
+      "behavior": "件数訪問者はfilter・変形・透明maskを受け取る訪問境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCountVisitor::visit(KisFilterMask * mask)",
+        "method:KisCountVisitor::visit(KisTransformMask * mask)",
+        "method:KisCountVisitor::visit(KisTransparencyMask * mask)"
+      ]
+    },
+    {
+      "target": "KisCountVisitorSchemaContractTest",
+      "source": "libs/image/tests/KisCountVisitorSchemaContractTest.cpp",
+      "test": "KisCountVisitorSchemaContractTest::selectionAndColorizeMaskVisitSignaturesRemainStable",
+      "behavior": "件数訪問者はselection・colorize maskを受け取る訪問境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCountVisitor::visit(KisColorizeMask * mask)",
+        "method:KisCountVisitor::visit(KisSelectionMask * mask)"
       ]
     }
   ]

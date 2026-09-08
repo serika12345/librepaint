@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-08 17:15 JST
+- 更新日時: 2026-09-08 17:36 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3260,9 +3260,16 @@
 
 ### 第396便の公開API契約計画
 
-- 第396便は`libs/image/kis_count_visitor.h`の`KisCountVisitor`に残る全15 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g396.json`は公開header 1,548、公開API 29,804、対応済み26,349、未対応3,455、937,586 bytes、SHA-256 `3621496b195cce9267cfedbcdbfd37c85b38a73120786f7b7eab403de4c7a77e`である。対象識別子整列集合のSHA-256は`66063c2aed669379a39825ea628b199cb7ff9c4e8ad9c6e92e33e094c74207c4`で、型・構築・件数3、通常layer visit 3、生成・外部・複製layer visit 3、filter・変形・透明mask visit 3、selection・colorize mask visit 3の5枠へ固定する。
+- 第396便は`libs/image/kis_count_visitor.h`の`KisCountVisitor`に残る全15 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g396.json`は公開header 1,548、公開API 29,804、対応済み26,349、未対応3,455、937,586 bytes、SHA-256 `3621496b195cce9267cfedbcdbfd37c85b38a73120786f7b7eab403de4c7a77e`である。対象識別子整列集合のSHA-256は`66063c2aed669379a39825ea628b199cb7ff9c4e8ad9c6e92e33e094c74207c4`で、型・構築・件数3、通常node・layer visit 4、生成・外部・複製layer visit 3、filter・変形・透明mask visit 3、selection・colorize mask visit 2の5枠へ固定する。
 - 既存動的`kis_count_visitor_test`は製品`kritaimage`へ接続する1,201工程・2,425入力のため反復対象から除外する。開始headerは12種の具体layer・mask完全型をinline `visit()`から`KisNode *`へ変換するため全利用元へ伝播させ、構築・件数照会もinlineである。構造先行変更では開始`libs/image/kis_count_visitor.h`の構築・件数照会・12 `visit()`本文を既存`libs/image/kis_count_visitor.cpp`へ移し、具体layer・mask includeも同実装へ移す。公開headerは`QStringList`・`KoProperties`値member、`kis_node_visitor.h`と同基底の前方宣言だけを所有する。公開宣言・ABI・実行順を変えず、構成済み`kis_count_visitor.cpp`、`kis_image.cc`、`kis_count_visitor_test.cpp`の変更前後厳格診断一致と公開API報告byte一致を完了条件とする。
 - 新規`libs/image/tests/KisCountVisitorSchemaContractTest.cpp`と専用targetを作り、image・widgetutilsのsource/generated探索路、必要export定義、Qt Core・Testだけを直接接続する4工程・8入力を予測し、停止線を5工程・11入力とする。`g396-count-visitor-schema`の状態は`in_progress`、実装基点は`6f1956f325`である。構造変更を独立commit後、macOSの対象、5枠の20回反復、軽量近傍、3直接翻訳単位と試験sourceの厳格`clang-check`、書式、二回の無作業再構築、動的接続・未解決symbol、公開API検査、`verify-quick`だけを実行する。node・layer・mask・propertiesは実体化せず、製品image・OBJECT・shared target、既存動的試験、全体build・`verify`、Linux、Nix再評価は実行しない。
+
+### 第396便の実装結果
+
+- `g396-count-visitor-schema`は`completed`である。構造先行変更では、開始`libs/image/kis_count_visitor.h`から既存`libs/image/kis_count_visitor.cpp`へ構築、`count()`、12種の`visit()`本文と具体layer・maskの完全型includeを移した。推移includeに依存していた`libs/image/kis_image.cc`には所有する`KisSelectionMask`利用の直接includeを追加した。公開宣言、ABI、訪問順は維持し、構造commitは`8dd84b9199`である。変更前後の厳格診断は`kis_count_visitor.cpp`と`kis_image.cc`がclean、`kis_count_visitor_test.cpp`は既存の不完全`KisPaintDevice`診断だけで診断集合が一致し、公開API報告もbyte一致した。
+- 開始`libs/image/kis_count_visitor.h`から新規`libs/image/tests/KisCountVisitorSchemaContractTest.cpp`へ15 API・5枠を追加した。型・構築・件数3、通常node・layer visit 4、生成・外部・複製layer visit 3、filter・変形・透明mask visit 3、selection・colorize mask visit 2を型特性と厳密な関数pointerで固定し、node・layer・mask・propertiesと製品本文は実体化していない。初回redは未定義の5検査関数だけで失敗し、契約実装commitは`9c6ce93dc5`である。
+- macOSで対象`libs-image-KisCountVisitorSchemaContractTest`、軽量近傍`libs-image-KisNodeVisitorContractTest`、対象の20回反復、試験sourceの厳格`clang-check`、書式、二回の無作業再構築に成功した。4工程・8入力、command SHA-256 `555ed3709ed4e48d867f8bedfb45948b26f7ac3ca8f10a7e8dd0181f946f8d27`、input SHA-256 `ff3f4b2b979f553b4f739ca50a0a8208c0ee9e58b256583e40b7cd469c089f1d`、AUTOMOC `HEADERS=[]`、直接接続はQt Core・Test、製品未解決symbol 0である。既存動的試験と製品image・OBJECT・shared targetを反復対象から外したため、1,201工程・2,425入力の再構築を回避した。
+- 台帳へ15 APIを追加して26,364件対応、3,440件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g396.json`と一時計測物を削除し、追加作業tree・構築木は作成していない。主Ninja木5,971,720 KiB、共有compiler cache 982,820 KiB、最新`build/tdd-macos/public-api-missing-g397.json` 934,170 bytes、SHA-256 `633cda68b599b9e818d1ffa3c626ee1f2873ca8160e7b98976780e688d283cdd`だけを再利用対象として保持する。compiler cacheは144,374件中120,530件、83.48%がhitしている。次の永続作業は第397便で次の高密度なmacOS対象と最小構築面を選定することである。
 
 ### 第239便の先行監査担当票
 
