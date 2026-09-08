@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-08 18:22 JST
+- 更新日時: 2026-09-08 18:26 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3318,6 +3318,12 @@
 - `g400-resource-loader-schema`は`completed`である。開始`libs/resources/KisResourceLoader.h`から新規`libs/resources/tests/KisResourceLoaderSchemaContractTest.cpp`へ15 API・4枠を追加した。基底型・構築・寿命3、識別・表示・形式6、生成・読込み3、template loader型・構築・生成3を型特性、継承構築可能性、厳密な関数pointerで固定した。試験sourceは100行・4枠で、resource、入出力装置、resources interface、loader本文は実体化していない。初回redは未定義の4検査関数だけで失敗し、契約実装commitは`1d9092d758`である。
 - macOSで対象`libs-resources-KisResourceLoaderSchemaContractTest`、軽量近傍`libs-resources-KisResourceIteratorSchemaContractTest`、対象の20回反復、試験sourceの厳格`clang-check`、書式、二回の無作業再構築に成功した。4工程・8入力、command SHA-256 `b97c0a2ec12378fa128e19ae06a46874dd5cb2a8515d7e32c070a1ecf4b2f0e5`、input SHA-256 `17dade2e277da25d620bae254da61d24b8a421c85cd9d742fbda185318592ee5`、AUTOMOC `HEADERS=[]`、直接接続はQt Core・Testとheader-only Boost、製品未解決symbol 0である。既存のloader実行対象13工程・28入力と登録簿対象813工程・1,654入力を反復先から分離した。
 - 台帳へ15 APIを追加して26,420件対応、3,384件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g400.json`と一時計測物を削除し、追加作業tree・構築木は作成していない。主Ninja木5,975,528 KiB、共有compiler cache 983,364 KiB、最新`build/tdd-macos/public-api-missing-g401.json` 919,725 bytes、SHA-256 `b0c2bd5fffdd197339d88c2c08c97523f9e476c0ef6dbe557e3d1a6edf05e298`だけを再利用対象として保持する。compiler cacheは144,391件中120,532件、83.48%がhitしている。次の永続作業は第401便で次の高密度なmacOS対象と最小構築面を選定することである。
+
+### 第401便の公開API契約計画
+
+- 第401便は`libs/image/KisAutoLevels.h`に残る全15 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g401.json`は公開header 1,548、公開API 29,804、対応済み26,420、未対応3,384、919,725 bytes、SHA-256 `b0c2bd5fffdd197339d88c2c08c97523f9e476c0ef6dbe557e3d1a6edf05e298`である。対象識別子整列集合のSHA-256は`cdd6619efa66d3242bd899eb27fda65d370a5a16e71d8ca4cc8cf77d917dc7f4`で、調整方式列挙7、channel histogram値3、点・gamma計算2、色範囲1、channel調整2の5枠へ固定する。
+- 開始headerは共有pointer別名`KisPaintDeviceSP`だけに完全な`kis_paint_device.h`を取り込み、画像・UI・filter利用元へpaint device実装宣言を伝播させている。構造先行変更では`libs/image/KisAutoLevels.h`内の同includeを`kis_types.h`へ置き換え、公開宣言・ABIを維持する。`libs/image/KisAutoLevels.cpp`、`libs/ui/widgets/KisAutoLevelsWidget.cpp`、`plugins/filters/levelfilter/KisLevelsConfigWidget.cpp`と既存UI schemaの変更前後厳格診断一致、公開API報告byte一致を完了条件とする。
+- 既存`libs/ui/tests/KisAutoLevelsWidgetSchemaContractTest.cpp`は同列挙型を使うが、UI生成物を含む5工程・10入力である。新規`libs/image/tests/KisAutoLevelsSchemaContractTest.cpp`と専用targetを作り、image・global・pigmentのsource/generated探索路、必要なheader-only interface・export定義、Qt Core・Testだけの直接接続による4工程・8入力へ分離する。`g401-auto-levels-schema`の状態は`in_progress`、実装基点は`8a300fe2e2`である。値型や画像を実体化せず、macOSの対象、追加5枠の20回反復、軽量近傍、4直接翻訳単位と試験sourceの厳格`clang-check`、書式、二回の無作業再構築、動的接続・未解決symbol、公開API検査、`verify-quick`だけを実行する。製品image・OBJECT・shared target、UI対象、全体build・`verify`、Linux、Nix再評価は実行しない。
 
 ### 第239便の先行監査担当票
 
