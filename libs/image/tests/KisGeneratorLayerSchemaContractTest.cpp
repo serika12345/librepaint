@@ -4,6 +4,7 @@
  */
 
 #include "generator/kis_generator_layer.h"
+#include "kis_adjustment_layer.h"
 
 #include <QTest>
 
@@ -15,6 +16,9 @@ namespace
 
 #define ASSERT_GENERATOR_LAYER_SIGNATURE(method, signature)                                                            \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisGeneratorLayer::method)), signature>)
+
+#define ASSERT_ADJUSTMENT_LAYER_SIGNATURE(method, signature)                                                           \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KisAdjustmentLayer::method)), signature>)
 
 } // namespace
 
@@ -28,6 +32,10 @@ private Q_SLOTS:
     void generatorLayerDirtyRegionAndPositionSignaturesRemainStable();
     void generatorLayerHierarchyPresentationAndVisitorSignaturesRemainStable();
     void generatorLayerTimedUpdateSignaturesRemainStable();
+    void adjustmentLayerTypeLifetimeAndCloneSchemaRemainStable();
+    void adjustmentLayerVisitorSignaturesRemainStable();
+    void adjustmentLayerPresentationSignaturesRemainStable();
+    void adjustmentLayerConfigurationSignaturesRemainStable();
 };
 
 void KisGeneratorLayerSchemaContractTest::generatorLayerTypeLifetimeAndConstructionSchemaRemainStable()
@@ -82,6 +90,43 @@ void KisGeneratorLayerSchemaContractTest::generatorLayerTimedUpdateSignaturesRem
 {
     ASSERT_GENERATOR_LAYER_SIGNATURE(forceUpdateTimedNode, void (KisGeneratorLayer::*)());
     ASSERT_GENERATOR_LAYER_SIGNATURE(hasPendingTimedUpdates, bool (KisGeneratorLayer::*)() const);
+}
+
+void KisGeneratorLayerSchemaContractTest::adjustmentLayerTypeLifetimeAndCloneSchemaRemainStable()
+{
+    static_assert(std::is_class_v<KisAdjustmentLayer>);
+    static_assert(std::is_base_of_v<KisSelectionBasedLayer, KisAdjustmentLayer>);
+    static_assert(std::is_constructible_v<KisAdjustmentLayer,
+                                          KisImageWSP,
+                                          const QString &,
+                                          KisFilterConfigurationSP,
+                                          KisSelectionSP>);
+    static_assert(std::is_copy_constructible_v<KisAdjustmentLayer>);
+    static_assert(std::has_virtual_destructor_v<KisAdjustmentLayer>);
+    ASSERT_ADJUSTMENT_LAYER_SIGNATURE(clone, KisNodeSP (KisAdjustmentLayer::*)() const);
+}
+
+void KisGeneratorLayerSchemaContractTest::adjustmentLayerVisitorSignaturesRemainStable()
+{
+    ASSERT_ADJUSTMENT_LAYER_SIGNATURE(accept, bool (KisAdjustmentLayer::*)(KisNodeVisitor &));
+    ASSERT_ADJUSTMENT_LAYER_SIGNATURE(accept, void (KisAdjustmentLayer::*)(KisProcessingVisitor &, KisUndoAdapter *));
+}
+
+void KisGeneratorLayerSchemaContractTest::adjustmentLayerPresentationSignaturesRemainStable()
+{
+    ASSERT_ADJUSTMENT_LAYER_SIGNATURE(icon, QIcon (KisAdjustmentLayer::*)() const);
+    ASSERT_ADJUSTMENT_LAYER_SIGNATURE(sectionModelProperties,
+                                      KisBaseNode::PropertyList (KisAdjustmentLayer::*)() const);
+    ASSERT_ADJUSTMENT_LAYER_SIGNATURE(layer, KisLayer * (KisAdjustmentLayer::*)());
+}
+
+void KisGeneratorLayerSchemaContractTest::adjustmentLayerConfigurationSignaturesRemainStable()
+{
+    ASSERT_ADJUSTMENT_LAYER_SIGNATURE(setFilter, void (KisAdjustmentLayer::*)(KisFilterConfigurationSP, bool));
+    ASSERT_ADJUSTMENT_LAYER_SIGNATURE(setChannelFlags, void (KisAdjustmentLayer::*)(const QBitArray &));
+    static_assert(std::is_same_v<decltype(std::declval<KisAdjustmentLayer &>().setFilter(
+                                     std::declval<KisFilterConfigurationSP>())),
+                                 void>);
 }
 
 QTEST_GUILESS_MAIN(KisGeneratorLayerSchemaContractTest)
