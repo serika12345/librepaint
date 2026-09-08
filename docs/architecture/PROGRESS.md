@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-08 23:43 JST
+- 更新日時: 2026-09-08 23:51 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3667,6 +3667,12 @@
 - `g428-layer-thumbnail-cache-schema`は`completed`である。`libs/ui/canvas/KisLayerThumbnailCache.h`から既存`libs/ui/tests/KisCanvasResourceProviderSchemaContractTest.cpp`へ14 API・4枠を移し、cache型・構築・寿命3、画像・idle manager・最大寸法5、thumbnail取得・node追加削除3、更新開始・消去・更新通知3を型特性、構築可能性、厳密な関数pointerで固定した。試験sourceは294行・14枠で300行・20枠以内を維持し、cache、画像、node、idle manager、Qt値と本文を実体化していない。CMake変更なしの初回redは未定義の4検査関数だけで失敗し、契約実装commitは`6a5893dc4b`である。
 - macOSの対象`libs-ui-KisCanvasResourceProviderSchemaContractTest`、軽量近傍`libs-ui-KisFavoriteResourceManagerSchemaContractTest`、対象の20回反復、試験sourceの厳格`clang-check`、書式、二回目計画、連続二回の無作業再構築に成功した。対象は4工程・8入力、command SHA-256 `2ac2f87126ddd68b81e17b248fb074f00db07e2c0b3769b295b61fb012863906`、input SHA-256 `f4ea5e3798d5c121aacd9175a1433d675e15fc206c5984314de6b53ff966ff73`、AUTOMOC `HEADERS=[]`、直接接続はQt Gui・Test、製品未解決symbol 0である。1,975工程・3,950入力の製品application UI、製品UI・image target、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 台帳へ14 APIを追加して26,887件対応、2,917件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g428.json`を削除し、追加作業tree・構築木・一時計画物は作成していない。主Ninja木5,982,936 KiB、共有compiler cache 982,508 KiB、最新`build/tdd-macos/public-api-missing-g429.json` 794,785 bytes、SHA-256 `051d2d12f6efc31497f5b4d7e3606ea81923e7fbd552f996e044bf0bd155c969`だけを再利用対象として保持する。compiler cacheは144,493件中120,553件、83.43%がhitしている。公開API検査と`verify-quick`に成功した。次の永続作業は第429便で次の高密度なmacOS対象と最小構築面を選定することである。
+
+### 第429便の公開API契約計画
+
+- 第429便は`libs/resources/KisResourceCacheDb.h`に残る全13 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g429.json`は公開header 1,548、公開API 29,804、対応済み26,887、未対応2,917、794,785 bytes、SHA-256 `051d2d12f6efc31497f5b4d7e3606ea81923e7fbd552f996e044bf0bd155c969`である。対象識別子整列集合のSHA-256は`54a309ccbecdd95fb0ee3ce5601b14ed91cf55b19baf3c6b110ee9eabc8f254d`で、cache DB型と4公開状態5、妥当性・最終error・初期化3、一時資源削除・終了時保守2、外部key設定・照会・同期3の4枠へ固定する。
+- 既存`libs/resources/tests/KisMemoryStorageSchemaContractTest.cpp`はmemory・folder・bundleを含む資源storage境界を持ち、174行・15枠から追加後も300行・20枠以内に収まる。CMake変更なしでresourcesの既存探索路とexport定義、Qt Core・Testとheader-only Boost、Qt Gui・KF I18n interfaceだけを使う4工程・8入力を維持する。現行command SHA-256は`0af2386357da213a77f743458eb9c31b8c10bdd2a49068d417c911c3dcb44bd7`、input SHA-256は`ac6687e86922bd4c19058bd27a27854d2c041984f5032ddbfcbe888eb33e2f6d`である。DB、storage、文字列値と本文を実体化せず、型特性、公開静的member型、厳密な関数pointerだけで公開境界を観測する。新規targetは同じ閉包に別のCMake登録と生成物を加えるため棄却する。
+- `g429-resource-cache-db-schema`の状態は`in_progress`、実装基点は`112b22a806`である。開始headerから既存試験sourceの4枠だけへ追加し、CMake、公開header、製品source、製品targetは変更しない。停止線は5工程・11入力とし、新たな探索路・定義・link、製品OBJECT・shared・`kritatestsdk`接続、候補headerのAUTOMOC入力化、製品未解決symbol、静的状態または本文の実体化が必要なら候補を保留する。macOSの対象、追加4枠の20回反復、軽量近傍、試験sourceの厳格`clang-check`、書式、二回目計画、連続二回の無作業再構築、動的接続・未解決symbol、公開API検査、`verify-quick`だけを実行する。150工程・327入力の製品resources target、全体build・`verify`、Linux、Nix再評価は実行しない。
 
 ### 第239便の先行監査担当票
 
