@@ -4,6 +4,7 @@
  */
 
 #include <canvas/kis_qpainter_canvas.h>
+#include <widgets/kis_zoom_scrollbar.h>
 
 #include <QTest>
 
@@ -13,6 +14,8 @@ namespace
 {
 #define ASSERT_QPAINTER_CANVAS_SIGNATURE(method, signature)                                                            \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisQPainterCanvas::method)), signature>)
+#define ASSERT_ZOOM_SCROLLBAR_SIGNATURE(method, signature)                                                             \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KisZoomableScrollBar::method)), signature>)
 } // namespace
 
 class KisQPainterCanvasSchemaContractTest : public QObject
@@ -26,6 +29,11 @@ private Q_SLOTS:
     void wrapAroundViewingSignaturesRemainStable();
     void projectionUpdateSignaturesRemainStable();
     void widgetAndProcessingStateSignaturesRemainStable();
+    void zoomScrollbarTypeAndLifetimeSchemaRemainStable();
+    void zoomScrollbarPositionAndScrollSignaturesRemainStable();
+    void zoomScrollbarInputEventSignaturesRemainStable();
+    void zoomScrollbarConfigurationSignaturesRemainStable();
+    void zoomScrollbarNotificationSignaturesRemainStable();
 };
 
 void KisQPainterCanvasSchemaContractTest::typeConstructionAndLifetimeSchemaRemainStable()
@@ -95,7 +103,55 @@ void KisQPainterCanvasSchemaContractTest::widgetAndProcessingStateSignaturesRema
     ASSERT_QPAINTER_CANVAS_SIGNATURE(widget, QWidget * (Canvas::*)());
 }
 
+void KisQPainterCanvasSchemaContractTest::zoomScrollbarTypeAndLifetimeSchemaRemainStable()
+{
+    using ScrollBar = KisZoomableScrollBar;
+
+    static_assert(std::is_class_v<ScrollBar>);
+    static_assert(std::is_constructible_v<ScrollBar, QWidget *>);
+    static_assert(std::is_constructible_v<ScrollBar, Qt::Orientation, QWidget *>);
+    static_assert(std::has_virtual_destructor_v<ScrollBar>);
+}
+
+void KisQPainterCanvasSchemaContractTest::zoomScrollbarPositionAndScrollSignaturesRemainStable()
+{
+    using ScrollBar = KisZoomableScrollBar;
+
+    ASSERT_ZOOM_SCROLLBAR_SIGNATURE(barPosition, QPoint (ScrollBar::*)());
+    ASSERT_ZOOM_SCROLLBAR_SIGNATURE(catchTeleports, bool (ScrollBar::*)(QMouseEvent *));
+    ASSERT_ZOOM_SCROLLBAR_SIGNATURE(handleWrap, void (ScrollBar::*)(const QPoint &, const QPoint &));
+    ASSERT_ZOOM_SCROLLBAR_SIGNATURE(handleScroll, void (ScrollBar::*)(const QPoint &));
+}
+
+void KisQPainterCanvasSchemaContractTest::zoomScrollbarInputEventSignaturesRemainStable()
+{
+    using ScrollBar = KisZoomableScrollBar;
+
+    ASSERT_ZOOM_SCROLLBAR_SIGNATURE(tabletEvent, void (ScrollBar::*)(QTabletEvent *));
+    ASSERT_ZOOM_SCROLLBAR_SIGNATURE(mousePressEvent, void (ScrollBar::*)(QMouseEvent *));
+    ASSERT_ZOOM_SCROLLBAR_SIGNATURE(mouseMoveEvent, void (ScrollBar::*)(QMouseEvent *));
+    ASSERT_ZOOM_SCROLLBAR_SIGNATURE(mouseReleaseEvent, void (ScrollBar::*)(QMouseEvent *));
+    ASSERT_ZOOM_SCROLLBAR_SIGNATURE(wheelEvent, void (ScrollBar::*)(QWheelEvent *));
+}
+
+void KisQPainterCanvasSchemaContractTest::zoomScrollbarConfigurationSignaturesRemainStable()
+{
+    using ScrollBar = KisZoomableScrollBar;
+
+    ASSERT_ZOOM_SCROLLBAR_SIGNATURE(setZoomDeadzone, void (ScrollBar::*)(float));
+    ASSERT_ZOOM_SCROLLBAR_SIGNATURE(setWheelOverscrollSensitivity, void (ScrollBar::*)(float));
+}
+
+void KisQPainterCanvasSchemaContractTest::zoomScrollbarNotificationSignaturesRemainStable()
+{
+    using ScrollBar = KisZoomableScrollBar;
+
+    ASSERT_ZOOM_SCROLLBAR_SIGNATURE(zoom, void (ScrollBar::*)(qreal));
+    ASSERT_ZOOM_SCROLLBAR_SIGNATURE(overscroll, void (ScrollBar::*)(qreal));
+}
+
 #undef ASSERT_QPAINTER_CANVAS_SIGNATURE
+#undef ASSERT_ZOOM_SCROLLBAR_SIGNATURE
 
 QTEST_GUILESS_MAIN(KisQPainterCanvasSchemaContractTest)
 
