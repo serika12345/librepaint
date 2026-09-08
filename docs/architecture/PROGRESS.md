@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-08 13:30 JST
+- 更新日時: 2026-09-08 13:36 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3091,6 +3091,14 @@
 - 開始headerの残存全26 APIを、新規`libs/ui/tests/KisShapeSelectionSchemaContractTest.cpp`の選択・marker・factory型と寿命8、選択内容5、輪郭・幾何6、永続化・統合4、factory・通知3の5枠へ対応付けた。対象は100行で、公開headerと製品sourceをそれ以上変更していない。最初の赤は追加依存を要求せず5試験関数の未定義symbolだけで停止した。契約実装commitは`dc911f706a`である。
 - 最終targetは4工程・8入力、command SHA-256 `f7b3475cd54f1b9917816b7319932badb4731e5cef0f6eca28736e263426bf5c`、input SHA-256 `72ab64c109b9a7b31c3756c4906447d0d327e39c8d09910d583f362b4a921c1d`で停止線内に収まる。動的接続はQt Core・Test、macOS frameworkとgettextだけで、製品libraryの未解決symbolを持たない。macOSで対象`libs-ui-KisShapeSelectionSchemaContractTest`、軽量近傍`libs-ui-KisShapeLayerSchemaContractTest`、対象の20回反復、試験sourceの厳格`clang-check`、書式、AUTOMOC `HEADERS=[]`、二回の無作業再構築、公開API検査に成功した。既存`kis_shape_selection_test`の2,027工程・4,051入力、図形・選択・描画device実体、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 台帳へ26 APIを追加して26,092件対応、3,712件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g383.json`を最新報告の検証後に削除し、追加作業tree・構築木は作成していない。主Ninja木5,956,936 KiB、共有compiler cache 982,880 KiB、最新`build/tdd-macos/public-api-missing-g384.json` 1,008,403 bytes、SHA-256 `a606de0f1e1b0fe53342416b53aad8593baf9c7dbe10c738181fca3948948ef2`だけを再利用対象として保持する。compiler cacheは144,322件中120,518件、83.51%がhitしている。次の永続作業は第384便で次の高密度なmacOS対象と最小構築面を選定することである。
+
+### 第384便の公開API契約計画
+
+- 第384便は`libs/ui/resources/kis_favorite_resource_manager.h`の残存全27 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g384.json`は公開header 1,548、公開API 29,804、対応済み26,092、未対応3,712、1,008,403 bytes、SHA-256 `a606de0f1e1b0fe53342416b53aad8593baf9c7dbe10c738181fca3948948ef2`である。対象識別子整列集合のSHA-256は`42564b0188bd57b619e7e477853be5e6e184705e73555d2d24bfcb2d031fe04e`で、管理器型・寿命・server 4、お気に入りpreset・tag 5、最近色・背景色7、資源・paintop変更5、palette通知6の5枠へ固定する。
+- 開始headerは未使用の`QQueue`と`KoResource.h`を取り込み、3 modelのpointerだけのために`KisTagFilterResourceProxyModel.h`の完全な資源model閉包を10直接利用元へ伝播させている。一方、`KoResourceServer.h`はobserver基底完全型、`KisTag.h`は公開共有pointer alias、`KoColor.h`は値memberに必要である。構造先行変更では開始headerへ`QScopedPointer`・`QVector`の直接includeと`QImage`・3 modelの前方宣言を置き、資源model完全型と`QImage`の所有を実利用先`libs/ui/resources/kis_favorite_resource_manager.cpp`へ移す。
+- 変更前の`libs/ui/resources/kis_favorite_resource_manager.cpp`と`libs/ui/canvas/kis_canvas2.cpp`は厳格`clang-check`に無診断で成功した。`libs/application/ui/workspace/KisViewManager.cpp`、`libs/ui/resources/kis_popup_palette.cpp`、`libs/ui/tool/kis_paintop_box.cc`は既存診断だけで停止した。変更後に5件の終了状態と診断本文をbyte比較し、公開API報告のbyte一致を完了条件とする。
+- 新規`libs/ui/tests/KisFavoriteResourceManagerSchemaContractTest.cpp`を200行・10枠未満で作り、型特性と厳密な関数pointerだけで27 APIを観測する。最も近い資源providerの`KisCanvasResourceProviderSchemaContractTest`は4工程・8入力、command SHA-256 `f76cc7f7336936d4ad164f57a3376939f87c067199a86a6127851bbba41c2399`、input SHA-256 `f4ea5e3798d5c121aacd9175a1433d675e15fc206c5984314de6b53ff966ff73`である。新規targetも4工程・8入力を予測し、停止線を5工程・11入力とする。候補headerをAUTOMOC入力にせず、製品shared・OBJECT、資源server・model・paintop box・色履歴実体を接続または実行しない。
+- `g384-favorite-resource-schema`の状態は`in_progress`、実装基点は`96df315ffa`である。構造先行commit後に新規試験sourceと`libs/ui/tests/CMakeLists.txt`の対象固有節だけへ契約を追加する。macOSの対象、5枠の20回反復、軽量近傍、5 risk翻訳単位と試験sourceの厳格`clang-check`、書式、AUTOMOC後の二回目計画、二回の無作業再構築、動的接続・未解決symbol、公開API検査、`verify-quick`だけを実行する。資源server・model・paintop box・色履歴実体、製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
 
 ### 第239便の先行監査担当票
 
