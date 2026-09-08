@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 05:59 JST
+- 更新日時: 2026-09-09 06:06 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4028,6 +4028,13 @@
 - 第456便は`libs/image/KisInterstrokeData.h`に残る全7 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g456.json`は公開header 1,548、公開API 29,804、対応済み27,241、未対応2,563、698,324 bytes、SHA-256 `867863bb2807140689de222b8cfa462c87f78f7e5fcf83fcb2e4b446c7fddc11`である。対象識別子整列集合のSHA-256は`a58c35d1836e172a9c28b24a3542ff85a86c90d7c859be5d5ff72b19475df606`で、型・共有pointer別名・構築・寿命4、取引開始・終了2、互換性照会1の3枠へ固定する。
 - 公開headerはQt共有pointer・座標値、image共有pointer別名、前方宣言と値memberだけを所有し、paint device・undo command・色空間の完全型や実装詳細を伝播させていないため構造変更は不要である。既存`KisBehaviorInterfacesContractTest`は同じstroke間factoryの実行境界を持つが10工程・21入力、`KisPaintDeviceSchemaContractTest`は4工程・8入力だが275行・17枠で上限に近いため、いずれも追記先から除外する。
 - 新規`libs/image/tests/KisInterstrokeDataSchemaContractTest.cpp`と専用targetを3枠で作り、image・globalのsource/generated探索路とimage export定義、Qt Core・Testだけで4工程・8入力を予測する。抽象型の公開構築は本文を実体化しない具象probeの構築可能性で観測する。停止線を5工程・11入力とし、計画外探索路・定義・link、AUTOMOC header入力、製品未解決記号、stroke間データ・paint device・undo command・取引本文の実体化が必要なら停止する。macOSの対象、3枠の20回反復、軽量近傍、試験sourceの厳格構文、書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、製品target、既存動作試験、全体build・`verify`、Linux、Nix再評価は行わない。
+
+### 第456便の実装結果
+
+- 開始`libs/image/KisInterstrokeData.h`から新規`libs/image/tests/KisInterstrokeDataSchemaContractTest.cpp`へ全7 API・3枠を追加した。型・共有pointer別名・構築・寿命4、取引開始・終了2、互換性照会1を型特性と厳密な関数pointerで固定した。最初のprobe本文は`KisPaintDeviceSP`のcopyを実体化して完全型を要求したため棄却し、基底constructor継承と純仮想override宣言だけの未評価probeへ縮めた。完全型include・探索路・製品接続は追加していない。再実行では追加2枠が成功し、`G456 interstroke data API schema is not fixed yet`だけで1件失敗した。計画commitは`eb4653ead6`、契約commitは`3bdef2ebbb`である。
+- 新規試験sourceは69行・3枠、専用targetは4工程・8入力、command SHA-256 `0ca93121efd0983af8b9c5458d9b2786685ad6bec2d0034515b46db8945edb3d`、input SHA-256 `71bceac1647a6d3d9c8601a87f9a3081f967ad067742ca0264a45ffbc9fb9f78`である。AUTOMOC `HEADERS=[]`、直接接続はQt Core・Test、製品未解決記号0である。stroke間データ、paint device、undo commandと取引本文は実体化していない。
+- macOSで対象、軽量近傍`KisNodeFacadeSchemaContractTest`、対象の20回反復、試験sourceの`clang-check --extra-arg=-Werror`と書式、連続二回の無作業再構築に成功した。10工程・21入力の既存動作試験、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 台帳は27,248件対応、2,556件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g456.json`を削除し、追加作業tree・構築木・一時計画物は作成していない。主Ninja木5,995,680 KiB、共有compiler cache 982,924 KiB、最新`build/tdd-macos/public-api-missing-g457.json` 696,825 bytes、SHA-256 `3b54a8dbc66186e2f56f20221be06122e011d9bb31cafb7f8b01e801a71ac8f0`だけを再利用対象として保持する。compiler cacheは144,583件中120,563件、83.39%がhitしている。次の永続作業は第457便で最新報告から高密度なmacOS対象と最小構築面を選定することである。
 
 ### 第239便の先行監査担当票
 

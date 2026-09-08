@@ -16,7 +16,7 @@
     "publicApiFingerprint": "5f05b2aa8e5bef4343af1d55a3852331e51d4369fe135b099327b1a91b6b8c4c"
   },
   "migration": {
-    "expectedMissingApis": 2563
+    "expectedMissingApis": 2556
   },
   "contracts": [
     {
@@ -75415,6 +75415,40 @@
       "apis": [
         "method:KisNodeQueryPath::absolutePath(KisNodeSP node)",
         "method:KisNodeQueryPath::fromString(const QString & path)"
+      ]
+    },
+    {
+      "target": "KisInterstrokeDataSchemaContractTest",
+      "source": "libs/image/tests/KisInterstrokeDataSchemaContractTest.cpp",
+      "test": "KisInterstrokeDataSchemaContractTest::typeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "stroke間データは描画装置に結び付く抽象型として構築・仮想破棄でき、共有pointer別名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisInterstrokeDataSP",
+        "class:KisInterstrokeData",
+        "method:KisInterstrokeData::KisInterstrokeData(KisPaintDeviceSP device)",
+        "method:KisInterstrokeData::~KisInterstrokeData()"
+      ]
+    },
+    {
+      "target": "KisInterstrokeDataSchemaContractTest",
+      "source": "libs/image/tests/KisInterstrokeDataSchemaContractTest.cpp",
+      "test": "KisInterstrokeDataSchemaContractTest::transactionSignaturesRemainStable",
+      "behavior": "stroke間データは取引開始とundo commandを返す取引終了の抽象境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisInterstrokeData::beginTransaction()",
+        "method:KisInterstrokeData::endTransaction()"
+      ]
+    },
+    {
+      "target": "KisInterstrokeDataSchemaContractTest",
+      "source": "libs/image/tests/KisInterstrokeDataSchemaContractTest.cpp",
+      "test": "KisInterstrokeDataSchemaContractTest::compatibilitySignatureRemainsStable",
+      "behavior": "stroke間データは結び付いた描画装置との互換性を照会する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisInterstrokeData::isStillCompatible() const"
       ]
     }
   ]
