@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 2945
+    "expectedMissingApis": 2931
   },
   "contracts": [
     {
@@ -73971,6 +73971,56 @@
       "apis": [
         "method:KisWindowLayoutResource::defaultFileExtension() const",
         "method:KisWindowLayoutResource::resourceType() const"
+      ]
+    },
+    {
+      "target": "KisQPainterCanvasSchemaContractTest",
+      "source": "libs/ui/tests/KisQPainterCanvasSchemaContractTest.cpp",
+      "test": "KisQPainterCanvasSchemaContractTest::transportControlsTypeLifetimeAndSizeSchemaRemainStable",
+      "behavior": "transport controlsは任意の親widgetから構築され、widgetの仮想寿命と推奨寸法の公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisTransportControls",
+        "method:KisTransportControls::KisTransportControls(QWidget * parent=nullptr)",
+        "method:KisTransportControls::sizeHint() const",
+        "method:KisTransportControls::~KisTransportControls()"
+      ]
+    },
+    {
+      "target": "KisQPainterCanvasSchemaContractTest",
+      "source": "libs/ui/tests/KisQPainterCanvasSchemaContractTest.cpp",
+      "test": "KisQPainterCanvasSchemaContractTest::transportControlsPresentationSignaturesRemainStable",
+      "behavior": "transport controlsは再生状態と状態・seek・skip button群の表示設定を受け付ける公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTransportControls::setPlaying(bool playing)",
+        "method:KisTransportControls::showSeekButtons(bool show)",
+        "method:KisTransportControls::showSkipButtons(bool show)",
+        "method:KisTransportControls::showStateButtons(bool show)"
+      ]
+    },
+    {
+      "target": "KisQPainterCanvasSchemaContractTest",
+      "source": "libs/ui/tests/KisQPainterCanvasSchemaContractTest.cpp",
+      "test": "KisQPainterCanvasSchemaContractTest::transportControlsBackwardNotificationSignaturesRemainStable",
+      "behavior": "transport controlsは先頭方向へのskip・seekと停止操作を通知する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTransportControls::back()",
+        "method:KisTransportControls::skipBack()",
+        "method:KisTransportControls::stop()"
+      ]
+    },
+    {
+      "target": "KisQPainterCanvasSchemaContractTest",
+      "source": "libs/ui/tests/KisQPainterCanvasSchemaContractTest.cpp",
+      "test": "KisQPainterCanvasSchemaContractTest::transportControlsForwardNotificationSignaturesRemainStable",
+      "behavior": "transport controlsは再生・一時停止と末尾方向へのseek・skip操作を通知する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTransportControls::forward()",
+        "method:KisTransportControls::playPause()",
+        "method:KisTransportControls::skipForward()"
       ]
     }
   ]
