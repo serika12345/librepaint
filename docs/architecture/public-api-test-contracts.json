@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 2887
+    "expectedMissingApis": 2875
   },
   "contracts": [
     {
@@ -74173,6 +74173,54 @@
         "method:KisAsyncAnimationRendererBase::isActive() const",
         "method:KisAsyncAnimationRendererBase::sigFrameCancelled(int frame,KisAsyncAnimationRendererBase::CancelReason cancelReason)",
         "method:KisAsyncAnimationRendererBase::sigFrameCompleted(int frame)"
+      ]
+    },
+    {
+      "target": "KisImageSharedPointerHooksSchemaContractTest",
+      "source": "libs/image/tests/KisImageSharedPointerHooksSchemaContractTest.cpp",
+      "test": "KisImageSharedPointerHooksSchemaContractTest::updateTimeMonitorTypeLifetimeAndSingletonSchemaRemainStable",
+      "behavior": "更新時間monitorは既定構築と破棄が可能な公開型であり、共有singletonを取得する静的境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisUpdateTimeMonitor",
+        "method:KisUpdateTimeMonitor::KisUpdateTimeMonitor()",
+        "method:KisUpdateTimeMonitor::instance()",
+        "method:KisUpdateTimeMonitor::~KisUpdateTimeMonitor()"
+      ]
+    },
+    {
+      "target": "KisImageSharedPointerHooksSchemaContractTest",
+      "source": "libs/image/tests/KisImageSharedPointerHooksSchemaContractTest.cpp",
+      "test": "KisImageSharedPointerHooksSchemaContractTest::updateTimeMonitorStrokeMeasurementSignaturesRemainStable",
+      "behavior": "更新時間monitorはstroke計測の開始と終了、および描画presetの共有所有値を報告する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisUpdateTimeMonitor::endStrokeMeasure()",
+        "method:KisUpdateTimeMonitor::reportPaintOpPreset(KisPaintOpPresetSP preset)",
+        "method:KisUpdateTimeMonitor::startStrokeMeasure()"
+      ]
+    },
+    {
+      "target": "KisImageSharedPointerHooksSchemaContractTest",
+      "source": "libs/image/tests/KisImageSharedPointerHooksSchemaContractTest.cpp",
+      "test": "KisImageSharedPointerHooksSchemaContractTest::updateTimeMonitorInteractionAndUpdateSignaturesRemainStable",
+      "behavior": "更新時間monitorはmouse位置と画像更新領域を参照で受け取り、蓄積値を出力する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisUpdateTimeMonitor::printValues()",
+        "method:KisUpdateTimeMonitor::reportMouseMove(const QPointF & pos)",
+        "method:KisUpdateTimeMonitor::reportUpdateFinished(const QRect & rect)"
+      ]
+    },
+    {
+      "target": "KisImageSharedPointerHooksSchemaContractTest",
+      "source": "libs/image/tests/KisImageSharedPointerHooksSchemaContractTest.cpp",
+      "test": "KisImageSharedPointerHooksSchemaContractTest::updateTimeMonitorJobSignaturesRemainStable",
+      "behavior": "更新時間monitorはjob識別pointerで開始を受け取り、同じ識別pointerと更新領域列で完了を受け取る公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisUpdateTimeMonitor::reportJobFinished(void * key,const QVector<QRect> & rects)",
+        "method:KisUpdateTimeMonitor::reportJobStarted(void * key)"
       ]
     }
   ]
