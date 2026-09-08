@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 07:32 JST
+- 更新日時: 2026-09-09 07:43 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4111,6 +4111,10 @@
 - 公開proxyは設定型を継承して仮想関数を上書きするため`kis_properties_configuration.h`の完全型が必要であり、未使用依存や実装詳細を伝播させていないため構造変更は不要である。固定設定集合・server・paintop presetを所有する既存`libs/image/tests/KisPaintOpPresetSchemaContractTest.cpp`は256行・16枠で、2枠追加後も300行・20枠未満に収まる。同targetはimage・global・pigment・resources等の既存探索路とexport定義、Qt Core・Gui・Testだけで4工程・8入力、command SHA-256 `0c32b72c9110304c0414146d4d0562b3228d14528e0f816521f51274008446d8`、input SHA-256 `d5fef47757220ffdb67b7e99cf6d1dd2d81f2ec0ff9972a54d3b3b8614760b9f`である。新規targetは同じ閉包へCMake登録と生成物を増やすため棄却する。
 - 開始headerから既存試験sourceの2枠だけへ追加し、CMake、公開header、製品sourceは変更しない。停止線は5工程・11入力とし、新たな探索路・定義・link、AUTOMOC header入力、製品未解決記号、proxy・設定・固定集合または本文の実体化が必要なら停止する。macOSの対象、追加2枠の20回反復、軽量近傍、試験sourceの厳格構文、書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
 - 最初の対象構築は`kis_properties_configuration.h`から到達する`Eigen/Sparse`の探索路が同targetにないため、試験本文の構文検査前に停止した。公開proxyは継承元の完全型を必要とし、`kritaimage`本体もEigenを公開接続している。既存のschema契約targetと同じ`$<TARGET_PROPERTY:Eigen3::Eigen,INTERFACE_INCLUDE_DIRECTORIES>`をこのtargetの私有探索路へ追加するのが最小の修正であり、製品接続や別targetを増やさない。修正後も4工程・8入力を上限とし、閉包が増える場合は再停止する。
+- Eigen探索路の追加後は同じ公開設定headerが要求する`KoColor.h`で停止した。直接そのheaderを固定する`KisPropertiesConfigurationSchemaContractTest`との比較により、pigmentのsource・binary探索路、Imath探索路、`kritapigment_EXPORTS`が自己完結した構文検査に必要な既存最小集合だと確認した。これらを同じ私有使用条件として揃え、接続先、工程数、入力数を増やさない。
+- 開始`libs/image/brushengine/kis_locked_properties_proxy.h`から既存`libs/image/tests/KisPaintOpPresetSchemaContractTest.cpp`へ全8 API・2枠を追加した。親設定と共有固定集合からの型・構築・仮想寿命3、property取得・設定・存在・key列・診断5を厳密な型特性と関数pointerで固定した。最小使用条件の補正後は既存16枠と型枠が成功し、`G462 locked properties proxy API schema is not fixed yet`だけで1件失敗した。proxy、設定、固定集合、paintop presetの本文は実体化していない。計画commitは`a9e65e705b`と`bb95147913`、契約commitは`d3103bf214`である。
+- 試験sourceは285行・18枠となった。設定公開headerの自己完結した検査に必要なpigment、Eigen、Imathの私有探索条件とpigment export定義だけを既存targetへ補い、接続先を増やしていない。targetは4工程・8入力、input SHA-256 `d5fef47757220ffdb67b7e99cf6d1dd2d81f2ec0ff9972a54d3b3b8614760b9f`を維持し、command SHA-256は探索条件を反映して`c28c8e244359c7c258596fb88e60e57cb20b149869ddd47754de6d29eb31dccd`となった。AUTOMOC `HEADERS=[]`、直接接続はQt Core・Gui・Testで、製品未解決記号・製品動的接続は0である。macOSで対象、軽量近傍`KisInterstrokeDataSchemaContractTest`、対象の20回反復、試験sourceの厳格構文と書式、連続二回の無作業再構築、公開API検査、`verify-quick`に成功した。proxy動作対象、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 台帳は27,290件対応、2,514件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g462.json`と対象閉包の一時一覧を削除し、追加作業tree・構築木は作成していない。主Ninja木5,995,784 KiB、共有compiler cache 982,116 KiB、最新`build/tdd-macos/public-api-missing-g463.json` 685,767 bytes、SHA-256 `4d53a571d02545b5cd95184434f2591af52427fd97a09110002b1182fe5d1511`だけを再利用対象として保持する。compiler cacheは144,597件中120,565件、83.38%がhitしている。次の永続作業は第463便で最新報告から高密度なmacOS対象と最小構築面を選定することである。
 
 ### 第239便の先行監査担当票
 

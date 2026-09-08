@@ -16,7 +16,7 @@
     "publicApiFingerprint": "5f05b2aa8e5bef4343af1d55a3852331e51d4369fe135b099327b1a91b6b8c4c"
   },
   "migration": {
-    "expectedMissingApis": 2522
+    "expectedMissingApis": 2514
   },
   "contracts": [
     {
@@ -75085,6 +75085,32 @@
       "apis": [
         "method:KisLockedProperties::hasProperty(const QString & p)",
         "method:KisLockedProperties::lockedProperties()"
+      ]
+    },
+    {
+      "target": "KisPaintOpPresetSchemaContractTest",
+      "source": "libs/image/tests/KisPaintOpPresetSchemaContractTest.cpp",
+      "test": "KisPaintOpPresetSchemaContractTest::lockedPropertiesProxyTypeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "固定property代理は親設定と共有固定集合から構築し、設定型として仮想破棄する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisLockedPropertiesProxy",
+        "method:KisLockedPropertiesProxy::KisLockedPropertiesProxy(KisPropertiesConfiguration *,KisLockedPropertiesSP)",
+        "method:KisLockedPropertiesProxy::~KisLockedPropertiesProxy()"
+      ]
+    },
+    {
+      "target": "KisPaintOpPresetSchemaContractTest",
+      "source": "libs/image/tests/KisPaintOpPresetSchemaContractTest.cpp",
+      "test": "KisPaintOpPresetSchemaContractTest::lockedPropertiesProxyAccessSignaturesRemainStable",
+      "behavior": "固定property代理は親設定と固定集合を重ねたpropertyの取得・設定・存在確認・key列取得・診断を提供する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisLockedPropertiesProxy::dump() const",
+        "method:KisLockedPropertiesProxy::getPropertiesKeys() const",
+        "method:KisLockedPropertiesProxy::getProperty(const QString & name) const",
+        "method:KisLockedPropertiesProxy::hasProperty(const QString & name) const",
+        "method:KisLockedPropertiesProxy::setProperty(const QString & name,const QVariant & value)"
       ]
     },
     {
