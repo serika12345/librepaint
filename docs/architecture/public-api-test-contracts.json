@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 3355
+    "expectedMissingApis": 3342
   },
   "contracts": [
     {
@@ -72508,6 +72508,64 @@
       "apis": [
         "method:KisResourceLoaderRegistry::executeAllFixups()",
         "method:KisResourceLoaderRegistry::registerFixup(int priority,ResourceCacheFixup * fixup)"
+      ]
+    },
+    {
+      "target": "KisMemoryStorageSchemaContractTest",
+      "source": "libs/resources/tests/KisMemoryStorageSchemaContractTest.cpp",
+      "test": "KisMemoryStorageSchemaContractTest::bundleStorageTypeLifetimeAndConstructionSchemaRemainStable",
+      "behavior": "bundle storageは格納場所から構築でき、storage基底を介した仮想寿命境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisBundleStorage",
+        "method:KisBundleStorage::KisBundleStorage(const QString & location)",
+        "method:KisBundleStorage::~KisBundleStorage()"
+      ]
+    },
+    {
+      "target": "KisMemoryStorageSchemaContractTest",
+      "source": "libs/resources/tests/KisMemoryStorageSchemaContractTest.cpp",
+      "test": "KisMemoryStorageSchemaContractTest::bundleStorageResourceLookupAndLoadingSignaturesRemainStable",
+      "behavior": "bundle storageは資源項目・内容指紋の照会とversion付き資源読込み境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisBundleStorage::loadVersionedResource(KoResourceSP resource)",
+        "method:KisBundleStorage::resourceItem(const QString & url)",
+        "method:KisBundleStorage::resourceMd5(const QString & url)"
+      ]
+    },
+    {
+      "target": "KisMemoryStorageSchemaContractTest",
+      "source": "libs/resources/tests/KisMemoryStorageSchemaContractTest.cpp",
+      "test": "KisMemoryStorageSchemaContractTest::bundleStorageIteratorSignaturesRemainStable",
+      "behavior": "bundle storageは資源種別ごとの資源とtagを反復する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisBundleStorage::resources(const QString & resourceType)",
+        "method:KisBundleStorage::tags(const QString & resourceType)"
+      ]
+    },
+    {
+      "target": "KisMemoryStorageSchemaContractTest",
+      "source": "libs/resources/tests/KisMemoryStorageSchemaContractTest.cpp",
+      "test": "KisMemoryStorageSchemaContractTest::bundleStorageMetadataAndThumbnailSignaturesRemainStable",
+      "behavior": "bundle storageはmetadataのキー・値と縮小画像を照会する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisBundleStorage::metaData(const QString & key) const",
+        "method:KisBundleStorage::metaDataKeys() const",
+        "method:KisBundleStorage::thumbnail() const"
+      ]
+    },
+    {
+      "target": "KisMemoryStorageSchemaContractTest",
+      "source": "libs/resources/tests/KisMemoryStorageSchemaContractTest.cpp",
+      "test": "KisMemoryStorageSchemaContractTest::bundleStorageExportAndVersioningSignaturesRemainStable",
+      "behavior": "bundle storageは資源を装置へ書き出し、新versionとして保存する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisBundleStorage::exportResource(const QString & url,QIODevice * device)",
+        "method:KisBundleStorage::saveAsNewVersion(const QString & resourceType,KoResourceSP resource)"
       ]
     }
   ]
