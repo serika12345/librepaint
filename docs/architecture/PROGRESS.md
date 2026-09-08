@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-08 17:47 JST
+- 更新日時: 2026-09-08 17:51 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3282,6 +3282,12 @@
 - `g397-stroke-compatibility-schema`は`completed`である。開始`libs/painting/KisStrokeCompatibilityInfo.h`から既存`libs/painting/tests/KisResourcesSnapshotSchemaContractTest.cpp`へ14 API・5枠を追加した。型・構築・等価比較4、前景・背景色2、pattern・gradient・preset資源署名3、generator・node識別2、描画方針3を型特性、未評価の等価式、厳密なmember pointerで固定した。試験sourceは172行・10枠となり、資源snapshot、色、資源署名、nodeと製品本文は実体化していない。初回redは未定義の5検査関数だけで失敗し、契約実装commitは`c3c37527ea`である。
 - CMake変更なしで、macOSの対象`libs-painting-KisResourcesSnapshotSchemaContractTest`、軽量近傍`libs-painting-KisFilterStrokeStrategySchemaContractTest`、対象の20回反復、試験sourceの厳格`clang-check`、書式、二回の無作業再構築に成功した。4工程・8入力、command SHA-256 `6300368d7a3ffa98858079c6aa879d3055ab8d90d6b4c03a92e375b9bf055cb3`、input SHA-256 `c2059b5e4a87dbc220b714d394c8b6f3c4e49e57d358fe0079f9c0ff4e83bd9a`、AUTOMOC `HEADERS=[]`、直接接続はQt Core・Gui・Test・Xmlとheader-only Boost、製品未解決symbol 0である。製品painting・OBJECT・shared target、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 台帳へ14 APIを追加して26,378件対応、3,426件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g397.json`と一時計測物を削除し、追加作業tree・構築木は作成していない。主Ninja木5,972,016 KiB、共有compiler cache 981,764 KiB、最新`build/tdd-macos/public-api-missing-g398.json` 930,692 bytes、SHA-256 `54576ba12e05579505d0b82c5f4d948f2e3d422a3902d6d58aa433776b99bfaa`だけを再利用対象として保持する。compiler cacheは144,377件中120,530件、83.48%がhitしている。次の永続作業は第398便で次の高密度なmacOS対象と最小構築面を選定することである。
+
+### 第398便の公開API契約計画
+
+- 第398便は`libs/painting/strokes/KisNodeSelectionRecipe.h`に残る全13 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g398.json`は公開header 1,548、公開API 29,804、対応済み26,378、未対応3,426、930,692 bytes、SHA-256 `54576ba12e05579505d0b82c5f4d948f2e3d422a3902d6d58aa433776b99bfaa`である。対象識別子整列集合のSHA-256は`26c14deea63e8c1e9f67c92e6fed7d0c8913ab4cbd1a62329594bdc928ab8348`で、型・選択方式5、構築4、選択状態3、処理対象照会1の4枠へ固定する。
+- 既存`libs/painting/tests/KisFilterStrokeStrategySchemaContractTest.cpp`は同型を移動strokeの入力として扱うが、実行契約用OBJECTを含む6工程・13入力で停止線5工程・11入力を超えるため反復先から除外する。新規`libs/painting/tests/KisNodeSelectionRecipeSchemaContractTest.cpp`と専用targetを作り、painting/strokesとimageのsource/generated探索路、必要export定義、Qt Core・Testだけを直接接続する4工程・8入力へ分離する。CMakeは新target固有節だけを追加し、候補headerをtarget sourceやAUTOMOC入力へ登録しない。
+- `g398-node-selection-recipe-schema`の状態は`in_progress`、実装基点は`9a4e08d54d`である。開始headerから新規試験sourceの4枠へ型特性、列挙値、構築可能性、member・関数pointerを追加する。node一覧やnodeを実体化せず、macOSの対象、追加4枠の20回反復、軽量近傍、試験sourceの厳格`clang-check`、書式、二回の無作業再構築、動的接続・未解決symbol、公開API検査、`verify-quick`だけを実行する。製品painting・OBJECT・shared target、既存6工程対象、全体build・`verify`、Linux、Nix再評価は実行しない。
 
 ### 第239便の先行監査担当票
 
