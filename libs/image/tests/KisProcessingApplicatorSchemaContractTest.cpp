@@ -4,6 +4,7 @@
  */
 
 #include "kis_processing_applicator.h"
+#include "processing/kis_transform_processing_visitor.h"
 
 #include <QTest>
 
@@ -14,6 +15,8 @@ namespace
 {
 #define ASSERT_PROCESSING_APPLICATOR_SIGNATURE(method, signature)                                                      \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisProcessingApplicator::method)), signature>)
+#define ASSERT_TRANSFORM_VISITOR_SIGNATURE(method, signature)                                                          \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KisTransformProcessingVisitor::method)), signature>)
 } // namespace
 
 class KisProcessingApplicatorSchemaContractTest : public QObject
@@ -26,6 +29,11 @@ private Q_SLOTS:
     void processingApplicatorVisitorAndCommandSignaturesRemainStable();
     void processingApplicatorCompletionAndControlSignaturesRemainStable();
     void processingApplicatorSingleCommandSignatureRemainsStable();
+    void transformVisitorTypeAndConstructionSchemaRemainStable();
+    void transformVisitorSelectionAndInitializationSignaturesRemainStable();
+    void transformVisitorNodeAndLayerSignaturesRemainStable();
+    void transformVisitorExternalAndFilterSignaturesRemainStable();
+    void transformVisitorMaskSignaturesRemainStable();
 };
 
 void KisProcessingApplicatorSchemaContractTest::processingApplicatorTypeAndFlagSchemaRemainStable()
@@ -121,6 +129,71 @@ void KisProcessingApplicatorSchemaContractTest::processingApplicatorSingleComman
                                                                                 std::declval<KUndo2Command *>())),
                        void>);
 }
+
+void KisProcessingApplicatorSchemaContractTest::transformVisitorTypeAndConstructionSchemaRemainStable()
+{
+    using Visitor = KisTransformProcessingVisitor;
+
+    static_assert(std::is_class_v<Visitor>);
+    static_assert(std::is_base_of_v<KisProcessingVisitor, Visitor>);
+    static_assert(std::is_constructible_v<Visitor,
+                                          qreal,
+                                          qreal,
+                                          qreal,
+                                          qreal,
+                                          qreal,
+                                          qreal,
+                                          qreal,
+                                          KisFilterStrategy *,
+                                          const QTransform &>);
+    static_assert(std::is_same_v<decltype(Visitor(std::declval<qreal>(),
+                                                  std::declval<qreal>(),
+                                                  std::declval<qreal>(),
+                                                  std::declval<qreal>(),
+                                                  std::declval<qreal>(),
+                                                  std::declval<qreal>(),
+                                                  std::declval<qreal>(),
+                                                  std::declval<KisFilterStrategy *>())),
+                                 Visitor>);
+}
+
+void KisProcessingApplicatorSchemaContractTest::transformVisitorSelectionAndInitializationSignaturesRemainStable()
+{
+    ASSERT_TRANSFORM_VISITOR_SIGNATURE(setSelection, void (KisTransformProcessingVisitor::*)(KisSelectionSP));
+    ASSERT_TRANSFORM_VISITOR_SIGNATURE(createInitCommand, KUndo2Command * (KisTransformProcessingVisitor::*)());
+}
+
+void KisProcessingApplicatorSchemaContractTest::transformVisitorNodeAndLayerSignaturesRemainStable()
+{
+    using Visitor = KisTransformProcessingVisitor;
+
+    ASSERT_TRANSFORM_VISITOR_SIGNATURE(visit, void (Visitor::*)(KisNode *, KisUndoAdapter *));
+    ASSERT_TRANSFORM_VISITOR_SIGNATURE(visit, void (Visitor::*)(KisPaintLayer *, KisUndoAdapter *));
+    ASSERT_TRANSFORM_VISITOR_SIGNATURE(visit, void (Visitor::*)(KisGroupLayer *, KisUndoAdapter *));
+    ASSERT_TRANSFORM_VISITOR_SIGNATURE(visit, void (Visitor::*)(KisAdjustmentLayer *, KisUndoAdapter *));
+}
+
+void KisProcessingApplicatorSchemaContractTest::transformVisitorExternalAndFilterSignaturesRemainStable()
+{
+    using Visitor = KisTransformProcessingVisitor;
+
+    ASSERT_TRANSFORM_VISITOR_SIGNATURE(visit, void (Visitor::*)(KisExternalLayer *, KisUndoAdapter *));
+    ASSERT_TRANSFORM_VISITOR_SIGNATURE(visit, void (Visitor::*)(KisGeneratorLayer *, KisUndoAdapter *));
+    ASSERT_TRANSFORM_VISITOR_SIGNATURE(visit, void (Visitor::*)(KisCloneLayer *, KisUndoAdapter *));
+    ASSERT_TRANSFORM_VISITOR_SIGNATURE(visit, void (Visitor::*)(KisFilterMask *, KisUndoAdapter *));
+}
+
+void KisProcessingApplicatorSchemaContractTest::transformVisitorMaskSignaturesRemainStable()
+{
+    using Visitor = KisTransformProcessingVisitor;
+
+    ASSERT_TRANSFORM_VISITOR_SIGNATURE(visit, void (Visitor::*)(KisTransformMask *, KisUndoAdapter *));
+    ASSERT_TRANSFORM_VISITOR_SIGNATURE(visit, void (Visitor::*)(KisTransparencyMask *, KisUndoAdapter *));
+    ASSERT_TRANSFORM_VISITOR_SIGNATURE(visit, void (Visitor::*)(KisSelectionMask *, KisUndoAdapter *));
+    ASSERT_TRANSFORM_VISITOR_SIGNATURE(visit, void (Visitor::*)(KisColorizeMask *, KisUndoAdapter *));
+}
+
+#undef ASSERT_TRANSFORM_VISITOR_SIGNATURE
 
 QTEST_APPLESS_MAIN(KisProcessingApplicatorSchemaContractTest)
 
