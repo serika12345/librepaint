@@ -16,7 +16,7 @@
     "publicApiFingerprint": "5f05b2aa8e5bef4343af1d55a3852331e51d4369fe135b099327b1a91b6b8c4c"
   },
   "migration": {
-    "expectedMissingApis": 2609
+    "expectedMissingApis": 2597
   },
   "contracts": [
     {
@@ -75234,6 +75234,54 @@
         "method:KisExifInfoVisitor::visit(KisSelectionMask *)",
         "method:KisExifInfoVisitor::visit(KisTransformMask *)",
         "method:KisExifInfoVisitor::visit(KisTransparencyMask *)"
+      ]
+    },
+    {
+      "target": "KisNodeFacadeSchemaContractTest",
+      "source": "libs/image/tests/KisNodeFacadeSchemaContractTest.cpp",
+      "test": "KisNodeFacadeSchemaContractTest::typeConstructionLifetimeAndRootSchemaRemainStable",
+      "behavior": "node facadeは空またはroot nodeから構築して仮想破棄でき、管理対象rootを共有pointerで設定・取得する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisNodeFacade",
+        "method:KisNodeFacade::KisNodeFacade()",
+        "method:KisNodeFacade::KisNodeFacade(KisNodeSP root)",
+        "method:KisNodeFacade::root() const",
+        "method:KisNodeFacade::setRoot(KisNodeSP root)",
+        "method:KisNodeFacade::~KisNodeFacade()"
+      ]
+    },
+    {
+      "target": "KisNodeFacadeSchemaContractTest",
+      "source": "libs/image/tests/KisNodeFacadeSchemaContractTest.cpp",
+      "test": "KisNodeFacadeSchemaContractTest::moveSignaturesRemainStable",
+      "behavior": "node facadeは移動先を上隣接nodeまたは子indexで指定する二つの移動境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeFacade::moveNode(KisNodeSP node,KisNodeSP parent,KisNodeSP aboveThis)",
+        "method:KisNodeFacade::moveNode(KisNodeSP node,KisNodeSP parent,quint32 index)"
+      ]
+    },
+    {
+      "target": "KisNodeFacadeSchemaContractTest",
+      "source": "libs/image/tests/KisNodeFacadeSchemaContractTest.cpp",
+      "test": "KisNodeFacadeSchemaContractTest::addSignaturesRemainStable",
+      "behavior": "node facadeは既定位置、上隣接nodeまたは子indexと追加方針を指定する三つの追加境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeFacade::addNode(KisNodeSP node,KisNodeSP parent,KisNodeSP aboveThis,KisNodeAdditionFlags flags=KisNodeAdditionFlag::None)",
+        "method:KisNodeFacade::addNode(KisNodeSP node,KisNodeSP parent,quint32 index,KisNodeAdditionFlags flags=KisNodeAdditionFlag::None)",
+        "method:KisNodeFacade::addNode(KisNodeSP node,KisNodeSP parent=KisNodeSP (),KisNodeAdditionFlags flags=KisNodeAdditionFlag::None)"
+      ]
+    },
+    {
+      "target": "KisNodeFacadeSchemaContractTest",
+      "source": "libs/image/tests/KisNodeFacadeSchemaContractTest.cpp",
+      "test": "KisNodeFacadeSchemaContractTest::removeSignatureRemainsStable",
+      "behavior": "node facadeは共有pointerで指定したnodeを階層から除去し、成否を返す公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeFacade::removeNode(KisNodeSP node)"
       ]
     }
   ]
