@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-08 18:37 JST
+- 更新日時: 2026-09-08 18:40 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3331,6 +3331,12 @@
 - 開始`libs/image/KisAutoLevels.h`から新規`libs/image/tests/KisAutoLevelsSchemaContractTest.cpp`へ15 API・5枠を追加した。調整方式列挙7、channel histogram値3、点・gamma計算2、色範囲1、channel調整2を列挙値、厳密なmember・関数pointerで固定した。試験sourceは97行・5枠で、histogram、paint device、色、level curve、計算本文は実体化していない。初回redは未定義の5検査関数だけで失敗し、契約実装commitは`1c712003ca`である。
 - macOSで対象`libs-image-KisAutoLevelsSchemaContractTest`、軽量近傍`libs-image-KisPaintDeviceSchemaContractTest`、対象の20回反復、試験sourceの厳格`clang-check`、書式、二回の無作業再構築に成功した。4工程・8入力、command SHA-256 `0f1e259fd027041ee87f28dbf7f558bfe3e29e83ce297f76f7eaa45fce5218a2`、input SHA-256 `5baa52b518491c110426d53c7b0a673d1138ff1efbc8df2643a74ec54d6d85d5`、AUTOMOC `HEADERS=[]`、直接接続はQt Core・Testとheader-only Boost、製品未解決symbol 0である。UI生成物を含む既存5工程・10入力対象を反復先から分離した。
 - 台帳へ15 APIを追加して26,435件対応、3,369件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g401.json`、構造確認報告、一時計測物を削除し、追加作業tree・構築木は作成していない。主Ninja木5,977,600 KiB、共有compiler cache 983,396 KiB、最新`build/tdd-macos/public-api-missing-g402.json` 914,052 bytes、SHA-256 `a4f16575f6f40b0c00e17dafb61ede2ad366eea9926373d381ab4f1feeeb8b12`だけを再利用対象として保持する。compiler cacheは144,395件中120,532件、83.47%がhitしている。次の永続作業は第402便で次の高密度なmacOS対象と最小構築面を選定することである。
+
+### 第402便の公開API契約計画
+
+- 第402便は`libs/resources/KisResourceLoaderRegistry.h`に残る全14 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g402.json`は公開header 1,548、公開API 29,804、対応済み26,435、未対応3,369、914,052 bytes、SHA-256 `a4f16575f6f40b0c00e17dafb61ede2ad366eea9926373d381ab4f1feeeb8b12`である。対象識別子整列集合のSHA-256は`b042af9f04dfc1eb8f3702d0a106c4413d8faf679b0e5d083dd6e5ba69e1b6a6`で、登録簿型・寿命・取得3、loader登録・検索2、形式・種別照会4、修復型・寿命・実行3、修復登録・一括実行2の5枠へ固定する。
+- 直前に新設した`libs/resources/tests/KisResourceLoaderSchemaContractTest.cpp`はloaderと登録簿の一責務を所有し、100行・4枠から5枠追加後も300行・20枠未満に収まる。既存compile interfaceがregistryのresources・global依存を満たすため、CMake変更なしで4工程・8入力を維持する。製品登録簿、loader、修復処理を実体化せず、型特性と厳密な関数pointerだけで公開境界を観測する。
+- `g402-resource-loader-registry-schema`の状態は`in_progress`、実装基点は`3cbddbe9c7`である。開始headerから既存試験sourceの5枠だけへ追加し、CMake、公開header、製品sourceは変更しない。macOSの対象、追加5枠の20回反復、軽量近傍、試験sourceの厳格`clang-check`、書式、二回の無作業再構築、動的接続・未解決symbol、公開API検査、`verify-quick`だけを実行する。製品resources・OBJECT・shared target、動的登録簿試験、全体build・`verify`、Linux、Nix再評価は実行しない。
 
 ### 第239便の先行監査担当票
 
