@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 3413
+    "expectedMissingApis": 3399
   },
   "contracts": [
     {
@@ -72279,6 +72279,65 @@
       "classification": "maintained",
       "apis": [
         "method:KisNodeSelectionRecipe::selectNodesToProcess() const"
+      ]
+    },
+    {
+      "target": "KisDefaultBoundsNodeWrapperSchemaContractTest",
+      "source": "libs/image/tests/KisDefaultBoundsNodeWrapperSchemaContractTest.cpp",
+      "test": "KisDefaultBoundsNodeWrapperSchemaContractTest::typeOwnershipConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "node既定境界wrapperは共有所有別名、基底関係、弱参照nodeまたは同型からの構築と仮想寿命境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisDefaultBoundsNodeWrapperSP",
+        "class:KisDefaultBoundsNodeWrapper",
+        "method:KisDefaultBoundsNodeWrapper::KisDefaultBoundsNodeWrapper(KisBaseNodeWSP node=0)",
+        "method:KisDefaultBoundsNodeWrapper::KisDefaultBoundsNodeWrapper(KisDefaultBoundsNodeWrapper & rhs)",
+        "method:KisDefaultBoundsNodeWrapper::~KisDefaultBoundsNodeWrapper()"
+      ]
+    },
+    {
+      "target": "KisDefaultBoundsNodeWrapperSchemaContractTest",
+      "source": "libs/image/tests/KisDefaultBoundsNodeWrapperSchemaContractTest.cpp",
+      "test": "KisDefaultBoundsNodeWrapperSchemaContractTest::infiniteRectSchemaRemainsStable",
+      "behavior": "node既定境界wrapperは有限な画像境界を得られない場合に使うconst無限領域値を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisDefaultBoundsNodeWrapper::infiniteRect"
+      ]
+    },
+    {
+      "target": "KisDefaultBoundsNodeWrapperSchemaContractTest",
+      "source": "libs/image/tests/KisDefaultBoundsNodeWrapperSchemaContractTest.cpp",
+      "test": "KisDefaultBoundsNodeWrapperSchemaContractTest::boundsSignaturesRemainStable",
+      "behavior": "node既定境界wrapperは処理境界と画像外枠を値で照会する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDefaultBoundsNodeWrapper::bounds() const",
+        "method:KisDefaultBoundsNodeWrapper::imageBorderRect() const"
+      ]
+    },
+    {
+      "target": "KisDefaultBoundsNodeWrapperSchemaContractTest",
+      "source": "libs/image/tests/KisDefaultBoundsNodeWrapperSchemaContractTest.cpp",
+      "test": "KisDefaultBoundsNodeWrapperSchemaContractTest::wrapLodAndTimeSignaturesRemainStable",
+      "behavior": "node既定境界wrapperは現在のLOD・時刻と循環表示状態・軸を照会する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDefaultBoundsNodeWrapper::currentLevelOfDetail() const",
+        "method:KisDefaultBoundsNodeWrapper::currentTime() const",
+        "method:KisDefaultBoundsNodeWrapper::wrapAroundMode() const",
+        "method:KisDefaultBoundsNodeWrapper::wrapAroundModeAxis() const"
+      ]
+    },
+    {
+      "target": "KisDefaultBoundsNodeWrapperSchemaContractTest",
+      "source": "libs/image/tests/KisDefaultBoundsNodeWrapperSchemaContractTest.cpp",
+      "test": "KisDefaultBoundsNodeWrapperSchemaContractTest::externalFrameAndSourceSignaturesRemainStable",
+      "behavior": "node既定境界wrapperは外部frame状態と境界source識別子を照会する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDefaultBoundsNodeWrapper::externalFrameActive() const",
+        "method:KisDefaultBoundsNodeWrapper::sourceCookie() const"
       ]
     }
   ]
