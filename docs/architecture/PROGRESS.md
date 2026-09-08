@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 07:50 JST
+- 更新日時: 2026-09-09 08:00 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4122,6 +4122,10 @@
 - 公開headerは`kis_debug.h`の識別子を使わず、実装`libs/image/kis_properties_configuration.cc`は既に同headerを直接includeしている。開始`libs/image/kis_properties_configuration.h`から診断includeを除去し、実装所有`libs/image/kis_properties_configuration.cc`の直接includeへ限定する。コンパイルデータベースにある直接利用元100件の変更前厳密構文検査は77件成功・23件既存診断である。変更後も全100件を最大6並列で再検査し、新規悪化0を完了条件とする。公開headerの内容、公開面、動作、実装は変更しない。
 - 既存`libs/image/tests/KisPropertiesConfigurationSchemaContractTest.cpp`は251行・10枠で、2枠追加後も300行・14枠未満に収まる。同targetは設定とfilter設定を所有し、Qt Core・Gui・Testとheader-only Boostだけで4工程・8入力、command SHA-256 `58d8caf69cc0aeddd2e2e874d568f033c7df0941b55e26e50908deedf22b17a6`、input SHA-256 `e6727f5be16f79cd9b836e3d6ce523211d11a4efcccb4f84ffb8f382bf8a8022`である。新規targetは同じ公開header閉包へCMake登録と生成物を増やすため棄却する。
 - 診断includeの限定を独立commitした後、開始headerから既存試験sourceの2枠だけへ追加し、CMakeと製品実装は変更しない。停止線は5工程・11入力で、新たな探索路・定義・接続、AUTOMOC header入力、製品未解決記号、設定またはfactory本文の実体化が必要なら停止する。macOSの対象、軽量近傍、対象の20回反復、試験sourceの厳格構文、書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
+- 構造整理では開始`libs/image/kis_properties_configuration.h`から未使用の`kis_debug.h` includeを除去し、診断出力を所有する既存`libs/image/kis_properties_configuration.cc`の直接includeだけへ限定した。直接利用元100件の変更後厳密構文検査も77件成功・23件既存診断で、変更前から新規悪化0・改善0・対象増減0である。公開面は1,548 header・29,804 APIと両指紋を維持した。構造commitは`e6a9a1f12b`である。
+- 開始`libs/image/kis_properties_configuration.h`から既存`libs/image/tests/KisPropertiesConfigurationSchemaContractTest.cpp`へ全10 API・2枠を追加した。設定の既定・複製構築、代入、仮想寿命、診断5と、factoryの型、既定構築、仮想寿命、既定・XML生成5を厳密な型特性と関数pointerで固定した。初回は既存10枠と設定枠が成功し、`G463 properties configuration factory API schema is not fixed yet`だけで1件失敗した。設定、factory、filter設定の本文は実体化していない。計画commitは`47d7645a83`、契約commitは`47d112f559`である。
+- 試験sourceは288行・12枠となり、CMakeを変更していない。既存targetは4工程・8入力、command SHA-256 `58d8caf69cc0aeddd2e2e874d568f033c7df0941b55e26e50908deedf22b17a6`、input SHA-256 `e6727f5be16f79cd9b836e3d6ce523211d11a4efcccb4f84ffb8f382bf8a8022`を変更前から維持した。AUTOMOC `HEADERS=[]`、直接接続はQt Core・Gui・Testで、製品未解決記号・製品動的接続は0である。macOSで対象、軽量近傍`KisSerializableConfigurationContractTest`、対象の20回反復、試験sourceの厳格構文と書式、連続二回の無作業再構築、公開API検査、`verify-quick`に成功した。設定・factory動作対象、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 台帳は27,300件対応、2,504件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g463.json`を削除し、直接利用元比較はディスクへ一時一覧を作らず、追加作業tree・構築木も作成していない。主Ninja木5,995,804 KiB、共有compiler cache 983,216 KiB、最新`build/tdd-macos/public-api-missing-g464.json` 683,035 bytes、SHA-256 `7a5bf71b24fc02ef478e71297194333728d058de7ed58a259bf36b00393615b8`だけを再利用対象として保持する。compiler cacheは144,600件中120,565件、83.38%がhitしている。次の永続作業は第464便で最新報告から高密度なmacOS対象と最小構築面を選定することである。
 
 ### 第239便の先行監査担当票
 

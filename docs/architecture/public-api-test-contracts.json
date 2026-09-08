@@ -16,7 +16,7 @@
     "publicApiFingerprint": "5f05b2aa8e5bef4343af1d55a3852331e51d4369fe135b099327b1a91b6b8c4c"
   },
   "migration": {
-    "expectedMissingApis": 2514
+    "expectedMissingApis": 2504
   },
   "contracts": [
     {
@@ -38935,6 +38935,34 @@
         "method:KisPropertiesConfiguration::escapeString(const QString & string)",
         "method:KisPropertiesConfiguration::extractedPrefixKey()",
         "method:KisPropertiesConfiguration::unescapeString(const QString & string)"
+      ]
+    },
+    {
+      "target": "KisPropertiesConfigurationSchemaContractTest",
+      "source": "libs/image/tests/KisPropertiesConfigurationSchemaContractTest.cpp",
+      "test": "KisPropertiesConfigurationSchemaContractTest::propertiesConfigurationConstructionLifetimeAndDiagnosticsSchemaRemainStable",
+      "behavior": "設定値mapは既定構築・深い複製・代入・仮想破棄・保持値の診断出力という公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPropertiesConfiguration::KisPropertiesConfiguration()",
+        "method:KisPropertiesConfiguration::KisPropertiesConfiguration(const KisPropertiesConfiguration & rhs)",
+        "method:KisPropertiesConfiguration::dump() const",
+        "method:KisPropertiesConfiguration::operator =(const KisPropertiesConfiguration & rhs)",
+        "method:KisPropertiesConfiguration::~KisPropertiesConfiguration()"
+      ]
+    },
+    {
+      "target": "KisPropertiesConfigurationSchemaContractTest",
+      "source": "libs/image/tests/KisPropertiesConfigurationSchemaContractTest.cpp",
+      "test": "KisPropertiesConfigurationSchemaContractTest::propertiesConfigurationFactoryTypeLifetimeAndCreationSignaturesRemainStable",
+      "behavior": "設定factoryは既定構築・仮想破棄でき、空状態またはXML要素から直列化可能な設定を生成する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisPropertiesConfigurationFactory",
+        "method:KisPropertiesConfigurationFactory::KisPropertiesConfigurationFactory()",
+        "method:KisPropertiesConfigurationFactory::create(const QDomElement & e)",
+        "method:KisPropertiesConfigurationFactory::createDefault()",
+        "method:KisPropertiesConfigurationFactory::~KisPropertiesConfigurationFactory()"
       ]
     },
     {
