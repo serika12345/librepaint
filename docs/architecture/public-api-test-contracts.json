@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 4043
+    "expectedMissingApis": 4015
   },
   "contracts": [
     {
@@ -70578,6 +70578,88 @@
       "classification": "maintained",
       "apis": [
         "method:KisOpenGLImageTextures::sigShowFloatingMessage(const QString & message,int timeout,bool priority)"
+      ]
+    },
+    {
+      "target": "KisQPainterCanvasSchemaContractTest",
+      "source": "libs/ui/tests/KisQPainterCanvasSchemaContractTest.cpp",
+      "test": "KisQPainterCanvasSchemaContractTest::typeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "QPainter canvasはwidget・共通canvas責務の型関係、canvas・座標変換・親widgetによる構築と仮想寿命を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisQPainterCanvas",
+        "method:KisQPainterCanvas::KisQPainterCanvas(KisCanvas2 * canvas,KisCoordinatesConverter * coordinatesConverter,QWidget * parent)",
+        "method:KisQPainterCanvas::~KisQPainterCanvas()"
+      ]
+    },
+    {
+      "target": "KisQPainterCanvasSchemaContractTest",
+      "source": "libs/ui/tests/KisQPainterCanvasSchemaContractTest.cpp",
+      "test": "KisQPainterCanvasSchemaContractTest::widgetEventSignaturesRemainStable",
+      "behavior": "QPainter canvasはfocus、表示、入力method、描画と寸法変更のQt widget event受渡しを維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisQPainterCanvas::focusInEvent(QFocusEvent * event)",
+        "method:KisQPainterCanvas::focusOutEvent(QFocusEvent * event)",
+        "method:KisQPainterCanvas::hideEvent(QHideEvent * event)",
+        "method:KisQPainterCanvas::inputMethodEvent(QInputMethodEvent * event)",
+        "method:KisQPainterCanvas::inputMethodQuery(Qt::InputMethodQuery query) const",
+        "method:KisQPainterCanvas::paintEvent(QPaintEvent * ev)",
+        "method:KisQPainterCanvas::resizeEvent(QResizeEvent * e)",
+        "method:KisQPainterCanvas::showEvent(QShowEvent * event)"
+      ]
+    },
+    {
+      "target": "KisQPainterCanvasSchemaContractTest",
+      "source": "libs/ui/tests/KisQPainterCanvasSchemaContractTest.cpp",
+      "test": "KisQPainterCanvasSchemaContractTest::displayAndProjectionConfigurationSignaturesRemainStable",
+      "behavior": "QPainter canvasはchannel選択、画像色空間、表示構成・filterと事前縮小projectionの設定を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisQPainterCanvas::channelSelectionChanged(const QBitArray & channelFlags)",
+        "method:KisQPainterCanvas::notifyImageColorSpaceChanged(const KoColorSpace * cs)",
+        "method:KisQPainterCanvas::setDisplayConfig(const KisDisplayConfig & config)",
+        "method:KisQPainterCanvas::setDisplayFilter(QSharedPointer<KisDisplayFilter> displayFilter)",
+        "method:KisQPainterCanvas::setPrescaledProjection(KisPrescaledProjectionSP prescaledProjection)"
+      ]
+    },
+    {
+      "target": "KisQPainterCanvasSchemaContractTest",
+      "source": "libs/ui/tests/KisQPainterCanvasSchemaContractTest.cpp",
+      "test": "KisQPainterCanvasSchemaContractTest::wrapAroundViewingSignaturesRemainStable",
+      "behavior": "QPainter canvasはwrap-around表示の有効状態と適用軸の設定・照会を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisQPainterCanvas::setWrapAroundViewingMode(bool value)",
+        "method:KisQPainterCanvas::setWrapAroundViewingModeAxis(WrapAroundAxis value)",
+        "method:KisQPainterCanvas::wrapAroundViewingMode() const",
+        "method:KisQPainterCanvas::wrapAroundViewingModeAxis() const"
+      ]
+    },
+    {
+      "target": "KisQPainterCanvasSchemaContractTest",
+      "source": "libs/ui/tests/KisQPainterCanvasSchemaContractTest.cpp",
+      "test": "KisQPainterCanvasSchemaContractTest::projectionUpdateSignaturesRemainStable",
+      "behavior": "QPainter canvasは画像寸法変更、projection更新開始・適用と画像・装飾の部分更新を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisQPainterCanvas::finishResizingImage(qint32 w,qint32 h)",
+        "method:KisQPainterCanvas::startUpdateCanvasProjection(const QRect & rc)",
+        "method:KisQPainterCanvas::updateCanvasDecorations(const QRect & decoUpdateRect)",
+        "method:KisQPainterCanvas::updateCanvasImage(const QRect & imageUpdateRect)",
+        "method:KisQPainterCanvas::updateCanvasProjection(KisUpdateInfoSP info)"
+      ]
+    },
+    {
+      "target": "KisQPainterCanvasSchemaContractTest",
+      "source": "libs/ui/tests/KisQPainterCanvasSchemaContractTest.cpp",
+      "test": "KisQPainterCanvasSchemaContractTest::widgetAndProcessingStateSignaturesRemainStable",
+      "behavior": "QPainter canvasは利用widget、処理中状態とLOD復帰状態の設定接続面を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisQPainterCanvas::isBusy() const",
+        "method:KisQPainterCanvas::setLodResetInProgress(bool value)",
+        "method:KisQPainterCanvas::widget()"
       ]
     }
   ]
