@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 05:00 JST
+- 更新日時: 2026-09-09 05:05 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3969,6 +3969,12 @@
 - 当初の既存Count visitor対象への追記は、metadata source・generated探索路に続いてglobal探索路も必要になった時点で停止し、試験sourceとCMakeを開始状態へ戻した。専用EXIF対象は76行・4枠、4工程・8入力、command SHA-256 `8e0e51fac091cea5657215158f5ce513ebd81271e65947f09d6cb2a8866890c3`、input SHA-256 `3088819b2c798014df8b8e49f1f6c8738d70a803b6bdcb158ad3167982f03f5f`である。AUTOMOC `HEADERS=[]`、直接接続はQt Core・Test、製品未解決記号0である。近傍`KisCountVisitorSchemaContractTest`はcommand SHA-256 `555ed3709ed4e48d867f8bedfb45948b26f7ac3ca8f10a7e8dd0181f946f8d27`、input SHA-256 `ff3f4b2b979f553b4f739ca50a0a8208c0ee9e58b256583e40b7cd469c089f1d`へ復帰した。
 - macOSで新対象、近傍Count visitor、対象の20回反復、試験sourceの`clang-check --extra-arg=-Werror`と書式、連続二回の無作業再構築に成功した。台帳は27,195件対応、2,609件未対応となり、開始headerの残存は0件である。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 旧`public-api-missing-g451.json`を削除し、追加作業tree・構築木・一時計画物は作成していない。主Ninja木5,991,980 KiB、共有compiler cache 982,948 KiB、最新`build/tdd-macos/public-api-missing-g452.json` 710,013 bytes、SHA-256 `373441bd8344349bc33fcc81b2c8d208c601ef195b0db0daf9fe14b0f890ca61`だけを再利用対象として保持する。compiler cacheは144,571件中120,563件、83.39%がhitしている。次の永続作業は第452便で最新報告から高密度なmacOS対象と最小構築面を選定することである。
+
+### 第452便の公開API契約計画
+
+- 第452便は`libs/image/kis_node_facade.h`に残る全12 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g452.json`は公開header 1,548、公開API 29,804、対応済み27,195、未対応2,609、710,013 bytes、SHA-256 `373441bd8344349bc33fcc81b2c8d208c601ef195b0db0daf9fe14b0f890ca61`である。対象識別子整列集合のSHA-256は`6d2848cccff184d99e63355e5f8c49a2b56b542fc4af97b4666023053cb8d213`で、型・2構築・寿命・root設定取得6、2 move署名2、3 add署名3、remove署名1の4枠へ固定する。
+- 公開facadeはnodeを共有pointer値として受け渡すだけだが、`kis_node.h`の完全型を全利用元へ伝播させている。構造先行変更では開始`libs/image/kis_node_facade.h`の`kis_node.h`を共有pointerの既定値構築に必要な`kis_shared_ptr.h`へ置き換え、完全型includeを既存`libs/image/kis_node_facade.cpp`へ移す。推移includeに依存する直接利用元は各所有sourceへ`kis_node.h`を明示する。公開宣言、ABI、node操作順を変えず、直接利用元の変更前後厳格診断集合と公開API指紋一致を完了条件とする。
+- 既存動的`kis_node_facade_test`は製品`kritaimage`へ接続する1,201工程・2,425入力なので反復対象から除外する。軽量`KisNodeVisitorContractTest`は4工程・8入力、command SHA-256 `2fd291fc17f70f80f38ffc3738a5fb083665402d544c8064984315aa84b014c1`、input SHA-256 `d28770e56083cefd9385f4b5450ec7b46e60fafebe8cece4dc8acd92f814e0a8`だが既に309行なので追記しない。新規`libs/image/tests/KisNodeFacadeSchemaContractTest.cpp`と専用targetを4枠で作り、image・globalのsource/generated探索路とimage export定義、Qt Core・Testだけで4工程・8入力を予測する。停止線を5工程・11入力とし、計画外探索路・link・定義、AUTOMOC header入力、製品未解決記号、facade・node・共有pointer本文の実体化が必要なら停止する。macOSの対象、4枠の20回反復、軽量近傍、直接利用元と試験sourceの厳格構文、書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、製品target、既存動的試験、全体build・`verify`、Linux、Nix再評価は行わない。
 
 ### 第239便の先行監査担当票
 
