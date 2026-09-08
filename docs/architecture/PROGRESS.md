@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-08 21:06 JST
+- 更新日時: 2026-09-08 21:10 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3493,6 +3493,12 @@
 - `g414-simple-processing-visitor-schema`は`completed`である。開始`libs/image/processing/kis_simple_processing_visitor.h`から既存`libs/image/tests/KisProcessingApplicatorSchemaContractTest.cpp`へ14 API・4枠を追加した。visitor型・寿命2、node・paint・group・adjustment訪問4、external・generator・clone・filter訪問4、transform・transparency・selection・colorize mask訪問4を型特性と厳密な関数pointerで固定した。試験sourceは246行・14枠で、visitor、各node・layer・mask、undo adapterと本文を実体化していない。初回redは未定義の4検査関数だけで失敗し、契約実装commitは`6d4ce17f44`である。
 - CMake変更なしで、macOSの対象`libs-image-KisProcessingApplicatorSchemaContractTest`、近傍`libs-image-KisDoNothingProcessingVisitorContractTest`の単発、対象の20回反復、試験sourceの厳格`clang-check`、書式、AUTOMOC後の二回目計画、二回の無作業再構築に成功した。対象は4工程・8入力、command SHA-256 `c2ad24c7fa29698d0e5f7bfd19aeb76433f35ec1b85e59351f20cbd0ba47b3b8`、input SHA-256 `ef65832c613a467e9fd10c4af072b8718b9043f966c8104b8aff5bd39bd3c090`、AUTOMOC `HEADERS=[]`、直接接続はQt Core・Test、製品未解決symbol 0である。製品image target、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 台帳へ14 APIを追加して26,662件対応、3,142件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g414.json`と一時計測物を削除し、追加作業tree・構築木は作成していない。主Ninja木5,981,296 KiB、共有compiler cache 982,344 KiB、最新`build/tdd-macos/public-api-missing-g415.json` 850,879 bytes、SHA-256 `467739e32a8a49eabd0e56c88bb1ca06b879cfda2399edf7aa70faa370a117b5`だけを再利用対象として保持する。compiler cacheは144,450件中120,544件、83.45%がhitしている。公開API検査に成功した。次の永続作業は第415便で次の高密度なmacOS対象と最小構築面を選定することである。
+
+### 第415便の公開API契約計画
+
+- 第415便は`libs/ui/document/kis_filter_manager.h`に残る全14 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g415.json`は公開header 1,548、公開API 29,804、対応済み26,662、未対応3,142、850,879 bytes、SHA-256 `467739e32a8a49eabd0e56c88bb1ca06b879cfda2399edf7aa70faa370a117b5`である。対象識別子整列集合のSHA-256は`aded20ec098b4cd3ceec4c3762a75b5914b6268836e81985d4136a680484d898`で、manager型・構築・寿命3、view・action・GUI 3、適用・終了・取消4、stroke・選択frame状態4の4枠へ固定する。
+- 既存`libs/ui/tests/KisImageManagerSchemaContractTest.cpp`は文書に対する画像操作manager境界を所有し、70行・5枠から追加後も300行・20枠未満に収まる。CMake変更なしで4工程・8入力、command SHA-256 `6224c0330ffa0f1b9dc5a690301d7ea9bea2d8db3e42846ee3e03a4c8b4920e8`、input SHA-256 `1b478af24d58b351b9dd6457e28393b327645e51f4bf0e859078ae9f29d077f3`を維持する。manager、view、action、filter設定、stroke、dialogと本文を実体化せず、型特性と厳密な関数pointerだけで公開境界を観測する。2,027工程・4,051入力の一括UI公開header対象は反復先から除外する。
+- `g415-filter-manager-schema`の状態は`in_progress`、実装基点は`a1af3669fa`である。開始headerから既存試験sourceの4枠だけへ追加し、CMake、公開header、製品source、製品targetは変更しない。停止線は5工程・11入力とし、新たな探索路・定義・link、製品OBJECT・shared・`kritatestsdk`接続、候補headerのAUTOMOC入力化、製品未解決symbol、対象値または本文の実体化が必要なら候補を保留する。macOSの対象、追加4枠の20回反復、軽量近傍、試験sourceの厳格`clang-check`、書式、二回の無作業再構築、動的接続・未解決symbol、公開API検査、`verify-quick`だけを実行する。一括UI公開header対象、製品UI・application・image target、全体build・`verify`、Linux、Nix再評価は実行しない。
 
 ### 第239便の先行監査担当票
 
