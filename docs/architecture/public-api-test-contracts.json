@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 3501
+    "expectedMissingApis": 3487
   },
   "contracts": [
     {
@@ -71930,6 +71930,65 @@
         "method:KisBrushBasedPaintOp::preinitializeOpStatically(KisPaintOpSettingsSP settings)",
         "method:KisBrushBasedPaintOp::prepareEmbeddedResources(const KisPaintOpSettingsSP settings,KisResourcesInterfaceSP resourcesInterface)",
         "method:KisBrushBasedPaintOp::prepareLinkedResources(const KisPaintOpSettingsSP settings,KisResourcesInterfaceSP resourcesInterface)"
+      ]
+    },
+    {
+      "target": "PSDLayerRecordSchemaContractTest",
+      "source": "libs/psdutils/tests/PSDLayerRecordSchemaContractTest.cpp",
+      "test": "PSDLayerRecordSchemaContractTest::resourceBlockTypeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "PSD資源blockは公開型、既定構築と仮想基底を介した寿命境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:PSDResourceBlock",
+        "method:PSDResourceBlock::PSDResourceBlock()",
+        "method:PSDResourceBlock::~PSDResourceBlock()"
+      ]
+    },
+    {
+      "target": "PSDLayerRecordSchemaContractTest",
+      "source": "libs/psdutils/tests/PSDLayerRecordSchemaContractTest.cpp",
+      "test": "PSDLayerRecordSchemaContractTest::resourceBlockSerializedValueMemberSchemaRemainsStable",
+      "behavior": "PSD資源blockは識別子、名称、寸法、生dataと診断文を保持する直列化値境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:PSDResourceBlock::data",
+        "member:PSDResourceBlock::dataSize",
+        "member:PSDResourceBlock::error",
+        "member:PSDResourceBlock::identifier",
+        "member:PSDResourceBlock::name"
+      ]
+    },
+    {
+      "target": "PSDLayerRecordSchemaContractTest",
+      "source": "libs/psdutils/tests/PSDLayerRecordSchemaContractTest.cpp",
+      "test": "PSDLayerRecordSchemaContractTest::resourceBlockOwnershipAndCloneSchemaRemainStable",
+      "behavior": "PSD資源blockは解釈済み資源pointerの所有と注釈としての複製境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:PSDResourceBlock::resource",
+        "method:PSDResourceBlock::clone() const"
+      ]
+    },
+    {
+      "target": "PSDLayerRecordSchemaContractTest",
+      "source": "libs/psdutils/tests/PSDLayerRecordSchemaContractTest.cpp",
+      "test": "PSDLayerRecordSchemaContractTest::resourceBlockDisplayAndValiditySignaturesRemainStable",
+      "behavior": "PSD資源blockは表示文と妥当性を照会する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:PSDResourceBlock::displayText() const",
+        "method:PSDResourceBlock::valid()"
+      ]
+    },
+    {
+      "target": "PSDLayerRecordSchemaContractTest",
+      "source": "libs/psdutils/tests/PSDLayerRecordSchemaContractTest.cpp",
+      "test": "PSDLayerRecordSchemaContractTest::resourceBlockIoSignaturesRemainStable",
+      "behavior": "PSD資源blockは入出力装置に対する読込みとconst書出しの公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:PSDResourceBlock::read(QIODevice & io)",
+        "method:PSDResourceBlock::write(QIODevice & io) const"
       ]
     }
   ]
