@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include <psd_additional_layer_info_block.h>
 #include <psd_layer_record.h>
 #include <psd_layer_section.h>
 #include <psd_resource_block.h>
@@ -19,6 +20,12 @@ namespace
     static_assert(std::is_same_v<decltype(static_cast<signature>(&PSDLayerMaskSection::method)), signature>)
 #define ASSERT_PSD_RESOURCE_BLOCK_SIGNATURE(method, signature)                                                         \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&PSDResourceBlock::method)), signature>)
+#define ASSERT_PSD_TEXT_SHAPE_SIGNATURE(method, signature)                                                             \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&psd_layer_type_shape::method)), signature>)
+#define ASSERT_PSD_VECTOR_ORIGINATION_SIGNATURE(method, signature)                                                     \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&psd_vector_origination_data::method)), signature>)
+#define ASSERT_PSD_VECTOR_STROKE_SIGNATURE(method, signature)                                                          \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&psd_vector_stroke_data::method)), signature>)
 } // namespace
 
 class PSDLayerRecordSchemaContractTest : public QObject
@@ -40,6 +47,11 @@ private Q_SLOTS:
     void resourceBlockOwnershipAndCloneSchemaRemainStable();
     void resourceBlockDisplayAndValiditySignaturesRemainStable();
     void resourceBlockIoSignaturesRemainStable();
+    void additionalLayerTextToolMemberSchemaRemainsStable();
+    void additionalLayerTextShapeConfigurationSignaturesRemainStable();
+    void additionalLayerTextShapeXmlSignaturesRemainStable();
+    void additionalLayerVectorOriginationSignaturesRemainStable();
+    void additionalLayerVectorStrokeSignaturesRemainStable();
 };
 
 void PSDLayerRecordSchemaContractTest::layerRecordTypeLifetimeAndValiditySchemaRemainStable()
@@ -172,6 +184,49 @@ void PSDLayerRecordSchemaContractTest::resourceBlockIoSignaturesRemainStable()
     ASSERT_PSD_RESOURCE_BLOCK_SIGNATURE(write, bool (PSDResourceBlock::*)(QIODevice &) const);
 }
 
+void PSDLayerRecordSchemaContractTest::additionalLayerTextToolMemberSchemaRemainsStable()
+{
+    static_assert(std::is_same_v<decltype(&psd_layer_type_face::vector), qint32 * psd_layer_type_face::*>);
+    static_assert(std::is_same_v<decltype(&psd_layer_type_tool::face), psd_layer_type_face * psd_layer_type_tool::*>);
+    static_assert(std::is_same_v<decltype(&psd_layer_type_tool::line), psd_layer_type_line * psd_layer_type_tool::*>);
+    static_assert(std::is_same_v<decltype(&psd_layer_type_tool::style), psd_layer_type_style * psd_layer_type_tool::*>);
+}
+
+void PSDLayerRecordSchemaContractTest::additionalLayerTextShapeConfigurationSignaturesRemainStable()
+{
+    using SetupCatcher = void (*)(QString, KisAslCallbackObjectCatcher &, psd_layer_type_shape *);
+
+    ASSERT_PSD_TEXT_SHAPE_SIGNATURE(setEngineData, void (psd_layer_type_shape::*)(QByteArray));
+    ASSERT_PSD_TEXT_SHAPE_SIGNATURE(setupCatcher, SetupCatcher);
+}
+
+void PSDLayerRecordSchemaContractTest::additionalLayerTextShapeXmlSignaturesRemainStable()
+{
+    ASSERT_PSD_TEXT_SHAPE_SIGNATURE(textDataASLXML, QDomDocument (psd_layer_type_shape::*)());
+    ASSERT_PSD_TEXT_SHAPE_SIGNATURE(textWarpXML, QDomDocument (psd_layer_type_shape::*)());
+}
+
+void PSDLayerRecordSchemaContractTest::additionalLayerVectorOriginationSignaturesRemainStable()
+{
+    using SetupCatcher = void (*)(QString, KisAslCallbackObjectCatcher &, psd_vector_origination_data *);
+
+    ASSERT_PSD_VECTOR_ORIGINATION_SIGNATURE(getASL, QDomDocument (psd_vector_origination_data::*)());
+    ASSERT_PSD_VECTOR_ORIGINATION_SIGNATURE(setupCatcher, SetupCatcher);
+}
+
+void PSDLayerRecordSchemaContractTest::additionalLayerVectorStrokeSignaturesRemainStable()
+{
+    using SetupCatcher = void (*)(QString, KisAslCallbackObjectCatcher &, psd_vector_stroke_data *);
+
+    ASSERT_PSD_VECTOR_STROKE_SIGNATURE(getASLXML, QDomDocument (psd_vector_stroke_data::*)());
+    ASSERT_PSD_VECTOR_STROKE_SIGNATURE(loadFromShapeStroke, void (psd_vector_stroke_data::*)(KoShapeStrokeSP));
+    ASSERT_PSD_VECTOR_STROKE_SIGNATURE(setupCatcher, SetupCatcher);
+    ASSERT_PSD_VECTOR_STROKE_SIGNATURE(setupShapeStroke, void (psd_vector_stroke_data::*)(KoShapeStrokeSP));
+}
+
+#undef ASSERT_PSD_VECTOR_STROKE_SIGNATURE
+#undef ASSERT_PSD_VECTOR_ORIGINATION_SIGNATURE
+#undef ASSERT_PSD_TEXT_SHAPE_SIGNATURE
 #undef ASSERT_PSD_RESOURCE_BLOCK_SIGNATURE
 #undef ASSERT_PSD_LAYER_SECTION_SIGNATURE
 #undef ASSERT_PSD_LAYER_RECORD_SIGNATURE
