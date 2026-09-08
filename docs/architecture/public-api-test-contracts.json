@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 3814
+    "expectedMissingApis": 3768
   },
   "contracts": [
     {
@@ -71086,6 +71086,97 @@
         "method:KisShapeLayer::selectionChanged()",
         "method:KisShapeLayer::setSectionModelProperties(const KisBaseNode::PropertyList & properties)",
         "method:KisShapeLayer::sigMoveShapes(const QPointF & diff)"
+      ]
+    },
+    {
+      "target": "KisNodeSchemaContractTest",
+      "source": "libs/image/tests/KisNodeSchemaContractTest.cpp",
+      "test": "KisNodeSchemaContractTest::nodeTypePositionAndConstructionSchemaRemainStable",
+      "behavior": "画像nodeは型、dirty位置分類の値、画像所属・複製構築と多態的破棄の境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisNode",
+        "enum:KisNode::PositionToFilthy",
+        "enumerator:KisNode::PositionToFilthy::N_ABOVE_FILTHY",
+        "enumerator:KisNode::PositionToFilthy::N_BELOW_FILTHY",
+        "enumerator:KisNode::PositionToFilthy::N_FILTHY",
+        "enumerator:KisNode::PositionToFilthy::N_FILTHY_PROJECTION",
+        "method:KisNode::KisNode(KisImageWSP image)",
+        "method:KisNode::KisNode(const KisNode & rhs)",
+        "method:KisNode::~KisNode()"
+      ]
+    },
+    {
+      "target": "KisNodeSchemaContractTest",
+      "source": "libs/image/tests/KisNodeSchemaContractTest.cpp",
+      "test": "KisNodeSchemaContractTest::nodeVisitorLayerAndProjectionSignaturesRemainStable",
+      "behavior": "画像nodeは複製・訪問、子の許可、画像所属とLOD・projection interfaceの境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNode::accept(KisNodeVisitor & v)",
+        "method:KisNode::accept(KisProcessingVisitor & visitor,KisUndoAdapter * undoAdapter)",
+        "method:KisNode::allowAsChild(KisNodeSP) const",
+        "method:KisNode::clone() const",
+        "method:KisNode::getLodCapableDevices() const",
+        "method:KisNode::projectionLeaf() const",
+        "method:KisNode::projectionPlane() const",
+        "method:KisNode::setImage(KisImageWSP newImage)",
+        "method:KisNode::syncLodCache()"
+      ]
+    },
+    {
+      "target": "KisNodeSchemaContractTest",
+      "source": "libs/image/tests/KisNodeSchemaContractTest.cpp",
+      "test": "KisNodeSchemaContractTest::nodeDirtyAndAnimationSignaturesRemainStable",
+      "behavior": "画像nodeはdirty領域の伝播、animation cacheを維持する更新、frame無効化と時刻切替の境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNode::handleKeyframeChannelFrameAboutToBeRemoved(const KisKeyframeChannel * channel,int time)",
+        "method:KisNode::handleKeyframeChannelFrameAdded(const KisKeyframeChannel * channel,int time)",
+        "method:KisNode::handleKeyframeChannelFrameChange(const KisKeyframeChannel * channel,int time)",
+        "method:KisNode::handleKeyframeChannelFrameHasBeenRemoved(const KisKeyframeChannel * channel,int time)",
+        "method:KisNode::invalidateFrames(const KisTimeSpan & range,const QRect & rect)",
+        "method:KisNode::requestTimeSwitch(int time)",
+        "method:KisNode::setDirty()",
+        "method:KisNode::setDirty(const KisRegion & region)",
+        "method:KisNode::setDirty(const QRect & rect)",
+        "method:KisNode::setDirty(const QVector<QRect> & rects)",
+        "method:KisNode::setDirtyDontResetAnimationCache()",
+        "method:KisNode::setDirtyDontResetAnimationCache(const QRect & rect)",
+        "method:KisNode::setDirtyDontResetAnimationCache(const QVector<QRect> & rects)"
+      ]
+    },
+    {
+      "target": "KisNodeSchemaContractTest",
+      "source": "libs/image/tests/KisNodeSchemaContractTest.cpp",
+      "test": "KisNodeSchemaContractTest::nodeGraphHierarchySignaturesRemainStable",
+      "behavior": "画像nodeはgraph listener・変更番号、親子・兄弟の走査、子数・位置・条件検索の境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNode::at(quint32 index) const",
+        "method:KisNode::childCount() const",
+        "method:KisNode::childNodes(const QStringList & nodeTypes,const KoProperties & properties) const",
+        "method:KisNode::firstChild() const",
+        "method:KisNode::graphListener() const",
+        "method:KisNode::graphSequenceNumber() const",
+        "method:KisNode::index(const KisNodeSP node) const",
+        "method:KisNode::lastChild() const",
+        "method:KisNode::nextSibling() const",
+        "method:KisNode::parent() const",
+        "method:KisNode::prevSibling() const",
+        "method:KisNode::setGraphListener(KisNodeGraphListener * graphListener)"
+      ]
+    },
+    {
+      "target": "KisNodeSchemaContractTest",
+      "source": "libs/image/tests/KisNodeSchemaContractTest.cpp",
+      "test": "KisNodeSchemaContractTest::nodeProgressAndNotificationSignaturesRemainStable",
+      "behavior": "画像nodeは進捗代理、処理中表示と内部変更通知の公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNode::busyProgressIndicator() const",
+        "method:KisNode::nodeProgressProxy() const",
+        "method:KisNode::sigNodeChangedInternal()"
       ]
     }
   ]

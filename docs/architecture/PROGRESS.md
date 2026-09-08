@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-08 12:46 JST
+- 更新日時: 2026-09-08 13:00 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3056,6 +3056,13 @@
 - 変更前の`libs/image/kis_node.cpp`、`libs/image/kis_processing_applicator.cpp`、`libs/image/krita_utils.cpp`、`libs/image/kis_paint_device.cc`、`libs/ui/nodes/kis_node_model.cpp`は厳格`clang-check`にすべて無診断で成功した。変更後も5件を無診断で成功させ、公開API報告のbyte一致を完了条件とする。
 - 新規`libs/image/tests/KisNodeSchemaContractTest.cpp`を200行・10枠未満で作り、型特性、列挙値、厳密な関数pointerだけで46 APIを観測する。最も近い`KisBaseNodeSchemaContractTest`は4工程・8入力、command SHA-256 `9570101f071b41c39850f50e33014f04d5ebc2cf08c5c8dd2e7f834b043d6376`、input SHA-256 `057e7f7fd450ce8c1c6aaee29e04aeda61a8908a47964b21e3d0869049596d7b`である。新規targetも4工程・8入力を予測し、停止線を5工程・11入力とする。候補headerをAUTOMOC入力にせず、製品`kritaimage` 1,197工程・2,418入力、製品shared・OBJECT、`kritatestsdk`、node・画像・描画device・訪問者実体を接続または実行しない。
 - `g381-node-schema`の状態は`in_progress`、実装基点は`63e8615278`である。構造先行commit後に新規試験sourceと`libs/image/tests/CMakeLists.txt`の対象固有節だけへ契約を追加する。macOSの対象、5枠の20回反復、軽量近傍、5 risk翻訳単位と試験sourceの厳格`clang-check`、書式、AUTOMOC後の二回目計画、二回の無作業再構築、動的接続・未解決symbol、公開API検査、`verify-quick`だけを実行する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
+
+### 第381便の実装結果
+
+- `g381-node-schema`は`completed`である。開始`libs/image/kis_node.h`の`KisRegion.h`完全依存を前方宣言へ縮小し、完全型を使う宛先`libs/image/kis_processing_applicator.cpp`と`libs/image/krita_utils.cpp`へ直接includeを移した。所有実装`libs/image/kis_node.cpp`と他の実利用元は既に直接includeしている。併せて`kis_processing_applicator.cpp`の重複した`kis_node.h`を整理した。5 risk翻訳単位は変更前後とも無診断で厳格`clang-check`に成功し、公開API報告もbyte一致した。構造変更commitは`dd83254be0`である。
+- 開始headerの残存全46 APIを、新規`libs/image/tests/KisNodeSchemaContractTest.cpp`のnode型・位置分類・構築9、訪問・layer・projection 9、dirty・animation 13、graph階層12、進捗・通知3の5枠へ対応付けた。対象は149行である。抽象nodeの公開構築子は、純粋virtual関数へ既定値だけを返す試験用probeを使って本文を実行せず到達可能性を固定する。最初の赤は追加依存を要求せず5試験関数の未定義symbolだけで停止した。契約実装commitは`63a70de190`である。
+- 最終targetは4工程・8入力、command SHA-256 `dcced990e42f0162b444f410c9023bdcc96df7cd5ddd823f7098325f34523d83`、input SHA-256 `5581f5905d4c177bf7c4e1c21af06e9c06e8e4ac7f1ab31fa912b5fb887a0dca`で停止線内に収まる。動的接続はQt Core・Gui・Test、macOS frameworkとgettextだけで、製品libraryの未解決symbolを持たない。macOSで対象`libs-image-KisNodeSchemaContractTest`、軽量近傍`libs-image-KisBaseNodeSchemaContractTest`、対象の20回反復、試験sourceの厳格`clang-check`、書式、AUTOMOC `HEADERS=[]`、二回の無作業再構築、公開API検査に成功した。製品`kritaimage` 1,197工程・2,418入力、node・画像・描画device・訪問者実体、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 台帳へ46 APIを追加して26,036件対応、3,768件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g381.json`を最新報告の検証後に削除し、追加作業tree・構築木は作成していない。主Ninja木5,954,512 KiB、共有compiler cache 982,888 KiB、最新`build/tdd-macos/public-api-missing-g382.json` 1,022,152 bytes、SHA-256 `b1ce32087b21320cee6f10264f0fe5a1fec5695ac31f2a7ad6437e47f17aec24`だけを再利用対象として保持する。compiler cacheは144,315件中120,518件、83.51%がhitしている。次の永続作業は第382便で次の高密度なmacOS対象と最小構築面を選定することである。
 
 ### 第239便の先行監査担当票
 
