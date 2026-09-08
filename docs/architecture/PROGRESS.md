@@ -2,8 +2,8 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-08 12:18 JST
-- 状態: `planned`
+- 更新日時: 2026-09-08 12:22 JST
+- 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
@@ -3035,6 +3035,13 @@
 - 開始headerの残存全54 APIを、新規`libs/application/tests/KisPartSchemaContractTest.cpp`の型・singleton 6、文書・view 20、window 12、session・file 9、cache・再生engine 7の5枠へ対応付けた。対象は129行である。最初のcompile診断で開始headerが使う`application/`基準の探索路を検出し、対象固有の`libs` source・generated探索路だけを追加した後、最初の赤は5試験関数の未定義symbolだけで停止した。契約実装commitは`1ef6cd59c7`である。
 - 最終targetは4工程・8入力、command SHA-256 `636f254566cdd9ad38066827efa44414f6700225ef5d1151f62dec1efb7960fb`、input SHA-256 `f3b91adc1e7c910ba01400ae87b13e94a09cdc87272704907b26b82ed94754a2`で停止線内に収まる。動的接続はQt Core・Test、macOS frameworkとgettextだけで、製品libraryの未解決symbolを持たない。macOSで対象`libs-application-KisPartSchemaContractTest`、軽量近傍`libs-application-KisApplicationArgumentsSchemaContractTest`、対象の20回反復、試験sourceの厳格`clang-check`、書式、AUTOMOC `HEADERS=[]`、二回の無作業再構築、公開API検査に成功した。application singleton、文書・window・session・再生engine実装、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 台帳へ54 APIを追加して25,939件対応、3,865件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g379.json`を最新報告の検証後に削除し、追加作業tree・構築木は作成していない。主Ninja木5,950,728 KiB、共有compiler cache 982,132 KiB、最新`build/tdd-macos/public-api-missing-g380.json` 1,045,516 bytes、SHA-256 `c3f6a80fdd21345591d21258eb8a332337f2859ab4ce86a14e39bfcfacb17927`だけを再利用対象として保持する。compiler cacheは144,304件中120,515件、83.51%がhitしている。次の永続作業は第380便で次の高密度なmacOS対象と最小構築面を選定することである。
+
+### 第380便の公開API契約計画
+
+- 第380便は`libs/ui/flake/kis_shape_layer.h`の残存全51 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g380.json`は公開header 1,548、公開API 29,804、対応済み25,939、未対応3,865、1,045,516 bytes、SHA-256 `c3f6a80fdd21345591d21258eb8a332337f2859ab4ce86a14e39bfcfacb17927`である。対象識別子整列集合のSHA-256は`57bf486082e52806fdc27e047d48d3298f7f4a7dbb771deaf33a16e48ed721e6`で、図形layerの型・構築8、node・layer状態14、device・幾何13、図形・永続化8、区画・遅延更新・通知8の5枠へ固定する。
+- 開始headerの`KoShapeLayer.h`、`kis_external_layer_iface.h`、`KisDelayedUpdateNodeInterface.h`、`KisCroppedOriginalLayerInterface.h`は4基底の完全型、`kis_types.h`は共有・弱所有型、export headerは公開性に必要である。重複した`QRect`前方宣言はcompile閉包を変えず、`KIS_SHAPE_LAYER_ID`の`QString`完全型は基底headerから既に到達する。構築範囲を縮める安全で実質的な製品変更はないため、公開headerと製品sourceを変更せず契約へ進む。
+- 既存`kis_shape_layer_test`は製品群を接続する2,027工程・4,051入力であり、公開面の赤緑周期には過大である。新規`libs/ui/tests/KisShapeLayerSchemaContractTest.cpp`を200行・10枠未満で作り、型特性、厳密な関数pointer、既定引数の未評価呼出しだけで51 APIを観測する。最も近いheader限定`KisTransformMaskSchemaContractTest`は4工程・8入力、command SHA-256 `f0bacabbc5e99602c061069d2f4101e49722026e6251620a0d22905651f02009`、input SHA-256 `226642f6eb0597b6d48f1e4473cc31fd9f989cd4ae40157591d3c02e0d8f5f79`である。新規targetも4工程・8入力を予測し、停止線を5工程・11入力とする。
+- `g380-shape-layer-schema`の状態は`in_progress`、実装基点は`1e71ada6ba`である。許可pathは新規試験sourceと`libs/ui/tests/CMakeLists.txt`の対象固有節だけである。macOSの対象、5枠の20回反復、軽量近傍、試験sourceの厳格`clang-check`、書式、AUTOMOC後の二回目計画、二回の無作業再構築、動的接続・未解決symbol、公開API検査、`verify-quick`を確認する。製品`kis_shape_layer_test`、図形・文書・画像実体、全体build・`verify`、Linux、Nix再評価は実行しない。
 
 ### 第239便の先行監査担当票
 
