@@ -21,6 +21,9 @@ namespace
 #define ASSERT_ADJUSTMENT_LAYER_SIGNATURE(method, signature)                                                           \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisAdjustmentLayer::method)), signature>)
 
+#define ASSERT_FILTER_MASK_SIGNATURE(method, signature)                                                                \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KisFilterMask::method)), signature>)
+
 } // namespace
 
 class KisGeneratorLayerSchemaContractTest : public QObject
@@ -37,6 +40,10 @@ private Q_SLOTS:
     void adjustmentLayerVisitorSignaturesRemainStable();
     void adjustmentLayerPresentationSignaturesRemainStable();
     void adjustmentLayerConfigurationSignaturesRemainStable();
+    void filterMaskTypeLifetimeAndCloneSchemaRemainStable();
+    void filterMaskVisitorSignaturesRemainStable();
+    void filterMaskPresentationAndConfigurationSignaturesRemainStable();
+    void filterMaskGeometrySignaturesRemainStable();
 };
 
 void KisGeneratorLayerSchemaContractTest::generatorLayerTypeLifetimeAndConstructionSchemaRemainStable()
@@ -128,6 +135,48 @@ void KisGeneratorLayerSchemaContractTest::adjustmentLayerConfigurationSignatures
     static_assert(std::is_same_v<decltype(std::declval<KisAdjustmentLayer &>().setFilter(
                                      std::declval<KisFilterConfigurationSP>())),
                                  void>);
+}
+
+void KisGeneratorLayerSchemaContractTest::filterMaskTypeLifetimeAndCloneSchemaRemainStable()
+{
+    static_assert(std::is_class_v<KisFilterMask>);
+    static_assert(std::is_base_of_v<KisEffectMask, KisFilterMask>);
+    static_assert(std::is_base_of_v<KisNodeFilterInterface, KisFilterMask>);
+    static_assert(std::is_constructible_v<KisFilterMask, KisImageWSP, const QString &>);
+    static_assert(std::is_copy_constructible_v<KisFilterMask>);
+    static_assert(std::has_virtual_destructor_v<KisFilterMask>);
+    ASSERT_FILTER_MASK_SIGNATURE(clone, KisNodeSP (KisFilterMask::*)() const);
+}
+
+void KisGeneratorLayerSchemaContractTest::filterMaskVisitorSignaturesRemainStable()
+{
+    ASSERT_FILTER_MASK_SIGNATURE(accept, bool (KisFilterMask::*)(KisNodeVisitor &));
+    ASSERT_FILTER_MASK_SIGNATURE(accept, void (KisFilterMask::*)(KisProcessingVisitor &, KisUndoAdapter *));
+}
+
+void KisGeneratorLayerSchemaContractTest::filterMaskPresentationAndConfigurationSignaturesRemainStable()
+{
+    ASSERT_FILTER_MASK_SIGNATURE(icon, QIcon (KisFilterMask::*)() const);
+    ASSERT_FILTER_MASK_SIGNATURE(setFilter, void (KisFilterMask::*)(KisFilterConfigurationSP, bool));
+    static_assert(
+        std::is_same_v<decltype(std::declval<KisFilterMask &>().setFilter(std::declval<KisFilterConfigurationSP>())),
+                       void>);
+}
+
+void KisGeneratorLayerSchemaContractTest::filterMaskGeometrySignaturesRemainStable()
+{
+    using Bounds = QRect (KisFilterMask::*)() const;
+    using DependencyRect = QRect (KisFilterMask::*)(const QRect &, KisNode::PositionToFilthy) const;
+    ASSERT_FILTER_MASK_SIGNATURE(decorateRect,
+                                 QRect (KisFilterMask::*)(KisPaintDeviceSP &,
+                                                          KisPaintDeviceSP &,
+                                                          const QRect &,
+                                                          KisNode::PositionToFilthy,
+                                                          KisRenderPassFlags) const);
+    ASSERT_FILTER_MASK_SIGNATURE(extent, Bounds);
+    ASSERT_FILTER_MASK_SIGNATURE(exactBounds, Bounds);
+    ASSERT_FILTER_MASK_SIGNATURE(changeRect, DependencyRect);
+    ASSERT_FILTER_MASK_SIGNATURE(needRect, DependencyRect);
 }
 
 QTEST_GUILESS_MAIN(KisGeneratorLayerSchemaContractTest)
