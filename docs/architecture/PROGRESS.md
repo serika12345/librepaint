@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-08 23:56 JST
+- 更新日時: 2026-09-09 00:00 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3679,6 +3679,12 @@
 - `g429-resource-cache-db-schema`は`completed`である。`libs/resources/KisResourceCacheDb.h`から既存`libs/resources/tests/KisMemoryStorageSchemaContractTest.cpp`へ13 API・4枠を移し、cache DB型と4公開状態5、妥当性・最終error・初期化3、一時資源削除・終了時保守2、外部key設定・照会・同期3を型特性、公開静的member型、厳密な関数pointerで固定した。試験sourceは212行・19枠で300行・20枠以内を維持し、DB、storage、文字列値、静的状態と本文を実体化していない。CMake変更なしの初回redは未定義の4検査関数だけで失敗し、契約実装commitは`2e55e10d81`である。
 - macOSの対象`libs-resources-KisMemoryStorageSchemaContractTest`、軽量近傍`libs-resources-KisResourceLoaderSchemaContractTest`、対象の20回反復、試験sourceの厳格`clang-check`、書式、二回目計画、連続二回の無作業再構築に成功した。対象は4工程・8入力、command SHA-256 `0af2386357da213a77f743458eb9c31b8c10bdd2a49068d417c911c3dcb44bd7`、input SHA-256 `ac6687e86922bd4c19058bd27a27854d2c041984f5032ddbfcbe888eb33e2f6d`、AUTOMOC `HEADERS=[]`、直接接続はQt Core・Test、製品未解決symbol 0である。150工程・327入力の製品resources target、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 台帳へ13 APIを追加して26,900件対応、2,904件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g429.json`を削除し、追加作業tree・構築木・一時計画物は作成していない。主Ninja木5,982,996 KiB、共有compiler cache 983,060 KiB、最新`build/tdd-macos/public-api-missing-g430.json` 791,872 bytes、SHA-256 `b04c6b933b2cb867b1423f79f75e3cfa3db10d2daee24759ee925ba63cdbc53d`だけを再利用対象として保持する。compiler cacheは144,495件中120,553件、83.43%がhitしている。公開API検査と`verify-quick`に成功した。次の永続作業は第430便で次の高密度なmacOS対象と最小構築面を選定することである。
+
+### 第430便の公開API契約計画
+
+- 第430便は`libs/ui/animation/KisAsyncAnimationRendererBase.h`に残る全17 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g430.json`は公開header 1,548、公開API 29,804、対応済み26,900、未対応2,904、791,872 bytes、SHA-256 `b04c6b933b2cb867b1423f79f75e3cfa3db10d2daee24759ee925ba63cdbc53d`である。対象識別子整列集合のSHA-256は`fe2e00d9a84cf8fa4d1e42389fe258df1d839995389cc1aa12604aafc671b296`で、renderer型・flag型・flags共有型・2値5、取消理由型・3値4、構築・寿命・2再生成路4、活動照会・取消・完了取消通知4の4枠へ固定する。
+- 既存`libs/ui/tests/KisAnimationFrameCacheSchemaContractTest.cpp`はanimation frame生成・cache境界を持ち、79行・5枠から追加後も300行・20枠以内に収まる。CMake変更なしでUI・image・globalの既存探索路とexport定義、Qt Core・Testだけを使う4工程・8入力を維持する。現行command SHA-256は`7690ce54e6c8bdb299c7b58e2a365c742500b462ebc667f77bab17d1f02687bb`、input SHA-256は`ac08635c102e391763900abf7ea53cc8d6e2d321930166b841b3a6e983b113cb`である。抽象renderer、画像、領域、frame生成lock、Qt値と本文を実体化せず、型特性、列挙値、構築可能性、厳密な関数pointerだけで公開境界を観測する。新規targetは同じ閉包に別のCMake登録と生成物を加えるため棄却する。
+- `g430-async-animation-renderer-schema`の状態は`in_progress`、実装基点は`e1a8111e91`である。開始headerから既存試験sourceの4枠だけへ追加し、CMake、公開header、製品source、製品targetは変更しない。停止線は5工程・11入力とし、新たな探索路・定義・link、製品OBJECT・shared・`kritatestsdk`接続、候補headerのAUTOMOC入力化、製品未解決symbol、対象値または本文の実体化が必要なら候補を保留する。macOSの対象、追加4枠の20回反復、軽量近傍、試験sourceの厳格`clang-check`、書式、二回目計画、連続二回の無作業再構築、動的接続・未解決symbol、公開API検査、`verify-quick`だけを実行する。1,975工程・3,950入力の製品application UI、製品UI・image target、既存結合試験`KisFrameCacheSwapperTest`、全体build・`verify`、Linux、Nix再評価は実行しない。
 
 ### 第239便の先行監査担当票
 
