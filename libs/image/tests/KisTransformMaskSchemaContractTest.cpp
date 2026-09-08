@@ -4,6 +4,7 @@
  */
 
 #include "kis_transform_mask.h"
+#include "kis_transform_mask_params_factory_registry.h"
 
 #include <QTest>
 
@@ -15,6 +16,9 @@ namespace
 
 #define ASSERT_TRANSFORM_MASK_SIGNATURE(method, signature)                                                             \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisTransformMask::method)), signature>)
+#define ASSERT_TRANSFORM_FACTORY_REGISTRY_SIGNATURE(method, signature)                                                 \
+    static_assert(                                                                                                     \
+        std::is_same_v<decltype(static_cast<signature>(&KisTransformMaskParamsFactoryRegistry::method)), signature>)
 
 } // namespace
 
@@ -28,6 +32,10 @@ private Q_SLOTS:
     void transformMaskParametersAndCacheSignaturesRemainStable();
     void transformMaskPositionAndDelayedUpdateSignaturesRemainStable();
     void transformMaskLodTestingAndNotificationSignaturesRemainStable();
+    void transformFactoryAliasesSchemaRemainStable();
+    void transformFactoryRegistryTypeLifetimeAndAccessSchemaRemainStable();
+    void transformFactoryRegistrationAndCreationSignaturesRemainStable();
+    void animatedTransformFactorySignaturesRemainStable();
 };
 
 void KisTransformMaskSchemaContractTest::transformMaskTypeLifetimeAndVisitorSchemaRemainStable()
@@ -114,6 +122,50 @@ void KisTransformMaskSchemaContractTest::transformMaskLodTestingAndNotificationS
     QVERIFY(true);
 }
 
+void KisTransformMaskSchemaContractTest::transformFactoryAliasesSchemaRemainStable()
+{
+    static_assert(std::is_same_v<KisTransformMaskParamsFactory,
+                                 std::function<KisTransformMaskParamsInterfaceSP(const QDomElement &)>>);
+    static_assert(std::is_same_v<KisTransformMaskParamsFactoryMap, QMap<QString, KisTransformMaskParamsFactory>>);
+    static_assert(std::is_same_v<KisAnimatedTransformMaskParamsHolderFactory,
+                                 std::function<KisAnimatedTransformParamsHolderInterfaceSP(KisDefaultBoundsBaseSP)>>);
+}
+
+void KisTransformMaskSchemaContractTest::transformFactoryRegistryTypeLifetimeAndAccessSchemaRemainStable()
+{
+    using Registry = KisTransformMaskParamsFactoryRegistry;
+
+    static_assert(std::is_class_v<Registry>);
+    static_assert(std::is_constructible_v<Registry>);
+    static_assert(std::is_destructible_v<Registry>);
+    ASSERT_TRANSFORM_FACTORY_REGISTRY_SIGNATURE(instance, Registry * (*)());
+}
+
+void KisTransformMaskSchemaContractTest::transformFactoryRegistrationAndCreationSignaturesRemainStable()
+{
+    using Registry = KisTransformMaskParamsFactoryRegistry;
+
+    ASSERT_TRANSFORM_FACTORY_REGISTRY_SIGNATURE(
+        addFactory,
+        void (Registry::*)(const QString &, const KisTransformMaskParamsFactory &));
+    ASSERT_TRANSFORM_FACTORY_REGISTRY_SIGNATURE(
+        createParams,
+        KisTransformMaskParamsInterfaceSP (Registry::*)(const QString &, const QDomElement &));
+}
+
+void KisTransformMaskSchemaContractTest::animatedTransformFactorySignaturesRemainStable()
+{
+    using Registry = KisTransformMaskParamsFactoryRegistry;
+
+    ASSERT_TRANSFORM_FACTORY_REGISTRY_SIGNATURE(
+        setAnimatedParamsHolderFactory,
+        void (Registry::*)(const KisAnimatedTransformMaskParamsHolderFactory &));
+    ASSERT_TRANSFORM_FACTORY_REGISTRY_SIGNATURE(
+        createAnimatedParamsHolder,
+        KisAnimatedTransformParamsHolderInterfaceSP (Registry::*)(KisDefaultBoundsBaseSP));
+}
+
+#undef ASSERT_TRANSFORM_FACTORY_REGISTRY_SIGNATURE
 #undef ASSERT_TRANSFORM_MASK_SIGNATURE
 
 QTEST_GUILESS_MAIN(KisTransformMaskSchemaContractTest)
