@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 2838
+    "expectedMissingApis": 2824
   },
   "contracts": [
     {
@@ -74366,6 +74366,56 @@
         "method:KisFilter::configurationAllowedForMask(KisFilterConfigurationSP config) const",
         "method:KisFilter::fixLoadedFilterConfigurationForMasks(KisFilterConfigurationSP config) const",
         "method:KisFilter::needsTransparentPixels(const KisFilterConfigurationSP config,const KoColorSpace * cs) const"
+      ]
+    },
+    {
+      "target": "KisMaskSchemaContractTest",
+      "source": "libs/image/tests/KisMaskSchemaContractTest.cpp",
+      "test": "KisMaskSchemaContractTest::transparencyMaskTypeLifetimeAndCloneSchemaRemainStable",
+      "behavior": "透明度maskは画像と名前または既存maskから構築・破棄でき、node共有所有値として複製する公開型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisTransparencyMask",
+        "method:KisTransparencyMask::KisTransparencyMask(KisImageWSP image,const QString & name)",
+        "method:KisTransparencyMask::KisTransparencyMask(const KisTransparencyMask & rhs)",
+        "method:KisTransparencyMask::clone() const",
+        "method:KisTransparencyMask::~KisTransparencyMask()"
+      ]
+    },
+    {
+      "target": "KisMaskSchemaContractTest",
+      "source": "libs/image/tests/KisMaskSchemaContractTest.cpp",
+      "test": "KisMaskSchemaContractTest::transparencyMaskDecorationAndPresentationSignaturesRemainStable",
+      "behavior": "透明度maskは入力・出力装置と描画条件から領域を装飾し、iconと選択外描画能力を返す公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTransparencyMask::decorateRect(KisPaintDeviceSP & src,KisPaintDeviceSP & dst,const QRect & rc,PositionToFilthy maskPos,KisRenderPassFlags flags) const",
+        "method:KisTransparencyMask::icon() const",
+        "method:KisTransparencyMask::paintsOutsideSelection() const"
+      ]
+    },
+    {
+      "target": "KisMaskSchemaContractTest",
+      "source": "libs/image/tests/KisMaskSchemaContractTest.cpp",
+      "test": "KisMaskSchemaContractTest::transparencyMaskVisitorSignaturesRemainStable",
+      "behavior": "透明度maskはnode visitorとundo adapter付き処理visitorを受け付ける二つの公開配送境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTransparencyMask::accept(KisNodeVisitor & v)",
+        "method:KisTransparencyMask::accept(KisProcessingVisitor & visitor,KisUndoAdapter * undoAdapter)"
+      ]
+    },
+    {
+      "target": "KisMaskSchemaContractTest",
+      "source": "libs/image/tests/KisMaskSchemaContractTest.cpp",
+      "test": "KisMaskSchemaContractTest::transparencyMaskGeometrySignaturesRemainStable",
+      "behavior": "透明度maskは内容範囲・厳密範囲を返し、汚染位置を考慮した変更領域・必要領域を算出する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTransparencyMask::changeRect(const QRect & rect,PositionToFilthy pos=N_FILTHY) const",
+        "method:KisTransparencyMask::exactBounds() const",
+        "method:KisTransparencyMask::extent() const",
+        "method:KisTransparencyMask::needRect(const QRect & rect,PositionToFilthy pos=N_FILTHY) const"
       ]
     }
   ]
