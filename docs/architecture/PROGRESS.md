@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 07:27 JST
+- 更新日時: 2026-09-09 07:32 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4110,6 +4110,7 @@
 - 第462便は`libs/image/brushengine/kis_locked_properties_proxy.h`に残る全8 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g462.json`は公開header 1,548、公開API 29,804、対応済み27,282、未対応2,522、687,987 bytes、SHA-256 `aeeae85e8bb112a1cef663ac1be955b29ea0311f35d52813dd700200ab9f4561`である。対象識別子整列集合のSHA-256は`d9b99ff7d5438094c77108dbe28fe1eb65cc364f671f708ea0ea8e53e52998ac`で、型・構築・寿命3、property取得・設定・存在・key列・診断5の2枠へ固定する。
 - 公開proxyは設定型を継承して仮想関数を上書きするため`kis_properties_configuration.h`の完全型が必要であり、未使用依存や実装詳細を伝播させていないため構造変更は不要である。固定設定集合・server・paintop presetを所有する既存`libs/image/tests/KisPaintOpPresetSchemaContractTest.cpp`は256行・16枠で、2枠追加後も300行・20枠未満に収まる。同targetはimage・global・pigment・resources等の既存探索路とexport定義、Qt Core・Gui・Testだけで4工程・8入力、command SHA-256 `0c32b72c9110304c0414146d4d0562b3228d14528e0f816521f51274008446d8`、input SHA-256 `d5fef47757220ffdb67b7e99cf6d1dd2d81f2ec0ff9972a54d3b3b8614760b9f`である。新規targetは同じ閉包へCMake登録と生成物を増やすため棄却する。
 - 開始headerから既存試験sourceの2枠だけへ追加し、CMake、公開header、製品sourceは変更しない。停止線は5工程・11入力とし、新たな探索路・定義・link、AUTOMOC header入力、製品未解決記号、proxy・設定・固定集合または本文の実体化が必要なら停止する。macOSの対象、追加2枠の20回反復、軽量近傍、試験sourceの厳格構文、書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
+- 最初の対象構築は`kis_properties_configuration.h`から到達する`Eigen/Sparse`の探索路が同targetにないため、試験本文の構文検査前に停止した。公開proxyは継承元の完全型を必要とし、`kritaimage`本体もEigenを公開接続している。既存のschema契約targetと同じ`$<TARGET_PROPERTY:Eigen3::Eigen,INTERFACE_INCLUDE_DIRECTORIES>`をこのtargetの私有探索路へ追加するのが最小の修正であり、製品接続や別targetを増やさない。修正後も4工程・8入力を上限とし、閉包が増える場合は再停止する。
 
 ### 第239便の先行監査担当票
 
