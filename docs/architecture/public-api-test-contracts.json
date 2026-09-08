@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 2736
+    "expectedMissingApis": 2722
   },
   "contracts": [
     {
@@ -74756,6 +74756,56 @@
       "apis": [
         "method:KisDistanceInitInfo::fromXML(const QDomElement & elt)",
         "method:KisDistanceInitInfo::toXML(QDomDocument & doc,QDomElement & elt) const"
+      ]
+    },
+    {
+      "target": "KisPaintLayerSchemaContractTest",
+      "source": "libs/image/tests/KisPaintLayerSchemaContractTest.cpp",
+      "test": "KisPaintLayerSchemaContractTest::layerProjectionPlaneTypeLifetimeAndConstructionSchemaRemainStable",
+      "behavior": "layer投影面は抽象投影面としてlayerから構築・破棄でき、弱参照で共有される公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisLayerProjectionPlaneWSP",
+        "class:KisLayerProjectionPlane",
+        "method:KisLayerProjectionPlane::KisLayerProjectionPlane(KisLayer * layer)",
+        "method:KisLayerProjectionPlane::~KisLayerProjectionPlane()"
+      ]
+    },
+    {
+      "target": "KisPaintLayerSchemaContractTest",
+      "source": "libs/image/tests/KisPaintLayerSchemaContractTest.cpp",
+      "test": "KisPaintLayerSchemaContractTest::layerProjectionPlaneRecalculationAndApplicationSignaturesRemainStable",
+      "behavior": "layer投影面は変更nodeと描画条件から領域を再計算し、通常または最大alpha条件でpainterへ適用する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisLayerProjectionPlane::apply(KisPainter * painter,const QRect & rect)",
+        "method:KisLayerProjectionPlane::applyMaxOutAlpha(KisPainter * painter,const QRect & rect,KritaUtils::ThresholdMode thresholdMode)",
+        "method:KisLayerProjectionPlane::recalculate(const QRect & rect,KisNodeSP filthyNode,KisRenderPassFlags flags)"
+      ]
+    },
+    {
+      "target": "KisPaintLayerSchemaContractTest",
+      "source": "libs/image/tests/KisPaintLayerSchemaContractTest.cpp",
+      "test": "KisPaintLayerSchemaContractTest::layerProjectionPlaneGeometrySignaturesRemainStable",
+      "behavior": "layer投影面は変更位置条件に応じた必要・変更・参照領域と元内容の必要領域を返す公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisLayerProjectionPlane::accessRect(const QRect & rect,KisLayer::PositionToFilthy pos) const",
+        "method:KisLayerProjectionPlane::changeRect(const QRect & rect,KisLayer::PositionToFilthy pos) const",
+        "method:KisLayerProjectionPlane::needRect(const QRect & rect,KisLayer::PositionToFilthy pos) const",
+        "method:KisLayerProjectionPlane::needRectForOriginal(const QRect & rect) const"
+      ]
+    },
+    {
+      "target": "KisPaintLayerSchemaContractTest",
+      "source": "libs/image/tests/KisPaintLayerSchemaContractTest.cpp",
+      "test": "KisPaintLayerSchemaContractTest::layerProjectionPlaneBoundsAndLodSignaturesRemainStable",
+      "behavior": "layer投影面は利用者向けの厳密・概算表示範囲とLoD同期対象装置を返す公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisLayerProjectionPlane::getLodCapableDevices() const",
+        "method:KisLayerProjectionPlane::looseUserVisibleBounds() const",
+        "method:KisLayerProjectionPlane::tightUserVisibleBounds() const"
       ]
     }
   ]
