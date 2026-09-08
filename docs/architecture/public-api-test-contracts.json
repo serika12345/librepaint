@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 3035
+    "expectedMissingApis": 3019
   },
   "contracts": [
     {
@@ -73620,6 +73620,67 @@
         "method:KisStatusBar::sigCancellationRequested()",
         "method:KisStatusBar::updateSelectionToolTip()",
         "method:KisStatusBar::updateStatusBarProfileLabel()"
+      ]
+    },
+    {
+      "target": "KisShapeLayerSchemaContractTest",
+      "source": "libs/ui/tests/KisShapeLayerSchemaContractTest.cpp",
+      "test": "KisShapeLayerSchemaContractTest::shapeControllerTypeAndLifetimeSchemaRemainStable",
+      "behavior": "shape controllerはname server・undo stack・親QObjectを受け取って構築され、仮想破棄できる公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisShapeController",
+        "method:KisShapeController::KisShapeController(KisNameServer * nameServer,KUndo2Stack * undoStack,QObject * parent=0)",
+        "method:KisShapeController::~KisShapeController()"
+      ]
+    },
+    {
+      "target": "KisShapeLayerSchemaContractTest",
+      "source": "libs/ui/tests/KisShapeLayerSchemaContractTest.cpp",
+      "test": "KisShapeLayerSchemaContractTest::shapeControllerDummyQuerySignaturesRemainStable",
+      "behavior": "shape controllerはnodeに対応するdummyの有無・個体、root dummy、dummy総数を照会する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisShapeController::dummiesCount() const",
+        "method:KisShapeController::dummyForNode(KisNodeSP layer) const",
+        "method:KisShapeController::hasDummyForNode(KisNodeSP node) const",
+        "method:KisShapeController::rootDummy() const"
+      ]
+    },
+    {
+      "target": "KisShapeLayerSchemaContractTest",
+      "source": "libs/ui/tests/KisShapeLayerSchemaContractTest.cpp",
+      "test": "KisShapeLayerSchemaContractTest::shapeControllerShapeCanvasAndImageSignaturesRemainStable",
+      "behavior": "shape controllerはnode対応shapeを照会し、canvasの初期shapeとactive node付き画像を設定する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisShapeController::setImage(KisImageWSP image,KisNodeSP activeNode)",
+        "method:KisShapeController::setInitialShapeForCanvas(KisCanvas2 * canvas)",
+        "method:KisShapeController::shapeForNode(KisNodeSP layer) const"
+      ]
+    },
+    {
+      "target": "KisShapeLayerSchemaContractTest",
+      "source": "libs/ui/tests/KisShapeLayerSchemaContractTest.cpp",
+      "test": "KisShapeLayerSchemaContractTest::shapeControllerCreationAndDocumentGeometrySignaturesRemainStable",
+      "behavior": "shape controllerはshape群の親containerを作成し、文書のpixel領域と解像度を提供する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisShapeController::createParentForShapes(const QList<KoShape * > shapes,bool forceNewLayer,KUndo2Command * parentCommand)",
+        "method:KisShapeController::documentRectInPixels() const",
+        "method:KisShapeController::pixelsPerInch() const"
+      ]
+    },
+    {
+      "target": "KisShapeLayerSchemaContractTest",
+      "source": "libs/ui/tests/KisShapeLayerSchemaContractTest.cpp",
+      "test": "KisShapeLayerSchemaContractTest::shapeControllerNotificationSignaturesRemainStable",
+      "behavior": "shape controllerは選択、選択内容、current shape layerの変更を通知する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisShapeController::currentLayerChanged(const KoShapeLayer *)",
+        "method:KisShapeController::selectionChanged()",
+        "method:KisShapeController::selectionContentChanged()"
       ]
     }
   ]

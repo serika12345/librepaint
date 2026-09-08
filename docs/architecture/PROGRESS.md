@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-08 22:26 JST
+- 更新日時: 2026-09-08 22:31 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3577,6 +3577,12 @@
 - 第421便は`libs/ui/flake/kis_shape_controller.h`に残る全16 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g421.json`は公開header 1,548、公開API 29,804、対応済み26,769、未対応3,035、824,437 bytes、SHA-256 `216d1e6c7a5040c71fa8e6e17ccc296ba45d603824d6e1a6da86ca80e69f3efd`である。対象識別子整列集合のSHA-256は`b085995792002b5e25f0c16b67298355a7d8ab9ed64891d601fcfebaaff87e88`で、controller型・構築・寿命3、dummy照会4、shape・canvas・画像設定3、shape親作成・文書領域・解像度3、選択・内容・current layer通知3の5枠へ固定する。
 - 既存`libs/ui/tests/KisShapeLayerSchemaContractTest.cpp`はnodeとshapeの相互所有境界を持ち、146行・5枠から追加後も300行・20枠未満に収まる。CMake変更なしでQt Core・Testだけの動的接続、header-only Boost、4工程・8入力を維持する。現行command SHA-256は`29a2b50034dd03ba47221cb65681708ef41747e40449d56b2555fb2316c8959e`、input SHA-256は`d125ea61bbaa6e4bd60b4a775c49acc2c4a4cbac4f72962a0aacecaa254b2b73`である。controller、dummy、node、shape、canvas、image、undo commandと本文を実体化せず、型特性、構築可能性、厳密な関数pointerだけで公開境界を観測する。製品`kritaapplicationui`は1,975工程・3,950入力で反復先から除外する。
 - `g421-shape-controller-schema`の状態は`in_progress`、実装基点は`e0b4f3fe87`である。開始headerから既存試験sourceの5枠だけへ追加し、CMake、公開header、製品source、製品targetは変更しない。停止線は5工程・11入力とし、新たな探索路・定義・link、製品OBJECT・shared・`kritatestsdk`接続、候補headerのAUTOMOC入力化、製品未解決symbol、対象値または本文の実体化が必要なら候補を保留する。macOSの対象、追加5枠の20回反復、軽量近傍、試験sourceの厳格`clang-check`、書式、二回の無作業再構築、動的接続・未解決symbol、公開API検査、`verify-quick`だけを実行する。製品application UI・UI・flake・image target、全体build・`verify`、Linux、Nix再評価は実行しない。
+
+### 第421便の実装結果
+
+- `g421-shape-controller-schema`は`completed`である。`libs/ui/flake/kis_shape_controller.h`から既存`libs/ui/tests/KisShapeLayerSchemaContractTest.cpp`へ16 API・5枠を移し、controller型・構築・寿命3、dummy照会4、shape・canvas・画像設定3、shape親作成・文書領域・解像度3、選択・内容・current layer通知3を型特性、構築可能性、厳密な関数pointerで固定した。試験sourceは202行・10枠で、controller、dummy、node、shape、canvas、image、undo commandと本文を実体化していない。CMake変更なしの初回redは未定義の5検査関数だけで失敗し、実装時に`createParentForShapes`の`const QList`が参照ではなく値渡しであることを確認して契約を修正した。契約実装commitは`cafcef997c`である。
+- macOSの対象`libs-ui-KisShapeLayerSchemaContractTest`、軽量近傍`libs-ui-KisReferenceImageSchemaContractTest`、対象の20回反復、試験sourceの厳格`clang-check`、書式、変更なし計画、連続二回の無作業再構築に成功した。対象は4工程・8入力、command SHA-256 `29a2b50034dd03ba47221cb65681708ef41747e40449d56b2555fb2316c8959e`、input SHA-256 `d125ea61bbaa6e4bd60b4a775c49acc2c4a4cbac4f72962a0aacecaa254b2b73`、AUTOMOC `HEADERS=[]`、直接接続はQt Core・Test、製品未解決symbol 0である。1,975工程・3,950入力の製品application UI、製品UI・flake・image target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 台帳へ16 APIを追加して26,785件対応、3,019件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g421.json`を削除し、追加作業tree・構築木・一時計画物は作成していない。主Ninja木5,981,420 KiB、共有compiler cache 983,308 KiB、最新`build/tdd-macos/public-api-missing-g422.json` 820,329 bytes、SHA-256 `7f33acc8a67cee2e43c38346f0f67b23ff698841df07baf6b2fe44d7a028e0e5`だけを再利用対象として保持する。compiler cacheは144,477件中120,553件、83.44%がhitしている。公開API検査と`verify-quick`に成功した。次の永続作業は第422便で次の高密度なmacOS対象と最小構築面を選定することである。
 
 ### 第239便の先行監査担当票
 
