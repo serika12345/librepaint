@@ -5,6 +5,7 @@
 
 #include "kis_mask.h"
 #include "kis_selection.h"
+#include "kis_transparency_mask.h"
 
 #include <QTest>
 
@@ -19,6 +20,9 @@ namespace
 
 #define ASSERT_SELECTION_SIGNATURE(method, signature)                                                                  \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisSelection::method)), signature>)
+
+#define ASSERT_TRANSPARENCY_MASK_SIGNATURE(method, signature)                                                          \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KisTransparencyMask::method)), signature>)
 
 class MaskConstructorProbe final : public KisMask
 {
@@ -53,6 +57,10 @@ private Q_SLOTS:
     void selectionContentAndGeometrySignaturesRemainStable();
     void selectionCacheAndThumbnailSignaturesRemainStable();
     void selectionProjectionAndMutationSignaturesRemainStable();
+    void transparencyMaskTypeLifetimeAndCloneSchemaRemainStable();
+    void transparencyMaskDecorationAndPresentationSignaturesRemainStable();
+    void transparencyMaskVisitorSignaturesRemainStable();
+    void transparencyMaskGeometrySignaturesRemainStable();
 };
 
 void KisMaskSchemaContractTest::maskTypeAndConstructionSchemaRemainStable()
@@ -203,6 +211,53 @@ void KisMaskSchemaContractTest::selectionProjectionAndMutationSignaturesRemainSt
     QVERIFY(true);
 }
 
+void KisMaskSchemaContractTest::transparencyMaskTypeLifetimeAndCloneSchemaRemainStable()
+{
+    static_assert(std::is_class_v<KisTransparencyMask>);
+    static_assert(std::is_base_of_v<KisEffectMask, KisTransparencyMask>);
+    static_assert(std::is_constructible_v<KisTransparencyMask, KisImageWSP, const QString &>);
+    static_assert(std::is_copy_constructible_v<KisTransparencyMask>);
+    static_assert(std::has_virtual_destructor_v<KisTransparencyMask>);
+    ASSERT_TRANSPARENCY_MASK_SIGNATURE(clone, KisNodeSP (KisTransparencyMask::*)() const);
+
+    QVERIFY(true);
+}
+
+void KisMaskSchemaContractTest::transparencyMaskDecorationAndPresentationSignaturesRemainStable()
+{
+    ASSERT_TRANSPARENCY_MASK_SIGNATURE(decorateRect,
+                                       QRect (KisTransparencyMask::*)(KisPaintDeviceSP &,
+                                                                      KisPaintDeviceSP &,
+                                                                      const QRect &,
+                                                                      KisNode::PositionToFilthy,
+                                                                      KisRenderPassFlags) const);
+    ASSERT_TRANSPARENCY_MASK_SIGNATURE(icon, QIcon (KisTransparencyMask::*)() const);
+    ASSERT_TRANSPARENCY_MASK_SIGNATURE(paintsOutsideSelection, bool (KisTransparencyMask::*)() const);
+
+    QVERIFY(true);
+}
+
+void KisMaskSchemaContractTest::transparencyMaskVisitorSignaturesRemainStable()
+{
+    ASSERT_TRANSPARENCY_MASK_SIGNATURE(accept, bool (KisTransparencyMask::*)(KisNodeVisitor &));
+    ASSERT_TRANSPARENCY_MASK_SIGNATURE(accept, void (KisTransparencyMask::*)(KisProcessingVisitor &, KisUndoAdapter *));
+
+    QVERIFY(true);
+}
+
+void KisMaskSchemaContractTest::transparencyMaskGeometrySignaturesRemainStable()
+{
+    using Bounds = QRect (KisTransparencyMask::*)() const;
+    using DependencyRect = QRect (KisTransparencyMask::*)(const QRect &, KisNode::PositionToFilthy) const;
+    ASSERT_TRANSPARENCY_MASK_SIGNATURE(extent, Bounds);
+    ASSERT_TRANSPARENCY_MASK_SIGNATURE(exactBounds, Bounds);
+    ASSERT_TRANSPARENCY_MASK_SIGNATURE(changeRect, DependencyRect);
+    ASSERT_TRANSPARENCY_MASK_SIGNATURE(needRect, DependencyRect);
+
+    QVERIFY(true);
+}
+
+#undef ASSERT_TRANSPARENCY_MASK_SIGNATURE
 #undef ASSERT_SELECTION_SIGNATURE
 #undef ASSERT_MASK_SIGNATURE
 
