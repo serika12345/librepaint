@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-08 20:46 JST
+- 更新日時: 2026-09-08 20:50 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3467,6 +3467,12 @@
 - `g412-dab-rendering-queue-schema`は`completed`である。開始`plugins/paintops/defaultpaintops/brush/KisDabRenderingQueue.h`から既存`plugins/paintops/defaultpaintops/brush/tests/KisDabRenderingJobSchemaContractTest.cpp`へ18 API・5枠を追加した。queue型・構築・寿命3、cache interface型・寿命・配送4、dab追加・完了・取得3、準備状態・cache資源5、平均値・試験照会3を型特性と厳密な関数pointerで固定した。試験sourceは177行・10枠で、queue、cache interface、色空間、資源factory、dab要求・生成情報、paint device、描画結果と本文を実体化していない。初回redは未定義の5検査関数だけで失敗し、契約実装commitは`edb53f814d`である。
 - CMake変更なしで、macOSの対象`plugins-paintops-defaultpaintops-brush-KisDabRenderingJobSchemaContractTest`、軽量近傍`plugins-paintops-libpaintop-KisDabCacheUtilsSchemaContractTest`、対象の20回反復、試験sourceの厳格`clang-check`、書式、AUTOMOC後の二回目計画、二回の無作業再構築に成功した。対象は4工程・8入力、command SHA-256 `fffc8677f2720b724014942742c89ba6d77d7c8e81360136593c62443f134e98`、input SHA-256 `3ac7fbe9f558dbb8785b892897bee5eb388a41a8c834994ca3f5e6cedb365a58`、AUTOMOC `HEADERS=[]`、直接接続はQt Core・Gui・Test・Xml、製品未解決symbol 0である。2,140工程・4,275入力の既存queue動作試験、製品default paintops・paintop・image target、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 台帳へ18 APIを追加して26,632件対応、3,172件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g412.json`と一時計測物を削除し、追加作業tree・構築木は作成していない。主Ninja木5,981,176 KiB、共有compiler cache 983,388 KiB、最新`build/tdd-macos/public-api-missing-g413.json` 860,812 bytes、SHA-256 `e74dddb384727613b282d48f588d637244aa15759d4348a59c78866b55b4c984`だけを再利用対象として保持する。compiler cacheは144,443件中120,541件、83.45%がhitしている。公開API検査に成功した。次の永続作業は第413便で次の高密度なmacOS対象と最小構築面を選定することである。
+
+### 第413便の公開API契約計画
+
+- 第413便は`libs/image/processing/kis_transform_processing_visitor.h`に残る全16 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g413.json`は公開header 1,548、公開API 29,804、対応済み26,632、未対応3,172、860,812 bytes、SHA-256 `e74dddb384727613b282d48f588d637244aa15759d4348a59c78866b55b4c984`である。対象識別子整列集合のSHA-256は`eca84f9f1e392150b3fcd47401286d6fc564abe74f7e63f66fe75000e7052456`で、visitor型・構築2、選択・初期命令2、node・paint・group・adjustment訪問4、external・generator・clone・filter訪問4、transform・transparency・selection・colorize mask訪問4の5枠へ固定する。
+- 既存`libs/image/tests/KisProcessingApplicatorSchemaContractTest.cpp`は処理visitor適用境界を所有し、127行・5枠から追加後も300行・20枠未満に収まる。対象はCMake変更なしで4工程・8入力、command SHA-256 `f8f7ebe106cbdb9e3c49baef16f8f2afa3beafac1e9b9fe2fa23f19f5db5071b`、input SHA-256 `ef65832c613a467e9fd10c4af072b8718b9043f966c8104b8aff5bd39bd3c090`を維持できる。既存`kis_processings_test`は製品image接続を含む1,201工程・2,425入力であるため反復先から除外する。visitor、選択、各node・layer・mask、filter、undo adapter、変形値と本文を実体化せず、型特性、構築可能性、厳密な関数pointerだけで公開境界を観測する。
+- `g413-transform-processing-visitor-schema`の状態は`in_progress`、実装基点は`f608011378`である。開始headerから既存試験sourceの5枠だけへ追加し、CMake、公開header、製品source、製品targetは変更しない。停止線は5工程・11入力とし、新たな探索路・定義・link、製品OBJECT・shared・`kritatestsdk`接続、候補headerのAUTOMOC入力化、製品未解決symbol、対象値または本文の実体化が必要なら候補を保留する。macOSの対象、追加5枠の20回反復、軽量近傍、試験sourceの厳格`clang-check`、書式、二回の無作業再構築、動的接続・未解決symbol、公開API検査、`verify-quick`だけを実行する。既存動作試験、製品image target、全体build・`verify`、Linux、Nix再評価は実行しない。
 
 ### 第239便の先行監査担当票
 
