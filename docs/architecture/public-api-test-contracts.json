@@ -16,7 +16,7 @@
     "publicApiFingerprint": "5f05b2aa8e5bef4343af1d55a3852331e51d4369fe135b099327b1a91b6b8c4c"
   },
   "migration": {
-    "expectedMissingApis": 2585
+    "expectedMissingApis": 2573
   },
   "contracts": [
     {
@@ -75321,6 +75321,54 @@
       "apis": [
         "method:KisRefreshSubtreeWalker::flags() const",
         "method:KisRefreshSubtreeWalker::type() const"
+      ]
+    },
+    {
+      "target": "KisPaintOpPresetSchemaContractTest",
+      "source": "libs/image/tests/KisPaintOpPresetSchemaContractTest.cpp",
+      "test": "KisPaintOpPresetSchemaContractTest::paintOpRegistryTypeLifetimeAndGlobalAccessSchemaRemainStable",
+      "behavior": "paintop登録簿は大域的なQObject登録簿として構築・仮想破棄でき、singleton取得と資源loader登録の公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisPaintOpRegistry",
+        "method:KisPaintOpRegistry::KisPaintOpRegistry()",
+        "method:KisPaintOpRegistry::instance()",
+        "method:KisPaintOpRegistry::registerResourceLoader(KisResourceLoaderRegistry & registry)",
+        "method:KisPaintOpRegistry::~KisPaintOpRegistry()"
+      ]
+    },
+    {
+      "target": "KisPaintOpPresetSchemaContractTest",
+      "source": "libs/image/tests/KisPaintOpPresetSchemaContractTest.cpp",
+      "test": "KisPaintOpPresetSchemaContractTest::paintOpRegistryPaintOpCreationSignaturesRemainStable",
+      "behavior": "paintop登録簿はpreset・painter・node・imageからpaintopを生成し、preset用stroke間データfactoryを返す公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPaintOpRegistry::createInterstrokeDataFactory(KisPaintOpPresetSP preset) const",
+        "method:KisPaintOpRegistry::paintOp(const KisPaintOpPresetSP preset,KisPainter * painter,KisNodeSP node,KisImageSP image) const"
+      ]
+    },
+    {
+      "target": "KisPaintOpPresetSchemaContractTest",
+      "source": "libs/image/tests/KisPaintOpPresetSchemaContractTest.cpp",
+      "test": "KisPaintOpPresetSchemaContractTest::paintOpRegistryConfigurationAndPresentationSignaturesRemainStable",
+      "behavior": "paintop登録簿は識別子から設定・既定preset・iconを取得し、登録識別子列を返す公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPaintOpRegistry::createSettings(const KoID & id,KisResourcesInterfaceSP resourcesInterface) const",
+        "method:KisPaintOpRegistry::defaultPreset(const KoID & id,KisResourcesInterfaceSP resourcesInterface) const",
+        "method:KisPaintOpRegistry::icon(const KoID & id) const",
+        "method:KisPaintOpRegistry::listKeys() const"
+      ]
+    },
+    {
+      "target": "KisPaintOpPresetSchemaContractTest",
+      "source": "libs/image/tests/KisPaintOpPresetSchemaContractTest.cpp",
+      "test": "KisPaintOpPresetSchemaContractTest::paintOpRegistryPreinitializationSignatureRemainsStable",
+      "behavior": "paintop登録簿はX11文字描画回避構成でpresetのpaintopをGUI thread上に事前初期化する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPaintOpRegistry::preinitializePaintOpIfNeeded(const KisPaintOpPresetSP preset)"
       ]
     }
   ]
