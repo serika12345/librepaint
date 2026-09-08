@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 3611
+    "expectedMissingApis": 3595
   },
   "contracts": [
     {
@@ -71604,6 +71604,58 @@
         "function:operator <<(QDebug dbg,const ChannelInfo & layer)",
         "function:operator <<(QDebug dbg,const PSDLayerRecord & layer)",
         "function:operator <<(QDebug dbg,const PSDLayerRecord::LayerBlendingRanges::LayerBlendingRange & data)"
+      ]
+    },
+    {
+      "target": "PSDLayerRecordSchemaContractTest",
+      "source": "libs/psdutils/tests/PSDLayerRecordSchemaContractTest.cpp",
+      "test": "PSDLayerRecordSchemaContractTest::layerMaskSectionTypeLifetimeSchemaRemainsStable",
+      "behavior": "PSD layer・mask sectionは公開section型、global mask値型、header指定構築と破棄の境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:PSDLayerMaskSection",
+        "method:PSDLayerMaskSection::PSDLayerMaskSection(const PSDHeader & header)",
+        "method:PSDLayerMaskSection::~PSDLayerMaskSection()",
+        "struct:PSDLayerMaskSection::GlobalLayerMaskInfo"
+      ]
+    },
+    {
+      "target": "PSDLayerRecordSchemaContractTest",
+      "source": "libs/psdutils/tests/PSDLayerRecordSchemaContractTest.cpp",
+      "test": "PSDLayerRecordSchemaContractTest::layerMaskSectionGlobalMaskValueSchemaRemainsStable",
+      "behavior": "PSD global layer mask情報は色成分、種別、不透明度、overlay色空間の値schemaを維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:PSDLayerMaskSection::GlobalLayerMaskInfo::colorComponents",
+        "member:PSDLayerMaskSection::GlobalLayerMaskInfo::kind",
+        "member:PSDLayerMaskSection::GlobalLayerMaskInfo::opacity",
+        "member:PSDLayerMaskSection::GlobalLayerMaskInfo::overlayColorSpace"
+      ]
+    },
+    {
+      "target": "PSDLayerRecordSchemaContractTest",
+      "source": "libs/psdutils/tests/PSDLayerRecordSchemaContractTest.cpp",
+      "test": "PSDLayerRecordSchemaContractTest::layerMaskSectionStateMemberSchemaRemainsStable",
+      "behavior": "PSD layer・mask sectionは診断、追加情報、global mask、透明度、layer列、layer数の公開状態schemaを維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:PSDLayerMaskSection::error",
+        "member:PSDLayerMaskSection::globalInfoSection",
+        "member:PSDLayerMaskSection::globalLayerMaskInfo",
+        "member:PSDLayerMaskSection::hasTransparency",
+        "member:PSDLayerMaskSection::layers",
+        "member:PSDLayerMaskSection::nLayers"
+      ]
+    },
+    {
+      "target": "PSDLayerRecordSchemaContractTest",
+      "source": "libs/psdutils/tests/PSDLayerRecordSchemaContractTest.cpp",
+      "test": "PSDLayerRecordSchemaContractTest::layerMaskSectionIoSignaturesRemainStable",
+      "behavior": "PSD layer・mask sectionは装置からの読込みとroot layerの圧縮書出し境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:PSDLayerMaskSection::read(QIODevice & io)",
+        "method:PSDLayerMaskSection::write(QIODevice & io,KisNodeSP rootLayer,psd_compression_type compressionType)"
       ]
     }
   ]
