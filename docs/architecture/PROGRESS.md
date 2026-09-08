@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-08 20:01 JST
+- 更新日時: 2026-09-08 20:09 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3424,6 +3424,12 @@
 - 第409便は`libs/ui/document/kis_image_manager.h`に残る全20 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g409.json`は公開header 1,548、公開API 29,804、対応済み26,557、未対応3,247、882,788 bytes、SHA-256 `565a29c58c10e3e48807bd8ef4572014a4eaec3c6efe2aaac4cd0e3466cfd8d6`である。対象識別子整列集合のSHA-256は`0355b5f1bd08899189ec32844336d71733288fc62e5595b7f6df56f3d93565bd`で、型・構築・寿命3、view・action・画像dialog 4、layer取込み5、外部転送・drop 4、画像幾何変更4の5枠へ固定する。
 - 既存`TestDocumentStateUiPublicHeaders`は一括公開header検査として2,027工程・4,051入力、`KisDocumentSchemaContractTest.cpp`は258行・15枠で追加後のsource上限を超えるため、反復先から除外する。新規`libs/ui/tests/KisImageManagerSchemaContractTest.cpp`と専用targetを作り、UI・image・globalのsource/generated探索路、必要なheader-only interfaceとexport定義、Qt Core・Testだけの直接接続による4工程・8入力へ分離する。manager、view、action、paint device、画像、filter、drop event、temporary fileと本文を実体化せず、型特性と厳密な関数pointerだけで公開境界を観測する。
 - `g409-image-manager-schema`の状態は`in_progress`、実装基点は`c7e4e185d6`である。開始headerから新規試験sourceの5枠と専用CMake節だけへ追加し、公開header、製品source、製品targetは変更しない。macOSの対象、追加5枠の20回反復、軽量近傍、試験sourceの厳格`clang-check`、書式、二回の無作業再構築、動的接続・未解決symbol、公開API検査、`verify-quick`だけを実行する。製品UI・application・image shared target、一括公開header対象、全体build・`verify`、Linux、Nix再評価は実行しない。
+
+### 第409便の実装結果
+
+- `g409-image-manager-schema`は`completed`である。開始`libs/ui/document/kis_image_manager.h`から新規`libs/ui/tests/KisImageManagerSchemaContractTest.cpp`へ20 API・5枠を追加した。型・構築・寿命3、view・action・画像dialog 4、layer取込み5、外部転送・drop 4、画像幾何変更4を型特性と厳密な関数pointerで固定した。試験sourceは70行・5枠で、manager、view、action、paint device、画像、filter、drop event、temporary fileと製品本文は実体化していない。対象未登録の最初の限定構築は未知の対象、登録後の初回redは未定義の5検査関数だけで失敗し、契約実装commitは`45904a0353`である。
+- 新規専用targetはUI・image・globalのsource/generated探索路、関連export定義、Qt Core・Testとheader-only Boostだけを使う。macOSで対象`libs-ui-KisImageManagerSchemaContractTest`、軽量近傍`libs-ui-KisDocumentSchemaContractTest`、対象の20回反復、試験sourceの厳格`clang-check`、書式、二回の無作業再構築に成功した。4工程・8入力、command SHA-256 `6224c0330ffa0f1b9dc5a690301d7ea9bea2d8db3e42846ee3e03a4c8b4920e8`、input SHA-256 `1b478af24d58b351b9dd6457e28393b327645e51f4bf0e859078ae9f29d077f3`、AUTOMOC `HEADERS=[]`、直接接続はQt Core・Test、製品未解決symbol 0である。2,027工程・4,051入力の一括公開header対象と製品UI・application・image targetは実行していない。
+- 台帳へ20 APIを追加して26,577件対応、3,227件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g409.json`と一時計測物を削除し、追加作業tree・構築木は作成していない。主Ninja木5,979,428 KiB、共有compiler cache 983,424 KiB、最新`build/tdd-macos/public-api-missing-g410.json` 877,547 bytes、SHA-256 `e4c21a67cc32872d00afa967fb4f8d36ffa4ca270f20c510a3cb493a406cc9ae`だけを再利用対象として保持する。compiler cacheは144,431件中120,540件、83.46%がhitしている。次の永続作業は第410便で次の高密度なmacOS対象と最小構築面を選定することである。
 
 ### 第239便の先行監査担当票
 

@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 3247
+    "expectedMissingApis": 3227
   },
   "contracts": [
     {
@@ -72886,6 +72886,71 @@
         "method:KisNodeDummiesGraph::addNode(KisNodeDummy * node,KisNodeDummy * parent,KisNodeDummy * aboveThis)",
         "method:KisNodeDummiesGraph::moveNode(KisNodeDummy * node,KisNodeDummy * parent,KisNodeDummy * aboveThis)",
         "method:KisNodeDummiesGraph::removeNode(KisNodeDummy * node)"
+      ]
+    },
+    {
+      "target": "KisImageManagerSchemaContractTest",
+      "source": "libs/ui/tests/KisImageManagerSchemaContractTest.cpp",
+      "test": "KisImageManagerSchemaContractTest::imageManagerTypeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "画像managerはview managerから構築でき、QObject基底の仮想寿命境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisImageManager",
+        "method:KisImageManager::KisImageManager(KisViewManager * view)",
+        "method:KisImageManager::~KisImageManager()"
+      ]
+    },
+    {
+      "target": "KisImageManagerSchemaContractTest",
+      "source": "libs/ui/tests/KisImageManagerSchemaContractTest.cpp",
+      "test": "KisImageManagerSchemaContractTest::imageManagerViewSetupAndDialogSignaturesRemainStable",
+      "behavior": "画像managerはview・action managerを設定し、画像属性・色dialogを起動する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisImageManager::setView(QPointer<KisView> imageView)",
+        "method:KisImageManager::setup(KisActionManager * actionManager)",
+        "method:KisImageManager::slotImageColor()",
+        "method:KisImageManager::slotImageProperties()"
+      ]
+    },
+    {
+      "target": "KisImageManagerSchemaContractTest",
+      "source": "libs/ui/tests/KisImageManagerSchemaContractTest.cpp",
+      "test": "KisImageManagerSchemaContractTest::imageManagerLayerImportSignaturesRemainStable",
+      "behavior": "画像managerは画像を指定layer型として取り込み、fileを各mask・layer種別として取り込む公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisImageManager::importImage(const QUrl & url,const QString & layerType=\"KisPaintLayer\")",
+        "method:KisImageManager::slotImportLayerAsFilterMask()",
+        "method:KisImageManager::slotImportLayerAsSelectionMask()",
+        "method:KisImageManager::slotImportLayerAsTransparencyMask()",
+        "method:KisImageManager::slotImportLayerFromFile()"
+      ]
+    },
+    {
+      "target": "KisImageManagerSchemaContractTest",
+      "source": "libs/ui/tests/KisImageManagerSchemaContractTest.cpp",
+      "test": "KisImageManagerSchemaContractTest::imageManagerExternalTransferAndDropSignaturesRemainStable",
+      "behavior": "画像managerは色空間適応、遠隔file取得、形式診断、画像drop処理の公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisImageManager::adaptClipToImageColorSpace(KisPaintDeviceSP clip,KisImageWSP image)",
+        "method:KisImageManager::fetchRemoteFile(const QUrl & url,QTemporaryFile * destination)",
+        "method:KisImageManager::handleImageDrop(KisView * imageView,QDropEvent * event,const QPoint & imagePosition)",
+        "method:KisImageManager::importFileFormatError(const QString & fileName)"
+      ]
+    },
+    {
+      "target": "KisImageManagerSchemaContractTest",
+      "source": "libs/ui/tests/KisImageManagerSchemaContractTest.cpp",
+      "test": "KisImageManagerSchemaContractTest::imageManagerGeometryTransformationSignaturesRemainStable",
+      "behavior": "画像managerは現行画像の範囲変更、回転、拡縮、剪断を要求する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisImageManager::resizeCurrentImage(qint32 w,qint32 h,qint32 xOffset,qint32 yOffset)",
+        "method:KisImageManager::rotateCurrentImage(double radians)",
+        "method:KisImageManager::scaleCurrentImage(const QSize & size,qreal xres,qreal yres,KisFilterStrategy * filterStrategy)",
+        "method:KisImageManager::shearCurrentImage(double angleX,double angleY)"
       ]
     }
   ]
