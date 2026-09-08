@@ -4,6 +4,7 @@
  */
 
 #include "KisDabCacheUtils.h"
+#include "kis_simple_paintop_factory.h"
 
 #include <QTest>
 
@@ -15,8 +16,30 @@
 namespace
 {
 
+struct FactoryOperation;
+struct FactorySettings;
+struct FactorySettingsWidget;
+
+struct NoFactoryCapabilities {
+};
+
+struct FactoryCapabilities {
+    static void preinitializeOpStatically(KisPaintOpSettingsSP);
+    static QList<KoResourceLoadResult> prepareLinkedResources(KisPaintOpSettingsSP, KisResourcesInterfaceSP);
+    static QList<KoResourceLoadResult> prepareEmbeddedResources(KisPaintOpSettingsSP, KisResourcesInterfaceSP);
+    static KisInterstrokeDataFactory *createInterstrokeDataFactory(KisPaintOpSettingsSP, KisResourcesInterfaceSP);
+};
+
+struct ExtendedFactoryWidget {
+    ExtendedFactoryWidget(QWidget *, KisResourcesInterfaceSP, KoCanvasResourcesInterfaceSP);
+};
+
+using SimpleFactory = KisSimplePaintOpFactory<FactoryOperation, FactorySettings, FactorySettingsWidget>;
+
 #define ASSERT_DAB_FUNCTION_SIGNATURE(function, signature)                                                             \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisDabCacheUtils::function)), signature>)
+#define ASSERT_SIMPLE_FACTORY_SIGNATURE(method, signature)                                                             \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&SimpleFactory::method)), signature>)
 
 } // namespace
 
@@ -30,6 +53,11 @@ private Q_SLOTS:
     void dabGenerationValueSignaturesRemainStable();
     void dabRenderingResourceSignaturesRemainStable();
     void dabProcessingFunctionSignaturesRemainStable();
+    void simpleFactoryTypeAndCapabilityDetectionSchemaRemainStable();
+    void simpleFactoryResourcePreparationHelperSignaturesRemainStable();
+    void simpleFactoryCreationHelperSignaturesRemainStable();
+    void simpleFactoryConstructionAndCreationSignaturesRemainStable();
+    void simpleFactoryIdentityAndResourceSignaturesRemainStable();
 };
 
 void KisDabCacheUtilsSchemaContractTest::dabSchemaTypesAndFactoryRemainStable()
@@ -126,6 +154,105 @@ void KisDabCacheUtilsSchemaContractTest::dabProcessingFunctionSignaturesRemainSt
                                  void>);
 }
 
+void KisDabCacheUtilsSchemaContractTest::simpleFactoryTypeAndCapabilityDetectionSchemaRemainStable()
+{
+    static_assert(std::is_class_v<SimpleFactory>);
+    static_assert(detail::has_create_interstroke_data_factory<FactoryCapabilities>::value);
+    static_assert(detail::has_preinitialize_statically<FactoryCapabilities>::value);
+    static_assert(detail::has_prepare_embedded_resources<FactoryCapabilities>::value);
+    static_assert(detail::has_prepare_linked_resources<FactoryCapabilities>::value);
+    static_assert(detail::supports_extended_initilization<ExtendedFactoryWidget>::value);
+
+    static_assert(!detail::has_create_interstroke_data_factory<NoFactoryCapabilities>::value);
+    static_assert(!detail::has_preinitialize_statically<NoFactoryCapabilities>::value);
+    static_assert(!detail::has_prepare_embedded_resources<NoFactoryCapabilities>::value);
+    static_assert(!detail::has_prepare_linked_resources<NoFactoryCapabilities>::value);
+    static_assert(!detail::supports_extended_initilization<NoFactoryCapabilities>::value);
+}
+
+void KisDabCacheUtilsSchemaContractTest::simpleFactoryResourcePreparationHelperSignaturesRemainStable()
+{
+    using Helper = QList<KoResourceLoadResult> (*)(KisPaintOpSettingsSP, KisResourcesInterfaceSP, void *);
+
+    static_assert(
+        std::is_same_v<decltype(static_cast<Helper>(&detail::prepareEmbeddedResources<FactoryCapabilities>)), Helper>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<Helper>(&detail::prepareEmbeddedResources<NoFactoryCapabilities>)),
+                       Helper>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<Helper>(&detail::prepareLinkedResources<FactoryCapabilities>)), Helper>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<Helper>(&detail::prepareLinkedResources<NoFactoryCapabilities>)), Helper>);
+}
+
+void KisDabCacheUtilsSchemaContractTest::simpleFactoryCreationHelperSignaturesRemainStable()
+{
+    using ConfigWidgetHelper =
+        KisPaintOpConfigWidget *(*)(QWidget *, KisResourcesInterfaceSP, KoCanvasResourcesInterfaceSP, void *);
+    using InterstrokeHelper = KisInterstrokeDataFactory *(*)(KisPaintOpSettingsSP, KisResourcesInterfaceSP, void *);
+    using PreinitializeHelper = void (*)(KisPaintOpSettingsSP, void *);
+
+    static_assert(
+        std::is_same_v<decltype(static_cast<ConfigWidgetHelper>(&detail::createConfigWidget<ExtendedFactoryWidget>)),
+                       ConfigWidgetHelper>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<ConfigWidgetHelper>(&detail::createConfigWidget<NoFactoryCapabilities>)),
+                       ConfigWidgetHelper>);
+    static_assert(std::is_same_v<decltype(static_cast<InterstrokeHelper>(
+                                     &detail::createInterstrokeDataFactory<FactoryCapabilities>)),
+                                 InterstrokeHelper>);
+    static_assert(std::is_same_v<decltype(static_cast<InterstrokeHelper>(
+                                     &detail::createInterstrokeDataFactory<NoFactoryCapabilities>)),
+                                 InterstrokeHelper>);
+    static_assert(std::is_same_v<decltype(static_cast<PreinitializeHelper>(
+                                     &detail::preinitializeOpStatically<FactoryCapabilities>)),
+                                 PreinitializeHelper>);
+    static_assert(std::is_same_v<decltype(static_cast<PreinitializeHelper>(
+                                     &detail::preinitializeOpStatically<NoFactoryCapabilities>)),
+                                 PreinitializeHelper>);
+}
+
+void KisDabCacheUtilsSchemaContractTest::simpleFactoryConstructionAndCreationSignaturesRemainStable()
+{
+    static_assert(std::is_constructible_v<SimpleFactory,
+                                          const QString &,
+                                          const QString &,
+                                          const QString &,
+                                          const QString &,
+                                          const QString &,
+                                          const QStringList &,
+                                          int,
+                                          bool>);
+    static_assert(std::is_destructible_v<SimpleFactory>);
+    ASSERT_SIMPLE_FACTORY_SIGNATURE(
+        createConfigWidget,
+        KisPaintOpConfigWidget * (SimpleFactory::*)(QWidget *, KisResourcesInterfaceSP, KoCanvasResourcesInterfaceSP));
+    ASSERT_SIMPLE_FACTORY_SIGNATURE(createInterstrokeDataFactory,
+                                    KisInterstrokeDataFactory
+                                        * (SimpleFactory::*)(KisPaintOpSettingsSP, KisResourcesInterfaceSP) const);
+    ASSERT_SIMPLE_FACTORY_SIGNATURE(
+        createOp,
+        KisPaintOp * (SimpleFactory::*)(KisPaintOpSettingsSP, KisPainter *, KisNodeSP, KisImageSP));
+    ASSERT_SIMPLE_FACTORY_SIGNATURE(createSettings, KisPaintOpSettingsSP (SimpleFactory::*)(KisResourcesInterfaceSP));
+    ASSERT_SIMPLE_FACTORY_SIGNATURE(preinitializePaintOpIfNeeded, void (SimpleFactory::*)(KisPaintOpSettingsSP));
+}
+
+void KisDabCacheUtilsSchemaContractTest::simpleFactoryIdentityAndResourceSignaturesRemainStable()
+{
+    ASSERT_SIMPLE_FACTORY_SIGNATURE(category, QString (SimpleFactory::*)() const);
+    ASSERT_SIMPLE_FACTORY_SIGNATURE(icon, QIcon (SimpleFactory::*)());
+    ASSERT_SIMPLE_FACTORY_SIGNATURE(id, QString (SimpleFactory::*)() const);
+    ASSERT_SIMPLE_FACTORY_SIGNATURE(lodSizeThresholdSupported, bool (SimpleFactory::*)() const);
+    ASSERT_SIMPLE_FACTORY_SIGNATURE(name, QString (SimpleFactory::*)() const);
+    ASSERT_SIMPLE_FACTORY_SIGNATURE(
+        prepareEmbeddedResources,
+        QList<KoResourceLoadResult> (SimpleFactory::*)(KisPaintOpSettingsSP, KisResourcesInterfaceSP));
+    ASSERT_SIMPLE_FACTORY_SIGNATURE(
+        prepareLinkedResources,
+        QList<KoResourceLoadResult> (SimpleFactory::*)(KisPaintOpSettingsSP, KisResourcesInterfaceSP));
+}
+
+#undef ASSERT_SIMPLE_FACTORY_SIGNATURE
 #undef ASSERT_DAB_FUNCTION_SIGNATURE
 
 QTEST_GUILESS_MAIN(KisDabCacheUtilsSchemaContractTest)

@@ -232,16 +232,24 @@ target_include_directories(KisDabCacheUtilsSchemaContractTest PRIVATE
     ${CMAKE_SOURCE_DIR}/libs/image/brushengine
     ${CMAKE_SOURCE_DIR}/libs/pigment
     ${CMAKE_BINARY_DIR}/libs/pigment
+    ${CMAKE_SOURCE_DIR}/libs/resources
+    ${CMAKE_BINARY_DIR}/libs/resources
+    ${CMAKE_SOURCE_DIR}/libs/widgetutils
+    ${CMAKE_BINARY_DIR}/libs/widgetutils
 )
 target_include_directories(KisDabCacheUtilsSchemaContractTest SYSTEM PRIVATE
+    $<TARGET_PROPERTY:Eigen3::Eigen,INTERFACE_INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:Imath::ImathConfig,INTERFACE_INCLUDE_DIRECTORIES>
 )
 target_compile_definitions(KisDabCacheUtilsSchemaContractTest PRIVATE
+    HAVE_THREADED_TEXT_RENDERING_WORKAROUND
     kritaglobal_EXPORTS
     kritaimage_EXPORTS
     kritalibpaintop_EXPORTS
     kritapigment_EXPORTS
+    kritaresources_EXPORTS
+    kritawidgetutils_EXPORTS
 )
 
 kis_add_test(
