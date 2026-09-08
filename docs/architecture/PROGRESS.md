@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 02:10 JST
+- 更新日時: 2026-09-09 02:13 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3804,6 +3804,12 @@
 - `libs/image/KisAslStorage.h`から新規`libs/image/tests/KisAslStorageSchemaContractTest.cpp`へ全13 APIを4枠で固定し、`libs/image/tests/CMakeLists.txt`へ責務別対象を追加した。初回は13件の型検査が成立し、`G439 ASL storage API schema is not fixed yet`だけで1件失敗した。契約commitは`06e5e82736`である。最終sourceは64行・4枠、対象は4工程・8入力、command hash `ce89a66991694a8a7e6147e08d932cb311178ba1153f68483066c0ea9e341343`、input hash `ea34a6e08de909089eae96da543c5d28e321747e90db0c1b9a53f83b34b5d81c`で停止線内に収まった。
 - macOSで対象`libs-image-KisAslStorageSchemaContractTest`と近傍`libs-image-KisPSDLayerStyleSchemaContractTest`、対象の20回反復、試験sourceと`KisAslStorage.cpp`の`clang-check --extra-arg=-Werror`、試験sourceの書式、AUTOMOC `HEADERS=[]`、製品未解決記号0、Qt Core・Gui・Testだけの動的接続、二回の無作業再構築に成功した。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 台帳へ13 APIを追加して27,033件対応、2,771件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g439.json`を削除し、追加作業tree・構築木・一時計画物は作成していない。主Ninja木5,986,016 KiB、共有compiler cache 983,172 KiB、最新`build/tdd-macos/public-api-missing-g440.json` 756,746 bytes、SHA-256 `e461db0dc4360c8ba253575a0fcb645ca769e0f1f7ab8beb61bcb9e8ada8d699`だけを再利用対象として保持する。compiler cacheは144,532件中120,558件、83.41%がhitしている。次の永続作業は第440便で次の高密度なmacOS対象と最小構築面を選定することである。
+
+### 第440便の公開API契約計画
+
+- 第440便は`libs/image/kis_transform_mask_params_factory_registry.h`に残る全11 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g440.json`は公開header 1,548、公開API 29,804、対応済み27,033、未対応2,771、756,746 bytes、SHA-256 `e461db0dc4360c8ba253575a0fcb645ca769e0f1f7ab8beb61bcb9e8ada8d699`である。対象識別子整列集合のSHA-256は`0b0b34a9459a1edbe39ab4c9dac6eddeed1ff0081545969be96fe99440e3783e`で、通常・map・animation生成別名3、登録型・構築・寿命・singleton取得4、通常生成器登録・生成2、animation生成器設定・生成2の4枠へ固定する。
+- 既存`libs/image/tests/KisTransformMaskSchemaContractTest.cpp`は121行・5枠で、追加後も300行・20枠未満に収まる。対象固有headerを同sourceへ加えるだけで、`libs/image/tests/CMakeLists.txt`、公開header、製品sourceを変更しない。対象の型、生成器、map、境界、XML要素を実体化せず、型特性と関数pointerだけで登録・生成境界を観測する。
+- 対象の変更前閉包は4工程・8入力、command hash `f0bacabbc5e99602c061069d2f4101e49722026e6251620a0d22905651f02009`、input hash `226642f6eb0597b6d48f1e4473cc31fd9f989cd4ae40157591d3c02e0d8f5f79`である。新規targetを作るより既存対象への追記がCMake再生成物を増やさないため、この範囲を採用する。停止線は5工程・11入力とし、計画外探索路・link・定義、AUTOMOC header入力、製品未解決記号、対象型の実体化または本文実行が必要なら停止する。macOSの対象と軽量近傍、追加4枠の20回反復、厳密構文、二回目計画、無作業再構築、公開API検査、`verify-quick`だけを実行し、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
 
 ### 第239便の先行監査担当票
 
