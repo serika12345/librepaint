@@ -8,13 +8,14 @@
 #define _KIS_LAYERCOMPOSITION_H
 
 #include "kritaimage_export.h"
+#include "kis_types.h"
 
 #include <QMap>
+#include <QString>
 #include <QUuid>
-#include <QDomDocument>
-#include <QDomElement>
 
-#include "kis_image.h"
+class QDomDocument;
+class QDomElement;
 
 /**
  * Storage class for layer compositions. Layer compositions allow to have several states for visible layers

@@ -31,6 +31,7 @@
 #include <KisResourceModel.h>
 #include <kis_annotation.h>
 #include <kis_image.h>
+#include <kis_paint_device.h>
 #include <kis_image_animation_interface.h>
 #include <KisImportExportManager.h>
 #include <kis_group_layer.h>
@@ -902,4 +903,3 @@ bool KisKraSaver::saveKoColors(QDomDocument &doc, QDomElement &colorsElement,
     }
     return true;
 }
-
