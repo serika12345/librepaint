@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-08 22:46 JST
+- 更新日時: 2026-09-08 22:51 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3601,6 +3601,12 @@
 - 第423便は`libs/application/ui/workspace/KisTemplateGroup.h`に残る全14 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g423.json`は公開header 1,548、公開API 29,804、対応済み26,800、未対応3,004、816,541 bytes、SHA-256 `6279411ccb4417185db20c7daebacd6b71519840d7c468db3879f3f66f4b0567`である。対象識別子整列集合のSHA-256は`5d767500e7ac7a8d69d056e2ececc9c5c0398341406fb69acf4d364113b5b8f6`で、group型・構築・寿命3、名前・directory・追加・変更状態4、整列重み2、表示状態2、template一覧・追加・検索3の5枠へ固定する。
 - 既存`libs/application/tests/KisMainWindowSchemaContractTest.cpp`はwindow・workspace表示境界を持ち、196行・13枠から追加後も300行・20枠未満に収まる。CMake変更なしでQt Core・Testだけの動的接続と4工程・8入力を維持する。現行command SHA-256は`631ecd85515c8854216a7aaafbb8344f8af1b1755cddd723df0d0911b4c23e6d`、input SHA-256は`b27d6a2c14eede0dadfa3a8ca92a0a958eacd0fd43a1281530b9eedd6e60b2be`である。group、template、文字列値とinline本文を実体化せず、型特性、構築可能性、厳密な関数pointerだけで公開境界を観測する。製品`kritaapplicationui`は1,975工程・3,950入力で反復先から除外する。
 - `g423-template-group-schema`の状態は`in_progress`、実装基点は`d04ea0e88b`である。開始headerから既存試験sourceの5枠だけへ追加し、CMake、公開header、製品source、製品targetは変更しない。停止線は5工程・11入力とし、新たな探索路・定義・link、製品OBJECT・shared・`kritatestsdk`接続、候補headerのAUTOMOC入力化、製品未解決symbol、対象値またはinline本文の実体化が必要なら候補を保留する。macOSの対象、追加5枠の20回反復、軽量近傍、試験sourceの厳格`clang-check`、書式、二回の無作業再構築、動的接続・未解決symbol、公開API検査、`verify-quick`だけを実行する。製品application UI・UI target、全体build・`verify`、Linux、Nix再評価は実行しない。
+
+### 第423便の実装結果
+
+- `g423-template-group-schema`は`completed`である。`libs/application/ui/workspace/KisTemplateGroup.h`から既存`libs/application/tests/KisMainWindowSchemaContractTest.cpp`へ14 API・5枠を移し、group型・構築・寿命3、名前・directory・追加・変更状態4、整列重み2、表示状態2、template一覧・追加・検索3を型特性、構築可能性、厳密な関数pointerで固定した。試験sourceは248行・18枠で、group、template、文字列値とinline本文を実体化していない。CMake変更なしの初回redは未定義の5検査関数だけで失敗し、契約実装commitは`7b97d5bf38`である。
+- macOSの対象`libs-application-KisMainWindowSchemaContractTest`、軽量近傍`libs-application-KisViewManagerSchemaContractTest`、対象の20回反復、試験sourceの厳格`clang-check`、書式、変更なし計画、連続二回の無作業再構築に成功した。対象は4工程・8入力、command SHA-256 `631ecd85515c8854216a7aaafbb8344f8af1b1755cddd723df0d0911b4c23e6d`、input SHA-256 `b27d6a2c14eede0dadfa3a8ca92a0a958eacd0fd43a1281530b9eedd6e60b2be`、AUTOMOC `HEADERS=[]`、直接接続はQt Core・Test、製品未解決symbol 0である。1,975工程・3,950入力の製品application UI、製品UI target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 台帳へ14 APIを追加して26,814件対応、2,990件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g423.json`を削除し、追加作業tree・構築木・一時計画物は作成していない。主Ninja木5,981,432 KiB、共有compiler cache 982,360 KiB、最新`build/tdd-macos/public-api-missing-g424.json` 813,074 bytes、SHA-256 `fb7a613750c0716d36614b0d0638406d5ebabed113d8fcabb8b3f16ccecdc0a6`だけを再利用対象として保持する。compiler cacheは144,481件中120,553件、83.44%がhitしている。公開API検査と`verify-quick`に成功した。次の永続作業は第424便で次の高密度なmacOS対象と最小構築面を選定することである。
 
 ### 第239便の先行監査担当票
 

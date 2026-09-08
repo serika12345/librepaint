@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 3004
+    "expectedMissingApis": 2990
   },
   "contracts": [
     {
@@ -73741,6 +73741,65 @@
       "apis": [
         "method:KisImageViewConverter::viewToDocumentX(qreal viewX) const",
         "method:KisImageViewConverter::viewToDocumentY(qreal viewY) const"
+      ]
+    },
+    {
+      "target": "KisMainWindowSchemaContractTest",
+      "source": "libs/application/tests/KisMainWindowSchemaContractTest.cpp",
+      "test": "KisMainWindowSchemaContractTest::templateGroupTypeAndLifetimeSchemaRemainStable",
+      "behavior": "template groupは名前・directory・整列重み・変更状態から構築され、scope終了時に破棄される公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisTemplateGroup",
+        "method:KisTemplateGroup::KisTemplateGroup(const QString & name,const QString & dir=QString (),int _sortingWeight=0,bool touched=false)",
+        "method:KisTemplateGroup::~KisTemplateGroup()"
+      ]
+    },
+    {
+      "target": "KisMainWindowSchemaContractTest",
+      "source": "libs/application/tests/KisMainWindowSchemaContractTest.cpp",
+      "test": "KisMainWindowSchemaContractTest::templateGroupIdentityAndDirectorySignaturesRemainStable",
+      "behavior": "template groupは名前、directory一覧、directory追加、変更状態を公開する境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTemplateGroup::addDir(const QString & dir)",
+        "method:KisTemplateGroup::dirs() const",
+        "method:KisTemplateGroup::name() const",
+        "method:KisTemplateGroup::touched() const"
+      ]
+    },
+    {
+      "target": "KisMainWindowSchemaContractTest",
+      "source": "libs/application/tests/KisMainWindowSchemaContractTest.cpp",
+      "test": "KisMainWindowSchemaContractTest::templateGroupSortingSignaturesRemainStable",
+      "behavior": "template groupは整列重みを照会・設定する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTemplateGroup::setSortingWeight(int weight)",
+        "method:KisTemplateGroup::sortingWeight() const"
+      ]
+    },
+    {
+      "target": "KisMainWindowSchemaContractTest",
+      "source": "libs/application/tests/KisMainWindowSchemaContractTest.cpp",
+      "test": "KisMainWindowSchemaContractTest::templateGroupVisibilitySignaturesRemainStable",
+      "behavior": "template groupは子templateに基づく非表示状態を照会・設定する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTemplateGroup::isHidden() const",
+        "method:KisTemplateGroup::setHidden(bool hidden=true) const"
+      ]
+    },
+    {
+      "target": "KisMainWindowSchemaContractTest",
+      "source": "libs/application/tests/KisMainWindowSchemaContractTest.cpp",
+      "test": "KisMainWindowSchemaContractTest::templateGroupCollectionSignaturesRemainStable",
+      "behavior": "template groupはtemplate一覧を返し、templateの追加と名前検索を受け付ける公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTemplateGroup::add(KisTemplate * t,bool force=false,bool touch=true)",
+        "method:KisTemplateGroup::find(const QString & name) const",
+        "method:KisTemplateGroup::templates() const"
       ]
     }
   ]
