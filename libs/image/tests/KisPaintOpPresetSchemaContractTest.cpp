@@ -4,6 +4,7 @@
  */
 
 #include "brushengine/kis_locked_properties.h"
+#include "brushengine/kis_locked_properties_proxy.h"
 #include "brushengine/kis_locked_properties_server.h"
 #include "brushengine/kis_paintop_preset.h"
 #define HAVE_THREADED_TEXT_RENDERING_WORKAROUND
@@ -22,6 +23,8 @@ namespace
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisLockedPropertiesServer::method)), signature>)
 #define ASSERT_LOCKED_PROPERTIES_SIGNATURE(method, signature)                                                          \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisLockedProperties::method)), signature>)
+#define ASSERT_LOCKED_PROPERTIES_PROXY_SIGNATURE(method, signature)                                                    \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KisLockedPropertiesProxy::method)), signature>)
 #define ASSERT_PAINTOP_REGISTRY_SIGNATURE(method, signature)                                                           \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisPaintOpRegistry::method)), signature>)
 } // namespace
@@ -43,6 +46,8 @@ private Q_SLOTS:
     void lockedPropertiesTypeConstructionAndLifetimeSchemaRemainStable();
     void lockedPropertiesMutationSignaturesRemainStable();
     void lockedPropertiesObservationSignaturesRemainStable();
+    void lockedPropertiesProxyTypeConstructionAndLifetimeSchemaRemainStable();
+    void lockedPropertiesProxyAccessSignaturesRemainStable();
     void paintOpRegistryTypeLifetimeAndGlobalAccessSchemaRemainStable();
     void paintOpRegistryPaintOpCreationSignaturesRemainStable();
     void paintOpRegistryConfigurationAndPresentationSignaturesRemainStable();
@@ -203,6 +208,29 @@ void KisPaintOpPresetSchemaContractTest::lockedPropertiesObservationSignaturesRe
     ASSERT_LOCKED_PROPERTIES_SIGNATURE(lockedProperties, KisPropertiesConfigurationSP (Locked::*)());
 }
 
+void KisPaintOpPresetSchemaContractTest::lockedPropertiesProxyTypeConstructionAndLifetimeSchemaRemainStable()
+{
+    using Proxy = KisLockedPropertiesProxy;
+
+    static_assert(std::is_class_v<Proxy>);
+    static_assert(std::is_base_of_v<KisPropertiesConfiguration, Proxy>);
+    static_assert(std::is_constructible_v<Proxy, KisPropertiesConfiguration *, KisLockedPropertiesSP>);
+    static_assert(std::has_virtual_destructor_v<Proxy>);
+
+    QVERIFY(true);
+}
+
+void KisPaintOpPresetSchemaContractTest::lockedPropertiesProxyAccessSignaturesRemainStable()
+{
+    using Proxy = KisLockedPropertiesProxy;
+
+    ASSERT_LOCKED_PROPERTIES_PROXY_SIGNATURE(getProperty, QVariant (Proxy::*)(const QString &) const);
+    ASSERT_LOCKED_PROPERTIES_PROXY_SIGNATURE(setProperty, void (Proxy::*)(const QString &, const QVariant &));
+    ASSERT_LOCKED_PROPERTIES_PROXY_SIGNATURE(hasProperty, bool (Proxy::*)(const QString &) const);
+    ASSERT_LOCKED_PROPERTIES_PROXY_SIGNATURE(getPropertiesKeys, QList<QString> (Proxy::*)() const);
+    ASSERT_LOCKED_PROPERTIES_PROXY_SIGNATURE(dump, void (Proxy::*)() const);
+}
+
 void KisPaintOpPresetSchemaContractTest::paintOpRegistryTypeLifetimeAndGlobalAccessSchemaRemainStable()
 {
     using Registry = KisPaintOpRegistry;
@@ -248,6 +276,7 @@ void KisPaintOpPresetSchemaContractTest::paintOpRegistryPreinitializationSignatu
 }
 
 #undef ASSERT_PAINTOP_REGISTRY_SIGNATURE
+#undef ASSERT_LOCKED_PROPERTIES_PROXY_SIGNATURE
 #undef ASSERT_LOCKED_PROPERTIES_SIGNATURE
 #undef ASSERT_LOCKED_PROPERTIES_SERVER_SIGNATURE
 
