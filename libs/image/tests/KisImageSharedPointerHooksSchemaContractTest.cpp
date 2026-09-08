@@ -44,7 +44,7 @@ private Q_SLOTS:
     void onionSkinCompositorTypeLifetimeAndSingletonSchemaRemainStable();
     void onionSkinCompositorCompositeAndFullExtentSignaturesRemainStable();
     void onionSkinCompositorExtentSignaturesRemainStable();
-    void onionSkinCompositorConfigurationAndNotificationSignaturesRemainStable();
+    void onionSkinCompositorConfigAndSignalsRemainStable();
 };
 
 void KisImageSharedPointerHooksSchemaContractTest::imageSharedPointerNodeAndLayerHooksRemainStable()
@@ -194,8 +194,7 @@ void KisImageSharedPointerHooksSchemaContractTest::onionSkinCompositorExtentSign
                                            QRect (KisOnionSkinCompositor::*)(KisPaintDeviceSP, int));
 }
 
-void KisImageSharedPointerHooksSchemaContractTest::
-    onionSkinCompositorConfigurationAndNotificationSignaturesRemainStable()
+void KisImageSharedPointerHooksSchemaContractTest::onionSkinCompositorConfigAndSignalsRemainStable()
 {
     ASSERT_ONION_SKIN_COMPOSITOR_SIGNATURE(configSeqNo, int (KisOnionSkinCompositor::*)() const);
     ASSERT_ONION_SKIN_COMPOSITOR_SIGNATURE(setColorLabelFilter, void (KisOnionSkinCompositor::*)(QSet<int>));
