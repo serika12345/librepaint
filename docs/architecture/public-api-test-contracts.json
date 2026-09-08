@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 3520
+    "expectedMissingApis": 3501
   },
   "contracts": [
     {
@@ -71866,6 +71866,70 @@
         "method:KisBrushBasedPaintOpSettings::requiredCanvasResources() const",
         "method:KisBrushBasedPaintOpSettings::setResourceCacheInterface(KoResourceCacheInterfaceSP cacheInterface)",
         "method:KisBrushBasedPaintOpSettings::uniformProperties(KisPaintOpSettingsSP settings,QPointer<KisPaintOpPresetUpdateProxy> updateProxy)"
+      ]
+    },
+    {
+      "target": "KisBrushBasedPaintOpSchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisBrushBasedPaintOpSchemaContractTest.cpp",
+      "test": "KisBrushBasedPaintOpSchemaContractTest::textBrushInitializationSchemaRemainStable",
+      "behavior": "文字brush初期化回避は構築・破棄、共有instance、設定の事前初期化とbrush取得の公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:TextBrushInitializationWorkaround",
+        "method:TextBrushInitializationWorkaround::TextBrushInitializationWorkaround()",
+        "method:TextBrushInitializationWorkaround::instance()",
+        "method:TextBrushInitializationWorkaround::preinitialize(KisPaintOpSettingsSP settings)",
+        "method:TextBrushInitializationWorkaround::tryGetBrush(const KisPropertiesConfigurationSP settings)",
+        "method:TextBrushInitializationWorkaround::~TextBrushInitializationWorkaround()"
+      ]
+    },
+    {
+      "target": "KisBrushBasedPaintOpSchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisBrushBasedPaintOpSchemaContractTest.cpp",
+      "test": "KisBrushBasedPaintOpSchemaContractTest::brushPaintOpTypeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "brush基盤paintopは設定・描画器・texture機能による構築、仮想寿命と文字brush事前初期化標識を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisBrushBasedPaintOp::needs_preinitialization",
+        "class:KisBrushBasedPaintOp",
+        "method:KisBrushBasedPaintOp::KisBrushBasedPaintOp(const KisPaintOpSettingsSP settings,KisPainter * painter,KisBrushTextureFlags textureFlags=None)",
+        "method:KisBrushBasedPaintOp::~KisBrushBasedPaintOp()"
+      ]
+    },
+    {
+      "target": "KisBrushBasedPaintOpSchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisBrushBasedPaintOpSchemaContractTest.cpp",
+      "test": "KisBrushBasedPaintOpSchemaContractTest::brushPaintOpPaintabilitySignaturesRemainStable",
+      "behavior": "brush基盤paintopは描画可能性と倍率に対する寸法下限判定の公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisBrushBasedPaintOp::canPaint() const",
+        "method:KisBrushBasedPaintOp::checkSizeTooSmall(qreal scale)"
+      ]
+    },
+    {
+      "target": "KisBrushBasedPaintOpSchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisBrushBasedPaintOpSchemaContractTest.cpp",
+      "test": "KisBrushBasedPaintOpSchemaContractTest::brushPaintOpSpacingSignaturesRemainStable",
+      "behavior": "brush基盤paintopは倍率、回転、入力、airbrush設定と間隔設定を組み合わせる4種の有効間隔計算境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisBrushBasedPaintOp::effectiveSpacing(qreal scale) const",
+        "method:KisBrushBasedPaintOp::effectiveSpacing(qreal scale,qreal rotation,const KisAirbrushOptionData * airbrushOption,const KisSpacingOption * spacingOption,const KisPaintInformation & pi) const",
+        "method:KisBrushBasedPaintOp::effectiveSpacing(qreal scale,qreal rotation,const KisPaintInformation & pi) const",
+        "method:KisBrushBasedPaintOp::effectiveSpacing(qreal scale,qreal rotation,const KisSpacingOption & spacingOption,const KisPaintInformation & pi) const"
+      ]
+    },
+    {
+      "target": "KisBrushBasedPaintOpSchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisBrushBasedPaintOpSchemaContractTest.cpp",
+      "test": "KisBrushBasedPaintOpSchemaContractTest::brushPaintOpPreparationSignaturesRemainStable",
+      "behavior": "brush基盤paintopは設定の事前初期化と参照資源・埋込み資源の準備境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisBrushBasedPaintOp::preinitializeOpStatically(KisPaintOpSettingsSP settings)",
+        "method:KisBrushBasedPaintOp::prepareEmbeddedResources(const KisPaintOpSettingsSP settings,KisResourcesInterfaceSP resourcesInterface)",
+        "method:KisBrushBasedPaintOp::prepareLinkedResources(const KisPaintOpSettingsSP settings,KisResourcesInterfaceSP resourcesInterface)"
       ]
     }
   ]
