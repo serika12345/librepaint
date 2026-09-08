@@ -8,7 +8,11 @@
 #include <type_traits>
 #include <utility>
 
+#include "KisAnimatedOpacityProperty.h"
 #include "kis_raster_keyframe_channel.h"
+
+#define ASSERT_ANIMATED_OPACITY_SIGNATURE(method, signature)                                                           \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KisAnimatedOpacityProperty::method)), signature>)
 
 class KisRasterKeyframeChannelSchemaContractTest : public QObject
 {
@@ -20,6 +24,10 @@ private Q_SLOTS:
     void rasterKeyframeChannelCloneAndFrameMappingSignaturesRemainStable();
     void rasterKeyframeChannelPersistenceAndTransferSignaturesRemainStable();
     void rasterKeyframeChannelPresentationAndMutationSignaturesRemainStable();
+    void animatedOpacityTypeAndConstructionSchemaRemainStable();
+    void animatedOpacityValueAndChannelSignaturesRemainStable();
+    void animatedOpacityAnimationAndBoundsSignaturesRemainStable();
+    void animatedOpacityNotificationSignaturesRemainStable();
 };
 
 void KisRasterKeyframeChannelSchemaContractTest::rasterKeyframeTypeLifetimeAndContentSchemaRemainStable()
@@ -101,6 +109,45 @@ void KisRasterKeyframeChannelSchemaContractTest::rasterKeyframeChannelPresentati
     static_assert(std::is_same_v<decltype(&Channel::onionSkinsEnabled), bool (Channel::*)() const>);
     static_assert(std::is_same_v<decltype(&Channel::paintDevice), KisPaintDeviceWSP (Channel::*)()>);
 }
+
+void KisRasterKeyframeChannelSchemaContractTest::animatedOpacityTypeAndConstructionSchemaRemainStable()
+{
+    using Property = KisAnimatedOpacityProperty;
+
+    static_assert(std::is_class_v<Property>);
+    static_assert(std::is_constructible_v<Property, KisDefaultBoundsBaseSP, KoProperties *, quint8>);
+    static_assert(std::is_constructible_v<Property, KisDefaultBoundsBaseSP, KoProperties *, quint8, QObject *>);
+}
+
+void KisRasterKeyframeChannelSchemaContractTest::animatedOpacityValueAndChannelSignaturesRemainStable()
+{
+    using Property = KisAnimatedOpacityProperty;
+
+    ASSERT_ANIMATED_OPACITY_SIGNATURE(get, quint8 (Property::*)());
+    ASSERT_ANIMATED_OPACITY_SIGNATURE(set, void (Property::*)(quint8));
+    ASSERT_ANIMATED_OPACITY_SIGNATURE(hasChannel, bool (Property::*)());
+    ASSERT_ANIMATED_OPACITY_SIGNATURE(channel, KisScalarKeyframeChannel * (Property::*)() const);
+}
+
+void KisRasterKeyframeChannelSchemaContractTest::animatedOpacityAnimationAndBoundsSignaturesRemainStable()
+{
+    using Property = KisAnimatedOpacityProperty;
+
+    ASSERT_ANIMATED_OPACITY_SIGNATURE(makeAnimated, void (Property::*)(KisNode *));
+    ASSERT_ANIMATED_OPACITY_SIGNATURE(transferKeyframeData, void (Property::*)(const Property &));
+    ASSERT_ANIMATED_OPACITY_SIGNATURE(updateDefaultBounds, void (Property::*)(KisDefaultBoundsBaseSP));
+}
+
+void KisRasterKeyframeChannelSchemaContractTest::animatedOpacityNotificationSignaturesRemainStable()
+{
+    using Property = KisAnimatedOpacityProperty;
+
+    ASSERT_ANIMATED_OPACITY_SIGNATURE(changed, void (Property::*)(quint8));
+    ASSERT_ANIMATED_OPACITY_SIGNATURE(slotKeyChanged, void (Property::*)(const KisKeyframeChannel *, int));
+    ASSERT_ANIMATED_OPACITY_SIGNATURE(slotKeyRemoval, void (Property::*)(const KisKeyframeChannel *, int));
+}
+
+#undef ASSERT_ANIMATED_OPACITY_SIGNATURE
 
 QTEST_GUILESS_MAIN(KisRasterKeyframeChannelSchemaContractTest)
 
