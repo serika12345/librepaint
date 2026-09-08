@@ -7,6 +7,7 @@
 #include "KisFolderStorage.h"
 
 #include "KisMemoryStorage.h"
+#include "KisResourceCacheDb.h"
 
 #include <QTest>
 
@@ -23,6 +24,8 @@ using FolderStorage = KisFolderStorage;
     static_assert(std::is_same_v<decltype(static_cast<signature>(&FolderStorage::method)), signature>)
 #define ASSERT_BUNDLE_STORAGE_SIGNATURE(method, signature)                                                             \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&BundleStorage::method)), signature>)
+#define ASSERT_RESOURCE_CACHE_DB_SIGNATURE(method, signature)                                                          \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KisResourceCacheDb::method)), signature>)
 
 using BundleStorage = KisBundleStorage;
 } // namespace
@@ -47,6 +50,10 @@ private Q_SLOTS:
     void bundleStorageIteratorSignaturesRemainStable();
     void bundleStorageMetadataAndThumbnailSignaturesRemainStable();
     void bundleStorageExportAndVersioningSignaturesRemainStable();
+    void resourceCacheDbTypeAndStateSchemaRemainStable();
+    void resourceCacheDbStatusAndInitializationSignaturesRemainStable();
+    void resourceCacheDbMaintenanceSignaturesRemainStable();
+    void resourceCacheDbForeignKeySignaturesRemainStable();
 };
 
 void KisMemoryStorageSchemaContractTest::memoryStorageTypeLifetimeAndConstructionSchemaRemainStable()
@@ -168,6 +175,37 @@ void KisMemoryStorageSchemaContractTest::bundleStorageExportAndVersioningSignatu
     ASSERT_BUNDLE_STORAGE_SIGNATURE(exportResource, bool (BundleStorage::*)(const QString &, QIODevice *));
     ASSERT_BUNDLE_STORAGE_SIGNATURE(saveAsNewVersion, bool (BundleStorage::*)(const QString &, KoResourceSP));
 }
+
+void KisMemoryStorageSchemaContractTest::resourceCacheDbTypeAndStateSchemaRemainStable()
+{
+    static_assert(std::is_class_v<KisResourceCacheDb>);
+    static_assert(std::is_same_v<decltype(KisResourceCacheDb::resourceCacheDbFilename), const QString>);
+    static_assert(std::is_same_v<decltype(KisResourceCacheDb::databaseVersion), const QString>);
+    static_assert(std::is_same_v<decltype(KisResourceCacheDb::storageTypes), QStringList>);
+    static_assert(std::is_same_v<decltype(KisResourceCacheDb::disabledBundles), QStringList>);
+}
+
+void KisMemoryStorageSchemaContractTest::resourceCacheDbStatusAndInitializationSignaturesRemainStable()
+{
+    ASSERT_RESOURCE_CACHE_DB_SIGNATURE(isValid, bool (*)());
+    ASSERT_RESOURCE_CACHE_DB_SIGNATURE(lastError, QString (*)());
+    ASSERT_RESOURCE_CACHE_DB_SIGNATURE(initialize, bool (*)(const QString &));
+}
+
+void KisMemoryStorageSchemaContractTest::resourceCacheDbMaintenanceSignaturesRemainStable()
+{
+    ASSERT_RESOURCE_CACHE_DB_SIGNATURE(deleteTemporaryResources, void (*)());
+    ASSERT_RESOURCE_CACHE_DB_SIGNATURE(performHouseKeepingOnExit, void (*)());
+}
+
+void KisMemoryStorageSchemaContractTest::resourceCacheDbForeignKeySignaturesRemainStable()
+{
+    ASSERT_RESOURCE_CACHE_DB_SIGNATURE(setForeignKeysStateImpl, void (*)(bool));
+    ASSERT_RESOURCE_CACHE_DB_SIGNATURE(getForeignKeysStateImpl, bool (*)());
+    ASSERT_RESOURCE_CACHE_DB_SIGNATURE(synchronizeForeignKeysState, void (*)());
+}
+
+#undef ASSERT_RESOURCE_CACHE_DB_SIGNATURE
 
 QTEST_GUILESS_MAIN(KisMemoryStorageSchemaContractTest)
 
