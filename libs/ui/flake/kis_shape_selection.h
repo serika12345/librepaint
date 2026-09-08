@@ -11,8 +11,6 @@
 #include <KoShapeLayer.h>
 #include <KoShapeFactoryBase.h>
 #include <KoShapeUserData.h>
-#include <KoShapeLoadingContext.h>
-#include <KisImageResolutionProxy.h>
 
 #include <kis_selection_component.h>
 #include <kis_types.h>
@@ -20,6 +18,7 @@
 #include <kritaui_export.h>
 
 class KoStore;
+class KoShapeControllerBase;
 class KoShapeManager;
 class KisShapeSelectionCanvas;
 class KisShapeSelectionModel;
