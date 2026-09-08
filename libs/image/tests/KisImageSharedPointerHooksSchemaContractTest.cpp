@@ -4,12 +4,16 @@
  */
 
 #include "kis_types.h"
+#include "kis_update_time_monitor.h"
 
 #include <QTest>
 
 #include <cstddef>
 #include <functional>
 #include <type_traits>
+
+#define ASSERT_UPDATE_TIME_MONITOR_SIGNATURE(member, signature)                                                        \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KisUpdateTimeMonitor::member)), signature>)
 
 class KisImageSharedPointerHooksSchemaContractTest : public QObject
 {
@@ -21,6 +25,10 @@ private Q_SLOTS:
     void imageSharedPointerSelectionHooksRemainStable();
     void imageSharedPointerQtHashSignaturesRemainStable();
     void imageSharedPointerStandardHashSchemaRemainStable();
+    void updateTimeMonitorTypeLifetimeAndSingletonSchemaRemainStable();
+    void updateTimeMonitorStrokeMeasurementSignaturesRemainStable();
+    void updateTimeMonitorInteractionAndUpdateSignaturesRemainStable();
+    void updateTimeMonitorJobSignaturesRemainStable();
 };
 
 void KisImageSharedPointerHooksSchemaContractTest::imageSharedPointerNodeAndLayerHooksRemainStable()
@@ -84,6 +92,35 @@ void KisImageSharedPointerHooksSchemaContractTest::imageSharedPointerStandardHas
     static_assert(
         std::is_same_v<decltype(static_cast<StrongHashSignature>(&StrongHasher::operator())), StrongHashSignature>);
     static_assert(std::is_same_v<decltype(static_cast<WeakHashSignature>(&WeakHasher::operator())), WeakHashSignature>);
+}
+
+void KisImageSharedPointerHooksSchemaContractTest::updateTimeMonitorTypeLifetimeAndSingletonSchemaRemainStable()
+{
+    static_assert(std::is_class_v<KisUpdateTimeMonitor>);
+    static_assert(std::is_default_constructible_v<KisUpdateTimeMonitor>);
+    static_assert(std::is_destructible_v<KisUpdateTimeMonitor>);
+    ASSERT_UPDATE_TIME_MONITOR_SIGNATURE(instance, KisUpdateTimeMonitor * (*)());
+}
+
+void KisImageSharedPointerHooksSchemaContractTest::updateTimeMonitorStrokeMeasurementSignaturesRemainStable()
+{
+    ASSERT_UPDATE_TIME_MONITOR_SIGNATURE(startStrokeMeasure, void (KisUpdateTimeMonitor::*)());
+    ASSERT_UPDATE_TIME_MONITOR_SIGNATURE(endStrokeMeasure, void (KisUpdateTimeMonitor::*)());
+    ASSERT_UPDATE_TIME_MONITOR_SIGNATURE(reportPaintOpPreset, void (KisUpdateTimeMonitor::*)(KisPaintOpPresetSP));
+}
+
+void KisImageSharedPointerHooksSchemaContractTest::updateTimeMonitorInteractionAndUpdateSignaturesRemainStable()
+{
+    ASSERT_UPDATE_TIME_MONITOR_SIGNATURE(reportMouseMove, void (KisUpdateTimeMonitor::*)(const QPointF &));
+    ASSERT_UPDATE_TIME_MONITOR_SIGNATURE(printValues, void (KisUpdateTimeMonitor::*)());
+    ASSERT_UPDATE_TIME_MONITOR_SIGNATURE(reportUpdateFinished, void (KisUpdateTimeMonitor::*)(const QRect &));
+}
+
+void KisImageSharedPointerHooksSchemaContractTest::updateTimeMonitorJobSignaturesRemainStable()
+{
+    ASSERT_UPDATE_TIME_MONITOR_SIGNATURE(reportJobStarted, void (KisUpdateTimeMonitor::*)(void *));
+    ASSERT_UPDATE_TIME_MONITOR_SIGNATURE(reportJobFinished,
+                                         void (KisUpdateTimeMonitor::*)(void *, const QVector<QRect> &));
 }
 
 QTEST_APPLESS_MAIN(KisImageSharedPointerHooksSchemaContractTest)
