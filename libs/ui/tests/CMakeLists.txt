@@ -332,6 +332,23 @@ target_compile_definitions(KisFavoriteResourceManagerSchemaContractTest PRIVATE
 )
 
 kis_add_test(
+    KisPopupPaletteSchemaContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KisPopupPaletteSchemaContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs
+    ${CMAKE_BINARY_DIR}/libs/input/ui
+    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Widgets,INTERFACE_INCLUDE_DIRECTORIES>
+)
+target_compile_definitions(KisPopupPaletteSchemaContractTest PRIVATE
+    kritainputui_EXPORTS
+)
+
+kis_add_test(
     KisPaintingAssistantSchemaContractTest.cpp
     LINK_LIBRARIES
         Qt${QT_MAJOR_VERSION}::Gui
