@@ -1670,6 +1670,24 @@ target_compile_definitions(KisBaseNodeSchemaContractTest PRIVATE
 )
 
 kis_add_test(
+    KisNodeSchemaContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KisNodeSchemaContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+    $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
+)
+target_compile_definitions(KisNodeSchemaContractTest PRIVATE
+    kritaimage_EXPORTS
+)
+
+kis_add_test(
     KisImageSchemaContractTest.cpp
     LINK_LIBRARIES
         Qt${QT_MAJOR_VERSION}::Core
