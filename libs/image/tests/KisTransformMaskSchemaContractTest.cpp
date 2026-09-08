@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "kis_perspectivetransform_worker.h"
 #include "kis_transform_mask.h"
 #include "kis_transform_mask_params_factory_registry.h"
 
@@ -19,6 +20,8 @@ namespace
 #define ASSERT_TRANSFORM_FACTORY_REGISTRY_SIGNATURE(method, signature)                                                 \
     static_assert(                                                                                                     \
         std::is_same_v<decltype(static_cast<signature>(&KisTransformMaskParamsFactoryRegistry::method)), signature>)
+#define ASSERT_PERSPECTIVE_TRANSFORM_SIGNATURE(method, signature)                                                      \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KisPerspectiveTransformWorker::method)), signature>)
 
 } // namespace
 
@@ -36,6 +39,10 @@ private Q_SLOTS:
     void transformFactoryRegistryTypeLifetimeAndAccessSchemaRemainStable();
     void transformFactoryRegistrationAndCreationSignaturesRemainStable();
     void animatedTransformFactorySignaturesRemainStable();
+    void perspectiveTransformTypeAndSamplingSchemaRemainStable();
+    void perspectiveTransformConstructionAndLifetimeSchemaRemainStable();
+    void perspectiveTransformExecutionSignaturesRemainStable();
+    void perspectiveTransformMatrixAndSubpixelSignaturesRemainStable();
 };
 
 void KisTransformMaskSchemaContractTest::transformMaskTypeLifetimeAndVisitorSchemaRemainStable()
@@ -165,6 +172,48 @@ void KisTransformMaskSchemaContractTest::animatedTransformFactorySignaturesRemai
         KisAnimatedTransformParamsHolderInterfaceSP (Registry::*)(KisDefaultBoundsBaseSP));
 }
 
+void KisTransformMaskSchemaContractTest::perspectiveTransformTypeAndSamplingSchemaRemainStable()
+{
+    using Worker = KisPerspectiveTransformWorker;
+
+    static_assert(std::is_class_v<Worker>);
+    static_assert(std::is_enum_v<Worker::SampleType>);
+    static_assert(Worker::NearestNeighbour == 0);
+    static_assert(Worker::Bilinear == 1);
+}
+
+void KisTransformMaskSchemaContractTest::perspectiveTransformConstructionAndLifetimeSchemaRemainStable()
+{
+    using Worker = KisPerspectiveTransformWorker;
+
+    static_assert(
+        std::is_constructible_v<Worker, KisPaintDeviceSP, QPointF, double, double, double, bool, KoUpdaterPtr>);
+    static_assert(std::is_constructible_v<Worker, KisPaintDeviceSP, const QTransform &, bool, KoUpdaterPtr>);
+    static_assert(std::is_destructible_v<Worker>);
+}
+
+void KisTransformMaskSchemaContractTest::perspectiveTransformExecutionSignaturesRemainStable()
+{
+    using Worker = KisPerspectiveTransformWorker;
+
+    ASSERT_PERSPECTIVE_TRANSFORM_SIGNATURE(run, void (Worker::*)(Worker::SampleType));
+    ASSERT_PERSPECTIVE_TRANSFORM_SIGNATURE(runPartialDst,
+                                           void (Worker::*)(KisPaintDeviceSP, KisPaintDeviceSP, const QRect &));
+    static_assert(std::is_same_v<decltype(std::declval<Worker &>().run()), void>);
+}
+
+void KisTransformMaskSchemaContractTest::perspectiveTransformMatrixAndSubpixelSignaturesRemainStable()
+{
+    using Worker = KisPerspectiveTransformWorker;
+
+    ASSERT_PERSPECTIVE_TRANSFORM_SIGNATURE(setForwardTransform, void (Worker::*)(const QTransform &));
+    ASSERT_PERSPECTIVE_TRANSFORM_SIGNATURE(forwardTransform, QTransform (Worker::*)() const);
+    ASSERT_PERSPECTIVE_TRANSFORM_SIGNATURE(backwardTransform, QTransform (Worker::*)() const);
+    ASSERT_PERSPECTIVE_TRANSFORM_SIGNATURE(forceSubPixelTranslation, bool (Worker::*)() const);
+    ASSERT_PERSPECTIVE_TRANSFORM_SIGNATURE(setForceSubPixelTranslation, void (Worker::*)(bool));
+}
+
+#undef ASSERT_PERSPECTIVE_TRANSFORM_SIGNATURE
 #undef ASSERT_TRANSFORM_FACTORY_REGISTRY_SIGNATURE
 #undef ASSERT_TRANSFORM_MASK_SIGNATURE
 
