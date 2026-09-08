@@ -16,7 +16,7 @@
     "publicApiFingerprint": "5f05b2aa8e5bef4343af1d55a3852331e51d4369fe135b099327b1a91b6b8c4c"
   },
   "migration": {
-    "expectedMissingApis": 2556
+    "expectedMissingApis": 2551
   },
   "contracts": [
     {
@@ -75449,6 +75449,29 @@
       "classification": "maintained",
       "apis": [
         "method:KisInterstrokeData::isStillCompatible() const"
+      ]
+    },
+    {
+      "target": "KisInterstrokeDataSchemaContractTest",
+      "source": "libs/image/tests/KisInterstrokeDataSchemaContractTest.cpp",
+      "test": "KisInterstrokeDataSchemaContractTest::wrapperTypeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "stroke間取引wrapper factoryは通常取引factoryを特殊化し、stroke間データfactoryと継続可否を受け取って仮想破棄できる公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisInterstrokeDataTransactionWrapperFactory",
+        "method:KisInterstrokeDataTransactionWrapperFactory::KisInterstrokeDataTransactionWrapperFactory(KisInterstrokeDataFactory * factory,bool supportsContinuedInterstrokeData=true)",
+        "method:KisInterstrokeDataTransactionWrapperFactory::~KisInterstrokeDataTransactionWrapperFactory()"
+      ]
+    },
+    {
+      "target": "KisInterstrokeDataSchemaContractTest",
+      "source": "libs/image/tests/KisInterstrokeDataSchemaContractTest.cpp",
+      "test": "KisInterstrokeDataSchemaContractTest::wrapperCommandCreationSignaturesRemainStable",
+      "behavior": "stroke間取引wrapper factoryは描画装置の取引開始commandと対応する終了commandを生成する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisInterstrokeDataTransactionWrapperFactory::createBeginTransactionCommand(KisPaintDeviceSP device)",
+        "method:KisInterstrokeDataTransactionWrapperFactory::createEndTransactionCommand()"
       ]
     }
   ]

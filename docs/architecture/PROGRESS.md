@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 06:11 JST
+- 更新日時: 2026-09-09 06:21 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4041,6 +4041,13 @@
 - 第457便は`libs/image/KisInterstrokeDataTransactionWrapperFactory.h`に残る全5 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g457.json`は公開header 1,548、公開API 29,804、対応済み27,248、未対応2,556、696,825 bytes、SHA-256 `3b54a8dbc66186e2f56f20221be06122e011d9bb31cafb7f8b01e801a71ac8f0`である。対象識別子整列集合のSHA-256は`1012e3fa3371a279162aae90c6f45784285afe181ee9ed837623446106b686b1`で、型・構築・寿命3、開始・終了command生成2の2枠へ固定する。
 - 公開wrapper factoryは取引基底、Qt scoped pointer、stroke間データfactoryの前方宣言だけを持ち、stroke間データ・paint device・undo commandの完全型や実装詳細を伝播させていないため構造変更は不要である。同じstroke間取引境界を所有する既存`libs/image/tests/KisInterstrokeDataSchemaContractTest.cpp`は69行・3枠で、2枠追加後も300行・20枠未満に収まる。同targetはimage・global探索路とimage export定義、Qt Core・Testだけで4工程・8入力、command SHA-256 `0ca93121efd0983af8b9c5458d9b2786685ad6bec2d0034515b46db8945edb3d`、input SHA-256 `71bceac1647a6d3d9c8601a87f9a3081f967ad067742ca0264a45ffbc9fb9f78`である。新規targetは同じ閉包へCMake登録と生成物を増やすため棄却する。
 - 開始headerから既存試験sourceの2枠だけへ追加し、CMake、公開header、製品sourceは変更しない。停止線は5工程・11入力とし、新たな探索路・定義・link、AUTOMOC header入力、製品未解決記号、wrapper factory・stroke間data factory・paint device・undo commandまたは取引本文の実体化が必要なら停止する。macOSの対象、追加2枠の20回反復、軽量近傍、試験sourceの厳格構文、書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、既存動作試験、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
+
+### 第457便の実装結果
+
+- 開始`libs/image/KisInterstrokeDataTransactionWrapperFactory.h`から既存`libs/image/tests/KisInterstrokeDataSchemaContractTest.cpp`へ全5 API・2枠を追加した。型・通常取引factoryからの派生・既定引数付き構築・寿命3、開始・終了command生成2を型特性と厳密な関数pointerで固定した。初回は既存3枠と新しい型枠が成功し、`G457 transaction wrapper factory API schema is not fixed yet`だけで1件失敗した。wrapper factory、stroke間data factory、paint device、undo commandと取引本文は実体化していない。計画commitは`9f2df0c14d`、契約commitは`277d38c1a8`である。
+- 試験sourceは98行・5枠となり、CMake、公開header、製品sourceを変更していない。既存targetは4工程・8入力、command SHA-256 `0ca93121efd0983af8b9c5458d9b2786685ad6bec2d0034515b46db8945edb3d`、input SHA-256 `71bceac1647a6d3d9c8601a87f9a3081f967ad067742ca0264a45ffbc9fb9f78`を変更前から維持した。AUTOMOC `HEADERS=[]`、直接接続はQt Core・Test、製品未解決記号0である。
+- macOSで対象、軽量近傍`KisNodeFacadeSchemaContractTest`、対象の20回反復、試験sourceの`clang-check --extra-arg=-Werror`と書式、連続二回の無作業再構築、公開API検査、`verify-quick`に成功した。既存動作試験、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 台帳は27,253件対応、2,551件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g457.json`と一時閉包一覧を削除し、追加作業tree・構築木は作成していない。主Ninja木5,995,652 KiB、共有compiler cache 983,464 KiB、最新`build/tdd-macos/public-api-missing-g458.json` 695,064 bytes、SHA-256 `2dcaa686b9591a2fe3641c24018331e0e8c0b6b34ce3f76dcd72f38de04acb23`だけを再利用対象として保持する。compiler cacheは144,585件中120,563件、83.39%がhitしている。次の永続作業は第458便で最新報告から高密度なmacOS対象と最小構築面を選定することである。
 
 ### 第239便の先行監査担当票
 
