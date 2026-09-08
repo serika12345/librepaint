@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include <canvas/kis_zoom_manager.h>
 #include <ui/workspace/KisView.h>
 
 #include <QTest>
@@ -13,6 +14,8 @@ namespace
 {
 #define ASSERT_VIEW_SIGNATURE(method, signature)                                                                       \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisView::method)), signature>)
+#define ASSERT_ZOOM_MANAGER_SIGNATURE(method, signature)                                                               \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KisZoomManager::method)), signature>)
 } // namespace
 
 class KisViewSchemaContractTest : public QObject
@@ -27,6 +30,11 @@ private Q_SLOTS:
     void floatingPresentationAndViewStateSignaturesRemainStable();
     void presentationAndLoadingSlotSignaturesRemainStable();
     void notificationSignaturesRemainStable();
+    void zoomManagerTypeAndLifetimeSchemaRemainStable();
+    void zoomManagerSetupAndImageSynchronizationSignaturesRemainStable();
+    void zoomManagerPresentationObjectSignaturesRemainStable();
+    void zoomManagerRulerControlSignaturesRemainStable();
+    void zoomManagerActionSlotSignaturesRemainStable();
 };
 
 void KisViewSchemaContractTest::typeSharedOwnershipAndViewManagerSchemaRemainStable()
@@ -115,7 +123,52 @@ void KisViewSchemaContractTest::notificationSignaturesRemainStable()
     ASSERT_VIEW_SIGNATURE(sigColorSpaceChanged, void (KisView::*)(const KoColorSpace *));
 }
 
+void KisViewSchemaContractTest::zoomManagerTypeAndLifetimeSchemaRemainStable()
+{
+    using Manager = KisZoomManager;
+
+    static_assert(std::is_class_v<Manager>);
+    static_assert(std::is_constructible_v<Manager, QPointer<KisView>, KoZoomHandler *, KoCanvasController *>);
+    static_assert(std::has_virtual_destructor_v<Manager>);
+}
+
+void KisViewSchemaContractTest::zoomManagerSetupAndImageSynchronizationSignaturesRemainStable()
+{
+    ASSERT_ZOOM_MANAGER_SIGNATURE(setup, void (KisZoomManager::*)(KisKActionCollection *));
+    ASSERT_ZOOM_MANAGER_SIGNATURE(updateImageBoundsSnapping, void (KisZoomManager::*)());
+    ASSERT_ZOOM_MANAGER_SIGNATURE(syncOnImageResolutionChange, void (KisZoomManager::*)());
+}
+
+void KisViewSchemaContractTest::zoomManagerPresentationObjectSignaturesRemainStable()
+{
+    ASSERT_ZOOM_MANAGER_SIGNATURE(zoomAction, KoZoomAction * (KisZoomManager::*)() const);
+    ASSERT_ZOOM_MANAGER_SIGNATURE(zoomActionWidget, QWidget * (KisZoomManager::*)() const);
+    ASSERT_ZOOM_MANAGER_SIGNATURE(horizontalRuler, KoRuler * (KisZoomManager::*)() const);
+    ASSERT_ZOOM_MANAGER_SIGNATURE(verticalRuler, KoRuler * (KisZoomManager::*)() const);
+}
+
+void KisViewSchemaContractTest::zoomManagerRulerControlSignaturesRemainStable()
+{
+    ASSERT_ZOOM_MANAGER_SIGNATURE(setShowRulers, void (KisZoomManager::*)(bool));
+    ASSERT_ZOOM_MANAGER_SIGNATURE(setRulersTrackMouse, void (KisZoomManager::*)(bool));
+    ASSERT_ZOOM_MANAGER_SIGNATURE(mousePositionChanged, void (KisZoomManager::*)(const QPoint &));
+    ASSERT_ZOOM_MANAGER_SIGNATURE(applyRulersUnit, void (KisZoomManager::*)(const KoUnit &));
+    ASSERT_ZOOM_MANAGER_SIGNATURE(setRulersPixelMultiple2, void (KisZoomManager::*)(bool));
+}
+
+void KisViewSchemaContractTest::zoomManagerActionSlotSignaturesRemainStable()
+{
+    ASSERT_ZOOM_MANAGER_SIGNATURE(zoomTo100, void (KisZoomManager::*)());
+    ASSERT_ZOOM_MANAGER_SIGNATURE(slotZoomIn, void (KisZoomManager::*)());
+    ASSERT_ZOOM_MANAGER_SIGNATURE(slotZoomOut, void (KisZoomManager::*)());
+    ASSERT_ZOOM_MANAGER_SIGNATURE(slotZoomToFit, void (KisZoomManager::*)());
+    ASSERT_ZOOM_MANAGER_SIGNATURE(slotZoomToFitWidth, void (KisZoomManager::*)());
+    ASSERT_ZOOM_MANAGER_SIGNATURE(slotZoomToFitHeight, void (KisZoomManager::*)());
+    ASSERT_ZOOM_MANAGER_SIGNATURE(slotToggleZoomToFit, void (KisZoomManager::*)());
+}
+
 #undef ASSERT_VIEW_SIGNATURE
+#undef ASSERT_ZOOM_MANAGER_SIGNATURE
 
 QTEST_GUILESS_MAIN(KisViewSchemaContractTest)
 
