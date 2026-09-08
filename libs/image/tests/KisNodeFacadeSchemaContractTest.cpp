@@ -4,6 +4,7 @@
  */
 
 #include "kis_node_facade.h"
+#include "kis_node_query_path.h"
 
 #include <QTest>
 
@@ -13,6 +14,8 @@ namespace
 {
 #define ASSERT_NODE_FACADE_SIGNATURE(method, signature)                                                                \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisNodeFacade::method)), signature>)
+#define ASSERT_NODE_QUERY_PATH_SIGNATURE(method, signature)                                                            \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KisNodeQueryPath::method)), signature>)
 } // namespace
 
 class KisNodeFacadeSchemaContractTest : public QObject
@@ -24,6 +27,10 @@ private Q_SLOTS:
     void moveSignaturesRemainStable();
     void addSignaturesRemainStable();
     void removeSignatureRemainsStable();
+    void queryPathTypeCopyAndLifetimeSchemaRemainStable();
+    void queryPathNodeLookupSignaturesRemainStable();
+    void queryPathObservationSignaturesRemainStable();
+    void queryPathCreationSignaturesRemainStable();
 };
 
 void KisNodeFacadeSchemaContractTest::typeConstructionLifetimeAndRootSchemaRemainStable()
@@ -64,6 +71,43 @@ void KisNodeFacadeSchemaContractTest::removeSignatureRemainsStable()
     ASSERT_NODE_FACADE_SIGNATURE(removeNode, bool (Facade::*)(KisNodeSP));
 }
 
+void KisNodeFacadeSchemaContractTest::queryPathTypeCopyAndLifetimeSchemaRemainStable()
+{
+    using Path = KisNodeQueryPath;
+
+    static_assert(std::is_class_v<Path>);
+    static_assert(std::is_copy_constructible_v<Path>);
+    static_assert(std::is_destructible_v<Path>);
+    ASSERT_NODE_QUERY_PATH_SIGNATURE(operator=, Path & (Path::*)(const Path &));
+
+    QVERIFY(true);
+}
+
+void KisNodeFacadeSchemaContractTest::queryPathNodeLookupSignaturesRemainStable()
+{
+    using Path = KisNodeQueryPath;
+
+    ASSERT_NODE_QUERY_PATH_SIGNATURE(queryNodes, QList<KisNodeSP> (Path::*)(KisImageWSP, KisNodeSP) const);
+    ASSERT_NODE_QUERY_PATH_SIGNATURE(queryUniqueNode, KisNodeSP (Path::*)(KisImageWSP, KisNodeSP) const);
+}
+
+void KisNodeFacadeSchemaContractTest::queryPathObservationSignaturesRemainStable()
+{
+    using Path = KisNodeQueryPath;
+
+    ASSERT_NODE_QUERY_PATH_SIGNATURE(isRelative, bool (Path::*)() const);
+    ASSERT_NODE_QUERY_PATH_SIGNATURE(toString, QString (Path::*)() const);
+}
+
+void KisNodeFacadeSchemaContractTest::queryPathCreationSignaturesRemainStable()
+{
+    using Path = KisNodeQueryPath;
+
+    ASSERT_NODE_QUERY_PATH_SIGNATURE(fromString, Path (*)(const QString &));
+    ASSERT_NODE_QUERY_PATH_SIGNATURE(absolutePath, Path (*)(KisNodeSP));
+}
+
+#undef ASSERT_NODE_QUERY_PATH_SIGNATURE
 #undef ASSERT_NODE_FACADE_SIGNATURE
 
 QTEST_APPLESS_MAIN(KisNodeFacadeSchemaContractTest)
