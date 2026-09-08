@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 06:44 JST
+- 更新日時: 2026-09-09 06:51 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4074,6 +4074,13 @@
 - 試験sourceは218行・12枠となり、CMake、公開header、製品sourceを変更していない。既存targetは4工程・8入力、command SHA-256 `6baf33872768cb0cbe45449a7fb493fdc29b647b1386520f4368622ab35b17ce`、input SHA-256 `b25e5059e87a568c270ce9e1fe072b4b0be1b07f0b4509e641e1c7e7873e834b`を変更前から維持した。AUTOMOC `HEADERS=[]`、直接接続はQt Core・Test、製品未解決記号と製品動的接続は0である。
 - macOSで対象、軽量近傍`KisInterstrokeDataSchemaContractTest`、対象の20回反復、試験sourceの`clang-check --extra-arg=-Werror`と書式、連続二回の無作業再構築、公開API検査、`verify-quick`に成功した。既存動作試験、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 台帳は27,269件対応、2,535件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g459.json`と一時閉包一覧を削除し、追加作業tree・構築木は作成していない。主Ninja木5,995,732 KiB、共有compiler cache 982,764 KiB、最新`build/tdd-macos/public-api-missing-g460.json` 691,538 bytes、SHA-256 `b187d3971c03ffe401b91ed86b6a06ea3b399dced1bf29f1266dde54fe2a1ff5`だけを再利用対象として保持する。compiler cacheは144,589件中120,563件、83.38%がhitしている。次の永続作業は第460便で最新報告から高密度なmacOS対象と最小構築面を選定することである。
+
+### 第460便の公開API契約計画
+
+- 第460便は`libs/image/brushengine/kis_locked_properties.h`に残る全9 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g460.json`は公開header 1,548、公開API 29,804、対応済み27,269、未対応2,535、691,538 bytes、SHA-256 `b187d3971c03ffe401b91ed86b6a06ea3b399dced1bf29f1266dde54fe2a1ff5`である。対象識別子整列集合のSHA-256は`87b5773a36e58fc78f8b4e9b1f54316753da45dc46271b50503f8bc4060a8823`で、型・構築・寿命3、固定設定の追加・除去4、存在・集合照会2の3枠へ固定する。
+- 公開locked propertiesは設定を共有pointerまたは借用pointerで受け渡すだけだが、開始`libs/image/brushengine/kis_locked_properties.h`の`kis_properties_configuration.h`が設定完全型、色・曲線・直列化・XML依存を全利用元へ伝播させている。構造先行変更では同includeを既存`libs/image/brushengine/kis_locked_properties.cc`へ移し、公開headerには直接基底`kis_shared.h`、共有pointer別名を持つ`kis_types.h`、`QString`前方宣言だけを置く。公開宣言、ABI、設定集合操作順は変えず、7直接利用元の変更前後厳格診断集合と公開API不足報告のbyte一致を完了条件とする。
+- 固定設定server・paintop preset・paintop登録簿を所有する既存`libs/image/tests/KisPaintOpPresetSchemaContractTest.cpp`は217行・13枠で、3枠追加後も300行・20枠未満に収まる。同targetは対象headerが従来伝播していた設定依存をpaintop preset側から既に持ち、image・global・pigment・resources等の探索路と既存export定義、Qt Core・Gui・Testだけで4工程・8入力、command SHA-256 `0c32b72c9110304c0414146d4d0562b3228d14528e0f816521f51274008446d8`、input SHA-256 `d5fef47757220ffdb67b7e99cf6d1dd2d81f2ec0ff9972a54d3b3b8614760b9f`である。新規targetは同じ閉包へCMake登録と生成物を増やすため棄却する。
+- 構造変更を独立commit後、開始headerから既存試験sourceの3枠だけへ追加し、CMakeは変更しない。停止線は5工程・11入力とし、新たな探索路・定義・link、AUTOMOC header入力、製品未解決記号、locked properties・設定値または本文の実体化が必要なら停止する。macOSの対象、追加3枠の20回反復、軽量近傍、直接利用元と試験sourceの厳格構文、書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
 
 ### 第239便の先行監査担当票
 
