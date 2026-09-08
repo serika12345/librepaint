@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-08 13:00 JST
+- 更新日時: 2026-09-08 13:04 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3063,6 +3063,13 @@
 - 開始headerの残存全46 APIを、新規`libs/image/tests/KisNodeSchemaContractTest.cpp`のnode型・位置分類・構築9、訪問・layer・projection 9、dirty・animation 13、graph階層12、進捗・通知3の5枠へ対応付けた。対象は149行である。抽象nodeの公開構築子は、純粋virtual関数へ既定値だけを返す試験用probeを使って本文を実行せず到達可能性を固定する。最初の赤は追加依存を要求せず5試験関数の未定義symbolだけで停止した。契約実装commitは`63a70de190`である。
 - 最終targetは4工程・8入力、command SHA-256 `dcced990e42f0162b444f410c9023bdcc96df7cd5ddd823f7098325f34523d83`、input SHA-256 `5581f5905d4c177bf7c4e1c21af06e9c06e8e4ac7f1ab31fa912b5fb887a0dca`で停止線内に収まる。動的接続はQt Core・Gui・Test、macOS frameworkとgettextだけで、製品libraryの未解決symbolを持たない。macOSで対象`libs-image-KisNodeSchemaContractTest`、軽量近傍`libs-image-KisBaseNodeSchemaContractTest`、対象の20回反復、試験sourceの厳格`clang-check`、書式、AUTOMOC `HEADERS=[]`、二回の無作業再構築、公開API検査に成功した。製品`kritaimage` 1,197工程・2,418入力、node・画像・描画device・訪問者実体、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 台帳へ46 APIを追加して26,036件対応、3,768件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g381.json`を最新報告の検証後に削除し、追加作業tree・構築木は作成していない。主Ninja木5,954,512 KiB、共有compiler cache 982,888 KiB、最新`build/tdd-macos/public-api-missing-g382.json` 1,022,152 bytes、SHA-256 `b1ce32087b21320cee6f10264f0fe5a1fec5695ac31f2a7ad6437e47f17aec24`だけを再利用対象として保持する。compiler cacheは144,315件中120,518件、83.51%がhitしている。次の永続作業は第382便で次の高密度なmacOS対象と最小構築面を選定することである。
+
+### 第382便の公開API契約計画
+
+- 第382便は`libs/ui/document/kis_file_layer.h`の残存全30 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g382.json`は公開header 1,548、公開API 29,804、対応済み26,036、未対応3,768、1,022,152 bytes、SHA-256 `b1ce32087b21320cee6f10264f0fe5a1fec5695ac31f2a7ad6437e47f17aec24`である。対象識別子整列集合のSHA-256は`af75c2205632d1c15ba9bffeab507e852b284eaf3419e1e303c3acc5399f059b`で、file layer型・尺度分類・構築9、node・訪問4、device・cache 5、file・尺度状態7、区画・幾何・通知5の5枠へ固定する。
+- 開始headerの`kis_external_layer_iface.h`は基底完全型、`kis_safe_document_loader.h`と`kis_signal_auto_connection.h`は値member完全型、export headerは公開性に必要である。17直接利用元と宣言・memberを照合し、構築範囲を縮める安全で実質的な製品変更はないため、公開headerと製品sourceを変更せず契約へ進む。
+- 既存`kis_file_layer_test`はapplication製品群を接続する1,985工程・3,968入力であり、公開面の赤緑周期には過大である。新規`libs/ui/tests/KisFileLayerSchemaContractTest.cpp`を200行・10枠未満で作り、型特性、列挙値、厳密な関数pointer、既定引数の未評価呼出しだけで30 APIを観測する。最も近い同じ外部layerの`KisShapeLayerSchemaContractTest`は4工程・8入力、command SHA-256 `29a2b50034dd03ba47221cb65681708ef41747e40449d56b2555fb2316c8959e`、input SHA-256 `d125ea61bbaa6e4bd60b4a775c49acc2c4a4cbac4f72962a0aacecaa254b2b73`である。新規targetも4工程・8入力を予測し、停止線を5工程・11入力とする。候補headerをAUTOMOC入力にせず、製品shared・OBJECT、`kritatestsdk`、file読込・尺度変換・画像・描画device実体を接続または実行しない。
+- `g382-file-layer-schema`の状態は`in_progress`、実装基点は`ecde3a8d41`である。許可pathは新規試験sourceと`libs/ui/tests/CMakeLists.txt`の対象固有節だけである。macOSの対象、5枠の20回反復、軽量近傍、試験sourceの厳格`clang-check`、書式、AUTOMOC後の二回目計画、二回の無作業再構築、動的接続・未解決symbol、公開API検査、`verify-quick`を確認する。製品`kis_file_layer_test`、file I/O・尺度変換・画像実体、全体build・`verify`、Linux、Nix再評価は実行しない。
 
 ### 第239便の先行監査担当票
 
