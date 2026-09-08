@@ -1891,6 +1891,22 @@ target_compile_definitions(KisLayerCompositionSchemaContractTest PRIVATE
 )
 
 kis_add_test(
+    KisTransformWorkerSchemaContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KisTransformWorkerSchemaContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+)
+target_compile_definitions(KisTransformWorkerSchemaContractTest PRIVATE
+    kritaimage_EXPORTS
+)
+
+kis_add_test(
     KisStrokeStrategyUndoCommandBasedSchemaContractTest.cpp
     LINK_LIBRARIES
         Qt${QT_MAJOR_VERSION}::Core
