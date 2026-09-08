@@ -4,6 +4,7 @@
  */
 
 #include <kis_node.h>
+#include <kis_time_span.h>
 
 #include <QTest>
 
@@ -13,6 +14,8 @@ namespace
 {
 #define ASSERT_NODE_SIGNATURE(method, signature)                                                                       \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisNode::method)), signature>)
+#define ASSERT_TIME_SPAN_SIGNATURE(method, signature)                                                                  \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KisTimeSpan::method)), signature>)
 
 class NodeConstructionProbe final : public KisNode
 {
@@ -62,6 +65,7 @@ private Q_SLOTS:
     void nodeTypePositionAndConstructionSchemaRemainStable();
     void nodeVisitorLayerAndProjectionSignaturesRemainStable();
     void nodeDirtyAndAnimationSignaturesRemainStable();
+    void timeSpanNodeFrameCalculationSignaturesRemainStable();
     void nodeGraphHierarchySignaturesRemainStable();
     void nodeProgressAndNotificationSignaturesRemainStable();
 };
@@ -115,6 +119,16 @@ void KisNodeSchemaContractTest::nodeDirtyAndAnimationSignaturesRemainStable()
     ASSERT_NODE_SIGNATURE(requestTimeSwitch, void (Node::*)(int));
 }
 
+void KisNodeSchemaContractTest::timeSpanNodeFrameCalculationSignaturesRemainStable()
+{
+    using Signature = KisTimeSpan (*)(const KisNode *, int);
+
+    ASSERT_TIME_SPAN_SIGNATURE(calculateIdenticalFramesRecursive, Signature);
+    ASSERT_TIME_SPAN_SIGNATURE(calculateAffectedFramesRecursive, Signature);
+    ASSERT_TIME_SPAN_SIGNATURE(calculateNodeIdenticalFrames, Signature);
+    ASSERT_TIME_SPAN_SIGNATURE(calculateNodeAffectedFrames, Signature);
+}
+
 void KisNodeSchemaContractTest::nodeGraphHierarchySignaturesRemainStable()
 {
     using Node = KisNode;
@@ -142,6 +156,7 @@ void KisNodeSchemaContractTest::nodeProgressAndNotificationSignaturesRemainStabl
     ASSERT_NODE_SIGNATURE(sigNodeChangedInternal, void (Node::*)());
 }
 
+#undef ASSERT_TIME_SPAN_SIGNATURE
 #undef ASSERT_NODE_SIGNATURE
 
 QTEST_APPLESS_MAIN(KisNodeSchemaContractTest)
