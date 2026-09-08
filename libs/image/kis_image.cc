@@ -8,6 +8,7 @@
 #include "kis_image.h"
 
 #include <KoConfig.h> // WORDS_BIGENDIAN
+#include <krita_container_utils.h>
 
 #include <stdlib.h>
 #include <math.h>

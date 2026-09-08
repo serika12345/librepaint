@@ -14,7 +14,10 @@
 #include <QMetaType>
 #include <boost/operators.hpp>
 #include "kis_types.h"
-#include <kis_dom_utils.h>
+
+class QDebug;
+class QDomElement;
+class QString;
 
 class KRITAIMAGE_EXPORT KisTimeSpan : public boost::equality_comparable<KisTimeSpan>
 {

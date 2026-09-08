@@ -11,6 +11,7 @@
 #include <kis_image_animation_interface.h>
 #include <kis_keyframe_channel.h>
 
+#include <QIODevice>
 #include <QMimeData>
 
 

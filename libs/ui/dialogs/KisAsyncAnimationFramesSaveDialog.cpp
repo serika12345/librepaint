@@ -12,6 +12,8 @@
 
 #include <animation/KisAsyncAnimationFramesSavingRenderer.h>
 
+#include <klocalizedstring.h>
+
 #include "KisMimeDatabase.h"
 
 #include <QFileInfo>

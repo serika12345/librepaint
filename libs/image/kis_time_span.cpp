@@ -9,6 +9,8 @@
 #include <QDebug>
 #include <KisStaticInitializer.h>
 
+#include <kis_dom_utils.h>
+
 KIS_DECLARE_STATIC_INITIALIZER {
     qRegisterMetaType<KisTimeSpan>("KisTimeSpan");
 }
