@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 04:27 JST
+- 更新日時: 2026-09-09 04:36 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3946,6 +3946,14 @@
 - 第450便は`libs/image/layerstyles/kis_layer_style_projection_plane.h`に残る全16 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g450.json`は公開header 1,548、公開API 29,804、対応済み27,163、未対応2,641、718,646 bytes、SHA-256 `ab050875eee34b0b22f8c748edee8b6ed25348f10920470dcdbe5e2ac311847e`である。対象識別子整列集合のSHA-256は`4241477bb11f4adb9ac7779ae857f7685f0a925950a7760744e49cdbc3841805`で、型・共有pointer別名2・2構築・寿命6、再計算・適用・factory生成3、必要・変更・参照領域3、原本必要領域・厳密・概算表示範囲3、LoD対象装置1の5枠へ固定する。
 - 公開headerの依存を監査し、基底`KisAbstractProjectionPlane`の完全型と、その公開署名が使う`KisLayer::PositionToFilthy`のために`kis_abstract_projection_plane.h`の完全includeが必要である。非公開実装は既にQScopedPointerへ隔離され、別名にはQSharedPointer・QWeakPointer定義が必要であるため、実装側へ移して閉包を縮められる完全型依存はない。署名固定に必要な範囲を維持し、製品headerは変更しない。
 - 既存`KisPaintLayerSchemaContractTest.cpp`は287行で上限に近いため、新規`libs/image/tests/KisLayerStyleProjectionPlaneSchemaContractTest.cpp`と専用CMake targetを5枠で作り、将来の変更を同headerだけの再compileへ分離する。最寄りの`KisPaintLayerSchemaContractTest`は4工程・8入力、command hash `7f95808382cedf0959d44b79176debf583174949db328d837d82151529d6ce90`、input hash `b6dcaa75d5f3e3945b0cf61c2c9f7d70a7e1745e156a324802526b7794252952`である。新targetは同じ探索路・定義を上限として使い、linkはQt Core・Gui・Test・Xmlとheader-only Boostに限定し、停止線を5工程・11入力に置く。計画外探索路・link・定義、AUTOMOC header入力、製品未解決記号、対象型の実体化または本文実行が必要なら停止する。macOSの対象と軽量近傍、追加5枠の20回反復、厳密構文、二回目計画、無作業再構築、公開API検査、`verify-quick`だけを実行し、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
+
+### 第450便の実装結果
+
+- `libs/image/layerstyles/kis_layer_style_projection_plane.h`から新規`libs/image/tests/KisLayerStyleProjectionPlaneSchemaContractTest.cpp`へ全16 APIを5枠で固定した。型・共有pointer別名2・2構築・寿命6、再計算・適用・factory生成3、必要・変更・参照領域3、原本必要領域・厳密・概算表示範囲3、LoD対象装置1を重複なく対応付けた。初回は追加4枠が成功し、`G450 layer style projection API schema is not fixed yet`だけで1件失敗した。計画commitは`09e1e9bb4f`、契約commitは`325f275b9e`である。
+- 基底投影面とlayer位置区分の完全型は公開継承と署名に必要であり、非公開実装は既にQScopedPointerへ隔離されているため製品headerは変更していない。専用targetの再監査ではQt Gui・Xmlを実行時linkから除き、完全型headerの探索路だけをCMakeで明示した。これにより挙動を実体化しないschema試験の動的依存はQt Core・Testへ限定された。
+- 新規試験sourceは85行・5枠、専用targetは4工程・8入力、command hash `0511f5175ac7a9135f28601e5ef6cec86a67e5a0c4129ea1e648c29426abcd7c`、input hash `6e27b80bc3a9576fc86b4bb142e234b4071e1fd0e385dfa8fc52eb322c20f2d0`である。AUTOMOC `HEADERS=[]`、対象製品未解決記号0を確認し、予測した最小工程・入力数を維持しながら近傍より動的接続を縮小した。
+- macOSで対象`libs-image-KisLayerStyleProjectionPlaneSchemaContractTest`と軽量近傍`libs-image-KisPaintLayerSchemaContractTest`、対象の20回反復、試験sourceの`clang-check --extra-arg=-Werror`と書式、二回の無作業再構築に成功した。台帳は27,179件対応、2,625件未対応となり、開始headerの残存は0件である。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 旧`public-api-missing-g450.json`を削除し、追加作業tree・構築木・一時計画物は作成していない。主Ninja木5,990,128 KiB、共有compiler cache 982,268 KiB、最新`build/tdd-macos/public-api-missing-g451.json` 713,585 bytes、SHA-256 `9fc1e6c9ad57dd089ab7b409eab8905bc06698fa89594cfeb3451e272e697b0d`だけを再利用対象として保持する。compiler cacheは144,564件中120,559件、83.39%がhitしている。次の永続作業は第451便で最新報告から高密度なmacOS対象と最小構築面を選定することである。
 
 ### 第239便の先行監査担当票
 

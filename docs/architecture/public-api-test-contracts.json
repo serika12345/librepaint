@@ -16,7 +16,7 @@
     "publicApiFingerprint": "5f05b2aa8e5bef4343af1d55a3852331e51d4369fe135b099327b1a91b6b8c4c"
   },
   "migration": {
-    "expectedMissingApis": 2641
+    "expectedMissingApis": 2625
   },
   "contracts": [
     {
@@ -75121,6 +75121,67 @@
       "apis": [
         "method:KisTransformWorker::forceSubPixelTranslation() const",
         "method:KisTransformWorker::setForceSubPixelTranslation(bool value)"
+      ]
+    },
+    {
+      "target": "KisLayerStyleProjectionPlaneSchemaContractTest",
+      "source": "libs/image/tests/KisLayerStyleProjectionPlaneSchemaContractTest.cpp",
+      "test": "KisLayerStyleProjectionPlaneSchemaContractTest::typeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "layer style投影面は共有・弱参照別名を持ち、元layerまたは複製styleから構築して仮想破棄する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisLayerStyleProjectionPlaneSP",
+        "alias:KisLayerStyleProjectionPlaneWSP",
+        "class:KisLayerStyleProjectionPlane",
+        "method:KisLayerStyleProjectionPlane::KisLayerStyleProjectionPlane(KisLayer * sourceLayer)",
+        "method:KisLayerStyleProjectionPlane::KisLayerStyleProjectionPlane(const KisLayerStyleProjectionPlane & rhs,KisLayer * sourceLayer,KisPSDLayerStyleSP clonedStyle)",
+        "method:KisLayerStyleProjectionPlane::~KisLayerStyleProjectionPlane()"
+      ]
+    },
+    {
+      "target": "KisLayerStyleProjectionPlaneSchemaContractTest",
+      "source": "libs/image/tests/KisLayerStyleProjectionPlaneSchemaContractTest.cpp",
+      "test": "KisLayerStyleProjectionPlaneSchemaContractTest::recalculationApplicationAndFactorySignaturesRemainStable",
+      "behavior": "layer style投影面は汚れたnodeから投影を再計算し、painterへ適用し、抽象投影面として生成する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisLayerStyleProjectionPlane::apply(KisPainter * painter,const QRect & rect)",
+        "method:KisLayerStyleProjectionPlane::factoryObject(KisLayer * sourceLayer)",
+        "method:KisLayerStyleProjectionPlane::recalculate(const QRect & rect,KisNodeSP filthyNode,KisRenderPassFlags flags)"
+      ]
+    },
+    {
+      "target": "KisLayerStyleProjectionPlaneSchemaContractTest",
+      "source": "libs/image/tests/KisLayerStyleProjectionPlaneSchemaContractTest.cpp",
+      "test": "KisLayerStyleProjectionPlaneSchemaContractTest::dependencyRectangleSignaturesRemainStable",
+      "behavior": "layer style投影面はlayer位置区分を含む参照・変更・必要領域を返す公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisLayerStyleProjectionPlane::accessRect(const QRect & rect,KisLayer::PositionToFilthy pos) const",
+        "method:KisLayerStyleProjectionPlane::changeRect(const QRect & rect,KisLayer::PositionToFilthy pos) const",
+        "method:KisLayerStyleProjectionPlane::needRect(const QRect & rect,KisLayer::PositionToFilthy pos) const"
+      ]
+    },
+    {
+      "target": "KisLayerStyleProjectionPlaneSchemaContractTest",
+      "source": "libs/image/tests/KisLayerStyleProjectionPlaneSchemaContractTest.cpp",
+      "test": "KisLayerStyleProjectionPlaneSchemaContractTest::visibleBoundsSignaturesRemainStable",
+      "behavior": "layer style投影面は原本に必要な領域と利用者向けの厳密・概算表示範囲を返す公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisLayerStyleProjectionPlane::looseUserVisibleBounds() const",
+        "method:KisLayerStyleProjectionPlane::needRectForOriginal(const QRect & rect) const",
+        "method:KisLayerStyleProjectionPlane::tightUserVisibleBounds() const"
+      ]
+    },
+    {
+      "target": "KisLayerStyleProjectionPlaneSchemaContractTest",
+      "source": "libs/image/tests/KisLayerStyleProjectionPlaneSchemaContractTest.cpp",
+      "test": "KisLayerStyleProjectionPlaneSchemaContractTest::lodDeviceSignatureRemainsStable",
+      "behavior": "layer style投影面はLoD cacheを同期する描画装置一覧を返す公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisLayerStyleProjectionPlane::getLodCapableDevices() const"
       ]
     }
   ]
