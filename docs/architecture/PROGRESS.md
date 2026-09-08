@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 02:19 JST
+- 更新日時: 2026-09-09 02:23 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3817,6 +3817,12 @@
 - 最終sourceは173行・9枠、CMake、公開header、製品sourceを変更していない。対象は変更前と同じ4工程・8入力、command hash `f0bacabbc5e99602c061069d2f4101e49722026e6251620a0d22905651f02009`、input hash `226642f6eb0597b6d48f1e4473cc31fd9f989cd4ae40157591d3c02e0d8f5f79`を維持した。新targetと再生成物を増やさず、既存のQt Core・Gui・Test・Xmlだけの動的接続、AUTOMOC `HEADERS=[]`、製品未解決記号0を確認した。
 - macOSで対象`libs-image-KisTransformMaskSchemaContractTest`と軽量近傍`libs-image-KisGeneratorLayerSchemaContractTest`、対象の20回反復、試験sourceの`clang-check --extra-arg=-Werror`と書式、二回の無作業再構築に成功した。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 台帳へ11 APIを追加して27,044件対応、2,760件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g440.json`を削除し、追加作業tree・構築木・一時計画物は作成していない。主Ninja木5,986,024 KiB、共有compiler cache 982,772 KiB、最新`build/tdd-macos/public-api-missing-g441.json` 753,296 bytes、SHA-256 `39932db1c41ed91cf50ced4006e0284a285c1ed608bbd7bffb60993ccd336491`だけを再利用対象として保持する。compiler cacheは144,534件中120,558件、83.41%がhitしている。次の永続作業は第441便で次の高密度なmacOS対象と最小構築面を選定することである。
+
+### 第441便の公開API契約計画
+
+- 第441便は`libs/image/KisAnimatedOpacityProperty.h`に残る全12 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g441.json`は公開header 1,548、公開API 29,804、対応済み27,044、未対応2,760、753,296 bytes、SHA-256 `39932db1c41ed91cf50ced4006e0284a285c1ed608bbd7bffb60993ccd336491`である。対象識別子整列集合のSHA-256は`14153e5945d9cecdbade45a447b30b770855e21f4499d1fb5581bca378579764`で、型・構築2、値・channel照会変更4、animation化・転送・境界更新3、変更通知・key変更・削除slot 3の4枠へ固定する。
+- 構築範囲の先行最適化として、開始`libs/image/KisAnimatedOpacityProperty.h`から公開宣言に不要な`QVariant`、`kis_time_span.h`、`kis_image.h`、`KoProperties.h`の完全型includeを除き、`KoProperties`を前方宣言する。完全型利用先`libs/image/KisAnimatedOpacityProperty.cpp`へ`QVariant`、`KoProperties.h`、`kis_default_bounds_node_wrapper.h`を明示し、値変換、property操作、node境界生成の所有を実装側へ置く。公開宣言、QObject所有、scalar keyframe channel所有、信号・slotを保つ。
+- 既存`libs/image/tests/KisRasterKeyframeChannelSchemaContractTest.cpp`は107行・5枠で、追加後も300行・20枠未満に収まる。対象固有headerを同sourceへ加えるだけで`libs/image/tests/CMakeLists.txt`を変更せず、型、property、channel、node、境界を実体化しない。対象の変更前閉包は4工程・8入力、command hash `336652441f50149ca8e52751cd9b531342af26bea61504ef33a0d321b6614b06`、input hash `55fa4ae2ef299d3eb801631c7fd7dbe3a6da098174c0dda2ba9a2e0f2d88ebb0`である。停止線を5工程・11入力とし、計画外探索路・link・定義、AUTOMOC header入力、製品未解決記号、対象型の実体化または本文実行が必要なら停止する。macOSの対象と軽量近傍、追加4枠の20回反復、対象headerを含む試験sourceと全直接consumerの厳密構文、二回目計画、無作業再構築、公開API検査、`verify-quick`だけを実行し、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
 
 ### 第239便の先行監査担当票
 
