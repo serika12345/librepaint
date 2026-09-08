@@ -5,6 +5,9 @@
 
 #include "brushengine/kis_locked_properties_server.h"
 #include "brushengine/kis_paintop_preset.h"
+#define HAVE_THREADED_TEXT_RENDERING_WORKAROUND
+#include "brushengine/kis_paintop_registry.h"
+#undef HAVE_THREADED_TEXT_RENDERING_WORKAROUND
 
 #include <QTest>
 
@@ -16,6 +19,8 @@ namespace
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisPaintOpPreset::method)), signature>)
 #define ASSERT_LOCKED_PROPERTIES_SERVER_SIGNATURE(method, signature)                                                   \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisLockedPropertiesServer::method)), signature>)
+#define ASSERT_PAINTOP_REGISTRY_SIGNATURE(method, signature)                                                           \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KisPaintOpRegistry::method)), signature>)
 } // namespace
 
 class KisPaintOpPresetSchemaContractTest : public QObject
@@ -32,6 +37,10 @@ private Q_SLOTS:
     void lockedPropertiesServerCollectionSignaturesRemainStable();
     void lockedPropertiesServerSourceAndQuerySignaturesRemainStable();
     void lockedPropertiesServerProxyCreationSignaturesRemainStable();
+    void paintOpRegistryTypeLifetimeAndGlobalAccessSchemaRemainStable();
+    void paintOpRegistryPaintOpCreationSignaturesRemainStable();
+    void paintOpRegistryConfigurationAndPresentationSignaturesRemainStable();
+    void paintOpRegistryPreinitializationSignatureRemainsStable();
 };
 
 void KisPaintOpPresetSchemaContractTest::paintOpPresetTypeLifetimeAndUpdateSuppressionSchemaRemainStable()
@@ -156,6 +165,51 @@ void KisPaintOpPresetSchemaContractTest::lockedPropertiesServerProxyCreationSign
                                               KisLockedPropertiesProxySP (Server::*)(KisPropertiesConfigurationSP));
 }
 
+void KisPaintOpPresetSchemaContractTest::paintOpRegistryTypeLifetimeAndGlobalAccessSchemaRemainStable()
+{
+    using Registry = KisPaintOpRegistry;
+
+    static_assert(std::is_class_v<Registry>);
+    static_assert(std::is_base_of_v<QObject, Registry>);
+    static_assert(std::is_default_constructible_v<Registry>);
+    static_assert(std::has_virtual_destructor_v<Registry>);
+    ASSERT_PAINTOP_REGISTRY_SIGNATURE(instance, Registry * (*)());
+    ASSERT_PAINTOP_REGISTRY_SIGNATURE(registerResourceLoader, void (*)(KisResourceLoaderRegistry &));
+
+    QVERIFY(true);
+}
+
+void KisPaintOpPresetSchemaContractTest::paintOpRegistryPaintOpCreationSignaturesRemainStable()
+{
+    using Registry = KisPaintOpRegistry;
+
+    ASSERT_PAINTOP_REGISTRY_SIGNATURE(
+        paintOp,
+        KisPaintOp * (Registry::*)(const KisPaintOpPresetSP, KisPainter *, KisNodeSP, KisImageSP) const);
+    ASSERT_PAINTOP_REGISTRY_SIGNATURE(createInterstrokeDataFactory,
+                                      KisInterstrokeDataFactory * (Registry::*)(KisPaintOpPresetSP) const);
+}
+
+void KisPaintOpPresetSchemaContractTest::paintOpRegistryConfigurationAndPresentationSignaturesRemainStable()
+{
+    using Registry = KisPaintOpRegistry;
+
+    ASSERT_PAINTOP_REGISTRY_SIGNATURE(createSettings,
+                                      KisPaintOpSettingsSP (Registry::*)(const KoID &, KisResourcesInterfaceSP) const);
+    ASSERT_PAINTOP_REGISTRY_SIGNATURE(defaultPreset,
+                                      KisPaintOpPresetSP (Registry::*)(const KoID &, KisResourcesInterfaceSP) const);
+    ASSERT_PAINTOP_REGISTRY_SIGNATURE(icon, QIcon (Registry::*)(const KoID &) const);
+    ASSERT_PAINTOP_REGISTRY_SIGNATURE(listKeys, QList<KoID> (Registry::*)() const);
+}
+
+void KisPaintOpPresetSchemaContractTest::paintOpRegistryPreinitializationSignatureRemainsStable()
+{
+    using Registry = KisPaintOpRegistry;
+
+    ASSERT_PAINTOP_REGISTRY_SIGNATURE(preinitializePaintOpIfNeeded, void (Registry::*)(const KisPaintOpPresetSP));
+}
+
+#undef ASSERT_PAINTOP_REGISTRY_SIGNATURE
 #undef ASSERT_LOCKED_PROPERTIES_SERVER_SIGNATURE
 
 QTEST_GUILESS_MAIN(KisPaintOpPresetSchemaContractTest)
