@@ -7,10 +7,13 @@
 
 #include <type_traits>
 
+#include "canvas/KisIdleTasksManager.h"
 #include "canvas/kis_canvas_resource_provider.h"
 
 #define ASSERT_PROVIDER_SIGNATURE(method, signature)                                                                   \
     static_assert(std::is_same_v<decltype(&KisCanvasResourceProvider::method), signature>)
+#define ASSERT_IDLE_TASKS_MANAGER_SIGNATURE(method, signature)                                                         \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KisIdleTasksManager::method)), signature>)
 
 class KisCanvasResourceProviderSchemaContractTest : public QObject
 {
@@ -22,6 +25,11 @@ private Q_SLOTS:
     void brushDynamicsSchemaRemainStable();
     void mirrorAndWorkspaceSchemaRemainStable();
     void activationAndNotificationSchemaRemainStable();
+    void idleTasksManagerTypeAndLifetimeSchemaRemainStable();
+    void idleTaskGuardTypeConstructionAndLifetimeSchemaRemainStable();
+    void idleTaskGuardCopyAndMoveSchemaRemainStable();
+    void idleTaskGuardStateAndControlSchemaRemainStable();
+    void idleTasksManagerImageAndRegistrationSignaturesRemainStable();
 };
 
 void KisCanvasResourceProviderSchemaContractTest::typeOwnershipAndResourceConnectionSchemaRemainStable()
@@ -184,6 +192,56 @@ void KisCanvasResourceProviderSchemaContractTest::activationAndNotificationSchem
 
     QVERIFY(true);
 }
+
+void KisCanvasResourceProviderSchemaContractTest::idleTasksManagerTypeAndLifetimeSchemaRemainStable()
+{
+    using Manager = KisIdleTasksManager;
+
+    static_assert(std::is_class_v<Manager>);
+    static_assert(std::is_default_constructible_v<Manager>);
+    static_assert(std::has_virtual_destructor_v<Manager>);
+}
+
+void KisCanvasResourceProviderSchemaContractTest::idleTaskGuardTypeConstructionAndLifetimeSchemaRemainStable()
+{
+    using Guard = KisIdleTasksManager::TaskGuard;
+
+    static_assert(std::is_class_v<Guard>);
+    static_assert(std::is_default_constructible_v<Guard>);
+    static_assert(std::is_constructible_v<Guard, int, QPointer<KisIdleTasksManager>>);
+    static_assert(std::is_destructible_v<Guard>);
+}
+
+void KisCanvasResourceProviderSchemaContractTest::idleTaskGuardCopyAndMoveSchemaRemainStable()
+{
+    using Guard = KisIdleTasksManager::TaskGuard;
+
+    static_assert(!std::is_copy_constructible_v<Guard>);
+    static_assert(!std::is_copy_assignable_v<Guard>);
+    static_assert(std::is_move_constructible_v<Guard>);
+    static_assert(std::is_move_assignable_v<Guard>);
+}
+
+void KisCanvasResourceProviderSchemaContractTest::idleTaskGuardStateAndControlSchemaRemainStable()
+{
+    using Guard = KisIdleTasksManager::TaskGuard;
+
+    static_assert(std::is_same_v<decltype(&Guard::taskId), int Guard::*>);
+    static_assert(std::is_same_v<decltype(&Guard::manager), QPointer<KisIdleTasksManager> Guard::*>);
+    static_assert(std::is_same_v<decltype(&Guard::isValid), bool (Guard::*)() const>);
+    static_assert(std::is_same_v<decltype(&Guard::trigger), void (Guard::*)()>);
+}
+
+void KisCanvasResourceProviderSchemaContractTest::idleTasksManagerImageAndRegistrationSignaturesRemainStable()
+{
+    using Manager = KisIdleTasksManager;
+
+    ASSERT_IDLE_TASKS_MANAGER_SIGNATURE(setImage, void (Manager::*)(KisImageSP));
+    ASSERT_IDLE_TASKS_MANAGER_SIGNATURE(addIdleTaskWithGuard,
+                                        Manager::TaskGuard (Manager::*)(KisIdleTaskStrokeStrategyFactory));
+}
+
+#undef ASSERT_IDLE_TASKS_MANAGER_SIGNATURE
 
 QTEST_GUILESS_MAIN(KisCanvasResourceProviderSchemaContractTest)
 
