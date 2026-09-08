@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 03:56 JST
+- 更新日時: 2026-09-09 04:02 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3912,6 +3912,12 @@
 - 最終sourceは163行・9枠、CMakeは変更していない。対象は変更前と同じ4工程・8入力、command hash `0c32b72c9110304c0414146d4d0562b3228d14528e0f816521f51274008446d8`、input hash `d5fef47757220ffdb67b7e99cf6d1dd2d81f2ec0ff9972a54d3b3b8614760b9f`を維持した。既存のQt Core・Gui・TestとOS frameworkだけの動的接続、AUTOMOC `HEADERS=[]`、対象製品未解決記号0を確認した。
 - macOSで対象`libs-image-KisPaintOpPresetSchemaContractTest`と軽量近傍`libs-image-KisPropertiesConfigurationSchemaContractTest`、対象の20回反復、試験sourceと直接利用元4 sourceの`clang-check --extra-arg=-Werror`、全7直接利用元の通常構文、試験sourceの書式、二回の無作業再構築に成功した。変更していない`kis_paintop_settings.cpp`の未使用引数と`kis_paintop_settings_widget.cpp`経由の既存deprecated-copy警告は厳密構文で再現し、今回の範囲外の基準線診断として分離した。台帳は27,135件対応、2,669件未対応となり、開始headerの残存は0件である。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 旧`public-api-missing-g447.json`を削除し、追加作業tree・構築木・一時計画物は作成していない。主Ninja木5,985,764 KiB、共有compiler cache 982,204 KiB、最新`build/tdd-macos/public-api-missing-g448.json` 725,820 bytes、SHA-256 `cbeb37947402e7c3d86e173963206355247e543e12bafb74fb298f63a11ed7e7`だけを再利用対象として保持する。compiler cacheは144,551件中120,558件、83.40%がhitしている。次の永続作業は第448便で最新報告から高密度なmacOS対象と最小構築面を選定することである。
+
+### 第448便の公開API契約計画
+
+- 第448便は`libs/image/kis_layer_composition.h`に残る全13 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g448.json`は公開header 1,548、公開API 29,804、対応済み27,135、未対応2,669、725,820 bytes、SHA-256 `cbeb37947402e7c3d86e173963206355247e543e12bafb74fb298f63a11ed7e7`である。対象識別子整列集合のSHA-256は`6dc306e0d514b487f24f0f31f5bd67bdcdc74d150ca7d311d441c8fd3f473883`で、型・2構築・寿命4、名前とexport状態の設定・照会4、可視・折畳み状態設定と保存3、適用とXML保存2の4枠へ固定する。
+- 公開headerの依存を監査し、`kis_image.h`は公開署名とmemberで使う`KisImageWSP`に対して完全型を不要にし、`QDomDocument`と`QDomElement`も参照引数だけであることを確認した。`KisImageWSP`の共有pointer型、値memberの`QMap`・`QString`・`QUuid`だけをheaderへ残し、image完全型とXML完全型のinclude所有を`libs/image/kis_layer_composition.cpp`へ移す。全直接利用元を構文検査し、失われた推移的includeは各実利用sourceへ明示する。
+- 新規`libs/image/tests/KisLayerCompositionSchemaContractTest.cpp`と専用CMake targetを4枠で作り、将来の変更を同headerだけの再compileへ分離する。最寄りの`KisSafeNodeProjectionStoreSchemaContractTest`はQt Core・Test、globalとimage探索路、image export定義だけで4工程・8入力、command hash `ae5e4b8202351ef30787dc565e669ef398f3bbd049e35635329a50124151d336`、input hash `7ea70950e6c6ab4366c64e6d26a24070ccdd84f46c440b60988b0b857c55b4a4`である。新targetも同じ構築面を上限予測とし、停止線を5工程・11入力に置く。計画外探索路・link・定義、AUTOMOC header入力、製品未解決記号、対象型の実体化または本文実行が必要なら停止する。macOSの対象と軽量近傍、追加4枠の20回反復、厳密構文、二回目計画、無作業再構築、公開API検査、`verify-quick`だけを実行し、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
 
 ### 第239便の先行監査担当票
 
