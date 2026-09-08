@@ -201,13 +201,21 @@ kis_add_test(
 target_include_directories(KisViewSchemaContractTest PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/..
     ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs
+    ${CMAKE_SOURCE_DIR}/libs/flake
+    ${CMAKE_BINARY_DIR}/libs/flake
     ${CMAKE_SOURCE_DIR}/libs/global
     ${CMAKE_BINARY_DIR}/libs/global
     ${CMAKE_SOURCE_DIR}/libs/ui
     ${CMAKE_BINARY_DIR}/libs/ui
     ${CMAKE_SOURCE_DIR}/libs/ui/widgets
+    ${CMAKE_SOURCE_DIR}/libs/widgets
+    ${CMAKE_BINARY_DIR}/libs/widgets
     $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Widgets,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:KF${KF_MAJOR}::WidgetsAddons,INTERFACE_INCLUDE_DIRECTORIES>
 )
 target_compile_definitions(KisViewSchemaContractTest PRIVATE
+    kritaflake_EXPORTS
     kritaui_EXPORTS
+    kritawidgets_EXPORTS
 )
