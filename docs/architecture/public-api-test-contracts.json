@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 3327
+    "expectedMissingApis": 3311
   },
   "contracts": [
     {
@@ -72626,6 +72626,67 @@
         "method:KisGaussianKernel::applyDilate(KisPaintDeviceSP device,const QRect & rect,qreal radius,const QBitArray & channelFlags,KoUpdater * progressUpdater,bool createTransaction=false)",
         "method:KisGaussianKernel::applyErodeU8(KisPaintDeviceSP device,const QRect & rect,qreal radius,const QBitArray & channelFlags,KoUpdater * progressUpdater,bool createTransaction=false)",
         "method:KisGaussianKernel::applyGaussian(KisPaintDeviceSP device,const QRect & rect,qreal xRadius,qreal yRadius,const QBitArray & channelFlags,KoUpdater * updater,bool createTransaction=false,KisConvolutionBorderOp borderOp=BORDER_REPEAT)"
+      ]
+    },
+    {
+      "target": "KisGaussianKernelSchemaContractTest",
+      "source": "libs/image/tests/KisGaussianKernelSchemaContractTest.cpp",
+      "test": "KisGaussianKernelSchemaContractTest::convolutionBorderOperationEnumSchemaRemainsStable",
+      "behavior": "畳込み描画器は領域外画素を読む方式と境界値を反復する方式の安定した識別値を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KisConvolutionBorderOp",
+        "enumerator:KisConvolutionBorderOp::BORDER_IGNORE",
+        "enumerator:KisConvolutionBorderOp::BORDER_REPEAT"
+      ]
+    },
+    {
+      "target": "KisGaussianKernelSchemaContractTest",
+      "source": "libs/image/tests/KisGaussianKernelSchemaContractTest.cpp",
+      "test": "KisGaussianKernelSchemaContractTest::convolutionPainterTypeAndEngineEnumSchemaRemainStable",
+      "behavior": "畳込み描画器は自動選択・空間・FFTWの実行方式を安定した識別値で公開する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisConvolutionPainter",
+        "enum:KisConvolutionPainter::EnginePreference",
+        "enumerator:KisConvolutionPainter::EnginePreference::FFTW",
+        "enumerator:KisConvolutionPainter::EnginePreference::NONE",
+        "enumerator:KisConvolutionPainter::EnginePreference::SPATIAL"
+      ]
+    },
+    {
+      "target": "KisGaussianKernelSchemaContractTest",
+      "source": "libs/image/tests/KisGaussianKernelSchemaContractTest.cpp",
+      "test": "KisGaussianKernelSchemaContractTest::convolutionPainterConstructionSignaturesRemainStable",
+      "behavior": "畳込み描画器は既定、paint device、選択範囲、明示実行方式から構築する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisConvolutionPainter::KisConvolutionPainter()",
+        "method:KisConvolutionPainter::KisConvolutionPainter(KisPaintDeviceSP device)",
+        "method:KisConvolutionPainter::KisConvolutionPainter(KisPaintDeviceSP device,EnginePreference enginePreference)",
+        "method:KisConvolutionPainter::KisConvolutionPainter(KisPaintDeviceSP device,KisSelectionSP selection)"
+      ]
+    },
+    {
+      "target": "KisGaussianKernelSchemaContractTest",
+      "source": "libs/image/tests/KisGaussianKernelSchemaContractTest.cpp",
+      "test": "KisGaussianKernelSchemaContractTest::convolutionPainterEngineAndCapabilitySignaturesRemainStable",
+      "behavior": "畳込み描画器は実行方式の指定とFFTW対応能力の照会境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisConvolutionPainter::setEnginePreference(EnginePreference value)",
+        "method:KisConvolutionPainter::supportsFFTW()"
+      ]
+    },
+    {
+      "target": "KisGaussianKernelSchemaContractTest",
+      "source": "libs/image/tests/KisGaussianKernelSchemaContractTest.cpp",
+      "test": "KisGaussianKernelSchemaContractTest::convolutionPainterApplicationSignaturesRemainStable",
+      "behavior": "畳込み描画器は指定位置・範囲へのkernel適用と明示的取引の要否照会境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisConvolutionPainter::applyMatrix(const KisConvolutionKernelSP kernel,const KisPaintDeviceSP src,QPoint srcPos,QPoint dstPos,QSize areaSize,KisConvolutionBorderOp borderOp=BORDER_REPEAT)",
+        "method:KisConvolutionPainter::needsTransaction(const KisConvolutionKernelSP kernel) const"
       ]
     }
   ]

@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-08 19:17 JST
+- 更新日時: 2026-09-08 19:23 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3374,6 +3374,12 @@
 - 第405便は`libs/image/kis_convolution_painter.h`に残る全16 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g405.json`は公開header 1,548、公開API 29,804、対応済み26,477、未対応3,327、901,702 bytes、SHA-256 `01b8e4635ea28ee00fb39f42bb22f4aa5e148513d5ed883621394938a8e5a2c3`である。対象識別子整列集合のSHA-256は`82684c8fee0d6d767d1fc5afbbea0c773984a77f4a0bec157d59b708696466b2`で、境界処理列挙3、型・実行方式列挙5、構築4、方式設定・対応能力2、行列適用・取引要否2の5枠へ固定する。
 - 既存`libs/image/tests/kis_convolution_painter_test.cpp`はpaint device上の畳込み結果を動的に固定する一方、製品image接続を含む1,201工程・2,425入力である。直前の`libs/image/tests/KisGaussianKernelSchemaContractTest.cpp`は同じ畳込み責務と対象headerの公開include閉包を所有し、83行・5枠から追加後も300行・20枠未満に収まる。CMake変更なしで4工程・8入力を維持し、painter、device、selection、kernelと本文を実体化せず、列挙値、型特性、厳密な関数pointerだけで公開境界を観測する。
 - `g405-convolution-painter-schema`の状態は`in_progress`、実装基点は`ea466b4513`である。開始headerから既存試験sourceの5枠だけへ追加し、CMake、公開header、製品sourceは変更しない。macOSの対象、追加5枠の20回反復、軽量近傍、試験sourceの厳格`clang-check`、書式、二回の無作業再構築、動的接続・未解決symbol、公開API検査、`verify-quick`だけを実行する。製品image・OBJECT・shared target、既存動作試験、全体build・`verify`、Linux、Nix再評価は実行しない。
+
+### 第405便の実装結果
+
+- `g405-convolution-painter-schema`は`completed`である。開始`libs/image/kis_convolution_painter.h`から既存`libs/image/tests/KisGaussianKernelSchemaContractTest.cpp`へ16 API・5枠を追加した。境界処理列挙3、型・実行方式列挙5、構築4、方式設定・対応能力2、行列適用・取引要否2を列挙値、型特性、厳密な関数pointerで固定した。試験sourceは141行・10枠で、painter、device、selection、kernelと製品本文は実体化していない。初回redは未定義の5検査関数だけで失敗し、契約実装commitは`6b5677bf14`である。
+- CMake変更なしで、macOSの対象`libs-image-KisGaussianKernelSchemaContractTest`、軽量近傍`libs-image-KisAutoLevelsSchemaContractTest`、対象の20回反復、試験sourceの厳格`clang-check`、書式、二回の無作業再構築に成功した。4工程・8入力、command SHA-256 `97714a51be3fda7a3dd1ea9552d00eec9ae6c3ba0f30f0a69e1231388dfcc708`、input SHA-256 `2de082262ef59931066fe06fec2a7427ecbbba3a619e4813640ef30dfe7fb26f`、AUTOMOC `HEADERS=[]`、直接接続はQt Core・Testとheader-only Boost、製品未解決symbol 0である。1,201工程・2,425入力の既存畳込み動作試験と製品image targetは実行していない。
+- 台帳へ16 APIを追加して26,493件対応、3,311件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g405.json`と一時計測物を削除し、追加作業tree・構築木は作成していない。主Ninja木5,977,596 KiB、共有compiler cache 982,632 KiB、最新`build/tdd-macos/public-api-missing-g406.json` 897,524 bytes、SHA-256 `a42ac9433bf76fa830c42e4f7bd73d9f9902a5e25081fbfaa4f2d516d27ad92b`だけを再利用対象として保持する。compiler cacheは144,412件中120,537件、83.47%がhitしている。次の永続作業は第406便で次の高密度なmacOS対象と最小構築面を選定することである。
 
 ### 第239便の先行監査担当票
 
