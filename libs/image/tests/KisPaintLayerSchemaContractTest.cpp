@@ -4,6 +4,7 @@
  */
 
 #include "kis_layer.h"
+#include "kis_layer_projection_plane.h"
 #include "kis_paint_device.h"
 #include "kis_paint_layer.h"
 
@@ -20,6 +21,9 @@ namespace
 
 #define ASSERT_LAYER_SIGNATURE(method, signature)                                                                      \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisLayer::method)), signature>)
+
+#define ASSERT_LAYER_PROJECTION_PLANE_SIGNATURE(method, signature)                                                     \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KisLayerProjectionPlane::method)), signature>)
 
 class LayerConstructorProbe final : public KisLayer
 {
@@ -69,6 +73,10 @@ private Q_SLOTS:
     void layerStateGeometryAndPresentationSignaturesRemainStable();
     void layerCompositionAndEffectSignaturesRemainStable();
     void layerCloneTrackingSignaturesRemainStable();
+    void layerProjectionPlaneTypeLifetimeAndConstructionSchemaRemainStable();
+    void layerProjectionPlaneRecalculationAndApplicationSignaturesRemainStable();
+    void layerProjectionPlaneGeometrySignaturesRemainStable();
+    void layerProjectionPlaneBoundsAndLodSignaturesRemainStable();
 };
 
 void KisPaintLayerSchemaContractTest::paintLayerTypeAndConstructionSchemaRemainStable()
@@ -232,6 +240,45 @@ void KisPaintLayerSchemaContractTest::layerCloneTrackingSignaturesRemainStable()
     QVERIFY(true);
 }
 
+void KisPaintLayerSchemaContractTest::layerProjectionPlaneTypeLifetimeAndConstructionSchemaRemainStable()
+{
+    using Plane = KisLayerProjectionPlane;
+    static_assert(std::is_class_v<Plane>);
+    static_assert(std::is_base_of_v<KisAbstractProjectionPlane, Plane>);
+    static_assert(std::is_constructible_v<Plane, KisLayer *>);
+    static_assert(std::has_virtual_destructor_v<Plane>);
+    static_assert(std::is_same_v<KisLayerProjectionPlaneWSP, QWeakPointer<Plane>>);
+}
+
+void KisPaintLayerSchemaContractTest::layerProjectionPlaneRecalculationAndApplicationSignaturesRemainStable()
+{
+    using Plane = KisLayerProjectionPlane;
+    ASSERT_LAYER_PROJECTION_PLANE_SIGNATURE(recalculate,
+                                            QRect (Plane::*)(const QRect &, KisNodeSP, KisRenderPassFlags));
+    ASSERT_LAYER_PROJECTION_PLANE_SIGNATURE(apply, void (Plane::*)(KisPainter *, const QRect &));
+    ASSERT_LAYER_PROJECTION_PLANE_SIGNATURE(applyMaxOutAlpha,
+                                            void (Plane::*)(KisPainter *, const QRect &, KritaUtils::ThresholdMode));
+}
+
+void KisPaintLayerSchemaContractTest::layerProjectionPlaneGeometrySignaturesRemainStable()
+{
+    using Plane = KisLayerProjectionPlane;
+    using GeometrySignature = QRect (Plane::*)(const QRect &, KisLayer::PositionToFilthy) const;
+    ASSERT_LAYER_PROJECTION_PLANE_SIGNATURE(needRect, GeometrySignature);
+    ASSERT_LAYER_PROJECTION_PLANE_SIGNATURE(changeRect, GeometrySignature);
+    ASSERT_LAYER_PROJECTION_PLANE_SIGNATURE(accessRect, GeometrySignature);
+    ASSERT_LAYER_PROJECTION_PLANE_SIGNATURE(needRectForOriginal, QRect (Plane::*)(const QRect &) const);
+}
+
+void KisPaintLayerSchemaContractTest::layerProjectionPlaneBoundsAndLodSignaturesRemainStable()
+{
+    using Plane = KisLayerProjectionPlane;
+    ASSERT_LAYER_PROJECTION_PLANE_SIGNATURE(tightUserVisibleBounds, QRect (Plane::*)() const);
+    ASSERT_LAYER_PROJECTION_PLANE_SIGNATURE(looseUserVisibleBounds, QRect (Plane::*)() const);
+    ASSERT_LAYER_PROJECTION_PLANE_SIGNATURE(getLodCapableDevices, KisPaintDeviceList (Plane::*)() const);
+}
+
+#undef ASSERT_LAYER_PROJECTION_PLANE_SIGNATURE
 #undef ASSERT_LAYER_SIGNATURE
 #undef ASSERT_PAINT_LAYER_SIGNATURE
 
