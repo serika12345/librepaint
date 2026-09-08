@@ -283,6 +283,8 @@ target_include_directories(KisCanvasResourceProviderSchemaContractTest PRIVATE
     ${CMAKE_SOURCE_DIR}/libs/pigment
     ${CMAKE_BINARY_DIR}/libs/pigment
     ${CMAKE_SOURCE_DIR}/libs/pigment/resources
+    ${CMAKE_SOURCE_DIR}/libs/painting/undo
+    ${CMAKE_BINARY_DIR}/libs/painting/undo
     $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Widgets,INTERFACE_INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Xml,INTERFACE_INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:Eigen3::Eigen,INTERFACE_INCLUDE_DIRECTORIES>
@@ -296,6 +298,7 @@ target_compile_definitions(KisCanvasResourceProviderSchemaContractTest PRIVATE
     kritaglobal_EXPORTS
     kritaresources_EXPORTS
     kritapigment_EXPORTS
+    kritapaintingundo_EXPORTS
 )
 
 kis_add_test(
