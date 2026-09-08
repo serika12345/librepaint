@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "brushengine/kis_locked_properties_server.h"
 #include "brushengine/kis_paintop_preset.h"
 
 #include <QTest>
@@ -13,6 +14,8 @@ namespace
 {
 #define ASSERT_PAINTOP_PRESET_SIGNATURE(method, signature)                                                             \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisPaintOpPreset::method)), signature>)
+#define ASSERT_LOCKED_PROPERTIES_SERVER_SIGNATURE(method, signature)                                                   \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KisLockedPropertiesServer::method)), signature>)
 } // namespace
 
 class KisPaintOpPresetSchemaContractTest : public QObject
@@ -25,6 +28,10 @@ private Q_SLOTS:
     void paintOpPresetCloneAndUpdateInterfaceSignaturesRemainStable();
     void paintOpPresetMaskingAndResourceInterfaceSignaturesRemainStable();
     void paintOpPresetResourceSnapshotAndCacheSignaturesRemainStable();
+    void lockedPropertiesServerTypeLifetimeAndAccessSchemaRemainStable();
+    void lockedPropertiesServerCollectionSignaturesRemainStable();
+    void lockedPropertiesServerSourceAndQuerySignaturesRemainStable();
+    void lockedPropertiesServerProxyCreationSignaturesRemainStable();
 };
 
 void KisPaintOpPresetSchemaContractTest::paintOpPresetTypeLifetimeAndUpdateSuppressionSchemaRemainStable()
@@ -106,6 +113,50 @@ void KisPaintOpPresetSchemaContractTest::paintOpPresetResourceSnapshotAndCacheSi
     ASSERT_PAINTOP_PRESET_SIGNATURE(sanityCheckResourceCacheIsValid,
                                     bool (KisPaintOpPreset::*)(KoResourceCacheInterfaceSP) const);
 }
+
+void KisPaintOpPresetSchemaContractTest::lockedPropertiesServerTypeLifetimeAndAccessSchemaRemainStable()
+{
+    using Server = KisLockedPropertiesServer;
+
+    static_assert(std::is_class_v<Server>);
+    static_assert(std::is_base_of_v<QObject, Server>);
+    static_assert(std::is_default_constructible_v<Server>);
+    static_assert(std::has_virtual_destructor_v<Server>);
+    ASSERT_LOCKED_PROPERTIES_SERVER_SIGNATURE(instance, Server * (*)());
+
+    QVERIFY(true);
+}
+
+void KisPaintOpPresetSchemaContractTest::lockedPropertiesServerCollectionSignaturesRemainStable()
+{
+    using Server = KisLockedPropertiesServer;
+
+    ASSERT_LOCKED_PROPERTIES_SERVER_SIGNATURE(lockedProperties, KisLockedPropertiesSP (Server::*)());
+    ASSERT_LOCKED_PROPERTIES_SERVER_SIGNATURE(addToLockedProperties, void (Server::*)(KisPropertiesConfigurationSP));
+    ASSERT_LOCKED_PROPERTIES_SERVER_SIGNATURE(removeFromLockedProperties,
+                                              void (Server::*)(KisPropertiesConfigurationSP));
+}
+
+void KisPaintOpPresetSchemaContractTest::lockedPropertiesServerSourceAndQuerySignaturesRemainStable()
+{
+    using Server = KisLockedPropertiesServer;
+
+    ASSERT_LOCKED_PROPERTIES_SERVER_SIGNATURE(setPropertiesFromLocked, void (Server::*)(bool));
+    ASSERT_LOCKED_PROPERTIES_SERVER_SIGNATURE(propertiesFromLocked, bool (Server::*)());
+    ASSERT_LOCKED_PROPERTIES_SERVER_SIGNATURE(hasProperty, bool (Server::*)(const QString &));
+}
+
+void KisPaintOpPresetSchemaContractTest::lockedPropertiesServerProxyCreationSignaturesRemainStable()
+{
+    using Server = KisLockedPropertiesServer;
+
+    ASSERT_LOCKED_PROPERTIES_SERVER_SIGNATURE(createLockedPropertiesProxy,
+                                              KisLockedPropertiesProxySP (Server::*)(KisPropertiesConfiguration *));
+    ASSERT_LOCKED_PROPERTIES_SERVER_SIGNATURE(createLockedPropertiesProxy,
+                                              KisLockedPropertiesProxySP (Server::*)(KisPropertiesConfigurationSP));
+}
+
+#undef ASSERT_LOCKED_PROPERTIES_SERVER_SIGNATURE
 
 QTEST_GUILESS_MAIN(KisPaintOpPresetSchemaContractTest)
 
