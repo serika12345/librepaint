@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 07:43 JST
+- 更新日時: 2026-09-09 07:50 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4115,6 +4115,13 @@
 - 開始`libs/image/brushengine/kis_locked_properties_proxy.h`から既存`libs/image/tests/KisPaintOpPresetSchemaContractTest.cpp`へ全8 API・2枠を追加した。親設定と共有固定集合からの型・構築・仮想寿命3、property取得・設定・存在・key列・診断5を厳密な型特性と関数pointerで固定した。最小使用条件の補正後は既存16枠と型枠が成功し、`G462 locked properties proxy API schema is not fixed yet`だけで1件失敗した。proxy、設定、固定集合、paintop presetの本文は実体化していない。計画commitは`a9e65e705b`と`bb95147913`、契約commitは`d3103bf214`である。
 - 試験sourceは285行・18枠となった。設定公開headerの自己完結した検査に必要なpigment、Eigen、Imathの私有探索条件とpigment export定義だけを既存targetへ補い、接続先を増やしていない。targetは4工程・8入力、input SHA-256 `d5fef47757220ffdb67b7e99cf6d1dd2d81f2ec0ff9972a54d3b3b8614760b9f`を維持し、command SHA-256は探索条件を反映して`c28c8e244359c7c258596fb88e60e57cb20b149869ddd47754de6d29eb31dccd`となった。AUTOMOC `HEADERS=[]`、直接接続はQt Core・Gui・Testで、製品未解決記号・製品動的接続は0である。macOSで対象、軽量近傍`KisInterstrokeDataSchemaContractTest`、対象の20回反復、試験sourceの厳格構文と書式、連続二回の無作業再構築、公開API検査、`verify-quick`に成功した。proxy動作対象、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 台帳は27,290件対応、2,514件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g462.json`と対象閉包の一時一覧を削除し、追加作業tree・構築木は作成していない。主Ninja木5,995,784 KiB、共有compiler cache 982,116 KiB、最新`build/tdd-macos/public-api-missing-g463.json` 685,767 bytes、SHA-256 `4d53a571d02545b5cd95184434f2591af52427fd97a09110002b1182fe5d1511`だけを再利用対象として保持する。compiler cacheは144,597件中120,565件、83.38%がhitしている。次の永続作業は第463便で最新報告から高密度なmacOS対象と最小構築面を選定することである。
+
+### 第463便の公開API契約計画
+
+- 第463便は`libs/image/kis_properties_configuration.h`に残る全10 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g463.json`は公開header 1,548、公開API 29,804、対応済み27,290、未対応2,514、685,767 bytes、SHA-256 `4d53a571d02545b5cd95184434f2591af52427fd97a09110002b1182fe5d1511`である。対象識別子整列集合のSHA-256は`6e41dc3527b27636f887e7795e4f725d43222eada53c71c6ae1e9ae54f0b150e`で、設定の構築・複製・代入・寿命・診断5、factoryの型・構築・寿命・既定生成・XML生成5の2枠へ固定する。
+- 公開headerは`kis_debug.h`の識別子を使わず、実装`libs/image/kis_properties_configuration.cc`は既に同headerを直接includeしている。開始`libs/image/kis_properties_configuration.h`から診断includeを除去し、実装所有`libs/image/kis_properties_configuration.cc`の直接includeへ限定する。コンパイルデータベースにある直接利用元100件の変更前厳密構文検査は77件成功・23件既存診断である。変更後も全100件を最大6並列で再検査し、新規悪化0を完了条件とする。公開headerの内容、公開面、動作、実装は変更しない。
+- 既存`libs/image/tests/KisPropertiesConfigurationSchemaContractTest.cpp`は251行・10枠で、2枠追加後も300行・14枠未満に収まる。同targetは設定とfilter設定を所有し、Qt Core・Gui・Testとheader-only Boostだけで4工程・8入力、command SHA-256 `58d8caf69cc0aeddd2e2e874d568f033c7df0941b55e26e50908deedf22b17a6`、input SHA-256 `e6727f5be16f79cd9b836e3d6ce523211d11a4efcccb4f84ffb8f382bf8a8022`である。新規targetは同じ公開header閉包へCMake登録と生成物を増やすため棄却する。
+- 診断includeの限定を独立commitした後、開始headerから既存試験sourceの2枠だけへ追加し、CMakeと製品実装は変更しない。停止線は5工程・11入力で、新たな探索路・定義・接続、AUTOMOC header入力、製品未解決記号、設定またはfactory本文の実体化が必要なら停止する。macOSの対象、軽量近傍、対象の20回反復、試験sourceの厳格構文、書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
 
 ### 第239便の先行監査担当票
 
