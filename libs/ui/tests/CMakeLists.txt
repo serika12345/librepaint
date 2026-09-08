@@ -848,6 +848,56 @@ target_compile_definitions(KisShapeLayerSchemaContractTest PRIVATE
 )
 
 kis_add_test(
+    KisFileLayerSchemaContractTest.cpp
+    LINK_LIBRARIES
+        Boost::boost
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KisFileLayerSchemaContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/flake
+    ${CMAKE_BINARY_DIR}/libs/flake
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+    ${CMAKE_SOURCE_DIR}/libs/image
+    ${CMAKE_BINARY_DIR}/libs/image
+    ${CMAKE_SOURCE_DIR}/libs/impex/ui
+    ${CMAKE_BINARY_DIR}/libs/impex/ui
+    ${CMAKE_SOURCE_DIR}/libs/painting/undo
+    ${CMAKE_BINARY_DIR}/libs/painting/undo
+    ${CMAKE_SOURCE_DIR}/libs/pigment
+    ${CMAKE_BINARY_DIR}/libs/pigment
+    ${CMAKE_SOURCE_DIR}/libs/pigment/resources
+    ${CMAKE_BINARY_DIR}/libs/pigment/resources
+    ${CMAKE_SOURCE_DIR}/libs/psdutils
+    ${CMAKE_BINARY_DIR}/libs/psdutils
+    ${CMAKE_SOURCE_DIR}/libs/resources
+    ${CMAKE_BINARY_DIR}/libs/resources
+    ${CMAKE_SOURCE_DIR}/libs/widgetutils
+    ${CMAKE_BINARY_DIR}/libs/widgetutils
+    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Gui,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Widgets,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Xml,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:Eigen3::Eigen,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:KF${KF_MAJOR}::ConfigCore,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:Imath::Imath,INTERFACE_INCLUDE_DIRECTORIES>
+)
+target_compile_definitions(KisFileLayerSchemaContractTest PRIVATE
+    kritaflake_EXPORTS
+    kritaglobal_EXPORTS
+    kritaimage_EXPORTS
+    kritapaintingundo_EXPORTS
+    kritapigment_EXPORTS
+    kritapsdutils_EXPORTS
+    kritaresources_EXPORTS
+    kritaui_EXPORTS
+    kritawidgetutils_EXPORTS
+)
+
+kis_add_test(
     KisGuidesConfigSchemaContractTest.cpp
     LINK_LIBRARIES
         Qt${QT_MAJOR_VERSION}::Test
