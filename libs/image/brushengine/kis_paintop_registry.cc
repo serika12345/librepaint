@@ -25,6 +25,7 @@
 #include "kis_painter.h"
 #include "kis_debug.h"
 #include "kis_paintop_config_widget.h"
+#include "kis_paintop_settings.h"
 
 Q_GLOBAL_STATIC(KisPaintOpRegistry, s_registryInstance)
 
