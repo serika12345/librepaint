@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 05:55 JST
+- 更新日時: 2026-09-09 05:59 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4022,6 +4022,12 @@
 - 試験sourceは115行・8枠となり、CMake、公開header、製品sourceを変更していない。既存targetは4工程・8入力、command SHA-256 `e7e14cdf3e40754c67209aa09529d71f8ff8e5e080bf3bd669ba4776986459fe`、input SHA-256 `3be9a9081adb005b1c61ccdaba4dbb9cf9fff9aa802aae4913e7f823140ee333`を変更前から維持した。AUTOMOC `HEADERS=[]`、直接接続はQt Core・Test、製品未解決記号0である。
 - macOSで対象、軽量近傍`KisNodeVisitorContractTest`、対象の20回反復、試験sourceの`clang-check --extra-arg=-Werror`と書式、連続二回の無作業再構築に成功した。1,201工程・2,425入力の既存動的query path試験、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 台帳は27,241件対応、2,563件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g455.json`を削除し、追加作業tree・構築木・一時計画物は作成していない。主Ninja木5,994,332 KiB、共有compiler cache 983,432 KiB、最新`build/tdd-macos/public-api-missing-g456.json` 698,324 bytes、SHA-256 `867863bb2807140689de222b8cfa462c87f78f7e5fcf83fcb2e4b446c7fddc11`だけを再利用対象として保持する。compiler cacheは144,580件中120,563件、83.39%がhitしている。次の永続作業は第456便で最新報告から高密度なmacOS対象と最小構築面を選定することである。
+
+### 第456便の公開API契約計画
+
+- 第456便は`libs/image/KisInterstrokeData.h`に残る全7 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g456.json`は公開header 1,548、公開API 29,804、対応済み27,241、未対応2,563、698,324 bytes、SHA-256 `867863bb2807140689de222b8cfa462c87f78f7e5fcf83fcb2e4b446c7fddc11`である。対象識別子整列集合のSHA-256は`a58c35d1836e172a9c28b24a3542ff85a86c90d7c859be5d5ff72b19475df606`で、型・共有pointer別名・構築・寿命4、取引開始・終了2、互換性照会1の3枠へ固定する。
+- 公開headerはQt共有pointer・座標値、image共有pointer別名、前方宣言と値memberだけを所有し、paint device・undo command・色空間の完全型や実装詳細を伝播させていないため構造変更は不要である。既存`KisBehaviorInterfacesContractTest`は同じstroke間factoryの実行境界を持つが10工程・21入力、`KisPaintDeviceSchemaContractTest`は4工程・8入力だが275行・17枠で上限に近いため、いずれも追記先から除外する。
+- 新規`libs/image/tests/KisInterstrokeDataSchemaContractTest.cpp`と専用targetを3枠で作り、image・globalのsource/generated探索路とimage export定義、Qt Core・Testだけで4工程・8入力を予測する。抽象型の公開構築は本文を実体化しない具象probeの構築可能性で観測する。停止線を5工程・11入力とし、計画外探索路・定義・link、AUTOMOC header入力、製品未解決記号、stroke間データ・paint device・undo command・取引本文の実体化が必要なら停止する。macOSの対象、3枠の20回反復、軽量近傍、試験sourceの厳格構文、書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、製品target、既存動作試験、全体build・`verify`、Linux、Nix再評価は行わない。
 
 ### 第239便の先行監査担当票
 
