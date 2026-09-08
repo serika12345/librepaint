@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 04:44 JST
+- 更新日時: 2026-09-09 04:50 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3959,7 +3959,8 @@
 
 - 第451便は`libs/image/kis_exif_info_visitor.h`に残る全16 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g451.json`は公開header 1,548、公開API 29,804、対応済み27,179、未対応2,625、713,585 bytes、SHA-256 `9fc1e6c9ad57dd089ab7b409eab8905bc06698fa89594cfeb3451e272e697b0d`である。対象識別子整列集合のSHA-256は`8fd0f76cebf87a36386342c130ac5328bc20e43bb3c8c083896392f8238c83c4`で、型・既定構築・metadata件数・EXIF取得4、node・paint layer・group layer訪問3、調整・複製・外部・生成layer訪問4、filter・変形・透明・選択・colorize mask訪問5の4枠へ固定する。
 - 公開headerの依存を監査し、`kis_node_visitor.h`は公開基底、`kis_meta_data_store.h`・`kis_paint_layer.h`・`kis_group_layer.h`はinline本文の型操作に必要である。一方、`kis_meta_data_filter_registry_model.h`の型は宣言・inline本文・memberのいずれにも使われないため削除し、metadata filter modelとそのQt model依存を公開訪問者のcompile閉包から外す。全直接利用元を構文検査し、失われた推移的includeを実利用するsourceがあれば同sourceへ明示する。
-- 既存`libs/image/tests/KisCountVisitorSchemaContractTest.cpp`は65行・5枠で、4枠追加後も300行・20枠未満に収まり、同じnode訪問責務を所有する。初回compileで対象headerが直接要求する`libs/painting/metadata`探索路の不足を確認したため、CMakeには同target専用の1探索路だけを追加し、linkと定義は変更しない。対象の変更前閉包は4工程・8入力、command hash `555ed3709ed4e48d867f8bedfb45948b26f7ac3ca8f10a7e8dd0181f946f8d27`、input hash `ff3f4b2b979f553b4f739ca50a0a8208c0ee9e58b256583e40b7cd469c089f1d`である。停止線を5工程・11入力とし、追加探索路がmetadata直下を越える場合、計画外link・定義、AUTOMOC header入力、製品未解決記号、対象型の実体化または訪問本文実行が必要なら停止する。macOSの対象と軽量近傍、追加4枠の20回反復、厳密構文、二回目計画、無作業再構築、公開API検査、`verify-quick`だけを実行し、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
+- 最初に選んだ既存`libs/image/tests/KisCountVisitorSchemaContractTest.cpp`への追記は棄却した。初回限定構築ではmetadataのsource・generated探索路に続いてglobal探索路も必要となり、対象headerのpaint layer完全型がさらにpigment・resourcesへ依存を連鎖させる。これはQt Core・Test限定のCount visitor対象へ別責務の重いheader閉包を恒久的に混ぜ、同対象の将来の限定再構築を広げるため、追加した試験枠と探索路を開始状態へ戻す。
+- 新規`libs/image/tests/KisExifInfoVisitorSchemaContractTest.cpp`と専用targetへ4枠を分離する。探索路・定義の上限は同じpaint layer完全型を既に観測する`KisPaintLayerSchemaContractTest`にpainting metadataのsource・generated探索路を加えた範囲とし、Qt Gui・Xmlはheader探索路だけ、動的接続はQt Core・Testだけを予定する。専用化によりCount visitor対象の4工程・8入力とcommand・input hashを維持し、EXIF header変更時の再compileを独立させる。新targetも4工程・8入力を予測し、停止線は5工程・11入力、計画外link・定義、AUTOMOC header入力、製品未解決記号、対象型の実体化または訪問本文実行が必要なら停止する。macOSの新対象と軽量近傍、追加4枠の20回反復、厳密構文、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
 
 ### 第239便の先行監査担当票
 
