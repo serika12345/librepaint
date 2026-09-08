@@ -2,8 +2,8 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-07 14:24 JST
-- 状態: `planned`
+- 更新日時: 2026-09-08 10:45 JST
+- 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
@@ -2961,6 +2961,13 @@
 - 開始headerの残存全33 APIを、新規`libs/ui/tests/KisOpenGLImageTexturesSchemaContractTest.cpp`の型・定数・構築・寿命6、画像・色管理8、OpenGL初期化・buffer 7、tile座標6、cache更新5、通知1の6枠へ対応付けた。対象は112行である。最初の限定構築は`QOpenGLBuffer`の直接探索路不足を検出し、対象固有のQt OpenGL interface探索路だけで解消した。その後の挙動上の赤は6試験関数の未定義symbolだけで停止した。契約実装commitは`6f4cbd3bc6`である。
 - 最終targetは4工程・8入力、command SHA-256 `d77e8d2750e89b0f107cb18e64f9d1cefb04d1f418b293962d585b3f39d110e3`、input SHA-256 `a769061cef1fb086aca34ed6989dd2170154262959aa4985b26587d32c87f55d`で停止線内に収まる。動的接続はQt Gui・Test・Core、OpenGLとそのOS framework、gettextだけで、製品libraryを接続しない。macOSで対象`libs-ui-KisOpenGLImageTexturesSchemaContractTest`、軽量近傍`libs-ui-KisOpenGLCanvas2SchemaContractTest`、対象の20回反復、試験sourceの厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`に成功した。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 台帳へ33 APIを追加して25,761件対応、4,043件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g374.json`を最新報告の検証後に削除し、追加作業tree・構築木は作成していない。主Ninja木5,943,592 KiB、共有compiler cache 981,776 KiB、最新`build/tdd-macos/public-api-missing-g375.json` 1,091,102 bytes、SHA-256 `8a7a233fc5e0c1d1486407a7bb3dd7a720e1b6fc1bf938a5bfa703cedd31a43e`だけを再利用対象として保持する。compiler cacheは144,282件中120,513件、83.53%がhitしている。次の永続作業は第375便で次の高密度なmacOS対象と最小構築面を選定することである。
+
+### 第375便の公開API契約計画
+
+- 第375便は`libs/ui/canvas/kis_qpainter_canvas.h`の残存全28 APIを対象とする。上位候補の`KisPart.h`は54 API・111直接利用元、`kis_shape_layer.h`は51 API・51直接利用元、`kis_node.h`は46 API・143直接利用元、`KisOpenGLModeProber.h`は34 API・9直接利用元である。QPainter canvasは開始実装を含む3翻訳単位だけが直接利用し、既に固定した共通canvasの軽量なcompile閉包を再利用できる。
+- 開始`libs/ui/canvas/kis_qpainter_canvas.h`は`KisPrescaledProjectionSP`の値受渡しだけに`kis_prescaled_projection.h`を完全includeしている。開始headerでは`kis_shared_ptr.h`、`KisPrescaledProjection`前方宣言と共有pointer別名へ置き換える。完全型の所有は既に開始実装`libs/ui/canvas/kis_qpainter_canvas.cpp`が直接includeするため、移動先の追加はない。3直接利用翻訳単位の変更前の厳格`clang-check`はすべて診断0件である。変更後の終了状態と診断本文の一致、開始header単独compile、公開API報告のbyte一致を完了条件とする。
+- 新規`libs/ui/tests/KisQPainterCanvasSchemaContractTest.cpp`を200行・10枠未満で作り、型・構築・寿命3、widget event 8、表示・投影設定5、wrap-around表示4、projection更新5、widget・処理状態3の6枠へ全28 APIを対応付ける。実体化せず型特性と厳密な関数pointerで固定し、専用targetは製品libraryを接続しない。最も近い`KisCanvas2SchemaContractTest`は4工程・8入力、command SHA-256 `bc29da8c640940c753d920e812ec6fd04ab89a825edbc4c2cc560d93eba206c9`、input SHA-256 `f81e09d52468c18355e8cf9865fad097e615cdb1740996e3bce08afc81504ec4`である。対象識別子整列集合のSHA-256は`41de9ab974f7a03f3ee118cfb6f890205e4306f66e290e9d157d61ece08e42ea`で、新規targetの停止線を5工程・11入力とする。
+- `g375-qpainter-canvas-schema`の状態は`in_progress`、実装基点は`d239035ee1`である。構造先行commit後に、新規試験sourceと`libs/ui/tests/CMakeLists.txt`の対象固有節だけへ契約を追加する。macOSの対象、6枠の20回反復、3直接利用翻訳単位と試験sourceの厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
 
 ### 第239便の先行監査担当票
 
