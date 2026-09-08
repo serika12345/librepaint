@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 2863
+    "expectedMissingApis": 2850
   },
   "contracts": [
     {
@@ -74269,6 +74269,55 @@
       "classification": "maintained",
       "apis": [
         "method:KisBookmarkedConfigurationManager::uniqueName(const KLocalizedString & base)"
+      ]
+    },
+    {
+      "target": "KisImageSharedPointerHooksSchemaContractTest",
+      "source": "libs/image/tests/KisImageSharedPointerHooksSchemaContractTest.cpp",
+      "test": "KisImageSharedPointerHooksSchemaContractTest::idleWatcherTypeLifetimeAndConstructionSchemaRemainStable",
+      "behavior": "idle watcherはQObject所有下で遅延時間を指定して構築でき、仮想基底経由で破棄できる公開型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisIdleWatcher",
+        "method:KisIdleWatcher::KisIdleWatcher(int delay=200,QObject * parent=0)",
+        "method:KisIdleWatcher::~KisIdleWatcher()"
+      ]
+    },
+    {
+      "target": "KisImageSharedPointerHooksSchemaContractTest",
+      "source": "libs/image/tests/KisImageSharedPointerHooksSchemaContractTest.cpp",
+      "test": "KisImageSharedPointerHooksSchemaContractTest::idleWatcherStateAndImageTrackingSignaturesRemainStable",
+      "behavior": "idle watcherはidle・計数状態を照会し、単数または複数の画像共有所有値を監視対象として受け取る。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisIdleWatcher::isCounting() const",
+        "method:KisIdleWatcher::isIdle() const",
+        "method:KisIdleWatcher::setTrackedImage(KisImageSP image)",
+        "method:KisIdleWatcher::setTrackedImages(const QVector<KisImageSP> & images)"
+      ]
+    },
+    {
+      "target": "KisImageSharedPointerHooksSchemaContractTest",
+      "source": "libs/image/tests/KisImageSharedPointerHooksSchemaContractTest.cpp",
+      "test": "KisImageSharedPointerHooksSchemaContractTest::idleWatcherMemoryAndCountdownSignaturesRemainStable",
+      "behavior": "idle watcherはmemory統計更新へ接続し、画像変更の強制、countdown再開、遅延なし発火を受け付ける。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisIdleWatcher::connectMemoryStatisticsUpdates()",
+        "method:KisIdleWatcher::forceImageModified()",
+        "method:KisIdleWatcher::restartCountdown()",
+        "method:KisIdleWatcher::triggerCountdownNoDelay()"
+      ]
+    },
+    {
+      "target": "KisImageSharedPointerHooksSchemaContractTest",
+      "source": "libs/image/tests/KisImageSharedPointerHooksSchemaContractTest.cpp",
+      "test": "KisImageSharedPointerHooksSchemaContractTest::idleWatcherNotificationSignaturesRemainStable",
+      "behavior": "idle watcherはidle開始と画像変更を引数なしで通知する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisIdleWatcher::imageModified()",
+        "method:KisIdleWatcher::startedIdleMode()"
       ]
     }
   ]

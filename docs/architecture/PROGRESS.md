@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 00:46 JST
+- 更新日時: 2026-09-09 00:52 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3722,6 +3722,12 @@
 - 第433便は`libs/image/kis_idle_watcher.h`に残る全13 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g433.json`は公開header 1,548、公開API 29,804、対応済み26,941、未対応2,863、780,413 bytes、SHA-256 `eeb59617ac165f6bee8cb768bfe8e7f51dbc2848159822f2c83c1fa4219ba71c`である。対象識別子整列集合のSHA-256は`4ebd4bce2e81b490161c1b17c5fb6fe57f1f8567e6cadb2e3cafcdb1f53018d0`で、watcher型・構築・寿命3、idle・計数状態と単数・複数画像追跡4、memory統計接続・強制変更・countdown再開・即時発火4、idle開始・画像変更通知2の4枠へ固定する。
 - 既存`libs/image/tests/KisImageSharedPointerHooksSchemaContractTest.cpp`は画像共有pointerと監視引数の境界を持ち、128行・9枠から追加後も300行・20枠以内に収まる。CMake変更なしでimage・globalの既存探索路と`kritaimage_EXPORTS`、Qt Core・Testだけを使う4工程・8入力を維持する。現行command SHA-256は`738e9a2294824102758649a11e386aa98b9c8bda3bc94a9e16cb42f948d1334a`、input SHA-256は`3764e9f1ce0ac1aa62151f8f4b9ac36d2934b4a93019023d7b12a97bad2248a1`である。watcher、画像共有pointer、timer、event loopとinline本文を実体化せず、型特性、構築可能性、厳密な関数pointerだけで公開境界を観測する。新規targetは同じ閉包に別のCMake登録と生成物を加えるため棄却する。
 - `g433-idle-watcher-schema`の状態は`in_progress`、実装基点は`9919babf36`である。開始headerから既存試験sourceの4枠だけへ追加し、CMake、公開header、製品source、製品targetは変更しない。停止線は5工程・11入力とし、新たな探索路・定義・link、製品OBJECT・shared・`kritatestsdk`接続、候補headerのAUTOMOC入力化、製品未解決symbol、watcher・画像・timer・event loopまたは本文の実体化が必要なら候補を保留する。macOSの対象、追加4枠の20回反復、軽量近傍、試験sourceの厳格`clang-check`、書式、再計画、連続二回の無作業再構築、動的接続・未解決symbol、公開API検査、`verify-quick`だけを実行する。1,197工程・2,418入力の製品image target、全体build・`verify`、Linux、Nix再評価は実行しない。
+
+### 第433便の実装結果
+
+- `g433-idle-watcher-schema`は`completed`である。`libs/image/kis_idle_watcher.h`から既存`libs/image/tests/KisImageSharedPointerHooksSchemaContractTest.cpp`へ13 API・4枠を移し、watcher型・構築・寿命3、idle・計数状態と単数・複数画像追跡4、memory統計接続・強制変更・countdown再開・即時発火4、idle開始・画像変更通知2を型特性、構築可能性、厳密な関数pointerで固定した。試験sourceは166行・13枠で、watcher、画像共有pointer、timer、event loopとinline本文を実体化していない。CMake変更なしの初回redは未定義の4検査関数だけで失敗し、契約実装commitは`ea924475b8`である。
+- macOSの対象`libs-image-KisImageSharedPointerHooksSchemaContractTest`、軽量近傍`libs-image-KisBaseProcessorSchemaContractTest`、対象の20回反復、試験sourceの厳格`clang-check`、書式、連続二回の無作業再構築に成功した。対象は4工程・8入力、command SHA-256 `738e9a2294824102758649a11e386aa98b9c8bda3bc94a9e16cb42f948d1334a`、input SHA-256 `3764e9f1ce0ac1aa62151f8f4b9ac36d2934b4a93019023d7b12a97bad2248a1`、AUTOMOC `HEADERS=[]`、直接接続はQt Core・Test、製品未解決symbol 0である。1,197工程・2,418入力の製品image target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 台帳へ13 APIを追加して26,954件対応、2,850件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g433.json`を削除し、追加作業tree・構築木・一時計画物は作成していない。主Ninja木5,984,384 KiB、共有compiler cache 982,692 KiB、最新`build/tdd-macos/public-api-missing-g434.json` 777,641 bytes、SHA-256 `605fc03cb7bf6d390b612e07e36f66310191557bf7efa42ebad4d8a3e017291f`だけを再利用対象として保持する。compiler cacheは144,511件中120,558件、83.42%がhitしている。公開API検査に成功した。次の永続作業は第434便で次の高密度なmacOS対象と最小構築面を選定することである。
 
 ### 第239便の先行監査担当票
 
