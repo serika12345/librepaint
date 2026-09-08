@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 3142
+    "expectedMissingApis": 3128
   },
   "contracts": [
     {
@@ -73252,6 +73252,56 @@
         "method:KisSimpleProcessingVisitor::visit(KisSelectionMask * mask,KisUndoAdapter * undoAdapter)",
         "method:KisSimpleProcessingVisitor::visit(KisTransformMask * mask,KisUndoAdapter * undoAdapter)",
         "method:KisSimpleProcessingVisitor::visit(KisTransparencyMask * mask,KisUndoAdapter * undoAdapter)"
+      ]
+    },
+    {
+      "target": "KisImageManagerSchemaContractTest",
+      "source": "libs/ui/tests/KisImageManagerSchemaContractTest.cpp",
+      "test": "KisImageManagerSchemaContractTest::filterManagerTypeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "filter managerはview managerから構築でき、QObject基底の仮想寿命境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisFilterManager",
+        "method:KisFilterManager::KisFilterManager(KisViewManager * parent)",
+        "method:KisFilterManager::~KisFilterManager()"
+      ]
+    },
+    {
+      "target": "KisImageManagerSchemaContractTest",
+      "source": "libs/ui/tests/KisImageManagerSchemaContractTest.cpp",
+      "test": "KisImageManagerSchemaContractTest::filterManagerViewActionAndGuiSignaturesRemainStable",
+      "behavior": "filter managerはviewを受け取り、action群を設定し、GUI状態を更新する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisFilterManager::setView(QPointer<KisView> imageView)",
+        "method:KisFilterManager::setup(KisKActionCollection * ac,KisActionManager * actionManager)",
+        "method:KisFilterManager::updateGUI()"
+      ]
+    },
+    {
+      "target": "KisImageManagerSchemaContractTest",
+      "source": "libs/ui/tests/KisImageManagerSchemaContractTest.cpp",
+      "test": "KisImageManagerSchemaContractTest::filterManagerApplicationControlSignaturesRemainStable",
+      "behavior": "filter managerは設定適用、完了、実行中strokeの取消、dialog取消の公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisFilterManager::apply(KisFilterConfigurationSP filterConfig)",
+        "method:KisFilterManager::cancelDialog()",
+        "method:KisFilterManager::cancelRunningStroke()",
+        "method:KisFilterManager::finish()"
+      ]
+    },
+    {
+      "target": "KisImageManagerSchemaContractTest",
+      "source": "libs/ui/tests/KisImageManagerSchemaContractTest.cpp",
+      "test": "KisImageManagerSchemaContractTest::filterManagerStrokeAndFrameStateSignaturesRemainStable",
+      "behavior": "filter managerはidle・stroke実行状態と全選択frameへの適用状態を照会・設定する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisFilterManager::filterAllSelectedFrames()",
+        "method:KisFilterManager::isIdle() const",
+        "method:KisFilterManager::isStrokeRunning() const",
+        "method:KisFilterManager::setFilterAllSelectedFrames(bool filterAllSelectedFrames)"
       ]
     }
   ]
