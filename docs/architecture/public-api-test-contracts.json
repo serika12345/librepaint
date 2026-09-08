@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 2798
+    "expectedMissingApis": 2784
   },
   "contracts": [
     {
@@ -74514,6 +74514,56 @@
         "method:KisFilterMask::exactBounds() const",
         "method:KisFilterMask::extent() const",
         "method:KisFilterMask::needRect(const QRect & rect,PositionToFilthy pos=N_FILTHY) const"
+      ]
+    },
+    {
+      "target": "KisImageSharedPointerHooksSchemaContractTest",
+      "source": "libs/image/tests/KisImageSharedPointerHooksSchemaContractTest.cpp",
+      "test": "KisImageSharedPointerHooksSchemaContractTest::onionSkinCompositorTypeLifetimeAndSingletonSchemaRemainStable",
+      "behavior": "onion skin compositorはQObject所有下で構築・破棄でき、共有singletonを取得する静的境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisOnionSkinCompositor",
+        "method:KisOnionSkinCompositor::KisOnionSkinCompositor()",
+        "method:KisOnionSkinCompositor::instance()",
+        "method:KisOnionSkinCompositor::~KisOnionSkinCompositor()"
+      ]
+    },
+    {
+      "target": "KisImageSharedPointerHooksSchemaContractTest",
+      "source": "libs/image/tests/KisImageSharedPointerHooksSchemaContractTest.cpp",
+      "test": "KisImageSharedPointerHooksSchemaContractTest::onionSkinCompositorCompositeAndFullExtentSignaturesRemainStable",
+      "behavior": "onion skin compositorは元装置から対象装置へ指定領域を合成し、装置の全対象範囲を返す公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisOnionSkinCompositor::calculateFullExtent(const KisPaintDeviceSP device)",
+        "method:KisOnionSkinCompositor::composite(const KisPaintDeviceSP sourceDevice,KisPaintDeviceSP targetDevice,const QRect & rect)"
+      ]
+    },
+    {
+      "target": "KisImageSharedPointerHooksSchemaContractTest",
+      "source": "libs/image/tests/KisImageSharedPointerHooksSchemaContractTest.cpp",
+      "test": "KisImageSharedPointerHooksSchemaContractTest::onionSkinCompositorExtentSignaturesRemainStable",
+      "behavior": "onion skin compositorは装置の現在・指定時刻の範囲を返し、frame追加時刻に応じて範囲を更新する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisOnionSkinCompositor::calculateExtent(const KisPaintDeviceSP device)",
+        "method:KisOnionSkinCompositor::calculateExtent(const KisPaintDeviceSP device,int time)",
+        "method:KisOnionSkinCompositor::updateExtentOnAddition(const KisPaintDeviceSP device,int addedTime)"
+      ]
+    },
+    {
+      "target": "KisImageSharedPointerHooksSchemaContractTest",
+      "source": "libs/image/tests/KisImageSharedPointerHooksSchemaContractTest.cpp",
+      "test": "KisImageSharedPointerHooksSchemaContractTest::onionSkinCompositorConfigAndSignalsRemainStable",
+      "behavior": "onion skin compositorは設定番号と色label filterを公開し、設定変更を受け取りonion skin変更を通知する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisOnionSkinCompositor::colorLabelFilter()",
+        "method:KisOnionSkinCompositor::configChanged()",
+        "method:KisOnionSkinCompositor::configSeqNo() const",
+        "method:KisOnionSkinCompositor::setColorLabelFilter(QSet<int> colors)",
+        "method:KisOnionSkinCompositor::sigOnionSkinChanged()"
       ]
     }
   ]

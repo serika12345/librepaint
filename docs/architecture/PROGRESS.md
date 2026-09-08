@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 01:41 JST
+- 更新日時: 2026-09-09 01:51 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3784,6 +3784,12 @@
 - 第438便は`libs/image/kis_onion_skin_compositor.h`に残る全14 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g438.json`は公開header 1,548、公開API 29,804、対応済み27,006、未対応2,798、763,504 bytes、SHA-256 `a87aad20968c53a2bbfed2fc1530c71b32d9da13e8a70f2e98c0ae1bc299aad4`である。対象識別子整列集合のSHA-256は`1534a7d0ff984c1259abc9c69587bf0a3ac81cf1be1c36be39ca778e518d6cdc`で、compositor型・構築・寿命・singleton取得4、装置合成・全範囲計算2、現在・指定時刻範囲と追加時更新3、設定番号・色label設定照会・設定変更・onion skin変更通知5の4枠へ固定する。
 - 既存`libs/image/tests/KisImageSharedPointerHooksSchemaContractTest.cpp`は画像・paint deviceの共有pointerと監視引数の境界を持ち、166行・13枠から追加後も300行・20枠以内に収まる。CMake変更なしでimage・globalの既存探索路と`kritaimage_EXPORTS`、Qt Core・Testだけを使う4工程・8入力を維持する。現行command SHA-256は`738e9a2294824102758649a11e386aa98b9c8bda3bc94a9e16cb42f948d1334a`、input SHA-256は`3764e9f1ce0ac1aa62151f8f4b9ac36d2934b4a93019023d7b12a97bad2248a1`である。compositor、singleton、paint device、領域、色label集合と本文を実体化せず、型特性、構築可能性、厳密な関数pointerだけで公開境界を観測する。新規targetは同じ閉包に別のCMake登録と生成物を加えるため棄却する。
 - `g438-onion-skin-compositor-schema`の状態は`in_progress`、実装基点は`ff754f5b2d`である。開始headerから既存試験sourceの4枠だけへ追加し、CMake、公開header、製品source、製品targetは変更しない。停止線は5工程・11入力とし、新たな探索路・定義・link、製品OBJECT・shared・`kritatestsdk`接続、候補headerのAUTOMOC入力化、製品未解決symbol、対象値または本文の実体化が必要なら候補を保留する。macOSの対象、追加4枠の20回反復、軽量近傍、試験sourceの厳格`clang-check`、書式、再計画、連続二回の無作業再構築、動的接続・未解決symbol、公開API検査、`verify-quick`だけを実行する。1,197工程・2,418入力の製品image target、全体build・`verify`、Linux、Nix再評価は実行しない。
+
+### 第438便の実装結果
+
+- `g438-onion-skin-compositor-schema`は`completed`である。`libs/image/kis_onion_skin_compositor.h`から既存`libs/image/tests/KisImageSharedPointerHooksSchemaContractTest.cpp`へ14 API・4枠を移し、compositor型・構築・寿命・singleton取得4、装置合成・全範囲計算2、現在・指定時刻範囲と追加時更新3、設定番号・色label設定照会・設定変更・onion skin変更通知5を型特性、構築可能性、厳密な関数pointerで固定した。試験sourceは209行・17枠で、compositor、singleton、paint device、領域、色label集合と本文を実体化していない。CMake変更なしの初回redは未定義の4検査関数だけで失敗し、契約実装commitは`6b10f94678`である。
+- macOSの対象`libs-image-KisImageSharedPointerHooksSchemaContractTest`、軽量近傍`libs-image-KisBaseProcessorSchemaContractTest`、対象の20回反復、試験sourceの厳格`clang-check`、書式、連続二回の無作業再構築に成功した。対象は4工程・8入力、command SHA-256 `738e9a2294824102758649a11e386aa98b9c8bda3bc94a9e16cb42f948d1334a`、input SHA-256 `3764e9f1ce0ac1aa62151f8f4b9ac36d2934b4a93019023d7b12a97bad2248a1`、AUTOMOC `HEADERS=[]`、直接接続はQt Core・Test、製品未解決symbol 0である。最初の公開API台帳検査は機械整形で二行になった長い検査関数定義を検出して失敗し、短い一行名へ宣言・定義・台帳を同期したcommit `4d44d10577`後に成功した。1,197工程・2,418入力の製品image target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 台帳へ14 APIを追加して27,020件対応、2,784件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g438.json`を削除し、追加作業tree・構築木・一時計画物は作成していない。主Ninja木5,984,588 KiB、共有compiler cache 983,360 KiB、最新`build/tdd-macos/public-api-missing-g439.json` 759,840 bytes、SHA-256 `0c083c6f3a737133a551ad2ee6d0de730741ece3471c9d973c259e5250116550`だけを再利用対象として保持する。compiler cacheは144,529件中120,558件、83.41%がhitしている。公開API検査に成功した。次の永続作業は第439便で次の高密度なmacOS対象と最小構築面を選定することである。
 
 ### 第239便の先行監査担当票
 
