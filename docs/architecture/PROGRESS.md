@@ -2,8 +2,8 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-08 11:24 JST
-- 状態: `planned`
+- 更新日時: 2026-09-08 11:36 JST
+- 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
@@ -3005,6 +3005,14 @@
 - 開始headerの残存全34 APIを、新規`libs/ui/tests/KisOpenGLModeProberSchemaContractTest.cpp`のprober型・構築・状態7、format操作5、結果型・version 8、機能対応7、driver・format情報7の5枠へ対応付けた。対象は111行である。最初の赤は追加依存を要求せず5試験関数の未定義symbolだけで停止した。完全型を使うformat署名の実装時に`KisSurfaceColorSpaceWrapper`の所有元を検出し、対象固有の`libs/canvas` source・generated探索路とexport定義だけを追加した。契約実装commitは`99c6af0c7d`である。
 - 最終targetは4工程・8入力、command SHA-256 `26563910ffa29c49811866e4d3a3649597748c0a2208921c0d488e3c95831872`、input SHA-256 `841766e90ca42485906491aab8f38bccf717c2c1b6222520933c84f12da48774`で停止線内に収まる。動的接続はQt Gui・Test・Core、OpenGLとそのOS framework、gettextだけで、製品libraryを接続しない。macOSで対象`libs-ui-KisOpenGLModeProberSchemaContractTest`、軽量近傍`libs-ui-KisOpenGLImageTexturesSchemaContractTest`、対象の20回反復、試験sourceの厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`に成功した。Windows限定ANGLE判定の実体、OpenGL context生成、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 台帳へ34 APIを追加して25,854件対応、3,950件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g377.json`を最新報告の検証後に削除し、追加作業tree・構築木は作成していない。主Ninja木5,947,896 KiB、共有compiler cache 982,932 KiB、最新`build/tdd-macos/public-api-missing-g378.json` 1,066,090 bytes、SHA-256 `f97bb98dd4e038993340bdc4fc68c159c3ded22553ea2f0b906f4745127fc71d`だけを再利用対象として保持する。compiler cacheは144,293件中120,514件、83.52%がhitしている。次の永続作業は第378便で次の高密度なmacOS対象と最小構築面を選定することである。
+
+### 第378便の公開API契約計画
+
+- 第378便は`libs/ui/canvas/KisReferenceImage.h`の残存全31 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g378.json`は公開header 1,548、公開API 29,804、対応済み25,854、未対応3,950、1,066,090 bytes、SHA-256 `f97bb98dd4e038993340bdc4fc68c159c3ded22553ea2f0b906f4745127fc71d`である。対象識別子整列集合のSHA-256は`af7ca098bac68abf0f33200e2f22cb274ae1cc2f9b0e77c2cf1aa184f6cc8767`で、参照画像の型・寿命・複製5、生成5、描画・画像・彩度5、埋込み・識別・永続化9、彩度変更command 7の5枠へ重複なく固定する。
+- 構造先行変更では、開始`libs/ui/document/KisDocument.h`の未使用`canvas/KisReferenceImage.h` includeを除き、完全型を実際に使う`libs/ui/actions/KisPasteActionFactories.cpp`、`libs/ui/nodes/kis_node_manager.cpp`、`plugins/tools/defaulttool/referenceimagestool/ToolReferenceImages.cpp`へ直接所有を移す。これにより207 C/C++ source・headerが直接取り込む文書公開headerから参照画像の完全型依存を除く。また、開始`libs/ui/canvas/KisReferenceImage.h`の戻り値宣言だけに使う`KoColor.h`を前方宣言へ替え、完全型の所有を`libs/ui/canvas/KisReferenceImage.cpp`へ移す。公開宣言、ABI、実装本文、公開API報告は維持する。
+- 参照画像を直接利用する12翻訳単位の変更前の厳格`clang-check`は5件が診断0件である。残り7件は既存の`KisPaintDevice`完全型不足、Qt 6非推奨API、符号比較、生成UI header不足、`QStandardPaths`直接include不足だけで停止する。構造変更後に12件すべての終了状態と診断本文をbyte比較し、公開API報告のbyte一致を完了条件とする。
+- 新規`libs/ui/tests/KisReferenceImageSchemaContractTest.cpp`を200行・10枠未満で作り、型特性と厳密な関数・data member pointerだけで31 APIを観測する。最も近い`KoShapeCreationSchemaContractTest`は4工程・8入力、command SHA-256 `76cca7a5fdf0ecc57e934be55e25589acfb3e6b08136b19fe09bab30095c72c8`、input SHA-256 `02428cd024c44b8707b45dcf2cbed670aaccaea91e8c232ae5d3d09678bfdd63`である。新規targetも4工程・8入力を予測し、停止線を5工程・11入力とする。候補headerをAUTOMOC入力にせず、製品shared・OBJECT、`kritatestsdk`、画像読込・保存・描画本文を接続または実行しない。
+- `g378-reference-image-schema`の状態は`in_progress`、実装基点は`5603220ecd`である。構造先行commit後に新規試験sourceと`libs/ui/tests/CMakeLists.txt`の対象固有節だけへ契約を追加する。macOSの対象、5枠の20回反復、軽量近傍、12直接利用翻訳単位と試験sourceの厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。製品target、画像I/O、全体build・`verify`、Linux、Nix再評価は実行しない。
 
 ### 第239便の先行監査担当票
 
