@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 01:51 JST
+- 更新日時: 2026-09-09 01:58 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3790,6 +3790,13 @@
 - `g438-onion-skin-compositor-schema`は`completed`である。`libs/image/kis_onion_skin_compositor.h`から既存`libs/image/tests/KisImageSharedPointerHooksSchemaContractTest.cpp`へ14 API・4枠を移し、compositor型・構築・寿命・singleton取得4、装置合成・全範囲計算2、現在・指定時刻範囲と追加時更新3、設定番号・色label設定照会・設定変更・onion skin変更通知5を型特性、構築可能性、厳密な関数pointerで固定した。試験sourceは209行・17枠で、compositor、singleton、paint device、領域、色label集合と本文を実体化していない。CMake変更なしの初回redは未定義の4検査関数だけで失敗し、契約実装commitは`6b10f94678`である。
 - macOSの対象`libs-image-KisImageSharedPointerHooksSchemaContractTest`、軽量近傍`libs-image-KisBaseProcessorSchemaContractTest`、対象の20回反復、試験sourceの厳格`clang-check`、書式、連続二回の無作業再構築に成功した。対象は4工程・8入力、command SHA-256 `738e9a2294824102758649a11e386aa98b9c8bda3bc94a9e16cb42f948d1334a`、input SHA-256 `3764e9f1ce0ac1aa62151f8f4b9ac36d2934b4a93019023d7b12a97bad2248a1`、AUTOMOC `HEADERS=[]`、直接接続はQt Core・Test、製品未解決symbol 0である。最初の公開API台帳検査は機械整形で二行になった長い検査関数定義を検出して失敗し、短い一行名へ宣言・定義・台帳を同期したcommit `4d44d10577`後に成功した。1,197工程・2,418入力の製品image target、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 台帳へ14 APIを追加して27,020件対応、2,784件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g438.json`を削除し、追加作業tree・構築木・一時計画物は作成していない。主Ninja木5,984,588 KiB、共有compiler cache 983,360 KiB、最新`build/tdd-macos/public-api-missing-g439.json` 759,840 bytes、SHA-256 `0c083c6f3a737133a551ad2ee6d0de730741ece3471c9d973c259e5250116550`だけを再利用対象として保持する。compiler cacheは144,529件中120,558件、83.41%がhitしている。公開API検査に成功した。次の永続作業は第439便で次の高密度なmacOS対象と最小構築面を選定することである。
+
+### 第439便の公開API契約計画
+
+- 第439便は`libs/image/KisAslStorage.h`に残る全13 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g439.json`は公開header 1,548、公開API 29,804、対応済み27,020、未対応2,784、759,840 bytes、SHA-256 `0c083c6f3a737133a551ad2ee6d0de730741ece3471c9d973c259e5250116550`である。対象識別子整列集合のSHA-256は`e9f0a1eba04345582680e7a251b0a77ab5d85bf34a4cbc9f924609940ecb2d11`で、保管型・構築・寿命・直列化器所有4、資源検索・読込・版管理4、資源・tag反復2、資源追加・新規版保存・妥当性3の4枠へ固定する。
+- 構築範囲の先行最適化として、開始`libs/image/KisAslStorage.h`が公開宣言に不要な`kis_asl_layer_style_serializer.h`の完全型を取り込む状態を、前方宣言へ置き換える。完全型の所有先は`libs/image/KisAslStorage.cpp`であり、同sourceへ明示includeを移す。この変更は公開宣言と所有形態を保ち、ASL文書、PSD効果、pattern、gradient、pigment、psdutils、Qt Xmlを公開header閉包から除く。
+- 契約は新規`libs/image/tests/KisAslStorageSchemaContractTest.cpp`と同target固有の`libs/image/tests/CMakeLists.txt`節へ置く。image・global・resourcesのsource/generated探索路、KF I18n interface、`kritaimage_EXPORTS`と`kritaresources_EXPORTS`、Qt Core・Gui・Testとheader-only Boostだけを使い、製品shared・OBJECT、`kritatestsdk`、ASL直列化器、資源、反復器、Qt値を実体化しない。既存の最寄り`KisPSDLayerStyleSchemaContractTest`は4工程・8入力だが294行・15枠で追記上限に近いため、新規の責務別対象を選ぶ。
+- 最寄り対象の初期閉包は4工程・8入力、command hash `17997f14a0935823da1da73e7e87fb3464fba401d80543a3bccfbae1babadca0`、input hash `299259db044314cfa0c48510d5c4a269d97473c183b9236c24f68190ef76508e`である。新規対象も4工程・8入力を予測し、停止線を5工程・11入力とする。計画外探索路・link・定義、AUTOMOC header入力、製品未解決記号、対象型の実体化または本文実行が必要なら停止する。macOSの対象と軽量近傍、4枠の各20回反復、公開headerと製品sourceの厳密構文検査、二回目計画、無作業再構築、公開API検査、`verify-quick`だけを実行し、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
 
 ### 第239便の先行監査担当票
 
