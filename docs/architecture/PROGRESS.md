@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-08 18:55 JST
+- 更新日時: 2026-09-08 18:59 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3355,6 +3355,12 @@
 - `g403-bundle-storage-schema`は`completed`である。開始`libs/resources/KisBundleStorage.h`から既存`libs/resources/tests/KisMemoryStorageSchemaContractTest.cpp`へ13 API・5枠を追加した。型・構築・寿命3、資源照会・読込み・指紋3、資源・tag反復2、metadata・縮小画像3、書出し・新version保存2を型特性と厳密な関数pointerで固定した。試験sourceは174行・15枠で、bundle、resource、入出力装置、反復子、製品本文は実体化していない。初回redは未定義の5検査関数だけで失敗し、契約実装commitは`31db967176`である。
 - CMake変更なしで、macOSの対象`libs-resources-KisMemoryStorageSchemaContractTest`、軽量近傍`libs-resources-KisResourceLoaderSchemaContractTest`、対象の20回反復、試験sourceの厳格`clang-check`、書式、二回の無作業再構築に成功した。4工程・8入力、command SHA-256 `0af2386357da213a77f743458eb9c31b8c10bdd2a49068d417c911c3dcb44bd7`、input SHA-256 `ac6687e86922bd4c19058bd27a27854d2c041984f5032ddbfcbe888eb33e2f6d`、AUTOMOC `HEADERS=[]`、直接接続はQt Core・Testとheader-only Boost、製品未解決symbol 0である。動的bundle試験と製品resources targetは実行していない。
 - 台帳へ13 APIを追加して26,462件対応、3,342件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g403.json`と一時計測物を削除し、追加作業tree・構築木は作成していない。主Ninja木5,977,700 KiB、共有compiler cache 983,376 KiB、最新`build/tdd-macos/public-api-missing-g404.json` 906,919 bytes、SHA-256 `3b694a61a58abd2541c730848b118b65babd83cbda4a71525c900bf5f9abd788`だけを再利用対象として保持する。compiler cacheは144,401件中120,532件、83.47%がhitしている。次の永続作業は第404便で次の高密度なmacOS対象と最小構築面を選定することである。
+
+### 第404便の公開API契約計画
+
+- 第404便は`libs/image/kis_gaussian_kernel.h`に残る全15 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g404.json`は公開header 1,548、公開API 29,804、対応済み26,462、未対応3,342、906,919 bytes、SHA-256 `3b694a61a58abd2541c730848b118b65babd83cbda4a71525c900bf5f9abd788`である。対象識別子整列集合のSHA-256は`23b40d04f0a348d90c103b9538fecff3509641c81b4d4bd4336c7e69e08b66a1`で、型・半径変換3、水平・垂直行列2、畳込みkernel生成3、LoG・膨張行列と適用4、Gaussian・膨張・収縮適用3の5枠へ固定する。
+- 既存`libs/image/tests/KisConvolutionKernelContractTest.cpp`はkernel値を実行時に固定するが、製品OBJECTを含む6工程・13入力で停止線5工程・11入力を超えるため反復先から除外する。新規`libs/image/tests/KisGaussianKernelSchemaContractTest.cpp`と専用targetを作り、image・global・pigmentのsource/generated探索路、Eigen・Qt Gui・KF I18n・Imathのheader interface、header-only Boost、必要export定義、Qt Core・Testだけの直接接続による4工程・8入力へ分離する。公開既定値`KisConvolutionBorderOp`を所有する`kis_convolution_painter.h`は必要な直接includeとして維持する。
+- `g404-gaussian-kernel-schema`の状態は`in_progress`、実装基点は`fdc132945d`である。開始headerから新規試験sourceの5枠へ型特性と厳密な関数pointerを追加する。行列、kernel、paint device、更新通知を実体化せず、macOSの対象、追加5枠の20回反復、軽量近傍、試験sourceの厳格`clang-check`、書式、二回の無作業再構築、動的接続・未解決symbol、公開API検査、`verify-quick`だけを実行する。製品image・OBJECT・shared target、既存6工程対象、全体build・`verify`、Linux、Nix再評価は実行しない。
 
 ### 第239便の先行監査担当票
 
