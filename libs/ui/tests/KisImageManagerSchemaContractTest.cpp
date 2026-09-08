@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "document/kis_filter_manager.h"
 #include "document/kis_image_manager.h"
 
 #include <QTest>
@@ -11,6 +12,8 @@
 
 #define ASSERT_IMAGE_MANAGER_SIGNATURE(method, signature)                                                              \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisImageManager::method)), signature>)
+#define ASSERT_FILTER_MANAGER_SIGNATURE(method, signature)                                                             \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KisFilterManager::method)), signature>)
 
 class KisImageManagerSchemaContractTest : public QObject
 {
@@ -22,6 +25,10 @@ private Q_SLOTS:
     void imageManagerLayerImportSignaturesRemainStable();
     void imageManagerExternalTransferAndDropSignaturesRemainStable();
     void imageManagerGeometryTransformationSignaturesRemainStable();
+    void filterManagerTypeConstructionAndLifetimeSchemaRemainStable();
+    void filterManagerViewActionAndGuiSignaturesRemainStable();
+    void filterManagerApplicationControlSignaturesRemainStable();
+    void filterManagerStrokeAndFrameStateSignaturesRemainStable();
 };
 
 void KisImageManagerSchemaContractTest::imageManagerTypeConstructionAndLifetimeSchemaRemainStable()
@@ -64,6 +71,39 @@ void KisImageManagerSchemaContractTest::imageManagerGeometryTransformationSignat
                                    void (KisImageManager::*)(const QSize &, qreal, qreal, KisFilterStrategy *));
     ASSERT_IMAGE_MANAGER_SIGNATURE(shearCurrentImage, void (KisImageManager::*)(double, double));
 }
+
+void KisImageManagerSchemaContractTest::filterManagerTypeConstructionAndLifetimeSchemaRemainStable()
+{
+    static_assert(std::is_class_v<KisFilterManager>);
+    static_assert(std::is_base_of_v<QObject, KisFilterManager>);
+    static_assert(std::is_constructible_v<KisFilterManager, KisViewManager *>);
+    static_assert(std::has_virtual_destructor_v<KisFilterManager>);
+}
+
+void KisImageManagerSchemaContractTest::filterManagerViewActionAndGuiSignaturesRemainStable()
+{
+    ASSERT_FILTER_MANAGER_SIGNATURE(setView, void (KisFilterManager::*)(QPointer<KisView>));
+    ASSERT_FILTER_MANAGER_SIGNATURE(setup, void (KisFilterManager::*)(KisKActionCollection *, KisActionManager *));
+    ASSERT_FILTER_MANAGER_SIGNATURE(updateGUI, void (KisFilterManager::*)());
+}
+
+void KisImageManagerSchemaContractTest::filterManagerApplicationControlSignaturesRemainStable()
+{
+    ASSERT_FILTER_MANAGER_SIGNATURE(apply, void (KisFilterManager::*)(KisFilterConfigurationSP));
+    ASSERT_FILTER_MANAGER_SIGNATURE(finish, void (KisFilterManager::*)());
+    ASSERT_FILTER_MANAGER_SIGNATURE(cancelRunningStroke, void (KisFilterManager::*)());
+    ASSERT_FILTER_MANAGER_SIGNATURE(cancelDialog, void (KisFilterManager::*)());
+}
+
+void KisImageManagerSchemaContractTest::filterManagerStrokeAndFrameStateSignaturesRemainStable()
+{
+    ASSERT_FILTER_MANAGER_SIGNATURE(isStrokeRunning, bool (KisFilterManager::*)() const);
+    ASSERT_FILTER_MANAGER_SIGNATURE(isIdle, bool (KisFilterManager::*)() const);
+    ASSERT_FILTER_MANAGER_SIGNATURE(setFilterAllSelectedFrames, void (KisFilterManager::*)(bool));
+    ASSERT_FILTER_MANAGER_SIGNATURE(filterAllSelectedFrames, bool (KisFilterManager::*)());
+}
+
+#undef ASSERT_FILTER_MANAGER_SIGNATURE
 
 QTEST_APPLESS_MAIN(KisImageManagerSchemaContractTest)
 
