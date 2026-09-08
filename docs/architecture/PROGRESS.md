@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 08:28 JST
+- 更新日時: 2026-09-09 08:31 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4147,6 +4147,13 @@
 - 開始`libs/image/brushengine/kis_paintop.h`から新規`libs/image/tests/KisPaintOpSchemaContractTest.cpp`へ全11 API・4枠を追加した。抽象型の公開constructorを宣言だけの最小派生型で観測し、単点・直線・Bezier描画、可否、間隔・時機更新、座標分割、非同期処理列を厳密な関数pointerで固定した。初回は`std::pair<int, bool>`を固定引数macroが分割する試験記述で停止し、可変引数macroへ修正後は既存3枠が成功して`G465 paint operation base API schema is not fixed yet`だけで1件失敗した。抽象派生型と製品本文は実体化していない。計画commitは`a2d3bda3f9`、契約commitは`9112891c0b`である。
 - 新規試験sourceは87行・4枠で、targetは4工程・8入力、command SHA-256 `a4a8e5aa9513dfddfd9c204847e488e84cb835c7266d58a5bd43e83dca6a71ed`、input SHA-256 `5b98adb969b3db3568f3afe757b541493e5e605b52181e987b20d00b75a269f2`となった。AUTOMOC `HEADERS=[]`、直接接続はQt Core・Testで、製品未解決記号・製品動的接続は0である。macOSで対象、最軽量近傍`KisPaintOpUtilsSchemaContractTest`、対象の20回反復、試験sourceの厳格構文と書式、連続二回の無作業再構築、公開API検査、`verify-quick`に成功した。描画操作の動作対象、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 台帳は27,323件対応、2,481件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g465.json`を削除し、直接利用元比較はディスクへ一時一覧を作らず、追加作業tree・構築木も作成していない。主Ninja木5,999,636 KiB、共有compiler cache 983,008 KiB、最新`build/tdd-macos/public-api-missing-g466.json` 675,175 bytes、SHA-256 `355d18f161ae8e9e46656d053b6c0a4c0a85dd9a204ae5d5a93c5c22e58ccb79`だけを再利用対象として保持する。compiler cacheは144,608件中120,565件、83.37%がhitしている。次の永続作業は第466便で最新報告から高密度なmacOS対象と最小構築面を選定することである。
+
+### 第466便の公開API契約計画
+
+- 第466便は同じuniform paint property責務に属する`libs/image/brushengine/kis_combo_based_paintop_property.h`の全10 APIと`libs/image/brushengine/kis_callback_based_paintop_property.h`の全9 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g466.json`は公開header 1,548、公開API 29,804、対応済み27,323、未対応2,481、675,175 bytes、SHA-256 `355d18f161ae8e9e46656d053b6c0a4c0a85dd9a204ae5d5a93c5c22e58ccb79`である。対象19識別子の整列集合SHA-256は`6b09cfb240949e6db7b8a78cb4d8675e30a3e64d7924ae8f7c141cbc7370aee0`である。
+- combo propertyは型・callback別名・3構築・寿命6、項目列の取得・設定2、icon列の取得・設定2の3枠へ固定する。callback propertyはtemplate型・読書callback型・可視callback型3、3構築、3callback設定の3枠へ固定する。既に製品で明示実体化されるcombo callback特殊化からtemplate公開面を観測し、constructorや本文を実体化しない。
+- 両headerのQt scoped pointer、関数wrapper、image export、image型、uniform property依存は公開型、保持値、継承または明示特殊化に使われており、未使用includeや逆向き依存はないため構造変更は不要である。新規`libs/image/tests/KisComboBasedPaintOpPropertySchemaContractTest.cpp`は150行・7枠未満とし、image・globalのsource・binary探索路、`kritaimage_EXPORTS`、Qt Core・Testだけで4工程・8入力を予測する。4,105行の`KisImageTypesContractTest.cpp`への追加は局所再構築性を悪化させるため棄却する。
+- 開始2 headerから新規試験sourceとpackage-local CMake登録だけへ追加する。停止線は5工程・11入力で、新たな探索路・定義・製品接続、AUTOMOC header入力、製品未解決記号、propertyまたはcallback本文の実体化が必要なら停止する。macOSの対象、最軽量近傍、対象の20回反復、試験sourceの厳格構文、書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
 
 ### 第239便の先行監査担当票
 
