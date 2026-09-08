@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include <flake/kis_shape_controller.h>
 #include <flake/kis_shape_layer.h>
 
 #include <QTest>
@@ -14,6 +15,8 @@ namespace
 {
 #define ASSERT_SHAPE_LAYER_SIGNATURE(method, signature)                                                                \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisShapeLayer::method)), signature>)
+#define ASSERT_SHAPE_CONTROLLER_SIGNATURE(method, signature)                                                           \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KisShapeController::method)), signature>)
 } // namespace
 
 class KisShapeLayerSchemaContractTest : public QObject
@@ -26,6 +29,11 @@ private Q_SLOTS:
     void shapeLayerDeviceAndGeometrySignaturesRemainStable();
     void shapeLayerShapeAndPersistenceSignaturesRemainStable();
     void shapeLayerSectionUpdateAndNotificationSignaturesRemainStable();
+    void shapeControllerTypeAndLifetimeSchemaRemainStable();
+    void shapeControllerDummyQuerySignaturesRemainStable();
+    void shapeControllerShapeCanvasAndImageSignaturesRemainStable();
+    void shapeControllerCreationAndDocumentGeometrySignaturesRemainStable();
+    void shapeControllerNotificationSignaturesRemainStable();
 };
 
 void KisShapeLayerSchemaContractTest::shapeLayerTypeLifetimeAndConstructionSchemaRemainStable()
@@ -139,7 +147,55 @@ void KisShapeLayerSchemaContractTest::shapeLayerSectionUpdateAndNotificationSign
     ASSERT_SHAPE_LAYER_SIGNATURE(sigMoveShapes, void (Layer::*)(const QPointF &));
 }
 
+void KisShapeLayerSchemaContractTest::shapeControllerTypeAndLifetimeSchemaRemainStable()
+{
+    using Controller = KisShapeController;
+
+    static_assert(std::is_class_v<Controller>);
+    static_assert(std::is_constructible_v<Controller, KisNameServer *, KUndo2Stack *, QObject *>);
+    static_assert(std::has_virtual_destructor_v<Controller>);
+}
+
+void KisShapeLayerSchemaContractTest::shapeControllerDummyQuerySignaturesRemainStable()
+{
+    using Controller = KisShapeController;
+
+    ASSERT_SHAPE_CONTROLLER_SIGNATURE(hasDummyForNode, bool (Controller::*)(KisNodeSP) const);
+    ASSERT_SHAPE_CONTROLLER_SIGNATURE(dummyForNode, KisNodeDummy * (Controller::*)(KisNodeSP) const);
+    ASSERT_SHAPE_CONTROLLER_SIGNATURE(rootDummy, KisNodeDummy * (Controller::*)() const);
+    ASSERT_SHAPE_CONTROLLER_SIGNATURE(dummiesCount, int (Controller::*)() const);
+}
+
+void KisShapeLayerSchemaContractTest::shapeControllerShapeCanvasAndImageSignaturesRemainStable()
+{
+    using Controller = KisShapeController;
+
+    ASSERT_SHAPE_CONTROLLER_SIGNATURE(shapeForNode, KoShapeLayer * (Controller::*)(KisNodeSP) const);
+    ASSERT_SHAPE_CONTROLLER_SIGNATURE(setInitialShapeForCanvas, void (Controller::*)(KisCanvas2 *));
+    ASSERT_SHAPE_CONTROLLER_SIGNATURE(setImage, void (Controller::*)(KisImageWSP, KisNodeSP));
+}
+
+void KisShapeLayerSchemaContractTest::shapeControllerCreationAndDocumentGeometrySignaturesRemainStable()
+{
+    using Controller = KisShapeController;
+
+    ASSERT_SHAPE_CONTROLLER_SIGNATURE(createParentForShapes,
+                                      KoShapeContainer * (Controller::*)(QList<KoShape *>, bool, KUndo2Command *));
+    ASSERT_SHAPE_CONTROLLER_SIGNATURE(documentRectInPixels, QRectF (Controller::*)() const);
+    ASSERT_SHAPE_CONTROLLER_SIGNATURE(pixelsPerInch, qreal (Controller::*)() const);
+}
+
+void KisShapeLayerSchemaContractTest::shapeControllerNotificationSignaturesRemainStable()
+{
+    using Controller = KisShapeController;
+
+    ASSERT_SHAPE_CONTROLLER_SIGNATURE(selectionChanged, void (Controller::*)());
+    ASSERT_SHAPE_CONTROLLER_SIGNATURE(selectionContentChanged, void (Controller::*)());
+    ASSERT_SHAPE_CONTROLLER_SIGNATURE(currentLayerChanged, void (Controller::*)(const KoShapeLayer *));
+}
+
 #undef ASSERT_SHAPE_LAYER_SIGNATURE
+#undef ASSERT_SHAPE_CONTROLLER_SIGNATURE
 
 QTEST_APPLESS_MAIN(KisShapeLayerSchemaContractTest)
 
