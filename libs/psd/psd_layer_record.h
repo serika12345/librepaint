@@ -74,10 +74,7 @@ class KRITAPSD_EXPORT PSDLayerRecord
 public:
     PSDLayerRecord(const PSDHeader &header);
 
-    ~PSDLayerRecord()
-    {
-        qDeleteAll(channelInfoRecords);
-    }
+    ~PSDLayerRecord();
 
     QRect channelRect(ChannelInfo *channel) const;
 

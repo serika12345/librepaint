@@ -163,6 +163,11 @@ PSDLayerRecord::PSDLayerRecord(const PSDHeader &header)
 {
 }
 
+PSDLayerRecord::~PSDLayerRecord()
+{
+    qDeleteAll(channelInfoRecords);
+}
+
 bool PSDLayerRecord::read(QIODevice &io)
 {
     switch (m_header.byteOrder) {
