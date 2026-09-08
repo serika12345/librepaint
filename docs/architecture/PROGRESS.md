@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 05:18 JST
+- 更新日時: 2026-09-09 05:25 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3988,6 +3988,13 @@
 - 第453便は`libs/image/kis_refresh_subtree_walker.h`に残る全12 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g453.json`は公開header 1,548、公開API 29,804、対応済み27,207、未対応2,597、706,934 bytes、SHA-256 `d5c1a465c21afbdff89bb65c1dcd34c8d9f8625146954428cdcd533f7263e6d5`である。対象識別子整列集合のSHA-256は`770baecdbba8de402aa2f12ff58ee2268b9fad2f904976557c0af1420de88aad`で、型・flag型・5値8、構築・寿命2、更新種別・flag照会2の3枠へ固定する。
 - `KisRefreshSubtreeWalker`は矩形walker基底の公開派生で、inline構築・走査本文がprojection leaf完全型を使う。同じ責務の既存`libs/image/tests/KisBaseRectsWalkerPolicyContractTest.cpp`は189行・11枠であり、3枠追加後も300行・20枠未満に収まる。既存targetはimage・global・pigment・resources・psdutils探索路とimage export定義、Qt Gui・Testだけで4工程・8入力、command SHA-256 `44385decd9b30fadb1d78c7fc6b3f59148336211bc4003f256fb2ee8b8f9c24e`、input SHA-256 `da762dfa8f05ff1fc4b849ec24891cdefab1f7eb9376a623268e4277511c4271`である。公開inline本文を新しい製品翻訳単位へ移す構造変更は不要で、新規targetも同一header閉包へCMake登録と生成物を増やすため棄却する。
 - `g453-refresh-subtree-walker-schema`の状態は`in_progress`である。開始headerから既存試験sourceの3枠だけへ追加し、CMake、公開header、製品source、製品targetは変更しない。停止線は5工程・11入力とし、新たな探索路・定義・link、AUTOMOC header入力、製品未解決記号、walker・projection leaf・nodeまたは走査本文の実体化が必要なら停止する。macOSの対象、追加3枠の20回反復、軽量近傍、試験sourceの厳格構文、書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、既存動的walker試験、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
+
+### 第453便の実装結果
+
+- 開始`libs/image/kis_refresh_subtree_walker.h`から既存`libs/image/tests/KisBaseRectsWalkerPolicyContractTest.cpp`へ全12 API・3枠を追加した。型・flag型・5値8、構築・寿命2、更新種別・flag照会2を型特性、flag値と厳密な関数pointerで固定した。初回compileは既存基底inline本文が使う`KisPaintDevice`完全型不足を診断したため、同じimage探索路にある`kis_paint_device.h`を試験sourceへ直接追加した。新しい探索路・接続は加えていない。再実行では追加2枠が成功し、`G453 refresh subtree walker API schema is not fixed yet`だけで1件失敗した。計画commitは`1057e9400d`、契約commitは`1ae76a572d`である。
+- 試験sourceは237行・14枠で、walker、projection leaf、nodeと走査本文は実体化していない。既存targetは4工程・8入力、command SHA-256 `44385decd9b30fadb1d78c7fc6b3f59148336211bc4003f256fb2ee8b8f9c24e`、input SHA-256 `da762dfa8f05ff1fc4b849ec24891cdefab1f7eb9376a623268e4277511c4271`を変更前から維持した。AUTOMOC `HEADERS=[]`、直接接続はQt Core・Gui・Test、製品未解決記号0である。CMake、公開header、製品sourceを変更していない。
+- macOSで対象、軽量近傍`KisNodeFacadeSchemaContractTest`、対象の20回反復、試験sourceの`clang-check --extra-arg=-Werror`と書式、連続二回の無作業再構築に成功した。既存動的walker試験、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 台帳は27,219件対応、2,585件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g453.json`を削除し、追加作業tree・構築木・一時計画物は作成していない。主Ninja木5,994,336 KiB、共有compiler cache 983,296 KiB、最新`build/tdd-macos/public-api-missing-g454.json` 704,153 bytes、SHA-256 `1f10c53f305d2b37eb506e1e9b1ac0837a6c135416f0d22aca84054f19438b25`だけを再利用対象として保持する。compiler cacheは144,576件中120,563件、83.39%がhitしている。次の永続作業は第454便で最新報告から高密度なmacOS対象と最小構築面を選定することである。
 
 ### 第239便の先行監査担当票
 

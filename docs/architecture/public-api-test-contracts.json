@@ -16,7 +16,7 @@
     "publicApiFingerprint": "5f05b2aa8e5bef4343af1d55a3852331e51d4369fe135b099327b1a91b6b8c4c"
   },
   "migration": {
-    "expectedMissingApis": 2597
+    "expectedMissingApis": 2585
   },
   "contracts": [
     {
@@ -75282,6 +75282,45 @@
       "classification": "maintained",
       "apis": [
         "method:KisNodeFacade::removeNode(KisNodeSP node)"
+      ]
+    },
+    {
+      "target": "KisBaseRectsWalkerPolicyContractTest",
+      "source": "libs/image/tests/KisBaseRectsWalkerPolicyContractTest.cpp",
+      "test": "KisBaseRectsWalkerPolicyContractTest::refreshWalkerTypeAndFlagsSchemaRemainStable",
+      "behavior": "部分木更新walkerは矩形walker派生型として、描画対象・汚れ処理・変更領域・複製frame無効化を制御する組合せ可能なflag値を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisRefreshSubtreeWalker::Flags",
+        "class:KisRefreshSubtreeWalker",
+        "enum:KisRefreshSubtreeWalker::Flag",
+        "enumerator:KisRefreshSubtreeWalker::Flag::ClonesDontInvalidateFrames",
+        "enumerator:KisRefreshSubtreeWalker::Flag::DontAdjustChangeRect",
+        "enumerator:KisRefreshSubtreeWalker::Flag::NoFilthyMode",
+        "enumerator:KisRefreshSubtreeWalker::Flag::None",
+        "enumerator:KisRefreshSubtreeWalker::Flag::SkipNonRenderableNodes"
+      ]
+    },
+    {
+      "target": "KisBaseRectsWalkerPolicyContractTest",
+      "source": "libs/image/tests/KisBaseRectsWalkerPolicyContractTest.cpp",
+      "test": "KisBaseRectsWalkerPolicyContractTest::refreshWalkerConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "部分木更新walkerは切抜き領域と更新flagから構築でき、矩形walkerとして仮想破棄する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisRefreshSubtreeWalker::KisRefreshSubtreeWalker(QRect cropRect,Flags flags=None)",
+        "method:KisRefreshSubtreeWalker::~KisRefreshSubtreeWalker()"
+      ]
+    },
+    {
+      "target": "KisBaseRectsWalkerPolicyContractTest",
+      "source": "libs/image/tests/KisBaseRectsWalkerPolicyContractTest.cpp",
+      "test": "KisBaseRectsWalkerPolicyContractTest::refreshWalkerObservationSignaturesRemainStable",
+      "behavior": "部分木更新walkerは更新種別と構築時flagを照会する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisRefreshSubtreeWalker::flags() const",
+        "method:KisRefreshSubtreeWalker::type() const"
       ]
     }
   ]
