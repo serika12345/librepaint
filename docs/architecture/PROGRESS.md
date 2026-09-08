@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-08 17:03 JST
+- 更新日時: 2026-09-08 17:10 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3251,6 +3251,12 @@
 - 第395便は`libs/image/kis_cached_paint_device.h`の`KisCachedPaintDevice`と`KisCachedSelection`に残る全18 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g395.json`は公開header 1,548、公開API 29,804、対応済み26,331、未対応3,473、941,916 bytes、SHA-256 `106b86ddec19dcded2575216428454dd66cae5d5088afa866b90b49c3e6c0e71`である。対象識別子整列集合のSHA-256は`a9659ffb8923e6cfb115719d7b6b61c7f3898a71731f093adcbd834271fc24e6`で、cache型4、paint device cache操作4、paint device guard 4、selection cache操作3、selection guard 3の5枠へ固定する。
 - 既存`libs/image/tests/KisPaintDeviceSchemaContractTest.cpp`は217行・12枠で、同じpaint device値境界へ5枠を追記して300行・20枠以内に収める。別の軽量候補`KisSafeNodeProjectionStoreSchemaContractTest`はpigment探索面の追加が必要だが、採用targetは既にimage・global・pigmentの必要探索面とexport定義を持つ。CMake変更なしで4工程・8入力、command SHA-256 `7224dfff3545b1702622ae37c4e977612cbea5a0c4387d7117405073e569819a`、input SHA-256 `0308928adcf91329ac415fc1656db826bb16b475a8c0753a57974d576891853d`を維持し、停止線を5工程・11入力とする。対象headerの完全型依存は全実装がinlineでpaint device・selection・色空間を直接操作するため必要であり、既存4/8閉包を縮小しないので先行構造変更は行わない。
 - `g395-cached-paint-device-schema`の状態は`in_progress`、実装基点は`3f3d3be84b`である。開始`libs/image/kis_cached_paint_device.h`から既存試験sourceの5枠だけへ契約を追加し、CMake、公開header、製品sourceは変更しない。macOSの対象、追加5枠の20回反復、軽量近傍、試験sourceの厳格`clang-check`、書式、二回の無作業再構築、動的接続・未解決symbol、公開API検査、`verify-quick`だけを実行する。cache、paint device、selection、色空間は実体化せず、inline本文、製品image・OBJECT・shared target、全体build・`verify`、Linux、Nix再評価は実行しない。
+
+### 第395便の実装結果
+
+- `g395-cached-paint-device-schema`は`completed`である。開始`libs/image/kis_cached_paint_device.h`から既存`libs/image/tests/KisPaintDeviceSchemaContractTest.cpp`へ18 API・5枠を追加した。試験sourceは275行・17枠となり、cache型4、paint device cache操作4、paint device guard 4、selection cache操作3、selection guard 3を型特性と厳密な関数pointerで固定した。cache、paint device、selection、色空間とinline本文は実体化していない。契約実装commitは`5c80db705f`である。
+- 初回限定構築は対象headerが`kis_selection.h`経由で直接使う`QPainterPath`の探索路不足を診断した。対象固有`libs/image/tests/CMakeLists.txt`へQt Gui interface探索路だけを追加して解消し、動的接続は増やさなかった。macOSで対象`libs-image-KisPaintDeviceSchemaContractTest`と近傍`libs-image-KisSafeNodeProjectionStoreSchemaContractTest`、対象の20回反復、試験sourceの厳格`clang-check`、書式、二回の無作業再構築に成功した。4工程・8入力、command SHA-256 `b9db6c26c6250c25209a0e184f3c63c1a524df8861e287355d9eb641af488de3`、input SHA-256 `0308928adcf91329ac415fc1656db826bb16b475a8c0753a57974d576891853d`、AUTOMOC `HEADERS=[]`、Qt Core・Testだけの動的接続、cache製品未解決記号0である。製品image・OBJECT・shared target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 台帳へ18 APIを追加して26,349件対応、3,455件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g395.json`を最新報告の検証後に削除し、追加作業tree・構築木は作成していない。主Ninja木5,968,628 KiB、共有compiler cache 982,244 KiB、最新`build/tdd-macos/public-api-missing-g396.json` 937,586 bytes、SHA-256 `3621496b195cce9267cfedbcdbfd37c85b38a73120786f7b7eab403de4c7a77e`だけを再利用対象として保持する。compiler cacheは144,370件中120,529件、83.49%がhitしている。次の永続作業は第396便で次の高密度なmacOS対象と最小構築面を選定することである。
 
 ### 第239便の先行監査担当票
 

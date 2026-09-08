@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 3473
+    "expectedMissingApis": 3455
   },
   "contracts": [
     {
@@ -72048,6 +72048,69 @@
         "method:psd_vector_stroke_data::loadFromShapeStroke(KoShapeStrokeSP stroke)",
         "method:psd_vector_stroke_data::setupCatcher(const QString path,KisAslCallbackObjectCatcher & catcher,psd_vector_stroke_data * data)",
         "method:psd_vector_stroke_data::setupShapeStroke(KoShapeStrokeSP stroke)"
+      ]
+    },
+    {
+      "target": "KisPaintDeviceSchemaContractTest",
+      "source": "libs/image/tests/KisPaintDeviceSchemaContractTest.cpp",
+      "test": "KisPaintDeviceSchemaContractTest::cachedPaintDeviceTypeSchemaRemainStable",
+      "behavior": "paint deviceとselectionのcacheは各公開型と対応するRAII guard型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisCachedPaintDevice",
+        "class:KisCachedSelection",
+        "struct:KisCachedPaintDevice::Guard",
+        "struct:KisCachedSelection::Guard"
+      ]
+    },
+    {
+      "target": "KisPaintDeviceSchemaContractTest",
+      "source": "libs/image/tests/KisPaintDeviceSchemaContractTest.cpp",
+      "test": "KisPaintDeviceSchemaContractTest::cachedPaintDeviceOperationSignaturesRemainStable",
+      "behavior": "paint device cacheはprototypeと任意の色空間による取得、返却と空状態照会の公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCachedPaintDevice::getDevice(KisPaintDeviceSP prototype)",
+        "method:KisCachedPaintDevice::getDevice(KisPaintDeviceSP prototype,const KoColorSpace * colorSpace)",
+        "method:KisCachedPaintDevice::isEmpty() const",
+        "method:KisCachedPaintDevice::putDevice(KisPaintDeviceSP device)"
+      ]
+    },
+    {
+      "target": "KisPaintDeviceSchemaContractTest",
+      "source": "libs/image/tests/KisPaintDeviceSchemaContractTest.cpp",
+      "test": "KisPaintDeviceSchemaContractTest::cachedPaintDeviceGuardSchemaRemainStable",
+      "behavior": "paint device cacheのguardはprototypeと任意の色空間による取得、device照会と破棄時返却の型境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCachedPaintDevice::Guard::Guard(KisPaintDeviceSP prototype,KisCachedPaintDevice & parent)",
+        "method:KisCachedPaintDevice::Guard::Guard(KisPaintDeviceSP prototype,const KoColorSpace * cs,KisCachedPaintDevice & parent)",
+        "method:KisCachedPaintDevice::Guard::device() const",
+        "method:KisCachedPaintDevice::Guard::~Guard()"
+      ]
+    },
+    {
+      "target": "KisPaintDeviceSchemaContractTest",
+      "source": "libs/image/tests/KisPaintDeviceSchemaContractTest.cpp",
+      "test": "KisPaintDeviceSchemaContractTest::cachedSelectionOperationSignaturesRemainStable",
+      "behavior": "selection cacheは取得、返却と空状態照会の公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCachedSelection::getSelection()",
+        "method:KisCachedSelection::isEmpty() const",
+        "method:KisCachedSelection::putSelection(KisSelectionSP selection)"
+      ]
+    },
+    {
+      "target": "KisPaintDeviceSchemaContractTest",
+      "source": "libs/image/tests/KisPaintDeviceSchemaContractTest.cpp",
+      "test": "KisPaintDeviceSchemaContractTest::cachedSelectionGuardSchemaRemainStable",
+      "behavior": "selection cacheのguardは取得元との構築、selection照会と破棄時返却の型境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCachedSelection::Guard::Guard(KisCachedSelection & parent)",
+        "method:KisCachedSelection::Guard::selection() const",
+        "method:KisCachedSelection::Guard::~Guard()"
       ]
     }
   ]
