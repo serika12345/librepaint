@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "KisStrokeCompatibilityInfo.h"
 #include "kis_resources_snapshot.h"
 
 #include <QTest>
@@ -26,6 +27,11 @@ private Q_SLOTS:
     void resourcesSnapshotResourceValueSignaturesRemainStable();
     void resourcesSnapshotPaintingPolicyAndLodSignaturesRemainStable();
     void resourcesSnapshotOverrideAndBrushSignaturesRemainStable();
+    void strokeCompatibilityTypeConstructionAndEqualitySchemaRemainStable();
+    void strokeCompatibilityColorMembersSchemaRemainStable();
+    void strokeCompatibilityResourceSignatureMembersSchemaRemainStable();
+    void strokeCompatibilityGeneratorAndNodeMembersSchemaRemainStable();
+    void strokeCompatibilityPaintingPolicyMembersSchemaRemainStable();
 };
 
 void KisResourcesSnapshotSchemaContractTest::resourcesSnapshotTypeLifetimeAndConstructionSchemaRemainStable()
@@ -115,6 +121,50 @@ void KisResourcesSnapshotSchemaContractTest::resourcesSnapshotOverrideAndBrushSi
     ASSERT_RESOURCES_SNAPSHOT_SIGNATURE(setMirroring, void (Snapshot::*)(bool, bool));
     ASSERT_RESOURCES_SNAPSHOT_SIGNATURE(setOpacity, void (Snapshot::*)(qreal));
     ASSERT_RESOURCES_SNAPSHOT_SIGNATURE(setSelectionOverride, void (Snapshot::*)(KisSelectionSP));
+}
+
+void KisResourcesSnapshotSchemaContractTest::strokeCompatibilityTypeConstructionAndEqualitySchemaRemainStable()
+{
+    using Info = KisStrokeCompatibilityInfo;
+
+    static_assert(std::is_class_v<Info>);
+    static_assert(std::is_default_constructible_v<Info>);
+    static_assert(std::is_constructible_v<Info, KisResourcesSnapshot &>);
+    static_assert(std::is_same_v<decltype(std::declval<const Info &>() == std::declval<const Info &>()), bool>);
+}
+
+void KisResourcesSnapshotSchemaContractTest::strokeCompatibilityColorMembersSchemaRemainStable()
+{
+    using Info = KisStrokeCompatibilityInfo;
+
+    static_assert(std::is_same_v<decltype(&Info::currentBgColor), KoColor Info::*>);
+    static_assert(std::is_same_v<decltype(&Info::currentFgColor), KoColor Info::*>);
+}
+
+void KisResourcesSnapshotSchemaContractTest::strokeCompatibilityResourceSignatureMembersSchemaRemainStable()
+{
+    using Info = KisStrokeCompatibilityInfo;
+
+    static_assert(std::is_same_v<decltype(&Info::currentGradient), KoResourceSignature Info::*>);
+    static_assert(std::is_same_v<decltype(&Info::currentPattern), KoResourceSignature Info::*>);
+    static_assert(std::is_same_v<decltype(&Info::currentPreset), KoResourceSignature Info::*>);
+}
+
+void KisResourcesSnapshotSchemaContractTest::strokeCompatibilityGeneratorAndNodeMembersSchemaRemainStable()
+{
+    using Info = KisStrokeCompatibilityInfo;
+
+    static_assert(std::is_same_v<decltype(&Info::currentGeneratorXml), QString Info::*>);
+    static_assert(std::is_same_v<decltype(&Info::currentNode), QUuid Info::*>);
+}
+
+void KisResourcesSnapshotSchemaContractTest::strokeCompatibilityPaintingPolicyMembersSchemaRemainStable()
+{
+    using Info = KisStrokeCompatibilityInfo;
+
+    static_assert(std::is_same_v<decltype(&Info::channelLockFlags), QBitArray Info::*>);
+    static_assert(std::is_same_v<decltype(&Info::compositeOpId), QString Info::*>);
+    static_assert(std::is_same_v<decltype(&Info::opacity), qreal Info::*>);
 }
 
 QTEST_GUILESS_MAIN(KisResourcesSnapshotSchemaContractTest)
