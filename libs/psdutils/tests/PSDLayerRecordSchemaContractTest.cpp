@@ -4,6 +4,7 @@
  */
 
 #include <psd_layer_record.h>
+#include <psd_layer_section.h>
 
 #include <QTest>
 
@@ -13,6 +14,8 @@ namespace
 {
 #define ASSERT_PSD_LAYER_RECORD_SIGNATURE(method, signature)                                                           \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&PSDLayerRecord::method)), signature>)
+#define ASSERT_PSD_LAYER_SECTION_SIGNATURE(method, signature)                                                          \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&PSDLayerMaskSection::method)), signature>)
 } // namespace
 
 class PSDLayerRecordSchemaContractTest : public QObject
@@ -25,6 +28,10 @@ private Q_SLOTS:
     void layerRecordReadSignaturesRemainStable();
     void layerRecordPathAndWriteSignaturesRemainStable();
     void layerRecordDiagnosticOutputSignaturesRemainStable();
+    void layerMaskSectionTypeLifetimeSchemaRemainsStable();
+    void layerMaskSectionGlobalMaskValueSchemaRemainsStable();
+    void layerMaskSectionStateMemberSchemaRemainsStable();
+    void layerMaskSectionIoSignaturesRemainStable();
 };
 
 void PSDLayerRecordSchemaContractTest::layerRecordTypeLifetimeAndValiditySchemaRemainStable()
@@ -85,6 +92,44 @@ void PSDLayerRecordSchemaContractTest::layerRecordDiagnosticOutputSignaturesRema
     static_assert(std::is_same_v<decltype(static_cast<LayerBlendingRangeDebug>(&operator<<)), LayerBlendingRangeDebug>);
 }
 
+void PSDLayerRecordSchemaContractTest::layerMaskSectionTypeLifetimeSchemaRemainsStable()
+{
+    static_assert(std::is_class_v<PSDLayerMaskSection>);
+    static_assert(std::is_class_v<PSDLayerMaskSection::GlobalLayerMaskInfo>);
+    static_assert(std::is_constructible_v<PSDLayerMaskSection, const PSDHeader &>);
+    static_assert(std::is_destructible_v<PSDLayerMaskSection>);
+}
+
+void PSDLayerRecordSchemaContractTest::layerMaskSectionGlobalMaskValueSchemaRemainsStable()
+{
+    using MaskInfo = PSDLayerMaskSection::GlobalLayerMaskInfo;
+
+    static_assert(std::is_same_v<decltype(&MaskInfo::colorComponents), quint16(MaskInfo::*)[4]>);
+    static_assert(std::is_same_v<decltype(&MaskInfo::kind), quint8 MaskInfo::*>);
+    static_assert(std::is_same_v<decltype(&MaskInfo::opacity), quint16 MaskInfo::*>);
+    static_assert(std::is_same_v<decltype(&MaskInfo::overlayColorSpace), quint16 MaskInfo::*>);
+}
+
+void PSDLayerRecordSchemaContractTest::layerMaskSectionStateMemberSchemaRemainsStable()
+{
+    using Section = PSDLayerMaskSection;
+
+    static_assert(std::is_same_v<decltype(&Section::error), QString Section::*>);
+    static_assert(std::is_same_v<decltype(&Section::globalInfoSection), PsdAdditionalLayerInfoBlock Section::*>);
+    static_assert(std::is_same_v<decltype(&Section::globalLayerMaskInfo), Section::GlobalLayerMaskInfo Section::*>);
+    static_assert(std::is_same_v<decltype(&Section::hasTransparency), bool Section::*>);
+    static_assert(std::is_same_v<decltype(&Section::layers), QVector<PSDLayerRecord *> Section::*>);
+    static_assert(std::is_same_v<decltype(&Section::nLayers), qint16 Section::*>);
+}
+
+void PSDLayerRecordSchemaContractTest::layerMaskSectionIoSignaturesRemainStable()
+{
+    ASSERT_PSD_LAYER_SECTION_SIGNATURE(read, bool (PSDLayerMaskSection::*)(QIODevice &));
+    ASSERT_PSD_LAYER_SECTION_SIGNATURE(write,
+                                       bool (PSDLayerMaskSection::*)(QIODevice &, KisNodeSP, psd_compression_type));
+}
+
+#undef ASSERT_PSD_LAYER_SECTION_SIGNATURE
 #undef ASSERT_PSD_LAYER_RECORD_SIGNATURE
 
 QTEST_APPLESS_MAIN(PSDLayerRecordSchemaContractTest)
