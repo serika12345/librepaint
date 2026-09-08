@@ -16,10 +16,10 @@
 #include "kis_layer_utils.h"
 #include "kis_command_utils.h"
 #include "kis_time_span.h"
-#include "kis_node.h"
 #include "kis_image_signal_router.h"
 #include "KisAsynchronouslyMergeableCommandInterface.h"
 #include "kis_command_ids.h"
+#include <KisRegion.h>
 #include <KisRunnableStrokeJobUtils.h>
 
 class DisableUIUpdatesCommand : public KisCommandUtils::FlipFlopCommand, public KisAsynchronouslyMergeableCommandInterface

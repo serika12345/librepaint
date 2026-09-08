@@ -15,10 +15,10 @@
 #include "kritaimage_export.h"
 
 #include <QVector>
-#include <KisRegion.h>
 
 class QRect;
 class KoProperties;
+class KisRegion;
 
 class KisNodeVisitor;
 class KisNodeGraphListener;
