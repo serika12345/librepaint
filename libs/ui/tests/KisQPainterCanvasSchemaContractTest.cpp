@@ -4,6 +4,7 @@
  */
 
 #include <canvas/kis_qpainter_canvas.h>
+#include <canvas/kis_selection_decoration.h>
 #include <widgets/kis_zoom_scrollbar.h>
 
 #include <QTest>
@@ -16,6 +17,8 @@ namespace
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisQPainterCanvas::method)), signature>)
 #define ASSERT_ZOOM_SCROLLBAR_SIGNATURE(method, signature)                                                             \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisZoomableScrollBar::method)), signature>)
+#define ASSERT_SELECTION_DECORATION_SIGNATURE(method, signature)                                                       \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KisSelectionDecoration::method)), signature>)
 } // namespace
 
 class KisQPainterCanvasSchemaContractTest : public QObject
@@ -34,6 +37,10 @@ private Q_SLOTS:
     void zoomScrollbarInputEventSignaturesRemainStable();
     void zoomScrollbarConfigurationSignaturesRemainStable();
     void zoomScrollbarNotificationSignaturesRemainStable();
+    void selectionDecorationTypeAndLifetimeSchemaRemainStable();
+    void selectionDecorationModeSchemaRemainsStable();
+    void selectionDecorationVisibilitySignaturesRemainStable();
+    void selectionDecorationCanvasAndNotificationSignaturesRemainStable();
 };
 
 void KisQPainterCanvasSchemaContractTest::typeConstructionAndLifetimeSchemaRemainStable()
@@ -150,8 +157,48 @@ void KisQPainterCanvasSchemaContractTest::zoomScrollbarNotificationSignaturesRem
     ASSERT_ZOOM_SCROLLBAR_SIGNATURE(overscroll, void (ScrollBar::*)(qreal));
 }
 
+void KisQPainterCanvasSchemaContractTest::selectionDecorationTypeAndLifetimeSchemaRemainStable()
+{
+    using Decoration = KisSelectionDecoration;
+
+    static_assert(std::is_class_v<Decoration>);
+    static_assert(std::is_constructible_v<Decoration, QPointer<KisView>>);
+    static_assert(std::has_virtual_destructor_v<Decoration>);
+}
+
+void KisQPainterCanvasSchemaContractTest::selectionDecorationModeSchemaRemainsStable()
+{
+    using Decoration = KisSelectionDecoration;
+
+    static_assert(std::is_enum_v<Decoration::Mode>);
+    static_assert(Decoration::Ants == 0);
+    static_assert(Decoration::Mask == 1);
+    ASSERT_SELECTION_DECORATION_SIGNATURE(mode, Decoration::Mode (Decoration::*)() const);
+    ASSERT_SELECTION_DECORATION_SIGNATURE(setMode, void (Decoration::*)(Decoration::Mode));
+}
+
+void KisQPainterCanvasSchemaContractTest::selectionDecorationVisibilitySignaturesRemainStable()
+{
+    using Decoration = KisSelectionDecoration;
+
+    ASSERT_SELECTION_DECORATION_SIGNATURE(setVisible, void (Decoration::*)(bool));
+    ASSERT_SELECTION_DECORATION_SIGNATURE(toggleSelectionVisibility, void (Decoration::*)());
+    ASSERT_SELECTION_DECORATION_SIGNATURE(selectionVisible, bool (Decoration::*)());
+}
+
+void KisQPainterCanvasSchemaContractTest::selectionDecorationCanvasAndNotificationSignaturesRemainStable()
+{
+    using Decoration = KisSelectionDecoration;
+
+    ASSERT_SELECTION_DECORATION_SIGNATURE(notifyWindowMinimized, void (Decoration::*)(bool));
+    ASSERT_SELECTION_DECORATION_SIGNATURE(setCanvasWidget, void (Decoration::*)(KisCanvasWidgetBase *));
+    ASSERT_SELECTION_DECORATION_SIGNATURE(selectionChanged, void (Decoration::*)());
+    ASSERT_SELECTION_DECORATION_SIGNATURE(antsAttackEvent, void (Decoration::*)());
+}
+
 #undef ASSERT_QPAINTER_CANVAS_SIGNATURE
 #undef ASSERT_ZOOM_SCROLLBAR_SIGNATURE
+#undef ASSERT_SELECTION_DECORATION_SIGNATURE
 
 QTEST_GUILESS_MAIN(KisQPainterCanvasSchemaContractTest)
 
