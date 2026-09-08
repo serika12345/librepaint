@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-08 17:36 JST
+- 更新日時: 2026-09-08 17:41 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3270,6 +3270,12 @@
 - 開始`libs/image/kis_count_visitor.h`から新規`libs/image/tests/KisCountVisitorSchemaContractTest.cpp`へ15 API・5枠を追加した。型・構築・件数3、通常node・layer visit 4、生成・外部・複製layer visit 3、filter・変形・透明mask visit 3、selection・colorize mask visit 2を型特性と厳密な関数pointerで固定し、node・layer・mask・propertiesと製品本文は実体化していない。初回redは未定義の5検査関数だけで失敗し、契約実装commitは`9c6ce93dc5`である。
 - macOSで対象`libs-image-KisCountVisitorSchemaContractTest`、軽量近傍`libs-image-KisNodeVisitorContractTest`、対象の20回反復、試験sourceの厳格`clang-check`、書式、二回の無作業再構築に成功した。4工程・8入力、command SHA-256 `555ed3709ed4e48d867f8bedfb45948b26f7ac3ca8f10a7e8dd0181f946f8d27`、input SHA-256 `ff3f4b2b979f553b4f739ca50a0a8208c0ee9e58b256583e40b7cd469c089f1d`、AUTOMOC `HEADERS=[]`、直接接続はQt Core・Test、製品未解決symbol 0である。既存動的試験と製品image・OBJECT・shared targetを反復対象から外したため、1,201工程・2,425入力の再構築を回避した。
 - 台帳へ15 APIを追加して26,364件対応、3,440件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g396.json`と一時計測物を削除し、追加作業tree・構築木は作成していない。主Ninja木5,971,720 KiB、共有compiler cache 982,820 KiB、最新`build/tdd-macos/public-api-missing-g397.json` 934,170 bytes、SHA-256 `633cda68b599b9e818d1ffa3c626ee1f2873ca8160e7b98976780e688d283cdd`だけを再利用対象として保持する。compiler cacheは144,374件中120,530件、83.48%がhitしている。次の永続作業は第397便で次の高密度なmacOS対象と最小構築面を選定することである。
+
+### 第397便の公開API契約計画
+
+- 第397便は`libs/painting/KisStrokeCompatibilityInfo.h`に残る全14 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g397.json`は公開header 1,548、公開API 29,804、対応済み26,364、未対応3,440、934,170 bytes、SHA-256 `633cda68b599b9e818d1ffa3c626ee1f2873ca8160e7b98976780e688d283cdd`である。対象識別子整列集合のSHA-256は`0f11f7360f110f4b9e7247481cdfcede218ce11b7652ae15b869058a20255bee`で、型・構築・等価比較4、前景・背景色2、pattern・gradient・preset資源署名3、generator・node識別2、描画方針3の5枠へ固定する。
+- `KisStrokeCompatibilityInfo`は描画開始時の資源値を比較可能な値として保持し、既存`libs/painting/tests/KisResourcesSnapshotSchemaContractTest.cpp`が同じ描画資源snapshotの公開境界を所有する。既存試験sourceは122行・5枠であり、5枠追加後も300行・20枠未満に収まるため、新規targetとCMake変更は加えない。変更なし計画は4工程・8入力、直接接続はQt Core・Gui・Test・Xmlとheader-only Boostである。停止線を5工程・11入力とし、候補headerをtarget sourceやAUTOMOC入力へ登録せず、資源snapshot、色、資源署名、nodeを実体化しない。
+- `g397-stroke-compatibility-schema`の状態は`in_progress`、実装基点は`b22efe260b`である。開始`libs/painting/KisStrokeCompatibilityInfo.h`から既存`libs/painting/tests/KisResourcesSnapshotSchemaContractTest.cpp`の5枠だけへ追加し、CMake、公開header、製品sourceは変更しない。macOSの対象、追加5枠の20回反復、軽量近傍、試験sourceの厳格`clang-check`、書式、二回の無作業再構築、動的接続・未解決symbol、公開API検査、`verify-quick`だけを実行する。製品painting・OBJECT・shared target、全体build・`verify`、Linux、Nix再評価は実行しない。
 
 ### 第239便の先行監査担当票
 
