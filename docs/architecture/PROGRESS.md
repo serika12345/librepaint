@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-08 14:48 JST
+- 更新日時: 2026-09-08 15:09 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3144,6 +3144,13 @@
 - 変更前の`libs/psd/psd_layer_record.cpp`、`psd_layer_section.cpp`、`psd_pixel_utils.cpp`、`libs/psdutils/tests/PsdFormatValuesContractTest.cpp`、`plugins/impex/psd/psd_image_data.cpp`は、それぞれ既存診断だけで厳格`clang-check`を停止した。変更後に5件の終了状態と診断本文を比較し、公開API報告のbyte一致を完了条件とする。
 - 既存`PsdFormatValuesContractTest.cpp`は2,000行超で、`kritaglobaldebugobjects`を含む6工程・14入力であるため追記しない。新規`libs/psdutils/tests/PSDLayerRecordSchemaContractTest.cpp`を200行・10枠未満で作り、型特性、厳密な関数・member pointerだけで23 APIを観測する。近傍`KisAslXmlWriterSchemaContractTest`は4工程・8入力、command SHA-256 `fdba2c8ce6c16eb4d73fe37da82f7c3483d516817b54a5a8dac535579de71157`、input SHA-256 `c0bad8b3cfd810dd10035e4d3316829be21fe48b5c601f17113b32a452f3b06e`である。新規targetも4工程・8入力を予測し、停止線を5工程・11入力とする。
 - `g387-psd-layer-record-schema`の状態は`in_progress`、実装基点は`f78ce16a86`である。構造先行commit後、新規試験sourceと`libs/psdutils/tests/CMakeLists.txt`の対象固有節だけへ契約を追加する。macOSの対象、5枠の20回反復、軽量近傍、5直接利用元と試験sourceの厳格`clang-check`、書式、AUTOMOC後の二回目計画、二回の無作業再構築、動的接続・未解決symbol、公開API検査、`verify-quick`だけを実行する。PSD record・device・node・path・I/Oの実体、既存`PsdFormatValuesContractTest`、製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
+
+### 第387便の実装結果
+
+- `g387-psd-layer-record-schema`は`completed`である。完全な画像型の解析責任を開始`libs/psd/psd_layer_record.h`から実装`libs/psd/psd_layer_record.cpp`へ移し、`KisPaintDevice`の完全型と`PSDLayerRecord`の破棄処理を同実装で所有する構造にした。開始`libs/psd/psd_additional_layer_info_block.h`から未使用の`kis_node.h`・`kis_paint_device.h`を除き、inline処理と値memberが実際に必要とする`kis_filter_configuration.h`・`QPen`へ限定した。依存整理commitは`5974505a37`、header自己完結性の補正commitは`9100f5b54e`である。公開API 29,804件と不足報告は構造変更前後でbyte一致し、開始実装と5直接利用元を含む6翻訳単位の最終厳格`clang-check`に成功した。
+- 開始`libs/psd/psd_layer_record.h`から新規`libs/psdutils/tests/PSDLayerRecordSchemaContractTest.cpp`へ23 API・5枠を追加した。record型・構築・寿命・妥当性4、直列化値member 8、読込4、path・書込4、診断出力3を型特性と厳密な関数・member pointerで固定し、PSD record・device・node・path・I/Oの実体と製品ライブラリを使わない。契約実装commitは`755cb78e2e`である。
+- macOSで対象`libs-psdutils-PSDLayerRecordSchemaContractTest`と近傍`libs-psdutils-KisAslXmlWriterSchemaContractTest`のCTest 2/2、対象の20回反復、試験sourceと6製品翻訳単位の厳格`clang-check`、書式、二回の無作業再構築、公開API検査に成功した。対象閉包は4工程・8入力、command SHA-256 `51754fd123de29e7fbbe5b17678995eeaa7d5958f12c4225608aff39207a4aec`、input SHA-256 `598e0e334ab4cf08c266b29c2535393b8eaddc5851a447fab1e95f47c29869ab`、AUTOMOC `HEADERS=[]`、Qt Core・Testと非製品runtimeだけの動的接続、PSD製品未解決記号0である。既存`PsdFormatValuesContractTest`の6工程・14入力、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 台帳へ23 APIを追加して26,193件対応、3,611件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g387.json`を最新報告の検証後に削除し、追加作業tree・構築木は作成していない。主Ninja木5,966,212 KiB、共有compiler cache 982,156 KiB、最新`build/tdd-macos/public-api-missing-g388.json` 983,251 bytes、SHA-256 `74c25fd24f86b761c11477814baa96d316fcfff3d89a8b8f175694fab4fb3b1a`だけを再利用対象として保持する。compiler cacheは144,340件中120,522件、83.50%がhitしている。次の永続作業は第388便で次の高密度なmacOS対象と最小構築面を選定することである。
 
 ### 第239便の先行監査担当票
 

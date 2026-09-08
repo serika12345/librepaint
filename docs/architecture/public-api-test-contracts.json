@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 3634
+    "expectedMissingApis": 3611
   },
   "contracts": [
     {
@@ -71536,6 +71536,74 @@
         "method:KisToolSelectUiBase::colorLabelsSelected() const",
         "method:KisToolSelectUiBase::featherSelection() const",
         "method:KisToolSelectUiBase::selectionOptionWidget()"
+      ]
+    },
+    {
+      "target": "PSDLayerRecordSchemaContractTest",
+      "source": "libs/psdutils/tests/PSDLayerRecordSchemaContractTest.cpp",
+      "test": "PSDLayerRecordSchemaContractTest::layerRecordTypeLifetimeAndValiditySchemaRemainStable",
+      "behavior": "PSD layer recordは公開型、header指定構築、破棄と妥当性照会の境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:PSDLayerRecord",
+        "method:PSDLayerRecord::PSDLayerRecord(const PSDHeader & header)",
+        "method:PSDLayerRecord::valid()",
+        "method:PSDLayerRecord::~PSDLayerRecord()"
+      ]
+    },
+    {
+      "target": "PSDLayerRecordSchemaContractTest",
+      "source": "libs/psdutils/tests/PSDLayerRecordSchemaContractTest.cpp",
+      "test": "PSDLayerRecordSchemaContractTest::layerRecordSerializedValueMemberSchemaRemainsStable",
+      "behavior": "PSD layer recordはchannel情報、診断、塗り、追加情報、文字・vector mask・stroke・生成元情報の公開値schemaを維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:PSDLayerRecord::channelInfoRecords",
+        "member:PSDLayerRecord::error",
+        "member:PSDLayerRecord::fillConfig",
+        "member:PSDLayerRecord::infoBlocks",
+        "member:PSDLayerRecord::textShape",
+        "member:PSDLayerRecord::vectorMask",
+        "member:PSDLayerRecord::vectorOriginationData",
+        "member:PSDLayerRecord::vectorStroke"
+      ]
+    },
+    {
+      "target": "PSDLayerRecordSchemaContractTest",
+      "source": "libs/psdutils/tests/PSDLayerRecordSchemaContractTest.cpp",
+      "test": "PSDLayerRecordSchemaContractTest::layerRecordReadSignaturesRemainStable",
+      "behavior": "PSD layer recordはchannel領域、record、画素、maskを読み取る公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:PSDLayerRecord::channelRect(ChannelInfo * channel) const",
+        "method:PSDLayerRecord::read(QIODevice & io)",
+        "method:PSDLayerRecord::readMask(QIODevice & io,KisPaintDeviceSP dev,ChannelInfo * channel)",
+        "method:PSDLayerRecord::readPixelData(QIODevice & io,KisPaintDeviceSP device)"
+      ]
+    },
+    {
+      "target": "PSDLayerRecordSchemaContractTest",
+      "source": "libs/psdutils/tests/PSDLayerRecordSchemaContractTest.cpp",
+      "test": "PSDLayerRecordSchemaContractTest::layerRecordPathAndWriteSignaturesRemainStable",
+      "behavior": "PSD layer recordはvector pathとの相互変換、recordと画素の書出し境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:PSDLayerRecord::addPathShapeToPSDPath(psd_path & path,KoPathShape * shape,double shapeWidth,double shapeHeight)",
+        "method:PSDLayerRecord::constructPathShape(psd_path path,double shapeWidth,double shapeHeight)",
+        "method:PSDLayerRecord::write(QIODevice & io,KisPaintDeviceSP layerContentDevice,KisNodeSP onlyTransparencyMask,const QRect & maskRect,psd_section_type sectionType,const QDomDocument & stylesXmlDoc,bool useLfxsLayerStyleFormat)",
+        "method:PSDLayerRecord::writePixelData(QIODevice & io,psd_compression_type compressionType)"
+      ]
+    },
+    {
+      "target": "PSDLayerRecordSchemaContractTest",
+      "source": "libs/psdutils/tests/PSDLayerRecordSchemaContractTest.cpp",
+      "test": "PSDLayerRecordSchemaContractTest::layerRecordDiagnosticOutputSignaturesRemainStable",
+      "behavior": "PSD layer record、channel情報、layer blending rangeは診断出力の公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:operator <<(QDebug dbg,const ChannelInfo & layer)",
+        "function:operator <<(QDebug dbg,const PSDLayerRecord & layer)",
+        "function:operator <<(QDebug dbg,const PSDLayerRecord::LayerBlendingRanges::LayerBlendingRange & data)"
       ]
     }
   ]
