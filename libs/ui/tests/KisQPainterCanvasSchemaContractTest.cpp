@@ -5,6 +5,7 @@
 
 #include <canvas/kis_qpainter_canvas.h>
 #include <canvas/kis_selection_decoration.h>
+#include <widgets/kis_transport_controls.h>
 #include <widgets/kis_zoom_scrollbar.h>
 
 #include <QTest>
@@ -19,6 +20,8 @@ namespace
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisZoomableScrollBar::method)), signature>)
 #define ASSERT_SELECTION_DECORATION_SIGNATURE(method, signature)                                                       \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisSelectionDecoration::method)), signature>)
+#define ASSERT_TRANSPORT_CONTROLS_SIGNATURE(method, signature)                                                         \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KisTransportControls::method)), signature>)
 } // namespace
 
 class KisQPainterCanvasSchemaContractTest : public QObject
@@ -41,6 +44,10 @@ private Q_SLOTS:
     void selectionDecorationModeSchemaRemainsStable();
     void selectionDecorationVisibilitySignaturesRemainStable();
     void selectionDecorationCanvasAndNotificationSignaturesRemainStable();
+    void transportControlsTypeLifetimeAndSizeSchemaRemainStable();
+    void transportControlsPresentationSignaturesRemainStable();
+    void transportControlsBackwardNotificationSignaturesRemainStable();
+    void transportControlsForwardNotificationSignaturesRemainStable();
 };
 
 void KisQPainterCanvasSchemaContractTest::typeConstructionAndLifetimeSchemaRemainStable()
@@ -196,9 +203,48 @@ void KisQPainterCanvasSchemaContractTest::selectionDecorationCanvasAndNotificati
     ASSERT_SELECTION_DECORATION_SIGNATURE(antsAttackEvent, void (Decoration::*)());
 }
 
+void KisQPainterCanvasSchemaContractTest::transportControlsTypeLifetimeAndSizeSchemaRemainStable()
+{
+    using Controls = KisTransportControls;
+
+    static_assert(std::is_class_v<Controls>);
+    static_assert(std::is_constructible_v<Controls, QWidget *>);
+    static_assert(std::has_virtual_destructor_v<Controls>);
+    ASSERT_TRANSPORT_CONTROLS_SIGNATURE(sizeHint, QSize (Controls::*)() const);
+}
+
+void KisQPainterCanvasSchemaContractTest::transportControlsPresentationSignaturesRemainStable()
+{
+    using Controls = KisTransportControls;
+
+    ASSERT_TRANSPORT_CONTROLS_SIGNATURE(setPlaying, void (Controls::*)(bool));
+    ASSERT_TRANSPORT_CONTROLS_SIGNATURE(showStateButtons, void (Controls::*)(bool));
+    ASSERT_TRANSPORT_CONTROLS_SIGNATURE(showSeekButtons, void (Controls::*)(bool));
+    ASSERT_TRANSPORT_CONTROLS_SIGNATURE(showSkipButtons, void (Controls::*)(bool));
+}
+
+void KisQPainterCanvasSchemaContractTest::transportControlsBackwardNotificationSignaturesRemainStable()
+{
+    using Controls = KisTransportControls;
+
+    ASSERT_TRANSPORT_CONTROLS_SIGNATURE(skipBack, void (Controls::*)());
+    ASSERT_TRANSPORT_CONTROLS_SIGNATURE(back, void (Controls::*)());
+    ASSERT_TRANSPORT_CONTROLS_SIGNATURE(stop, void (Controls::*)());
+}
+
+void KisQPainterCanvasSchemaContractTest::transportControlsForwardNotificationSignaturesRemainStable()
+{
+    using Controls = KisTransportControls;
+
+    ASSERT_TRANSPORT_CONTROLS_SIGNATURE(playPause, void (Controls::*)());
+    ASSERT_TRANSPORT_CONTROLS_SIGNATURE(forward, void (Controls::*)());
+    ASSERT_TRANSPORT_CONTROLS_SIGNATURE(skipForward, void (Controls::*)());
+}
+
 #undef ASSERT_QPAINTER_CANVAS_SIGNATURE
 #undef ASSERT_ZOOM_SCROLLBAR_SIGNATURE
 #undef ASSERT_SELECTION_DECORATION_SIGNATURE
+#undef ASSERT_TRANSPORT_CONTROLS_SIGNATURE
 
 QTEST_GUILESS_MAIN(KisQPainterCanvasSchemaContractTest)
 
