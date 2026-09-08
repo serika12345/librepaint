@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-08 15:22 JST
+- 更新日時: 2026-09-08 15:31 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3165,6 +3165,13 @@
 - 開始`libs/psd/psd_layer_section.h`から既存`libs/psdutils/tests/PSDLayerRecordSchemaContractTest.cpp`へ16 API・4枠を追加した。試験sourceは137行・9枠となり、section型・mask型・構築・寿命4、global mask値member 4、section状態member 6、読込・書出し2を型特性と厳密な関数・member pointerで固定した。契約実装commitは`350f821e28`である。
 - macOSで対象`libs-psdutils-PSDLayerRecordSchemaContractTest`と近傍`libs-psdutils-KisAslXmlWriterSchemaContractTest`のCTest 2/2、対象の20回反復、試験sourceと4直接利用元の厳格`clang-check`、書式、二回の無作業再構築、公開API検査に成功した。CMake変更なしで4工程・8入力、command SHA-256 `51754fd123de29e7fbbe5b17678995eeaa7d5958f12c4225608aff39207a4aec`、input SHA-256 `598e0e334ab4cf08c266b29c2535393b8eaddc5851a447fab1e95f47c29869ab`、AUTOMOC `HEADERS=[]`、Qt Core・Testと非製品runtimeだけの動的接続、PSD製品未解決記号0を維持した。既存`PsdFormatValuesContractTest`、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 台帳へ16 APIを追加して26,209件対応、3,595件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g388.json`を最新報告の検証後に削除し、追加作業tree・構築木は作成していない。主Ninja木5,966,204 KiB、共有compiler cache 982,868 KiB、最新`build/tdd-macos/public-api-missing-g389.json` 979,638 bytes、SHA-256 `77ee8fcc58f4c6b2a76718c37b48eb1fc2d1e53e1bf674e4226461cad41db218`だけを再利用対象として保持する。compiler cacheは144,342件中120,522件、83.50%がhitしている。次の永続作業は第389便で次の高密度なmacOS対象と最小構築面を選定することである。
+
+### 第389便の公開API契約計画
+
+- 第389便は`plugins/paintops/libpaintop/kis_simple_paintop_factory.h`の残存全30 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g389.json`は公開header 1,548、公開API 29,804、対応済み26,209、未対応3,595、979,638 bytes、SHA-256 `77ee8fcc58f4c6b2a76718c37b48eb1fc2d1e53e1bf674e4226461cad41db218`である。対象識別子整列集合のSHA-256は`6c757419ea2ed6ca0b8262c5a2dcead13026d43a0f85679e8e2372146cbb7a01`で、factory・機能検出型6、資源準備補助4、生成・事前初期化補助6、factory構築・生成7、識別・資源境界7の5枠へ固定する。
+- 開始headerは未使用の`KisCppQuirks.h`を15直接利用元へ伝播させ、公開シグネチャとtemplate本文が使う`QIcon`、`QList`、`QString`、`QStringList`、`std::void_t`、`std::declval`、`std::enable_if_t`を推移includeへ依存している。構造先行変更では未使用includeを除き、Qt値型と`type_traits`・`utility`を直接includeする。15直接利用元の変更前厳格`clang-check`は、未構築の生成UIまたはAUTOMOC出力だけを理由に停止した。各診断SHA-256を保存し、変更後の終了状態と診断本文一致、公開API報告のbyte一致を完了条件とする。
+- 既存`plugins/paintops/libpaintop/tests/KisDabCacheUtilsSchemaContractTest.cpp`は133行・5枠であるため、同sourceへ5枠を追記して300行・10枠以下に収める。対象固有CMake節へresources・widgetutilsのsource/generated探索路、Eigen interface、両export定義、条件付き公開面を観測する`HAVE_THREADED_TEXT_RENDERING_WORKAROUND`だけを加え、製品linkは追加しない。強制先頭includeによる厳格構文検査はこのcompile interfaceで成功した。変更前targetは4工程・8入力、command SHA-256 `a881e6a65cc3d02444ce8ea02627ceb100fb9a5fdb89df7db04d118dae40eed9`、input SHA-256 `7d8ad9638297d41675b62d0a45385f9978c1c929a89b9045b25204e9ba09ecab`で、変更後も4工程・8入力を予測し、停止線を5工程・11入力とする。
+- `g389-simple-paintop-factory-schema`の状態は`in_progress`、実装基点は`fe9a14fbfb`である。構造先行commit後、既存試験sourceと同target固有CMake節だけへ契約を追加する。macOSの対象、追加5枠の20回反復、軽量近傍、15直接利用元と試験sourceの厳格`clang-check`、書式、AUTOMOC後の二回目計画、二回の無作業再構築、動的接続・未解決symbol、公開API検査、`verify-quick`だけを実行する。paintop・設定・widget・資源・canvas・画像の実体、製品plugin・OBJECT・shared target、全体build・`verify`、Linux、Nix再評価は実行しない。
 
 ### 第239便の先行監査担当票
 
