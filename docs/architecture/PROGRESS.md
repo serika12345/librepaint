@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 02:59 JST
+- 更新日時: 2026-09-09 03:11 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3864,6 +3864,14 @@
 - 第444便は`libs/image/kis_perspectivetransform_worker.h`に残る全14 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g444.json`は公開header 1,548、公開API 29,804、対応済み27,082、未対応2,722、742,544 bytes、SHA-256 `86b548edd3898117d2909342049989745864eff3ee547ad1b59fdfb2705cb59f`である。対象識別子整列集合のSHA-256は`419d451ed3385ea1c445aea2f46867a6f271286d6ddc23e8282e798dbe9f910d`で、型・sampling列挙・2値4、2構築・寿命3、全体・部分実行2、順逆変形・subpixel設定照会5の4枠へ固定する。
 - 構築範囲の先行最適化として、開始`libs/image/kis_perspectivetransform_worker.h`から`KoUpdater.h`完全型includeを除く。公開署名の`KoUpdaterPtr`と前方宣言は既存`kis_types.h`が所有し、完全型利用先`libs/image/kis_perspectivetransform_worker.cpp`と別の完全型利用元`libs/image/kis_fill_painter.cc`は既に`KoUpdater.h`を明示している。公開宣言を保ち、image公開headerからwidgetutilsのprogress実装依存を除く。
 - 既存`libs/image/tests/KisTransformMaskSchemaContractTest.cpp`は173行・9枠で、4枠追加後も300行・20枠未満に収まる。対象固有headerを同sourceへ加えるだけで`libs/image/tests/CMakeLists.txt`を変更せず、worker、装置、変形、更新器、矩形を実体化しない。対象の変更前閉包は4工程・8入力、command hash `f0bacabbc5e99602c061069d2f4101e49722026e6251620a0d22905651f02009`、input hash `226642f6eb0597b6d48f1e4473cc31fd9f989cd4ae40157591d3c02e0d8f5f79`である。停止線を5工程・11入力とし、計画外探索路・link・定義、AUTOMOC header入力、製品未解決記号、対象型の実体化または本文実行が必要なら停止する。macOSの対象と軽量近傍、追加4枠の20回反復、対象headerを含む試験sourceと直接consumerの厳密構文、二回目計画、無作業再構築、公開API検査、`verify-quick`だけを実行し、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
+
+### 第444便の実装結果
+
+- 公開header閉包の問題は、開始`libs/image/kis_perspectivetransform_worker.h`が`kis_types.h`の`KoUpdaterPtr`宣言に加えて`KoUpdater.h`完全型まで取り込み、全利用元へwidgetutilsのprogress実装を推移させる構造だった。`KoUpdater.h`をQt Coreの`QPointer`へ置き換え、完全型利用先`libs/image/kis_perspectivetransform_worker.cpp`の既存明示includeを維持した。初回厳密構文検査は`QPointer<KoUpdater>`定義不足と、直接consumer `libs/image/kis_transform_mask.cpp`の`KisImage`・`KisPaintDevice`完全型の推移依存を診断した。`QPointer`定義を公開headerへ、画像と描画装置の完全型を同consumerへ明示し、透視worker、変形マスク、変形工具consumerの厳密構文検査に成功した。計画commitは`3f8437263e`、依存整理commitは`dc813a207c`である。
+- `libs/image/kis_perspectivetransform_worker.h`から既存`libs/image/tests/KisTransformMaskSchemaContractTest.cpp`へ全14 APIを4枠で固定した。型・sampling列挙・2値4、2構築・寿命3、全体・部分実行2、順逆変形・subpixel設定照会5を重複なく対応付けた。初回は既存9枠と追加3枠が成功し、`G444 perspective transform API schema is not fixed yet`だけで1件失敗した。契約commitは`1a92e87dd1`である。
+- 最終sourceは222行・13枠、CMakeを変更していない。対象は変更前と同じ4工程・8入力、command hash `f0bacabbc5e99602c061069d2f4101e49722026e6251620a0d22905651f02009`、input hash `226642f6eb0597b6d48f1e4473cc31fd9f989cd4ae40157591d3c02e0d8f5f79`を維持した。既存のQt Core・Gui・Test・Xmlだけの動的接続、AUTOMOC `HEADERS=[]`、製品未解決記号0を確認した。
+- macOSで対象`libs-image-KisTransformMaskSchemaContractTest`と軽量近傍`libs-image-KisGeneratorLayerSchemaContractTest`、対象の20回反復、試験sourceと3つの主要consumerの`clang-check --extra-arg=-Werror`、試験sourceの書式、二回の無作業再構築に成功した。台帳は27,096件対応、2,708件未対応となり、開始headerの残存は0件である。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 旧`public-api-missing-g444.json`を削除し、追加作業tree・構築木・一時計画物は作成していない。主Ninja木5,986,260 KiB、共有compiler cache 982,760 KiB、最新`build/tdd-macos/public-api-missing-g445.json` 738,340 bytes、SHA-256 `eee9ee95bebb760cac3f2d5d5f8f9b5e788f222a34b15865eff8a9462befc495`だけを再利用対象として保持する。compiler cacheは144,543件中120,558件、83.41%がhitしている。次の永続作業は第445便で次の高密度なmacOS対象と最小構築面を選定することである。
 
 ### 第239便の先行監査担当票
 

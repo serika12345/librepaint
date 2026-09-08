@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 2722
+    "expectedMissingApis": 2708
   },
   "contracts": [
     {
@@ -74806,6 +74806,56 @@
         "method:KisLayerProjectionPlane::getLodCapableDevices() const",
         "method:KisLayerProjectionPlane::looseUserVisibleBounds() const",
         "method:KisLayerProjectionPlane::tightUserVisibleBounds() const"
+      ]
+    },
+    {
+      "target": "KisTransformMaskSchemaContractTest",
+      "source": "libs/image/tests/KisTransformMaskSchemaContractTest.cpp",
+      "test": "KisTransformMaskSchemaContractTest::perspectiveTransformTypeAndSamplingSchemaRemainStable",
+      "behavior": "透視変形workerは最近傍・双線形samplingを区別する列挙型と安定した値を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisPerspectiveTransformWorker",
+        "enum:KisPerspectiveTransformWorker::SampleType",
+        "enumerator:KisPerspectiveTransformWorker::SampleType::Bilinear",
+        "enumerator:KisPerspectiveTransformWorker::SampleType::NearestNeighbour"
+      ]
+    },
+    {
+      "target": "KisTransformMaskSchemaContractTest",
+      "source": "libs/image/tests/KisTransformMaskSchemaContractTest.cpp",
+      "test": "KisTransformMaskSchemaContractTest::perspectiveTransformConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "透視変形workerは中心・角度・距離または変換行列、切抜き条件、進捗先から構築・破棄する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPerspectiveTransformWorker::KisPerspectiveTransformWorker(KisPaintDeviceSP dev,QPointF center,double aX,double aY,double distance,bool cropDst,KoUpdaterPtr progress)",
+        "method:KisPerspectiveTransformWorker::KisPerspectiveTransformWorker(KisPaintDeviceSP dev,const QTransform & transform,bool cropDst,KoUpdaterPtr progress)",
+        "method:KisPerspectiveTransformWorker::~KisPerspectiveTransformWorker()"
+      ]
+    },
+    {
+      "target": "KisTransformMaskSchemaContractTest",
+      "source": "libs/image/tests/KisTransformMaskSchemaContractTest.cpp",
+      "test": "KisTransformMaskSchemaContractTest::perspectiveTransformExecutionSignaturesRemainStable",
+      "behavior": "透視変形workerは既定の双線形samplingを含む全体実行と指定出力領域への部分実行を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPerspectiveTransformWorker::run(SampleType sampleType=Bilinear)",
+        "method:KisPerspectiveTransformWorker::runPartialDst(KisPaintDeviceSP srcDev,KisPaintDeviceSP dstDev,const QRect & dstRect)"
+      ]
+    },
+    {
+      "target": "KisTransformMaskSchemaContractTest",
+      "source": "libs/image/tests/KisTransformMaskSchemaContractTest.cpp",
+      "test": "KisTransformMaskSchemaContractTest::perspectiveTransformMatrixAndSubpixelSignaturesRemainStable",
+      "behavior": "透視変形workerは順変換を設定し、順逆変換とsubpixel移動強制条件を設定・照会する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPerspectiveTransformWorker::backwardTransform() const",
+        "method:KisPerspectiveTransformWorker::forceSubPixelTranslation() const",
+        "method:KisPerspectiveTransformWorker::forwardTransform() const",
+        "method:KisPerspectiveTransformWorker::setForceSubPixelTranslation(bool value)",
+        "method:KisPerspectiveTransformWorker::setForwardTransform(const QTransform & transform)"
       ]
     }
   ]
