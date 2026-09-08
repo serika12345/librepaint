@@ -4,6 +4,7 @@
  */
 
 #include <brushengine/kis_paintop_factory.h>
+#include <kis_brush_based_paintop_settings.h>
 
 #include <QTest>
 
@@ -30,6 +31,8 @@ public:
 
 #define ASSERT_PAINTOP_FACTORY_SIGNATURE(method, signature)                                                            \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisPaintOpFactory::method)), signature>)
+#define ASSERT_BRUSH_SETTINGS_SIGNATURE(method, signature)                                                             \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KisBrushBasedPaintOpSettings::method)), signature>)
 } // namespace
 
 class KisPaintOpFactorySchemaContractTest : public QObject
@@ -42,6 +45,11 @@ private Q_SLOTS:
     void paintOpFactoryCreationSignaturesRemainStable();
     void paintOpFactoryResourceSignaturesRemainStable();
     void paintOpFactoryPrioritySignaturesRemainStable();
+    void brushBasedSettingsTypeAliasAndLifetimeSchemaRemainStable();
+    void brushBasedSettingsBrushOutlineAndCloneSignaturesRemainStable();
+    void brushBasedSettingsSpacingAndIncrementalSignaturesRemainStable();
+    void brushBasedSettingsSizeAndAngleSignaturesRemainStable();
+    void brushBasedSettingsResourceAndPropertySignaturesRemainStable();
 };
 
 void KisPaintOpFactorySchemaContractTest::paintOpFactoryTypeVisibilityAndLifetimeSchemaRemainStable()
@@ -106,6 +114,63 @@ void KisPaintOpFactorySchemaContractTest::paintOpFactoryPrioritySignaturesRemain
     ASSERT_PAINTOP_FACTORY_SIGNATURE(setPriority, void (KisPaintOpFactory::*)(int));
 }
 
+void KisPaintOpFactorySchemaContractTest::brushBasedSettingsTypeAliasAndLifetimeSchemaRemainStable()
+{
+    using Settings = KisBrushBasedPaintOpSettings;
+
+    static_assert(std::is_class_v<Settings>);
+    static_assert(std::is_same_v<KisBrushBasedPaintOpSettingsSP, KisPinnedSharedPtr<Settings>>);
+    static_assert(std::is_constructible_v<Settings, KisResourcesInterfaceSP>);
+    static_assert(std::is_destructible_v<Settings>);
+}
+
+void KisPaintOpFactorySchemaContractTest::brushBasedSettingsBrushOutlineAndCloneSignaturesRemainStable()
+{
+    using Settings = KisBrushBasedPaintOpSettings;
+
+    ASSERT_BRUSH_SETTINGS_SIGNATURE(brush, KisBrushSP (Settings::*)() const);
+    ASSERT_BRUSH_SETTINGS_SIGNATURE(
+        brushOutline,
+        KisOptimizedBrushOutline (Settings::*)(const KisPaintInformation &, const Settings::OutlineMode &, qreal));
+    ASSERT_BRUSH_SETTINGS_SIGNATURE(clone, KisPaintOpSettingsSP (Settings::*)() const);
+}
+
+void KisPaintOpFactorySchemaContractTest::brushBasedSettingsSpacingAndIncrementalSignaturesRemainStable()
+{
+    using Settings = KisBrushBasedPaintOpSettings;
+
+    ASSERT_BRUSH_SETTINGS_SIGNATURE(autoSpacingActive, bool (Settings::*)());
+    ASSERT_BRUSH_SETTINGS_SIGNATURE(autoSpacingCoeff, qreal (Settings::*)());
+    ASSERT_BRUSH_SETTINGS_SIGNATURE(paintIncremental, bool (Settings::*)());
+    ASSERT_BRUSH_SETTINGS_SIGNATURE(setAutoSpacing, void (Settings::*)(bool, qreal));
+    ASSERT_BRUSH_SETTINGS_SIGNATURE(setSpacing, void (Settings::*)(qreal));
+    ASSERT_BRUSH_SETTINGS_SIGNATURE(spacing, qreal (Settings::*)());
+}
+
+void KisPaintOpFactorySchemaContractTest::brushBasedSettingsSizeAndAngleSignaturesRemainStable()
+{
+    using Settings = KisBrushBasedPaintOpSettings;
+
+    ASSERT_BRUSH_SETTINGS_SIGNATURE(paintOpAngle, qreal (Settings::*)() const);
+    ASSERT_BRUSH_SETTINGS_SIGNATURE(paintOpSize, qreal (Settings::*)() const);
+    ASSERT_BRUSH_SETTINGS_SIGNATURE(setPaintOpAngle, void (Settings::*)(qreal));
+    ASSERT_BRUSH_SETTINGS_SIGNATURE(setPaintOpSize, void (Settings::*)(qreal));
+}
+
+void KisPaintOpFactorySchemaContractTest::brushBasedSettingsResourceAndPropertySignaturesRemainStable()
+{
+    using Settings = KisBrushBasedPaintOpSettings;
+
+    ASSERT_BRUSH_SETTINGS_SIGNATURE(hasPatternSettings, bool (Settings::*)() const);
+    ASSERT_BRUSH_SETTINGS_SIGNATURE(regenerateResourceCache, void (Settings::*)(KoResourceCacheInterfaceSP));
+    ASSERT_BRUSH_SETTINGS_SIGNATURE(requiredCanvasResources, QList<int> (Settings::*)() const);
+    ASSERT_BRUSH_SETTINGS_SIGNATURE(setResourceCacheInterface, void (Settings::*)(KoResourceCacheInterfaceSP));
+    ASSERT_BRUSH_SETTINGS_SIGNATURE(
+        uniformProperties,
+        QList<KisUniformPaintOpPropertySP> (Settings::*)(KisPaintOpSettingsSP, QPointer<KisPaintOpPresetUpdateProxy>));
+}
+
+#undef ASSERT_BRUSH_SETTINGS_SIGNATURE
 #undef ASSERT_PAINTOP_FACTORY_SIGNATURE
 
 QTEST_APPLESS_MAIN(KisPaintOpFactorySchemaContractTest)
