@@ -4,6 +4,7 @@
  */
 
 #include "KisDabRenderingJob.h"
+#include "KisDabRenderingQueue.h"
 
 #include <QTest>
 
@@ -27,6 +28,11 @@ private Q_SLOTS:
     void dabRenderingJobStatusSchemaRemainsStable();
     void dabRenderingJobPayloadSchemaRemainsStable();
     void dabRenderingJobRunnerSchemaRemainsStable();
+    void dabRenderingQueueTypeConstructionAndLifetimeSchemaRemainStable();
+    void dabRenderingQueueCacheInterfaceSchemaRemainStable();
+    void dabRenderingQueueSchedulingSignaturesRemainStable();
+    void dabRenderingQueueCacheResourceSignaturesRemainStable();
+    void dabRenderingQueueMetricsSignaturesRemainStable();
 };
 
 void KisDabRenderingJobSchemaContractTest::dabRenderingJobIdentityAndCopySchemaRemainsStable()
@@ -92,6 +98,76 @@ void KisDabRenderingJobSchemaContractTest::dabRenderingJobRunnerSchemaRemainsSta
         KisDabRenderingJobRunner,
         executeOneJob,
         int (*)(KisDabRenderingJob *, KisDabCacheUtils::DabRenderingResources *, KisDabRenderingQueue *));
+
+    QVERIFY(true);
+}
+
+void KisDabRenderingJobSchemaContractTest::dabRenderingQueueTypeConstructionAndLifetimeSchemaRemainStable()
+{
+    using Queue = KisDabRenderingQueue;
+
+    static_assert(std::is_class_v<Queue>);
+    static_assert(std::is_constructible_v<Queue, const KoColorSpace *, KisDabCacheUtils::ResourcesFactory>);
+    static_assert(std::is_destructible_v<Queue>);
+
+    QVERIFY(true);
+}
+
+void KisDabRenderingJobSchemaContractTest::dabRenderingQueueCacheInterfaceSchemaRemainStable()
+{
+    using Cache = KisDabRenderingQueue::CacheInterface;
+    using Resources = KisDabCacheUtils::DabRenderingResources;
+
+    static_assert(std::is_class_v<Cache>);
+    static_assert(std::is_abstract_v<Cache>);
+    static_assert(std::has_virtual_destructor_v<Cache>);
+    ASSERT_DAB_JOB_SIGNATURE(Cache,
+                             getDabType,
+                             void (Cache::*)(bool,
+                                             Resources *,
+                                             const KisDabCacheUtils::DabRequestInfo &,
+                                             KisDabCacheUtils::DabGenerationInfo *,
+                                             bool *));
+    ASSERT_DAB_JOB_SIGNATURE(Cache, hasSeparateOriginal, bool (Cache::*)(Resources *) const);
+
+    QVERIFY(true);
+}
+
+void KisDabRenderingJobSchemaContractTest::dabRenderingQueueSchedulingSignaturesRemainStable()
+{
+    using Queue = KisDabRenderingQueue;
+
+    ASSERT_DAB_JOB_SIGNATURE(Queue,
+                             addDab,
+                             KisDabRenderingJobSP (Queue::*)(const KisDabCacheUtils::DabRequestInfo &, qreal, qreal));
+    ASSERT_DAB_JOB_SIGNATURE(Queue, notifyJobFinished, QList<KisDabRenderingJobSP> (Queue::*)(int, int));
+    ASSERT_DAB_JOB_SIGNATURE(Queue, takeReadyDabs, QList<KisRenderedDab> (Queue::*)(bool, int, bool *));
+
+    QVERIFY(true);
+}
+
+void KisDabRenderingJobSchemaContractTest::dabRenderingQueueCacheResourceSignaturesRemainStable()
+{
+    using Queue = KisDabRenderingQueue;
+    using Cache = Queue::CacheInterface;
+    using Resources = KisDabCacheUtils::DabRenderingResources;
+
+    ASSERT_DAB_JOB_SIGNATURE(Queue, hasPreparedDabs, bool (Queue::*)() const);
+    ASSERT_DAB_JOB_SIGNATURE(Queue, setCacheInterface, void (Queue::*)(Cache *));
+    ASSERT_DAB_JOB_SIGNATURE(Queue, fetchCachedPaintDevice, KisFixedPaintDeviceSP (Queue::*)());
+    ASSERT_DAB_JOB_SIGNATURE(Queue, putResourcesToCache, void (Queue::*)(Resources *));
+    ASSERT_DAB_JOB_SIGNATURE(Queue, fetchResourcesFromCache, Resources * (Queue::*)());
+
+    QVERIFY(true);
+}
+
+void KisDabRenderingJobSchemaContractTest::dabRenderingQueueMetricsSignaturesRemainStable()
+{
+    using Queue = KisDabRenderingQueue;
+
+    ASSERT_DAB_JOB_SIGNATURE(Queue, averageExecutionTime, qreal (Queue::*)() const);
+    ASSERT_DAB_JOB_SIGNATURE(Queue, averageDabSize, int (Queue::*)() const);
+    ASSERT_DAB_JOB_SIGNATURE(Queue, testingGetQueueSize, int (Queue::*)() const);
 
     QVERIFY(true);
 }
