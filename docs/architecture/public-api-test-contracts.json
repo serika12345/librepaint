@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 3128
+    "expectedMissingApis": 3110
   },
   "contracts": [
     {
@@ -73302,6 +73302,69 @@
         "method:KisFilterManager::isIdle() const",
         "method:KisFilterManager::isStrokeRunning() const",
         "method:KisFilterManager::setFilterAllSelectedFrames(bool filterAllSelectedFrames)"
+      ]
+    },
+    {
+      "target": "KisReferenceImageSchemaContractTest",
+      "source": "libs/ui/tests/KisReferenceImageSchemaContractTest.cpp",
+      "test": "KisReferenceImageSchemaContractTest::referenceImagesLayerTypeAndConstructionSchemaRemainStable",
+      "behavior": "参照画像layerは専用共有型を持ち、shape controller・画像または同型から構築できるshape layer境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisReferenceImagesLayerSP",
+        "class:KisReferenceImagesLayer",
+        "method:KisReferenceImagesLayer::KisReferenceImagesLayer(KoShapeControllerBase * shapeController,KisImageWSP image)",
+        "method:KisReferenceImagesLayer::KisReferenceImagesLayer(const KisReferenceImagesLayer & rhs)"
+      ]
+    },
+    {
+      "target": "KisReferenceImageSchemaContractTest",
+      "source": "libs/ui/tests/KisReferenceImageSchemaContractTest.cpp",
+      "test": "KisReferenceImageSchemaContractTest::referenceImagesLayerMutationSignaturesRemainStable",
+      "behavior": "参照画像layerは文書に対する参照画像の追加・削除命令と現在の参照画像一覧を返す公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisReferenceImagesLayer::addReferenceImages(KisDocument * document,QList<KoShape * > referenceImages)",
+        "method:KisReferenceImagesLayer::referenceImages() const",
+        "method:KisReferenceImagesLayer::removeReferenceImages(KisDocument * document,QList<KoShape * > referenceImages)"
+      ]
+    },
+    {
+      "target": "KisReferenceImageSchemaContractTest",
+      "source": "libs/ui/tests/KisReferenceImageSchemaContractTest.cpp",
+      "test": "KisReferenceImageSchemaContractTest::referenceImagesLayerGeometryAndPaintingSignaturesRemainStable",
+      "behavior": "参照画像layerは画像領域と指定位置の色を照会し、painterへ参照画像を描画する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisReferenceImagesLayer::boundingImageRect() const",
+        "method:KisReferenceImagesLayer::getPixel(QPointF position) const",
+        "method:KisReferenceImagesLayer::paintReferences(QPainter & painter)"
+      ]
+    },
+    {
+      "target": "KisReferenceImageSchemaContractTest",
+      "source": "libs/ui/tests/KisReferenceImageSchemaContractTest.cpp",
+      "test": "KisReferenceImageSchemaContractTest::referenceImagesLayerNodeSignaturesRemainStable",
+      "behavior": "参照画像layerは子node可否、2種のvisitor配送、共有node複製、擬似node種別の公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisReferenceImagesLayer::accept(KisNodeVisitor &)",
+        "method:KisReferenceImagesLayer::accept(KisProcessingVisitor & visitor,KisUndoAdapter * undoAdapter)",
+        "method:KisReferenceImagesLayer::allowAsChild(KisNodeSP) const",
+        "method:KisReferenceImagesLayer::clone() const",
+        "method:KisReferenceImagesLayer::isFakeNode() const"
+      ]
+    },
+    {
+      "target": "KisReferenceImageSchemaContractTest",
+      "source": "libs/ui/tests/KisReferenceImageSchemaContractTest.cpp",
+      "test": "KisReferenceImageSchemaContractTest::referenceImagesLayerColorAndNotificationSignaturesRemainStable",
+      "behavior": "参照画像layerは色profile・色空間変換命令とcanvas更新通知の公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisReferenceImagesLayer::convertTo(const KoColorSpace * dstColorSpace,KoColorConversionTransformation::Intent renderingIntent=KoColorConversionTransformation::internalRenderingIntent (),KoColorConversionTransformation::ConversionFlags conversionFlags=KoColorConversionTransformation::internalConversionFlags ())",
+        "method:KisReferenceImagesLayer::setProfile(const KoColorProfile * profile)",
+        "method:KisReferenceImagesLayer::sigUpdateCanvas(const QRectF & rect)"
       ]
     }
   ]

@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-08 21:19 JST
+- 更新日時: 2026-09-08 21:33 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3512,6 +3512,13 @@
 - 既存`libs/ui/tests/KisReferenceImageSchemaContractTest.cpp`は参照画像の表示・永続化境界を所有し、103行・5枠から追加後も300行・20枠未満に収まる。対象はCMake変更なしで4工程・8入力、command SHA-256 `76fb34bc52eadb137f35e8571ad079f7523fbaf48b1569ee482a86d22a5e3cfe`、input SHA-256 `8c1676f01db731710ac7642fb6cecb4c53ec590a19126143e72c38bcad39f275`を維持する。layer、参照画像、shape controller、画像、文書、visitor、painter、色空間とinline複製本文を実体化せず、共有型、型特性、構築可能性、厳密な関数pointerだけで公開境界を観測する。軽量近傍`KisShapeLayerSchemaContractTest`も4工程・8入力である。
 - `g416-reference-images-layer-schema`の状態は`in_progress`、実装基点は`62b7d35dc6`である。開始headerから既存試験sourceの5枠だけへ追加し、CMake、公開header、製品source、製品targetは変更しない。停止線は5工程・11入力とし、新たな探索路・定義・link、製品OBJECT・shared・`kritatestsdk`接続、候補headerのAUTOMOC入力化、製品未解決symbol、対象値または本文の実体化が必要なら候補を保留する。macOSの対象、追加5枠の20回反復、軽量近傍、試験sourceの厳格`clang-check`、書式、二回の無作業再構築、動的接続・未解決symbol、公開API検査、`verify-quick`だけを実行する。製品UI・flake・image target、全体build・`verify`、Linux、Nix再評価は実行しない。
 - 初回コンパイルはshape layerの公開includeが直接読む`kis_icon_utils.h`、次にimage・layer style・pigmentが読む`KoColorConversionTransformation.h`、`psd.h`、Imath `half.h`、`KoPattern.h`、`KoResource.h`の探索路不足で停止した。対象固有CMake節へwidgetutils・pigment・pigment/resources・psdutils・resourcesのsource/generated探索路と必要export定義、Imath header interfaceだけを追加し、動的接続を増やさず4工程・8入力を維持する形へ停止線を改定する。それ以外の探索路・定義・linkが必要なら候補を保留する。
+
+### 第416便の実装結果
+
+- `g416-reference-images-layer-schema`は`completed`である。構築範囲の先行変更では`libs/ui/tests/CMakeLists.txt`内の既存`KisReferenceImageSchemaContractTest`固有節へwidgetutils・pigment・pigment/resources・psdutils・resourcesのsource/generated探索路、必要export定義、Imath header interfaceだけを追加した。対象は4工程・8入力とQt Core・Testだけの動的接続を維持し、構築範囲commitは`7ffbcad53e`である。
+- 開始`libs/ui/flake/KisReferenceImagesLayer.h`から既存`libs/ui/tests/KisReferenceImageSchemaContractTest.cpp`へ18 API・5枠を追加した。layer型・共有型・構築4、参照画像追加・削除・照会3、領域・画素・描画3、node所属・訪問・複製・種別5、色変換・profile・canvas通知3を共有型、型特性、構築可能性、厳密な関数pointerで固定した。試験sourceは166行・10枠で、layer、参照画像、shape controller、画像、文書、visitor、painter、色空間とinline複製本文を実体化していない。compile interface追加後のredは未定義の5検査関数だけで失敗し、契約実装commitは`2b92ce67bf`である。
+- macOSの対象`libs-ui-KisReferenceImageSchemaContractTest`、軽量近傍`libs-ui-KisShapeLayerSchemaContractTest`、対象の20回反復、試験sourceの厳格`clang-check`、書式、AUTOMOC後の二回目計画、二回の無作業再構築に成功した。対象は4工程・8入力、command SHA-256 `0b84d92826fcc38069f3664c86a62a7d7544549c21cfe0fc161eb141e8cc8447`、input SHA-256 `8c1676f01db731710ac7642fb6cecb4c53ec590a19126143e72c38bcad39f275`、AUTOMOC `HEADERS=[]`、製品未解決symbol 0である。製品UI・flake・image target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 台帳へ18 APIを追加して26,694件対応、3,110件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g416.json`と一時計測物を削除し、追加作業tree・構築木は作成していない。主Ninja木5,981,272 KiB、共有compiler cache 981,688 KiB、最新`build/tdd-macos/public-api-missing-g417.json` 842,175 bytes、SHA-256 `2c679d77b0aa5b71d2be6fef44ddb4105a536b43db445694b936cc719346152e`だけを再利用対象として保持する。compiler cacheは144,461件中120,549件、83.45%がhitしている。公開API検査に成功した。次の永続作業は第417便で次の高密度なmacOS対象と最小構築面を選定することである。
 
 ### 第239便の先行監査担当票
 
