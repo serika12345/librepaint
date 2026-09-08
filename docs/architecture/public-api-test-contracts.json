@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 3342
+    "expectedMissingApis": 3327
   },
   "contracts": [
     {
@@ -72566,6 +72566,66 @@
       "apis": [
         "method:KisBundleStorage::exportResource(const QString & url,QIODevice * device)",
         "method:KisBundleStorage::saveAsNewVersion(const QString & resourceType,KoResourceSP resource)"
+      ]
+    },
+    {
+      "target": "KisGaussianKernelSchemaContractTest",
+      "source": "libs/image/tests/KisGaussianKernelSchemaContractTest.cpp",
+      "test": "KisGaussianKernelSchemaContractTest::typeAndRadiusConversionSchemaRemainStable",
+      "behavior": "Gaussian kernel生成器は公開型と半径からsigma・奇数kernel寸法へ変換する境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisGaussianKernel",
+        "method:KisGaussianKernel::kernelSizeFromRadius(qreal radius)",
+        "method:KisGaussianKernel::sigmaFromRadius(qreal radius)"
+      ]
+    },
+    {
+      "target": "KisGaussianKernelSchemaContractTest",
+      "source": "libs/image/tests/KisGaussianKernelSchemaContractTest.cpp",
+      "test": "KisGaussianKernelSchemaContractTest::horizontalAndVerticalMatrixSignaturesRemainStable",
+      "behavior": "Gaussian kernel生成器は半径から水平・垂直の係数行列を生成する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisGaussianKernel::createHorizontalMatrix(qreal radius)",
+        "method:KisGaussianKernel::createVerticalMatrix(qreal radius)"
+      ]
+    },
+    {
+      "target": "KisGaussianKernelSchemaContractTest",
+      "source": "libs/image/tests/KisGaussianKernelSchemaContractTest.cpp",
+      "test": "KisGaussianKernelSchemaContractTest::convolutionKernelFactorySignaturesRemainStable",
+      "behavior": "Gaussian kernel生成器は水平・垂直・二次元の畳込みkernelを生成する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisGaussianKernel::createHorizontalKernel(qreal radius)",
+        "method:KisGaussianKernel::createUniform2DKernel(qreal xRadius,qreal yRadius)",
+        "method:KisGaussianKernel::createVerticalKernel(qreal radius)"
+      ]
+    },
+    {
+      "target": "KisGaussianKernelSchemaContractTest",
+      "source": "libs/image/tests/KisGaussianKernelSchemaContractTest.cpp",
+      "test": "KisGaussianKernelSchemaContractTest::logAndDilateMatrixApplicationSignaturesRemainStable",
+      "behavior": "Gaussian kernel生成器はLoG・tight LoG適用とLoG・膨張行列生成の公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisGaussianKernel::applyLoG(KisPaintDeviceSP device,const QRect & rect,qreal radius,qreal coeff,const QBitArray & channelFlags,KoUpdater * progressUpdater)",
+        "method:KisGaussianKernel::applyTightLoG(KisPaintDeviceSP device,const QRect & rect,qreal radius,qreal coeff,const QBitArray & channelFlags,KoUpdater * progressUpdater)",
+        "method:KisGaussianKernel::createDilateMatrix(qreal radius)",
+        "method:KisGaussianKernel::createLoGMatrix(qreal radius,qreal coeff,bool zeroCentered,bool includeWrappedArea)"
+      ]
+    },
+    {
+      "target": "KisGaussianKernelSchemaContractTest",
+      "source": "libs/image/tests/KisGaussianKernelSchemaContractTest.cpp",
+      "test": "KisGaussianKernelSchemaContractTest::gaussianDilateAndErodeApplicationSignaturesRemainStable",
+      "behavior": "Gaussian kernel生成器は指定領域へのGaussian・膨張・8 bit収縮適用の公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisGaussianKernel::applyDilate(KisPaintDeviceSP device,const QRect & rect,qreal radius,const QBitArray & channelFlags,KoUpdater * progressUpdater,bool createTransaction=false)",
+        "method:KisGaussianKernel::applyErodeU8(KisPaintDeviceSP device,const QRect & rect,qreal radius,const QBitArray & channelFlags,KoUpdater * progressUpdater,bool createTransaction=false)",
+        "method:KisGaussianKernel::applyGaussian(KisPaintDeviceSP device,const QRect & rect,qreal xRadius,qreal yRadius,const QBitArray & channelFlags,KoUpdater * updater,bool createTransaction=false,KisConvolutionBorderOp borderOp=BORDER_REPEAT)"
       ]
     }
   ]
