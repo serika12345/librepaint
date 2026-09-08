@@ -150,6 +150,7 @@ kis_add_test(
 target_include_directories(KisMainWindowSchemaContractTest PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/..
     ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs
     ${CMAKE_SOURCE_DIR}/libs/flake
     ${CMAKE_BINARY_DIR}/libs/flake
     ${CMAKE_SOURCE_DIR}/libs/global
