@@ -5,6 +5,7 @@
 
 #include "kis_asl_layer_style_serializer.h"
 #include "kis_psd_layer_style.h"
+#include "layerstyles/kis_ls_utils.h"
 
 #include <QTest>
 
@@ -14,6 +15,14 @@
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisPSDLayerStyle::method)), signature>)
 #define ASSERT_ASL_LAYER_STYLE_SERIALIZER_SIGNATURE(method, signature)                                                 \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisAslLayerStyleSerializer::method)), signature>)
+#define ASSERT_LAYER_STYLE_UTILS_SIGNATURE(function, signature)                                                        \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KisLsUtils::function)), signature>)
+
+struct LayerStyleLodConfigProbe {
+    void scaleLinearSizes(qreal)
+    {
+    }
+};
 
 class KisPSDLayerStyleSchemaContractTest : public QObject
 {
@@ -30,6 +39,11 @@ private Q_SLOTS:
     void aslLayerStyleSerializerCollectionSignaturesRemainStable();
     void aslLayerStyleSerializerPatternAndGradientSignaturesRemainStable();
     void aslLayerStyleSerializerResourceLoadingSignaturesRemainStable();
+    void layerStyleConstantsAndLodWrapperSchemaRemainStable();
+    void layerStyleSelectionAndGeometrySignaturesRemainStable();
+    void layerStyleAdjustmentSignaturesRemainStable();
+    void layerStyleKnockoutAndFillSignaturesRemainStable();
+    void layerStyleFinalSelectionAndEffectSignaturesRemainStable();
 };
 
 void KisPSDLayerStyleSchemaContractTest::psdLayerStyleTypeAndLifetimeSchemaRemainStable()
@@ -192,6 +206,86 @@ void KisPSDLayerStyleSchemaContractTest::aslLayerStyleSerializerResourceLoadingS
     QVERIFY(true);
 }
 
+void KisPSDLayerStyleSchemaContractTest::layerStyleConstantsAndLodWrapperSchemaRemainStable()
+{
+    using Wrapper = KisLsUtils::LodWrapper<LayerStyleLodConfigProbe>;
+
+    static_assert(std::is_same_v<decltype(KisLsUtils::FULL_PERCENT_RANGE), const int>);
+    static_assert(KisLsUtils::FULL_PERCENT_RANGE == 100);
+    static_assert(std::is_same_v<decltype(KisLsUtils::noiseNeedBorder), const int>);
+    static_assert(std::is_class_v<Wrapper>);
+    static_assert(std::is_constructible_v<Wrapper, int, const LayerStyleLodConfigProbe *>);
+    static_assert(std::is_same_v<decltype(&Wrapper::config), const LayerStyleLodConfigProbe * Wrapper::*>);
+
+    QVERIFY(true);
+}
+
+void KisPSDLayerStyleSchemaContractTest::layerStyleSelectionAndGeometrySignaturesRemainStable()
+{
+    ASSERT_LAYER_STYLE_UTILS_SIGNATURE(growSelectionUniform, QRect (*)(KisPixelSelectionSP, int, const QRect &));
+    ASSERT_LAYER_STYLE_UTILS_SIGNATURE(selectionFromAlphaChannel,
+                                       void (*)(KisPaintDeviceSP, KisSelectionSP, const QRect &));
+    ASSERT_LAYER_STYLE_UTILS_SIGNATURE(findEdge, void (*)(KisPixelSelectionSP, const QRect &, const bool));
+    ASSERT_LAYER_STYLE_UTILS_SIGNATURE(growRectFromRadius, QRect (*)(const QRect &, int));
+
+    QVERIFY(true);
+}
+
+void KisPSDLayerStyleSchemaContractTest::layerStyleAdjustmentSignaturesRemainStable()
+{
+    ASSERT_LAYER_STYLE_UTILS_SIGNATURE(applyGaussianWithTransaction,
+                                       void (*)(KisPixelSelectionSP, const QRect &, qreal));
+    ASSERT_LAYER_STYLE_UTILS_SIGNATURE(adjustRange, void (*)(KisPixelSelectionSP, const QRect &, const int));
+    ASSERT_LAYER_STYLE_UTILS_SIGNATURE(applyContourCorrection,
+                                       void (*)(KisPixelSelectionSP, const QRect &, const quint8 *, bool, bool));
+    ASSERT_LAYER_STYLE_UTILS_SIGNATURE(applyNoise,
+                                       void (*)(KisPixelSelectionSP,
+                                                const QRect &,
+                                                int,
+                                                const psd_layer_effects_context *,
+                                                KisLayerStyleFilterEnvironment *));
+
+    QVERIFY(true);
+}
+
+void KisPSDLayerStyleSchemaContractTest::layerStyleKnockoutAndFillSignaturesRemainStable()
+{
+    ASSERT_LAYER_STYLE_UTILS_SIGNATURE(
+        knockOutSelection,
+        void (*)(KisPixelSelectionSP, KisPixelSelectionSP, const QRect &, const QRect &, const QRect &, const bool));
+    ASSERT_LAYER_STYLE_UTILS_SIGNATURE(
+        fillPattern,
+        void (*)(KisPaintDeviceSP, const QRect &, KisLayerStyleFilterEnvironment *, int, KoPatternSP, int, int, bool));
+    ASSERT_LAYER_STYLE_UTILS_SIGNATURE(fillOverlayDevice,
+                                       void (*)(KisPaintDeviceSP,
+                                                const QRect &,
+                                                const psd_layer_effects_overlay_base *,
+                                                KisResourcesInterfaceSP,
+                                                KisLayerStyleFilterEnvironment *));
+
+    QVERIFY(true);
+}
+
+void KisPSDLayerStyleSchemaContractTest::layerStyleFinalSelectionAndEffectSignaturesRemainStable()
+{
+    ASSERT_LAYER_STYLE_UTILS_SIGNATURE(applyFinalSelection,
+                                       void (*)(const QString &,
+                                                KisSelectionSP,
+                                                KisPaintDeviceSP,
+                                                KisMultipleProjection *,
+                                                const QRect &,
+                                                const QRect &,
+                                                const psd_layer_effects_context *,
+                                                const psd_layer_effects_shadow_base *,
+                                                KisResourcesInterfaceSP,
+                                                const KisLayerStyleFilterEnvironment *));
+    ASSERT_LAYER_STYLE_UTILS_SIGNATURE(checkEffectEnabled,
+                                       bool (*)(const psd_layer_effects_shadow_base *, KisMultipleProjection *));
+
+    QVERIFY(true);
+}
+
+#undef ASSERT_LAYER_STYLE_UTILS_SIGNATURE
 #undef ASSERT_ASL_LAYER_STYLE_SERIALIZER_SIGNATURE
 #undef ASSERT_PSD_LAYER_STYLE_SIGNATURE
 
