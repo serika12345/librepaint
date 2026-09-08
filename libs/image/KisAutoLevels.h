@@ -12,7 +12,7 @@
 #include <QVector>
 
 #include <KoColor.h>
-#include <kis_paint_device.h>
+#include <kis_types.h>
 #include <KisLevelsCurve.h>
 #include <kritaimage_export.h>
 
