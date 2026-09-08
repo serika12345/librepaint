@@ -16,6 +16,9 @@ namespace
 
 #define ASSERT_PROPERTIES_CONFIGURATION_SIGNATURE(method, ...)                                                         \
     static_assert(std::is_same_v<decltype(static_cast<__VA_ARGS__>(&KisPropertiesConfiguration::method)), __VA_ARGS__>)
+#define ASSERT_PROPERTIES_CONFIGURATION_FACTORY_SIGNATURE(method, ...)                                                 \
+    static_assert(                                                                                                     \
+        std::is_same_v<decltype(static_cast<__VA_ARGS__>(&KisPropertiesConfigurationFactory::method)), __VA_ARGS__>)
 #define ASSERT_FILTER_CONFIGURATION_SIGNATURE(method, ...)                                                             \
     static_assert(std::is_same_v<decltype(static_cast<__VA_ARGS__>(&KisFilterConfiguration::method)), __VA_ARGS__>)
 
@@ -31,6 +34,8 @@ private Q_SLOTS:
     void prefixedPropertyTransferSignaturesRemainStable();
     void propertyXmlSerializationSignaturesRemainStable();
     void propertyKeyAndStringEncodingSignaturesRemainStable();
+    void propertiesConfigurationConstructionLifetimeAndDiagnosticsSchemaRemainStable();
+    void propertiesConfigurationFactoryTypeLifetimeAndCreationSignaturesRemainStable();
     void filterConfigurationTypeAndLifetimeSchemaRemainStable();
     void filterConfigurationIdentityAndChannelSignaturesRemainStable();
     void filterConfigurationSerializationSignaturesRemainStable();
@@ -168,6 +173,36 @@ void KisPropertiesConfigurationSchemaContractTest::propertyKeyAndStringEncodingS
 }
 
 // clang-format off
+void KisPropertiesConfigurationSchemaContractTest::propertiesConfigurationConstructionLifetimeAndDiagnosticsSchemaRemainStable()
+// clang-format on
+{
+    using Configuration = KisPropertiesConfiguration;
+
+    static_assert(std::is_default_constructible_v<Configuration>);
+    static_assert(std::is_copy_constructible_v<Configuration>);
+    static_assert(std::has_virtual_destructor_v<Configuration>);
+    ASSERT_PROPERTIES_CONFIGURATION_SIGNATURE(operator=, Configuration & (Configuration::*)(const Configuration &));
+    ASSERT_PROPERTIES_CONFIGURATION_SIGNATURE(dump, void (Configuration::*)() const);
+
+    QVERIFY(true);
+}
+
+// clang-format off
+void KisPropertiesConfigurationSchemaContractTest::propertiesConfigurationFactoryTypeLifetimeAndCreationSignaturesRemainStable()
+// clang-format on
+{
+    using Factory = KisPropertiesConfigurationFactory;
+
+    static_assert(std::is_class_v<Factory>);
+    static_assert(std::is_base_of_v<KisSerializableConfigurationFactory, Factory>);
+    static_assert(std::is_default_constructible_v<Factory>);
+    static_assert(std::has_virtual_destructor_v<Factory>);
+    ASSERT_PROPERTIES_CONFIGURATION_FACTORY_SIGNATURE(createDefault, KisSerializableConfigurationSP (Factory::*)());
+    ASSERT_PROPERTIES_CONFIGURATION_FACTORY_SIGNATURE(create,
+                                                      KisSerializableConfigurationSP (Factory::*)(const QDomElement &));
+}
+
+// clang-format off
 void KisPropertiesConfigurationSchemaContractTest::filterConfigurationTypeAndLifetimeSchemaRemainStable()
 // clang-format on
 {
@@ -247,5 +282,7 @@ void KisPropertiesConfigurationSchemaContractTest::filterConfigurationRequiredRe
 }
 
 QTEST_MAIN(KisPropertiesConfigurationSchemaContractTest)
+
+#undef ASSERT_PROPERTIES_CONFIGURATION_FACTORY_SIGNATURE
 
 #include "KisPropertiesConfigurationSchemaContractTest.moc"
