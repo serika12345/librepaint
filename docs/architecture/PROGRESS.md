@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 05:25 JST
+- 更新日時: 2026-09-09 05:29 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3995,6 +3995,12 @@
 - 試験sourceは237行・14枠で、walker、projection leaf、nodeと走査本文は実体化していない。既存targetは4工程・8入力、command SHA-256 `44385decd9b30fadb1d78c7fc6b3f59148336211bc4003f256fb2ee8b8f9c24e`、input SHA-256 `da762dfa8f05ff1fc4b849ec24891cdefab1f7eb9376a623268e4277511c4271`を変更前から維持した。AUTOMOC `HEADERS=[]`、直接接続はQt Core・Gui・Test、製品未解決記号0である。CMake、公開header、製品sourceを変更していない。
 - macOSで対象、軽量近傍`KisNodeFacadeSchemaContractTest`、対象の20回反復、試験sourceの`clang-check --extra-arg=-Werror`と書式、連続二回の無作業再構築に成功した。既存動的walker試験、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 台帳は27,219件対応、2,585件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g453.json`を削除し、追加作業tree・構築木・一時計画物は作成していない。主Ninja木5,994,336 KiB、共有compiler cache 983,296 KiB、最新`build/tdd-macos/public-api-missing-g454.json` 704,153 bytes、SHA-256 `1f10c53f305d2b37eb506e1e9b1ac0837a6c135416f0d22aca84054f19438b25`だけを再利用対象として保持する。compiler cacheは144,576件中120,563件、83.39%がhitしている。次の永続作業は第454便で最新報告から高密度なmacOS対象と最小構築面を選定することである。
+
+### 第454便の公開API契約計画
+
+- 第454便は`libs/image/brushengine/kis_paintop_registry.h`に残る全12 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g454.json`は公開header 1,548、公開API 29,804、対応済み27,219、未対応2,585、704,153 bytes、SHA-256 `1f10c53f305d2b37eb506e1e9b1ac0837a6c135416f0d22aca84054f19438b25`である。対象識別子整列集合のSHA-256は`26992dd4a39227ab80aab4f56ad5a49766bc94b296716bd1cdaaae009c874d46`で、型・構築・寿命・singleton・資源loader登録5、paintop・interstroke生成2、設定・既定preset・icon・ID列4、X11事前初期化1の4枠へ固定する。
+- 既存`libs/image/tests/KisPaintOpPresetSchemaContractTest.cpp`は163行・9枠で、4枠追加後も300行・20枠未満に収まり、presetからpaintop実装・設定・資源への生成境界を所有する。同targetは4工程・8入力、command SHA-256 `0c32b72c9110304c0414146d4d0562b3228d14528e0f816521f51274008446d8`、input SHA-256 `d5fef47757220ffdb67b7e99cf6d1dd2d81f2ec0ff9972a54d3b3b8614760b9f`で、既にregistry headerのpaintop・factory・settings・preset依存を解析する。公開headerのinclude整理はこの対象閉包を縮めず、多数の製品利用元へ別変更を波及させるため今回の先行変更から除外する。新規targetも同じheader閉包へCMake登録と生成物を増やすため棄却する。
+- macOSでは`preinitializePaintOpIfNeeded()`がX11条件で宣言から外れるため、試験source内だけで`HAVE_THREADED_TEXT_RENDERING_WORKAROUND`を候補headerの直前に定義し、include直後に解除して条件署名を固定する。製品構成・実行対象は変えない。開始headerから既存試験sourceの4枠だけへ追加し、CMake、公開header、製品sourceは変更しない。停止線は5工程・11入力とし、新たな探索路・定義・link、AUTOMOC header入力、製品未解決記号、registry・singleton・factory・preset・資源または本文の実体化が必要なら停止する。macOSの対象、追加4枠の20回反復、軽量近傍、試験sourceの厳格構文、書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
 
 ### 第239便の先行監査担当票
 
