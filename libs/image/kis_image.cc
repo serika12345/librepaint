@@ -35,6 +35,7 @@
 #include "kis_projection_leaf.h"
 #include "kis_painter.h"
 #include "kis_selection.h"
+#include "kis_selection_mask.h"
 #include "kis_transaction.h"
 #include "kis_meta_data_merge_strategy.h"
 #include "kis_memory_statistics_server.h"
