@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-08 17:10 JST
+- 更新日時: 2026-09-08 17:15 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3257,6 +3257,12 @@
 - `g395-cached-paint-device-schema`は`completed`である。開始`libs/image/kis_cached_paint_device.h`から既存`libs/image/tests/KisPaintDeviceSchemaContractTest.cpp`へ18 API・5枠を追加した。試験sourceは275行・17枠となり、cache型4、paint device cache操作4、paint device guard 4、selection cache操作3、selection guard 3を型特性と厳密な関数pointerで固定した。cache、paint device、selection、色空間とinline本文は実体化していない。契約実装commitは`5c80db705f`である。
 - 初回限定構築は対象headerが`kis_selection.h`経由で直接使う`QPainterPath`の探索路不足を診断した。対象固有`libs/image/tests/CMakeLists.txt`へQt Gui interface探索路だけを追加して解消し、動的接続は増やさなかった。macOSで対象`libs-image-KisPaintDeviceSchemaContractTest`と近傍`libs-image-KisSafeNodeProjectionStoreSchemaContractTest`、対象の20回反復、試験sourceの厳格`clang-check`、書式、二回の無作業再構築に成功した。4工程・8入力、command SHA-256 `b9db6c26c6250c25209a0e184f3c63c1a524df8861e287355d9eb641af488de3`、input SHA-256 `0308928adcf91329ac415fc1656db826bb16b475a8c0753a57974d576891853d`、AUTOMOC `HEADERS=[]`、Qt Core・Testだけの動的接続、cache製品未解決記号0である。製品image・OBJECT・shared target、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 台帳へ18 APIを追加して26,349件対応、3,455件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g395.json`を最新報告の検証後に削除し、追加作業tree・構築木は作成していない。主Ninja木5,968,628 KiB、共有compiler cache 982,244 KiB、最新`build/tdd-macos/public-api-missing-g396.json` 937,586 bytes、SHA-256 `3621496b195cce9267cfedbcdbfd37c85b38a73120786f7b7eab403de4c7a77e`だけを再利用対象として保持する。compiler cacheは144,370件中120,529件、83.49%がhitしている。次の永続作業は第396便で次の高密度なmacOS対象と最小構築面を選定することである。
+
+### 第396便の公開API契約計画
+
+- 第396便は`libs/image/kis_count_visitor.h`の`KisCountVisitor`に残る全15 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g396.json`は公開header 1,548、公開API 29,804、対応済み26,349、未対応3,455、937,586 bytes、SHA-256 `3621496b195cce9267cfedbcdbfd37c85b38a73120786f7b7eab403de4c7a77e`である。対象識別子整列集合のSHA-256は`66063c2aed669379a39825ea628b199cb7ff9c4e8ad9c6e92e33e094c74207c4`で、型・構築・件数3、通常layer visit 3、生成・外部・複製layer visit 3、filter・変形・透明mask visit 3、selection・colorize mask visit 3の5枠へ固定する。
+- 既存動的`kis_count_visitor_test`は製品`kritaimage`へ接続する1,201工程・2,425入力のため反復対象から除外する。開始headerは12種の具体layer・mask完全型をinline `visit()`から`KisNode *`へ変換するため全利用元へ伝播させ、構築・件数照会もinlineである。構造先行変更では開始`libs/image/kis_count_visitor.h`の構築・件数照会・12 `visit()`本文を既存`libs/image/kis_count_visitor.cpp`へ移し、具体layer・mask includeも同実装へ移す。公開headerは`QStringList`・`KoProperties`値member、`kis_node_visitor.h`と同基底の前方宣言だけを所有する。公開宣言・ABI・実行順を変えず、構成済み`kis_count_visitor.cpp`、`kis_image.cc`、`kis_count_visitor_test.cpp`の変更前後厳格診断一致と公開API報告byte一致を完了条件とする。
+- 新規`libs/image/tests/KisCountVisitorSchemaContractTest.cpp`と専用targetを作り、image・widgetutilsのsource/generated探索路、必要export定義、Qt Core・Testだけを直接接続する4工程・8入力を予測し、停止線を5工程・11入力とする。`g396-count-visitor-schema`の状態は`in_progress`、実装基点は`6f1956f325`である。構造変更を独立commit後、macOSの対象、5枠の20回反復、軽量近傍、3直接翻訳単位と試験sourceの厳格`clang-check`、書式、二回の無作業再構築、動的接続・未解決symbol、公開API検査、`verify-quick`だけを実行する。node・layer・mask・propertiesは実体化せず、製品image・OBJECT・shared target、既存動的試験、全体build・`verify`、Linux、Nix再評価は実行しない。
 
 ### 第239便の先行監査担当票
 
