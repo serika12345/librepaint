@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 3369
+    "expectedMissingApis": 3355
   },
   "contracts": [
     {
@@ -72449,6 +72449,65 @@
       "apis": [
         "function:KisAutoLevels::adjustMonochromaticContrast(ChannelHistogram lightnessHistogram,QVector<ChannelHistogram> & channelsHistograms,qreal shadowsClipping,qreal highlightsClipping,qreal maximumInputBlackAndWhiteOffset,MidtonesAdjustmentMethod midtonesAdjustmentMethod,qreal midtonesAdjustmentAmount,const QVector<qreal> & outputBlackPoints,const QVector<qreal> & outputWhitePoints,const QVector<qreal> & outputMidtones)",
         "function:KisAutoLevels::adjustPerChannelContrast(QVector<ChannelHistogram> & channelsHistograms,qreal shadowsClipping,qreal highlightsClipping,qreal maximumInputBlackAndWhiteOffset,MidtonesAdjustmentMethod midtonesAdjustmentMethod,qreal midtonesAdjustmentAmount,const QVector<qreal> & outputBlackPoints,const QVector<qreal> & outputWhitePoints,const QVector<qreal> & outputMidtones)"
+      ]
+    },
+    {
+      "target": "KisResourceLoaderSchemaContractTest",
+      "source": "libs/resources/tests/KisResourceLoaderSchemaContractTest.cpp",
+      "test": "KisResourceLoaderSchemaContractTest::registryTypeLifetimeAndInstanceSchemaRemainStable",
+      "behavior": "資源loader登録簿は共有instanceを提供し、QObjectと汎用登録簿を介した仮想寿命境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisResourceLoaderRegistry",
+        "method:KisResourceLoaderRegistry::instance()",
+        "method:KisResourceLoaderRegistry::~KisResourceLoaderRegistry()"
+      ]
+    },
+    {
+      "target": "KisResourceLoaderSchemaContractTest",
+      "source": "libs/resources/tests/KisResourceLoaderSchemaContractTest.cpp",
+      "test": "KisResourceLoaderSchemaContractTest::registryLoaderRegistrationAndLookupSignaturesRemainStable",
+      "behavior": "資源loader登録簿はloaderを登録し、資源種別とMIME形式から検索する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisResourceLoaderRegistry::loader(const QString & resourceType,const QString & mimetype) const",
+        "method:KisResourceLoaderRegistry::registerLoader(KisResourceLoaderBase * loader)"
+      ]
+    },
+    {
+      "target": "KisResourceLoaderSchemaContractTest",
+      "source": "libs/resources/tests/KisResourceLoaderSchemaContractTest.cpp",
+      "test": "KisResourceLoaderSchemaContractTest::registryFormatAndResourceTypeSignaturesRemainStable",
+      "behavior": "資源loader登録簿は資源種別ごとの拡張子、MIME形式、loader群と登録済み種別を照会する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisResourceLoaderRegistry::filters(const QString & resourceType) const",
+        "method:KisResourceLoaderRegistry::mimeTypes(const QString & resourceType) const",
+        "method:KisResourceLoaderRegistry::resourceTypeLoaders(const QString & resourceType) const",
+        "method:KisResourceLoaderRegistry::resourceTypes() const"
+      ]
+    },
+    {
+      "target": "KisResourceLoaderSchemaContractTest",
+      "source": "libs/resources/tests/KisResourceLoaderSchemaContractTest.cpp",
+      "test": "KisResourceLoaderSchemaContractTest::registryFixupTypeLifetimeAndExecutionSchemaRemainStable",
+      "behavior": "資源cache修復処理は仮想寿命と診断一覧を返す実行境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisResourceLoaderRegistry::ResourceCacheFixup::executeFix()",
+        "method:KisResourceLoaderRegistry::ResourceCacheFixup::~ResourceCacheFixup()",
+        "struct:KisResourceLoaderRegistry::ResourceCacheFixup"
+      ]
+    },
+    {
+      "target": "KisResourceLoaderSchemaContractTest",
+      "source": "libs/resources/tests/KisResourceLoaderSchemaContractTest.cpp",
+      "test": "KisResourceLoaderSchemaContractTest::registryFixupRegistrationAndExecutionSignaturesRemainStable",
+      "behavior": "資源loader登録簿は優先度付き修復処理を登録し、一括実行結果を返す公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisResourceLoaderRegistry::executeAllFixups()",
+        "method:KisResourceLoaderRegistry::registerFixup(int priority,ResourceCacheFixup * fixup)"
       ]
     }
   ]

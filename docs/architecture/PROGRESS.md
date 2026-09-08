@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-08 18:40 JST
+- 更新日時: 2026-09-08 18:47 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3337,6 +3337,12 @@
 - 第402便は`libs/resources/KisResourceLoaderRegistry.h`に残る全14 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g402.json`は公開header 1,548、公開API 29,804、対応済み26,435、未対応3,369、914,052 bytes、SHA-256 `a4f16575f6f40b0c00e17dafb61ede2ad366eea9926373d381ab4f1feeeb8b12`である。対象識別子整列集合のSHA-256は`b042af9f04dfc1eb8f3702d0a106c4413d8faf679b0e5d083dd6e5ba69e1b6a6`で、登録簿型・寿命・取得3、loader登録・検索2、形式・種別照会4、修復型・寿命・実行3、修復登録・一括実行2の5枠へ固定する。
 - 直前に新設した`libs/resources/tests/KisResourceLoaderSchemaContractTest.cpp`はloaderと登録簿の一責務を所有し、100行・4枠から5枠追加後も300行・20枠未満に収まる。既存compile interfaceがregistryのresources・global依存を満たすため、CMake変更なしで4工程・8入力を維持する。製品登録簿、loader、修復処理を実体化せず、型特性と厳密な関数pointerだけで公開境界を観測する。
 - `g402-resource-loader-registry-schema`の状態は`in_progress`、実装基点は`3cbddbe9c7`である。開始headerから既存試験sourceの5枠だけへ追加し、CMake、公開header、製品sourceは変更しない。macOSの対象、追加5枠の20回反復、軽量近傍、試験sourceの厳格`clang-check`、書式、二回の無作業再構築、動的接続・未解決symbol、公開API検査、`verify-quick`だけを実行する。製品resources・OBJECT・shared target、動的登録簿試験、全体build・`verify`、Linux、Nix再評価は実行しない。
+
+### 第402便の実装結果
+
+- `g402-resource-loader-registry-schema`は`completed`である。開始`libs/resources/KisResourceLoaderRegistry.h`から既存`libs/resources/tests/KisResourceLoaderSchemaContractTest.cpp`へ14 API・5枠を追加した。登録簿型・寿命・取得3、loader登録・検索2、形式・種別照会4、修復型・寿命・実行3、修復登録・一括実行2を型特性と厳密な関数pointerで固定した。試験sourceは158行・9枠で、登録簿、loader、修復処理、製品本文は実体化していない。初回redは未定義の5検査関数だけで失敗し、契約実装commitは`9b61358296`である。
+- CMake変更なしで、macOSの対象`libs-resources-KisResourceLoaderSchemaContractTest`、軽量近傍`libs-resources-KisResourceIteratorSchemaContractTest`、対象の20回反復、試験sourceの厳格`clang-check`、書式、二回の無作業再構築に成功した。4工程・8入力、command SHA-256 `b97c0a2ec12378fa128e19ae06a46874dd5cb2a8515d7e32c070a1ecf4b2f0e5`、input SHA-256 `17dade2e277da25d620bae254da61d24b8a421c85cd9d742fbda185318592ee5`、AUTOMOC `HEADERS=[]`、直接接続はQt Core・Testとheader-only Boost、製品未解決symbol 0である。動的登録簿試験と製品resources targetは実行していない。
+- 台帳へ14 APIを追加して26,449件対応、3,355件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g402.json`と一時計測物を削除し、追加作業tree・構築木は作成していない。主Ninja木5,977,604 KiB、共有compiler cache 982,548 KiB、最新`build/tdd-macos/public-api-missing-g403.json` 910,186 bytes、SHA-256 `4e25e94316ac1a987a2c66297ff68d7d3900a4a24168d13eb5e500b73a31661d`だけを再利用対象として保持する。compiler cacheは144,398件中120,532件、83.47%がhitしている。次の永続作業は第403便で次の高密度なmacOS対象と最小構築面を選定することである。
 
 ### 第239便の先行監査担当票
 
