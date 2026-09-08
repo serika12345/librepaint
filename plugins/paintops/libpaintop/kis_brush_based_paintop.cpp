@@ -8,6 +8,7 @@
 #include <brushengine/kis_paintop_settings.h>
 #include "kis_brush_based_paintop_settings.h"
 #include "kis_brush_option.h"
+#include "kis_dab_cache.h"
 #include "KisSpacingOption.h"
 #include "kis_painter.h"
 #include <kis_lod_transform.h>

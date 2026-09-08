@@ -6,10 +6,11 @@
 #ifndef KIS_BRUSH_BASED_PAINTOP_H
 #define KIS_BRUSH_BASED_PAINTOP_H
 
+#include <QList>
+#include <QSharedPointer>
+
 #include "kritapaintop_export.h"
 #include <brushengine/kis_paintop.h>
-#include "kis_dab_cache.h"
-#include "kis_brush.h"
 #include "kis_texture_option.h"
 #include "kis_precision_option.h"
 #include <kis_threaded_text_rendering_workaround.h>
@@ -18,8 +19,12 @@
 class KisPropertiesConfiguration;
 class KisDabCache;
 class KisResourcesInterface;
+class KisBrush;
+class KoResourceLoadResult;
 struct KisAirbrushOptionData;
 class KisSpacingOption;
+
+using KisBrushSP = QSharedPointer<KisBrush>;
 
 /// Internal
 class TextBrushInitializationWorkaround

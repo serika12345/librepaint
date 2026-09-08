@@ -23,6 +23,7 @@
 #include <filter/kis_filter.h>
 #include <filter/kis_filter_configuration.h>
 #include <kis_brush.h>
+#include <kis_dab_cache.h>
 #include <kis_global.h>
 #include <kis_painter.h>
 #include <kis_paint_device.h>

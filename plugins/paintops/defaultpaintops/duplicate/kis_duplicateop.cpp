@@ -30,6 +30,7 @@
 
 #include <kis_brush.h>
 #include <kis_datamanager.h>
+#include <kis_dab_cache.h>
 #include <kis_global.h>
 #include <kis_paint_device.h>
 #include <kis_painter.h>
