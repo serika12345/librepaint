@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 3685
+    "expectedMissingApis": 3659
   },
   "contracts": [
     {
@@ -71395,6 +71395,77 @@
         "method:KisFavoriteResourceManager::sigSetBGColor(const KoColor & c)",
         "method:KisFavoriteResourceManager::sigSetFGColor(const KoColor & c)",
         "method:KisFavoriteResourceManager::updatePalettes()"
+      ]
+    },
+    {
+      "target": "KisPopupPaletteSchemaContractTest",
+      "source": "libs/ui/tests/KisPopupPaletteSchemaContractTest.cpp",
+      "test": "KisPopupPaletteSchemaContractTest::cachedPresetLayoutSchemaRemainsStable",
+      "behavior": "popup paletteのpreset配置値はring数と三列分の半径・位置の型および既定値を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:CachedPresetLayout::firstRowPos",
+        "member:CachedPresetLayout::firstRowRadius",
+        "member:CachedPresetLayout::ringCount",
+        "member:CachedPresetLayout::secondRowPos",
+        "member:CachedPresetLayout::secondRowRadius",
+        "member:CachedPresetLayout::thirdRowPos",
+        "member:CachedPresetLayout::thirdRowRadius",
+        "struct:CachedPresetLayout"
+      ]
+    },
+    {
+      "target": "KisPopupPaletteSchemaContractTest",
+      "source": "libs/ui/tests/KisPopupPaletteSchemaContractTest.cpp",
+      "test": "KisPopupPaletteSchemaContractTest::popupPaletteTypeLifetimeAndSizeSchemaRemainStable",
+      "behavior": "popup paletteはwidget・popup interfaceとしての型、構築、多態的破棄と推奨寸法の境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisPopupPalette",
+        "method:KisPopupPalette::KisPopupPalette(KisViewManager *,KisCoordinatesConverter *,KisFavoriteResourceManager *,const KoColorDisplayRendererInterface * displayRenderer,QWidget * parent=0)",
+        "method:KisPopupPalette::sizeHint() const",
+        "method:KisPopupPalette::~KisPopupPalette()"
+      ]
+    },
+    {
+      "target": "KisPopupPaletteSchemaContractTest",
+      "source": "libs/ui/tests/KisPopupPaletteSchemaContractTest.cpp",
+      "test": "KisPopupPaletteSchemaContractTest::popupPaletteSelectionParentAndPlacementSignaturesRemainStable",
+      "behavior": "popup paletteは選択色の設定・照会、親widgetの設定と親領域内への配置境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPopupPalette::ensureWithinParent(const QPoint & globalPos,bool useUpperLeft)",
+        "method:KisPopupPalette::selectedColor() const",
+        "method:KisPopupPalette::setParent(QWidget * parent)",
+        "method:KisPopupPalette::setSelectedColor(int x)"
+      ]
+    },
+    {
+      "target": "KisPopupPaletteSchemaContractTest",
+      "source": "libs/ui/tests/KisPopupPaletteSchemaContractTest.cpp",
+      "test": "KisPopupPaletteSchemaContractTest::popupPaletteVisibilityLifecycleSignaturesRemainStable",
+      "behavior": "popup paletteは指定位置での表示、画面上判定、破棄と操作終了通知の境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPopupPalette::dismiss()",
+        "method:KisPopupPalette::finished()",
+        "method:KisPopupPalette::onScreen()",
+        "method:KisPopupPalette::popup(const QPoint & position)"
+      ]
+    },
+    {
+      "target": "KisPopupPaletteSchemaContractTest",
+      "source": "libs/ui/tests/KisPopupPaletteSchemaContractTest.cpp",
+      "test": "KisPopupPaletteSchemaContractTest::popupPaletteNotificationAndRefreshSignaturesRemainStable",
+      "behavior": "popup paletteはpaintop・最近色・前景色・canvas・zoomの通知とicon更新の境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPopupPalette::sigChangeActivePaintop(int)",
+        "method:KisPopupPalette::sigChangefGColor(const KoColor &)",
+        "method:KisPopupPalette::sigUpdateCanvas()",
+        "method:KisPopupPalette::sigUpdateRecentColor(int)",
+        "method:KisPopupPalette::slotUpdateIcons()",
+        "method:KisPopupPalette::zoomLevelChanged(int)"
       ]
     }
   ]

@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-08 14:01 JST
+- 更新日時: 2026-09-08 14:17 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3114,6 +3114,13 @@
 - 構成済み直接利用元4件の変更前厳格`clang-check`では、`libs/ui/resources/kis_favorite_resource_manager.cpp`、`libs/ui/canvas/kis_canvas2.cpp`、`libs/ui/tests/TestRemainingUiRootPublicHeaders.cpp`が無診断で成功した。`libs/ui/resources/kis_popup_palette.cpp`はQt 6非推奨APIによる既存8診断だけで停止した。macOS構成に含まれない`plugins/extensions/spensettings/SPenSettings.cpp`は公開header自己完結契約で補完し、変更後に構成済み4件の終了状態と診断本文をbyte比較し、公開API報告のbyte一致を完了条件とする。
 - 新規`libs/ui/tests/KisPopupPaletteSchemaContractTest.cpp`を200行・10枠未満で作り、型特性と厳密な関数pointerだけで26 APIを観測する。最も近い資源palette管理器の`KisFavoriteResourceManagerSchemaContractTest`は4工程・8入力、command SHA-256 `0a249ba95570504825058099e1c0f5b596114d8a6479ba3b1cc0efa25ebd09a9`、input SHA-256 `6e22d37e2d0c0671f2f4407d5eff49da226b23b49ce1d0317f4535d4ada75240`である。新規targetも4工程・8入力を予測し、停止線を5工程・11入力とする。候補headerをAUTOMOC入力にせず、popup widget、view manager、資源管理器、色選択器、action、描画実体を接続または実行しない。
 - `g385-popup-palette-schema`の状態は`in_progress`、実装基点は`8536ce8841`である。構造先行commit後に新規試験sourceと`libs/ui/tests/CMakeLists.txt`の対象固有節だけへ契約を追加する。macOSの対象、5枠の20回反復、軽量近傍、構成済み4直接利用元と試験sourceの厳格`clang-check`、書式、AUTOMOC後の二回目計画、二回の無作業再構築、動的接続・未解決symbol、公開API検査、`verify-quick`だけを実行する。製品target、既存`TestRemainingUiRootPublicHeaders`、全体build・`verify`、Linux、Nix再評価は実行しない。
+
+### 第385便の実装結果
+
+- `g385-popup-palette-schema`は`completed`である。開始`libs/ui/resources/kis_popup_palette.h`からbutton、slider、opacity effect、spacer、view manager、action collection、highlighted button、色選択器の完全依存と未使用`kis_tool_button.h`を除き、値memberの`std::array`、`QLineF`、`QPoint`、`QRect`、`QScopedPointer`を直接includeした。完全型の所有先は実体を生成・呼出する`libs/ui/resources/kis_popup_palette.cpp`へ移した。構成済み4直接利用元の変更前後は3件の無診断成功と、popup実装のQt 6非推奨8診断だけの停止が一致し、行番号を正規化した診断本文と公開API報告は完全一致した。構造変更commitは`ea5ab6965e`である。
+- 開始headerの残存全26 APIを、新規`libs/ui/tests/KisPopupPaletteSchemaContractTest.cpp`のpreset配置値8、palette型・構築・寿命・寸法4、選択色・親・配置4、表示寿命4、操作通知6の5枠へ対応付けた。対象は118行で、preset配置の既定値は実行時比較し、その他は型特性と厳密な関数pointerで固定した。最初の赤は追加依存を要求せず5試験関数の未定義symbolだけで停止した。契約実装commitは`33b6333e5b`である。
+- 最終targetは4工程・8入力、command SHA-256 `53f7cdb3a0064528a6b5d0fd6551089cb7ec64038010a0ada7f6a8f362dc60db`、input SHA-256 `a4c1f3c8be95eb0c971c2e92ea0f178cc0621f0488a6d826a35110655096081d`で停止線内に収まる。動的接続はQt Core・Gui・Test、macOS frameworkとgettextだけで、製品libraryの未解決symbolを持たない。macOSで対象`libs-ui-KisPopupPaletteSchemaContractTest`、軽量近傍`libs-ui-KisFavoriteResourceManagerSchemaContractTest`、対象の20回反復、試験sourceの厳格`clang-check`、書式、AUTOMOC `HEADERS=[]`、二回の無作業再構築、公開API検査に成功した。popup widget、view manager、資源管理器、色選択器、action、描画実体、製品target、既存`TestRemainingUiRootPublicHeaders`、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 台帳へ26 APIを追加して26,145件対応、3,659件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g385.json`を最新報告の検証後に削除し、追加作業tree・構築木は作成していない。主Ninja木5,960,968 KiB、共有compiler cache 983,440 KiB、最新`build/tdd-macos/public-api-missing-g386.json` 995,257 bytes、SHA-256 `d3a798d7b3cdd544f40a4105d92819315cb8e7a4e9961ee9ca27fc1dae7a61b9`だけを再利用対象として保持する。compiler cacheは144,329件中120,518件、83.50%がhitしている。次の永続作業は第386便で次の高密度なmacOS対象と最小構築面を選定することである。
 
 ### 第239便の先行監査担当票
 
