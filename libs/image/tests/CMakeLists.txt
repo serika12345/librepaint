@@ -1063,6 +1063,20 @@ target_include_directories(KisNodeVisitorContractTest PRIVATE
 )
 
 kis_add_test(
+    KisNodeFacadeSchemaContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KisNodeFacadeSchemaContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+)
+target_compile_definitions(KisNodeFacadeSchemaContractTest PRIVATE kritaimage_EXPORTS)
+
+kis_add_test(
     KisCountVisitorSchemaContractTest.cpp
     LINK_LIBRARIES
         Qt${QT_MAJOR_VERSION}::Core
