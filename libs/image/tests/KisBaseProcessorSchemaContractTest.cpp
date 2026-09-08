@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include <filter/kis_filter.h>
 #include <kis_base_processor.h>
 #include <kis_bookmarked_configuration_manager.h>
 
@@ -24,6 +25,10 @@ private Q_SLOTS:
     void bookmarkManagerPersistenceSignaturesRemainStable();
     void bookmarkManagerQueryAndRemovalSignaturesRemainStable();
     void bookmarkManagerUniqueNameSignatureRemainsStable();
+    void filterTypeLifetimeAndConstructionSchemaRemainStable();
+    void filterProcessingSignaturesRemainStable();
+    void filterProcessingExtentSignaturesRemainStable();
+    void filterTransparencyAndMaskConfigurationSignaturesRemainStable();
 };
 
 using Subject = KisBaseProcessor;
@@ -35,6 +40,21 @@ using BookmarkManager = KisBookmarkedConfigurationManager;
 
 #define ASSERT_BOOKMARK_MANAGER_SIGNATURE(Method, Signature)                                                           \
     static_assert(std::is_same_v<decltype(static_cast<Signature>(&BookmarkManager::Method)), Signature>)
+
+using Filter = KisFilter;
+
+#define ASSERT_FILTER_SIGNATURE(Method, Signature)                                                                     \
+    static_assert(std::is_same_v<decltype(static_cast<Signature>(&Filter::Method)), Signature>)
+
+class FilterConstructionProbe : public Filter
+{
+public:
+    using Filter::Filter;
+
+    void processImpl(KisPaintDeviceSP, const QRect &, const KisFilterConfigurationSP, KoUpdater *) const override
+    {
+    }
+};
 
 void KisBaseProcessorSchemaContractTest::baseProcessorTypeLifetimeAndConstructionSchemaRemainStable()
 {
@@ -115,6 +135,47 @@ void KisBaseProcessorSchemaContractTest::bookmarkManagerUniqueNameSignatureRemai
     ASSERT_BOOKMARK_MANAGER_SIGNATURE(uniqueName, QString (BookmarkManager::*)(const KLocalizedString &));
 }
 
+void KisBaseProcessorSchemaContractTest::filterTypeLifetimeAndConstructionSchemaRemainStable()
+{
+    static_assert(std::is_class_v<Filter>);
+    static_assert(std::is_base_of_v<KisBaseProcessor, Filter>);
+    static_assert(std::is_constructible_v<FilterConstructionProbe, const KoID &, const KoID &, const QString &>);
+    static_assert(std::has_virtual_destructor_v<Filter>);
+}
+
+void KisBaseProcessorSchemaContractTest::filterProcessingSignaturesRemainStable()
+{
+    using SingleDevice =
+        void (Filter::*)(KisPaintDeviceSP, const QRect &, const KisFilterConfigurationSP, KoUpdater *) const;
+    using TwoDevices = void (Filter::*)(KisPaintDeviceSP,
+                                        KisPaintDeviceSP,
+                                        KisSelectionSP,
+                                        const QRect &,
+                                        const KisFilterConfigurationSP,
+                                        KoUpdater *) const;
+    ASSERT_FILTER_SIGNATURE(processImpl, SingleDevice);
+    ASSERT_FILTER_SIGNATURE(process, SingleDevice);
+    ASSERT_FILTER_SIGNATURE(process, TwoDevices);
+}
+
+void KisBaseProcessorSchemaContractTest::filterProcessingExtentSignaturesRemainStable()
+{
+    using Extent = QRect (Filter::*)(const QRect &, const KisFilterConfigurationSP, int) const;
+    using LevelOfDetail = bool (Filter::*)(const KisFilterConfigurationSP, int) const;
+    ASSERT_FILTER_SIGNATURE(neededRect, Extent);
+    ASSERT_FILTER_SIGNATURE(changedRect, Extent);
+    ASSERT_FILTER_SIGNATURE(supportsLevelOfDetail, LevelOfDetail);
+}
+
+void KisBaseProcessorSchemaContractTest::filterTransparencyAndMaskConfigurationSignaturesRemainStable()
+{
+    ASSERT_FILTER_SIGNATURE(needsTransparentPixels,
+                            bool (Filter::*)(const KisFilterConfigurationSP, const KoColorSpace *) const);
+    ASSERT_FILTER_SIGNATURE(configurationAllowedForMask, bool (Filter::*)(KisFilterConfigurationSP) const);
+    ASSERT_FILTER_SIGNATURE(fixLoadedFilterConfigurationForMasks, void (Filter::*)(KisFilterConfigurationSP) const);
+}
+
+#undef ASSERT_FILTER_SIGNATURE
 #undef ASSERT_BOOKMARK_MANAGER_SIGNATURE
 #undef ASSERT_SIGNATURE
 
