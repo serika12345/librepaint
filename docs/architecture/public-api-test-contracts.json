@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 2875
+    "expectedMissingApis": 2863
   },
   "contracts": [
     {
@@ -74221,6 +74221,54 @@
       "apis": [
         "method:KisUpdateTimeMonitor::reportJobFinished(void * key,const QVector<QRect> & rects)",
         "method:KisUpdateTimeMonitor::reportJobStarted(void * key)"
+      ]
+    },
+    {
+      "target": "KisBaseProcessorSchemaContractTest",
+      "source": "libs/image/tests/KisBaseProcessorSchemaContractTest.cpp",
+      "test": "KisBaseProcessorSchemaContractTest::bookmarkManagerTypeLifetimeAndStableNamesSchemaRemainStable",
+      "behavior": "bookmark設定managerは既定・最終使用の安定した設定名を公開し、設定群の識別名とfactoryから構築・破棄できる型境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisBookmarkedConfigurationManager",
+        "member:KisBookmarkedConfigurationManager::ConfigDefault",
+        "member:KisBookmarkedConfigurationManager::ConfigLastUsed",
+        "method:KisBookmarkedConfigurationManager::KisBookmarkedConfigurationManager(const QString & configEntryGroup,KisSerializableConfigurationFactory *)",
+        "method:KisBookmarkedConfigurationManager::~KisBookmarkedConfigurationManager()"
+      ]
+    },
+    {
+      "target": "KisBaseProcessorSchemaContractTest",
+      "source": "libs/image/tests/KisBaseProcessorSchemaContractTest.cpp",
+      "test": "KisBaseProcessorSchemaContractTest::bookmarkManagerPersistenceSignaturesRemainStable",
+      "behavior": "bookmark設定managerは名前付き設定の読込・保存・存在照会を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisBookmarkedConfigurationManager::exists(const QString & configname) const",
+        "method:KisBookmarkedConfigurationManager::load(const QString & configname) const",
+        "method:KisBookmarkedConfigurationManager::save(const QString & configname,const KisSerializableConfigurationSP)"
+      ]
+    },
+    {
+      "target": "KisBaseProcessorSchemaContractTest",
+      "source": "libs/image/tests/KisBaseProcessorSchemaContractTest.cpp",
+      "test": "KisBaseProcessorSchemaContractTest::bookmarkManagerQueryAndRemovalSignaturesRemainStable",
+      "behavior": "bookmark設定managerは保存済み設定名列と既定設定を返し、指定名の設定を削除する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisBookmarkedConfigurationManager::configurations() const",
+        "method:KisBookmarkedConfigurationManager::defaultConfiguration() const",
+        "method:KisBookmarkedConfigurationManager::remove(const QString & name)"
+      ]
+    },
+    {
+      "target": "KisBaseProcessorSchemaContractTest",
+      "source": "libs/image/tests/KisBaseProcessorSchemaContractTest.cpp",
+      "test": "KisBaseProcessorSchemaContractTest::bookmarkManagerUniqueNameSignatureRemainsStable",
+      "behavior": "bookmark設定managerは局所化された基底名から未使用名を生成する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisBookmarkedConfigurationManager::uniqueName(const KLocalizedString & base)"
       ]
     }
   ]
