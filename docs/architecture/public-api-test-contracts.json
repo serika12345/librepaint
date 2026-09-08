@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 3091
+    "expectedMissingApis": 3069
   },
   "contracts": [
     {
@@ -73429,6 +73429,73 @@
         "method:KisWindowLayoutManager::isShowImageInAllWindowsEnabled() const",
         "method:KisWindowLayoutManager::setLastUsedLayout(KisWindowLayoutResource * layout)",
         "method:KisWindowLayoutManager::setShowImageInAllWindowsEnabled(bool showInAll)"
+      ]
+    },
+    {
+      "target": "KisViewSchemaContractTest",
+      "source": "libs/application/tests/KisViewSchemaContractTest.cpp",
+      "test": "KisViewSchemaContractTest::zoomManagerTypeAndLifetimeSchemaRemainStable",
+      "behavior": "zoom managerはview・zoom handler・canvas controllerを受け取って構築され、仮想破棄できる公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisZoomManager",
+        "method:KisZoomManager::KisZoomManager(QPointer<KisView> view,KoZoomHandler *,KoCanvasController *)",
+        "method:KisZoomManager::~KisZoomManager()"
+      ]
+    },
+    {
+      "target": "KisViewSchemaContractTest",
+      "source": "libs/application/tests/KisViewSchemaContractTest.cpp",
+      "test": "KisViewSchemaContractTest::zoomManagerSetupAndImageSynchronizationSignaturesRemainStable",
+      "behavior": "zoom managerはaction collectionを設定し、画像領域と画像解像度の変更へzoom状態を同期する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisZoomManager::setup(KisKActionCollection * actionCollection)",
+        "method:KisZoomManager::syncOnImageResolutionChange()",
+        "method:KisZoomManager::updateImageBoundsSnapping()"
+      ]
+    },
+    {
+      "target": "KisViewSchemaContractTest",
+      "source": "libs/application/tests/KisViewSchemaContractTest.cpp",
+      "test": "KisViewSchemaContractTest::zoomManagerPresentationObjectSignaturesRemainStable",
+      "behavior": "zoom managerはzoom action、その表示widget、水平・垂直rulerを照会する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisZoomManager::horizontalRuler() const",
+        "method:KisZoomManager::verticalRuler() const",
+        "method:KisZoomManager::zoomAction() const",
+        "method:KisZoomManager::zoomActionWidget() const"
+      ]
+    },
+    {
+      "target": "KisViewSchemaContractTest",
+      "source": "libs/application/tests/KisViewSchemaContractTest.cpp",
+      "test": "KisViewSchemaContractTest::zoomManagerRulerControlSignaturesRemainStable",
+      "behavior": "zoom managerはrulerの表示、mouse追従、位置、単位、pixel倍率を制御する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisZoomManager::applyRulersUnit(const KoUnit & baseUnit)",
+        "method:KisZoomManager::mousePositionChanged(const QPoint & viewPos)",
+        "method:KisZoomManager::setRulersPixelMultiple2(bool enabled)",
+        "method:KisZoomManager::setRulersTrackMouse(bool value)",
+        "method:KisZoomManager::setShowRulers(bool show)"
+      ]
+    },
+    {
+      "target": "KisViewSchemaContractTest",
+      "source": "libs/application/tests/KisViewSchemaContractTest.cpp",
+      "test": "KisViewSchemaContractTest::zoomManagerActionSlotSignaturesRemainStable",
+      "behavior": "zoom managerは100%表示、拡大・縮小、全体・幅・高さへの適合と適合状態切替の公開操作を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisZoomManager::slotToggleZoomToFit()",
+        "method:KisZoomManager::slotZoomIn()",
+        "method:KisZoomManager::slotZoomOut()",
+        "method:KisZoomManager::slotZoomToFit()",
+        "method:KisZoomManager::slotZoomToFitHeight()",
+        "method:KisZoomManager::slotZoomToFitWidth()",
+        "method:KisZoomManager::zoomTo100()"
       ]
     }
   ]

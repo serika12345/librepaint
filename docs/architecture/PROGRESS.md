@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-08 21:53 JST
+- 更新日時: 2026-09-08 22:01 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3538,6 +3538,13 @@
 - 既存`libs/application/tests/KisViewSchemaContractTest.cpp`はviewのcanvas・zoom manager境界を所有し、122行・7枠から追加後も300行・20枠未満に収まる。対象固有CMake節へheader内の`application/...`、flakeのzoom mode、widgetsのzoom action・handler、KF WidgetsAddonsに必要なsource・generated・interface探索路と`kritaflake_EXPORTS`・`kritawidgets_EXPORTS`だけを加え、Qt Core・Testだけの動的接続と4工程・8入力を維持する。現行command SHA-256は`efc36e9b418e7884e81ab5e66c982bbefe7a12d2df55154ef206cbf0ee190ad1`、input SHA-256は`1c3fc908f8ab62940f8ec335656d8e25167fefcfccbe4ad03367e08d6d580535`である。manager、view、controller、zoom action、ruler、単位、Qt値と本文を実体化せず、型特性、構築可能性、厳密な関数pointerだけで公開境界を観測する。製品`kritaapplicationui`は1,975工程・3,950入力で反復先から除外する。
 - `g418-zoom-manager-schema`の状態は`in_progress`、実装基点は`4471fd5059`である。開始headerから既存試験sourceの5枠と対象固有CMake節だけへ追加し、公開header、製品source、製品targetは変更しない。停止線は5工程・11入力とし、計画外の探索路・定義・link、製品OBJECT・shared・`kritatestsdk`接続、候補headerのAUTOMOC入力化、製品未解決symbol、対象値または本文の実体化が必要なら候補を保留する。macOSの対象、追加5枠の20回反復、軽量近傍、試験sourceの厳格`clang-check`、書式、二回の無作業再構築、動的接続・未解決symbol、公開API検査、`verify-quick`だけを実行する。製品application UI・UI・widgets target、全体build・`verify`、Linux、Nix再評価は実行しない。
 - 最初のcompileは開始headerが直接読む`klocalizedstring.h`の探索路不足で停止した。対象固有CMake節へKF I18nのheader interfaceだけを追加し、動的接続を増やさず4工程・8入力を維持する。それ以外の計画外探索路・定義・linkが必要なら候補を保留する。
+
+### 第418便の実装結果
+
+- `g418-zoom-manager-schema`は`completed`である。構築範囲の先行変更では`libs/application/tests/CMakeLists.txt`内の既存`KisViewSchemaContractTest`固有節へ`libs`・flake・widgetsのsource/generated探索路、KF WidgetsAddons・I18nのheader interface、`kritaflake_EXPORTS`・`kritawidgets_EXPORTS`だけを追加した。最初のcompileで`klocalizedstring.h`不足を特定した後も動的接続を増やさず、構築範囲commitは`f261503c87`と`478fdd99f1`である。
+- `libs/ui/canvas/kis_zoom_manager.h`から既存`libs/application/tests/KisViewSchemaContractTest.cpp`へ22 API・5枠を移し、manager型・構築・寿命3、設定・画像領域・解像度同期3、zoom action・widget・ruler照会4、ruler表示・追従・位置・単位・pixel倍率5、zoom操作slot 7を型特性、構築可能性、厳密な関数pointerで固定した。試験sourceは175行・12枠で、manager、view、controller、zoom action、ruler、単位、Qt値と本文を実体化していない。header interface追加後のredは未定義の5検査関数だけで失敗し、契約実装commitは`af12d7e1cb`である。
+- macOSの対象`libs-application-KisViewSchemaContractTest`、軽量近傍`libs-application-KisMainWindowSchemaContractTest`、対象の20回反復、試験sourceの厳格`clang-check`、書式、変更なし計画、連続二回の無作業再構築に成功した。対象は4工程・8入力、command SHA-256 `1b5164a97344e098d92a7d88b2a7c8d745691ef71d63fa7078ebf0efd77e0028`、input SHA-256 `1c3fc908f8ab62940f8ec335656d8e25167fefcfccbe4ad03367e08d6d580535`、AUTOMOC `HEADERS=[]`、直接接続はQt Core・Test、製品未解決symbol 0である。1,975工程・3,950入力の製品application UI、製品UI・widgets target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 台帳へ22 APIを追加して26,735件対応、3,069件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g418.json`と一時計画ログを削除し、追加作業tree・構築木は作成していない。主Ninja木5,981,612 KiB、共有compiler cache 983,368 KiB、最新`build/tdd-macos/public-api-missing-g419.json` 832,149 bytes、SHA-256 `140f3f70bf93ab49d4fb1fcd6c3f7ce6a211031c1a8a6e7175536f69026eea88`だけを再利用対象として保持する。compiler cacheは144,470件中120,552件、83.44%がhitしている。公開API検査と`verify-quick`に成功した。次の永続作業は第419便で次の高密度なmacOS対象と最小構築面を選定することである。
 
 ### 第239便の先行監査担当票
 
