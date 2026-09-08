@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 01:13 JST
+- 更新日時: 2026-09-09 01:16 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3752,6 +3752,12 @@
 - `g435-transparency-mask-schema`は`completed`である。`libs/image/kis_transparency_mask.h`から既存`libs/image/tests/KisMaskSchemaContractTest.cpp`へ14 API・4枠を移し、mask型・2構築路・寿命・複製5、領域装飾・icon・選択外描画3、node・処理visitor受付2、範囲・厳密範囲・変更領域・必要領域4を型特性、構築可能性、厳密な関数pointerで固定した。試験sourceは266行・14枠で、mask、画像、paint device、visitor、undo adapter、Qt値とinline clone本文を実体化していない。CMake変更なしの初回redは未定義の4検査関数だけで失敗し、契約実装commitは`ed5d6d3bd8`である。
 - macOSの対象`libs-image-KisMaskSchemaContractTest`、軽量近傍`libs-image-KisGeneratorLayerSchemaContractTest`、対象の20回反復、試験sourceの厳格`clang-check`、書式、連続二回の無作業再構築に成功した。対象は4工程・8入力、command SHA-256 `75f003e42d513ec791a7f80ab6084d0373ed5b8c4e007d63e97a8645006eeaa5`、input SHA-256 `1b6f2f7c970d919db6b01da0886e756108ad45d57c3215580d895fcbc5468503`、AUTOMOC `HEADERS=[]`、直接接続はQt Core・Gui・Test・Xml、製品未解決symbol 0である。1,197工程・2,418入力の製品image target、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 台帳へ14 APIを追加して26,980件対応、2,824件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g435.json`を削除し、追加作業tree・構築木・一時計画物は作成していない。主Ninja木5,984,636 KiB、共有compiler cache 982,404 KiB、最新`build/tdd-macos/public-api-missing-g436.json` 770,082 bytes、SHA-256 `ca2894aeafcb87561c97a93c68ebda294e8fd278abf0d76353400e9c63155dc0`だけを再利用対象として保持する。compiler cacheは144,518件中120,558件、83.42%がhitしている。公開API検査に成功した。次の永続作業は第436便で次の高密度なmacOS対象と最小構築面を選定することである。
+
+### 第436便の公開API契約計画
+
+- 第436便は`libs/image/kis_adjustment_layer.h`に残る全12 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g436.json`は公開header 1,548、公開API 29,804、対応済み26,980、未対応2,824、770,082 bytes、SHA-256 `ca2894aeafcb87561c97a93c68ebda294e8fd278abf0d76353400e9c63155dc0`である。対象識別子整列集合のSHA-256は`064e3c45eae3ff81eaf55de77d8f39910fc6479ad618fe8613881207a249255b`で、layer型・2構築路・寿命・複製5、node・処理visitor受付2、icon・模型property・layer照会3、filter・channel flags設定2の4枠へ固定する。
+- 既存`libs/image/tests/KisGeneratorLayerSchemaContractTest.cpp`は選択付き生成layerの構築・設定・表示・visitor境界を持ち、89行・5枠から追加後も300行・20枠以内に収まる。CMake変更なしでimage・global・pigment・pigment/resources・psdutils・resourcesの既存探索路とexport定義、Qt Core・Gui・Test・Xml、header-only Boost、KF I18n・Imathのheader interfaceだけを使う4工程・8入力を維持する。現行command SHA-256は`48040ab68e3929c9b29270374f77537ce59f9715065ac8a00786b6fa421e5e23`、input SHA-256は`746a33c1964bf17eab521306427c1d5462e71f91e3fe17f78c369eeaa1697ee8`である。layer、画像、選択、filter設定、visitor、undo adapter、Qt値とinline clone・layer本文を実体化せず、型特性、構築可能性、厳密な関数pointerだけで公開境界を観測する。新規targetは同じ閉包に別のCMake登録と生成物を加えるため棄却する。
+- `g436-adjustment-layer-schema`の状態は`in_progress`、実装基点は`110adb3b3a`である。開始headerから既存試験sourceの4枠だけへ追加し、CMake、公開header、製品source、製品targetは変更しない。停止線は5工程・11入力とし、新たな探索路・定義・link、製品OBJECT・shared・`kritatestsdk`接続、候補headerのAUTOMOC入力化、製品未解決symbol、対象値または本文の実体化が必要なら候補を保留する。macOSの対象、追加4枠の20回反復、軽量近傍、試験sourceの厳格`clang-check`、書式、再計画、連続二回の無作業再構築、動的接続・未解決symbol、公開API検査、`verify-quick`だけを実行する。1,197工程・2,418入力の製品image target、全体build・`verify`、Linux、Nix再評価は実行しない。
 
 ### 第239便の先行監査担当票
 
