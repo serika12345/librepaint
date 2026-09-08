@@ -2,8 +2,8 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-08 11:36 JST
-- 状態: `in_progress`
+- 更新日時: 2026-09-08 11:55 JST
+- 状態: `planned`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
@@ -3013,6 +3013,13 @@
 - 参照画像を直接利用する12翻訳単位の変更前の厳格`clang-check`は5件が診断0件である。残り7件は既存の`KisPaintDevice`完全型不足、Qt 6非推奨API、符号比較、生成UI header不足、`QStandardPaths`直接include不足だけで停止する。構造変更後に12件すべての終了状態と診断本文をbyte比較し、公開API報告のbyte一致を完了条件とする。
 - 新規`libs/ui/tests/KisReferenceImageSchemaContractTest.cpp`を200行・10枠未満で作り、型特性と厳密な関数・data member pointerだけで31 APIを観測する。最も近い`KoShapeCreationSchemaContractTest`は4工程・8入力、command SHA-256 `76cca7a5fdf0ecc57e934be55e25589acfb3e6b08136b19fe09bab30095c72c8`、input SHA-256 `02428cd024c44b8707b45dcf2cbed670aaccaea91e8c232ae5d3d09678bfdd63`である。新規targetも4工程・8入力を予測し、停止線を5工程・11入力とする。候補headerをAUTOMOC入力にせず、製品shared・OBJECT、`kritatestsdk`、画像読込・保存・描画本文を接続または実行しない。
 - `g378-reference-image-schema`の状態は`in_progress`、実装基点は`5603220ecd`である。構造先行commit後に新規試験sourceと`libs/ui/tests/CMakeLists.txt`の対象固有節だけへ契約を追加する。macOSの対象、5枠の20回反復、軽量近傍、12直接利用翻訳単位と試験sourceの厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。製品target、画像I/O、全体build・`verify`、Linux、Nix再評価は実行しない。
+
+### 第378便の実装結果
+
+- `g378-reference-image-schema`は`completed`である。開始`libs/ui/document/KisDocument.h`から未使用の参照画像includeを除き、完全型を実際に使う`libs/ui/actions/KisPasteActionFactories.cpp`、`libs/ui/nodes/kis_node_manager.cpp`、`plugins/tools/defaulttool/referenceimagestool/ToolReferenceImages.cpp`へ直接includeを移した。開始`libs/ui/canvas/KisReferenceImage.h`の`KoColor.h`完全型依存は前方宣言へ替え、完全型includeを`libs/ui/canvas/KisReferenceImage.cpp`へ移した。12直接利用翻訳単位の変更前後は診断0件5件と既存診断だけ7件の終了状態・診断本文が完全一致し、公開API報告も同じSHA-256 `f97bb98dd4e038993340bdc4fc68c159c3ded22553ea2f0b906f4745127fc71d`となった。構造変更commitは`e593c9703d`である。
+- 開始`libs/ui/canvas/KisReferenceImage.h`の残存全31 APIを、新規`libs/ui/tests/KisReferenceImageSchemaContractTest.cpp`の型・寿命・複製5、生成5、描画・画像・彩度5、埋込み・識別・永続化9、彩度変更command 7の5枠へ対応付けた。対象は103行で、最初の赤は追加依存を要求せず5試験関数の未定義symbolだけで停止した。契約実装commitは`82c5b2b425`である。
+- 最終targetは4工程・8入力、command SHA-256 `76fb34bc52eadb137f35e8571ad079f7523fbaf48b1569ee482a86d22a5e3cfe`、input SHA-256 `8c1676f01db731710ac7642fb6cecb4c53ec590a19126143e72c38bcad39f275`で停止線内に収まる。動的接続はQt Core・Test、macOS frameworkとgettextだけで、製品libraryの未解決symbolを持たない。macOSで対象`libs-ui-KisReferenceImageSchemaContractTest`、軽量近傍`libs-flake-KoShapeCreationSchemaContractTest`、対象の20回反復、試験sourceの厳格`clang-check`、書式、AUTOMOC `HEADERS=[]`、二回の無作業再構築、公開API検査に成功した。引数形式確認で実行した`./scripts/run-test --help`はhelp処理を持たず全対象構築へ移行したため、7/6,691工程で既存flake sourceのQt幾何型完全定義不足により停止した時点で終了し、検証結果には用いていない。以後の実行は対象名とCTest名を明示した。
+- 台帳へ31 APIを追加して25,885件対応、3,919件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g378.json`を最新報告の検証後に削除し、追加作業tree・構築木は作成していない。主Ninja木5,949,548 KiB、共有compiler cache 982,892 KiB、最新`build/tdd-macos/public-api-missing-g379.json` 1,058,271 bytes、SHA-256 `f9b06a03a10bd9bab99713047df3cb12096fc9f0cfccd610797b3953315aaf91`だけを再利用対象として保持する。compiler cacheは144,299件中120,514件、83.52%がhitしている。次の永続作業は第379便で次の高密度なmacOS対象と最小構築面を選定することである。
 
 ### 第239便の先行監査担当票
 

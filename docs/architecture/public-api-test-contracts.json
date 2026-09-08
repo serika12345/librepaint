@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 3950
+    "expectedMissingApis": 3919
   },
   "contracts": [
     {
@@ -70815,6 +70815,82 @@
         "method:KisOpenGLModeProber::Result::shadingLanguageString() const",
         "method:KisOpenGLModeProber::Result::vendorString() const",
         "method:KisOpenGLModeProber::Result::xcbGlProviderProtocol()"
+      ]
+    },
+    {
+      "target": "KisReferenceImageSchemaContractTest",
+      "source": "libs/ui/tests/KisReferenceImageSchemaContractTest.cpp",
+      "test": "KisReferenceImageSchemaContractTest::referenceImageTypeLifetimeAndCloneSchemaRemainStable",
+      "behavior": "参照画像は図形としての型、既定・複製構築、仮想破棄と図形複製の公開面を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisReferenceImage",
+        "method:KisReferenceImage::KisReferenceImage()",
+        "method:KisReferenceImage::KisReferenceImage(const KisReferenceImage & rhs)",
+        "method:KisReferenceImage::cloneShape() const",
+        "method:KisReferenceImage::~KisReferenceImage()"
+      ]
+    },
+    {
+      "target": "KisReferenceImageSchemaContractTest",
+      "source": "libs/ui/tests/KisReferenceImageSchemaContractTest.cpp",
+      "test": "KisReferenceImageSchemaContractTest::referenceImageFactorySignaturesRemainStable",
+      "behavior": "参照画像はfile、clipboard、QImage、描画deviceとXMLから生成する入口の型境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisReferenceImage::fromClipboard(const KisCoordinatesConverter & converter)",
+        "method:KisReferenceImage::fromFile(const QString & filename,const KisCoordinatesConverter & converter,QWidget * parent)",
+        "method:KisReferenceImage::fromPaintDevice(KisPaintDeviceSP src,const KisCoordinatesConverter & converter,QWidget * parent)",
+        "method:KisReferenceImage::fromQImage(const KisCoordinatesConverter & converter,const QImage & img)",
+        "method:KisReferenceImage::fromXml(const QDomElement & elem)"
+      ]
+    },
+    {
+      "target": "KisReferenceImageSchemaContractTest",
+      "source": "libs/ui/tests/KisReferenceImageSchemaContractTest.cpp",
+      "test": "KisReferenceImageSchemaContractTest::referenceImagePresentationAndSaturationSignaturesRemainStable",
+      "behavior": "参照画像は描画、位置からの色取得、画像取得と彩度の設定・照会境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisReferenceImage::getImage()",
+        "method:KisReferenceImage::getPixel(QPointF position)",
+        "method:KisReferenceImage::paint(QPainter & gc) const",
+        "method:KisReferenceImage::saturation() const",
+        "method:KisReferenceImage::setSaturation(qreal saturation)"
+      ]
+    },
+    {
+      "target": "KisReferenceImageSchemaContractTest",
+      "source": "libs/ui/tests/KisReferenceImageSchemaContractTest.cpp",
+      "test": "KisReferenceImageSchemaContractTest::referenceImagePersistenceAndIdentitySignaturesRemainStable",
+      "behavior": "参照画像は埋込み状態、local file、外部・内部file名、XMLと画像storeの永続化境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisReferenceImage::embed()",
+        "method:KisReferenceImage::filename() const",
+        "method:KisReferenceImage::hasLocalFile()",
+        "method:KisReferenceImage::internalFile() const",
+        "method:KisReferenceImage::loadImage(KoStore * store)",
+        "method:KisReferenceImage::saveImage(KoStore * store) const",
+        "method:KisReferenceImage::saveXml(QDomDocument & document,QDomElement & parentElement,int id)",
+        "method:KisReferenceImage::setEmbed(bool embed)",
+        "method:KisReferenceImage::setFilename(const QString & filename)"
+      ]
+    },
+    {
+      "target": "KisReferenceImageSchemaContractTest",
+      "source": "libs/ui/tests/KisReferenceImageSchemaContractTest.cpp",
+      "test": "KisReferenceImageSchemaContractTest::saturationCommandSchemaRemainStable",
+      "behavior": "彩度変更commandは対象画像、変更前後の値、構築とundo・redoの公開面を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisReferenceImage::SetSaturationCommand::images",
+        "member:KisReferenceImage::SetSaturationCommand::newSaturation",
+        "member:KisReferenceImage::SetSaturationCommand::oldSaturations",
+        "method:KisReferenceImage::SetSaturationCommand::SetSaturationCommand(const QList<KoShape * > & images,qreal newSaturation,KUndo2Command * parent=0)",
+        "method:KisReferenceImage::SetSaturationCommand::redo()",
+        "method:KisReferenceImage::SetSaturationCommand::undo()",
+        "struct:KisReferenceImage::SetSaturationCommand"
       ]
     }
   ]
