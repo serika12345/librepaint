@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-08 21:15 JST
+- 更新日時: 2026-09-08 21:19 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3505,6 +3505,12 @@
 - `g415-filter-manager-schema`は`completed`である。開始`libs/ui/document/kis_filter_manager.h`から既存`libs/ui/tests/KisImageManagerSchemaContractTest.cpp`へ14 API・4枠を追加した。manager型・構築・寿命3、view・action・GUI 3、適用・終了・取消4、stroke・選択frame状態4を型特性と厳密な関数pointerで固定した。試験sourceは110行・9枠で、manager、view、action、filter設定、stroke、dialogと本文を実体化していない。初回redは未定義の4検査関数だけで失敗し、契約実装commitは`3b038c7a8d`である。
 - CMake変更なしで、macOSの対象`libs-ui-KisImageManagerSchemaContractTest`、軽量近傍`libs-ui-KisDocumentSchemaContractTest`、対象の20回反復、試験sourceの厳格`clang-check`、書式、AUTOMOC後の二回目計画、二回の無作業再構築に成功した。対象は4工程・8入力、command SHA-256 `6224c0330ffa0f1b9dc5a690301d7ea9bea2d8db3e42846ee3e03a4c8b4920e8`、input SHA-256 `1b478af24d58b351b9dd6457e28393b327645e51f4bf0e859078ae9f29d077f3`、AUTOMOC `HEADERS=[]`、直接接続はQt Core・Test、製品未解決symbol 0である。2,027工程・4,051入力の一括UI公開header対象、製品UI・application・image target、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 台帳へ14 APIを追加して26,676件対応、3,128件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g415.json`と一時計測物を削除し、追加作業tree・構築木は作成していない。主Ninja木5,981,280 KiB、共有compiler cache 983,148 KiB、最新`build/tdd-macos/public-api-missing-g416.json` 847,635 bytes、SHA-256 `47311c76df8c15b4ce180f4d7eb1feffc8220ecee8580bbe0ce66b5d2668b8e2`だけを再利用対象として保持する。compiler cacheは144,453件中120,544件、83.45%がhitしている。公開API検査に成功した。次の永続作業は第416便で次の高密度なmacOS対象と最小構築面を選定することである。
+
+### 第416便の公開API契約計画
+
+- 第416便は`libs/ui/flake/KisReferenceImagesLayer.h`に残る全18 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g416.json`は公開header 1,548、公開API 29,804、対応済み26,676、未対応3,128、847,635 bytes、SHA-256 `47311c76df8c15b4ce180f4d7eb1feffc8220ecee8580bbe0ce66b5d2668b8e2`である。対象識別子整列集合のSHA-256は`7331aa37f3ab649daebf55563d49b568ceee932de3b3f442fe466cf74f402475`で、layer型・共有型・構築4、参照画像追加・削除・照会3、領域・画素・描画3、node所属・訪問・複製・種別5、色変換・profile・canvas通知3の5枠へ固定する。
+- 既存`libs/ui/tests/KisReferenceImageSchemaContractTest.cpp`は参照画像の表示・永続化境界を所有し、103行・5枠から追加後も300行・20枠未満に収まる。対象はCMake変更なしで4工程・8入力、command SHA-256 `76fb34bc52eadb137f35e8571ad079f7523fbaf48b1569ee482a86d22a5e3cfe`、input SHA-256 `8c1676f01db731710ac7642fb6cecb4c53ec590a19126143e72c38bcad39f275`を維持する。layer、参照画像、shape controller、画像、文書、visitor、painter、色空間とinline複製本文を実体化せず、共有型、型特性、構築可能性、厳密な関数pointerだけで公開境界を観測する。軽量近傍`KisShapeLayerSchemaContractTest`も4工程・8入力である。
+- `g416-reference-images-layer-schema`の状態は`in_progress`、実装基点は`62b7d35dc6`である。開始headerから既存試験sourceの5枠だけへ追加し、CMake、公開header、製品source、製品targetは変更しない。停止線は5工程・11入力とし、新たな探索路・定義・link、製品OBJECT・shared・`kritatestsdk`接続、候補headerのAUTOMOC入力化、製品未解決symbol、対象値または本文の実体化が必要なら候補を保留する。macOSの対象、追加5枠の20回反復、軽量近傍、試験sourceの厳格`clang-check`、書式、二回の無作業再構築、動的接続・未解決symbol、公開API検査、`verify-quick`だけを実行する。製品UI・flake・image target、全体build・`verify`、Linux、Nix再評価は実行しない。
 
 ### 第239便の先行監査担当票
 
