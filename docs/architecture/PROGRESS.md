@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-08 18:47 JST
+- 更新日時: 2026-09-08 18:50 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3343,6 +3343,12 @@
 - `g402-resource-loader-registry-schema`は`completed`である。開始`libs/resources/KisResourceLoaderRegistry.h`から既存`libs/resources/tests/KisResourceLoaderSchemaContractTest.cpp`へ14 API・5枠を追加した。登録簿型・寿命・取得3、loader登録・検索2、形式・種別照会4、修復型・寿命・実行3、修復登録・一括実行2を型特性と厳密な関数pointerで固定した。試験sourceは158行・9枠で、登録簿、loader、修復処理、製品本文は実体化していない。初回redは未定義の5検査関数だけで失敗し、契約実装commitは`9b61358296`である。
 - CMake変更なしで、macOSの対象`libs-resources-KisResourceLoaderSchemaContractTest`、軽量近傍`libs-resources-KisResourceIteratorSchemaContractTest`、対象の20回反復、試験sourceの厳格`clang-check`、書式、二回の無作業再構築に成功した。4工程・8入力、command SHA-256 `b97c0a2ec12378fa128e19ae06a46874dd5cb2a8515d7e32c070a1ecf4b2f0e5`、input SHA-256 `17dade2e277da25d620bae254da61d24b8a421c85cd9d742fbda185318592ee5`、AUTOMOC `HEADERS=[]`、直接接続はQt Core・Testとheader-only Boost、製品未解決symbol 0である。動的登録簿試験と製品resources targetは実行していない。
 - 台帳へ14 APIを追加して26,449件対応、3,355件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g402.json`と一時計測物を削除し、追加作業tree・構築木は作成していない。主Ninja木5,977,604 KiB、共有compiler cache 982,548 KiB、最新`build/tdd-macos/public-api-missing-g403.json` 910,186 bytes、SHA-256 `4e25e94316ac1a987a2c66297ff68d7d3900a4a24168d13eb5e500b73a31661d`だけを再利用対象として保持する。compiler cacheは144,398件中120,532件、83.47%がhitしている。次の永続作業は第403便で次の高密度なmacOS対象と最小構築面を選定することである。
+
+### 第403便の公開API契約計画
+
+- 第403便は`libs/resources/KisBundleStorage.h`に残る全13 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g403.json`は公開header 1,548、公開API 29,804、対応済み26,449、未対応3,355、910,186 bytes、SHA-256 `4e25e94316ac1a987a2c66297ff68d7d3900a4a24168d13eb5e500b73a31661d`である。対象識別子整列集合のSHA-256は`717124049623193a767f8b0d097beee311ef8b7e2ca2cb32ac0fbfad275b8618`で、型・構築・寿命3、資源照会・読込み・指紋3、資源・tag反復2、metadata・縮小画像3、書出し・新version保存2の5枠へ固定する。
+- 既存`libs/resources/tests/KisMemoryStorageSchemaContractTest.cpp`はmemory・folder storageと同じ`KisStoragePlugin`実装境界を所有し、126行・10枠から5枠追加後も300行・20枠未満に収まる。既存compile interfaceがbundle storageの公開依存を満たすため、CMake変更なしで4工程・8入力を維持する。bundle、resource、入出力装置、反復子を実体化せず、型特性と厳密な関数pointerだけで公開境界を観測する。
+- `g403-bundle-storage-schema`の状態は`in_progress`、実装基点は`53b319e5b1`である。開始headerから既存試験sourceの5枠だけへ追加し、CMake、公開header、製品sourceは変更しない。macOSの対象、追加5枠の20回反復、軽量近傍、試験sourceの厳格`clang-check`、書式、二回の無作業再構築、動的接続・未解決symbol、公開API検査、`verify-quick`だけを実行する。製品resources・OBJECT・shared target、動的bundle試験、全体build・`verify`、Linux、Nix再評価は実行しない。
 
 ### 第239便の先行監査担当票
 
