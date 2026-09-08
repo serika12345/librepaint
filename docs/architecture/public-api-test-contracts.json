@@ -16,7 +16,7 @@
     "publicApiFingerprint": "5f05b2aa8e5bef4343af1d55a3852331e51d4369fe135b099327b1a91b6b8c4c"
   },
   "migration": {
-    "expectedMissingApis": 2535
+    "expectedMissingApis": 2526
   },
   "contracts": [
     {
@@ -75036,6 +75036,42 @@
       "apis": [
         "method:KisLockedPropertiesServer::createLockedPropertiesProxy(KisPropertiesConfiguration * settings)",
         "method:KisLockedPropertiesServer::createLockedPropertiesProxy(KisPropertiesConfigurationSP settings)"
+      ]
+    },
+    {
+      "target": "KisPaintOpPresetSchemaContractTest",
+      "source": "libs/image/tests/KisPaintOpPresetSchemaContractTest.cpp",
+      "test": "KisPaintOpPresetSchemaContractTest::lockedPropertiesTypeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "固定property集合は共有所有される非複製型として既定構築・破棄する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisLockedProperties",
+        "method:KisLockedProperties::KisLockedProperties()",
+        "method:KisLockedProperties::~KisLockedProperties()"
+      ]
+    },
+    {
+      "target": "KisPaintOpPresetSchemaContractTest",
+      "source": "libs/image/tests/KisPaintOpPresetSchemaContractTest.cpp",
+      "test": "KisPaintOpPresetSchemaContractTest::lockedPropertiesMutationSignaturesRemainStable",
+      "behavior": "固定property集合は共有pointerまたは借用pointerで渡された設定集合からpropertyを追加・除去する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisLockedProperties::addToLockedProperties(KisPropertiesConfigurationSP p)",
+        "method:KisLockedProperties::addToLockedProperties(const KisPropertiesConfiguration * p)",
+        "method:KisLockedProperties::removeFromLockedProperties(KisPropertiesConfigurationSP p)",
+        "method:KisLockedProperties::removeFromLockedProperties(const KisPropertiesConfiguration * p)"
+      ]
+    },
+    {
+      "target": "KisPaintOpPresetSchemaContractTest",
+      "source": "libs/image/tests/KisPaintOpPresetSchemaContractTest.cpp",
+      "test": "KisPaintOpPresetSchemaContractTest::lockedPropertiesObservationSignaturesRemainStable",
+      "behavior": "固定property集合は指定名の保持状態と現在の設定集合を返す公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisLockedProperties::hasProperty(const QString & p)",
+        "method:KisLockedProperties::lockedProperties()"
       ]
     },
     {
