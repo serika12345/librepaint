@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 3190
+    "expectedMissingApis": 3172
   },
   "contracts": [
     {
@@ -73078,6 +73078,69 @@
       "apis": [
         "function:KisLsUtils::applyFinalSelection(const QString & projectionId,KisSelectionSP baseSelection,KisPaintDeviceSP srcDevice,KisMultipleProjection * dst,const QRect & srcRect,const QRect & dstRect,const psd_layer_effects_context * context,const psd_layer_effects_shadow_base * config,KisResourcesInterfaceSP resourcesInterface,const KisLayerStyleFilterEnvironment * env)",
         "function:KisLsUtils::checkEffectEnabled(const psd_layer_effects_shadow_base * config,KisMultipleProjection * dst)"
+      ]
+    },
+    {
+      "target": "KisDabRenderingJobSchemaContractTest",
+      "source": "plugins/paintops/defaultpaintops/brush/tests/KisDabRenderingJobSchemaContractTest.cpp",
+      "test": "KisDabRenderingJobSchemaContractTest::dabRenderingQueueTypeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "dab描画queueは色空間と資源factoryから構築でき、固有寿命境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisDabRenderingQueue",
+        "method:KisDabRenderingQueue::KisDabRenderingQueue(const KoColorSpace * cs,KisDabCacheUtils::ResourcesFactory resourcesFactory)",
+        "method:KisDabRenderingQueue::~KisDabRenderingQueue()"
+      ]
+    },
+    {
+      "target": "KisDabRenderingJobSchemaContractTest",
+      "source": "plugins/paintops/defaultpaintops/brush/tests/KisDabRenderingJobSchemaContractTest.cpp",
+      "test": "KisDabRenderingJobSchemaContractTest::dabRenderingQueueCacheInterfaceSchemaRemainStable",
+      "behavior": "dab描画queueのcache interfaceはdab種別と元画像分離を派生実装へ配送する抽象寿命境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDabRenderingQueue::CacheInterface::getDabType(bool hasDabInCache,KisDabCacheUtils::DabRenderingResources * resources,const KisDabCacheUtils::DabRequestInfo & request,KisDabCacheUtils::DabGenerationInfo * di,bool * shouldUseCache)",
+        "method:KisDabRenderingQueue::CacheInterface::hasSeparateOriginal(KisDabCacheUtils::DabRenderingResources * resources) const",
+        "method:KisDabRenderingQueue::CacheInterface::~CacheInterface()",
+        "struct:KisDabRenderingQueue::CacheInterface"
+      ]
+    },
+    {
+      "target": "KisDabRenderingJobSchemaContractTest",
+      "source": "plugins/paintops/defaultpaintops/brush/tests/KisDabRenderingJobSchemaContractTest.cpp",
+      "test": "KisDabRenderingJobSchemaContractTest::dabRenderingQueueSchedulingSignaturesRemainStable",
+      "behavior": "dab描画queueは要求追加、完了通知、準備済みdab取得の引数・返値境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDabRenderingQueue::addDab(const KisDabCacheUtils::DabRequestInfo & request,qreal opacity,qreal flow)",
+        "method:KisDabRenderingQueue::notifyJobFinished(int seqNo,int usecsTime=-1)",
+        "method:KisDabRenderingQueue::takeReadyDabs(bool returnMutableDabs=false,int oneTimeLimit=-1,bool * someDabsLeft=0)"
+      ]
+    },
+    {
+      "target": "KisDabRenderingJobSchemaContractTest",
+      "source": "plugins/paintops/defaultpaintops/brush/tests/KisDabRenderingJobSchemaContractTest.cpp",
+      "test": "KisDabRenderingJobSchemaContractTest::dabRenderingQueueCacheResourceSignaturesRemainStable",
+      "behavior": "dab描画queueは準備状態、cache方針、paint deviceと描画資源の出入境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDabRenderingQueue::fetchCachedPaintDevice()",
+        "method:KisDabRenderingQueue::fetchResourcesFromCache()",
+        "method:KisDabRenderingQueue::hasPreparedDabs() const",
+        "method:KisDabRenderingQueue::putResourcesToCache(KisDabCacheUtils::DabRenderingResources * resources)",
+        "method:KisDabRenderingQueue::setCacheInterface(CacheInterface * interface)"
+      ]
+    },
+    {
+      "target": "KisDabRenderingJobSchemaContractTest",
+      "source": "plugins/paintops/defaultpaintops/brush/tests/KisDabRenderingJobSchemaContractTest.cpp",
+      "test": "KisDabRenderingJobSchemaContractTest::dabRenderingQueueMetricsSignaturesRemainStable",
+      "behavior": "dab描画queueは平均実行時間、平均dab寸法、試験用queue件数の照会型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDabRenderingQueue::averageDabSize() const",
+        "method:KisDabRenderingQueue::averageExecutionTime() const",
+        "method:KisDabRenderingQueue::testingGetQueueSize() const"
       ]
     }
   ]
