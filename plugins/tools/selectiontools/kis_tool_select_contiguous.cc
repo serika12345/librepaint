@@ -11,6 +11,7 @@
  */
 
 #include "kis_tool_select_contiguous.h"
+#include <QDomDocument>
 #include <QPainter>
 #include <QLayout>
 #include <QApplication>

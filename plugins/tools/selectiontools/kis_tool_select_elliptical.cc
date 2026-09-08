@@ -18,6 +18,7 @@
 #include "kis_pixel_selection.h"
 #include "kis_selection_tool_helper.h"
 #include <KoBasicShapeFactory.h>
+#include <KoShape.h>
 #include <brushengine/kis_paintop_registry.h>
 #include <kis_command_utils.h>
 #include <kis_selection_filters.h>

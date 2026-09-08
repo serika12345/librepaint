@@ -18,6 +18,7 @@
 #include "kis_pixel_selection.h"
 #include "kis_selection_tool_helper.h"
 #include <KoBasicShapeFactory.h>
+#include <KoShape.h>
 #include <kis_default_bounds.h>
 
 #include "application/ui/workspace/KisViewManager.h"

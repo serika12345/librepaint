@@ -8,7 +8,6 @@
 #ifndef KIS_TOOL_SELECT_UI_BASE_H
 #define KIS_TOOL_SELECT_UI_BASE_H
 
-#include <KoShape.h>
 #include <kis_assert.h>
 #include <kis_selection_options.h>
 #include <kis_selection_tool_config_widget_helper.h>
@@ -16,6 +15,8 @@
 #include <kis_signal_auto_connection.h>
 #include <kis_tool_select_base.h>
 #include <kritaui_export.h>
+
+class KoShape;
 
 /**
  * Selection-tool option presentation and action wiring.

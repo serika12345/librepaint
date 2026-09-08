@@ -3125,10 +3125,10 @@
 ### 第386便の公開API契約計画
 
 - 第386便は`libs/ui/tool/kis_tool_select_ui_base.h`の残存全25 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g386.json`は公開header 1,548、公開API 29,804、対応済み26,145、未対応3,659、995,257 bytes、SHA-256 `d3a798d7b3cdd544f40a4105d92819315cb8e7a4e9961ee9ca27fc1dae7a61b9`である。対象識別子整列集合のSHA-256は`8f41450d1b427296f4a3d6edf2b8ba85b2be54e93e7bfc7b028d869c3b9d5376`で、UI選択型・alias・構築8、参照layer mode 5、活性化・表示5、選択設定4、補正・色label・option 3の5枠へ固定する。
-- 開始headerは選択toolのoption表示、action接続、設定値取得をtemplate inline本文として所有する。selection option、widget helper、selection helper、接続store、interaction baseの完全型は各本文または値memberに必要であり、`KoShape`も公開overrideの集合要素として直接表現される。template本文を別ファイルへ移しても利用側でincludeする必要があり閉包は縮まらず、完全型を前方宣言へ変えると推移includeへの依存になる。このため構造先行変更は行わず、製品templateを実体化・接続しない専用契約targetによって再構築範囲を分離する。
+- 開始headerは選択toolのoption表示、action接続、設定値取得をtemplate inline本文として所有する。selection option、widget helper、selection helper、接続store、interaction baseの完全型は各本文または値memberに必要であり、template本文を別ファイルへ移しても利用側でincludeする必要がある。一方、最初の対象限定redは、pointer集合の公開overrideだけに使う`KoShape.h`が不要なQt XML探索路を伝播していることを検出した。構造先行変更では開始headerを`KoShape`前方宣言へ替え、図形実体を操作する`plugins/tools/selectiontools/kis_tool_select_elliptical.cc`と`kis_tool_select_rectangular.cc`へ完全型、XML文書を生成する`kis_tool_select_contiguous.cc`へ`QDomDocument`を直接移す。
 - 既存`libs/tools/tests/KisToolSelectBaseSchemaContractTest.cpp`は下位interactionと複数の具体選択toolを299行・15枠で既に固定している。UI presentationを追加すると一試験sourceの責務と保守上限を越えるため追記しない。同targetの変更なし閉包は4工程・8入力、command SHA-256 `7d72107257a30cdc9ee717390876221296ca6984d3f79575a3a9c4907203d90a`、input SHA-256 `1c87db84f4d7f873552114f0baaa920f6a47b28a344383a5cb86748398ffa26e`である。
 - 新規`libs/ui/tests/KisToolSelectUiBaseSchemaContractTest.cpp`を200行・10枠未満で作り、型特性と厳密な関数pointerだけで25 APIを観測する。専用targetは下位契約と同じheader探索路・export定義を再利用し、4工程・8入力を予測して停止線を5工程・11入力とする。候補headerをAUTOMOC入力にせず、selection option widget、action、canvas、tool、node、stroke、menuを実体化または接続しない。
-- `g386-tool-select-ui-schema`の状態は`in_progress`、実装基点は`2a0d756add`である。新規試験sourceと`libs/ui/tests/CMakeLists.txt`の対象固有節だけへ契約を追加する。macOSの対象、5枠の20回反復、下位の軽量近傍、試験sourceの厳格`clang-check`、書式、AUTOMOC後の二回目計画、二回の無作業再構築、動的接続・未解決symbol、公開API検査、`verify-quick`だけを実行する。製品templateの実体化、既存製品試験、製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
+- `g386-tool-select-ui-schema`の状態は`in_progress`、実装基点は`2a0d756add`である。構造先行commit後、新規試験sourceと`libs/ui/tests/CMakeLists.txt`の対象固有節だけへ契約を追加する。macOSの対象、5枠の20回反復、下位の軽量近傍、8直接利用元と試験sourceの厳格`clang-check`、書式、AUTOMOC後の二回目計画、二回の無作業再構築、動的接続・未解決symbol、公開API検査、`verify-quick`だけを実行する。製品templateの実体化、既存製品試験、製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
 
 ### 第239便の先行監査担当票
 
