@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 08:14 JST
+- 更新日時: 2026-09-09 08:19 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4136,6 +4136,13 @@
 - 開始`libs/image/brushengine/kis_paintop_utils.h`から新規`libs/image/tests/KisPaintOpUtilsSchemaContractTest.cpp`へ全12 API・5枠を追加した。位置履歴の初期化と二段階更新、極小寸法境界、自動間隔の線形・平方根分岐と二次元結果を値で固定し、有効間隔・時機、dab矩形分割、fan・line描画templateを厳密な関数pointerで固定した。初回は実行時4枠が成功し、`G464 paint operation utility API schema is not fixed yet`だけで1件失敗した。描画template本文と非inline関数は実体化していない。計画commitは`b293f499d4`、契約commitは`7ccf43d009`である。
 - 新規試験sourceは120行・5枠で、targetは4工程・8入力、command SHA-256 `60d4be472e508c99aadb0ef8af4956cfc3ec2ac04e194bfe9b0d64bd8e7dab51`、input SHA-256 `f2dc25b3af0fe57d76bcc2ff5755519fa8032511f8957a75c868c7bd567361f7`となった。AUTOMOC `HEADERS=[]`、直接接続はQt Core・Gui・Testで、製品未解決記号・製品動的接続は0である。macOSで対象、最軽量近傍`KisPaintopSettingsIdsContractTest`、対象の20回反復、試験sourceの厳格構文と書式、連続二回の無作業再構築、公開API検査、`verify-quick`に成功した。非inline描画補助の動作対象、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 台帳は27,312件対応、2,492件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g464.json`を削除し、一時閉包一覧、追加作業tree・構築木は作成していない。主Ninja木5,998,336 KiB、共有compiler cache 982,456 KiB、最新`build/tdd-macos/public-api-missing-g465.json` 678,491 bytes、SHA-256 `841b891eae416a32760bfad2b55ef2ea3962c8f605b8193254ca18a7141c6449`だけを再利用対象として保持する。compiler cacheは144,605件中120,565件、83.38%がhitしている。次の永続作業は第465便で最新報告から高密度なmacOS対象と最小構築面を選定することである。
+
+### 第465便の公開API契約計画
+
+- 第465便は`libs/image/brushengine/kis_paintop.h`に残る全11 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g465.json`は公開header 1,548、公開API 29,804、対応済み27,312、未対応2,492、678,491 bytes、SHA-256 `841b891eae416a32760bfad2b55ef2ea3962c8f605b8193254ca18a7141c6449`である。対象識別子整列集合のSHA-256は`4ddceb3448789d3a07950438ddb67d71f997b6fb01fa88aafb5a3de444188ef1`で、抽象型・構築・寿命3、単点・直線・Bezier描画と可否4、間隔・時機更新2、座標分割・非同期更新2の4枠へ固定する。
+- 公開headerは`KisDistanceInformation`を参照・pointerでのみ使う一方、`QVector`と`std::pair`を距離headerから間接取得している。開始`libs/image/brushengine/kis_paintop.h`の`kis_distance_information.h` includeを、`QVector`・`utility`の直接includeと距離・間隔・時機型の前方宣言へ置き換える。実装`libs/image/brushengine/kis_paintop.cc`は既に距離headerを直接includeしている。直接利用元17件の変更前厳密構文検査は12件成功・5件既存診断であり、変更後の新規悪化0を完了条件とする。
+- 新規`libs/image/tests/KisPaintOpSchemaContractTest.cpp`は120行・5枠未満とする。公開constructorを宣言だけの最小派生型から観測し、公開関数は厳密な関数pointerで観測して抽象型と製品本文を実体化しない。image・globalのsource・binary探索路、`kritaimage_EXPORTS`、Qt Core・Testだけを与え、4工程・8入力を予測する。既存`libs/image/tests/kis_paintop_test.cpp`は製品image試験集合へ接続され、単一公開面の変更なし再構築境界を持たないため統合先から除外する。
+- header依存の限定を独立commitした後、開始headerから新規試験sourceとpackage-local CMake登録だけへ追加する。停止線は5工程・11入力で、新たな探索路・定義・製品接続、AUTOMOC header入力、製品未解決記号、派生型または描画本文の実体化が必要なら停止する。macOSの対象、最軽量近傍、対象の20回反復、試験sourceの厳格構文、書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
 
 ### 第239便の先行監査担当票
 
