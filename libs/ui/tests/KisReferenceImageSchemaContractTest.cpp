@@ -4,6 +4,7 @@
  */
 
 #include <canvas/KisReferenceImage.h>
+#include <flake/KisReferenceImagesLayer.h>
 
 #include <QTest>
 
@@ -16,6 +17,8 @@ namespace
 #define ASSERT_SATURATION_COMMAND_SIGNATURE(method, signature)                                                         \
     static_assert(                                                                                                     \
         std::is_same_v<decltype(static_cast<signature>(&KisReferenceImage::SetSaturationCommand::method)), signature>)
+#define ASSERT_REFERENCE_IMAGES_LAYER_SIGNATURE(method, signature)                                                     \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KisReferenceImagesLayer::method)), signature>)
 } // namespace
 
 class KisReferenceImageSchemaContractTest : public QObject
@@ -28,6 +31,11 @@ private Q_SLOTS:
     void referenceImagePresentationAndSaturationSignaturesRemainStable();
     void referenceImagePersistenceAndIdentitySignaturesRemainStable();
     void saturationCommandSchemaRemainStable();
+    void referenceImagesLayerTypeAndConstructionSchemaRemainStable();
+    void referenceImagesLayerMutationSignaturesRemainStable();
+    void referenceImagesLayerGeometryAndPaintingSignaturesRemainStable();
+    void referenceImagesLayerNodeSignaturesRemainStable();
+    void referenceImagesLayerColorAndNotificationSignaturesRemainStable();
 };
 
 void KisReferenceImageSchemaContractTest::referenceImageTypeLifetimeAndCloneSchemaRemainStable()
@@ -95,6 +103,61 @@ void KisReferenceImageSchemaContractTest::saturationCommandSchemaRemainStable()
     ASSERT_SATURATION_COMMAND_SIGNATURE(redo, void (Command::*)());
 }
 
+void KisReferenceImageSchemaContractTest::referenceImagesLayerTypeAndConstructionSchemaRemainStable()
+{
+    using Layer = KisReferenceImagesLayer;
+
+    static_assert(std::is_same_v<KisReferenceImagesLayerSP, KisSharedPtr<Layer>>);
+    static_assert(std::is_class_v<Layer>);
+    static_assert(std::is_base_of_v<KisShapeLayer, Layer>);
+    static_assert(std::is_constructible_v<Layer, KoShapeControllerBase *, KisImageWSP>);
+    static_assert(std::is_copy_constructible_v<Layer>);
+}
+
+void KisReferenceImageSchemaContractTest::referenceImagesLayerMutationSignaturesRemainStable()
+{
+    using Layer = KisReferenceImagesLayer;
+
+    ASSERT_REFERENCE_IMAGES_LAYER_SIGNATURE(addReferenceImages, KUndo2Command * (*)(KisDocument *, QList<KoShape *>));
+    ASSERT_REFERENCE_IMAGES_LAYER_SIGNATURE(removeReferenceImages,
+                                            KUndo2Command * (Layer::*)(KisDocument *, QList<KoShape *>));
+    ASSERT_REFERENCE_IMAGES_LAYER_SIGNATURE(referenceImages, QVector<KisReferenceImage *> (Layer::*)() const);
+}
+
+void KisReferenceImageSchemaContractTest::referenceImagesLayerGeometryAndPaintingSignaturesRemainStable()
+{
+    using Layer = KisReferenceImagesLayer;
+
+    ASSERT_REFERENCE_IMAGES_LAYER_SIGNATURE(boundingImageRect, QRectF (Layer::*)() const);
+    ASSERT_REFERENCE_IMAGES_LAYER_SIGNATURE(getPixel, KoColor (Layer::*)(QPointF) const);
+    ASSERT_REFERENCE_IMAGES_LAYER_SIGNATURE(paintReferences, void (Layer::*)(QPainter &));
+}
+
+void KisReferenceImageSchemaContractTest::referenceImagesLayerNodeSignaturesRemainStable()
+{
+    using Layer = KisReferenceImagesLayer;
+
+    ASSERT_REFERENCE_IMAGES_LAYER_SIGNATURE(allowAsChild, bool (Layer::*)(KisNodeSP) const);
+    ASSERT_REFERENCE_IMAGES_LAYER_SIGNATURE(accept, bool (Layer::*)(KisNodeVisitor &));
+    ASSERT_REFERENCE_IMAGES_LAYER_SIGNATURE(accept, void (Layer::*)(KisProcessingVisitor &, KisUndoAdapter *));
+    ASSERT_REFERENCE_IMAGES_LAYER_SIGNATURE(clone, KisNodeSP (Layer::*)() const);
+    ASSERT_REFERENCE_IMAGES_LAYER_SIGNATURE(isFakeNode, bool (Layer::*)() const);
+}
+
+void KisReferenceImageSchemaContractTest::referenceImagesLayerColorAndNotificationSignaturesRemainStable()
+{
+    using Layer = KisReferenceImagesLayer;
+
+    ASSERT_REFERENCE_IMAGES_LAYER_SIGNATURE(setProfile, KUndo2Command * (Layer::*)(const KoColorProfile *));
+    ASSERT_REFERENCE_IMAGES_LAYER_SIGNATURE(convertTo,
+                                            KUndo2Command
+                                                * (Layer::*)(const KoColorSpace *,
+                                                             KoColorConversionTransformation::Intent,
+                                                             KoColorConversionTransformation::ConversionFlags));
+    ASSERT_REFERENCE_IMAGES_LAYER_SIGNATURE(sigUpdateCanvas, void (Layer::*)(const QRectF &));
+}
+
+#undef ASSERT_REFERENCE_IMAGES_LAYER_SIGNATURE
 #undef ASSERT_REFERENCE_IMAGE_SIGNATURE
 #undef ASSERT_SATURATION_COMMAND_SIGNATURE
 
