@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-08 23:11 JST
+- 更新日時: 2026-09-08 23:16 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3631,6 +3631,12 @@
 - `g425-selection-decoration-schema`は`completed`である。`libs/ui/canvas/kis_selection_decoration.h`から既存`libs/ui/tests/KisQPainterCanvasSchemaContractTest.cpp`へ15 API・4枠を移し、装飾型・構築・寿命3、表示mode型・2値・照会設定5、表示状態・設定・切替3、window・canvas更新と選択・ants通知4を型特性、列挙値、構築可能性、厳密な関数pointerで固定した。試験sourceは205行・15枠で、装飾、view、canvas widget、Qt値と本文を実体化していない。CMake変更なしの初回redは未定義の4検査関数だけで失敗し、契約実装commitは`2b0e635a23`である。
 - macOSの対象`libs-ui-KisQPainterCanvasSchemaContractTest`、軽量近傍`libs-ui-KisCanvas2SchemaContractTest`、対象の20回反復、試験sourceの厳格`clang-check`、書式、変更なし計画、連続二回の無作業再構築に成功した。対象は4工程・8入力、command SHA-256 `760a2b1da4d20c131fb2d7f8654d7b3f870ef3f67fb5e5161de1157305250e5a`、input SHA-256 `4c5ddca5f5f791c5b6f36430245002f0e536ee78fbd4295f3174fc935a6211a1`、AUTOMOC `HEADERS=[]`、直接接続はQt Gui・Test、製品未解決symbol 0である。1,975工程・3,950入力の製品application UI、製品UI target、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 台帳へ15 APIを追加して26,846件対応、2,958件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g425.json`を削除し、追加作業tree・構築木・一時計画物は作成していない。主Ninja木5,982,360 KiB、共有compiler cache 982,716 KiB、最新`build/tdd-macos/public-api-missing-g426.json` 805,291 bytes、SHA-256 `ddba537737a1ba99c5988cb4dfaafe488b0456bc15969d23512ee37523b68dcd`だけを再利用対象として保持する。compiler cacheは144,485件中120,553件、83.44%がhitしている。公開API検査と`verify-quick`に成功した。次の永続作業は第426便で次の高密度なmacOS対象と最小構築面を選定することである。
+
+### 第426便の公開API契約計画
+
+- 第426便は`libs/application/ui/workspace/KisWindowLayoutResource.h`に残る全13 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g426.json`は公開header 1,548、公開API 29,804、対応済み26,846、未対応2,958、805,291 bytes、SHA-256 `ddba537737a1ba99c5988cb4dfaafe488b0456bc15969d23512ee37523b68dcd`である。対象識別子整列集合のSHA-256は`0735421e3d1b5031b64b86127446bebfaf45f71ea44ed55105287732dd73335c`で、共有型・資源型・2構築路・寿命5、複製・代入境界2、現在windowからの生成・適用2、装置保存・読込2、資源型・既定拡張子2の5枠へ固定する。
+- 近傍`libs/application/tests/KisMainWindowSchemaContractTest.cpp`は同じworkspace責務とcompile interfaceを持つが、既に248行・18枠であり、追記すると300行・20枠の保守上限を超える。新規`libs/application/tests/KisWindowLayoutResourceSchemaContractTest.cpp`へ分け、近傍と同じapplication・flake・global・resources・UI・widgetutilsの探索路とexport定義、Qt Core・Test、Qt Widgets・KF ConfigCore・I18n interfaceだけを使う4工程・8入力を予測する。近傍のcommand SHA-256は`631ecd85515c8854216a7aaafbb8344f8af1b1755cddd723df0d0911b4c23e6d`、input SHA-256は`b27d6a2c14eede0dadfa3a8ca92a0a958eacd0fd43a1281530b9eedd6e60b2be`である。資源、主window、装置、資源interface、Qt値と本文を実体化せず、共有型、型特性、構築可能性、厳密な関数pointerだけで公開境界を観測する。
+- `g426-window-layout-resource-schema`の状態は`in_progress`、実装基点は`b3948d59f1`である。許可pathは新規試験source、`libs/application/tests/CMakeLists.txt`の新target固有節、調整担当所有の台帳と進捗だけで、公開header、製品source、既存target、製品targetは変更しない。停止線は5工程・11入力とし、近傍と異なる探索路・定義・link、製品OBJECT・shared・`kritatestsdk`接続、候補headerのAUTOMOC入力化、製品未解決symbol、対象値またはinline本文の実体化が必要なら候補を保留する。macOSの対象、5枠の20回反復、軽量近傍、試験sourceの厳格`clang-check`、書式、AUTOMOC後の二回目計画、連続二回の無作業再構築、動的接続・未解決symbol、公開API検査、`verify-quick`だけを実行する。製品application UI・UI・resources target、全体build・`verify`、Linux、Nix再評価は実行しない。
 
 ### 第239便の先行監査担当票
 
