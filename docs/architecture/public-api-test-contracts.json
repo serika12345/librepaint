@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 3768
+    "expectedMissingApis": 3738
   },
   "contracts": [
     {
@@ -71177,6 +71177,81 @@
         "method:KisNode::busyProgressIndicator() const",
         "method:KisNode::nodeProgressProxy() const",
         "method:KisNode::sigNodeChangedInternal()"
+      ]
+    },
+    {
+      "target": "KisFileLayerSchemaContractTest",
+      "source": "libs/ui/tests/KisFileLayerSchemaContractTest.cpp",
+      "test": "KisFileLayerSchemaContractTest::fileLayerTypeScalingAndConstructionSchemaRemainStable",
+      "behavior": "file layerは型、尺度変更方式の値、通常・外部file・複製構築と多態的破棄の境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisFileLayer",
+        "enum:KisFileLayer::ScalingMethod",
+        "enumerator:KisFileLayer::ScalingMethod::None",
+        "enumerator:KisFileLayer::ScalingMethod::ToImagePPI",
+        "enumerator:KisFileLayer::ScalingMethod::ToImageSize",
+        "method:KisFileLayer::KisFileLayer(KisImageWSP image,const QString & basePath,const QString & filename,ScalingMethod scalingMethod,QString scalingFilter,const QString & name,quint8 opacity,const KoColorSpace * fallbackColorSpace=0)",
+        "method:KisFileLayer::KisFileLayer(KisImageWSP image,const QString & name,quint8 opacity)",
+        "method:KisFileLayer::KisFileLayer(const KisFileLayer & rhs)",
+        "method:KisFileLayer::~KisFileLayer()"
+      ]
+    },
+    {
+      "target": "KisFileLayerSchemaContractTest",
+      "source": "libs/ui/tests/KisFileLayerSchemaContractTest.cpp",
+      "test": "KisFileLayerSchemaContractTest::fileLayerNodeAndVisitorSignaturesRemainStable",
+      "behavior": "file layerはnode複製、子nodeの許可と通常・処理訪問者の公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisFileLayer::accept(KisNodeVisitor &)",
+        "method:KisFileLayer::accept(KisProcessingVisitor & visitor,KisUndoAdapter * undoAdapter)",
+        "method:KisFileLayer::allowAsChild(KisNodeSP) const",
+        "method:KisFileLayer::clone() const"
+      ]
+    },
+    {
+      "target": "KisFileLayerSchemaContractTest",
+      "source": "libs/ui/tests/KisFileLayerSchemaContractTest.cpp",
+      "test": "KisFileLayerSchemaContractTest::fileLayerDeviceAndCacheSignaturesRemainStable",
+      "behavior": "file layerは表示icon、原本・描画device、cache再生成と所属画像の境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisFileLayer::icon() const",
+        "method:KisFileLayer::original() const",
+        "method:KisFileLayer::paintDevice() const",
+        "method:KisFileLayer::resetCache(const KoColorSpace * colorSpace=0)",
+        "method:KisFileLayer::setImage(KisImageWSP image)"
+      ]
+    },
+    {
+      "target": "KisFileLayerSchemaContractTest",
+      "source": "libs/ui/tests/KisFileLayerSchemaContractTest.cpp",
+      "test": "KisFileLayerSchemaContractTest::fileLayerPathAndScalingSignaturesRemainStable",
+      "behavior": "file layerはfile名・pathと尺度変更方式・filterの設定・照会境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisFileLayer::fileName() const",
+        "method:KisFileLayer::path() const",
+        "method:KisFileLayer::scalingFilter() const",
+        "method:KisFileLayer::scalingMethod() const",
+        "method:KisFileLayer::setFileName(const QString & basePath,const QString & filename)",
+        "method:KisFileLayer::setScalingFilter(QString method)",
+        "method:KisFileLayer::setScalingMethod(ScalingMethod method)"
+      ]
+    },
+    {
+      "target": "KisFileLayerSchemaContractTest",
+      "source": "libs/ui/tests/KisFileLayerSchemaContractTest.cpp",
+      "test": "KisFileLayerSchemaContractTest::fileLayerSectionGeometryAndNotificationSignaturesRemainStable",
+      "behavior": "file layerは区画属性、切抜き・変形と外部fileを開く要求通知の境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisFileLayer::crop(const QRect & rect)",
+        "method:KisFileLayer::sectionModelProperties() const",
+        "method:KisFileLayer::setSectionModelProperties(const KisBaseNode::PropertyList & properties)",
+        "method:KisFileLayer::sigRequestOpenFile()",
+        "method:KisFileLayer::transform(const QTransform & transform)"
       ]
     }
   ]
