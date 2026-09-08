@@ -4,6 +4,7 @@
  */
 
 #include <ui/workspace/KisMainWindow.h>
+#include <ui/workspace/KisWindowLayoutManager.h>
 
 #include <QTest>
 
@@ -13,6 +14,8 @@ namespace
 {
 #define ASSERT_MAIN_WINDOW_SIGNATURE(method, signature)                                                                \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisMainWindow::method)), signature>)
+#define ASSERT_WINDOW_LAYOUT_MANAGER_SIGNATURE(method, signature)                                                      \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KisWindowLayoutManager::method)), signature>)
 } // namespace
 
 class KisMainWindowSchemaContractTest : public QObject
@@ -28,6 +31,11 @@ private Q_SLOTS:
     void viewLifecycleActionSignaturesRemainStable();
     void availabilityAndSynchronizationSignaturesRemainStable();
     void notificationSignaturesRemainStable();
+    void windowLayoutManagerTypeAndLifetimeSchemaRemainStable();
+    void windowLayoutDisplaySchemaRemainsStable();
+    void windowLayoutDisplayLayoutSchemaRemainsStable();
+    void primaryWorkspaceSignaturesRemainStable();
+    void synchronizedDocumentAndLayoutSignaturesRemainStable();
 };
 
 void KisMainWindowSchemaContractTest::typeOpenFlagsAndLifetimeSchemaRemainStable()
@@ -130,7 +138,57 @@ void KisMainWindowSchemaContractTest::notificationSignaturesRemainStable()
     ASSERT_MAIN_WINDOW_SIGNATURE(activeViewChanged, void (KisMainWindow::*)());
 }
 
+void KisMainWindowSchemaContractTest::windowLayoutManagerTypeAndLifetimeSchemaRemainStable()
+{
+    using Manager = KisWindowLayoutManager;
+    using InstanceSignature = Manager *(*)();
+
+    static_assert(std::is_class_v<Manager>);
+    static_assert(std::is_default_constructible_v<Manager>);
+    static_assert(std::has_virtual_destructor_v<Manager>);
+    static_assert(std::is_same_v<decltype(static_cast<InstanceSignature>(&Manager::instance)), InstanceSignature>);
+}
+
+void KisMainWindowSchemaContractTest::windowLayoutDisplaySchemaRemainsStable()
+{
+    using Display = KisWindowLayoutManager::Display;
+
+    static_assert(std::is_class_v<Display>);
+    static_assert(std::is_same_v<decltype(&Display::resolution), QSize Display::*>);
+    static_assert(std::is_same_v<decltype(&Display::matches), bool (Display::*)(QScreen *) const>);
+}
+
+void KisMainWindowSchemaContractTest::windowLayoutDisplayLayoutSchemaRemainsStable()
+{
+    using Display = KisWindowLayoutManager::Display;
+    using DisplayLayout = KisWindowLayoutManager::DisplayLayout;
+
+    static_assert(std::is_class_v<DisplayLayout>);
+    static_assert(std::is_same_v<decltype(&DisplayLayout::name), QString DisplayLayout::*>);
+    static_assert(std::is_same_v<decltype(&DisplayLayout::displays), QVector<Display> DisplayLayout::*>);
+    static_assert(std::is_same_v<decltype(&DisplayLayout::preferredWindowLayout), QString DisplayLayout::*>);
+    static_assert(std::is_same_v<decltype(&DisplayLayout::matches), bool (DisplayLayout::*)(QList<QScreen *>) const>);
+}
+
+void KisMainWindowSchemaContractTest::primaryWorkspaceSignaturesRemainStable()
+{
+    ASSERT_WINDOW_LAYOUT_MANAGER_SIGNATURE(primaryWorkspaceFollowsFocus, bool (KisWindowLayoutManager::*)() const);
+    ASSERT_WINDOW_LAYOUT_MANAGER_SIGNATURE(setPrimaryWorkspaceFollowsFocus,
+                                           void (KisWindowLayoutManager::*)(bool, QUuid));
+    ASSERT_WINDOW_LAYOUT_MANAGER_SIGNATURE(primaryWindowId, QUuid (KisWindowLayoutManager::*)() const);
+}
+
+void KisMainWindowSchemaContractTest::synchronizedDocumentAndLayoutSignaturesRemainStable()
+{
+    ASSERT_WINDOW_LAYOUT_MANAGER_SIGNATURE(isShowImageInAllWindowsEnabled, bool (KisWindowLayoutManager::*)() const);
+    ASSERT_WINDOW_LAYOUT_MANAGER_SIGNATURE(setShowImageInAllWindowsEnabled, void (KisWindowLayoutManager::*)(bool));
+    ASSERT_WINDOW_LAYOUT_MANAGER_SIGNATURE(activeDocumentChanged, void (KisWindowLayoutManager::*)(KisDocument *));
+    ASSERT_WINDOW_LAYOUT_MANAGER_SIGNATURE(setLastUsedLayout,
+                                           void (KisWindowLayoutManager::*)(KisWindowLayoutResource *));
+}
+
 #undef ASSERT_MAIN_WINDOW_SIGNATURE
+#undef ASSERT_WINDOW_LAYOUT_MANAGER_SIGNATURE
 
 QTEST_GUILESS_MAIN(KisMainWindowSchemaContractTest)
 
