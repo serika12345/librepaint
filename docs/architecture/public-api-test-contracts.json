@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 3565
+    "expectedMissingApis": 3542
   },
   "contracts": [
     {
@@ -71731,6 +71731,74 @@
         "method:KisSimplePaintOpFactory::name() const",
         "method:KisSimplePaintOpFactory::prepareEmbeddedResources(const KisPaintOpSettingsSP settings,KisResourcesInterfaceSP resourcesInterface)",
         "method:KisSimplePaintOpFactory::prepareLinkedResources(const KisPaintOpSettingsSP settings,KisResourcesInterfaceSP resourcesInterface)"
+      ]
+    },
+    {
+      "target": "KisPaintOpFactorySchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisPaintOpFactorySchemaContractTest.cpp",
+      "test": "KisPaintOpFactorySchemaContractTest::paintOpFactoryTypeVisibilityAndLifetimeSchemaRemainStable",
+      "behavior": "paintop factoryは公開型、可視性の自動・常時・非表示値、許可合成方式による構築と仮想破棄境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisPaintOpFactory",
+        "enum:KisPaintOpFactory::PaintopVisibility",
+        "enumerator:KisPaintOpFactory::PaintopVisibility::ALWAYS",
+        "enumerator:KisPaintOpFactory::PaintopVisibility::AUTO",
+        "enumerator:KisPaintOpFactory::PaintopVisibility::NEVER",
+        "method:KisPaintOpFactory::KisPaintOpFactory(const QStringList & whiteListedCompositeOps=QStringList ())",
+        "method:KisPaintOpFactory::~KisPaintOpFactory()"
+      ]
+    },
+    {
+      "target": "KisPaintOpFactorySchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisPaintOpFactorySchemaContractTest.cpp",
+      "test": "KisPaintOpFactorySchemaContractTest::paintOpFactoryIdentityAndClassificationSignaturesRemainStable",
+      "behavior": "paintop factoryは識別子、名称、分類、安定分類、iconとLOD寸法閾値対応の公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPaintOpFactory::category() const",
+        "method:KisPaintOpFactory::categoryStable()",
+        "method:KisPaintOpFactory::icon()",
+        "method:KisPaintOpFactory::id() const",
+        "method:KisPaintOpFactory::lodSizeThresholdSupported() const",
+        "method:KisPaintOpFactory::name() const"
+      ]
+    },
+    {
+      "target": "KisPaintOpFactorySchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisPaintOpFactorySchemaContractTest.cpp",
+      "test": "KisPaintOpFactorySchemaContractTest::paintOpFactoryCreationSignaturesRemainStable",
+      "behavior": "paintop factoryは設定widget、interstroke data factory、paintop、設定の生成と条件付き事前初期化境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPaintOpFactory::createConfigWidget(QWidget * parent,KisResourcesInterfaceSP resourcesInterface,KoCanvasResourcesInterfaceSP canvasResourcesInterface)",
+        "method:KisPaintOpFactory::createInterstrokeDataFactory(const KisPaintOpSettingsSP settings,KisResourcesInterfaceSP resourcesInterface) const",
+        "method:KisPaintOpFactory::createOp(const KisPaintOpSettingsSP settings,KisPainter * painter,KisNodeSP node,KisImageSP image)",
+        "method:KisPaintOpFactory::createSettings(KisResourcesInterfaceSP resourcesInterface)",
+        "method:KisPaintOpFactory::preinitializePaintOpIfNeeded(const KisPaintOpSettingsSP settings)"
+      ]
+    },
+    {
+      "target": "KisPaintOpFactorySchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisPaintOpFactorySchemaContractTest.cpp",
+      "test": "KisPaintOpFactorySchemaContractTest::paintOpFactoryResourceSignaturesRemainStable",
+      "behavior": "paintop factoryは埋込み・参照資源の準備と許可合成方式一覧の公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPaintOpFactory::prepareEmbeddedResources(const KisPaintOpSettingsSP settings,KisResourcesInterfaceSP resourcesInterface)",
+        "method:KisPaintOpFactory::prepareLinkedResources(const KisPaintOpSettingsSP settings,KisResourcesInterfaceSP resourcesInterface)",
+        "method:KisPaintOpFactory::whiteListedCompositeOps() const"
+      ]
+    },
+    {
+      "target": "KisPaintOpFactorySchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisPaintOpFactorySchemaContractTest.cpp",
+      "test": "KisPaintOpFactorySchemaContractTest::paintOpFactoryPrioritySignaturesRemainStable",
+      "behavior": "paintop factoryは表示優先度の設定と照会境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPaintOpFactory::priority() const",
+        "method:KisPaintOpFactory::setPriority(int newPriority)"
       ]
     }
   ]

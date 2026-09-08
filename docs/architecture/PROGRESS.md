@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-08 15:49 JST
+- 更新日時: 2026-09-08 15:58 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3186,6 +3186,13 @@
 - 開始headerは`KisPaintOpSettingsSP`を既存`kis_types.h`から得ている一方、`KoCanvasResourcesInterfaceSP`の別名だけのために`brushengine/kis_paintop_settings.h`の完全な設定閉包を12直接利用元へ伝播させている。また`QList`と`QSharedPointer`を推移includeへ依存している。構造先行変更では設定headerを除き、`KoCanvasResourcesInterface`の前方宣言と共有pointer別名、Qt container・共有pointerを直接宣言する。構成済み11代表翻訳単位の変更前厳格`clang-check`は8件が無診断で成功し、資源管理2件と未構築hatching生成UIだけが既存診断で停止した。変更後の終了状態・診断SHA-256一致と公開API報告のbyte一致を完了条件とする。
 - 直前の`KisDabCacheUtilsSchemaContractTest.cpp`は260行・10枠へ達したため追記しない。新規`plugins/paintops/libpaintop/tests/KisPaintOpFactorySchemaContractTest.cpp`と専用targetを作り、libpaintop・global・imageのsource/generated探索路、Qt Gui interface、header-only Boost、`kritaimage_EXPORTS`、条件付き公開面用定義をcompile interfaceへ限定する。Qt Core・Testだけを動的接続する4工程・8入力を予測し、停止線を5工程・11入力とする。近傍`KisDabCacheUtilsSchemaContractTest`は4工程・8入力である。
 - `g390-paintop-factory-schema`の状態は`in_progress`、実装基点は`2748fff071`である。構造先行commit後、新規試験sourceと同target固有CMake節だけへ契約を追加する。macOSの対象、5枠の20回反復、軽量近傍、11代表利用元と試験sourceの厳格`clang-check`、書式、AUTOMOC後の二回目計画、二回の無作業再構築、動的接続・未解決symbol、公開API検査、`verify-quick`だけを実行する。factory・paintop・設定・widget・資源・canvas・画像の実体、製品plugin・OBJECT・shared target、全体build・`verify`、Linux、Nix再評価は実行しない。
+
+### 第390便の実装結果
+
+- `g390-paintop-factory-schema`は`completed`である。開始`libs/image/brushengine/kis_paintop_factory.h`から`brushengine/kis_paintop_settings.h`の完全な設定依存を除き、`KoCanvasResourcesInterface`の前方宣言と共有pointer別名、`QList`・`QSharedPointer`を開始headerで直接所有する構造にした。構成済み11代表利用元は変更前後とも8件が無診断で成功し、資源管理2件とhatching生成UIだけが同じ既存診断で停止して、全診断SHA-256が個別に一致した。公開API報告もbyte一致した。構造変更commitは`b4b5631299`である。
+- 開始`libs/image/brushengine/kis_paintop_factory.h`から新規`plugins/paintops/libpaintop/tests/KisPaintOpFactorySchemaContractTest.cpp`へ23 API・5枠を追加した。factory型・可視性・構築・寿命7、識別・分類6、生成5、資源3、優先度2を列挙値、型特性、宣言だけの具象probeと厳密な関数pointerで固定した。factory、paintop、設定、widget、資源、canvas、画像は実体化していない。契約実装commitは`c7f88b792d`である。
+- macOSで対象`plugins-paintops-libpaintop-KisPaintOpFactorySchemaContractTest`と近傍`plugins-paintops-libpaintop-KisDabCacheUtilsSchemaContractTest`のCTest 2/2、対象の20回反復、試験sourceの厳格`clang-check`、書式、二回の無作業再構築、公開API検査に成功した。専用targetは4工程・8入力、command SHA-256 `9741ae686343f225c9e71c4351c8b65904bd9322921126cd0fc4dd513684b50d`、input SHA-256 `b89afc5ec3c081ee96eafcb7f62fa82c6baf0eaf9175a114fa4a4cbbe8f78287`、AUTOMOC `HEADERS=[]`、Qt Core・Testと非製品runtimeだけの動的接続、paintop製品未解決記号0である。製品plugin・OBJECT・shared target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 台帳へ23 APIを追加して26,262件対応、3,542件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g390.json`を最新報告の検証後に削除し、追加作業tree・構築木は作成していない。主Ninja木5,967,876 KiB、共有compiler cache 983,440 KiB、最新`build/tdd-macos/public-api-missing-g391.json` 961,252 bytes、SHA-256 `fbcadd879a38b26862b796169e9597041a24f9024d74cb61f82788e69e1c26dd`だけを再利用対象として保持する。compiler cacheは144,349件中120,523件、83.49%がhitしている。次の永続作業は第391便で次の高密度なmacOS対象と最小構築面を選定することである。
 
 ### 第239便の先行監査担当票
 
