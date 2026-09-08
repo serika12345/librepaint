@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 3984
+    "expectedMissingApis": 3950
   },
   "contracts": [
     {
@@ -70736,6 +70736,85 @@
         "method:FillProcessingVisitor::setProgressHelper(QSharedPointer<ProgressHelper> progressHelper)",
         "method:FillProcessingVisitor::setUseBgColor(bool useBgColor)",
         "method:FillProcessingVisitor::setUseCustomBlendingOptions(bool useCustomBlendingOptions)"
+      ]
+    },
+    {
+      "target": "KisOpenGLModeProberSchemaContractTest",
+      "source": "libs/ui/tests/KisOpenGLModeProberSchemaContractTest.cpp",
+      "test": "KisOpenGLModeProberSchemaContractTest::proberTypeConstructionAndStateSchemaRemainStable",
+      "behavior": "OpenGL動作環境判定器は既定構築・破棄、共有instance、HDR利用状態、使用formatと基準色profileの照会を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisOpenGLModeProber",
+        "method:KisOpenGLModeProber::KisOpenGLModeProber()",
+        "method:KisOpenGLModeProber::instance()",
+        "method:KisOpenGLModeProber::rootSurfaceColorProfile() const",
+        "method:KisOpenGLModeProber::surfaceformatInUse() const",
+        "method:KisOpenGLModeProber::useHDRMode() const",
+        "method:KisOpenGLModeProber::~KisOpenGLModeProber()"
+      ]
+    },
+    {
+      "target": "KisOpenGLModeProberSchemaContractTest",
+      "source": "libs/ui/tests/KisOpenGLModeProberSchemaContractTest.cpp",
+      "test": "KisOpenGLModeProberSchemaContractTest::formatOperationSignaturesRemainStable",
+      "behavior": "OpenGL動作環境判定器はrenderer名変換、色空間比較、基準surface format初期化、HDR判定とformat探索を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisOpenGLModeProber::angleRendererToString(KisOpenGL::AngleRenderer renderer)",
+        "method:KisOpenGLModeProber::fuzzyCompareColorSpaces(const KisSurfaceColorSpaceWrapper & lhs,const KisSurfaceColorSpaceWrapper & rhs)",
+        "method:KisOpenGLModeProber::initSurfaceFormatFromConfig(std::pair<KisSurfaceColorSpaceWrapper,int> rootSurfaceFormat,QSurfaceFormat * format)",
+        "method:KisOpenGLModeProber::isFormatHDR(const QSurfaceFormat & format)",
+        "method:KisOpenGLModeProber::probeFormat(const KisOpenGL::RendererConfig & rendererConfig,bool adjustGlobalState=true)"
+      ]
+    },
+    {
+      "target": "KisOpenGLModeProberSchemaContractTest",
+      "source": "libs/ui/tests/KisOpenGLModeProberSchemaContractTest.cpp",
+      "test": "KisOpenGLModeProberSchemaContractTest::resultTypeConstructionAndVersionSchemaRemainStable",
+      "behavior": "OpenGL探索結果はcontextからの構築、主・副version、OpenGL 3・ES・対応version判定とWindowsのANGLE判定を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisOpenGLModeProber::Result",
+        "method:KisOpenGLModeProber::Result::Result(QOpenGLContext & context)",
+        "method:KisOpenGLModeProber::Result::glMajorVersion() const",
+        "method:KisOpenGLModeProber::Result::glMinorVersion() const",
+        "method:KisOpenGLModeProber::Result::hasOpenGL3() const",
+        "method:KisOpenGLModeProber::Result::isOpenGLES() const",
+        "method:KisOpenGLModeProber::Result::isSupportedVersion() const",
+        "method:KisOpenGLModeProber::Result::isUsingAngle() const"
+      ]
+    },
+    {
+      "target": "KisOpenGLModeProberSchemaContractTest",
+      "source": "libs/ui/tests/KisOpenGLModeProberSchemaContractTest.cpp",
+      "test": "KisOpenGLModeProberSchemaContractTest::resultCapabilitySignaturesRemainStable",
+      "behavior": "OpenGL探索結果はbuffer無効化・mapping、非推奨機能、FBO、fence、LODとVAOの対応状態を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisOpenGLModeProber::Result::supportsBufferInvalidation() const",
+        "method:KisOpenGLModeProber::Result::supportsBufferMapping() const",
+        "method:KisOpenGLModeProber::Result::supportsDeprecatedFunctions() const",
+        "method:KisOpenGLModeProber::Result::supportsFBO() const",
+        "method:KisOpenGLModeProber::Result::supportsFenceSync() const",
+        "method:KisOpenGLModeProber::Result::supportsLoD() const",
+        "method:KisOpenGLModeProber::Result::supportsVAO() const"
+      ]
+    },
+    {
+      "target": "KisOpenGLModeProberSchemaContractTest",
+      "source": "libs/ui/tests/KisOpenGLModeProberSchemaContractTest.cpp",
+      "test": "KisOpenGLModeProberSchemaContractTest::resultDriverAndFormatInformationSignaturesRemainStable",
+      "behavior": "OpenGL探索結果はdriver・renderer・vendor・shading言語、surface format、拡張集合とXCB provider情報を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisOpenGLModeProber::Result::driverVersionString() const",
+        "method:KisOpenGLModeProber::Result::extensions() const",
+        "method:KisOpenGLModeProber::Result::format() const",
+        "method:KisOpenGLModeProber::Result::rendererString() const",
+        "method:KisOpenGLModeProber::Result::shadingLanguageString() const",
+        "method:KisOpenGLModeProber::Result::vendorString() const",
+        "method:KisOpenGLModeProber::Result::xcbGlProviderProtocol()"
       ]
     }
   ]

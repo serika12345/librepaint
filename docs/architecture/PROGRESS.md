@@ -2,8 +2,8 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-08 11:13 JST
-- 状態: `in_progress`
+- 更新日時: 2026-09-08 11:24 JST
+- 状態: `planned`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
@@ -2998,6 +2998,13 @@
 - 9直接利用翻訳単位の変更前の厳格`clang-check`は6件が診断0件である。`libs/ui/dialogs/kis_dlg_preferences.cc`は既存の完全型不足・未使用変数10件、`libs/ui/opengl/kis_opengl.cpp`は既存Qt 6 `Q_FOREACH`非推奨1件、`plugins/dockers/lut/lutdocker_dock.cpp`は既存生成UI header不足1件で停止する。変更後に全9件の終了状態と診断本文を比較し、公開API報告のbyte一致と新規試験sourceの診断0件を完了条件とする。
 - 新規`libs/ui/tests/KisOpenGLModeProberSchemaContractTest.cpp`を200行・10枠未満で作り、prober型・構築・状態7、format操作5、結果型・version 8、機能対応7、driver・format情報7の5枠へ全34 APIを対応付ける。最も近い`KisOpenGLImageTexturesSchemaContractTest`は4工程・8入力、command SHA-256 `d77e8d2750e89b0f107cb18e64f9d1cefb04d1f418b293962d585b3f39d110e3`、input SHA-256 `a769061cef1fb086aca34ed6989dd2170154262959aa4985b26587d32c87f55d`である。対象識別子整列集合のSHA-256は`4374011c4629437c4bc2659b4ffb729699a21b10e6875da357e4100780e71f1c`で、新規targetの停止線を5工程・11入力とする。
 - `g377-opengl-mode-prober-schema`の状態は`in_progress`、実装基点は`503f74d232`である。構造先行commit後に、新規試験sourceと`libs/ui/tests/CMakeLists.txt`の対象固有節だけへ契約を追加する。macOSの対象、5枠の20回反復、9直接利用翻訳単位と試験sourceの厳格`clang-check`、軽量近傍、書式、二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。製品target、OpenGL context生成、全体build・`verify`、Linux、Nix再評価は実行しない。
+
+### 第377便の実装結果
+
+- `g377-opengl-mode-prober-schema`は`completed`である。開始`libs/ui/opengl/KisOpenGLModeProber.h`から重複した`application/kis_config.h`直接includeを除き、設定型の完全所有を`libs/ui/opengl/kis_opengl.h`に維持した。9直接利用翻訳単位の変更前後は診断0件6件と既存診断だけ3件の終了状態・診断本文が完全一致した。公開API報告も同じSHA-256 `4f3ea10992ab8020944cfca3b0e68dce4d2194c5240fb0c9929b690e9a2170ee`となり、構造変更commitは`6c4f2e1bcd`である。
+- 開始headerの残存全34 APIを、新規`libs/ui/tests/KisOpenGLModeProberSchemaContractTest.cpp`のprober型・構築・状態7、format操作5、結果型・version 8、機能対応7、driver・format情報7の5枠へ対応付けた。対象は111行である。最初の赤は追加依存を要求せず5試験関数の未定義symbolだけで停止した。完全型を使うformat署名の実装時に`KisSurfaceColorSpaceWrapper`の所有元を検出し、対象固有の`libs/canvas` source・generated探索路とexport定義だけを追加した。契約実装commitは`99c6af0c7d`である。
+- 最終targetは4工程・8入力、command SHA-256 `26563910ffa29c49811866e4d3a3649597748c0a2208921c0d488e3c95831872`、input SHA-256 `841766e90ca42485906491aab8f38bccf717c2c1b6222520933c84f12da48774`で停止線内に収まる。動的接続はQt Gui・Test・Core、OpenGLとそのOS framework、gettextだけで、製品libraryを接続しない。macOSで対象`libs-ui-KisOpenGLModeProberSchemaContractTest`、軽量近傍`libs-ui-KisOpenGLImageTexturesSchemaContractTest`、対象の20回反復、試験sourceの厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`に成功した。Windows限定ANGLE判定の実体、OpenGL context生成、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 台帳へ34 APIを追加して25,854件対応、3,950件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g377.json`を最新報告の検証後に削除し、追加作業tree・構築木は作成していない。主Ninja木5,947,896 KiB、共有compiler cache 982,932 KiB、最新`build/tdd-macos/public-api-missing-g378.json` 1,066,090 bytes、SHA-256 `f97bb98dd4e038993340bdc4fc68c159c3ded22553ea2f0b906f4745127fc71d`だけを再利用対象として保持する。compiler cacheは144,293件中120,514件、83.52%がhitしている。次の永続作業は第378便で次の高密度なmacOS対象と最小構築面を選定することである。
 
 ### 第239便の先行監査担当票
 
