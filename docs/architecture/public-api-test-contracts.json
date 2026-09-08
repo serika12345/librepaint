@@ -16,7 +16,7 @@
     "publicApiFingerprint": "5f05b2aa8e5bef4343af1d55a3852331e51d4369fe135b099327b1a91b6b8c4c"
   },
   "migration": {
-    "expectedMissingApis": 2573
+    "expectedMissingApis": 2563
   },
   "contracts": [
     {
@@ -75369,6 +75369,52 @@
       "classification": "maintained",
       "apis": [
         "method:KisPaintOpRegistry::preinitializePaintOpIfNeeded(const KisPaintOpPresetSP preset)"
+      ]
+    },
+    {
+      "target": "KisNodeFacadeSchemaContractTest",
+      "source": "libs/image/tests/KisNodeFacadeSchemaContractTest.cpp",
+      "test": "KisNodeFacadeSchemaContractTest::queryPathTypeCopyAndLifetimeSchemaRemainStable",
+      "behavior": "node照会pathは複製構築・代入・破棄できる値型境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisNodeQueryPath",
+        "method:KisNodeQueryPath::KisNodeQueryPath(const KisNodeQueryPath &)",
+        "method:KisNodeQueryPath::operator =(const KisNodeQueryPath &)",
+        "method:KisNodeQueryPath::~KisNodeQueryPath()"
+      ]
+    },
+    {
+      "target": "KisNodeFacadeSchemaContractTest",
+      "source": "libs/image/tests/KisNodeFacadeSchemaContractTest.cpp",
+      "test": "KisNodeFacadeSchemaContractTest::queryPathNodeLookupSignaturesRemainStable",
+      "behavior": "node照会pathはimageと現在nodeを基点に一致node列または一意nodeを返す公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeQueryPath::queryNodes(KisImageWSP image,KisNodeSP currentNode) const",
+        "method:KisNodeQueryPath::queryUniqueNode(KisImageWSP image,KisNodeSP currentNode=0) const"
+      ]
+    },
+    {
+      "target": "KisNodeFacadeSchemaContractTest",
+      "source": "libs/image/tests/KisNodeFacadeSchemaContractTest.cpp",
+      "test": "KisNodeFacadeSchemaContractTest::queryPathObservationSignaturesRemainStable",
+      "behavior": "node照会pathは相対指定かを判定し、安定した文字列表現を返す公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeQueryPath::isRelative() const",
+        "method:KisNodeQueryPath::toString() const"
+      ]
+    },
+    {
+      "target": "KisNodeFacadeSchemaContractTest",
+      "source": "libs/image/tests/KisNodeFacadeSchemaContractTest.cpp",
+      "test": "KisNodeFacadeSchemaContractTest::queryPathCreationSignaturesRemainStable",
+      "behavior": "node照会pathは文字列またはnode階層から新しい照会pathを生成する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeQueryPath::absolutePath(KisNodeSP node)",
+        "method:KisNodeQueryPath::fromString(const QString & path)"
       ]
     }
   ]

@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 05:49 JST
+- 更新日時: 2026-09-09 05:55 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4015,6 +4015,13 @@
 - 第455便は`libs/image/kis_node_query_path.h`に残る全10 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g455.json`は公開header 1,548、公開API 29,804、対応済み27,231、未対応2,573、700,726 bytes、SHA-256 `43e65392dee7f818e956bc05262c679e2ea2779096ad738cae19a3ccdf788744`である。対象識別子整列集合のSHA-256は`0aa00ac73584122d462294d33b8d070f19bddde4df9f088b774f43233478a886`で、型・複製構築・代入・寿命4、複数・一意node照会2、相対判定・文字列表現2、文字列解析・絶対path生成2の4枠へ固定する。
 - 公開headerは`kis_types.h`の共有pointer型、export定義と非公開実装pointerだけを持ち、node・image完全型や実装詳細を伝播させていないため構造変更は不要である。同じnode階層操作境界を所有する既存`libs/image/tests/KisNodeFacadeSchemaContractTest.cpp`は71行・4枠で、4枠追加後も300行・20枠未満に収まる。同targetはimage・global探索路とimage export定義、Qt Core・Testだけで4工程・8入力、command SHA-256 `e7e14cdf3e40754c67209aa09529d71f8ff8e5e080bf3bd669ba4776986459fe`、input SHA-256 `3be9a9081adb005b1c61ccdaba4dbb9cf9fff9aa802aae4913e7f823140ee333`である。新規targetは同じ閉包へCMake登録と生成物を増やすため棄却する。
 - 開始headerから既存試験sourceの4枠だけへ追加し、CMake、公開header、製品sourceは変更しない。停止線は5工程・11入力とし、新たな探索路・定義・link、AUTOMOC header入力、製品未解決記号、query path・node・image・文字列または本文の実体化が必要なら停止する。macOSの対象、追加4枠の20回反復、軽量近傍、試験sourceの厳格構文、書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、既存動的query path試験、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
+
+### 第455便の実装結果
+
+- 開始`libs/image/kis_node_query_path.h`から既存`libs/image/tests/KisNodeFacadeSchemaContractTest.cpp`へ全10 API・4枠を追加した。型・複製構築・代入・寿命4、複数・一意node照会2、相対判定・文字列表現2、文字列解析・絶対path生成2を型特性と厳密な関数pointerで固定した。query path、node、image、文字列と本文は実体化していない。初回は追加3枠が成功し、`G455 node query path API schema is not fixed yet`だけで1件失敗した。計画commitは`fad45b752c`、契約commitは`bb6ad1a1da`である。
+- 試験sourceは115行・8枠となり、CMake、公開header、製品sourceを変更していない。既存targetは4工程・8入力、command SHA-256 `e7e14cdf3e40754c67209aa09529d71f8ff8e5e080bf3bd669ba4776986459fe`、input SHA-256 `3be9a9081adb005b1c61ccdaba4dbb9cf9fff9aa802aae4913e7f823140ee333`を変更前から維持した。AUTOMOC `HEADERS=[]`、直接接続はQt Core・Test、製品未解決記号0である。
+- macOSで対象、軽量近傍`KisNodeVisitorContractTest`、対象の20回反復、試験sourceの`clang-check --extra-arg=-Werror`と書式、連続二回の無作業再構築に成功した。1,201工程・2,425入力の既存動的query path試験、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 台帳は27,241件対応、2,563件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g455.json`を削除し、追加作業tree・構築木・一時計画物は作成していない。主Ninja木5,994,332 KiB、共有compiler cache 983,432 KiB、最新`build/tdd-macos/public-api-missing-g456.json` 698,324 bytes、SHA-256 `867863bb2807140689de222b8cfa462c87f78f7e5fcf83fcb2e4b446c7fddc11`だけを再利用対象として保持する。compiler cacheは144,580件中120,563件、83.39%がhitしている。次の永続作業は第456便で最新報告から高密度なmacOS対象と最小構築面を選定することである。
 
 ### 第239便の先行監査担当票
 
