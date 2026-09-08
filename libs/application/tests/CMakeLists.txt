@@ -212,6 +212,7 @@ target_include_directories(KisViewSchemaContractTest PRIVATE
     ${CMAKE_SOURCE_DIR}/libs/widgets
     ${CMAKE_BINARY_DIR}/libs/widgets
     $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Widgets,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:KF${KF_MAJOR}::WidgetsAddons,INTERFACE_INCLUDE_DIRECTORIES>
 )
 target_compile_definitions(KisViewSchemaContractTest PRIVATE
