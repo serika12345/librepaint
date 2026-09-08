@@ -4,6 +4,7 @@
  */
 
 #include <NodeView.h>
+#include <flake/kis_node_dummies_graph.h>
 #include <nodes/kis_node_view_color_scheme.h>
 
 #include <QRect>
@@ -13,6 +14,10 @@
 
 #define ASSERT_NODE_VIEW_SIGNATURE(method, signature)                                                                  \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&NodeView::method)), signature>)
+#define ASSERT_NODE_DUMMY_SIGNATURE(method, signature)                                                                 \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KisNodeDummy::method)), signature>)
+#define ASSERT_NODE_DUMMIES_GRAPH_SIGNATURE(method, signature)                                                         \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KisNodeDummiesGraph::method)), signature>)
 
 class KisNodeViewColorSchemeSchemaContractTest : public QObject
 {
@@ -29,6 +34,11 @@ private Q_SLOTS:
     void nodeViewDragAndMouseEventSignaturesRemainStable();
     void nodeViewNodeOperationSignaturesRemainStable();
     void nodeViewNotificationAndUpdateSignaturesRemainStable();
+    void nodeDummyTypeConstructionAndLifetimeSchemaRemainStable();
+    void nodeDummyHierarchyNavigationSignaturesRemainStable();
+    void nodeDummyIndexNodeAndVisibilitySignaturesRemainStable();
+    void nodeDummiesGraphTypeConstructionAndQuerySchemaRemainStable();
+    void nodeDummiesGraphMutationSignaturesRemainStable();
 };
 
 void KisNodeViewColorSchemeSchemaContractTest::nodeViewColorSchemeIdentitySchemaRemainsStable()
@@ -132,6 +142,55 @@ void KisNodeViewColorSchemeSchemaContractTest::nodeViewNotificationAndUpdateSign
     ASSERT_NODE_VIEW_SIGNATURE(slotConfigurationChanged, void (NodeView::*)());
     ASSERT_NODE_VIEW_SIGNATURE(slotScrollerStateChanged, void (NodeView::*)(QScroller::State));
     ASSERT_NODE_VIEW_SIGNATURE(slotUpdateIcons, void (NodeView::*)());
+}
+
+void KisNodeViewColorSchemeSchemaContractTest::nodeDummyTypeConstructionAndLifetimeSchemaRemainStable()
+{
+    static_assert(std::is_class_v<KisNodeDummy>);
+    static_assert(std::is_constructible_v<KisNodeDummy, KisNodeShape *, KisNodeSP>);
+    static_assert(std::has_virtual_destructor_v<KisNodeDummy>);
+}
+
+void KisNodeViewColorSchemeSchemaContractTest::nodeDummyHierarchyNavigationSignaturesRemainStable()
+{
+    using Navigate = KisNodeDummy *(KisNodeDummy::*)() const;
+
+    ASSERT_NODE_DUMMY_SIGNATURE(firstChild, Navigate);
+    ASSERT_NODE_DUMMY_SIGNATURE(lastChild, Navigate);
+    ASSERT_NODE_DUMMY_SIGNATURE(nextSibling, Navigate);
+    ASSERT_NODE_DUMMY_SIGNATURE(parent, Navigate);
+    ASSERT_NODE_DUMMY_SIGNATURE(prevSibling, Navigate);
+}
+
+void KisNodeViewColorSchemeSchemaContractTest::nodeDummyIndexNodeAndVisibilitySignaturesRemainStable()
+{
+    ASSERT_NODE_DUMMY_SIGNATURE(at, KisNodeDummy * (KisNodeDummy::*)(int) const);
+    ASSERT_NODE_DUMMY_SIGNATURE(childCount, int (KisNodeDummy::*)() const);
+    ASSERT_NODE_DUMMY_SIGNATURE(indexOf, int (KisNodeDummy::*)(KisNodeDummy *) const);
+    ASSERT_NODE_DUMMY_SIGNATURE(isGUIVisible, bool (KisNodeDummy::*)(bool) const);
+    ASSERT_NODE_DUMMY_SIGNATURE(node, KisNodeSP (KisNodeDummy::*)() const);
+}
+
+void KisNodeViewColorSchemeSchemaContractTest::nodeDummiesGraphTypeConstructionAndQuerySchemaRemainStable()
+{
+    using Graph = KisNodeDummiesGraph;
+
+    static_assert(std::is_class_v<Graph>);
+    static_assert(std::is_default_constructible_v<Graph>);
+    ASSERT_NODE_DUMMIES_GRAPH_SIGNATURE(containsNode, bool (Graph::*)(KisNodeSP) const);
+    ASSERT_NODE_DUMMIES_GRAPH_SIGNATURE(dummiesCount, int (Graph::*)() const);
+    ASSERT_NODE_DUMMIES_GRAPH_SIGNATURE(nodeToDummy, KisNodeDummy * (Graph::*)(KisNodeSP));
+    ASSERT_NODE_DUMMIES_GRAPH_SIGNATURE(rootDummy, KisNodeDummy * (Graph::*)() const);
+}
+
+void KisNodeViewColorSchemeSchemaContractTest::nodeDummiesGraphMutationSignaturesRemainStable()
+{
+    using Graph = KisNodeDummiesGraph;
+    using Relocate = void (Graph::*)(KisNodeDummy *, KisNodeDummy *, KisNodeDummy *);
+
+    ASSERT_NODE_DUMMIES_GRAPH_SIGNATURE(addNode, Relocate);
+    ASSERT_NODE_DUMMIES_GRAPH_SIGNATURE(moveNode, Relocate);
+    ASSERT_NODE_DUMMIES_GRAPH_SIGNATURE(removeNode, void (Graph::*)(KisNodeDummy *));
 }
 
 QTEST_GUILESS_MAIN(KisNodeViewColorSchemeSchemaContractTest)
