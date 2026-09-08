@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 08:41 JST
+- 更新日時: 2026-09-09 08:46 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4157,6 +4157,13 @@
 - 開始`libs/image/brushengine/kis_combo_based_paintop_property.h`と`libs/image/brushengine/kis_callback_based_paintop_property.h`から新規`libs/image/tests/KisComboBasedPaintOpPropertySchemaContractTest.cpp`へ全19 API・6枠を追加した。combo propertyの型・callback別名・3構築・仮想寿命、項目列とicon列の取得・設定、callback templateの型・2関数型・3構築・3設定を、combo callback特殊化の型特性と厳密な関数pointerで固定した。初回は全6観測枠が成功し、`G466 combo and callback property API schema is not fixed yet`だけで1件失敗した。property、callback、明示特殊化本文は実体化していない。計画commitは`bfe884054b`、契約commitは`e111128c00`である。
 - 新規試験sourceは134行・6枠で、targetは4工程・8入力、command SHA-256 `26ea25833f362b7b5aec0b79e0483b8de659d27749193a54c2498b261dd56ea4`、input SHA-256 `00857209f0a067384ed76dd04c78deac10a80877f5e3ddba86b1b8f3d992967c`となった。AUTOMOC `HEADERS=[]`、直接接続はQt Core・Testで、Qt Gui・製品未解決記号・製品動的接続は0である。macOSで対象、最軽量近傍`KisPaintOpSchemaContractTest`、対象の20回反復、試験sourceの厳格構文と書式、連続二回の無作業再構築、公開API検査、`verify-quick`に成功した。property・callback動作対象、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 台帳は27,342件対応、2,462件未対応となり、開始2 headerの残存は0件である。旧`public-api-missing-g466.json`を削除し、一時閉包一覧、追加作業tree・構築木は作成していない。主Ninja木6,001,044 KiB、共有compiler cache 982,204 KiB、最新`build/tdd-macos/public-api-missing-g467.json` 668,831 bytes、SHA-256 `b8ba86bf0633faa7123936b5c8808c9668bd1cd82d87cf06783146b66f09ae0c`だけを再利用対象として保持する。compiler cacheは144,611件中120,565件、83.37%がhitしている。次の永続作業は第467便で最新報告から高密度なmacOS対象と最小構築面を選定することである。
+
+### 第467便の公開API契約計画
+
+- 第467便は設定widget継承責務の`libs/image/kis_config_widget.h`に残る全11 APIと`libs/image/brushengine/kis_paintop_config_widget.h`に残る全14 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g467.json`は公開header 1,548、公開API 29,804、対応済み27,342、未対応2,462、668,831 bytes、SHA-256 `b8ba86bf0633faa7123936b5c8808c9668bd1cd82d87cf06783146b66f09ae0c`である。対象25識別子の整列集合SHA-256は`aa5f10e84b52554ddb85ee80e99acccecc343591db768eba2bdb427f11224c78`である。
+- 設定widgetは型・仮想寿命2、設定の設定・取得2、view・canvas資源の設定・取得3、変更・保存・破棄通知4の4枠へ固定する。paintop設定widgetは型・構築・仮想寿命3、安全な設定読書2、LOD制約・reader・有効brush寸法3、image・node・資源・viewの設定と資源取得5、scratch box可否1の4枠へ固定する。抽象派生probeは宣言だけとし、widgetや製品本文を実体化しない。
+- `libs/image/kis_config_widget.h`は設定本体を使わず共有型だけを使うため、開始headerの`kis_properties_configuration.h`を`kis_types.h`へ置き換える。`libs/image/brushengine/kis_paintop_config_widget.h`もimage・診断・設定の完全定義を使わないため、開始headerの`kis_image.h`、`kis_debug.h`、`kis_properties_configuration.h`を直接の`kis_types.h`へ置き換える。実装側の直接includeは維持する。両headerの直接利用元和集合26件の変更前厳密構文検査は13件成功・13件既存診断で、変更後の新規悪化0を完了条件とする。
+- 新規`libs/image/tests/KisPaintOpConfigWidgetSchemaContractTest.cpp`は200行・9枠未満とする。image・globalのsource・binary探索路、`kritaimage_EXPORTS`、Qt Core・Widgets・Testとheader-only lagerだけを与え、4工程・8入力を予測する。既存の製品image試験集合は抽象widget本文と製品targetを接続するため統合先から除外する。停止線は5工程・11入力で、新たな探索路・定義・製品接続、AUTOMOC製品header入力、widgetまたは派生probeの実体化が必要なら停止する。macOSの対象、最軽量近傍、対象の20回反復、試験sourceの厳格構文、書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
 
 ### 第239便の先行監査担当票
 
