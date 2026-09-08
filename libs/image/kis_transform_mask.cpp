@@ -14,6 +14,8 @@
 #include "kis_layer.h"
 #include "kis_transform_mask.h"
 #include <kis_group_layer.h>
+#include "kis_image.h"
+#include "kis_paint_device.h"
 #include "filter/kis_filter_registry.h"
 #include "kis_node.h"
 #include "kis_node_visitor.h"
@@ -845,4 +847,3 @@ bool KisTransformMask::supportsKeyframeChannel(const QString &id)
 
     return KisEffectMask::supportsKeyframeChannel(id);
 }
-

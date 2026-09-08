@@ -11,10 +11,10 @@
 #include "kis_types.h"
 #include "kritaimage_export.h"
 
+#include <QPointer>
 #include <QRect>
 #include <KisRegion.h>
 #include <QTransform>
-#include <KoUpdater.h>
 
 
 class KRITAIMAGE_EXPORT KisPerspectiveTransformWorker
