@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 04:36 JST
+- 更新日時: 2026-09-09 04:39 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3954,6 +3954,12 @@
 - 新規試験sourceは85行・5枠、専用targetは4工程・8入力、command hash `0511f5175ac7a9135f28601e5ef6cec86a67e5a0c4129ea1e648c29426abcd7c`、input hash `6e27b80bc3a9576fc86b4bb142e234b4071e1fd0e385dfa8fc52eb322c20f2d0`である。AUTOMOC `HEADERS=[]`、対象製品未解決記号0を確認し、予測した最小工程・入力数を維持しながら近傍より動的接続を縮小した。
 - macOSで対象`libs-image-KisLayerStyleProjectionPlaneSchemaContractTest`と軽量近傍`libs-image-KisPaintLayerSchemaContractTest`、対象の20回反復、試験sourceの`clang-check --extra-arg=-Werror`と書式、二回の無作業再構築に成功した。台帳は27,179件対応、2,625件未対応となり、開始headerの残存は0件である。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 旧`public-api-missing-g450.json`を削除し、追加作業tree・構築木・一時計画物は作成していない。主Ninja木5,990,128 KiB、共有compiler cache 982,268 KiB、最新`build/tdd-macos/public-api-missing-g451.json` 713,585 bytes、SHA-256 `9fc1e6c9ad57dd089ab7b409eab8905bc06698fa89594cfeb3451e272e697b0d`だけを再利用対象として保持する。compiler cacheは144,564件中120,559件、83.39%がhitしている。次の永続作業は第451便で最新報告から高密度なmacOS対象と最小構築面を選定することである。
+
+### 第451便の公開API契約計画
+
+- 第451便は`libs/image/kis_exif_info_visitor.h`に残る全16 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g451.json`は公開header 1,548、公開API 29,804、対応済み27,179、未対応2,625、713,585 bytes、SHA-256 `9fc1e6c9ad57dd089ab7b409eab8905bc06698fa89594cfeb3451e272e697b0d`である。対象識別子整列集合のSHA-256は`8fd0f76cebf87a36386342c130ac5328bc20e43bb3c8c083896392f8238c83c4`で、型・既定構築・metadata件数・EXIF取得4、node・paint layer・group layer訪問3、調整・複製・外部・生成layer訪問4、filter・変形・透明・選択・colorize mask訪問5の4枠へ固定する。
+- 公開headerの依存を監査し、`kis_node_visitor.h`は公開基底、`kis_meta_data_store.h`・`kis_paint_layer.h`・`kis_group_layer.h`はinline本文の型操作に必要である。一方、`kis_meta_data_filter_registry_model.h`の型は宣言・inline本文・memberのいずれにも使われないため削除し、metadata filter modelとそのQt model依存を公開訪問者のcompile閉包から外す。全直接利用元を構文検査し、失われた推移的includeを実利用するsourceがあれば同sourceへ明示する。
+- 既存`libs/image/tests/KisCountVisitorSchemaContractTest.cpp`は65行・5枠で、4枠追加後も300行・20枠未満に収まり、同じnode訪問責務を所有する。対象固有headerと署名検査を同sourceへ加えるだけでCMakeを変更しない。対象の変更前閉包は4工程・8入力、command hash `555ed3709ed4e48d867f8bedfb45948b26f7ac3ca8f10a7e8dd0181f946f8d27`、input hash `ff3f4b2b979f553b4f739ca50a0a8208c0ee9e58b256583e40b7cd469c089f1d`である。停止線を5工程・11入力とし、計画外探索路・link・定義、AUTOMOC header入力、製品未解決記号、対象型の実体化または訪問本文実行が必要なら停止する。macOSの対象と軽量近傍、追加4枠の20回反復、厳密構文、二回目計画、無作業再構築、公開API検査、`verify-quick`だけを実行し、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
 
 ### 第239便の先行監査担当票
 
