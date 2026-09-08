@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-08 20:50 JST
+- 更新日時: 2026-09-08 20:57 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3474,6 +3474,13 @@
 - 既存`libs/image/tests/KisProcessingApplicatorSchemaContractTest.cpp`は処理visitor適用境界を所有し、127行・5枠から追加後も300行・20枠未満に収まる。対象はCMake変更なしで4工程・8入力、command SHA-256 `f8f7ebe106cbdb9e3c49baef16f8f2afa3beafac1e9b9fe2fa23f19f5db5071b`、input SHA-256 `ef65832c613a467e9fd10c4af072b8718b9043f966c8104b8aff5bd39bd3c090`を維持できる。既存`kis_processings_test`は製品image接続を含む1,201工程・2,425入力であるため反復先から除外する。visitor、選択、各node・layer・mask、filter、undo adapter、変形値と本文を実体化せず、型特性、構築可能性、厳密な関数pointerだけで公開境界を観測する。
 - `g413-transform-processing-visitor-schema`の状態は`in_progress`、実装基点は`f608011378`である。開始headerから既存試験sourceの5枠だけへ追加し、CMake、公開header、製品source、製品targetは変更しない。停止線は5工程・11入力とし、新たな探索路・定義・link、製品OBJECT・shared・`kritatestsdk`接続、候補headerのAUTOMOC入力化、製品未解決symbol、対象値または本文の実体化が必要なら候補を保留する。macOSの対象、追加5枠の20回反復、軽量近傍、試験sourceの厳格`clang-check`、書式、二回の無作業再構築、動的接続・未解決symbol、公開API検査、`verify-quick`だけを実行する。既存動作試験、製品image target、全体build・`verify`、Linux、Nix再評価は実行しない。
 - 初回コンパイルは公開headerが直接includeする`QTransform`の探索路不足で停止した。対象固有CMake節へQt Guiのheader interfaceだけを追加し、Qt Guiを動的接続せず4工程・8入力を維持する形へ停止線を改定する。それ以外の探索路・定義・linkが必要なら候補を保留する。
+
+### 第413便の実装結果
+
+- `g413-transform-processing-visitor-schema`は`completed`である。構築範囲の先行変更では`libs/image/tests/CMakeLists.txt`内の既存`KisProcessingApplicatorSchemaContractTest`固有節へQt Guiのheader interfaceだけを追加した。対象は4工程・8入力とQt Core・Testだけの動的接続を維持し、構築範囲commitは`5f1f10dd2d`である。
+- 開始`libs/image/processing/kis_transform_processing_visitor.h`から既存`libs/image/tests/KisProcessingApplicatorSchemaContractTest.cpp`へ16 API・5枠を追加した。visitor型・構築2、選択・初期命令2、node・paint・group・adjustment訪問4、external・generator・clone・filter訪問4、transform・transparency・selection・colorize mask訪問4を型特性、構築可能性、厳密な関数pointerで固定した。試験sourceは200行・10枠で、visitor、選択、各node・layer・mask、filter、undo adapter、変形値と本文を実体化していない。Qt Gui探索路追加後のredは未定義の5検査関数だけで失敗し、契約実装commitは`f87d6a7f5e`である。
+- macOSの対象`libs-image-KisProcessingApplicatorSchemaContractTest`、軽量近傍`libs-image-KisDoNothingProcessingVisitorContractTest`、対象の20回反復、試験sourceの厳格`clang-check`、書式、AUTOMOC後の二回目計画、二回の無作業再構築に成功した。対象は4工程・8入力、command SHA-256 `c2ad24c7fa29698d0e5f7bfd19aeb76433f35ec1b85e59351f20cbd0ba47b3b8`、input SHA-256 `ef65832c613a467e9fd10c4af072b8718b9043f966c8104b8aff5bd39bd3c090`、AUTOMOC `HEADERS=[]`、製品未解決symbol 0である。1,201工程・2,425入力の既存処理動作試験、製品image target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 台帳へ16 APIを追加して26,648件対応、3,156件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g413.json`と一時計測物を削除し、追加作業tree・構築木は作成していない。主Ninja木5,981,288 KiB、共有compiler cache 983,132 KiB、最新`build/tdd-macos/public-api-missing-g414.json` 855,335 bytes、SHA-256 `0f0c3d57a3946101897ebc9a1df40168f29543aeb6880a497871f79544329d59`だけを再利用対象として保持する。compiler cacheは144,447件中120,543件、83.45%がhitしている。公開API検査に成功した。次の永続作業は第414便で次の高密度なmacOS対象と最小構築面を選定することである。
 
 ### 第239便の先行監査担当票
 

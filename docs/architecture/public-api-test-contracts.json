@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 3172
+    "expectedMissingApis": 3156
   },
   "contracts": [
     {
@@ -73141,6 +73141,67 @@
         "method:KisDabRenderingQueue::averageDabSize() const",
         "method:KisDabRenderingQueue::averageExecutionTime() const",
         "method:KisDabRenderingQueue::testingGetQueueSize() const"
+      ]
+    },
+    {
+      "target": "KisProcessingApplicatorSchemaContractTest",
+      "source": "libs/image/tests/KisProcessingApplicatorSchemaContractTest.cpp",
+      "test": "KisProcessingApplicatorSchemaContractTest::transformVisitorTypeAndConstructionSchemaRemainStable",
+      "behavior": "変形処理visitorは処理visitor基底を継承し、拡縮・剪断・回転・移動・filter・図形補正から構築できる境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisTransformProcessingVisitor",
+        "method:KisTransformProcessingVisitor::KisTransformProcessingVisitor(qreal xscale,qreal yscale,qreal xshear,qreal yshear,qreal angle,qreal tx,qreal ty,KisFilterStrategy * filter,const QTransform & shapesCorrection=QTransform ())"
+      ]
+    },
+    {
+      "target": "KisProcessingApplicatorSchemaContractTest",
+      "source": "libs/image/tests/KisProcessingApplicatorSchemaContractTest.cpp",
+      "test": "KisProcessingApplicatorSchemaContractTest::transformVisitorSelectionAndInitializationSignaturesRemainStable",
+      "behavior": "変形処理visitorは選択を受け取り、処理開始用undo命令を生成する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTransformProcessingVisitor::createInitCommand()",
+        "method:KisTransformProcessingVisitor::setSelection(KisSelectionSP selection)"
+      ]
+    },
+    {
+      "target": "KisProcessingApplicatorSchemaContractTest",
+      "source": "libs/image/tests/KisProcessingApplicatorSchemaContractTest.cpp",
+      "test": "KisProcessingApplicatorSchemaContractTest::transformVisitorNodeAndLayerSignaturesRemainStable",
+      "behavior": "変形処理visitorは基底node、paint layer、group layer、adjustment layerとundo adapterを訪問するoverload境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTransformProcessingVisitor::visit(KisAdjustmentLayer * layer,KisUndoAdapter * undoAdapter)",
+        "method:KisTransformProcessingVisitor::visit(KisGroupLayer * layer,KisUndoAdapter * undoAdapter)",
+        "method:KisTransformProcessingVisitor::visit(KisNode * node,KisUndoAdapter * undoAdapter)",
+        "method:KisTransformProcessingVisitor::visit(KisPaintLayer * layer,KisUndoAdapter * undoAdapter)"
+      ]
+    },
+    {
+      "target": "KisProcessingApplicatorSchemaContractTest",
+      "source": "libs/image/tests/KisProcessingApplicatorSchemaContractTest.cpp",
+      "test": "KisProcessingApplicatorSchemaContractTest::transformVisitorExternalAndFilterSignaturesRemainStable",
+      "behavior": "変形処理visitorはexternal・generator・clone layerとfilter maskをundo adapter付きで訪問するoverload境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTransformProcessingVisitor::visit(KisCloneLayer * layer,KisUndoAdapter * undoAdapter)",
+        "method:KisTransformProcessingVisitor::visit(KisExternalLayer * layer,KisUndoAdapter * undoAdapter)",
+        "method:KisTransformProcessingVisitor::visit(KisFilterMask * mask,KisUndoAdapter * undoAdapter)",
+        "method:KisTransformProcessingVisitor::visit(KisGeneratorLayer * layer,KisUndoAdapter * undoAdapter)"
+      ]
+    },
+    {
+      "target": "KisProcessingApplicatorSchemaContractTest",
+      "source": "libs/image/tests/KisProcessingApplicatorSchemaContractTest.cpp",
+      "test": "KisProcessingApplicatorSchemaContractTest::transformVisitorMaskSignaturesRemainStable",
+      "behavior": "変形処理visitorはtransform・transparency・selection・colorize maskをundo adapter付きで訪問するoverload境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTransformProcessingVisitor::visit(KisColorizeMask * mask,KisUndoAdapter * undoAdapter)",
+        "method:KisTransformProcessingVisitor::visit(KisSelectionMask * mask,KisUndoAdapter * undoAdapter)",
+        "method:KisTransformProcessingVisitor::visit(KisTransformMask * mask,KisUndoAdapter * undoAdapter)",
+        "method:KisTransformProcessingVisitor::visit(KisTransparencyMask * mask,KisUndoAdapter * undoAdapter)"
       ]
     }
   ]
