@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "kis_distance_information.h"
 #include "kis_painter.h"
 
 #include <QTest>
@@ -11,6 +12,8 @@
 
 #define ASSERT_PAINTER_SIGNATURE(method, signature)                                                                    \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisPainter::method)), signature>)
+#define ASSERT_DISTANCE_INIT_SIGNATURE(method, signature)                                                              \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KisDistanceInitInfo::method)), signature>)
 
 class KisPainterSchemaContractTest : public QObject
 {
@@ -29,6 +32,10 @@ private Q_SLOTS:
     void colorFillAndResourceSignaturesRemainStable();
     void opacityAndFlowSignaturesRemainStable();
     void conversionProgressAndJobSignaturesRemainStable();
+    void distanceInitTypeConstructionAndLifetimeSchemaRemainStable();
+    void distanceInitEqualityAndAssignmentSignaturesRemainStable();
+    void distanceInitCreationSignatureRemainsStable();
+    void distanceInitXmlSignaturesRemainStable();
 };
 
 // clang-format off
@@ -226,6 +233,40 @@ void KisPainterSchemaContractTest::conversionProgressAndJobSignaturesRemainStabl
     ASSERT_PAINTER_SIGNATURE(convertToAlphaAsPureAlpha, KisPaintDeviceSP (*)(KisPaintDeviceSP));
     ASSERT_PAINTER_SIGNATURE(setProgress, void (Painter::*)(KoUpdater *));
 }
+
+void KisPainterSchemaContractTest::distanceInitTypeConstructionAndLifetimeSchemaRemainStable()
+{
+    using Info = KisDistanceInitInfo;
+    static_assert(std::is_class_v<Info>);
+    static_assert(std::is_default_constructible_v<Info>);
+    static_assert(std::is_copy_constructible_v<Info>);
+    static_assert(std::is_constructible_v<Info, qreal, qreal, int>);
+    static_assert(std::is_constructible_v<Info, const QPointF &, qreal, int>);
+    static_assert(std::is_constructible_v<Info, const QPointF &, qreal, qreal, qreal, int>);
+    static_assert(std::is_destructible_v<Info>);
+}
+
+void KisPainterSchemaContractTest::distanceInitEqualityAndAssignmentSignaturesRemainStable()
+{
+    using Info = KisDistanceInitInfo;
+    ASSERT_DISTANCE_INIT_SIGNATURE(operator==, bool (Info::*)(const Info &) const);
+    ASSERT_DISTANCE_INIT_SIGNATURE(operator=, Info & (Info::*)(const Info &));
+}
+
+void KisPainterSchemaContractTest::distanceInitCreationSignatureRemainsStable()
+{
+    using Info = KisDistanceInitInfo;
+    ASSERT_DISTANCE_INIT_SIGNATURE(makeDistInfo, KisDistanceInformation (Info::*)());
+}
+
+void KisPainterSchemaContractTest::distanceInitXmlSignaturesRemainStable()
+{
+    using Info = KisDistanceInitInfo;
+    ASSERT_DISTANCE_INIT_SIGNATURE(toXML, void (Info::*)(QDomDocument &, QDomElement &) const);
+    ASSERT_DISTANCE_INIT_SIGNATURE(fromXML, Info (*)(const QDomElement &));
+}
+
+#undef ASSERT_DISTANCE_INIT_SIGNATURE
 // clang-format on
 
 QTEST_APPLESS_MAIN(KisPainterSchemaContractTest)
