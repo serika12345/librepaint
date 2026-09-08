@@ -4,6 +4,7 @@
  */
 
 #include <kis_base_processor.h>
+#include <kis_bookmarked_configuration_manager.h>
 
 #include <QTest>
 
@@ -19,12 +20,21 @@ private Q_SLOTS:
     void baseProcessorConfigurationFactorySignaturesRemainStable();
     void baseProcessorCapabilitySignaturesRemainStable();
     void baseProcessorBookmarkAndPresentationSignaturesRemainStable();
+    void bookmarkManagerTypeLifetimeAndStableNamesSchemaRemainStable();
+    void bookmarkManagerPersistenceSignaturesRemainStable();
+    void bookmarkManagerQueryAndRemovalSignaturesRemainStable();
+    void bookmarkManagerUniqueNameSignatureRemainsStable();
 };
 
 using Subject = KisBaseProcessor;
 
 #define ASSERT_SIGNATURE(Method, Signature)                                                                            \
     static_assert(std::is_same_v<decltype(static_cast<Signature>(&Subject::Method)), Signature>)
+
+using BookmarkManager = KisBookmarkedConfigurationManager;
+
+#define ASSERT_BOOKMARK_MANAGER_SIGNATURE(Method, Signature)                                                           \
+    static_assert(std::is_same_v<decltype(static_cast<Signature>(&BookmarkManager::Method)), Signature>)
 
 void KisBaseProcessorSchemaContractTest::baseProcessorTypeLifetimeAndConstructionSchemaRemainStable()
 {
@@ -75,6 +85,37 @@ void KisBaseProcessorSchemaContractTest::baseProcessorBookmarkAndPresentationSig
     ASSERT_SIGNATURE(showConfigurationWidget, Presentation);
 }
 
+void KisBaseProcessorSchemaContractTest::bookmarkManagerTypeLifetimeAndStableNamesSchemaRemainStable()
+{
+    static_assert(std::is_class_v<BookmarkManager>);
+    static_assert(std::is_same_v<decltype(BookmarkManager::ConfigDefault), const char[]>);
+    static_assert(std::is_same_v<decltype(BookmarkManager::ConfigLastUsed), const char[]>);
+    static_assert(std::is_constructible_v<BookmarkManager, const QString &, KisSerializableConfigurationFactory *>);
+    static_assert(std::is_destructible_v<BookmarkManager>);
+}
+
+void KisBaseProcessorSchemaContractTest::bookmarkManagerPersistenceSignaturesRemainStable()
+{
+    ASSERT_BOOKMARK_MANAGER_SIGNATURE(load, KisSerializableConfigurationSP (BookmarkManager::*)(const QString &) const);
+    ASSERT_BOOKMARK_MANAGER_SIGNATURE(save,
+                                      void (BookmarkManager::*)(const QString &, const KisSerializableConfigurationSP));
+    ASSERT_BOOKMARK_MANAGER_SIGNATURE(exists, bool (BookmarkManager::*)(const QString &) const);
+}
+
+void KisBaseProcessorSchemaContractTest::bookmarkManagerQueryAndRemovalSignaturesRemainStable()
+{
+    ASSERT_BOOKMARK_MANAGER_SIGNATURE(configurations, QList<QString> (BookmarkManager::*)() const);
+    ASSERT_BOOKMARK_MANAGER_SIGNATURE(defaultConfiguration,
+                                      KisSerializableConfigurationSP (BookmarkManager::*)() const);
+    ASSERT_BOOKMARK_MANAGER_SIGNATURE(remove, void (BookmarkManager::*)(const QString &));
+}
+
+void KisBaseProcessorSchemaContractTest::bookmarkManagerUniqueNameSignatureRemainsStable()
+{
+    ASSERT_BOOKMARK_MANAGER_SIGNATURE(uniqueName, QString (BookmarkManager::*)(const KLocalizedString &));
+}
+
+#undef ASSERT_BOOKMARK_MANAGER_SIGNATURE
 #undef ASSERT_SIGNATURE
 
 QTEST_APPLESS_MAIN(KisBaseProcessorSchemaContractTest)
