@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 3738
+    "expectedMissingApis": 3712
   },
   "contracts": [
     {
@@ -71252,6 +71252,77 @@
         "method:KisFileLayer::setSectionModelProperties(const KisBaseNode::PropertyList & properties)",
         "method:KisFileLayer::sigRequestOpenFile()",
         "method:KisFileLayer::transform(const QTransform & transform)"
+      ]
+    },
+    {
+      "target": "KisShapeSelectionSchemaContractTest",
+      "source": "libs/ui/tests/KisShapeSelectionSchemaContractTest.cpp",
+      "test": "KisShapeSelectionSchemaContractTest::shapeSelectionTypesLifetimeAndConstructionSchemaRemainStable",
+      "behavior": "図形選択はmarker・選択・factory型、通常・複製構築と各多態的破棄の境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisShapeSelection",
+        "class:KisShapeSelectionFactory",
+        "class:KisShapeSelectionMarker",
+        "method:KisShapeSelection::KisShapeSelection(KoShapeControllerBase * shapeControllerBase,KisSelectionWSP selection)",
+        "method:KisShapeSelection::KisShapeSelection(const KisShapeSelection & rhs,KisSelection * selection)",
+        "method:KisShapeSelection::~KisShapeSelection()",
+        "method:KisShapeSelectionFactory::KisShapeSelectionFactory()",
+        "method:KisShapeSelectionFactory::~KisShapeSelectionFactory()"
+      ]
+    },
+    {
+      "target": "KisShapeSelectionSchemaContractTest",
+      "source": "libs/ui/tests/KisShapeSelectionSchemaContractTest.cpp",
+      "test": "KisShapeSelectionSchemaContractTest::shapeSelectionContentSignaturesRemainStable",
+      "behavior": "図形選択は選択内容の複製、空判定・初期化と全体・領域別projection描画の境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisShapeSelection::clone(KisSelection * selection)",
+        "method:KisShapeSelection::isEmpty() const",
+        "method:KisShapeSelection::renderToProjection(KisPaintDeviceSP projection)",
+        "method:KisShapeSelection::renderToProjection(KisPaintDeviceSP projection,const QRect & r)",
+        "method:KisShapeSelection::resetToEmpty()"
+      ]
+    },
+    {
+      "target": "KisShapeSelectionSchemaContractTest",
+      "source": "libs/ui/tests/KisShapeSelectionSchemaContractTest.cpp",
+      "test": "KisShapeSelectionSchemaContractTest::shapeSelectionOutlineAndGeometrySignaturesRemainStable",
+      "behavior": "図形選択は輪郭cacheの値・妥当性・再計算と位置移動・変形の境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisShapeSelection::moveX(qint32 x)",
+        "method:KisShapeSelection::moveY(qint32 y)",
+        "method:KisShapeSelection::outlineCache() const",
+        "method:KisShapeSelection::outlineCacheValid() const",
+        "method:KisShapeSelection::recalculateOutlineCache()",
+        "method:KisShapeSelection::transform(const QTransform & transform)"
+      ]
+    },
+    {
+      "target": "KisShapeSelectionSchemaContractTest",
+      "source": "libs/ui/tests/KisShapeSelectionSchemaContractTest.cpp",
+      "test": "KisShapeSelectionSchemaContractTest::shapeSelectionPersistenceAndIntegrationSignaturesRemainStable",
+      "behavior": "図形選択はstoreへの保存・読込、図形管理器と画像解像度代理の接続境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisShapeSelection::loadSelection(KoStore * store,const QRect & imageRect)",
+        "method:KisShapeSelection::saveSelection(KoStore * store,const QRect & imageRect) const",
+        "method:KisShapeSelection::setResolutionProxy(KisImageResolutionProxySP resolutionProxy)",
+        "method:KisShapeSelection::shapeManager() const"
+      ]
+    },
+    {
+      "target": "KisShapeSelectionSchemaContractTest",
+      "source": "libs/ui/tests/KisShapeSelectionSchemaContractTest.cpp",
+      "test": "KisShapeSelectionSchemaContractTest::shapeSelectionFactoryAndNotificationSignaturesRemainStable",
+      "behavior": "図形選択は移動通知とfactoryによる既定図形生成・XML対応判定の境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisShapeSelection::sigMoveShapes(const QPointF & diff)",
+        "method:KisShapeSelectionFactory::createDefaultShape(KoDocumentResourceManager * documentResources=0) const",
+        "method:KisShapeSelectionFactory::supports(const QDomElement & e,KoShapeLoadingContext & context) const"
       ]
     }
   ]

@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-08 13:17 JST
+- 更新日時: 2026-09-08 13:30 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3084,6 +3084,13 @@
 - 変更前の`libs/ui/flake/kis_shape_selection.cpp`、`kis_shape_selection_model.cpp`、`kis_take_all_shapes_command.cpp`は厳格`clang-check`に無診断で成功した。`libs/application/ui/orchestration/KisApplication.cpp`と`plugins/impex/libkra/kis_kra_save_visitor.cpp`は既存診断だけで停止した。変更後に5件の終了状態と診断本文をbyte比較し、公開API報告のbyte一致を完了条件とする。
 - 既存`kis_shape_selection_test`は製品群を接続する2,027工程・4,051入力であり、公開面の赤緑周期には過大である。新規`libs/ui/tests/KisShapeSelectionSchemaContractTest.cpp`を200行・10枠未満で作り、型特性、厳密な関数pointer、既定引数の未評価呼出しだけで26 APIを観測する。最も近い同じ図形layerの`KisShapeLayerSchemaContractTest`は4工程・8入力、command SHA-256 `29a2b50034dd03ba47221cb65681708ef41747e40449d56b2555fb2316c8959e`、input SHA-256 `d125ea61bbaa6e4bd60b4a775c49acc2c4a4cbac4f72962a0aacecaa254b2b73`である。新規targetも4工程・8入力を予測し、停止線を5工程・11入力とする。
 - `g383-shape-selection-schema`の状態は`in_progress`、実装基点は`3d048948dc`である。構造先行commit後に新規試験sourceと`libs/ui/tests/CMakeLists.txt`の対象固有節だけへ契約を追加する。macOSの対象、5枠の20回反復、軽量近傍、5 risk翻訳単位と試験sourceの厳格`clang-check`、書式、AUTOMOC後の二回目計画、二回の無作業再構築、動的接続・未解決symbol、公開API検査、`verify-quick`だけを実行する。製品`kis_shape_selection_test`、図形・選択・描画device実体、全体build・`verify`、Linux、Nix再評価は実行しない。
+
+### 第383便の実装結果
+
+- `g383-shape-selection-schema`は`completed`である。開始`libs/ui/flake/kis_shape_selection.h`から`KoShapeLoadingContext.h`と`KisImageResolutionProxy.h`の完全依存を除き、前者の所有先`libs/ui/flake/kis_shape_selection.cpp`、後者のalias所有先`kis_types.h`へ依存方向を限定した。除去時に`KoShapeControllerBase`宣言がloading context headerから偶然到達していたことを厳格検査が検出したため、開始headerへ正しい前方宣言を追加した。5 risk翻訳単位の変更前後は3件の無診断成功と2件の既存診断だけの停止が完全一致し、公開API報告もbyte一致した。構造変更commitは`c72bb71d5c`である。
+- 開始headerの残存全26 APIを、新規`libs/ui/tests/KisShapeSelectionSchemaContractTest.cpp`の選択・marker・factory型と寿命8、選択内容5、輪郭・幾何6、永続化・統合4、factory・通知3の5枠へ対応付けた。対象は100行で、公開headerと製品sourceをそれ以上変更していない。最初の赤は追加依存を要求せず5試験関数の未定義symbolだけで停止した。契約実装commitは`dc911f706a`である。
+- 最終targetは4工程・8入力、command SHA-256 `f7b3475cd54f1b9917816b7319932badb4731e5cef0f6eca28736e263426bf5c`、input SHA-256 `72ab64c109b9a7b31c3756c4906447d0d327e39c8d09910d583f362b4a921c1d`で停止線内に収まる。動的接続はQt Core・Test、macOS frameworkとgettextだけで、製品libraryの未解決symbolを持たない。macOSで対象`libs-ui-KisShapeSelectionSchemaContractTest`、軽量近傍`libs-ui-KisShapeLayerSchemaContractTest`、対象の20回反復、試験sourceの厳格`clang-check`、書式、AUTOMOC `HEADERS=[]`、二回の無作業再構築、公開API検査に成功した。既存`kis_shape_selection_test`の2,027工程・4,051入力、図形・選択・描画device実体、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 台帳へ26 APIを追加して26,092件対応、3,712件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g383.json`を最新報告の検証後に削除し、追加作業tree・構築木は作成していない。主Ninja木5,956,936 KiB、共有compiler cache 982,880 KiB、最新`build/tdd-macos/public-api-missing-g384.json` 1,008,403 bytes、SHA-256 `a606de0f1e1b0fe53342416b53aad8593baf9c7dbe10c738181fca3948948ef2`だけを再利用対象として保持する。compiler cacheは144,322件中120,518件、83.51%がhitしている。次の永続作業は第384便で次の高密度なmacOS対象と最小構築面を選定することである。
 
 ### 第239便の先行監査担当票
 
