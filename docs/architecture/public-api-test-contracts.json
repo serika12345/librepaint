@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 2824
+    "expectedMissingApis": 2812
   },
   "contracts": [
     {
@@ -74416,6 +74416,54 @@
         "method:KisTransparencyMask::exactBounds() const",
         "method:KisTransparencyMask::extent() const",
         "method:KisTransparencyMask::needRect(const QRect & rect,PositionToFilthy pos=N_FILTHY) const"
+      ]
+    },
+    {
+      "target": "KisGeneratorLayerSchemaContractTest",
+      "source": "libs/image/tests/KisGeneratorLayerSchemaContractTest.cpp",
+      "test": "KisGeneratorLayerSchemaContractTest::adjustmentLayerTypeLifetimeAndCloneSchemaRemainStable",
+      "behavior": "調整layerは画像・名前・filter設定・選択または既存layerから構築・破棄でき、node共有所有値として複製する公開型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisAdjustmentLayer",
+        "method:KisAdjustmentLayer::KisAdjustmentLayer(KisImageWSP image,const QString & name,KisFilterConfigurationSP kfc,KisSelectionSP selection)",
+        "method:KisAdjustmentLayer::KisAdjustmentLayer(const KisAdjustmentLayer & rhs)",
+        "method:KisAdjustmentLayer::clone() const",
+        "method:KisAdjustmentLayer::~KisAdjustmentLayer()"
+      ]
+    },
+    {
+      "target": "KisGeneratorLayerSchemaContractTest",
+      "source": "libs/image/tests/KisGeneratorLayerSchemaContractTest.cpp",
+      "test": "KisGeneratorLayerSchemaContractTest::adjustmentLayerVisitorSignaturesRemainStable",
+      "behavior": "調整layerはnode visitorとundo adapter付き処理visitorを受け付ける二つの公開配送境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAdjustmentLayer::accept(KisNodeVisitor &)",
+        "method:KisAdjustmentLayer::accept(KisProcessingVisitor & visitor,KisUndoAdapter * undoAdapter)"
+      ]
+    },
+    {
+      "target": "KisGeneratorLayerSchemaContractTest",
+      "source": "libs/image/tests/KisGeneratorLayerSchemaContractTest.cpp",
+      "test": "KisGeneratorLayerSchemaContractTest::adjustmentLayerPresentationSignaturesRemainStable",
+      "behavior": "調整layerはiconと模型propertyを返し、自身をlayer境界として公開する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAdjustmentLayer::icon() const",
+        "method:KisAdjustmentLayer::layer()",
+        "method:KisAdjustmentLayer::sectionModelProperties() const"
+      ]
+    },
+    {
+      "target": "KisGeneratorLayerSchemaContractTest",
+      "source": "libs/image/tests/KisGeneratorLayerSchemaContractTest.cpp",
+      "test": "KisGeneratorLayerSchemaContractTest::adjustmentLayerConfigurationSignaturesRemainStable",
+      "behavior": "調整layerは比較指定付きfilter設定とchannel flagsを受け取る公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAdjustmentLayer::setChannelFlags(const QBitArray & channelFlags)",
+        "method:KisAdjustmentLayer::setFilter(KisFilterConfigurationSP filterConfig,bool checkCompareConfig=true)"
       ]
     }
   ]
