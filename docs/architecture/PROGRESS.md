@@ -2,8 +2,8 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-08 11:00 JST
-- 状態: `in_progress`
+- 更新日時: 2026-09-08 11:08 JST
+- 状態: `planned`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
@@ -2983,6 +2983,13 @@
 - 6直接利用翻訳単位の厳格`clang-check`は4件が診断0件である。`libs/ui/canvas/KisCanvasColorDrop.cpp`は既存の`KSharedConfig`完全型不足1件とQt 6 keyboard modifier非推奨2件、`plugins/tools/basictools/kis_tool_fill.cc`は既存の`QKeySequence`完全型不足1件で停止する。公開headerと製品sourceを変更せず、新規試験sourceの診断0件を完了条件とする。
 - 新規`libs/ui/tests/FillProcessingVisitorSchemaContractTest.cpp`を200行・10枠未満で作り、型・列挙・構築6、seed・選択・入力方針6、fill形状・閾値8、領域・連続fill 5、色・合成・出力6の5枠へ全31 APIを対応付ける。最も近い`KisResourcesSnapshotSchemaContractTest`は4工程・8入力、command SHA-256 `6300368d7a3ffa98858079c6aa879d3055ab8d90d6b4c03a92e375b9bf055cb3`、input SHA-256 `c2059b5e4a87dbc220b714d394c8b6f3c4e49e57d358fe0079f9c0ff4e83bd9a`である。対象識別子整列集合のSHA-256は`96996a86ce9bef3bdf5cc22847663eb9cd79a6b3bc3229f1e6fb1c2ce88b8790`で、新規targetの停止線を5工程・11入力とする。
 - `g376-fill-processing-visitor-schema`の状態は`in_progress`、実装基点は`7a6e8f11fe`である。新規試験sourceと`libs/ui/tests/CMakeLists.txt`の対象固有節だけへ契約を追加し、macOSの対象、5枠の20回反復、軽量近傍、試験sourceの厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。製品target、既存の停止中実行試験、全体build・`verify`、Linux、Nix再評価は実行しない。
+
+### 第376便の実装結果
+
+- `g376-fill-processing-visitor-schema`は`completed`である。公開headerの完全型依存を監査し、基底、値member、入れ子列挙、共有所有に必要な現在の直接依存を維持した。既存の停止中`FillProcessingVisitorTest`と製品targetを変更・構築していない。6直接利用翻訳単位の厳格基準は診断0件4件、既存診断だけ2件で、新規試験sourceは診断0件となった。
+- 開始`libs/ui/processing/fill_processing_visitor.h`の残存全31 APIを、新規`libs/ui/tests/FillProcessingVisitorSchemaContractTest.cpp`の型・列挙・構築6、seed・選択・入力方針6、fill形状・閾値8、領域・連続fill 5、色・合成・出力6の5枠へ対応付けた。対象は96行で、最初の赤は追加依存を要求せず5試験関数の未定義symbolだけで停止した。契約実装commitは`9e8d4925a5`である。
+- 最終targetは4工程・8入力、command SHA-256 `8bfa0d59879c67b9aeddb5635f917a8aa93a4185d6c900a126325e68ae41d41d`、input SHA-256 `cadff1cb3e0155ae495a82490bd1e7e81034db1851e5a81d8caa3c22d0b5a0ca`で停止線内に収まる。動的接続はQt Gui・Test・Core、OpenGLとそのOS framework、gettextだけで、製品libraryを接続しない。macOSで対象`libs-ui-FillProcessingVisitorSchemaContractTest`、軽量近傍`libs-painting-KisResourcesSnapshotSchemaContractTest`、対象の20回反復、試験sourceの厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`に成功した。全体build・`verify`、Linux、Nix再評価は実行していない。
+- 台帳へ31 APIを追加して25,820件対応、3,984件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g376.json`を最新報告の検証後に削除し、追加作業tree・構築木は作成していない。主Ninja木5,946,620 KiB、共有compiler cache 983,264 KiB、最新`build/tdd-macos/public-api-missing-g377.json` 1,074,868 bytes、SHA-256 `4f3ea10992ab8020944cfca3b0e68dce4d2194c5240fb0c9929b690e9a2170ee`だけを再利用対象として保持する。compiler cacheは144,289件中120,513件、83.52%がhitしている。次の永続作業は第377便で次の高密度なmacOS対象と最小構築面を選定することである。
 
 ### 第239便の先行監査担当票
 

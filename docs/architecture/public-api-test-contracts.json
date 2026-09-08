@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 4015
+    "expectedMissingApis": 3984
   },
   "contracts": [
     {
@@ -70660,6 +70660,82 @@
         "method:KisQPainterCanvas::isBusy() const",
         "method:KisQPainterCanvas::setLodResetInProgress(bool value)",
         "method:KisQPainterCanvas::widget()"
+      ]
+    },
+    {
+      "target": "FillProcessingVisitorSchemaContractTest",
+      "source": "libs/ui/tests/FillProcessingVisitorSchemaContractTest.cpp",
+      "test": "FillProcessingVisitorSchemaContractTest::typeEnumerationAndConstructionSchemaRemainStable",
+      "behavior": "fill処理visitorは単純処理visitorの派生型、連続fill方式の3値、参照画素・選択・資源による構築を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:FillProcessingVisitor",
+        "enum:FillProcessingVisitor::ContinuousFillMode",
+        "enumerator:FillProcessingVisitor::ContinuousFillMode::ContinuousFillMode_DoNotUse",
+        "enumerator:FillProcessingVisitor::ContinuousFillMode::ContinuousFillMode_FillAnyRegion",
+        "enumerator:FillProcessingVisitor::ContinuousFillMode::ContinuousFillMode_FillSimilarRegions",
+        "method:FillProcessingVisitor::FillProcessingVisitor(KisPaintDeviceSP referencePaintDevice,KisSelectionSP selection,KisResourcesSnapshotSP resources)"
+      ]
+    },
+    {
+      "target": "FillProcessingVisitorSchemaContractTest",
+      "source": "libs/ui/tests/FillProcessingVisitorSchemaContractTest.cpp",
+      "test": "FillProcessingVisitorSchemaContractTest::seedSelectionAndInputPolicySignaturesRemainStable",
+      "behavior": "fill処理visitorは単一・複数seed、選択だけの処理、非統合参照、pattern利用と選択境界利用の設定を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:FillProcessingVisitor::setSeedPoint(const QPoint & seedPoint)",
+        "method:FillProcessingVisitor::setSeedPoints(const QVector<QPoint> & seedPoints)",
+        "method:FillProcessingVisitor::setSelectionOnly(bool selectionOnly)",
+        "method:FillProcessingVisitor::setUnmerged(bool unmerged)",
+        "method:FillProcessingVisitor::setUsePattern(bool usePattern)",
+        "method:FillProcessingVisitor::setUseSelectionAsBoundary(bool useSelectionAsBoundary)"
+      ]
+    },
+    {
+      "target": "FillProcessingVisitorSchemaContractTest",
+      "source": "libs/ui/tests/FillProcessingVisitorSchemaContractTest.cpp",
+      "test": "FillProcessingVisitorSchemaContractTest::fillGeometryAndThresholdSignaturesRemainStable",
+      "behavior": "fill処理visitorは高速・antialias方式、gap・feather・寸法補正、最暗画素停止、閾値と不透明度拡散の設定を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:FillProcessingVisitor::setAntiAlias(bool antiAlias)",
+        "method:FillProcessingVisitor::setCloseGap(int gap)",
+        "method:FillProcessingVisitor::setFeather(int feather)",
+        "method:FillProcessingVisitor::setFillThreshold(int fillThreshold)",
+        "method:FillProcessingVisitor::setOpacitySpread(int opacitySpread)",
+        "method:FillProcessingVisitor::setSizeMod(int sizemod)",
+        "method:FillProcessingVisitor::setStopGrowingAtDarkestPixel(bool stopGrowingAtDarkestPixel)",
+        "method:FillProcessingVisitor::setUseFastMode(bool useFastMode)"
+      ]
+    },
+    {
+      "target": "FillProcessingVisitorSchemaContractTest",
+      "source": "libs/ui/tests/FillProcessingVisitorSchemaContractTest.cpp",
+      "test": "FillProcessingVisitorSchemaContractTest::regionAndContinuousFillSignaturesRemainStable",
+      "behavior": "fill処理visitorは領域fill方式・境界色と、連続fill方式・累積mask・参照色の設定を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:FillProcessingVisitor::setContinuousFillMask(KisSelectionSP continuousFillMask)",
+        "method:FillProcessingVisitor::setContinuousFillMode(ContinuousFillMode continuousFillMode)",
+        "method:FillProcessingVisitor::setContinuousFillReferenceColor(const QSharedPointer<KoColor> continuousFillReferenceColor)",
+        "method:FillProcessingVisitor::setRegionFillingBoundaryColor(const KoColor & regionFillingBoundaryColor)",
+        "method:FillProcessingVisitor::setRegionFillingMode(KisFillPainter::RegionFillingMode regionFillingMode)"
+      ]
+    },
+    {
+      "target": "FillProcessingVisitorSchemaContractTest",
+      "source": "libs/ui/tests/FillProcessingVisitorSchemaContractTest.cpp",
+      "test": "FillProcessingVisitorSchemaContractTest::colorCompositionAndOutputSignaturesRemainStable",
+      "behavior": "fill処理visitorは背景色利用、独自合成・不透明度、dirty範囲出力と進捗補助の設定を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:FillProcessingVisitor::setCustomCompositeOp(const QString & customCompositeOp)",
+        "method:FillProcessingVisitor::setCustomOpacity(qreal customOpacity)",
+        "method:FillProcessingVisitor::setOutDirtyRect(QSharedPointer<QRect> outDirtyRect)",
+        "method:FillProcessingVisitor::setProgressHelper(QSharedPointer<ProgressHelper> progressHelper)",
+        "method:FillProcessingVisitor::setUseBgColor(bool useBgColor)",
+        "method:FillProcessingVisitor::setUseCustomBlendingOptions(bool useCustomBlendingOptions)"
       ]
     }
   ]
