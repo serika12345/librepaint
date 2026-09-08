@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-08 15:09 JST
+- 更新日時: 2026-09-08 15:14 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3151,6 +3151,13 @@
 - 開始`libs/psd/psd_layer_record.h`から新規`libs/psdutils/tests/PSDLayerRecordSchemaContractTest.cpp`へ23 API・5枠を追加した。record型・構築・寿命・妥当性4、直列化値member 8、読込4、path・書込4、診断出力3を型特性と厳密な関数・member pointerで固定し、PSD record・device・node・path・I/Oの実体と製品ライブラリを使わない。契約実装commitは`755cb78e2e`である。
 - macOSで対象`libs-psdutils-PSDLayerRecordSchemaContractTest`と近傍`libs-psdutils-KisAslXmlWriterSchemaContractTest`のCTest 2/2、対象の20回反復、試験sourceと6製品翻訳単位の厳格`clang-check`、書式、二回の無作業再構築、公開API検査に成功した。対象閉包は4工程・8入力、command SHA-256 `51754fd123de29e7fbbe5b17678995eeaa7d5958f12c4225608aff39207a4aec`、input SHA-256 `598e0e334ab4cf08c266b29c2535393b8eaddc5851a447fab1e95f47c29869ab`、AUTOMOC `HEADERS=[]`、Qt Core・Testと非製品runtimeだけの動的接続、PSD製品未解決記号0である。既存`PsdFormatValuesContractTest`の6工程・14入力、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 台帳へ23 APIを追加して26,193件対応、3,611件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g387.json`を最新報告の検証後に削除し、追加作業tree・構築木は作成していない。主Ninja木5,966,212 KiB、共有compiler cache 982,156 KiB、最新`build/tdd-macos/public-api-missing-g388.json` 983,251 bytes、SHA-256 `74c25fd24f86b761c11477814baa96d316fcfff3d89a8b8f175694fab4fb3b1a`だけを再利用対象として保持する。compiler cacheは144,340件中120,522件、83.50%がhitしている。次の永続作業は第388便で次の高密度なmacOS対象と最小構築面を選定することである。
+
+### 第388便の公開API契約計画
+
+- 第388便は`libs/psd/psd_layer_section.h`の残存全16 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g388.json`は公開header 1,548、公開API 29,804、対応済み26,193、未対応3,611、983,251 bytes、SHA-256 `74c25fd24f86b761c11477814baa96d316fcfff3d89a8b8f175694fab4fb3b1a`である。対象識別子整列集合のSHA-256は`6f6500799d63d54b5f9a9cc992c7c6b0e74fe342d6c001109aefd7ca1f163e61`で、section型・mask型・構築・寿命4、global mask値member 4、section状態member 6、読込・書出し2の4枠へ固定する。
+- 開始headerは`QVector<PSDLayerRecord *>`を保持するだけなのに`psd_layer_record.h`の完全なrecord定義を4直接利用元へ伝播させ、`QVector`自体は同推移includeに依存している。構造先行変更では開始`libs/psd/psd_layer_section.h`のrecord includeを`PSDLayerRecord`前方宣言、`QVector`と値member所有元`psd_additional_layer_info_block.h`の直接includeへ置き換える。recordを生成・破棄・操作する完全型の所有先は`libs/psd/psd_layer_section.cpp`へ移す。構成済み`libs/psd/psd_layer_section.cpp`、`plugins/impex/tiff/kis_tiff_psd_layer_record.cpp`、`plugins/impex/psd/psd_saver.cpp`、`plugins/impex/psd/psd_loader.cpp`の変更前厳格`clang-check`は全て成功しており、変更後も同4件と公開API報告のbyte一致を確認する。
+- 直前の`libs/psdutils/tests/PSDLayerRecordSchemaContractTest.cpp`は92行・5枠であるため、同sourceへ4枠を追記して200行・10枠未満に収める。CMakeとlinkを変更せず、4工程・8入力、command SHA-256 `51754fd123de29e7fbbe5b17678995eeaa7d5958f12c4225608aff39207a4aec`、input SHA-256 `598e0e334ab4cf08c266b29c2535393b8eaddc5851a447fab1e95f47c29869ab`を維持する。3,025行の既存`PsdFormatValuesContractTest.cpp`は6工程・14入力のため追記せず、停止線を5工程・11入力とする。
+- `g388-psd-layer-section-schema`の状態は`in_progress`、実装基点は`432b934c77`である。構造先行commit後、既存試験sourceだけへ契約を追加する。macOSの対象、追加4枠の20回反復、軽量近傍、4直接利用元と試験sourceの厳格`clang-check`、書式、AUTOMOC後の二回目計画、二回の無作業再構築、動的接続・未解決symbol、公開API検査、`verify-quick`だけを実行する。PSD section・record・node・I/Oの実体、既存`PsdFormatValuesContractTest`、CMake変更、製品target、全体build・`verify`、Linux、Nix再評価は実行しない。
 
 ### 第239便の先行監査担当票
 
