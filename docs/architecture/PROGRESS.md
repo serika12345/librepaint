@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-08 12:22 JST
+- 更新日時: 2026-09-08 12:40 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3042,6 +3042,12 @@
 - 開始headerの`KoShapeLayer.h`、`kis_external_layer_iface.h`、`KisDelayedUpdateNodeInterface.h`、`KisCroppedOriginalLayerInterface.h`は4基底の完全型、`kis_types.h`は共有・弱所有型、export headerは公開性に必要である。重複した`QRect`前方宣言はcompile閉包を変えず、`KIS_SHAPE_LAYER_ID`の`QString`完全型は基底headerから既に到達する。構築範囲を縮める安全で実質的な製品変更はないため、公開headerと製品sourceを変更せず契約へ進む。
 - 既存`kis_shape_layer_test`は製品群を接続する2,027工程・4,051入力であり、公開面の赤緑周期には過大である。新規`libs/ui/tests/KisShapeLayerSchemaContractTest.cpp`を200行・10枠未満で作り、型特性、厳密な関数pointer、既定引数の未評価呼出しだけで51 APIを観測する。最も近いheader限定`KisTransformMaskSchemaContractTest`は4工程・8入力、command SHA-256 `f0bacabbc5e99602c061069d2f4101e49722026e6251620a0d22905651f02009`、input SHA-256 `226642f6eb0597b6d48f1e4473cc31fd9f989cd4ae40157591d3c02e0d8f5f79`である。新規targetも4工程・8入力を予測し、停止線を5工程・11入力とする。
 - `g380-shape-layer-schema`の状態は`in_progress`、実装基点は`1e71ada6ba`である。許可pathは新規試験sourceと`libs/ui/tests/CMakeLists.txt`の対象固有節だけである。macOSの対象、5枠の20回反復、軽量近傍、試験sourceの厳格`clang-check`、書式、AUTOMOC後の二回目計画、二回の無作業再構築、動的接続・未解決symbol、公開API検査、`verify-quick`を確認する。製品`kis_shape_layer_test`、図形・文書・画像実体、全体build・`verify`、Linux、Nix再評価は実行しない。
+
+### 第380便の実装結果
+
+- `g380-shape-layer-schema`は`completed`である。開始`libs/ui/flake/kis_shape_layer.h`から新規`libs/ui/tests/KisShapeLayerSchemaContractTest.cpp`へ残存全51 APIを、図形layerの型・構築8、node・layer状態14、device・幾何13、図形・永続化8、区画・遅延更新・通知8の5枠で対応付けた。対象は146行で、公開headerと製品sourceを変更していない。最初の対象限定compileは推移headerの`kis_icon_utils.h`、次に`psd.h`の探索路不足を検出したため、`libs/ui/tests/CMakeLists.txt`の新target固有節へwidgetutils・psdutilsと必要な既存interface探索路・export定義だけを加えた。その後の赤は5試験関数の未定義symbolだけで停止した。契約実装commitは`c7c6b3e2d1`である。
+- 最終targetは4工程・8入力、command SHA-256 `29a2b50034dd03ba47221cb65681708ef41747e40449d56b2555fb2316c8959e`、input SHA-256 `d125ea61bbaa6e4bd60b4a775c49acc2c4a4cbac4f72962a0aacecaa254b2b73`で停止線内に収まる。動的接続はQt Core・Test、macOS frameworkとgettextだけで、製品libraryの未解決symbolを持たない。macOSで対象`libs-ui-KisShapeLayerSchemaContractTest`、軽量近傍`libs-image-KisTransformMaskSchemaContractTest`、対象の20回反復、試験sourceの厳格`clang-check`、書式、AUTOMOC `HEADERS=[]`、二回の無作業再構築、公開API検査に成功した。既存`kis_shape_layer_test`の2,027工程・4,051入力、図形・文書・画像実体、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 台帳へ51 APIを追加して25,990件対応、3,814件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g380.json`を最新報告の検証後に削除し、追加作業tree・構築木は作成していない。主Ninja木5,952,580 KiB、共有compiler cache 983,044 KiB、最新`build/tdd-macos/public-api-missing-g381.json` 1,032,073 bytes、SHA-256 `9c8038b4805fa1f331fb6caecc0e29a10c56bf364c5bce3aefb920505337145c`だけを再利用対象として保持する。compiler cacheは144,311件中120,518件、83.51%がhitしている。次の永続作業は第381便で次の高密度なmacOS対象と最小構築面を選定することである。
 
 ### 第239便の先行監査担当票
 

@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 3865
+    "expectedMissingApis": 3814
   },
   "contracts": [
     {
@@ -70990,6 +70990,102 @@
         "method:KisPart::prioritizeFrameForCache(KisImageSP image,int frame)",
         "method:KisPart::unloadPlaybackEngine()",
         "method:KisPart::upgradeToPlaybackEngineMLT(class KoCanvasBase * canvas)"
+      ]
+    },
+    {
+      "target": "KisShapeLayerSchemaContractTest",
+      "source": "libs/ui/tests/KisShapeLayerSchemaContractTest.cpp",
+      "test": "KisShapeLayerSchemaContractTest::shapeLayerTypeLifetimeAndConstructionSchemaRemainStable",
+      "behavior": "図形layerは公開型、安定識別子、通常・複製・統合構築と多態的破棄の境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisShapeLayer",
+        "method:KisShapeLayer::KisShapeLayer(KoShapeControllerBase * shapeController,KisImageWSP image,const QString & name,quint8 opacity)",
+        "method:KisShapeLayer::KisShapeLayer(const KisShapeLayer & _rhs)",
+        "method:KisShapeLayer::KisShapeLayer(const KisShapeLayer & _rhs,KoShapeControllerBase * controller)",
+        "method:KisShapeLayer::KisShapeLayer(const KisShapeLayer & _rhs,KoShapeControllerBase * controller,std::function<KisShapeLayerCanvasBase * ()> canvasFactory)",
+        "method:KisShapeLayer::KisShapeLayer(const KisShapeLayer & baseTemplate,const QList<KoShape * > & newShapes)",
+        "method:KisShapeLayer::~KisShapeLayer()",
+        "variable:KIS_SHAPE_LAYER_ID"
+      ]
+    },
+    {
+      "target": "KisShapeLayerSchemaContractTest",
+      "source": "libs/ui/tests/KisShapeLayerSchemaContractTest.cpp",
+      "test": "KisShapeLayerSchemaContractTest::shapeLayerNodeAndStateSignaturesRemainStable",
+      "behavior": "図形layerはnode複製・訪問・統合、画像所属、可視性、編集可能性、lockと親図形の状態境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisShapeLayer::accept(KisNodeVisitor &)",
+        "method:KisShapeLayer::accept(KisProcessingVisitor & visitor,KisUndoAdapter * undoAdapter)",
+        "method:KisShapeLayer::allowAsChild(KisNodeSP) const",
+        "method:KisShapeLayer::clone() const",
+        "method:KisShapeLayer::createMergedLayerTemplate(KisLayerSP prevLayer)",
+        "method:KisShapeLayer::fillMergedLayerTemplate(KisLayerSP dstLayer,KisLayerSP prevLayer,bool skipPaintingThisLayer)",
+        "method:KisShapeLayer::isSelectable() const",
+        "method:KisShapeLayer::isShapeEditable(bool recursive) const",
+        "method:KisShapeLayer::setImage(KisImageWSP image)",
+        "method:KisShapeLayer::setParent(KoShapeContainer * parent)",
+        "method:KisShapeLayer::setUserLocked(bool value)",
+        "method:KisShapeLayer::setVisible(bool visible,bool isLoading=false)",
+        "method:KisShapeLayer::tryCreateInternallyMergedLayerFromMutipleLayers(QList<KisLayerSP> layers)",
+        "method:KisShapeLayer::visible(bool recursive=false) const"
+      ]
+    },
+    {
+      "target": "KisShapeLayerSchemaContractTest",
+      "source": "libs/ui/tests/KisShapeLayerSchemaContractTest.cpp",
+      "test": "KisShapeLayerSchemaContractTest::shapeLayerDeviceAndGeometrySignaturesRemainStable",
+      "behavior": "図形layerは描画device、表示icon、位置・領域、切抜き・変形と色空間変換の境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisShapeLayer::convertTo(const KoColorSpace * dstColorSpace,KoColorConversionTransformation::Intent renderingIntent=KoColorConversionTransformation::internalRenderingIntent (),KoColorConversionTransformation::ConversionFlags conversionFlags=KoColorConversionTransformation::internalConversionFlags ())",
+        "method:KisShapeLayer::crop(const QRect & rect)",
+        "method:KisShapeLayer::icon() const",
+        "method:KisShapeLayer::original() const",
+        "method:KisShapeLayer::paintDevice() const",
+        "method:KisShapeLayer::resetCache(const KoColorSpace * colorSpace)",
+        "method:KisShapeLayer::setProfile(const KoColorProfile * profile)",
+        "method:KisShapeLayer::setX(qint32)",
+        "method:KisShapeLayer::setY(qint32)",
+        "method:KisShapeLayer::theoreticalBoundingRect() const",
+        "method:KisShapeLayer::transform(const QTransform & transform)",
+        "method:KisShapeLayer::x() const",
+        "method:KisShapeLayer::y() const"
+      ]
+    },
+    {
+      "target": "KisShapeLayerSchemaContractTest",
+      "source": "libs/ui/tests/KisShapeLayerSchemaContractTest.cpp",
+      "test": "KisShapeLayerSchemaContractTest::shapeLayerShapeAndPersistenceSignaturesRemainStable",
+      "behavior": "図形layerは図形管理、SVG生成、store保存・読込、選択代理とアンチエイリアス方針の境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisShapeLayer::antialiased() const",
+        "method:KisShapeLayer::createShapesFromSvg(QIODevice * device,const QString & baseXmlDir,const QRectF & rectInPixels,qreal resolutionPPI,KoDocumentResourceManager * resourceManager,bool loadingFromKra,QSizeF * fragmentSize,QStringList * warnings=0,QStringList * errors=0)",
+        "method:KisShapeLayer::loadLayer(KoStore * store,QStringList * warnings=0)",
+        "method:KisShapeLayer::saveLayer(KoStore * store) const",
+        "method:KisShapeLayer::saveShapesToStore(KoStore * store,QList<KoShape * > shapes,const QSizeF & sizeInPt)",
+        "method:KisShapeLayer::selectedShapesProxy()",
+        "method:KisShapeLayer::setAntialiased(const bool antialiased)",
+        "method:KisShapeLayer::shapeManager() const"
+      ]
+    },
+    {
+      "target": "KisShapeLayerSchemaContractTest",
+      "source": "libs/ui/tests/KisShapeLayerSchemaContractTest.cpp",
+      "test": "KisShapeLayerSchemaContractTest::shapeLayerSectionUpdateAndNotificationSignaturesRemainStable",
+      "behavior": "図形layerは区画属性、遅延・非表示領域更新と選択・現在layer・図形移動通知の境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisShapeLayer::currentLayerChanged(const KoShapeLayer * layer)",
+        "method:KisShapeLayer::forceUpdateHiddenAreaOnOriginal()",
+        "method:KisShapeLayer::forceUpdateTimedNode()",
+        "method:KisShapeLayer::hasPendingTimedUpdates() const",
+        "method:KisShapeLayer::sectionModelProperties() const",
+        "method:KisShapeLayer::selectionChanged()",
+        "method:KisShapeLayer::setSectionModelProperties(const KisBaseNode::PropertyList & properties)",
+        "method:KisShapeLayer::sigMoveShapes(const QPointF & diff)"
       ]
     }
   ]
