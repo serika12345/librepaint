@@ -2,8 +2,8 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-08 12:04 JST
-- 状態: `in_progress`
+- 更新日時: 2026-09-08 12:18 JST
+- 状態: `planned`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
@@ -3028,6 +3028,13 @@
 - 111直接利用元をrepository全体で走査し、`KisSessionResource`完全型の利用元が所有headerを直接includeしていることを確認した。設定型の推移依存riskを持つownerと4利用元、`KisPart.cpp`、`KisViewManager.cpp`、`KisMainWindow.cpp`、`KisSessionResource.cpp`、`kis_dlg_preferences.cc`の変更前厳格`clang-check`は、いずれも既存の`KSharedConfig`完全型不足、Qt 6非推奨、未使用変数だけで停止する。変更後に5件の終了状態と診断本文をbyte比較し、公開API報告のbyte一致を完了条件とする。
 - 新規`libs/application/tests/KisPartSchemaContractTest.cpp`を200行・10枠未満で作り、型特性と厳密な関数pointerだけで54 APIを観測する。最も近い`KisApplicationArgumentsSchemaContractTest`は4工程・8入力、command SHA-256 `94caa193f640f28e43b9589ff6612ec820c742cf64fd5144b694bfaea8103972`、input SHA-256 `d396bd55ed135e1a3b0216c6b40d7f4c2e09780b50819ccedb34348d7511b083`である。新規targetもQt Core・Testだけを動的接続する4工程・8入力を予測し、停止線を5工程・11入力とする。候補headerをAUTOMOC入力にせず、製品shared・OBJECT、`kritatestsdk`、application singleton・window・文書・再生engine実装を接続または実行しない。
 - `g379-application-part-schema`の状態は`in_progress`、実装基点は`6eb9673548`である。構造先行commit後に新規試験sourceと`libs/application/tests/CMakeLists.txt`の対象固有節だけへ契約を追加する。macOSの対象、5枠の20回反復、軽量近傍、5 risk翻訳単位と試験sourceの厳格`clang-check`、書式、二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。製品target、application singleton生成、全体build・`verify`、Linux、Nix再評価は実行しない。
+
+### 第379便の実装結果
+
+- `g379-application-part-schema`は`completed`である。開始`libs/application/ui/orchestration/KisPart.h`から未使用の`kconfiggroup.h`と`KoConfig.h`を除き、基底完全型の`QObject`と公開pointerの`QWidget`を直接所有し、重複した`KisDocument`前方宣言を整理した。`KisSessionResourceSP`だけを軽量に再宣言する案は公開APIの所有headerを変えることを検査が検出したため棄却し、開始headerから`application/ui/workspace/KisSessionResource.h`への完全型経路は維持した。5 risk翻訳単位の変更前後は既存診断だけの終了状態と診断本文が完全一致し、公開API報告も同じSHA-256 `f9b06a03a10bd9bab99713047df3cb12096fc9f0cfccd610797b3953315aaf91`となった。構造変更commitは`bc3be391ac`である。
+- 開始headerの残存全54 APIを、新規`libs/application/tests/KisPartSchemaContractTest.cpp`の型・singleton 6、文書・view 20、window 12、session・file 9、cache・再生engine 7の5枠へ対応付けた。対象は129行である。最初のcompile診断で開始headerが使う`application/`基準の探索路を検出し、対象固有の`libs` source・generated探索路だけを追加した後、最初の赤は5試験関数の未定義symbolだけで停止した。契約実装commitは`1ef6cd59c7`である。
+- 最終targetは4工程・8入力、command SHA-256 `636f254566cdd9ad38066827efa44414f6700225ef5d1151f62dec1efb7960fb`、input SHA-256 `f3b91adc1e7c910ba01400ae87b13e94a09cdc87272704907b26b82ed94754a2`で停止線内に収まる。動的接続はQt Core・Test、macOS frameworkとgettextだけで、製品libraryの未解決symbolを持たない。macOSで対象`libs-application-KisPartSchemaContractTest`、軽量近傍`libs-application-KisApplicationArgumentsSchemaContractTest`、対象の20回反復、試験sourceの厳格`clang-check`、書式、AUTOMOC `HEADERS=[]`、二回の無作業再構築、公開API検査に成功した。application singleton、文書・window・session・再生engine実装、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 台帳へ54 APIを追加して25,939件対応、3,865件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g379.json`を最新報告の検証後に削除し、追加作業tree・構築木は作成していない。主Ninja木5,950,728 KiB、共有compiler cache 982,132 KiB、最新`build/tdd-macos/public-api-missing-g380.json` 1,045,516 bytes、SHA-256 `c3f6a80fdd21345591d21258eb8a332337f2859ab4ce86a14e39bfcfacb17927`だけを再利用対象として保持する。compiler cacheは144,304件中120,515件、83.51%がhitしている。次の永続作業は第380便で次の高密度なmacOS対象と最小構築面を選定することである。
 
 ### 第239便の先行監査担当票
 

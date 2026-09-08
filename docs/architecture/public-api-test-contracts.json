@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7c66258ab9424ed45dcde39758e4ba752deff4844b7c6b0afacbe97d7101929c"
   },
   "migration": {
-    "expectedMissingApis": 3919
+    "expectedMissingApis": 3865
   },
   "contracts": [
     {
@@ -70891,6 +70891,105 @@
         "method:KisReferenceImage::SetSaturationCommand::redo()",
         "method:KisReferenceImage::SetSaturationCommand::undo()",
         "struct:KisReferenceImage::SetSaturationCommand"
+      ]
+    },
+    {
+      "target": "KisPartSchemaContractTest",
+      "source": "libs/application/tests/KisPartSchemaContractTest.cpp",
+      "test": "KisPartSchemaContractTest::partTypeLifetimeAndSingletonSchemaRemainStable",
+      "behavior": "application調整器は画像共有所有alias、型、構築・破棄とsingletonの取得・存在確認を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisImageSP",
+        "class:KisPart",
+        "method:KisPart::KisPart()",
+        "method:KisPart::exists()",
+        "method:KisPart::instance()",
+        "method:KisPart::~KisPart()"
+      ]
+    },
+    {
+      "target": "KisPartSchemaContractTest",
+      "source": "libs/application/tests/KisPartSchemaContractTest.cpp",
+      "test": "KisPartSchemaContractTest::documentAndViewSignaturesRemainStable",
+      "behavior": "application調整器は文書とviewの生成、登録、除去、列挙、件数と通知の公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPart::addDocument(KisDocument * document,bool notify=true)",
+        "method:KisPart::addView(KisView * view)",
+        "method:KisPart::createDocument() const",
+        "method:KisPart::createTemporaryDocument() const",
+        "method:KisPart::createView(KisDocument * document,KisViewManager * viewManager,QWidget * parent)",
+        "method:KisPart::currentInputManager()",
+        "method:KisPart::documentClosed(const QString & ref)",
+        "method:KisPart::documentCount() const",
+        "method:KisPart::documentOpened(const QString & ref)",
+        "method:KisPart::documents() const",
+        "method:KisPart::removeDocument(KisDocument * document,bool deleteDocument=true)",
+        "method:KisPart::removeView(KisView * view)",
+        "method:KisPart::sigDocumentAdded(KisDocument * document)",
+        "method:KisPart::sigDocumentRemoved(const QString & filename)",
+        "method:KisPart::sigDocumentSaved(const QString & url)",
+        "method:KisPart::sigViewAdded(KisView * view)",
+        "method:KisPart::sigViewRemoved(KisView * view)",
+        "method:KisPart::startCustomDocument(KisDocument * doc)",
+        "method:KisPart::viewCount(KisDocument * doc) const",
+        "method:KisPart::views() const"
+      ]
+    },
+    {
+      "target": "KisPartSchemaContractTest",
+      "source": "libs/application/tests/KisPartSchemaContractTest.cpp",
+      "test": "KisPartSchemaContractTest::windowSignaturesRemainStable",
+      "behavior": "application調整器はmain windowの生成、登録、現在値、識別、recent URL配布と通知の境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPart::addRecentURLToAllMainWindows(QUrl url,QUrl oldUrl=QUrl ())",
+        "method:KisPart::createMainWindow(QUuid id=QUuid ())",
+        "method:KisPart::currentMainwindow() const",
+        "method:KisPart::currentMainwindowAsQWidget() const",
+        "method:KisPart::mainWindows() const",
+        "method:KisPart::mainwindowCount() const",
+        "method:KisPart::notifyMainWindowIsBeingCreated(KisMainWindow * mainWindow)",
+        "method:KisPart::queueAddRecentURLToAllMainWindowsOnFileSaved(QUrl url,QUrl oldUrl=QUrl ())",
+        "method:KisPart::removeMainWindow(KisMainWindow * mainWindow)",
+        "method:KisPart::sigMainWindowCreated()",
+        "method:KisPart::sigMainWindowIsBeingCreated(KisMainWindow * window)",
+        "method:KisPart::windowById(QUuid id) const"
+      ]
+    },
+    {
+      "target": "KisPartSchemaContractTest",
+      "source": "libs/application/tests/KisPartSchemaContractTest.cpp",
+      "test": "KisPartSchemaContractTest::sessionAndFileSignaturesRemainStable",
+      "behavior": "application調整器はsessionの開始・復元・終了と既存file・templateを開く入口を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPart::closeSession(bool keepWindows=false)",
+        "method:KisPart::closingSession() const",
+        "method:KisPart::openExistingFile(const QString & path)",
+        "method:KisPart::openTemplate(const QUrl & url)",
+        "method:KisPart::restoreSession(KisSessionResourceSP session)",
+        "method:KisPart::restoreSession(const QString & sessionName)",
+        "method:KisPart::setCurrentSession(KisSessionResourceSP session)",
+        "method:KisPart::showSessionManager()",
+        "method:KisPart::startBlankSession()"
+      ]
+    },
+    {
+      "target": "KisPartSchemaContractTest",
+      "source": "libs/application/tests/KisPartSchemaContractTest.cpp",
+      "test": "KisPartSchemaContractTest::cacheAndPlaybackSignaturesRemainStable",
+      "behavior": "application調整器はidle・frame cacheと再生engineの取得、切替、優先処理、読込・解放境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPart::cachePopulator() const",
+        "method:KisPart::idleWatcher() const",
+        "method:KisPart::playbackEngine() const",
+        "method:KisPart::playbackEngineChanged(KisPlaybackEngine * newPlaybackEngine)",
+        "method:KisPart::prioritizeFrameForCache(KisImageSP image,int frame)",
+        "method:KisPart::unloadPlaybackEngine()",
+        "method:KisPart::upgradeToPlaybackEngineMLT(class KoCanvasBase * canvas)"
       ]
     }
   ]
