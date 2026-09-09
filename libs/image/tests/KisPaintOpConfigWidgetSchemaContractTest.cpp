@@ -4,6 +4,7 @@
  */
 
 #include "brushengine/kis_paintop_config_widget.h"
+#include "ui/kis_paintop_settings_widget.h"
 
 #include <QTest>
 
@@ -27,10 +28,20 @@ protected:
     lager::reader<qreal> effectiveBrushSize() const override;
 };
 
+class PaintOpSettingsWidgetProbe : public KisPaintOpSettingsWidget
+{
+public:
+    explicit PaintOpSettingsWidgetProbe(QWidget *parent);
+
+    KisPropertiesConfigurationSP configuration() const override;
+};
+
 #define ASSERT_CONFIG_WIDGET_SIGNATURE(method, ...)                                                                    \
     static_assert(std::is_same_v<decltype(static_cast<__VA_ARGS__>(&KisConfigWidget::method)), __VA_ARGS__>)
 #define ASSERT_PAINTOP_CONFIG_WIDGET_SIGNATURE(method, ...)                                                            \
     static_assert(std::is_same_v<decltype(static_cast<__VA_ARGS__>(&KisPaintOpConfigWidget::method)), __VA_ARGS__>)
+#define ASSERT_PAINTOP_SETTINGS_WIDGET_SIGNATURE(method, ...)                                                          \
+    static_assert(std::is_same_v<decltype(static_cast<__VA_ARGS__>(&KisPaintOpSettingsWidget::method)), __VA_ARGS__>)
 
 } // namespace
 
@@ -47,6 +58,8 @@ private Q_SLOTS:
     void paintOpConfigWidgetSafeConfigurationSignaturesRemainStable();
     void paintOpConfigWidgetLodSignaturesRemainStable();
     void paintOpConfigWidgetContextAndScratchBoxSignaturesRemainStable();
+    void paintOpSettingsWidgetTypeLifetimeAndOptionSignaturesRemainStable();
+    void paintOpSettingsWidgetConfigurationLodAndContextSignaturesRemainStable();
 };
 
 void KisPaintOpConfigWidgetSchemaContractTest::configWidgetTypeAndLifetimeSchemaRemainStable()
@@ -128,6 +141,41 @@ void KisPaintOpConfigWidgetSchemaContractTest::paintOpConfigWidgetContextAndScra
     ASSERT_PAINTOP_CONFIG_WIDGET_SIGNATURE(supportScratchBox, bool (KisPaintOpConfigWidget::*)());
 }
 
+void KisPaintOpConfigWidgetSchemaContractTest::paintOpSettingsWidgetTypeLifetimeAndOptionSignaturesRemainStable()
+{
+    static_assert(std::is_class_v<KisPaintOpSettingsWidget>);
+    static_assert(std::is_base_of_v<KisPaintOpConfigWidget, KisPaintOpSettingsWidget>);
+    static_assert(std::is_abstract_v<KisPaintOpSettingsWidget>);
+    static_assert(std::is_constructible_v<PaintOpSettingsWidgetProbe, QWidget *>);
+    static_assert(std::has_virtual_destructor_v<KisPaintOpSettingsWidget>);
+    ASSERT_PAINTOP_SETTINGS_WIDGET_SIGNATURE(addPaintOpOption, void (KisPaintOpSettingsWidget::*)(KisPaintOpOption *));
+    ASSERT_PAINTOP_SETTINGS_WIDGET_SIGNATURE(
+        addPaintOpOption,
+        void (KisPaintOpSettingsWidget::*)(KisPaintOpOption *, KisPaintOpOption::PaintopCategory));
+}
+
+void KisPaintOpConfigWidgetSchemaContractTest::paintOpSettingsWidgetConfigurationLodAndContextSignaturesRemainStable()
+{
+    ASSERT_PAINTOP_SETTINGS_WIDGET_SIGNATURE(setConfiguration,
+                                             void (KisPaintOpSettingsWidget::*)(KisPropertiesConfigurationSP));
+    ASSERT_PAINTOP_SETTINGS_WIDGET_SIGNATURE(writeConfiguration,
+                                             void (KisPaintOpSettingsWidget::*)(KisPropertiesConfigurationSP) const);
+    ASSERT_PAINTOP_SETTINGS_WIDGET_SIGNATURE(lodLimitations,
+                                             KisPaintopLodLimitations (KisPaintOpSettingsWidget::*)() const);
+    ASSERT_PAINTOP_SETTINGS_WIDGET_SIGNATURE(lodLimitationsReader,
+                                             lager::reader<KisPaintopLodLimitations> (KisPaintOpSettingsWidget::*)()
+                                                 const);
+    ASSERT_PAINTOP_SETTINGS_WIDGET_SIGNATURE(effectiveBrushSize,
+                                             lager::reader<qreal> (KisPaintOpSettingsWidget::*)() const);
+    ASSERT_PAINTOP_SETTINGS_WIDGET_SIGNATURE(setImage, void (KisPaintOpSettingsWidget::*)(KisImageWSP));
+    ASSERT_PAINTOP_SETTINGS_WIDGET_SIGNATURE(setNode, void (KisPaintOpSettingsWidget::*)(KisNodeWSP));
+    ASSERT_PAINTOP_SETTINGS_WIDGET_SIGNATURE(setResourcesInterface,
+                                             void (KisPaintOpSettingsWidget::*)(KisResourcesInterfaceSP));
+    ASSERT_PAINTOP_SETTINGS_WIDGET_SIGNATURE(setCanvasResourcesInterface,
+                                             void (KisPaintOpSettingsWidget::*)(KoCanvasResourcesInterfaceSP));
+}
+
+#undef ASSERT_PAINTOP_SETTINGS_WIDGET_SIGNATURE
 #undef ASSERT_PAINTOP_CONFIG_WIDGET_SIGNATURE
 #undef ASSERT_CONFIG_WIDGET_SIGNATURE
 
