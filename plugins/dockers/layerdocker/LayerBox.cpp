@@ -72,6 +72,7 @@
 #include "application/ui/workspace/KisView.h"
 #include "krita_utils.h"
 #include "kis_color_label_selector_widget.h"
+#include "kis_layer_filter_widget.h"
 #include "kis_signals_blocker.h"
 #include "nodes/kis_node_filter_proxy_model.h"
 #include <KisSpinBoxI18nHelper.h>
