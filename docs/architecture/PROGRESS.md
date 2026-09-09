@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 15:08 JST
+- 更新日時: 2026-09-09 15:12 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4404,6 +4404,13 @@
 - 開始headerから新規`libs/impex/tests/KisImportExportManagerSchemaContractTest.cpp`へ全16 API・5枠を追加した。管理型・方向・構築・寿命、同期・非同期変換、MIME・filter・export設定、batch・進捗、追加file照会を型特性、列挙値、厳密な関数pointer、省略引数の未評価呼出しで固定した。対象未登録の初回限定構築は未知の対象として失敗し、登録後は全5枠が成功して`G489 import export manager API schema is not fixed yet`だけが`XFAIL`となった。契約commitは`86948e6cde`である。
 - 新規試験sourceは108行・5枠で、targetはQt Core・Testだけへ動的接続する4工程・8入力、command SHA-256 `1953d829e937015842bed384d70a01b833fa3534d4b8879f4297d4955c7b298b`、input SHA-256 `20110ba469b392a5060213c96e961e1b6a4bcb1295fc931feecc1365c2ac2e25`となった。AUTOMOC `HEADERS=[]`、入出力manager・filter・文書・画像・設定・進捗の未解決製品記号は0である。macOSで対象の単発と20回反復、5枠を各20回、同じimpex UIの`KisClipboardSchemaContractTest`、試験sourceの厳格構文と書式、連続二回の無作業再構築、公開API検査に成功した。初回登録時はCMake再生成だけを行い、製品を構築していない。88工程・174入力の`TestImportExportBoundary`、filter選択・文書変換・dialogの実状態、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 台帳は27,772件対応、2,033件未対応となり、開始headerの残存は0件である。新`public-api-missing-g490.json`の生成成功後に旧`public-api-missing-g489.json` 553,880 bytesを削除し、一時一覧、追加作業tree・構築木は作成していない。主Ninja木6,028,056 KiB、共有compiler cache 983,112 KiB、最新`build/tdd-macos/public-api-missing-g490.json` 548,703 bytes、SHA-256 `3214b7020a01a4cf3620b3248566a28d2f1ef314bd15663516b5fbeb09b3a66e`だけを再利用対象として保持する。compiler cacheは144,686件中120,567件、83.33%がhitしている。次の永続作業は第490便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
+
+### 第490便の公開API契約計画
+
+- 第490便は画像groupを個別画像へ保存するnode訪問境界を所有する`libs/impex/ui/KisSaveGroupVisitor.h`に残る全15 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g490.json`は公開header 1,548、公開API 29,805、対応済み27,772、未対応2,033、548,703 bytes、SHA-256 `3214b7020a01a4cf3620b3248566a28d2f1ef314bd15663516b5fbeb09b3a66e`である。対象15識別子の整列集合SHA-256は`67adac348903772dd015ec90fe985730846c12ef605ef6ec2fcbd8383282f129`である。
+- group保存訪問境界は型・構築・破棄3、基底node・paint・group・外部layer訪問4、調整・生成・clone layer訪問3、filter・変換・透明・選択・colorize mask訪問5の4枠へ固定する。型特性と厳密な多重定義関数pointerだけを使い、visitor、画像、node、layer、mask、文書、保存処理を実体化しない。
+- 開始`libs/impex/ui/KisSaveGroupVisitor.h`は`kis_node_visitor.h`が全訪問先を前方宣言する一方で、`kis_layer.h`・`kis_group_layer.h`・`kis_node.h`・`kis_image.h`の完全定義を重複して全利用者へ推移させ、未使用`QUrl`も取り込んでいる。契約追加より先にこれら5 includeを除去し、画像・layer・group layerを実際に操作する宛先`libs/impex/ui/KisSaveGroupVisitor.cpp`へ`kis_image.h`・`kis_layer.h`・`kis_group_layer.h`を直接追加する。`QString`は値会員、`kis_types.h`は画像弱参照、`kis_node_visitor.h`は公開基底と訪問先宣言に必要なため維持する。直接利用1翻訳単位は変更前に`KisPaintDevice`不完全型の既存診断で失敗し、変更後も同じ診断だけであることを完了条件とする。
+- 既存`TestImportExportBoundary`は88工程・174入力で限定反復には過大である。新規`libs/impex/tests/KisSaveGroupVisitorSchemaContractTest.cpp`は100行・5枠未満とし、impex UI・image・global・generated application探索路、関連export定義、Qt Core・Testだけによる4工程・8入力を予測する。停止線を5工程・11入力とし、製品OBJECT・shared、Qt Gui・Widgetsの動的接続、AUTOMOC製品header入力、製品記号、追加探索路が必要なら停止する。macOSの対象、最軽量近傍、対象の20回反復、試験sourceの厳格構文と書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
 
 ### 第239便の先行監査担当票
 
