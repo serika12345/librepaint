@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 1801
+    "expectedMissingApis": 1786
   },
   "contracts": [
     {
@@ -78127,6 +78127,57 @@
         "method:QtSingleApplication::initialize(bool dummy=true)",
         "method:QtSingleApplication::messageReceived(const QString & message)",
         "method:QtSingleApplication::sendMessage(const QString & message,int timeout=5000)"
+      ]
+    },
+    {
+      "target": "KisFavoriteResourceManagerSchemaContractTest",
+      "source": "libs/ui/tests/KisFavoriteResourceManagerSchemaContractTest.cpp",
+      "test": "KisFavoriteResourceManagerSchemaContractTest::paintopBoxTypeLifetimeAndManagerSchemaRemainStable",
+      "behavior": "描画プリセット箱はview・親・名前から構築され、仮想破棄と愛用資源管理器の照会を持つ公開型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisPaintopBox",
+        "method:KisPaintopBox::KisPaintopBox(KisViewManager * view,QWidget * parent,const char * name)",
+        "method:KisPaintopBox::favoriteResourcesManager()",
+        "method:KisPaintopBox::~KisPaintopBox()"
+      ]
+    },
+    {
+      "target": "KisFavoriteResourceManagerSchemaContractTest",
+      "source": "libs/ui/tests/KisFavoriteResourceManagerSchemaContractTest.cpp",
+      "test": "KisFavoriteResourceManagerSchemaContractTest::paintopBoxResourceSignaturesRemainStable",
+      "behavior": "描画プリセット箱は選択資源の復元と利用者による資源選択を受け取る公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPaintopBox::resourceSelected(KoResourceSP resource)",
+        "method:KisPaintopBox::restoreResource(KoResourceSP resource)"
+      ]
+    },
+    {
+      "target": "KisFavoriteResourceManagerSchemaContractTest",
+      "source": "libs/ui/tests/KisFavoriteResourceManagerSchemaContractTest.cpp",
+      "test": "KisFavoriteResourceManagerSchemaContractTest::paintopBoxConfigurationInputSignaturesRemainStable",
+      "behavior": "描画プリセット箱は設定部品群の差替え、色空間変更と入力機器変更を受け取る公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPaintopBox::newOptionWidgets(const QList<QPointer<QWidget>> & optionWidgetList)",
+        "method:KisPaintopBox::slotColorSpaceChanged(const KoColorSpace * colorSpace)",
+        "method:KisPaintopBox::slotInputDeviceChanged(const KoInputDevice & inputDevice)"
+      ]
+    },
+    {
+      "target": "KisFavoriteResourceManagerSchemaContractTest",
+      "source": "libs/ui/tests/KisFavoriteResourceManagerSchemaContractTest.cpp",
+      "test": "KisFavoriteResourceManagerSchemaContractTest::paintopBoxPresetAndCanvasNotificationSignaturesRemainStable",
+      "behavior": "描画プリセット箱は消しゴム・brush preset選択、canvas資源変更と新規preset生成要求を受け取る公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPaintopBox::slotCanvasResourceChangeAttempted(int key,const QVariant & value)",
+        "method:KisPaintopBox::slotCanvasResourceChanged(int key,const QVariant & v)",
+        "method:KisPaintopBox::slotCreatePresetFromScratch(QString paintop)",
+        "method:KisPaintopBox::slotSelectBrushPreset()",
+        "method:KisPaintopBox::slotSelectEraserPreset()",
+        "method:KisPaintopBox::slotToggleEraserPreset(bool usingEraser)"
       ]
     }
   ]
