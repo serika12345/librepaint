@@ -4,6 +4,7 @@
  */
 
 #include <resources/kis_favorite_resource_manager.h>
+#include <tool/kis_paintop_box.h>
 
 #include <QTest>
 
@@ -25,6 +26,10 @@ private Q_SLOTS:
     void favoriteResourceManagerRecentAndBackgroundColorSignaturesRemainStable();
     void favoriteResourceManagerResourceAndPaintopSignaturesRemainStable();
     void favoriteResourceManagerPaletteNotificationSignaturesRemainStable();
+    void paintopBoxTypeLifetimeAndManagerSchemaRemainStable();
+    void paintopBoxResourceSignaturesRemainStable();
+    void paintopBoxConfigurationInputSignaturesRemainStable();
+    void paintopBoxPresetAndCanvasNotificationSignaturesRemainStable();
 };
 
 void KisFavoriteResourceManagerSchemaContractTest::favoriteResourceManagerTypeLifetimeAndServerSchemaRemainStable()
@@ -85,6 +90,46 @@ void KisFavoriteResourceManagerSchemaContractTest::favoriteResourceManagerPalett
     ASSERT_FAVORITE_RESOURCE_MANAGER_SIGNATURE(sigSetBGColor, void (Manager::*)(const KoColor &));
     ASSERT_FAVORITE_RESOURCE_MANAGER_SIGNATURE(sigSetFGColor, void (Manager::*)(const KoColor &));
     ASSERT_FAVORITE_RESOURCE_MANAGER_SIGNATURE(updatePalettes, void (Manager::*)());
+}
+
+void KisFavoriteResourceManagerSchemaContractTest::paintopBoxTypeLifetimeAndManagerSchemaRemainStable()
+{
+    using Box = KisPaintopBox;
+
+    static_assert(std::is_class_v<Box>);
+    static_assert(std::is_constructible_v<Box, KisViewManager *, QWidget *, const char *>);
+    static_assert(std::has_virtual_destructor_v<Box>);
+    static_assert(std::is_same_v<decltype(&Box::favoriteResourcesManager), KisFavoriteResourceManager *(Box::*)()>);
+}
+
+void KisFavoriteResourceManagerSchemaContractTest::paintopBoxResourceSignaturesRemainStable()
+{
+    using Box = KisPaintopBox;
+
+    static_assert(std::is_same_v<decltype(&Box::restoreResource), void (Box::*)(KoResourceSP)>);
+    static_assert(std::is_same_v<decltype(&Box::resourceSelected), void (Box::*)(KoResourceSP)>);
+}
+
+void KisFavoriteResourceManagerSchemaContractTest::paintopBoxConfigurationInputSignaturesRemainStable()
+{
+    using Box = KisPaintopBox;
+
+    static_assert(std::is_same_v<decltype(&Box::newOptionWidgets), void (Box::*)(const QList<QPointer<QWidget>> &)>);
+    static_assert(std::is_same_v<decltype(&Box::slotColorSpaceChanged), void (Box::*)(const KoColorSpace *)>);
+    static_assert(std::is_same_v<decltype(&Box::slotInputDeviceChanged), void (Box::*)(const KoInputDevice &)>);
+}
+
+void KisFavoriteResourceManagerSchemaContractTest::paintopBoxPresetAndCanvasNotificationSignaturesRemainStable()
+{
+    using Box = KisPaintopBox;
+
+    static_assert(std::is_same_v<decltype(&Box::slotToggleEraserPreset), void (Box::*)(bool)>);
+    static_assert(std::is_same_v<decltype(&Box::slotSelectEraserPreset), void (Box::*)()>);
+    static_assert(std::is_same_v<decltype(&Box::slotSelectBrushPreset), void (Box::*)()>);
+    static_assert(
+        std::is_same_v<decltype(&Box::slotCanvasResourceChangeAttempted), void (Box::*)(int, const QVariant &)>);
+    static_assert(std::is_same_v<decltype(&Box::slotCanvasResourceChanged), void (Box::*)(int, const QVariant &)>);
+    static_assert(std::is_same_v<decltype(&Box::slotCreatePresetFromScratch), void (Box::*)(QString)>);
 }
 
 #undef ASSERT_FAVORITE_RESOURCE_MANAGER_SIGNATURE

@@ -312,6 +312,8 @@ target_include_directories(KisFavoriteResourceManagerSchemaContractTest PRIVATE
     ${CMAKE_CURRENT_BINARY_DIR}/..
     ${CMAKE_SOURCE_DIR}/libs/global
     ${CMAKE_BINARY_DIR}/libs/global
+    ${CMAKE_SOURCE_DIR}/libs/flake
+    ${CMAKE_BINARY_DIR}/libs/flake
     ${CMAKE_SOURCE_DIR}/libs/image
     ${CMAKE_BINARY_DIR}/libs/image
     ${CMAKE_SOURCE_DIR}/libs/resources
@@ -327,6 +329,7 @@ target_include_directories(KisFavoriteResourceManagerSchemaContractTest PRIVATE
     $<TARGET_PROPERTY:Imath::Imath,INTERFACE_INCLUDE_DIRECTORIES>
 )
 target_compile_definitions(KisFavoriteResourceManagerSchemaContractTest PRIVATE
+    kritaflake_EXPORTS
     kritaglobal_EXPORTS
     kritaimage_EXPORTS
     kritapigment_EXPORTS
