@@ -9,6 +9,7 @@
 #include <application/kis_config.h>
 
 #include <QGuiApplication>
+#include <QScreen>
 
 #include <qpa/qplatformscreen.h>
 
