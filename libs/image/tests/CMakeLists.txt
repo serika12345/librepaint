@@ -1581,6 +1581,25 @@ target_compile_definitions(KisLazyBrushCutSchemaContractTest PRIVATE
 )
 
 kis_add_test(
+    KisImageProgressSchemaContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KisImageProgressSchemaContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+    ${CMAKE_SOURCE_DIR}/libs/widgetutils
+    ${CMAKE_BINARY_DIR}/libs/widgetutils
+)
+target_compile_definitions(KisImageProgressSchemaContractTest PRIVATE
+    kritaimage_EXPORTS
+    kritawidgetutils_EXPORTS
+)
+
+kis_add_test(
     KisBaseProcessorSchemaContractTest.cpp
     LINK_LIBRARIES
         Qt${QT_MAJOR_VERSION}::Core
