@@ -41,6 +41,10 @@ private Q_SLOTS:
 void KisGuidesConfigSchemaContractTest::guideValueIdentityAndEqualitySchemaRemainStable()
 {
     static_assert(std::is_class_v<KisGuidesConfig>);
+    static_assert(std::is_default_constructible_v<KisGuidesConfig>);
+    static_assert(std::is_copy_constructible_v<KisGuidesConfig>);
+    static_assert(std::is_copy_assignable_v<KisGuidesConfig>);
+    static_assert(std::is_destructible_v<KisGuidesConfig>);
     static_assert(std::is_enum_v<KisGuidesConfig::LineTypeInternal>);
 
     QCOMPARE(int(KisGuidesConfig::LINE_SOLID), 0);
@@ -61,6 +65,11 @@ void KisGuidesConfigSchemaContractTest::guidePositionCollectionAndTransformSigna
     ASSERT_GUIDES_CONFIG_SIGNATURE(verticalGuideLines, const QList<qreal> &(KisGuidesConfig::*)() const);
     ASSERT_GUIDES_CONFIG_SIGNATURE(hasGuides, bool (KisGuidesConfig::*)() const);
     ASSERT_GUIDES_CONFIG_SIGNATURE(transform, void (KisGuidesConfig::*)(const QTransform &));
+    ASSERT_GUIDES_CONFIG_SIGNATURE(isDefault, bool (KisGuidesConfig::*)() const);
+    ASSERT_GUIDES_CONFIG_SIGNATURE(loadStaticData, void (KisGuidesConfig::*)());
+    ASSERT_GUIDES_CONFIG_SIGNATURE(saveStaticData, void (KisGuidesConfig::*)() const);
+    ASSERT_GUIDES_CONFIG_SIGNATURE(loadFromXml, bool (KisGuidesConfig::*)(const QDomElement &));
+    ASSERT_GUIDES_CONFIG_SIGNATURE(saveToXml, QDomElement (KisGuidesConfig::*)(QDomDocument &, const QString &) const);
 }
 
 void KisGuidesConfigSchemaContractTest::guideVisibilityInteractionSignaturesRemainStable()
