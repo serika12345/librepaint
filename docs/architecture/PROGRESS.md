@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 16:11 JST
+- 更新日時: 2026-09-09 16:15 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4438,6 +4438,13 @@
 - action manager headerの直接利用29翻訳単位を構文走査し、露出した直接include不足を補った9翻訳単位は7件が厳格構文に成功した。残る`kis_guides_manager.cpp`と`KisAnimTimelineFramesView.cpp`も実エラー0で、既存Qt非推奨`QEnterEvent::pos`と`QContextMenuEvent::globalPos`だけが`-Werror`時に残る。操作設定実装とaction manager実装の厳格構文、試験sourceの厳格構文と書式に成功した。公開headerは狭い前方宣言header 1件の追加により1,549件、公開APIは29,805件のままである。
 - 開始2 headerから既存`libs/application/tests/KisViewManagerSchemaContractTest.cpp`へ全16 API・5枠を追加した。設定共有pointer別名、action managerの型・構築・寿命・view接続、action管理、操作登録・実行、標準action・menu・GUI更新を型特性と厳密な関数pointerで固定した。最初の5枠は全観測に成功して`G492 action manager API schema is not fixed yet`だけが`XFAIL`となった。契約commitは`f69b7b8774`である。
 - 既存試験sourceは230行・18枠となった。targetはQt Core・Testだけへ動的接続する4工程・8入力、command SHA-256 `ddadff4eb89e92d2e080e3aadf249bbfc852824fa243e6825086daee7dbc13d9`、input SHA-256 `57ebed086e92adde6d4554f8315cd2fedde5517bccadd2aeee2083650235cd3e`である。AUTOMOC `HEADERS=[]`、action manager・操作・viewの未解決製品記号0を維持した。macOSで全18枠と追加5枠を各20回、連続二回の無作業再構築、公開API検査、`verify-quick`に成功した。台帳は27,818件対応、1,987件未対応となり、開始2 headerの残存は0件である。新`public-api-missing-g493.json`の生成成功後に旧`public-api-missing-g492.json` 540,213 bytesを削除した。主Ninja木6,020,340 KiB、共有compiler cache 983,280 KiB、最新報告535,639 bytes、SHA-256 `feb0ce1bc08a0c652a43c447f9616f03220e2a27d7d410158c18b83b1ba06af5`だけを再利用対象として保持する。compiler cacheは144,703 cache可能呼出し中120,575件、83.33%がhitしている。action実状態、操作配送結果、menu内容、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第493便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
+
+### 第493便の公開API契約計画
+
+- 第493便はMLTによる映像frameと音声同期を所有する`libs/ui/animation/KisPlaybackEngineMLT.h`に残る全15 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g493.json`は公開header 1,549、公開API 29,805、対応済み27,818、未対応1,987、535,639 bytes、SHA-256 `feb0ce1bc08a0c652a43c447f9616f03220e2a27d7d410158c18b83b1ba06af5`である。対象15識別子の整列集合SHA-256は`351cb8daa8ad520f40762056b7f89964d15709977784766c21e6e809c9ba4859`である。
+- MLT再生境界はpush・pull mode列挙3、型・構築・破棄・frame待機interface 4、seek・mute設定・mute照会3、音声・可変速度対応・frame drop・統計4、active canvas frame変更通知1の5枠へ固定する。型特性、列挙値、厳密な関数pointer、省略引数の未評価呼出しだけを使い、MLT engine、canvas、frame待機interface、外部MLT本文を実体化しない。
+- 開始headerの`KoCanvasObserverBase.h`は直接基底`KisPlaybackEngine.h`が所有する同じ基底定義を重複して取り込むため除去する。開始`libs/ui/animation/KisPlaybackEngineMLT.cpp`は`KisImage`本文を利用しながら推移includeへ依存しており、変更前厳格構文で12件の不完全型診断を出すため、同実装へ`kis_image.h`を直接追加する。変更後の実装厳格構文は既存MLT callback型変換警告1件だけを維持し、追加診断0を完了条件とする。
+- 既存`libs/ui/tests/KisPlaybackEngineSchemaContractTest.cpp`は同じ再生境界を所有する182行・10枠の限定targetである。新targetとCMake変更を避け、同sourceへ5枠を追加して280行・16枠未満に収める。targetはQt Core・Testだけへ動的接続する4工程・8入力、command SHA-256 `2bd8ce03b6f0ab42e5f78a568fdc01c89cf541623a2537f13b54b3887847cd1e`、input SHA-256 `aa787218079060cbea383b463cb68fcfede85e6100a3d453f2d1feae4f19b981`を維持し、停止線を4工程・8入力とする。新たな探索路・定義・接続、製品OBJECT・shared、外部MLT、AUTOMOC製品header入力、製品記号が必要なら停止する。macOSの対象、既存10枠と追加5枠、追加枠の20回反復、試験sourceの厳格構文と書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
 
 ### 第239便の先行監査担当票
 
