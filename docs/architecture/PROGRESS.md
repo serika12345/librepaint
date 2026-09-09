@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 18:29 JST
+- 更新日時: 2026-09-09 18:33 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4538,6 +4538,13 @@
 - 構造準備では開始`libs/ui/tool/kis_paintop_box.h`から資源本体と、実装だけが使う描画設定・固定設定3 headerを除去した。資源は前方宣言と共有pointer別名、Qt pointer・共有pointer・文字列は直接includeへ置換した。実利用先`libs/ui/tool/kis_paintop_box.cc`へ固定設定proxy・serverを移し、変更前厳格構文で不足した`KSharedConfig`と`KisActionRegistry`も直接追加した。変更後の実装とheader強制includeの厳格構文に成功した。計画commitは`42519718d6`、構造準備commitは`546bcd487f`である。
 - 開始headerから既存`libs/ui/tests/KisFavoriteResourceManagerSchemaContractTest.cpp`へ全15 API・4枠を追加した。型・構築・寿命・愛用資源管理器、資源復元・選択、設定部品・色空間・入力機器、消しゴム・brush preset・canvas資源通知・新規preset生成を型特性と厳密な関数pointerで固定した。追加後は全枠に成功した。契約commitは`2c2979d24b`である。
 - 既存試験sourceは139行・9枠となった。targetはQt Gui・Testだけへ動的接続する4工程・8入力を維持し、command SHA-256はflake探索路と定義だけを加えた`55cfcc47721e661de98b98f1780970916df9caddeb7e543a1212e28bb3e5b2e4`、input SHA-256は不変の`6e22d37e2d0c0671f2f4407d5eff49da226b23b49ce1d0317f4535d4ada75240`である。AUTOMOC `HEADERS=[]`、描画プリセット箱・愛用資源管理器・資源・入力機器の未解決製品記号0で、Qt Widgetsを動的接続していない。macOSで全9枠と追加4枠を各20回、試験sourceと実装の厳格構文、書式、連続二回の無作業再構築、公開API検査に成功した。台帳は28,015件対応、1,786件未対応となり、開始headerの残存は0件である。新`public-api-missing-g503.json`の生成成功後に旧`public-api-missing-g502.json` 488,555 bytesを削除した。主Ninja木6,022,568 KiB、共有compiler cache 983,252 KiB、最新報告484,822 bytes、SHA-256 `dd8065821597b342d78a172e1652a86decce734f06538dacbecc1d839577ff59`だけを再利用対象として保持する。compiler cacheは144,726 cache可能呼出し中120,578件、83.31%がhitしている。実資源・preset・canvas状態、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第503便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
+
+### 第503便の公開API契約計画
+
+- 第503便は保存済み描画設定の一覧表示、名前変更、追加・保存・削除を所有する`libs/ui/tool/kis_bookmarked_configurations_model.h`の残存全14 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g503.json`は公開header 1,549、公開API 29,801、対応済み28,015、未対応1,786、484,822 bytes、SHA-256 `dd8065821597b342d78a172e1652a86decce734f06538dacbecc1d839577ff59`である。対象14識別子の整列集合SHA-256は`40fd460322e5cac2f85261005c331c792f26bd871a76a56242b93f9ba92fe337`である。
+- 設定ブックマーク模型境界は型・構築・破棄・管理器4、行数・表示値・項目flag 3、設定取得・名前index・削除可否3、新規・保存・削除・編集4の4枠へ固定する。型特性、厳密な関数pointer、省略引数の未評価呼出しだけを使い、模型、設定、管理器と永続化本文を実体化しない。
+- 開始headerは公開基底に必要な`QAbstractListModel`と共有pointer別名を所有する`kis_serializable_configuration.h`だけを完全定義として持つ。既存4工程対象での強制includeと開始`kis_bookmarked_configurations_model.cc`の厳格構文は成功しており、除去すべき推移依存はない。既存契約へ別責務を混載せず、新規`libs/ui/tests/KisBookmarkedConfigurationsModelSchemaContractTest.cpp`をQt Core・Test、UI・global・imageのsource/generated探索路、`kritaui_EXPORTS`・`kritaimage_EXPORTS`・`kritaglobal_EXPORTS`だけで構成し、4工程・8入力を予測する。
+- 追加前targetは`unknown target`である。停止線を5工程・11入力とし、Qt Gui・Widgetsの動的接続、製品OBJECT・shared、`kritatestsdk`、AUTOMOC製品header入力、設定模型製品記号が必要なら停止する。macOSの新対象と軽量近傍、追加4枠の20回反復、実装と試験sourceの厳格構文、書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、実模型・設定永続化、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
 
 ### 第239便の先行監査担当票
 
