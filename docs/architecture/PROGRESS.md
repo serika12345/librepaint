@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-10 00:03 JST
+- 更新日時: 2026-09-10 00:09 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4813,6 +4813,13 @@
 - 開始`libs/ui/tool/kis_tool_freehand_helper.h`から`kis_paint_information.h`・`kis_default_bounds.h`・`kis_smoothing_options.h`の完全includeを除去し、paint情報・距離情報・outline・既定境界・平滑化設定を前方宣言した。既定境界は既存`KisSharedPtr`、平滑化設定は`QSharedPointer`から局所別名を宣言し、`QQueue`・`QSharedPointer`を直接includeした。完全型は開始`libs/ui/tool/kis_tool_freehand_helper.cpp`のpaint情報と平滑化設定直接includeへ移した。公開署名、所有権、実行時挙動、CMakeは変更していない。header強制include、製品source、試験sourceの厳格構文は診断0件で、新規試験差分の書式も成功した。
 - targetは4工程・8入力、command SHA-256 `dfa69d52c97147f5d25cdc794e3cd6dc2b37644303f8c0fdd5db3f5606734cc3`、input SHA-256 `6a0a85aa6ab162073c90b3d9c8b710b085223737161c5fae4a411c95763ae2da`を維持した。AUTOMOC `HEADERS=[]`、freehand helper・selection helper・selection tool templateの未解決製品記号0で、Qt Core・Testだけへ動的接続する。macOSで対象全体20回と追加2枠各20回、厳格構文、試験書式、連続二回の無作業再構築に成功した。実paint・stroke・outline、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 公開API検査の初回診断は期待値1,475に対して実測1,463で、新規12件と一致した。台帳を28,338件対応、1,463件未対応へ進め、`public-api-missing-g530.json`の生成成功後に旧`public-api-missing-g529.json` 401,565 bytesを削除した。主Ninja木6,032,232 KiB、共有compiler cache 982,524 KiB、最新報告397,666 bytes、SHA-256 `e432924d79ee916e59cecea3dfba848c955fc9166492798b90969ee4de31858a`だけを再利用対象として保持する。compiler cacheは144,802 cache可能呼出し中120,594件、83.28%がhitしている。次の永続作業は第530便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
+
+### 第530便の公開API契約計画
+
+- 第530便はpainting tool共通のpointer追跡、activation、brush outline状態を所有する`libs/tools/kis_tool_paint_interaction.h`の残存全10 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g530.json`は公開header 1,549、公開API 29,801、対応済み28,338、未対応1,463、397,666 bytes、SHA-256 `e432924d79ee916e59cecea3dfba848c955fc9166492798b90969ee4de31858a`である。対象10識別子の整列集合SHA-256は`759ef2c826a7e210eae92383ce0f6630762511393793ae6fd8fa88536ba854cb`である。
+- paint interaction境界は型・canvasとcursorからの構築・仮想破棄・flags4、pointer press/release/move3、activation・deactivation・描画完了signal3の3枠へ固定する。具象probeの型特性と厳密な関数pointerだけを使い、tool、canvas、pointer event、brush outlineを実体化しない。
+- 開始headerは`KisOptimizedBrushOutline.h`を所有directory修飾なしでincludeするため、既存軽量targetのimage rootから解決できず、追加探索路が必要になる。契約追加より先に同includeを`brushengine/KisOptimizedBrushOutline.h`へ修正し、既に必要なimage rootだけで解決する。開始`libs/tools/kis_tool_paint_interaction.cpp`は厳格構文診断0件であり、既存`libs/tools/tests/KisToolSchemaContractTest.cpp`からのheader強制includeも変更後に診断0件とする。
+- 既存tool契約は118行・5枠で、3枠追加後も220行・10枠以内に収まる。CMakeを変更せず4工程・8入力、command SHA-256 `4e66a30489af4bd399b261635c004dd0bb1827f78fb9e18b1c84bac220b54c6c`、input SHA-256 `f2467da36c35df9f69e1a05f8471b1b7e2513fbdabefea6e9bf5aecf79e7544d`を維持する。工程・入力増加、候補headerのAUTOMOC入力化、製品未解決記号が生じれば停止する。macOSの対象全体と追加3枠の20回反復、実装・試験sourceとheader強制includeの厳格構文、試験書式、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、実tool・canvas・pointer event・outline、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
 
 ### 第239便の先行監査担当票
 
