@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 08:46 JST
+- 更新日時: 2026-09-09 09:03 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4164,6 +4164,11 @@
 - 設定widgetは型・仮想寿命2、設定の設定・取得2、view・canvas資源の設定・取得3、変更・保存・破棄通知4の4枠へ固定する。paintop設定widgetは型・構築・仮想寿命3、安全な設定読書2、LOD制約・reader・有効brush寸法3、image・node・資源・viewの設定と資源取得5、scratch box可否1の4枠へ固定する。抽象派生probeは宣言だけとし、widgetや製品本文を実体化しない。
 - `libs/image/kis_config_widget.h`は設定本体を使わず共有型だけを使うため、開始headerの`kis_properties_configuration.h`を`kis_types.h`へ置き換える。`libs/image/brushengine/kis_paintop_config_widget.h`もimage・診断・設定の完全定義を使わないため、開始headerの`kis_image.h`、`kis_debug.h`、`kis_properties_configuration.h`を直接の`kis_types.h`へ置き換える。実装側の直接includeは維持する。両headerの直接利用元和集合26件の変更前厳密構文検査は13件成功・13件既存診断で、変更後の新規悪化0を完了条件とする。
 - 新規`libs/image/tests/KisPaintOpConfigWidgetSchemaContractTest.cpp`は200行・9枠未満とする。image・globalのsource・binary探索路、`kritaimage_EXPORTS`、Qt Core・Widgets・Testとheader-only lagerだけを与え、4工程・8入力を予測する。既存の製品image試験集合は抽象widget本文と製品targetを接続するため統合先から除外する。停止線は5工程・11入力で、新たな探索路・定義・製品接続、AUTOMOC製品header入力、widgetまたは派生probeの実体化が必要なら停止する。macOSの対象、最軽量近傍、対象の20回反復、試験sourceの厳格構文、書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
+
+- 構造準備では開始`libs/image/kis_config_widget.h`の設定完全定義依存を`kis_types.h`へ、開始`libs/image/brushengine/kis_paintop_config_widget.h`のimage・診断・設定完全定義依存を`kis_types.h`へ縮小した。値渡しでimage完全定義を要する具体利用は`libs/image/brushengine/kis_paintop_registry.cc`の直接`kis_image.h`へ移した。直接利用元和集合26件の厳格構文検査は変更前後とも13件成功・13件既存診断で、新規悪化・改善・対象増減は0である。計画commitは`b8c2f03818`、構造準備commitは`b25b5bf967`である。
+- 開始`libs/image/kis_config_widget.h`と`libs/image/brushengine/kis_paintop_config_widget.h`から新規`libs/image/tests/KisPaintOpConfigWidgetSchemaContractTest.cpp`へ全25 API・8枠を追加した。設定widgetの型・仮想寿命、設定の読書、view・canvas資源、4通知と、paintop設定widgetの型・構築・仮想寿命、安全な設定読書、LOD制約・reader・有効brush寸法、image・node・資源・view・scratch box境界を型特性と厳密な関数pointerで固定した。抽象probeは宣言だけで、初回は全8観測枠が成功し、`G467 paint operation config widget API schema is not fixed yet`だけで1件失敗した。契約commitは`33f895e61e`である。
+- 新規試験sourceは136行・8枠で、targetは4工程・8入力、command SHA-256 `42b5a76e92fe9d6efe2c796d3817543fbc983b5f636edcc69b985e238ac34e3f`、input SHA-256 `b967f4524c5ae0b4e0eab08d1da838e1462a39be2e1371ab5cd19329666c1450`となった。AUTOMOC `HEADERS=[]`、製品未解決記号・製品動的接続は0である。macOSで対象、最軽量近傍`KisPaintOpSchemaContractTest`、対象の20回反復、試験sourceの厳格構文と書式、連続二回の無作業再構築、公開API検査、`verify-quick`に成功した。widget実体、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 台帳は27,367件対応、2,437件未対応となり、開始2 headerの残存は0件である。旧`public-api-missing-g467.json` 668,831 bytesを削除し、一時閉包一覧、追加作業tree・構築木は作成していない。主Ninja木6,002,396 KiB、共有compiler cache 982,780 KiB、最新`build/tdd-macos/public-api-missing-g468.json` 662,200 bytes、SHA-256 `0873915f8faca35118c6293e48dad0b7b793fb3e10335bf2478dd3fe8fd34702`だけを再利用対象として保持する。compiler cacheは144,614件中120,565件、83.37%がhitしている。次の永続作業は第468便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
 
 ### 第239便の先行監査担当票
 

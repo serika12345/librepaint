@@ -16,7 +16,7 @@
     "publicApiFingerprint": "5f05b2aa8e5bef4343af1d55a3852331e51d4369fe135b099327b1a91b6b8c4c"
   },
   "migration": {
-    "expectedMissingApis": 2462
+    "expectedMissingApis": 2437
   },
   "contracts": [
     {
@@ -75813,6 +75813,103 @@
       "apis": [
         "method:KisInterstrokeDataTransactionWrapperFactory::createBeginTransactionCommand(KisPaintDeviceSP device)",
         "method:KisInterstrokeDataTransactionWrapperFactory::createEndTransactionCommand()"
+      ]
+    },
+    {
+      "target": "KisPaintOpConfigWidgetSchemaContractTest",
+      "source": "libs/image/tests/KisPaintOpConfigWidgetSchemaContractTest.cpp",
+      "test": "KisPaintOpConfigWidgetSchemaContractTest::configWidgetTypeAndLifetimeSchemaRemainStable",
+      "behavior": "設定widgetはQWidgetを基底とする抽象型として仮想破棄する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisConfigWidget",
+        "method:KisConfigWidget::~KisConfigWidget()"
+      ]
+    },
+    {
+      "target": "KisPaintOpConfigWidgetSchemaContractTest",
+      "source": "libs/image/tests/KisPaintOpConfigWidgetSchemaContractTest.cpp",
+      "test": "KisPaintOpConfigWidgetSchemaContractTest::configWidgetConfigurationSignaturesRemainStable",
+      "behavior": "設定widgetは共有設定を受け取り、現在の共有設定を返す抽象境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisConfigWidget::configuration() const",
+        "method:KisConfigWidget::setConfiguration(const KisPropertiesConfigurationSP config)"
+      ]
+    },
+    {
+      "target": "KisPaintOpConfigWidgetSchemaContractTest",
+      "source": "libs/image/tests/KisPaintOpConfigWidgetSchemaContractTest.cpp",
+      "test": "KisPaintOpConfigWidgetSchemaContractTest::configWidgetViewAndCanvasResourceSignaturesRemainStable",
+      "behavior": "設定widgetは利用中のviewを受け取り、canvas資源interfaceを設定および取得する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisConfigWidget::canvasResourcesInterface() const",
+        "method:KisConfigWidget::setCanvasResourcesInterface(KoCanvasResourcesInterfaceSP canvasResourcesInterface)",
+        "method:KisConfigWidget::setView(KisViewManager * view)"
+      ]
+    },
+    {
+      "target": "KisPaintOpConfigWidgetSchemaContractTest",
+      "source": "libs/image/tests/KisPaintOpConfigWidgetSchemaContractTest.cpp",
+      "test": "KisPaintOpConfigWidgetSchemaContractTest::configWidgetNotificationSignaturesRemainStable",
+      "behavior": "設定widgetは設定全体と設定項目の更新を通知し、固定設定の保存および破棄を共有設定とともに通知する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisConfigWidget::sigConfigurationItemChanged()",
+        "method:KisConfigWidget::sigConfigurationUpdated()",
+        "method:KisConfigWidget::sigDropLockedConfig(KisPropertiesConfigurationSP p)",
+        "method:KisConfigWidget::sigSaveLockedConfig(KisPropertiesConfigurationSP p)"
+      ]
+    },
+    {
+      "target": "KisPaintOpConfigWidgetSchemaContractTest",
+      "source": "libs/image/tests/KisPaintOpConfigWidgetSchemaContractTest.cpp",
+      "test": "KisPaintOpConfigWidgetSchemaContractTest::paintOpConfigWidgetTypeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "paintop設定widgetは親widgetとwindow flagから構築できる抽象設定widgetとして仮想破棄する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisPaintOpConfigWidget",
+        "method:KisPaintOpConfigWidget::KisPaintOpConfigWidget(QWidget * parent=0,Qt::WindowFlags f=Qt::WindowFlags ())",
+        "method:KisPaintOpConfigWidget::~KisPaintOpConfigWidget()"
+      ]
+    },
+    {
+      "target": "KisPaintOpConfigWidgetSchemaContractTest",
+      "source": "libs/image/tests/KisPaintOpConfigWidgetSchemaContractTest.cpp",
+      "test": "KisPaintOpConfigWidgetSchemaContractTest::paintOpConfigWidgetSafeConfigurationSignaturesRemainStable",
+      "behavior": "paintop設定widgetは共有設定の安全な読込と書出しを提供する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPaintOpConfigWidget::setConfigurationSafe(const KisPropertiesConfigurationSP config)",
+        "method:KisPaintOpConfigWidget::writeConfigurationSafe(KisPropertiesConfigurationSP config) const"
+      ]
+    },
+    {
+      "target": "KisPaintOpConfigWidgetSchemaContractTest",
+      "source": "libs/image/tests/KisPaintOpConfigWidgetSchemaContractTest.cpp",
+      "test": "KisPaintOpConfigWidgetSchemaContractTest::paintOpConfigWidgetLodSignaturesRemainStable",
+      "behavior": "paintop設定widgetは詳細度制限、その購読値、および有効筆先寸法の購読値を返す公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPaintOpConfigWidget::effectiveBrushSize() const",
+        "method:KisPaintOpConfigWidget::lodLimitations() const",
+        "method:KisPaintOpConfigWidget::lodLimitationsReader() const"
+      ]
+    },
+    {
+      "target": "KisPaintOpConfigWidgetSchemaContractTest",
+      "source": "libs/image/tests/KisPaintOpConfigWidgetSchemaContractTest.cpp",
+      "test": "KisPaintOpConfigWidgetSchemaContractTest::paintOpConfigWidgetContextAndScratchBoxSignaturesRemainStable",
+      "behavior": "paintop設定widgetはimage、node、資源interface、viewの作業文脈を受け渡し、scratch box対応可否を返す公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPaintOpConfigWidget::resourcesInterface() const",
+        "method:KisPaintOpConfigWidget::setImage(KisImageWSP image)",
+        "method:KisPaintOpConfigWidget::setNode(KisNodeWSP node)",
+        "method:KisPaintOpConfigWidget::setResourcesInterface(KisResourcesInterfaceSP resourcesInterface)",
+        "method:KisPaintOpConfigWidget::setView(KisViewManager * view)",
+        "method:KisPaintOpConfigWidget::supportScratchBox()"
       ]
     }
   ]
