@@ -139,6 +139,11 @@ private Q_SLOTS:
     void textCursorStringIndexMappingSignaturesRemainStable();
     void textCursorNodeRangeMappingSignaturesRemainStable();
     void textCursorRangeValueQuerySignaturesRemainStable();
+    void characterGeometryAndTransformResultsRemainStable();
+    void characterGlyphOriginTranslationResultsRemainStable();
+    void characterScalingAndTabSignaturesRemainStable();
+    void subChunkTextAndIndexSchemaRemainStable();
+    void subChunkPathAndStyleSchemaRemainStable();
 };
 
 void KoSvgTextCharacterResultValueContractTest::positionVisibilityAndIndicesDefaultAndAssignIndependently()
@@ -362,6 +367,111 @@ void KoSvgTextCharacterResultValueContractTest::cursorDirectionAndCopiesOwnNeste
     QCOMPARE(source.cursorInfo.graphemeIndices, QVector<int>({83, 89, 179}));
     QCOMPARE(int(source.anchor), int(KoSvgText::AnchorMiddle));
     QCOMPARE(int(source.direction), int(KoSvgText::DirectionLeftToRight));
+}
+
+void KoSvgTextCharacterResultValueContractTest::characterGeometryAndTransformResultsRemainStable()
+{
+    static_assert(std::is_same_v<decltype(SHAPE_PRECISION), const qreal>);
+    QCOMPARE(SHAPE_PRECISION, 1e-6);
+
+    CharacterResult horizontal;
+    horizontal.advance = QPointF(12.0, 5.0);
+    horizontal.scaledAscent = -8.0;
+    horizontal.scaledDescent = 3.0;
+    horizontal.scaledHalfLeading = 2.0;
+    horizontal.baselineOffset = QPointF(2.0, 3.0);
+    horizontal.dominantBaselineOffset = QPointF(5.0, 7.0);
+    QCOMPARE(horizontal.layoutBox(), QRectF(0.0, -3.0, 12.0, 11.0));
+    QCOMPARE(horizontal.lineHeightBox(), QRectF(0.0, -5.0, 12.0, 15.0));
+    QCOMPARE(horizontal.totalBaselineOffset(), QPointF(7.0, 10.0));
+
+    CharacterResult vertical;
+    vertical.isHorizontal = false;
+    vertical.advance = QPointF(10.0, 20.0);
+    vertical.scaledAscent = 7.0;
+    vertical.scaledDescent = -3.0;
+    vertical.scaledHalfLeading = 2.0;
+    QCOMPARE(vertical.layoutBox(), QRectF(7.0, 0.0, 10.0, 20.0));
+    QCOMPARE(vertical.lineHeightBox(), QRectF(5.0, 0.0, 14.0, 20.0));
+
+    horizontal.finalPosition = QPointF(3.0, -5.0);
+    horizontal.rotate = M_PI_2;
+    QTransform expected = QTransform::fromTranslate(3.0, -5.0);
+    expected.rotateRadians(M_PI_2);
+    QCOMPARE(horizontal.finalTransform(), expected);
+}
+
+void KoSvgTextCharacterResultValueContractTest::characterGlyphOriginTranslationResultsRemainStable()
+{
+    CharacterResult outlineResult;
+    Glyph::Outline outline;
+    outline.path.addRect(QRectF(1.0, 2.0, 3.0, 4.0));
+    outlineResult.glyph = outline;
+    outlineResult.cursorInfo.caret = QLineF(QPointF(2.0, 3.0), QPointF(5.0, 7.0));
+    outlineResult.inkBoundingBox = QRectF(-2.0, -3.0, 8.0, 9.0);
+    outlineResult.scaledAscent = 11.0;
+    outlineResult.scaledDescent = -3.0;
+    outlineResult.translateOrigin(QPointF(2.0, 5.0));
+    QCOMPARE(std::get<Glyph::Outline>(outlineResult.glyph).path.boundingRect(), QRectF(-1.0, -3.0, 3.0, 4.0));
+    QCOMPARE(outlineResult.cursorInfo.caret, QLineF(QPointF(0.0, -2.0), QPointF(3.0, 2.0)));
+    QCOMPARE(outlineResult.inkBoundingBox, QRectF(-4.0, -8.0, 8.0, 9.0));
+    QCOMPARE(outlineResult.scaledAscent, 6.0);
+    QCOMPARE(outlineResult.scaledDescent, -8.0);
+
+    CharacterResult bitmapResult;
+    Glyph::Bitmap bitmap;
+    bitmap.images.append(QImage(1, 1, QImage::Format_ARGB32));
+    bitmap.drawRects.append(QRectF(1.0, 2.0, 3.0, 4.0));
+    bitmapResult.glyph = bitmap;
+    bitmapResult.isHorizontal = false;
+    bitmapResult.scaledAscent = 11.0;
+    bitmapResult.scaledDescent = -3.0;
+    bitmapResult.translateOrigin(QPointF(2.0, 5.0));
+    const Glyph::Bitmap translatedBitmap = std::get<Glyph::Bitmap>(bitmapResult.glyph);
+    QCOMPARE(translatedBitmap.images.size(), 1);
+    QCOMPARE(translatedBitmap.drawRects, QVector<QRectF>({QRectF(-1.0, -3.0, 3.0, 4.0)}));
+    QCOMPARE(bitmapResult.scaledAscent, 9.0);
+    QCOMPARE(bitmapResult.scaledDescent, -5.0);
+
+    CharacterResult colorResult;
+    Glyph::ColorLayers colorLayers;
+    QPainterPath colorPath;
+    colorPath.addRect(QRectF(-3.0, 5.0, 7.0, 11.0));
+    colorLayers.paths.append(colorPath);
+    colorResult.glyph = colorLayers;
+    colorResult.translateOrigin(QPointF(-2.0, 3.0));
+    QCOMPARE(std::get<Glyph::ColorLayers>(colorResult.glyph).paths.first().boundingRect(),
+             QRectF(-1.0, 2.0, 7.0, 11.0));
+}
+
+void KoSvgTextCharacterResultValueContractTest::characterScalingAndTabSignaturesRemainStable()
+{
+    using ApplyTab = void (CharacterResult::*)(QPointF, bool, const KoSvgText::ResolutionHandler &);
+    using Scale = void (CharacterResult::*)(qreal, qreal);
+
+    static_assert(
+        std::is_same_v<decltype(static_cast<ApplyTab>(&CharacterResult::calculateAndApplyTabsize)), ApplyTab>);
+    static_assert(std::is_same_v<decltype(static_cast<Scale>(&CharacterResult::scaleCharacterResult)), Scale>);
+}
+
+void KoSvgTextCharacterResultValueContractTest::subChunkTextAndIndexSchemaRemainStable()
+{
+    using ChildIterator = KisForest<KoSvgTextContentElement>::child_iterator;
+
+    static_assert(std::is_class_v<SubChunk>);
+    static_assert(std::is_constructible_v<SubChunk, ChildIterator>);
+    static_assert(std::is_same_v<decltype(SubChunk::text), QString>);
+    static_assert(std::is_same_v<decltype(SubChunk::originalText), QString>);
+    static_assert(std::is_same_v<decltype(SubChunk::associatedLeaf), ChildIterator>);
+    static_assert(std::is_same_v<decltype(SubChunk::newToOldPositions), QVector<QPair<int, int>>>);
+}
+
+void KoSvgTextCharacterResultValueContractTest::subChunkPathAndStyleSchemaRemainStable()
+{
+    static_assert(std::is_same_v<decltype(SubChunk::textInPath), bool>);
+    static_assert(std::is_same_v<decltype(SubChunk::firstTextInPath), bool>);
+    static_assert(std::is_same_v<decltype(SubChunk::inheritedProps), KoSvgTextProperties>);
+    static_assert(std::is_same_v<decltype(SubChunk::bg), QSharedPointer<KoShapeBackground>>);
 }
 
 void KoSvgTextCharacterResultValueContractTest::lineChunkValueSchemaRemainsStable()
