@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 1696
+    "expectedMissingApis": 1686
   },
   "contracts": [
     {
@@ -78502,6 +78502,43 @@
         "method:KisStabilizedEventsSampler::addFinishingEvent(int numSamples)",
         "method:KisStabilizedEventsSampler::clear()",
         "method:KisStabilizedEventsSampler::range() const"
+      ]
+    },
+    {
+      "target": "KisAbstractResourceModelSchemaContractTest",
+      "source": "libs/resources/tests/KisAbstractResourceModelSchemaContractTest.cpp",
+      "test": "KisAbstractResourceModelSchemaContractTest::resourceTypeModelTypeColumnsAndLifetimeSchemaRemainStable",
+      "behavior": "資源種別表模型は表模型基底、公開列enum、既定親を持つ構築と仮想破棄を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisResourceTypeModel",
+        "enum:KisResourceTypeModel::Columns",
+        "method:KisResourceTypeModel::KisResourceTypeModel(QObject * parent=0)",
+        "method:KisResourceTypeModel::~KisResourceTypeModel()"
+      ]
+    },
+    {
+      "target": "KisAbstractResourceModelSchemaContractTest",
+      "source": "libs/resources/tests/KisAbstractResourceModelSchemaContractTest.cpp",
+      "test": "KisAbstractResourceModelSchemaContractTest::resourceTypeModelColumnOrdinalsRemainStable",
+      "behavior": "資源種別表模型はID、資源種別、表示名を0から順に並べる列序数を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "enumerator:KisResourceTypeModel::Columns::Id",
+        "enumerator:KisResourceTypeModel::Columns::Name",
+        "enumerator:KisResourceTypeModel::Columns::ResourceType"
+      ]
+    },
+    {
+      "target": "KisAbstractResourceModelSchemaContractTest",
+      "source": "libs/resources/tests/KisAbstractResourceModelSchemaContractTest.cpp",
+      "test": "KisAbstractResourceModelSchemaContractTest::resourceTypeModelDataSignaturesRemainStable",
+      "behavior": "資源種別表模型は親index別の行数・列数とindex・役割別dataを返す公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisResourceTypeModel::columnCount(const QModelIndex & parent=QModelIndex ()) const",
+        "method:KisResourceTypeModel::data(const QModelIndex & index,int role) const",
+        "method:KisResourceTypeModel::rowCount(const QModelIndex & parent=QModelIndex ()) const"
       ]
     }
   ]
