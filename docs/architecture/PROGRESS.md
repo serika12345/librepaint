@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 20:51 JST
+- 更新日時: 2026-09-09 20:57 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4655,6 +4655,8 @@
 - 遅延保存対話境界は対話型・構築・破棄3、結果enumと拒否・承認・無視4、表示方針enumと保存・一般・強制4、待機feedback登録と画像待機2の4枠へ固定する。型特性、列挙値、厳密な関数pointerと未評価の省略親引数呼出しだけを使い、対話画面、画像、timer、待機feedbackとevent loopを実体化しない。
 - 開始headerは値所有する`QScopedPointer`、公開基底`KoDialog`、画像共有pointerを定義する`kis_types.h`を直接取り込み、生成UI型だけを前方宣言している。開始`libs/ui/dialogs/kis_delayed_save_dialog.cpp`とheader強制includeの厳格構文は診断0件であり、除去できる推移依存もないため製品構造を変更しない。
 - 新規`libs/ui/tests/KisDelayedSaveDialogSchemaContractTest.cpp`をUI・image・global・widgetsのsource/generated探索路、Qt Gui・Widgets、KF ConfigCore・WidgetsAddonsのinterface探索路、3 export定義、Qt Core・Testとheader-only Boostだけで構成する。生成UIを含まない近傍と同じ4工程・8入力を予測し、追加前targetは`unknown target`である。停止線を5工程・11入力とし、Qt Gui・Widgets・KFの動的接続、製品OBJECT・shared、`kritatestsdk`、遅延保存対話・共通対話・画像の製品記号が必要なら停止する。macOSの対象と軽量対話近傍、追加4枠の20回反復、実装・試験sourceとheader強制includeの厳格構文、書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、実対話画面・画像・timer・待機feedback、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
+- 開始`libs/ui/dialogs/kis_delayed_save_dialog.h`から新規`libs/ui/tests/KisDelayedSaveDialogSchemaContractTest.cpp`へ全13 API・4枠を追加し、対話型・構築・寿命、結果enumと3値、表示方針enumと3値、待機feedback登録と画像待機を型特性、列挙値、厳密な関数pointerと省略親引数の未評価呼出しで固定した。公開headerと製品sourceは変更していない。計画commitは`710bc614b7`、契約commitは`6ce5b51fb6`で、新規sourceは65行・4枠である。初回成功時に異なるenum型の比較警告2件を検出し、整数値への明示変換で意味を維持したまま診断0件にした。
+- targetはQt Core・Testだけへ動的接続する4工程・8入力、command SHA-256 `fb2bf647e2ad8622471fc9ae1d500e12d2a2886b4ea006ebb779b8ce654dd36b`、input SHA-256 `75135a928bf41cc4cc69a2a2d064fc96e7a91b920cce1d2ec77119dcde30383c`である。AUTOMOC `HEADERS=[]`、遅延保存対話・共通対話・画像の未解決製品記号0で、Qt Gui・Widgets・KFと製品libraryを動的接続していない。macOSで対象と色空間変換対話近傍、対象全体と各4枠を20回、実装・試験sourceとheader強制includeの厳格構文、書式、連続二回の無作業再構築、公開API検査に成功した。台帳は28,175件対応、1,626件未対応となり、開始headerの残存は0件である。新`public-api-missing-g516.json`の生成成功後に旧`public-api-missing-g515.json` 446,518 bytesを削除した。主Ninja木6,031,168 KiB、共有compiler cache 983,044 KiB、最新報告443,514 bytes、SHA-256 `64293717348c4cbf3609dc2f3632426250911f2250ecf51687ba1f92b12e20ff`だけを再利用対象として保持する。compiler cacheは144,757 cache可能呼出し中120,582件、83.30%がhitしている。実対話画面・画像・timer・待機feedback、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第516便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
 
 ### 第239便の先行監査担当票
 

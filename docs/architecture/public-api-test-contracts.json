@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 1639
+    "expectedMissingApis": 1626
   },
   "contracts": [
     {
@@ -78721,6 +78721,55 @@
         "method:KisColorSpaceConversionDialog::okClicked()",
         "method:KisColorSpaceConversionDialog::selectionChanged(bool)",
         "method:KisColorSpaceConversionDialog::slotColorSpaceChanged(const KoColorSpace * cs)"
+      ]
+    },
+    {
+      "target": "KisDelayedSaveDialogSchemaContractTest",
+      "source": "libs/ui/tests/KisDelayedSaveDialogSchemaContractTest.cpp",
+      "test": "KisDelayedSaveDialogSchemaContractTest::dialogTypeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "遅延保存対話は共通対話基底を持ち、画像・表示方針・待機時間と省略可能な親から構築して仮想破棄する契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisDelayedSaveDialog",
+        "method:KisDelayedSaveDialog::KisDelayedSaveDialog(KisImageSP image,Type type,int busyWait,QWidget * parent=nullptr)",
+        "method:KisDelayedSaveDialog::~KisDelayedSaveDialog()"
+      ]
+    },
+    {
+      "target": "KisDelayedSaveDialogSchemaContractTest",
+      "source": "libs/ui/tests/KisDelayedSaveDialogSchemaContractTest.cpp",
+      "test": "KisDelayedSaveDialogSchemaContractTest::resultTypeAndOrdinalsRemainStable",
+      "behavior": "遅延保存対話はQtの拒否・承認値と独自の無視値2を結果分類として維持する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KisDelayedSaveDialog::ResultType",
+        "enumerator:KisDelayedSaveDialog::ResultType::Accepted",
+        "enumerator:KisDelayedSaveDialog::ResultType::Ignored",
+        "enumerator:KisDelayedSaveDialog::ResultType::Rejected"
+      ]
+    },
+    {
+      "target": "KisDelayedSaveDialogSchemaContractTest",
+      "source": "libs/ui/tests/KisDelayedSaveDialogSchemaContractTest.cpp",
+      "test": "KisDelayedSaveDialogSchemaContractTest::presentationTypeAndOrdinalsRemainStable",
+      "behavior": "遅延保存対話は保存・一般・強制の表示方針を0から順に並べる列挙契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KisDelayedSaveDialog::Type",
+        "enumerator:KisDelayedSaveDialog::Type::ForcedDialog",
+        "enumerator:KisDelayedSaveDialog::Type::GeneralDialog",
+        "enumerator:KisDelayedSaveDialog::Type::SaveDialog"
+      ]
+    },
+    {
+      "target": "KisDelayedSaveDialogSchemaContractTest",
+      "source": "libs/ui/tests/KisDelayedSaveDialogSchemaContractTest.cpp",
+      "test": "KisDelayedSaveDialogSchemaContractTest::busyWaitControlSignaturesRemainStable",
+      "behavior": "遅延保存対話は待機中feedbackの登録と画像処理完了までの待機を公開する署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDelayedSaveDialog::blockIfImageIsBusy()",
+        "method:KisDelayedSaveDialog::registerBusyWaitFeedback()"
       ]
     }
   ]
