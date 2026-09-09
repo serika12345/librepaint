@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-10 01:30 JST
+- 更新日時: 2026-09-10 01:34 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4918,6 +4918,13 @@
 - 開始`libs/ui/canvas/kis_grid_manager.h`から公開宣言に不要な`QPainter`、`kis_types.h`、action managerとactionの完全定義を除去し、`QObject`・`QPointer`・`QScopedPointer`の直接includeと前方宣言へ縮小した。必要なaction定義は開始`libs/ui/canvas/kis_grid_manager.cpp`へ移した。公開署名、所有権、実行時挙動、CMakeは変更していない。開始実装、唯一の製品利用側`libs/application/ui/workspace/KisViewManager.cpp`、候補headerを強制includeする試験sourceの厳格構文は診断0件で、試験書式も成功した。
 - targetは4工程・8入力、command SHA-256 `67ab1422423ac02371a154b8d61b44992e8720347506e5a0f010086d0cf6de65`、input SHA-256 `cfb437773ce2e656039f9d178772864eaafa1854293a9103a69f5351deb45292`を維持した。候補headerのAUTOMOC入力化と未解決製品記号は0で、Qt Core・Testだけへ動的接続する。macOSで対象全体20回と追加3枠各20回、厳格構文、試験書式、連続二回の無作業再構築に成功した。view・action・設定・通知の実効果、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 公開API検査の初回診断は期待値1,416に対して実測1,408で、新規8件と一致した。台帳を28,393件対応、1,408件未対応へ進め、`public-api-missing-g537.json`の生成成功後に旧`public-api-missing-g536.json` 386,233 bytesを削除した。主Ninja木6,049,268 KiB、共有compiler cache 982,668 KiB、最新報告384,405 bytes、SHA-256 `7d33bd6b18417601797e4eb054a39b7a3f3dfb848931636fed6b1fba661340cb`だけを再利用対象として保持する。compiler cacheは144,812 cache可能呼出し中120,594件、83.28%がhitしている。次の永続作業は第537便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
+
+### 第537便の公開API契約計画
+
+- 第537便はcanvasのanimation frame表示を再投影またはframe cache転送へ振り分ける`libs/ui/animation/KisFrameDisplayProxy.h`の残存全8 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g537.json`は公開header 1,549、公開API 29,801、対応済み28,393、未対応1,408、384,405 bytes、SHA-256 `7d33bd6b18417601797e4eb054a39b7a3f3dfb848931636fed6b1fba661340cb`である。対象8識別子の整列集合SHA-256は`67f8205431b0c0d07956c383a481cfb1c841b80808a3f5945ead14b1722696fc`である。
+- frame表示proxy境界は型・canvas/親付き構築・仮想破棄3、frame表示・active frame照会2、frame変更・表示更新・更新省略通知3の全8件を既存animation契約の1枠へ固定する。型特性、構築可能性、厳密な関数pointerだけを使い、proxy、canvas、画像、frame cacheを実体化しない。
+- 開始headerは私有値所有に使う`QScopedPointer`を`QObject`から間接取得しているため直接includeへ直す。開始`libs/ui/animation/KisFrameDisplayProxy.cpp`の厳格構文診断は、`KisCanvas2::image()`から返る`KisImage`を完全型なしで6箇所参照することを検出したため、契約追加より先に`kis_image.h`を開始実装へ直接includeする。公開署名と所有権を維持し、開始実装と既存試験からのheader強制includeで厳格構文診断0件を確認する。
+- 既存Qt playback契約は132行・9枠で、1枠追加後も220行・10枠以内に収まる。CMakeを変更せず4工程・8入力、command SHA-256 `d83163cca7bb97ef2413160d5e8382b143fd586fb3561bc15be64b5e15fcaf56`、input SHA-256 `1f931ce9d58b4541ac4ac2cf1849edd8e33d884f2b8780af7920dcaae1531655`を維持する。工程・入力増加、候補headerのAUTOMOC入力化、製品未解決記号が生じれば停止する。macOSの対象全体と追加1枠の20回反復、実装・試験sourceとheader強制includeの厳格構文、試験書式、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、canvas・画像・cache・再投影の実効果、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
 
 ### 第239便の先行監査担当票
 
