@@ -4,6 +4,8 @@
  */
 
 #include <filter/kis_filter.h>
+#include <generator/kis_generator.h>
+#include <generator/kis_generator_registry.h>
 #include <kis_base_processor.h>
 #include <kis_bookmarked_configuration_manager.h>
 
@@ -29,6 +31,11 @@ private Q_SLOTS:
     void filterProcessingSignaturesRemainStable();
     void filterProcessingExtentSignaturesRemainStable();
     void filterTransparencyAndMaskConfigurationSignaturesRemainStable();
+    void generatorTypeLifetimeAndConstructionSchemaRemainStable();
+    void generatorProcessingSignaturesRemainStable();
+    void generatorExtentAndCapabilitySignaturesRemainStable();
+    void generatorRegistryTypeLifetimeAndInstanceSchemaRemainStable();
+    void generatorRegistryAdditionAndNotificationSignaturesRemainStable();
 };
 
 using Subject = KisBaseProcessor;
@@ -46,6 +53,16 @@ using Filter = KisFilter;
 #define ASSERT_FILTER_SIGNATURE(Method, Signature)                                                                     \
     static_assert(std::is_same_v<decltype(static_cast<Signature>(&Filter::Method)), Signature>)
 
+using Generator = KisGenerator;
+
+#define ASSERT_GENERATOR_SIGNATURE(Method, Signature)                                                                  \
+    static_assert(std::is_same_v<decltype(static_cast<Signature>(&Generator::Method)), Signature>)
+
+using GeneratorRegistry = KisGeneratorRegistry;
+
+#define ASSERT_GENERATOR_REGISTRY_SIGNATURE(Method, Signature)                                                         \
+    static_assert(std::is_same_v<decltype(static_cast<Signature>(&GeneratorRegistry::Method)), Signature>)
+
 class FilterConstructionProbe : public Filter
 {
 public:
@@ -54,6 +71,14 @@ public:
     void processImpl(KisPaintDeviceSP, const QRect &, const KisFilterConfigurationSP, KoUpdater *) const override
     {
     }
+};
+
+class GeneratorConstructionProbe : public Generator
+{
+public:
+    using Generator::Generator;
+
+    void generate(KisProcessingInformation, const QSize &, const KisFilterConfigurationSP, KoUpdater *) const override;
 };
 
 void KisBaseProcessorSchemaContractTest::baseProcessorTypeLifetimeAndConstructionSchemaRemainStable()
@@ -175,6 +200,49 @@ void KisBaseProcessorSchemaContractTest::filterTransparencyAndMaskConfigurationS
     ASSERT_FILTER_SIGNATURE(fixLoadedFilterConfigurationForMasks, void (Filter::*)(KisFilterConfigurationSP) const);
 }
 
+void KisBaseProcessorSchemaContractTest::generatorTypeLifetimeAndConstructionSchemaRemainStable()
+{
+    static_assert(std::is_class_v<Generator>);
+    static_assert(std::is_base_of_v<KisBaseProcessor, Generator>);
+    static_assert(std::is_constructible_v<GeneratorConstructionProbe, const KoID &, const KoID &, const QString &>);
+    static_assert(std::has_virtual_destructor_v<Generator>);
+}
+
+void KisBaseProcessorSchemaContractTest::generatorProcessingSignaturesRemainStable()
+{
+    using WithProgress =
+        void (Generator::*)(KisProcessingInformation, const QSize &, const KisFilterConfigurationSP, KoUpdater *) const;
+    using WithoutProgress =
+        void (Generator::*)(KisProcessingInformation, const QSize &, const KisFilterConfigurationSP) const;
+
+    ASSERT_GENERATOR_SIGNATURE(generate, WithProgress);
+    ASSERT_GENERATOR_SIGNATURE(generate, WithoutProgress);
+}
+
+void KisBaseProcessorSchemaContractTest::generatorExtentAndCapabilitySignaturesRemainStable()
+{
+    ASSERT_GENERATOR_SIGNATURE(generatedRect, QRect (Generator::*)(QRect, const KisFilterConfigurationSP) const);
+    ASSERT_GENERATOR_SIGNATURE(allowsSplittingIntoPatches, bool (Generator::*)() const);
+}
+
+void KisBaseProcessorSchemaContractTest::generatorRegistryTypeLifetimeAndInstanceSchemaRemainStable()
+{
+    static_assert(std::is_class_v<GeneratorRegistry>);
+    static_assert(std::is_base_of_v<QObject, GeneratorRegistry>);
+    static_assert(std::is_base_of_v<KoGenericRegistry<KisGeneratorSP>, GeneratorRegistry>);
+    static_assert(std::has_virtual_destructor_v<GeneratorRegistry>);
+    ASSERT_GENERATOR_REGISTRY_SIGNATURE(instance, GeneratorRegistry * (*)());
+}
+
+void KisBaseProcessorSchemaContractTest::generatorRegistryAdditionAndNotificationSignaturesRemainStable()
+{
+    ASSERT_GENERATOR_REGISTRY_SIGNATURE(add, void (GeneratorRegistry::*)(KisGeneratorSP));
+    ASSERT_GENERATOR_REGISTRY_SIGNATURE(add, void (GeneratorRegistry::*)(const QString &, KisGeneratorSP));
+    ASSERT_GENERATOR_REGISTRY_SIGNATURE(generatorAdded, void (GeneratorRegistry::*)(QString));
+}
+
+#undef ASSERT_GENERATOR_REGISTRY_SIGNATURE
+#undef ASSERT_GENERATOR_SIGNATURE
 #undef ASSERT_FILTER_SIGNATURE
 #undef ASSERT_BOOKMARK_MANAGER_SIGNATURE
 #undef ASSERT_SIGNATURE
