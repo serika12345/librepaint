@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 1392
+    "expectedMissingApis": 1385
   },
   "contracts": [
     {
@@ -79508,6 +79508,31 @@
         "method:KisFreehandStrokeInfo::KisFreehandStrokeInfo(const KisDistanceInformation & startDist)",
         "method:KisFreehandStrokeInfo::buddyDragDistance()",
         "method:KisFreehandStrokeInfo::~KisFreehandStrokeInfo()"
+      ]
+    },
+    {
+      "target": "KisDummiesFacadeBaseSchemaContractTest",
+      "source": "libs/ui/tests/KisDummiesFacadeBaseSchemaContractTest.cpp",
+      "test": "KisDummiesFacadeBaseSchemaContractTest::concreteFacadeTypeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "具象dummy facadeは任意のQObject親から構築でき、dummy facade基底と仮想寿命を持つ公開型境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisDummiesFacade",
+        "method:KisDummiesFacade::KisDummiesFacade(QObject * parent=0)",
+        "method:KisDummiesFacade::~KisDummiesFacade()"
+      ]
+    },
+    {
+      "target": "KisDummiesFacadeBaseSchemaContractTest",
+      "source": "libs/ui/tests/KisDummiesFacadeBaseSchemaContractTest.cpp",
+      "test": "KisDummiesFacadeBaseSchemaContractTest::concreteFacadeDummyLookupSignaturesRemainStable",
+      "behavior": "具象dummy facadeはnodeに対応するdummyの有無と個体、root dummy、保持dummy数を照会する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDummiesFacade::dummiesCount() const",
+        "method:KisDummiesFacade::dummyForNode(KisNodeSP node) const",
+        "method:KisDummiesFacade::hasDummyForNode(KisNodeSP node) const",
+        "method:KisDummiesFacade::rootDummy() const"
       ]
     }
   ]
