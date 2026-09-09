@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 14:35 JST
+- 更新日時: 2026-09-09 14:44 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4382,6 +4382,13 @@
 - 開始headerから既存`libs/impex/tests/KisClipboardSchemaContractTest.cpp`へ全16 API・5枠を追加した。MIME値の型・構築、node挿入interface、保持node・形式一覧、画像判定・読込み・表示設定、MIME生成・layer挿入を型特性、厳密な関数pointer、省略引数の未評価呼出しで固定した。初回は全5枠が成功し、`G487 MIME layer API schema is not fixed yet`だけが`XFAIL`となった。公開header以外の製品sourceとCMakeは変更していない。契約commitは`011a325dbd`である。
 - 既存試験sourceは246行・10枠となった。targetは変更前後ともQt Core・Testだけへ動的接続する4工程・8入力、command SHA-256 `9e484261dc80e62dec1c79bc6199eb2076f5e8fe44046f053dd2ba2e7014d7cd`、input SHA-256 `7e811bbf4db1a2c3c5c3cbdcadade9ec7252957ccb85033287ed5b8d5df7e9fc`を維持した。AUTOMOC `HEADERS=[]`、MIME・node・image・shape・処理適用器の未解決製品記号は0である。macOSで全10枠の単発と20回反復、追加5枠を各20回、試験sourceの厳格構文と差分書式、連続二回の無作業再構築、公開API検査に成功した。node複製・形式生成・MIME読込み・layer挿入の実状態、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 台帳は27,738件対応、2,067件未対応となり、開始headerの残存は0件である。新`public-api-missing-g488.json`の生成成功後に旧`public-api-missing-g487.json` 562,798 bytesを削除し、新target、追加生成物、一時一覧、追加作業tree・構築木は作成していない。主Ninja木6,025,544 KiB、共有compiler cache 983,360 KiB、最新`build/tdd-macos/public-api-missing-g488.json` 557,843 bytes、SHA-256 `f5a3845650a187ceb80616bb0801d818d719aa4366099b0242c12db3be07635a`だけを再利用対象として保持する。compiler cacheは144,681件中120,567件、83.33%がhitしている。次の永続作業は第488便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
+
+### 第488便の公開API契約計画
+
+- 第488便はSVG文字配置の文字結果演算と部分文字列状態を所有する`libs/flake/text/KoSvgTextShape_p.h`に残る全18 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g488.json`は公開header 1,548、公開API 29,805、対応済み27,738、未対応2,067、557,843 bytes、SHA-256 `f5a3845650a187ceb80616bb0801d818d719aa4366099b0242c12db3be07635a`である。対象18識別子の整列集合SHA-256は`5a787df8623c1a37f65bbeba14e31ef272ab2d8e30305f77d68e73a61b4d6d26`である。
+- 文字結果は配置精度・配置矩形・行高矩形・基線offset合成・最終変換5、glyph・caret・ink矩形と基線値の原点移動1、tab補正・全体拡縮の厳密署名2、部分文字列の型・構築・原文・変換文・対応leaf・索引変換6、text path状態・継承属性・背景4の5枠へ固定する。配置矩形、基線合成、最終変換、outline・bitmap・色layerの原点移動は値を実体化して結果を観測する。tab補正と全体拡縮はそれぞれ`ResolutionHandler::adjust`と`FontMetrics::scaleBaselines`の製品本文へ接続するため厳密署名に限定し、部分文字列は`KoSvgTextProperties`の製品構築を避けて型特性と会員型を固定する。
+- 開始headerの完全定義includeはglyph・文字属性・forest iterator・shape内部所有と多数のinline処理が直接利用し、今回の契約だけを理由に移動できる不要依存はない。既存`libs/flake/tests/KoSvgTextCharacterResultValueContractTest.cpp`は同headerの文字結果・行箱・cursor・glyphを所有する693行・25枠の限定targetで、基準対象と試験sourceの厳格構文に成功した。新targetとCMake変更を避け、同sourceへ5枠を追加して830行・31枠未満に収める。
+- targetはQt Gui・Test・Xmlだけへ動的接続する4工程・8入力、command SHA-256 `8b9ca4b733145cd3eb599eaf7bdeb368dc4d5b10be947740bdb498e218d5e43d`、input SHA-256 `6f1be372a2d9ab0fae470eb0c3a4c629358a081f42b2e1016bec6ae66f541404`を維持し、AUTOMOC `HEADERS=[]`と停止線4工程・8入力を適用する。新たな探索路・定義・接続、AUTOMOC製品header入力、製品記号、830行・31枠以上が必要なら停止する。macOSの対象、既存25枠と追加5枠、追加枠の20回反復、試験sourceの厳格構文と書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
 
 ### 第239便の先行監査担当票
 
