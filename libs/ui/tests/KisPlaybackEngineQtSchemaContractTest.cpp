@@ -4,6 +4,7 @@
  */
 
 #include "animation/KisPlaybackEngineQT.h"
+#include "animation/cache/KisFrameCacheSwapper.h"
 
 #include <QTest>
 
@@ -15,6 +16,8 @@ namespace
 
 #define ASSERT_QT_PLAYBACK_ENGINE_SIGNATURE(method, ...)                                                               \
     static_assert(std::is_same_v<decltype(static_cast<__VA_ARGS__>(&KisPlaybackEngineQT::method)), __VA_ARGS__>)
+#define ASSERT_FRAME_CACHE_SWAPPER_SIGNATURE(method, ...)                                                              \
+    static_assert(std::is_same_v<decltype(static_cast<__VA_ARGS__>(&KisFrameCacheSwapper::method)), __VA_ARGS__>)
 
 } // namespace
 
@@ -26,6 +29,9 @@ private Q_SLOTS:
     void typeConstructionAndLifetimeSchemaRemainStable();
     void seekMuteAndDropPolicySignaturesRemainStable();
     void capabilityRateAndStatisticsSignaturesRemainStable();
+    void frameCacheSwapperTypeConstructionAndLifetimeSchemaRemainStable();
+    void frameCacheSwapperStorageSignaturesRemainStable();
+    void frameCacheSwapperMetadataSignaturesRemainStable();
 };
 
 void KisPlaybackEngineQtSchemaContractTest::typeConstructionAndLifetimeSchemaRemainStable()
@@ -58,6 +64,34 @@ void KisPlaybackEngineQtSchemaContractTest::capabilityRateAndStatisticsSignature
                                         KisPlaybackEngine::PlaybackStats (KisPlaybackEngineQT::*)() const);
 }
 
+void KisPlaybackEngineQtSchemaContractTest::frameCacheSwapperTypeConstructionAndLifetimeSchemaRemainStable()
+{
+    static_assert(std::is_class_v<KisFrameCacheSwapper>);
+    static_assert(std::is_base_of_v<KisAbstractFrameCacheSwapper, KisFrameCacheSwapper>);
+    static_assert(std::is_constructible_v<KisFrameCacheSwapper, const KisOpenGLUpdateInfoBuilder &>);
+    static_assert(std::is_constructible_v<KisFrameCacheSwapper, const KisOpenGLUpdateInfoBuilder &, const QString &>);
+    static_assert(std::has_virtual_destructor_v<KisFrameCacheSwapper>);
+
+    QVERIFY(true);
+}
+
+void KisPlaybackEngineQtSchemaContractTest::frameCacheSwapperStorageSignaturesRemainStable()
+{
+    ASSERT_FRAME_CACHE_SWAPPER_SIGNATURE(saveFrame,
+                                         void (KisFrameCacheSwapper::*)(int, KisOpenGLUpdateInfoSP, const QRect &));
+    ASSERT_FRAME_CACHE_SWAPPER_SIGNATURE(loadFrame, KisOpenGLUpdateInfoSP (KisFrameCacheSwapper::*)(int));
+    ASSERT_FRAME_CACHE_SWAPPER_SIGNATURE(moveFrame, void (KisFrameCacheSwapper::*)(int, int));
+    ASSERT_FRAME_CACHE_SWAPPER_SIGNATURE(forgetFrame, void (KisFrameCacheSwapper::*)(int));
+}
+
+void KisPlaybackEngineQtSchemaContractTest::frameCacheSwapperMetadataSignaturesRemainStable()
+{
+    ASSERT_FRAME_CACHE_SWAPPER_SIGNATURE(hasFrame, bool (KisFrameCacheSwapper::*)(int) const);
+    ASSERT_FRAME_CACHE_SWAPPER_SIGNATURE(frameLevelOfDetail, int (KisFrameCacheSwapper::*)(int) const);
+    ASSERT_FRAME_CACHE_SWAPPER_SIGNATURE(frameDirtyRect, QRect (KisFrameCacheSwapper::*)(int) const);
+}
+
+#undef ASSERT_FRAME_CACHE_SWAPPER_SIGNATURE
 #undef ASSERT_QT_PLAYBACK_ENGINE_SIGNATURE
 
 QTEST_APPLESS_MAIN(KisPlaybackEngineQtSchemaContractTest)
