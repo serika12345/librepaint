@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 1732
+    "expectedMissingApis": 1719
   },
   "contracts": [
     {
@@ -78376,6 +78376,55 @@
         "method:KisChangePrimarySettingAction::inputEvent(QEvent * event)",
         "method:KisChangePrimarySettingAction::priority() const",
         "method:KisChangePrimarySettingAction::supportsHiResInputEvents(int shortcut) const"
+      ]
+    },
+    {
+      "target": "KisToolUtilsSchemaContractTest",
+      "source": "libs/tools/tests/KisToolUtilsSchemaContractTest.cpp",
+      "test": "KisToolUtilsSchemaContractTest::stabilizerHelperTypeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "遅延安定化描画補助器はobjectとして既定構築でき、仮想破棄される公開型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisStabilizerDelayedPaintHelper",
+        "method:KisStabilizerDelayedPaintHelper::KisStabilizerDelayedPaintHelper()",
+        "method:KisStabilizerDelayedPaintHelper::~KisStabilizerDelayedPaintHelper()"
+      ]
+    },
+    {
+      "target": "KisToolUtilsSchemaContractTest",
+      "source": "libs/tools/tests/KisToolUtilsSchemaContractTest.cpp",
+      "test": "KisToolUtilsSchemaContractTest::stabilizerHelperStateQuerySignaturesRemainStable",
+      "behavior": "遅延安定化描画補助器はtimerの実行中状態、末尾描画情報の有無とその値を返す公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisStabilizerDelayedPaintHelper::hasLastPaintInformation() const",
+        "method:KisStabilizerDelayedPaintHelper::lastPaintInformation() const",
+        "method:KisStabilizerDelayedPaintHelper::running() const"
+      ]
+    },
+    {
+      "target": "KisToolUtilsSchemaContractTest",
+      "source": "libs/tools/tests/KisToolUtilsSchemaContractTest.cpp",
+      "test": "KisToolUtilsSchemaContractTest::stabilizerHelperCallbackSignaturesRemainStable",
+      "behavior": "遅延安定化描画補助器は描画線と輪郭更新を委譲するcallbackを値として受け取る公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisStabilizerDelayedPaintHelper::setPaintLineCallback(std::function<void (const KisPaintInformation &,const KisPaintInformation &)> paintLine)",
+        "method:KisStabilizerDelayedPaintHelper::setUpdateOutlineCallback(std::function<void ()> requestUpdateOutline)"
+      ]
+    },
+    {
+      "target": "KisToolUtilsSchemaContractTest",
+      "source": "libs/tools/tests/KisToolUtilsSchemaContractTest.cpp",
+      "test": "KisToolUtilsSchemaContractTest::stabilizerHelperQueueLifecycleSignaturesRemainStable",
+      "behavior": "遅延安定化描画補助器は描画情報列の開始・更新・時刻到達分の描画・完了・取消を受け取る公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisStabilizerDelayedPaintHelper::cancel()",
+        "method:KisStabilizerDelayedPaintHelper::end()",
+        "method:KisStabilizerDelayedPaintHelper::paintSome()",
+        "method:KisStabilizerDelayedPaintHelper::start(const KisPaintInformation & firstPaintInfo)",
+        "method:KisStabilizerDelayedPaintHelper::update(const QVector<KisPaintInformation> & newPaintInfos)"
       ]
     }
   ]
