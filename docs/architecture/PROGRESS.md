@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 18:33 JST
+- 更新日時: 2026-09-09 18:39 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4545,6 +4545,8 @@
 - 設定ブックマーク模型境界は型・構築・破棄・管理器4、行数・表示値・項目flag 3、設定取得・名前index・削除可否3、新規・保存・削除・編集4の4枠へ固定する。型特性、厳密な関数pointer、省略引数の未評価呼出しだけを使い、模型、設定、管理器と永続化本文を実体化しない。
 - 開始headerは公開基底に必要な`QAbstractListModel`と共有pointer別名を所有する`kis_serializable_configuration.h`だけを完全定義として持つ。既存4工程対象での強制includeと開始`kis_bookmarked_configurations_model.cc`の厳格構文は成功しており、除去すべき推移依存はない。既存契約へ別責務を混載せず、新規`libs/ui/tests/KisBookmarkedConfigurationsModelSchemaContractTest.cpp`をQt Core・Test、UI・global・imageのsource/generated探索路、`kritaui_EXPORTS`・`kritaimage_EXPORTS`・`kritaglobal_EXPORTS`だけで構成し、4工程・8入力を予測する。
 - 追加前targetは`unknown target`である。停止線を5工程・11入力とし、Qt Gui・Widgetsの動的接続、製品OBJECT・shared、`kritatestsdk`、AUTOMOC製品header入力、設定模型製品記号が必要なら停止する。macOSの新対象と軽量近傍、追加4枠の20回反復、実装と試験sourceの厳格構文、書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、実模型・設定永続化、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
+- 開始headerから新規`libs/ui/tests/KisBookmarkedConfigurationsModelSchemaContractTest.cpp`へ全14 API・4枠を追加した。型・構築・寿命・管理器、行数・表示値・flag、設定・index・削除可否の照会、追加・保存・削除・編集を型特性、厳密な関数pointer、省略引数の未評価呼出しで固定した。公開headerと製品実装は変更していない。追加前targetは`unknown target`で失敗し、追加後は全枠に成功した。計画commitは`b934190012`、契約commitは`6fe97ecd13`である。
+- 新規試験sourceは77行・4枠である。targetはQt Core・Testだけへ動的接続する4工程・8入力、command SHA-256 `28012c0920ecfe253ba7582c12455175d2d1834fc098d0e8481d70c960112c81`、input SHA-256 `be557b1a60651f938b63cb50a2150dcb8fbd2a97381bebbe80dcb99c925be0a4`である。AUTOMOC `HEADERS=[]`、設定ブックマーク模型・管理器・直列化設定の未解決製品記号0で、Qt Gui・Widgetsを動的接続していない。macOSで新規4枠と愛用資源管理近傍、全4枠と各枠を20回、試験sourceと実装の厳格構文、書式、連続二回の無作業再構築、公開API検査に成功した。台帳は28,029件対応、1,772件未対応となり、開始headerの残存は0件である。新`public-api-missing-g504.json`の生成成功後に旧`public-api-missing-g503.json` 484,822 bytesを削除した。主Ninja木6,023,816 KiB、共有compiler cache 982,572 KiB、最新報告480,204 bytes、SHA-256 `ce3731ed89c45f44cc6a9e8c90c66157488737a96e2c2f98c7e4afaeb974c855`だけを再利用対象として保持する。compiler cacheは144,729 cache可能呼出し中120,578件、83.31%がhitしている。実模型・設定永続化、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第504便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
 
 ### 第239便の先行監査担当票
 

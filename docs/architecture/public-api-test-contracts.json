@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 1786
+    "expectedMissingApis": 1772
   },
   "contracts": [
     {
@@ -78178,6 +78178,56 @@
         "method:KisPaintopBox::slotSelectBrushPreset()",
         "method:KisPaintopBox::slotSelectEraserPreset()",
         "method:KisPaintopBox::slotToggleEraserPreset(bool usingEraser)"
+      ]
+    },
+    {
+      "target": "KisBookmarkedConfigurationsModelSchemaContractTest",
+      "source": "libs/ui/tests/KisBookmarkedConfigurationsModelSchemaContractTest.cpp",
+      "test": "KisBookmarkedConfigurationsModelSchemaContractTest::typeConstructionLifetimeAndManagerSchemaRemainStable",
+      "behavior": "設定ブックマーク模型は管理器から構築され、仮想破棄と関連管理器の照会を持つ公開一覧模型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisBookmarkedConfigurationsModel",
+        "method:KisBookmarkedConfigurationsModel::KisBookmarkedConfigurationsModel(KisBookmarkedConfigurationManager *)",
+        "method:KisBookmarkedConfigurationsModel::bookmarkedConfigurationManager()",
+        "method:KisBookmarkedConfigurationsModel::~KisBookmarkedConfigurationsModel()"
+      ]
+    },
+    {
+      "target": "KisBookmarkedConfigurationsModelSchemaContractTest",
+      "source": "libs/ui/tests/KisBookmarkedConfigurationsModelSchemaContractTest.cpp",
+      "test": "KisBookmarkedConfigurationsModelSchemaContractTest::rowDataAndFlagsSchemaRemainStable",
+      "behavior": "設定ブックマーク模型は行数、役割別表示値と編集可否flagを返す公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisBookmarkedConfigurationsModel::data(const QModelIndex & index,int role=Qt::DisplayRole) const",
+        "method:KisBookmarkedConfigurationsModel::flags(const QModelIndex & index) const",
+        "method:KisBookmarkedConfigurationsModel::rowCount(const QModelIndex & parent=QModelIndex ()) const"
+      ]
+    },
+    {
+      "target": "KisBookmarkedConfigurationsModelSchemaContractTest",
+      "source": "libs/ui/tests/KisBookmarkedConfigurationsModelSchemaContractTest.cpp",
+      "test": "KisBookmarkedConfigurationsModelSchemaContractTest::configurationLookupSchemaRemainStable",
+      "behavior": "設定ブックマーク模型はindexから設定と削除可否を、名前からindexを照会する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisBookmarkedConfigurationsModel::configuration(const QModelIndex & index) const",
+        "method:KisBookmarkedConfigurationsModel::indexFor(const QString & name) const",
+        "method:KisBookmarkedConfigurationsModel::isIndexDeletable(const QModelIndex & index) const"
+      ]
+    },
+    {
+      "target": "KisBookmarkedConfigurationsModelSchemaContractTest",
+      "source": "libs/ui/tests/KisBookmarkedConfigurationsModelSchemaContractTest.cpp",
+      "test": "KisBookmarkedConfigurationsModelSchemaContractTest::configurationMutationSchemaRemainStable",
+      "behavior": "設定ブックマーク模型は設定の追加・保存・削除と表示名編集を受け取る公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisBookmarkedConfigurationsModel::deleteIndex(const QModelIndex & index)",
+        "method:KisBookmarkedConfigurationsModel::newConfiguration(KLocalizedString baseName,const KisSerializableConfigurationSP config)",
+        "method:KisBookmarkedConfigurationsModel::saveConfiguration(const QString & name,const KisSerializableConfigurationSP config)",
+        "method:KisBookmarkedConfigurationsModel::setData(const QModelIndex & index,const QVariant & value,int role=Qt::EditRole)"
       ]
     }
   ]
