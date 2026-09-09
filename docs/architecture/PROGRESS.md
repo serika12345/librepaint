@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 17:33 JST
+- 更新日時: 2026-09-09 17:38 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4498,6 +4498,13 @@
 - 構造準備では開始`plugins/dockers/animation/kis_equalizer_column.h`から宣言に使わない`QSlider`完全定義を除去し、構築署名だけが使う`QString`の前方宣言へ置換した。3 headerを強制includeした試験source、column実装、slider実装の厳格構文に成功し、widget実装は変更前後とも`QMouseEvent::globalPos`の既存非推奨診断1件だけである。計画commitは`174d8a20e9`、構造準備commitは`2eb0c690aa`である。
 - 開始3 headerから既存`plugins/dockers/animation/tests/KisAnimTimelineFramesViewSchemaContractTest.cpp`へ全36 API・5枠を追加した。widgetの型・値構造・制御・通知・入力、sliderの型・入力・描画・寸法・状態、columnの型・値・状態・配置・通知を型特性、公開値memberと厳密な関数pointerで固定した。既存binaryによる初回実行は新枠を認識せず`Function not found`で失敗した。契約commitは`478c3f0e0c`である。
 - 既存試験sourceは227行・10枠となった。targetは変更前後ともQt Gui・Testだけへ動的接続する4工程・8入力、command SHA-256 `0612ee21ddeae2815300ccdad0e4fb4d18a4b6b258859e72f1851cf6e94d40c1`、input SHA-256 `35cc3759b42a517be10b8a905f591140dc508690eb6423f477765cfcc6907bea`を維持した。AUTOMOC `HEADERS=[]`、equalizer widget・slider・columnとQt eventの未解決製品記号0で、Qt Widgetsを動的接続していない。macOSで全10枠と追加5枠を各20回、試験sourceの厳格構文と書式、連続二回の無作業再構築、公開API検査、`verify-quick`に成功した。台帳は27,950件対応、1,855件未対応となり、開始3 headerの残存は0件である。新`public-api-missing-g499.json`の生成成功後に旧`public-api-missing-g498.json` 511,966 bytesを削除した。主Ninja木6,020,520 KiB、共有compiler cache 983,212 KiB、最新報告503,220 bytes、SHA-256 `ecd217d8735531e5f152e9dd6a8a78f7e7c2b4628ab73cb43206b59a105e2057`だけを再利用対象として保持する。compiler cacheは144,713 cache可能呼出し中120,575件、83.32%がhitしている。equalizer値変化、master切替、描画・mouse・menu入力結果、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第499便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
+
+### 第499便の公開API契約計画
+
+- 第499便は3点から定義する同心楕円への入力補正と生成を所有する`plugins/assistants/Assistants/ConcentricEllipseAssistant.h`の残存全15 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g499.json`は公開header 1,549、公開API 29,805、対応済み27,950、未対応1,855、503,220 bytes、SHA-256 `ecd217d8735531e5f152e9dd6a8a78f7e7c2b4628ab73cb43206b59a105e2057`である。対象15識別子の整列集合SHA-256は`14cfb297da18bb595b0621ee81b74af2a1c7aa35877bb8a88ac0488066566d9e`である。
+- 同心楕円assistant境界はassistant型・構築・複製3、位置・線補正・既定編集位置・handle数・完了状態・変換6、factory型・構築・破棄3、factory識別子・表示名・生成3の4枠へ固定する。型特性と厳密な関数pointerだけを使い、assistant、factory、楕円、handle、描画器、canvasと補正・描画本文を実体化しない。
+- 開始headerは宣言に使わない`QObject`と、実装の投影計算だけが使う`QLineF`を全利用者へ推移させている。契約追加より先に両includeを除去し、`QLineF`完全定義を実利用先`plugins/assistants/Assistants/ConcentricEllipseAssistant.cc`へ移す。既存`libs/ui/tests/KisPaintingAssistantSchemaContractTest`へ対象のsource/generated探索路と`kritaassistanttool_static_EXPORTS`だけを追加する。追加前のtargetに同探索路を一時指定した強制include、assistant実装と試験sourceの厳格構文は成功しており、追加後も同じ結果を完了条件とする。
+- 既存`libs/ui/tests/KisPaintingAssistantSchemaContractTest.cpp`はassistant基底・handle・factory・registryを所有する225行・5枠の限定targetである。新targetを避け、同sourceへ4枠を追加して320行・10枠未満に収める。変更前targetはQt Gui・Testだけへ動的接続する4工程・8入力、command SHA-256 `567bcff5a7a6c08c19ac032765362d898e89db2545b2364c0da46b0cf297fb25`、input SHA-256 `06ee5de1354abd97185cdd5c5adf94b63338e8cf8bab8bfca914401cc40cd827`である。準備後も4工程・8入力、同じ動的接続を維持し、入力hashと工程数が変わる、新たな接続、製品OBJECT・shared、`kritatestsdk`、AUTOMOC製品header入力、assistant製品記号が必要なら停止する。macOSの対象、既存5枠と追加4枠、追加枠の20回反復、実装と試験sourceの厳格構文、書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、補正・描画・factory生成の実状態、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
 
 ### 第239便の先行監査担当票
 
