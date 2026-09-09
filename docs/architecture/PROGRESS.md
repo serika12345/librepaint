@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 14:17 JST
+- 更新日時: 2026-09-09 14:24 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4371,6 +4371,13 @@
 - 開始headerから既存`plugins/dockers/storyboarddocker/tests/StoryboardModelSchemaContractTest.cpp`へ全17 API・5枠を追加した。comment模型の型・構築・変更通知、行の表示・編集、挿入・削除・移動、MIME drag/drop、comment一覧の一括設定・取得を型特性と厳密な関数pointerで固定した。初回は全5枠が成功し、`G486 storyboard comment model API schema is not fixed yet`だけが`XFAIL`となった。公開header以外の製品sourceとCMakeは変更していない。契約commitは`6eb8aa7bde`である。
 - 既存試験sourceは199行・10枠となった。targetは変更前後ともQt Gui・Testだけへ動的接続する4工程・8入力、command SHA-256 `5a43fe66f466b55f71df43d306166046e55698531a394b98411c1d8af364e97d`、input SHA-256 `83965d793a03fd856b81d37292a6424564d341802e7af7a626f743614198f409`を維持した。AUTOMOC `HEADERS=[]`、comment模型の未解決記号は0である。macOSで全10枠の単発と20回反復、追加5枠を各20回、試験sourceの厳格構文と書式、連続二回の無作業再構築、公開API検査に成功した。行変更・固有名生成・可視性・MIME移動の実状態、1,998工程・3,994入力の既存`StoryboardModelTest`、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 台帳は27,722件対応、2,083件未対応となり、開始headerの残存は0件である。新`public-api-missing-g487.json`の生成成功後に旧`public-api-missing-g486.json` 567,978 bytesを削除し、新target、追加生成物、一時一覧、追加作業tree・構築木は作成していない。主Ninja木6,025,448 KiB、共有compiler cache 982,580 KiB、最新`build/tdd-macos/public-api-missing-g487.json` 562,798 bytes、SHA-256 `c4b0236c0b04a29dcb11bfd42e9391f44dbd5850b0acb1f1ea010663eaa24816`だけを再利用対象として保持する。compiler cacheは144,678件中120,567件、83.33%がhitしている。次の永続作業は第487便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
+
+### 第487便の公開API契約計画
+
+- 第487便はlayerのclipboard交換と遅延MIME取得を所有する`libs/impex/ui/kis_mimedata.h`に残る全16 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g487.json`は公開header 1,548、公開API 29,805、対応済み27,722、未対応2,083、562,798 bytes、SHA-256 `c4b0236c0b04a29dcb11bfd42e9391f44dbd5850b0acb1f1ea010663eaa24816`である。対象16識別子の整列集合SHA-256は`bb899432c3ad569a908efe271a18408d858283a5266b68468da29948f05b1d37`である。
+- MIME値は型・基底・構築3、node挿入interfaceの型・仮想破棄・移動・追加4、保持nodeの取得・深い複製・形式一覧3、同一画像判定・高速読込み・中央補正読込み・表示変換設定4、MIME生成2種・layer挿入1の5枠へ固定する。型特性、厳密な関数pointer、省略引数の未評価呼出しだけを使い、MIME値、image、node、dummy、shape controller、処理適用器と製品本文を実体化しない。
+- 開始`libs/impex/ui/kis_mimedata.h`は公開宣言を`kis_types.h`の共有pointer別名だけで表現できるにもかかわらず、`kis_image.h`と`kis_node.h`の完全定義を全利用者へ推移させている。契約追加より先に両includeを除去し、本文所有者`libs/impex/ui/kis_mimedata.cpp`が既に持つ直接includeへ責任を限定する。`QMimeData`は公開基底、`QRect`は値会員、`kis_types.h`は共有pointerとnode一覧に必要なため維持する。直接または`kis_node_insertion_adapter.h`経由の6翻訳単位は変更前に1件成功し、Qt非推奨API 2件、`KisPortingUtils`宣言不在1件、`KritaUtils::compareListsUnordered`宣言不在1件、`KisFilterConfiguration`不完全型1件の既存診断で失敗した。変更後も成功1件と既存診断5件の同じ分類を完了条件とする。
+- 既存`libs/impex/tests/KisClipboardSchemaContractTest.cpp`は同じclipboard境界を直接includeする153行・5枠の限定targetである。新targetとCMake変更を避け、同sourceへ5枠を追加して300行・11枠未満に収める。targetはQt Core・Testだけへ動的接続する4工程・8入力、command SHA-256 `9e484261dc80e62dec1c79bc6199eb2076f5e8fe44046f053dd2ba2e7014d7cd`、input SHA-256 `7e811bbf4db1a2c3c5c3cbdcadade9ec7252957ccb85033287ed5b8d5df7e9fc`を維持し、AUTOMOC `HEADERS=[]`と停止線4工程・8入力を適用する。新たな探索路・定義・接続、AUTOMOC製品header入力、製品記号、対象型または本文の実体化が必要なら停止する。macOSの対象、既存5枠と追加5枠、追加枠の20回反復、試験sourceの厳格構文と書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
 
 ### 第239便の先行監査担当票
 
