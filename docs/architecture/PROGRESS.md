@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 22:42 JST
+- 更新日時: 2026-09-09 22:48 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4742,6 +4742,8 @@
 - frame cache保管境界は保管器型・builder単独・保存path付き構築・仮想破棄4、frame保存・読込・移動・破棄4、存在・詳細度・dirty領域照会3の3枠へ固定する。型特性と厳密な関数pointerだけを使い、保管器、OpenGL更新情報、builder、frame data、fileとcanvasを実体化しない。
 - 開始headerは抽象保管境界を完全定義し、OpenGL更新情報・builder・文字列・矩形を前方宣言へ限定している。既存`libs/ui/tests/KisPlaybackEngineQtSchemaContractTest.cpp`のコンパイル条件でheader強制includeが診断0件、開始`libs/ui/animation/cache/KisFrameCacheSwapper.cpp`も厳格構文の診断0件であり、先行構造変更は不要である。既存実行時`KisInMemoryFrameCacheSwapperContractTest`は9工程・19入力と製品objectを要するため混載しない。
 - 既存`libs/ui/tests/KisPlaybackEngineQtSchemaContractTest.cpp`は65行・3枠で、同じanimation header境界へ3枠を追加しても220行・10枠以内に収まる。CMakeを変更せず4工程・8入力、command SHA-256 `d83163cca7bb97ef2413160d5e8382b143fd586fb3561bc15be64b5e15fcaf56`、input SHA-256 `1f931ce9d58b4541ac4ac2cf1849edd8e33d884f2b8780af7920dcaae1531655`を維持する。工程・入力増加、候補headerのAUTOMOC入力化、製品未解決記号が生じれば停止する。macOSの対象とframe cache近傍、対象全体と追加3枠の20回反復、実装・試験sourceとheader強制includeの厳格構文、書式、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、実frame保存・OpenGL更新情報・file・canvas、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
+- 開始`libs/ui/animation/cache/KisFrameCacheSwapper.h`から既存`libs/ui/tests/KisPlaybackEngineQtSchemaContractTest.cpp`へ全11 API・3枠を追加した。保管器型・2構築経路・仮想破棄4件、frame保存・読込・移動・破棄4件、存在・詳細度・dirty領域照会3件を型特性と厳密な関数pointerで固定した。公開headerと製品source、CMakeは変更していない。計画commitは`99e6f05fa0`、契約commitは`ef91546bf6`で、既存sourceは99行・6枠となった。
+- targetは4工程・8入力、command SHA-256 `d83163cca7bb97ef2413160d5e8382b143fd586fb3561bc15be64b5e15fcaf56`、input SHA-256 `1f931ce9d58b4541ac4ac2cf1849edd8e33d884f2b8780af7920dcaae1531655`を維持した。AUTOMOC `HEADERS=[]`、frame cache保管器・OpenGL更新情報・builderの未解決製品記号0で、Qt Core・Testだけへ動的接続する。macOSで対象とmemory frame cache近傍、対象全体と追加3枠を各20回、実装・試験sourceとheader強制includeの厳格構文、書式、連続二回の無作業再構築、公開API検査に成功した。近傍の9工程・19入力targetは所有する2 objectと試験だけを局所再構築し、製品全体へ広がらなかった。台帳は28,283件対応、1,518件未対応となり、開始headerの残存は0件である。新`public-api-missing-g525.json`の生成成功後に旧`public-api-missing-g524.json` 416,487 bytesを削除した。主Ninja木6,032,296 KiB、共有compiler cache 983,328 KiB、最新報告413,461 bytes、SHA-256 `4383211ca584f4dd6a1f2a9738f4b08224343f7921ffa3bd095af61bbf4b950a`だけを再利用対象として保持する。compiler cacheは144,792 cache可能呼出し中120,593件、83.29%がhitしている。実frame保存・OpenGL更新情報・file・canvas、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第525便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
 
 ### 第239便の先行監査担当票
 
