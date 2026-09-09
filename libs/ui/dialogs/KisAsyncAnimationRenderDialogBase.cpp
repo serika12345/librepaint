@@ -22,6 +22,7 @@
 #include <KisBlockBackgroundFrameGenerationLock.h>
 #include "application/ui/workspace/KisViewManager.h"
 #include "animation/KisAsyncAnimationRendererBase.h"
+#include "KisRegion.h"
 #include "kis_image.h"
 #include "kis_image_config.h"
 #include "kis_memory_statistics_server.h"
