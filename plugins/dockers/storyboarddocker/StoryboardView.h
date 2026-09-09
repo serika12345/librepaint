@@ -11,9 +11,6 @@
 
 #include <kritastoryboarddocker_export.h>
 
-class QStyleOptionViewItem;
-class StoryboardModel;
-
 /**
  * This view draws the children of every index in the first column of 
  * the model inside the parent index
