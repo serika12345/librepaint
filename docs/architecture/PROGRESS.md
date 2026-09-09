@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 14:52 JST
+- 更新日時: 2026-09-09 14:57 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4393,6 +4393,13 @@
 - 開始headerから既存`libs/flake/tests/KoSvgTextCharacterResultValueContractTest.cpp`へ全18 API・5枠を追加した。配置精度、横書き・縦書きの配置・行高矩形、基線offset合成、最終変換、outline・bitmap・色layerの原点移動は実値結果を固定した。tab補正・全体拡縮と部分文字列の構築・公開会員は製品本文を実体化しない厳密署名・型特性で固定した。初回は全5枠が成功し、`G488 SVG text layout value APIs are not fixed yet`だけが`XFAIL`となった。契約commitは`1e78f2ec5c`である。
 - 既存試験sourceは803行・30枠となった。targetは変更前後ともQt Gui・Test・Xmlだけへ動的接続する4工程・8入力、command SHA-256 `8b9ca4b733145cd3eb599eaf7bdeb368dc4d5b10be947740bdb498e218d5e43d`、input SHA-256 `6f1be372a2d9ab0fae470eb0c3a4c629358a081f42b2e1016bec6ae66f541404`を維持した。AUTOMOC `HEADERS=[]`、文字結果・部分文字列・文字属性・解像度補正・font metrics・shapeの未解決製品記号は0である。macOSで全30枠の単発と20回反復、追加5枠を各20回、試験sourceの厳格構文と書式、連続二回の無作業再構築、公開API検査に成功した。正値tab補正・非等倍拡縮と部分文字列の実状態は製品実装接続を避けるため実行していない。製品target、全体build・`verify`、Linux、Nix再評価も実行していない。
 - 台帳は27,756件対応、2,049件未対応となり、開始headerの残存は0件である。新`public-api-missing-g489.json`の生成成功後に旧`public-api-missing-g488.json` 557,843 bytesを削除し、新target、追加生成物、一時一覧、追加作業tree・構築木は作成していない。主Ninja木6,026,732 KiB、共有compiler cache 983,020 KiB、最新`build/tdd-macos/public-api-missing-g489.json` 553,880 bytes、SHA-256 `78731aaefbeb8d500c05d27336ae15bbd2791e27f705d06432e9f1575c79fa26`だけを再利用対象として保持する。compiler cacheは144,683件中120,567件、83.33%がhitしている。次の永続作業は第489便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
+
+### 第489便の公開API契約計画
+
+- 第489便は文書の入出力filter選択と変換実行を所有する`libs/impex/ui/KisImportExportManager.h`に残る全16 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g489.json`は公開header 1,548、公開API 29,805、対応済み27,756、未対応2,049、553,880 bytes、SHA-256 `78731aaefbeb8d500c05d27336ae15bbd2791e27f705d06432e9f1575c79fa26`である。対象16識別子の整列集合SHA-256は`ed92bf8cfd5d3e8c8b23aa09fc258bfb2b7478168a7872c0d80bbe5f523de95c`である。
+- 入出力管理境界は型・方向列挙・2列挙値・構築・破棄6、同期import・同期export・非同期export 3、対応MIME一覧・filter選択・静的export設定3、batch照会・進捗更新2、音声file名・追加file URI照会2の5枠へ固定する。型特性、列挙値、厳密な関数pointer、省略引数の未評価呼出しだけを使い、manager、文書、filter、設定、画像、進捗、widgetと変換本文を実体化しない。
+- 開始`libs/impex/ui/KisImportExportManager.h`はpointerと共有pointer宣言だけのために`KisImportExportFilter.h`の完全定義を全利用者へ推移させ、未使用の`QMap`と`QUrl`も取り込んでいる。契約追加より先に、headerは`KisImportExportErrorCode.h`・`kis_types.h`・`QSharedPointer`・`QString`・`QStringList`を直接includeし、filterとwidgetを前方宣言する。filterを`QScopedPointer`で所有破棄する`libs/ui/document/KisDocument.cpp`へ`KisImportExportFilter.h`を移し、本文所有者`libs/impex/ui/KisImportExportManager.cpp`の既存直接includeを維持する。関連3翻訳単位は変更前に1件成功し、`KisPaintDevice`不完全型とQt JSON foreach非推奨の既存診断2件で失敗した。変更後も成功1件と同じ既存診断2件を完了条件とする。
+- 既存`TestImportExportBoundary`は88工程・174入力で限定反復には過大である。新規`libs/impex/tests/KisImportExportManagerSchemaContractTest.cpp`は110行・6枠未満とし、impex UI・impex・image・global・generated application探索路、関連export定義、Qt Core・Testだけによる4工程・8入力を予測する。停止線を5工程・11入力とし、製品OBJECT・shared、Qt Gui・Widgetsの動的接続、AUTOMOC製品header入力、製品記号、追加探索路が必要なら停止する。macOSの対象、最軽量近傍、対象の20回反復、試験sourceの厳格構文と書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
 
 ### 第239便の先行監査担当票
 
