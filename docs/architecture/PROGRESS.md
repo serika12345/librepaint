@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 20:11 JST
+- 更新日時: 2026-09-09 20:16 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4619,6 +4619,13 @@
 - 新規`libs/ui/tests/KisCmbIDListSchemaContractTest.cpp`をUI・globalのsource/generated探索路、Qt Widgetsのinterface探索路、`kritaui_EXPORTS`・`kritaglobal_EXPORTS`、Qt Core・Testだけで構成し、4工程・8入力を予測する。追加前targetは`unknown target`である。停止線を5工程・11入力とし、Qt Gui・Widgetsの動的接続、製品OBJECT・shared、`kritatestsdk`、AUTOMOC製品header入力、ID一覧選択器・`KoID`の製品記号が必要なら停止する。macOSの対象と軽量widget近傍、追加4枠の20回反復、実装・試験sourceとheader強制includeの厳格構文、書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、実項目構築・選択・signal、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
 - 開始`libs/ui/widgets/kis_cmb_idlist.h`から新規`libs/ui/tests/KisCmbIDListSchemaContractTest.cpp`へ全12 API・4枠を追加し、型・構築・寿命・自動選択肢ID定数、ID一覧・自動選択肢・補足表示、現在項目の設定・取得、選択・強調通知を型特性、静的値の型、厳密な関数pointerと省略引数の未評価呼出しで固定した。公開headerと製品実装は変更していない。計画commitは`210b9df512`、契約commitは`f8b199c08a`である。新規sourceは69行・4枠である。
 - 初回対象構築は`KoID.h`が直接使う`klocalizedstring.h`の探索路不足で失敗し、`libs/ui/tests/CMakeLists.txt`の対象固有節へKF I18nのinterface探索路だけを追加して解消した。最終targetはQt Core・Testだけへ動的接続する4工程・8入力、command SHA-256 `aa6a04e3a3f02c14458e71561b3baa5aa6e7167d14bc8de2a4102f90e9b1952d`、input SHA-256 `3c15a9ed8940ca4e6bd970ae463107ac85f6ecc79a966aab9622c2f672d4bd23`である。AUTOMOC `HEADERS=[]`、ID一覧選択器・`KoID`・翻訳の未解決製品記号0で、Qt Gui・WidgetsとKF I18nを動的接続していない。macOSで対象とnode表示色近傍、対象全体と各4枠を20回、実装・試験sourceとheader強制includeの厳格構文、書式、連続二回の無作業再構築、公開API検査に成功した。台帳は28,127件対応、1,674件未対応となり、開始headerの残存は0件である。新`public-api-missing-g512.json`の生成成功後に旧`public-api-missing-g511.json` 458,345 bytesを削除した。主Ninja木6,028,152 KiB、共有compiler cache 982,544 KiB、最新報告455,739 bytes、SHA-256 `ef290e4a0025d18495a07c6f6c288ec546f16cee6b24bb07120447d4c8ca1a59`だけを再利用対象として保持する。compiler cacheは144,746 cache可能呼出し中120,581件、83.31%がhitしている。実項目構築・選択・signal、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第512便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
+
+### 第512便の公開API契約計画
+
+- 第512便は資源種別ごとに共有する資源・tag・tag資源・metadata模型の取得と試験用query制御を所有する`libs/resources/KisResourceModelProvider.h`の残存全9 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g512.json`は公開header 1,549、公開API 29,801、対応済み28,127、未対応1,674、455,739 bytes、SHA-256 `ef290e4a0025d18495a07c6f6c288ec546f16cee6b24bb07120447d4c8ca1a59`である。対象9識別子の整列集合SHA-256は`45fe196e0f8e79f321f59a706d3702ba4340710a0a8fa7c600aa7d71e945f51b`である。
+- 資源模型提供境界は提供型・既定構築・破棄3、資源・tag・tag資源・metadata模型取得と試験用reset・query終了6の2枠へ固定する。型特性と厳密な静的関数pointerだけを使い、provider、singleton、模型、database接続とqueryを実体化しない。
+- 開始headerは`Q_DISABLE_COPY`に必要な軽量`qglobal.h`を直接取り込み、返却値の模型型をすべて前方宣言している。開始`libs/resources/KisResourceModelProvider.cpp`とheader強制includeの厳格構文は診断0件であり、除去できる推移依存もないため製品構造を変更しない。
+- 直前に拡張した`libs/resources/tests/KisAbstractResourceModelSchemaContractTest.cpp`は同じ資源模型責務を所有する132行・8枠であり、2枠追加後も220行・10枠以内に収まる。CMake変更なしでQt Core・Testだけへ動的接続する4工程・8入力、command SHA-256 `adb6574af8d20f5ff63a32f98d6861209e77a5c64876225e5e5280a64d751382`、input SHA-256 `57ddb30c6499c0e0b50b928f0f0c2039fe09086c7eae73cc86614cdd344eb1f4`、AUTOMOC `HEADERS=[]`と製品未接続を維持する。入力hashの変更、新たな動的接続、製品記号が必要なら停止する。macOSの対象と軽量資源近傍、追加2枠の20回反復、実装・試験sourceとheader強制includeの厳格構文、書式、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、実singleton・模型取得・database query、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
 
 ### 第239便の先行監査担当票
 
