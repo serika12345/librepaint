@@ -9,10 +9,10 @@
 
 #include <QWidget>
 #include <QScopedPointer>
-#include <QSlider>
 
 #include "kritaanimationdocker_export.h"
 
+class QString;
 
 class KRITAANIMATIONDOCKER_EXPORT KisEqualizerColumn : public QWidget
 {
