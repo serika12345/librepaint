@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-10 01:40 JST
+- 更新日時: 2026-09-10 01:44 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4932,6 +4932,13 @@
 - 開始`libs/ui/animation/KisFrameDisplayProxy.h`で私有値所有に使う`QScopedPointer`を直接includeした。開始`libs/ui/animation/KisFrameDisplayProxy.cpp`へ`kis_image.h`を直接includeし、`KisCanvas2::image()`から返る不完全な`KisImage`への6件の会員参照診断を解消した。公開署名、所有権、実行時挙動、CMakeは変更していない。開始実装と候補headerを強制includeする試験sourceの厳格構文は診断0件で、試験書式も成功した。
 - targetは4工程・8入力、command SHA-256 `d83163cca7bb97ef2413160d5e8382b143fd586fb3561bc15be64b5e15fcaf56`、input SHA-256 `1f931ce9d58b4541ac4ac2cf1849edd8e33d884f2b8780af7920dcaae1531655`を維持した。候補headerのAUTOMOC入力化と未解決製品記号は0で、Qt Core・Testだけへ動的接続する。macOSで対象全体20回と追加1枠20回、厳格構文、試験書式、連続二回の無作業再構築に成功した。canvas・画像・cache・再投影の実効果、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 公開API検査の初回診断は期待値1,408に対して実測1,400で、新規8件と一致した。台帳を28,401件対応、1,400件未対応へ進め、`public-api-missing-g538.json`の生成成功後に旧`public-api-missing-g537.json` 384,405 bytesを削除した。主Ninja木6,049,268 KiB、共有compiler cache 983,228 KiB、最新報告382,462 bytes、SHA-256 `ca233c7ba85eed592ad763f192074d285789f785215af1240dc362e6f5c65152`だけを再利用対象として保持する。compiler cacheは144,814 cache可能呼出し中120,594件、83.28%がhitしている。次の永続作業は第538便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
+
+### 第538便の公開API契約計画
+
+- 第538便はfreehand strokeごとのpainterと距離情報、LOD親子関係を所有する`libs/painting/strokes/KisFreehandStrokeInfo.h`の残存全8 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g538.json`は公開header 1,549、公開API 29,801、対応済み28,401、未対応1,400、382,462 bytes、SHA-256 `ca233c7ba85eed592ad763f192074d285789f785215af1240dc362e6f5c65152`である。対象8識別子の整列集合SHA-256は`b5ec5e617909b664609aee1656751c76f366d7292aa2e714a8b01d2b84d17681`である。
+- freehand stroke情報境界は型・既定構築・開始距離付き構築・LOD親付き構築・破棄5、公開painter・距離情報pointer2、LOD相方距離照会1の全8件を既存masked freehand契約の1枠へ固定する。型特性、構築可能性、公開会員pointer型、厳密な関数pointerだけを使い、stroke情報、painter、距離情報を実体化しない。
+- 開始headerはexport定義だけを直接includeし、公開pointerと私有pointerの対象型を前方宣言している。開始`libs/painting/strokes/KisFreehandStrokeInfo.cpp`と既存`libs/painting/tests/KisMaskedFreehandStrokePainterSchemaContractTest.cpp`の厳格構文診断は0件であるため、構造変更を行わない。
+- 既存masked freehand契約は88行・5枠で、1枠追加後も220行・10枠以内に収まる。同じfreehand strategyの広い試験ではなくQt Core・Testだけの近傍を使い、CMakeを変更せず4工程・8入力、command SHA-256 `d6a5e523e1688e4f05fc08239fb8b56c1392e73f788b07623daa50bace499e6d`、input SHA-256 `a016656c2195a4048c3e08b3ad431b20397d0a5d46bebbc3c76b2231ada2c867`を維持する。工程・入力増加、候補headerのAUTOMOC入力化、製品未解決記号が生じれば停止する。macOSの対象全体と追加1枠の20回反復、実装・試験sourceとheader強制includeの厳格構文、試験書式、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、painter・距離・LOD親子関係の実効果、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
 
 ### 第239便の先行監査担当票
 
