@@ -102,6 +102,26 @@ target_compile_definitions(KisToolSchemaContractTest PRIVATE
 )
 
 kis_add_test(
+    KisToolUtilsSchemaContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KisToolUtilsSchemaContractTest PRIVATE
+    ${CMAKE_SOURCE_DIR}/libs/tools
+    ${CMAKE_BINARY_DIR}/libs/tools
+    ${CMAKE_SOURCE_DIR}/libs/image
+    ${CMAKE_BINARY_DIR}/libs/image
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+)
+target_compile_definitions(KisToolUtilsSchemaContractTest PRIVATE
+    kritaglobal_EXPORTS
+    kritaimage_EXPORTS
+    kritatools_EXPORTS
+)
+
+kis_add_test(
     KisToolSelectBaseSchemaContractTest.cpp
     LINK_LIBRARIES
         Qt${QT_MAJOR_VERSION}::Core
