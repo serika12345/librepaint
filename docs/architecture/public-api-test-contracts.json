@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 1573
+    "expectedMissingApis": 1561
   },
   "contracts": [
     {
@@ -78940,6 +78940,45 @@
         "method:KisOpenPane::openExistingFile(const QUrl &)",
         "method:KisOpenPane::openTemplate(const QUrl &)",
         "method:KisOpenPane::splitterResized(KisDetailsPane * sender,const QList<int> & sizes)"
+      ]
+    },
+    {
+      "target": "KisSelectionPropertySliderSchemaContractTest",
+      "source": "libs/ui/tests/KisSelectionPropertySliderSchemaContractTest.cpp",
+      "test": "KisSelectionPropertySliderSchemaContractTest::colorSpaceSelectorTypeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "色空間選択画面は親画面から構築できるwidgetとして、画面基底から仮想破棄する契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisColorSpaceSelector",
+        "method:KisColorSpaceSelector::KisColorSpaceSelector(QWidget * parent)",
+        "method:KisColorSpaceSelector::~KisColorSpaceSelector()"
+      ]
+    },
+    {
+      "target": "KisSelectionPropertySliderSchemaContractTest",
+      "source": "libs/ui/tests/KisSelectionPropertySliderSchemaContractTest.cpp",
+      "test": "KisSelectionPropertySliderSchemaContractTest::colorSpaceSelectorStateSignaturesRemainStable",
+      "behavior": "色空間選択画面は現在の色空間を照会し、色model・深度・profile・具体的な色空間を設定する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisColorSpaceSelector::currentColorSpace()",
+        "method:KisColorSpaceSelector::setCurrentColorDepth(const KoID & id)",
+        "method:KisColorSpaceSelector::setCurrentColorModel(const KoID & id)",
+        "method:KisColorSpaceSelector::setCurrentColorSpace(const KoColorSpace * colorSpace)",
+        "method:KisColorSpaceSelector::setCurrentProfile(const QString & name)"
+      ]
+    },
+    {
+      "target": "KisSelectionPropertySliderSchemaContractTest",
+      "source": "libs/ui/tests/KisSelectionPropertySliderSchemaContractTest.cpp",
+      "test": "KisSelectionPropertySliderSchemaContractTest::colorSpaceSelectorPresentationAndNotificationSignaturesRemainStable",
+      "behavior": "色空間選択画面は色browserと深度選択の表示を制御し、選択可否と有効な色空間変更を通知する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisColorSpaceSelector::colorSpaceChanged(const KoColorSpace *)",
+        "method:KisColorSpaceSelector::selectionChanged(bool valid)",
+        "method:KisColorSpaceSelector::showColorBrowserButton(bool showButton)",
+        "method:KisColorSpaceSelector::showDepth(bool showDepth)"
       ]
     }
   ]

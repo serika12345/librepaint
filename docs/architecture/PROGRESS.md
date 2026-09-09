@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 22:02 JST
+- 更新日時: 2026-09-09 22:08 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4704,6 +4704,8 @@
 - 色空間選択画面境界は画面型・構築・仮想破棄3、現在色空間照会と色model・深度・profile・色空間設定5、色browser・深度表示と選択可否・色空間変更通知4の3枠へ固定する。型特性と厳密な関数pointerだけを使い、選択画面、色空間、識別子、profileとQt画面を実体化しない。
 - 開始headerは画面基底を完全定義し、色識別子・色空間・詳細選択画面を前方宣言へ限定している。既存`libs/ui/tests/KisSelectionPropertySliderSchemaContractTest.cpp`のコンパイル条件でheader強制includeが診断0件、開始`libs/ui/widgets/kis_color_space_selector.cc`も厳格構文の診断0件であり、先行構造変更は不要である。
 - 既存`libs/ui/tests/KisSelectionPropertySliderSchemaContractTest.cpp`は112行・4枠で、同じUI/widget header境界へ3枠を追加しても220行・10枠以内に収まる。CMakeを変更せず4工程・8入力、command SHA-256 `c7f7039a0f6b732e9623c86c82d6ea14eb8d389d93ad67c87dbd37552b18facb`、input SHA-256 `4b122863a9ccad162971873179ec22926ad22b574da8d33f1610a9237bf88050`を維持する。工程・入力増加、候補headerのAUTOMOC入力化、製品未解決記号が生じれば停止する。macOSの対象と軽量UI近傍、対象全体と追加3枠の20回反復、実装・試験sourceとheader強制includeの厳格構文、書式、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、実選択画面・色空間・profile、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
+- 開始`libs/ui/widgets/kis_color_space_selector.h`から既存`libs/ui/tests/KisSelectionPropertySliderSchemaContractTest.cpp`へ全12 API・3枠を追加した。画面型・構築・仮想破棄3件、現在色空間と色model・深度・profile・色空間設定5件、色browser・深度表示と選択可否・色空間変更通知4件を型特性と厳密な関数pointerで固定した。公開headerと製品source、CMakeは変更していない。計画commitは`728fc59ccf`、契約commitは`aeeaff503d`で、既存sourceは148行・7枠となった。
+- targetは4工程・8入力、command SHA-256 `c7f7039a0f6b732e9623c86c82d6ea14eb8d389d93ad67c87dbd37552b18facb`、input SHA-256 `4b122863a9ccad162971873179ec22926ad22b574da8d33f1610a9237bf88050`を維持した。AUTOMOC `HEADERS=[]`、色空間選択画面・色空間・識別子の未解決製品記号0で、Qt Core・Testだけへ動的接続する。macOSで対象と色空間変換対話近傍、対象全体と追加3枠を各20回、実装・試験sourceとheader強制includeの厳格構文、書式、連続二回の無作業再構築、公開API検査に成功した。台帳は28,240件対応、1,561件未対応となり、開始headerの残存は0件である。新`public-api-missing-g521.json`の生成成功後に旧`public-api-missing-g520.json` 428,541 bytesを削除した。主Ninja木6,030,716 KiB、共有compiler cache 982,404 KiB、最新報告425,457 bytes、SHA-256 `6420c0d7a7096b5e5238a19dde8f4457d2d798e35c7659a85ffc8d37eb101f2b`だけを再利用対象として保持する。compiler cacheは144,781 cache可能呼出し中120,593件、83.29%がhitしている。実選択画面・色空間・profile、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第521便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
 
 ### 第239便の先行監査担当票
 
