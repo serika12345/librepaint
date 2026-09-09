@@ -4,6 +4,7 @@
  */
 
 #include "utils/KisRecentFileIconCache.h"
+#include "widgets/KisLodAvailabilityData.h"
 #include "widgets/kis_collapsible_button_group.h"
 #include "widgets/kis_utility_title_bar.h"
 
@@ -24,6 +25,8 @@ private Q_SLOTS:
     void recentFileIconCacheAccessAndNotificationSignaturesRemainStable();
     void utilityTitleBarTypeConstructionAndSizingSchemaRemainStable();
     void utilityTitleBarWidgetAreaAndLockSignaturesRemainStable();
+    void lodAvailabilityDefaultsMembersAndEqualityRemainStable();
+    void lodAvailabilityPersistenceSignaturesRemainStable();
 };
 
 void KisCollapsibleButtonGroupSchemaContractTest::typeConstructionAndLifetimeSchemaRemainStable()
@@ -106,6 +109,40 @@ void KisCollapsibleButtonGroupSchemaContractTest::utilityTitleBarWidgetAreaAndLo
     static_assert(std::is_same_v<decltype(&TitleBar::widgetArea), QWidget *(TitleBar::*)()>);
     static_assert(std::is_same_v<decltype(&TitleBar::setWidgetArea), void (TitleBar::*)(QWidget *)>);
     static_assert(std::is_same_v<decltype(&TitleBar::setLocked), void (TitleBar::*)(bool)>);
+}
+
+void KisCollapsibleButtonGroupSchemaContractTest::lodAvailabilityDefaultsMembersAndEqualityRemainStable()
+{
+    using Data = KisLodAvailabilityData;
+
+    static_assert(std::is_class_v<Data>);
+    static_assert(std::is_same_v<decltype(&Data::isLodUserAllowed), bool Data::*>);
+    static_assert(std::is_same_v<decltype(&Data::isLodSizeThresholdSupported), bool Data::*>);
+    static_assert(std::is_same_v<decltype(&Data::lodSizeThreshold), qreal Data::*>);
+
+    Data first;
+    Data second;
+    QVERIFY(first.isLodUserAllowed);
+    QVERIFY(first.isLodSizeThresholdSupported);
+    QCOMPARE(first.lodSizeThreshold, 100.0);
+    QVERIFY(first == second);
+
+    second.isLodUserAllowed = false;
+    QVERIFY(first != second);
+    second = first;
+    second.isLodSizeThresholdSupported = false;
+    QVERIFY(first != second);
+    second = first;
+    second.lodSizeThreshold = 50.0;
+    QVERIFY(first != second);
+}
+
+void KisCollapsibleButtonGroupSchemaContractTest::lodAvailabilityPersistenceSignaturesRemainStable()
+{
+    using Data = KisLodAvailabilityData;
+
+    static_assert(std::is_same_v<decltype(&Data::read), bool (Data::*)(const KisPropertiesConfiguration *)>);
+    static_assert(std::is_same_v<decltype(&Data::write), void (Data::*)(KisPropertiesConfiguration *) const>);
 }
 
 QTEST_GUILESS_MAIN(KisCollapsibleButtonGroupSchemaContractTest)
