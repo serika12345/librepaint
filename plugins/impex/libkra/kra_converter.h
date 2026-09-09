@@ -7,21 +7,22 @@
 #ifndef _KRA_CONVERTER_H_
 #define _KRA_CONVERTER_H_
 
-#include <QDomDocument>
 #include <QObject>
 #include <QPointer>
+#include <QString>
 
 #include <KisImportExportErrorCode.h>
-#include <KoProgressUpdater.h>
-#include <KoStore.h>
-#include <KoUpdater.h>
-#include <kis_kra_loader.h>
-#include <kis_kra_saver.h>
 #include <kis_types.h>
 
 #include "kritalibkra_export.h"
 
 class KisDocument;
+class KisKraLoader;
+class KisKraSaver;
+class KoStore;
+class KoUpdater;
+class QDomDocument;
+class QIODevice;
 
 class KRITALIBKRA_EXPORT KraConverter : public QObject
 {

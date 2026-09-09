@@ -8,17 +8,17 @@
 
 #include <kis_types.h>
 
-#include <QDomDocument>
-#include <QDomElement>
-#include <QStringList>
+#include <QList>
 #include <QString>
+#include <QStringList>
 
 class KisDocument;
+class KoColor;
 class KoStore;
-
+class QDomDocument;
+class QDomElement;
 
 #include "kritalibkra_export.h"
-#include "KoColor.h"
 
 class KRITALIBKRA_EXPORT KisKraSaver
 {
