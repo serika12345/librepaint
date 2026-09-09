@@ -4,6 +4,7 @@
  */
 
 #include "canvas/KisNodeDisplayModeAdapter.h"
+#include "canvas/kis_grid_manager.h"
 #include "widgets/kis_multi_bool_filter_widget.h"
 
 #include <QTest>
@@ -21,6 +22,9 @@ private Q_SLOTS:
     void valueQuerySignaturesRemainStable();
     void nodeDisplayModeTypeConstructionAndAccessSignaturesRemainStable();
     void nodeDisplayModeNotificationSignatureRemainsStable();
+    void gridManagerTypeConstructionLifetimeSchemaRemainStable();
+    void gridManagerViewConfigurationAndUpdateSignaturesRemainStable();
+    void gridManagerNotificationSignatureRemainsStable();
 };
 
 void KisMultiBoolFilterWidgetSchemaContractTest::parameterTypeConstructionAndValuesSchemaRemainStable()
@@ -79,6 +83,34 @@ void KisMultiBoolFilterWidgetSchemaContractTest::nodeDisplayModeNotificationSign
     using Adapter = KisNodeDisplayModeAdapter;
 
     static_assert(std::is_same_v<decltype(&Adapter::sigNodeDisplayModeChanged), void (Adapter::*)(bool, bool)>);
+}
+
+void KisMultiBoolFilterWidgetSchemaContractTest::gridManagerTypeConstructionLifetimeSchemaRemainStable()
+{
+    using Manager = KisGridManager;
+
+    static_assert(std::is_class_v<Manager>);
+    static_assert(std::is_base_of_v<QObject, Manager>);
+    static_assert(std::is_constructible_v<Manager, KisViewManager *>);
+    static_assert(std::has_virtual_destructor_v<Manager>);
+}
+
+void KisMultiBoolFilterWidgetSchemaContractTest::gridManagerViewConfigurationAndUpdateSignaturesRemainStable()
+{
+    using Manager = KisGridManager;
+
+    static_assert(std::is_same_v<decltype(&Manager::setup), void (Manager::*)(KisActionManager *)>);
+    static_assert(std::is_same_v<decltype(&Manager::setView), void (Manager::*)(QPointer<KisView>)>);
+    static_assert(std::is_same_v<decltype(&Manager::setGridConfig), void (Manager::*)(const KisGridConfig &)>);
+    static_assert(std::is_same_v<decltype(&Manager::updateGUI), void (Manager::*)()>);
+}
+
+void KisMultiBoolFilterWidgetSchemaContractTest::gridManagerNotificationSignatureRemainsStable()
+{
+    using Manager = KisGridManager;
+
+    static_assert(
+        std::is_same_v<decltype(&Manager::sigRequestUpdateGridConfig), void (Manager::*)(const KisGridConfig &)>);
 }
 
 QTEST_APPLESS_MAIN(KisMultiBoolFilterWidgetSchemaContractTest)
