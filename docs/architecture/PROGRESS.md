@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 17:07 JST
+- 更新日時: 2026-09-09 17:11 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4478,6 +4478,13 @@
 - 構造準備では開始`plugins/impex/libkra/kis_kra_save_visitor.h`から未使用の`kis_image.h`を除去し、値会員に必要な`QMap`と私有署名に必要な`KoColorProfile`前方宣言へ置換した。開始`plugins/impex/libkra/kis_kra_load_visitor.h`には値会員・返値に必要な`QMap`・`QHash`を直接追加し、未使用の`KisFilterConfiguration`と`KisNodeFilterInterface`前方宣言を除去した。変更前の両header強制includeは推移した`kis_image.h`から`QPainter`不足で失敗し、変更後はQt Gui探索路を加えず厳格構文に成功した。読込実装は厳格構文に成功し、保存実装は変更前後とも既存の符号有無比較診断1件だけである。計画commitは`0c183befd5`、構造準備commitは`4ad706827a`である。
 - 開始2 headerから既存`plugins/impex/libkra/tests/KisKraSaveXmlVisitorSchemaContractTest.cpp`へ全35 API・5枠を追加した。読込・保存visitorの型・構築・保存破棄、両visitorのnode・6種類のlayer訪問、5種類のmask訪問、外部URI、診断一覧、旧profile名対応表を型特性と厳密な多重定義関数pointerで固定した。既存binaryによる初回実行は新枠を認識せず`Function not found`で失敗した。契約commitは`d4a31b3364`である。
 - 既存試験sourceは217行・10枠となった。targetは変更前後ともQt Core・Testだけへ動的接続する4工程・8入力、command SHA-256 `c43bc72bed9ba8fdd9a222f2e52e68b7df8dde7c6540d363e57f8975d7f2a82c`、input SHA-256 `5d4c2dd9284e07d87bc158f5cf0cca1aaae1a1c81a28ffaffd0c1c7b49fa0a70`を維持した。AUTOMOC `HEADERS=[]`、KRA読込・保存visitor、node、layer、mask、storeの未解決製品記号0である。macOSで全10枠と追加5枠を各20回、試験sourceの厳格構文と書式、連続二回の無作業再構築、公開API検査、`verify-quick`に成功した。台帳は27,897件対応、1,908件未対応となり、開始2 headerの残存は0件である。新`public-api-missing-g497.json`の生成成功後に旧`public-api-missing-g496.json` 525,188 bytesを削除した。主Ninja木6,020,420 KiB、共有compiler cache 982,572 KiB、最新報告516,267 bytes、SHA-256 `edb6b91840dd182adb1accf86b2c272896fd417900e3aa5c09ec46e2e00d2b0e`だけを再利用対象として保持する。compiler cacheは144,711 cache可能呼出し中120,575件、83.32%がhitしている。実KRA読込・保存、画像・node・layer・mask状態、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第497便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
+
+### 第497便の公開API契約計画
+
+- 第497便はKRA文書構造から画像、資源、animation、音声、storyboardを復元する`plugins/impex/libkra/kis_kra_loader.h`の残存全17 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g497.json`は公開header 1,549、公開API 29,805、対応済み27,897、未対応1,908、516,267 bytes、SHA-256 `edb6b91840dd182adb1accf86b2c272896fd417900e3aa5c09ec46e2e00d2b0e`である。対象17識別子の整列集合SHA-256は`bfcdfcda6c6d36869cbedb53ae5a99f9a2955b236a98502829da5f6cf45edb5a`である。
+- KRA loader境界は型・構築・破棄3、XML・バイナリー画像読込2、資源・storyboard・animation・現行音声・旧音声読込5、選択node・assistant・storyboard項目・comment照会4、error・warning・画像名照会3の5枠へ固定する。型特性と厳密な関数pointerだけを使い、loader、文書、画像、store、assistant、storyboard値、DOMと読込本文を実体化しない。
+- 開始headerは私有の色一覧読込だけに`KoColor.h`、参照署名だけに`QDomDocument`の完全定義を取り込み、現限定targetへの強制includeを色管理header不足で停止させている。契約追加より先に`KoColor`、`QDomDocument`、`QDomElement`を前方宣言し、完全定義を実際に利用する宛先`plugins/impex/libkra/kis_kra_loader.cpp`へ移す。`kis_types.h`が既に共有pointer別名とstoryboard値の宣言を所有するため、重複した`KisPaintingAssistant`と`StoryboardComment`前方宣言も除去する。変更前のloader実装の厳格構文は旧音声関数呼出しに対する既存非推奨診断1件だけであり、変更後も同じ結果を完了条件とする。
+- 前便の既存`plugins/impex/libkra/tests/KisKraSaveXmlVisitorSchemaContractTest.cpp`は217行・10枠で、同じKRA読込境界へ5枠を追加して320行・16枠未満に収める。CMakeを変更せず、Qt Core・Testだけへ動的接続する4工程・8入力、command SHA-256 `c43bc72bed9ba8fdd9a222f2e52e68b7df8dde7c6540d363e57f8975d7f2a82c`、input SHA-256 `5d4c2dd9284e07d87bc158f5cf0cca1aaae1a1c81a28ffaffd0c1c7b49fa0a70`を維持する。新たな探索路・定義・接続、Qt Gui・Xmlの動的接続、製品OBJECT・shared、`kritatestsdk`、AUTOMOC製品header入力、KRA製品記号が必要なら停止する。macOSの対象、既存10枠と追加5枠、追加枠の20回反復、loader実装と試験sourceの厳格構文、書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、実KRA読込、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
 
 ### 第239便の先行監査担当票
 
