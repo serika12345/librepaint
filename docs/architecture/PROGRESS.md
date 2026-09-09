@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 13:22 JST
+- 更新日時: 2026-09-09 13:27 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4328,6 +4328,13 @@
 - 開始`libs/tools/kis_tool_utils.h`から新規`libs/tools/tests/KisToolUtilsSchemaContractTest.cpp`へ全14 API・4枠を追加した。色採取設定の型・既定構築、5真偽値・2整数値の公開会員、保存・読込み、node編集可否説明・選択付き画像消去・cursor移動を型特性、会員pointer、厳密な関数pointer、未評価呼出しで固定した。初回は全4観測枠が成功し、`G482 tool utility API schema is not fixed yet`だけが`XFAIL`となった。契約commitは`b8d73adad1`である。
 - 対象未登録の初回限定構築は未知の対象として失敗した。対象登録後は`kis_types.h`の推移includeが`libs/global/kis_shared_ptr.h`、さらに生成済み`kritaglobal_export.h`を要求することを順に検出したため、globalのsource/generated探索路とexport定義だけを追加した。新規試験sourceは71行・4枠、targetはQt Core・Testだけへ動的接続する4工程・8入力、command SHA-256 `f0c40ed2b502725afa3ae40b2dfa4f98d0d34e92944e17b742a9c4e2de77bfa5`、input SHA-256 `2ff0d7eb83f82509485ecf22eadd9f8f5e23399dea0d6b1fef52242f83e65023`となった。AUTOMOC `HEADERS=[]`、tool共通処理・色採取設定・製品libraryの未解決記号は0である。macOSで対象の単発と20回反復、近傍`KisToolSchemaContractTest`、試験sourceの厳格構文と書式、連続二回の無作業再構築、公開API検査に成功した。色採取設定の既定値と永続化、画像・node・画面を使う本文、1,274工程・2,563入力の既存`TestToolCoreContract`、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 台帳は27,645件対応、2,160件未対応となり、開始headerの残存は0件である。新`public-api-missing-g483.json`の生成成功後に旧`public-api-missing-g482.json` 586,494 bytesを削除し、一時識別子一覧も削除した。追加作業tree・構築木は作成していない。主Ninja木6,021,928 KiB、共有compiler cache 982,708 KiB、最新`build/tdd-macos/public-api-missing-g483.json` 583,143 bytes、SHA-256 `93d33ff78afd21830305a71543151602b8a97440c56c60e1a79f66a3c39eea5d`だけを再利用対象として保持する。compiler cacheは144,667件中120,567件、83.34%がhitしている。次の永続作業は第483便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
+
+### 第483便の公開API契約計画
+
+- 第483便は画像node木のUI向け非同期表現境界を所有する`libs/ui/flake/kis_dummies_facade_base.h`に残る全17 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g483.json`は公開header 1,548、公開API 29,805、対応済み27,645、未対応2,160、583,143 bytes、SHA-256 `93d33ff78afd21830305a71543151602b8a97440c56c60e1a79f66a3c39eea5d`である。対象17識別子の整列集合SHA-256は`e72ce7a67bdf59e4bacbdbc699753322c915dd8c3df081987a0d3e38e9ad67cf`である。
+- facadeは型・構築・破棄3、画像・能動node状態4、nodeとdummyの照会4、挿入・削除・変更・能動化通知6の4枠へ固定する。型特性と厳密な関数pointerだけを使い、facade、画像、node、dummy、QObject本文とsignal本文を実体化しない。
+- 開始headerの`QObject`は基底とsignalに、`kis_types.h`は公開署名の画像・node共有型に、`KisNodeAdditionFlags.h`は私有slot署名に必要である。私有実装は前方宣言と実装側の明示destructorで所有され、除去できる完全定義include、不要な生成入力、逆向依存がないため構造変更を行わない。現行挙動を持つ`kis_dummies_facade_test`は製品共有libraryと`kritatestsdk`へ接続する1,981工程・3,961入力であり、限定反復対象から外す。
+- 新規`libs/ui/tests/KisDummiesFacadeBaseSchemaContractTest.cpp`は90行・5枠未満とする。最寄りの`KisAnimationFrameCacheSchemaContractTest`はUI・image・globalのsource/generated探索路とQt Core・Testだけによる4工程・8入力で、command SHA-256 `7690ce54e6c8bdb299c7b58e2a365c742500b462ebc667f77bab17d1f02687bb`、input SHA-256 `ac08635c102e391763900abf7ea53cc8d6e2d321930166b841b3a6e983b113cb`である。新targetも同じ4工程・8入力を予測し、停止線を5工程・11入力とする。新たな探索路・定義・製品接続、Qt Gui・Widgetsの動的接続、AUTOMOC製品header入力、対象型または本文の実体化が必要なら停止する。macOSの対象、最軽量近傍、対象の20回反復、試験sourceの厳格構文と書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
 
 ### 第239便の先行監査担当票
 
