@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 1475
+    "expectedMissingApis": 1463
   },
   "contracts": [
     {
@@ -79281,6 +79281,36 @@
         "method:KisSelectionToolHelper::getSelectionContextMenu(KoCanvasBase * canvas)",
         "method:KisSelectionToolHelper::tryDeselectCurrentSelection(const QRectF selectionViewRect,SelectionAction action)",
         "method:KisSelectionToolHelper::tryOverrideSelectionMode(KisSelectionSP activeSelection,SelectionMode currentMode,SelectionAction currentAction) const"
+      ]
+    },
+    {
+      "target": "KisToolSelectUiBaseSchemaContractTest",
+      "source": "libs/ui/tests/KisToolSelectUiBaseSchemaContractTest.cpp",
+      "test": "KisToolSelectUiBaseSchemaContractTest::freehandHelperTypeSmoothingAndRunningSchemaRemainStable",
+      "behavior": "freehand helperはpaint情報builderとcanvas資源管理器から省略可能なundo表示名・平滑化設定付きで構築でき、平滑化設定と実行状態を公開する型境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisToolFreehandHelper",
+        "method:KisToolFreehandHelper::KisToolFreehandHelper(KisPaintingInformationBuilder * infoBuilder,KoCanvasResourceProvider * resourceManager,const KUndo2MagicString & transactionText=KUndo2MagicString (),KisSmoothingOptions * smoothingOptions=0)",
+        "method:KisToolFreehandHelper::isRunning() const",
+        "method:KisToolFreehandHelper::setSmoothness(KisSmoothingOptionsSP smoothingOptions)",
+        "method:KisToolFreehandHelper::smoothingOptions() const",
+        "method:KisToolFreehandHelper::~KisToolFreehandHelper()"
+      ]
+    },
+    {
+      "target": "KisToolSelectUiBaseSchemaContractTest",
+      "source": "libs/ui/tests/KisToolSelectUiBaseSchemaContractTest.cpp",
+      "test": "KisToolSelectUiBaseSchemaContractTest::freehandHelperPaintLifecycleAndOutlineSignaturesRemainStable",
+      "behavior": "freehand helperはcursor移動、描画開始、pointer event描画、描画終了、brush outline計算を受け付け、outline明示更新を通知する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisToolFreehandHelper::cursorMoved(const QPointF & cursorPos)",
+        "method:KisToolFreehandHelper::endPaint()",
+        "method:KisToolFreehandHelper::initPaint(KoPointerEvent * event,const QPointF & pixelCoords,KisImageWSP image,KisNodeSP currentNode,KisStrokesFacade * strokesFacade,KisNodeSP overrideNode=0,KisDefaultBoundsBaseSP bounds=0)",
+        "method:KisToolFreehandHelper::paintEvent(KoPointerEvent * event)",
+        "method:KisToolFreehandHelper::paintOpOutline(const QPointF & savedCursorPos,const KoPointerEvent * event,const KisPaintOpSettingsSP globalSettings,KisPaintOpSettings::OutlineMode mode) const",
+        "method:KisToolFreehandHelper::requestExplicitUpdateOutline()"
       ]
     }
   ]
