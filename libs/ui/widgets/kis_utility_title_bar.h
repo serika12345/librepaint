@@ -10,10 +10,6 @@
 
 #include <QWidget>
 
-#ifdef Q_OS_MACOS
-#include <sys/types.h>
-#endif
-
 #include "kritaui_export.h"
 
 class QLabel;
