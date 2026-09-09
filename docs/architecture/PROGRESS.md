@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 10:45 JST
+- 更新日時: 2026-09-09 10:55 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4239,6 +4239,9 @@
 - 進捗接続面は型・仮想寿命2とupdaterの接続・切離し2、自己切離しupdaterは型・既定mode付き構築・仮想寿命3の3枠へ固定する。node進捗proxyは型・QObjectと進捗proxy継承・最大値・百分率3と、値・範囲・書式設定およびnodeを伴う百分率変更通知4の2枠へ固定する。進捗実装、proxy、node、Qt値を実体化せず、型特性、未評価の既定引数、厳密な関数pointerだけを使う。
 - `kis_progress_updater.h`の進捗更新器完全定義は公開継承とmodeに、`kis_node_progress_proxy.h`のQObject・進捗proxy完全定義とimage共有型は二重継承と公開署名に必要である。不要な直接includeや新たな所有分離はなく、構造変更を行わない。既存`KisQueuesProgressUpdaterContractTest`は実装生成物を接続する5工程・11入力であり、異なるqueue動作責務も持つため追加先から除外する。
 - 新規`libs/image/tests/KisImageProgressSchemaContractTest.cpp`は140行・6枠未満とする。最寄りの`KoProgressUpdaterSchemaContractTest`はQt Core・Testとwidgetutilsのsource・binary探索路、`kritawidgetutils_EXPORTS`だけによる4工程・8入力で、command SHA-256 `9a81c6d575ab6838f4df116832b9da494f376c8f8dc4563f2d498a610d775fae`、input SHA-256 `4c485125ec4cc1ffe437338aa18c630240936860719845752c7ec1f58f28a417`である。新targetはこれにimage・globalのsource・binary探索路と`kritaimage_EXPORTS`をcompile条件として加えるが、製品objectを接続しない4工程・8入力を予測する。停止線を5工程・11入力とし、新たな探索路・定義・製品接続、AUTOMOC製品header入力、進捗実装または関連製品型の実体化が必要なら停止する。macOSの対象、最軽量近傍、対象の20回反復、試験sourceの厳格構文、書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、既存のqueue動作試験、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
+- 開始`libs/image/kis_progress_updater.h`と`libs/image/kis_node_progress_proxy.h`から新規`libs/image/tests/KisImageProgressSchemaContractTest.cpp`へ全14 API・5枠を追加した。進捗接続面の型・仮想寿命・接続・切離し、自己切離しupdaterの型・既定mode付き構築・仮想寿命、node進捗proxyの型・二基底・最大値・百分率・値・範囲・書式・百分率変更通知を、型特性、未評価の構築可能性、厳密な関数pointerで固定した。初回は全5観測枠が成功し、`G474 image progress API schema is not fixed yet`だけが`XFAIL`となった。公開headerと製品sourceは変更していない。計画commitは`abc59ff259`、契約commitは`b92b484111`である。
+- 新規試験sourceは88行・5枠で、targetは4工程・8入力、command SHA-256 `06556ef52a28d8dda4c7ebcbaeee2bb1e4d07b5b457f93bde5de536a947d6207`、input SHA-256 `cfb7c16f4684912270d36426bdd8544654a213aae4bc1d891ecdd5a123efb5c1`となった。AUTOMOC `HEADERS=[]`、製品未解決記号・製品動的接続は0である。macOSで対象、最軽量近傍`KoProgressUpdaterSchemaContractTest`、対象の20回反復、試験sourceの厳格構文と書式、連続二回の無作業再構築、公開API検査、`verify-quick`に成功した。近傍はCMake再生成後の初回だけAUTOGENを更新し、二回目は無作業だった。進捗実装、既存のqueue動作試験、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 台帳は27,538件対応、2,266件未対応となり、開始2 headerの残存は0件である。旧`public-api-missing-g474.json` 615,919 bytesを削除し、一時閉包一覧、追加作業tree・構築木は作成していない。主Ninja木6,012,368 KiB、共有compiler cache 983,120 KiB、最新`build/tdd-macos/public-api-missing-g475.json` 612,512 bytes、SHA-256 `afbfbaa5e6450893ebfa63ab856dbdd66c06aeea0b4fe9e5abe50a69e5850b3b`だけを再利用対象として保持する。compiler cacheは144,636件中120,565件、83.36%がhitしている。次の永続作業は第475便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
 
 ### 第239便の先行監査担当票
 

@@ -16,7 +16,7 @@
     "publicApiFingerprint": "5f05b2aa8e5bef4343af1d55a3852331e51d4369fe135b099327b1a91b6b8c4c"
   },
   "migration": {
-    "expectedMissingApis": 2280
+    "expectedMissingApis": 2266
   },
   "contracts": [
     {
@@ -76454,6 +76454,65 @@
         "method:KisCageTransformWorker::approxChangeRect(const QRect & rc)",
         "method:KisCageTransformWorker::approxNeedRect(const QRect & rc,const QRect & fullBounds)",
         "method:KisCageTransformWorker::runOnQImage(QPointF * newOffset)"
+      ]
+    },
+    {
+      "target": "KisImageProgressSchemaContractTest",
+      "source": "libs/image/tests/KisImageProgressSchemaContractTest.cpp",
+      "test": "KisImageProgressSchemaContractTest::progressInterfaceTypeAndLifetimeSchemaRemainStable",
+      "behavior": "画像処理進捗接続面は公開型と仮想寿命を維持し、派生実装を基底所有から安全に破棄できる。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisProgressInterface",
+        "method:KisProgressInterface::~KisProgressInterface()"
+      ]
+    },
+    {
+      "target": "KisImageProgressSchemaContractTest",
+      "source": "libs/image/tests/KisImageProgressSchemaContractTest.cpp",
+      "test": "KisImageProgressSchemaContractTest::progressInterfaceAttachmentSignaturesRemainStable",
+      "behavior": "画像処理進捗接続面は進捗更新器を接続および切離しする仮想公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisProgressInterface::attachUpdater(KoProgressUpdater * updater)",
+        "method:KisProgressInterface::detachUpdater(KoProgressUpdater * updater)"
+      ]
+    },
+    {
+      "target": "KisImageProgressSchemaContractTest",
+      "source": "libs/image/tests/KisImageProgressSchemaContractTest.cpp",
+      "test": "KisImageProgressSchemaContractTest::progressUpdaterTypeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "自己切離し進捗更新器は基底更新器を具体化し、進捗接続面・proxy・既定のthread modeから構築でき、仮想寿命を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisProgressUpdater",
+        "method:KisProgressUpdater::KisProgressUpdater(KisProgressInterface * progressInterface,KoProgressProxy * proxy,KoProgressUpdater::Mode mode=KoProgressUpdater::Threaded)",
+        "method:KisProgressUpdater::~KisProgressUpdater()"
+      ]
+    },
+    {
+      "target": "KisImageProgressSchemaContractTest",
+      "source": "libs/image/tests/KisImageProgressSchemaContractTest.cpp",
+      "test": "KisImageProgressSchemaContractTest::nodeProgressTypeAndQuerySchemaRemainStable",
+      "behavior": "node進捗proxyはQObjectと進捗proxyを具体化し、最大値と現在の百分率を返す公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisNodeProgressProxy",
+        "method:KisNodeProgressProxy::maximum() const",
+        "method:KisNodeProgressProxy::percentage() const"
+      ]
+    },
+    {
+      "target": "KisImageProgressSchemaContractTest",
+      "source": "libs/image/tests/KisImageProgressSchemaContractTest.cpp",
+      "test": "KisImageProgressSchemaContractTest::nodeProgressMutationAndNotificationSignaturesRemainStable",
+      "behavior": "node進捗proxyは値・範囲・書式を設定し、百分率と対象nodeを伴う変更通知を公開する境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeProgressProxy::percentageChanged(int _percentage,const KisNodeSP & _node)",
+        "method:KisNodeProgressProxy::setFormat(const QString & format)",
+        "method:KisNodeProgressProxy::setRange(int minimum,int maximum)",
+        "method:KisNodeProgressProxy::setValue(int value)"
       ]
     }
   ]
