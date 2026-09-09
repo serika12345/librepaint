@@ -86,6 +86,8 @@ KisOutlineGenerator::KisOutlineGenerator(const KoColorSpace* cs, quint8 defaultO
 {
 }
 
+KisOutlineGenerator::~KisOutlineGenerator() = default;
+
 template <class StorageStrategy>
 QVector<QPolygon> KisOutlineGenerator::outlineImpl(typename StorageStrategy::StorageType buffer,
                                                    qint32 xOffset, qint32 yOffset,
