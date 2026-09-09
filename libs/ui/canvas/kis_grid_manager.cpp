@@ -15,6 +15,8 @@
 
 #include <kis_icon.h>
 
+#include "application/ui/orchestration/kis_action.h"
+#include "application/ui/orchestration/kis_action_manager.h"
 #include "kis_canvas2.h"
 #include "application/kis_config.h"
 #include "kis_grid_decoration.h"
@@ -135,4 +137,3 @@ void KisGridManager::slotSnapToGridTriggered(bool value)
     setGridConfig(config);
     Q_EMIT sigRequestUpdateGridConfig(config);
 }
-

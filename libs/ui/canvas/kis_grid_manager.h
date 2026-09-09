@@ -9,16 +9,17 @@
 #ifndef KIS_GRID_MANAGER_H
 #define KIS_GRID_MANAGER_H
 
-#include <QPainter>
+#include <QObject>
+#include <QPointer>
+#include <QScopedPointer>
 
-#include "kis_types.h"
 #include <kritaui_export.h>
-#include "application/ui/orchestration/kis_action_manager.h"
-#include "application/ui/orchestration/kis_action.h"
 
+class KisActionManager;
 class KisGridDecoration;
-class KisViewManager;
 class KisGridConfig;
+class KisView;
+class KisViewManager;
 
 
 class KRITAUI_EXPORT KisGridManager : public QObject
