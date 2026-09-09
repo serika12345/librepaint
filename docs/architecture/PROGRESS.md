@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 09:03 JST
+- 更新日時: 2026-09-09 09:11 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4169,6 +4169,13 @@
 - 開始`libs/image/kis_config_widget.h`と`libs/image/brushengine/kis_paintop_config_widget.h`から新規`libs/image/tests/KisPaintOpConfigWidgetSchemaContractTest.cpp`へ全25 API・8枠を追加した。設定widgetの型・仮想寿命、設定の読書、view・canvas資源、4通知と、paintop設定widgetの型・構築・仮想寿命、安全な設定読書、LOD制約・reader・有効brush寸法、image・node・資源・view・scratch box境界を型特性と厳密な関数pointerで固定した。抽象probeは宣言だけで、初回は全8観測枠が成功し、`G467 paint operation config widget API schema is not fixed yet`だけで1件失敗した。契約commitは`33f895e61e`である。
 - 新規試験sourceは136行・8枠で、targetは4工程・8入力、command SHA-256 `42b5a76e92fe9d6efe2c796d3817543fbc983b5f636edcc69b985e238ac34e3f`、input SHA-256 `b967f4524c5ae0b4e0eab08d1da838e1462a39be2e1371ab5cd19329666c1450`となった。AUTOMOC `HEADERS=[]`、製品未解決記号・製品動的接続は0である。macOSで対象、最軽量近傍`KisPaintOpSchemaContractTest`、対象の20回反復、試験sourceの厳格構文と書式、連続二回の無作業再構築、公開API検査、`verify-quick`に成功した。widget実体、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 台帳は27,367件対応、2,437件未対応となり、開始2 headerの残存は0件である。旧`public-api-missing-g467.json` 668,831 bytesを削除し、一時閉包一覧、追加作業tree・構築木は作成していない。主Ninja木6,002,396 KiB、共有compiler cache 982,780 KiB、最新`build/tdd-macos/public-api-missing-g468.json` 662,200 bytes、SHA-256 `0873915f8faca35118c6293e48dad0b7b793fb3e10335bf2478dd3fe8fd34702`だけを再利用対象として保持する。compiler cacheは144,614件中120,565件、83.37%がhitしている。次の永続作業は第468便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
+
+### 第468便の公開API契約計画
+
+- 第468便はlayer style効果責務の`libs/image/layerstyles/kis_ls_drop_shadow_filter.h`に残る全11 API、`libs/image/layerstyles/kis_ls_overlay_filter.h`に残る全10 API、`libs/image/layerstyles/kis_layer_style_filter_environment.h`に残る全11 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g468.json`は公開header 1,548、公開API 29,804、対応済み27,367、未対応2,437、662,200 bytes、SHA-256 `0873915f8faca35118c6293e48dad0b7b793fb3e10335bf2478dd3fe8fd34702`である。対象32識別子の整列集合SHA-256は`c8e093262811b76d1ab4df3f4e33b87cdd5fe8788cc336116268a3f14de54c37`である。
+- drop shadow filterは型・効果mode 6、構築・複製2、処理・必要矩形・変更矩形3の3枠へ固定する。overlay filterは型・効果mode 5、構築・複製2、処理・必要矩形・変更矩形3の3枠へ固定する。共有実行環境は型・構築・寿命・layer/default境界・LOD 6と、最終painter設定・乱数選択・平坦化pattern・選択cache・描画装置cache 5の2枠へ固定する。具体filterと実行環境の本文は実体化せず、型特性、列挙値、厳密な関数pointerだけを観測する。
+- `libs/image/layerstyles/kis_layer_style_filter_environment.h`は`KoPattern`の完全定義を使わず共有pointer別名だけを公開するため、開始headerの`KoPattern.h`を前方宣言と別名へ置き換え、完全定義を使う`libs/image/layerstyles/kis_layer_style_filter_environment.cpp`へ直接includeを移す。直接利用元11翻訳単位の変更前厳密構文検査は10件成功・1件既存診断で、変更後の新規悪化0を完了条件とする。二つの具体filter headerは基底型とexport macroを直接使い、追加の不要includeを持たない。
+- 新規`libs/image/tests/KisLayerStyleConcreteFiltersSchemaContractTest.cpp`は200行・9枠未満とする。最寄りの`KisLayerStyleProjectionPlaneSchemaContractTest`は4工程・8入力、command SHA-256 `0511f5175ac7a9135f28601e5ef6cec86a67e5a0c4129ea1e648c29426abcd7c`、input SHA-256 `6e27b80bc3a9576fc86b4bb142e234b4071e1fd0e385dfa8fc52eb322c20f2d0`である。新targetも製品objectを接続せず、Qt Core・Testと公開headerに必要な最小探索路・interface条件だけを与えて4工程・8入力を予測する。停止線は5工程・11入力で、新たな製品接続、AUTOMOC製品header入力、具体filterまたは環境本文の実体化が必要なら停止する。macOSの対象、最軽量近傍、対象の20回反復、試験sourceの厳格構文、書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、既存の製品layer style試験、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
 
 ### 第239便の先行監査担当票
 
