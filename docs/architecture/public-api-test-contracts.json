@@ -16,7 +16,7 @@
     "publicApiFingerprint": "62e45b238446dc0eb6798b1de10b2cd9261befccc2a837c75de2c86393d7e016"
   },
   "migration": {
-    "expectedMissingApis": 1908
+    "expectedMissingApis": 1891
   },
   "contracts": [
     {
@@ -77817,6 +77817,68 @@
         "method:KisKraSaveVisitor::visit(KisSelectionMask * mask)",
         "method:KisKraSaveVisitor::visit(KisTransformMask * mask)",
         "method:KisKraSaveVisitor::visit(KisTransparencyMask * mask)"
+      ]
+    },
+    {
+      "target": "KisKraSaveXmlVisitorSchemaContractTest",
+      "source": "plugins/impex/libkra/tests/KisKraSaveXmlVisitorSchemaContractTest.cpp",
+      "test": "KisKraSaveXmlVisitorSchemaContractTest::kraLoaderTypeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "KRA loaderは文書、構文版、application版からの構築と明示的な破棄を持つ公開型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisKraLoader",
+        "method:KisKraLoader::KisKraLoader(KisDocument * document,int syntaxVersion,const QVersionNumber & kritaVersion)",
+        "method:KisKraLoader::~KisKraLoader()"
+      ]
+    },
+    {
+      "target": "KisKraSaveXmlVisitorSchemaContractTest",
+      "source": "plugins/impex/libkra/tests/KisKraSaveXmlVisitorSchemaContractTest.cpp",
+      "test": "KisKraSaveXmlVisitorSchemaContractTest::kraLoaderImageDataSignaturesRemainStable",
+      "behavior": "KRA loaderは文書XMLからの画像生成とstoreからの画像バイナリー読込に関する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisKraLoader::loadBinaryData(KoStore * store,KisImageSP image,const QString & uri,bool external)",
+        "method:KisKraLoader::loadXML(const QDomElement & imageElement)"
+      ]
+    },
+    {
+      "target": "KisKraSaveXmlVisitorSchemaContractTest",
+      "source": "plugins/impex/libkra/tests/KisKraSaveXmlVisitorSchemaContractTest.cpp",
+      "test": "KisKraSaveXmlVisitorSchemaContractTest::kraLoaderDocumentAssetSignaturesRemainStable",
+      "behavior": "KRA loaderは資源、storyboard、animation metadata、現行・旧形式の音声を文書へ復元する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisKraLoader::backCompat_loadAudio(const QDomElement & elem,KisDocument * document)",
+        "method:KisKraLoader::loadAnimationMetadata(KoStore * store,KisImageSP image)",
+        "method:KisKraLoader::loadAudio(KoStore * store,KisDocument * kisDoc)",
+        "method:KisKraLoader::loadResources(KoStore * store,KisDocument * doc)",
+        "method:KisKraLoader::loadStoryboards(KoStore * store,KisDocument * doc)"
+      ]
+    },
+    {
+      "target": "KisKraSaveXmlVisitorSchemaContractTest",
+      "source": "plugins/impex/libkra/tests/KisKraSaveXmlVisitorSchemaContractTest.cpp",
+      "test": "KisKraSaveXmlVisitorSchemaContractTest::kraLoaderSelectionAssistantAndStoryboardSignaturesRemainStable",
+      "behavior": "KRA loaderは復元した選択node、assistant、storyboard項目とcommentの一覧を照会する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisKraLoader::assistants() const",
+        "method:KisKraLoader::selectedNodes() const",
+        "method:KisKraLoader::storyboardCommentList() const",
+        "method:KisKraLoader::storyboardItemList() const"
+      ]
+    },
+    {
+      "target": "KisKraSaveXmlVisitorSchemaContractTest",
+      "source": "plugins/impex/libkra/tests/KisKraSaveXmlVisitorSchemaContractTest.cpp",
+      "test": "KisKraSaveXmlVisitorSchemaContractTest::kraLoaderDiagnosticSignaturesRemainStable",
+      "behavior": "KRA loaderは読込error、warningと文書XML内の画像名を照会する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisKraLoader::errorMessages() const",
+        "method:KisKraLoader::imageName() const",
+        "method:KisKraLoader::warningMessages() const"
       ]
     }
   ]

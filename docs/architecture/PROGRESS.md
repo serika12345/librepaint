@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 17:11 JST
+- 更新日時: 2026-09-09 17:20 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4485,6 +4485,9 @@
 - KRA loader境界は型・構築・破棄3、XML・バイナリー画像読込2、資源・storyboard・animation・現行音声・旧音声読込5、選択node・assistant・storyboard項目・comment照会4、error・warning・画像名照会3の5枠へ固定する。型特性と厳密な関数pointerだけを使い、loader、文書、画像、store、assistant、storyboard値、DOMと読込本文を実体化しない。
 - 開始headerは私有の色一覧読込だけに`KoColor.h`、参照署名だけに`QDomDocument`の完全定義を取り込み、現限定targetへの強制includeを色管理header不足で停止させている。契約追加より先に`KoColor`、`QDomDocument`、`QDomElement`を前方宣言し、完全定義を実際に利用する宛先`plugins/impex/libkra/kis_kra_loader.cpp`へ移す。`kis_types.h`が既に共有pointer別名とstoryboard値の宣言を所有するため、重複した`KisPaintingAssistant`と`StoryboardComment`前方宣言も除去する。変更前のloader実装の厳格構文は旧音声関数呼出しに対する既存非推奨診断1件だけであり、変更後も同じ結果を完了条件とする。
 - 前便の既存`plugins/impex/libkra/tests/KisKraSaveXmlVisitorSchemaContractTest.cpp`は217行・10枠で、同じKRA読込境界へ5枠を追加して320行・16枠未満に収める。CMakeを変更せず、Qt Core・Testだけへ動的接続する4工程・8入力、command SHA-256 `c43bc72bed9ba8fdd9a222f2e52e68b7df8dde7c6540d363e57f8975d7f2a82c`、input SHA-256 `5d4c2dd9284e07d87bc158f5cf0cca1aaae1a1c81a28ffaffd0c1c7b49fa0a70`を維持する。新たな探索路・定義・接続、Qt Gui・Xmlの動的接続、製品OBJECT・shared、`kritatestsdk`、AUTOMOC製品header入力、KRA製品記号が必要なら停止する。macOSの対象、既存10枠と追加5枠、追加枠の20回反復、loader実装と試験sourceの厳格構文、書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、実KRA読込、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
+- 構造準備では開始`plugins/impex/libkra/kis_kra_loader.h`から私有処理だけが使う`KoColor.h`と参照署名だけが使う`QDomDocument`の完全定義を除去し、`KoColor`、`QDomDocument`、`QDomElement`の前方宣言へ置換した。完全定義は実際に色とDOMを利用する宛先`plugins/impex/libkra/kis_kra_loader.cpp`へ移した。共有pointer別名とstoryboard値宣言の所有者`kis_types.h`と重複する`KisPaintingAssistant`・`StoryboardComment`前方宣言も除去した。変更前の強制includeは`KoColor.h`不足で失敗し、変更後は色管理探索路を加えず厳格構文に成功した。直接利用元`kra_converter.cpp`も厳格構文に成功し、loader実装は変更前後とも旧音声入口の既存非推奨診断1件だけである。計画commitは`d0b9ee93d9`、構造準備commitは`f992446da4`である。
+- 開始headerから既存`plugins/impex/libkra/tests/KisKraSaveXmlVisitorSchemaContractTest.cpp`へ全17 API・5枠を追加した。loaderの型・構築・破棄、XML・バイナリー画像、資源・storyboard・animation・音声、選択node・assistant・storyboard値、診断・画像名の署名を型特性と厳密な関数pointerで固定した。非推奨の旧音声入口は公開互換面として局所的に警告を抑えて観測する。既存binaryによる初回実行は新枠を認識せず`Function not found`で失敗した。契約commitは`62310443de`である。
+- 既存試験sourceは282行・15枠となった。targetは変更前後ともQt Core・Testだけへ動的接続する4工程・8入力、command SHA-256 `c43bc72bed9ba8fdd9a222f2e52e68b7df8dde7c6540d363e57f8975d7f2a82c`、input SHA-256 `5d4c2dd9284e07d87bc158f5cf0cca1aaae1a1c81a28ffaffd0c1c7b49fa0a70`を維持した。AUTOMOC `HEADERS=[]`、KRA loader・文書・画像・store・assistant・storyboardの未解決製品記号0である。macOSで全15枠と追加5枠を各20回、試験sourceの厳格構文と書式、連続二回の無作業再構築、公開API検査、`verify-quick`に成功した。台帳は27,914件対応、1,891件未対応となり、開始headerの残存は0件である。新`public-api-missing-g498.json`の生成成功後に旧`public-api-missing-g497.json` 516,267 bytesを削除した。主Ninja木6,020,420 KiB、共有compiler cache 982,872 KiB、最新報告511,966 bytes、SHA-256 `2f122b78cf0522e751f26245c744f5532e4db64d1c4bc5426c8de7dd0bce86f3`だけを再利用対象として保持する。compiler cacheは144,712 cache可能呼出し中120,575件、83.32%がhitしている。実KRA文書読込、資源・storyboard・animation・音声の復元結果、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第498便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
 
 ### 第239便の先行監査担当票
 
