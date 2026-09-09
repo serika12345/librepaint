@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 15:19 JST
+- 更新日時: 2026-09-09 15:23 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4415,6 +4415,13 @@
 - 開始headerから新規`libs/impex/tests/KisSaveGroupVisitorSchemaContractTest.cpp`へ全15 API・4枠を追加した。型・構築・寿命、基底nodeと具体layer、生成系layer、5種類のmask訪問を型特性と厳密な多重定義関数pointerで固定した。対象未登録の初回限定構築は未知の対象として失敗し、登録後は全4枠が成功して`G490 group save visitor API schema is not fixed yet`だけが`XFAIL`となった。契約commitは`c7723be818`である。
 - 新規試験sourceは80行・4枠で、targetはQt Core・Testだけへ動的接続する4工程・8入力、command SHA-256 `b9092af734bc11882660e2d6c3dfb33726d047599ba4b740a35b5aab031f8594`、input SHA-256 `54bf318a89f29688fa5c53c15bc7a2b4b64848b33fc9de2fe775f2e46f0132c8`となった。AUTOMOC `HEADERS=[]`、group保存visitor・画像・node・layer・maskの未解決製品記号は0である。macOSで対象の単発と20回反復、4枠を各20回、同じimpex UIの`KisImportExportManagerSchemaContractTest`、試験sourceの厳格構文と書式、連続二回の無作業再構築、公開API検査に成功した。初回登録時はCMake再生成だけを行い、製品を構築していない。88工程・174入力の`TestImportExportBoundary`、各訪問の返値・group再帰・画像保存の実状態、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 台帳は27,787件対応、2,018件未対応となり、開始headerの残存は0件である。新`public-api-missing-g491.json`の生成成功後に旧`public-api-missing-g490.json` 548,703 bytesを削除し、一時一覧、追加作業tree・構築木は作成していない。主Ninja木6,028,712 KiB、共有compiler cache 983,120 KiB、最新`build/tdd-macos/public-api-missing-g491.json` 544,993 bytes、SHA-256 `f1e9825fe5203e9118e7599273f35b4c832b6844ab21320bef6ca319c0a4f998`だけを再利用対象として保持する。compiler cacheは144,689件中120,567件、83.33%がhitしている。次の永続作業は第491便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
+
+### 第491便の公開API契約計画
+
+- 第491便はAndroid media encoderの生成と設定widgetを所有する`libs/impex/animation/KisAndroidMediaEncoderRunnable.h`に残る全15 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g491.json`は公開header 1,548、公開API 29,805、対応済み27,787、未対応2,018、544,993 bytes、SHA-256 `f1e9825fe5203e9118e7599273f35b4c832b6844ab21320bef6ca319c0a4f998`である。対象15識別子の整列集合SHA-256は`8075e1d7116984a4c1ad80da6e29eba9c44c7415314739cf4b14b11af129a397`である。
+- Android encoder境界はrunnable型・設定付き生成・対応形式列挙3、設定widget型・構築2、映像・音声encoder候補追加と選択値の取得・設定6、映像・音声bitrateの取得・設定4の4枠へ固定する。型特性、厳密な関数pointer、省略引数の未評価呼出しだけを使い、runnable、設定widget、形式、Android codec、Java境界と製品本文を実体化しない。
+- 開始headerの`KisMediaEncoderWrapper.h`は公開基底・設定・形式に、`QWidget`は設定widgetの公開基底に必要であり、契約前に移動できる製品依存はない。既存`libs/impex/tests/KisMediaEncoderFormatAndSettingsContractTest.cpp`は同じmedia encoder境界を所有する276行・11枠の限定targetで、基準対象と試験sourceの厳格構文に成功した。新targetを避けて同sourceへ4枠を追加し、380行・17枠未満に収める。契約追加より先に局所`libs/impex/tests/CMakeLists.txt`へQt Widgetsのinterface include探索路だけを加え、公開基底を解析できるようにする。
+- targetは変更前にQt Core・Testだけへ動的接続する4工程・8入力、command SHA-256 `5396218daf70b994ca00db11f16b98af52874f9dc9c70b854283c2cd6238a20a`、input SHA-256 `cf0648c4ad31097ad0543338b2b00c8a749956145bd8ffe647cc078a2e343e9c`である。準備後も停止線4工程・8入力、Qt Core・Testだけの動的接続、AUTOMOC `HEADERS=[]`を維持する。Qt Widgetsへの動的接続、製品OBJECT・shared、AUTOMOC製品header入力、製品記号、新たな探索路、380行・17枠以上が必要なら停止する。macOSの対象、既存11枠と追加4枠、追加枠の20回反復、試験sourceの厳格構文と書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、Android製品source、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
 
 ### 第239便の先行監査担当票
 
