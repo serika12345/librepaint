@@ -7,8 +7,6 @@
 #define KISOPENPANE_H
 
 #include <QDialog>
-#include <QWidget>
-#include <QPixmap>
 #include <QList>
 #include <KisQStringListFwd.h>
 
