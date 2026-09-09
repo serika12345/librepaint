@@ -16,7 +16,7 @@
     "publicApiFingerprint": "05a5e67dfcb803772f3a7b7f2773532707ee28e97b57d9173a41fba9047a71d2"
   },
   "migration": {
-    "expectedMissingApis": 2186
+    "expectedMissingApis": 2174
   },
   "contracts": [
     {
@@ -76864,6 +76864,54 @@
         "method:TimelineFramesIndexConverter::isDummyAvailableForTimeline(KisNodeDummy * dummy) const",
         "method:TimelineFramesIndexConverter::isDummyVisible(KisNodeDummy * dummy) const",
         "method:TimelineFramesIndexConverter::setShowGlobalSelectionMask(bool value)"
+      ]
+    },
+    {
+      "target": "KisCurrentOutlineFetcherSchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisCurrentOutlineFetcherSchemaContractTest.cpp",
+      "test": "KisCurrentOutlineFetcherSchemaContractTest::typeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "paintopの現在輪郭取得器は公開型を利用可能選択肢から構築でき、破棄可能な境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisCurrentOutlineFetcher",
+        "method:KisCurrentOutlineFetcher::KisCurrentOutlineFetcher(Options optionsAvailable)",
+        "method:KisCurrentOutlineFetcher::~KisCurrentOutlineFetcher()"
+      ]
+    },
+    {
+      "target": "KisCurrentOutlineFetcherSchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisCurrentOutlineFetcherSchemaContractTest.cpp",
+      "test": "KisCurrentOutlineFetcherSchemaContractTest::optionSchemaRemainsStable",
+      "behavior": "paintopの現在輪郭取得器は無効、サイズ、回転、鏡像、鋭さを安定したflagsとして維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisCurrentOutlineFetcher::Options",
+        "enum:KisCurrentOutlineFetcher::Option",
+        "enumerator:KisCurrentOutlineFetcher::Option::MIRROR_OPTION",
+        "enumerator:KisCurrentOutlineFetcher::Option::NO_OPTION",
+        "enumerator:KisCurrentOutlineFetcher::Option::ROTATION_OPTION",
+        "enumerator:KisCurrentOutlineFetcher::Option::SHARPNESS_OPTION",
+        "enumerator:KisCurrentOutlineFetcher::Option::SIZE_OPTION"
+      ]
+    },
+    {
+      "target": "KisCurrentOutlineFetcherSchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisCurrentOutlineFetcherSchemaContractTest.cpp",
+      "test": "KisCurrentOutlineFetcherSchemaContractTest::invalidationSignatureRemainsStable",
+      "behavior": "paintopの現在輪郭取得器は保持状態を無効化する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCurrentOutlineFetcher::setDirty()"
+      ]
+    },
+    {
+      "target": "KisCurrentOutlineFetcherSchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisCurrentOutlineFetcherSchemaContractTest.cpp",
+      "test": "KisCurrentOutlineFetcherSchemaContractTest::outlineFetchSignatureRemainsStable",
+      "behavior": "paintopの現在輪郭取得器は描画情報・設定・元輪郭・表示modeと省略可能な拡大・回転・傾き調整から輪郭を返す公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCurrentOutlineFetcher::fetchOutline(const KisPaintInformation & info,const KisPaintOpSettingsSP settings,const KisOptimizedBrushOutline & originalOutline,const KisPaintOpSettings::OutlineMode & mode,qreal alignForZoom,qreal additionalScale=1.0,qreal additionalRotation=0.0,bool tilt=false,qreal tiltcenterx=1.0,qreal tiltcentery=1.0) const"
       ]
     }
   ]
