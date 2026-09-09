@@ -6,6 +6,7 @@
 #include <kis_tool_utils.h>
 
 #include <KisStabilizerDelayedPaintHelper.h>
+#include <kis_stabilized_events_sampler.h>
 
 #include <QTest>
 
@@ -25,6 +26,8 @@ private Q_SLOTS:
     void stabilizerHelperStateQuerySignaturesRemainStable();
     void stabilizerHelperCallbackSignaturesRemainStable();
     void stabilizerHelperQueueLifecycleSignaturesRemainStable();
+    void stabilizedSamplerTypeConstructionAndLifetimeSchemaRemainStable();
+    void stabilizedSamplerMutationAndRangeSignaturesRemainStable();
 };
 
 void KisToolUtilsSchemaContractTest::colorSamplerTypeAndConstructionSchemaRemainStable()
@@ -110,6 +113,31 @@ void KisToolUtilsSchemaContractTest::stabilizerHelperQueueLifecycleSignaturesRem
     static_assert(std::is_same_v<decltype(&Helper::paintSome), void (Helper::*)()>);
     static_assert(std::is_same_v<decltype(&Helper::end), void (Helper::*)()>);
     static_assert(std::is_same_v<decltype(&Helper::cancel), void (Helper::*)()>);
+}
+
+void KisToolUtilsSchemaContractTest::stabilizedSamplerTypeConstructionAndLifetimeSchemaRemainStable()
+{
+    using Sampler = KisStabilizedEventsSampler;
+    using Iterator = Sampler::iterator;
+
+    static_assert(std::is_class_v<Sampler>);
+    static_assert(std::is_class_v<Iterator>);
+    static_assert(std::is_default_constructible_v<Sampler>);
+    static_assert(std::is_constructible_v<Sampler, int>);
+    static_assert(std::is_destructible_v<Sampler>);
+    static_assert(std::is_default_constructible_v<Iterator>);
+    static_assert(std::is_constructible_v<Iterator, const Sampler *, int, qreal>);
+}
+
+void KisToolUtilsSchemaContractTest::stabilizedSamplerMutationAndRangeSignaturesRemainStable()
+{
+    using Sampler = KisStabilizedEventsSampler;
+    using IteratorRange = std::pair<Sampler::iterator, Sampler::iterator>;
+
+    static_assert(std::is_same_v<decltype(&Sampler::clear), void (Sampler::*)()>);
+    static_assert(std::is_same_v<decltype(&Sampler::addEvent), void (Sampler::*)(const KisPaintInformation &)>);
+    static_assert(std::is_same_v<decltype(&Sampler::addFinishingEvent), void (Sampler::*)(int)>);
+    static_assert(std::is_same_v<decltype(&Sampler::range), IteratorRange (Sampler::*)() const>);
 }
 
 QTEST_GUILESS_MAIN(KisToolUtilsSchemaContractTest)
