@@ -4,6 +4,7 @@
  */
 
 #include <KisResourceModel.h>
+#include <KisResourceTypeModel.h>
 
 #include <QTest>
 
@@ -20,6 +21,9 @@ private Q_SLOTS:
     void resourceActivationAndUpdateSignaturesRemainStable();
     void resourceImportAndExportSignaturesRemainStable();
     void resourceAdditionNameAndMetadataSignaturesRemainStable();
+    void resourceTypeModelTypeColumnsAndLifetimeSchemaRemainStable();
+    void resourceTypeModelColumnOrdinalsRemainStable();
+    void resourceTypeModelDataSignaturesRemainStable();
 };
 
 #define ASSERT_RESOURCE_MODEL_SIGNATURE(Type, Method, Signature)                                                       \
@@ -89,6 +93,36 @@ void KisAbstractResourceModelSchemaContractTest::resourceAdditionNameAndMetadata
     ASSERT_RESOURCE_MODEL_SIGNATURE(Model, addResourceDeduplicateFileName, Add);
     ASSERT_RESOURCE_MODEL_SIGNATURE(Model, renameResource, Add);
     ASSERT_RESOURCE_MODEL_SIGNATURE(Model, setResourceMetaData, Metadata);
+}
+
+void KisAbstractResourceModelSchemaContractTest::resourceTypeModelTypeColumnsAndLifetimeSchemaRemainStable()
+{
+    using Model = KisResourceTypeModel;
+
+    static_assert(std::is_class_v<Model>);
+    static_assert(std::is_base_of_v<QAbstractTableModel, Model>);
+    static_assert(std::is_enum_v<Model::Columns>);
+    static_assert(std::is_default_constructible_v<Model>);
+    static_assert(std::is_constructible_v<Model, QObject *>);
+    static_assert(std::has_virtual_destructor_v<Model>);
+}
+
+void KisAbstractResourceModelSchemaContractTest::resourceTypeModelColumnOrdinalsRemainStable()
+{
+    using Columns = KisResourceTypeModel::Columns;
+
+    static_assert(Columns::Id == 0);
+    static_assert(Columns::ResourceType == 1);
+    static_assert(Columns::Name == 2);
+}
+
+void KisAbstractResourceModelSchemaContractTest::resourceTypeModelDataSignaturesRemainStable()
+{
+    using Model = KisResourceTypeModel;
+
+    static_assert(std::is_same_v<decltype(&Model::rowCount), int (Model::*)(const QModelIndex &) const>);
+    static_assert(std::is_same_v<decltype(&Model::columnCount), int (Model::*)(const QModelIndex &) const>);
+    static_assert(std::is_same_v<decltype(&Model::data), QVariant (Model::*)(const QModelIndex &, int) const>);
 }
 
 #undef ASSERT_RESOURCE_MODEL_SIGNATURE
