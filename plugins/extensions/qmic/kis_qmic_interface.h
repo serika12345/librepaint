@@ -11,13 +11,16 @@
 
 #include "kritaqmicinterface_export.h"
 
-#include <QDebug>
 #include <QMutex>
 #include <QObject>
 #include <QScopedPointer>
-#include <QSize>
+#include <QSharedPointer>
+#include <QString>
 #include <QVector>
 
+class QDebug;
+class QRectF;
+class QSize;
 class KisQmicApplicator;
 class KisViewManager;
 
