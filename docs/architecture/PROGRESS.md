@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 23:17 JST
+- 更新日時: 2026-09-09 23:26 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4771,6 +4771,13 @@
 - template資源pathとgroup集合を所有する公開境界を軽量な型契約として固定した。開始`libs/application/ui/workspace/KisTemplateTree.h`から既存`libs/application/tests/KisOpenPaneSchemaContractTest.cpp`へ全11 API・3枠を追加し、tree型・資源pathからの構築・破棄3件、資源path照会・tree読込・tree書出3件、group追加・名前検索・既定group・既定template・group一覧5件を型特性と厳密な関数pointerで固定した。計画commitは`4fba8ccc8e`、契約commitは`b010602eb5`で、既存試験sourceは100行・6枠となった。公開header、製品source、CMakeは変更していない。
 - targetは4工程・8入力、command SHA-256 `c27f68be4d728befb5d4d9f56385d0d7c81a46fd59c79ce460c7dbcac7b5a73c`、input SHA-256 `407d31d9e77aae98ce053ac281f66354e2160a9b1191855640256e75a1d39dc5`を維持した。AUTOMOC `HEADERS=[]`、open pane・template treeの未解決製品記号0で、Qt Core・Testだけへ動的接続する。macOSで対象全体20回と追加3枠各20回、実装・試験sourceとheader強制includeの厳格構文、書式、連続二回の無作業再構築に成功した。実tree・template・group・filesystem・設定file、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 公開API検査の初回診断は期待値1,509に対して実測1,498で、新規11件と一致した。台帳を28,303件対応、1,498件未対応へ進め、`public-api-missing-g527.json`の生成成功後に旧`public-api-missing-g526.json` 410,955 bytesを削除した。主Ninja木6,032,276 KiB、共有compiler cache 983,080 KiB、最新報告408,311 bytes、SHA-256 `8332cecc7c3e541b47784fd8a86abec751ba55fa325bf34ac1af191f56767230`だけを再利用対象として保持する。compiler cacheは144,796 cache可能呼出し中120,594件、83.29%がhitしている。次の永続作業は第527便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
+
+### 第527便の公開API契約計画
+
+- 第527便はcanvas表示前の画素変換とshader設定を抽象化する`libs/ui/canvas/kis_display_filter.h`の残存全11 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g527.json`は公開header 1,549、公開API 29,801、対応済み28,303、未対応1,498、408,311 bytes、SHA-256 `8332cecc7c3e541b47784fd8a86abec751ba55fa325bf34ac1af191f56767230`である。対象11識別子の整列集合SHA-256は`1848b0df13001174585f2fdf915d0879b2c70baa6fdc06a9ffdef91fd08ffd84`である。
+- 表示filter境界は型・QObject親からの構築2、shader program文字列・texture設定・shader更新3、逆近似・順近似・画素filter・内部色管理・補正interface・現在色表現固定6の3枠へ固定する。具象probeの型特性と厳密な関数pointerだけを使い、filter、OpenGL関数、shader program、画素buffer、補正interfaceを実体化しない。
+- 開始headerはOpenGL関数型を前方宣言pointerとしてだけ公開する一方で`qopengl.h`全体をincludeする。契約追加より先に同includeを除去し、既存のplatform別`GLFunctions` macroを通じたclass前方宣言だけを維持する。開始`libs/ui/canvas/kis_display_filter.cpp`と既存`libs/ui/tests/KisOpenGLModeProberSchemaContractTest.cpp`からのheader強制includeは厳格構文診断0件であり、変更後もこれを維持する。
+- 既存OpenGL mode契約は111行・5枠で、3枠追加後も220行・10枠以内に収まる。CMakeを変更せず4工程・8入力、command SHA-256 `26563910ffa29c49811866e4d3a3649597748c0a2208921c0d488e3c95831872`、input SHA-256 `841766e90ca42485906491aab8f38bccf717c2c1b6222520933c84f12da48774`を維持する。工程・入力増加、候補headerのAUTOMOC入力化、製品未解決記号が生じれば停止する。macOSの対象全体と追加3枠の20回反復、実装・試験sourceとheader強制includeの厳格構文、書式、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、実OpenGL context・shader・texture・画素buffer、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
 
 ### 第239便の先行監査担当票
 
