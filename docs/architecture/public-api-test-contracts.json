@@ -16,7 +16,7 @@
     "publicApiFingerprint": "05a5e67dfcb803772f3a7b7f2773532707ee28e97b57d9173a41fba9047a71d2"
   },
   "migration": {
-    "expectedMissingApis": 2143
+    "expectedMissingApis": 2120
   },
   "contracts": [
     {
@@ -77015,6 +77015,74 @@
         "method:KisDummiesFacadeBase::sigDummyChanged(KisNodeDummy * dummy)",
         "method:KisDummiesFacadeBase::sigEndInsertDummy(KisNodeDummy * dummy)",
         "method:KisDummiesFacadeBase::sigEndRemoveDummy()"
+      ]
+    },
+    {
+      "target": "KisCanvas2SchemaContractTest",
+      "source": "libs/ui/tests/KisCanvas2SchemaContractTest.cpp",
+      "test": "KisCanvas2SchemaContractTest::controllerWidgetTypeLifetimeAndStateSchemaRemainStable",
+      "behavior": "widget系canvas controllerは二つの基底責務を統合する抽象公開型として構築でき、状態取得・私有実装・仮想破棄境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoCanvasControllerWidget",
+        "method:KoCanvasControllerWidget::KoCanvasControllerWidget(KisKActionCollection * actionCollection,KoCanvasSupervisor * observerProvider,QWidget * parent=0)",
+        "method:KoCanvasControllerWidget::canvasState() const",
+        "method:KoCanvasControllerWidget::priv()",
+        "method:KoCanvasControllerWidget::~KoCanvasControllerWidget()"
+      ]
+    },
+    {
+      "target": "KisCanvas2SchemaContractTest",
+      "source": "libs/ui/tests/KisCanvas2SchemaContractTest.cpp",
+      "test": "KisCanvas2SchemaContractTest::controllerWidgetCanvasAndToolSignaturesRemainStable",
+      "behavior": "widget系canvas controllerは起動、canvasの設定・取得、canvas widget交換、tool設定widget通知の境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoCanvasControllerWidget::activate()",
+        "method:KoCanvasControllerWidget::canvas() const",
+        "method:KoCanvasControllerWidget::changeCanvasWidget(QWidget * widget)",
+        "method:KoCanvasControllerWidget::setCanvas(KoCanvasBase * canvas)",
+        "method:KoCanvasControllerWidget::setToolOptionWidgets(const QList<QPointer<QWidget>> & widgets)"
+      ]
+    },
+    {
+      "target": "KisCanvas2SchemaContractTest",
+      "source": "libs/ui/tests/KisCanvas2SchemaContractTest.cpp",
+      "test": "KisCanvas2SchemaContractTest::controllerWidgetZoomSignaturesRemainStable",
+      "behavior": "widget系canvas controllerは矩形への拡大と、倍率・解像度・静止点を組み合わせた4形式の拡大設定境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoCanvasControllerWidget::setZoom(KoZoomMode::Mode mode,qreal zoom)",
+        "method:KoCanvasControllerWidget::setZoom(KoZoomMode::Mode mode,qreal zoom,const KoViewTransformStillPoint & stillPoint)",
+        "method:KoCanvasControllerWidget::setZoom(KoZoomMode::Mode mode,qreal zoom,qreal resolutionX,qreal resolutionY)",
+        "method:KoCanvasControllerWidget::setZoom(KoZoomMode::Mode mode,qreal zoom,qreal resolutionX,qreal resolutionY,const std::optional<KoViewTransformStillPoint> & docStillPoint)",
+        "method:KoCanvasControllerWidget::zoomTo(const QRect & rect)"
+      ]
+    },
+    {
+      "target": "KisCanvas2SchemaContractTest",
+      "source": "libs/ui/tests/KisCanvas2SchemaContractTest.cpp",
+      "test": "KisCanvas2SchemaContractTest::controllerWidgetPanSignaturesRemainStable",
+      "behavior": "widget系canvas controllerは距離指定と上下左右指定のcanvas移動境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoCanvasControllerWidget::pan(const QPoint & distance)",
+        "method:KoCanvasControllerWidget::panDown()",
+        "method:KoCanvasControllerWidget::panLeft()",
+        "method:KoCanvasControllerWidget::panRight()",
+        "method:KoCanvasControllerWidget::panUp()"
+      ]
+    },
+    {
+      "target": "KisCanvas2SchemaContractTest",
+      "source": "libs/ui/tests/KisCanvas2SchemaContractTest.cpp",
+      "test": "KisCanvas2SchemaContractTest::controllerWidgetScrollSignaturesRemainStable",
+      "behavior": "widget系canvas controllerは内容移動とscroll位置の取得・設定境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoCanvasControllerWidget::scrollBarValue() const",
+        "method:KoCanvasControllerWidget::scrollContentsBy(int dx,int dy)",
+        "method:KoCanvasControllerWidget::setScrollBarValue(const QPoint & value)"
       ]
     }
   ]
