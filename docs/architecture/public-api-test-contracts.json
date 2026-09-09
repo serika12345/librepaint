@@ -16,7 +16,7 @@
     "publicApiFingerprint": "05a5e67dfcb803772f3a7b7f2773532707ee28e97b57d9173a41fba9047a71d2"
   },
   "migration": {
-    "expectedMissingApis": 2160
+    "expectedMissingApis": 2143
   },
   "contracts": [
     {
@@ -76962,6 +76962,59 @@
         "function:KisToolUtils::clearImage(KisImageSP image,KisNodeList nodes,KisSelectionSP selection)",
         "function:KisToolUtils::nodeEditableMessage(KisNodeSP node,bool blockedNoIndirectPainting=false)",
         "function:KisToolUtils::setCursorPos(const QPoint & point)"
+      ]
+    },
+    {
+      "target": "KisDummiesFacadeBaseSchemaContractTest",
+      "source": "libs/ui/tests/KisDummiesFacadeBaseSchemaContractTest.cpp",
+      "test": "KisDummiesFacadeBaseSchemaContractTest::typeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "画像node木のUI向けfacadeはQObject由来の抽象公開型として構築でき、仮想破棄境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisDummiesFacadeBase",
+        "method:KisDummiesFacadeBase::KisDummiesFacadeBase(QObject * parent=0)",
+        "method:KisDummiesFacadeBase::~KisDummiesFacadeBase()"
+      ]
+    },
+    {
+      "target": "KisDummiesFacadeBaseSchemaContractTest",
+      "source": "libs/ui/tests/KisDummiesFacadeBaseSchemaContractTest.cpp",
+      "test": "KisDummiesFacadeBaseSchemaContractTest::imageAndActivationStateSignaturesRemainStable",
+      "behavior": "画像node木のUI向けfacadeは画像だけまたは能動node付きの画像を受け、最後に能動化したnodeを保持・照会する境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDummiesFacadeBase::lastActivatedNode() const",
+        "method:KisDummiesFacadeBase::setImage(KisImageWSP image)",
+        "method:KisDummiesFacadeBase::setImage(KisImageWSP image,KisNodeSP activeNode)",
+        "method:KisDummiesFacadeBase::setLastActivatedNode(KisNodeSP node)"
+      ]
+    },
+    {
+      "target": "KisDummiesFacadeBaseSchemaContractTest",
+      "source": "libs/ui/tests/KisDummiesFacadeBaseSchemaContractTest.cpp",
+      "test": "KisDummiesFacadeBaseSchemaContractTest::dummyLookupSignaturesRemainStable",
+      "behavior": "画像node木のUI向けfacadeはnodeのdummy有無と対応dummy、根dummy、総数を照会する境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDummiesFacadeBase::dummiesCount() const",
+        "method:KisDummiesFacadeBase::dummyForNode(KisNodeSP node) const",
+        "method:KisDummiesFacadeBase::hasDummyForNode(KisNodeSP node) const",
+        "method:KisDummiesFacadeBase::rootDummy() const"
+      ]
+    },
+    {
+      "target": "KisDummiesFacadeBaseSchemaContractTest",
+      "source": "libs/ui/tests/KisDummiesFacadeBaseSchemaContractTest.cpp",
+      "test": "KisDummiesFacadeBaseSchemaContractTest::modelNotificationSignaturesRemainStable",
+      "behavior": "画像node木のUI向けfacadeはdummyの挿入・削除・変更とnode能動化を模型へ通知する境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDummiesFacadeBase::sigActivateNode(KisNodeSP node)",
+        "method:KisDummiesFacadeBase::sigBeginInsertDummy(KisNodeDummy * parent,int index,const QString & metaObjectType)",
+        "method:KisDummiesFacadeBase::sigBeginRemoveDummy(KisNodeDummy * dummy)",
+        "method:KisDummiesFacadeBase::sigDummyChanged(KisNodeDummy * dummy)",
+        "method:KisDummiesFacadeBase::sigEndInsertDummy(KisNodeDummy * dummy)",
+        "method:KisDummiesFacadeBase::sigEndRemoveDummy()"
       ]
     }
   ]
