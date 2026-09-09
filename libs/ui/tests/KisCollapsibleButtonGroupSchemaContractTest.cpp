@@ -5,6 +5,7 @@
 
 #include "utils/KisRecentFileIconCache.h"
 #include "widgets/kis_collapsible_button_group.h"
+#include "widgets/kis_utility_title_bar.h"
 
 #include <QTest>
 
@@ -21,6 +22,8 @@ private Q_SLOTS:
     void sizingAndActionSignaturesRemainStable();
     void recentFileIconCacheTypeLifetimeAndSingletonSchemaRemainStable();
     void recentFileIconCacheAccessAndNotificationSignaturesRemainStable();
+    void utilityTitleBarTypeConstructionAndSizingSchemaRemainStable();
+    void utilityTitleBarWidgetAreaAndLockSignaturesRemainStable();
 };
 
 void KisCollapsibleButtonGroupSchemaContractTest::typeConstructionAndLifetimeSchemaRemainStable()
@@ -80,6 +83,29 @@ void KisCollapsibleButtonGroupSchemaContractTest::recentFileIconCacheAccessAndNo
     static_assert(std::is_same_v<decltype(&Cache::invalidateFileIcon), void (Cache::*)(const QUrl &)>);
     static_assert(std::is_same_v<decltype(&Cache::reloadFileIcon), void (Cache::*)(const QUrl &)>);
     static_assert(std::is_same_v<decltype(&Cache::fileIconChanged), void (Cache::*)(const QUrl &, const QIcon &)>);
+}
+
+void KisCollapsibleButtonGroupSchemaContractTest::utilityTitleBarTypeConstructionAndSizingSchemaRemainStable()
+{
+    using TitleBar = KisUtilityTitleBar;
+
+    static_assert(std::is_class_v<TitleBar>);
+    static_assert(std::is_base_of_v<QWidget, TitleBar>);
+    static_assert(std::is_default_constructible_v<TitleBar>);
+    static_assert(std::is_constructible_v<TitleBar, QWidget *>);
+    static_assert(std::is_constructible_v<TitleBar, QLabel *>);
+    static_assert(std::is_constructible_v<TitleBar, QLabel *, QWidget *>);
+    static_assert(std::has_virtual_destructor_v<TitleBar>);
+    static_assert(std::is_same_v<decltype(&TitleBar::sizeHint), QSize (TitleBar::*)() const>);
+}
+
+void KisCollapsibleButtonGroupSchemaContractTest::utilityTitleBarWidgetAreaAndLockSignaturesRemainStable()
+{
+    using TitleBar = KisUtilityTitleBar;
+
+    static_assert(std::is_same_v<decltype(&TitleBar::widgetArea), QWidget *(TitleBar::*)()>);
+    static_assert(std::is_same_v<decltype(&TitleBar::setWidgetArea), void (TitleBar::*)(QWidget *)>);
+    static_assert(std::is_same_v<decltype(&TitleBar::setLocked), void (TitleBar::*)(bool)>);
 }
 
 QTEST_GUILESS_MAIN(KisCollapsibleButtonGroupSchemaContractTest)
