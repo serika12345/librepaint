@@ -8,6 +8,7 @@
 #include <functional>
 #include <type_traits>
 
+#include "canvas/KoCanvasControllerWidget.h"
 #include "canvas/kis_canvas2.h"
 #include "canvas/kis_canvas_controller.h"
 
@@ -15,6 +16,39 @@
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisCanvas2::method)), signature>)
 #define ASSERT_CANVAS_CONTROLLER_SIGNATURE(method, signature)                                                          \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisCanvasController::method)), signature>)
+#define ASSERT_CANVAS_CONTROLLER_WIDGET_SIGNATURE(method, signature)                                                   \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KoCanvasControllerWidget::method)), signature>)
+
+namespace
+{
+class CanvasControllerWidgetProbe final : public KoCanvasControllerWidget
+{
+public:
+    using KoCanvasControllerWidget::KoCanvasControllerWidget;
+
+    void ensureVisibleDoc(const QRectF &, bool) override;
+    void zoomIn(const KoViewTransformStillPoint &) override;
+    void zoomIn() override;
+    void zoomOut(const KoViewTransformStillPoint &) override;
+    void zoomOut() override;
+    void setPreferredCenter(const QPointF &) override;
+    QPointF preferredCenter() const override;
+    void resetScrollBars() override;
+    QPointF currentCursorPosition() const override;
+    KoZoomState zoomState() const override;
+    KisCanvasState canvasState() const override;
+
+protected:
+    void updateCanvasOffsetInternal(const QPointF &) override;
+    void updateCanvasWidgetSizeInternal(const QSize &, qreal) override;
+    void updateCanvasZoomInternal(KoZoomMode::Mode,
+                                  qreal,
+                                  qreal,
+                                  qreal,
+                                  const std::optional<KoViewTransformStillPoint> &) override;
+    void zoomToInternal(const QRect &) override;
+};
+} // namespace
 
 class KisCanvas2SchemaContractTest : public QObject
 {
@@ -31,6 +65,11 @@ private Q_SLOTS:
     void canvasControllerStatePersistenceAndResolutionSchemaRemainStable();
     void canvasControllerMirrorAndRotationSchemaRemainStable();
     void canvasControllerModeAndNotificationSchemaRemainStable();
+    void controllerWidgetTypeLifetimeAndStateSchemaRemainStable();
+    void controllerWidgetCanvasAndToolSignaturesRemainStable();
+    void controllerWidgetZoomSignaturesRemainStable();
+    void controllerWidgetPanSignaturesRemainStable();
+    void controllerWidgetScrollSignaturesRemainStable();
 };
 
 void KisCanvas2SchemaContractTest::canvasTypeConstructionAndBaseSchemaRemainStable()
@@ -290,6 +329,68 @@ void KisCanvas2SchemaContractTest::canvasControllerModeAndNotificationSchemaRema
     QVERIFY(true);
 }
 // clang-format on
+
+void KisCanvas2SchemaContractTest::controllerWidgetTypeLifetimeAndStateSchemaRemainStable()
+{
+    using Widget = KoCanvasControllerWidget;
+
+    static_assert(std::is_class_v<Widget>);
+    static_assert(std::is_base_of_v<QAbstractScrollArea, Widget>);
+    static_assert(std::is_base_of_v<KoCanvasController, Widget>);
+    static_assert(std::is_abstract_v<Widget>);
+    static_assert(
+        std::is_constructible_v<CanvasControllerWidgetProbe, KisKActionCollection *, KoCanvasSupervisor *, QWidget *>);
+    static_assert(std::has_virtual_destructor_v<Widget>);
+    ASSERT_CANVAS_CONTROLLER_WIDGET_SIGNATURE(canvasState, KisCanvasState (Widget::*)() const);
+    ASSERT_CANVAS_CONTROLLER_WIDGET_SIGNATURE(priv, Widget::Private * (Widget::*)());
+}
+
+void KisCanvas2SchemaContractTest::controllerWidgetCanvasAndToolSignaturesRemainStable()
+{
+    using Widget = KoCanvasControllerWidget;
+
+    ASSERT_CANVAS_CONTROLLER_WIDGET_SIGNATURE(activate, void (Widget::*)());
+    ASSERT_CANVAS_CONTROLLER_WIDGET_SIGNATURE(setCanvas, void (Widget::*)(KoCanvasBase *));
+    ASSERT_CANVAS_CONTROLLER_WIDGET_SIGNATURE(canvas, KoCanvasBase * (Widget::*)() const);
+    ASSERT_CANVAS_CONTROLLER_WIDGET_SIGNATURE(changeCanvasWidget, void (Widget::*)(QWidget *));
+    ASSERT_CANVAS_CONTROLLER_WIDGET_SIGNATURE(setToolOptionWidgets, void (Widget::*)(const QList<QPointer<QWidget>> &));
+}
+
+void KisCanvas2SchemaContractTest::controllerWidgetZoomSignaturesRemainStable()
+{
+    using Widget = KoCanvasControllerWidget;
+
+    ASSERT_CANVAS_CONTROLLER_WIDGET_SIGNATURE(zoomTo, void (Widget::*)(const QRect &));
+    ASSERT_CANVAS_CONTROLLER_WIDGET_SIGNATURE(setZoom, void (Widget::*)(KoZoomMode::Mode, qreal));
+    ASSERT_CANVAS_CONTROLLER_WIDGET_SIGNATURE(setZoom, void (Widget::*)(KoZoomMode::Mode, qreal, qreal, qreal));
+    ASSERT_CANVAS_CONTROLLER_WIDGET_SIGNATURE(
+        setZoom,
+        void (Widget::*)(KoZoomMode::Mode, qreal, const KoViewTransformStillPoint &));
+    ASSERT_CANVAS_CONTROLLER_WIDGET_SIGNATURE(
+        setZoom,
+        void (Widget::*)(KoZoomMode::Mode, qreal, qreal, qreal, const std::optional<KoViewTransformStillPoint> &));
+}
+
+void KisCanvas2SchemaContractTest::controllerWidgetPanSignaturesRemainStable()
+{
+    using Widget = KoCanvasControllerWidget;
+    using NoArgument = void (Widget::*)();
+
+    ASSERT_CANVAS_CONTROLLER_WIDGET_SIGNATURE(pan, void (Widget::*)(const QPoint &));
+    ASSERT_CANVAS_CONTROLLER_WIDGET_SIGNATURE(panUp, NoArgument);
+    ASSERT_CANVAS_CONTROLLER_WIDGET_SIGNATURE(panDown, NoArgument);
+    ASSERT_CANVAS_CONTROLLER_WIDGET_SIGNATURE(panLeft, NoArgument);
+    ASSERT_CANVAS_CONTROLLER_WIDGET_SIGNATURE(panRight, NoArgument);
+}
+
+void KisCanvas2SchemaContractTest::controllerWidgetScrollSignaturesRemainStable()
+{
+    using Widget = KoCanvasControllerWidget;
+
+    ASSERT_CANVAS_CONTROLLER_WIDGET_SIGNATURE(scrollContentsBy, void (Widget::*)(int, int));
+    ASSERT_CANVAS_CONTROLLER_WIDGET_SIGNATURE(scrollBarValue, QPoint (Widget::*)() const);
+    ASSERT_CANVAS_CONTROLLER_WIDGET_SIGNATURE(setScrollBarValue, void (Widget::*)(const QPoint &));
+}
 
 QTEST_GUILESS_MAIN(KisCanvas2SchemaContractTest)
 
