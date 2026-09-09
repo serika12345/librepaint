@@ -18,6 +18,7 @@
 
 #include "kis_algebra_2d.h"
 #include "kis_distance_information.h"
+#include <brushengine/kis_paint_information.h>
 #include "kis_painting_information_builder.h"
 #include "kis_image.h"
 #include "kis_painter.h"
@@ -31,6 +32,7 @@
 
 #include "kis_random_source.h"
 #include "KisPerStrokeRandomSource.h"
+#include "kis_smoothing_options.h"
 
 #include "strokes/freehand_stroke.h"
 #include "strokes/KisFreehandStrokeInfo.h"
