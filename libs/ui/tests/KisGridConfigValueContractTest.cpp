@@ -26,6 +26,7 @@ private Q_SLOTS:
     void isometricGridStateSignaturesRemainStable();
     void gridPresentationSignaturesRemainStable();
     void gridEqualitySignatureRemainsStable();
+    void constructionPersistenceAndTransformSignaturesRemainStable();
 };
 
 void KisGridConfigValueContractTest::typesEnumsAndTrigoCacheValuesRemainStable()
@@ -184,6 +185,19 @@ void KisGridConfigValueContractTest::gridPresentationSignaturesRemainStable()
 void KisGridConfigValueContractTest::gridEqualitySignatureRemainsStable()
 {
     ASSERT_GRID_CONFIG_SIGNATURE(operator==, bool (KisGridConfig::*)(const KisGridConfig &) const);
+}
+
+void KisGridConfigValueContractTest::constructionPersistenceAndTransformSignaturesRemainStable()
+{
+    static_assert(std::is_default_constructible_v<KisGridConfig>);
+    ASSERT_GRID_CONFIG_SIGNATURE(defaultGrid, const KisGridConfig &(*)());
+    ASSERT_GRID_CONFIG_SIGNATURE(isDefault, bool (KisGridConfig::*)() const);
+    ASSERT_GRID_CONFIG_SIGNATURE(loadStaticData, void (KisGridConfig::*)());
+    ASSERT_GRID_CONFIG_SIGNATURE(saveStaticData, void (KisGridConfig::*)() const);
+    ASSERT_GRID_CONFIG_SIGNATURE(loadDynamicDataFromXml, bool (KisGridConfig::*)(const QDomElement &));
+    ASSERT_GRID_CONFIG_SIGNATURE(saveDynamicDataToXml,
+                                 QDomElement (KisGridConfig::*)(QDomDocument &, const QString &) const);
+    ASSERT_GRID_CONFIG_SIGNATURE(transform, void (KisGridConfig::*)(const QTransform &));
 }
 
 #undef ASSERT_GRID_CONFIG_SIGNATURE
