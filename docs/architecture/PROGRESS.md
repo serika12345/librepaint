@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 22:48 JST
+- 更新日時: 2026-09-09 22:52 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4744,6 +4744,13 @@
 - 既存`libs/ui/tests/KisPlaybackEngineQtSchemaContractTest.cpp`は65行・3枠で、同じanimation header境界へ3枠を追加しても220行・10枠以内に収まる。CMakeを変更せず4工程・8入力、command SHA-256 `d83163cca7bb97ef2413160d5e8382b143fd586fb3561bc15be64b5e15fcaf56`、input SHA-256 `1f931ce9d58b4541ac4ac2cf1849edd8e33d884f2b8780af7920dcaae1531655`を維持する。工程・入力増加、候補headerのAUTOMOC入力化、製品未解決記号が生じれば停止する。macOSの対象とframe cache近傍、対象全体と追加3枠の20回反復、実装・試験sourceとheader強制includeの厳格構文、書式、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、実frame保存・OpenGL更新情報・file・canvas、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
 - 開始`libs/ui/animation/cache/KisFrameCacheSwapper.h`から既存`libs/ui/tests/KisPlaybackEngineQtSchemaContractTest.cpp`へ全11 API・3枠を追加した。保管器型・2構築経路・仮想破棄4件、frame保存・読込・移動・破棄4件、存在・詳細度・dirty領域照会3件を型特性と厳密な関数pointerで固定した。公開headerと製品source、CMakeは変更していない。計画commitは`99e6f05fa0`、契約commitは`ef91546bf6`で、既存sourceは99行・6枠となった。
 - targetは4工程・8入力、command SHA-256 `d83163cca7bb97ef2413160d5e8382b143fd586fb3561bc15be64b5e15fcaf56`、input SHA-256 `1f931ce9d58b4541ac4ac2cf1849edd8e33d884f2b8780af7920dcaae1531655`を維持した。AUTOMOC `HEADERS=[]`、frame cache保管器・OpenGL更新情報・builderの未解決製品記号0で、Qt Core・Testだけへ動的接続する。macOSで対象とmemory frame cache近傍、対象全体と追加3枠を各20回、実装・試験sourceとheader強制includeの厳格構文、書式、連続二回の無作業再構築、公開API検査に成功した。近傍の9工程・19入力targetは所有する2 objectと試験だけを局所再構築し、製品全体へ広がらなかった。台帳は28,283件対応、1,518件未対応となり、開始headerの残存は0件である。新`public-api-missing-g525.json`の生成成功後に旧`public-api-missing-g524.json` 416,487 bytesを削除した。主Ninja木6,032,296 KiB、共有compiler cache 983,328 KiB、最新報告413,461 bytes、SHA-256 `4383211ca584f4dd6a1f2a9738f4b08224343f7921ffa3bd095af61bbf4b950a`だけを再利用対象として保持する。compiler cacheは144,792 cache可能呼出し中120,593件、83.29%がhitしている。実frame保存・OpenGL更新情報・file・canvas、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第525便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
+
+### 第525便の公開API契約計画
+
+- 第525便は待機中に不足animation frameの再生成を要求し、追跡画像と優先frameを管理する`libs/ui/animation/kis_animation_cache_populator.h`の残存全9 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g525.json`は公開header 1,549、公開API 29,801、対応済み28,283、未対応1,518、413,461 bytes、SHA-256 `4383211ca584f4dd6a1f2a9738f4b08224343f7921ffa3bd095af61bbf4b950a`である。対象9識別子の整列集合SHA-256は`5fb884e130e85ff5b15efcccb3d6b632c7b5131eb615c90361c829f2cda85db4`である。
+- animation cache補充境界は補充器型・partからの構築・仮想破棄3、cache frame再生成・画像優先frame要求・追跡画像設定3、待機監視器照会・画像変更強制・再生成slot3の3枠へ固定する。型特性と厳密な関数pointerだけを使い、補充器、part、画像、frame cache、待機監視器と再生成器を実体化しない。
+- 開始headerは画像共有pointer別名だけのために`kis_types.h`全体をincludeし、image探索路なしのheader強制includeが同header不足1件となる。契約追加より先に`kis_types.h`を除去し、既存frame cache前方宣言が提供する`KisSharedPtr`から`KisImageSP`を局所宣言する。値会員と公開容器署名に必要な`QScopedPointer`・`QVector`は直接includeし、開始`libs/ui/animation/kis_animation_cache_populator.cpp`の厳格構文は変更前の診断0件を維持する。
+- 既存`libs/ui/tests/KisPlaybackEngineQtSchemaContractTest.cpp`は99行・6枠で、同じanimation cache境界へ3枠を追加しても220行・10枠以内に収まる。CMakeを変更せず4工程・8入力、command SHA-256 `d83163cca7bb97ef2413160d5e8382b143fd586fb3561bc15be64b5e15fcaf56`、input SHA-256 `1f931ce9d58b4541ac4ac2cf1849edd8e33d884f2b8780af7920dcaae1531655`を維持する。工程・入力増加、候補headerのAUTOMOC入力化、製品未解決記号が生じれば停止する。macOSの対象とframe cache近傍、対象全体と追加3枠の20回反復、実装・試験sourceとheader強制includeの厳格構文、書式、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、実frame再生成・画像・待機監視・cache変更、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
 
 ### 第239便の先行監査担当票
 
