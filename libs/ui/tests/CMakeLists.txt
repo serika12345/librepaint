@@ -1467,6 +1467,21 @@ target_compile_definitions(KisDummiesFacadeBaseSchemaContractTest PRIVATE
 )
 
 kis_add_test(
+    KisCollapsibleButtonGroupSchemaContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KisCollapsibleButtonGroupSchemaContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Widgets,INTERFACE_INCLUDE_DIRECTORIES>
+)
+target_compile_definitions(KisCollapsibleButtonGroupSchemaContractTest PRIVATE
+    kritaui_EXPORTS
+)
+
+kis_add_test(
     KisExposureGammaCorrectionInterfaceContractTest.cpp
     LINK_LIBRARIES
         kritauiexposuregammacorrectionobjects
