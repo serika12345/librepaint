@@ -16,7 +16,7 @@
     "publicApiFingerprint": "5f05b2aa8e5bef4343af1d55a3852331e51d4369fe135b099327b1a91b6b8c4c"
   },
   "migration": {
-    "expectedMissingApis": 2266
+    "expectedMissingApis": 2253
   },
   "contracts": [
     {
@@ -76513,6 +76513,64 @@
         "method:KisNodeProgressProxy::setFormat(const QString & format)",
         "method:KisNodeProgressProxy::setRange(int minimum,int maximum)",
         "method:KisNodeProgressProxy::setValue(int value)"
+      ]
+    },
+    {
+      "target": "KisBaseProcessorSchemaContractTest",
+      "source": "libs/image/tests/KisBaseProcessorSchemaContractTest.cpp",
+      "test": "KisBaseProcessorSchemaContractTest::generatorTypeLifetimeAndConstructionSchemaRemainStable",
+      "behavior": "画像生成器は基底処理器を具体化する公開型として識別子・分類・表示項目から構築でき、仮想寿命を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisGenerator",
+        "method:KisGenerator::KisGenerator(const KoID & id,const KoID & category,const QString & entry)",
+        "method:KisGenerator::~KisGenerator()"
+      ]
+    },
+    {
+      "target": "KisBaseProcessorSchemaContractTest",
+      "source": "libs/image/tests/KisBaseProcessorSchemaContractTest.cpp",
+      "test": "KisBaseProcessorSchemaContractTest::generatorProcessingSignaturesRemainStable",
+      "behavior": "画像生成器は出力情報・寸法・設定を受け取り、進捗更新器ありまたはなしで画像内容を生成する二形式の公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisGenerator::generate(KisProcessingInformation dst,const QSize & size,const KisFilterConfigurationSP config) const",
+        "method:KisGenerator::generate(KisProcessingInformation dst,const QSize & size,const KisFilterConfigurationSP config,KoUpdater * progressUpdater) const"
+      ]
+    },
+    {
+      "target": "KisBaseProcessorSchemaContractTest",
+      "source": "libs/image/tests/KisBaseProcessorSchemaContractTest.cpp",
+      "test": "KisBaseProcessorSchemaContractTest::generatorExtentAndCapabilitySignaturesRemainStable",
+      "behavior": "画像生成器は設定に対する生成矩形を返し、処理領域をpatchへ分割できるかを通知する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisGenerator::allowsSplittingIntoPatches() const",
+        "method:KisGenerator::generatedRect(QRect _imageArea,const KisFilterConfigurationSP=0) const"
+      ]
+    },
+    {
+      "target": "KisBaseProcessorSchemaContractTest",
+      "source": "libs/image/tests/KisBaseProcessorSchemaContractTest.cpp",
+      "test": "KisBaseProcessorSchemaContractTest::generatorRegistryTypeLifetimeAndInstanceSchemaRemainStable",
+      "behavior": "画像生成器registryはQObjectと共有生成器registryを具体化し、仮想寿命と単一実体取得の公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisGeneratorRegistry",
+        "method:KisGeneratorRegistry::instance()",
+        "method:KisGeneratorRegistry::~KisGeneratorRegistry()"
+      ]
+    },
+    {
+      "target": "KisBaseProcessorSchemaContractTest",
+      "source": "libs/image/tests/KisBaseProcessorSchemaContractTest.cpp",
+      "test": "KisBaseProcessorSchemaContractTest::generatorRegistryAdditionAndNotificationSignaturesRemainStable",
+      "behavior": "画像生成器registryは共有生成器をその識別子または明示IDで追加し、追加したIDを通知する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisGeneratorRegistry::add(KisGeneratorSP item)",
+        "method:KisGeneratorRegistry::add(const QString & id,KisGeneratorSP item)",
+        "method:KisGeneratorRegistry::generatorAdded(QString id)"
       ]
     }
   ]

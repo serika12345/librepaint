@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 10:55 JST
+- 更新日時: 2026-09-09 11:08 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4249,6 +4249,9 @@
 - 画像生成器は型・基底・構築・仮想寿命3、進捗更新器あり・なしの生成2、生成矩形・patch分割可否2の3枠へ固定する。生成器registryは型・二基底・仮想寿命・単一実体取得3と、共有生成器または明示IDによる追加2・追加ID通知1の2枠へ固定する。生成器、registry、設定、描画装置、進捗更新器、Qt値を実体化せず、型特性、未評価の既定引数、厳密な関数pointerだけを使う。
 - `kis_generator.h`で重複して見える文字列、翻訳、識別子、色空間includeは公開基底`kis_base_processor.h`が同じ完全定義を必ず取り込むため、削除しても具体compile閉包が縮まない。直接利用元21件へ無効な差分を広げず現状を維持する。`kis_generator_registry.h`のQObject、生成器、汎用registry完全定義は二重継承と共有生成器型に必要であり、直接利用元34件についても構造変更を行わない。
 - 開始2 headerから既存`libs/image/tests/KisBaseProcessorSchemaContractTest.cpp`へ5枠を追加する。同sourceは184行・13枠から300行・20枠未満に収まり、CMake変更なしで4工程・8入力を維持する。現targetのcommand SHA-256は`f68d9ea063480c3a37d6238bb27c9d13a763bf4b1699163d02a26fb6780ad2fa`、input SHA-256は`a718abc69bbbf687d60edfa5bd0ac28ba8efc71995d7c077415c1b3191c9acaa`である。停止線を5工程・11入力とし、新たな探索路・定義・製品接続、AUTOMOC製品header入力、生成器またはregistry本文の実体化が必要なら停止する。macOSの対象、追加5枠を含む対象全体の20回反復、試験sourceの厳格構文、書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、既存の製品生成器試験、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
+- 開始`libs/image/generator/kis_generator.h`と`libs/image/generator/kis_generator_registry.h`から既存`libs/image/tests/KisBaseProcessorSchemaContractTest.cpp`へ全13 API・5枠を追加した。画像生成器の型・基底・構築・仮想寿命・二生成形式・生成矩形・patch分割可否と、registryの型・二基底・仮想寿命・単一実体・二追加形式・ID通知を、本文を持たない構築probe、型特性、厳密な関数pointerで固定した。初回は追加5枠がすべて成功し、`G475 image generator API schema is not fixed yet`だけが`XFAIL`となった。公開header、製品source、CMakeは変更していない。計画commitは`50b58517b6`、枠数訂正commitは`bd4f87c7c3`、契約commitは`4f13cec705`である。
+- 既存試験sourceは252行・18枠となり、targetは4工程・8入力、command SHA-256 `f68d9ea063480c3a37d6238bb27c9d13a763bf4b1699163d02a26fb6780ad2fa`、input SHA-256 `a718abc69bbbf687d60edfa5bd0ac28ba8efc71995d7c077415c1b3191c9acaa`を維持した。AUTOMOC `HEADERS=[]`、製品未解決記号・製品動的接続は0である。macOSで対象、追加5枠を含む対象全体の20回反復、試験sourceの厳格構文と書式、連続二回の無作業再構築、公開API検査、`verify-quick`に成功した。生成器・registry本文、既存の製品生成器試験、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 台帳は27,551件対応、2,253件未対応となり、開始2 headerの残存は0件である。旧`public-api-missing-g475.json` 612,512 bytesを削除し、一時閉包一覧、追加作業tree・構築木は作成していない。主Ninja木6,012,376 KiB、共有compiler cache 982,700 KiB、最新`build/tdd-macos/public-api-missing-g476.json` 609,076 bytes、SHA-256 `d0a9ceee0a3991f26b6f15fd39674eafd8e4ed8c0f7d00c228bd1c97e44612da`だけを再利用対象として保持する。compiler cacheは144,638件中120,565件、83.36%がhitしている。次の永続作業は第476便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
 
 ### 第239便の先行監査担当票
 
