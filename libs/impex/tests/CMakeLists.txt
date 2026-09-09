@@ -90,6 +90,7 @@ target_include_directories(KisMediaEncoderFormatAndSettingsContractTest PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/..
     ${CMAKE_BINARY_DIR}/libs/application
     ${CMAKE_BINARY_DIR}/libs/impex
+    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Widgets,INTERFACE_INCLUDE_DIRECTORIES>
 )
 target_compile_definitions(KisMediaEncoderFormatAndSettingsContractTest PRIVATE
     kritaapplicationui_EXPORTS
