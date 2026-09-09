@@ -16,7 +16,7 @@
     "publicApiFingerprint": "5f05b2aa8e5bef4343af1d55a3852331e51d4369fe135b099327b1a91b6b8c4c"
   },
   "migration": {
-    "expectedMissingApis": 2253
+    "expectedMissingApis": 2231
   },
   "contracts": [
     {
@@ -76571,6 +76571,91 @@
         "method:KisGeneratorRegistry::add(KisGeneratorSP item)",
         "method:KisGeneratorRegistry::add(const QString & id,KisGeneratorSP item)",
         "method:KisGeneratorRegistry::generatorAdded(QString id)"
+      ]
+    },
+    {
+      "target": "KisColorTransformationFilterSchemaContractTest",
+      "source": "libs/image/tests/KisColorTransformationFilterSchemaContractTest.cpp",
+      "test": "KisColorTransformationFilterSchemaContractTest::filterTypeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "色変換filterは一般filterを具体化する公開型として識別子・分類・表示項目から構築でき、仮想寿命を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisColorTransformationFilter",
+        "method:KisColorTransformationFilter::KisColorTransformationFilter(const KoID & id,const KoID & category,const QString & entry)",
+        "method:KisColorTransformationFilter::~KisColorTransformationFilter()"
+      ]
+    },
+    {
+      "target": "KisColorTransformationFilterSchemaContractTest",
+      "source": "libs/image/tests/KisColorTransformationFilterSchemaContractTest.cpp",
+      "test": "KisColorTransformationFilterSchemaContractTest::filterProcessingAndConfigurationSignaturesRemainStable",
+      "behavior": "色変換filterは設定に基づく色変換と既定設定を生成し、進捗更新器を伴って描画装置の指定矩形を処理する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisColorTransformationFilter::createTransformation(const KoColorSpace * cs,const KisFilterConfigurationSP config) const",
+        "method:KisColorTransformationFilter::factoryConfiguration(KisResourcesInterfaceSP resourcesInterface) const",
+        "method:KisColorTransformationFilter::processImpl(KisPaintDeviceSP device,const QRect & applyRect,const KisFilterConfigurationSP config,KoUpdater * progressUpdater) const"
+      ]
+    },
+    {
+      "target": "KisColorTransformationFilterSchemaContractTest",
+      "source": "libs/image/tests/KisColorTransformationFilterSchemaContractTest.cpp",
+      "test": "KisColorTransformationFilterSchemaContractTest::configurationTypeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "色変換設定は共有pointer別名と公開型を持ち、名前・版・資源または既存設定から構築でき、仮想寿命を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisColorTransformationConfigurationSP",
+        "class:KisColorTransformationConfiguration",
+        "method:KisColorTransformationConfiguration::KisColorTransformationConfiguration(const KisColorTransformationConfiguration & rhs)",
+        "method:KisColorTransformationConfiguration::KisColorTransformationConfiguration(const QString & name,qint32 version,KisResourcesInterfaceSP resourcesInterface)",
+        "method:KisColorTransformationConfiguration::~KisColorTransformationConfiguration()"
+      ]
+    },
+    {
+      "target": "KisColorTransformationFilterSchemaContractTest",
+      "source": "libs/image/tests/KisColorTransformationFilterSchemaContractTest.cpp",
+      "test": "KisColorTransformationFilterSchemaContractTest::configurationCloneAndMutationSignaturesRemainStable",
+      "behavior": "色変換設定はfilter設定として複製し、名前付き属性値を更新する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisColorTransformationConfiguration::clone() const",
+        "method:KisColorTransformationConfiguration::setProperty(const QString & name,const QVariant & value)"
+      ]
+    },
+    {
+      "target": "KisColorTransformationFilterSchemaContractTest",
+      "source": "libs/image/tests/KisColorTransformationFilterSchemaContractTest.cpp",
+      "test": "KisColorTransformationFilterSchemaContractTest::configurationTransformationCacheSignaturesRemainStable",
+      "behavior": "色変換設定は色空間とfilterに対応する変換を返し、そのcacheを明示的に無効化する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisColorTransformationConfiguration::colorTransformation(const KoColorSpace * cs,const KisColorTransformationFilter * filter) const",
+        "method:KisColorTransformationConfiguration::invalidateColorTransformationCache()"
+      ]
+    },
+    {
+      "target": "KisColorTransformationFilterSchemaContractTest",
+      "source": "libs/image/tests/KisColorTransformationFilterSchemaContractTest.cpp",
+      "test": "KisColorTransformationFilterSchemaContractTest::registryTypeLifetimeAndQuerySchemaRemainStable",
+      "behavior": "filter registryはQObjectと共有filter registryを具体化し、仮想寿命、単一実体取得、代替filter取得の公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisFilterRegistry",
+        "method:KisFilterRegistry::fallbackFilter() const",
+        "method:KisFilterRegistry::instance()",
+        "method:KisFilterRegistry::~KisFilterRegistry()"
+      ]
+    },
+    {
+      "target": "KisColorTransformationFilterSchemaContractTest",
+      "source": "libs/image/tests/KisColorTransformationFilterSchemaContractTest.cpp",
+      "test": "KisColorTransformationFilterSchemaContractTest::registryMutationAndNotificationSignaturesRemainStable",
+      "behavior": "filter registryは共有filterをその識別子または明示IDで追加し、追加したIDを通知する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisFilterRegistry::add(KisFilterSP item)",
+        "method:KisFilterRegistry::add(const QString & id,KisFilterSP item)",
+        "method:KisFilterRegistry::filterAdded(QString id)"
       ]
     }
   ]

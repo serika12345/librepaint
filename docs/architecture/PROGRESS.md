@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 11:08 JST
+- 更新日時: 2026-09-09 11:21 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4259,6 +4259,9 @@
 - 色変換filterは型・基底・構築・仮想寿命3と、描画装置処理・色変換生成・既定設定生成3の2枠へ固定する。色変換設定は共有pointer別名・型・二構築・仮想寿命5、複製・属性設定2、色空間別変換cache取得・明示無効化2の3枠へ固定する。filter registryは型・二基底・仮想寿命・単一実体・代替filter4と、共有filterまたは明示IDによる追加・ID通知3の2枠へ固定する。製品本文、設定、描画装置、色変換、registry、Qt値を実体化せず、型特性と厳密な関数pointerだけを使う。
 - 三公開headerのfilter・設定・QObject・汎用registry完全定義は公開継承、共有pointer別名、二重継承に必要であり、export定義も各公開型が直接使用する。重複includeを除いても必須基底から同じ定義が入って具体compile閉包を縮めないため、構造変更を行わない。既存`KisPropertiesConfigurationSchemaContractTest.cpp`は288行、製品`kis_filter_registry_test`は1,201工程・2,425入力であり、いずれも追加先から除外する。
 - 新規`libs/image/tests/KisColorTransformationFilterSchemaContractTest.cpp`は180行・8枠未満とする。最寄りの`KisPropertiesConfigurationSchemaContractTest`はQt Core・Gui・Test、header-only Boost、image・global・pigmentのsource・binary探索路、Eigen・KF I18n・Imath interface、image・pigment export定義だけによる4工程・8入力で、command SHA-256 `58d8caf69cc0aeddd2e2e874d568f033c7df0941b55e26e50908deedf22b17a6`、input SHA-256 `e6727f5be16f79cd9b836e3d6ce523211d11a4efcccb4f84ffb8f382bf8a8022`である。新targetも同じ閉包を予測し、停止線を5工程・11入力とする。新たな探索路・定義・製品接続、AUTOMOC製品header入力、filter・設定・registry本文の実体化が必要なら停止する。macOSの対象、最軽量近傍、対象の20回反復、試験sourceの厳格構文、書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、既存の製品filter試験、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
+- 開始`libs/image/filter/kis_color_transformation_filter.h`、`libs/image/filter/kis_color_transformation_configuration.h`、`libs/image/filter/kis_filter_registry.h`から新規`libs/image/tests/KisColorTransformationFilterSchemaContractTest.cpp`へ全22 API・7枠を追加した。色変換filterの型・構築・寿命・処理・色変換・設定、色変換設定の共有型・二構築・寿命・複製・属性・cache、filter registryの型・二基底・寿命・単一実体・代替filter・二追加形式・通知を、本文を持たない構築probe、型特性、厳密な関数pointerで固定した。初回は全7観測枠が成功し、`G476 color transformation filter API schema is not fixed yet`だけが`XFAIL`となった。公開headerと製品sourceは変更していない。計画commitは`b4dde384f0`、契約commitは`bb24e68ed6`である。
+- 新規試験sourceは124行・7枠で、targetは4工程・8入力、command SHA-256 `a701b1ab23591e4e1ba83736e554f8539477d926a04dd1f6c69bdf5dd11f8492`、input SHA-256 `ebdfe0494fc9a9425f8b12456d22d5f0830a1683f617130e161f0eba5f307037`となった。AUTOMOC `HEADERS=[]`、製品未解決記号・製品動的接続は0で、製品registry試験の1,201工程・2,425入力を引き込まない。macOSで対象、最軽量近傍`KisPropertiesConfigurationSchemaContractTest`、対象の20回反復、試験sourceの厳格構文と書式、連続二回の無作業再構築、公開API検査、`verify-quick`に成功した。近傍はCMake再生成後の初回だけAUTOGENを更新し、二回目は無作業だった。filter・設定・registry本文、既存の製品filter試験、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 台帳は27,573件対応、2,231件未対応となり、開始3 headerの残存は0件である。旧`public-api-missing-g476.json` 609,076 bytesを削除し、一時閉包一覧、追加作業tree・構築木は作成していない。主Ninja木6,013,348 KiB、共有compiler cache 983,324 KiB、最新`build/tdd-macos/public-api-missing-g477.json` 602,312 bytes、SHA-256 `c31e839c52b45ed710e096aa350ff24532e2ae7277520a2d4caa36be3f8b56cc`だけを再利用対象として保持する。compiler cacheは144,641件中120,565件、83.35%がhitしている。次の永続作業は第477便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
 
 ### 第239便の先行監査担当票
 
