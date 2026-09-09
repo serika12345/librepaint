@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 19:18 JST
+- 更新日時: 2026-09-09 19:23 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4574,6 +4574,13 @@
 - 既存`libs/input/ui/tests/KisToolProxySchemaContractTest.cpp`は同じtool操作転送責務を所有する72行・5枠の限定targetである。同sourceへ4枠を追加して220行・10枠未満に収める。変更前targetはQt Core・Testだけへ動的接続する4工程・8入力、command SHA-256 `1bf641152228077a8d57dc91a558e04502a459070d9b12854ec568901b69e743`、input SHA-256 `e026f067eb7d879cf8a3e5f3ef1a52faf18a3e1be49c3f2d1ee6053d521b3a66`で、AUTOMOC `HEADERS=[]`、製品未解決記号0である。対象固有節へcanvasのsource/generated探索路だけを加え、既存`kritacanvas_EXPORTS`定義と4工程・8入力を維持する。入力hashの変更、新たな動的接続、製品OBJECT・shared、`kritatestsdk`、AUTOMOC製品header入力、主設定変更操作の製品記号が必要なら停止する。macOSの対象と軽量入力近傍、追加4枠の20回反復、試験sourceとheader強制includeの厳格構文、書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、実event配送・brush寸法変更、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
 - 開始`libs/input/ui/kis_change_primary_setting_action.h`から既存`libs/input/ui/tests/KisToolProxySchemaContractTest.cpp`へ全13 API・4枠を追加し、型・shortcut・寿命、通常・吸着shortcut序数、起動・終了と入力開始・完了、入力配送・優先度・高精度入力可否を型特性、列挙値と厳密な関数pointerで固定した。`libs/input/ui/tests/CMakeLists.txt`の対象固有節へcanvasのsource/generated探索路だけを追加し、公開headerと製品実装は変更していない。計画commitは`61daf69f36`、契約commitは`00d04c7906`である。既存sourceは123行・9枠となった。
 - targetはQt Core・Testだけへ動的接続する4工程・8入力、command SHA-256 `e17c28adda4dd1f737dbdb38c4e15c8c65989253b6972f0d2c708d66e93bb58c`となり、input SHA-256 `e026f067eb7d879cf8a3e5f3ef1a52faf18a3e1be49c3f2d1ee6053d521b3a66`を維持した。AUTOMOC `HEADERS=[]`、tool proxy・主設定変更操作・入力操作基底の未解決製品記号0である。macOSで対象とtool invocation近傍、対象全体と追加4枠を20回、試験sourceとheader強制includeの厳格構文、書式、連続二回の無作業再構築、公開API検査に成功した。開始実装の厳格構文は既存の旧`QMouseEvent`構築非推奨診断3件だけで、今回の追加診断は0件である。台帳は28,069件対応、1,732件未対応となり、開始headerの残存は0件である。新`public-api-missing-g507.json`の生成成功後に旧`public-api-missing-g506.json` 473,807 bytesを削除した。主Ninja木6,025,396 KiB、共有compiler cache 983,212 KiB、最新報告470,324 bytes、SHA-256 `2ca283d8dbafb1b6998cdf889fca059d32226d1cc883397069763759921f58f8`だけを再利用対象として保持する。compiler cacheは144,737 cache可能呼出し中120,579件、83.31%がhitしている。実event配送・brush寸法変更、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第507便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
+
+### 第507便の公開API契約計画
+
+- 第507便は安定化されたfreehand入力を時刻順に保持し、遅延描画と輪郭更新を調停する`libs/tools/KisStabilizerDelayedPaintHelper.h`の残存全13 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g507.json`は公開header 1,549、公開API 29,801、対応済み28,069、未対応1,732、470,324 bytes、SHA-256 `2ca283d8dbafb1b6998cdf889fca059d32226d1cc883397069763759921f58f8`である。対象13識別子の整列集合SHA-256は`9922af039c75de7bd1f676fe687b146c3962ee3de8e2031e4b2c2edb06075848`である。
+- 遅延安定化描画境界は型・構築・破棄3、実行中・末尾情報有無・末尾情報取得3、描画線・輪郭更新callback設定2、開始・更新・時刻到達分描画・完了・取消5の4枠へ固定する。型特性と厳密な関数pointerだけを使い、補助器、timer、描画情報列、callbackと描画本文を実体化しない。
+- 開始headerは値会員に必要な時刻計測器・queue・timer、callbackに必要な関数型、queue要素の描画情報完全型を直接所有する。`QVector`は公開更新入力を明示するため保持し、除去できる推移依存はないので製品構造を変更しない。開始`libs/tools/KisStabilizerDelayedPaintHelper.cpp`の厳格構文は診断0件である。
+- 既存`libs/tools/tests/KisToolUtilsSchemaContractTest.cpp`は同じ描画tool補助責務を所有する71行・4枠の限定targetである。同sourceへ4枠を追加して220行・10枠未満に収める。変更前targetはQt Core・Testだけへ動的接続する4工程・8入力、command SHA-256 `f0c40ed2b502725afa3ae40b2dfa4f98d0d34e92944e17b742a9c4e2de77bfa5`、input SHA-256 `2ff0d7eb83f82509485ecf22eadd9f8f5e23399dea0d6b1fef52242f83e65023`で、AUTOMOC `HEADERS=[]`、製品未解決記号0である。対象固有節へimage brushengine探索路とQt Guiのinterface探索路だけを加え、既存`kritaimage_EXPORTS`定義と4工程・8入力を維持する。入力hashの変更、Qt Guiの動的接続、製品OBJECT・shared、`kritatestsdk`、AUTOMOC製品header入力、遅延描画補助器・描画情報の製品記号が必要なら停止する。macOSの対象と軽量tools近傍、追加4枠の20回反復、実装・試験sourceとheader強制includeの厳格構文、書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、実timer・callback・描画列、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
 
 ### 第239便の先行監査担当票
 
