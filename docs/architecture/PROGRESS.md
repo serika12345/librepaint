@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 14:08 JST
+- 更新日時: 2026-09-09 14:17 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4367,6 +4367,10 @@
 - コメント模型は型・構築・変更通知3、行数・表示値・flags・値変更4、行挿入・削除・移動3、MIME型・生成・drop・対応drag/drop 5、全値の再設定・取得2の5枠へ固定する。型特性、厳密な関数pointer、省略引数の未評価呼出しだけを使い、模型、index、MIME data、comment値、icon、各本文を実体化しない。
 - 開始headerの`QAbstractButton`は公開・私有宣言のどちらにも使われず、全利用者へWidgets完全定義を推移させるため契約追加より先に除去する。`StoryboardItem.h`は値会員と値返却の`StoryboardComment`完全型に、`QAbstractListModel`は基底と模型型に必要である。直接利用と`StoryboardModel.h`経由の関連11翻訳単位は変更前8件成功・生成UI header不在2件と`KisPaintDevice`不完全型の既存診断3件で、変更後も同じ分類から悪化なしを完了条件とする。
 - 既存`StoryboardModelTest`は製品storyboard静的library・application UI・`kritatestsdk`へ接続する1,998工程・3,994入力であり、限定反復対象から外す。既存`plugins/dockers/storyboarddocker/tests/StoryboardModelSchemaContractTest.cpp`は対象headerを直接取り込む139行・5枠の限定targetである。新targetによる同じheaderの二重構築を避け、同sourceへ5枠を追加して230行・11枠未満に収める。CMake変更なしでQt Gui・Testだけへ動的接続する4工程・8入力、command SHA-256 `5a43fe66f466b55f71df43d306166046e55698531a394b98411c1d8af364e97d`、input SHA-256 `83965d793a03fd856b81d37292a6424564d341802e7af7a626f743614198f409`を維持し、停止線を4工程・8入力とする。新たな探索路・定義・接続、AUTOMOC製品header入力、対象型または本文の実体化が必要なら停止する。macOSの対象、既存5枠と追加5枠、追加枠の20回反復、試験sourceの厳格構文と書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
+- 構造準備では開始`plugins/dockers/storyboarddocker/CommentModel.h`から未使用の`QAbstractButton`完全定義includeを除去した。`StoryboardItem.h`と`QAbstractListModel`はcomment値の完全型、値会員、公開基底に必要なため維持した。直接利用と`StoryboardModel.h`経由の関連11翻訳単位は変更前後とも8件成功・生成UI header不在2件と`KisPaintDevice`不完全型の既存診断3件で、追加診断は0である。計画commitは`00a26568c4`、構造準備commitは`a711fd49f0`である。
+- 開始headerから既存`plugins/dockers/storyboarddocker/tests/StoryboardModelSchemaContractTest.cpp`へ全17 API・5枠を追加した。comment模型の型・構築・変更通知、行の表示・編集、挿入・削除・移動、MIME drag/drop、comment一覧の一括設定・取得を型特性と厳密な関数pointerで固定した。初回は全5枠が成功し、`G486 storyboard comment model API schema is not fixed yet`だけが`XFAIL`となった。公開header以外の製品sourceとCMakeは変更していない。契約commitは`6eb8aa7bde`である。
+- 既存試験sourceは199行・10枠となった。targetは変更前後ともQt Gui・Testだけへ動的接続する4工程・8入力、command SHA-256 `5a43fe66f466b55f71df43d306166046e55698531a394b98411c1d8af364e97d`、input SHA-256 `83965d793a03fd856b81d37292a6424564d341802e7af7a626f743614198f409`を維持した。AUTOMOC `HEADERS=[]`、comment模型の未解決記号は0である。macOSで全10枠の単発と20回反復、追加5枠を各20回、試験sourceの厳格構文と書式、連続二回の無作業再構築、公開API検査に成功した。行変更・固有名生成・可視性・MIME移動の実状態、1,998工程・3,994入力の既存`StoryboardModelTest`、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 台帳は27,722件対応、2,083件未対応となり、開始headerの残存は0件である。新`public-api-missing-g487.json`の生成成功後に旧`public-api-missing-g486.json` 567,978 bytesを削除し、新target、追加生成物、一時一覧、追加作業tree・構築木は作成していない。主Ninja木6,025,448 KiB、共有compiler cache 982,580 KiB、最新`build/tdd-macos/public-api-missing-g487.json` 562,798 bytes、SHA-256 `c4b0236c0b04a29dcb11bfd42e9391f44dbd5850b0acb1f1ea010663eaa24816`だけを再利用対象として保持する。compiler cacheは144,678件中120,567件、83.33%がhitしている。次の永続作業は第487便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
 
 ### 第239便の先行監査担当票
 

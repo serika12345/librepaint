@@ -16,7 +16,7 @@
     "publicApiFingerprint": "05a5e67dfcb803772f3a7b7f2773532707ee28e97b57d9173a41fba9047a71d2"
   },
   "migration": {
-    "expectedMissingApis": 2100
+    "expectedMissingApis": 2083
   },
   "contracts": [
     {
@@ -77148,6 +77148,68 @@
         "method:KisImageInterface::gmic_qt_get_cropped_images(int mode,QRectF & cropRect)",
         "method:KisImageInterface::gmic_qt_get_image_size(int mode)",
         "method:KisImageInterface::gmic_qt_output_images(int mode,QVector<KisQMicImageSP> layers)"
+      ]
+    },
+    {
+      "target": "StoryboardModelSchemaContractTest",
+      "source": "plugins/dockers/storyboarddocker/tests/StoryboardModelSchemaContractTest.cpp",
+      "test": "StoryboardModelSchemaContractTest::commentModelTypeConstructionAndNotificationSchemaRemainStable",
+      "behavior": "storyboardコメント模型はQObject親から構築できる公開list模型として、comment一覧変更通知の境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:StoryboardCommentModel",
+        "method:StoryboardCommentModel::StoryboardCommentModel(QObject * parent=0)",
+        "method:StoryboardCommentModel::sigCommentListChanged()"
+      ]
+    },
+    {
+      "target": "StoryboardModelSchemaContractTest",
+      "source": "plugins/dockers/storyboarddocker/tests/StoryboardModelSchemaContractTest.cpp",
+      "test": "StoryboardModelSchemaContractTest::commentModelRowDataSignaturesRemainStable",
+      "behavior": "storyboardコメント模型は行数・表示値・項目flagsを照会し、役割付き値変更を受ける境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:StoryboardCommentModel::data(const QModelIndex & index,int role=Qt::DisplayRole) const",
+        "method:StoryboardCommentModel::flags(const QModelIndex & index) const",
+        "method:StoryboardCommentModel::rowCount(const QModelIndex & parent=QModelIndex ()) const",
+        "method:StoryboardCommentModel::setData(const QModelIndex & index,const QVariant & value,int role=Qt::EditRole)"
+      ]
+    },
+    {
+      "target": "StoryboardModelSchemaContractTest",
+      "source": "plugins/dockers/storyboarddocker/tests/StoryboardModelSchemaContractTest.cpp",
+      "test": "StoryboardModelSchemaContractTest::commentModelRowMutationSignaturesRemainStable",
+      "behavior": "storyboardコメント模型は親indexを伴う行挿入・削除・移動の境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:StoryboardCommentModel::insertRows(int position,int rows,const QModelIndex & index=QModelIndex ())",
+        "method:StoryboardCommentModel::moveRows(const QModelIndex & sourceParent,int sourceRow,int count,const QModelIndex & destinationParent,int destinationChild)",
+        "method:StoryboardCommentModel::removeRows(int position,int rows,const QModelIndex & index=QModelIndex ())"
+      ]
+    },
+    {
+      "target": "StoryboardModelSchemaContractTest",
+      "source": "plugins/dockers/storyboarddocker/tests/StoryboardModelSchemaContractTest.cpp",
+      "test": "StoryboardModelSchemaContractTest::commentModelMimeSignaturesRemainStable",
+      "behavior": "storyboardコメント模型はMIME型・drag data生成・drop処理と対応drag・drop actionの境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:StoryboardCommentModel::dropMimeData(const QMimeData * data,Qt::DropAction action,int row,int column,const QModelIndex & parent)",
+        "method:StoryboardCommentModel::mimeData(const QModelIndexList & indexes) const",
+        "method:StoryboardCommentModel::mimeTypes() const",
+        "method:StoryboardCommentModel::supportedDragActions() const",
+        "method:StoryboardCommentModel::supportedDropActions() const"
+      ]
+    },
+    {
+      "target": "StoryboardModelSchemaContractTest",
+      "source": "plugins/dockers/storyboarddocker/tests/StoryboardModelSchemaContractTest.cpp",
+      "test": "StoryboardModelSchemaContractTest::commentModelCollectionSignaturesRemainStable",
+      "behavior": "storyboardコメント模型はcomment値一覧を一括設定・取得する境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:StoryboardCommentModel::getData()",
+        "method:StoryboardCommentModel::resetData(QVector<StoryboardComment> list)"
       ]
     }
   ]
