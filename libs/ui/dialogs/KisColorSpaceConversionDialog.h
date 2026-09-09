@@ -13,7 +13,6 @@
 
 #include <KoDialog.h>
 
-#include <KoID.h>
 #include <KoColorConversionTransformation.h>
 #include "kis_types.h"
 
