@@ -8,6 +8,7 @@
 
 #include <QApplication>
 #include <QDir>
+#include <QDomDocument>
 #include <QStringList>
 
 #include <QMessageBox>
@@ -16,6 +17,7 @@
 #include <QBuffer>
 #include <QVersionNumber>
 
+#include <KoColor.h>
 #include <KoStore.h>
 #include <KoColorSpaceRegistry.h>
 #include <KoColorSpaceEngine.h>

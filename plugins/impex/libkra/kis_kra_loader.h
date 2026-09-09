@@ -9,19 +9,17 @@
 
 #include <QStringList>
 #include <QString>
-#include "QDomDocument"
 
-class KoStore;
-
-class KisDocument;
+class KoColor;
 class KoColorSpace;
-class KisPaintingAssistant;
-class StoryboardComment;
+class KoStore;
+class KisDocument;
+class QDomDocument;
+class QDomElement;
 class QVersionNumber;
 
 #include <kis_types.h>
 #include "kritalibkra_export.h"
-#include "KoColor.h"
 
 /**
  * Load old-style 1.x .kra files. Updated for 2.0, let's try to stay
