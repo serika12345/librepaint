@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 15:38 JST
+- 更新日時: 2026-09-09 15:45 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4433,6 +4433,7 @@
 - action manager境界は型・構築・仮想破棄・view接続4、actionの追加・解除・生成・名前照会4、操作UI factory・操作の登録2、ID・設定値からの操作実行2、標準action生成・menu設定・GUI更新3の5枠へ固定する。型特性、厳密な関数pointerだけを使い、manager、view、action、操作、menuと製品本文を実体化しない。
 - 開始headerは`KisView`を完全定義する`application/ui/workspace/KisView.h`、実装だけが利用する`kis_action_registry.h`、設定値の本文を定義する`operations/kis_operation_configuration.h`を全利用者へ推移させている。契約追加より先に、公開宣言を`KisView`、`KisOperationConfiguration`、`KisPinnedSharedPtr`の前方宣言と共有pointer別名へ狭め、公開基底の`QObject`だけを直接includeする。action registryと操作設定の完全定義は実際に利用する宛先`libs/application/ui/orchestration/kis_action_manager.cpp`へ移す。実装翻訳単位の変更前厳格構文検査は成功しており、変更後も成功を完了条件とする。`QPointer`は値引数、`kstandardaction.h`は入れ子列挙型を公開署名に使うため維持する。
 - 既存`libs/application/tests/KisViewManagerSchemaContractTest.cpp`は同じapplication UI統括責務を所有する181行・13枠の限定targetである。新targetとCMake変更を避け、同sourceへ5枠を追加して280行・19枠未満に収める。targetはQt Core・Testだけへ動的接続する4工程・8入力、command SHA-256 `0b86cf5b0b37dbf88d2837d48b6b563aa8c387034be4e3119d5ffb312f704ddc`、input SHA-256 `57ebed086e92adde6d4554f8315cd2fedde5517bccadd2aeee2083650235cd3e`を維持し、AUTOMOC `HEADERS=[]`と停止線4工程・8入力を適用する。新たな探索路・定義・接続、製品OBJECT・shared、AUTOMOC製品header入力、製品記号が必要なら停止する。macOSの対象、既存13枠と追加5枠、追加枠の20回反復、試験sourceと実装sourceの厳格構文、書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
+- 構造準備後の単独include照合で、限定targetには公開署名の`KStandardAction::StandardAction`を定義する`libs/widgetutils/kstandardaction.h`のsource探索路だけが不足すると判明した。既に同headerを読む`TestApplicationWorkspaceToolUiPublicHeaders`は2,027工程・4,051入力のため棄却する。契約追加より先に既存限定targetへ`${CMAKE_SOURCE_DIR}/libs/widgetutils`だけを加え、4工程・8入力、Qt Core・Testだけの動的接続、AUTOMOC `HEADERS=[]`を維持するよう停止条件を訂正する。command hashの探索路差分だけを許容し、入力hashと工程・入力数、新たな定義・接続に変化があれば停止する。
 
 ### 第239便の先行監査担当票
 
