@@ -16,7 +16,7 @@
     "publicApiFingerprint": "05a5e67dfcb803772f3a7b7f2773532707ee28e97b57d9173a41fba9047a71d2"
   },
   "migration": {
-    "expectedMissingApis": 2120
+    "expectedMissingApis": 2100
   },
   "contracts": [
     {
@@ -77083,6 +77083,71 @@
         "method:KoCanvasControllerWidget::scrollBarValue() const",
         "method:KoCanvasControllerWidget::scrollContentsBy(int dx,int dy)",
         "method:KoCanvasControllerWidget::setScrollBarValue(const QPoint & value)"
+      ]
+    },
+    {
+      "target": "KisQMicInterfaceContractTest",
+      "source": "plugins/extensions/qmic/tests/KisQMicInterfaceContractTest.cpp",
+      "test": "KisQMicInterfaceContractTest::imageTypeConstructionAndOwnershipRemainStable",
+      "behavior": "QMic画像値は名前・寸法・省略可能な4成分から構築でき、共有所有と単独buffer破棄の境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisQMicImageSP",
+        "method:KisQMicImage::KisQMicImage(QString layerName,int width,int height,int spectrum=4)",
+        "method:KisQMicImage::~KisQMicImage()",
+        "struct:KisQMicImage"
+      ]
+    },
+    {
+      "target": "KisQMicInterfaceContractTest",
+      "source": "plugins/extensions/qmic/tests/KisQMicInterfaceContractTest.cpp",
+      "test": "KisQMicInterfaceContractTest::imageStorageValuesRemainStable",
+      "behavior": "QMic画像値はmutex、layer名、幅、高さ、成分数、浮動小数bufferを公開値として保持する境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisQMicImage::m_data",
+        "member:KisQMicImage::m_height",
+        "member:KisQMicImage::m_layerName",
+        "member:KisQMicImage::m_mutex",
+        "member:KisQMicImage::m_spectrum",
+        "member:KisQMicImage::m_width"
+      ]
+    },
+    {
+      "target": "KisQMicInterfaceContractTest",
+      "source": "plugins/extensions/qmic/tests/KisQMicInterfaceContractTest.cpp",
+      "test": "KisQMicInterfaceContractTest::imageBufferAndDiagnosticSignaturesRemainStable",
+      "behavior": "QMic画像値は同一bufferの読取りpointerと全成分のbyte寸法を返し、診断出力へ渡せる境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:operator <<(QDebug d,const KisQMicImage & model)",
+        "method:KisQMicImage::constData() const",
+        "method:KisQMicImage::size() const"
+      ]
+    },
+    {
+      "target": "KisQMicInterfaceContractTest",
+      "source": "plugins/extensions/qmic/tests/KisQMicInterfaceContractTest.cpp",
+      "test": "KisQMicInterfaceContractTest::interfaceTypeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "QMic画像interfaceはview managerを親として構築できるQObject公開型と仮想破棄境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisImageInterface",
+        "method:KisImageInterface::KisImageInterface(KisViewManager * parent=nullptr)",
+        "method:KisImageInterface::~KisImageInterface()"
+      ]
+    },
+    {
+      "target": "KisQMicInterfaceContractTest",
+      "source": "plugins/extensions/qmic/tests/KisQMicInterfaceContractTest.cpp",
+      "test": "KisQMicInterfaceContractTest::interfaceExchangeSignaturesRemainStable",
+      "behavior": "QMic画像interfaceは入力寸法と切抜き画像を取得し、出力画像群と切離し要求を受ける境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisImageInterface::gmic_qt_detach()",
+        "method:KisImageInterface::gmic_qt_get_cropped_images(int mode,QRectF & cropRect)",
+        "method:KisImageInterface::gmic_qt_get_image_size(int mode)",
+        "method:KisImageInterface::gmic_qt_output_images(int mode,QVector<KisQMicImageSP> layers)"
       ]
     }
   ]
