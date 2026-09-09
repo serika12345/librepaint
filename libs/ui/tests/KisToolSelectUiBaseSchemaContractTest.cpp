@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include <tool/kis_selection_tool_helper.h>
 #include <tool/kis_tool_select_ui_base.h>
 
 #include <QTest>
@@ -31,6 +32,8 @@ public:
 
 #define ASSERT_TOOL_SELECT_UI_SIGNATURE(method, signature)                                                             \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&Subject::method)), signature>)
+#define ASSERT_SELECTION_HELPER_SIGNATURE(method, ...)                                                                 \
+    static_assert(std::is_same_v<decltype(static_cast<__VA_ARGS__>(&KisSelectionToolHelper::method)), __VA_ARGS__>)
 } // namespace
 
 class KisToolSelectUiBaseSchemaContractTest : public QObject
@@ -43,6 +46,9 @@ private Q_SLOTS:
     void toolSelectUiActivationAndPresentationSignaturesRemainStable();
     void toolSelectUiSelectionConfigurationSignaturesRemainStable();
     void toolSelectUiAdjustmentAndOptionSignaturesRemainStable();
+    void selectionHelperTypeConstructionAndLifetimeSchemaRemainStable();
+    void selectionHelperPixelAndShapeApplicationSignaturesRemainStable();
+    void selectionHelperShortcutMenuAndModeSignaturesRemainStable();
 };
 
 void KisToolSelectUiBaseSchemaContractTest::toolSelectUiTypeAliasAndConstructionSchemaRemainStable()
@@ -106,6 +112,42 @@ void KisToolSelectUiBaseSchemaContractTest::toolSelectUiAdjustmentAndOptionSigna
     QVERIFY(true);
 }
 
+void KisToolSelectUiBaseSchemaContractTest::selectionHelperTypeConstructionAndLifetimeSchemaRemainStable()
+{
+    using Helper = KisSelectionToolHelper;
+
+    static_assert(std::is_class_v<Helper>);
+    static_assert(std::is_constructible_v<Helper, KisCanvas2 *, const KUndo2MagicString &>);
+    static_assert(std::has_virtual_destructor_v<Helper>);
+
+    QVERIFY(true);
+}
+
+void KisToolSelectUiBaseSchemaContractTest::selectionHelperPixelAndShapeApplicationSignaturesRemainStable()
+{
+    using Helper = KisSelectionToolHelper;
+
+    ASSERT_SELECTION_HELPER_SIGNATURE(
+        selectPixelSelection,
+        void (Helper::*)(KisProcessingApplicator &, KisPixelSelectionSP, SelectionAction));
+    ASSERT_SELECTION_HELPER_SIGNATURE(selectPixelSelection, void (Helper::*)(KisPixelSelectionSP, SelectionAction));
+    ASSERT_SELECTION_HELPER_SIGNATURE(addSelectionShape, void (Helper::*)(KoShape *, SelectionAction));
+    ASSERT_SELECTION_HELPER_SIGNATURE(addSelectionShapes, void (Helper::*)(QList<KoShape *>, SelectionAction));
+}
+
+void KisToolSelectUiBaseSchemaContractTest::selectionHelperShortcutMenuAndModeSignaturesRemainStable()
+{
+    using Helper = KisSelectionToolHelper;
+
+    ASSERT_SELECTION_HELPER_SIGNATURE(canShortcutToDeselect, bool (Helper::*)(const QRect &, SelectionAction));
+    ASSERT_SELECTION_HELPER_SIGNATURE(canShortcutToNoop, bool (Helper::*)(const QRect &, SelectionAction));
+    ASSERT_SELECTION_HELPER_SIGNATURE(tryDeselectCurrentSelection, bool (Helper::*)(QRectF, SelectionAction));
+    ASSERT_SELECTION_HELPER_SIGNATURE(getSelectionContextMenu, QMenu * (*)(KoCanvasBase *));
+    ASSERT_SELECTION_HELPER_SIGNATURE(tryOverrideSelectionMode,
+                                      SelectionMode (Helper::*)(KisSelectionSP, SelectionMode, SelectionAction) const);
+}
+
+#undef ASSERT_SELECTION_HELPER_SIGNATURE
 #undef ASSERT_TOOL_SELECT_UI_SIGNATURE
 
 QTEST_APPLESS_MAIN(KisToolSelectUiBaseSchemaContractTest)
