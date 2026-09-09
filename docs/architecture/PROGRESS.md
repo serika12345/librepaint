@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 09:45 JST
+- 更新日時: 2026-09-09 09:51 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4191,6 +4191,13 @@
 - 開始`libs/image/layerstyles/kis_ls_bevel_emboss_filter.h`、`libs/image/layerstyles/kis_ls_satin_filter.h`、`libs/image/layerstyles/kis_ls_stroke_filter.h`、`libs/image/layerstyles/KisLayerStyleKnockoutBlower.h`から新規`libs/image/tests/KisLayerStyleAdditionalFiltersSchemaContractTest.cpp`へ全27 API・8枠を追加した。三つの具体filterの型・構築・複製・処理矩形境界とstroke不透明度閾値、blowerの型・二構築・選択cache・適用・空状態を型特性と厳密な関数pointerで固定した。初回は全8観測枠が成功し、`G469 additional layer style filter API schema is not fixed yet`だけで1件失敗した。具体filterとblower本文は実体化していない。契約commitは`a01e5cd441`である。
 - 新規試験sourceは159行・8枠で、targetは4工程・8入力、command SHA-256 `7ced8a5b84c4cc1caa2d6ab976f4fa0799db54a69d55dac7430d12ece0ed9b5f`、input SHA-256 `1b472ceca0f15ce80b7b4cee1ac22944ac605a5dc6f71bb86ef5dc56d921ff74`となった。AUTOMOC `HEADERS=[]`、製品未解決記号・製品動的接続は0である。macOSで対象、最軽量近傍`KisLayerStyleConcreteFiltersSchemaContractTest`、対象の20回反復、試験sourceの厳格構文と書式、連続二回の無作業再構築、公開API検査、`verify-quick`に成功した。既存の製品layer style試験、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 台帳は27,426件対応、2,378件未対応となり、開始4 headerの残存は0件である。旧`public-api-missing-g469.json` 652,768 bytesを削除し、一時閉包一覧、追加作業tree・構築木は作成していない。主Ninja木6,005,788 KiB、共有compiler cache 982,168 KiB、最新`build/tdd-macos/public-api-missing-g470.json` 644,094 bytes、SHA-256 `383e336d4036d2d85c74381c9d6fbc57e595c61b6f03c6601e969c41446ec11f`だけを再利用対象として保持する。compiler cacheは144,620件中120,565件、83.37%がhitしている。次の永続作業は第470便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
+
+### 第470便の公開API契約計画
+
+- 第470便はtile記憶・交換責務の`libs/image/tiles3/kis_tile_data_pooler.h`に残る全10 API、`libs/image/tiles3/swap/kis_tile_data_swapper.h`に残る全7 API、`libs/image/tiles3/swap/kis_swapped_data_store.h`に残る全9 API、`libs/image/tiles3/swap/kis_legacy_tile_compressor.h`と`libs/image/tiles3/swap/kis_tile_compressor_2.h`に残る各8 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g470.json`は公開header 1,548、公開API 29,804、対応済み27,426、未対応2,378、644,094 bytes、SHA-256 `383e336d4036d2d85c74381c9d6fbc57e595c61b6f03c6601e969c41446ec11f`である。対象42識別子の整列集合SHA-256は`3adb8db704fb29d7ba4a1c9a525aa99dc1d3c71c6f59a95f16539945377706c5`である。
+- tile data poolerは型・構築・仮想寿命3と、起動・終了・設定再読込・強制統計更新・三種memory指標7の2枠へ固定する。tile data swapperは型・構築・仮想寿命3と、起動・終了・空きmemory検査・設定再読込4の2枠へ固定する。swapped data storeは型・構築・寿命3、tileの退避・復元・忘却3、tile数・総非圧縮memory・診断3の3枠へ固定する。legacyと現行のtile圧縮器はそれぞれ型・構築・仮想寿命、stream読書、buffer圧縮・展開・必要量の8 APIを1枠へ固定する。thread、記憶領域、圧縮器本文は実体化せず、型特性と厳密な関数pointerだけを観測する。
+- poolerとswapperのQt thread・同期値、swapped storeのmutex・byte列値、二圧縮器の抽象基底は公開継承、値member、またはinline基底処理に必要である。重複する`QObject`経路や`QMutex`前方宣言を除いても具体compile閉包は縮まず、新たな依存移動先も生じないため、構造変更は行わない。既存の製品実行時試験は保持し、公開header schemaを独立させる。
+- 新規`libs/image/tiles3/tests/KisTileStorageSchemaContractTest.cpp`は230行・10枠未満とする。最寄りの`KisTileSchemaContractTest`は4工程・8入力、command SHA-256 `500556b6b030fab899dd75fa7f3f7d29e30b0efc8f673356ed2b0047aa36c656`、input SHA-256 `fa7ff0552c3b2a1acd7780abde3cca3df68733c3e815a29ce4debd1cdbfd56b4`である。新targetも製品objectを接続せず、Qt Core・Core5Compat・Testとimage・tiles3・globalの最小探索路だけを与えて4工程・8入力を予測する。停止線は5工程・11入力で、新たな製品接続、AUTOMOC製品header入力、thread・store・圧縮器本文の実体化が必要なら停止する。macOSの対象、最軽量近傍、対象の20回反復、試験sourceの厳格構文、書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、既存の製品tile試験、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
 
 ### 第239便の先行監査担当票
 
