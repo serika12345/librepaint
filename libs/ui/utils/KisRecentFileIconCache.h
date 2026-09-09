@@ -7,9 +7,9 @@
 #ifndef KIS_RECENT_FILE_ICON_CACHE_H
 #define KIS_RECENT_FILE_ICON_CACHE_H
 
-#include <QFuture>
 #include <QIcon>
 #include <QMap>
+#include <QObject>
 #include <QThreadPool>
 #include <QUrl>
 
