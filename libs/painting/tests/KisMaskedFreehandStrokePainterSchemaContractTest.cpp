@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include <strokes/KisFreehandStrokeInfo.h>
 #include <strokes/KisMaskedFreehandStrokePainter.h>
 
 #include <QTest>
@@ -20,6 +21,7 @@ private Q_SLOTS:
     void maskedFreehandPainterGeometryPrimitiveSignaturesRemainStable();
     void maskedFreehandPainterPathDrawingSignaturesRemainStable();
     void maskedFreehandPainterAsyncDirtyAndMaskSignaturesRemainStable();
+    void freehandStrokeInfoTypeLifetimeAndDistanceSchemaRemainStable();
 };
 
 using Subject = KisMaskedFreehandStrokePainter;
@@ -79,6 +81,20 @@ void KisMaskedFreehandStrokePainterSchemaContractTest::maskedFreehandPainterAsyn
     ASSERT_SIGNATURE(hasDirtyRegion, Boolean);
     ASSERT_SIGNATURE(hasMasking, Boolean);
     ASSERT_SIGNATURE(takeDirtyRegion, Dirty);
+}
+
+void KisMaskedFreehandStrokePainterSchemaContractTest::freehandStrokeInfoTypeLifetimeAndDistanceSchemaRemainStable()
+{
+    using Info = KisFreehandStrokeInfo;
+
+    static_assert(std::is_class_v<Info>);
+    static_assert(std::is_default_constructible_v<Info>);
+    static_assert(std::is_constructible_v<Info, const KisDistanceInformation &>);
+    static_assert(std::is_constructible_v<Info, Info *, int>);
+    static_assert(std::is_destructible_v<Info>);
+    static_assert(std::is_same_v<decltype(&Info::painter), KisPainter * Info::*>);
+    static_assert(std::is_same_v<decltype(&Info::dragDistance), KisDistanceInformation * Info::*>);
+    static_assert(std::is_same_v<decltype(&Info::buddyDragDistance), KisDistanceInformation *(Info::*)()>);
 }
 
 #undef ASSERT_SIGNATURE
