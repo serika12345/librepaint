@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 1665
+    "expectedMissingApis": 1653
   },
   "contracts": [
     {
@@ -78614,6 +78614,54 @@
         "method:KisResourceModelProvider::tagResourceModel(const QString & resourceType)",
         "method:KisResourceModelProvider::testingCloseAllQueries()",
         "method:KisResourceModelProvider::testingResetAllModels()"
+      ]
+    },
+    {
+      "target": "KisMultiBoolFilterWidgetSchemaContractTest",
+      "source": "libs/ui/tests/KisMultiBoolFilterWidgetSchemaContractTest.cpp",
+      "test": "KisMultiBoolFilterWidgetSchemaContractTest::parameterTypeConstructionAndValuesSchemaRemainStable",
+      "behavior": "真偽値filter設定項目は初期値・表示名・設定名を値所有し、その項目一覧を標準vectorとして公開する契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:vKisBoolWidgetParam",
+        "member:KisBoolWidgetParam::initvalue",
+        "member:KisBoolWidgetParam::label",
+        "member:KisBoolWidgetParam::name",
+        "method:KisBoolWidgetParam::KisBoolWidgetParam(bool ninitvalue,const QString & label,const QString & name)",
+        "struct:KisBoolWidgetParam"
+      ]
+    },
+    {
+      "target": "KisMultiBoolFilterWidgetSchemaContractTest",
+      "source": "libs/ui/tests/KisMultiBoolFilterWidgetSchemaContractTest.cpp",
+      "test": "KisMultiBoolFilterWidgetSchemaContractTest::widgetTypeAndConstructionSchemaRemainStable",
+      "behavior": "複数真偽値filter画面は設定画面基底を持ち、filter識別子・親・表題・設定項目一覧から構築する公開契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisMultiBoolFilterWidget",
+        "method:KisMultiBoolFilterWidget::KisMultiBoolFilterWidget(const QString & filterid,QWidget * parent,const QString & caption,vKisBoolWidgetParam iwparam)"
+      ]
+    },
+    {
+      "target": "KisMultiBoolFilterWidgetSchemaContractTest",
+      "source": "libs/ui/tests/KisMultiBoolFilterWidgetSchemaContractTest.cpp",
+      "test": "KisMultiBoolFilterWidgetSchemaContractTest::configurationSignaturesRemainStable",
+      "behavior": "複数真偽値filter画面は設定値を受け取り、現在の選択を設定値として返す公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMultiBoolFilterWidget::configuration() const",
+        "method:KisMultiBoolFilterWidget::setConfiguration(const KisPropertiesConfigurationSP cfg)"
+      ]
+    },
+    {
+      "target": "KisMultiBoolFilterWidgetSchemaContractTest",
+      "source": "libs/ui/tests/KisMultiBoolFilterWidgetSchemaContractTest.cpp",
+      "test": "KisMultiBoolFilterWidgetSchemaContractTest::valueQuerySignaturesRemainStable",
+      "behavior": "複数真偽値filter画面は項目数と位置別の選択値を変更なし照会として公開する署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMultiBoolFilterWidget::nbValues() const",
+        "method:KisMultiBoolFilterWidget::valueAt(qint32 i) const"
       ]
     }
   ]

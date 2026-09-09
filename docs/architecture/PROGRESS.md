@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 20:27 JST
+- 更新日時: 2026-09-09 20:34 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4635,6 +4635,9 @@
 - 複数真偽値filter境界は設定項目型・一覧別名・構築・3公開値6、画面型・構築2、設定の入出力2、項目数・位置別値2の4枠へ固定する。型特性、公開会員型と厳密な関数pointerだけを使い、設定項目、画面部品、checkbox、filter設定と資源接続を実体化しない。
 - 開始headerは公開設定項目が値所有する`QString`を`QCheckBox`の推移includeへ依存している。契約追加より先に`QString`を直接includeし、完全型が必要な`QCheckBox`・`QVector`、基底、`std::vector`を維持する。開始`libs/ui/widgets/kis_multi_bool_filter_widget.cc`とheader強制includeの厳格構文は診断0件であり、構造変更後も維持する。
 - 同責務の既存`KisLayerFilterWidgetSchemaContractTest`は10枠上限に達しているため、新規`libs/ui/tests/KisMultiBoolFilterWidgetSchemaContractTest.cpp`をUI・image・global・pigment・widgets・widgetutilsのsource/generated探索路、Qt Gui・Widgets、KF I18n・Imathのinterface探索路、6 export定義、Qt Core・Test、header-only Boost・Eigenで構成する。最小の既存近傍は4工程・8入力、command SHA-256 `19fb6d9f97e07c8c90d1459566165337f73753602df6e372db2829b6bac0768b`、input SHA-256 `878010c192a9804628da3f57203365325059289665b9f2286d30e8dc87371fd4`で、新targetも4工程・8入力を予測する。追加前targetは`unknown target`である。停止線を5工程・11入力とし、Qt Gui・Widgetsの動的接続、製品OBJECT・shared、`kritatestsdk`、AUTOMOC製品header入力、複数真偽値filterの製品記号が必要なら停止する。macOSの対象と軽量filter近傍、追加4枠の20回反復、実装・試験sourceとheader強制includeの厳格構文、書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、実設定項目・画面・checkbox・資源接続、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
+- 構造準備では開始`libs/ui/widgets/kis_multi_bool_filter_widget.h`が値所有する`QString`を直接includeし、`QCheckBox`の推移includeへの依存を除去した。開始headerに`QObject`の重複includeはなかったため計画記述を同時に訂正し、公開宣言と実装を維持した。開始`libs/ui/widgets/kis_multi_bool_filter_widget.cc`とheader強制includeの厳格構文は診断0件である。計画commitは`a56e6c1bb6`、構造準備commitは`9bec1aafad`である。
+- 開始headerから新規`libs/ui/tests/KisMultiBoolFilterWidgetSchemaContractTest.cpp`へ全12 API・4枠を追加し、設定項目型・一覧別名・構築・3公開値、画面型・構築、設定の入出力、項目数・位置別値を型特性、公開会員型と厳密な関数pointerで固定した。製品sourceは変更していない。契約commitは`aed495b9bf`で、新規sourceは62行・4枠である。
+- targetはQt Core・Testだけへ動的接続する4工程・8入力、command SHA-256 `67ab1422423ac02371a154b8d61b44992e8720347506e5a0f010086d0cf6de65`、input SHA-256 `cfb437773ce2e656039f9d178772864eaafa1854293a9103a69f5351deb45292`である。AUTOMOC `HEADERS=[]`、設定項目・複数真偽値filter画面・設定画面基底の未解決製品記号0で、Qt Gui・Widgetsと製品libraryを動的接続していない。macOSで対象とlayer filter近傍、対象全体と各4枠を20回、実装・試験sourceとheader強制includeの厳格構文、書式、連続二回の無作業再構築、公開API検査に成功した。台帳は28,148件対応、1,653件未対応となり、開始headerの残存は0件である。新`public-api-missing-g514.json`の生成成功後に旧`public-api-missing-g513.json` 453,396 bytesを削除した。主Ninja木6,029,028 KiB、共有compiler cache 983,324 KiB、最新報告450,323 bytes、SHA-256 `9bca87644c3a2a7b100a90c5a30d43201ea068b47cbdd790a33489958dab23c3`だけを再利用対象として保持する。compiler cacheは144,750 cache可能呼出し中120,581件、83.30%がhitしている。実設定項目・画面・checkbox・資源接続、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第514便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
 
 ### 第239便の先行監査担当票
 
