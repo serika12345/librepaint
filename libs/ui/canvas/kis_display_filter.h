@@ -8,8 +8,8 @@
 
 #include <QObject>
 
-#include <kritaui_export.h>
 #include <color/kis_display_color_filter.h>
+#include <kritaui_export.h>
 
 struct KisExposureGammaCorrectionInterface;
 
@@ -46,6 +46,5 @@ public:
      */
     virtual bool updateShader() = 0;
 };
-
 
 #endif
