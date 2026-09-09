@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "canvas/KisNodeDisplayModeAdapter.h"
 #include "widgets/kis_multi_bool_filter_widget.h"
 
 #include <QTest>
@@ -18,6 +19,8 @@ private Q_SLOTS:
     void widgetTypeAndConstructionSchemaRemainStable();
     void configurationSignaturesRemainStable();
     void valueQuerySignaturesRemainStable();
+    void nodeDisplayModeTypeConstructionAndAccessSignaturesRemainStable();
+    void nodeDisplayModeNotificationSignatureRemainsStable();
 };
 
 void KisMultiBoolFilterWidgetSchemaContractTest::parameterTypeConstructionAndValuesSchemaRemainStable()
@@ -55,6 +58,27 @@ void KisMultiBoolFilterWidgetSchemaContractTest::valueQuerySignaturesRemainStabl
 
     static_assert(std::is_same_v<decltype(&Widget::nbValues), qint32 (Widget::*)() const>);
     static_assert(std::is_same_v<decltype(&Widget::valueAt), bool (Widget::*)(qint32) const>);
+}
+
+void KisMultiBoolFilterWidgetSchemaContractTest::nodeDisplayModeTypeConstructionAndAccessSignaturesRemainStable()
+{
+    using Adapter = KisNodeDisplayModeAdapter;
+
+    static_assert(std::is_class_v<Adapter>);
+    static_assert(std::is_base_of_v<QObject, Adapter>);
+    static_assert(std::is_constructible_v<Adapter>);
+    static_assert(std::is_constructible_v<Adapter, QObject *>);
+    static_assert(std::is_same_v<decltype(&Adapter::showRootNode), bool (Adapter::*)() const>);
+    static_assert(std::is_same_v<decltype(&Adapter::setShowRootNode), void (Adapter::*)(bool)>);
+    static_assert(std::is_same_v<decltype(&Adapter::showGlobalSelectionMask), bool (Adapter::*)() const>);
+    static_assert(std::is_same_v<decltype(&Adapter::setShowGlobalSelectionMask), void (Adapter::*)(bool)>);
+}
+
+void KisMultiBoolFilterWidgetSchemaContractTest::nodeDisplayModeNotificationSignatureRemainsStable()
+{
+    using Adapter = KisNodeDisplayModeAdapter;
+
+    static_assert(std::is_same_v<decltype(&Adapter::sigNodeDisplayModeChanged), void (Adapter::*)(bool, bool)>);
 }
 
 QTEST_APPLESS_MAIN(KisMultiBoolFilterWidgetSchemaContractTest)
