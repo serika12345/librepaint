@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-10 01:23 JST
+- 更新日時: 2026-09-10 01:30 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4911,6 +4911,13 @@
 - grid管理境界は型・view manager親付き構築・仮想破棄3、action設定・view接続・grid設定反映・GUI更新4、grid設定変更通知1を既存widget契約の3枠へ固定する。型特性、構築可能性、厳密な関数pointerだけを使い、manager、view、action、grid設定を実体化しない。
 - 開始`libs/ui/canvas/kis_grid_manager.h`は公開宣言に不要な`QPainter`、全域型別名、action managerとactionの完全定義をincludeしている。契約追加より先に`QObject`・`QPointer`・`QScopedPointer`の直接includeと`KisView`・`KisViewManager`・`KisActionManager`・`KisGridConfig`の前方宣言へ狭め、必要なaction定義を開始`libs/ui/canvas/kis_grid_manager.cpp`へ移す。公開署名と所有権を維持し、開始実装と既存試験からのheader強制includeで厳格構文診断0件を保つ。
 - 既存widget契約は86行・6枠で、3枠追加後も220行・10枠以内に収まる。CMakeを変更せず4工程・8入力、command SHA-256 `67ab1422423ac02371a154b8d61b44992e8720347506e5a0f010086d0cf6de65`、input SHA-256 `cfb437773ce2e656039f9d178772864eaafa1854293a9103a69f5351deb45292`を維持する。工程・入力増加、候補headerのAUTOMOC入力化、製品未解決記号が生じれば停止する。macOSの対象全体と追加3枠の20回反復、実装・試験sourceとheader強制includeの厳格構文、試験書式、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、view・action・設定・通知の実効果、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
+
+### 第536便の公開API契約結果
+
+- canvas grid表示のview接続、action設定、設定反映、GUI更新通知の公開境界を軽量な型契約として固定した。開始`libs/ui/canvas/kis_grid_manager.h`から既存`libs/ui/tests/KisMultiBoolFilterWidgetSchemaContractTest.cpp`へ残存全8 API・3枠を追加し、型・view manager親付き構築・仮想破棄3件、action設定・view接続・grid設定反映・GUI更新4件、grid設定変更通知1件を型特性、構築可能性、厳密な関数pointerで固定した。計画commitは`25458c388f`、構造commitは`e42db7dc93`、契約commitは`e554ca02ec`で、既存試験sourceは118行・9枠となった。
+- 開始`libs/ui/canvas/kis_grid_manager.h`から公開宣言に不要な`QPainter`、`kis_types.h`、action managerとactionの完全定義を除去し、`QObject`・`QPointer`・`QScopedPointer`の直接includeと前方宣言へ縮小した。必要なaction定義は開始`libs/ui/canvas/kis_grid_manager.cpp`へ移した。公開署名、所有権、実行時挙動、CMakeは変更していない。開始実装、唯一の製品利用側`libs/application/ui/workspace/KisViewManager.cpp`、候補headerを強制includeする試験sourceの厳格構文は診断0件で、試験書式も成功した。
+- targetは4工程・8入力、command SHA-256 `67ab1422423ac02371a154b8d61b44992e8720347506e5a0f010086d0cf6de65`、input SHA-256 `cfb437773ce2e656039f9d178772864eaafa1854293a9103a69f5351deb45292`を維持した。候補headerのAUTOMOC入力化と未解決製品記号は0で、Qt Core・Testだけへ動的接続する。macOSで対象全体20回と追加3枠各20回、厳格構文、試験書式、連続二回の無作業再構築に成功した。view・action・設定・通知の実効果、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 公開API検査の初回診断は期待値1,416に対して実測1,408で、新規8件と一致した。台帳を28,393件対応、1,408件未対応へ進め、`public-api-missing-g537.json`の生成成功後に旧`public-api-missing-g536.json` 386,233 bytesを削除した。主Ninja木6,049,268 KiB、共有compiler cache 982,668 KiB、最新報告384,405 bytes、SHA-256 `7d33bd6b18417601797e4eb054a39b7a3f3dfb848931636fed6b1fba661340cb`だけを再利用対象として保持する。compiler cacheは144,812 cache可能呼出し中120,594件、83.28%がhitしている。次の永続作業は第537便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
 
 ### 第239便の先行監査担当票
 

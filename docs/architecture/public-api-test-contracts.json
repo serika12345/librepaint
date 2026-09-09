@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 1416
+    "expectedMissingApis": 1408
   },
   "contracts": [
     {
@@ -79439,6 +79439,41 @@
         "method:KisGridConfig::saveDynamicDataToXml(QDomDocument & doc,const QString & tag) const",
         "method:KisGridConfig::saveStaticData() const",
         "method:KisGridConfig::transform(const QTransform & transform)"
+      ]
+    },
+    {
+      "target": "KisMultiBoolFilterWidgetSchemaContractTest",
+      "source": "libs/ui/tests/KisMultiBoolFilterWidgetSchemaContractTest.cpp",
+      "test": "KisMultiBoolFilterWidgetSchemaContractTest::gridManagerTypeConstructionLifetimeSchemaRemainStable",
+      "behavior": "grid管理器はview managerを親として構築でき、QObject基底の仮想寿命を持つ公開型境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisGridManager",
+        "method:KisGridManager::KisGridManager(KisViewManager * parent)",
+        "method:KisGridManager::~KisGridManager()"
+      ]
+    },
+    {
+      "target": "KisMultiBoolFilterWidgetSchemaContractTest",
+      "source": "libs/ui/tests/KisMultiBoolFilterWidgetSchemaContractTest.cpp",
+      "test": "KisMultiBoolFilterWidgetSchemaContractTest::gridManagerViewConfigurationAndUpdateSignaturesRemainStable",
+      "behavior": "grid管理器はaction設定、view接続、grid設定反映、GUI更新を受け付ける公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisGridManager::setGridConfig(const KisGridConfig & config)",
+        "method:KisGridManager::setView(QPointer<KisView> imageView)",
+        "method:KisGridManager::setup(KisActionManager * actionManager)",
+        "method:KisGridManager::updateGUI()"
+      ]
+    },
+    {
+      "target": "KisMultiBoolFilterWidgetSchemaContractTest",
+      "source": "libs/ui/tests/KisMultiBoolFilterWidgetSchemaContractTest.cpp",
+      "test": "KisMultiBoolFilterWidgetSchemaContractTest::gridManagerNotificationSignatureRemainsStable",
+      "behavior": "grid管理器は反映対象のgrid設定を変更通知として公開する境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisGridManager::sigRequestUpdateGridConfig(const KisGridConfig & config)"
       ]
     }
   ]
