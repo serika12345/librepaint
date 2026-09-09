@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 13:39 JST
+- 更新日時: 2026-09-09 13:44 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4344,7 +4344,8 @@
 - 第484便はwidget系canvasの表示・移動・拡大制御を所有する`libs/ui/canvas/KoCanvasControllerWidget.h`に残る全23 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g484.json`は公開header 1,548、公開API 29,805、対応済み27,662、未対応2,143、578,805 bytes、SHA-256 `685720c15747f05f40138bb72dea8f20e9483717cf8cfd8b87ca75d43306e3a7`である。対象23識別子の整列集合SHA-256は`db706fc1c9bb3b927bd5291fdadc3f73d316e4127ae5a23018378d30a3296b48`である。
 - controller widgetは型・構築・破棄・状態・私有実装5、起動・canvas・widget・tool設定5、矩形と4形式の拡大5、距離と四方向の移動5、scroll内容・値の取得設定3の5枠へ固定する。型特性、局所派生probe、厳密な関数pointerだけを使い、controller、canvas、widget、状態値、still point、各本文を実体化しない。
 - 開始headerの`optional`、`QAbstractScrollArea`、`QPointer`、`KoCanvasController.h`、`KoZoomMode.h`は公開基底・会員署名に必要で、全前方宣言も公開または保護署名で使われる。私有実装は前方宣言と実装側の明示destructorで所有され、除去できる完全定義include、不要な生成入力、逆向依存がないため構造変更を行わない。対象の独立した挙動試験はなく、製品実装は`libs/ui/CMakeLists.txt`のUI集合に収容されるため限定反復対象から外す。
-- 既存`libs/ui/tests/KisCanvas2SchemaContractTest.cpp`は対象headerを`kis_canvas_controller.h`経由で既にコンパイルする296行・10枠の限定targetである。新targetは同じheaderを二重に再構築するため棄却し、同sourceへ直接includeと5枠を追加して390行・16枠未満に収める。CMake変更なしでQt Gui・Testだけへ動的接続する4工程・8入力、command SHA-256 `bc29da8c640940c753d920e812ec6fd04ab89a825edbc4c2cc560d93eba206c9`、input SHA-256 `f81e09d52468c18355e8cf9865fad097e615cdb1740996e3bce08afc81504ec4`を維持し、停止線を4工程・8入力とする。新たな探索路・定義・接続、AUTOMOC製品header入力、対象型または本文の実体化が必要なら停止する。macOSの対象、既存10枠と追加5枠、追加枠の20回反復、試験sourceの厳格構文と書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
+- 既存`libs/ui/tests/KisCanvas2SchemaContractTest.cpp`は対象headerを`kis_canvas_controller.h`経由で既にコンパイルする296行・10枠の限定targetである。新targetは同じheaderを二重に再構築するため棄却し、同sourceへ直接includeと5枠を追加して410行・16枠未満に収める。CMake変更なしでQt Gui・Testだけへ動的接続する4工程・8入力、command SHA-256 `bc29da8c640940c753d920e812ec6fd04ab89a825edbc4c2cc560d93eba206c9`、input SHA-256 `f81e09d52468c18355e8cf9865fad097e615cdb1740996e3bce08afc81504ec4`を維持し、停止線を4工程・8入力とする。新たな探索路・定義・接続、AUTOMOC製品header入力、対象型または本文の実体化が必要なら停止する。macOSの対象、既存10枠と追加5枠、追加枠の20回反復、試験sourceの厳格構文と書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
+- 初回5枠は全観測に成功して未固定markerだけが`XFAIL`となったが、抽象基底の公開構築を確認する局所派生probeには継承した純粋仮想15関数の宣言が必要で、marker込み408行となった。構築可能性の観測を削らず、既存targetの4工程・8入力とCMake無変更を維持できるため、行数停止線だけを390行から410行へ訂正した。
 
 ### 第239便の先行監査担当票
 
