@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-10 01:34 JST
+- 更新日時: 2026-09-10 01:40 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4925,6 +4925,13 @@
 - frame表示proxy境界は型・canvas/親付き構築・仮想破棄3、frame表示・active frame照会2、frame変更・表示更新・更新省略通知3の全8件を既存animation契約の1枠へ固定する。型特性、構築可能性、厳密な関数pointerだけを使い、proxy、canvas、画像、frame cacheを実体化しない。
 - 開始headerは私有値所有に使う`QScopedPointer`を`QObject`から間接取得しているため直接includeへ直す。開始`libs/ui/animation/KisFrameDisplayProxy.cpp`の厳格構文診断は、`KisCanvas2::image()`から返る`KisImage`を完全型なしで6箇所参照することを検出したため、契約追加より先に`kis_image.h`を開始実装へ直接includeする。公開署名と所有権を維持し、開始実装と既存試験からのheader強制includeで厳格構文診断0件を確認する。
 - 既存Qt playback契約は132行・9枠で、1枠追加後も220行・10枠以内に収まる。CMakeを変更せず4工程・8入力、command SHA-256 `d83163cca7bb97ef2413160d5e8382b143fd586fb3561bc15be64b5e15fcaf56`、input SHA-256 `1f931ce9d58b4541ac4ac2cf1849edd8e33d884f2b8780af7920dcaae1531655`を維持する。工程・入力増加、候補headerのAUTOMOC入力化、製品未解決記号が生じれば停止する。macOSの対象全体と追加1枠の20回反復、実装・試験sourceとheader強制includeの厳格構文、試験書式、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、canvas・画像・cache・再投影の実効果、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
+
+### 第537便の公開API契約結果
+
+- canvasのanimation frame表示を再投影またはframe cache転送へ振り分ける公開境界を軽量な型契約として固定した。開始`libs/ui/animation/KisFrameDisplayProxy.h`から既存`libs/ui/tests/KisPlaybackEngineQtSchemaContractTest.cpp`へ残存全8 API・1枠を追加し、型・canvas/親付き構築・仮想破棄3件、frame表示・active frame照会2件、frame変更・表示更新・更新省略通知3件を型特性、構築可能性、厳密な関数pointerで固定した。計画commitは`ea48f56734`、構造commitは`ecdc433d0f`、契約commitは`001b7f4e6a`で、既存試験sourceは150行・10枠となった。
+- 開始`libs/ui/animation/KisFrameDisplayProxy.h`で私有値所有に使う`QScopedPointer`を直接includeした。開始`libs/ui/animation/KisFrameDisplayProxy.cpp`へ`kis_image.h`を直接includeし、`KisCanvas2::image()`から返る不完全な`KisImage`への6件の会員参照診断を解消した。公開署名、所有権、実行時挙動、CMakeは変更していない。開始実装と候補headerを強制includeする試験sourceの厳格構文は診断0件で、試験書式も成功した。
+- targetは4工程・8入力、command SHA-256 `d83163cca7bb97ef2413160d5e8382b143fd586fb3561bc15be64b5e15fcaf56`、input SHA-256 `1f931ce9d58b4541ac4ac2cf1849edd8e33d884f2b8780af7920dcaae1531655`を維持した。候補headerのAUTOMOC入力化と未解決製品記号は0で、Qt Core・Testだけへ動的接続する。macOSで対象全体20回と追加1枠20回、厳格構文、試験書式、連続二回の無作業再構築に成功した。canvas・画像・cache・再投影の実効果、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 公開API検査の初回診断は期待値1,408に対して実測1,400で、新規8件と一致した。台帳を28,401件対応、1,400件未対応へ進め、`public-api-missing-g538.json`の生成成功後に旧`public-api-missing-g537.json` 384,405 bytesを削除した。主Ninja木6,049,268 KiB、共有compiler cache 983,228 KiB、最新報告382,462 bytes、SHA-256 `ca233c7ba85eed592ad763f192074d285789f785215af1240dc362e6f5c65152`だけを再利用対象として保持する。compiler cacheは144,814 cache可能呼出し中120,594件、83.28%がhitしている。次の永続作業は第538便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
 
 ### 第239便の先行監査担当票
 

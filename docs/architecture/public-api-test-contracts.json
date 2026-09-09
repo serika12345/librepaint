@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 1408
+    "expectedMissingApis": 1400
   },
   "contracts": [
     {
@@ -79474,6 +79474,23 @@
       "classification": "maintained",
       "apis": [
         "method:KisGridManager::sigRequestUpdateGridConfig(const KisGridConfig & config)"
+      ]
+    },
+    {
+      "target": "KisPlaybackEngineQtSchemaContractTest",
+      "source": "libs/ui/tests/KisPlaybackEngineQtSchemaContractTest.cpp",
+      "test": "KisPlaybackEngineQtSchemaContractTest::frameDisplayProxyBoundarySignaturesRemainStable",
+      "behavior": "frame表示proxyはcanvasと任意のQObject親から構築でき、表示対象frameを受け付けてactive frameを照会し、frame変更・表示更新・更新省略を個別に通知する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisFrameDisplayProxy",
+        "method:KisFrameDisplayProxy::KisFrameDisplayProxy(class KisCanvas2 * canvas,QObject * parent=nullptr)",
+        "method:KisFrameDisplayProxy::activeFrame() const",
+        "method:KisFrameDisplayProxy::displayFrame(int frame,bool forceReproject)",
+        "method:KisFrameDisplayProxy::sigFrameChange()",
+        "method:KisFrameDisplayProxy::sigFrameDisplayRefreshed()",
+        "method:KisFrameDisplayProxy::sigFrameRefreshSkipped()",
+        "method:KisFrameDisplayProxy::~KisFrameDisplayProxy()"
       ]
     }
   ]
