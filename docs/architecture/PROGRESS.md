@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 21:01 JST
+- 更新日時: 2026-09-09 21:07 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4664,6 +4664,9 @@
 - 非同期animation描画対話境界は抽象対話型・結果enum・完了・取消・失敗・時間切れ6、最小具象派生による構築と仮想破棄2、範囲再生成・対象領域設定・照会3、一括処理設定・照会2の4枠へ固定する。型特性、列挙値、厳密な関数pointerと未評価の省略待機時間呼出しだけを使い、対話画面、画像、描画器、frame、threadと進捗処理を実体化しない。
 - 開始`libs/ui/dialogs/KisAsyncAnimationRenderDialogBase.cpp`は`KisRegion`を値会員と値返却定義に使う一方で完全定義を推移includeへ依存し、単独の厳格構文で不完全型エラー2件となる。契約追加より先に実装へ`KisRegion.h`を直接includeする。開始headerから未使用の`KisTimeSpan`前方宣言も除去し、実際に公開署名へ使う`KisViewManager`と`KisRegion`、取消理由を所有する描画器基底を維持する。構造変更後に実装とheader強制includeの厳格構文を診断0件とする。
 - 新規`libs/ui/tests/KisAsyncAnimationRenderDialogBaseSchemaContractTest.cpp`をUI・image・globalのsource/generated探索路、3 export定義、Qt Core・Testとheader-only Boostだけで構成する。最小近傍と同じ4工程・8入力を予測し、追加前targetは`unknown target`である。停止線を5工程・11入力とし、Qt Gui・Widgets・製品OBJECT・shared、`kritatestsdk`、非同期描画対話・描画器・画像・領域の製品記号が必要なら停止する。macOSの対象と軽量animation近傍、追加4枠の20回反復、実装・試験sourceとheader強制includeの厳格構文、書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、実対話画面・画像・描画器・frame・thread、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
+- 構造準備では開始`libs/ui/dialogs/KisAsyncAnimationRenderDialogBase.cpp`へ値会員と値返却定義に必要な`KisRegion.h`を直接includeし、開始`libs/ui/dialogs/KisAsyncAnimationRenderDialogBase.h`から未使用の`KisTimeSpan`前方宣言を除去した。実装単独の厳格構文で出ていた不完全型エラー2件は解消し、header強制includeとともに診断0件となった。計画commitは`4dc94c9f38`、構造準備commitは`1654294938`である。
+- 開始headerから新規`libs/ui/tests/KisAsyncAnimationRenderDialogBaseSchemaContractTest.cpp`へ全13 API・4枠を追加し、抽象対話型・結果enumと4値、最小具象派生による構築・寿命、範囲再生成と対象領域、一括処理方針を型特性、列挙値、厳密な関数pointerと省略待機時間の未評価呼出しで固定した。契約commitは`58d18c218d`で、新規sourceは82行・4枠である。
+- targetはQt Core・Testだけへ動的接続する4工程・8入力、command SHA-256 `718cf44a50f1effe7a77ff9655fb0cba006f25b1187537b776b12c368a958e03`、input SHA-256 `10a4a982d5979a1a83ae4bcb66fdd6692164b9750415afc14cdb23897c98e7c9`である。AUTOMOC `HEADERS=[]`、非同期描画対話・描画器・画像・領域の未解決製品記号0で、Qt Gui・Widgetsと製品libraryを動的接続していない。macOSで対象とanimation frame cache近傍、対象全体と各4枠を20回、実装・試験sourceとheader強制includeの厳格構文、書式、連続二回の無作業再構築、公開API検査に成功した。台帳は28,188件対応、1,613件未対応となり、開始headerの残存は0件である。新`public-api-missing-g517.json`の生成成功後に旧`public-api-missing-g516.json` 443,514 bytesを削除した。主Ninja木6,032,512 KiB、共有compiler cache 983,320 KiB、最新報告439,831 bytes、SHA-256 `850f5c813972ee59809e943fd2e705c9a02b2306568848a7f63416125e7024de`だけを再利用対象として保持する。compiler cacheは144,759 cache可能呼出し中120,582件、83.30%がhitしている。実対話画面・画像・描画器・frame・thread、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第517便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
 
 ### 第239便の先行監査担当票
 

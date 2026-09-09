@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 1626
+    "expectedMissingApis": 1613
   },
   "contracts": [
     {
@@ -78770,6 +78770,55 @@
       "apis": [
         "method:KisDelayedSaveDialog::blockIfImageIsBusy()",
         "method:KisDelayedSaveDialog::registerBusyWaitFeedback()"
+      ]
+    },
+    {
+      "target": "KisAsyncAnimationRenderDialogBaseSchemaContractTest",
+      "source": "libs/ui/tests/KisAsyncAnimationRenderDialogBaseSchemaContractTest.cpp",
+      "test": "KisAsyncAnimationRenderDialogBaseSchemaContractTest::typeResultAndOrdinalsRemainStable",
+      "behavior": "非同期animation描画対話基底はQObject抽象型として、完了・取消・失敗・時間切れを0から順に分類する契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisAsyncAnimationRenderDialogBase",
+        "enum:KisAsyncAnimationRenderDialogBase::Result",
+        "enumerator:KisAsyncAnimationRenderDialogBase::Result::RenderCancelled",
+        "enumerator:KisAsyncAnimationRenderDialogBase::Result::RenderComplete",
+        "enumerator:KisAsyncAnimationRenderDialogBase::Result::RenderFailed",
+        "enumerator:KisAsyncAnimationRenderDialogBase::Result::RenderTimedOut"
+      ]
+    },
+    {
+      "target": "KisAsyncAnimationRenderDialogBaseSchemaContractTest",
+      "source": "libs/ui/tests/KisAsyncAnimationRenderDialogBaseSchemaContractTest.cpp",
+      "test": "KisAsyncAnimationRenderDialogBaseSchemaContractTest::constructionAndLifetimeSchemaRemainStable",
+      "behavior": "非同期animation描画対話基底は操作名・画像・省略可能な待機時間から具象派生を構築し、基底から仮想破棄する契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAsyncAnimationRenderDialogBase::KisAsyncAnimationRenderDialogBase(const QString & actionTitle,KisImageSP image,int busyWait=200)",
+        "method:KisAsyncAnimationRenderDialogBase::~KisAsyncAnimationRenderDialogBase()"
+      ]
+    },
+    {
+      "target": "KisAsyncAnimationRenderDialogBaseSchemaContractTest",
+      "source": "libs/ui/tests/KisAsyncAnimationRenderDialogBaseSchemaContractTest.cpp",
+      "test": "KisAsyncAnimationRenderDialogBaseSchemaContractTest::regenerationAndRegionSignaturesRemainStable",
+      "behavior": "非同期animation描画対話基底は表示管理器を伴う範囲再生成と、再生成対象領域の設定・照会を公開する署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAsyncAnimationRenderDialogBase::regenerateRange(KisViewManager * viewManager)",
+        "method:KisAsyncAnimationRenderDialogBase::regionOfInterest() const",
+        "method:KisAsyncAnimationRenderDialogBase::setRegionOfInterest(const KisRegion & roi)"
+      ]
+    },
+    {
+      "target": "KisAsyncAnimationRenderDialogBaseSchemaContractTest",
+      "source": "libs/ui/tests/KisAsyncAnimationRenderDialogBaseSchemaContractTest.cpp",
+      "test": "KisAsyncAnimationRenderDialogBaseSchemaContractTest::batchModeSignaturesRemainStable",
+      "behavior": "非同期animation描画対話基底は画面表示を抑える一括処理方針を設定・照会する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAsyncAnimationRenderDialogBase::batchMode() const",
+        "method:KisAsyncAnimationRenderDialogBase::setBatchMode(bool value)"
       ]
     }
   ]
