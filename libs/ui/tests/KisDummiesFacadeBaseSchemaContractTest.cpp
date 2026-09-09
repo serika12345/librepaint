@@ -4,6 +4,7 @@
  */
 
 #include "flake/kis_dummies_facade_base.h"
+#include "nodes/kis_node_filter_proxy_model.h"
 
 #include <QTest>
 
@@ -36,6 +37,10 @@ private Q_SLOTS:
     void imageAndActivationStateSignaturesRemainStable();
     void dummyLookupSignaturesRemainStable();
     void modelNotificationSignaturesRemainStable();
+    void nodeFilterTypeConstructionAndLifetimeSchemaRemainStable();
+    void nodeFilterModelAndDataSignaturesRemainStable();
+    void nodeFilterCriteriaAndMappingSignaturesRemainStable();
+    void nodeFilterActivationAndNotificationSignaturesRemainStable();
 };
 
 void KisDummiesFacadeBaseSchemaContractTest::typeConstructionAndLifetimeSchemaRemainStable()
@@ -82,6 +87,47 @@ void KisDummiesFacadeBaseSchemaContractTest::modelNotificationSignaturesRemainSt
     static_assert(std::is_same_v<decltype(&Facade::sigEndRemoveDummy), void (Facade::*)()>);
     static_assert(std::is_same_v<decltype(&Facade::sigDummyChanged), void (Facade::*)(KisNodeDummy *)>);
     static_assert(std::is_same_v<decltype(&Facade::sigActivateNode), void (Facade::*)(KisNodeSP)>);
+}
+
+void KisDummiesFacadeBaseSchemaContractTest::nodeFilterTypeConstructionAndLifetimeSchemaRemainStable()
+{
+    using Filter = KisNodeFilterProxyModel;
+
+    static_assert(std::is_class_v<Filter>);
+    static_assert(std::is_base_of_v<QSortFilterProxyModel, Filter>);
+    static_assert(std::is_constructible_v<Filter, QObject *>);
+    static_assert(std::has_virtual_destructor_v<Filter>);
+}
+
+void KisDummiesFacadeBaseSchemaContractTest::nodeFilterModelAndDataSignaturesRemainStable()
+{
+    using Filter = KisNodeFilterProxyModel;
+
+    static_assert(std::is_same_v<decltype(&Filter::setNodeModel), void (Filter::*)(KisNodeModel *)>);
+    static_assert(
+        std::is_same_v<decltype(&Filter::setData), bool (Filter::*)(const QModelIndex &, const QVariant &, int)>);
+    static_assert(
+        std::is_same_v<decltype(&Filter::filterAcceptsRow), bool (Filter::*)(int, const QModelIndex &) const>);
+}
+
+void KisDummiesFacadeBaseSchemaContractTest::nodeFilterCriteriaAndMappingSignaturesRemainStable()
+{
+    using Filter = KisNodeFilterProxyModel;
+
+    static_assert(std::is_same_v<decltype(&Filter::setAcceptedLabels), void (Filter::*)(const QSet<int> &)>);
+    static_assert(std::is_same_v<decltype(&Filter::setTextFilter), void (Filter::*)(const QString &)>);
+    static_assert(std::is_same_v<decltype(&Filter::nodeFromIndex), KisNodeSP (Filter::*)(const QModelIndex &) const>);
+    static_assert(std::is_same_v<decltype(&Filter::indexFromNode), QModelIndex (Filter::*)(KisNodeSP) const>);
+}
+
+void KisDummiesFacadeBaseSchemaContractTest::nodeFilterActivationAndNotificationSignaturesRemainStable()
+{
+    using Filter = KisNodeFilterProxyModel;
+
+    static_assert(std::is_same_v<decltype(&Filter::setActiveNode), void (Filter::*)(KisNodeSP)>);
+    static_assert(std::is_same_v<decltype(&Filter::unsetDummiesFacade), void (Filter::*)()>);
+    static_assert(
+        std::is_same_v<decltype(&Filter::sigBeforeBeginRemoveRows), void (Filter::*)(const QModelIndex &, int, int)>);
 }
 
 QTEST_GUILESS_MAIN(KisDummiesFacadeBaseSchemaContractTest)
