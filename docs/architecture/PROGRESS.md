@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 09:11 JST
+- 更新日時: 2026-09-09 09:25 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4176,6 +4176,10 @@
 - drop shadow filterは型・効果mode 6、構築・複製2、処理・必要矩形・変更矩形3の3枠へ固定する。overlay filterは型・効果mode 5、構築・複製2、処理・必要矩形・変更矩形3の3枠へ固定する。共有実行環境は型・構築・寿命・layer/default境界・LOD 6と、最終painter設定・乱数選択・平坦化pattern・選択cache・描画装置cache 5の2枠へ固定する。具体filterと実行環境の本文は実体化せず、型特性、列挙値、厳密な関数pointerだけを観測する。
 - `libs/image/layerstyles/kis_layer_style_filter_environment.h`は`KoPattern`の完全定義を使わず共有pointer別名だけを公開するため、開始headerの`KoPattern.h`を前方宣言と別名へ置き換え、完全定義を使う`libs/image/layerstyles/kis_layer_style_filter_environment.cpp`へ直接includeを移す。直接利用元11翻訳単位の変更前厳密構文検査は10件成功・1件既存診断で、変更後の新規悪化0を完了条件とする。二つの具体filter headerは基底型とexport macroを直接使い、追加の不要includeを持たない。
 - 新規`libs/image/tests/KisLayerStyleConcreteFiltersSchemaContractTest.cpp`は200行・9枠未満とする。最寄りの`KisLayerStyleProjectionPlaneSchemaContractTest`は4工程・8入力、command SHA-256 `0511f5175ac7a9135f28601e5ef6cec86a67e5a0c4129ea1e648c29426abcd7c`、input SHA-256 `6e27b80bc3a9576fc86b4bb142e234b4071e1fd0e385dfa8fc52eb322c20f2d0`である。新targetも製品objectを接続せず、Qt Core・Testと公開headerに必要な最小探索路・interface条件だけを与えて4工程・8入力を予測する。停止線は5工程・11入力で、新たな製品接続、AUTOMOC製品header入力、具体filterまたは環境本文の実体化が必要なら停止する。macOSの対象、最軽量近傍、対象の20回反復、試験sourceの厳格構文、書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、既存の製品layer style試験、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
+- `KoPattern.h`依存の縮小試行は直接利用元11翻訳単位を変更前後とも10件成功・`kis_ls_overlay_filter.cpp`の既存診断1件に保ったが、`KoPatternSP`別名を開始headerへ移すと新しい公開API宣言として採取された。既存の前方宣言用headerはなく、この便で新たな共有公開headerを設けると契約固定より構造範囲が大きくなるため差分なしまで戻した。現在の`KoPattern.h`直接includeを別名の所有元として維持し、公開API数・指紋の復帰を検査した。二つの具体filter headerにも構造変更はない。計画commitは`acf5f7b740`である。
+- 開始`libs/image/layerstyles/kis_ls_drop_shadow_filter.h`、`libs/image/layerstyles/kis_ls_overlay_filter.h`、`libs/image/layerstyles/kis_layer_style_filter_environment.h`から新規`libs/image/tests/KisLayerStyleConcreteFiltersSchemaContractTest.cpp`へ全32 API・8枠を追加した。二つの具体filterの型・効果modeと順序・構築・複製・処理矩形境界、共有実行環境の型・構築・寿命・境界・LOD・painter設定・3種cacheを、型特性、列挙値、厳密な関数pointerで固定した。初回は全8観測枠が成功し、`G468 concrete layer style filter API schema is not fixed yet`だけで1件失敗した。具体filterと実行環境の本文は実体化していない。契約commitは`c9b784f1f3`である。
+- 新規試験sourceは152行・8枠で、targetは4工程・8入力、command SHA-256 `bd44ceee652a21e0da6a3b4502d60d7f42616781d9b4cd33d58976b5c9060be9`、input SHA-256 `ab3fa40a3b6c3fe2740568d43e72f9b265858c8ae77d71bf34e399663dea9473`となった。AUTOMOC `HEADERS=[]`、製品未解決記号・製品動的接続は0である。macOSで対象、最軽量近傍`KisLayerStyleProjectionPlaneSchemaContractTest`、対象の20回反復、試験sourceの厳格構文と書式、連続二回の無作業再構築、公開API検査、`verify-quick`に成功した。既存の製品layer style試験、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 台帳は27,399件対応、2,405件未対応となり、開始3 headerの残存は0件である。旧`public-api-missing-g468.json` 662,200 bytesを削除し、一時閉包一覧、追加作業tree・構築木は作成していない。主Ninja木6,004,312 KiB、共有compiler cache 983,444 KiB、最新`build/tdd-macos/public-api-missing-g469.json` 652,768 bytes、SHA-256 `be2240138be159ec3450f986ed7649c2610157f59a9d5dae920f3f861082d49a`だけを再利用対象として保持する。compiler cacheは144,617件中120,565件、83.37%がhitしている。次の永続作業は第469便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
 
 ### 第239便の先行監査担当票
 

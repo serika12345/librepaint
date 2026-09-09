@@ -16,7 +16,7 @@
     "publicApiFingerprint": "5f05b2aa8e5bef4343af1d55a3852331e51d4369fe135b099327b1a91b6b8c4c"
   },
   "migration": {
-    "expectedMissingApis": 2437
+    "expectedMissingApis": 2405
   },
   "contracts": [
     {
@@ -75910,6 +75910,110 @@
         "method:KisPaintOpConfigWidget::setResourcesInterface(KisResourcesInterfaceSP resourcesInterface)",
         "method:KisPaintOpConfigWidget::setView(KisViewManager * view)",
         "method:KisPaintOpConfigWidget::supportScratchBox()"
+      ]
+    },
+    {
+      "target": "KisLayerStyleConcreteFiltersSchemaContractTest",
+      "source": "libs/image/tests/KisLayerStyleConcreteFiltersSchemaContractTest.cpp",
+      "test": "KisLayerStyleConcreteFiltersSchemaContractTest::dropShadowTypeAndModesRemainStable",
+      "behavior": "drop shadow filterはlayer style filterを具体化し、drop shadow、inner shadow、outer glow、inner glowの効果modeと順序を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisLsDropShadowFilter",
+        "enum:KisLsDropShadowFilter::Mode",
+        "enumerator:KisLsDropShadowFilter::Mode::DropShadow",
+        "enumerator:KisLsDropShadowFilter::Mode::InnerGlow",
+        "enumerator:KisLsDropShadowFilter::Mode::InnerShadow",
+        "enumerator:KisLsDropShadowFilter::Mode::OuterGlow"
+      ]
+    },
+    {
+      "target": "KisLayerStyleConcreteFiltersSchemaContractTest",
+      "source": "libs/image/tests/KisLayerStyleConcreteFiltersSchemaContractTest.cpp",
+      "test": "KisLayerStyleConcreteFiltersSchemaContractTest::dropShadowConstructionAndCloneSignaturesRemainStable",
+      "behavior": "drop shadow filterは既定のdrop shadowまたは指定modeから構築でき、layer style filterとして複製する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisLsDropShadowFilter::KisLsDropShadowFilter(Mode mode=DropShadow)",
+        "method:KisLsDropShadowFilter::clone() const"
+      ]
+    },
+    {
+      "target": "KisLayerStyleConcreteFiltersSchemaContractTest",
+      "source": "libs/image/tests/KisLayerStyleConcreteFiltersSchemaContractTest.cpp",
+      "test": "KisLayerStyleConcreteFiltersSchemaContractTest::dropShadowProcessingSignaturesRemainStable",
+      "behavior": "drop shadow filterは指定領域へ効果を適用し、入力変化に必要な矩形と効果で変化する矩形を返す公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisLsDropShadowFilter::changedRect(const QRect & rect,KisPSDLayerStyleSP style,KisLayerStyleFilterEnvironment * env) const",
+        "method:KisLsDropShadowFilter::neededRect(const QRect & rect,KisPSDLayerStyleSP style,KisLayerStyleFilterEnvironment * env) const",
+        "method:KisLsDropShadowFilter::processDirectly(KisPaintDeviceSP src,KisMultipleProjection * dst,KisLayerStyleKnockoutBlower * blower,const QRect & applyRect,KisPSDLayerStyleSP style,KisLayerStyleFilterEnvironment * env) const"
+      ]
+    },
+    {
+      "target": "KisLayerStyleConcreteFiltersSchemaContractTest",
+      "source": "libs/image/tests/KisLayerStyleConcreteFiltersSchemaContractTest.cpp",
+      "test": "KisLayerStyleConcreteFiltersSchemaContractTest::overlayTypeAndModesRemainStable",
+      "behavior": "overlay filterはlayer style filterを具体化し、color、gradient、patternの効果modeと順序を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisLsOverlayFilter",
+        "enum:KisLsOverlayFilter::Mode",
+        "enumerator:KisLsOverlayFilter::Mode::Color",
+        "enumerator:KisLsOverlayFilter::Mode::Gradient",
+        "enumerator:KisLsOverlayFilter::Mode::Pattern"
+      ]
+    },
+    {
+      "target": "KisLayerStyleConcreteFiltersSchemaContractTest",
+      "source": "libs/image/tests/KisLayerStyleConcreteFiltersSchemaContractTest.cpp",
+      "test": "KisLayerStyleConcreteFiltersSchemaContractTest::overlayConstructionAndCloneSignaturesRemainStable",
+      "behavior": "overlay filterは指定modeから構築でき、layer style filterとして複製する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisLsOverlayFilter::KisLsOverlayFilter(Mode mode)",
+        "method:KisLsOverlayFilter::clone() const"
+      ]
+    },
+    {
+      "target": "KisLayerStyleConcreteFiltersSchemaContractTest",
+      "source": "libs/image/tests/KisLayerStyleConcreteFiltersSchemaContractTest.cpp",
+      "test": "KisLayerStyleConcreteFiltersSchemaContractTest::overlayProcessingSignaturesRemainStable",
+      "behavior": "overlay filterは指定領域へ効果を適用し、入力変化に必要な矩形と効果で変化する矩形を返す公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisLsOverlayFilter::changedRect(const QRect & rect,KisPSDLayerStyleSP style,KisLayerStyleFilterEnvironment * env) const",
+        "method:KisLsOverlayFilter::neededRect(const QRect & rect,KisPSDLayerStyleSP style,KisLayerStyleFilterEnvironment * env) const",
+        "method:KisLsOverlayFilter::processDirectly(KisPaintDeviceSP src,KisMultipleProjection * dst,KisLayerStyleKnockoutBlower * blower,const QRect & applyRect,KisPSDLayerStyleSP style,KisLayerStyleFilterEnvironment * env) const"
+      ]
+    },
+    {
+      "target": "KisLayerStyleConcreteFiltersSchemaContractTest",
+      "source": "libs/image/tests/KisLayerStyleConcreteFiltersSchemaContractTest.cpp",
+      "test": "KisLayerStyleConcreteFiltersSchemaContractTest::environmentTypeLifetimeAndBoundsSignaturesRemainStable",
+      "behavior": "layer style filter実行環境はsource layerから構築・破棄でき、layer境界、既定境界、現在の詳細度を返す公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisLayerStyleFilterEnvironment",
+        "method:KisLayerStyleFilterEnvironment::KisLayerStyleFilterEnvironment(KisLayer * sourceLayer)",
+        "method:KisLayerStyleFilterEnvironment::currentLevelOfDetail() const",
+        "method:KisLayerStyleFilterEnvironment::defaultBounds() const",
+        "method:KisLayerStyleFilterEnvironment::layerBounds() const",
+        "method:KisLayerStyleFilterEnvironment::~KisLayerStyleFilterEnvironment()"
+      ]
+    },
+    {
+      "target": "KisLayerStyleConcreteFiltersSchemaContractTest",
+      "source": "libs/image/tests/KisLayerStyleConcreteFiltersSchemaContractTest.cpp",
+      "test": "KisLayerStyleConcreteFiltersSchemaContractTest::environmentResourceAndPainterSignaturesRemainStable",
+      "behavior": "layer style filter実行環境は最終描画器を設定し、乱数選択、平坦化pattern、選択cache、描画装置cacheを提供する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisLayerStyleFilterEnvironment::cachedFlattenedPattern(KoPatternSP pattern) const",
+        "method:KisLayerStyleFilterEnvironment::cachedPaintDevice()",
+        "method:KisLayerStyleFilterEnvironment::cachedRandomSelection(const QRect & requestedRect) const",
+        "method:KisLayerStyleFilterEnvironment::cachedSelection()",
+        "method:KisLayerStyleFilterEnvironment::setupFinalPainter(KisPainter * gc,quint8 opacity,const QBitArray & channelFlags) const"
       ]
     }
   ]
