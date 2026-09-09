@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 1686
+    "expectedMissingApis": 1674
   },
   "contracts": [
     {
@@ -78539,6 +78539,54 @@
         "method:KisResourceTypeModel::columnCount(const QModelIndex & parent=QModelIndex ()) const",
         "method:KisResourceTypeModel::data(const QModelIndex & index,int role) const",
         "method:KisResourceTypeModel::rowCount(const QModelIndex & parent=QModelIndex ()) const"
+      ]
+    },
+    {
+      "target": "KisCmbIDListSchemaContractTest",
+      "source": "libs/ui/tests/KisCmbIDListSchemaContractTest.cpp",
+      "test": "KisCmbIDListSchemaContractTest::typeConstructionLifetimeAndAutoIdSchemaRemainStable",
+      "behavior": "ID一覧選択器はcombo boxとして既定構築でき、仮想破棄と自動選択肢の定数値型を持つ公開契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisCmbIDList",
+        "member:KisCmbIDList::AutoOptionID",
+        "method:KisCmbIDList::KisCmbIDList(QWidget * parent=0,const char * name=0)",
+        "method:KisCmbIDList::~KisCmbIDList()"
+      ]
+    },
+    {
+      "target": "KisCmbIDListSchemaContractTest",
+      "source": "libs/ui/tests/KisCmbIDListSchemaContractTest.cpp",
+      "test": "KisCmbIDListSchemaContractTest::listAndAutomaticOptionSignaturesRemainStable",
+      "behavior": "ID一覧選択器は並べ替え可能なID一覧、自動選択肢とその補足表示を設定する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCmbIDList::allowAuto(bool setAuto=true)",
+        "method:KisCmbIDList::setAutoHint(const QString & hint)",
+        "method:KisCmbIDList::setIDList(const QList<KoID> & list,bool sorted=true)"
+      ]
+    },
+    {
+      "target": "KisCmbIDListSchemaContractTest",
+      "source": "libs/ui/tests/KisCmbIDListSchemaContractTest.cpp",
+      "test": "KisCmbIDListSchemaContractTest::currentItemSignaturesRemainStable",
+      "behavior": "ID一覧選択器はID値または文字列で現在項目を設定し、現在のID値を返す公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCmbIDList::currentItem() const",
+        "method:KisCmbIDList::setCurrent(const KoID id)",
+        "method:KisCmbIDList::setCurrent(const QString & id)"
+      ]
+    },
+    {
+      "target": "KisCmbIDListSchemaContractTest",
+      "source": "libs/ui/tests/KisCmbIDListSchemaContractTest.cpp",
+      "test": "KisCmbIDListSchemaContractTest::selectionNotificationSignaturesRemainStable",
+      "behavior": "ID一覧選択器は利用者が選択・強調したID値を通知する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCmbIDList::activated(const KoID &)",
+        "method:KisCmbIDList::highlighted(const KoID &)"
       ]
     }
   ]
