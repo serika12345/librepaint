@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 1463
+    "expectedMissingApis": 1455
   },
   "contracts": [
     {
@@ -79311,6 +79311,32 @@
         "method:KisToolFreehandHelper::paintEvent(KoPointerEvent * event)",
         "method:KisToolFreehandHelper::paintOpOutline(const QPointF & savedCursorPos,const KoPointerEvent * event,const KisPaintOpSettingsSP globalSettings,KisPaintOpSettings::OutlineMode mode) const",
         "method:KisToolFreehandHelper::requestExplicitUpdateOutline()"
+      ]
+    },
+    {
+      "target": "KisCollapsibleButtonGroupSchemaContractTest",
+      "source": "libs/ui/tests/KisCollapsibleButtonGroupSchemaContractTest.cpp",
+      "test": "KisCollapsibleButtonGroupSchemaContractTest::recentFileIconCacheTypeLifetimeAndSingletonSchemaRemainStable",
+      "behavior": "最近使用file icon cacheは既定構築・破棄できるQObjectとして、共有singleton個体を取得する公開型境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisRecentFileIconCache",
+        "method:KisRecentFileIconCache::KisRecentFileIconCache()",
+        "method:KisRecentFileIconCache::instance()",
+        "method:KisRecentFileIconCache::~KisRecentFileIconCache()"
+      ]
+    },
+    {
+      "target": "KisCollapsibleButtonGroupSchemaContractTest",
+      "source": "libs/ui/tests/KisCollapsibleButtonGroupSchemaContractTest.cpp",
+      "test": "KisCollapsibleButtonGroupSchemaContractTest::recentFileIconCacheAccessAndNotificationSignaturesRemainStable",
+      "behavior": "最近使用file icon cacheはURLからicon取得を照会または予約し、個別iconを無効化・再読込して変更を通知する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisRecentFileIconCache::fileIconChanged(const QUrl & url,const QIcon & icon)",
+        "method:KisRecentFileIconCache::getOrQueueFileIcon(const QUrl & url)",
+        "method:KisRecentFileIconCache::invalidateFileIcon(const QUrl & url)",
+        "method:KisRecentFileIconCache::reloadFileIcon(const QUrl & url)"
       ]
     }
   ]
