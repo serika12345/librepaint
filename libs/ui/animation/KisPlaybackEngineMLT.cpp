@@ -16,6 +16,7 @@
 
 #include "kis_canvas2.h"
 #include "KisCanvasAnimationState.h"
+#include "kis_image.h"
 #include "kis_image_animation_interface.h"
 #include "kis_signal_compressor_with_param.h"
 #include "application/ui/workspace/KisViewManager.h"
@@ -636,4 +637,3 @@ KisPlaybackEngine::PlaybackStats KisPlaybackEngineMLT::playbackStatistics() cons
 
     return stats;
 }
-
