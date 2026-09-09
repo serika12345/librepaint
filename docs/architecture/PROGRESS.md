@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 23:05 JST
+- 更新日時: 2026-09-09 23:10 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4758,6 +4758,13 @@
 - 開始headerから`kis_types.h`への過剰依存を除去し、`KisImageSP`を既存`KisSharedPtr`前方宣言から局所宣言した。値会員と公開容器署名に必要な`QScopedPointer`・`QVector`を直接includeし、header強制includeと開始`libs/ui/animation/kis_animation_cache_populator.cpp`の厳格構文は診断0件を維持した。公開署名、所有権、実行時挙動、CMakeは変更していない。
 - targetは4工程・8入力、command SHA-256 `d83163cca7bb97ef2413160d5e8382b143fd586fb3561bc15be64b5e15fcaf56`、input SHA-256 `1f931ce9d58b4541ac4ac2cf1849edd8e33d884f2b8780af7920dcaae1531655`を維持した。AUTOMOC `HEADERS=[]`、補充器・frame cache保管器・OpenGL更新情報builderの未解決製品記号0で、Qt Core・Testだけへ動的接続する。macOSで対象とframe cache近傍、対象全体20回と追加3枠各20回、実装・試験sourceとheader強制includeの厳格構文、書式、連続二回の無作業再構築に成功した。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 公開API検査の初回診断は期待値1,518に対して実測1,509で、新規9件と一致した。台帳を28,292件対応、1,509件未対応へ進め、`public-api-missing-g526.json`の生成成功後に旧`public-api-missing-g525.json` 413,461 bytesを削除した。主Ninja木6,032,300 KiB、共有compiler cache 982,764 KiB、最新報告410,955 bytes、SHA-256 `7a2b0e6f07d002e8c85fad26c0cfbde56363e0abb1887953352ea9a92779d041`だけを再利用対象として保持する。compiler cacheは144,794 cache可能呼出し中120,593件、83.29%がhitしている。次の永続作業は第526便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
+
+### 第526便の公開API契約計画
+
+- 第526便はtemplate資源pathとgroup集合を所有し、template treeの読込・書出を調停する`libs/application/ui/workspace/KisTemplateTree.h`の残存全11 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g526.json`は公開header 1,549、公開API 29,801、対応済み28,292、未対応1,509、410,955 bytes、SHA-256 `7a2b0e6f07d002e8c85fad26c0cfbde56363e0abb1887953352ea9a92779d041`である。対象11識別子の整列集合SHA-256は`2352c00fc2abb3fc0468574ce1a7c35c811bd6356930ecdf1afa487f39692727`である。
+- template tree境界は型・資源pathからの構築・破棄3、資源path照会・tree読込・tree書出3、group追加・名前検索・既定group・既定template・group一覧5の3枠へ固定する。型特性と厳密な関数pointerだけを使い、tree、template、group、filesystem、設定fileを実体化しない。
+- 開始headerは公開署名と値会員に必要な`QList`・`QString`・export定義を直接includeしており、既存`libs/application/tests/KisOpenPaneSchemaContractTest.cpp`からのheader強制includeと開始`libs/application/ui/workspace/KisTemplateTree.cpp`の厳格構文は診断0件である。削減可能な過剰依存がなく、構造変更を行わない。
+- 既存workspace契約は67行・3枠で、3枠追加後も220行・10枠以内に収まる。CMakeを変更せず4工程・8入力、command SHA-256 `c27f68be4d728befb5d4d9f56385d0d7c81a46fd59c79ce460c7dbcac7b5a73c`、input SHA-256 `407d31d9e77aae98ce053ac281f66354e2160a9b1191855640256e75a1d39dc5`を維持する。工程・入力増加、候補headerのAUTOMOC入力化、製品未解決記号が生じれば停止する。macOSの対象全体と追加3枠の20回反復、実装・試験sourceとheader強制includeの厳格構文、書式、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、実tree・template・group・filesystem・設定file、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
 
 ### 第239便の先行監査担当票
 
