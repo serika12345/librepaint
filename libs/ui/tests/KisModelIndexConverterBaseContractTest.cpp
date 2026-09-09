@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "nodes/kis_model_index_converter.h"
 #include "nodes/kis_model_index_converter_base.h"
 
 #include <QAbstractListModel>
@@ -130,6 +131,9 @@ void KisModelIndexConverterBaseContractTest::abstractBasePreservesVirtualLifetim
 {
     static_assert(std::is_abstract_v<KisModelIndexConverterBase>);
     static_assert(std::has_virtual_destructor_v<KisModelIndexConverterBase>);
+    static_assert(std::is_class_v<KisModelIndexConverter>);
+    static_assert(std::is_base_of_v<KisModelIndexConverterBase, KisModelIndexConverter>);
+    static_assert(std::is_constructible_v<KisModelIndexConverter, KisDummiesFacadeBase *, KisNodeModel *, bool>);
 
     int destructionCount = 0;
     {
@@ -141,6 +145,10 @@ void KisModelIndexConverterBaseContractTest::abstractBasePreservesVirtualLifetim
 
 void KisModelIndexConverterBaseContractTest::rowAndIndexRequestsPreserveInputsAndResults()
 {
+    using Converter = KisModelIndexConverter;
+    static_assert(std::is_same_v<decltype(&Converter::dummyFromRow), KisNodeDummy *(Converter::*)(int, QModelIndex)>);
+    static_assert(std::is_same_v<decltype(&Converter::dummyFromIndex), KisNodeDummy *(Converter::*)(QModelIndex)>);
+
     IndexFactory indexes;
     KisNodeDummy parentToken;
     KisNodeDummy rowResult;
@@ -163,6 +171,10 @@ void KisModelIndexConverterBaseContractTest::rowAndIndexRequestsPreserveInputsAn
 
 void KisModelIndexConverterBaseContractTest::dummyAndParentRequestsPreserveInputsAndResults()
 {
+    using Converter = KisModelIndexConverter;
+    static_assert(std::is_same_v<decltype(&Converter::indexFromDummy), QModelIndex (Converter::*)(KisNodeDummy *)>);
+    static_assert(std::is_same_v<decltype(&Converter::rowCount), int (Converter::*)(QModelIndex)>);
+
     IndexFactory indexes;
     KisNodeDummy dummy;
     KisNodeDummy resultToken;
@@ -184,6 +196,10 @@ void KisModelIndexConverterBaseContractTest::dummyAndParentRequestsPreserveInput
 
 void KisModelIndexConverterBaseContractTest::addedDummyRequestPreservesOrderedInputsAndOutputs()
 {
+    using Converter = KisModelIndexConverter;
+    static_assert(std::is_same_v<decltype(&Converter::indexFromAddedDummy),
+                                 bool (Converter::*)(KisNodeDummy *, int, const QString &, QModelIndex &, int &)>);
+
     IndexFactory indexes;
     KisNodeDummy parentDummy;
     KisNodeDummy initialParentToken;
