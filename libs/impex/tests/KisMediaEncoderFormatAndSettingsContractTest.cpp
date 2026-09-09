@@ -3,11 +3,13 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include <KisAndroidMediaEncoderRunnable.h>
 #include <KisMediaEncoderWrapper.h>
 
 #include <QTest>
 
 #include <type_traits>
+#include <utility>
 
 namespace
 {
@@ -104,6 +106,10 @@ private Q_SLOTS:
     void wrapperTypeConstructionAndLifetimeSchemaRemainStable();
     void wrapperExecutionAndFormatLookupSignaturesRemainStable();
     void wrapperLifecycleSignalSignaturesRemainStable();
+    void androidRunnableFactoryAndFormatsSchemaRemainStable();
+    void androidPreferencesWidgetTypeAndConstructionSchemaRemainStable();
+    void androidPreferencesEncoderOptionSignaturesRemainStable();
+    void androidPreferencesBitrateSignaturesRemainStable();
 };
 
 void KisMediaEncoderFormatAndSettingsContractTest::formatIdentityPreservesStableMetadata()
@@ -267,6 +273,57 @@ void KisMediaEncoderFormatAndSettingsContractTest::wrapperLifecycleSignalSignatu
     ASSERT_MEDIA_ENCODER_SIGNATURE(Wrapper, sigFinishedWithError, Error);
     ASSERT_MEDIA_ENCODER_SIGNATURE(Wrapper, sigProgressUpdated, Progress);
     ASSERT_MEDIA_ENCODER_SIGNATURE(Wrapper, sigCancelRequested, VoidMember);
+}
+
+void KisMediaEncoderFormatAndSettingsContractTest::androidRunnableFactoryAndFormatsSchemaRemainStable()
+{
+    using Runnable = KisAndroidMediaEncoderRunnable;
+    using Create = Runnable *(*)(const KisMediaEncoderWrapperSettings &, QObject *);
+    using Formats = void (*)(QVector<KisMediaEncoderFormat *> &);
+
+    static_assert(std::is_class_v<Runnable>);
+    static_assert(std::is_base_of_v<KisMediaEncoderRunnable, Runnable>);
+    ASSERT_MEDIA_ENCODER_SIGNATURE(Runnable, create, Create);
+    ASSERT_MEDIA_ENCODER_SIGNATURE(Runnable, getSupportedFormats, Formats);
+    static_assert(
+        std::is_same_v<decltype(Runnable::create(std::declval<const KisMediaEncoderWrapperSettings &>())), Runnable *>);
+}
+
+void KisMediaEncoderFormatAndSettingsContractTest::androidPreferencesWidgetTypeAndConstructionSchemaRemainStable()
+{
+    using Preferences = KisAndroidMediaEncoderPreferencesWidget;
+
+    static_assert(std::is_class_v<Preferences>);
+    static_assert(std::is_base_of_v<QWidget, Preferences>);
+    static_assert(std::is_constructible_v<Preferences, const KisMediaEncoderFormat *, QWidget *>);
+    static_assert(std::is_same_v<decltype(Preferences(std::declval<const KisMediaEncoderFormat *>())), Preferences>);
+}
+
+void KisMediaEncoderFormatAndSettingsContractTest::androidPreferencesEncoderOptionSignaturesRemainStable()
+{
+    using Preferences = KisAndroidMediaEncoderPreferencesWidget;
+    using AddOption = void (Preferences::*)(const QString &, const QString &);
+    using GetEncoder = QString (Preferences::*)() const;
+    using SetEncoder = void (Preferences::*)(const QString &);
+
+    ASSERT_MEDIA_ENCODER_SIGNATURE(Preferences, addVideoEncoderOption, AddOption);
+    ASSERT_MEDIA_ENCODER_SIGNATURE(Preferences, addAudioEncoderOption, AddOption);
+    ASSERT_MEDIA_ENCODER_SIGNATURE(Preferences, videoEncoder, GetEncoder);
+    ASSERT_MEDIA_ENCODER_SIGNATURE(Preferences, setVideoEncoder, SetEncoder);
+    ASSERT_MEDIA_ENCODER_SIGNATURE(Preferences, audioEncoder, GetEncoder);
+    ASSERT_MEDIA_ENCODER_SIGNATURE(Preferences, setAudioEncoder, SetEncoder);
+}
+
+void KisMediaEncoderFormatAndSettingsContractTest::androidPreferencesBitrateSignaturesRemainStable()
+{
+    using Preferences = KisAndroidMediaEncoderPreferencesWidget;
+    using GetBitrate = int (Preferences::*)() const;
+    using SetBitrate = void (Preferences::*)(int);
+
+    ASSERT_MEDIA_ENCODER_SIGNATURE(Preferences, videoBitrate, GetBitrate);
+    ASSERT_MEDIA_ENCODER_SIGNATURE(Preferences, setVideoBitrate, SetBitrate);
+    ASSERT_MEDIA_ENCODER_SIGNATURE(Preferences, audioBitrate, GetBitrate);
+    ASSERT_MEDIA_ENCODER_SIGNATURE(Preferences, setAudioBitrate, SetBitrate);
 }
 
 #undef ASSERT_MEDIA_ENCODER_SIGNATURE
