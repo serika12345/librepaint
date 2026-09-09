@@ -219,8 +219,11 @@ target_include_directories(KisViewManagerSchemaContractTest PRIVATE
     ${CMAKE_SOURCE_DIR}/libs/ui
     ${CMAKE_BINARY_DIR}/libs/ui
     ${CMAKE_SOURCE_DIR}/libs/ui/widgets
+    ${CMAKE_SOURCE_DIR}/libs/widgetutils/config
     ${CMAKE_SOURCE_DIR}/libs/widgetutils
+    ${CMAKE_BINARY_DIR}/libs/widgetutils
     $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Widgets,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:KF${KF_MAJOR}::ConfigGui,INTERFACE_INCLUDE_DIRECTORIES>
 )
 target_compile_definitions(KisViewManagerSchemaContractTest PRIVATE
     kritaui_EXPORTS
