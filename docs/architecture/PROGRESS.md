@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-10 00:52 JST
+- 更新日時: 2026-09-10 01:00 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4869,6 +4869,13 @@
 - node表示方針境界は型・QObject親付き構築・root表示照会/設定・global selection mask表示照会/設定6、二方針の変更通知1の2枠へ固定する。型特性、構築可能性、厳密な関数pointerだけを使い、adapter、設定、node treeを実体化しない。
 - 開始headerはQObject基底とexport定義を直接includeし、公開面に不要な依存を持たない。開始`libs/ui/canvas/KisNodeDisplayModeAdapter.cpp`と既存`libs/ui/tests/KisMultiBoolFilterWidgetSchemaContractTest.cpp`の厳格構文診断は0件であるため、構造変更を行わない。
 - 既存widget契約は62行・4枠で、2枠追加後も220行・10枠以内に収まる。CMakeを変更せず4工程・8入力、command SHA-256 `67ab1422423ac02371a154b8d61b44992e8720347506e5a0f010086d0cf6de65`、input SHA-256 `cfb437773ce2e656039f9d178772864eaafa1854293a9103a69f5351deb45292`を維持する。工程・入力増加、候補headerのAUTOMOC入力化、製品未解決記号が生じれば停止する。macOSの対象全体と追加2枠の20回反復、実装・試験sourceとheader強制includeの厳格構文、試験書式、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、設定読込や通知の実効果、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
+
+### 第533便の公開API契約結果
+
+- node treeのroot nodeとglobal selection maskの表示方針を保持・通知する公開境界を軽量な型契約として固定した。開始`libs/ui/canvas/KisNodeDisplayModeAdapter.h`から既存`libs/ui/tests/KisMultiBoolFilterWidgetSchemaContractTest.cpp`へ全7 API・2枠を追加し、型・QObject親付き構築・二方針の照会/設定6件と変更通知1件を型特性、構築可能性、厳密な関数pointerで固定した。計画commitは`5530ee1ed9`、契約commitは`4a4310d12e`で、既存試験sourceは86行・6枠となった。
+- 開始headerの直接依存はQObject基底とexport定義に必要な最小集合であり、公開header、製品source、CMakeを変更していない。開始`libs/ui/canvas/KisNodeDisplayModeAdapter.cpp`と候補headerを強制includeする試験sourceの厳格構文は診断0件で、試験書式も成功した。
+- targetは4工程・8入力、command SHA-256 `67ab1422423ac02371a154b8d61b44992e8720347506e5a0f010086d0cf6de65`、input SHA-256 `cfb437773ce2e656039f9d178772864eaafa1854293a9103a69f5351deb45292`を維持した。候補headerのAUTOMOC入力化と未解決製品記号は0で、Qt Core・Testだけへ動的接続する。macOSで対象全体20回と追加2枠各20回、厳格構文、試験書式、連続二回の無作業再構築に成功した。設定読込や通知の実効果、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 公開API検査の初回診断は期待値1,440に対して実測1,433で、新規7件と一致した。台帳を28,368件対応、1,433件未対応へ進め、`public-api-missing-g534.json`の生成成功後に旧`public-api-missing-g533.json` 392,049 bytesを削除した。主Ninja木6,049,176 KiB、共有compiler cache 983,312 KiB、最新報告390,182 bytes、SHA-256 `e08c04bcc13613e262fc69d3ec33c47c5409854088612442602ff74919d6f93e`だけを再利用対象として保持する。compiler cacheは144,808 cache可能呼出し中120,594件、83.28%がhitしている。次の永続作業は第534便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
 
 ### 第239便の先行監査担当票
 
