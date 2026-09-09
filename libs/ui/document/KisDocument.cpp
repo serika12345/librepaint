@@ -30,6 +30,7 @@
 #include <KoStoreDevice.h>
 #include <KoDialog.h>
 #include <KisImportExportErrorCode.h>
+#include <KisImportExportFilter.h>
 #include <KoDocumentResourceManager.h>
 #include <KoMD5Generator.h>
 #include <KisResourceStorage.h>

@@ -7,17 +7,20 @@
 #ifndef KIS_IMPORT_EXPORT_MANAGER_H
 #define KIS_IMPORT_EXPORT_MANAGER_H
 
-#include <QObject>
-#include <QMap>
 #include <QByteArray>
-#include <QUrl>
+#include <QObject>
+#include <QSharedPointer>
+#include <QString>
+#include <QStringList>
 
-#include "KisImportExportFilter.h"
+#include <kis_types.h>
 
+#include "KisImportExportErrorCode.h"
 #include "kritaui_export.h"
 
 class KisDocument;
-class KoProgressUpdater;
+class KisImportExportFilter;
+class QWidget;
 
 template <class T>
 class QFuture;
