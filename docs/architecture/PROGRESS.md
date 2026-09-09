@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 23:49 JST
+- 更新日時: 2026-09-09 23:54 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4799,6 +4799,13 @@
 - 開始`libs/ui/tool/kis_selection_tool_helper.h`から`QMenu`・`KisProcessingApplicator`・`kis_layer.h`の完全includeを除去し、前二者を前方宣言、値一覧を`QList`直接includeへ置換した。`KisLayerSP`破棄に必要な完全型は開始`libs/ui/tool/kis_selection_tool_helper.cpp`の`kis_layer.h`直接includeへ移した。公開署名、所有権、実行時挙動、CMakeは変更していない。header強制include、製品source、試験sourceの厳格構文は診断0件で、新規試験差分の書式も成功した。
 - targetは4工程・8入力、command SHA-256 `dfa69d52c97147f5d25cdc794e3cd6dc2b37644303f8c0fdd5db3f5606734cc3`、input SHA-256 `6a0a85aa6ab162073c90b3d9c8b710b085223737161c5fae4a411c95763ae2da`を維持した。AUTOMOC `HEADERS=[]`、selection helper・selection tool templateの未解決製品記号0で、Qt Core・Testだけへ動的接続する。macOSで対象全体20回と追加3枠各20回、厳格構文、試験書式、連続二回の無作業再構築に成功した。実selection・shape・menu・処理適用、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 公開API検査の初回診断は期待値1,487に対して実測1,475で、新規12件と一致した。台帳を28,326件対応、1,475件未対応へ進め、`public-api-missing-g529.json`の生成成功後に旧`public-api-missing-g528.json` 405,515 bytesを削除した。主Ninja木6,032,176 KiB、共有compiler cache 983,056 KiB、最新報告401,565 bytes、SHA-256 `878e7d6b19c680ca17ffddbb05b95f1d576d29cf17ccdcc3c016e99b36386189`だけを再利用対象として保持する。compiler cacheは144,800 cache可能呼出し中120,594件、83.28%がhitしている。次の永続作業は第529便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
+
+### 第529便の公開API契約計画
+
+- 第529便はpointer入力をpaint情報へ変換し、平滑化方針のもとでfreehand strokeを開始・更新・終了する`libs/ui/tool/kis_tool_freehand_helper.h`の残存全12 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g529.json`は公開header 1,549、公開API 29,801、対応済み28,326、未対応1,475、401,565 bytes、SHA-256 `878e7d6b19c680ca17ffddbb05b95f1d576d29cf17ccdcc3c016e99b36386189`である。対象12識別子の整列集合SHA-256は`45912da7729a4f17696f59cb8c072fab90ef77679d31edd62a3b9d7dc053d665`である。
+- freehand helper境界は型・情報builderと資源管理器からの構築・仮想破棄・平滑化設定/照会・実行中照会6、cursor移動・描画開始・pointer event描画・描画終了・outline計算・outline明示更新signal6の2枠へ固定する。型特性と厳密な関数pointerだけを使い、helper、pointer event、canvas資源、image、node、stroke、paint設定、平滑化設定を実体化しない。
+- 開始headerはpaint情報を参照または宣言上の値として、既定境界を共有pointerとして、平滑化設定をpointerと共有pointerとしてだけ使う。契約追加より先に`kis_paint_information.h`・`kis_default_bounds.h`・`kis_smoothing_options.h`の完全includeを除去し、paint情報・距離情報・outline・平滑化設定を前方宣言、平滑化共有pointer別名と`QQueue`・`QSharedPointer`を直接宣言する。開始`libs/ui/tool/kis_tool_freehand_helper.cpp`へpaint情報と平滑化設定の完全includeを移し、開始実装と既存`libs/ui/tests/KisToolSelectUiBaseSchemaContractTest.cpp`からのheader強制includeの厳格構文診断0件を維持する。
+- 既存selection tool契約は155行・8枠で、2枠追加後も220行・10枠以内に収まる。現在の広いheader探索路は具象selection tool templateの直接型閉包であり、候補追加による拡張はない。CMakeを変更せず4工程・8入力、command SHA-256 `dfa69d52c97147f5d25cdc794e3cd6dc2b37644303f8c0fdd5db3f5606734cc3`、input SHA-256 `6a0a85aa6ab162073c90b3d9c8b710b085223737161c5fae4a411c95763ae2da`を維持する。工程・入力増加、候補headerのAUTOMOC入力化、製品未解決記号が生じれば停止する。macOSの対象全体と追加2枠の20回反復、実装・試験sourceとheader強制includeの厳格構文、試験書式、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、実paint・stroke・outline、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
 
 ### 第239便の先行監査担当票
 
