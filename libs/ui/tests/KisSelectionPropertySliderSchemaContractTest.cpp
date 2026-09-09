@@ -5,6 +5,7 @@
 
 #include "widgets/KisSelectionPropertySlider.h"
 #include "widgets/kis_color_space_selector.h"
+#include "widgets/kis_floating_message.h"
 
 #include <QTest>
 
@@ -47,6 +48,8 @@ struct CanSetSuffix<T, std::void_t<decltype(std::declval<T &>().setSuffix(std::d
         std::is_same_v<decltype(static_cast<__VA_ARGS__>(&KisSelectionPropertySliderBase::method)), __VA_ARGS__>)
 #define ASSERT_COLOR_SPACE_SELECTOR_SIGNATURE(method, ...)                                                             \
     static_assert(std::is_same_v<decltype(static_cast<__VA_ARGS__>(&KisColorSpaceSelector::method)), __VA_ARGS__>)
+#define ASSERT_FLOATING_MESSAGE_SIGNATURE(method, ...)                                                                 \
+    static_assert(std::is_same_v<decltype(static_cast<__VA_ARGS__>(&KisFloatingMessage::method)), __VA_ARGS__>)
 
 } // namespace
 
@@ -62,6 +65,9 @@ private Q_SLOTS:
     void colorSpaceSelectorTypeConstructionAndLifetimeSchemaRemainStable();
     void colorSpaceSelectorStateSignaturesRemainStable();
     void colorSpaceSelectorPresentationAndNotificationSignaturesRemainStable();
+    void floatingMessageTypeAndPrioritySchemaRemainStable();
+    void floatingMessageConstructionAndConfigurationSignaturesRemainStable();
+    void floatingMessagePresentationSignaturesRemainStable();
 };
 
 void KisSelectionPropertySliderSchemaContractTest::baseTypeConstructionAndLifetimeSchemaRemainStable()
@@ -140,6 +146,41 @@ void KisSelectionPropertySliderSchemaContractTest::colorSpaceSelectorPresentatio
     ASSERT_COLOR_SPACE_SELECTOR_SIGNATURE(colorSpaceChanged, void (KisColorSpaceSelector::*)(const KoColorSpace *));
 }
 
+void KisSelectionPropertySliderSchemaContractTest::floatingMessageTypeAndPrioritySchemaRemainStable()
+{
+    static_assert(std::is_class_v<KisFloatingMessage>);
+    static_assert(std::is_base_of_v<QWidget, KisFloatingMessage>);
+    static_assert(std::is_enum_v<KisFloatingMessage::Priority>);
+
+    QCOMPARE(int(KisFloatingMessage::High), 0);
+    QCOMPARE(int(KisFloatingMessage::Medium), 1);
+    QCOMPARE(int(KisFloatingMessage::Low), 2);
+}
+
+// clang-format off
+void KisSelectionPropertySliderSchemaContractTest::floatingMessageConstructionAndConfigurationSignaturesRemainStable()
+// clang-format on
+{
+    static_assert(std::is_constructible_v<KisFloatingMessage,
+                                          const QString &,
+                                          QWidget *,
+                                          bool,
+                                          int,
+                                          KisFloatingMessage::Priority>);
+    ASSERT_FLOATING_MESSAGE_SIGNATURE(setShowOverParent, void (KisFloatingMessage::*)(bool));
+    ASSERT_FLOATING_MESSAGE_SIGNATURE(setIcon, void (KisFloatingMessage::*)(const QIcon &));
+    ASSERT_FLOATING_MESSAGE_SIGNATURE(
+        tryOverrideMessage,
+        void (KisFloatingMessage::*)(QString, const QIcon &, int, KisFloatingMessage::Priority, int));
+}
+
+void KisSelectionPropertySliderSchemaContractTest::floatingMessagePresentationSignaturesRemainStable()
+{
+    ASSERT_FLOATING_MESSAGE_SIGNATURE(showMessage, void (KisFloatingMessage::*)());
+    ASSERT_FLOATING_MESSAGE_SIGNATURE(removeMessage, void (KisFloatingMessage::*)());
+}
+
+#undef ASSERT_FLOATING_MESSAGE_SIGNATURE
 #undef ASSERT_COLOR_SPACE_SELECTOR_SIGNATURE
 #undef ASSERT_SELECTION_SLIDER_BASE_SIGNATURE
 
