@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 20:34 JST
+- 更新日時: 2026-09-09 20:40 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4638,6 +4638,13 @@
 - 構造準備では開始`libs/ui/widgets/kis_multi_bool_filter_widget.h`が値所有する`QString`を直接includeし、`QCheckBox`の推移includeへの依存を除去した。開始headerに`QObject`の重複includeはなかったため計画記述を同時に訂正し、公開宣言と実装を維持した。開始`libs/ui/widgets/kis_multi_bool_filter_widget.cc`とheader強制includeの厳格構文は診断0件である。計画commitは`a56e6c1bb6`、構造準備commitは`9bec1aafad`である。
 - 開始headerから新規`libs/ui/tests/KisMultiBoolFilterWidgetSchemaContractTest.cpp`へ全12 API・4枠を追加し、設定項目型・一覧別名・構築・3公開値、画面型・構築、設定の入出力、項目数・位置別値を型特性、公開会員型と厳密な関数pointerで固定した。製品sourceは変更していない。契約commitは`aed495b9bf`で、新規sourceは62行・4枠である。
 - targetはQt Core・Testだけへ動的接続する4工程・8入力、command SHA-256 `67ab1422423ac02371a154b8d61b44992e8720347506e5a0f010086d0cf6de65`、input SHA-256 `cfb437773ce2e656039f9d178772864eaafa1854293a9103a69f5351deb45292`である。AUTOMOC `HEADERS=[]`、設定項目・複数真偽値filter画面・設定画面基底の未解決製品記号0で、Qt Gui・Widgetsと製品libraryを動的接続していない。macOSで対象とlayer filter近傍、対象全体と各4枠を20回、実装・試験sourceとheader強制includeの厳格構文、書式、連続二回の無作業再構築、公開API検査に成功した。台帳は28,148件対応、1,653件未対応となり、開始headerの残存は0件である。新`public-api-missing-g514.json`の生成成功後に旧`public-api-missing-g513.json` 453,396 bytesを削除した。主Ninja木6,029,028 KiB、共有compiler cache 983,324 KiB、最新報告450,323 bytes、SHA-256 `9bca87644c3a2a7b100a90c5a30d43201ea068b47cbdd790a33489958dab23c3`だけを再利用対象として保持する。compiler cacheは144,750 cache可能呼出し中120,581件、83.30%がhitしている。実設定項目・画面・checkbox・資源接続、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第514便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
+
+### 第514便の公開API契約計画
+
+- 第514便は変換先色空間、変換方針・flagと色空間変更時の対話を所有する`libs/ui/dialogs/KisColorSpaceConversionDialog.h`の残存全14 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g514.json`は公開header 1,549、公開API 29,801、対応済み28,148、未対応1,653、450,323 bytes、SHA-256 `9bca87644c3a2a7b100a90c5a30d43201ea068b47cbdd790a33489958dab23c3`である。対象14識別子の整列集合SHA-256は`c02c8ac4bb3b145865789ecded8feda52f48d99caf974c5c14c02fd63cd1aae7`である。
+- 色空間変換対話境界は生成UI型・構築2、対話型・構築・破棄3、公開UI頁・変換方針button群2、初期色空間設定・色空間・変換方針・flag照会4、選択・確定・色空間変更応答3の5枠へ固定する。型特性、公開会員型と厳密な関数pointerだけを使い、対話画面、生成UI、色空間、画像、buttonと変換を実体化しない。
+- 開始headerの`KoID.h`は公開宣言、基底、値会員、inline本文のいずれにも使われていない。契約追加より先に同includeを除去し、完全型が必要な`QButtonGroup`、`KoDialog`、変換列挙型、画像共有pointer、生成UI headerを維持する。開始`libs/ui/dialogs/KisColorSpaceConversionDialog.cpp`の厳格構文は診断0件であり、構造変更後もheader強制includeとともに維持する。
+- 新規`libs/ui/tests/KisColorSpaceConversionDialogSchemaContractTest.cpp`は`libs/ui/forms/wdgconvertcolorspace.ui`をtarget固有に生成し、既存製品生成物へ依存しない。UI・image・global・pigment・widgets・widgetutilsのsource/generated探索路、Qt Gui・Widgets、KF I18n・ConfigCore、Imath・Boostのinterface探索路、6 export定義、Qt Core・Test、header-only Eigenだけで構成する。生成UIを持つ最小近傍`KisAutoLevelsWidgetSchemaContractTest`と同じ5工程・10入力を予測し、追加前targetは`unknown target`である。停止線を6工程・13入力とし、Qt Gui・Widgets・KFの動的接続、製品OBJECT・shared、`kritatestsdk`、色空間変換対話・生成UI・色型の製品記号が必要なら停止する。macOSの対象と生成UI近傍、追加5枠の20回反復、実装・試験sourceとheader強制includeの厳格構文、書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、実対話画面・色空間・画像・変換、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
 
 ### 第239便の先行監査担当票
 
