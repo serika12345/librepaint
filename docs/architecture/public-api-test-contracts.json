@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 1447
+    "expectedMissingApis": 1440
   },
   "contracts": [
     {
@@ -79363,6 +79363,31 @@
         "method:KisUtilityTitleBar::setLocked(bool locked)",
         "method:KisUtilityTitleBar::setWidgetArea(QWidget * widgetArea)",
         "method:KisUtilityTitleBar::widgetArea()"
+      ]
+    },
+    {
+      "target": "KisCollapsibleButtonGroupSchemaContractTest",
+      "source": "libs/ui/tests/KisCollapsibleButtonGroupSchemaContractTest.cpp",
+      "test": "KisCollapsibleButtonGroupSchemaContractTest::lodAvailabilityDefaultsMembersAndEqualityRemainStable",
+      "behavior": "LOD利用可否値は利用者許可とsize閾値対応をtrue、閾値を100.0で初期化し、3値すべてで等価性を判定する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisLodAvailabilityData",
+        "function:operator ==(const KisLodAvailabilityData & lhs,const KisLodAvailabilityData & rhs)",
+        "member:KisLodAvailabilityData::isLodSizeThresholdSupported",
+        "member:KisLodAvailabilityData::isLodUserAllowed",
+        "member:KisLodAvailabilityData::lodSizeThreshold"
+      ]
+    },
+    {
+      "target": "KisCollapsibleButtonGroupSchemaContractTest",
+      "source": "libs/ui/tests/KisCollapsibleButtonGroupSchemaContractTest.cpp",
+      "test": "KisCollapsibleButtonGroupSchemaContractTest::lodAvailabilityPersistenceSignaturesRemainStable",
+      "behavior": "LOD利用可否値は設定から読み込み、設定へ書き出す公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisLodAvailabilityData::read(const KisPropertiesConfiguration * setting)",
+        "method:KisLodAvailabilityData::write(KisPropertiesConfiguration * setting) const"
       ]
     }
   ]
