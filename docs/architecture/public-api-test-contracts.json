@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 1613
+    "expectedMissingApis": 1599
   },
   "contracts": [
     {
@@ -78819,6 +78819,38 @@
       "apis": [
         "method:KisAsyncAnimationRenderDialogBase::batchMode() const",
         "method:KisAsyncAnimationRenderDialogBase::setBatchMode(bool value)"
+      ]
+    },
+    {
+      "target": "KisPaintOpConfigWidgetSchemaContractTest",
+      "source": "libs/image/tests/KisPaintOpConfigWidgetSchemaContractTest.cpp",
+      "test": "KisPaintOpConfigWidgetSchemaContractTest::paintOpSettingsWidgetTypeLifetimeAndOptionSignaturesRemainStable",
+      "behavior": "paintop設定画面はpaintop設定基底を継承する抽象型として公開親画面から派生構築・仮想破棄でき、通常または分類付きの設定項目を追加する境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisPaintOpSettingsWidget",
+        "method:KisPaintOpSettingsWidget::KisPaintOpSettingsWidget(QWidget * parent=0)",
+        "method:KisPaintOpSettingsWidget::addPaintOpOption(KisPaintOpOption * option)",
+        "method:KisPaintOpSettingsWidget::addPaintOpOption(KisPaintOpOption * option,KisPaintOpOption::PaintopCategory category)",
+        "method:KisPaintOpSettingsWidget::~KisPaintOpSettingsWidget()"
+      ]
+    },
+    {
+      "target": "KisPaintOpConfigWidgetSchemaContractTest",
+      "source": "libs/image/tests/KisPaintOpConfigWidgetSchemaContractTest.cpp",
+      "test": "KisPaintOpConfigWidgetSchemaContractTest::paintOpSettingsWidgetConfigurationLodAndContextSignaturesRemainStable",
+      "behavior": "paintop設定画面は設定値の読書き、LOD制約と有効brush寸法の購読、および画像・node・資源・canvas資源の作業文脈を接続する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPaintOpSettingsWidget::effectiveBrushSize() const",
+        "method:KisPaintOpSettingsWidget::lodLimitations() const",
+        "method:KisPaintOpSettingsWidget::lodLimitationsReader() const",
+        "method:KisPaintOpSettingsWidget::setCanvasResourcesInterface(KoCanvasResourcesInterfaceSP canvasResourcesInterface)",
+        "method:KisPaintOpSettingsWidget::setConfiguration(const KisPropertiesConfigurationSP config)",
+        "method:KisPaintOpSettingsWidget::setImage(KisImageWSP image)",
+        "method:KisPaintOpSettingsWidget::setNode(KisNodeWSP node)",
+        "method:KisPaintOpSettingsWidget::setResourcesInterface(KisResourcesInterfaceSP resourcesInterface)",
+        "method:KisPaintOpSettingsWidget::writeConfiguration(KisPropertiesConfigurationSP config) const"
       ]
     }
   ]

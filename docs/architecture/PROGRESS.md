@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 21:12 JST
+- 更新日時: 2026-09-09 21:31 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4674,6 +4674,9 @@
 - paintop設定画面境界は画面型・構築・破棄と通常・分類付き設定項目追加5、設定値読書き、LOD値・reader・有効brush寸法、画像・node・資源・canvas資源接続9の2枠へ固定する。型特性、厳密な関数pointerだけを使い、設定画面、設定項目、模型、設定値、画像、node、資源、LOD値とlager状態を実体化しない。
 - 開始headerは公開基底を完全定義した後に同じ`KisPaintOpConfigWidget`を再び前方宣言し、共有pointer名だけを使うのに`KisPropertiesConfiguration`も重複して前方宣言している。契約追加より先に両宣言を除去し、値返却とlager reader引数に必要な`KisPaintopLodLimitations`前方宣言を維持する。開始`libs/tools/ui/kis_paintop_settings_widget.cpp`の厳格構文は対象外の`KisOptionInfo`暗黙copy代入に対する既存`deprecated-copy` 1件だけを報告するため、試験sourceとheader強制includeを診断0件にし、実装基準診断を増やさない。
 - 同じ基底責務の既存`libs/image/tests/KisPaintOpConfigWidgetSchemaContractTest.cpp`は136行・8枠であり、2枠追加後も220行・10枠以内に収まる。既存targetは4工程・8入力、command SHA-256 `42b5a76e92fe9d6efe2c796d3817543fbc983b5f636edcc69b985e238ac34e3f`、input SHA-256 `b967f4524c5ae0b4e0eab08d1da838e1462a39be2e1371ab5cd19329666c1450`だが、宣言検査だけなのに`QTEST_GUILESS_MAIN`とQt Widgets linkを介してQt Gui・Widgetsを動的接続している。契約追加より先に`QTEST_APPLESS_MAIN`へ変更し、Qt Widgetsをinterface探索路だけへ縮小する。対象header用のtools source/generated探索路と`kritatoolsui_EXPORTS`を追加して4工程・8入力を維持し、Qt Core・Testだけの動的接続へ狭める。工程・入力増加、新たな製品記号が必要なら停止する。macOSの対象と軽量paintop近傍、対象全体と追加2枠の20回反復、試験sourceとheader強制includeの厳格構文、実装基準診断、書式、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、実設定画面・設定項目・模型・LOD・画像・node・資源、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
+- 構造準備では開始`libs/tools/ui/kis_paintop_settings_widget.h`内の重複前方宣言を同headerの直接include関係へ統合し、既存`libs/image/tests/KisPaintOpConfigWidgetSchemaContractTest.cpp`を`QTEST_APPLESS_MAIN`へ変更した。`libs/image/tests/CMakeLists.txt`の対象固有節はQt Widgetsの動的linkを除去し、tools・pigment・brushengineとQt Gui・Widgets・KF I18n・Imathをheader探索interfaceとして限定した。構造準備後も4工程・8入力を維持し、AUTOMOC `HEADERS=[]`、Qt Core・Testだけの動的接続、製品未解決記号0となった。計画commitは`a83c877e54`、構造準備commitは`9aeaf46036`である。
+- 開始`libs/tools/ui/kis_paintop_settings_widget.h`から既存`libs/image/tests/KisPaintOpConfigWidgetSchemaContractTest.cpp`へ全14 API・2枠を追加した。画面型・抽象性・派生構築・仮想破棄と2つの設定項目追加5件、設定値読書き、LOD値・reader・有効brush寸法、画像・node・資源・canvas資源接続9件を型特性と厳密な関数pointerで固定した。初回診断で基底の`configuration()`を派生paintopへ委ねる抽象性を確認し、最小派生宣言で公開構築境界を観測した。契約commitは`952e1c8a37`で、既存sourceは184行・10枠となった。
+- 最終targetは4工程・8入力、command SHA-256 `3a8d7a38cd064782a307a28ecfb02ed6332f8eabcd516e3fa541747214a6434d`、input SHA-256 `b967f4524c5ae0b4e0eab08d1da838e1462a39be2e1371ab5cd19329666c1450`である。macOSで対象とLOD制約近傍、対象全体と追加2枠を各20回、試験sourceとheader強制includeの厳格構文、書式、連続二回の無作業再構築、公開API検査に成功した。製品実装の厳格構文は変更前と同じ`KisOptionInfo`の`deprecated-copy` 1件だけで、新規診断は0件である。台帳は28,202件対応、1,599件未対応となり、開始headerの残存は0件である。新`public-api-missing-g518.json`の生成成功後に旧`public-api-missing-g517.json` 439,831 bytesを削除した。主Ninja木6,032,708 KiB、共有compiler cache 983,432 KiB、最新報告435,774 bytes、SHA-256 `eaff769a46984438a1c307876a67e725b2151b3a98641e1e81586dd2ba9a2fa1`だけを再利用対象として保持する。compiler cacheは144,773 cache可能呼出し中120,593件、83.30%がhitしている。実設定画面・設定項目・模型・LOD・画像・node・資源、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第518便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
 
 ### 第239便の先行監査担当票
 
