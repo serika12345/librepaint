@@ -6,6 +6,8 @@
 
 #include "kis_stabilized_events_sampler.h"
 
+#include <kis_paint_information.h>
+
 #include <QList>
 #include <QElapsedTimer>
 #include <QtMath>
@@ -83,4 +85,3 @@ KisStabilizedEventsSampler::range() const
     return std::make_pair(iterator(this, 0, alpha),
                           iterator(this, elapsed, alpha));
 }
-
