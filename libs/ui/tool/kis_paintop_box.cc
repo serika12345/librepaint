@@ -21,6 +21,7 @@
 #include <QMenu>
 #include <QTime>
 
+#include <KSharedConfig>
 #include <kis_debug.h>
 #include <kis_types.h>
 
@@ -42,6 +43,8 @@
 #include <brushengine/kis_paintop_registry.h>
 #include <brushengine/kis_paintop_preset.h>
 #include <brushengine/kis_paintop_settings.h>
+#include <brushengine/kis_locked_properties_proxy.h>
+#include <brushengine/kis_locked_properties_server.h>
 #include <brushengine/KisPaintOpPresetUpdateProxy.h>
 #include <kis_config_widget.h>
 #include <kis_image.h>
@@ -74,6 +77,7 @@
 #include <kis_tool.h>
 #include "kis_signals_blocker.h"
 #include "application/ui/orchestration/kis_action_manager.h"
+#include "kis_action_registry.h"
 #include "KisHighlightedToolButton.h"
 #include <KisGlobalResourcesInterface.h>
 #include "KisResourceLoader.h"
