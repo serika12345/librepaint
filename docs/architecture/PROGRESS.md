@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 18:16 JST
+- 更新日時: 2026-09-09 18:21 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4528,6 +4528,13 @@
 - 構造準備では開始`libs/ui/qtsingleapplication/qtsingleapplication.h`と`libs/ui/qtsingleapplication/qtsingleapplication.cpp`から、必須Qt 5.15または6.0以上では到達不能なQt 4専用構築4件と対応説明56行を除去した。公開headerへ`QString`の直接includeと`QWidget`前方宣言を追加した。実装とheader強制includeの厳格構文に成功し、唯一の利用元`libs/application/ui/orchestration/KisApplication.cpp`は既存の`QMetaType::type`非推奨診断1件だけで追加診断0である。計画commitは`56ec1a2b03`、構造準備commitは`8995cd1a60`である。
 - 残る11 APIを新規`libs/application/tests/QtSingleApplicationSchemaContractTest.cpp`の4枠へ追加した。型と2構築、process状態、起動画面、process間送受信と旧初期化入口を型特性、厳密な関数pointer、省略引数の未評価呼出しで固定した。追加前targetは`unknown target`で失敗し、追加後は全枠に成功した。契約commitは`89347e7883`である。
 - 新規試験sourceは69行・4枠である。targetはQt Core・Testだけへ動的接続する4工程・8入力、command SHA-256 `ba84dfea75f8e84566b384be742c8ea4a33a891856d6fba7e23098d818919cc6`、input SHA-256 `04f39de2adb5b35c7ba9acab0557b9b092ba73f3d36c2d8c198faed3cdbdb3ac`である。AUTOMOC `HEADERS=[]`、単一起動application・局所peerの未解決製品記号0で、Qt Widgetsを動的接続していない。macOSで新規4枠と既存application引数近傍、全4枠と各枠を20回、試験source・実装・header強制includeの厳格構文、書式、連続二回の無作業再構築、公開API検査に成功した。公開面は4 API減の29,801件、台帳は28,000件対応、1,801件未対応となり、開始headerの残存は0件である。新`public-api-missing-g502.json`の生成成功後に旧`public-api-missing-g501.json` 492,903 bytesを削除した。主Ninja木6,022,524 KiB、共有compiler cache 983,448 KiB、最新報告488,555 bytes、SHA-256 `01c1da038d629928780b1895493eeef402d586fa6818009d02850d68d25cdeee`だけを再利用対象として保持する。compiler cacheは144,723 cache可能呼出し中120,577件、83.32%がhitしている。実process間通信・画面起動、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第502便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
+
+### 第502便の公開API契約計画
+
+- 第502便は描画プリセットの選択、描画方式設定、消しゴム切替とcanvas資源通知を所有する`libs/ui/tool/kis_paintop_box.h`の残存全15 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g502.json`は公開header 1,549、公開API 29,801、対応済み28,000、未対応1,801、488,555 bytes、SHA-256 `01c1da038d629928780b1895493eeef402d586fa6818009d02850d68d25cdeee`である。対象15識別子の整列集合SHA-256は`ff3a078172ca39041011a70c90b5a9af983ea4bc40e3aaf0c1f4fc32250ae6c4`である。
+- 描画プリセット箱境界は型・構築・破棄・愛用資源管理器4、資源復元・選択2、設定部品・色空間・入力機器3、消しゴム選択・brush選択・canvas資源通知・新規preset生成6の4枠へ固定する。型特性と厳密な関数pointerだけを使い、画面部品、view、資源、preset、色空間、入力機器とcanvas本文を実体化しない。
+- 開始headerは公開資源pointer別名だけに`KoResource.h`の完全定義を、実装だけが使う描画設定と固定設定3 headerを全利用者へ推移させている。契約追加より先に資源型を前方宣言と共有pointer別名へ置換し、Qt pointer・文字列型を直接includeする。描画設定、固定設定proxy・serverは実利用先`kis_paintop_box.cc`へ移す。同実装は変更前厳格構文で、推移includeへ依存した`KSharedConfig`と`KisActionRegistry`の不足14件を出すため、両完全定義も直接追加して変更後の厳格構文成功を完了条件とする。
+- 既存`libs/ui/tests/KisFavoriteResourceManagerSchemaContractTest.cpp`は同じ愛用資源・描画プリセット責務を所有する94行・5枠の限定targetである。同sourceへ4枠を追加して220行・10枠未満に収める。変更前targetはQt Gui・Testだけへ動的接続する4工程・8入力、command SHA-256 `0a249ba95570504825058099e1c0f5b596114d8a6479ba3b1cc0efa25ebd09a9`、input SHA-256 `6e22d37e2d0c0671f2f4407d5eff49da226b23b49ce1d0317f4535d4ada75240`である。対象headerに必要なflakeのsource/generated探索路と`kritaflake_EXPORTS`だけを追加し、4工程・8入力を維持する。入力hashの変更、新たな動的接続、製品OBJECT・shared、`kritatestsdk`、AUTOMOC製品header入力、描画プリセット箱製品記号が必要なら停止する。macOSの対象、既存5枠と追加4枠、追加枠の20回反復、実装と試験sourceの厳格構文、書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、実資源・preset・canvas状態、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
 
 ### 第239便の先行監査担当票
 
