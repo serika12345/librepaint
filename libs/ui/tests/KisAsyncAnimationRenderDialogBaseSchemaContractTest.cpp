@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "dialogs/KisAsyncAnimationFramesSaveDialog.h"
 #include "dialogs/KisAsyncAnimationRenderDialogBase.h"
 
 #include <QTest>
@@ -22,6 +23,10 @@ protected:
     KisAsyncAnimationRendererBase *createRenderer(KisImageSP image) override;
     void initializeRendererForFrame(KisAsyncAnimationRendererBase *renderer, KisImageSP image, int frame) override;
 };
+
+#define ASSERT_ANIMATION_FRAMES_SAVE_DIALOG_SIGNATURE(method, ...)                                                     \
+    static_assert(                                                                                                     \
+        std::is_same_v<decltype(static_cast<__VA_ARGS__>(&KisAsyncAnimationFramesSaveDialog::method)), __VA_ARGS__>)
 } // namespace
 
 class KisAsyncAnimationRenderDialogBaseSchemaContractTest : public QObject
@@ -33,6 +38,9 @@ private Q_SLOTS:
     void constructionAndLifetimeSchemaRemainStable();
     void regenerationAndRegionSignaturesRemainStable();
     void batchModeSignaturesRemainStable();
+    void framesSaveTypeConstructionAndLifetimeSchemaRemainStable();
+    void framesSaveRegenerationAndMaskSignaturesRemainStable();
+    void framesSaveFileCollectionSignaturesRemainStable();
 };
 
 void KisAsyncAnimationRenderDialogBaseSchemaContractTest::typeResultAndOrdinalsRemainStable()
@@ -76,6 +84,44 @@ void KisAsyncAnimationRenderDialogBaseSchemaContractTest::batchModeSignaturesRem
     static_assert(std::is_same_v<decltype(&Dialog::setBatchMode), void (Dialog::*)(bool)>);
     static_assert(std::is_same_v<decltype(&Dialog::batchMode), bool (Dialog::*)() const>);
 }
+
+void KisAsyncAnimationRenderDialogBaseSchemaContractTest::framesSaveTypeConstructionAndLifetimeSchemaRemainStable()
+{
+    using Dialog = KisAsyncAnimationFramesSaveDialog;
+
+    static_assert(std::is_class_v<Dialog>);
+    static_assert(std::is_base_of_v<KisAsyncAnimationRenderDialogBase, Dialog>);
+    static_assert(
+        std::is_constructible_v<Dialog, KisImageSP, const QString &, int, bool, KisPropertiesConfigurationSP>);
+    static_assert(std::is_constructible_v<Dialog,
+                                          KisImageSP,
+                                          const KisTimeSpan &,
+                                          const QString &,
+                                          int,
+                                          bool,
+                                          KisPropertiesConfigurationSP>);
+    static_assert(std::has_virtual_destructor_v<Dialog>);
+}
+
+void KisAsyncAnimationRenderDialogBaseSchemaContractTest::framesSaveRegenerationAndMaskSignaturesRemainStable()
+{
+    using Dialog = KisAsyncAnimationFramesSaveDialog;
+
+    ASSERT_ANIMATION_FRAMES_SAVE_DIALOG_SIGNATURE(regenerateRange, Dialog::Result (Dialog::*)(KisViewManager *));
+    ASSERT_ANIMATION_FRAMES_SAVE_DIALOG_SIGNATURE(savedFilesMask, QString (Dialog::*)() const);
+    ASSERT_ANIMATION_FRAMES_SAVE_DIALOG_SIGNATURE(savedFilesMaskWildcard, QString (Dialog::*)() const);
+}
+
+void KisAsyncAnimationRenderDialogBaseSchemaContractTest::framesSaveFileCollectionSignaturesRemainStable()
+{
+    using Dialog = KisAsyncAnimationFramesSaveDialog;
+
+    ASSERT_ANIMATION_FRAMES_SAVE_DIALOG_SIGNATURE(savedFiles, QStringList (Dialog::*)() const);
+    ASSERT_ANIMATION_FRAMES_SAVE_DIALOG_SIGNATURE(savedUniqueFiles, QStringList (Dialog::*)() const);
+    ASSERT_ANIMATION_FRAMES_SAVE_DIALOG_SIGNATURE(getUniqueFrames, QList<int> (Dialog::*)() const);
+}
+
+#undef ASSERT_ANIMATION_FRAMES_SAVE_DIALOG_SIGNATURE
 
 QTEST_APPLESS_MAIN(KisAsyncAnimationRenderDialogBaseSchemaContractTest)
 
