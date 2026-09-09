@@ -12,11 +12,11 @@
     ],
     "publicHeaderCount": 1549,
     "publicHeaderFingerprint": "2adca6143c90d832afa038873e3e8957eaebaaf87f0f166af4bc4e62a37bf85f",
-    "publicApiCount": 29805,
-    "publicApiFingerprint": "62e45b238446dc0eb6798b1de10b2cd9261befccc2a837c75de2c86393d7e016"
+    "publicApiCount": 29801,
+    "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 1816
+    "expectedMissingApis": 1801
   },
   "contracts": [
     {
@@ -78080,6 +78080,53 @@
         "method:KraConverter::image()",
         "method:KraConverter::storyboardCommentList()",
         "method:KraConverter::storyboardItemList()"
+      ]
+    },
+    {
+      "target": "QtSingleApplicationSchemaContractTest",
+      "source": "libs/application/tests/QtSingleApplicationSchemaContractTest.cpp",
+      "test": "QtSingleApplicationSchemaContractTest::typeAndConstructionSchemaRemainStable",
+      "behavior": "単一起動applicationはQt applicationを基底とし、process引数または明示的なapplication識別子から構築できる公開型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:QtSingleApplication",
+        "method:QtSingleApplication::QtSingleApplication(const QString & id,int & argc,char ** argv)",
+        "method:QtSingleApplication::QtSingleApplication(int & argc,char ** argv,bool GUIenabled=true)"
+      ]
+    },
+    {
+      "target": "QtSingleApplicationSchemaContractTest",
+      "source": "libs/application/tests/QtSingleApplicationSchemaContractTest.cpp",
+      "test": "QtSingleApplicationSchemaContractTest::processStateSignaturesRemainStable",
+      "behavior": "単一起動applicationはapplication識別子と同じ識別子を持つ既存processの稼働状態を照会する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:QtSingleApplication::id() const",
+        "method:QtSingleApplication::isRunning()"
+      ]
+    },
+    {
+      "target": "QtSingleApplicationSchemaContractTest",
+      "source": "libs/application/tests/QtSingleApplicationSchemaContractTest.cpp",
+      "test": "QtSingleApplicationSchemaContractTest::activationWindowSignaturesRemainStable",
+      "behavior": "単一起動applicationは通知時に前面化する画面の設定・照会と明示的な起動要求の公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:QtSingleApplication::activateWindow()",
+        "method:QtSingleApplication::activationWindow() const",
+        "method:QtSingleApplication::setActivationWindow(QWidget * aw,bool activateOnMessage=true)"
+      ]
+    },
+    {
+      "target": "QtSingleApplicationSchemaContractTest",
+      "source": "libs/application/tests/QtSingleApplicationSchemaContractTest.cpp",
+      "test": "QtSingleApplicationSchemaContractTest::messagingAndCompatibilitySignaturesRemainStable",
+      "behavior": "単一起動applicationは既存processへの期限付き送信、受信通知と旧初期化入口の公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:QtSingleApplication::initialize(bool dummy=true)",
+        "method:QtSingleApplication::messageReceived(const QString & message)",
+        "method:QtSingleApplication::sendMessage(const QString & message,int timeout=5000)"
       ]
     }
   ]

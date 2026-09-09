@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 18:08 JST
+- 更新日時: 2026-09-09 18:16 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4522,9 +4522,12 @@
 ### 第501便の公開API契約計画
 
 - 第501便はprocess単位のapplication識別、単一起動判定、既存processへの通知と画面起動を所有する`libs/ui/qtsingleapplication/qtsingleapplication.h`の残存15 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g501.json`は公開header 1,549、公開API 29,805、対応済み27,989、未対応1,816、492,903 bytes、SHA-256 `4d6a2805c9cb4c50a18f2c7b3bb27ac8d5373b877df6c2cd15c1bf318caebc40`である。対象15識別子の整列集合SHA-256は`e2145df7b02ca72738ea38392b6054a8ca4cc98dcf25ed3d17e47abd69fe5247`である。
-- 15 APIのうち`QT_VERSION < 0x050000`内のQt 4専用構築4件は、repositoryの必須Qt 5.15または6.0以上では宣言・実装とも到達不能である。開始`qtsingleapplication.h`と`qtsingleapplication.cpp`から同じ条件付き互換経路を除去し、公開面を現行2構築と9操作の11 APIへ縮小する。headerには公開文字列型の直接includeと画面部品の前方宣言を明示する。実利用元は`KisApplication`の識別子付き構築1経路だけで、変更前実装とheader強制includeの厳格構文は成功している。変更後も実装、header強制include、同利用元の厳格構文成功を完了条件とする。
+- 15 APIのうち`QT_VERSION < 0x050000`内のQt 4専用構築4件は、repositoryの必須Qt 5.15または6.0以上では宣言・実装とも到達不能である。開始`qtsingleapplication.h`と`qtsingleapplication.cpp`から同じ条件付き互換経路を除去し、公開面を現行2構築と9操作の11 APIへ縮小する。headerには公開文字列型の直接includeと画面部品の前方宣言を明示する。実利用元は`KisApplication`の識別子付き構築1経路だけで、変更前実装とheader強制includeの厳格構文は成功している。利用元の厳格構文には既存の`QMetaType::type`非推奨診断1件があり、変更後も追加診断0を完了条件とする。
 - 残る単一起動境界は型と2構築3、実行中判定・識別子照会2、起動画面の設定・照会・起動3、process間送信・受信通知と旧初期化入口3の4枠へ固定する。型特性、厳密な関数pointer、省略引数の未評価呼出しだけを使い、application、局所peer、画面部品、process間通信を実体化しない。
 - 既存`KisApplicationArgumentsSchemaContractTest.cpp`は177行・15枠で上限に達したため追記しない。新規`libs/application/tests/QtSingleApplicationSchemaContractTest.cpp`は同じUI探索路、Qt Widgetsのinterface探索路、`kritaui_EXPORTS`、Qt Core・Testだけの4工程・8入力を予測する。追加前targetは`unknown target`である。停止線を5工程・11入力とし、Qt Widgetsの動的接続、製品OBJECT・shared、`kritatestsdk`、AUTOMOC製品header入力、単一起動製品記号が必要なら停止する。macOSの新対象と既存application引数近傍、追加4枠の20回反復、実装・利用元・試験sourceの厳格構文、書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、実process間通信、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
+- 構造準備では開始`libs/ui/qtsingleapplication/qtsingleapplication.h`と`libs/ui/qtsingleapplication/qtsingleapplication.cpp`から、必須Qt 5.15または6.0以上では到達不能なQt 4専用構築4件と対応説明56行を除去した。公開headerへ`QString`の直接includeと`QWidget`前方宣言を追加した。実装とheader強制includeの厳格構文に成功し、唯一の利用元`libs/application/ui/orchestration/KisApplication.cpp`は既存の`QMetaType::type`非推奨診断1件だけで追加診断0である。計画commitは`56ec1a2b03`、構造準備commitは`8995cd1a60`である。
+- 残る11 APIを新規`libs/application/tests/QtSingleApplicationSchemaContractTest.cpp`の4枠へ追加した。型と2構築、process状態、起動画面、process間送受信と旧初期化入口を型特性、厳密な関数pointer、省略引数の未評価呼出しで固定した。追加前targetは`unknown target`で失敗し、追加後は全枠に成功した。契約commitは`89347e7883`である。
+- 新規試験sourceは69行・4枠である。targetはQt Core・Testだけへ動的接続する4工程・8入力、command SHA-256 `ba84dfea75f8e84566b384be742c8ea4a33a891856d6fba7e23098d818919cc6`、input SHA-256 `04f39de2adb5b35c7ba9acab0557b9b092ba73f3d36c2d8c198faed3cdbdb3ac`である。AUTOMOC `HEADERS=[]`、単一起動application・局所peerの未解決製品記号0で、Qt Widgetsを動的接続していない。macOSで新規4枠と既存application引数近傍、全4枠と各枠を20回、試験source・実装・header強制includeの厳格構文、書式、連続二回の無作業再構築、公開API検査に成功した。公開面は4 API減の29,801件、台帳は28,000件対応、1,801件未対応となり、開始headerの残存は0件である。新`public-api-missing-g502.json`の生成成功後に旧`public-api-missing-g501.json` 492,903 bytesを削除した。主Ninja木6,022,524 KiB、共有compiler cache 983,448 KiB、最新報告488,555 bytes、SHA-256 `01c1da038d629928780b1895493eeef402d586fa6818009d02850d68d25cdeee`だけを再利用対象として保持する。compiler cacheは144,723 cache可能呼出し中120,577件、83.32%がhitしている。実process間通信・画面起動、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第502便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
 
 ### 第239便の先行監査担当票
 
