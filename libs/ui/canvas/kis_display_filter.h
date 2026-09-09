@@ -8,8 +8,6 @@
 
 #include <QObject>
 
-#include <qopengl.h>
-
 #include <kritaui_export.h>
 #include <color/kis_display_color_filter.h>
 
