@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 22:38 JST
+- 更新日時: 2026-09-09 22:42 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4735,6 +4735,13 @@
 - 構造準備では開始`libs/ui/animation/KisPlaybackEngineQT.h`から未使用の`canvas/KisCanvasAnimationState.h`完全定義includeを除去し、開始`libs/ui/animation/KisPlaybackEngineQT.cpp`から2回目の自己header includeを除去した。実装が必要とする`KisCanvasAnimationState.h`直接includeは維持し、image・canvas探索路なしのheader強制includeと実装単独の厳格構文は変更前後とも診断0件となった。計画commitは`f2e30fa010`、構造準備commitは`a151410820`である。
 - 開始`libs/ui/animation/KisPlaybackEngineQT.h`から新規`libs/ui/tests/KisPlaybackEngineQtSchemaContractTest.cpp`へ全11 API・3枠を追加した。engine型・構築・仮想破棄3件、位置移動・消音設定照会・frame破棄設定4件、音声・可変速度対応・実効fps・再生統計4件を型特性、厳密な関数pointer、省略seek方針の未評価呼出しで固定した。契約commitは`819b7ff8c2`で、新規sourceは65行・3枠である。
 - targetは4工程・8入力、command SHA-256 `d83163cca7bb97ef2413160d5e8382b143fd586fb3561bc15be64b5e15fcaf56`、input SHA-256 `1f931ce9d58b4541ac4ac2cf1849edd8e33d884f2b8780af7920dcaae1531655`である。AUTOMOC `HEADERS=[]`、Qt再生engine・canvas・timerの未解決製品記号0で、Qt Core・Testだけへ動的接続する。macOSで対象と既存playback近傍、対象全体と各3枠を20回、実装・試験sourceとheader強制includeの厳格構文、書式、連続二回の無作業再構築、公開API検査に成功した。台帳は28,272件対応、1,529件未対応となり、開始headerの残存は0件である。新`public-api-missing-g524.json`の生成成功後に旧`public-api-missing-g523.json` 419,134 bytesを削除した。主Ninja木6,032,460 KiB、共有compiler cache 981,732 KiB、最新報告416,487 bytes、SHA-256 `6170df76de9c7c38c2a55d94317a5e74bdc04e24716249a262ec26cd91757619`だけを再利用対象として保持する。compiler cacheは144,787 cache可能呼出し中120,593件、83.29%がhitしている。実再生・canvas・timer・音声・frame、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第524便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
+
+### 第524便の公開API契約計画
+
+- 第524便はUI側のOpenGL更新情報をcanvas側frame保管へ保存・読込・移動・破棄する`libs/ui/animation/cache/KisFrameCacheSwapper.h`の残存全11 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g524.json`は公開header 1,549、公開API 29,801、対応済み28,272、未対応1,529、416,487 bytes、SHA-256 `6170df76de9c7c38c2a55d94317a5e74bdc04e24716249a262ec26cd91757619`である。対象11識別子の整列集合SHA-256は`29db6e1efb3590e72aa12b3ad59da879ed8fde57aa3f7d5e64856d763b6ae375`である。
+- frame cache保管境界は保管器型・builder単独・保存path付き構築・仮想破棄4、frame保存・読込・移動・破棄4、存在・詳細度・dirty領域照会3の3枠へ固定する。型特性と厳密な関数pointerだけを使い、保管器、OpenGL更新情報、builder、frame data、fileとcanvasを実体化しない。
+- 開始headerは抽象保管境界を完全定義し、OpenGL更新情報・builder・文字列・矩形を前方宣言へ限定している。既存`libs/ui/tests/KisPlaybackEngineQtSchemaContractTest.cpp`のコンパイル条件でheader強制includeが診断0件、開始`libs/ui/animation/cache/KisFrameCacheSwapper.cpp`も厳格構文の診断0件であり、先行構造変更は不要である。既存実行時`KisInMemoryFrameCacheSwapperContractTest`は9工程・19入力と製品objectを要するため混載しない。
+- 既存`libs/ui/tests/KisPlaybackEngineQtSchemaContractTest.cpp`は65行・3枠で、同じanimation header境界へ3枠を追加しても220行・10枠以内に収まる。CMakeを変更せず4工程・8入力、command SHA-256 `d83163cca7bb97ef2413160d5e8382b143fd586fb3561bc15be64b5e15fcaf56`、input SHA-256 `1f931ce9d58b4541ac4ac2cf1849edd8e33d884f2b8780af7920dcaae1531655`を維持する。工程・入力増加、候補headerのAUTOMOC入力化、製品未解決記号が生じれば停止する。macOSの対象とframe cache近傍、対象全体と追加3枠の20回反復、実装・試験sourceとheader強制includeの厳格構文、書式、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、実frame保存・OpenGL更新情報・file・canvas、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
 
 ### 第239便の先行監査担当票
 
