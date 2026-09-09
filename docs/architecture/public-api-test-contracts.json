@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 1498
+    "expectedMissingApis": 1487
   },
   "contracts": [
     {
@@ -79204,6 +79204,44 @@
         "method:KisTemplateTree::defaultTemplate() const",
         "method:KisTemplateTree::find(const QString & name) const",
         "method:KisTemplateTree::groups() const"
+      ]
+    },
+    {
+      "target": "KisOpenGLModeProberSchemaContractTest",
+      "source": "libs/ui/tests/KisOpenGLModeProberSchemaContractTest.cpp",
+      "test": "KisOpenGLModeProberSchemaContractTest::displayFilterTypeAndConstructionSchemaRemainStable",
+      "behavior": "表示filterは省略可能なQObject親から構築する抽象的なcanvas色変換型として、二つの基底境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisDisplayFilter",
+        "method:KisDisplayFilter::KisDisplayFilter(QObject * parent=0)"
+      ]
+    },
+    {
+      "target": "KisOpenGLModeProberSchemaContractTest",
+      "source": "libs/ui/tests/KisOpenGLModeProberSchemaContractTest.cpp",
+      "test": "KisOpenGLModeProberSchemaContractTest::displayFilterShaderSignaturesRemainStable",
+      "behavior": "表示filterはshader program文字列を提供し、OpenGL texture設定とshader更新要否を扱う抽象境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDisplayFilter::program() const",
+        "method:KisDisplayFilter::setupTextures(GLFunctions * f,QOpenGLShaderProgram * program) const",
+        "method:KisDisplayFilter::updateShader()"
+      ]
+    },
+    {
+      "target": "KisOpenGLModeProberSchemaContractTest",
+      "source": "libs/ui/tests/KisOpenGLModeProberSchemaContractTest.cpp",
+      "test": "KisOpenGLModeProberSchemaContractTest::displayFilterPixelTransformationSignaturesRemainStable",
+      "behavior": "表示filterは画素列の変換と近似逆変換・順変換を提供し、内部色管理、露出gamma補正、現在色表現の固定方針を公開する抽象境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDisplayFilter::approximateForwardTransformation(quint8 * pixels,quint32 numPixels)",
+        "method:KisDisplayFilter::approximateInverseTransformation(quint8 * pixels,quint32 numPixels)",
+        "method:KisDisplayFilter::correctionInterface() const",
+        "method:KisDisplayFilter::filter(quint8 * pixels,quint32 numPixels)",
+        "method:KisDisplayFilter::lockCurrentColorVisualRepresentation() const",
+        "method:KisDisplayFilter::useInternalColorManagement() const"
       ]
     }
   ]
