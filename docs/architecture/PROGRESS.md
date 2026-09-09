@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-10 02:02 JST
+- 更新日時: 2026-09-10 02:07 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4960,6 +4960,13 @@
 - 開始headerの直接依存は公開基底型を定義する`kis_dummies_facade_base.h`だけであり、公開header、製品source、CMakeを変更していない。開始`libs/ui/flake/kis_dummies_facade.cpp`と候補headerを強制includeする試験sourceの厳格構文は診断0件で、試験書式も成功した。
 - targetは4工程・8入力、command SHA-256 `771e08d77c5e95c10be87dd4ef02a30d55059f4cdf7cbb0686d7a10ea34443b8`、input SHA-256 `ac62c62476b5e24a582539549039f08b87a9b6e99c88571a96b2ce13238deb32`を維持した。候補headerのAUTOMOC入力化と未解決製品記号は0で、Qt Core・Testだけへ動的接続する。macOSで対象全体20回と追加2枠各20回、厳格構文、試験書式、連続二回の無作業再構築に成功した。node・dummy treeの実効果、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 公開API検査の初回診断は期待値1,392に対して実測1,385で、新規7件と一致した。台帳を28,416件対応、1,385件未対応へ進め、`public-api-missing-g540.json`の生成成功後に旧`public-api-missing-g539.json` 380,448 bytesを削除した。主Ninja木6,049,460 KiB、共有compiler cache 983,212 KiB、最新報告378,894 bytes、SHA-256 `36475534dc7069b1e13de061654bf1791b774dcc68d977232c3da5895abe427e`だけを再利用対象として保持する。compiler cacheは144,818 cache可能呼出し中120,594件、83.27%がhitしている。次の永続作業は第540便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
+
+### 第540便の公開API契約計画
+
+- 第540便はroot nodeを隠すnode modelについてdummyとmodel indexを相互変換する`libs/ui/nodes/kis_model_index_converter.h`の残存全7 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g540.json`は公開header 1,549、公開API 29,801、対応済み28,416、未対応1,385、378,894 bytes、SHA-256 `36475534dc7069b1e13de061654bf1791b774dcc68d977232c3da5895abe427e`である。対象7識別子の整列集合SHA-256は`4f6a942d198e9a4ca200b5eeb18249a4a03b3806e7e9202b32708590e3fddbc7`である。
+- index変換境界は型・基底関係・facade/model/selection表示方針付き構築2件を既存抽象基底寿命枠へ、row/indexからdummy2件を既存row/index枠へ、dummyからindex・row数2件を既存dummy/親枠へ、追加dummyの親index/row変換1件を既存追加枠へ統合する。型特性、構築可能性、厳密な関数pointerだけを追加し、具象converter、facade、model、dummyを新たに実体化しない。
+- 開始headerは公開基底型を定義する`kis_model_index_converter_base.h`だけを直接includeし、追加の公開依存を持たない。開始`libs/ui/nodes/kis_model_index_converter.cpp`と既存`libs/ui/tests/KisModelIndexConverterBaseContractTest.cpp`の厳格構文診断は0件であるため、構造変更を行わない。
+- 既存base converter契約は212行・4枠で、枠数を増やさず既存4枠を拡張して240行・4枠以内を維持する。新規の型限定targetは4工程・8入力を予測する一方でCMake・生成物・CTest登録を恒久追加するため、既存の動的基底契約とその専用実装を再利用する5工程・11入力を選ぶ。command SHA-256は`946d7e4fda716916760c1986fe15da0cc9eb86072d4514630a81d38b339b93c0`、input SHA-256は`07cc233babf12a5e950878f1dca8a7224d7e3de05b5ec2a3c2e72ef80ed5b10a`である。6工程・13入力超過、候補headerのAUTOMOC入力化、製品未解決記号が生じれば停止する。macOSの対象全体と拡張4枠の20回反復、実装・試験sourceとheader強制includeの厳格構文、試験書式、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、具象node tree変換の実効果、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
 
 ### 第239便の先行監査担当票
 
