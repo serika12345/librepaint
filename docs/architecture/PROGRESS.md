@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 12:45 JST
+- 更新日時: 2026-09-09 12:50 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4306,6 +4306,13 @@
 - 開始`plugins/dockers/animation/timeline_frames_index_converter.h`から新規`plugins/dockers/animation/tests/TimelineFramesIndexConverterSchemaContractTest.cpp`へ全12 API・4枠を追加した。型・facade構築・破棄、dummyと行の双方向変換・行数、能動dummyの取得・更新・削除通知、全体選択mask表示・timeline利用可否・可視性を型特性と厳密な関数pointerで固定した。初回は全4観測枠が成功し、`G480 timeline index API schema is not fixed yet`だけが`XFAIL`となった。公開headerと製品sourceは変更していない。計画commitは`44db9c3006`、契約commitは`e925486d87`である。
 - 新規試験sourceは64行・4枠で、targetはQt Core・Testだけへ動的接続する4工程・8入力、command SHA-256 `3891befa837fb1007c154d06a1cc823f4ad3ce958e075f497a6e9dc5ad2dbcd7`、input SHA-256 `cd03275933d9c637a81ca1376ecbbfb50df3a2f56839e79613bcefda49569d0f`となった。AUTOMOC `HEADERS=[]`、timeline変換・dummy・facade・製品libraryの未解決記号は0である。macOSで対象の単発と20回反復、最軽量近傍`KisAnimUtilsSchemaContractTest`、試験sourceの厳格構文と書式、連続二回の無作業再構築、公開API検査に成功した。2,011工程・4,020入力の既存`timeline_model_test`、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 台帳は27,619件対応、2,186件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g480.json` 593,666 bytesを削除し、一時閉包一覧、追加作業tree・構築木は作成していない。主Ninja木6,020,452 KiB、共有compiler cache 983,472 KiB、最新`build/tdd-macos/public-api-missing-g481.json` 590,110 bytes、SHA-256 `7b315b7930a46120c508c4b445e8cf85cf6a095c4c0c94b7ae6aabcd7c0d8803`だけを再利用対象として保持する。compiler cacheは144,656件中120,565件、83.35%がhitしている。次の永続作業は第481便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
+
+### 第481便の公開API契約計画
+
+- 第481便はpaintopの現在輪郭変換を所有する`plugins/paintops/libpaintop/kis_current_outline_fetcher.h`に残る全12 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g481.json`は公開header 1,548、公開API 29,805、対応済み27,619、未対応2,186、590,110 bytes、SHA-256 `7b315b7930a46120c508c4b445e8cf85cf6a095c4c0c94b7ae6aabcd7c0d8803`である。対象12識別子の整列集合SHA-256は`b1eff6358ff445f73b6fee43297d5502051b95d2cfff02142317f76fb641622b`である。
+- 現在輪郭取得は型・構築・破棄3、選択肢列挙・flags別名・無効・サイズ・回転・鏡像・鋭さ7、状態無効化1、入力情報・設定・元輪郭・表示mode・zoom調整・追加拡大回転・傾きからの輪郭取得1の4枠へ固定する。型特性、列挙値、flags型、厳密な関数pointer、省略引数の未評価呼出しだけを使い、描画情報・設定・輪郭・本文を実体化しない。
+- 開始headerの`kis_paintop_settings.h`は公開署名が直接使う入れ子`KisPaintOpSettings::OutlineMode`に必須で、`QFlags`と`QScopedPointer`も公開別名と私有所有に必要である。一方`QPainterPath`は公開・私有宣言のどちらにも使われないため、契約追加より先にincludeを除去する。直接利用4翻訳単位の変更前厳格構文検査は3件成功・sketch paintopの生成UI header不在による既存診断1件で、変更後も同じ分類から悪化なしを完了条件とする。
+- 新規`plugins/paintops/libpaintop/tests/KisCurrentOutlineFetcherSchemaContractTest.cpp`は100行・5枠未満とする。最寄りの`KisPaintOpFactorySchemaContractTest`は4工程・8入力、command SHA-256 `44d2281b8ba9afe9882798fd2aca33e5513cbfb52ce0834289155edcc9b03fe2`、input SHA-256 `b89afc5ec3c081ee96eafcb7f62fa82c6baf0eaf9175a114fa4a4cbbe8f78287`である。新targetは同じpaintop・image・global・pigment探索路とQt Gui・Eigen・KF I18n・Imath interface、Qt Core・Test、header-only Boost、既存export定義だけの4工程・8入力を予測し、停止線を5工程・11入力とする。新たな探索路・定義・製品接続、AUTOMOC製品header入力、対象型または本文の実体化が必要なら停止する。macOSの対象、最軽量近傍、対象の20回反復、試験sourceの厳格構文と書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
 
 ### 第239便の先行監査担当票
 
