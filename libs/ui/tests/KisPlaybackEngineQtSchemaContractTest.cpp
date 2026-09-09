@@ -5,6 +5,7 @@
 
 #include "animation/KisPlaybackEngineQT.h"
 #include "animation/cache/KisFrameCacheSwapper.h"
+#include "animation/kis_animation_cache_populator.h"
 
 #include <QTest>
 
@@ -18,6 +19,8 @@ namespace
     static_assert(std::is_same_v<decltype(static_cast<__VA_ARGS__>(&KisPlaybackEngineQT::method)), __VA_ARGS__>)
 #define ASSERT_FRAME_CACHE_SWAPPER_SIGNATURE(method, ...)                                                              \
     static_assert(std::is_same_v<decltype(static_cast<__VA_ARGS__>(&KisFrameCacheSwapper::method)), __VA_ARGS__>)
+#define ASSERT_ANIMATION_CACHE_POPULATOR_SIGNATURE(method, ...)                                                        \
+    static_assert(std::is_same_v<decltype(static_cast<__VA_ARGS__>(&KisAnimationCachePopulator::method)), __VA_ARGS__>)
 
 } // namespace
 
@@ -32,6 +35,9 @@ private Q_SLOTS:
     void frameCacheSwapperTypeConstructionAndLifetimeSchemaRemainStable();
     void frameCacheSwapperStorageSignaturesRemainStable();
     void frameCacheSwapperMetadataSignaturesRemainStable();
+    void animationCachePopulatorTypeConstructionAndLifetimeSchemaRemainStable();
+    void animationCachePopulatorRegenerationSignaturesRemainStable();
+    void animationCachePopulatorCoordinationSignaturesRemainStable();
 };
 
 void KisPlaybackEngineQtSchemaContractTest::typeConstructionAndLifetimeSchemaRemainStable()
@@ -91,6 +97,33 @@ void KisPlaybackEngineQtSchemaContractTest::frameCacheSwapperMetadataSignaturesR
     ASSERT_FRAME_CACHE_SWAPPER_SIGNATURE(frameDirtyRect, QRect (KisFrameCacheSwapper::*)(int) const);
 }
 
+void KisPlaybackEngineQtSchemaContractTest::animationCachePopulatorTypeConstructionAndLifetimeSchemaRemainStable()
+{
+    static_assert(std::is_class_v<KisAnimationCachePopulator>);
+    static_assert(std::is_constructible_v<KisAnimationCachePopulator, KisPart *>);
+    static_assert(std::has_virtual_destructor_v<KisAnimationCachePopulator>);
+
+    QVERIFY(true);
+}
+
+void KisPlaybackEngineQtSchemaContractTest::animationCachePopulatorRegenerationSignaturesRemainStable()
+{
+    ASSERT_ANIMATION_CACHE_POPULATOR_SIGNATURE(regenerate,
+                                               bool (KisAnimationCachePopulator::*)(KisAnimationFrameCacheSP, int));
+    ASSERT_ANIMATION_CACHE_POPULATOR_SIGNATURE(requestRegenerationWithPriorityFrame,
+                                               void (KisAnimationCachePopulator::*)(KisImageSP, int));
+    ASSERT_ANIMATION_CACHE_POPULATOR_SIGNATURE(setTrackedImages,
+                                               void (KisAnimationCachePopulator::*)(const QVector<KisImageSP> &));
+}
+
+void KisPlaybackEngineQtSchemaContractTest::animationCachePopulatorCoordinationSignaturesRemainStable()
+{
+    ASSERT_ANIMATION_CACHE_POPULATOR_SIGNATURE(idleWatcher, KisIdleWatcher * (KisAnimationCachePopulator::*)() const);
+    ASSERT_ANIMATION_CACHE_POPULATOR_SIGNATURE(forceImageModified, void (KisAnimationCachePopulator::*)());
+    ASSERT_ANIMATION_CACHE_POPULATOR_SIGNATURE(slotRequestRegeneration, void (KisAnimationCachePopulator::*)());
+}
+
+#undef ASSERT_ANIMATION_CACHE_POPULATOR_SIGNATURE
 #undef ASSERT_FRAME_CACHE_SWAPPER_SIGNATURE
 #undef ASSERT_QT_PLAYBACK_ENGINE_SIGNATURE
 
