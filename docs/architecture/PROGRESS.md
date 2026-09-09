@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 10:22 JST
+- 更新日時: 2026-09-09 10:36 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4219,6 +4219,9 @@
 - watershed workerは型・構築・寿命3、key stroke追加・実行2、五種のgroup edge照会5、group除去試行1の4枠へ固定する。multiway cutは型・構築・寿命3と、key stroke追加・実行・入力装置・出力装置4の2枠へ固定する。処理器本文、paint device、色、進捗更新器は実体化せず、型特性と厳密な関数pointerだけを観測する。
 - 両公開headerのQt scoped pointer、image共有型、export macroは保持member、公開署名、公開性に直接必要で、色型は既に前方宣言されている。不要な直接includeや新たな所有分離はなく、構造変更を行わない。既存`KisWatershedWorkerTest`は1,201工程・2,425入力で製品画像実装を接続するため、公開schemaの追加先から除外する。
 - 新規`libs/image/tests/KisLazyBrushCutSchemaContractTest.cpp`は170行・7枠未満とする。最寄りの`KisTransformWorkerSchemaContractTest`はQt Core・Test、image・globalのsource・binary探索路、`kritaimage_EXPORTS`だけによる4工程・8入力で、command SHA-256 `6deca40b6d04f6c49622b011e8a5d5580fe2a25e5b7c32cd2bc43967a3e4b453`、input SHA-256 `09f9a53084747e5af3942a1f52a98f668f33eb498a36b112fe6d9de78d021c75`である。新targetも同じ閉包を予測し、停止線を5工程・11入力とする。新たな探索路・定義・製品接続、AUTOMOC製品header入力、処理器または関連製品型の実体化が必要なら停止する。macOSの対象、最軽量近傍、対象の20回反復、試験sourceの厳格構文、書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、既存の重量動作試験、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
+- 開始`libs/image/lazybrush/KisWatershedWorker.h`と`libs/image/lazybrush/kis_multiway_cut.h`から新規`libs/image/tests/KisLazyBrushCutSchemaContractTest.cpp`へ全18 API・6枠を追加した。watershed workerの型・構築・寿命・key stroke・既定清掃量付き実行・五種edge照会・group除去と、multiway cutの型・構築・寿命・key stroke・実行・入出力装置を、型特性、未評価の既定引数呼出し、厳密な関数pointerで固定した。初回は全6観測枠が成功し、`G472 lazy brush cut API schema is not fixed yet`だけが`XFAIL`となった。公開headerと製品sourceは変更していない。計画commitは`41c018665a`、契約commitは`478c06b231`である。
+- 新規試験sourceは99行・6枠で、targetは4工程・8入力、command SHA-256 `51699b8c6ad6f8aea3faa1dc501de3982411e99df88128a39326ea7b7d9d3067`、input SHA-256 `58ef788d28ec1a1bbc7d506bf39f06159fcbc7510b224079461159830f65a723`となった。AUTOMOC `HEADERS=[]`、製品未解決記号・製品動的接続は0で、既存重量対象の1,201工程・2,425入力を引き込まない。macOSで対象、最軽量近傍`KisTransformWorkerSchemaContractTest`、対象の20回反復、試験sourceの厳格構文と書式、連続二回の無作業再構築、公開API検査、`verify-quick`に成功した。近傍はCMake再生成後の初回だけAUTOGENを更新し、二回目は無作業だった。処理器本文、既存の重量動作試験、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 台帳は27,514件対応、2,290件未対応となり、開始2 headerの残存は0件である。旧`public-api-missing-g472.json` 623,696 bytesを削除し、一時閉包一覧、追加作業tree・構築木は作成していない。主Ninja木6,010,356 KiB、共有compiler cache 983,084 KiB、最新`build/tdd-macos/public-api-missing-g473.json` 618,963 bytes、SHA-256 `e77c61353cae41def9ca5eb8e53ac1d4b291f56daf2297b4dbef23bcc47cc7b6`だけを再利用対象として保持する。compiler cacheは144,631件中120,565件、83.36%がhitしている。次の永続作業は第473便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
 
 ### 第239便の先行監査担当票
 

@@ -16,7 +16,7 @@
     "publicApiFingerprint": "5f05b2aa8e5bef4343af1d55a3852331e51d4369fe135b099327b1a91b6b8c4c"
   },
   "migration": {
-    "expectedMissingApis": 2308
+    "expectedMissingApis": 2290
   },
   "contracts": [
     {
@@ -76345,6 +76345,78 @@
         "method:KisAssignProfileProcessingVisitor::KisAssignProfileProcessingVisitor(const KoColorSpace * srcColorSpace,const KoColorSpace * dstColorSpace)",
         "method:KisAssignProfileProcessingVisitor::visit(KisTransformMask * mask,KisUndoAdapter * undoAdapter)",
         "method:KisAssignProfileProcessingVisitor::visitColorizeMask(KisColorizeMask * mask,KisUndoAdapter * undoAdapter)"
+      ]
+    },
+    {
+      "target": "KisLazyBrushCutSchemaContractTest",
+      "source": "libs/image/tests/KisLazyBrushCutSchemaContractTest.cpp",
+      "test": "KisLazyBrushCutSchemaContractTest::watershedTypeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "watershed workerは公開型として、入力高さmap・出力装置・処理矩形と任意の進捗更新器から構築でき、明示的に破棄できる境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisWatershedWorker",
+        "method:KisWatershedWorker::KisWatershedWorker(KisPaintDeviceSP heightMap,KisPaintDeviceSP dst,const QRect & boundingRect,KoUpdater * progress=0)",
+        "method:KisWatershedWorker::~KisWatershedWorker()"
+      ]
+    },
+    {
+      "target": "KisLazyBrushCutSchemaContractTest",
+      "source": "libs/image/tests/KisLazyBrushCutSchemaContractTest.cpp",
+      "test": "KisLazyBrushCutSchemaContractTest::watershedExecutionSignaturesRemainStable",
+      "behavior": "watershed workerは色付きkey strokeを追加し、既定値を持つ清掃量で領域分割を実行する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisWatershedWorker::addKeyStroke(KisPaintDeviceSP dev,const KoColor & color)",
+        "method:KisWatershedWorker::run(qreal cleanUpAmount=0.0)"
+      ]
+    },
+    {
+      "target": "KisLazyBrushCutSchemaContractTest",
+      "source": "libs/image/tests/KisLazyBrushCutSchemaContractTest.cpp",
+      "test": "KisLazyBrushCutSchemaContractTest::watershedTestingEdgeSignaturesRemainStable",
+      "behavior": "watershed workerはgroupと高さlevelに対する正・負・外来・同盟edge数および指定group間の競合数を照会する試験用公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisWatershedWorker::testingGroupAllyEdge(qint32 group,quint8 level)",
+        "method:KisWatershedWorker::testingGroupConflicts(qint32 group,quint8 level,qint32 withGroup)",
+        "method:KisWatershedWorker::testingGroupForeignEdge(qint32 group,quint8 level)",
+        "method:KisWatershedWorker::testingGroupNegativeEdge(qint32 group,quint8 level)",
+        "method:KisWatershedWorker::testingGroupPositiveEdge(qint32 group,quint8 level)"
+      ]
+    },
+    {
+      "target": "KisLazyBrushCutSchemaContractTest",
+      "source": "libs/image/tests/KisLazyBrushCutSchemaContractTest.cpp",
+      "test": "KisLazyBrushCutSchemaContractTest::watershedTestingRemovalSignatureRemainsStable",
+      "behavior": "watershed workerはgroupと高さlevelを指定してgroup除去を試行する試験用公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisWatershedWorker::testingTryRemoveGroup(qint32 group,quint8 level)"
+      ]
+    },
+    {
+      "target": "KisLazyBrushCutSchemaContractTest",
+      "source": "libs/image/tests/KisLazyBrushCutSchemaContractTest.cpp",
+      "test": "KisLazyBrushCutSchemaContractTest::multiwayCutTypeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "multiway cutは公開型として入力・出力描画装置と処理矩形から構築でき、明示的に破棄できる境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisMultiwayCut",
+        "method:KisMultiwayCut::KisMultiwayCut(KisPaintDeviceSP src,KisPaintDeviceSP dst,const QRect & boundingRect)",
+        "method:KisMultiwayCut::~KisMultiwayCut()"
+      ]
+    },
+    {
+      "target": "KisLazyBrushCutSchemaContractTest",
+      "source": "libs/image/tests/KisLazyBrushCutSchemaContractTest.cpp",
+      "test": "KisLazyBrushCutSchemaContractTest::multiwayCutOperationSignaturesRemainStable",
+      "behavior": "multiway cutは色付きkey strokeを追加して領域分割を実行し、構築時の入力・出力描画装置を返す公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMultiwayCut::addKeyStroke(KisPaintDeviceSP dev,const KoColor & color)",
+        "method:KisMultiwayCut::dstDevice() const",
+        "method:KisMultiwayCut::run()",
+        "method:KisMultiwayCut::srcDevice() const"
       ]
     }
   ]
