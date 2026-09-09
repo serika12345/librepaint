@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 09:25 JST
+- 更新日時: 2026-09-09 09:30 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4180,6 +4180,13 @@
 - 開始`libs/image/layerstyles/kis_ls_drop_shadow_filter.h`、`libs/image/layerstyles/kis_ls_overlay_filter.h`、`libs/image/layerstyles/kis_layer_style_filter_environment.h`から新規`libs/image/tests/KisLayerStyleConcreteFiltersSchemaContractTest.cpp`へ全32 API・8枠を追加した。二つの具体filterの型・効果modeと順序・構築・複製・処理矩形境界、共有実行環境の型・構築・寿命・境界・LOD・painter設定・3種cacheを、型特性、列挙値、厳密な関数pointerで固定した。初回は全8観測枠が成功し、`G468 concrete layer style filter API schema is not fixed yet`だけで1件失敗した。具体filterと実行環境の本文は実体化していない。契約commitは`c9b784f1f3`である。
 - 新規試験sourceは152行・8枠で、targetは4工程・8入力、command SHA-256 `bd44ceee652a21e0da6a3b4502d60d7f42616781d9b4cd33d58976b5c9060be9`、input SHA-256 `ab3fa40a3b6c3fe2740568d43e72f9b265858c8ae77d71bf34e399663dea9473`となった。AUTOMOC `HEADERS=[]`、製品未解決記号・製品動的接続は0である。macOSで対象、最軽量近傍`KisLayerStyleProjectionPlaneSchemaContractTest`、対象の20回反復、試験sourceの厳格構文と書式、連続二回の無作業再構築、公開API検査、`verify-quick`に成功した。既存の製品layer style試験、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 台帳は27,399件対応、2,405件未対応となり、開始3 headerの残存は0件である。旧`public-api-missing-g468.json` 662,200 bytesを削除し、一時閉包一覧、追加作業tree・構築木は作成していない。主Ninja木6,004,312 KiB、共有compiler cache 983,444 KiB、最新`build/tdd-macos/public-api-missing-g469.json` 652,768 bytes、SHA-256 `be2240138be159ec3450f986ed7649c2610157f59a9d5dae920f3f861082d49a`だけを再利用対象として保持する。compiler cacheは144,617件中120,565件、83.37%がhitしている。次の永続作業は第469便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
+
+### 第469便の公開API契約計画
+
+- 第469便はlayer style効果責務の`libs/image/layerstyles/kis_ls_bevel_emboss_filter.h`に残る全6 API、`libs/image/layerstyles/kis_ls_satin_filter.h`に残る全6 API、`libs/image/layerstyles/kis_ls_stroke_filter.h`に残る全7 API、`libs/image/layerstyles/KisLayerStyleKnockoutBlower.h`に残る全8 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g469.json`は公開header 1,548、公開API 29,804、対応済み27,399、未対応2,405、652,768 bytes、SHA-256 `be2240138be159ec3450f986ed7649c2610157f59a9d5dae920f3f861082d49a`である。対象27識別子の整列集合SHA-256は`c860683968df1f308982234ad87f3849fbc399d85643107322690aa8d15da402`である。
+- bevel emboss filterとsatin filterはそれぞれ型・構築・複製3、処理・必要矩形・変更矩形3の2枠へ固定する。stroke filterは型・構築・複製3と、処理・必要矩形・変更矩形・source plane不透明度閾値4の2枠へ固定する。knockout blowerは型・既定構築・複製構築3と、選択cacheの取得・設定・消去、適用、空判定5の2枠へ固定する。具体filterとblower本文は実体化せず、型特性と厳密な関数pointerだけを観測する。
+- `libs/image/layerstyles/KisLayerStyleKnockoutBlower.h`はselection完全定義を使わず`KisSelectionSP`と`KisPaintDeviceSP`だけを保持・受渡しするため、開始headerの`kis_selection.h`を`kis_types.h`、`kritaimage_export.h`、`QRect`へ縮小し、完全定義を使う`libs/image/layerstyles/KisLayerStyleKnockoutBlower.cpp`へ`kis_selection.h`を直接追加する。直接利用元5翻訳単位の変更前厳密構文検査は全件成功で、変更後の新規悪化0を完了条件とする。三つの具体filter headerは基底型、export macro、または公開戻り値の列挙型を直接使い、追加の不要includeを持たない。
+- 新規`libs/image/tests/KisLayerStyleAdditionalFiltersSchemaContractTest.cpp`は190行・9枠未満とする。最寄りの`KisLayerStyleConcreteFiltersSchemaContractTest`は4工程・8入力、command SHA-256 `bd44ceee652a21e0da6a3b4502d60d7f42616781d9b4cd33d58976b5c9060be9`、input SHA-256 `ab3fa40a3b6c3fe2740568d43e72f9b265858c8ae77d71bf34e399663dea9473`である。既存152行の契約を約300行へ拡張せず、新targetも製品objectを接続せずにQt Core・Testと公開headerに必要な最小探索路・interface条件だけを与えて4工程・8入力を予測する。停止線は5工程・11入力で、新たな製品接続、AUTOMOC製品header入力、具体filterまたはblower本文の実体化が必要なら停止する。macOSの対象、最軽量近傍、対象の20回反復、試験sourceの厳格構文、書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、既存の製品layer style試験、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
 
 ### 第239便の先行監査担当票
 
