@@ -10,6 +10,7 @@
 #include "KisAsyncAnimationRenderDialogBase.h"
 #include "kis_types.h"
 
+class KisTimeSpan;
 
 class KRITAUI_EXPORT KisAsyncAnimationFramesSaveDialog : public KisAsyncAnimationRenderDialogBase
 {
