@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 21:58 JST
+- 更新日時: 2026-09-09 22:02 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4697,6 +4697,13 @@
 - 構造準備では開始`libs/application/ui/workspace/KisOpenPane.h`から、完全基底`QDialog`と重複する`QWidget` include、および参照だけに使う`QPixmap` includeを除去し、同headerの既存前方宣言へ統合した。開始`libs/application/ui/workspace/KisOpenPane.cpp`とheader強制includeは変更前後とも厳格構文の診断0件を維持した。計画commitは`9b11ab2384`、構造準備commitは`72338c2bd2`である。
 - 開始`libs/application/ui/workspace/KisOpenPane.h`から新規`libs/application/tests/KisOpenPaneSchemaContractTest.cpp`へ全13 API・3枠を追加した。対話型・構築・仮想破棄3件、2種類のpane追加・独自文書画面追加・名前選択4件、文書・file・template・常用template・分割位置・取消通知6件を型特性と厳密な関数pointerで固定した。契約commitは`06dae1d797`で、新規sourceは67行・3枠である。
 - targetは4工程・8入力、command SHA-256 `c27f68be4d728befb5d4d9f56385d0d7c81a46fd59c79ce460c7dbcac7b5a73c`、input SHA-256 `407d31d9e77aae98ce053ac281f66354e2160a9b1191855640256e75a1d39dc5`である。AUTOMOC `HEADERS=[]`、開始対話・文書・template・paneの未解決製品記号0で、Qt Core・Testだけへ動的接続する。macOSで対象とapplication引数近傍、対象全体と各3枠を20回、実装・試験sourceとheader強制includeの厳格構文、書式、連続二回の無作業再構築、公開API検査に成功した。台帳は28,228件対応、1,573件未対応となり、開始headerの残存は0件である。新`public-api-missing-g520.json`の生成成功後に旧`public-api-missing-g519.json` 432,333 bytesを削除した。主Ninja木6,030,716 KiB、共有compiler cache 981,860 KiB、最新報告428,541 bytes、SHA-256 `0af71bca3f62905c9128ccf7b88c98bbf3c2411ce615efcc8f6e2339108e89da`だけを再利用対象として保持する。compiler cacheは144,779 cache可能呼出し中120,593件、83.29%がhitしている。実対話・文書・template・file選択、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第520便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
+
+### 第520便の公開API契約計画
+
+- 第520便は色model・深度・profileから有効な色空間を選び、簡易・詳細選択画面を切り替える`libs/ui/widgets/kis_color_space_selector.h`の残存全12 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g520.json`は公開header 1,549、公開API 29,801、対応済み28,228、未対応1,573、428,541 bytes、SHA-256 `0af71bca3f62905c9128ccf7b88c98bbf3c2411ce615efcc8f6e2339108e89da`である。対象12識別子の整列集合SHA-256は`aec09ec46359f3e315665a7c79babe553b9756147593491a96b5ee5f66d3cf2b`である。
+- 色空間選択画面境界は画面型・構築・仮想破棄3、現在色空間照会と色model・深度・profile・色空間設定5、色browser・深度表示と選択可否・色空間変更通知4の3枠へ固定する。型特性と厳密な関数pointerだけを使い、選択画面、色空間、識別子、profileとQt画面を実体化しない。
+- 開始headerは画面基底を完全定義し、色識別子・色空間・詳細選択画面を前方宣言へ限定している。既存`libs/ui/tests/KisSelectionPropertySliderSchemaContractTest.cpp`のコンパイル条件でheader強制includeが診断0件、開始`libs/ui/widgets/kis_color_space_selector.cc`も厳格構文の診断0件であり、先行構造変更は不要である。
+- 既存`libs/ui/tests/KisSelectionPropertySliderSchemaContractTest.cpp`は112行・4枠で、同じUI/widget header境界へ3枠を追加しても220行・10枠以内に収まる。CMakeを変更せず4工程・8入力、command SHA-256 `c7f7039a0f6b732e9623c86c82d6ea14eb8d389d93ad67c87dbd37552b18facb`、input SHA-256 `4b122863a9ccad162971873179ec22926ad22b574da8d33f1610a9237bf88050`を維持する。工程・入力増加、候補headerのAUTOMOC入力化、製品未解決記号が生じれば停止する。macOSの対象と軽量UI近傍、対象全体と追加3枠の20回反復、実装・試験sourceとheader強制includeの厳格構文、書式、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、実選択画面・色空間・profile、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
 
 ### 第239便の先行監査担当票
 
