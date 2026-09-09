@@ -4,6 +4,7 @@
  */
 
 #include <tool/kis_selection_tool_helper.h>
+#include <tool/kis_tool_freehand_helper.h>
 #include <tool/kis_tool_select_ui_base.h>
 
 #include <QTest>
@@ -34,6 +35,8 @@ public:
     static_assert(std::is_same_v<decltype(static_cast<signature>(&Subject::method)), signature>)
 #define ASSERT_SELECTION_HELPER_SIGNATURE(method, ...)                                                                 \
     static_assert(std::is_same_v<decltype(static_cast<__VA_ARGS__>(&KisSelectionToolHelper::method)), __VA_ARGS__>)
+#define ASSERT_FREEHAND_HELPER_SIGNATURE(method, ...)                                                                  \
+    static_assert(std::is_same_v<decltype(static_cast<__VA_ARGS__>(&KisToolFreehandHelper::method)), __VA_ARGS__>)
 } // namespace
 
 class KisToolSelectUiBaseSchemaContractTest : public QObject
@@ -49,6 +52,8 @@ private Q_SLOTS:
     void selectionHelperTypeConstructionAndLifetimeSchemaRemainStable();
     void selectionHelperPixelAndShapeApplicationSignaturesRemainStable();
     void selectionHelperShortcutMenuAndModeSignaturesRemainStable();
+    void freehandHelperTypeSmoothingAndRunningSchemaRemainStable();
+    void freehandHelperPaintLifecycleAndOutlineSignaturesRemainStable();
 };
 
 void KisToolSelectUiBaseSchemaContractTest::toolSelectUiTypeAliasAndConstructionSchemaRemainStable()
@@ -147,6 +152,47 @@ void KisToolSelectUiBaseSchemaContractTest::selectionHelperShortcutMenuAndModeSi
                                       SelectionMode (Helper::*)(KisSelectionSP, SelectionMode, SelectionAction) const);
 }
 
+void KisToolSelectUiBaseSchemaContractTest::freehandHelperTypeSmoothingAndRunningSchemaRemainStable()
+{
+    using Helper = KisToolFreehandHelper;
+
+    static_assert(std::is_class_v<Helper>);
+    static_assert(std::is_constructible_v<Helper, KisPaintingInformationBuilder *, KoCanvasResourceProvider *>);
+    static_assert(std::is_constructible_v<Helper,
+                                          KisPaintingInformationBuilder *,
+                                          KoCanvasResourceProvider *,
+                                          const KUndo2MagicString &,
+                                          KisSmoothingOptions *>);
+    static_assert(std::has_virtual_destructor_v<Helper>);
+    ASSERT_FREEHAND_HELPER_SIGNATURE(setSmoothness, void (Helper::*)(KisSmoothingOptionsSP));
+    ASSERT_FREEHAND_HELPER_SIGNATURE(smoothingOptions, KisSmoothingOptionsSP (Helper::*)() const);
+    ASSERT_FREEHAND_HELPER_SIGNATURE(isRunning, bool (Helper::*)() const);
+}
+
+void KisToolSelectUiBaseSchemaContractTest::freehandHelperPaintLifecycleAndOutlineSignaturesRemainStable()
+{
+    using Helper = KisToolFreehandHelper;
+
+    ASSERT_FREEHAND_HELPER_SIGNATURE(cursorMoved, void (Helper::*)(const QPointF &));
+    ASSERT_FREEHAND_HELPER_SIGNATURE(initPaint,
+                                     void (Helper::*)(KoPointerEvent *,
+                                                      const QPointF &,
+                                                      KisImageWSP,
+                                                      KisNodeSP,
+                                                      KisStrokesFacade *,
+                                                      KisNodeSP,
+                                                      KisDefaultBoundsBaseSP));
+    ASSERT_FREEHAND_HELPER_SIGNATURE(paintEvent, void (Helper::*)(KoPointerEvent *));
+    ASSERT_FREEHAND_HELPER_SIGNATURE(endPaint, void (Helper::*)());
+    ASSERT_FREEHAND_HELPER_SIGNATURE(paintOpOutline,
+                                     KisOptimizedBrushOutline (Helper::*)(const QPointF &,
+                                                                          const KoPointerEvent *,
+                                                                          KisPaintOpSettingsSP,
+                                                                          KisPaintOpSettings::OutlineMode) const);
+    ASSERT_FREEHAND_HELPER_SIGNATURE(requestExplicitUpdateOutline, void (Helper::*)());
+}
+
+#undef ASSERT_FREEHAND_HELPER_SIGNATURE
 #undef ASSERT_SELECTION_HELPER_SIGNATURE
 #undef ASSERT_TOOL_SELECT_UI_SIGNATURE
 
