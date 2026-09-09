@@ -16,7 +16,7 @@
     "publicApiFingerprint": "62e45b238446dc0eb6798b1de10b2cd9261befccc2a837c75de2c86393d7e016"
   },
   "migration": {
-    "expectedMissingApis": 1891
+    "expectedMissingApis": 1855
   },
   "contracts": [
     {
@@ -77879,6 +77879,87 @@
         "method:KisKraLoader::errorMessages() const",
         "method:KisKraLoader::imageName() const",
         "method:KisKraLoader::warningMessages() const"
+      ]
+    },
+    {
+      "target": "KisAnimTimelineFramesViewSchemaContractTest",
+      "source": "plugins/dockers/animation/tests/KisAnimTimelineFramesViewSchemaContractTest.cpp",
+      "test": "KisAnimTimelineFramesViewSchemaContractTest::equalizerWidgetTypeAndValueSchemaRemainStable",
+      "behavior": "animation equalizer widgetは親付き構築と仮想破棄、範囲および列ごとの値・有効状態を持つ公開値構造を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisEqualizerWidget",
+        "member:KisEqualizerWidget::EqualizerValues::maxDistance",
+        "member:KisEqualizerWidget::EqualizerValues::state",
+        "member:KisEqualizerWidget::EqualizerValues::value",
+        "method:KisEqualizerWidget::KisEqualizerWidget(int maxDistance,QWidget * parent)",
+        "method:KisEqualizerWidget::~KisEqualizerWidget()",
+        "struct:KisEqualizerWidget::EqualizerValues"
+      ]
+    },
+    {
+      "target": "KisAnimTimelineFramesViewSchemaContractTest",
+      "source": "plugins/dockers/animation/tests/KisAnimTimelineFramesViewSchemaContractTest.cpp",
+      "test": "KisAnimTimelineFramesViewSchemaContractTest::equalizerWidgetControlAndNotificationSignaturesRemainStable",
+      "behavior": "animation equalizer widgetは全列状態の取得・設定、master切替と設定変更・reset通知の公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisEqualizerWidget::getValues() const",
+        "method:KisEqualizerWidget::setValues(const EqualizerValues & values)",
+        "method:KisEqualizerWidget::sigConfigChanged()",
+        "method:KisEqualizerWidget::sigReset()",
+        "method:KisEqualizerWidget::toggleMasterSwitch()"
+      ]
+    },
+    {
+      "target": "KisAnimTimelineFramesViewSchemaContractTest",
+      "source": "plugins/dockers/animation/tests/KisAnimTimelineFramesViewSchemaContractTest.cpp",
+      "test": "KisAnimTimelineFramesViewSchemaContractTest::equalizerWidgetInputSignaturesRemainStable",
+      "behavior": "animation equalizer widgetは寸法変更、mouse移動、文脈menu入力を受け取る公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisEqualizerWidget::contextMenuEvent(QContextMenuEvent * event)",
+        "method:KisEqualizerWidget::mouseMoveEvent(QMouseEvent * ev)",
+        "method:KisEqualizerWidget::resizeEvent(QResizeEvent * event)"
+      ]
+    },
+    {
+      "target": "KisAnimTimelineFramesViewSchemaContractTest",
+      "source": "plugins/dockers/animation/tests/KisAnimTimelineFramesViewSchemaContractTest.cpp",
+      "test": "KisAnimTimelineFramesViewSchemaContractTest::equalizerSliderSchemaRemainStable",
+      "behavior": "animation equalizer sliderは親付き構築、仮想破棄、mouse・描画入力、推奨寸法、右端と切替状態設定の公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisEqualizerSlider",
+        "method:KisEqualizerSlider::KisEqualizerSlider(QWidget * parent)",
+        "method:KisEqualizerSlider::minimumSizeHint() const",
+        "method:KisEqualizerSlider::mouseMoveEvent(QMouseEvent * ev)",
+        "method:KisEqualizerSlider::mousePressEvent(QMouseEvent * ev)",
+        "method:KisEqualizerSlider::mouseReleaseEvent(QMouseEvent * ev)",
+        "method:KisEqualizerSlider::paintEvent(QPaintEvent * event)",
+        "method:KisEqualizerSlider::setRightmost(bool value)",
+        "method:KisEqualizerSlider::setToggleState(bool value)",
+        "method:KisEqualizerSlider::sizeHint() const",
+        "method:KisEqualizerSlider::~KisEqualizerSlider()"
+      ]
+    },
+    {
+      "target": "KisAnimTimelineFramesViewSchemaContractTest",
+      "source": "plugins/dockers/animation/tests/KisAnimTimelineFramesViewSchemaContractTest.cpp",
+      "test": "KisAnimTimelineFramesViewSchemaContractTest::equalizerColumnSchemaRemainStable",
+      "behavior": "animation equalizer列は識別子・題名付き構築、値と有効状態、右端・強制無効設定、列変更通知の公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisEqualizerColumn",
+        "method:KisEqualizerColumn::KisEqualizerColumn(QWidget * parent,int id,const QString & title)",
+        "method:KisEqualizerColumn::setForceDisabled(bool value)",
+        "method:KisEqualizerColumn::setRightmost(bool value)",
+        "method:KisEqualizerColumn::setState(bool value)",
+        "method:KisEqualizerColumn::setValue(int value)",
+        "method:KisEqualizerColumn::sigColumnChanged(int id,bool state,int value)",
+        "method:KisEqualizerColumn::state() const",
+        "method:KisEqualizerColumn::value() const",
+        "method:KisEqualizerColumn::~KisEqualizerColumn()"
       ]
     }
   ]
