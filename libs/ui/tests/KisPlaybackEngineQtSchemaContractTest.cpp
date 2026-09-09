@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "animation/KisFrameDisplayProxy.h"
 #include "animation/KisPlaybackEngineQT.h"
 #include "animation/cache/KisFrameCacheSwapper.h"
 #include "animation/kis_animation_cache_populator.h"
@@ -38,6 +39,7 @@ private Q_SLOTS:
     void animationCachePopulatorTypeConstructionAndLifetimeSchemaRemainStable();
     void animationCachePopulatorRegenerationSignaturesRemainStable();
     void animationCachePopulatorCoordinationSignaturesRemainStable();
+    void frameDisplayProxyBoundarySignaturesRemainStable();
 };
 
 void KisPlaybackEngineQtSchemaContractTest::typeConstructionAndLifetimeSchemaRemainStable()
@@ -121,6 +123,22 @@ void KisPlaybackEngineQtSchemaContractTest::animationCachePopulatorCoordinationS
     ASSERT_ANIMATION_CACHE_POPULATOR_SIGNATURE(idleWatcher, KisIdleWatcher * (KisAnimationCachePopulator::*)() const);
     ASSERT_ANIMATION_CACHE_POPULATOR_SIGNATURE(forceImageModified, void (KisAnimationCachePopulator::*)());
     ASSERT_ANIMATION_CACHE_POPULATOR_SIGNATURE(slotRequestRegeneration, void (KisAnimationCachePopulator::*)());
+}
+
+void KisPlaybackEngineQtSchemaContractTest::frameDisplayProxyBoundarySignaturesRemainStable()
+{
+    using Proxy = KisFrameDisplayProxy;
+
+    static_assert(std::is_class_v<Proxy>);
+    static_assert(std::is_base_of_v<QObject, Proxy>);
+    static_assert(std::is_constructible_v<Proxy, KisCanvas2 *>);
+    static_assert(std::is_constructible_v<Proxy, KisCanvas2 *, QObject *>);
+    static_assert(std::has_virtual_destructor_v<Proxy>);
+    static_assert(std::is_same_v<decltype(&Proxy::displayFrame), bool (Proxy::*)(int, bool)>);
+    static_assert(std::is_same_v<decltype(&Proxy::activeFrame), int (Proxy::*)() const>);
+    static_assert(std::is_same_v<decltype(&Proxy::sigFrameChange), void (Proxy::*)()>);
+    static_assert(std::is_same_v<decltype(&Proxy::sigFrameDisplayRefreshed), void (Proxy::*)()>);
+    static_assert(std::is_same_v<decltype(&Proxy::sigFrameRefreshSkipped), void (Proxy::*)()>);
 }
 
 #undef ASSERT_ANIMATION_CACHE_POPULATOR_SIGNATURE
