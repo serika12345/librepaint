@@ -16,7 +16,7 @@
     "publicApiFingerprint": "05a5e67dfcb803772f3a7b7f2773532707ee28e97b57d9173a41fba9047a71d2"
   },
   "migration": {
-    "expectedMissingApis": 2033
+    "expectedMissingApis": 2018
   },
   "contracts": [
     {
@@ -77395,6 +77395,57 @@
       "apis": [
         "method:KisImportExportManager::askForAudioFileName(const QString & defaultDir,QWidget * parent)",
         "method:KisImportExportManager::getUriForAdditionalFile(const QString & defaultUri,QWidget * parent)"
+      ]
+    },
+    {
+      "target": "KisSaveGroupVisitorSchemaContractTest",
+      "source": "libs/impex/tests/KisSaveGroupVisitorSchemaContractTest.cpp",
+      "test": "KisSaveGroupVisitorSchemaContractTest::typeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "group保存訪問境界は画像・可視性・階層方針・保存先情報から構築でき、基底経由で仮想破棄できる公開型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisSaveGroupVisitor",
+        "method:KisSaveGroupVisitor::KisSaveGroupVisitor(KisImageWSP image,bool saveInvisible,bool saveTopLevelOnly,const QString & path,const QString & baseName,const QString & extension,const QString & mimeFilter)",
+        "method:KisSaveGroupVisitor::~KisSaveGroupVisitor()"
+      ]
+    },
+    {
+      "target": "KisSaveGroupVisitorSchemaContractTest",
+      "source": "libs/impex/tests/KisSaveGroupVisitorSchemaContractTest.cpp",
+      "test": "KisSaveGroupVisitorSchemaContractTest::baseAndConcreteLayerVisitSignaturesRemainStable",
+      "behavior": "group保存訪問境界は基底node、paint・group・外部layerを型別に訪問する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSaveGroupVisitor::visit(KisExternalLayer *)",
+        "method:KisSaveGroupVisitor::visit(KisGroupLayer * layer)",
+        "method:KisSaveGroupVisitor::visit(KisNode *)",
+        "method:KisSaveGroupVisitor::visit(KisPaintLayer *)"
+      ]
+    },
+    {
+      "target": "KisSaveGroupVisitorSchemaContractTest",
+      "source": "libs/impex/tests/KisSaveGroupVisitorSchemaContractTest.cpp",
+      "test": "KisSaveGroupVisitorSchemaContractTest::generatedLayerVisitSignaturesRemainStable",
+      "behavior": "group保存訪問境界は調整・生成・clone layerを型別に訪問する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSaveGroupVisitor::visit(KisAdjustmentLayer *)",
+        "method:KisSaveGroupVisitor::visit(KisCloneLayer *)",
+        "method:KisSaveGroupVisitor::visit(KisGeneratorLayer *)"
+      ]
+    },
+    {
+      "target": "KisSaveGroupVisitorSchemaContractTest",
+      "source": "libs/impex/tests/KisSaveGroupVisitorSchemaContractTest.cpp",
+      "test": "KisSaveGroupVisitorSchemaContractTest::maskVisitSignaturesRemainStable",
+      "behavior": "group保存訪問境界はfilter・変換・透明・選択・colorize maskを型別に訪問する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSaveGroupVisitor::visit(KisColorizeMask *)",
+        "method:KisSaveGroupVisitor::visit(KisFilterMask *)",
+        "method:KisSaveGroupVisitor::visit(KisSelectionMask *)",
+        "method:KisSaveGroupVisitor::visit(KisTransformMask *)",
+        "method:KisSaveGroupVisitor::visit(KisTransparencyMask *)"
       ]
     }
   ]
