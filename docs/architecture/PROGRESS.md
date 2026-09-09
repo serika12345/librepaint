@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 16:49 JST
+- 更新日時: 2026-09-09 16:54 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4468,6 +4468,13 @@
 - 構造準備では開始`libs/ui/canvas/KisAndroidScaling.h`から`QScreen`の完全定義includeを除去して前方宣言へ置換し、画面の画素比を実際に読む宛先`libs/ui/canvas/KisAndroidScaling.cpp`へ完全定義includeを移した。公開headerを強制includeした試験sourceの厳格構文に成功した。既存macOS利用元2翻訳単位は変更前後とも実エラー0で、`KisApplication.cpp`の`QMetaType::type`と`KisMainWindow.cpp`の`QDragMoveEvent::pos`に対する既存Qt非推奨診断各1件だけを維持した。計画commitは`22d5de266d`、構造準備commitは`d01a461942`である。
 - 開始headerから既存`libs/application/tests/KisApplicationArgumentsSchemaContractTest.cpp`へ全14 API・5枠を追加した。倍率管理器の型・構築・singleton取得、対応状態・dialog表示、画面倍率とUI倍率通知、設定保存とdialog状態通知、dialog名前空間の5入口を型特性と厳密な関数pointerで固定した。既存binaryによる初回実行は新枠を認識せず`Function not found`で失敗した。契約commitは`f8bd01e769`である。
 - 既存試験sourceは177行・15枠となった。targetは変更前後ともQt Core・Testだけへ動的接続する4工程・8入力、command SHA-256 `94caa193f640f28e43b9589ff6612ec820c742cf64fd5144b694bfaea8103972`、input SHA-256 `d396bd55ed135e1a3b0216c6b40d7f4c2e09780b50819ccedb34348d7511b083`を維持した。AUTOMOC `HEADERS=[]`、Android倍率管理器・dialog・applicationの未解決製品記号0である。macOSで全15枠と追加5枠を各20回、試験sourceの厳格構文と書式、連続二回の無作業再構築、公開API検査、`verify-quick`に成功した。台帳は27,862件対応、1,943件未対応となり、開始headerの残存は0件である。新`public-api-missing-g496.json`の生成成功後に旧`public-api-missing-g495.json` 528,482 bytesを削除した。主Ninja木6,020,356 KiB、共有compiler cache 983,312 KiB、最新報告525,188 bytes、SHA-256 `33d63b0bfec5937f92d616e9059ca0b2192ecb02b7f50a57ed9f9bef11ae0dfe`だけを再利用対象として保持する。compiler cacheは144,709 cache可能呼出し中120,575件、83.32%がhitしている。倍率状態、設定永続化、JNI配送、Android実装・端末、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第496便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
+
+### 第496便の公開API契約計画
+
+- 第496便はKRA内の画像・layer・maskバイナリー読込と保存を所有する`plugins/impex/libkra/kis_kra_load_visitor.h`の全18 APIと`plugins/impex/libkra/kis_kra_save_visitor.h`の全17 API、合計35件を対象とする。正式入力`build/tdd-macos/public-api-missing-g496.json`は公開header 1,549、公開API 29,805、対応済み27,862、未対応1,943、525,188 bytes、SHA-256 `33d63b0bfec5937f92d616e9059ca0b2192ecb02b7f50a57ed9f9bef11ae0dfe`である。対象35識別子の整列集合SHA-256は`a8e3d1c00369685406226417330a7a5f7a93ce59f8b773b98a91684c673f259d`である。
+- KRAバイナリーvisitor境界は読込・保存の型と構築・保存破棄5、読込のnode・layer訪問7、読込のmask訪問・URI・診断・profile別名9、保存のnode・layer訪問7、保存のmask訪問・URI・診断7の5枠へ固定する。型特性と厳密な多重定義関数pointerだけを使い、visitor、画像、node、layer、mask、store、色profileと入出力本文を実体化しない。
+- 開始`plugins/impex/libkra/kis_kra_save_visitor.h`は共有pointer別名とnode visitor基底だけで宣言を完結できる一方、未使用の`kis_image.h`を全利用者へ推移させている。現限定targetによる両headerの強制includeは同headerから`QPainter`を解決できず停止したため、契約追加より先に`kis_image.h`を除去し、値会員に必要な`QMap`を直接includeする。`plugins/impex/libkra/kis_kra_load_visitor.h`にも値会員と返値に必要な`QMap`・`QHash`を直接追加し、未使用の`KisFilterConfiguration`と`KisNodeFilterInterface`前方宣言を除去する。両実装は必要な完全定義を既に直接includeしている。変更前の読込実装は厳格構文に成功し、保存実装は既存の符号有無比較診断1件だけであるため、変更後も同じ結果を完了条件とする。
+- 既存`plugins/impex/libkra/tests/KisKraSaveXmlVisitorSchemaContractTest.cpp`は同じKRA node訪問責務を所有する113行・5枠の限定targetである。新targetとCMake変更を避け、同sourceへ5枠を追加して300行・11枠未満に収める。変更前targetはQt Core・Testだけへ動的接続する4工程・8入力、command SHA-256 `c43bc72bed9ba8fdd9a222f2e52e68b7df8dde7c6540d363e57f8975d7f2a82c`、input SHA-256 `5d4c2dd9284e07d87bc158f5cf0cca1aaae1a1c81a28ffaffd0c1c7b49fa0a70`である。停止線を4工程・8入力とし、新たな探索路・定義・接続、Qt Gui、製品OBJECT・shared、`kritatestsdk`、AUTOMOC製品header入力、KRA製品記号が必要なら停止する。macOSの対象、既存5枠と追加5枠、追加枠の20回反復、両実装と試験sourceの厳格構文、書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、実KRA入出力、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
 
 ### 第239便の先行監査担当票
 
