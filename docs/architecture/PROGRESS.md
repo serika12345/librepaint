@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 23:34 JST
+- 更新日時: 2026-09-09 23:39 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4785,6 +4785,13 @@
 - 開始headerから`qopengl.h`全体への過剰依存を除去し、platform別`GLFunctions` macroを通じたclass前方宣言だけを維持した。依存削除で顕在化したinclude順と末尾空行も同header内で整合した。公開署名、所有権、実行時挙動、製品source、CMakeは変更していない。header強制include、開始`libs/ui/canvas/kis_display_filter.cpp`、試験sourceの厳格構文は診断0件である。
 - targetは4工程・8入力、command SHA-256 `26563910ffa29c49811866e4d3a3649597748c0a2208921c0d488e3c95831872`、input SHA-256 `841766e90ca42485906491aab8f38bccf717c2c1b6222520933c84f12da48774`を維持した。AUTOMOC `HEADERS=[]`、表示filter・OpenGL mode proberの未解決製品記号0で、Qt Gui・Testだけへ動的接続する。macOSで対象全体20回と追加3枠各20回、実装・試験sourceとheader強制includeの厳格構文、書式、連続二回の無作業再構築に成功した。実OpenGL context・shader・texture・画素buffer、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 公開API検査の初回診断は期待値1,498に対して実測1,487で、新規11件と一致した。台帳を28,314件対応、1,487件未対応へ進め、`public-api-missing-g528.json`の生成成功後に旧`public-api-missing-g527.json` 408,311 bytesを削除した。主Ninja木6,032,356 KiB、共有compiler cache 982,672 KiB、最新報告405,515 bytes、SHA-256 `1ca20015afd689eb24ac164a7666ff3bb4a01ed75fb83d5d7c98ffb1899ede16`だけを再利用対象として保持する。compiler cacheは144,798 cache可能呼出し中120,594件、83.28%がhitしている。次の永続作業は第528便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
+
+### 第528便の公開API契約計画
+
+- 第528便はpixel selectionとshape selectionを現在のselection方針へ適用し、選択解除短絡を判定する`libs/ui/tool/kis_selection_tool_helper.h`の残存全12 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g528.json`は公開header 1,549、公開API 29,801、対応済み28,314、未対応1,487、405,515 bytes、SHA-256 `1ca20015afd689eb24ac164a7666ff3bb4a01ed75fb83d5d7c98ffb1899ede16`である。対象12識別子の整列集合SHA-256は`83bef414559d251c290e3907b706aa207e5cde5bfa82f1c750ba8b18b671111d`である。
+- selection helper境界は型・canvasとundo名からの構築・仮想破棄3、処理適用器付き/なしpixel selection適用・単一/複数shape追加4、選択解除/無操作短絡・現在選択解除・context menu取得・selection mode上書き5の3枠へ固定する。型特性と厳密な関数pointerだけを使い、helper、canvas、image、layer、selection、shape、menu、処理適用器を実体化しない。
+- 開始headerは`QMenu`と`KisProcessingApplicator`をpointerまたは参照でのみ使い、`kis_layer.h`からは`kis_selection.h`が既に提供する`KisLayerSP`別名だけを使う。契約追加より先にこれら3完全includeを除去して前方宣言へ置換し、値渡し一覧に必要な`QList`を直接includeする。開始`libs/ui/tool/kis_selection_tool_helper.cpp`は必要な完全型を直接include済みで、開始実装と既存`libs/ui/tests/KisToolSelectUiBaseSchemaContractTest.cpp`からのheader強制includeは厳格構文診断0件を維持する。
+- 既存selection tool契約は113行・5枠で、3枠追加後も220行・10枠以内に収まる。現在の広いheader探索路は同targetが所有する具象selection tool templateの直接型閉包であり、候補追加による拡張はない。CMakeを変更せず4工程・8入力、command SHA-256 `dfa69d52c97147f5d25cdc794e3cd6dc2b37644303f8c0fdd5db3f5606734cc3`、input SHA-256 `6a0a85aa6ab162073c90b3d9c8b710b085223737161c5fae4a411c95763ae2da`を維持する。工程・入力増加、候補headerのAUTOMOC入力化、製品未解決記号が生じれば停止する。macOSの対象全体と追加3枠の20回反復、実装・試験sourceとheader強制includeの厳格構文、書式、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、実selection・shape・menu・処理適用、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
 
 ### 第239便の先行監査担当票
 
