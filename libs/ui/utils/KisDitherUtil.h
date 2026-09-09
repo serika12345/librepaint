@@ -9,13 +9,15 @@
 #ifndef KIS_DITHER_UTIL_H
 #define KIS_DITHER_UTIL_H
 
+#include <QSharedPointer>
+
 #include <kritaui_export.h>
 
 #include <kis_types.h>
 
-#include <KoPattern.h>
-
 class KisPropertiesConfiguration;
+class KisResourcesInterface;
+class KoPattern;
 
 class KRITAUI_EXPORT KisDitherUtil
 {
@@ -37,7 +39,10 @@ public:
 private:
 
     void setThresholdMode(const ThresholdMode thresholdMode);
-    void setPattern(const QString &md5sum, const QString &patternName, const PatternValueMode valueMode, KisResourcesInterfaceSP resourcesInterface);
+    void setPattern(const QString &md5sum,
+                    const QString &patternName,
+                    const PatternValueMode valueMode,
+                    QSharedPointer<KisResourcesInterface> resourcesInterface);
     void setNoiseSeed(const quint64 &noiseSeed);
     void setSpread(const qreal &spread);
 
@@ -45,7 +50,7 @@ private:
 private:
     ThresholdMode m_thresholdMode;
     PatternValueMode m_patternValueMode;
-    KoPatternSP m_pattern;
+    QSharedPointer<KoPattern> m_pattern;
     quint64 m_noiseSeed;
     bool m_patternUseAlpha;
     qreal m_spread;

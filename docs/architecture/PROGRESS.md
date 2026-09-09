@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 12:19 JST
+- 更新日時: 2026-09-09 12:24 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4292,6 +4292,7 @@
 - dither補助は型・構築2、閾値mode型・pattern・noise 3、pattern値mode型・自動・明度・alpha 4、設定の読込みと座標別閾値計算2の4枠へ固定する。型特性、列挙値、省略引数の未評価呼出し、厳密な関数pointerだけを使い、設定、pattern、乱数、画素、本文を実体化しない。
 - `libs/ui/utils/KisDitherUtil.h`は私有会員の共有pointerのために完全な`KoPattern.h`を公開面へ推移させている。契約追加より先に、headerは`QSharedPointer<KoPattern>`と前方宣言だけを所有し、patternの本文を使う`libs/ui/utils/KisDitherUtil.cpp`へ`KoPattern.h`を直接移す。直接利用4翻訳単位の変更前厳格構文検査は2件成功・gradient mapとpalettizeの生成UI header不在による既存診断2件で、変更後も同じ分類から悪化なしを完了条件とする。
 - 新規`libs/ui/tests/KisDitherUtilSchemaContractTest.cpp`は90行・5枠未満とする。最寄りの`KisDisplayConfigSchemaContractTest`は4工程・8入力、command SHA-256 `1486a6825ec2708ac11f7319e3f08e21aedcf1d596afa1e9a2b99e9e7885dd23`、input SHA-256 `0f5781b1ac2dec2ed9954f2948ac1d5b605eed4e419085ff8415d097846cb8ce`である。新targetはUI・image・global探索路、Qt Core・Test、UI・image export定義だけの4工程・8入力を予測し、停止線を5工程・11入力とする。新たな探索路・定義・製品接続、AUTOMOC製品header入力、対象型または本文の実体化が必要なら停止する。macOSの対象、最軽量近傍、対象の20回反復、試験sourceの厳格構文と書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
+- 構造準備では開始`libs/ui/utils/KisDitherUtil.h`から完全な`KoPattern.h`を除去し、`KoPattern`と`KisResourcesInterface`の前方宣言と具体的な`QSharedPointer`会員・私有引数に置き換えた。pattern本文を使う宛先`libs/ui/utils/KisDitherUtil.cpp`は`KoPattern.h`を直接includeする。include除去直後は、私有引数の`KisResourcesInterfaceSP`もpattern経由だったことを新規診断で確定し、同型の具体的な共有pointerへ置き換えた。直接利用4翻訳単位は最終的に変更前と同じ2件成功・生成UI header不在の既存診断2件で、公開header 1,548、公開API 29,805、API指紋は不変である。計画commitは`9fa8c13766`である。
 
 ### 第239便の先行監査担当票
 
