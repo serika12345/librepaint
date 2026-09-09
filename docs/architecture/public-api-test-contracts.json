@@ -16,7 +16,7 @@
     "publicApiFingerprint": "5f05b2aa8e5bef4343af1d55a3852331e51d4369fe135b099327b1a91b6b8c4c"
   },
   "migration": {
-    "expectedMissingApis": 2290
+    "expectedMissingApis": 2280
   },
   "contracts": [
     {
@@ -76417,6 +76417,43 @@
         "method:KisMultiwayCut::dstDevice() const",
         "method:KisMultiwayCut::run()",
         "method:KisMultiwayCut::srcDevice() const"
+      ]
+    },
+    {
+      "target": "KisTransformWorkerSchemaContractTest",
+      "source": "libs/image/tests/KisTransformWorkerSchemaContractTest.cpp",
+      "test": "KisTransformWorkerSchemaContractTest::cageTypeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "cage変形workerは公開型として描画装置領域または画像とその位置、元cage、進捗更新器、既定値を持つ画素精度から構築でき、明示的に破棄できる境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisCageTransformWorker",
+        "method:KisCageTransformWorker::KisCageTransformWorker(const QImage & srcImage,const QPointF & srcImageOffset,const QVector<QPointF> & origCage,KoUpdater * progress,int pixelPrecision=8)",
+        "method:KisCageTransformWorker::KisCageTransformWorker(const QRect & deviceNonDefaultRegion,const QVector<QPointF> & origCage,KoUpdater * progress,int pixelPrecision=8)",
+        "method:KisCageTransformWorker::~KisCageTransformWorker()"
+      ]
+    },
+    {
+      "target": "KisTransformWorkerSchemaContractTest",
+      "source": "libs/image/tests/KisTransformWorkerSchemaContractTest.cpp",
+      "test": "KisTransformWorkerSchemaContractTest::cageSetupAndExecutionSignaturesRemainStable",
+      "behavior": "cage変形workerは変形を準備し、変形後cageを設定して入力描画装置から出力描画装置へ処理する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCageTransformWorker::prepareTransform()",
+        "method:KisCageTransformWorker::run(KisPaintDeviceSP srcDevice,KisPaintDeviceSP dstDevice)",
+        "method:KisCageTransformWorker::setTransformedCage(const QVector<QPointF> & transformedCage)"
+      ]
+    },
+    {
+      "target": "KisTransformWorkerSchemaContractTest",
+      "source": "libs/image/tests/KisTransformWorkerSchemaContractTest.cpp",
+      "test": "KisTransformWorkerSchemaContractTest::cageRectangleAndImageSignaturesRemainStable",
+      "behavior": "cage変形workerは変更矩形と必要矩形を近似し、新しい画像位置を書き戻して画像上の変形結果を返す公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCageTransformWorker::approxChangeRect(const QRect & rc)",
+        "method:KisCageTransformWorker::approxNeedRect(const QRect & rc,const QRect & fullBounds)",
+        "method:KisCageTransformWorker::runOnQImage(QPointF * newOffset)"
       ]
     }
   ]
