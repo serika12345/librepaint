@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-10 01:19 JST
+- 更新日時: 2026-09-10 01:23 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4904,6 +4904,13 @@
 - 開始headerの直接依存は公開値と私有値の所有に必要なQt値・所有型、KoUnit、Boost等価演算、export定義の最小集合であり、公開header、製品source、CMakeを変更していない。開始`libs/ui/canvas/kis_guides_config.cpp`と候補headerを強制includeする試験sourceの厳格構文は診断0件で、試験書式も成功した。
 - targetは4工程・8入力、command SHA-256 `9ca3f88615a1a6ddc85b90095d93e9e533068cc964924bbb5a546c30a53e88e5`、input SHA-256 `466380a5da52a1e773e9b5544839a3a97352a37fdbe3df0796ccb465f265e2f8`を維持した。候補headerのAUTOMOC入力化と未解決製品記号は0で、Qt Gui・Testだけへ動的接続する。macOSで対象全体20回と拡張2枠各20回、厳格構文、試験書式、連続二回の無作業再構築に成功した。設定・XMLの実効果、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 公開API検査の初回診断は期待値1,425に対して実測1,416で、新規9件と一致した。台帳を28,385件対応、1,416件未対応へ進め、`public-api-missing-g536.json`の生成成功後に旧`public-api-missing-g535.json` 388,338 bytesを削除した。主Ninja木6,049,272 KiB、共有compiler cache 982,124 KiB、最新報告386,233 bytes、SHA-256 `3742948aaf99066ee7a0550d2ce160d6c82fc28cbdd922c57fbf4dfd3e29f552`だけを再利用対象として保持する。compiler cacheは144,810 cache可能呼出し中120,594件、83.28%がhitしている。次の永続作業は第536便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
+
+### 第536便の公開API契約計画
+
+- 第536便はcanvas grid表示のview接続、action設定、設定反映、GUI更新通知を所有する`libs/ui/canvas/kis_grid_manager.h`の残存全8 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g536.json`は公開header 1,549、公開API 29,801、対応済み28,385、未対応1,416、386,233 bytes、SHA-256 `3742948aaf99066ee7a0550d2ce160d6c82fc28cbdd922c57fbf4dfd3e29f552`である。対象8識別子の整列集合SHA-256は`18ce5def92d3ba6405076bcfb6027e048b6dd72283aa0aff82c86c9799e80edf`である。
+- grid管理境界は型・view manager親付き構築・仮想破棄3、action設定・view接続・grid設定反映・GUI更新4、grid設定変更通知1を既存widget契約の3枠へ固定する。型特性、構築可能性、厳密な関数pointerだけを使い、manager、view、action、grid設定を実体化しない。
+- 開始`libs/ui/canvas/kis_grid_manager.h`は公開宣言に不要な`QPainter`、全域型別名、action managerとactionの完全定義をincludeしている。契約追加より先に`QObject`・`QPointer`・`QScopedPointer`の直接includeと`KisView`・`KisViewManager`・`KisActionManager`・`KisGridConfig`の前方宣言へ狭め、必要なaction定義を開始`libs/ui/canvas/kis_grid_manager.cpp`へ移す。公開署名と所有権を維持し、開始実装と既存試験からのheader強制includeで厳格構文診断0件を保つ。
+- 既存widget契約は86行・6枠で、3枠追加後も220行・10枠以内に収まる。CMakeを変更せず4工程・8入力、command SHA-256 `67ab1422423ac02371a154b8d61b44992e8720347506e5a0f010086d0cf6de65`、input SHA-256 `cfb437773ce2e656039f9d178772864eaafa1854293a9103a69f5351deb45292`を維持する。工程・入力増加、候補headerのAUTOMOC入力化、製品未解決記号が生じれば停止する。macOSの対象全体と追加3枠の20回反復、実装・試験sourceとheader強制includeの厳格構文、試験書式、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、view・action・設定・通知の実効果、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
 
 ### 第239便の先行監査担当票
 
