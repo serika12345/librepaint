@@ -4,6 +4,7 @@
  */
 
 #include "ui/workspace/KisOpenPane.h"
+#include "ui/workspace/KisTemplateTree.h"
 
 #include <QTest>
 
@@ -14,6 +15,8 @@ namespace
 
 #define ASSERT_OPEN_PANE_SIGNATURE(method, ...)                                                                        \
     static_assert(std::is_same_v<decltype(static_cast<__VA_ARGS__>(&KisOpenPane::method)), __VA_ARGS__>)
+#define ASSERT_TEMPLATE_TREE_SIGNATURE(method, ...)                                                                    \
+    static_assert(std::is_same_v<decltype(static_cast<__VA_ARGS__>(&KisTemplateTree::method)), __VA_ARGS__>)
 
 } // namespace
 
@@ -25,6 +28,9 @@ private Q_SLOTS:
     void typeConstructionAndLifetimeSchemaRemainStable();
     void paneAdditionAndSelectionSignaturesRemainStable();
     void documentTemplateAndLayoutNotificationSignaturesRemainStable();
+    void templateTreeTypeConstructionAndLifetimeSchemaRemainStable();
+    void templateTreeResourcePathAndPersistenceSignaturesRemainStable();
+    void templateTreeGroupMembershipSignaturesRemainStable();
 };
 
 void KisOpenPaneSchemaContractTest::typeConstructionAndLifetimeSchemaRemainStable()
@@ -60,6 +66,33 @@ void KisOpenPaneSchemaContractTest::documentTemplateAndLayoutNotificationSignatu
     ASSERT_OPEN_PANE_SIGNATURE(cancelButton, void (KisOpenPane::*)());
 }
 
+void KisOpenPaneSchemaContractTest::templateTreeTypeConstructionAndLifetimeSchemaRemainStable()
+{
+    static_assert(std::is_class_v<KisTemplateTree>);
+    static_assert(std::is_constructible_v<KisTemplateTree, const QString &, bool>);
+    static_assert(std::is_constructible_v<KisTemplateTree, const QString &>);
+    static_assert(std::is_destructible_v<KisTemplateTree>);
+
+    QVERIFY(true);
+}
+
+void KisOpenPaneSchemaContractTest::templateTreeResourcePathAndPersistenceSignaturesRemainStable()
+{
+    ASSERT_TEMPLATE_TREE_SIGNATURE(templatesResourcePath, QString (KisTemplateTree::*)() const);
+    ASSERT_TEMPLATE_TREE_SIGNATURE(readTemplateTree, void (KisTemplateTree::*)());
+    ASSERT_TEMPLATE_TREE_SIGNATURE(writeTemplateTree, void (KisTemplateTree::*)());
+}
+
+void KisOpenPaneSchemaContractTest::templateTreeGroupMembershipSignaturesRemainStable()
+{
+    ASSERT_TEMPLATE_TREE_SIGNATURE(add, bool (KisTemplateTree::*)(KisTemplateGroup *));
+    ASSERT_TEMPLATE_TREE_SIGNATURE(find, KisTemplateGroup * (KisTemplateTree::*)(const QString &) const);
+    ASSERT_TEMPLATE_TREE_SIGNATURE(defaultGroup, KisTemplateGroup * (KisTemplateTree::*)() const);
+    ASSERT_TEMPLATE_TREE_SIGNATURE(defaultTemplate, KisTemplate * (KisTemplateTree::*)() const);
+    ASSERT_TEMPLATE_TREE_SIGNATURE(groups, QList<KisTemplateGroup *> (KisTemplateTree::*)() const);
+}
+
+#undef ASSERT_TEMPLATE_TREE_SIGNATURE
 #undef ASSERT_OPEN_PANE_SIGNATURE
 
 QTEST_APPLESS_MAIN(KisOpenPaneSchemaContractTest)
