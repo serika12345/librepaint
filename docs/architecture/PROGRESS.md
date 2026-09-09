@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 22:17 JST
+- 更新日時: 2026-09-09 22:20 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4715,6 +4715,13 @@
 - 既存`libs/ui/tests/KisSelectionPropertySliderSchemaContractTest.cpp`は148行・7枠で、同じUI/widget header境界へ3枠を追加しても220行・10枠以内に収まる。CMakeを変更せず4工程・8入力、command SHA-256 `c7f7039a0f6b732e9623c86c82d6ea14eb8d389d93ad67c87dbd37552b18facb`、input SHA-256 `4b122863a9ccad162971873179ec22926ad22b574da8d33f1610a9237bf88050`を維持する。工程・入力増加、候補headerのAUTOMOC入力化、製品未解決記号が生じれば停止する。macOSの対象と軽量UI近傍、対象全体と追加3枠の20回反復、実装・試験sourceとheader強制includeの厳格構文、書式、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、実message表示・timer・fade、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
 - 開始`libs/ui/widgets/kis_floating_message.h`から既存`libs/ui/tests/KisSelectionPropertySliderSchemaContractTest.cpp`へ全11 API・3枠を追加した。画面型・優先度enumと3序数5件、構築・親上表示・icon・上書き設定4件、表示・消去2件を型特性、列挙値、厳密な関数pointerで固定した。公開headerと製品source、CMakeは変更していない。計画commitは`9bf4454871`、契約commitは`fcf5044e57`で、既存sourceは189行・10枠となった。
 - targetは4工程・8入力、command SHA-256 `c7f7039a0f6b732e9623c86c82d6ea14eb8d389d93ad67c87dbd37552b18facb`、input SHA-256 `4b122863a9ccad162971873179ec22926ad22b574da8d33f1610a9237bf88050`を維持した。AUTOMOC `HEADERS=[]`、一時message画面の未解決製品記号0で、Qt Core・Testだけへ動的接続する。macOSで対象と複数bool filter widget近傍、対象全体と追加3枠を各20回、実装・試験sourceとheader強制includeの厳格構文、書式、連続二回の無作業再構築、公開API検査に成功した。台帳は28,251件対応、1,550件未対応となり、開始headerの残存は0件である。新`public-api-missing-g522.json`の生成成功後に旧`public-api-missing-g521.json` 425,457 bytesを削除した。主Ninja木6,030,952 KiB、共有compiler cache 982,760 KiB、最新報告422,560 bytes、SHA-256 `a10f964569d8bbd9ad9904d599de80f092122ca9579d0f3f415deb00113c16bb`だけを再利用対象として保持する。compiler cacheは144,782 cache可能呼出し中120,593件、83.29%がhitしている。実message表示・timer・fade、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第522便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
+
+### 第522便の公開API契約計画
+
+- 第522便はanimation frameをfile列へ保存し、出力mask・全file・固有file・固有frameを照会する`libs/ui/dialogs/KisAsyncAnimationFramesSaveDialog.h`の残存全10 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g522.json`は公開header 1,549、公開API 29,801、対応済み28,251、未対応1,550、422,560 bytes、SHA-256 `a10f964569d8bbd9ad9904d599de80f092122ca9579d0f3f415deb00113c16bb`である。対象10識別子の整列集合SHA-256は`9374cbd501aefdfb60b88d2e7a7e2452eff698e38e385fdb1f38f83eb0a9bf98`である。
+- animation frame保存境界は保存対話型・2構築経路・破棄4、範囲再生成・出力mask・wildcard mask3、全file・固有file・固有frame照会3の3枠へ固定する。型特性と厳密な関数pointerだけを使い、保存対話、画像、時間範囲、設定、描画器、fileとQt画面を実体化しない。
+- 開始headerは構築署名に`KisTimeSpan`参照を使う一方で宣言を所有せず、header強制includeが未知型1件、開始`libs/ui/dialogs/KisAsyncAnimationFramesSaveDialog.cpp`の厳格構文が同根の宣言不一致3件となる。契約追加より先に開始headerへ`KisTimeSpan`前方宣言を加え、実装とheader強制includeを診断0件にする。
+- 同じ基底責務の既存`libs/ui/tests/KisAsyncAnimationRenderDialogBaseSchemaContractTest.cpp`は82行・4枠で、3枠追加後も220行・10枠以内に収まる。CMakeを変更せず4工程・8入力、command SHA-256 `718cf44a50f1effe7a77ff9655fb0cba006f25b1187537b776b12c368a958e03`、input SHA-256 `10a4a982d5979a1a83ae4bcb66fdd6692164b9750415afc14cdb23897c98e7c9`を維持する。工程・入力増加、候補headerのAUTOMOC入力化、製品未解決記号が生じれば停止する。macOSの対象とanimation近傍、対象全体と追加3枠の20回反復、実装・試験sourceとheader強制includeの厳格構文、書式、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、実保存対話・画像・描画器・時間範囲・file入出力、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
 
 ### 第239便の先行監査担当票
 
