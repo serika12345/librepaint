@@ -5,6 +5,7 @@
  */
 
 #include "kis_kra_load_visitor.h"
+#include "kis_kra_loader.h"
 #include "kis_kra_save_visitor.h"
 #include "kis_kra_savexml_visitor.h"
 
@@ -27,6 +28,11 @@ private Q_SLOTS:
     void kraLoadVisitorMaskStateAndProfileSignaturesRemainStable();
     void kraSaveVisitorNodeAndLayerVisitSignaturesRemainStable();
     void kraSaveVisitorMaskAndStateSignaturesRemainStable();
+    void kraLoaderTypeConstructionAndLifetimeSchemaRemainStable();
+    void kraLoaderImageDataSignaturesRemainStable();
+    void kraLoaderDocumentAssetSignaturesRemainStable();
+    void kraLoaderSelectionAssistantAndStoryboardSignaturesRemainStable();
+    void kraLoaderDiagnosticSignaturesRemainStable();
 };
 
 void KisKraSaveXmlVisitorSchemaContractTest::saveXmlVisitorTypeConstructionAndSelectionSchemaRemainStable()
@@ -210,6 +216,65 @@ void KisKraSaveXmlVisitorSchemaContractTest::kraSaveVisitorMaskAndStateSignature
                                  bool (Visitor::*)(KisColorizeMask *)>);
     static_assert(std::is_same_v<decltype(&Visitor::setExternalUri), void (Visitor::*)(const QString &)>);
     static_assert(std::is_same_v<decltype(&Visitor::errorMessages), QStringList (Visitor::*)() const>);
+}
+
+void KisKraSaveXmlVisitorSchemaContractTest::kraLoaderTypeConstructionAndLifetimeSchemaRemainStable()
+{
+    static_assert(std::is_class_v<KisKraLoader>);
+    static_assert(std::is_constructible_v<KisKraLoader, KisDocument *, int, const QVersionNumber &>);
+    static_assert(std::is_destructible_v<KisKraLoader>);
+}
+
+void KisKraSaveXmlVisitorSchemaContractTest::kraLoaderImageDataSignaturesRemainStable()
+{
+    static_assert(std::is_same_v<decltype(&KisKraLoader::loadXML), KisImageSP (KisKraLoader::*)(const QDomElement &)>);
+    static_assert(std::is_same_v<decltype(&KisKraLoader::loadBinaryData),
+                                 void (KisKraLoader::*)(KoStore *, KisImageSP, const QString &, bool)>);
+}
+
+void KisKraSaveXmlVisitorSchemaContractTest::kraLoaderDocumentAssetSignaturesRemainStable()
+{
+    static_assert(
+        std::is_same_v<decltype(&KisKraLoader::loadResources), void (KisKraLoader::*)(KoStore *, KisDocument *)>);
+    static_assert(
+        std::is_same_v<decltype(&KisKraLoader::loadStoryboards), void (KisKraLoader::*)(KoStore *, KisDocument *)>);
+    static_assert(
+        std::is_same_v<decltype(&KisKraLoader::loadAnimationMetadata), void (KisKraLoader::*)(KoStore *, KisImageSP)>);
+    static_assert(std::is_same_v<decltype(&KisKraLoader::loadAudio), void (KisKraLoader::*)(KoStore *, KisDocument *)>);
+
+    // The deprecated entry point remains a public compatibility surface and is intentionally referenced here.
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+#elif defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
+    static_assert(std::is_same_v<decltype(&KisKraLoader::backCompat_loadAudio),
+                                 void (KisKraLoader::*)(const QDomElement &, KisDocument *)>);
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#elif defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
+}
+
+void KisKraSaveXmlVisitorSchemaContractTest::kraLoaderSelectionAssistantAndStoryboardSignaturesRemainStable()
+{
+    static_assert(std::is_same_v<decltype(&KisKraLoader::selectedNodes), vKisNodeSP (KisKraLoader::*)() const>);
+    static_assert(
+        std::is_same_v<decltype(&KisKraLoader::assistants), QList<KisPaintingAssistantSP> (KisKraLoader::*)() const>);
+    static_assert(
+        std::is_same_v<decltype(&KisKraLoader::storyboardItemList), StoryboardItemList (KisKraLoader::*)() const>);
+    static_assert(std::is_same_v<decltype(&KisKraLoader::storyboardCommentList),
+                                 StoryboardCommentList (KisKraLoader::*)() const>);
+}
+
+void KisKraSaveXmlVisitorSchemaContractTest::kraLoaderDiagnosticSignaturesRemainStable()
+{
+    static_assert(std::is_same_v<decltype(&KisKraLoader::errorMessages), QStringList (KisKraLoader::*)() const>);
+    static_assert(std::is_same_v<decltype(&KisKraLoader::warningMessages), QStringList (KisKraLoader::*)() const>);
+    static_assert(std::is_same_v<decltype(&KisKraLoader::imageName), QString (KisKraLoader::*)() const>);
 }
 
 QTEST_GUILESS_MAIN(KisKraSaveXmlVisitorSchemaContractTest)
