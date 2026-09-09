@@ -6,6 +6,9 @@
 #include "KisSaveGroupVisitor.h"
 
 #include <document/KisDocument.h>
+#include <kis_group_layer.h>
+#include <kis_image.h>
+#include <kis_layer.h>
 #include <kis_painter.h>
 #include <kis_paint_layer.h>
 #include <application/ui/orchestration/KisPart.h>
@@ -122,5 +125,4 @@ bool KisSaveGroupVisitor::visit(KisGroupLayer *layer)
 
     return true;
 }
-
 
