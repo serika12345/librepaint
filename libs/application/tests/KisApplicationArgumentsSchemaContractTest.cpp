@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include <canvas/KisAndroidScaling.h>
 #include <ui/orchestration/KisApplication.h>
 #include <ui/orchestration/KisApplicationArguments.h>
 
@@ -16,6 +17,8 @@ namespace
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisApplicationArguments::method)), signature>)
 #define ASSERT_APPLICATION_SIGNATURE(method, signature)                                                                \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisApplication::method)), signature>)
+#define ASSERT_ANDROID_SCALING_SIGNATURE(method, signature)                                                            \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KisAndroidScaling::method)), signature>)
 } // namespace
 
 class KisApplicationArgumentsSchemaContractTest : public QObject
@@ -33,6 +36,11 @@ private Q_SLOTS:
     void applicationResourceAndPluginInitializationSignaturesRemainStable();
     void applicationSplashAndExternalInterfaceSignaturesRemainStable();
     void applicationRemoteArgumentAndFileNotificationSignaturesRemainStable();
+    void androidScalingTypeConstructionAndSingletonSchemaRemainStable();
+    void androidScalingSupportAndDialogSignaturesRemainStable();
+    void androidScalingInterfaceNotificationSignaturesRemainStable();
+    void androidScalingPersistenceNotificationSignaturesRemainStable();
+    void androidScalingDialogEntryPointSignaturesRemainStable();
 };
 
 void KisApplicationArgumentsSchemaContractTest::applicationArgumentsTypeLifetimeAndValueSemanticsSchemaRemainStable()
@@ -125,8 +133,44 @@ void KisApplicationArgumentsSchemaContractTest::applicationRemoteArgumentAndFile
     ASSERT_APPLICATION_SIGNATURE(fileOpenRequested, void (KisApplication::*)(const QString &));
 }
 
+void KisApplicationArgumentsSchemaContractTest::androidScalingTypeConstructionAndSingletonSchemaRemainStable()
+{
+    static_assert(std::is_class_v<KisAndroidScaling>);
+    static_assert(std::is_base_of_v<QObject, KisAndroidScaling>);
+    static_assert(std::is_constructible_v<KisAndroidScaling, KisConfig &, KisApplication *>);
+    static_assert(std::is_same_v<decltype(&KisAndroidScaling::instance), KisAndroidScaling *(*)()>);
+}
+
+void KisApplicationArgumentsSchemaContractTest::androidScalingSupportAndDialogSignaturesRemainStable()
+{
+    ASSERT_ANDROID_SCALING_SIGNATURE(isSupported, bool (KisAndroidScaling::*)() const);
+    ASSERT_ANDROID_SCALING_SIGNATURE(showDialog, void (KisAndroidScaling::*)());
+}
+
+void KisApplicationArgumentsSchemaContractTest::androidScalingInterfaceNotificationSignaturesRemainStable()
+{
+    ASSERT_ANDROID_SCALING_SIGNATURE(sigInterfaceScaleChanged, void (KisAndroidScaling::*)());
+    ASSERT_ANDROID_SCALING_SIGNATURE(sigJniSetPrimaryScreenScale, void (KisAndroidScaling::*)(qreal));
+}
+
+void KisApplicationArgumentsSchemaContractTest::androidScalingPersistenceNotificationSignaturesRemainStable()
+{
+    ASSERT_ANDROID_SCALING_SIGNATURE(sigJniSaveInterfaceScale, void (KisAndroidScaling::*)(bool));
+    ASSERT_ANDROID_SCALING_SIGNATURE(sigJniScalingDialogActive, void (KisAndroidScaling::*)(bool));
+}
+
+void KisApplicationArgumentsSchemaContractTest::androidScalingDialogEntryPointSignaturesRemainStable()
+{
+    static_assert(std::is_same_v<decltype(&KisAndroidScalingDialog::init), void (*)()>);
+    static_assert(std::is_same_v<decltype(&KisAndroidScalingDialog::setInitialScale), void (*)(KisConfig &)>);
+    static_assert(std::is_same_v<decltype(&KisAndroidScalingDialog::show), void (*)()>);
+    static_assert(std::is_same_v<decltype(&KisAndroidScalingDialog::maybeShowOnStartup), void (*)()>);
+    static_assert(std::is_same_v<decltype(&KisAndroidScalingDialog::isSupported), bool (*)()>);
+}
+
 #undef ASSERT_APPLICATION_ARGUMENTS_SIGNATURE
 #undef ASSERT_APPLICATION_SIGNATURE
+#undef ASSERT_ANDROID_SCALING_SIGNATURE
 
 QTEST_GUILESS_MAIN(KisApplicationArgumentsSchemaContractTest)
 
