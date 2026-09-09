@@ -8,6 +8,7 @@
 
 #include "kis_layer_style_filter.h"
 #include "kis_layer_style_filter_environment.h"
+#include "kis_paint_device.h"
 #include "kis_psd_layer_style.h"
 
 

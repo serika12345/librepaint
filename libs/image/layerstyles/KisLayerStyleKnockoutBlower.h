@@ -6,7 +6,9 @@
 #ifndef KISLAYERSTYLEKNOCKOUTBLOWER_H
 #define KISLAYERSTYLEKNOCKOUTBLOWER_H
 
-#include "kis_selection.h"
+#include "kis_types.h"
+#include "kritaimage_export.h"
+#include <QRect>
 #include <QReadWriteLock>
 
 class KisPainter;
