@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "flake/kis_dummies_facade.h"
 #include "flake/kis_dummies_facade_base.h"
 #include "nodes/kis_node_filter_proxy_model.h"
 
@@ -41,6 +42,8 @@ private Q_SLOTS:
     void nodeFilterModelAndDataSignaturesRemainStable();
     void nodeFilterCriteriaAndMappingSignaturesRemainStable();
     void nodeFilterActivationAndNotificationSignaturesRemainStable();
+    void concreteFacadeTypeConstructionAndLifetimeSchemaRemainStable();
+    void concreteFacadeDummyLookupSignaturesRemainStable();
 };
 
 void KisDummiesFacadeBaseSchemaContractTest::typeConstructionAndLifetimeSchemaRemainStable()
@@ -128,6 +131,27 @@ void KisDummiesFacadeBaseSchemaContractTest::nodeFilterActivationAndNotification
     static_assert(std::is_same_v<decltype(&Filter::unsetDummiesFacade), void (Filter::*)()>);
     static_assert(
         std::is_same_v<decltype(&Filter::sigBeforeBeginRemoveRows), void (Filter::*)(const QModelIndex &, int, int)>);
+}
+
+void KisDummiesFacadeBaseSchemaContractTest::concreteFacadeTypeConstructionAndLifetimeSchemaRemainStable()
+{
+    using Facade = KisDummiesFacade;
+
+    static_assert(std::is_class_v<Facade>);
+    static_assert(std::is_base_of_v<KisDummiesFacadeBase, Facade>);
+    static_assert(std::is_default_constructible_v<Facade>);
+    static_assert(std::is_constructible_v<Facade, QObject *>);
+    static_assert(std::has_virtual_destructor_v<Facade>);
+}
+
+void KisDummiesFacadeBaseSchemaContractTest::concreteFacadeDummyLookupSignaturesRemainStable()
+{
+    using Facade = KisDummiesFacade;
+
+    static_assert(std::is_same_v<decltype(&Facade::hasDummyForNode), bool (Facade::*)(KisNodeSP) const>);
+    static_assert(std::is_same_v<decltype(&Facade::dummyForNode), KisNodeDummy *(Facade::*)(KisNodeSP) const>);
+    static_assert(std::is_same_v<decltype(&Facade::rootDummy), KisNodeDummy *(Facade::*)() const>);
+    static_assert(std::is_same_v<decltype(&Facade::dummiesCount), int (Facade::*)() const>);
 }
 
 QTEST_GUILESS_MAIN(KisDummiesFacadeBaseSchemaContractTest)
