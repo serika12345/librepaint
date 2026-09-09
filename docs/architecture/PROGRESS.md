@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-10 01:44 JST
+- 更新日時: 2026-09-10 01:50 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4939,6 +4939,13 @@
 - freehand stroke情報境界は型・既定構築・開始距離付き構築・LOD親付き構築・破棄5、公開painter・距離情報pointer2、LOD相方距離照会1の全8件を既存masked freehand契約の1枠へ固定する。型特性、構築可能性、公開会員pointer型、厳密な関数pointerだけを使い、stroke情報、painter、距離情報を実体化しない。
 - 開始headerはexport定義だけを直接includeし、公開pointerと私有pointerの対象型を前方宣言している。開始`libs/painting/strokes/KisFreehandStrokeInfo.cpp`と既存`libs/painting/tests/KisMaskedFreehandStrokePainterSchemaContractTest.cpp`の厳格構文診断は0件であるため、構造変更を行わない。
 - 既存masked freehand契約は88行・5枠で、1枠追加後も220行・10枠以内に収まる。同じfreehand strategyの広い試験ではなくQt Core・Testだけの近傍を使い、CMakeを変更せず4工程・8入力、command SHA-256 `d6a5e523e1688e4f05fc08239fb8b56c1392e73f788b07623daa50bace499e6d`、input SHA-256 `a016656c2195a4048c3e08b3ad431b20397d0a5d46bebbc3c76b2231ada2c867`を維持する。工程・入力増加、候補headerのAUTOMOC入力化、製品未解決記号が生じれば停止する。macOSの対象全体と追加1枠の20回反復、実装・試験sourceとheader強制includeの厳格構文、試験書式、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、painter・距離・LOD親子関係の実効果、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
+
+### 第538便の公開API契約結果
+
+- freehand strokeごとのpainterと距離情報、LOD親子関係の公開境界を軽量な型契約として固定した。開始`libs/painting/strokes/KisFreehandStrokeInfo.h`から既存`libs/painting/tests/KisMaskedFreehandStrokePainterSchemaContractTest.cpp`へ残存全8 API・1枠を追加し、型・既定構築・開始距離付き構築・LOD親付き構築・破棄5件、公開painter・距離情報pointer2件、LOD相方距離照会1件を型特性、構築可能性、公開会員pointer型、厳密な関数pointerで固定した。計画commitは`7a41019c0d`、契約commitは`cd3d01c39a`で、既存試験sourceは104行・6枠となった。
+- 開始headerの直接依存はexport定義だけで、公開pointerと私有pointerの対象型を前方宣言している。公開header、製品source、CMakeを変更していない。開始`libs/painting/strokes/KisFreehandStrokeInfo.cpp`と候補headerを強制includeする試験sourceの厳格構文は診断0件で、試験書式も成功した。
+- targetは4工程・8入力、command SHA-256 `d6a5e523e1688e4f05fc08239fb8b56c1392e73f788b07623daa50bace499e6d`、input SHA-256 `a016656c2195a4048c3e08b3ad431b20397d0a5d46bebbc3c76b2231ada2c867`を維持した。候補headerのAUTOMOC入力化と未解決製品記号は0で、Qt Core・Testだけへ動的接続する。macOSで対象全体20回と追加1枠20回、厳格構文、試験書式、連続二回の無作業再構築に成功した。painter・距離・LOD親子関係の実効果、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 公開API検査の初回診断は期待値1,400に対して実測1,392で、新規8件と一致した。台帳を28,409件対応、1,392件未対応へ進め、`public-api-missing-g539.json`の生成成功後に旧`public-api-missing-g538.json` 382,462 bytesを削除した。主Ninja木6,049,460 KiB、共有compiler cache 982,940 KiB、最新報告380,448 bytes、SHA-256 `48cf20def4e93f79a0675d5cce42d775abdcb44f5986775615b92155a501cb11`だけを再利用対象として保持する。compiler cacheは144,817 cache可能呼出し中120,594件、83.27%がhitしている。次の永続作業は第539便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
 
 ### 第239便の先行監査担当票
 

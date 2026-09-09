@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 1400
+    "expectedMissingApis": 1392
   },
   "contracts": [
     {
@@ -79491,6 +79491,23 @@
         "method:KisFrameDisplayProxy::sigFrameDisplayRefreshed()",
         "method:KisFrameDisplayProxy::sigFrameRefreshSkipped()",
         "method:KisFrameDisplayProxy::~KisFrameDisplayProxy()"
+      ]
+    },
+    {
+      "target": "KisMaskedFreehandStrokePainterSchemaContractTest",
+      "source": "libs/painting/tests/KisMaskedFreehandStrokePainterSchemaContractTest.cpp",
+      "test": "KisMaskedFreehandStrokePainterSchemaContractTest::freehandStrokeInfoTypeLifetimeAndDistanceSchemaRemainStable",
+      "behavior": "freehand stroke情報は既定・開始距離・LOD親子関係から構築・破棄でき、所有するpainterと距離情報、およびLOD相方の距離情報を公開する型境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisFreehandStrokeInfo",
+        "member:KisFreehandStrokeInfo::dragDistance",
+        "member:KisFreehandStrokeInfo::painter",
+        "method:KisFreehandStrokeInfo::KisFreehandStrokeInfo()",
+        "method:KisFreehandStrokeInfo::KisFreehandStrokeInfo(KisFreehandStrokeInfo * rhs,int levelOfDetail)",
+        "method:KisFreehandStrokeInfo::KisFreehandStrokeInfo(const KisDistanceInformation & startDist)",
+        "method:KisFreehandStrokeInfo::buddyDragDistance()",
+        "method:KisFreehandStrokeInfo::~KisFreehandStrokeInfo()"
       ]
     }
   ]
