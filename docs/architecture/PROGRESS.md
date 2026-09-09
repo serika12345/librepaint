@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 13:50 JST
+- 更新日時: 2026-09-09 13:54 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4349,6 +4349,13 @@
 - 開始`libs/ui/canvas/KoCanvasControllerWidget.h`から既存`libs/ui/tests/KisCanvas2SchemaContractTest.cpp`へ全23 API・5枠を追加した。二基底を統合する抽象型・構築・仮想破棄・状態・私有実装、起動・canvas・widget・tool設定、矩形と4形式の拡大、距離と四方向の移動、scroll内容・値を型特性、局所派生probe、厳密な関数pointerで固定した。対象headerを直接includeし、公開header、製品source、CMakeは変更していない。計画commitは`ca6e6ea41b`、停止線訂正commitは`58cfe0d0af`、契約commitは`f9a659f923`である。
 - 既存試験sourceは397行・15枠となった。targetは変更前後ともQt Gui・Testだけへ動的接続する4工程・8入力、command SHA-256 `bc29da8c640940c753d920e812ec6fd04ab89a825edbc4c2cc560d93eba206c9`、input SHA-256 `f81e09d52468c18355e8cf9865fad097e615cdb1740996e3bce08afc81504ec4`を維持した。AUTOMOC `HEADERS=[]`、controller widget・局所probeの未解決記号は0である。macOSで全15枠の単発と20回反復、追加5枠を各20回、試験sourceの厳格構文と書式、連続二回の無作業再構築、公開API検査に成功した。canvas・widget・scrollbarの状態変化、拡大・移動の数値結果、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 台帳は27,685件対応、2,120件未対応となり、開始headerの残存は0件である。新`public-api-missing-g485.json`の生成成功後に旧`public-api-missing-g484.json` 578,805 bytesを削除し、新target、追加生成物、一時一覧、追加作業tree・構築木は作成していない。主Ninja木6,023,376 KiB、共有compiler cache 982,768 KiB、最新`build/tdd-macos/public-api-missing-g485.json` 572,476 bytes、SHA-256 `2a7e67ec79f79fde62a6ee56c216ca76a1b106b310949e0bd9024ed942f95843`だけを再利用対象として保持する。compiler cacheは144,673件中120,567件、83.34%がhitしている。次の永続作業は第485便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
+
+### 第485便の公開API契約計画
+
+- 第485便はQMicとの画像buffer交換境界を所有する`plugins/extensions/qmic/kis_qmic_interface.h`に残る全20 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g485.json`は公開header 1,548、公開API 29,805、対応済み27,685、未対応2,120、572,476 bytes、SHA-256 `2a7e67ec79f79fde62a6ee56c216ca76a1b106b310949e0bd9024ed942f95843`である。対象20識別子の整列集合SHA-256は`178048d3747d4d561cc4393cf8de832f16ed8a484e45d5410a05fac0eb964fa0`である。
+- QMic画像値は型・共有別名・構築・破棄4、mutex・名前・幅・高さ・成分数・bufferの公開値6、読取りbuffer・byte寸法・診断出力3、画像interfaceの型・構築・破棄3、寸法取得・切抜き入力・出力・切離し4の5枠へ固定する。画像値だけは小さい正の寸法で実体化して既定4成分、割当buffer、byte寸法、書込み共有、破棄を観測し、画像interface、view manager、適用器、外部QMic処理は実体化しない。
+- 開始headerは公開診断関数と寸法返値だけのために`QDebug`と`QSize`の完全定義を全利用者へ推移させ、`QString`会員と`QSharedPointer`別名は推移includeへ依存している。契約追加より先に、headerは`QString`と`QSharedPointer`を直接includeし、`QDebug`・`QRectF`・`QSize`を前方宣言する。本文と診断出力を所有する`plugins/extensions/qmic/kis_qmic_interface.cpp`へ3完全定義includeを移す。`QMutex`・`QObject`・`QScopedPointer`・`QVector`は値会員、基底、所有、返値に必要なため維持する。直接利用3翻訳単位の変更前厳格構文検査は全件成功で、変更後も全件成功を完了条件とする。
+- 既存`kis_qmic_tests`は製品`kritaqmicinterface`・`kritaimage`・`kritatestsdk`へ接続する1,989工程・3,974入力であり、限定反復対象から外す。新規`plugins/extensions/qmic/tests/KisQMicInterfaceContractTest.cpp`は110行・6枠未満とし、QMicのsource/generated探索路、Qt Core・Test、QMic export定義だけによる4工程・8入力を予測する。停止線を5工程・11入力とし、新たな探索路・定義・製品接続、Qt Gui・Widgetsの動的接続、AUTOMOC製品header入力、画像interface本文の実体化が必要なら停止する。macOSの対象、最軽量近傍、対象の20回反復、試験sourceの厳格構文と書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
 
 ### 第239便の先行監査担当票
 
