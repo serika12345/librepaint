@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 22:11 JST
+- 更新日時: 2026-09-09 22:17 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4713,6 +4713,8 @@
 - 一時message画面境界は画面型・優先度enumと高・中・低の序数5、message・親画面・表示位置・時間・優先度による構築と親上表示・icon・上書き設定4、表示・消去2の3枠へ固定する。型特性、列挙値、厳密な関数pointerだけを使い、一時message、icon、timer、時間線とQt画面を実体化しない。
 - 開始headerは画面基底と値会員の文字列・画像・timer・時間線を直接includeし、labelだけを前方宣言へ限定している。既存`libs/ui/tests/KisSelectionPropertySliderSchemaContractTest.cpp`のコンパイル条件でheader強制includeが診断0件、開始`libs/ui/widgets/kis_floating_message.cpp`も厳格構文の診断0件であり、先行構造変更は不要である。
 - 既存`libs/ui/tests/KisSelectionPropertySliderSchemaContractTest.cpp`は148行・7枠で、同じUI/widget header境界へ3枠を追加しても220行・10枠以内に収まる。CMakeを変更せず4工程・8入力、command SHA-256 `c7f7039a0f6b732e9623c86c82d6ea14eb8d389d93ad67c87dbd37552b18facb`、input SHA-256 `4b122863a9ccad162971873179ec22926ad22b574da8d33f1610a9237bf88050`を維持する。工程・入力増加、候補headerのAUTOMOC入力化、製品未解決記号が生じれば停止する。macOSの対象と軽量UI近傍、対象全体と追加3枠の20回反復、実装・試験sourceとheader強制includeの厳格構文、書式、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、実message表示・timer・fade、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
+- 開始`libs/ui/widgets/kis_floating_message.h`から既存`libs/ui/tests/KisSelectionPropertySliderSchemaContractTest.cpp`へ全11 API・3枠を追加した。画面型・優先度enumと3序数5件、構築・親上表示・icon・上書き設定4件、表示・消去2件を型特性、列挙値、厳密な関数pointerで固定した。公開headerと製品source、CMakeは変更していない。計画commitは`9bf4454871`、契約commitは`fcf5044e57`で、既存sourceは189行・10枠となった。
+- targetは4工程・8入力、command SHA-256 `c7f7039a0f6b732e9623c86c82d6ea14eb8d389d93ad67c87dbd37552b18facb`、input SHA-256 `4b122863a9ccad162971873179ec22926ad22b574da8d33f1610a9237bf88050`を維持した。AUTOMOC `HEADERS=[]`、一時message画面の未解決製品記号0で、Qt Core・Testだけへ動的接続する。macOSで対象と複数bool filter widget近傍、対象全体と追加3枠を各20回、実装・試験sourceとheader強制includeの厳格構文、書式、連続二回の無作業再構築、公開API検査に成功した。台帳は28,251件対応、1,550件未対応となり、開始headerの残存は0件である。新`public-api-missing-g522.json`の生成成功後に旧`public-api-missing-g521.json` 425,457 bytesを削除した。主Ninja木6,030,952 KiB、共有compiler cache 982,760 KiB、最新報告422,560 bytes、SHA-256 `a10f964569d8bbd9ad9904d599de80f092122ca9579d0f3f415deb00113c16bb`だけを再利用対象として保持する。compiler cacheは144,782 cache可能呼出し中120,593件、83.29%がhitしている。実message表示・timer・fade、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第522便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
 
 ### 第239便の先行監査担当票
 

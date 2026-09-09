@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 1561
+    "expectedMissingApis": 1550
   },
   "contracts": [
     {
@@ -78979,6 +78979,44 @@
         "method:KisColorSpaceSelector::selectionChanged(bool valid)",
         "method:KisColorSpaceSelector::showColorBrowserButton(bool showButton)",
         "method:KisColorSpaceSelector::showDepth(bool showDepth)"
+      ]
+    },
+    {
+      "target": "KisSelectionPropertySliderSchemaContractTest",
+      "source": "libs/ui/tests/KisSelectionPropertySliderSchemaContractTest.cpp",
+      "test": "KisSelectionPropertySliderSchemaContractTest::floatingMessageTypeAndPrioritySchemaRemainStable",
+      "behavior": "一時message画面は高・中・低を0から順に並べる優先度を持つwidgetとしての公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisFloatingMessage",
+        "enum:KisFloatingMessage::Priority",
+        "enumerator:KisFloatingMessage::Priority::High",
+        "enumerator:KisFloatingMessage::Priority::Low",
+        "enumerator:KisFloatingMessage::Priority::Medium"
+      ]
+    },
+    {
+      "target": "KisSelectionPropertySliderSchemaContractTest",
+      "source": "libs/ui/tests/KisSelectionPropertySliderSchemaContractTest.cpp",
+      "test": "KisSelectionPropertySliderSchemaContractTest::floatingMessageConstructionAndConfigurationSignaturesRemainStable",
+      "behavior": "一時message画面はmessage・親画面・表示位置・時間・優先度から構築し、親上表示・icon・優先度付き上書きを設定する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisFloatingMessage::KisFloatingMessage(const QString & message,QWidget * parent,bool showOverParent,int timeout,Priority priority,int alignment=Qt::AlignCenter|Qt::TextWordWrap)",
+        "method:KisFloatingMessage::setIcon(const QIcon & icon)",
+        "method:KisFloatingMessage::setShowOverParent(bool show)",
+        "method:KisFloatingMessage::tryOverrideMessage(const QString message,const QIcon & icon,int timeout,KisFloatingMessage::Priority priority,int alignment=Qt::AlignCenter|Qt::TextWordWrap)"
+      ]
+    },
+    {
+      "target": "KisSelectionPropertySliderSchemaContractTest",
+      "source": "libs/ui/tests/KisSelectionPropertySliderSchemaContractTest.cpp",
+      "test": "KisSelectionPropertySliderSchemaContractTest::floatingMessagePresentationSignaturesRemainStable",
+      "behavior": "一時message画面は現在のmessageを表示・消去する公開操作を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisFloatingMessage::removeMessage()",
+        "method:KisFloatingMessage::showMessage()"
       ]
     }
   ]
