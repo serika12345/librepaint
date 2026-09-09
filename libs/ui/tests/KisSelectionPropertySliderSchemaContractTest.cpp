@@ -4,6 +4,7 @@
  */
 
 #include "widgets/KisSelectionPropertySlider.h"
+#include "widgets/kis_color_space_selector.h"
 
 #include <QTest>
 
@@ -44,6 +45,8 @@ struct CanSetSuffix<T, std::void_t<decltype(std::declval<T &>().setSuffix(std::d
 #define ASSERT_SELECTION_SLIDER_BASE_SIGNATURE(method, ...)                                                            \
     static_assert(                                                                                                     \
         std::is_same_v<decltype(static_cast<__VA_ARGS__>(&KisSelectionPropertySliderBase::method)), __VA_ARGS__>)
+#define ASSERT_COLOR_SPACE_SELECTOR_SIGNATURE(method, ...)                                                             \
+    static_assert(std::is_same_v<decltype(static_cast<__VA_ARGS__>(&KisColorSpaceSelector::method)), __VA_ARGS__>)
 
 } // namespace
 
@@ -56,6 +59,9 @@ private Q_SLOTS:
     void textTemplateAndDeletedAffixSchemaRemainStable();
     void genericSelectionAndValueGetterSchemaRemainStable();
     void shapeSliderTypeAndConstructionSchemaRemainStable();
+    void colorSpaceSelectorTypeConstructionAndLifetimeSchemaRemainStable();
+    void colorSpaceSelectorStateSignaturesRemainStable();
+    void colorSpaceSelectorPresentationAndNotificationSignaturesRemainStable();
 };
 
 void KisSelectionPropertySliderSchemaContractTest::baseTypeConstructionAndLifetimeSchemaRemainStable()
@@ -105,6 +111,36 @@ void KisSelectionPropertySliderSchemaContractTest::shapeSliderTypeAndConstructio
     QVERIFY(true);
 }
 
+void KisSelectionPropertySliderSchemaContractTest::colorSpaceSelectorTypeConstructionAndLifetimeSchemaRemainStable()
+{
+    static_assert(std::is_class_v<KisColorSpaceSelector>);
+    static_assert(std::is_base_of_v<QWidget, KisColorSpaceSelector>);
+    static_assert(std::is_constructible_v<KisColorSpaceSelector, QWidget *>);
+    static_assert(std::has_virtual_destructor_v<KisColorSpaceSelector>);
+
+    QVERIFY(true);
+}
+
+void KisSelectionPropertySliderSchemaContractTest::colorSpaceSelectorStateSignaturesRemainStable()
+{
+    ASSERT_COLOR_SPACE_SELECTOR_SIGNATURE(currentColorSpace, const KoColorSpace *(KisColorSpaceSelector::*)());
+    ASSERT_COLOR_SPACE_SELECTOR_SIGNATURE(setCurrentColorModel, void (KisColorSpaceSelector::*)(const KoID &));
+    ASSERT_COLOR_SPACE_SELECTOR_SIGNATURE(setCurrentColorDepth, void (KisColorSpaceSelector::*)(const KoID &));
+    ASSERT_COLOR_SPACE_SELECTOR_SIGNATURE(setCurrentProfile, void (KisColorSpaceSelector::*)(const QString &));
+    ASSERT_COLOR_SPACE_SELECTOR_SIGNATURE(setCurrentColorSpace, void (KisColorSpaceSelector::*)(const KoColorSpace *));
+}
+
+// clang-format off
+void KisSelectionPropertySliderSchemaContractTest::colorSpaceSelectorPresentationAndNotificationSignaturesRemainStable()
+// clang-format on
+{
+    ASSERT_COLOR_SPACE_SELECTOR_SIGNATURE(showColorBrowserButton, void (KisColorSpaceSelector::*)(bool));
+    ASSERT_COLOR_SPACE_SELECTOR_SIGNATURE(showDepth, void (KisColorSpaceSelector::*)(bool));
+    ASSERT_COLOR_SPACE_SELECTOR_SIGNATURE(selectionChanged, void (KisColorSpaceSelector::*)(bool));
+    ASSERT_COLOR_SPACE_SELECTOR_SIGNATURE(colorSpaceChanged, void (KisColorSpaceSelector::*)(const KoColorSpace *));
+}
+
+#undef ASSERT_COLOR_SPACE_SELECTOR_SIGNATURE
 #undef ASSERT_SELECTION_SLIDER_BASE_SIGNATURE
 
 QTEST_APPLESS_MAIN(KisSelectionPropertySliderSchemaContractTest)
