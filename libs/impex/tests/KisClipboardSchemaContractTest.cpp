@@ -4,6 +4,7 @@
  */
 
 #include "../ui/kis_clipboard.h"
+#include "../ui/kis_mimedata.h"
 
 #include <QImage>
 
@@ -17,6 +18,8 @@ namespace
 
 #define ASSERT_CLIPBOARD_MEMBER(method, signature)                                                                     \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisClipboard::method)), signature>)
+#define ASSERT_MIME_MEMBER(method, signature)                                                                          \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KisMimeData::method)), signature>)
 
 } // namespace
 
@@ -30,6 +33,11 @@ private Q_SLOTS:
     void clipboardContentExtractionSignaturesRemainStable();
     void clipboardContentAvailabilitySignaturesRemainStable();
     void clipboardMutationLayerExchangeAndNotificationSignaturesRemainStable();
+    void mimeDataTypeAndConstructionSchemaRemainStable();
+    void mimeDataInsertionInterfaceSchemaRemainStable();
+    void mimeDataStoredNodeSignaturesRemainStable();
+    void mimeDataLoadingSignaturesRemainStable();
+    void mimeDataLayerExchangeSignaturesRemainStable();
 };
 
 void KisClipboardSchemaContractTest::clipboardTypeLifetimeAndSingletonSchemaRemainStable()
@@ -146,7 +154,92 @@ void KisClipboardSchemaContractTest::clipboardMutationLayerExchangeAndNotificati
     QVERIFY(true);
 }
 
+void KisClipboardSchemaContractTest::mimeDataTypeAndConstructionSchemaRemainStable()
+{
+    using MimeData = KisMimeData;
+
+    static_assert(std::is_class_v<MimeData>);
+    static_assert(std::is_base_of_v<QMimeData, MimeData>);
+    static_assert(std::is_constructible_v<MimeData, QList<KisNodeSP>, KisImageSP, bool>);
+    static_assert(
+        std::is_same_v<decltype(MimeData(std::declval<QList<KisNodeSP>>(), std::declval<KisImageSP>())), MimeData>);
+
+    QVERIFY(true);
+}
+
+void KisClipboardSchemaContractTest::mimeDataInsertionInterfaceSchemaRemainStable()
+{
+    using Insertion = KisMimeData::NodeInsertionInterface;
+
+    static_assert(std::is_class_v<Insertion>);
+    static_assert(std::is_abstract_v<Insertion>);
+    static_assert(std::has_virtual_destructor_v<Insertion>);
+    static_assert(
+        std::is_same_v<decltype(&Insertion::moveNodes), void (Insertion::*)(KisNodeList, KisNodeSP, KisNodeSP)>);
+    static_assert(
+        std::is_same_v<decltype(&Insertion::addNodes), void (Insertion::*)(KisNodeList, KisNodeSP, KisNodeSP)>);
+
+    QVERIFY(true);
+}
+
+void KisClipboardSchemaContractTest::mimeDataStoredNodeSignaturesRemainStable()
+{
+    using MimeData = KisMimeData;
+
+    ASSERT_MIME_MEMBER(nodes, QList<KisNodeSP> (MimeData::*)() const);
+    ASSERT_MIME_MEMBER(deepCopyNodes, void (MimeData::*)());
+    ASSERT_MIME_MEMBER(formats, QStringList (MimeData::*)() const);
+
+    QVERIFY(true);
+}
+
+void KisClipboardSchemaContractTest::mimeDataLoadingSignaturesRemainStable()
+{
+    ASSERT_MIME_MEMBER(displayConfigForMimePastes, KisDisplayConfig (*)());
+    ASSERT_MIME_MEMBER(isNodeMimeDataFromSameImage, bool (*)(const QMimeData *, KisImageSP));
+    ASSERT_MIME_MEMBER(loadNodesFast, KisNodeList (*)(const QMimeData *, KisImageSP, KisShapeController *, bool &));
+    ASSERT_MIME_MEMBER(loadNodesFastAndRecenter,
+                       KisNodeList (*)(const QPoint &, const QMimeData *, KisImageSP, KisShapeController *, bool &));
+
+    QVERIFY(true);
+}
+
+void KisClipboardSchemaContractTest::mimeDataLayerExchangeSignaturesRemainStable()
+{
+    using MimeData = KisMimeData;
+    using MimeFactory = QMimeData *(*)(const KisNodeList &, KisImageSP, bool);
+    using Insert = bool (*)(const QMimeData *,
+                            KisImageSP,
+                            KisShapeController *,
+                            KisNodeDummy *,
+                            KisNodeDummy *,
+                            bool,
+                            KisMimeData::NodeInsertionInterface *,
+                            bool,
+                            QPointF,
+                            KisProcessingApplicator *);
+
+    ASSERT_MIME_MEMBER(mimeForLayers, MimeFactory);
+    ASSERT_MIME_MEMBER(mimeForLayersDeepCopy, MimeFactory);
+    ASSERT_MIME_MEMBER(insertMimeLayers, Insert);
+    static_assert(std::is_same_v<decltype(MimeData::mimeForLayers(std::declval<const KisNodeList &>(),
+                                                                  std::declval<KisImageSP>())),
+                                 QMimeData *>);
+    static_assert(
+        std::is_same_v<decltype(MimeData::insertMimeLayers(std::declval<const QMimeData *>(),
+                                                           std::declval<KisImageSP>(),
+                                                           std::declval<KisShapeController *>(),
+                                                           std::declval<KisNodeDummy *>(),
+                                                           std::declval<KisNodeDummy *>(),
+                                                           std::declval<bool>(),
+                                                           std::declval<KisMimeData::NodeInsertionInterface *>())),
+                       bool>);
+
+    QVERIFY(true);
+}
+
 #undef ASSERT_CLIPBOARD_MEMBER
+#undef ASSERT_MIME_MEMBER
 
 QTEST_APPLESS_MAIN(KisClipboardSchemaContractTest)
 
