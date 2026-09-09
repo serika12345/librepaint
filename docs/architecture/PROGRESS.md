@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 21:31 JST
+- 更新日時: 2026-09-09 21:38 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4677,6 +4677,13 @@
 - 構造準備では開始`libs/tools/ui/kis_paintop_settings_widget.h`内の重複前方宣言を同headerの直接include関係へ統合し、既存`libs/image/tests/KisPaintOpConfigWidgetSchemaContractTest.cpp`を`QTEST_APPLESS_MAIN`へ変更した。`libs/image/tests/CMakeLists.txt`の対象固有節はQt Widgetsの動的linkを除去し、tools・pigment・brushengineとQt Gui・Widgets・KF I18n・Imathをheader探索interfaceとして限定した。構造準備後も4工程・8入力を維持し、AUTOMOC `HEADERS=[]`、Qt Core・Testだけの動的接続、製品未解決記号0となった。計画commitは`a83c877e54`、構造準備commitは`9aeaf46036`である。
 - 開始`libs/tools/ui/kis_paintop_settings_widget.h`から既存`libs/image/tests/KisPaintOpConfigWidgetSchemaContractTest.cpp`へ全14 API・2枠を追加した。画面型・抽象性・派生構築・仮想破棄と2つの設定項目追加5件、設定値読書き、LOD値・reader・有効brush寸法、画像・node・資源・canvas資源接続9件を型特性と厳密な関数pointerで固定した。初回診断で基底の`configuration()`を派生paintopへ委ねる抽象性を確認し、最小派生宣言で公開構築境界を観測した。契約commitは`952e1c8a37`で、既存sourceは184行・10枠となった。
 - 最終targetは4工程・8入力、command SHA-256 `3a8d7a38cd064782a307a28ecfb02ed6332f8eabcd516e3fa541747214a6434d`、input SHA-256 `b967f4524c5ae0b4e0eab08d1da838e1462a39be2e1371ab5cd19329666c1450`である。macOSで対象とLOD制約近傍、対象全体と追加2枠を各20回、試験sourceとheader強制includeの厳格構文、書式、連続二回の無作業再構築、公開API検査に成功した。製品実装の厳格構文は変更前と同じ`KisOptionInfo`の`deprecated-copy` 1件だけで、新規診断は0件である。台帳は28,202件対応、1,599件未対応となり、開始headerの残存は0件である。新`public-api-missing-g518.json`の生成成功後に旧`public-api-missing-g517.json` 439,831 bytesを削除した。主Ninja木6,032,708 KiB、共有compiler cache 983,432 KiB、最新報告435,774 bytes、SHA-256 `eaff769a46984438a1c307876a67e725b2151b3a98641e1e81586dd2ba9a2fa1`だけを再利用対象として保持する。compiler cacheは144,773 cache可能呼出し中120,593件、83.30%がhitしている。実設定画面・設定項目・模型・LOD・画像・node・資源、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第518便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
+
+### 第518便の公開API契約計画
+
+- 第518便は複数選択の数値属性を単一sliderへ集約し、共通値または混在状態を表示する`libs/ui/widgets/KisSelectionPropertySlider.h`の残存全13 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g518.json`は公開header 1,549、公開API 29,801、対応済み28,202、未対応1,599、435,774 bytes、SHA-256 `eaff769a46984438a1c307876a67e725b2151b3a98641e1e81586dd2ba9a2fa1`である。対象13識別子の整列集合SHA-256は`59769a27fcc2e6cf0d48524e0fff0a1e697d4c5b4d62a46afa08536db3400434`である。
+- 選択属性slider境界は基底型・構築・仮想破棄3、通常・混在表示templateと削除済みprefix・suffix設定3、汎用選択型・構築・値取得器・選択設定・照会5、図形用具象型・構築2の4枠へ固定する。型特性、厳密な関数pointer、削除関数の検出だけを使い、slider、図形、選択、signal圧縮器とQt画面を実体化しない。
+- 開始headerは`KoShape`をpointer型にしか使わない一方で`KoShape.h`を直接includeし、header強制includeの厳格構文が不要なQt Xmlの`QDomDocument`まで要求する。契約追加より先に完全定義includeを`KoShape`前方宣言へ置換し、公開値型として使う`QList`を直接includeする。開始`libs/ui/widgets/KisSelectionPropertySlider.cpp`の厳格構文は診断0件であり、構造変更後も実装とheader強制includeを診断0件とする。
+- 関連する既存`KisSpinBoxI18nHelperContractTest`は5工程・11入力で製品objectとQt Widgetsへ動的接続するため混載せず、新規`libs/ui/tests/KisSelectionPropertySliderSchemaContractTest.cpp`へ分離する。UI・widgetutils・globalのsource/generated探索路、3 export定義、Qt Gui・Widgetsのinterface探索路、Qt Core・Testだけの動的接続による4工程・8入力を予測し、停止線を5工程・11入力とする。候補headerをAUTOMOC入力にせず、製品OBJECT・shared、`kritatestsdk`、slider・図形・signal圧縮器の製品記号が必要なら停止する。macOSの対象と軽量UI近傍、対象全体と追加4枠の20回反復、実装・試験sourceとheader強制includeの厳格構文、書式、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、実画面・図形・選択・signal圧縮、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
 
 ### 第239便の先行監査担当票
 
