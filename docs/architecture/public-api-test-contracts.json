@@ -16,7 +16,7 @@
     "publicApiFingerprint": "05a5e67dfcb803772f3a7b7f2773532707ee28e97b57d9173a41fba9047a71d2"
   },
   "migration": {
-    "expectedMissingApis": 2198
+    "expectedMissingApis": 2186
   },
   "contracts": [
     {
@@ -76816,6 +76816,54 @@
       "apis": [
         "method:KisDitherUtil::setConfiguration(const KisFilterConfiguration & config,const QString & prefix=\"\")",
         "method:KisDitherUtil::threshold(const QPoint & pos)"
+      ]
+    },
+    {
+      "target": "TimelineFramesIndexConverterSchemaContractTest",
+      "source": "plugins/dockers/animation/tests/TimelineFramesIndexConverterSchemaContractTest.cpp",
+      "test": "TimelineFramesIndexConverterSchemaContractTest::typeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "timeline行索引変換は公開型をfacadeから構築でき、破棄可能な境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:TimelineFramesIndexConverter",
+        "method:TimelineFramesIndexConverter::TimelineFramesIndexConverter(KisDummiesFacadeBase * dummiesFacade)",
+        "method:TimelineFramesIndexConverter::~TimelineFramesIndexConverter()"
+      ]
+    },
+    {
+      "target": "TimelineFramesIndexConverterSchemaContractTest",
+      "source": "plugins/dockers/animation/tests/TimelineFramesIndexConverterSchemaContractTest.cpp",
+      "test": "TimelineFramesIndexConverterSchemaContractTest::rowMappingSignaturesRemainStable",
+      "behavior": "timeline行索引変換はdummyと行の双方向変換および対象行数取得の公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:TimelineFramesIndexConverter::dummyFromRow(int row)",
+        "method:TimelineFramesIndexConverter::rowCount()",
+        "method:TimelineFramesIndexConverter::rowForDummy(KisNodeDummy * dummy)"
+      ]
+    },
+    {
+      "target": "TimelineFramesIndexConverterSchemaContractTest",
+      "source": "plugins/dockers/animation/tests/TimelineFramesIndexConverterSchemaContractTest.cpp",
+      "test": "TimelineFramesIndexConverterSchemaContractTest::activeDummySynchronizationSignaturesRemainStable",
+      "behavior": "timeline行索引変換は能動dummyの取得・更新とdummy削除通知を受ける公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:TimelineFramesIndexConverter::activeDummy() const",
+        "method:TimelineFramesIndexConverter::notifyDummyRemoved(KisNodeDummy * dummy)",
+        "method:TimelineFramesIndexConverter::updateActiveDummy(KisNodeDummy * dummy,bool * oldRemoved,bool * newAdded)"
+      ]
+    },
+    {
+      "target": "TimelineFramesIndexConverterSchemaContractTest",
+      "source": "plugins/dockers/animation/tests/TimelineFramesIndexConverterSchemaContractTest.cpp",
+      "test": "TimelineFramesIndexConverterSchemaContractTest::timelineFilteringSignaturesRemainStable",
+      "behavior": "timeline行索引変換は全体選択maskの表示方針を受け、dummyのtimeline利用可否と可視性を判定する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:TimelineFramesIndexConverter::isDummyAvailableForTimeline(KisNodeDummy * dummy) const",
+        "method:TimelineFramesIndexConverter::isDummyVisible(KisNodeDummy * dummy) const",
+        "method:TimelineFramesIndexConverter::setShowGlobalSelectionMask(bool value)"
       ]
     }
   ]
