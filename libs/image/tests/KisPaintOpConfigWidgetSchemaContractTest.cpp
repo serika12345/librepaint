@@ -131,6 +131,6 @@ void KisPaintOpConfigWidgetSchemaContractTest::paintOpConfigWidgetContextAndScra
 #undef ASSERT_PAINTOP_CONFIG_WIDGET_SIGNATURE
 #undef ASSERT_CONFIG_WIDGET_SIGNATURE
 
-QTEST_GUILESS_MAIN(KisPaintOpConfigWidgetSchemaContractTest)
+QTEST_APPLESS_MAIN(KisPaintOpConfigWidgetSchemaContractTest)
 
 #include "KisPaintOpConfigWidgetSchemaContractTest.moc"
