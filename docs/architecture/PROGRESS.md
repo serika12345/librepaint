@@ -4246,7 +4246,7 @@
 ### 第475便の公開API契約計画
 
 - 第475便は画像生成器責務の`libs/image/generator/kis_generator.h`に残る全7 APIと`libs/image/generator/kis_generator_registry.h`に残る全6 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g475.json`は公開header 1,548、公開API 29,804、対応済み27,538、未対応2,266、612,512 bytes、SHA-256 `afbfbaa5e6450893ebfa63ab856dbdd66c06aeea0b4fe9e5abe50a69e5850b3b`である。対象13識別子の整列集合SHA-256は`b7f6b5e792d552b7f79200f1e7dc715305697b1a0dcb8aec59e49042fd8c18f3`である。
-- 画像生成器は型・基底・構築・仮想寿命3、進捗更新器あり・なしの生成2、生成矩形・patch分割可否2の3枠へ固定する。生成器registryは型・二基底・仮想寿命・単一実体取得3、共有生成器または明示IDによる追加2、追加ID通知1の3枠へ固定する。生成器、registry、設定、描画装置、進捗更新器、Qt値を実体化せず、型特性、未評価の既定引数、厳密な関数pointerだけを使う。
+- 画像生成器は型・基底・構築・仮想寿命3、進捗更新器あり・なしの生成2、生成矩形・patch分割可否2の3枠へ固定する。生成器registryは型・二基底・仮想寿命・単一実体取得3と、共有生成器または明示IDによる追加2・追加ID通知1の2枠へ固定する。生成器、registry、設定、描画装置、進捗更新器、Qt値を実体化せず、型特性、未評価の既定引数、厳密な関数pointerだけを使う。
 - `kis_generator.h`で重複して見える文字列、翻訳、識別子、色空間includeは公開基底`kis_base_processor.h`が同じ完全定義を必ず取り込むため、削除しても具体compile閉包が縮まない。直接利用元21件へ無効な差分を広げず現状を維持する。`kis_generator_registry.h`のQObject、生成器、汎用registry完全定義は二重継承と共有生成器型に必要であり、直接利用元34件についても構造変更を行わない。
 - 開始2 headerから既存`libs/image/tests/KisBaseProcessorSchemaContractTest.cpp`へ5枠を追加する。同sourceは184行・13枠から300行・20枠未満に収まり、CMake変更なしで4工程・8入力を維持する。現targetのcommand SHA-256は`f68d9ea063480c3a37d6238bb27c9d13a763bf4b1699163d02a26fb6780ad2fa`、input SHA-256は`a718abc69bbbf687d60edfa5bd0ac28ba8efc71995d7c077415c1b3191c9acaa`である。停止線を5工程・11入力とし、新たな探索路・定義・製品接続、AUTOMOC製品header入力、生成器またはregistry本文の実体化が必要なら停止する。macOSの対象、追加5枠を含む対象全体の20回反復、試験sourceの厳格構文、書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、既存の製品生成器試験、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
 
