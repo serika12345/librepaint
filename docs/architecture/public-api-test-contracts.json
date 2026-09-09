@@ -16,7 +16,7 @@
     "publicApiFingerprint": "05a5e67dfcb803772f3a7b7f2773532707ee28e97b57d9173a41fba9047a71d2"
   },
   "migration": {
-    "expectedMissingApis": 2174
+    "expectedMissingApis": 2160
   },
   "contracts": [
     {
@@ -76912,6 +76912,56 @@
       "classification": "maintained",
       "apis": [
         "method:KisCurrentOutlineFetcher::fetchOutline(const KisPaintInformation & info,const KisPaintOpSettingsSP settings,const KisOptimizedBrushOutline & originalOutline,const KisPaintOpSettings::OutlineMode & mode,qreal alignForZoom,qreal additionalScale=1.0,qreal additionalRotation=0.0,bool tilt=false,qreal tiltcenterx=1.0,qreal tiltcentery=1.0) const"
+      ]
+    },
+    {
+      "target": "KisToolUtilsSchemaContractTest",
+      "source": "libs/tools/tests/KisToolUtilsSchemaContractTest.cpp",
+      "test": "KisToolUtilsSchemaContractTest::colorSamplerTypeAndConstructionSchemaRemainStable",
+      "behavior": "tool共通色採取設定は公開値型として既定構築できる境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisToolUtils::ColorSamplerConfig::ColorSamplerConfig()",
+        "struct:KisToolUtils::ColorSamplerConfig"
+      ]
+    },
+    {
+      "target": "KisToolUtilsSchemaContractTest",
+      "source": "libs/tools/tests/KisToolUtilsSchemaContractTest.cpp",
+      "test": "KisToolUtilsSchemaContractTest::colorSamplerBooleanValueSchemaRemainsStable",
+      "behavior": "tool共通色採取設定は前景色更新、色更新、palette追加、値正規化、統合標本の公開真偽値を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisToolUtils::ColorSamplerConfig::addColorToCurrentPalette",
+        "member:KisToolUtils::ColorSamplerConfig::normaliseValues",
+        "member:KisToolUtils::ColorSamplerConfig::sampleMerged",
+        "member:KisToolUtils::ColorSamplerConfig::toForegroundColor",
+        "member:KisToolUtils::ColorSamplerConfig::updateColor"
+      ]
+    },
+    {
+      "target": "KisToolUtilsSchemaContractTest",
+      "source": "libs/tools/tests/KisToolUtilsSchemaContractTest.cpp",
+      "test": "KisToolUtilsSchemaContractTest::colorSamplerNumericAndPersistenceSignaturesRemainStable",
+      "behavior": "tool共通色採取設定は半径・混合率の公開整数値と保存・読込み境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisToolUtils::ColorSamplerConfig::blend",
+        "member:KisToolUtils::ColorSamplerConfig::radius",
+        "method:KisToolUtils::ColorSamplerConfig::load()",
+        "method:KisToolUtils::ColorSamplerConfig::save() const"
+      ]
+    },
+    {
+      "target": "KisToolUtilsSchemaContractTest",
+      "source": "libs/tools/tests/KisToolUtilsSchemaContractTest.cpp",
+      "test": "KisToolUtilsSchemaContractTest::toolUtilityFunctionSignaturesRemainStable",
+      "behavior": "tool共通処理はnode編集可否の説明、選択付き画像消去、複数画面を考慮したcursor移動の公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisToolUtils::clearImage(KisImageSP image,KisNodeList nodes,KisSelectionSP selection)",
+        "function:KisToolUtils::nodeEditableMessage(KisNodeSP node,bool blockedNoIndirectPainting=false)",
+        "function:KisToolUtils::setCursorPos(const QPoint & point)"
       ]
     }
   ]
