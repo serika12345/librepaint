@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 22:27 JST
+- 更新日時: 2026-09-09 22:31 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4725,6 +4725,13 @@
 - 構造準備では開始`libs/ui/dialogs/KisAsyncAnimationFramesSaveDialog.h`へ、公開構築署名で参照する`KisTimeSpan`の前方宣言を追加した。変更前のheader強制includeは未知型1件、開始`libs/ui/dialogs/KisAsyncAnimationFramesSaveDialog.cpp`の厳格構文は同根の宣言不一致3件だったが、変更後はいずれも診断0件となった。計画commitは`2fca8b198c`、構造準備commitは`c38d185b8b`である。
 - 開始`libs/ui/dialogs/KisAsyncAnimationFramesSaveDialog.h`から既存`libs/ui/tests/KisAsyncAnimationRenderDialogBaseSchemaContractTest.cpp`へ全10 API・3枠を追加した。保存対話型・2構築経路・仮想破棄4件、範囲再生成・出力mask・wildcard mask3件、全file・固有file・固有frame照会3件を型特性と厳密な関数pointerで固定した。CMakeは変更していない。契約commitは`2aa2ca2970`で、既存sourceは128行・7枠となった。
 - targetは4工程・8入力、command SHA-256 `718cf44a50f1effe7a77ff9655fb0cba006f25b1187537b776b12c368a958e03`、input SHA-256 `10a4a982d5979a1a83ae4bcb66fdd6692164b9750415afc14cdb23897c98e7c9`を維持した。AUTOMOC `HEADERS=[]`、frame保存対話・時間範囲・fileの未解決製品記号0で、Qt Core・Testだけへ動的接続する。macOSで対象とanimation frame cache近傍、対象全体と追加3枠を各20回、実装・試験sourceとheader強制includeの厳格構文、書式、連続二回の無作業再構築、公開API検査に成功した。台帳は28,261件対応、1,540件未対応となり、開始headerの残存は0件である。新`public-api-missing-g523.json`の生成成功後に旧`public-api-missing-g522.json` 422,560 bytesを削除した。主Ninja木6,031,032 KiB、共有compiler cache 983,296 KiB、最新報告419,134 bytes、SHA-256 `3dd5f639ad1aa8113a80497c03a3289dc979ee3b917c2923b065326ed6eb5b65`だけを再利用対象として保持する。compiler cacheは144,784 cache可能呼出し中120,593件、83.29%がhitしている。実保存対話・画像・描画器・時間範囲・file入出力、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第523便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
+
+### 第523便の公開API契約計画
+
+- 第523便はQt timerでanimation再生位置を進め、音声非対応時のframe破棄方針と再生統計を提供する`libs/ui/animation/KisPlaybackEngineQT.h`の残存全11 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g523.json`は公開header 1,549、公開API 29,801、対応済み28,261、未対応1,540、419,134 bytes、SHA-256 `3dd5f639ad1aa8113a80497c03a3289dc979ee3b917c2923b065326ed6eb5b65`である。対象11識別子の整列集合SHA-256は`94e89de2413a5e0d50e9bddb1fda87a5f7e9874618471751db12bc0ddfe7fa91`である。
+- Qt再生engine境界はengine型・構築・仮想破棄3、位置移動・消音設定照会・frame破棄設定4、音声・可変速度対応、実効fps、再生統計4の3枠へ固定する。型特性、厳密な関数pointer、省略seek方針の未評価呼出しだけを使い、再生engine、canvas、timer、音声とframeを実体化しない。
+- 開始headerは公開署名と会員で使わない`canvas/KisCanvasAnimationState.h`を完全定義includeし、開始`libs/ui/animation/KisPlaybackEngineQT.cpp`は自己headerを2回includeしている。契約追加より先に前者と2回目の自己includeを除去し、実装が直接所有する`KisCanvasAnimationState.h` includeを維持する。header強制includeと実装の厳格構文は変更前の診断0件を維持する。
+- 既存`libs/ui/tests/KisPlaybackEngineSchemaContractTest.cpp`は232行・15枠で上限を超えているため、新規`libs/ui/tests/KisPlaybackEngineQtSchemaContractTest.cpp`へ分離する。UI・flakeのsource/generated探索路、2 export定義、Qt Gui・Widgets interface、Qt Core・Testとheader-only Boostによる4工程・8入力を予測し、停止線を5工程・11入力とする。既存targetは4工程・8入力、command SHA-256 `2bd8ce03b6f0ab42e5f78a568fdc01c89cf541623a2537f13b54b3887847cd1e`、input SHA-256 `aa787218079060cbea383b463cb68fcfede85e6100a3d453f2d1feae4f19b981`である。候補headerをAUTOMOC入力にせず、製品OBJECT・shared、`kritatestsdk`、再生engine・canvas・timerの製品記号が必要なら停止する。macOSの対象と既存playback近傍、対象全体と追加3枠の20回反復、実装・試験sourceとheader強制includeの厳格構文、書式、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、実再生・canvas・timer・音声・frame、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
 
 ### 第239便の先行監査担当票
 
