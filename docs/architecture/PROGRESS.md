@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-10 00:25 JST
+- 更新日時: 2026-09-10 00:29 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4834,6 +4834,13 @@
 - 開始`libs/ui/utils/KisRecentFileIconCache.h`で公開面と会員に不要だった`QFuture`を開始`libs/ui/utils/KisRecentFileIconCache.cpp`へ移し、QObject基底はheaderで直接includeした。公開署名、所有権、実行時挙動、CMakeは変更していない。header強制include、製品source、試験sourceの厳格構文は診断0件で、試験書式も成功した。
 - targetは4工程・8入力、command SHA-256 `614e2253553b70383ee32c45a21b76b3793d61dac548f70c55ea2ec5533165ce`、input SHA-256 `37a973b1221641c14845cda5455d3c7a7b40ae1984bd4f077069ff1c6bfe4f3e`を維持した。AUTOMOC `HEADERS=[]`、icon cache・collapsible button groupの未解決製品記号0で、Qt Core・Testだけへ動的接続する。macOSで対象全体20回と追加2枠各20回、厳格構文、試験書式、連続二回の無作業再構築に成功した。実file・icon取得・thread処理、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 公開API検査の初回診断は期待値1,463に対して実測1,455で、新規8件と一致した。台帳を28,346件対応、1,455件未対応へ進め、`public-api-missing-g531.json`の生成成功後に旧`public-api-missing-g530.json` 397,666 bytesを削除した。主Ninja木6,048,692 KiB、共有compiler cache 983,076 KiB、最新報告395,701 bytes、SHA-256 `4ff9c8e65f401d2038c78c9f60c6a770df61359d40d5fa265257f11004154171`だけを再利用対象として保持する。compiler cacheは144,804 cache可能呼出し中120,594件、83.28%がhitしている。次の永続作業は第531便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
+
+### 第531便の公開API契約計画
+
+- 第531便はutility title barの表題、widget領域、固定状態を所有する`libs/ui/widgets/kis_utility_title_bar.h`の残存全8 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g531.json`は公開header 1,549、公開API 29,801、対応済み28,346、未対応1,455、395,701 bytes、SHA-256 `4ff9c8e65f401d2038c78c9f60c6a770df61359d40d5fa265257f11004154171`である。対象8識別子の整列集合SHA-256は`18c2d40b7faec90fe3a8beb263a6465f6af1d33bae3d176462bf5c1957bfc3eb`である。
+- utility title bar境界は型・親widgetからの構築・表題label付き構築・仮想破棄・固定寸法照会5、widget領域照会/設定・固定状態設定3の2枠へ固定する。型特性と厳密な関数pointerだけを使い、title bar、label、widget領域、layoutを実体化しない。
+- 開始headerはmacOSで`sys/types.h`を条件includeするが、headerと開始`libs/ui/widgets/kis_utility_title_bar.cpp`のどちらにも同header由来の型や関数利用がない。契約追加より先に条件includeを除去し、既存`libs/ui/tests/KisCollapsibleButtonGroupSchemaContractTest.cpp`からのheader強制includeと開始実装の厳格構文診断0件を維持する。
+- 既存widget契約は87行・6枠で、2枠追加後も220行・10枠以内に収まる。CMakeを変更せず4工程・8入力、command SHA-256 `614e2253553b70383ee32c45a21b76b3793d61dac548f70c55ea2ec5533165ce`、input SHA-256 `37a973b1221641c14845cda5455d3c7a7b40ae1984bd4f077069ff1c6bfe4f3e`を維持する。工程・入力増加、候補headerのAUTOMOC入力化、製品未解決記号が生じれば停止する。macOSの対象全体と追加2枠の20回反復、実装・試験sourceとheader強制includeの厳格構文、試験書式、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、実title bar・widget・layout、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
 
 ### 第239便の先行監査担当票
 
