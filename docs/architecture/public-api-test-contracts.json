@@ -16,7 +16,7 @@
     "publicApiFingerprint": "62e45b238446dc0eb6798b1de10b2cd9261befccc2a837c75de2c86393d7e016"
   },
   "migration": {
-    "expectedMissingApis": 1840
+    "expectedMissingApis": 1816
   },
   "contracts": [
     {
@@ -78011,6 +78011,75 @@
         "method:ConcentricEllipseAssistantFactory::createPaintingAssistant() const",
         "method:ConcentricEllipseAssistantFactory::id() const",
         "method:ConcentricEllipseAssistantFactory::name() const"
+      ]
+    },
+    {
+      "target": "KraDocumentSchemaContractTest",
+      "source": "plugins/impex/libkra/tests/KraDocumentSchemaContractTest.cpp",
+      "test": "KraDocumentSchemaContractTest::kraSaverTypeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "KRA保存器は文書・ファイル名・統合画像方針からの構築と明示的な破棄を持つ公開型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisKraSaver",
+        "method:KisKraSaver::KisKraSaver(KisDocument * document,const QString & filename,bool addMergedImage=true)",
+        "method:KisKraSaver::~KisKraSaver()"
+      ]
+    },
+    {
+      "target": "KraDocumentSchemaContractTest",
+      "source": "plugins/impex/libkra/tests/KraDocumentSchemaContractTest.cpp",
+      "test": "KraDocumentSchemaContractTest::kraSaverDocumentContentSignaturesRemainStable",
+      "behavior": "KRA保存器は文書XML、鍵frame、画像本体、資源とstoryboardをstoreへ保存する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisKraSaver::saveBinaryData(KoStore * store,KisImageSP image,const QString & uri,bool external,bool addMergedImage)",
+        "method:KisKraSaver::saveKeyframes(KoStore * store,const QString & uri,bool external)",
+        "method:KisKraSaver::saveResources(KoStore * store,KisImageSP image,const QString & uri)",
+        "method:KisKraSaver::saveStoryboard(KoStore * store,KisImageSP image,const QString & uri)",
+        "method:KisKraSaver::saveXML(QDomDocument & doc,KisImageSP image)"
+      ]
+    },
+    {
+      "target": "KraDocumentSchemaContractTest",
+      "source": "plugins/impex/libkra/tests/KraDocumentSchemaContractTest.cpp",
+      "test": "KraDocumentSchemaContractTest::kraSaverAnimationAudioAndDiagnosticSignaturesRemainStable",
+      "behavior": "KRA保存器はanimation metadataと音声を保存し、重大・非重大な保存診断を照会する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisKraSaver::errorMessages() const",
+        "method:KisKraSaver::saveAnimationMetadata(KoStore * store,KisImageSP image,const QString & uri)",
+        "method:KisKraSaver::saveAudio(KoStore * store)",
+        "method:KisKraSaver::warningMessages() const"
+      ]
+    },
+    {
+      "target": "KraDocumentSchemaContractTest",
+      "source": "plugins/impex/libkra/tests/KraDocumentSchemaContractTest.cpp",
+      "test": "KraDocumentSchemaContractTest::kraConverterTypeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "KRA変換調整器は文書と任意の進捗更新器から構築でき、基底経由の仮想破棄を持つ公開型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KraConverter",
+        "method:KraConverter::KraConverter(KisDocument * doc)",
+        "method:KraConverter::KraConverter(KisDocument * doc,QPointer<KoUpdater> updater)",
+        "method:KraConverter::~KraConverter()"
+      ]
+    },
+    {
+      "target": "KraDocumentSchemaContractTest",
+      "source": "plugins/impex/libkra/tests/KraDocumentSchemaContractTest.cpp",
+      "test": "KraDocumentSchemaContractTest::kraConverterOperationAndResultSignaturesRemainStable",
+      "behavior": "KRA変換調整器は媒体からの読込・保存、画像・選択node・assistant・storyboard結果の照会と取消の公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KraConverter::activeNodes()",
+        "method:KraConverter::assistants()",
+        "method:KraConverter::buildFile(QIODevice * io,const QString & filename,bool addMergedImage=true)",
+        "method:KraConverter::buildImage(QIODevice * io)",
+        "method:KraConverter::cancel()",
+        "method:KraConverter::image()",
+        "method:KraConverter::storyboardCommentList()",
+        "method:KraConverter::storyboardItemList()"
       ]
     }
   ]

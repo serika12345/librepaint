@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 17:49 JST
+- 更新日時: 2026-09-09 18:02 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4515,6 +4515,9 @@
 - KRA文書境界は保存器の型・構築・破棄3、XML・鍵frame・画像本体・資源・storyboard保存5、animation・音声・診断4、変換調整器の型・構築・破棄4、読込・保存・結果照会・取消8の5枠へ固定する。型特性、厳密な関数pointer、省略引数の未評価呼出しだけを使い、文書、画像、node、assistant、store、更新器、保存器・読込器本文を実体化しない。
 - 開始`kis_kra_saver.h`は公開・私有署名だけが使うDOM型と色型の完全定義を推移させ、開始`kra_converter.h`は非公開pointerだけが使うstore・更新器・KRA保存器・読込器の完全定義と未使用の進捗更新器を推移させている。契約追加より先に前方宣言へ置換し、実利用先`kis_kra_saver.cpp`と`kra_converter.cpp`へ必要な完全定義を直接配置する。両実装の変更前厳格構文は成功しており、変更後も成功を完了条件とする。
 - 既存`KisKraSaveXmlVisitorSchemaContractTest.cpp`は282行・15枠で上限に達したため追記しない。新規`plugins/impex/libkra/tests/KraDocumentSchemaContractTest.cpp`に5枠を分離し、既存KRA契約と同じ限定探索路・export定義、Qt Core・Testだけで4工程・8入力を予測する。追加前targetは`unknown target`である。停止線を5工程・11入力とし、Qt Guiの動的接続、製品OBJECT・shared、`kritatestsdk`、AUTOMOC製品header入力、KRA製品記号が必要なら停止する。macOSの新対象と既存KRA近傍、追加5枠の20回反復、両実装と試験sourceの厳格構文、書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、実KRA入出力、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
+- 構造準備では開始`plugins/impex/libkra/kis_kra_saver.h`からDOM型と色型の完全定義を除去して前方宣言へ置換し、必要なDOM・色型を既に直接所有する`plugins/impex/libkra/kis_kra_saver.cpp`を維持した。開始`plugins/impex/libkra/kra_converter.h`からstore、更新器、KRA保存器・読込器、DOMの完全定義と未使用の進捗更新器を除去し、実利用先`plugins/impex/libkra/kra_converter.cpp`へDOM、媒体、更新器、KRA保存器・読込器の完全定義を移した。両公開headerの強制includeと両実装の厳格構文に成功した。計画commitは`156d4fb791`、構造準備commitは`657348963c`である。
+- 開始2 headerから新規`plugins/impex/libkra/tests/KraDocumentSchemaContractTest.cpp`へ全24 API・5枠を追加した。保存器の型・構築・寿命、文書内容、animation・音声・診断と、変換調整器の型・構築・寿命、読込・保存・結果照会・取消を型特性、厳密な関数pointer、省略引数の未評価呼出しで固定した。追加前targetは`unknown target`で失敗し、追加後は全枠に成功した。契約commitは`27d15707a5`である。
+- 新規試験sourceは91行・5枠である。targetはQt Core・Testだけへ動的接続する4工程・8入力、command SHA-256 `6040608c4afe3804521d47038b5c7cb1c9e58913fa562498763af3673cc54c67`、input SHA-256 `03899c4e2c75310e49a02908b1ce0659945e53a20a737f50c3ebb0c8da0cdb77`である。AUTOMOC `HEADERS=[]`、KRA保存器・変換調整器・読込器・store・更新器の未解決製品記号0である。macOSで新規5枠と既存KRA近傍、全5枠と各枠を20回、試験sourceと両実装の厳格構文、書式、連続二回の無作業再構築、公開API検査に成功した。台帳は27,989件対応、1,816件未対応となり、開始2 headerの残存は0件である。新`public-api-missing-g501.json`の生成成功後に旧`public-api-missing-g500.json` 498,800 bytesを削除した。主Ninja木6,021,772 KiB、共有compiler cache 983,220 KiB、最新報告492,903 bytes、SHA-256 `4d6a2805c9cb4c50a18f2c7b3bb27ac8d5373b877df6c2cd15c1bf318caebc40`だけを再利用対象として保持する。compiler cacheは144,719 cache可能呼出し中120,577件、83.32%がhitしている。実KRA入出力、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第501便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
 
 ### 第239便の先行監査担当票
 
