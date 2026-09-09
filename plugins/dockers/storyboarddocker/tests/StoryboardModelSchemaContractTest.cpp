@@ -7,10 +7,13 @@
 
 #include <type_traits>
 
+#include "CommentModel.h"
 #include "StoryboardModel.h"
 
 #define ASSERT_MODEL_SIGNATURE(method, signature)                                                                      \
     static_assert(std::is_same_v<decltype(&StoryboardModel::method), signature>)
+#define ASSERT_COMMENT_MODEL_SIGNATURE(method, signature)                                                              \
+    static_assert(std::is_same_v<decltype(&StoryboardCommentModel::method), signature>)
 
 class StoryboardModelSchemaContractTest : public QObject
 {
@@ -22,6 +25,11 @@ private Q_SLOTS:
     void commentAndStoryboardDataSchemaRemainStable();
     void frameTimelineAndUndoSchemaRemainStable();
     void imageViewThumbnailAndActiveNodeSchemaRemainStable();
+    void commentModelTypeConstructionAndNotificationSchemaRemainStable();
+    void commentModelRowDataSignaturesRemainStable();
+    void commentModelRowMutationSignaturesRemainStable();
+    void commentModelMimeSignaturesRemainStable();
+    void commentModelCollectionSignaturesRemainStable();
 };
 
 void StoryboardModelSchemaContractTest::typeRoleLifetimeAndLockSchemaRemainStable()
@@ -132,6 +140,58 @@ void StoryboardModelSchemaContractTest::imageViewThumbnailAndActiveNodeSchemaRem
     ASSERT_MODEL_SIGNATURE(slotUpdateThumbnailsForItems, void (Model::*)(QModelIndexList));
 
     QVERIFY(true);
+}
+
+void StoryboardModelSchemaContractTest::commentModelTypeConstructionAndNotificationSchemaRemainStable()
+{
+    using Model = StoryboardCommentModel;
+
+    static_assert(std::is_class_v<Model>);
+    static_assert(std::is_base_of_v<QAbstractListModel, Model>);
+    static_assert(std::is_constructible_v<Model, QObject *>);
+    static_assert(std::has_virtual_destructor_v<Model>);
+    ASSERT_COMMENT_MODEL_SIGNATURE(sigCommentListChanged, void (Model::*)());
+}
+
+void StoryboardModelSchemaContractTest::commentModelRowDataSignaturesRemainStable()
+{
+    using Model = StoryboardCommentModel;
+
+    ASSERT_COMMENT_MODEL_SIGNATURE(rowCount, int (Model::*)(const QModelIndex &) const);
+    ASSERT_COMMENT_MODEL_SIGNATURE(data, QVariant (Model::*)(const QModelIndex &, int) const);
+    ASSERT_COMMENT_MODEL_SIGNATURE(flags, Qt::ItemFlags (Model::*)(const QModelIndex &) const);
+    ASSERT_COMMENT_MODEL_SIGNATURE(setData, bool (Model::*)(const QModelIndex &, const QVariant &, int));
+}
+
+void StoryboardModelSchemaContractTest::commentModelRowMutationSignaturesRemainStable()
+{
+    using Model = StoryboardCommentModel;
+    using RowOperation = bool (Model::*)(int, int, const QModelIndex &);
+
+    ASSERT_COMMENT_MODEL_SIGNATURE(insertRows, RowOperation);
+    ASSERT_COMMENT_MODEL_SIGNATURE(removeRows, RowOperation);
+    ASSERT_COMMENT_MODEL_SIGNATURE(moveRows, bool (Model::*)(const QModelIndex &, int, int, const QModelIndex &, int));
+}
+
+void StoryboardModelSchemaContractTest::commentModelMimeSignaturesRemainStable()
+{
+    using Model = StoryboardCommentModel;
+    using SupportedActions = Qt::DropActions (Model::*)() const;
+
+    ASSERT_COMMENT_MODEL_SIGNATURE(mimeTypes, QStringList (Model::*)() const);
+    ASSERT_COMMENT_MODEL_SIGNATURE(mimeData, QMimeData * (Model::*)(const QModelIndexList &) const);
+    ASSERT_COMMENT_MODEL_SIGNATURE(dropMimeData,
+                                   bool (Model::*)(const QMimeData *, Qt::DropAction, int, int, const QModelIndex &));
+    ASSERT_COMMENT_MODEL_SIGNATURE(supportedDropActions, SupportedActions);
+    ASSERT_COMMENT_MODEL_SIGNATURE(supportedDragActions, SupportedActions);
+}
+
+void StoryboardModelSchemaContractTest::commentModelCollectionSignaturesRemainStable()
+{
+    using Model = StoryboardCommentModel;
+
+    ASSERT_COMMENT_MODEL_SIGNATURE(resetData, void (Model::*)(QVector<StoryboardComment>));
+    ASSERT_COMMENT_MODEL_SIGNATURE(getData, QVector<StoryboardComment> (Model::*)());
 }
 
 QTEST_GUILESS_MAIN(StoryboardModelSchemaContractTest)
