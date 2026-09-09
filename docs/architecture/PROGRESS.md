@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 15:30 JST
+- 更新日時: 2026-09-09 15:38 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4426,6 +4426,13 @@
 - 開始`libs/impex/animation/KisAndroidMediaEncoderRunnable.h`から既存`libs/impex/tests/KisMediaEncoderFormatAndSettingsContractTest.cpp`へ全15 API・4枠を追加した。Android runnableの型・生成・形式列挙、設定widgetの型・構築、映像・音声encoder候補と選択、両bitrateの取得・設定を型特性、厳密な関数pointer、省略引数の未評価呼出しで固定した。初回は全4枠が成功し、`G491 Android media encoder API schema is not fixed yet`だけが`XFAIL`となった。契約commitは`eba76c5f16`である。
 - 既存試験sourceは333行・15枠となった。targetは最終的にQt Core・Testだけへ動的接続する4工程・8入力、command SHA-256 `fad07bf474dedbb6d3889307ab4d985489b50e4d0617561bcd4112cbc21b04e5`、input SHA-256 `cf0648c4ad31097ad0543338b2b00c8a749956145bd8ffe647cc078a2e343e9c`を維持した。AUTOMOC `HEADERS=[]`、Android encoder・設定widget・QWidgetの未解決製品記号は0である。macOSで全15枠の単発と20回反復、追加4枠を各20回、試験sourceの厳格構文と書式、連続二回の無作業再構築、公開API検査に成功した。設定widgetの選択状態・bitrate値、Android codec・Java境界、Android製品source、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 台帳は27,802件対応、2,003件未対応となり、開始headerの残存は0件である。新`public-api-missing-g492.json`の生成成功後に旧`public-api-missing-g491.json` 544,993 bytesを削除し、新target、追加生成物、一時一覧、追加作業tree・構築木は作成していない。主Ninja木6,029,824 KiB、共有compiler cache 983,148 KiB、最新`build/tdd-macos/public-api-missing-g492.json` 540,213 bytes、SHA-256 `e073cd1c504b8bac55591933b4cbe66d66556cb1b9467ac7f5439c74a017270f`だけを再利用対象として保持する。compiler cacheは144,693件中120,569件、83.33%がhitしている。次の永続作業は第492便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
+
+### 第492便の公開API契約計画
+
+- 第492便は各application windowに属するGUI actionと操作配送を所有する`libs/application/ui/orchestration/kis_action_manager.h`に残る全15 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g492.json`は公開header 1,548、公開API 29,805、対応済み27,802、未対応2,003、540,213 bytes、SHA-256 `e073cd1c504b8bac55591933b4cbe66d66556cb1b9467ac7f5439c74a017270f`である。対象15識別子の整列集合SHA-256は`fdc7bdc60cb7f65dcc75b948be5e86f323c9b4fe62ee7f46dd588ae49018cf91`である。
+- action manager境界は型・構築・仮想破棄・view接続4、actionの追加・解除・生成・名前照会4、操作UI factory・操作の登録2、ID・設定値からの操作実行2、標準action生成・menu設定・GUI更新3の5枠へ固定する。型特性、厳密な関数pointerだけを使い、manager、view、action、操作、menuと製品本文を実体化しない。
+- 開始headerは`KisView`を完全定義する`application/ui/workspace/KisView.h`、実装だけが利用する`kis_action_registry.h`、設定値の本文を定義する`operations/kis_operation_configuration.h`を全利用者へ推移させている。契約追加より先に、公開宣言を`KisView`、`KisOperationConfiguration`、`KisPinnedSharedPtr`の前方宣言と共有pointer別名へ狭め、公開基底の`QObject`だけを直接includeする。action registryと操作設定の完全定義は実際に利用する宛先`libs/application/ui/orchestration/kis_action_manager.cpp`へ移す。実装翻訳単位の変更前厳格構文検査は成功しており、変更後も成功を完了条件とする。`QPointer`は値引数、`kstandardaction.h`は入れ子列挙型を公開署名に使うため維持する。
+- 既存`libs/application/tests/KisViewManagerSchemaContractTest.cpp`は同じapplication UI統括責務を所有する181行・13枠の限定targetである。新targetとCMake変更を避け、同sourceへ5枠を追加して280行・19枠未満に収める。targetはQt Core・Testだけへ動的接続する4工程・8入力、command SHA-256 `0b86cf5b0b37dbf88d2837d48b6b563aa8c387034be4e3119d5ffb312f704ddc`、input SHA-256 `57ebed086e92adde6d4554f8315cd2fedde5517bccadd2aeee2083650235cd3e`を維持し、AUTOMOC `HEADERS=[]`と停止線4工程・8入力を適用する。新たな探索路・定義・接続、製品OBJECT・shared、AUTOMOC製品header入力、製品記号が必要なら停止する。macOSの対象、既存13枠と追加5枠、追加枠の20回反復、試験sourceと実装sourceの厳格構文、書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
 
 ### 第239便の先行監査担当票
 
