@@ -4,6 +4,8 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "kis_kra_load_visitor.h"
+#include "kis_kra_save_visitor.h"
 #include "kis_kra_savexml_visitor.h"
 
 #include <QTest>
@@ -20,6 +22,11 @@ private Q_SLOTS:
     void saveXmlVisitorMaskVisitSignaturesRemainStable();
     void saveXmlVisitorFileNameAndErrorSignaturesRemainStable();
     void saveXmlVisitorPaintLayerAttributeSignaturesRemainStable();
+    void kraBinaryVisitorTypeConstructionAndLifetimeSchemaRemainStable();
+    void kraLoadVisitorNodeAndLayerVisitSignaturesRemainStable();
+    void kraLoadVisitorMaskStateAndProfileSignaturesRemainStable();
+    void kraSaveVisitorNodeAndLayerVisitSignaturesRemainStable();
+    void kraSaveVisitorMaskAndStateSignaturesRemainStable();
 };
 
 void KisKraSaveXmlVisitorSchemaContractTest::saveXmlVisitorTypeConstructionAndSelectionSchemaRemainStable()
@@ -106,6 +113,103 @@ void KisKraSaveXmlVisitorSchemaContractTest::saveXmlVisitorPaintLayerAttributeSi
     QVERIFY(
         (std::is_same_v<decltype(static_cast<SaveAttributesSignature>(&KisSaveXmlVisitor::savePaintLayerAttributes)),
                         SaveAttributesSignature>));
+}
+
+void KisKraSaveXmlVisitorSchemaContractTest::kraBinaryVisitorTypeConstructionAndLifetimeSchemaRemainStable()
+{
+    static_assert(std::is_class_v<KisKraLoadVisitor>);
+    static_assert(std::is_base_of_v<KisNodeVisitor, KisKraLoadVisitor>);
+    static_assert(std::is_constructible_v<KisKraLoadVisitor,
+                                          KisImageSP,
+                                          KoStore *,
+                                          KoShapeControllerBase *,
+                                          QMap<KisNode *, QString> &,
+                                          QMap<KisNode *, QString> &,
+                                          const QString &,
+                                          int>);
+    static_assert(std::is_class_v<KisKraSaveVisitor>);
+    static_assert(std::is_base_of_v<KisNodeVisitor, KisKraSaveVisitor>);
+    static_assert(
+        std::is_constructible_v<KisKraSaveVisitor, KoStore *, const QString &, QMap<const KisNode *, QString>>);
+    static_assert(std::has_virtual_destructor_v<KisKraSaveVisitor>);
+}
+
+void KisKraSaveXmlVisitorSchemaContractTest::kraLoadVisitorNodeAndLayerVisitSignaturesRemainStable()
+{
+    using Visitor = KisKraLoadVisitor;
+
+    static_assert(std::is_same_v<decltype(static_cast<bool (Visitor::*)(KisNode *)>(&Visitor::visit)),
+                                 bool (Visitor::*)(KisNode *)>);
+    static_assert(std::is_same_v<decltype(static_cast<bool (Visitor::*)(KisExternalLayer *)>(&Visitor::visit)),
+                                 bool (Visitor::*)(KisExternalLayer *)>);
+    static_assert(std::is_same_v<decltype(static_cast<bool (Visitor::*)(KisPaintLayer *)>(&Visitor::visit)),
+                                 bool (Visitor::*)(KisPaintLayer *)>);
+    static_assert(std::is_same_v<decltype(static_cast<bool (Visitor::*)(KisGroupLayer *)>(&Visitor::visit)),
+                                 bool (Visitor::*)(KisGroupLayer *)>);
+    static_assert(std::is_same_v<decltype(static_cast<bool (Visitor::*)(KisAdjustmentLayer *)>(&Visitor::visit)),
+                                 bool (Visitor::*)(KisAdjustmentLayer *)>);
+    static_assert(std::is_same_v<decltype(static_cast<bool (Visitor::*)(KisGeneratorLayer *)>(&Visitor::visit)),
+                                 bool (Visitor::*)(KisGeneratorLayer *)>);
+    static_assert(std::is_same_v<decltype(static_cast<bool (Visitor::*)(KisCloneLayer *)>(&Visitor::visit)),
+                                 bool (Visitor::*)(KisCloneLayer *)>);
+}
+
+void KisKraSaveXmlVisitorSchemaContractTest::kraLoadVisitorMaskStateAndProfileSignaturesRemainStable()
+{
+    using Visitor = KisKraLoadVisitor;
+
+    static_assert(std::is_same_v<decltype(static_cast<bool (Visitor::*)(KisFilterMask *)>(&Visitor::visit)),
+                                 bool (Visitor::*)(KisFilterMask *)>);
+    static_assert(std::is_same_v<decltype(static_cast<bool (Visitor::*)(KisTransformMask *)>(&Visitor::visit)),
+                                 bool (Visitor::*)(KisTransformMask *)>);
+    static_assert(std::is_same_v<decltype(static_cast<bool (Visitor::*)(KisTransparencyMask *)>(&Visitor::visit)),
+                                 bool (Visitor::*)(KisTransparencyMask *)>);
+    static_assert(std::is_same_v<decltype(static_cast<bool (Visitor::*)(KisSelectionMask *)>(&Visitor::visit)),
+                                 bool (Visitor::*)(KisSelectionMask *)>);
+    static_assert(std::is_same_v<decltype(static_cast<bool (Visitor::*)(KisColorizeMask *)>(&Visitor::visit)),
+                                 bool (Visitor::*)(KisColorizeMask *)>);
+    static_assert(std::is_same_v<decltype(&Visitor::setExternalUri), void (Visitor::*)(const QString &)>);
+    static_assert(std::is_same_v<decltype(&Visitor::errorMessages), QStringList (Visitor::*)() const>);
+    static_assert(std::is_same_v<decltype(&Visitor::warningMessages), QStringList (Visitor::*)() const>);
+    static_assert(std::is_same_v<decltype(&Visitor::customProfileNameAliasForKra), QHash<QString, QString> (*)()>);
+}
+
+void KisKraSaveXmlVisitorSchemaContractTest::kraSaveVisitorNodeAndLayerVisitSignaturesRemainStable()
+{
+    using Visitor = KisKraSaveVisitor;
+
+    static_assert(std::is_same_v<decltype(static_cast<bool (Visitor::*)(KisNode *)>(&Visitor::visit)),
+                                 bool (Visitor::*)(KisNode *)>);
+    static_assert(std::is_same_v<decltype(static_cast<bool (Visitor::*)(KisExternalLayer *)>(&Visitor::visit)),
+                                 bool (Visitor::*)(KisExternalLayer *)>);
+    static_assert(std::is_same_v<decltype(static_cast<bool (Visitor::*)(KisPaintLayer *)>(&Visitor::visit)),
+                                 bool (Visitor::*)(KisPaintLayer *)>);
+    static_assert(std::is_same_v<decltype(static_cast<bool (Visitor::*)(KisGroupLayer *)>(&Visitor::visit)),
+                                 bool (Visitor::*)(KisGroupLayer *)>);
+    static_assert(std::is_same_v<decltype(static_cast<bool (Visitor::*)(KisAdjustmentLayer *)>(&Visitor::visit)),
+                                 bool (Visitor::*)(KisAdjustmentLayer *)>);
+    static_assert(std::is_same_v<decltype(static_cast<bool (Visitor::*)(KisGeneratorLayer *)>(&Visitor::visit)),
+                                 bool (Visitor::*)(KisGeneratorLayer *)>);
+    static_assert(std::is_same_v<decltype(static_cast<bool (Visitor::*)(KisCloneLayer *)>(&Visitor::visit)),
+                                 bool (Visitor::*)(KisCloneLayer *)>);
+}
+
+void KisKraSaveXmlVisitorSchemaContractTest::kraSaveVisitorMaskAndStateSignaturesRemainStable()
+{
+    using Visitor = KisKraSaveVisitor;
+
+    static_assert(std::is_same_v<decltype(static_cast<bool (Visitor::*)(KisFilterMask *)>(&Visitor::visit)),
+                                 bool (Visitor::*)(KisFilterMask *)>);
+    static_assert(std::is_same_v<decltype(static_cast<bool (Visitor::*)(KisTransformMask *)>(&Visitor::visit)),
+                                 bool (Visitor::*)(KisTransformMask *)>);
+    static_assert(std::is_same_v<decltype(static_cast<bool (Visitor::*)(KisTransparencyMask *)>(&Visitor::visit)),
+                                 bool (Visitor::*)(KisTransparencyMask *)>);
+    static_assert(std::is_same_v<decltype(static_cast<bool (Visitor::*)(KisSelectionMask *)>(&Visitor::visit)),
+                                 bool (Visitor::*)(KisSelectionMask *)>);
+    static_assert(std::is_same_v<decltype(static_cast<bool (Visitor::*)(KisColorizeMask *)>(&Visitor::visit)),
+                                 bool (Visitor::*)(KisColorizeMask *)>);
+    static_assert(std::is_same_v<decltype(&Visitor::setExternalUri), void (Visitor::*)(const QString &)>);
+    static_assert(std::is_same_v<decltype(&Visitor::errorMessages), QStringList (Visitor::*)() const>);
 }
 
 QTEST_GUILESS_MAIN(KisKraSaveXmlVisitorSchemaContractTest)
