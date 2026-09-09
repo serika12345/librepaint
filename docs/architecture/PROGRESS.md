@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 19:40 JST
+- 更新日時: 2026-09-09 19:45 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4592,6 +4592,13 @@
 - 既存widget契約は全て10枠へ達しているため、新規`libs/ui/tests/KisCollapsibleButtonGroupSchemaContractTest.cpp`をUI source/generated探索路、Qt Widgetsのinterface探索路、`kritaui_EXPORTS`、Qt Core・Testだけで構成し、4工程・8入力を予測する。追加前targetは`unknown target`である。停止線を5工程・11入力とし、Qt Gui・Widgetsの動的接続、製品OBJECT・shared、`kritatestsdk`、AUTOMOC製品header入力、折り畳みbutton群の製品記号が必要なら停止する。macOSの対象と軽量widget近傍、追加4枠の20回反復、実装・試験sourceとheader強制includeの厳格構文、書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、実button・操作・resize、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
 - 構造準備では開始`libs/ui/widgets/kis_collapsible_button_group.h`から`QWidget`と重複する`QObject`を除去し、値返却する`QSize`を直接include、pointerだけの`QAction`と`QResizeEvent`を前方宣言した。`QResizeEvent`の局所class宣言もheaderの前方宣言へ統一した。開始`libs/ui/widgets/kis_collapsible_button_group.cpp`とheader強制includeの厳格構文は診断0件である。計画commitは`05c3e2c08b`、構造準備commitは`ace031b7a7`である。
 - 開始headerから新規`libs/ui/tests/KisCollapsibleButtonGroupSchemaContractTest.cpp`へ全13 API・4枠を追加し、型・構築・寿命、自動raiseとicon寸法、自動・明示折り畳み、推奨・最小寸法と操作追加を型特性と厳密な関数pointerで固定した。契約commitは`8abd4dd3cc`である。新規sourceは63行・4枠、targetはQt Core・Testだけへ動的接続する4工程・8入力、command SHA-256 `614e2253553b70383ee32c45a21b76b3793d61dac548f70c55ea2ec5533165ce`、input SHA-256 `37a973b1221641c14845cda5455d3c7a7b40ae1984bd4f077069ff1c6bfe4f3e`である。AUTOMOC `HEADERS=[]`、折り畳みbutton群・画面部品・buttonの未解決製品記号0で、Qt Gui・Widgetsと製品libraryを動的接続していない。macOSで対象とcurve widget近傍、対象全体と各4枠を20回、実装・試験sourceとheader強制includeの厳格構文、書式、連続二回の無作業再構築、公開API検査に成功した。台帳は28,095件対応、1,706件未対応となり、開始headerの残存は0件である。新`public-api-missing-g509.json`の生成成功後に旧`public-api-missing-g508.json` 466,618 bytesを削除した。主Ninja木6,026,708 KiB、共有compiler cache 983,480 KiB、最新報告463,315 bytes、SHA-256 `f5b95caf79e32b894a5032a7819e297716bbf0049be56930e51b442247791939`だけを再利用対象として保持する。compiler cacheは144,741 cache可能呼出し中120,580件、83.31%がhitしている。実button・操作・resize、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第509便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
+
+### 第509便の公開API契約計画
+
+- 第509便は入力eventを一定時刻間隔へ補間して反復可能な描画情報範囲を提供する`libs/tools/kis_stabilized_events_sampler.h`の残存全10 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g509.json`は公開header 1,549、公開API 29,801、対応済み28,095、未対応1,706、463,315 bytes、SHA-256 `f5b95caf79e32b894a5032a7819e297716bbf0049be56930e51b442247791939`である。対象10識別子の整列集合SHA-256は`7a4ba720530c91f8e251287e4f688118fc4e33f8dec81f5a7751526d57e977fb`である。
+- 安定化event標本器境界は標本器・iterator型、両者の構築と標本器破棄6、消去・event追加・終端event追加・反復範囲取得4の2枠へ固定する。型特性、厳密な関数pointerと未評価の省略引数呼出しだけを使い、標本器、描画情報、補間と反復処理を実体化しない。
+- 開始headerは描画情報を参照型とiteratorの値型指定にしか使わない一方、前方宣言の直後に完全定義`kis_paint_information.h`を全利用者へ取り込んでいる。契約追加より先に完全定義includeを除去して前方宣言を残し、描画情報本文を必要とする`libs/tools/kis_stabilized_events_sampler.cpp`へ直接includeを移す。開始時の実装とheader強制includeの厳格構文は診断0件であり、構造変更後も維持する。
+- 実行契約`kis_stabilized_events_sampler_test`は`kritatools`と`kritatestsdk`へ接続し1,274工程・2,563入力となるため、宣言契約の反復には使わない。直前に拡張した`libs/tools/tests/KisToolUtilsSchemaContractTest.cpp`は同じ安定化描画補助責務を所有する117行・8枠であり、2枠追加後も220行・10枠以内に収まる。CMake変更なしでQt Core・Testだけへ動的接続する4工程・8入力、command SHA-256 `cd923711429c497be465877c7f24073dc8aa43d336f9960b14eabe359010ad69`、input SHA-256 `2ff0d7eb83f82509485ecf22eadd9f8f5e23399dea0d6b1fef52242f83e65023`、AUTOMOC `HEADERS=[]`と製品未接続を維持する。入力hashの変更、新たな動的接続、製品記号が必要なら停止する。macOSの対象と軽量tools近傍、追加2枠の20回反復、実装・試験sourceとheader強制includeの厳格構文、書式、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、実補間・反復結果、重量実行target、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
 
 ### 第239便の先行監査担当票
 
