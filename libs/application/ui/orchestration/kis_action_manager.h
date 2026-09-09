@@ -14,9 +14,7 @@
 #include <QPointer>
 
 #include "kstandardaction.h"
-
-template<typename T>
-class KisPinnedSharedPtr;
+#include "operations/kis_operation_configuration_fwd.h"
 
 class QAction;
 class QMenu;
@@ -25,11 +23,8 @@ class KisKActionCollection;
 class KisView;
 class KisViewManager;
 class KisAction;
-class KisOperationConfiguration;
 class KisOperationUIFactory;
 class KisOperation;
-
-typedef KisPinnedSharedPtr<KisOperationConfiguration> KisOperationConfigurationSP;
 
 /**
  * @brief A KisActionManager class keeps track of KisActions.
