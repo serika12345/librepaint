@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 13:35 JST
+- 更新日時: 2026-09-09 13:39 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4338,6 +4338,13 @@
 - 開始`libs/ui/flake/kis_dummies_facade_base.h`から新規`libs/ui/tests/KisDummiesFacadeBaseSchemaContractTest.cpp`へ全17 API・4枠を追加した。QObject由来の抽象型・構築・仮想破棄、画像と最後の能動node状態、node・dummy・根・総数の照会、挿入・削除・変更・能動化通知を型特性、局所派生probe、厳密な関数pointerで固定した。初回は全4観測枠が成功し、`G483 dummies facade API schema is not fixed yet`だけが`XFAIL`となった。公開headerと製品sourceは変更していない。計画commitは`7254446f72`、契約commitは`64fb28f2d6`である。
 - 対象未登録の初回限定構築は未知の対象として失敗した。新規試験sourceは89行・4枠で、targetはQt Core・Testだけへ動的接続する4工程・8入力、command SHA-256 `771e08d77c5e95c10be87dd4ef02a30d55059f4cdf7cbb0686d7a10ea34443b8`、input SHA-256 `ac62c62476b5e24a582539549039f08b87a9b6e99c88571a96b2ce13238deb32`となった。AUTOMOC `HEADERS=[]`、facade・dummy・製品libraryの未解決記号は0である。macOSで対象の単発と20回反復、最軽量近傍`KisAnimationFrameCacheSchemaContractTest`、試験sourceの厳格構文と書式、連続二回の無作業再構築、公開API検査に成功した。非同期更新順序、signal配送、node木の実状態遷移、1,981工程・3,961入力の既存`kis_dummies_facade_test`、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 台帳は27,662件対応、2,143件未対応となり、開始headerの残存は0件である。新`public-api-missing-g484.json`の生成成功後に旧`public-api-missing-g483.json` 583,143 bytesを削除し、一時一覧、追加作業tree・構築木は作成していない。主Ninja木6,023,336 KiB、共有compiler cache 982,048 KiB、最新`build/tdd-macos/public-api-missing-g484.json` 578,805 bytes、SHA-256 `685720c15747f05f40138bb72dea8f20e9483717cf8cfd8b87ca75d43306e3a7`だけを再利用対象として保持する。compiler cacheは144,671件中120,567件、83.34%がhitしている。次の永続作業は第484便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
+
+### 第484便の公開API契約計画
+
+- 第484便はwidget系canvasの表示・移動・拡大制御を所有する`libs/ui/canvas/KoCanvasControllerWidget.h`に残る全23 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g484.json`は公開header 1,548、公開API 29,805、対応済み27,662、未対応2,143、578,805 bytes、SHA-256 `685720c15747f05f40138bb72dea8f20e9483717cf8cfd8b87ca75d43306e3a7`である。対象23識別子の整列集合SHA-256は`db706fc1c9bb3b927bd5291fdadc3f73d316e4127ae5a23018378d30a3296b48`である。
+- controller widgetは型・構築・破棄・状態・私有実装5、起動・canvas・widget・tool設定5、矩形と4形式の拡大5、距離と四方向の移動5、scroll内容・値の取得設定3の5枠へ固定する。型特性、局所派生probe、厳密な関数pointerだけを使い、controller、canvas、widget、状態値、still point、各本文を実体化しない。
+- 開始headerの`optional`、`QAbstractScrollArea`、`QPointer`、`KoCanvasController.h`、`KoZoomMode.h`は公開基底・会員署名に必要で、全前方宣言も公開または保護署名で使われる。私有実装は前方宣言と実装側の明示destructorで所有され、除去できる完全定義include、不要な生成入力、逆向依存がないため構造変更を行わない。対象の独立した挙動試験はなく、製品実装は`libs/ui/CMakeLists.txt`のUI集合に収容されるため限定反復対象から外す。
+- 既存`libs/ui/tests/KisCanvas2SchemaContractTest.cpp`は対象headerを`kis_canvas_controller.h`経由で既にコンパイルする296行・10枠の限定targetである。新targetは同じheaderを二重に再構築するため棄却し、同sourceへ直接includeと5枠を追加して390行・16枠未満に収める。CMake変更なしでQt Gui・Testだけへ動的接続する4工程・8入力、command SHA-256 `bc29da8c640940c753d920e812ec6fd04ab89a825edbc4c2cc560d93eba206c9`、input SHA-256 `f81e09d52468c18355e8cf9865fad097e615cdb1740996e3bce08afc81504ec4`を維持し、停止線を4工程・8入力とする。新たな探索路・定義・接続、AUTOMOC製品header入力、対象型または本文の実体化が必要なら停止する。macOSの対象、既存10枠と追加5枠、追加枠の20回反復、試験sourceの厳格構文と書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
 
 ### 第239便の先行監査担当票
 
