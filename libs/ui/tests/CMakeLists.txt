@@ -1148,6 +1148,25 @@ target_compile_definitions(KisDisplayConfigSchemaContractTest PRIVATE
 )
 
 kis_add_test(
+    KisDitherUtilSchemaContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KisDitherUtilSchemaContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+    ${CMAKE_SOURCE_DIR}/libs/image
+    ${CMAKE_BINARY_DIR}/libs/image
+)
+target_compile_definitions(KisDitherUtilSchemaContractTest PRIVATE
+    kritaimage_EXPORTS
+    kritaui_EXPORTS
+)
+
+kis_add_test(
     KisCIETongueWidgetSchemaContractTest.cpp
     LINK_LIBRARIES
         Qt${QT_MAJOR_VERSION}::Core
