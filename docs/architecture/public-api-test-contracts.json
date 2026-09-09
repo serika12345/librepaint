@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 1540
+    "expectedMissingApis": 1529
   },
   "contracts": [
     {
@@ -79054,6 +79054,44 @@
         "method:KisAsyncAnimationFramesSaveDialog::getUniqueFrames() const",
         "method:KisAsyncAnimationFramesSaveDialog::savedFiles() const",
         "method:KisAsyncAnimationFramesSaveDialog::savedUniqueFiles() const"
+      ]
+    },
+    {
+      "target": "KisPlaybackEngineQtSchemaContractTest",
+      "source": "libs/ui/tests/KisPlaybackEngineQtSchemaContractTest.cpp",
+      "test": "KisPlaybackEngineQtSchemaContractTest::typeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "Qt再生engineは省略可能な親objectから構築できる再生engine派生として、基底から仮想破棄する契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisPlaybackEngineQT",
+        "method:KisPlaybackEngineQT::KisPlaybackEngineQT(QObject * parent=nullptr)",
+        "method:KisPlaybackEngineQT::~KisPlaybackEngineQT()"
+      ]
+    },
+    {
+      "target": "KisPlaybackEngineQtSchemaContractTest",
+      "source": "libs/ui/tests/KisPlaybackEngineQtSchemaContractTest.cpp",
+      "test": "KisPlaybackEngineQtSchemaContractTest::seekMuteAndDropPolicySignaturesRemainStable",
+      "behavior": "Qt再生engineは省略可能な音声送出・確定方針でframe位置を移動し、消音状態とframe破棄方針を設定・照会する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPlaybackEngineQT::isMute()",
+        "method:KisPlaybackEngineQT::seek(int frameIndex,SeekOptionFlags flags=SEEK_FINALIZE|SEEK_PUSH_AUDIO)",
+        "method:KisPlaybackEngineQT::setDropFramesMode(bool value)",
+        "method:KisPlaybackEngineQT::setMute(bool)"
+      ]
+    },
+    {
+      "target": "KisPlaybackEngineQtSchemaContractTest",
+      "source": "libs/ui/tests/KisPlaybackEngineQtSchemaContractTest.cpp",
+      "test": "KisPlaybackEngineQtSchemaContractTest::capabilityRateAndStatisticsSignaturesRemainStable",
+      "behavior": "Qt再生engineは音声・可変速度の対応可否、実効fps、再生統計を公開する境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPlaybackEngineQT::activeFramesPerSecond() const",
+        "method:KisPlaybackEngineQT::playbackStatistics() const",
+        "method:KisPlaybackEngineQT::supportsAudio()",
+        "method:KisPlaybackEngineQT::supportsVariablePlaybackSpeed()"
       ]
     }
   ]
