@@ -9,7 +9,6 @@
 #include "document/StoryboardItem.h"
 
 #include <QAbstractListModel>
-#include <QAbstractButton>
 
 #include <kritastoryboarddocker_export.h>
 
