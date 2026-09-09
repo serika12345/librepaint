@@ -16,7 +16,7 @@
     "publicApiFingerprint": "62e45b238446dc0eb6798b1de10b2cd9261befccc2a837c75de2c86393d7e016"
   },
   "migration": {
-    "expectedMissingApis": 1987
+    "expectedMissingApis": 1972
   },
   "contracts": [
     {
@@ -77558,6 +77558,66 @@
         "method:KisActionManager::createStandardAction(KStandardAction::StandardAction,const QObject * receiver,const char * member)",
         "method:KisActionManager::safePopulateMenu(QMenu * menu,const QString & actionId,KisActionManager * actionManager)",
         "method:KisActionManager::updateGUI()"
+      ]
+    },
+    {
+      "target": "KisPlaybackEngineSchemaContractTest",
+      "source": "libs/ui/tests/KisPlaybackEngineSchemaContractTest.cpp",
+      "test": "KisPlaybackEngineSchemaContractTest::mltPlaybackModeSchemaRemainsStable",
+      "behavior": "MLT再生境界は停止・seek時に外部へframeを送るpush modeと、MLT駆動でframeを受けるpull modeの列挙値を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:PlaybackMode",
+        "enumerator:PlaybackMode::PLAYBACK_PULL",
+        "enumerator:PlaybackMode::PLAYBACK_PUSH"
+      ]
+    },
+    {
+      "target": "KisPlaybackEngineSchemaContractTest",
+      "source": "libs/ui/tests/KisPlaybackEngineSchemaContractTest.cpp",
+      "test": "KisPlaybackEngineSchemaContractTest::mltPlaybackEngineTypeLifetimeAndWaitingSchemaRemainStable",
+      "behavior": "MLT再生engineは共通再生engine基底、任意親からの構築、仮想破棄とframe待機interface照会を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisPlaybackEngineMLT",
+        "method:KisPlaybackEngineMLT::KisPlaybackEngineMLT(QObject * parent=nullptr)",
+        "method:KisPlaybackEngineMLT::frameWaitingInterface()",
+        "method:KisPlaybackEngineMLT::~KisPlaybackEngineMLT()"
+      ]
+    },
+    {
+      "target": "KisPlaybackEngineSchemaContractTest",
+      "source": "libs/ui/tests/KisPlaybackEngineSchemaContractTest.cpp",
+      "test": "KisPlaybackEngineSchemaContractTest::mltPlaybackEngineSeekAndMuteSignaturesRemainStable",
+      "behavior": "MLT再生engineはframe seekと省略時の確定・音声送出方針、mute設定・照会の公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPlaybackEngineMLT::isMute()",
+        "method:KisPlaybackEngineMLT::seek(int frameIndex,SeekOptionFlags flags=SEEK_FINALIZE|SEEK_PUSH_AUDIO)",
+        "method:KisPlaybackEngineMLT::setMute(bool val)"
+      ]
+    },
+    {
+      "target": "KisPlaybackEngineSchemaContractTest",
+      "source": "libs/ui/tests/KisPlaybackEngineSchemaContractTest.cpp",
+      "test": "KisPlaybackEngineSchemaContractTest::mltPlaybackEngineCapabilityDropAndStatisticsSignaturesRemainStable",
+      "behavior": "MLT再生engineは音声・可変速度対応、frame drop方針の設定、再生統計の照会に関する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPlaybackEngineMLT::playbackStatistics() const",
+        "method:KisPlaybackEngineMLT::setDropFramesMode(bool value)",
+        "method:KisPlaybackEngineMLT::supportsAudio()",
+        "method:KisPlaybackEngineMLT::supportsVariablePlaybackSpeed()"
+      ]
+    },
+    {
+      "target": "KisPlaybackEngineSchemaContractTest",
+      "source": "libs/ui/tests/KisPlaybackEngineSchemaContractTest.cpp",
+      "test": "KisPlaybackEngineSchemaContractTest::mltPlaybackEngineNotificationSignatureRemainsStable",
+      "behavior": "MLT再生engineはactive canvasへ表示すべきframe番号を通知する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPlaybackEngineMLT::sigChangeActiveCanvasFrame(int p_frame)"
       ]
     }
   ]
