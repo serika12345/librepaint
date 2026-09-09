@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 19:13 JST
+- 更新日時: 2026-09-09 19:18 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4572,6 +4572,8 @@
 - 主設定変更操作境界は型・shortcut enum・構築・破棄4、通常・吸着shortcutの序数2、起動・終了と入力開始・完了4、入力配送・優先度・高精度入力可否3の4枠へ固定する。型特性、列挙値と厳密な関数pointerだけを使い、入力管理器、tool proxy、eventとbrush変更本文を実体化しない。
 - 開始headerは公開基底に必要な`kis_abstract_input_action.h`と、非公開返却・値会員の`KisTool::ToolAction`に必要な`kis_tool.h`を直接所有し、除去できる推移依存はないため製品構造を変更しない。header強制includeはcanvasの正規入力操作群headerのsource/generated探索路を与えると厳格構文に成功する。開始`libs/input/ui/kis_change_primary_setting_action.cpp`の厳格構文にはQt 6.4以降で非推奨の旧`QMouseEvent`構築3診断があり、今回の宣言契約とは分離し、追加診断0を維持する。
 - 既存`libs/input/ui/tests/KisToolProxySchemaContractTest.cpp`は同じtool操作転送責務を所有する72行・5枠の限定targetである。同sourceへ4枠を追加して220行・10枠未満に収める。変更前targetはQt Core・Testだけへ動的接続する4工程・8入力、command SHA-256 `1bf641152228077a8d57dc91a558e04502a459070d9b12854ec568901b69e743`、input SHA-256 `e026f067eb7d879cf8a3e5f3ef1a52faf18a3e1be49c3f2d1ee6053d521b3a66`で、AUTOMOC `HEADERS=[]`、製品未解決記号0である。対象固有節へcanvasのsource/generated探索路だけを加え、既存`kritacanvas_EXPORTS`定義と4工程・8入力を維持する。入力hashの変更、新たな動的接続、製品OBJECT・shared、`kritatestsdk`、AUTOMOC製品header入力、主設定変更操作の製品記号が必要なら停止する。macOSの対象と軽量入力近傍、追加4枠の20回反復、試験sourceとheader強制includeの厳格構文、書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、実event配送・brush寸法変更、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
+- 開始`libs/input/ui/kis_change_primary_setting_action.h`から既存`libs/input/ui/tests/KisToolProxySchemaContractTest.cpp`へ全13 API・4枠を追加し、型・shortcut・寿命、通常・吸着shortcut序数、起動・終了と入力開始・完了、入力配送・優先度・高精度入力可否を型特性、列挙値と厳密な関数pointerで固定した。`libs/input/ui/tests/CMakeLists.txt`の対象固有節へcanvasのsource/generated探索路だけを追加し、公開headerと製品実装は変更していない。計画commitは`61daf69f36`、契約commitは`00d04c7906`である。既存sourceは123行・9枠となった。
+- targetはQt Core・Testだけへ動的接続する4工程・8入力、command SHA-256 `e17c28adda4dd1f737dbdb38c4e15c8c65989253b6972f0d2c708d66e93bb58c`となり、input SHA-256 `e026f067eb7d879cf8a3e5f3ef1a52faf18a3e1be49c3f2d1ee6053d521b3a66`を維持した。AUTOMOC `HEADERS=[]`、tool proxy・主設定変更操作・入力操作基底の未解決製品記号0である。macOSで対象とtool invocation近傍、対象全体と追加4枠を20回、試験sourceとheader強制includeの厳格構文、書式、連続二回の無作業再構築、公開API検査に成功した。開始実装の厳格構文は既存の旧`QMouseEvent`構築非推奨診断3件だけで、今回の追加診断は0件である。台帳は28,069件対応、1,732件未対応となり、開始headerの残存は0件である。新`public-api-missing-g507.json`の生成成功後に旧`public-api-missing-g506.json` 473,807 bytesを削除した。主Ninja木6,025,396 KiB、共有compiler cache 983,212 KiB、最新報告470,324 bytes、SHA-256 `2ca283d8dbafb1b6998cdf889fca059d32226d1cc883397069763759921f58f8`だけを再利用対象として保持する。compiler cacheは144,737 cache可能呼出し中120,579件、83.31%がhitしている。実event配送・brush寸法変更、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第507便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
 
 ### 第239便の先行監査担当票
 

@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 1745
+    "expectedMissingApis": 1732
   },
   "contracts": [
     {
@@ -78327,6 +78327,55 @@
         "method:KisNodeFilterProxyModel::setActiveNode(KisNodeSP node)",
         "method:KisNodeFilterProxyModel::sigBeforeBeginRemoveRows(const QModelIndex & parent,int start,int end)",
         "method:KisNodeFilterProxyModel::unsetDummiesFacade()"
+      ]
+    },
+    {
+      "target": "KisToolProxySchemaContractTest",
+      "source": "libs/input/ui/tests/KisToolProxySchemaContractTest.cpp",
+      "test": "KisToolProxySchemaContractTest::primarySettingActionTypeShortcutAndLifetimeSchemaRemainStable",
+      "behavior": "主設定変更操作は入力操作基底を持ち、shortcut型と既定構築・仮想破棄を備える公開型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisChangePrimarySettingAction",
+        "enum:KisChangePrimarySettingAction::Shortcut",
+        "method:KisChangePrimarySettingAction::KisChangePrimarySettingAction()",
+        "method:KisChangePrimarySettingAction::~KisChangePrimarySettingAction()"
+      ]
+    },
+    {
+      "target": "KisToolProxySchemaContractTest",
+      "source": "libs/input/ui/tests/KisToolProxySchemaContractTest.cpp",
+      "test": "KisToolProxySchemaContractTest::primarySettingActionShortcutOrdinalsRemainStable",
+      "behavior": "主設定変更操作は通常のbrush寸法変更と画素値への吸着変更を区別するshortcut序数を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "enumerator:KisChangePrimarySettingAction::Shortcut::PrimaryAlternateChangeSizeShortcut",
+        "enumerator:KisChangePrimarySettingAction::Shortcut::SecondaryAlternateChangeSizeShortcut"
+      ]
+    },
+    {
+      "target": "KisToolProxySchemaContractTest",
+      "source": "libs/input/ui/tests/KisToolProxySchemaContractTest.cpp",
+      "test": "KisToolProxySchemaContractTest::primarySettingActionLifecycleSignaturesRemainStable",
+      "behavior": "主設定変更操作はshortcutの起動・終了と入力系列の開始・完了を受け取る公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisChangePrimarySettingAction::activate(int shortcut)",
+        "method:KisChangePrimarySettingAction::begin(int shortcut,QEvent * event)",
+        "method:KisChangePrimarySettingAction::deactivate(int shortcut)",
+        "method:KisChangePrimarySettingAction::end(QEvent * event)"
+      ]
+    },
+    {
+      "target": "KisToolProxySchemaContractTest",
+      "source": "libs/input/ui/tests/KisToolProxySchemaContractTest.cpp",
+      "test": "KisToolProxySchemaContractTest::primarySettingActionEventAndPolicySignaturesRemainStable",
+      "behavior": "主設定変更操作は継続eventを受け取り、優先度とshortcut別の高精度入力可否を返す公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisChangePrimarySettingAction::inputEvent(QEvent * event)",
+        "method:KisChangePrimarySettingAction::priority() const",
+        "method:KisChangePrimarySettingAction::supportsHiResInputEvents(int shortcut) const"
       ]
     }
   ]
