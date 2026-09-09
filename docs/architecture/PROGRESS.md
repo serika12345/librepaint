@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 14:44 JST
+- 更新日時: 2026-09-09 14:52 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4389,6 +4389,10 @@
 - 文字結果は配置精度・配置矩形・行高矩形・基線offset合成・最終変換5、glyph・caret・ink矩形と基線値の原点移動1、tab補正・全体拡縮の厳密署名2、部分文字列の型・構築・原文・変換文・対応leaf・索引変換6、text path状態・継承属性・背景4の5枠へ固定する。配置矩形、基線合成、最終変換、outline・bitmap・色layerの原点移動は値を実体化して結果を観測する。tab補正と全体拡縮はそれぞれ`ResolutionHandler::adjust`と`FontMetrics::scaleBaselines`の製品本文へ接続するため厳密署名に限定し、部分文字列は`KoSvgTextProperties`の製品構築を避けて型特性と会員型を固定する。
 - 開始headerの完全定義includeはglyph・文字属性・forest iterator・shape内部所有と多数のinline処理が直接利用し、今回の契約だけを理由に移動できる不要依存はない。既存`libs/flake/tests/KoSvgTextCharacterResultValueContractTest.cpp`は同headerの文字結果・行箱・cursor・glyphを所有する693行・25枠の限定targetで、基準対象と試験sourceの厳格構文に成功した。新targetとCMake変更を避け、同sourceへ5枠を追加して830行・31枠未満に収める。
 - targetはQt Gui・Test・Xmlだけへ動的接続する4工程・8入力、command SHA-256 `8b9ca4b733145cd3eb599eaf7bdeb368dc4d5b10be947740bdb498e218d5e43d`、input SHA-256 `6f1be372a2d9ab0fae470eb0c3a4c629358a081f42b2e1016bec6ae66f541404`を維持し、AUTOMOC `HEADERS=[]`と停止線4工程・8入力を適用する。新たな探索路・定義・接続、AUTOMOC製品header入力、製品記号、830行・31枠以上が必要なら停止する。macOSの対象、既存25枠と追加5枠、追加枠の20回反復、試験sourceの厳格構文と書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
+- 構造監査では開始`libs/flake/text/KoSvgTextShape_p.h`の完全定義includeがglyph・文字属性・forest iterator・shape内部所有とinline処理に直接必要であることを確認し、製品header・source・CMakeは変更しなかった。既存限定対象は基準実行、試験sourceの厳格構文、連続二回の無作業再構築に成功した。計画commitは`f5bc112a69`である。
+- 開始headerから既存`libs/flake/tests/KoSvgTextCharacterResultValueContractTest.cpp`へ全18 API・5枠を追加した。配置精度、横書き・縦書きの配置・行高矩形、基線offset合成、最終変換、outline・bitmap・色layerの原点移動は実値結果を固定した。tab補正・全体拡縮と部分文字列の構築・公開会員は製品本文を実体化しない厳密署名・型特性で固定した。初回は全5枠が成功し、`G488 SVG text layout value APIs are not fixed yet`だけが`XFAIL`となった。契約commitは`1e78f2ec5c`である。
+- 既存試験sourceは803行・30枠となった。targetは変更前後ともQt Gui・Test・Xmlだけへ動的接続する4工程・8入力、command SHA-256 `8b9ca4b733145cd3eb599eaf7bdeb368dc4d5b10be947740bdb498e218d5e43d`、input SHA-256 `6f1be372a2d9ab0fae470eb0c3a4c629358a081f42b2e1016bec6ae66f541404`を維持した。AUTOMOC `HEADERS=[]`、文字結果・部分文字列・文字属性・解像度補正・font metrics・shapeの未解決製品記号は0である。macOSで全30枠の単発と20回反復、追加5枠を各20回、試験sourceの厳格構文と書式、連続二回の無作業再構築、公開API検査に成功した。正値tab補正・非等倍拡縮と部分文字列の実状態は製品実装接続を避けるため実行していない。製品target、全体build・`verify`、Linux、Nix再評価も実行していない。
+- 台帳は27,756件対応、2,049件未対応となり、開始headerの残存は0件である。新`public-api-missing-g489.json`の生成成功後に旧`public-api-missing-g488.json` 557,843 bytesを削除し、新target、追加生成物、一時一覧、追加作業tree・構築木は作成していない。主Ninja木6,026,732 KiB、共有compiler cache 983,020 KiB、最新`build/tdd-macos/public-api-missing-g489.json` 553,880 bytes、SHA-256 `78731aaefbeb8d500c05d27336ae15bbd2791e27f705d06432e9f1575c79fa26`だけを再利用対象として保持する。compiler cacheは144,683件中120,567件、83.33%がhitしている。次の永続作業は第489便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
 
 ### 第239便の先行監査担当票
 

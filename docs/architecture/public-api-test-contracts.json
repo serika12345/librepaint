@@ -16,7 +16,7 @@
     "publicApiFingerprint": "05a5e67dfcb803772f3a7b7f2773532707ee28e97b57d9173a41fba9047a71d2"
   },
   "migration": {
-    "expectedMissingApis": 2067
+    "expectedMissingApis": 2049
   },
   "contracts": [
     {
@@ -77271,6 +77271,69 @@
         "method:KisMimeData::insertMimeLayers(const QMimeData * data,KisImageSP image,KisShapeController * shapeController,KisNodeDummy * parentDummy,KisNodeDummy * aboveThisDummy,bool copyNode,NodeInsertionInterface * nodeInsertionAdapter,bool changeOffset=false,QPointF offset=QPointF (),KisProcessingApplicator * applicator=nullptr)",
         "method:KisMimeData::mimeForLayers(const KisNodeList & nodes,KisImageSP image,bool forceCopy=false)",
         "method:KisMimeData::mimeForLayersDeepCopy(const KisNodeList & nodes,KisImageSP image,bool forceCopy)"
+      ]
+    },
+    {
+      "target": "KoSvgTextCharacterResultValueContractTest",
+      "source": "libs/flake/tests/KoSvgTextCharacterResultValueContractTest.cpp",
+      "test": "KoSvgTextCharacterResultValueContractTest::characterGeometryAndTransformResultsRemainStable",
+      "behavior": "SVG文字結果は固定精度を持ち、横書き・縦書きの配置矩形と行高矩形、基線offset合成、最終平行移動・回転変換を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:CharacterResult::finalTransform() const",
+        "method:CharacterResult::layoutBox() const",
+        "method:CharacterResult::lineHeightBox() const",
+        "method:CharacterResult::totalBaselineOffset() const",
+        "variable:SHAPE_PRECISION"
+      ]
+    },
+    {
+      "target": "KoSvgTextCharacterResultValueContractTest",
+      "source": "libs/flake/tests/KoSvgTextCharacterResultValueContractTest.cpp",
+      "test": "KoSvgTextCharacterResultValueContractTest::characterGlyphOriginTranslationResultsRemainStable",
+      "behavior": "SVG文字結果の原点移動はoutline・bitmap・色layerの描画座標、caret、ink矩形と横書き・縦書き基線値を同じ逆offsetで移動する。",
+      "classification": "maintained",
+      "apis": [
+        "method:CharacterResult::translateOrigin(QPointF newOrigin)"
+      ]
+    },
+    {
+      "target": "KoSvgTextCharacterResultValueContractTest",
+      "source": "libs/flake/tests/KoSvgTextCharacterResultValueContractTest.cpp",
+      "test": "KoSvgTextCharacterResultValueContractTest::characterScalingAndTabSignaturesRemainStable",
+      "behavior": "SVG文字結果は解像度補正付きtab間隔適用と水平・垂直倍率による全体拡縮の公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:CharacterResult::calculateAndApplyTabsize(QPointF currentPos,bool isHorizontal,const KoSvgText::ResolutionHandler & resHandler)",
+        "method:CharacterResult::scaleCharacterResult(qreal xScale,qreal yScale)"
+      ]
+    },
+    {
+      "target": "KoSvgTextCharacterResultValueContractTest",
+      "source": "libs/flake/tests/KoSvgTextCharacterResultValueContractTest.cpp",
+      "test": "KoSvgTextCharacterResultValueContractTest::subChunkTextAndIndexSchemaRemainStable",
+      "behavior": "SVG部分文字列はforest leafから構築でき、変換後・原文、対応leafと新旧文字索引対応を保持する公開値構成を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:SubChunk::associatedLeaf",
+        "member:SubChunk::newToOldPositions",
+        "member:SubChunk::originalText",
+        "member:SubChunk::text",
+        "method:SubChunk::SubChunk(KisForest<KoSvgTextContentElement>::child_iterator leaf)",
+        "struct:SubChunk"
+      ]
+    },
+    {
+      "target": "KoSvgTextCharacterResultValueContractTest",
+      "source": "libs/flake/tests/KoSvgTextCharacterResultValueContractTest.cpp",
+      "test": "KoSvgTextCharacterResultValueContractTest::subChunkPathAndStyleSchemaRemainStable",
+      "behavior": "SVG部分文字列はtext path所属と先頭状態、継承文字属性、背景所有を表す公開値構成を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:SubChunk::bg",
+        "member:SubChunk::firstTextInPath",
+        "member:SubChunk::inheritedProps",
+        "member:SubChunk::textInPath"
       ]
     }
   ]
