@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 17:20 JST
+- 更新日時: 2026-09-09 17:25 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4488,6 +4488,13 @@
 - 構造準備では開始`plugins/impex/libkra/kis_kra_loader.h`から私有処理だけが使う`KoColor.h`と参照署名だけが使う`QDomDocument`の完全定義を除去し、`KoColor`、`QDomDocument`、`QDomElement`の前方宣言へ置換した。完全定義は実際に色とDOMを利用する宛先`plugins/impex/libkra/kis_kra_loader.cpp`へ移した。共有pointer別名とstoryboard値宣言の所有者`kis_types.h`と重複する`KisPaintingAssistant`・`StoryboardComment`前方宣言も除去した。変更前の強制includeは`KoColor.h`不足で失敗し、変更後は色管理探索路を加えず厳格構文に成功した。直接利用元`kra_converter.cpp`も厳格構文に成功し、loader実装は変更前後とも旧音声入口の既存非推奨診断1件だけである。計画commitは`d0b9ee93d9`、構造準備commitは`f992446da4`である。
 - 開始headerから既存`plugins/impex/libkra/tests/KisKraSaveXmlVisitorSchemaContractTest.cpp`へ全17 API・5枠を追加した。loaderの型・構築・破棄、XML・バイナリー画像、資源・storyboard・animation・音声、選択node・assistant・storyboard値、診断・画像名の署名を型特性と厳密な関数pointerで固定した。非推奨の旧音声入口は公開互換面として局所的に警告を抑えて観測する。既存binaryによる初回実行は新枠を認識せず`Function not found`で失敗した。契約commitは`62310443de`である。
 - 既存試験sourceは282行・15枠となった。targetは変更前後ともQt Core・Testだけへ動的接続する4工程・8入力、command SHA-256 `c43bc72bed9ba8fdd9a222f2e52e68b7df8dde7c6540d363e57f8975d7f2a82c`、input SHA-256 `5d4c2dd9284e07d87bc158f5cf0cca1aaae1a1c81a28ffaffd0c1c7b49fa0a70`を維持した。AUTOMOC `HEADERS=[]`、KRA loader・文書・画像・store・assistant・storyboardの未解決製品記号0である。macOSで全15枠と追加5枠を各20回、試験sourceの厳格構文と書式、連続二回の無作業再構築、公開API検査、`verify-quick`に成功した。台帳は27,914件対応、1,891件未対応となり、開始headerの残存は0件である。新`public-api-missing-g498.json`の生成成功後に旧`public-api-missing-g497.json` 516,267 bytesを削除した。主Ninja木6,020,420 KiB、共有compiler cache 982,872 KiB、最新報告511,966 bytes、SHA-256 `2f122b78cf0522e751f26245c744f5532e4db64d1c4bc5426c8de7dd0bce86f3`だけを再利用対象として保持する。compiler cacheは144,712 cache可能呼出し中120,575件、83.32%がhitしている。実KRA文書読込、資源・storyboard・animation・音声の復元結果、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第498便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
+
+### 第498便の公開API契約計画
+
+- 第498便はanimation frameの前後範囲と有効状態を編集する`plugins/dockers/animation/kis_equalizer_widget.h`の全15 API、`kis_equalizer_slider.h`の全11 API、`kis_equalizer_column.h`の全10 API、合計36件を対象とする。正式入力`build/tdd-macos/public-api-missing-g498.json`は公開header 1,549、公開API 29,805、対応済み27,914、未対応1,891、511,966 bytes、SHA-256 `2f122b78cf0522e751f26245c744f5532e4db64d1c4bc5426c8de7dd0bce86f3`である。対象36識別子の整列集合SHA-256は`fecb832bd3ca5f03a85642d4f3ee5626dd300e27ca18426135fc492609983d69`である。
+- equalizer境界はwidget型・構築・破棄と値構造7、値の取得・設定・master切替・通知5、widgetの寸法・mouse・menu入力3、slider型・構築・破棄・入力・寸法・状態11、column型・構築・破棄・値・状態・右端・強制無効・通知10の5枠へ固定する。型特性、公開値member、厳密な関数pointerだけを使い、widget、slider、column、Qt eventと描画本文を実体化しない。
+- 開始`plugins/dockers/animation/kis_equalizer_column.h`は公開・私有宣言に使わない`QSlider`完全定義を全利用者へ推移させているため、契約追加より先に除去し、構築署名の`QString`を前方宣言する。column実装とslider実装の変更前厳格構文は成功し、widget実装は既存の`QMouseEvent::globalPos`非推奨診断1件だけであるため、変更後も同じ結果を完了条件とする。他2 headerの`QWidget`・`QAbstractSlider`公開基底、`QScopedPointer`値会員、`QMap`公開値は必要なため維持する。
+- 既存`plugins/dockers/animation/tests/KisAnimTimelineFramesViewSchemaContractTest.cpp`はanimation timeline表示責務を所有する145行・5枠の限定targetである。新targetとCMake変更を避け、同sourceへ5枠を追加して300行・11枠未満に収める。変更前targetはQt Gui・Testだけへ動的接続する4工程・8入力、command SHA-256 `0612ee21ddeae2815300ccdad0e4fb4d18a4b6b258859e72f1851cf6e94d40c1`、input SHA-256 `35cc3759b42a517be10b8a905f591140dc508690eb6423f477765cfcc6907bea`である。停止線を4工程・8入力とし、新たな探索路・定義・接続、Qt Widgetsの動的接続、製品OBJECT・shared、`kritatestsdk`、AUTOMOC製品header入力、equalizer製品記号が必要なら停止する。macOSの対象、既存5枠と追加5枠、追加枠の20回反復、3実装と試験sourceの厳格構文、書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、widget実状態・描画・入力、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
 
 ### 第239便の先行監査担当票
 
