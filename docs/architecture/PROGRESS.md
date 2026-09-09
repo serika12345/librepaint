@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 17:45 JST
+- 更新日時: 2026-09-09 17:49 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4508,6 +4508,13 @@
 - 構造準備では開始`plugins/assistants/Assistants/ConcentricEllipseAssistant.h`から宣言に使わない`QObject`と実装の投影計算だけが使う`QLineF`を除去し、`QLineF`完全定義を宛先`plugins/assistants/Assistants/ConcentricEllipseAssistant.cc`へ移した。既存`libs/ui/tests/KisPaintingAssistantSchemaContractTest`には対象のsource/generated探索路と`kritaassistanttool_static_EXPORTS`だけを追加した。対象headerを強制includeした試験sourceとassistant実装の厳格構文に変更前後とも成功した。計画commitは`ad952018bf`、構造準備commitは`48cf0b4b9d`である。
 - 開始headerから既存`libs/ui/tests/KisPaintingAssistantSchemaContractTest.cpp`へ全15 API・4枠を追加した。assistantの型・構築・複製、位置・線補正・既定編集位置・handle数・完了状態・変換と、factoryの型・構築・破棄・識別子・表示名・生成を型特性と厳密な関数pointerで固定した。既存binaryによる初回実行は新枠を認識せず`Function not found`で失敗した。契約commitは`71c87ab5fa`である。
 - 既存試験sourceは281行・9枠となった。targetはQt Gui・Testだけへ動的接続する4工程・8入力を維持し、command SHA-256は対象固有探索路と定義だけを加えた`dd4f1cee7da16375281642b346155b0fb4ec56ba940082368da830a6292fa4d6`、input SHA-256は不変の`06ee5de1354abd97185cdd5c5adf94b63338e8cf8bab8bfca914401cc40cd827`である。AUTOMOC `HEADERS=[]`、同心楕円assistant・factory・楕円・handleの未解決製品記号0である。macOSで全9枠と追加4枠を各20回、試験sourceと実装の厳格構文、書式、連続二回の無作業再構築、公開API検査、`verify-quick`に成功した。台帳は27,965件対応、1,840件未対応となり、開始headerの残存は0件である。新`public-api-missing-g500.json`の生成成功後に旧`public-api-missing-g499.json` 503,220 bytesを削除した。主Ninja木6,020,292 KiB、共有compiler cache 982,668 KiB、最新報告498,800 bytes、SHA-256 `62481d4ba56d58c3ce40f966bc67efcb4cabde3d68fab3934ea884cbb9693618`だけを再利用対象として保持する。compiler cacheは144,716 cache可能呼出し中120,577件、83.32%がhitしている。実補正・変換・描画、factory生成結果、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第500便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
+
+### 第500便の公開API契約計画
+
+- 第500便はKRA文書の保存内容と読込・保存調整を所有する`plugins/impex/libkra/kis_kra_saver.h`の残存全12 APIと`plugins/impex/libkra/kra_converter.h`の残存全12 API、合計24件を対象とする。正式入力`build/tdd-macos/public-api-missing-g500.json`は公開header 1,549、公開API 29,805、対応済み27,965、未対応1,840、498,800 bytes、SHA-256 `62481d4ba56d58c3ce40f966bc67efcb4cabde3d68fab3934ea884cbb9693618`である。対象24識別子の整列集合SHA-256は`19281299c98dd0b5ab0ea67a2ad58bf391006a01450477b98320e2fe83c912da`である。
+- KRA文書境界は保存器の型・構築・破棄3、XML・鍵frame・画像本体・資源・storyboard保存5、animation・音声・診断4、変換調整器の型・構築・破棄4、読込・保存・結果照会・取消8の5枠へ固定する。型特性、厳密な関数pointer、省略引数の未評価呼出しだけを使い、文書、画像、node、assistant、store、更新器、保存器・読込器本文を実体化しない。
+- 開始`kis_kra_saver.h`は公開・私有署名だけが使うDOM型と色型の完全定義を推移させ、開始`kra_converter.h`は非公開pointerだけが使うstore・更新器・KRA保存器・読込器の完全定義と未使用の進捗更新器を推移させている。契約追加より先に前方宣言へ置換し、実利用先`kis_kra_saver.cpp`と`kra_converter.cpp`へ必要な完全定義を直接配置する。両実装の変更前厳格構文は成功しており、変更後も成功を完了条件とする。
+- 既存`KisKraSaveXmlVisitorSchemaContractTest.cpp`は282行・15枠で上限に達したため追記しない。新規`plugins/impex/libkra/tests/KraDocumentSchemaContractTest.cpp`に5枠を分離し、既存KRA契約と同じ限定探索路・export定義、Qt Core・Testだけで4工程・8入力を予測する。追加前targetは`unknown target`である。停止線を5工程・11入力とし、Qt Guiの動的接続、製品OBJECT・shared、`kritatestsdk`、AUTOMOC製品header入力、KRA製品記号が必要なら停止する。macOSの新対象と既存KRA近傍、追加5枠の20回反復、両実装と試験sourceの厳格構文、書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、実KRA入出力、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
 
 ### 第239便の先行監査担当票
 
