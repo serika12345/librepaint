@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 10:08 JST
+- 更新日時: 2026-09-09 10:22 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4209,6 +4209,9 @@
 - 選択処理補助は型・処理関数別名・構築3、選択設定1、初期化command二形式2、描画装置変換二形式2の4枠へ固定する。色空間変換visitorは型・色空間と変換方針からの構築2と、generator・adjustment・filter mask・group・transform mask・colorize mask訪問6の2枠へ固定する。鏡像visitorは型・矩形または選択からの二構築・node列への静的適用4、切抜きvisitorとprofile割当visitorはそれぞれ型・構築・transform mask訪問・colorize mask訪問4の各1枠へ固定する。visitorと補助本文は実体化せず、型特性と厳密な関数pointerだけを観測する。
 - 五つの公開headerはsimple visitor基底、共有型、色変換方針、矩形値、選択処理補助値を公開継承、値member、または公開署名に直接使う。完全定義を前方宣言へ移せる余地がなく、既存includeを減らすと値memberまたは列挙型の定義を失うため、構造変更は行わない。
 - 新規`libs/image/tests/KisProcessingVisitorsSchemaContractTest.cpp`は200行・10枠未満とする。最寄りの`KisProcessingApplicatorSchemaContractTest`は4工程・8入力、command SHA-256 `c2ad24c7fa29698d0e5f7bfd19aeb76433f35ec1b85e59351f20cbd0ba47b3b8`、input SHA-256 `ef65832c613a467e9fd10c4af072b8718b9043f966c8104b8aff5bd39bd3c090`である。新targetも製品objectを接続せず、Qt Core・Gui・Testとimage・global・pigment・painting/undoの最小探索路・interface条件だけを与えて4工程・8入力を予測する。停止線は5工程・11入力で、新たな製品接続、AUTOMOC製品header入力、visitorまたは補助本文の実体化が必要なら停止する。macOSの対象、最軽量近傍、対象の20回反復、試験sourceの厳格構文、書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、既存の製品処理試験、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
+- 開始5 headerの依存を再監査し、公開継承、値member、公開署名に必要な直接includeだけが残ることを確認したため、製品構造は変更していない。開始5 headerから新規`libs/image/tests/KisProcessingVisitorsSchemaContractTest.cpp`へ全28 API・9枠を追加した。選択処理補助の型・関数別名・構築・選択・command生成・描画装置変換、色空間変換visitorの型・構築・6種node訪問、鏡像・切抜き・profile割当visitorの型・構築・適用または訪問署名を、型特性と厳密な関数pointerで固定した。初回は全9観測枠が成功し、`G471 image processing visitor API schema is not fixed yet`だけで1件失敗した。計画commitは`65f3be7700`、契約commitは`aa2297192b`である。
+- 新規試験sourceは143行・9枠で、targetは4工程・8入力、command SHA-256 `feeab314ebf855e7ede81043d0b9b937bc7be415b809577a1efbfcfcd20d5228`、input SHA-256 `e1d360046e1ca549cefab9cc47d17670d6229577547e38582e2a716edd220bfa`となった。AUTOMOC `HEADERS=[]`、製品未解決記号・製品動的接続は0である。macOSで対象、最軽量近傍`KisProcessingApplicatorSchemaContractTest`、対象の20回反復、試験sourceの厳格構文と書式、連続二回の無作業再構築、公開API検査、`verify-quick`に成功した。近傍はCMake再生成後の初回だけ自己の1翻訳単位を再構築し、二回目は無作業だった。visitor・補助本文、既存の製品処理試験、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 台帳は27,496件対応、2,308件未対応となり、開始5 headerの残存は0件である。旧`public-api-missing-g471.json` 633,450 bytesを削除し、一時閉包一覧、追加作業tree・構築木は作成していない。主Ninja木6,008,984 KiB、共有compiler cache 982,260 KiB、最新`build/tdd-macos/public-api-missing-g472.json` 623,696 bytes、SHA-256 `9af1579bb1edda62ccf271c7634c9fc48526bb12cef227397742317c1103f63d`だけを再利用対象として保持する。compiler cacheは144,627件中120,565件、83.36%がhitしている。次の永続作業は第472便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
 
 ### 第239便の先行監査担当票
 

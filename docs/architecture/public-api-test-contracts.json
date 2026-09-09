@@ -16,7 +16,7 @@
     "publicApiFingerprint": "5f05b2aa8e5bef4343af1d55a3852331e51d4369fe135b099327b1a91b6b8c4c"
   },
   "migration": {
-    "expectedMissingApis": 2336
+    "expectedMissingApis": 2308
   },
   "contracts": [
     {
@@ -76236,6 +76236,115 @@
         "method:KisTileCompressor2::tileDataBufferSize(KisTileData * tileData)",
         "method:KisTileCompressor2::writeTile(KisTileSP tile,KisPaintDeviceWriter & store)",
         "method:KisTileCompressor2::~KisTileCompressor2()"
+      ]
+    },
+    {
+      "target": "KisProcessingVisitorsSchemaContractTest",
+      "source": "libs/image/tests/KisProcessingVisitorsSchemaContractTest.cpp",
+      "test": "KisProcessingVisitorsSchemaContractTest::helperTypeAliasAndConstructionSchemaRemainStable",
+      "behavior": "選択処理補助は描画装置を受け取る処理関数型を公開し、選択と処理関数から構築できる境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisSelectionBasedProcessingHelper::Functor",
+        "class:KisSelectionBasedProcessingHelper",
+        "method:KisSelectionBasedProcessingHelper::KisSelectionBasedProcessingHelper(KisSelectionSP selection,Functor func)"
+      ]
+    },
+    {
+      "target": "KisProcessingVisitorsSchemaContractTest",
+      "source": "libs/image/tests/KisProcessingVisitorsSchemaContractTest.cpp",
+      "test": "KisProcessingVisitorsSchemaContractTest::helperSelectionSignatureRemainsStable",
+      "behavior": "選択処理補助は処理対象の共有選択を更新する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSelectionBasedProcessingHelper::setSelection(KisSelectionSP selection)"
+      ]
+    },
+    {
+      "target": "KisProcessingVisitorsSchemaContractTest",
+      "source": "libs/image/tests/KisProcessingVisitorsSchemaContractTest.cpp",
+      "test": "KisProcessingVisitorsSchemaContractTest::helperInitializationCommandSignaturesRemainStable",
+      "behavior": "選択処理補助は保持済みまたは指定した処理関数から初期化undo commandを生成する二形式の公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSelectionBasedProcessingHelper::createInitCommand()",
+        "method:KisSelectionBasedProcessingHelper::createInitCommand(Functor func)"
+      ]
+    },
+    {
+      "target": "KisProcessingVisitorsSchemaContractTest",
+      "source": "libs/image/tests/KisProcessingVisitorsSchemaContractTest.cpp",
+      "test": "KisProcessingVisitorsSchemaContractTest::helperTransformationSignaturesRemainStable",
+      "behavior": "選択処理補助は保持済みまたは指定した処理関数を使い、undo adapterとともに描画装置を変換する二形式の公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSelectionBasedProcessingHelper::transformPaintDevice(KisPaintDeviceSP device,KisUndoAdapter * undoAdapter)",
+        "method:KisSelectionBasedProcessingHelper::transformPaintDevice(KisPaintDeviceSP device,KisUndoAdapter * undoAdapter,Functor func)"
+      ]
+    },
+    {
+      "target": "KisProcessingVisitorsSchemaContractTest",
+      "source": "libs/image/tests/KisProcessingVisitorsSchemaContractTest.cpp",
+      "test": "KisProcessingVisitorsSchemaContractTest::colorConversionTypeAndConstructionSchemaRemainStable",
+      "behavior": "色空間変換visitorはsimple visitorを具体化し、変換元・変換先色空間、描画意図、変換flagから構築する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisConvertColorSpaceProcessingVisitor",
+        "method:KisConvertColorSpaceProcessingVisitor::KisConvertColorSpaceProcessingVisitor(const KoColorSpace * srcColorSpace,const KoColorSpace * dstColorSpace,KoColorConversionTransformation::Intent renderingIntent,KoColorConversionTransformation::ConversionFlags conversionFlags)"
+      ]
+    },
+    {
+      "target": "KisProcessingVisitorsSchemaContractTest",
+      "source": "libs/image/tests/KisProcessingVisitorsSchemaContractTest.cpp",
+      "test": "KisProcessingVisitorsSchemaContractTest::colorConversionVisitSignaturesRemainStable",
+      "behavior": "色空間変換visitorはgenerator・adjustment・group layer、filter・transform・colorize maskをundo adapterとともに訪問する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisConvertColorSpaceProcessingVisitor::visit(KisAdjustmentLayer * layer,KisUndoAdapter * undoAdapter)",
+        "method:KisConvertColorSpaceProcessingVisitor::visit(KisFilterMask * mask,KisUndoAdapter * undoAdapter)",
+        "method:KisConvertColorSpaceProcessingVisitor::visit(KisGeneratorLayer * layer,KisUndoAdapter * undoAdapter)",
+        "method:KisConvertColorSpaceProcessingVisitor::visit(KisGroupLayer * layer,KisUndoAdapter * undoAdapter)",
+        "method:KisConvertColorSpaceProcessingVisitor::visit(KisTransformMask * mask,KisUndoAdapter * undoAdapter)",
+        "method:KisConvertColorSpaceProcessingVisitor::visitColorizeMask(KisColorizeMask * mask,KisUndoAdapter * undoAdapter)"
+      ]
+    },
+    {
+      "target": "KisProcessingVisitorsSchemaContractTest",
+      "source": "libs/image/tests/KisProcessingVisitorsSchemaContractTest.cpp",
+      "test": "KisProcessingVisitorsSchemaContractTest::mirrorVisitorSchemaRemainsStable",
+      "behavior": "鏡像visitorは矩形または選択と向きから構築でき、画像上のnode列へ選択・操作名とともに鏡像処理を適用する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisMirrorProcessingVisitor",
+        "method:KisMirrorProcessingVisitor::KisMirrorProcessingVisitor(KisSelectionSP selection,Qt::Orientation orientation)",
+        "method:KisMirrorProcessingVisitor::KisMirrorProcessingVisitor(const QRect & bounds,Qt::Orientation orientation)",
+        "method:KisMirrorProcessingVisitor::applyToNodes(KisImageSP image,const KisNodeList & nodes,Qt::Orientation orientation,KisSelectionSP selection,const KUndo2MagicString & actionName)"
+      ]
+    },
+    {
+      "target": "KisProcessingVisitorsSchemaContractTest",
+      "source": "libs/image/tests/KisProcessingVisitorsSchemaContractTest.cpp",
+      "test": "KisProcessingVisitorsSchemaContractTest::cropVisitorSchemaRemainsStable",
+      "behavior": "切抜きvisitorは矩形とlayer切抜き・移動方針から構築でき、transform maskとcolorize maskをundo adapterとともに訪問する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisCropProcessingVisitor",
+        "method:KisCropProcessingVisitor::KisCropProcessingVisitor(const QRect & rect,bool cropLayers,bool moveLayers)",
+        "method:KisCropProcessingVisitor::visit(KisTransformMask * mask,KisUndoAdapter * undoAdapter)",
+        "method:KisCropProcessingVisitor::visitColorizeMask(KisColorizeMask * mask,KisUndoAdapter * undoAdapter)"
+      ]
+    },
+    {
+      "target": "KisProcessingVisitorsSchemaContractTest",
+      "source": "libs/image/tests/KisProcessingVisitorsSchemaContractTest.cpp",
+      "test": "KisProcessingVisitorsSchemaContractTest::assignProfileVisitorSchemaRemainsStable",
+      "behavior": "profile割当visitorは変換元・変換先色空間から構築でき、transform maskとcolorize maskをundo adapterとともに訪問する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisAssignProfileProcessingVisitor",
+        "method:KisAssignProfileProcessingVisitor::KisAssignProfileProcessingVisitor(const KoColorSpace * srcColorSpace,const KoColorSpace * dstColorSpace)",
+        "method:KisAssignProfileProcessingVisitor::visit(KisTransformMask * mask,KisUndoAdapter * undoAdapter)",
+        "method:KisAssignProfileProcessingVisitor::visitColorizeMask(KisColorizeMask * mask,KisUndoAdapter * undoAdapter)"
       ]
     }
   ]
