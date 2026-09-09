@@ -8,9 +8,18 @@
 #include <type_traits>
 
 #include "KisAnimTimelineFramesView.h"
+#include "kis_equalizer_column.h"
+#include "kis_equalizer_slider.h"
+#include "kis_equalizer_widget.h"
 
 #define ASSERT_VIEW_SIGNATURE(method, signature)                                                                       \
     static_assert(std::is_same_v<decltype(&KisAnimTimelineFramesView::method), signature>)
+#define ASSERT_EQUALIZER_WIDGET_SIGNATURE(method, signature)                                                           \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KisEqualizerWidget::method)), signature>)
+#define ASSERT_EQUALIZER_SLIDER_SIGNATURE(method, signature)                                                           \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KisEqualizerSlider::method)), signature>)
+#define ASSERT_EQUALIZER_COLUMN_SIGNATURE(method, signature)                                                           \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KisEqualizerColumn::method)), signature>)
 
 class KisAnimTimelineFramesViewSchemaContractTest : public QObject
 {
@@ -22,6 +31,11 @@ private Q_SLOTS:
     void layerAndKeyframeInsertionSchemaRemainStable();
     void frameRemovalTransferAndCacheSchemaRemainStable();
     void audioAndScrollSchemaRemainStable();
+    void equalizerWidgetTypeAndValueSchemaRemainStable();
+    void equalizerWidgetControlAndNotificationSignaturesRemainStable();
+    void equalizerWidgetInputSignaturesRemainStable();
+    void equalizerSliderSchemaRemainStable();
+    void equalizerColumnSchemaRemainStable();
 };
 
 void KisAnimTimelineFramesViewSchemaContractTest::typeModelLifetimeAndDisplaySchemaRemainStable()
@@ -139,6 +153,74 @@ void KisAnimTimelineFramesViewSchemaContractTest::audioAndScrollSchemaRemainStab
 
     QVERIFY(true);
 }
+
+void KisAnimTimelineFramesViewSchemaContractTest::equalizerWidgetTypeAndValueSchemaRemainStable()
+{
+    using Values = KisEqualizerWidget::EqualizerValues;
+
+    static_assert(std::is_class_v<KisEqualizerWidget>);
+    static_assert(std::is_base_of_v<QWidget, KisEqualizerWidget>);
+    static_assert(std::is_constructible_v<KisEqualizerWidget, int, QWidget *>);
+    static_assert(std::has_virtual_destructor_v<KisEqualizerWidget>);
+    static_assert(std::is_class_v<Values>);
+    static_assert(std::is_same_v<decltype(Values::maxDistance), int>);
+    static_assert(std::is_same_v<decltype(Values::value), QMap<int, qreal>>);
+    static_assert(std::is_same_v<decltype(Values::state), QMap<int, bool>>);
+}
+
+void KisAnimTimelineFramesViewSchemaContractTest::equalizerWidgetControlAndNotificationSignaturesRemainStable()
+{
+    using Values = KisEqualizerWidget::EqualizerValues;
+
+    ASSERT_EQUALIZER_WIDGET_SIGNATURE(getValues, Values (KisEqualizerWidget::*)() const);
+    ASSERT_EQUALIZER_WIDGET_SIGNATURE(setValues, void (KisEqualizerWidget::*)(const Values &));
+    ASSERT_EQUALIZER_WIDGET_SIGNATURE(toggleMasterSwitch, void (KisEqualizerWidget::*)());
+    ASSERT_EQUALIZER_WIDGET_SIGNATURE(sigConfigChanged, void (KisEqualizerWidget::*)());
+    ASSERT_EQUALIZER_WIDGET_SIGNATURE(sigReset, void (KisEqualizerWidget::*)());
+}
+
+void KisAnimTimelineFramesViewSchemaContractTest::equalizerWidgetInputSignaturesRemainStable()
+{
+    ASSERT_EQUALIZER_WIDGET_SIGNATURE(resizeEvent, void (KisEqualizerWidget::*)(QResizeEvent *));
+    ASSERT_EQUALIZER_WIDGET_SIGNATURE(mouseMoveEvent, void (KisEqualizerWidget::*)(QMouseEvent *));
+    ASSERT_EQUALIZER_WIDGET_SIGNATURE(contextMenuEvent, void (KisEqualizerWidget::*)(QContextMenuEvent *));
+}
+
+void KisAnimTimelineFramesViewSchemaContractTest::equalizerSliderSchemaRemainStable()
+{
+    static_assert(std::is_class_v<KisEqualizerSlider>);
+    static_assert(std::is_base_of_v<QAbstractSlider, KisEqualizerSlider>);
+    static_assert(std::is_constructible_v<KisEqualizerSlider, QWidget *>);
+    static_assert(std::has_virtual_destructor_v<KisEqualizerSlider>);
+    ASSERT_EQUALIZER_SLIDER_SIGNATURE(mousePressEvent, void (KisEqualizerSlider::*)(QMouseEvent *));
+    ASSERT_EQUALIZER_SLIDER_SIGNATURE(mouseMoveEvent, void (KisEqualizerSlider::*)(QMouseEvent *));
+    ASSERT_EQUALIZER_SLIDER_SIGNATURE(mouseReleaseEvent, void (KisEqualizerSlider::*)(QMouseEvent *));
+    ASSERT_EQUALIZER_SLIDER_SIGNATURE(paintEvent, void (KisEqualizerSlider::*)(QPaintEvent *));
+    ASSERT_EQUALIZER_SLIDER_SIGNATURE(sizeHint, QSize (KisEqualizerSlider::*)() const);
+    ASSERT_EQUALIZER_SLIDER_SIGNATURE(minimumSizeHint, QSize (KisEqualizerSlider::*)() const);
+    ASSERT_EQUALIZER_SLIDER_SIGNATURE(setRightmost, void (KisEqualizerSlider::*)(bool));
+    ASSERT_EQUALIZER_SLIDER_SIGNATURE(setToggleState, void (KisEqualizerSlider::*)(bool));
+}
+
+void KisAnimTimelineFramesViewSchemaContractTest::equalizerColumnSchemaRemainStable()
+{
+    static_assert(std::is_class_v<KisEqualizerColumn>);
+    static_assert(std::is_base_of_v<QWidget, KisEqualizerColumn>);
+    static_assert(std::is_constructible_v<KisEqualizerColumn, QWidget *, int, const QString &>);
+    static_assert(std::has_virtual_destructor_v<KisEqualizerColumn>);
+    ASSERT_EQUALIZER_COLUMN_SIGNATURE(setRightmost, void (KisEqualizerColumn::*)(bool));
+    ASSERT_EQUALIZER_COLUMN_SIGNATURE(value, int (KisEqualizerColumn::*)() const);
+    ASSERT_EQUALIZER_COLUMN_SIGNATURE(setValue, void (KisEqualizerColumn::*)(int));
+    ASSERT_EQUALIZER_COLUMN_SIGNATURE(state, bool (KisEqualizerColumn::*)() const);
+    ASSERT_EQUALIZER_COLUMN_SIGNATURE(setState, void (KisEqualizerColumn::*)(bool));
+    ASSERT_EQUALIZER_COLUMN_SIGNATURE(setForceDisabled, void (KisEqualizerColumn::*)(bool));
+    ASSERT_EQUALIZER_COLUMN_SIGNATURE(sigColumnChanged, void (KisEqualizerColumn::*)(int, bool, int));
+}
+
+#undef ASSERT_EQUALIZER_COLUMN_SIGNATURE
+#undef ASSERT_EQUALIZER_SLIDER_SIGNATURE
+#undef ASSERT_EQUALIZER_WIDGET_SIGNATURE
+#undef ASSERT_VIEW_SIGNATURE
 
 QTEST_GUILESS_MAIN(KisAnimTimelineFramesViewSchemaContractTest)
 
