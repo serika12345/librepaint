@@ -11,7 +11,6 @@
 
 #include "kis_types.h"
 
-#include "kis_image.h"
 #include "kis_layer.h"
 
 class QString;
