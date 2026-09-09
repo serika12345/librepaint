@@ -16,7 +16,7 @@
     "publicApiFingerprint": "05a5e67dfcb803772f3a7b7f2773532707ee28e97b57d9173a41fba9047a71d2"
   },
   "migration": {
-    "expectedMissingApis": 2018
+    "expectedMissingApis": 2003
   },
   "contracts": [
     {
@@ -77446,6 +77446,57 @@
         "method:KisSaveGroupVisitor::visit(KisSelectionMask *)",
         "method:KisSaveGroupVisitor::visit(KisTransformMask *)",
         "method:KisSaveGroupVisitor::visit(KisTransparencyMask *)"
+      ]
+    },
+    {
+      "target": "KisMediaEncoderFormatAndSettingsContractTest",
+      "source": "libs/impex/tests/KisMediaEncoderFormatAndSettingsContractTest.cpp",
+      "test": "KisMediaEncoderFormatAndSettingsContractTest::androidRunnableFactoryAndFormatsSchemaRemainStable",
+      "behavior": "Android media encoder runnableは共通runnable基底を持ち、設定からの生成と対応形式一覧の出力に関する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisAndroidMediaEncoderRunnable",
+        "method:KisAndroidMediaEncoderRunnable::create(const KisMediaEncoderWrapperSettings & settings,QObject * parent=nullptr)",
+        "method:KisAndroidMediaEncoderRunnable::getSupportedFormats(QVector<KisMediaEncoderFormat * > & outSupportedFormats)"
+      ]
+    },
+    {
+      "target": "KisMediaEncoderFormatAndSettingsContractTest",
+      "source": "libs/impex/tests/KisMediaEncoderFormatAndSettingsContractTest.cpp",
+      "test": "KisMediaEncoderFormatAndSettingsContractTest::androidPreferencesWidgetTypeAndConstructionSchemaRemainStable",
+      "behavior": "Android media encoder設定widgetは形式と任意の親widgetから構築できるQWidget公開型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisAndroidMediaEncoderPreferencesWidget",
+        "method:KisAndroidMediaEncoderPreferencesWidget::KisAndroidMediaEncoderPreferencesWidget(const KisMediaEncoderFormat * format,QWidget * parent=nullptr)"
+      ]
+    },
+    {
+      "target": "KisMediaEncoderFormatAndSettingsContractTest",
+      "source": "libs/impex/tests/KisMediaEncoderFormatAndSettingsContractTest.cpp",
+      "test": "KisMediaEncoderFormatAndSettingsContractTest::androidPreferencesEncoderOptionSignaturesRemainStable",
+      "behavior": "Android media encoder設定widgetは映像・音声encoder候補を追加し、選択中の識別子を取得・設定する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAndroidMediaEncoderPreferencesWidget::addAudioEncoderOption(const QString & title,const QString & key)",
+        "method:KisAndroidMediaEncoderPreferencesWidget::addVideoEncoderOption(const QString & title,const QString & key)",
+        "method:KisAndroidMediaEncoderPreferencesWidget::audioEncoder() const",
+        "method:KisAndroidMediaEncoderPreferencesWidget::setAudioEncoder(const QString & key)",
+        "method:KisAndroidMediaEncoderPreferencesWidget::setVideoEncoder(const QString & key)",
+        "method:KisAndroidMediaEncoderPreferencesWidget::videoEncoder() const"
+      ]
+    },
+    {
+      "target": "KisMediaEncoderFormatAndSettingsContractTest",
+      "source": "libs/impex/tests/KisMediaEncoderFormatAndSettingsContractTest.cpp",
+      "test": "KisMediaEncoderFormatAndSettingsContractTest::androidPreferencesBitrateSignaturesRemainStable",
+      "behavior": "Android media encoder設定widgetは映像・音声bitrateを整数値で取得・設定する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAndroidMediaEncoderPreferencesWidget::audioBitrate() const",
+        "method:KisAndroidMediaEncoderPreferencesWidget::setAudioBitrate(int audioBitrate)",
+        "method:KisAndroidMediaEncoderPreferencesWidget::setVideoBitrate(int videoBitrate)",
+        "method:KisAndroidMediaEncoderPreferencesWidget::videoBitrate() const"
       ]
     }
   ]

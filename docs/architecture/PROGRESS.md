@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 15:23 JST
+- 更新日時: 2026-09-09 15:30 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4422,6 +4422,10 @@
 - Android encoder境界はrunnable型・設定付き生成・対応形式列挙3、設定widget型・構築2、映像・音声encoder候補追加と選択値の取得・設定6、映像・音声bitrateの取得・設定4の4枠へ固定する。型特性、厳密な関数pointer、省略引数の未評価呼出しだけを使い、runnable、設定widget、形式、Android codec、Java境界と製品本文を実体化しない。
 - 開始headerの`KisMediaEncoderWrapper.h`は公開基底・設定・形式に、`QWidget`は設定widgetの公開基底に必要であり、契約前に移動できる製品依存はない。既存`libs/impex/tests/KisMediaEncoderFormatAndSettingsContractTest.cpp`は同じmedia encoder境界を所有する276行・11枠の限定targetで、基準対象と試験sourceの厳格構文に成功した。新targetを避けて同sourceへ4枠を追加し、380行・17枠未満に収める。契約追加より先に局所`libs/impex/tests/CMakeLists.txt`へQt Widgetsのinterface include探索路だけを加え、公開基底を解析できるようにする。
 - targetは変更前にQt Core・Testだけへ動的接続する4工程・8入力、command SHA-256 `5396218daf70b994ca00db11f16b98af52874f9dc9c70b854283c2cd6238a20a`、input SHA-256 `cf0648c4ad31097ad0543338b2b00c8a749956145bd8ffe647cc078a2e343e9c`である。準備後も停止線4工程・8入力、Qt Core・Testだけの動的接続、AUTOMOC `HEADERS=[]`を維持する。Qt Widgetsへの動的接続、製品OBJECT・shared、AUTOMOC製品header入力、製品記号、新たな探索路、380行・17枠以上が必要なら停止する。macOSの対象、既存11枠と追加4枠、追加枠の20回反復、試験sourceの厳格構文と書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、Android製品source、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
+- 構造準備では開始`libs/impex/tests/CMakeLists.txt`から既存`KisMediaEncoderFormatAndSettingsContractTest`の同targetへQt Widgetsのinterface include探索路だけを追加した。targetは準備後もQt Core・Testだけへ動的接続する4工程・8入力、input SHA-256 `cf0648c4ad31097ad0543338b2b00c8a749956145bd8ffe647cc078a2e343e9c`を維持し、command SHA-256だけが`fad07bf474dedbb6d3889307ab4d985489b50e4d0617561bcd4112cbc21b04e5`へ変わった。基準対象と試験sourceの厳格構文に成功した。計画commitは`cd6a61f208`、構造準備commitは`94efc0e920`である。
+- 開始`libs/impex/animation/KisAndroidMediaEncoderRunnable.h`から既存`libs/impex/tests/KisMediaEncoderFormatAndSettingsContractTest.cpp`へ全15 API・4枠を追加した。Android runnableの型・生成・形式列挙、設定widgetの型・構築、映像・音声encoder候補と選択、両bitrateの取得・設定を型特性、厳密な関数pointer、省略引数の未評価呼出しで固定した。初回は全4枠が成功し、`G491 Android media encoder API schema is not fixed yet`だけが`XFAIL`となった。契約commitは`eba76c5f16`である。
+- 既存試験sourceは333行・15枠となった。targetは最終的にQt Core・Testだけへ動的接続する4工程・8入力、command SHA-256 `fad07bf474dedbb6d3889307ab4d985489b50e4d0617561bcd4112cbc21b04e5`、input SHA-256 `cf0648c4ad31097ad0543338b2b00c8a749956145bd8ffe647cc078a2e343e9c`を維持した。AUTOMOC `HEADERS=[]`、Android encoder・設定widget・QWidgetの未解決製品記号は0である。macOSで全15枠の単発と20回反復、追加4枠を各20回、試験sourceの厳格構文と書式、連続二回の無作業再構築、公開API検査に成功した。設定widgetの選択状態・bitrate値、Android codec・Java境界、Android製品source、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 台帳は27,802件対応、2,003件未対応となり、開始headerの残存は0件である。新`public-api-missing-g492.json`の生成成功後に旧`public-api-missing-g491.json` 544,993 bytesを削除し、新target、追加生成物、一時一覧、追加作業tree・構築木は作成していない。主Ninja木6,029,824 KiB、共有compiler cache 983,148 KiB、最新`build/tdd-macos/public-api-missing-g492.json` 540,213 bytes、SHA-256 `e073cd1c504b8bac55591933b4cbe66d66556cb1b9467ac7f5439c74a017270f`だけを再利用対象として保持する。compiler cacheは144,693件中120,569件、83.33%がhitしている。次の永続作業は第492便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
 
 ### 第239便の先行監査担当票
 
