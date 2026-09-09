@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 16:38 JST
+- 更新日時: 2026-09-09 16:49 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4465,6 +4465,9 @@
 - 倍率境界は型・構築・singleton取得3、対応状態・dialog表示2、画面倍率とUI倍率通知2、設定保存とdialog状態通知2、dialog名前空間の初期化・初期倍率・表示・起動時表示・対応状態5の5枠へ固定する。型特性と厳密な関数pointerだけを使い、倍率管理器、application、設定、画面、JNI、dialog本文を実体化しない。
 - 開始headerは私有の`QPointer<QScreen>`とinlineのnull照会だけのために`QScreen`の完全定義を全利用者へ推移させている。契約追加より先に同includeを前方宣言へ置換し、`QScreen`の本文を利用するAndroid専用`libs/ui/canvas/KisAndroidScaling.cpp`へ完全定義includeを直接移す。Android専用実装はmacOSのコンパイルデータベースに項目がなく、直接構文検査はQt private Android header不足で成立しないため、macOSでは公開headerを直接読む限定契約と既存macOS利用元を検査する。
 - 既存`libs/application/tests/KisApplicationArgumentsSchemaContractTest.cpp`はapplication起動とAndroid接続を所有する137行・10枠の限定targetである。新targetとCMake変更を避け、同sourceへ5枠を追加して220行・16枠未満に収める。変更前targetはQt Core・Testだけへ動的接続する4工程・8入力、command SHA-256 `94caa193f640f28e43b9589ff6612ec820c742cf64fd5144b694bfaea8103972`、input SHA-256 `d396bd55ed135e1a3b0216c6b40d7f4c2e09780b50819ccedb34348d7511b083`である。停止線を4工程・8入力とし、新たな探索路・定義・接続、製品OBJECT・shared、AUTOMOC製品header入力、Android製品記号が必要なら停止する。macOSの対象、既存10枠と追加5枠、追加枠の20回反復、試験sourceの厳格構文と書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、Android実装・端末、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
+- 構造準備では開始`libs/ui/canvas/KisAndroidScaling.h`から`QScreen`の完全定義includeを除去して前方宣言へ置換し、画面の画素比を実際に読む宛先`libs/ui/canvas/KisAndroidScaling.cpp`へ完全定義includeを移した。公開headerを強制includeした試験sourceの厳格構文に成功した。既存macOS利用元2翻訳単位は変更前後とも実エラー0で、`KisApplication.cpp`の`QMetaType::type`と`KisMainWindow.cpp`の`QDragMoveEvent::pos`に対する既存Qt非推奨診断各1件だけを維持した。計画commitは`22d5de266d`、構造準備commitは`d01a461942`である。
+- 開始headerから既存`libs/application/tests/KisApplicationArgumentsSchemaContractTest.cpp`へ全14 API・5枠を追加した。倍率管理器の型・構築・singleton取得、対応状態・dialog表示、画面倍率とUI倍率通知、設定保存とdialog状態通知、dialog名前空間の5入口を型特性と厳密な関数pointerで固定した。既存binaryによる初回実行は新枠を認識せず`Function not found`で失敗した。契約commitは`f8bd01e769`である。
+- 既存試験sourceは177行・15枠となった。targetは変更前後ともQt Core・Testだけへ動的接続する4工程・8入力、command SHA-256 `94caa193f640f28e43b9589ff6612ec820c742cf64fd5144b694bfaea8103972`、input SHA-256 `d396bd55ed135e1a3b0216c6b40d7f4c2e09780b50819ccedb34348d7511b083`を維持した。AUTOMOC `HEADERS=[]`、Android倍率管理器・dialog・applicationの未解決製品記号0である。macOSで全15枠と追加5枠を各20回、試験sourceの厳格構文と書式、連続二回の無作業再構築、公開API検査、`verify-quick`に成功した。台帳は27,862件対応、1,943件未対応となり、開始headerの残存は0件である。新`public-api-missing-g496.json`の生成成功後に旧`public-api-missing-g495.json` 528,482 bytesを削除した。主Ninja木6,020,356 KiB、共有compiler cache 983,312 KiB、最新報告525,188 bytes、SHA-256 `33d63b0bfec5937f92d616e9059ca0b2192ecb02b7f50a57ed9f9bef11ae0dfe`だけを再利用対象として保持する。compiler cacheは144,709 cache可能呼出し中120,575件、83.32%がhitしている。倍率状態、設定永続化、JNI配送、Android実装・端末、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第496便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
 
 ### 第239便の先行監査担当票
 

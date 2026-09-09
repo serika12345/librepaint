@@ -16,7 +16,7 @@
     "publicApiFingerprint": "62e45b238446dc0eb6798b1de10b2cd9261befccc2a837c75de2c86393d7e016"
   },
   "migration": {
-    "expectedMissingApis": 1957
+    "expectedMissingApis": 1943
   },
   "contracts": [
     {
@@ -77678,6 +77678,65 @@
         "method:StoryboardView::mouseReleaseEvent(QMouseEvent * event)",
         "method:StoryboardView::paintEvent(QPaintEvent * event)",
         "method:StoryboardView::setCurrentItem(int frame)"
+      ]
+    },
+    {
+      "target": "KisApplicationArgumentsSchemaContractTest",
+      "source": "libs/application/tests/KisApplicationArgumentsSchemaContractTest.cpp",
+      "test": "KisApplicationArgumentsSchemaContractTest::androidScalingTypeConstructionAndSingletonSchemaRemainStable",
+      "behavior": "Android倍率管理器はQObject型、設定とapplicationからの構築、application所有instanceの取得署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisAndroidScaling",
+        "method:KisAndroidScaling::KisAndroidScaling(KisConfig & cfg,KisApplication * app)",
+        "method:KisAndroidScaling::instance()"
+      ]
+    },
+    {
+      "target": "KisApplicationArgumentsSchemaContractTest",
+      "source": "libs/application/tests/KisApplicationArgumentsSchemaContractTest.cpp",
+      "test": "KisApplicationArgumentsSchemaContractTest::androidScalingSupportAndDialogSignaturesRemainStable",
+      "behavior": "Android倍率管理器は現行画面での対応状態照会と倍率設定dialog表示の公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAndroidScaling::isSupported() const",
+        "method:KisAndroidScaling::showDialog()"
+      ]
+    },
+    {
+      "target": "KisApplicationArgumentsSchemaContractTest",
+      "source": "libs/application/tests/KisApplicationArgumentsSchemaContractTest.cpp",
+      "test": "KisApplicationArgumentsSchemaContractTest::androidScalingInterfaceNotificationSignaturesRemainStable",
+      "behavior": "Android倍率管理器はUI倍率変更とJNIからの主画面倍率指定を通知する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAndroidScaling::sigInterfaceScaleChanged()",
+        "method:KisAndroidScaling::sigJniSetPrimaryScreenScale(qreal scale)"
+      ]
+    },
+    {
+      "target": "KisApplicationArgumentsSchemaContractTest",
+      "source": "libs/application/tests/KisApplicationArgumentsSchemaContractTest.cpp",
+      "test": "KisApplicationArgumentsSchemaContractTest::androidScalingPersistenceNotificationSignaturesRemainStable",
+      "behavior": "Android倍率管理器は倍率設定の保存方針とdialog活動状態をJNIから通知する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAndroidScaling::sigJniSaveInterfaceScale(bool askOnStartup)",
+        "method:KisAndroidScaling::sigJniScalingDialogActive(bool active)"
+      ]
+    },
+    {
+      "target": "KisApplicationArgumentsSchemaContractTest",
+      "source": "libs/application/tests/KisApplicationArgumentsSchemaContractTest.cpp",
+      "test": "KisApplicationArgumentsSchemaContractTest::androidScalingDialogEntryPointSignaturesRemainStable",
+      "behavior": "Android倍率設定dialogは初期化、初期倍率設定、即時表示、起動時表示と対応状態照会の公開入口を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisAndroidScalingDialog::init()",
+        "function:KisAndroidScalingDialog::isSupported()",
+        "function:KisAndroidScalingDialog::maybeShowOnStartup()",
+        "function:KisAndroidScalingDialog::setInitialScale(KisConfig & cfg)",
+        "function:KisAndroidScalingDialog::show()"
       ]
     }
   ]
