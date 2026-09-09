@@ -9,11 +9,14 @@
 
 #include "CommentModel.h"
 #include "StoryboardModel.h"
+#include "StoryboardView.h"
 
 #define ASSERT_MODEL_SIGNATURE(method, signature)                                                                      \
     static_assert(std::is_same_v<decltype(&StoryboardModel::method), signature>)
 #define ASSERT_COMMENT_MODEL_SIGNATURE(method, signature)                                                              \
     static_assert(std::is_same_v<decltype(&StoryboardCommentModel::method), signature>)
+#define ASSERT_STORYBOARD_VIEW_SIGNATURE(method, signature)                                                            \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&StoryboardView::method)), signature>)
 
 class StoryboardModelSchemaContractTest : public QObject
 {
@@ -30,6 +33,11 @@ private Q_SLOTS:
     void commentModelRowMutationSignaturesRemainStable();
     void commentModelMimeSignaturesRemainStable();
     void commentModelCollectionSignaturesRemainStable();
+    void storyboardViewTypeConstructionAndLifetimeSchemaRemainStable();
+    void storyboardViewGeometryMappingSignaturesRemainStable();
+    void storyboardViewItemOrientationSignaturesRemainStable();
+    void storyboardViewContentVisibilitySignaturesRemainStable();
+    void storyboardViewPaintingInputAndCurrentItemSignaturesRemainStable();
 };
 
 void StoryboardModelSchemaContractTest::typeRoleLifetimeAndLockSchemaRemainStable()
@@ -192,6 +200,43 @@ void StoryboardModelSchemaContractTest::commentModelCollectionSignaturesRemainSt
 
     ASSERT_COMMENT_MODEL_SIGNATURE(resetData, void (Model::*)(QVector<StoryboardComment>));
     ASSERT_COMMENT_MODEL_SIGNATURE(getData, QVector<StoryboardComment> (Model::*)());
+}
+
+void StoryboardModelSchemaContractTest::storyboardViewTypeConstructionAndLifetimeSchemaRemainStable()
+{
+    static_assert(std::is_class_v<StoryboardView>);
+    static_assert(std::is_base_of_v<QListView, StoryboardView>);
+    static_assert(std::is_constructible_v<StoryboardView, QWidget *>);
+    static_assert(std::is_default_constructible_v<StoryboardView>);
+    static_assert(std::has_virtual_destructor_v<StoryboardView>);
+}
+
+void StoryboardModelSchemaContractTest::storyboardViewGeometryMappingSignaturesRemainStable()
+{
+    ASSERT_STORYBOARD_VIEW_SIGNATURE(visualRect, QRect (StoryboardView::*)(const QModelIndex &) const);
+    ASSERT_STORYBOARD_VIEW_SIGNATURE(indexAt, QModelIndex (StoryboardView::*)(const QPoint &) const);
+    ASSERT_STORYBOARD_VIEW_SIGNATURE(sizeHint, QSize (StoryboardView::*)() const);
+}
+
+void StoryboardModelSchemaContractTest::storyboardViewItemOrientationSignaturesRemainStable()
+{
+    ASSERT_STORYBOARD_VIEW_SIGNATURE(setItemOrientation, void (StoryboardView::*)(Qt::Orientation));
+    ASSERT_STORYBOARD_VIEW_SIGNATURE(itemOrientation, Qt::Orientation (StoryboardView::*)());
+}
+
+void StoryboardModelSchemaContractTest::storyboardViewContentVisibilitySignaturesRemainStable()
+{
+    ASSERT_STORYBOARD_VIEW_SIGNATURE(commentIsVisible, bool (StoryboardView::*)() const);
+    ASSERT_STORYBOARD_VIEW_SIGNATURE(setCommentVisibility, void (StoryboardView::*)(bool));
+    ASSERT_STORYBOARD_VIEW_SIGNATURE(thumbnailIsVisible, bool (StoryboardView::*)() const);
+    ASSERT_STORYBOARD_VIEW_SIGNATURE(setThumbnailVisibility, void (StoryboardView::*)(bool));
+}
+
+void StoryboardModelSchemaContractTest::storyboardViewPaintingInputAndCurrentItemSignaturesRemainStable()
+{
+    ASSERT_STORYBOARD_VIEW_SIGNATURE(paintEvent, void (StoryboardView::*)(QPaintEvent *));
+    ASSERT_STORYBOARD_VIEW_SIGNATURE(mouseReleaseEvent, void (StoryboardView::*)(QMouseEvent *));
+    ASSERT_STORYBOARD_VIEW_SIGNATURE(setCurrentItem, void (StoryboardView::*)(int));
 }
 
 QTEST_GUILESS_MAIN(StoryboardModelSchemaContractTest)
