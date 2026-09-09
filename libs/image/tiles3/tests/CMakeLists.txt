@@ -119,6 +119,22 @@ target_include_directories(KisTileSchemaContractTest PRIVATE
 target_compile_definitions(KisTileSchemaContractTest PRIVATE kritaimage_EXPORTS)
 
 kis_add_test(
+    KisTileStorageSchemaContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Core5Compat
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KisTileStorageSchemaContractTest PRIVATE
+    ${CMAKE_SOURCE_DIR}/libs/image
+    ${CMAKE_BINARY_DIR}/libs/image
+    ${CMAKE_SOURCE_DIR}/libs/image/tiles3
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+)
+target_compile_definitions(KisTileStorageSchemaContractTest PRIVATE kritaimage_EXPORTS)
+
+kis_add_test(
     KisTileDataSchemaContractTest.cpp
     LINK_LIBRARIES
         Qt${QT_MAJOR_VERSION}::Core
