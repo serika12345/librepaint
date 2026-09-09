@@ -16,7 +16,7 @@
     "publicApiFingerprint": "62e45b238446dc0eb6798b1de10b2cd9261befccc2a837c75de2c86393d7e016"
   },
   "migration": {
-    "expectedMissingApis": 1855
+    "expectedMissingApis": 1840
   },
   "contracts": [
     {
@@ -77960,6 +77960,57 @@
         "method:KisEqualizerColumn::state() const",
         "method:KisEqualizerColumn::value() const",
         "method:KisEqualizerColumn::~KisEqualizerColumn()"
+      ]
+    },
+    {
+      "target": "KisPaintingAssistantSchemaContractTest",
+      "source": "libs/ui/tests/KisPaintingAssistantSchemaContractTest.cpp",
+      "test": "KisPaintingAssistantSchemaContractTest::concentricEllipseAssistantTypeConstructionAndCloneSchemaRemainStable",
+      "behavior": "同心楕円assistantは既定構築とhandle対応表を用いた独立複製の公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:ConcentricEllipseAssistant",
+        "method:ConcentricEllipseAssistant::ConcentricEllipseAssistant()",
+        "method:ConcentricEllipseAssistant::clone(QMap<KisPaintingAssistantHandleSP,KisPaintingAssistantHandleSP> & handleMap) const"
+      ]
+    },
+    {
+      "target": "KisPaintingAssistantSchemaContractTest",
+      "source": "libs/ui/tests/KisPaintingAssistantSchemaContractTest.cpp",
+      "test": "KisPaintingAssistantSchemaContractTest::concentricEllipseAssistantAdjustmentSignaturesRemainStable",
+      "behavior": "同心楕円assistantは点・線の補正、既定編集位置、3 handle完了状態と幾何変換の公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:ConcentricEllipseAssistant::adjustLine(QPointF & point,QPointF & strokeBegin)",
+        "method:ConcentricEllipseAssistant::adjustPosition(const QPointF & point,const QPointF & strokeBegin,const bool snapToAny,qreal moveThresholdPt)",
+        "method:ConcentricEllipseAssistant::getDefaultEditorPosition() const",
+        "method:ConcentricEllipseAssistant::isAssistantComplete() const",
+        "method:ConcentricEllipseAssistant::numHandles() const",
+        "method:ConcentricEllipseAssistant::transform(const QTransform & transform)"
+      ]
+    },
+    {
+      "target": "KisPaintingAssistantSchemaContractTest",
+      "source": "libs/ui/tests/KisPaintingAssistantSchemaContractTest.cpp",
+      "test": "KisPaintingAssistantSchemaContractTest::concentricEllipseFactoryTypeAndLifetimeSchemaRemainStable",
+      "behavior": "同心楕円assistant factoryは既定構築と基底経由の仮想破棄を持つ公開型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:ConcentricEllipseAssistantFactory",
+        "method:ConcentricEllipseAssistantFactory::ConcentricEllipseAssistantFactory()",
+        "method:ConcentricEllipseAssistantFactory::~ConcentricEllipseAssistantFactory()"
+      ]
+    },
+    {
+      "target": "KisPaintingAssistantSchemaContractTest",
+      "source": "libs/ui/tests/KisPaintingAssistantSchemaContractTest.cpp",
+      "test": "KisPaintingAssistantSchemaContractTest::concentricEllipseFactoryIdentityAndCreationSignaturesRemainStable",
+      "behavior": "同心楕円assistant factoryは安定した識別子・表示名の照会とassistant生成の公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:ConcentricEllipseAssistantFactory::createPaintingAssistant() const",
+        "method:ConcentricEllipseAssistantFactory::id() const",
+        "method:ConcentricEllipseAssistantFactory::name() const"
       ]
     }
   ]

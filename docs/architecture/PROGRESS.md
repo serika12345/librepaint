@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 17:38 JST
+- 更新日時: 2026-09-09 17:45 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4505,6 +4505,9 @@
 - 同心楕円assistant境界はassistant型・構築・複製3、位置・線補正・既定編集位置・handle数・完了状態・変換6、factory型・構築・破棄3、factory識別子・表示名・生成3の4枠へ固定する。型特性と厳密な関数pointerだけを使い、assistant、factory、楕円、handle、描画器、canvasと補正・描画本文を実体化しない。
 - 開始headerは宣言に使わない`QObject`と、実装の投影計算だけが使う`QLineF`を全利用者へ推移させている。契約追加より先に両includeを除去し、`QLineF`完全定義を実利用先`plugins/assistants/Assistants/ConcentricEllipseAssistant.cc`へ移す。既存`libs/ui/tests/KisPaintingAssistantSchemaContractTest`へ対象のsource/generated探索路と`kritaassistanttool_static_EXPORTS`だけを追加する。追加前のtargetに同探索路を一時指定した強制include、assistant実装と試験sourceの厳格構文は成功しており、追加後も同じ結果を完了条件とする。
 - 既存`libs/ui/tests/KisPaintingAssistantSchemaContractTest.cpp`はassistant基底・handle・factory・registryを所有する225行・5枠の限定targetである。新targetを避け、同sourceへ4枠を追加して320行・10枠未満に収める。変更前targetはQt Gui・Testだけへ動的接続する4工程・8入力、command SHA-256 `567bcff5a7a6c08c19ac032765362d898e89db2545b2364c0da46b0cf297fb25`、input SHA-256 `06ee5de1354abd97185cdd5c5adf94b63338e8cf8bab8bfca914401cc40cd827`である。準備後も4工程・8入力、同じ動的接続を維持し、入力hashと工程数が変わる、新たな接続、製品OBJECT・shared、`kritatestsdk`、AUTOMOC製品header入力、assistant製品記号が必要なら停止する。macOSの対象、既存5枠と追加4枠、追加枠の20回反復、実装と試験sourceの厳格構文、書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、補正・描画・factory生成の実状態、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
+- 構造準備では開始`plugins/assistants/Assistants/ConcentricEllipseAssistant.h`から宣言に使わない`QObject`と実装の投影計算だけが使う`QLineF`を除去し、`QLineF`完全定義を宛先`plugins/assistants/Assistants/ConcentricEllipseAssistant.cc`へ移した。既存`libs/ui/tests/KisPaintingAssistantSchemaContractTest`には対象のsource/generated探索路と`kritaassistanttool_static_EXPORTS`だけを追加した。対象headerを強制includeした試験sourceとassistant実装の厳格構文に変更前後とも成功した。計画commitは`ad952018bf`、構造準備commitは`48cf0b4b9d`である。
+- 開始headerから既存`libs/ui/tests/KisPaintingAssistantSchemaContractTest.cpp`へ全15 API・4枠を追加した。assistantの型・構築・複製、位置・線補正・既定編集位置・handle数・完了状態・変換と、factoryの型・構築・破棄・識別子・表示名・生成を型特性と厳密な関数pointerで固定した。既存binaryによる初回実行は新枠を認識せず`Function not found`で失敗した。契約commitは`71c87ab5fa`である。
+- 既存試験sourceは281行・9枠となった。targetはQt Gui・Testだけへ動的接続する4工程・8入力を維持し、command SHA-256は対象固有探索路と定義だけを加えた`dd4f1cee7da16375281642b346155b0fb4ec56ba940082368da830a6292fa4d6`、input SHA-256は不変の`06ee5de1354abd97185cdd5c5adf94b63338e8cf8bab8bfca914401cc40cd827`である。AUTOMOC `HEADERS=[]`、同心楕円assistant・factory・楕円・handleの未解決製品記号0である。macOSで全9枠と追加4枠を各20回、試験sourceと実装の厳格構文、書式、連続二回の無作業再構築、公開API検査、`verify-quick`に成功した。台帳は27,965件対応、1,840件未対応となり、開始headerの残存は0件である。新`public-api-missing-g500.json`の生成成功後に旧`public-api-missing-g499.json` 503,220 bytesを削除した。主Ninja木6,020,292 KiB、共有compiler cache 982,668 KiB、最新報告498,800 bytes、SHA-256 `62481d4ba56d58c3ce40f966bc67efcb4cabde3d68fab3934ea884cbb9693618`だけを再利用対象として保持する。compiler cacheは144,716 cache可能呼出し中120,577件、83.32%がhitしている。実補正・変換・描画、factory生成結果、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第500便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
 
 ### 第239便の先行監査担当票
 
