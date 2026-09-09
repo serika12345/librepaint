@@ -16,7 +16,7 @@
     "publicApiFingerprint": "5f05b2aa8e5bef4343af1d55a3852331e51d4369fe135b099327b1a91b6b8c4c"
   },
   "migration": {
-    "expectedMissingApis": 2405
+    "expectedMissingApis": 2378
   },
   "contracts": [
     {
@@ -76014,6 +76014,105 @@
         "method:KisLayerStyleFilterEnvironment::cachedRandomSelection(const QRect & requestedRect) const",
         "method:KisLayerStyleFilterEnvironment::cachedSelection()",
         "method:KisLayerStyleFilterEnvironment::setupFinalPainter(KisPainter * gc,quint8 opacity,const QBitArray & channelFlags) const"
+      ]
+    },
+    {
+      "target": "KisLayerStyleAdditionalFiltersSchemaContractTest",
+      "source": "libs/image/tests/KisLayerStyleAdditionalFiltersSchemaContractTest.cpp",
+      "test": "KisLayerStyleAdditionalFiltersSchemaContractTest::bevelTypeConstructionAndCloneSignaturesRemainStable",
+      "behavior": "bevel emboss filterはlayer style filterを具体化し、既定構築と基底型としての複製を提供する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisLsBevelEmbossFilter",
+        "method:KisLsBevelEmbossFilter::KisLsBevelEmbossFilter()",
+        "method:KisLsBevelEmbossFilter::clone() const"
+      ]
+    },
+    {
+      "target": "KisLayerStyleAdditionalFiltersSchemaContractTest",
+      "source": "libs/image/tests/KisLayerStyleAdditionalFiltersSchemaContractTest.cpp",
+      "test": "KisLayerStyleAdditionalFiltersSchemaContractTest::bevelProcessingSignaturesRemainStable",
+      "behavior": "bevel emboss filterは指定領域へ効果を適用し、入力変化に必要な矩形と効果で変化する矩形を返す公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisLsBevelEmbossFilter::changedRect(const QRect & rect,KisPSDLayerStyleSP style,KisLayerStyleFilterEnvironment * env) const",
+        "method:KisLsBevelEmbossFilter::neededRect(const QRect & rect,KisPSDLayerStyleSP style,KisLayerStyleFilterEnvironment * env) const",
+        "method:KisLsBevelEmbossFilter::processDirectly(KisPaintDeviceSP src,KisMultipleProjection * dst,KisLayerStyleKnockoutBlower * blower,const QRect & applyRect,KisPSDLayerStyleSP style,KisLayerStyleFilterEnvironment * env) const"
+      ]
+    },
+    {
+      "target": "KisLayerStyleAdditionalFiltersSchemaContractTest",
+      "source": "libs/image/tests/KisLayerStyleAdditionalFiltersSchemaContractTest.cpp",
+      "test": "KisLayerStyleAdditionalFiltersSchemaContractTest::satinTypeConstructionAndCloneSignaturesRemainStable",
+      "behavior": "satin filterはlayer style filterを具体化し、既定構築と基底型としての複製を提供する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisLsSatinFilter",
+        "method:KisLsSatinFilter::KisLsSatinFilter()",
+        "method:KisLsSatinFilter::clone() const"
+      ]
+    },
+    {
+      "target": "KisLayerStyleAdditionalFiltersSchemaContractTest",
+      "source": "libs/image/tests/KisLayerStyleAdditionalFiltersSchemaContractTest.cpp",
+      "test": "KisLayerStyleAdditionalFiltersSchemaContractTest::satinProcessingSignaturesRemainStable",
+      "behavior": "satin filterは指定領域へ効果を適用し、入力変化に必要な矩形と効果で変化する矩形を返す公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisLsSatinFilter::changedRect(const QRect & rect,KisPSDLayerStyleSP style,KisLayerStyleFilterEnvironment * env) const",
+        "method:KisLsSatinFilter::neededRect(const QRect & rect,KisPSDLayerStyleSP style,KisLayerStyleFilterEnvironment * env) const",
+        "method:KisLsSatinFilter::processDirectly(KisPaintDeviceSP src,KisMultipleProjection * dst,KisLayerStyleKnockoutBlower * blower,const QRect & applyRect,KisPSDLayerStyleSP style,KisLayerStyleFilterEnvironment * env) const"
+      ]
+    },
+    {
+      "target": "KisLayerStyleAdditionalFiltersSchemaContractTest",
+      "source": "libs/image/tests/KisLayerStyleAdditionalFiltersSchemaContractTest.cpp",
+      "test": "KisLayerStyleAdditionalFiltersSchemaContractTest::strokeTypeConstructionAndCloneSignaturesRemainStable",
+      "behavior": "stroke filterはlayer style filterを具体化し、既定構築と基底型としての複製を提供する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisLsStrokeFilter",
+        "method:KisLsStrokeFilter::KisLsStrokeFilter()",
+        "method:KisLsStrokeFilter::clone() const"
+      ]
+    },
+    {
+      "target": "KisLayerStyleAdditionalFiltersSchemaContractTest",
+      "source": "libs/image/tests/KisLayerStyleAdditionalFiltersSchemaContractTest.cpp",
+      "test": "KisLayerStyleAdditionalFiltersSchemaContractTest::strokeProcessingSignaturesRemainStable",
+      "behavior": "stroke filterは指定領域へ効果を適用し、必要矩形・変更矩形とsource planeの不透明度閾値方式を返す公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisLsStrokeFilter::changedRect(const QRect & rect,KisPSDLayerStyleSP style,KisLayerStyleFilterEnvironment * env) const",
+        "method:KisLsStrokeFilter::neededRect(const QRect & rect,KisPSDLayerStyleSP style,KisLayerStyleFilterEnvironment * env) const",
+        "method:KisLsStrokeFilter::processDirectly(KisPaintDeviceSP src,KisMultipleProjection * dst,KisLayerStyleKnockoutBlower * blower,const QRect & applyRect,KisPSDLayerStyleSP style,KisLayerStyleFilterEnvironment * env) const",
+        "method:KisLsStrokeFilter::sourcePlaneOpacityThresholdRequirement(KisPSDLayerStyleSP style) const"
+      ]
+    },
+    {
+      "target": "KisLayerStyleAdditionalFiltersSchemaContractTest",
+      "source": "libs/image/tests/KisLayerStyleAdditionalFiltersSchemaContractTest.cpp",
+      "test": "KisLayerStyleAdditionalFiltersSchemaContractTest::blowerTypeAndConstructionSchemaRemainStable",
+      "behavior": "layer style knockout blowerは既定構築と複製構築ができる値保持型の公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisLayerStyleKnockoutBlower",
+        "method:KisLayerStyleKnockoutBlower::KisLayerStyleKnockoutBlower()",
+        "method:KisLayerStyleKnockoutBlower::KisLayerStyleKnockoutBlower(const KisLayerStyleKnockoutBlower & rhs)"
+      ]
+    },
+    {
+      "target": "KisLayerStyleAdditionalFiltersSchemaContractTest",
+      "source": "libs/image/tests/KisLayerStyleAdditionalFiltersSchemaContractTest.cpp",
+      "test": "KisLayerStyleAdditionalFiltersSchemaContractTest::blowerSelectionAndApplicationSignaturesRemainStable",
+      "behavior": "layer style knockout blowerはknockout選択の遅延取得・設定・消去、描画器への適用、空状態照会を提供する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisLayerStyleKnockoutBlower::apply(KisPainter * painter,KisPaintDeviceSP mergedStyle,const QRect & rect) const",
+        "method:KisLayerStyleKnockoutBlower::isEmpty() const",
+        "method:KisLayerStyleKnockoutBlower::knockoutSelectionLazy()",
+        "method:KisLayerStyleKnockoutBlower::resetKnockoutSelection()",
+        "method:KisLayerStyleKnockoutBlower::setKnockoutSelection(KisSelectionSP selection)"
       ]
     }
   ]
