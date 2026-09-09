@@ -16,7 +16,7 @@
     "publicApiFingerprint": "05a5e67dfcb803772f3a7b7f2773532707ee28e97b57d9173a41fba9047a71d2"
   },
   "migration": {
-    "expectedMissingApis": 2083
+    "expectedMissingApis": 2067
   },
   "contracts": [
     {
@@ -77210,6 +77210,67 @@
       "apis": [
         "method:StoryboardCommentModel::getData()",
         "method:StoryboardCommentModel::resetData(QVector<StoryboardComment> list)"
+      ]
+    },
+    {
+      "target": "KisClipboardSchemaContractTest",
+      "source": "libs/impex/tests/KisClipboardSchemaContractTest.cpp",
+      "test": "KisClipboardSchemaContractTest::mimeDataTypeAndConstructionSchemaRemainStable",
+      "behavior": "layer MIME値はQMimeData公開基底を持ち、node一覧・画像・copy方針から構築できる境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisMimeData",
+        "method:KisMimeData::KisMimeData(QList<KisNodeSP> nodes,KisImageSP image,bool forceCopy=false)"
+      ]
+    },
+    {
+      "target": "KisClipboardSchemaContractTest",
+      "source": "libs/impex/tests/KisClipboardSchemaContractTest.cpp",
+      "test": "KisClipboardSchemaContractTest::mimeDataInsertionInterfaceSchemaRemainStable",
+      "behavior": "node挿入interfaceは仮想破棄できる抽象境界として、node一覧の移動と追加を受ける公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisMimeData::NodeInsertionInterface",
+        "method:KisMimeData::NodeInsertionInterface::addNodes(KisNodeList nodes,KisNodeSP parent,KisNodeSP aboveThis)",
+        "method:KisMimeData::NodeInsertionInterface::moveNodes(KisNodeList nodes,KisNodeSP parent,KisNodeSP aboveThis)",
+        "method:KisMimeData::NodeInsertionInterface::~NodeInsertionInterface()"
+      ]
+    },
+    {
+      "target": "KisClipboardSchemaContractTest",
+      "source": "libs/impex/tests/KisClipboardSchemaContractTest.cpp",
+      "test": "KisClipboardSchemaContractTest::mimeDataStoredNodeSignaturesRemainStable",
+      "behavior": "layer MIME値は保持node一覧を取得・深い複製し、提供するMIME形式一覧を照会する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMimeData::deepCopyNodes()",
+        "method:KisMimeData::formats() const",
+        "method:KisMimeData::nodes() const"
+      ]
+    },
+    {
+      "target": "KisClipboardSchemaContractTest",
+      "source": "libs/impex/tests/KisClipboardSchemaContractTest.cpp",
+      "test": "KisClipboardSchemaContractTest::mimeDataLoadingSignaturesRemainStable",
+      "behavior": "layer MIME境界は同一画像由来を判定し、nodeを高速読込み・中央補正して表示変換設定を取得する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMimeData::displayConfigForMimePastes()",
+        "method:KisMimeData::isNodeMimeDataFromSameImage(const QMimeData * data,KisImageSP image)",
+        "method:KisMimeData::loadNodesFast(const QMimeData * data,KisImageSP image,KisShapeController * shapeController,bool & copyNode)",
+        "method:KisMimeData::loadNodesFastAndRecenter(const QPoint & preferredCenter,const QMimeData * data,KisImageSP image,KisShapeController * shapeController,bool & copyNode)"
+      ]
+    },
+    {
+      "target": "KisClipboardSchemaContractTest",
+      "source": "libs/impex/tests/KisClipboardSchemaContractTest.cpp",
+      "test": "KisClipboardSchemaContractTest::mimeDataLayerExchangeSignaturesRemainStable",
+      "behavior": "layer MIME境界はnode一覧から通常・深いcopyのMIME値を生成し、貼付け先へlayerを挿入する公開署名と既定引数を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMimeData::insertMimeLayers(const QMimeData * data,KisImageSP image,KisShapeController * shapeController,KisNodeDummy * parentDummy,KisNodeDummy * aboveThisDummy,bool copyNode,NodeInsertionInterface * nodeInsertionAdapter,bool changeOffset=false,QPointF offset=QPointF (),KisProcessingApplicator * applicator=nullptr)",
+        "method:KisMimeData::mimeForLayers(const KisNodeList & nodes,KisImageSP image,bool forceCopy=false)",
+        "method:KisMimeData::mimeForLayersDeepCopy(const KisNodeList & nodes,KisImageSP image,bool forceCopy)"
       ]
     }
   ]
