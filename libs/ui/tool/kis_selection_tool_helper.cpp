@@ -15,6 +15,7 @@
 #include <KoPathShape.h>
 
 #include "kis_pixel_selection.h"
+#include "kis_layer.h"
 #include "kis_shape_selection.h"
 #include "kis_image.h"
 #include "canvas/kis_canvas2.h"
