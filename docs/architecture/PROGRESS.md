@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 11:44 JST
+- 更新日時: 2026-09-09 11:52 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4273,6 +4273,13 @@
 - 開始`libs/image/kis_external_layer_iface.h`から新規`libs/image/tests/KisExternalLayerSchemaContractTest.cpp`へ全10 API・5枠を追加した。外部layerの型・基底・構築、icon・透視変形可否・理論境界、cache再設定、切抜き・変形command、profile割当・既定方針付き色変換を、本文を持たない具体probe、型特性、未評価の既定引数、厳密な関数pointerで固定した。初回は全5観測枠が成功し、`G477 external layer API schema is not fixed yet`だけが`XFAIL`となった。契約commitは`f2383d4bc7`である。
 - 新規試験sourceは86行・5枠で、targetは4工程・8入力、command SHA-256 `72c753696aae91dc76c13e54dab892e0fba3127f49f925cc9fd600470f189537`、input SHA-256 `5e1134448f33f2b15a20dde9e023a01ade1bfc57469258d1dc4962ff6e0ad05f`となった。AUTOMOC `HEADERS=[]`、製品未解決記号・製品動的接続は0である。macOSで対象、最軽量近傍`KisLayerStyleProjectionPlaneSchemaContractTest`、対象の20回反復、試験sourceの厳格構文と書式、連続二回の無作業再構築、公開API検査、`verify-quick`に成功した。近傍はCMake再生成後の初回だけAUTOGENを更新し、二回目は無作業だった。外部layer本文、既存の製品layer試験、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 台帳は27,583件対応、2,221件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g477.json` 602,312 bytesを削除し、一時閉包一覧、追加作業tree・構築木は作成していない。主Ninja木6,015,752 KiB、共有compiler cache 981,844 KiB、最新`build/tdd-macos/public-api-missing-g478.json` 599,316 bytes、SHA-256 `1d26e78b2af7fef305afae5ff1efa5b81c6f41878987167cf7bce8839a078e7c`だけを再利用対象として保持する。compiler cacheは144,644件中120,565件、83.35%がhitしている。次の永続作業は第478便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
+
+### 第478便の公開API契約計画
+
+- 第478便は画像輪郭幾何の`libs/image/kis_marker_painter.h`に残る全7 APIと`libs/image/kis_outline_generator.h`に残る全5 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g478.json`は公開header 1,548、公開API 29,804、対応済み27,583、未対応2,221、599,316 bytes、SHA-256 `1d26e78b2af7fef305afae5ff1efa5b81c6f41878987167cf7bce8839a078e7c`である。対象12識別子の整列集合SHA-256は`9e92ada3140d12ce046d1d335b2f903bcfbd58883d5a03d96ec5f7b83f8adf58`である。計測用2 APIが現行無効マクロ内にある`libs/image/floodfill/kis_gap_map.h`は、単一macOS構成で全宣言を観測できないため保留する。
+- marker painterは型・構築・破棄・有効数値上限4、円、半brush差分、二円差分3の2枠、outline generatorは型・構築2、生画素bufferからの輪郭抽出1、描画装置からの輪郭抽出と簡易輪郭切替2の3枠へ固定する。構築・破棄可能性の型特性、静的値の型と値、厳密な関数pointerだけを使い、描画装置、色、画素buffer、輪郭、各本文を実体化しない。
+- `libs/image/kis_outline_generator.h`は会員の`KisRandomConstAccessorSP`だけに`kis_random_accessor_ng.h`をincludeしているが、同共有別名と前方宣言は既存の`kis_types.h`が所有する。契約追加より先に完全定義includeを除去し、必要な実装`libs/image/kis_outline_generator.cpp`の直接includeは維持する。直接利用3翻訳単位の変更前厳格構文検査は2件成功・`libs/image/kis_pixel_selection.cpp`の`KisRegion`不完全型による既存診断1件で、変更後も同じ分類から悪化なしを完了条件とする。
+- 新規`libs/image/tests/KisImageOutlineSchemaContractTest.cpp`は120行・6枠未満とする。最寄りの`KisPaintDeviceSchemaContractTest`はQt Core・Test・header-only Boost、image・global・pigmentの探索路、Qt Gui・KF I18n・Imath interface、image・pigment export定義だけによる4工程・8入力で、command SHA-256 `b9db6c26c6250c25209a0e184f3c63c1a524df8861e287355d9eb641af488de3`、input SHA-256 `0308928adcf91329ac415fc1656db826bb16b475a8c0753a57974d576891853d`である。新targetも同じ閉包を予測し、停止線を5工程・11入力とする。新たな探索路・定義・製品接続、AUTOMOC製品header入力、対象型または本文の実体化が必要なら停止する。製品動作を既に固定する`kis_marker_painter_test`は1,201工程・2,425入力のため再構築対象から外す。macOSの対象、最軽量近傍、対象の20回反復、試験sourceの厳格構文と書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
 
 ### 第239便の先行監査担当票
 
