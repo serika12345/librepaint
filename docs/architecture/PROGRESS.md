@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 16:21 JST
+- 更新日時: 2026-09-09 16:25 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4448,6 +4448,13 @@
 - 構造準備では開始`libs/ui/animation/KisPlaybackEngineMLT.h`から直接基底headerが既に所有する`KoCanvasObserverBase.h`を除去した。`KisImage`本文を利用する宛先`libs/ui/animation/KisPlaybackEngineMLT.cpp`へ`kis_image.h`を直接追加し、変更前の不完全型診断12件を解消した。通常構文検査は成功し、厳格構文には既存のMLT callback関数型変換警告1件だけが残る。計画commitは`2e8e2f96da`、構造準備commitは`c0541c1a20`である。
 - 開始headerから既存`libs/ui/tests/KisPlaybackEngineSchemaContractTest.cpp`へ全15 API・5枠を追加した。push・pull mode、MLT再生engineの型・構築・寿命・frame待機interface、seek・mute、対応能力・frame drop・統計、active canvas frame通知を型特性、列挙値、厳密な関数pointer、省略引数の未評価呼出しで固定した。初回は全5枠が成功し、`G493 MLT playback engine API schema is not fixed yet`だけが`XFAIL`となった。契約commitは`10957d6014`である。
 - 既存試験sourceは232行・15枠となった。targetは変更前後ともQt Core・Testだけへ動的接続する4工程・8入力、command SHA-256 `2bd8ce03b6f0ab42e5f78a568fdc01c89cf541623a2537f13b54b3887847cd1e`、input SHA-256 `aa787218079060cbea383b463cb68fcfede85e6100a3d453f2d1feae4f19b981`を維持した。AUTOMOC `HEADERS=[]`、MLT engine・frame待機interface・外部MLTの未解決製品記号0である。macOSで全15枠と追加5枠を各20回、試験sourceの厳格構文と書式、連続二回の無作業再構築、公開API検査、`verify-quick`に成功した。台帳は27,833件対応、1,972件未対応となり、開始headerの残存は0件である。新`public-api-missing-g494.json`の生成成功後に旧`public-api-missing-g493.json` 535,639 bytesを削除した。主Ninja木6,020,280 KiB、共有compiler cache 982,800 KiB、最新報告532,130 bytes、SHA-256 `9cd12d6ca55cc18e82062fca444803739d9e8b283e1b00cb3e91cb07e1db3821`だけを再利用対象として保持する。compiler cacheは144,706 cache可能呼出し中120,575件、83.32%がhitしている。再生実状態、音声同期精度、frame drop統計、外部MLT、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第494便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
+
+### 第494便の公開API契約計画
+
+- 第494便はstoryboard項目の配置・可視性・入力表示を所有する`plugins/dockers/storyboarddocker/StoryboardView.h`に残る全15 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g494.json`は公開header 1,549、公開API 29,805、対応済み27,833、未対応1,972、532,130 bytes、SHA-256 `9cd12d6ca55cc18e82062fca444803739d9e8b283e1b00cb3e91cb07e1db3821`である。対象15識別子の整列集合SHA-256は`6874cf1be0c6dd50eb01b446f16056468c5b93f9896716cc221961c23009623f`である。
+- storyboard view境界は型・構築・破棄3、表示矩形・座標index・推奨寸法3、項目方向の取得設定2、comment・thumbnail可視性の取得設定4、描画・mouse解放・現在frame設定3の5枠へ固定する。型特性、厳密な関数pointer、省略引数の構築可能性だけを使い、view、model、delegate、paint・mouse event、command本文を実体化しない。
+- 開始headerの`QStyleOptionViewItem`と`StoryboardModel`前方宣言は公開・保護・私有宣言のいずれにも使われず、実装は既に`StoryboardModel.h`とQt描画headerを直接includeするため除去する。開始`plugins/dockers/storyboarddocker/StoryboardView.cpp`と既存試験sourceの変更前厳格構文は成功しており、変更後も成功を完了条件とする。`QListView`は公開基底とQt値型に必要な唯一の完全定義includeとして維持する。
+- 既存`plugins/dockers/storyboarddocker/tests/StoryboardModelSchemaContractTest.cpp`は同じstoryboard表示責務を所有する199行・10枠の限定targetである。新targetとCMake変更を避け、同sourceへ5枠を追加して290行・16枠未満に収める。targetはQt Gui・Testだけへ動的接続する4工程・8入力、command SHA-256 `5a43fe66f466b55f71df43d306166046e55698531a394b98411c1d8af364e97d`、input SHA-256 `83965d793a03fd856b81d37292a6424564d341802e7af7a626f743614198f409`を維持し、停止線を4工程・8入力とする。新たな探索路・定義・接続、製品storyboard library、`kritatestsdk`、AUTOMOC製品header入力、製品記号が必要なら停止する。macOSの対象、既存10枠と追加5枠、追加枠の20回反復、試験sourceの厳格構文と書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
 
 ### 第239便の先行監査担当票
 
