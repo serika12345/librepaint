@@ -16,7 +16,7 @@
     "publicApiFingerprint": "5f05b2aa8e5bef4343af1d55a3852331e51d4369fe135b099327b1a91b6b8c4c"
   },
   "migration": {
-    "expectedMissingApis": 2231
+    "expectedMissingApis": 2221
   },
   "contracts": [
     {
@@ -76656,6 +76656,61 @@
         "method:KisFilterRegistry::add(KisFilterSP item)",
         "method:KisFilterRegistry::add(const QString & id,KisFilterSP item)",
         "method:KisFilterRegistry::filterAdded(QString id)"
+      ]
+    },
+    {
+      "target": "KisExternalLayerSchemaContractTest",
+      "source": "libs/image/tests/KisExternalLayerSchemaContractTest.cpp",
+      "test": "KisExternalLayerSchemaContractTest::typeAndConstructionSchemaRemainStable",
+      "behavior": "外部layerは一般layerを具体化する公開型として画像弱参照・名前・不透明度から構築できる境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisExternalLayer",
+        "method:KisExternalLayer::KisExternalLayer(KisImageWSP image,const QString & name,quint8 opacity)"
+      ]
+    },
+    {
+      "target": "KisExternalLayerSchemaContractTest",
+      "source": "libs/image/tests/KisExternalLayerSchemaContractTest.cpp",
+      "test": "KisExternalLayerSchemaContractTest::presentationAndBoundsSignaturesRemainStable",
+      "behavior": "外部layerは表示icon、透視変形対応可否、投影から独立した理論境界を返す公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisExternalLayer::icon() const",
+        "method:KisExternalLayer::supportsPerspectiveTransform() const",
+        "method:KisExternalLayer::theoreticalBoundingRect() const"
+      ]
+    },
+    {
+      "target": "KisExternalLayerSchemaContractTest",
+      "source": "libs/image/tests/KisExternalLayerSchemaContractTest.cpp",
+      "test": "KisExternalLayerSchemaContractTest::cacheSignatureRemainsStable",
+      "behavior": "外部layerは省略可能な色空間を受け取って内部cacheを再設定する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisExternalLayer::resetCache(const KoColorSpace * colorSpace=0)"
+      ]
+    },
+    {
+      "target": "KisExternalLayerSchemaContractTest",
+      "source": "libs/image/tests/KisExternalLayerSchemaContractTest.cpp",
+      "test": "KisExternalLayerSchemaContractTest::geometryCommandSignaturesRemainStable",
+      "behavior": "外部layerは切抜き矩形または変換行列を受け取り、対応するundo commandを返す公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisExternalLayer::crop(const QRect & rect)",
+        "method:KisExternalLayer::transform(const QTransform & transform)"
+      ]
+    },
+    {
+      "target": "KisExternalLayerSchemaContractTest",
+      "source": "libs/image/tests/KisExternalLayerSchemaContractTest.cpp",
+      "test": "KisExternalLayerSchemaContractTest::colorManagementCommandSignaturesRemainStable",
+      "behavior": "外部layerはprofile割当、または既定描画意図・変換flagを持つ色空間変換に対応するundo commandを返す公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisExternalLayer::convertTo(const KoColorSpace * dstColorSpace,KoColorConversionTransformation::Intent renderingIntent=KoColorConversionTransformation::internalRenderingIntent (),KoColorConversionTransformation::ConversionFlags conversionFlags=KoColorConversionTransformation::internalConversionFlags ())",
+        "method:KisExternalLayer::setProfile(const KoColorProfile * profile)"
       ]
     }
   ]

@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 11:21 JST
+- 更新日時: 2026-09-09 11:44 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4269,6 +4269,10 @@
 - 外部layerは型・基底・構築2、icon・透視変形可否・理論境界3、cache再設定1、切抜き・変形command2、profile割当・既定方針付き色変換2の5枠へ固定する。本文を持たない具体probeを宣言し、layer、画像、描画装置、色管理、command、Qt値を実体化せず、型特性、未評価の既定引数、厳密な関数pointerだけを使う。
 - 開始headerは`KisImage`の完全定義を使用せず、共有弱pointerをinline基底構築へ渡すだけである。契約追加より先に`libs/image/kis_external_layer_iface.h`から`kis_image.h`を除去し、重い画像本体の推移依存を切る。`kis_icon_utils.h`はinline `icon()`本文、`kis_layer.h`は公開継承とinline基底構築、`kis_types.h`は共有型に必要なため維持する。直接利用15翻訳単位の変更前厳格構文検査は13件成功・2件既存診断で、変更後も同じ分類とし新規悪化0を完了条件とする。
 - 新規`libs/image/tests/KisExternalLayerSchemaContractTest.cpp`は140行・6枠未満とする。最寄りの`KisLayerStyleProjectionPlaneSchemaContractTest`は4工程・8入力、command SHA-256 `0511f5175ac7a9135f28601e5ef6cec86a67e5a0c4129ea1e648c29426abcd7c`、input SHA-256 `6e27b80bc3a9576fc86b4bb142e234b4071e1fd0e385dfa8fc52eb322c20f2d0`である。新targetは同じimage・global・pigment・resources・psdutils探索路とinterface条件にwidgetutils探索路・export定義をcompile条件として加え、製品objectを接続しない4工程・8入力を予測する。停止線を5工程・11入力とし、新たな製品接続、AUTOMOC製品header入力、外部layerまたは関連製品型の実体化が必要なら停止する。macOSの対象、最軽量近傍、対象の20回反復、試験sourceの厳格構文、書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、既存の製品layer試験、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
+- 構造準備では開始`libs/image/kis_external_layer_iface.h`から未使用の`kis_image.h`を除去し、画像本体と描画装置完全型を実際に使う`plugins/impex/ora/kis_open_raster_stack_save_visitor.cpp`へ`kis_image.h`と`kis_paint_device.h`を直接移した。直接利用15翻訳単位の厳格構文検査は変更前13件成功・2件既存診断、推移依存除去直後は同数だがORAに新しい不完全型診断を確認し、最終状態は14件成功・`kis_kra_loader.cpp`の既存非推奨診断1件となった。新規悪化0、既存診断1件改善、公開API数・指紋不変である。計画commitは`b3405b53b0`、構造準備commitは`2868728298`である。
+- 開始`libs/image/kis_external_layer_iface.h`から新規`libs/image/tests/KisExternalLayerSchemaContractTest.cpp`へ全10 API・5枠を追加した。外部layerの型・基底・構築、icon・透視変形可否・理論境界、cache再設定、切抜き・変形command、profile割当・既定方針付き色変換を、本文を持たない具体probe、型特性、未評価の既定引数、厳密な関数pointerで固定した。初回は全5観測枠が成功し、`G477 external layer API schema is not fixed yet`だけが`XFAIL`となった。契約commitは`f2383d4bc7`である。
+- 新規試験sourceは86行・5枠で、targetは4工程・8入力、command SHA-256 `72c753696aae91dc76c13e54dab892e0fba3127f49f925cc9fd600470f189537`、input SHA-256 `5e1134448f33f2b15a20dde9e023a01ade1bfc57469258d1dc4962ff6e0ad05f`となった。AUTOMOC `HEADERS=[]`、製品未解決記号・製品動的接続は0である。macOSで対象、最軽量近傍`KisLayerStyleProjectionPlaneSchemaContractTest`、対象の20回反復、試験sourceの厳格構文と書式、連続二回の無作業再構築、公開API検査、`verify-quick`に成功した。近傍はCMake再生成後の初回だけAUTOGENを更新し、二回目は無作業だった。外部layer本文、既存の製品layer試験、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 台帳は27,583件対応、2,221件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g477.json` 602,312 bytesを削除し、一時閉包一覧、追加作業tree・構築木は作成していない。主Ninja木6,015,752 KiB、共有compiler cache 981,844 KiB、最新`build/tdd-macos/public-api-missing-g478.json` 599,316 bytes、SHA-256 `1d26e78b2af7fef305afae5ff1efa5b81c6f41878987167cf7bce8839a078e7c`だけを再利用対象として保持する。compiler cacheは144,644件中120,565件、83.35%がhitしている。次の永続作業は第478便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
 
 ### 第239便の先行監査担当票
 
