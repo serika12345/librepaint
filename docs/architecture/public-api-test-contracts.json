@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 1674
+    "expectedMissingApis": 1665
   },
   "contracts": [
     {
@@ -78587,6 +78587,33 @@
       "apis": [
         "method:KisCmbIDList::activated(const KoID &)",
         "method:KisCmbIDList::highlighted(const KoID &)"
+      ]
+    },
+    {
+      "target": "KisAbstractResourceModelSchemaContractTest",
+      "source": "libs/resources/tests/KisAbstractResourceModelSchemaContractTest.cpp",
+      "test": "KisAbstractResourceModelSchemaContractTest::resourceModelProviderTypeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "資源模型提供器は既定構築と破棄が可能で、複製できない公開型契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisResourceModelProvider",
+        "method:KisResourceModelProvider::KisResourceModelProvider()",
+        "method:KisResourceModelProvider::~KisResourceModelProvider()"
+      ]
+    },
+    {
+      "target": "KisAbstractResourceModelSchemaContractTest",
+      "source": "libs/resources/tests/KisAbstractResourceModelSchemaContractTest.cpp",
+      "test": "KisAbstractResourceModelSchemaContractTest::resourceModelProviderAccessAndTestingSignaturesRemainStable",
+      "behavior": "資源模型提供器は資源種別ごとの資源・tag・tag資源模型、共有metadata模型と試験用query制御を公開する署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisResourceModelProvider::resourceMetadataModel()",
+        "method:KisResourceModelProvider::resourceModel(const QString & resourceType)",
+        "method:KisResourceModelProvider::tagModel(const QString & resourceType)",
+        "method:KisResourceModelProvider::tagResourceModel(const QString & resourceType)",
+        "method:KisResourceModelProvider::testingCloseAllQueries()",
+        "method:KisResourceModelProvider::testingResetAllModels()"
       ]
     }
   ]

@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 20:16 JST
+- 更新日時: 2026-09-09 20:22 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4626,6 +4626,8 @@
 - 資源模型提供境界は提供型・既定構築・破棄3、資源・tag・tag資源・metadata模型取得と試験用reset・query終了6の2枠へ固定する。型特性と厳密な静的関数pointerだけを使い、provider、singleton、模型、database接続とqueryを実体化しない。
 - 開始headerは`Q_DISABLE_COPY`に必要な軽量`qglobal.h`を直接取り込み、返却値の模型型をすべて前方宣言している。開始`libs/resources/KisResourceModelProvider.cpp`とheader強制includeの厳格構文は診断0件であり、除去できる推移依存もないため製品構造を変更しない。
 - 直前に拡張した`libs/resources/tests/KisAbstractResourceModelSchemaContractTest.cpp`は同じ資源模型責務を所有する132行・8枠であり、2枠追加後も220行・10枠以内に収まる。CMake変更なしでQt Core・Testだけへ動的接続する4工程・8入力、command SHA-256 `adb6574af8d20f5ff63a32f98d6861209e77a5c64876225e5e5280a64d751382`、input SHA-256 `57ddb30c6499c0e0b50b928f0f0c2039fe09086c7eae73cc86614cdd344eb1f4`、AUTOMOC `HEADERS=[]`と製品未接続を維持する。入力hashの変更、新たな動的接続、製品記号が必要なら停止する。macOSの対象と軽量資源近傍、追加2枠の20回反復、実装・試験sourceとheader強制includeの厳格構文、書式、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、実singleton・模型取得・database query、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
+- 開始`libs/resources/KisResourceModelProvider.h`から既存`libs/resources/tests/KisAbstractResourceModelSchemaContractTest.cpp`へ全9 API・2枠を追加し、提供型・構築・寿命・複製禁止、4模型の取得と試験用reset・query終了を型特性と厳密な静的関数pointerで固定した。公開header、製品sourceとCMakeは変更していない。計画commitは`ae1f092e7a`、契約commitは`87ce28c171`で、既存sourceは163行・10枠となった。
+- targetはQt Core・Testだけへ動的接続する4工程・8入力、command SHA-256 `adb6574af8d20f5ff63a32f98d6861209e77a5c64876225e5e5280a64d751382`、input SHA-256 `57ddb30c6499c0e0b50b928f0f0c2039fe09086c7eae73cc86614cdd344eb1f4`、AUTOMOC `HEADERS=[]`、資源模型提供器と4模型の未解決製品記号0を維持した。macOSで対象と資源模型enum近傍、対象全体と追加2枠を20回、実装・試験sourceとheader強制includeの厳格構文、書式、連続二回の無作業再構築、公開API検査に成功した。台帳は28,136件対応、1,665件未対応となり、開始headerの残存は0件である。新`public-api-missing-g513.json`の生成成功後に旧`public-api-missing-g512.json` 455,739 bytesを削除した。主Ninja木6,027,704 KiB、共有compiler cache 982,816 KiB、最新報告453,396 bytes、SHA-256 `d7ad8ed856fe60a79432df3997c6872c4dd00a12d33d81b328c795a9b8c8810e`だけを再利用対象として保持する。compiler cacheは144,747 cache可能呼出し中120,581件、83.30%がhitしている。実singleton・模型取得・database query、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第513便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
 
 ### 第239便の先行監査担当票
 
