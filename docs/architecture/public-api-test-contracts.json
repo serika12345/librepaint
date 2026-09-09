@@ -16,7 +16,7 @@
     "publicApiFingerprint": "05a5e67dfcb803772f3a7b7f2773532707ee28e97b57d9173a41fba9047a71d2"
   },
   "migration": {
-    "expectedMissingApis": 2209
+    "expectedMissingApis": 2198
   },
   "contracts": [
     {
@@ -76769,6 +76769,53 @@
       "apis": [
         "method:KisOutlineGenerator::outline(const KisPaintDevice * buffer,qint32 xOffset,qint32 yOffset,qint32 width,qint32 height)",
         "method:KisOutlineGenerator::setSimpleOutline(bool simple)"
+      ]
+    },
+    {
+      "target": "KisDitherUtilSchemaContractTest",
+      "source": "libs/ui/tests/KisDitherUtilSchemaContractTest.cpp",
+      "test": "KisDitherUtilSchemaContractTest::typeAndConstructionSchemaRemainStable",
+      "behavior": "dither補助は公開型と既定構築可能性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisDitherUtil",
+        "method:KisDitherUtil::KisDitherUtil()"
+      ]
+    },
+    {
+      "target": "KisDitherUtilSchemaContractTest",
+      "source": "libs/ui/tests/KisDitherUtilSchemaContractTest.cpp",
+      "test": "KisDitherUtilSchemaContractTest::thresholdModeSchemaRemainsStable",
+      "behavior": "dither補助はpatternとnoiseの順で安定した閾値modeを維持する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KisDitherUtil::ThresholdMode",
+        "enumerator:KisDitherUtil::ThresholdMode::Noise",
+        "enumerator:KisDitherUtil::ThresholdMode::Pattern"
+      ]
+    },
+    {
+      "target": "KisDitherUtilSchemaContractTest",
+      "source": "libs/ui/tests/KisDitherUtilSchemaContractTest.cpp",
+      "test": "KisDitherUtilSchemaContractTest::patternValueModeSchemaRemainsStable",
+      "behavior": "dither補助は自動判定、明度、alphaの順で安定したpattern値modeを維持する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KisDitherUtil::PatternValueMode",
+        "enumerator:KisDitherUtil::PatternValueMode::Alpha",
+        "enumerator:KisDitherUtil::PatternValueMode::Auto",
+        "enumerator:KisDitherUtil::PatternValueMode::Lightness"
+      ]
+    },
+    {
+      "target": "KisDitherUtilSchemaContractTest",
+      "source": "libs/ui/tests/KisDitherUtilSchemaContractTest.cpp",
+      "test": "KisDitherUtilSchemaContractTest::configurationAndThresholdSignaturesRemainStable",
+      "behavior": "dither補助は省略可能なprefix付き設定を取り込み、座標ごとの閾値を返す公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDitherUtil::setConfiguration(const KisFilterConfiguration & config,const QString & prefix=\"\")",
+        "method:KisDitherUtil::threshold(const QPoint & pos)"
       ]
     }
   ]

@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 12:24 JST
+- 更新日時: 2026-09-09 12:33 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4292,7 +4292,10 @@
 - dither補助は型・構築2、閾値mode型・pattern・noise 3、pattern値mode型・自動・明度・alpha 4、設定の読込みと座標別閾値計算2の4枠へ固定する。型特性、列挙値、省略引数の未評価呼出し、厳密な関数pointerだけを使い、設定、pattern、乱数、画素、本文を実体化しない。
 - `libs/ui/utils/KisDitherUtil.h`は私有会員の共有pointerのために完全な`KoPattern.h`を公開面へ推移させている。契約追加より先に、headerは`QSharedPointer<KoPattern>`と前方宣言だけを所有し、patternの本文を使う`libs/ui/utils/KisDitherUtil.cpp`へ`KoPattern.h`を直接移す。直接利用4翻訳単位の変更前厳格構文検査は2件成功・gradient mapとpalettizeの生成UI header不在による既存診断2件で、変更後も同じ分類から悪化なしを完了条件とする。
 - 新規`libs/ui/tests/KisDitherUtilSchemaContractTest.cpp`は90行・5枠未満とする。最寄りの`KisDisplayConfigSchemaContractTest`は4工程・8入力、command SHA-256 `1486a6825ec2708ac11f7319e3f08e21aedcf1d596afa1e9a2b99e9e7885dd23`、input SHA-256 `0f5781b1ac2dec2ed9954f2948ac1d5b605eed4e419085ff8415d097846cb8ce`である。新targetはUI・image・global探索路、Qt Core・Test、UI・image export定義だけの4工程・8入力を予測し、停止線を5工程・11入力とする。新たな探索路・定義・製品接続、AUTOMOC製品header入力、対象型または本文の実体化が必要なら停止する。macOSの対象、最軽量近傍、対象の20回反復、試験sourceの厳格構文と書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
-- 構造準備では開始`libs/ui/utils/KisDitherUtil.h`から完全な`KoPattern.h`を除去し、`KoPattern`と`KisResourcesInterface`の前方宣言と具体的な`QSharedPointer`会員・私有引数に置き換えた。pattern本文を使う宛先`libs/ui/utils/KisDitherUtil.cpp`は`KoPattern.h`を直接includeする。include除去直後は、私有引数の`KisResourcesInterfaceSP`もpattern経由だったことを新規診断で確定し、同型の具体的な共有pointerへ置き換えた。直接利用4翻訳単位は最終的に変更前と同じ2件成功・生成UI header不在の既存診断2件で、公開header 1,548、公開API 29,805、API指紋は不変である。計画commitは`9fa8c13766`である。
+- 構造準備では開始`libs/ui/utils/KisDitherUtil.h`から完全な`KoPattern.h`を除去し、`KoPattern`と`KisResourcesInterface`の前方宣言と具体的な`QSharedPointer`会員・私有引数に置き換えた。pattern本文を使う宛先`libs/ui/utils/KisDitherUtil.cpp`は`KoPattern.h`を直接includeする。include除去直後は、私有引数の`KisResourcesInterfaceSP`もpattern経由だったことを新規診断で確定し、同型の具体的な共有pointerへ置き換えた。直接利用4翻訳単位は最終的に変更前と同じ2件成功・生成UI header不在の既存診断2件で、公開header 1,548、公開API 29,805、API指紋は不変である。計画commitは`9fa8c13766`、構造準備commitは`a81f3b9806`である。
+- 開始`libs/ui/utils/KisDitherUtil.h`から新規`libs/ui/tests/KisDitherUtilSchemaContractTest.cpp`へ全11 API・4枠を追加した。公開型と構築、pattern・noiseの閾値mode、自動・明度・alphaのpattern値mode、既定prefix付き設定と座標別閾値の境界を型特性、列挙値、未評価呼出し、厳密な関数pointerで固定した。初回は全4観測枠が成功し、`G479 dither utility API schema is not fixed yet`だけが`XFAIL`となった。契約commitは`da039f3ab9`である。
+- 新規試験sourceは70行・4枠で、targetはQt Core・Testだけへ動的接続する4工程・8入力、command SHA-256 `628487d1638f81009aca3e358b92041242388704b5fb20fb04d341f666c66a80`、input SHA-256 `7b085059d682fffeeccfd612f765abef429d9a34f1e359ca5dc34d56793e3994`となった。AUTOMOC `HEADERS=[]`、dither・pattern・資源interface・製品libraryの未解決記号は0である。macOSで対象の単発と20回反復、最軽量近傍`KisDisplayConfigSchemaContractTest`、試験sourceの厳格構文と書式、連続二回の無作業再構築、公開API検査に成功した。dither計算本文、実pattern・設定、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 台帳は27,607件対応、2,198件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g479.json` 595,987 bytesを削除し、一時閉包一覧、追加作業tree・構築木は作成していない。主Ninja木6,018,492 KiB、共有compiler cache 983,424 KiB、最新`build/tdd-macos/public-api-missing-g480.json` 593,666 bytes、SHA-256 `a2e415d6898d332ac639aa4f26ed5d24fec9aa066d2d670fd655e59ffe6d9f05`だけを再利用対象として保持する。compiler cacheは144,652件中120,565件、83.35%がhitしている。次の永続作業は第480便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
 
 ### 第239便の先行監査担当票
 
