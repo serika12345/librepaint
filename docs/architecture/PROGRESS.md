@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 12:33 JST
+- 更新日時: 2026-09-09 12:37 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4296,6 +4296,13 @@
 - 開始`libs/ui/utils/KisDitherUtil.h`から新規`libs/ui/tests/KisDitherUtilSchemaContractTest.cpp`へ全11 API・4枠を追加した。公開型と構築、pattern・noiseの閾値mode、自動・明度・alphaのpattern値mode、既定prefix付き設定と座標別閾値の境界を型特性、列挙値、未評価呼出し、厳密な関数pointerで固定した。初回は全4観測枠が成功し、`G479 dither utility API schema is not fixed yet`だけが`XFAIL`となった。契約commitは`da039f3ab9`である。
 - 新規試験sourceは70行・4枠で、targetはQt Core・Testだけへ動的接続する4工程・8入力、command SHA-256 `628487d1638f81009aca3e358b92041242388704b5fb20fb04d341f666c66a80`、input SHA-256 `7b085059d682fffeeccfd612f765abef429d9a34f1e359ca5dc34d56793e3994`となった。AUTOMOC `HEADERS=[]`、dither・pattern・資源interface・製品libraryの未解決記号は0である。macOSで対象の単発と20回反復、最軽量近傍`KisDisplayConfigSchemaContractTest`、試験sourceの厳格構文と書式、連続二回の無作業再構築、公開API検査に成功した。dither計算本文、実pattern・設定、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 台帳は27,607件対応、2,198件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g479.json` 595,987 bytesを削除し、一時閉包一覧、追加作業tree・構築木は作成していない。主Ninja木6,018,492 KiB、共有compiler cache 983,424 KiB、最新`build/tdd-macos/public-api-missing-g480.json` 593,666 bytes、SHA-256 `a2e415d6898d332ac639aa4f26ed5d24fec9aa066d2d670fd655e59ffe6d9f05`だけを再利用対象として保持する。compiler cacheは144,652件中120,565件、83.35%がhitしている。次の永続作業は第480便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
+
+### 第480便の公開API契約計画
+
+- 第480便はanimation timelineの行索引変換を所有する`plugins/dockers/animation/timeline_frames_index_converter.h`に残る全12 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g480.json`は公開header 1,548、公開API 29,805、対応済み27,607、未対応2,198、593,666 bytes、SHA-256 `a2e415d6898d332ac639aa4f26ed5d24fec9aa066d2d670fd655e59ffe6d9f05`である。対象12識別子の整列集合SHA-256は`b4513c846a3cee39e21a49d85498759ce8505e1ac0040ecdb091619d8cf326ed`である。
+- timeline行索引変換は型・構築・破棄3、行からdummy・dummyから行・行数3、能動dummy取得・更新・削除通知3、全体選択mask表示とtimeline利用可否・可視性3の4枠へ固定する。型特性と厳密な関数pointerだけを使い、facade、dummy、行構造、本文を実体化しない。
+- 開始headerはexport定義と`KisNodeDummy`・`KisDummiesFacadeBase`の前方宣言だけで公開宣言を構成し、destructorも実装所有側に明示されている。除去できるinclude、不要な生成入力、逆向依存がないため構造変更を行わない。既存`timeline_model_test`は製品共有library・`kritatestsdk`へ接続する2,011工程・4,020入力であり、限定反復対象から外す。
+- 新規`plugins/dockers/animation/tests/TimelineFramesIndexConverterSchemaContractTest.cpp`は90行・5枠未満とする。最寄りの`KisAnimUtilsSchemaContractTest`は4工程・8入力、command SHA-256 `c80543394dae85bb0e2ce88f2d9024f9ff9b5428c93030be8900744c7a0ad581`、input SHA-256 `a1c9cebe30044a986ed75cb4ac28108e7cdf944ae58e78810ab6731eb156fbb4`である。新targetは対象のsource・binary探索路、Qt Core・Test、animation docker export定義だけの4工程・8入力を予測し、停止線を5工程・11入力とする。新たな探索路・定義・製品接続、AUTOMOC製品header入力、対象型または本文の実体化が必要なら停止する。macOSの対象、最軽量近傍、対象の20回反復、試験sourceの厳格構文と書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
 
 ### 第239便の先行監査担当票
 
