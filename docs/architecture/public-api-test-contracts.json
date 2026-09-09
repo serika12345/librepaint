@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 1425
+    "expectedMissingApis": 1416
   },
   "contracts": [
     {
@@ -39672,7 +39672,7 @@
       "target": "KisGuidesConfigSchemaContractTest",
       "source": "libs/ui/tests/KisGuidesConfigSchemaContractTest.cpp",
       "test": "KisGuidesConfigSchemaContractTest::guideValueIdentityAndEqualitySchemaRemainStable",
-      "behavior": "guide設定は公開class・線種enum、solid・dashed・dottedの列挙順、および位置・表示状態を比較する等価演算型を維持する。",
+      "behavior": "guide設定は既定構築、複製構築・代入、破棄、公開class・線種enum、solid・dashed・dottedの列挙順、および位置・表示状態を比較する等価演算型を維持する。",
       "classification": "maintained",
       "apis": [
         "class:KisGuidesConfig",
@@ -39680,21 +39680,30 @@
         "enumerator:KisGuidesConfig::LineTypeInternal::LINE_DASHED",
         "enumerator:KisGuidesConfig::LineTypeInternal::LINE_DOTTED",
         "enumerator:KisGuidesConfig::LineTypeInternal::LINE_SOLID",
-        "method:KisGuidesConfig::operator ==(const KisGuidesConfig & rhs) const"
+        "method:KisGuidesConfig::KisGuidesConfig()",
+        "method:KisGuidesConfig::KisGuidesConfig(const KisGuidesConfig & rhs)",
+        "method:KisGuidesConfig::operator =(const KisGuidesConfig & rhs)",
+        "method:KisGuidesConfig::operator ==(const KisGuidesConfig & rhs) const",
+        "method:KisGuidesConfig::~KisGuidesConfig()"
       ]
     },
     {
       "target": "KisGuidesConfigSchemaContractTest",
       "source": "libs/ui/tests/KisGuidesConfigSchemaContractTest.cpp",
       "test": "KisGuidesConfigSchemaContractTest::guidePositionCollectionAndTransformSignaturesRemainStable",
-      "behavior": "guide設定は水平・垂直位置集合の参照、追加・全削除、位置比較・有無判定、および座標変換の公開型とconst性を維持する。",
+      "behavior": "guide設定は水平・垂直位置集合の参照、追加・全削除、位置比較・有無判定、既定値判定、静的設定とXMLの読込・書出、および座標変換の公開型とconst性を維持する。",
       "classification": "maintained",
       "apis": [
         "method:KisGuidesConfig::addGuideLine(Qt::Orientation orientation,qreal position)",
         "method:KisGuidesConfig::hasGuides() const",
         "method:KisGuidesConfig::hasSamePositionAs(const KisGuidesConfig & rhs) const",
         "method:KisGuidesConfig::horizontalGuideLines() const",
+        "method:KisGuidesConfig::isDefault() const",
+        "method:KisGuidesConfig::loadFromXml(const QDomElement & parent)",
+        "method:KisGuidesConfig::loadStaticData()",
         "method:KisGuidesConfig::removeAllGuides()",
+        "method:KisGuidesConfig::saveStaticData() const",
+        "method:KisGuidesConfig::saveToXml(QDomDocument & doc,const QString & tag) const",
         "method:KisGuidesConfig::setHorizontalGuideLines(const QList<qreal> & lines)",
         "method:KisGuidesConfig::setVerticalGuideLines(const QList<qreal> & lines)",
         "method:KisGuidesConfig::transform(const QTransform & transform)",
