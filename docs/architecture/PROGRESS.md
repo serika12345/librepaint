@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 19:01 JST
+- 更新日時: 2026-09-09 19:07 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4563,6 +4563,8 @@
 - node絞込み模型境界は型・構築・破棄3、元模型接続・data更新・行受入判定3、label・文字条件とnode/index相互変換4、active node・ダミー解除・削除前通知3の4枠へ固定する。型特性と厳密な関数pointerだけを使い、模型、node、index、絞込み処理と遅延更新本文を実体化しない。
 - 開始headerは公開基底の`QSortFilterProxyModel`、値会員の`QScopedPointer`、共有node pointerの正規別名を持つ`kis_types.h`を直接所有し、完全型の推移依存や実装専用headerはない。header強制includeの厳格構文は成功しているため構造変更を行わない。開始`libs/ui/nodes/kis_node_filter_proxy_model.cpp`の厳格構文にはQt 6.13で非推奨となる既存`invalidateFilter()`の3診断があり、今回の宣言契約とは分離し、追加診断0を維持する。
 - 既存`libs/ui/tests/KisDummiesFacadeBaseSchemaContractTest.cpp`は同じnodeとダミー階層責務を所有する89行・4枠の限定targetである。同sourceへ4枠を追加して220行・10枠未満に収める。変更前targetはQt Core・Testだけへ動的接続する4工程・8入力、command SHA-256 `771e08d77c5e95c10be87dd4ef02a30d55059f4cdf7cbb0686d7a10ea34443b8`、input SHA-256 `ac62c62476b5e24a582539549039f08b87a9b6e99c88571a96b2ce13238deb32`で、AUTOMOC `HEADERS=[]`、製品未解決記号0である。CMakeを変更せず同じ閉包を維持し、入力hashの変更、新たな動的接続、製品OBJECT・shared、`kritatestsdk`、AUTOMOC製品header入力、node絞込み模型製品記号が必要なら停止する。macOSの対象と軽量node近傍、追加4枠の20回反復、試験sourceとheader強制includeの厳格構文、書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、実模型・node・遅延絞込み、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
+- 開始`libs/ui/nodes/kis_node_filter_proxy_model.h`から既存`libs/ui/tests/KisDummiesFacadeBaseSchemaContractTest.cpp`へ全13 API・4枠を追加し、型・構築・寿命、元模型・data・行受入判定、label・文字条件とnode/index相互変換、active node・ダミー解除・削除前通知を型特性と厳密な関数pointerで固定した。公開header、製品実装、CMakeは変更していない。計画commitは`bba262ae53`、契約commitは`e7098f39f5`である。既存sourceは135行・8枠となった。
+- targetはQt Core・Testだけへ動的接続する4工程・8入力と既存command SHA-256 `771e08d77c5e95c10be87dd4ef02a30d55059f4cdf7cbb0686d7a10ea34443b8`、input SHA-256 `ac62c62476b5e24a582539549039f08b87a9b6e99c88571a96b2ce13238deb32`を維持した。AUTOMOC `HEADERS=[]`、node絞込み模型・ダミー階層・node模型の未解決製品記号0である。macOSで対象とnode表示色近傍、対象全体と追加4枠を20回、試験sourceとheader強制includeの厳格構文、書式、連続二回の無作業再構築、公開API検査に成功した。開始実装の厳格構文は既存`invalidateFilter()`非推奨診断3件だけで、今回の追加診断は0件である。台帳は28,056件対応、1,745件未対応となり、開始headerの残存は0件である。新`public-api-missing-g506.json`の生成成功後に旧`public-api-missing-g505.json` 477,421 bytesを削除した。主Ninja木6,025,180 KiB、共有compiler cache 982,680 KiB、最新報告473,807 bytes、SHA-256 `4cc42bfc35d676d5958a88ee3b497d71c895ff820c09bca27d20a1698da632db`だけを再利用対象として保持する。compiler cacheは144,734 cache可能呼出し中120,578件、83.31%がhitしている。実模型・node・遅延絞込み、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第506便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
 
 ### 第239便の先行監査担当票
 

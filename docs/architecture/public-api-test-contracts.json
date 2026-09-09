@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 1758
+    "expectedMissingApis": 1745
   },
   "contracts": [
     {
@@ -78278,6 +78278,55 @@
         "method:LayerBoxFactory::createDockWidget()",
         "method:LayerBoxFactory::defaultDockPosition() const",
         "method:LayerBoxFactory::id() const"
+      ]
+    },
+    {
+      "target": "KisDummiesFacadeBaseSchemaContractTest",
+      "source": "libs/ui/tests/KisDummiesFacadeBaseSchemaContractTest.cpp",
+      "test": "KisDummiesFacadeBaseSchemaContractTest::nodeFilterTypeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "node絞込み模型は並べ替え絞込み模型として親objectから構築でき、仮想破棄される公開型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisNodeFilterProxyModel",
+        "method:KisNodeFilterProxyModel::KisNodeFilterProxyModel(QObject * parent)",
+        "method:KisNodeFilterProxyModel::~KisNodeFilterProxyModel()"
+      ]
+    },
+    {
+      "target": "KisDummiesFacadeBaseSchemaContractTest",
+      "source": "libs/ui/tests/KisDummiesFacadeBaseSchemaContractTest.cpp",
+      "test": "KisDummiesFacadeBaseSchemaContractTest::nodeFilterModelAndDataSignaturesRemainStable",
+      "behavior": "node絞込み模型は元模型を接続し、役割別data更新と元行の受入判定を行う公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeFilterProxyModel::filterAcceptsRow(int source_row,const QModelIndex & source_parent) const",
+        "method:KisNodeFilterProxyModel::setData(const QModelIndex & index,const QVariant & value,int role)",
+        "method:KisNodeFilterProxyModel::setNodeModel(KisNodeModel * model)"
+      ]
+    },
+    {
+      "target": "KisDummiesFacadeBaseSchemaContractTest",
+      "source": "libs/ui/tests/KisDummiesFacadeBaseSchemaContractTest.cpp",
+      "test": "KisDummiesFacadeBaseSchemaContractTest::nodeFilterCriteriaAndMappingSignaturesRemainStable",
+      "behavior": "node絞込み模型はlabel・文字列条件を受け取り、nodeと表示indexを相互変換する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeFilterProxyModel::indexFromNode(KisNodeSP node) const",
+        "method:KisNodeFilterProxyModel::nodeFromIndex(const QModelIndex & index) const",
+        "method:KisNodeFilterProxyModel::setAcceptedLabels(const QSet<int> & value)",
+        "method:KisNodeFilterProxyModel::setTextFilter(const QString & text)"
+      ]
+    },
+    {
+      "target": "KisDummiesFacadeBaseSchemaContractTest",
+      "source": "libs/ui/tests/KisDummiesFacadeBaseSchemaContractTest.cpp",
+      "test": "KisDummiesFacadeBaseSchemaContractTest::nodeFilterActivationAndNotificationSignaturesRemainStable",
+      "behavior": "node絞込み模型はactive node追従とダミー接続解除を受け取り、削除前の表示行を通知する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeFilterProxyModel::setActiveNode(KisNodeSP node)",
+        "method:KisNodeFilterProxyModel::sigBeforeBeginRemoveRows(const QModelIndex & parent,int start,int end)",
+        "method:KisNodeFilterProxyModel::unsetDummiesFacade()"
       ]
     }
   ]
