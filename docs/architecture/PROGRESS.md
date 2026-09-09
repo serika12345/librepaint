@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-10 01:04 JST
+- 更新日時: 2026-09-10 01:09 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4883,6 +4883,13 @@
 - grid設定境界は既定構築、共有既定値照会、既定値判定、静的設定読込/書出、XML読込/書出、幾何変換の8件を既存専用試験の1枠へ固定する。構築可能性と厳密な関数pointerだけを使い、grid設定、application設定、XML、変換を実体化しない。
 - 開始headerは公開値会員とinline関数に必要なQt値型、Boost等価演算、export定義を直接includeしている。開始`libs/ui/canvas/kis_grid_config.cpp`と既存`libs/ui/tests/KisGridConfigValueContractTest.cpp`の厳格構文診断は0件であるため、構造変更を行わない。
 - 既存grid設定契約は193行・5枠で、1枠追加後も220行・10枠以内に収まる。CMakeを変更せず4工程・8入力、command SHA-256 `e0ef8efb68ac9d7f43823baeed4477fac0d79070fcc845561a4104515bd5dc89`、input SHA-256 `801b31252a3a01dbc9a08326b9fcd1d5711b3f3933dd0a465a265d8800704f99`を維持する。工程・入力増加、候補headerのAUTOMOC入力化、製品未解決記号が生じれば停止する。macOSの対象全体と追加1枠の20回反復、実装・試験sourceとheader強制includeの厳格構文、試験書式、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、設定・XML・変換の実効果、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
+
+### 第534便の公開API契約結果
+
+- canvas grid設定の構築、既定値判定、静的設定、XML永続化、幾何変換の公開境界を既存専用契約で固定した。開始`libs/ui/canvas/kis_grid_config.h`から既存`libs/ui/tests/KisGridConfigValueContractTest.cpp`へ残存全8 API・1枠を追加し、既定構築、共有既定値照会、既定値判定、静的設定読込/書出、XML読込/書出、幾何変換を構築可能性と厳密な関数pointerで固定した。計画commitは`0645871f84`、契約commitは`e65e8fcd3f`で、既存試験sourceは207行・6枠となった。
+- 開始headerの直接依存は公開値会員とinline関数に必要なQt値型、Boost等価演算、export定義の最小集合であり、公開header、製品source、CMakeを変更していない。開始`libs/ui/canvas/kis_grid_config.cpp`と候補headerを強制includeする試験sourceの厳格構文は診断0件で、試験書式も成功した。
+- targetは4工程・8入力、command SHA-256 `e0ef8efb68ac9d7f43823baeed4477fac0d79070fcc845561a4104515bd5dc89`、input SHA-256 `801b31252a3a01dbc9a08326b9fcd1d5711b3f3933dd0a465a265d8800704f99`を維持した。候補headerのAUTOMOC入力化と未解決製品記号は0で、Qt Gui・Testだけへ動的接続する。macOSで対象全体20回と追加1枠20回、厳格構文、試験書式、連続二回の無作業再構築に成功した。設定・XML・変換の実効果、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 公開API検査の初回診断は期待値1,433に対して実測1,425で、新規8件と一致した。台帳を28,376件対応、1,425件未対応へ進め、`public-api-missing-g535.json`の生成成功後に旧`public-api-missing-g534.json` 390,182 bytesを削除した。主Ninja木6,049,252 KiB、共有compiler cache 981,812 KiB、最新報告388,338 bytes、SHA-256 `b6bf4c7b57a7ab21e24d088f5e8658eda7b73a50543cfd6ba6cc469961f931c2`だけを再利用対象として保持する。compiler cacheは144,809 cache可能呼出し中120,594件、83.28%がhitしている。次の永続作業は第535便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
 
 ### 第239便の先行監査担当票
 

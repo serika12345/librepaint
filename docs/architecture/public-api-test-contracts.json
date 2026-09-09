@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 1433
+    "expectedMissingApis": 1425
   },
   "contracts": [
     {
@@ -79413,6 +79413,23 @@
       "classification": "maintained",
       "apis": [
         "method:KisNodeDisplayModeAdapter::sigNodeDisplayModeChanged(bool showRootNode,bool showGlobalSelectionMask)"
+      ]
+    },
+    {
+      "target": "KisGridConfigValueContractTest",
+      "source": "libs/ui/tests/KisGridConfigValueContractTest.cpp",
+      "test": "KisGridConfigValueContractTest::constructionPersistenceAndTransformSignaturesRemainStable",
+      "behavior": "canvas grid設定は既定構築と共有既定値判定、静的設定とXMLの読込・書出、幾何変換を行う公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisGridConfig::KisGridConfig()",
+        "method:KisGridConfig::defaultGrid()",
+        "method:KisGridConfig::isDefault() const",
+        "method:KisGridConfig::loadDynamicDataFromXml(const QDomElement & parent)",
+        "method:KisGridConfig::loadStaticData()",
+        "method:KisGridConfig::saveDynamicDataToXml(QDomDocument & doc,const QString & tag) const",
+        "method:KisGridConfig::saveStaticData() const",
+        "method:KisGridConfig::transform(const QTransform & transform)"
       ]
     }
   ]
