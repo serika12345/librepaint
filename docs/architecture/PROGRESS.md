@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 20:00 JST
+- 更新日時: 2026-09-09 20:04 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4610,6 +4610,13 @@
 - 実行契約`TestResourceTypeModel`は資源・widget・databaseと`kritatestsdk`へ接続し813工程・1,654入力となるため、宣言契約の反復には使わない。既存`libs/resources/tests/KisAbstractResourceModelSchemaContractTest.cpp`は同じ資源模型責務を所有する98行・5枠であり、3枠追加後も220行・10枠以内に収まる。CMake変更なしでQt Core・Testだけへ動的接続する4工程・8入力、command SHA-256 `adb6574af8d20f5ff63a32f98d6861209e77a5c64876225e5e5280a64d751382`、input SHA-256 `57ddb30c6499c0e0b50b928f0f0c2039fe09086c7eae73cc86614cdd344eb1f4`、AUTOMOC `HEADERS=[]`と製品未接続を維持する。入力hashの変更、新たな動的接続、製品記号が必要なら停止する。macOSの対象と軽量資源近傍、追加3枠の20回反復、実装・試験sourceとheader強制includeの厳格構文、書式、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、実database query・data値、重量実行target、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
 - 構造準備では開始`libs/resources/KisResourceTypeModel.h`から公開基底`QAbstractTableModel`と重複する`QObject` includeを除去した。開始`libs/resources/KisResourceTypeModel.cpp`とheader強制includeの厳格構文は診断0件である。計画commitは`868b065768`、構造準備commitは`2839cbab0b`である。
 - 開始headerから既存`libs/resources/tests/KisAbstractResourceModelSchemaContractTest.cpp`へ全10 API・3枠を追加し、型・列enum・構築・寿命、列序数、行数・列数・役割別data取得を型特性、列挙値、厳密な関数pointerと省略引数の構築可能性で固定した。公開header以外の製品sourceとCMakeは変更していない。契約commitは`de3287b0a4`で、既存sourceは132行・8枠となった。targetはQt Core・Testだけへ動的接続する4工程・8入力、command SHA-256 `adb6574af8d20f5ff63a32f98d6861209e77a5c64876225e5e5280a64d751382`、input SHA-256 `57ddb30c6499c0e0b50b928f0f0c2039fe09086c7eae73cc86614cdd344eb1f4`、AUTOMOC `HEADERS=[]`、資源種別表模型・抽象資源模型の未解決製品記号0を維持した。macOSで対象と資源模型enum近傍、対象全体と追加3枠を20回、実装・試験sourceとheader強制includeの厳格構文、書式、連続二回の無作業再構築、公開API検査に成功した。813工程・1,654入力の重量実行targetは実行していない。台帳は28,115件対応、1,686件未対応となり、開始headerの残存は0件である。新`public-api-missing-g511.json`の生成成功後に旧`public-api-missing-g510.json` 460,741 bytesを削除した。主Ninja木6,026,928 KiB、共有compiler cache 983,340 KiB、最新報告458,345 bytes、SHA-256 `668f487d85cde0964a7e6cd078b51ac8f6295fc4ae874977c005774a99869f84`だけを再利用対象として保持する。compiler cacheは144,743 cache可能呼出し中120,580件、83.31%がhitしている。実database query・data値、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第511便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
+
+### 第511便の公開API契約計画
+
+- 第511便は安定ID一覧の表示、自動選択肢、現在項目と利用者選択通知を所有する`libs/ui/widgets/kis_cmb_idlist.h`の残存全12 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g511.json`は公開header 1,549、公開API 29,801、対応済み28,115、未対応1,686、458,345 bytes、SHA-256 `668f487d85cde0964a7e6cd078b51ac8f6295fc4ae874977c005774a99869f84`である。対象12識別子の整列集合SHA-256は`5afdb62bd93fd61d5b2f2d742ab12443c186de21a600481d2283eeeaaa20cebf`である。
+- ID一覧選択器境界は型・構築・破棄・自動選択肢ID定数4、ID一覧・自動選択肢・補足表示設定3、ID値・文字列による現在項目設定と取得3、選択・強調通知2の4枠へ固定する。型特性、静的値の型、厳密な関数pointerと未評価の省略引数呼出しだけを使い、選択器、ID値、項目一覧、signal本文と翻訳を実体化しない。
+- 開始headerは公開基底`QComboBox`、値会員・返却値の`QString`と`KoID`を直接所有しており、除去できる推移依存はない。開始`libs/ui/widgets/kis_cmb_idlist.cc`とheader強制includeの厳格構文は診断0件であるため製品構造を変更しない。
+- 新規`libs/ui/tests/KisCmbIDListSchemaContractTest.cpp`をUI・globalのsource/generated探索路、Qt Widgetsのinterface探索路、`kritaui_EXPORTS`・`kritaglobal_EXPORTS`、Qt Core・Testだけで構成し、4工程・8入力を予測する。追加前targetは`unknown target`である。停止線を5工程・11入力とし、Qt Gui・Widgetsの動的接続、製品OBJECT・shared、`kritatestsdk`、AUTOMOC製品header入力、ID一覧選択器・`KoID`の製品記号が必要なら停止する。macOSの対象と軽量widget近傍、追加4枠の20回反復、実装・試験sourceとheader強制includeの厳格構文、書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、実項目構築・選択・signal、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
 
 ### 第239便の先行監査担当票
 
