@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 19:34 JST
+- 更新日時: 2026-09-09 19:40 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4590,6 +4590,8 @@
 - 折り畳みbutton群境界は型・構築・破棄3、自動raiseとicon寸法の設定・照会4、自動折り畳み設定・折り畳み設定・状態照会3、推奨・最小寸法照会と操作追加3の4枠へ固定する。型特性と厳密な関数pointerだけを使い、画面部品、button、操作、layoutとresize処理を実体化しない。
 - 開始headerは`QWidget`と重複する`QObject`を全利用者へ取り込んでいる。契約追加より先に`QObject`を除去し、値返却の`QSize`を直接include、pointerだけの`QAction`と`QResizeEvent`を前方宣言する。開始`libs/ui/widgets/kis_collapsible_button_group.cpp`とheader強制includeの厳格構文は診断0件であり、構造変更後も維持する。
 - 既存widget契約は全て10枠へ達しているため、新規`libs/ui/tests/KisCollapsibleButtonGroupSchemaContractTest.cpp`をUI source/generated探索路、Qt Widgetsのinterface探索路、`kritaui_EXPORTS`、Qt Core・Testだけで構成し、4工程・8入力を予測する。追加前targetは`unknown target`である。停止線を5工程・11入力とし、Qt Gui・Widgetsの動的接続、製品OBJECT・shared、`kritatestsdk`、AUTOMOC製品header入力、折り畳みbutton群の製品記号が必要なら停止する。macOSの対象と軽量widget近傍、追加4枠の20回反復、実装・試験sourceとheader強制includeの厳格構文、書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、実button・操作・resize、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
+- 構造準備では開始`libs/ui/widgets/kis_collapsible_button_group.h`から`QWidget`と重複する`QObject`を除去し、値返却する`QSize`を直接include、pointerだけの`QAction`と`QResizeEvent`を前方宣言した。`QResizeEvent`の局所class宣言もheaderの前方宣言へ統一した。開始`libs/ui/widgets/kis_collapsible_button_group.cpp`とheader強制includeの厳格構文は診断0件である。計画commitは`05c3e2c08b`、構造準備commitは`ace031b7a7`である。
+- 開始headerから新規`libs/ui/tests/KisCollapsibleButtonGroupSchemaContractTest.cpp`へ全13 API・4枠を追加し、型・構築・寿命、自動raiseとicon寸法、自動・明示折り畳み、推奨・最小寸法と操作追加を型特性と厳密な関数pointerで固定した。契約commitは`8abd4dd3cc`である。新規sourceは63行・4枠、targetはQt Core・Testだけへ動的接続する4工程・8入力、command SHA-256 `614e2253553b70383ee32c45a21b76b3793d61dac548f70c55ea2ec5533165ce`、input SHA-256 `37a973b1221641c14845cda5455d3c7a7b40ae1984bd4f077069ff1c6bfe4f3e`である。AUTOMOC `HEADERS=[]`、折り畳みbutton群・画面部品・buttonの未解決製品記号0で、Qt Gui・Widgetsと製品libraryを動的接続していない。macOSで対象とcurve widget近傍、対象全体と各4枠を20回、実装・試験sourceとheader強制includeの厳格構文、書式、連続二回の無作業再構築、公開API検査に成功した。台帳は28,095件対応、1,706件未対応となり、開始headerの残存は0件である。新`public-api-missing-g509.json`の生成成功後に旧`public-api-missing-g508.json` 466,618 bytesを削除した。主Ninja木6,026,708 KiB、共有compiler cache 983,480 KiB、最新報告463,315 bytes、SHA-256 `f5b95caf79e32b894a5032a7819e297716bbf0049be56930e51b442247791939`だけを再利用対象として保持する。compiler cacheは144,741 cache可能呼出し中120,580件、83.31%がhitしている。実button・操作・resize、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第509便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
 
 ### 第239便の先行監査担当票
 
