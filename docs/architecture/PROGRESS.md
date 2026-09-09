@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 19:29 JST
+- 更新日時: 2026-09-09 19:34 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4583,6 +4583,13 @@
 - 既存`libs/tools/tests/KisToolUtilsSchemaContractTest.cpp`は同じ描画tool補助責務を所有する71行・4枠の限定targetである。同sourceへ4枠を追加して220行・10枠未満に収める。変更前targetはQt Core・Testだけへ動的接続する4工程・8入力、command SHA-256 `f0c40ed2b502725afa3ae40b2dfa4f98d0d34e92944e17b742a9c4e2de77bfa5`、input SHA-256 `2ff0d7eb83f82509485ecf22eadd9f8f5e23399dea0d6b1fef52242f83e65023`で、AUTOMOC `HEADERS=[]`、製品未解決記号0である。対象固有節へimage brushengine探索路とQt Guiのinterface探索路だけを加え、既存`kritaimage_EXPORTS`定義と4工程・8入力を維持する。入力hashの変更、Qt Guiの動的接続、製品OBJECT・shared、`kritatestsdk`、AUTOMOC製品header入力、遅延描画補助器・描画情報の製品記号が必要なら停止する。macOSの対象と軽量tools近傍、追加4枠の20回反復、実装・試験sourceとheader強制includeの厳格構文、書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、実timer・callback・描画列、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
 - 開始`libs/tools/KisStabilizerDelayedPaintHelper.h`から既存`libs/tools/tests/KisToolUtilsSchemaContractTest.cpp`へ全13 API・4枠を追加し、型・構築・寿命、実行中と末尾情報の照会、描画線・輪郭更新callback、描画情報列の開始・更新・描画・完了・取消を型特性と厳密な関数pointerで固定した。`libs/tools/tests/CMakeLists.txt`の対象固有節へimage brushengine探索路とQt Guiのinterface探索路だけを追加し、公開headerと製品実装は変更していない。計画commitは`a6ce1c2c3d`、契約commitは`69ae4aea12`である。既存sourceは117行・8枠となった。
 - targetはQt Core・Testだけへ動的接続する4工程・8入力、command SHA-256 `cd923711429c497be465877c7f24073dc8aa43d336f9960b14eabe359010ad69`となり、input SHA-256 `2ff0d7eb83f82509485ecf22eadd9f8f5e23399dea0d6b1fef52242f83e65023`を維持した。AUTOMOC `HEADERS=[]`、遅延描画補助器・描画情報・tool補助関数の未解決製品記号0で、Qt Guiを動的接続していない。macOSで対象とtool schema近傍、対象全体と追加4枠を20回、実装・試験sourceとheader強制includeの厳格構文、書式、連続二回の無作業再構築、公開API検査に成功した。台帳は28,082件対応、1,719件未対応となり、開始headerの残存は0件である。新`public-api-missing-g508.json`の生成成功後に旧`public-api-missing-g507.json` 470,324 bytesを削除した。主Ninja木6,025,368 KiB、共有compiler cache 983,200 KiB、最新報告466,618 bytes、SHA-256 `e7175f836c25671a880b5407504a49a5ffa35e9cde951f9227ba419b3e77c59c`だけを再利用対象として保持する。compiler cacheは144,739 cache可能呼出し中120,580件、83.31%がhitしている。実timer・callback・描画列、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第508便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
+
+### 第508便の公開API契約計画
+
+- 第508便は操作button群の自動raise、icon寸法、利用可能幅に応じた折り畳みと操作追加を所有する`libs/ui/widgets/kis_collapsible_button_group.h`の残存全13 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g508.json`は公開header 1,549、公開API 29,801、対応済み28,082、未対応1,719、466,618 bytes、SHA-256 `e7175f836c25671a880b5407504a49a5ffa35e9cde951f9227ba419b3e77c59c`である。対象13識別子の整列集合SHA-256は`20da8dee0fe4cfdef111f3ec273875dd613f8bd98e73f14f830b09915e600087`である。
+- 折り畳みbutton群境界は型・構築・破棄3、自動raiseとicon寸法の設定・照会4、自動折り畳み設定・折り畳み設定・状態照会3、推奨・最小寸法照会と操作追加3の4枠へ固定する。型特性と厳密な関数pointerだけを使い、画面部品、button、操作、layoutとresize処理を実体化しない。
+- 開始headerは`QWidget`と重複する`QObject`を全利用者へ取り込んでいる。契約追加より先に`QObject`を除去し、値返却の`QSize`を直接include、pointerだけの`QAction`と`QResizeEvent`を前方宣言する。開始`libs/ui/widgets/kis_collapsible_button_group.cpp`とheader強制includeの厳格構文は診断0件であり、構造変更後も維持する。
+- 既存widget契約は全て10枠へ達しているため、新規`libs/ui/tests/KisCollapsibleButtonGroupSchemaContractTest.cpp`をUI source/generated探索路、Qt Widgetsのinterface探索路、`kritaui_EXPORTS`、Qt Core・Testだけで構成し、4工程・8入力を予測する。追加前targetは`unknown target`である。停止線を5工程・11入力とし、Qt Gui・Widgetsの動的接続、製品OBJECT・shared、`kritatestsdk`、AUTOMOC製品header入力、折り畳みbutton群の製品記号が必要なら停止する。macOSの対象と軽量widget近傍、追加4枠の20回反復、実装・試験sourceとheader強制includeの厳格構文、書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、実button・操作・resize、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
 
 ### 第239便の先行監査担当票
 
