@@ -8,14 +8,15 @@
 #ifndef KIS_KRA_SAVE_VISITOR_H_
 #define KIS_KRA_SAVE_VISITOR_H_
 
+#include <QMap>
 #include <QStringList>
 
 #include "kis_types.h"
 #include "kis_node_visitor.h"
-#include "kis_image.h"
 #include "kritalibkra_export.h"
 
 class KisPaintDeviceWriter;
+class KoColorProfile;
 class KoStore;
 
 class KRITALIBKRA_EXPORT KisKraSaveVisitor : public KisNodeVisitor
@@ -84,4 +85,3 @@ private:
 };
 
 #endif // KIS_KRA_SAVE_VISITOR_H_
-
