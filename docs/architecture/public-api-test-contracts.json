@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 1518
+    "expectedMissingApis": 1509
   },
   "contracts": [
     {
@@ -79130,6 +79130,42 @@
         "method:KisFrameCacheSwapper::frameDirtyRect(int frameId) const",
         "method:KisFrameCacheSwapper::frameLevelOfDetail(int frameId) const",
         "method:KisFrameCacheSwapper::hasFrame(int frameId) const"
+      ]
+    },
+    {
+      "target": "KisPlaybackEngineQtSchemaContractTest",
+      "source": "libs/ui/tests/KisPlaybackEngineQtSchemaContractTest.cpp",
+      "test": "KisPlaybackEngineQtSchemaContractTest::animationCachePopulatorTypeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "animation cache補充器はpartから構築するQObject派生型として、基底から仮想破棄する契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisAnimationCachePopulator",
+        "method:KisAnimationCachePopulator::KisAnimationCachePopulator(KisPart * part)",
+        "method:KisAnimationCachePopulator::~KisAnimationCachePopulator()"
+      ]
+    },
+    {
+      "target": "KisPlaybackEngineQtSchemaContractTest",
+      "source": "libs/ui/tests/KisPlaybackEngineQtSchemaContractTest.cpp",
+      "test": "KisPlaybackEngineQtSchemaContractTest::animationCachePopulatorRegenerationSignaturesRemainStable",
+      "behavior": "animation cache補充器は指定cacheのframe再生成、画像の優先frame要求、追跡画像集合の更新を受け付ける公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAnimationCachePopulator::regenerate(KisAnimationFrameCacheSP cache,int frame)",
+        "method:KisAnimationCachePopulator::requestRegenerationWithPriorityFrame(KisImageSP image,int frameIndex)",
+        "method:KisAnimationCachePopulator::setTrackedImages(const QVector<KisImageSP> & images)"
+      ]
+    },
+    {
+      "target": "KisPlaybackEngineQtSchemaContractTest",
+      "source": "libs/ui/tests/KisPlaybackEngineQtSchemaContractTest.cpp",
+      "test": "KisPlaybackEngineQtSchemaContractTest::animationCachePopulatorCoordinationSignaturesRemainStable",
+      "behavior": "animation cache補充器は待機監視器を公開し、画像変更の強制と再生成要求を調停する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAnimationCachePopulator::forceImageModified()",
+        "method:KisAnimationCachePopulator::idleWatcher() const",
+        "method:KisAnimationCachePopulator::slotRequestRegeneration()"
       ]
     }
   ]

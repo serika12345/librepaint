@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 22:52 JST
+- 更新日時: 2026-09-09 23:05 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4751,6 +4751,13 @@
 - animation cache補充境界は補充器型・partからの構築・仮想破棄3、cache frame再生成・画像優先frame要求・追跡画像設定3、待機監視器照会・画像変更強制・再生成slot3の3枠へ固定する。型特性と厳密な関数pointerだけを使い、補充器、part、画像、frame cache、待機監視器と再生成器を実体化しない。
 - 開始headerは画像共有pointer別名だけのために`kis_types.h`全体をincludeし、image探索路なしのheader強制includeが同header不足1件となる。契約追加より先に`kis_types.h`を除去し、既存frame cache前方宣言が提供する`KisSharedPtr`から`KisImageSP`を局所宣言する。値会員と公開容器署名に必要な`QScopedPointer`・`QVector`は直接includeし、開始`libs/ui/animation/kis_animation_cache_populator.cpp`の厳格構文は変更前の診断0件を維持する。
 - 既存`libs/ui/tests/KisPlaybackEngineQtSchemaContractTest.cpp`は99行・6枠で、同じanimation cache境界へ3枠を追加しても220行・10枠以内に収まる。CMakeを変更せず4工程・8入力、command SHA-256 `d83163cca7bb97ef2413160d5e8382b143fd586fb3561bc15be64b5e15fcaf56`、input SHA-256 `1f931ce9d58b4541ac4ac2cf1849edd8e33d884f2b8780af7920dcaae1531655`を維持する。工程・入力増加、候補headerのAUTOMOC入力化、製品未解決記号が生じれば停止する。macOSの対象とframe cache近傍、対象全体と追加3枠の20回反復、実装・試験sourceとheader強制includeの厳格構文、書式、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、実frame再生成・画像・待機監視・cache変更、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
+
+### 第525便の公開API契約結果
+
+- 待機中のanimation frame再生成要求を担う公開境界を軽量な型契約として固定した。開始`libs/ui/animation/kis_animation_cache_populator.h`から既存`libs/ui/tests/KisPlaybackEngineQtSchemaContractTest.cpp`へ全9 API・3枠を追加し、補充器型・partからの構築・仮想破棄3件、cache frame再生成・画像の優先frame要求・追跡画像設定3件、待機監視器照会・画像変更強制・再生成slot3件を型特性と厳密な関数pointerで固定した。計画commitは`84dbe7fa20`、構造commitは`cc3fc934c3`、契約commitは`05b609f6ff`で、既存試験sourceは132行・9枠となった。
+- 開始headerから`kis_types.h`への過剰依存を除去し、`KisImageSP`を既存`KisSharedPtr`前方宣言から局所宣言した。値会員と公開容器署名に必要な`QScopedPointer`・`QVector`を直接includeし、header強制includeと開始`libs/ui/animation/kis_animation_cache_populator.cpp`の厳格構文は診断0件を維持した。公開署名、所有権、実行時挙動、CMakeは変更していない。
+- targetは4工程・8入力、command SHA-256 `d83163cca7bb97ef2413160d5e8382b143fd586fb3561bc15be64b5e15fcaf56`、input SHA-256 `1f931ce9d58b4541ac4ac2cf1849edd8e33d884f2b8780af7920dcaae1531655`を維持した。AUTOMOC `HEADERS=[]`、補充器・frame cache保管器・OpenGL更新情報builderの未解決製品記号0で、Qt Core・Testだけへ動的接続する。macOSで対象とframe cache近傍、対象全体20回と追加3枠各20回、実装・試験sourceとheader強制includeの厳格構文、書式、連続二回の無作業再構築に成功した。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 公開API検査の初回診断は期待値1,518に対して実測1,509で、新規9件と一致した。台帳を28,292件対応、1,509件未対応へ進め、`public-api-missing-g526.json`の生成成功後に旧`public-api-missing-g525.json` 413,461 bytesを削除した。主Ninja木6,032,300 KiB、共有compiler cache 982,764 KiB、最新報告410,955 bytes、SHA-256 `7a2b0e6f07d002e8c85fad26c0cfbde56363e0abb1887953352ea9a92779d041`だけを再利用対象として保持する。compiler cacheは144,794 cache可能呼出し中120,593件、83.29%がhitしている。次の永続作業は第526便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
 
 ### 第239便の先行監査担当票
 
