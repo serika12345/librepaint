@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 21:51 JST
+- 更新日時: 2026-09-09 21:58 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4694,6 +4694,9 @@
 - 開始対話境界は対話型・構築・仮想破棄3、文字列名・画像iconによるpane追加、独自文書画面追加、名前選択4、文書選択・既存file・template・常用template・分割位置・取消通知6の3枠へ固定する。型特性と厳密な関数pointerだけを使い、対話、文書、template、pane、画像、URLとQt画面を実体化しない。
 - 開始headerは完全基底`QDialog`を直接includeしたうえで、pointerだけに使う`QWidget`と参照だけに使う`QPixmap`の完全定義も重複してincludeし、`QPixmap`はさらに前方宣言している。契約追加より先に`QWidget`と`QPixmap`のincludeを除去し、`QDialog`経由の画面基底と`QPixmap`前方宣言を維持する。開始`libs/application/ui/workspace/KisOpenPane.cpp`とheader強制includeの厳格構文は変更前の診断0件を維持する。
 - 新規`libs/application/tests/KisOpenPaneSchemaContractTest.cpp`をapplication・globalのsource/generated探索路、Qt Gui・Widgetsのinterface探索路、Qt Core・Testだけの動的接続で構成する。近傍`KisApplicationArgumentsSchemaContractTest`は4工程・8入力、command SHA-256 `94caa193f640f28e43b9589ff6612ec820c742cf64fd5144b694bfaea8103972`、input SHA-256 `d396bd55ed135e1a3b0216c6b40d7f4c2e09780b50819ccedb34348d7511b083`であり、新対象も4工程・8入力を予測して停止線を5工程・11入力とする。候補headerをAUTOMOC入力にせず、製品OBJECT・shared、`kritatestsdk`、開始対話・文書・template・paneの製品記号が必要なら停止する。macOSの対象と軽量application近傍、対象全体と追加3枠の20回反復、実装・試験sourceとheader強制includeの厳格構文、書式、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、実対話・文書・template・file選択、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
+- 構造準備では開始`libs/application/ui/workspace/KisOpenPane.h`から、完全基底`QDialog`と重複する`QWidget` include、および参照だけに使う`QPixmap` includeを除去し、同headerの既存前方宣言へ統合した。開始`libs/application/ui/workspace/KisOpenPane.cpp`とheader強制includeは変更前後とも厳格構文の診断0件を維持した。計画commitは`9b11ab2384`、構造準備commitは`72338c2bd2`である。
+- 開始`libs/application/ui/workspace/KisOpenPane.h`から新規`libs/application/tests/KisOpenPaneSchemaContractTest.cpp`へ全13 API・3枠を追加した。対話型・構築・仮想破棄3件、2種類のpane追加・独自文書画面追加・名前選択4件、文書・file・template・常用template・分割位置・取消通知6件を型特性と厳密な関数pointerで固定した。契約commitは`06dae1d797`で、新規sourceは67行・3枠である。
+- targetは4工程・8入力、command SHA-256 `c27f68be4d728befb5d4d9f56385d0d7c81a46fd59c79ce460c7dbcac7b5a73c`、input SHA-256 `407d31d9e77aae98ce053ac281f66354e2160a9b1191855640256e75a1d39dc5`である。AUTOMOC `HEADERS=[]`、開始対話・文書・template・paneの未解決製品記号0で、Qt Core・Testだけへ動的接続する。macOSで対象とapplication引数近傍、対象全体と各3枠を20回、実装・試験sourceとheader強制includeの厳格構文、書式、連続二回の無作業再構築、公開API検査に成功した。台帳は28,228件対応、1,573件未対応となり、開始headerの残存は0件である。新`public-api-missing-g520.json`の生成成功後に旧`public-api-missing-g519.json` 432,333 bytesを削除した。主Ninja木6,030,716 KiB、共有compiler cache 981,860 KiB、最新報告428,541 bytes、SHA-256 `0af71bca3f62905c9128ccf7b88c98bbf3c2411ce615efcc8f6e2339108e89da`だけを再利用対象として保持する。compiler cacheは144,779 cache可能呼出し中120,593件、83.29%がhitしている。実対話・文書・template・file選択、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第520便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
 
 ### 第239便の先行監査担当票
 

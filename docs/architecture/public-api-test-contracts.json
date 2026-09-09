@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 1586
+    "expectedMissingApis": 1573
   },
   "contracts": [
     {
@@ -78900,6 +78900,46 @@
       "apis": [
         "class:KisShapePropertySlider",
         "method:KisShapePropertySlider::KisShapePropertySlider(QWidget * parent=nullptr)"
+      ]
+    },
+    {
+      "target": "KisOpenPaneSchemaContractTest",
+      "source": "libs/application/tests/KisOpenPaneSchemaContractTest.cpp",
+      "test": "KisOpenPaneSchemaContractTest::typeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "開始対話は親画面・文書種別filter・省略可能なtemplate資源pathから構築でき、対話基底から仮想破棄する契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisOpenPane",
+        "method:KisOpenPane::KisOpenPane(QWidget * parent,const QStringList & mimeFilter,const QString & templatesResourcePath=QString ())",
+        "method:KisOpenPane::~KisOpenPane()"
+      ]
+    },
+    {
+      "target": "KisOpenPaneSchemaContractTest",
+      "source": "libs/application/tests/KisOpenPaneSchemaContractTest.cpp",
+      "test": "KisOpenPaneSchemaContractTest::paneAdditionAndSelectionSignaturesRemainStable",
+      "behavior": "開始対話は名前付きiconまたは画像iconのpaneと独自文書画面を追加し、非翻訳名から項目を選択する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisOpenPane::addCustomDocumentWidget(QWidget * widget,const QString & title,const QString & untranslatedName,const QString & icon=QString ())",
+        "method:KisOpenPane::addPane(const QString & title,const QString & untranslatedName,const QPixmap & icon,QWidget * widget,int sortWeight)",
+        "method:KisOpenPane::addPane(const QString & title,const QString & untranslatedName,const QString & iconName,QWidget * widget,int sortWeight)",
+        "method:KisOpenPane::selectItem(const QString & name)"
+      ]
+    },
+    {
+      "target": "KisOpenPaneSchemaContractTest",
+      "source": "libs/application/tests/KisOpenPaneSchemaContractTest.cpp",
+      "test": "KisOpenPaneSchemaContractTest::documentTemplateAndLayoutNotificationSignaturesRemainStable",
+      "behavior": "開始対話は文書・既存file・templateの選択、常用template変更、pane分割位置変更、取消しを通知する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisOpenPane::alwaysUseChanged(KisTemplatesPane * sender,const QString & alwaysUse)",
+        "method:KisOpenPane::cancelButton()",
+        "method:KisOpenPane::documentSelected(KisDocument *)",
+        "method:KisOpenPane::openExistingFile(const QUrl &)",
+        "method:KisOpenPane::openTemplate(const QUrl &)",
+        "method:KisOpenPane::splitterResized(KisDetailsPane * sender,const QList<int> & sizes)"
       ]
     }
   ]
