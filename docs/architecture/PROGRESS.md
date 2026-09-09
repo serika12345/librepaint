@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 13:03 JST
+- 更新日時: 2026-09-09 13:09 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4317,6 +4317,13 @@
 - 開始`plugins/paintops/libpaintop/kis_current_outline_fetcher.h`から新規`plugins/paintops/libpaintop/tests/KisCurrentOutlineFetcherSchemaContractTest.cpp`へ全12 API・4枠を追加した。型・構築・破棄、無効・サイズ・回転・鏡像・鋭さのflags、状態無効化、省略可能な拡大・回転・傾き調整付き輪郭取得を型特性、列挙値、flags型、厳密な関数pointer、未評価呼出しで固定した。初回は全4観測枠が成功し、`G481 current outline API schema is not fixed yet`だけが`XFAIL`となった。契約commitは`26d3286a08`である。
 - 新規試験sourceは79行・4枠で、targetはQt Core・Testだけへ動的接続する4工程・8入力、command SHA-256 `39900a086c87ebd4bc17ae628b8b0b2a08a9f8b79267bb74f34aa95a34c3b3b6`、input SHA-256 `9b3f1c2fe47e67eefda868d023c80ada0dba7f119b64ec61b5c990dc860d888b`となった。AUTOMOC `HEADERS=[]`、輪郭取得・paintop設定・輪郭値・製品libraryの未解決記号は0である。macOSで対象の単発と20回反復、最軽量近傍`KisPaintOpFactorySchemaContractTest`、試験sourceの厳格構文と書式、連続二回の無作業再構築、公開API検査に成功した。輪郭変換本文、実paintop設定・描画情報、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 台帳は27,631件対応、2,174件未対応となり、開始headerの残存は0件である。旧`public-api-missing-g481.json` 590,110 bytesを削除し、一時閉包一覧、追加作業tree・構築木は作成していない。主Ninja木6,021,276 KiB、共有compiler cache 983,264 KiB、最新`build/tdd-macos/public-api-missing-g482.json` 586,494 bytes、SHA-256 `e5a22a14e43259c183164d0a377d7c004a2af98f6ae914cc7e9772cff02c2f2d`だけを再利用対象として保持する。compiler cacheは144,660件中120,565件、83.34%がhitしている。次の永続作業は第482便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
+
+### 第482便の公開API契約計画
+
+- 第482便はtool共通処理を所有する`libs/tools/kis_tool_utils.h`に残る全14 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g482.json`は公開header 1,548、公開API 29,805、対応済み27,631、未対応2,174、586,494 bytes、SHA-256 `e5a22a14e43259c183164d0a377d7c004a2af98f6ae914cc7e9772cff02c2f2d`である。対象14識別子の整列集合SHA-256は`ae35bdba255d5cacd74173afa52d20d03912804c1db08fdf27cd3e10b4cb6386`である。
+- 色採取設定は型・構築・7公開値9、保存・読込み2、node編集可否・画像消去・cursor移動3の4枠へ固定する。型特性、公開会員pointer、厳密な関数pointer、省略引数の未評価呼出しだけを使い、設定保存先、画像、node、選択、画面、各本文を実体化しない。
+- 開始headerの`kis_types.h`は公開署名の画像・node・選択共有型とnode一覧に、`vector`は標準brush寸法の私有所有に、`QPoint`前方宣言はcursor署名に必要である。`KoColor`前方宣言だけは公開・私有宣言のどちらにも使われないため契約追加より先に除去する。直接利用13翻訳単位の変更前厳格構文検査は8件成功、実装の`KisNode`不完全型、Qt廃止予定API、3生成UI header不在による既存診断5件で、変更後も同じ分類から悪化なしを完了条件とする。
+- 既存`TestToolCoreContract`は製品`kritatools`へ接続する1,274工程・2,563入力、既存`KisToolSchemaContractTest`は4工程・8入力だがQt Widgets・Xmlを含む動的接続であり、いずれも限定反復対象から外す。新規`libs/tools/tests/KisToolUtilsSchemaContractTest.cpp`は90行・5枠未満とし、tools・imageのsource/generated探索路、Qt Core・Test、tools・image export定義だけによる4工程・8入力を予測する。最寄り`KisToolSchemaContractTest`のcommand SHA-256は`4e66a30489af4bd399b261635c004dd0bb1827f78fb9e18b1c84bac220b54c6c`、input SHA-256は`f2467da36c35df9f69e1a05f8471b1b7e2513fbdabefea6e9bf5aecf79e7544d`である。停止線を5工程・11入力とし、新たな探索路・定義・製品接続、Qt Gui・Widgets・Xmlの動的接続、AUTOMOC製品header入力、対象型または本文の実体化が必要なら停止する。macOSの対象、最軽量近傍、対象の20回反復、試験sourceの厳格構文と書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
 
 ### 第239便の先行監査担当票
 
