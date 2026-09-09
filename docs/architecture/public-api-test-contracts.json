@@ -16,7 +16,7 @@
     "publicApiFingerprint": "62e45b238446dc0eb6798b1de10b2cd9261befccc2a837c75de2c86393d7e016"
   },
   "migration": {
-    "expectedMissingApis": 1943
+    "expectedMissingApis": 1908
   },
   "contracts": [
     {
@@ -77737,6 +77737,86 @@
         "function:KisAndroidScalingDialog::maybeShowOnStartup()",
         "function:KisAndroidScalingDialog::setInitialScale(KisConfig & cfg)",
         "function:KisAndroidScalingDialog::show()"
+      ]
+    },
+    {
+      "target": "KisKraSaveXmlVisitorSchemaContractTest",
+      "source": "plugins/impex/libkra/tests/KisKraSaveXmlVisitorSchemaContractTest.cpp",
+      "test": "KisKraSaveXmlVisitorSchemaContractTest::kraBinaryVisitorTypeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "KRAバイナリーvisitorは読込・保存のnode visitor型、各構築引数と保存visitorの仮想破棄を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisKraLoadVisitor",
+        "class:KisKraSaveVisitor",
+        "method:KisKraLoadVisitor::KisKraLoadVisitor(KisImageSP image,KoStore * store,KoShapeControllerBase * shapeController,QMap<KisNode *,QString> & layerFilenames,QMap<KisNode *,QString> & keyframeFilenames,const QString & name,int syntaxVersion)",
+        "method:KisKraSaveVisitor::KisKraSaveVisitor(KoStore * store,const QString & name,QMap<const KisNode *,QString> nodeFileNames)",
+        "method:KisKraSaveVisitor::~KisKraSaveVisitor()"
+      ]
+    },
+    {
+      "target": "KisKraSaveXmlVisitorSchemaContractTest",
+      "source": "plugins/impex/libkra/tests/KisKraSaveXmlVisitorSchemaContractTest.cpp",
+      "test": "KisKraSaveXmlVisitorSchemaContractTest::kraLoadVisitorNodeAndLayerVisitSignaturesRemainStable",
+      "behavior": "KRA読込visitorは基底nodeと外部・paint・group・調整・生成・clone layerを個別に読み込む訪問署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisKraLoadVisitor::visit(KisAdjustmentLayer * layer)",
+        "method:KisKraLoadVisitor::visit(KisCloneLayer * layer)",
+        "method:KisKraLoadVisitor::visit(KisExternalLayer *)",
+        "method:KisKraLoadVisitor::visit(KisGeneratorLayer * layer)",
+        "method:KisKraLoadVisitor::visit(KisGroupLayer * layer)",
+        "method:KisKraLoadVisitor::visit(KisNode *)",
+        "method:KisKraLoadVisitor::visit(KisPaintLayer * layer)"
+      ]
+    },
+    {
+      "target": "KisKraSaveXmlVisitorSchemaContractTest",
+      "source": "plugins/impex/libkra/tests/KisKraSaveXmlVisitorSchemaContractTest.cpp",
+      "test": "KisKraSaveXmlVisitorSchemaContractTest::kraLoadVisitorMaskStateAndProfileSignaturesRemainStable",
+      "behavior": "KRA読込visitorは5種類のmask訪問、外部URI設定、診断一覧と旧profile名の対応表を取得する署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisKraLoadVisitor::customProfileNameAliasForKra()",
+        "method:KisKraLoadVisitor::errorMessages() const",
+        "method:KisKraLoadVisitor::setExternalUri(const QString & uri)",
+        "method:KisKraLoadVisitor::visit(KisColorizeMask * mask)",
+        "method:KisKraLoadVisitor::visit(KisFilterMask * mask)",
+        "method:KisKraLoadVisitor::visit(KisSelectionMask * mask)",
+        "method:KisKraLoadVisitor::visit(KisTransformMask * mask)",
+        "method:KisKraLoadVisitor::visit(KisTransparencyMask * mask)",
+        "method:KisKraLoadVisitor::warningMessages() const"
+      ]
+    },
+    {
+      "target": "KisKraSaveXmlVisitorSchemaContractTest",
+      "source": "plugins/impex/libkra/tests/KisKraSaveXmlVisitorSchemaContractTest.cpp",
+      "test": "KisKraSaveXmlVisitorSchemaContractTest::kraSaveVisitorNodeAndLayerVisitSignaturesRemainStable",
+      "behavior": "KRA保存visitorは基底nodeと外部・paint・group・調整・生成・clone layerを個別に保存する訪問署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisKraSaveVisitor::visit(KisAdjustmentLayer * layer)",
+        "method:KisKraSaveVisitor::visit(KisCloneLayer * layer)",
+        "method:KisKraSaveVisitor::visit(KisExternalLayer *)",
+        "method:KisKraSaveVisitor::visit(KisGeneratorLayer * layer)",
+        "method:KisKraSaveVisitor::visit(KisGroupLayer * layer)",
+        "method:KisKraSaveVisitor::visit(KisNode *)",
+        "method:KisKraSaveVisitor::visit(KisPaintLayer * layer)"
+      ]
+    },
+    {
+      "target": "KisKraSaveXmlVisitorSchemaContractTest",
+      "source": "plugins/impex/libkra/tests/KisKraSaveXmlVisitorSchemaContractTest.cpp",
+      "test": "KisKraSaveXmlVisitorSchemaContractTest::kraSaveVisitorMaskAndStateSignaturesRemainStable",
+      "behavior": "KRA保存visitorは5種類のmask訪問、外部URI設定と保存診断一覧の取得署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisKraSaveVisitor::errorMessages() const",
+        "method:KisKraSaveVisitor::setExternalUri(const QString & uri)",
+        "method:KisKraSaveVisitor::visit(KisColorizeMask * mask)",
+        "method:KisKraSaveVisitor::visit(KisFilterMask * mask)",
+        "method:KisKraSaveVisitor::visit(KisSelectionMask * mask)",
+        "method:KisKraSaveVisitor::visit(KisTransformMask * mask)",
+        "method:KisKraSaveVisitor::visit(KisTransparencyMask * mask)"
       ]
     }
   ]

@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 16:54 JST
+- 更新日時: 2026-09-09 17:07 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4475,6 +4475,9 @@
 - KRAバイナリーvisitor境界は読込・保存の型と構築・保存破棄5、読込のnode・layer訪問7、読込のmask訪問・URI・診断・profile別名9、保存のnode・layer訪問7、保存のmask訪問・URI・診断7の5枠へ固定する。型特性と厳密な多重定義関数pointerだけを使い、visitor、画像、node、layer、mask、store、色profileと入出力本文を実体化しない。
 - 開始`plugins/impex/libkra/kis_kra_save_visitor.h`は共有pointer別名とnode visitor基底だけで宣言を完結できる一方、未使用の`kis_image.h`を全利用者へ推移させている。現限定targetによる両headerの強制includeは同headerから`QPainter`を解決できず停止したため、契約追加より先に`kis_image.h`を除去し、値会員に必要な`QMap`を直接includeする。`plugins/impex/libkra/kis_kra_load_visitor.h`にも値会員と返値に必要な`QMap`・`QHash`を直接追加し、未使用の`KisFilterConfiguration`と`KisNodeFilterInterface`前方宣言を除去する。両実装は必要な完全定義を既に直接includeしている。変更前の読込実装は厳格構文に成功し、保存実装は既存の符号有無比較診断1件だけであるため、変更後も同じ結果を完了条件とする。
 - 既存`plugins/impex/libkra/tests/KisKraSaveXmlVisitorSchemaContractTest.cpp`は同じKRA node訪問責務を所有する113行・5枠の限定targetである。新targetとCMake変更を避け、同sourceへ5枠を追加して300行・11枠未満に収める。変更前targetはQt Core・Testだけへ動的接続する4工程・8入力、command SHA-256 `c43bc72bed9ba8fdd9a222f2e52e68b7df8dde7c6540d363e57f8975d7f2a82c`、input SHA-256 `5d4c2dd9284e07d87bc158f5cf0cca1aaae1a1c81a28ffaffd0c1c7b49fa0a70`である。停止線を4工程・8入力とし、新たな探索路・定義・接続、Qt Gui、製品OBJECT・shared、`kritatestsdk`、AUTOMOC製品header入力、KRA製品記号が必要なら停止する。macOSの対象、既存5枠と追加5枠、追加枠の20回反復、両実装と試験sourceの厳格構文、書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、実KRA入出力、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
+- 構造準備では開始`plugins/impex/libkra/kis_kra_save_visitor.h`から未使用の`kis_image.h`を除去し、値会員に必要な`QMap`と私有署名に必要な`KoColorProfile`前方宣言へ置換した。開始`plugins/impex/libkra/kis_kra_load_visitor.h`には値会員・返値に必要な`QMap`・`QHash`を直接追加し、未使用の`KisFilterConfiguration`と`KisNodeFilterInterface`前方宣言を除去した。変更前の両header強制includeは推移した`kis_image.h`から`QPainter`不足で失敗し、変更後はQt Gui探索路を加えず厳格構文に成功した。読込実装は厳格構文に成功し、保存実装は変更前後とも既存の符号有無比較診断1件だけである。計画commitは`0c183befd5`、構造準備commitは`4ad706827a`である。
+- 開始2 headerから既存`plugins/impex/libkra/tests/KisKraSaveXmlVisitorSchemaContractTest.cpp`へ全35 API・5枠を追加した。読込・保存visitorの型・構築・保存破棄、両visitorのnode・6種類のlayer訪問、5種類のmask訪問、外部URI、診断一覧、旧profile名対応表を型特性と厳密な多重定義関数pointerで固定した。既存binaryによる初回実行は新枠を認識せず`Function not found`で失敗した。契約commitは`d4a31b3364`である。
+- 既存試験sourceは217行・10枠となった。targetは変更前後ともQt Core・Testだけへ動的接続する4工程・8入力、command SHA-256 `c43bc72bed9ba8fdd9a222f2e52e68b7df8dde7c6540d363e57f8975d7f2a82c`、input SHA-256 `5d4c2dd9284e07d87bc158f5cf0cca1aaae1a1c81a28ffaffd0c1c7b49fa0a70`を維持した。AUTOMOC `HEADERS=[]`、KRA読込・保存visitor、node、layer、mask、storeの未解決製品記号0である。macOSで全10枠と追加5枠を各20回、試験sourceの厳格構文と書式、連続二回の無作業再構築、公開API検査、`verify-quick`に成功した。台帳は27,897件対応、1,908件未対応となり、開始2 headerの残存は0件である。新`public-api-missing-g497.json`の生成成功後に旧`public-api-missing-g496.json` 525,188 bytesを削除した。主Ninja木6,020,420 KiB、共有compiler cache 982,572 KiB、最新報告516,267 bytes、SHA-256 `edb6b91840dd182adb1accf86b2c272896fd417900e3aa5c09ec46e2e00d2b0e`だけを再利用対象として保持する。compiler cacheは144,711 cache可能呼出し中120,575件、83.32%がhitしている。実KRA読込・保存、画像・node・layer・mask状態、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第497便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
 
 ### 第239便の先行監査担当票
 
