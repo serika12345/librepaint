@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 16:31 JST
+- 更新日時: 2026-09-09 16:38 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4458,6 +4458,13 @@
 - 構造準備では開始`plugins/dockers/storyboarddocker/StoryboardView.h`から宣言に使われない`QStyleOptionViewItem`と`StoryboardModel`前方宣言を除去した。modelと描画型を実際に使う`StoryboardView.cpp`は既に完全定義を直接includeしているため、include移動はない。変更前後の実装翻訳単位と試験sourceの厳格構文に成功した。計画commitは`e79b52ad97`、構造準備commitは`c1f4143429`である。
 - 開始headerから既存`plugins/dockers/storyboarddocker/tests/StoryboardModelSchemaContractTest.cpp`へ全15 API・5枠を追加した。viewの型・構築・寿命、表示矩形・座標index・推奨寸法、項目方向、comment・thumbnail可視性、描画・mouse解放・現在frame設定を型特性、厳密な関数pointer、省略引数の構築可能性で固定した。初回は全5枠が成功し、`G494 storyboard view API schema is not fixed yet`だけが`XFAIL`となった。契約commitは`e73941963a`である。
 - 既存試験sourceは244行・15枠となった。targetは変更前後ともQt Gui・Testだけへ動的接続する4工程・8入力、command SHA-256 `5a43fe66f466b55f71df43d306166046e55698531a394b98411c1d8af364e97d`、input SHA-256 `83965d793a03fd856b81d37292a6424564d341802e7af7a626f743614198f409`を維持した。AUTOMOC `HEADERS=[]`、storyboard view・model・comment modelの未解決製品記号0である。macOSで全15枠と追加5枠を各20回、試験sourceの厳格構文と書式、連続二回の無作業再構築、公開API検査、`verify-quick`に成功した。台帳は27,848件対応、1,957件未対応となり、開始headerの残存は0件である。新`public-api-missing-g495.json`の生成成功後に旧`public-api-missing-g494.json` 532,130 bytesを削除した。主Ninja木6,020,288 KiB、共有compiler cache 983,480 KiB、最新報告528,482 bytes、SHA-256 `754d8bbf23d26b12cf9830831a21e83333722b2eb30b1c608a816ed470f153ee`だけを再利用対象として保持する。compiler cacheは144,708 cache可能呼出し中120,575件、83.32%がhitしている。model内容、実描画、mouse選択、frame同期、製品storyboard library、`kritatestsdk`、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第495便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
+
+### 第495便の公開API契約計画
+
+- 第495便はAndroidの主画面倍率と倍率設定dialogの接続面を所有する`libs/ui/canvas/KisAndroidScaling.h`に残る全14 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g495.json`は公開header 1,549、公開API 29,805、対応済み27,848、未対応1,957、528,482 bytes、SHA-256 `754d8bbf23d26b12cf9830831a21e83333722b2eb30b1c608a816ed470f153ee`である。対象14識別子の整列集合SHA-256は`9d41bdd6f022b8e121415449faca1cf8d1795497864272824a7624f3a6536500`である。
+- 倍率境界は型・構築・singleton取得3、対応状態・dialog表示2、画面倍率とUI倍率通知2、設定保存とdialog状態通知2、dialog名前空間の初期化・初期倍率・表示・起動時表示・対応状態5の5枠へ固定する。型特性と厳密な関数pointerだけを使い、倍率管理器、application、設定、画面、JNI、dialog本文を実体化しない。
+- 開始headerは私有の`QPointer<QScreen>`とinlineのnull照会だけのために`QScreen`の完全定義を全利用者へ推移させている。契約追加より先に同includeを前方宣言へ置換し、`QScreen`の本文を利用するAndroid専用`libs/ui/canvas/KisAndroidScaling.cpp`へ完全定義includeを直接移す。Android専用実装はmacOSのコンパイルデータベースに項目がなく、直接構文検査はQt private Android header不足で成立しないため、macOSでは公開headerを直接読む限定契約と既存macOS利用元を検査する。
+- 既存`libs/application/tests/KisApplicationArgumentsSchemaContractTest.cpp`はapplication起動とAndroid接続を所有する137行・10枠の限定targetである。新targetとCMake変更を避け、同sourceへ5枠を追加して220行・16枠未満に収める。変更前targetはQt Core・Testだけへ動的接続する4工程・8入力、command SHA-256 `94caa193f640f28e43b9589ff6612ec820c742cf64fd5144b694bfaea8103972`、input SHA-256 `d396bd55ed135e1a3b0216c6b40d7f4c2e09780b50819ccedb34348d7511b083`である。停止線を4工程・8入力とし、新たな探索路・定義・接続、製品OBJECT・shared、AUTOMOC製品header入力、Android製品記号が必要なら停止する。macOSの対象、既存10枠と追加5枠、追加枠の20回反復、試験sourceの厳格構文と書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、Android実装・端末、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
 
 ### 第239便の先行監査担当票
 
