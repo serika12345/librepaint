@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 21:38 JST
+- 更新日時: 2026-09-09 21:47 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4684,6 +4684,9 @@
 - 選択属性slider境界は基底型・構築・仮想破棄3、通常・混在表示templateと削除済みprefix・suffix設定3、汎用選択型・構築・値取得器・選択設定・照会5、図形用具象型・構築2の4枠へ固定する。型特性、厳密な関数pointer、削除関数の検出だけを使い、slider、図形、選択、signal圧縮器とQt画面を実体化しない。
 - 開始headerは`KoShape`をpointer型にしか使わない一方で`KoShape.h`を直接includeし、header強制includeの厳格構文が不要なQt Xmlの`QDomDocument`まで要求する。契約追加より先に完全定義includeを`KoShape`前方宣言へ置換し、公開値型として使う`QList`を直接includeする。開始`libs/ui/widgets/KisSelectionPropertySlider.cpp`の厳格構文は診断0件であり、構造変更後も実装とheader強制includeを診断0件とする。
 - 関連する既存`KisSpinBoxI18nHelperContractTest`は5工程・11入力で製品objectとQt Widgetsへ動的接続するため混載せず、新規`libs/ui/tests/KisSelectionPropertySliderSchemaContractTest.cpp`へ分離する。UI・widgetutils・globalのsource/generated探索路、3 export定義、Qt Gui・Widgetsのinterface探索路、Qt Core・Testだけの動的接続による4工程・8入力を予測し、停止線を5工程・11入力とする。候補headerをAUTOMOC入力にせず、製品OBJECT・shared、`kritatestsdk`、slider・図形・signal圧縮器の製品記号が必要なら停止する。macOSの対象と軽量UI近傍、対象全体と追加4枠の20回反復、実装・試験sourceとheader強制includeの厳格構文、書式、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、実画面・図形・選択・signal圧縮、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
+- 構造準備では開始`libs/ui/widgets/KisSelectionPropertySlider.h`の`KoShape.h`完全定義includeを同headerの`KoShape`前方宣言へ置換し、公開値型`QList`を直接includeした。変更前のheader強制includeは不要なQt Xmlの`QDomDocument`を要求したが、変更後はflake・Qt Xml探索路なしで診断0件となり、`libs/ui/widgets/KisSelectionPropertySlider.cpp`も変更前後とも厳格構文の診断0件を維持した。計画commitは`66b214b92d`、構造準備commitは`ace46df7df`である。
+- 開始`libs/ui/widgets/KisSelectionPropertySlider.h`から新規`libs/ui/tests/KisSelectionPropertySliderSchemaContractTest.cpp`へ全13 API・4枠を追加した。基底型・派生構築・仮想破棄3件、表示templateと削除済みprefix・suffix3件、汎用選択型・構築・値取得器・選択設定・照会5件、図形用具象型・構築2件を型特性、厳密な関数pointer、削除関数検出で固定した。契約commitは`3c3fa7ade5`で、新規sourceは112行・4枠である。
+- targetは4工程・8入力、command SHA-256 `c7f7039a0f6b732e9623c86c82d6ea14eb8d389d93ad67c87dbd37552b18facb`、input SHA-256 `4b122863a9ccad162971873179ec22926ad22b574da8d33f1610a9237bf88050`である。AUTOMOC `HEADERS=[]`、slider・図形・signal圧縮器の未解決製品記号0で、Qt Core・Testだけへ動的接続する。macOSで対象とspin box国際化近傍、対象全体と各4枠を20回、実装・試験sourceとheader強制includeの厳格構文、書式、連続二回の無作業再構築、公開API検査に成功した。台帳は28,215件対応、1,586件未対応となり、開始headerの残存は0件である。新`public-api-missing-g519.json`の生成成功後に旧`public-api-missing-g518.json` 435,774 bytesを削除した。主Ninja木6,029,668 KiB、共有compiler cache 983,112 KiB、最新報告432,333 bytes、SHA-256 `87e5656afef25f220fd84f892b59d70ee6a337fb695e0e74fc8ca0c3778bc7de`だけを再利用対象として保持する。compiler cacheは144,776 cache可能呼出し中120,593件、83.30%がhitしている。実画面・図形・選択・signal圧縮、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第519便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
 
 ### 第239便の先行監査担当票
 

@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 1599
+    "expectedMissingApis": 1586
   },
   "contracts": [
     {
@@ -78851,6 +78851,55 @@
         "method:KisPaintOpSettingsWidget::setNode(KisNodeWSP node)",
         "method:KisPaintOpSettingsWidget::setResourcesInterface(KisResourcesInterfaceSP resourcesInterface)",
         "method:KisPaintOpSettingsWidget::writeConfiguration(KisPropertiesConfigurationSP config) const"
+      ]
+    },
+    {
+      "target": "KisSelectionPropertySliderSchemaContractTest",
+      "source": "libs/ui/tests/KisSelectionPropertySliderSchemaContractTest.cpp",
+      "test": "KisSelectionPropertySliderSchemaContractTest::baseTypeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "選択属性slider基底は倍精度sliderを継承する抽象型として公開親画面から派生構築でき、基底から仮想破棄する契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisSelectionPropertySliderBase",
+        "method:KisSelectionPropertySliderBase::KisSelectionPropertySliderBase(QWidget * parent=0)",
+        "method:KisSelectionPropertySliderBase::~KisSelectionPropertySliderBase()"
+      ]
+    },
+    {
+      "target": "KisSelectionPropertySliderSchemaContractTest",
+      "source": "libs/ui/tests/KisSelectionPropertySliderSchemaContractTest.cpp",
+      "test": "KisSelectionPropertySliderSchemaContractTest::textTemplateAndDeletedAffixSchemaRemainStable",
+      "behavior": "選択属性slider基底は通常値・混在値の表示templateを一括設定し、個別prefix・suffix設定を削除済みとする公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSelectionPropertySliderBase::setPrefix(const QString &)",
+        "method:KisSelectionPropertySliderBase::setSuffix(const QString &)",
+        "method:KisSelectionPropertySliderBase::setTextTemplates(const QString & normalTemplate,const QString & mixedTemplate)"
+      ]
+    },
+    {
+      "target": "KisSelectionPropertySliderSchemaContractTest",
+      "source": "libs/ui/tests/KisSelectionPropertySliderSchemaContractTest.cpp",
+      "test": "KisSelectionPropertySliderSchemaContractTest::genericSelectionAndValueGetterSchemaRemainStable",
+      "behavior": "汎用選択属性sliderは項目値取得関数を受け取り、選択集合を値として設定・照会する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisSelectionPropertySlider",
+        "method:KisSelectionPropertySlider::KisSelectionPropertySlider(QWidget * parent=0)",
+        "method:KisSelectionPropertySlider::selection() const",
+        "method:KisSelectionPropertySlider::setSelection(QList<T> newSelection)",
+        "method:KisSelectionPropertySlider::setValueGetter(qreal (* getter)(T))"
+      ]
+    },
+    {
+      "target": "KisSelectionPropertySliderSchemaContractTest",
+      "source": "libs/ui/tests/KisSelectionPropertySliderSchemaContractTest.cpp",
+      "test": "KisSelectionPropertySliderSchemaContractTest::shapeSliderTypeAndConstructionSchemaRemainStable",
+      "behavior": "図形属性sliderは図形pointer選択を扱う汎用sliderの具象型として公開親画面から構築できる契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisShapePropertySlider",
+        "method:KisShapePropertySlider::KisShapePropertySlider(QWidget * parent=nullptr)"
       ]
     }
   ]
