@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 20:40 JST
+- 更新日時: 2026-09-09 20:47 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4645,6 +4645,9 @@
 - 色空間変換対話境界は生成UI型・構築2、対話型・構築・破棄3、公開UI頁・変換方針button群2、初期色空間設定・色空間・変換方針・flag照会4、選択・確定・色空間変更応答3の5枠へ固定する。型特性、公開会員型と厳密な関数pointerだけを使い、対話画面、生成UI、色空間、画像、buttonと変換を実体化しない。
 - 開始headerの`KoID.h`は公開宣言、基底、値会員、inline本文のいずれにも使われていない。契約追加より先に同includeを除去し、完全型が必要な`QButtonGroup`、`KoDialog`、変換列挙型、画像共有pointer、生成UI headerを維持する。開始`libs/ui/dialogs/KisColorSpaceConversionDialog.cpp`の厳格構文は診断0件であり、構造変更後もheader強制includeとともに維持する。
 - 新規`libs/ui/tests/KisColorSpaceConversionDialogSchemaContractTest.cpp`は`libs/ui/forms/wdgconvertcolorspace.ui`をtarget固有に生成し、既存製品生成物へ依存しない。UI・image・global・pigment・widgets・widgetutilsのsource/generated探索路、Qt Gui・Widgets、KF I18n・ConfigCore、Imath・Boostのinterface探索路、6 export定義、Qt Core・Test、header-only Eigenだけで構成する。生成UIを持つ最小近傍`KisAutoLevelsWidgetSchemaContractTest`と同じ5工程・10入力を予測し、追加前targetは`unknown target`である。停止線を6工程・13入力とし、Qt Gui・Widgets・KFの動的接続、製品OBJECT・shared、`kritatestsdk`、色空間変換対話・生成UI・色型の製品記号が必要なら停止する。macOSの対象と生成UI近傍、追加5枠の20回反復、実装・試験sourceとheader強制includeの厳格構文、書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、実対話画面・色空間・画像・変換、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
+- 構造準備では開始`libs/ui/dialogs/KisColorSpaceConversionDialog.h`から公開宣言、基底、値会員、inline本文のいずれにも使わない`KoID.h`を除去した。開始`libs/ui/dialogs/KisColorSpaceConversionDialog.cpp`とheader強制includeの厳格構文は診断0件である。計画commitは`d679c2b256`、構造準備commitは`64b8acb40a`である。
+- 開始headerから新規`libs/ui/tests/KisColorSpaceConversionDialogSchemaContractTest.cpp`へ全14 API・5枠を追加し、生成UI型・構築、対話型・構築・寿命、公開UI頁・button群、初期色空間設定と変換値照会、選択・確定・色空間変更応答を型特性、公開会員型と厳密な関数pointerで固定した。契約commitは`d916658be8`で、新規sourceは73行・5枠である。初回限定構築は`KoDialog.h`が直接使う`kguiitem.h`の探索路不足で失敗し、対象固有のKF WidgetsAddons interface探索路だけを追加して解消した。
+- targetはUI生成を含む5工程・10入力、command SHA-256 `70b1ed6abc7f003c66f46d00f5739c70726b6cbe12b31f7bb455afcc2b520b8d`、input SHA-256 `3ed78f0c6fbf273c5f1e1fb96f25170d29993c3669be3c093b9f237aeb2d7db2`である。AUTOMOC `HEADERS=[]`、色空間変換対話・生成UI・共通対話・色空間の未解決製品記号0で、Qt Gui・Widgets・KFと製品libraryを動的接続していない。macOSで対象と自動level生成UI近傍、対象全体と各5枠を20回、実装・試験sourceとheader強制includeの厳格構文、書式、連続二回の無作業再構築、公開API検査に成功した。台帳は28,162件対応、1,639件未対応となり、開始headerの残存は0件である。新`public-api-missing-g515.json`の生成成功後に旧`public-api-missing-g514.json` 450,323 bytesを削除した。主Ninja木6,030,616 KiB、共有compiler cache 982,492 KiB、最新報告446,518 bytes、SHA-256 `91970e1c868ccdc9a1aa31a601492154f0b1c8911fd4d19fb81a5f3369620b64`だけを再利用対象として保持する。compiler cacheは144,754 cache可能呼出し中120,582件、83.30%がhitしている。実対話画面・色空間・画像・変換、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第515便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
 
 ### 第239便の先行監査担当票
 

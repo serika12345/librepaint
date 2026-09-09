@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 1653
+    "expectedMissingApis": 1639
   },
   "contracts": [
     {
@@ -78662,6 +78662,65 @@
       "apis": [
         "method:KisMultiBoolFilterWidget::nbValues() const",
         "method:KisMultiBoolFilterWidget::valueAt(qint32 i) const"
+      ]
+    },
+    {
+      "target": "KisColorSpaceConversionDialogSchemaContractTest",
+      "source": "libs/ui/tests/KisColorSpaceConversionDialogSchemaContractTest.cpp",
+      "test": "KisColorSpaceConversionDialogSchemaContractTest::generatedPageTypeAndConstructionSchemaRemainStable",
+      "behavior": "色空間変換の生成UI型は画面部品基底を持ち、親画面部品から構築する公開契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:WdgConvertColorSpace",
+        "method:WdgConvertColorSpace::WdgConvertColorSpace(QWidget * parent)"
+      ]
+    },
+    {
+      "target": "KisColorSpaceConversionDialogSchemaContractTest",
+      "source": "libs/ui/tests/KisColorSpaceConversionDialogSchemaContractTest.cpp",
+      "test": "KisColorSpaceConversionDialogSchemaContractTest::dialogTypeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "色空間変換対話は共通対話基底を持ち、親・名前から構築して仮想破棄する公開契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisColorSpaceConversionDialog",
+        "method:KisColorSpaceConversionDialog::KisColorSpaceConversionDialog(QWidget * parent=0,const char * name=0)",
+        "method:KisColorSpaceConversionDialog::~KisColorSpaceConversionDialog()"
+      ]
+    },
+    {
+      "target": "KisColorSpaceConversionDialogSchemaContractTest",
+      "source": "libs/ui/tests/KisColorSpaceConversionDialogSchemaContractTest.cpp",
+      "test": "KisColorSpaceConversionDialogSchemaContractTest::publicPageAndButtonGroupMembersRemainStable",
+      "behavior": "色空間変換対話は生成UI頁の借用pointerと変換方針button群を公開会員として維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisColorSpaceConversionDialog::m_intentButtonGroup",
+        "member:KisColorSpaceConversionDialog::m_page"
+      ]
+    },
+    {
+      "target": "KisColorSpaceConversionDialogSchemaContractTest",
+      "source": "libs/ui/tests/KisColorSpaceConversionDialogSchemaContractTest.cpp",
+      "test": "KisColorSpaceConversionDialogSchemaContractTest::colorSpaceAndConversionSignaturesRemainStable",
+      "behavior": "色空間変換対話は初期色空間と画像を受け取り、変換先色空間・変換方針・変換flagを返す公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisColorSpaceConversionDialog::colorSpace() const",
+        "method:KisColorSpaceConversionDialog::conversionFlags() const",
+        "method:KisColorSpaceConversionDialog::conversionIntent() const",
+        "method:KisColorSpaceConversionDialog::setInitialColorSpace(const KoColorSpace * cs,KisImageSP entireImage)"
+      ]
+    },
+    {
+      "target": "KisColorSpaceConversionDialogSchemaContractTest",
+      "source": "libs/ui/tests/KisColorSpaceConversionDialogSchemaContractTest.cpp",
+      "test": "KisColorSpaceConversionDialogSchemaContractTest::interactionResponseSignaturesRemainStable",
+      "behavior": "色空間変換対話は選択妥当性、確定操作と色空間変更へ応答する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisColorSpaceConversionDialog::okClicked()",
+        "method:KisColorSpaceConversionDialog::selectionChanged(bool)",
+        "method:KisColorSpaceConversionDialog::slotColorSpaceChanged(const KoColorSpace * cs)"
       ]
     }
   ]
