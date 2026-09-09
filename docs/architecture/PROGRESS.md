@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 23:39 JST
+- 更新日時: 2026-09-09 23:49 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4792,6 +4792,13 @@
 - selection helper境界は型・canvasとundo名からの構築・仮想破棄3、処理適用器付き/なしpixel selection適用・単一/複数shape追加4、選択解除/無操作短絡・現在選択解除・context menu取得・selection mode上書き5の3枠へ固定する。型特性と厳密な関数pointerだけを使い、helper、canvas、image、layer、selection、shape、menu、処理適用器を実体化しない。
 - 開始headerは`QMenu`と`KisProcessingApplicator`をpointerまたは参照でのみ使い、`kis_layer.h`からは`kis_selection.h`が既に提供する`KisLayerSP`別名だけを使う。契約追加より先にこれら3完全includeを除去して前方宣言へ置換し、値渡し一覧に必要な`QList`を直接includeする。開始`libs/ui/tool/kis_selection_tool_helper.cpp`は必要な完全型を直接include済みで、開始実装と既存`libs/ui/tests/KisToolSelectUiBaseSchemaContractTest.cpp`からのheader強制includeは厳格構文診断0件を維持する。
 - 既存selection tool契約は113行・5枠で、3枠追加後も220行・10枠以内に収まる。現在の広いheader探索路は同targetが所有する具象selection tool templateの直接型閉包であり、候補追加による拡張はない。CMakeを変更せず4工程・8入力、command SHA-256 `dfa69d52c97147f5d25cdc794e3cd6dc2b37644303f8c0fdd5db3f5606734cc3`、input SHA-256 `6a0a85aa6ab162073c90b3d9c8b710b085223737161c5fae4a411c95763ae2da`を維持する。工程・入力増加、候補headerのAUTOMOC入力化、製品未解決記号が生じれば停止する。macOSの対象全体と追加3枠の20回反復、実装・試験sourceとheader強制includeの厳格構文、書式、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、実selection・shape・menu・処理適用、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
+
+### 第528便の公開API契約結果
+
+- pixel selectionとshape selectionを現在の方針へ適用する公開境界を軽量な型契約として固定した。開始`libs/ui/tool/kis_selection_tool_helper.h`から既存`libs/ui/tests/KisToolSelectUiBaseSchemaContractTest.cpp`へ全12 API・3枠を追加し、helper型・canvasとundo名からの構築・仮想破棄3件、処理適用器付き/なしpixel selection適用・単一/複数shape追加4件、選択解除/無操作短絡・現在選択解除・context menu取得・selection mode上書き5件を型特性と厳密な関数pointerで固定した。計画commitは`757206c825`、構造commitは`80d14b2bb7`、契約commitは`1dec6cfe17`で、既存試験sourceは155行・8枠となった。
+- 開始`libs/ui/tool/kis_selection_tool_helper.h`から`QMenu`・`KisProcessingApplicator`・`kis_layer.h`の完全includeを除去し、前二者を前方宣言、値一覧を`QList`直接includeへ置換した。`KisLayerSP`破棄に必要な完全型は開始`libs/ui/tool/kis_selection_tool_helper.cpp`の`kis_layer.h`直接includeへ移した。公開署名、所有権、実行時挙動、CMakeは変更していない。header強制include、製品source、試験sourceの厳格構文は診断0件で、新規試験差分の書式も成功した。
+- targetは4工程・8入力、command SHA-256 `dfa69d52c97147f5d25cdc794e3cd6dc2b37644303f8c0fdd5db3f5606734cc3`、input SHA-256 `6a0a85aa6ab162073c90b3d9c8b710b085223737161c5fae4a411c95763ae2da`を維持した。AUTOMOC `HEADERS=[]`、selection helper・selection tool templateの未解決製品記号0で、Qt Core・Testだけへ動的接続する。macOSで対象全体20回と追加3枠各20回、厳格構文、試験書式、連続二回の無作業再構築に成功した。実selection・shape・menu・処理適用、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 公開API検査の初回診断は期待値1,487に対して実測1,475で、新規12件と一致した。台帳を28,326件対応、1,475件未対応へ進め、`public-api-missing-g529.json`の生成成功後に旧`public-api-missing-g528.json` 405,515 bytesを削除した。主Ninja木6,032,176 KiB、共有compiler cache 983,056 KiB、最新報告401,565 bytes、SHA-256 `878e7d6b19c680ca17ffddbb05b95f1d576d29cf17ccdcc3c016e99b36386189`だけを再利用対象として保持する。compiler cacheは144,800 cache可能呼出し中120,594件、83.28%がhitしている。次の永続作業は第529便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
 
 ### 第239便の先行監査担当票
 

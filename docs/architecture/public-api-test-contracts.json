@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 1487
+    "expectedMissingApis": 1475
   },
   "contracts": [
     {
@@ -79242,6 +79242,45 @@
         "method:KisDisplayFilter::filter(quint8 * pixels,quint32 numPixels)",
         "method:KisDisplayFilter::lockCurrentColorVisualRepresentation() const",
         "method:KisDisplayFilter::useInternalColorManagement() const"
+      ]
+    },
+    {
+      "target": "KisToolSelectUiBaseSchemaContractTest",
+      "source": "libs/ui/tests/KisToolSelectUiBaseSchemaContractTest.cpp",
+      "test": "KisToolSelectUiBaseSchemaContractTest::selectionHelperTypeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "selection helperはcanvasとundo表示名から構築でき、公開境界から仮想破棄する型契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisSelectionToolHelper",
+        "method:KisSelectionToolHelper::KisSelectionToolHelper(KisCanvas2 * canvas,const KUndo2MagicString & name)",
+        "method:KisSelectionToolHelper::~KisSelectionToolHelper()"
+      ]
+    },
+    {
+      "target": "KisToolSelectUiBaseSchemaContractTest",
+      "source": "libs/ui/tests/KisToolSelectUiBaseSchemaContractTest.cpp",
+      "test": "KisToolSelectUiBaseSchemaContractTest::selectionHelperPixelAndShapeApplicationSignaturesRemainStable",
+      "behavior": "selection helperは処理適用器付きまたは単独のpixel selectionを適用し、単一または複数shapeを現在のselectionへ追加する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSelectionToolHelper::addSelectionShape(KoShape * shape,SelectionAction action=SELECTION_DEFAULT)",
+        "method:KisSelectionToolHelper::addSelectionShapes(QList<KoShape * > shapes,SelectionAction action=SELECTION_DEFAULT)",
+        "method:KisSelectionToolHelper::selectPixelSelection(KisPixelSelectionSP selection,SelectionAction action)",
+        "method:KisSelectionToolHelper::selectPixelSelection(KisProcessingApplicator & applicator,KisPixelSelectionSP selection,SelectionAction action)"
+      ]
+    },
+    {
+      "target": "KisToolSelectUiBaseSchemaContractTest",
+      "source": "libs/ui/tests/KisToolSelectUiBaseSchemaContractTest.cpp",
+      "test": "KisToolSelectUiBaseSchemaContractTest::selectionHelperShortcutMenuAndModeSignaturesRemainStable",
+      "behavior": "selection helperは選択解除と無操作への短絡可否を判定し、現在選択の解除、context menu取得、selection mode上書きを調停する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSelectionToolHelper::canShortcutToDeselect(const QRect & rect,SelectionAction action)",
+        "method:KisSelectionToolHelper::canShortcutToNoop(const QRect & rect,SelectionAction action)",
+        "method:KisSelectionToolHelper::getSelectionContextMenu(KoCanvasBase * canvas)",
+        "method:KisSelectionToolHelper::tryDeselectCurrentSelection(const QRectF selectionViewRect,SelectionAction action)",
+        "method:KisSelectionToolHelper::tryOverrideSelectionMode(KisSelectionSP activeSelection,SelectionMode currentMode,SelectionAction currentAction) const"
       ]
     }
   ]
