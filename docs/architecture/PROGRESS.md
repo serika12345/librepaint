@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 12:11 JST
+- 更新日時: 2026-09-09 12:19 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4285,6 +4285,13 @@
 - 開始`libs/image/kis_marker_painter.h`と`libs/image/kis_outline_generator.h`から新規`libs/image/tests/KisImageOutlineSchemaContractTest.cpp`へ最終13 API・5枠を追加した。marker painterの型・構築・破棄・数値上限と三描画境界、outline generatorの型・構築・明示破棄・二輪郭抽出・簡易mode切替を型特性、静的値、厳密な関数pointerで固定した。初回は全5観測枠が成功し、`G478 image outline API schema is not fixed yet`だけが`XFAIL`となった。契約commitは`a8278759ea`である。
 - 新規試験sourceは81行・5枠で、targetはQt Core・Testだけへ動的接続する4工程・8入力、command SHA-256 `efef50c5e58f238ced06f60dc10951a74659ecd0e380ccc4fcec73866dfc9ea3`、input SHA-256 `917fee57b29ef0489ea8e1b49d10d2fb91a095f1bf844176ede599bc35f2ddfa`となった。AUTOMOC `HEADERS=[]`、対象型・製品libraryの未解決記号は0である。macOSで対象の単発と20回反復、最軽量近傍`KisPaintDeviceSchemaContractTest`、試験sourceの厳格構文と書式、連続二回の無作業再構築、公開API検査に成功した。従来の製品動作は既存`kis_marker_painter_test`が保持するが、過大な1,201工程・2,425入力を避けて実行していない。製品target、全体build・`verify`、Linux、Nix再評価も実行していない。
 - 台帳は27,596件対応、2,209件未対応となり、開始2 headerの残存は0件である。旧`public-api-missing-g478.json` 599,535 bytesを削除し、一時閉包一覧、追加作業tree・構築木は作成していない。主Ninja木6,017,420 KiB、共有compiler cache 982,632 KiB、最新`build/tdd-macos/public-api-missing-g479.json` 595,987 bytes、SHA-256 `9c37b338f85062f04945143eb7e7d09927b36fba67a8d5f1f0f283399bdd43bb`だけを再利用対象として保持する。compiler cacheは144,648件中120,565件、83.35%がhitしている。次の永続作業は第479便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
+
+### 第479便の公開API契約計画
+
+- 第479便は描画閾値計算の`libs/ui/utils/KisDitherUtil.h`に残る全11 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g479.json`は公開header 1,548、公開API 29,805、対応済み27,596、未対応2,209、595,987 bytes、SHA-256 `9c37b338f85062f04945143eb7e7d09927b36fba67a8d5f1f0f283399bdd43bb`である。対象11識別子の整列集合SHA-256は`75df71bbfb4c4d6bddef66c63468618ffca1a73819eb85e4cc043fa34beada84`である。KRA入出力、UI controller、外部library版条件型が中心の件数上位に対し、本対象は単一macOS構成で全宣言を観測できる。
+- dither補助は型・構築2、閾値mode型・pattern・noise 3、pattern値mode型・自動・明度・alpha 4、設定の読込みと座標別閾値計算2の4枠へ固定する。型特性、列挙値、省略引数の未評価呼出し、厳密な関数pointerだけを使い、設定、pattern、乱数、画素、本文を実体化しない。
+- `libs/ui/utils/KisDitherUtil.h`は私有会員の共有pointerのために完全な`KoPattern.h`を公開面へ推移させている。契約追加より先に、headerは`QSharedPointer<KoPattern>`と前方宣言だけを所有し、patternの本文を使う`libs/ui/utils/KisDitherUtil.cpp`へ`KoPattern.h`を直接移す。直接利用4翻訳単位の変更前厳格構文検査は2件成功・gradient mapとpalettizeの生成UI header不在による既存診断2件で、変更後も同じ分類から悪化なしを完了条件とする。
+- 新規`libs/ui/tests/KisDitherUtilSchemaContractTest.cpp`は90行・5枠未満とする。最寄りの`KisDisplayConfigSchemaContractTest`は4工程・8入力、command SHA-256 `1486a6825ec2708ac11f7319e3f08e21aedcf1d596afa1e9a2b99e9e7885dd23`、input SHA-256 `0f5781b1ac2dec2ed9954f2948ac1d5b605eed4e419085ff8415d097846cb8ce`である。新targetはUI・image・global探索路、Qt Core・Test、UI・image export定義だけの4工程・8入力を予測し、停止線を5工程・11入力とする。新たな探索路・定義・製品接続、AUTOMOC製品header入力、対象型または本文の実体化が必要なら停止する。macOSの対象、最軽量近傍、対象の20回反復、試験sourceの厳格構文と書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
 
 ### 第239便の先行監査担当票
 
