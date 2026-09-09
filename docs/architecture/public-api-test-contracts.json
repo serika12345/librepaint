@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 1455
+    "expectedMissingApis": 1447
   },
   "contracts": [
     {
@@ -79337,6 +79337,32 @@
         "method:KisRecentFileIconCache::getOrQueueFileIcon(const QUrl & url)",
         "method:KisRecentFileIconCache::invalidateFileIcon(const QUrl & url)",
         "method:KisRecentFileIconCache::reloadFileIcon(const QUrl & url)"
+      ]
+    },
+    {
+      "target": "KisCollapsibleButtonGroupSchemaContractTest",
+      "source": "libs/ui/tests/KisCollapsibleButtonGroupSchemaContractTest.cpp",
+      "test": "KisCollapsibleButtonGroupSchemaContractTest::utilityTitleBarTypeConstructionAndSizingSchemaRemainStable",
+      "behavior": "utility title barは親widget単独または表題label付きで構築でき、仮想破棄と固定寸法照会を行う公開型境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisUtilityTitleBar",
+        "method:KisUtilityTitleBar::KisUtilityTitleBar(QLabel * title,QWidget * parent=nullptr)",
+        "method:KisUtilityTitleBar::KisUtilityTitleBar(QWidget * parent=nullptr)",
+        "method:KisUtilityTitleBar::sizeHint() const",
+        "method:KisUtilityTitleBar::~KisUtilityTitleBar()"
+      ]
+    },
+    {
+      "target": "KisCollapsibleButtonGroupSchemaContractTest",
+      "source": "libs/ui/tests/KisCollapsibleButtonGroupSchemaContractTest.cpp",
+      "test": "KisCollapsibleButtonGroupSchemaContractTest::utilityTitleBarWidgetAreaAndLockSignaturesRemainStable",
+      "behavior": "utility title barは頻用widget領域を照会・設定し、固定状態を設定する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisUtilityTitleBar::setLocked(bool locked)",
+        "method:KisUtilityTitleBar::setWidgetArea(QWidget * widgetArea)",
+        "method:KisUtilityTitleBar::widgetArea()"
       ]
     }
   ]
