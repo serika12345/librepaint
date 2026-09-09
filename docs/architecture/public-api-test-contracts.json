@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 1706
+    "expectedMissingApis": 1696
   },
   "contracts": [
     {
@@ -78474,6 +78474,34 @@
         "method:KisCollapsibleButtonGroup::addAction(QAction * action)",
         "method:KisCollapsibleButtonGroup::minimumSizeHint() const",
         "method:KisCollapsibleButtonGroup::sizeHint() const"
+      ]
+    },
+    {
+      "target": "KisToolUtilsSchemaContractTest",
+      "source": "libs/tools/tests/KisToolUtilsSchemaContractTest.cpp",
+      "test": "KisToolUtilsSchemaContractTest::stabilizedSamplerTypeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "安定化event標本器は標本器と前進iteratorの公開型、既定標本間隔を持つ構築、明示間隔構築と破棄を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisStabilizedEventsSampler",
+        "class:KisStabilizedEventsSampler::iterator",
+        "method:KisStabilizedEventsSampler::KisStabilizedEventsSampler(int sampleTime=1)",
+        "method:KisStabilizedEventsSampler::iterator::iterator()",
+        "method:KisStabilizedEventsSampler::iterator::iterator(const KisStabilizedEventsSampler * sampler,int index,qreal alpha)",
+        "method:KisStabilizedEventsSampler::~KisStabilizedEventsSampler()"
+      ]
+    },
+    {
+      "target": "KisToolUtilsSchemaContractTest",
+      "source": "libs/tools/tests/KisToolUtilsSchemaContractTest.cpp",
+      "test": "KisToolUtilsSchemaContractTest::stabilizedSamplerMutationAndRangeSignaturesRemainStable",
+      "behavior": "安定化event標本器は標本列の消去、入力・終端eventの追加と補間済み反復範囲の取得を行う公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisStabilizedEventsSampler::addEvent(const KisPaintInformation & pi)",
+        "method:KisStabilizedEventsSampler::addFinishingEvent(int numSamples)",
+        "method:KisStabilizedEventsSampler::clear()",
+        "method:KisStabilizedEventsSampler::range() const"
       ]
     }
   ]
