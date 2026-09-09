@@ -7,6 +7,7 @@
 
 #include <type_traits>
 
+#include "ConcentricEllipseAssistant.h"
 #include "canvas/kis_painting_assistant.h"
 
 #define ASSERT_ASSISTANT_SIGNATURE(method, signature)                                                                  \
@@ -15,6 +16,11 @@
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisPaintingAssistantHandle::method)), signature>)
 #define ASSERT_FACTORY_SIGNATURE(method, signature)                                                                    \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisPaintingAssistantFactory::method)), signature>)
+#define ASSERT_CONCENTRIC_ASSISTANT_SIGNATURE(method, signature)                                                       \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&ConcentricEllipseAssistant::method)), signature>)
+#define ASSERT_CONCENTRIC_FACTORY_SIGNATURE(method, signature)                                                         \
+    static_assert(                                                                                                     \
+        std::is_same_v<decltype(static_cast<signature>(&ConcentricEllipseAssistantFactory::method)), signature>)
 
 class PaintingAssistantProbe final : public KisPaintingAssistant
 {
@@ -51,6 +57,10 @@ private Q_SLOTS:
     void assistantHandleCollectionAndPositionSchemaRemainStable();
     void assistantAdjustmentAndDrawingSchemaRemainStable();
     void assistantPersistenceFactoryAndRegistrySchemaRemainStable();
+    void concentricEllipseAssistantTypeConstructionAndCloneSchemaRemainStable();
+    void concentricEllipseAssistantAdjustmentSignaturesRemainStable();
+    void concentricEllipseFactoryTypeAndLifetimeSchemaRemainStable();
+    void concentricEllipseFactoryIdentityAndCreationSignaturesRemainStable();
 };
 
 void KisPaintingAssistantSchemaContractTest::handleTypeAndLifetimeSchemaRemainStable()
@@ -219,6 +229,52 @@ void KisPaintingAssistantSchemaContractTest::assistantPersistenceFactoryAndRegis
 
     QVERIFY(true);
 }
+
+void KisPaintingAssistantSchemaContractTest::concentricEllipseAssistantTypeConstructionAndCloneSchemaRemainStable()
+{
+    using Assistant = ConcentricEllipseAssistant;
+    using HandleMap = QMap<KisPaintingAssistantHandleSP, KisPaintingAssistantHandleSP>;
+
+    static_assert(std::is_class_v<Assistant>);
+    static_assert(std::is_base_of_v<KisPaintingAssistant, Assistant>);
+    static_assert(std::is_default_constructible_v<Assistant>);
+    ASSERT_CONCENTRIC_ASSISTANT_SIGNATURE(clone, KisPaintingAssistantSP (Assistant::*)(HandleMap &) const);
+}
+
+void KisPaintingAssistantSchemaContractTest::concentricEllipseAssistantAdjustmentSignaturesRemainStable()
+{
+    using Assistant = ConcentricEllipseAssistant;
+
+    ASSERT_CONCENTRIC_ASSISTANT_SIGNATURE(adjustPosition,
+                                          QPointF (Assistant::*)(const QPointF &, const QPointF &, bool, qreal));
+    ASSERT_CONCENTRIC_ASSISTANT_SIGNATURE(adjustLine, void (Assistant::*)(QPointF &, QPointF &));
+    ASSERT_CONCENTRIC_ASSISTANT_SIGNATURE(getDefaultEditorPosition, QPointF (Assistant::*)() const);
+    ASSERT_CONCENTRIC_ASSISTANT_SIGNATURE(numHandles, int (Assistant::*)() const);
+    ASSERT_CONCENTRIC_ASSISTANT_SIGNATURE(isAssistantComplete, bool (Assistant::*)() const);
+    ASSERT_CONCENTRIC_ASSISTANT_SIGNATURE(transform, void (Assistant::*)(const QTransform &));
+}
+
+void KisPaintingAssistantSchemaContractTest::concentricEllipseFactoryTypeAndLifetimeSchemaRemainStable()
+{
+    using Factory = ConcentricEllipseAssistantFactory;
+
+    static_assert(std::is_class_v<Factory>);
+    static_assert(std::is_base_of_v<KisPaintingAssistantFactory, Factory>);
+    static_assert(std::is_default_constructible_v<Factory>);
+    static_assert(std::has_virtual_destructor_v<Factory>);
+}
+
+void KisPaintingAssistantSchemaContractTest::concentricEllipseFactoryIdentityAndCreationSignaturesRemainStable()
+{
+    using Factory = ConcentricEllipseAssistantFactory;
+
+    ASSERT_CONCENTRIC_FACTORY_SIGNATURE(id, QString (Factory::*)() const);
+    ASSERT_CONCENTRIC_FACTORY_SIGNATURE(name, QString (Factory::*)() const);
+    ASSERT_CONCENTRIC_FACTORY_SIGNATURE(createPaintingAssistant, KisPaintingAssistant * (Factory::*)() const);
+}
+
+#undef ASSERT_CONCENTRIC_FACTORY_SIGNATURE
+#undef ASSERT_CONCENTRIC_ASSISTANT_SIGNATURE
 
 QTEST_GUILESS_MAIN(KisPaintingAssistantSchemaContractTest)
 
