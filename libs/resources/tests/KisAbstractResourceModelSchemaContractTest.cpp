@@ -4,6 +4,7 @@
  */
 
 #include <KisResourceModel.h>
+#include <KisResourceModelProvider.h>
 #include <KisResourceTypeModel.h>
 
 #include <QTest>
@@ -24,6 +25,8 @@ private Q_SLOTS:
     void resourceTypeModelTypeColumnsAndLifetimeSchemaRemainStable();
     void resourceTypeModelColumnOrdinalsRemainStable();
     void resourceTypeModelDataSignaturesRemainStable();
+    void resourceModelProviderTypeConstructionAndLifetimeSchemaRemainStable();
+    void resourceModelProviderAccessAndTestingSignaturesRemainStable();
 };
 
 #define ASSERT_RESOURCE_MODEL_SIGNATURE(Type, Method, Signature)                                                       \
@@ -123,6 +126,34 @@ void KisAbstractResourceModelSchemaContractTest::resourceTypeModelDataSignatures
     static_assert(std::is_same_v<decltype(&Model::rowCount), int (Model::*)(const QModelIndex &) const>);
     static_assert(std::is_same_v<decltype(&Model::columnCount), int (Model::*)(const QModelIndex &) const>);
     static_assert(std::is_same_v<decltype(&Model::data), QVariant (Model::*)(const QModelIndex &, int) const>);
+}
+
+void KisAbstractResourceModelSchemaContractTest::resourceModelProviderTypeConstructionAndLifetimeSchemaRemainStable()
+{
+    using Provider = KisResourceModelProvider;
+
+    static_assert(std::is_class_v<Provider>);
+    static_assert(std::is_default_constructible_v<Provider>);
+    static_assert(std::is_destructible_v<Provider>);
+    static_assert(!std::is_copy_constructible_v<Provider>);
+    static_assert(!std::is_copy_assignable_v<Provider>);
+}
+
+void KisAbstractResourceModelSchemaContractTest::resourceModelProviderAccessAndTestingSignaturesRemainStable()
+{
+    using Provider = KisResourceModelProvider;
+    using ResourceModel = KisAllResourcesModel *(*)(const QString &);
+    using TagModel = KisAllTagsModel *(*)(const QString &);
+    using TagResourceModel = KisAllTagResourceModel *(*)(const QString &);
+    using MetadataModel = KisResourceMetaDataModel *(*)();
+    using TestingControl = void (*)();
+
+    static_assert(std::is_same_v<decltype(&Provider::resourceModel), ResourceModel>);
+    static_assert(std::is_same_v<decltype(&Provider::tagModel), TagModel>);
+    static_assert(std::is_same_v<decltype(&Provider::tagResourceModel), TagResourceModel>);
+    static_assert(std::is_same_v<decltype(&Provider::resourceMetadataModel), MetadataModel>);
+    static_assert(std::is_same_v<decltype(&Provider::testingResetAllModels), TestingControl>);
+    static_assert(std::is_same_v<decltype(&Provider::testingCloseAllQueries), TestingControl>);
 }
 
 #undef ASSERT_RESOURCE_MODEL_SIGNATURE
