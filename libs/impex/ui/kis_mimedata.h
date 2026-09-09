@@ -11,8 +11,6 @@
 #include <QRect>
 
 #include <kis_types.h>
-#include <kis_image.h>
-#include <kis_node.h>
 #include <kritaui_export.h>
 
 class KisShapeController;
