@@ -10,13 +10,13 @@
     "declarations": [
       "public classes, structs, unions, enums, enumerators, aliases, functions, methods, data members, and variables"
     ],
-    "publicHeaderCount": 1548,
-    "publicHeaderFingerprint": "d78d86e437112ee4e870fc718ef12536c8e810f419ab643636d4ebd6e47fd765",
+    "publicHeaderCount": 1549,
+    "publicHeaderFingerprint": "2adca6143c90d832afa038873e3e8957eaebaaf87f0f166af4bc4e62a37bf85f",
     "publicApiCount": 29805,
-    "publicApiFingerprint": "05a5e67dfcb803772f3a7b7f2773532707ee28e97b57d9173a41fba9047a71d2"
+    "publicApiFingerprint": "62e45b238446dc0eb6798b1de10b2cd9261befccc2a837c75de2c86393d7e016"
   },
   "migration": {
-    "expectedMissingApis": 2003
+    "expectedMissingApis": 1987
   },
   "contracts": [
     {
@@ -77497,6 +77497,67 @@
         "method:KisAndroidMediaEncoderPreferencesWidget::setAudioBitrate(int audioBitrate)",
         "method:KisAndroidMediaEncoderPreferencesWidget::setVideoBitrate(int videoBitrate)",
         "method:KisAndroidMediaEncoderPreferencesWidget::videoBitrate() const"
+      ]
+    },
+    {
+      "target": "KisViewManagerSchemaContractTest",
+      "source": "libs/application/tests/KisViewManagerSchemaContractTest.cpp",
+      "test": "KisViewManagerSchemaContractTest::actionManagerTypeConstructionAndViewSchemaRemainStable",
+      "behavior": "action管理器はwindow単位のGUI action所有型、view管理器とaction集合による構築、仮想破棄、現在viewの接続を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisOperationConfigurationSP",
+        "class:KisActionManager",
+        "method:KisActionManager::KisActionManager(KisViewManager * viewManager,KisKActionCollection * actionCollection)",
+        "method:KisActionManager::setView(QPointer<KisView> imageView)",
+        "method:KisActionManager::~KisActionManager()"
+      ]
+    },
+    {
+      "target": "KisViewManagerSchemaContractTest",
+      "source": "libs/application/tests/KisViewManagerSchemaContractTest.cpp",
+      "test": "KisViewManagerSchemaContractTest::actionManagerActionLifecycleSignaturesRemainStable",
+      "behavior": "action管理器はGUI actionの追加・管理解除・設定値からの生成・名前照会に関する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisActionManager::actionByName(const QString & name) const",
+        "method:KisActionManager::addAction(const QString & name,KisAction * action)",
+        "method:KisActionManager::createAction(const QString & name)",
+        "method:KisActionManager::takeAction(KisAction * action)"
+      ]
+    },
+    {
+      "target": "KisViewManagerSchemaContractTest",
+      "source": "libs/application/tests/KisViewManagerSchemaContractTest.cpp",
+      "test": "KisViewManagerSchemaContractTest::actionManagerOperationRegistrationSignaturesRemainStable",
+      "behavior": "action管理器は操作UI factoryと操作実装を登録する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisActionManager::registerOperation(KisOperation * operation)",
+        "method:KisActionManager::registerOperationUIFactory(KisOperationUIFactory * factory)"
+      ]
+    },
+    {
+      "target": "KisViewManagerSchemaContractTest",
+      "source": "libs/application/tests/KisViewManagerSchemaContractTest.cpp",
+      "test": "KisViewManagerSchemaContractTest::actionManagerOperationExecutionSignaturesRemainStable",
+      "behavior": "action管理器は識別子から設定値を用意する実行入口と、準備済み設定値から操作へ配送する入口を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisActionManager::runOperation(const QString & id)",
+        "method:KisActionManager::runOperationFromConfiguration(KisOperationConfigurationSP config)"
+      ]
+    },
+    {
+      "target": "KisViewManagerSchemaContractTest",
+      "source": "libs/application/tests/KisViewManagerSchemaContractTest.cpp",
+      "test": "KisViewManagerSchemaContractTest::actionManagerStandardActionMenuAndUpdateSignaturesRemainStable",
+      "behavior": "action管理器は標準action生成、action IDによるmenu設定、管理actionのGUI状態更新に関する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisActionManager::createStandardAction(KStandardAction::StandardAction,const QObject * receiver,const char * member)",
+        "method:KisActionManager::safePopulateMenu(QMenu * menu,const QString & actionId,KisActionManager * actionManager)",
+        "method:KisActionManager::updateGUI()"
       ]
     }
   ]
