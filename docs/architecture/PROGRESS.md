@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 14:03 JST
+- 更新日時: 2026-09-09 14:08 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4360,6 +4360,13 @@
 - 開始headerから新規`plugins/extensions/qmic/tests/KisQMicInterfaceContractTest.cpp`へ全20 API・5枠を追加した。QMic画像値の型・共有所有・構築・破棄、6公開値、読取りbuffer・byte寸法・診断出力、画像interfaceの型・構築・仮想破棄、4交換境界を固定した。2×3×4成分の画像値を実体化し、既定4成分、24浮動小数buffer、同一読取りpointer、先頭値共有、byte寸法96、破棄を観測した。初回は全5枠が成功し、`G485 QMic image interface API schema is not fixed yet`だけが`XFAIL`となった。契約commitは`7dfeda9ac8`である。
 - 対象未登録の初回限定構築は未知の対象として失敗した。新規試験sourceは89行・5枠で、targetはQt Core・Testだけへ動的接続する4工程・8入力、command SHA-256 `9659b8f9e5b3f0321dfde112088e0076605e8dcbe2af7fdeb5c8676bc52575c1`、input SHA-256 `1f33f50e5ffd7d5728d2c9bf05996ea2f0ffa87d6db7f55fdfed218af8f9067d`となった。AUTOMOC `HEADERS=[]`、画像interface・QMic値・製品libraryの未解決記号は0である。macOSで対象の単発と20回反復、試験sourceの厳格構文と書式、連続二回の無作業再構築、公開API検査に成功した。同じQMic構成内の近傍は1,989工程・3,974入力の既存`kis_qmic_tests`だけで、限定検証を過大化するため実行していない。非正寸法・積のoverflow、診断文字列、view manager・画像・外部QMicを使うinterface本文、製品target、全体build・`verify`、Linux、Nix再評価も実行していない。
 - 台帳は27,705件対応、2,100件未対応となり、開始headerの残存は0件である。新`public-api-missing-g486.json`の生成成功後に旧`public-api-missing-g485.json` 572,476 bytesを削除し、一時一覧、追加作業tree・構築木は作成していない。主Ninja木6,025,444 KiB、共有compiler cache 983,336 KiB、最新`build/tdd-macos/public-api-missing-g486.json` 567,978 bytes、SHA-256 `20862dc0424f308339529983efd8f7f196986fd19d11421b7fca491f9c9550a8`だけを再利用対象として保持する。compiler cacheは144,676件中120,567件、83.34%がhitしている。次の永続作業は第486便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
+
+### 第486便の公開API契約計画
+
+- 第486便はstoryboardのコメント列模型を所有する`plugins/dockers/storyboarddocker/CommentModel.h`に残る全17 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g486.json`は公開header 1,548、公開API 29,805、対応済み27,705、未対応2,100、567,978 bytes、SHA-256 `20862dc0424f308339529983efd8f7f196986fd19d11421b7fca491f9c9550a8`である。対象17識別子の整列集合SHA-256は`2e6ecd56a332dfcba985a16290fc56b02af50df054973c39bfb244de6a1ee6b6`である。
+- コメント模型は型・構築・変更通知3、行数・表示値・flags・値変更4、行挿入・削除・移動3、MIME型・生成・drop・対応drag/drop 5、全値の再設定・取得2の5枠へ固定する。型特性、厳密な関数pointer、省略引数の未評価呼出しだけを使い、模型、index、MIME data、comment値、icon、各本文を実体化しない。
+- 開始headerの`QAbstractButton`は公開・私有宣言のどちらにも使われず、全利用者へWidgets完全定義を推移させるため契約追加より先に除去する。`StoryboardItem.h`は値会員と値返却の`StoryboardComment`完全型に、`QAbstractListModel`は基底と模型型に必要である。直接利用と`StoryboardModel.h`経由の関連11翻訳単位は変更前8件成功・生成UI header不在2件と`KisPaintDevice`不完全型の既存診断3件で、変更後も同じ分類から悪化なしを完了条件とする。
+- 既存`StoryboardModelTest`は製品storyboard静的library・application UI・`kritatestsdk`へ接続する1,998工程・3,994入力であり、限定反復対象から外す。既存`plugins/dockers/storyboarddocker/tests/StoryboardModelSchemaContractTest.cpp`は対象headerを直接取り込む139行・5枠の限定targetである。新targetによる同じheaderの二重構築を避け、同sourceへ5枠を追加して230行・11枠未満に収める。CMake変更なしでQt Gui・Testだけへ動的接続する4工程・8入力、command SHA-256 `5a43fe66f466b55f71df43d306166046e55698531a394b98411c1d8af364e97d`、input SHA-256 `83965d793a03fd856b81d37292a6424564d341802e7af7a626f743614198f409`を維持し、停止線を4工程・8入力とする。新たな探索路・定義・接続、AUTOMOC製品header入力、対象型または本文の実体化が必要なら停止する。macOSの対象、既存5枠と追加5枠、追加枠の20回反復、試験sourceの厳格構文と書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
 
 ### 第239便の先行監査担当票
 
