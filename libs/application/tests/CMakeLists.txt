@@ -120,6 +120,21 @@ target_compile_definitions(KisApplicationArgumentsSchemaContractTest PRIVATE
 )
 
 kis_add_test(
+    QtSingleApplicationSchemaContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(QtSingleApplicationSchemaContractTest PRIVATE
+    ${CMAKE_SOURCE_DIR}/libs/ui
+    ${CMAKE_BINARY_DIR}/libs/ui
+    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Widgets,INTERFACE_INCLUDE_DIRECTORIES>
+)
+target_compile_definitions(QtSingleApplicationSchemaContractTest PRIVATE
+    kritaui_EXPORTS
+)
+
+kis_add_test(
     KisPartSchemaContractTest.cpp
     LINK_LIBRARIES
         Boost::boost
