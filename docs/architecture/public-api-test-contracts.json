@@ -16,7 +16,7 @@
     "publicApiFingerprint": "05a5e67dfcb803772f3a7b7f2773532707ee28e97b57d9173a41fba9047a71d2"
   },
   "migration": {
-    "expectedMissingApis": 2049
+    "expectedMissingApis": 2033
   },
   "contracts": [
     {
@@ -77334,6 +77334,67 @@
         "member:SubChunk::firstTextInPath",
         "member:SubChunk::inheritedProps",
         "member:SubChunk::textInPath"
+      ]
+    },
+    {
+      "target": "KisImportExportManagerSchemaContractTest",
+      "source": "libs/impex/tests/KisImportExportManagerSchemaContractTest.cpp",
+      "test": "KisImportExportManagerSchemaContractTest::typeDirectionConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "文書入出力管理境界はQObject所有の非copy型として構築・仮想破棄でき、import・export方向と固定列挙値を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisImportExportManager",
+        "enum:KisImportExportManager::Direction",
+        "enumerator:KisImportExportManager::Direction::Export",
+        "enumerator:KisImportExportManager::Direction::Import",
+        "method:KisImportExportManager::KisImportExportManager(KisDocument * document)",
+        "method:KisImportExportManager::~KisImportExportManager()"
+      ]
+    },
+    {
+      "target": "KisImportExportManagerSchemaContractTest",
+      "source": "libs/impex/tests/KisImportExportManagerSchemaContractTest.cpp",
+      "test": "KisImportExportManagerSchemaContractTest::documentConversionSignaturesRemainStable",
+      "behavior": "文書入出力管理境界は指定場所とMIME型による同期import・同期export・非同期exportの公開署名と既定方針を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisImportExportManager::exportDocument(const QString & location,const QString & realLocation,const QByteArray & mimeType,bool showWarnings=true,KisPropertiesConfigurationSP exportConfiguration=0,bool isAdvancedExporting=false)",
+        "method:KisImportExportManager::exportDocumentAsync(const QString & location,const QString & realLocation,const QByteArray & mimeType,KisImportExportErrorCode & status,bool showWarnings=true,KisPropertiesConfigurationSP exportConfiguration=0,bool isAdvancedExporting=false)",
+        "method:KisImportExportManager::importDocument(const QString & location,const QString & mimeType)"
+      ]
+    },
+    {
+      "target": "KisImportExportManagerSchemaContractTest",
+      "source": "libs/impex/tests/KisImportExportManagerSchemaContractTest.cpp",
+      "test": "KisImportExportManagerSchemaContractTest::filterDiscoveryAndConfigurationSignaturesRemainStable",
+      "behavior": "文書入出力管理境界は方向別MIME型一覧と最適filterを取得し、画像特性を静的export設定へ反映する公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisImportExportManager::fillStaticExportConfigurationProperties(KisPropertiesConfigurationSP exportConfiguration,KisImageSP image)",
+        "method:KisImportExportManager::filterForMimeType(const QString & mimetype,Direction direction)",
+        "method:KisImportExportManager::supportedMimeTypes(Direction direction)"
+      ]
+    },
+    {
+      "target": "KisImportExportManagerSchemaContractTest",
+      "source": "libs/impex/tests/KisImportExportManagerSchemaContractTest.cpp",
+      "test": "KisImportExportManagerSchemaContractTest::batchAndProgressSignaturesRemainStable",
+      "behavior": "文書入出力管理境界はbatch実行状態を照会し、変換進捗の更新先を受ける公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisImportExportManager::batchMode(void) const",
+        "method:KisImportExportManager::setUpdater(KoUpdaterPtr updater)"
+      ]
+    },
+    {
+      "target": "KisImportExportManagerSchemaContractTest",
+      "source": "libs/impex/tests/KisImportExportManagerSchemaContractTest.cpp",
+      "test": "KisImportExportManagerSchemaContractTest::additionalFileQuerySignaturesRemainStable",
+      "behavior": "文書入出力管理境界は親widgetを伴う音声file名と追加file URIの照会署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisImportExportManager::askForAudioFileName(const QString & defaultDir,QWidget * parent)",
+        "method:KisImportExportManager::getUriForAdditionalFile(const QString & defaultUri,QWidget * parent)"
       ]
     }
   ]
