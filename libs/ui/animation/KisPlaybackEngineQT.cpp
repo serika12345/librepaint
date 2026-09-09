@@ -18,9 +18,6 @@
 #include "KisRollingMeanAccumulatorWrapper.h"
 #include "KisRollingSumAccumulatorWrapper.h"
 
-#include "animation/KisPlaybackEngineQT.h"
-
-
 namespace {
 
 /** @brief A simple QTimer-based playback method for situations when audio is not 
