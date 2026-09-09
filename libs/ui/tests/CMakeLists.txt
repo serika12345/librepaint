@@ -1383,6 +1383,27 @@ target_compile_definitions(KisDelayedSaveDialogSchemaContractTest PRIVATE
 )
 
 kis_add_test(
+    KisAsyncAnimationRenderDialogBaseSchemaContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+        Boost::boost
+)
+target_include_directories(KisAsyncAnimationRenderDialogBaseSchemaContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_BINARY_DIR}/libs/application
+    ${CMAKE_SOURCE_DIR}/libs/image
+    ${CMAKE_BINARY_DIR}/libs/image
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+)
+target_compile_definitions(KisAsyncAnimationRenderDialogBaseSchemaContractTest PRIVATE
+    kritaapplicationui_EXPORTS
+    kritaimage_EXPORTS
+    kritaglobal_EXPORTS
+)
+
+kis_add_test(
     KisAsyncColorSamplerHelperSchemaContractTest.cpp
     LINK_LIBRARIES
         Qt${QT_MAJOR_VERSION}::Core
