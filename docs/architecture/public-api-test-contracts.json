@@ -16,7 +16,7 @@
     "publicApiFingerprint": "05a5e67dfcb803772f3a7b7f2773532707ee28e97b57d9173a41fba9047a71d2"
   },
   "migration": {
-    "expectedMissingApis": 2222
+    "expectedMissingApis": 2209
   },
   "contracts": [
     {
@@ -76711,6 +76711,64 @@
       "apis": [
         "method:KisExternalLayer::convertTo(const KoColorSpace * dstColorSpace,KoColorConversionTransformation::Intent renderingIntent=KoColorConversionTransformation::internalRenderingIntent (),KoColorConversionTransformation::ConversionFlags conversionFlags=KoColorConversionTransformation::internalConversionFlags ())",
         "method:KisExternalLayer::setProfile(const KoColorProfile * profile)"
+      ]
+    },
+    {
+      "target": "KisImageOutlineSchemaContractTest",
+      "source": "libs/image/tests/KisImageOutlineSchemaContractTest.cpp",
+      "test": "KisImageOutlineSchemaContractTest::markerTypeLifetimeAndRangeSchemaRemainStable",
+      "behavior": "marker painterは公開型、描画装置と色からの構築、破棄可能性、座標に使える有効数値上限を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisMarkerPainter",
+        "member:KisMarkerPainter::ValidNumberRangeValue",
+        "method:KisMarkerPainter::KisMarkerPainter(KisPaintDeviceSP device,const KoColor & color)",
+        "method:KisMarkerPainter::~KisMarkerPainter()"
+      ]
+    },
+    {
+      "target": "KisImageOutlineSchemaContractTest",
+      "source": "libs/image/tests/KisImageOutlineSchemaContractTest.cpp",
+      "test": "KisImageOutlineSchemaContractTest::markerPaintingSignaturesRemainStable",
+      "behavior": "marker painterは円全体、半brushの差分、二円の差分を指定する描画境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMarkerPainter::fillCirclesDiff(const QPointF & c1,qreal r1,const QPointF & c2,qreal r2)",
+        "method:KisMarkerPainter::fillFullCircle(const QPointF & center,qreal radius)",
+        "method:KisMarkerPainter::fillHalfBrushDiff(const QPointF & p1,const QPointF & p2,const QPointF & p3,const QPointF & center,qreal radius)"
+      ]
+    },
+    {
+      "target": "KisImageOutlineSchemaContractTest",
+      "source": "libs/image/tests/KisImageOutlineSchemaContractTest.cpp",
+      "test": "KisImageOutlineSchemaContractTest::outlineTypeLifetimeAndConstructionSchemaRemainStable",
+      "behavior": "outline generatorは色空間と除外不透明度から構築でき、破棄の実体化を実装所有側に限定する公開型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisOutlineGenerator",
+        "method:KisOutlineGenerator::KisOutlineGenerator(const KoColorSpace * cs,quint8 defaultOpacity)",
+        "method:KisOutlineGenerator::~KisOutlineGenerator()"
+      ]
+    },
+    {
+      "target": "KisImageOutlineSchemaContractTest",
+      "source": "libs/image/tests/KisImageOutlineSchemaContractTest.cpp",
+      "test": "KisImageOutlineSchemaContractTest::outlineRawBufferSignatureRemainsStable",
+      "behavior": "outline generatorは生画素bufferとoffset・寸法からpolygon群を生成する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisOutlineGenerator::outline(quint8 * buffer,qint32 xOffset,qint32 yOffset,qint32 width,qint32 height)"
+      ]
+    },
+    {
+      "target": "KisImageOutlineSchemaContractTest",
+      "source": "libs/image/tests/KisImageOutlineSchemaContractTest.cpp",
+      "test": "KisImageOutlineSchemaContractTest::outlineDeviceAndModeSignaturesRemainStable",
+      "behavior": "outline generatorは描画装置かoffset・寸法付きでpolygon群を生成し、内包輪郭を省く簡易modeを切り替える公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisOutlineGenerator::outline(const KisPaintDevice * buffer,qint32 xOffset,qint32 yOffset,qint32 width,qint32 height)",
+        "method:KisOutlineGenerator::setSimpleOutline(bool simple)"
       ]
     }
   ]
