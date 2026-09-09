@@ -425,8 +425,11 @@ target_include_directories(KisPaintingAssistantSchemaContractTest PRIVATE
     ${CMAKE_CURRENT_BINARY_DIR}/..
     ${CMAKE_SOURCE_DIR}/libs/global
     ${CMAKE_BINARY_DIR}/libs/global
+    ${CMAKE_SOURCE_DIR}/plugins/assistants/Assistants
+    ${CMAKE_BINARY_DIR}/plugins/assistants/Assistants
 )
 target_compile_definitions(KisPaintingAssistantSchemaContractTest PRIVATE
+    kritaassistanttool_static_EXPORTS
     kritaui_EXPORTS
     kritaglobal_EXPORTS
 )
