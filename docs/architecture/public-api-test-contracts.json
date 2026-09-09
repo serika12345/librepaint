@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 1550
+    "expectedMissingApis": 1540
   },
   "contracts": [
     {
@@ -79017,6 +79017,43 @@
       "apis": [
         "method:KisFloatingMessage::removeMessage()",
         "method:KisFloatingMessage::showMessage()"
+      ]
+    },
+    {
+      "target": "KisAsyncAnimationRenderDialogBaseSchemaContractTest",
+      "source": "libs/ui/tests/KisAsyncAnimationRenderDialogBaseSchemaContractTest.cpp",
+      "test": "KisAsyncAnimationRenderDialogBaseSchemaContractTest::framesSaveTypeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "animation frame保存対話は画像・出力名・番号・固有frame方針・出力設定に、任意の時間範囲を加えた2経路で構築でき、基底から仮想破棄する契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisAsyncAnimationFramesSaveDialog",
+        "method:KisAsyncAnimationFramesSaveDialog::KisAsyncAnimationFramesSaveDialog(KisImageSP image,const KisTimeSpan & range,const QString & baseFilename,int startNumberingAt,bool onlyNeedsUniqueFrames,KisPropertiesConfigurationSP exportConfiguration)",
+        "method:KisAsyncAnimationFramesSaveDialog::KisAsyncAnimationFramesSaveDialog(KisImageSP image,const QString & baseFilename,int startNumberingAt,bool onlyNeedsUniqueFrames,KisPropertiesConfigurationSP exportConfiguration)",
+        "method:KisAsyncAnimationFramesSaveDialog::~KisAsyncAnimationFramesSaveDialog()"
+      ]
+    },
+    {
+      "target": "KisAsyncAnimationRenderDialogBaseSchemaContractTest",
+      "source": "libs/ui/tests/KisAsyncAnimationRenderDialogBaseSchemaContractTest.cpp",
+      "test": "KisAsyncAnimationRenderDialogBaseSchemaContractTest::framesSaveRegenerationAndMaskSignaturesRemainStable",
+      "behavior": "animation frame保存対話は表示管理器を伴う範囲再生成と、保存file mask・wildcard maskの照会境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAsyncAnimationFramesSaveDialog::regenerateRange(KisViewManager * viewManager)",
+        "method:KisAsyncAnimationFramesSaveDialog::savedFilesMask() const",
+        "method:KisAsyncAnimationFramesSaveDialog::savedFilesMaskWildcard() const"
+      ]
+    },
+    {
+      "target": "KisAsyncAnimationRenderDialogBaseSchemaContractTest",
+      "source": "libs/ui/tests/KisAsyncAnimationRenderDialogBaseSchemaContractTest.cpp",
+      "test": "KisAsyncAnimationRenderDialogBaseSchemaContractTest::framesSaveFileCollectionSignaturesRemainStable",
+      "behavior": "animation frame保存対話は保存した全file、固有file、固有frame番号を値として照会する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAsyncAnimationFramesSaveDialog::getUniqueFrames() const",
+        "method:KisAsyncAnimationFramesSaveDialog::savedFiles() const",
+        "method:KisAsyncAnimationFramesSaveDialog::savedUniqueFiles() const"
       ]
     }
   ]
