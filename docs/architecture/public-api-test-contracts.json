@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 1509
+    "expectedMissingApis": 1498
   },
   "contracts": [
     {
@@ -79166,6 +79166,44 @@
         "method:KisAnimationCachePopulator::forceImageModified()",
         "method:KisAnimationCachePopulator::idleWatcher() const",
         "method:KisAnimationCachePopulator::slotRequestRegeneration()"
+      ]
+    },
+    {
+      "target": "KisOpenPaneSchemaContractTest",
+      "source": "libs/application/tests/KisOpenPaneSchemaContractTest.cpp",
+      "test": "KisOpenPaneSchemaContractTest::templateTreeTypeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "template treeは資源pathと省略可能な即時読込指定から構築でき、所有するgroup集合とともに破棄される公開型境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisTemplateTree",
+        "method:KisTemplateTree::KisTemplateTree(const QString & templatesResourcePath,bool readTree=false)",
+        "method:KisTemplateTree::~KisTemplateTree()"
+      ]
+    },
+    {
+      "target": "KisOpenPaneSchemaContractTest",
+      "source": "libs/application/tests/KisOpenPaneSchemaContractTest.cpp",
+      "test": "KisOpenPaneSchemaContractTest::templateTreeResourcePathAndPersistenceSignaturesRemainStable",
+      "behavior": "template treeはtemplate資源pathを照会し、treeの読込と書出を要求する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTemplateTree::readTemplateTree()",
+        "method:KisTemplateTree::templatesResourcePath() const",
+        "method:KisTemplateTree::writeTemplateTree()"
+      ]
+    },
+    {
+      "target": "KisOpenPaneSchemaContractTest",
+      "source": "libs/application/tests/KisOpenPaneSchemaContractTest.cpp",
+      "test": "KisOpenPaneSchemaContractTest::templateTreeGroupMembershipSignaturesRemainStable",
+      "behavior": "template treeはgroupを追加・名前検索し、既定group・既定template・現在のgroup一覧を照会する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTemplateTree::add(KisTemplateGroup * g)",
+        "method:KisTemplateTree::defaultGroup() const",
+        "method:KisTemplateTree::defaultTemplate() const",
+        "method:KisTemplateTree::find(const QString & name) const",
+        "method:KisTemplateTree::groups() const"
       ]
     }
   ]

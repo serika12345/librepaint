@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 23:10 JST
+- 更新日時: 2026-09-09 23:17 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4765,6 +4765,12 @@
 - template tree境界は型・資源pathからの構築・破棄3、資源path照会・tree読込・tree書出3、group追加・名前検索・既定group・既定template・group一覧5の3枠へ固定する。型特性と厳密な関数pointerだけを使い、tree、template、group、filesystem、設定fileを実体化しない。
 - 開始headerは公開署名と値会員に必要な`QList`・`QString`・export定義を直接includeしており、既存`libs/application/tests/KisOpenPaneSchemaContractTest.cpp`からのheader強制includeと開始`libs/application/ui/workspace/KisTemplateTree.cpp`の厳格構文は診断0件である。削減可能な過剰依存がなく、構造変更を行わない。
 - 既存workspace契約は67行・3枠で、3枠追加後も220行・10枠以内に収まる。CMakeを変更せず4工程・8入力、command SHA-256 `c27f68be4d728befb5d4d9f56385d0d7c81a46fd59c79ce460c7dbcac7b5a73c`、input SHA-256 `407d31d9e77aae98ce053ac281f66354e2160a9b1191855640256e75a1d39dc5`を維持する。工程・入力増加、候補headerのAUTOMOC入力化、製品未解決記号が生じれば停止する。macOSの対象全体と追加3枠の20回反復、実装・試験sourceとheader強制includeの厳格構文、書式、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、実tree・template・group・filesystem・設定file、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
+
+### 第526便の公開API契約結果
+
+- template資源pathとgroup集合を所有する公開境界を軽量な型契約として固定した。開始`libs/application/ui/workspace/KisTemplateTree.h`から既存`libs/application/tests/KisOpenPaneSchemaContractTest.cpp`へ全11 API・3枠を追加し、tree型・資源pathからの構築・破棄3件、資源path照会・tree読込・tree書出3件、group追加・名前検索・既定group・既定template・group一覧5件を型特性と厳密な関数pointerで固定した。計画commitは`4fba8ccc8e`、契約commitは`b010602eb5`で、既存試験sourceは100行・6枠となった。公開header、製品source、CMakeは変更していない。
+- targetは4工程・8入力、command SHA-256 `c27f68be4d728befb5d4d9f56385d0d7c81a46fd59c79ce460c7dbcac7b5a73c`、input SHA-256 `407d31d9e77aae98ce053ac281f66354e2160a9b1191855640256e75a1d39dc5`を維持した。AUTOMOC `HEADERS=[]`、open pane・template treeの未解決製品記号0で、Qt Core・Testだけへ動的接続する。macOSで対象全体20回と追加3枠各20回、実装・試験sourceとheader強制includeの厳格構文、書式、連続二回の無作業再構築に成功した。実tree・template・group・filesystem・設定file、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 公開API検査の初回診断は期待値1,509に対して実測1,498で、新規11件と一致した。台帳を28,303件対応、1,498件未対応へ進め、`public-api-missing-g527.json`の生成成功後に旧`public-api-missing-g526.json` 410,955 bytesを削除した。主Ninja木6,032,276 KiB、共有compiler cache 983,080 KiB、最新報告408,311 bytes、SHA-256 `8332cecc7c3e541b47784fd8a86abec751ba55fa325bf34ac1af191f56767230`だけを再利用対象として保持する。compiler cacheは144,796 cache可能呼出し中120,594件、83.29%がhitしている。次の永続作業は第527便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
 
 ### 第239便の先行監査担当票
 
