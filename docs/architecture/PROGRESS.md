@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 19:51 JST
+- 更新日時: 2026-09-09 19:55 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4601,6 +4601,13 @@
 - 実行契約`kis_stabilized_events_sampler_test`は`kritatools`と`kritatestsdk`へ接続し1,274工程・2,563入力となるため、宣言契約の反復には使わない。直前に拡張した`libs/tools/tests/KisToolUtilsSchemaContractTest.cpp`は同じ安定化描画補助責務を所有する117行・8枠であり、2枠追加後も220行・10枠以内に収まる。CMake変更なしでQt Core・Testだけへ動的接続する4工程・8入力、command SHA-256 `cd923711429c497be465877c7f24073dc8aa43d336f9960b14eabe359010ad69`、input SHA-256 `2ff0d7eb83f82509485ecf22eadd9f8f5e23399dea0d6b1fef52242f83e65023`、AUTOMOC `HEADERS=[]`と製品未接続を維持する。入力hashの変更、新たな動的接続、製品記号が必要なら停止する。macOSの対象と軽量tools近傍、追加2枠の20回反復、実装・試験sourceとheader強制includeの厳格構文、書式、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、実補間・反復結果、重量実行target、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
 - 構造準備では開始`libs/tools/kis_stabilized_events_sampler.h`から描画情報の完全定義includeを除去して前方宣言を残し、完全定義を必要とする`libs/tools/kis_stabilized_events_sampler.cpp`へ`kis_paint_information.h`を直接移した。独立したheader強制includeと実装の厳格構文は診断0件である。計画commitは`6abcd20b16`、構造準備commitは`42fdbbac90`である。
 - 開始headerから既存`libs/tools/tests/KisToolUtilsSchemaContractTest.cpp`へ全10 API・2枠を追加し、標本器・iterator型と構築・寿命、標本列の消去・event追加・終端event追加・反復範囲取得を型特性、厳密な関数pointerと省略引数の構築可能性で固定した。公開headerと実装以外の製品source、CMakeは変更していない。契約commitは`0e6ce93bf3`で、既存sourceは145行・10枠となった。targetはQt Core・Testだけへ動的接続する4工程・8入力、command SHA-256 `cd923711429c497be465877c7f24073dc8aa43d336f9960b14eabe359010ad69`、input SHA-256 `2ff0d7eb83f82509485ecf22eadd9f8f5e23399dea0d6b1fef52242f83e65023`、AUTOMOC `HEADERS=[]`、標本器・描画情報・tool補助の未解決製品記号0を維持した。macOSで対象とtool schema近傍、対象全体と追加2枠を20回、実装・試験sourceと独立header強制includeの厳格構文、書式、連続二回の無作業再構築、公開API検査に成功した。1,274工程・2,563入力の重量実行targetは実行していない。台帳は28,105件対応、1,696件未対応となり、開始headerの残存は0件である。新`public-api-missing-g510.json`の生成成功後に旧`public-api-missing-g509.json` 463,315 bytesを削除した。主Ninja木6,026,908 KiB、共有compiler cache 983,068 KiB、最新報告460,741 bytes、SHA-256 `365f3b39c0f5fd7236a358abce0b3f7c83c809408b5e17d851975eddb9cd88a4`だけを再利用対象として保持する。compiler cacheは144,742 cache可能呼出し中120,580件、83.31%がhitしている。実補間・反復結果、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第510便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
+
+### 第510便の公開API契約計画
+
+- 第510便は資源databaseの種別一覧を列識別子、行数、列数と役割別dataとして公開する`libs/resources/KisResourceTypeModel.h`の残存全10 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g510.json`は公開header 1,549、公開API 29,801、対応済み28,105、未対応1,696、460,741 bytes、SHA-256 `365f3b39c0f5fd7236a358abce0b3f7c83c809408b5e17d851975eddb9cd88a4`である。対象10識別子の整列集合SHA-256は`db819cd744f9da43af33bc9fbb9a3bbc63d2b26219872cc95dff763e4d19c580`である。
+- 資源種別表模型境界は型・列enum・構築・破棄4、ID・資源種別・表示名の列序数3、行数・列数・役割別data取得3の3枠へ固定する。型特性、列挙値、厳密な関数pointerと未評価の省略引数呼出しだけを使い、模型、database接続、queryとdata取得本文を実体化しない。
+- 開始headerは公開基底`QAbstractTableModel`から既に得られる`QObject`を重複includeしているため、契約追加より先に除去する。開始`libs/resources/KisResourceTypeModel.cpp`とheader強制includeの厳格構文は診断0件であり、構造変更後も維持する。
+- 実行契約`TestResourceTypeModel`は資源・widget・databaseと`kritatestsdk`へ接続し813工程・1,654入力となるため、宣言契約の反復には使わない。既存`libs/resources/tests/KisAbstractResourceModelSchemaContractTest.cpp`は同じ資源模型責務を所有する98行・5枠であり、3枠追加後も220行・10枠以内に収まる。CMake変更なしでQt Core・Testだけへ動的接続する4工程・8入力、command SHA-256 `adb6574af8d20f5ff63a32f98d6861209e77a5c64876225e5e5280a64d751382`、input SHA-256 `57ddb30c6499c0e0b50b928f0f0c2039fe09086c7eae73cc86614cdd344eb1f4`、AUTOMOC `HEADERS=[]`と製品未接続を維持する。入力hashの変更、新たな動的接続、製品記号が必要なら停止する。macOSの対象と軽量資源近傍、追加3枠の20回反復、実装・試験sourceとheader強制includeの厳格構文、書式、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、実database query・data値、重量実行target、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
 
 ### 第239便の先行監査担当票
 
