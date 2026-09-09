@@ -16,7 +16,7 @@
     "publicApiFingerprint": "5f05b2aa8e5bef4343af1d55a3852331e51d4369fe135b099327b1a91b6b8c4c"
   },
   "migration": {
-    "expectedMissingApis": 2378
+    "expectedMissingApis": 2336
   },
   "contracts": [
     {
@@ -76113,6 +76113,129 @@
         "method:KisLayerStyleKnockoutBlower::knockoutSelectionLazy()",
         "method:KisLayerStyleKnockoutBlower::resetKnockoutSelection()",
         "method:KisLayerStyleKnockoutBlower::setKnockoutSelection(KisSelectionSP selection)"
+      ]
+    },
+    {
+      "target": "KisTileStorageSchemaContractTest",
+      "source": "libs/image/tiles3/tests/KisTileStorageSchemaContractTest.cpp",
+      "test": "KisTileStorageSchemaContractTest::poolerTypeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "tile data poolerはtile storeと任意のmemory上限から構築するQThread派生型として仮想破棄する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisTileDataPooler",
+        "method:KisTileDataPooler::KisTileDataPooler(KisTileDataStore * store,qint32 memoryLimit=-1)",
+        "method:KisTileDataPooler::~KisTileDataPooler()"
+      ]
+    },
+    {
+      "target": "KisTileStorageSchemaContractTest",
+      "source": "libs/image/tiles3/tests/KisTileStorageSchemaContractTest.cpp",
+      "test": "KisTileStorageSchemaContractTest::poolerControlAndMetricSignaturesRemainStable",
+      "behavior": "tile data poolerは処理起動・終了・設定再読込・統計強制更新と、pool・実memory・履歴memoryの三指標を公開する境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTileDataPooler::forceUpdateMemoryStats()",
+        "method:KisTileDataPooler::kick()",
+        "method:KisTileDataPooler::lastHistoricalMemoryMetric() const",
+        "method:KisTileDataPooler::lastPoolMemoryMetric() const",
+        "method:KisTileDataPooler::lastRealMemoryMetric() const",
+        "method:KisTileDataPooler::terminatePooler()",
+        "method:KisTileDataPooler::testingRereadConfig()"
+      ]
+    },
+    {
+      "target": "KisTileStorageSchemaContractTest",
+      "source": "libs/image/tiles3/tests/KisTileStorageSchemaContractTest.cpp",
+      "test": "KisTileStorageSchemaContractTest::swapperTypeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "tile data swapperはtile storeから構築するQThread派生型として仮想破棄する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisTileDataSwapper",
+        "method:KisTileDataSwapper::KisTileDataSwapper(KisTileDataStore * store)",
+        "method:KisTileDataSwapper::~KisTileDataSwapper()"
+      ]
+    },
+    {
+      "target": "KisTileStorageSchemaContractTest",
+      "source": "libs/image/tiles3/tests/KisTileStorageSchemaContractTest.cpp",
+      "test": "KisTileStorageSchemaContractTest::swapperControlSignaturesRemainStable",
+      "behavior": "tile data swapperは処理起動・終了、空きmemory検査、設定再読込を提供する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTileDataSwapper::checkFreeMemory()",
+        "method:KisTileDataSwapper::kick()",
+        "method:KisTileDataSwapper::terminateSwapper()",
+        "method:KisTileDataSwapper::testingRereadConfig()"
+      ]
+    },
+    {
+      "target": "KisTileStorageSchemaContractTest",
+      "source": "libs/image/tiles3/tests/KisTileStorageSchemaContractTest.cpp",
+      "test": "KisTileStorageSchemaContractTest::storeTypeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "swapped data storeは既定構築・破棄できるtile退避領域の公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisSwappedDataStore",
+        "method:KisSwappedDataStore::KisSwappedDataStore()",
+        "method:KisSwappedDataStore::~KisSwappedDataStore()"
+      ]
+    },
+    {
+      "target": "KisTileStorageSchemaContractTest",
+      "source": "libs/image/tiles3/tests/KisTileStorageSchemaContractTest.cpp",
+      "test": "KisTileStorageSchemaContractTest::storeTileTransferSignaturesRemainStable",
+      "behavior": "swapped data storeはtile dataの退避試行、復元、関連情報の忘却を提供する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSwappedDataStore::forgetTileData(KisTileData * td)",
+        "method:KisSwappedDataStore::swapInTileData(KisTileData * td)",
+        "method:KisSwappedDataStore::trySwapOutTileData(KisTileData * td)"
+      ]
+    },
+    {
+      "target": "KisTileStorageSchemaContractTest",
+      "source": "libs/image/tiles3/tests/KisTileStorageSchemaContractTest.cpp",
+      "test": "KisTileStorageSchemaContractTest::storeMetricAndDiagnosticSignaturesRemainStable",
+      "behavior": "swapped data storeは退避tile数、非圧縮換算memory使用量、診断統計出力を提供する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSwappedDataStore::debugStatistics()",
+        "method:KisSwappedDataStore::numTiles() const",
+        "method:KisSwappedDataStore::totalSwapMemoryUsed() const"
+      ]
+    },
+    {
+      "target": "KisTileStorageSchemaContractTest",
+      "source": "libs/image/tiles3/tests/KisTileStorageSchemaContractTest.cpp",
+      "test": "KisTileStorageSchemaContractTest::legacyCompressorSchemaRemainsStable",
+      "behavior": "legacy tile圧縮器は抽象圧縮器を具体化し、構築・仮想破棄、stream読書、buffer圧縮・展開・必要量の公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisLegacyTileCompressor",
+        "method:KisLegacyTileCompressor::KisLegacyTileCompressor()",
+        "method:KisLegacyTileCompressor::compressTileData(KisTileData * tileData,quint8 * buffer,qint32 bufferSize,qint32 & bytesWritten)",
+        "method:KisLegacyTileCompressor::decompressTileData(quint8 * buffer,qint32 bufferSize,KisTileData * tileData)",
+        "method:KisLegacyTileCompressor::readTile(QIODevice * stream,KisTiledDataManager * dm)",
+        "method:KisLegacyTileCompressor::tileDataBufferSize(KisTileData * tileData)",
+        "method:KisLegacyTileCompressor::writeTile(KisTileSP tile,KisPaintDeviceWriter & store)",
+        "method:KisLegacyTileCompressor::~KisLegacyTileCompressor()"
+      ]
+    },
+    {
+      "target": "KisTileStorageSchemaContractTest",
+      "source": "libs/image/tiles3/tests/KisTileStorageSchemaContractTest.cpp",
+      "test": "KisTileStorageSchemaContractTest::currentCompressorSchemaRemainsStable",
+      "behavior": "現行tile圧縮器は抽象圧縮器を具体化し、構築・仮想破棄、stream読書、buffer圧縮・展開・必要量の公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisTileCompressor2",
+        "method:KisTileCompressor2::KisTileCompressor2()",
+        "method:KisTileCompressor2::compressTileData(KisTileData * tileData,quint8 * buffer,qint32 bufferSize,qint32 & bytesWritten)",
+        "method:KisTileCompressor2::decompressTileData(quint8 * buffer,qint32 bufferSize,KisTileData * tileData)",
+        "method:KisTileCompressor2::readTile(QIODevice * io,KisTiledDataManager * dm)",
+        "method:KisTileCompressor2::tileDataBufferSize(KisTileData * tileData)",
+        "method:KisTileCompressor2::writeTile(KisTileSP tile,KisPaintDeviceWriter & store)",
+        "method:KisTileCompressor2::~KisTileCompressor2()"
       ]
     }
   ]

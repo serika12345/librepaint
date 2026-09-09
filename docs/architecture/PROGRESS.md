@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 09:51 JST
+- 更新日時: 2026-09-09 10:03 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4198,6 +4198,10 @@
 - tile data poolerは型・構築・仮想寿命3と、起動・終了・設定再読込・強制統計更新・三種memory指標7の2枠へ固定する。tile data swapperは型・構築・仮想寿命3と、起動・終了・空きmemory検査・設定再読込4の2枠へ固定する。swapped data storeは型・構築・寿命3、tileの退避・復元・忘却3、tile数・総非圧縮memory・診断3の3枠へ固定する。legacyと現行のtile圧縮器はそれぞれ型・構築・仮想寿命、stream読書、buffer圧縮・展開・必要量の8 APIを1枠へ固定する。thread、記憶領域、圧縮器本文は実体化せず、型特性と厳密な関数pointerだけを観測する。
 - poolerとswapperのQt thread・同期値、swapped storeのmutex・byte列値、二圧縮器の抽象基底は公開継承、値member、またはinline基底処理に必要である。重複する`QObject`経路や`QMutex`前方宣言を除いても具体compile閉包は縮まず、新たな依存移動先も生じないため、構造変更は行わない。既存の製品実行時試験は保持し、公開header schemaを独立させる。
 - 新規`libs/image/tiles3/tests/KisTileStorageSchemaContractTest.cpp`は230行・10枠未満とする。最寄りの`KisTileSchemaContractTest`は4工程・8入力、command SHA-256 `500556b6b030fab899dd75fa7f3f7d29e30b0efc8f673356ed2b0047aa36c656`、input SHA-256 `fa7ff0552c3b2a1acd7780abde3cca3df68733c3e815a29ce4debd1cdbfd56b4`である。新targetも製品objectを接続せず、Qt Core・Core5Compat・Testとimage・tiles3・globalの最小探索路だけを与えて4工程・8入力を予測する。停止線は5工程・11入力で、新たな製品接続、AUTOMOC製品header入力、thread・store・圧縮器本文の実体化が必要なら停止する。macOSの対象、最軽量近傍、対象の20回反復、試験sourceの厳格構文、書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、既存の製品tile試験、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
+- 開始5 headerの直接依存を再監査し、thread継承・同期値・byte列値・抽象圧縮基底に必要な完全定義だけが残ることを確認した。重複経路の除去はcompile閉包を縮めず具体所有先も変えないため、構造変更を加えていない。計画commitは`d73d39c3e0`である。
+- 開始`libs/image/tiles3/kis_tile_data_pooler.h`、`libs/image/tiles3/swap/kis_tile_data_swapper.h`、`libs/image/tiles3/swap/kis_swapped_data_store.h`、`libs/image/tiles3/swap/kis_legacy_tile_compressor.h`、`libs/image/tiles3/swap/kis_tile_compressor_2.h`から新規`libs/image/tiles3/tests/KisTileStorageSchemaContractTest.cpp`へ全42 API・9枠を追加した。二thread型の構築・仮想寿命・制御・memory指標、swap storeの寿命・tile転送・統計、二圧縮器の寿命・stream・buffer境界を型特性と厳密な関数pointerで固定した。初回は全9観測枠が成功し、`G470 tile storage API schema is not fixed yet`だけで1件失敗した。thread、store、圧縮器本文は実体化していない。契約commitは`3e16db06de`である。
+- 新規試験sourceは145行・9枠で、targetは4工程・8入力、command SHA-256 `bc164326834b36a2540de9d0db8ac2e86cf274cbe4f37e7698180e132a0a9681`、input SHA-256 `d685c4df82032451c79285327fb4a9b94081dc5be6bc2f2cbe6c7610e2114466`となった。AUTOMOC `HEADERS=[]`、製品未解決記号・製品動的接続は0である。macOSで対象、最軽量近傍`KisTileSchemaContractTest`、対象の20回反復、試験sourceの厳格構文と書式、連続二回の無作業再構築、公開API検査、`verify-quick`に成功した。既存の製品tile試験、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 台帳は27,468件対応、2,336件未対応となり、開始5 headerの残存は0件である。旧`public-api-missing-g470.json` 644,094 bytesを削除し、一時閉包一覧、追加作業tree・構築木は作成していない。主Ninja木6,007,652 KiB、共有compiler cache 982,848 KiB、最新`build/tdd-macos/public-api-missing-g471.json` 633,450 bytes、SHA-256 `0f0ba85bba1a5bd4c55af6fb8084c9ee2ca7ea11680ab7538ccbe23f95278069`だけを再利用対象として保持する。compiler cacheは144,623件中120,565件、83.37%がhitしている。次の永続作業は第471便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
 
 ### 第239便の先行監査担当票
 
