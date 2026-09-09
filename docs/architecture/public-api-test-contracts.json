@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 1772
+    "expectedMissingApis": 1758
   },
   "contracts": [
     {
@@ -78228,6 +78228,56 @@
         "method:KisBookmarkedConfigurationsModel::newConfiguration(KLocalizedString baseName,const KisSerializableConfigurationSP config)",
         "method:KisBookmarkedConfigurationsModel::saveConfiguration(const QString & name,const KisSerializableConfigurationSP config)",
         "method:KisBookmarkedConfigurationsModel::setData(const QModelIndex & index,const QVariant & value,int role=Qt::EditRole)"
+      ]
+    },
+    {
+      "target": "LayerBoxSchemaContractTest",
+      "source": "plugins/dockers/layerdocker/tests/LayerBoxSchemaContractTest.cpp",
+      "test": "LayerBoxSchemaContractTest::indexListAndLayerBoxLifetimeSchemaRemainStable",
+      "behavior": "レイヤードックは模型index一覧の値型と、dock部品・主画面observerとしての構築可能な公開型・仮想破棄契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:QModelIndexList",
+        "class:LayerBox",
+        "method:LayerBox::LayerBox()",
+        "method:LayerBox::~LayerBox()"
+      ]
+    },
+    {
+      "target": "LayerBoxSchemaContractTest",
+      "source": "plugins/dockers/layerdocker/tests/LayerBoxSchemaContractTest.cpp",
+      "test": "LayerBoxSchemaContractTest::observerAndCanvasSignaturesRemainStable",
+      "behavior": "レイヤードックはobserver名の照会と、view・canvasの接続および解除を受け取る公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:LayerBox::observerName()",
+        "method:LayerBox::setCanvas(KoCanvasBase * canvas)",
+        "method:LayerBox::setViewManager(KisViewManager * kisview)",
+        "method:LayerBox::unsetCanvas()"
+      ]
+    },
+    {
+      "target": "LayerBoxSchemaContractTest",
+      "source": "plugins/dockers/layerdocker/tests/LayerBoxSchemaContractTest.cpp",
+      "test": "LayerBoxSchemaContractTest::imageNotificationAndFactoryLifetimeSchemaRemainStable",
+      "behavior": "レイヤードックは画像変更通知を公開し、factoryはdock factory基底を持つ構築可能な公開型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:LayerBoxFactory",
+        "method:LayerBox::imageChanged()",
+        "method:LayerBoxFactory::LayerBoxFactory()"
+      ]
+    },
+    {
+      "target": "LayerBoxSchemaContractTest",
+      "source": "plugins/dockers/layerdocker/tests/LayerBoxSchemaContractTest.cpp",
+      "test": "LayerBoxSchemaContractTest::factoryIdentityCreationAndPlacementSchemaRemainStable",
+      "behavior": "レイヤードックfactoryは識別子、dock生成と既定配置を返す公開署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:LayerBoxFactory::createDockWidget()",
+        "method:LayerBoxFactory::defaultDockPosition() const",
+        "method:LayerBoxFactory::id() const"
       ]
     }
   ]

@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 18:45 JST
+- 更新日時: 2026-09-09 18:56 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4554,6 +4554,8 @@
 - layerドック境界はindex一覧別名・型・構築・破棄4、observer名・view・canvas設定と解除4、画像変更通知・factory型・構築3、factory識別子・生成・既定配置3の4枠へ固定する。型特性、公開別名と厳密な関数pointerだけを使い、ドック、view、canvas、node模型、操作とfactory生成本文を実体化しない。
 - 開始headerはpointer宣言だけに色空間、操作、view、layer filter、slider・check box・combo boxの完全定義を推移させ、未使用の診断・idle監視headerも含む。契約追加より先にこれらを除去して前方宣言へ置換し、実際にlayer filterを構築する`LayerBox.cpp`へ完全定義を直接追加する。`QDockWidget`と主画面observer・dock factory基底、値会員の信号圧縮器・接続保管は完全定義を維持する。実装の厳格構文は未構築の製品用`ui_WdgLayerBox.h`がないため開始時点で成立せず、製品targetを構築せずheader強制includeと新規契約の厳格構文で構造変更を検査する。
 - 新規`plugins/dockers/layerdocker/tests/LayerBoxSchemaContractTest.cpp`はplugin、libs root、application、UI、global、image、flakeのsource/generated探索路、Qt Widgetsのinterface探索路と必要なexport定義、Qt Core・Testだけで4工程・8入力を予測する。既存`TestNodeView`は製品静的libraryと`kritatestsdk`へ接続するため追記しない。追加前targetは`unknown target`である。停止線を5工程・11入力とし、Qt Gui・Widgetsの動的接続、製品OBJECT・static・shared、`kritatestsdk`、AUTOMOC製品header入力、layerドック製品記号が必要なら停止する。macOSの新対象と軽量UI近傍、追加4枠の20回反復、試験sourceとheader強制includeの厳格構文、書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、実layerドック・factory生成、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
+- 構造準備では開始`plugins/dockers/layerdocker/LayerBox.h`からpointer宣言だけに使っていた色空間、操作、view、layer filter、slider・check box・combo boxの完全定義と未使用の診断・idle監視headerを除去し、必要なQt型、色空間、操作、view、layer filter、node管理器、sliderを前方宣言した。完全定義を実際に必要とする`plugins/dockers/layerdocker/LayerBox.cpp`へ`kis_layer_filter_widget.h`を移した。header強制includeの厳格構文に成功した一方、実装の厳格構文は製品targetを構築していないため生成物`ui_WdgLayerBox.h`が存在せず、計画どおり対象外とした。計画commitは`025986bd00`、構造準備commitは`714d5f88ec`である。
+- 開始`plugins/dockers/layerdocker/LayerBox.h`から新規`plugins/dockers/layerdocker/tests/LayerBoxSchemaContractTest.cpp`へ全14 API・4枠を追加し、index一覧別名とdock寿命、observer・view・canvas接続、画像変更通知とfactory寿命、factory識別・生成・配置を型特性と厳密な関数pointerで固定した。契約commitは`20b3067293`である。新規sourceは64行・4枠、targetはQt Core・Testだけへ動的接続する4工程・8入力、command SHA-256 `e972cff2b646bfdf460e256e29b1658e830e293c159b60005c760f48d450fc38`、input SHA-256 `e262b6df651476128eee216839ed6de5e94d480fe53ab80c2faaf58f3f21c402`である。AUTOMOC `HEADERS=[]`、layerドック・主画面observer・dock factoryの未解決製品記号0で、Qt Gui・Widgetsと製品libraryを動的接続していない。macOSで新規対象と設定ブックマーク模型近傍、対象全体と各4枠を20回、試験sourceとheader強制includeの厳格構文、書式、連続二回の無作業再構築、公開API検査に成功した。台帳は28,043件対応、1,758件未対応となり、開始headerの残存は0件である。新`public-api-missing-g505.json`の生成成功後に旧`public-api-missing-g504.json` 480,204 bytesを削除した。主Ninja木6,025,188 KiB、共有compiler cache 983,132 KiB、最新報告477,421 bytes、SHA-256 `215de34eb55839f9ca04e046da42513dac4b7083a884e1f0aac8825483864971`だけを再利用対象として保持する。compiler cacheは144,732 cache可能呼出し中120,578件、83.31%がhitしている。実layerドック・factory生成、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第505便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
 
 ### 第239便の先行監査担当票
 
