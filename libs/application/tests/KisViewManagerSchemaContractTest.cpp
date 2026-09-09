@@ -4,6 +4,7 @@
  */
 
 #include <canvas/kis_statusbar.h>
+#include <ui/orchestration/kis_action_manager.h>
 #include <ui/workspace/KisViewManager.h>
 
 #include <QTest>
@@ -16,6 +17,8 @@ namespace
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisViewManager::method)), signature>)
 #define ASSERT_STATUS_BAR_SIGNATURE(method, signature)                                                                 \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisStatusBar::method)), signature>)
+#define ASSERT_ACTION_MANAGER_SIGNATURE(method, signature)                                                             \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KisActionManager::method)), signature>)
 } // namespace
 
 class KisViewManagerSchemaContractTest : public QObject
@@ -36,6 +39,11 @@ private Q_SLOTS:
     void statusBarProgressAndExtraWidgetSignaturesRemainStable();
     void statusBarImageSelectionAndProfileSignaturesRemainStable();
     void statusBarHelpUpdateAndNotificationSignaturesRemainStable();
+    void actionManagerTypeConstructionAndViewSchemaRemainStable();
+    void actionManagerActionLifecycleSignaturesRemainStable();
+    void actionManagerOperationRegistrationSignaturesRemainStable();
+    void actionManagerOperationExecutionSignaturesRemainStable();
+    void actionManagerStandardActionMenuAndUpdateSignaturesRemainStable();
 };
 
 void KisViewManagerSchemaContractTest::typeConstructionAndViewConnectionSchemaRemainStable()
@@ -173,8 +181,49 @@ void KisViewManagerSchemaContractTest::statusBarHelpUpdateAndNotificationSignatu
     ASSERT_STATUS_BAR_SIGNATURE(sigCancellationRequested, void (KisStatusBar::*)());
 }
 
+void KisViewManagerSchemaContractTest::actionManagerTypeConstructionAndViewSchemaRemainStable()
+{
+    static_assert(std::is_class_v<KisActionManager>);
+    static_assert(std::is_base_of_v<QObject, KisActionManager>);
+    static_assert(std::is_same_v<KisOperationConfigurationSP, KisPinnedSharedPtr<KisOperationConfiguration>>);
+    static_assert(std::is_constructible_v<KisActionManager, KisViewManager *, KisKActionCollection *>);
+    static_assert(std::has_virtual_destructor_v<KisActionManager>);
+    ASSERT_ACTION_MANAGER_SIGNATURE(setView, void (KisActionManager::*)(QPointer<KisView>));
+}
+
+void KisViewManagerSchemaContractTest::actionManagerActionLifecycleSignaturesRemainStable()
+{
+    ASSERT_ACTION_MANAGER_SIGNATURE(addAction, void (KisActionManager::*)(const QString &, KisAction *));
+    ASSERT_ACTION_MANAGER_SIGNATURE(takeAction, void (KisActionManager::*)(KisAction *));
+    ASSERT_ACTION_MANAGER_SIGNATURE(createAction, KisAction * (KisActionManager::*)(const QString &));
+    ASSERT_ACTION_MANAGER_SIGNATURE(actionByName, KisAction * (KisActionManager::*)(const QString &) const);
+}
+
+void KisViewManagerSchemaContractTest::actionManagerOperationRegistrationSignaturesRemainStable()
+{
+    ASSERT_ACTION_MANAGER_SIGNATURE(registerOperationUIFactory, void (KisActionManager::*)(KisOperationUIFactory *));
+    ASSERT_ACTION_MANAGER_SIGNATURE(registerOperation, void (KisActionManager::*)(KisOperation *));
+}
+
+void KisViewManagerSchemaContractTest::actionManagerOperationExecutionSignaturesRemainStable()
+{
+    ASSERT_ACTION_MANAGER_SIGNATURE(runOperation, void (KisActionManager::*)(const QString &));
+    ASSERT_ACTION_MANAGER_SIGNATURE(runOperationFromConfiguration,
+                                    void (KisActionManager::*)(KisOperationConfigurationSP));
+}
+
+void KisViewManagerSchemaContractTest::actionManagerStandardActionMenuAndUpdateSignaturesRemainStable()
+{
+    ASSERT_ACTION_MANAGER_SIGNATURE(
+        createStandardAction,
+        KisAction * (KisActionManager::*)(KStandardAction::StandardAction, const QObject *, const char *));
+    ASSERT_ACTION_MANAGER_SIGNATURE(safePopulateMenu, void (*)(QMenu *, const QString &, KisActionManager *));
+    ASSERT_ACTION_MANAGER_SIGNATURE(updateGUI, void (KisActionManager::*)());
+}
+
 #undef ASSERT_VIEW_MANAGER_SIGNATURE
 #undef ASSERT_STATUS_BAR_SIGNATURE
+#undef ASSERT_ACTION_MANAGER_SIGNATURE
 
 QTEST_GUILESS_MAIN(KisViewManagerSchemaContractTest)
 
