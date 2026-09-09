@@ -4,6 +4,7 @@
  */
 
 #include <animation/KisPlaybackEngine.h>
+#include <animation/KisPlaybackEngineMLT.h>
 #include <canvas/KisCanvasAnimationState.h>
 
 #include <QTest>
@@ -18,6 +19,8 @@ namespace
 
 #define ASSERT_CANVAS_ANIMATION_STATE_SIGNATURE(method, signature)                                                     \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisCanvasAnimationState::method)), signature>)
+#define ASSERT_MLT_PLAYBACK_ENGINE_SIGNATURE(method, signature)                                                        \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KisPlaybackEngineMLT::method)), signature>)
 
 class PlaybackEngineConstructorProbe final : public KisPlaybackEngine
 {
@@ -52,6 +55,11 @@ private Q_SLOTS:
     void canvasAnimationStateSpeedFrameAndAudioSetupSignaturesRemainStable();
     void canvasAnimationStatePlaybackNotificationSignaturesRemainStable();
     void canvasAnimationStateAudioAndCancellationNotificationSignaturesRemainStable();
+    void mltPlaybackModeSchemaRemainsStable();
+    void mltPlaybackEngineTypeLifetimeAndWaitingSchemaRemainStable();
+    void mltPlaybackEngineSeekAndMuteSignaturesRemainStable();
+    void mltPlaybackEngineCapabilityDropAndStatisticsSignaturesRemainStable();
+    void mltPlaybackEngineNotificationSignatureRemainsStable();
 };
 
 void KisPlaybackEngineSchemaContractTest::playbackEngineTypeLifetimeAndSeekPolicySchemaRemainsStable()
@@ -176,6 +184,48 @@ void KisPlaybackEngineSchemaContractTest::canvasAnimationStateAudioAndCancellati
     ASSERT_CANVAS_ANIMATION_STATE_SIGNATURE(sigAudioLevelChanged, void (KisCanvasAnimationState::*)(qreal));
     ASSERT_CANVAS_ANIMATION_STATE_SIGNATURE(sigCancelPlayback, void (KisCanvasAnimationState::*)());
 }
+
+void KisPlaybackEngineSchemaContractTest::mltPlaybackModeSchemaRemainsStable()
+{
+    static_assert(std::is_enum_v<PlaybackMode>);
+    static_assert(PLAYBACK_PUSH == 0);
+    static_assert(PLAYBACK_PULL == 1);
+}
+
+void KisPlaybackEngineSchemaContractTest::mltPlaybackEngineTypeLifetimeAndWaitingSchemaRemainStable()
+{
+    static_assert(std::is_class_v<KisPlaybackEngineMLT>);
+    static_assert(std::is_base_of_v<KisPlaybackEngine, KisPlaybackEngineMLT>);
+    static_assert(std::is_constructible_v<KisPlaybackEngineMLT, QObject *>);
+    static_assert(std::is_default_constructible_v<KisPlaybackEngineMLT>);
+    static_assert(std::has_virtual_destructor_v<KisPlaybackEngineMLT>);
+    ASSERT_MLT_PLAYBACK_ENGINE_SIGNATURE(frameWaitingInterface,
+                                         KisPlaybackEngineMLT::FrameWaitingInterface * (KisPlaybackEngineMLT::*)());
+}
+
+void KisPlaybackEngineSchemaContractTest::mltPlaybackEngineSeekAndMuteSignaturesRemainStable()
+{
+    ASSERT_MLT_PLAYBACK_ENGINE_SIGNATURE(seek, void (KisPlaybackEngineMLT::*)(int, SeekOptionFlags));
+    ASSERT_MLT_PLAYBACK_ENGINE_SIGNATURE(setMute, void (KisPlaybackEngineMLT::*)(bool));
+    ASSERT_MLT_PLAYBACK_ENGINE_SIGNATURE(isMute, bool (KisPlaybackEngineMLT::*)());
+    static_assert(std::is_same_v<decltype(std::declval<KisPlaybackEngineMLT &>().seek(0)), void>);
+}
+
+void KisPlaybackEngineSchemaContractTest::mltPlaybackEngineCapabilityDropAndStatisticsSignaturesRemainStable()
+{
+    ASSERT_MLT_PLAYBACK_ENGINE_SIGNATURE(supportsAudio, bool (KisPlaybackEngineMLT::*)());
+    ASSERT_MLT_PLAYBACK_ENGINE_SIGNATURE(supportsVariablePlaybackSpeed, bool (KisPlaybackEngineMLT::*)());
+    ASSERT_MLT_PLAYBACK_ENGINE_SIGNATURE(setDropFramesMode, void (KisPlaybackEngineMLT::*)(bool));
+    ASSERT_MLT_PLAYBACK_ENGINE_SIGNATURE(playbackStatistics,
+                                         KisPlaybackEngine::PlaybackStats (KisPlaybackEngineMLT::*)() const);
+}
+
+void KisPlaybackEngineSchemaContractTest::mltPlaybackEngineNotificationSignatureRemainsStable()
+{
+    ASSERT_MLT_PLAYBACK_ENGINE_SIGNATURE(sigChangeActiveCanvasFrame, void (KisPlaybackEngineMLT::*)(int));
+}
+
+#undef ASSERT_MLT_PLAYBACK_ENGINE_SIGNATURE
 
 QTEST_GUILESS_MAIN(KisPlaybackEngineSchemaContractTest)
 
