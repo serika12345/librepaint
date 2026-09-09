@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-09 20:47 JST
+- 更新日時: 2026-09-09 20:51 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4648,6 +4648,13 @@
 - 構造準備では開始`libs/ui/dialogs/KisColorSpaceConversionDialog.h`から公開宣言、基底、値会員、inline本文のいずれにも使わない`KoID.h`を除去した。開始`libs/ui/dialogs/KisColorSpaceConversionDialog.cpp`とheader強制includeの厳格構文は診断0件である。計画commitは`d679c2b256`、構造準備commitは`64b8acb40a`である。
 - 開始headerから新規`libs/ui/tests/KisColorSpaceConversionDialogSchemaContractTest.cpp`へ全14 API・5枠を追加し、生成UI型・構築、対話型・構築・寿命、公開UI頁・button群、初期色空間設定と変換値照会、選択・確定・色空間変更応答を型特性、公開会員型と厳密な関数pointerで固定した。契約commitは`d916658be8`で、新規sourceは73行・5枠である。初回限定構築は`KoDialog.h`が直接使う`kguiitem.h`の探索路不足で失敗し、対象固有のKF WidgetsAddons interface探索路だけを追加して解消した。
 - targetはUI生成を含む5工程・10入力、command SHA-256 `70b1ed6abc7f003c66f46d00f5739c70726b6cbe12b31f7bb455afcc2b520b8d`、input SHA-256 `3ed78f0c6fbf273c5f1e1fb96f25170d29993c3669be3c093b9f237aeb2d7db2`である。AUTOMOC `HEADERS=[]`、色空間変換対話・生成UI・共通対話・色空間の未解決製品記号0で、Qt Gui・Widgets・KFと製品libraryを動的接続していない。macOSで対象と自動level生成UI近傍、対象全体と各5枠を20回、実装・試験sourceとheader強制includeの厳格構文、書式、連続二回の無作業再構築、公開API検査に成功した。台帳は28,162件対応、1,639件未対応となり、開始headerの残存は0件である。新`public-api-missing-g515.json`の生成成功後に旧`public-api-missing-g514.json` 450,323 bytesを削除した。主Ninja木6,030,616 KiB、共有compiler cache 982,492 KiB、最新報告446,518 bytes、SHA-256 `91970e1c868ccdc9a1aa31a601492154f0b1c8911fd4d19fb81a5f3369620b64`だけを再利用対象として保持する。compiler cacheは144,754 cache可能呼出し中120,582件、83.30%がhitしている。実対話画面・色空間・画像・変換、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。次の永続作業は第515便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
+
+### 第515便の公開API契約計画
+
+- 第515便は画像処理待機中の保存対話、結果分類、表示方針と待機制御を所有する`libs/ui/dialogs/kis_delayed_save_dialog.h`の残存全13 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g515.json`は公開header 1,549、公開API 29,801、対応済み28,162、未対応1,639、446,518 bytes、SHA-256 `91970e1c868ccdc9a1aa31a601492154f0b1c8911fd4d19fb81a5f3369620b64`である。対象13識別子の整列集合SHA-256は`5955c996eff10c4ed662c28d1f5271b519ff755542e28ae1cd75668cb174d179`である。
+- 遅延保存対話境界は対話型・構築・破棄3、結果enumと拒否・承認・無視4、表示方針enumと保存・一般・強制4、待機feedback登録と画像待機2の4枠へ固定する。型特性、列挙値、厳密な関数pointerと未評価の省略親引数呼出しだけを使い、対話画面、画像、timer、待機feedbackとevent loopを実体化しない。
+- 開始headerは値所有する`QScopedPointer`、公開基底`KoDialog`、画像共有pointerを定義する`kis_types.h`を直接取り込み、生成UI型だけを前方宣言している。開始`libs/ui/dialogs/kis_delayed_save_dialog.cpp`とheader強制includeの厳格構文は診断0件であり、除去できる推移依存もないため製品構造を変更しない。
+- 新規`libs/ui/tests/KisDelayedSaveDialogSchemaContractTest.cpp`をUI・image・global・widgetsのsource/generated探索路、Qt Gui・Widgets、KF ConfigCore・WidgetsAddonsのinterface探索路、3 export定義、Qt Core・Testとheader-only Boostだけで構成する。生成UIを含まない近傍と同じ4工程・8入力を予測し、追加前targetは`unknown target`である。停止線を5工程・11入力とし、Qt Gui・Widgets・KFの動的接続、製品OBJECT・shared、`kritatestsdk`、遅延保存対話・共通対話・画像の製品記号が必要なら停止する。macOSの対象と軽量対話近傍、追加4枠の20回反復、実装・試験sourceとheader強制includeの厳格構文、書式、二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、実対話画面・画像・timer・待機feedback、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
 
 ### 第239便の先行監査担当票
 
