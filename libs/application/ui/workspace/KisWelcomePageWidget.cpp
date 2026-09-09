@@ -8,6 +8,9 @@
 
 #include "application/ui/workspace/KisWelcomePageWidget.h"
 #include "KisRecentDocumentsModelWrapper.h"
+#include <QDragEnterEvent>
+#include <QDragMoveEvent>
+#include <QDropEvent>
 #include <QMimeData>
 #include <QTemporaryFile>
 

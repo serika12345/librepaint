@@ -10,6 +10,7 @@
 
 #include <application/ui/orchestration/kis_action.h>
 #include <application/ui/workspace/KisMainWindow.h>
+#include <application/ui/workspace/KisView.h>
 #include <application/ui/orchestration/KisPart.h>
 #include <document/KisDocument.h>
 #include <application/ui/workspace/KisViewManager.h>
@@ -135,6 +136,5 @@ QAction *Window::createAction(const QString &id, const QString &text, const QStr
     action->setProperty("menulocation", menuLocation);
     return action;
 }
-
 
 

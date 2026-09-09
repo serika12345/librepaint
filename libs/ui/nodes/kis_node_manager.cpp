@@ -11,6 +11,7 @@
 #include <QApplication>
 #include <QMessageBox>
 #include <QStandardPaths>
+#include <krita_container_utils.h>
 #include <kactioncollection.h>
 #include <kundo2magicstring.h>
 

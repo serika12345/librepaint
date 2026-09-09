@@ -11,8 +11,11 @@
 
 #include "application/ui/orchestration/KisPart.h"
 #include "application/ui/orchestration/kis_action.h"
+#include "kis_action_registry.h"
+#include "application/ui/workspace/KisView.h"
 #include "application/ui/workspace/KisViewManager.h"
 #include "selection/kis_selection_manager.h"
+#include "operations/kis_operation_configuration.h"
 #include "operations/kis_operation_ui_factory.h"
 #include "operations/kis_operation_registry.h"
 #include "operations/kis_operation.h"

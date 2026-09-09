@@ -34,6 +34,7 @@
 #include <QPainterPath>
 #include <QWidget>
 #include <kconfiggroup.h>
+#include <KSharedConfig>
 #include <klocalizedstring.h>
 
 namespace KisSelectionActionsPanelSource

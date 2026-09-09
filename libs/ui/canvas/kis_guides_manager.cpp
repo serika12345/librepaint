@@ -6,7 +6,9 @@
 
 #include "kis_guides_manager.h"
 
+#include <QEnterEvent>
 #include <QMenu>
+#include <QMouseEvent>
 #include <QGuiApplication>
 #include "kis_guides_decoration.h"
 #include <KoRuler.h>

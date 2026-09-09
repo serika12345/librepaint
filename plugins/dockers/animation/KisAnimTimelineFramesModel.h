@@ -20,6 +20,7 @@ class KisNodeDummy;
 class KisDummiesFacadeBase;
 class KisCanvasAnimationState;
 class KisNodeDisplayModeAdapter;
+class KisRasterKeyframeChannel;
 
 
 

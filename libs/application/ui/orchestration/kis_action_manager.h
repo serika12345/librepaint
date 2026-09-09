@@ -10,18 +10,26 @@
 
 #include <kritaui_export.h>
 
+#include <QObject>
 #include <QPointer>
 
-#include "application/ui/workspace/KisView.h"
-
 #include "kstandardaction.h"
-#include "kis_action_registry.h"
-#include "operations/kis_operation_configuration.h"
 
+template<typename T>
+class KisPinnedSharedPtr;
+
+class QAction;
+class QMenu;
+class QString;
+class KisKActionCollection;
+class KisView;
 class KisViewManager;
 class KisAction;
+class KisOperationConfiguration;
 class KisOperationUIFactory;
 class KisOperation;
+
+typedef KisPinnedSharedPtr<KisOperationConfiguration> KisOperationConfigurationSP;
 
 /**
  * @brief A KisActionManager class keeps track of KisActions.

@@ -41,6 +41,7 @@
 #include <QRegularExpression>
 
 #include <kactioncollection.h>
+#include <KSharedConfig>
 #include <klocalizedstring.h>
 #include <KoResourcePaths.h>
 #include <kselectaction.h>
