@@ -5,6 +5,8 @@
 
 #include <kis_tool_utils.h>
 
+#include <KisStabilizerDelayedPaintHelper.h>
+
 #include <QTest>
 
 #include <type_traits>
@@ -19,6 +21,10 @@ private Q_SLOTS:
     void colorSamplerBooleanValueSchemaRemainsStable();
     void colorSamplerNumericAndPersistenceSignaturesRemainStable();
     void toolUtilityFunctionSignaturesRemainStable();
+    void stabilizerHelperTypeConstructionAndLifetimeSchemaRemainStable();
+    void stabilizerHelperStateQuerySignaturesRemainStable();
+    void stabilizerHelperCallbackSignaturesRemainStable();
+    void stabilizerHelperQueueLifecycleSignaturesRemainStable();
 };
 
 void KisToolUtilsSchemaContractTest::colorSamplerTypeAndConstructionSchemaRemainStable()
@@ -64,6 +70,46 @@ void KisToolUtilsSchemaContractTest::toolUtilityFunctionSignaturesRemainStable()
     static_assert(
         std::is_same_v<decltype(static_cast<SetCursorPosition>(&KisToolUtils::setCursorPos)), SetCursorPosition>);
     static_assert(std::is_same_v<decltype(KisToolUtils::nodeEditableMessage(std::declval<KisNodeSP>())), QString>);
+}
+
+void KisToolUtilsSchemaContractTest::stabilizerHelperTypeConstructionAndLifetimeSchemaRemainStable()
+{
+    using Helper = KisStabilizerDelayedPaintHelper;
+
+    static_assert(std::is_class_v<Helper>);
+    static_assert(std::is_base_of_v<QObject, Helper>);
+    static_assert(std::is_default_constructible_v<Helper>);
+    static_assert(std::has_virtual_destructor_v<Helper>);
+}
+
+void KisToolUtilsSchemaContractTest::stabilizerHelperStateQuerySignaturesRemainStable()
+{
+    using Helper = KisStabilizerDelayedPaintHelper;
+
+    static_assert(std::is_same_v<decltype(&Helper::running), bool (Helper::*)() const>);
+    static_assert(std::is_same_v<decltype(&Helper::hasLastPaintInformation), bool (Helper::*)() const>);
+    static_assert(std::is_same_v<decltype(&Helper::lastPaintInformation), KisPaintInformation (Helper::*)() const>);
+}
+
+void KisToolUtilsSchemaContractTest::stabilizerHelperCallbackSignaturesRemainStable()
+{
+    using Helper = KisStabilizerDelayedPaintHelper;
+    using PaintLineCallback = std::function<void(const KisPaintInformation &, const KisPaintInformation &)>;
+    using OutlineCallback = std::function<void()>;
+
+    static_assert(std::is_same_v<decltype(&Helper::setPaintLineCallback), void (Helper::*)(PaintLineCallback)>);
+    static_assert(std::is_same_v<decltype(&Helper::setUpdateOutlineCallback), void (Helper::*)(OutlineCallback)>);
+}
+
+void KisToolUtilsSchemaContractTest::stabilizerHelperQueueLifecycleSignaturesRemainStable()
+{
+    using Helper = KisStabilizerDelayedPaintHelper;
+
+    static_assert(std::is_same_v<decltype(&Helper::start), void (Helper::*)(const KisPaintInformation &)>);
+    static_assert(std::is_same_v<decltype(&Helper::update), void (Helper::*)(const QVector<KisPaintInformation> &)>);
+    static_assert(std::is_same_v<decltype(&Helper::paintSome), void (Helper::*)()>);
+    static_assert(std::is_same_v<decltype(&Helper::end), void (Helper::*)()>);
+    static_assert(std::is_same_v<decltype(&Helper::cancel), void (Helper::*)()>);
 }
 
 QTEST_GUILESS_MAIN(KisToolUtilsSchemaContractTest)

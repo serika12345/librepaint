@@ -112,8 +112,10 @@ target_include_directories(KisToolUtilsSchemaContractTest PRIVATE
     ${CMAKE_BINARY_DIR}/libs/tools
     ${CMAKE_SOURCE_DIR}/libs/image
     ${CMAKE_BINARY_DIR}/libs/image
+    ${CMAKE_SOURCE_DIR}/libs/image/brushengine
     ${CMAKE_SOURCE_DIR}/libs/global
     ${CMAKE_BINARY_DIR}/libs/global
+    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Gui,INTERFACE_INCLUDE_DIRECTORIES>
 )
 target_compile_definitions(KisToolUtilsSchemaContractTest PRIVATE
     kritaglobal_EXPORTS
