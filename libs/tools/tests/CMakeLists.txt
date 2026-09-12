@@ -102,6 +102,23 @@ target_compile_definitions(KisToolSchemaContractTest PRIVATE
 )
 
 kis_add_test(
+    KisSelectionToolFactoryBaseSchemaContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KisSelectionToolFactoryBaseSchemaContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/flake
+    ${CMAKE_BINARY_DIR}/libs/flake
+)
+target_compile_definitions(KisSelectionToolFactoryBaseSchemaContractTest PRIVATE
+    kritaflake_EXPORTS
+    kritatools_EXPORTS
+)
+
+kis_add_test(
     KisToolUtilsSchemaContractTest.cpp
     LINK_LIBRARIES
         Qt${QT_MAJOR_VERSION}::Core

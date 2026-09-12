@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 1216
+    "expectedMissingApis": 1210
   },
   "contracts": [
     {
@@ -80116,6 +80116,30 @@
       "apis": [
         "method:KisSimpleModifyTransformMaskCommand::redo()",
         "method:KisSimpleModifyTransformMaskCommand::undo()"
+      ]
+    },
+    {
+      "target": "KisSelectionToolFactoryBaseSchemaContractTest",
+      "source": "libs/tools/tests/KisSelectionToolFactoryBaseSchemaContractTest.cpp",
+      "test": "KisSelectionToolFactoryBaseSchemaContractTest::selectionToolFactoryTypeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "selection tool factory基底はKisToolPaintFactoryBaseの公開派生classとして文字列IDで構築し、仮想破棄する境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisSelectionToolFactoryBase",
+        "method:KisSelectionToolFactoryBase::KisSelectionToolFactoryBase(const QString & id)",
+        "method:KisSelectionToolFactoryBase::~KisSelectionToolFactoryBase()"
+      ]
+    },
+    {
+      "target": "KisSelectionToolFactoryBaseSchemaContractTest",
+      "source": "libs/tools/tests/KisSelectionToolFactoryBaseSchemaContractTest.cpp",
+      "test": "KisSelectionToolFactoryBaseSchemaContractTest::polyLineToolFactoryTypeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "polyline tool factory基底はKisToolPaintFactoryBaseの公開派生classとして文字列IDで構築し、仮想破棄する境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisToolPolyLineFactoryBase",
+        "method:KisToolPolyLineFactoryBase::KisToolPolyLineFactoryBase(const QString & id)",
+        "method:KisToolPolyLineFactoryBase::~KisToolPolyLineFactoryBase()"
       ]
     }
   ]
