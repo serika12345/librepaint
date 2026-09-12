@@ -79774,6 +79774,29 @@
       ]
     },
     {
+      "target": "KisCursorOverrideHijackerSchemaContractTest",
+      "source": "libs/ui/tests/KisCursorOverrideHijackerSchemaContractTest.cpp",
+      "test": "KisCursorOverrideHijackerSchemaContractTest::canvasToolUtilityFunctionSchemaRemainsStable",
+      "behavior": "canvas操作補助はcross-layer形状照会、形状選択、brush size表示の正確な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisToolUtils::selectShapeCrossLayer(KoCanvasBase * canvas,const QPointF & point,const QString & shapeType=QString (),bool skipCurrentShapes=true)",
+        "function:KisToolUtils::shapeHoverInfoCrossLayer(KoCanvasBase * canvas,const QPointF & point,QString & shapeType,bool * isHorizontal=nullptr,bool skipCurrentShapes=true)",
+        "function:KisToolUtils::showBrushSizeFloatingMessage(KoCanvasBase * canvas,qreal size)"
+      ]
+    },
+    {
+      "target": "KisCursorOverrideHijackerSchemaContractTest",
+      "source": "libs/ui/tests/KisCursorOverrideHijackerSchemaContractTest.cpp",
+      "test": "KisCursorOverrideHijackerSchemaContractTest::macOSMouseCoalescingFunctionSchemaRemainsStable",
+      "behavior": "macOS mouse coalescingは状態照会と有効状態設定の正確な公開C関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:isMouseCoalescingEnabled()",
+        "function:setMouseCoalescingEnabled(bool enabled)"
+      ]
+    },
+    {
       "target": "KisMultiBoolFilterWidgetSchemaContractTest",
       "source": "libs/ui/tests/KisMultiBoolFilterWidgetSchemaContractTest.cpp",
       "test": "KisMultiBoolFilterWidgetSchemaContractTest::nodeDisplayModeTypeConstructionAndAccessSignaturesRemainStable",

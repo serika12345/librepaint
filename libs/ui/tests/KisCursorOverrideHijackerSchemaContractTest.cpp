@@ -10,7 +10,9 @@
 #include "application/ui/orchestration/KisQtWidgetsTweaker.h"
 #include "application/ui/workspace/KisAndroidSplash.h"
 #include "events/kis_cursor_override_hijacker.h"
+#include "platform/osx.h"
 #include "theme/KisUiFont.h"
+#include "tool/kis_tool_canvas_utils.h"
 
 #include <QTest>
 
@@ -30,6 +32,8 @@ private Q_SLOTS:
     void uiFontFunctionSchemaRemainsStable();
     void layerSelectionActionTypeAndSelectionSignatureSchemaRemainStable();
     void applicationInputActionsFunctionSchemaRemainsStable();
+    void canvasToolUtilityFunctionSchemaRemainsStable();
+    void macOSMouseCoalescingFunctionSchemaRemainsStable();
 };
 
 void KisCursorOverrideHijackerSchemaContractTest::cursorOverrideHijackerTypeConstructionAndLifetimeSchemaRemainStable()
@@ -119,6 +123,22 @@ void KisCursorOverrideHijackerSchemaContractTest::applicationInputActionsFunctio
 {
     static_assert(std::is_same_v<decltype(&createApplicationInputActions), QList<KisAbstractInputAction *> (*)()>);
     static_assert(std::is_same_v<decltype(&applicationInputCanvas), KisCanvas2 *(*)(const KisInputManager *)>);
+}
+
+void KisCursorOverrideHijackerSchemaContractTest::canvasToolUtilityFunctionSchemaRemainsStable()
+{
+    static_assert(std::is_same_v<decltype(&KisToolUtils::shapeHoverInfoCrossLayer),
+                                 QPainterPath (*)(KoCanvasBase *, const QPointF &, QString &, bool *, bool)>);
+    static_assert(std::is_same_v<decltype(&KisToolUtils::selectShapeCrossLayer),
+                                 bool (*)(KoCanvasBase *, const QPointF &, const QString &, bool)>);
+    static_assert(
+        std::is_same_v<decltype(&KisToolUtils::showBrushSizeFloatingMessage), void (*)(KoCanvasBase *, qreal)>);
+}
+
+void KisCursorOverrideHijackerSchemaContractTest::macOSMouseCoalescingFunctionSchemaRemainsStable()
+{
+    static_assert(std::is_same_v<decltype(&isMouseCoalescingEnabled), bool (*)()>);
+    static_assert(std::is_same_v<decltype(&setMouseCoalescingEnabled), void (*)(bool)>);
 }
 
 QTEST_APPLESS_MAIN(KisCursorOverrideHijackerSchemaContractTest)
