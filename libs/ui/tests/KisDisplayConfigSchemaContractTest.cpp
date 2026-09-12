@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include <canvas/KisCanvasSurfaceColorSpaceManager.h>
 #include <canvas/KisDisplayConfig.h>
 #include <canvas/kis_display_color_converter.h>
 
@@ -15,6 +16,10 @@ namespace
 {
 #define ASSERT_DISPLAY_COLOR_CONVERTER_SIGNATURE(method, signature)                                                    \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisDisplayColorConverter::method)), signature>)
+
+#define ASSERT_SURFACE_COLOR_MANAGER_SIGNATURE(method, signature)                                                      \
+    static_assert(                                                                                                     \
+        std::is_same_v<decltype(static_cast<signature>(&KisCanvasSurfaceColorSpaceManager::method)), signature>)
 } // namespace
 
 class KisDisplayConfigSchemaContractTest : public QObject
@@ -32,6 +37,10 @@ private Q_SLOTS:
     void displayColorConverterColorAndPaletteSignaturesRemainStable();
     void displayColorConverterDeviceImageAndNotificationSignaturesRemainStable();
     void displayColorConverterComponentSignaturesRemainStable();
+    void surfaceColorManagerTypeConstructionAndLifetimeSchemaRemainStable();
+    void surfaceColorManagerConfigurationSchemaRemainStable();
+    void surfaceColorManagerReportSchemaRemainStable();
+    void surfaceColorManagerNotificationSchemaRemainStable();
 };
 
 void KisDisplayConfigSchemaContractTest::displayConfigTypeAndConstructionSchemaRemainsStable()
@@ -189,7 +198,54 @@ void KisDisplayConfigSchemaContractTest::displayColorConverterComponentSignature
         void (Converter::*)(const KoColor &, qreal *, qreal *, qreal *, qreal, qreal, qreal, qreal));
 }
 
+void KisDisplayConfigSchemaContractTest::surfaceColorManagerTypeConstructionAndLifetimeSchemaRemainStable()
+{
+    using Manager = KisCanvasSurfaceColorSpaceManager;
+
+    static_assert(std::is_class_v<Manager>);
+    static_assert(std::is_base_of_v<QObject, Manager>);
+    static_assert(std::is_constructible_v<Manager,
+                                          KisSurfaceColorManagerInterface *,
+                                          KisConfig::CanvasSurfaceMode,
+                                          const KisDisplayConfig::Options &,
+                                          QObject *>);
+    static_assert(std::has_virtual_destructor_v<Manager>);
+}
+
+void KisDisplayConfigSchemaContractTest::surfaceColorManagerConfigurationSchemaRemainStable()
+{
+    using Manager = KisCanvasSurfaceColorSpaceManager;
+
+    ASSERT_SURFACE_COLOR_MANAGER_SIGNATURE(
+        setDisplayConfigOptions,
+        void (Manager::*)(KisConfig::CanvasSurfaceMode, const KisDisplayConfig::Options &));
+    ASSERT_SURFACE_COLOR_MANAGER_SIGNATURE(setDisplayConfigOptions,
+                                           void (Manager::*)(const KisDisplayConfig::Options &));
+    ASSERT_SURFACE_COLOR_MANAGER_SIGNATURE(isReady, bool (Manager::*)() const);
+    ASSERT_SURFACE_COLOR_MANAGER_SIGNATURE(displayConfig, KisDisplayConfig (Manager::*)() const);
+}
+
+void KisDisplayConfigSchemaContractTest::surfaceColorManagerReportSchemaRemainStable()
+{
+    using Manager = KisCanvasSurfaceColorSpaceManager;
+    using SurfaceDescription = KisSurfaceColorimetry::SurfaceDescription;
+
+    ASSERT_SURFACE_COLOR_MANAGER_SIGNATURE(colorManagementReport, QString (Manager::*)() const);
+    ASSERT_SURFACE_COLOR_MANAGER_SIGNATURE(osPreferredColorSpaceReport, QString (Manager::*)() const);
+    ASSERT_SURFACE_COLOR_MANAGER_SIGNATURE(currentSurfaceDescription,
+                                           std::optional<SurfaceDescription> (Manager::*)() const);
+    ASSERT_SURFACE_COLOR_MANAGER_SIGNATURE(lastErrorString, QString (Manager::*)() const);
+}
+
+void KisDisplayConfigSchemaContractTest::surfaceColorManagerNotificationSchemaRemainStable()
+{
+    using Manager = KisCanvasSurfaceColorSpaceManager;
+
+    ASSERT_SURFACE_COLOR_MANAGER_SIGNATURE(sigDisplayConfigChanged, void (Manager::*)(const KisDisplayConfig &));
+}
+
 #undef ASSERT_DISPLAY_COLOR_CONVERTER_SIGNATURE
+#undef ASSERT_SURFACE_COLOR_MANAGER_SIGNATURE
 
 QTEST_GUILESS_MAIN(KisDisplayConfigSchemaContractTest)
 

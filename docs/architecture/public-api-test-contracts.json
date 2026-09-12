@@ -80651,6 +80651,54 @@
         "method:KisDlgCustomTabletResolution::calcNativeScreenRect()",
         "method:KisDlgCustomTabletResolution::getTabletMode(QRect * customRect)"
       ]
+    },
+    {
+      "target": "KisDisplayConfigSchemaContractTest",
+      "source": "libs/ui/tests/KisDisplayConfigSchemaContractTest.cpp",
+      "test": "KisDisplayConfigSchemaContractTest::surfaceColorManagerTypeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "canvas surface color managerはQObjectの公開派生型としてsurface color interface、表示設定、親QObjectで構築し、仮想破棄する境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisCanvasSurfaceColorSpaceManager",
+        "method:KisCanvasSurfaceColorSpaceManager::KisCanvasSurfaceColorSpaceManager(KisSurfaceColorManagerInterface * interface,const KisConfig::CanvasSurfaceMode surfaceMode,const KisDisplayConfig::Options & options,QObject * parent=nullptr)",
+        "method:KisCanvasSurfaceColorSpaceManager::~KisCanvasSurfaceColorSpaceManager()"
+      ]
+    },
+    {
+      "target": "KisDisplayConfigSchemaContractTest",
+      "source": "libs/ui/tests/KisDisplayConfigSchemaContractTest.cpp",
+      "test": "KisDisplayConfigSchemaContractTest::surfaceColorManagerConfigurationSchemaRemainStable",
+      "behavior": "canvas surface color managerはmode付きまたは表示設定だけで構成を更新し、ready状態と現在の表示設定を照会する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCanvasSurfaceColorSpaceManager::displayConfig() const",
+        "method:KisCanvasSurfaceColorSpaceManager::isReady() const",
+        "method:KisCanvasSurfaceColorSpaceManager::setDisplayConfigOptions(const KisConfig::CanvasSurfaceMode surfaceMode,const KisDisplayConfig::Options & options)",
+        "method:KisCanvasSurfaceColorSpaceManager::setDisplayConfigOptions(const KisDisplayConfig::Options & options)"
+      ]
+    },
+    {
+      "target": "KisDisplayConfigSchemaContractTest",
+      "source": "libs/ui/tests/KisDisplayConfigSchemaContractTest.cpp",
+      "test": "KisDisplayConfigSchemaContractTest::surfaceColorManagerReportSchemaRemainStable",
+      "behavior": "canvas surface color managerはcolor管理、OS優先色空間、現在surface description、直近errorを照会する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCanvasSurfaceColorSpaceManager::colorManagementReport() const",
+        "method:KisCanvasSurfaceColorSpaceManager::currentSurfaceDescription() const",
+        "method:KisCanvasSurfaceColorSpaceManager::lastErrorString() const",
+        "method:KisCanvasSurfaceColorSpaceManager::osPreferredColorSpaceReport() const"
+      ]
+    },
+    {
+      "target": "KisDisplayConfigSchemaContractTest",
+      "source": "libs/ui/tests/KisDisplayConfigSchemaContractTest.cpp",
+      "test": "KisDisplayConfigSchemaContractTest::surfaceColorManagerNotificationSchemaRemainStable",
+      "behavior": "canvas surface color managerは表示設定変更を通知する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCanvasSurfaceColorSpaceManager::sigDisplayConfigChanged(const KisDisplayConfig & config)"
+      ]
     }
   ]
 }
