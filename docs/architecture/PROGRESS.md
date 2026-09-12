@@ -2,14 +2,14 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-13 07:31 JST
+- 更新日時: 2026-09-13 07:37 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
-- 完了: 第602便でundo action更新管理器の5 APIを公開契約へ追加し、対応済みを28,905件へ進めた。
-- 次の作業: 第604便として未対応報告から、既存の限定試験に追加できる公開headerを選び、実装前に構築閉包を監査する。
+- 完了: 第604便で広い既存書き出し検査targetを棄却し、第605便でqPainter投影生成器の2 APIを限定canvas試験へ追加する準備を完了した。
+- 次の作業: 第605便として投影生成器の公開形式を契約試験へ追加し、対象限定検証後に公開API基準を縮小する。
 - 検証: macOSの対象・近傍・反復・無作業再構築、公開API検査、`verify-quick`に成功した。製品target、全体build・`verify`、Linux、Nix再評価は本便の対象外である。
 
 ### 第202便の先行監査担当票
@@ -5752,6 +5752,17 @@
 
 - `libs/ui/actions/KisNoParameterActionFactory.h`は`kis_operation.h`を通じて画像設定、KUndo2、I18n、Eigenへ依存する。`libs/image`、`libs/painting/undo`、同binary directory、KF I18n interface探索路を順に追加して試験targetだけで再構成したところ、順に`kundo2magicstring.h`、`klocalizedstring.h`、`kritapaintingundo_export.h`、`Eigen/Sparse`が必要になった。形式だけを観測する4 APIのためにこの連鎖を常設することは対象の責務と構築閉包を不必要に広げる。
 - 候補の試験・台帳・探索路変更はすべて未コミットで撤回した。復帰後の`KisCursorOverrideHijackerSchemaContractTest`は4工程・8入力、command SHA-256 `43e833cfe02de17e952fdb1152cc7193fd661d8d7dca777d1e69749202499a2a`、input SHA-256 `58d9882064254f622d7496f1d8e232987c51dd89595a3d9101b9bbaef2ddb583`で対象試験に成功した。未対応基準896件と最新`public-api-missing-g604.json`は変更していない。次の永続作業は第604便で直接依存が限定される候補を選び直すことである。
+
+### 第604便の構築閉包監査結果
+
+- 開始`libs/impex/KisExportCheckRegistry.h`の残存1 APIは、既存`libs/impex/tests/kis_export_checks_test.cpp`が局所登録器を生成して破棄するため、既存試験への対応付け候補として調査した。しかし対象`kis_export_checks_test`の変更なし閉包は1,210工程・2,443入力、command SHA-256 `02fdd08560029bf5b8fdfe61d55b03a6db973e387b182dcaac2c93c0e7c6fa0d`、input SHA-256 `4fd2d4957b72a4d321222e7e5963a1f1c844371e0a6a0daa8ad083bd6ccab78e`である。入出力検査、画像、resource、UIまで製品OBJECT targetを遡るため、破棄1 APIの対応先としては責務を越える。
+- 試験、台帳、CMakeに変更を加えず候補を棄却した。未対応基準896件と最新`public-api-missing-g604.json`は変更していない。次の永続作業は第605便で、既存の4工程・8入力canvas契約へ投影生成器の形式を追加することである。
+
+### 第605便の公開API契約計画
+
+- 開始`libs/ui/canvas/kis_qpainter_projection_factory.h`の`createQPainterProjectionBackend()`と`qPainterProjectionUpdatePatchSize()`を、既存`libs/canvas/tests/KisProjectionLifecycleSchemaContractTest.cpp`の新規1枠へ対応付ける。生成器がcanvas投影backendを一意所有で返し、更新patch寸法を値で返す公開形式を固定する。生成器本文、設定、画像pyramid、投影backendを実体化せず、形式契約だけを追加する。
+- 開始`libs/canvas/tests/CMakeLists.txt`の同test targetへ`libs/ui`と対応するbinary directoryの探索路だけを追加し、`kritaui_export.h`を解決する。現行閉包は4工程・8入力、command SHA-256 `7d13eefb17650bb776658a3d77e5f088aab28d0285b163858fb8982ecba9d769`、input SHA-256 `f23d37795788aace7718983809e01d4e33fdb1d2a44c2dd633cc8121086379e6`であり、試験sourceは113行・5枠である。再構成後も4工程・8入力を要求し、停止線は5工程・11入力、製品targetの再構築、製品shared・OBJECT・`kritatestsdk`接続、候補headerのAUTOMOC入力化、動的linkまたは製品未解決記号の増加、対象値または本文の実体化、許可path外変更とする。
+- macOSでは対象CTest、追加枠20回、近傍`KisProjectionPixelFilterContractTest`、AUTOMOC後の二回目計画、連続二回の無作業再構築、動的接続・未解決記号・厳格構文・書式、公開API検査、`verify-quick`だけを実行する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。初回公開API検査は移行基準896件に対する2 API減少の診断を期待する。
 
 ### 第239便の先行監査担当票
 
