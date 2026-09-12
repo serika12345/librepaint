@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 1159
+    "expectedMissingApis": 1149
   },
   "contracts": [
     {
@@ -80353,6 +80353,43 @@
         "method:KisWidgetWithIdleTask::clearCachedState()",
         "method:KisWidgetWithIdleTask::hideEvent(QHideEvent * event)",
         "method:KisWidgetWithIdleTask::showEvent(QShowEvent * event)"
+      ]
+    },
+    {
+      "target": "KisToolSchemaContractTest",
+      "source": "libs/tools/tests/KisToolSchemaContractTest.cpp",
+      "test": "KisToolSchemaContractTest::paintInteractionTypeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "paint interactionはKisToolの公開派生classとしてcanvasとcursorで構築し、仮想破棄する境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisToolPaintInteraction",
+        "method:KisToolPaintInteraction::KisToolPaintInteraction(KoCanvasBase * canvas,const QCursor & cursor)",
+        "method:KisToolPaintInteraction::~KisToolPaintInteraction()"
+      ]
+    },
+    {
+      "target": "KisToolSchemaContractTest",
+      "source": "libs/tools/tests/KisToolSchemaContractTest.cpp",
+      "test": "KisToolSchemaContractTest::paintInteractionActivationFlagsAndPointerEventSchemaRemainStable",
+      "behavior": "paint interactionはflags、activate/deactivate、pointer eventを受ける公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisToolPaintInteraction::activate(const QSet<KoShape * > & shapes)",
+        "method:KisToolPaintInteraction::deactivate()",
+        "method:KisToolPaintInteraction::flags() const",
+        "method:KisToolPaintInteraction::mouseMoveEvent(KoPointerEvent * event)",
+        "method:KisToolPaintInteraction::mousePressEvent(KoPointerEvent * event)",
+        "method:KisToolPaintInteraction::mouseReleaseEvent(KoPointerEvent * event)"
+      ]
+    },
+    {
+      "target": "KisToolSchemaContractTest",
+      "source": "libs/tools/tests/KisToolSchemaContractTest.cpp",
+      "test": "KisToolSchemaContractTest::paintInteractionNotificationSchemaRemainStable",
+      "behavior": "paint interactionはpainting完了を通知する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisToolPaintInteraction::sigPaintingFinished()"
       ]
     }
   ]
