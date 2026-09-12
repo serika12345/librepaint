@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-13 01:18 JST
+- 更新日時: 2026-09-13 01:21 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5352,6 +5352,12 @@
 - 開始`plugins/tools/selectiontools/KisMagneticWorker.h`から新規`plugins/tools/selectiontools/KisMagneticWorkerSchemaContractTest.cpp`へ、lazy tile型・画像device構築・filter 3 API、device/tile照会とworker型・device構築4 API、edge計算・強度照会・画像保存3 APIを3枠へ固定した。`plugins/tools/selectiontools/CMakeLists.txt`にはselectiontools・global・image・pigment source/generated探索路、`kritaselectiontools_EXPORTS`・`kritaimage_EXPORTS`・`kritapigment_EXPORTS`、Qt Core・Testとheader-only Boost、Qt Gui・KF I18n・Imathのheader探索路だけを追加した。公開headerと製品sourceは変更していない。
 - 初期targetは新規試験source未配置のためCMake生成で停止し、試験source追加後に解消した。実装後はmacOSの正式CTest `plugins-tools-selectiontools-KisMagneticWorkerSchemaContractTest`、対象全体20回、追加3枠の各20回、近傍`KisPaintDeviceSchemaContractTest`、連続二回の無作業再構築に成功した。最終閉包は4工程・8入力、command SHA-256 `2e577d1cf876e39f6523afac6364a7a1f548857e38777280a70e963f2c295cfc`、input SHA-256 `cc95143d2c6d3f46203774955a5e1457e9aa52f2dec30b9bf314d60dd351623a`である。AUTOMOC `HEADERS=[]`、Qt Core・Test、`libintl`とOS frameworkだけの動的接続、magnetic worker・lazy tiles・paint deviceの製品未解決記号なしを確認した。実装・試験sourceの`clang-check -Werror`、新規source書式、JSON構文、差分に成功した。
 - 公開API検査は28,683件対応、29,801件中1,118件未対応となった。新`build/tdd-macos/public-api-missing-g571.json`は303,731 bytes、SHA-256 `ddb1702bb3dfdbed5b34eb0e358aa1ba92ec8d7798405aa5554245e1acccc636`であり、生成成功後に旧`public-api-missing-g570.json` 306,174 bytesをゴミ箱へ移して作業領域から約300 KiBを回収した。主Ninja木6,052,912 KiB、共有compiler cache 983,040 KiB、最新報告だけを再利用対象として保持する。`verify-quick`に成功した。tile filter、edge探索、強度算出、画像保存の実行時意味は後続の動的契約で扱う。次の永続作業は第571便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
+
+### 第571便の公開API契約計画
+
+- 第571便は作者プロファイル設定と連絡先編集delegateを表す`libs/widgets/KoConfigAuthorPage.h`の残存全9 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g571.json`は公開header 1,549、公開API 29,801、対応済み28,683、未対応1,118、303,731 bytes、SHA-256 `ddb1702bb3dfdbed5b34eb0e358aa1ba92ec8d7798405aa5554245e1acccc636`である。対象9識別子の整列集合SHA-256は`1290bfa8a3ddd6d77088b49e5617afad61162166ffc93b210320361fae358da8`である。
+- 作者プロファイル設定の境界は設定page型・構築・寿命・適用4、連絡先delegate型・構築・寿命・contact mode保持4、editor生成1へ固定する。新規`libs/widgets/tests/KoConfigAuthorPageSchemaContractTest.cpp`の3枠で型特性、厳密なmember pointer、data member型だけを観測し、page、delegate、editor、設定、profile、連絡先を実体化せず本文を実行しない。profile読込・保存、連絡先編集、editor生成の実行時意味は後続の動的契約で扱う。
+- 新規targetの`libs/widgets/tests/CMakeLists.txt`節はwidgets header配置とexport生成headerのsource/generated探索路、`kritawidgets_EXPORTS`、Qt Core・TestとQt Widgetsのheader探索路だけを所有する。`kritawidgets`、widgetutils、resource、configuration、applicationの製品targetは接続しない。開始`libs/widgets/KoConfigAuthorPage.cpp`の厳格構文診断は0件である。既存`KoZoomControlSchemaContractTest`の4工程・8入力を最も近いclean-tree閉包として採用し、新targetも4工程・8入力、停止線を5工程・11入力とする。AUTOMOC候補header入力、製品未解決記号、追加探索路・定義・動的接続、製品再構築、許可path外変更が必要なら停止する。macOSの対象全体と追加3枠の20回反復、軽量近傍、実装・試験sourceの厳格構文、新規source書式、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。
 
 ### 第239便の先行監査担当票
 
