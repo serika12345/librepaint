@@ -2,14 +2,14 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-13 08:07 JST
+- 更新日時: 2026-09-13 08:16 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
 - 完了: 第606便で具体ファイルicon生成器の2 APIを公開契約へ追加し、対応済みを28,909件へ進めた。
-- 次の作業: 第607便として未対応報告から、既存の限定試験に追加できる公開headerを選び、実装前に構築閉包を監査する。
+- 次の作業: 第607便としてabout application dialogの公開形式を契約試験へ追加し、対象限定検証後に公開API基準を縮小する。
 - 検証: macOSの対象・近傍・反復・無作業再構築、公開API検査、`verify-quick`に成功した。製品target、全体build・`verify`、Linux、Nix再評価は本便の対象外である。
 
 ### 第202便の先行監査担当票
@@ -5784,6 +5784,12 @@
 - 対象全体20回、追加1枠20回（60 pass）、近傍`KLanguageButtonSchemaContractTest`、AUTOMOC後の連続二回の無作業Ninja構築に成功した。試験sourceの`clang-check -Werror`、書式、JSON構文、差分に成功した。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 初回照合は移行基準894件に対して実測892件となる期待診断を確認後、基準を更新した。公開API検査は28,909件対応、29,801件中892件未対応となった。新`build/tdd-macos/public-api-missing-g606.json`は245,224 bytes、SHA-256 `886d02449d73063918f154413d7fc9c796921fe3a7472143534da0c204e4c26e`である。生成成功後に旧`public-api-missing-g605.json` 245,732 bytesをゴミ箱へ移して作業領域から約240 KiBを回収した。
 - 対象構築の開始時にファイルシステム空き容量485 MiBでNixの導出物評価が停止した。作業ツリーでは主Ninja木、共有compiler cache、最新不足報告以外に回収対象がなかったため、到達不能なNix store 112パスだけを回収し45,560.83 MiBを解放した。現在は主Ninja木6,061,872 KiB、共有compiler cache 982,012 KiB、最新報告だけを再利用対象として保持し、ファイルシステム空き容量は約46 GiBである。具体的なファイル種別ごとの画像読込み、archive内thumbnail選択、文書を要するTIFF/JXL経路は、製品実装を接続する後続の効果契約で扱う。次の永続作業は第607便で独立軽量試験に追加可能な公開headerを選び、対象限定閉包を先に監査することである。
+
+### 第607便の公開API契約計画
+
+- 正式入力`build/tdd-macos/public-api-missing-g606.json`から、開始`libs/ui/dialogs/kis_about_application.h`のabout application dialog型と親Widget構築の2 APIを、既存`libs/ui/tests/KisCursorOverrideHijackerSchemaContractTest.cpp`の新規1枠へ対応付ける。dialogが`KoDialog`を基底に持ち、親Widgetを受ける正確な公開形式を固定する。dialog本文、画面表示、翻訳、設定、親Widgetを実体化せず実行しない。
+- 開始`libs/ui/tests/CMakeLists.txt`の同test targetへ`libs/widgets`と対応するbinary directoryの探索路だけを追加し、`KoDialog.h`と`kritawidgets_export.h`を解決する。現行閉包は4工程・8入力、command SHA-256 `43e833cfe02de17e952fdb1152cc7193fd661d8d7dca777d1e69749202499a2a`、input SHA-256 `58d9882064254f622d7496f1d8e232987c51dd89595a3d9101b9bbaef2ddb583`であり、試験sourceは243行・16枠である。再構成後も4工程・8入力を要求し、停止線は5工程・11入力、製品targetの再構築、製品shared・OBJECT・`kritatestsdk`接続、候補headerのAUTOMOC入力化、動的linkまたは製品未解決記号の増加、dialog・翻訳・設定または本文の実体化、許可path外変更とする。
+- macOSでは対象CTest、追加枠20回、近傍`KisGrabKeyboardFocusRecoveryWorkaroundSchemaContractTest`、AUTOMOC後の二回目計画、連続二回の無作業再構築、動的接続・未解決記号・厳格構文・書式、公開API検査、`verify-quick`だけを実行する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。初回公開API検査は移行基準892件に対する2 API減少の診断を期待する。
 
 ### 第239便の先行監査担当票
 
