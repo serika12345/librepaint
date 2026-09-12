@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include <asl/kis_asl_reader.h>
 #include <asl/kis_asl_writer.h>
 #include <asl/kis_asl_xml_writer.h>
 
@@ -27,6 +28,7 @@ private Q_SLOTS:
     void aslXmlWriterGeometrySignaturesRemainStable();
     void aslXmlWriterColorPatternAndGradientSignaturesRemainStable();
     void aslBinaryWriterTypeConstructionAndSectionSignaturesRemainStable();
+    void aslBinaryReaderTypeAndSectionSignaturesRemainStable();
 };
 
 void KisAslXmlWriterSchemaContractTest::aslXmlWriterTypeLifetimeAndDocumentSchemaRemainStable()
@@ -106,6 +108,24 @@ void KisAslXmlWriterSchemaContractTest::aslBinaryWriterTypeConstructionAndSectio
                                  void (Writer::*)(QIODevice &, const QDomDocument &)>);
     static_assert(std::is_same_v<decltype(&Writer::writeVectorStrokeDataEx),
                                  void (Writer::*)(QIODevice &, const QDomDocument &)>);
+}
+
+void KisAslXmlWriterSchemaContractTest::aslBinaryReaderTypeAndSectionSignaturesRemainStable()
+{
+    using Reader = KisAslReader;
+    using ReadSection = QDomDocument (*)(QIODevice &, psd_byte_order);
+
+    static_assert(std::is_class_v<Reader>);
+    static_assert(std::is_default_constructible_v<Reader>);
+    static_assert(std::is_same_v<decltype(&Reader::readFile), QDomDocument (Reader::*)(QIODevice &)>);
+    static_assert(std::is_same_v<decltype(&Reader::readFillLayer), ReadSection>);
+    static_assert(std::is_same_v<decltype(&Reader::readLfx2PsdSection), ReadSection>);
+    static_assert(std::is_same_v<decltype(&Reader::readPsdSectionPattern),
+                                 QDomDocument (*)(QIODevice &, qint64, psd_byte_order)>);
+    static_assert(std::is_same_v<decltype(&Reader::readTypeToolObjectSettings),
+                                 QDomDocument (*)(QIODevice &, QTransform &, psd_byte_order)>);
+    static_assert(std::is_same_v<decltype(&Reader::readVectorOriginationData), ReadSection>);
+    static_assert(std::is_same_v<decltype(&Reader::readVectorStroke), ReadSection>);
 }
 
 QTEST_APPLESS_MAIN(KisAslXmlWriterSchemaContractTest)
