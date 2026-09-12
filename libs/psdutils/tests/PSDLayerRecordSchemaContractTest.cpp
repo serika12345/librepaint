@@ -6,6 +6,7 @@
 #include <psd_additional_layer_info_block.h>
 #include <psd_layer_record.h>
 #include <psd_layer_section.h>
+#include <psd_pixel_utils.h>
 #include <psd_resource_block.h>
 
 #include <QTest>
@@ -52,6 +53,7 @@ private Q_SLOTS:
     void additionalLayerTextShapeXmlSignaturesRemainStable();
     void additionalLayerVectorOriginationSignaturesRemainStable();
     void additionalLayerVectorStrokeSignaturesRemainStable();
+    void pixelChannelWritingInfoAndIoSignaturesRemainStable();
 };
 
 void PSDLayerRecordSchemaContractTest::layerRecordTypeLifetimeAndValiditySchemaRemainStable()
@@ -222,6 +224,56 @@ void PSDLayerRecordSchemaContractTest::additionalLayerVectorStrokeSignaturesRema
     ASSERT_PSD_VECTOR_STROKE_SIGNATURE(loadFromShapeStroke, void (psd_vector_stroke_data::*)(KoShapeStrokeSP));
     ASSERT_PSD_VECTOR_STROKE_SIGNATURE(setupCatcher, SetupCatcher);
     ASSERT_PSD_VECTOR_STROKE_SIGNATURE(setupShapeStroke, void (psd_vector_stroke_data::*)(KoShapeStrokeSP));
+}
+
+void PSDLayerRecordSchemaContractTest::pixelChannelWritingInfoAndIoSignaturesRemainStable()
+{
+    using Info = PsdPixelUtils::ChannelWritingInfo;
+    using ReadChannels = void (*)(QIODevice &,
+                                  KisPaintDeviceSP,
+                                  psd_color_mode,
+                                  int,
+                                  const QRect &,
+                                  QVector<ChannelInfo *>,
+                                  psd_byte_order);
+    using ReadAlphaMaskChannels =
+        void (*)(QIODevice &, KisPaintDeviceSP, int, const QRect &, QVector<ChannelInfo *>, psd_byte_order);
+    using WriteChannelDataRle =
+        void (*)(QIODevice &, const quint8 *, int, const QRect &, qint64, qint64, bool, psd_byte_order);
+    using WritePixelData = void (*)(QIODevice &,
+                                    KisPaintDeviceSP,
+                                    const QRect &,
+                                    psd_color_mode,
+                                    int,
+                                    bool,
+                                    bool,
+                                    QVector<Info> &,
+                                    psd_compression_type,
+                                    psd_byte_order);
+
+    static_assert(std::is_class_v<Info>);
+    static_assert(std::is_same_v<decltype(&Info::channelId), qint16 Info::*>);
+    static_assert(std::is_same_v<decltype(&Info::sizeFieldOffset), int Info::*>);
+    static_assert(std::is_same_v<decltype(&Info::rleBlockOffset), int Info::*>);
+    static_assert(std::is_same_v<decltype(&PsdPixelUtils::readChannels), ReadChannels>);
+    static_assert(std::is_same_v<decltype(&PsdPixelUtils::readAlphaMaskChannels), ReadAlphaMaskChannels>);
+    static_assert(std::is_same_v<decltype(&PsdPixelUtils::writeChannelDataRLE), WriteChannelDataRle>);
+    static_assert(std::is_same_v<decltype(&PsdPixelUtils::writePixelDataCommon), WritePixelData>);
+
+    const Info defaults;
+    QCOMPARE(defaults.channelId, qint16(0));
+    QCOMPARE(defaults.sizeFieldOffset, -1);
+    QCOMPARE(defaults.rleBlockOffset, -1);
+
+    const Info externalSizeTag(-3, 17);
+    QCOMPARE(externalSizeTag.channelId, qint16(-3));
+    QCOMPARE(externalSizeTag.sizeFieldOffset, 17);
+    QCOMPARE(externalSizeTag.rleBlockOffset, -1);
+
+    const Info externalOffsets(7, 23, 31);
+    QCOMPARE(externalOffsets.channelId, qint16(7));
+    QCOMPARE(externalOffsets.sizeFieldOffset, 23);
+    QCOMPARE(externalOffsets.rleBlockOffset, 31);
 }
 
 #undef ASSERT_PSD_VECTOR_STROKE_SIGNATURE
