@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 1282
+    "expectedMissingApis": 1273
   },
   "contracts": [
     {
@@ -79807,6 +79807,51 @@
         "method:KisTextureOption::prepareEmbeddedResources(const KisPropertiesConfigurationSP setting,KisResourcesInterfaceSP resourcesInterface)",
         "method:KisTextureOption::prepareLinkedResources(const KisPropertiesConfigurationSP setting,KisResourcesInterfaceSP resourcesInterface)",
         "method:KisTextureOption::requiresEffectiveCompositeOp(const KisPropertiesConfiguration * settings)"
+      ]
+    },
+    {
+      "target": "KisColorSamplerStrokeSchemaContractTest",
+      "source": "libs/painting/tests/KisColorSamplerStrokeSchemaContractTest.cpp",
+      "test": "KisColorSamplerStrokeSchemaContractTest::typeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "色採取strokeはQObjectの親を受ける公開classとして構築・破棄できる寿命境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisColorSamplerStroke",
+        "method:KisColorSamplerStroke::KisColorSamplerStroke(QObject * parent=nullptr)",
+        "method:KisColorSamplerStroke::~KisColorSamplerStroke()"
+      ]
+    },
+    {
+      "target": "KisColorSamplerStrokeSchemaContractTest",
+      "source": "libs/painting/tests/KisColorSamplerStrokeSchemaContractTest.cpp",
+      "test": "KisColorSamplerStrokeSchemaContractTest::activeStateAndLifecycleSignaturesRemainStable",
+      "behavior": "色採取strokeは稼働状態を照会し、borrowed strokes facade・半径・blend値で開始して完了する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisColorSamplerStroke::finish()",
+        "method:KisColorSamplerStroke::isActive() const",
+        "method:KisColorSamplerStroke::start(KisStrokesFacade * strokesFacade,int radius,int blend)"
+      ]
+    },
+    {
+      "target": "KisColorSamplerStrokeSchemaContractTest",
+      "source": "libs/painting/tests/KisColorSamplerStrokeSchemaContractTest.cpp",
+      "test": "KisColorSamplerStrokeSchemaContractTest::sampleInputSignatureRemainsStable",
+      "behavior": "色採取strokeは描画装置、画像座標、現在色を借用して一件の試料を追加する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisColorSamplerStroke::addSample(const KisPaintDeviceSP & device,const QPoint & imagePoint,const KoColor & currentColor)"
+      ]
+    },
+    {
+      "target": "KisColorSamplerStrokeSchemaContractTest",
+      "source": "libs/painting/tests/KisColorSamplerStrokeSchemaContractTest.cpp",
+      "test": "KisColorSamplerStrokeSchemaContractTest::colorNotificationSignaturesRemainStable",
+      "behavior": "色採取strokeは中間色更新と最終色選択を同じ色値で通知する公開signal境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisColorSamplerStroke::sigColorUpdated(const KoColor & color)",
+        "method:KisColorSamplerStroke::sigFinalColorSelected(const KoColor & color)"
       ]
     }
   ]
