@@ -1425,6 +1425,21 @@ target_compile_definitions(KisDelayedSaveDialogSchemaContractTest PRIVATE
 )
 
 kis_add_test(
+    KisDlgCustomTabletResolutionSchemaContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KisDlgCustomTabletResolutionSchemaContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Widgets,INTERFACE_INCLUDE_DIRECTORIES>
+)
+target_compile_definitions(KisDlgCustomTabletResolutionSchemaContractTest PRIVATE
+    kritaui_EXPORTS
+)
+
+kis_add_test(
     KisAsyncAnimationRenderDialogBaseSchemaContractTest.cpp
     LINK_LIBRARIES
         Qt${QT_MAJOR_VERSION}::Core

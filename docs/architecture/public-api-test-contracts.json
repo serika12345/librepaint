@@ -80613,6 +80613,44 @@
         "method:KisCategorizedListView::sigCategoryToggled(const QModelIndex & index,bool toggled)",
         "method:KisCategorizedListView::sigEntryChecked(const QModelIndex & index)"
       ]
+    },
+    {
+      "target": "KisDlgCustomTabletResolutionSchemaContractTest",
+      "source": "libs/ui/tests/KisDlgCustomTabletResolutionSchemaContractTest.cpp",
+      "test": "KisDlgCustomTabletResolutionSchemaContractTest::tabletResolutionDialogSchemaRemainStable",
+      "behavior": "custom tablet resolution dialogはQDialogの公開派生型として親widgetで構築し、仮想破棄する境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisDlgCustomTabletResolution",
+        "method:KisDlgCustomTabletResolution::KisDlgCustomTabletResolution(QWidget * parent=nullptr)",
+        "method:KisDlgCustomTabletResolution::~KisDlgCustomTabletResolution()"
+      ]
+    },
+    {
+      "target": "KisDlgCustomTabletResolutionSchemaContractTest",
+      "source": "libs/ui/tests/KisDlgCustomTabletResolutionSchemaContractTest.cpp",
+      "test": "KisDlgCustomTabletResolutionSchemaContractTest::tabletResolutionModeSchemaRemainStable",
+      "behavior": "custom tablet resolution dialogはWintab、仮想画面、任意矩形のmode値を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KisDlgCustomTabletResolution::Mode",
+        "enumerator:KisDlgCustomTabletResolution::Mode::USE_CUSTOM",
+        "enumerator:KisDlgCustomTabletResolution::Mode::USE_VIRTUAL_SCREEN",
+        "enumerator:KisDlgCustomTabletResolution::Mode::USE_WINTAB"
+      ]
+    },
+    {
+      "target": "KisDlgCustomTabletResolutionSchemaContractTest",
+      "source": "libs/ui/tests/KisDlgCustomTabletResolutionSchemaContractTest.cpp",
+      "test": "KisDlgCustomTabletResolutionSchemaContractTest::tabletResolutionConfigurationSchemaRemainStable",
+      "behavior": "custom tablet resolution dialogは設定を受理し、native画面矩形と保存済みmodeを取得し、mode別設定を適用する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDlgCustomTabletResolution::accept()",
+        "method:KisDlgCustomTabletResolution::applyConfiguration(Mode mode,const QRect & customRect)",
+        "method:KisDlgCustomTabletResolution::calcNativeScreenRect()",
+        "method:KisDlgCustomTabletResolution::getTabletMode(QRect * customRect)"
+      ]
     }
   ]
 }
