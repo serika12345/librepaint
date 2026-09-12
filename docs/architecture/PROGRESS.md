@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-13 05:19 JST
+- 更新日時: 2026-09-13 05:27 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5612,6 +5612,12 @@
 - 正式入力`build/tdd-macos/public-api-missing-g593.json`の`libs/ui/events/KisLongPressEventFilter.h`残存4 APIを、既存`libs/ui/tests/KisCollapsibleButtonGroupSchemaContractTest.cpp`の新規1枠へ対応付ける。型・`QObject`継承・親QObject構築、長押し有効化propertyの固定文字列、event filter入口の正確な公開関数型を固定する。QObject、event、timer、widget、長押し状態を実体化せず本文を実行しない。
 - `KisCollapsibleButtonGroupSchemaContractTest`はsource 252行・19枠で、追記後も300行・20枠以内に収まる。この便で同試験の20枠上限に到達するため、以後は新たな公開headerを追加しない。CMake変更なしの実測閉包は4工程・8入力、command SHA-256 `c55ac1f21251f917b04ee3d97531681190ca1c3f562cf68b627043ed732b1a63`、input SHA-256 `37a973b1221641c14845cda5455d3c7a7b40ae1984bd4f077069ff1c6bfe4f3e`である。既存の同targetは`Q_OBJECT`を持つtone curve widgetとdocker HUDをheader自動生成入力にせず`HEADERS=[]`を維持しており、同じ宣言形式のlong press event filterにも適用する。停止線は5工程・11入力、CMake・探索路・定義・動的linkの変更、製品shared・OBJECT・`kritatestsdk`接続、対象headerのAUTOMOC入力、製品未解決記号、対象値または本文の実体化、許可path外変更である。
 - macOSでは対象CTest、追加1枠の20回、軽量近傍`KisCompositeOpListConnectionHelperSchemaContractTest`、AUTOMOC後の二回目計画、連続二回の無作業再構築、動的接続・未解決記号・厳格構文・書式、公開API検査、`verify-quick`だけを実行する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。初回公開API検査は移行基準962件に対する4 API減少の診断を期待する。
+
+### 第592便の公開API契約結果
+
+- 開始`libs/ui/events/KisLongPressEventFilter.h`から既存`libs/ui/tests/KisCollapsibleButtonGroupSchemaContractTest.cpp`へ、型・`QObject`継承・親QObject構築、固定の長押し有効化property、event filter入口の4 APIを1枠として固定した。QObject、event、timer、widget、長押し状態を実体化せず本文を実行していない。CMake、公開header、製品sourceは変更していない。
+- macOSの`KisCollapsibleButtonGroupSchemaContractTest`は追加前後とも4工程・8入力、command SHA-256 `c55ac1f21251f917b04ee3d97531681190ca1c3f562cf68b627043ed732b1a63`、input SHA-256 `37a973b1221641c14845cda5455d3c7a7b40ae1984bd4f077069ff1c6bfe4f3e`を維持した。対象全体20回、追加1枠20回（60 pass）、近傍`KisCompositeOpListConnectionHelperSchemaContractTest`、AUTOMOC後の連続二回の無作業再構築に成功した。試験sourceは266行・20枠で上限に到達した。AUTOMOC `HEADERS=[]`、Qt Core・TestとOS frameworkだけの動的接続、long press event filter・製品libraryの未解決記号なしを確認した。試験sourceと`libs/ui/events/KisLongPressEventFilter.cpp`の`clang-check -Werror`、試験source書式、JSON構文、差分に成功した。
+- 初回照合ではpropertyの公開宣言種別を`member`として台帳へ訂正後、移行基準962件に対して実測958件となる期待診断を確認し、基準を更新した。公開API検査は28,843件対応、29,801件中958件未対応となった。新`build/tdd-macos/public-api-missing-g594.json`は262,867 bytes、SHA-256 `2acaf1590dc01522c06e4e713448ae0347e2b07cd24703a7856a540c2a498ebc`である。生成成功後に旧`public-api-missing-g593.json` 263,853 bytesをゴミ箱へ移して作業領域から約258 KiBを回収し、主Ninja木6,059,728 KiB、共有compiler cache 982,776 KiB、最新報告だけを再利用対象として保持する。長押し時間・距離、scroller、platform timeout、eventの消費結果は後続の効果契約で扱う。次の永続作業は第593便で新規の軽量公開API試験候補を選び、CMake追加前に閉包を監査することである。
 
 ### 第239便の先行監査担当票
 
