@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-13 02:41 JST
+- 更新日時: 2026-09-13 02:51 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5439,9 +5439,15 @@
 
 ### 第578便の公開API契約計画
 
-- 第578便はcanvas上の任意点へのスナップを表す`libs/ui/canvas/KisSnapPointStrategy.h`の残存全5 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g578.json`は公開header 1,549、公開API 29,801、対応済み28,753、未対応1,048、285,326 bytes、SHA-256 `219f23b050f1baa27aeca471250490ccc95e4700677f7c0d52cea734435feda4`である。対象5識別子の整列集合SHA-256は`f40b313020443fb0b3c4d3dcd0117b2619f32e05fc9c1d6d0a205fcb73655831`である。
-- 任意点スナップstrategyの境界はcustom snapping種別で構築・破棄される`KoSnapStrategy`派生型として、スナップ判定、装飾path、候補点追加を提供する5 APIへ固定する。開始`libs/ui/canvas/KisSnapPointStrategy.h`から既存`libs/flake/tests/KoSnapGuideSchemaContractTest.cpp`へ1枠を追加し、型特性と厳密なmember pointerだけを観測する。strategy、proxy、view converter、点列を実体化せず本文を実行しない。最近傍選択、最大距離判定、装飾の画面変換は後続の実行時契約で扱う。
-- 既存targetはスナップguideとstrategyの静的契約をすでに所有し、4工程・8入力、source 273行・13枠である。`libs/ui`のheader探索路と`kritaui_EXPORTS`だけを対象固有節へ加え、Qt Testだけの動的接続を維持する。追加後も4工程・8入力、source 300行未満・20枠未満、停止線を5工程・11入力とする。AUTOMOC候補header入力、製品未解決記号、動的接続の追加、製品再構築、許可path外変更が必要なら停止する。macOSの対象全体と追加枠の20回反復、軽量近傍、試験sourceと開始sourceの厳格構文、新規includeの書式、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。初期公開API検査は移行基準1,048件に対する5 API減少の診断を期待する。
+- 第578便はcanvas上の任意点へのスナップを表す`libs/ui/canvas/KisSnapPointStrategy.h`の残存全6 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g578.json`は公開header 1,549、公開API 29,801、対応済み28,753、未対応1,048、285,326 bytes、SHA-256 `219f23b050f1baa27aeca471250490ccc95e4700677f7c0d52cea734435feda4`である。対象6識別子の整列集合SHA-256は`f40b313020443fb0b3c4d3dcd0117b2619f32e05fc9c1d6d0a205fcb73655831`である。
+- 任意点スナップstrategyの境界はcustom snapping種別で構築・破棄される`KoSnapStrategy`派生型として、スナップ判定、装飾path、候補点追加を提供する6 APIへ固定する。開始`libs/ui/canvas/KisSnapPointStrategy.h`から既存`libs/flake/tests/KoSnapGuideSchemaContractTest.cpp`へ1枠を追加し、型特性と厳密なmember pointerだけを観測する。strategy、proxy、view converter、点列を実体化せず本文を実行しない。最近傍選択、最大距離判定、装飾の画面変換は後続の実行時契約で扱う。
+- 既存targetはスナップguideとstrategyの静的契約をすでに所有し、4工程・8入力、source 273行・13枠である。`libs/ui`のsource/generated header探索路と`kritaui_EXPORTS`だけを対象固有節へ加え、Qt Testだけの動的接続を維持する。追加後も4工程・8入力、source 300行未満・20枠未満、停止線を5工程・11入力とする。AUTOMOC候補header入力、製品未解決記号、動的接続の追加、製品再構築、許可path外変更が必要なら停止する。macOSの対象全体と追加枠の20回反復、軽量近傍、試験sourceと開始sourceの厳格構文、新規includeの書式、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。初期公開API検査は移行基準1,048件に対する6 API減少の診断を期待する。
+
+### 第578便の公開API契約結果
+
+- 開始`libs/ui/canvas/KisSnapPointStrategy.h`から既存`libs/flake/tests/KoSnapGuideSchemaContractTest.cpp`へ、custom snapping種別によるstrategy型・構築・仮想破棄3 API、スナップ判定・装飾path・候補点追加3 APIを1枠へ固定した。`libs/flake/tests/CMakeLists.txt`には`kritaui_export.h`を解決する`libs/ui`のsource/generated header探索路と`kritaui_EXPORTS`だけを対象固有で追加した。公開headerと製品sourceは変更していない。
+- 初回構築は生成済み`kritaui_export.h`の探索路不足で停止し、生成側探索路を追加後に解消した。macOSの正式CTest `libs-flake-KoSnapGuideSchemaContractTest`と対象全体20回、追加枠20回、近傍`KoSnapDataContractTest`、連続二回の無作業再構築に成功した。最終閉包は4工程・8入力、command SHA-256 `ec7268d4805436252f99ccc150c4b3106e4a484cbcff27b61d6ecaab51f29e96`、input SHA-256 `a9878d0d607a5dc579c972e8463299b47311956a7b2bdfb69ca4cfd550f75f9f`である。試験sourceは293行・14枠、AUTOMOC `HEADERS=[]`、Qt Core・TestとOS frameworkだけの動的接続、snap point strategyの製品未解決記号なしを確認した。試験sourceと`libs/ui/canvas/KisSnapPointStrategy.cpp`の`clang-check -Werror`、試験source書式、JSON構文、差分に成功した。
+- 公開API検査は28,759件対応、29,801件中1,042件未対応となった。新`build/tdd-macos/public-api-missing-g580.json`は283,710 bytes、SHA-256 `8d9d5a391ea299b5bdcee9d4416134c217e9c19b8c665854e4ac3f4588e6059f`である。生成成功後に旧`public-api-missing-g579.json` 283,936 bytesをゴミ箱へ移して作業領域から約277 KiBを回収し、主Ninja木6,058,664 KiB、共有compiler cache 982,244 KiB、最新報告だけを再利用対象として保持する。最近傍選択、最大距離判定、装飾の画面変換は後続の実行時契約で扱う。次の永続作業は第579便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
 
 ### 第239便の先行監査担当票
 
