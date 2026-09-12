@@ -24,6 +24,7 @@ class GridConfigSchemaContractTest : public QObject
 
 private Q_SLOTS:
     void gridIdentityAndVisibilityPolicySignaturesRemainStable();
+    void gridConfigConstructionAndSerializationSchemaRemainsStable();
     void rectangularGridSpacingAndOffsetSignaturesRemainStable();
     void isometricGridGeometrySignaturesRemainStable();
     void gridLinePresentationSignaturesRemainStable();
@@ -48,6 +49,18 @@ void GridConfigSchemaContractTest::gridIdentityAndVisibilityPolicySignaturesRema
     ASSERT_GRID_CONFIG_SIGNATURE(setSnap, void (GridConfig::*)(bool));
     ASSERT_GRID_CONFIG_SIGNATURE(type, QString (GridConfig::*)() const);
     ASSERT_GRID_CONFIG_SIGNATURE(setType, void (GridConfig::*)(const QString &));
+
+    QVERIFY(true);
+}
+
+void GridConfigSchemaContractTest::gridConfigConstructionAndSerializationSchemaRemainsStable()
+{
+    static_assert(std::is_constructible_v<GridConfig, KisGridConfig *>);
+    static_assert(std::is_constructible_v<GridConfig, QObject *>);
+    static_assert(std::is_destructible_v<GridConfig>);
+    static_assert(std::has_virtual_destructor_v<GridConfig>);
+    ASSERT_GRID_CONFIG_SIGNATURE(fromXml, bool (GridConfig::*)(const QString &) const);
+    ASSERT_GRID_CONFIG_SIGNATURE(toXml, QString (GridConfig::*)() const);
 
     QVERIFY(true);
 }

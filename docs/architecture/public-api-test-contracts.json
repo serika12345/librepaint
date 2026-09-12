@@ -37718,6 +37718,20 @@
     {
       "target": "GridConfigSchemaContractTest",
       "source": "libs/libkis/tests/GridConfigSchemaContractTest.cpp",
+      "test": "GridConfigSchemaContractTest::gridConfigConstructionAndSerializationSchemaRemainsStable",
+      "behavior": "libkis文書grid wrapperは所有元または親QObjectによる構築、仮想破棄、XML読込・書出しの正確な公開型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:GridConfig::GridConfig(KisGridConfig * guidesConfig)",
+        "method:GridConfig::GridConfig(QObject * parent=0)",
+        "method:GridConfig::fromXml(const QString & xmlContent) const",
+        "method:GridConfig::toXml() const",
+        "method:GridConfig::~GridConfig()"
+      ]
+    },
+    {
+      "target": "GridConfigSchemaContractTest",
+      "source": "libs/libkis/tests/GridConfigSchemaContractTest.cpp",
       "test": "GridConfigSchemaContractTest::rectangularGridSpacingAndOffsetSignaturesRemainStable",
       "behavior": "矩形gridの間隔・offset、各軸の有効性、縦横比固定、分割数は正確な公開値型とconst性を維持する。",
       "classification": "maintained",
