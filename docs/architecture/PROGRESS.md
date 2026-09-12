@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-13 04:04 JST
+- 更新日時: 2026-09-13 04:11 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5527,6 +5527,13 @@
 - 正式入力`build/tdd-macos/public-api-missing-g586.json`の`libs/ui/widgets/KisCompositeOpListConnectionHelper.h`残存2 API、`KisWidgetConnectionUtils::connectControl`と`connectBlendModeActions`を、新規`libs/ui/tests/KisCompositeOpListConnectionHelperSchemaContractTest.cpp`の2枠へ対応付ける。対象型はすべて前方宣言のpointerで足りるため、composite operation list、combo box、action manager、QObjectを実体化せず、namespace関数pointerの正確な引数・戻り値型だけを観測する。
 - 新targetの直近比較は`KisCollapsibleButtonGroupSchemaContractTest`の4工程・8入力である。専用targetはsource/generated `libs/ui`探索路と`kritaui_EXPORTS`、Qt Core・Testだけを持ち、比較targetのQt Widgets interfaceを必要としない。製品shared・OBJECT、`kritatestsdk`、製品sourceを接続しない。CMake変更後も4工程・8入力、source 300行未満・20枠未満を維持し、停止線を5工程・11入力とする。対象headerのAUTOMOC入力、製品未解決記号、動的接続の追加、製品再構築、許可path外変更が必要なら停止する。
 - macOSでは対象CTest、追加2枠の各20回、軽量近傍`KisCollapsibleButtonGroupSchemaContractTest`、AUTOMOC後の二回目計画、連続二回の無作業再構築、動的接続・未解決記号・厳格構文・書式、公開API検査、`verify-quick`だけを実行する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。初回公開API検査は移行基準996件に対する2 API減少の診断を期待する。
+
+### 第585便の公開API契約結果
+
+- 開始`libs/ui/widgets/KisCompositeOpListConnectionHelper.h`から新規`libs/ui/tests/KisCompositeOpListConnectionHelperSchemaContractTest.cpp`へ、composite operation listのQObjectプロパティ接続とcombo boxのaction manager接続の2 APIを2枠へ固定した。`libs/ui/tests/CMakeLists.txt`には専用target、source/generated `libs/ui`探索路、`kritaui_EXPORTS`、Qt Core・Testだけを追加した。対象型をすべて前方宣言pointerとして扱い、list、combo box、action manager、QObjectを実体化せず本文を実行していない。公開headerと製品sourceは変更していない。
+- CMake再生成後にコンパイル・リンクしたのは新規試験targetの自動生成2ファイルと試験本体だけで、製品targetは再構築していない。macOSの実測閉包は4工程・8入力、command SHA-256 `494d140868048123fce384d4953f6c5684ebed69ba79235966c293455adb19a8`、input SHA-256 `abb03f8bc07870c6f18d07bee394ea12613dace24f6efcced053f519269e112f`である。対象全体20回、追加2枠の各20回（各60 pass）、近傍`KisCollapsibleButtonGroupSchemaContractTest`、AUTOMOC後の連続二回の無作業再構築に成功した。試験sourceは39行・2枠、AUTOMOC `HEADERS=[]`、Qt Core・TestとOS frameworkだけの動的接続、composite operation接続helper・製品libraryの未解決記号なしを確認した。試験sourceの`clang-check -Werror`、試験source書式、JSON構文、差分に成功した。
+- 未変更の`libs/ui/widgets/KisCompositeOpListConnectionHelper.cpp`は前便と同じ`QMetaType::type("QString")`呼出しにより`clang-check -Werror`で非推奨警告をエラーとして報告する。通常の構文検査は同じ1 warningだけで成功した。このQt 6移行上の既存警告は今回の宣言契約、対象CTest、構築閉包を妨げないが、前便で記録した接続helper群のAPI更新作業と一緒に解消する必要がある。
+- 初回照合は移行基準996件に対して実測994件となる期待診断を確認後、基準を更新した。公開API検査は28,807件対応、29,801件中994件未対応となった。新`build/tdd-macos/public-api-missing-g587.json`は271,538 bytes、SHA-256 `e3bebfa2faaee2ae8126e89854b83ec6764daf97650b93931530766ed9c63815`である。生成成功後に旧`public-api-missing-g586.json` 272,340 bytesをゴミ箱へ移して作業領域から約266 KiBを回収し、主Ninja木6,057,624 KiB、共有compiler cache 982,860 KiB、最新報告だけを再利用対象として保持する。signal接続、プロパティ同期、action反映、QObject寿命の実行結果は後続の効果契約で扱う。次の永続作業は第586便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
 
 ### 第239便の先行監査担当票
 
