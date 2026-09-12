@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 1350
+    "expectedMissingApis": 1342
   },
   "contracts": [
     {
@@ -79613,6 +79613,23 @@
         "method:PsdPixelUtils::ChannelWritingInfo::ChannelWritingInfo(qint16 _channelId,int _sizeFieldOffset)",
         "method:PsdPixelUtils::ChannelWritingInfo::ChannelWritingInfo(qint16 _channelId,int _sizeFieldOffset,int _rleBlockOffset)",
         "struct:PsdPixelUtils::ChannelWritingInfo"
+      ]
+    },
+    {
+      "target": "KisAslXmlWriterSchemaContractTest",
+      "source": "libs/psdutils/tests/KisAslXmlWriterSchemaContractTest.cpp",
+      "test": "KisAslXmlWriterSchemaContractTest::aslBinaryReaderTypeAndSectionSignaturesRemainStable",
+      "behavior": "ASL readerはfile、fill layer、layer effect、type tool、vector origination、vector stroke、PSD pattern sectionを既定のbig endianまたは指定byte orderでXML文書へ読む公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisAslReader",
+        "method:KisAslReader::readFile(QIODevice & device)",
+        "method:KisAslReader::readFillLayer(QIODevice & device,psd_byte_order byteOrder=psd_byte_order::psdBigEndian)",
+        "method:KisAslReader::readLfx2PsdSection(QIODevice & device,psd_byte_order byteOrder=psd_byte_order::psdBigEndian)",
+        "method:KisAslReader::readPsdSectionPattern(QIODevice & device,qint64 bytesLeft,psd_byte_order byteOrder=psd_byte_order::psdBigEndian)",
+        "method:KisAslReader::readTypeToolObjectSettings(QIODevice & device,QTransform & transform,psd_byte_order byteOrder=psd_byte_order::psdBigEndian)",
+        "method:KisAslReader::readVectorOriginationData(QIODevice & device,psd_byte_order byteOrder=psd_byte_order::psdBigEndian)",
+        "method:KisAslReader::readVectorStroke(QIODevice & device,psd_byte_order byteOrder=psd_byte_order::psdBigEndian)"
       ]
     }
   ]
