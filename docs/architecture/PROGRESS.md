@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-12 22:19 JST
+- 更新日時: 2026-09-12 22:24 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5208,6 +5208,12 @@
 - 開始`libs/painting/metadata/kis_meta_data_filter_registry.h`、`libs/painting/metadata/kis_meta_data_merge_strategy_registry.h`、`libs/painting/metadata/kis_meta_data_backend_registry.h`から新規`libs/painting/metadata/tests/KisMetaDataRegistrySchemaContractTest.cpp`へ、metadata filter registry 4 API、merge strategy registry 4 API、I/O backend registry 5 APIを5枠へ固定した。対象固有の`libs/painting/metadata/tests/CMakeLists.txt`節は3 headerが直接含む`KoGenericRegistry.h`を解決するmetadataとglobalの探索路を所有する。公開headerと製品sourceは変更していない。
 - 新targetの宣言段階では5枠の定義不足だけでlinkに失敗し、実装後はmacOSの正式CTest `libs-painting-metadata-KisMetaDataRegistrySchemaContractTest`、対象全体20回、各追加枠20回、近傍`KisMetaDataFilterRegistryModelSchemaContractTest`、無作業再構築2回に成功した。最終閉包は4工程・8入力、command SHA-256 `ac99f620feb3c8d5f98ea743fea3c9a624ff17d180ad988569a5739075b75ea9`、input SHA-256 `6a696af54473b357fccaed2ea0f1b6dcd5fed885a3a6bdd65fb27e66fed92e64`である。AUTOMOC `HEADERS=[]`、Qt Core・TestとOS frameworkだけの動的接続、metadata registryとgeneric registryの製品未解決記号なしを確認した。3製品sourceと試験sourceの`clang-check -Werror`、新規source書式、JSON構文、差分、`verify-quick`に成功した。
 - 公開API検査は28,579件対応、29,801件中1,222件未対応となった。新`build/tdd-macos/public-api-missing-g559.json`は331,260 bytes、SHA-256 `81b9071e20f1d5bd80142c889580fc0b341fef3db0f07e8cd6f55769968afa02`であり、生成成功後に旧`public-api-missing-g558.json` 334,501 bytesを削除した。主Ninja木6,053,928 KiB、共有compiler cache 983,120 KiB、最新報告だけを保持する。compiler cacheは144,884 cache可能呼出し中120,602件、83.24%がhitしている。registry登録内容、singleton初期化、I/O backend初期化の実行時意味は後続の動的契約で扱う。次の永続作業は第559便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
+
+### 第559便の公開API契約計画
+
+- 第559便はtransform maskへ新しいparamsを適用し、undo・redo・統合を担う`libs/image/commands_new/KisSimpleModifyTransformMaskCommand.h`の残存全6 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g559.json`は公開header 1,549、公開API 29,801、対応済み28,579、未対応1,222、331,260 bytes、SHA-256 `81b9071e20f1d5bd80142c889580fc0b341fef3db0f07e8cd6f55769968afa02`である。対象6識別子の整列集合SHA-256は`6960e319bd0a73ad93c33a420c908094467e1287db4549320f6fefd57275f76a`である。
+- modify transform mask command境界は型・transform maskとparams・更新blocker・親commandによる構築2、command識別と統合2、undo・redo2の3枠へ固定する。型特性と厳密なmember pointerだけを使い、command、mask、params、blocker、親commandを実体化せず本文を実行しない。params適用、update blocker、undo/redoの画像更新、command統合の実行時意味は後続の動的契約で扱う。
+- 新規`libs/image/tests/KisSimpleModifyTransformMaskCommandSchemaContractTest.cpp`と同target固有の`libs/image/tests/CMakeLists.txt`節を追加する。公開headerの直接依存はimage、Qt Core、header-only Boost、KUndo2で完結するため、最寄り`KisTransformMaskSchemaContractTest`が持つglobal・pigment・resources探索路、Qt Gui・Xml、KF I18n・Imathを対象へ移さない。新targetはimage source/generated探索路、`kritaimage_EXPORTS`、Qt Core・Test、Boostだけで4工程・8入力を予測する。近傍targetは4工程・8入力、command SHA-256 `f0bacabbc5e99602c061069d2f4101e49722026e6251620a0d22905651f02009`、input SHA-256 `226642f6eb0597b6d48f1e4473cc31fd9f989cd4ae40157591d3c02e0d8f5f79`である。開始`libs/image/commands_new/KisSimpleModifyTransformMaskCommand.cpp`の厳格構文診断は0件である。5工程・11入力超過、AUTOMOC候補header入力、製品未解決記号、追加探索路・定義・動的接続が必要なら停止する。macOSの対象全体と追加3枠の20回反復、軽量近傍、実装・試験sourceの厳格構文、新規source書式、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。
 
 ### 第239便の先行監査担当票
 
