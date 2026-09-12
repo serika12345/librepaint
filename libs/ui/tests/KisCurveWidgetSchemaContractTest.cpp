@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "widgets/KisCurveWidgetConnectionHelper.h"
 #include "widgets/KisCurveWidgetControlsManager.h"
 #include "widgets/kis_curve_widget.h"
 
@@ -49,6 +50,7 @@ private Q_SLOTS:
     void curveControlsConcreteAliasSchemaRemainsStable();
     void curveControlsConstructionSchemaRemainsStable();
     void curveControlsConnectionSignaturesRemainStable();
+    void curveWidgetControlConnectionHelperSignatureRemainsStable();
 };
 
 void KisCurveWidgetSchemaContractTest::curveWidgetTypeLifetimeAndConstraintSchemaRemainStable()
@@ -164,6 +166,12 @@ void KisCurveWidgetSchemaContractTest::curveControlsConnectionSignaturesRemainSt
     static_assert(std::is_same_v<decltype(&DoubleManager::setupInOutControls), DoubleSetup>);
     static_assert(std::is_same_v<decltype(&IntManager::dropInOutControls), void (IntManager::*)()>);
     static_assert(std::is_same_v<decltype(&DoubleManager::dropInOutControls), void (DoubleManager::*)()>);
+}
+
+void KisCurveWidgetSchemaContractTest::curveWidgetControlConnectionHelperSignatureRemainsStable()
+{
+    static_assert(std::is_same_v<decltype(&KisWidgetConnectionUtils::connectControl),
+                                 void (*)(KisCurveWidget *, QObject *, const char *)>);
 }
 
 QTEST_APPLESS_MAIN(KisCurveWidgetSchemaContractTest)

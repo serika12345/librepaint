@@ -67712,6 +67712,16 @@
       ]
     },
     {
+      "target": "KisCurveWidgetSchemaContractTest",
+      "source": "libs/ui/tests/KisCurveWidgetSchemaContractTest.cpp",
+      "test": "KisCurveWidgetSchemaContractTest::curveWidgetControlConnectionHelperSignatureRemainsStable",
+      "behavior": "曲線widgetとQObjectプロパティを接続する補助関数は、widget・source・プロパティ名を受けるvoid関数の公開型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisWidgetConnectionUtils::connectControl(KisCurveWidget * widget,QObject * source,const char * property)"
+      ]
+    },
+    {
       "target": "KisAsyncColorSamplerHelperSchemaContractTest",
       "source": "libs/ui/tests/KisAsyncColorSamplerHelperSchemaContractTest.cpp",
       "test": "KisAsyncColorSamplerHelperSchemaContractTest::screenColorSamplerTypeConstructionAndFactorySchemaRemainStable",
