@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-12 19:00 JST
+- 更新日時: 2026-09-12 19:03 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5016,6 +5016,13 @@
 - 開始headerはexport定義、`QRect`、`QVector`、PSD値、画像共有pointerだけを直接includeし、公開header、製品source、CMakeを変更していない。開始`libs/psd/psd_pixel_utils.cpp`と候補headerを直接includeする試験sourceの厳格構文は診断0件で、試験書式も成功した。
 - targetは4工程・8入力、command SHA-256 `51754fd123de29e7fbbe5b17678995eeaa7d5958f12c4225608aff39207a4aec`、input SHA-256 `598e0e334ab4cf08c266b29c2535393b8eaddc5851a447fab1e95f47c29869ab`を維持した。候補headerのAUTOMOC入力化と未解決製品記号は0で、Qt Core・Testだけへ動的接続する。macOSで対象全体20回と追加1枠20回、最終対象単発、厳格構文、試験書式、連続二回の無作業再構築に成功した。実channel I/O・圧縮、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 公開API検査の初回診断は期待値1,361に対して実測1,350で、新規11件と一致した。台帳を28,451件対応、1,350件未対応へ進め、`public-api-missing-g544.json`の生成成功後に旧`public-api-missing-g543.json` 371,720 bytesを削除した。主Ninja木6,041,260 KiB、共有compiler cache 982,856 KiB、最新報告367,349 bytes、SHA-256 `d61ba9c5795199a6b30d8cf8d32de3dfe68bb80f8764631dbad862d2feb51c37`だけを再利用対象として保持する。compiler cacheは144,829 cache可能呼出し中120,594件、83.27%がhitしている。次の永続作業は第544便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
+
+### 第544便の公開API契約計画
+
+- 第544便はASL file、fill layer、layer effect、type tool、vector stroke・origination、PSD pattern sectionをXML文書へ読む`libs/psdutils/asl/kis_asl_reader.h`の残存全8 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g544.json`は公開header 1,549、公開API 29,801、対応済み28,451、未対応1,350、367,349 bytes、SHA-256 `d61ba9c5795199a6b30d8cf8d32de3dfe68bb80f8764631dbad862d2feb51c37`である。対象8識別子の整列集合SHA-256は`a06c085ac3f82e3c971a393b0c24ad2b6b19b9bcfa8627c1568fecd55cc9d8a4`である。
+- ASL reader境界は型と既定構築1、file読込1、既定big endianを持つ6種類のsection読込6を既存ASL XML writer契約の1枠へ固定する。型特性と厳密な関数pointerだけを使い、reader、device、XML文書、変換を実体化しない。
+- 開始headerはexport定義、PSD値、Qt基本定義だけを直接includeし、deviceとXML文書を前方宣言する。開始`libs/psdutils/asl/kis_asl_reader.cpp`と既存`libs/psdutils/tests/KisAslXmlWriterSchemaContractTest.cpp`の厳格構文診断は0件であるため、構造変更を行わない。既存試験sourceは113行・6枠で、1枠追加後も220行・10枠以内に収まる。
+- 既存ASL XML writer契約へCMake変更なしで追加し、Qt Core・Testだけへ動的接続する4工程・8入力、command SHA-256 `fdba2c8ce6c16eb4d73fe37da82f7c3483d516817b54a5a8dac535579de71157`、input SHA-256 `c0bad8b3cfd810dd10035e4d3316829be21fe48b5c601f17113b32a452f3b06e`を維持する。工程・入力増加、候補headerのAUTOMOC入力化、製品未解決記号が生じれば停止する。macOSの対象全体と追加1枠の20回反復、実装・試験sourceの厳格構文、試験書式、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、binary解析の実効果、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
 
 ### 第239便の先行監査担当票
 
