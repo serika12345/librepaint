@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-12 19:09 JST
+- 更新日時: 2026-09-12 19:12 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5030,6 +5030,13 @@
 - 開始headerはexport定義、PSD値、Qt基本定義だけを直接includeし、公開header、製品source、CMakeを変更していない。開始`libs/psdutils/asl/kis_asl_reader.cpp`と候補headerを直接includeする試験sourceの厳格構文は診断0件で、試験書式も成功した。
 - targetは4工程・8入力、command SHA-256 `fdba2c8ce6c16eb4d73fe37da82f7c3483d516817b54a5a8dac535579de71157`、input SHA-256 `c0bad8b3cfd810dd10035e4d3316829be21fe48b5c601f17113b32a452f3b06e`を維持した。候補headerのAUTOMOC入力化と未解決製品記号は0で、Qt Core・Testだけへ動的接続する。macOSで対象全体20回と追加1枠20回、厳格構文、試験書式、連続二回の無作業再構築に成功した。binary解析の実効果、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 公開API検査の初回診断は期待値1,350に対して実測1,342で、新規8件と一致した。台帳を28,459件対応、1,342件未対応へ進め、`public-api-missing-g545.json`の生成成功後に旧`public-api-missing-g544.json` 367,349 bytesを削除した。主Ninja木6,041,232 KiB、共有compiler cache 983,180 KiB、最新報告364,693 bytes、SHA-256 `da4c68db6226d613139980a9767b7de50d85736c75bb61d4992e5d806dd2f90f`だけを再利用対象として保持する。compiler cacheは144,830 cache可能呼出し中120,594件、83.27%がhitしている。次の永続作業は第545便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
+
+### 第545便の公開API契約計画
+
+- 第545便はPSD image resource block群を所有し、section全体を読み書きする`libs/psd/psd_resource_section.h`の残存全9 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g545.json`は公開header 1,549、公開API 29,801、対応済み28,459、未対応1,342、364,693 bytes、SHA-256 `da4c68db6226d613139980a9767b7de50d85736c75bb61d4992e5d806dd2f90f`である。対象9識別子の整列集合SHA-256は`cc48d4a354124a49a94e82915fc40406a979425bd66d683770e49f268d89f736`である。
+- resource section境界は型・既定構築・破棄3、resource mapと診断文字列2、読込・書出・妥当性・識別子表示4の1枠へ固定する。型特性、公開member型、厳密な関数pointerだけを使い、section、resource block、deviceを実体化しない。
+- 開始headerはexport定義、`QMap`、`QString`だけを直接includeし、deviceとresource blockを前方宣言する。開始`libs/psd/psd_resource_section.cpp`の厳格構文診断は0件である。既存`libs/psdutils/tests/PsdFormatValuesContractTest.cpp`は3,025行、`PSDLayerRecordSchemaContractTest.cpp`は288行・20枠で追加上限に達したため、責務を混在させず新規`libs/psdutils/tests/PSDImageResourceSectionSchemaContractTest.cpp`の1枠を所有させる。
+- 新targetは`libs/psd`のsource・generated探索路、`kritapsd_EXPORTS`、Qt Core・Testだけを使い、近傍PSD schema契約と同じ4工程・8入力を予測する。CMakeと生成物を増やしても既存上限超過targetを肥大化させず、今後のresource section変更を限定再構築できるため専用targetを選ぶ。停止線は5工程・11入力で、候補headerをAUTOMOC入力にしない。macOSの新対象と近傍、追加1枠の20回反復、実装・試験sourceの厳格構文、試験書式、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、resource I/O・所有破棄の実効果、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
 
 ### 第239便の先行監査担当票
 
