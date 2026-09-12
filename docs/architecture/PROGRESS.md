@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-13 05:50 JST
+- 更新日時: 2026-09-13 05:57 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5648,6 +5648,12 @@
 - 正式入力`build/tdd-macos/public-api-missing-g596.json`の`libs/application/ui/orchestration/KisQtWidgetsTweaker.h`残存5 APIを、既存`libs/ui/tests/KisCursorOverrideHijackerSchemaContractTest.cpp`の新規1枠へ対応付ける。型・`QObject`継承・親QObject構築・破棄、event filter入口、singleton取得の正確な公開形式を固定する。application、event、widget、global singletonを実体化せず本文を実行しない。
 - `KisCursorOverrideHijackerSchemaContractTest`はsource 46行・2枠で、追記後も300行・20枠未満に収まる。第594便で追加済みの`libs`探索路がheaderを解決するためCMake変更なしの実測閉包は4工程・8入力、command SHA-256 `ce063294a78d45a16191c43707aacfacad47e7996378daf8ab5dcc8ae134efdb`、input SHA-256 `58d9882064254f622d7496f1d8e232987c51dd89595a3d9101b9bbaef2ddb583`である。停止線は5工程・11入力、CMake・探索路・定義・動的linkの変更、製品shared・OBJECT・`kritatestsdk`接続、対象headerのAUTOMOC入力、製品未解決記号、対象値または本文の実体化、許可path外変更である。
 - macOSでは対象CTest、追加枠20回、軽量近傍`KisGrabKeyboardFocusRecoveryWorkaroundSchemaContractTest`、AUTOMOC後の二回目計画、連続二回の無作業再構築、動的接続・未解決記号・厳格構文・書式、公開API検査、`verify-quick`だけを実行する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。初回公開API検査は移行基準949件に対する5 API減少の診断を期待する。
+
+### 第595便の公開API契約結果
+
+- 開始`libs/application/ui/orchestration/KisQtWidgetsTweaker.h`から既存`libs/ui/tests/KisCursorOverrideHijackerSchemaContractTest.cpp`へ、型・`QObject`継承・親QObject構築・破棄、event filter入口、singleton取得の5 APIを1枠として固定した。application、event、widget、global singletonを実体化せず本文を実行していない。CMake、公開header、製品sourceは変更していない。
+- macOSの`KisCursorOverrideHijackerSchemaContractTest`は追加前後とも4工程・8入力、command SHA-256 `ce063294a78d45a16191c43707aacfacad47e7996378daf8ab5dcc8ae134efdb`、input SHA-256 `58d9882064254f622d7496f1d8e232987c51dd89595a3d9101b9bbaef2ddb583`を維持した。対象全体20回、追加1枠20回（60 pass）、近傍`KisGrabKeyboardFocusRecoveryWorkaroundSchemaContractTest`、AUTOMOC後の連続二回の無作業再構築に成功した。試験sourceは60行・3枠、AUTOMOC `HEADERS=[]`、Qt Core・TestとOS frameworkだけの動的接続、Qt widgets tweaker・製品libraryの未解決記号なしを確認した。試験sourceと`libs/application/ui/orchestration/KisQtWidgetsTweaker.cpp`の`clang-check -Werror`、試験source書式、JSON構文、差分に成功した。
+- 初回照合は移行基準949件に対して実測944件となる期待診断を確認後、基準を更新した。公開API検査は28,857件対応、29,801件中944件未対応となった。新`build/tdd-macos/public-api-missing-g597.json`は259,570 bytes、SHA-256 `3d6f1de9f7b80635da5c5eb5d2e03f2f3d9dca750ba5caa7c0d997d0768dbaa5`である。生成成功後に旧`public-api-missing-g596.json` 260,823 bytesをゴミ箱へ移して作業領域から約255 KiBを回収し、主Ninja木6,061,056 KiB、共有compiler cache 981,944 KiB、最新報告だけを再利用対象として保持する。eventの変換・widget規則・singleton寿命の実行結果は後続の効果契約で扱う。次の永続作業は第596便で独立軽量試験に追加可能な高密度の公開headerを選び、対象限定閉包を先に監査することである。
 
 ### 第239便の先行監査担当票
 
