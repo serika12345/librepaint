@@ -5,6 +5,7 @@
 
 #include "KisMaskingBrushOptionProperties.h"
 #include "kis_brush_based_paintop.h"
+#include "kis_texture_option.h"
 
 #include <QTest>
 
@@ -44,6 +45,8 @@ private Q_SLOTS:
     void maskingBrushDataTypeAndMemberSchemaRemainStable();
     void maskingBrushDataEqualitySignatureRemainStable();
     void maskingBrushDataPersistenceSignaturesRemainStable();
+    void textureOptionTypeStateAndConstructionSchemaRemainStable();
+    void textureOptionProcessingAndResourceSignaturesRemainStable();
 };
 
 void KisBrushBasedPaintOpSchemaContractTest::textBrushInitializationSchemaRemainStable()
@@ -132,6 +135,41 @@ void KisBrushBasedPaintOpSchemaContractTest::maskingBrushDataPersistenceSignatur
 
     static_assert(std::is_same_v<decltype(&Data::read), Read>);
     static_assert(std::is_same_v<decltype(&Data::write), void (Data::*)(KisPropertiesConfiguration *) const>);
+
+    QVERIFY(true);
+}
+
+void KisBrushBasedPaintOpSchemaContractTest::textureOptionTypeStateAndConstructionSchemaRemainStable()
+{
+    using Option = KisTextureOption;
+
+    static_assert(std::is_class_v<Option>);
+    static_assert(std::is_same_v<decltype(Option::m_enabled), bool>);
+    static_assert(std::is_constructible_v<Option,
+                                          const KisPropertiesConfiguration *,
+                                          KisResourcesInterfaceSP,
+                                          KoCanvasResourcesInterfaceSP,
+                                          int,
+                                          KisBrushTextureFlags>);
+
+    QVERIFY(true);
+}
+
+void KisBrushBasedPaintOpSchemaContractTest::textureOptionProcessingAndResourceSignaturesRemainStable()
+{
+    using Option = KisTextureOption;
+    using GradientQuery = bool (Option::*)() const;
+    using ConfigurationGradientQuery = bool (*)(const KisPropertiesConfiguration *);
+    using ResourcePreparation = QList<KoResourceLoadResult> (*)(KisPropertiesConfigurationSP, KisResourcesInterfaceSP);
+
+    static_assert(std::is_same_v<decltype(&Option::apply),
+                                 void (Option::*)(KisFixedPaintDeviceSP, const QPoint &, const KisPaintInformation &)>);
+    static_assert(std::is_same_v<decltype(static_cast<GradientQuery>(&Option::applyingGradient)), GradientQuery>);
+    static_assert(std::is_same_v<decltype(static_cast<ConfigurationGradientQuery>(&Option::applyingGradient)),
+                                 ConfigurationGradientQuery>);
+    static_assert(std::is_same_v<decltype(&Option::prepareEmbeddedResources), ResourcePreparation>);
+    static_assert(std::is_same_v<decltype(&Option::prepareLinkedResources), ResourcePreparation>);
+    static_assert(std::is_same_v<decltype(&Option::requiresEffectiveCompositeOp), ConfigurationGradientQuery>);
 
     QVERIFY(true);
 }

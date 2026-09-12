@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 1291
+    "expectedMissingApis": 1282
   },
   "contracts": [
     {
@@ -79780,6 +79780,33 @@
       "apis": [
         "method:KisBrushModel::MaskingBrushData::read(const KisPropertiesConfiguration * config,qreal masterBrushSize,KisResourcesInterfaceSP resourcesInterface)",
         "method:KisBrushModel::MaskingBrushData::write(KisPropertiesConfiguration * config) const"
+      ]
+    },
+    {
+      "target": "KisBrushBasedPaintOpSchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisBrushBasedPaintOpSchemaContractTest.cpp",
+      "test": "KisBrushBasedPaintOpSchemaContractTest::textureOptionTypeStateAndConstructionSchemaRemainStable",
+      "behavior": "texture optionは公開classと有効状態を持ち、設定、資源接続、canvas資源接続、詳細度、brush texture flagsから構築する境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisTextureOption",
+        "member:KisTextureOption::m_enabled",
+        "method:KisTextureOption::KisTextureOption(const KisPropertiesConfiguration * setting,KisResourcesInterfaceSP resourcesInterface,KoCanvasResourcesInterfaceSP canvasResourcesInterface,int levelOfDetail,KisBrushTextureFlags flags=None)"
+      ]
+    },
+    {
+      "target": "KisBrushBasedPaintOpSchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisBrushBasedPaintOpSchemaContractTest.cpp",
+      "test": "KisBrushBasedPaintOpSchemaContractTest::textureOptionProcessingAndResourceSignaturesRemainStable",
+      "behavior": "texture optionはdabへの適用、instanceと設定値のgradient利用判定、埋込み・連結資源準備、実効合成方式要否の公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTextureOption::apply(KisFixedPaintDeviceSP dab,const QPoint & offset,const KisPaintInformation & info)",
+        "method:KisTextureOption::applyingGradient() const",
+        "method:KisTextureOption::applyingGradient(const KisPropertiesConfiguration * settings)",
+        "method:KisTextureOption::prepareEmbeddedResources(const KisPropertiesConfigurationSP setting,KisResourcesInterfaceSP resourcesInterface)",
+        "method:KisTextureOption::prepareLinkedResources(const KisPropertiesConfigurationSP setting,KisResourcesInterfaceSP resourcesInterface)",
+        "method:KisTextureOption::requiresEffectiveCompositeOp(const KisPropertiesConfiguration * settings)"
       ]
     }
   ]
