@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-12 18:26 JST
+- 更新日時: 2026-09-12 18:34 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4981,6 +4981,13 @@
 - ASL writer境界は型・既定byte order付き構築2、file・fill layer・layer effect・type tool・vector stroke・vector originationの書出6の全8件を既存ASL XML writer契約の1枠へ固定する。型特性、構築可能性、厳密な関数pointerだけを使い、writer、device、XML文書、変換、矩形を実体化しない。
 - 開始headerはexport定義と`psd_byte_order`を所有する`psd.h`だけを直接includeし、deviceとXML文書を前方宣言している。開始`libs/psdutils/asl/kis_asl_writer.cpp`と既存`libs/psdutils/tests/KisAslXmlWriterSchemaContractTest.cpp`の厳格構文診断は0件であるため、構造変更を行わない。
 - 最初に監査したwriter utils対象は既存debug生成物を含む5工程・13入力だった。既存ASL XML writer契約は90行・5枠で、1枠追加後も220行・10枠以内に収まり、Qt Core・Testだけへ接続する4工程・8入力のためこちらを選ぶ。CMakeを変更せずcommand SHA-256 `fdba2c8ce6c16eb4d73fe37da82f7c3483d516817b54a5a8dac535579de71157`、input SHA-256 `c0bad8b3cfd810dd10035e4d3316829be21fe48b5c601f17113b32a452f3b06e`を維持する。工程・入力増加、候補headerのAUTOMOC入力化、製品未解決記号が生じれば停止する。macOSの対象全体と追加1枠の20回反復、実装・試験sourceとheader強制includeの厳格構文、試験書式、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、binary書出の実効果、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
+
+### 第541便の公開API契約結果
+
+- ASL XML文書をbinary sectionへ書き出す公開境界を軽量な型契約として固定した。開始`libs/psdutils/asl/kis_asl_writer.h`から既存`libs/psdutils/tests/KisAslXmlWriterSchemaContractTest.cpp`へ残存全8 API・1枠を追加し、型・既定byte order付き構築2件、file・fill layer・layer effect・type tool・vector origination・vector strokeの書出6件を型特性、構築可能性、厳密な関数pointerで固定した。計画commitは`c7b6378ac4`、契約commitは`d36cae39d3`で、既存試験sourceは113行・6枠となった。
+- 開始headerはexport定義と`psd_byte_order`を所有する`psd.h`だけを直接includeし、公開header、製品source、CMakeを変更していない。開始`libs/psdutils/asl/kis_asl_writer.cpp`と候補headerを直接includeする試験sourceの厳格構文は診断0件で、試験書式も成功した。
+- targetは4工程・8入力、command SHA-256 `fdba2c8ce6c16eb4d73fe37da82f7c3483d516817b54a5a8dac535579de71157`、input SHA-256 `c0bad8b3cfd810dd10035e4d3316829be21fe48b5c601f17113b32a452f3b06e`を維持した。候補headerのAUTOMOC入力化と未解決製品記号は0で、Qt Core・Testだけへ動的接続する。macOSで対象全体20回と追加1枠20回、最終対象単発、厳格構文、試験書式、連続二回の無作業再構築に成功した。binary書出の実効果、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 公開API検査の初回診断は期待値1,378に対して実測1,370で、新規8件と一致した。台帳を28,431件対応、1,370件未対応へ進め、`public-api-missing-g542.json`の生成成功後に旧`public-api-missing-g541.json` 376,770 bytesを削除した。主Ninja木6,039,128 KiB、共有compiler cache 983,004 KiB、最新報告374,366 bytes、SHA-256 `50c9738fd1d9b0627da7d9dbdd46c4168218e42289bb3510f942c705cf32bef9`だけを再利用対象として保持する。compiler cacheは144,821 cache可能呼出し中120,594件、83.27%がhitしている。次の永続作業は第542便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
 
 ### 第239便の先行監査担当票
 

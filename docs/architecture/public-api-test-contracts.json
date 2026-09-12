@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 1378
+    "expectedMissingApis": 1370
   },
   "contracts": [
     {
@@ -79540,6 +79540,23 @@
         "method:KisDummiesFacade::dummyForNode(KisNodeSP node) const",
         "method:KisDummiesFacade::hasDummyForNode(KisNodeSP node) const",
         "method:KisDummiesFacade::rootDummy() const"
+      ]
+    },
+    {
+      "target": "KisAslXmlWriterSchemaContractTest",
+      "source": "libs/psdutils/tests/KisAslXmlWriterSchemaContractTest.cpp",
+      "test": "KisAslXmlWriterSchemaContractTest::aslBinaryWriterTypeConstructionAndSectionSignaturesRemainStable",
+      "behavior": "ASL writerは既定のbig endianまたは指定byte orderで構築でき、XML文書からfile、fill layer、layer effect、type tool、vector origination、vector strokeの各binary sectionを書き出す公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisAslWriter",
+        "method:KisAslWriter::KisAslWriter(psd_byte_order byteOrder=psd_byte_order::psdBigEndian)",
+        "method:KisAslWriter::writeFile(QIODevice & device,const QDomDocument & doc)",
+        "method:KisAslWriter::writeFillLayerSectionEx(QIODevice & device,const QDomDocument & doc)",
+        "method:KisAslWriter::writePsdLfx2SectionEx(QIODevice & device,const QDomDocument & doc)",
+        "method:KisAslWriter::writeTypeToolObjectSettings(QIODevice & device,const QDomDocument & doc,const QDomDocument & warpDoc,const QTransform tf,const QRectF bounds)",
+        "method:KisAslWriter::writeVectorOriginationDataEx(QIODevice & device,const QDomDocument & doc)",
+        "method:KisAslWriter::writeVectorStrokeDataEx(QIODevice & device,const QDomDocument & doc)"
       ]
     }
   ]
