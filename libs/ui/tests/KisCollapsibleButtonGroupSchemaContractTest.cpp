@@ -5,6 +5,7 @@
 
 #include "utils/KisRecentFileIconCache.h"
 #include "widgets/KisColorSamplerPreviewPreview.h"
+#include "widgets/KisDockerHud.h"
 #include "widgets/KisLodAvailabilityData.h"
 #include "widgets/KisMemoryReportButton.h"
 #include "widgets/kis_collapsible_button_group.h"
@@ -35,6 +36,8 @@ private Q_SLOTS:
     void memoryReportButtonStateAndPaintingSignaturesRemainStable();
     void colorSamplerPreviewTypeAndConstructionSchemaRemainStable();
     void colorSamplerPreviewStateAndPaintingSignaturesRemainStable();
+    void dockerHudTypeConstructionAndLifetimeSchemaRemainStable();
+    void dockerHudStateAndBorrowingSignaturesRemainStable();
 };
 
 void KisCollapsibleButtonGroupSchemaContractTest::typeConstructionAndLifetimeSchemaRemainStable()
@@ -196,6 +199,27 @@ void KisCollapsibleButtonGroupSchemaContractTest::colorSamplerPreviewStateAndPai
     static_assert(std::is_same_v<decltype(&Preview::setOutlineEnabled), void (Preview::*)(bool)>);
     static_assert(std::is_same_v<decltype(&Preview::setThickness), void (Preview::*)(qreal)>);
     static_assert(std::is_same_v<decltype(&Preview::paintEvent), void (Preview::*)(QPaintEvent *)>);
+}
+
+void KisCollapsibleButtonGroupSchemaContractTest::dockerHudTypeConstructionAndLifetimeSchemaRemainStable()
+{
+    using Hud = KisDockerHud;
+
+    static_assert(std::is_class_v<Hud>);
+    static_assert(std::is_base_of_v<QWidget, Hud>);
+    static_assert(std::is_constructible_v<Hud, QString, QString>);
+    static_assert(std::has_virtual_destructor_v<Hud>);
+}
+
+void KisCollapsibleButtonGroupSchemaContractTest::dockerHudStateAndBorrowingSignaturesRemainStable()
+{
+    using Hud = KisDockerHud;
+
+    static_assert(std::is_same_v<decltype(&Hud::slotUpdateIcons), void (Hud::*)()>);
+    static_assert(std::is_same_v<decltype(&Hud::borrowOrReturnDocker), void (Hud::*)()>);
+    static_assert(std::is_same_v<decltype(&Hud::returnDocker), void (Hud::*)(bool)>);
+    static_assert(std::is_same_v<decltype(&Hud::borrowDocker), void (Hud::*)()>);
+    static_assert(std::is_same_v<decltype(&Hud::setIsShown), void (Hud::*)(bool)>);
 }
 
 QTEST_GUILESS_MAIN(KisCollapsibleButtonGroupSchemaContractTest)

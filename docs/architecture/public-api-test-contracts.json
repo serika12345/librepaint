@@ -79598,6 +79598,32 @@
       ]
     },
     {
+      "target": "KisCollapsibleButtonGroupSchemaContractTest",
+      "source": "libs/ui/tests/KisCollapsibleButtonGroupSchemaContractTest.cpp",
+      "test": "KisCollapsibleButtonGroupSchemaContractTest::dockerHudTypeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "docker HUDはQWidget派生の公開型として二つのQStringで構築でき、仮想破棄を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisDockerHud",
+        "method:KisDockerHud::KisDockerHud(QString borrowerName,QString configId)",
+        "method:KisDockerHud::~KisDockerHud()"
+      ]
+    },
+    {
+      "target": "KisCollapsibleButtonGroupSchemaContractTest",
+      "source": "libs/ui/tests/KisCollapsibleButtonGroupSchemaContractTest.cpp",
+      "test": "KisCollapsibleButtonGroupSchemaContractTest::dockerHudStateAndBorrowingSignaturesRemainStable",
+      "behavior": "docker HUDはicon更新、借用、返却、表示状態の正確な公開slot関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDockerHud::borrowDocker()",
+        "method:KisDockerHud::borrowOrReturnDocker()",
+        "method:KisDockerHud::returnDocker(bool beingTaken=false)",
+        "method:KisDockerHud::setIsShown(bool isShown)",
+        "method:KisDockerHud::slotUpdateIcons()"
+      ]
+    },
+    {
       "target": "KisMultiBoolFilterWidgetSchemaContractTest",
       "source": "libs/ui/tests/KisMultiBoolFilterWidgetSchemaContractTest.cpp",
       "test": "KisMultiBoolFilterWidgetSchemaContractTest::nodeDisplayModeTypeConstructionAndAccessSignaturesRemainStable",
