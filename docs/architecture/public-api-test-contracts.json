@@ -80539,6 +80539,42 @@
       "apis": [
         "method:KoContactInfoDelegate::createEditor(QWidget * parent,const QStyleOptionViewItem & option,const QModelIndex & index) const"
       ]
+    },
+    {
+      "target": "KoToolDockerSchemaContractTest",
+      "source": "libs/widgets/tests/KoToolDockerSchemaContractTest.cpp",
+      "test": "KoToolDockerSchemaContractTest::toolDockerTypeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "tool dockerはdock widgetとcanvas observerの公開派生型として親widgetで構築し、仮想破棄する境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoToolDocker",
+        "method:KoToolDocker::KoToolDocker(QWidget * parent=0)",
+        "method:KoToolDocker::~KoToolDocker()"
+      ]
+    },
+    {
+      "target": "KoToolDockerSchemaContractTest",
+      "source": "libs/widgets/tests/KoToolDockerSchemaContractTest.cpp",
+      "test": "KoToolDockerSchemaContractTest::toolDockerCanvasLifecycleSchemaRemainStable",
+      "behavior": "tool dockerはoption widgetをresetし、canvasを設定・解除する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoToolDocker::resetWidgets()",
+        "method:KoToolDocker::setCanvas(KoCanvasBase * canvas)",
+        "method:KoToolDocker::unsetCanvas()"
+      ]
+    },
+    {
+      "target": "KoToolDockerSchemaContractTest",
+      "source": "libs/widgets/tests/KoToolDockerSchemaContractTest.cpp",
+      "test": "KoToolDockerSchemaContractTest::toolDockerOptionWidgetAndScrollerSchemaRemainStable",
+      "behavior": "tool dockerはoption widgetを設定し、scroller状態を受け、option widgetの有無を照会する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoToolDocker::hasOptionWidget()",
+        "method:KoToolDocker::setOptionWidgets(const QList<QPointer<QWidget>> & optionWidgetList)",
+        "method:KoToolDocker::slotScrollerStateChange(QScroller::State state)"
+      ]
     }
   ]
 }
