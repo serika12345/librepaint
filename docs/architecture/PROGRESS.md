@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-12 21:40 JST
+- 更新日時: 2026-09-12 21:48 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5172,6 +5172,12 @@
 - legacy undo adapterの公開境界を専用schema契約へ分離した。開始`libs/image/kis_legacy_undo_adapter.h`から新規`libs/image/tests/KisLegacyUndoAdapterSchemaContractTest.cpp`へ残存全7 API・3枠を追加し、型・undo storeとimageの構築2件、現在command照会・undo2件、command追加・macro開始・終了3件を型特性と厳密なmember pointerで固定した。新targetは`libs/image/tests/CMakeLists.txt`のtarget固有節で所有し、最初の限定リンクは未定義3枠だけの不足で期待どおり失敗した。計画commitは`414e9bf327`、契約commitは`4cd14e7a40`で、新規sourceは50行・3枠となった。公開headerと製品sourceは変更していない。
 - 新targetは4工程・8入力、command SHA-256 `d7729e99ec3575c54c2a8ced719ad193d47a777a107049aafdf19b161acc9851`、input SHA-256 `9ea965d1c1fe60cb8df30cd3113b1adba72ed9a33b19448be17bce3b74b3e094`である。AUTOMOC `HEADERS=[]`、legacy adapter・undo store・image・command・macro名の未解決製品記号0で、Qt Testだけへ動的接続する。macOSで対象単発と全体20回、追加3枠各20回、近傍`KisSpontaneousJobContractTest`、実装・試験sourceの厳格構文、新規source書式、連続二回の無作業再構築、`verify-quick`に成功した。store操作、stroke・queue停止、undo、macroの実行時意味、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 公開API検査の初回診断は期待値1,257に対して実測1,250で、新規7件と一致した。台帳を28,551件対応、1,250件未対応へ進めた。新`public-api-missing-g556.json`は338,905 bytes、SHA-256 `9770326957c94de3b83d2994f827c4e29931a6edd06523a9a9babd527b92ecd3`で、生成成功後に旧`public-api-missing-g555.json` 340,579 bytesを削除した。主Ninja木6,049,272 KiB、共有compiler cache 983,296 KiBと最新報告だけを保持する。compiler cacheは144,874 cache可能呼出し中120,602件、83.25%がhitしている。次の永続作業は第556便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
+
+### 第556便の公開API契約計画
+
+- 第556便はmetadata schemaの生成・照会とsingleton取得を所有する`libs/painting/metadata/kis_meta_data_schema_registry.h`の残存全7 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g556.json`は公開header 1,549、公開API 29,801、対応済み28,551、未対応1,250、338,905 bytes、SHA-256 `9770326957c94de3b83d2994f827c4e29931a6edd06523a9a9babd527b92ecd3`である。対象7識別子の整列集合SHA-256は`a87516fe8a4fc12bd2bf014b1a52d44b8519455c22f1f683a6c446d5f7a671b7`である。
+- metadata schema registry境界は型・構築・破棄3、URI・prefixからのschema生成と照会3、singleton取得1の3枠へ固定する。型特性と厳密な関数・member pointerだけを使い、registry、schema、文字列、singletonを実体化せず本文を実行しない。既存`libs/painting/metadata/tests/KisMetaDataStoreSchemaContractTest.cpp`はstore、validator、entry、schemaを扱うため20枠の上限に達しており、追記しない。
+- 新規`libs/painting/metadata/tests/KisMetaDataSchemaRegistrySchemaContractTest.cpp`と同target固有の`libs/painting/metadata/tests/CMakeLists.txt`節を追加する。新targetはmetadata source/generated探索路、`kritapaintingmetadata_EXPORTS`、Qt Core・Testだけで4工程・8入力を予測する。近傍`KisMetaDataStoreSchemaContractTest`は4工程・8入力、command SHA-256 `4780a7a4dd7a3ef927ed82b94e677c675be48cefb8338d377d4b2d4ea9c5f0dd`、input SHA-256 `efb0a78e7ec95e5a0b3bf9c74c634d4cdd2d3f36df78bc88f5818ed3b92fe259`、Qt Core・Testだけの動的接続である。開始`libs/painting/metadata/kis_meta_data_schema_registry.cc`の厳格構文診断は0件である。5工程・11入力超過、AUTOMOC候補header入力、製品未解決記号、追加探索路・定義・動的接続が必要なら停止する。macOSの対象全体と追加3枠の20回反復、軽量近傍、実装・試験sourceの厳格構文、新規source書式、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、schema生成・再利用、URI・prefix衝突、singleton初期化、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
 
 ### 第239便の先行監査担当票
 
