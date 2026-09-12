@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-13 02:51 JST
+- 更新日時: 2026-09-13 02:55 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5448,6 +5448,12 @@
 - 開始`libs/ui/canvas/KisSnapPointStrategy.h`から既存`libs/flake/tests/KoSnapGuideSchemaContractTest.cpp`へ、custom snapping種別によるstrategy型・構築・仮想破棄3 API、スナップ判定・装飾path・候補点追加3 APIを1枠へ固定した。`libs/flake/tests/CMakeLists.txt`には`kritaui_export.h`を解決する`libs/ui`のsource/generated header探索路と`kritaui_EXPORTS`だけを対象固有で追加した。公開headerと製品sourceは変更していない。
 - 初回構築は生成済み`kritaui_export.h`の探索路不足で停止し、生成側探索路を追加後に解消した。macOSの正式CTest `libs-flake-KoSnapGuideSchemaContractTest`と対象全体20回、追加枠20回、近傍`KoSnapDataContractTest`、連続二回の無作業再構築に成功した。最終閉包は4工程・8入力、command SHA-256 `ec7268d4805436252f99ccc150c4b3106e4a484cbcff27b61d6ecaab51f29e96`、input SHA-256 `a9878d0d607a5dc579c972e8463299b47311956a7b2bdfb69ca4cfd550f75f9f`である。試験sourceは293行・14枠、AUTOMOC `HEADERS=[]`、Qt Core・TestとOS frameworkだけの動的接続、snap point strategyの製品未解決記号なしを確認した。試験sourceと`libs/ui/canvas/KisSnapPointStrategy.cpp`の`clang-check -Werror`、試験source書式、JSON構文、差分に成功した。
 - 公開API検査は28,759件対応、29,801件中1,042件未対応となった。新`build/tdd-macos/public-api-missing-g580.json`は283,710 bytes、SHA-256 `8d9d5a391ea299b5bdcee9d4416134c217e9c19b8c665854e4ac3f4588e6059f`である。生成成功後に旧`public-api-missing-g579.json` 283,936 bytesをゴミ箱へ移して作業領域から約277 KiBを回収し、主Ninja木6,058,664 KiB、共有compiler cache 982,244 KiB、最新報告だけを再利用対象として保持する。最近傍選択、最大距離判定、装飾の画面変換は後続の実行時契約で扱う。次の永続作業は第579便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
+
+### 第579便の公開API契約計画
+
+- 第579便はforeground/background 色選択の四つの具体buttonを表す`libs/ui/widgets/KoResetBgFgColours.h`、`libs/ui/widgets/KoSwapBgFgColours.h`、`libs/ui/widgets/KoBackgroundColour.h`、`libs/ui/widgets/KoForegroundColour.h`の残存全26 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g580.json`は公開header 1,549、公開API 29,801、対応済み28,759、未対応1,042、283,710 bytes、SHA-256 `8d9d5a391ea299b5bdcee9d4416134c217e9c19b8c665854e4ac3f4588e6059f`である。対象26識別子の整列集合SHA-256は`3cd61266ec04ee0449383011cd7df2a546b8e6da2ba35b524e7c473ee64b4b5c`であり、台帳との交差は0件である。
+- 四buttonの境界は共通のdual color buttonを基底として、親widget・canvas色資源・表示rendererによる構築、icon描画、マウス押下・移動・解放、event処理を提供する。開始四headerから新規`libs/ui/tests/KoDualColorButtonVariantSchemaContractTest.cpp`へ、reset button 7、swap button 7、background button 6、foreground button 6 APIを4枠へ固定する。型特性と厳密なmember pointerだけを観測し、button、canvas、renderer、色選択dialog、設定、描画器を実体化せず本文を実行しない。色の初期化・交換、dialog選択、tooltip、icon描画、マウス操作の実行時意味は後続の動的契約で扱う。
+- `KisCanvas2SchemaContractTest`は必要な公開header探索路とexport定義を持つが、source 397行・15枠のため追記先から除外する。新targetは同じui・flake・canvas・image・global・resources・pigment・widgetutils・widgetsのsource/generated header探索路、Qt Widgets・Xml、Eigen、KF ConfigCore・I18n、Imathのinterface探索路、既存の10 export定義を、headerコンパイル専用に持つ。Qt Gui・Testとheader-only Boostだけを動的接続し、製品shared・OBJECT、`kritatestsdk`、製品sourceを接続しない。新targetの最近傍閉包4工程・8入力を基準に、同じ4工程・8入力、source 300行未満・20枠未満、停止線を5工程・11入力とする。AUTOMOC候補header入力、製品未解決記号、動的接続の追加、製品再構築、許可path外変更が必要なら停止する。macOSの対象全体と追加4枠の20回反復、軽量近傍、試験sourceと四開始sourceの厳格構文、新規sourceの書式、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。初期公開API検査は移行基準1,042件に対する26 API減少の診断を期待する。
 
 ### 第239便の先行監査担当票
 
