@@ -274,6 +274,8 @@ target_include_directories(KoFileDialogSchemaContractTest PRIVATE
     ${CMAKE_CURRENT_BINARY_DIR}/..
     ${CMAKE_SOURCE_DIR}/libs/widgets
     ${CMAKE_BINARY_DIR}/libs/widgets
+    ${CMAKE_SOURCE_DIR}/libs/ui
+    ${CMAKE_BINARY_DIR}/libs/ui
     $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Gui,INTERFACE_INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Widgets,INTERFACE_INCLUDE_DIRECTORIES>
 )

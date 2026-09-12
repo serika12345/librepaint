@@ -52649,6 +52649,17 @@
     {
       "target": "KoFileDialogSchemaContractTest",
       "source": "libs/widgetutils/tests/KoFileDialogSchemaContractTest.cpp",
+      "test": "KoFileDialogSchemaContractTest::concreteFileIconCreatorSchemaRemainsStable",
+      "behavior": "具体ファイルicon生成器は抽象生成器を実装し、ファイルパス・icon出力・表示倍率・寸法を受けて成功可否を返す正確な公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisFileIconCreator",
+        "method:KisFileIconCreator::createFileIcon(QString path,QIcon & icon,qreal devicePixelRatioF,QSize iconSize)"
+      ]
+    },
+    {
+      "target": "KoFileDialogSchemaContractTest",
+      "source": "libs/widgetutils/tests/KoFileDialogSchemaContractTest.cpp",
       "test": "KoFileDialogSchemaContractTest::fileIconProviderTypeAndDispatchSchemaRemainStable",
       "behavior": "ファイルicon提供器は表示倍率を受け取り、icon種別またはファイル情報からiconを返す公開overloadを維持する。",
       "classification": "maintained",

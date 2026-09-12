@@ -5,6 +5,8 @@
 #include "KisPreviewFileDialog.h"
 #include "kis_file_name_requester.h"
 
+#include <utils/KisFileIconCreator.h>
+
 #include <KoFileDialog.h>
 #include <QTest>
 
@@ -39,6 +41,7 @@ private Q_SLOTS:
     void fileDialogSelectionResultSignaturesRemainStable();
     void fileDialogFilterNotificationSignatureRemainsStable();
     void fileIconCreatorTypeAndLifetimeSchemaRemainStable();
+    void concreteFileIconCreatorSchemaRemainsStable();
     void fileIconProviderTypeAndDispatchSchemaRemainStable();
     void previewFileDialogTypeAndNotificationSchemaRemainStable();
     void fileNameRequesterTypeAndConfigurationSchemaRemainStable();
@@ -102,6 +105,16 @@ void KoFileDialogSchemaContractTest::fileIconCreatorTypeAndLifetimeSchemaRemainS
     static_assert(std::is_abstract_v<Creator>);
     static_assert(std::is_default_constructible_v<ConstructionProbe>);
     static_assert(std::has_virtual_destructor_v<Creator>);
+    ASSERT_MEMBER_SIGNATURE(Creator, createFileIcon, bool (Creator::*)(QString, QIcon &, qreal, QSize));
+}
+
+void KoFileDialogSchemaContractTest::concreteFileIconCreatorSchemaRemainsStable()
+{
+    using Creator = KisFileIconCreator;
+
+    static_assert(std::is_class_v<Creator>);
+    static_assert(std::is_base_of_v<KisAbstractFileIconCreator, Creator>);
+    static_assert(!std::is_abstract_v<Creator>);
     ASSERT_MEMBER_SIGNATURE(Creator, createFileIcon, bool (Creator::*)(QString, QIcon &, qreal, QSize));
 }
 
