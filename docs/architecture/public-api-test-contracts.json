@@ -80466,6 +80466,43 @@
         "method:KisDocumentAwareSpinBoxUnitManager::getConversionFactor(int dim,QString psymbol) const",
         "method:KisDocumentAwareSpinBoxUnitManagerBuilder::buildUnitManager(QObject * parent)"
       ]
+    },
+    {
+      "target": "KisMagneticWorkerSchemaContractTest",
+      "source": "plugins/tools/selectiontools/KisMagneticWorkerSchemaContractTest.cpp",
+      "test": "KisMagneticWorkerSchemaContractTest::magneticLazyTilesTypeAndFilterSchemaRemainStable",
+      "behavior": "magnetic lazy tilesは画像deviceで構築し、指定半径で矩形範囲をfilterする公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisMagneticLazyTiles",
+        "method:KisMagneticLazyTiles::KisMagneticLazyTiles(KisPaintDeviceSP dev)",
+        "method:KisMagneticLazyTiles::filter(qreal radius,QRect & rect)"
+      ]
+    },
+    {
+      "target": "KisMagneticWorkerSchemaContractTest",
+      "source": "plugins/tools/selectiontools/KisMagneticWorkerSchemaContractTest.cpp",
+      "test": "KisMagneticWorkerSchemaContractTest::magneticLazyTilesAccessorsAndWorkerConstructionSchemaRemainStable",
+      "behavior": "magnetic lazy tilesは処理対象deviceとtileを照会し、magnetic workerは画像deviceで構築する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisMagneticWorker",
+        "method:KisMagneticLazyTiles::device()",
+        "method:KisMagneticLazyTiles::tiles()",
+        "method:KisMagneticWorker::KisMagneticWorker(const KisPaintDeviceSP & dev)"
+      ]
+    },
+    {
+      "target": "KisMagneticWorkerSchemaContractTest",
+      "source": "plugins/tools/selectiontools/KisMagneticWorkerSchemaContractTest.cpp",
+      "test": "KisMagneticWorkerSchemaContractTest::magneticWorkerSearchAndOutputSchemaRemainStable",
+      "behavior": "magnetic workerはedgeを計算し、点の強度を照会し、探索結果の画像を保存する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMagneticWorker::computeEdge(int bounds,QPoint start,QPoint end,qreal radius)",
+        "method:KisMagneticWorker::intensity(QPoint pt)",
+        "method:KisMagneticWorker::saveTheImage(vQPointF points)"
+      ]
     }
   ]
 }
