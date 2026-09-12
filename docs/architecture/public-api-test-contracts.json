@@ -80503,6 +80503,42 @@
         "method:KisMagneticWorker::intensity(QPoint pt)",
         "method:KisMagneticWorker::saveTheImage(vQPointF points)"
       ]
+    },
+    {
+      "target": "KoConfigAuthorPageSchemaContractTest",
+      "source": "libs/widgets/tests/KoConfigAuthorPageSchemaContractTest.cpp",
+      "test": "KoConfigAuthorPageSchemaContractTest::authorPageTypeLifecycleAndApplySchemaRemainStable",
+      "behavior": "author configuration pageはprofile設定の型、構築、寿命、適用の公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoConfigAuthorPage",
+        "method:KoConfigAuthorPage::KoConfigAuthorPage()",
+        "method:KoConfigAuthorPage::apply()",
+        "method:KoConfigAuthorPage::~KoConfigAuthorPage()"
+      ]
+    },
+    {
+      "target": "KoConfigAuthorPageSchemaContractTest",
+      "source": "libs/widgets/tests/KoConfigAuthorPageSchemaContractTest.cpp",
+      "test": "KoConfigAuthorPageSchemaContractTest::contactInfoDelegateTypeLifecycleAndStateSchemaRemainStable",
+      "behavior": "contact information delegateは型、親widgetとcontact modeによる構築、寿命、contact mode保持の公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoContactInfoDelegate",
+        "member:KoContactInfoDelegate::m_contactModes",
+        "method:KoContactInfoDelegate::KoContactInfoDelegate(QWidget * parent,QStringList contactModes)",
+        "method:KoContactInfoDelegate::~KoContactInfoDelegate()"
+      ]
+    },
+    {
+      "target": "KoConfigAuthorPageSchemaContractTest",
+      "source": "libs/widgets/tests/KoConfigAuthorPageSchemaContractTest.cpp",
+      "test": "KoConfigAuthorPageSchemaContractTest::contactInfoDelegateEditorSignatureRemainsStable",
+      "behavior": "contact information delegateは親widget、表示option、model indexからeditorを生成する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoContactInfoDelegate::createEditor(QWidget * parent,const QStyleOptionViewItem & option,const QModelIndex & index) const"
+      ]
     }
   ]
 }
