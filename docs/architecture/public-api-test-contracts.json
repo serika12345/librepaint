@@ -79689,6 +79689,20 @@
       ]
     },
     {
+      "target": "KisCursorOverrideHijackerSchemaContractTest",
+      "source": "libs/ui/tests/KisCursorOverrideHijackerSchemaContractTest.cpp",
+      "test": "KisCursorOverrideHijackerSchemaContractTest::qtWidgetsTweakerTypeAndFilteringSchemaRemainStable",
+      "behavior": "Qt widget調整器はQObject派生の公開型として親QObject構築、破棄、event filter、singleton取得の正確な公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisQtWidgetsTweaker",
+        "method:KisQtWidgetsTweaker::KisQtWidgetsTweaker(QObject * parent=nullptr)",
+        "method:KisQtWidgetsTweaker::eventFilter(QObject * receiver,QEvent * event)",
+        "method:KisQtWidgetsTweaker::instance()",
+        "method:KisQtWidgetsTweaker::~KisQtWidgetsTweaker()"
+      ]
+    },
+    {
       "target": "KisMultiBoolFilterWidgetSchemaContractTest",
       "source": "libs/ui/tests/KisMultiBoolFilterWidgetSchemaContractTest.cpp",
       "test": "KisMultiBoolFilterWidgetSchemaContractTest::nodeDisplayModeTypeConstructionAndAccessSignaturesRemainStable",

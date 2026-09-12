@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "application/ui/orchestration/KisQtWidgetsTweaker.h"
 #include "application/ui/workspace/KisAndroidSplash.h"
 #include "events/kis_cursor_override_hijacker.h"
 
@@ -17,6 +18,7 @@ class KisCursorOverrideHijackerSchemaContractTest : public QObject
 private Q_SLOTS:
     void cursorOverrideHijackerTypeConstructionAndLifetimeSchemaRemainStable();
     void androidSplashTypeAndStaticApiSchemaRemainStable();
+    void qtWidgetsTweakerTypeAndFilteringSchemaRemainStable();
 };
 
 void KisCursorOverrideHijackerSchemaContractTest::cursorOverrideHijackerTypeConstructionAndLifetimeSchemaRemainStable()
@@ -39,6 +41,18 @@ void KisCursorOverrideHijackerSchemaContractTest::androidSplashTypeAndStaticApiS
     static_assert(std::is_same_v<decltype(&Splash::setLoaded), void (*)(bool)>);
     static_assert(std::is_same_v<decltype(&Splash::setLoadingText), void (*)(const QString &)>);
     static_assert(std::is_same_v<decltype(&Splash::sigSplashDialogDismissed), void (Splash::*)()>);
+}
+
+void KisCursorOverrideHijackerSchemaContractTest::qtWidgetsTweakerTypeAndFilteringSchemaRemainStable()
+{
+    using Tweaker = KisQtWidgetsTweaker;
+
+    static_assert(std::is_class_v<Tweaker>);
+    static_assert(std::is_base_of_v<QObject, Tweaker>);
+    static_assert(std::is_constructible_v<Tweaker, QObject *>);
+    static_assert(std::is_destructible_v<Tweaker>);
+    static_assert(std::is_same_v<decltype(&Tweaker::eventFilter), bool (Tweaker::*)(QObject *, QEvent *)>);
+    static_assert(std::is_same_v<decltype(&Tweaker::instance), Tweaker *(*)()>);
 }
 
 QTEST_APPLESS_MAIN(KisCursorOverrideHijackerSchemaContractTest)
