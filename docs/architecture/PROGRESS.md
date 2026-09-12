@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-13 01:30 JST
+- 更新日時: 2026-09-13 01:38 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5370,6 +5370,12 @@
 - 第572便はcanvas観測とtool option widget表示を担う`libs/widgets/KoToolDocker.h`の残存全8 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g572.json`は公開header 1,549、公開API 29,801、対応済み28,692、未対応1,109、301,635 bytes、SHA-256 `59e53203263fee9edb214053fe9407fd35f1d078d7a1ee883dd3a16c2fe881d2`である。対象8識別子の整列集合SHA-256は`91e5995ec10bdf810ae3de2c4a9aa690958671dbe1916de695ceffc17b295407`である。
 - tool dockerの境界は型・親widget構築・寿命3、widget reset・canvas設定解除3、option widget設定・scroller状態通知・有無照会2へ固定する。新規`libs/widgets/tests/KoToolDockerSchemaContractTest.cpp`の3枠で型特性と厳密なmember pointerだけを観測し、docker、canvas、option widget、scrollerを実体化せず本文を実行しない。canvas観測、widget切替、scroller状態遷移の実行時意味は後続の動的契約で扱う。
 - 新規targetの`libs/widgets/tests/CMakeLists.txt`節はwidgets header配置、`KoCanvasObserverBase.h`のflake、`KisKineticScroller.h`のwidgetutils source/generated探索路、`kritawidgets_EXPORTS`・`kritaflake_EXPORTS`・`kritawidgetutils_EXPORTS`、Qt Core・TestとQt Widgetsのheader探索路だけを所有する。`kritawidgets`、flake、widgetutils、application、canvasの製品targetは接続しない。開始`libs/widgets/KoToolDocker.cpp`の厳格構文診断は0件である。既存`KoZoomControlSchemaContractTest`の4工程・8入力を最も近いclean-tree閉包として採用し、新targetも4工程・8入力、停止線を5工程・11入力とする。AUTOMOC候補header入力、製品未解決記号、追加探索路・定義・動的接続、製品再構築、許可path外変更が必要なら停止する。macOSの対象全体と追加3枠の20回反復、軽量近傍、実装・試験sourceの厳格構文、新規source書式、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。
+
+### 第572便の公開API契約結果
+
+- 開始`libs/widgets/KoToolDocker.h`から新規`libs/widgets/tests/KoToolDockerSchemaContractTest.cpp`へ、tool docker型・親widget構築・寿命3 API、widget reset・canvas設定解除3 API、option widget設定・scroller状態通知・有無照会2 APIを3枠へ固定した。`libs/widgets/tests/CMakeLists.txt`にはwidgets、flake、widgetutilsのsource/generated探索路、`kritawidgets_EXPORTS`・`kritaflake_EXPORTS`・`kritawidgetutils_EXPORTS`、Qt Core・TestとQt Widgets header探索路だけを追加した。公開headerと製品sourceは変更していない。
+- 初期targetは新規試験source未配置のためCMake生成で停止し、試験source追加後に解消した。実装後はmacOSの正式CTest `libs-widgets-KoToolDockerSchemaContractTest`、対象全体20回、追加3枠の各20回、近傍`KoZoomControlSchemaContractTest`、連続二回の無作業再構築に成功した。最終閉包は4工程・8入力、command SHA-256 `ea71c26e22e935c510978c61cd4be5f95665a07626470826efdcb1aa138a7424`、input SHA-256 `3e058f57eb7e08ac7386332f08804780da840317d0802aca9f98feee9ec487ff`である。AUTOMOC `HEADERS=[]`、Qt Core・Test、`libintl`とOS frameworkだけの動的接続、tool docker・canvas observer・kinetic scrollerの製品未解決記号なしを確認した。実装・試験sourceの`clang-check -Werror`、新規source書式、JSON構文、差分に成功した。
+- 公開API検査は28,701件対応、29,801件中1,100件未対応となった。新`build/tdd-macos/public-api-missing-g573.json`は299,733 bytes、SHA-256 `112eeedd727482ff6b16b3a3d362bc91e4e3b3c758d4779c3de48b21e37ff8dd`であり、生成成功後に旧`public-api-missing-g572.json` 301,635 bytesをゴミ箱へ移して作業領域から約295 KiBを回収した。主Ninja木6,055,660 KiB、共有compiler cache 983,100 KiB、最新報告だけを再利用対象として保持する。canvas観測、widget切替、scroller状態遷移の実行時意味は後続の動的契約で扱う。次の永続作業は第573便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
 
 ### 第239便の先行監査担当票
 
