@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-12 20:50 JST
+- 更新日時: 2026-09-12 20:57 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5130,6 +5130,12 @@
 - 第552便は一回の色採取strokeの開始・試料投入・完了と中間色・確定色通知を所有する`libs/painting/KisColorSamplerStroke.h`の残存全9 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g552.json`は公開header 1,549、公開API 29,801、対応済み28,519、未対応1,282、347,798 bytes、SHA-256 `e01e3ddbc46adf231f41777b4946c06d2ea79ccfcaf4c5883dcd69000efb9719`である。対象9識別子の整列集合SHA-256は`e2cf60d88593fb0c1e4967b025e821cf1f07537f71e3aa3c651fb5200f1c8d5d`である。
 - 色採取stroke境界は型・親付き構築・破棄3、稼働状態・開始・完了3、試料投入1、中間色・確定色通知2の4枠へ固定する。型特性と厳密な関数・member pointerだけを使い、stroke、facade、描画装置、座標、色を実体化せず本文を実行しない。意味契約`libs/painting/tests/TestPaintingBoundary.cpp`は色試料2件のqueue投入と完了後の通知を既に実行しているが、target閉包は1,224工程・2,469入力で製品`kritapainting`と`kritatestsdk`へ接続するため、公開署名の反復検証には使わない。
 - 新規`libs/painting/tests/KisColorSamplerStrokeSchemaContractTest.cpp`と同target固有の`libs/painting/tests/CMakeLists.txt`節を追加する。最小近傍`KisNodeSelectionRecipeSchemaContractTest`と同じpainting generated・global・image source/generated探索路、3 export定義、Qt Core・Testだけで4工程・8入力を予測する。近傍実測は4工程・8入力、command SHA-256 `d1aed691489b92cd01260e615a1acd981ae24d408dedb15d226cb68df3cf5ebe`、input SHA-256 `665b733a25799653b7bde7a54d139f62979aaf62cb916106fc149a665959c44d`、Qt Core・Testだけの動的接続である。開始`libs/painting/KisColorSamplerStroke.cpp`の厳格構文診断は0件である。5工程・11入力超過、候補headerのAUTOMOC入力化、製品未解決記号、追加探索路・定義・動的接続が必要なら停止する。macOSの対象全体と追加4枠各20回、軽量近傍、実装・試験sourceの厳格構文、新規sourceの書式、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、既存意味契約・製品target、全体build・`verify`、Linux、Nix再評価は行わない。
+
+### 第552便の公開API契約結果
+
+- 色採取strokeの公開境界を新規の軽量schema契約へ分離した。開始`libs/painting/KisColorSamplerStroke.h`から新規`libs/painting/tests/KisColorSamplerStrokeSchemaContractTest.cpp`へ残存全9 API・4枠を追加し、型・親付き構築・破棄3件、稼働状態・開始・完了3件、試料投入1件、中間色・確定色通知2件を型特性と厳密なmember pointerで固定した。新targetは`libs/painting/tests/CMakeLists.txt`のtarget固有節で所有し、最初の限定リンクは未定義4枠だけの不足で期待どおり失敗した。計画commitは`d78fda0fc2`、契約commitは`2e22aace9f`で、新規sourceは61行・4枠となった。公開headerと製品sourceは変更していない。
+- targetは4工程・8入力、command SHA-256 `52e6dd414781201402af7ba0e0d42ccc6829c1618a7372da1bec737efb8fb081`、input SHA-256 `23fee45db7d026bcdb2093a7dfa512a574d73d01039bddec2cfec218ee9e6ed3`である。AUTOMOC `HEADERS=[]`、色採取stroke・facade・描画装置・色の未解決製品記号0で、Qt Core・Testだけへ動的接続する。macOSで対象単発と全体20回、追加4枠各20回、近傍`KisNodeSelectionRecipeSchemaContractTest`、実装・試験sourceの厳格構文、新規source書式、連続二回の無作業再構築、`verify-quick`に成功した。色採取のqueue順、色の集計、signal発火順は既存`TestPaintingBoundary`の意味契約が扱い、同試験の挙動確認、全体build・`verify`、Linux、Nix再評価は今回実行していない。
+- 公開API検査の初回診断は期待値1,282に対して実測1,273で、新規9件と一致した。台帳を28,528件対応、1,273件未対応へ進めた。新`public-api-missing-g553.json`は345,450 bytes、SHA-256 `49460e1f0b4a50c5ed5697051da36330dd691770eee084d2f2a3d49baa936895`で、生成成功後に旧`public-api-missing-g552.json` 347,798 bytesを削除した。主Ninja木6,047,092 KiB、共有compiler cache 982,000 KiBと最新報告だけを保持する。compiler cacheは144,864 cache可能呼出し中120,601件、83.25%がhitしている。次の永続作業は第553便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
 
 ### 第239便の先行監査担当票
 
