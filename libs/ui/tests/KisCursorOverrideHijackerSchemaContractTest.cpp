@@ -9,6 +9,8 @@
 #include "application/ui/orchestration/KisPlatformPluginInterfaceFactory.h"
 #include "application/ui/orchestration/KisQtWidgetsTweaker.h"
 #include "application/ui/workspace/KisAndroidSplash.h"
+#include "canvas/kis_abstract_perspective_grid.h"
+#include "canvas/kis_canvas_controls_manager.h"
 #include "events/kis_cursor_override_hijacker.h"
 #include "platform/osx.h"
 #include "theme/KisUiFont.h"
@@ -17,6 +19,28 @@
 #include <QTest>
 
 #include <type_traits>
+
+namespace
+{
+class PerspectiveGridProbe : public KisAbstractPerspectiveGrid
+{
+public:
+    using KisAbstractPerspectiveGrid::KisAbstractPerspectiveGrid;
+
+    bool contains(const QPointF &) const override
+    {
+        return false;
+    }
+    qreal distance(const QPointF &) const override
+    {
+        return 0.0;
+    }
+    bool isActive() const override
+    {
+        return false;
+    }
+};
+} // namespace
 
 class KisCursorOverrideHijackerSchemaContractTest : public QObject
 {
@@ -34,6 +58,8 @@ private Q_SLOTS:
     void applicationInputActionsFunctionSchemaRemainsStable();
     void canvasToolUtilityFunctionSchemaRemainsStable();
     void macOSMouseCoalescingFunctionSchemaRemainsStable();
+    void abstractPerspectiveGridTypeAndGeometrySchemaRemainStable();
+    void canvasControlsManagerTypeAndConfigurationSchemaRemainStable();
 };
 
 void KisCursorOverrideHijackerSchemaContractTest::cursorOverrideHijackerTypeConstructionAndLifetimeSchemaRemainStable()
@@ -139,6 +165,32 @@ void KisCursorOverrideHijackerSchemaContractTest::macOSMouseCoalescingFunctionSc
 {
     static_assert(std::is_same_v<decltype(&isMouseCoalescingEnabled), bool (*)()>);
     static_assert(std::is_same_v<decltype(&setMouseCoalescingEnabled), void (*)(bool)>);
+}
+
+void KisCursorOverrideHijackerSchemaContractTest::abstractPerspectiveGridTypeAndGeometrySchemaRemainStable()
+{
+    using Grid = KisAbstractPerspectiveGrid;
+
+    static_assert(std::is_class_v<Grid>);
+    static_assert(std::is_base_of_v<QObject, Grid>);
+    static_assert(std::is_abstract_v<Grid>);
+    static_assert(std::is_constructible_v<PerspectiveGridProbe, QObject *>);
+    static_assert(std::has_virtual_destructor_v<Grid>);
+    static_assert(std::is_same_v<decltype(&Grid::contains), bool (Grid::*)(const QPointF &) const>);
+    static_assert(std::is_same_v<decltype(&Grid::distance), qreal (Grid::*)(const QPointF &) const>);
+    static_assert(std::is_same_v<decltype(&Grid::isActive), bool (Grid::*)() const>);
+}
+
+void KisCursorOverrideHijackerSchemaContractTest::canvasControlsManagerTypeAndConfigurationSchemaRemainStable()
+{
+    using Manager = KisCanvasControlsManager;
+
+    static_assert(std::is_class_v<Manager>);
+    static_assert(std::is_base_of_v<QObject, Manager>);
+    static_assert(std::is_constructible_v<Manager, KisViewManager *>);
+    static_assert(std::is_destructible_v<Manager>);
+    static_assert(std::is_same_v<decltype(&Manager::setup), void (Manager::*)(KisActionManager *)>);
+    static_assert(std::is_same_v<decltype(&Manager::setView), void (Manager::*)(QPointer<KisView>)>);
 }
 
 QTEST_APPLESS_MAIN(KisCursorOverrideHijackerSchemaContractTest)

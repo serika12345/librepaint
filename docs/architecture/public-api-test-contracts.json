@@ -79797,6 +79797,35 @@
       ]
     },
     {
+      "target": "KisCursorOverrideHijackerSchemaContractTest",
+      "source": "libs/ui/tests/KisCursorOverrideHijackerSchemaContractTest.cpp",
+      "test": "KisCursorOverrideHijackerSchemaContractTest::abstractPerspectiveGridTypeAndGeometrySchemaRemainStable",
+      "behavior": "抽象perspective gridはQObject派生の抽象型として親QObject構築、仮想破棄、点の包含、距離、有効状態の正確な公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisAbstractPerspectiveGrid",
+        "method:KisAbstractPerspectiveGrid::KisAbstractPerspectiveGrid(QObject * parent=0)",
+        "method:KisAbstractPerspectiveGrid::contains(const QPointF & pt) const",
+        "method:KisAbstractPerspectiveGrid::distance(const QPointF & pt) const",
+        "method:KisAbstractPerspectiveGrid::isActive() const",
+        "method:KisAbstractPerspectiveGrid::~KisAbstractPerspectiveGrid()"
+      ]
+    },
+    {
+      "target": "KisCursorOverrideHijackerSchemaContractTest",
+      "source": "libs/ui/tests/KisCursorOverrideHijackerSchemaContractTest.cpp",
+      "test": "KisCursorOverrideHijackerSchemaContractTest::canvasControlsManagerTypeAndConfigurationSchemaRemainStable",
+      "behavior": "canvas操作管理器はQObject派生の公開型としてview manager構築、破棄、action manager設定、view設定の正確な公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisCanvasControlsManager",
+        "method:KisCanvasControlsManager::KisCanvasControlsManager(KisViewManager * view)",
+        "method:KisCanvasControlsManager::setView(QPointer<KisView> imageView)",
+        "method:KisCanvasControlsManager::setup(KisActionManager * actionManager)",
+        "method:KisCanvasControlsManager::~KisCanvasControlsManager()"
+      ]
+    },
+    {
       "target": "KisMultiBoolFilterWidgetSchemaContractTest",
       "source": "libs/ui/tests/KisMultiBoolFilterWidgetSchemaContractTest.cpp",
       "test": "KisMultiBoolFilterWidgetSchemaContractTest::nodeDisplayModeTypeConstructionAndAccessSignaturesRemainStable",
