@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 1222
+    "expectedMissingApis": 1216
   },
   "contracts": [
     {
@@ -80083,6 +80083,39 @@
         "method:KisMetadataBackendRegistry::init()",
         "method:KisMetadataBackendRegistry::instance()",
         "method:KisMetadataBackendRegistry::~KisMetadataBackendRegistry()"
+      ]
+    },
+    {
+      "target": "KisSimpleModifyTransformMaskCommandSchemaContractTest",
+      "source": "libs/image/tests/KisSimpleModifyTransformMaskCommandSchemaContractTest.cpp",
+      "test": "KisSimpleModifyTransformMaskCommandSchemaContractTest::typeAndConstructionSchemaRemainStable",
+      "behavior": "transform mask modification commandはKUndo2Commandの公開派生classとして、mask、params、更新blocker、親commandで構築する境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisSimpleModifyTransformMaskCommand",
+        "method:KisSimpleModifyTransformMaskCommand::KisSimpleModifyTransformMaskCommand(KisTransformMaskSP mask,KisTransformMaskParamsInterfaceSP newParams,QWeakPointer<boost::none_t> updatesBlockerCookie=QWeakPointer<boost::none_t> (),KUndo2Command * parent=nullptr)"
+      ]
+    },
+    {
+      "target": "KisSimpleModifyTransformMaskCommandSchemaContractTest",
+      "source": "libs/image/tests/KisSimpleModifyTransformMaskCommandSchemaContractTest.cpp",
+      "test": "KisSimpleModifyTransformMaskCommandSchemaContractTest::identityAndMergeSignaturesRemainStable",
+      "behavior": "transform mask modification commandはcommand識別子を返し、他のundo commandとの統合可否を返す公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSimpleModifyTransformMaskCommand::id() const",
+        "method:KisSimpleModifyTransformMaskCommand::mergeWith(const KUndo2Command * other)"
+      ]
+    },
+    {
+      "target": "KisSimpleModifyTransformMaskCommandSchemaContractTest",
+      "source": "libs/image/tests/KisSimpleModifyTransformMaskCommandSchemaContractTest.cpp",
+      "test": "KisSimpleModifyTransformMaskCommandSchemaContractTest::undoAndRedoSignaturesRemainStable",
+      "behavior": "transform mask modification commandは変更をundo・redoする公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSimpleModifyTransformMaskCommand::redo()",
+        "method:KisSimpleModifyTransformMaskCommand::undo()"
       ]
     }
   ]
