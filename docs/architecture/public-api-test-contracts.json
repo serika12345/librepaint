@@ -80771,6 +80771,21 @@
         "method:KisOpenGLContextSwitchLockAdapterSkipOnQt5::lock()",
         "method:KisOpenGLContextSwitchLockAdapterSkipOnQt5::unlock()"
       ]
+    },
+    {
+      "target": "KoSnapGuideSchemaContractTest",
+      "source": "libs/flake/tests/KoSnapGuideSchemaContractTest.cpp",
+      "test": "KoSnapGuideSchemaContractTest::snapPointStrategySchemaRemainsStable",
+      "behavior": "snap point strategyはcustom snapping種別で構築されるKoSnapStrategy派生型として、スナップ判定、装飾path、候補点追加を公開する境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisSnapPointStrategy",
+        "method:KisSnapPointStrategy::KisSnapPointStrategy(KoSnapGuide::Strategy type=KoSnapGuide::CustomSnapping)",
+        "method:KisSnapPointStrategy::addPoint(const QPointF & pt)",
+        "method:KisSnapPointStrategy::decoration(const KoViewConverter & converter) const",
+        "method:KisSnapPointStrategy::snap(const QPointF & mousePosition,KoSnapProxy * proxy,qreal maxSnapDistance)",
+        "method:KisSnapPointStrategy::~KisSnapPointStrategy()"
+      ]
     }
   ]
 }

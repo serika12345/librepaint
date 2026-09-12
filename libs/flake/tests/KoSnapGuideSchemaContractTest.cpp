@@ -7,6 +7,8 @@
 #include <KoSnapProxy.h>
 #include <KoSnapStrategy.h>
 
+#include <canvas/KisSnapPointStrategy.h>
+
 #include <QFlags>
 #include <QTest>
 
@@ -40,6 +42,7 @@ private Q_SLOTS:
     void snapStrategyPointAndOrthogonalSignaturesRemainStable();
     void snapStrategyExtensionAndIntersectionSignaturesRemainStable();
     void snapStrategyGridAndBoundingBoxSignaturesRemainStable();
+    void snapPointStrategySchemaRemainsStable();
     void snapProxyTypeAndConstructionSchemaRemainStable();
     void snapProxyPointAndSegmentQuerySchemaRemainStable();
     void snapProxyShapeAndCanvasQuerySchemaRemainStable();
@@ -225,6 +228,23 @@ void KoSnapGuideSchemaContractTest::snapStrategyGridAndBoundingBoxSignaturesRema
     static_assert(std::is_default_constructible_v<BoundingBoxSnapStrategy>);
     static_assert(std::is_same_v<decltype(&BoundingBoxSnapStrategy::snap), BoundingBoxSnap>);
     static_assert(std::is_same_v<decltype(&BoundingBoxSnapStrategy::decoration), BoundingBoxDecoration>);
+}
+
+void KoSnapGuideSchemaContractTest::snapPointStrategySchemaRemainsStable()
+{
+    using Strategy = KisSnapPointStrategy;
+    using Snap = bool (Strategy::*)(const QPointF &, KoSnapProxy *, qreal);
+    using Decoration = QPainterPath (Strategy::*)(const KoViewConverter &) const;
+    using AddPoint = void (Strategy::*)(const QPointF &);
+
+    static_assert(std::is_class_v<Strategy>);
+    static_assert(std::is_base_of_v<KoSnapStrategy, Strategy>);
+    static_assert(std::is_constructible_v<Strategy, KoSnapGuide::Strategy>);
+    static_assert(std::is_destructible_v<Strategy>);
+    static_assert(std::has_virtual_destructor_v<Strategy>);
+    static_assert(std::is_same_v<decltype(&Strategy::snap), Snap>);
+    static_assert(std::is_same_v<decltype(&Strategy::decoration), Decoration>);
+    static_assert(std::is_same_v<decltype(&Strategy::addPoint), AddPoint>);
 }
 
 void KoSnapGuideSchemaContractTest::snapProxyTypeAndConstructionSchemaRemainStable()

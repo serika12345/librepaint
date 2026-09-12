@@ -407,8 +407,13 @@ kis_add_test(
 target_include_directories(KoSnapGuideSchemaContractTest PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/..
     ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/ui
+    ${CMAKE_BINARY_DIR}/libs/ui
 )
-target_compile_definitions(KoSnapGuideSchemaContractTest PRIVATE kritaflake_EXPORTS)
+target_compile_definitions(KoSnapGuideSchemaContractTest PRIVATE
+    kritaflake_EXPORTS
+    kritaui_EXPORTS
+)
 
 kis_add_test(
     KoPatternBackgroundSchemaContractTest.cpp
