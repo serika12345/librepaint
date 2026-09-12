@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-13 00:27 JST
+- 更新日時: 2026-09-13 00:31 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5304,6 +5304,12 @@
 - 開始`libs/ui/canvas/KisWidgetWithIdleTask.h`から新規`libs/ui/tests/KisWidgetWithIdleTaskSchemaContractTest.cpp`へ、templateの型・親widget構築・仮想破棄3 API、canvas設定・idle task登録・cache更新3 API、表示・非表示イベント・cache消去3 APIを3枠へ固定した。`libs/ui/tests/CMakeLists.txt`にはui・global・image・painting/undoの直接探索路、KF I18n・header-only Boost、対応export定義、Qt Core・Widgets・Testだけを追加した。公開headerと製品sourceは変更していない。
 - 宣言段階は追加3枠の未定義だけでlinkに失敗し、実装後はmacOSの正式CTest `libs-ui-KisWidgetWithIdleTaskSchemaContractTest`、対象全体20回、追加3枠の各20回、近傍`KisIdleTaskStrokeStrategySchemaContractTest`、連続二回の無作業再構築に成功した。最終閉包は4工程・8入力、command SHA-256 `111bd0daea9fa3ec9a976f4389feef6d48c1c6cd93793e9bd1ae6b9a0794b3c2`、input SHA-256 `047a2aa6975535d76d01771041bd8023c4c8bbfa14474aedd2d27efa833411c2`である。template headerはAUTOMOC入力に入らず、試験sourceの`clang-check -Werror`、新規source書式、JSON構文、差分に成功した。
 - 公開API検査は28,642件対応、29,801件中1,159件未対応となった。新`build/tdd-macos/public-api-missing-g567.json`は314,558 bytes、SHA-256 `9053c8d90679c59042a5cba41754f7780dea0f7a0846c84218e062334f199f7e`であり、生成成功後に旧`public-api-missing-g566.json`をゴミ箱へ移した。主Ninja木6,047,524 KiB、共有compiler cache 982,296 KiB、最新報告だけを再利用対象として保持する。task guardの登録解除、表示状態遷移、cache更新の実行時意味は後続の動的契約で扱う。次の永続作業は第567便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
+
+### 第567便の公開API契約計画
+
+- 第567便はpaint toolの入力・outline・brush状態を担う`libs/tools/kis_tool_paint_interaction.h`の残存全10 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g567.json`は公開header 1,549、公開API 29,801、対応済み28,642、未対応1,159、314,558 bytes、SHA-256 `9053c8d90679c59042a5cba41754f7780dea0f7a0846c84218e062334f199f7e`である。対象10識別子の整列集合SHA-256は`759ef2c826a7e210eae92383ce0f6630762511393793ae6fd8fa88536ba854cb`である。
+- paint interactionの境界は型・canvas/cursor構築・破棄3、flags・activate/deactivate・三つのpointer event処理6、painting完了通知1へ固定する。既存`libs/tools/tests/KisToolSchemaContractTest.cpp`へ3枠を追加し、abstractなoutline要求だけを宣言する局所派生型と厳密なmember pointerを使う。tool、canvas、event、brush、outlineを実体化せず本文を実行しない。入力状態遷移、brush設定、outline更新、通知配送の実行時意味は後続の動的契約で扱う。
+- 既存targetは118行・5枠であり、追記後も300行・20枠未満である。CMake変更なしで現行のQt Core・Gui・Widgets・Xml・Test、header-only Boost、tools・flake・global・image・pigment・resources探索路、対応export定義を再利用し、4工程・8入力を維持する。開始`libs/tools/kis_tool_paint_interaction.cpp`の厳格構文診断は0件である。5工程・11入力超過、AUTOMOC候補header入力、製品未解決記号、追加探索路・定義・動的接続、製品再構築、許可path外変更が必要なら停止する。macOSの対象全体と追加3枠の20回反復、軽量近傍、実装・試験sourceの厳格構文、新規source書式、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。
 
 ### 第239便の先行監査担当票
 
