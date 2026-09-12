@@ -8,6 +8,8 @@
 
 #include <QTest>
 
+#include <type_traits>
+
 #define PSD_RESOURCE_IDS(X) \
     X(UNKNOWN, 0) \
     X(PS2_IMAGE_INFO, 1000) \
@@ -106,6 +108,7 @@ class PsdResourceIdContractTest : public QObject
 
 private Q_SLOTS:
     void psdAndTiffResourceIdsRemainCompatible();
+    void tiffResourceRecordTypeStateAndIoSignaturesRemainStable();
 };
 
 void PsdResourceIdContractTest::psdAndTiffResourceIdsRemainCompatible()
@@ -116,6 +119,22 @@ void PsdResourceIdContractTest::psdAndTiffResourceIdsRemainCompatible()
     QCOMPARE(int(PSDImageResourceSection::name), int(KisTiffPsdResourceRecord::name));
     PSD_RESOURCE_IDS(CHECK_RESOURCE_ID)
 #undef CHECK_RESOURCE_ID
+}
+
+void PsdResourceIdContractTest::tiffResourceRecordTypeStateAndIoSignaturesRemainStable()
+{
+    using Record = KisTiffPsdResourceRecord;
+    using ResourceMap = QMap<Record::PSDResourceID, PSDResourceBlock *>;
+
+    static_assert(std::is_class_v<Record>);
+    static_assert(std::is_default_constructible_v<Record>);
+    static_assert(std::is_destructible_v<Record>);
+    static_assert(std::is_same_v<decltype(&Record::resources), ResourceMap Record::*>);
+    static_assert(std::is_same_v<decltype(&Record::error), QString Record::*>);
+    static_assert(std::is_same_v<decltype(&Record::read), bool (Record::*)(QIODevice &)>);
+    static_assert(std::is_same_v<decltype(&Record::write), bool (Record::*)(QIODevice &)>);
+    static_assert(std::is_same_v<decltype(&Record::valid), bool (Record::*)()>);
+    static_assert(std::is_same_v<decltype(&Record::idToString), QString (*)(Record::PSDResourceID)>);
 }
 
 QTEST_GUILESS_MAIN(PsdResourceIdContractTest)
