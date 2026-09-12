@@ -2,14 +2,14 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-13 07:21 JST
+- 更新日時: 2026-09-13 07:31 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
 - 完了: 第602便でundo action更新管理器の5 APIを公開契約へ追加し、対応済みを28,905件へ進めた。
-- 次の作業: 第603便として引数不要action factoryの公開APIを、探索路を限定した既存試験へ追加する。
+- 次の作業: 第604便として未対応報告から、既存の限定試験に追加できる公開headerを選び、実装前に構築閉包を監査する。
 - 検証: macOSの対象・近傍・反復・無作業再構築、公開API検査、`verify-quick`に成功した。製品target、全体build・`verify`、Linux、Nix再評価は本便の対象外である。
 
 ### 第202便の先行監査担当票
@@ -5747,6 +5747,11 @@
 - 正式入力`build/tdd-macos/public-api-missing-g604.json`から、開始`libs/ui/actions/KisNoParameterActionFactory.h`の抽象型・`QString`識別子による構築・view manager実行・XMLからの実行の4 APIを既存`libs/ui/tests/KisCursorOverrideHijackerSchemaContractTest.cpp`の新規1枠へ対応付ける。局所probe型で純粋仮想`run`だけを実装して構築形式を観測し、factory、view manager、操作設定、XML、処理適用器を実体化せず本文を実行しない。
 - 開始`libs/ui/tests/CMakeLists.txt`の同test targetへ`${CMAKE_SOURCE_DIR}/libs/image`だけを追加し、`kis_properties_configuration.h`を解決する。CMake再構成はtargetの探索路変更を登録するために構成を読み直すが、コンパイル・リンク範囲は自動生成2ファイルと試験本体だけに限定する。現行閉包は4工程・8入力、command SHA-256 `43e833cfe02de17e952fdb1152cc7193fd661d8d7dca777d1e69749202499a2a`、input SHA-256 `58d9882064254f622d7496f1d8e232987c51dd89595a3d9101b9bbaef2ddb583`である。試験sourceは243行・16枠で、追記後も300行・20枠未満に収まる。再構成後も4工程・8入力を要求し、停止線は5工程・11入力、製品targetの再構築、製品shared・OBJECT・`kritatestsdk`接続、候補headerのAUTOMOC入力化、動的linkまたは製品未解決記号の増加、対象値または本文の実体化、許可path外変更である。
 - macOSでは対象CTest、追加枠20回、軽量近傍`KisGrabKeyboardFocusRecoveryWorkaroundSchemaContractTest`、AUTOMOC後の二回目計画、連続二回の無作業再構築、動的接続・未解決記号・厳格構文・書式、公開API検査、`verify-quick`だけを実行する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。初回公開API検査は移行基準896件に対する4 API減少の診断を期待する。
+
+### 第603便の構築閉包監査結果
+
+- `libs/ui/actions/KisNoParameterActionFactory.h`は`kis_operation.h`を通じて画像設定、KUndo2、I18n、Eigenへ依存する。`libs/image`、`libs/painting/undo`、同binary directory、KF I18n interface探索路を順に追加して試験targetだけで再構成したところ、順に`kundo2magicstring.h`、`klocalizedstring.h`、`kritapaintingundo_export.h`、`Eigen/Sparse`が必要になった。形式だけを観測する4 APIのためにこの連鎖を常設することは対象の責務と構築閉包を不必要に広げる。
+- 候補の試験・台帳・探索路変更はすべて未コミットで撤回した。復帰後の`KisCursorOverrideHijackerSchemaContractTest`は4工程・8入力、command SHA-256 `43e833cfe02de17e952fdb1152cc7193fd661d8d7dca777d1e69749202499a2a`、input SHA-256 `58d9882064254f622d7496f1d8e232987c51dd89595a3d9101b9bbaef2ddb583`で対象試験に成功した。未対応基準896件と最新`public-api-missing-g604.json`は変更していない。次の永続作業は第604便で直接依存が限定される候補を選び直すことである。
 
 ### 第239便の先行監査担当票
 
