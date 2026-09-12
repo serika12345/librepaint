@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-12 22:24 JST
+- 更新日時: 2026-09-12 22:43 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5214,6 +5214,12 @@
 - 第559便はtransform maskへ新しいparamsを適用し、undo・redo・統合を担う`libs/image/commands_new/KisSimpleModifyTransformMaskCommand.h`の残存全6 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g559.json`は公開header 1,549、公開API 29,801、対応済み28,579、未対応1,222、331,260 bytes、SHA-256 `81b9071e20f1d5bd80142c889580fc0b341fef3db0f07e8cd6f55769968afa02`である。対象6識別子の整列集合SHA-256は`6960e319bd0a73ad93c33a420c908094467e1287db4549320f6fefd57275f76a`である。
 - modify transform mask command境界は型・transform maskとparams・更新blocker・親commandによる構築2、command識別と統合2、undo・redo2の3枠へ固定する。型特性と厳密なmember pointerだけを使い、command、mask、params、blocker、親commandを実体化せず本文を実行しない。params適用、update blocker、undo/redoの画像更新、command統合の実行時意味は後続の動的契約で扱う。
 - 新規`libs/image/tests/KisSimpleModifyTransformMaskCommandSchemaContractTest.cpp`と同target固有の`libs/image/tests/CMakeLists.txt`節を追加する。公開headerの直接依存はimage、Qt Core、header-only Boost、KUndo2で完結する。headerは`libs/image/commands_new`、`kis_types.h`の共有pointer headerは`libs/global`、KUndo2 headerは`libs/painting/undo`、KUndo2 magic stringの翻訳宣言はKF I18n interfaceで所有されるため、image、commands_new、global、painting/undoのsource/generated探索路、KF I18n interface探索路、`kritaimage_EXPORTS`と`kritapaintingundo_EXPORTS`、Qt Core・Test、Boostだけをtarget固有に設定する。最寄り`KisTransformMaskSchemaContractTest`が持つpigment・resources探索路、Qt Gui・Xml、Imathを対象へ移さない。新targetは4工程・8入力を予測する。近傍targetは4工程・8入力、command SHA-256 `f0bacabbc5e99602c061069d2f4101e49722026e6251620a0d22905651f02009`、input SHA-256 `226642f6eb0597b6d48f1e4473cc31fd9f989cd4ae40157591d3c02e0d8f5f79`である。開始`libs/image/commands_new/KisSimpleModifyTransformMaskCommand.cpp`の厳格構文診断は0件である。5工程・11入力超過、AUTOMOC候補header入力、製品未解決記号、追加探索路・定義・動的接続が必要なら停止する。macOSの対象全体と追加3枠の20回反復、軽量近傍、実装・試験sourceの厳格構文、新規source書式、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。
+
+### 第559便の公開API契約結果
+
+- 開始`libs/image/commands_new/KisSimpleModifyTransformMaskCommand.h`から新規`libs/image/tests/KisSimpleModifyTransformMaskCommandSchemaContractTest.cpp`へ、transform mask modification commandの型・構築2 API、command識別・統合2 API、undo・redo2 APIを3枠へ固定した。対象固有の`libs/image/tests/CMakeLists.txt`節はheader配置`commands_new`、共有pointer headerのglobal、KUndo2 headerのpainting/undo、KUndo2 magic stringのKF I18n interfaceを直接探索路として所有する。公開headerと製品sourceは変更していない。
+- 開始計画`1a83d99e7b`の後、KUndo2のheader配置を`c0882d79a2`、header配置・shared pointer・翻訳宣言までの実測を`985073a7b8`で確定した。CMake再構成後の初期失敗は追加3枠の定義不足だけでlinkに失敗し、実装後はmacOSの正式CTest `libs-image-KisSimpleModifyTransformMaskCommandSchemaContractTest`、対象全体20回、各追加枠20回、近傍`KisTransformMaskSchemaContractTest`、無作業再構築2回に成功した。最終閉包は4工程・8入力、command SHA-256 `cca0eaf2798c6e075dd7d9398dd3bd0445c9f37755df934a6ca9f5b4fbdeb48e`、input SHA-256 `381b11818a59108763bbd4e615bb8aca256e96056c4b34b13a8e95f677c9e611`である。AUTOMOC `HEADERS=[]`、Qt Core・TestとOS frameworkだけの動的接続、command・transform mask・KUndo2の製品未解決記号なしを確認した。実装・試験sourceの`clang-check -Werror`、新規source書式、JSON構文、差分、`verify-quick`に成功した。
+- 公開API検査は28,585件対応、29,801件中1,216件未対応となった。新`build/tdd-macos/public-api-missing-g560.json`は329,281 bytes、SHA-256 `1a3c8a14934f7d00b218383d0538c67075984537ab010217c3daee6646038970`であり、生成成功後に旧`public-api-missing-g559.json` 331,260 bytesを削除した。主Ninja木6,034,308 KiB、共有compiler cache 982,732 KiB、最新報告だけを保持する。compiler cacheは144,891 cache可能呼出し中120,605件、83.24%がhitしている。params適用、更新blocker、undo/redoの画像更新、command統合の実行時意味は後続の動的契約で扱う。次の永続作業は第560便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
 
 ### 第239便の先行監査担当票
 
