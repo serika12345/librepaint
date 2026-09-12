@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-12 18:49 JST
+- 更新日時: 2026-09-12 18:52 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5002,6 +5002,13 @@
 - 以前の`libs/psdutils/tests/CMakeLists.txt`内`KisAslWriterUtilsContractTest`固有節は、未解決記号が使わないQt Gui、KF I18n、Imathまで動的接続していた。同じtarget固有節のcompile interface探索路へ3依存のheader探索だけを移し、動的接続をQt Core・Testと既存`kis_debug.cpp` objectへ縮めた。開始と到達先は同じCMake target固有節で、構造commitは`59b39b2861`、公開header、製品source、製品依存は変更していない。
 - targetは5工程を維持し、入力を13から11、command SHA-256を`d3c1e0379744f94053f9476da3cc59a2d5761cd514805d6f9b44542726165b53`から`00d325bc40c04493df59459f800af980e95a67a288a7a5ae2586862c3938dd3e`、input SHA-256を`8ad619472d2582bf5ba2591e62793ca28e1e28515776d0f945b74c3fea604330`から`17675e33ef84a117f6b1690c4feee310dbf88afd9d8a212de8233f080dcc0c3e`へ縮めた。予測10入力との差はQt Guiが動的接続には存在した一方で旧Ninja入力へ数えられていなかったためで、残る11入力は試験source、`kis_debug.cpp`、AUTOMOCとその生成物・出力である。候補headerのAUTOMOC入力化と未解決製品記号は0で、macOSの対象全体20回と追加3枠各20回、厳格構文、試験書式、連続二回の無作業再構築に成功した。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 公開API検査の初回診断は期待値1,370に対して実測1,361で、新規9件と一致した。台帳を28,440件対応、1,361件未対応へ進め、`public-api-missing-g543.json`の生成成功後に旧`public-api-missing-g542.json` 374,366 bytesを削除した。主Ninja木6,041,152 KiB、共有compiler cache 983,268 KiB、最新報告371,720 bytes、SHA-256 `de4c071460209f2a378f4cc04a912ebda693dd78bf910c0c1f9a6a3f097c7cae`だけを再利用対象として保持する。compiler cacheは144,826 cache可能呼出し中120,594件、83.27%がhitしている。次の永続作業は第543便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
+
+### 第543便の公開API契約計画
+
+- 第543便はPSD channelの読込・RLE書出と、書出位置を保持する値型を所有する`libs/psd/psd_pixel_utils.h`の残存全11 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g543.json`は公開header 1,549、公開API 29,801、対応済み28,440、未対応1,361、371,720 bytes、SHA-256 `de4c071460209f2a378f4cc04a912ebda693dd78bf910c0c1f9a6a3f097c7cae`である。対象11識別子の整列集合SHA-256は`733094cc77175fbb9d5a65384b863cc73c6b16cfd0fa1fa3c3899b3b47ac9ab1`である。
+- pixel補助境界はchannel書出情報の型・3構築・3公開値7件を既定値と指定値で動的に観測し、通常channel読込、alpha mask読込、RLE channel書出、pixel data共通書出4件を厳密な関数pointerで固定する。paint device、channel data、圧縮器は実体化せず、I/Oと画像状態を変更しない。
+- 開始headerはexport定義、`QRect`、`QVector`、PSD値、画像共有pointerだけを直接includeする。開始`libs/psd/psd_pixel_utils.cpp`と既存`libs/psdutils/tests/PSDLayerRecordSchemaContractTest.cpp`の厳格構文診断は0件であるため、構造変更を行わない。既存試験sourceは236行・19枠で、1枠追加後も300行・20枠以内に収まる。
+- 既存PSD layer record契約へCMake変更なしで追加し、Qt Core・Testだけへ動的接続する4工程・8入力、command SHA-256 `51754fd123de29e7fbbe5b17678995eeaa7d5958f12c4225608aff39207a4aec`、input SHA-256 `598e0e334ab4cf08c266b29c2535393b8eaddc5851a447fab1e95f47c29869ab`を維持する。工程・入力増加、候補headerのAUTOMOC入力化、製品未解決記号が生じれば停止する。macOSの対象全体と追加1枠の20回反復、実装・試験sourceの厳格構文、試験書式、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、実channel I/O・圧縮、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
 
 ### 第239便の先行監査担当票
 
