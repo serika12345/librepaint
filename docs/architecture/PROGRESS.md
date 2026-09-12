@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-12 21:12 JST
+- 更新日時: 2026-09-12 21:18 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5148,6 +5148,12 @@
 - brush dabの再利用cacheの公開境界を既存基底schema契約へ統合した。開始`plugins/paintops/libpaintop/kis_dab_cache.h`から既存`plugins/paintops/libpaintop/tests/KisDabCacheBaseSchemaContractTest.cpp`へ残存全9 API・3枠を追加し、型・brush付き構築・破棄3件、2種のdab取得と正規化画像dab取得3件、sharpness・texture後処理と別original要否3件を型特性と厳密なmember pointerで固定した。未定義3枠だけを加えた最初の限定リンクは、その3記号だけの不足で期待どおり失敗した。計画commitは`4fd22a308b`、契約commitは`a2ac4cac0e`で、既存sourceは113行・6枠となった。CMakeと製品sourceは変更していない。
 - targetは4工程・8入力、command SHA-256 `072043dbd9306197bbef01cb6e5e3c15c162237a321d1cd3af37e35699b57fce`、input SHA-256 `4a7e662fe1fdb17982e29a796fb20b5b72556fba15ddea3ac16338e89d2e8f5f`を維持した。AUTOMOC `HEADERS=[]`、dab cache・brush・色・描画装置・optionの未解決製品記号0で、Qt Core・Testだけへ動的接続する。macOSで対象単発と全体20回、追加3枠各20回、近傍`KisDabCacheUtilsSchemaContractTest`、実装・試験sourceの厳格構文、追加範囲の書式、連続二回の無作業再構築、`verify-quick`に成功した。dab生成、cache hit、色・texture・sharpness後処理の実効果、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 公開API検査の初回診断は期待値1,273に対して実測1,264で、新規9件と一致した。台帳を28,537件対応、1,264件未対応へ進めた。新`public-api-missing-g554.json`は342,311 bytes、SHA-256 `b0a66d153fa181928844924a658ada9babdb77de8a51a25d39622b34432648b7`で、生成成功後に旧`public-api-missing-g553.json` 345,450 bytesを削除した。主Ninja木6,047,092 KiB、共有compiler cache 982,860 KiBと最新報告だけを保持する。compiler cacheは144,867 cache可能呼出し中120,601件、83.25%がhitしている。次の永続作業は第554便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
+
+### 第554便の公開API契約計画
+
+- 第554便はlayer projectionの再利用を排他文脈で起動するjobの共有弱参照、構築、実行、詳細度、識別名、置換可否を所有する`libs/image/KisRecycleProjectionsJob.h`の残存全7 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g554.json`は公開header 1,549、公開API 29,801、対応済み28,537、未対応1,264、342,311 bytes、SHA-256 `b0a66d153fa181928844924a658ada9babdb77de8a51a25d39622b34432648b7`である。対象7識別子の整列集合SHA-256は`76941f6749d83696254f8ddb1c84d58aafea9062f18924d803e746197db2e8fe`である。
+- projection再利用job境界は弱参照別名・型・構築3、実行・詳細度・識別名3、他jobの置換可否1の3枠へ固定する。型特性、別名同一性、厳密なmember pointerだけを使い、job、projection store、排他文脈を実体化せず本文を実行しない。既存`libs/image/tests/KisSpontaneousJobContractTest.cpp`はjobの実行・排他状態・置換・詳細度を扱う110行・3枠で、3枠追加後も190行・10枠以内に収まる。
+- 既存targetへCMake変更なしで追加し、Qt Testだけへ動的接続する4工程・8入力、command SHA-256 `adc69e9a68bdb32af077c74f3a10c7f67b664ff464eeb8f344715279dfed7aa6`、input SHA-256 `69d6f89eb5442b34f5fc22a3c41241cf2f490213b787311c3a28a877722e26c7`を維持する。開始`libs/image/KisRecycleProjectionsJob.cpp`と既存試験sourceの厳格構文診断は0件である。工程・入力増加、AUTOMOC候補header入力、製品未解決記号、追加探索路・定義・動的接続が必要なら停止する。macOSの対象全体と追加3枠の20回反復、実装・試験sourceの厳格構文、試験追加範囲の書式、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、projection再利用、排他実行、置換判断、詳細度と識別名の実行時意味、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
 
 ### 第239便の先行監査担当票
 
