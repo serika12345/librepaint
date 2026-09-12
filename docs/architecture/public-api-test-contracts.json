@@ -79709,6 +79709,17 @@
     {
       "target": "KisCursorOverrideHijackerSchemaContractTest",
       "source": "libs/ui/tests/KisCursorOverrideHijackerSchemaContractTest.cpp",
+      "test": "KisCursorOverrideHijackerSchemaContractTest::sessionManagerDialogTypeAndConstructionSchemaRemainStable",
+      "behavior": "Session manager dialogはQDialog派生の公開型として親QWidgetで構築できる形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisSessionManagerDialog",
+        "method:KisSessionManagerDialog::KisSessionManagerDialog(QWidget * parent=nullptr)"
+      ]
+    },
+    {
+      "target": "KisCursorOverrideHijackerSchemaContractTest",
+      "source": "libs/ui/tests/KisCursorOverrideHijackerSchemaContractTest.cpp",
       "test": "KisCursorOverrideHijackerSchemaContractTest::androidSplashTypeAndStaticApiSchemaRemainStable",
       "behavior": "Android splashはQObject派生の公開型としてsingleton取得、表示、読込状態、読込文言、閉鎖通知の正確な公開形式を維持する。",
       "classification": "maintained",

@@ -12,6 +12,7 @@
 #include "application/ui/workspace/KisAndroidSplash.h"
 #include "canvas/kis_abstract_perspective_grid.h"
 #include "canvas/kis_canvas_controls_manager.h"
+#include "dialogs/KisSessionManagerDialog.h"
 #include "dialogs/kis_about_application.h"
 #include "document/KisTextPropertiesManager.h"
 #include "events/kis_cursor_override_hijacker.h"
@@ -53,6 +54,7 @@ class KisCursorOverrideHijackerSchemaContractTest : public QObject
 private Q_SLOTS:
     void cursorOverrideHijackerTypeConstructionAndLifetimeSchemaRemainStable();
     void aboutApplicationDialogTypeAndConstructionSchemaRemainStable();
+    void sessionManagerDialogTypeAndConstructionSchemaRemainStable();
     void androidSplashTypeAndStaticApiSchemaRemainStable();
     void qtWidgetsTweakerTypeAndFilteringSchemaRemainStable();
     void platformPluginFactoryTypeAndSingletonSchemaRemainStable();
@@ -85,6 +87,15 @@ void KisCursorOverrideHijackerSchemaContractTest::aboutApplicationDialogTypeAndC
 
     static_assert(std::is_class_v<Dialog>);
     static_assert(std::is_base_of_v<KoDialog, Dialog>);
+    static_assert(std::is_constructible_v<Dialog, QWidget *>);
+}
+
+void KisCursorOverrideHijackerSchemaContractTest::sessionManagerDialogTypeAndConstructionSchemaRemainStable()
+{
+    using Dialog = KisSessionManagerDialog;
+
+    static_assert(std::is_class_v<Dialog>);
+    static_assert(std::is_base_of_v<QDialog, Dialog>);
     static_assert(std::is_constructible_v<Dialog, QWidget *>);
 }
 
