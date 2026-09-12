@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-13 05:32 JST
+- 更新日時: 2026-09-13 05:37 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5624,6 +5624,12 @@
 - 開始`libs/ui/events/kis_cursor_override_hijacker.h`から新規`libs/ui/tests/KisCursorOverrideHijackerSchemaContractTest.cpp`へ、公開型・既定構築・破棄の3 APIを1枠として対応付ける。cursor stack、`qApp`、dialog、override cursorを実体化せず、型の構築・破棄可能性だけを観測する。開始`libs/ui/tests/CMakeLists.txt`には新規試験targetのQt Core・Test接続、UI source/generated探索路、Qt Widgets header探索路、`kritaui_EXPORTS`だけを追加する。
 - 近傍`KisGrabKeyboardFocusRecoveryWorkaroundSchemaContractTest`は4工程・8入力であり、新targetはそのコンパイル・リンク形式を再利用する。`QApplication` headerは型検査にだけ使うため製品shared、OBJECT、`kritatestsdk`を接続しない。CMake再生成は新targetの登録に限られ、許可されるコンパイル・リンクは自動生成2ファイルと新規試験本体だけである。初回構成後に`ninja -t commands`と`ninja -t inputs`で実測し、停止線は5工程・11入力、製品targetの再構築、CMake以外の探索路・定義・動的linkの増加、対象headerのAUTOMOC入力、製品未解決記号、値または本文の実体化、許可path外変更とする。
 - macOSでは新targetの構成・対象CTest、追加枠20回、軽量近傍`KisGrabKeyboardFocusRecoveryWorkaroundSchemaContractTest`、AUTOMOC後の二回目計画、連続二回の無作業再構築、動的接続・未解決記号・厳格構文・書式、公開API検査、`verify-quick`だけを実行する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。初回公開API検査は移行基準958件に対する3 API減少の診断を期待する。
+
+### 第593便の公開API契約結果
+
+- 開始`libs/ui/events/kis_cursor_override_hijacker.h`から新規`libs/ui/tests/KisCursorOverrideHijackerSchemaContractTest.cpp`へ、公開型・既定構築・破棄の3 APIを1枠として固定した。cursor stack、`qApp`、dialog、override cursorを実体化せず、型の構築・破棄可能性だけを観測している。開始`libs/ui/tests/CMakeLists.txt`から新規targetへ、Qt Core・Test接続、UI source/generated探索路、Qt Widgets header探索路、`kritaui_EXPORTS`を対応付けた。公開headerと製品sourceは変更していない。
+- CMake再生成は新targetを登録するために構成を読み直したが、コンパイル・リンクしたのは新規試験targetの自動生成2ファイルと試験本体だけであり、製品targetは再構築していない。macOSの実測閉包は4工程・8入力、command SHA-256 `01813785cfc480c98860780e8d07e1471c9898c982dbc50575eb9642adf46d8a`、input SHA-256 `58d9882064254f622d7496f1d8e232987c51dd89595a3d9101b9bbaef2ddb583`である。対象全体20回、追加1枠20回（60 pass）、近傍`KisGrabKeyboardFocusRecoveryWorkaroundSchemaContractTest`、AUTOMOC後の連続二回の無作業再構築に成功した。試験sourceは31行・1枠、AUTOMOC `HEADERS=[]`、Qt Core・TestとOS frameworkだけの動的接続、cursor override hijacker・製品libraryの未解決記号なしを確認した。試験sourceの`clang-check -Werror`、試験source書式、JSON構文、差分に成功した。
+- 初回照合は移行基準958件に対して実測955件となる期待診断を確認後、基準を更新した。公開API検査は28,846件対応、29,801件中955件未対応となった。新`build/tdd-macos/public-api-missing-g595.json`は262,169 bytes、SHA-256 `f029984b9b8d62d7eb3738e78f1aba3409629627d50dd9c7d7e89cd853a1f9ab`である。生成成功後に旧`public-api-missing-g594.json` 262,867 bytesをゴミ箱へ移して作業領域から約257 KiBを回収し、主Ninja木6,060,028 KiB、共有compiler cache 983,056 KiB、最新報告だけを再利用対象として保持する。cursor退避・復帰の順序、dialog表示中のcursor状態、GUI threadの実行結果は後続の効果契約で扱う。次の永続作業は第594便で新targetに追加可能な高密度のQt-only公開headerを選び、対象限定閉包を先に監査することである。
 
 ### 第239便の先行監査担当票
 
