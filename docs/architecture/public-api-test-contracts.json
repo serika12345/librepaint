@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 1210
+    "expectedMissingApis": 1201
   },
   "contracts": [
     {
@@ -80140,6 +80140,42 @@
         "class:KisToolPolyLineFactoryBase",
         "method:KisToolPolyLineFactoryBase::KisToolPolyLineFactoryBase(const QString & id)",
         "method:KisToolPolyLineFactoryBase::~KisToolPolyLineFactoryBase()"
+      ]
+    },
+    {
+      "target": "KisNodeShapesGraphSchemaContractTest",
+      "source": "libs/ui/tests/KisNodeShapesGraphSchemaContractTest.cpp",
+      "test": "KisNodeShapesGraphSchemaContractTest::graphTypeAdditionAndShapeLookupSchemaRemainStable",
+      "behavior": "node shapes graphは公開classとしてnodeを追加し、対応するshapeを照会する境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisNodeShapesGraph",
+        "method:KisNodeShapesGraph::addNode(KisNodeSP node,KisNodeSP parent,KisNodeSP aboveThis)",
+        "method:KisNodeShapesGraph::nodeToShape(KisNodeSP node)"
+      ]
+    },
+    {
+      "target": "KisNodeShapesGraphSchemaContractTest",
+      "source": "libs/ui/tests/KisNodeShapesGraphSchemaContractTest.cpp",
+      "test": "KisNodeShapesGraphSchemaContractTest::graphRemovalAndCountSchemaRemainStable",
+      "behavior": "node shapes graphはnodeを除去し、保持するshape数を照会する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeShapesGraph::removeNode(KisNodeSP node)",
+        "method:KisNodeShapesGraph::shapesCount() const"
+      ]
+    },
+    {
+      "target": "KisNodeShapesGraphSchemaContractTest",
+      "source": "libs/ui/tests/KisNodeShapesGraphSchemaContractTest.cpp",
+      "test": "KisNodeShapesGraphSchemaContractTest::graphRootDummyMembershipAndMoveSchemaRemainStable",
+      "behavior": "node shapes graphはrootとdummyを照会し、nodeの所属照会と階層移動を行う公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeShapesGraph::containsNode(KisNodeSP node) const",
+        "method:KisNodeShapesGraph::moveNode(KisNodeSP node,KisNodeSP parent,KisNodeSP aboveThis)",
+        "method:KisNodeShapesGraph::nodeToDummy(KisNodeSP node)",
+        "method:KisNodeShapesGraph::rootDummy() const"
       ]
     }
   ]
