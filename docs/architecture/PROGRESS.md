@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-13 00:39 JST
+- 更新日時: 2026-09-13 00:45 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5316,6 +5316,12 @@
 - 開始`libs/tools/kis_tool_paint_interaction.h`から既存`libs/tools/tests/KisToolSchemaContractTest.cpp`へ、paint interactionの型・canvas/cursor構築・仮想破棄3 API、flags・activate/deactivate・三つのpointer event6 API、painting完了通知1 APIを3枠へ固定した。`libs/tools/tests/CMakeLists.txt`の同target固有節には`KisOptimizedBrushOutline.h`の`libs/image/brushengine`探索路とheader-only Eigen interfaceだけを追加した。公開headerと製品sourceは変更していない。
 - 初期失敗はbrushengine header配置、次の失敗はpaintop settings推移headerのEigen要求だけであり、いずれもtarget固有探索路で解決した。実装後はmacOSの正式CTest `libs-tools-KisToolSchemaContractTest`、対象全体20回、追加3枠の各20回、近傍`KisToolActionContractTest`、連続二回の無作業再構築に成功した。最終閉包は4工程・8入力、command SHA-256 `82b6e2526345b2900b3e4b41d2da2caea097682be23e698eb8643ccdcd7b3bc8`、input SHA-256 `f2467da36c35df9f69e1a05f8471b1b7e2513fbdabefea6e9bf5aecf79e7544d`である。AUTOMOC `HEADERS=[]`、既存Qt動的接続だけを維持し、paint interaction・tool・brush outlineの製品未解決記号なしを確認した。実装・試験sourceの`clang-check -Werror`、書式、JSON構文、差分に成功した。
 - 公開API検査は28,652件対応、29,801件中1,149件未対応となった。新`build/tdd-macos/public-api-missing-g568.json`は312,029 bytes、SHA-256 `aa6a711bd0f2c5875d0965d5de8f5f938bd89d703251d3044afcb7dc93d45f45`であり、生成成功後に旧`public-api-missing-g567.json`をゴミ箱へ移した。主Ninja木6,048,788 KiB、共有compiler cache 983,300 KiB、最新報告だけを再利用対象として保持する。compiler cacheは144,932 cache可能呼出し中120,611件、83.22%がhitしている。入力状態遷移、brush設定、outline更新、通知配送の実行時意味は後続の動的契約で扱う。次の永続作業は第568便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
+
+### 第568便の公開API契約計画
+
+- 第568便はpattern resourceの選択・previewを担う`libs/ui/widgets/kis_pattern_chooser.h`の残存全9 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g568.json`は公開header 1,549、公開API 29,801、対応済み28,652、未対応1,149、312,029 bytes、SHA-256 `aa6a711bd0f2c5875d0965d5de8f5f938bd89d703251d3044afcb7dc93d45f45`である。対象9識別子の整列集合SHA-256は`4c2290569ec04c700cf41ae7304319166f35ded18b479f482df437f94e91af9c`である。
+- pattern chooserの境界は型・親widget構築・破棄3、選択resource照会・現在pattern/item設定3、grayscale preview・preview方向・二つの通知3へ固定する。新規`libs/ui/tests/KisPatternChooserSchemaContractTest.cpp`の3枠で型特性と厳密なmember pointerだけを観測し、widget、resource、item chooserを実体化せず本文を実行しない。pattern表示、resource選択、通知配送の実行時意味は後続の動的契約で扱う。
+- 新規targetの`libs/ui/tests/CMakeLists.txt`節はheader直接配置ui、`KoResource.h`のresources、export・共有基盤global source/generated探索路、`kritaui_EXPORTS`・`kritaresources_EXPORTS`、Qt Core・Gui・Widgets・Testとheader-only Boostだけを所有する。resource DB、item chooser、application、pluginの製品targetは接続しない。開始`libs/ui/widgets/kis_pattern_chooser.cc`の厳格構文診断は0件である。新targetは4工程・8入力を予測し、停止線を5工程・11入力とする。AUTOMOC候補header入力、製品未解決記号、追加探索路・定義・動的接続、製品再構築、許可path外変更が必要なら停止する。macOSの対象全体と追加3枠の20回反復、軽量近傍、実装・試験sourceの厳格構文、新規source書式、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。
 
 ### 第239便の先行監査担当票
 
