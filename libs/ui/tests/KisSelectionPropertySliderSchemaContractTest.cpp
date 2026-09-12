@@ -4,6 +4,7 @@
  */
 
 #include "widgets/KisSelectionPropertySlider.h"
+#include "widgets/kis_color_filter_combo.h"
 #include "widgets/kis_color_space_selector.h"
 #include "widgets/kis_floating_message.h"
 
@@ -50,6 +51,8 @@ struct CanSetSuffix<T, std::void_t<decltype(std::declval<T &>().setSuffix(std::d
     static_assert(std::is_same_v<decltype(static_cast<__VA_ARGS__>(&KisColorSpaceSelector::method)), __VA_ARGS__>)
 #define ASSERT_FLOATING_MESSAGE_SIGNATURE(method, ...)                                                                 \
     static_assert(std::is_same_v<decltype(static_cast<__VA_ARGS__>(&KisFloatingMessage::method)), __VA_ARGS__>)
+#define ASSERT_COLOR_FILTER_COMBO_SIGNATURE(method, ...)                                                               \
+    static_assert(std::is_same_v<decltype(static_cast<__VA_ARGS__>(&KisColorFilterCombo::method)), __VA_ARGS__>)
 
 } // namespace
 
@@ -68,6 +71,10 @@ private Q_SLOTS:
     void floatingMessageTypeAndPrioritySchemaRemainStable();
     void floatingMessageConstructionAndConfigurationSignaturesRemainStable();
     void floatingMessagePresentationSignaturesRemainStable();
+    void colorFilterComboTypeSchemaRemainStable();
+    void colorFilterComboLabelSchemaRemainStable();
+    void colorFilterComboPresentationSchemaRemainStable();
+    void colorFilterComboNotificationSchemaRemainStable();
 };
 
 void KisSelectionPropertySliderSchemaContractTest::baseTypeConstructionAndLifetimeSchemaRemainStable()
@@ -180,6 +187,43 @@ void KisSelectionPropertySliderSchemaContractTest::floatingMessagePresentationSi
     ASSERT_FLOATING_MESSAGE_SIGNATURE(removeMessage, void (KisFloatingMessage::*)());
 }
 
+void KisSelectionPropertySliderSchemaContractTest::colorFilterComboTypeSchemaRemainStable()
+{
+    using Combo = KisColorFilterCombo;
+
+    static_assert(std::is_class_v<Combo>);
+    static_assert(std::is_base_of_v<QComboBox, Combo>);
+    static_assert(std::is_constructible_v<Combo, QWidget *, bool, bool>);
+    static_assert(std::has_virtual_destructor_v<Combo>);
+}
+
+void KisSelectionPropertySliderSchemaContractTest::colorFilterComboLabelSchemaRemainStable()
+{
+    using Combo = KisColorFilterCombo;
+
+    ASSERT_COLOR_FILTER_COMBO_SIGNATURE(updateAvailableLabels, void (Combo::*)(KisNodeSP));
+    ASSERT_COLOR_FILTER_COMBO_SIGNATURE(updateAvailableLabels, void (Combo::*)(const QSet<int> &));
+    ASSERT_COLOR_FILTER_COMBO_SIGNATURE(setModes, void (Combo::*)(bool, bool));
+}
+
+void KisSelectionPropertySliderSchemaContractTest::colorFilterComboPresentationSchemaRemainStable()
+{
+    using Combo = KisColorFilterCombo;
+
+    ASSERT_COLOR_FILTER_COMBO_SIGNATURE(minimumSizeHint, QSize (Combo::*)() const);
+    ASSERT_COLOR_FILTER_COMBO_SIGNATURE(sizeHint, QSize (Combo::*)() const);
+    ASSERT_COLOR_FILTER_COMBO_SIGNATURE(selectedColors, QList<int> (Combo::*)() const);
+    ASSERT_COLOR_FILTER_COMBO_SIGNATURE(
+        paintColorPie,
+        void (*)(QStylePainter &, const QPalette &, const QList<int> &, const QRect &, const int &));
+}
+
+void KisSelectionPropertySliderSchemaContractTest::colorFilterComboNotificationSchemaRemainStable()
+{
+    ASSERT_COLOR_FILTER_COMBO_SIGNATURE(selectedColorsChanged, void (KisColorFilterCombo::*)());
+}
+
+#undef ASSERT_COLOR_FILTER_COMBO_SIGNATURE
 #undef ASSERT_FLOATING_MESSAGE_SIGNATURE
 #undef ASSERT_COLOR_SPACE_SELECTOR_SIGNATURE
 #undef ASSERT_SELECTION_SLIDER_BASE_SIGNATURE

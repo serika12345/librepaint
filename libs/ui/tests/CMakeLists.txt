@@ -279,11 +279,14 @@ target_include_directories(KisSelectionPropertySliderSchemaContractTest PRIVATE
     ${CMAKE_BINARY_DIR}/libs/global
     ${CMAKE_SOURCE_DIR}/libs/widgetutils
     ${CMAKE_BINARY_DIR}/libs/widgetutils
+    ${CMAKE_SOURCE_DIR}/libs/image
+    ${CMAKE_BINARY_DIR}/libs/image
     $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Gui,INTERFACE_INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Widgets,INTERFACE_INCLUDE_DIRECTORIES>
 )
 target_compile_definitions(KisSelectionPropertySliderSchemaContractTest PRIVATE
     kritaglobal_EXPORTS
+    kritaimage_EXPORTS
     kritaui_EXPORTS
     kritawidgetutils_EXPORTS
 )

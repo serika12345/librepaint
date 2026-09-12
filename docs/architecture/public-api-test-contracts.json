@@ -80699,6 +80699,53 @@
       "apis": [
         "method:KisCanvasSurfaceColorSpaceManager::sigDisplayConfigChanged(const KisDisplayConfig & config)"
       ]
+    },
+    {
+      "target": "KisSelectionPropertySliderSchemaContractTest",
+      "source": "libs/ui/tests/KisSelectionPropertySliderSchemaContractTest.cpp",
+      "test": "KisSelectionPropertySliderSchemaContractTest::colorFilterComboTypeSchemaRemainStable",
+      "behavior": "color filter comboはQComboBoxの公開派生型として親widgetと2つの表示modeで構築し、仮想破棄する境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisColorFilterCombo",
+        "method:KisColorFilterCombo::KisColorFilterCombo(QWidget * parent,bool filterMode=true,bool circleMode=true)",
+        "method:KisColorFilterCombo::~KisColorFilterCombo()"
+      ]
+    },
+    {
+      "target": "KisSelectionPropertySliderSchemaContractTest",
+      "source": "libs/ui/tests/KisSelectionPropertySliderSchemaContractTest.cpp",
+      "test": "KisSelectionPropertySliderSchemaContractTest::colorFilterComboLabelSchemaRemainStable",
+      "behavior": "color filter comboはnodeまたはlabel集合から利用可能labelを更新し、表示modeを設定する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisColorFilterCombo::setModes(bool filterMode,bool circleMode)",
+        "method:KisColorFilterCombo::updateAvailableLabels(KisNodeSP rootNode)",
+        "method:KisColorFilterCombo::updateAvailableLabels(const QSet<int> & labels)"
+      ]
+    },
+    {
+      "target": "KisSelectionPropertySliderSchemaContractTest",
+      "source": "libs/ui/tests/KisSelectionPropertySliderSchemaContractTest.cpp",
+      "test": "KisSelectionPropertySliderSchemaContractTest::colorFilterComboPresentationSchemaRemainStable",
+      "behavior": "color filter comboは最小・推奨サイズと選択色を返し、palette上に選択色のpieを描画する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisColorFilterCombo::minimumSizeHint() const",
+        "method:KisColorFilterCombo::paintColorPie(QStylePainter & painter,const QPalette & palette,const QList<int> & selectedColors,const QRect & rect,const int & baseSize)",
+        "method:KisColorFilterCombo::selectedColors() const",
+        "method:KisColorFilterCombo::sizeHint() const"
+      ]
+    },
+    {
+      "target": "KisSelectionPropertySliderSchemaContractTest",
+      "source": "libs/ui/tests/KisSelectionPropertySliderSchemaContractTest.cpp",
+      "test": "KisSelectionPropertySliderSchemaContractTest::colorFilterComboNotificationSchemaRemainStable",
+      "behavior": "color filter comboは選択色の変更を通知する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisColorFilterCombo::selectedColorsChanged()"
+      ]
     }
   ]
 }
