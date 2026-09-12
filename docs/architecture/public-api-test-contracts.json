@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 1250
+    "expectedMissingApis": 1243
   },
   "contracts": [
     {
@@ -79956,6 +79956,40 @@
         "method:KisLegacyUndoAdapter::addCommand(KUndo2Command * cmd)",
         "method:KisLegacyUndoAdapter::beginMacro(const KUndo2MagicString & macroName)",
         "method:KisLegacyUndoAdapter::endMacro()"
+      ]
+    },
+    {
+      "target": "KisMetaDataSchemaRegistrySchemaContractTest",
+      "source": "libs/painting/metadata/tests/KisMetaDataSchemaRegistrySchemaContractTest.cpp",
+      "test": "KisMetaDataSchemaRegistrySchemaContractTest::typeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "metadata schema registryは公開classとして既定構築・破棄できる寿命境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisMetaData::SchemaRegistry",
+        "method:KisMetaData::SchemaRegistry::SchemaRegistry()",
+        "method:KisMetaData::SchemaRegistry::~SchemaRegistry()"
+      ]
+    },
+    {
+      "target": "KisMetaDataSchemaRegistrySchemaContractTest",
+      "source": "libs/painting/metadata/tests/KisMetaDataSchemaRegistrySchemaContractTest.cpp",
+      "test": "KisMetaDataSchemaRegistrySchemaContractTest::schemaCreationAndLookupSignaturesRemainStable",
+      "behavior": "metadata schema registryはURI・prefixからschemaを生成し、URIまたはprefixでschemaを照会する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMetaData::SchemaRegistry::create(const QString & uri,const QString & prefix)",
+        "method:KisMetaData::SchemaRegistry::schemaFromPrefix(const QString & prefix) const",
+        "method:KisMetaData::SchemaRegistry::schemaFromUri(const QString & uri) const"
+      ]
+    },
+    {
+      "target": "KisMetaDataSchemaRegistrySchemaContractTest",
+      "source": "libs/painting/metadata/tests/KisMetaDataSchemaRegistrySchemaContractTest.cpp",
+      "test": "KisMetaDataSchemaRegistrySchemaContractTest::singletonSignatureRemainsStable",
+      "behavior": "metadata schema registryはsingleton instanceを返す公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMetaData::SchemaRegistry::instance()"
       ]
     }
   ]
