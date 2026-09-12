@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 1307
+    "expectedMissingApis": 1300
   },
   "contracts": [
     {
@@ -79710,6 +79710,40 @@
         "method:KisTiffPsdLayerRecord::record() const",
         "method:KisTiffPsdLayerRecord::valid() const",
         "method:KisTiffPsdLayerRecord::write(QIODevice & io,KisNodeSP rootLayer,psd_compression_type compressionType)"
+      ]
+    },
+    {
+      "target": "KisDabCacheBaseSchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisDabCacheBaseSchemaContractTest.cpp",
+      "test": "KisDabCacheBaseSchemaContractTest::typeConstructionAndLifetimeRemainStable",
+      "behavior": "dab cache基底は既定構築可能な公開classとして、所有個体を明示的に破棄できる寿命境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisDabCacheBase",
+        "method:KisDabCacheBase::KisDabCacheBase()",
+        "method:KisDabCacheBase::~KisDabCacheBase()"
+      ]
+    },
+    {
+      "target": "KisDabCacheBaseSchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisDabCacheBaseSchemaContractTest.cpp",
+      "test": "KisDabCacheBaseSchemaContractTest::optionConfigurationSignaturesRemainStable",
+      "behavior": "dab cache基底はmirror後処理と精度optionを借用pointerで設定する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDabCacheBase::setMirrorPostprocessing(KisMirrorOption * option)",
+        "method:KisDabCacheBase::setPrecisionOption(KisPrecisionOption * option)"
+      ]
+    },
+    {
+      "target": "KisDabCacheBaseSchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisDabCacheBaseSchemaContractTest.cpp",
+      "test": "KisDabCacheBaseSchemaContractTest::cacheBehaviorControlSignaturesRemainStable",
+      "behavior": "dab cache基底はsubpixel精度を無効化し、texture・sharpness optionから別originalの必要性を照会する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDabCacheBase::disableSubpixelPrecision()",
+        "method:KisDabCacheBase::needSeparateOriginal(KisTextureOption * textureOption,KisSharpnessOption * sharpnessOption) const"
       ]
     }
   ]
