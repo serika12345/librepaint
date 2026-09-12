@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "KisMaskingBrushOptionProperties.h"
 #include "kis_brush_based_paintop.h"
 
 #include <QTest>
@@ -40,6 +41,9 @@ private Q_SLOTS:
     void brushPaintOpPaintabilitySignaturesRemainStable();
     void brushPaintOpSpacingSignaturesRemainStable();
     void brushPaintOpPreparationSignaturesRemainStable();
+    void maskingBrushDataTypeAndMemberSchemaRemainStable();
+    void maskingBrushDataEqualitySignatureRemainStable();
+    void maskingBrushDataPersistenceSignaturesRemainStable();
 };
 
 void KisBrushBasedPaintOpSchemaContractTest::textBrushInitializationSchemaRemainStable()
@@ -95,6 +99,41 @@ void KisBrushBasedPaintOpSchemaContractTest::brushPaintOpPreparationSignaturesRe
         std::is_same_v<decltype(&KisBrushBasedPaintOp::preinitializeOpStatically), void (*)(KisPaintOpSettingsSP)>);
     static_assert(std::is_same_v<decltype(&KisBrushBasedPaintOp::prepareLinkedResources), ResourcePreparation>);
     static_assert(std::is_same_v<decltype(&KisBrushBasedPaintOp::prepareEmbeddedResources), ResourcePreparation>);
+}
+
+void KisBrushBasedPaintOpSchemaContractTest::maskingBrushDataTypeAndMemberSchemaRemainStable()
+{
+    using Data = KisBrushModel::MaskingBrushData;
+
+    static_assert(std::is_class_v<Data>);
+    static_assert(std::is_same_v<decltype(Data::isEnabled), bool>);
+    static_assert(std::is_same_v<decltype(Data::brush), KisBrushModel::BrushData>);
+    static_assert(std::is_same_v<decltype(Data::compositeOpId), QString>);
+    static_assert(std::is_same_v<decltype(Data::useMasterSize), bool>);
+    static_assert(std::is_same_v<decltype(Data::masterSizeCoeff), qreal>);
+
+    QVERIFY(true);
+}
+
+void KisBrushBasedPaintOpSchemaContractTest::maskingBrushDataEqualitySignatureRemainStable()
+{
+    using Data = KisBrushModel::MaskingBrushData;
+    using Equality = bool (*)(const Data &, const Data &);
+
+    static_assert(std::is_same_v<decltype(static_cast<Equality>(&KisBrushModel::operator==)), Equality>);
+
+    QVERIFY(true);
+}
+
+void KisBrushBasedPaintOpSchemaContractTest::maskingBrushDataPersistenceSignaturesRemainStable()
+{
+    using Data = KisBrushModel::MaskingBrushData;
+    using Read = Data (*)(const KisPropertiesConfiguration *, qreal, KisResourcesInterfaceSP);
+
+    static_assert(std::is_same_v<decltype(&Data::read), Read>);
+    static_assert(std::is_same_v<decltype(&Data::write), void (Data::*)(KisPropertiesConfiguration *) const>);
+
+    QVERIFY(true);
 }
 
 #undef ASSERT_BRUSH_PAINTOP_SIGNATURE
