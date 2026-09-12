@@ -79624,6 +79624,31 @@
       ]
     },
     {
+      "target": "KisCollapsibleButtonGroupSchemaContractTest",
+      "source": "libs/ui/tests/KisCollapsibleButtonGroupSchemaContractTest.cpp",
+      "test": "KisCollapsibleButtonGroupSchemaContractTest::toneCurveTypeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "色調曲線widgetはQWidget派生の公開型として親widgetで構築でき、仮想破棄を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisToneCurveWidget",
+        "method:KisToneCurveWidget::KisToneCurveWidget(QWidget * parent=nullptr)",
+        "method:KisToneCurveWidget::~KisToneCurveWidget()"
+      ]
+    },
+    {
+      "target": "KisCollapsibleButtonGroupSchemaContractTest",
+      "source": "libs/ui/tests/KisCollapsibleButtonGroupSchemaContractTest.cpp",
+      "test": "KisCollapsibleButtonGroupSchemaContractTest::toneCurveStateAndCurveSignaturesRemainStable",
+      "behavior": "色調曲線widgetはgreyscale・RGB・CMYK曲線とprofileデータ状態の正確な公開設定関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisToneCurveWidget::setCMYKCurve(QPolygonF cyan,QPolygonF magenta,QPolygonF yellow,QPolygonF key)",
+        "method:KisToneCurveWidget::setGreyscaleCurve(QPolygonF poly)",
+        "method:KisToneCurveWidget::setProfileDataAvailable(bool dataAvailable)",
+        "method:KisToneCurveWidget::setRGBCurve(QPolygonF red,QPolygonF green,QPolygonF blue)"
+      ]
+    },
+    {
       "target": "KisMultiBoolFilterWidgetSchemaContractTest",
       "source": "libs/ui/tests/KisMultiBoolFilterWidgetSchemaContractTest.cpp",
       "test": "KisMultiBoolFilterWidgetSchemaContractTest::nodeDisplayModeTypeConstructionAndAccessSignaturesRemainStable",

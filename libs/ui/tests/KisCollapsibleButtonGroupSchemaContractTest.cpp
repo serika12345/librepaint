@@ -9,6 +9,7 @@
 #include "widgets/KisLodAvailabilityData.h"
 #include "widgets/KisMemoryReportButton.h"
 #include "widgets/kis_collapsible_button_group.h"
+#include "widgets/kis_tone_curve_widget.h"
 #include "widgets/kis_tool_button.h"
 #include "widgets/kis_utility_title_bar.h"
 
@@ -38,6 +39,8 @@ private Q_SLOTS:
     void colorSamplerPreviewStateAndPaintingSignaturesRemainStable();
     void dockerHudTypeConstructionAndLifetimeSchemaRemainStable();
     void dockerHudStateAndBorrowingSignaturesRemainStable();
+    void toneCurveTypeConstructionAndLifetimeSchemaRemainStable();
+    void toneCurveStateAndCurveSignaturesRemainStable();
 };
 
 void KisCollapsibleButtonGroupSchemaContractTest::typeConstructionAndLifetimeSchemaRemainStable()
@@ -220,6 +223,28 @@ void KisCollapsibleButtonGroupSchemaContractTest::dockerHudStateAndBorrowingSign
     static_assert(std::is_same_v<decltype(&Hud::returnDocker), void (Hud::*)(bool)>);
     static_assert(std::is_same_v<decltype(&Hud::borrowDocker), void (Hud::*)()>);
     static_assert(std::is_same_v<decltype(&Hud::setIsShown), void (Hud::*)(bool)>);
+}
+
+void KisCollapsibleButtonGroupSchemaContractTest::toneCurveTypeConstructionAndLifetimeSchemaRemainStable()
+{
+    using ToneCurve = KisToneCurveWidget;
+
+    static_assert(std::is_class_v<ToneCurve>);
+    static_assert(std::is_base_of_v<QWidget, ToneCurve>);
+    static_assert(std::is_constructible_v<ToneCurve, QWidget *>);
+    static_assert(std::has_virtual_destructor_v<ToneCurve>);
+}
+
+void KisCollapsibleButtonGroupSchemaContractTest::toneCurveStateAndCurveSignaturesRemainStable()
+{
+    using ToneCurve = KisToneCurveWidget;
+
+    static_assert(std::is_same_v<decltype(&ToneCurve::setGreyscaleCurve), void (ToneCurve::*)(QPolygonF)>);
+    static_assert(
+        std::is_same_v<decltype(&ToneCurve::setRGBCurve), void (ToneCurve::*)(QPolygonF, QPolygonF, QPolygonF)>);
+    static_assert(std::is_same_v<decltype(&ToneCurve::setCMYKCurve),
+                                 void (ToneCurve::*)(QPolygonF, QPolygonF, QPolygonF, QPolygonF)>);
+    static_assert(std::is_same_v<decltype(&ToneCurve::setProfileDataAvailable), void (ToneCurve::*)(bool)>);
 }
 
 QTEST_GUILESS_MAIN(KisCollapsibleButtonGroupSchemaContractTest)
