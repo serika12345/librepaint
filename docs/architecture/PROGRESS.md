@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-13 02:24 JST
+- 更新日時: 2026-09-13 02:31 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5424,6 +5424,12 @@
 - 開始`libs/ui/widgets/kis_color_filter_combo.h`から既存`libs/ui/tests/KisSelectionPropertySliderSchemaContractTest.cpp`へ、combo型・親widgetと表示modeによる構築・寿命3 API、label更新とmode設定3 API、サイズ・選択色・pie描画4 API、選択色変更通知1 APIを4枠へ固定した。`libs/ui/tests/CMakeLists.txt`には`KisNodeSP`を解決するimage source/generated探索路と`kritaimage_EXPORTS`だけを対象固有で追加した。公開headerと製品sourceは変更していない。
 - 初期公開API検査は移行基準1,066件に対して実測1,055件となり、11 APIの新規対応を期待どおり検出した。基準更新後はmacOSの正式CTest `libs-ui-KisSelectionPropertySliderSchemaContractTest`、対象全体20回、追加4枠の各20回、近傍`KisMultiBoolFilterWidgetSchemaContractTest`、連続二回の無作業再構築に成功した。最終閉包は4工程・8入力、command SHA-256 `6d501d380ce79f3a47a5ff8e84ebeb634c1d5508a55b7d476b6b458c544669ed`、input SHA-256 `4b122863a9ccad162971873179ec22926ad22b574da8d33f1610a9237bf88050`である。AUTOMOC `HEADERS=[]`、Qt Core・Test、`libintl`とOS frameworkだけの動的接続、color filter comboと選択表示型の製品未解決記号なしを確認した。試験sourceの`clang-check -Werror`、書式、JSON構文、差分に成功した。`libs/ui/widgets/kis_color_filter_combo.cpp`のQt 6.13非推奨`QSortFilterProxyModel::invalidateFilter()` 1件は変更前から残る独立診断であり、今回の試験追加では抑制・緩和・製品コード変更を行っていない。
 - 公開API検査は28,746件対応、29,801件中1,055件未対応となった。新`build/tdd-macos/public-api-missing-g577.json`は287,066 bytes、SHA-256 `6071af74883511c75cf50f3b87a1363c708fc87db256c280f5c7324423830f0f`であり、生成成功後に旧`public-api-missing-g576.json` 290,025 bytesをゴミ箱へ移して作業領域から約283 KiBを回収した。主Ninja木6,058,456 KiB、共有compiler cache 981,664 KiB、最新報告だけを再利用対象として保持する。label収集、選択変更、pie描画、paint eventは後続の動的契約で扱う。次の永続作業は第577便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
+
+### 第577便の公開API契約計画
+
+- 第577便はOpenGL widgetの一時的な文脈切替を直列化する`libs/ui/opengl/KisOpenGLContextSwitchLock.h`の残存全7 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g577.json`は公開header 1,549、公開API 29,801、対応済み28,746、未対応1,055、287,066 bytes、SHA-256 `6071af74883511c75cf50f3b87a1363c708fc87db256c280f5c7324423830f0f`である。対象7識別子の整列集合SHA-256は`a1e7f8b2c12ba4c13993b1d6f31e7a020985b6f958d0df60a76294855abfe7f7`である。
+- 文脈切替adapterの境界は対象widgetを借用して構築し、現在文脈を保存・復元する`lock`と`unlock`を提供する型と構築4 API、Qt 5では条件付きに同じ境界を提供しQt 6では同じ操作へ委譲する派生型3 APIへ固定する。開始`libs/ui/opengl/KisOpenGLContextSwitchLock.h`から既存`libs/ui/tests/KisOpenGLModeProberSchemaContractTest.cpp`へ2枠を追加し、型特性と厳密なmember pointerだけを観測する。widget、OpenGL文脈、surfaceを実体化せず本文を実行しない。実際の文脈保存・復元、OpenGL driver、Qt 5の環境変数分岐は後続の実行時契約で扱う。
+- 既存targetは同じOpenGL公開面を静的に検査し、`libs/ui`と`libs/global`の探索路、`kritaui_EXPORTS`、Qt Gui・Testをすでに持つ。現在の4工程・8入力を基準にCMake変更なしで同じ閉包を維持し、停止線を5工程・11入力とする。AUTOMOC候補header入力、製品未解決記号、動的接続の追加、製品再構築、許可path外変更が必要なら停止する。macOSの対象全体と追加2枠の20回反復、軽量近傍、試験sourceの厳格構文・書式、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。初期公開API検査は移行基準1,055件に対する7 API減少の診断を期待する。
 
 ### 第239便の先行監査担当票
 
