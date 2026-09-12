@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 1177
+    "expectedMissingApis": 1168
   },
   "contracts": [
     {
@@ -80281,6 +80281,42 @@
       "apis": [
         "method:KisNodeShape::paint(QPainter & painter) const",
         "method:KisNodeShape::setPosition(const QPointF &)"
+      ]
+    },
+    {
+      "target": "KisIdleTaskStrokeStrategySchemaContractTest",
+      "source": "libs/ui/tests/KisIdleTaskStrokeStrategySchemaContractTest.cpp",
+      "test": "KisIdleTaskStrokeStrategySchemaContractTest::idleTaskStrategyTypeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "idle task stroke strategyはQObjectとrunnable stroke strategyの公開派生classとして、IDで構築・仮想破棄し、factory別名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisIdleTaskStrokeStrategyFactory",
+        "class:KisIdleTaskStrokeStrategy",
+        "method:KisIdleTaskStrokeStrategy::KisIdleTaskStrokeStrategy(const QLatin1String & id,const KUndo2MagicString & name=KUndo2MagicString ())",
+        "method:KisIdleTaskStrokeStrategy::~KisIdleTaskStrokeStrategy()"
+      ]
+    },
+    {
+      "target": "KisIdleTaskStrokeStrategySchemaContractTest",
+      "source": "libs/ui/tests/KisIdleTaskStrokeStrategySchemaContractTest.cpp",
+      "test": "KisIdleTaskStrokeStrategySchemaContractTest::idleTaskStrategyCloneAndCookieSchemaRemainStable",
+      "behavior": "idle task stroke strategyはLOD cloneとidle task cookieを返す公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisIdleTaskStrokeStrategy::createLodClone(int levelOfDetail)",
+        "method:KisIdleTaskStrokeStrategy::idleTaskCookie()"
+      ]
+    },
+    {
+      "target": "KisIdleTaskStrokeStrategySchemaContractTest",
+      "source": "libs/ui/tests/KisIdleTaskStrokeStrategySchemaContractTest.cpp",
+      "test": "KisIdleTaskStrokeStrategySchemaContractTest::idleTaskStrategyTimingAndNotificationSchemaRemainStable",
+      "behavior": "idle task stroke strategyは最大実行時間と監視間隔を返し、完了を通知する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisIdleTaskStrokeStrategy::preferredIdleTaskMaximumTime()",
+        "method:KisIdleTaskStrokeStrategy::preferredIdleWatcherInterval()",
+        "method:KisIdleTaskStrokeStrategy::sigIdleTaskFinished()"
       ]
     }
   ]
