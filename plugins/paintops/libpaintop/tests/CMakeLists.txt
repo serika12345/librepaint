@@ -216,9 +216,7 @@ kis_add_test(
     KisDabCacheUtilsSchemaContractTest.cpp
     LINK_LIBRARIES
         Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Gui
         Qt${QT_MAJOR_VERSION}::Test
-        Qt${QT_MAJOR_VERSION}::Xml
         Boost::boost
 )
 target_include_directories(KisDabCacheUtilsSchemaContractTest PRIVATE
@@ -238,6 +236,8 @@ target_include_directories(KisDabCacheUtilsSchemaContractTest PRIVATE
     ${CMAKE_BINARY_DIR}/libs/widgetutils
 )
 target_include_directories(KisDabCacheUtilsSchemaContractTest SYSTEM PRIVATE
+    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Gui,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Xml,INTERFACE_INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:Eigen3::Eigen,INTERFACE_INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:Imath::ImathConfig,INTERFACE_INCLUDE_DIRECTORIES>
