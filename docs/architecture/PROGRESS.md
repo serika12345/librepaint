@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-13 01:21 JST
+- 更新日時: 2026-09-13 01:27 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5358,6 +5358,12 @@
 - 第571便は作者プロファイル設定と連絡先編集delegateを表す`libs/widgets/KoConfigAuthorPage.h`の残存全9 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g571.json`は公開header 1,549、公開API 29,801、対応済み28,683、未対応1,118、303,731 bytes、SHA-256 `ddb1702bb3dfdbed5b34eb0e358aa1ba92ec8d7798405aa5554245e1acccc636`である。対象9識別子の整列集合SHA-256は`1290bfa8a3ddd6d77088b49e5617afad61162166ffc93b210320361fae358da8`である。
 - 作者プロファイル設定の境界は設定page型・構築・寿命・適用4、連絡先delegate型・構築・寿命・contact mode保持4、editor生成1へ固定する。新規`libs/widgets/tests/KoConfigAuthorPageSchemaContractTest.cpp`の3枠で型特性、厳密なmember pointer、data member型だけを観測し、page、delegate、editor、設定、profile、連絡先を実体化せず本文を実行しない。profile読込・保存、連絡先編集、editor生成の実行時意味は後続の動的契約で扱う。
 - 新規targetの`libs/widgets/tests/CMakeLists.txt`節はwidgets header配置とexport生成headerのsource/generated探索路、`kritawidgets_EXPORTS`、Qt Core・TestとQt Widgetsのheader探索路だけを所有する。`kritawidgets`、widgetutils、resource、configuration、applicationの製品targetは接続しない。開始`libs/widgets/KoConfigAuthorPage.cpp`の厳格構文診断は0件である。既存`KoZoomControlSchemaContractTest`の4工程・8入力を最も近いclean-tree閉包として採用し、新targetも4工程・8入力、停止線を5工程・11入力とする。AUTOMOC候補header入力、製品未解決記号、追加探索路・定義・動的接続、製品再構築、許可path外変更が必要なら停止する。macOSの対象全体と追加3枠の20回反復、軽量近傍、実装・試験sourceの厳格構文、新規source書式、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。
+
+### 第571便の公開API契約結果
+
+- 開始`libs/widgets/KoConfigAuthorPage.h`から新規`libs/widgets/tests/KoConfigAuthorPageSchemaContractTest.cpp`へ、作者設定page型・構築・寿命・適用4 API、連絡先delegate型・構築・寿命・contact mode保持4 API、editor生成1 APIを3枠へ固定した。`libs/widgets/tests/CMakeLists.txt`にはwidgets source/generated探索路、`kritawidgets_EXPORTS`、Qt Core・TestとQt Widgets header探索路だけを追加した。公開headerと製品sourceは変更していない。
+- 初期targetは新規試験source未配置のためCMake生成で停止し、試験source追加後に解消した。実装後はmacOSの正式CTest `libs-widgets-KoConfigAuthorPageSchemaContractTest`、対象全体20回、追加3枠の各20回、近傍`KoZoomControlSchemaContractTest`、連続二回の無作業再構築に成功した。最終閉包は4工程・8入力、command SHA-256 `5527101cea9963325788e9d40e71cec2b0d712f28558e21fb3926c61bba6719e`、input SHA-256 `2690d3f3fd276a309c8f80d9770386e686e43dcce472b08d226cc2b92a79b2f0`である。AUTOMOC `HEADERS=[]`、Qt Core・Test、`libintl`とOS frameworkだけの動的接続、作者設定page・連絡先delegateの製品未解決記号なしを確認した。実装・試験sourceの`clang-check -Werror`、新規source書式、JSON構文、差分に成功した。
+- 公開API検査は28,692件対応、29,801件中1,109件未対応となった。新`build/tdd-macos/public-api-missing-g572.json`は301,635 bytes、SHA-256 `59e53203263fee9edb214053fe9407fd35f1d078d7a1ee883dd3a16c2fe881d2`であり、生成成功後に旧`public-api-missing-g571.json` 303,731 bytesをゴミ箱へ移して作業領域から約297 KiBを回収した。主Ninja木6,054,268 KiB、共有compiler cache 982,776 KiB、最新報告だけを再利用対象として保持する。profile読込・保存、連絡先編集、editor生成の実行時意味は後続の動的契約で扱う。次の永続作業は第572便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
 
 ### 第239便の先行監査担当票
 
