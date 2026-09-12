@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-13 04:14 JST
+- 更新日時: 2026-09-13 04:23 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5540,6 +5540,12 @@
 - 正式入力`build/tdd-macos/public-api-missing-g587.json`の`libs/ui/widgets/KisGrabKeyboardFocusRecoveryWorkaround.h`残存3 API、型、singleton取得、focus復帰操作を、新規`libs/ui/tests/KisGrabKeyboardFocusRecoveryWorkaroundSchemaContractTest.cpp`の2枠へ対応付ける。private構築子とprivate実装は観測せず、値の生成、focus変更、widget表示、QObject寿命を実行しない。
 - 新targetは直前の`KisCompositeOpListConnectionHelperSchemaContractTest`と同じsource/generated `libs/ui`探索路、`kritaui_EXPORTS`、Qt Core・Testだけを持つ。製品shared・OBJECT、`kritatestsdk`、製品source、Qt Widgetsの直接linkを接続しない。CMake変更後も4工程・8入力、source 300行未満・20枠未満を維持し、停止線を5工程・11入力とする。対象headerのAUTOMOC入力、製品未解決記号、動的接続の追加、製品再構築、許可path外変更が必要なら停止する。
 - macOSでは対象CTest、追加2枠の各20回、軽量近傍`KisCompositeOpListConnectionHelperSchemaContractTest`、AUTOMOC後の二回目計画、連続二回の無作業再構築、動的接続・未解決記号・厳格構文・書式、公開API検査、`verify-quick`だけを実行する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。初回公開API検査は移行基準994件に対する3 API減少の診断を期待する。
+
+### 第586便の公開API契約結果
+
+- 開始`libs/ui/widgets/KisGrabKeyboardFocusRecoveryWorkaround.h`から新規`libs/ui/tests/KisGrabKeyboardFocusRecoveryWorkaroundSchemaContractTest.cpp`へ、公開型とsingleton取得の2 API、focus復帰操作1 APIを2枠へ固定した。`libs/ui/tests/CMakeLists.txt`には専用target、source/generated `libs/ui`探索路、`kritaui_EXPORTS`、Qt Core・Testだけを追加した。private構築子・private実装は観測せず、値の生成、focus変更、widget表示、QObject寿命を実行していない。公開headerと製品sourceは変更していない。
+- CMake再生成後にコンパイル・リンクしたのは新規試験targetの自動生成2ファイルと試験本体だけで、製品targetは再構築していない。macOSの実測閉包は4工程・8入力、command SHA-256 `eb490285f9cc44181acdf9cb6763c346a021a268ef061866f5bc74859d7d9040`、input SHA-256 `06b3f3f675466f790848dd311cfebab723b1e0a35585e4b0f7e5a095ff981654`である。対象全体20回、追加2枠の各20回（各60 pass）、近傍`KisCompositeOpListConnectionHelperSchemaContractTest`、AUTOMOC後の連続二回の無作業再構築に成功した。試験sourceは38行・2枠、AUTOMOC `HEADERS=[]`、Qt Core・TestとOS frameworkだけの動的接続、focus復帰helper・製品libraryの未解決記号なしを確認した。試験sourceと`libs/ui/widgets/KisGrabKeyboardFocusRecoveryWorkaround.cpp`の`clang-check -Werror`、試験source書式、JSON構文、差分に成功した。
+- 初回照合は移行基準994件に対して実測991件となる期待診断を確認後、基準を更新した。公開API検査は28,810件対応、29,801件中991件未対応となった。新`build/tdd-macos/public-api-missing-g588.json`は270,739 bytes、SHA-256 `e46a3517d9f0d19cf013285093b416029fbd6a0fdf28e6bd8eb999a9c34f20c2`である。生成成功後に旧`public-api-missing-g587.json` 271,538 bytesをゴミ箱へ移して作業領域から約265 KiBを回収し、主Ninja木6,058,880 KiB、共有compiler cache 983,396 KiB、最新報告だけを再利用対象として保持する。focus復帰の実行結果、window活性状態、platform差異は後続の効果契約で扱う。次の永続作業は第587便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
 
 ### 第239便の先行監査担当票
 
