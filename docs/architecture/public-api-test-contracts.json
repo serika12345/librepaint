@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 1300
+    "expectedMissingApis": 1291
   },
   "contracts": [
     {
@@ -79744,6 +79744,42 @@
       "apis": [
         "method:KisDabCacheBase::disableSubpixelPrecision()",
         "method:KisDabCacheBase::needSeparateOriginal(KisTextureOption * textureOption,KisSharpnessOption * sharpnessOption) const"
+      ]
+    },
+    {
+      "target": "KisBrushBasedPaintOpSchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisBrushBasedPaintOpSchemaContractTest.cpp",
+      "test": "KisBrushBasedPaintOpSchemaContractTest::maskingBrushDataTypeAndMemberSchemaRemainStable",
+      "behavior": "masking brush値は有効状態、brush値、合成方式、主brush寸法との連動有無と係数を公開値として維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisBrushModel::MaskingBrushData::brush",
+        "member:KisBrushModel::MaskingBrushData::compositeOpId",
+        "member:KisBrushModel::MaskingBrushData::isEnabled",
+        "member:KisBrushModel::MaskingBrushData::masterSizeCoeff",
+        "member:KisBrushModel::MaskingBrushData::useMasterSize",
+        "struct:KisBrushModel::MaskingBrushData"
+      ]
+    },
+    {
+      "target": "KisBrushBasedPaintOpSchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisBrushBasedPaintOpSchemaContractTest.cpp",
+      "test": "KisBrushBasedPaintOpSchemaContractTest::maskingBrushDataEqualitySignatureRemainStable",
+      "behavior": "masking brush値は2つの値を比較して真偽値を返す等値比較境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisBrushModel::operator ==(const MaskingBrushData & lhs,const MaskingBrushData & rhs)"
+      ]
+    },
+    {
+      "target": "KisBrushBasedPaintOpSchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisBrushBasedPaintOpSchemaContractTest.cpp",
+      "test": "KisBrushBasedPaintOpSchemaContractTest::maskingBrushDataPersistenceSignaturesRemainStable",
+      "behavior": "masking brush値は設定・主brush寸法・資源接続から復元し、設定へ書き戻す公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisBrushModel::MaskingBrushData::read(const KisPropertiesConfiguration * config,qreal masterBrushSize,KisResourcesInterfaceSP resourcesInterface)",
+        "method:KisBrushModel::MaskingBrushData::write(KisPropertiesConfiguration * config) const"
       ]
     }
   ]
