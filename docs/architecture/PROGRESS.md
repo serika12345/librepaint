@@ -2,14 +2,14 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-13 07:46 JST
+- 更新日時: 2026-09-13 07:52 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
 - 完了: 第605便でqPainter投影生成器の2 APIを公開契約へ追加し、対応済みを28,907件へ進めた。
-- 次の作業: 第606便として未対応報告から、既存の限定試験に追加できる公開headerを選び、実装前に構築閉包を監査する。
+- 次の作業: 第606便としてファイルicon生成器の公開形式を契約試験へ追加し、対象限定検証後に公開API基準を縮小する。
 - 検証: macOSの対象・近傍・反復・無作業再構築、公開API検査、`verify-quick`に成功した。製品target、全体build・`verify`、Linux、Nix再評価は本便の対象外である。
 
 ### 第202便の先行監査担当票
@@ -5770,6 +5770,12 @@
 - CMake再構成は探索路を登録するために構成全体を読み直したが、Ninjaがコンパイル・リンクしたのは`KisProjectionLifecycleSchemaContractTest`の自動生成、試験source、実行ファイルだけである。macOSの実測閉包は4工程・8入力、command SHA-256 `2647c21072c36d05081819d702a0f3cbbbac38b80fbcad4dbd1090c4609a12c3`、input SHA-256 `f23d37795788aace7718983809e01d4e33fdb1d2a44c2dd633cc8121086379e6`である。試験sourceは124行・6枠、AUTOMOC `HEADERS=[]`、Qt Core・TestとOS frameworkだけの動的接続、製品libraryの未解決記号なしを確認した。
 - 対象全体20回、追加1枠20回（60 pass）、近傍`KisProjectionPixelFilterContractTest`、AUTOMOC後の連続二回の無作業再構築に成功した。試験sourceの`clang-check -Werror`、書式、JSON構文、差分に成功した。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 初回照合は移行基準896件に対して実測894件となる期待診断を確認後、基準を更新した。公開API検査は28,907件対応、29,801件中894件未対応となった。新`build/tdd-macos/public-api-missing-g605.json`は245,732 bytes、SHA-256 `4b516a29e7a0cb319cb71d497e166c6634dade1cdd851874b937216e314f98e9`である。生成成功後に旧`public-api-missing-g604.json` 246,250 bytesをゴミ箱へ移して作業領域から約241 KiBを回収し、主Ninja木6,028,912 KiB、共有compiler cache 983,320 KiB、最新報告だけを再利用対象として保持する。生成器の実際のbackend選択と設定値読込みは、製品実装を接続する後続の効果契約で扱う。次の永続作業は第606便で独立軽量試験に追加可能な公開headerを選び、対象限定閉包を先に監査することである。
+
+### 第606便の公開API契約計画
+
+- 正式入力`build/tdd-macos/public-api-missing-g605.json`から、開始`libs/ui/utils/KisFileIconCreator.h`の具体icon生成型と`createFileIcon()`の2 APIを、既存`libs/widgetutils/tests/KoFileDialogSchemaContractTest.cpp`の新規1枠へ対応付ける。同試験は抽象icon生成器とpreview file dialogを既に固定しているため、具体型が同じ抽象生成器を実装し、ファイルパス・icon出力・表示倍率・寸法を受けて成功可否を返す公開形式を固定する。ファイル、MIME、画像、文書、storeを実体化せず、本文を実行しない。
+- 開始`libs/widgetutils/tests/CMakeLists.txt`の同test targetへ`libs/ui`と対応するbinary directoryの探索路だけを追加し、具体型headerと`kritaui_export.h`を解決する。現行閉包は4工程・8入力、command SHA-256 `cd91cbf0827c8e7ca073e6ff7e84c223604aaa46360857895954b5e5e00be6eb`、input SHA-256 `c34e442c7adc8952a145d75c4c2469132fed495d956f1c93f33d6ad972f52bee`であり、試験sourceは166行・10枠である。再構成後も4工程・8入力を要求し、停止線は5工程・11入力、製品targetの再構築、製品shared・OBJECT・`kritatestsdk`接続、候補headerのAUTOMOC入力化、動的linkまたは製品未解決記号の増加、ファイル・画像・文書・storeまたは本文の実体化、許可path外変更とする。
+- macOSでは対象CTest、追加枠20回、近傍`KLanguageButtonSchemaContractTest`、AUTOMOC後の二回目計画、連続二回の無作業再構築、動的接続・未解決記号・厳格構文・書式、公開API検査、`verify-quick`だけを実行する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。初回公開API検査は移行基準894件に対する2 API減少の診断を期待する。
 
 ### 第239便の先行監査担当票
 
