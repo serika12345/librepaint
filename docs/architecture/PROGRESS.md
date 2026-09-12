@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-12 21:18 JST
+- 更新日時: 2026-09-12 21:27 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5154,6 +5154,12 @@
 - 第554便はlayer projectionの再利用を排他文脈で起動するjobの共有弱参照、構築、実行、詳細度、識別名、置換可否を所有する`libs/image/KisRecycleProjectionsJob.h`の残存全7 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g554.json`は公開header 1,549、公開API 29,801、対応済み28,537、未対応1,264、342,311 bytes、SHA-256 `b0a66d153fa181928844924a658ada9babdb77de8a51a25d39622b34432648b7`である。対象7識別子の整列集合SHA-256は`76941f6749d83696254f8ddb1c84d58aafea9062f18924d803e746197db2e8fe`である。
 - projection再利用job境界は弱参照別名・型・構築3、実行・詳細度・識別名3、他jobの置換可否1の3枠へ固定する。型特性、別名同一性、厳密なmember pointerだけを使い、job、projection store、排他文脈を実体化せず本文を実行しない。既存`libs/image/tests/KisSpontaneousJobContractTest.cpp`はjobの実行・排他状態・置換・詳細度を扱う110行・3枠で、3枠追加後も190行・10枠以内に収まる。
 - 既存`KisSpontaneousJobContractTest`への候補header追加は、`kis_types.h`が直接使うglobalの`kis_shared_ptr.h`を探索できず、試験枠の未定義リンク前に停止した。既存targetへglobal探索路を加えて無関係なjob試験の閉包を広げず、新規`libs/image/tests/KisRecycleProjectionsJobSchemaContractTest.cpp`と同target固有の`libs/image/tests/CMakeLists.txt`節を追加する。新targetはimage・global source/generated探索路、`kritaimage_EXPORTS`、Qt Testだけで4工程・8入力を予測する。近傍`KisSpontaneousJobContractTest`は4工程・8入力、command SHA-256 `adc69e9a68bdb32af077c74f3a10c7f67b664ff464eeb8f344715279dfed7aa6`、input SHA-256 `69d6f89eb5442b34f5fc22a3c41241cf2f490213b787311c3a28a877722e26c7`、Qt Testだけの動的接続である。開始`libs/image/KisRecycleProjectionsJob.cpp`と既存試験sourceの厳格構文診断は0件である。5工程・11入力超過、AUTOMOC候補header入力、製品未解決記号、追加探索路・定義・動的接続が必要なら停止する。macOSの対象全体と追加3枠の20回反復、実装・試験sourceの厳格構文、新規source書式、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、projection再利用、排他実行、置換判断、詳細度と識別名の実行時意味、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
+
+### 第554便の公開API契約結果
+
+- projection再利用jobの公開境界を専用schema契約へ分離した。既存`libs/image/tests/KisSpontaneousJobContractTest.cpp`へ候補headerを追加するとglobal header探索路不足で止まったため、既存targetの閉包を広げず、開始`libs/image/KisRecycleProjectionsJob.h`から新規`libs/image/tests/KisRecycleProjectionsJobSchemaContractTest.cpp`へ残存全7 API・3枠を追加した。新targetは`libs/image/tests/CMakeLists.txt`のtarget固有節で所有し、弱参照別名・型・構築3件、実行・詳細度・識別名3件、置換可否1件を型特性、別名同一性、厳密なmember pointerで固定した。専用targetの最初の限定リンクは未定義3枠だけの不足で期待どおり失敗した。計画commitは`ff59cd5653`、閉包分離commitは`0a381664a4`、契約commitは`a1c21e0e25`で、新規sourceは50行・3枠となった。公開headerと製品sourceは変更していない。
+- 新targetは4工程・8入力、command SHA-256 `77eaaa68611a80f31726dd6954556283abd254699264e143590adb2740e6e7fd`、input SHA-256 `3e5c6ec09fc4d8a6a5e797556b62a6a59155d7f306c35464dc17eee5b4ce01e0`である。AUTOMOC `HEADERS=[]`、projection job・projection store・spontaneous jobの未解決製品記号0で、Qt Testだけへ動的接続する。macOSで対象単発と全体20回、追加3枠各20回、近傍`KisSpontaneousJobContractTest`、実装・試験sourceの厳格構文、新規source書式、連続二回の無作業再構築、`verify-quick`に成功した。projection再利用、排他実行、置換判断、詳細度と識別名の実行時意味、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 公開API検査の初回診断は期待値1,264に対して実測1,257で、新規7件と一致した。台帳を28,544件対応、1,257件未対応へ進めた。新`public-api-missing-g555.json`は340,579 bytes、SHA-256 `d9f1eac29de0ed2a68fb4c32e1cc645846d6eb2752373498c29c4483dca5b64d`で、生成成功後に旧`public-api-missing-g554.json` 342,311 bytesを削除した。主Ninja木6,047,868 KiB、共有compiler cache 983,412 KiBと最新報告だけを保持する。compiler cacheは144,871 cache可能呼出し中120,602件、83.25%がhitしている。次の永続作業は第555便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
 
 ### 第239便の先行監査担当票
 
