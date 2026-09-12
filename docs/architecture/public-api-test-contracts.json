@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 1168
+    "expectedMissingApis": 1159
   },
   "contracts": [
     {
@@ -80317,6 +80317,42 @@
         "method:KisIdleTaskStrokeStrategy::preferredIdleTaskMaximumTime()",
         "method:KisIdleTaskStrokeStrategy::preferredIdleWatcherInterval()",
         "method:KisIdleTaskStrokeStrategy::sigIdleTaskFinished()"
+      ]
+    },
+    {
+      "target": "KisWidgetWithIdleTaskSchemaContractTest",
+      "source": "libs/ui/tests/KisWidgetWithIdleTaskSchemaContractTest.cpp",
+      "test": "KisWidgetWithIdleTaskSchemaContractTest::idleTaskWidgetTypeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "idle task widget templateはQWidget派生として親widgetとwindow flagsで構築し、仮想破棄する境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisWidgetWithIdleTask",
+        "method:KisWidgetWithIdleTask::KisWidgetWithIdleTask(QWidget * parent=0,Qt::WindowFlags flags=Qt::WindowFlags ())",
+        "method:KisWidgetWithIdleTask::~KisWidgetWithIdleTask()"
+      ]
+    },
+    {
+      "target": "KisWidgetWithIdleTaskSchemaContractTest",
+      "source": "libs/ui/tests/KisWidgetWithIdleTaskSchemaContractTest.cpp",
+      "test": "KisWidgetWithIdleTaskSchemaContractTest::idleTaskWidgetCanvasRegistrationAndCacheSchemaRemainStable",
+      "behavior": "idle task widget templateはcanvasを設定し、idle taskを登録し、cache更新を要求する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisWidgetWithIdleTask::registerIdleTask(KisCanvas2 * canvas)",
+        "method:KisWidgetWithIdleTask::setCanvas(KisCanvas2 * canvas)",
+        "method:KisWidgetWithIdleTask::triggerCacheUpdate()"
+      ]
+    },
+    {
+      "target": "KisWidgetWithIdleTaskSchemaContractTest",
+      "source": "libs/ui/tests/KisWidgetWithIdleTaskSchemaContractTest.cpp",
+      "test": "KisWidgetWithIdleTaskSchemaContractTest::idleTaskWidgetVisibilityAndCacheClearingSchemaRemainStable",
+      "behavior": "idle task widget templateは表示・非表示イベントを受け、cache状態を消去する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisWidgetWithIdleTask::clearCachedState()",
+        "method:KisWidgetWithIdleTask::hideEvent(QHideEvent * event)",
+        "method:KisWidgetWithIdleTask::showEvent(QShowEvent * event)"
       ]
     }
   ]
