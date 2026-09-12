@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-13 04:23 JST
+- 更新日時: 2026-09-13 04:26 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5546,6 +5546,12 @@
 - 開始`libs/ui/widgets/KisGrabKeyboardFocusRecoveryWorkaround.h`から新規`libs/ui/tests/KisGrabKeyboardFocusRecoveryWorkaroundSchemaContractTest.cpp`へ、公開型とsingleton取得の2 API、focus復帰操作1 APIを2枠へ固定した。`libs/ui/tests/CMakeLists.txt`には専用target、source/generated `libs/ui`探索路、`kritaui_EXPORTS`、Qt Core・Testだけを追加した。private構築子・private実装は観測せず、値の生成、focus変更、widget表示、QObject寿命を実行していない。公開headerと製品sourceは変更していない。
 - CMake再生成後にコンパイル・リンクしたのは新規試験targetの自動生成2ファイルと試験本体だけで、製品targetは再構築していない。macOSの実測閉包は4工程・8入力、command SHA-256 `eb490285f9cc44181acdf9cb6763c346a021a268ef061866f5bc74859d7d9040`、input SHA-256 `06b3f3f675466f790848dd311cfebab723b1e0a35585e4b0f7e5a095ff981654`である。対象全体20回、追加2枠の各20回（各60 pass）、近傍`KisCompositeOpListConnectionHelperSchemaContractTest`、AUTOMOC後の連続二回の無作業再構築に成功した。試験sourceは38行・2枠、AUTOMOC `HEADERS=[]`、Qt Core・TestとOS frameworkだけの動的接続、focus復帰helper・製品libraryの未解決記号なしを確認した。試験sourceと`libs/ui/widgets/KisGrabKeyboardFocusRecoveryWorkaround.cpp`の`clang-check -Werror`、試験source書式、JSON構文、差分に成功した。
 - 初回照合は移行基準994件に対して実測991件となる期待診断を確認後、基準を更新した。公開API検査は28,810件対応、29,801件中991件未対応となった。新`build/tdd-macos/public-api-missing-g588.json`は270,739 bytes、SHA-256 `e46a3517d9f0d19cf013285093b416029fbd6a0fdf28e6bd8eb999a9c34f20c2`である。生成成功後に旧`public-api-missing-g587.json` 271,538 bytesをゴミ箱へ移して作業領域から約265 KiBを回収し、主Ninja木6,058,880 KiB、共有compiler cache 983,396 KiB、最新報告だけを再利用対象として保持する。focus復帰の実行結果、window活性状態、platform差異は後続の効果契約で扱う。次の永続作業は第587便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
+
+### 第587便の公開API契約計画
+
+- 正式入力`build/tdd-macos/public-api-missing-g588.json`の`libs/ui/widgets/kis_tool_button.h`残存2 API、型と親widgetによる構築を、既存`libs/ui/tests/KisCollapsibleButtonGroupSchemaContractTest.cpp`の新規1枠`toolButtonTypeAndConstructionSchemaRemainStable`へ対応付ける。widgetを実体化せず、`QToolButton`継承と既定・親widget構築可能性だけを観測する。tablet操作・menu popup・mouse eventの実行時意味は後続の効果契約で扱う。
+- `KisCollapsibleButtonGroupSchemaContractTest`はsource 150行・10枠で、追記後も300行・20枠未満に収まる。CMake変更なしの実測閉包は4工程・8入力、command SHA-256 `614e2253553b70383ee32c45a21b76b3793d61dac548f70c55ea2ec5533165ce`、input SHA-256 `37a973b1221641c14845cda5455d3c7a7b40ae1984bd4f077069ff1c6bfe4f3e`である。停止線は5工程・11入力、CMake・探索路・定義・動的linkの変更、製品shared・OBJECT・`kritatestsdk`接続、対象headerのAUTOMOC入力、製品未解決記号、対象値または本文の実体化、許可path外変更である。
+- macOSでは対象CTest、追加枠20回、軽量近傍`KisCompositeOpListConnectionHelperSchemaContractTest`、AUTOMOC後の二回目計画、連続二回の無作業再構築、動的接続・未解決記号・厳格構文・書式、公開API検査、`verify-quick`だけを実行する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。初回公開API検査は移行基準991件に対する2 API減少の診断を期待する。
 
 ### 第239便の先行監査担当票
 
