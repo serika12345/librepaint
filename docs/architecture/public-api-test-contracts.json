@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 1235
+    "expectedMissingApis": 1222
   },
   "contracts": [
     {
@@ -80025,6 +80025,64 @@
       "apis": [
         "method:KisMetaData::FilterRegistryModel::enabledFilters() const",
         "method:KisMetaData::FilterRegistryModel::setEnabledFilters(const QStringList & enabledFilters)"
+      ]
+    },
+    {
+      "target": "KisMetaDataRegistrySchemaContractTest",
+      "source": "libs/painting/metadata/tests/KisMetaDataRegistrySchemaContractTest.cpp",
+      "test": "KisMetaDataRegistrySchemaContractTest::filterRegistryTypeAndLifetimeSchemaRemainStable",
+      "behavior": "metadata filter registryは公開classとして既定構築・破棄できる寿命境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisMetaData::FilterRegistry",
+        "method:KisMetaData::FilterRegistry::FilterRegistry()",
+        "method:KisMetaData::FilterRegistry::~FilterRegistry()"
+      ]
+    },
+    {
+      "target": "KisMetaDataRegistrySchemaContractTest",
+      "source": "libs/painting/metadata/tests/KisMetaDataRegistrySchemaContractTest.cpp",
+      "test": "KisMetaDataRegistrySchemaContractTest::filterRegistrySingletonSignatureRemainsStable",
+      "behavior": "metadata filter registryはsingleton instanceを返す公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMetaData::FilterRegistry::instance()"
+      ]
+    },
+    {
+      "target": "KisMetaDataRegistrySchemaContractTest",
+      "source": "libs/painting/metadata/tests/KisMetaDataRegistrySchemaContractTest.cpp",
+      "test": "KisMetaDataRegistrySchemaContractTest::mergeStrategyRegistryTypeAndLifetimeSchemaRemainStable",
+      "behavior": "metadata merge strategy registryは公開classとして既定構築・破棄できる寿命境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisMetaData::MergeStrategyRegistry",
+        "method:KisMetaData::MergeStrategyRegistry::MergeStrategyRegistry()",
+        "method:KisMetaData::MergeStrategyRegistry::~MergeStrategyRegistry()"
+      ]
+    },
+    {
+      "target": "KisMetaDataRegistrySchemaContractTest",
+      "source": "libs/painting/metadata/tests/KisMetaDataRegistrySchemaContractTest.cpp",
+      "test": "KisMetaDataRegistrySchemaContractTest::mergeStrategyRegistrySingletonSignatureRemainsStable",
+      "behavior": "metadata merge strategy registryはsingleton instanceを返す公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMetaData::MergeStrategyRegistry::instance()"
+      ]
+    },
+    {
+      "target": "KisMetaDataRegistrySchemaContractTest",
+      "source": "libs/painting/metadata/tests/KisMetaDataRegistrySchemaContractTest.cpp",
+      "test": "KisMetaDataRegistrySchemaContractTest::backendRegistrySignaturesRemainStable",
+      "behavior": "metadata I/O backend registryは公開classの構築・破棄、初期化、singleton取得の境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisMetadataBackendRegistry",
+        "method:KisMetadataBackendRegistry::KisMetadataBackendRegistry()",
+        "method:KisMetadataBackendRegistry::init()",
+        "method:KisMetadataBackendRegistry::instance()",
+        "method:KisMetadataBackendRegistry::~KisMetadataBackendRegistry()"
       ]
     }
   ]
