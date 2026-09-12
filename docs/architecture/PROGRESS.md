@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-13 00:56 JST
+- 更新日時: 2026-09-13 01:06 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5334,6 +5334,12 @@
 - 生成済みUI headerを直接含む`KisGamutMaskToolbar`と、厳格構文診断で既存の局所一時値参照を検出した`KisExiv2IODevice`を候補から除外した。第569便は文書の寸法・解像度を単位変換へ接続する`libs/ui/utils/kis_document_aware_spin_box_unit_manager.h`の残存全11 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g569.json`は公開header 1,549、公開API 29,801、対応済み28,662、未対応1,139、309,629 bytes、SHA-256 `ea6b5fb3984edc0f093280c3f171c2760e5beea0495ec00d9b8c88c90425c728`である。対象11識別子の整列集合SHA-256は`2dc56961dd4fe4cbe302a035a009311c5b50ddb3c025b374ed41aaca027b8b86`である。
 - 文書対応単位管理の境界はbuilder・管理型・方向enum 5、親objectと既存・新規spin boxへの適用3、長さ・画像長・時間の変換係数・定数3へ固定する。新規`libs/ui/tests/KisDocumentAwareSpinBoxUnitManagerSchemaContractTest.cpp`の3枠で型特性、enum値、厳密なmember/function pointerだけを観測し、document、main window、view、image、spin boxを実体化せず本文を実行しない。現在文書がない場合のフォールバック、解像度・animation rangeの変換、spin boxの所有・通知の実行時意味は後続の動的契約で扱う。
 - 新規targetの`libs/ui/tests/CMakeLists.txt`節はheader直接配置ui、`KoUnit.h`のglobal、unit manager・spin box headerのwidgetutils source/generated探索路、`kritaui_EXPORTS`・`kritawidgetutils_EXPORTS`、Qt Core・Widgets・Testとheader-only Boostだけを所有する。`kritaui`、widgetutils、application、document、imageの製品targetは接続しない。開始`libs/ui/utils/kis_document_aware_spin_box_unit_manager.cpp`の厳格構文診断は0件である。新targetは4工程・8入力を予測し、停止線を5工程・11入力とする。AUTOMOC候補header入力、製品未解決記号、追加探索路・定義・動的接続、製品再構築、許可path外変更が必要なら停止する。macOSの対象全体と追加3枠の20回反復、軽量近傍、実装・試験sourceの厳格構文、新規source書式、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。
+
+### 第569便の公開API契約結果
+
+- 開始`libs/ui/utils/kis_document_aware_spin_box_unit_manager.h`から新規`libs/ui/tests/KisDocumentAwareSpinBoxUnitManagerSchemaContractTest.cpp`へ、builder・管理型・画像方向enum 5 API、親objectによる構築と既存・新規unit spin boxへの適用3 API、builderによる管理型作成と変換係数・定数照会3 APIを3枠へ固定した。`libs/ui/tests/CMakeLists.txt`にはui・global・widgetutils source/generated探索路、`kritaui_EXPORTS`・`kritawidgetutils_EXPORTS`、Qt Core・Widgets・Testとheader-only Boostだけを追加した。公開headerと製品sourceは変更していない。
+- 初期targetは新規試験source未配置のためCMake生成で停止し、試験source追加後に解消した。台帳照合で長い試験関数定義の改行を検出できなかったため、同じ3枠とAPI対応を保った短い関数名へ整えた。実装後はmacOSの正式CTest `libs-ui-KisDocumentAwareSpinBoxUnitManagerSchemaContractTest`、対象全体20回、追加3枠の各20回、近傍`KisProgressWidgetSchemaContractTest`、連続二回の無作業再構築に成功した。最終閉包は4工程・8入力、command SHA-256 `33cbf99e3f50346a55a0f6a36809c3c28c27999f83130b4de5b809dcdd25b9dd`、input SHA-256 `44f915115fc12574afa3c323d36827991edd0de47b6913a254872b8cf6810dd5`である。AUTOMOC `HEADERS=[]`、Qt Core・Gui・Widgets・Test、`libintl`とOS frameworkだけの動的接続、document aware unit manager・unit manager・unit spin boxの製品未解決記号なしを確認した。実装・試験sourceの`clang-check -Werror`、新規source書式、JSON構文、差分に成功した。
+- 公開API検査は28,673件対応、29,801件中1,128件未対応となった。新`build/tdd-macos/public-api-missing-g570.json`は306,174 bytes、SHA-256 `1caf2f91b7ac07fc0f8305bdb4b64f7ad0b12fc41f5b28fb687d60ce215fabcf`であり、生成成功後に旧`public-api-missing-g569.json` 309,629 bytesをゴミ箱へ移して作業領域から約303 KiBを回収した。主Ninja木6,051,468 KiB、共有compiler cache 982,488 KiB、最新報告だけを再利用対象として保持する。`verify-quick`に成功した。文書不在時のフォールバック、解像度・animation rangeの変換、spin boxの所有と通知の実行時意味は後続の動的契約で扱う。次の永続作業は第570便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
 
 ### 第239便の先行監査担当票
 
