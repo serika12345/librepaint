@@ -93,6 +93,18 @@ target_compile_definitions(PSDLayerRecordSchemaContractTest PRIVATE
 )
 
 kis_add_test(
+    PSDImageResourceSectionSchemaContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(PSDImageResourceSectionSchemaContractTest PRIVATE
+    ${CMAKE_SOURCE_DIR}/libs/psd
+    ${CMAKE_BINARY_DIR}/libs/psd
+)
+target_compile_definitions(PSDImageResourceSectionSchemaContractTest PRIVATE kritapsd_EXPORTS)
+
+kis_add_test(
     PsdByteIoContractTest.cpp
     LINK_LIBRARIES
         Qt${QT_MAJOR_VERSION}::Core
