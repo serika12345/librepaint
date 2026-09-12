@@ -2,14 +2,14 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-13 06:34 JST
+- 更新日時: 2026-09-13 06:37 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
 - 完了: 第598便でレイヤー選択とアプリケーション入力アクションの4 APIを公開契約へ追加し、対応済みを28,874件へ進めた。
-- 次の作業: 第599便として未対応報告から、既存の限定試験に追加できる公開headerを選び、実装前に構築閉包を監査する。
+- 次の作業: 第599便としてcanvas操作補助とmacOS mouse coalescingの公開APIを、監査済みの限定試験へ追加する。
 - 検証: macOSの対象・近傍・反復・無作業再構築、公開API検査、`verify-quick`に成功した。製品target、全体build・`verify`、Linux、Nix再評価は本便の対象外である。
 
 ### 第202便の先行監査担当票
@@ -5693,6 +5693,12 @@
 - 開始`libs/ui/actions/KisLayerSelectionAction.h`から既存`libs/ui/tests/KisCursorOverrideHijackerSchemaContractTest.cpp`へ、型とcanvas・画像・widget座標、選択方式を受け取る`select`の2 APIを1枠として固定した。同じ試験の別枠で、開始`libs/ui/actions/input/KisApplicationInputActions.h`のapplication input action作成と入力managerからcanvasを得る2 APIを正確な関数型として固定した。canvas、入力manager、input action、`QPoint`、返却値を実体化せず、選択変更・action登録・本文を実行していない。CMake、公開header、製品sourceは変更していない。
 - macOSの初回対象限定構築は試験本体の再コンパイルとリンクだけで成功し、製品targetを再構築していない。`KisCursorOverrideHijackerSchemaContractTest`は追加前後とも4工程・8入力、command SHA-256 `ce063294a78d45a16191c43707aacfacad47e7996378daf8ab5dcc8ae134efdb`、input SHA-256 `58d9882064254f622d7496f1d8e232987c51dd89595a3d9101b9bbaef2ddb583`を維持した。対象全体20回、追加2枠の各20回（各60 pass）、近傍`KisGrabKeyboardFocusRecoveryWorkaroundSchemaContractTest`、AUTOMOC後の連続二回の無作業再構築に成功した。試験sourceは126行・9枠、AUTOMOC `HEADERS=[]`、Qt Core・TestとOS frameworkだけの動的接続、レイヤー選択action、application input action、製品libraryの未解決記号なしを確認した。試験source、`libs/ui/actions/KisLayerSelectionAction.cpp`、`libs/ui/actions/input/KisApplicationInputActions.cpp`の`clang-check -Werror`、試験source書式、JSON構文、差分に成功した。
 - 初回照合は移行基準931件に対して実測927件となる期待診断を確認後、基準を更新した。公開API検査は28,874件対応、29,801件中927件未対応となった。新`build/tdd-macos/public-api-missing-g600.json`は254,800 bytes、SHA-256 `27ac1eea1c7bcf45fad5ffa729c38d51a1c25ae0fd3ec3390ac8cedcf0626303`である。生成成功後に旧`public-api-missing-g599.json` 256,007 bytesをゴミ箱へ移して作業領域から約250 KiBを回収し、主Ninja木6,061,292 KiB、共有compiler cache 982,796 KiB、最新報告だけを再利用対象として保持する。レイヤー選択の実際の選択変更、input actionの生成とcanvas選択は後続の効果契約で扱う。次の永続作業は第599便で独立軽量試験に追加可能な公開headerを選び、対象限定閉包を先に監査することである。
+
+### 第599便の公開API契約計画
+
+- 正式入力`build/tdd-macos/public-api-missing-g600.json`から、開始`libs/ui/tool/kis_tool_canvas_utils.h`のcross-layer形状照会、形状選択、brush size表示の3 APIを既存`libs/ui/tests/KisCursorOverrideHijackerSchemaContractTest.cpp`の新規1枠へ対応付ける。同じ試験の別枠で、開始`libs/ui/platform/osx.h`のmouse coalescing状態照会と設定の2 APIを正確なC関数型として固定する。canvas、図形、`QPointF`、`QPainterPath`、文字列、OS event状態を実体化せず、形状選択・表示・OS設定変更・本文を実行しない。
+- 候補headerは`tool/`と`platform/`の既存UI探索路で解決し、Qt Core・Guiの既存header探索路だけを使う。`KisCursorOverrideHijackerSchemaContractTest`の実測閉包は4工程・8入力、command SHA-256 `ce063294a78d45a16191c43707aacfacad47e7996378daf8ab5dcc8ae134efdb`、input SHA-256 `58d9882064254f622d7496f1d8e232987c51dd89595a3d9101b9bbaef2ddb583`である。試験sourceは126行・9枠であり、追記後も300行・20枠未満に収まる。停止線は5工程・11入力、CMake・探索路・定義・動的linkの変更、製品shared・OBJECT・`kritatestsdk`接続、候補headerのAUTOMOC入力化、製品未解決記号、対象値または本文の実体化、許可path外変更である。
+- macOSでは対象CTest、追加2枠の各20回、軽量近傍`KisGrabKeyboardFocusRecoveryWorkaroundSchemaContractTest`、AUTOMOC後の二回目計画、連続二回の無作業再構築、動的接続・未解決記号・厳格構文・書式、公開API検査、`verify-quick`だけを実行する。`osx.h`はmacOS固有の実装を持つため、`osx.mm`の厳格構文検査もmacOSで実行する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。初回公開API検査は移行基準927件に対する5 API減少の診断を期待する。
 
 ### 第239便の先行監査担当票
 
