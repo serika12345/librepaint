@@ -5,6 +5,7 @@
 
 #include "utils/KisRecentFileIconCache.h"
 #include "widgets/KisLodAvailabilityData.h"
+#include "widgets/KisMemoryReportButton.h"
 #include "widgets/kis_collapsible_button_group.h"
 #include "widgets/kis_tool_button.h"
 #include "widgets/kis_utility_title_bar.h"
@@ -29,6 +30,8 @@ private Q_SLOTS:
     void lodAvailabilityDefaultsMembersAndEqualityRemainStable();
     void lodAvailabilityPersistenceSignaturesRemainStable();
     void toolButtonTypeAndConstructionSchemaRemainStable();
+    void memoryReportButtonTypeAndConstructionSchemaRemainStable();
+    void memoryReportButtonStateAndPaintingSignaturesRemainStable();
 };
 
 void KisCollapsibleButtonGroupSchemaContractTest::typeConstructionAndLifetimeSchemaRemainStable()
@@ -153,6 +156,24 @@ void KisCollapsibleButtonGroupSchemaContractTest::toolButtonTypeAndConstructionS
     static_assert(std::is_base_of_v<QToolButton, KisToolButton>);
     static_assert(std::is_default_constructible_v<KisToolButton>);
     static_assert(std::is_constructible_v<KisToolButton, QWidget *>);
+}
+
+void KisCollapsibleButtonGroupSchemaContractTest::memoryReportButtonTypeAndConstructionSchemaRemainStable()
+{
+    static_assert(std::is_class_v<KisMemoryReportButton>);
+    static_assert(std::is_base_of_v<QPushButton, KisMemoryReportButton>);
+    static_assert(std::is_default_constructible_v<KisMemoryReportButton>);
+    static_assert(std::is_constructible_v<KisMemoryReportButton, QWidget *>);
+}
+
+void KisCollapsibleButtonGroupSchemaContractTest::memoryReportButtonStateAndPaintingSignaturesRemainStable()
+{
+    using Button = KisMemoryReportButton;
+
+    static_assert(std::is_same_v<decltype(&Button::setMaximumMemory), void (Button::*)(qint64)>);
+    static_assert(std::is_same_v<decltype(&Button::setCurrentMemory), void (Button::*)(qint64)>);
+    static_assert(std::is_same_v<decltype(&Button::setImageWeight), void (Button::*)(qint64)>);
+    static_assert(std::is_same_v<decltype(&Button::paintEvent), void (Button::*)(QPaintEvent *)>);
 }
 
 QTEST_GUILESS_MAIN(KisCollapsibleButtonGroupSchemaContractTest)

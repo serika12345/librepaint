@@ -79550,6 +79550,30 @@
       ]
     },
     {
+      "target": "KisCollapsibleButtonGroupSchemaContractTest",
+      "source": "libs/ui/tests/KisCollapsibleButtonGroupSchemaContractTest.cpp",
+      "test": "KisCollapsibleButtonGroupSchemaContractTest::memoryReportButtonTypeAndConstructionSchemaRemainStable",
+      "behavior": "メモリ使用量を表示するbuttonはQPushButton派生の公開型として既定または親widgetで構築できる契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisMemoryReportButton",
+        "method:KisMemoryReportButton::KisMemoryReportButton(QWidget * parent=0)"
+      ]
+    },
+    {
+      "target": "KisCollapsibleButtonGroupSchemaContractTest",
+      "source": "libs/ui/tests/KisCollapsibleButtonGroupSchemaContractTest.cpp",
+      "test": "KisCollapsibleButtonGroupSchemaContractTest::memoryReportButtonStateAndPaintingSignaturesRemainStable",
+      "behavior": "メモリ使用量表示buttonは最大値・現在値・画像値の設定とpaint入口の正確な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMemoryReportButton::paintEvent(QPaintEvent * e)",
+        "method:KisMemoryReportButton::setCurrentMemory(qint64 memory)",
+        "method:KisMemoryReportButton::setImageWeight(qint64 memory)",
+        "method:KisMemoryReportButton::setMaximumMemory(qint64 max)"
+      ]
+    },
+    {
       "target": "KisMultiBoolFilterWidgetSchemaContractTest",
       "source": "libs/ui/tests/KisMultiBoolFilterWidgetSchemaContractTest.cpp",
       "test": "KisMultiBoolFilterWidgetSchemaContractTest::nodeDisplayModeTypeConstructionAndAccessSignaturesRemainStable",
