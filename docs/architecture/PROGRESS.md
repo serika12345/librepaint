@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-13 03:19 JST
+- 更新日時: 2026-09-13 03:23 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5472,6 +5472,12 @@
 - 開始`libs/libkis/GridConfig.h`から既存`libs/libkis/tests/GridConfigSchemaContractTest.cpp`へ、所有元`KisGridConfig`による構築、親`QObject`による構築、仮想破棄、XML読込・書出しの5 APIを新規1枠`gridConfigConstructionAndSerializationSchemaRemainsStable`へ固定した。CMake、公開header、製品sourceは変更していない。Grid値、QObject、XML本文は実体化・実行していない。
 - macOSの`GridConfigSchemaContractTest`は追加前後とも4工程・8入力、command SHA-256 `8f9a875addf86c8e0f66e69f72e85d66cc29e0af29f586b5abe3547896e36d05`、input SHA-256 `9a2e2dbeaf477dabbd53c38aa1913ada74f03cf1719127986d1bea608b0c8f6c`を維持した。対象全体20回、追加枠20回（60 pass）、近傍`DocumentGeometrySchemaContractTest`、AUTOMOC後の連続二回の無作業再構築に成功した。試験sourceは183行・11枠、AUTOMOC `HEADERS=[]`、Qt Gui・TestとOS frameworkだけの動的接続、`GridConfig`・`GuidesConfig`・製品libraryの未解決記号なしを確認した。試験sourceと`libs/libkis/GridConfig.cpp`の`clang-check -Werror`、試験source書式、JSON構文、差分に成功した。
 - 初回照合は移行基準1,016件に対して実測1,011件となる期待診断を確認後、基準を更新した。公開API検査は28,790件対応、29,801件中1,011件未対応となった。新`build/tdd-macos/public-api-missing-g582.json`は275,511 bytes、SHA-256 `2eb41134151986bd113f95dd050a9279b5c9b1a2ef57a92efb92be6864c83d77`である。生成成功後に旧`public-api-missing-g581.json` 276,539 bytesをゴミ箱へ移して作業領域から約270 KiBを回収し、主Ninja木6,040,756 KiB、共有compiler cache 983,076 KiB、最新報告だけを再利用対象として保持する。所有権、XML実行結果、grid設定の変更意味は後続の効果契約で扱う。次の永続作業は第581便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
+
+### 第581便の公開API契約計画
+
+- 正式入力`build/tdd-macos/public-api-missing-g582.json`の`libs/libkis/DockWidgetFactoryBase.h`残存5 APIと`libs/libkis/Extension.h`残存5 APIを、既存`libs/libkis/tests/KritaSchemaContractTest.cpp`の新規2枠へ対応付ける。factory枠は型、`KoDockFactoryBase`継承、識別子・既定位置の構築と照会、仮想破棄を、extension枠は型、`QObject`継承、親QObject構築、仮想`setup`・`createActions`、仮想破棄を固定する。両抽象基底は最小の具象probeの型特性だけで観測し、factory、extension、window、dock、QObjectを実体化せず本文を実行しない。
+- `KritaSchemaContractTest`はsource 96行・5枠で、追記後も300行・20枠未満に収まる。`Krita.h`は`Extension.h`を直接含み、既存targetのflake探索路は`DockWidgetFactoryBase.h`と`KoDockFactoryBase.h`を解決する。CMake変更なしの実測閉包は4工程・8入力、command SHA-256 `94fb402633831db0541d90d15721123de305f5e7dc5fcce428da63a6d2f4b998`、input SHA-256 `8549b43d1d4bceea0e97733e1d897061d42cd7d2cdec422bbdb6324d2d98710e`である。停止線は5工程・11入力、CMake・探索路・定義・動的linkの変更、製品shared・OBJECT・`kritatestsdk`接続、対象headerのAUTOMOC入力、製品未解決記号、対象値または本文の実体化、許可path外変更である。
+- macOSでは対象CTest、追加2枠の各20回、軽量近傍`GridConfigSchemaContractTest`、AUTOMOC後の二回目計画、連続二回の無作業再構築、動的接続・未解決記号・厳格構文・書式、公開API検査、`verify-quick`だけを実行する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。初回公開API検査は移行基準1,011件に対する10 API減少の診断を期待する。
 
 ### 第239便の先行監査担当票
 
