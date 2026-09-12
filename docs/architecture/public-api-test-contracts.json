@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 1316
+    "expectedMissingApis": 1307
   },
   "contracts": [
     {
@@ -38312,6 +38312,33 @@
         "method:FreehandStrokeStrategy::notifyUserEndedStroke()",
         "method:FreehandStrokeStrategy::notifyUserStartedStroke()",
         "method:FreehandStrokeStrategy::~FreehandStrokeStrategy()"
+      ]
+    },
+    {
+      "target": "FreehandStrokeSchemaContractTest",
+      "source": "libs/painting/tests/FreehandStrokeSchemaContractTest.cpp",
+      "test": "FreehandStrokeSchemaContractTest::painterBasedStrategyTypeConstructionAndLifetimeRemainStable",
+      "behavior": "painter基底strategyは描画資源と単一または複数のfreehand情報を受け取る2構築経路と、基底所有に対応する仮想破棄を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisPainterBasedStrokeStrategy",
+        "method:KisPainterBasedStrokeStrategy::KisPainterBasedStrokeStrategy(const QLatin1String & id,const KUndo2MagicString & name,KisResourcesSnapshotSP resources,KisFreehandStrokeInfo * strokeInfo)",
+        "method:KisPainterBasedStrokeStrategy::KisPainterBasedStrokeStrategy(const QLatin1String & id,const KUndo2MagicString & name,KisResourcesSnapshotSP resources,QVector<KisFreehandStrokeInfo * > strokeInfos)",
+        "method:KisPainterBasedStrokeStrategy::~KisPainterBasedStrokeStrategy()"
+      ]
+    },
+    {
+      "target": "FreehandStrokeSchemaContractTest",
+      "source": "libs/painting/tests/FreehandStrokeSchemaContractTest.cpp",
+      "test": "FreehandStrokeSchemaContractTest::painterBasedStrategyCallbackSignaturesRemainStable",
+      "behavior": "painter基底strategyはstrokeの開始、完了、取消、中断、再開を引数なしcallbackとして調停する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPainterBasedStrokeStrategy::cancelStrokeCallback()",
+        "method:KisPainterBasedStrokeStrategy::finishStrokeCallback()",
+        "method:KisPainterBasedStrokeStrategy::initStrokeCallback()",
+        "method:KisPainterBasedStrokeStrategy::resumeStrokeCallback()",
+        "method:KisPainterBasedStrokeStrategy::suspendStrokeCallback()"
       ]
     },
     {
