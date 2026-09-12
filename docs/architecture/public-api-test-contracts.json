@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 1333
+    "expectedMissingApis": 1324
   },
   "contracts": [
     {
@@ -79648,6 +79648,24 @@
         "method:PSDImageResourceSection::valid()",
         "method:PSDImageResourceSection::write(QIODevice & io)",
         "method:PSDImageResourceSection::~PSDImageResourceSection()"
+      ]
+    },
+    {
+      "target": "PsdResourceIdContractTest",
+      "source": "plugins/impex/tiff/tests/PsdResourceIdContractTest.cpp",
+      "test": "PsdResourceIdContractTest::tiffResourceRecordTypeStateAndIoSignaturesRemainStable",
+      "behavior": "TIFFのPSD resource recordはresource block群と診断を所有し、record全体の読込・書出・妥当性照会とresource識別子の表示変換を行う公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisTiffPsdResourceRecord",
+        "member:KisTiffPsdResourceRecord::error",
+        "member:KisTiffPsdResourceRecord::resources",
+        "method:KisTiffPsdResourceRecord::KisTiffPsdResourceRecord()",
+        "method:KisTiffPsdResourceRecord::idToString(PSDResourceID id)",
+        "method:KisTiffPsdResourceRecord::read(QIODevice & io)",
+        "method:KisTiffPsdResourceRecord::valid()",
+        "method:KisTiffPsdResourceRecord::write(QIODevice & io)",
+        "method:KisTiffPsdResourceRecord::~KisTiffPsdResourceRecord()"
       ]
     }
   ]

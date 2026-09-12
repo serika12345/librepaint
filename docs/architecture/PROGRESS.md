@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-12 19:22 JST
+- 更新日時: 2026-09-12 19:31 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5051,6 +5051,13 @@
 - TIFF PSD resource record境界は型・既定構築・破棄3、resource mapと診断文字列2、読込・書出・妥当性・識別子表示4の1枠へ固定する。型特性、公開member型、厳密な関数pointerだけを使い、record、resource block、deviceを実体化しない。既存`plugins/impex/tiff/tests/PsdResourceIdContractTest.cpp`は同じrecordのPSD互換識別子を固定する123行・1枠で、1枠追加後も220行・10枠以内に収まる。
 - 開始headerはexport定義、`QMap`、`QString`だけを直接includeし、deviceとresource blockを前方宣言する。開始`plugins/impex/tiff/kis_tiff_psd_resource_record.cpp`と既存試験sourceの厳格構文診断は0件である。既存targetは候補headerも試験本体もTIFF APIを参照しないが`TIFF::TIFF`を直接動的接続し、4工程・9入力、command SHA-256 `25cef1430a08cf8b6a3acb4491a712cd674ed8cb0e83d1809318312edd5242e3`、input SHA-256 `636d49507d17c379e3356d0c8a787673e9eea125e78abc7c2c64582fdff17bda`となっている。
 - 先に`plugins/impex/tiff/tests/CMakeLists.txt`の同target固有節から不要な`TIFF::TIFF`接続を削除し、Qt Core・Testだけへ縮める。開始と到達先は同じtarget固有節で、公開header、製品source、製品依存は変更しない。最適化後の停止線は4工程・8入力である。macOSの対象全体と追加1枠の20回反復、実装・試験sourceの厳格構文、試験書式、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、resource I/O・所有破棄の実効果、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
+
+### 第546便の公開API契約結果
+
+- TIFFのPhotoshop tag内でPSD resource block群を扱う公開境界を既存の識別子互換契約へ統合した。開始`plugins/impex/tiff/kis_tiff_psd_resource_record.h`から既存`plugins/impex/tiff/tests/PsdResourceIdContractTest.cpp`へ残存全9 API・1枠を追加し、型・既定構築・破棄3件、resource mapと診断文字列2件、読込・書出・妥当性・識別子表示4件を型特性、公開member型、厳密な関数pointerで固定した。計画commitは`848af10400`、契約commitは`e1252d6aef`で、既存試験sourceは142行・2枠となった。
+- 以前の`plugins/impex/tiff/tests/CMakeLists.txt`内`PsdResourceIdContractTest`固有節は、候補headerと試験本体がTIFF APIを参照しないにもかかわらず`TIFF::TIFF`を動的接続していた。同じtarget固有節から不要接続を削除し、Qt Core・Testだけへ縮めた。開始と到達先は同じCMake target固有節で、構造commitは`13b2edfa54`、公開header、製品source、製品依存は変更していない。
+- targetは4工程を維持し、入力を9から8、command SHA-256を`25cef1430a08cf8b6a3acb4491a712cd674ed8cb0e83d1809318312edd5242e3`から`9b0c1e04c9b8ece3f6a5085697a7e2e31501514f4ac3ba8f96fa42f7e2470f28`、input SHA-256を`636d49507d17c379e3356d0c8a787673e9eea125e78abc7c2c64582fdff17bda`から`c2f4765a4593fe2691fff7dab9133b9d5ba72d142ab20e582c40df4601931a76`へ縮めた。候補headerのAUTOMOC入力化と未解決製品記号は0である。macOSの対象全体20回と追加1枠20回、実装・試験sourceの厳格構文、変更範囲の試験書式、連続二回の無作業再構築に成功した。試験全体の未整形診断は既存resource ID macro表に限定され、今回の範囲を拡大していない。resource I/O・所有破棄の実効果、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 公開API検査の初回診断は期待値1,333に対して実測1,324で、新規9件と一致した。台帳を28,477件対応、1,324件未対応へ進め、`public-api-missing-g547.json`の生成成功後に旧`public-api-missing-g546.json` 362,712 bytesを削除した。主Ninja木6,043,136 KiB、共有compiler cache 983,240 KiB、最新報告360,547 bytes、SHA-256 `fe6e5e2baca065ec0c052438e6d3aa11d36715e3741f91556c0bf8f11f4cbb09`だけを再利用対象として保持する。compiler cacheは144,834 cache可能呼出し中120,594件、83.26%がhitしている。次の永続作業は第547便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
 
 ### 第239便の先行監査担当票
 
