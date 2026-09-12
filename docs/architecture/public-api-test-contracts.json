@@ -79649,6 +79649,19 @@
       ]
     },
     {
+      "target": "KisCollapsibleButtonGroupSchemaContractTest",
+      "source": "libs/ui/tests/KisCollapsibleButtonGroupSchemaContractTest.cpp",
+      "test": "KisCollapsibleButtonGroupSchemaContractTest::longPressEventFilterTypePropertyAndEntrySchemaRemainStable",
+      "behavior": "長押しevent filterはQObject派生として親QObjectで構築でき、固定の有効化propertyとevent filter入口の公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisLongPressEventFilter",
+        "member:KisLongPressEventFilter::ENABLED_PROPERTY",
+        "method:KisLongPressEventFilter::KisLongPressEventFilter(QObject * parent=nullptr)",
+        "method:KisLongPressEventFilter::eventFilter(QObject * watched,QEvent * event)"
+      ]
+    },
+    {
       "target": "KisMultiBoolFilterWidgetSchemaContractTest",
       "source": "libs/ui/tests/KisMultiBoolFilterWidgetSchemaContractTest.cpp",
       "test": "KisMultiBoolFilterWidgetSchemaContractTest::nodeDisplayModeTypeConstructionAndAccessSignaturesRemainStable",

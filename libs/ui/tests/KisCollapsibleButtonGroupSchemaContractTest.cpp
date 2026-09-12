@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "events/KisLongPressEventFilter.h"
 #include "utils/KisRecentFileIconCache.h"
 #include "widgets/KisColorSamplerPreviewPreview.h"
 #include "widgets/KisDockerHud.h"
@@ -41,6 +42,7 @@ private Q_SLOTS:
     void dockerHudStateAndBorrowingSignaturesRemainStable();
     void toneCurveTypeConstructionAndLifetimeSchemaRemainStable();
     void toneCurveStateAndCurveSignaturesRemainStable();
+    void longPressEventFilterTypePropertyAndEntrySchemaRemainStable();
 };
 
 void KisCollapsibleButtonGroupSchemaContractTest::typeConstructionAndLifetimeSchemaRemainStable()
@@ -245,6 +247,18 @@ void KisCollapsibleButtonGroupSchemaContractTest::toneCurveStateAndCurveSignatur
     static_assert(std::is_same_v<decltype(&ToneCurve::setCMYKCurve),
                                  void (ToneCurve::*)(QPolygonF, QPolygonF, QPolygonF, QPolygonF)>);
     static_assert(std::is_same_v<decltype(&ToneCurve::setProfileDataAvailable), void (ToneCurve::*)(bool)>);
+}
+
+void KisCollapsibleButtonGroupSchemaContractTest::longPressEventFilterTypePropertyAndEntrySchemaRemainStable()
+{
+    using Filter = KisLongPressEventFilter;
+
+    static_assert(std::is_class_v<Filter>);
+    static_assert(std::is_base_of_v<QObject, Filter>);
+    static_assert(std::is_constructible_v<Filter, QObject *>);
+    static_assert(std::is_same_v<decltype(Filter::ENABLED_PROPERTY), const char[17]>);
+    static_assert(std::is_same_v<decltype(&Filter::eventFilter), bool (Filter::*)(QObject *, QEvent *)>);
+    QCOMPARE(Filter::ENABLED_PROPERTY, "KRITA_LONG_PRESS");
 }
 
 QTEST_GUILESS_MAIN(KisCollapsibleButtonGroupSchemaContractTest)
