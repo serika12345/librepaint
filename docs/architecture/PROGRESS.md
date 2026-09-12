@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-12 20:57 JST
+- 更新日時: 2026-09-12 21:02 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5136,6 +5136,12 @@
 - 色採取strokeの公開境界を新規の軽量schema契約へ分離した。開始`libs/painting/KisColorSamplerStroke.h`から新規`libs/painting/tests/KisColorSamplerStrokeSchemaContractTest.cpp`へ残存全9 API・4枠を追加し、型・親付き構築・破棄3件、稼働状態・開始・完了3件、試料投入1件、中間色・確定色通知2件を型特性と厳密なmember pointerで固定した。新targetは`libs/painting/tests/CMakeLists.txt`のtarget固有節で所有し、最初の限定リンクは未定義4枠だけの不足で期待どおり失敗した。計画commitは`d78fda0fc2`、契約commitは`2e22aace9f`で、新規sourceは61行・4枠となった。公開headerと製品sourceは変更していない。
 - targetは4工程・8入力、command SHA-256 `52e6dd414781201402af7ba0e0d42ccc6829c1618a7372da1bec737efb8fb081`、input SHA-256 `23fee45db7d026bcdb2093a7dfa512a574d73d01039bddec2cfec218ee9e6ed3`である。AUTOMOC `HEADERS=[]`、色採取stroke・facade・描画装置・色の未解決製品記号0で、Qt Core・Testだけへ動的接続する。macOSで対象単発と全体20回、追加4枠各20回、近傍`KisNodeSelectionRecipeSchemaContractTest`、実装・試験sourceの厳格構文、新規source書式、連続二回の無作業再構築、`verify-quick`に成功した。色採取のqueue順、色の集計、signal発火順は既存`TestPaintingBoundary`の意味契約が扱い、同試験の挙動確認、全体build・`verify`、Linux、Nix再評価は今回実行していない。
 - 公開API検査の初回診断は期待値1,282に対して実測1,273で、新規9件と一致した。台帳を28,528件対応、1,273件未対応へ進めた。新`public-api-missing-g553.json`は345,450 bytes、SHA-256 `49460e1f0b4a50c5ed5697051da36330dd691770eee084d2f2a3d49baa936895`で、生成成功後に旧`public-api-missing-g552.json` 347,798 bytesを削除した。主Ninja木6,047,092 KiB、共有compiler cache 982,000 KiBと最新報告だけを保持する。compiler cacheは144,864 cache可能呼出し中120,601件、83.25%がhitしている。次の永続作業は第553便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
+
+### 第553便の公開API契約計画
+
+- 第553便はbrush dabの生成結果を再利用するcacheの構築・破棄、色源または色値によるdab取得、正規化画像dab取得、texture・sharpness後処理を所有する`plugins/paintops/libpaintop/kis_dab_cache.h`の残存全9 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g553.json`は公開header 1,549、公開API 29,801、対応済み28,528、未対応1,273、345,450 bytes、SHA-256 `49460e1f0b4a50c5ed5697051da36330dd691770eee084d2f2a3d49baa936895`である。対象9識別子の整列集合SHA-256は`6ef393c1d64c1c1cc3ac14ec9f6556665e2372943f40f2af3b0b514fd65fb80f`である。
+- dab cache境界は型・brush付き構築・破棄3、色源・色値のdab取得と正規化画像dab取得3、sharpness・texture後処理と別original要否3の3枠へ固定する。型特性と厳密な関数・member pointerだけを使い、cache、brush、色、描画装置、paint情報、optionを実体化せず本文を実行しない。既存`plugins/paintops/libpaintop/tests/KisDabCacheBaseSchemaContractTest.cpp`はdab cache基底の設定と制御を扱う54行・3枠で、3枠追加後も150行・10枠以内に収まる。
+- 既存targetへCMake変更なしで追加し、Qt Core・Testだけへ動的接続する4工程・8入力、command SHA-256 `072043dbd9306197bbef01cb6e5e3c15c162237a321d1cd3af37e35699b57fce`、input SHA-256 `4a7e662fe1fdb17982e29a796fb20b5b72556fba15ddea3ac16338e89d2e8f5f`を維持する。開始`plugins/paintops/libpaintop/kis_dab_cache.cpp`と既存試験sourceの厳格構文診断は0件である。工程・入力増加、AUTOMOC候補header入力、製品未解決記号、追加探索路・定義・動的接続が必要なら停止する。macOSの対象全体と追加3枠の20回反復、実装・試験sourceの厳格構文、試験追加範囲の書式、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、dab生成、cache hit、色・texture・sharpness後処理の実効果、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
 
 ### 第239便の先行監査担当票
 
