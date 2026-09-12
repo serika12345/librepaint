@@ -80786,6 +80786,68 @@
         "method:KisSnapPointStrategy::snap(const QPointF & mousePosition,KoSnapProxy * proxy,qreal maxSnapDistance)",
         "method:KisSnapPointStrategy::~KisSnapPointStrategy()"
       ]
+    },
+    {
+      "target": "KoDualColorButtonVariantSchemaContractTest",
+      "source": "libs/ui/tests/KoDualColorButtonVariantSchemaContractTest.cpp",
+      "test": "KoDualColorButtonVariantSchemaContractTest::resetButtonSchemaRemainsStable",
+      "behavior": "reset buttonはcanvas色資源、表示renderer、親widgetで構築し、icon描画とマウス・event処理を提供するdual color button派生境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoResetBgFgColours",
+        "method:KoResetBgFgColours::KoResetBgFgColours(KisCanvasResourceProvider * canvasResourceProvider,const KoColorDisplayRendererInterface * displayRenderer=0,QWidget * parent=0,QWidget * dialogParent=0)",
+        "method:KoResetBgFgColours::event(QEvent * event)",
+        "method:KoResetBgFgColours::mouseMoveEvent(QMouseEvent * event)",
+        "method:KoResetBgFgColours::mousePressEvent(QMouseEvent * event)",
+        "method:KoResetBgFgColours::mouseReleaseEvent(QMouseEvent * event)",
+        "method:KoResetBgFgColours::paint_icons(QPainter & painter)"
+      ]
+    },
+    {
+      "target": "KoDualColorButtonVariantSchemaContractTest",
+      "source": "libs/ui/tests/KoDualColorButtonVariantSchemaContractTest.cpp",
+      "test": "KoDualColorButtonVariantSchemaContractTest::swapButtonSchemaRemainsStable",
+      "behavior": "swap buttonはcanvas色資源、表示renderer、親widgetで構築し、icon描画とマウス・event処理を提供するdual color button派生境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoSwapBgFgColours",
+        "method:KoSwapBgFgColours::KoSwapBgFgColours(KisCanvasResourceProvider * canvasResourceProvider,const KoColorDisplayRendererInterface * displayRenderer=0,QWidget * parent=0,QWidget * dialogParent=0)",
+        "method:KoSwapBgFgColours::event(QEvent * event)",
+        "method:KoSwapBgFgColours::mouseMoveEvent(QMouseEvent * event)",
+        "method:KoSwapBgFgColours::mousePressEvent(QMouseEvent * event)",
+        "method:KoSwapBgFgColours::mouseReleaseEvent(QMouseEvent * event)",
+        "method:KoSwapBgFgColours::paint_icons(QPainter & painter)"
+      ]
+    },
+    {
+      "target": "KoDualColorButtonVariantSchemaContractTest",
+      "source": "libs/ui/tests/KoDualColorButtonVariantSchemaContractTest.cpp",
+      "test": "KoDualColorButtonVariantSchemaContractTest::backgroundButtonSchemaRemainsStable",
+      "behavior": "background buttonはcanvas色資源、表示renderer、親widgetで構築し、icon描画とマウス・event処理を提供するdual color button派生境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoBackgroundColour",
+        "method:KoBackgroundColour::KoBackgroundColour(KisCanvasResourceProvider * canvasResourceProvider,const KoColorDisplayRendererInterface * displayRenderer=0,QWidget * parent=0,QWidget * dialogParent=0)",
+        "method:KoBackgroundColour::event(QEvent * event)",
+        "method:KoBackgroundColour::mousePressEvent(QMouseEvent * event)",
+        "method:KoBackgroundColour::mouseReleaseEvent(QMouseEvent * event)",
+        "method:KoBackgroundColour::paint_icons(QPainter & painter)"
+      ]
+    },
+    {
+      "target": "KoDualColorButtonVariantSchemaContractTest",
+      "source": "libs/ui/tests/KoDualColorButtonVariantSchemaContractTest.cpp",
+      "test": "KoDualColorButtonVariantSchemaContractTest::foregroundButtonSchemaRemainsStable",
+      "behavior": "foreground buttonはcanvas色資源、表示renderer、親widgetで構築し、icon描画とマウス・event処理を提供するdual color button派生境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoForegroundColour",
+        "method:KoForegroundColour::KoForegroundColour(KisCanvasResourceProvider * canvasResourceProvider,const KoColorDisplayRendererInterface * displayRenderer=0,QWidget * parent=0,QWidget * dialogParent=0)",
+        "method:KoForegroundColour::event(QEvent * event)",
+        "method:KoForegroundColour::mousePressEvent(QMouseEvent * event)",
+        "method:KoForegroundColour::mouseReleaseEvent(QMouseEvent * event)",
+        "method:KoForegroundColour::paint_icons(QPainter & painter)"
+      ]
     }
   ]
 }
