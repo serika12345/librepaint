@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include <asl/kis_asl_writer.h>
 #include <asl/kis_asl_xml_writer.h>
 
 #include <QTest>
@@ -25,6 +26,7 @@ private Q_SLOTS:
     void aslXmlWriterScalarValueSignaturesRemainStable();
     void aslXmlWriterGeometrySignaturesRemainStable();
     void aslXmlWriterColorPatternAndGradientSignaturesRemainStable();
+    void aslBinaryWriterTypeConstructionAndSectionSignaturesRemainStable();
 };
 
 void KisAslXmlWriterSchemaContractTest::aslXmlWriterTypeLifetimeAndDocumentSchemaRemainStable()
@@ -83,6 +85,27 @@ void KisAslXmlWriterSchemaContractTest::aslXmlWriterColorPatternAndGradientSigna
                                     void (KisAslXmlWriter::*)(const QString &, const KoSegmentGradient &));
     ASSERT_ASL_XML_WRITER_SIGNATURE(writeStopGradient,
                                     void (KisAslXmlWriter::*)(const QString &, const KoStopGradient &));
+}
+
+void KisAslXmlWriterSchemaContractTest::aslBinaryWriterTypeConstructionAndSectionSignaturesRemainStable()
+{
+    using Writer = KisAslWriter;
+
+    static_assert(std::is_class_v<Writer>);
+    static_assert(std::is_default_constructible_v<Writer>);
+    static_assert(std::is_constructible_v<Writer, psd_byte_order>);
+    static_assert(std::is_same_v<decltype(&Writer::writeFile), void (Writer::*)(QIODevice &, const QDomDocument &)>);
+    static_assert(std::is_same_v<decltype(&Writer::writeFillLayerSectionEx),
+                                 void (Writer::*)(QIODevice &, const QDomDocument &)>);
+    static_assert(
+        std::is_same_v<decltype(&Writer::writePsdLfx2SectionEx), void (Writer::*)(QIODevice &, const QDomDocument &)>);
+    static_assert(
+        std::is_same_v<decltype(&Writer::writeTypeToolObjectSettings),
+                       void (Writer::*)(QIODevice &, const QDomDocument &, const QDomDocument &, QTransform, QRectF)>);
+    static_assert(std::is_same_v<decltype(&Writer::writeVectorOriginationDataEx),
+                                 void (Writer::*)(QIODevice &, const QDomDocument &)>);
+    static_assert(std::is_same_v<decltype(&Writer::writeVectorStrokeDataEx),
+                                 void (Writer::*)(QIODevice &, const QDomDocument &)>);
 }
 
 QTEST_APPLESS_MAIN(KisAslXmlWriterSchemaContractTest)
