@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-12 21:32 JST
+- 更新日時: 2026-09-12 21:40 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5166,6 +5166,12 @@
 - 第555便はstroke・更新queueを止めてundo storeへcommandを加えるlegacy undo adapterの構築、現在command照会、undo、command追加、macro開始・終了を所有する`libs/image/kis_legacy_undo_adapter.h`の残存全7 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g555.json`は公開header 1,549、公開API 29,801、対応済み28,544、未対応1,257、340,579 bytes、SHA-256 `d9f1eac29de0ed2a68fb4c32e1cc645846d6eb2752373498c29c4483dca5b64d`である。対象7識別子の整列集合SHA-256は`7827b94bd4b845c4f04d1d6ddefcfb45deca346507cf010e9e37275fbf06d7eb`である。
 - legacy undo adapter境界は型・undo storeとimageの構築2、現在command照会・undo2、command追加・macro開始・終了3の3枠へ固定する。型特性と厳密なmember pointerだけを使い、adapter、undo store、image、command、macro名を実体化せず本文を実行しない。既存`libs/image/tests/KisUndoAdapterContractTest.cpp`は抽象adapterのstore借用、操作dispatch、signal、寿命を実行時に扱うが、target閉包は5工程・11入力で`kritaimageundoadapterobjects`を接続するため、公開署名の反復検証には使わない。
 - 新規`libs/image/tests/KisLegacyUndoAdapterSchemaContractTest.cpp`と同target固有の`libs/image/tests/CMakeLists.txt`節を追加する。新targetはimage・global・painting/undo source/generated探索路、`kritaimage_EXPORTS`と`kritapaintingundo_EXPORTS`、Qt Testだけで4工程・8入力を予測する。最小近傍`KisSpontaneousJobContractTest`は4工程・8入力、Qt Testだけへ動的接続する。開始`libs/image/kis_legacy_undo_adapter.cpp`と`KisUndoAdapterContractTest.cpp`の厳格構文診断は0件である。5工程・11入力超過、AUTOMOC候補header入力、製品未解決記号、追加探索路・定義・動的接続が必要なら停止する。macOSの対象全体と追加3枠の20回反復、軽量近傍、実装・試験sourceの厳格構文、新規source書式、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、store操作、stroke・queue停止、undo、macroの実行時意味、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
+
+### 第555便の公開API契約結果
+
+- legacy undo adapterの公開境界を専用schema契約へ分離した。開始`libs/image/kis_legacy_undo_adapter.h`から新規`libs/image/tests/KisLegacyUndoAdapterSchemaContractTest.cpp`へ残存全7 API・3枠を追加し、型・undo storeとimageの構築2件、現在command照会・undo2件、command追加・macro開始・終了3件を型特性と厳密なmember pointerで固定した。新targetは`libs/image/tests/CMakeLists.txt`のtarget固有節で所有し、最初の限定リンクは未定義3枠だけの不足で期待どおり失敗した。計画commitは`414e9bf327`、契約commitは`4cd14e7a40`で、新規sourceは50行・3枠となった。公開headerと製品sourceは変更していない。
+- 新targetは4工程・8入力、command SHA-256 `d7729e99ec3575c54c2a8ced719ad193d47a777a107049aafdf19b161acc9851`、input SHA-256 `9ea965d1c1fe60cb8df30cd3113b1adba72ed9a33b19448be17bce3b74b3e094`である。AUTOMOC `HEADERS=[]`、legacy adapter・undo store・image・command・macro名の未解決製品記号0で、Qt Testだけへ動的接続する。macOSで対象単発と全体20回、追加3枠各20回、近傍`KisSpontaneousJobContractTest`、実装・試験sourceの厳格構文、新規source書式、連続二回の無作業再構築、`verify-quick`に成功した。store操作、stroke・queue停止、undo、macroの実行時意味、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 公開API検査の初回診断は期待値1,257に対して実測1,250で、新規7件と一致した。台帳を28,551件対応、1,250件未対応へ進めた。新`public-api-missing-g556.json`は338,905 bytes、SHA-256 `9770326957c94de3b83d2994f827c4e29931a6edd06523a9a9babd527b92ecd3`で、生成成功後に旧`public-api-missing-g555.json` 340,579 bytesを削除した。主Ninja木6,049,272 KiB、共有compiler cache 983,296 KiBと最新報告だけを保持する。compiler cacheは144,874 cache可能呼出し中120,602件、83.25%がhitしている。次の永続作業は第556便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
 
 ### 第239便の先行監査担当票
 
