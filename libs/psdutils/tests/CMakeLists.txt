@@ -137,10 +137,7 @@ kis_add_test(
     LINK_LIBRARIES
         kritaglobaldebugobjects
         Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Gui
         Qt${QT_MAJOR_VERSION}::Test
-        KF${KF_MAJOR}::I18n
-        Imath::Imath
         Boost::boost
 )
 target_include_directories(KisAslWriterUtilsContractTest PRIVATE
@@ -155,6 +152,9 @@ target_include_directories(KisAslWriterUtilsContractTest PRIVATE
     ${CMAKE_SOURCE_DIR}/libs/pigment/resources
     ${CMAKE_SOURCE_DIR}/libs/resources
     ${CMAKE_BINARY_DIR}/libs/resources
+    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Gui,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:Imath::Imath,INTERFACE_INCLUDE_DIRECTORIES>
 )
 target_compile_definitions(KisAslWriterUtilsContractTest PRIVATE
     kritaglobal_EXPORTS
