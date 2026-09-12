@@ -3,10 +3,14 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include <asl/kis_asl_reader_utils.h>
 #include <asl/kis_asl_writer_utils.h>
 
 #include <QBuffer>
 #include <QTest>
+
+#include <array>
+#include <type_traits>
 
 void kis_assert_exception(const char *assertion, const char *file, int line)
 {
@@ -33,6 +37,9 @@ private Q_SLOTS:
     void rectanglesUseRequestedByteOrder();
     void stringsPreserveDeclaredBinaryLayouts();
     void offsetPusherWritesSizesPaddingAndRestoresPosition();
+    void readerParseExceptionPreservesDiagnostic();
+    void readerStringLayoutsAndByteOrdersRemainStable();
+    void readerTwoCandidateSignaturesPreservePosition();
 };
 
 void KisAslWriterUtilsContractTest::writeExceptionPreservesDiagnostic()
@@ -104,6 +111,74 @@ void KisAslWriterUtilsContractTest::offsetPusherWritesSizesPaddingAndRestoresPos
     }
     QCOMPARE(externalBytes, QByteArray::fromHex("0000000478797a00"));
     QCOMPARE(externalBuffer.pos(), qint64(8));
+}
+
+void KisAslWriterUtilsContractTest::readerParseExceptionPreservesDiagnostic()
+{
+    using ParseException = KisAslReaderUtils::ASLParseException;
+
+    static_assert(std::is_base_of_v<std::runtime_error, ParseException>);
+    const ParseException exception(QStringLiteral("read failed: tag"));
+    QCOMPARE(QString::fromLatin1(exception.what()), QStringLiteral("read failed: tag"));
+}
+
+void KisAslWriterUtilsContractTest::readerStringLayoutsAndByteOrdersRemainStable()
+{
+    QBuffer fixedBuffer;
+    fixedBuffer.setData(QByteArrayLiteral("8BIM"));
+    QVERIFY(fixedBuffer.open(QIODevice::ReadOnly));
+    QCOMPARE(KisAslReaderUtils::readFixedString(fixedBuffer), QStringLiteral("8BIM"));
+    QCOMPARE(fixedBuffer.pos(), qint64(4));
+
+    QBuffer commonBuffer;
+    commonBuffer.setData(QByteArrayLiteral("dcba"));
+    QVERIFY(commonBuffer.open(QIODevice::ReadOnly));
+    QCOMPARE(KisAslReaderUtils::readStringCommon<psd_byte_order::psdLittleEndian>(commonBuffer, 4),
+             QStringLiteral("abcd"));
+
+    QBuffer variableBuffer;
+    variableBuffer.setData(QByteArray::fromHex("00000003616263"));
+    QVERIFY(variableBuffer.open(QIODevice::ReadOnly));
+    QCOMPARE(KisAslReaderUtils::readVarString(variableBuffer), QStringLiteral("abc"));
+
+    QBuffer pascalBuffer;
+    pascalBuffer.setData(QByteArray::fromHex("03616263"));
+    QVERIFY(pascalBuffer.open(QIODevice::ReadOnly));
+    QCOMPARE(KisAslReaderUtils::readPascalString(pascalBuffer), QStringLiteral("abc"));
+
+    QBuffer unicodeBuffer;
+    unicodeBuffer.setData(QByteArray::fromHex("00000003004103a90000"));
+    QVERIFY(unicodeBuffer.open(QIODevice::ReadOnly));
+    QCOMPARE(KisAslReaderUtils::readUnicodeString(unicodeBuffer), QString::fromUtf8("A\xCE\xA9"));
+
+    QBuffer shortBuffer;
+    shortBuffer.setData(QByteArrayLiteral("abc"));
+    QVERIFY(shortBuffer.open(QIODevice::ReadOnly));
+    QVERIFY_THROWS_EXCEPTION(KisAslReaderUtils::ASLParseException, KisAslReaderUtils::readStringCommon(shortBuffer, 4));
+}
+
+void KisAslWriterUtilsContractTest::readerTwoCandidateSignaturesPreservePosition()
+{
+    const std::array<char, 4> first{'8', 'B', 'I', 'M'};
+    const std::array<char, 4> second{'8', 'B', '6', '4'};
+
+    QBuffer bigEndianBuffer;
+    bigEndianBuffer.setData(QByteArrayLiteral("8B64rest"));
+    QVERIFY(bigEndianBuffer.open(QIODevice::ReadOnly));
+    QVERIFY(TRY_READ_SIGNATURE_2OPS_EX<psd_byte_order::psdBigEndian>(bigEndianBuffer, first, second));
+    QCOMPARE(bigEndianBuffer.pos(), qint64(4));
+
+    QBuffer littleEndianBuffer;
+    littleEndianBuffer.setData(QByteArrayLiteral("MIB8rest"));
+    QVERIFY(littleEndianBuffer.open(QIODevice::ReadOnly));
+    QVERIFY(TRY_READ_SIGNATURE_2OPS_EX(psd_byte_order::psdLittleEndian, littleEndianBuffer, first, second));
+    QCOMPARE(littleEndianBuffer.pos(), qint64(4));
+
+    QBuffer mismatchBuffer;
+    mismatchBuffer.setData(QByteArrayLiteral("nope"));
+    QVERIFY(mismatchBuffer.open(QIODevice::ReadOnly));
+    QVERIFY(!TRY_READ_SIGNATURE_2OPS_EX(psd_byte_order::psdBigEndian, mismatchBuffer, first, second));
+    QCOMPARE(mismatchBuffer.pos(), qint64(0));
 }
 
 QTEST_GUILESS_MAIN(KisAslWriterUtilsContractTest)
