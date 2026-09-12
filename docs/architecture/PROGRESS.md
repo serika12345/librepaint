@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-12 22:06 JST
+- 更新日時: 2026-09-12 22:10 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5196,6 +5196,12 @@
 - 開始`libs/painting/metadata/kis_meta_data_filter_registry_model.h`から新規`libs/painting/metadata/tests/KisMetaDataFilterRegistryModelSchemaContractTest.cpp`へ、metadata filter registry modelの型・構築・破棄3 API、model data・item flags・編集3 API、enabled filter照会・設定2 APIを3枠へ固定した。対象固有の`libs/painting/metadata/tests/CMakeLists.txt`節は公開headerの直接依存`KoGenericRegistryModel.h`のためmetadataとglobalの探索路を所有する。公開headerと製品sourceは変更していない。
 - 新targetの宣言段階では3枠の定義不足だけでlinkに失敗し、実装後はmacOSの正式CTest `libs-painting-metadata-KisMetaDataFilterRegistryModelSchemaContractTest`、対象全体20回、各追加枠20回、近傍`KisMetaDataStoreSchemaContractTest`、無作業再構築2回に成功した。最終閉包は4工程・8入力、command SHA-256 `028a3a6ca1947ad5c674e6ae0daf7b9910ed92ff0d7649e82c8e99dc6a1011b9`、input SHA-256 `e5c49f647b456898667b61f8bad98bcf81c997a12de5087d5dbf7c5e39b82661`である。AUTOMOC `HEADERS=[]`、Qt Core・TestとOS frameworkだけの動的接続、metadata filter registry model・generic registry modelの製品未解決記号なしを確認した。実装・試験sourceの`clang-check -Werror`、新規source書式、JSON構文、差分、`verify-quick`に成功した。
 - 公開API検査は28,566件対応、29,801件中1,235件未対応となった。新`build/tdd-macos/public-api-missing-g558.json`は334,501 bytes、SHA-256 `450ef6e5524bd8b726781ce51eb92f9dee6d36a7ca21df2ff783536295e1d14c`であり、生成成功後に旧`public-api-missing-g557.json` 336,976 bytesを削除した。主Ninja木6,052,544 KiB、共有compiler cache 982,568 KiB、最新報告だけを保持する。compiler cacheは144,881 cache可能呼出し中120,602件、83.24%がhitしている。filter registryからの初期モデル生成、filter既定状態、data・flags・編集、enabled filter選択の実行時意味は後続の動的契約で扱う。次の永続作業は第558便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
+
+### 第558便の公開API契約計画
+
+- 第558便はmetadata filter、merge strategy、I/O backendを登録・提供する3つのregistryの公開境界を対象とする。開始headerは`libs/painting/metadata/kis_meta_data_filter_registry.h`、`libs/painting/metadata/kis_meta_data_merge_strategy_registry.h`、`libs/painting/metadata/kis_meta_data_backend_registry.h`であり、残存全13 APIを扱う。正式入力`build/tdd-macos/public-api-missing-g558.json`は公開header 1,549、公開API 29,801、対応済み28,566、未対応1,235、334,501 bytes、SHA-256 `450ef6e5524bd8b726781ce51eb92f9dee6d36a7ca21df2ff783536295e1d14c`である。対象13識別子の整列集合SHA-256は`cfac129823f4790a04026cc2c7ed699a777a30c6ff2953ec65b70b8cd6c5c13e`である。
+- metadata registry境界はfilter registryの型・構築・破棄3とsingleton取得1、merge strategy registryの型・構築・破棄3とsingleton取得1、I/O backend registryの型・構築・破棄・初期化・singleton取得5の5枠へ固定する。型特性と厳密な自由関数・member pointerだけを使い、registry、filter、merge strategy、I/O backendを実体化せず本文を実行しない。登録内容、singleton初期化、I/O backendの登録処理は後続の動的契約で扱う。
+- 新規`libs/painting/metadata/tests/KisMetaDataRegistrySchemaContractTest.cpp`と同target固有の`libs/painting/metadata/tests/CMakeLists.txt`節を追加する。3 headerが直接含む`KoGenericRegistry.h`を解決するため、metadataとglobal source/generated探索路、`kritapaintingmetadata_EXPORTS`、Qt Core・Testだけをtarget固有に設定する。最寄り`KisMetaDataFilterRegistryModelSchemaContractTest`は4工程・8入力、command SHA-256 `028a3a6ca1947ad5c674e6ae0daf7b9910ed92ff0d7649e82c8e99dc6a1011b9`、input SHA-256 `e5c49f647b456898667b61f8bad98bcf81c997a12de5087d5dbf7c5e39b82661`である。新targetも4工程・8入力を予測する。開始`kis_meta_data_filter_registry.cc`、`kis_meta_data_merge_strategy_registry.cc`、`kis_meta_data_backend_registry.cpp`の厳格構文診断は0件である。5工程・11入力超過、AUTOMOC候補header入力、製品未解決記号、追加探索路・定義・動的接続が必要なら停止する。macOSの対象全体と追加5枠の20回反復、軽量近傍、実装・試験sourceの厳格構文、新規source書式、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。
 
 ### 第239便の先行監査担当票
 
