@@ -47,9 +47,15 @@ class KisSelectionToolFactoryBaseSchemaContractTest : public QObject
     Q_OBJECT
 
 private Q_SLOTS:
+    void paintToolFactoryBaseLifetimeSchemaRemainsStable();
     void selectionToolFactoryTypeConstructionAndLifetimeSchemaRemainStable();
     void polyLineToolFactoryTypeConstructionAndLifetimeSchemaRemainStable();
 };
+
+void KisSelectionToolFactoryBaseSchemaContractTest::paintToolFactoryBaseLifetimeSchemaRemainsStable()
+{
+    static_assert(std::has_virtual_destructor_v<KisToolPaintFactoryBase>);
+}
 
 void KisSelectionToolFactoryBaseSchemaContractTest::selectionToolFactoryTypeConstructionAndLifetimeSchemaRemainStable()
 {

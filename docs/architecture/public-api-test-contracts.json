@@ -80175,6 +80175,16 @@
     {
       "target": "KisSelectionToolFactoryBaseSchemaContractTest",
       "source": "libs/tools/tests/KisSelectionToolFactoryBaseSchemaContractTest.cpp",
+      "test": "KisSelectionToolFactoryBaseSchemaContractTest::paintToolFactoryBaseLifetimeSchemaRemainsStable",
+      "behavior": "描画ツールfactory基底は派生factoryを基底pointer経由で安全に破棄できる仮想破棄契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisToolPaintFactoryBase::~KisToolPaintFactoryBase()"
+      ]
+    },
+    {
+      "target": "KisSelectionToolFactoryBaseSchemaContractTest",
+      "source": "libs/tools/tests/KisSelectionToolFactoryBaseSchemaContractTest.cpp",
       "test": "KisSelectionToolFactoryBaseSchemaContractTest::selectionToolFactoryTypeConstructionAndLifetimeSchemaRemainStable",
       "behavior": "selection tool factory基底はKisToolPaintFactoryBaseの公開派生classとして文字列IDで構築し、仮想破棄する境界を維持する。",
       "classification": "maintained",
