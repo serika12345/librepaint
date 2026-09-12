@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 1273
+    "expectedMissingApis": 1264
   },
   "contracts": [
     {
@@ -79852,6 +79852,42 @@
       "apis": [
         "method:KisColorSamplerStroke::sigColorUpdated(const KoColor & color)",
         "method:KisColorSamplerStroke::sigFinalColorSelected(const KoColor & color)"
+      ]
+    },
+    {
+      "target": "KisDabCacheBaseSchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisDabCacheBaseSchemaContractTest.cpp",
+      "test": "KisDabCacheBaseSchemaContractTest::dabCacheTypeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "dab cacheはbrushを受ける公開classとして構築・破棄できる寿命境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisDabCache",
+        "method:KisDabCache::KisDabCache(KisBrushSP brush)",
+        "method:KisDabCache::~KisDabCache()"
+      ]
+    },
+    {
+      "target": "KisDabCacheBaseSchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisDabCacheBaseSchemaContractTest.cpp",
+      "test": "KisDabCacheBaseSchemaContractTest::dabCacheFetchSignaturesRemainStable",
+      "behavior": "dab cacheは色源または色値と描画条件からdabを取得し、正規化画像dabを取得する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDabCache::fetchDab(const KoColorSpace * cs,KisColorSource * colorSource,const QPointF & cursorPoint,KisDabShape const &,const KisPaintInformation & info,qreal softnessFactor,QRect * dstDabRect,qreal lightnessStrength=1.0)",
+        "method:KisDabCache::fetchDab(const KoColorSpace * cs,const KoColor & color,const QPointF & cursorPoint,KisDabShape const &,const KisPaintInformation & info,qreal softnessFactor,QRect * dstDabRect,qreal lightnessStrength=1.0)",
+        "method:KisDabCache::fetchNormalizedImageDab(const KoColorSpace * cs,const QPointF & cursorPoint,KisDabShape const & shape,const KisPaintInformation & info,qreal softnessFactor,QRect * dstDabRect)"
+      ]
+    },
+    {
+      "target": "KisDabCacheBaseSchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisDabCacheBaseSchemaContractTest.cpp",
+      "test": "KisDabCacheBaseSchemaContractTest::dabCachePostprocessingSignaturesRemainStable",
+      "behavior": "dab cacheはsharpness・texture後処理を借用optionで設定し、別originalの必要性を照会する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDabCache::needSeparateOriginal() const",
+        "method:KisDabCache::setSharpnessPostprocessing(KisSharpnessOption * option)",
+        "method:KisDabCache::setTexturePostprocessing(KisTextureOption * option)"
       ]
     }
   ]
