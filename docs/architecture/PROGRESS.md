@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-12 23:46 JST
+- 更新日時: 2026-09-12 23:57 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5268,6 +5268,12 @@
 - 開始`libs/resources/KisRequiredResourcesOperators.h`から新規`libs/resources/tests/KisRequiredResourcesOperatorsSchemaContractTest.cpp`へ、局所storage照会・作成・load結果収集・GUI thread検査4 API、snapshot有無照会・作成・複製3 APIを3枠へ固定した。対象固有の`libs/resources/tests/CMakeLists.txt`節はresources、global source/generated探索路、Qt Gui・KF I18nのheader探索路、`kritaresources_EXPORTS`・`kritaglobal_EXPORTS`、Qt Core・Testとheader-only Boostだけを所有する。公開headerと製品sourceは変更していない。
 - 新targetの宣言段階では追加3枠の定義不足だけでlinkに失敗し、実装後はmacOSの正式CTest `libs-resources-KisRequiredResourcesOperatorsSchemaContractTest`、対象全体20回、各追加枠20回、近傍`KisResourceLoaderSchemaContractTest`、無作業再構築2回に成功した。最終閉包は4工程・8入力、command SHA-256 `7b2c861fc1bfaa96f9f8c1a7ab3b2dc2fa49ef693a4fd938539efdbd7a0c3ac0`、input SHA-256 `7365ce79a6224167be09b224b53684c5196d5dadb91ea3034bfadcf5ee1c62b4`である。AUTOMOC `HEADERS=[]`、Qt Core・Test、`libintl`とOS frameworkだけの動的接続、required resources operator・resource interface・load resultの製品未解決記号なしを確認した。実装・試験sourceの`clang-check -Werror`、新規source書式、JSON構文、差分に成功した。
 - 公開API検査は28,616件対応、29,801件中1,185件未対応となった。新`build/tdd-macos/public-api-missing-g564.json`は320,745 bytes、SHA-256 `d051092b2791a5636530a6a4c1aeb052e5aa2f1c36b4d7e29ddda353215fa570`であり、生成成功後に旧`public-api-missing-g563.json` 323,517 bytesを削除した。主Ninja木6,043,612 KiB、共有compiler cache 982,592 KiB、最新報告だけを保持する。compiler cacheは144,914 cache可能呼出し中120,607件、83.23%がhitしている。実際のresource読込み、警告、thread判定、snapshot複製の実行時意味は後続の動的契約で扱う。次の永続作業は第564便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
+
+### 第564便の公開API契約計画
+
+- 第564便はUI thread上のactive nodeを非描画のflake layerとして表す`libs/ui/flake/kis_node_shape.h`の残存全8 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g564.json`は公開header 1,549、公開API 29,801、対応済み28,616、未対応1,185、320,745 bytes、SHA-256 `d051092b2791a5636530a6a4c1aeb052e5aa2f1c36b4d7e29ddda353215fa570`である。対象8識別子の整列集合SHA-256は`ad67d4786e60fef3267e7c71bcc56dd1a396cfc72b26a9148272fc322a960940`である。
+- node shapeの境界は型・nodeによる構築・破棄3、対応node照会1、非描画layerの幾何・位置・描画4へ固定する。新規`libs/ui/tests/KisNodeShapeSchemaContractTest.cpp`の3枠で型特性と厳密なmember pointerだけを観測し、node、shape layer、painterを実体化せず本文を実行しない。active nodeへの接続、階層変更追跡、描画抑止の実行時意味は既存または後続の動的契約で扱う。
+- 新規targetの`libs/ui/tests/CMakeLists.txt`節は、header直接配置ui、`kis_types.h`のimage、`KoShapeLayer.h`のflake、export・共有基盤のglobal source/generated探索路、`kritaui_EXPORTS`・`kritaimage_EXPORTS`・`kritaflake_EXPORTS`、Qt Core・Gui・TestとKF I18nのheader探索路だけを所有する。既存`KisNodeShapesGraphTest`の`kritaapplicationui`・`kritatestsdk`製品閉包は接続しない。開始`libs/ui/flake/kis_node_shape.cpp`の厳格構文診断は0件である。新targetは4工程・8入力を予測し、停止線を5工程・11入力とする。AUTOMOC候補header入力、製品未解決記号、追加探索路・定義・動的接続、製品再構築、許可path外変更が必要なら停止する。macOSの対象全体と追加3枠の20回反復、軽量近傍、実装・試験sourceの厳格構文、新規source書式、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。
 
 ### 第239便の先行監査担当票
 
