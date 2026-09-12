@@ -80428,6 +80428,44 @@
         "method:KisPatternChooser::setPreviewOrientation(Qt::Orientation orientation)",
         "method:KisPatternChooser::updateItemSize()"
       ]
+    },
+    {
+      "target": "KisDocumentAwareSpinBoxUnitManagerSchemaContractTest",
+      "source": "libs/ui/tests/KisDocumentAwareSpinBoxUnitManagerSchemaContractTest.cpp",
+      "test": "KisDocumentAwareSpinBoxUnitManagerSchemaContractTest::documentAwareUnitManagerTypeAndDirectionSchemaRemainStable",
+      "behavior": "document aware unit managerはbuilderと管理型、画像方向を表すenum値の公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisDocumentAwareSpinBoxUnitManager",
+        "class:KisDocumentAwareSpinBoxUnitManagerBuilder",
+        "enum:KisDocumentAwareSpinBoxUnitManager::PixDir",
+        "enumerator:KisDocumentAwareSpinBoxUnitManager::PixDir::PIX_DIR_X",
+        "enumerator:KisDocumentAwareSpinBoxUnitManager::PixDir::PIX_DIR_Y"
+      ]
+    },
+    {
+      "target": "KisDocumentAwareSpinBoxUnitManagerSchemaContractTest",
+      "source": "libs/ui/tests/KisDocumentAwareSpinBoxUnitManagerSchemaContractTest.cpp",
+      "test": "KisDocumentAwareSpinBoxUnitManagerSchemaContractTest::documentAwareUnitManagerConstructionAndSpinBoxSetupSignaturesRemainStable",
+      "behavior": "document aware unit managerは親objectと方向で構築し、既存または新規のunit spin boxへ文書対応を適用する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDocumentAwareSpinBoxUnitManager::KisDocumentAwareSpinBoxUnitManager(QObject * parent=0,int pPixDir=PIX_DIR_X)",
+        "method:KisDocumentAwareSpinBoxUnitManager::createUnitSpinBoxWithDocumentAwareness(QWidget * parent=0)",
+        "method:KisDocumentAwareSpinBoxUnitManager::setDocumentAwarenessToExistingUnitSpinBox(KisDoubleParseUnitSpinBox * spinBox,bool setUnitFromOutsideToggle=false)"
+      ]
+    },
+    {
+      "target": "KisDocumentAwareSpinBoxUnitManagerSchemaContractTest",
+      "source": "libs/ui/tests/KisDocumentAwareSpinBoxUnitManagerSchemaContractTest.cpp",
+      "test": "KisDocumentAwareSpinBoxUnitManagerSchemaContractTest::documentAwareUnitManagerBuilderAndConversionSignaturesRemainStable",
+      "behavior": "document aware unit manager builderは管理型を作成し、管理型は文書対応の変換係数と定数を照会する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDocumentAwareSpinBoxUnitManager::getConversionConstant(int dim,QString symbol) const",
+        "method:KisDocumentAwareSpinBoxUnitManager::getConversionFactor(int dim,QString psymbol) const",
+        "method:KisDocumentAwareSpinBoxUnitManagerBuilder::buildUnitManager(QObject * parent)"
+      ]
     }
   ]
 }
