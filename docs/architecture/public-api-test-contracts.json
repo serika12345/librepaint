@@ -79854,6 +79854,20 @@
       ]
     },
     {
+      "target": "KisCursorOverrideHijackerSchemaContractTest",
+      "source": "libs/ui/tests/KisCursorOverrideHijackerSchemaContractTest.cpp",
+      "test": "KisCursorOverrideHijackerSchemaContractTest::undoActionsUpdateManagerTypeAndNotificationSchemaRemainStable",
+      "behavior": "undo action更新管理器はQObject派生の公開型としてundo/redo actionと親QObjectでの構築、現在文書設定、undo/redo文言通知の正確な公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisUndoActionsUpdateManager",
+        "method:KisUndoActionsUpdateManager::KisUndoActionsUpdateManager(QAction * undoAction,QAction * redoAction,QObject * parent=0)",
+        "method:KisUndoActionsUpdateManager::setCurrentDocument(KisDocument * document)",
+        "method:KisUndoActionsUpdateManager::slotRedoTextChanged(const QString & text)",
+        "method:KisUndoActionsUpdateManager::slotUndoTextChanged(const QString & text)"
+      ]
+    },
+    {
       "target": "KisMultiBoolFilterWidgetSchemaContractTest",
       "source": "libs/ui/tests/KisMultiBoolFilterWidgetSchemaContractTest.cpp",
       "test": "KisMultiBoolFilterWidgetSchemaContractTest::nodeDisplayModeTypeConstructionAndAccessSignaturesRemainStable",

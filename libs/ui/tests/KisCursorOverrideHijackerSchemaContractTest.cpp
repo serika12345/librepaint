@@ -4,6 +4,7 @@
  */
 
 #include "actions/KisLayerSelectionAction.h"
+#include "actions/KisUndoActionsUpdateManager.h"
 #include "actions/input/KisApplicationInputActions.h"
 #include "application/ui/orchestration/KisActionPlugin.h"
 #include "application/ui/orchestration/KisPlatformPluginInterfaceFactory.h"
@@ -64,6 +65,7 @@ private Q_SLOTS:
     void canvasControlsManagerTypeAndConfigurationSchemaRemainStable();
     void textPropertiesManagerTypeAndProviderSchemaRemainStable();
     void recentDocumentsModelWrapperSchemaRemainsStable();
+    void undoActionsUpdateManagerTypeAndNotificationSchemaRemainStable();
 };
 
 void KisCursorOverrideHijackerSchemaContractTest::cursorOverrideHijackerTypeConstructionAndLifetimeSchemaRemainStable()
@@ -222,6 +224,18 @@ void KisCursorOverrideHijackerSchemaContractTest::recentDocumentsModelWrapperSch
     static_assert(std::is_same_v<decltype(&Wrapper::instance), Wrapper *(*)()>);
     static_assert(std::is_same_v<decltype(&Wrapper::model), QStandardItemModel &(Wrapper::*)()>);
     static_assert(std::is_same_v<decltype(&Wrapper::sigModelIsUpToDate), void (Wrapper::*)()>);
+}
+
+void KisCursorOverrideHijackerSchemaContractTest::undoActionsUpdateManagerTypeAndNotificationSchemaRemainStable()
+{
+    using Manager = KisUndoActionsUpdateManager;
+
+    static_assert(std::is_class_v<Manager>);
+    static_assert(std::is_base_of_v<QObject, Manager>);
+    static_assert(std::is_constructible_v<Manager, QAction *, QAction *, QObject *>);
+    static_assert(std::is_same_v<decltype(&Manager::setCurrentDocument), void (Manager::*)(KisDocument *)>);
+    static_assert(std::is_same_v<decltype(&Manager::slotUndoTextChanged), void (Manager::*)(const QString &)>);
+    static_assert(std::is_same_v<decltype(&Manager::slotRedoTextChanged), void (Manager::*)(const QString &)>);
 }
 
 QTEST_APPLESS_MAIN(KisCursorOverrideHijackerSchemaContractTest)
