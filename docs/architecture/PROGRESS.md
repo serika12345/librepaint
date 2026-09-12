@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-12 20:42 JST
+- 更新日時: 2026-09-12 20:50 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5124,6 +5124,12 @@
 - brush dabへ適用するtexture optionの公開境界を既存brush描画schema契約へ統合した。開始`plugins/paintops/libpaintop/kis_texture_option.h`から既存`plugins/paintops/libpaintop/tests/KisBrushBasedPaintOpSchemaContractTest.cpp`へ残存全9 API・2枠を追加し、型・公開有効状態・構築3件と、dab適用・2種類のgradient判定・埋込みと連結資源準備・実効合成方式要否6件を型特性、公開member型、厳密な関数pointerで固定した。未定義2枠だけを加えた最初の限定構築は、その2記号だけの不足で期待どおり失敗した。計画commitは`62a7ffade2`、契約commitは`5379cd0d79`で、既存sourceは182行・10枠となった。CMakeと製品sourceは変更していない。
 - targetは4工程・8入力、command SHA-256 `f1b7fda89d92dd14db07b28695fb76f25f6636333b6fb8749f94d3867e5d6cd8`、input SHA-256 `1ce3497f3bd3a108e0518688b8fa0c3c8189ec64fcac87a7533a65c0c9f11052`を維持した。AUTOMOC `HEADERS=[]`、texture option・設定・資源・dabの未解決製品記号0で、Qt Core・Testだけへ動的接続する。macOSで対象単発と全体20回、追加2枠各20回、近傍`KisDabCacheBaseSchemaContractTest`、実装・試験sourceの厳格構文、追加範囲の書式、連続二回の無作業再構築、`verify-quick`に成功した。texture適用・gradient・資源準備・合成方式判定の実効果、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 公開API検査の初回診断は期待値1,291に対して実測1,282で、新規9件と一致した。台帳を28,519件対応、1,282件未対応へ進めた。新`public-api-missing-g552.json`は347,798 bytes、SHA-256 `e01e3ddbc46adf231f41777b4946c06d2ea79ccfcaf4c5883dcd69000efb9719`で、生成成功後に旧`public-api-missing-g551.json` 350,901 bytesを削除した。主Ninja木6,044,996 KiB、共有compiler cache 982,748 KiBと最新報告だけを保持する。compiler cacheは144,860 cache可能呼出し中120,601件、83.25%がhitしている。次の永続作業は第552便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
+
+### 第552便の公開API契約計画
+
+- 第552便は一回の色採取strokeの開始・試料投入・完了と中間色・確定色通知を所有する`libs/painting/KisColorSamplerStroke.h`の残存全9 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g552.json`は公開header 1,549、公開API 29,801、対応済み28,519、未対応1,282、347,798 bytes、SHA-256 `e01e3ddbc46adf231f41777b4946c06d2ea79ccfcaf4c5883dcd69000efb9719`である。対象9識別子の整列集合SHA-256は`e2cf60d88593fb0c1e4967b025e821cf1f07537f71e3aa3c651fb5200f1c8d5d`である。
+- 色採取stroke境界は型・親付き構築・破棄3、稼働状態・開始・完了3、試料投入1、中間色・確定色通知2の4枠へ固定する。型特性と厳密な関数・member pointerだけを使い、stroke、facade、描画装置、座標、色を実体化せず本文を実行しない。意味契約`libs/painting/tests/TestPaintingBoundary.cpp`は色試料2件のqueue投入と完了後の通知を既に実行しているが、target閉包は1,224工程・2,469入力で製品`kritapainting`と`kritatestsdk`へ接続するため、公開署名の反復検証には使わない。
+- 新規`libs/painting/tests/KisColorSamplerStrokeSchemaContractTest.cpp`と同target固有の`libs/painting/tests/CMakeLists.txt`節を追加する。最小近傍`KisNodeSelectionRecipeSchemaContractTest`と同じpainting generated・global・image source/generated探索路、3 export定義、Qt Core・Testだけで4工程・8入力を予測する。近傍実測は4工程・8入力、command SHA-256 `d1aed691489b92cd01260e615a1acd981ae24d408dedb15d226cb68df3cf5ebe`、input SHA-256 `665b733a25799653b7bde7a54d139f62979aaf62cb916106fc149a665959c44d`、Qt Core・Testだけの動的接続である。開始`libs/painting/KisColorSamplerStroke.cpp`の厳格構文診断は0件である。5工程・11入力超過、候補headerのAUTOMOC入力化、製品未解決記号、追加探索路・定義・動的接続が必要なら停止する。macOSの対象全体と追加4枠各20回、軽量近傍、実装・試験sourceの厳格構文、新規sourceの書式、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、既存意味契約・製品target、全体build・`verify`、Linux、Nix再評価は行わない。
 
 ### 第239便の先行監査担当票
 
