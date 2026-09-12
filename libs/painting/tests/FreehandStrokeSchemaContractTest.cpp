@@ -8,6 +8,7 @@
 #include <QTest>
 
 #include <strokes/freehand_stroke.h>
+#include <strokes/kis_painter_based_stroke_strategy.h>
 
 namespace
 {
@@ -27,6 +28,8 @@ private Q_SLOTS:
     void freehandDabPayloadMemberSchemaRemainsStable();
     void freehandDabConstructionAndCloneSignaturesRemainStable();
     void freehandStrategyLifecycleAndCallbackSignaturesRemainStable();
+    void painterBasedStrategyTypeConstructionAndLifetimeRemainStable();
+    void painterBasedStrategyCallbackSignaturesRemainStable();
 };
 
 void FreehandStrokeSchemaContractTest::freehandStrategyFlagSchemaRemainsStable()
@@ -130,6 +133,37 @@ void FreehandStrokeSchemaContractTest::freehandStrategyLifecycleAndCallbackSigna
     ASSERT_FREEHAND_MEMBER(Strategy, createLodClone, KisStrokeStrategy * (Strategy::*)(int));
     ASSERT_FREEHAND_MEMBER(Strategy, notifyUserStartedStroke, void (Strategy::*)());
     ASSERT_FREEHAND_MEMBER(Strategy, notifyUserEndedStroke, void (Strategy::*)());
+
+    QVERIFY(true);
+}
+
+void FreehandStrokeSchemaContractTest::painterBasedStrategyTypeConstructionAndLifetimeRemainStable()
+{
+    using Strategy = KisPainterBasedStrokeStrategy;
+    using Resources = KisResourcesSnapshotSP;
+    using StrokeInfo = KisFreehandStrokeInfo *;
+    using StrokeInfos = QVector<KisFreehandStrokeInfo *>;
+
+    static_assert(std::is_class_v<Strategy>);
+    static_assert(std::is_base_of_v<KisRunnableBasedStrokeStrategy, Strategy>);
+    static_assert(
+        std::is_constructible_v<Strategy, const QLatin1String &, const KUndo2MagicString &, Resources, StrokeInfo>);
+    static_assert(
+        std::is_constructible_v<Strategy, const QLatin1String &, const KUndo2MagicString &, Resources, StrokeInfos>);
+    static_assert(std::has_virtual_destructor_v<Strategy>);
+
+    QVERIFY(true);
+}
+
+void FreehandStrokeSchemaContractTest::painterBasedStrategyCallbackSignaturesRemainStable()
+{
+    using Strategy = KisPainterBasedStrokeStrategy;
+
+    ASSERT_FREEHAND_MEMBER(Strategy, initStrokeCallback, void (Strategy::*)());
+    ASSERT_FREEHAND_MEMBER(Strategy, finishStrokeCallback, void (Strategy::*)());
+    ASSERT_FREEHAND_MEMBER(Strategy, cancelStrokeCallback, void (Strategy::*)());
+    ASSERT_FREEHAND_MEMBER(Strategy, suspendStrokeCallback, void (Strategy::*)());
+    ASSERT_FREEHAND_MEMBER(Strategy, resumeStrokeCallback, void (Strategy::*)());
 
     QVERIFY(true);
 }
