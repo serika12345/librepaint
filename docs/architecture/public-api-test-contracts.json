@@ -58230,6 +58230,34 @@
       ]
     },
     {
+      "target": "KritaSchemaContractTest",
+      "source": "libs/libkis/tests/KritaSchemaContractTest.cpp",
+      "test": "KritaSchemaContractTest::dockWidgetFactoryBaseSchemaRemainsStable",
+      "behavior": "スクリプト向けdock生成器の抽象基底はfactory識別子と既定配置の構築・照会、および仮想破棄の公開型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:DockWidgetFactoryBase",
+        "method:DockWidgetFactoryBase::DockWidgetFactoryBase(const QString & _id,DockPosition _dockPosition)",
+        "method:DockWidgetFactoryBase::defaultDockPosition() const",
+        "method:DockWidgetFactoryBase::id() const",
+        "method:DockWidgetFactoryBase::~DockWidgetFactoryBase()"
+      ]
+    },
+    {
+      "target": "KritaSchemaContractTest",
+      "source": "libs/libkis/tests/KritaSchemaContractTest.cpp",
+      "test": "KritaSchemaContractTest::extensionSchemaRemainsStable",
+      "behavior": "スクリプト向け拡張の抽象基底は親QObjectによる構築、設定、window action生成、および仮想破棄の公開型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:Extension",
+        "method:Extension::Extension(QObject * parent=0)",
+        "method:Extension::createActions(Window * window)",
+        "method:Extension::setup()",
+        "method:Extension::~Extension()"
+      ]
+    },
+    {
       "target": "KisCurveOptionSchemaContractTest",
       "source": "plugins/paintops/libpaintop/tests/KisCurveOptionSchemaContractTest.cpp",
       "test": "KisCurveOptionSchemaContractTest::standardOptionTypesAndAliasesSchemaRemainStable",

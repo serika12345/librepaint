@@ -1,6 +1,7 @@
 /* SPDX-FileCopyrightText: 2026 LibrePaint contributors
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include <DockWidgetFactoryBase.h>
 #include <Krita.h>
 
 #include <QTest>
@@ -11,6 +12,30 @@ namespace
 {
 #define ASSERT_KRITA_SIGNATURE(method, signature)                                                                      \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&Krita::method)), signature>)
+
+class DockWidgetFactoryBaseProbe : public DockWidgetFactoryBase
+{
+public:
+    using DockWidgetFactoryBase::DockWidgetFactoryBase;
+
+    QDockWidget *createDockWidget() override
+    {
+        return nullptr;
+    }
+};
+
+class ExtensionProbe : public Extension
+{
+public:
+    using Extension::Extension;
+
+    void setup() override
+    {
+    }
+    void createActions(Window *) override
+    {
+    }
+};
 } // namespace
 
 class KritaSchemaContractTest : public QObject
@@ -23,6 +48,8 @@ private Q_SLOTS:
     void kritaActionExtensionAndNotificationSignaturesRemainStable();
     void kritaColorFilterAndResourceCatalogSignaturesRemainStable();
     void kritaSettingsLocalizationAndConversionSignaturesRemainStable();
+    void dockWidgetFactoryBaseSchemaRemainsStable();
+    void extensionSchemaRemainsStable();
 };
 
 void KritaSchemaContractTest::kritaTypeLifetimeAndApplicationStateSchemaRemainStable()
@@ -89,6 +116,36 @@ void KritaSchemaContractTest::kritaSettingsLocalizationAndConversionSignaturesRe
     ASSERT_KRITA_SIGNATURE(krita_i18nc, QString (*)(const QString &, const QString &));
     ASSERT_KRITA_SIGNATURE(icon, QIcon (Krita::*)(QString &) const);
     ASSERT_KRITA_SIGNATURE(fromVariant, QObject * (*)(const QVariant &));
+}
+
+void KritaSchemaContractTest::dockWidgetFactoryBaseSchemaRemainsStable()
+{
+    static_assert(std::is_class_v<DockWidgetFactoryBase>);
+    static_assert(std::is_base_of_v<KoDockFactoryBase, DockWidgetFactoryBase>);
+    static_assert(std::is_abstract_v<DockWidgetFactoryBase>);
+    static_assert(
+        std::is_constructible_v<DockWidgetFactoryBaseProbe, const QString &, KoDockFactoryBase::DockPosition>);
+    static_assert(std::has_virtual_destructor_v<DockWidgetFactoryBase>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<QString (DockWidgetFactoryBase::*)() const>(&DockWidgetFactoryBase::id)),
+                       QString (DockWidgetFactoryBase::*)() const>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<KoDockFactoryBase::DockPosition (DockWidgetFactoryBase::*)() const>(
+                           &DockWidgetFactoryBase::defaultDockPosition)),
+                       KoDockFactoryBase::DockPosition (DockWidgetFactoryBase::*)() const>);
+}
+
+void KritaSchemaContractTest::extensionSchemaRemainsStable()
+{
+    static_assert(std::is_class_v<Extension>);
+    static_assert(std::is_base_of_v<QObject, Extension>);
+    static_assert(std::is_abstract_v<Extension>);
+    static_assert(std::is_constructible_v<ExtensionProbe, QObject *>);
+    static_assert(std::has_virtual_destructor_v<Extension>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<void (Extension::*)()>(&Extension::setup)), void (Extension::*)()>);
+    static_assert(std::is_same_v<decltype(static_cast<void (Extension::*)(Window *)>(&Extension::createActions)),
+                                 void (Extension::*)(Window *)>);
 }
 
 QTEST_APPLESS_MAIN(KritaSchemaContractTest)
