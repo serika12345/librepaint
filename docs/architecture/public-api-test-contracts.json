@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 1257
+    "expectedMissingApis": 1250
   },
   "contracts": [
     {
@@ -79922,6 +79922,40 @@
       "classification": "maintained",
       "apis": [
         "method:KisRecycleProjectionsJob::overrides(const KisSpontaneousJob * otherJob)"
+      ]
+    },
+    {
+      "target": "KisLegacyUndoAdapterSchemaContractTest",
+      "source": "libs/image/tests/KisLegacyUndoAdapterSchemaContractTest.cpp",
+      "test": "KisLegacyUndoAdapterSchemaContractTest::typeAndConstructionSchemaRemainStable",
+      "behavior": "legacy undo adapterはKisUndoAdapterの公開派生classとして、borrowed undo storeとimage共有参照で構築する境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisLegacyUndoAdapter",
+        "method:KisLegacyUndoAdapter::KisLegacyUndoAdapter(KisUndoStore * undoStore,KisImageWSP image)"
+      ]
+    },
+    {
+      "target": "KisLegacyUndoAdapterSchemaContractTest",
+      "source": "libs/image/tests/KisLegacyUndoAdapterSchemaContractTest.cpp",
+      "test": "KisLegacyUndoAdapterSchemaContractTest::currentCommandAndUndoSignaturesRemainStable",
+      "behavior": "legacy undo adapterは現在commandを照会し、最後のcommandをundoする公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisLegacyUndoAdapter::presentCommand()",
+        "method:KisLegacyUndoAdapter::undoLastCommand()"
+      ]
+    },
+    {
+      "target": "KisLegacyUndoAdapterSchemaContractTest",
+      "source": "libs/image/tests/KisLegacyUndoAdapterSchemaContractTest.cpp",
+      "test": "KisLegacyUndoAdapterSchemaContractTest::commandAndMacroSignaturesRemainStable",
+      "behavior": "legacy undo adapterはcommandを追加し、名前付きmacroを開始・終了する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisLegacyUndoAdapter::addCommand(KUndo2Command * cmd)",
+        "method:KisLegacyUndoAdapter::beginMacro(const KUndo2MagicString & macroName)",
+        "method:KisLegacyUndoAdapter::endMacro()"
       ]
     }
   ]

@@ -1065,6 +1065,23 @@ target_include_directories(KisRecycleProjectionsJobSchemaContractTest PRIVATE
 )
 
 kis_add_test(
+    KisLegacyUndoAdapterSchemaContractTest.cpp
+    LINK_LIBRARIES Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(KisLegacyUndoAdapterSchemaContractTest PRIVATE
+    kritaimage_EXPORTS
+    kritapaintingundo_EXPORTS
+)
+target_include_directories(KisLegacyUndoAdapterSchemaContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+    ${CMAKE_SOURCE_DIR}/libs/painting/undo
+    ${CMAKE_BINARY_DIR}/libs/painting/undo
+)
+
+kis_add_test(
     KisNodeVisitorContractTest.cpp
     LINK_LIBRARIES Qt${QT_MAJOR_VERSION}::Test
 )
