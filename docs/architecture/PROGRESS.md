@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-12 19:34 JST
+- 更新日時: 2026-09-12 20:05 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5112,6 +5112,12 @@
 - masking brushの設定値・比較・永続化境界を既存brush描画schema契約へ統合した。開始`plugins/paintops/libpaintop/KisMaskingBrushOptionProperties.h`から既存`plugins/paintops/libpaintop/tests/KisBrushBasedPaintOpSchemaContractTest.cpp`へ残存全9 API・3枠を追加し、構造体と5公開値6件、等値比較1件、設定読込・書出2件を型特性、公開member型、厳密な関数pointerで固定した。最初の限定コンパイルは候補headerが直接使う`libs/brush/KisBrushModel.h`の探索路不足で失敗し、同target固有節へbrush source/generated探索路だけを追加した。未定義3枠だけを残した次の限定リンクは、その3記号だけの不足で期待どおり失敗した。計画commitは`d8d32fc1ed`、契約commitは`ae20d236cf`で、既存sourceは144行・8枠となった。
 - targetは4工程・8入力を維持し、command SHA-256を`ec4aa3af2cffac6351925caff9fde8d2bafd35a34228ab3f6e2d977eb755bd45`から`f1b7fda89d92dd14db07b28695fb76f25f6636333b6fb8749f94d3867e5d6cd8`へ更新、input SHA-256 `1ce3497f3bd3a108e0518688b8fa0c3c8189ec64fcac87a7533a65c0c9f11052`を維持した。AUTOMOC `HEADERS=[]`、masking brush値・設定・資源接続の未解決製品記号0で、Qt Core・Testだけへ動的接続する。macOSで対象単発と全体20回、追加3枠各20回、近傍`KisDabCacheBaseSchemaContractTest`、実装・試験sourceの厳格構文、試験書式、連続二回の無作業再構築に成功した。設定I/O・等値比較・既定値の実効果、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 公開API検査の初回診断は期待値1,300に対して実測1,291で、新規9件と一致した。台帳を28,510件対応、1,291件未対応へ進めた。新`public-api-missing-g551.json`は350,901 bytes、SHA-256 `290c851cfb4b30945f0b4a30355a867d8ca6d81c5e0fdcfddd9f40f958c4d05b`で、生成成功後に旧`public-api-missing-g550.json` 353,544 bytesを削除した。主Ninja木6,045,348 KiB、共有compiler cache 981,688 KiBと最新報告だけを保持する。compiler cacheは144,857 cache可能呼出し中120,601件、83.26%がhitしている。次の永続作業は第551便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
+
+### 第551便の公開API契約計画
+
+- 第551便はbrush dabへ適用するtextureの有効状態、構築条件、適用、gradient利用判定、外部資源準備、実効合成方式要否を所有する`plugins/paintops/libpaintop/kis_texture_option.h`の残存全9 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g551.json`は公開header 1,549、公開API 29,801、対応済み28,510、未対応1,291、350,901 bytes、SHA-256 `290c851cfb4b30945f0b4a30355a867d8ca6d81c5e0fdcfddd9f40f958c4d05b`である。対象9識別子の整列集合SHA-256は`ceee032f1c7411f754e7ac95173186c0cd2540a5aeaed72ea838b6a9301884ba`である。
+- texture option境界は型・公開有効状態・構築3、dab適用・instanceと設定値のgradient判定・埋込みと連結資源準備・実効合成方式要否6の2枠へ固定する。型特性、公開member型、厳密な関数pointerだけを使い、texture option、dab、設定、gradient、資源接続を実体化せず本文を実行しない。既存`plugins/paintops/libpaintop/tests/KisBrushBasedPaintOpSchemaContractTest.cpp`はbrush描画とmasking brush設定を扱う144行・8枠で、2枠追加後も220行・10枠以内に収まる。
+- 既存targetへCMake変更なしで追加し、Qt Core・Testだけへ動的接続する4工程・8入力、command SHA-256 `f1b7fda89d92dd14db07b28695fb76f25f6636333b6fb8749f94d3867e5d6cd8`、input SHA-256 `1ce3497f3bd3a108e0518688b8fa0c3c8189ec64fcac87a7533a65c0c9f11052`を維持する。開始`plugins/paintops/libpaintop/kis_texture_option.cpp`の厳格構文診断は0件、計画時点の限定構築は無作業である。工程・入力増加、AUTOMOC候補header入力、製品未解決記号、追加探索路・定義・動的接続が必要なら停止する。macOSの対象全体と追加2枠の20回反復、実装・試験sourceの厳格構文、試験追加範囲の書式、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、texture適用・gradient・資源準備・合成方式判定の実効果、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
 
 ### 第239便の先行監査担当票
 
