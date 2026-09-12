@@ -11,10 +11,12 @@
 #include "application/ui/workspace/KisAndroidSplash.h"
 #include "canvas/kis_abstract_perspective_grid.h"
 #include "canvas/kis_canvas_controls_manager.h"
+#include "document/KisTextPropertiesManager.h"
 #include "events/kis_cursor_override_hijacker.h"
 #include "platform/osx.h"
 #include "theme/KisUiFont.h"
 #include "tool/kis_tool_canvas_utils.h"
+#include "utils/KisRecentDocumentsModelWrapper.h"
 
 #include <QTest>
 
@@ -60,6 +62,8 @@ private Q_SLOTS:
     void macOSMouseCoalescingFunctionSchemaRemainsStable();
     void abstractPerspectiveGridTypeAndGeometrySchemaRemainStable();
     void canvasControlsManagerTypeAndConfigurationSchemaRemainStable();
+    void textPropertiesManagerTypeAndProviderSchemaRemainStable();
+    void recentDocumentsModelWrapperSchemaRemainsStable();
 };
 
 void KisCursorOverrideHijackerSchemaContractTest::cursorOverrideHijackerTypeConstructionAndLifetimeSchemaRemainStable()
@@ -191,6 +195,33 @@ void KisCursorOverrideHijackerSchemaContractTest::canvasControlsManagerTypeAndCo
     static_assert(std::is_destructible_v<Manager>);
     static_assert(std::is_same_v<decltype(&Manager::setup), void (Manager::*)(KisActionManager *)>);
     static_assert(std::is_same_v<decltype(&Manager::setView), void (Manager::*)(QPointer<KisView>)>);
+}
+
+void KisCursorOverrideHijackerSchemaContractTest::textPropertiesManagerTypeAndProviderSchemaRemainStable()
+{
+    using Manager = KisTextPropertiesManager;
+
+    static_assert(std::is_class_v<Manager>);
+    static_assert(std::is_base_of_v<QObject, Manager>);
+    static_assert(std::is_constructible_v<Manager, QObject *>);
+    static_assert(std::is_destructible_v<Manager>);
+    static_assert(
+        std::is_same_v<decltype(&Manager::setCanvasResourceProvider), void (Manager::*)(KisCanvasResourceProvider *)>);
+    static_assert(std::is_same_v<decltype(&Manager::setTextPropertiesInterface),
+                                 void (Manager::*)(KoSvgTextPropertiesInterface *)>);
+}
+
+void KisCursorOverrideHijackerSchemaContractTest::recentDocumentsModelWrapperSchemaRemainsStable()
+{
+    using Wrapper = KisRecentDocumentsModelWrapper;
+
+    static_assert(std::is_class_v<Wrapper>);
+    static_assert(std::is_base_of_v<QObject, Wrapper>);
+    static_assert(std::is_same_v<decltype(Wrapper::ICON_SIZE_LENGTH), const int>);
+    static_assert(Wrapper::ICON_SIZE_LENGTH == 200);
+    static_assert(std::is_same_v<decltype(&Wrapper::instance), Wrapper *(*)()>);
+    static_assert(std::is_same_v<decltype(&Wrapper::model), QStandardItemModel &(Wrapper::*)()>);
+    static_assert(std::is_same_v<decltype(&Wrapper::sigModelIsUpToDate), void (Wrapper::*)()>);
 }
 
 QTEST_APPLESS_MAIN(KisCursorOverrideHijackerSchemaContractTest)

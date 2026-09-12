@@ -79826,6 +79826,34 @@
       ]
     },
     {
+      "target": "KisCursorOverrideHijackerSchemaContractTest",
+      "source": "libs/ui/tests/KisCursorOverrideHijackerSchemaContractTest.cpp",
+      "test": "KisCursorOverrideHijackerSchemaContractTest::textPropertiesManagerTypeAndProviderSchemaRemainStable",
+      "behavior": "text properties管理器はQObject派生の公開型として親QObject構築、破棄、canvas resource provider設定、SVG text properties interface設定の正確な公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisTextPropertiesManager",
+        "method:KisTextPropertiesManager::KisTextPropertiesManager(QObject * parent=nullptr)",
+        "method:KisTextPropertiesManager::setCanvasResourceProvider(KisCanvasResourceProvider * provider)",
+        "method:KisTextPropertiesManager::setTextPropertiesInterface(KoSvgTextPropertiesInterface * interface)",
+        "method:KisTextPropertiesManager::~KisTextPropertiesManager()"
+      ]
+    },
+    {
+      "target": "KisCursorOverrideHijackerSchemaContractTest",
+      "source": "libs/ui/tests/KisCursorOverrideHijackerSchemaContractTest.cpp",
+      "test": "KisCursorOverrideHijackerSchemaContractTest::recentDocumentsModelWrapperSchemaRemainsStable",
+      "behavior": "最近使った文書model wrapperはQObject派生の公開型としてiconサイズ定数、singleton取得、model取得、更新通知の正確な公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisRecentDocumentsModelWrapper",
+        "member:KisRecentDocumentsModelWrapper::ICON_SIZE_LENGTH",
+        "method:KisRecentDocumentsModelWrapper::instance()",
+        "method:KisRecentDocumentsModelWrapper::model()",
+        "method:KisRecentDocumentsModelWrapper::sigModelIsUpToDate()"
+      ]
+    },
+    {
       "target": "KisMultiBoolFilterWidgetSchemaContractTest",
       "source": "libs/ui/tests/KisMultiBoolFilterWidgetSchemaContractTest.cpp",
       "test": "KisMultiBoolFilterWidgetSchemaContractTest::nodeDisplayModeTypeConstructionAndAccessSignaturesRemainStable",
