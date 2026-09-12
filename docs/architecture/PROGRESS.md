@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-13 03:53 JST
+- 更新日時: 2026-09-13 04:00 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5514,6 +5514,13 @@
 - 正式入力`build/tdd-macos/public-api-missing-g585.json`の`libs/ui/widgets/KisCurveWidgetConnectionHelper.h`残存1 API、`KisWidgetConnectionUtils::connectControl`を、既存`libs/ui/tests/KisCurveWidgetSchemaContractTest.cpp`の新規1枠`curveWidgetControlConnectionHelperSignatureRemainsStable`へ対応付ける。curve widget、QObject、プロパティ文字列を実体化せず、namespace関数pointerの正確な引数・戻り値型だけを観測する。動的なsignal接続、プロパティ同期、QObject寿命は後続の効果契約で扱う。
 - `KisCurveWidgetSchemaContractTest`はsource 171行・10枠で、追記後も300行・20枠未満に収まる。CMakeは`libs/ui`探索路と既存のQt Gui・Widgets interfaceを持ち、helper headerと型をCMake変更なしで解決する。実測閉包は4工程・8入力、command SHA-256 `2fd2333e6346d01423e20800bfce381fd83721eb9f92c232178a130deb1c61e3`、input SHA-256 `31435d9f7a205793998a8724341732c968fe583bc13b837b78a787f1fa0a299a`である。停止線は5工程・11入力、CMake・探索路・定義・動的linkの変更、製品shared・OBJECT・`kritatestsdk`接続、対象headerのAUTOMOC入力、製品未解決記号、対象値または本文の実体化、許可path外変更である。
 - macOSでは対象CTest、追加枠20回、同じUI検査群の軽量近傍`KisMultiBoolFilterWidgetSchemaContractTest`、AUTOMOC後の二回目計画、連続二回の無作業再構築、動的接続・未解決記号・厳格構文・書式、公開API検査、`verify-quick`だけを実行する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。初回公開API検査は移行基準997件に対する1 API減少の診断を期待する。
+
+### 第584便の公開API契約結果
+
+- 開始`libs/ui/widgets/KisCurveWidgetConnectionHelper.h`から既存`libs/ui/tests/KisCurveWidgetSchemaContractTest.cpp`へ、`KisWidgetConnectionUtils::connectControl`の1 APIを新規1枠`curveWidgetControlConnectionHelperSignatureRemainsStable`として固定した。curve widget、QObject、プロパティ文字列を実体化せず、namespace関数pointerの正確な引数・戻り値型だけを観測する。CMake、公開header、製品sourceは変更していない。
+- macOSの`KisCurveWidgetSchemaContractTest`は追加前後とも4工程・8入力、command SHA-256 `2fd2333e6346d01423e20800bfce381fd83721eb9f92c232178a130deb1c61e3`、input SHA-256 `31435d9f7a205793998a8724341732c968fe583bc13b837b78a787f1fa0a299a`を維持した。対象全体20回、追加枠20回（60 pass）、同じUI検査群の近傍`KisMultiBoolFilterWidgetSchemaContractTest`、AUTOMOC後の連続二回の無作業再構築に成功した。試験sourceは179行・11枠、AUTOMOC `HEADERS=[]`、Qt Core・TestとOS frameworkだけの動的接続、接続helper・curve widget・製品libraryの未解決記号なしを確認した。試験sourceの`clang-check -Werror`、試験source書式、JSON構文、差分に成功した。
+- 未変更の`libs/ui/widgets/KisCurveWidgetConnectionHelper.cpp`は既存の`QMetaType::type("QString")`呼出しにより`clang-check -Werror`で非推奨警告をエラーとして報告する。通常の構文検査は同じ1 warningだけで成功した。この既存実装上の警告は今回の宣言契約、対象CTest、構築閉包を妨げないが、Qt 6 API更新の別の構造改善作業で解消する必要がある。
+- 初回照合は移行基準997件に対して実測996件となる期待診断を確認後、基準を更新した。公開API検査は28,805件対応、29,801件中996件未対応となった。新`build/tdd-macos/public-api-missing-g586.json`は272,340 bytes、SHA-256 `01eb0aad68bd56fe2ed7ab6f0bf7fba7d24e090364b873f825b28395dcb24fd6`である。生成成功後に旧`public-api-missing-g585.json` 272,722 bytesをゴミ箱へ移して作業領域から約266 KiBを回収し、主Ninja木6,042,100 KiB、共有compiler cache 982,588 KiB、最新報告だけを再利用対象として保持する。signal接続、プロパティ同期、QObject寿命の実行結果は後続の効果契約で扱う。次の永続作業は第585便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
 
 ### 第239便の先行監査担当票
 
