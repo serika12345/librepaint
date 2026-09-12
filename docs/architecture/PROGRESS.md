@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-13 03:40 JST
+- 更新日時: 2026-09-13 03:43 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5496,6 +5496,12 @@
 - 開始`libs/libkis/DockWidget.h`から既存`libs/libkis/tests/KritaSchemaContractTest.cpp`へ、型、既定構築、仮想破棄の3 APIを新規1枠`dockWidgetSchemaRemainsStable`として固定した。`KritaSchemaContractTest.cpp`は`DockWidget.h`を直接含み、最小具象probeの型特性だけで`QDockWidget`と`KoCanvasObserverBase`の多重継承、抽象callback、既定構築、仮想破棄を観測する。dock、canvas、QObjectを実体化せず本文を実行していない。CMake、公開header、製品sourceは変更していない。
 - macOSの`KritaSchemaContractTest`は追加前後とも4工程・8入力、command SHA-256 `94fb402633831db0541d90d15721123de305f5e7dc5fcce428da63a6d2f4b998`、input SHA-256 `8549b43d1d4bceea0e97733e1d897061d42cd7d2cdec422bbdb6324d2d98710e`を維持した。対象全体20回、追加枠20回（60 pass）、近傍`GridConfigSchemaContractTest`、AUTOMOC後の連続二回の無作業再構築に成功した。試験sourceは173行・8枠、AUTOMOC `HEADERS=[]`、Qt Core・TestとOS frameworkだけの動的接続、dock widget・canvas observer・製品libraryの未解決記号なしを確認した。試験sourceと`libs/libkis/DockWidget.cpp`の`clang-check -Werror`、試験source書式、JSON構文、差分に成功した。
 - 初回照合は移行基準1,001件に対して実測998件となる期待診断を確認後、基準を更新した。公開API検査は28,803件対応、29,801件中998件未対応となった。新`build/tdd-macos/public-api-missing-g584.json`は272,959 bytes、SHA-256 `438db33e45eb13f7d8617d4f2e8e8f2b8d94d440c8be2f39db83251234a0c8cb`である。生成成功後に旧`public-api-missing-g583.json` 273,444 bytesをゴミ箱へ移して作業領域から約267 KiBを回収し、主Ninja木6,041,812 KiB、共有compiler cache 983,280 KiB、最新報告だけを再利用対象として保持する。canvas切替、dock表示、所有権の実行結果は後続の効果契約で扱う。次の永続作業は第583便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
+
+### 第583便の公開API契約計画
+
+- 正式入力`build/tdd-macos/public-api-missing-g584.json`の`libs/tools/KisToolPaintFactoryBase.h`残存1 API、仮想破棄を、既存`libs/tools/tests/KisSelectionToolFactoryBaseSchemaContractTest.cpp`の新規1枠`paintToolFactoryBaseLifetimeSchemaRemainsStable`へ対応付ける。型・構築は既存の実行試験で既に対応済みだが、仮想破棄は未対応である。基底型の仮想破棄特性だけを観測し、factory、tool、canvas、actionを実体化せず本文を実行しない。
+- `TestToolCoreContract`は1,274工程・2,563入力・471行の実行試験であり、このAPIの固定先から除外する。既存`KisSelectionToolFactoryBaseSchemaContractTest`はsource 72行・2枠で、追記後も300行・20枠未満に収まる。CMake変更なしの実測閉包は4工程・8入力、command SHA-256 `119ee148b595e158c51945c83dc404d216c63d13b8947f071effdd649c478c8d`、input SHA-256 `ee423d6cca446cd651643d5916308323ef58186c518e7f3409c04b0705c7e7cd`である。停止線は5工程・11入力、CMake・探索路・定義・動的linkの変更、製品shared・OBJECT・`kritatestsdk`接続、対象headerのAUTOMOC入力、製品未解決記号、対象値または本文の実体化、許可path外変更である。
+- macOSでは対象CTest、追加枠20回、軽量近傍`KisToolUtilsSchemaContractTest`、AUTOMOC後の二回目計画、連続二回の無作業再構築、動的接続・未解決記号・厳格構文・書式、公開API検査、`verify-quick`だけを実行する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。初回公開API検査は移行基準998件に対する1 API減少の診断を期待する。
 
 ### 第239便の先行監査担当票
 
