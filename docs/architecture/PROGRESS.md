@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-12 21:48 JST
+- 更新日時: 2026-09-12 21:55 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5178,6 +5178,12 @@
 - 第556便はmetadata schemaの生成・照会とsingleton取得を所有する`libs/painting/metadata/kis_meta_data_schema_registry.h`の残存全7 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g556.json`は公開header 1,549、公開API 29,801、対応済み28,551、未対応1,250、338,905 bytes、SHA-256 `9770326957c94de3b83d2994f827c4e29931a6edd06523a9a9babd527b92ecd3`である。対象7識別子の整列集合SHA-256は`a87516fe8a4fc12bd2bf014b1a52d44b8519455c22f1f683a6c446d5f7a671b7`である。
 - metadata schema registry境界は型・構築・破棄3、URI・prefixからのschema生成と照会3、singleton取得1の3枠へ固定する。型特性と厳密な関数・member pointerだけを使い、registry、schema、文字列、singletonを実体化せず本文を実行しない。既存`libs/painting/metadata/tests/KisMetaDataStoreSchemaContractTest.cpp`はstore、validator、entry、schemaを扱うため20枠の上限に達しており、追記しない。
 - 新規`libs/painting/metadata/tests/KisMetaDataSchemaRegistrySchemaContractTest.cpp`と同target固有の`libs/painting/metadata/tests/CMakeLists.txt`節を追加する。新targetはmetadata source/generated探索路、`kritapaintingmetadata_EXPORTS`、Qt Core・Testだけで4工程・8入力を予測する。近傍`KisMetaDataStoreSchemaContractTest`は4工程・8入力、command SHA-256 `4780a7a4dd7a3ef927ed82b94e677c675be48cefb8338d377d4b2d4ea9c5f0dd`、input SHA-256 `efb0a78e7ec95e5a0b3bf9c74c634d4cdd2d3f36df78bc88f5818ed3b92fe259`、Qt Core・Testだけの動的接続である。開始`libs/painting/metadata/kis_meta_data_schema_registry.cc`の厳格構文診断は0件である。5工程・11入力超過、AUTOMOC候補header入力、製品未解決記号、追加探索路・定義・動的接続が必要なら停止する。macOSの対象全体と追加3枠の20回反復、軽量近傍、実装・試験sourceの厳格構文、新規source書式、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、schema生成・再利用、URI・prefix衝突、singleton初期化、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
+
+### 第556便の公開API契約結果
+
+- 開始`libs/painting/metadata/kis_meta_data_schema_registry.h`から新規`libs/painting/metadata/tests/KisMetaDataSchemaRegistrySchemaContractTest.cpp`へ、metadata schema registryの型・構築・破棄3 API、URI・prefixによる生成・照会3 API、singleton取得1 APIを3枠へ固定した。対象固有の`libs/painting/metadata/tests/CMakeLists.txt`節を追加し、公開headerと製品sourceは変更していない。既存`KisMetaDataStoreSchemaContractTest`は20枠のまま維持した。
+- 新targetの宣言段階では3枠の定義不足だけでlinkに失敗し、実装後はmacOSの正式CTest `libs-painting-metadata-KisMetaDataSchemaRegistrySchemaContractTest`、対象全体20回、各追加枠20回、近傍`KisMetaDataStoreSchemaContractTest`、無作業再構築2回に成功した。最終閉包は4工程・8入力、command SHA-256 `3fad290b1acf075b1e63b303bb64ffe7ebe62614fa6a8a929fdac96387eed566`、input SHA-256 `f36c19573f7800f0b639d7317c6888ca533770a3a960de967c73b6df1a0ffdaf`である。AUTOMOC `HEADERS=[]`、Qt Core・TestとOS frameworkだけの動的接続、metadata schema registryの製品未解決記号なしを確認した。実装・試験sourceの`clang-check -Werror`、新規source書式、JSON構文、差分、`verify-quick`に成功した。
+- 公開API検査は28,558件対応、29,801件中1,243件未対応となった。新`build/tdd-macos/public-api-missing-g557.json`は336,976 bytes、SHA-256 `5e1ddc90fa6844855f794a7f69b6933aa648df1f730b72152c76cc7d404cd429`であり、生成成功後に旧`public-api-missing-g556.json` 338,905 bytesを削除した。主Ninja木6,051,536 KiB、共有compiler cache 982,016 KiB、最新報告だけを保持する。compiler cacheは144,878 cache可能呼出し中120,602件、83.24%がhitしている。次の永続作業は第557便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
 
 ### 第239便の先行監査担当票
 
