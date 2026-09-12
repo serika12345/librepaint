@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-13 01:48 JST
+- 更新日時: 2026-09-13 02:02 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5394,6 +5394,12 @@
 - 第574便はタブレット座標変換の設定・適用を担う`libs/ui/dialogs/KisDlgCustomTabletResolution.h`の残存全11 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g574.json`は公開header 1,549、公開API 29,801、対応済み28,712、未対応1,089、296,856 bytes、SHA-256 `55dc17b7f5397b80c9c51cca3dd34fd02ada5c802872e33b1ddf6887b5d03bd1`である。対象11識別子の整列集合SHA-256は`90a43b14da226ef9bdabbb886e9eb22e96003b7e22528237a55facc8b5e7937d`である。
 - タブレット座標変換の境界はdialog型・親widget構築・寿命3、mode型と3つの列挙値4、accept・native screen矩形取得・設定読込・設定適用4へ固定する。新規`libs/ui/tests/KisDlgCustomTabletResolutionSchemaContractTest.cpp`の3枠で型特性、列挙順序、厳密なmember pointerとstatic function pointerだけを観測し、dialog、画面、設定、環境変数、生成UIを実体化せず本文を実行しない。設定読込、画面取得、環境変数適用、accept時のUI遷移は後続の動的契約で扱う。
 - 新規targetの`libs/ui/tests/CMakeLists.txt`節はui source/generated探索路、`kritaui_EXPORTS`、Qt Core・TestとQt Widgetsのheader探索路だけを所有する。`kritaui`、application、input、platform、UI生成targetは接続しない。最も近い`KisDelayedSaveDialogSchemaContractTest`は4工程・8入力、command SHA-256 `fb2bf647e2ad8622471fc9ae1d500e12d2a2886b4ea006ebb779b8ce654dd36b`、input SHA-256 `75135a928bf41cc4cc69a2a2d064fc96e7a91b920cce1d2ec77119dcde30383c`であり、新targetも4工程・8入力、停止線を5工程・11入力とする。開始`libs/ui/dialogs/KisDlgCustomTabletResolution.cpp`の厳格構文診断は製品`AUTOUIC`が出力する`ui_KisDlgCustomTabletResolution.h`を必要とし、対象限定treeでは未生成のため停止する。製品target構築や生成物の複製を行わず、公開headerを直接検査する試験sourceだけを厳格構文検査する。初期targetは新規試験source未配置でCMake生成に失敗することを記録し、macOSの対象全体と追加3枠の20回反復、軽量近傍、試験sourceの厳格構文、新規source書式、AUTOMOC後の二回目計画、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。
+
+### 第574便の公開API契約結果
+
+- 開始`libs/ui/dialogs/KisDlgCustomTabletResolution.h`から新規`libs/ui/tests/KisDlgCustomTabletResolutionSchemaContractTest.cpp`へ、dialog型・親widget構築・寿命3 API、mode型と3列挙値4 API、accept・native screen矩形取得・設定読込・設定適用4 APIを3枠へ固定した。`libs/ui/tests/CMakeLists.txt`にはui source/generated探索路、`kritaui_EXPORTS`、Qt Core・TestとQt Widgets header探索路だけを追加した。公開headerと製品sourceは変更していない。
+- 初期targetは新規試験source未配置のためCMake生成で停止し、試験source追加後に解消した。初回の台帳検査で長い試験関数名が整形器により改行され、関数を検出できない診断が出たため、意味を保った短い試験名へ揃えて解消した。実装後はmacOSの正式CTest `libs-ui-KisDlgCustomTabletResolutionSchemaContractTest`、対象全体20回、追加3枠の各20回、近傍`KisDelayedSaveDialogSchemaContractTest`、連続二回の無作業再構築に成功した。最終閉包は4工程・8入力、command SHA-256 `172dcfe463fefec0782321c645c9ad0a579ed9850b67b4a243fe9a2f22f677ff`、input SHA-256 `62889cdb748689b8205929dfd522c479d76860a6bcecc619a328e342dbafa1e7`である。AUTOMOC `HEADERS=[]`、Qt Core・Test、`libintl`とOS frameworkだけの動的接続、tablet resolution dialogの製品未解決記号なしを確認した。試験sourceの`clang-check -Werror`、新規source書式、JSON構文、差分に成功した。製品sourceの厳格構文は未生成の製品`AUTOUIC` headerを必要とするため対象限定treeでは実行せず、製品targetの構築や生成物の複製で回避していない。
+- 公開API検査は28,723件対応、29,801件中1,078件未対応となった。新`build/tdd-macos/public-api-missing-g575.json`は294,030 bytes、SHA-256 `c059a1d049d2cdb739e7dee945cf8ce97dedbd973dfe9a0b6360bd698bec75ac`であり、生成成功後に旧`public-api-missing-g574.json` 296,856 bytesをゴミ箱へ移して作業領域から約290 KiBを回収した。主Ninja木6,057,084 KiB、共有compiler cache 980,976 KiB、最新報告だけを再利用対象として保持する。設定読込、画面取得、環境変数適用、accept時のUI遷移は後続の動的契約で扱う。次の永続作業は第575便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
 
 ### 第239便の先行監査担当票
 
