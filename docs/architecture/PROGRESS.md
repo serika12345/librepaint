@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-13 02:13 JST
+- 更新日時: 2026-09-13 02:18 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5412,6 +5412,12 @@
 - 開始`libs/ui/canvas/KisCanvasSurfaceColorSpaceManager.h`から既存`libs/ui/tests/KisDisplayConfigSchemaContractTest.cpp`へ、manager型・interfaceと設定による構築・寿命3 API、設定変更・ready・表示設定照会4 API、color管理とOSの報告・surface description・error照会4 API、表示設定変更通知1 APIを4枠へ固定した。`libs/ui/tests/CMakeLists.txt`には`application/kis_config.h`を解決するsource root `libs`と、`KConfigGroup`を解決するKF ConfigCore header探索路だけを対象固有で追加した。公開headerと製品sourceは変更していない。
 - 初回構築は公開headerを直接検査するときに不足した`application/kis_config.h`、次に`KConfigGroup`のheader探索路で停止し、上記の2探索路追加後に解消した。製品targetや動的接続は追加していない。初期公開API検査は移行基準1,078件に対して実測1,066件となり、12 APIの新規対応を期待どおり検出した。基準更新後はmacOSの正式CTest `libs-ui-KisDisplayConfigSchemaContractTest`、対象全体20回、追加4枠の各20回、近傍`KisOpenGLModeProberSchemaContractTest`、連続二回の無作業再構築に成功した。最終閉包は4工程・8入力、command SHA-256 `52383a5c4e8e4cb3631c5a60ebb06aeb6c8dbf76779d62c83099ece70f5dfed2`、input SHA-256 `0f5781b1ac2dec2ed9954f2948ac1d5b605eed4e419085ff8415d097846cb8ce`である。AUTOMOC `HEADERS=[]`、Qt Core・Test、`libintl`とOS frameworkだけの動的接続、surface color managerとdisplay color converterの製品未解決記号なしを確認した。実装・試験sourceの`clang-check -Werror`、試験source書式、JSON構文、差分に成功した。
 - 公開API検査は28,735件対応、29,801件中1,066件未対応となった。新`build/tdd-macos/public-api-missing-g576.json`は290,025 bytes、SHA-256 `fee725cf297dc355ecf19c3c75d9cdbe2fc44e6952f1a291fe175a16175407b6`であり、生成成功後に旧`public-api-missing-g575.json` 294,030 bytesをゴミ箱へ移して作業領域から約287 KiBを回収した。主Ninja木6,058,044 KiB、共有compiler cache 981,272 KiB、最新報告だけを再利用対象として保持する。surface選択、色空間解決、interface状態遷移、報告内容は後続の動的契約で扱う。次の永続作業は第576便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
+
+### 第576便の公開API契約計画
+
+- 第576便はnode labelの色フィルター表示を担う`libs/ui/widgets/kis_color_filter_combo.h`の残存全11 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g576.json`は公開header 1,549、公開API 29,801、対応済み28,735、未対応1,066、290,025 bytes、SHA-256 `fee725cf297dc355ecf19c3c75d9cdbe2fc44e6952f1a291fe175a16175407b6`である。対象11識別子の整列集合SHA-256は`8162e1f7354de2a1ce7177315111bc8a8f6b8bb886618435ec4840cb4c1ca2bb`である。
+- 色フィルターcomboの境界はQComboBox型・親widgetと表示modeによる構築・寿命3、nodeまたはlabel集合による利用可能label更新とmode設定3、サイズ・選択色・pie描画4、選択色変更通知1へ固定する。既存`libs/ui/tests/KisSelectionPropertySliderSchemaContractTest.cpp`へ4枠を追加し、型特性と厳密なmember/function pointerだけを観測する。combo、node、style painter、paletteを実体化せず本文を実行しない。label収集、選択変更、pie描画、paint eventは後続の動的契約で扱う。
+- 既存targetは選択表示の静的契約を所有する。公開headerの`KisNodeSP`を解決するimage source/generated探索路と`kritaimage_EXPORTS`だけを対象固有節へ追加し、Qt Core・Testだけの動的接続を維持する。現在の4工程・8入力を基準に、追加後も4工程・8入力、停止線を5工程・11入力とする。AUTOMOC候補header入力、製品未解決記号、追加探索路・定義・動的接続、製品再構築、許可path外変更が必要なら停止する。開始`libs/ui/widgets/kis_color_filter_combo.cpp`の厳格構文診断はQt 6.13で非推奨の`QSortFilterProxyModel::invalidateFilter()` 1件であり、今回の契約追加とは独立した既存診断として記録し、抑制や検査強度低下を行わない。macOSの対象全体と追加4枠の20回反復、軽量近傍、試験sourceの厳格構文、新規includeの書式、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。
 
 ### 第239便の先行監査担当票
 
