@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-13 01:38 JST
+- 更新日時: 2026-09-13 01:48 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5382,6 +5382,12 @@
 - 第573便は分類表示、model接続、選択通知を担う`libs/tools/ui/kis_categorized_list_view.h`の残存全11 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g573.json`は公開header 1,549、公開API 29,801、対応済み28,701、未対応1,100、299,733 bytes、SHA-256 `112eeedd727482ff6b16b3a3d362bc91e4e3b3c758d4779c3de48b21e37ff8dd`である。対象11識別子の整列集合SHA-256は`26991cc4f0910a2310d920f262285ad7456a604052924ff281d1fb921121e9a3`である。
 - 分類一覧の境界は型・親widget構築・寿命3、model設定・表示サイズ・composite制御3、カテゴリ・entry・右クリック・lock areaの通知5へ固定する。既存`libs/tools/ui/tests/KisCompositeOpSelectorSchemaContractTest.cpp`へ3枠を追加し、`KisCategorizedListView`を公開基底型として直接includeして型特性と厳密なmember pointerだけを観測する。view、model、scroller、menuを実体化せず本文を実行しない。model変更、行更新、マウス・scroller入力、menu表示の実行時意味は後続の動的契約で扱う。
 - 既存targetは同じ分類一覧を基底型としてすでに含み、CMake変更なしでQt Core・Testだけを動的接続する4工程・8入力、AUTOMOC `HEADERS=[]`、製品未解決記号なしを実測した。現在のcommand SHA-256は`10efc9bfd7c9f376d7cc46cc5f4b97f46d5280c2ecec595b809b708f6dc40a01`、input SHA-256は`75c2cf8b28f6f578cc02ee5990a58d74917c91346e0a4e4f83c6329e48f08712`である。停止線は5工程・11入力とし、AUTOMOC候補header入力、製品未解決記号、追加探索路・定義・動的接続、製品再構築、許可path外変更が必要なら停止する。開始`libs/tools/ui/kis_categorized_list_view.cpp`の厳格構文診断はQt 6で非推奨の`QMouseEvent::globalPos()` 2件であり、今回の契約追加とは独立した既存診断として記録し、抑制や検査強度低下を行わない。macOSの対象全体と追加3枠の20回反復、軽量近傍、試験sourceの厳格構文、新規includeの書式、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。
+
+### 第573便の公開API契約結果
+
+- 開始`libs/tools/ui/kis_categorized_list_view.h`から既存`libs/tools/ui/tests/KisCompositeOpSelectorSchemaContractTest.cpp`へ、分類一覧型・親widget構築・寿命3 API、model設定・表示サイズ・composite制御3 API、カテゴリ・entry・右クリック設定・lock area通知5 APIを3枠へ固定した。試験sourceは公開headerを直接includeし、既存の複合描画モード選択と同じ一覧基底型の境界を検査する。CMake、公開header、製品sourceは変更していない。
+- 初期公開API検査は移行基準1,100件に対して実測1,089件となり、11 APIの新規対応を期待どおり検出した。基準更新後はmacOSの正式CTest `libs-tools-ui-KisCompositeOpSelectorSchemaContractTest`、対象全体20回、追加3枠の各20回、近傍`KisCategorizedListModelSchemaContractTest`、連続二回の無作業再構築に成功した。最終閉包は4工程・8入力、command SHA-256 `10efc9bfd7c9f376d7cc46cc5f4b97f46d5280c2ecec595b809b708f6dc40a01`、input SHA-256 `75c2cf8b28f6f578cc02ee5990a58d74917c91346e0a4e4f83c6329e48f08712`である。AUTOMOC `HEADERS=[]`、Qt Core・Test、`libintl`とOS frameworkだけの動的接続、categorized list viewと複合描画モード選択型の製品未解決記号なしを確認した。試験sourceの`clang-check -Werror`、書式、JSON構文、差分に成功した。`libs/tools/ui/kis_categorized_list_view.cpp`のQt 6非推奨`QMouseEvent::globalPos()` 2件は変更前から残る独立診断であり、今回の試験追加では抑制・緩和・製品コード変更を行っていない。
+- 公開API検査は28,712件対応、29,801件中1,089件未対応となった。新`build/tdd-macos/public-api-missing-g574.json`は296,856 bytes、SHA-256 `55dc17b7f5397b80c9c51cca3dd34fd02ada5c802872e33b1ddf6887b5d03bd1`であり、生成成功後に旧`public-api-missing-g573.json` 299,733 bytesをゴミ箱へ移して作業領域から約293 KiBを回収した。主Ninja木6,055,748 KiB、共有compiler cache 983,376 KiB、最新報告だけを再利用対象として保持する。model変更、行更新、マウス・scroller入力、menu表示の実行時意味は後続の動的契約で扱う。次の永続作業は第574便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
 
 ### 第239便の先行監査担当票
 
