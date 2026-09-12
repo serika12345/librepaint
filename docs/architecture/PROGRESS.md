@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-12 19:12 JST
+- 更新日時: 2026-09-12 19:19 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5037,6 +5037,13 @@
 - resource section境界は型・既定構築・破棄3、resource mapと診断文字列2、読込・書出・妥当性・識別子表示4の1枠へ固定する。型特性、公開member型、厳密な関数pointerだけを使い、section、resource block、deviceを実体化しない。
 - 開始headerはexport定義、`QMap`、`QString`だけを直接includeし、deviceとresource blockを前方宣言する。開始`libs/psd/psd_resource_section.cpp`の厳格構文診断は0件である。既存`libs/psdutils/tests/PsdFormatValuesContractTest.cpp`は3,025行、`PSDLayerRecordSchemaContractTest.cpp`は288行・20枠で追加上限に達したため、責務を混在させず新規`libs/psdutils/tests/PSDImageResourceSectionSchemaContractTest.cpp`の1枠を所有させる。
 - 新targetは`libs/psd`のsource・generated探索路、`kritapsd_EXPORTS`、Qt Core・Testだけを使い、近傍PSD schema契約と同じ4工程・8入力を予測する。CMakeと生成物を増やしても既存上限超過targetを肥大化させず、今後のresource section変更を限定再構築できるため専用targetを選ぶ。停止線は5工程・11入力で、候補headerをAUTOMOC入力にしない。macOSの新対象と近傍、追加1枠の20回反復、実装・試験sourceの厳格構文、試験書式、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、resource I/O・所有破棄の実効果、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
+
+### 第545便の公開API契約結果
+
+- PSD image resource sectionの所有状態とI/O入口を独立した軽量契約へ分離した。開始`libs/psd/psd_resource_section.h`から新規`libs/psdutils/tests/PSDImageResourceSectionSchemaContractTest.cpp`へ残存全9 API・1枠を移し、型・既定構築・破棄3件、resource mapと診断文字列2件、読込・書出・妥当性・識別子表示4件を型特性、公開member型、厳密な関数pointerで固定した。計画commitは`223961f453`、契約commitは`984ffd4f9d`で、新規試験sourceは38行・1枠である。
+- 従来の候補先は`libs/psdutils/tests/PsdFormatValuesContractTest.cpp`が3,025行、`PSDLayerRecordSchemaContractTest.cpp`が288行・20枠で、追加すると責務と変更単位が過密になる。`libs/psdutils/tests/CMakeLists.txt`の新しい専用targetへ配置し、`libs/psd`のsource・generated探索路、`kritapsd_EXPORTS`、Qt Core・Testだけを所有させた。公開header、製品source、製品依存は変更していない。
+- 新targetは予測どおり4工程・8入力、command SHA-256 `67f64437719c9395ceed1533a767688865203d0d788e14ccf41f6b4634ac391f`、input SHA-256 `36e52f15a763351482be74f644ee85691cdf608a302be09acb301402e49a4df8`となった。候補headerのAUTOMOC入力化と未解決製品記号は0で、Qt Core・Testだけへ動的接続する。macOSで新対象20回、追加1枠20回、近傍PSD schema、実装・試験sourceの厳格構文、試験書式、連続二回の無作業再構築に成功した。resource I/O・所有破棄の実効果、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 公開API検査の初回診断は期待値1,342に対して実測1,333で、新規9件と一致した。台帳を28,468件対応、1,333件未対応へ進め、`public-api-missing-g546.json`の生成成功後に旧`public-api-missing-g545.json` 364,693 bytesを削除した。主Ninja木6,042,376 KiB、共有compiler cache 983,452 KiB、最新報告362,712 bytes、SHA-256 `17d208c88860ab0e4c78835b436282da6b48415865ab35e7fdc55c611c1bed14`だけを再利用対象として保持する。compiler cacheは144,832 cache可能呼出し中120,594件、83.26%がhitしている。次の永続作業は第546便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
 
 ### 第239便の先行監査担当票
 

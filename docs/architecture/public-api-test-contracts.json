@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 1342
+    "expectedMissingApis": 1333
   },
   "contracts": [
     {
@@ -79630,6 +79630,24 @@
         "method:KisAslReader::readTypeToolObjectSettings(QIODevice & device,QTransform & transform,psd_byte_order byteOrder=psd_byte_order::psdBigEndian)",
         "method:KisAslReader::readVectorOriginationData(QIODevice & device,psd_byte_order byteOrder=psd_byte_order::psdBigEndian)",
         "method:KisAslReader::readVectorStroke(QIODevice & device,psd_byte_order byteOrder=psd_byte_order::psdBigEndian)"
+      ]
+    },
+    {
+      "target": "PSDImageResourceSectionSchemaContractTest",
+      "source": "libs/psdutils/tests/PSDImageResourceSectionSchemaContractTest.cpp",
+      "test": "PSDImageResourceSectionSchemaContractTest::resourceSectionTypeStateAndIoSignaturesRemainStable",
+      "behavior": "PSD image resource sectionはresource block群と診断を所有し、section全体の読込・書出・妥当性照会とresource識別子の表示変換を行う公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:PSDImageResourceSection",
+        "member:PSDImageResourceSection::error",
+        "member:PSDImageResourceSection::resources",
+        "method:PSDImageResourceSection::PSDImageResourceSection()",
+        "method:PSDImageResourceSection::idToString(PSDResourceID id)",
+        "method:PSDImageResourceSection::read(QIODevice & io)",
+        "method:PSDImageResourceSection::valid()",
+        "method:PSDImageResourceSection::write(QIODevice & io)",
+        "method:PSDImageResourceSection::~PSDImageResourceSection()"
       ]
     }
   ]
