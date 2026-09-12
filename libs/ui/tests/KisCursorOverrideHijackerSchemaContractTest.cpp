@@ -10,6 +10,7 @@
 #include "application/ui/orchestration/KisPlatformPluginInterfaceFactory.h"
 #include "application/ui/orchestration/KisQtWidgetsTweaker.h"
 #include "application/ui/workspace/KisAndroidSplash.h"
+#include "application/ui/workspace/KisTemplateCreateDia.h"
 #include "canvas/kis_abstract_perspective_grid.h"
 #include "canvas/kis_canvas_controls_manager.h"
 #include "dialogs/KisSessionManagerDialog.h"
@@ -55,6 +56,7 @@ private Q_SLOTS:
     void cursorOverrideHijackerTypeConstructionAndLifetimeSchemaRemainStable();
     void aboutApplicationDialogTypeAndConstructionSchemaRemainStable();
     void sessionManagerDialogTypeAndConstructionSchemaRemainStable();
+    void templateCreationDialogTypeAndEntrySchemaRemainStable();
     void androidSplashTypeAndStaticApiSchemaRemainStable();
     void qtWidgetsTweakerTypeAndFilteringSchemaRemainStable();
     void platformPluginFactoryTypeAndSingletonSchemaRemainStable();
@@ -97,6 +99,16 @@ void KisCursorOverrideHijackerSchemaContractTest::sessionManagerDialogTypeAndCon
     static_assert(std::is_class_v<Dialog>);
     static_assert(std::is_base_of_v<QDialog, Dialog>);
     static_assert(std::is_constructible_v<Dialog, QWidget *>);
+}
+
+void KisCursorOverrideHijackerSchemaContractTest::templateCreationDialogTypeAndEntrySchemaRemainStable()
+{
+    using Dialog = KisTemplateCreateDia;
+    using CreateTemplateSignature = void (*)(const QString &, const char *, KisDocument *, QWidget *);
+
+    static_assert(std::is_class_v<Dialog>);
+    static_assert(std::is_base_of_v<KoDialog, Dialog>);
+    static_assert(std::is_same_v<decltype(&Dialog::createTemplate), CreateTemplateSignature>);
 }
 
 void KisCursorOverrideHijackerSchemaContractTest::androidSplashTypeAndStaticApiSchemaRemainStable()

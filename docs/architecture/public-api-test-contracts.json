@@ -79720,6 +79720,17 @@
     {
       "target": "KisCursorOverrideHijackerSchemaContractTest",
       "source": "libs/ui/tests/KisCursorOverrideHijackerSchemaContractTest.cpp",
+      "test": "KisCursorOverrideHijackerSchemaContractTest::templateCreationDialogTypeAndEntrySchemaRemainStable",
+      "behavior": "Template creation dialogはKoDialog派生の公開型としてtemplate資源パス、suffix、文書、親QWidgetを受ける静的生成入口を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisTemplateCreateDia",
+        "method:KisTemplateCreateDia::createTemplate(const QString & templatesResourcePath,const char * suffix,KisDocument * document,QWidget * parent=0)"
+      ]
+    },
+    {
+      "target": "KisCursorOverrideHijackerSchemaContractTest",
+      "source": "libs/ui/tests/KisCursorOverrideHijackerSchemaContractTest.cpp",
       "test": "KisCursorOverrideHijackerSchemaContractTest::androidSplashTypeAndStaticApiSchemaRemainStable",
       "behavior": "Android splashはQObject派生の公開型としてsingleton取得、表示、読込状態、読込文言、閉鎖通知の正確な公開形式を維持する。",
       "classification": "maintained",
