@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include <canvas/kis_qpainter_projection_factory.h>
 #include <kis_prescaled_projection.h>
 #include <kis_projection_backend.h>
 
@@ -29,6 +30,7 @@ private Q_SLOTS:
     void prescaledProjectionTypeAndLifetimeSchemaRemainStable();
     void prescaledProjectionImageAndDisplayStateSchemaRemainStable();
     void prescaledProjectionCacheAndScalingSchemaRemainStable();
+    void qPainterProjectionFactoryResultSchemaRemainsStable();
 };
 
 void KisProjectionLifecycleSchemaContractTest::projectionBackendTypeAndConfigurationSchemaRemainStable()
@@ -104,6 +106,15 @@ void KisProjectionLifecycleSchemaContractTest::prescaledProjectionCacheAndScalin
     ASSERT_PRESCALED_PROJECTION_SIGNATURE(recalculateCache, void (KisPrescaledProjection::*)(KisUpdateInfoSP));
     ASSERT_PRESCALED_PROJECTION_SIGNATURE(preScale, void (KisPrescaledProjection::*)());
     ASSERT_PRESCALED_PROJECTION_SIGNATURE(prescaledQImage, QImage (KisPrescaledProjection::*)() const);
+
+    QVERIFY(true);
+}
+
+void KisProjectionLifecycleSchemaContractTest::qPainterProjectionFactoryResultSchemaRemainsStable()
+{
+    static_assert(
+        std::is_same_v<decltype(&createQPainterProjectionBackend), std::unique_ptr<KisProjectionBackend> (*)()>);
+    static_assert(std::is_same_v<decltype(&qPainterProjectionUpdatePatchSize), QSize (*)()>);
 
     QVERIFY(true);
 }

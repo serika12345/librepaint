@@ -65786,6 +65786,17 @@
       ]
     },
     {
+      "target": "KisProjectionLifecycleSchemaContractTest",
+      "source": "libs/canvas/tests/KisProjectionLifecycleSchemaContractTest.cpp",
+      "test": "KisProjectionLifecycleSchemaContractTest::qPainterProjectionFactoryResultSchemaRemainsStable",
+      "behavior": "qPainter投影生成器はcanvas投影backendの一意所有権と更新patch寸法の値返却を表す正確な公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:createQPainterProjectionBackend()",
+        "function:qPainterProjectionUpdatePatchSize()"
+      ]
+    },
+    {
       "target": "KisWorkspaceResourceSchemaContractTest",
       "source": "libs/canvas/tests/KisWorkspaceResourceSchemaContractTest.cpp",
       "test": "KisWorkspaceResourceSchemaContractTest::workspaceResourceTypeAndLifetimeSchemaRemainsStable",
