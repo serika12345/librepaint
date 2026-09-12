@@ -2,14 +2,14 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-13 07:52 JST
+- 更新日時: 2026-09-13 08:07 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
-- 完了: 第605便でqPainter投影生成器の2 APIを公開契約へ追加し、対応済みを28,907件へ進めた。
-- 次の作業: 第606便としてファイルicon生成器の公開形式を契約試験へ追加し、対象限定検証後に公開API基準を縮小する。
+- 完了: 第606便で具体ファイルicon生成器の2 APIを公開契約へ追加し、対応済みを28,909件へ進めた。
+- 次の作業: 第607便として未対応報告から、既存の限定試験に追加できる公開headerを選び、実装前に構築閉包を監査する。
 - 検証: macOSの対象・近傍・反復・無作業再構築、公開API検査、`verify-quick`に成功した。製品target、全体build・`verify`、Linux、Nix再評価は本便の対象外である。
 
 ### 第202便の先行監査担当票
@@ -5776,6 +5776,14 @@
 - 正式入力`build/tdd-macos/public-api-missing-g605.json`から、開始`libs/ui/utils/KisFileIconCreator.h`の具体icon生成型と`createFileIcon()`の2 APIを、既存`libs/widgetutils/tests/KoFileDialogSchemaContractTest.cpp`の新規1枠へ対応付ける。同試験は抽象icon生成器とpreview file dialogを既に固定しているため、具体型が同じ抽象生成器を実装し、ファイルパス・icon出力・表示倍率・寸法を受けて成功可否を返す公開形式を固定する。ファイル、MIME、画像、文書、storeを実体化せず、本文を実行しない。
 - 開始`libs/widgetutils/tests/CMakeLists.txt`の同test targetへ`libs/ui`と対応するbinary directoryの探索路だけを追加し、具体型headerと`kritaui_export.h`を解決する。現行閉包は4工程・8入力、command SHA-256 `cd91cbf0827c8e7ca073e6ff7e84c223604aaa46360857895954b5e5e00be6eb`、input SHA-256 `c34e442c7adc8952a145d75c4c2469132fed495d956f1c93f33d6ad972f52bee`であり、試験sourceは166行・10枠である。再構成後も4工程・8入力を要求し、停止線は5工程・11入力、製品targetの再構築、製品shared・OBJECT・`kritatestsdk`接続、候補headerのAUTOMOC入力化、動的linkまたは製品未解決記号の増加、ファイル・画像・文書・storeまたは本文の実体化、許可path外変更とする。
 - macOSでは対象CTest、追加枠20回、近傍`KLanguageButtonSchemaContractTest`、AUTOMOC後の二回目計画、連続二回の無作業再構築、動的接続・未解決記号・厳格構文・書式、公開API検査、`verify-quick`だけを実行する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。初回公開API検査は移行基準894件に対する2 API減少の診断を期待する。
+
+### 第606便の公開API契約結果
+
+- 開始`libs/ui/utils/KisFileIconCreator.h`の2 APIを、既存`libs/widgetutils/tests/KoFileDialogSchemaContractTest.cpp`の`concreteFileIconCreatorSchemaRemainsStable`へ固定した。開始`libs/widgetutils/tests/CMakeLists.txt`には同test targetの`libs/ui` source/binary探索路だけを追加した。ファイル、MIME、画像、文書、storeと生成器本文を実体化・実行せず、抽象生成器の具体実装、ファイルパス・icon出力・表示倍率・寸法を受ける成功可否の公開形式を観測する。公開headerと製品sourceは変更していない。
+- CMake再構成は探索路を登録するために構成全体を読み直したが、Ninjaがコンパイル・リンクしたのは`KoFileDialogSchemaContractTest`の自動生成、試験source、実行ファイルだけである。macOSの実測閉包は4工程・8入力、command SHA-256 `2ee622dd92436419d1c55aaed7813be8e3c2738b16df709de3e5c8331ff21790`、input SHA-256 `c34e442c7adc8952a145d75c4c2469132fed495d956f1c93f33d6ad972f52bee`である。試験sourceは179行・11枠、AUTOMOC `HEADERS=[]`、Qt Core・TestとOS frameworkだけの動的接続、製品libraryの未解決記号なしを確認した。
+- 対象全体20回、追加1枠20回（60 pass）、近傍`KLanguageButtonSchemaContractTest`、AUTOMOC後の連続二回の無作業Ninja構築に成功した。試験sourceの`clang-check -Werror`、書式、JSON構文、差分に成功した。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 初回照合は移行基準894件に対して実測892件となる期待診断を確認後、基準を更新した。公開API検査は28,909件対応、29,801件中892件未対応となった。新`build/tdd-macos/public-api-missing-g606.json`は245,224 bytes、SHA-256 `886d02449d73063918f154413d7fc9c796921fe3a7472143534da0c204e4c26e`である。生成成功後に旧`public-api-missing-g605.json` 245,732 bytesをゴミ箱へ移して作業領域から約240 KiBを回収した。
+- 対象構築の開始時にファイルシステム空き容量485 MiBでNixの導出物評価が停止した。作業ツリーでは主Ninja木、共有compiler cache、最新不足報告以外に回収対象がなかったため、到達不能なNix store 112パスだけを回収し45,560.83 MiBを解放した。現在は主Ninja木6,061,872 KiB、共有compiler cache 982,012 KiB、最新報告だけを再利用対象として保持し、ファイルシステム空き容量は約46 GiBである。具体的なファイル種別ごとの画像読込み、archive内thumbnail選択、文書を要するTIFF/JXL経路は、製品実装を接続する後続の効果契約で扱う。次の永続作業は第607便で独立軽量試験に追加可能な公開headerを選び、対象限定閉包を先に監査することである。
 
 ### 第239便の先行監査担当票
 
