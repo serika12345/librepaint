@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-13 00:17 JST
+- 更新日時: 2026-09-13 00:18 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5286,6 +5286,12 @@
 - 最初に選定した`libs/application/ui/orchestration/KisPlatformPluginInterfaceFactory.h`は、正式不足報告に8 APIが現れる一方、macOS test構成では`KRITA_USE_SURFACE_COLOR_MANAGEMENT_API`条件により`createSurfaceColorManager()`が宣言されないため停止した。構成を変えて条件付きAPIを見かけ上観測することはせず、未コミットの試験targetを撤回した。第565便はidle taskのstroke strategyを表す`libs/ui/canvas/KisIdleTaskStrokeStrategy.h`の残存全9 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g565.json`は公開header 1,549、公開API 29,801、対応済み28,624、未対応1,177、319,166 bytes、SHA-256 `ab6384fb4acfaa54f88367475eea8293e0fdd5e7c2313260acd1d34623af3fdc`である。対象9識別子の整列集合SHA-256は`c8e7b8e0715628d78ef6af1f4f357a776b900ceef797041ad71d479de57d7270`である。
 - idle task strategyの境界はfactory別名・型・構築・破棄4、LOD clone・idle task cookie2、最大実行時間・監視間隔・完了通知3へ固定する。新規`libs/ui/tests/KisIdleTaskStrokeStrategySchemaContractTest.cpp`の3枠で型特性、厳密なmember/function pointer、factoryの戻り型だけを観測し、strategy、image、idle task、timerを実体化せず本文を実行しない。idle taskの実行、cancel、LOD cloneの実行時意味と通知配送は後続の動的契約で扱う。
 - 新規targetの`libs/ui/tests/CMakeLists.txt`節は、header直接配置ui、`KisRunnableBasedStrokeStrategy.h`・`kis_types.h`のimage、`kundo2magicstring.h`のpainting/undo、export・共有基盤global source/generated探索路、KF I18n・header-only Boost、`kritaui_EXPORTS`・`kritaimage_EXPORTS`・`kritapaintingundo_EXPORTS`、Qt Core・Testだけを所有する。image、undo、idle task managerの製品targetは接続しない。開始`libs/ui/canvas/KisIdleTaskStrokeStrategy.cpp`の厳格構文診断は0件である。新targetは4工程・8入力を予測し、停止線を5工程・11入力とする。AUTOMOC候補header入力、製品未解決記号、追加探索路・定義・動的接続、製品再構築、許可path外変更が必要なら停止する。macOSの対象全体と追加3枠の20回反復、軽量近傍、実装・試験sourceの厳格構文、新規source書式、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。
+
+### 第565便の公開API契約結果
+
+- `libs/application/ui/orchestration/KisPlatformPluginInterfaceFactory.h`は、初期targetでmacOS test構成が条件付き`createSurfaceColorManager()`を持たないことを確認して停止し、source・CMake変更を未コミットのまま撤回した。開始`libs/ui/canvas/KisIdleTaskStrokeStrategy.h`から新規`libs/ui/tests/KisIdleTaskStrokeStrategySchemaContractTest.cpp`へ、factory別名・型・ID構築・仮想破棄4 API、LOD clone・idle task cookie2 API、最大実行時間・監視間隔・完了通知3 APIを3枠へ固定した。`libs/ui/tests/CMakeLists.txt`にはこのtarget固有のui・global・image・painting/undo source/generated探索路、KF I18n・header-only Boost、`kritaui_EXPORTS`・`kritaimage_EXPORTS`・`kritapaintingundo_EXPORTS`、Qt Core・Testだけを追加した。公開headerと製品sourceは変更していない。
+- idle task targetの宣言段階では追加3枠の定義不足だけでlinkに失敗し、実装後はmacOSの正式CTest `libs-ui-KisIdleTaskStrokeStrategySchemaContractTest`、対象全体20回、追加3枠の各20回、近傍`KisCanvasResourceProviderSchemaContractTest`、連続二回の無作業再構築に成功した。最終閉包は4工程・8入力、command SHA-256 `e983ed1613e1fde96dd5aa0f034fe84ecee05dc0dd02068253812d18a8878a6c`、input SHA-256 `ccf1da80f8b0ced5ee167a1cd79c34b9dd73752c1cf13e08b90a328b3e006d68`である。AUTOMOC `HEADERS=[]`、Qt Core・Test、`libintl`とOS frameworkだけの動的接続、idle task strategy・runnable stroke strategy・stroke strategyの製品未解決記号なしを確認した。実装・試験sourceの`clang-check -Werror`、新規source書式、JSON構文、差分に成功した。
+- 公開API検査は28,633件対応、29,801件中1,168件未対応となった。新`build/tdd-macos/public-api-missing-g566.json`は316,811 bytes、SHA-256 `92e22332c2282d39cd293a9f5bfcc14fd14180dc8eabaa3fd9f2067a8ad07a56`であり、生成成功後に旧`public-api-missing-g565.json` 319,166 bytesをゴミ箱へ移して作業領域から約312 KiBを回収した。主Ninja木6,046,076 KiB、共有compiler cache 983,364 KiB、最新報告だけを再利用対象として保持する。compiler cacheは144,924 cache可能呼出し中120,609件、83.22%がhitしている。idle task実行、cancel、LOD cloneの実行時意味と通知配送は後続の動的契約で扱う。次の永続作業は第566便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
 
 ### 第239便の先行監査担当票
 
