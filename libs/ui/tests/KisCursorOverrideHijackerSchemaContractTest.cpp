@@ -3,10 +3,12 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "application/ui/orchestration/KisActionPlugin.h"
 #include "application/ui/orchestration/KisPlatformPluginInterfaceFactory.h"
 #include "application/ui/orchestration/KisQtWidgetsTweaker.h"
 #include "application/ui/workspace/KisAndroidSplash.h"
 #include "events/kis_cursor_override_hijacker.h"
+#include "theme/KisUiFont.h"
 
 #include <QTest>
 
@@ -22,6 +24,8 @@ private Q_SLOTS:
     void qtWidgetsTweakerTypeAndFilteringSchemaRemainStable();
     void platformPluginFactoryTypeAndSingletonSchemaRemainStable();
     void platformPluginFactoryReportingAndMapperSchemaRemainStable();
+    void actionPluginTypeConstructionAndLifetimeSchemaRemainStable();
+    void uiFontFunctionSchemaRemainsStable();
 };
 
 void KisCursorOverrideHijackerSchemaContractTest::cursorOverrideHijackerTypeConstructionAndLifetimeSchemaRemainStable()
@@ -80,6 +84,22 @@ void KisCursorOverrideHijackerSchemaContractTest::platformPluginFactoryReporting
     static_assert(std::is_same_v<decltype(&Factory::osPreferredColorSpaceReport), QString (Factory::*)(QWidget *)>);
     static_assert(std::is_same_v<decltype(&Factory::createExtendedModifiersMapper),
                                  KisExtendedModifiersMapperPluginInterface *(Factory::*)()>);
+}
+
+void KisCursorOverrideHijackerSchemaContractTest::actionPluginTypeConstructionAndLifetimeSchemaRemainStable()
+{
+    using Plugin = KisActionPlugin;
+
+    static_assert(std::is_class_v<Plugin>);
+    static_assert(std::is_base_of_v<QObject, Plugin>);
+    static_assert(std::is_constructible_v<Plugin, QObject *>);
+    static_assert(std::has_virtual_destructor_v<Plugin>);
+}
+
+void KisCursorOverrideHijackerSchemaContractTest::uiFontFunctionSchemaRemainsStable()
+{
+    static_assert(std::is_same_v<decltype(&KisUiFont::normalFont), QFont (*)()>);
+    static_assert(std::is_same_v<decltype(&KisUiFont::dockFont), QFont (*)()>);
 }
 
 QTEST_APPLESS_MAIN(KisCursorOverrideHijackerSchemaContractTest)

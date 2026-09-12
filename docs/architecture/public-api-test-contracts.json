@@ -79729,6 +79729,29 @@
       ]
     },
     {
+      "target": "KisCursorOverrideHijackerSchemaContractTest",
+      "source": "libs/ui/tests/KisCursorOverrideHijackerSchemaContractTest.cpp",
+      "test": "KisCursorOverrideHijackerSchemaContractTest::actionPluginTypeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "アクションpluginはQObject派生の公開型として親QObjectで構築でき、仮想破棄を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisActionPlugin",
+        "method:KisActionPlugin::KisActionPlugin(QObject * parent=0)",
+        "method:KisActionPlugin::~KisActionPlugin()"
+      ]
+    },
+    {
+      "target": "KisCursorOverrideHijackerSchemaContractTest",
+      "source": "libs/ui/tests/KisCursorOverrideHijackerSchemaContractTest.cpp",
+      "test": "KisCursorOverrideHijackerSchemaContractTest::uiFontFunctionSchemaRemainsStable",
+      "behavior": "UI font提供関数はnormalとdock用fontを返す正確な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisUiFont::dockFont()",
+        "function:KisUiFont::normalFont()"
+      ]
+    },
+    {
       "target": "KisMultiBoolFilterWidgetSchemaContractTest",
       "source": "libs/ui/tests/KisMultiBoolFilterWidgetSchemaContractTest.cpp",
       "test": "KisMultiBoolFilterWidgetSchemaContractTest::nodeDisplayModeTypeConstructionAndAccessSignaturesRemainStable",
