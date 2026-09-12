@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-13 02:02 JST
+- 更新日時: 2026-09-13 02:06 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5400,6 +5400,12 @@
 - 開始`libs/ui/dialogs/KisDlgCustomTabletResolution.h`から新規`libs/ui/tests/KisDlgCustomTabletResolutionSchemaContractTest.cpp`へ、dialog型・親widget構築・寿命3 API、mode型と3列挙値4 API、accept・native screen矩形取得・設定読込・設定適用4 APIを3枠へ固定した。`libs/ui/tests/CMakeLists.txt`にはui source/generated探索路、`kritaui_EXPORTS`、Qt Core・TestとQt Widgets header探索路だけを追加した。公開headerと製品sourceは変更していない。
 - 初期targetは新規試験source未配置のためCMake生成で停止し、試験source追加後に解消した。初回の台帳検査で長い試験関数名が整形器により改行され、関数を検出できない診断が出たため、意味を保った短い試験名へ揃えて解消した。実装後はmacOSの正式CTest `libs-ui-KisDlgCustomTabletResolutionSchemaContractTest`、対象全体20回、追加3枠の各20回、近傍`KisDelayedSaveDialogSchemaContractTest`、連続二回の無作業再構築に成功した。最終閉包は4工程・8入力、command SHA-256 `172dcfe463fefec0782321c645c9ad0a579ed9850b67b4a243fe9a2f22f677ff`、input SHA-256 `62889cdb748689b8205929dfd522c479d76860a6bcecc619a328e342dbafa1e7`である。AUTOMOC `HEADERS=[]`、Qt Core・Test、`libintl`とOS frameworkだけの動的接続、tablet resolution dialogの製品未解決記号なしを確認した。試験sourceの`clang-check -Werror`、新規source書式、JSON構文、差分に成功した。製品sourceの厳格構文は未生成の製品`AUTOUIC` headerを必要とするため対象限定treeでは実行せず、製品targetの構築や生成物の複製で回避していない。
 - 公開API検査は28,723件対応、29,801件中1,078件未対応となった。新`build/tdd-macos/public-api-missing-g575.json`は294,030 bytes、SHA-256 `c059a1d049d2cdb739e7dee945cf8ce97dedbd973dfe9a0b6360bd698bec75ac`であり、生成成功後に旧`public-api-missing-g574.json` 296,856 bytesをゴミ箱へ移して作業領域から約290 KiBを回収した。主Ninja木6,057,084 KiB、共有compiler cache 980,976 KiB、最新報告だけを再利用対象として保持する。設定読込、画面取得、環境変数適用、accept時のUI遷移は後続の動的契約で扱う。次の永続作業は第575便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
+
+### 第575便の公開API契約計画
+
+- 第575便はcanvas surface color設定と報告を担う`libs/ui/canvas/KisCanvasSurfaceColorSpaceManager.h`の残存全12 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g575.json`は公開header 1,549、公開API 29,801、対応済み28,723、未対応1,078、294,030 bytes、SHA-256 `c059a1d049d2cdb739e7dee945cf8ce97dedbd973dfe9a0b6360bd698bec75ac`である。対象12識別子の整列集合SHA-256は`a48a4a347e5ed375be97696061a21b2ccca306931c95767fa8db882e18f09186`である。
+- surface color managerの境界はQObject型・interfaceと設定による構築・寿命3、設定変更・ready・表示設定照会4、color管理とOSの報告・surface description・error照会4、表示設定変更通知1へ固定する。既存`libs/ui/tests/KisDisplayConfigSchemaContractTest.cpp`へ4枠を追加し、managerを同じ表示設定値の公開利用元として直接includeして、型特性と厳密なmember pointerだけを観測する。manager、interface、profile、surface descriptionを実体化せず本文を実行しない。surface選択、色空間解決、interface状態遷移、報告内容は後続の動的契約で扱う。
+- 既存targetは表示設定・表示色変換の静的契約をすでに所有し、CMake変更なしでQt Core・Testだけを動的接続する4工程・8入力、AUTOMOC `HEADERS=[]`を実測した。現在のcommand SHA-256は`1486a6825ec2708ac11f7319e3f08e21aedcf1d596afa1e9a2b99e9e7885dd23`、input SHA-256は`0f5781b1ac2dec2ed9954f2948ac1d5b605eed4e419085ff8415d097846cb8ce`である。停止線は5工程・11入力とし、AUTOMOC候補header入力、製品未解決記号、追加探索路・定義・動的接続、製品再構築、許可path外変更が必要なら停止する。開始`libs/ui/canvas/KisCanvasSurfaceColorSpaceManager.cpp`の厳格構文診断はsurface color managementのsource/generated探索路を明示して0件である。macOSの対象全体と追加4枠の20回反復、軽量近傍、実装・試験sourceの厳格構文、新規includeの書式、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。
 
 ### 第239便の先行監査担当票
 
