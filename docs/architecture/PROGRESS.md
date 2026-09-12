@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-12 18:22 JST
+- 更新日時: 2026-09-12 18:26 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4974,6 +4974,13 @@
 - 開始headerの直接依存は公開基底型を定義する`kis_model_index_converter_base.h`だけであり、公開header、製品source、CMakeを変更していない。開始`libs/ui/nodes/kis_model_index_converter.cpp`と候補headerを強制includeする試験sourceの厳格構文は診断0件で、試験書式も成功した。
 - targetは専用base実装を含む5工程・11入力、command SHA-256 `946d7e4fda716916760c1986fe15da0cc9eb86072d4514630a81d38b339b93c0`、input SHA-256 `07cc233babf12a5e950878f1dca8a7224d7e3de05b5ec2a3c2e72ef80ed5b10a`を維持した。候補headerのAUTOMOC入力化と未解決製品記号は0で、Qt Core・Testと専用base実装だけへ接続する。macOSで対象全体20回と拡張4枠各20回、厳格構文、試験書式、連続二回の無作業再構築に成功し、再開時の対象単発も無作業再構築で成功した。具象node tree変換の実効果、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 公開API検査の初回診断は期待値1,385に対して実測1,378で、新規7件と一致した。台帳を28,423件対応、1,378件未対応へ進め、`public-api-missing-g541.json`の生成成功後に旧`public-api-missing-g540.json` 378,894 bytesを削除した。主Ninja木6,038,888 KiB、共有compiler cache 982,356 KiB、最新報告376,770 bytes、SHA-256 `15679d21a71fb7ce10bed2ca32648a6d9e70c48d4b016886677ea08c7523a576`だけを再利用対象として保持する。compiler cacheは144,819 cache可能呼出し中120,594件、83.27%がhitしている。次の永続作業は第541便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
+
+### 第541便の公開API契約計画
+
+- 第541便はASL XML文書からfile、fill layer、layer effect、type tool、vector情報をbinary sectionへ書き出す`libs/psdutils/asl/kis_asl_writer.h`の残存全8 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g541.json`は公開header 1,549、公開API 29,801、対応済み28,423、未対応1,378、376,770 bytes、SHA-256 `15679d21a71fb7ce10bed2ca32648a6d9e70c48d4b016886677ea08c7523a576`である。対象8識別子の整列集合SHA-256は`b0acb9e16be2170605c6eaf52d21d3727758969543db87eb2b0acd19439ef2c5`である。
+- ASL writer境界は型・既定byte order付き構築2、file・fill layer・layer effect・type tool・vector stroke・vector originationの書出6の全8件を既存ASL XML writer契約の1枠へ固定する。型特性、構築可能性、厳密な関数pointerだけを使い、writer、device、XML文書、変換、矩形を実体化しない。
+- 開始headerはexport定義と`psd_byte_order`を所有する`psd.h`だけを直接includeし、deviceとXML文書を前方宣言している。開始`libs/psdutils/asl/kis_asl_writer.cpp`と既存`libs/psdutils/tests/KisAslXmlWriterSchemaContractTest.cpp`の厳格構文診断は0件であるため、構造変更を行わない。
+- 最初に監査したwriter utils対象は既存debug生成物を含む5工程・13入力だった。既存ASL XML writer契約は90行・5枠で、1枠追加後も220行・10枠以内に収まり、Qt Core・Testだけへ接続する4工程・8入力のためこちらを選ぶ。CMakeを変更せずcommand SHA-256 `fdba2c8ce6c16eb4d73fe37da82f7c3483d516817b54a5a8dac535579de71157`、input SHA-256 `c0bad8b3cfd810dd10035e4d3316829be21fe48b5c601f17113b32a452f3b06e`を維持する。工程・入力増加、候補headerのAUTOMOC入力化、製品未解決記号が生じれば停止する。macOSの対象全体と追加1枠の20回反復、実装・試験sourceとheader強制includeの厳格構文、試験書式、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、binary書出の実効果、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
 
 ### 第239便の先行監査担当票
 
