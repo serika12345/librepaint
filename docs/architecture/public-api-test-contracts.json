@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 1243
+    "expectedMissingApis": 1235
   },
   "contracts": [
     {
@@ -79990,6 +79990,41 @@
       "classification": "maintained",
       "apis": [
         "method:KisMetaData::SchemaRegistry::instance()"
+      ]
+    },
+    {
+      "target": "KisMetaDataFilterRegistryModelSchemaContractTest",
+      "source": "libs/painting/metadata/tests/KisMetaDataFilterRegistryModelSchemaContractTest.cpp",
+      "test": "KisMetaDataFilterRegistryModelSchemaContractTest::typeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "metadata filter registry modelは公開classとして既定構築・破棄できる寿命境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisMetaData::FilterRegistryModel",
+        "method:KisMetaData::FilterRegistryModel::FilterRegistryModel()",
+        "method:KisMetaData::FilterRegistryModel::~FilterRegistryModel()"
+      ]
+    },
+    {
+      "target": "KisMetaDataFilterRegistryModelSchemaContractTest",
+      "source": "libs/painting/metadata/tests/KisMetaDataFilterRegistryModelSchemaContractTest.cpp",
+      "test": "KisMetaDataFilterRegistryModelSchemaContractTest::modelDataAndEditingSignaturesRemainStable",
+      "behavior": "metadata filter registry modelはmodel data、item flags、項目編集の公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMetaData::FilterRegistryModel::data(const QModelIndex & index,int role=Qt::DisplayRole) const",
+        "method:KisMetaData::FilterRegistryModel::flags(const QModelIndex & index) const",
+        "method:KisMetaData::FilterRegistryModel::setData(const QModelIndex & index,const QVariant & value,int role=Qt::EditRole)"
+      ]
+    },
+    {
+      "target": "KisMetaDataFilterRegistryModelSchemaContractTest",
+      "source": "libs/painting/metadata/tests/KisMetaDataFilterRegistryModelSchemaContractTest.cpp",
+      "test": "KisMetaDataFilterRegistryModelSchemaContractTest::enabledFilterSignaturesRemainStable",
+      "behavior": "metadata filter registry modelはenabled filter一覧の照会と設定の公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMetaData::FilterRegistryModel::enabledFilters() const",
+        "method:KisMetaData::FilterRegistryModel::setEnabledFilters(const QStringList & enabledFilters)"
       ]
     }
   ]
