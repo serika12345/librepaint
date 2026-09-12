@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-12 19:19 JST
+- 更新日時: 2026-09-12 19:22 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5044,6 +5044,13 @@
 - 従来の候補先は`libs/psdutils/tests/PsdFormatValuesContractTest.cpp`が3,025行、`PSDLayerRecordSchemaContractTest.cpp`が288行・20枠で、追加すると責務と変更単位が過密になる。`libs/psdutils/tests/CMakeLists.txt`の新しい専用targetへ配置し、`libs/psd`のsource・generated探索路、`kritapsd_EXPORTS`、Qt Core・Testだけを所有させた。公開header、製品source、製品依存は変更していない。
 - 新targetは予測どおり4工程・8入力、command SHA-256 `67f64437719c9395ceed1533a767688865203d0d788e14ccf41f6b4634ac391f`、input SHA-256 `36e52f15a763351482be74f644ee85691cdf608a302be09acb301402e49a4df8`となった。候補headerのAUTOMOC入力化と未解決製品記号は0で、Qt Core・Testだけへ動的接続する。macOSで新対象20回、追加1枠20回、近傍PSD schema、実装・試験sourceの厳格構文、試験書式、連続二回の無作業再構築に成功した。resource I/O・所有破棄の実効果、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 - 公開API検査の初回診断は期待値1,342に対して実測1,333で、新規9件と一致した。台帳を28,468件対応、1,333件未対応へ進め、`public-api-missing-g546.json`の生成成功後に旧`public-api-missing-g545.json` 364,693 bytesを削除した。主Ninja木6,042,376 KiB、共有compiler cache 983,452 KiB、最新報告362,712 bytes、SHA-256 `17d208c88860ab0e4c78835b436282da6b48415865ab35e7fdc55c611c1bed14`だけを再利用対象として保持する。compiler cacheは144,832 cache可能呼出し中120,594件、83.26%がhitしている。次の永続作業は第546便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
+
+### 第546便の公開API契約計画
+
+- 第546便はTIFFのPhotoshop tag内でPSD resource block群を所有し、record全体を読み書きする`plugins/impex/tiff/kis_tiff_psd_resource_record.h`の残存全9 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g546.json`は公開header 1,549、公開API 29,801、対応済み28,468、未対応1,333、362,712 bytes、SHA-256 `17d208c88860ab0e4c78835b436282da6b48415865ab35e7fdc55c611c1bed14`である。対象9識別子の整列集合SHA-256は`85e7d4931eead7872ec552b51c8c924c16a45562454a6c1f85caa47c199a0bec`である。
+- TIFF PSD resource record境界は型・既定構築・破棄3、resource mapと診断文字列2、読込・書出・妥当性・識別子表示4の1枠へ固定する。型特性、公開member型、厳密な関数pointerだけを使い、record、resource block、deviceを実体化しない。既存`plugins/impex/tiff/tests/PsdResourceIdContractTest.cpp`は同じrecordのPSD互換識別子を固定する123行・1枠で、1枠追加後も220行・10枠以内に収まる。
+- 開始headerはexport定義、`QMap`、`QString`だけを直接includeし、deviceとresource blockを前方宣言する。開始`plugins/impex/tiff/kis_tiff_psd_resource_record.cpp`と既存試験sourceの厳格構文診断は0件である。既存targetは候補headerも試験本体もTIFF APIを参照しないが`TIFF::TIFF`を直接動的接続し、4工程・9入力、command SHA-256 `25cef1430a08cf8b6a3acb4491a712cd674ed8cb0e83d1809318312edd5242e3`、input SHA-256 `636d49507d17c379e3356d0c8a787673e9eea125e78abc7c2c64582fdff17bda`となっている。
+- 先に`plugins/impex/tiff/tests/CMakeLists.txt`の同target固有節から不要な`TIFF::TIFF`接続を削除し、Qt Core・Testだけへ縮める。開始と到達先は同じtarget固有節で、公開header、製品source、製品依存は変更しない。最適化後の停止線は4工程・8入力である。macOSの対象全体と追加1枠の20回反復、実装・試験sourceの厳格構文、試験書式、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、resource I/O・所有破棄の実効果、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
 
 ### 第239便の先行監査担当票
 
