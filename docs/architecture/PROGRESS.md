@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-12 18:39 JST
+- 更新日時: 2026-09-12 18:49 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4995,6 +4995,13 @@
 - reader補助境界は例外型と診断付き構築2、固定長・共通長・可変長・Pascal・Unicode文字列読込5、compile-timeとruntime byte orderの二候補signature読込2の3枠へ固定する。`QBuffer`上の固定byte列を使い、文字列値、消費位置、短い入力の例外、両byte orderと二候補の受理を決定的に観測する。
 - 開始headerはheader-only実装で、文字列失敗とsignature不一致の診断に`kis_debug.h`を使う。既存`libs/psdutils/tests/KisAslWriterUtilsContractTest.cpp`は同じASL binary補助責務を持ち、112行・5枠で、3枠追加後も220行・10枠以内に収まる。対象単発は変更なしで成功し、試験sourceの厳格構文診断は0件であるため、新規targetを追加しない。
 - 既存targetは5工程・13入力、command SHA-256 `d3c1e0379744f94053f9476da3cc59a2d5761cd514805d6f9b44542726165b53`、input SHA-256 `8ad619472d2582bf5ba2591e62793ca28e1e28515776d0f945b74c3fea604330`である。未解決記号にはQt Core・Testと`kis_debug.cpp`だけが必要だが、CMakeはQt Gui、KF I18n、Imathを直接動的接続している。先に`libs/psdutils/tests/CMakeLists.txt`内の同targetについて、この3依存をcompile interface探索路へ移し、直接動的接続をQt Core・Testと既存debug objectだけへ縮める。開始と到達先は同じtarget固有節で、製品依存、公開header、製品sourceは変更しない。最適化後は5工程・10入力以下を停止線とし、その後に既存試験sourceへ3枠を追加する。macOSの対象全体と追加3枠の20回反復、試験sourceの厳格構文・書式、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
+
+### 第542便の公開API契約結果
+
+- ASL binary reader補助の文字列形式、失敗診断、signature判定を動的契約として固定した。開始`libs/psdutils/asl/kis_asl_reader_utils.h`から既存`libs/psdutils/tests/KisAslWriterUtilsContractTest.cpp`へ残存全9 API・3枠を追加し、例外型と診断付き構築2件、固定長・共通長・可変長・Pascal・Unicode文字列読込5件、compile-timeとruntime byte orderの二候補signature読込2件を`QBuffer`上で観測した。計画commitは`f9966c554d`、契約commitは`0fbd9bb466`で、既存試験sourceは186行・8枠となった。
+- 以前の`libs/psdutils/tests/CMakeLists.txt`内`KisAslWriterUtilsContractTest`固有節は、未解決記号が使わないQt Gui、KF I18n、Imathまで動的接続していた。同じtarget固有節のcompile interface探索路へ3依存のheader探索だけを移し、動的接続をQt Core・Testと既存`kis_debug.cpp` objectへ縮めた。開始と到達先は同じCMake target固有節で、構造commitは`59b39b2861`、公開header、製品source、製品依存は変更していない。
+- targetは5工程を維持し、入力を13から11、command SHA-256を`d3c1e0379744f94053f9476da3cc59a2d5761cd514805d6f9b44542726165b53`から`00d325bc40c04493df59459f800af980e95a67a288a7a5ae2586862c3938dd3e`、input SHA-256を`8ad619472d2582bf5ba2591e62793ca28e1e28515776d0f945b74c3fea604330`から`17675e33ef84a117f6b1690c4feee310dbf88afd9d8a212de8233f080dcc0c3e`へ縮めた。予測10入力との差はQt Guiが動的接続には存在した一方で旧Ninja入力へ数えられていなかったためで、残る11入力は試験source、`kis_debug.cpp`、AUTOMOCとその生成物・出力である。候補headerのAUTOMOC入力化と未解決製品記号は0で、macOSの対象全体20回と追加3枠各20回、厳格構文、試験書式、連続二回の無作業再構築に成功した。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 公開API検査の初回診断は期待値1,370に対して実測1,361で、新規9件と一致した。台帳を28,440件対応、1,361件未対応へ進め、`public-api-missing-g543.json`の生成成功後に旧`public-api-missing-g542.json` 374,366 bytesを削除した。主Ninja木6,041,152 KiB、共有compiler cache 983,268 KiB、最新報告371,720 bytes、SHA-256 `de4c071460209f2a378f4cc04a912ebda693dd78bf910c0c1f9a6a3f097c7cae`だけを再利用対象として保持する。compiler cacheは144,826 cache可能呼出し中120,594件、83.27%がhitしている。次の永続作業は第543便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
 
 ### 第239便の先行監査担当票
 

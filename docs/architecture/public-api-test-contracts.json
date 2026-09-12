@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 1370
+    "expectedMissingApis": 1361
   },
   "contracts": [
     {
@@ -79557,6 +79557,42 @@
         "method:KisAslWriter::writeTypeToolObjectSettings(QIODevice & device,const QDomDocument & doc,const QDomDocument & warpDoc,const QTransform tf,const QRectF bounds)",
         "method:KisAslWriter::writeVectorOriginationDataEx(QIODevice & device,const QDomDocument & doc)",
         "method:KisAslWriter::writeVectorStrokeDataEx(QIODevice & device,const QDomDocument & doc)"
+      ]
+    },
+    {
+      "target": "KisAslWriterUtilsContractTest",
+      "source": "libs/psdutils/tests/KisAslWriterUtilsContractTest.cpp",
+      "test": "KisAslWriterUtilsContractTest::readerParseExceptionPreservesDiagnostic",
+      "behavior": "ASL readerのparse例外は標準実行時例外として扱え、構築時の診断文を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAslReaderUtils::ASLParseException::ASLParseException(const QString & msg)",
+        "struct:KisAslReaderUtils::ASLParseException"
+      ]
+    },
+    {
+      "target": "KisAslWriterUtilsContractTest",
+      "source": "libs/psdutils/tests/KisAslWriterUtilsContractTest.cpp",
+      "test": "KisAslWriterUtilsContractTest::readerStringLayoutsAndByteOrdersRemainStable",
+      "behavior": "ASL readerは固定長、指定長、可変長、Pascal、Unicodeの各binary表現を指定byte orderで読み、短い入力をparse例外として報告する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisAslReaderUtils::readFixedString(QIODevice & device)",
+        "function:KisAslReaderUtils::readPascalString(QIODevice & device)",
+        "function:KisAslReaderUtils::readStringCommon(QIODevice & device,int length)",
+        "function:KisAslReaderUtils::readUnicodeString(QIODevice & device)",
+        "function:KisAslReaderUtils::readVarString(QIODevice & device)"
+      ]
+    },
+    {
+      "target": "KisAslWriterUtilsContractTest",
+      "source": "libs/psdutils/tests/KisAslWriterUtilsContractTest.cpp",
+      "test": "KisAslWriterUtilsContractTest::readerTwoCandidateSignaturesPreservePosition",
+      "behavior": "ASL signature readerはcompile-timeまたはruntimeで指定したbyte orderに従って二候補を受理して4 bytesを消費し、不一致では入力位置を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:TRY_READ_SIGNATURE_2OPS_EX(QIODevice & device,const std::array<T,S> & expected1,const std::array<T,S> & expected2)",
+        "function:TRY_READ_SIGNATURE_2OPS_EX(psd_byte_order byteOrder,QIODevice & device,const std::array<T,S> & expected1,const std::array<T,S> & expected2)"
       ]
     }
   ]
