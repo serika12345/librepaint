@@ -79539,6 +79539,17 @@
       ]
     },
     {
+      "target": "KisCollapsibleButtonGroupSchemaContractTest",
+      "source": "libs/ui/tests/KisCollapsibleButtonGroupSchemaContractTest.cpp",
+      "test": "KisCollapsibleButtonGroupSchemaContractTest::toolButtonTypeAndConstructionSchemaRemainStable",
+      "behavior": "tablet menu操作を補助するtool buttonはQToolButton派生の公開型として既定または親widgetで構築できる契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisToolButton",
+        "method:KisToolButton::KisToolButton(QWidget * parent=0)"
+      ]
+    },
+    {
       "target": "KisMultiBoolFilterWidgetSchemaContractTest",
       "source": "libs/ui/tests/KisMultiBoolFilterWidgetSchemaContractTest.cpp",
       "test": "KisMultiBoolFilterWidgetSchemaContractTest::nodeDisplayModeTypeConstructionAndAccessSignaturesRemainStable",

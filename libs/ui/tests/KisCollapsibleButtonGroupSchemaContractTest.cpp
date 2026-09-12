@@ -6,6 +6,7 @@
 #include "utils/KisRecentFileIconCache.h"
 #include "widgets/KisLodAvailabilityData.h"
 #include "widgets/kis_collapsible_button_group.h"
+#include "widgets/kis_tool_button.h"
 #include "widgets/kis_utility_title_bar.h"
 
 #include <QTest>
@@ -27,6 +28,7 @@ private Q_SLOTS:
     void utilityTitleBarWidgetAreaAndLockSignaturesRemainStable();
     void lodAvailabilityDefaultsMembersAndEqualityRemainStable();
     void lodAvailabilityPersistenceSignaturesRemainStable();
+    void toolButtonTypeAndConstructionSchemaRemainStable();
 };
 
 void KisCollapsibleButtonGroupSchemaContractTest::typeConstructionAndLifetimeSchemaRemainStable()
@@ -143,6 +145,14 @@ void KisCollapsibleButtonGroupSchemaContractTest::lodAvailabilityPersistenceSign
 
     static_assert(std::is_same_v<decltype(&Data::read), bool (Data::*)(const KisPropertiesConfiguration *)>);
     static_assert(std::is_same_v<decltype(&Data::write), void (Data::*)(KisPropertiesConfiguration *) const>);
+}
+
+void KisCollapsibleButtonGroupSchemaContractTest::toolButtonTypeAndConstructionSchemaRemainStable()
+{
+    static_assert(std::is_class_v<KisToolButton>);
+    static_assert(std::is_base_of_v<QToolButton, KisToolButton>);
+    static_assert(std::is_default_constructible_v<KisToolButton>);
+    static_assert(std::is_constructible_v<KisToolButton, QWidget *>);
 }
 
 QTEST_GUILESS_MAIN(KisCollapsibleButtonGroupSchemaContractTest)
