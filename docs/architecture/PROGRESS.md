@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-13 03:23 JST
+- 更新日時: 2026-09-13 03:30 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5478,6 +5478,12 @@
 - 正式入力`build/tdd-macos/public-api-missing-g582.json`の`libs/libkis/DockWidgetFactoryBase.h`残存5 APIと`libs/libkis/Extension.h`残存5 APIを、既存`libs/libkis/tests/KritaSchemaContractTest.cpp`の新規2枠へ対応付ける。factory枠は型、`KoDockFactoryBase`継承、識別子・既定位置の構築と照会、仮想破棄を、extension枠は型、`QObject`継承、親QObject構築、仮想`setup`・`createActions`、仮想破棄を固定する。両抽象基底は最小の具象probeの型特性だけで観測し、factory、extension、window、dock、QObjectを実体化せず本文を実行しない。
 - `KritaSchemaContractTest`はsource 96行・5枠で、追記後も300行・20枠未満に収まる。`Krita.h`は`Extension.h`を直接含み、既存targetのflake探索路は`DockWidgetFactoryBase.h`と`KoDockFactoryBase.h`を解決する。CMake変更なしの実測閉包は4工程・8入力、command SHA-256 `94fb402633831db0541d90d15721123de305f5e7dc5fcce428da63a6d2f4b998`、input SHA-256 `8549b43d1d4bceea0e97733e1d897061d42cd7d2cdec422bbdb6324d2d98710e`である。停止線は5工程・11入力、CMake・探索路・定義・動的linkの変更、製品shared・OBJECT・`kritatestsdk`接続、対象headerのAUTOMOC入力、製品未解決記号、対象値または本文の実体化、許可path外変更である。
 - macOSでは対象CTest、追加2枠の各20回、軽量近傍`GridConfigSchemaContractTest`、AUTOMOC後の二回目計画、連続二回の無作業再構築、動的接続・未解決記号・厳格構文・書式、公開API検査、`verify-quick`だけを実行する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。初回公開API検査は移行基準1,011件に対する10 API減少の診断を期待する。
+
+### 第581便の公開API契約結果
+
+- 開始`libs/libkis/DockWidgetFactoryBase.h`と`libs/libkis/Extension.h`から既存`libs/libkis/tests/KritaSchemaContractTest.cpp`へ、dock生成器5 APIを1枠、拡張基底5 APIを1枠として固定した。`KritaSchemaContractTest.cpp`は`DockWidgetFactoryBase.h`を直接含み、抽象基底ごとに最小具象probeの型特性だけを観測する。factory、extension、window、dock、QObjectを実体化せず本文を実行していない。CMake、公開header、製品sourceは変更していない。
+- macOSの`KritaSchemaContractTest`は追加前後とも4工程・8入力、command SHA-256 `94fb402633831db0541d90d15721123de305f5e7dc5fcce428da63a6d2f4b998`、input SHA-256 `8549b43d1d4bceea0e97733e1d897061d42cd7d2cdec422bbdb6324d2d98710e`を維持した。対象全体20回、追加2枠の各20回（各60 pass）、近傍`GridConfigSchemaContractTest`、AUTOMOC後の連続二回の無作業再構築に成功した。試験sourceは153行・7枠、AUTOMOC `HEADERS=[]`、Qt Core・TestとOS frameworkだけの動的接続、dock factory・extension・`KoDockFactoryBase`・製品libraryの未解決記号なしを確認した。試験sourceと`libs/libkis/DockWidgetFactoryBase.cpp`、`libs/libkis/Extension.cpp`の`clang-check -Werror`、試験source書式、JSON構文、差分に成功した。
+- 初回照合は移行基準1,011件に対して実測1,001件となる期待診断を確認後、基準を更新した。公開API検査は28,800件対応、29,801件中1,001件未対応となった。新`build/tdd-macos/public-api-missing-g583.json`は273,444 bytes、SHA-256 `c2b3bbf9c98cf9287e70392eaf6f4e567d22c3d5a9b274b615d416c9375ee8d1`である。生成成功後に旧`public-api-missing-g582.json` 275,511 bytesをゴミ箱へ移して作業領域から約269 KiBを回収し、主Ninja木6,040,840 KiB、共有compiler cache 983,384 KiB、最新報告だけを再利用対象として保持する。dock生成、拡張の設定、window action登録の実行結果は後続の効果契約で扱う。次の永続作業は第582便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
 
 ### 第239便の先行監査担当票
 
