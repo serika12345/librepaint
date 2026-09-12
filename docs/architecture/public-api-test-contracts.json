@@ -58258,6 +58258,18 @@
       ]
     },
     {
+      "target": "KritaSchemaContractTest",
+      "source": "libs/libkis/tests/KritaSchemaContractTest.cpp",
+      "test": "KritaSchemaContractTest::dockWidgetSchemaRemainsStable",
+      "behavior": "スクリプト向けdockの抽象基底はQDockWidgetとcanvas observerの多重継承、既定構築、および仮想破棄の公開型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:DockWidget",
+        "method:DockWidget::DockWidget()",
+        "method:DockWidget::~DockWidget()"
+      ]
+    },
+    {
       "target": "KisCurveOptionSchemaContractTest",
       "source": "plugins/paintops/libpaintop/tests/KisCurveOptionSchemaContractTest.cpp",
       "test": "KisCurveOptionSchemaContractTest::standardOptionTypesAndAliasesSchemaRemainStable",

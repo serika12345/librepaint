@@ -1,6 +1,7 @@
 /* SPDX-FileCopyrightText: 2026 LibrePaint contributors
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include <DockWidget.h>
 #include <DockWidgetFactoryBase.h>
 #include <Krita.h>
 
@@ -36,6 +37,14 @@ public:
     {
     }
 };
+
+class DockWidgetProbe : public DockWidget
+{
+public:
+    void canvasChanged(Canvas *) override
+    {
+    }
+};
 } // namespace
 
 class KritaSchemaContractTest : public QObject
@@ -50,6 +59,7 @@ private Q_SLOTS:
     void kritaSettingsLocalizationAndConversionSignaturesRemainStable();
     void dockWidgetFactoryBaseSchemaRemainsStable();
     void extensionSchemaRemainsStable();
+    void dockWidgetSchemaRemainsStable();
 };
 
 void KritaSchemaContractTest::kritaTypeLifetimeAndApplicationStateSchemaRemainStable()
@@ -146,6 +156,16 @@ void KritaSchemaContractTest::extensionSchemaRemainsStable()
         std::is_same_v<decltype(static_cast<void (Extension::*)()>(&Extension::setup)), void (Extension::*)()>);
     static_assert(std::is_same_v<decltype(static_cast<void (Extension::*)(Window *)>(&Extension::createActions)),
                                  void (Extension::*)(Window *)>);
+}
+
+void KritaSchemaContractTest::dockWidgetSchemaRemainsStable()
+{
+    static_assert(std::is_class_v<DockWidget>);
+    static_assert(std::is_base_of_v<QDockWidget, DockWidget>);
+    static_assert(std::is_base_of_v<KoCanvasObserverBase, DockWidget>);
+    static_assert(std::is_abstract_v<DockWidget>);
+    static_assert(std::is_default_constructible_v<DockWidgetProbe>);
+    static_assert(std::has_virtual_destructor_v<DockWidget>);
 }
 
 QTEST_APPLESS_MAIN(KritaSchemaContractTest)
