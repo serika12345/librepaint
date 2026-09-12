@@ -67742,6 +67742,27 @@
       ]
     },
     {
+      "target": "KisGrabKeyboardFocusRecoveryWorkaroundSchemaContractTest",
+      "source": "libs/ui/tests/KisGrabKeyboardFocusRecoveryWorkaroundSchemaContractTest.cpp",
+      "test": "KisGrabKeyboardFocusRecoveryWorkaroundSchemaContractTest::focusRecoverySingletonSchemaRemainsStable",
+      "behavior": "keyboard focus復帰補助は公開型として一意の操作実体を返すsingleton関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisGrabKeyboardFocusRecoveryWorkaround",
+        "method:KisGrabKeyboardFocusRecoveryWorkaround::instance()"
+      ]
+    },
+    {
+      "target": "KisGrabKeyboardFocusRecoveryWorkaroundSchemaContractTest",
+      "source": "libs/ui/tests/KisGrabKeyboardFocusRecoveryWorkaroundSchemaContractTest.cpp",
+      "test": "KisGrabKeyboardFocusRecoveryWorkaroundSchemaContractTest::focusRecoveryOperationSignatureRemainsStable",
+      "behavior": "keyboard focus復帰補助はfocus復帰操作を行うvoid公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisGrabKeyboardFocusRecoveryWorkaround::recoverFocus()"
+      ]
+    },
+    {
       "target": "KisAsyncColorSamplerHelperSchemaContractTest",
       "source": "libs/ui/tests/KisAsyncColorSamplerHelperSchemaContractTest.cpp",
       "test": "KisAsyncColorSamplerHelperSchemaContractTest::screenColorSamplerTypeConstructionAndFactorySchemaRemainStable",
