@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 1385
+    "expectedMissingApis": 1378
   },
   "contracts": [
     {
@@ -30722,10 +30722,12 @@
       "target": "KisModelIndexConverterBaseContractTest",
       "source": "libs/ui/tests/KisModelIndexConverterBaseContractTest.cpp",
       "test": "KisModelIndexConverterBaseContractTest::abstractBasePreservesVirtualLifetime",
-      "behavior": "model index converter基底は抽象境界を保ち、基底pointerからの破棄で派生個体を一度だけ解放する。",
+      "behavior": "model index converter基底は抽象境界と仮想寿命を保ち、root非表示用の具象converterはfacade・model・global selection表示方針から構築できる。",
       "classification": "maintained",
       "apis": [
+        "class:KisModelIndexConverter",
         "class:KisModelIndexConverterBase",
+        "method:KisModelIndexConverter::KisModelIndexConverter(KisDummiesFacadeBase * dummiesFacade,KisNodeModel * model,bool showGlobalSelection)",
         "method:KisModelIndexConverterBase::~KisModelIndexConverterBase()"
       ]
     },
@@ -30733,9 +30735,11 @@
       "target": "KisModelIndexConverterBaseContractTest",
       "source": "libs/ui/tests/KisModelIndexConverterBaseContractTest.cpp",
       "test": "KisModelIndexConverterBaseContractTest::rowAndIndexRequestsPreserveInputsAndResults",
-      "behavior": "model index converter基底はrow・親indexと直接indexの入力を保持し、対応するdummy pointerを返す。",
+      "behavior": "model index converter基底とroot非表示用具象実装はrow・親indexと直接indexを受け取り、対応するdummy pointerを返す。",
       "classification": "maintained",
       "apis": [
+        "method:KisModelIndexConverter::dummyFromIndex(QModelIndex index)",
+        "method:KisModelIndexConverter::dummyFromRow(int row,QModelIndex parent)",
         "method:KisModelIndexConverterBase::dummyFromIndex(QModelIndex index)",
         "method:KisModelIndexConverterBase::dummyFromRow(int row,QModelIndex parent)"
       ]
@@ -30744,9 +30748,11 @@
       "target": "KisModelIndexConverterBaseContractTest",
       "source": "libs/ui/tests/KisModelIndexConverterBaseContractTest.cpp",
       "test": "KisModelIndexConverterBaseContractTest::dummyAndParentRequestsPreserveInputsAndResults",
-      "behavior": "model index converter基底はdummyからindexへの変換と親indexのrow数照会を独立して配送する。",
+      "behavior": "model index converter基底とroot非表示用具象実装はdummyからindexへの変換と親indexのrow数照会を独立して配送する。",
       "classification": "maintained",
       "apis": [
+        "method:KisModelIndexConverter::indexFromDummy(KisNodeDummy * dummy)",
+        "method:KisModelIndexConverter::rowCount(QModelIndex parent)",
         "method:KisModelIndexConverterBase::indexFromDummy(KisNodeDummy * dummy)",
         "method:KisModelIndexConverterBase::rowCount(QModelIndex parent)"
       ]
@@ -30755,9 +30761,10 @@
       "target": "KisModelIndexConverterBaseContractTest",
       "source": "libs/ui/tests/KisModelIndexConverterBaseContractTest.cpp",
       "test": "KisModelIndexConverterBaseContractTest::addedDummyRequestPreservesOrderedInputsAndOutputs",
-      "behavior": "model index converter基底は追加dummyの親、位置、Unicode型名を順序どおり受け取り、親index、row、成否を返す。",
+      "behavior": "model index converter基底とroot非表示用具象実装は追加dummyの親、位置、Unicode型名を順序どおり受け取り、親index、row、成否を返す。",
       "classification": "maintained",
       "apis": [
+        "method:KisModelIndexConverter::indexFromAddedDummy(KisNodeDummy * parentDummy,int index,const QString & newNodeMetaObjectType,QModelIndex & parentIndex,int & row)",
         "method:KisModelIndexConverterBase::indexFromAddedDummy(KisNodeDummy * parentDummy,int index,const QString & newNodeMetaObjectType,QModelIndex & parentIndex,int & row)"
       ]
     },

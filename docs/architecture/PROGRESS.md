@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-10 02:07 JST
+- 更新日時: 2026-09-12 18:22 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4967,6 +4967,13 @@
 - index変換境界は型・基底関係・facade/model/selection表示方針付き構築2件を既存抽象基底寿命枠へ、row/indexからdummy2件を既存row/index枠へ、dummyからindex・row数2件を既存dummy/親枠へ、追加dummyの親index/row変換1件を既存追加枠へ統合する。型特性、構築可能性、厳密な関数pointerだけを追加し、具象converter、facade、model、dummyを新たに実体化しない。
 - 開始headerは公開基底型を定義する`kis_model_index_converter_base.h`だけを直接includeし、追加の公開依存を持たない。開始`libs/ui/nodes/kis_model_index_converter.cpp`と既存`libs/ui/tests/KisModelIndexConverterBaseContractTest.cpp`の厳格構文診断は0件であるため、構造変更を行わない。
 - 既存base converter契約は212行・4枠で、枠数を増やさず既存4枠を拡張して240行・4枠以内を維持する。新規の型限定targetは4工程・8入力を予測する一方でCMake・生成物・CTest登録を恒久追加するため、既存の動的基底契約とその専用実装を再利用する5工程・11入力を選ぶ。command SHA-256は`946d7e4fda716916760c1986fe15da0cc9eb86072d4514630a81d38b339b93c0`、input SHA-256は`07cc233babf12a5e950878f1dca8a7224d7e3de05b5ec2a3c2e72ef80ed5b10a`である。6工程・13入力超過、候補headerのAUTOMOC入力化、製品未解決記号が生じれば停止する。macOSの対象全体と拡張4枠の20回反復、実装・試験sourceとheader強制includeの厳格構文、試験書式、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行し、具象node tree変換の実効果、製品target、全体build・`verify`、Linux、Nix再評価は行わない。
+
+### 第540便の公開API契約結果
+
+- root nodeを隠すnode modelについてdummyとmodel indexを相互変換する具象境界を、既存の動的基底契約へ統合した。開始`libs/ui/nodes/kis_model_index_converter.h`から既存`libs/ui/tests/KisModelIndexConverterBaseContractTest.cpp`の4枠へ残存全7 APIを追加し、型・facade/model/global selection表示方針付き構築2件、row/indexからdummy2件、dummyからindex・row数2件、追加dummyの親index/row変換1件を型特性、構築可能性、厳密な関数pointerで固定した。計画commitは`f1a57e70e8`、契約commitは`c51bdf1b14`で、既存試験sourceは228行・4枠を維持した。
+- 開始headerの直接依存は公開基底型を定義する`kis_model_index_converter_base.h`だけであり、公開header、製品source、CMakeを変更していない。開始`libs/ui/nodes/kis_model_index_converter.cpp`と候補headerを強制includeする試験sourceの厳格構文は診断0件で、試験書式も成功した。
+- targetは専用base実装を含む5工程・11入力、command SHA-256 `946d7e4fda716916760c1986fe15da0cc9eb86072d4514630a81d38b339b93c0`、input SHA-256 `07cc233babf12a5e950878f1dca8a7224d7e3de05b5ec2a3c2e72ef80ed5b10a`を維持した。候補headerのAUTOMOC入力化と未解決製品記号は0で、Qt Core・Testと専用base実装だけへ接続する。macOSで対象全体20回と拡張4枠各20回、厳格構文、試験書式、連続二回の無作業再構築に成功し、再開時の対象単発も無作業再構築で成功した。具象node tree変換の実効果、製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 公開API検査の初回診断は期待値1,385に対して実測1,378で、新規7件と一致した。台帳を28,423件対応、1,378件未対応へ進め、`public-api-missing-g541.json`の生成成功後に旧`public-api-missing-g540.json` 378,894 bytesを削除した。主Ninja木6,038,888 KiB、共有compiler cache 982,356 KiB、最新報告376,770 bytes、SHA-256 `15679d21a71fb7ce10bed2ca32648a6d9e70c48d4b016886677ea08c7523a576`だけを再利用対象として保持する。compiler cacheは144,819 cache可能呼出し中120,594件、83.27%がhitしている。次の永続作業は第541便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
 
 ### 第239便の先行監査担当票
 
