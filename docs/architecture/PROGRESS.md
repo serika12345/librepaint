@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-13 00:45 JST
+- 更新日時: 2026-09-13 00:50 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5322,6 +5322,12 @@
 - 第568便はpattern resourceの選択・previewを担う`libs/ui/widgets/kis_pattern_chooser.h`の残存全9 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g568.json`は公開header 1,549、公開API 29,801、対応済み28,652、未対応1,149、312,029 bytes、SHA-256 `aa6a711bd0f2c5875d0965d5de8f5f938bd89d703251d3044afcb7dc93d45f45`である。対象9識別子の整列集合SHA-256は`4c2290569ec04c700cf41ae7304319166f35ded18b479f482df437f94e91af9c`である。
 - pattern chooserの境界は型・親widget構築・破棄3、選択resource照会・現在pattern/item設定3、grayscale preview・preview方向・二つの通知3へ固定する。新規`libs/ui/tests/KisPatternChooserSchemaContractTest.cpp`の3枠で型特性と厳密なmember pointerだけを観測し、widget、resource、item chooserを実体化せず本文を実行しない。pattern表示、resource選択、通知配送の実行時意味は後続の動的契約で扱う。
 - 新規targetの`libs/ui/tests/CMakeLists.txt`節はheader直接配置ui、`KoResource.h`のresources、export・共有基盤global source/generated探索路、KF I18n・`kritaui_EXPORTS`・`kritaresources_EXPORTS`、Qt Core・Gui・Widgets・Testとheader-only Boostだけを所有する。初期失敗で`KoResource`の推移headerが`klocalizedstring.h`を要求したため、KF I18n header探索路だけを追加する。resource DB、item chooser、application、pluginの製品targetは接続しない。開始`libs/ui/widgets/kis_pattern_chooser.cc`の厳格構文診断は0件である。新targetは4工程・8入力を予測し、停止線を5工程・11入力とする。AUTOMOC候補header入力、製品未解決記号、追加探索路・定義・動的接続、製品再構築、許可path外変更が必要なら停止する。macOSの対象全体と追加3枠の20回反復、軽量近傍、実装・試験sourceの厳格構文、新規source書式、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。
+
+### 第568便の公開API契約結果
+
+- 開始`libs/ui/widgets/kis_pattern_chooser.h`から新規`libs/ui/tests/KisPatternChooserSchemaContractTest.cpp`へ、pattern chooserの型・親widget構築・仮想破棄3 API、選択resource照会・pattern/item設定3 API、preview設定・resource/item更新通知4 APIを3枠へ固定した。`libs/ui/tests/CMakeLists.txt`にはui・global・resourcesの直接探索路、KF I18n、`kritaui_EXPORTS`・`kritaresources_EXPORTS`、Qt Core・Gui・Widgets・Testとheader-only Boostだけを追加した。公開headerと製品sourceは変更していない。
+- 初期失敗は`KoResource`推移headerの`klocalizedstring.h`要求だけで、KF I18n header探索路を追加して解決した。実装後はmacOSの正式CTest `libs-ui-KisPatternChooserSchemaContractTest`、対象全体20回、追加3枠の各20回、近傍`KisProgressWidgetSchemaContractTest`、連続二回の無作業再構築に成功した。最終閉包は4工程・8入力、command SHA-256 `45c06ae1f461ef49266877c73c63163e73a16e661235f8533b93c7b2cda788fa`、input SHA-256 `abf25f7967af4322fc1407ab08d9e669a159a158b216302caad45972a9c7ba8d`である。AUTOMOC `HEADERS=[]`、Qt Core・Gui・Widgets・Test、`libintl`とOS frameworkだけの動的接続、pattern chooser・resource・item chooserの製品未解決記号なしを確認した。実装・試験sourceの`clang-check -Werror`、書式、JSON構文、差分に成功した。
+- 公開API検査は28,662件対応、29,801件中1,139件未対応となった。新`build/tdd-macos/public-api-missing-g569.json`は309,629 bytes、SHA-256 `ea6b5fb3984edc0f093280c3f171c2760e5beea0495ec00d9b8c88c90425c728`であり、生成成功後に旧`public-api-missing-g568.json`をゴミ箱へ移した。主Ninja木6,050,156 KiB、共有compiler cache 982,828 KiB、最新報告だけを再利用対象として保持する。compiler cacheは144,935 cache可能呼出し中120,612件、83.22%がhitしている。pattern表示、resource選択、通知配送の実行時意味は後続の動的契約で扱う。次の永続作業は第569便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
 
 ### 第239便の先行監査担当票
 
