@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-13 03:06 JST
+- 更新日時: 2026-09-13 03:10 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5460,6 +5460,12 @@
 - 開始`libs/ui/widgets/KoResetBgFgColours.h`、`libs/ui/widgets/KoSwapBgFgColours.h`、`libs/ui/widgets/KoBackgroundColour.h`、`libs/ui/widgets/KoForegroundColour.h`から新規`libs/ui/tests/KoDualColorButtonVariantSchemaContractTest.cpp`へ、reset button 7 API、swap button 7 API、background button 6 API、foreground button 6 APIを4枠へ固定した。`libs/ui/tests/CMakeLists.txt`には新targetと、共通基底`KoDualColorButton.h`を解決する`libs/ui/widgets`のsource/generated header探索路を追加した。公開headerと製品sourceは変更していない。
 - 初回構築は`KoDualColorButton.h`の探索路不足で停止し、専用targetに`libs/ui/widgets`のsource/generated header探索路を追加後に解消した。macOSの正式CTest `libs-ui-KoDualColorButtonVariantSchemaContractTest`と対象全体20回、追加4枠の各20回、近傍`KisCanvas2SchemaContractTest`、連続二回の無作業再構築に成功した。最終閉包は4工程・8入力、command SHA-256 `631e36dc6e21b998da56b6c2ff1f1cb4184ce4ddbb3a7f3fbb7cafe28ab5e3e3`、input SHA-256 `e5482287e69c546d7acff816e533447f44ffc3f13a8c84ec3cf9c2322a9bcb5d`である。試験sourceは103行・4枠、AUTOMOC `HEADERS=[]`、Qt Gui・TestとOS frameworkだけの動的接続、四buttonと共通基底の製品未解決記号なしを確認した。試験sourceと四開始sourceの`clang-check -Werror`、試験source書式、JSON構文、差分に成功した。
 - 公開API検査は28,785件対応、29,801件中1,016件未対応となった。新`build/tdd-macos/public-api-missing-g581.json`は276,539 bytes、SHA-256 `b249e4e07cec2b883c5a80e8a99dbfb798931a2b7b87aa4186bb44d31b0ef104`である。生成成功後に旧`public-api-missing-g580.json` 283,710 bytesをゴミ箱へ移して作業領域から約277 KiBを回収し、主Ninja木6,060,228 KiB、共有compiler cache 982,552 KiB、最新報告だけを再利用対象として保持する。色の初期化・交換、dialog選択、tooltip、icon描画、マウス操作の実行時意味は後続の動的契約で扱う。次の永続作業は第580便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
+
+### 第580便の公開API契約計画
+
+- 正式入力`build/tdd-macos/public-api-missing-g581.json`の`libs/libkis/GridConfig.h`残存5 API、`GridConfig(KisGridConfig *)`、`GridConfig(QObject *)`、デストラクタ、`fromXml(const QString &) const`、`toXml() const`を、既存`libs/libkis/tests/GridConfigSchemaContractTest.cpp`の新規1枠`gridConfigConstructionAndSerializationSchemaRemainsStable`へ対応付ける。これはlibkis文書grid wrapperの所有元受取、親QObject受取、仮想破棄、XML往復の公開面を型として固定する。grid値、QObject、XML本文は実体化・実行しない。
+- 既存target`GridConfigSchemaContractTest`はsource 171行・10枠で、追記後も300行・20枠未満に収まる。CMake変更なしの実測閉包は4工程・8入力、command SHA-256 `8f9a875addf86c8e0f66e69f72e85d66cc29e0af29f586b5abe3547896e36d05`、input SHA-256 `9a2e2dbeaf477dabbd53c38aa1913ada74f03cf1719127986d1bea608b0c8f6c`である。停止線は5工程・11入力、CMake・探索路・定義・動的linkの変更、製品shared・OBJECT・`kritatestsdk`接続、対象headerのAUTOMOC入力、製品未解決記号、対象値または本文の実体化、許可path外変更である。
+- macOSでは対象CTest、追加枠20回、軽量近傍`DocumentGeometrySchemaContractTest`、AUTOMOC後の二回目計画、連続二回の無作業再構築、動的接続・未解決記号・厳格構文・書式、公開API検査、`verify-quick`だけを実行する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。初回公開API検査は移行基準1,016件に対する5 API減少の診断を期待する。
 
 ### 第239便の先行監査担当票
 
