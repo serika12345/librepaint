@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include <opengl/KisOpenGLContextSwitchLock.h>
 #include <opengl/KisOpenGLModeProber.h>
 
 #include <canvas/kis_display_filter.h>
@@ -47,6 +48,8 @@ private Q_SLOTS:
     void displayFilterTypeAndConstructionSchemaRemainStable();
     void displayFilterShaderSignaturesRemainStable();
     void displayFilterPixelTransformationSignaturesRemainStable();
+    void contextSwitchLockAdapterSchemaRemainStable();
+    void contextSwitchLockQt5AdapterSchemaRemainStable();
 };
 
 void KisOpenGLModeProberSchemaContractTest::proberTypeConstructionAndStateSchemaRemainStable()
@@ -158,6 +161,28 @@ void KisOpenGLModeProberSchemaContractTest::displayFilterPixelTransformationSign
                                  correctionInterface,
                                  KisExposureGammaCorrectionInterface * (Filter::*)() const);
     ASSERT_OPENGL_MODE_SIGNATURE(Filter, lockCurrentColorVisualRepresentation, bool (Filter::*)() const);
+}
+
+void KisOpenGLModeProberSchemaContractTest::contextSwitchLockAdapterSchemaRemainStable()
+{
+    using Adapter = KisOpenGLContextSwitchLockAdapter;
+
+    static_assert(std::is_class_v<Adapter>);
+    static_assert(std::is_constructible_v<Adapter, QOpenGLWidget *>);
+    ASSERT_OPENGL_MODE_SIGNATURE(Adapter, lock, void (Adapter::*)());
+    ASSERT_OPENGL_MODE_SIGNATURE(Adapter, unlock, void (Adapter::*)());
+}
+
+void KisOpenGLModeProberSchemaContractTest::contextSwitchLockQt5AdapterSchemaRemainStable()
+{
+    using Adapter = KisOpenGLContextSwitchLockAdapter;
+    using SkipOnQt5Adapter = KisOpenGLContextSwitchLockAdapterSkipOnQt5;
+
+    static_assert(std::is_class_v<SkipOnQt5Adapter>);
+    static_assert(std::is_base_of_v<Adapter, SkipOnQt5Adapter>);
+    static_assert(std::is_constructible_v<SkipOnQt5Adapter, QOpenGLWidget *>);
+    ASSERT_OPENGL_MODE_SIGNATURE(SkipOnQt5Adapter, lock, void (SkipOnQt5Adapter::*)());
+    ASSERT_OPENGL_MODE_SIGNATURE(SkipOnQt5Adapter, unlock, void (SkipOnQt5Adapter::*)());
 }
 
 #undef ASSERT_OPENGL_MODE_SIGNATURE

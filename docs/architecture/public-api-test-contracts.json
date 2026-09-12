@@ -80746,6 +80746,31 @@
       "apis": [
         "method:KisColorFilterCombo::selectedColorsChanged()"
       ]
+    },
+    {
+      "target": "KisOpenGLModeProberSchemaContractTest",
+      "source": "libs/ui/tests/KisOpenGLModeProberSchemaContractTest.cpp",
+      "test": "KisOpenGLModeProberSchemaContractTest::contextSwitchLockAdapterSchemaRemainStable",
+      "behavior": "OpenGL文脈切替adapterは対象widgetを借用して構築し、文脈の保存・復元を開始・終了する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisOpenGLContextSwitchLockAdapter",
+        "method:KisOpenGLContextSwitchLockAdapter::KisOpenGLContextSwitchLockAdapter(QOpenGLWidget * targetWidget)",
+        "method:KisOpenGLContextSwitchLockAdapter::lock()",
+        "method:KisOpenGLContextSwitchLockAdapter::unlock()"
+      ]
+    },
+    {
+      "target": "KisOpenGLModeProberSchemaContractTest",
+      "source": "libs/ui/tests/KisOpenGLModeProberSchemaContractTest.cpp",
+      "test": "KisOpenGLModeProberSchemaContractTest::contextSwitchLockQt5AdapterSchemaRemainStable",
+      "behavior": "Qt 5条件付き文脈切替adapterは基底adapterを継承し、同じ文脈保存・復元操作を公開する境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisOpenGLContextSwitchLockAdapterSkipOnQt5",
+        "method:KisOpenGLContextSwitchLockAdapterSkipOnQt5::lock()",
+        "method:KisOpenGLContextSwitchLockAdapterSkipOnQt5::unlock()"
+      ]
     }
   ]
 }
