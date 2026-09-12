@@ -2,14 +2,14 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-13 07:37 JST
+- 更新日時: 2026-09-13 07:46 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
-- 完了: 第604便で広い既存書き出し検査targetを棄却し、第605便でqPainter投影生成器の2 APIを限定canvas試験へ追加する準備を完了した。
-- 次の作業: 第605便として投影生成器の公開形式を契約試験へ追加し、対象限定検証後に公開API基準を縮小する。
+- 完了: 第605便でqPainter投影生成器の2 APIを公開契約へ追加し、対応済みを28,907件へ進めた。
+- 次の作業: 第606便として未対応報告から、既存の限定試験に追加できる公開headerを選び、実装前に構築閉包を監査する。
 - 検証: macOSの対象・近傍・反復・無作業再構築、公開API検査、`verify-quick`に成功した。製品target、全体build・`verify`、Linux、Nix再評価は本便の対象外である。
 
 ### 第202便の先行監査担当票
@@ -5763,6 +5763,13 @@
 - 開始`libs/ui/canvas/kis_qpainter_projection_factory.h`の`createQPainterProjectionBackend()`と`qPainterProjectionUpdatePatchSize()`を、既存`libs/canvas/tests/KisProjectionLifecycleSchemaContractTest.cpp`の新規1枠へ対応付ける。生成器がcanvas投影backendを一意所有で返し、更新patch寸法を値で返す公開形式を固定する。生成器本文、設定、画像pyramid、投影backendを実体化せず、形式契約だけを追加する。
 - 開始`libs/canvas/tests/CMakeLists.txt`の同test targetへ`libs/ui`と対応するbinary directoryの探索路だけを追加し、`kritaui_export.h`を解決する。現行閉包は4工程・8入力、command SHA-256 `7d13eefb17650bb776658a3d77e5f088aab28d0285b163858fb8982ecba9d769`、input SHA-256 `f23d37795788aace7718983809e01d4e33fdb1d2a44c2dd633cc8121086379e6`であり、試験sourceは113行・5枠である。再構成後も4工程・8入力を要求し、停止線は5工程・11入力、製品targetの再構築、製品shared・OBJECT・`kritatestsdk`接続、候補headerのAUTOMOC入力化、動的linkまたは製品未解決記号の増加、対象値または本文の実体化、許可path外変更とする。
 - macOSでは対象CTest、追加枠20回、近傍`KisProjectionPixelFilterContractTest`、AUTOMOC後の二回目計画、連続二回の無作業再構築、動的接続・未解決記号・厳格構文・書式、公開API検査、`verify-quick`だけを実行する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。初回公開API検査は移行基準896件に対する2 API減少の診断を期待する。
+
+### 第605便の公開API契約結果
+
+- 開始`libs/ui/canvas/kis_qpainter_projection_factory.h`の2 APIを、既存`libs/canvas/tests/KisProjectionLifecycleSchemaContractTest.cpp`の`qPainterProjectionFactoryResultSchemaRemainsStable`へ固定した。開始`libs/canvas/tests/CMakeLists.txt`には同test targetの`libs/ui` source/binary探索路だけを追加した。生成器本文、設定、画像pyramid、投影backendの実体化と実行を追加せず、公開する一意所有backend返却と`QSize`値返却の形式を観測する。公開headerと製品sourceは変更していない。
+- CMake再構成は探索路を登録するために構成全体を読み直したが、Ninjaがコンパイル・リンクしたのは`KisProjectionLifecycleSchemaContractTest`の自動生成、試験source、実行ファイルだけである。macOSの実測閉包は4工程・8入力、command SHA-256 `2647c21072c36d05081819d702a0f3cbbbac38b80fbcad4dbd1090c4609a12c3`、input SHA-256 `f23d37795788aace7718983809e01d4e33fdb1d2a44c2dd633cc8121086379e6`である。試験sourceは124行・6枠、AUTOMOC `HEADERS=[]`、Qt Core・TestとOS frameworkだけの動的接続、製品libraryの未解決記号なしを確認した。
+- 対象全体20回、追加1枠20回（60 pass）、近傍`KisProjectionPixelFilterContractTest`、AUTOMOC後の連続二回の無作業再構築に成功した。試験sourceの`clang-check -Werror`、書式、JSON構文、差分に成功した。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
+- 初回照合は移行基準896件に対して実測894件となる期待診断を確認後、基準を更新した。公開API検査は28,907件対応、29,801件中894件未対応となった。新`build/tdd-macos/public-api-missing-g605.json`は245,732 bytes、SHA-256 `4b516a29e7a0cb319cb71d497e166c6634dade1cdd851874b937216e314f98e9`である。生成成功後に旧`public-api-missing-g604.json` 246,250 bytesをゴミ箱へ移して作業領域から約241 KiBを回収し、主Ninja木6,028,912 KiB、共有compiler cache 983,320 KiB、最新報告だけを再利用対象として保持する。生成器の実際のbackend選択と設定値読込みは、製品実装を接続する後続の効果契約で扱う。次の永続作業は第606便で独立軽量試験に追加可能な公開headerを選び、対象限定閉包を先に監査することである。
 
 ### 第239便の先行監査担当票
 
