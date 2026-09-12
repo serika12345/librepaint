@@ -2,14 +2,14 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-13 08:16 JST
+- 更新日時: 2026-09-13 08:24 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
-- 完了: 第606便で具体ファイルicon生成器の2 APIを公開契約へ追加し、対応済みを28,909件へ進めた。
-- 次の作業: 第607便としてabout application dialogの公開形式を契約試験へ追加し、対象限定検証後に公開API基準を縮小する。
+- 完了: 第607便でabout application dialogの2 APIを公開契約へ追加し、対応済みを28,911件へ進めた。
+- 次の作業: 第608便として、最新の不足一覧から既存の軽量契約試験へ追加できる公開headerを選び、対象限定の構築閉包を監査する。
 - 検証: macOSの対象・近傍・反復・無作業再構築、公開API検査、`verify-quick`に成功した。製品target、全体build・`verify`、Linux、Nix再評価は本便の対象外である。
 
 ### 第202便の先行監査担当票
@@ -5788,8 +5788,15 @@
 ### 第607便の公開API契約計画
 
 - 正式入力`build/tdd-macos/public-api-missing-g606.json`から、開始`libs/ui/dialogs/kis_about_application.h`のabout application dialog型と親Widget構築の2 APIを、既存`libs/ui/tests/KisCursorOverrideHijackerSchemaContractTest.cpp`の新規1枠へ対応付ける。dialogが`KoDialog`を基底に持ち、親Widgetを受ける正確な公開形式を固定する。dialog本文、画面表示、翻訳、設定、親Widgetを実体化せず実行しない。
-- 開始`libs/ui/tests/CMakeLists.txt`の同test targetへ`libs/widgets`と対応するbinary directoryの探索路だけを追加し、`KoDialog.h`と`kritawidgets_export.h`を解決する。現行閉包は4工程・8入力、command SHA-256 `43e833cfe02de17e952fdb1152cc7193fd661d8d7dca777d1e69749202499a2a`、input SHA-256 `58d9882064254f622d7496f1d8e232987c51dd89595a3d9101b9bbaef2ddb583`であり、試験sourceは243行・16枠である。再構成後も4工程・8入力を要求し、停止線は5工程・11入力、製品targetの再構築、製品shared・OBJECT・`kritatestsdk`接続、候補headerのAUTOMOC入力化、動的linkまたは製品未解決記号の増加、dialog・翻訳・設定または本文の実体化、許可path外変更とする。
+- 開始`libs/ui/tests/CMakeLists.txt`の同test targetへ`libs/widgets`と対応するbinary directoryの探索路を追加し、`KoDialog.h`と`kritawidgets_export.h`を解決する。`KoDialog.h`が直接includeする`kconfiggroup.h`と`kguiitem.h`には、ConfigCoreとWidgetsAddonsのinterface探索路だけを加える。現行閉包は4工程・8入力、command SHA-256 `43e833cfe02de17e952fdb1152cc7193fd661d8d7dca777d1e69749202499a2a`、input SHA-256 `58d9882064254f622d7496f1d8e232987c51dd89595a3d9101b9bbaef2ddb583`であり、試験sourceは243行・16枠である。再構成後も4工程・8入力を要求し、停止線は5工程・11入力、製品targetの再構築、製品shared・OBJECT・`kritatestsdk`接続、候補headerのAUTOMOC入力化、動的linkまたは製品未解決記号の増加、dialog・翻訳・設定または本文の実体化、許可path外変更とする。
 - macOSでは対象CTest、追加枠20回、近傍`KisGrabKeyboardFocusRecoveryWorkaroundSchemaContractTest`、AUTOMOC後の二回目計画、連続二回の無作業再構築、動的接続・未解決記号・厳格構文・書式、公開API検査、`verify-quick`だけを実行する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。初回公開API検査は移行基準892件に対する2 API減少の診断を期待する。
+
+### 第607便の公開API契約結果
+
+- 開始`libs/ui/dialogs/kis_about_application.h`から、about application dialog型と親`QWidget`構築の2 APIを既存`libs/ui/tests/KisCursorOverrideHijackerSchemaContractTest.cpp`の`aboutApplicationDialogTypeAndConstructionSchemaRemainStable`へ対応付けた。`KoDialog`基底と親Widgetによる構築可能性を型特性で固定し、dialog本文、画面表示、翻訳、設定、親Widgetの実体化を伴わない。
+- 開始`libs/ui/tests/CMakeLists.txt`の同test targetへ`libs/widgets` source/binary directoryと、`KoDialog.h`の直接header依存を満たすConfigCore・WidgetsAddonsのinterface探索路を追加した。初回限定構築で`kconfiggroup.h`、続いて`kguiitem.h`の不足を診断し、直接header依存だけを追加して解消した。CMake再構成は探索路を登録するために構成全体を読み直したが、Ninjaがコンパイル・リンクしたのは`KisCursorOverrideHijackerSchemaContractTest`の自動生成、試験source、実行ファイルだけであり、製品targetを再構築していない。
+- macOSの実測閉包は4工程・8入力、command SHA-256 `ec8a720f05622f28b4b982361523e8e9d4aedb5ddfb2a2cb0f19bd3a66adcff7`、input SHA-256 `58d9882064254f622d7496f1d8e232987c51dd89595a3d9101b9bbaef2ddb583`である。試験sourceは254行・17枠、AUTOMOC `HEADERS=[]`、Qt Core・TestとOS frameworkだけの動的接続であり、dialog・製品libraryの未解決記号がないことを確認した。対象全体20回、追加枠20回（60 pass）、近傍`KisGrabKeyboardFocusRecoveryWorkaroundSchemaContractTest`、連続二回の無作業Ninja構築、`clang-check -Werror`、書式、JSON構文、差分に成功した。
+- 初回照合は移行基準892件に対して実測890件となる期待診断を確認後、基準を更新した。公開API検査は28,911件対応、29,801件中890件未対応となった。新`build/tdd-macos/public-api-missing-g607.json`は244,780 bytes、SHA-256 `4f0dbf3eae855da3e5bf83a1cba4290049036eaf9c2cda38e67b9f93d9f3cbdf`である。生成成功後に旧`public-api-missing-g606.json` 245,224 bytesをゴミ箱へ移し、主Ninja木6,060,876 KiB、共有compiler cache 982,576 KiB、最新報告だけを再利用対象として保持する。dialogの実際の表示、翻訳と設定の読込みは、製品実装を接続する後続の効果契約で扱う。次の永続作業は第608便で独立軽量試験に追加可能な公開headerを選び、対象限定閉包を先に監査することである。
 
 ### 第239便の先行監査担当票
 
