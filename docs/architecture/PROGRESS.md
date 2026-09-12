@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-12 23:22 JST
+- 更新日時: 2026-09-12 23:26 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5244,6 +5244,12 @@
 - 開始`libs/ui/flake/kis_node_shapes_graph.h`から新規`libs/ui/tests/KisNodeShapesGraphSchemaContractTest.cpp`へ、node追加・shape照会3 API、node除去・件数2 API、root・dummy照会・所属照会・階層移動4 APIを3枠へ固定した。対象固有の`libs/ui/tests/CMakeLists.txt`節はheader直接配置ui、`kis_node.h`・`kis_types.h`のimage、export・共有基盤のglobal source/generated探索路、`kritaui_EXPORTS`・`kritaimage_EXPORTS`、Qt Core・Gui・TestとKF I18nのheader探索路を所有する。公開headerと製品sourceは変更していない。
 - 既存の実行時`KisNodeShapesGraphTest`は1,980工程・3,959入力の製品閉包を必要とするため、計画`50c3ca77e6`を閉包限定`2600e1e889`で専用静的targetへ是正した。新targetは直接headerが必要とするQt Gui・KF I18n探索路だけを追加し、宣言段階の最終初期失敗は追加3枠の定義不足だけでlinkに失敗した。実装後はmacOSの正式CTest `libs-ui-KisNodeShapesGraphSchemaContractTest`、対象全体20回、各追加枠20回、近傍`KisNodeModelSetDataContractTest`、無作業再構築2回に成功した。最終閉包は4工程・8入力、command SHA-256 `0c7a4459ff9f7fa4e60bf68c883f9f1322df847ae75a251f252252922b17cd40`、input SHA-256 `5c095612d7dbf3da05be5cf8f7f6621bc0ada7bbef38091e6d07bd8daed3f4a7`である。AUTOMOC `HEADERS=[]`、Qt Core・Gui・Test、`libintl`とOS frameworkだけの動的接続、node graph・node・shape・dummyの製品未解決記号なしを確認した。実装・試験sourceの`clang-check -Werror`、新規source書式、JSON構文、差分に成功した。
 - 公開API検査は28,600件対応、29,801件中1,201件未対応となった。新`build/tdd-macos/public-api-missing-g562.json`は325,590 bytes、SHA-256 `6a09eb4930d97f4a39b1840a687a7fc5b541f74bbede7c1cbb838dd4f511de87`であり、生成成功後に旧`public-api-missing-g561.json` 327,813 bytesを削除した。主Ninja木6,040,840 KiB、共有compiler cache 982,820 KiB、最新報告だけを保持する。compiler cacheは144,906 cache可能呼出し中120,607件、83.23%がhitしている。node、shape、dummyの実際の所有権移動と階層順は既存または後続の動的契約で扱う。次の永続作業は第562便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
+
+### 第562便の公開API契約計画
+
+- 第562便は進捗表示とcancel通知を担う`libs/ui/widgets/kis_progress_widget.h`の残存全9 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g562.json`は公開header 1,549、公開API 29,801、対応済み28,600、未対応1,201、325,590 bytes、SHA-256 `6a09eb4930d97f4a39b1840a687a7fc5b541f74bbede7c1cbb838dd4f511de87`である。対象9識別子の整列集合SHA-256は`0c753a43b2672ca9c5e9af6b0d2e987258ab624b0f9dcd614c962e3cdb837bb7`である。
+- 進捗widgetの境界は型・親widgetによる構築・破棄2、progress proxy照会1、updaterのattach・detach2、cancel・可視状態補正・取消通知3、class 1を3枠へ固定する。型特性と厳密なmember pointerだけを使い、widget、progress bar、updaterを実体化せず本文を実行しない。実際の進捗表示、updater取消、可視状態の実行時意味は後続の動的契約で扱う。
+- 新規`libs/ui/tests/KisProgressWidgetSchemaContractTest.cpp`と同target固有の`libs/ui/tests/CMakeLists.txt`節を追加する。公開headerの直接依存はui、`kis_progress_updater.h`のimage、`KoProgressUpdater.h`のwidgetutils、export・共有基盤のglobal、Qt Core・Gui・Widgetsで完結するため、既存widget targetが持つapplication、canvas、flake、pigment、resources、tools、KF I18nを対象へ移さない。新targetはui・image・widgetutils・global source/generated探索路、`kritaui_EXPORTS`・`kritaimage_EXPORTS`・`kritawidgetutils_EXPORTS`、Qt Core・Gui・Widgets・Testだけで4工程・8入力を予測する。開始`libs/ui/widgets/kis_progress_widget.cpp`の厳格構文診断は0件である。5工程・11入力超過、AUTOMOC候補header入力、製品未解決記号、追加探索路・定義・動的接続が必要なら停止する。macOSの対象全体と追加3枠の20回反復、軽量近傍、実装・試験sourceの厳格構文、新規source書式、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。
 
 ### 第239便の先行監査担当票
 
