@@ -8,7 +8,6 @@ if (TIFF_HAS_PSD_TAGS)
         PsdResourceIdContractTest.cpp
         LINK_LIBRARIES
             Qt${QT_MAJOR_VERSION}::Test
-            TIFF::TIFF
     )
     target_include_directories(PsdResourceIdContractTest PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/..
