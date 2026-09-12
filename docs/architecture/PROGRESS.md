@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-13 05:09 JST
+- 更新日時: 2026-09-13 05:16 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5600,6 +5600,12 @@
 - 正式入力`build/tdd-macos/public-api-missing-g592.json`の`libs/ui/widgets/kis_tone_curve_widget.h`残存7 APIを、既存`libs/ui/tests/KisCollapsibleButtonGroupSchemaContractTest.cpp`の新規2枠へ対応付ける。型・`QWidget`継承・親widget構築・仮想破棄を1枠、greyscale・RGB・CMYK曲線とprofileデータ状態の4 setterの正確な公開関数型を1枠に固定する。widget、曲線、profile、描画を実体化せず本文を実行しない。
 - `KisCollapsibleButtonGroupSchemaContractTest`はsource 227行・17枠で、追記後も300行・20枠未満に収まる。CMake変更なしの実測閉包は4工程・8入力、command SHA-256 `c55ac1f21251f917b04ee3d97531681190ca1c3f562cf68b627043ed732b1a63`、input SHA-256 `37a973b1221641c14845cda5455d3c7a7b40ae1984bd4f077069ff1c6bfe4f3e`である。既存の同targetは`Q_OBJECT`を持つdocker HUDとcolor sampler previewをheader自動生成入力にせず`HEADERS=[]`を維持しており、同じ宣言形式のtone curve widgetにも適用する。停止線は5工程・11入力、CMake・探索路・定義・動的linkの変更、製品shared・OBJECT・`kritatestsdk`接続、対象headerのAUTOMOC入力、製品未解決記号、対象値または本文の実体化、許可path外変更である。
 - macOSでは対象CTest、追加2枠の各20回、軽量近傍`KisCompositeOpListConnectionHelperSchemaContractTest`、AUTOMOC後の二回目計画、連続二回の無作業再構築、動的接続・未解決記号・厳格構文・書式、公開API検査、`verify-quick`だけを実行する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。初回公開API検査は移行基準969件に対する7 API減少の診断を期待する。
+
+### 第591便の公開API契約結果
+
+- 開始`libs/ui/widgets/kis_tone_curve_widget.h`から既存`libs/ui/tests/KisCollapsibleButtonGroupSchemaContractTest.cpp`へ、型・`QWidget`継承・親widget構築・仮想破棄の3 APIを1枠、greyscale・RGB・CMYK曲線とprofileデータ状態の4 setterを1枠として固定した。widget、曲線、profile、描画を実体化せず本文を実行していない。CMake、公開header、製品sourceは変更していない。
+- macOSの`KisCollapsibleButtonGroupSchemaContractTest`は追加前後とも4工程・8入力、command SHA-256 `c55ac1f21251f917b04ee3d97531681190ca1c3f562cf68b627043ed732b1a63`、input SHA-256 `37a973b1221641c14845cda5455d3c7a7b40ae1984bd4f077069ff1c6bfe4f3e`を維持した。対象全体20回、追加2枠の各20回（各60 pass）、近傍`KisCompositeOpListConnectionHelperSchemaContractTest`、AUTOMOC後の連続二回の無作業再構築に成功した。試験sourceは252行・19枠、AUTOMOC `HEADERS=[]`、Qt Core・TestとOS frameworkだけの動的接続、tone curve widget・製品libraryの未解決記号なしを確認した。試験sourceと`libs/ui/widgets/kis_tone_curve_widget.cpp`の`clang-check -Werror`、試験source書式、JSON構文、差分に成功した。
+- 初回照合は移行基準969件に対して実測962件となる期待診断を確認後、基準を更新した。公開API検査は28,839件対応、29,801件中962件未対応となった。新`build/tdd-macos/public-api-missing-g593.json`は263,853 bytes、SHA-256 `bb501f3e5fbda6c836be3901ddc862661db42b960ab4b510c5b75808202870b8`である。生成成功後に旧`public-api-missing-g592.json` 265,675 bytesをゴミ箱へ移して作業領域から約259 KiBを回収し、主Ninja木6,058,460 KiB、共有compiler cache 982,392 KiB、最新報告だけを再利用対象として保持する。曲線値の更新、profile状態、描画結果、resize時の再描画は後続の効果契約で扱う。次の永続作業は第592便で既存試験sourceの20枠上限を超えない候補を選び、対象限定閉包を先に監査することである。
 
 ### 第239便の先行監査担当票
 
