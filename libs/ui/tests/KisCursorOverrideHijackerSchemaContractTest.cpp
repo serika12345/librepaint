@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "application/ui/orchestration/KisPlatformPluginInterfaceFactory.h"
 #include "application/ui/orchestration/KisQtWidgetsTweaker.h"
 #include "application/ui/workspace/KisAndroidSplash.h"
 #include "events/kis_cursor_override_hijacker.h"
@@ -19,6 +20,8 @@ private Q_SLOTS:
     void cursorOverrideHijackerTypeConstructionAndLifetimeSchemaRemainStable();
     void androidSplashTypeAndStaticApiSchemaRemainStable();
     void qtWidgetsTweakerTypeAndFilteringSchemaRemainStable();
+    void platformPluginFactoryTypeAndSingletonSchemaRemainStable();
+    void platformPluginFactoryReportingAndMapperSchemaRemainStable();
 };
 
 void KisCursorOverrideHijackerSchemaContractTest::cursorOverrideHijackerTypeConstructionAndLifetimeSchemaRemainStable()
@@ -53,6 +56,30 @@ void KisCursorOverrideHijackerSchemaContractTest::qtWidgetsTweakerTypeAndFilteri
     static_assert(std::is_destructible_v<Tweaker>);
     static_assert(std::is_same_v<decltype(&Tweaker::eventFilter), bool (Tweaker::*)(QObject *, QEvent *)>);
     static_assert(std::is_same_v<decltype(&Tweaker::instance), Tweaker *(*)()>);
+}
+
+void KisCursorOverrideHijackerSchemaContractTest::platformPluginFactoryTypeAndSingletonSchemaRemainStable()
+{
+    using Factory = KisPlatformPluginInterfaceFactory;
+
+    static_assert(std::is_class_v<Factory>);
+    static_assert(std::is_default_constructible_v<Factory>);
+    static_assert(std::is_same_v<decltype(&Factory::instance), Factory *(*)()>);
+}
+
+void KisCursorOverrideHijackerSchemaContractTest::platformPluginFactoryReportingAndMapperSchemaRemainStable()
+{
+    using Factory = KisPlatformPluginInterfaceFactory;
+
+#if KRITA_USE_SURFACE_COLOR_MANAGEMENT_API
+    static_assert(std::is_same_v<decltype(&Factory::createSurfaceColorManager),
+                                 KisSurfaceColorManagerInterface *(Factory::*)(QWindow *)>);
+#endif
+    static_assert(std::is_same_v<decltype(&Factory::surfaceColorManagedByOS), bool (Factory::*)()>);
+    static_assert(std::is_same_v<decltype(&Factory::colorManagementReport), QString (Factory::*)(QWidget *)>);
+    static_assert(std::is_same_v<decltype(&Factory::osPreferredColorSpaceReport), QString (Factory::*)(QWidget *)>);
+    static_assert(std::is_same_v<decltype(&Factory::createExtendedModifiersMapper),
+                                 KisExtendedModifiersMapperPluginInterface *(Factory::*)()>);
 }
 
 QTEST_APPLESS_MAIN(KisCursorOverrideHijackerSchemaContractTest)

@@ -79703,6 +79703,32 @@
       ]
     },
     {
+      "target": "KisCursorOverrideHijackerSchemaContractTest",
+      "source": "libs/ui/tests/KisCursorOverrideHijackerSchemaContractTest.cpp",
+      "test": "KisCursorOverrideHijackerSchemaContractTest::platformPluginFactoryTypeAndSingletonSchemaRemainStable",
+      "behavior": "platform plugin interface factoryは公開型として既定構築でき、singleton取得の形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisPlatformPluginInterfaceFactory",
+        "method:KisPlatformPluginInterfaceFactory::KisPlatformPluginInterfaceFactory()",
+        "method:KisPlatformPluginInterfaceFactory::instance()"
+      ]
+    },
+    {
+      "target": "KisCursorOverrideHijackerSchemaContractTest",
+      "source": "libs/ui/tests/KisCursorOverrideHijackerSchemaContractTest.cpp",
+      "test": "KisCursorOverrideHijackerSchemaContractTest::platformPluginFactoryReportingAndMapperSchemaRemainStable",
+      "behavior": "platform plugin interface factoryはsurface color manager、OS色管理状態、色空間報告、extended modifier mapperの正確な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPlatformPluginInterfaceFactory::colorManagementReport(QWidget * widget)",
+        "method:KisPlatformPluginInterfaceFactory::createExtendedModifiersMapper()",
+        "method:KisPlatformPluginInterfaceFactory::createSurfaceColorManager(QWindow * nativeWindow)",
+        "method:KisPlatformPluginInterfaceFactory::osPreferredColorSpaceReport(QWidget * widget)",
+        "method:KisPlatformPluginInterfaceFactory::surfaceColorManagedByOS()"
+      ]
+    },
+    {
       "target": "KisMultiBoolFilterWidgetSchemaContractTest",
       "source": "libs/ui/tests/KisMultiBoolFilterWidgetSchemaContractTest.cpp",
       "test": "KisMultiBoolFilterWidgetSchemaContractTest::nodeDisplayModeTypeConstructionAndAccessSignaturesRemainStable",
