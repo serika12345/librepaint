@@ -2,14 +2,14 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-13 08:40 JST
+- 更新日時: 2026-09-13 08:51 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
-- 完了: 第608便でsession manager dialogの2 APIを公開契約へ追加し、対応済みを28,913件へ進めた。
-- 次の作業: 第609便として、最新の不足一覧から既存の軽量契約試験へ追加できる公開headerを選び、対象限定の構築閉包を監査する。
+- 完了: 第609便でtemplate creation dialogの2 APIを公開契約へ追加し、対応済みを28,915件へ進めた。
+- 次の作業: 第610便として、最新の不足一覧から別の軽量契約試験へ追加できる公開headerを選び、対象限定の構築閉包を監査する。
 - 検証: macOSの対象・近傍・反復・無作業再構築、公開API検査、`verify-quick`に成功した。製品target、全体build・`verify`、Linux、Nix再評価は本便の対象外である。
 
 ### 第202便の先行監査担当票
@@ -5816,6 +5816,13 @@
 - 正式入力`build/tdd-macos/public-api-missing-g608.json`から、開始`libs/application/ui/workspace/KisTemplateCreateDia.h`のtemplate作成dialog型と静的template生成入口の2 APIを、既存`libs/ui/tests/KisCursorOverrideHijackerSchemaContractTest.cpp`の新規1枠へ対応付ける。dialogが`KoDialog`を基底に持ち、template資源パス、suffix、文書、親Widgetを受ける静的入口の正確な形式を固定する。private構築、dialog本文、template資源、文書、Widgetを実体化せず実行しない。
 - 公開headerの直接依存`KoDialog.h`は同test targetが第607便で導入したwidgets、ConfigCore、WidgetsAddonsの探索路で解決する。CMakeを変更せず、現行閉包4工程・8入力、command SHA-256 `ef32b3dd7378f1d5e5ef739d9977409afa1f64e34d162fddfb54cfd31327fc3d`、input SHA-256 `58d9882064254f622d7496f1d8e232987c51dd89595a3d9101b9bbaef2ddb583`を維持する。試験sourceは265行・18枠であり、追記後も300行・20枠未満に収まる。停止線は5工程・11入力、CMake・探索路・定義・動的linkの変更、製品targetの再構築、製品shared・OBJECT・`kritatestsdk`接続、候補headerのAUTOMOC入力化、製品未解決記号、dialog・template資源・文書または本文の実体化、許可path外変更とする。
 - macOSでは対象CTest、追加枠20回、軽量近傍`KisGrabKeyboardFocusRecoveryWorkaroundSchemaContractTest`、AUTOMOC後の二回目計画、連続二回の無作業再構築、動的接続・未解決記号・厳格構文・書式、公開API検査、`verify-quick`だけを実行する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。初回公開API検査は移行基準888件に対する2 API減少の診断を期待する。
+
+### 第609便の公開API契約結果
+
+- 開始`libs/application/ui/workspace/KisTemplateCreateDia.h`から、template作成dialog型と静的template生成入口の2 APIを既存`libs/ui/tests/KisCursorOverrideHijackerSchemaContractTest.cpp`の`templateCreationDialogTypeAndEntrySchemaRemainStable`へ対応付けた。`KoDialog`基底とtemplate資源パス、suffix、文書、親Widgetを受ける静的入口の正確な型を固定し、private構築、dialog本文、template資源、文書、Widgetの実体化を伴わない。
+- CMake、公開header、製品sourceは変更していない。macOSの限定構築は`KisCursorOverrideHijackerSchemaContractTest`の自動生成、試験source、実行ファイルだけをコンパイル・リンクし、製品targetを再構築していない。実測閉包は4工程・8入力、command SHA-256 `ef32b3dd7378f1d5e5ef739d9977409afa1f64e34d162fddfb54cfd31327fc3d`、input SHA-256 `58d9882064254f622d7496f1d8e232987c51dd89595a3d9101b9bbaef2ddb583`を維持した。
+- 試験sourceは277行・19枠、AUTOMOC `HEADERS=[]`、Qt Core・TestとOS frameworkだけの動的接続であり、template creation dialog・製品libraryの未解決記号がないことを確認した。対象全体20回、追加枠20回（60 pass）、近傍`KisGrabKeyboardFocusRecoveryWorkaroundSchemaContractTest`、連続二回の無作業Ninja構築、`clang-check -Werror`、書式、JSON構文、差分に成功した。
+- 初回照合は移行基準888件に対して実測886件となる期待診断を確認後、基準を更新した。公開API検査は28,915件対応、29,801件中886件未対応となった。新`build/tdd-macos/public-api-missing-g609.json`は243,686 bytes、SHA-256 `3054ebba7a39fe813e03d2bcce52fdc1b2181406427f087d9c308fe048f4b193`である。生成成功後に旧`public-api-missing-g608.json` 244,308 bytesをゴミ箱へ移し、主Ninja木6,061,012 KiB、共有compiler cache 983,424 KiB、最新報告だけを再利用対象として保持する。template資源の読込み・書込み、文書生成、dialogの表示と選択は、製品実装を接続する後続の効果契約で扱う。次の永続作業は第610便で別の独立軽量試験に追加可能な公開headerを選び、対象限定閉包を先に監査することである。
 
 ### 第239便の先行監査担当票
 
