@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 1192
+    "expectedMissingApis": 1185
   },
   "contracts": [
     {
@@ -80212,6 +80212,40 @@
         "method:KisProgressWidget::cancel()",
         "method:KisProgressWidget::correctVisibility(int progressValue)",
         "method:KisProgressWidget::sigCancellationRequested()"
+      ]
+    },
+    {
+      "target": "KisRequiredResourcesOperatorsSchemaContractTest",
+      "source": "libs/resources/tests/KisRequiredResourcesOperatorsSchemaContractTest.cpp",
+      "test": "KisRequiredResourcesOperatorsSchemaContractTest::localStorageDetailSignaturesRemainStable",
+      "behavior": "required resource operatorsは局所resource storageの種別照会と作成を行う公開detail境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisRequiredResourcesOperators::detail::createLocalResourcesStorage(const QList<KoResourceSP> & resources)",
+        "function:KisRequiredResourcesOperators::detail::isLocalResourcesStorage(KisResourcesInterfaceSP resourcesInterface)"
+      ]
+    },
+    {
+      "target": "KisRequiredResourcesOperatorsSchemaContractTest",
+      "source": "libs/resources/tests/KisRequiredResourcesOperatorsSchemaContractTest.cpp",
+      "test": "KisRequiredResourcesOperatorsSchemaContractTest::resourceLoadAndGuiThreadDetailSignaturesRemainStable",
+      "behavior": "required resource operatorsはresource load結果を収集し、GUI threadを検査する公開detail境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisRequiredResourcesOperators::detail::addResourceOrWarnIfNotLoaded(KoResourceLoadResult loadedResource,QList<KoResourceSP> * resources,KisResourcesInterfaceSP resourcesInterface)",
+        "function:KisRequiredResourcesOperators::detail::assertInGuiThread()"
+      ]
+    },
+    {
+      "target": "KisRequiredResourcesOperatorsSchemaContractTest",
+      "source": "libs/resources/tests/KisRequiredResourcesOperatorsSchemaContractTest.cpp",
+      "test": "KisRequiredResourcesOperatorsSchemaContractTest::snapshotTemplateSignaturesRemainStable",
+      "behavior": "required resource operatorsは局所snapshotの有無照会、作成、複製を行う公開テンプレート境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisRequiredResourcesOperators::cloneWithResourcesSnapshot(const T * object,KisResourcesInterfaceSP globalResourcesInterface=nullptr)",
+        "function:KisRequiredResourcesOperators::createLocalResourcesSnapshot(T * object,KisResourcesInterfaceSP globalResourcesInterface=nullptr)",
+        "function:KisRequiredResourcesOperators::hasLocalResourcesSnapshot(const T * object)"
       ]
     }
   ]
