@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-13 01:06 JST
+- 更新日時: 2026-09-13 01:10 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5340,6 +5340,12 @@
 - 開始`libs/ui/utils/kis_document_aware_spin_box_unit_manager.h`から新規`libs/ui/tests/KisDocumentAwareSpinBoxUnitManagerSchemaContractTest.cpp`へ、builder・管理型・画像方向enum 5 API、親objectによる構築と既存・新規unit spin boxへの適用3 API、builderによる管理型作成と変換係数・定数照会3 APIを3枠へ固定した。`libs/ui/tests/CMakeLists.txt`にはui・global・widgetutils source/generated探索路、`kritaui_EXPORTS`・`kritawidgetutils_EXPORTS`、Qt Core・Widgets・Testとheader-only Boostだけを追加した。公開headerと製品sourceは変更していない。
 - 初期targetは新規試験source未配置のためCMake生成で停止し、試験source追加後に解消した。台帳照合で長い試験関数定義の改行を検出できなかったため、同じ3枠とAPI対応を保った短い関数名へ整えた。実装後はmacOSの正式CTest `libs-ui-KisDocumentAwareSpinBoxUnitManagerSchemaContractTest`、対象全体20回、追加3枠の各20回、近傍`KisProgressWidgetSchemaContractTest`、連続二回の無作業再構築に成功した。最終閉包は4工程・8入力、command SHA-256 `33cbf99e3f50346a55a0f6a36809c3c28c27999f83130b4de5b809dcdd25b9dd`、input SHA-256 `44f915115fc12574afa3c323d36827991edd0de47b6913a254872b8cf6810dd5`である。AUTOMOC `HEADERS=[]`、Qt Core・Gui・Widgets・Test、`libintl`とOS frameworkだけの動的接続、document aware unit manager・unit manager・unit spin boxの製品未解決記号なしを確認した。実装・試験sourceの`clang-check -Werror`、新規source書式、JSON構文、差分に成功した。
 - 公開API検査は28,673件対応、29,801件中1,128件未対応となった。新`build/tdd-macos/public-api-missing-g570.json`は306,174 bytes、SHA-256 `1caf2f91b7ac07fc0f8305bdb4b64f7ad0b12fc41f5b28fb687d60ce215fabcf`であり、生成成功後に旧`public-api-missing-g569.json` 309,629 bytesをゴミ箱へ移して作業領域から約303 KiBを回収した。主Ninja木6,051,468 KiB、共有compiler cache 982,488 KiB、最新報告だけを再利用対象として保持する。`verify-quick`に成功した。文書不在時のフォールバック、解像度・animation rangeの変換、spin boxの所有と通知の実行時意味は後続の動的契約で扱う。次の永続作業は第570便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
+
+### 第570便の公開API契約計画
+
+- 第570便は選択範囲の磁力境界探索に用いる画像tileと探索workerを表す`plugins/tools/selectiontools/KisMagneticWorker.h`の残存全10 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g570.json`は公開header 1,549、公開API 29,801、対応済み28,673、未対応1,128、306,174 bytes、SHA-256 `1caf2f91b7ac07fc0f8305bdb4b64f7ad0b12fc41f5b28fb687d60ce215fabcf`である。対象10識別子の整列集合SHA-256は`ada1a75151b7a02e12c00feb9e2428803842e6f55bd230b13ab2eb1ec418e2b5`である。
+- 磁力選択探索の境界はlazy tile型・画像device構築・filter・device/tile照会5、worker型・device構築・edge計算・強度照会・画像保存5へ固定する。新規`plugins/tools/selectiontools/KisMagneticWorkerSchemaContractTest.cpp`の3枠で型特性と厳密なmember pointerだけを観測し、paint device、tile、graph、画像、探索結果を実体化せず本文を実行しない。tile filter、edge探索、強度算出、画像保存の実行時意味は後続の動的契約で扱う。
+- 新規targetの`plugins/tools/selectiontools/CMakeLists.txt`節はselectiontools header配置、`kis_paint_device.h`のimage、export・共有基盤global・pigment source/generated探索路、`kritaselectiontools_EXPORTS`・`kritaimage_EXPORTS`・`kritapigment_EXPORTS`、Qt Core・Testとheader-only Boost、Qt Gui・KF I18n・Imathのheader探索路だけを所有する。`kritaselectiontools`、image、painting、application、flakeの製品targetは接続しない。開始`plugins/tools/selectiontools/KisMagneticWorker.cc`の厳格構文診断は0件である。既存`KisPaintDeviceSchemaContractTest`の4工程・8入力を最も近いclean-tree閉包として採用し、新targetも4工程・8入力、停止線を5工程・11入力とする。AUTOMOC候補header入力、製品未解決記号、追加探索路・定義・動的接続、製品再構築、許可path外変更が必要なら停止する。macOSの対象全体と追加3枠の20回反復、軽量近傍、実装・試験sourceの厳格構文、新規source書式、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。
 
 ### 第239便の先行監査担当票
 
