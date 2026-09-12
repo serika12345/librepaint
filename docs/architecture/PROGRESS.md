@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-12 23:05 JST
+- 更新日時: 2026-09-12 23:14 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5236,8 +5236,8 @@
 ### 第561便の公開API契約計画
 
 - 第561便はUI thread上のnode hierarchyを図形・dummyへ写す`libs/ui/flake/kis_node_shapes_graph.h`の残存全9 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g561.json`は公開header 1,549、公開API 29,801、対応済み28,591、未対応1,210、327,813 bytes、SHA-256 `818284c82bc932ccd1eca3be4e7b218545fac0e38f5330ec67976c631e61ebe2`である。対象9識別子の整列集合SHA-256は`a08b888d26a316be51787522beb2487e08f2b1969ba17b4a1794e9581c476680`である。
-- グラフ境界は型・node追加・shape照会3、node除去・件数2、root・dummy照会と階層移動・所属照会4へ固定する。既存`libs/ui/tests/kis_node_shapes_graph_test.cpp`は実際のnode、shape、dummyを組み立て、add・remove・shape照会・件数を既に同一責務で観測している。既存枠を明示的契約へ対応付け、root・dummy照会、所属照会、node移動後の階層順を1枠だけ追加して残存境界を実行時に固定する。公開headerと製品sourceは変更しない。
-- 既存`KisNodeShapesGraphTest`は`kritaapplicationui`と`kritatestsdk`を直接所有し、clean command閉包は1,980工程・3,959入力、command SHA-256 `0734fddef2606d8c42c3edc1110edd6fe1e61bbbd0db569c785911f558be1688`、input SHA-256 `32128553eea34a800f0fdc688a9688a9fc2760e1509fe7a5cd79a05ce5110c17`である。これはnode、shape、dummyの実際の所有権移動を検査する既存具体ownerの閉包であり、新target・探索路・link・CMake変更は加えない。初期の無作業target計画はCMake再構成だけで製品再構築を予定しない。開始`libs/ui/flake/kis_node_shapes_graph.cpp`の厳格構文診断は0件である。CMake、製品source、公開header、既存targetの直接依存を変える必要、想定外の製品再構築、許可path外変更が必要なら停止する。macOSの既存targetと追加1枠の20回反復、近傍`KisNodeDummiesGraphTest`、実装・試験sourceの厳格構文、差分、公開API検査、`verify-quick`だけを実行する。
+- グラフ境界は型・node追加・shape照会3、node除去・件数2、root・dummy照会と階層移動・所属照会4へ固定する。新規`libs/ui/tests/KisNodeShapesGraphSchemaContractTest.cpp`の3枠で型特性と厳密なmember pointerだけを観測し、graph、node、shape、dummyを実体化せず本文を実行しない。実際のnode、shape、dummyの所有権移動と階層順は既存`kis_node_shapes_graph_test.cpp`および後続の動的契約で扱う。公開headerと製品sourceは変更しない。
+- 既存`KisNodeShapesGraphTest`は`kritaapplicationui`と`kritatestsdk`を直接所有し、clean command閉包が1,980工程・3,959入力であるため、公開境界だけを固定する本便の反復targetには使わない。新targetの`libs/ui/tests/CMakeLists.txt`節はheaderの直接配置ui、`kis_node.h`・`kis_types.h`のimage、export・共有基盤のglobal source/generated探索路、`kritaui_EXPORTS`・`kritaimage_EXPORTS`、Qt Core・Testだけを所有する。4工程・8入力を予測し、停止線を5工程・11入力とする。開始`libs/ui/flake/kis_node_shapes_graph.cpp`の厳格構文診断は0件である。5工程・11入力超過、候補headerのAUTOMOC入力、製品未解決記号、追加探索路・定義・動的接続、製品再構築、許可path外変更が必要なら停止する。macOSの対象全体と追加3枠の20回反復、軽量近傍、実装・試験sourceの厳格構文、新規source書式、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。
 
 ### 第239便の先行監査担当票
 
