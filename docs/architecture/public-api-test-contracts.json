@@ -80575,6 +80575,44 @@
         "method:KoToolDocker::setOptionWidgets(const QList<QPointer<QWidget>> & optionWidgetList)",
         "method:KoToolDocker::slotScrollerStateChange(QScroller::State state)"
       ]
+    },
+    {
+      "target": "KisCompositeOpSelectorSchemaContractTest",
+      "source": "libs/tools/ui/tests/KisCompositeOpSelectorSchemaContractTest.cpp",
+      "test": "KisCompositeOpSelectorSchemaContractTest::categorizedListViewTypeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "categorized list viewはQListViewの公開派生型として親widgetで構築し、仮想破棄する境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisCategorizedListView",
+        "method:KisCategorizedListView::KisCategorizedListView(QWidget * parent=0)",
+        "method:KisCategorizedListView::~KisCategorizedListView()"
+      ]
+    },
+    {
+      "target": "KisCompositeOpSelectorSchemaContractTest",
+      "source": "libs/tools/ui/tests/KisCompositeOpSelectorSchemaContractTest.cpp",
+      "test": "KisCompositeOpSelectorSchemaContractTest::categorizedListViewModelDisplayAndControlSignaturesRemainStable",
+      "behavior": "categorized list viewはmodelを設定し、表示サイズとcomposite制御を公開する境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCategorizedListView::setCompositeBoxControl(bool value)",
+        "method:KisCategorizedListView::setModel(QAbstractItemModel * model)",
+        "method:KisCategorizedListView::sizeHint() const"
+      ]
+    },
+    {
+      "target": "KisCompositeOpSelectorSchemaContractTest",
+      "source": "libs/tools/ui/tests/KisCompositeOpSelectorSchemaContractTest.cpp",
+      "test": "KisCompositeOpSelectorSchemaContractTest::categorizedListViewNotificationSignaturesRemainStable",
+      "behavior": "categorized list viewはカテゴリとentryの選択、右クリック設定、lock areaを通知する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCategorizedListView::lockAreaTriggered(const QModelIndex & index)",
+        "method:KisCategorizedListView::rightClickedMenuDropSettingsTriggered()",
+        "method:KisCategorizedListView::rightClickedMenuSaveSettingsTriggered()",
+        "method:KisCategorizedListView::sigCategoryToggled(const QModelIndex & index,bool toggled)",
+        "method:KisCategorizedListView::sigEntryChecked(const QModelIndex & index)"
+      ]
     }
   ]
 }

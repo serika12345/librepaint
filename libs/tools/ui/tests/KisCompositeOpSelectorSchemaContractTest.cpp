@@ -2,6 +2,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "kis_categorized_list_view.h"
 #include "kis_cmb_composite.h"
 
 #include <QTest>
@@ -21,6 +22,9 @@ private Q_SLOTS:
     void compositeOpComboBoxPopupAndInputSignaturesRemainStable();
     void compositeOpListWidgetTypeLifetimeAndConstructionSchemaRemainStable();
     void compositeOpListWidgetSelectionSignaturesRemainStable();
+    void categorizedListViewTypeConstructionAndLifetimeSchemaRemainStable();
+    void categorizedListViewModelDisplayAndControlSignaturesRemainStable();
+    void categorizedListViewNotificationSignaturesRemainStable();
 };
 
 void KisCompositeOpSelectorSchemaContractTest::compositeOpComboBoxTypeLifetimeAndConstructionSchemaRemainStable()
@@ -77,6 +81,36 @@ void KisCompositeOpSelectorSchemaContractTest::compositeOpListWidgetSelectionSig
 
     ASSERT_COMPOSITE_SELECTOR_SIGNATURE(ListWidget, selectedCompositeOp, KoID (ListWidget::*)() const);
     ASSERT_COMPOSITE_SELECTOR_SIGNATURE(ListWidget, setCompositeOp, void (ListWidget::*)(const KoID &));
+}
+
+void KisCompositeOpSelectorSchemaContractTest::categorizedListViewTypeConstructionAndLifetimeSchemaRemainStable()
+{
+    using ListView = KisCategorizedListView;
+
+    static_assert(std::is_class_v<ListView>);
+    static_assert(std::is_base_of_v<QListView, ListView>);
+    static_assert(std::is_constructible_v<ListView, QWidget *>);
+    static_assert(std::has_virtual_destructor_v<ListView>);
+}
+
+void KisCompositeOpSelectorSchemaContractTest::categorizedListViewModelDisplayAndControlSignaturesRemainStable()
+{
+    using ListView = KisCategorizedListView;
+
+    ASSERT_COMPOSITE_SELECTOR_SIGNATURE(ListView, setModel, void (ListView::*)(QAbstractItemModel *));
+    ASSERT_COMPOSITE_SELECTOR_SIGNATURE(ListView, sizeHint, QSize (ListView::*)() const);
+    ASSERT_COMPOSITE_SELECTOR_SIGNATURE(ListView, setCompositeBoxControl, void (ListView::*)(bool));
+}
+
+void KisCompositeOpSelectorSchemaContractTest::categorizedListViewNotificationSignaturesRemainStable()
+{
+    using ListView = KisCategorizedListView;
+
+    ASSERT_COMPOSITE_SELECTOR_SIGNATURE(ListView, sigCategoryToggled, void (ListView::*)(const QModelIndex &, bool));
+    ASSERT_COMPOSITE_SELECTOR_SIGNATURE(ListView, sigEntryChecked, void (ListView::*)(const QModelIndex &));
+    ASSERT_COMPOSITE_SELECTOR_SIGNATURE(ListView, rightClickedMenuDropSettingsTriggered, void (ListView::*)());
+    ASSERT_COMPOSITE_SELECTOR_SIGNATURE(ListView, rightClickedMenuSaveSettingsTriggered, void (ListView::*)());
+    ASSERT_COMPOSITE_SELECTOR_SIGNATURE(ListView, lockAreaTriggered, void (ListView::*)(const QModelIndex &));
 }
 
 QTEST_GUILESS_MAIN(KisCompositeOpSelectorSchemaContractTest)
