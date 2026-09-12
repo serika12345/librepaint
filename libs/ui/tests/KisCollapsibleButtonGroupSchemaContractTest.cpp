@@ -4,6 +4,7 @@
  */
 
 #include "utils/KisRecentFileIconCache.h"
+#include "widgets/KisColorSamplerPreviewPreview.h"
 #include "widgets/KisLodAvailabilityData.h"
 #include "widgets/KisMemoryReportButton.h"
 #include "widgets/kis_collapsible_button_group.h"
@@ -32,6 +33,8 @@ private Q_SLOTS:
     void toolButtonTypeAndConstructionSchemaRemainStable();
     void memoryReportButtonTypeAndConstructionSchemaRemainStable();
     void memoryReportButtonStateAndPaintingSignaturesRemainStable();
+    void colorSamplerPreviewTypeAndConstructionSchemaRemainStable();
+    void colorSamplerPreviewStateAndPaintingSignaturesRemainStable();
 };
 
 void KisCollapsibleButtonGroupSchemaContractTest::typeConstructionAndLifetimeSchemaRemainStable()
@@ -174,6 +177,25 @@ void KisCollapsibleButtonGroupSchemaContractTest::memoryReportButtonStateAndPain
     static_assert(std::is_same_v<decltype(&Button::setCurrentMemory), void (Button::*)(qint64)>);
     static_assert(std::is_same_v<decltype(&Button::setImageWeight), void (Button::*)(qint64)>);
     static_assert(std::is_same_v<decltype(&Button::paintEvent), void (Button::*)(QPaintEvent *)>);
+}
+
+void KisCollapsibleButtonGroupSchemaContractTest::colorSamplerPreviewTypeAndConstructionSchemaRemainStable()
+{
+    using Preview = KisColorSamplerPreviewPreview;
+
+    static_assert(std::is_class_v<Preview>);
+    static_assert(std::is_base_of_v<QLabel, Preview>);
+    static_assert(std::is_constructible_v<Preview, QWidget *>);
+}
+
+void KisCollapsibleButtonGroupSchemaContractTest::colorSamplerPreviewStateAndPaintingSignaturesRemainStable()
+{
+    using Preview = KisColorSamplerPreviewPreview;
+
+    static_assert(std::is_same_v<decltype(&Preview::setDiameter), void (Preview::*)(int)>);
+    static_assert(std::is_same_v<decltype(&Preview::setOutlineEnabled), void (Preview::*)(bool)>);
+    static_assert(std::is_same_v<decltype(&Preview::setThickness), void (Preview::*)(qreal)>);
+    static_assert(std::is_same_v<decltype(&Preview::paintEvent), void (Preview::*)(QPaintEvent *)>);
 }
 
 QTEST_GUILESS_MAIN(KisCollapsibleButtonGroupSchemaContractTest)

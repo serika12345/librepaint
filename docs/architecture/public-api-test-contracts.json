@@ -79574,6 +79574,30 @@
       ]
     },
     {
+      "target": "KisCollapsibleButtonGroupSchemaContractTest",
+      "source": "libs/ui/tests/KisCollapsibleButtonGroupSchemaContractTest.cpp",
+      "test": "KisCollapsibleButtonGroupSchemaContractTest::colorSamplerPreviewTypeAndConstructionSchemaRemainStable",
+      "behavior": "色見本プレビューはQLabel派生の公開型として親widgetで構築できる契約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisColorSamplerPreviewPreview",
+        "method:KisColorSamplerPreviewPreview::KisColorSamplerPreviewPreview(QWidget * parent)"
+      ]
+    },
+    {
+      "target": "KisCollapsibleButtonGroupSchemaContractTest",
+      "source": "libs/ui/tests/KisCollapsibleButtonGroupSchemaContractTest.cpp",
+      "test": "KisCollapsibleButtonGroupSchemaContractTest::colorSamplerPreviewStateAndPaintingSignaturesRemainStable",
+      "behavior": "色見本プレビューは直径・outline・太さの設定とpaint入口の正確な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisColorSamplerPreviewPreview::paintEvent(QPaintEvent * e)",
+        "method:KisColorSamplerPreviewPreview::setDiameter(int diameter)",
+        "method:KisColorSamplerPreviewPreview::setOutlineEnabled(bool enabled)",
+        "method:KisColorSamplerPreviewPreview::setThickness(qreal thickness)"
+      ]
+    },
+    {
       "target": "KisMultiBoolFilterWidgetSchemaContractTest",
       "source": "libs/ui/tests/KisMultiBoolFilterWidgetSchemaContractTest.cpp",
       "test": "KisMultiBoolFilterWidgetSchemaContractTest::nodeDisplayModeTypeConstructionAndAccessSignaturesRemainStable",
