@@ -5309,7 +5309,7 @@
 
 - 第567便はpaint toolの入力・outline・brush状態を担う`libs/tools/kis_tool_paint_interaction.h`の残存全10 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g567.json`は公開header 1,549、公開API 29,801、対応済み28,642、未対応1,159、314,558 bytes、SHA-256 `9053c8d90679c59042a5cba41754f7780dea0f7a0846c84218e062334f199f7e`である。対象10識別子の整列集合SHA-256は`759ef2c826a7e210eae92383ce0f6630762511393793ae6fd8fa88536ba854cb`である。
 - paint interactionの境界は型・canvas/cursor構築・破棄3、flags・activate/deactivate・三つのpointer event処理6、painting完了通知1へ固定する。既存`libs/tools/tests/KisToolSchemaContractTest.cpp`へ3枠を追加し、abstractなoutline要求だけを宣言する局所派生型と厳密なmember pointerを使う。tool、canvas、event、brush、outlineを実体化せず本文を実行しない。入力状態遷移、brush設定、outline更新、通知配送の実行時意味は後続の動的契約で扱う。
-- 既存targetは118行・5枠であり、追記後も300行・20枠未満である。初期失敗で`KisOptimizedBrushOutline.h`の配置が`libs/image/brushengine`であることを確認したため、target固有に同探索路だけを追加する。現行のQt Core・Gui・Widgets・Xml・Test、header-only Boost、tools・flake・global・image・pigment・resources探索路、対応export定義を再利用し、4工程・8入力を維持する。開始`libs/tools/kis_tool_paint_interaction.cpp`の厳格構文診断は0件である。5工程・11入力超過、AUTOMOC候補header入力、製品未解決記号、追加探索路・定義・動的接続、製品再構築、許可path外変更が必要なら停止する。macOSの対象全体と追加3枠の20回反復、軽量近傍、実装・試験sourceの厳格構文、新規source書式、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。
+- 既存targetは118行・5枠であり、追記後も300行・20枠未満である。初期失敗で`KisOptimizedBrushOutline.h`の配置が`libs/image/brushengine`、paintop settingsの推移headerがEigenを必要とすることを確認したため、target固有に同探索路とheader-only Eigen interfaceだけを追加する。現行のQt Core・Gui・Widgets・Xml・Test、header-only Boost、tools・flake・global・image・pigment・resources探索路、対応export定義を再利用し、4工程・8入力を維持する。開始`libs/tools/kis_tool_paint_interaction.cpp`の厳格構文診断は0件である。5工程・11入力超過、AUTOMOC候補header入力、製品未解決記号、追加探索路・定義・動的接続、製品再構築、許可path外変更が必要なら停止する。macOSの対象全体と追加3枠の20回反復、軽量近傍、実装・試験sourceの厳格構文、新規source書式、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。
 
 ### 第239便の先行監査担当票
 
