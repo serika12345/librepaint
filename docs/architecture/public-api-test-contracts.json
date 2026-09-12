@@ -79752,6 +79752,28 @@
       ]
     },
     {
+      "target": "KisCursorOverrideHijackerSchemaContractTest",
+      "source": "libs/ui/tests/KisCursorOverrideHijackerSchemaContractTest.cpp",
+      "test": "KisCursorOverrideHijackerSchemaContractTest::layerSelectionActionTypeAndSelectionSignatureSchemaRemainStable",
+      "behavior": "レイヤー選択actionは公開型としてcanvasと画像・widget座標、選択方式を受け取る正確な選択入口を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisLayerSelectionAction",
+        "method:KisLayerSelectionAction::select(KisCanvas2 * canvas,const QPoint & imagePosition,const QPoint & widgetPosition,int layerSelectionMode,int selectionOverrideMode)"
+      ]
+    },
+    {
+      "target": "KisCursorOverrideHijackerSchemaContractTest",
+      "source": "libs/ui/tests/KisCursorOverrideHijackerSchemaContractTest.cpp",
+      "test": "KisCursorOverrideHijackerSchemaContractTest::applicationInputActionsFunctionSchemaRemainsStable",
+      "behavior": "アプリケーション入力actionの提供関数はaction一覧の作成と入力managerからcanvasを得る正確な公開関数型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:applicationInputCanvas(const KisInputManager * inputManager)",
+        "function:createApplicationInputActions()"
+      ]
+    },
+    {
       "target": "KisMultiBoolFilterWidgetSchemaContractTest",
       "source": "libs/ui/tests/KisMultiBoolFilterWidgetSchemaContractTest.cpp",
       "test": "KisMultiBoolFilterWidgetSchemaContractTest::nodeDisplayModeTypeConstructionAndAccessSignaturesRemainStable",

@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "actions/KisLayerSelectionAction.h"
+#include "actions/input/KisApplicationInputActions.h"
 #include "application/ui/orchestration/KisActionPlugin.h"
 #include "application/ui/orchestration/KisPlatformPluginInterfaceFactory.h"
 #include "application/ui/orchestration/KisQtWidgetsTweaker.h"
@@ -26,6 +28,8 @@ private Q_SLOTS:
     void platformPluginFactoryReportingAndMapperSchemaRemainStable();
     void actionPluginTypeConstructionAndLifetimeSchemaRemainStable();
     void uiFontFunctionSchemaRemainsStable();
+    void layerSelectionActionTypeAndSelectionSignatureSchemaRemainStable();
+    void applicationInputActionsFunctionSchemaRemainsStable();
 };
 
 void KisCursorOverrideHijackerSchemaContractTest::cursorOverrideHijackerTypeConstructionAndLifetimeSchemaRemainStable()
@@ -100,6 +104,21 @@ void KisCursorOverrideHijackerSchemaContractTest::uiFontFunctionSchemaRemainsSta
 {
     static_assert(std::is_same_v<decltype(&KisUiFont::normalFont), QFont (*)()>);
     static_assert(std::is_same_v<decltype(&KisUiFont::dockFont), QFont (*)()>);
+}
+
+void KisCursorOverrideHijackerSchemaContractTest::layerSelectionActionTypeAndSelectionSignatureSchemaRemainStable()
+{
+    using Action = KisLayerSelectionAction;
+
+    static_assert(std::is_class_v<Action>);
+    static_assert(
+        std::is_same_v<decltype(&Action::select), void (*)(KisCanvas2 *, const QPoint &, const QPoint &, int, int)>);
+}
+
+void KisCursorOverrideHijackerSchemaContractTest::applicationInputActionsFunctionSchemaRemainsStable()
+{
+    static_assert(std::is_same_v<decltype(&createApplicationInputActions), QList<KisAbstractInputAction *> (*)()>);
+    static_assert(std::is_same_v<decltype(&applicationInputCanvas), KisCanvas2 *(*)(const KisInputManager *)>);
 }
 
 QTEST_APPLESS_MAIN(KisCursorOverrideHijackerSchemaContractTest)
