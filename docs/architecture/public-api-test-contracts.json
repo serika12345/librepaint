@@ -67722,6 +67722,26 @@
       ]
     },
     {
+      "target": "KisCompositeOpListConnectionHelperSchemaContractTest",
+      "source": "libs/ui/tests/KisCompositeOpListConnectionHelperSchemaContractTest.cpp",
+      "test": "KisCompositeOpListConnectionHelperSchemaContractTest::compositeOpControlConnectionSignatureRemainsStable",
+      "behavior": "composite operation listとQObjectプロパティを接続する補助関数は、list・source・プロパティ名を受けるvoid関数の公開型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisWidgetConnectionUtils::connectControl(KisCompositeOpListWidget * widget,QObject * source,const char * property)"
+      ]
+    },
+    {
+      "target": "KisCompositeOpListConnectionHelperSchemaContractTest",
+      "source": "libs/ui/tests/KisCompositeOpListConnectionHelperSchemaContractTest.cpp",
+      "test": "KisCompositeOpListConnectionHelperSchemaContractTest::blendModeActionConnectionSignatureRemainsStable",
+      "behavior": "composite operation combo boxとaction managerを接続する補助関数は、combo box・managerを受けるvoid関数の公開型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisWidgetConnectionUtils::connectBlendModeActions(KisCompositeOpComboBox * widget,KisActionManager * manager)"
+      ]
+    },
+    {
       "target": "KisAsyncColorSamplerHelperSchemaContractTest",
       "source": "libs/ui/tests/KisAsyncColorSamplerHelperSchemaContractTest.cpp",
       "test": "KisAsyncColorSamplerHelperSchemaContractTest::screenColorSamplerTypeConstructionAndFactorySchemaRemainStable",
