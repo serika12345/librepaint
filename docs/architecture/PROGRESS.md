@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-13 04:37 JST
+- 更新日時: 2026-09-13 04:45 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5564,6 +5564,12 @@
 - 正式入力`build/tdd-macos/public-api-missing-g589.json`の`libs/ui/widgets/KisMemoryReportButton.h`残存6 APIを、既存`libs/ui/tests/KisCollapsibleButtonGroupSchemaContractTest.cpp`の新規2枠へ対応付ける。型・`QPushButton`継承・親widget構築を1枠、最大・現在・画像メモリ設定とpaint入口の正確な公開関数型を1枠に固定する。button、paint event、palette、style、描画器を実体化せず本文を実行しない。
 - `KisCollapsibleButtonGroupSchemaContractTest`はsource 160行・11枠で、追記後も300行・20枠未満に収まる。CMake変更なしの実測閉包は4工程・8入力、command SHA-256 `614e2253553b70383ee32c45a21b76b3793d61dac548f70c55ea2ec5533165ce`、input SHA-256 `37a973b1221641c14845cda5455d3c7a7b40ae1984bd4f077069ff1c6bfe4f3e`である。停止線は5工程・11入力、CMake・探索路・定義・動的linkの変更、製品shared・OBJECT・`kritatestsdk`接続、対象headerのAUTOMOC入力、製品未解決記号、対象値または本文の実体化、許可path外変更である。
 - macOSでは対象CTest、追加2枠の各20回、軽量近傍`KisCompositeOpListConnectionHelperSchemaContractTest`、AUTOMOC後の二回目計画、連続二回の無作業再構築、動的接続・未解決記号・厳格構文・書式、公開API検査、`verify-quick`だけを実行する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。初回公開API検査は移行基準989件に対する6 API減少の診断を期待する。
+
+### 第588便の公開API契約結果
+
+- 開始`libs/ui/widgets/KisMemoryReportButton.h`から既存`libs/ui/tests/KisCollapsibleButtonGroupSchemaContractTest.cpp`へ、型・`QPushButton`継承・親widget構築の2 APIを1枠、最大・現在・画像メモリ設定とpaint入口の4 APIを1枠として固定した。button、paint event、palette、style、描画器を実体化せず本文を実行していない。CMake、公開header、製品sourceは変更していない。
+- macOSの`KisCollapsibleButtonGroupSchemaContractTest`は追加前後とも4工程・8入力、command SHA-256 `614e2253553b70383ee32c45a21b76b3793d61dac548f70c55ea2ec5533165ce`、input SHA-256 `37a973b1221641c14845cda5455d3c7a7b40ae1984bd4f077069ff1c6bfe4f3e`を維持した。対象全体20回、追加2枠の各20回（各60 pass）、近傍`KisCompositeOpListConnectionHelperSchemaContractTest`、AUTOMOC後の連続二回の無作業再構築に成功した。試験sourceは181行・13枠、AUTOMOC `HEADERS=[]`、Qt Core・TestとOS frameworkだけの動的接続、memory report button・製品libraryの未解決記号なしを確認した。試験sourceと`libs/ui/widgets/KisMemoryReportButton.cpp`の`clang-check -Werror`、試験source書式、JSON構文、差分に成功した。
+- 初回照合は移行基準989件に対して実測983件となる期待診断を確認後、基準を更新した。公開API検査は28,818件対応、29,801件中983件未対応となった。新`build/tdd-macos/public-api-missing-g590.json`は268,913 bytes、SHA-256 `8ecd1d83c7725a077b1e97980edc4605a93eb197a4f6208afae4306c69779e9b`である。生成成功後に旧`public-api-missing-g589.json` 270,355 bytesをゴミ箱へ移して作業領域から約264 KiBを回収し、主Ninja木6,058,908 KiB、共有compiler cache 981,272 KiB、最新報告だけを再利用対象として保持する。メモリ比率による描画色・幅、style差異、ゼロ除算、paint eventの実行結果は後続の効果契約で扱う。次の永続作業は第589便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
 
 ### 第239便の先行監査担当票
 
