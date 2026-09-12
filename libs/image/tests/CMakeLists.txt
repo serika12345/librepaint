@@ -1053,6 +1053,18 @@ target_include_directories(KisSpontaneousJobContractTest PRIVATE
 )
 
 kis_add_test(
+    KisRecycleProjectionsJobSchemaContractTest.cpp
+    LINK_LIBRARIES Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(KisRecycleProjectionsJobSchemaContractTest PRIVATE kritaimage_EXPORTS)
+target_include_directories(KisRecycleProjectionsJobSchemaContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+)
+
+kis_add_test(
     KisNodeVisitorContractTest.cpp
     LINK_LIBRARIES Qt${QT_MAJOR_VERSION}::Test
 )

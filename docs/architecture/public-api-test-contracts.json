@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 1264
+    "expectedMissingApis": 1257
   },
   "contracts": [
     {
@@ -79888,6 +79888,40 @@
         "method:KisDabCache::needSeparateOriginal() const",
         "method:KisDabCache::setSharpnessPostprocessing(KisSharpnessOption * option)",
         "method:KisDabCache::setTexturePostprocessing(KisTextureOption * option)"
+      ]
+    },
+    {
+      "target": "KisRecycleProjectionsJobSchemaContractTest",
+      "source": "libs/image/tests/KisRecycleProjectionsJobSchemaContractTest.cpp",
+      "test": "KisRecycleProjectionsJobSchemaContractTest::projectionStoreTypeAndConstructionSchemaRemainStable",
+      "behavior": "projection再利用jobはprojection storeへの共有弱参照を公開別名として持ち、その参照で構築する公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisSafeNodeProjectionStoreBaseWSP",
+        "class:KisRecycleProjectionsJob",
+        "method:KisRecycleProjectionsJob::KisRecycleProjectionsJob(KisSafeNodeProjectionStoreBaseWSP projectionStore)"
+      ]
+    },
+    {
+      "target": "KisRecycleProjectionsJobSchemaContractTest",
+      "source": "libs/image/tests/KisRecycleProjectionsJobSchemaContractTest.cpp",
+      "test": "KisRecycleProjectionsJobSchemaContractTest::executionAndIdentitySignaturesRemainStable",
+      "behavior": "projection再利用jobは実行、詳細度照会、識別名照会の公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisRecycleProjectionsJob::debugName() const",
+        "method:KisRecycleProjectionsJob::levelOfDetail() const",
+        "method:KisRecycleProjectionsJob::run()"
+      ]
+    },
+    {
+      "target": "KisRecycleProjectionsJobSchemaContractTest",
+      "source": "libs/image/tests/KisRecycleProjectionsJobSchemaContractTest.cpp",
+      "test": "KisRecycleProjectionsJobSchemaContractTest::jobOverrideSignatureRemainsStable",
+      "behavior": "projection再利用jobは他のspontaneous jobを受けて置換可否を返す公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisRecycleProjectionsJob::overrides(const KisSpontaneousJob * otherJob)"
       ]
     }
   ]
