@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-12 22:58 JST
+- 更新日時: 2026-09-12 23:05 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5232,6 +5232,12 @@
 - 開始`libs/tools/KisSelectionToolFactoryBase.h`から新規`libs/tools/tests/KisSelectionToolFactoryBaseSchemaContractTest.cpp`へ、選択tool factory基底の型・文字列ID構築・破棄3 APIとpolyline tool factory基底の同3 APIを2枠へ固定した。対象固有の`libs/tools/tests/CMakeLists.txt`節は直接依存だけを解決するtools・flake source/generated探索路、`kritatools_EXPORTS`・`kritaflake_EXPORTS`、Qt Core・Testを所有する。公開headerと製品sourceは変更していない。
 - 新targetの宣言段階では追加2枠の定義不足だけでlinkに失敗し、実装後はmacOSの正式CTest `libs-tools-KisSelectionToolFactoryBaseSchemaContractTest`、対象全体20回、各追加枠20回、近傍`KisToolSchemaContractTest`、無作業再構築2回に成功した。最終閉包は4工程・8入力、command SHA-256 `119ee148b595e158c51945c83dc404d216c63d13b8947f071effdd649c478c8d`、input SHA-256 `ee423d6cca446cd651643d5916308323ef58186c518e7f3409c04b0705c7e7cd`である。AUTOMOC `HEADERS=[]`、Qt Core・TestとOS frameworkだけの動的接続、factory・toolの製品未解決記号なしを確認した。実装・試験sourceの`clang-check -Werror`、新規source書式、JSON構文、差分、`verify-quick`に成功した。
 - 公開API検査は28,591件対応、29,801件中1,210件未対応となった。新`build/tdd-macos/public-api-missing-g561.json`は327,813 bytes、SHA-256 `818284c82bc932ccd1eca3be4e7b218545fac0e38f5330ec67976c631e61ebe2`であり、生成成功後に旧`public-api-missing-g560.json` 329,281 bytesを削除した。主Ninja木6,036,232 KiB、共有compiler cache 983,284 KiB、最新報告だけを保持する。compiler cacheは144,894 cache可能呼出し中120,605件、83.24%がhitしている。action生成と具体的tool生成の実行時意味は後続の動的契約で扱う。次の永続作業は第561便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
+
+### 第561便の公開API契約計画
+
+- 第561便はUI thread上のnode hierarchyを図形・dummyへ写す`libs/ui/flake/kis_node_shapes_graph.h`の残存全9 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g561.json`は公開header 1,549、公開API 29,801、対応済み28,591、未対応1,210、327,813 bytes、SHA-256 `818284c82bc932ccd1eca3be4e7b218545fac0e38f5330ec67976c631e61ebe2`である。対象9識別子の整列集合SHA-256は`a08b888d26a316be51787522beb2487e08f2b1969ba17b4a1794e9581c476680`である。
+- グラフ境界は型・node追加・shape照会3、node除去・件数2、root・dummy照会と階層移動・所属照会4へ固定する。既存`libs/ui/tests/kis_node_shapes_graph_test.cpp`は実際のnode、shape、dummyを組み立て、add・remove・shape照会・件数を既に同一責務で観測している。既存枠を明示的契約へ対応付け、root・dummy照会、所属照会、node移動後の階層順を1枠だけ追加して残存境界を実行時に固定する。公開headerと製品sourceは変更しない。
+- 既存`KisNodeShapesGraphTest`は`kritaapplicationui`と`kritatestsdk`を直接所有し、clean command閉包は1,980工程・3,959入力、command SHA-256 `0734fddef2606d8c42c3edc1110edd6fe1e61bbbd0db569c785911f558be1688`、input SHA-256 `32128553eea34a800f0fdc688a9688a9fc2760e1509fe7a5cd79a05ce5110c17`である。これはnode、shape、dummyの実際の所有権移動を検査する既存具体ownerの閉包であり、新target・探索路・link・CMake変更は加えない。初期の無作業target計画はCMake再構成だけで製品再構築を予定しない。開始`libs/ui/flake/kis_node_shapes_graph.cpp`の厳格構文診断は0件である。CMake、製品source、公開header、既存targetの直接依存を変える必要、想定外の製品再構築、許可path外変更が必要なら停止する。macOSの既存targetと追加1枠の20回反復、近傍`KisNodeDummiesGraphTest`、実装・試験sourceの厳格構文、差分、公開API検査、`verify-quick`だけを実行する。
 
 ### 第239便の先行監査担当票
 
