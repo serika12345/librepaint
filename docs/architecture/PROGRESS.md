@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-13 02:31 JST
+- 更新日時: 2026-09-13 02:36 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5430,6 +5430,12 @@
 - 第577便はOpenGL widgetの一時的な文脈切替を直列化する`libs/ui/opengl/KisOpenGLContextSwitchLock.h`の残存全7 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g577.json`は公開header 1,549、公開API 29,801、対応済み28,746、未対応1,055、287,066 bytes、SHA-256 `6071af74883511c75cf50f3b87a1363c708fc87db256c280f5c7324423830f0f`である。対象7識別子の整列集合SHA-256は`a1e7f8b2c12ba4c13993b1d6f31e7a020985b6f958d0df60a76294855abfe7f7`である。
 - 文脈切替adapterの境界は対象widgetを借用して構築し、現在文脈を保存・復元する`lock`と`unlock`を提供する型と構築4 API、Qt 5では条件付きに同じ境界を提供しQt 6では同じ操作へ委譲する派生型3 APIへ固定する。開始`libs/ui/opengl/KisOpenGLContextSwitchLock.h`から既存`libs/ui/tests/KisOpenGLModeProberSchemaContractTest.cpp`へ2枠を追加し、型特性と厳密なmember pointerだけを観測する。widget、OpenGL文脈、surfaceを実体化せず本文を実行しない。実際の文脈保存・復元、OpenGL driver、Qt 5の環境変数分岐は後続の実行時契約で扱う。
 - 既存targetは同じOpenGL公開面を静的に検査し、`libs/ui`と`libs/global`の探索路、`kritaui_EXPORTS`、Qt Gui・Testをすでに持つ。現在の4工程・8入力を基準にCMake変更なしで同じ閉包を維持し、停止線を5工程・11入力とする。AUTOMOC候補header入力、製品未解決記号、動的接続の追加、製品再構築、許可path外変更が必要なら停止する。macOSの対象全体と追加2枠の20回反復、軽量近傍、試験sourceの厳格構文・書式、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。初期公開API検査は移行基準1,055件に対する7 API減少の診断を期待する。
+
+### 第577便の公開API契約結果
+
+- 開始`libs/ui/opengl/KisOpenGLContextSwitchLock.h`から既存`libs/ui/tests/KisOpenGLModeProberSchemaContractTest.cpp`へ、対象widgetを借用して構築し文脈の保存・復元を開始・終了するadapter型・構築・操作4 API、同じ操作を公開するQt 5条件付き派生adapter型・操作3 APIを2枠へ固定した。公開header、製品source、`libs/ui/tests/CMakeLists.txt`は変更していない。
+- macOSの正式CTest `libs-ui-KisOpenGLModeProberSchemaContractTest`と対象全体20回、追加2枠の各20回、近傍`KisOpenGLCanvas2SchemaContractTest`、連続二回の無作業再構築に成功した。最終閉包は4工程・8入力で変更前後とも同一、command SHA-256 `26563910ffa29c49811866e4d3a3649597748c0a2208921c0d488e3c95831872`、input SHA-256 `841766e90ca42485906491aab8f38bccf717c2c1b6222520933c84f12da48774`である。AUTOMOC `HEADERS=[]`、既存のQt Gui・TestとOS framework以外の動的接続追加なし、文脈切替adapterの製品未解決記号なしを確認した。試験sourceと`libs/ui/opengl/KisOpenGLContextSwitchLock.cpp`の`clang-check -Werror`、試験source書式、JSON構文、差分に成功した。
+- 初期公開API検査は移行基準1,055件に対して実測1,048件となり、7 APIの新規対応を期待どおり検出した。基準更新後は28,753件対応、29,801件中1,048件未対応となった。新`build/tdd-macos/public-api-missing-g578.json`は285,326 bytes、SHA-256 `219f23b050f1baa27aeca471250490ccc95e4700677f7c0d52cea734435feda4`である。生成成功後に旧`public-api-missing-g577.json` 287,066 bytesをゴミ箱へ移して作業領域から約280 KiBを回収し、主Ninja木6,058,592 KiB、共有compiler cache 981,956 KiB、最新報告だけを再利用対象として保持する。実際の文脈保存・復元、OpenGL driver、Qt 5の環境変数分岐は後続の実行時契約で扱う。次の永続作業は第578便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
 
 ### 第239便の先行監査担当票
 
