@@ -1674,6 +1674,7 @@ kis_add_test(
 target_include_directories(KisCursorOverrideHijackerSchemaContractTest PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/..
     ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs
     $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Widgets,INTERFACE_INCLUDE_DIRECTORIES>
 )
 target_compile_definitions(KisCursorOverrideHijackerSchemaContractTest PRIVATE

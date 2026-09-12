@@ -79674,6 +79674,21 @@
       ]
     },
     {
+      "target": "KisCursorOverrideHijackerSchemaContractTest",
+      "source": "libs/ui/tests/KisCursorOverrideHijackerSchemaContractTest.cpp",
+      "test": "KisCursorOverrideHijackerSchemaContractTest::androidSplashTypeAndStaticApiSchemaRemainStable",
+      "behavior": "Android splashはQObject派生の公開型としてsingleton取得、表示、読込状態、読込文言、閉鎖通知の正確な公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisAndroidSplash",
+        "method:KisAndroidSplash::instance()",
+        "method:KisAndroidSplash::setLoaded(bool loaded)",
+        "method:KisAndroidSplash::setLoadingText(const QString & text)",
+        "method:KisAndroidSplash::show()",
+        "method:KisAndroidSplash::sigSplashDialogDismissed()"
+      ]
+    },
+    {
       "target": "KisMultiBoolFilterWidgetSchemaContractTest",
       "source": "libs/ui/tests/KisMultiBoolFilterWidgetSchemaContractTest.cpp",
       "test": "KisMultiBoolFilterWidgetSchemaContractTest::nodeDisplayModeTypeConstructionAndAccessSignaturesRemainStable",
