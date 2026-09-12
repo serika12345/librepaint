@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-13 00:08 JST
+- 更新日時: 2026-09-13 00:17 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5283,9 +5283,9 @@
 
 ### 第565便の公開API契約計画
 
-- 第565便はplatform pluginからsurface色管理・修飾キー対応を取得する`libs/application/ui/orchestration/KisPlatformPluginInterfaceFactory.h`の残存全8 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g565.json`は公開header 1,549、公開API 29,801、対応済み28,624、未対応1,177、319,166 bytes、SHA-256 `ab6384fb4acfaa54f88367475eea8293e0fdd5e7c2313260acd1d34623af3fdc`である。対象8識別子の整列集合SHA-256は`17cc3ad367ca8a475b08e4a6dad00f148a3d2584c8d3f96450ff0eee8b51afd6`である。
-- platform factoryの境界は型・構築・singleton取得3、surface color manager・OS管理状態・二つの状態報告4、extended modifiers mapper取得1へ固定する。新規`libs/ui/tests/KisPlatformPluginInterfaceFactorySchemaContractTest.cpp`の3枠で型特性と厳密なmember/function pointerだけを観測し、factory、widget、native window、plugin interfaceを実体化せず本文を実行しない。platform pluginの探索、surface色空間設定、利用者向け報告文字列、extended modifiersの実行時意味は後続の動的契約で扱う。
-- 新規targetの`libs/ui/tests/CMakeLists.txt`節は、公開headerの配置`libs/application/ui`、`kritaui_export.h`のui、共有基盤global source/generated探索路、`kritaui_EXPORTS`、Qt Core・Testだけを所有する。`kritaapplicationui`、platform plugin、canvas、widget、surface color managerの製品targetは接続しない。開始`libs/application/ui/orchestration/KisPlatformPluginInterfaceFactory.cpp`の厳格構文診断は0件である。新targetは4工程・8入力を予測し、停止線を5工程・11入力とする。AUTOMOC候補header入力、製品未解決記号、追加探索路・定義・動的接続、製品再構築、許可path外変更が必要なら停止する。macOSの対象全体と追加3枠の20回反復、軽量近傍、実装・試験sourceの厳格構文、新規source書式、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。
+- 最初に選定した`libs/application/ui/orchestration/KisPlatformPluginInterfaceFactory.h`は、正式不足報告に8 APIが現れる一方、macOS test構成では`KRITA_USE_SURFACE_COLOR_MANAGEMENT_API`条件により`createSurfaceColorManager()`が宣言されないため停止した。構成を変えて条件付きAPIを見かけ上観測することはせず、未コミットの試験targetを撤回した。第565便はidle taskのstroke strategyを表す`libs/ui/canvas/KisIdleTaskStrokeStrategy.h`の残存全9 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g565.json`は公開header 1,549、公開API 29,801、対応済み28,624、未対応1,177、319,166 bytes、SHA-256 `ab6384fb4acfaa54f88367475eea8293e0fdd5e7c2313260acd1d34623af3fdc`である。対象9識別子の整列集合SHA-256は`c8e7b8e0715628d78ef6af1f4f357a776b900ceef797041ad71d479de57d7270`である。
+- idle task strategyの境界はfactory別名・型・構築・破棄4、LOD clone・idle task cookie2、最大実行時間・監視間隔・完了通知3へ固定する。新規`libs/ui/tests/KisIdleTaskStrokeStrategySchemaContractTest.cpp`の3枠で型特性、厳密なmember/function pointer、factoryの戻り型だけを観測し、strategy、image、idle task、timerを実体化せず本文を実行しない。idle taskの実行、cancel、LOD cloneの実行時意味と通知配送は後続の動的契約で扱う。
+- 新規targetの`libs/ui/tests/CMakeLists.txt`節は、header直接配置ui、`KisRunnableBasedStrokeStrategy.h`・`kis_types.h`のimage、`kundo2magicstring.h`のpainting/undo、export・共有基盤global source/generated探索路、KF I18n・header-only Boost、`kritaui_EXPORTS`・`kritaimage_EXPORTS`・`kritapaintingundo_EXPORTS`、Qt Core・Testだけを所有する。image、undo、idle task managerの製品targetは接続しない。開始`libs/ui/canvas/KisIdleTaskStrokeStrategy.cpp`の厳格構文診断は0件である。新targetは4工程・8入力を予測し、停止線を5工程・11入力とする。AUTOMOC候補header入力、製品未解決記号、追加探索路・定義・動的接続、製品再構築、許可path外変更が必要なら停止する。macOSの対象全体と追加3枠の20回反復、軽量近傍、実装・試験sourceの厳格構文、新規source書式、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。
 
 ### 第239便の先行監査担当票
 
