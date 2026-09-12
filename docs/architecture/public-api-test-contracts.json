@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 1361
+    "expectedMissingApis": 1350
   },
   "contracts": [
     {
@@ -79593,6 +79593,26 @@
       "apis": [
         "function:TRY_READ_SIGNATURE_2OPS_EX(QIODevice & device,const std::array<T,S> & expected1,const std::array<T,S> & expected2)",
         "function:TRY_READ_SIGNATURE_2OPS_EX(psd_byte_order byteOrder,QIODevice & device,const std::array<T,S> & expected1,const std::array<T,S> & expected2)"
+      ]
+    },
+    {
+      "target": "PSDLayerRecordSchemaContractTest",
+      "source": "libs/psdutils/tests/PSDLayerRecordSchemaContractTest.cpp",
+      "test": "PSDLayerRecordSchemaContractTest::pixelChannelWritingInfoAndIoSignaturesRemainStable",
+      "behavior": "PSD pixel補助はchannel識別子とsize・RLE位置の既定値および指定値を保持し、通常channel、alpha mask、RLE channel、共通pixel dataを指定byte orderで読み書きする公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:PsdPixelUtils::readAlphaMaskChannels(QIODevice & io,KisPaintDeviceSP device,int channelSize,const QRect & layerRect,QVector<ChannelInfo * > infoRecords,psd_byte_order byteOrder=psd_byte_order::psdBigEndian)",
+        "function:PsdPixelUtils::readChannels(QIODevice & io,KisPaintDeviceSP device,psd_color_mode colorMode,int channelSize,const QRect & layerRect,QVector<ChannelInfo * > infoRecords,psd_byte_order byteOrder=psd_byte_order::psdBigEndian)",
+        "function:PsdPixelUtils::writeChannelDataRLE(QIODevice & io,const quint8 * plane,const int channelSize,const QRect & rc,const qint64 sizeFieldOffset,const qint64 rleBlockOffset,const bool writeCompressionType,psd_byte_order byteOrder=psd_byte_order::psdBigEndian)",
+        "function:PsdPixelUtils::writePixelDataCommon(QIODevice & io,KisPaintDeviceSP dev,const QRect & rc,psd_color_mode colorMode,int channelSize,bool alphaFirst,const bool writeCompressionType,QVector<ChannelWritingInfo> & writingInfoList,psd_compression_type compressionType,psd_byte_order byteOrder=psd_byte_order::psdBigEndian)",
+        "member:PsdPixelUtils::ChannelWritingInfo::channelId",
+        "member:PsdPixelUtils::ChannelWritingInfo::rleBlockOffset",
+        "member:PsdPixelUtils::ChannelWritingInfo::sizeFieldOffset",
+        "method:PsdPixelUtils::ChannelWritingInfo::ChannelWritingInfo()",
+        "method:PsdPixelUtils::ChannelWritingInfo::ChannelWritingInfo(qint16 _channelId,int _sizeFieldOffset)",
+        "method:PsdPixelUtils::ChannelWritingInfo::ChannelWritingInfo(qint16 _channelId,int _sizeFieldOffset,int _rleBlockOffset)",
+        "struct:PsdPixelUtils::ChannelWritingInfo"
       ]
     }
   ]
