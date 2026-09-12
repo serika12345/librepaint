@@ -2,14 +2,14 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-13 07:10 JST
+- 更新日時: 2026-09-13 07:17 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
-- 完了: 第601便でtext property管理器と最近使った文書modelの10 APIを公開契約へ追加し、対応済みを28,900件へ進めた。
-- 次の作業: 第602便としてundo action更新管理器の公開APIを、探索路を限定した既存試験へ追加する。
+- 完了: 第602便でundo action更新管理器の5 APIを公開契約へ追加し、対応済みを28,905件へ進めた。
+- 次の作業: 第603便として未対応報告から、既存の限定試験に追加できる公開headerを選び、実装前に構築閉包を監査する。
 - 検証: macOSの対象・近傍・反復・無作業再構築、公開API検査、`verify-quick`に成功した。製品target、全体build・`verify`、Linux、Nix再評価は本便の対象外である。
 
 ### 第202便の先行監査担当票
@@ -5735,6 +5735,12 @@
 - 正式入力`build/tdd-macos/public-api-missing-g603.json`から、開始`libs/ui/actions/KisUndoActionsUpdateManager.h`の型・undo/redo actionと親QObjectでの構築・現在文書設定・undo/redo文言通知の5 APIを既存`libs/ui/tests/KisCursorOverrideHijackerSchemaContractTest.cpp`の新規1枠へ対応付ける。action、document、接続store、通知文言を実体化せず、文書切替・action状態変更・本文を実行しない。
 - 開始`libs/ui/tests/CMakeLists.txt`の同test targetへ`${CMAKE_SOURCE_DIR}/libs/global`だけを追加し、`kis_signal_auto_connection.h`を解決する。CMake再構成はtargetの探索路変更を登録するために構成を読み直すが、コンパイル・リンク範囲は自動生成2ファイルと試験本体だけに限定する。現行閉包は4工程・8入力、command SHA-256 `ce063294a78d45a16191c43707aacfacad47e7996378daf8ab5dcc8ae134efdb`、input SHA-256 `58d9882064254f622d7496f1d8e232987c51dd89595a3d9101b9bbaef2ddb583`である。試験sourceは229行・15枠で、追記後も300行・20枠未満に収まる。再構成後も4工程・8入力を要求し、停止線は5工程・11入力、製品targetの再構築、製品shared・OBJECT・`kritatestsdk`接続、候補headerのAUTOMOC入力化、動的linkまたは製品未解決記号の増加、対象値または本文の実体化、許可path外変更である。
 - macOSでは対象CTest、追加枠20回、軽量近傍`KisGrabKeyboardFocusRecoveryWorkaroundSchemaContractTest`、AUTOMOC後の二回目計画、連続二回の無作業再構築、動的接続・未解決記号・厳格構文・書式、公開API検査、`verify-quick`だけを実行する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。初回公開API検査は移行基準901件に対する5 API減少の診断を期待する。
+
+### 第602便の公開API契約結果
+
+- 開始`libs/ui/actions/KisUndoActionsUpdateManager.h`から既存`libs/ui/tests/KisCursorOverrideHijackerSchemaContractTest.cpp`へ、型・undo/redo actionと親QObjectでの構築・現在文書設定・undo/redo文言通知の5 APIを1枠として固定した。action、document、接続store、通知文言を実体化せず、文書切替・action状態変更・本文を実行していない。開始`libs/ui/tests/CMakeLists.txt`では同test targetだけへ`libs/global`探索路を追加した。公開headerと製品sourceは変更していない。
+- CMake再構成はtargetの探索路変更を登録するために構成を読み直したが、コンパイル・リンクしたのは既存独立試験targetの自動生成2ファイルと試験本体だけであり、製品targetは再構築していない。macOSの実測閉包は4工程・8入力、command SHA-256 `43e833cfe02de17e952fdb1152cc7193fd661d8d7dca777d1e69749202499a2a`、input SHA-256 `58d9882064254f622d7496f1d8e232987c51dd89595a3d9101b9bbaef2ddb583`である。対象全体20回、追加1枠20回（60 pass）、近傍`KisGrabKeyboardFocusRecoveryWorkaroundSchemaContractTest`、AUTOMOC後の連続二回の無作業再構築に成功した。試験sourceは243行・16枠、AUTOMOC `HEADERS=[]`、Qt Core・TestとOS frameworkだけの動的接続、undo action更新管理器・製品libraryの未解決記号なしを確認した。試験sourceと`libs/ui/actions/KisUndoActionsUpdateManager.cpp`の`clang-check -Werror`、試験source書式、JSON構文、差分に成功した。
+- 初回照合は移行基準901件に対して実測896件となる期待診断を確認後、基準を更新した。公開API検査は28,905件対応、29,801件中896件未対応となった。新`build/tdd-macos/public-api-missing-g604.json`は246,250 bytes、SHA-256 `b1d04d45706ea6a1552e4b3dd82faf359ac594db4c1a9c06d9df2871fcba1bcd`である。生成成功後に旧`public-api-missing-g603.json` 247,704 bytesをゴミ箱へ移して作業領域から約242 KiBを回収し、主Ninja木6,044,744 KiB、共有compiler cache 982,476 KiB、最新報告だけを再利用対象として保持する。文書切替、undo/redo actionの有効状態と文言変更は後続の効果契約で扱う。次の永続作業は第603便で独立軽量試験に追加可能な公開headerを選び、対象限定閉包を先に監査することである。
 
 ### 第239便の先行監査担当票
 
