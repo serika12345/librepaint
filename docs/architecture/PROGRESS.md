@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-13 00:03 JST
+- 更新日時: 2026-09-13 00:08 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5280,6 +5280,12 @@
 - 開始`libs/ui/flake/kis_node_shape.h`から新規`libs/ui/tests/KisNodeShapeSchemaContractTest.cpp`へ、node shapeの型・node構築・仮想破棄3 API、対応node・寸法・境界矩形3 API、位置設定・描画2 APIを3枠へ固定した。`libs/ui/tests/CMakeLists.txt`にはこのtarget固有のui・global・image・flake source/generated探索路、`kritaui_EXPORTS`・`kritaimage_EXPORTS`・`kritaflake_EXPORTS`、Qt Core・Gui・Xml・TestとKF I18n header探索路だけを追加した。公開headerと製品sourceは変更していない。
 - 初期targetは`KoShapeLayer`の推移headerに必要な`QDomDocument`を解決できず失敗したため、計画を`cadfe6c24f`でQt Xmlだけを追加する形に是正した。実装後はmacOSの正式CTest `libs-ui-KisNodeShapeSchemaContractTest`、対象全体20回、追加3枠の各20回、近傍`KisNodeShapesGraphSchemaContractTest`、連続二回の無作業再構築に成功した。最終閉包は4工程・8入力、command SHA-256 `7aa3eaed33cce809a1639ff2fe91cb78b90f8a6d007beea027097ab9c13ff527`、input SHA-256 `dd3ff0c6fd2e9eb2a2a5f9838fbaa5ba85a5c0721b79e28fb0ec724076fa1adb`である。AUTOMOC `HEADERS=[]`、Qt Core・Gui・Xml・Test、`libintl`とOS frameworkだけの動的接続、node shape・node・shape layerの製品未解決記号なしを確認した。実装・試験sourceの`clang-check -Werror`、新規source書式、JSON構文、差分に成功した。
 - 公開API検査は28,624件対応、29,801件中1,177件未対応となった。新`build/tdd-macos/public-api-missing-g565.json`は319,166 bytes、SHA-256 `ab6384fb4acfaa54f88367475eea8293e0fdd5e7c2313260acd1d34623af3fdc`であり、生成成功後に旧`public-api-missing-g564.json` 320,745 bytesをゴミ箱へ移して作業領域から約313 KiBを回収した。主Ninja木6,044,176 KiB、共有compiler cache 982,920 KiB、最新報告だけを再利用対象として保持する。compiler cacheは144,918 cache可能呼出し中120,609件、83.23%がhitしている。active node追跡、階層変化への追従、描画抑止の実行時意味は既存または後続の動的契約で扱う。次の永続作業は第565便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
+
+### 第565便の公開API契約計画
+
+- 第565便はplatform pluginからsurface色管理・修飾キー対応を取得する`libs/application/ui/orchestration/KisPlatformPluginInterfaceFactory.h`の残存全8 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g565.json`は公開header 1,549、公開API 29,801、対応済み28,624、未対応1,177、319,166 bytes、SHA-256 `ab6384fb4acfaa54f88367475eea8293e0fdd5e7c2313260acd1d34623af3fdc`である。対象8識別子の整列集合SHA-256は`17cc3ad367ca8a475b08e4a6dad00f148a3d2584c8d3f96450ff0eee8b51afd6`である。
+- platform factoryの境界は型・構築・singleton取得3、surface color manager・OS管理状態・二つの状態報告4、extended modifiers mapper取得1へ固定する。新規`libs/ui/tests/KisPlatformPluginInterfaceFactorySchemaContractTest.cpp`の3枠で型特性と厳密なmember/function pointerだけを観測し、factory、widget、native window、plugin interfaceを実体化せず本文を実行しない。platform pluginの探索、surface色空間設定、利用者向け報告文字列、extended modifiersの実行時意味は後続の動的契約で扱う。
+- 新規targetの`libs/ui/tests/CMakeLists.txt`節は、公開headerの配置`libs/application/ui`、`kritaui_export.h`のui、共有基盤global source/generated探索路、`kritaui_EXPORTS`、Qt Core・Testだけを所有する。`kritaapplicationui`、platform plugin、canvas、widget、surface color managerの製品targetは接続しない。開始`libs/application/ui/orchestration/KisPlatformPluginInterfaceFactory.cpp`の厳格構文診断は0件である。新targetは4工程・8入力を予測し、停止線を5工程・11入力とする。AUTOMOC候補header入力、製品未解決記号、追加探索路・定義・動的接続、製品再構築、許可path外変更が必要なら停止する。macOSの対象全体と追加3枠の20回反復、軽量近傍、実装・試験sourceの厳格構文、新規source書式、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。
 
 ### 第239便の先行監査担当票
 
