@@ -22,8 +22,8 @@ class KisDocumentAwareSpinBoxUnitManagerSchemaContractTest : public QObject
 
 private Q_SLOTS:
     void documentAwareUnitManagerTypeAndDirectionSchemaRemainStable();
-    void documentAwareUnitManagerConstructionAndSpinBoxSetupSignaturesRemainStable();
-    void documentAwareUnitManagerBuilderAndConversionSignaturesRemainStable();
+    void unitManagerSetupSchemaRemainStable();
+    void unitManagerBuilderAndConversionSchemaRemainStable();
 };
 
 void KisDocumentAwareSpinBoxUnitManagerSchemaContractTest::documentAwareUnitManagerTypeAndDirectionSchemaRemainStable()
@@ -38,8 +38,7 @@ void KisDocumentAwareSpinBoxUnitManagerSchemaContractTest::documentAwareUnitMana
     QVERIFY(true);
 }
 
-void KisDocumentAwareSpinBoxUnitManagerSchemaContractTest::
-    documentAwareUnitManagerConstructionAndSpinBoxSetupSignaturesRemainStable()
+void KisDocumentAwareSpinBoxUnitManagerSchemaContractTest::unitManagerSetupSchemaRemainStable()
 {
     static_assert(std::is_constructible_v<KisDocumentAwareSpinBoxUnitManager, QObject *>);
     static_assert(std::is_constructible_v<KisDocumentAwareSpinBoxUnitManager, QObject *, int>);
@@ -52,8 +51,7 @@ void KisDocumentAwareSpinBoxUnitManagerSchemaContractTest::
     QVERIFY(true);
 }
 
-void KisDocumentAwareSpinBoxUnitManagerSchemaContractTest::
-    documentAwareUnitManagerBuilderAndConversionSignaturesRemainStable()
+void KisDocumentAwareSpinBoxUnitManagerSchemaContractTest::unitManagerBuilderAndConversionSchemaRemainStable()
 {
     static_assert(std::is_same_v<decltype(&KisDocumentAwareSpinBoxUnitManagerBuilder::buildUnitManager),
                                  KisSpinBoxUnitManager *(KisDocumentAwareSpinBoxUnitManagerBuilder::*)(QObject *)>);

@@ -80446,7 +80446,7 @@
     {
       "target": "KisDocumentAwareSpinBoxUnitManagerSchemaContractTest",
       "source": "libs/ui/tests/KisDocumentAwareSpinBoxUnitManagerSchemaContractTest.cpp",
-      "test": "KisDocumentAwareSpinBoxUnitManagerSchemaContractTest::documentAwareUnitManagerConstructionAndSpinBoxSetupSignaturesRemainStable",
+      "test": "KisDocumentAwareSpinBoxUnitManagerSchemaContractTest::unitManagerSetupSchemaRemainStable",
       "behavior": "document aware unit managerは親objectと方向で構築し、既存または新規のunit spin boxへ文書対応を適用する公開境界を維持する。",
       "classification": "maintained",
       "apis": [
@@ -80458,7 +80458,7 @@
     {
       "target": "KisDocumentAwareSpinBoxUnitManagerSchemaContractTest",
       "source": "libs/ui/tests/KisDocumentAwareSpinBoxUnitManagerSchemaContractTest.cpp",
-      "test": "KisDocumentAwareSpinBoxUnitManagerSchemaContractTest::documentAwareUnitManagerBuilderAndConversionSignaturesRemainStable",
+      "test": "KisDocumentAwareSpinBoxUnitManagerSchemaContractTest::unitManagerBuilderAndConversionSchemaRemainStable",
       "behavior": "document aware unit manager builderは管理型を作成し、管理型は文書対応の変換係数と定数を照会する公開境界を維持する。",
       "classification": "maintained",
       "apis": [
