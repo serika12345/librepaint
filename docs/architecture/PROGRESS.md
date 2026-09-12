@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-13 00:22 JST
+- 更新日時: 2026-09-13 00:27 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5298,6 +5298,12 @@
 - 第566便はidle taskの登録と表示イベントを画面部品へ結び付ける`libs/ui/canvas/KisWidgetWithIdleTask.h`の残存全9 APIを対象とする。正式入力`build/tdd-macos/public-api-missing-g566.json`は公開header 1,549、公開API 29,801、対応済み28,633、未対応1,168、316,811 bytes、SHA-256 `92e22332c2282d39cd293a9f5bfcc14fd14180dc8eabaa3fd9f2067a8ad07a56`である。対象9識別子の整列集合SHA-256は`3f24f1b367584dfe98d60ae6d8ba8579b420c7f5313df53b414e3056007d892d`である。
 - widget templateの境界は型・親widget構築・破棄2、canvas設定・idle task登録・cache更新3、表示・非表示イベント2、class 1とcache消去1を3枠へ固定する。新規`libs/ui/tests/KisWidgetWithIdleTaskSchemaContractTest.cpp`の3枠で、`KisWidgetWithIdleTask<QWidget>`の型特性と厳密なmember pointerだけを観測し、widget、canvas、idle taskを実体化せず本文を実行しない。task guardの登録解除、表示状態の遷移、cache更新の実行時意味は後続の動的契約で扱う。
 - 新規targetの`libs/ui/tests/CMakeLists.txt`節は、header直接配置ui、`KisIdleTasksManager.h`・`KisIdleTaskStrokeStrategy.h`のui、`KisRunnableBasedStrokeStrategy.h`・`kis_types.h`のimage、`kundo2magicstring.h`のpainting/undo、export・共有基盤global source/generated探索路、KF I18n・header-only Boost、`kritaui_EXPORTS`・`kritaimage_EXPORTS`・`kritapaintingundo_EXPORTS`、Qt Core・Widgets・Testだけを所有する。idle task manager、canvas、imageの製品targetは接続しない。template headerのため開始製品sourceはない。新targetは4工程・8入力を予測し、停止線を5工程・11入力とする。AUTOMOC候補header入力、製品未解決記号、追加探索路・定義・動的接続、製品再構築、許可path外変更が必要なら停止する。macOSの対象全体と追加3枠の20回反復、軽量近傍、試験sourceの厳格構文、新規source書式、連続二回の無作業再構築、公開API検査、`verify-quick`だけを実行する。
+
+### 第566便の公開API契約結果
+
+- 開始`libs/ui/canvas/KisWidgetWithIdleTask.h`から新規`libs/ui/tests/KisWidgetWithIdleTaskSchemaContractTest.cpp`へ、templateの型・親widget構築・仮想破棄3 API、canvas設定・idle task登録・cache更新3 API、表示・非表示イベント・cache消去3 APIを3枠へ固定した。`libs/ui/tests/CMakeLists.txt`にはui・global・image・painting/undoの直接探索路、KF I18n・header-only Boost、対応export定義、Qt Core・Widgets・Testだけを追加した。公開headerと製品sourceは変更していない。
+- 宣言段階は追加3枠の未定義だけでlinkに失敗し、実装後はmacOSの正式CTest `libs-ui-KisWidgetWithIdleTaskSchemaContractTest`、対象全体20回、追加3枠の各20回、近傍`KisIdleTaskStrokeStrategySchemaContractTest`、連続二回の無作業再構築に成功した。最終閉包は4工程・8入力、command SHA-256 `111bd0daea9fa3ec9a976f4389feef6d48c1c6cd93793e9bd1ae6b9a0794b3c2`、input SHA-256 `047a2aa6975535d76d01771041bd8023c4c8bbfa14474aedd2d27efa833411c2`である。template headerはAUTOMOC入力に入らず、試験sourceの`clang-check -Werror`、新規source書式、JSON構文、差分に成功した。
+- 公開API検査は28,642件対応、29,801件中1,159件未対応となった。新`build/tdd-macos/public-api-missing-g567.json`は314,558 bytes、SHA-256 `9053c8d90679c59042a5cba41754f7780dea0f7a0846c84218e062334f199f7e`であり、生成成功後に旧`public-api-missing-g566.json`をゴミ箱へ移した。主Ninja木6,047,524 KiB、共有compiler cache 982,296 KiB、最新報告だけを再利用対象として保持する。task guardの登録解除、表示状態遷移、cache更新の実行時意味は後続の動的契約で扱う。次の永続作業は第567便で最新報告から高密度なmacOS対象を選び、対象限定閉包を先に監査することである。
 
 ### 第239便の先行監査担当票
 
