@@ -79662,6 +79662,18 @@
       ]
     },
     {
+      "target": "KisCursorOverrideHijackerSchemaContractTest",
+      "source": "libs/ui/tests/KisCursorOverrideHijackerSchemaContractTest.cpp",
+      "test": "KisCursorOverrideHijackerSchemaContractTest::cursorOverrideHijackerTypeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "cursor overrideを一時退避する型は既定構築と破棄が可能な公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisCursorOverrideHijacker",
+        "method:KisCursorOverrideHijacker::KisCursorOverrideHijacker()",
+        "method:KisCursorOverrideHijacker::~KisCursorOverrideHijacker()"
+      ]
+    },
+    {
       "target": "KisMultiBoolFilterWidgetSchemaContractTest",
       "source": "libs/ui/tests/KisMultiBoolFilterWidgetSchemaContractTest.cpp",
       "test": "KisMultiBoolFilterWidgetSchemaContractTest::nodeDisplayModeTypeConstructionAndAccessSignaturesRemainStable",
