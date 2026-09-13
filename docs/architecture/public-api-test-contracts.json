@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 747
+    "expectedMissingApis": 743
   },
   "contracts": [
     {
@@ -81845,6 +81845,19 @@
         "method:KisHoldUIUpdatesCommand::KisHoldUIUpdatesCommand(KisUpdatesFacade * updatesFacade,State state)",
         "method:KisHoldUIUpdatesCommand::partA()",
         "method:KisHoldUIUpdatesCommand::partB()"
+      ]
+    },
+    {
+      "target": "KisImageResizeCommandSchemaContractTest",
+      "source": "libs/image/tests/KisImageResizeCommandSchemaContractTest.cpp",
+      "test": "KisImageResizeCommandSchemaContractTest::imageResizeCommandPublicInterfaceRemainsStable",
+      "behavior": "画像サイズ変更コマンドは画像、目標サイズ、親コマンドで構築でき、undoとredoの公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisImageResizeCommand",
+        "method:KisImageResizeCommand::KisImageResizeCommand(KisImageWSP image,const QSize & newRect,KUndo2Command * parent=0)",
+        "method:KisImageResizeCommand::redo()",
+        "method:KisImageResizeCommand::undo()"
       ]
     }
   ]

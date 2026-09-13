@@ -2,14 +2,14 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-13 15:56 JST
+- 更新日時: 2026-09-13 16:05 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
-- 完了: 第648便でUI更新保留コマンドの公開形式を契約へ追加し、対応済みを29,054件へ進めた。
-- 次の作業: 第649便として、最新の不足一覧から別の軽量契約試験へ追加できる公開headerを選び、対象限定の構築閉包を監査する。
+- 完了: 第649便で画像サイズ変更コマンドの公開形式を契約へ追加し、対応済みを29,058件へ進めた。
+- 次の作業: 第650便として、最新の不足一覧から別の軽量契約試験へ追加できる公開headerを選び、対象限定の構築閉包を監査する。
 - 検証: macOSの対象・近傍・反復・無作業再構築、公開API検査、`verify-quick`に成功した。製品target、全体build・`verify`、Linux、Nix再評価は本便の対象外である。
 
 ### 第202便の先行監査担当票
@@ -5823,6 +5823,12 @@
 - CMake、公開header、製品sourceは変更していない。macOSの限定構築は`KisCursorOverrideHijackerSchemaContractTest`の自動生成、試験source、実行ファイルだけをコンパイル・リンクし、製品targetを再構築していない。実測閉包は4工程・8入力、command SHA-256 `ef32b3dd7378f1d5e5ef739d9977409afa1f64e34d162fddfb54cfd31327fc3d`、input SHA-256 `58d9882064254f622d7496f1d8e232987c51dd89595a3d9101b9bbaef2ddb583`を維持した。
 - 試験sourceは277行・19枠、AUTOMOC `HEADERS=[]`、Qt Core・TestとOS frameworkだけの動的接続であり、template creation dialog・製品libraryの未解決記号がないことを確認した。対象全体20回、追加枠20回（60 pass）、近傍`KisGrabKeyboardFocusRecoveryWorkaroundSchemaContractTest`、連続二回の無作業Ninja構築、`clang-check -Werror`、書式、JSON構文、差分に成功した。
 - 初回照合は移行基準888件に対して実測886件となる期待診断を確認後、基準を更新した。公開API検査は28,915件対応、29,801件中886件未対応となった。新`build/tdd-macos/public-api-missing-g609.json`は243,686 bytes、SHA-256 `3054ebba7a39fe813e03d2bcce52fdc1b2181406427f087d9c308fe048f4b193`である。生成成功後に旧`public-api-missing-g608.json` 244,308 bytesをゴミ箱へ移し、主Ninja木6,061,012 KiB、共有compiler cache 983,424 KiB、最新報告だけを再利用対象として保持する。template資源の読込み・書込み、文書生成、dialogの表示と選択は、製品実装を接続する後続の効果契約で扱う。次の永続作業は第610便で別の独立軽量試験に追加可能な公開headerを選び、対象限定閉包を先に監査することである。
+
+### 第649便の公開API契約結果
+
+- 開始`libs/image/commands_new/kis_image_resize_command.h`から新規`libs/image/tests/KisImageResizeCommandSchemaContractTest.cpp`へ、画像サイズ変更コマンドの型、構築、redo、undoの4 APIを`imageResizeCommandPublicInterfaceRemainsStable`として対応付けた。undo基底、構築可能性、undo・redoの関数ポインター型を固定し、画像サイズ変更の本文を実行していない。
+- 開始`libs/image/tests/CMakeLists.txt`には専用targetとimage・commands_new・global・pigment・painting/undo探索路、必要なinterface探索路だけを追加した。新targetの初回は想定どおりunknown targetであり、実測閉包は4工程・8入力、command SHA-256 `0255579d0ac7aebe3c263a59018659204e3617e8df150708139ca11497614ff4`、input SHA-256 `e50d17518af56ecbd7385a722d69d1837de95bf408e7199eb181af1c5c18ffdf`、AUTOMOC `HEADERS=[]`、製品未解決記号なしである。
+- 試験sourceは34行・1枠、対象CTest全体20回、追加枠20回（60 pass）、近傍`KisHoldUIUpdatesCommandSchemaContractTest`、連続二回の無作業Ninja構築、`clang-check -Werror`、書式、差分に成功した。公開API検査は29,058件対応、29,801件中743件未対応となった。新`build/tdd-macos/public-api-missing-g649.json`は206,938 bytes、SHA-256 `7d5f7874be269eb887fde713d1ab1ea2a875cc23b9ddd3e5aad944e1d427ed80`である。旧g648報告をゴミ箱へ移し、主Ninja木6,062,500 KiB、共有compiler cache 982,388 KiB、空き容量1.9 GiBを確認した。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 
 ### 第648便の公開API契約結果
 
