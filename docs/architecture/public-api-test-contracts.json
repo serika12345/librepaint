@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 569
+    "expectedMissingApis": 564
   },
   "contracts": [
     {
@@ -27186,6 +27186,20 @@
         "method:KisMaskingBrushOption::setImage(KisImageWSP image)",
         "method:KisMaskingBrushOption::writeOptionSetting(KisPropertiesConfigurationSP setting) const",
         "method:KisMaskingBrushOption::~KisMaskingBrushOption()"
+      ]
+    },
+    {
+      "target": "KisOutlineGenerationPolicySchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisOutlineGenerationPolicySchemaContractTest.cpp",
+      "test": "KisOutlineGenerationPolicySchemaContractTest::outlineGenerationPolicySchemaRemainStable",
+      "behavior": "outline生成policyは親の公開派生型としてoptionsと資源interfaceを受けて構築・破棄でき、現在のoutline fetcher取得とproperty変更通知を公開する形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisOutlineGenerationPolicy",
+        "method:KisOutlineGenerationPolicy::KisOutlineGenerationPolicy(KisCurrentOutlineFetcher::Options options,KisResourcesInterfaceSP resourcesInterface)",
+        "method:KisOutlineGenerationPolicy::onPropertyChanged()",
+        "method:KisOutlineGenerationPolicy::outlineFetcher() const",
+        "method:KisOutlineGenerationPolicy::~KisOutlineGenerationPolicy()"
       ]
     },
     {
