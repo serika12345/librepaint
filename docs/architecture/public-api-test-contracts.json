@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 829
+    "expectedMissingApis": 825
   },
   "contracts": [
     {
@@ -81592,6 +81592,19 @@
         "method:KisPopupWidgetAction::end(QEvent *)",
         "method:KisPopupWidgetAction::priority() const",
         "method:KisPopupWidgetAction::~KisPopupWidgetAction()"
+      ]
+    },
+    {
+      "target": "KisMainwindowObserverSchemaContractTest",
+      "source": "libs/ui/tests/KisMainwindowObserverSchemaContractTest.cpp",
+      "test": "KisMainwindowObserverSchemaContractTest::observerTypeConstructionAndViewManagerSchemaRemainStable",
+      "behavior": "画面監視器はcanvas監視器として使われ、局所実装で構築でき、画面管理器を受け取る公開通知口を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisMainwindowObserver",
+        "method:KisMainwindowObserver::KisMainwindowObserver()",
+        "method:KisMainwindowObserver::setViewManager(KisViewManager * kisview)",
+        "method:KisMainwindowObserver::~KisMainwindowObserver()"
       ]
     }
   ]
