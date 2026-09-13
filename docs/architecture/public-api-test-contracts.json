@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 858
+    "expectedMissingApis": 849
   },
   "contracts": [
     {
@@ -81473,6 +81473,24 @@
         "enumerator:KisIOSPencilTapAction::SwitchEraser",
         "enumerator:KisIOSPencilTapAction::SwitchPrevious",
         "function:installKisIOSPencilInteraction(void * nativeView,KisIOSPencilTapHandler handler)"
+      ]
+    },
+    {
+      "target": "KisIOSApplicationIntegrationSchemaContractTest",
+      "source": "krita/tests/KisIOSApplicationIntegrationSchemaContractTest.cpp",
+      "test": "KisIOSApplicationIntegrationSchemaContractTest::lifecycleTypeAndEntryPointSignaturesRemainStable",
+      "behavior": "iOSライフサイクルの五つの事象、事象を受けるハンドラー別名、ライフサイクル設置と背景作業終了の公開関数形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisIOSLifecycleHandler",
+        "enum:KisIOSLifecycleEvent",
+        "enumerator:KisIOSLifecycleEvent::BackgroundTaskExpired",
+        "enumerator:KisIOSLifecycleEvent::DidBecomeActive",
+        "enumerator:KisIOSLifecycleEvent::DidEnterBackground",
+        "enumerator:KisIOSLifecycleEvent::WillEnterForeground",
+        "enumerator:KisIOSLifecycleEvent::WillResignActive",
+        "function:finishKisIOSBackgroundTask()",
+        "function:installKisIOSLifecycleHandler(KisIOSLifecycleHandler lifecycleHandler)"
       ]
     }
   ]
