@@ -98,6 +98,24 @@ target_compile_definitions(KisMediaEncoderFormatAndSettingsContractTest PRIVATE
 )
 
 kis_add_test(
+    KisMediaEncoderPreferencesDialogSchemaContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KisMediaEncoderPreferencesDialogSchemaContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/../animation
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_BINARY_DIR}/libs/application
+    ${CMAKE_BINARY_DIR}/libs/impex
+    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Widgets,INTERFACE_INCLUDE_DIRECTORIES>
+)
+target_compile_definitions(KisMediaEncoderPreferencesDialogSchemaContractTest PRIVATE
+    kritaapplicationui_EXPORTS
+    kritaimpex_EXPORTS
+)
+
+kis_add_test(
     KisPNGConverterSchemaContractTest.cpp
     LINK_LIBRARIES
         Qt${QT_MAJOR_VERSION}::Core
