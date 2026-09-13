@@ -12,6 +12,7 @@
 struct KisDarkenOptionData;
 class KisPainter;
 class KisColorSource;
+class KisPropertiesConfiguration;
 
 
 class PAINTOP_EXPORT KisDarkenOption : public KisCurveOption

@@ -3,12 +3,15 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include <KisDarkenOption.h>
 #include <KisDynamicSensorFactoryDistance.h>
 #include <KisDynamicSensorFactoryDrawingAngle.h>
 #include <KisDynamicSensorFactoryFade.h>
 #include <KisDynamicSensorFactoryRegistry.h>
 #include <KisDynamicSensorFactoryTime.h>
+#include <KisFlowOpacityOption.h>
 #include <KisMirrorOption.h>
+#include <KisRotationOption.h>
 #include <KisScatterOption.h>
 
 #include <QTest>
@@ -39,9 +42,12 @@ class KisDynamicSensorFactoryDrawingAngleSchemaContractTest : public QObject
 private Q_SLOTS:
     void drawingAngleFactorySchemaRemainStable();
     void distanceFactorySchemaRemainStable();
+    void darkenOptionSchemaRemainStable();
     void fadeFactorySchemaRemainStable();
     void factoryRegistrySchemaRemainStable();
+    void flowOpacityOptionSchemaRemainStable();
     void mirrorOptionSchemaRemainStable();
+    void rotationOptionSchemaRemainStable();
     void scatterOptionSchemaRemainStable();
     void timeFactorySchemaRemainStable();
 };
@@ -62,6 +68,23 @@ void KisDynamicSensorFactoryDrawingAngleSchemaContractTest::distanceFactorySchem
     verifyLengthAwareFactorySchema<KisDynamicSensorFactoryDistance>();
 }
 
+void KisDynamicSensorFactoryDrawingAngleSchemaContractTest::darkenOptionSchemaRemainStable()
+{
+    using Option = KisDarkenOption;
+
+    static_assert(std::is_class_v<Option>);
+    static_assert(std::is_base_of_v<KisCurveOption, Option>);
+    static_assert(std::is_constructible_v<Option, const KisPropertiesConfiguration *>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<KoColor (Option::*)(KisPainter *, const KisPaintInformation &) const>(
+                           &Option::apply)),
+                       KoColor (Option::*)(KisPainter *, const KisPaintInformation &) const>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<void (Option::*)(KisColorSource *, const KisPaintInformation &) const>(
+                           &Option::apply)),
+                       void (Option::*)(KisColorSource *, const KisPaintInformation &) const>);
+}
+
 void KisDynamicSensorFactoryDrawingAngleSchemaContractTest::fadeFactorySchemaRemainStable()
 {
     verifyLengthAwareFactorySchema<KisDynamicSensorFactoryFade>();
@@ -78,6 +101,20 @@ void KisDynamicSensorFactoryDrawingAngleSchemaContractTest::factoryRegistrySchem
     static_assert(std::is_same_v<decltype(&Registry::instance), Registry *(*)()>);
 }
 
+void KisDynamicSensorFactoryDrawingAngleSchemaContractTest::flowOpacityOptionSchemaRemainStable()
+{
+    using Option = KisFlowOpacityOption2;
+
+    static_assert(std::is_class_v<Option>);
+    static_assert(std::is_constructible_v<Option, const KisPropertiesConfiguration *, KisNodeSP>);
+    static_assert(std::is_same_v<decltype(static_cast<void (Option::*)(KisPainter *, const KisPaintInformation &)>(
+                                     &Option::apply)),
+                                 void (Option::*)(KisPainter *, const KisPaintInformation &)>);
+    static_assert(std::is_same_v<decltype(static_cast<void (Option::*)(const KisPaintInformation &, qreal *, qreal *)>(
+                                     &Option::apply)),
+                                 void (Option::*)(const KisPaintInformation &, qreal *, qreal *)>);
+}
+
 void KisDynamicSensorFactoryDrawingAngleSchemaContractTest::mirrorOptionSchemaRemainStable()
 {
     using Option = KisMirrorOption;
@@ -87,6 +124,17 @@ void KisDynamicSensorFactoryDrawingAngleSchemaContractTest::mirrorOptionSchemaRe
     static_assert(std::is_constructible_v<Option, const KisPropertiesConfiguration *>);
     static_assert(
         std::is_same_v<decltype(&Option::apply), MirrorProperties (Option::*)(const KisPaintInformation &) const>);
+}
+
+void KisDynamicSensorFactoryDrawingAngleSchemaContractTest::rotationOptionSchemaRemainStable()
+{
+    using Option = KisRotationOption;
+
+    static_assert(std::is_class_v<Option>);
+    static_assert(std::is_base_of_v<KisCurveOption, Option>);
+    static_assert(std::is_constructible_v<Option, const KisPropertiesConfiguration *>);
+    static_assert(std::is_same_v<decltype(&Option::apply), qreal (Option::*)(const KisPaintInformation &) const>);
+    static_assert(std::is_same_v<decltype(&Option::applyFanCornersInfo), void (Option::*)(KisPaintOp *)>);
 }
 
 void KisDynamicSensorFactoryDrawingAngleSchemaContractTest::scatterOptionSchemaRemainStable()
