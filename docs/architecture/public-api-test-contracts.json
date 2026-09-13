@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 845
+    "expectedMissingApis": 844
   },
   "contracts": [
     {
@@ -81522,6 +81522,16 @@
       "classification": "maintained",
       "apis": [
         "method:KisQQuickPopupWidget::signalRootObjectReady()"
+      ]
+    },
+    {
+      "target": "KisImportExportManagerSchemaContractTest",
+      "source": "libs/impex/tests/KisImportExportManagerSchemaContractTest.cpp",
+      "test": "KisImportExportManagerSchemaContractTest::importExportColorSpaceSelectionSignatureRemainsStable",
+      "behavior": "import/export用の色空間選択は、親widget、入力・置換先色空間、変換intentとflagsを受ける成功可否の公開関数として維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisImportExportColorSpaceDialog::selectEditableColorSpace(QWidget * parent,const KoColorSpace * sourceColorSpace,const KoColorSpace ** replacementColorSpace,KoColorConversionTransformation::Intent * intent,KoColorConversionTransformation::ConversionFlags * flags)"
       ]
     }
   ]
