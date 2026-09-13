@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 843
+    "expectedMissingApis": 841
   },
   "contracts": [
     {
@@ -81542,6 +81542,17 @@
       "classification": "maintained",
       "apis": [
         "method:KisRemoteFileFetcher::~KisRemoteFileFetcher()"
+      ]
+    },
+    {
+      "target": "KoDocumentInfoSchemaContractTest",
+      "source": "libs/impex/tests/KoDocumentInfoSchemaContractTest.cpp",
+      "test": "KoDocumentInfoSchemaContractTest::lifetimeAndUpdatedSignalSchemaRemainStable",
+      "behavior": "文書メタデータはQObjectとして使われ、基底参照を通じて安全に破棄でき、情報更新を二つの文字列で通知する公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoDocumentInfo::infoUpdated(const QString & info,const QString & data)",
+        "method:KoDocumentInfo::~KoDocumentInfo()"
       ]
     }
   ]

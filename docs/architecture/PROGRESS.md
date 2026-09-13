@@ -2,14 +2,14 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-13 11:48 JST
+- 更新日時: 2026-09-13 12:07 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
-- 完了: 第625便で遠隔ファイル取得器の仮想デストラクターを公開契約へ追加し、対応済みを28,958件へ進めた。
-- 次の作業: 第626便として、最新の不足一覧から別の軽量契約試験へ追加できる公開headerを選び、対象限定の構築閉包を監査する。
+- 完了: 第626便で文書メタデータの寿命と更新通知を公開契約へ追加し、対応済みを28,960件へ進めた。
+- 次の作業: 第627便として、最新の不足一覧から別の軽量契約試験へ追加できる公開headerを選び、対象限定の構築閉包を監査する。
 - 検証: macOSの対象・近傍・反復・無作業再構築、公開API検査、`verify-quick`に成功した。製品target、全体build・`verify`、Linux、Nix再評価は本便の対象外である。
 
 ### 第202便の先行監査担当票
@@ -5823,6 +5823,19 @@
 - CMake、公開header、製品sourceは変更していない。macOSの限定構築は`KisCursorOverrideHijackerSchemaContractTest`の自動生成、試験source、実行ファイルだけをコンパイル・リンクし、製品targetを再構築していない。実測閉包は4工程・8入力、command SHA-256 `ef32b3dd7378f1d5e5ef739d9977409afa1f64e34d162fddfb54cfd31327fc3d`、input SHA-256 `58d9882064254f622d7496f1d8e232987c51dd89595a3d9101b9bbaef2ddb583`を維持した。
 - 試験sourceは277行・19枠、AUTOMOC `HEADERS=[]`、Qt Core・TestとOS frameworkだけの動的接続であり、template creation dialog・製品libraryの未解決記号がないことを確認した。対象全体20回、追加枠20回（60 pass）、近傍`KisGrabKeyboardFocusRecoveryWorkaroundSchemaContractTest`、連続二回の無作業Ninja構築、`clang-check -Werror`、書式、JSON構文、差分に成功した。
 - 初回照合は移行基準888件に対して実測886件となる期待診断を確認後、基準を更新した。公開API検査は28,915件対応、29,801件中886件未対応となった。新`build/tdd-macos/public-api-missing-g609.json`は243,686 bytes、SHA-256 `3054ebba7a39fe813e03d2bcce52fdc1b2181406427f087d9c308fe048f4b193`である。生成成功後に旧`public-api-missing-g608.json` 244,308 bytesをゴミ箱へ移し、主Ninja木6,061,012 KiB、共有compiler cache 983,424 KiB、最新報告だけを再利用対象として保持する。template資源の読込み・書込み、文書生成、dialogの表示と選択は、製品実装を接続する後続の効果契約で扱う。次の永続作業は第610便で別の独立軽量試験に追加可能な公開headerを選び、対象限定閉包を先に監査することである。
+
+### 第626便の公開API契約計画
+
+- 正式入力`build/tdd-macos/public-api-missing-g625.json`を監査し、開始`libs/impex/KisImportExportFilter.h`は仮想デストラクターの宣言だけでも`klocalizedstring.h`、Eigen、Qt Guiの探索路を順に必要とし、対象固有の4工程・8入力を維持できないため除外した。開始`libs/psdutils/psd.h`の既存`PsdFormatValuesContractTest`は6工程・14入力で停止線を超えるため除外した。開始`libs/impex/metadata/KoDocumentInfo.h`の仮想デストラクターと`infoUpdated()`通知の2 APIを、新規`libs/impex/tests/KoDocumentInfoSchemaContractTest.cpp`の1枠`lifetimeAndUpdatedSignalSchemaRemainStable`へ対応付ける。
+- 既存`libs/impex/tests/kis_document_metadata_test.cpp`は文書メタデータobjectとXML入出力を実行する157工程・340入力のruntime targetであるため、追加先から除外する。開始`libs/impex/tests/CMakeLists.txt`には専用target、metadata source探索路、生成済みimpex export headerの探索路、`kritaimpex_EXPORTS`だけを追加する。Qt Core・Testだけを動的接続し、文書メタデータobject、XML文書、製品target、製品shared・OBJECT、`kritatestsdk`を接続しない。停止線は5工程・11入力、候補headerのAUTOMOC入力化、製品未解決記号、文書メタデータ・XML文書・親QObjectの実体化または許可path外変更とする。
+- macOSでは対象CTest、追加枠20回、既存`kis_document_metadata_test`の近傍実行、AUTOMOC後の二回目計画、連続二回の無作業再構築、動的接続・未解決記号・厳格構文・書式、公開API検査、`verify-quick`だけを実行する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。初回公開API検査は移行基準843件に対する2 API減少の診断を期待する。
+
+### 第626便の公開API契約結果
+
+- 開始`libs/impex/metadata/KoDocumentInfo.h`から新規`libs/impex/tests/KoDocumentInfoSchemaContractTest.cpp`へ、仮想デストラクターと`infoUpdated(const QString &, const QString &)`通知の2 APIを`lifetimeAndUpdatedSignalSchemaRemainStable`として対応付けた。文書メタデータがQObjectとして使われ、基底参照を通じて安全に破棄でき、更新を二つの文字列で通知する公開形式を固定し、文書メタデータobject、XML文書、親QObject、通知本文を実体化または実行していない。
+- 開始`libs/impex/tests/CMakeLists.txt`には専用target、metadata sourceと生成済みimpex export headerの探索路、export定義だけを追加した。CMake再構成はtarget登録のため構成全体を読み直したが、Ninjaがコンパイル・リンクしたのは`KoDocumentInfoSchemaContractTest`の自動生成、試験source、実行ファイルだけである。製品target、文書メタデータobject、製品shared、OBJECT target、`kritatestsdk`を構築へ加えていない。実測閉包は4工程・8入力、command SHA-256 `ed297eb0dd560750d5da1245f48c5789d16dc4ce7763ff9e71cb1a94f59a02cc`、input SHA-256 `acd1d2d934a18d68ff71a01ee290b108c20263deae3d72ae6086594b246a1d96`である。
+- 試験sourceは31行・1枠、AUTOMOC `HEADERS=[]`、Qt Core・TestとOS frameworkだけの動的接続であり、文書メタデータ・製品libraryの未解決記号がないことを確認した。対象全体20回、追加枠20回（60 pass）、近傍`kis_document_metadata_test`、連続二回の無作業Ninja構築、compilation databaseを用いる`clang-check`、書式、JSON構文、差分に成功した。
+- 初回照合は移行基準843件に対して実測841件となる期待診断を確認後、基準を更新した。公開API検査は28,960件対応、29,801件中841件未対応となった。新`build/tdd-macos/public-api-missing-g626.json`は232,643 bytes、SHA-256 `0c5499910b9c6f5ed260bc1bfc105c9875f752a5564529ea10f8c6cebaf5c3e3`である。生成成功後に旧`public-api-missing-g625.json`をゴミ箱へ移し、主Ninja木6,074,416 KiB、共有compiler cache 983,212 KiB、最新報告だけを再利用対象として保持する。空き容量19 GiBを確認した。次の永続作業は第627便で別の独立軽量試験に追加可能な公開headerを選び、対象限定閉包を先に監査することである。
 
 ### 第625便の公開API契約計画
 
