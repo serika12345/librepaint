@@ -10,9 +10,12 @@
 #include <KisDynamicSensorFactoryRegistry.h>
 #include <KisDynamicSensorFactoryTime.h>
 #include <KisFlowOpacityOption.h>
+#include <KisHSVOption.h>
 #include <KisMirrorOption.h>
+#include <KisOpacityOption.h>
 #include <KisRotationOption.h>
 #include <KisScatterOption.h>
+#include <KisSpacingOption.h>
 
 #include <QTest>
 
@@ -46,9 +49,12 @@ private Q_SLOTS:
     void fadeFactorySchemaRemainStable();
     void factoryRegistrySchemaRemainStable();
     void flowOpacityOptionSchemaRemainStable();
+    void hsvOptionSchemaRemainStable();
     void mirrorOptionSchemaRemainStable();
+    void opacityOptionSchemaRemainStable();
     void rotationOptionSchemaRemainStable();
     void scatterOptionSchemaRemainStable();
+    void spacingOptionSchemaRemainStable();
     void timeFactorySchemaRemainStable();
 };
 
@@ -115,6 +121,21 @@ void KisDynamicSensorFactoryDrawingAngleSchemaContractTest::flowOpacityOptionSch
                                  void (Option::*)(const KisPaintInformation &, qreal *, qreal *)>);
 }
 
+void KisDynamicSensorFactoryDrawingAngleSchemaContractTest::hsvOptionSchemaRemainStable()
+{
+    using Option = KisHSVOption;
+
+    static_assert(std::is_class_v<Option>);
+    static_assert(std::is_base_of_v<KisCurveOption, Option>);
+    static_assert(std::is_same_v<decltype(&Option::createHueOption), Option *(*)(const KisPropertiesConfiguration *)>);
+    static_assert(
+        std::is_same_v<decltype(&Option::createSaturationOption), Option *(*)(const KisPropertiesConfiguration *)>);
+    static_assert(
+        std::is_same_v<decltype(&Option::createValueOption), Option *(*)(const KisPropertiesConfiguration *)>);
+    static_assert(std::is_same_v<decltype(&Option::apply),
+                                 void (Option::*)(KoColorTransformation *, const KisPaintInformation &) const>);
+}
+
 void KisDynamicSensorFactoryDrawingAngleSchemaContractTest::mirrorOptionSchemaRemainStable()
 {
     using Option = KisMirrorOption;
@@ -124,6 +145,21 @@ void KisDynamicSensorFactoryDrawingAngleSchemaContractTest::mirrorOptionSchemaRe
     static_assert(std::is_constructible_v<Option, const KisPropertiesConfiguration *>);
     static_assert(
         std::is_same_v<decltype(&Option::apply), MirrorProperties (Option::*)(const KisPaintInformation &) const>);
+}
+
+void KisDynamicSensorFactoryDrawingAngleSchemaContractTest::opacityOptionSchemaRemainStable()
+{
+    using Option = KisOpacityOption;
+    using Base = KisStandardOption<KisOpacityOptionData>;
+
+    static_assert(std::is_class_v<Option>);
+    static_assert(std::is_base_of_v<Base, Option>);
+    static_assert(std::is_same_v<Option::BaseClass, Base>);
+    static_assert(std::is_constructible_v<Option, const KisPropertiesConfiguration *, KisNodeSP>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<void (Option::*)(KisPainter *, const KisPaintInformation &) const>(
+                           &Option::apply)),
+                       void (Option::*)(KisPainter *, const KisPaintInformation &) const>);
 }
 
 void KisDynamicSensorFactoryDrawingAngleSchemaContractTest::rotationOptionSchemaRemainStable()
@@ -146,6 +182,18 @@ void KisDynamicSensorFactoryDrawingAngleSchemaContractTest::scatterOptionSchemaR
     static_assert(std::is_constructible_v<Option, const KisPropertiesConfiguration *>);
     static_assert(
         std::is_same_v<decltype(&Option::apply), QPointF (Option::*)(const KisPaintInformation &, qreal, qreal) const>);
+}
+
+void KisDynamicSensorFactoryDrawingAngleSchemaContractTest::spacingOptionSchemaRemainStable()
+{
+    using Option = KisSpacingOption;
+
+    static_assert(std::is_class_v<Option>);
+    static_assert(std::is_base_of_v<KisCurveOption, Option>);
+    static_assert(std::is_constructible_v<Option, const KisPropertiesConfiguration *>);
+    static_assert(std::is_same_v<decltype(&Option::apply), qreal (Option::*)(const KisPaintInformation &) const>);
+    static_assert(std::is_same_v<decltype(&Option::isotropicSpacing), bool (Option::*)() const>);
+    static_assert(std::is_same_v<decltype(&Option::usingSpacingUpdates), bool (Option::*)() const>);
 }
 
 void KisDynamicSensorFactoryDrawingAngleSchemaContractTest::timeFactorySchemaRemainStable()
