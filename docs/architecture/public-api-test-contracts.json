@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 751
+    "expectedMissingApis": 747
   },
   "contracts": [
     {
@@ -81832,6 +81832,19 @@
         "method:KisActivateSelectionMaskCommand::KisActivateSelectionMaskCommand(KisSelectionMaskSP selectionMask,bool value)",
         "method:KisActivateSelectionMaskCommand::redo()",
         "method:KisActivateSelectionMaskCommand::undo()"
+      ]
+    },
+    {
+      "target": "KisHoldUIUpdatesCommandSchemaContractTest",
+      "source": "libs/image/tests/KisHoldUIUpdatesCommandSchemaContractTest.cpp",
+      "test": "KisHoldUIUpdatesCommandSchemaContractTest::holdUiUpdatesCommandPublicInterfaceRemainsStable",
+      "behavior": "UI更新保留コマンドは更新窓口と状態で構築でき、二つの処理段階の公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisHoldUIUpdatesCommand",
+        "method:KisHoldUIUpdatesCommand::KisHoldUIUpdatesCommand(KisUpdatesFacade * updatesFacade,State state)",
+        "method:KisHoldUIUpdatesCommand::partA()",
+        "method:KisHoldUIUpdatesCommand::partB()"
       ]
     }
   ]
