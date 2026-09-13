@@ -2,14 +2,14 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-13 13:34 JST
+- 更新日時: 2026-09-13 13:46 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
-- 完了: 第634便で選択操作adapterの型、構築、不透明領域選択を公開契約へ追加し、対応済みを28,989件へ進めた。
-- 次の作業: 第635便として、最新の不足一覧から別の軽量契約試験へ追加できる公開headerを選び、対象限定の構築閉包を監査する。
+- 完了: 第635便で選択filter操作の型、構築、filter実行を公開契約へ追加し、対応済みを28,992件へ進めた。
+- 次の作業: 第636便として、最新の不足一覧から別の軽量契約試験へ追加できる公開headerを選び、対象限定の構築閉包を監査する。
 - 検証: macOSの対象・近傍・反復・無作業再構築、公開API検査、`verify-quick`に成功した。製品target、全体build・`verify`、Linux、Nix再評価は本便の対象外である。
 
 ### 第202便の先行監査担当票
@@ -5823,6 +5823,18 @@
 - CMake、公開header、製品sourceは変更していない。macOSの限定構築は`KisCursorOverrideHijackerSchemaContractTest`の自動生成、試験source、実行ファイルだけをコンパイル・リンクし、製品targetを再構築していない。実測閉包は4工程・8入力、command SHA-256 `ef32b3dd7378f1d5e5ef739d9977409afa1f64e34d162fddfb54cfd31327fc3d`、input SHA-256 `58d9882064254f622d7496f1d8e232987c51dd89595a3d9101b9bbaef2ddb583`を維持した。
 - 試験sourceは277行・19枠、AUTOMOC `HEADERS=[]`、Qt Core・TestとOS frameworkだけの動的接続であり、template creation dialog・製品libraryの未解決記号がないことを確認した。対象全体20回、追加枠20回（60 pass）、近傍`KisGrabKeyboardFocusRecoveryWorkaroundSchemaContractTest`、連続二回の無作業Ninja構築、`clang-check -Werror`、書式、JSON構文、差分に成功した。
 - 初回照合は移行基準888件に対して実測886件となる期待診断を確認後、基準を更新した。公開API検査は28,915件対応、29,801件中886件未対応となった。新`build/tdd-macos/public-api-missing-g609.json`は243,686 bytes、SHA-256 `3054ebba7a39fe813e03d2bcce52fdc1b2181406427f087d9c308fe048f4b193`である。生成成功後に旧`public-api-missing-g608.json` 244,308 bytesをゴミ箱へ移し、主Ninja木6,061,012 KiB、共有compiler cache 983,424 KiB、最新報告だけを再利用対象として保持する。template資源の読込み・書込み、文書生成、dialogの表示と選択は、製品実装を接続する後続の効果契約で扱う。次の永続作業は第610便で別の独立軽量試験に追加可能な公開headerを選び、対象限定閉包を先に監査することである。
+
+### 第635便の公開API契約計画
+
+- 正式入力`build/tdd-macos/public-api-missing-g634.json`から、開始`libs/ui/operations/kis_filter_selection_operation.h`の選択filter操作型、識別子を受ける構築子、filter実行口の3 APIを、既存`libs/ui/tests/KisSelectionActionFactoriesSchemaContractTest.cpp`の新規1枠`filterSelectionOperationTypeAndFilterEntrySchemaRemainStable`へ対応付ける。同じ選択操作責務の既存targetを再利用し、操作、filter、画面管理器、設定、本文を実体化または実行しない。
+- CMake、公開header、製品sourceは変更しない。既存targetの閉包4工程・8入力を維持し、製品target、製品shared・OBJECT target、`kritatestsdk`を接続しない。候補headerのAUTOMOC入力化、製品未解決記号、操作またはfilter関係の実体化を停止条件とする。
+
+### 第635便の公開API契約結果
+
+- 開始`libs/ui/operations/kis_filter_selection_operation.h`から既存`libs/ui/tests/KisSelectionActionFactoriesSchemaContractTest.cpp`へ、選択filter操作の型、構築、filter実行の3 APIを`filterSelectionOperationTypeAndFilterEntrySchemaRemainStable`として対応付けた。操作が`KisOperation`として使われ、識別子で構築でき、filter・画面管理器・設定を受ける実行口の正確な公開形式を維持することを固定し、操作、filter、画面管理器、設定、各本文を実体化または実行していない。
+- Ninjaがコンパイル・リンクしたのは既存`KisSelectionActionFactoriesSchemaContractTest`の自動生成、試験source、実行ファイルだけである。実測閉包は4工程・8入力、command SHA-256 `ad5bf96739a5a1a01c0d8d4a8639476fd2c0f543e0a495cd90176cd5ea7eee07`、input SHA-256 `d540cd78822c18f3fdc3f681bf3729bd79338640d41fca3dd1fe5c45f294376e`を維持した。
+- 試験sourceは213行・13枠、AUTOMOC `HEADERS=[]`、Qt Core・TestとOS frameworkだけの動的接続、選択filter操作・KisOperation・製品libraryの未解決記号なしである。対象全体20回、追加枠20回（60 pass）、近傍`KisImageManagerSchemaContractTest`、連続二回の無作業Ninja構築、`clang-check`、書式、JSON構文、差分に成功した。
+- 初回照合は移行基準812件に対して実測809件となる期待診断を確認後、基準を更新した。公開API検査は28,992件対応、29,801件中809件未対応となった。新`build/tdd-macos/public-api-missing-g635.json`は224,529 bytes、SHA-256 `20e466491ee46b852f42938a2a90f586a2a5f823e31d2c4ba7d83fa6003da523`である。生成成功後に旧`public-api-missing-g634.json`をゴミ箱へ移し、主Ninja木6,081,188 KiB、共有compiler cache 982,328 KiB、最新報告だけを再利用対象として保持する。空き容量11 GiBを確認した。次の永続作業は第636便の軽量公開header監査である。
 
 ### 第634便の公開API契約計画
 
