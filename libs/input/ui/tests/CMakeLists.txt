@@ -95,12 +95,16 @@ kis_add_test(
         Qt${QT_MAJOR_VERSION}::Test
 )
 target_compile_definitions(KisInputManagerSchemaContractTest
-    PRIVATE kritainputui_EXPORTS
+    PRIVATE
+        kritacanvas_EXPORTS
+        kritainputui_EXPORTS
 )
 target_include_directories(KisInputManagerSchemaContractTest
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/..
         ${CMAKE_CURRENT_BINARY_DIR}/..
+        ${CMAKE_SOURCE_DIR}/libs/canvas
+        ${CMAKE_BINARY_DIR}/libs/canvas
 )
 
 kis_add_test(

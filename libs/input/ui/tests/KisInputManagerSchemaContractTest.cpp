@@ -4,6 +4,7 @@
  */
 
 #include "kis_input_manager.h"
+#include "KisPopupWidgetAction.h"
 
 #include <type_traits>
 #include <utility>
@@ -28,6 +29,7 @@ private Q_SLOTS:
     void inputManagerCanvasAndToolContextSignaturesRemainStable();
     void inputManagerEventFilterSignaturesRemainStable();
     void inputManagerPopupConfigurationAndDiagnosticsSignaturesRemainStable();
+    void popupWidgetActionTypeAndLifecycleSchemaRemainStable();
 };
 
 void KisInputManagerSchemaContractTest::inputManagerTypeLifetimeAndConstructionSchemaRemainStable()
@@ -80,6 +82,20 @@ void KisInputManagerSchemaContractTest::inputManagerPopupConfigurationAndDiagnos
     ASSERT_INPUT_MANAGER_MEMBER(registerPopupWidget, void (Manager::*)(KisPopupWidgetInterface *));
     ASSERT_INPUT_MANAGER_MEMBER(reloadSettings, void (Manager::*)());
     ASSERT_INPUT_MANAGER_MEMBER(toggleTabletLogger, void (Manager::*)());
+
+    QVERIFY(true);
+}
+
+void KisInputManagerSchemaContractTest::popupWidgetActionTypeAndLifecycleSchemaRemainStable()
+{
+    using Action = KisPopupWidgetAction;
+
+    static_assert(std::is_base_of_v<QObject, Action>);
+    static_assert(std::is_base_of_v<KisAbstractInputAction, Action>);
+    static_assert(std::is_default_constructible_v<Action>);
+    static_assert(std::has_virtual_destructor_v<Action>);
+    static_assert(std::is_same_v<decltype(&Action::priority), int (Action::*)() const>);
+    static_assert(std::is_same_v<decltype(&Action::end), void (Action::*)(QEvent *)>);
 
     QVERIFY(true);
 }
