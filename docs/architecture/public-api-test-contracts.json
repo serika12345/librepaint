@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 834
+    "expectedMissingApis": 829
   },
   "contracts": [
     {
@@ -81578,6 +81578,20 @@
         "method:ToolOpacityAbstractResource::ToolOpacityAbstractResource(int key,qreal value)",
         "method:ToolOpacityAbstractResource::setValue(const QVariant value)",
         "method:ToolOpacityAbstractResource::value() const"
+      ]
+    },
+    {
+      "target": "KisInputManagerSchemaContractTest",
+      "source": "libs/input/ui/tests/KisInputManagerSchemaContractTest.cpp",
+      "test": "KisInputManagerSchemaContractTest::popupWidgetActionTypeAndLifecycleSchemaRemainStable",
+      "behavior": "ポップアップ操作はQObjectと入力操作の両方として使われ、既定構築、優先度照会、終了通知の公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisPopupWidgetAction",
+        "method:KisPopupWidgetAction::KisPopupWidgetAction()",
+        "method:KisPopupWidgetAction::end(QEvent *)",
+        "method:KisPopupWidgetAction::priority() const",
+        "method:KisPopupWidgetAction::~KisPopupWidgetAction()"
       ]
     }
   ]

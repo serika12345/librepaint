@@ -2,14 +2,14 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-13 12:29 JST
+- 更新日時: 2026-09-13 12:39 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
-- 完了: 第628便でツール不透明度の抽象資源型・構築・値操作を公開契約へ追加し、対応済みを28,967件へ進めた。
-- 次の作業: 第629便として、最新の不足一覧から別の軽量契約試験へ追加できる公開headerを選び、対象限定の構築閉包を監査する。
+- 完了: 第629便でポップアップ操作の型・構築・終了・優先度を公開契約へ追加し、対応済みを28,972件へ進めた。
+- 次の作業: 第630便として、最新の不足一覧から別の軽量契約試験へ追加できる公開headerを選び、対象限定の構築閉包を監査する。
 - 検証: macOSの対象・近傍・反復・無作業再構築、公開API検査、`verify-quick`に成功した。製品target、全体build・`verify`、Linux、Nix再評価は本便の対象外である。
 
 ### 第202便の先行監査担当票
@@ -5823,6 +5823,19 @@
 - CMake、公開header、製品sourceは変更していない。macOSの限定構築は`KisCursorOverrideHijackerSchemaContractTest`の自動生成、試験source、実行ファイルだけをコンパイル・リンクし、製品targetを再構築していない。実測閉包は4工程・8入力、command SHA-256 `ef32b3dd7378f1d5e5ef739d9977409afa1f64e34d162fddfb54cfd31327fc3d`、input SHA-256 `58d9882064254f622d7496f1d8e232987c51dd89595a3d9101b9bbaef2ddb583`を維持した。
 - 試験sourceは277行・19枠、AUTOMOC `HEADERS=[]`、Qt Core・TestとOS frameworkだけの動的接続であり、template creation dialog・製品libraryの未解決記号がないことを確認した。対象全体20回、追加枠20回（60 pass）、近傍`KisGrabKeyboardFocusRecoveryWorkaroundSchemaContractTest`、連続二回の無作業Ninja構築、`clang-check -Werror`、書式、JSON構文、差分に成功した。
 - 初回照合は移行基準888件に対して実測886件となる期待診断を確認後、基準を更新した。公開API検査は28,915件対応、29,801件中886件未対応となった。新`build/tdd-macos/public-api-missing-g609.json`は243,686 bytes、SHA-256 `3054ebba7a39fe813e03d2bcce52fdc1b2181406427f087d9c308fe048f4b193`である。生成成功後に旧`public-api-missing-g608.json` 244,308 bytesをゴミ箱へ移し、主Ninja木6,061,012 KiB、共有compiler cache 983,424 KiB、最新報告だけを再利用対象として保持する。template資源の読込み・書込み、文書生成、dialogの表示と選択は、製品実装を接続する後続の効果契約で扱う。次の永続作業は第610便で別の独立軽量試験に追加可能な公開headerを選び、対象限定閉包を先に監査することである。
+
+### 第629便の公開API契約計画
+
+- 正式入力`build/tdd-macos/public-api-missing-g628.json`から、開始`libs/input/ui/KisPopupWidgetAction.h`のポップアップ操作型、既定構築子、終了、優先度、仮想デストラクターの5 APIを、既存`libs/input/ui/tests/KisInputManagerSchemaContractTest.cpp`の新規1枠`popupWidgetActionTypeAndLifecycleSchemaRemainStable`へ対応付ける。入力管理とポップアップ操作は同じ入力解釈境界にあり、既存5枠へ追加しても20枠未満に収まる。ポップアップ操作、入力管理、親QObject、イベント、本文を実体化または実行しない。
+- 既存targetは4工程・8入力である。初回限定構築は`kis_abstract_input_action.h`の直接依存`KisInputActionGroup.h`を解決できない診断を返した。開始`libs/input/ui/tests/CMakeLists.txt`の同targetへcanvas source/binary探索路と`kritacanvas_EXPORTS`だけを追加して解消し、Qt Core・Testだけを動的接続する。製品target、製品shared・OBJECT、`kritatestsdk`を接続しない。停止線は5工程・11入力、候補headerのAUTOMOC入力化、製品未解決記号、ポップアップ操作・入力管理・QObject・イベントの実体化または許可path外変更とする。
+- macOSでは対象CTest、追加枠20回、軽量近傍`KisInputProfileManagerSchemaContractTest`、AUTOMOC後の二回目計画、連続二回の無作業再構築、動的接続・未解決記号・厳格構文・書式、公開API検査、`verify-quick`だけを実行する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。初回公開API検査は移行基準834件に対する5 API減少の診断を期待する。
+
+### 第629便の公開API契約結果
+
+- 開始`libs/input/ui/KisPopupWidgetAction.h`から既存`libs/input/ui/tests/KisInputManagerSchemaContractTest.cpp`へ、型、既定構築子、終了、優先度、仮想デストラクターの5 APIを`popupWidgetActionTypeAndLifecycleSchemaRemainStable`として対応付けた。ポップアップ操作がQObjectと入力操作の両方として使われ、既定構築、優先度照会、終了通知の公開形式を固定し、ポップアップ操作、入力管理、QObject、イベント、各本文を実体化または実行していない。
+- 開始`libs/input/ui/tests/CMakeLists.txt`の同targetへcanvas source/binary探索路とexport定義だけを追加した。CMake再構成は探索路補正のため構成全体を読み直したが、Ninjaがコンパイル・リンクしたのは`KisInputManagerSchemaContractTest`の自動生成、試験source、実行ファイルだけである。製品target、ポップアップ操作、入力管理、製品shared、OBJECT target、`kritatestsdk`を構築へ加えていない。実測閉包は4工程・8入力、command SHA-256 `0b71883f4e716dd2c633716726dbed848610a2b290dc682dfa0f0e3f34645ad3`、input SHA-256 `904aca4bbe78c9dfb237992d0e5a5ba3b88fc758cfd459e813a36b8f2caf9a0d`である。
+- 試験sourceは107行・6枠、AUTOMOC `HEADERS=[]`、Qt Core・TestとOS frameworkだけの動的接続であり、ポップアップ操作・入力管理・製品libraryの未解決記号がないことを確認した。対象全体20回、追加枠20回（60 pass）、近傍`KisInputProfileManagerSchemaContractTest`、連続二回の無作業Ninja構築、compilation databaseを用いる`clang-check`、書式、JSON構文、差分に成功した。
+- 初回照合は移行基準834件に対して実測829件となる期待診断を確認後、基準を更新した。公開API検査は28,972件対応、29,801件中829件未対応となった。新`build/tdd-macos/public-api-missing-g629.json`は230,077 bytes、SHA-256 `527b90cf61f932104c882698f1066c4cd5e5b27ae5fe2bde5535c568ea75c34d`である。生成成功後に旧`public-api-missing-g628.json`をゴミ箱へ移し、主Ninja木6,076,972 KiB、共有compiler cache 981,940 KiB、最新報告だけを再利用対象として保持する。空き容量16 GiBを確認した。次の永続作業は第630便で別の独立軽量試験に追加可能な公開headerを選び、対象限定閉包を先に監査することである。
 
 ### 第628便の公開API契約計画
 
