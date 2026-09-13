@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 770
+    "expectedMissingApis": 763
   },
   "contracts": [
     {
@@ -81786,6 +81786,22 @@
         "method:KisImportCatcher::adaptClipToImageColorSpace(KisPaintDeviceSP dev,KisImageSP image)",
         "method:KisImportCatcher::numLayersImported() const",
         "method:KisImportCatcher::~KisImportCatcher()"
+      ]
+    },
+    {
+      "target": "KisImportExportResizeWidgetSchemaContractTest",
+      "source": "libs/impex/tests/KisImportExportResizeWidgetSchemaContractTest.cpp",
+      "test": "KisImportExportResizeWidgetSchemaContractTest::resizeWidgetPublicInterfaceRemainsStable",
+      "behavior": "取込み・書出し用リサイズ指定は抽象型として使われ、widget、寸法、解像度、filter種別の照会と作成関数の公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisImportExportResizeWidget",
+        "function:createImportExportResizeWidget(QWidget * parent,int width,int height,double resolution)",
+        "method:KisImportExportResizeWidget::desiredResolution() const",
+        "method:KisImportExportResizeWidget::desiredSize() const",
+        "method:KisImportExportResizeWidget::filterType() const",
+        "method:KisImportExportResizeWidget::widget() const",
+        "method:KisImportExportResizeWidget::~KisImportExportResizeWidget()"
       ]
     }
   ]
