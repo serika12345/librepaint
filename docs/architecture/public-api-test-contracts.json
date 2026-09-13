@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 605
+    "expectedMissingApis": 591
   },
   "contracts": [
     {
@@ -27087,6 +27087,47 @@
         "method:KisRotationOption::KisRotationOption(const KisPropertiesConfiguration * setting)",
         "method:KisRotationOption::apply(const KisPaintInformation & info) const",
         "method:KisRotationOption::applyFanCornersInfo(KisPaintOp * op)"
+      ]
+    },
+    {
+      "target": "KisDynamicSensorFactoryDrawingAngleSchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisDynamicSensorFactoryDrawingAngleSchemaContractTest.cpp",
+      "test": "KisDynamicSensorFactoryDrawingAngleSchemaContractTest::hsvOptionSchemaRemainStable",
+      "behavior": "HSV optionはcurve optionの公開派生型としてhue・saturation・value別の生成を提供し、paint情報から色変換を適用する公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisHSVOption",
+        "method:KisHSVOption::apply(KoColorTransformation * transfo,const KisPaintInformation & info) const",
+        "method:KisHSVOption::createHueOption(const KisPropertiesConfiguration * setting)",
+        "method:KisHSVOption::createSaturationOption(const KisPropertiesConfiguration * setting)",
+        "method:KisHSVOption::createValueOption(const KisPropertiesConfiguration * setting)"
+      ]
+    },
+    {
+      "target": "KisDynamicSensorFactoryDrawingAngleSchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisDynamicSensorFactoryDrawingAngleSchemaContractTest.cpp",
+      "test": "KisDynamicSensorFactoryDrawingAngleSchemaContractTest::opacityOptionSchemaRemainStable",
+      "behavior": "opacity optionは標準optionの公開派生型として設定と現在nodeを受けて構築し、paint情報からpainterの不透明度を適用する公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisOpacityOption::BaseClass",
+        "class:KisOpacityOption",
+        "method:KisOpacityOption::KisOpacityOption(const KisPropertiesConfiguration * setting,KisNodeSP currentNode)",
+        "method:KisOpacityOption::apply(KisPainter * painter,const KisPaintInformation & info) const"
+      ]
+    },
+    {
+      "target": "KisDynamicSensorFactoryDrawingAngleSchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisDynamicSensorFactoryDrawingAngleSchemaContractTest.cpp",
+      "test": "KisDynamicSensorFactoryDrawingAngleSchemaContractTest::spacingOptionSchemaRemainStable",
+      "behavior": "spacing optionはcurve optionの公開派生型として設定を受けて構築し、paint情報から間隔を導出するとともに等方間隔と間隔更新の状態を公開する形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisSpacingOption",
+        "method:KisSpacingOption::KisSpacingOption(const KisPropertiesConfiguration * setting)",
+        "method:KisSpacingOption::apply(const KisPaintInformation & info) const",
+        "method:KisSpacingOption::isotropicSpacing() const",
+        "method:KisSpacingOption::usingSpacingUpdates() const"
       ]
     },
     {
