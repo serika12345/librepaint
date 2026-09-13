@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 871
+    "expectedMissingApis": 870
   },
   "contracts": [
     {
@@ -80206,6 +80206,16 @@
         "method:KisTxt2Utils::defaultTxt2()",
         "method:KisTxt2Utils::tyShFromTxt2(const QVariantHash Txt2,const QRectF boundsInPx,int textIndex)",
         "method:KisTxt2Utils::uncompressKeys(QVariantHash doc)"
+      ]
+    },
+    {
+      "target": "KisAslWriterUtilsSchemaContractTest",
+      "source": "libs/psdutils/tests/KisAslWriterUtilsSchemaContractTest.cpp",
+      "test": "KisAslWriterUtilsSchemaContractTest::schemaRemainsStable",
+      "behavior": "ASL writer utilityはpattern共有所有値から遅延してUUID文字列を取得する、既定byte order付き公開関数形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisAslWriterUtils::getPatternUuidLazy(const KoPatternSP pattern)"
       ]
     },
     {

@@ -2,14 +2,14 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-13 09:45 JST
+- 更新日時: 2026-09-13 09:53 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
-- 完了: 第614便でTxt2 utilityの4 APIを公開契約へ追加し、対応済みを28,930件へ進めた。
-- 次の作業: 第615便として、最新の不足一覧から別の軽量契約試験へ追加できる公開headerを選び、対象限定の構築閉包を監査する。
+- 完了: 第615便でASL pattern UUID取得の1 APIを公開契約へ追加し、対応済みを28,931件へ進めた。
+- 次の作業: 第616便として、最新の不足一覧から別の軽量契約試験へ追加できる公開headerを選び、対象限定の構築閉包を監査する。
 - 検証: macOSの対象・近傍・反復・無作業再構築、公開API検査、`verify-quick`に成功した。製品target、全体build・`verify`、Linux、Nix再評価は本便の対象外である。
 
 ### 第202便の先行監査担当票
@@ -5823,6 +5823,19 @@
 - CMake、公開header、製品sourceは変更していない。macOSの限定構築は`KisCursorOverrideHijackerSchemaContractTest`の自動生成、試験source、実行ファイルだけをコンパイル・リンクし、製品targetを再構築していない。実測閉包は4工程・8入力、command SHA-256 `ef32b3dd7378f1d5e5ef739d9977409afa1f64e34d162fddfb54cfd31327fc3d`、input SHA-256 `58d9882064254f622d7496f1d8e232987c51dd89595a3d9101b9bbaef2ddb583`を維持した。
 - 試験sourceは277行・19枠、AUTOMOC `HEADERS=[]`、Qt Core・TestとOS frameworkだけの動的接続であり、template creation dialog・製品libraryの未解決記号がないことを確認した。対象全体20回、追加枠20回（60 pass）、近傍`KisGrabKeyboardFocusRecoveryWorkaroundSchemaContractTest`、連続二回の無作業Ninja構築、`clang-check -Werror`、書式、JSON構文、差分に成功した。
 - 初回照合は移行基準888件に対して実測886件となる期待診断を確認後、基準を更新した。公開API検査は28,915件対応、29,801件中886件未対応となった。新`build/tdd-macos/public-api-missing-g609.json`は243,686 bytes、SHA-256 `3054ebba7a39fe813e03d2bcce52fdc1b2181406427f087d9c308fe048f4b193`である。生成成功後に旧`public-api-missing-g608.json` 244,308 bytesをゴミ箱へ移し、主Ninja木6,061,012 KiB、共有compiler cache 983,424 KiB、最新報告だけを再利用対象として保持する。template資源の読込み・書込み、文書生成、dialogの表示と選択は、製品実装を接続する後続の効果契約で扱う。次の永続作業は第610便で別の独立軽量試験に追加可能な公開headerを選び、対象限定閉包を先に監査することである。
+
+### 第615便の公開API契約計画
+
+- 正式入力`build/tdd-macos/public-api-missing-g614.json`から、開始`libs/psdutils/asl/kis_asl_writer_utils.h`の遅延pattern UUID取得1 APIを、新規`libs/psdutils/tests/KisAslWriterUtilsSchemaContractTest.cpp`の1枠`schemaRemainsStable`へ対応付ける。開始`libs/psdutils/tests/CMakeLists.txt`には同test target固有節を追加する。既存`KisAslWriterUtilsContractTest`は`kritaglobaldebugobjects`を接続する5工程・11入力で停止線を超えるため再利用せず、同じheader探索路、Qt Core・Test、header-only Boost、必要なexport定義だけを持つ専用targetを使う。pattern、UUID、取得本文を実体化または実行しない。
+- 初回限定構築は新targetを登録するためCMake構成全体を読み直すが、Ninjaのコンパイル・リンクは新試験の自動生成、試験source、実行ファイルだけに限定する。停止線は5工程・11入力、製品target、製品shared・OBJECT・`kritatestsdk`接続、候補headerのAUTOMOC入力化、製品未解決記号、遅延取得本文の実体化、許可path外変更とする。
+- macOSでは対象CTest、追加枠20回、近傍`KisAslWriterUtilsContractTest`、AUTOMOC後の二回目計画、連続二回の無作業Ninja構築、動的接続・未解決記号・厳格構文・書式、公開API検査、`verify-quick`だけを実行する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。初回公開API検査は移行基準871件に対する1 API減少の診断を期待する。
+
+### 第615便の公開API契約結果
+
+- 開始`libs/psdutils/asl/kis_asl_writer_utils.h`から新規`libs/psdutils/tests/KisAslWriterUtilsSchemaContractTest.cpp`へ、遅延pattern UUID取得1 APIを`schemaRemainsStable`として対応付けた。開始`libs/psdutils/tests/CMakeLists.txt`には同target固有節を追加した。既存機能試験のglobal debug object接続を避け、pattern、UUID、取得本文を実体化または実行しない。
+- 初回限定構築は新target登録のためCMake構成全体を読み直したが、Ninjaがコンパイル・リンクしたのは新試験の自動生成、試験source、実行ファイルだけであり、製品target、製品shared、OBJECT target、`kritatestsdk`を構築へ加えていない。macOSの実測閉包は4工程・8入力、command SHA-256 `7665e939d176a400be0b9293244df51cdb32f3a32fc540d3f4228f8f328a1f9e`、input SHA-256 `0c104d4778902e45ec1a4e788b2c15ada8668617080962bbe79b32922e0f0143`である。
+- 試験sourceは30行・1枠、AUTOMOC `HEADERS=[]`、Qt Core・TestとOS frameworkだけの動的接続であり、ASL writer utility・製品libraryの未解決記号がないことを確認した。対象全体20回、追加枠20回（60 pass）、近傍`KisAslWriterUtilsContractTest`、連続二回の無作業Ninja構築、`clang-check -Werror`、書式、JSON構文、差分に成功した。
+- 初回照合は移行基準871件に対して実測870件となる期待診断を確認後、基準を更新した。公開API検査は28,931件対応、29,801件中870件未対応となった。新`build/tdd-macos/public-api-missing-g615.json`は239,643 bytes、SHA-256 `8041c249db597ed66ea5f4d3f625f376b2bbd0968b1e87df5bdd098f69188690`である。生成成功後に旧`public-api-missing-g614.json` 239,925 bytesをゴミ箱へ移し、主Ninja木6,049,592 KiB、共有compiler cache 982,900 KiB、最新報告だけを再利用対象として保持する。具体的なpattern filenameからのUUID抽出とUUID生成は、製品実装を接続する後続の効果契約で扱う。次の永続作業は第616便で別の独立軽量試験に追加可能な公開headerを選び、対象限定閉包を先に監査することである。
 
 ### 第614便の公開API契約計画
 
