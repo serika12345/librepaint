@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 775
+    "expectedMissingApis": 770
   },
   "contracts": [
     {
@@ -81772,6 +81772,20 @@
         "method:KisAnimationImporter::KisAnimationImporter(KisImageSP image,KoUpdaterPtr updater=0)",
         "method:KisAnimationImporter::import(QStringList files,int firstFrame,int step,bool autoAddHoldframes=false,bool startfrom0=false,int isAscending=0,bool assignDocumentProfile=false,QList<int> optionalKeyframeTimeList={})",
         "method:KisAnimationImporter::~KisAnimationImporter()"
+      ]
+    },
+    {
+      "target": "KisImportCatcherSchemaContractTest",
+      "source": "libs/impex/tests/KisImportCatcherSchemaContractTest.cpp",
+      "test": "KisImportCatcherSchemaContractTest::importCatcherPublicInterfaceRemainsStable",
+      "behavior": "取込み補助はURL、画面管理器、layer種別で構築でき、取込みlayer数照会と貼付け色空間適応の公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisImportCatcher",
+        "method:KisImportCatcher::KisImportCatcher(const QString & url,KisViewManager * view,const QString & layerType)",
+        "method:KisImportCatcher::adaptClipToImageColorSpace(KisPaintDeviceSP dev,KisImageSP image)",
+        "method:KisImportCatcher::numLayersImported() const",
+        "method:KisImportCatcher::~KisImportCatcher()"
       ]
     }
   ]
