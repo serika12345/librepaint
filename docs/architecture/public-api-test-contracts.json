@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 591
+    "expectedMissingApis": 582
   },
   "contracts": [
     {
@@ -27128,6 +27128,33 @@
         "method:KisSpacingOption::apply(const KisPaintInformation & info) const",
         "method:KisSpacingOption::isotropicSpacing() const",
         "method:KisSpacingOption::usingSpacingUpdates() const"
+      ]
+    },
+    {
+      "target": "KisDynamicSensorFactoryDrawingAngleSchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisDynamicSensorFactoryDrawingAngleSchemaContractTest.cpp",
+      "test": "KisDynamicSensorFactoryDrawingAngleSchemaContractTest::colorSourceOptionSchemaRemainStable",
+      "behavior": "色source optionは設定を受けて構築・破棄でき、借用painterから色sourceを生成する公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisColorSourceOption",
+        "method:KisColorSourceOption::KisColorSourceOption(const KisPropertiesConfiguration * setting)",
+        "method:KisColorSourceOption::createColorSource(const KisPainter * _painter) const",
+        "method:KisColorSourceOption::~KisColorSourceOption()"
+      ]
+    },
+    {
+      "target": "KisDynamicSensorFactoryDrawingAngleSchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisDynamicSensorFactoryDrawingAngleSchemaContractTest.cpp",
+      "test": "KisDynamicSensorFactoryDrawingAngleSchemaContractTest::sharpnessOptionSchemaRemainStable",
+      "behavior": "sharpness optionはcurve optionの公開派生型として設定を受けて構築し、座標へのsharpness適用、dab閾値適用、輪郭のpixel整列状態を公開する形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisSharpnessOption",
+        "method:KisSharpnessOption::KisSharpnessOption(const KisPropertiesConfiguration * setting)",
+        "method:KisSharpnessOption::alignOutlineToPixels() const",
+        "method:KisSharpnessOption::apply(const KisPaintInformation & info,const QPointF & pt,qint32 & x,qint32 & y,qreal & xFraction,qreal & yFraction) const",
+        "method:KisSharpnessOption::applyThreshold(KisFixedPaintDeviceSP dab,const KisPaintInformation & info)"
       ]
     },
     {
