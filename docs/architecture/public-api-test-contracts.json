@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 699
+    "expectedMissingApis": 695
   },
   "contracts": [
     {
@@ -81338,6 +81338,19 @@
       "classification": "maintained",
       "apis": [
         "method:KisCanvasSurfaceColorSpaceManager::sigDisplayConfigChanged(const KisDisplayConfig & config)"
+      ]
+    },
+    {
+      "target": "KisDisplayConfigSchemaContractTest",
+      "source": "libs/ui/tests/KisDisplayConfigSchemaContractTest.cpp",
+      "test": "KisDisplayConfigSchemaContractTest::sRgbSurfaceColorManagerTypeConstructionAndPlatformFactorySchemaRemainStable",
+      "behavior": "sRGB表面色空間管理器は基底の表示設定管理境界、surface color interfaceと親QObjectによる構築、仮想破棄、現在platform向け生成入口を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisSRGBSurfaceColorSpaceManager",
+        "method:KisSRGBSurfaceColorSpaceManager::KisSRGBSurfaceColorSpaceManager(KisSurfaceColorManagerInterface * interface,QObject * parent=nullptr)",
+        "method:KisSRGBSurfaceColorSpaceManager::tryCreateForCurrentPlatform(QWidget * widget)",
+        "method:KisSRGBSurfaceColorSpaceManager::~KisSRGBSurfaceColorSpaceManager()"
       ]
     },
     {
