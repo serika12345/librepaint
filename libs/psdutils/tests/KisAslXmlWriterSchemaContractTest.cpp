@@ -9,6 +9,8 @@
 #include <asl/kis_asl_xml_parser.h>
 #include <asl/kis_asl_xml_writer.h>
 
+#include <psd.h>
+
 #include <QTest>
 
 #include <type_traits>
@@ -33,6 +35,7 @@ private Q_SLOTS:
     void aslBinaryReaderTypeAndSectionSignaturesRemainStable();
     void parserSchemaRemainsStable();
     void patternsSchemaRemainsStable();
+    void psdConversionsSchemaRemainStable();
 };
 
 void KisAslXmlWriterSchemaContractTest::aslXmlWriterTypeLifetimeAndDocumentSchemaRemainStable()
@@ -151,6 +154,16 @@ void KisAslXmlWriterSchemaContractTest::patternsSchemaRemainsStable()
     static_assert(std::is_constructible_v<Writer, const QDomDocument &, QIODevice &, psd_byte_order>);
     static_assert(std::is_destructible_v<Writer>);
     static_assert(std::is_same_v<decltype(&Writer::writePatterns), void (Writer::*)()>);
+}
+
+void KisAslXmlWriterSchemaContractTest::psdConversionsSchemaRemainStable()
+{
+    using ColorModeConversion = QPair<QString, QString> (*)(psd_color_mode, quint16);
+    using CompositeOpConversion = QString (*)(const QString &);
+
+    static_assert(std::is_same_v<decltype(&psd_colormode_to_colormodelid), ColorModeConversion>);
+    static_assert(std::is_same_v<decltype(&psd_blendmode_to_composite_op), CompositeOpConversion>);
+    static_assert(std::is_same_v<decltype(&composite_op_to_psd_blendmode), CompositeOpConversion>);
 }
 
 QTEST_APPLESS_MAIN(KisAslXmlWriterSchemaContractTest)
