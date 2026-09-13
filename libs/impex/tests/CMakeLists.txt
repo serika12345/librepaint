@@ -228,6 +228,20 @@ target_compile_definitions(KisImportCatcherSchemaContractTest PRIVATE
 )
 
 kis_add_test(
+    KisImportExportResizeWidgetSchemaContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KisImportExportResizeWidgetSchemaContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/../ui
+    ${CMAKE_BINARY_DIR}/libs/application
+)
+target_compile_definitions(KisImportExportResizeWidgetSchemaContractTest PRIVATE
+    kritaapplicationui_EXPORTS
+)
+
+kis_add_test(
     KisPNGConverterSchemaContractTest.cpp
     LINK_LIBRARIES
         Qt${QT_MAJOR_VERSION}::Core
