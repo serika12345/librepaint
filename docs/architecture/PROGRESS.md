@@ -2,14 +2,14 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-13 08:51 JST
+- 更新日時: 2026-09-13 09:06 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
-- 完了: 第609便でtemplate creation dialogの2 APIを公開契約へ追加し、対応済みを28,915件へ進めた。
-- 次の作業: 第610便として、最新の不足一覧から別の軽量契約試験へ追加できる公開headerを選び、対象限定の構築閉包を監査する。
+- 完了: 第610便で具体selected-shapes proxyの3 APIを公開契約へ追加し、対応済みを28,918件へ進めた。
+- 次の作業: 第611便として、最新の不足一覧から別の軽量契約試験へ追加できる公開headerを選び、対象限定の構築閉包を監査する。
 - 検証: macOSの対象・近傍・反復・無作業再構築、公開API検査、`verify-quick`に成功した。製品target、全体build・`verify`、Linux、Nix再評価は本便の対象外である。
 
 ### 第202便の先行監査担当票
@@ -5829,6 +5829,13 @@
 - 正式入力`build/tdd-macos/public-api-missing-g609.json`から、開始`libs/flake/KoSelectedShapesProxySimple.h`の具体selected-shapes proxy型、shape manager構築、selection取得の3 APIを、新規`libs/flake/tests/KoSelectedShapesProxySimpleSchemaContractTest.cpp`の1枠へ対応付ける。型が`KoSelectedShapesProxy`を基底に持ち、shape managerを借用して構築でき、借用selectionを返す正確な公開形式を型特性で固定する。shape manager、selection、proxy本文を実体化せず実行しない。
 - 開始`libs/flake/tests/CMakeLists.txt`へ同test target固有節を追加する。headerが直接必要とするQt Coreとtest runnerだけを接続し、source/binary flake directoryと`kritaflake_EXPORTS`を与える。既存の動的`KoSelectedShapesProxyContractTest`は製品objectをリンクする7工程・14入力のため再利用せず、初回限定構築の未知target診断後に4工程・8入力の専用閉包を確定する。停止線は5工程・11入力、製品target、製品shared・OBJECT・`kritatestsdk`接続、候補headerのAUTOMOC入力化、製品未解決記号、shape manager・selection・本文の実体化、許可path外変更とする。
 - macOSでは対象CTest、追加枠20回、軽量近傍`KoSelectedShapesProxyContractTest`、AUTOMOC後の二回目計画、連続二回の無作業再構築、動的接続・未解決記号・厳格構文・書式、公開API検査、`verify-quick`だけを実行する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。初回公開API検査は移行基準886件に対する3 API減少の診断を期待する。
+
+### 第610便の公開API契約結果
+
+- 開始`libs/flake/KoSelectedShapesProxySimple.h`から、新規`libs/flake/tests/KoSelectedShapesProxySimpleSchemaContractTest.cpp`へ具体selected-shapes proxy型、shape manager構築、selection取得の3 APIを1枠として対応付けた。`KoSelectedShapesProxy`基底、借用shape managerによる構築、借用selectionを返す正確な公開形式を型特性で固定し、shape manager、selection、proxy本文の実体化を伴わない。
+- 開始`libs/flake/tests/CMakeLists.txt`には同test target固有節を追加した。初回限定構築は未知targetとして停止し、登録後はQt Core・Test、source/binary flake directory、`kritaflake_EXPORTS`だけで成功した。CMake再構成は新標的を登録するために構成全体を読み直したが、Ninjaがコンパイル・リンクしたのは新試験の自動生成、試験source、実行ファイルだけであり、製品target、製品shared、OBJECT target、`kritatestsdk`を構築へ加えていない。
+- macOSの実測閉包は4工程・8入力、command SHA-256 `00e9c2632deb26261ded40c8e23db2141db972eef2375cc71275dc9a610172bc`、input SHA-256 `f32578a7467e03d315e5d179595befca2382501ebf3ea791bfd7881bc03b6e73`である。試験sourceは35行・1枠、AUTOMOC `HEADERS=[]`、Qt Core・TestとOS frameworkだけの動的接続であり、selected-shapes proxy・製品libraryの未解決記号がないことを確認した。対象全体20回、追加枠20回（60 pass）、近傍`KoSelectedShapesProxyContractTest`、連続二回の無作業Ninja構築、`clang-check -Werror`、書式、JSON構文、差分に成功した。
+- 初回照合は移行基準886件に対して実測883件となる期待診断を確認後、基準を更新した。公開API検査は28,918件対応、29,801件中883件未対応となった。新`build/tdd-macos/public-api-missing-g610.json`は242,946 bytes、SHA-256 `5f901dfa29a9c6b838790df9b034f7994dedc2adc38eddb1393da10e2fbd19b6`である。生成成功後に旧`public-api-missing-g609.json` 243,686 bytesをゴミ箱へ移し、主Ninja木6,063,256 KiB、共有compiler cache 983,364 KiB、最新報告だけを再利用対象として保持する。具体proxyによるselection取得の実行結果、shape managerの寿命は、製品実装を接続する後続の効果契約で扱う。次の永続作業は第611便で別の独立軽量試験に追加可能な公開headerを選び、対象限定閉包を先に監査することである。
 
 ### 第239便の先行監査担当票
 
