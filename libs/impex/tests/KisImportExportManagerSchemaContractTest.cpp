@@ -4,6 +4,7 @@
  */
 
 #include "../ui/KisImportExportManager.h"
+#include "KisExportCheckRegistry.h"
 
 #include <QFuture>
 
@@ -25,12 +26,20 @@ class KisImportExportManagerSchemaContractTest : public QObject
     Q_OBJECT
 
 private Q_SLOTS:
+    void exportCheckRegistryLifetimeSchemaRemainsStable();
     void typeDirectionConstructionAndLifetimeSchemaRemainStable();
     void documentConversionSignaturesRemainStable();
     void filterDiscoveryAndConfigurationSignaturesRemainStable();
     void batchAndProgressSignaturesRemainStable();
     void additionalFileQuerySignaturesRemainStable();
 };
+
+void KisImportExportManagerSchemaContractTest::exportCheckRegistryLifetimeSchemaRemainsStable()
+{
+    static_assert(std::is_class_v<KisExportCheckRegistry>);
+    static_assert(std::is_base_of_v<QObject, KisExportCheckRegistry>);
+    static_assert(std::has_virtual_destructor_v<KisExportCheckRegistry>);
+}
 
 void KisImportExportManagerSchemaContractTest::typeDirectionConstructionAndLifetimeSchemaRemainStable()
 {
