@@ -14,11 +14,10 @@ class KisLazyCreateTransformMaskKeyframesCommandSchemaContractTest : public QObj
     Q_OBJECT
 
 private Q_SLOTS:
-    void lazyCreateTransformMaskKeyframesCommandPublicInterfaceRemainsStable();
+    void publicInterfaceRemainsStable();
 };
 
-void KisLazyCreateTransformMaskKeyframesCommandSchemaContractTest::
-    lazyCreateTransformMaskKeyframesCommandPublicInterfaceRemainsStable()
+void KisLazyCreateTransformMaskKeyframesCommandSchemaContractTest::publicInterfaceRemainsStable()
 {
     using Command = KisLazyCreateTransformMaskKeyframesCommand;
     using HasAnimation = bool (*)(KisTransformMaskSP);
