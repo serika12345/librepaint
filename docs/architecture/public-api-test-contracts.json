@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 617
+    "expectedMissingApis": 605
   },
   "contracts": [
     {
@@ -27048,6 +27048,45 @@
         "class:KisScatterOption",
         "method:KisScatterOption::KisScatterOption(const KisPropertiesConfiguration * setting)",
         "method:KisScatterOption::apply(const KisPaintInformation & info,qreal width,qreal height) const"
+      ]
+    },
+    {
+      "target": "KisDynamicSensorFactoryDrawingAngleSchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisDynamicSensorFactoryDrawingAngleSchemaContractTest.cpp",
+      "test": "KisDynamicSensorFactoryDrawingAngleSchemaContractTest::darkenOptionSchemaRemainStable",
+      "behavior": "darken optionはcurve optionの公開派生型として設定を受けて構築し、paint情報からpainterまたは色sourceへdarken結果を適用する二つの公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisDarkenOption",
+        "method:KisDarkenOption::KisDarkenOption(const KisPropertiesConfiguration * setting)",
+        "method:KisDarkenOption::apply(KisColorSource * colorSource,const KisPaintInformation & info) const",
+        "method:KisDarkenOption::apply(KisPainter * painter,const KisPaintInformation & info) const"
+      ]
+    },
+    {
+      "target": "KisDynamicSensorFactoryDrawingAngleSchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisDynamicSensorFactoryDrawingAngleSchemaContractTest.cpp",
+      "test": "KisDynamicSensorFactoryDrawingAngleSchemaContractTest::flowOpacityOptionSchemaRemainStable",
+      "behavior": "flow・opacity optionは設定と現在nodeを受けて構築し、paint情報からpainterへの適用およびopacity・flow値の導出を行う二つの公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisFlowOpacityOption2",
+        "method:KisFlowOpacityOption2::KisFlowOpacityOption2(const KisPropertiesConfiguration * setting,KisNodeSP currentNode)",
+        "method:KisFlowOpacityOption2::apply(KisPainter * painter,const KisPaintInformation & info)",
+        "method:KisFlowOpacityOption2::apply(const KisPaintInformation & info,qreal * opacity,qreal * flow)"
+      ]
+    },
+    {
+      "target": "KisDynamicSensorFactoryDrawingAngleSchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisDynamicSensorFactoryDrawingAngleSchemaContractTest.cpp",
+      "test": "KisDynamicSensorFactoryDrawingAngleSchemaContractTest::rotationOptionSchemaRemainStable",
+      "behavior": "rotation optionはcurve optionの公開派生型として設定を受けて構築し、paint情報から回転角を導出してpaint operationの扇形corner情報を設定する公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisRotationOption",
+        "method:KisRotationOption::KisRotationOption(const KisPropertiesConfiguration * setting)",
+        "method:KisRotationOption::apply(const KisPaintInformation & info) const",
+        "method:KisRotationOption::applyFanCornersInfo(KisPaintOp * op)"
       ]
     },
     {
