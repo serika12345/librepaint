@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 666
+    "expectedMissingApis": 661
   },
   "contracts": [
     {
@@ -67117,6 +67117,20 @@
         "method:KisDecorationsManager::setView(QPointer<KisView> imageView)",
         "method:KisDecorationsManager::setup(KisActionManager * actionManager)",
         "method:KisDecorationsManager::~KisDecorationsManager()"
+      ]
+    },
+    {
+      "target": "KisCanvas2SchemaContractTest",
+      "source": "libs/ui/tests/KisCanvas2SchemaContractTest.cpp",
+      "test": "KisCanvas2SchemaContractTest::mirrorManagerSchemaRemainStable",
+      "behavior": "キャンバスmirror管理器はview管理器に所有されるQObjectとして構築・破棄され、viewの切替と操作集合への初期化の公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisMirrorManager",
+        "method:KisMirrorManager::KisMirrorManager(KisViewManager * view)",
+        "method:KisMirrorManager::setView(QPointer<KisView> imageView)",
+        "method:KisMirrorManager::setup(KisKActionCollection * collection)",
+        "method:KisMirrorManager::~KisMirrorManager()"
       ]
     },
     {
