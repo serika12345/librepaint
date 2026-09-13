@@ -7,6 +7,7 @@
 
 #include <QTest>
 
+#include <strokes/FreehandStrokeRunnableJobDataWithUpdate.h>
 #include <strokes/freehand_stroke.h>
 #include <strokes/kis_painter_based_stroke_strategy.h>
 
@@ -28,6 +29,7 @@ private Q_SLOTS:
     void freehandDabPayloadMemberSchemaRemainsStable();
     void freehandDabConstructionAndCloneSignaturesRemainStable();
     void freehandStrategyLifecycleAndCallbackSignaturesRemainStable();
+    void freehandRunnableJobDataWithUpdateConstructionRemainsStable();
     void painterBasedStrategyTypeConstructionAndLifetimeRemainStable();
     void painterBasedStrategyCallbackSignaturesRemainStable();
 };
@@ -133,6 +135,22 @@ void FreehandStrokeSchemaContractTest::freehandStrategyLifecycleAndCallbackSigna
     ASSERT_FREEHAND_MEMBER(Strategy, createLodClone, KisStrokeStrategy * (Strategy::*)(int));
     ASSERT_FREEHAND_MEMBER(Strategy, notifyUserStartedStroke, void (Strategy::*)());
     ASSERT_FREEHAND_MEMBER(Strategy, notifyUserEndedStroke, void (Strategy::*)());
+
+    QVERIFY(true);
+}
+
+void FreehandStrokeSchemaContractTest::freehandRunnableJobDataWithUpdateConstructionRemainsStable()
+{
+    using Data = FreehandStrokeRunnableJobDataWithUpdate;
+    using Sequentiality = KisStrokeJobData::Sequentiality;
+    using Exclusivity = KisStrokeJobData::Exclusivity;
+
+    static_assert(std::is_class_v<Data>);
+    static_assert(std::is_base_of_v<KisRunnableStrokeJobData, Data>);
+    static_assert(std::is_constructible_v<Data, QRunnable *>);
+    static_assert(std::is_constructible_v<Data, QRunnable *, Sequentiality, Exclusivity>);
+    static_assert(std::is_constructible_v<Data, std::function<void()>>);
+    static_assert(std::is_constructible_v<Data, std::function<void()>, Sequentiality, Exclusivity>);
 
     QVERIFY(true);
 }
