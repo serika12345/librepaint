@@ -242,3 +242,15 @@ target_include_directories(KisCosWriterContractTest PRIVATE
     ${CMAKE_CURRENT_BINARY_DIR}/..
 )
 target_compile_definitions(KisCosWriterContractTest PRIVATE kritapsdutils_EXPORTS)
+
+kis_add_test(
+    KisTxt2UtilsSchemaContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KisTxt2UtilsSchemaContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+)
+target_compile_definitions(KisTxt2UtilsSchemaContractTest PRIVATE kritapsdutils_EXPORTS)
