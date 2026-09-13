@@ -12,6 +12,7 @@
 #include "actions/kis_selection_action_factories.h"
 #include "operations/kis_filter_selection_operation.h"
 #include "operations/kis_operation.h"
+#include "operations/kis_operation_configuration.h"
 #include "operations/kis_operation_registry.h"
 #include "selection/KisSelectionActionsAdapter.h"
 
@@ -38,6 +39,7 @@ private Q_SLOTS:
     void filterSelectionOperationTypeAndFilterEntrySchemaRemainStable();
     void operationRegistryTypeLifetimeAndInstanceSchemaRemainStable();
     void operationBaseTypeConstructionAndDispatchSchemaRemainStable();
+    void operationConfigurationTypeConstructionAndIdentitySchemaRemainStable();
     void basicSelectionStateActionSchemaRemainsStable();
     void fillAndInvertActionSchemaRemainsStable();
     void cutAndCopyActionSchemaRemainsStable();
@@ -117,6 +119,21 @@ void KisSelectionActionFactoriesSchemaContractTest::operationBaseTypeConstructio
     static_assert(std::has_virtual_destructor_v<Operation>);
     static_assert(std::is_same_v<decltype(&Operation::id), Id>);
     static_assert(std::is_same_v<decltype(&Operation::runFromXML), RunFromXml>);
+
+    QVERIFY(true);
+}
+
+void KisSelectionActionFactoriesSchemaContractTest::
+    operationConfigurationTypeConstructionAndIdentitySchemaRemainStable()
+{
+    using Configuration = KisOperationConfiguration;
+    using Id = QString (Configuration::*)() const;
+
+    static_assert(std::is_base_of_v<KisPropertiesConfiguration, Configuration>);
+    static_assert(std::is_default_constructible_v<Configuration>);
+    static_assert(std::is_constructible_v<Configuration, const QString &>);
+    static_assert(std::has_virtual_destructor_v<Configuration>);
+    static_assert(std::is_same_v<decltype(&Configuration::id), Id>);
 
     QVERIFY(true);
 }
