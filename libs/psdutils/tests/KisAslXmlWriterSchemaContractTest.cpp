@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include <asl/kis_asl_patterns_writer.h>
 #include <asl/kis_asl_reader.h>
 #include <asl/kis_asl_writer.h>
 #include <asl/kis_asl_xml_parser.h>
@@ -31,6 +32,7 @@ private Q_SLOTS:
     void aslBinaryWriterTypeConstructionAndSectionSignaturesRemainStable();
     void aslBinaryReaderTypeAndSectionSignaturesRemainStable();
     void parserSchemaRemainsStable();
+    void patternsSchemaRemainsStable();
 };
 
 void KisAslXmlWriterSchemaContractTest::aslXmlWriterTypeLifetimeAndDocumentSchemaRemainStable()
@@ -139,6 +141,16 @@ void KisAslXmlWriterSchemaContractTest::parserSchemaRemainsStable()
     static_assert(std::is_destructible_v<Parser>);
     static_assert(
         std::is_same_v<decltype(&Parser::parseXML), void (Parser::*)(const QDomDocument &, KisAslObjectCatcher &)>);
+}
+
+void KisAslXmlWriterSchemaContractTest::patternsSchemaRemainsStable()
+{
+    using Writer = KisAslPatternsWriter;
+
+    static_assert(std::is_class_v<Writer>);
+    static_assert(std::is_constructible_v<Writer, const QDomDocument &, QIODevice &, psd_byte_order>);
+    static_assert(std::is_destructible_v<Writer>);
+    static_assert(std::is_same_v<decltype(&Writer::writePatterns), void (Writer::*)()>);
 }
 
 QTEST_APPLESS_MAIN(KisAslXmlWriterSchemaContractTest)
