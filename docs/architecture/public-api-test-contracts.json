@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 878
+    "expectedMissingApis": 875
   },
   "contracts": [
     {
@@ -80181,6 +80181,18 @@
         "class:KisAslPatternsWriter",
         "method:KisAslPatternsWriter::KisAslPatternsWriter(const QDomDocument & doc,QIODevice & device,psd_byte_order byteOrder)",
         "method:KisAslPatternsWriter::writePatterns()"
+      ]
+    },
+    {
+      "target": "KisAslXmlWriterSchemaContractTest",
+      "source": "libs/psdutils/tests/KisAslXmlWriterSchemaContractTest.cpp",
+      "test": "KisAslXmlWriterSchemaContractTest::psdConversionsSchemaRemainStable",
+      "behavior": "PSD色modeとblend modeの変換は、色model・depth識別子または対応するcomposite operation・PSD blend mode文字列を返す公開関数形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:composite_op_to_psd_blendmode(const QString & compositeOp)",
+        "function:psd_blendmode_to_composite_op(const QString & blendmode)",
+        "function:psd_colormode_to_colormodelid(psd_color_mode colormode,quint16 channelDepth)"
       ]
     },
     {
