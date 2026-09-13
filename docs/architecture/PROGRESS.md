@@ -2,14 +2,14 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-13 16:38 JST
+- 更新日時: 2026-09-13 16:46 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
-- 完了: 第653便で変換マスクの遅延キーフレーム作成コマンドの公開形式を契約へ追加し、対応済みを29,075件へ進めた。
-- 次の作業: 第654便として、最新の不足一覧から別の軽量契約試験へ追加できる公開headerを選び、対象限定の構築閉包を監査する。
+- 完了: 第654便でレイヤースタイル設定コマンドの公開形式を契約へ追加し、対応済みを29,080件へ進めた。
+- 次の作業: 第655便として、最新の不足一覧から別の軽量契約試験へ追加できる公開headerを選び、対象限定の構築閉包を監査する。
 - 検証: macOSの対象・近傍・反復・無作業再構築、公開API検査、`verify-quick`に成功した。製品target、全体build・`verify`、Linux、Nix再評価は本便の対象外である。
 
 ### 第202便の先行監査担当票
@@ -5823,6 +5823,12 @@
 - CMake、公開header、製品sourceは変更していない。macOSの限定構築は`KisCursorOverrideHijackerSchemaContractTest`の自動生成、試験source、実行ファイルだけをコンパイル・リンクし、製品targetを再構築していない。実測閉包は4工程・8入力、command SHA-256 `ef32b3dd7378f1d5e5ef739d9977409afa1f64e34d162fddfb54cfd31327fc3d`、input SHA-256 `58d9882064254f622d7496f1d8e232987c51dd89595a3d9101b9bbaef2ddb583`を維持した。
 - 試験sourceは277行・19枠、AUTOMOC `HEADERS=[]`、Qt Core・TestとOS frameworkだけの動的接続であり、template creation dialog・製品libraryの未解決記号がないことを確認した。対象全体20回、追加枠20回（60 pass）、近傍`KisGrabKeyboardFocusRecoveryWorkaroundSchemaContractTest`、連続二回の無作業Ninja構築、`clang-check -Werror`、書式、JSON構文、差分に成功した。
 - 初回照合は移行基準888件に対して実測886件となる期待診断を確認後、基準を更新した。公開API検査は28,915件対応、29,801件中886件未対応となった。新`build/tdd-macos/public-api-missing-g609.json`は243,686 bytes、SHA-256 `3054ebba7a39fe813e03d2bcce52fdc1b2181406427f087d9c308fe048f4b193`である。生成成功後に旧`public-api-missing-g608.json` 244,308 bytesをゴミ箱へ移し、主Ninja木6,061,012 KiB、共有compiler cache 983,424 KiB、最新報告だけを再利用対象として保持する。template資源の読込み・書込み、文書生成、dialogの表示と選択は、製品実装を接続する後続の効果契約で扱う。次の永続作業は第610便で別の独立軽量試験に追加可能な公開headerを選び、対象限定閉包を先に監査することである。
+
+### 第654便の公開API契約結果
+
+- 開始`libs/image/commands_new/kis_set_layer_style_command.h`から新規`libs/image/tests/KisSetLayerStyleCommandSchemaContractTest.cpp`へ、レイヤースタイル設定コマンドの型、構築、undo、redo、スタイル更新の5 APIを`publicInterfaceRemainsStable`として対応付けた。undo基底、構築可能性、undo・redo・スタイル更新の関数ポインター型を固定し、スタイル変更の本文を実行していない。
+- 開始`libs/image/tests/CMakeLists.txt`には専用targetとimage・commands_new・global・pigment・pigment/resources・psdutils・resources・painting/undo探索路、必要なinterface探索路だけを追加した。PSDスタイル公開型の宣言を解決する具体的所有者閉包であり、新targetの初回は想定どおりunknown target、実測閉包は4工程・8入力、command SHA-256 `dfa6a4cbf592bc1182d145a44a40ba539cac8680c3b6cad55e3ce36a821b190e`、input SHA-256 `74f98240de0109e438256b573c6d78e31efa0da6af060fc77140b75218112ff5`、AUTOMOC `HEADERS=[]`、製品未解決記号なしである。
+- 試験sourceは37行・1枠、対象CTest全体20回、追加枠20回（60 pass）、近傍`KisLazyCreateTransformMaskKeyframesCommandSchemaContractTest`、連続二回の無作業Ninja構築、`clang-check -Werror`、書式、差分に成功した。公開API検査は29,080件対応、29,801件中721件未対応となった。新`build/tdd-macos/public-api-missing-g654.json`は200,856 bytes、SHA-256 `500056975e27a23533349c7d19b04feebb0988e6a7d8317d540e039153501f8c`である。旧g653報告をゴミ箱へ移し、主Ninja木6,069,488 KiB、共有compiler cache 982,484 KiB、空き容量1.9 GiBを確認した。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 
 ### 第653便の公開API契約結果
 

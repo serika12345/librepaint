@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 726
+    "expectedMissingApis": 721
   },
   "contracts": [
     {
@@ -81911,6 +81911,20 @@
         "class:KisLazyCreateTransformMaskKeyframesCommand",
         "method:KisLazyCreateTransformMaskKeyframesCommand::KisLazyCreateTransformMaskKeyframesCommand(KisTransformMaskSP mask,KUndo2Command * parent=nullptr)",
         "method:KisLazyCreateTransformMaskKeyframesCommand::maskHasAnimation(KisTransformMaskSP mask)"
+      ]
+    },
+    {
+      "target": "KisSetLayerStyleCommandSchemaContractTest",
+      "source": "libs/image/tests/KisSetLayerStyleCommandSchemaContractTest.cpp",
+      "test": "KisSetLayerStyleCommandSchemaContractTest::publicInterfaceRemainsStable",
+      "behavior": "レイヤースタイル設定コマンドはレイヤー、変更前後のスタイル、親コマンドで構築でき、undo、redo、スタイル更新の公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisSetLayerStyleCommand",
+        "method:KisSetLayerStyleCommand::KisSetLayerStyleCommand(KisLayerSP layer,KisPSDLayerStyleSP oldStyle,KisPSDLayerStyleSP newStyle,KUndo2Command * parent=0)",
+        "method:KisSetLayerStyleCommand::redo()",
+        "method:KisSetLayerStyleCommand::undo()",
+        "method:KisSetLayerStyleCommand::updateLayerStyle(KisLayerSP layer,KisPSDLayerStyleSP style)"
       ]
     }
   ]
