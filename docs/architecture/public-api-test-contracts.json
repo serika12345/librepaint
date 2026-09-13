@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 763
+    "expectedMissingApis": 755
   },
   "contracts": [
     {
@@ -81802,6 +81802,23 @@
         "method:KisImportExportResizeWidget::filterType() const",
         "method:KisImportExportResizeWidget::widget() const",
         "method:KisImportExportResizeWidget::~KisImportExportResizeWidget()"
+      ]
+    },
+    {
+      "target": "KisSafeDocumentLoaderSchemaContractTest",
+      "source": "libs/impex/tests/KisSafeDocumentLoaderSchemaContractTest.cpp",
+      "test": "KisSafeDocumentLoaderSchemaContractTest::safeDocumentLoaderPublicInterfaceRemainsStable",
+      "behavior": "安全な文書読込み器はパスと親で構築でき、パス更新、再読込み、成功・失敗・存在状態の通知口を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisSafeDocumentLoader",
+        "method:KisSafeDocumentLoader::KisSafeDocumentLoader(const QString & path=\"\",QObject * parent=0)",
+        "method:KisSafeDocumentLoader::fileExistsStateChanged(bool fileExists)",
+        "method:KisSafeDocumentLoader::loadingFailed()",
+        "method:KisSafeDocumentLoader::loadingFinished(KisPaintDeviceSP paintDevice,qreal xRes,qreal yRes,const QSize & size)",
+        "method:KisSafeDocumentLoader::reloadImage()",
+        "method:KisSafeDocumentLoader::setPath(const QString & path)",
+        "method:KisSafeDocumentLoader::~KisSafeDocumentLoader()"
       ]
     }
   ]
