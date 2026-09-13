@@ -9,6 +9,7 @@
 #include <KisDynamicSensorFactoryFade.h>
 #include <KisDynamicSensorFactoryRegistry.h>
 #include <KisDynamicSensorFactoryTime.h>
+#include <KisEmbeddedTextureData.h>
 #include <KisFlowOpacityOption.h>
 #include <KisHSVOption.h>
 #include <KisMirrorOption.h>
@@ -48,6 +49,7 @@ class KisDynamicSensorFactoryDrawingAngleSchemaContractTest : public QObject
 private Q_SLOTS:
     void colorSourceOptionSchemaRemainStable();
     void drawingAngleFactorySchemaRemainStable();
+    void embeddedTextureDataSchemaRemainStable();
     void distanceFactorySchemaRemainStable();
     void darkenOptionSchemaRemainStable();
     void fadeFactorySchemaRemainStable();
@@ -83,6 +85,19 @@ void KisDynamicSensorFactoryDrawingAngleSchemaContractTest::drawingAngleFactoryS
     static_assert(std::is_default_constructible_v<Factory>);
     static_assert(std::is_same_v<decltype(&Factory::createConfigWidget),
                                  QWidget *(Factory::*)(lager::cursor<KisCurveOptionDataCommon>, QWidget *)>);
+}
+
+void KisDynamicSensorFactoryDrawingAngleSchemaContractTest::embeddedTextureDataSchemaRemainStable()
+{
+    using Data = KisEmbeddedTextureData;
+
+    static_assert(std::is_class_v<Data>);
+    static_assert(std::is_same_v<decltype(&Data::fromPattern), Data (*)(KoPatternSP)>);
+    static_assert(std::is_same_v<decltype(&Data::isNull), bool (Data::*)() const>);
+    static_assert(std::is_same_v<decltype(&Data::loadLinkedPattern),
+                                 KoResourceLoadResult (Data::*)(KisResourcesInterfaceSP) const>);
+    static_assert(std::is_same_v<decltype(&Data::read), bool (Data::*)(const KisPropertiesConfiguration *)>);
+    static_assert(std::is_same_v<decltype(&Data::write), void (Data::*)(KisPropertiesConfiguration *) const>);
 }
 
 void KisDynamicSensorFactoryDrawingAngleSchemaContractTest::distanceFactorySchemaRemainStable()

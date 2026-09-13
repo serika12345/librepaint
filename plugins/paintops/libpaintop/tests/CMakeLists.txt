@@ -748,6 +748,10 @@ target_include_directories(KisDynamicSensorFactoryDrawingAngleSchemaContractTest
     ${CMAKE_BINARY_DIR}/libs/image/brushengine
     ${CMAKE_SOURCE_DIR}/libs/pigment
     ${CMAKE_BINARY_DIR}/libs/pigment
+    ${CMAKE_SOURCE_DIR}/libs/pigment/resources
+    ${CMAKE_BINARY_DIR}/libs/pigment/resources
+    ${CMAKE_SOURCE_DIR}/libs/resources
+    ${CMAKE_BINARY_DIR}/libs/resources
 )
 target_include_directories(KisDynamicSensorFactoryDrawingAngleSchemaContractTest SYSTEM PRIVATE
     $<TARGET_PROPERTY:Eigen3::Eigen,INTERFACE_INCLUDE_DIRECTORIES>
