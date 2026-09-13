@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 645
+    "expectedMissingApis": 642
   },
   "contracts": [
     {
@@ -26971,6 +26971,18 @@
         "method:KisSimpleDynamicSensorFactory::createConfigWidget(lager::cursor<KisCurveOptionDataCommon>,QWidget *)",
         "method:KisSimpleDynamicSensorFactory::maximumLabel(int length)",
         "method:KisSimpleDynamicSensorFactory::maximumValue(int length)"
+      ]
+    },
+    {
+      "target": "KisDynamicSensorFactoryDrawingAngleSchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisDynamicSensorFactoryDrawingAngleSchemaContractTest.cpp",
+      "test": "KisDynamicSensorFactoryDrawingAngleSchemaContractTest::drawingAngleFactorySchemaRemainStable",
+      "behavior": "描画角度の動的センサー工場は単純工場の公開派生型として既定構築し、curve option cursorと親widgetを受ける設定widget生成の公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisDynamicSensorFactoryDrawingAngle",
+        "method:KisDynamicSensorFactoryDrawingAngle::KisDynamicSensorFactoryDrawingAngle()",
+        "method:KisDynamicSensorFactoryDrawingAngle::createConfigWidget(lager::cursor<KisCurveOptionDataCommon> data,QWidget * parent)"
       ]
     },
     {
