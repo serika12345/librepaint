@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 786
+    "expectedMissingApis": 780
   },
   "contracts": [
     {
@@ -81743,6 +81743,21 @@
       "classification": "maintained",
       "apis": [
         "function:KisAnimationRender::render(KisDocument * doc,KisViewManager * viewManager,KisAnimationRenderingOptions encoderOptions)"
+      ]
+    },
+    {
+      "target": "KisAnimationVideoSaverSchemaContractTest",
+      "source": "libs/impex/tests/KisAnimationVideoSaverSchemaContractTest.cpp",
+      "test": "KisAnimationVideoSaverSchemaContractTest::videoSaverPublicInterfaceRemainsStable",
+      "behavior": "アニメーション動画書出し器は文書とbatch modeで構築でき、画像取得、書出し、変換入口の公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisAnimationVideoSaver",
+        "method:KisAnimationVideoSaver::KisAnimationVideoSaver(KisDocument * doc,bool batchMode)",
+        "method:KisAnimationVideoSaver::convert(KisDocument * document,const QString & framesDirectory,const QString & savedFilesMask,const QStringList & savedFiles,const KisAnimationRenderingOptions & options,bool batchMode)",
+        "method:KisAnimationVideoSaver::encode(const QString & framesDirectory,const QString & savedFilesMask,const QStringList & savedFiles,const KisAnimationRenderingOptions & options)",
+        "method:KisAnimationVideoSaver::image()",
+        "method:KisAnimationVideoSaver::~KisAnimationVideoSaver()"
       ]
     }
   ]
