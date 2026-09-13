@@ -2,14 +2,14 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-13 12:19 JST
+- 更新日時: 2026-09-13 12:29 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
-- 完了: 第627便で画像寸法操作のaction plugin型・構築・寿命を公開契約へ追加し、対応済みを28,963件へ進めた。
-- 次の作業: 第628便として、最新の不足一覧から別の軽量契約試験へ追加できる公開headerを選び、対象限定の構築閉包を監査する。
+- 完了: 第628便でツール不透明度の抽象資源型・構築・値操作を公開契約へ追加し、対応済みを28,967件へ進めた。
+- 次の作業: 第629便として、最新の不足一覧から別の軽量契約試験へ追加できる公開headerを選び、対象限定の構築閉包を監査する。
 - 検証: macOSの対象・近傍・反復・無作業再構築、公開API検査、`verify-quick`に成功した。製品target、全体build・`verify`、Linux、Nix再評価は本便の対象外である。
 
 ### 第202便の先行監査担当票
@@ -5823,6 +5823,19 @@
 - CMake、公開header、製品sourceは変更していない。macOSの限定構築は`KisCursorOverrideHijackerSchemaContractTest`の自動生成、試験source、実行ファイルだけをコンパイル・リンクし、製品targetを再構築していない。実測閉包は4工程・8入力、command SHA-256 `ef32b3dd7378f1d5e5ef739d9977409afa1f64e34d162fddfb54cfd31327fc3d`、input SHA-256 `58d9882064254f622d7496f1d8e232987c51dd89595a3d9101b9bbaef2ddb583`を維持した。
 - 試験sourceは277行・19枠、AUTOMOC `HEADERS=[]`、Qt Core・TestとOS frameworkだけの動的接続であり、template creation dialog・製品libraryの未解決記号がないことを確認した。対象全体20回、追加枠20回（60 pass）、近傍`KisGrabKeyboardFocusRecoveryWorkaroundSchemaContractTest`、連続二回の無作業Ninja構築、`clang-check -Werror`、書式、JSON構文、差分に成功した。
 - 初回照合は移行基準888件に対して実測886件となる期待診断を確認後、基準を更新した。公開API検査は28,915件対応、29,801件中886件未対応となった。新`build/tdd-macos/public-api-missing-g609.json`は243,686 bytes、SHA-256 `3054ebba7a39fe813e03d2bcce52fdc1b2181406427f087d9c308fe048f4b193`である。生成成功後に旧`public-api-missing-g608.json` 244,308 bytesをゴミ箱へ移し、主Ninja木6,061,012 KiB、共有compiler cache 983,424 KiB、最新報告だけを再利用対象として保持する。template資源の読込み・書込み、文書生成、dialogの表示と選択は、製品実装を接続する後続の効果契約で扱う。次の永続作業は第610便で別の独立軽量試験に追加可能な公開headerを選び、対象限定閉包を先に監査することである。
+
+### 第628便の公開API契約計画
+
+- 正式入力`build/tdd-macos/public-api-missing-g627.json`から、開始`libs/ui/resources/kis_abstract_resources.h`のツール不透明度抽象資源型、識別子と値を受ける構築子、値取得・設定の4 APIを、新規`libs/ui/tests/ToolOpacityAbstractResourceSchemaContractTest.cpp`の1枠`resourceTypeConstructionAndValueSchemaRemainStable`へ対応付ける。基底canvas資源、値、QObjectを実体化せず、本文を実行しない。
+- 開始`libs/ui/tests/CMakeLists.txt`には専用target、UI source、flake source/binary探索路と`kritaflake_EXPORTS`だけを追加する。Qt Core・Testだけを動的接続し、製品target、製品shared・OBJECT、`kritatestsdk`を接続しない。停止線は5工程・11入力、候補headerのAUTOMOC入力化、製品未解決記号、資源・値・QObjectの実体化または許可path外変更とする。
+- macOSでは対象CTest、追加枠20回、軽量近傍`KisCanvasResourceProviderSchemaContractTest`、AUTOMOC後の二回目計画、連続二回の無作業再構築、動的接続・未解決記号・厳格構文・書式、公開API検査、`verify-quick`だけを実行する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。初回公開API検査は移行基準838件に対する4 API減少の診断を期待する。
+
+### 第628便の公開API契約結果
+
+- 開始`libs/ui/resources/kis_abstract_resources.h`から新規`libs/ui/tests/ToolOpacityAbstractResourceSchemaContractTest.cpp`へ、型、識別子と値を受ける構築子、値取得・設定の4 APIを`resourceTypeConstructionAndValueSchemaRemainStable`として対応付けた。ツール不透明度の抽象資源がcanvas資源として使われ、識別子と値で構築でき、QVariantによる値取得と設定の公開形式を固定し、資源、値、QObject、各本文を実体化または実行していない。
+- 開始`libs/ui/tests/CMakeLists.txt`には専用target、UI sourceとflake source/binary探索路、export定義だけを追加した。CMake再構成はtarget登録のため構成全体を読み直したが、Ninjaがコンパイル・リンクしたのは`ToolOpacityAbstractResourceSchemaContractTest`の自動生成、試験source、実行ファイルだけである。製品target、抽象資源、製品shared、OBJECT target、`kritatestsdk`を構築へ加えていない。実測閉包は4工程・8入力、command SHA-256 `7c2fcff503bd58906b5bc39b60c109173b6ab66df17ea62bbb7d46c856320c2a`、input SHA-256 `254940dae929c7f7786ef3b2b085d0f846e036c3fa278bf14deb44a9dc5397cf`である。
+- 試験sourceは36行・1枠、AUTOMOC `HEADERS=[]`、Qt Core・TestとOS frameworkだけの動的接続であり、抽象資源・製品libraryの未解決記号がないことを確認した。対象全体20回、追加枠20回（60 pass）、近傍`KisCanvasResourceProviderSchemaContractTest`、連続二回の無作業Ninja構築、compilation databaseを用いる`clang-check`、書式、JSON構文、差分に成功した。
+- 初回照合は移行基準838件に対して実測834件となる期待診断を確認後、基準を更新した。公開API検査は28,967件対応、29,801件中834件未対応となった。新`build/tdd-macos/public-api-missing-g628.json`は231,129 bytes、SHA-256 `15a4ebfd2d91ac13a203e37853ce1e912143fa668e67124bf97b4c7a808debb5`である。生成成功後に旧`public-api-missing-g627.json`をゴミ箱へ移し、主Ninja木6,077,132 KiB、共有compiler cache 981,668 KiB、最新報告だけを再利用対象として保持する。空き容量17 GiBを確認した。次の永続作業は第629便で別の独立軽量試験に追加可能な公開headerを選び、対象限定閉包を先に監査することである。
 
 ### 第627便の公開API契約計画
 

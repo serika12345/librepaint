@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 838
+    "expectedMissingApis": 834
   },
   "contracts": [
     {
@@ -81565,6 +81565,19 @@
         "class:ImageSize",
         "method:ImageSize::ImageSize(QObject * parent)",
         "method:ImageSize::~ImageSize()"
+      ]
+    },
+    {
+      "target": "ToolOpacityAbstractResourceSchemaContractTest",
+      "source": "libs/ui/tests/ToolOpacityAbstractResourceSchemaContractTest.cpp",
+      "test": "ToolOpacityAbstractResourceSchemaContractTest::resourceTypeConstructionAndValueSchemaRemainStable",
+      "behavior": "ツール不透明度の抽象資源はcanvas資源として使われ、識別子と値で構築でき、QVariantによる値取得と設定の公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:ToolOpacityAbstractResource",
+        "method:ToolOpacityAbstractResource::ToolOpacityAbstractResource(int key,qreal value)",
+        "method:ToolOpacityAbstractResource::setValue(const QVariant value)",
+        "method:ToolOpacityAbstractResource::value() const"
       ]
     }
   ]
