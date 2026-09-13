@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include <processing/KisEncloseAndFillProcessingVisitor.h>
 #include <processing/fill_processing_visitor.h>
 
 #include <QTest>
@@ -21,6 +22,7 @@ class FillProcessingVisitorSchemaContractTest : public QObject
 
 private Q_SLOTS:
     void typeEnumerationAndConstructionSchemaRemainStable();
+    void encloseAndFillProcessingVisitorTypeAndConstructionSchemaRemainStable();
     void seedSelectionAndInputPolicySignaturesRemainStable();
     void fillGeometryAndThresholdSignaturesRemainStable();
     void regionAndContinuousFillSignaturesRemainStable();
@@ -38,6 +40,42 @@ void FillProcessingVisitorSchemaContractTest::typeEnumerationAndConstructionSche
     static_assert(Visitor::ContinuousFillMode_DoNotUse == 0);
     static_assert(Visitor::ContinuousFillMode_FillAnyRegion == 1);
     static_assert(Visitor::ContinuousFillMode_FillSimilarRegions == 2);
+}
+
+void FillProcessingVisitorSchemaContractTest::encloseAndFillProcessingVisitorTypeAndConstructionSchemaRemainStable()
+{
+    using Visitor = KisEncloseAndFillProcessingVisitor;
+
+    static_assert(std::is_class_v<Visitor>);
+    static_assert(std::is_base_of_v<KisSimpleProcessingVisitor, Visitor>);
+    static_assert(std::has_virtual_destructor_v<Visitor>);
+    static_assert(std::is_constructible_v<Visitor,
+                                          KisPaintDeviceSP,
+                                          KisPixelSelectionSP,
+                                          KisSelectionSP,
+                                          KisResourcesSnapshotSP,
+                                          KisEncloseAndFillPainter::RegionSelectionMethod,
+                                          const KoColor &,
+                                          bool,
+                                          bool,
+                                          bool,
+                                          int,
+                                          int,
+                                          int,
+                                          bool,
+                                          int,
+                                          bool,
+                                          int,
+                                          bool,
+                                          bool,
+                                          bool,
+                                          bool,
+                                          bool,
+                                          qreal,
+                                          const QString &,
+                                          QSharedPointer<QRect>>);
+
+    QVERIFY(true);
 }
 
 void FillProcessingVisitorSchemaContractTest::seedSelectionAndInputPolicySignaturesRemainStable()
