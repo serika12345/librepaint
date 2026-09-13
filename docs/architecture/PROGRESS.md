@@ -2,14 +2,14 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-13 16:28 JST
+- 更新日時: 2026-09-13 16:38 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
-- 完了: 第652便でノード移動コマンドの公開形式を契約へ追加し、対応済みを29,072件へ進めた。
-- 次の作業: 第653便として、最新の不足一覧から別の軽量契約試験へ追加できる公開headerを選び、対象限定の構築閉包を監査する。
+- 完了: 第653便で変換マスクの遅延キーフレーム作成コマンドの公開形式を契約へ追加し、対応済みを29,075件へ進めた。
+- 次の作業: 第654便として、最新の不足一覧から別の軽量契約試験へ追加できる公開headerを選び、対象限定の構築閉包を監査する。
 - 検証: macOSの対象・近傍・反復・無作業再構築、公開API検査、`verify-quick`に成功した。製品target、全体build・`verify`、Linux、Nix再評価は本便の対象外である。
 
 ### 第202便の先行監査担当票
@@ -5823,6 +5823,12 @@
 - CMake、公開header、製品sourceは変更していない。macOSの限定構築は`KisCursorOverrideHijackerSchemaContractTest`の自動生成、試験source、実行ファイルだけをコンパイル・リンクし、製品targetを再構築していない。実測閉包は4工程・8入力、command SHA-256 `ef32b3dd7378f1d5e5ef739d9977409afa1f64e34d162fddfb54cfd31327fc3d`、input SHA-256 `58d9882064254f622d7496f1d8e232987c51dd89595a3d9101b9bbaef2ddb583`を維持した。
 - 試験sourceは277行・19枠、AUTOMOC `HEADERS=[]`、Qt Core・TestとOS frameworkだけの動的接続であり、template creation dialog・製品libraryの未解決記号がないことを確認した。対象全体20回、追加枠20回（60 pass）、近傍`KisGrabKeyboardFocusRecoveryWorkaroundSchemaContractTest`、連続二回の無作業Ninja構築、`clang-check -Werror`、書式、JSON構文、差分に成功した。
 - 初回照合は移行基準888件に対して実測886件となる期待診断を確認後、基準を更新した。公開API検査は28,915件対応、29,801件中886件未対応となった。新`build/tdd-macos/public-api-missing-g609.json`は243,686 bytes、SHA-256 `3054ebba7a39fe813e03d2bcce52fdc1b2181406427f087d9c308fe048f4b193`である。生成成功後に旧`public-api-missing-g608.json` 244,308 bytesをゴミ箱へ移し、主Ninja木6,061,012 KiB、共有compiler cache 983,424 KiB、最新報告だけを再利用対象として保持する。template資源の読込み・書込み、文書生成、dialogの表示と選択は、製品実装を接続する後続の効果契約で扱う。次の永続作業は第610便で別の独立軽量試験に追加可能な公開headerを選び、対象限定閉包を先に監査することである。
+
+### 第653便の公開API契約結果
+
+- 開始`libs/image/commands_new/KisLazyCreateTransformMaskKeyframesCommand.h`から新規`libs/image/tests/KisLazyCreateTransformMaskKeyframesCommandSchemaContractTest.cpp`へ、変換マスクの遅延キーフレーム作成コマンドの型、構築、アニメーション照会の3 APIを`publicInterfaceRemainsStable`として対応付けた。集約undo基底、構築可能性、照会関数ポインター型を固定し、変換マスク、子コマンド、キーフレーム作成の本文を実行していない。
+- 開始`libs/image/tests/CMakeLists.txt`には専用targetとimage・commands_new・global・pigment・painting/undo探索路、必要なinterface探索路だけを追加した。新targetの初回は想定どおりunknown targetであり、実測閉包は4工程・8入力、command SHA-256 `dced1af7cb4e668bd1fd91b378540ef0c614d6d49dcf934f773ab6cbb12ed5d0`、input SHA-256 `01c2dd92410785da5fb8440713c2fb2fcd95e97c6f88fedf026ace719c2acb61`、AUTOMOC `HEADERS=[]`、製品未解決記号なしである。
+- 試験sourceは32行・1枠、対象CTest全体20回、追加枠20回（60 pass）、近傍`KisNodeMoveCommand2SchemaContractTest`、連続二回の無作業Ninja構築、`clang-check -Werror`、書式、差分に成功した。公開API検査は29,075件対応、29,801件中726件未対応となった。新`build/tdd-macos/public-api-missing-g653.json`は202,270 bytes、SHA-256 `2b6edaf6d0cb8685e9b89528e9cbe189be187158ca0e3cfa68c5cfc6e34b675d`である。旧g652報告をゴミ箱へ移し、主Ninja木6,067,876 KiB、共有compiler cache 981,812 KiB、空き容量1.8 GiBを確認した。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 
 ### 第652便の公開API契約結果
 
