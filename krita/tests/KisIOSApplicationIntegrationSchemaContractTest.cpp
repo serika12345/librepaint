@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "KisIOSLifecycleHandler.h"
 #include "KisIOSMemoryWarningHandler.h"
 #include "KisIOSPencilInteraction.h"
 
@@ -15,9 +16,27 @@ class KisIOSApplicationIntegrationSchemaContractTest : public QObject
     Q_OBJECT
 
 private Q_SLOTS:
+    void lifecycleTypeAndEntryPointSignaturesRemainStable();
     void memoryWarningHandlerSignatureRemainsStable();
     void pencilTapTypeAndInstallationSignatureRemainStable();
 };
+
+void KisIOSApplicationIntegrationSchemaContractTest::lifecycleTypeAndEntryPointSignaturesRemainStable()
+{
+    using LifecycleHandler = void (*)(KisIOSLifecycleEvent);
+    using LifecycleInstallation = void (*)(KisIOSLifecycleHandler);
+    using BackgroundTaskCompletion = void (*)();
+
+    static_assert(std::is_enum_v<KisIOSLifecycleEvent>);
+    static_assert(std::is_same_v<decltype(KisIOSLifecycleEvent::WillResignActive), KisIOSLifecycleEvent>);
+    static_assert(std::is_same_v<decltype(KisIOSLifecycleEvent::DidEnterBackground), KisIOSLifecycleEvent>);
+    static_assert(std::is_same_v<decltype(KisIOSLifecycleEvent::WillEnterForeground), KisIOSLifecycleEvent>);
+    static_assert(std::is_same_v<decltype(KisIOSLifecycleEvent::DidBecomeActive), KisIOSLifecycleEvent>);
+    static_assert(std::is_same_v<decltype(KisIOSLifecycleEvent::BackgroundTaskExpired), KisIOSLifecycleEvent>);
+    static_assert(std::is_same_v<KisIOSLifecycleHandler, LifecycleHandler>);
+    static_assert(std::is_same_v<decltype(&installKisIOSLifecycleHandler), LifecycleInstallation>);
+    static_assert(std::is_same_v<decltype(&finishKisIOSBackgroundTask), BackgroundTaskCompletion>);
+}
 
 void KisIOSApplicationIntegrationSchemaContractTest::memoryWarningHandlerSignatureRemainsStable()
 {
