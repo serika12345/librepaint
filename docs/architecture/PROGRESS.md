@@ -2,14 +2,14 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-13 17:18 JST
+- 更新日時: 2026-09-13 17:27 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
-- 完了: 第657便でマスキングブラシ合成生成器の公開形式を契約へ追加し、対応済みを29,093件へ進めた。
-- 次の作業: 第658便として、最新の不足一覧から別の軽量契約試験へ追加できる公開headerを選び、対象限定の構築閉包を監査する。
+- 完了: 第658便で描画補助関数の公開形式を契約へ追加し、対応済みを29,096件へ進めた。
+- 次の作業: 第659便として、最新の不足一覧から別の軽量契約試験へ追加できる公開headerを選び、対象限定の構築閉包を監査する。
 - 検証: macOSの対象・近傍・反復・無作業再構築、公開API検査、`verify-quick`に成功した。製品target、全体build・`verify`、Linux、Nix再評価は本便の対象外である。
 
 ### 第202便の先行監査担当票
@@ -5823,6 +5823,12 @@
 - CMake、公開header、製品sourceは変更していない。macOSの限定構築は`KisCursorOverrideHijackerSchemaContractTest`の自動生成、試験source、実行ファイルだけをコンパイル・リンクし、製品targetを再構築していない。実測閉包は4工程・8入力、command SHA-256 `ef32b3dd7378f1d5e5ef739d9977409afa1f64e34d162fddfb54cfd31327fc3d`、input SHA-256 `58d9882064254f622d7496f1d8e232987c51dd89595a3d9101b9bbaef2ddb583`を維持した。
 - 試験sourceは277行・19枠、AUTOMOC `HEADERS=[]`、Qt Core・TestとOS frameworkだけの動的接続であり、template creation dialog・製品libraryの未解決記号がないことを確認した。対象全体20回、追加枠20回（60 pass）、近傍`KisGrabKeyboardFocusRecoveryWorkaroundSchemaContractTest`、連続二回の無作業Ninja構築、`clang-check -Werror`、書式、JSON構文、差分に成功した。
 - 初回照合は移行基準888件に対して実測886件となる期待診断を確認後、基準を更新した。公開API検査は28,915件対応、29,801件中886件未対応となった。新`build/tdd-macos/public-api-missing-g609.json`は243,686 bytes、SHA-256 `3054ebba7a39fe813e03d2bcce52fdc1b2181406427f087d9c308fe048f4b193`である。生成成功後に旧`public-api-missing-g608.json` 244,308 bytesをゴミ箱へ移し、主Ninja木6,061,012 KiB、共有compiler cache 983,424 KiB、最新報告だけを再利用対象として保持する。template資源の読込み・書込み、文書生成、dialogの表示と選択は、製品実装を接続する後続の効果契約で扱う。次の永続作業は第610便で別の独立軽量試験に追加可能な公開headerを選び、対象限定閉包を先に監査することである。
+
+### 第658便の公開API契約結果
+
+- 開始`libs/painting/kis_painting_utils.h`から新規`libs/painting/tests/KisPaintingUtilsSchemaContractTest.cpp`へ、単一点の色採取、単一ノード探索、複数ノード探索の3関数を`publicFunctionSignaturesRemainStable`として対応付けた。色、描画装置、位置、グループ・編集可否条件、戻り値の関数ポインター型だけを固定し、色採取・ノード探索の本文を実行していない。
+- 開始`libs/painting/tests/CMakeLists.txt`には専用targetとQt Core・Test、painting・global・imageの公開探索路だけを追加した。初回の新target未定義診断、次回の`kis_shared_ptr.h`不足を確認し、image公開型が直接要求するglobal探索路だけで解消した。CMake再構成後も対象MOC・試験object・実行形式だけを構築し、構成上のtarget数は専用試験追加により2102となった。実測閉包は4工程・8入力、command SHA-256 `c255db1b8f523dd8d45ada9dafc9a462ac2061abc41319081e1a5cb26a37904e`、input SHA-256 `e5bb872fc508bf2bfcf13aff2038cfb1eefb561ce2449533f949712c5bf1c46e`、AUTOMOC `HEADERS=[]`、製品未解決記号なしである。
+- 試験sourceは35行・1枠、対象CTest全体20回、追加枠20回（60 pass）、近傍`KisFigurePaintingOptionsContractTest`、連続二回のNinja構築（後者は無作業）、`clang-check -Werror`、書式、差分に成功した。公開API検査は29,096件対応、29,801件中705件未対応となった。初回照合は移行基準708件に対して実測705件となる期待診断を確認後、基準を更新した。新`build/tdd-macos/public-api-missing-g658.json`は194,371 bytes、SHA-256 `6f85e20fa3fd4430aa7f6436aa2d0189837d1d0798c6c1d35156e5e4f58f37fb`である。生成成功後に旧g657報告をゴミ箱へ移し、主Ninja木6,072,528 KiB、共有compiler cache 982,708 KiB、空き容量1.9 GiB、最新報告だけを再利用対象として保持する。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 
 ### 第657便の公開API契約結果
 
