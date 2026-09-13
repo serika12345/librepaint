@@ -2,14 +2,14 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-13 11:39 JST
+- 更新日時: 2026-09-13 11:48 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
-- 完了: 第624便でimport/export色空間選択の公開関数を契約へ追加し、対応済みを28,957件へ進めた。
-- 次の作業: 第625便として、最新の不足一覧から別の軽量契約試験へ追加できる公開headerを選び、対象限定の構築閉包を監査する。
+- 完了: 第625便で遠隔ファイル取得器の仮想デストラクターを公開契約へ追加し、対応済みを28,958件へ進めた。
+- 次の作業: 第626便として、最新の不足一覧から別の軽量契約試験へ追加できる公開headerを選び、対象限定の構築閉包を監査する。
 - 検証: macOSの対象・近傍・反復・無作業再構築、公開API検査、`verify-quick`に成功した。製品target、全体build・`verify`、Linux、Nix再評価は本便の対象外である。
 
 ### 第202便の先行監査担当票
@@ -5823,6 +5823,19 @@
 - CMake、公開header、製品sourceは変更していない。macOSの限定構築は`KisCursorOverrideHijackerSchemaContractTest`の自動生成、試験source、実行ファイルだけをコンパイル・リンクし、製品targetを再構築していない。実測閉包は4工程・8入力、command SHA-256 `ef32b3dd7378f1d5e5ef739d9977409afa1f64e34d162fddfb54cfd31327fc3d`、input SHA-256 `58d9882064254f622d7496f1d8e232987c51dd89595a3d9101b9bbaef2ddb583`を維持した。
 - 試験sourceは277行・19枠、AUTOMOC `HEADERS=[]`、Qt Core・TestとOS frameworkだけの動的接続であり、template creation dialog・製品libraryの未解決記号がないことを確認した。対象全体20回、追加枠20回（60 pass）、近傍`KisGrabKeyboardFocusRecoveryWorkaroundSchemaContractTest`、連続二回の無作業Ninja構築、`clang-check -Werror`、書式、JSON構文、差分に成功した。
 - 初回照合は移行基準888件に対して実測886件となる期待診断を確認後、基準を更新した。公開API検査は28,915件対応、29,801件中886件未対応となった。新`build/tdd-macos/public-api-missing-g609.json`は243,686 bytes、SHA-256 `3054ebba7a39fe813e03d2bcce52fdc1b2181406427f087d9c308fe048f4b193`である。生成成功後に旧`public-api-missing-g608.json` 244,308 bytesをゴミ箱へ移し、主Ninja木6,061,012 KiB、共有compiler cache 983,424 KiB、最新報告だけを再利用対象として保持する。template資源の読込み・書込み、文書生成、dialogの表示と選択は、製品実装を接続する後続の効果契約で扱う。次の永続作業は第610便で別の独立軽量試験に追加可能な公開headerを選び、対象限定閉包を先に監査することである。
+
+### 第625便の公開API契約計画
+
+- 正式入力`build/tdd-macos/public-api-missing-g624.json`を監査し、既存`libs/impex/tests/kis_remote_file_fetcher_test.cpp`は遠隔取得objectと通信挙動を含む78工程・155入力のため追加先から除外した。開始`libs/impex/ui/KisRemoteFileFetcher.h`の仮想デストラクター1 APIを、新規`libs/impex/tests/KisRemoteFileFetcherSchemaContractTest.cpp`の1枠`virtualDestructorSchemaRemainsStable`へ対応付ける。
+- 開始`libs/impex/tests/CMakeLists.txt`には専用target、impex UI source探索路、生成済みUI export headerの探索路、`kritaapplicationui_EXPORTS`だけを追加する。Qt Core・Network・Testだけを動的接続し、取得器object、製品target、製品shared・OBJECT、`kritatestsdk`を接続しない。停止線は5工程・11入力、候補headerのAUTOMOC入力化、製品未解決記号、取得器・ネットワーク・親QObjectの実体化または許可path外変更とする。
+- macOSでは対象CTest、追加枠20回、既存`kis_remote_file_fetcher_test`の近傍実行、AUTOMOC後の二回目計画、連続二回の無作業再構築、動的接続・未解決記号・厳格構文・書式、公開API検査、`verify-quick`だけを実行する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。初回公開API検査は移行基準844件に対する1 API減少の診断を期待する。
+
+### 第625便の公開API契約結果
+
+- 開始`libs/impex/ui/KisRemoteFileFetcher.h`から新規`libs/impex/tests/KisRemoteFileFetcherSchemaContractTest.cpp`へ、仮想デストラクター1 APIを`virtualDestructorSchemaRemainsStable`として対応付けた。取得器がQObjectとして使われ、基底参照を通じて安全に破棄できることを固定し、取得器、ネットワーク、親QObject、通信処理を実体化または実行していない。
+- 開始`libs/impex/tests/CMakeLists.txt`には専用target、impex UI sourceと生成済みUI export headerの探索路、export定義だけを追加した。CMake再構成はtarget登録のため構成全体を読み直したが、Ninjaがコンパイル・リンクしたのは`KisRemoteFileFetcherSchemaContractTest`の自動生成、試験source、実行ファイルだけである。製品target、取得器object、製品shared、OBJECT target、`kritatestsdk`を構築へ加えていない。実測閉包は4工程・8入力、command SHA-256 `383f0310e6534533d36263738c31aaec2bea0cc572aad4765d0e3cf060c580b6`、input SHA-256 `d75ef404b703d651a3299e994450f6fe8528f551a2d7cfa92590ecbc204b60fd`である。
+- 試験sourceは28行・1枠、AUTOMOC `HEADERS=[]`、Qt Core・Network・TestとOS frameworkだけの動的接続であり、取得器・製品libraryの未解決記号がないことを確認した。対象全体20回、追加枠20回（60 pass）、近傍`kis_remote_file_fetcher_test`、連続二回の無作業Ninja構築、compilation databaseを用いる`clang-check`、書式、JSON構文、差分に成功した。
+- 初回照合は移行基準844件に対して実測843件となる期待診断を確認後、基準を更新した。公開API検査は28,958件対応、29,801件中843件未対応となった。新`build/tdd-macos/public-api-missing-g625.json`は233,127 bytes、SHA-256 `8e2df819baf9f4c1ed7a8cfb3e0a0a669ff95c04e2b351440e1d26923eb081b5`である。生成成功後に旧`public-api-missing-g624.json`をゴミ箱へ移し、主Ninja木6,072,624 KiB、共有compiler cache 982,928 KiB、最新報告だけを再利用対象として保持する。空き容量21 GiBを確認した。次の永続作業は第626便で別の独立軽量試験に追加可能な公開headerを選び、対象限定閉包を先に監査することである。
 
 ### 第624便の公開API契約計画
 

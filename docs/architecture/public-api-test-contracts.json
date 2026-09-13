@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 844
+    "expectedMissingApis": 843
   },
   "contracts": [
     {
@@ -81532,6 +81532,16 @@
       "classification": "maintained",
       "apis": [
         "function:KisImportExportColorSpaceDialog::selectEditableColorSpace(QWidget * parent,const KoColorSpace * sourceColorSpace,const KoColorSpace ** replacementColorSpace,KoColorConversionTransformation::Intent * intent,KoColorConversionTransformation::ConversionFlags * flags)"
+      ]
+    },
+    {
+      "target": "KisRemoteFileFetcherSchemaContractTest",
+      "source": "libs/impex/tests/KisRemoteFileFetcherSchemaContractTest.cpp",
+      "test": "KisRemoteFileFetcherSchemaContractTest::virtualDestructorSchemaRemainsStable",
+      "behavior": "遠隔ファイル取得器はQObjectとして使われ、基底参照を通じて安全に破棄できる仮想デストラクターを維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisRemoteFileFetcher::~KisRemoteFileFetcher()"
       ]
     }
   ]
