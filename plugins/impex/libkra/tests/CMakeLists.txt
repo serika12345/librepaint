@@ -13,7 +13,9 @@ kis_add_test(
     KisKraSaveXmlVisitorSchemaContractTest.cpp
     LINK_LIBRARIES
         Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
         Qt${QT_MAJOR_VERSION}::Test
+        KF${KF_MAJOR}::I18n
 )
 target_include_directories(KisKraSaveXmlVisitorSchemaContractTest PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/..
@@ -22,6 +24,8 @@ target_include_directories(KisKraSaveXmlVisitorSchemaContractTest PRIVATE
     ${CMAKE_BINARY_DIR}/libs/global
     ${CMAKE_SOURCE_DIR}/libs/image
     ${CMAKE_BINARY_DIR}/libs/image
+    ${CMAKE_SOURCE_DIR}/libs/pigment
+    ${CMAKE_BINARY_DIR}/libs/pigment
     $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Xml,INTERFACE_INCLUDE_DIRECTORIES>
 )
 target_compile_definitions(KisKraSaveXmlVisitorSchemaContractTest PRIVATE

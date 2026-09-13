@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "kis_colorize_dom_utils.h"
 #include "kis_kra_load_visitor.h"
 #include "kis_kra_loader.h"
 #include "kis_kra_save_visitor.h"
@@ -33,6 +34,7 @@ private Q_SLOTS:
     void kraLoaderDocumentAssetSignaturesRemainStable();
     void kraLoaderSelectionAssistantAndStoryboardSignaturesRemainStable();
     void kraLoaderDiagnosticSignaturesRemainStable();
+    void colorizeDomSerializationSignaturesRemainStable();
 };
 
 void KisKraSaveXmlVisitorSchemaContractTest::saveXmlVisitorTypeConstructionAndSelectionSchemaRemainStable()
@@ -275,6 +277,18 @@ void KisKraSaveXmlVisitorSchemaContractTest::kraLoaderDiagnosticSignaturesRemain
     static_assert(std::is_same_v<decltype(&KisKraLoader::errorMessages), QStringList (KisKraLoader::*)() const>);
     static_assert(std::is_same_v<decltype(&KisKraLoader::warningMessages), QStringList (KisKraLoader::*)() const>);
     static_assert(std::is_same_v<decltype(&KisKraLoader::imageName), QString (KisKraLoader::*)() const>);
+}
+
+void KisKraSaveXmlVisitorSchemaContractTest::colorizeDomSerializationSignaturesRemainStable()
+{
+    using SaveValue = void (*)(QDomElement *, const QString &, const KisLazyFillTools::KeyStroke &);
+    using LoadValue =
+        bool (*)(const QDomElement &, KisLazyFillTools::KeyStroke *, const KoColorSpace *, const QPoint &);
+
+    static_assert(std::is_same_v<decltype(&KisDomUtils::saveValue), SaveValue>);
+    static_assert(std::is_same_v<decltype(&KisDomUtils::loadValue), LoadValue>);
+
+    QVERIFY(true);
 }
 
 QTEST_GUILESS_MAIN(KisKraSaveXmlVisitorSchemaContractTest)
