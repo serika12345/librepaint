@@ -2,14 +2,14 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-13 17:35 JST
+- 更新日時: 2026-09-13 17:47 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
-- 完了: 第659便でレイヤー操作action同期器の公開形式を契約へ追加し、対応済みを29,098件へ進めた。
-- 次の作業: 第660便として、最新の不足一覧から別の軽量契約試験へ追加できる公開headerを選び、対象限定の構築閉包を監査する。
+- 完了: 第660便でKRA色分離DOM補助の公開形式を契約へ追加し、対応済みを29,100件へ進めた。
+- 次の作業: 第661便として、最新の不足一覧から別の軽量契約試験へ追加できる公開headerを選び、対象限定の構築閉包を監査する。
 - 検証: macOSの対象・近傍・反復・無作業再構築、公開API検査、`verify-quick`に成功した。製品target、全体build・`verify`、Linux、Nix再評価は本便の対象外である。
 
 ### 第202便の先行監査担当票
@@ -5823,6 +5823,12 @@
 - CMake、公開header、製品sourceは変更していない。macOSの限定構築は`KisCursorOverrideHijackerSchemaContractTest`の自動生成、試験source、実行ファイルだけをコンパイル・リンクし、製品targetを再構築していない。実測閉包は4工程・8入力、command SHA-256 `ef32b3dd7378f1d5e5ef739d9977409afa1f64e34d162fddfb54cfd31327fc3d`、input SHA-256 `58d9882064254f622d7496f1d8e232987c51dd89595a3d9101b9bbaef2ddb583`を維持した。
 - 試験sourceは277行・19枠、AUTOMOC `HEADERS=[]`、Qt Core・TestとOS frameworkだけの動的接続であり、template creation dialog・製品libraryの未解決記号がないことを確認した。対象全体20回、追加枠20回（60 pass）、近傍`KisGrabKeyboardFocusRecoveryWorkaroundSchemaContractTest`、連続二回の無作業Ninja構築、`clang-check -Werror`、書式、JSON構文、差分に成功した。
 - 初回照合は移行基準888件に対して実測886件となる期待診断を確認後、基準を更新した。公開API検査は28,915件対応、29,801件中886件未対応となった。新`build/tdd-macos/public-api-missing-g609.json`は243,686 bytes、SHA-256 `3054ebba7a39fe813e03d2bcce52fdc1b2181406427f087d9c308fe048f4b193`である。生成成功後に旧`public-api-missing-g608.json` 244,308 bytesをゴミ箱へ移し、主Ninja木6,061,012 KiB、共有compiler cache 983,424 KiB、最新報告だけを再利用対象として保持する。template資源の読込み・書込み、文書生成、dialogの表示と選択は、製品実装を接続する後続の効果契約で扱う。次の永続作業は第610便で別の独立軽量試験に追加可能な公開headerを選び、対象限定閉包を先に監査することである。
+
+### 第660便の公開API契約結果
+
+- 開始`plugins/impex/libkra/kis_colorize_dom_utils.h`から既存`plugins/impex/libkra/tests/KisKraSaveXmlVisitorSchemaContractTest.cpp`へ、KRA色分離データのDOM保存・読込の2関数を`colorizeDomSerializationSignaturesRemainStable`として対応付けた。DOM、タグ、key stroke、色空間、位置、戻り値の関数ポインター型だけを固定し、DOM操作、色分離データ変換、色空間探索の本文を実行していない。
+- 開始`plugins/impex/libkra/tests/CMakeLists.txt`には同targetが直接要求するpigment source/generated探索路、Qt GUI、KF I18nだけを追加した。初回に`KoColorSpaceRegistry.h`、次回に`klocalizedstring.h`の不足を検出し、公開ヘッダー依存だけで解消した。CMake再構成後も対象MOC・試験object・実行形式だけを構築し、実測閉包は4工程・9入力、command SHA-256 `5ff6960bfdc87269f4b9c56ec2877cf229fa185728a69b120355d4216ff2fe97`、input SHA-256 `9e723c4eb9445f3df0b00cbe3988f6d87b3de018c4e36e2ab6eddd8be4817a96`、AUTOMOC `HEADERS=[]`、製品未解決記号なしである。
+- 試験sourceは296行・16枠、対象CTest全体20回、追加枠20回（60 pass）、近傍`KraDocumentSchemaContractTest`、連続二回のNinja構築（後者は無作業）、`clang-check -Werror`、書式、差分に成功した。公開API検査は29,100件対応、29,801件中701件未対応となった。初回照合は移行基準703件に対して実測701件となる期待診断を確認後、基準を更新した。新`build/tdd-macos/public-api-missing-g660.json`は192,999 bytes、SHA-256 `430853fd5b5f5d00e933251b184819df5b065da66e66012a8fb241451de54cb0`である。生成成功後に旧g659報告をゴミ箱へ移し、主Ninja木6,072,528 KiB、共有compiler cache 983,160 KiB、空き容量1.9 GiB、最新報告だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 
 ### 第659便の公開API契約結果
 
