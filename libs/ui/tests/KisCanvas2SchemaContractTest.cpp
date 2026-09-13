@@ -12,6 +12,7 @@
 #include "canvas/KoCanvasControllerWidget.h"
 #include "canvas/kis_canvas2.h"
 #include "canvas/kis_canvas_controller.h"
+#include "canvas/kis_infinity_manager.h"
 #include "canvas/kis_mirror_manager.h"
 #include "nodes/kis_node_selection_adapter.h"
 
@@ -60,6 +61,7 @@ class KisCanvas2SchemaContractTest : public QObject
 private Q_SLOTS:
     void canvasTypeConstructionAndBaseSchemaRemainStable();
     void decorationsManagerSchemaRemainStable();
+    void infinityManagerSchemaRemainStable();
     void mirrorManagerSchemaRemainStable();
     void nodeSelectionAdapterSchemaRemainStable();
     void shapeToolAndInputSignaturesRemainStable();
@@ -133,6 +135,18 @@ void KisCanvas2SchemaContractTest::decorationsManagerSchemaRemainStable()
     static_assert(std::is_same_v<decltype(&Manager::setup), Setup>);
 
     QVERIFY(true);
+}
+
+void KisCanvas2SchemaContractTest::infinityManagerSchemaRemainStable()
+{
+    using Manager = KisInfinityManager;
+
+    static_assert(std::is_class_v<Manager>);
+    static_assert(std::is_base_of_v<KisCanvasDecoration, Manager>);
+    static_assert(std::is_constructible_v<Manager, QPointer<KisView>, KisCanvas2 *>);
+    static_assert(std::is_same_v<decltype(&Manager::imagePositionChanged), void (Manager::*)()>);
+
+    QCOMPARE(INFINITY_DECORATION_ID, QStringLiteral("infinity-decorations"));
 }
 
 void KisCanvas2SchemaContractTest::mirrorManagerSchemaRemainStable()
