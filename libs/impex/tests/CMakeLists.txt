@@ -267,6 +267,19 @@ if(UNIX AND NOT APPLE)
     )
 endif()
 
+kis_add_test(
+    KisRemoteFileFetcherSchemaContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Network
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KisRemoteFileFetcherSchemaContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/../ui
+    ${CMAKE_BINARY_DIR}/libs/ui
+)
+target_compile_definitions(KisRemoteFileFetcherSchemaContractTest PRIVATE kritaapplicationui_EXPORTS)
+
 kis_add_tests(
     kis_import_export_utils_values_test.cpp
     LINK_LIBRARIES
