@@ -1711,6 +1711,21 @@ target_compile_definitions(ImageSizeSchemaContractTest PRIVATE
 )
 
 kis_add_test(
+    ToolOpacityAbstractResourceSchemaContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(ToolOpacityAbstractResourceSchemaContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/flake
+    ${CMAKE_BINARY_DIR}/libs/flake
+)
+target_compile_definitions(ToolOpacityAbstractResourceSchemaContractTest PRIVATE
+    kritaflake_EXPORTS
+)
+
+kis_add_test(
     KoDualColorButtonSchemaContractTest.cpp
     LINK_LIBRARIES
         Qt${QT_MAJOR_VERSION}::Core
