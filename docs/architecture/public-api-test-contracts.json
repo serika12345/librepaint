@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 734
+    "expectedMissingApis": 729
   },
   "contracts": [
     {
@@ -81885,6 +81885,20 @@
         "method:KisChangeCloneLayersCommand::mergeWith(const KUndo2Command *)",
         "method:KisChangeCloneLayersCommand::redo()",
         "method:KisChangeCloneLayersCommand::undo()"
+      ]
+    },
+    {
+      "target": "KisNodeMoveCommand2SchemaContractTest",
+      "source": "libs/image/tests/KisNodeMoveCommand2SchemaContractTest.cpp",
+      "test": "KisNodeMoveCommand2SchemaContractTest::nodeMoveCommandPublicInterfaceRemainsStable",
+      "behavior": "ノード移動コマンドは対象ノード、変更前後の位置、親コマンドで構築でき、undo、redo、選択通知の公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisNodeMoveCommand2",
+        "method:KisNodeMoveCommand2::KisNodeMoveCommand2(KisNodeSP object,const QPoint & oldPos,const QPoint & newPos,KUndo2Command * parent=0)",
+        "method:KisNodeMoveCommand2::redo()",
+        "method:KisNodeMoveCommand2::tryNotifySelection(KisNodeSP node)",
+        "method:KisNodeMoveCommand2::undo()"
       ]
     }
   ]
