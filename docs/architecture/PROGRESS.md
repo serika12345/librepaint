@@ -2,14 +2,14 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-13 18:20 JST
+- 更新日時: 2026-09-13 18:28 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
-- 完了: 第662便でsRGB表面色空間管理器の公開構築・生成形式を契約へ追加し、対応済みを29,106件へ進めた。
-- 次の作業: 第663便として、最新の不足一覧から別の軽量契約試験へ追加できる公開headerを選び、対象限定の構築閉包を監査する。
+- 完了: 第663便でQMic plugin接続面の公開構築・起動形式を契約へ追加し、対応済みを29,110件へ進めた。
+- 次の作業: 第664便として、最新の不足一覧から別の軽量契約試験へ追加できる公開headerを選び、対象限定の構築閉包を監査する。
 - 検証: macOSの対象・反復・無作業再構築、公開API検査に成功した。文書同期後に`verify-quick`を実行する。製品target、全体build・`verify`、Linux、Nix再評価は本便の対象外である。
 
 ### 第202便の先行監査担当票
@@ -5823,6 +5823,12 @@
 - CMake、公開header、製品sourceは変更していない。macOSの限定構築は`KisCursorOverrideHijackerSchemaContractTest`の自動生成、試験source、実行ファイルだけをコンパイル・リンクし、製品targetを再構築していない。実測閉包は4工程・8入力、command SHA-256 `ef32b3dd7378f1d5e5ef739d9977409afa1f64e34d162fddfb54cfd31327fc3d`、input SHA-256 `58d9882064254f622d7496f1d8e232987c51dd89595a3d9101b9bbaef2ddb583`を維持した。
 - 試験sourceは277行・19枠、AUTOMOC `HEADERS=[]`、Qt Core・TestとOS frameworkだけの動的接続であり、template creation dialog・製品libraryの未解決記号がないことを確認した。対象全体20回、追加枠20回（60 pass）、近傍`KisGrabKeyboardFocusRecoveryWorkaroundSchemaContractTest`、連続二回の無作業Ninja構築、`clang-check -Werror`、書式、JSON構文、差分に成功した。
 - 初回照合は移行基準888件に対して実測886件となる期待診断を確認後、基準を更新した。公開API検査は28,915件対応、29,801件中886件未対応となった。新`build/tdd-macos/public-api-missing-g609.json`は243,686 bytes、SHA-256 `3054ebba7a39fe813e03d2bcce52fdc1b2181406427f087d9c308fe048f4b193`である。生成成功後に旧`public-api-missing-g608.json` 244,308 bytesをゴミ箱へ移し、主Ninja木6,061,012 KiB、共有compiler cache 983,424 KiB、最新報告だけを再利用対象として保持する。template資源の読込み・書込み、文書生成、dialogの表示と選択は、製品実装を接続する後続の効果契約で扱う。次の永続作業は第610便で別の独立軽量試験に追加可能な公開headerを選び、対象限定閉包を先に監査することである。
+
+### 第663便の公開API契約結果
+
+- 開始`plugins/extensions/qmic/kis_qmic_plugin_interface.h`から既存`plugins/extensions/qmic/tests/KisQMicInterfaceContractTest.cpp`へ、QMic plugin接続面の抽象型、既定構築、仮想破棄、画像interface共有所有と既定headless値を受け取る起動入口の4 APIを`pluginInterfaceTypeConstructionLifetimeAndLaunchSchemaRemainStable`として対応付けた。局所派生型の未評価構築可能性と未評価呼出しだけを用い、plugin、画像interface、共有所有、headless起動、本文を実体化または実行していない。CMake、公開header、製品sourceは変更していない。
+- 既存targetの事前・変更後閉包は4工程・8入力、command SHA-256 `a82b1a346c9a27b76e5eb3ed272b302637c5b6cd380fe63ae1bfbbf565ffff3c`、input SHA-256 `1f33f50e5ffd7d5728d2c9bf05996ea2f0ffa87d6db7f55fdfed218af8f9067d`であり、停止線5工程・11入力以内を維持した。AUTOMOC `HEADERS=[]`、製品未解決記号なし、Qt Core・Testだけの動的接続を確認した。
+- 試験sourceは115行・6枠、対象実行形式全体20回（160 pass）、追加枠20回（60 pass）、連続二回の対象限定構築（後者は無作業）、`clang-check -Werror`、書式、差分に成功した。公開API検査は29,110件対応、29,801件中691件未対応となった。初回照合は移行基準695件に対して実測691件となる期待診断を確認後、基準を更新した。新`build/tdd-macos/public-api-missing-g663.json`は188,879 bytes、SHA-256 `1f4ce0946fb9def08bb75c2fbf84d314ad450e10a7abf8bc2ded15cc5bcc996e`である。生成成功後に旧g662報告をゴミ箱へ移し、主Ninja木6,108,872 KiB、共有compiler cache 983,212 KiB、空き容量47 GiB、最新報告だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 
 ### 第662便の公開API契約結果
 
