@@ -10,6 +10,7 @@
 #include "actions/KisNoParameterActionFactory.h"
 #include "actions/KisPasteActionFactories.h"
 #include "actions/kis_selection_action_factories.h"
+#include "selection/KisSelectionActionsAdapter.h"
 
 #define ASSERT_NO_PARAMETER_ACTION_SCHEMA(Type)                                                                        \
     static_assert(std::is_class_v<Type>);                                                                              \
@@ -30,6 +31,7 @@ class KisSelectionActionFactoriesSchemaContractTest : public QObject
 
 private Q_SLOTS:
     void noParameterActionFactoryBaseSchemaRemainsStable();
+    void selectionActionsAdapterTypeAndSelectionEntrySchemaRemainStable();
     void basicSelectionStateActionSchemaRemainsStable();
     void fillAndInvertActionSchemaRemainsStable();
     void cutAndCopyActionSchemaRemainsStable();
@@ -60,6 +62,17 @@ void KisSelectionActionFactoriesSchemaContractTest::noParameterActionFactoryBase
     static_assert(std::is_constructible_v<FactoryProbe, const QString &>);
     static_assert(std::is_same_v<decltype(&Factory::run), Run>);
     static_assert(std::is_same_v<decltype(&Factory::runFromXML), RunFromXml>);
+
+    QVERIFY(true);
+}
+
+void KisSelectionActionFactoriesSchemaContractTest::selectionActionsAdapterTypeAndSelectionEntrySchemaRemainStable()
+{
+    using Adapter = KisSelectionActionsAdapter;
+    using SelectOpaqueOnNode = void (Adapter::*)(KisNodeSP, SelectionAction);
+
+    static_assert(std::is_constructible_v<Adapter, KisSelectionManager *>);
+    static_assert(std::is_same_v<decltype(&Adapter::selectOpaqueOnNode), SelectOpaqueOnNode>);
 
     QVERIFY(true);
 }
