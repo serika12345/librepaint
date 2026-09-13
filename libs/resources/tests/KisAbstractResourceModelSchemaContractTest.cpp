@@ -6,6 +6,7 @@
 #include <KisResourceModel.h>
 #include <KisResourceModelProvider.h>
 #include <KisResourceTypeModel.h>
+#include <KisTagModelProvider.h>
 
 #include <QTest>
 
@@ -27,6 +28,7 @@ private Q_SLOTS:
     void resourceTypeModelDataSignaturesRemainStable();
     void resourceModelProviderTypeConstructionAndLifetimeSchemaRemainStable();
     void resourceModelProviderAccessAndTestingSignaturesRemainStable();
+    void tagModelProviderTypeConstructionLifetimeAndAccessSchemaRemainStable();
 };
 
 #define ASSERT_RESOURCE_MODEL_SIGNATURE(Type, Method, Signature)                                                       \
@@ -154,6 +156,20 @@ void KisAbstractResourceModelSchemaContractTest::resourceModelProviderAccessAndT
     static_assert(std::is_same_v<decltype(&Provider::resourceMetadataModel), MetadataModel>);
     static_assert(std::is_same_v<decltype(&Provider::testingResetAllModels), TestingControl>);
     static_assert(std::is_same_v<decltype(&Provider::testingCloseAllQueries), TestingControl>);
+}
+
+void KisAbstractResourceModelSchemaContractTest::tagModelProviderTypeConstructionLifetimeAndAccessSchemaRemainStable()
+{
+    using Provider = KisTagModelProvider;
+    using TagModel = KisTagModel *(*)(const QString &);
+    using TagResourceModel = KisTagResourceModel *(*)(const QString &);
+
+    static_assert(std::is_class_v<Provider>);
+    static_assert(std::is_base_of_v<QObject, Provider>);
+    static_assert(std::is_default_constructible_v<Provider>);
+    static_assert(std::has_virtual_destructor_v<Provider>);
+    static_assert(std::is_same_v<decltype(&Provider::tagModel), TagModel>);
+    static_assert(std::is_same_v<decltype(&Provider::tagResourceModel), TagResourceModel>);
 }
 
 #undef ASSERT_RESOURCE_MODEL_SIGNATURE
