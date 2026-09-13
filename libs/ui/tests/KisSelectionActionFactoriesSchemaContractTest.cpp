@@ -14,6 +14,7 @@
 #include "operations/kis_operation.h"
 #include "operations/kis_operation_configuration.h"
 #include "operations/kis_operation_registry.h"
+#include "operations/kis_operation_ui_factory.h"
 #include "selection/KisSelectionActionsAdapter.h"
 
 #define ASSERT_NO_PARAMETER_ACTION_SCHEMA(Type)                                                                        \
@@ -40,6 +41,7 @@ private Q_SLOTS:
     void operationRegistryTypeLifetimeAndInstanceSchemaRemainStable();
     void operationBaseTypeConstructionAndDispatchSchemaRemainStable();
     void operationConfigurationTypeConstructionAndIdentitySchemaRemainStable();
+    void operationUiFactoryTypeConstructionAndConfigurationSchemaRemainStable();
     void basicSelectionStateActionSchemaRemainsStable();
     void fillAndInvertActionSchemaRemainsStable();
     void cutAndCopyActionSchemaRemainsStable();
@@ -134,6 +136,30 @@ void KisSelectionActionFactoriesSchemaContractTest::
     static_assert(std::is_constructible_v<Configuration, const QString &>);
     static_assert(std::has_virtual_destructor_v<Configuration>);
     static_assert(std::is_same_v<decltype(&Configuration::id), Id>);
+
+    QVERIFY(true);
+}
+
+void KisSelectionActionFactoriesSchemaContractTest::
+    operationUiFactoryTypeConstructionAndConfigurationSchemaRemainStable()
+{
+    using Factory = KisOperationUIFactory;
+    using FetchConfiguration = bool (Factory::*)(KisViewManager *, KisOperationConfigurationSP);
+    using Id = QString (Factory::*)() const;
+    struct FactoryProbe final : Factory {
+        using Factory::Factory;
+
+        bool fetchConfiguration(KisViewManager *, KisOperationConfigurationSP) override
+        {
+            return false;
+        }
+    };
+
+    static_assert(std::is_abstract_v<Factory>);
+    static_assert(std::is_constructible_v<FactoryProbe, const QString &>);
+    static_assert(std::has_virtual_destructor_v<Factory>);
+    static_assert(std::is_same_v<decltype(&Factory::id), Id>);
+    static_assert(std::is_same_v<decltype(&Factory::fetchConfiguration), FetchConfiguration>);
 
     QVERIFY(true);
 }
