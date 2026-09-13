@@ -2,15 +2,15 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-13 11:12 JST
+- 更新日時: 2026-09-13 11:25 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
-- 完了: 第622便でexport check registryの寿命APIを公開契約へ追加し、対応済みを28,955件へ進めた。
-- 次の作業: 第623便として、最新の不足一覧から別の軽量契約試験へ追加できる公開headerを選び、対象限定の構築閉包を監査する。
-- 検証: macOSの対象・近傍・反復・無作業再構築、公開API検査、`verify-quick`に成功した。製品target、全体build・`verify`、Linux、Nix再評価は本便の対象外である。
+- 完了: 第623便でQMLポップアップのroot object準備完了通知を公開契約へ追加し、対応済みを28,956件へ進めた。
+- 次の作業: 第624便として、最新の不足一覧から別の軽量契約試験へ追加できる公開headerを選び、対象限定の構築閉包を監査する。
+- 検証: macOSの対象・反復・無作業再構築、公開API検査、`verify-quick`に成功した。既存の実行時QML近傍試験はbundle path解決の既知失敗であり、本便の静的試験とは独立している。製品target、全体build・`verify`、Linux、Nix再評価は本便の対象外である。
 
 ### 第202便の先行監査担当票
 
@@ -5823,6 +5823,19 @@
 - CMake、公開header、製品sourceは変更していない。macOSの限定構築は`KisCursorOverrideHijackerSchemaContractTest`の自動生成、試験source、実行ファイルだけをコンパイル・リンクし、製品targetを再構築していない。実測閉包は4工程・8入力、command SHA-256 `ef32b3dd7378f1d5e5ef739d9977409afa1f64e34d162fddfb54cfd31327fc3d`、input SHA-256 `58d9882064254f622d7496f1d8e232987c51dd89595a3d9101b9bbaef2ddb583`を維持した。
 - 試験sourceは277行・19枠、AUTOMOC `HEADERS=[]`、Qt Core・TestとOS frameworkだけの動的接続であり、template creation dialog・製品libraryの未解決記号がないことを確認した。対象全体20回、追加枠20回（60 pass）、近傍`KisGrabKeyboardFocusRecoveryWorkaroundSchemaContractTest`、連続二回の無作業Ninja構築、`clang-check -Werror`、書式、JSON構文、差分に成功した。
 - 初回照合は移行基準888件に対して実測886件となる期待診断を確認後、基準を更新した。公開API検査は28,915件対応、29,801件中886件未対応となった。新`build/tdd-macos/public-api-missing-g609.json`は243,686 bytes、SHA-256 `3054ebba7a39fe813e03d2bcce52fdc1b2181406427f087d9c308fe048f4b193`である。生成成功後に旧`public-api-missing-g608.json` 244,308 bytesをゴミ箱へ移し、主Ninja木6,061,012 KiB、共有compiler cache 983,424 KiB、最新報告だけを再利用対象として保持する。template資源の読込み・書込み、文書生成、dialogの表示と選択は、製品実装を接続する後続の効果契約で扱う。次の永続作業は第610便で別の独立軽量試験に追加可能な公開headerを選び、対象限定閉包を先に監査することである。
+
+### 第623便の公開API契約計画
+
+- 正式入力`build/tdd-macos/public-api-missing-g622.json`を監査し、既存`qmlmodules/widgets/tests/KisQQuickWidgetsPublicApiTest.cpp`は162工程・349入力で`kritaqmlwidgets`を接続するため、追加先として除外した。開始`qmlmodules/widgets/KisQQuickPopupWidget.h`の`signalRootObjectReady()` 1 APIを、新規`qmlmodules/widgets/tests/KisQQuickPopupWidgetSchemaContractTest.cpp`の1枠`rootObjectReadySignalSignatureRemainsStable`へ対応付ける。
+- 開始`qmlmodules/widgets/tests/CMakeLists.txt`には専用targetと公開headerを読む最小探索路、`kritaqmlwidgets_EXPORTS`だけを追加する。Qt Core・Gui・Quick・QuickWidgets・Widgets・Testのみを接続し、`kritaqmlwidgets`、製品target、製品shared・OBJECT、`kritatestsdk`を接続しない。停止線は5工程・11入力、候補headerのAUTOMOC入力化、製品未解決記号、QMLポップアップ実体化または許可path外変更とする。
+- macOSでは対象CTest、追加枠20回、既存実行時QML契約の近傍起動、AUTOMOC後の二回目計画、連続二回の無作業再構築、動的接続・未解決記号・厳格構文・書式、公開API検査、`verify-quick`だけを実行する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。初回公開API検査は移行基準846件に対する1 API減少の診断を期待する。
+
+### 第623便の公開API契約結果
+
+- 開始`qmlmodules/widgets/KisQQuickPopupWidget.h`から新規`qmlmodules/widgets/tests/KisQQuickPopupWidgetSchemaContractTest.cpp`へ、root object準備完了通知1 APIを`rootObjectReadySignalSignatureRemainsStable`として対応付けた。通知が引数なしのmember signalであることを固定し、QMLポップアップ、root object、親widget、QML実行時の状態を実体化または実行していない。
+- 開始`qmlmodules/widgets/tests/CMakeLists.txt`には専用targetのQt接続、公開headerのsource/binary探索路、export定義だけを追加した。CMake再構成はtarget登録のため構成全体を読み直したが、Ninjaがコンパイル・リンクしたのは`KisQQuickPopupWidgetSchemaContractTest`の自動生成、試験source、実行ファイルだけである。製品target、`kritaqmlwidgets`、製品shared、OBJECT target、`kritatestsdk`を構築へ加えていない。実測閉包は4工程・8入力、command SHA-256 `31c88b0bc45c0440b552981e2a662234ddeac87a29d150048c924cf73b52d477`、input SHA-256 `59dbcb98e485f2b988ebc41a09a3a17130893550325fce5e44b8d46c2ce8c01b`である。
+- 試験sourceは29行・1枠、AUTOMOC `HEADERS=[]`であり、Qt Quick/Widgets系とOS frameworkだけの動的接続、製品libraryの未解決記号がないことを確認した。対象全体20回、追加枠20回（60 pass）、連続二回の無作業Ninja構築、compilation databaseを用いる`clang-check`、書式、JSON構文、差分に成功した。近傍`KisQQuickWidgetsPublicApiTest`は既存のbundle path解決失敗で即時停止し、本静的targetの変更を構築または実行していない。
+- 初回照合は移行基準846件に対して実測845件となる期待診断を確認後、基準を更新した。公開API検査は28,956件対応、29,801件中845件未対応となった。新`build/tdd-macos/public-api-missing-g623.json`は234,051 bytes、SHA-256 `d9f1d5cee8294f85c919da13f58668d3a677f265c82bc01ca61a007324432269`である。生成成功後に旧`public-api-missing-g622.json`をゴミ箱へ移し、主Ninja木6,071,304 KiB、共有compiler cache 982,100 KiB、最新報告だけを再利用対象として保持する。空き容量26 GiBを確認した。次の永続作業は第624便で別の独立軽量試験に追加可能な公開headerを選び、対象限定閉包を先に監査することである。
 
 ### 第622便の公開API契約計画
 

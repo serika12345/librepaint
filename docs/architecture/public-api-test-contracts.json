@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 846
+    "expectedMissingApis": 845
   },
   "contracts": [
     {
@@ -81512,6 +81512,16 @@
       "classification": "maintained",
       "apis": [
         "method:KisExportCheckRegistry::~KisExportCheckRegistry()"
+      ]
+    },
+    {
+      "target": "KisQQuickPopupWidgetSchemaContractTest",
+      "source": "qmlmodules/widgets/tests/KisQQuickPopupWidgetSchemaContractTest.cpp",
+      "test": "KisQQuickPopupWidgetSchemaContractTest::rootObjectReadySignalSignatureRemainsStable",
+      "behavior": "QMLポップアップはroot objectの準備完了を引数なしの公開通知として維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisQQuickPopupWidget::signalRootObjectReady()"
       ]
     }
   ]
