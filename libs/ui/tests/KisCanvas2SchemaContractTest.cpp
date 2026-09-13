@@ -12,6 +12,7 @@
 #include "canvas/KoCanvasControllerWidget.h"
 #include "canvas/kis_canvas2.h"
 #include "canvas/kis_canvas_controller.h"
+#include "nodes/kis_node_selection_adapter.h"
 
 #define ASSERT_CANVAS_SIGNATURE(method, signature)                                                                     \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisCanvas2::method)), signature>)
@@ -58,6 +59,7 @@ class KisCanvas2SchemaContractTest : public QObject
 private Q_SLOTS:
     void canvasTypeConstructionAndBaseSchemaRemainStable();
     void decorationsManagerSchemaRemainStable();
+    void nodeSelectionAdapterSchemaRemainStable();
     void shapeToolAndInputSignaturesRemainStable();
     void imageRenderingAndColorStateSignaturesRemainStable();
     void notificationAndCanvasUpdateSignaturesRemainStable();
@@ -127,6 +129,19 @@ void KisCanvas2SchemaContractTest::decorationsManagerSchemaRemainStable()
     static_assert(std::has_virtual_destructor_v<Manager>);
     static_assert(std::is_same_v<decltype(&Manager::setView), SetView>);
     static_assert(std::is_same_v<decltype(&Manager::setup), Setup>);
+
+    QVERIFY(true);
+}
+
+void KisCanvas2SchemaContractTest::nodeSelectionAdapterSchemaRemainStable()
+{
+    using Adapter = KisNodeSelectionAdapter;
+
+    static_assert(std::is_class_v<Adapter>);
+    static_assert(std::is_constructible_v<Adapter, KisNodeManager *>);
+    static_assert(std::is_destructible_v<Adapter>);
+    static_assert(std::is_same_v<decltype(&Adapter::activeNode), KisNodeSP (Adapter::*)() const>);
+    static_assert(std::is_same_v<decltype(&Adapter::setActiveNode), void (Adapter::*)(KisNodeSP)>);
 
     QVERIFY(true);
 }
