@@ -4,6 +4,7 @@
  */
 
 #include "../kis_qmic_interface.h"
+#include "../kis_qmic_plugin_interface.h"
 
 #include <QTest>
 
@@ -19,6 +20,7 @@ private Q_SLOTS:
     void imageBufferAndDiagnosticSignaturesRemainStable();
     void interfaceTypeConstructionAndLifetimeSchemaRemainStable();
     void interfaceExchangeSignaturesRemainStable();
+    void pluginInterfaceTypeConstructionLifetimeAndLaunchSchemaRemainStable();
 };
 
 void KisQMicInterfaceContractTest::imageTypeConstructionAndOwnershipRemainStable()
@@ -82,6 +84,30 @@ void KisQMicInterfaceContractTest::interfaceExchangeSignaturesRemainStable()
     static_assert(
         std::is_same_v<decltype(&Interface::gmic_qt_output_images), void (Interface::*)(int, QVector<KisQMicImageSP>)>);
     static_assert(std::is_same_v<decltype(&Interface::gmic_qt_detach), void (Interface::*)()>);
+}
+
+void KisQMicInterfaceContractTest::pluginInterfaceTypeConstructionLifetimeAndLaunchSchemaRemainStable()
+{
+    using Interface = KisQmicPluginInterface;
+
+    class PluginInterfaceProbe final : public Interface
+    {
+    public:
+        int launch(std::shared_ptr<KisImageInterface>, bool) override
+        {
+            return 0;
+        }
+    };
+
+    static_assert(std::is_class_v<Interface>);
+    static_assert(std::is_abstract_v<Interface>);
+    static_assert(std::is_default_constructible_v<PluginInterfaceProbe>);
+    static_assert(std::has_virtual_destructor_v<Interface>);
+    static_assert(
+        std::is_same_v<decltype(&Interface::launch), int (Interface::*)(std::shared_ptr<KisImageInterface>, bool)>);
+    static_assert(
+        std::is_same_v<decltype(std::declval<Interface &>().launch(std::declval<std::shared_ptr<KisImageInterface>>())),
+                       int>);
 }
 
 QTEST_GUILESS_MAIN(KisQMicInterfaceContractTest)
