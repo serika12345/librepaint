@@ -230,11 +230,14 @@ target_compile_definitions(KisFigurePaintingStrokeSchemaContractTest PRIVATE
 
 kis_add_test(
     KisMaskingBrushCompositeOpBaseContractTest.cpp
-    LINK_LIBRARIES Qt${QT_MAJOR_VERSION}::Test
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Test
 )
 target_include_directories(KisMaskingBrushCompositeOpBaseContractTest PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/..
     ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/pigment
 )
 
 kis_add_test(

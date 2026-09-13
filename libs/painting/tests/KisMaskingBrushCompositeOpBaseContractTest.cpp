@@ -10,6 +10,7 @@
 #include <QTest>
 
 #include "strokes/KisMaskingBrushCompositeOpBase.h"
+#include "strokes/KisMaskingBrushCompositeOpFactory.h"
 
 namespace
 {
@@ -67,6 +68,7 @@ private Q_SLOTS:
     void interfaceRemainsAbstractAndPolymorphic();
     void compositeForwardsBuffersStridesAndDimensions();
     void baseOwnershipUsesVirtualDestruction();
+    void factoryInterfaceRemainsStable();
 };
 
 void KisMaskingBrushCompositeOpBaseContractTest::interfaceRemainsAbstractAndPolymorphic()
@@ -107,6 +109,26 @@ void KisMaskingBrushCompositeOpBaseContractTest::baseOwnershipUsesVirtualDestruc
     }
 
     QCOMPARE(destructionCount, 1);
+}
+
+void KisMaskingBrushCompositeOpBaseContractTest::factoryInterfaceRemainsStable()
+{
+    using Factory = KisMaskingBrushCompositeOpFactory;
+    using CompositeOp = KisMaskingBrushCompositeOpBase;
+    using ChannelType = KoChannelInfo::enumChannelValueType;
+    using Create = CompositeOp *(*)(const QString &, ChannelType, int, int);
+    using CreateWithStrength = CompositeOp *(*)(const QString &, ChannelType, int, int, qreal, bool);
+    using SupportedIds = QStringList (*)();
+
+    static_assert(std::is_class_v<Factory>);
+    static_assert(std::is_same_v<decltype(static_cast<Create>(&Factory::create)), Create>);
+    static_assert(std::is_same_v<decltype(static_cast<CreateWithStrength>(&Factory::create)), CreateWithStrength>);
+    static_assert(std::is_same_v<decltype(static_cast<Create>(&Factory::createForAlphaSrc)), Create>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<CreateWithStrength>(&Factory::createForAlphaSrc)), CreateWithStrength>);
+    static_assert(std::is_same_v<decltype(&Factory::supportedCompositeOpIds), SupportedIds>);
+
+    QVERIFY(true);
 }
 
 QTEST_GUILESS_MAIN(KisMaskingBrushCompositeOpBaseContractTest)
