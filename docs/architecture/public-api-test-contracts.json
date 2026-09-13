@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 819
+    "expectedMissingApis": 815
   },
   "contracts": [
     {
@@ -81629,6 +81629,19 @@
         "method:KisCategorizedItemDelegate::KisCategorizedItemDelegate(QObject * parent)",
         "method:KisCategorizedItemDelegate::paint(QPainter * painter,const QStyleOptionViewItem & option,const QModelIndex & index) const",
         "method:KisCategorizedItemDelegate::sizeHint(const QStyleOptionViewItem & option,const QModelIndex & index) const"
+      ]
+    },
+    {
+      "target": "KisSelectionActionFactoriesSchemaContractTest",
+      "source": "libs/ui/tests/KisSelectionActionFactoriesSchemaContractTest.cpp",
+      "test": "KisSelectionActionFactoriesSchemaContractTest::noParameterActionFactoryBaseSchemaRemainsStable",
+      "behavior": "引数なし操作factoryの基底はKisOperationとして使われ、識別子で構築でき、抽象実行口とXML入力口の公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisNoParameterActionFactory",
+        "method:KisNoParameterActionFactory::KisNoParameterActionFactory(const QString & id)",
+        "method:KisNoParameterActionFactory::run(KisViewManager * view)",
+        "method:KisNoParameterActionFactory::runFromXML(KisViewManager * view,const KisOperationConfiguration & config)"
       ]
     }
   ]
