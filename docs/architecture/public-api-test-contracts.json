@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 743
+    "expectedMissingApis": 739
   },
   "contracts": [
     {
@@ -81858,6 +81858,19 @@
         "method:KisImageResizeCommand::KisImageResizeCommand(KisImageWSP image,const QSize & newRect,KUndo2Command * parent=0)",
         "method:KisImageResizeCommand::redo()",
         "method:KisImageResizeCommand::undo()"
+      ]
+    },
+    {
+      "target": "KisProcessingCommandSchemaContractTest",
+      "source": "libs/image/tests/KisProcessingCommandSchemaContractTest.cpp",
+      "test": "KisProcessingCommandSchemaContractTest::processingCommandPublicInterfaceRemainsStable",
+      "behavior": "処理コマンドは処理訪問者、対象ノード、親コマンドで構築でき、undoとredoの公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisProcessingCommand",
+        "method:KisProcessingCommand::KisProcessingCommand(KisProcessingVisitorSP visitor,KisNodeSP node,KUndo2Command * parent=0)",
+        "method:KisProcessingCommand::redo()",
+        "method:KisProcessingCommand::undo()"
       ]
     }
   ]
