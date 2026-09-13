@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "kis_effect_mask.h"
 #include "kis_mask.h"
 #include "kis_selection.h"
 #include "kis_transparency_mask.h"
@@ -40,6 +41,22 @@ public:
     }
 };
 
+class EffectMaskConstructorProbe final : public KisEffectMask
+{
+public:
+    using KisEffectMask::KisEffectMask;
+
+    explicit EffectMaskConstructorProbe(const KisEffectMask &rhs)
+        : KisEffectMask(rhs)
+    {
+    }
+
+    KisNodeSP clone() const override
+    {
+        return nullptr;
+    }
+};
+
 } // namespace
 
 class KisMaskSchemaContractTest : public QObject
@@ -48,6 +65,7 @@ class KisMaskSchemaContractTest : public QObject
 
 private Q_SLOTS:
     void maskTypeAndConstructionSchemaRemainStable();
+    void effectMaskTypeConstructionCopyAndIconSchemaRemainStable();
     void maskHierarchyAndSelectionSignaturesRemainStable();
     void maskDeviceAndProjectionSignaturesRemainStable();
     void maskGeometryAndThumbnailSignaturesRemainStable();
@@ -72,6 +90,21 @@ void KisMaskSchemaContractTest::maskTypeAndConstructionSchemaRemainStable()
     static_assert(std::is_constructible_v<MaskConstructorProbe, KisImageWSP, const QString &>);
     static_assert(std::is_constructible_v<MaskConstructorProbe, const KisMask &>);
     static_assert(std::has_virtual_destructor_v<KisMask>);
+
+    QVERIFY(true);
+}
+
+void KisMaskSchemaContractTest::effectMaskTypeConstructionCopyAndIconSchemaRemainStable()
+{
+    using Mask = KisEffectMask;
+
+    static_assert(std::is_class_v<Mask>);
+    static_assert(std::is_abstract_v<Mask>);
+    static_assert(std::is_base_of_v<KisMask, Mask>);
+    static_assert(std::is_constructible_v<EffectMaskConstructorProbe, KisImageWSP, const QString &>);
+    static_assert(std::is_constructible_v<EffectMaskConstructorProbe, const KisEffectMask &>);
+    static_assert(std::has_virtual_destructor_v<Mask>);
+    static_assert(std::is_same_v<decltype(&Mask::icon), QIcon (Mask::*)() const>);
 
     QVERIFY(true);
 }
