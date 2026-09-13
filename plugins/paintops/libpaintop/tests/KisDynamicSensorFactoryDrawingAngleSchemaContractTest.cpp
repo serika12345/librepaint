@@ -6,6 +6,7 @@
 #include <KisDynamicSensorFactoryDistance.h>
 #include <KisDynamicSensorFactoryDrawingAngle.h>
 #include <KisDynamicSensorFactoryFade.h>
+#include <KisDynamicSensorFactoryRegistry.h>
 #include <KisDynamicSensorFactoryTime.h>
 
 #include <QTest>
@@ -37,6 +38,7 @@ private Q_SLOTS:
     void drawingAngleFactorySchemaRemainStable();
     void distanceFactorySchemaRemainStable();
     void fadeFactorySchemaRemainStable();
+    void factoryRegistrySchemaRemainStable();
     void timeFactorySchemaRemainStable();
 };
 
@@ -59,6 +61,17 @@ void KisDynamicSensorFactoryDrawingAngleSchemaContractTest::distanceFactorySchem
 void KisDynamicSensorFactoryDrawingAngleSchemaContractTest::fadeFactorySchemaRemainStable()
 {
     verifyLengthAwareFactorySchema<KisDynamicSensorFactoryFade>();
+}
+
+void KisDynamicSensorFactoryDrawingAngleSchemaContractTest::factoryRegistrySchemaRemainStable()
+{
+    using Registry = KisDynamicSensorFactoryRegistry;
+
+    static_assert(std::is_class_v<Registry>);
+    static_assert(std::is_base_of_v<KoGenericRegistry<KisDynamicSensorFactory *>, Registry>);
+    static_assert(std::is_default_constructible_v<Registry>);
+    static_assert(std::has_virtual_destructor_v<Registry>);
+    static_assert(std::is_same_v<decltype(&Registry::instance), Registry *(*)()>);
 }
 
 void KisDynamicSensorFactoryDrawingAngleSchemaContractTest::timeFactorySchemaRemainStable()
