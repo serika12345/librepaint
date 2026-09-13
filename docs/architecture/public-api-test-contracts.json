@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 623
+    "expectedMissingApis": 617
   },
   "contracts": [
     {
@@ -27024,6 +27024,30 @@
         "method:KisDynamicSensorFactoryRegistry::KisDynamicSensorFactoryRegistry()",
         "method:KisDynamicSensorFactoryRegistry::instance()",
         "method:KisDynamicSensorFactoryRegistry::~KisDynamicSensorFactoryRegistry()"
+      ]
+    },
+    {
+      "target": "KisDynamicSensorFactoryDrawingAngleSchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisDynamicSensorFactoryDrawingAngleSchemaContractTest.cpp",
+      "test": "KisDynamicSensorFactoryDrawingAngleSchemaContractTest::mirrorOptionSchemaRemainStable",
+      "behavior": "mirror optionはcurve optionの公開派生型として設定を受けて構築し、paint情報からmirror属性を導出する公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisMirrorOption",
+        "method:KisMirrorOption::KisMirrorOption(const KisPropertiesConfiguration * setting)",
+        "method:KisMirrorOption::apply(const KisPaintInformation & info) const"
+      ]
+    },
+    {
+      "target": "KisDynamicSensorFactoryDrawingAngleSchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisDynamicSensorFactoryDrawingAngleSchemaContractTest.cpp",
+      "test": "KisDynamicSensorFactoryDrawingAngleSchemaContractTest::scatterOptionSchemaRemainStable",
+      "behavior": "scatter optionはcurve optionの公開派生型として設定を受けて構築し、paint情報と幅・高さから散布座標を導出する公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisScatterOption",
+        "method:KisScatterOption::KisScatterOption(const KisPropertiesConfiguration * setting)",
+        "method:KisScatterOption::apply(const KisPaintInformation & info,qreal width,qreal height) const"
       ]
     },
     {
