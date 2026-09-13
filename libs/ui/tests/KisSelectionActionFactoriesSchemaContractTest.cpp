@@ -7,6 +7,7 @@
 
 #include <type_traits>
 
+#include "actions/KisNoParameterActionFactory.h"
 #include "actions/KisPasteActionFactories.h"
 #include "actions/kis_selection_action_factories.h"
 
@@ -28,6 +29,7 @@ class KisSelectionActionFactoriesSchemaContractTest : public QObject
     Q_OBJECT
 
 private Q_SLOTS:
+    void noParameterActionFactoryBaseSchemaRemainsStable();
     void basicSelectionStateActionSchemaRemainsStable();
     void fillAndInvertActionSchemaRemainsStable();
     void cutAndCopyActionSchemaRemainsStable();
@@ -39,6 +41,28 @@ private Q_SLOTS:
     void pasteNewAndReferenceActionSchemaRemainStable();
     void pasteShapeStyleActionSchemaRemainsStable();
 };
+
+void KisSelectionActionFactoriesSchemaContractTest::noParameterActionFactoryBaseSchemaRemainsStable()
+{
+    using Factory = KisNoParameterActionFactory;
+    using Run = void (Factory::*)(KisViewManager *);
+    using RunFromXml = void (Factory::*)(KisViewManager *, const KisOperationConfiguration &);
+    struct FactoryProbe final : Factory {
+        using Factory::Factory;
+
+        void run(KisViewManager *) override
+        {
+        }
+    };
+
+    static_assert(std::is_base_of_v<KisOperation, Factory>);
+    static_assert(std::is_abstract_v<Factory>);
+    static_assert(std::is_constructible_v<FactoryProbe, const QString &>);
+    static_assert(std::is_same_v<decltype(&Factory::run), Run>);
+    static_assert(std::is_same_v<decltype(&Factory::runFromXML), RunFromXml>);
+
+    QVERIFY(true);
+}
 
 void KisSelectionActionFactoriesSchemaContractTest::basicSelectionStateActionSchemaRemainsStable()
 {
