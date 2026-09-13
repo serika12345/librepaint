@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 883
+    "expectedMissingApis": 881
   },
   "contracts": [
     {
@@ -80158,6 +80158,17 @@
         "method:KisAslReader::readTypeToolObjectSettings(QIODevice & device,QTransform & transform,psd_byte_order byteOrder=psd_byte_order::psdBigEndian)",
         "method:KisAslReader::readVectorOriginationData(QIODevice & device,psd_byte_order byteOrder=psd_byte_order::psdBigEndian)",
         "method:KisAslReader::readVectorStroke(QIODevice & device,psd_byte_order byteOrder=psd_byte_order::psdBigEndian)"
+      ]
+    },
+    {
+      "target": "KisAslXmlWriterSchemaContractTest",
+      "source": "libs/psdutils/tests/KisAslXmlWriterSchemaContractTest.cpp",
+      "test": "KisAslXmlWriterSchemaContractTest::parserSchemaRemainsStable",
+      "behavior": "ASL XML parserはXML文書とオブジェクト受け取り先を受け、解析結果を受け取り先へ渡す公開型とメソッド署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisAslXmlParser",
+        "method:KisAslXmlParser::parseXML(const QDomDocument & doc,KisAslObjectCatcher & catcher)"
       ]
     },
     {

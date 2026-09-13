@@ -2,14 +2,14 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-13 09:06 JST
+- 更新日時: 2026-09-13 09:18 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
-- 完了: 第610便で具体selected-shapes proxyの3 APIを公開契約へ追加し、対応済みを28,918件へ進めた。
-- 次の作業: 第611便として、最新の不足一覧から別の軽量契約試験へ追加できる公開headerを選び、対象限定の構築閉包を監査する。
+- 完了: 第611便でASL XML parserの2 APIを公開契約へ追加し、対応済みを28,920件へ進めた。
+- 次の作業: 第612便として、最新の不足一覧から別の軽量契約試験へ追加できる公開headerを選び、対象限定の構築閉包を監査する。
 - 検証: macOSの対象・近傍・反復・無作業再構築、公開API検査、`verify-quick`に成功した。製品target、全体build・`verify`、Linux、Nix再評価は本便の対象外である。
 
 ### 第202便の先行監査担当票
@@ -5823,6 +5823,19 @@
 - CMake、公開header、製品sourceは変更していない。macOSの限定構築は`KisCursorOverrideHijackerSchemaContractTest`の自動生成、試験source、実行ファイルだけをコンパイル・リンクし、製品targetを再構築していない。実測閉包は4工程・8入力、command SHA-256 `ef32b3dd7378f1d5e5ef739d9977409afa1f64e34d162fddfb54cfd31327fc3d`、input SHA-256 `58d9882064254f622d7496f1d8e232987c51dd89595a3d9101b9bbaef2ddb583`を維持した。
 - 試験sourceは277行・19枠、AUTOMOC `HEADERS=[]`、Qt Core・TestとOS frameworkだけの動的接続であり、template creation dialog・製品libraryの未解決記号がないことを確認した。対象全体20回、追加枠20回（60 pass）、近傍`KisGrabKeyboardFocusRecoveryWorkaroundSchemaContractTest`、連続二回の無作業Ninja構築、`clang-check -Werror`、書式、JSON構文、差分に成功した。
 - 初回照合は移行基準888件に対して実測886件となる期待診断を確認後、基準を更新した。公開API検査は28,915件対応、29,801件中886件未対応となった。新`build/tdd-macos/public-api-missing-g609.json`は243,686 bytes、SHA-256 `3054ebba7a39fe813e03d2bcce52fdc1b2181406427f087d9c308fe048f4b193`である。生成成功後に旧`public-api-missing-g608.json` 244,308 bytesをゴミ箱へ移し、主Ninja木6,061,012 KiB、共有compiler cache 983,424 KiB、最新報告だけを再利用対象として保持する。template資源の読込み・書込み、文書生成、dialogの表示と選択は、製品実装を接続する後続の効果契約で扱う。次の永続作業は第610便で別の独立軽量試験に追加可能な公開headerを選び、対象限定閉包を先に監査することである。
+
+### 第611便の公開API契約計画
+
+- 正式入力`build/tdd-macos/public-api-missing-g610.json`から、開始`libs/psdutils/asl/kis_asl_writer_utils.h`のpattern UUID取得は既存`libs/psdutils/tests/KisAslWriterUtilsContractTest.cpp`で5工程・11入力となり停止線を超えるため棄却した。開始`libs/psdutils/asl/kis_asl_xml_parser.h`のASL XML parser型とXML解析入口の2 APIを、既存`libs/psdutils/tests/KisAslXmlWriterSchemaContractTest.cpp`の1枠`parserSchemaRemainsStable`へ対応付ける。XML文書とオブジェクト受け取り先の参照を受ける正確な公開メソッド形式を型特性で固定し、parser、文書、受け取り先、解析本文を実体化または実行しない。
+- CMake、公開header、製品sourceは変更しない。既存targetはQt Core・Testとheader-only Boostだけを動的接続する4工程・8入力であり、停止線を5工程・11入力とする。製品target、製品shared・OBJECT・`kritatestsdk`接続、候補headerのAUTOMOC入力化、製品未解決記号、parser本文の実体化、許可path外変更を停止条件とする。
+- macOSでは対象CTest、追加枠20回、近傍`KisAslWriterUtilsContractTest`、AUTOMOC後の二回目計画、連続二回の無作業Ninja構築、動的接続・未解決記号・厳格構文・書式、公開API検査、`verify-quick`だけを実行する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。初回公開API検査は移行基準883件に対する2 API減少の診断を期待する。
+
+### 第611便の公開API契約結果
+
+- 開始`libs/psdutils/asl/kis_asl_xml_parser.h`から既存`libs/psdutils/tests/KisAslXmlWriterSchemaContractTest.cpp`へ、ASL XML parser型と`parseXML`の2 APIを`parserSchemaRemainsStable`として対応付けた。XML文書とオブジェクト受け取り先を参照で受ける正確な型を固定し、parser、文書、受け取り先、解析本文の実体化と実行を伴わない。
+- CMake、公開header、製品sourceは変更していない。macOSの限定構築は既存試験の自動生成、試験source、実行ファイルだけをコンパイル・リンクし、製品targetを再構築していない。実測閉包は4工程・8入力、command SHA-256 `0d8da1eef41ebe435d5ade6e0d6dfb78e278a13b4bfe28fa8bef635d155dcab9`、input SHA-256 `c0bad8b3cfd810dd10035e4d3316829be21fe48b5c601f17113b32a452f3b06e`を維持した。
+- 試験sourceは146行・8枠、AUTOMOC `HEADERS=[]`、Qt Core・TestとOS frameworkだけの動的接続であり、ASL XML parser・製品libraryの未解決記号がないことを確認した。対象全体20回、追加枠20回（60 pass）、近傍`KisAslWriterUtilsContractTest`、連続二回の無作業Ninja構築、`clang-check -Werror`、書式、JSON構文、差分に成功した。
+- 初回照合は移行基準883件に対して実測881件となる期待診断を確認後、基準を更新した。公開API検査は28,920件対応、29,801件中881件未対応となった。新`build/tdd-macos/public-api-missing-g611.json`は242,474 bytes、SHA-256 `0a38c9c26c51a273b119c9a87a4ab38e3a635254b659274754cfcd00b36c0450`である。生成成功後に旧`public-api-missing-g610.json` 242,946 bytesをゴミ箱へ移し、主Ninja木6,063,296 KiB、共有compiler cache 983,064 KiB、最新報告だけを再利用対象として保持する。解析結果の意味、受け取り先への書込み、解析失敗は、製品実装を接続する後続の効果契約で扱う。次の永続作業は第612便で別の独立軽量試験に追加可能な公開headerを選び、対象限定閉包を先に監査することである。
 
 ### 第610便の公開API契約計画
 
