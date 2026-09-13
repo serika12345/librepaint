@@ -12,6 +12,7 @@
 #include <KisEmbeddedTextureData.h>
 #include <KisFlowOpacityOption.h>
 #include <KisHSVOption.h>
+#include <KisMaskingBrushOption.h>
 #include <KisMirrorOption.h>
 #include <KisOpacityOption.h>
 #include <KisRotationOption.h>
@@ -56,6 +57,7 @@ private Q_SLOTS:
     void factoryRegistrySchemaRemainStable();
     void flowOpacityOptionSchemaRemainStable();
     void hsvOptionSchemaRemainStable();
+    void maskingBrushOptionSchemaRemainStable();
     void mirrorOptionSchemaRemainStable();
     void opacityOptionSchemaRemainStable();
     void rotationOptionSchemaRemainStable();
@@ -165,6 +167,25 @@ void KisDynamicSensorFactoryDrawingAngleSchemaContractTest::hsvOptionSchemaRemai
         std::is_same_v<decltype(&Option::createValueOption), Option *(*)(const KisPropertiesConfiguration *)>);
     static_assert(std::is_same_v<decltype(&Option::apply),
                                  void (Option::*)(KoColorTransformation *, const KisPaintInformation &) const>);
+}
+
+void KisDynamicSensorFactoryDrawingAngleSchemaContractTest::maskingBrushOptionSchemaRemainStable()
+{
+    using Option = KisMaskingBrushOption;
+
+    static_assert(std::is_class_v<Option>);
+    static_assert(std::is_base_of_v<KisPaintOpOption, Option>);
+    static_assert(std::is_constructible_v<Option, lager::reader<qreal>>);
+    static_assert(std::is_destructible_v<Option>);
+    static_assert(
+        std::is_same_v<decltype(&Option::writeOptionSetting), void (Option::*)(KisPropertiesConfigurationSP) const>);
+    static_assert(
+        std::is_same_v<decltype(&Option::readOptionSetting), void (Option::*)(const KisPropertiesConfigurationSP)>);
+    static_assert(std::is_same_v<decltype(&Option::setImage), void (Option::*)(KisImageWSP)>);
+    static_assert(
+        std::is_same_v<decltype(&Option::lodLimitations), void (Option::*)(KisPaintopLodLimitations *) const>);
+    static_assert(
+        std::is_same_v<decltype(&Option::maskingBrushEnabledReader), lager::reader<bool> (Option::*)() const>);
 }
 
 void KisDynamicSensorFactoryDrawingAngleSchemaContractTest::mirrorOptionSchemaRemainStable()
