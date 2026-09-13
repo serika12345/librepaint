@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 881
+    "expectedMissingApis": 878
   },
   "contracts": [
     {
@@ -80169,6 +80169,18 @@
       "apis": [
         "class:KisAslXmlParser",
         "method:KisAslXmlParser::parseXML(const QDomDocument & doc,KisAslObjectCatcher & catcher)"
+      ]
+    },
+    {
+      "target": "KisAslXmlWriterSchemaContractTest",
+      "source": "libs/psdutils/tests/KisAslXmlWriterSchemaContractTest.cpp",
+      "test": "KisAslXmlWriterSchemaContractTest::patternsSchemaRemainsStable",
+      "behavior": "ASL patterns writerはXML文書、出力装置、byte orderで構築し、pattern群を書き出す公開型とメソッド署名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisAslPatternsWriter",
+        "method:KisAslPatternsWriter::KisAslPatternsWriter(const QDomDocument & doc,QIODevice & device,psd_byte_order byteOrder)",
+        "method:KisAslPatternsWriter::writePatterns()"
       ]
     },
     {
