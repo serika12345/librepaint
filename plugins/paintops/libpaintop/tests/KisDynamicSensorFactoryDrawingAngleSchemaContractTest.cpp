@@ -15,7 +15,10 @@
 #include <KisOpacityOption.h>
 #include <KisRotationOption.h>
 #include <KisScatterOption.h>
+#include <KisSharpnessOption.h>
 #include <KisSpacingOption.h>
+
+#include <kis_color_source_option.h>
 
 #include <QTest>
 
@@ -43,6 +46,7 @@ class KisDynamicSensorFactoryDrawingAngleSchemaContractTest : public QObject
     Q_OBJECT
 
 private Q_SLOTS:
+    void colorSourceOptionSchemaRemainStable();
     void drawingAngleFactorySchemaRemainStable();
     void distanceFactorySchemaRemainStable();
     void darkenOptionSchemaRemainStable();
@@ -54,9 +58,21 @@ private Q_SLOTS:
     void opacityOptionSchemaRemainStable();
     void rotationOptionSchemaRemainStable();
     void scatterOptionSchemaRemainStable();
+    void sharpnessOptionSchemaRemainStable();
     void spacingOptionSchemaRemainStable();
     void timeFactorySchemaRemainStable();
 };
+
+void KisDynamicSensorFactoryDrawingAngleSchemaContractTest::colorSourceOptionSchemaRemainStable()
+{
+    using Option = KisColorSourceOption;
+
+    static_assert(std::is_class_v<Option>);
+    static_assert(std::is_constructible_v<Option, const KisPropertiesConfiguration *>);
+    static_assert(std::is_destructible_v<Option>);
+    static_assert(
+        std::is_same_v<decltype(&Option::createColorSource), KisColorSource *(Option::*)(const KisPainter *) const>);
+}
 
 void KisDynamicSensorFactoryDrawingAngleSchemaContractTest::drawingAngleFactorySchemaRemainStable()
 {
@@ -182,6 +198,22 @@ void KisDynamicSensorFactoryDrawingAngleSchemaContractTest::scatterOptionSchemaR
     static_assert(std::is_constructible_v<Option, const KisPropertiesConfiguration *>);
     static_assert(
         std::is_same_v<decltype(&Option::apply), QPointF (Option::*)(const KisPaintInformation &, qreal, qreal) const>);
+}
+
+void KisDynamicSensorFactoryDrawingAngleSchemaContractTest::sharpnessOptionSchemaRemainStable()
+{
+    using Option = KisSharpnessOption;
+
+    static_assert(std::is_class_v<Option>);
+    static_assert(std::is_base_of_v<KisCurveOption, Option>);
+    static_assert(std::is_constructible_v<Option, const KisPropertiesConfiguration *>);
+    static_assert(std::is_same_v<
+                  decltype(&Option::apply),
+                  void (Option::*)(const KisPaintInformation &, const QPointF &, qint32 &, qint32 &, qreal &, qreal &)
+                      const>);
+    static_assert(std::is_same_v<decltype(&Option::applyThreshold),
+                                 void (Option::*)(KisFixedPaintDeviceSP, const KisPaintInformation &)>);
+    static_assert(std::is_same_v<decltype(&Option::alignOutlineToPixels), bool (Option::*)() const>);
 }
 
 void KisDynamicSensorFactoryDrawingAngleSchemaContractTest::spacingOptionSchemaRemainStable()
