@@ -8,6 +8,8 @@
 #include <KisDynamicSensorFactoryFade.h>
 #include <KisDynamicSensorFactoryRegistry.h>
 #include <KisDynamicSensorFactoryTime.h>
+#include <KisMirrorOption.h>
+#include <KisScatterOption.h>
 
 #include <QTest>
 
@@ -39,6 +41,8 @@ private Q_SLOTS:
     void distanceFactorySchemaRemainStable();
     void fadeFactorySchemaRemainStable();
     void factoryRegistrySchemaRemainStable();
+    void mirrorOptionSchemaRemainStable();
+    void scatterOptionSchemaRemainStable();
     void timeFactorySchemaRemainStable();
 };
 
@@ -72,6 +76,28 @@ void KisDynamicSensorFactoryDrawingAngleSchemaContractTest::factoryRegistrySchem
     static_assert(std::is_default_constructible_v<Registry>);
     static_assert(std::has_virtual_destructor_v<Registry>);
     static_assert(std::is_same_v<decltype(&Registry::instance), Registry *(*)()>);
+}
+
+void KisDynamicSensorFactoryDrawingAngleSchemaContractTest::mirrorOptionSchemaRemainStable()
+{
+    using Option = KisMirrorOption;
+
+    static_assert(std::is_class_v<Option>);
+    static_assert(std::is_base_of_v<KisCurveOption, Option>);
+    static_assert(std::is_constructible_v<Option, const KisPropertiesConfiguration *>);
+    static_assert(
+        std::is_same_v<decltype(&Option::apply), MirrorProperties (Option::*)(const KisPaintInformation &) const>);
+}
+
+void KisDynamicSensorFactoryDrawingAngleSchemaContractTest::scatterOptionSchemaRemainStable()
+{
+    using Option = KisScatterOption;
+
+    static_assert(std::is_class_v<Option>);
+    static_assert(std::is_base_of_v<KisCurveOption, Option>);
+    static_assert(std::is_constructible_v<Option, const KisPropertiesConfiguration *>);
+    static_assert(
+        std::is_same_v<decltype(&Option::apply), QPointF (Option::*)(const KisPaintInformation &, qreal, qreal) const>);
 }
 
 void KisDynamicSensorFactoryDrawingAngleSchemaContractTest::timeFactorySchemaRemainStable()
