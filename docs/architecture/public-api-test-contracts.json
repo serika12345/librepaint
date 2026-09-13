@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 841
+    "expectedMissingApis": 838
   },
   "contracts": [
     {
@@ -81553,6 +81553,18 @@
       "apis": [
         "method:KoDocumentInfo::infoUpdated(const QString & info,const QString & data)",
         "method:KoDocumentInfo::~KoDocumentInfo()"
+      ]
+    },
+    {
+      "target": "ImageSizeSchemaContractTest",
+      "source": "libs/ui/tests/ImageSizeSchemaContractTest.cpp",
+      "test": "ImageSizeSchemaContractTest::actionPluginTypeConstructionAndLifetimeSchemaRemainStable",
+      "behavior": "画像寸法操作はaction pluginとして使われ、親QObjectを受けて構築でき、基底参照を通じて安全に破棄できる公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:ImageSize",
+        "method:ImageSize::ImageSize(QObject * parent)",
+        "method:ImageSize::~ImageSize()"
       ]
     }
   ]
