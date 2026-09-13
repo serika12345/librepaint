@@ -1690,6 +1690,27 @@ target_compile_definitions(KisCursorOverrideHijackerSchemaContractTest PRIVATE
 )
 
 kis_add_test(
+    ImageSizeSchemaContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(ImageSizeSchemaContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+    ${CMAKE_SOURCE_DIR}/libs/image
+    ${CMAKE_BINARY_DIR}/libs/image
+)
+target_compile_definitions(ImageSizeSchemaContractTest PRIVATE
+    kritaglobal_EXPORTS
+    kritaui_EXPORTS
+    kritaimage_EXPORTS
+)
+
+kis_add_test(
     KoDualColorButtonSchemaContractTest.cpp
     LINK_LIBRARIES
         Qt${QT_MAJOR_VERSION}::Core
