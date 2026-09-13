@@ -5,6 +5,7 @@
 
 #include <asl/kis_asl_reader.h>
 #include <asl/kis_asl_writer.h>
+#include <asl/kis_asl_xml_parser.h>
 #include <asl/kis_asl_xml_writer.h>
 
 #include <QTest>
@@ -29,6 +30,7 @@ private Q_SLOTS:
     void aslXmlWriterColorPatternAndGradientSignaturesRemainStable();
     void aslBinaryWriterTypeConstructionAndSectionSignaturesRemainStable();
     void aslBinaryReaderTypeAndSectionSignaturesRemainStable();
+    void parserSchemaRemainsStable();
 };
 
 void KisAslXmlWriterSchemaContractTest::aslXmlWriterTypeLifetimeAndDocumentSchemaRemainStable()
@@ -126,6 +128,17 @@ void KisAslXmlWriterSchemaContractTest::aslBinaryReaderTypeAndSectionSignaturesR
                                  QDomDocument (*)(QIODevice &, QTransform &, psd_byte_order)>);
     static_assert(std::is_same_v<decltype(&Reader::readVectorOriginationData), ReadSection>);
     static_assert(std::is_same_v<decltype(&Reader::readVectorStroke), ReadSection>);
+}
+
+void KisAslXmlWriterSchemaContractTest::parserSchemaRemainsStable()
+{
+    using Parser = KisAslXmlParser;
+
+    static_assert(std::is_class_v<Parser>);
+    static_assert(std::is_default_constructible_v<Parser>);
+    static_assert(std::is_destructible_v<Parser>);
+    static_assert(
+        std::is_same_v<decltype(&Parser::parseXML), void (Parser::*)(const QDomDocument &, KisAslObjectCatcher &)>);
 }
 
 QTEST_APPLESS_MAIN(KisAslXmlWriterSchemaContractTest)
