@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 657
+    "expectedMissingApis": 648
   },
   "contracts": [
     {
@@ -81461,6 +81461,24 @@
         "method:KisSRGBSurfaceColorSpaceManager::KisSRGBSurfaceColorSpaceManager(KisSurfaceColorManagerInterface * interface,QObject * parent=nullptr)",
         "method:KisSRGBSurfaceColorSpaceManager::tryCreateForCurrentPlatform(QWidget * widget)",
         "method:KisSRGBSurfaceColorSpaceManager::~KisSRGBSurfaceColorSpaceManager()"
+      ]
+    },
+    {
+      "target": "KisDisplayConfigSchemaContractTest",
+      "source": "libs/ui/tests/KisDisplayConfigSchemaContractTest.cpp",
+      "test": "KisDisplayConfigSchemaContractTest::rootSurfaceInfoProxySchemaRemainStable",
+      "behavior": "root surface情報proxyはwidgetと親QObjectで構築し、root profile、ready状態、色管理・OS優先色空間の診断、surface description、およびprofile変更通知の公開境界を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisRootSurfaceInfoProxy",
+        "method:KisRootSurfaceInfoProxy::KisRootSurfaceInfoProxy(QWidget * watched,QObject * parent=nullptr)",
+        "method:KisRootSurfaceInfoProxy::colorManagementReport() const",
+        "method:KisRootSurfaceInfoProxy::currentSurfaceDescription() const",
+        "method:KisRootSurfaceInfoProxy::isReady() const",
+        "method:KisRootSurfaceInfoProxy::osPreferredColorSpaceReport() const",
+        "method:KisRootSurfaceInfoProxy::rootSurfaceProfile() const",
+        "method:KisRootSurfaceInfoProxy::sigRootSurfaceProfileChanged(const KoColorProfile * profile) const",
+        "method:KisRootSurfaceInfoProxy::~KisRootSurfaceInfoProxy()"
       ]
     },
     {
