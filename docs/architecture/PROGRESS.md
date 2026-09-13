@@ -2,14 +2,14 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-13 12:50 JST
+- 更新日時: 2026-09-13 13:00 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
-- 完了: 第630便で画面監視器の型・構築・画面管理器通知を公開契約へ追加し、対応済みを28,976件へ進めた。
-- 次の作業: 第631便として、最新の不足一覧から別の軽量契約試験へ追加できる公開headerを選び、対象限定の構築閉包を監査する。
+- 完了: 第631便で非同期統合器の型と開始口を公開契約へ追加し、対応済みを28,978件へ進めた。
+- 次の作業: 第632便として、最新の不足一覧から別の軽量契約試験へ追加できる公開headerを選び、対象限定の構築閉包を監査する。
 - 検証: macOSの対象・近傍・反復・無作業再構築、公開API検査、`verify-quick`に成功した。製品target、全体build・`verify`、Linux、Nix再評価は本便の対象外である。
 
 ### 第202便の先行監査担当票
@@ -5823,6 +5823,18 @@
 - CMake、公開header、製品sourceは変更していない。macOSの限定構築は`KisCursorOverrideHijackerSchemaContractTest`の自動生成、試験source、実行ファイルだけをコンパイル・リンクし、製品targetを再構築していない。実測閉包は4工程・8入力、command SHA-256 `ef32b3dd7378f1d5e5ef739d9977409afa1f64e34d162fddfb54cfd31327fc3d`、input SHA-256 `58d9882064254f622d7496f1d8e232987c51dd89595a3d9101b9bbaef2ddb583`を維持した。
 - 試験sourceは277行・19枠、AUTOMOC `HEADERS=[]`、Qt Core・TestとOS frameworkだけの動的接続であり、template creation dialog・製品libraryの未解決記号がないことを確認した。対象全体20回、追加枠20回（60 pass）、近傍`KisGrabKeyboardFocusRecoveryWorkaroundSchemaContractTest`、連続二回の無作業Ninja構築、`clang-check -Werror`、書式、JSON構文、差分に成功した。
 - 初回照合は移行基準888件に対して実測886件となる期待診断を確認後、基準を更新した。公開API検査は28,915件対応、29,801件中886件未対応となった。新`build/tdd-macos/public-api-missing-g609.json`は243,686 bytes、SHA-256 `3054ebba7a39fe813e03d2bcce52fdc1b2181406427f087d9c308fe048f4b193`である。生成成功後に旧`public-api-missing-g608.json` 244,308 bytesをゴミ箱へ移し、主Ninja木6,061,012 KiB、共有compiler cache 983,424 KiB、最新報告だけを再利用対象として保持する。template資源の読込み・書込み、文書生成、dialogの表示と選択は、製品実装を接続する後続の効果契約で扱う。次の永続作業は第610便で別の独立軽量試験に追加可能な公開headerを選び、対象限定閉包を先に監査することである。
+
+### 第631便の公開API契約計画
+
+- 正式入力`build/tdd-macos/public-api-missing-g630.json`から、開始`libs/image/kis_async_merger.h`の非同期統合器型と`startMerge()`の2 APIを新規`libs/image/tests/KisAsyncMergerSchemaContractTest.cpp`の1枠`mergerTypeAndStartSchemaRemainStable`へ対応付ける。既存`kis_async_merger_test`は製品実体と統合結果を実行するため追加先から除外する。
+- 開始`libs/image/tests/CMakeLists.txt`には専用target、image・global source/binary探索路とexport定義だけを追加する。Qt Core・Testだけを動的接続し、統合器、矩形走査器、paint device、製品target、shared・OBJECT target、`kritatestsdk`を接続しない。停止線は5工程・11入力とする。
+
+### 第631便の公開API契約結果
+
+- 開始`libs/image/kis_async_merger.h`から新規`libs/image/tests/KisAsyncMergerSchemaContractTest.cpp`へ型と`startMerge(KisBaseRectsWalker &, bool)`の2 APIを対応付けた。非同期統合器が既定構築でき、矩形走査器と複製通知可否を受ける統合開始口を固定し、統合器、走査器、paint device、本文を実体化または実行していない。
+- CMake再構成はtarget登録のため構成全体を読み直したが、Ninjaがコンパイル・リンクしたのは`KisAsyncMergerSchemaContractTest`の自動生成、試験source、実行ファイルだけである。実測閉包は4工程・8入力、command SHA-256 `bae2d5d5e2efa0ec4ae25013cb1e6430e817100eaaa22fe3b306b2e53a6bbd9e`、input SHA-256 `89b101e2bec6314668c4ee3a3dc4b4d2807c34aec127a607a3b18d79195bdbe9`である。
+- 試験sourceは31行・1枠、AUTOMOC `HEADERS=[]`、Qt Core・TestとOS frameworkだけの動的接続、製品未解決記号なしである。対象全体20回、追加枠20回（60 pass）、無作業再構築、`clang-check`、書式、JSON構文、差分に成功した。既存`kis_async_merger_test`は未構築`libkritaresourceui.21.dylib`により起動前に失敗し、製品依存を構築せず保持した。
+- 初回照合は移行基準825件に対して実測823件となる期待診断を確認後、基準を更新した。公開API検査は28,978件対応、29,801件中823件未対応となった。新`build/tdd-macos/public-api-missing-g631.json`は228,655 bytes、SHA-256 `d45d907c3b3a5c5098775a5b8c38bd26088c6ae21e7aacfa60cbe29f6b29110a`である。生成成功後に旧`public-api-missing-g630.json`をゴミ箱へ移し、主Ninja木6,079,748 KiB、共有compiler cache 982,500 KiB、最新報告だけを再利用対象として保持する。空き容量13 GiBを確認した。次の永続作業は第632便の軽量公開header監査である。
 
 ### 第630便の公開API契約計画
 

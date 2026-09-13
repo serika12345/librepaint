@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 825
+    "expectedMissingApis": 823
   },
   "contracts": [
     {
@@ -81605,6 +81605,17 @@
         "method:KisMainwindowObserver::KisMainwindowObserver()",
         "method:KisMainwindowObserver::setViewManager(KisViewManager * kisview)",
         "method:KisMainwindowObserver::~KisMainwindowObserver()"
+      ]
+    },
+    {
+      "target": "KisAsyncMergerSchemaContractTest",
+      "source": "libs/image/tests/KisAsyncMergerSchemaContractTest.cpp",
+      "test": "KisAsyncMergerSchemaContractTest::mergerTypeAndStartSchemaRemainStable",
+      "behavior": "非同期統合器は既定構築でき、矩形走査器と複製通知可否を受ける統合開始口を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisAsyncMerger",
+        "method:KisAsyncMerger::startMerge(KisBaseRectsWalker & walker,bool notifyClones=true)"
       ]
     }
   ]
