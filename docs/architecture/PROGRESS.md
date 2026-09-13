@@ -2,14 +2,14 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-13 20:29 JST
+- 更新日時: 2026-09-13 20:38 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
-- 完了: 第673便で描画角度の動的センサー工場の公開型・構築・設定widget生成を契約へ追加し、対応済みを29,159件へ進めた。
-- 次の作業: 第674便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
+- 完了: 第674便で距離・フェード・時間の動的センサー工場の公開型・構築・設定widget・長さ別上限を契約へ追加し、対応済みを29,174件へ進めた。
+- 次の作業: 第675便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
 - 検証: macOSの対象・反復・無作業再構築、公開API検査、`verify-quick`に成功した。製品target、全体build・`verify`、Linux、Nix再評価は本便の対象外である。
 
 ### 第202便の先行監査担当票
@@ -5823,6 +5823,12 @@
 - CMake、公開header、製品sourceは変更していない。macOSの限定構築は`KisCursorOverrideHijackerSchemaContractTest`の自動生成、試験source、実行ファイルだけをコンパイル・リンクし、製品targetを再構築していない。実測閉包は4工程・8入力、command SHA-256 `ef32b3dd7378f1d5e5ef739d9977409afa1f64e34d162fddfb54cfd31327fc3d`、input SHA-256 `58d9882064254f622d7496f1d8e232987c51dd89595a3d9101b9bbaef2ddb583`を維持した。
 - 試験sourceは277行・19枠、AUTOMOC `HEADERS=[]`、Qt Core・TestとOS frameworkだけの動的接続であり、template creation dialog・製品libraryの未解決記号がないことを確認した。対象全体20回、追加枠20回（60 pass）、近傍`KisGrabKeyboardFocusRecoveryWorkaroundSchemaContractTest`、連続二回の無作業Ninja構築、`clang-check -Werror`、書式、JSON構文、差分に成功した。
 - 初回照合は移行基準888件に対して実測886件となる期待診断を確認後、基準を更新した。公開API検査は28,915件対応、29,801件中886件未対応となった。新`build/tdd-macos/public-api-missing-g609.json`は243,686 bytes、SHA-256 `3054ebba7a39fe813e03d2bcce52fdc1b2181406427f087d9c308fe048f4b193`である。生成成功後に旧`public-api-missing-g608.json` 244,308 bytesをゴミ箱へ移し、主Ninja木6,061,012 KiB、共有compiler cache 983,424 KiB、最新報告だけを再利用対象として保持する。template資源の読込み・書込み、文書生成、dialogの表示と選択は、製品実装を接続する後続の効果契約で扱う。次の永続作業は第610便で別の独立軽量試験に追加可能な公開headerを選び、対象限定閉包を先に監査することである。
+
+### 第674便の公開API契約結果
+
+- 開始`plugins/paintops/libpaintop/KisDynamicSensorFactoryDistance.h`、`KisDynamicSensorFactoryFade.h`、`KisDynamicSensorFactoryTime.h`から既存`plugins/paintops/libpaintop/tests/KisDynamicSensorFactoryDrawingAngleSchemaContractTest.cpp`へ、3 factoryそれぞれの単純工場基底、既定構築、curve option cursorと親widgetを受ける設定widget生成、長さ別の最大値と最大表示の15 APIを`distanceFactorySchemaRemainStable`、`fadeFactorySchemaRemainStable`、`timeFactorySchemaRemainStable`として対応付けた。型特性と厳密なメンバー関数pointerだけを用い、factory、cursor、widget、設定値、各本文を実体化または実行していない。CMake、公開header、製品sourceは変更していない。
+- 既存targetの変更後閉包は4工程・8入力、command SHA-256 `bfb5b9cddbd97e3204189bd35dfcf1999b16de412415f69a088e52a638bdd3a0`、input SHA-256 `0bc811d68d6e58b7d6f09df73382bbf862e7e7a4100aa43aef2c065392400e6d`を維持した。AUTOMOC `HEADERS=[]`、製品未解決記号なし、Qt Core・TestとOS frameworkだけの動的接続を確認した。
+- 試験sourceは71行・4枠であり、対象実行形式全体20回（120 pass）、追加3枠を各20回（各60 pass）、無作業の対象限定再構築、`clang-check -Werror`、書式、差分、`verify-quick`に成功した。初回照合は移行基準642件に対して実測627件となる期待診断を確認後、基準を更新した。公開API検査は29,174件対応、29,801件中627件未対応となった。新`build/tdd-macos/public-api-missing-g674.json`は172,114 bytes、SHA-256 `8d01c849ec5d10e481f034245b7fd8a48d408f38da0b86dd8c82d4a3a13ec0ff`である。生成成功後に旧g673報告をゴミ箱へ移し、主Ninja木6,111,396 KiB、共有compiler cache 983,468 KiB、空き容量46 GiB、最新報告だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 
 ### 第673便の公開API契約結果
 
