@@ -154,6 +154,8 @@ target_include_directories(KisImportExportManagerSchemaContractTest PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/..
     ${CMAKE_SOURCE_DIR}/libs/image
     ${CMAKE_BINARY_DIR}/libs/image
+    ${CMAKE_SOURCE_DIR}/libs/pigment
+    ${CMAKE_BINARY_DIR}/libs/pigment
     ${CMAKE_SOURCE_DIR}/libs/global
     ${CMAKE_BINARY_DIR}/libs/global
     ${CMAKE_BINARY_DIR}/libs/impex
@@ -164,6 +166,7 @@ target_compile_definitions(KisImportExportManagerSchemaContractTest PRIVATE
     kritaglobal_EXPORTS
     kritaimage_EXPORTS
     kritaimpex_EXPORTS
+    kritapigment_EXPORTS
 )
 
 kis_add_test(

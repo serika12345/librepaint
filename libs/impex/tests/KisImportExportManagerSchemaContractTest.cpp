@@ -5,6 +5,7 @@
 
 #include "../ui/KisImportExportManager.h"
 #include "KisExportCheckRegistry.h"
+#include "KisImportExportColorSpaceDialog.h"
 
 #include <QFuture>
 
@@ -27,6 +28,7 @@ class KisImportExportManagerSchemaContractTest : public QObject
 
 private Q_SLOTS:
     void exportCheckRegistryLifetimeSchemaRemainsStable();
+    void importExportColorSpaceSelectionSignatureRemainsStable();
     void typeDirectionConstructionAndLifetimeSchemaRemainStable();
     void documentConversionSignaturesRemainStable();
     void filterDiscoveryAndConfigurationSignaturesRemainStable();
@@ -39,6 +41,18 @@ void KisImportExportManagerSchemaContractTest::exportCheckRegistryLifetimeSchema
     static_assert(std::is_class_v<KisExportCheckRegistry>);
     static_assert(std::is_base_of_v<QObject, KisExportCheckRegistry>);
     static_assert(std::has_virtual_destructor_v<KisExportCheckRegistry>);
+}
+
+void KisImportExportManagerSchemaContractTest::importExportColorSpaceSelectionSignatureRemainsStable()
+{
+    using SelectEditableColorSpaceSignature = bool (*)(QWidget *,
+                                                       const KoColorSpace *,
+                                                       const KoColorSpace **,
+                                                       KoColorConversionTransformation::Intent *,
+                                                       KoColorConversionTransformation::ConversionFlags *);
+
+    static_assert(std::is_same_v<decltype(&KisImportExportColorSpaceDialog::selectEditableColorSpace),
+                                 SelectEditableColorSpaceSignature>);
 }
 
 void KisImportExportManagerSchemaContractTest::typeDirectionConstructionAndLifetimeSchemaRemainStable()
