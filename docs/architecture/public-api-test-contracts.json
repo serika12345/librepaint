@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 847
+    "expectedMissingApis": 846
   },
   "contracts": [
     {
@@ -81502,6 +81502,16 @@
       "apis": [
         "class:KisAndroidFileProxy",
         "method:KisAndroidFileProxy::getFileFromContentUri(QString contentUri)"
+      ]
+    },
+    {
+      "target": "KisImportExportManagerSchemaContractTest",
+      "source": "libs/impex/tests/KisImportExportManagerSchemaContractTest.cpp",
+      "test": "KisImportExportManagerSchemaContractTest::exportCheckRegistryLifetimeSchemaRemainsStable",
+      "behavior": "export check registryはQObjectとして使われ、基底参照を通じて安全に破棄できる仮想デストラクターを維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisExportCheckRegistry::~KisExportCheckRegistry()"
       ]
     }
   ]

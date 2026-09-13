@@ -2,14 +2,14 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-13 10:58 JST
+- 更新日時: 2026-09-13 11:12 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
-- 完了: 第621便でAndroidファイル受け渡しの2 APIを公開契約へ追加し、対応済みを28,954件へ進めた。
-- 次の作業: 第622便として、最新の不足一覧から別の軽量契約試験へ追加できる公開headerを選び、対象限定の構築閉包を監査する。
+- 完了: 第622便でexport check registryの寿命APIを公開契約へ追加し、対応済みを28,955件へ進めた。
+- 次の作業: 第623便として、最新の不足一覧から別の軽量契約試験へ追加できる公開headerを選び、対象限定の構築閉包を監査する。
 - 検証: macOSの対象・近傍・反復・無作業再構築、公開API検査、`verify-quick`に成功した。製品target、全体build・`verify`、Linux、Nix再評価は本便の対象外である。
 
 ### 第202便の先行監査担当票
@@ -5823,6 +5823,18 @@
 - CMake、公開header、製品sourceは変更していない。macOSの限定構築は`KisCursorOverrideHijackerSchemaContractTest`の自動生成、試験source、実行ファイルだけをコンパイル・リンクし、製品targetを再構築していない。実測閉包は4工程・8入力、command SHA-256 `ef32b3dd7378f1d5e5ef739d9977409afa1f64e34d162fddfb54cfd31327fc3d`、input SHA-256 `58d9882064254f622d7496f1d8e232987c51dd89595a3d9101b9bbaef2ddb583`を維持した。
 - 試験sourceは277行・19枠、AUTOMOC `HEADERS=[]`、Qt Core・TestとOS frameworkだけの動的接続であり、template creation dialog・製品libraryの未解決記号がないことを確認した。対象全体20回、追加枠20回（60 pass）、近傍`KisGrabKeyboardFocusRecoveryWorkaroundSchemaContractTest`、連続二回の無作業Ninja構築、`clang-check -Werror`、書式、JSON構文、差分に成功した。
 - 初回照合は移行基準888件に対して実測886件となる期待診断を確認後、基準を更新した。公開API検査は28,915件対応、29,801件中886件未対応となった。新`build/tdd-macos/public-api-missing-g609.json`は243,686 bytes、SHA-256 `3054ebba7a39fe813e03d2bcce52fdc1b2181406427f087d9c308fe048f4b193`である。生成成功後に旧`public-api-missing-g608.json` 244,308 bytesをゴミ箱へ移し、主Ninja木6,061,012 KiB、共有compiler cache 983,424 KiB、最新報告だけを再利用対象として保持する。template資源の読込み・書込み、文書生成、dialogの表示と選択は、製品実装を接続する後続の効果契約で扱う。次の永続作業は第610便で別の独立軽量試験に追加可能な公開headerを選び、対象限定閉包を先に監査することである。
+
+### 第622便の公開API契約計画
+
+- 正式入力`build/tdd-macos/public-api-missing-g621.json`を監査し、`libs/impex/animation/KisAnimationRender.h`は設定型の推移依存がimage・global・pigment・Eigen・国際化へ連鎖するため軽量契約候補から除外した。開始`libs/impex/KisExportCheckRegistry.h`の仮想デストラクター1 APIを、既存`libs/impex/tests/KisImportExportManagerSchemaContractTest.cpp`の新規1枠`exportCheckRegistryLifetimeSchemaRemainsStable`へ対応付ける。既存targetはimpex・global探索路を持ち、4工程・8入力である。
+- export check registryの型と仮想寿命形式だけを固定し、singleton、factory、registry内容を実体化または実行しない。CMake、公開header、製品sourceを変更しない。停止線は5工程・11入力、製品target、製品shared・OBJECT・`kritatestsdk`接続、候補headerのAUTOMOC入力化、製品未解決記号、registry実体化または許可path外変更とする。
+
+### 第622便の公開API契約結果
+
+- 開始`libs/impex/KisExportCheckRegistry.h`から既存`libs/impex/tests/KisImportExportManagerSchemaContractTest.cpp`へ、export check registryの仮想デストラクター1 APIを`exportCheckRegistryLifetimeSchemaRemainsStable`として対応付けた。QObject派生と仮想破棄可能性を固定し、registry内容、singleton、factoryを実体化または実行していない。
+- CMake、公開header、製品sourceを変更せず、macOSの限定構築は既存testの自動生成、試験source、実行ファイルだけをコンパイル・リンクした。製品target、製品shared、OBJECT target、`kritatestsdk`を構築へ加えていない。実測閉包は4工程・8入力、command SHA-256 `a02de4513f54f7e2aebf469a59d3eb56ca9b540ab13381b2524696c28139cfd7`、input SHA-256 `20110ba469b392a5060213c96e961e1b6a4bcb1295fc931feecc1365c2ac2e25`である。
+- 試験sourceは117行・6枠、AUTOMOC `HEADERS=[]`、Qt Core・TestとOS frameworkだけの動的接続であり、registry・製品libraryの未解決記号がないことを確認した。対象全体20回、各追加枠20回（160 pass）、近傍`KisSaveGroupVisitorSchemaContractTest`、書式、`clang-check -Werror`、JSON構文、差分に成功した。
+- 初回照合は移行基準847件に対して実測846件となる期待診断を確認後、基準を更新した。公開API検査は28,955件対応、29,801件中846件未対応となった。新`build/tdd-macos/public-api-missing-g622.json`は234,289 bytes、SHA-256 `df6af2b717c9db62b799c9f87d8654fee87691428d5c2189c92029cb0172190e`である。生成成功後に旧`public-api-missing-g621.json`をゴミ箱へ移し、主Ninja木6,069,120 KiB、共有compiler cache 983,292 KiB、最新報告だけを再利用対象として保持する。空き容量29 GiBを確認した。次の永続作業は第623便で別の独立軽量試験に追加可能な公開headerを選び、対象限定閉包を先に監査することである。
 
 ### 第621便の公開API契約計画
 
