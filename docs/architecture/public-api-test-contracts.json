@@ -24743,6 +24743,18 @@
       ]
     },
     {
+      "target": "KoSelectedShapesProxySimpleSchemaContractTest",
+      "source": "libs/flake/tests/KoSelectedShapesProxySimpleSchemaContractTest.cpp",
+      "test": "KoSelectedShapesProxySimpleSchemaContractTest::schemaRemainsStable",
+      "behavior": "具体selected-shapes proxyはKoSelectedShapesProxy派生の公開型として借用shape managerで構築され、借用selectionを返す形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoSelectedShapesProxySimple",
+        "method:KoSelectedShapesProxySimple::KoSelectedShapesProxySimple(KoShapeManager * shapeManager)",
+        "method:KoSelectedShapesProxySimple::selection()"
+      ]
+    },
+    {
       "target": "KoDeferredShapeFactoryBaseContractTest",
       "source": "libs/flake/tests/KoDeferredShapeFactoryBaseContractTest.cpp",
       "test": "KoDeferredShapeFactoryBaseContractTest::preservesQObjectParentAndVirtualLifetime",
