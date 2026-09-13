@@ -5,6 +5,7 @@
  */
 
 #include "LayerBox.h"
+#include "SyncButtonAndAction.h"
 
 #include <QTest>
 
@@ -19,6 +20,7 @@ private Q_SLOTS:
     void observerAndCanvasSignaturesRemainStable();
     void imageNotificationAndFactoryLifetimeSchemaRemainStable();
     void factoryIdentityCreationAndPlacementSchemaRemainStable();
+    void actionButtonSynchronizerConstructionRemainsStable();
 };
 
 void LayerBoxSchemaContractTest::indexListAndLayerBoxLifetimeSchemaRemainStable()
@@ -57,6 +59,17 @@ void LayerBoxSchemaContractTest::factoryIdentityCreationAndPlacementSchemaRemain
     static_assert(std::is_same_v<decltype(&Factory::createDockWidget), QDockWidget *(Factory::*)()>);
     static_assert(
         std::is_same_v<decltype(&Factory::defaultDockPosition), KoDockFactoryBase::DockPosition (Factory::*)() const>);
+}
+
+void LayerBoxSchemaContractTest::actionButtonSynchronizerConstructionRemainsStable()
+{
+    using Synchronizer = SyncButtonAndAction;
+
+    static_assert(std::is_class_v<Synchronizer>);
+    static_assert(std::is_base_of_v<QObject, Synchronizer>);
+    static_assert(std::is_constructible_v<Synchronizer, KisAction *, QAbstractButton *, QObject *>);
+
+    QVERIFY(true);
 }
 
 QTEST_GUILESS_MAIN(LayerBoxSchemaContractTest)
