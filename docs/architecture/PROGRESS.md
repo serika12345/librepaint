@@ -2,14 +2,14 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-13 14:23 JST
+- 更新日時: 2026-09-13 14:33 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
-- 完了: 第639便で操作UI factoryの型、構築、破棄、識別子照会、設定取得を公開契約へ追加し、対応済みを29,011件へ進めた。
-- 次の作業: 第640便として、最新の不足一覧から別の軽量契約試験へ追加できる公開headerを選び、対象限定の構築閉包を監査する。
+- 完了: 第640便でメディアencoder設定dialogの型、構築、設定取得を公開契約へ追加し、対応済みを29,014件へ進めた。
+- 次の作業: 第641便として、最新の不足一覧から別の軽量契約試験へ追加できる公開headerを選び、対象限定の構築閉包を監査する。
 - 検証: macOSの対象・近傍・反復・無作業再構築、公開API検査、`verify-quick`に成功した。製品target、全体build・`verify`、Linux、Nix再評価は本便の対象外である。
 
 ### 第202便の先行監査担当票
@@ -5823,6 +5823,13 @@
 - CMake、公開header、製品sourceは変更していない。macOSの限定構築は`KisCursorOverrideHijackerSchemaContractTest`の自動生成、試験source、実行ファイルだけをコンパイル・リンクし、製品targetを再構築していない。実測閉包は4工程・8入力、command SHA-256 `ef32b3dd7378f1d5e5ef739d9977409afa1f64e34d162fddfb54cfd31327fc3d`、input SHA-256 `58d9882064254f622d7496f1d8e232987c51dd89595a3d9101b9bbaef2ddb583`を維持した。
 - 試験sourceは277行・19枠、AUTOMOC `HEADERS=[]`、Qt Core・TestとOS frameworkだけの動的接続であり、template creation dialog・製品libraryの未解決記号がないことを確認した。対象全体20回、追加枠20回（60 pass）、近傍`KisGrabKeyboardFocusRecoveryWorkaroundSchemaContractTest`、連続二回の無作業Ninja構築、`clang-check -Werror`、書式、JSON構文、差分に成功した。
 - 初回照合は移行基準888件に対して実測886件となる期待診断を確認後、基準を更新した。公開API検査は28,915件対応、29,801件中886件未対応となった。新`build/tdd-macos/public-api-missing-g609.json`は243,686 bytes、SHA-256 `3054ebba7a39fe813e03d2bcce52fdc1b2181406427f087d9c308fe048f4b193`である。生成成功後に旧`public-api-missing-g608.json` 244,308 bytesをゴミ箱へ移し、主Ninja木6,061,012 KiB、共有compiler cache 983,424 KiB、最新報告だけを再利用対象として保持する。template資源の読込み・書込み、文書生成、dialogの表示と選択は、製品実装を接続する後続の効果契約で扱う。次の永続作業は第610便で別の独立軽量試験に追加可能な公開headerを選び、対象限定閉包を先に監査することである。
+
+### 第640便の公開API契約結果
+
+- 開始`libs/impex/animation/KisMediaEncoderFormatPreferencesDialog.h`から新規`libs/impex/tests/KisMediaEncoderPreferencesDialogSchemaContractTest.cpp`へ、メディアencoder設定dialogの型、構築、設定取得の3 APIを`dialogTypeConstructionAndPreferencesSchemaRemainStable`として対応付けた。dialogが`QDialog`として使われ、format、設定、親widgetを受けて構築でき、設定取得口の正確な公開形式を維持することを固定し、dialog、format、widget、本文を実体化または実行していない。
+- 開始`libs/impex/tests/CMakeLists.txt`には専用target、animation・impex探索路、Qt Widgets interface、既存export定義だけを追加した。Ninjaがコンパイル・リンクしたのは新規targetの自動生成、試験source、実行ファイルだけである。実測閉包は4工程・8入力、command SHA-256 `309912c84b663a111210452489beddec3dc7ccafd247cc0db83925524a20aae7`、input SHA-256 `55e9face27fcd3f7df08bf97514b70c2968526b8354bec03582bfa0ad4ba9d2c`である。
+- 試験sourceは30行・1枠、AUTOMOC `HEADERS=[]`、Qt Core・TestとOS frameworkだけの動的接続、製品未解決記号なしである。対象全体20回、追加枠20回（60 pass）、連続二回の無作業Ninja構築、`clang-check`、書式、差分に成功した。
+- 初回照合は移行基準790件に対して実測787件となる期待診断を確認後、基準を更新した。公開API検査は29,014件対応、29,801件中787件未対応となった。新`build/tdd-macos/public-api-missing-g640.json`は219,096 bytes、SHA-256 `d404ef8e2329b280cb468c81b6d1480c10bc9a7e9c06a22011739345c37d1c57`である。生成成功後に旧`public-api-missing-g639.json`をゴミ箱へ移し、主Ninja木6,066,104 KiB、共有compiler cache 983,016 KiB、最新報告だけを再利用対象として保持する。空き容量5.1 GiBを確認した。
 
 ### 第639便の公開API契約計画
 

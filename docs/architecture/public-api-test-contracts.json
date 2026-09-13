@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 790
+    "expectedMissingApis": 787
   },
   "contracts": [
     {
@@ -81721,6 +81721,18 @@
         "method:KisOperationUIFactory::fetchConfiguration(KisViewManager * view,KisOperationConfigurationSP configuration)",
         "method:KisOperationUIFactory::id() const",
         "method:KisOperationUIFactory::~KisOperationUIFactory()"
+      ]
+    },
+    {
+      "target": "KisMediaEncoderPreferencesDialogSchemaContractTest",
+      "source": "libs/impex/tests/KisMediaEncoderPreferencesDialogSchemaContractTest.cpp",
+      "test": "KisMediaEncoderPreferencesDialogSchemaContractTest::dialogTypeConstructionAndPreferencesSchemaRemainStable",
+      "behavior": "メディアencoder設定dialogはQDialogとして使われ、format、設定、親widgetを受けて構築でき、設定取得口の公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisMediaEncoderPreferencesDialog",
+        "method:KisMediaEncoderPreferencesDialog::KisMediaEncoderPreferencesDialog(KisMediaEncoderFormat * format,const QVariantMap & preferences,QWidget * parent=nullptr)",
+        "method:KisMediaEncoderPreferencesDialog::preferences() const"
       ]
     }
   ]
