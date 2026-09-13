@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include <tool/kis_bookmarked_configurations_editor.h>
 #include <tool/kis_bookmarked_configurations_model.h>
 
 #include <QTest>
@@ -20,6 +21,7 @@ private Q_SLOTS:
     void rowDataAndFlagsSchemaRemainStable();
     void configurationLookupSchemaRemainStable();
     void configurationMutationSchemaRemainStable();
+    void bookmarkedConfigurationsEditorSchemaRemainStable();
 };
 
 void KisBookmarkedConfigurationsModelSchemaContractTest::typeConstructionLifetimeAndManagerSchemaRemainStable()
@@ -70,6 +72,17 @@ void KisBookmarkedConfigurationsModelSchemaContractTest::configurationMutationSc
     static_assert(std::is_same_v<decltype(std::declval<Model &>().setData(std::declval<const QModelIndex &>(),
                                                                           std::declval<const QVariant &>())),
                                  bool>);
+}
+
+void KisBookmarkedConfigurationsModelSchemaContractTest::bookmarkedConfigurationsEditorSchemaRemainStable()
+{
+    using Editor = KisBookmarkedConfigurationsEditor;
+
+    static_assert(std::is_class_v<Editor>);
+    static_assert(std::is_base_of_v<QDialog, Editor>);
+    static_assert(
+        std::is_constructible_v<Editor, QWidget *, KisBookmarkedConfigurationsModel *, KisSerializableConfigurationSP>);
+    static_assert(std::has_virtual_destructor_v<Editor>);
 }
 
 QTEST_GUILESS_MAIN(KisBookmarkedConfigurationsModelSchemaContractTest)

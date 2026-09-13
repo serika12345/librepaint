@@ -395,6 +395,7 @@ target_include_directories(KisBookmarkedConfigurationsModelSchemaContractTest PR
     ${CMAKE_BINARY_DIR}/libs/global
     ${CMAKE_SOURCE_DIR}/libs/image
     ${CMAKE_BINARY_DIR}/libs/image
+    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Widgets,INTERFACE_INCLUDE_DIRECTORIES>
 )
 target_compile_definitions(KisBookmarkedConfigurationsModelSchemaContractTest PRIVATE
     kritaglobal_EXPORTS
