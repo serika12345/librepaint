@@ -29,7 +29,7 @@ private Q_SLOTS:
     void resourceTypeModelDataSignaturesRemainStable();
     void resourceModelProviderTypeConstructionAndLifetimeSchemaRemainStable();
     void resourceModelProviderAccessAndTestingSignaturesRemainStable();
-    void embeddedResourceStorageProxyTypeConstructionAndAccessSchemaRemainStable();
+    void embeddedStorageProxySchemaRemainStable();
     void tagModelProviderTypeConstructionLifetimeAndAccessSchemaRemainStable();
 };
 
@@ -160,8 +160,7 @@ void KisAbstractResourceModelSchemaContractTest::resourceModelProviderAccessAndT
     static_assert(std::is_same_v<decltype(&Provider::testingCloseAllQueries), TestingControl>);
 }
 
-void KisAbstractResourceModelSchemaContractTest::
-    embeddedResourceStorageProxyTypeConstructionAndAccessSchemaRemainStable()
+void KisAbstractResourceModelSchemaContractTest::embeddedStorageProxySchemaRemainStable()
 {
     using Proxy = KisEmbeddedResourceStorageProxy;
     using AddResource = void (Proxy::*)(KoResourceSP);
