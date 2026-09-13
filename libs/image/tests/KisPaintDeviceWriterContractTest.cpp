@@ -6,9 +6,11 @@
 #include <QByteArray>
 #include <QTest>
 
+#include "kis_paint_device_debug_utils.h"
 #include "kis_paint_device_writer.h"
 
 #include <memory>
+#include <type_traits>
 
 class RecordingWriter : public KisPaintDeviceWriter
 {
@@ -59,6 +61,7 @@ class KisPaintDeviceWriterContractTest : public QObject
 private Q_SLOTS:
     void virtualWritesPreservePayloadsLengthsAndResults();
     void baseOwnershipDestroysDerivedExactlyOnce();
+    void debugSaveDeviceSignatureRemainsStable();
 };
 
 void KisPaintDeviceWriterContractTest::virtualWritesPreservePayloadsLengthsAndResults()
@@ -88,6 +91,13 @@ void KisPaintDeviceWriterContractTest::baseOwnershipDestroysDerivedExactlyOnce()
     }
 
     QCOMPARE(destructionCount, 1);
+}
+
+void KisPaintDeviceWriterContractTest::debugSaveDeviceSignatureRemainsStable()
+{
+    using DebugSaveDevice = void (*)(KisPaintDeviceSP, int, const QRect &, const QString &, const QString &);
+
+    static_assert(std::is_same_v<decltype(&kis_debug_save_device_incremental), DebugSaveDevice>);
 }
 
 QTEST_GUILESS_MAIN(KisPaintDeviceWriterContractTest)
