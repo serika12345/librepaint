@@ -1711,6 +1711,25 @@ target_compile_definitions(ImageSizeSchemaContractTest PRIVATE
 )
 
 kis_add_test(
+    KisMainwindowObserverSchemaContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KisMainwindowObserverSchemaContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs
+    ${CMAKE_SOURCE_DIR}/libs/flake
+    ${CMAKE_BINARY_DIR}/libs/flake
+    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Widgets,INTERFACE_INCLUDE_DIRECTORIES>
+)
+target_compile_definitions(KisMainwindowObserverSchemaContractTest PRIVATE
+    kritaflake_EXPORTS
+    kritaui_EXPORTS
+)
+
+kis_add_test(
     ToolOpacityAbstractResourceSchemaContractTest.cpp
     LINK_LIBRARIES
         Qt${QT_MAJOR_VERSION}::Core
