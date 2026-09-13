@@ -2,14 +2,14 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-13 16:46 JST
+- 更新日時: 2026-09-13 16:56 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
-- 完了: 第654便でレイヤースタイル設定コマンドの公開形式を契約へ追加し、対応済みを29,080件へ進めた。
-- 次の作業: 第655便として、最新の不足一覧から別の軽量契約試験へ追加できる公開headerを選び、対象限定の構築閉包を監査する。
+- 完了: 第655便でフィルター変更コマンドの公開形式を契約へ追加し、対応済みを29,084件へ進めた。
+- 次の作業: 第656便として、最新の不足一覧から別の軽量契約試験へ追加できる公開headerを選び、対象限定の構築閉包を監査する。
 - 検証: macOSの対象・近傍・反復・無作業再構築、公開API検査、`verify-quick`に成功した。製品target、全体build・`verify`、Linux、Nix再評価は本便の対象外である。
 
 ### 第202便の先行監査担当票
@@ -5823,6 +5823,12 @@
 - CMake、公開header、製品sourceは変更していない。macOSの限定構築は`KisCursorOverrideHijackerSchemaContractTest`の自動生成、試験source、実行ファイルだけをコンパイル・リンクし、製品targetを再構築していない。実測閉包は4工程・8入力、command SHA-256 `ef32b3dd7378f1d5e5ef739d9977409afa1f64e34d162fddfb54cfd31327fc3d`、input SHA-256 `58d9882064254f622d7496f1d8e232987c51dd89595a3d9101b9bbaef2ddb583`を維持した。
 - 試験sourceは277行・19枠、AUTOMOC `HEADERS=[]`、Qt Core・TestとOS frameworkだけの動的接続であり、template creation dialog・製品libraryの未解決記号がないことを確認した。対象全体20回、追加枠20回（60 pass）、近傍`KisGrabKeyboardFocusRecoveryWorkaroundSchemaContractTest`、連続二回の無作業Ninja構築、`clang-check -Werror`、書式、JSON構文、差分に成功した。
 - 初回照合は移行基準888件に対して実測886件となる期待診断を確認後、基準を更新した。公開API検査は28,915件対応、29,801件中886件未対応となった。新`build/tdd-macos/public-api-missing-g609.json`は243,686 bytes、SHA-256 `3054ebba7a39fe813e03d2bcce52fdc1b2181406427f087d9c308fe048f4b193`である。生成成功後に旧`public-api-missing-g608.json` 244,308 bytesをゴミ箱へ移し、主Ninja木6,061,012 KiB、共有compiler cache 983,424 KiB、最新報告だけを再利用対象として保持する。template資源の読込み・書込み、文書生成、dialogの表示と選択は、製品実装を接続する後続の効果契約で扱う。次の永続作業は第610便で別の独立軽量試験に追加可能な公開headerを選び、対象限定閉包を先に監査することである。
+
+### 第655便の公開API契約結果
+
+- 開始`libs/image/commands/kis_change_filter_command.h`から新規`libs/image/tests/KisChangeFilterCmdSchemaContractTest.cpp`へ、フィルター変更コマンドの型、構築、undo、redoの4 APIを`publicInterfaceRemainsStable`として対応付けた。undo基底、構築可能性、undo・redoの関数ポインター型を固定し、フィルター設定、ノード更新、レジストリ探索の本文を実行していない。
+- 開始`libs/image/tests/CMakeLists.txt`には専用targetとimage・commands・global・pigment・painting/undo探索路、必要なEigen・Qt Widgets・KF I18n・Imath interface探索路だけを追加した。初回に`Eigen/Sparse`、次回に`half.h`の不足を検出し、同責務の既存契約に基づく直接interface探索路だけで解消した。実測閉包は4工程・8入力、command SHA-256 `cec59768ec07377e41f131d6a350ccdabe2e616bd18ef9dccfae957e3ef08051`、input SHA-256 `d6987842ee91a98dc21eba91468a24adfe3c36c892b1895d8954015525738f53`、AUTOMOC `HEADERS=[]`、製品未解決記号なしである。
+- 試験sourceは34行・1枠、対象CTest全体20回、追加枠20回（60 pass）、近傍`KisSetLayerStyleCommandSchemaContractTest`、連続二回の無作業Ninja構築、`clang-check -Werror`、書式、差分に成功した。公開API検査は29,084件対応、29,801件中717件未対応となった。新`build/tdd-macos/public-api-missing-g655.json`は199,860 bytes、SHA-256 `c063b269c3404e3666d398476f701eb9191be946905e547224721790956fdd62`である。旧g654報告をゴミ箱へ移し、主Ninja木6,071,048 KiB、共有compiler cache 982,804 KiB、空き容量1.9 GiBを確認した。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 
 ### 第654便の公開API契約結果
 

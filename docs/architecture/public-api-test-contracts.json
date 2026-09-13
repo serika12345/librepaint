@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 721
+    "expectedMissingApis": 717
   },
   "contracts": [
     {
@@ -81925,6 +81925,19 @@
         "method:KisSetLayerStyleCommand::redo()",
         "method:KisSetLayerStyleCommand::undo()",
         "method:KisSetLayerStyleCommand::updateLayerStyle(KisLayerSP layer,KisPSDLayerStyleSP style)"
+      ]
+    },
+    {
+      "target": "KisChangeFilterCmdSchemaContractTest",
+      "source": "libs/image/tests/KisChangeFilterCmdSchemaContractTest.cpp",
+      "test": "KisChangeFilterCmdSchemaContractTest::publicInterfaceRemainsStable",
+      "behavior": "フィルター変更コマンドは対象ノードと変更前後のフィルター設定で構築でき、undoとredoの公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisChangeFilterCmd",
+        "method:KisChangeFilterCmd::KisChangeFilterCmd(KisNodeSP node,KisFilterConfigurationSP configBefore,KisFilterConfigurationSP configAfter)",
+        "method:KisChangeFilterCmd::redo()",
+        "method:KisChangeFilterCmd::undo()"
       ]
     }
   ]
