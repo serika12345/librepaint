@@ -5,6 +5,7 @@
 
 #include <canvas/KisCanvasSurfaceColorSpaceManager.h>
 #include <canvas/KisDisplayConfig.h>
+#include <canvas/KisSRGBSurfaceColorSpaceManager.h>
 #include <canvas/kis_display_color_converter.h>
 
 #include <QDebug>
@@ -41,6 +42,7 @@ private Q_SLOTS:
     void surfaceColorManagerConfigurationSchemaRemainStable();
     void surfaceColorManagerReportSchemaRemainStable();
     void surfaceColorManagerNotificationSchemaRemainStable();
+    void sRgbSurfaceColorManagerTypeConstructionAndPlatformFactorySchemaRemainStable();
 };
 
 void KisDisplayConfigSchemaContractTest::displayConfigTypeAndConstructionSchemaRemainsStable()
@@ -242,6 +244,17 @@ void KisDisplayConfigSchemaContractTest::surfaceColorManagerNotificationSchemaRe
     using Manager = KisCanvasSurfaceColorSpaceManager;
 
     ASSERT_SURFACE_COLOR_MANAGER_SIGNATURE(sigDisplayConfigChanged, void (Manager::*)(const KisDisplayConfig &));
+}
+
+void KisDisplayConfigSchemaContractTest::sRgbSurfaceColorManagerTypeConstructionAndPlatformFactorySchemaRemainStable()
+{
+    using Manager = KisSRGBSurfaceColorSpaceManager;
+
+    static_assert(std::is_class_v<Manager>);
+    static_assert(std::is_base_of_v<KisCanvasSurfaceColorSpaceManager, Manager>);
+    static_assert(std::is_constructible_v<Manager, KisSurfaceColorManagerInterface *, QObject *>);
+    static_assert(std::has_virtual_destructor_v<Manager>);
+    static_assert(std::is_same_v<decltype(&Manager::tryCreateForCurrentPlatform), Manager *(*)(QWidget *)>);
 }
 
 #undef ASSERT_DISPLAY_COLOR_CONVERTER_SIGNATURE
