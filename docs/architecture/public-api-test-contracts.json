@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 701
+    "expectedMissingApis": 699
   },
   "contracts": [
     {
@@ -71159,6 +71159,17 @@
         "enumerator:FillProcessingVisitor::ContinuousFillMode::ContinuousFillMode_FillAnyRegion",
         "enumerator:FillProcessingVisitor::ContinuousFillMode::ContinuousFillMode_FillSimilarRegions",
         "method:FillProcessingVisitor::FillProcessingVisitor(KisPaintDeviceSP referencePaintDevice,KisSelectionSP selection,KisResourcesSnapshotSP resources)"
+      ]
+    },
+    {
+      "target": "FillProcessingVisitorSchemaContractTest",
+      "source": "libs/ui/tests/FillProcessingVisitorSchemaContractTest.cpp",
+      "test": "FillProcessingVisitorSchemaContractTest::encloseAndFillProcessingVisitorTypeAndConstructionSchemaRemainStable",
+      "behavior": "囲み・塗り処理visitorは、参照画素・囲みmask・選択・資源・領域方式・色・塗り設定・出力範囲を受け取る構築形式と単純処理visitor基底を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisEncloseAndFillProcessingVisitor",
+        "method:KisEncloseAndFillProcessingVisitor::KisEncloseAndFillProcessingVisitor(KisPaintDeviceSP referencePaintDevice,KisPixelSelectionSP enclosingMask,KisSelectionSP selection,KisResourcesSnapshotSP resources,KisEncloseAndFillPainter::RegionSelectionMethod regionSelectionMethod,const KoColor & regionSelectionColor,bool regionSelectionInvert,bool regionSelectionIncludeContourRegions,bool regionSelectionIncludeSurroundingRegions,int fillThreshold,int fillOpacitySpread,int closeGap,bool antiAlias,int expand,bool stopGrowingAtDarkestPixel,int feather,bool useSelectionAsBoundary,bool usePattern,bool unmerged,bool useBgColor,bool useCustomBlendingOptions,qreal customOpacity,const QString & customCompositeOp,QSharedPointer<QRect> outDirtyRect)"
       ]
     },
     {
