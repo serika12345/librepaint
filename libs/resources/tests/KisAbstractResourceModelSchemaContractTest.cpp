@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include <KisEmbeddedResourceStorageProxy.h>
 #include <KisResourceModel.h>
 #include <KisResourceModelProvider.h>
 #include <KisResourceTypeModel.h>
@@ -28,6 +29,7 @@ private Q_SLOTS:
     void resourceTypeModelDataSignaturesRemainStable();
     void resourceModelProviderTypeConstructionAndLifetimeSchemaRemainStable();
     void resourceModelProviderAccessAndTestingSignaturesRemainStable();
+    void embeddedResourceStorageProxyTypeConstructionAndAccessSchemaRemainStable();
     void tagModelProviderTypeConstructionLifetimeAndAccessSchemaRemainStable();
 };
 
@@ -156,6 +158,21 @@ void KisAbstractResourceModelSchemaContractTest::resourceModelProviderAccessAndT
     static_assert(std::is_same_v<decltype(&Provider::resourceMetadataModel), MetadataModel>);
     static_assert(std::is_same_v<decltype(&Provider::testingResetAllModels), TestingControl>);
     static_assert(std::is_same_v<decltype(&Provider::testingCloseAllQueries), TestingControl>);
+}
+
+void KisAbstractResourceModelSchemaContractTest::
+    embeddedResourceStorageProxyTypeConstructionAndAccessSchemaRemainStable()
+{
+    using Proxy = KisEmbeddedResourceStorageProxy;
+    using AddResource = void (Proxy::*)(KoResourceSP);
+    using ResourcesInterface = KisResourcesInterfaceSP (Proxy::*)();
+
+    static_assert(std::is_class_v<Proxy>);
+    static_assert(std::is_constructible_v<Proxy, const QString &>);
+    static_assert(std::is_destructible_v<Proxy>);
+    static_assert(std::is_same_v<decltype(&Proxy::addResource), AddResource>);
+    static_assert(std::is_same_v<decltype(&Proxy::resourcesInterface), ResourcesInterface>);
+    static_assert(std::is_same_v<decltype(&Proxy::detachedResourcesInterface), ResourcesInterface>);
 }
 
 void KisAbstractResourceModelSchemaContractTest::tagModelProviderTypeConstructionLifetimeAndAccessSchemaRemainStable()
