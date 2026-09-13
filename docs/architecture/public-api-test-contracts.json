@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 676
+    "expectedMissingApis": 671
   },
   "contracts": [
     {
@@ -54018,6 +54018,20 @@
         "method:KisMask::KisMask(KisImageWSP image,const QString & name)",
         "method:KisMask::KisMask(const KisMask & rhs)",
         "method:KisMask::~KisMask()"
+      ]
+    },
+    {
+      "target": "KisMaskSchemaContractTest",
+      "source": "libs/image/tests/KisMaskSchemaContractTest.cpp",
+      "test": "KisMaskSchemaContractTest::effectMaskTypeConstructionCopyAndIconSchemaRemainStable",
+      "behavior": "効果マスクは抽象mask派生型として画像と名前、または既存効果マスクから構築でき、仮想寿命と効果を表すiconの公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisEffectMask",
+        "method:KisEffectMask::KisEffectMask(KisImageWSP image,const QString & name)",
+        "method:KisEffectMask::KisEffectMask(const KisEffectMask & rhs)",
+        "method:KisEffectMask::icon() const",
+        "method:KisEffectMask::~KisEffectMask()"
       ]
     },
     {

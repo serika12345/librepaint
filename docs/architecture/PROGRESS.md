@@ -2,14 +2,14 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-13 19:00 JST
+- 更新日時: 2026-09-13 19:11 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
-- 完了: 第666便でキャンバス装飾管理器の公開構築・初期化・view切替形式を契約へ追加し、対応済みを29,125件へ進めた。
-- 次の作業: 第667便として、最新の不足一覧から別の軽量契約試験へ追加できる公開headerを選び、対象限定の構築閉包を監査する。
+- 完了: 第667便で効果マスクの公開構築・複製・icon形式を契約へ追加し、対応済みを29,130件へ進めた。
+- 次の作業: 第668便として、最新の不足一覧から別の軽量契約試験へ追加できる公開headerを選び、対象限定の構築閉包を監査する。
 - 検証: macOSの対象・反復・無作業再構築、公開API検査に成功した。文書同期後に`verify-quick`を実行する。製品target、全体build・`verify`、Linux、Nix再評価は本便の対象外である。
 
 ### 第202便の先行監査担当票
@@ -5823,6 +5823,12 @@
 - CMake、公開header、製品sourceは変更していない。macOSの限定構築は`KisCursorOverrideHijackerSchemaContractTest`の自動生成、試験source、実行ファイルだけをコンパイル・リンクし、製品targetを再構築していない。実測閉包は4工程・8入力、command SHA-256 `ef32b3dd7378f1d5e5ef739d9977409afa1f64e34d162fddfb54cfd31327fc3d`、input SHA-256 `58d9882064254f622d7496f1d8e232987c51dd89595a3d9101b9bbaef2ddb583`を維持した。
 - 試験sourceは277行・19枠、AUTOMOC `HEADERS=[]`、Qt Core・TestとOS frameworkだけの動的接続であり、template creation dialog・製品libraryの未解決記号がないことを確認した。対象全体20回、追加枠20回（60 pass）、近傍`KisGrabKeyboardFocusRecoveryWorkaroundSchemaContractTest`、連続二回の無作業Ninja構築、`clang-check -Werror`、書式、JSON構文、差分に成功した。
 - 初回照合は移行基準888件に対して実測886件となる期待診断を確認後、基準を更新した。公開API検査は28,915件対応、29,801件中886件未対応となった。新`build/tdd-macos/public-api-missing-g609.json`は243,686 bytes、SHA-256 `3054ebba7a39fe813e03d2bcce52fdc1b2181406427f087d9c308fe048f4b193`である。生成成功後に旧`public-api-missing-g608.json` 244,308 bytesをゴミ箱へ移し、主Ninja木6,061,012 KiB、共有compiler cache 983,424 KiB、最新報告だけを再利用対象として保持する。template資源の読込み・書込み、文書生成、dialogの表示と選択は、製品実装を接続する後続の効果契約で扱う。次の永続作業は第610便で別の独立軽量試験に追加可能な公開headerを選び、対象限定閉包を先に監査することである。
+
+### 第667便の公開API契約結果
+
+- 開始`libs/image/kis_effect_mask.h`から既存`libs/image/tests/KisMaskSchemaContractTest.cpp`へ、効果マスクの抽象mask派生型、画像・名前と既存効果マスクによる構築、仮想破棄、効果iconの5 APIを`effectMaskTypeConstructionCopyAndIconSchemaRemainStable`として対応付けた。`clone()`だけを局所派生型で満たし、型特性と厳密なメンバー関数pointerだけを用いて、効果マスク、画像、layer、選択、描画装置、icon生成、各本文を実体化または実行していない。CMake、公開header、製品sourceは変更していない。
+- 既存targetの事前・変更後閉包は4工程・8入力、command SHA-256 `1e218388a3296856c083bb603bb62bfa7f21551468675bd3d6afa937edf037f9`、input SHA-256 `1b6f2f7c970d919db6b01da0886e756108ad45d57c3215580d895fcbc5468503`であり、停止線5工程・11入力以内を維持した。AUTOMOC `HEADERS=[]`、製品未解決記号なし、Qt Core・Gui・Test・XmlとOS frameworkだけの動的接続を確認した。
+- 試験sourceは299行・15枠、対象実行形式全体20回（340 pass）、追加枠20回（60 pass）、連続二回の対象限定構築（ともに無作業）、`clang-check -Werror`、書式、差分に成功した。公開API検査は29,130件対応、29,801件中671件未対応となった。初回照合は移行基準676件に対して実測671件となる期待診断を確認後、基準を更新した。新`build/tdd-macos/public-api-missing-g667.json`は184,048 bytes、SHA-256 `b6c3dc68fa81bba483aad5f58a7df35bafed33111de7b3598fc51742bb6cca4c`である。生成成功後に旧g666報告をゴミ箱へ移し、主Ninja木6,109,400 KiB、共有compiler cache 983,412 KiB、空き容量47 GiB、最新報告だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 
 ### 第666便の公開API契約結果
 
