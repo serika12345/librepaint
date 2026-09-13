@@ -356,3 +356,7 @@ if (WIN32)
     endif()
     install(TARGETS krita_windows_stub_com ${INSTALL_TARGETS_DEFAULT_ARGS})
 endif (WIN32)
+
+if (BUILD_TESTING)
+    add_subdirectory(tests)
+endif()
