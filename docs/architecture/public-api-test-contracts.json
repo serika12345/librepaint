@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 849
+    "expectedMissingApis": 847
   },
   "contracts": [
     {
@@ -81491,6 +81491,17 @@
         "enumerator:KisIOSLifecycleEvent::WillResignActive",
         "function:finishKisIOSBackgroundTask()",
         "function:installKisIOSLifecycleHandler(KisIOSLifecycleHandler lifecycleHandler)"
+      ]
+    },
+    {
+      "target": "KisAndroidFileProxySchemaContractTest",
+      "source": "libs/application/tests/KisAndroidFileProxySchemaContractTest.cpp",
+      "test": "KisAndroidFileProxySchemaContractTest::typeAndContentUriEntryPointRemainStable",
+      "behavior": "AndroidのコンテンツURI受け渡しは、公開proxy型とURI文字列を受けてファイル名を返す静的入口として維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisAndroidFileProxy",
+        "method:KisAndroidFileProxy::getFileFromContentUri(QString contentUri)"
       ]
     }
   ]
