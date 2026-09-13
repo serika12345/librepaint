@@ -10,6 +10,7 @@
 #include "actions/KisNoParameterActionFactory.h"
 #include "actions/KisPasteActionFactories.h"
 #include "actions/kis_selection_action_factories.h"
+#include "operations/kis_filter_selection_operation.h"
 #include "selection/KisSelectionActionsAdapter.h"
 
 #define ASSERT_NO_PARAMETER_ACTION_SCHEMA(Type)                                                                        \
@@ -32,6 +33,7 @@ class KisSelectionActionFactoriesSchemaContractTest : public QObject
 private Q_SLOTS:
     void noParameterActionFactoryBaseSchemaRemainsStable();
     void selectionActionsAdapterTypeAndSelectionEntrySchemaRemainStable();
+    void filterSelectionOperationTypeAndFilterEntrySchemaRemainStable();
     void basicSelectionStateActionSchemaRemainsStable();
     void fillAndInvertActionSchemaRemainsStable();
     void cutAndCopyActionSchemaRemainsStable();
@@ -73,6 +75,18 @@ void KisSelectionActionFactoriesSchemaContractTest::selectionActionsAdapterTypeA
 
     static_assert(std::is_constructible_v<Adapter, KisSelectionManager *>);
     static_assert(std::is_same_v<decltype(&Adapter::selectOpaqueOnNode), SelectOpaqueOnNode>);
+
+    QVERIFY(true);
+}
+
+void KisSelectionActionFactoriesSchemaContractTest::filterSelectionOperationTypeAndFilterEntrySchemaRemainStable()
+{
+    using Operation = KisFilterSelectionOperation;
+    using RunFilter = void (Operation::*)(KisSelectionFilter *, KisViewManager *, const KisOperationConfiguration &);
+
+    static_assert(std::is_base_of_v<KisOperation, Operation>);
+    static_assert(std::is_constructible_v<Operation, const QString &>);
+    static_assert(std::is_same_v<decltype(&Operation::runFilter), RunFilter>);
 
     QVERIFY(true);
 }
