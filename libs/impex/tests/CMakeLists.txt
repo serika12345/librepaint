@@ -337,6 +337,18 @@ kis_add_tests(
 )
 target_compile_definitions(kis_document_metadata_test PRIVATE kritaimpex_EXPORTS)
 
+kis_add_test(
+    KoDocumentInfoSchemaContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KoDocumentInfoSchemaContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/../metadata
+    ${CMAKE_BINARY_DIR}/libs/impex
+)
+target_compile_definitions(KoDocumentInfoSchemaContractTest PRIVATE kritaimpex_EXPORTS)
+
 kis_add_tests(
     kis_export_check_base_test.cpp
     LINK_LIBRARIES kritaimpexexportcheckbaseobjects Qt${QT_MAJOR_VERSION}::Test
