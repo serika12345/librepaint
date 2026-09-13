@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 823
+    "expectedMissingApis": 819
   },
   "contracts": [
     {
@@ -81616,6 +81616,19 @@
       "apis": [
         "class:KisAsyncMerger",
         "method:KisAsyncMerger::startMerge(KisBaseRectsWalker & walker,bool notifyClones=true)"
+      ]
+    },
+    {
+      "target": "KisCategorizedItemDelegateSchemaContractTest",
+      "source": "libs/tools/ui/tests/KisCategorizedItemDelegateSchemaContractTest.cpp",
+      "test": "KisCategorizedItemDelegateSchemaContractTest::delegateTypeConstructionAndPresentationSchemaRemainStable",
+      "behavior": "カテゴリ項目delegateはQStyledItemDelegateとして使われ、親QObjectを受けて構築でき、描画と寸法提示の公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisCategorizedItemDelegate",
+        "method:KisCategorizedItemDelegate::KisCategorizedItemDelegate(QObject * parent)",
+        "method:KisCategorizedItemDelegate::paint(QPainter * painter,const QStyleOptionViewItem & option,const QModelIndex & index) const",
+        "method:KisCategorizedItemDelegate::sizeHint(const QStyleOptionViewItem & option,const QModelIndex & index) const"
       ]
     }
   ]

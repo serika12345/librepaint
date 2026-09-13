@@ -2,14 +2,14 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-13 13:00 JST
+- 更新日時: 2026-09-13 13:16 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
-- 完了: 第631便で非同期統合器の型と開始口を公開契約へ追加し、対応済みを28,978件へ進めた。
-- 次の作業: 第632便として、最新の不足一覧から別の軽量契約試験へ追加できる公開headerを選び、対象限定の構築閉包を監査する。
+- 完了: 第632便でカテゴリ項目delegateの型、構築、描画、寸法提示を公開契約へ追加し、対応済みを28,982件へ進めた。
+- 次の作業: 第633便として、最新の不足一覧から別の軽量契約試験へ追加できる公開headerを選び、対象限定の構築閉包を監査する。
 - 検証: macOSの対象・近傍・反復・無作業再構築、公開API検査、`verify-quick`に成功した。製品target、全体build・`verify`、Linux、Nix再評価は本便の対象外である。
 
 ### 第202便の先行監査担当票
@@ -5823,6 +5823,19 @@
 - CMake、公開header、製品sourceは変更していない。macOSの限定構築は`KisCursorOverrideHijackerSchemaContractTest`の自動生成、試験source、実行ファイルだけをコンパイル・リンクし、製品targetを再構築していない。実測閉包は4工程・8入力、command SHA-256 `ef32b3dd7378f1d5e5ef739d9977409afa1f64e34d162fddfb54cfd31327fc3d`、input SHA-256 `58d9882064254f622d7496f1d8e232987c51dd89595a3d9101b9bbaef2ddb583`を維持した。
 - 試験sourceは277行・19枠、AUTOMOC `HEADERS=[]`、Qt Core・TestとOS frameworkだけの動的接続であり、template creation dialog・製品libraryの未解決記号がないことを確認した。対象全体20回、追加枠20回（60 pass）、近傍`KisGrabKeyboardFocusRecoveryWorkaroundSchemaContractTest`、連続二回の無作業Ninja構築、`clang-check -Werror`、書式、JSON構文、差分に成功した。
 - 初回照合は移行基準888件に対して実測886件となる期待診断を確認後、基準を更新した。公開API検査は28,915件対応、29,801件中886件未対応となった。新`build/tdd-macos/public-api-missing-g609.json`は243,686 bytes、SHA-256 `3054ebba7a39fe813e03d2bcce52fdc1b2181406427f087d9c308fe048f4b193`である。生成成功後に旧`public-api-missing-g608.json` 244,308 bytesをゴミ箱へ移し、主Ninja木6,061,012 KiB、共有compiler cache 983,424 KiB、最新報告だけを再利用対象として保持する。template資源の読込み・書込み、文書生成、dialogの表示と選択は、製品実装を接続する後続の効果契約で扱う。次の永続作業は第610便で別の独立軽量試験に追加可能な公開headerを選び、対象限定閉包を先に監査することである。
+
+### 第632便の公開API契約計画
+
+- 正式入力`build/tdd-macos/public-api-missing-g631.json`から、開始`libs/tools/ui/kis_categorized_item_delegate.h`のカテゴリ項目delegate型、親QObjectを受ける構築子、描画、寸法提示の4 APIを、新規`libs/tools/ui/tests/KisCategorizedItemDelegateSchemaContractTest.cpp`の1枠`delegateTypeConstructionAndPresentationSchemaRemainStable`へ対応付ける。既存のカテゴリ一覧モデル契約は別責務のため追加先から除外する。delegate、親QObject、描画器、表示option、model index、本文を実体化または実行しない。
+- 開始`libs/tools/ui/tests/CMakeLists.txt`には専用target、tools/uiのsource・binary探索路、Qt Widgetsのinterface探索路と`kritatoolsui_EXPORTS`だけを追加する。Qt Core・Testだけを動的接続し、製品target、製品shared・OBJECT target、`kritatestsdk`を接続しない。停止線は5工程・11入力、候補headerのAUTOMOC入力化、製品未解決記号、delegateまたは描画関係の実体化、許可path外変更とする。
+- macOSでは対象CTest、追加枠20回、軽量近傍`KisCategorizedListModelSchemaContractTest`、AUTOMOC後の連続二回の無作業再構築、動的接続・未解決記号・厳格構文・書式、公開API検査、`verify-quick`だけを実行する。製品target、全体build・`verify`、Linux、Nix再評価は実行しない。初回公開API検査は移行基準823件に対する4 API減少の診断を期待する。
+
+### 第632便の公開API契約結果
+
+- 開始`libs/tools/ui/kis_categorized_item_delegate.h`から新規`libs/tools/ui/tests/KisCategorizedItemDelegateSchemaContractTest.cpp`へ、カテゴリ項目delegateの型、構築、描画、寸法提示の4 APIを`delegateTypeConstructionAndPresentationSchemaRemainStable`として対応付けた。delegateが`QStyledItemDelegate`として使われ、親QObjectを受けて構築でき、描画と寸法提示の正確な公開形式を維持することを固定し、delegate、親QObject、描画器、表示option、model index、各本文を実体化または実行していない。
+- 開始`libs/tools/ui/tests/CMakeLists.txt`から同ディレクトリーの専用targetへ、tools/uiのsource・binary探索路、Qt Widgetsのinterface探索路、`kritatoolsui_EXPORTS`を追加した。CMake再構成はtarget登録のため構成全体を読み直したが、Ninjaがコンパイル・リンクしたのは`KisCategorizedItemDelegateSchemaContractTest`の自動生成、試験source、実行ファイルだけである。製品target、製品shared、OBJECT target、`kritatestsdk`は構築へ加えていない。実測閉包は4工程・8入力、command SHA-256 `514ccbb19f3447160f6c4c2fc142c13a2f3d6db10812d3916a4f92ef4e7987ca`、input SHA-256 `03b97b7e13dbf2cc91de58b5694dd8238972bfd181adc97542b06e600f0f96ac`である。
+- 試験sourceは36行・1枠、AUTOMOC `HEADERS=[]`、Qt Core・TestとOS frameworkだけの動的接続、製品未解決記号なしである。対象全体20回、追加枠20回（60 pass）、近傍`KisCategorizedListModelSchemaContractTest`、連続二回の無作業Ninja構築、`clang-check`、書式、JSON構文、差分に成功した。
+- 初回照合は移行基準823件に対して実測819件となる期待診断を確認後、基準を更新した。公開API検査は28,982件対応、29,801件中819件未対応となった。新`build/tdd-macos/public-api-missing-g632.json`は227,416 bytes、SHA-256 `b62a194704f32d5e30bf9b8dcc3d05b253ae9e592dd67a558960ee93b737817d`である。生成成功後に旧`public-api-missing-g631.json`をゴミ箱へ移し、主Ninja木6,080,828 KiB、共有compiler cache 983,052 KiB、最新報告だけを再利用対象として保持する。空き容量12 GiBを確認した。次の永続作業は第633便の軽量公開header監査である。
 
 ### 第631便の公開API契約計画
 
