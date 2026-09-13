@@ -2,14 +2,14 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-13 10:28 JST
+- 更新日時: 2026-09-13 10:41 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
-- 完了: 第618便でpaint device診断保存の1 APIを公開契約へ追加し、対応済みを28,937件へ進めた。
-- 次の作業: 第619便として、最新の不足一覧から別の軽量契約試験へ追加できる公開headerを選び、対象限定の構築閉包を監査する。
+- 完了: 第619便でiOSアプリケーション連携の6 APIを公開契約へ追加し、対応済みを28,943件へ進めた。
+- 次の作業: 第620便として、最新の不足一覧から別の軽量契約試験へ追加できる公開headerを選び、対象限定の構築閉包を監査する。
 - 検証: macOSの対象・近傍・反復・無作業再構築、公開API検査、`verify-quick`に成功した。製品target、全体build・`verify`、Linux、Nix再評価は本便の対象外である。
 
 ### 第202便の先行監査担当票
@@ -5823,6 +5823,19 @@
 - CMake、公開header、製品sourceは変更していない。macOSの限定構築は`KisCursorOverrideHijackerSchemaContractTest`の自動生成、試験source、実行ファイルだけをコンパイル・リンクし、製品targetを再構築していない。実測閉包は4工程・8入力、command SHA-256 `ef32b3dd7378f1d5e5ef739d9977409afa1f64e34d162fddfb54cfd31327fc3d`、input SHA-256 `58d9882064254f622d7496f1d8e232987c51dd89595a3d9101b9bbaef2ddb583`を維持した。
 - 試験sourceは277行・19枠、AUTOMOC `HEADERS=[]`、Qt Core・TestとOS frameworkだけの動的接続であり、template creation dialog・製品libraryの未解決記号がないことを確認した。対象全体20回、追加枠20回（60 pass）、近傍`KisGrabKeyboardFocusRecoveryWorkaroundSchemaContractTest`、連続二回の無作業Ninja構築、`clang-check -Werror`、書式、JSON構文、差分に成功した。
 - 初回照合は移行基準888件に対して実測886件となる期待診断を確認後、基準を更新した。公開API検査は28,915件対応、29,801件中886件未対応となった。新`build/tdd-macos/public-api-missing-g609.json`は243,686 bytes、SHA-256 `3054ebba7a39fe813e03d2bcce52fdc1b2181406427f087d9c308fe048f4b193`である。生成成功後に旧`public-api-missing-g608.json` 244,308 bytesをゴミ箱へ移し、主Ninja木6,061,012 KiB、共有compiler cache 983,424 KiB、最新報告だけを再利用対象として保持する。template資源の読込み・書込み、文書生成、dialogの表示と選択は、製品実装を接続する後続の効果契約で扱う。次の永続作業は第610便で別の独立軽量試験に追加可能な公開headerを選び、対象限定閉包を先に監査することである。
+
+### 第619便の公開API契約計画
+
+- 正式入力`build/tdd-macos/public-api-missing-g618.json`を監査し、`libs/image/kis_async_merger.h`の2 APIは既存の動的試験が広いため保留した。開始`krita/KisIOSMemoryWarningHandler.h`のメモリー警告設置1 APIと、開始`krita/KisIOSPencilInteraction.h`のペンシル操作型・設置5 APIを、新規`krita/tests/KisIOSApplicationIntegrationSchemaContractTest.cpp`の2枠へ対応付ける。開始`krita/CMakeLists.txt`には`BUILD_TESTING`時だけ同`krita/tests`を登録する。
+- 専用targetはQt Core・Testと`krita`親directoryの公開header探索路だけを持つ。iOS固有実装、Objective-C++、native view、メモリー警告およびペンシル操作を実体化または実行せず、macOSでは型・列挙・関数形式を固定する。停止線は5工程・11入力、製品target、製品shared・OBJECT・`kritatestsdk`接続、候補headerのAUTOMOC入力化、製品未解決記号、iOS実装または許可path外変更とする。
+- macOSでは対象CTest、各追加枠20回、近傍`KisGlobalDiagnosticsSchemaContractTest`、AUTOMOC後の二回目計画、連続二回の無作業Ninja構築、動的接続・未解決記号・厳格構文・書式、公開API検査、`verify-quick`だけを実行する。製品target、全体build・`verify`、Linux、iOS実機、Nix再評価は実行しない。初回公開API検査は移行基準864件に対する6 API減少の診断を期待する。
+
+### 第619便の公開API契約結果
+
+- 開始`krita/KisIOSMemoryWarningHandler.h`と`krita/KisIOSPencilInteraction.h`から新規`krita/tests/KisIOSApplicationIntegrationSchemaContractTest.cpp`へ、メモリー警告設置1 API、ペンシルの操作列挙、二つの列挙値、ハンドラー別名、設置関数の5 APIを2枠へ対応付けた。開始`krita/CMakeLists.txt`から新規`krita/tests/CMakeLists.txt`へ、`BUILD_TESTING`時だけアプリケーション公開面の専用targetを登録する責務を分離した。実装の呼出しは行わず、公開形式を静的に固定しているため、iOS実機でのメモリー警告・ペンシル操作の実行挙動は後続のiOS統合検査で確認する。
+- CMake再構成は新しい試験directoryを登録するため構成全体を読み直したが、Ninjaがコンパイル・リンクしたのは`KisIOSApplicationIntegrationSchemaContractTest`の自動生成、試験source、実行ファイルだけであり、製品target、製品shared、OBJECT target、`kritatestsdk`を構築へ加えていない。macOSの実測閉包は4工程・8入力、command SHA-256 `4cd0b0f831e3c2fcef4c958a8133ad41053f95ff870b3fe0af5745dafa661b93`、input SHA-256 `3565281f1992eadb6014ffdc29d0b396a2baafdbaa887911f6a7805ac1a0ef31`である。
+- 試験sourceは43行・2枠、AUTOMOC `HEADERS=[]`、Qt Core・TestとOS frameworkだけの動的接続であり、iOSアプリケーション実装・製品libraryの未解決記号がないことを確認した。対象全体20回、各追加枠20回（80 pass）、近傍`KisGlobalDiagnosticsSchemaContractTest`、連続二回の無作業Ninja構築、`clang-check -Werror`、書式、JSON構文、差分に成功した。
+- 初回照合は移行基準864件に対して実測858件となる期待診断を確認後、基準を更新した。公開API検査は28,943件対応、29,801件中858件未対応となった。新`build/tdd-macos/public-api-missing-g619.json`は236,899 bytes、SHA-256 `577584a275bb7f5145c669041a101d8dc29a2ed11417371e5be719c1f0809b57`である。生成成功後に旧`public-api-missing-g618.json`をゴミ箱へ移し、主Ninja木6,068,640 KiB、共有compiler cache 982,460 KiB、最新報告だけを再利用対象として保持する。空き容量39 GiBを確認した。次の永続作業は第620便で別の独立軽量試験に追加可能な公開headerを選び、対象限定閉包を先に監査することである。
 
 ### 第618便の公開API契約計画
 
