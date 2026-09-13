@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 865
+    "expectedMissingApis": 864
   },
   "contracts": [
     {
@@ -15865,6 +15865,16 @@
       "classification": "maintained",
       "apis": [
         "method:KisPaintDeviceWriter::~KisPaintDeviceWriter()"
+      ]
+    },
+    {
+      "target": "KisPaintDeviceWriterContractTest",
+      "source": "libs/image/tests/KisPaintDeviceWriterContractTest.cpp",
+      "test": "KisPaintDeviceWriterContractTest::debugSaveDeviceSignatureRemainsStable",
+      "behavior": "paint deviceの診断保存は、paint device、連番、領域、suffix、prefixを受ける公開関数形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:kis_debug_save_device_incremental(KisPaintDeviceSP device,int i,const QRect & rc,const QString & suffix,const QString & prefix)"
       ]
     },
     {
