@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 739
+    "expectedMissingApis": 734
   },
   "contracts": [
     {
@@ -81871,6 +81871,20 @@
         "method:KisProcessingCommand::KisProcessingCommand(KisProcessingVisitorSP visitor,KisNodeSP node,KUndo2Command * parent=0)",
         "method:KisProcessingCommand::redo()",
         "method:KisProcessingCommand::undo()"
+      ]
+    },
+    {
+      "target": "KisChangeCloneLayersCommandSchemaContractTest",
+      "source": "libs/image/tests/KisChangeCloneLayersCommandSchemaContractTest.cpp",
+      "test": "KisChangeCloneLayersCommandSchemaContractTest::changeCloneLayersCommandPublicInterfaceRemainsStable",
+      "behavior": "複製レイヤー変更コマンドは複製レイヤー一覧、新しい元レイヤー、親コマンドで構築でき、undo、redo、統合の公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisChangeCloneLayersCommand",
+        "method:KisChangeCloneLayersCommand::KisChangeCloneLayersCommand(QList<KisCloneLayerSP> cloneLayers,KisLayerSP newSource,KUndo2Command * parent=0)",
+        "method:KisChangeCloneLayersCommand::mergeWith(const KUndo2Command *)",
+        "method:KisChangeCloneLayersCommand::redo()",
+        "method:KisChangeCloneLayersCommand::undo()"
       ]
     }
   ]
