@@ -5,8 +5,11 @@
 
 #include <canvas/KisCanvasSurfaceColorSpaceManager.h>
 #include <canvas/KisDisplayConfig.h>
+#include <canvas/KisRootSurfaceInfoProxy.h>
 #include <canvas/KisSRGBSurfaceColorSpaceManager.h>
 #include <canvas/kis_display_color_converter.h>
+
+#include <surfacecolormanagement/KisSurfaceColorimetry.h>
 
 #include <QDebug>
 #include <QTest>
@@ -43,6 +46,7 @@ private Q_SLOTS:
     void surfaceColorManagerReportSchemaRemainStable();
     void surfaceColorManagerNotificationSchemaRemainStable();
     void sRgbSurfaceColorManagerTypeConstructionAndPlatformFactorySchemaRemainStable();
+    void rootSurfaceInfoProxySchemaRemainStable();
 };
 
 void KisDisplayConfigSchemaContractTest::displayConfigTypeAndConstructionSchemaRemainsStable()
@@ -255,6 +259,27 @@ void KisDisplayConfigSchemaContractTest::sRgbSurfaceColorManagerTypeConstruction
     static_assert(std::is_constructible_v<Manager, KisSurfaceColorManagerInterface *, QObject *>);
     static_assert(std::has_virtual_destructor_v<Manager>);
     static_assert(std::is_same_v<decltype(&Manager::tryCreateForCurrentPlatform), Manager *(*)(QWidget *)>);
+}
+
+void KisDisplayConfigSchemaContractTest::rootSurfaceInfoProxySchemaRemainStable()
+{
+    using Proxy = KisRootSurfaceInfoProxy;
+    using SurfaceDescription = KisSurfaceColorimetry::SurfaceDescription;
+
+    static_assert(std::is_class_v<Proxy>);
+    static_assert(std::is_base_of_v<KisRootSurfaceTrackerBase, Proxy>);
+    static_assert(std::is_constructible_v<Proxy, QWidget *, QObject *>);
+    static_assert(std::has_virtual_destructor_v<Proxy>);
+    static_assert(std::is_same_v<decltype(&Proxy::rootSurfaceProfile), const KoColorProfile *(Proxy::*)() const>);
+    static_assert(std::is_same_v<decltype(&Proxy::isReady), bool (Proxy::*)() const>);
+    static_assert(std::is_same_v<decltype(&Proxy::colorManagementReport), QString (Proxy::*)() const>);
+    static_assert(std::is_same_v<decltype(&Proxy::osPreferredColorSpaceReport), QString (Proxy::*)() const>);
+    static_assert(std::is_same_v<decltype(&Proxy::currentSurfaceDescription),
+                                 std::optional<SurfaceDescription> (Proxy::*)() const>);
+    static_assert(
+        std::is_same_v<decltype(&Proxy::sigRootSurfaceProfileChanged), void (Proxy::*)(const KoColorProfile *) const>);
+
+    QVERIFY(true);
 }
 
 #undef ASSERT_DISPLAY_COLOR_CONVERTER_SIGNATURE

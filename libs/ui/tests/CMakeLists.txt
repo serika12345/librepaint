@@ -1254,6 +1254,10 @@ target_include_directories(KisDisplayConfigSchemaContractTest PRIVATE
     ${CMAKE_BINARY_DIR}/libs/application
     ${CMAKE_SOURCE_DIR}/libs/canvas
     ${CMAKE_BINARY_DIR}/libs/canvas
+    ${CMAKE_SOURCE_DIR}/libs/widgetutils
+    ${CMAKE_BINARY_DIR}/libs/widgetutils
+    ${CMAKE_SOURCE_DIR}/libs/surfacecolormanagementapi
+    ${CMAKE_BINARY_DIR}/libs/surfacecolormanagementapi
     ${CMAKE_SOURCE_DIR}/libs/global
     ${CMAKE_BINARY_DIR}/libs/global
     ${CMAKE_SOURCE_DIR}/libs/image
@@ -1271,6 +1275,8 @@ target_compile_definitions(KisDisplayConfigSchemaContractTest PRIVATE
     kritaimage_EXPORTS
     kritaui_EXPORTS
     kritapigment_EXPORTS
+    kritasurfacecolorimetry_EXPORTS
+    kritawidgetutils_EXPORTS
 )
 
 kis_add_test(
