@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "kis_stroke_job.h"
 #include "kis_strokes_queue.h"
 
 #include <QTest>
@@ -26,6 +27,7 @@ private Q_SLOTS:
     void strokesQueueStateAndProcessingSignaturesRemainStable();
     void strokesQueueLodAndFactorySignaturesRemainStable();
     void strokesQueueCallbacksAndDiagnosticsSignaturesRemainStable();
+    void strokeJobTestingAccessSignaturesRemainStable();
 };
 
 void KisStrokesQueueSchemaContractTest::strokesQueueTypeAndLifetimeSchemaRemainStable()
@@ -82,6 +84,15 @@ void KisStrokesQueueSchemaContractTest::strokesQueueCallbacksAndDiagnosticsSigna
     ASSERT_STROKES_QUEUE_SIGNATURE(setPurgeRedoStateCallback, void (KisStrokesQueue::*)(const Callback &));
     ASSERT_STROKES_QUEUE_SIGNATURE(notifyUFOChangedImage, void (KisStrokesQueue::*)());
     ASSERT_STROKES_QUEUE_SIGNATURE(debugDumpAllStrokes, void (KisStrokesQueue::*)());
+}
+
+void KisStrokesQueueSchemaContractTest::strokeJobTestingAccessSignaturesRemainStable()
+{
+    using Job = KisStrokeJob *;
+
+    static_assert(std::is_same_v<decltype(cancelSeqNo(static_cast<Job>(nullptr))), int>);
+    static_assert(std::is_same_v<decltype(getCommandName(static_cast<Job>(nullptr))), QString>);
+    static_assert(std::is_same_v<decltype(getJobName(static_cast<Job>(nullptr))), QString>);
 }
 
 QTEST_APPLESS_MAIN(KisStrokesQueueSchemaContractTest)
