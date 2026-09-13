@@ -2,14 +2,14 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-13 09:53 JST
+- 更新日時: 2026-09-13 10:04 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
-- 完了: 第615便でASL pattern UUID取得の1 APIを公開契約へ追加し、対応済みを28,931件へ進めた。
-- 次の作業: 第616便として、最新の不足一覧から別の軽量契約試験へ追加できる公開headerを選び、対象限定の構築閉包を監査する。
+- 完了: 第616便でstroke job試験補助の3 APIを公開契約へ追加し、対応済みを28,934件へ進めた。
+- 次の作業: 第617便として、最新の不足一覧から別の軽量契約試験へ追加できる公開headerを選び、対象限定の構築閉包を監査する。
 - 検証: macOSの対象・近傍・反復・無作業再構築、公開API検査、`verify-quick`に成功した。製品target、全体build・`verify`、Linux、Nix再評価は本便の対象外である。
 
 ### 第202便の先行監査担当票
@@ -5823,6 +5823,18 @@
 - CMake、公開header、製品sourceは変更していない。macOSの限定構築は`KisCursorOverrideHijackerSchemaContractTest`の自動生成、試験source、実行ファイルだけをコンパイル・リンクし、製品targetを再構築していない。実測閉包は4工程・8入力、command SHA-256 `ef32b3dd7378f1d5e5ef739d9977409afa1f64e34d162fddfb54cfd31327fc3d`、input SHA-256 `58d9882064254f622d7496f1d8e232987c51dd89595a3d9101b9bbaef2ddb583`を維持した。
 - 試験sourceは277行・19枠、AUTOMOC `HEADERS=[]`、Qt Core・TestとOS frameworkだけの動的接続であり、template creation dialog・製品libraryの未解決記号がないことを確認した。対象全体20回、追加枠20回（60 pass）、近傍`KisGrabKeyboardFocusRecoveryWorkaroundSchemaContractTest`、連続二回の無作業Ninja構築、`clang-check -Werror`、書式、JSON構文、差分に成功した。
 - 初回照合は移行基準888件に対して実測886件となる期待診断を確認後、基準を更新した。公開API検査は28,915件対応、29,801件中886件未対応となった。新`build/tdd-macos/public-api-missing-g609.json`は243,686 bytes、SHA-256 `3054ebba7a39fe813e03d2bcce52fdc1b2181406427f087d9c308fe048f4b193`である。生成成功後に旧`public-api-missing-g608.json` 244,308 bytesをゴミ箱へ移し、主Ninja木6,061,012 KiB、共有compiler cache 983,424 KiB、最新報告だけを再利用対象として保持する。template資源の読込み・書込み、文書生成、dialogの表示と選択は、製品実装を接続する後続の効果契約で扱う。次の永続作業は第610便で別の独立軽量試験に追加可能な公開headerを選び、対象限定閉包を先に監査することである。
+
+### 第616便の公開API契約計画
+
+- 正式入力`build/tdd-macos/public-api-missing-g615.json`から、開始`libs/image/kis_stroke_job.h`の取消し順序番号、command名、job名を返す試験補助3 APIを、既存`libs/image/tests/KisStrokesQueueSchemaContractTest.cpp`の1枠`strokeJobTestingAccessSignaturesRemainStable`へ対応付ける。既存`KisStrokeJobContractTest`は9工程・19入力で停止線を超えるため棄却する。既存queue標的は89行・5枠、4工程・8入力であり、job、strategy、data、実装体を実体化または実行しない。
+- friend関数は通常の名前探索に現れないため、初回の関数ポインター形式の期待診断後に、未評価のADL呼出し式でjobを受けて正確な返却型を得られることを固定する。CMake、公開header、製品sourceは変更しない。停止線は5工程・11入力、製品target、製品shared・OBJECT・`kritatestsdk`接続、候補headerのAUTOMOC入力化、製品未解決記号、job実体化、許可path外変更とする。
+
+### 第616便の公開API契約結果
+
+- 開始`libs/image/kis_stroke_job.h`から既存`libs/image/tests/KisStrokesQueueSchemaContractTest.cpp`へ、取消し順序番号、command名、job名を返す試験補助3 APIを`strokeJobTestingAccessSignaturesRemainStable`として対応付けた。friend関数の通常名前探索失敗を確認後、未評価のADL呼出し式で返却型とjobによる呼出し可能性を固定し、job、strategy、data、実装体の実体化と実行を伴わない。
+- CMake、公開header、製品sourceは変更していない。macOSの限定構築は既存試験の自動生成、試験source、実行ファイルだけをコンパイル・リンクし、製品targetを再構築していない。実測閉包は4工程・8入力、command SHA-256 `3501599f8418915cf0af6b5f3c4de84e5709739dfef54ed7caeaffe8bd540053`、input SHA-256 `54dd5019ab5f3758adcac617d5ccb19de1fff1f319edc198c7743998e6ba5db5`である。
+- 試験sourceは100行・6枠、AUTOMOC `HEADERS=[]`、Qt Core・TestとOS frameworkだけの動的接続であり、stroke job・製品libraryの未解決記号がないことを確認した。対象全体20回、追加枠20回（60 pass）、近傍`KisStrokeJobContractTest`、連続二回の無作業Ninja構築、`clang-check -Werror`、書式、JSON構文、差分に成功した。
+- 初回照合は移行基準870件に対して実測867件となる期待診断を確認後、基準を更新した。公開API検査は28,934件対応、29,801件中867件未対応となった。新`build/tdd-macos/public-api-missing-g616.json`は239,034 bytes、SHA-256 `86ee4b33944cbd36dbe698c206dbf6e8e91d200f3eb9cf31c449599deb97f71e`である。生成成功後に旧`public-api-missing-g615.json` 239,643 bytesをゴミ箱へ移し、主Ninja木6,049,492 KiB、共有compiler cache 983,444 KiB、最新報告だけを再利用対象として保持する。具体的な試験補助値は既存の動的stroke job契約で扱う。次の永続作業は第617便で別の独立軽量試験に追加可能な公開headerを選び、対象限定閉包を先に監査することである。
 
 ### 第615便の公開API契約計画
 

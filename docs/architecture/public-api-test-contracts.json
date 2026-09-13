@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 870
+    "expectedMissingApis": 867
   },
   "contracts": [
     {
@@ -57265,6 +57265,18 @@
         "method:KisStrokesQueue::notifyUFOChangedImage()",
         "method:KisStrokesQueue::setPostSyncLod0GUIPlaneRequestForResumeCallback(const std::function<void ()> & callback)",
         "method:KisStrokesQueue::setPurgeRedoStateCallback(const std::function<void ()> & callback)"
+      ]
+    },
+    {
+      "target": "KisStrokesQueueSchemaContractTest",
+      "source": "libs/image/tests/KisStrokesQueueSchemaContractTest.cpp",
+      "test": "KisStrokesQueueSchemaContractTest::strokeJobTestingAccessSignaturesRemainStable",
+      "behavior": "stroke jobはjobを受け、取消し順序番号、command名、job名を返す試験補助入口を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:cancelSeqNo(KisStrokeJob * job)",
+        "function:getCommandName(KisStrokeJob * job)",
+        "function:getJobName(KisStrokeJob * job)"
       ]
     },
     {
