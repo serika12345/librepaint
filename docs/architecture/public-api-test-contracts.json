@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 795
+    "expectedMissingApis": 790
   },
   "contracts": [
     {
@@ -81707,6 +81707,20 @@
         "method:KisOperationConfiguration::KisOperationConfiguration(const QString & id)",
         "method:KisOperationConfiguration::id() const",
         "method:KisOperationConfiguration::~KisOperationConfiguration()"
+      ]
+    },
+    {
+      "target": "KisSelectionActionFactoriesSchemaContractTest",
+      "source": "libs/ui/tests/KisSelectionActionFactoriesSchemaContractTest.cpp",
+      "test": "operationUiFactoryTypeConstructionAndConfigurationSchemaRemainStable",
+      "behavior": "操作UI factoryは抽象型として使われ、識別子で構築でき、破棄、識別子照会、設定取得口の公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisOperationUIFactory",
+        "method:KisOperationUIFactory::KisOperationUIFactory(const QString & id)",
+        "method:KisOperationUIFactory::fetchConfiguration(KisViewManager * view,KisOperationConfigurationSP configuration)",
+        "method:KisOperationUIFactory::id() const",
+        "method:KisOperationUIFactory::~KisOperationUIFactory()"
       ]
     }
   ]
