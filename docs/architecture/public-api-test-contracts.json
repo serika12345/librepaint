@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 681
+    "expectedMissingApis": 676
   },
   "contracts": [
     {
@@ -67089,6 +67089,20 @@
         "method:KisCanvas2::viewConverter()",
         "method:KisCanvas2::viewConverter() const",
         "method:KisCanvas2::~KisCanvas2()"
+      ]
+    },
+    {
+      "target": "KisCanvas2SchemaContractTest",
+      "source": "libs/ui/tests/KisCanvas2SchemaContractTest.cpp",
+      "test": "KisCanvas2SchemaContractTest::decorationsManagerSchemaRemainStable",
+      "behavior": "キャンバス装飾管理器はview管理器から構築できるQObjectとして、viewの切替とaction管理器による初期化の公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisDecorationsManager",
+        "method:KisDecorationsManager::KisDecorationsManager(KisViewManager * view)",
+        "method:KisDecorationsManager::setView(QPointer<KisView> imageView)",
+        "method:KisDecorationsManager::setup(KisActionManager * actionManager)",
+        "method:KisDecorationsManager::~KisDecorationsManager()"
       ]
     },
     {
