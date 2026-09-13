@@ -3,11 +3,31 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include <KisDynamicSensorFactoryDistance.h>
 #include <KisDynamicSensorFactoryDrawingAngle.h>
+#include <KisDynamicSensorFactoryFade.h>
+#include <KisDynamicSensorFactoryTime.h>
 
 #include <QTest>
 
 #include <type_traits>
+
+namespace
+{
+
+template<typename Factory>
+void verifyLengthAwareFactorySchema()
+{
+    static_assert(std::is_class_v<Factory>);
+    static_assert(std::is_base_of_v<KisSimpleDynamicSensorFactory, Factory>);
+    static_assert(std::is_default_constructible_v<Factory>);
+    static_assert(std::is_same_v<decltype(&Factory::createConfigWidget),
+                                 QWidget *(Factory::*)(lager::cursor<KisCurveOptionDataCommon>, QWidget *)>);
+    static_assert(std::is_same_v<decltype(&Factory::maximumLabel), QString (Factory::*)(int)>);
+    static_assert(std::is_same_v<decltype(&Factory::maximumValue), int (Factory::*)(int)>);
+}
+
+} // namespace
 
 class KisDynamicSensorFactoryDrawingAngleSchemaContractTest : public QObject
 {
@@ -15,6 +35,9 @@ class KisDynamicSensorFactoryDrawingAngleSchemaContractTest : public QObject
 
 private Q_SLOTS:
     void drawingAngleFactorySchemaRemainStable();
+    void distanceFactorySchemaRemainStable();
+    void fadeFactorySchemaRemainStable();
+    void timeFactorySchemaRemainStable();
 };
 
 void KisDynamicSensorFactoryDrawingAngleSchemaContractTest::drawingAngleFactorySchemaRemainStable()
@@ -26,6 +49,21 @@ void KisDynamicSensorFactoryDrawingAngleSchemaContractTest::drawingAngleFactoryS
     static_assert(std::is_default_constructible_v<Factory>);
     static_assert(std::is_same_v<decltype(&Factory::createConfigWidget),
                                  QWidget *(Factory::*)(lager::cursor<KisCurveOptionDataCommon>, QWidget *)>);
+}
+
+void KisDynamicSensorFactoryDrawingAngleSchemaContractTest::distanceFactorySchemaRemainStable()
+{
+    verifyLengthAwareFactorySchema<KisDynamicSensorFactoryDistance>();
+}
+
+void KisDynamicSensorFactoryDrawingAngleSchemaContractTest::fadeFactorySchemaRemainStable()
+{
+    verifyLengthAwareFactorySchema<KisDynamicSensorFactoryFade>();
+}
+
+void KisDynamicSensorFactoryDrawingAngleSchemaContractTest::timeFactorySchemaRemainStable()
+{
+    verifyLengthAwareFactorySchema<KisDynamicSensorFactoryTime>();
 }
 
 QTEST_GUILESS_MAIN(KisDynamicSensorFactoryDrawingAngleSchemaContractTest)
