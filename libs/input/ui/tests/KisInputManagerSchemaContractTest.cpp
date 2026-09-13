@@ -3,8 +3,8 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#include "kis_input_manager.h"
 #include "KisPopupWidgetAction.h"
+#include "kis_input_manager.h"
 
 #include <type_traits>
 #include <utility>
