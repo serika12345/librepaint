@@ -5,6 +5,7 @@
 
 #include "KisMaskingBrushOptionProperties.h"
 #include "kis_brush_based_paintop.h"
+#include "kis_brush_based_paintop_options_widget.h"
 #include "kis_texture_option.h"
 
 #include <QTest>
@@ -24,6 +25,17 @@ protected:
     KisSpacingInformation updateSpacingImpl(const KisPaintInformation &) const override;
 };
 
+class BrushBasedPaintopOptionWidgetProbe final : public KisBrushBasedPaintopOptionWidget
+{
+public:
+    using KisBrushBasedPaintopOptionWidget::KisBrushBasedPaintopOptionWidget;
+
+    KisPropertiesConfigurationSP configuration() const override
+    {
+        return {};
+    }
+};
+
 #define ASSERT_TEXT_BRUSH_INITIALIZATION_SIGNATURE(method, signature)                                                  \
     static_assert(                                                                                                     \
         std::is_same_v<decltype(static_cast<signature>(&TextBrushInitializationWorkaround::method)), signature>)
@@ -37,6 +49,7 @@ class KisBrushBasedPaintOpSchemaContractTest : public QObject
     Q_OBJECT
 
 private Q_SLOTS:
+    void brushBasedPaintopOptionWidgetSchemaRemainStable();
     void textBrushInitializationSchemaRemainStable();
     void brushPaintOpTypeConstructionAndLifetimeSchemaRemainStable();
     void brushPaintOpPaintabilitySignaturesRemainStable();
@@ -48,6 +61,19 @@ private Q_SLOTS:
     void textureOptionTypeStateAndConstructionSchemaRemainStable();
     void textureOptionProcessingAndResourceSignaturesRemainStable();
 };
+
+void KisBrushBasedPaintOpSchemaContractTest::brushBasedPaintopOptionWidgetSchemaRemainStable()
+{
+    using Widget = KisBrushBasedPaintopOptionWidget;
+
+    static_assert(std::is_class_v<Widget>);
+    static_assert(std::is_base_of_v<KisPaintOpSettingsWidget, Widget>);
+    static_assert(std::is_abstract_v<Widget>);
+    static_assert(std::is_constructible_v<BrushBasedPaintopOptionWidgetProbe, KisBrushOptionWidgetFlags, QWidget *>);
+    static_assert(std::is_destructible_v<Widget>);
+    static_assert(std::is_same_v<decltype(&Widget::brush), KisBrushSP (Widget::*)()>);
+    static_assert(std::is_same_v<decltype(&Widget::effectiveBrushSize), lager::reader<qreal> (Widget::*)() const>);
+}
 
 void KisBrushBasedPaintOpSchemaContractTest::textBrushInitializationSchemaRemainStable()
 {
