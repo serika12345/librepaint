@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 875
+    "expectedMissingApis": 871
   },
   "contracts": [
     {
@@ -80193,6 +80193,19 @@
         "function:composite_op_to_psd_blendmode(const QString & compositeOp)",
         "function:psd_blendmode_to_composite_op(const QString & blendmode)",
         "function:psd_colormode_to_colormodelid(psd_color_mode colormode,quint16 channelDepth)"
+      ]
+    },
+    {
+      "target": "KisTxt2UtilsSchemaContractTest",
+      "source": "libs/psdutils/tests/KisTxt2UtilsSchemaContractTest.cpp",
+      "test": "KisTxt2UtilsSchemaContractTest::schemaRemainsStable",
+      "behavior": "Txt2 utilityは既定のTxt2値を作成し、圧縮keyを展開し、指定text indexのTySh値へ変換する公開型と関数形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisTxt2Utils",
+        "method:KisTxt2Utils::defaultTxt2()",
+        "method:KisTxt2Utils::tyShFromTxt2(const QVariantHash Txt2,const QRectF boundsInPx,int textIndex)",
+        "method:KisTxt2Utils::uncompressKeys(QVariantHash doc)"
       ]
     },
     {
