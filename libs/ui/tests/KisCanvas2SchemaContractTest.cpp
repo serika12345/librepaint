@@ -12,6 +12,7 @@
 #include "canvas/KoCanvasControllerWidget.h"
 #include "canvas/kis_canvas2.h"
 #include "canvas/kis_canvas_controller.h"
+#include "canvas/kis_mirror_manager.h"
 #include "nodes/kis_node_selection_adapter.h"
 
 #define ASSERT_CANVAS_SIGNATURE(method, signature)                                                                     \
@@ -59,6 +60,7 @@ class KisCanvas2SchemaContractTest : public QObject
 private Q_SLOTS:
     void canvasTypeConstructionAndBaseSchemaRemainStable();
     void decorationsManagerSchemaRemainStable();
+    void mirrorManagerSchemaRemainStable();
     void nodeSelectionAdapterSchemaRemainStable();
     void shapeToolAndInputSignaturesRemainStable();
     void imageRenderingAndColorStateSignaturesRemainStable();
@@ -129,6 +131,20 @@ void KisCanvas2SchemaContractTest::decorationsManagerSchemaRemainStable()
     static_assert(std::has_virtual_destructor_v<Manager>);
     static_assert(std::is_same_v<decltype(&Manager::setView), SetView>);
     static_assert(std::is_same_v<decltype(&Manager::setup), Setup>);
+
+    QVERIFY(true);
+}
+
+void KisCanvas2SchemaContractTest::mirrorManagerSchemaRemainStable()
+{
+    using Manager = KisMirrorManager;
+
+    static_assert(std::is_class_v<Manager>);
+    static_assert(std::is_base_of_v<QObject, Manager>);
+    static_assert(std::is_constructible_v<Manager, KisViewManager *>);
+    static_assert(std::has_virtual_destructor_v<Manager>);
+    static_assert(std::is_same_v<decltype(&Manager::setView), void (Manager::*)(QPointer<KisView>)>);
+    static_assert(std::is_same_v<decltype(&Manager::setup), void (Manager::*)(KisKActionCollection *)>);
 
     QVERIFY(true);
 }
