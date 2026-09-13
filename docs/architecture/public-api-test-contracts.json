@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 805
+    "expectedMissingApis": 800
   },
   "contracts": [
     {
@@ -81679,6 +81679,20 @@
         "method:KisOperationRegistry::KisOperationRegistry()",
         "method:KisOperationRegistry::instance()",
         "method:KisOperationRegistry::~KisOperationRegistry()"
+      ]
+    },
+    {
+      "target": "KisSelectionActionFactoriesSchemaContractTest",
+      "source": "libs/ui/tests/KisSelectionActionFactoriesSchemaContractTest.cpp",
+      "test": "KisSelectionActionFactoriesSchemaContractTest::operationBaseTypeConstructionAndDispatchSchemaRemainStable",
+      "behavior": "操作基底は識別子で構築でき、基底参照を通じて破棄でき、識別子照会とXML入力口の公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisOperation",
+        "method:KisOperation::KisOperation(const QString & id)",
+        "method:KisOperation::id() const",
+        "method:KisOperation::runFromXML(KisViewManager * view,const KisOperationConfiguration & config)",
+        "method:KisOperation::~KisOperation()"
       ]
     }
   ]
