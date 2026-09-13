@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 780
+    "expectedMissingApis": 775
   },
   "contracts": [
     {
@@ -81758,6 +81758,20 @@
         "method:KisAnimationVideoSaver::encode(const QString & framesDirectory,const QString & savedFilesMask,const QStringList & savedFiles,const KisAnimationRenderingOptions & options)",
         "method:KisAnimationVideoSaver::image()",
         "method:KisAnimationVideoSaver::~KisAnimationVideoSaver()"
+      ]
+    },
+    {
+      "target": "KisAnimationImporterSchemaContractTest",
+      "source": "libs/impex/tests/KisAnimationImporterSchemaContractTest.cpp",
+      "test": "KisAnimationImporterSchemaContractTest::animationImporterPublicInterfaceRemainsStable",
+      "behavior": "アニメーション取込み器は画像または文書で構築でき、フレーム列を取込む公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisAnimationImporter",
+        "method:KisAnimationImporter::KisAnimationImporter(KisDocument * document)",
+        "method:KisAnimationImporter::KisAnimationImporter(KisImageSP image,KoUpdaterPtr updater=0)",
+        "method:KisAnimationImporter::import(QStringList files,int firstFrame,int step,bool autoAddHoldframes=false,bool startfrom0=false,int isAscending=0,bool assignDocumentProfile=false,QList<int> optionalKeyframeTimeList={})",
+        "method:KisAnimationImporter::~KisAnimationImporter()"
       ]
     }
   ]
