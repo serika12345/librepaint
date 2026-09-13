@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 705
+    "expectedMissingApis": 703
   },
   "contracts": [
     {
@@ -81952,6 +81952,17 @@
         "method:KisSetLayerStyleCommand::redo()",
         "method:KisSetLayerStyleCommand::undo()",
         "method:KisSetLayerStyleCommand::updateLayerStyle(KisLayerSP layer,KisPSDLayerStyleSP style)"
+      ]
+    },
+    {
+      "target": "LayerBoxSchemaContractTest",
+      "source": "plugins/dockers/layerdocker/tests/LayerBoxSchemaContractTest.cpp",
+      "test": "LayerBoxSchemaContractTest::actionButtonSynchronizerConstructionRemainsStable",
+      "behavior": "レイヤー操作のaction・button同期器はQObject基底として、action、button、親を受け取る公開構築形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:SyncButtonAndAction",
+        "method:SyncButtonAndAction::SyncButtonAndAction(KisAction * action,QAbstractButton * button,QObject * parent)"
       ]
     },
     {
