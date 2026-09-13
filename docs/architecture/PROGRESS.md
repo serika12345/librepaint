@@ -2,14 +2,14 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-13 15:37 JST
+- 更新日時: 2026-09-13 15:46 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
-- 完了: 第646便で安全な文書読込み器の公開形式を契約へ追加し、対応済みを29,046件へ進めた。
-- 次の作業: 第647便として、最新の不足一覧から別の軽量契約試験へ追加できる公開headerを選び、対象限定の構築閉包を監査する。
+- 完了: 第647便で選択マスク有効化コマンドの公開形式を契約へ追加し、対応済みを29,050件へ進めた。
+- 次の作業: 第648便として、最新の不足一覧から別の軽量契約試験へ追加できる公開headerを選び、対象限定の構築閉包を監査する。
 - 検証: macOSの対象・近傍・反復・無作業再構築、公開API検査、`verify-quick`に成功した。製品target、全体build・`verify`、Linux、Nix再評価は本便の対象外である。
 
 ### 第202便の先行監査担当票
@@ -5823,6 +5823,12 @@
 - CMake、公開header、製品sourceは変更していない。macOSの限定構築は`KisCursorOverrideHijackerSchemaContractTest`の自動生成、試験source、実行ファイルだけをコンパイル・リンクし、製品targetを再構築していない。実測閉包は4工程・8入力、command SHA-256 `ef32b3dd7378f1d5e5ef739d9977409afa1f64e34d162fddfb54cfd31327fc3d`、input SHA-256 `58d9882064254f622d7496f1d8e232987c51dd89595a3d9101b9bbaef2ddb583`を維持した。
 - 試験sourceは277行・19枠、AUTOMOC `HEADERS=[]`、Qt Core・TestとOS frameworkだけの動的接続であり、template creation dialog・製品libraryの未解決記号がないことを確認した。対象全体20回、追加枠20回（60 pass）、近傍`KisGrabKeyboardFocusRecoveryWorkaroundSchemaContractTest`、連続二回の無作業Ninja構築、`clang-check -Werror`、書式、JSON構文、差分に成功した。
 - 初回照合は移行基準888件に対して実測886件となる期待診断を確認後、基準を更新した。公開API検査は28,915件対応、29,801件中886件未対応となった。新`build/tdd-macos/public-api-missing-g609.json`は243,686 bytes、SHA-256 `3054ebba7a39fe813e03d2bcce52fdc1b2181406427f087d9c308fe048f4b193`である。生成成功後に旧`public-api-missing-g608.json` 244,308 bytesをゴミ箱へ移し、主Ninja木6,061,012 KiB、共有compiler cache 983,424 KiB、最新報告だけを再利用対象として保持する。template資源の読込み・書込み、文書生成、dialogの表示と選択は、製品実装を接続する後続の効果契約で扱う。次の永続作業は第610便で別の独立軽量試験に追加可能な公開headerを選び、対象限定閉包を先に監査することである。
+
+### 第647便の公開API契約結果
+
+- 開始`libs/image/commands_new/kis_activate_selection_mask_command.h`から新規`libs/image/tests/KisActivateSelectionMaskCommandSchemaContractTest.cpp`へ、選択マスク有効化コマンドの型、構築、redo、undoの4 APIを`activationCommandPublicInterfaceRemainsStable`として対応付けた。undo基底、構築可能性、undo・redoの関数ポインター型を固定し、選択状態変更の本文を実行していない。
+- 開始`libs/image/tests/CMakeLists.txt`には専用targetとimage・commands_new・global・pigment・painting/undo探索路、必要なinterface探索路だけを追加した。最初の不足はcommands_new探索路だけで解消した。実測閉包は4工程・8入力、command SHA-256 `51339a332927fd99eb294dcb89cc046f941ece7b36d53ce82672cc36bb212f26`、input SHA-256 `217ed4adbf82ebbb9b5995d91ae11b6d69f84bad293f8e324437656574194ec9`、AUTOMOC `HEADERS=[]`、製品未解決記号なしである。
+- 試験sourceは34行・1枠、対象CTest全体20回、追加枠20回（60 pass）、近傍`KisSafeDocumentLoaderSchemaContractTest`、連続二回の無作業Ninja構築、`clang-check -Werror`、書式、差分に成功した。公開API検査は29,050件対応、29,801件中751件未対応となった。新`build/tdd-macos/public-api-missing-g647.json`は208,894 bytes、SHA-256 `48eae5abf7b3d5bbcb90315755254aad55edb1873b3abc929937c0ea0ec49a35`である。旧g646報告をゴミ箱へ移し、主Ninja木6,059,776 KiB、共有compiler cache 983,220 KiB、空き容量2.0 GiBを確認した。
 
 ### 第646便の公開API契約結果
 

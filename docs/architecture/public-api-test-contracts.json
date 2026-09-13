@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 755
+    "expectedMissingApis": 751
   },
   "contracts": [
     {
@@ -81819,6 +81819,19 @@
         "method:KisSafeDocumentLoader::reloadImage()",
         "method:KisSafeDocumentLoader::setPath(const QString & path)",
         "method:KisSafeDocumentLoader::~KisSafeDocumentLoader()"
+      ]
+    },
+    {
+      "target": "KisActivateSelectionMaskCommandSchemaContractTest",
+      "source": "libs/image/tests/KisActivateSelectionMaskCommandSchemaContractTest.cpp",
+      "test": "KisActivateSelectionMaskCommandSchemaContractTest::activationCommandPublicInterfaceRemainsStable",
+      "behavior": "選択マスク有効化コマンドは選択マスクと有効値で構築でき、undoとredoの公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisActivateSelectionMaskCommand",
+        "method:KisActivateSelectionMaskCommand::KisActivateSelectionMaskCommand(KisSelectionMaskSP selectionMask,bool value)",
+        "method:KisActivateSelectionMaskCommand::redo()",
+        "method:KisActivateSelectionMaskCommand::undo()"
       ]
     }
   ]
