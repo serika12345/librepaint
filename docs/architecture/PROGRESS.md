@@ -2,15 +2,21 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-15 23:09 JST
+- 更新日時: 2026-09-15 23:21 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
 - 完了: 第758便でPSDの旧Clang互換debug出力の公開1 APIを契約へ追加し、対応済みを29,785件へ進めた。
-- 次の作業: 第759便として、最新の不足一覧から責務が一致し、対象限定の構築閉包を保てるAPIを選ぶ。プラットフォーム限定APIは実機Linuxの該当構成で扱う準備を先に監査する。
-- 検証: macOSの対象・反復・無作業再構築、公開API検査、`verify-quick`に成功した。旧不足報告をTrashへ移し、最新報告だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は本便の対象外である。
+- 次の作業: 第759便で、残るplatform限定APIを実行可能な対象契約へ分離する最小構成を設計し、画像factoryの製品閉包は契約追加より先に分割可能性を確認する。
+- 検証: macOSの対象・反復・無作業再構築、公開API検査、`verify-quick`に成功した。第759便ではLinux実機で構築profileだけを監査し、製品target、全体build・`verify`、Nix再評価は実行していない。主Ninja木、共有compiler cache、最新不足報告だけを保持する。
+
+### 第759便の構築範囲監査
+
+- 最新の不足16 APIは、`libs/image/brushengine/kis_standard_uniform_properties_factory.h`のfactory入口2件とheader内`KoID`値5件、`libs/global/KisAndroidCrashHandler.h`の初期化入口1件、`winquirks/unistd.h`のMSVC互換別名4件と関数4件に分かれる。factoryのheader内値は各翻訳単位で`KoID`と翻訳文字列を動的初期化するため、製品非接続の静的targetへincludeするだけで`KoID`・`KLocalizedString`の未解決記号になる。値を実行して観測するには画像製品閉包が必要であり、静的公開API targetへ製品library・objectを接続しない現在の境界に反するため、先にfactory責務を縮小できるかを確認する。
+- `ssh nixos`のx86_64 Linux実機でAndroidとWindowsのincremental profileを監査した。Androidの永続Ninja木`build/android/arm64-v8a/90a198c0b74ae170`は存在するが`BUILD_TESTING=OFF`で、接続済みAndroid deviceはない。Windows profileはx86_64-w64-mingw32で、Ninja木は未構成かつ配布構成の`BUILD_TESTING=OFF`である。現行profileにはWineがなく、MSVC専用`winquirks/unistd.h`の分岐をMinGWへ`_MSC_VER`だけ追加して構文確認すると、MinGW Windows SDK headerの`__uuidof`未対応で失敗する。したがって、MSVC分岐をMinGWの擬似定義で試験済みと扱わない。
+- 次の構造準備は、Android実機実行または専用のplatform契約profileを用意してAndroid初期化入口を対象化し、Windowsは実MSVC互換実行環境を用意してから互換層の値・失敗・sleep挙動を固定することである。これらと独立して、factoryは既存の画像製品targetを構築せずに実行可能な所有単位へ分けられるかを直接依存から判断する。profile監査は構成・実行物を変更せず、Android/Windowsの全体構築は実行していない。
 
 ### 第758便の結果
 
