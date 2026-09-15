@@ -189,6 +189,22 @@ set_target_properties(kritaimagepaintoppresetupdateproxyobjects PROPERTIES
    POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaimageuniformpropertydefinitionobjects OBJECT
+   brushengine/KisStandardUniformPropertyDefinition.cpp
+)
+target_compile_definitions(kritaimageuniformpropertydefinitionobjects PRIVATE kritaimage_EXPORTS)
+target_include_directories(kritaimageuniformpropertydefinitionobjects
+   PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/brushengine>
+)
+target_link_libraries(kritaimageuniformpropertydefinitionobjects PUBLIC Qt${QT_MAJOR_VERSION}::Core)
+set_target_properties(kritaimageuniformpropertydefinitionobjects PROPERTIES
+   AUTOMOC OFF
+   POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaimageserializableconfigurationobjects OBJECT
    kis_serializable_configuration.cc
 )
@@ -2355,6 +2371,7 @@ kis_add_library(kritaimage SHARED
    $<TARGET_OBJECTS:kritaimagekeyframeobjects>
    $<TARGET_OBJECTS:kritaimageconfignotifierobjects>
    $<TARGET_OBJECTS:kritaimagepaintoppresetupdateproxyobjects>
+   $<TARGET_OBJECTS:kritaimageuniformpropertydefinitionobjects>
    $<TARGET_OBJECTS:kritaimageserializableconfigurationobjects>
    $<TARGET_OBJECTS:kritaimagefiltercategoryidsobjects>
    $<TARGET_OBJECTS:kritaimagelayerstylefilterobjects>
