@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include <application/ui/workspace/KisWelcomePageWidget.h>
 #include <application/ui/workspace/kis_splash_screen.h>
 #include <canvas/KisCanvasSurfaceColorSpaceManager.h>
 #include <canvas/KisDisplayConfig.h>
@@ -67,6 +68,7 @@ private Q_SLOTS:
     void segmentGradientEditorSchemaRemainsStable();
     void customImageWidgetSchemaRemainsStable();
     void splashScreenSchemaRemainsStable();
+    void welcomePageWidgetSchemaRemainsStable();
 };
 
 void KisDisplayConfigSchemaContractTest::displayConfigTypeAndConstructionSchemaRemainsStable()
@@ -470,6 +472,18 @@ void KisDisplayConfigSchemaContractTest::splashScreenSchemaRemainsStable()
     static_assert(std::is_same_v<decltype(&Splash::displayRecentFiles), void (Splash::*)(bool)>);
     static_assert(std::is_same_v<decltype(&Splash::setLoadingText), void (Splash::*)(QString)>);
     static_assert(std::is_same_v<decltype(&Splash::imageResourcePath), QString (*)()>);
+}
+
+void KisDisplayConfigSchemaContractTest::welcomePageWidgetSchemaRemainsStable()
+{
+    using WelcomePage = KisWelcomePageWidget;
+
+    static_assert(std::is_base_of_v<QWidget, WelcomePage>);
+    static_assert(std::is_constructible_v<WelcomePage, QWidget *>);
+    static_assert(std::has_virtual_destructor_v<WelcomePage>);
+    static_assert(std::is_same_v<decltype(&WelcomePage::setMainWindow), void (WelcomePage::*)(KisMainWindow *)>);
+    static_assert(std::is_same_v<decltype(&WelcomePage::showDropAreaIndicator), void (WelcomePage::*)(bool)>);
+    static_assert(std::is_same_v<decltype(&WelcomePage::slotUpdateThemeColors), void (WelcomePage::*)()>);
 }
 
 #undef ASSERT_DISPLAY_COLOR_CONVERTER_SIGNATURE
