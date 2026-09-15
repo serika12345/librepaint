@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 343
+    "expectedMissingApis": 338
   },
   "contracts": [
     {
@@ -43692,6 +43692,20 @@
         "method:KoShapeSavingContext::removeShapeOffset(const KoShape * shape)",
         "method:KoShapeSavingContext::shapeOffset(const KoShape * shape) const",
         "method:KoShapeSavingContext::sharedData(const QString & id) const"
+      ]
+    },
+    {
+      "target": "KisDlgHLGImportSchemaContractTest",
+      "source": "libs/ui/tests/KisDlgHLGImportSchemaContractTest.cpp",
+      "test": "KisDlgHLGImportSchemaContractTest::hlgImportDialogSchemaRemainStable",
+      "behavior": "HLG import dialogはKoDialog派生型としてOOTF適用・gamma・peak brightness・親widgetで構築し、各入力値の照会を提供する公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisDlgHLGImport",
+        "method:KisDlgHLGImport::KisDlgHLGImport(bool applyOOTF,float gamma,float brightness,QWidget * parent=nullptr)",
+        "method:KisDlgHLGImport::applyOOTF()",
+        "method:KisDlgHLGImport::gamma()",
+        "method:KisDlgHLGImport::nominalPeakBrightness()"
       ]
     },
     {
