@@ -2,15 +2,22 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-15 21:17 JST
+- 更新日時: 2026-09-15 21:25 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
-- 完了: 第746便でbrush selection widgetの公開9 APIを契約へ追加し、対応済みを29,698件へ進めた。
-- 次の作業: 第747便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
+- 完了: 第747便でshape toolとgeometry options widgetの公開12 APIを契約へ追加し、対応済みを29,710件へ進めた。
+- 次の作業: 第748便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
 - 検証: macOSの対象・反復・無作業再構築、公開API検査、`verify-quick`に成功した。旧不足報告をTrashへ移し、最新報告だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は本便の対象外である。
+
+### 第747便の結果
+
+- `libs/ui/tool/kis_tool_shape.h`から既存`libs/ui/tests/KisToolSelectUiBaseSchemaContractTest.cpp`へpublic 12 API・新規1枠`toolShapePublicSchemaRemainsStable`を追加した。shape toolがpaint tool派生型としてcanvasとcursorで構築・破棄でき、geometry options widgetを保持し、shape集合の起動、描画flags、outline・fill・pattern回転・pattern拡大率の変更を受ける公開形式を固定する。
+- `libs/ui/tests/CMakeLists.txt`の同targetで`wdggeometryoptions.ui`を生成した。既存の直接header探索路とQt接続を再利用し、生成UIの`KisAngleSelector`と`KisDoubleSliderSpinBox`を解決した。製品object・libraryのlinkは導入していない。CMake再生成後に実行したのは同targetの自動MOC、UI生成、2 object、linkであり、製品targetは構築していない。試験sourceは252行・12枠で、構築閉包は5工程・9入力（command SHA-256 `52f938c1acb7ebbfb01ebc9101298d178f8b42daf07a06470024ff6f3e95fd2c`、input SHA-256 `72cfccc7bf779e63866a9a7cf42dadd7a1bfa1057d6533c4c2fae88dc4b7b6f9`）となり、AUTOMOC `HEADERS=[]`、製品library・shape tool・geometry options widget・paint toolの未解決記号なしを確認した。
+- macOSで対象単発、全12枠20回（240成功）、追加枠60回（60成功）、無作業再構築2回、`clang-check`、`clang-format --dry-run --Werror`、公開API検査に成功した。正式不足報告`build/tdd-macos/public-api-missing-g747.json`は公開header 1,549、公開API 29,801、対応済み29,710、未対応91、23,451 bytes、SHA-256 `d1329d6f519fede15cd9fc17c03387ceda99c539a545e35c32f6ccb4117521ad`を記録する。
+- `verify-quick`に成功し、旧`build/tdd-macos/public-api-missing-g746.json`をTrashへ移した。主Ninja木、共有compiler cache、最新`build/tdd-macos/public-api-missing-g747.json`だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 
 ### 第746便の結果
 

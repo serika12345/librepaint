@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 103
+    "expectedMissingApis": 91
   },
   "contracts": [
     {
@@ -83515,6 +83515,27 @@
         "method:KisBrushSelectionWidget::sigBrushChanged()",
         "method:KisBrushSelectionWidget::sigPrecisionChanged()",
         "method:KisBrushSelectionWidget::~KisBrushSelectionWidget()"
+      ]
+    },
+    {
+      "target": "KisToolSelectUiBaseSchemaContractTest",
+      "source": "libs/ui/tests/KisToolSelectUiBaseSchemaContractTest.cpp",
+      "test": "KisToolSelectUiBaseSchemaContractTest::toolShapePublicSchemaRemainsStable",
+      "behavior": "shape toolはpaint tool派生型としてcanvasとcursorで構築・破棄でき、geometry options widgetを保持し、shape集合の起動、描画flags、outline・fill・pattern回転・pattern拡大率の変更を受ける公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisToolShape",
+        "class:WdgGeometryOptions",
+        "member:KisToolShape::m_shapeOptionsWidget",
+        "method:KisToolShape::KisToolShape(KoCanvasBase * canvas,const QCursor & cursor)",
+        "method:KisToolShape::activate(const QSet<KoShape * > & shapes)",
+        "method:KisToolShape::fillSettingChanged(int value)",
+        "method:KisToolShape::flags() const",
+        "method:KisToolShape::outlineSettingChanged(int value)",
+        "method:KisToolShape::patternRotationSettingChanged(qreal value)",
+        "method:KisToolShape::patternScaleSettingChanged(qreal value)",
+        "method:KisToolShape::~KisToolShape()",
+        "method:WdgGeometryOptions::WdgGeometryOptions(QWidget * parent)"
       ]
     }
   ]
