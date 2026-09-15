@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "KisLightnessStrengthOptionWidget.h"
 #include "KisMaskingBrushOptionProperties.h"
 #include "kis_brush_based_paintop.h"
 #include "kis_brush_based_paintop_options_widget.h"
@@ -50,6 +51,7 @@ class KisBrushBasedPaintOpSchemaContractTest : public QObject
 
 private Q_SLOTS:
     void brushBasedPaintopOptionWidgetSchemaRemainStable();
+    void lightnessStrengthOptionWidgetSchemaRemainStable();
     void textBrushInitializationSchemaRemainStable();
     void brushPaintOpTypeConstructionAndLifetimeSchemaRemainStable();
     void brushPaintOpPaintabilitySignaturesRemainStable();
@@ -73,6 +75,17 @@ void KisBrushBasedPaintOpSchemaContractTest::brushBasedPaintopOptionWidgetSchema
     static_assert(std::is_destructible_v<Widget>);
     static_assert(std::is_same_v<decltype(&Widget::brush), KisBrushSP (Widget::*)()>);
     static_assert(std::is_same_v<decltype(&Widget::effectiveBrushSize), lager::reader<qreal> (Widget::*)() const>);
+}
+
+void KisBrushBasedPaintOpSchemaContractTest::lightnessStrengthOptionWidgetSchemaRemainStable()
+{
+    using Widget = KisLightnessStrengthOptionWidget;
+
+    static_assert(std::is_class_v<Widget>);
+    static_assert(std::is_base_of_v<KisCurveOptionWidget, Widget>);
+    static_assert(std::is_same_v<Widget::data_type, KisLightnessStrengthOptionData>);
+    static_assert(std::is_constructible_v<Widget, lager::cursor<KisLightnessStrengthOptionData>, lager::reader<bool>>);
+    static_assert(std::is_destructible_v<Widget>);
 }
 
 void KisBrushBasedPaintOpSchemaContractTest::textBrushInitializationSchemaRemainStable()
