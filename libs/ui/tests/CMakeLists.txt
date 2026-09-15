@@ -566,6 +566,9 @@ target_compile_definitions(KisToolSelectUiBaseSchemaContractTest PRIVATE
     kritawidgets_EXPORTS
     kritawidgetutils_EXPORTS
 )
+ki18n_wrap_ui(KisToolSelectUiBaseSchemaContractTest
+    ${CMAKE_CURRENT_SOURCE_DIR}/../forms/wdggeometryoptions.ui
+)
 
 kis_add_test(
     KisPaintingAssistantSchemaContractTest.cpp

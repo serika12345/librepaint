@@ -7,6 +7,7 @@
 #include <tool/kis_tool_freehand.h>
 #include <tool/kis_tool_freehand_helper.h>
 #include <tool/kis_tool_select_ui_base.h>
+#include <tool/kis_tool_shape.h>
 
 #include <QTest>
 
@@ -32,12 +33,22 @@ public:
     void paint(QPainter &, const KoViewConverter &) override;
 };
 
+class ToolShapeProbe final : public KisToolShape
+{
+public:
+    using KisToolShape::KisToolShape;
+
+    void paint(QPainter &, const KoViewConverter &) override;
+};
+
 #define ASSERT_TOOL_SELECT_UI_SIGNATURE(method, signature)                                                             \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&Subject::method)), signature>)
 #define ASSERT_SELECTION_HELPER_SIGNATURE(method, ...)                                                                 \
     static_assert(std::is_same_v<decltype(static_cast<__VA_ARGS__>(&KisSelectionToolHelper::method)), __VA_ARGS__>)
 #define ASSERT_FREEHAND_HELPER_SIGNATURE(method, ...)                                                                  \
     static_assert(std::is_same_v<decltype(static_cast<__VA_ARGS__>(&KisToolFreehandHelper::method)), __VA_ARGS__>)
+#define ASSERT_TOOL_SHAPE_SIGNATURE(method, ...)                                                                       \
+    static_assert(std::is_same_v<decltype(static_cast<__VA_ARGS__>(&KisToolShape::method)), __VA_ARGS__>)
 } // namespace
 
 class KisToolSelectUiBaseSchemaContractTest : public QObject
@@ -56,6 +67,7 @@ private Q_SLOTS:
     void freehandHelperTypeSmoothingAndRunningSchemaRemainStable();
     void freehandHelperPaintLifecycleAndOutlineSignaturesRemainStable();
     void freehandToolPublicSchemaRemainsStable();
+    void toolShapePublicSchemaRemainsStable();
 };
 
 void KisToolSelectUiBaseSchemaContractTest::toolSelectUiTypeAliasAndConstructionSchemaRemainStable()
@@ -209,6 +221,28 @@ void KisToolSelectUiBaseSchemaContractTest::freehandToolPublicSchemaRemainsStabl
     QVERIFY(true);
 }
 
+void KisToolSelectUiBaseSchemaContractTest::toolShapePublicSchemaRemainsStable()
+{
+    using Tool = KisToolShape;
+    using Options = WdgGeometryOptions;
+
+    static_assert(std::is_base_of_v<QWidget, Options>);
+    static_assert(std::is_constructible_v<Options, QWidget *>);
+    static_assert(std::is_base_of_v<KisToolPaint, Tool>);
+    static_assert(std::is_constructible_v<ToolShapeProbe, KoCanvasBase *, const QCursor &>);
+    static_assert(std::has_virtual_destructor_v<Tool>);
+    static_assert(std::is_same_v<decltype(&Tool::m_shapeOptionsWidget), Options * Tool::*>);
+    ASSERT_TOOL_SHAPE_SIGNATURE(flags, int (Tool::*)() const);
+    ASSERT_TOOL_SHAPE_SIGNATURE(activate, void (Tool::*)(const QSet<KoShape *> &));
+    ASSERT_TOOL_SHAPE_SIGNATURE(outlineSettingChanged, void (Tool::*)(int));
+    ASSERT_TOOL_SHAPE_SIGNATURE(fillSettingChanged, void (Tool::*)(int));
+    ASSERT_TOOL_SHAPE_SIGNATURE(patternRotationSettingChanged, void (Tool::*)(qreal));
+    ASSERT_TOOL_SHAPE_SIGNATURE(patternScaleSettingChanged, void (Tool::*)(qreal));
+
+    QVERIFY(true);
+}
+
+#undef ASSERT_TOOL_SHAPE_SIGNATURE
 #undef ASSERT_FREEHAND_HELPER_SIGNATURE
 #undef ASSERT_SELECTION_HELPER_SIGNATURE
 #undef ASSERT_TOOL_SELECT_UI_SIGNATURE
