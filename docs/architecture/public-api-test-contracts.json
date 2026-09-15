@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 135
+    "expectedMissingApis": 132
   },
   "contracts": [
     {
@@ -83429,6 +83429,18 @@
         "method:KisMaskManager::KisMaskManager(KisViewManager * view)",
         "method:KisMaskManager::setView(QPointer<KisView> view)",
         "method:KisMaskManager::~KisMaskManager()"
+      ]
+    },
+    {
+      "target": "PerspectiveBasedAssistantHelperSchemaContractTest",
+      "source": "plugins/assistants/Assistants/tests/PerspectiveBasedAssistantHelperSchemaContractTest.cpp",
+      "test": "PerspectiveBasedAssistantHelperSchemaContractTest::handleBasedPerspectiveHelperSchemaRemainsStable",
+      "behavior": "perspective assistant helperがassistant handle集合から四角形を判定・接続し、pointへのgrid距離を返す公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:PerspectiveBasedAssistantHelper::distanceInGrid(const QList<KisPaintingAssistantHandleSP> & handles,bool isAssistantComplete,const QPointF & point)",
+        "method:PerspectiveBasedAssistantHelper::getAllConnectedTetragon(const QList<KisPaintingAssistantHandleSP> & handles)",
+        "method:PerspectiveBasedAssistantHelper::getTetragon(const QList<KisPaintingAssistantHandleSP> & handles,bool isAssistantComplete,QPolygonF & outPolygon)"
       ]
     }
   ]
