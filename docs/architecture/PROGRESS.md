@@ -2,15 +2,22 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-15 19:59 JST
+- 更新日時: 2026-09-15 20:06 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
-- 完了: 第738便でpaintop presets chooser popupの公開9 APIを契約へ追加し、対応済みを29,655件へ進めた。
-- 次の作業: 第739便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
+- 完了: 第739便でfreehand toolの公開7 APIを契約へ追加し、対応済みを29,662件へ進めた。
+- 次の作業: 第740便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
 - 検証: macOSの対象・反復・無作業再構築、公開API検査、`verify-quick`に成功した。旧不足報告をTrashへ移し、最新報告だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は本便の対象外である。
+
+### 第739便の結果
+
+- `libs/ui/tool/kis_tool_freehand.h`から既存`libs/ui/tests/KisToolSelectUiBaseSchemaContractTest.cpp`へ公開7 API・新規1枠`freehandToolPublicSchemaRemainsStable`を追加した。freehand toolがpaint tool派生型としてcanvas・cursor・transaction text・smoothing設定で構築・破棄でき、flags照会、pointer移動、形状集合の起動・停止を提供する公開形式を固定する。
+- 公開header、製品source、CMakeを変更せず、既存targetのtool・canvas・image・paintingのheader探索路と製品非接続を再利用した。試験sourceは218行・11枠で、構築閉包は4工程・7入力（command SHA-256 `d42914b9d0e1229ca86121e18f3b17577f2b33291481acbd2cf64280c951bca5`、input SHA-256 `7e1bff0be1a69d031df4154ac9d9d73936c14de7dba0f07a414b193dcd073be6`）を維持し、AUTOMOC `HEADERS=[]`、製品library・freehand tool・paint tool・freehand helperの未解決記号なしを確認した。
+- macOSで対象単発、全11枠20回（220成功）、追加枠60回（60成功）、無作業再構築、`clang-check`、`clang-format --dry-run --Werror`、公開API検査に成功した。正式不足報告`build/tdd-macos/public-api-missing-g739.json`は公開header 1,549、公開API 29,801、対応済み29,662、未対応139、36,641 bytes、SHA-256 `16ca45c41572ff70d5cede2deb45c9ba52ec3076b30b0bf74ecf7c91553096ed`を記録する。
+- `verify-quick`に成功し、旧`build/tdd-macos/public-api-missing-g738.json`をTrashへ移した。主Ninja木、共有compiler cache、最新`build/tdd-macos/public-api-missing-g739.json`だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 
 ### 第738便の結果
 

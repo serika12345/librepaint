@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 146
+    "expectedMissingApis": 139
   },
   "contracts": [
     {
@@ -83400,6 +83400,22 @@
         "method:KisPaintOpPresetsChooserPopup::slotThemeChanged()",
         "method:KisPaintOpPresetsChooserPopup::updateViewSettings()",
         "method:KisPaintOpPresetsChooserPopup::~KisPaintOpPresetsChooserPopup()"
+      ]
+    },
+    {
+      "target": "KisToolSelectUiBaseSchemaContractTest",
+      "source": "libs/ui/tests/KisToolSelectUiBaseSchemaContractTest.cpp",
+      "test": "KisToolSelectUiBaseSchemaContractTest::freehandToolPublicSchemaRemainsStable",
+      "behavior": "freehand toolはpaint tool派生型としてcanvas・cursor・transaction text・smoothing設定で構築・破棄でき、flags照会、pointer移動、形状集合の起動・停止を提供する公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisToolFreehand",
+        "method:KisToolFreehand::KisToolFreehand(KoCanvasBase * canvas,const QCursor & cursor,const KUndo2MagicString & transactionText,bool useSavedSmoothing=true)",
+        "method:KisToolFreehand::activate(const QSet<KoShape * > & shapes)",
+        "method:KisToolFreehand::deactivate()",
+        "method:KisToolFreehand::flags() const",
+        "method:KisToolFreehand::mouseMoveEvent(KoPointerEvent * event)",
+        "method:KisToolFreehand::~KisToolFreehand()"
       ]
     }
   ]
