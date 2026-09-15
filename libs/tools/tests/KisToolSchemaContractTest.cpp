@@ -6,6 +6,7 @@
 #include <kis_painting_information_builder.h>
 #include <kis_tool.h>
 #include <kis_tool_paint_interaction.h>
+#include <tool/kis_painting_information_builder_adapters.h>
 #include <tools/ui/KisPaintResourceServerProvider.h>
 #include <tools/ui/kis_paintop_list_widget.h>
 #include <tools/ui/kis_rectangle_constraint_widget.h>
@@ -50,6 +51,7 @@ private Q_SLOTS:
     void paintInteractionActivationFlagsAndPointerEventSchemaRemainStable();
     void paintInteractionNotificationSchemaRemainStable();
     void paintOpListWidgetSchemaRemainStable();
+    void paintingInformationBuilderAdaptersSchemaRemainStable();
     void paintingInformationBuilderRemainderSchemaRemainStable();
     void paintResourceServerProviderSchemaRemainStable();
     void rectangleConstraintWidgetSchemaRemainStable();
@@ -185,6 +187,16 @@ void KisToolSchemaContractTest::paintOpListWidgetSchemaRemainStable()
     static_assert(std::is_same_v<decltype(static_cast<void (Widget::*)(const QString &)>(&Widget::setCurrent)),
                                  void (Widget::*)(const QString &)>);
     static_assert(std::is_same_v<decltype(&Widget::activated), void (Widget::*)(const QString &)>);
+}
+
+void KisToolSchemaContractTest::paintingInformationBuilderAdaptersSchemaRemainStable()
+{
+    static_assert(std::is_class_v<KisConverterPaintingInformationBuilder>);
+    static_assert(std::is_base_of_v<KisPaintingInformationBuilder, KisConverterPaintingInformationBuilder>);
+    static_assert(std::is_constructible_v<KisConverterPaintingInformationBuilder, const KisCoordinatesConverter *>);
+    static_assert(std::is_class_v<KisToolFreehandPaintingInformationBuilder>);
+    static_assert(std::is_base_of_v<KisPaintingInformationBuilder, KisToolFreehandPaintingInformationBuilder>);
+    static_assert(std::is_constructible_v<KisToolFreehandPaintingInformationBuilder, KisToolFreehand *>);
 }
 
 void KisToolSchemaContractTest::paintingInformationBuilderRemainderSchemaRemainStable()
