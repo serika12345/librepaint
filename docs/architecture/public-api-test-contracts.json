@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 513
+    "expectedMissingApis": 507
   },
   "contracts": [
     {
@@ -27076,6 +27076,21 @@
         "method:KisSizeOptionWidget::KisSizeOptionWidget(lager::cursor<KisSizeOptionData> optionData,KisPaintOpOption::PaintopCategory categoryOverride)",
         "method:KisSizeOptionWidget::lodLimitationsReader() const",
         "method:KisSizeOptionWidget::~KisSizeOptionWidget()"
+      ]
+    },
+    {
+      "target": "KisCurveOptionInputControlsStrategySchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisCurveOptionInputControlsStrategySchemaContractTest.cpp",
+      "test": "KisCurveOptionInputControlsStrategySchemaContractTest::curveOptionInputControlsStrategySchemaRemainStable",
+      "behavior": "curve optionの入力control strategyはinterfaceの公開派生としてrange model、curve widget、二つのplaceholderを受けて構築・破棄し、整数・浮動小数のspin box向け派生型と生成factoryを公開する形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisCurveOptionInputControlsStrategy",
+        "class:KisCurveOptionInputControlsStrategyDouble",
+        "class:KisCurveOptionInputControlsStrategyInt",
+        "method:KisCurveOptionInputControlsStrategy::KisCurveOptionInputControlsStrategy(KisCurveRangeModelInterface * rangeInterface,KisCurveWidget * curveWidget,QWidget * inPlaceholder,QWidget * outPlaceholder)",
+        "method:KisCurveOptionInputControlsStrategy::factory()",
+        "method:KisCurveOptionInputControlsStrategy::~KisCurveOptionInputControlsStrategy()"
       ]
     },
     {
