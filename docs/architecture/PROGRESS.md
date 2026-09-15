@@ -2,15 +2,22 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-15 16:28 JST
+- 更新日時: 2026-09-15 16:35 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
-- 完了: 第716便でmultihand tool helperの公開型・構築・破棄・変換群設定APIを契約へ追加し、対応済みを29,484件へ進めた。
-- 次の作業: 第717便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
+- 完了: 第717便でmultichannel utilityのchannel探索公開関数を契約へ追加し、対応済みを29,485件へ進めた。
+- 次の作業: 第718便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
 - 検証: macOSの対象・反復・無作業再構築、公開API検査、`verify-quick`に成功した。旧不足報告をTrashへ移し、最新報告だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は本便の対象外である。
+
+### 第717便の結果
+
+- `plugins/filters/colorsfilters/kis_multichannel_utils.h`から新規`plugins/filters/colorsfilters/tests/KisMultiChannelUtilsSchemaContractTest.cpp`へ公開1 API・1枠`findChannelSignatureRemainsStable`を追加した。公開headerと製品sourceを変更せず、multichannel utilityがvirtual channel列とchannel種別への借用参照を受け、該当位置を整数で返す公開関数形式を固定する。
+- `plugins/filters/colorsfilters/tests/CMakeLists.txt`へ専用targetを追加した。colorsfilters、global、pigmentのsource・生成済みheader、Qt Core・Gui・Testだけを探索し、製品object・libraryのlinkを導入していない。試験sourceは31行・1枠で、構築閉包は4工程・8入力（command SHA-256 `aa63f56033de85d870a7842b982bd5f475ad17efb8d5fac1620bbb90e87a1a64`、input SHA-256 `33c13d5f4638ec94de60bc3c1ee6460026956c56eba40f62b5d1f3831775aad2`）となり、AUTOMOC `HEADERS=[]`、製品library・対象関数の未解決記号なしを確認した。
+- macOSで対象単発、全1枠20回（60成功）、追加枠20回（60成功）、無作業再構築、`clang-check`、`clang-format --dry-run --Werror`、公開API検査に成功した。正式不足報告`build/tdd-macos/public-api-missing-g717.json`は公開header 1,549、公開API 29,801、対応済み29,485、未対応316、82,672 bytes、SHA-256 `9629493ee301bde657ebceeb0ff6e5194fabef0fd314feed1fb11fbcf04177a8`を記録する。
+- `verify-quick`に成功し、旧`build/tdd-macos/public-api-missing-g716.json`をTrashへ移した。主Ninja木、共有compiler cache、最新`build/tdd-macos/public-api-missing-g717.json`だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 
 ### 第716便の結果
 
