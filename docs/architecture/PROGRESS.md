@@ -2,15 +2,22 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-15 21:33 JST
+- 更新日時: 2026-09-15 21:49 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
-- 完了: 第748便でadvanced color space selectorの公開10 APIを契約へ追加し、対応済みを29,720件へ進めた。
-- 次の作業: 第749便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
+- 完了: 第749便でGamut Mask Toolbarの公開10 APIを契約へ追加し、対応済みを29,730件へ進めた。
+- 次の作業: 第750便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
 - 検証: macOSの対象・反復・無作業再構築、公開API検査、`verify-quick`に成功した。旧不足報告をTrashへ移し、最新報告だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は本便の対象外である。
+
+### 第749便の結果
+
+- `libs/ui/widgets/KisGamutMaskToolbar.h`から既存`libs/ui/tests/KisDisplayConfigSchemaContractTest.cpp`へpublic 10 API・新規1枠`gamutMaskToolbarSchemaRemainsStable`を追加した。Gamut Mask Toolbarがwidget派生型として親widgetで構築・破棄でき、canvas resource providerへの接続、gamut maskの設定・解除・無効化とmask状態・mask変更・無効化通知を提供する公開形式を固定する。
+- `libs/ui/tests/CMakeLists.txt`の同targetで`wdgGamutMaskToolbar.ui`を生成し、`KoGamutMask`と生成UIの`KisAngleSelector`に必要なFlake・widgets、`KoShape`に必要なQt Xmlの直接header探索路だけを加えた。製品object・libraryのlinkは導入していない。CMake再生成後に実行したのは同targetの自動MOC、追加UI生成、2 object、linkであり、製品targetは構築していない。試験sourceは398行・22枠で、構築閉包は6工程・11入力（command SHA-256 `24eb92318d9aeb8f58a4884db791b26f54aa8f71a64819a46e5dc401f2379b9f`、input SHA-256 `bacedfd4f731171961951f4e4e6114737da4f30d852d9a5682d94eb6f3b48758`）となり、AUTOMOC `HEADERS=[]`、製品library・Gamut Mask Toolbar・gamut mask・angle selectorの未解決記号なしを確認した。
+- macOSで対象単発、全22枠20回（440成功）、追加枠60回（60成功）、無作業再構築2回、`clang-check`、`clang-format --dry-run --Werror`、公開API検査に成功した。正式不足報告`build/tdd-macos/public-api-missing-g749.json`は公開header 1,549、公開API 29,801、対応済み29,730、未対応71、18,123 bytes、SHA-256 `b3ac603d7ea5e78451ba0ef330caa7b9c537d1530b2cf0cc43e80bc8af41b75a`を記録する。
+- `verify-quick`に成功し、旧`build/tdd-macos/public-api-missing-g748.json`をTrashへ移した。主Ninja木、共有compiler cache、最新`build/tdd-macos/public-api-missing-g749.json`だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 
 ### 第748便の結果
 

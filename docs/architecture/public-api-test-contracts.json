@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 81
+    "expectedMissingApis": 71
   },
   "contracts": [
     {
@@ -83555,6 +83555,25 @@
         "method:KisAdvancedColorSpaceSelector::setCurrentColorSpace(const KoColorSpace * colorSpace)",
         "method:KisAdvancedColorSpaceSelector::setCurrentProfile(const QString & name)",
         "method:KisAdvancedColorSpaceSelector::~KisAdvancedColorSpaceSelector()"
+      ]
+    },
+    {
+      "target": "KisDisplayConfigSchemaContractTest",
+      "source": "libs/ui/tests/KisDisplayConfigSchemaContractTest.cpp",
+      "test": "KisDisplayConfigSchemaContractTest::gamutMaskToolbarSchemaRemainsStable",
+      "behavior": "Gamut Mask Toolbarはwidget派生型として親widgetで構築・破棄でき、canvas resource providerへの接続、gamut maskの設定・解除・無効化とmask状態・mask変更・無効化通知を提供する公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisGamutMaskToolbar",
+        "method:KisGamutMaskToolbar::KisGamutMaskToolbar(QWidget * parent=nullptr)",
+        "method:KisGamutMaskToolbar::connectMaskSignals(KisCanvasResourceProvider * resourceProvider)",
+        "method:KisGamutMaskToolbar::sigGamutMaskChanged(KoGamutMaskSP)",
+        "method:KisGamutMaskToolbar::sigGamutMaskDeactivated()",
+        "method:KisGamutMaskToolbar::sigGamutMaskToggle(bool state)",
+        "method:KisGamutMaskToolbar::slotGamutMaskDeactivate()",
+        "method:KisGamutMaskToolbar::slotGamutMaskSet(KoGamutMaskSP mask)",
+        "method:KisGamutMaskToolbar::slotGamutMaskUnset()",
+        "method:KisGamutMaskToolbar::~KisGamutMaskToolbar()"
       ]
     }
   ]
