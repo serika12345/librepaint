@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 400
+    "expectedMissingApis": 394
   },
   "contracts": [
     {
@@ -81811,6 +81811,21 @@
         "method:KisOperationUIWidget::caption() const",
         "method:KisOperationUIWidget::getConfiguration(KisOperationConfigurationSP config)",
         "method:KisOperationUIWidget::~KisOperationUIWidget()"
+      ]
+    },
+    {
+      "target": "KisReferenceImagesDecorationSchemaContractTest",
+      "source": "libs/ui/tests/KisReferenceImagesDecorationSchemaContractTest.cpp",
+      "test": "KisReferenceImagesDecorationSchemaContractTest::referenceImagesDecorationSchemaRemainStable",
+      "behavior": "reference images decorationは共有参照別名とcanvas decoration派生型を維持し、view・documentによる構築、reference image追加、存在照会、仮想破棄の公開形式を提供する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisReferenceImagesDecorationSP",
+        "class:KisReferenceImagesDecoration",
+        "method:KisReferenceImagesDecoration::KisReferenceImagesDecoration(QPointer<KisView> parent,KisDocument * document,bool viewReady=true)",
+        "method:KisReferenceImagesDecoration::addReferenceImage(KisReferenceImage * referenceImage)",
+        "method:KisReferenceImagesDecoration::documentHasReferenceImages() const",
+        "method:KisReferenceImagesDecoration::~KisReferenceImagesDecoration()"
       ]
     },
     {

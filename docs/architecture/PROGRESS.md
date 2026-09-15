@@ -2,15 +2,22 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-15 14:06 JST
+- 更新日時: 2026-09-15 14:16 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
-- 完了: 第702便でoperation UI widgetの公開型・構築・caption・設定受渡し・破棄APIを契約へ追加し、対応済みを29,401件へ進めた。
-- 次の作業: 第703便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
+- 完了: 第703便でreference images decorationの公開別名・型・構築・追加・照会・破棄APIを契約へ追加し、対応済みを29,407件へ進めた。
+- 次の作業: 第704便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
 - 検証: macOSの対象・反復・無作業再構築、公開API検査、`verify-quick`に成功した。製品target、全体build・`verify`、Linux、Nix再評価は本便の対象外である。
+
+### 第703便の結果
+
+- `libs/ui/canvas/KisReferenceImagesDecoration.h`から新規`libs/ui/tests/KisReferenceImagesDecorationSchemaContractTest.cpp`へ公開6 API・1枠`referenceImagesDecorationSchemaRemainStable`を追加した。公開headerと製品sourceを変更せず、reference images decorationが共有参照別名、canvas decoration派生型、view・documentによる構築、reference image追加、存在照会、仮想破棄を提供する公開形式を固定する。
+- `libs/ui/tests/CMakeLists.txt`へ専用targetを追加した。既存canvas契約と同じコンパイル環境を用い、実行・製品リンクを導入していない。試験sourceは35行・1枠で、構築閉包は4工程・8入力（command SHA-256 `a62286f879afbeaf3ca0d0fbfd1a71b5e5a39fa26b85cc85dfcf6822714b3879`、input SHA-256 `f40a3e3609f97e1bafc24eb85c90d06453b3e6192e4003ba4f104ae07583a427`）を維持し、AUTOMOC `HEADERS=[]`、製品library・対象decorationの未解決記号なしを確認した。
+- macOSで対象単発、全1枠20回（60成功）、追加枠20回（60成功）、無作業再構築、`clang-check`、`clang-format --dry-run --Werror`、公開API検査に成功した。正式不足報告`build/tdd-macos/public-api-missing-g703.json`は公開header 1,549、公開API 29,801、対応済み29,407、未対応394、103,985 bytes、SHA-256 `20edba216c0c2b66390055e7bdb032178e916afab2f81d2fb68e57ddaa511c82`を記録する。
+- `verify-quick`に成功後、旧`build/tdd-macos/public-api-missing-g702.json`をTrashへ移し、主Ninja木、共有compiler cache、最新`build/tdd-macos/public-api-missing-g703.json`だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 
 ### 第702便の結果
 
