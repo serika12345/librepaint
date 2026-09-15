@@ -4,6 +4,7 @@
  */
 
 #include "kis_stroke_strategy_undo_command_based.h"
+#include "kis_sync_lod_cache_stroke_strategy.h"
 #include "kis_transaction.h"
 #include "kis_transaction_data.h"
 
@@ -25,6 +26,8 @@ namespace
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisTransaction::method)), signature>)
 #define ASSERT_TRANSACTION_DATA_SIGNATURE(method, signature)                                                           \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&KisTransactionData::method)), signature>)
+#define ASSERT_SYNC_LOD_SIGNATURE(method, signature)                                                                   \
+    static_assert(std::is_same_v<decltype(static_cast<signature>(&KisSyncLodCacheStrokeStrategy::method)), signature>)
 } // namespace
 
 class KisStrokeStrategyUndoCommandBasedSchemaContractTest : public QObject
@@ -44,6 +47,7 @@ private Q_SLOTS:
     void transactionDataTypeConstructionAndLifetimeSchemaRemainStable();
     void transactionDataLifecycleSignaturesRemainStable();
     void selectionTransactionTypeAndConstructionSchemaRemainStable();
+    void syncLodCacheStrokeStrategySchemaRemainsStable();
 };
 
 void KisStrokeStrategyUndoCommandBasedSchemaContractTest::undoCommandStrategyTypeAndConstructionSchemaRemainStable()
@@ -208,6 +212,20 @@ void KisStrokeStrategyUndoCommandBasedSchemaContractTest::selectionTransactionTy
                                  SelectionTransaction>);
 }
 
+void KisStrokeStrategyUndoCommandBasedSchemaContractTest::syncLodCacheStrokeStrategySchemaRemainsStable()
+{
+    using Strategy = KisSyncLodCacheStrokeStrategy;
+    using CreateJobs = QList<KisStrokeJobData *> (*)(KisImageWSP);
+    using AppendJobs = void (*)(QVector<KisStrokeJobData *> &, KisNodeSP, KisUpdatesFacade *, int, KisPaintDeviceList);
+
+    static_assert(std::is_base_of_v<KisRunnableBasedStrokeStrategy, Strategy>);
+    static_assert(std::is_constructible_v<Strategy, KisImageWSP, bool>);
+    static_assert(std::has_virtual_destructor_v<Strategy>);
+    ASSERT_SYNC_LOD_SIGNATURE(createJobsData, CreateJobs);
+    ASSERT_SYNC_LOD_SIGNATURE(createJobsData, AppendJobs);
+}
+
+#undef ASSERT_SYNC_LOD_SIGNATURE
 #undef ASSERT_TRANSACTION_DATA_SIGNATURE
 #undef ASSERT_TRANSACTION_SIGNATURE
 #undef ASSERT_UNDO_COMMAND_MUTATION_SIGNATURE
