@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include <application/ui/workspace/kis_splash_screen.h>
 #include <canvas/KisCanvasSurfaceColorSpaceManager.h>
 #include <canvas/KisDisplayConfig.h>
 #include <canvas/KisRootSurfaceInfoProxy.h>
@@ -65,6 +66,7 @@ private Q_SLOTS:
     void importImageSequenceDialogSchemaRemainsStable();
     void segmentGradientEditorSchemaRemainsStable();
     void customImageWidgetSchemaRemainsStable();
+    void splashScreenSchemaRemainsStable();
 };
 
 void KisDisplayConfigSchemaContractTest::displayConfigTypeAndConstructionSchemaRemainsStable()
@@ -454,6 +456,20 @@ void KisDisplayConfigSchemaContractTest::customImageWidgetSchemaRemainsStable()
                                           const QString &,
                                           const QString &>);
     static_assert(std::has_virtual_destructor_v<Widget>);
+}
+
+void KisDisplayConfigSchemaContractTest::splashScreenSchemaRemainsStable()
+{
+    using Splash = KisSplashScreen;
+
+    static_assert(std::is_base_of_v<QWidget, Splash>);
+    static_assert(std::is_constructible_v<Splash, QWidget *, Qt::WindowFlags>);
+    static_assert(std::is_same_v<decltype(&Splash::repaint), void (Splash::*)()>);
+    static_assert(std::is_same_v<decltype(&Splash::show), void (Splash::*)()>);
+    static_assert(std::is_same_v<decltype(&Splash::displayLinks), void (Splash::*)(bool)>);
+    static_assert(std::is_same_v<decltype(&Splash::displayRecentFiles), void (Splash::*)(bool)>);
+    static_assert(std::is_same_v<decltype(&Splash::setLoadingText), void (Splash::*)(QString)>);
+    static_assert(std::is_same_v<decltype(&Splash::imageResourcePath), QString (*)()>);
 }
 
 #undef ASSERT_DISPLAY_COLOR_CONVERTER_SIGNATURE
