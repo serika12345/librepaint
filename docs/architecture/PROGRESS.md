@@ -2,15 +2,22 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-15 14:31 JST
+- 更新日時: 2026-09-15 14:43 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
-- 完了: 第705便でimage thumbnail stroke strategyの公開型・構築・破棄・通知APIを契約へ追加し、対応済みを29,418件へ進めた。
-- 次の作業: 第706便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
+- 完了: 第706便でroot表示用model index converterの公開型・構築・変換・照会APIを契約へ追加し、対応済みを29,425件へ進めた。
+- 次の作業: 第707便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
 - 検証: macOSの対象・反復・無作業再構築、公開API検査、`verify-quick`に成功した。旧不足報告をTrashへ移し、最新報告だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は本便の対象外である。
+
+### 第706便の結果
+
+- `libs/ui/nodes/kis_model_index_converter_show_all.h`から新規`libs/ui/tests/KisModelIndexConverterShowAllSchemaContractTest.cpp`へ公開7 API・1枠`showAllIndexConverterSchemaRemainStable`を追加した。公開headerと製品sourceを変更せず、root表示用model index converterが基底converter派生型としてfacade・modelを受けて構築し、row・index・dummy・追加dummyの相互変換とrow数照会を提供する公開形式を固定する。
+- `libs/ui/tests/CMakeLists.txt`へ専用targetを追加した。既存の基底型挙動試験が必要とするobject targetを含めず、node managerの既存探索路とQt Core・Testだけを用いる。試験sourceは37行・1枠で、構築閉包は4工程・8入力（command SHA-256 `834aa1727b2f5e15af02498f294a33ebb464e110e74cbbd905dd77bf232c109d`、input SHA-256 `a35d6970e829b378f18acfb0632afe2e48b94a46344958ff7a54c4419decd3ca`）となり、AUTOMOC `HEADERS=[]`、製品library・対象converterの未解決記号なしを確認した。
+- macOSで対象単発、追加枠20回（60成功）、無作業再構築、`clang-check`、`clang-format --dry-run --Werror`、公開API検査に成功した。正式不足報告`build/tdd-macos/public-api-missing-g706.json`は公開header 1,549、公開API 29,801、対応済み29,425、未対応376、98,581 bytes、SHA-256 `23c5d635333206f4a9fce461ad64038c09bddc1ff0f35a65cb777a3bff584955`を記録する。
+- `verify-quick`に成功し、旧`build/tdd-macos/public-api-missing-g705.json`をTrashへ移した。主Ninja木、共有compiler cache、最新`build/tdd-macos/public-api-missing-g706.json`だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 
 ### 第705便の結果
 

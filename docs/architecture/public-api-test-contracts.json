@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 383
+    "expectedMissingApis": 376
   },
   "contracts": [
     {
@@ -31357,6 +31357,22 @@
       "apis": [
         "method:KisModelIndexConverter::indexFromAddedDummy(KisNodeDummy * parentDummy,int index,const QString & newNodeMetaObjectType,QModelIndex & parentIndex,int & row)",
         "method:KisModelIndexConverterBase::indexFromAddedDummy(KisNodeDummy * parentDummy,int index,const QString & newNodeMetaObjectType,QModelIndex & parentIndex,int & row)"
+      ]
+    },
+    {
+      "target": "KisModelIndexConverterShowAllSchemaContractTest",
+      "source": "libs/ui/tests/KisModelIndexConverterShowAllSchemaContractTest.cpp",
+      "test": "KisModelIndexConverterShowAllSchemaContractTest::showAllIndexConverterSchemaRemainStable",
+      "behavior": "root表示用model index converterは基底converterの公開派生型としてfacade・modelを受けて構築し、row・index・dummy・追加dummyの相互変換とrow数照会を提供する公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisModelIndexConverterShowAll",
+        "method:KisModelIndexConverterShowAll::KisModelIndexConverterShowAll(KisDummiesFacadeBase * dummiesFacade,KisNodeModel * model)",
+        "method:KisModelIndexConverterShowAll::dummyFromIndex(QModelIndex index)",
+        "method:KisModelIndexConverterShowAll::dummyFromRow(int row,QModelIndex parent)",
+        "method:KisModelIndexConverterShowAll::indexFromAddedDummy(KisNodeDummy * parentDummy,int index,const QString & newNodeMetaObjectType,QModelIndex & parentIndex,int & row)",
+        "method:KisModelIndexConverterShowAll::indexFromDummy(KisNodeDummy * dummy)",
+        "method:KisModelIndexConverterShowAll::rowCount(QModelIndex parent)"
       ]
     },
     {
