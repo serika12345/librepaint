@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 555
+    "expectedMissingApis": 537
   },
   "contracts": [
     {
@@ -26971,6 +26971,51 @@
         "method:KisSimpleDynamicSensorFactory::createConfigWidget(lager::cursor<KisCurveOptionDataCommon>,QWidget *)",
         "method:KisSimpleDynamicSensorFactory::maximumLabel(int length)",
         "method:KisSimpleDynamicSensorFactory::maximumValue(int length)"
+      ]
+    },
+    {
+      "target": "KisBrushBasedPaintOpSchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisBrushBasedPaintOpSchemaContractTest.cpp",
+      "test": "KisBrushBasedPaintOpSchemaContractTest::colorOptionWidgetSchemaRemainStable",
+      "behavior": "color option widgetはpaint optionの公開派生型としてcolor option data別名を公開し、option data cursorを受けて構築・破棄し、設定の読書きを行う公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisColorOptionWidget::data_type",
+        "class:KisColorOptionWidget",
+        "method:KisColorOptionWidget::KisColorOptionWidget(lager::cursor<KisColorOptionData> optionData)",
+        "method:KisColorOptionWidget::readOptionSetting(const KisPropertiesConfigurationSP setting)",
+        "method:KisColorOptionWidget::writeOptionSetting(KisPropertiesConfigurationSP setting) const",
+        "method:KisColorOptionWidget::~KisColorOptionWidget()"
+      ]
+    },
+    {
+      "target": "KisBrushBasedPaintOpSchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisBrushBasedPaintOpSchemaContractTest.cpp",
+      "test": "KisBrushBasedPaintOpSchemaContractTest::colorSourceOptionWidgetSchemaRemainStable",
+      "behavior": "color source option widgetはpaint optionの公開派生型としてcolor source option data別名を公開し、option data cursorを受けて構築・破棄し、設定の読書きを行う公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisColorSourceOptionWidget::data_type",
+        "class:KisColorSourceOptionWidget",
+        "method:KisColorSourceOptionWidget::KisColorSourceOptionWidget(lager::cursor<KisColorSourceOptionData> optionData)",
+        "method:KisColorSourceOptionWidget::readOptionSetting(const KisPropertiesConfigurationSP setting)",
+        "method:KisColorSourceOptionWidget::writeOptionSetting(KisPropertiesConfigurationSP setting) const",
+        "method:KisColorSourceOptionWidget::~KisColorSourceOptionWidget()"
+      ]
+    },
+    {
+      "target": "KisBrushBasedPaintOpSchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisBrushBasedPaintOpSchemaContractTest.cpp",
+      "test": "KisBrushBasedPaintOpSchemaContractTest::compositeOpOptionWidgetSchemaRemainStable",
+      "behavior": "composite operation option widgetはpaint optionの公開派生型としてcomposite operation option data別名を公開し、option data cursorを受けて構築・破棄し、設定の読書きを行う公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisCompositeOpOptionWidget::data_type",
+        "class:KisCompositeOpOptionWidget",
+        "method:KisCompositeOpOptionWidget::KisCompositeOpOptionWidget(lager::cursor<KisCompositeOpOptionData> optionData)",
+        "method:KisCompositeOpOptionWidget::readOptionSetting(const KisPropertiesConfigurationSP setting)",
+        "method:KisCompositeOpOptionWidget::writeOptionSetting(KisPropertiesConfigurationSP setting) const",
+        "method:KisCompositeOpOptionWidget::~KisCompositeOpOptionWidget()"
       ]
     },
     {
