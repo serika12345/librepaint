@@ -79,6 +79,8 @@ target_include_directories(KisToolSchemaContractTest PRIVATE
     ${CMAKE_SOURCE_DIR}/libs
     ${CMAKE_SOURCE_DIR}/libs/tools
     ${CMAKE_BINARY_DIR}/libs/tools
+    ${CMAKE_SOURCE_DIR}/libs/tools/ui
+    ${CMAKE_BINARY_DIR}/libs/tools/ui
     ${CMAKE_SOURCE_DIR}/libs/flake
     ${CMAKE_BINARY_DIR}/libs/flake
     ${CMAKE_SOURCE_DIR}/libs/flake/resources
