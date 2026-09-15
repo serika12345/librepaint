@@ -2,15 +2,22 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-15 15:56 JST
+- 更新日時: 2026-09-15 16:04 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
-- 完了: 第713便でpalette editor dialogの公開型・構築・初期化・palette照会・破棄APIを契約へ追加し、対応済みを29,468件へ進めた。
-- 次の作業: 第714便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
+- 完了: 第714便でtoolbox dock factoryの公開型・構築・破棄・識別子・既定位置・dock作成APIを契約へ追加し、対応済みを29,474件へ進めた。
+- 次の作業: 第715便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
 - 検証: macOSの対象・反復・無作業再構築、公開API検査、`verify-quick`に成功した。旧不足報告をTrashへ移し、最新報告だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は本便の対象外である。
+
+### 第714便の結果
+
+- `libs/ui/toolbox/KoToolBoxFactory.h`から新規`libs/ui/tests/KoToolBoxFactorySchemaContractTest.cpp`へ公開6 API・1枠`toolBoxFactorySchemaRemainStable`を追加した。公開headerと製品sourceを変更せず、toolbox dock factoryがdock factory基底型として構築・破棄でき、識別子、既定dock位置、toolbox dock widgetの作成を提供する公開形式を固定する。
+- `libs/ui/tests/CMakeLists.txt`へ専用targetを追加した。ui・flakeのsourceと生成済みheader、Qt Widgetsの探索路だけを追加し、実行・製品リンクは導入していない。試験sourceは36行・1枠で、構築閉包は4工程・8入力（command SHA-256 `f3b63c390311350c8e1a99cca388ddcb702b6d0f96ee017ae06caad6f5d5b9c5`、input SHA-256 `3571be0e2beab37d172f535c4ef27b2191611601dd02c01276b86bf98b40c081`）となり、AUTOMOC `HEADERS=[]`、製品library・対象factoryの未解決記号なしを確認した。
+- macOSで対象単発、全1枠20回（60成功）、追加枠20回（60成功）、無作業再構築、`clang-check`、`clang-format --dry-run --Werror`、公開API検査に成功した。正式不足報告`build/tdd-macos/public-api-missing-g714.json`は公開header 1,549、公開API 29,801、対応済み29,474、未対応327、85,585 bytes、SHA-256 `0695603c0054741e35d2656a05d1326b3035eab11691dc85ccc229c50bd51f42`を記録する。
+- `verify-quick`に成功し、旧`build/tdd-macos/public-api-missing-g713.json`をTrashへ移した。主Ninja木、共有compiler cache、最新`build/tdd-macos/public-api-missing-g714.json`だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 
 ### 第713便の結果
 

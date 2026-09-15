@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 333
+    "expectedMissingApis": 327
   },
   "contracts": [
     {
@@ -24341,6 +24341,21 @@
       "classification": "maintained",
       "apis": [
         "method:KoDockFactoryBase::~KoDockFactoryBase()"
+      ]
+    },
+    {
+      "target": "KoToolBoxFactorySchemaContractTest",
+      "source": "libs/ui/tests/KoToolBoxFactorySchemaContractTest.cpp",
+      "test": "KoToolBoxFactorySchemaContractTest::toolBoxFactorySchemaRemainStable",
+      "behavior": "toolbox dock factoryはdock factory基底型として構築・破棄でき、識別子、既定dock位置、toolbox dock widgetの作成を提供する公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoToolBoxFactory",
+        "method:KoToolBoxFactory::KoToolBoxFactory()",
+        "method:KoToolBoxFactory::createDockWidget()",
+        "method:KoToolBoxFactory::defaultDockPosition() const",
+        "method:KoToolBoxFactory::id() const",
+        "method:KoToolBoxFactory::~KoToolBoxFactory()"
       ]
     },
     {
