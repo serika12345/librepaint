@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 112
+    "expectedMissingApis": 103
   },
   "contracts": [
     {
@@ -83497,6 +83497,24 @@
         "method:KisPredefinedBrushChooser::setBrush(KisBrushSP brush)",
         "method:KisPredefinedBrushChooser::setImage(KisImageWSP image)",
         "method:KisPredefinedBrushChooser::~KisPredefinedBrushChooser()"
+      ]
+    },
+    {
+      "target": "KisPaintOptionWidgetSchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisPaintOptionWidgetSchemaContractTest.cpp",
+      "test": "KisPaintOptionWidgetSchemaContractTest::brushSelectionWidgetSchemaRemainsStable",
+      "behavior": "brush selection widgetはwidget派生型としてbrush種別・精度のcursor、各chooser model、option flags、親widgetで構築・破棄でき、brush・image・可視option・lightness modeとbrush・精度変更通知を提供する公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisBrushSelectionWidget",
+        "method:KisBrushSelectionWidget::KisBrushSelectionWidget(int maxBrushSize,KisAutoBrushModel * autoBrushModel,KisPredefinedBrushModel * predefinedBrushModel,KisTextBrushModel * textBrushModel,lager::cursor<KisBrushModel::BrushType> brushType,lager::cursor<KisBrushModel::PrecisionData> precisionData,KisBrushOptionWidgetFlags flags,QWidget * parent=0)",
+        "method:KisBrushSelectionWidget::brush() const",
+        "method:KisBrushSelectionWidget::hideOptions(const QStringList & options)",
+        "method:KisBrushSelectionWidget::lightnessModeEnabled() const",
+        "method:KisBrushSelectionWidget::setImage(KisImageWSP image)",
+        "method:KisBrushSelectionWidget::sigBrushChanged()",
+        "method:KisBrushSelectionWidget::sigPrecisionChanged()",
+        "method:KisBrushSelectionWidget::~KisBrushSelectionWidget()"
       ]
     }
   ]
