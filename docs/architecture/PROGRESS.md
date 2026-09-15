@@ -2,15 +2,22 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-15 21:49 JST
+- 更新日時: 2026-09-15 21:56 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
-- 完了: 第749便でGamut Mask Toolbarの公開10 APIを契約へ追加し、対応済みを29,730件へ進めた。
-- 次の作業: 第750便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
+- 完了: 第750便で画像連番取込みダイアログの公開10 APIを契約へ追加し、対応済みを29,740件へ進めた。
+- 次の作業: 第751便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
 - 検証: macOSの対象・反復・無作業再構築、公開API検査、`verify-quick`に成功した。旧不足報告をTrashへ移し、最新報告だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は本便の対象外である。
+
+### 第750便の結果
+
+- `libs/ui/dialogs/kis_dlg_import_image_sequence.h`から既存`libs/ui/tests/KisDisplayConfigSchemaContractTest.cpp`へpublic 10 API・新規1枠`importImageSequenceDialogSchemaRemainsStable`を追加した。画像連番取込みダイアログがKoDialog派生型としてmain windowとdocumentで構築でき、選択ファイル、開始frame、間隔、hold frame追加、開始index、並び順を取得し、公開sort orderを保持する形式を固定する。
+- `libs/ui/tests/CMakeLists.txt`の同targetで`wdgimportimagesequence.ui`を生成した。前便で確立したKoDialogと`KisIntParseSpinBox`の直接header探索路を再利用し、製品object・libraryのlinkは導入していない。CMake再生成後に実行したのは同targetの自動MOC、追加UI生成、test object、linkであり、製品targetは構築していない。試験sourceは416行・23枠で、構築閉包は7工程・13入力（command SHA-256 `6b569fd1c70d73a6d821a1827e070caf65bd94583cd7c9851568de010c00dcb6`、input SHA-256 `88a2939b1d86f70245b3f6c4f79ac05848ad95a278a96832f8096d9cdd5bd98d`）となり、AUTOMOC `HEADERS=[]`、製品library・画像連番取込みダイアログ・KoDialog・parse spin boxの未解決記号なしを確認した。
+- macOSで対象単発、全23枠20回（460成功）、追加枠60回（60成功）、無作業再構築2回、`clang-check`、`clang-format --dry-run --Werror`、公開API検査に成功した。正式不足報告`build/tdd-macos/public-api-missing-g750.json`は公開header 1,549、公開API 29,801、対応済み29,740、未対応61、15,701 bytes、SHA-256 `c091f50095ffb33c915cee09e3582fd4e9455ffb2ef0e48dea33226798f493c0`を記録する。
+- `verify-quick`に成功し、旧`build/tdd-macos/public-api-missing-g749.json`をTrashへ移した。主Ninja木、共有compiler cache、最新`build/tdd-macos/public-api-missing-g750.json`だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 
 ### 第749便の結果
 

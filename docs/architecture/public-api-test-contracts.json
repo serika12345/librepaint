@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 71
+    "expectedMissingApis": 61
   },
   "contracts": [
     {
@@ -83574,6 +83574,25 @@
         "method:KisGamutMaskToolbar::slotGamutMaskSet(KoGamutMaskSP mask)",
         "method:KisGamutMaskToolbar::slotGamutMaskUnset()",
         "method:KisGamutMaskToolbar::~KisGamutMaskToolbar()"
+      ]
+    },
+    {
+      "target": "KisDisplayConfigSchemaContractTest",
+      "source": "libs/ui/tests/KisDisplayConfigSchemaContractTest.cpp",
+      "test": "KisDisplayConfigSchemaContractTest::importImageSequenceDialogSchemaRemainsStable",
+      "behavior": "画像連番取込みダイアログはKoDialog派生型としてmain windowとdocumentで構築でき、選択ファイル、開始frame、間隔、hold frame追加、開始index、並び順を取得し、公開sort orderを保持する形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisDlgImportImageSequence",
+        "member:KisDlgImportImageSequence::sortOrder",
+        "method:KisDlgImportImageSequence::KisDlgImportImageSequence(KisMainWindow * m_mainWindow,KisDocument * m_document)",
+        "method:KisDlgImportImageSequence::autoAddHoldframes()",
+        "method:KisDlgImportImageSequence::files()",
+        "method:KisDlgImportImageSequence::firstFrame()",
+        "method:KisDlgImportImageSequence::isAscending()",
+        "method:KisDlgImportImageSequence::showOpenFileDialog()",
+        "method:KisDlgImportImageSequence::startFrom1()",
+        "method:KisDlgImportImageSequence::step()"
       ]
     }
   ]
