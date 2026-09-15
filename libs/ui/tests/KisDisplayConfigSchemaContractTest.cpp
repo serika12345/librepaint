@@ -8,6 +8,7 @@
 #include <canvas/KisRootSurfaceInfoProxy.h>
 #include <canvas/KisSRGBSurfaceColorSpaceManager.h>
 #include <canvas/kis_display_color_converter.h>
+#include <dialogs/kis_dlg_import_image_sequence.h>
 #include <theme/thememanager.h>
 #include <widgets/KisGamutMaskToolbar.h>
 #include <widgets/KisProofingOptionsWidget.h>
@@ -59,6 +60,7 @@ private Q_SLOTS:
     void paintOpPresetsChooserPopupSchemaRemainsStable();
     void advancedColorSpaceSelectorSchemaRemainsStable();
     void gamutMaskToolbarSchemaRemainsStable();
+    void importImageSequenceDialogSchemaRemainsStable();
 };
 
 void KisDisplayConfigSchemaContractTest::displayConfigTypeAndConstructionSchemaRemainsStable()
@@ -388,6 +390,22 @@ void KisDisplayConfigSchemaContractTest::gamutMaskToolbarSchemaRemainsStable()
     static_assert(std::is_same_v<decltype(&Toolbar::slotGamutMaskSet), void (Toolbar::*)(KoGamutMaskSP)>);
     static_assert(std::is_same_v<decltype(&Toolbar::slotGamutMaskUnset), void (Toolbar::*)()>);
     static_assert(std::is_same_v<decltype(&Toolbar::slotGamutMaskDeactivate), void (Toolbar::*)()>);
+}
+
+void KisDisplayConfigSchemaContractTest::importImageSequenceDialogSchemaRemainsStable()
+{
+    using Dialog = KisDlgImportImageSequence;
+
+    static_assert(std::is_base_of_v<KoDialog, Dialog>);
+    static_assert(std::is_constructible_v<Dialog, KisMainWindow *, KisDocument *>);
+    static_assert(std::is_same_v<decltype(&Dialog::sortOrder), int Dialog::*>);
+    static_assert(std::is_same_v<decltype(&Dialog::showOpenFileDialog), QStringList (Dialog::*)()>);
+    static_assert(std::is_same_v<decltype(&Dialog::files), QStringList (Dialog::*)()>);
+    static_assert(std::is_same_v<decltype(&Dialog::firstFrame), int (Dialog::*)()>);
+    static_assert(std::is_same_v<decltype(&Dialog::step), int (Dialog::*)()>);
+    static_assert(std::is_same_v<decltype(&Dialog::autoAddHoldframes), bool (Dialog::*)()>);
+    static_assert(std::is_same_v<decltype(&Dialog::startFrom1), bool (Dialog::*)()>);
+    static_assert(std::is_same_v<decltype(&Dialog::isAscending), int (Dialog::*)()>);
 }
 
 #undef ASSERT_DISPLAY_COLOR_CONVERTER_SIGNATURE

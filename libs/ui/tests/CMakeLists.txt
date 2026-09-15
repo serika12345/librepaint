@@ -1504,6 +1504,7 @@ target_compile_definitions(KisDisplayConfigSchemaContractTest PRIVATE
 ki18n_wrap_ui(KisDisplayConfigSchemaContractTest
     ${CMAKE_CURRENT_SOURCE_DIR}/../forms/wdgcolorspaceselectoradvanced.ui
     ${CMAKE_CURRENT_SOURCE_DIR}/../forms/wdgGamutMaskToolbar.ui
+    ${CMAKE_CURRENT_SOURCE_DIR}/../forms/wdgimportimagesequence.ui
 )
 
 kis_add_test(
