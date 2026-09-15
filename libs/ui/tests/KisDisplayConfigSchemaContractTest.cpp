@@ -11,6 +11,7 @@
 #include <canvas/KisSRGBSurfaceColorSpaceManager.h>
 #include <canvas/kis_display_color_converter.h>
 #include <dialogs/kis_dlg_import_image_sequence.h>
+#include <impex/animation/KisDlgAnimationRenderer.h>
 #include <theme/thememanager.h>
 #include <widgets/KisGamutMaskToolbar.h>
 #include <widgets/KisProofingOptionsWidget.h>
@@ -69,6 +70,7 @@ private Q_SLOTS:
     void customImageWidgetSchemaRemainsStable();
     void splashScreenSchemaRemainsStable();
     void welcomePageWidgetSchemaRemainsStable();
+    void animationRendererDialogSchemaRemainsStable();
 };
 
 void KisDisplayConfigSchemaContractTest::displayConfigTypeAndConstructionSchemaRemainsStable()
@@ -484,6 +486,20 @@ void KisDisplayConfigSchemaContractTest::welcomePageWidgetSchemaRemainsStable()
     static_assert(std::is_same_v<decltype(&WelcomePage::setMainWindow), void (WelcomePage::*)(KisMainWindow *)>);
     static_assert(std::is_same_v<decltype(&WelcomePage::showDropAreaIndicator), void (WelcomePage::*)(bool)>);
     static_assert(std::is_same_v<decltype(&WelcomePage::slotUpdateThemeColors), void (WelcomePage::*)()>);
+}
+
+void KisDisplayConfigSchemaContractTest::animationRendererDialogSchemaRemainsStable()
+{
+    using RendererPage = WdgAnimationRenderer;
+    using RendererDialog = KisDlgAnimationRenderer;
+
+    static_assert(std::is_base_of_v<QWidget, RendererPage>);
+    static_assert(std::is_constructible_v<RendererPage, QWidget *>);
+    static_assert(std::is_base_of_v<KoDialog, RendererDialog>);
+    static_assert(std::is_constructible_v<RendererDialog, KisDocument *, QWidget *>);
+    static_assert(std::has_virtual_destructor_v<RendererDialog>);
+    static_assert(std::is_same_v<decltype(&RendererDialog::getEncoderOptions),
+                                 KisAnimationRenderingOptions (RendererDialog::*)() const>);
 }
 
 #undef ASSERT_DISPLAY_COLOR_CONVERTER_SIGNATURE
