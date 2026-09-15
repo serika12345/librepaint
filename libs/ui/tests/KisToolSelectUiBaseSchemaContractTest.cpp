@@ -4,6 +4,7 @@
  */
 
 #include <tool/kis_selection_tool_helper.h>
+#include <tool/kis_tool_ellipse_base.h>
 #include <tool/kis_tool_freehand.h>
 #include <tool/kis_tool_freehand_helper.h>
 #include <tool/kis_tool_select_ui_base.h>
@@ -41,6 +42,15 @@ public:
     void paint(QPainter &, const KoViewConverter &) override;
 };
 
+class EllipseToolProbe final : public KisToolEllipseBase
+{
+public:
+    using KisToolEllipseBase::KisToolEllipseBase;
+
+protected:
+    void finishRect(const QRectF &, qreal, qreal) override;
+};
+
 #define ASSERT_TOOL_SELECT_UI_SIGNATURE(method, signature)                                                             \
     static_assert(std::is_same_v<decltype(static_cast<signature>(&Subject::method)), signature>)
 #define ASSERT_SELECTION_HELPER_SIGNATURE(method, ...)                                                                 \
@@ -68,6 +78,7 @@ private Q_SLOTS:
     void freehandHelperPaintLifecycleAndOutlineSignaturesRemainStable();
     void freehandToolPublicSchemaRemainsStable();
     void toolShapePublicSchemaRemainsStable();
+    void ellipseToolPublicSchemaRemainsStable();
 };
 
 void KisToolSelectUiBaseSchemaContractTest::toolSelectUiTypeAliasAndConstructionSchemaRemainStable()
@@ -238,6 +249,17 @@ void KisToolSelectUiBaseSchemaContractTest::toolShapePublicSchemaRemainsStable()
     ASSERT_TOOL_SHAPE_SIGNATURE(fillSettingChanged, void (Tool::*)(int));
     ASSERT_TOOL_SHAPE_SIGNATURE(patternRotationSettingChanged, void (Tool::*)(qreal));
     ASSERT_TOOL_SHAPE_SIGNATURE(patternScaleSettingChanged, void (Tool::*)(qreal));
+
+    QVERIFY(true);
+}
+
+void KisToolSelectUiBaseSchemaContractTest::ellipseToolPublicSchemaRemainsStable()
+{
+    using Tool = KisToolEllipseBase;
+
+    static_assert(std::is_base_of_v<KisToolRectangleBase, Tool>);
+    static_assert(std::is_constructible_v<EllipseToolProbe, KoCanvasBase *, Tool::ToolType, const QCursor &>);
+    static_assert(std::is_same_v<decltype(&Tool::paintRectangle), void (Tool::*)(QPainter &, const QRectF &)>);
 
     QVERIFY(true);
 }
