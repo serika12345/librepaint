@@ -2736,6 +2736,19 @@ target_compile_definitions(KisPaintOpConfigWidgetSchemaContractTest PRIVATE
 )
 
 kis_add_test(
+    KisStandardUniformPropertiesValuesContractTest.cpp
+    LINK_LIBRARIES
+        kritaglobalidobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KisStandardUniformPropertiesValuesContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_CURRENT_SOURCE_DIR}/../brushengine
+)
+target_compile_definitions(KisStandardUniformPropertiesValuesContractTest PRIVATE kritaimage_EXPORTS)
+
+kis_add_test(
     KisPSDLayerStyleSchemaContractTest.cpp
     LINK_LIBRARIES
         Qt${QT_MAJOR_VERSION}::Core
