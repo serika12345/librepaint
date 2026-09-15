@@ -2,15 +2,22 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-15 22:28 JST
+- 更新日時: 2026-09-15 22:33 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
-- 完了: 第754便でWelcome Page Widgetの公開6 APIを契約へ追加し、対応済みを29,771件へ進めた。
-- 次の作業: 第755便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
+- 完了: 第755便でAnimation Renderer Dialogの公開6 APIを契約へ追加し、対応済みを29,777件へ進めた。
+- 次の作業: 第756便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
 - 検証: macOSの対象・反復・無作業再構築、公開API検査、`verify-quick`に成功した。旧不足報告をTrashへ移し、最新報告だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は本便の対象外である。
+
+### 第755便の結果
+
+- `libs/impex/animation/KisDlgAnimationRenderer.h`から既存`libs/ui/tests/KisDisplayConfigSchemaContractTest.cpp`へpublic 6 API・新規1枠`animationRendererDialogSchemaRemainsStable`を追加した。Animation Renderer Dialogがanimation renderer pageを親widgetで構築し、dialog本体をdocumentと親widgetで構築・破棄してencoder optionsを取得する公開形式を固定する。
+- `libs/ui/tests/CMakeLists.txt`の同targetで`libs/impex/animation/wdg_animationrenderer.ui`を生成した。formが参照するwarning blockとfile name requesterの既存widgets探索路、KoDialog、image型、Qt Widgetsのheader探索路を再利用し、製品object・libraryのlinkは導入していない。CMake再生成後に実行したのは同targetの自動MOC、追加UI生成、test object、linkであり、製品targetは構築していない。試験sourceは507行・28枠で、構築閉包は12工程・24入力（command SHA-256 `e6cd0d9171b9d22a86558cbb70f160abbd786f87b3c3141bc0da78e749f757d8`、input SHA-256 `305c5157c7dcfa8fd15e3e0ff6a71e0bc90a330b032009aff35ff1be515589f6`）となり、AUTOMOC `HEADERS=[]`、製品library・Animation Renderer Dialog・animation renderer page・animation rendering optionsの未解決記号なしを確認した。
+- macOSで対象単発、全28枠20回（560成功）、追加枠60回（60成功）、無作業再構築2回、`clang-check`、`clang-format --dry-run --Werror`、公開API検査に成功した。正式不足報告`build/tdd-macos/public-api-missing-g755.json`は公開header 1,549、公開API 29,801、対応済み29,777、未対応24、6,080 bytes、SHA-256 `9b9bd9ac50f7fdc8bd5db06b0275beb278d7c0ec894c4785cbc505410d8a8b64`を記録する。
+- `verify-quick`に成功し、旧`build/tdd-macos/public-api-missing-g754.json`をTrashへ移した。主Ninja木、共有compiler cache、最新`build/tdd-macos/public-api-missing-g755.json`だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 
 ### 第754便の結果
 

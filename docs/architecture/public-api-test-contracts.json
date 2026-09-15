@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 30
+    "expectedMissingApis": 24
   },
   "contracts": [
     {
@@ -83660,6 +83660,21 @@
         "method:KisWelcomePageWidget::showDropAreaIndicator(bool show)",
         "method:KisWelcomePageWidget::slotUpdateThemeColors()",
         "method:KisWelcomePageWidget::~KisWelcomePageWidget()"
+      ]
+    },
+    {
+      "target": "KisDisplayConfigSchemaContractTest",
+      "source": "libs/ui/tests/KisDisplayConfigSchemaContractTest.cpp",
+      "test": "KisDisplayConfigSchemaContractTest::animationRendererDialogSchemaRemainsStable",
+      "behavior": "Animation Renderer Dialogはanimation renderer pageを親widgetで構築し、dialog本体をdocumentと親widgetで構築・破棄してencoder optionsを取得する公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisDlgAnimationRenderer",
+        "class:WdgAnimationRenderer",
+        "method:KisDlgAnimationRenderer::KisDlgAnimationRenderer(KisDocument * doc,QWidget * parent=0)",
+        "method:KisDlgAnimationRenderer::getEncoderOptions() const",
+        "method:KisDlgAnimationRenderer::~KisDlgAnimationRenderer()",
+        "method:WdgAnimationRenderer::WdgAnimationRenderer(QWidget * parent)"
       ]
     }
   ]
