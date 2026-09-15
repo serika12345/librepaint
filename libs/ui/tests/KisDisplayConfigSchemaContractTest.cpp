@@ -14,6 +14,7 @@
 #include <widgets/KisProofingOptionsWidget.h>
 #include <widgets/gradient/KisSegmentGradientEditor.h>
 #include <widgets/kis_advanced_color_space_selector.h>
+#include <widgets/kis_custom_image_widget.h>
 #include <widgets/kis_paintop_presets_chooser_popup.h>
 #include <widgets/kis_seexpr_script_chooser.h>
 
@@ -63,6 +64,7 @@ private Q_SLOTS:
     void gamutMaskToolbarSchemaRemainsStable();
     void importImageSequenceDialogSchemaRemainsStable();
     void segmentGradientEditorSchemaRemainsStable();
+    void customImageWidgetSchemaRemainsStable();
 };
 
 void KisDisplayConfigSchemaContractTest::displayConfigTypeAndConstructionSchemaRemainsStable()
@@ -431,6 +433,27 @@ void KisDisplayConfigSchemaContractTest::segmentGradientEditorSchemaRemainsStabl
         std::is_same_v<decltype(&Editor::setCanvasResourcesInterface), void (Editor::*)(KoCanvasResourcesInterfaceSP)>);
     static_assert(std::is_same_v<decltype(&Editor::setCompactMode), void (Editor::*)(bool)>);
     static_assert(std::is_same_v<decltype(&Editor::sigGradientChanged), void (Editor::*)()>);
+}
+
+void KisDisplayConfigSchemaContractTest::customImageWidgetSchemaRemainsStable()
+{
+    using Widget = KisCustomImageWidget;
+
+    static_assert(std::is_enum_v<CustomImageWidgetType>);
+    static_assert(CUSTOM_DOCUMENT != NEW_IMG_FROM_CB);
+    static_assert(std::is_base_of_v<QWidget, WdgNewImage>);
+    static_assert(std::is_constructible_v<WdgNewImage, QWidget *>);
+    static_assert(std::is_base_of_v<WdgNewImage, Widget>);
+    static_assert(std::is_constructible_v<Widget,
+                                          QWidget *,
+                                          qint32,
+                                          qint32,
+                                          double,
+                                          const QString &,
+                                          const QString &,
+                                          const QString &,
+                                          const QString &>);
+    static_assert(std::has_virtual_destructor_v<Widget>);
 }
 
 #undef ASSERT_DISPLAY_COLOR_CONVERTER_SIGNATURE
