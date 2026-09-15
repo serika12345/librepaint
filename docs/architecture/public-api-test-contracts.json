@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 419
+    "expectedMissingApis": 412
   },
   "contracts": [
     {
@@ -81756,6 +81756,22 @@
         "method:KisPaintOpListWidget::setCurrent(const QString & paintOpId)",
         "method:KisPaintOpListWidget::setPaintOpList(const QList<KisPaintOpFactory * > & list)",
         "method:KisPaintOpListWidget::~KisPaintOpListWidget()"
+      ]
+    },
+    {
+      "target": "KisToolSchemaContractTest",
+      "source": "libs/tools/tests/KisToolSchemaContractTest.cpp",
+      "test": "KisToolSchemaContractTest::paintResourceServerProviderSchemaRemainStable",
+      "behavior": "paint resource server providerはpreset resource serverの公開別名とQObject派生型を維持し、singleton取得、preset serverとlayer style serverの返却形式を提供する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisPaintOpPresetResourceServer",
+        "class:KisPaintResourceServerProvider",
+        "method:KisPaintResourceServerProvider::KisPaintResourceServerProvider()",
+        "method:KisPaintResourceServerProvider::instance()",
+        "method:KisPaintResourceServerProvider::layerStyleServer()",
+        "method:KisPaintResourceServerProvider::paintOpPresetServer()",
+        "method:KisPaintResourceServerProvider::~KisPaintResourceServerProvider()"
       ]
     },
     {

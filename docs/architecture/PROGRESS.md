@@ -2,15 +2,22 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-15 13:40 JST
+- 更新日時: 2026-09-15 13:45 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
-- 完了: 第698便でpaintop一覧widgetの公開型・構築・一覧設定・選択・照会・通知APIを契約へ追加し、対応済みを29,382件へ進めた。
-- 次の作業: 第699便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
+- 完了: 第699便でpaint resource server providerの公開別名・型・構築・singleton・server取得APIを契約へ追加し、対応済みを29,389件へ進めた。
+- 次の作業: 第700便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
 - 検証: macOSの対象・反復・無作業再構築、公開API検査、`verify-quick`に成功した。製品target、全体build・`verify`、Linux、Nix再評価は本便の対象外である。
+
+### 第699便の結果
+
+- `libs/tools/ui/KisPaintResourceServerProvider.h`から既存`libs/tools/tests/KisToolSchemaContractTest.cpp`へ公開7 API・新規1枠`paintResourceServerProviderSchemaRemainStable`を追加した。公開header、製品source、CMakeを変更せず、providerがpreset resource server別名、QObject派生型、singleton取得、presetとlayer styleのserver取得を提供する公開形式を固定する。
+- 試験sourceは236行・12枠で、構築閉包は4工程・8入力（command SHA-256 `8711dd6f5048f84a5622260de15e8dd3b4b99fe1411f5890e068f9a694d1393b`、input SHA-256 `f2467da36c35df9f69e1a05f8471b1b7e2513fbdabefea6e9bf5aecf79e7544d`）を維持し、AUTOMOC `HEADERS=[]`、製品library・対象providerの未解決記号なしを確認した。
+- macOSで対象単発、全12枠20回（280成功）、追加枠20回（60成功）、無作業再構築、`clang-check`、`clang-format --dry-run --Werror`、公開API検査に成功した。正式不足報告`build/tdd-macos/public-api-missing-g699.json`は公開header 1,549、公開API 29,801、対応済み29,389、未対応412、109,014 bytes、SHA-256 `6cb79822a55a072fc75f320f15a76460a5a4426799bb7645c30ac87aa966bbd0`を記録する。
+- `verify-quick`に成功後、旧`build/tdd-macos/public-api-missing-g698.json`をTrashへ移し、主Ninja木、共有compiler cache、最新`build/tdd-macos/public-api-missing-g699.json`だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 
 ### 第698便の結果
 
