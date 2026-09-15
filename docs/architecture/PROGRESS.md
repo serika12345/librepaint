@@ -2,15 +2,22 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-15 22:53 JST
+- 更新日時: 2026-09-15 23:09 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
-- 完了: 第757便でEllipse Tool Baseの公開3 APIを契約へ追加し、対応済みを29,784件へ進めた。
-- 次の作業: 第758便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
+- 完了: 第758便でPSDの旧Clang互換debug出力の公開1 APIを契約へ追加し、対応済みを29,785件へ進めた。
+- 次の作業: 第759便として、最新の不足一覧から責務が一致し、対象限定の構築閉包を保てるAPIを選ぶ。プラットフォーム限定APIは実機Linuxの該当構成で扱う準備を先に監査する。
 - 検証: macOSの対象・反復・無作業再構築、公開API検査、`verify-quick`に成功した。旧不足報告をTrashへ移し、最新報告だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は本便の対象外である。
+
+### 第758便の結果
+
+- `libs/psdutils/psd.h`の旧Clang互換`operator <<(QDebug &, psd_compression_type)`を、既存`libs/psdutils/tests/PsdFormatValuesContractTest.cpp`の新規枠`legacyClangCompressionDebugOutputRemainsStable`へ対応付けた。RLEの数値出力、QDebugの標準末尾空白、同一debug参照の返却を固定し、旧コンパイラー分岐での診断出力形式を保持する。
+- `libs/psdutils/tests/CMakeLists.txt`では当該静的test targetだけに`__clang_major__=9`を与え、header内の旧Clang互換分岐を有効化した。公開header・製品sourceは変更せず、既存のQt/KFと静的header探索路を再利用し、製品object・libraryのlinkは導入していない。試験sourceは3,035行・96枠で、構築閉包は6工程・14入力（command SHA-256 `6ac9225bcd8d8685c1051066509768f08e2c6bc9514b125eee12c6fb15f9ea03`、input SHA-256 `5213fdf0de7ecccbf0ad096f7dd629d312002b2dc070eac9e1aa056fa5306546`）である。AUTOMOC `HEADERS=[]`、製品dylibなし、PSD compression debug演算子の未解決記号なしを確認した。
+- macOSで対象単発、全96枠20回（1,920成功）、追加枠60回（60成功）、無作業再構築2回、`clang-check`、`clang-format --dry-run --Werror`、公開API検査に成功した。正式不足報告`build/tdd-macos/public-api-missing-g758.json`は公開header 1,549、公開API 29,801、対応済み29,785、未対応16、3,929 bytes、SHA-256 `71e86a1fb11c91bbcd74b1a27114297c609564dfb56d641bd978b52e4ddf2f02`を記録する。
+- `verify-quick`に成功し、旧`build/tdd-macos/public-api-missing-g757.json`をTrashへ移した。主Ninja木、共有compiler cache、最新`build/tdd-macos/public-api-missing-g758.json`だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 
 ### 第757便の結果
 

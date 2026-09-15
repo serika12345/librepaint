@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 17
+    "expectedMissingApis": 16
   },
   "contracts": [
     {
@@ -83700,6 +83700,16 @@
         "class:KisToolEllipseBase",
         "method:KisToolEllipseBase::KisToolEllipseBase(KoCanvasBase * canvas,KisToolEllipseBase::ToolType type,const QCursor & cursor=KisCursor::load (\"tool_ellipse_cursor.png\",6,6))",
         "method:KisToolEllipseBase::paintRectangle(QPainter & gc,const QRectF & imageRect)"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::legacyClangCompressionDebugOutputRemainsStable",
+      "behavior": "旧Clang互換時のPSD compression debug出力は数値と標準末尾空白を出力し、同じQDebug参照を返す。",
+      "classification": "maintained",
+      "apis": [
+        "function:operator <<(QDebug & self,psd_compression_type type)"
       ]
     }
   ]
