@@ -16,6 +16,7 @@ class KisMultiChannelUtilsSchemaContractTest : public QObject
 
 private Q_SLOTS:
     void findChannelSignatureRemainsStable();
+    void virtualChannelsSignatureRemainsStable();
 };
 
 void KisMultiChannelUtilsSchemaContractTest::findChannelSignatureRemainsStable()
@@ -24,6 +25,13 @@ void KisMultiChannelUtilsSchemaContractTest::findChannelSignatureRemainsStable()
 
     static_assert(std::is_same_v<decltype(&KisMultiChannelUtils::findChannel), FindChannel>);
     QVERIFY(true);
+}
+
+void KisMultiChannelUtilsSchemaContractTest::virtualChannelsSignatureRemainsStable()
+{
+    using GetVirtualChannels = QVector<VirtualChannelInfo> (*)(const KoColorSpace *, int, bool, bool, bool);
+
+    static_assert(std::is_same_v<decltype(&KisMultiChannelUtils::getVirtualChannels), GetVirtualChannels>);
 }
 
 QTEST_APPLESS_MAIN(KisMultiChannelUtilsSchemaContractTest)
