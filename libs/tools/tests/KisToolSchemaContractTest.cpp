@@ -5,6 +5,7 @@
 
 #include <kis_tool.h>
 #include <kis_tool_paint_interaction.h>
+#include <tools/ui/KisPaintResourceServerProvider.h>
 #include <tools/ui/kis_paintop_list_widget.h>
 #include <tools/ui/kis_rectangle_constraint_widget.h>
 #include <tools/ui/kis_tool_options_popup.h>
@@ -48,6 +49,7 @@ private Q_SLOTS:
     void paintInteractionActivationFlagsAndPointerEventSchemaRemainStable();
     void paintInteractionNotificationSchemaRemainStable();
     void paintOpListWidgetSchemaRemainStable();
+    void paintResourceServerProviderSchemaRemainStable();
     void rectangleConstraintWidgetSchemaRemainStable();
     void toolOptionsPopupSchemaRemainStable();
 };
@@ -181,6 +183,22 @@ void KisToolSchemaContractTest::paintOpListWidgetSchemaRemainStable()
     static_assert(std::is_same_v<decltype(static_cast<void (Widget::*)(const QString &)>(&Widget::setCurrent)),
                                  void (Widget::*)(const QString &)>);
     static_assert(std::is_same_v<decltype(&Widget::activated), void (Widget::*)(const QString &)>);
+}
+
+void KisToolSchemaContractTest::paintResourceServerProviderSchemaRemainStable()
+{
+    using Provider = KisPaintResourceServerProvider;
+
+    static_assert(std::is_same_v<KisPaintOpPresetResourceServer, KoResourceServer<KisPaintOpPreset>>);
+    static_assert(std::is_class_v<Provider>);
+    static_assert(std::is_base_of_v<QObject, Provider>);
+    static_assert(std::is_default_constructible_v<Provider>);
+    static_assert(std::has_virtual_destructor_v<Provider>);
+    static_assert(std::is_same_v<decltype(&Provider::instance), Provider *(*)()>);
+    static_assert(
+        std::is_same_v<decltype(&Provider::paintOpPresetServer), KisPaintOpPresetResourceServer *(Provider::*)()>);
+    static_assert(
+        std::is_same_v<decltype(&Provider::layerStyleServer), KoResourceServer<KisPSDLayerStyle> *(Provider::*)()>);
 }
 
 void KisToolSchemaContractTest::rectangleConstraintWidgetSchemaRemainStable()
