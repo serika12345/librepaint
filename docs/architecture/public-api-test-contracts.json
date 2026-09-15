@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 537
+    "expectedMissingApis": 519
   },
   "contracts": [
     {
@@ -27016,6 +27016,51 @@
         "method:KisCompositeOpOptionWidget::readOptionSetting(const KisPropertiesConfigurationSP setting)",
         "method:KisCompositeOpOptionWidget::writeOptionSetting(KisPropertiesConfigurationSP setting) const",
         "method:KisCompositeOpOptionWidget::~KisCompositeOpOptionWidget()"
+      ]
+    },
+    {
+      "target": "KisBrushBasedPaintOpSchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisBrushBasedPaintOpSchemaContractTest.cpp",
+      "test": "KisBrushBasedPaintOpSchemaContractTest::airbrushOptionWidgetSchemaRemainStable",
+      "behavior": "airbrush option widgetはpaint optionの公開派生型としてairbrush option data別名を公開し、option data cursorとspacing無視指定を受けて構築・破棄し、設定の読書きを行う公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisAirbrushOptionWidget::data_type",
+        "class:KisAirbrushOptionWidget",
+        "method:KisAirbrushOptionWidget::KisAirbrushOptionWidget(lager::cursor<KisAirbrushOptionData> optionData,bool canIgnoreSpacing=true)",
+        "method:KisAirbrushOptionWidget::readOptionSetting(const KisPropertiesConfigurationSP setting)",
+        "method:KisAirbrushOptionWidget::writeOptionSetting(KisPropertiesConfigurationSP setting) const",
+        "method:KisAirbrushOptionWidget::~KisAirbrushOptionWidget()"
+      ]
+    },
+    {
+      "target": "KisBrushBasedPaintOpSchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisBrushBasedPaintOpSchemaContractTest.cpp",
+      "test": "KisBrushBasedPaintOpSchemaContractTest::sharpnessOptionWidgetSchemaRemainStable",
+      "behavior": "sharpness option widgetはcurve option widgetの公開派生型としてsharpness option data別名を公開し、option data cursorを受けて構築・破棄し、設定の読書きを行う公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisSharpnessOptionWidget::data_type",
+        "class:KisSharpnessOptionWidget",
+        "method:KisSharpnessOptionWidget::KisSharpnessOptionWidget(lager::cursor<KisSharpnessOptionData> optionData)",
+        "method:KisSharpnessOptionWidget::readOptionSetting(const KisPropertiesConfigurationSP setting)",
+        "method:KisSharpnessOptionWidget::writeOptionSetting(KisPropertiesConfigurationSP setting) const",
+        "method:KisSharpnessOptionWidget::~KisSharpnessOptionWidget()"
+      ]
+    },
+    {
+      "target": "KisBrushBasedPaintOpSchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisBrushBasedPaintOpSchemaContractTest.cpp",
+      "test": "KisBrushBasedPaintOpSchemaContractTest::spacingOptionWidgetSchemaRemainStable",
+      "behavior": "spacing option widgetはcurve option widgetの公開派生型としてspacing option data別名を公開し、option data cursorを受けて構築・破棄し、設定の読書きを行う公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisSpacingOptionWidget::data_type",
+        "class:KisSpacingOptionWidget",
+        "method:KisSpacingOptionWidget::KisSpacingOptionWidget(lager::cursor<KisSpacingOptionData> optionData)",
+        "method:KisSpacingOptionWidget::readOptionSetting(const KisPropertiesConfigurationSP setting)",
+        "method:KisSpacingOptionWidget::writeOptionSetting(KisPropertiesConfigurationSP setting) const",
+        "method:KisSpacingOptionWidget::~KisSpacingOptionWidget()"
       ]
     },
     {
