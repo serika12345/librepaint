@@ -3,6 +3,9 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "KisColorOptionWidget.h"
+#include "KisColorSourceOptionWidget.h"
+#include "KisCompositeOpOptionWidget.h"
 #include "KisLightnessStrengthOptionWidget.h"
 #include "KisMaskingBrushOptionProperties.h"
 #include "kis_brush_based_paintop.h"
@@ -51,6 +54,9 @@ class KisBrushBasedPaintOpSchemaContractTest : public QObject
 
 private Q_SLOTS:
     void brushBasedPaintopOptionWidgetSchemaRemainStable();
+    void colorOptionWidgetSchemaRemainStable();
+    void colorSourceOptionWidgetSchemaRemainStable();
+    void compositeOpOptionWidgetSchemaRemainStable();
     void lightnessStrengthOptionWidgetSchemaRemainStable();
     void textBrushInitializationSchemaRemainStable();
     void brushPaintOpTypeConstructionAndLifetimeSchemaRemainStable();
@@ -75,6 +81,35 @@ void KisBrushBasedPaintOpSchemaContractTest::brushBasedPaintopOptionWidgetSchema
     static_assert(std::is_destructible_v<Widget>);
     static_assert(std::is_same_v<decltype(&Widget::brush), KisBrushSP (Widget::*)()>);
     static_assert(std::is_same_v<decltype(&Widget::effectiveBrushSize), lager::reader<qreal> (Widget::*)() const>);
+}
+
+template<typename Widget, typename Data>
+void verifyPaintOpOptionWidgetSchema()
+{
+    static_assert(std::is_class_v<Widget>);
+    static_assert(std::is_base_of_v<KisPaintOpOption, Widget>);
+    static_assert(std::is_same_v<typename Widget::data_type, Data>);
+    static_assert(std::is_constructible_v<Widget, lager::cursor<Data>>);
+    static_assert(std::is_destructible_v<Widget>);
+    static_assert(
+        std::is_same_v<decltype(&Widget::readOptionSetting), void (Widget::*)(const KisPropertiesConfigurationSP)>);
+    static_assert(
+        std::is_same_v<decltype(&Widget::writeOptionSetting), void (Widget::*)(KisPropertiesConfigurationSP) const>);
+}
+
+void KisBrushBasedPaintOpSchemaContractTest::colorOptionWidgetSchemaRemainStable()
+{
+    verifyPaintOpOptionWidgetSchema<KisColorOptionWidget, KisColorOptionData>();
+}
+
+void KisBrushBasedPaintOpSchemaContractTest::colorSourceOptionWidgetSchemaRemainStable()
+{
+    verifyPaintOpOptionWidgetSchema<KisColorSourceOptionWidget, KisColorSourceOptionData>();
+}
+
+void KisBrushBasedPaintOpSchemaContractTest::compositeOpOptionWidgetSchemaRemainStable()
+{
+    verifyPaintOpOptionWidgetSchema<KisCompositeOpOptionWidget, KisCompositeOpOptionData>();
 }
 
 void KisBrushBasedPaintOpSchemaContractTest::lightnessStrengthOptionWidgetSchemaRemainStable()
