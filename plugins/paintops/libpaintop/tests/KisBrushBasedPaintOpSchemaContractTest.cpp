@@ -3,11 +3,14 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "KisAirbrushOptionWidget.h"
 #include "KisColorOptionWidget.h"
 #include "KisColorSourceOptionWidget.h"
 #include "KisCompositeOpOptionWidget.h"
 #include "KisLightnessStrengthOptionWidget.h"
 #include "KisMaskingBrushOptionProperties.h"
+#include "KisSharpnessOptionWidget.h"
+#include "KisSpacingOptionWidget.h"
 #include "kis_brush_based_paintop.h"
 #include "kis_brush_based_paintop_options_widget.h"
 #include "kis_texture_option.h"
@@ -53,11 +56,14 @@ class KisBrushBasedPaintOpSchemaContractTest : public QObject
     Q_OBJECT
 
 private Q_SLOTS:
+    void airbrushOptionWidgetSchemaRemainStable();
     void brushBasedPaintopOptionWidgetSchemaRemainStable();
     void colorOptionWidgetSchemaRemainStable();
     void colorSourceOptionWidgetSchemaRemainStable();
     void compositeOpOptionWidgetSchemaRemainStable();
     void lightnessStrengthOptionWidgetSchemaRemainStable();
+    void sharpnessOptionWidgetSchemaRemainStable();
+    void spacingOptionWidgetSchemaRemainStable();
     void textBrushInitializationSchemaRemainStable();
     void brushPaintOpTypeConstructionAndLifetimeSchemaRemainStable();
     void brushPaintOpPaintabilitySignaturesRemainStable();
@@ -97,6 +103,11 @@ void verifyPaintOpOptionWidgetSchema()
         std::is_same_v<decltype(&Widget::writeOptionSetting), void (Widget::*)(KisPropertiesConfigurationSP) const>);
 }
 
+void KisBrushBasedPaintOpSchemaContractTest::airbrushOptionWidgetSchemaRemainStable()
+{
+    verifyPaintOpOptionWidgetSchema<KisAirbrushOptionWidget, KisAirbrushOptionData>();
+}
+
 void KisBrushBasedPaintOpSchemaContractTest::colorOptionWidgetSchemaRemainStable()
 {
     verifyPaintOpOptionWidgetSchema<KisColorOptionWidget, KisColorOptionData>();
@@ -121,6 +132,16 @@ void KisBrushBasedPaintOpSchemaContractTest::lightnessStrengthOptionWidgetSchema
     static_assert(std::is_same_v<Widget::data_type, KisLightnessStrengthOptionData>);
     static_assert(std::is_constructible_v<Widget, lager::cursor<KisLightnessStrengthOptionData>, lager::reader<bool>>);
     static_assert(std::is_destructible_v<Widget>);
+}
+
+void KisBrushBasedPaintOpSchemaContractTest::sharpnessOptionWidgetSchemaRemainStable()
+{
+    verifyPaintOpOptionWidgetSchema<KisSharpnessOptionWidget, KisSharpnessOptionData>();
+}
+
+void KisBrushBasedPaintOpSchemaContractTest::spacingOptionWidgetSchemaRemainStable()
+{
+    verifyPaintOpOptionWidgetSchema<KisSpacingOptionWidget, KisSpacingOptionData>();
 }
 
 void KisBrushBasedPaintOpSchemaContractTest::textBrushInitializationSchemaRemainStable()
