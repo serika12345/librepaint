@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 458
+    "expectedMissingApis": 450
   },
   "contracts": [
     {
@@ -27212,6 +27212,23 @@
         "method:KisDabRenderingQueueCache::getDabType(bool hasDabInCache,KisDabCacheUtils::DabRenderingResources * resources,const KisDabCacheUtils::DabRequestInfo & request,KisDabCacheUtils::DabGenerationInfo * di,bool * shouldUseCache)",
         "method:KisDabRenderingQueueCache::hasSeparateOriginal(KisDabCacheUtils::DabRenderingResources * resources) const",
         "method:KisDabRenderingQueueCache::~KisDabRenderingQueueCache()"
+      ]
+    },
+    {
+      "target": "KisDabRenderingJobSchemaContractTest",
+      "source": "plugins/paintops/defaultpaintops/brush/tests/KisDabRenderingJobSchemaContractTest.cpp",
+      "test": "KisDabRenderingJobSchemaContractTest::dabRenderingExecutorSchemaRemainStable",
+      "behavior": "dab rendering executorは色空間・資源factory・stroke job interfaceを受けて構築・破棄し、dab投入、完成dab取得、待機状態と描画統計を提供する公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisDabRenderingExecutor",
+        "method:KisDabRenderingExecutor::KisDabRenderingExecutor(const KoColorSpace * cs,KisDabCacheUtils::ResourcesFactory resourcesFactory,KisRunnableStrokeJobsInterface * runnableJobsInterface,KisMirrorOption * mirrorOption=0,KisPrecisionOption * precisionOption=0)",
+        "method:KisDabRenderingExecutor::addDab(const KisDabCacheUtils::DabRequestInfo & request,qreal opacity,qreal flow)",
+        "method:KisDabRenderingExecutor::averageDabRenderingTime() const",
+        "method:KisDabRenderingExecutor::averageDabSize() const",
+        "method:KisDabRenderingExecutor::hasPreparedDabs() const",
+        "method:KisDabRenderingExecutor::takeReadyDabs(bool returnMutableDabs=false,int oneTimeLimit=-1,bool * someDabsLeft=0)",
+        "method:KisDabRenderingExecutor::~KisDabRenderingExecutor()"
       ]
     },
     {

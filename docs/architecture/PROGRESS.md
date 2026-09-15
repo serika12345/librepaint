@@ -2,14 +2,14 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-15 12:51 JST
+- 更新日時: 2026-09-15 12:57 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
-- 完了: 第692便でdab rendering queue cacheの公開型・cache APIを契約へ追加し、対応済みを29,343件へ進めた。
-- 次の作業: 第693便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
+- 完了: 第693便でdab rendering executorの公開型・queue APIを契約へ追加し、対応済みを29,351件へ進めた。
+- 次の作業: 第694便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
 - 検証: macOSの対象・反復・無作業再構築、公開API検査、`verify-quick`に成功した。製品target、全体build・`verify`、Linux、Nix再評価は本便の対象外である。
 
 ### 第202便の先行監査担当票
@@ -5823,6 +5823,11 @@
 - CMake、公開header、製品sourceは変更していない。macOSの限定構築は`KisCursorOverrideHijackerSchemaContractTest`の自動生成、試験source、実行ファイルだけをコンパイル・リンクし、製品targetを再構築していない。実測閉包は4工程・8入力、command SHA-256 `ef32b3dd7378f1d5e5ef739d9977409afa1f64e34d162fddfb54cfd31327fc3d`、input SHA-256 `58d9882064254f622d7496f1d8e232987c51dd89595a3d9101b9bbaef2ddb583`を維持した。
 - 試験sourceは277行・19枠、AUTOMOC `HEADERS=[]`、Qt Core・TestとOS frameworkだけの動的接続であり、template creation dialog・製品libraryの未解決記号がないことを確認した。対象全体20回、追加枠20回（60 pass）、近傍`KisGrabKeyboardFocusRecoveryWorkaroundSchemaContractTest`、連続二回の無作業Ninja構築、`clang-check -Werror`、書式、JSON構文、差分に成功した。
 - 初回照合は移行基準888件に対して実測886件となる期待診断を確認後、基準を更新した。公開API検査は28,915件対応、29,801件中886件未対応となった。新`build/tdd-macos/public-api-missing-g609.json`は243,686 bytes、SHA-256 `3054ebba7a39fe813e03d2bcce52fdc1b2181406427f087d9c308fe048f4b193`である。生成成功後に旧`public-api-missing-g608.json` 244,308 bytesをゴミ箱へ移し、主Ninja木6,061,012 KiB、共有compiler cache 983,424 KiB、最新報告だけを再利用対象として保持する。template資源の読込み・書込み、文書生成、dialogの表示と選択は、製品実装を接続する後続の効果契約で扱う。次の永続作業は第610便で別の独立軽量試験に追加可能な公開headerを選び、対象限定閉包を先に監査することである。
+
+### 第693便の公開API契約結果
+
+- 開始`plugins/paintops/defaultpaintops/brush/KisDabRenderingExecutor.h`から既存`plugins/paintops/defaultpaintops/brush/tests/KisDabRenderingJobSchemaContractTest.cpp`へ、dab rendering executorの公開型、構築・破棄、dab投入・取得、待機状態、描画統計の8 APIを1枠へ対応付けた。型特性と厳密なメンバー関数pointerだけを用い、executor、資源factory、stroke job interface、dab request・結果を実体化または実行していない。CMake、公開header、製品sourceは変更していない。
+- 同targetの閉包は4工程・8入力、command SHA-256 `93b2a886423a122f19367f80857b403d23a95df4b08c5eda21f0305f6560a893`、input SHA-256 `3ac7fbe9f558dbb8785b892897bee5eb388a41a8c834994ca3f5e6cedb365a58`を維持した。AUTOMOC `HEADERS=[]`、製品未解決記号なし、無作業の対象限定再構築を確認した。試験sourceは226行・12枠であり、対象実行形式全体20回（280 pass）、追加枠20回（60 pass）、`clang-check -Werror`、書式、差分、JSON構文に成功した。公開API検査は29,351件対応、29,801件中450件未対応となった。新`build/tdd-macos/public-api-missing-g693.json`は119,226 bytes、SHA-256 `af11be857cb58ef02949b160505416623e1ce9c5922687893e74becb26567c23`であり、生成成功後に旧g692報告をゴミ箱へ移した。主Ninja木6,122,712 KiB、共有compiler cache 982,656 KiB、最新報告だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 
 ### 第692便の公開API契約結果
 
