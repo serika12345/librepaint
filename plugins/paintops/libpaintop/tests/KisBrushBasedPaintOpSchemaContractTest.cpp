@@ -14,6 +14,7 @@
 #include "KisSpacingOptionWidget.h"
 #include "kis_brush_based_paintop.h"
 #include "kis_brush_based_paintop_options_widget.h"
+#include "kis_brush_option_widget.h"
 #include "kis_texture_option.h"
 
 #include <QTest>
@@ -76,6 +77,7 @@ private Q_SLOTS:
     void maskingBrushDataPersistenceSignaturesRemainStable();
     void textureOptionTypeStateAndConstructionSchemaRemainStable();
     void textureOptionProcessingAndResourceSignaturesRemainStable();
+    void brushOptionWidgetSchemaRemainStable();
 };
 
 void KisBrushBasedPaintOpSchemaContractTest::brushBasedPaintopOptionWidgetSchemaRemainStable()
@@ -281,6 +283,28 @@ void KisBrushBasedPaintOpSchemaContractTest::textureOptionProcessingAndResourceS
     static_assert(std::is_same_v<decltype(&Option::prepareEmbeddedResources), ResourcePreparation>);
     static_assert(std::is_same_v<decltype(&Option::prepareLinkedResources), ResourcePreparation>);
     static_assert(std::is_same_v<decltype(&Option::requiresEffectiveCompositeOp), ConfigurationGradientQuery>);
+
+    QVERIFY(true);
+}
+
+void KisBrushBasedPaintOpSchemaContractTest::brushOptionWidgetSchemaRemainStable()
+{
+    using Widget = KisBrushOptionWidget;
+
+    static_assert(std::is_base_of_v<KisPaintOpOption, Widget>);
+    static_assert(std::is_constructible_v<Widget, KisBrushOptionWidgetFlags>);
+    static_assert(std::has_virtual_destructor_v<Widget>);
+    static_assert(std::is_same_v<decltype(&Widget::brush), KisBrushSP (Widget::*)() const>);
+    static_assert(std::is_same_v<decltype(&Widget::setImage), void (Widget::*)(KisImageWSP)>);
+    static_assert(
+        std::is_same_v<decltype(&Widget::writeOptionSetting), void (Widget::*)(KisPropertiesConfigurationSP) const>);
+    static_assert(
+        std::is_same_v<decltype(&Widget::readOptionSetting), void (Widget::*)(const KisPropertiesConfigurationSP)>);
+    static_assert(std::is_same_v<decltype(&Widget::hideOptions), void (Widget::*)(const QStringList &)>);
+    static_assert(std::is_same_v<decltype(&Widget::lightnessModeEnabled), lager::reader<bool> (Widget::*)() const>);
+    static_assert(std::is_same_v<decltype(&Widget::effectiveBrushSize), lager::reader<qreal> (Widget::*)() const>);
+    static_assert(
+        std::is_same_v<decltype(&Widget::bakedBrushData), lager::reader<KisBrushModel::BrushData> (Widget::*)() const>);
 
     QVERIFY(true);
 }
