@@ -2,15 +2,22 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-15 22:44 JST
+- 更新日時: 2026-09-15 22:53 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
-- 完了: 第756便でTablet Test Dialogの公開4 APIを契約へ追加し、対応済みを29,781件へ進めた。
-- 次の作業: 第757便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
+- 完了: 第757便でEllipse Tool Baseの公開3 APIを契約へ追加し、対応済みを29,784件へ進めた。
+- 次の作業: 第758便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
 - 検証: macOSの対象・反復・無作業再構築、公開API検査、`verify-quick`に成功した。旧不足報告をTrashへ移し、最新報告だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は本便の対象外である。
+
+### 第757便の結果
+
+- `libs/ui/tool/kis_tool_ellipse_base.h`から既存`libs/ui/tests/KisToolSelectUiBaseSchemaContractTest.cpp`へpublic 3 API・新規1枠`ellipseToolPublicSchemaRemainsStable`を追加した。Ellipse Tool Baseがrectangle tool基底の抽象型として、canvas・tool type・cursorによる派生型構築とellipse描画を提供する公開形式を固定する。
+- 公開header、製品source、CMakeを変更せず、既存targetのtool・canvas・image・paintingのheader探索路と製品非接続を再利用した。純粋仮想`finishRect()`を満たす最小probeにより、抽象基底の構築可能性を誤って仮定せず派生型からの公開constructorを検証する。試験sourceは274行・13枠で、構築閉包は5工程・10入力（command SHA-256 `52f938c1acb7ebbfb01ebc9101298d178f8b42daf07a06470024ff6f3e95fd2c`、input SHA-256 `cdaba32e40f57a00fb02f47e3cd12dc550fda7f5dae392cf1ba238386e73f6e2`）を維持し、AUTOMOC `HEADERS=[]`、製品library・Ellipse Tool Base・Rectangle Tool Baseの未解決記号なしを確認した。
+- macOSで対象単発、全13枠20回（260成功）、追加枠60回（60成功）、無作業再構築2回、`clang-check`、`clang-format --dry-run --Werror`、公開API検査に成功した。正式不足報告`build/tdd-macos/public-api-missing-g757.json`は公開header 1,549、公開API 29,801、対応済み29,784、未対応17、4,167 bytes、SHA-256 `2ba5dc12a868cca13e829fb9b83f2a8834469cac753e553ca52aa22ff160b5bb`を記録する。
+- `verify-quick`に成功し、旧`build/tdd-macos/public-api-missing-g756.json`をTrashへ移した。主Ninja木、共有compiler cache、最新`build/tdd-macos/public-api-missing-g757.json`だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 
 ### 第756便の結果
 
