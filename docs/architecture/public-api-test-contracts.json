@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 472
+    "expectedMissingApis": 465
   },
   "contracts": [
     {
@@ -27171,6 +27171,22 @@
         "method:KisTextureOptionWidget::readOptionSetting(const KisPropertiesConfigurationSP setting)",
         "method:KisTextureOptionWidget::writeOptionSetting(KisPropertiesConfigurationSP setting) const",
         "method:KisTextureOptionWidget::~KisTextureOptionWidget()"
+      ]
+    },
+    {
+      "target": "KisCurveOptionDataUniformPropertySchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisCurveOptionDataUniformPropertySchemaContractTest.cpp",
+      "test": "KisCurveOptionDataUniformPropertySchemaContractTest::curveOptionDataUniformPropertySchemaRemainStable",
+      "behavior": "curve option dataのuniform propertyはdouble slider propertyの公開派生型としてcurve option data、設定、親QObjectを受けて構築・破棄し、値の読書きと表示可否を提供する公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisCurveOptionDataUniformProperty",
+        "method:KisCurveOptionDataUniformProperty::KisCurveOptionDataUniformProperty(const KisCurveOptionData & data,KisPaintOpSettingsRestrictedSP settings,QObject * parent)",
+        "method:KisCurveOptionDataUniformProperty::KisCurveOptionDataUniformProperty(const KisCurveOptionData & data,const QString & propertyId,KisPaintOpSettingsRestrictedSP settings,QObject * parent)",
+        "method:KisCurveOptionDataUniformProperty::isVisible() const",
+        "method:KisCurveOptionDataUniformProperty::readValueImpl()",
+        "method:KisCurveOptionDataUniformProperty::writeValueImpl()",
+        "method:KisCurveOptionDataUniformProperty::~KisCurveOptionDataUniformProperty()"
       ]
     },
     {
