@@ -2,15 +2,22 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-15 18:18 JST
+- 更新日時: 2026-09-15 18:26 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
-- 完了: 第726便で新規文書作成dialogの公開6 APIを契約へ追加し、対応済みを29,537件へ進めた。
-- 次の作業: 第727便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
+- 完了: 第727便でkeyframe挿入dialogの公開7 APIを契約へ追加し、対応済みを29,544件へ進めた。
+- 次の作業: 第728便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
 - 検証: macOSの対象・反復・無作業再構築、公開API検査、`verify-quick`に成功した。旧不足報告をTrashへ移し、最新報告だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は本便の対象外である。
+
+### 第727便の結果
+
+- `plugins/dockers/animation/timeline_insert_keyframe_dialog.h`から新規`plugins/dockers/animation/tests/TimelineInsertKeyframeDialogSchemaContractTest.cpp`へ公開7 API・1枠`insertKeyframeDialogSchemaRemainsStable`を追加した。keyframe挿入dialogが親widgetで構築でき、挿入数・間隔・方向を受けて設定を確認し、既定の間隔とhold frame除去数を取得・設定する公開形式を固定する。
+- `plugins/dockers/animation/tests/CMakeLists.txt`へ専用targetを追加した。animation dockerのsource・生成済みheaderとQt Widgetsのheader探索路だけを追加し、製品object・libraryのlinkは導入していない。試験sourceは36行・1枠で、構築閉包は4工程・7入力（command SHA-256 `5b7af57ff0852f79311b20a9a4a17f7ccc5365cd14cf89585dcc70c562de7830`、input SHA-256 `36aa0537942a0b8f1f742e05d9953dc716db44f65820b8dea42b2d897f6a1b35`）となり、AUTOMOC `HEADERS=[]`、製品library・keyframe挿入dialogの未解決記号なしを確認した。
+- macOSで対象単発、全1枠20回（60成功）、追加枠20回（60成功）、無作業再構築、`clang-check`、`clang-format --dry-run --Werror`、公開API検査に成功した。正式不足報告`build/tdd-macos/public-api-missing-g727.json`は公開header 1,549、公開API 29,801、対応済み29,544、未対応257、67,199 bytes、SHA-256 `9a9a34d9f58d3b0fd4822f81813c20d2033779d28361c29e9f0ef84284740828`を記録する。
+- `verify-quick`に成功し、旧`build/tdd-macos/public-api-missing-g726.json`をTrashへ移した。主Ninja木、共有compiler cache、最新`build/tdd-macos/public-api-missing-g727.json`だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 
 ### 第726便の結果
 

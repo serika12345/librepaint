@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 264
+    "expectedMissingApis": 257
   },
   "contracts": [
     {
@@ -77882,6 +77882,22 @@
         "method:TimelineFramesIndexConverter::isDummyAvailableForTimeline(KisNodeDummy * dummy) const",
         "method:TimelineFramesIndexConverter::isDummyVisible(KisNodeDummy * dummy) const",
         "method:TimelineFramesIndexConverter::setShowGlobalSelectionMask(bool value)"
+      ]
+    },
+    {
+      "target": "TimelineInsertKeyframeDialogSchemaContractTest",
+      "source": "plugins/dockers/animation/tests/TimelineInsertKeyframeDialogSchemaContractTest.cpp",
+      "test": "TimelineInsertKeyframeDialogSchemaContractTest::insertKeyframeDialogSchemaRemainsStable",
+      "behavior": "keyframe挿入dialogは親widgetで構築でき、挿入数・間隔・方向を受けて設定を確認し、既定の間隔とhold frame除去数を取得・設定する公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:TimelineInsertKeyframeDialog",
+        "method:TimelineInsertKeyframeDialog::TimelineInsertKeyframeDialog(QWidget * parent=0)",
+        "method:TimelineInsertKeyframeDialog::defaultNumberOfHoldFramesToRemove() const",
+        "method:TimelineInsertKeyframeDialog::defaultTimingOfAddedFrames() const",
+        "method:TimelineInsertKeyframeDialog::promptUserSettings(int & count,int & timing,TimelineDirection & out_direction)",
+        "method:TimelineInsertKeyframeDialog::setDefaultNumberOfHoldFramesToRemove(int value)",
+        "method:TimelineInsertKeyframeDialog::setDefaultTimingOfAddedFrames(int value)"
       ]
     },
     {
