@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 438
+    "expectedMissingApis": 434
   },
   "contracts": [
     {
@@ -81710,6 +81710,19 @@
       "classification": "maintained",
       "apis": [
         "method:KisToolPaintInteraction::sigPaintingFinished()"
+      ]
+    },
+    {
+      "target": "KisToolSchemaContractTest",
+      "source": "libs/tools/tests/KisToolSchemaContractTest.cpp",
+      "test": "KisToolSchemaContractTest::toolOptionsPopupSchemaRemainStable",
+      "behavior": "tool option popupはQWidgetの公開派生型としてfontを受けて構築し、仮想破棄とoption widget一覧の受け渡し形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisToolOptionsPopup",
+        "method:KisToolOptionsPopup::KisToolOptionsPopup(const QFont & font,QWidget * parent=nullptr)",
+        "method:KisToolOptionsPopup::newOptionWidgets(const QList<QPointer<QWidget>> & optionWidgetList)",
+        "method:KisToolOptionsPopup::~KisToolOptionsPopup()"
       ]
     },
     {
