@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 307
+    "expectedMissingApis": 295
   },
   "contracts": [
     {
@@ -83077,6 +83077,27 @@
         "method:KisChangeFilterCmd::KisChangeFilterCmd(KisNodeSP node,KisFilterConfigurationSP configBefore,KisFilterConfigurationSP configAfter)",
         "method:KisChangeFilterCmd::redo()",
         "method:KisChangeFilterCmd::undo()"
+      ]
+    },
+    {
+      "target": "KisGapMapSchemaContractTest",
+      "source": "libs/image/tests/KisGapMapSchemaContractTest.cpp",
+      "test": "KisGapMapSchemaContractTest::gapMapSchemaRemainsStable",
+      "behavior": "gap mapは共有参照型として、塗りつぶし不透明度コールバック、距離、寸法、距離計測の公開形式を維持し、tile accessorはpaint deviceから構築して座標の生データを返す公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisGapMap::FillOpacityFunc",
+        "class:KisGapMap",
+        "class:KisTileOptimizedAccessor",
+        "member:KisGapMap::DISTANCE_INFINITE",
+        "method:KisGapMap::KisGapMap(int gapSize,const QRect & mapBounds,const FillOpacityFunc & fillOpacityFunc)",
+        "method:KisGapMap::distance(int x,int y)",
+        "method:KisGapMap::distanceElapsedMillis() const",
+        "method:KisGapMap::gapSize() const",
+        "method:KisGapMap::opacityElapsedMillis() const",
+        "method:KisTileOptimizedAccessor::KisTileOptimizedAccessor(KisPaintDeviceSP & paintDevice)",
+        "method:KisTileOptimizedAccessor::rawData(int x,int y)",
+        "method:KisTileOptimizedAccessor::tileRawData(int tileX,int tileY)"
       ]
     }
   ]

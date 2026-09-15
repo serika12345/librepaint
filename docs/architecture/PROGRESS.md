@@ -2,15 +2,22 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-15 17:10 JST
+- 更新日時: 2026-09-15 17:25 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
-- 完了: 第720便でicon widgetの公開型・構築・破棄・resource表示APIを契約へ追加し、対応済みを29,494件へ進めた。
-- 次の作業: 第721便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
+- 完了: 第721便でgap mapとtile accessorの公開12 APIを契約へ追加し、対応済みを29,506件へ進めた。
+- 次の作業: 第722便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
 - 検証: macOSの対象・反復・無作業再構築、公開API検査、`verify-quick`に成功した。旧不足報告をTrashへ移し、最新報告だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は本便の対象外である。
+
+### 第721便の結果
+
+- `libs/image/floodfill/kis_gap_map.h`から新規`libs/image/tests/KisGapMapSchemaContractTest.cpp`へ公開12 API・1枠`gapMapSchemaRemainsStable`を追加した。gap mapが共有参照型として不透明度コールバック、距離、寸法、計測時間を公開し、tile accessorがpaint deviceから構築して座標の生データを返す公開形式を固定する。計測時間の既定無効値は維持し、同headerの定義を外部設定可能にして、契約targetだけで計測APIを有効化する。
+- `libs/image/tests/CMakeLists.txt`へ専用targetを追加した。image、global、pigmentのsource・生成済みheaderとQt Core・Testだけを探索し、製品object・libraryのlinkを導入していない。試験sourceは44行・1枠で、構築閉包は4工程・8入力（command SHA-256 `29baf9d9708590c572c4d93dc83d8940ccf5149918214653000dd6568dd270be`、input SHA-256 `dbcb92a381b76c0e099de46c86456608c258082f8091a160a7e0d774742496d8`）となり、AUTOMOC `HEADERS=[]`、製品library・gap map・tile accessorの未解決記号なしを確認した。
+- macOSで対象単発、全1枠20回（60成功）、追加枠20回（60成功）、無作業再構築、`clang-check`、`clang-format --dry-run --Werror`、公開API検査に成功した。正式不足報告`build/tdd-macos/public-api-missing-g721.json`は公開header 1,549、公開API 29,801、対応済み29,506、未対応295、77,321 bytes、SHA-256 `d0aca87756a51121da596b234430f52da16664e65362a3a857d354e3f5b7658b`を記録する。
+- `verify-quick`に成功し、旧`build/tdd-macos/public-api-missing-g720.json`をTrashへ移した。主Ninja木、共有compiler cache、最新`build/tdd-macos/public-api-missing-g721.json`だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 
 ### 第720便の結果
 
