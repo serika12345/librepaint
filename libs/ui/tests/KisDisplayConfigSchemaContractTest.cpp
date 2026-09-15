@@ -8,6 +8,7 @@
 #include <canvas/KisRootSurfaceInfoProxy.h>
 #include <canvas/KisSRGBSurfaceColorSpaceManager.h>
 #include <canvas/kis_display_color_converter.h>
+#include <widgets/KisProofingOptionsWidget.h>
 
 #include <surfacecolormanagement/KisSurfaceColorimetry.h>
 
@@ -47,6 +48,7 @@ private Q_SLOTS:
     void surfaceColorManagerNotificationSchemaRemainStable();
     void sRgbSurfaceColorManagerTypeConstructionAndPlatformFactorySchemaRemainStable();
     void rootSurfaceInfoProxySchemaRemainStable();
+    void proofingOptionsWidgetSchemaRemainsStable();
 };
 
 void KisDisplayConfigSchemaContractTest::displayConfigTypeAndConstructionSchemaRemainsStable()
@@ -280,6 +282,23 @@ void KisDisplayConfigSchemaContractTest::rootSurfaceInfoProxySchemaRemainStable(
         std::is_same_v<decltype(&Proxy::sigRootSurfaceProfileChanged), void (Proxy::*)(const KoColorProfile *) const>);
 
     QVERIFY(true);
+}
+
+void KisDisplayConfigSchemaContractTest::proofingOptionsWidgetSchemaRemainsStable()
+{
+    using Widget = KisProofingOptionsWidget;
+
+    static_assert(std::is_base_of_v<QWidget, Widget>);
+    static_assert(std::is_constructible_v<Widget, QWidget *>);
+    static_assert(std::has_virtual_destructor_v<Widget>);
+    static_assert(
+        std::is_same_v<decltype(&Widget::currentProofingConfig), KisProofingConfigurationSP (Widget::*)() const>);
+    static_assert(std::is_same_v<decltype(&Widget::setProofingConfig), void (Widget::*)(KisProofingConfigurationSP)>);
+    static_assert(std::is_same_v<decltype(&Widget::setDisplayConfigOptions),
+                                 void (Widget::*)(const KisDisplayConfig::Options &)>);
+    static_assert(std::is_same_v<decltype(&Widget::stopPendingUpdates), void (Widget::*)()>);
+    static_assert(
+        std::is_same_v<decltype(&Widget::sigProofingConfigChanged), void (Widget::*)(KisProofingConfigurationSP)>);
 }
 
 #undef ASSERT_DISPLAY_COLOR_CONVERTER_SIGNATURE
