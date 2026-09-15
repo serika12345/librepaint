@@ -2,15 +2,22 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-15 21:56 JST
+- 更新日時: 2026-09-15 22:04 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
-- 完了: 第750便で画像連番取込みダイアログの公開10 APIを契約へ追加し、対応済みを29,740件へ進めた。
-- 次の作業: 第751便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
+- 完了: 第751便でSegment Gradient Editorの公開9 APIを契約へ追加し、対応済みを29,749件へ進めた。
+- 次の作業: 第752便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
 - 検証: macOSの対象・反復・無作業再構築、公開API検査、`verify-quick`に成功した。旧不足報告をTrashへ移し、最新報告だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は本便の対象外である。
+
+### 第751便の結果
+
+- `libs/ui/widgets/gradient/KisSegmentGradientEditor.h`から既存`libs/ui/tests/KisDisplayConfigSchemaContractTest.cpp`へpublic 9 API・新規1枠`segmentGradientEditorSchemaRemainsStable`を追加した。Segment Gradient Editorがwidget派生型として親widgetまたはgradient・親widget・名前・caption・canvas resourcesで構築でき、gradientとcanvas resourcesの設定・照会、compact modeとgradient変更通知を提供する公開形式を固定する。
+- `libs/ui/tests/CMakeLists.txt`の同targetで`wdgsegmentgradienteditor.ui`を生成し、gradient widgetと`KoSegmentGradient`に必要なUI gradient・pigment resourcesの直接header探索路だけを加えた。製品object・libraryのlinkは導入していない。CMake再生成後に実行したのは同targetの自動MOC、追加UI生成、2 object、linkであり、製品targetは構築していない。試験sourceは441行・24枠で、構築閉包は8工程・15入力（command SHA-256 `b3ae5aa90bd0c954bf3c3aa6949de5e0fa3090c301638ba0794bc0b8e23da934`、input SHA-256 `d1307154e93dcb9a20d7cbb1fe58e898037094de964fa5051f20585b3a4f8f07`）となり、AUTOMOC `HEADERS=[]`、製品library・Segment Gradient Editor・segment gradient・gradient custom widgetの未解決記号なしを確認した。
+- macOSで対象単発、全24枠20回（480成功）、追加枠60回（60成功）、無作業再構築2回、`clang-check`、`clang-format --dry-run --Werror`、公開API検査に成功した。正式不足報告`build/tdd-macos/public-api-missing-g751.json`は公開header 1,549、公開API 29,801、対応済み29,749、未対応52、12,965 bytes、SHA-256 `2ef8c165f31d8b7e1b003a62bb2d95b7ff295a4c09c8eee162c24e181d96ed01`を記録する。
+- `verify-quick`に成功し、旧`build/tdd-macos/public-api-missing-g750.json`をTrashへ移した。主Ninja木、共有compiler cache、最新`build/tdd-macos/public-api-missing-g751.json`だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 
 ### 第750便の結果
 

@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 61
+    "expectedMissingApis": 52
   },
   "contracts": [
     {
@@ -83593,6 +83593,24 @@
         "method:KisDlgImportImageSequence::showOpenFileDialog()",
         "method:KisDlgImportImageSequence::startFrom1()",
         "method:KisDlgImportImageSequence::step()"
+      ]
+    },
+    {
+      "target": "KisDisplayConfigSchemaContractTest",
+      "source": "libs/ui/tests/KisDisplayConfigSchemaContractTest.cpp",
+      "test": "KisDisplayConfigSchemaContractTest::segmentGradientEditorSchemaRemainsStable",
+      "behavior": "Segment Gradient Editorはwidget派生型として親widgetまたはgradient・親widget・名前・caption・canvas resourcesで構築でき、gradientとcanvas resourcesの設定・照会、compact modeとgradient変更通知を提供する公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisSegmentGradientEditor",
+        "method:KisSegmentGradientEditor::KisSegmentGradientEditor(KoSegmentGradientSP gradient,QWidget * parent,const char * name,const QString & caption,KoCanvasResourcesInterfaceSP canvasResourcesInterface)",
+        "method:KisSegmentGradientEditor::KisSegmentGradientEditor(QWidget * parent)",
+        "method:KisSegmentGradientEditor::canvasResourcesInterface() const",
+        "method:KisSegmentGradientEditor::gradient() const",
+        "method:KisSegmentGradientEditor::setCanvasResourcesInterface(KoCanvasResourcesInterfaceSP canvasResourcesInterface)",
+        "method:KisSegmentGradientEditor::setCompactMode(bool value)",
+        "method:KisSegmentGradientEditor::setGradient(KoSegmentGradientSP gradient)",
+        "method:KisSegmentGradientEditor::sigGradientChanged()"
       ]
     }
   ]
