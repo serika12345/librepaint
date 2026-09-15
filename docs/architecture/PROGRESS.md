@@ -2,15 +2,22 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-15 20:35 JST
+- 更新日時: 2026-09-15 20:48 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
-- 完了: 第742便でimport/export filterの公開destructor APIを契約へ追加し、対応済みを29,670件へ進めた。
-- 次の作業: 第743便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
+- 完了: 第743便でdither widgetの公開7 APIを契約へ追加し、対応済みを29,677件へ進めた。
+- 次の作業: 第744便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
 - 検証: macOSの対象・反復・無作業再構築、公開API検査、`verify-quick`に成功した。旧不足報告をTrashへ移し、最新報告だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は本便の対象外である。
+
+### 第743便の結果
+
+- `libs/ui/widgets/KisDitherWidget.h`から新規`libs/ui/tests/KisDitherWidgetSchemaContractTest.cpp`へ公開7 API・1枠`ditherWidgetPublicSchemaRemainsStable`を追加した。dither widgetがwidget派生型として親widgetで構築でき、filter設定の読込・書込、既定設定、linked resource準備、設定変更通知を提供する公開形式を固定する。
+- `libs/ui/tests/CMakeLists.txt`へ専用targetを追加し、`KisDitherWidget.ui`を同target内で生成した。UI widget、image filter、pigment、resources、widgets、widgetutils、globalとQt・KF I18n・Imath・Eigenの直接header探索路だけを加え、製品object・libraryのlinkは導入していない。CMake再生成後に実行したのは専用targetの自動MOC、UI生成、2 object、linkであり、製品targetは構築していない。試験sourceは43行・1枠で、構築閉包は5工程・9入力（command SHA-256 `049f1771e336b7714a57df316b31718f1c1ff676d0a1da7522e8656d28e96842`、input SHA-256 `1d1bd257ccbb783a8f7f6cd4875bde7ec45fe7cc446cce6c8135f8c16efb3ccf`）となり、AUTOMOC `HEADERS=[]`、製品library・dither widget・resource item chooserの未解決記号なしを確認した。
+- macOSで対象単発、全1枠20回（20成功）、追加枠60回（60成功）、無作業再構築、`clang-check`、`clang-format --dry-run --Werror`、公開API検査に成功した。正式不足報告`build/tdd-macos/public-api-missing-g743.json`は公開header 1,549、公開API 29,801、対応済み29,677、未対応124、32,167 bytes、SHA-256 `a31770be31970c3ee49693376ea2f94964dafb4474f7832bc10ccc8d82f134e8`を記録する。
+- `verify-quick`に成功し、旧`build/tdd-macos/public-api-missing-g742.json`をTrashへ移した。主Ninja木、共有compiler cache、最新`build/tdd-macos/public-api-missing-g743.json`だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 
 ### 第742便の結果
 

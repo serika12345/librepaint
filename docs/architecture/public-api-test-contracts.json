@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 131
+    "expectedMissingApis": 124
   },
   "contracts": [
     {
@@ -83451,6 +83451,22 @@
       "classification": "maintained",
       "apis": [
         "method:KisImportExportFilter::~KisImportExportFilter()"
+      ]
+    },
+    {
+      "target": "KisDitherWidgetSchemaContractTest",
+      "source": "libs/ui/tests/KisDitherWidgetSchemaContractTest.cpp",
+      "test": "KisDitherWidgetSchemaContractTest::ditherWidgetPublicSchemaRemainsStable",
+      "behavior": "dither widgetはwidget派生型として親widgetで構築でき、filter設定の読込・書込、既定設定、linked resource準備、設定変更通知を提供する公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisDitherWidget",
+        "method:KisDitherWidget::KisDitherWidget(QWidget * parent=0)",
+        "method:KisDitherWidget::configuration(KisPropertiesConfiguration & config,const QString & prefix=\"\") const",
+        "method:KisDitherWidget::factoryConfiguration(KisPropertiesConfiguration & config,const QString & prefix=\"\")",
+        "method:KisDitherWidget::prepareLinkedResources(const KisFilterConfiguration & config,const QString & prefix,KisResourcesInterfaceSP resourcesInterface)",
+        "method:KisDitherWidget::setConfiguration(const KisFilterConfiguration & config,const QString & prefix=\"\")",
+        "method:KisDitherWidget::sigConfigurationItemChanged()"
       ]
     }
   ]
