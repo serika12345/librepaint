@@ -2818,6 +2818,26 @@ target_compile_definitions(KisScanlineFillSchemaContractTest PRIVATE
 )
 
 kis_add_test(
+    KisGapMapSchemaContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KisGapMapSchemaContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+    ${CMAKE_SOURCE_DIR}/libs/pigment
+    ${CMAKE_BINARY_DIR}/libs/pigment
+)
+target_compile_definitions(KisGapMapSchemaContractTest PRIVATE
+    kritaimage_EXPORTS
+    kritaglobal_EXPORTS
+    KIS_GAP_MAP_MEASURE_ELAPSED_TIME=1
+)
+
+kis_add_test(
     KisLazyFillToolsContractTest.cpp
     LINK_LIBRARIES
         kritaimagelazyfillfilteringoptionsobjects
