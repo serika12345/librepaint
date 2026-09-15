@@ -9,6 +9,7 @@
 #include "KisScatterOptionWidget.h"
 #include "KisTextureOptionWidget.h"
 #include "kis_auto_brush_widget.h"
+#include "kis_predefined_brush_chooser.h"
 
 #include <QTest>
 
@@ -59,6 +60,7 @@ private Q_SLOTS:
     void scatterOptionWidgetSchemaRemainStable();
     void textureOptionWidgetSchemaRemainStable();
     void autoBrushWidgetSchemaRemainsStable();
+    void predefinedBrushChooserSchemaRemainsStable();
 };
 
 void KisPaintOptionWidgetSchemaContractTest::filterOptionWidgetSchemaRemainStable()
@@ -125,6 +127,18 @@ void KisPaintOptionWidgetSchemaContractTest::autoBrushWidgetSchemaRemainsStable(
     static_assert(std::is_constructible_v<Widget, int, KisAutoBrushModel *, QWidget *, const char *>);
     static_assert(std::has_virtual_destructor_v<Widget>);
     static_assert(std::is_same_v<decltype(&Widget::brush), KisBrushSP (Widget::*)()>);
+}
+
+void KisPaintOptionWidgetSchemaContractTest::predefinedBrushChooserSchemaRemainsStable()
+{
+    using Chooser = KisPredefinedBrushChooser;
+
+    static_assert(std::is_base_of_v<QWidget, Chooser>);
+    static_assert(std::is_constructible_v<Chooser, int, KisPredefinedBrushModel *, QWidget *, const char *>);
+    static_assert(std::has_virtual_destructor_v<Chooser>);
+    static_assert(std::is_same_v<decltype(&Chooser::setBrush), void (Chooser::*)(KisBrushSP)>);
+    static_assert(std::is_same_v<decltype(&Chooser::setImage), void (Chooser::*)(KisImageWSP)>);
+    static_assert(std::is_same_v<decltype(&Chooser::lightnessModeEnabled), lager::reader<bool> (Chooser::*)() const>);
 }
 
 QTEST_GUILESS_MAIN(KisPaintOptionWidgetSchemaContractTest)
