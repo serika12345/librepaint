@@ -14,6 +14,7 @@
 #include "KisSpacingOptionWidget.h"
 #include "kis_brush_based_paintop.h"
 #include "kis_brush_based_paintop_options_widget.h"
+#include "kis_brush_option.h"
 #include "kis_brush_option_widget.h"
 #include "kis_texture_option.h"
 
@@ -78,6 +79,7 @@ private Q_SLOTS:
     void textureOptionTypeStateAndConstructionSchemaRemainStable();
     void textureOptionProcessingAndResourceSignaturesRemainStable();
     void brushOptionWidgetSchemaRemainStable();
+    void brushOptionPropertiesSchemaRemainStable();
 };
 
 void KisBrushBasedPaintOpSchemaContractTest::brushBasedPaintopOptionWidgetSchemaRemainStable()
@@ -305,6 +307,31 @@ void KisBrushBasedPaintOpSchemaContractTest::brushOptionWidgetSchemaRemainStable
     static_assert(std::is_same_v<decltype(&Widget::effectiveBrushSize), lager::reader<qreal> (Widget::*)() const>);
     static_assert(
         std::is_same_v<decltype(&Widget::bakedBrushData), lager::reader<KisBrushModel::BrushData> (Widget::*)() const>);
+
+    QVERIFY(true);
+}
+
+void KisBrushBasedPaintOpSchemaContractTest::brushOptionPropertiesSchemaRemainStable()
+{
+    using Properties = KisBrushOptionProperties;
+    using ResourcePreparation =
+        QList<KoResourceLoadResult> (Properties::*)(const KisPropertiesConfiguration *, KisResourcesInterfaceSP) const;
+
+    static_assert(std::is_base_of_v<KisPaintopPropertiesCanvasResourcesBase, Properties>);
+    static_assert(std::is_same_v<decltype(&Properties::writeOptionSettingImpl),
+                                 void (Properties::*)(KisPropertiesConfiguration *) const>);
+    static_assert(std::is_same_v<decltype(&Properties::readOptionSettingResourceImpl),
+                                 void (Properties::*)(const KisPropertiesConfiguration *,
+                                                      KisResourcesInterfaceSP,
+                                                      KoCanvasResourcesInterfaceSP)>);
+    static_assert(std::is_same_v<decltype(&Properties::prepareLinkedResourcesImpl), ResourcePreparation>);
+    static_assert(std::is_same_v<decltype(&Properties::prepareEmbeddedResourcesImpl), ResourcePreparation>);
+    static_assert(std::is_same_v<decltype(&Properties::brush), KisBrushSP (Properties::*)() const>);
+    static_assert(std::is_same_v<decltype(&Properties::setBrush), void (Properties::*)(KisBrushSP)>);
+    static_assert(std::is_same_v<decltype(&Properties::brushApplication),
+                                 enumBrushApplication (Properties::*)(const KisPropertiesConfiguration *,
+                                                                      KisResourcesInterfaceSP)>);
+    static_assert(std::is_same_v<decltype(&Properties::isTextBrush), bool (*)(const KisPropertiesConfiguration *)>);
 
     QVERIFY(true);
 }
