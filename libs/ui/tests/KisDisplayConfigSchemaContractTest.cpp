@@ -9,6 +9,7 @@
 #include <canvas/KisSRGBSurfaceColorSpaceManager.h>
 #include <canvas/kis_display_color_converter.h>
 #include <theme/thememanager.h>
+#include <widgets/KisGamutMaskToolbar.h>
 #include <widgets/KisProofingOptionsWidget.h>
 #include <widgets/kis_advanced_color_space_selector.h>
 #include <widgets/kis_paintop_presets_chooser_popup.h>
@@ -57,6 +58,7 @@ private Q_SLOTS:
     void seExprScriptChooserSchemaRemainsStable();
     void paintOpPresetsChooserPopupSchemaRemainsStable();
     void advancedColorSpaceSelectorSchemaRemainsStable();
+    void gamutMaskToolbarSchemaRemainsStable();
 };
 
 void KisDisplayConfigSchemaContractTest::displayConfigTypeAndConstructionSchemaRemainsStable()
@@ -369,6 +371,23 @@ void KisDisplayConfigSchemaContractTest::advancedColorSpaceSelectorSchemaRemains
     static_assert(
         std::is_same_v<decltype(static_cast<void (Selector::*)(const KoColorSpace *)>(&Selector::colorSpaceChanged)),
                        void (Selector::*)(const KoColorSpace *)>);
+}
+
+void KisDisplayConfigSchemaContractTest::gamutMaskToolbarSchemaRemainsStable()
+{
+    using Toolbar = KisGamutMaskToolbar;
+
+    static_assert(std::is_base_of_v<QWidget, Toolbar>);
+    static_assert(std::is_constructible_v<Toolbar, QWidget *>);
+    static_assert(std::has_virtual_destructor_v<Toolbar>);
+    static_assert(
+        std::is_same_v<decltype(&Toolbar::connectMaskSignals), void (Toolbar::*)(KisCanvasResourceProvider *)>);
+    static_assert(std::is_same_v<decltype(&Toolbar::sigGamutMaskToggle), void (Toolbar::*)(bool)>);
+    static_assert(std::is_same_v<decltype(&Toolbar::sigGamutMaskChanged), void (Toolbar::*)(KoGamutMaskSP)>);
+    static_assert(std::is_same_v<decltype(&Toolbar::sigGamutMaskDeactivated), void (Toolbar::*)()>);
+    static_assert(std::is_same_v<decltype(&Toolbar::slotGamutMaskSet), void (Toolbar::*)(KoGamutMaskSP)>);
+    static_assert(std::is_same_v<decltype(&Toolbar::slotGamutMaskUnset), void (Toolbar::*)()>);
+    static_assert(std::is_same_v<decltype(&Toolbar::slotGamutMaskDeactivate), void (Toolbar::*)()>);
 }
 
 #undef ASSERT_DISPLAY_COLOR_CONVERTER_SIGNATURE

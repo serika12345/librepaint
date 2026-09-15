@@ -1460,8 +1460,12 @@ target_include_directories(KisDisplayConfigSchemaContractTest PRIVATE
     ${CMAKE_BINARY_DIR}/libs/application
     ${CMAKE_SOURCE_DIR}/libs/canvas
     ${CMAKE_BINARY_DIR}/libs/canvas
+    ${CMAKE_SOURCE_DIR}/libs/flake
+    ${CMAKE_BINARY_DIR}/libs/flake
     ${CMAKE_SOURCE_DIR}/libs/widgetutils
     ${CMAKE_BINARY_DIR}/libs/widgetutils
+    ${CMAKE_SOURCE_DIR}/libs/widgets
+    ${CMAKE_BINARY_DIR}/libs/widgets
     ${CMAKE_SOURCE_DIR}/libs/surfacecolormanagementapi
     ${CMAKE_BINARY_DIR}/libs/surfacecolormanagementapi
     ${CMAKE_SOURCE_DIR}/libs/global
@@ -1478,6 +1482,7 @@ target_include_directories(KisDisplayConfigSchemaContractTest PRIVATE
     ${CMAKE_BINARY_DIR}/libs/resources/ui
     $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Gui,INTERFACE_INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Widgets,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Xml,INTERFACE_INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:KF${KF_MAJOR}::ConfigCore,INTERFACE_INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:KF${KF_MAJOR}::WidgetsAddons,INTERFACE_INCLUDE_DIRECTORIES>
@@ -1485,6 +1490,7 @@ target_include_directories(KisDisplayConfigSchemaContractTest PRIVATE
 )
 target_compile_definitions(KisDisplayConfigSchemaContractTest PRIVATE
     kritacanvas_EXPORTS
+    kritaflake_EXPORTS
     kritaglobal_EXPORTS
     kritaimage_EXPORTS
     kritaui_EXPORTS
@@ -1493,9 +1499,11 @@ target_compile_definitions(KisDisplayConfigSchemaContractTest PRIVATE
     kritaresources_EXPORTS
     kritasurfacecolorimetry_EXPORTS
     kritawidgetutils_EXPORTS
+    kritawidgets_EXPORTS
 )
 ki18n_wrap_ui(KisDisplayConfigSchemaContractTest
     ${CMAKE_CURRENT_SOURCE_DIR}/../forms/wdgcolorspaceselectoradvanced.ui
+    ${CMAKE_CURRENT_SOURCE_DIR}/../forms/wdgGamutMaskToolbar.ui
 )
 
 kis_add_test(
