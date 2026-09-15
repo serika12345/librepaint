@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 519
+    "expectedMissingApis": 513
   },
   "contracts": [
     {
@@ -27061,6 +27061,21 @@
         "method:KisSpacingOptionWidget::readOptionSetting(const KisPropertiesConfigurationSP setting)",
         "method:KisSpacingOptionWidget::writeOptionSetting(KisPropertiesConfigurationSP setting) const",
         "method:KisSpacingOptionWidget::~KisSpacingOptionWidget()"
+      ]
+    },
+    {
+      "target": "KisBrushBasedPaintOpSchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisBrushBasedPaintOpSchemaContractTest.cpp",
+      "test": "KisBrushBasedPaintOpSchemaContractTest::sizeOptionWidgetSchemaRemainStable",
+      "behavior": "size option widgetはcurve option widgetの公開派生型としてsize option data別名を公開し、option data cursorと任意のpaintop categoryを受けて構築・破棄し、LOD制限readerを返す公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisSizeOptionWidget::data_type",
+        "class:KisSizeOptionWidget",
+        "method:KisSizeOptionWidget::KisSizeOptionWidget(lager::cursor<KisSizeOptionData> optionData)",
+        "method:KisSizeOptionWidget::KisSizeOptionWidget(lager::cursor<KisSizeOptionData> optionData,KisPaintOpOption::PaintopCategory categoryOverride)",
+        "method:KisSizeOptionWidget::lodLimitationsReader() const",
+        "method:KisSizeOptionWidget::~KisSizeOptionWidget()"
       ]
     },
     {
