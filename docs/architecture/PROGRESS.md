@@ -2,14 +2,14 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-15 12:37 JST
+- 更新日時: 2026-09-15 12:44 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
-- 完了: 第690便でcurve option data uniform propertyの公開型・構築・値同期APIを契約へ追加し、対応済みを29,336件へ進めた。
-- 次の作業: 第691便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
+- 完了: 第691便でpaintop plugin utilityのspacing・timing APIを契約へ追加し、対応済みを29,338件へ進めた。
+- 次の作業: 第692便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
 - 検証: macOSの対象・反復・無作業再構築、公開API検査、`verify-quick`に成功した。製品target、全体build・`verify`、Linux、Nix再評価は本便の対象外である。
 
 ### 第202便の先行監査担当票
@@ -5823,6 +5823,12 @@
 - CMake、公開header、製品sourceは変更していない。macOSの限定構築は`KisCursorOverrideHijackerSchemaContractTest`の自動生成、試験source、実行ファイルだけをコンパイル・リンクし、製品targetを再構築していない。実測閉包は4工程・8入力、command SHA-256 `ef32b3dd7378f1d5e5ef739d9977409afa1f64e34d162fddfb54cfd31327fc3d`、input SHA-256 `58d9882064254f622d7496f1d8e232987c51dd89595a3d9101b9bbaef2ddb583`を維持した。
 - 試験sourceは277行・19枠、AUTOMOC `HEADERS=[]`、Qt Core・TestとOS frameworkだけの動的接続であり、template creation dialog・製品libraryの未解決記号がないことを確認した。対象全体20回、追加枠20回（60 pass）、近傍`KisGrabKeyboardFocusRecoveryWorkaroundSchemaContractTest`、連続二回の無作業Ninja構築、`clang-check -Werror`、書式、JSON構文、差分に成功した。
 - 初回照合は移行基準888件に対して実測886件となる期待診断を確認後、基準を更新した。公開API検査は28,915件対応、29,801件中886件未対応となった。新`build/tdd-macos/public-api-missing-g609.json`は243,686 bytes、SHA-256 `3054ebba7a39fe813e03d2bcce52fdc1b2181406427f087d9c308fe048f4b193`である。生成成功後に旧`public-api-missing-g608.json` 244,308 bytesをゴミ箱へ移し、主Ninja木6,061,012 KiB、共有compiler cache 983,424 KiB、最新報告だけを再利用対象として保持する。template資源の読込み・書込み、文書生成、dialogの表示と選択は、製品実装を接続する後続の効果契約で扱う。次の永続作業は第610便で別の独立軽量試験に追加可能な公開headerを選び、対象限定閉包を先に監査することである。
+
+### 第691便の公開API契約結果
+
+- 開始`plugins/paintops/libpaintop/kis_paintop_plugin_utils.h`から新規`plugins/paintops/libpaintop/tests/KisPaintOpPluginUtilsSchemaContractTest.cpp`へ、paintop plugin utilityのspacing・timing導出関数2 APIを1枠へ対応付けた。厳密な関数pointerだけを用い、airbrush・spacing・rate option、paint information、spacing・timing結果を実体化または実行していない。
+- `plugins/paintops/libpaintop/tests/CMakeLists.txt`へ同試験targetを追加し、libpaintop、global、image、brushengine、pigment、resources、tools UIの公開header探索路、必要なinterface探索路、Qt Core・Test、Boost、export定義だけを与えた。CMake再構成では新targetを登録し、Ninjaは同試験の自動生成、試験source、実行形式だけをコンパイル・リンクした。製品target、製品shared、OBJECT target、`kritatestsdk`を構築へ加えていない。
+- 同targetの閉包は4工程・8入力、command SHA-256 `fa70a79ed7f7c1ebfd542fd2bb9697ab514c7a8bb16dc286e7bdcaa57d48f8be`、input SHA-256 `07414a7fd17b207722d6ddbf74a1177c2e8a6d5ae31096b883b21e931a7a0c71`である。AUTOMOC `HEADERS=[]`、製品未解決記号なし、Qt Gui・Qt Widgets・製品libraryのない動的接続、無作業の対象限定再構築を確認した。試験sourceは43行・1枠であり、対象実行形式全体20回（60 pass）、追加枠20回（60 pass）、`clang-check -Werror`、書式、差分、JSON構文に成功した。公開API検査は29,338件対応、29,801件中463件未対応となった。新`build/tdd-macos/public-api-missing-g691.json`は123,730 bytes、SHA-256 `8d23cbd732f1905492c7a7b1f5761046844ea13df8480be76fbf4c7adf5be2e8`であり、生成成功後に旧g690報告をゴミ箱へ移した。主Ninja木6,122,680 KiB、共有compiler cache 982,056 KiB、空き容量40 GiB、最新報告だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 
 ### 第690便の公開API契約結果
 
