@@ -863,3 +863,24 @@ target_compile_definitions(KisPaintOptionWidgetSchemaContractTest PRIVATE
     kritaresources_EXPORTS
     kritatoolsui_EXPORTS
 )
+
+kis_add_test(
+    KisCurveOptionDataUniformPropertySchemaContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KisCurveOptionDataUniformPropertySchemaContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+    ${CMAKE_SOURCE_DIR}/libs/image
+    ${CMAKE_BINARY_DIR}/libs/image
+    ${CMAKE_SOURCE_DIR}/libs/image/brushengine
+)
+target_compile_definitions(KisCurveOptionDataUniformPropertySchemaContractTest PRIVATE
+    kritaglobal_EXPORTS
+    kritaimage_EXPORTS
+    kritalibpaintop_EXPORTS
+)
