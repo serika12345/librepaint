@@ -2,15 +2,22 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-15 14:56 JST
+- 更新日時: 2026-09-15 15:05 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
-- 完了: 第707便でoperation UI widget factoryの公開型・構築・設定取得・破棄APIを契約へ追加し、対応済みを29,429件へ進めた。
-- 次の作業: 第708便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
+- 完了: 第708便でtransform tool起動commandの公開型・構築・redo・undo・通知・破棄APIを契約へ追加し、対応済みを29,435件へ進めた。
+- 次の作業: 第709便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
 - 検証: macOSの対象・反復・無作業再構築、公開API検査、`verify-quick`に成功した。旧不足報告をTrashへ移し、最新報告だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は本便の対象外である。
+
+### 第708便の結果
+
+- `libs/ui/actions/KisTransformToolActivationCommand.h`から新規`libs/ui/tests/KisTransformToolActivationCommandSchemaContractTest.cpp`へ公開6 API・1枠`transformToolActivationCommandSchemaRemainStable`を追加した。公開headerと製品sourceを変更せず、transform tool起動commandがQObjectとundo command派生型としてviewと親commandを受けて構築し、redo・undoとtransform tool起動通知を提供して仮想破棄する公開形式を固定する。
+- `libs/ui/tests/CMakeLists.txt`へ専用targetを追加した。view表示とundo commandの推移ヘッダーを解決するため、ui・ui/widgets・painting/undo・globalとQt Widgets・KF I18nの探索路だけを追加し、実行・製品リンクは導入していない。試験sourceは36行・1枠で、構築閉包は4工程・8入力（command SHA-256 `19cc3ff64e06b7eaaf204e906e8d20cb908bde15dbe9e25f33813e80568d8195`、input SHA-256 `4615555ab9c9ecdb878d30f9af69a0fb2a3e55250a771218d030a2c2442b6de0`）となり、AUTOMOC `HEADERS=[]`、製品library・対象commandの未解決記号なしを確認した。
+- macOSで対象単発、追加枠20回（60成功）、無作業再構築、`clang-check`、`clang-format --dry-run --Werror`、公開API検査に成功した。正式不足報告`build/tdd-macos/public-api-missing-g708.json`は公開header 1,549、公開API 29,801、対応済み29,435、未対応366、95,783 bytes、SHA-256 `65f80566f790baea8245f19c155dd25b2cefdce8ea3d33d384b9ac3a3170aaab`を記録する。
+- `verify-quick`に成功し、旧`build/tdd-macos/public-api-missing-g707.json`をTrashへ移した。主Ninja木、共有compiler cache、最新`build/tdd-macos/public-api-missing-g708.json`だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 
 ### 第707便の結果
 
