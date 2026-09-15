@@ -2,15 +2,22 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-15 20:48 JST
+- 更新日時: 2026-09-15 20:59 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
-- 完了: 第743便でdither widgetの公開7 APIを契約へ追加し、対応済みを29,677件へ進めた。
-- 次の作業: 第744便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
+- 完了: 第744便でauto brush widgetの公開6 APIを契約へ追加し、対応済みを29,683件へ進めた。
+- 次の作業: 第745便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
 - 検証: macOSの対象・反復・無作業再構築、公開API検査、`verify-quick`に成功した。旧不足報告をTrashへ移し、最新報告だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は本便の対象外である。
+
+### 第744便の結果
+
+- `plugins/paintops/libpaintop/kis_auto_brush_widget.h`から既存`plugins/paintops/libpaintop/tests/KisPaintOptionWidgetSchemaContractTest.cpp`へ公開6 API・新規1枠`autoBrushWidgetSchemaRemainsStable`を追加した。auto brush widgetがUI基底widgetとして親widgetと名前で構築でき、auto brush model・最大brushサイズ・親widget・名前で構築・破棄され、現在brushを返す公開形式を固定する。
+- `plugins/paintops/libpaintop/tests/CMakeLists.txt`の同targetで`wdgautobrush.ui`を生成し、widgets・widgetutils・UI rootのsource・生成済みheader探索路とUI export定義だけを追加した。生成UIの`KisAngleSelector`、`kis_double_parse_spin_box`、`kis_curve_widget`を直接推移依存として解決し、製品object・libraryのlinkは導入していない。CMake再生成後に実行したのは同targetの自動MOC、UI生成、2 object、linkであり、製品targetは構築していない。試験sourceは132行・6枠で、構築閉包は5工程・9入力（command SHA-256 `8bec122d54c3c568655476423ac933b1ec401b17b85b6dfd27971295b231dde7`、input SHA-256 `16134363937aba16cc27c4de060ba4da5e65ccfbf89ca956df60ce9d9e5ef9fe`）となり、AUTOMOC `HEADERS=[]`、製品library・auto brush widget・UI基底widget・auto brush modelの未解決記号なしを確認した。
+- macOSで対象単発、全6枠20回（120成功）、追加枠60回（60成功）、無作業再構築、`clang-check`、`clang-format --dry-run --Werror`、公開API検査に成功した。正式不足報告`build/tdd-macos/public-api-missing-g744.json`は公開header 1,549、公開API 29,801、対応済み29,683、未対応118、30,685 bytes、SHA-256 `e3521c5bd12095dd8491820609c9cfa8b12ce708f72a2ca29a0560543cc86ba9`を記録する。
+- `verify-quick`に成功し、旧`build/tdd-macos/public-api-missing-g743.json`をTrashへ移した。主Ninja木、共有compiler cache、最新`build/tdd-macos/public-api-missing-g744.json`だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 
 ### 第743便の結果
 

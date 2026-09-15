@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 124
+    "expectedMissingApis": 118
   },
   "contracts": [
     {
@@ -83467,6 +83467,21 @@
         "method:KisDitherWidget::prepareLinkedResources(const KisFilterConfiguration & config,const QString & prefix,KisResourcesInterfaceSP resourcesInterface)",
         "method:KisDitherWidget::setConfiguration(const KisFilterConfiguration & config,const QString & prefix=\"\")",
         "method:KisDitherWidget::sigConfigurationItemChanged()"
+      ]
+    },
+    {
+      "target": "KisPaintOptionWidgetSchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisPaintOptionWidgetSchemaContractTest.cpp",
+      "test": "KisPaintOptionWidgetSchemaContractTest::autoBrushWidgetSchemaRemainsStable",
+      "behavior": "auto brush widgetはUI基底widgetとして親widgetと名前で構築でき、auto brush model・最大brushサイズ・親widget・名前で構築・破棄され、現在brushを返す公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisAutoBrushWidget",
+        "class:KisWdgAutoBrush",
+        "method:KisAutoBrushWidget::KisAutoBrushWidget(int maxBrushSize,KisAutoBrushModel * model,QWidget * parent,const char * name)",
+        "method:KisAutoBrushWidget::brush()",
+        "method:KisAutoBrushWidget::~KisAutoBrushWidget()",
+        "method:KisWdgAutoBrush::KisWdgAutoBrush(QWidget * parent,const char * name)"
       ]
     }
   ]
