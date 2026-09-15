@@ -2,15 +2,22 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-15 13:59 JST
+- 更新日時: 2026-09-15 14:06 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
-- 完了: 第701便でpainting information builder adapterの公開型・構築APIを契約へ追加し、対応済みを29,396件へ進めた。
-- 次の作業: 第702便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
+- 完了: 第702便でoperation UI widgetの公開型・構築・caption・設定受渡し・破棄APIを契約へ追加し、対応済みを29,401件へ進めた。
+- 次の作業: 第703便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
 - 検証: macOSの対象・反復・無作業再構築、公開API検査、`verify-quick`に成功した。製品target、全体build・`verify`、Linux、Nix再評価は本便の対象外である。
+
+### 第702便の結果
+
+- `libs/ui/operations/kis_operation_ui_widget.h`から既存`libs/tools/tests/KisToolSchemaContractTest.cpp`へ公開5 API・新規1枠`operationUiWidgetSchemaRemainStable`を追加した。公開header、製品source、CMakeを変更せず、抽象widgetがcaptionを受けて構築し、caption照会とoperation設定を受け渡し、仮想破棄する公開形式を固定する。
+- 試験sourceは283行・15枠で、構築閉包は4工程・8入力（command SHA-256 `11e761db1b4aa663e122571c0215b9b9ec6ee26fda3efdf5ec25a5cac7b63f85`、input SHA-256 `f2467da36c35df9f69e1a05f8471b1b7e2513fbdabefea6e9bf5aecf79e7544d`）を維持し、AUTOMOC `HEADERS=[]`、製品library・対象widgetの未解決記号なしを確認した。
+- macOSで対象単発、全15枠20回（340成功）、追加枠20回（60成功）、無作業再構築、`clang-check`、`clang-format --dry-run --Werror`、公開API検査に成功した。正式不足報告`build/tdd-macos/public-api-missing-g702.json`は公開header 1,549、公開API 29,801、対応済み29,401、未対応400、105,691 bytes、SHA-256 `cf6799e167d8ad36775da8e4fe75ea2db1fe95ef6e63cea6dd9a6e9b8baf28ea`を記録する。
+- `verify-quick`に成功後、旧`build/tdd-macos/public-api-missing-g701.json`をTrashへ移し、主Ninja木、共有compiler cache、最新`build/tdd-macos/public-api-missing-g702.json`だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 
 ### 第701便の結果
 

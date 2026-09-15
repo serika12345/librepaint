@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 405
+    "expectedMissingApis": 400
   },
   "contracts": [
     {
@@ -81797,6 +81797,20 @@
         "class:KisToolFreehandPaintingInformationBuilder",
         "method:KisConverterPaintingInformationBuilder::KisConverterPaintingInformationBuilder(const KisCoordinatesConverter * converter)",
         "method:KisToolFreehandPaintingInformationBuilder::KisToolFreehandPaintingInformationBuilder(KisToolFreehand * tool)"
+      ]
+    },
+    {
+      "target": "KisToolSchemaContractTest",
+      "source": "libs/tools/tests/KisToolSchemaContractTest.cpp",
+      "test": "KisToolSchemaContractTest::operationUiWidgetSchemaRemainStable",
+      "behavior": "operation UI widgetはQWidgetの公開抽象派生型としてcaptionを受けて構築し、caption照会とoperation設定の受け渡し形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisOperationUIWidget",
+        "method:KisOperationUIWidget::KisOperationUIWidget(const QString & caption,QWidget * parent=0)",
+        "method:KisOperationUIWidget::caption() const",
+        "method:KisOperationUIWidget::getConfiguration(KisOperationConfigurationSP config)",
+        "method:KisOperationUIWidget::~KisOperationUIWidget()"
       ]
     },
     {
