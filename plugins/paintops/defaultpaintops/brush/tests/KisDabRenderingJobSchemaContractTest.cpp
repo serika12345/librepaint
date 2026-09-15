@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "KisDabRenderingExecutor.h"
 #include "KisDabRenderingJob.h"
 #include "KisDabRenderingQueue.h"
 #include "KisDabRenderingQueueCache.h"
@@ -35,6 +36,7 @@ private Q_SLOTS:
     void dabRenderingQueueCacheResourceSignaturesRemainStable();
     void dabRenderingQueueMetricsSignaturesRemainStable();
     void dabRenderingQueueCacheSchemaRemainStable();
+    void dabRenderingExecutorSchemaRemainStable();
 };
 
 void KisDabRenderingJobSchemaContractTest::dabRenderingJobIdentityAndCopySchemaRemainsStable()
@@ -192,6 +194,29 @@ void KisDabRenderingJobSchemaContractTest::dabRenderingQueueCacheSchemaRemainSta
                                              KisDabCacheUtils::DabGenerationInfo *,
                                              bool *));
     ASSERT_DAB_JOB_SIGNATURE(Cache, hasSeparateOriginal, bool (Cache::*)(Resources *) const);
+
+    QVERIFY(true);
+}
+
+void KisDabRenderingJobSchemaContractTest::dabRenderingExecutorSchemaRemainStable()
+{
+    using Executor = KisDabRenderingExecutor;
+
+    static_assert(std::is_class_v<Executor>);
+    static_assert(std::is_constructible_v<Executor,
+                                          const KoColorSpace *,
+                                          KisDabCacheUtils::ResourcesFactory,
+                                          KisRunnableStrokeJobsInterface *,
+                                          KisMirrorOption *,
+                                          KisPrecisionOption *>);
+    static_assert(std::is_destructible_v<Executor>);
+    ASSERT_DAB_JOB_SIGNATURE(Executor,
+                             addDab,
+                             void (Executor::*)(const KisDabCacheUtils::DabRequestInfo &, qreal, qreal));
+    ASSERT_DAB_JOB_SIGNATURE(Executor, takeReadyDabs, QList<KisRenderedDab> (Executor::*)(bool, int, bool *));
+    ASSERT_DAB_JOB_SIGNATURE(Executor, hasPreparedDabs, bool (Executor::*)() const);
+    ASSERT_DAB_JOB_SIGNATURE(Executor, averageDabRenderingTime, qreal (Executor::*)() const);
+    ASSERT_DAB_JOB_SIGNATURE(Executor, averageDabSize, int (Executor::*)() const);
 
     QVERIFY(true);
 }
