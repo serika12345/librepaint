@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 359
+    "expectedMissingApis": 352
   },
   "contracts": [
     {
@@ -81871,6 +81871,22 @@
         "method:PsdTextDataConverter::errors() const",
         "method:PsdTextDataConverter::warnings() const",
         "method:PsdTextDataConverter::~PsdTextDataConverter()"
+      ]
+    },
+    {
+      "target": "KisPartSchemaContractTest",
+      "source": "libs/application/tests/KisPartSchemaContractTest.cpp",
+      "test": "KisPartSchemaContractTest::resourceServerProviderSchemaRemainStable",
+      "behavior": "resource server providerはQObject派生型として構築・破棄でき、singleton取得とworkspace・window layout・sessionのresource server照会を提供する公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisResourceServerProvider",
+        "method:KisResourceServerProvider::KisResourceServerProvider()",
+        "method:KisResourceServerProvider::instance()",
+        "method:KisResourceServerProvider::sessionServer()",
+        "method:KisResourceServerProvider::windowLayoutServer()",
+        "method:KisResourceServerProvider::workspaceServer()",
+        "method:KisResourceServerProvider::~KisResourceServerProvider()"
       ]
     },
     {
