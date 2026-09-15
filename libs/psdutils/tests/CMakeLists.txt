@@ -256,6 +256,20 @@ target_include_directories(KisTxt2UtilsSchemaContractTest PRIVATE
 target_compile_definitions(KisTxt2UtilsSchemaContractTest PRIVATE kritapsdutils_EXPORTS)
 
 kis_add_test(
+    PsdTextDataConverterSchemaContractTest.cpp
+    TEST_NAME PsdTextDataConverterSchemaContractTest
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(PsdTextDataConverterSchemaContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Gui,INTERFACE_INCLUDE_DIRECTORIES>
+)
+target_compile_definitions(PsdTextDataConverterSchemaContractTest PRIVATE kritapsdutils_EXPORTS)
+
+kis_add_test(
     KisAslWriterUtilsSchemaContractTest.cpp
     LINK_LIBRARIES
         Qt${QT_MAJOR_VERSION}::Core
