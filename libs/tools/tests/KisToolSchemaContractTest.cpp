@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include <kis_painting_information_builder.h>
 #include <kis_tool.h>
 #include <kis_tool_paint_interaction.h>
 #include <tools/ui/KisPaintResourceServerProvider.h>
@@ -49,6 +50,7 @@ private Q_SLOTS:
     void paintInteractionActivationFlagsAndPointerEventSchemaRemainStable();
     void paintInteractionNotificationSchemaRemainStable();
     void paintOpListWidgetSchemaRemainStable();
+    void paintingInformationBuilderRemainderSchemaRemainStable();
     void paintResourceServerProviderSchemaRemainStable();
     void rectangleConstraintWidgetSchemaRemainStable();
     void toolOptionsPopupSchemaRemainStable();
@@ -183,6 +185,16 @@ void KisToolSchemaContractTest::paintOpListWidgetSchemaRemainStable()
     static_assert(std::is_same_v<decltype(static_cast<void (Widget::*)(const QString &)>(&Widget::setCurrent)),
                                  void (Widget::*)(const QString &)>);
     static_assert(std::is_same_v<decltype(&Widget::activated), void (Widget::*)(const QString &)>);
+}
+
+void KisToolSchemaContractTest::paintingInformationBuilderRemainderSchemaRemainStable()
+{
+    using Builder = KisPaintingInformationBuilder;
+
+    static_assert(std::has_virtual_destructor_v<Builder>);
+    static_assert(
+        std::is_same_v<decltype(&Builder::continueStroke), KisPaintInformation (Builder::*)(KoPointerEvent *, int)>);
+    static_assert(std::is_same_v<decltype(&Builder::reset), void (Builder::*)()>);
 }
 
 void KisToolSchemaContractTest::paintResourceServerProviderSchemaRemainStable()
