@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 507
+    "expectedMissingApis": 472
   },
   "contracts": [
     {
@@ -27091,6 +27091,86 @@
         "method:KisCurveOptionInputControlsStrategy::KisCurveOptionInputControlsStrategy(KisCurveRangeModelInterface * rangeInterface,KisCurveWidget * curveWidget,QWidget * inPlaceholder,QWidget * outPlaceholder)",
         "method:KisCurveOptionInputControlsStrategy::factory()",
         "method:KisCurveOptionInputControlsStrategy::~KisCurveOptionInputControlsStrategy()"
+      ]
+    },
+    {
+      "target": "KisPaintOptionWidgetSchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisPaintOptionWidgetSchemaContractTest.cpp",
+      "test": "KisPaintOptionWidgetSchemaContractTest::filterOptionWidgetSchemaRemainStable",
+      "behavior": "filter option widgetはpaint optionの公開派生型としてfilter option data別名を公開し、option data cursorを受けて構築・破棄し、設定の読書きとimage・node設定を行う公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisFilterOptionWidget::data_type",
+        "class:KisFilterOptionWidget",
+        "method:KisFilterOptionWidget::KisFilterOptionWidget(lager::cursor<KisFilterOptionData> optionData)",
+        "method:KisFilterOptionWidget::readOptionSetting(const KisPropertiesConfigurationSP setting)",
+        "method:KisFilterOptionWidget::setImage(KisImageWSP image)",
+        "method:KisFilterOptionWidget::setNode(KisNodeWSP node)",
+        "method:KisFilterOptionWidget::writeOptionSetting(KisPropertiesConfigurationSP setting) const",
+        "method:KisFilterOptionWidget::~KisFilterOptionWidget()"
+      ]
+    },
+    {
+      "target": "KisPaintOptionWidgetSchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisPaintOptionWidgetSchemaContractTest.cpp",
+      "test": "KisPaintOptionWidgetSchemaContractTest::mirrorOptionWidgetSchemaRemainStable",
+      "behavior": "mirror option widgetはcurve option widgetの公開派生型としてmirror option data別名を公開し、option data cursorと任意のpaintop categoryを受けて構築・破棄し、設定の読書きを行う公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisMirrorOptionWidget::data_type",
+        "class:KisMirrorOptionWidget",
+        "method:KisMirrorOptionWidget::KisMirrorOptionWidget(lager::cursor<KisMirrorOptionData> optionData)",
+        "method:KisMirrorOptionWidget::KisMirrorOptionWidget(lager::cursor<KisMirrorOptionData> optionData,KisPaintOpOption::PaintopCategory categoryOverride)",
+        "method:KisMirrorOptionWidget::readOptionSetting(const KisPropertiesConfigurationSP setting)",
+        "method:KisMirrorOptionWidget::writeOptionSetting(KisPropertiesConfigurationSP setting) const",
+        "method:KisMirrorOptionWidget::~KisMirrorOptionWidget()"
+      ]
+    },
+    {
+      "target": "KisPaintOptionWidgetSchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisPaintOptionWidgetSchemaContractTest.cpp",
+      "test": "KisPaintOptionWidgetSchemaContractTest::paintingModeOptionWidgetSchemaRemainStable",
+      "behavior": "painting mode option widgetはpaint optionの公開派生型としてpainting mode option data別名を公開し、option data cursorとmasking brush状態readerを受けて構築・破棄し、設定の読書きを行う公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisPaintingModeOptionWidget::data_type",
+        "class:KisPaintingModeOptionWidget",
+        "method:KisPaintingModeOptionWidget::KisPaintingModeOptionWidget(lager::cursor<KisPaintingModeOptionData> optionData)",
+        "method:KisPaintingModeOptionWidget::KisPaintingModeOptionWidget(lager::cursor<KisPaintingModeOptionData> optionData,lager::reader<bool> maskingBrushEnabled)",
+        "method:KisPaintingModeOptionWidget::readOptionSetting(const KisPropertiesConfigurationSP setting)",
+        "method:KisPaintingModeOptionWidget::writeOptionSetting(KisPropertiesConfigurationSP setting) const",
+        "method:KisPaintingModeOptionWidget::~KisPaintingModeOptionWidget()"
+      ]
+    },
+    {
+      "target": "KisPaintOptionWidgetSchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisPaintOptionWidgetSchemaContractTest.cpp",
+      "test": "KisPaintOptionWidgetSchemaContractTest::scatterOptionWidgetSchemaRemainStable",
+      "behavior": "scatter option widgetはcurve option widgetの公開派生型としてscatter option data別名を公開し、option data cursorと任意のpaintop categoryを受けて構築・破棄し、設定の読書きを行う公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisScatterOptionWidget::data_type",
+        "class:KisScatterOptionWidget",
+        "method:KisScatterOptionWidget::KisScatterOptionWidget(lager::cursor<KisScatterOptionData> optionData)",
+        "method:KisScatterOptionWidget::KisScatterOptionWidget(lager::cursor<KisScatterOptionData> optionData,KisPaintOpOption::PaintopCategory categoryOverride)",
+        "method:KisScatterOptionWidget::readOptionSetting(const KisPropertiesConfigurationSP setting)",
+        "method:KisScatterOptionWidget::writeOptionSetting(KisPropertiesConfigurationSP setting) const",
+        "method:KisScatterOptionWidget::~KisScatterOptionWidget()"
+      ]
+    },
+    {
+      "target": "KisPaintOptionWidgetSchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisPaintOptionWidgetSchemaContractTest.cpp",
+      "test": "KisPaintOptionWidgetSchemaContractTest::textureOptionWidgetSchemaRemainStable",
+      "behavior": "texture option widgetはpaint optionの公開派生型としてtexture option data別名を公開し、option data cursor・資源interface・texture flagsを受けて構築・破棄し、設定の読書きを行う公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisTextureOptionWidget::data_type",
+        "class:KisTextureOptionWidget",
+        "method:KisTextureOptionWidget::KisTextureOptionWidget(lager::cursor<KisTextureOptionData> optionData,KisResourcesInterfaceSP resourcesInterface,KisBrushTextureFlags flags=None)",
+        "method:KisTextureOptionWidget::readOptionSetting(const KisPropertiesConfigurationSP setting)",
+        "method:KisTextureOptionWidget::writeOptionSetting(KisPropertiesConfigurationSP setting) const",
+        "method:KisTextureOptionWidget::~KisTextureOptionWidget()"
       ]
     },
     {
