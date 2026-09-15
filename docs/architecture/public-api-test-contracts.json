@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 366
+    "expectedMissingApis": 359
   },
   "contracts": [
     {
@@ -81855,6 +81855,22 @@
         "method:KisTransformToolActivationCommand::requestTransformTool()",
         "method:KisTransformToolActivationCommand::undo()",
         "method:KisTransformToolActivationCommand::~KisTransformToolActivationCommand()"
+      ]
+    },
+    {
+      "target": "PsdTextDataConverterSchemaContractTest",
+      "source": "libs/psdutils/tests/PsdTextDataConverterSchemaContractTest.cpp",
+      "test": "PsdTextDataConverterSchemaContractTest::psdTextDataConverterSchemaRemainStable",
+      "behavior": "PSD text data converterは値型として構築・破棄でき、PSD text engine dataとSVG textの相互変換、変換時のerrors・warnings照会を提供する公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:PsdTextDataConverter",
+        "method:PsdTextDataConverter::PsdTextDataConverter()",
+        "method:PsdTextDataConverter::convertPSDTextEngineDataToSVG(const QVariantHash tySh,const QVariantHash txt2,const KoColorSpace * imageCs,const int textIndex,QString * svgText,QString * svgStyles,QPointF & offset,bool & offsetByAscent,bool & isHorizontal,QTransform scaleToPt=QTransform ())",
+        "method:PsdTextDataConverter::convertToPSDTextEngineData(const QString & svgText,QRectF & boundingBox,const QList<KoShape * > & shapesInside,QVariantHash & txt2,int & textIndex,QString & textTotal,bool & isHorizontal,QTransform scaleToPx=QTransform ())",
+        "method:PsdTextDataConverter::errors() const",
+        "method:PsdTextDataConverter::warnings() const",
+        "method:PsdTextDataConverter::~PsdTextDataConverter()"
       ]
     },
     {
