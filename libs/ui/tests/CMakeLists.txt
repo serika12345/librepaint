@@ -2607,6 +2607,20 @@ target_compile_definitions(KisModelIndexConverterBaseContractTest PRIVATE
 )
 
 kis_add_test(
+    KisModelIndexConverterShowAllSchemaContractTest.cpp
+    TEST_NAME KisModelIndexConverterShowAllSchemaContractTest
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KisModelIndexConverterShowAllSchemaContractTest PRIVATE
+    ${kritauinodemanager_INCLUDE_DIRS}
+)
+target_compile_definitions(KisModelIndexConverterShowAllSchemaContractTest PRIVATE
+    kritaapplicationui_EXPORTS
+)
+
+kis_add_test(
     KisNodeModelIsolationMembershipContractTest.cpp
     TEST_NAME KisNodeModelIsolationMembershipContractTest
     LINK_LIBRARIES
