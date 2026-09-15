@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 178
+    "expectedMissingApis": 169
   },
   "contracts": [
     {
@@ -83332,6 +83332,24 @@
         "method:KisBrushOptionWidget::setImage(KisImageWSP image)",
         "method:KisBrushOptionWidget::writeOptionSetting(KisPropertiesConfigurationSP setting) const",
         "method:KisBrushOptionWidget::~KisBrushOptionWidget()"
+      ]
+    },
+    {
+      "target": "KisBrushBasedPaintOpSchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisBrushBasedPaintOpSchemaContractTest.cpp",
+      "test": "KisBrushBasedPaintOpSchemaContractTest::brushOptionPropertiesSchemaRemainStable",
+      "behavior": "brush option propertiesはcanvas resource対応paintop properties派生型としてbrushを保持し、設定の読込・書込、linked・embedded resource準備、brush適用方針、text brush判定の公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisBrushOptionProperties",
+        "method:KisBrushOptionProperties::brush() const",
+        "method:KisBrushOptionProperties::brushApplication(const KisPropertiesConfiguration * settings,KisResourcesInterfaceSP resourcesInterface)",
+        "method:KisBrushOptionProperties::isTextBrush(const KisPropertiesConfiguration * setting)",
+        "method:KisBrushOptionProperties::prepareEmbeddedResourcesImpl(const KisPropertiesConfiguration * settings,KisResourcesInterfaceSP resourcesInterface) const",
+        "method:KisBrushOptionProperties::prepareLinkedResourcesImpl(const KisPropertiesConfiguration * settings,KisResourcesInterfaceSP resourcesInterface) const",
+        "method:KisBrushOptionProperties::readOptionSettingResourceImpl(const KisPropertiesConfiguration * setting,KisResourcesInterfaceSP resourcesInterface,KoCanvasResourcesInterfaceSP canvasResourcesInterface)",
+        "method:KisBrushOptionProperties::setBrush(KisBrushSP brush)",
+        "method:KisBrushOptionProperties::writeOptionSettingImpl(KisPropertiesConfiguration * setting) const"
       ]
     }
   ]
