@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 290
+    "expectedMissingApis": 285
   },
   "contracts": [
     {
@@ -83112,6 +83112,20 @@
         "method:KisSyncLodCacheStrokeStrategy::createJobsData(KisImageWSP image)",
         "method:KisSyncLodCacheStrokeStrategy::createJobsData(QVector<KisStrokeJobData * > & jobs,KisNodeSP imageRoot,KisUpdatesFacade * updatesFacade,int levelOfDetail,KisPaintDeviceList extraDevices={})",
         "method:KisSyncLodCacheStrokeStrategy::~KisSyncLodCacheStrokeStrategy()"
+      ]
+    },
+    {
+      "target": "KisPaletteComboBoxSchemaContractTest",
+      "source": "libs/widgets/tests/KisPaletteComboBoxSchemaContractTest.cpp",
+      "test": "KisPaletteComboBoxSchemaContractTest::paletteComboBoxSchemaRemainsStable",
+      "behavior": "palette combo boxはsqueezed combo box派生型として親widgetで構築・破棄でき、選択色の通知とcompanion palette view設定の公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisPaletteComboBox",
+        "method:KisPaletteComboBox::KisPaletteComboBox(QWidget * parent=0)",
+        "method:KisPaletteComboBox::setCompanionView(KisPaletteView *)",
+        "method:KisPaletteComboBox::sigColorSelected(const KoColor &)",
+        "method:KisPaletteComboBox::~KisPaletteComboBox()"
       ]
     }
   ]

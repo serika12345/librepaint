@@ -2,15 +2,22 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-15 17:35 JST
+- 更新日時: 2026-09-15 17:48 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
-- 完了: 第722便で同期LOD cache stroke strategyの公開5 APIを契約へ追加し、対応済みを29,511件へ進めた。
-- 次の作業: 第723便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
+- 完了: 第723便でpalette combo boxの公開5 APIを契約へ追加し、対応済みを29,516件へ進めた。
+- 次の作業: 第724便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
 - 検証: macOSの対象・反復・無作業再構築、公開API検査、`verify-quick`に成功した。旧不足報告をTrashへ移し、最新報告だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は本便の対象外である。
+
+### 第723便の結果
+
+- `libs/widgets/KisPaletteComboBox.h`から新規`libs/widgets/tests/KisPaletteComboBoxSchemaContractTest.cpp`へ公開5 API・1枠`paletteComboBoxSchemaRemainsStable`を追加した。palette combo boxがsqueezed combo box派生型として親widgetで構築・破棄でき、選択色の通知とcompanion palette view設定を提供する公開形式を固定する。
+- `libs/widgets/tests/CMakeLists.txt`へ専用targetを追加した。widgets、widgetutils、pigment、resources、globalのsource・生成済みheaderとQt Core・Gui・Test、Qt Widgets・KI18n・KWidgetsAddonsのheader探索路だけを追加し、製品object・libraryのlinkを導入していない。試験sourceは34行・1枠で、構築閉包は4工程・8入力（command SHA-256 `b287a57d748d41dc7f66185fee44db9fda6b320db04844959b91c1b648d1058c`、input SHA-256 `143146a833896a5674dade9e74501992e789fd1541e3181ef26d7537745595ac`）となり、AUTOMOC `HEADERS=[]`、製品library・palette combo boxの未解決記号なしを確認した。
+- macOSで対象単発、全1枠20回（60成功）、追加枠20回（60成功）、無作業再構築、`clang-check`、`clang-format --dry-run --Werror`、公開API検査に成功した。正式不足報告`build/tdd-macos/public-api-missing-g723.json`は公開header 1,549、公開API 29,801、対応済み29,516、未対応285、74,553 bytes、SHA-256 `29873682c0d65a764228b1d6b204dd32b46b45eb87a10855bd23fe39e2bbaeb7`を記録する。
+- `verify-quick`に成功し、旧`build/tdd-macos/public-api-missing-g722.json`をTrashへ移した。主Ninja木、共有compiler cache、最新`build/tdd-macos/public-api-missing-g723.json`だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 
 ### 第722便の結果
 
