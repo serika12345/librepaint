@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 394
+    "expectedMissingApis": 388
   },
   "contracts": [
     {
@@ -81826,6 +81826,21 @@
         "method:KisReferenceImagesDecoration::addReferenceImage(KisReferenceImage * referenceImage)",
         "method:KisReferenceImagesDecoration::documentHasReferenceImages() const",
         "method:KisReferenceImagesDecoration::~KisReferenceImagesDecoration()"
+      ]
+    },
+    {
+      "target": "KisReferenceImagesDecorationSchemaContractTest",
+      "source": "libs/ui/tests/KisReferenceImagesDecorationSchemaContractTest.cpp",
+      "test": "KisReferenceImagesDecorationSchemaContractTest::guidesDecorationSchemaRemainStable",
+      "behavior": "guides decorationはcanvas decoration派生型としてviewを受けて構築し、guides設定の設定・照会形式と固定識別子を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisGuidesDecoration",
+        "method:KisGuidesDecoration::KisGuidesDecoration(QPointer<KisView> view)",
+        "method:KisGuidesDecoration::guidesConfig() const",
+        "method:KisGuidesDecoration::setGuidesConfig(const KisGuidesConfig & value)",
+        "method:KisGuidesDecoration::~KisGuidesDecoration()",
+        "variable:GUIDES_DECORATION_ID"
       ]
     },
     {
