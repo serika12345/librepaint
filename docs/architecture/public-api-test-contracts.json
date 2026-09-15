@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 321
+    "expectedMissingApis": 317
   },
   "contracts": [
     {
@@ -81784,6 +81784,19 @@
         "method:KisToolPaint::deactivate()",
         "method:KisToolPaint::popupWidget()",
         "method:KisToolPaint::~KisToolPaint()"
+      ]
+    },
+    {
+      "target": "KisToolSchemaContractTest",
+      "source": "libs/tools/tests/KisToolSchemaContractTest.cpp",
+      "test": "KisToolSchemaContractTest::toolMultihandHelperSchemaRemainStable",
+      "behavior": "multihand tool helperはfreehand helper基底型としてpainting information builder、canvas resource provider、undo transaction textで構築・破棄でき、変換群を設定する公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisToolMultihandHelper",
+        "method:KisToolMultihandHelper::KisToolMultihandHelper(KisPaintingInformationBuilder * infoBuilder,KoCanvasResourceProvider * resourceManager,const KUndo2MagicString & transactionText)",
+        "method:KisToolMultihandHelper::setupTransformations(const QVector<QTransform> & transformations)",
+        "method:KisToolMultihandHelper::~KisToolMultihandHelper()"
       ]
     },
     {

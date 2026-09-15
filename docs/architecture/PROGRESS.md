@@ -2,15 +2,22 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-15 16:18 JST
+- 更新日時: 2026-09-15 16:28 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
-- 完了: 第715便でpaint toolの公開型・構築・破棄・popup widget・有効化・無効化APIを契約へ追加し、対応済みを29,480件へ進めた。
-- 次の作業: 第716便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
+- 完了: 第716便でmultihand tool helperの公開型・構築・破棄・変換群設定APIを契約へ追加し、対応済みを29,484件へ進めた。
+- 次の作業: 第717便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
 - 検証: macOSの対象・反復・無作業再構築、公開API検査、`verify-quick`に成功した。旧不足報告をTrashへ移し、最新報告だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は本便の対象外である。
+
+### 第716便の結果
+
+- `libs/ui/tool/kis_tool_multihand_helper.h`から既存`libs/tools/tests/KisToolSchemaContractTest.cpp`へ公開4 API・新規1枠`toolMultihandHelperSchemaRemainStable`を追加した。公開headerと製品sourceを変更せず、multihand tool helperがfreehand helper基底型としてpainting information builder、canvas resource provider、undo transaction textで構築・破棄でき、変換群を設定する公開形式を固定する。
+- `libs/tools/tests/CMakeLists.txt`の同試験targetへ`libs/painting/undo`のsource・生成済みheader探索路と`kritapaintingundo_EXPORTS`だけを追加した。公開headerが直接includeする`kundo2magicstring.h`とそのexport定義を解決し、実行・製品linkは導入していない。試験sourceは299行・17枠で、構築閉包は4工程・8入力（command SHA-256 `dc0b67bcc915a6c402f7926cfc2ff1f113d0ad549b949c4c3d5db28c275c5e54`、input SHA-256 `f2467da36c35df9f69e1a05f8471b1b7e2513fbdabefea6e9bf5aecf79e7544d`）を維持し、AUTOMOC `HEADERS=[]`、製品library・対象multihand helperの未解決記号なしを確認した。
+- macOSで対象単発、全17枠20回（380成功）、追加枠20回（60成功）、無作業再構築、`clang-check`、`clang-format --dry-run --Werror`、公開API検査に成功した。正式不足報告`build/tdd-macos/public-api-missing-g716.json`は公開header 1,549、公開API 29,801、対応済み29,484、未対応317、83,098 bytes、SHA-256 `f91fe0c4e362c24ad16b6ac6dd4d2b56ab4152d73053aaea5a990a58152be198`を記録する。
+- `verify-quick`に成功し、旧`build/tdd-macos/public-api-missing-g715.json`をTrashへ移した。主Ninja木、共有compiler cache、最新`build/tdd-macos/public-api-missing-g716.json`だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 
 ### 第715便の結果
 
