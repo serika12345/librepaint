@@ -2,14 +2,14 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-15 12:44 JST
+- 更新日時: 2026-09-15 12:51 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
-- 完了: 第691便でpaintop plugin utilityのspacing・timing APIを契約へ追加し、対応済みを29,338件へ進めた。
-- 次の作業: 第692便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
+- 完了: 第692便でdab rendering queue cacheの公開型・cache APIを契約へ追加し、対応済みを29,343件へ進めた。
+- 次の作業: 第693便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
 - 検証: macOSの対象・反復・無作業再構築、公開API検査、`verify-quick`に成功した。製品target、全体build・`verify`、Linux、Nix再評価は本便の対象外である。
 
 ### 第202便の先行監査担当票
@@ -5823,6 +5823,12 @@
 - CMake、公開header、製品sourceは変更していない。macOSの限定構築は`KisCursorOverrideHijackerSchemaContractTest`の自動生成、試験source、実行ファイルだけをコンパイル・リンクし、製品targetを再構築していない。実測閉包は4工程・8入力、command SHA-256 `ef32b3dd7378f1d5e5ef739d9977409afa1f64e34d162fddfb54cfd31327fc3d`、input SHA-256 `58d9882064254f622d7496f1d8e232987c51dd89595a3d9101b9bbaef2ddb583`を維持した。
 - 試験sourceは277行・19枠、AUTOMOC `HEADERS=[]`、Qt Core・TestとOS frameworkだけの動的接続であり、template creation dialog・製品libraryの未解決記号がないことを確認した。対象全体20回、追加枠20回（60 pass）、近傍`KisGrabKeyboardFocusRecoveryWorkaroundSchemaContractTest`、連続二回の無作業Ninja構築、`clang-check -Werror`、書式、JSON構文、差分に成功した。
 - 初回照合は移行基準888件に対して実測886件となる期待診断を確認後、基準を更新した。公開API検査は28,915件対応、29,801件中886件未対応となった。新`build/tdd-macos/public-api-missing-g609.json`は243,686 bytes、SHA-256 `3054ebba7a39fe813e03d2bcce52fdc1b2181406427f087d9c308fe048f4b193`である。生成成功後に旧`public-api-missing-g608.json` 244,308 bytesをゴミ箱へ移し、主Ninja木6,061,012 KiB、共有compiler cache 983,424 KiB、最新報告だけを再利用対象として保持する。template資源の読込み・書込み、文書生成、dialogの表示と選択は、製品実装を接続する後続の効果契約で扱う。次の永続作業は第610便で別の独立軽量試験に追加可能な公開headerを選び、対象限定閉包を先に監査することである。
+
+### 第692便の公開API契約結果
+
+- 開始`plugins/paintops/defaultpaintops/brush/KisDabRenderingQueueCache.h`から既存`plugins/paintops/defaultpaintops/brush/tests/KisDabRenderingJobSchemaContractTest.cpp`へ、dab rendering queue cacheの公開派生型、構築・破棄、dab種別・separate original照会の5 APIを1枠へ対応付けた。型特性と厳密なメンバー関数pointerだけを用い、cache、資源、dab request・generation情報を実体化または実行していない。
+- `plugins/paintops/defaultpaintops/brush/tests/CMakeLists.txt`の同target節へ、公開headerの直接include閉包を解決する`libs/resources`と`libs/brush`のsource・生成先だけを追加した。CMake再構成では探索路を登録し、Ninjaは同試験の自動生成、試験source、実行形式だけをコンパイル・リンクした。製品target、製品shared、OBJECT target、`kritatestsdk`を構築へ加えていない。
+- 同targetの閉包は4工程・8入力、command SHA-256 `93b2a886423a122f19367f80857b403d23a95df4b08c5eda21f0305f6560a893`、input SHA-256 `3ac7fbe9f558dbb8785b892897bee5eb388a41a8c834994ca3f5e6cedb365a58`を維持した。AUTOMOC `HEADERS=[]`、製品未解決記号なし、Qt Widgets・製品libraryのない動的接続、無作業の対象限定再構築を確認した。試験sourceは201行・11枠であり、対象実行形式全体20回（260 pass）、追加枠20回（60 pass）、`clang-check -Werror`、書式、差分、JSON構文に成功した。公開API検査は29,343件対応、29,801件中458件未対応となった。新`build/tdd-macos/public-api-missing-g692.json`は121,971 bytes、SHA-256 `a88299816cdf08ed1b879c33d1415de0ef3f74e93feef4c447735229ec845c04`であり、生成成功後に旧g691報告をゴミ箱へ移した。主Ninja木6,122,716 KiB、共有compiler cache 982,360 KiB、空き容量40 GiB、最新報告だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 
 ### 第691便の公開API契約結果
 

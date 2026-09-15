@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 463
+    "expectedMissingApis": 458
   },
   "contracts": [
     {
@@ -27198,6 +27198,20 @@
       "apis": [
         "function:KisPaintOpPluginUtils::effectiveSpacing(qreal dabWidth,qreal dabHeight,bool isotropicSpacing,qreal rotation,bool axesFlipped,qreal spacingVal,bool autoSpacingActive,qreal autoSpacingCoeff,qreal lodScale,const KisAirbrushOptionData * airbrushOption,const KisSpacingOption * spacingOption,const KisPaintInformation & pi)",
         "function:KisPaintOpPluginUtils::effectiveTiming(const KisAirbrushOptionData * airbrushOption,const KisRateOption * rateOption,const KisPaintInformation & pi)"
+      ]
+    },
+    {
+      "target": "KisDabRenderingJobSchemaContractTest",
+      "source": "plugins/paintops/defaultpaintops/brush/tests/KisDabRenderingJobSchemaContractTest.cpp",
+      "test": "KisDabRenderingJobSchemaContractTest::dabRenderingQueueCacheSchemaRemainStable",
+      "behavior": "dab rendering queue cacheはqueue cache interfaceとdab cache baseの公開派生型として構築・破棄し、dab種別とseparate original状態を照会する公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisDabRenderingQueueCache",
+        "method:KisDabRenderingQueueCache::KisDabRenderingQueueCache()",
+        "method:KisDabRenderingQueueCache::getDabType(bool hasDabInCache,KisDabCacheUtils::DabRenderingResources * resources,const KisDabCacheUtils::DabRequestInfo & request,KisDabCacheUtils::DabGenerationInfo * di,bool * shouldUseCache)",
+        "method:KisDabRenderingQueueCache::hasSeparateOriginal(KisDabCacheUtils::DabRenderingResources * resources) const",
+        "method:KisDabRenderingQueueCache::~KisDabRenderingQueueCache()"
       ]
     },
     {
