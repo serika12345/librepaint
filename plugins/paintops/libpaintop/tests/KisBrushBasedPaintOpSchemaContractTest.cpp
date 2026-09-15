@@ -10,6 +10,7 @@
 #include "KisLightnessStrengthOptionWidget.h"
 #include "KisMaskingBrushOptionProperties.h"
 #include "KisSharpnessOptionWidget.h"
+#include "KisSizeOptionWidget.h"
 #include "KisSpacingOptionWidget.h"
 #include "kis_brush_based_paintop.h"
 #include "kis_brush_based_paintop_options_widget.h"
@@ -63,6 +64,7 @@ private Q_SLOTS:
     void compositeOpOptionWidgetSchemaRemainStable();
     void lightnessStrengthOptionWidgetSchemaRemainStable();
     void sharpnessOptionWidgetSchemaRemainStable();
+    void sizeOptionWidgetSchemaRemainStable();
     void spacingOptionWidgetSchemaRemainStable();
     void textBrushInitializationSchemaRemainStable();
     void brushPaintOpTypeConstructionAndLifetimeSchemaRemainStable();
@@ -137,6 +139,20 @@ void KisBrushBasedPaintOpSchemaContractTest::lightnessStrengthOptionWidgetSchema
 void KisBrushBasedPaintOpSchemaContractTest::sharpnessOptionWidgetSchemaRemainStable()
 {
     verifyPaintOpOptionWidgetSchema<KisSharpnessOptionWidget, KisSharpnessOptionData>();
+}
+
+void KisBrushBasedPaintOpSchemaContractTest::sizeOptionWidgetSchemaRemainStable()
+{
+    using Widget = KisSizeOptionWidget;
+
+    static_assert(std::is_class_v<Widget>);
+    static_assert(std::is_base_of_v<KisCurveOptionWidget, Widget>);
+    static_assert(std::is_same_v<Widget::data_type, KisSizeOptionData>);
+    static_assert(std::is_constructible_v<Widget, lager::cursor<KisSizeOptionData>>);
+    static_assert(std::is_constructible_v<Widget, lager::cursor<KisSizeOptionData>, KisPaintOpOption::PaintopCategory>);
+    static_assert(std::is_destructible_v<Widget>);
+    static_assert(std::is_same_v<decltype(&Widget::lodLimitationsReader),
+                                 KisPaintOpOption::OptionalLodLimitationsReader (Widget::*)() const>);
 }
 
 void KisBrushBasedPaintOpSchemaContractTest::spacingOptionWidgetSchemaRemainStable()
