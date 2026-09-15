@@ -332,6 +332,10 @@ target_include_directories(KisImportExportManagerSchemaContractTest PRIVATE
     ${CMAKE_BINARY_DIR}/libs/global
     ${CMAKE_BINARY_DIR}/libs/impex
     ${CMAKE_BINARY_DIR}/libs/application
+    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Gui,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:Eigen3::Eigen,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:Imath::Imath,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
 )
 target_compile_definitions(KisImportExportManagerSchemaContractTest PRIVATE
     kritaapplicationui_EXPORTS

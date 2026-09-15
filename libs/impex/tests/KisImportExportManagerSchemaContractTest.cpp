@@ -6,6 +6,7 @@
 #include "../ui/KisImportExportManager.h"
 #include "KisExportCheckRegistry.h"
 #include "KisImportExportColorSpaceDialog.h"
+#include "KisImportExportFilter.h"
 
 #include <QFuture>
 
@@ -34,6 +35,7 @@ private Q_SLOTS:
     void filterDiscoveryAndConfigurationSignaturesRemainStable();
     void batchAndProgressSignaturesRemainStable();
     void additionalFileQuerySignaturesRemainStable();
+    void importExportFilterLifetimeSchemaRemainsStable();
 };
 
 void KisImportExportManagerSchemaContractTest::exportCheckRegistryLifetimeSchemaRemainsStable()
@@ -69,6 +71,13 @@ void KisImportExportManagerSchemaContractTest::typeDirectionConstructionAndLifet
     static_assert(!std::is_copy_constructible_v<Manager>);
 
     QVERIFY(true);
+}
+
+void KisImportExportManagerSchemaContractTest::importExportFilterLifetimeSchemaRemainsStable()
+{
+    static_assert(std::is_base_of_v<QObject, KisImportExportFilter>);
+    static_assert(std::is_abstract_v<KisImportExportFilter>);
+    static_assert(std::has_virtual_destructor_v<KisImportExportFilter>);
 }
 
 void KisImportExportManagerSchemaContractTest::documentConversionSignaturesRemainStable()
