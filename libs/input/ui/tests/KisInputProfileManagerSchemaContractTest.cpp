@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "config/kis_input_configuration_page.h"
 #include "kis_input_profile_manager.h"
 
 #include <type_traits>
@@ -27,6 +28,7 @@ private Q_SLOTS:
     void inputProfileManagerProfileQueryAndSelectionSignaturesRemainStable();
     void inputProfileManagerProfileMutationSignaturesRemainStable();
     void inputProfileManagerPersistenceAndNotificationSignaturesRemainStable();
+    void inputConfigurationPageSchemaRemainsStable();
 };
 
 void KisInputProfileManagerSchemaContractTest::inputProfileManagerTypeLifetimeAndSingletonSchemaRemainStable()
@@ -95,6 +97,22 @@ void KisInputProfileManagerSchemaContractTest::inputProfileManagerPersistenceAnd
     ASSERT_INPUT_PROFILE_MANAGER_MEMBER(saveProfile, void (Manager::*)(KisInputProfile *, QString));
     ASSERT_INPUT_PROFILE_MANAGER_MEMBER(saveProfiles, void (Manager::*)());
     ASSERT_INPUT_PROFILE_MANAGER_MEMBER(setProfileLocations, void (Manager::*)(const QStringList &, const QString &));
+
+    QVERIFY(true);
+}
+
+void KisInputProfileManagerSchemaContractTest::inputConfigurationPageSchemaRemainsStable()
+{
+    using Page = KisInputConfigurationPage;
+
+    static_assert(std::is_base_of_v<QWidget, Page>);
+    static_assert(std::is_constructible_v<Page, QWidget *>);
+    static_assert(std::is_constructible_v<Page, QWidget *, Qt::WindowFlags>);
+    static_assert(std::has_virtual_destructor_v<Page>);
+    static_assert(std::is_same_v<decltype(&Page::saveChanges), void (Page::*)()>);
+    static_assert(std::is_same_v<decltype(&Page::revertChanges), void (Page::*)()>);
+    static_assert(std::is_same_v<decltype(&Page::setDefaults), void (Page::*)()>);
+    static_assert(std::is_same_v<decltype(&Page::slotScrollerStateChanged), void (Page::*)(QScroller::State)>);
 
     QVERIFY(true);
 }
