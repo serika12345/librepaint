@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 376
+    "expectedMissingApis": 372
   },
   "contracts": [
     {
@@ -81827,6 +81827,19 @@
         "method:KisOperationUIWidget::caption() const",
         "method:KisOperationUIWidget::getConfiguration(KisOperationConfigurationSP config)",
         "method:KisOperationUIWidget::~KisOperationUIWidget()"
+      ]
+    },
+    {
+      "target": "KisOperationUIWidgetFactorySchemaContractTest",
+      "source": "libs/ui/tests/KisOperationUIWidgetFactorySchemaContractTest.cpp",
+      "test": "KisOperationUIWidgetFactorySchemaContractTest::operationUiWidgetFactorySchemaRemainStable",
+      "behavior": "operation UI widget factoryはoperation UI factoryの公開派生型として識別子を受けて構築し、viewと設定を受けてwidget由来の設定を取得する公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisOperationUIWidgetFactory",
+        "method:KisOperationUIWidgetFactory::KisOperationUIWidgetFactory(const QString & id)",
+        "method:KisOperationUIWidgetFactory::fetchConfiguration(KisViewManager * view,KisOperationConfigurationSP configuration)",
+        "method:KisOperationUIWidgetFactory::~KisOperationUIWidgetFactory()"
       ]
     },
     {

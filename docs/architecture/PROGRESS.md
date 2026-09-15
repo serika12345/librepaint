@@ -2,15 +2,22 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-15 14:43 JST
+- 更新日時: 2026-09-15 14:56 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
-- 完了: 第706便でroot表示用model index converterの公開型・構築・変換・照会APIを契約へ追加し、対応済みを29,425件へ進めた。
-- 次の作業: 第707便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
+- 完了: 第707便でoperation UI widget factoryの公開型・構築・設定取得・破棄APIを契約へ追加し、対応済みを29,429件へ進めた。
+- 次の作業: 第708便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
 - 検証: macOSの対象・反復・無作業再構築、公開API検査、`verify-quick`に成功した。旧不足報告をTrashへ移し、最新報告だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は本便の対象外である。
+
+### 第707便の結果
+
+- `libs/ui/operations/kis_operation_ui_widget_factory.h`から新規`libs/ui/tests/KisOperationUIWidgetFactorySchemaContractTest.cpp`へ公開4 API・1枠`operationUiWidgetFactorySchemaRemainStable`を追加した。公開headerと製品sourceを変更せず、operation UI widget factoryがoperation UI factory派生型として識別子を受けて構築し、viewと設定からwidget由来の設定を取得して仮想破棄する公開形式を固定する。
+- `libs/ui/tests/CMakeLists.txt`へ専用targetを追加した。factoryが公開するoperation設定の値型を解決するため、ui・widgets・image・global・pigmentとQt Widgets、KF ConfigCore・I18n・WidgetsAddons、Eigen、Imathの探索路だけを追加し、実行・製品リンクは導入していない。試験sourceは45行・1枠で、構築閉包は4工程・8入力（command SHA-256 `ea61165c0fcb3ef8b4d5651292c7552d8586902f501430011dcd5e48f5c70ee0`、input SHA-256 `0917a91f3efb476b1ed40c15cf54786abf2cc7cc3262ef17fc1ee0dbe30c6383`）となり、AUTOMOC `HEADERS=[]`、製品library・operation UI型の未解決記号なしを確認した。
+- macOSで対象単発、追加枠20回（60成功）、無作業再構築、`clang-check`、`clang-format --dry-run --Werror`、公開API検査に成功した。正式不足報告`build/tdd-macos/public-api-missing-g707.json`は公開header 1,549、公開API 29,801、対応済み29,429、未対応372、97,423 bytes、SHA-256 `8cde1866abafb18bbec309c83bf849cf59807205b68d6d155cdf0dbb3b5ba988`を記録する。
+- `verify-quick`に成功し、旧`build/tdd-macos/public-api-missing-g706.json`をTrashへ移した。主Ninja木、共有compiler cache、最新`build/tdd-macos/public-api-missing-g707.json`だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 
 ### 第706便の結果
 
