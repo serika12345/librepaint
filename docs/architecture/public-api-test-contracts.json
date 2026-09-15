@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 450
+    "expectedMissingApis": 444
   },
   "contracts": [
     {
@@ -27229,6 +27229,21 @@
         "method:KisDabRenderingExecutor::hasPreparedDabs() const",
         "method:KisDabRenderingExecutor::takeReadyDabs(bool returnMutableDabs=false,int oneTimeLimit=-1,bool * someDabsLeft=0)",
         "method:KisDabRenderingExecutor::~KisDabRenderingExecutor()"
+      ]
+    },
+    {
+      "target": "KisPaintOpConfigWidgetSchemaContractTest",
+      "source": "libs/image/tests/KisPaintOpConfigWidgetSchemaContractTest.cpp",
+      "test": "KisPaintOpConfigWidgetSchemaContractTest::noSizePaintOpSettingsSchemaRemainStable",
+      "behavior": "sizeを持たないpaintop設定はpaintop設定の公開派生型として資源interfaceを受けて構築し、sizeとangleの設定・照会APIを提供する形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisNoSizePaintOpSettings",
+        "method:KisNoSizePaintOpSettings::KisNoSizePaintOpSettings(KisResourcesInterfaceSP resourcesInterface)",
+        "method:KisNoSizePaintOpSettings::paintOpAngle() const",
+        "method:KisNoSizePaintOpSettings::paintOpSize() const",
+        "method:KisNoSizePaintOpSettings::setPaintOpAngle(qreal value)",
+        "method:KisNoSizePaintOpSettings::setPaintOpSize(qreal value)"
       ]
     },
     {

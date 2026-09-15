@@ -2,14 +2,14 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-15 12:57 JST
+- 更新日時: 2026-09-15 13:05 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
-- 完了: 第693便でdab rendering executorの公開型・queue APIを契約へ追加し、対応済みを29,351件へ進めた。
-- 次の作業: 第694便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
+- 完了: 第694便でNoSize paintop設定の公開型・size・angle APIを契約へ追加し、対応済みを29,357件へ進めた。
+- 次の作業: 第695便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
 - 検証: macOSの対象・反復・無作業再構築、公開API検査、`verify-quick`に成功した。製品target、全体build・`verify`、Linux、Nix再評価は本便の対象外である。
 
 ### 第202便の先行監査担当票
@@ -5823,6 +5823,11 @@
 - CMake、公開header、製品sourceは変更していない。macOSの限定構築は`KisCursorOverrideHijackerSchemaContractTest`の自動生成、試験source、実行ファイルだけをコンパイル・リンクし、製品targetを再構築していない。実測閉包は4工程・8入力、command SHA-256 `ef32b3dd7378f1d5e5ef739d9977409afa1f64e34d162fddfb54cfd31327fc3d`、input SHA-256 `58d9882064254f622d7496f1d8e232987c51dd89595a3d9101b9bbaef2ddb583`を維持した。
 - 試験sourceは277行・19枠、AUTOMOC `HEADERS=[]`、Qt Core・TestとOS frameworkだけの動的接続であり、template creation dialog・製品libraryの未解決記号がないことを確認した。対象全体20回、追加枠20回（60 pass）、近傍`KisGrabKeyboardFocusRecoveryWorkaroundSchemaContractTest`、連続二回の無作業Ninja構築、`clang-check -Werror`、書式、JSON構文、差分に成功した。
 - 初回照合は移行基準888件に対して実測886件となる期待診断を確認後、基準を更新した。公開API検査は28,915件対応、29,801件中886件未対応となった。新`build/tdd-macos/public-api-missing-g609.json`は243,686 bytes、SHA-256 `3054ebba7a39fe813e03d2bcce52fdc1b2181406427f087d9c308fe048f4b193`である。生成成功後に旧`public-api-missing-g608.json` 244,308 bytesをゴミ箱へ移し、主Ninja木6,061,012 KiB、共有compiler cache 983,424 KiB、最新報告だけを再利用対象として保持する。template資源の読込み・書込み、文書生成、dialogの表示と選択は、製品実装を接続する後続の効果契約で扱う。次の永続作業は第610便で別の独立軽量試験に追加可能な公開headerを選び、対象限定閉包を先に監査することである。
+
+### 第694便の公開API契約結果
+
+- 開始`libs/image/brushengine/kis_no_size_paintop_settings.h`から既存`libs/image/tests/KisPaintOpConfigWidgetSchemaContractTest.cpp`へ、NoSize paintop設定の公開派生型、資源interfaceによる構築、size・angleの設定と照会の6 APIを1枠へ対応付けた。型特性と厳密なメンバー関数pointerだけを用い、設定、資源interface、size、angleを実体化または実行していない。CMake、公開header、製品sourceは変更していない。
+- 同targetの閉包は4工程・8入力、command SHA-256 `46a756a73c085a64d734782badc22b51c9fcd9d0f66fb7a43a2dc5b3a6e02967`、input SHA-256 `b967f4524c5ae0b4e0eab08d1da838e1462a39be2e1371ab5cd19329666c1450`を維持した。AUTOMOC `HEADERS=[]`、製品未解決記号なし、Qt Gui・Qt Widgets・製品libraryのない動的接続、無作業の対象限定再構築を確認した。試験sourceは199行・11枠であり、対象実行形式全体20回（260 pass）、追加枠20回（60 pass）、`clang-check -Werror`、書式、差分、JSON構文に成功した。公開API検査は29,357件対応、29,801件中444件未対応となった。新`build/tdd-macos/public-api-missing-g694.json`は117,650 bytes、SHA-256 `a3fe4849a454622532ef6bd4d24fd550cc984ee7b67b8d9f2be34042f4f2c21a`であり、生成成功後に旧g693報告をゴミ箱へ移した。主Ninja木6,122,812 KiB、共有compiler cache 982,968 KiB、空き容量40 GiB、最新報告だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 
 ### 第693便の公開API契約結果
 
