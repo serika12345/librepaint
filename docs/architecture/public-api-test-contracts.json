@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 132
+    "expectedMissingApis": 131
   },
   "contracts": [
     {
@@ -83441,6 +83441,16 @@
         "method:PerspectiveBasedAssistantHelper::distanceInGrid(const QList<KisPaintingAssistantHandleSP> & handles,bool isAssistantComplete,const QPointF & point)",
         "method:PerspectiveBasedAssistantHelper::getAllConnectedTetragon(const QList<KisPaintingAssistantHandleSP> & handles)",
         "method:PerspectiveBasedAssistantHelper::getTetragon(const QList<KisPaintingAssistantHandleSP> & handles,bool isAssistantComplete,QPolygonF & outPolygon)"
+      ]
+    },
+    {
+      "target": "KisImportExportManagerSchemaContractTest",
+      "source": "libs/impex/tests/KisImportExportManagerSchemaContractTest.cpp",
+      "test": "KisImportExportManagerSchemaContractTest::importExportFilterLifetimeSchemaRemainsStable",
+      "behavior": "import/export filterがQObject派生の抽象基底型として仮想destructorによる安全な破棄を提供する公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisImportExportFilter::~KisImportExportFilter()"
       ]
     }
   ]
