@@ -873,6 +873,7 @@ target_compile_definitions(KisPaintOptionWidgetSchemaContractTest PRIVATE
 )
 ki18n_wrap_ui(KisPaintOptionWidgetSchemaContractTest
     ${CMAKE_CURRENT_SOURCE_DIR}/../forms/wdgautobrush.ui
+    ${CMAKE_CURRENT_SOURCE_DIR}/../forms/wdgbrushchooser.ui
     ${CMAKE_CURRENT_SOURCE_DIR}/../forms/wdgpredefinedbrushchooser.ui
 )
 

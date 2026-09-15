@@ -9,6 +9,7 @@
 #include "KisScatterOptionWidget.h"
 #include "KisTextureOptionWidget.h"
 #include "kis_auto_brush_widget.h"
+#include "kis_brush_selection_widget.h"
 #include "kis_predefined_brush_chooser.h"
 
 #include <QTest>
@@ -61,6 +62,7 @@ private Q_SLOTS:
     void textureOptionWidgetSchemaRemainStable();
     void autoBrushWidgetSchemaRemainsStable();
     void predefinedBrushChooserSchemaRemainsStable();
+    void brushSelectionWidgetSchemaRemainsStable();
 };
 
 void KisPaintOptionWidgetSchemaContractTest::filterOptionWidgetSchemaRemainStable()
@@ -139,6 +141,29 @@ void KisPaintOptionWidgetSchemaContractTest::predefinedBrushChooserSchemaRemains
     static_assert(std::is_same_v<decltype(&Chooser::setBrush), void (Chooser::*)(KisBrushSP)>);
     static_assert(std::is_same_v<decltype(&Chooser::setImage), void (Chooser::*)(KisImageWSP)>);
     static_assert(std::is_same_v<decltype(&Chooser::lightnessModeEnabled), lager::reader<bool> (Chooser::*)() const>);
+}
+
+void KisPaintOptionWidgetSchemaContractTest::brushSelectionWidgetSchemaRemainsStable()
+{
+    using Widget = KisBrushSelectionWidget;
+
+    static_assert(std::is_base_of_v<QWidget, Widget>);
+    static_assert(std::is_constructible_v<Widget,
+                                          int,
+                                          KisAutoBrushModel *,
+                                          KisPredefinedBrushModel *,
+                                          KisTextBrushModel *,
+                                          lager::cursor<KisBrushModel::BrushType>,
+                                          lager::cursor<KisBrushModel::PrecisionData>,
+                                          KisBrushOptionWidgetFlags,
+                                          QWidget *>);
+    static_assert(std::has_virtual_destructor_v<Widget>);
+    static_assert(std::is_same_v<decltype(&Widget::brush), KisBrushSP (Widget::*)() const>);
+    static_assert(std::is_same_v<decltype(&Widget::setImage), void (Widget::*)(KisImageWSP)>);
+    static_assert(std::is_same_v<decltype(&Widget::hideOptions), void (Widget::*)(const QStringList &)>);
+    static_assert(std::is_same_v<decltype(&Widget::lightnessModeEnabled), lager::reader<bool> (Widget::*)() const>);
+    static_assert(std::is_same_v<decltype(&Widget::sigBrushChanged), void (Widget::*)()>);
+    static_assert(std::is_same_v<decltype(&Widget::sigPrecisionChanged), void (Widget::*)()>);
 }
 
 QTEST_GUILESS_MAIN(KisPaintOptionWidgetSchemaContractTest)
