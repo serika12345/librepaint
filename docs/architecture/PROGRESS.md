@@ -2,15 +2,22 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-15 21:25 JST
+- 更新日時: 2026-09-15 21:33 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
-- 完了: 第747便でshape toolとgeometry options widgetの公開12 APIを契約へ追加し、対応済みを29,710件へ進めた。
-- 次の作業: 第748便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
+- 完了: 第748便でadvanced color space selectorの公開10 APIを契約へ追加し、対応済みを29,720件へ進めた。
+- 次の作業: 第749便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
 - 検証: macOSの対象・反復・無作業再構築、公開API検査、`verify-quick`に成功した。旧不足報告をTrashへ移し、最新報告だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は本便の対象外である。
+
+### 第748便の結果
+
+- `libs/ui/widgets/kis_advanced_color_space_selector.h`から既存`libs/ui/tests/KisDisplayConfigSchemaContractTest.cpp`へpublic 10 API・新規1枠`advancedColorSpaceSelectorSchemaRemainsStable`を追加した。advanced color space selectorがdialog派生型として親widgetとcaptionで構築・破棄でき、現在色空間の照会、color model・depth・profile・色空間の選択と有効な選択・色空間変更通知を提供する公開形式を固定する。
+- `libs/ui/tests/CMakeLists.txt`の同targetで`wdgcolorspaceselectoradvanced.ui`を生成した。既存の色空間・UIの直接header探索路とQt接続を再利用し、生成UIの`KisCmbIDList`、`KisCIETongueWidget`、`KisToneCurveWidget`を解決した。最初の対象ビルドは同名private slotとpublic signalの`colorSpaceChanged`が曖昧だと診断し、public signalのメンバー関数ポインタ型を明示して解消した。製品object・libraryのlinkは導入していない。CMake再生成後に実行したのは同targetの自動MOC、UI生成、2 object、linkであり、製品targetは構築していない。試験sourceは379行・21枠で、構築閉包は5工程・9入力（command SHA-256 `bd8ba8c66ad6afa42788646e33a53e931aa026819d7da344be459b2f8403cd35`、input SHA-256 `ea1b5d977bdc5dce1792762cd91a089dff9cecd79cc2afb2015db987f4a31194`）となり、AUTOMOC `HEADERS=[]`、製品library・advanced color space selector・color space registry・UI custom widgetの未解決記号なしを確認した。
+- macOSで対象単発、全21枠20回（420成功）、追加枠60回（60成功）、無作業再構築2回、`clang-check`、`clang-format --dry-run --Werror`、公開API検査に成功した。正式不足報告`build/tdd-macos/public-api-missing-g748.json`は公開header 1,549、公開API 29,801、対応済み29,720、未対応81、20,555 bytes、SHA-256 `6001acb8cb35fdd164b6b6702147c46b7bb03b45923746d50dc9d8c218eb5375`を記録する。
+- `verify-quick`に成功し、旧`build/tdd-macos/public-api-missing-g747.json`をTrashへ移した。主Ninja木、共有compiler cache、最新`build/tdd-macos/public-api-missing-g748.json`だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 
 ### 第747便の結果
 

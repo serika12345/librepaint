@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 91
+    "expectedMissingApis": 81
   },
   "contracts": [
     {
@@ -83536,6 +83536,25 @@
         "method:KisToolShape::patternScaleSettingChanged(qreal value)",
         "method:KisToolShape::~KisToolShape()",
         "method:WdgGeometryOptions::WdgGeometryOptions(QWidget * parent)"
+      ]
+    },
+    {
+      "target": "KisDisplayConfigSchemaContractTest",
+      "source": "libs/ui/tests/KisDisplayConfigSchemaContractTest.cpp",
+      "test": "KisDisplayConfigSchemaContractTest::advancedColorSpaceSelectorSchemaRemainsStable",
+      "behavior": "advanced color space selectorはdialog派生型として親widgetとcaptionで構築・破棄でき、現在色空間の照会、color model・depth・profile・色空間の選択と有効な選択・色空間変更通知を提供する公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisAdvancedColorSpaceSelector",
+        "method:KisAdvancedColorSpaceSelector::KisAdvancedColorSpaceSelector(QWidget * parent,const QString & caption)",
+        "method:KisAdvancedColorSpaceSelector::colorSpaceChanged(const KoColorSpace *)",
+        "method:KisAdvancedColorSpaceSelector::currentColorSpace()",
+        "method:KisAdvancedColorSpaceSelector::selectionChanged(bool valid)",
+        "method:KisAdvancedColorSpaceSelector::setCurrentColorDepth(const KoID & id)",
+        "method:KisAdvancedColorSpaceSelector::setCurrentColorModel(const KoID & id)",
+        "method:KisAdvancedColorSpaceSelector::setCurrentColorSpace(const KoColorSpace * colorSpace)",
+        "method:KisAdvancedColorSpaceSelector::setCurrentProfile(const QString & name)",
+        "method:KisAdvancedColorSpaceSelector::~KisAdvancedColorSpaceSelector()"
       ]
     }
   ]
