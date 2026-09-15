@@ -2,15 +2,22 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-15 17:48 JST
+- 更新日時: 2026-09-15 18:00 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
-- 完了: 第723便でpalette combo boxの公開5 APIを契約へ追加し、対応済みを29,516件へ進めた。
-- 次の作業: 第724便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
+- 完了: 第724便でspacing選択widgetの公開8 APIを契約へ追加し、対応済みを29,524件へ進めた。
+- 次の作業: 第725便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
 - 検証: macOSの対象・反復・無作業再構築、公開API検査、`verify-quick`に成功した。旧不足報告をTrashへ移し、最新報告だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は本便の対象外である。
+
+### 第724便の結果
+
+- `libs/widgets/kis_spacing_selection_widget.h`から既存`libs/widgets/tests/KisWidgetConnectionStateContractTest.cpp`へ公開8 API・新規1枠`spacingSelectionWidgetSchemaRemainsStable`を追加した。spacing選択widgetが親widgetで構築・仮想破棄でき、手動・自動spacing、auto spacing係数、spacing変更通知を提供する公開形式を固定する。
+- `libs/widgets/tests/CMakeLists.txt`の同targetへQt Widgetsのheader探索路だけを追加した。公開headerが直接基底型として要求する`QWidget`を解決し、製品object・libraryのlinkは導入していない。試験sourceは212行・11枠で、構築閉包は4工程・7入力（command SHA-256 `c11798dc78c2935ea4093a24cb6468e88c1749470c3b4933af613d5483d38372`、input SHA-256 `ec0c245a7f401a98692e650219fd2e2e290a8fd9f2e05753fd33e40429a3bfa3`）となり、AUTOMOC `HEADERS=[]`、製品library・spacing selection widgetの未解決記号なしを確認した。
+- macOSで対象単発、全11枠20回（260成功）、追加枠20回（60成功）、無作業再構築、`clang-check`、`clang-format --dry-run --Werror`、公開API検査に成功した。正式不足報告`build/tdd-macos/public-api-missing-g724.json`は公開header 1,549、公開API 29,801、対応済み29,524、未対応277、72,567 bytes、SHA-256 `1aaf836685bb7c50a2296c8762ef580630cc97b567c7d223a7e32ae59724571d`を記録する。
+- `verify-quick`に成功し、旧`build/tdd-macos/public-api-missing-g723.json`をTrashへ移した。主Ninja木、共有compiler cache、最新`build/tdd-macos/public-api-missing-g724.json`だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 
 ### 第723便の結果
 

@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 285
+    "expectedMissingApis": 277
   },
   "contracts": [
     {
@@ -49639,6 +49639,23 @@
       "apis": [
         "function:KisWidgetConnectionUtils::connectWidgetEnabledToProperty(QWidget * widget,QObject * source,const char * property)",
         "function:KisWidgetConnectionUtils::connectWidgetVisibleToProperty(QWidget * widget,QObject * source,const char * property)"
+      ]
+    },
+    {
+      "target": "KisWidgetConnectionStateContractTest",
+      "source": "libs/widgets/tests/KisWidgetConnectionStateContractTest.cpp",
+      "test": "KisWidgetConnectionStateContractTest::spacingSelectionWidgetSchemaRemainsStable",
+      "behavior": "spacing選択widgetは親widgetで構築・仮想破棄でき、手動・自動spacing、auto spacing係数、spacing変更通知の公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisSpacingSelectionWidget",
+        "method:KisSpacingSelectionWidget::KisSpacingSelectionWidget(QWidget * parent)",
+        "method:KisSpacingSelectionWidget::autoSpacingActive() const",
+        "method:KisSpacingSelectionWidget::autoSpacingCoeff() const",
+        "method:KisSpacingSelectionWidget::setSpacing(bool isAuto,qreal spacing)",
+        "method:KisSpacingSelectionWidget::sigSpacingChanged()",
+        "method:KisSpacingSelectionWidget::spacing() const",
+        "method:KisSpacingSelectionWidget::~KisSpacingSelectionWidget()"
       ]
     },
     {
