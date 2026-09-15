@@ -8,6 +8,7 @@
 #include <canvas/KisRootSurfaceInfoProxy.h>
 #include <canvas/KisSRGBSurfaceColorSpaceManager.h>
 #include <canvas/kis_display_color_converter.h>
+#include <theme/thememanager.h>
 #include <widgets/KisProofingOptionsWidget.h>
 
 #include <surfacecolormanagement/KisSurfaceColorimetry.h>
@@ -49,6 +50,7 @@ private Q_SLOTS:
     void sRgbSurfaceColorManagerTypeConstructionAndPlatformFactorySchemaRemainStable();
     void rootSurfaceInfoProxySchemaRemainStable();
     void proofingOptionsWidgetSchemaRemainsStable();
+    void themeManagerSchemaRemainsStable();
 };
 
 void KisDisplayConfigSchemaContractTest::displayConfigTypeAndConstructionSchemaRemainsStable()
@@ -299,6 +301,20 @@ void KisDisplayConfigSchemaContractTest::proofingOptionsWidgetSchemaRemainsStabl
     static_assert(std::is_same_v<decltype(&Widget::stopPendingUpdates), void (Widget::*)()>);
     static_assert(
         std::is_same_v<decltype(&Widget::sigProofingConfigChanged), void (Widget::*)(KisProofingConfigurationSP)>);
+}
+
+void KisDisplayConfigSchemaContractTest::themeManagerSchemaRemainsStable()
+{
+    using Manager = Digikam::ThemeManager;
+
+    static_assert(std::is_base_of_v<QObject, Manager>);
+    static_assert(std::is_constructible_v<Manager, const QString &, QObject *>);
+    static_assert(std::has_virtual_destructor_v<Manager>);
+    static_assert(std::is_same_v<decltype(&Manager::currentThemeName), QString (Manager::*)() const>);
+    static_assert(std::is_same_v<decltype(&Manager::setCurrentTheme), void (Manager::*)(const QString &)>);
+    static_assert(std::is_same_v<decltype(&Manager::setThemeMenuAction), void (Manager::*)(KActionMenu *const)>);
+    static_assert(std::is_same_v<decltype(&Manager::registerThemeActions), void (Manager::*)(KisKActionCollection *)>);
+    static_assert(std::is_same_v<decltype(&Manager::signalThemeChanged), void (Manager::*)()>);
 }
 
 #undef ASSERT_DISPLAY_COLOR_CONVERTER_SIGNATURE
