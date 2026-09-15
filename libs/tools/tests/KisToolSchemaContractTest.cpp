@@ -6,6 +6,7 @@
 #include <kis_painting_information_builder.h>
 #include <kis_tool.h>
 #include <kis_tool_paint_interaction.h>
+#include <operations/kis_operation_ui_widget.h>
 #include <tool/kis_painting_information_builder_adapters.h>
 #include <tools/ui/KisPaintResourceServerProvider.h>
 #include <tools/ui/kis_paintop_list_widget.h>
@@ -35,6 +36,14 @@ private:
     void paint(QPainter &, const KoViewConverter &) override;
     void requestUpdateOutline(const QPointF &, const KoPointerEvent *) override;
 };
+
+class OperationUiWidgetProbe final : public KisOperationUIWidget
+{
+public:
+    using KisOperationUIWidget::KisOperationUIWidget;
+
+    void getConfiguration(KisOperationConfigurationSP) override;
+};
 } // namespace
 
 class KisToolSchemaContractTest : public QObject
@@ -54,6 +63,7 @@ private Q_SLOTS:
     void paintingInformationBuilderAdaptersSchemaRemainStable();
     void paintingInformationBuilderRemainderSchemaRemainStable();
     void paintResourceServerProviderSchemaRemainStable();
+    void operationUiWidgetSchemaRemainStable();
     void rectangleConstraintWidgetSchemaRemainStable();
     void toolOptionsPopupSchemaRemainStable();
 };
@@ -223,6 +233,19 @@ void KisToolSchemaContractTest::paintResourceServerProviderSchemaRemainStable()
         std::is_same_v<decltype(&Provider::paintOpPresetServer), KisPaintOpPresetResourceServer *(Provider::*)()>);
     static_assert(
         std::is_same_v<decltype(&Provider::layerStyleServer), KoResourceServer<KisPSDLayerStyle> *(Provider::*)()>);
+}
+
+void KisToolSchemaContractTest::operationUiWidgetSchemaRemainStable()
+{
+    using Widget = KisOperationUIWidget;
+
+    static_assert(std::is_class_v<Widget>);
+    static_assert(std::is_base_of_v<QWidget, Widget>);
+    static_assert(std::is_abstract_v<Widget>);
+    static_assert(std::is_constructible_v<OperationUiWidgetProbe, const QString &>);
+    static_assert(std::has_virtual_destructor_v<Widget>);
+    static_assert(std::is_same_v<decltype(&Widget::caption), QString (Widget::*)() const>);
+    static_assert(std::is_same_v<decltype(&Widget::getConfiguration), void (Widget::*)(KisOperationConfigurationSP)>);
 }
 
 void KisToolSchemaContractTest::rectangleConstraintWidgetSchemaRemainStable()
