@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 434
+    "expectedMissingApis": 427
   },
   "contracts": [
     {
@@ -81723,6 +81723,22 @@
         "method:KisToolOptionsPopup::KisToolOptionsPopup(const QFont & font,QWidget * parent=nullptr)",
         "method:KisToolOptionsPopup::newOptionWidgets(const QList<QPointer<QWidget>> & optionWidgetList)",
         "method:KisToolOptionsPopup::~KisToolOptionsPopup()"
+      ]
+    },
+    {
+      "target": "KisToolSchemaContractTest",
+      "source": "libs/tools/tests/KisToolSchemaContractTest.cpp",
+      "test": "KisToolSchemaContractTest::rectangleConstraintWidgetSchemaRemainStable",
+      "behavior": "rectangle constraint widgetはQWidgetの公開派生型として設定群と角丸表示有無を受けて構築し、矩形更新・設定再読込・制約と角丸の通知形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisRectangleConstraintWidget",
+        "method:KisRectangleConstraintWidget::KisRectangleConstraintWidget(const QString & configGroup,bool showRoundCornersGui,QWidget * parent=nullptr)",
+        "method:KisRectangleConstraintWidget::constraintsChanged(bool forceRatio,bool forceWidth,bool forceHeight,float ratio,float width,float height)",
+        "method:KisRectangleConstraintWidget::reloadConfig()",
+        "method:KisRectangleConstraintWidget::roundCornersChanged(int xRadius,int yRadius)",
+        "method:KisRectangleConstraintWidget::setRectangle(const QRectF & rect)",
+        "method:KisRectangleConstraintWidget::~KisRectangleConstraintWidget()"
       ]
     },
     {
