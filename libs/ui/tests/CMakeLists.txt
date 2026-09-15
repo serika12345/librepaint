@@ -606,6 +606,8 @@ target_include_directories(KisReferenceImagesDecorationSchemaContractTest PRIVAT
     ${CMAKE_BINARY_DIR}/libs/canvas
     ${CMAKE_SOURCE_DIR}/libs/image
     ${CMAKE_BINARY_DIR}/libs/image
+    ${CMAKE_SOURCE_DIR}/libs/painting/undo
+    ${CMAKE_BINARY_DIR}/libs/painting/undo
     ${CMAKE_SOURCE_DIR}/libs/global
     ${CMAKE_BINARY_DIR}/libs/global
     ${CMAKE_SOURCE_DIR}/libs/resources
