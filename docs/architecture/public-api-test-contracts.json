@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 338
+    "expectedMissingApis": 333
   },
   "contracts": [
     {
@@ -44141,6 +44141,20 @@
         "method:GuidesConfig::setVisible(const bool value)",
         "method:GuidesConfig::snap() const",
         "method:GuidesConfig::visible() const"
+      ]
+    },
+    {
+      "target": "KisPaletteEditorSchemaContractTest",
+      "source": "libs/tools/ui/tests/KisPaletteEditorSchemaContractTest.cpp",
+      "test": "KisPaletteEditorSchemaContractTest::paletteEditorDialogSchemaRemainStable",
+      "behavior": "palette editor dialogはQDialog派生型としてeditor・親widget・window flagsで構築し、palette modelの初期化とpalette resourceの照会を提供する公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisDlgPaletteEditor",
+        "method:KisDlgPaletteEditor::KisDlgPaletteEditor(KisPaletteEditor * editor,QWidget * parent=nullptr,Qt::WindowFlags f=Qt::WindowFlags ())",
+        "method:KisDlgPaletteEditor::initialize(KisPaletteModel *)",
+        "method:KisDlgPaletteEditor::palette() const",
+        "method:KisDlgPaletteEditor::~KisDlgPaletteEditor()"
       ]
     },
     {

@@ -2,15 +2,22 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-15 15:48 JST
+- 更新日時: 2026-09-15 15:56 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
-- 完了: 第712便でHLG import dialogの公開型・構築・OOTF・gamma・peak brightness APIを契約へ追加し、対応済みを29,463件へ進めた。
-- 次の作業: 第713便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
+- 完了: 第713便でpalette editor dialogの公開型・構築・初期化・palette照会・破棄APIを契約へ追加し、対応済みを29,468件へ進めた。
+- 次の作業: 第714便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
 - 検証: macOSの対象・反復・無作業再構築、公開API検査、`verify-quick`に成功した。旧不足報告をTrashへ移し、最新報告だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は本便の対象外である。
+
+### 第713便の結果
+
+- `libs/ui/dialogs/KisDlgPaletteEditor.h`から既存`libs/tools/ui/tests/KisPaletteEditorSchemaContractTest.cpp`へ公開5 API・新規1枠`paletteEditorDialogSchemaRemainStable`を追加した。公開headerと製品sourceを変更せず、palette editor dialogがQDialog派生型としてeditor・親widget・window flagsで構築でき、palette modelの初期化とpalette resource照会を提供し、仮想破棄する公開形式を固定する。
+- `libs/tools/ui/tests/CMakeLists.txt`の同試験targetへuiのsource・生成済みheader、Qt Widgetsの探索路、ui export定義だけを追加した。既存のpalette resource探索路を再利用し、実行・製品リンクは導入していない。試験sourceは97行・6枠で、構築閉包は4工程・8入力（command SHA-256 `046038112c771b876907e68230dca0f453e2906c677f4a21e7eb5623ee05159c`、input SHA-256 `77a417f903112380c8697a370fc491978ffe88c788678144a5d31ed83f7cfb27`）を維持し、AUTOMOC `HEADERS=[]`、製品library・対象dialogの未解決記号なしを確認した。
+- macOSで対象単発、全6枠20回（160成功）、追加枠20回（60成功）、無作業再構築、`clang-check`、`clang-format --dry-run --Werror`、公開API検査に成功した。正式不足報告`build/tdd-macos/public-api-missing-g713.json`は公開header 1,549、公開API 29,801、対応済み29,468、未対応333、86,840 bytes、SHA-256 `60dd2b30441e0a6da84f5cd5075dd91765c54067a77bf04f393f5c0b4b5ce348`を記録する。
+- `verify-quick`に成功し、旧`build/tdd-macos/public-api-missing-g712.json`をTrashへ移した。主Ninja木、共有compiler cache、最新`build/tdd-macos/public-api-missing-g713.json`だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 
 ### 第712便の結果
 
