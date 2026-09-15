@@ -10,6 +10,7 @@
 
 #include <QBuffer>
 #include <QDataStream>
+#include <QDebug>
 #include <QTest>
 
 #include <type_traits>
@@ -70,6 +71,7 @@ class PsdFormatValuesContractTest : public QObject
 
 private Q_SLOTS:
     void fileLimitsAndStorageEnumsRemainStable();
+    void legacyClangCompressionDebugOutputRemainsStable();
     void colorSamplerIdentifiersRemainStable();
     void layerEffectEnumsRemainStable();
     void bevelGeometryAndTechniqueSignaturesRemainStable();
@@ -197,6 +199,20 @@ void PsdFormatValuesContractTest::fileLimitsAndStorageEnumsRemainStable()
     QCOMPARE(int(DeepMultichannel), 14);
     QCOMPARE(int(Duotone16), 15);
     QCOMPARE(int(COLORMODE_UNKNOWN), 9000);
+}
+
+void PsdFormatValuesContractTest::legacyClangCompressionDebugOutputRemainsStable()
+{
+    QByteArray output;
+
+    {
+        QDebug debug(&output);
+        QDebug &result = debug << psd_compression_type::RLE;
+
+        QCOMPARE(&result, &debug);
+    }
+
+    QCOMPARE(output, QByteArray("1 "));
 }
 
 void PsdFormatValuesContractTest::colorSamplerIdentifiersRemainStable()

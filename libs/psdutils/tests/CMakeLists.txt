@@ -49,7 +49,10 @@ target_include_directories(PsdFormatValuesContractTest PRIVATE
     $<TARGET_PROPERTY:Imath::Imath,INTERFACE_INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:Eigen3::Eigen,INTERFACE_INCLUDE_DIRECTORIES>
 )
-target_compile_definitions(PsdFormatValuesContractTest PRIVATE kritapsdutils_EXPORTS)
+target_compile_definitions(PsdFormatValuesContractTest PRIVATE
+    kritapsdutils_EXPORTS
+    __clang_major__=9
+)
 
 kis_add_test(
     PSDLayerRecordSchemaContractTest.cpp
