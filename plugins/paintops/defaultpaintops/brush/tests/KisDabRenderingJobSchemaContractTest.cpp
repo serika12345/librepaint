@@ -5,6 +5,7 @@
 
 #include "KisDabRenderingJob.h"
 #include "KisDabRenderingQueue.h"
+#include "KisDabRenderingQueueCache.h"
 
 #include <QTest>
 
@@ -33,6 +34,7 @@ private Q_SLOTS:
     void dabRenderingQueueSchedulingSignaturesRemainStable();
     void dabRenderingQueueCacheResourceSignaturesRemainStable();
     void dabRenderingQueueMetricsSignaturesRemainStable();
+    void dabRenderingQueueCacheSchemaRemainStable();
 };
 
 void KisDabRenderingJobSchemaContractTest::dabRenderingJobIdentityAndCopySchemaRemainsStable()
@@ -168,6 +170,28 @@ void KisDabRenderingJobSchemaContractTest::dabRenderingQueueMetricsSignaturesRem
     ASSERT_DAB_JOB_SIGNATURE(Queue, averageExecutionTime, qreal (Queue::*)() const);
     ASSERT_DAB_JOB_SIGNATURE(Queue, averageDabSize, int (Queue::*)() const);
     ASSERT_DAB_JOB_SIGNATURE(Queue, testingGetQueueSize, int (Queue::*)() const);
+
+    QVERIFY(true);
+}
+
+void KisDabRenderingJobSchemaContractTest::dabRenderingQueueCacheSchemaRemainStable()
+{
+    using Cache = KisDabRenderingQueueCache;
+    using Resources = KisDabCacheUtils::DabRenderingResources;
+
+    static_assert(std::is_class_v<Cache>);
+    static_assert(std::is_base_of_v<KisDabRenderingQueue::CacheInterface, Cache>);
+    static_assert(std::is_base_of_v<KisDabCacheBase, Cache>);
+    static_assert(std::is_constructible_v<Cache>);
+    static_assert(std::is_destructible_v<Cache>);
+    ASSERT_DAB_JOB_SIGNATURE(Cache,
+                             getDabType,
+                             void (Cache::*)(bool,
+                                             Resources *,
+                                             const KisDabCacheUtils::DabRequestInfo &,
+                                             KisDabCacheUtils::DabGenerationInfo *,
+                                             bool *));
+    ASSERT_DAB_JOB_SIGNATURE(Cache, hasSeparateOriginal, bool (Cache::*)(Resources *) const);
 
     QVERIFY(true);
 }

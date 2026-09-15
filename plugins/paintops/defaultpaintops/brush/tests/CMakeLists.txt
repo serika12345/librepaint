@@ -17,6 +17,7 @@ target_include_directories(KisDabRenderingJobSchemaContractTest PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/..
     ${CMAKE_CURRENT_BINARY_DIR}/../..
     ${CMAKE_SOURCE_DIR}/libs/brush
+    ${CMAKE_BINARY_DIR}/libs/brush
     ${CMAKE_SOURCE_DIR}/libs/global
     ${CMAKE_BINARY_DIR}/libs/global
     ${CMAKE_SOURCE_DIR}/libs/image
@@ -24,6 +25,8 @@ target_include_directories(KisDabRenderingJobSchemaContractTest PRIVATE
     ${CMAKE_SOURCE_DIR}/libs/image/brushengine
     ${CMAKE_SOURCE_DIR}/libs/pigment
     ${CMAKE_BINARY_DIR}/libs/pigment
+    ${CMAKE_SOURCE_DIR}/libs/resources
+    ${CMAKE_BINARY_DIR}/libs/resources
     ${CMAKE_SOURCE_DIR}/plugins/paintops/libpaintop
     ${CMAKE_BINARY_DIR}/plugins/paintops/libpaintop
 )
