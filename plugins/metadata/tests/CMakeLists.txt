@@ -17,9 +17,12 @@ target_include_directories(KisExiv2IODeviceSchemaContractTest PRIVATE
     ${CMAKE_CURRENT_BINARY_DIR}/../common
     ${CMAKE_SOURCE_DIR}/libs/global
     ${CMAKE_BINARY_DIR}/libs/global
+    ${CMAKE_SOURCE_DIR}/libs/painting/metadata
+    ${CMAKE_BINARY_DIR}/libs/painting/metadata
     $<TARGET_PROPERTY:LibExiv2::LibExiv2,INTERFACE_INCLUDE_DIRECTORIES>
 )
 target_compile_definitions(KisExiv2IODeviceSchemaContractTest PRIVATE
     kritaexifcommon_EXPORTS
     kritaglobal_EXPORTS
+    kritapaintingmetadata_EXPORTS
 )

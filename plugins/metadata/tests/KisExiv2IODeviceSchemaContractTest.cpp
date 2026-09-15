@@ -4,6 +4,7 @@
  */
 
 #include "KisExiv2IODevice.h"
+#include "kis_exiv2_common.h"
 
 #include <QTest>
 
@@ -23,6 +24,7 @@ private Q_SLOTS:
     void typeLifetimeAndCoreIoSchemaRemainStable();
     void readWriteAndPositionSchemaRemainStable();
     void mappingStateAndPathSchemaRemainStable();
+    void metadataConversionFunctionSchemaRemainsStable();
 };
 
 void KisExiv2IODeviceSchemaContractTest::typeLifetimeAndCoreIoSchemaRemainStable()
@@ -85,6 +87,29 @@ void KisExiv2IODeviceSchemaContractTest::mappingStateAndPathSchemaRemainStable()
     ASSERT_EXIV2_IO_DEVICE_SIGNATURE(isopen, bool (Device::*)() const);
     ASSERT_EXIV2_IO_DEVICE_SIGNATURE(error, int (Device::*)() const);
     ASSERT_EXIV2_IO_DEVICE_SIGNATURE(eof, bool (Device::*)() const);
+
+    QVERIFY(true);
+}
+
+void KisExiv2IODeviceSchemaContractTest::metadataConversionFunctionSchemaRemainsStable()
+{
+#if EXIV2_TEST_VERSION(0, 28, 0)
+    using ExivValueToKmdValue =
+        KisMetaData::Value (*)(const Exiv2::Value::UniquePtr &, bool, KisMetaData::Value::ValueType);
+#else
+    using ExivValueToKmdValue =
+        KisMetaData::Value (*)(const Exiv2::Value::AutoPtr &, bool, KisMetaData::Value::ValueType);
+#endif
+    using VariantToExivValue = Exiv2::Value *(*)(const QVariant &, Exiv2::TypeId);
+    using KmdValueToExivValue = Exiv2::Value *(*)(const KisMetaData::Value &, Exiv2::TypeId);
+    using KmdValueToExivXmpValue = Exiv2::Value *(*)(const KisMetaData::Value &);
+    using ArrayToExivValue = Exiv2::Value *(*)(const KisMetaData::Value &);
+
+    static_assert(std::is_same_v<decltype(&exivValueToKMDValue), ExivValueToKmdValue>);
+    static_assert(std::is_same_v<decltype(&variantToExivValue), VariantToExivValue>);
+    static_assert(std::is_same_v<decltype(&kmdValueToExivValue), KmdValueToExivValue>);
+    static_assert(std::is_same_v<decltype(&kmdValueToExivXmpValue), KmdValueToExivXmpValue>);
+    static_assert(std::is_same_v<decltype(&arrayToExivValue<uint16_t>), ArrayToExivValue>);
 
     QVERIFY(true);
 }
