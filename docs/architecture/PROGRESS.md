@@ -2,15 +2,22 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-15 18:26 JST
+- 更新日時: 2026-09-15 18:34 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
-- 完了: 第727便でkeyframe挿入dialogの公開7 APIを契約へ追加し、対応済みを29,544件へ進めた。
-- 次の作業: 第728便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
+- 完了: 第728便で操作frameの公開5 APIを契約へ追加し、対応済みを29,549件へ進めた。
+- 次の作業: 第729便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
 - 検証: macOSの対象・反復・無作業再構築、公開API検査、`verify-quick`に成功した。旧不足報告をTrashへ移し、最新報告だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は本便の対象外である。
+
+### 第728便の結果
+
+- `libs/ui/resources/kis_control_frame.h`から新規`libs/ui/tests/KisControlFrameSchemaContractTest.cpp`へ公開5 API・1枠`controlFrameSchemaRemainsStable`を追加した。操作frameがview manager・親widget・名称で構築・仮想破棄でき、表示を設定しpaintop boxを返す公開形式を固定する。
+- `libs/ui/tests/CMakeLists.txt`へ専用targetを追加した。ui、global、flake、image、resources、widgetutils、pigmentのsource・生成済みheaderとQt Gui・Widgets・Xml、Eigen、KI18n、Imathのheader探索路だけを追加し、製品object・libraryのlinkは導入していない。最初の診断で`KoCheckerBoardPainter.h`の所有者であるwidgetutilsを対象に追加した。試験sourceは33行・1枠で、構築閉包は4工程・7入力（command SHA-256 `5a5a4e26f2f6e52c59065c50ba486fb5faf590124237023fdd6a1ee75d444341`、input SHA-256 `ca7d5f4b09dac1355aa233975e057ee780711562cb68110939fea8a0ba095b04`）となり、AUTOMOC `HEADERS=[]`、製品library・操作frame・paintop boxの未解決記号なしを確認した。
+- macOSで対象単発、全1枠20回（60成功）、追加枠20回（60成功）、無作業再構築、`clang-check`、`clang-format --dry-run --Werror`、公開API検査に成功した。正式不足報告`build/tdd-macos/public-api-missing-g728.json`は公開header 1,549、公開API 29,801、対応済み29,549、未対応252、66,068 bytes、SHA-256 `0f8468220cc56ee11b01c24a017907f1443f76662697b711d6f337c2703f5d22`を記録する。
+- `verify-quick`に成功し、旧`build/tdd-macos/public-api-missing-g727.json`をTrashへ移した。主Ninja木、共有compiler cache、最新`build/tdd-macos/public-api-missing-g728.json`だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 
 ### 第727便の結果
 

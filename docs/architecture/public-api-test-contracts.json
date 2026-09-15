@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 257
+    "expectedMissingApis": 252
   },
   "contracts": [
     {
@@ -72639,6 +72639,20 @@
         "method:KisFavoriteResourceManager::sigSetBGColor(const KoColor & c)",
         "method:KisFavoriteResourceManager::sigSetFGColor(const KoColor & c)",
         "method:KisFavoriteResourceManager::updatePalettes()"
+      ]
+    },
+    {
+      "target": "KisControlFrameSchemaContractTest",
+      "source": "libs/ui/tests/KisControlFrameSchemaContractTest.cpp",
+      "test": "KisControlFrameSchemaContractTest::controlFrameSchemaRemainsStable",
+      "behavior": "操作frameはview manager・親widget・名称で構築・仮想破棄でき、表示を設定しpaintop boxを返す公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisControlFrame",
+        "method:KisControlFrame::KisControlFrame(KisViewManager * view,QWidget * parent=0,const char * name=0)",
+        "method:KisControlFrame::paintopBox()",
+        "method:KisControlFrame::setup(QWidget * parent)",
+        "method:KisControlFrame::~KisControlFrame()"
       ]
     },
     {
