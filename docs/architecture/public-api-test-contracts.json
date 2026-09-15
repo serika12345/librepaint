@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 227
+    "expectedMissingApis": 200
   },
   "contracts": [
     {
@@ -83256,6 +83256,42 @@
         "method:KisWidgetChooser::showPopupWidget()",
         "method:KisWidgetChooser::updateThemedIcons()",
         "method:KisWidgetChooser::~KisWidgetChooser()"
+      ]
+    },
+    {
+      "target": "KisExiv2IODeviceSchemaContractTest",
+      "source": "plugins/metadata/tests/KisExiv2IODeviceSchemaContractTest.cpp",
+      "test": "KisExiv2IODeviceSchemaContractTest::typeLifetimeAndCoreIoSchemaRemainStable",
+      "behavior": "metadata用Exiv2 I/O adapterはBasicIo派生型としてpathで構築・破棄でき、読み書き、位置操作、転送、メモリ写像、状態照会、path取得の公開形式をExiv2 0.28以前と以後の双方で維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisExiv2IODevice::ptr_type",
+        "class:KisExiv2IODevice",
+        "method:KisExiv2IODevice::KisExiv2IODevice(QString path)",
+        "method:KisExiv2IODevice::close()",
+        "method:KisExiv2IODevice::eof() const",
+        "method:KisExiv2IODevice::error() const",
+        "method:KisExiv2IODevice::getb()",
+        "method:KisExiv2IODevice::isopen() const",
+        "method:KisExiv2IODevice::mmap(bool isWriteable=false)",
+        "method:KisExiv2IODevice::munmap()",
+        "method:KisExiv2IODevice::open()",
+        "method:KisExiv2IODevice::path() const",
+        "method:KisExiv2IODevice::populateFakeData()",
+        "method:KisExiv2IODevice::putb(Exiv2::byte data)",
+        "method:KisExiv2IODevice::read(Exiv2::byte * buf,long rcount)",
+        "method:KisExiv2IODevice::read(Exiv2::byte * buf,size_t rcount)",
+        "method:KisExiv2IODevice::read(long rcount)",
+        "method:KisExiv2IODevice::read(size_t rcount)",
+        "method:KisExiv2IODevice::seek(int64_t offset,Position pos)",
+        "method:KisExiv2IODevice::seek(long offset,Position pos)",
+        "method:KisExiv2IODevice::size() const",
+        "method:KisExiv2IODevice::tell() const",
+        "method:KisExiv2IODevice::transfer(BasicIo & src)",
+        "method:KisExiv2IODevice::write(Exiv2::BasicIo & src)",
+        "method:KisExiv2IODevice::write(const Exiv2::byte * data,long wcount)",
+        "method:KisExiv2IODevice::write(const Exiv2::byte * data,size_t wcount)",
+        "method:KisExiv2IODevice::~KisExiv2IODevice()"
       ]
     }
   ]

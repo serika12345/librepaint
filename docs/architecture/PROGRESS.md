@@ -2,15 +2,22 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-15 18:58 JST
+- 更新日時: 2026-09-15 19:04 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
-- 完了: 第731便でwidget chooserの公開9 APIを契約へ追加し、対応済みを29,574件へ進めた。
-- 次の作業: 第732便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
+- 完了: 第732便でExiv2 I/O adapterの公開27 APIを契約へ追加し、対応済みを29,601件へ進めた。
+- 次の作業: 第733便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
 - 検証: macOSの対象・反復・無作業再構築、公開API検査、`verify-quick`に成功した。旧不足報告をTrashへ移し、最新報告だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は本便の対象外である。
+
+### 第732便の結果
+
+- `plugins/metadata/common/KisExiv2IODevice.h`から新規`plugins/metadata/tests/KisExiv2IODeviceSchemaContractTest.cpp`へ公開27 API・3枠を追加した。metadata用Exiv2 I/O adapterがBasicIo派生型としてpathで構築・破棄でき、読み書き、位置操作、転送、メモリ写像、状態照会、path取得を提供する形式を、Exiv2 0.28以前と以後の双方で固定する。
+- `plugins/metadata/tests/CMakeLists.txt`へ専用targetを追加した。metadata common・globalのsource・生成済みheaderとLibExiv2のheader探索路だけを加え、linkはQt Core・Testに限定した。CMake再生成後に実行したのは専用targetの自動MOC、2 object、linkであり、製品targetとExiv2 libraryは構築・linkしていない。試験sourceは96行・3枠で、構築閉包は4工程・7入力（command SHA-256 `0d8671448565396fa5b6c30600dfcc0c8a1a9c5b569de05242b0436b4759540d`、input SHA-256 `191c22fb9cd9c322c073c13be477a2d7cf90d6fefe437e75990b1b649d990827`）となり、AUTOMOC `HEADERS=[]`、製品library・Exiv2 I/O adapterの未解決記号なしを確認した。
+- macOSで対象単発、全3枠と初期化・後始末を各20回（100成功）、追加3枠を各20回（180成功）、無作業再構築、`clang-check`、`clang-format --dry-run --Werror`、公開API検査に成功した。正式不足報告`build/tdd-macos/public-api-missing-g732.json`は公開header 1,549、公開API 29,801、対応済み29,601、未対応200、53,655 bytes、SHA-256 `08f241d6115fa83cb9fcefb9a0364d723a0b1afc3d78d03e6842aadec2a26197`を記録する。
+- `verify-quick`に成功し、旧`build/tdd-macos/public-api-missing-g731.json`をTrashへ移した。主Ninja木、共有compiler cache、最新`build/tdd-macos/public-api-missing-g732.json`だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 
 ### 第731便の結果
 
