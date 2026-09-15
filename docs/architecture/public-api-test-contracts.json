@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 52
+    "expectedMissingApis": 44
   },
   "contracts": [
     {
@@ -83611,6 +83611,23 @@
         "method:KisSegmentGradientEditor::setCompactMode(bool value)",
         "method:KisSegmentGradientEditor::setGradient(KoSegmentGradientSP gradient)",
         "method:KisSegmentGradientEditor::sigGradientChanged()"
+      ]
+    },
+    {
+      "target": "KisDisplayConfigSchemaContractTest",
+      "source": "libs/ui/tests/KisDisplayConfigSchemaContractTest.cpp",
+      "test": "KisDisplayConfigSchemaContractTest::customImageWidgetSchemaRemainsStable",
+      "behavior": "Custom Image WidgetはWdgNewImage派生型として既定のcanvas寸法・解像度・color model・depth・profile・image名で構築・破棄でき、Custom Image Widget種別と新規画像UI基底の公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisCustomImageWidget",
+        "class:WdgNewImage",
+        "enum:CustomImageWidgetType",
+        "enumerator:CustomImageWidgetType::CUSTOM_DOCUMENT",
+        "enumerator:CustomImageWidgetType::NEW_IMG_FROM_CB",
+        "method:KisCustomImageWidget::KisCustomImageWidget(QWidget * parent,qint32 defWidth,qint32 defHeight,double resolution,const QString & defColorModel,const QString & defColorDepth,const QString & defColorProfile,const QString & imageName)",
+        "method:KisCustomImageWidget::~KisCustomImageWidget()",
+        "method:WdgNewImage::WdgNewImage(QWidget * parent)"
       ]
     }
   ]

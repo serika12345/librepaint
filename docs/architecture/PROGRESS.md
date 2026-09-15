@@ -2,15 +2,22 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-15 22:04 JST
+- 更新日時: 2026-09-15 22:12 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
-- 完了: 第751便でSegment Gradient Editorの公開9 APIを契約へ追加し、対応済みを29,749件へ進めた。
-- 次の作業: 第752便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
+- 完了: 第752便でCustom Image Widgetの公開8 APIを契約へ追加し、対応済みを29,757件へ進めた。
+- 次の作業: 第753便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
 - 検証: macOSの対象・反復・無作業再構築、公開API検査、`verify-quick`に成功した。旧不足報告をTrashへ移し、最新報告だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は本便の対象外である。
+
+### 第752便の結果
+
+- `libs/ui/widgets/kis_custom_image_widget.h`から既存`libs/ui/tests/KisDisplayConfigSchemaContractTest.cpp`へpublic 8 API・新規1枠`customImageWidgetSchemaRemainsStable`を追加した。Custom Image WidgetがWdgNewImage派生型として既定のcanvas寸法・解像度・color model・depth・profile・image名で構築・破棄でき、Custom Image Widget種別と新規画像UI基底の公開形式を固定する。
+- `libs/ui/tests/CMakeLists.txt`の同targetで`wdgnewimage.ui`を生成し、公開headerの`KisPropertiesConfiguration`が参照するEigenの直接header探索路だけを追加した。既存のapplication・widgets・色空間UI・parse spin box探索路を再利用し、製品object・libraryのlinkは導入していない。CMake再生成後に実行したのは同targetの自動MOC、追加UI生成、test object、linkであり、製品targetは構築していない。試験sourceは464行・25枠で、構築閉包は9工程・17入力（command SHA-256 `b63d811e1155f8ddbf69607d02a868cec48f125839a37c66c801dd18ab16129c`、input SHA-256 `15d308fba9d728c9c53228abdd46cd3c8a54b9e4d8bcf0734ae9edca93d7ea34`）となり、AUTOMOC `HEADERS=[]`、製品library・Custom Image Widget・WdgNewImage・色空間selectorの未解決記号なしを確認した。
+- macOSで対象単発、全25枠20回（500成功）、追加枠60回（60成功）、無作業再構築2回、`clang-check`、`clang-format --dry-run --Werror`、公開API検査に成功した。正式不足報告`build/tdd-macos/public-api-missing-g752.json`は公開header 1,549、公開API 29,801、対応済み29,757、未対応44、10,949 bytes、SHA-256 `4bc7d8fa9bdf04103306e3ac2eaee2acac6ba31c40059637ed296c4273b3ed6e`を記録する。
+- `verify-quick`に成功し、旧`build/tdd-macos/public-api-missing-g751.json`をTrashへ移した。主Ninja木、共有compiler cache、最新`build/tdd-macos/public-api-missing-g752.json`だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 
 ### 第751便の結果
 
