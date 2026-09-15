@@ -846,6 +846,12 @@ target_include_directories(KisPaintOptionWidgetSchemaContractTest PRIVATE
     ${CMAKE_BINARY_DIR}/libs/resources
     ${CMAKE_SOURCE_DIR}/libs/tools/ui
     ${CMAKE_BINARY_DIR}/libs/tools/ui
+    ${CMAKE_SOURCE_DIR}/libs/widgets
+    ${CMAKE_BINARY_DIR}/libs/widgets
+    ${CMAKE_SOURCE_DIR}/libs/widgetutils
+    ${CMAKE_BINARY_DIR}/libs/widgetutils
+    ${CMAKE_SOURCE_DIR}/libs/ui
+    ${CMAKE_BINARY_DIR}/libs/ui
 )
 target_include_directories(KisPaintOptionWidgetSchemaContractTest SYSTEM PRIVATE
     $<TARGET_PROPERTY:Eigen3::Eigen,INTERFACE_INCLUDE_DIRECTORIES>
@@ -862,6 +868,10 @@ target_compile_definitions(KisPaintOptionWidgetSchemaContractTest PRIVATE
     kritapigment_EXPORTS
     kritaresources_EXPORTS
     kritatoolsui_EXPORTS
+    kritaui_EXPORTS
+)
+ki18n_wrap_ui(KisPaintOptionWidgetSchemaContractTest
+    ${CMAKE_CURRENT_SOURCE_DIR}/../forms/wdgautobrush.ui
 )
 
 kis_add_test(

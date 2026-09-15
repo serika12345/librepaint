@@ -8,6 +8,7 @@
 #include "KisPaintingModeOptionWidget.h"
 #include "KisScatterOptionWidget.h"
 #include "KisTextureOptionWidget.h"
+#include "kis_auto_brush_widget.h"
 
 #include <QTest>
 
@@ -57,6 +58,7 @@ private Q_SLOTS:
     void paintingModeOptionWidgetSchemaRemainStable();
     void scatterOptionWidgetSchemaRemainStable();
     void textureOptionWidgetSchemaRemainStable();
+    void autoBrushWidgetSchemaRemainsStable();
 };
 
 void KisPaintOptionWidgetSchemaContractTest::filterOptionWidgetSchemaRemainStable()
@@ -110,6 +112,19 @@ void KisPaintOptionWidgetSchemaContractTest::textureOptionWidgetSchemaRemainStab
         std::is_same_v<decltype(&Widget::readOptionSetting), void (Widget::*)(const KisPropertiesConfigurationSP)>);
     static_assert(
         std::is_same_v<decltype(&Widget::writeOptionSetting), void (Widget::*)(KisPropertiesConfigurationSP) const>);
+}
+
+void KisPaintOptionWidgetSchemaContractTest::autoBrushWidgetSchemaRemainsStable()
+{
+    using BaseWidget = KisWdgAutoBrush;
+    using Widget = KisAutoBrushWidget;
+
+    static_assert(std::is_base_of_v<QWidget, BaseWidget>);
+    static_assert(std::is_constructible_v<BaseWidget, QWidget *, const char *>);
+    static_assert(std::is_base_of_v<BaseWidget, Widget>);
+    static_assert(std::is_constructible_v<Widget, int, KisAutoBrushModel *, QWidget *, const char *>);
+    static_assert(std::has_virtual_destructor_v<Widget>);
+    static_assert(std::is_same_v<decltype(&Widget::brush), KisBrushSP (Widget::*)()>);
 }
 
 QTEST_GUILESS_MAIN(KisPaintOptionWidgetSchemaContractTest)
