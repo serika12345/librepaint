@@ -4,6 +4,7 @@
  */
 
 #include "KisWidgetConnectionUtils.h"
+#include "kis_spacing_selection_widget.h"
 
 #include <QTest>
 
@@ -28,6 +29,7 @@ private Q_SLOTS:
     void specializedControlConnectionSignaturesRemainStable();
     void controlStateConnectionSignaturesRemainStable();
     void widgetPresentationPropertyConnectionSignaturesRemainStable();
+    void spacingSelectionWidgetSchemaRemainsStable();
 };
 
 void KisWidgetConnectionStateContractTest::controlStateDefaultsAndAliasesRemainTyped()
@@ -85,8 +87,7 @@ void KisWidgetConnectionStateContractTest::comboBoxStateDefaultsAndAssignedLists
              QStringList({QStringLiteral("first"), QStringLiteral("二番目"), QStringLiteral("first")}));
     QCOMPARE(configured.currentIndex, 1);
     QCOMPARE(configured.enabled, false);
-    QCOMPARE(configured.toolTips,
-             QStringList({QStringLiteral("tip 1"), QStringLiteral("説明"), QString()}));
+    QCOMPARE(configured.toolTips, QStringList({QStringLiteral("tip 1"), QStringLiteral("説明"), QString()}));
 }
 
 void KisWidgetConnectionStateContractTest::spacingStateDefaultsAndConversionRoundTripRemainStable()
@@ -190,6 +191,20 @@ void KisWidgetConnectionStateContractTest::widgetPresentationPropertyConnectionS
 {
     ASSERT_CONNECTION_SIGNATURE(connectWidgetEnabledToProperty, void (*)(QWidget *, QObject *, const char *));
     ASSERT_CONNECTION_SIGNATURE(connectWidgetVisibleToProperty, void (*)(QWidget *, QObject *, const char *));
+}
+
+void KisWidgetConnectionStateContractTest::spacingSelectionWidgetSchemaRemainsStable()
+{
+    using Widget = KisSpacingSelectionWidget;
+
+    static_assert(std::is_base_of_v<QWidget, Widget>);
+    static_assert(std::is_constructible_v<Widget, QWidget *>);
+    static_assert(std::has_virtual_destructor_v<Widget>);
+    static_assert(std::is_same_v<decltype(&Widget::setSpacing), void (Widget::*)(bool, qreal)>);
+    static_assert(std::is_same_v<decltype(&Widget::spacing), qreal (Widget::*)() const>);
+    static_assert(std::is_same_v<decltype(&Widget::autoSpacingActive), bool (Widget::*)() const>);
+    static_assert(std::is_same_v<decltype(&Widget::autoSpacingCoeff), qreal (Widget::*)() const>);
+    static_assert(std::is_same_v<decltype(&Widget::sigSpacingChanged), void (Widget::*)()>);
 }
 
 QTEST_GUILESS_MAIN(KisWidgetConnectionStateContractTest)
