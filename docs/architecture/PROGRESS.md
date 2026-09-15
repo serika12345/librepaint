@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-15 23:21 JST
+- 更新日時: 2026-09-15 23:28 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -16,6 +16,7 @@
 
 - 最新の不足16 APIは、`libs/image/brushengine/kis_standard_uniform_properties_factory.h`のfactory入口2件とheader内`KoID`値5件、`libs/global/KisAndroidCrashHandler.h`の初期化入口1件、`winquirks/unistd.h`のMSVC互換別名4件と関数4件に分かれる。factoryのheader内値は各翻訳単位で`KoID`と翻訳文字列を動的初期化するため、製品非接続の静的targetへincludeするだけで`KoID`・`KLocalizedString`の未解決記号になる。値を実行して観測するには画像製品閉包が必要であり、静的公開API targetへ製品library・objectを接続しない現在の境界に反するため、先にfactory責務を縮小できるかを確認する。
 - `ssh nixos`のx86_64 Linux実機でAndroidとWindowsのincremental profileを監査した。Androidの永続Ninja木`build/android/arm64-v8a/90a198c0b74ae170`は存在するが`BUILD_TESTING=OFF`で、接続済みAndroid deviceはない。Windows profileはx86_64-w64-mingw32で、Ninja木は未構成かつ配布構成の`BUILD_TESTING=OFF`である。現行profileにはWineがなく、MSVC専用`winquirks/unistd.h`の分岐をMinGWへ`_MSC_VER`だけ追加して構文確認すると、MinGW Windows SDK headerの`__uuidof`未対応で失敗する。したがって、MSVC分岐をMinGWの擬似定義で試験済みと扱わない。
+- factoryの5個の`KoID`値を実行する一時targetを`kritapigment`へ接続して実測したところ、直接追加は小さくても転移閉包が371工程・771入力へ広がり、`libkritapigment`と多数の製品dylibを動的接続した。静的公開API targetの停止線（5工程・11入力、製品library・object非接続）を大幅に超えるため、契約sourceとCMake定義を即時に元へ戻した。専用binary、object、AUTOMOC生成物1,112 KiBはTrashへ移し、主Ninja木と最新不足報告だけを保持する。
 - 次の構造準備は、Android実機実行または専用のplatform契約profileを用意してAndroid初期化入口を対象化し、Windowsは実MSVC互換実行環境を用意してから互換層の値・失敗・sleep挙動を固定することである。これらと独立して、factoryは既存の画像製品targetを構築せずに実行可能な所有単位へ分けられるかを直接依存から判断する。profile監査は構成・実行物を変更せず、Android/Windowsの全体構築は実行していない。
 
 ### 第758便の結果
