@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 24
+    "expectedMissingApis": 20
   },
   "contracts": [
     {
@@ -83675,6 +83675,19 @@
         "method:KisDlgAnimationRenderer::getEncoderOptions() const",
         "method:KisDlgAnimationRenderer::~KisDlgAnimationRenderer()",
         "method:WdgAnimationRenderer::WdgAnimationRenderer(QWidget * parent)"
+      ]
+    },
+    {
+      "target": "TabletTestDialogSchemaContractTest",
+      "source": "libs/input/ui/tests/TabletTestDialogSchemaContractTest.cpp",
+      "test": "TabletTestDialogSchemaContractTest::tabletTestDialogPublicSchemaRemainsStable",
+      "behavior": "Tablet Test DialogはKoDialog派生型として親widgetで構築・破棄でき、QObject event filterを提供する公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:TabletTestDialog",
+        "method:TabletTestDialog::TabletTestDialog(QWidget * parent=nullptr)",
+        "method:TabletTestDialog::eventFilter(QObject * watched,QEvent * event)",
+        "method:TabletTestDialog::~TabletTestDialog()"
       ]
     }
   ]

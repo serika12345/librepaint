@@ -2,15 +2,22 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-15 22:33 JST
+- 更新日時: 2026-09-15 22:44 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
-- 完了: 第755便でAnimation Renderer Dialogの公開6 APIを契約へ追加し、対応済みを29,777件へ進めた。
-- 次の作業: 第756便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
+- 完了: 第756便でTablet Test Dialogの公開4 APIを契約へ追加し、対応済みを29,781件へ進めた。
+- 次の作業: 第757便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
 - 検証: macOSの対象・反復・無作業再構築、公開API検査、`verify-quick`に成功した。旧不足報告をTrashへ移し、最新報告だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は本便の対象外である。
+
+### 第756便の結果
+
+- `libs/input/ui/wintab/drawpile_tablettester/tablettester.h`から新規`libs/input/ui/tests/TabletTestDialogSchemaContractTest.cpp`へpublic 4 API・1枠`tabletTestDialogPublicSchemaRemainsStable`を追加した。Tablet Test DialogがKoDialog派生型として親widgetで構築・破棄でき、QObject event filterを提供する公開形式を固定する。
+- `libs/input/ui/tests/CMakeLists.txt`へ専用静的targetを追加した。input UIの公開header、KoDialog所有者、KConfig・KGuiAddons・KWidgetsAddonsとQt Widgetsのheader探索路だけを加え、製品object・libraryのlinkは導入していない。CMake再生成後に実行したのは専用targetの自動MOC、2 object、linkであり、製品targetは構築していない。試験sourceは31行・1枠で、構築閉包は4工程・8入力（command SHA-256 `fcdc7537ee6761ffd2506b81448352762ac62a87d6f36854290182a8f0dd41ee`、input SHA-256 `5e597b1e5bafa4308fd8f48f04b657bb2b2d7c53bb1ea76cf40005b08464fda7`）となり、AUTOMOC `HEADERS=[]`、製品library・Tablet Test Dialog・KoDialogの未解決記号なしを確認した。
+- macOSで対象単発、全1枠20回（20成功）、追加枠60回（60成功）、無作業再構築2回、`clang-check`、`clang-format --dry-run --Werror`、公開API検査に成功した。正式不足報告`build/tdd-macos/public-api-missing-g756.json`は公開header 1,549、公開API 29,801、対応済み29,781、未対応20、5,098 bytes、SHA-256 `f140d11447727bb49b4c4211ef29dac9e9f275a05d6cdb172ab64fbe3b695baa`を記録する。
+- `verify-quick`に成功し、旧`build/tdd-macos/public-api-missing-g755.json`をTrashへ移した。主Ninja木、共有compiler cache、最新`build/tdd-macos/public-api-missing-g756.json`だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 
 ### 第755便の結果
 
