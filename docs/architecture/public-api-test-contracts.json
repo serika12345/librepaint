@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 118
+    "expectedMissingApis": 112
   },
   "contracts": [
     {
@@ -83482,6 +83482,21 @@
         "method:KisAutoBrushWidget::brush()",
         "method:KisAutoBrushWidget::~KisAutoBrushWidget()",
         "method:KisWdgAutoBrush::KisWdgAutoBrush(QWidget * parent,const char * name)"
+      ]
+    },
+    {
+      "target": "KisPaintOptionWidgetSchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisPaintOptionWidgetSchemaContractTest.cpp",
+      "test": "KisPaintOptionWidgetSchemaContractTest::predefinedBrushChooserSchemaRemainsStable",
+      "behavior": "predefined brush chooserはwidget派生型として最大brushサイズ・model・親widget・名前で構築・破棄でき、brush・image設定とlightness mode照会を提供する公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisPredefinedBrushChooser",
+        "method:KisPredefinedBrushChooser::KisPredefinedBrushChooser(int maxBrushSize,KisPredefinedBrushModel * model,QWidget * parent=0,const char * name=0)",
+        "method:KisPredefinedBrushChooser::lightnessModeEnabled() const",
+        "method:KisPredefinedBrushChooser::setBrush(KisBrushSP brush)",
+        "method:KisPredefinedBrushChooser::setImage(KisImageWSP image)",
+        "method:KisPredefinedBrushChooser::~KisPredefinedBrushChooser()"
       ]
     }
   ]

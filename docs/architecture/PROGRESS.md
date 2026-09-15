@@ -2,15 +2,22 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-15 20:59 JST
+- 更新日時: 2026-09-15 21:06 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
-- 完了: 第744便でauto brush widgetの公開6 APIを契約へ追加し、対応済みを29,683件へ進めた。
-- 次の作業: 第745便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
+- 完了: 第745便でpredefined brush chooserの公開6 APIを契約へ追加し、対応済みを29,689件へ進めた。
+- 次の作業: 第746便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
 - 検証: macOSの対象・反復・無作業再構築、公開API検査、`verify-quick`に成功した。旧不足報告をTrashへ移し、最新報告だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は本便の対象外である。
+
+### 第745便の結果
+
+- `plugins/paintops/libpaintop/kis_predefined_brush_chooser.h`から既存`plugins/paintops/libpaintop/tests/KisPaintOptionWidgetSchemaContractTest.cpp`へ公開6 API・新規1枠`predefinedBrushChooserSchemaRemainsStable`を追加した。predefined brush chooserがwidget派生型として最大brushサイズ・model・親widget・名前で構築・破棄でき、brush・image設定とlightness mode照会を提供する公開形式を固定する。
+- `plugins/paintops/libpaintop/tests/CMakeLists.txt`の同targetで`wdgpredefinedbrushchooser.ui`を生成し、KF WidgetsAddonsの直接header探索路だけを追加した。生成UIの`KSqueezedTextLabel`を解決し、製品object・libraryのlinkは導入していない。CMake再生成後に実行したのは同targetの自動MOC、2 UI生成、2 object、linkであり、製品targetは構築していない。試験sourceは146行・7枠で、構築閉包は6工程・11入力（command SHA-256 `9cc8565de1d2ff5149d97792e9d8e2095668e820c824ac15b346ecb4f44eb2ab`、input SHA-256 `416c5ce5093be0faf99e036324f92e612ac1903138e806b9e122d5506b2ffcaf`）となり、AUTOMOC `HEADERS=[]`、製品library・predefined brush chooser・predefined brush modelの未解決記号なしを確認した。
+- macOSで対象単発、全7枠20回（140成功）、追加枠60回（60成功）、無作業再構築、`clang-check`、`clang-format --dry-run --Werror`、公開API検査に成功した。正式不足報告`build/tdd-macos/public-api-missing-g745.json`は公開header 1,549、公開API 29,801、対応済み29,689、未対応112、28,940 bytes、SHA-256 `0ed24f60d9fb8677091aac811b7a676770e68b95afd281c860f822553ad8c155`を記録する。
+- `verify-quick`に成功し、旧`build/tdd-macos/public-api-missing-g744.json`をTrashへ移した。主Ninja木、共有compiler cache、最新`build/tdd-macos/public-api-missing-g745.json`だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 
 ### 第744便の結果
 
