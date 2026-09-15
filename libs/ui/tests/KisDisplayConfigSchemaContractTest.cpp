@@ -10,6 +10,7 @@
 #include <canvas/kis_display_color_converter.h>
 #include <theme/thememanager.h>
 #include <widgets/KisProofingOptionsWidget.h>
+#include <widgets/kis_advanced_color_space_selector.h>
 #include <widgets/kis_paintop_presets_chooser_popup.h>
 #include <widgets/kis_seexpr_script_chooser.h>
 
@@ -55,6 +56,7 @@ private Q_SLOTS:
     void themeManagerSchemaRemainsStable();
     void seExprScriptChooserSchemaRemainsStable();
     void paintOpPresetsChooserPopupSchemaRemainsStable();
+    void advancedColorSpaceSelectorSchemaRemainsStable();
 };
 
 void KisDisplayConfigSchemaContractTest::displayConfigTypeAndConstructionSchemaRemainsStable()
@@ -349,6 +351,24 @@ void KisDisplayConfigSchemaContractTest::paintOpPresetsChooserPopupSchemaRemains
     static_assert(std::is_same_v<decltype(&Popup::slotThemeChanged), void (Popup::*)()>);
     static_assert(std::is_same_v<decltype(&Popup::resourceSelected), void (Popup::*)(KoResourceSP)>);
     static_assert(std::is_same_v<decltype(&Popup::resourceClicked), void (Popup::*)(KoResourceSP)>);
+}
+
+void KisDisplayConfigSchemaContractTest::advancedColorSpaceSelectorSchemaRemainsStable()
+{
+    using Selector = KisAdvancedColorSpaceSelector;
+
+    static_assert(std::is_base_of_v<QDialog, Selector>);
+    static_assert(std::is_constructible_v<Selector, QWidget *, const QString &>);
+    static_assert(std::has_virtual_destructor_v<Selector>);
+    static_assert(std::is_same_v<decltype(&Selector::currentColorSpace), const KoColorSpace *(Selector::*)()>);
+    static_assert(std::is_same_v<decltype(&Selector::setCurrentColorModel), void (Selector::*)(const KoID &)>);
+    static_assert(std::is_same_v<decltype(&Selector::setCurrentColorDepth), void (Selector::*)(const KoID &)>);
+    static_assert(std::is_same_v<decltype(&Selector::setCurrentProfile), void (Selector::*)(const QString &)>);
+    static_assert(std::is_same_v<decltype(&Selector::setCurrentColorSpace), void (Selector::*)(const KoColorSpace *)>);
+    static_assert(std::is_same_v<decltype(&Selector::selectionChanged), void (Selector::*)(bool)>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<void (Selector::*)(const KoColorSpace *)>(&Selector::colorSpaceChanged)),
+                       void (Selector::*)(const KoColorSpace *)>);
 }
 
 #undef ASSERT_DISPLAY_COLOR_CONVERTER_SIGNATURE

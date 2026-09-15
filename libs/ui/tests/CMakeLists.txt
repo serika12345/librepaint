@@ -1494,6 +1494,9 @@ target_compile_definitions(KisDisplayConfigSchemaContractTest PRIVATE
     kritasurfacecolorimetry_EXPORTS
     kritawidgetutils_EXPORTS
 )
+ki18n_wrap_ui(KisDisplayConfigSchemaContractTest
+    ${CMAKE_CURRENT_SOURCE_DIR}/../forms/wdgcolorspaceselectoradvanced.ui
+)
 
 kis_add_test(
     KisDitherUtilSchemaContractTest.cpp
