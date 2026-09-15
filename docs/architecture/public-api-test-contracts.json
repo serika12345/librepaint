@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 139
+    "expectedMissingApis": 135
   },
   "contracts": [
     {
@@ -83416,6 +83416,19 @@
         "method:KisToolFreehand::flags() const",
         "method:KisToolFreehand::mouseMoveEvent(KoPointerEvent * event)",
         "method:KisToolFreehand::~KisToolFreehand()"
+      ]
+    },
+    {
+      "target": "KisMaskManagerSchemaContractTest",
+      "source": "libs/ui/tests/KisMaskManagerSchemaContractTest.cpp",
+      "test": "KisMaskManagerSchemaContractTest::maskManagerPublicSchemaRemainsStable",
+      "behavior": "mask managerはQObject派生型としてview managerで構築・破棄でき、QPointerで保持するviewを設定する公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisMaskManager",
+        "method:KisMaskManager::KisMaskManager(KisViewManager * view)",
+        "method:KisMaskManager::setView(QPointer<KisView> view)",
+        "method:KisMaskManager::~KisMaskManager()"
       ]
     }
   ]
