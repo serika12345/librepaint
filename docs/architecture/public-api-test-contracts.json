@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 155
+    "expectedMissingApis": 146
   },
   "contracts": [
     {
@@ -83382,6 +83382,24 @@
         "function:kmdValueToExivValue(const KisMetaData::Value & value,Exiv2::TypeId type)",
         "function:kmdValueToExivXmpValue(const KisMetaData::Value & value)",
         "function:variantToExivValue(const QVariant & variant,Exiv2::TypeId type)"
+      ]
+    },
+    {
+      "target": "KisDisplayConfigSchemaContractTest",
+      "source": "libs/ui/tests/KisDisplayConfigSchemaContractTest.cpp",
+      "test": "KisDisplayConfigSchemaContractTest::paintOpPresetsChooserPopupSchemaRemainsStable",
+      "behavior": "paintop presets chooser popupはwidget派生型として親widgetで構築・破棄でき、view設定・応答性・canvas preset変更・theme変更、resource選択・クリック通知を提供する公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisPaintOpPresetsChooserPopup",
+        "method:KisPaintOpPresetsChooserPopup::KisPaintOpPresetsChooserPopup(QWidget * parent=0)",
+        "method:KisPaintOpPresetsChooserPopup::canvasResourceChanged(KisPaintOpPresetSP preset)",
+        "method:KisPaintOpPresetsChooserPopup::resourceClicked(KoResourceSP resource)",
+        "method:KisPaintOpPresetsChooserPopup::resourceSelected(KoResourceSP resource)",
+        "method:KisPaintOpPresetsChooserPopup::setResponsiveness(bool value)",
+        "method:KisPaintOpPresetsChooserPopup::slotThemeChanged()",
+        "method:KisPaintOpPresetsChooserPopup::updateViewSettings()",
+        "method:KisPaintOpPresetsChooserPopup::~KisPaintOpPresetsChooserPopup()"
       ]
     }
   ]

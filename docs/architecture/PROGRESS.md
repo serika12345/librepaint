@@ -2,15 +2,22 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-15 19:50 JST
+- 更新日時: 2026-09-15 19:59 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
-- 完了: 第737便でmetadata Exiv2変換関数の公開5 APIを契約へ追加し、対応済みを29,646件へ進めた。
-- 次の作業: 第738便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
+- 完了: 第738便でpaintop presets chooser popupの公開9 APIを契約へ追加し、対応済みを29,655件へ進めた。
+- 次の作業: 第739便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
 - 検証: macOSの対象・反復・無作業再構築、公開API検査、`verify-quick`に成功した。旧不足報告をTrashへ移し、最新報告だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は本便の対象外である。
+
+### 第738便の結果
+
+- `libs/ui/widgets/kis_paintop_presets_chooser_popup.h`から既存`libs/ui/tests/KisDisplayConfigSchemaContractTest.cpp`へ公開9 API・新規1枠`paintOpPresetsChooserPopupSchemaRemainsStable`を追加した。paintop presets chooser popupがwidget派生型として親widgetで構築・破棄でき、view設定・応答性・canvas preset変更・theme変更、resource選択・クリック通知を提供する公開形式を固定する。
+- `libs/ui/tests/CMakeLists.txt`の同targetへimage brushengineのsource・生成済みheader探索路だけを追加した。公開型`KisPaintOpPreset`とpreset update proxyを解決し、製品object・libraryのlinkは導入していない。CMake再生成後に実行したのは同targetの自動MOC、2 object、linkであり、製品targetは構築していない。試験sourceは359行・20枠で、構築閉包は4工程・7入力（command SHA-256 `603cf51879c84c9864423383fee3f4c612247a80630887cfb86620e58c5efb7e`、input SHA-256 `174dda9012da60b28eb16157cb78b4d2bf11d778e453a749e8a71fb3efc49e21`）を維持し、AUTOMOC `HEADERS=[]`、製品library・paintop presets chooser popup・paintop preset・preset update proxyの未解決記号なしを確認した。
+- macOSで対象単発、全20枠20回（400成功）、追加枠60回（60成功）、無作業再構築、`clang-check`、`clang-format --dry-run --Werror`、公開API検査に成功した。正式不足報告`build/tdd-macos/public-api-missing-g738.json`は公開header 1,549、公開API 29,801、対応済み29,655、未対応146、38,327 bytes、SHA-256 `46476b06980b2e6e12a934f7c5a31b800b08910c7ca8dfde6fe53dcad64ca87f`を記録する。
+- `verify-quick`に成功し、旧`build/tdd-macos/public-api-missing-g737.json`をTrashへ移した。主Ninja木、共有compiler cache、最新`build/tdd-macos/public-api-missing-g738.json`だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 
 ### 第737便の結果
 
