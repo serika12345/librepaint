@@ -1476,10 +1476,12 @@ target_include_directories(KisDisplayConfigSchemaContractTest PRIVATE
     ${CMAKE_BINARY_DIR}/libs/image/brushengine
     ${CMAKE_SOURCE_DIR}/libs/pigment
     ${CMAKE_BINARY_DIR}/libs/pigment
+    ${CMAKE_SOURCE_DIR}/libs/pigment/resources
     ${CMAKE_SOURCE_DIR}/libs/resources
     ${CMAKE_BINARY_DIR}/libs/resources
     ${CMAKE_SOURCE_DIR}/libs/resources/ui
     ${CMAKE_BINARY_DIR}/libs/resources/ui
+    ${CMAKE_SOURCE_DIR}/libs/ui/widgets/gradient
     $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Gui,INTERFACE_INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Widgets,INTERFACE_INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Xml,INTERFACE_INCLUDE_DIRECTORIES>
@@ -1505,6 +1507,7 @@ ki18n_wrap_ui(KisDisplayConfigSchemaContractTest
     ${CMAKE_CURRENT_SOURCE_DIR}/../forms/wdgcolorspaceselectoradvanced.ui
     ${CMAKE_CURRENT_SOURCE_DIR}/../forms/wdgGamutMaskToolbar.ui
     ${CMAKE_CURRENT_SOURCE_DIR}/../forms/wdgimportimagesequence.ui
+    ${CMAKE_CURRENT_SOURCE_DIR}/../forms/wdgsegmentgradienteditor.ui
 )
 
 kis_add_test(

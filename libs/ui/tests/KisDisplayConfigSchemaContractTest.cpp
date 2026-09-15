@@ -12,6 +12,7 @@
 #include <theme/thememanager.h>
 #include <widgets/KisGamutMaskToolbar.h>
 #include <widgets/KisProofingOptionsWidget.h>
+#include <widgets/gradient/KisSegmentGradientEditor.h>
 #include <widgets/kis_advanced_color_space_selector.h>
 #include <widgets/kis_paintop_presets_chooser_popup.h>
 #include <widgets/kis_seexpr_script_chooser.h>
@@ -61,6 +62,7 @@ private Q_SLOTS:
     void advancedColorSpaceSelectorSchemaRemainsStable();
     void gamutMaskToolbarSchemaRemainsStable();
     void importImageSequenceDialogSchemaRemainsStable();
+    void segmentGradientEditorSchemaRemainsStable();
 };
 
 void KisDisplayConfigSchemaContractTest::displayConfigTypeAndConstructionSchemaRemainsStable()
@@ -406,6 +408,29 @@ void KisDisplayConfigSchemaContractTest::importImageSequenceDialogSchemaRemainsS
     static_assert(std::is_same_v<decltype(&Dialog::autoAddHoldframes), bool (Dialog::*)()>);
     static_assert(std::is_same_v<decltype(&Dialog::startFrom1), bool (Dialog::*)()>);
     static_assert(std::is_same_v<decltype(&Dialog::isAscending), int (Dialog::*)()>);
+}
+
+void KisDisplayConfigSchemaContractTest::segmentGradientEditorSchemaRemainsStable()
+{
+    using Editor = KisSegmentGradientEditor;
+
+    static_assert(std::is_base_of_v<QWidget, Editor>);
+    static_assert(std::is_constructible_v<Editor, QWidget *>);
+    static_assert(std::is_constructible_v<Editor,
+                                          KoSegmentGradientSP,
+                                          QWidget *,
+                                          const char *,
+                                          const QString &,
+                                          KoCanvasResourcesInterfaceSP>);
+    static_assert(std::has_virtual_destructor_v<Editor>);
+    static_assert(std::is_same_v<decltype(&Editor::gradient), void (Editor::*)() const>);
+    static_assert(std::is_same_v<decltype(&Editor::setGradient), void (Editor::*)(KoSegmentGradientSP)>);
+    static_assert(
+        std::is_same_v<decltype(&Editor::canvasResourcesInterface), KoCanvasResourcesInterfaceSP (Editor::*)() const>);
+    static_assert(
+        std::is_same_v<decltype(&Editor::setCanvasResourcesInterface), void (Editor::*)(KoCanvasResourcesInterfaceSP)>);
+    static_assert(std::is_same_v<decltype(&Editor::setCompactMode), void (Editor::*)(bool)>);
+    static_assert(std::is_same_v<decltype(&Editor::sigGradientChanged), void (Editor::*)()>);
 }
 
 #undef ASSERT_DISPLAY_COLOR_CONVERTER_SIGNATURE
