@@ -2,15 +2,22 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-15 17:25 JST
+- 更新日時: 2026-09-15 17:35 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
-- 完了: 第721便でgap mapとtile accessorの公開12 APIを契約へ追加し、対応済みを29,506件へ進めた。
-- 次の作業: 第722便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
+- 完了: 第722便で同期LOD cache stroke strategyの公開5 APIを契約へ追加し、対応済みを29,511件へ進めた。
+- 次の作業: 第723便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
 - 検証: macOSの対象・反復・無作業再構築、公開API検査、`verify-quick`に成功した。旧不足報告をTrashへ移し、最新報告だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は本便の対象外である。
+
+### 第722便の結果
+
+- `libs/image/kis_sync_lod_cache_stroke_strategy.h`から既存`libs/image/tests/KisStrokeStrategyUndoCommandBasedSchemaContractTest.cpp`へ公開5 API・新規1枠`syncLodCacheStrokeStrategySchemaRemainsStable`を追加した。同期LOD cache stroke strategyがrunnable stroke strategy派生型として画像とforgettable指定で構築・破棄でき、画像からjob列を作り、既存job列へ画像root、更新窓口、詳細度、追加deviceを指定してjobを追加する公開形式を固定する。
+- 公開header、製品source、CMakeを変更せず、既存targetのimage、global、pigment、painting/undoの探索路、Qt Core・Test・Gui、KI18n、Boostを利用する。試験sourceは236行・13枠で、構築閉包は4工程・8入力（command SHA-256 `f4d2aa8a0d67dd432b26e79391592c05f16fdcb9ed742f08405fcb9c2e7bcd83`、input SHA-256 `b25e5059e87a568c270ce9e1fe072b4b0be1b07f0b4509e641e1c7e7873e834b`）を維持し、AUTOMOC `HEADERS=[]`、製品library・同期LOD cache stroke strategyの未解決記号なしを確認した。
+- macOSで対象単発、全13枠20回（300成功）、追加枠20回（60成功）、無作業再構築、`clang-check`、`clang-format --dry-run --Werror`、公開API検査に成功した。正式不足報告`build/tdd-macos/public-api-missing-g722.json`は公開header 1,549、公開API 29,801、対応済み29,511、未対応290、75,675 bytes、SHA-256 `63696baa70ffab0b60a42d235a2d0be6aa3b646468adf1fb938fa7087837da4c`を記録する。
+- `verify-quick`に成功し、旧`build/tdd-macos/public-api-missing-g721.json`をTrashへ移した。主Ninja木、共有compiler cache、最新`build/tdd-macos/public-api-missing-g722.json`だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 
 ### 第721便の結果
 

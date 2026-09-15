@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 295
+    "expectedMissingApis": 290
   },
   "contracts": [
     {
@@ -83098,6 +83098,20 @@
         "method:KisTileOptimizedAccessor::KisTileOptimizedAccessor(KisPaintDeviceSP & paintDevice)",
         "method:KisTileOptimizedAccessor::rawData(int x,int y)",
         "method:KisTileOptimizedAccessor::tileRawData(int tileX,int tileY)"
+      ]
+    },
+    {
+      "target": "KisStrokeStrategyUndoCommandBasedSchemaContractTest",
+      "source": "libs/image/tests/KisStrokeStrategyUndoCommandBasedSchemaContractTest.cpp",
+      "test": "KisStrokeStrategyUndoCommandBasedSchemaContractTest::syncLodCacheStrokeStrategySchemaRemainsStable",
+      "behavior": "同期LOD cache stroke strategyはrunnable stroke strategy派生型として画像とforgettable指定で構築・破棄でき、画像からjob列を作成し、既存job列へ画像root、更新窓口、詳細度、追加deviceを指定してjobを追加する公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisSyncLodCacheStrokeStrategy",
+        "method:KisSyncLodCacheStrokeStrategy::KisSyncLodCacheStrokeStrategy(KisImageWSP image,bool forgettable)",
+        "method:KisSyncLodCacheStrokeStrategy::createJobsData(KisImageWSP image)",
+        "method:KisSyncLodCacheStrokeStrategy::createJobsData(QVector<KisStrokeJobData * > & jobs,KisNodeSP imageRoot,KisUpdatesFacade * updatesFacade,int levelOfDetail,KisPaintDeviceList extraDevices={})",
+        "method:KisSyncLodCacheStrokeStrategy::~KisSyncLodCacheStrokeStrategy()"
       ]
     }
   ]
