@@ -3149,6 +3149,19 @@ target_compile_definitions(KisProgressWidgetSchemaContractTest PRIVATE
     kritawidgetutils_EXPORTS
 )
 
+kis_add_test(
+    KisWidgetChooserSchemaContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KisWidgetChooserSchemaContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Widgets,INTERFACE_INCLUDE_DIRECTORIES>
+)
+target_compile_definitions(KisWidgetChooserSchemaContractTest PRIVATE kritaui_EXPORTS)
+
 kis_add_test( kis_node_shapes_graph_test.cpp ../../../sdk/tests/testutil.cpp
     TEST_NAME KisNodeShapesGraphTest
     LINK_LIBRARIES kritaapplicationui kritatestsdk
