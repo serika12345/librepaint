@@ -10,6 +10,7 @@
 #include <canvas/kis_display_color_converter.h>
 #include <theme/thememanager.h>
 #include <widgets/KisProofingOptionsWidget.h>
+#include <widgets/kis_paintop_presets_chooser_popup.h>
 #include <widgets/kis_seexpr_script_chooser.h>
 
 #include <surfacecolormanagement/KisSurfaceColorimetry.h>
@@ -53,6 +54,7 @@ private Q_SLOTS:
     void proofingOptionsWidgetSchemaRemainsStable();
     void themeManagerSchemaRemainsStable();
     void seExprScriptChooserSchemaRemainsStable();
+    void paintOpPresetsChooserPopupSchemaRemainsStable();
 };
 
 void KisDisplayConfigSchemaContractTest::displayConfigTypeAndConstructionSchemaRemainsStable()
@@ -332,6 +334,21 @@ void KisDisplayConfigSchemaContractTest::seExprScriptChooserSchemaRemainsStable(
     static_assert(std::is_same_v<decltype(&Chooser::setPreviewOrientation), void (Chooser::*)(Qt::Orientation)>);
     static_assert(std::is_same_v<decltype(&Chooser::resourceSelected), void (Chooser::*)(KoResourceSP)>);
     static_assert(std::is_same_v<decltype(&Chooser::updateItemSize), void (Chooser::*)()>);
+}
+
+void KisDisplayConfigSchemaContractTest::paintOpPresetsChooserPopupSchemaRemainsStable()
+{
+    using Popup = KisPaintOpPresetsChooserPopup;
+
+    static_assert(std::is_base_of_v<QWidget, Popup>);
+    static_assert(std::is_constructible_v<Popup, QWidget *>);
+    static_assert(std::has_virtual_destructor_v<Popup>);
+    static_assert(std::is_same_v<decltype(&Popup::updateViewSettings), void (Popup::*)()>);
+    static_assert(std::is_same_v<decltype(&Popup::setResponsiveness), void (Popup::*)(bool)>);
+    static_assert(std::is_same_v<decltype(&Popup::canvasResourceChanged), void (Popup::*)(KisPaintOpPresetSP)>);
+    static_assert(std::is_same_v<decltype(&Popup::slotThemeChanged), void (Popup::*)()>);
+    static_assert(std::is_same_v<decltype(&Popup::resourceSelected), void (Popup::*)(KoResourceSP)>);
+    static_assert(std::is_same_v<decltype(&Popup::resourceClicked), void (Popup::*)(KoResourceSP)>);
 }
 
 #undef ASSERT_DISPLAY_COLOR_CONVERTER_SIGNATURE

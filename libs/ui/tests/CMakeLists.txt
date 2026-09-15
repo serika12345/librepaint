@@ -1465,6 +1465,8 @@ target_include_directories(KisDisplayConfigSchemaContractTest PRIVATE
     ${CMAKE_BINARY_DIR}/libs/global
     ${CMAKE_SOURCE_DIR}/libs/image
     ${CMAKE_BINARY_DIR}/libs/image
+    ${CMAKE_SOURCE_DIR}/libs/image/brushengine
+    ${CMAKE_BINARY_DIR}/libs/image/brushengine
     ${CMAKE_SOURCE_DIR}/libs/pigment
     ${CMAKE_BINARY_DIR}/libs/pigment
     ${CMAKE_SOURCE_DIR}/libs/resources
