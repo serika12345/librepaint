@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 412
+    "expectedMissingApis": 409
   },
   "contracts": [
     {
@@ -81772,6 +81772,18 @@
         "method:KisPaintResourceServerProvider::layerStyleServer()",
         "method:KisPaintResourceServerProvider::paintOpPresetServer()",
         "method:KisPaintResourceServerProvider::~KisPaintResourceServerProvider()"
+      ]
+    },
+    {
+      "target": "KisToolSchemaContractTest",
+      "source": "libs/tools/tests/KisToolSchemaContractTest.cpp",
+      "test": "KisToolSchemaContractTest::paintingInformationBuilderRemainderSchemaRemainStable",
+      "behavior": "painting information builderは継続strokeでpaint informationを返し、状態をリセットし、仮想破棄する公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPaintingInformationBuilder::continueStroke(KoPointerEvent * event,int timeElapsed)",
+        "method:KisPaintingInformationBuilder::reset()",
+        "method:KisPaintingInformationBuilder::~KisPaintingInformationBuilder()"
       ]
     },
     {
