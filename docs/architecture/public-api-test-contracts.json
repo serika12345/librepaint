@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 388
+    "expectedMissingApis": 383
   },
   "contracts": [
     {
@@ -81841,6 +81841,20 @@
         "method:KisGuidesDecoration::setGuidesConfig(const KisGuidesConfig & value)",
         "method:KisGuidesDecoration::~KisGuidesDecoration()",
         "variable:GUIDES_DECORATION_ID"
+      ]
+    },
+    {
+      "target": "KisReferenceImagesDecorationSchemaContractTest",
+      "source": "libs/ui/tests/KisReferenceImagesDecorationSchemaContractTest.cpp",
+      "test": "KisReferenceImagesDecorationSchemaContractTest::imageThumbnailStrokeStrategySchemaRemainStable",
+      "behavior": "image thumbnail stroke strategyはidle task stroke strategyの公開派生型としてpaint device・領域・thumbnail寸法・色変換設定を受けて構築し、thumbnail更新を通知する公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisImageThumbnailStrokeStrategy",
+        "class:KisImageThumbnailStrokeStrategyBase",
+        "method:KisImageThumbnailStrokeStrategy::thumbnailUpdated(QImage pixmap)",
+        "method:KisImageThumbnailStrokeStrategyBase::KisImageThumbnailStrokeStrategyBase(KisPaintDeviceSP device,const QRect & rect,const QSize & thumbnailSize,bool isPixelArt,const KoColorProfile * profile,KoColorConversionTransformation::Intent renderingIntent,KoColorConversionTransformation::ConversionFlags conversionFlags)",
+        "method:KisImageThumbnailStrokeStrategyBase::~KisImageThumbnailStrokeStrategyBase()"
       ]
     },
     {

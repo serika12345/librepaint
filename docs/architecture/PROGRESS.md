@@ -2,15 +2,22 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-15 14:22 JST
+- 更新日時: 2026-09-15 14:31 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
-- 完了: 第704便でguides decorationの公開型・構築・設定・照会・破棄・識別子APIを契約へ追加し、対応済みを29,413件へ進めた。
-- 次の作業: 第705便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
-- 検証: macOSの対象・反復・無作業再構築、公開API検査、`verify-quick`に成功した。製品target、全体build・`verify`、Linux、Nix再評価は本便の対象外である。
+- 完了: 第705便でimage thumbnail stroke strategyの公開型・構築・破棄・通知APIを契約へ追加し、対応済みを29,418件へ進めた。
+- 次の作業: 第706便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
+- 検証: macOSの対象・反復・無作業再構築、公開API検査、`verify-quick`に成功した。旧不足報告をTrashへ移し、最新報告だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は本便の対象外である。
+
+### 第705便の結果
+
+- `libs/ui/canvas/KisImageThumbnailStrokeStrategy.h`から既存`libs/ui/tests/KisReferenceImagesDecorationSchemaContractTest.cpp`へ公開5 API・新規1枠`imageThumbnailStrokeStrategySchemaRemainStable`を追加した。公開headerと製品sourceを変更せず、image thumbnail stroke strategyがidle task stroke strategy派生型としてpaint device・領域・thumbnail寸法・色変換設定を受けて構築し、仮想破棄とthumbnail更新通知を提供する公開形式を固定する。
+- `libs/ui/tests/CMakeLists.txt`の同試験targetへ`libs/painting/undo`のsource・生成済みheader探索路だけを追加した。推移includeが必要とする`kundo2magicstring.h`を解決し、実行・製品リンク依存を追加していない。試験sourceは87行・3枠で、構築閉包は4工程・8入力（command SHA-256 `1920f59e1d68fccd361bc6f21449589ced34b53ddd00ae126ba6c8117729bdd6`、input SHA-256 `f40a3e3609f97e1bafc24eb85c90d06453b3e6192e4003ba4f104ae07583a427`）を維持し、AUTOMOC `HEADERS=[]`、製品library・対象strategyの未解決記号なしを確認した。
+- macOSで対象単発、全3枠20回（100成功）、追加枠20回（60成功）、対象限定の無作業再構築、`clang-check`、`clang-format --dry-run --Werror`、公開API検査に成功した。正式不足報告`build/tdd-macos/public-api-missing-g705.json`は公開header 1,549、公開API 29,801、対応済み29,418、未対応383、100,830 bytes、SHA-256 `16bf261512b121608f08b326e95ee98c410678e1a905015a6063e813e148abd8`を記録する。
+- `verify-quick`に成功し、旧`build/tdd-macos/public-api-missing-g704.json`をTrashへ移した。主Ninja木、共有compiler cache、最新`build/tdd-macos/public-api-missing-g705.json`だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 
 ### 第704便の結果
 
