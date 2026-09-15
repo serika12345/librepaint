@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 444
+    "expectedMissingApis": 438
   },
   "contracts": [
     {
@@ -81217,6 +81217,21 @@
       "classification": "maintained",
       "apis": [
         "method:KisRecycleProjectionsJob::overrides(const KisSpontaneousJob * otherJob)"
+      ]
+    },
+    {
+      "target": "KisRecycleProjectionsJobSchemaContractTest",
+      "source": "libs/image/tests/KisRecycleProjectionsJobSchemaContractTest.cpp",
+      "test": "KisRecycleProjectionsJobSchemaContractTest::recalculateTransformMaskJobSchemaRemainStable",
+      "behavior": "transform mask再計算jobはspontaneous jobの公開派生型としてtransform maskと更新矩形を受けて構築し、競合判定・実行・詳細度・識別名を提供する公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisRecalculateTransformMaskJob",
+        "method:KisRecalculateTransformMaskJob::KisRecalculateTransformMaskJob(KisTransformMaskSP mask,const QRect & extraUpdateRect)",
+        "method:KisRecalculateTransformMaskJob::debugName() const",
+        "method:KisRecalculateTransformMaskJob::levelOfDetail() const",
+        "method:KisRecalculateTransformMaskJob::overrides(const KisSpontaneousJob * otherJob)",
+        "method:KisRecalculateTransformMaskJob::run()"
       ]
     },
     {
