@@ -2,15 +2,23 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-15 23:35 JST
+- 更新日時: 2026-09-15 23:52 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
-- 完了: 第759便で標準uniform paint-op propertyの公開`KoID`値5件を契約へ追加し、対応済みを29,790件へ進めた。
-- 次の作業: factory入口2件を製品閉包なしで実行できる所有単位へ分ける構造準備を評価し、AndroidとWindowsのplatform限定APIには実行可能な契約profileを設計する。
+- 完了: 第760便で標準uniform paint-op property factoryの公開入口2件を契約へ追加し、対応済みを29,792件へ進めた。
+- 次の作業: 残るAndroid初期化入口1件とWindows互換層8件を実行可能なplatform契約profileへ分ける最小構成を設計する。
 - 検証: macOSの対象・反復・無作業再構築、公開API検査、`verify-quick`に成功した。第759便ではLinux実機で構築profileだけを監査し、製品target、全体build・`verify`、Nix再評価は実行していない。主Ninja木、共有compiler cache、最新不足報告だけを保持する。
+
+### 第760便のfactory設定所有者分離
+
+- `libs/image/brushengine/kis_standard_uniform_properties_factory.cpp`にあった、標準uniform paint-op propertyの識別子からslider設定を選ぶ責務を、新規`libs/image/brushengine/KisStandardUniformPropertyDefinition.h`と`libs/image/brushengine/KisStandardUniformPropertyDefinition.cpp`へ移した。新しい具体的な値所有者はsize、opacity、flowの種別、範囲、刻み、指数、精度、brush最大値とpixel接尾辞の使用を返す。factoryは既存の`KisPaintOpSettings`へのread/write callback、更新通知、angle・spacingの未実装診断、未知IDのrecoverable診断を維持し、値定義をpropertyへ適用する。
+- `libs/image/CMakeLists.txt`は新しい`kritaimageuniformpropertydefinitionobjects`を定義し、`kritaimage`へ同objectを入力として追加した。factory sourceは従来どおり`kritaimage`が所有する。新規`libs/image/tests/KisStandardUniformPropertiesFactoryContractTest.cpp`は、factoryの`KoID`・`QString`入口の正確な型を固定し、同じproduction値所有者からsupported IDの設定と未実装・未知IDの分類を観測する。`libs/image/tests/CMakeLists.txt`はこのtargetだけへ新objectと`kritaglobalidobjects`を接続する。
+- macOSの対象targetは6工程・14入力（command SHA-256 `7da679a97fcd672398c9d7c2876f409f589dca300c00bfea49ee9ed16b394161`、input SHA-256 `8099bdabe4ea4eaa9f0ca549b4abe80215d77b80766e75e03b75dd5978bebe4a`）となった。AUTOMOC `HEADERS=[]`、製品dylibなし、factory入口の未解決記号なしを確認した。`ninja -t query`でproductionの`kritaimage`が新しい定義objectと既存factory sourceの両方を入力に持つことを確認し、製品targetの構築は実行していない。
+- macOSで対象単発、既存の値target、全1枠20回（20成功）、追加枠60回（60成功）、無作業再構築2回、`clang-check`（定義・factory・試験）、`clang-format --dry-run --Werror`、公開API検査に成功した。正式不足報告`build/tdd-macos/public-api-missing-g760.json`は公開header 1,549、公開API 29,801、対応済み29,792、未対応9、1,608 bytes、SHA-256 `a62ce4e0462eea33efe780b0d7d2b0916525a184d5d7df459b7a56429a5d87c9`を記録する。
+- `verify-quick`に成功し、旧`build/tdd-macos/public-api-missing-g759.json`をTrashへ移した。主Ninja木、共有compiler cache、最新`build/tdd-macos/public-api-missing-g760.json`だけを保持する。製品target、全体build・`verify`、Linux実機でのtest実行、Nix再評価は実行していない。
 
 ### 第759便の構築範囲監査
 

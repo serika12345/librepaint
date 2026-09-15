@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 11
+    "expectedMissingApis": 9
   },
   "contracts": [
     {
@@ -83724,6 +83724,17 @@
         "variable:KisStandardUniformPropertiesFactory::opacity",
         "variable:KisStandardUniformPropertiesFactory::size",
         "variable:KisStandardUniformPropertiesFactory::spacing"
+      ]
+    },
+    {
+      "target": "KisStandardUniformPropertiesFactoryContractTest",
+      "source": "libs/image/tests/KisStandardUniformPropertiesFactoryContractTest.cpp",
+      "test": "KisStandardUniformPropertiesFactoryContractTest::standardFactoryEntryPointsSelectStableSliderDefinitions",
+      "behavior": "標準uniform paint-op property factoryはKoIDとQStringの両方の入口を維持し、size、opacity、flowを対応するsliderの範囲、刻み、指数、精度、表示属性へ決定する。angle、spacing、未知の識別子はproperty定義を持たない。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisStandardUniformPropertiesFactory::createProperty(const KoID & id,KisPaintOpSettingsRestrictedSP settings,KisPaintOpPresetUpdateProxy * updateProxy)",
+        "function:KisStandardUniformPropertiesFactory::createProperty(const QString & id,KisPaintOpSettingsRestrictedSP settings,KisPaintOpPresetUpdateProxy * updateProxy)"
       ]
     }
   ]
