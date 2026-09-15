@@ -5,6 +5,7 @@
 
 #include <kis_tool.h>
 #include <kis_tool_paint_interaction.h>
+#include <tools/ui/kis_paintop_list_widget.h>
 #include <tools/ui/kis_rectangle_constraint_widget.h>
 #include <tools/ui/kis_tool_options_popup.h>
 
@@ -46,6 +47,7 @@ private Q_SLOTS:
     void paintInteractionTypeConstructionAndLifetimeSchemaRemainStable();
     void paintInteractionActivationFlagsAndPointerEventSchemaRemainStable();
     void paintInteractionNotificationSchemaRemainStable();
+    void paintOpListWidgetSchemaRemainStable();
     void rectangleConstraintWidgetSchemaRemainStable();
     void toolOptionsPopupSchemaRemainStable();
 };
@@ -160,6 +162,25 @@ void KisToolSchemaContractTest::paintInteractionNotificationSchemaRemainStable()
     ASSERT_PAINT_INTERACTION_SIGNATURE(sigPaintingFinished, void (KisToolPaintInteraction::*)());
 
     QVERIFY(true);
+}
+
+void KisToolSchemaContractTest::paintOpListWidgetSchemaRemainStable()
+{
+    using Widget = KisPaintOpListWidget;
+
+    static_assert(std::is_class_v<Widget>);
+    static_assert(std::is_base_of_v<KisCategorizedListView, Widget>);
+    static_assert(std::is_default_constructible_v<Widget>);
+    static_assert(std::has_virtual_destructor_v<Widget>);
+    static_assert(std::is_same_v<decltype(&Widget::currentItem), QString (Widget::*)() const>);
+    static_assert(
+        std::is_same_v<decltype(&Widget::setPaintOpList), void (Widget::*)(const QList<KisPaintOpFactory *> &)>);
+    static_assert(
+        std::is_same_v<decltype(static_cast<void (Widget::*)(const KisPaintOpFactory *)>(&Widget::setCurrent)),
+                       void (Widget::*)(const KisPaintOpFactory *)>);
+    static_assert(std::is_same_v<decltype(static_cast<void (Widget::*)(const QString &)>(&Widget::setCurrent)),
+                                 void (Widget::*)(const QString &)>);
+    static_assert(std::is_same_v<decltype(&Widget::activated), void (Widget::*)(const QString &)>);
 }
 
 void KisToolSchemaContractTest::rectangleConstraintWidgetSchemaRemainStable()
