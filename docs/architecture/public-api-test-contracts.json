@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 236
+    "expectedMissingApis": 227
   },
   "contracts": [
     {
@@ -83238,6 +83238,24 @@
         "method:KisPaletteComboBox::setCompanionView(KisPaletteView *)",
         "method:KisPaletteComboBox::sigColorSelected(const KoColor &)",
         "method:KisPaletteComboBox::~KisPaletteComboBox()"
+      ]
+    },
+    {
+      "target": "KisWidgetChooserSchemaContractTest",
+      "source": "libs/ui/tests/KisWidgetChooserSchemaContractTest.cpp",
+      "test": "KisWidgetChooserSchemaContractTest::widgetChooserTypeAndSelectionSchemaRemainStable",
+      "behavior": "widget chooserはframe派生型として識別子と親widgetで構築・破棄でき、識別子によるwidget選択・照会と型付きwidget追加を提供し、label付きwidget登録、popup表示、theme icon更新の公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisWidgetChooser",
+        "method:KisWidgetChooser::KisWidgetChooser(int id,QWidget * parent=0)",
+        "method:KisWidgetChooser::addLabelWidget(const QString & id,const QString & label,QWidget * widget)",
+        "method:KisWidgetChooser::addWidget(const QString & id,const QString & label=\"\")",
+        "method:KisWidgetChooser::chooseWidget(const QString & id)",
+        "method:KisWidgetChooser::getWidget(const QString & id) const",
+        "method:KisWidgetChooser::showPopupWidget()",
+        "method:KisWidgetChooser::updateThemedIcons()",
+        "method:KisWidgetChooser::~KisWidgetChooser()"
       ]
     }
   ]

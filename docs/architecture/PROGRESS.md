@@ -2,15 +2,22 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-15 18:48 JST
+- 更新日時: 2026-09-15 18:58 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
-- 完了: 第730便でtheme管理器の公開8 APIを契約へ追加し、対応済みを29,565件へ進めた。
-- 次の作業: 第731便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
+- 完了: 第731便でwidget chooserの公開9 APIを契約へ追加し、対応済みを29,574件へ進めた。
+- 次の作業: 第732便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
 - 検証: macOSの対象・反復・無作業再構築、公開API検査、`verify-quick`に成功した。旧不足報告をTrashへ移し、最新報告だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は本便の対象外である。
+
+### 第731便の結果
+
+- `libs/ui/widgets/kis_widget_chooser.h`から新規`libs/ui/tests/KisWidgetChooserSchemaContractTest.cpp`へ公開9 API・2枠を追加した。widget chooserがframe派生型として識別子と親widgetで構築・破棄でき、識別子によるwidget選択・照会と型付きwidget追加を提供し、label付きwidget登録、popup表示、theme icon更新の公開形式を固定する。
+- `libs/ui/tests/CMakeLists.txt`へ専用targetを追加した。uiのsource・生成済みheaderとQt Widgetsのheader探索路だけを加え、linkはQt Core・Testに限定した。CMake再生成後に実行したのは専用targetの自動MOC、2 object、linkであり、製品targetは構築していない。試験sourceは52行・2枠で、構築閉包は4工程・7入力（command SHA-256 `868b04e9935fad20d3c30808ce63002fd95b90f3afe0fd59979c6b053b74d77b`、input SHA-256 `b5ebfd7fdad80f7c1be2754436c125027eee0a5241d63d08c8ffce1a9a318da6`）となり、AUTOMOC `HEADERS=[]`、製品library・widget chooserの未解決記号なしを確認した。
+- macOSで対象単発、全2枠と初期化・後始末を各20回（80成功）、追加2枠を各20回（120成功）、無作業再構築、`clang-check`、`clang-format --dry-run --Werror`、公開API検査に成功した。正式不足報告`build/tdd-macos/public-api-missing-g731.json`は公開header 1,549、公開API 29,801、対応済み29,574、未対応227、59,749 bytes、SHA-256 `359e0c3a8149b9c2619875e131cc66102d384567a94724a52916ff370eff79c4`を記録する。
+- `verify-quick`に成功し、旧`build/tdd-macos/public-api-missing-g730.json`をTrashへ移した。主Ninja木、共有compiler cache、最新`build/tdd-macos/public-api-missing-g731.json`だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 
 ### 第730便の結果
 
