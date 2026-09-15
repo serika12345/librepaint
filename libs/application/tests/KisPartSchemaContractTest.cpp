@@ -4,6 +4,7 @@
  */
 
 #include <ui/orchestration/KisPart.h>
+#include <ui/orchestration/KisResourceServerProvider.h>
 
 #include <QTest>
 
@@ -26,6 +27,7 @@ private Q_SLOTS:
     void windowSignaturesRemainStable();
     void sessionAndFileSignaturesRemainStable();
     void cacheAndPlaybackSignaturesRemainStable();
+    void resourceServerProviderSchemaRemainStable();
 };
 
 void KisPartSchemaContractTest::partTypeLifetimeAndSingletonSchemaRemainStable()
@@ -120,6 +122,23 @@ void KisPartSchemaContractTest::cacheAndPlaybackSignaturesRemainStable()
     ASSERT_PART_SIGNATURE(prioritizeFrameForCache, void (Part::*)(KisImageSP, int));
     ASSERT_PART_SIGNATURE(unloadPlaybackEngine, void (Part::*)());
     ASSERT_PART_SIGNATURE(upgradeToPlaybackEngineMLT, void (Part::*)(KoCanvasBase *));
+}
+
+void KisPartSchemaContractTest::resourceServerProviderSchemaRemainStable()
+{
+    using Provider = KisResourceServerProvider;
+
+    static_assert(std::is_class_v<Provider>);
+    static_assert(std::is_base_of_v<QObject, Provider>);
+    static_assert(std::is_default_constructible_v<Provider>);
+    static_assert(std::has_virtual_destructor_v<Provider>);
+    static_assert(std::is_same_v<decltype(&Provider::instance), Provider *(*)()>);
+    static_assert(
+        std::is_same_v<decltype(&Provider::workspaceServer), KoResourceServer<KisWorkspaceResource> *(Provider::*)()>);
+    static_assert(std::is_same_v<decltype(&Provider::windowLayoutServer),
+                                 KoResourceServer<KisWindowLayoutResource> *(Provider::*)()>);
+    static_assert(
+        std::is_same_v<decltype(&Provider::sessionServer), KoResourceServer<KisSessionResource> *(Provider::*)()>);
 }
 
 #undef ASSERT_PART_SIGNATURE
