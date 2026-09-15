@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 427
+    "expectedMissingApis": 419
   },
   "contracts": [
     {
@@ -81739,6 +81739,23 @@
         "method:KisRectangleConstraintWidget::roundCornersChanged(int xRadius,int yRadius)",
         "method:KisRectangleConstraintWidget::setRectangle(const QRectF & rect)",
         "method:KisRectangleConstraintWidget::~KisRectangleConstraintWidget()"
+      ]
+    },
+    {
+      "target": "KisToolSchemaContractTest",
+      "source": "libs/tools/tests/KisToolSchemaContractTest.cpp",
+      "test": "KisToolSchemaContractTest::paintOpListWidgetSchemaRemainStable",
+      "behavior": "paintop一覧widgetは分類一覧の公開派生型として構築し、一覧設定、名前またはfactoryによる選択、選択名の照会と通知の公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisPaintOpListWidget",
+        "method:KisPaintOpListWidget::KisPaintOpListWidget(QWidget * parent=0,const char * name=0)",
+        "method:KisPaintOpListWidget::activated(const QString &)",
+        "method:KisPaintOpListWidget::currentItem() const",
+        "method:KisPaintOpListWidget::setCurrent(const KisPaintOpFactory * op)",
+        "method:KisPaintOpListWidget::setCurrent(const QString & paintOpId)",
+        "method:KisPaintOpListWidget::setPaintOpList(const QList<KisPaintOpFactory * > & list)",
+        "method:KisPaintOpListWidget::~KisPaintOpListWidget()"
       ]
     },
     {
