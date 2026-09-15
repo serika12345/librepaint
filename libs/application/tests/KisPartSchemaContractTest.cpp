@@ -5,6 +5,7 @@
 
 #include <ui/orchestration/KisPart.h>
 #include <ui/orchestration/KisResourceServerProvider.h>
+#include <ui/workspace/KisSessionResource.h>
 
 #include <QTest>
 
@@ -28,6 +29,7 @@ private Q_SLOTS:
     void sessionAndFileSignaturesRemainStable();
     void cacheAndPlaybackSignaturesRemainStable();
     void resourceServerProviderSchemaRemainStable();
+    void sessionResourceSchemaRemainStable();
 };
 
 void KisPartSchemaContractTest::partTypeLifetimeAndSingletonSchemaRemainStable()
@@ -139,6 +141,22 @@ void KisPartSchemaContractTest::resourceServerProviderSchemaRemainStable()
                                  KoResourceServer<KisWindowLayoutResource> *(Provider::*)()>);
     static_assert(
         std::is_same_v<decltype(&Provider::sessionServer), KoResourceServer<KisSessionResource> *(Provider::*)()>);
+}
+
+void KisPartSchemaContractTest::sessionResourceSchemaRemainStable()
+{
+    using Resource = KisSessionResource;
+
+    static_assert(std::is_same_v<KisSessionResourceSP, QSharedPointer<Resource>>);
+    static_assert(std::is_class_v<Resource>);
+    static_assert(std::is_base_of_v<KisWindowLayoutResource, Resource>);
+    static_assert(std::is_constructible_v<Resource, const QString &>);
+    static_assert(std::is_copy_constructible_v<Resource>);
+    static_assert(!std::is_copy_assignable_v<Resource>);
+    static_assert(std::has_virtual_destructor_v<Resource>);
+    static_assert(std::is_same_v<decltype(&Resource::clone), KoResourceSP (Resource::*)() const>);
+    static_assert(std::is_same_v<decltype(&Resource::storeCurrentWindows), void (Resource::*)()>);
+    static_assert(std::is_same_v<decltype(&Resource::defaultFileExtension), QString (Resource::*)() const>);
 }
 
 #undef ASSERT_PART_SIGNATURE
