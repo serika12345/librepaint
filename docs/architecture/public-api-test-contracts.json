@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 314
+    "expectedMissingApis": 307
   },
   "contracts": [
     {
@@ -72591,6 +72591,22 @@
         "method:KisFavoriteResourceManager::sigSetBGColor(const KoColor & c)",
         "method:KisFavoriteResourceManager::sigSetFGColor(const KoColor & c)",
         "method:KisFavoriteResourceManager::updatePalettes()"
+      ]
+    },
+    {
+      "target": "KisIconWidgetSchemaContractTest",
+      "source": "libs/ui/tests/KisIconWidgetSchemaContractTest.cpp",
+      "test": "KisIconWidgetSchemaContractTest::iconWidgetSchemaRemainStable",
+      "behavior": "icon widgetはpopup button派生型として構築・破棄でき、thumbnail、resource、背景色を受け、推奨icon寸法を返す公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisIconWidget",
+        "method:KisIconWidget::KisIconWidget(QWidget * parent=0,const QString & name=QString ())",
+        "method:KisIconWidget::preferredIconSize() const",
+        "method:KisIconWidget::setBackgroundColor(const QColor & color)",
+        "method:KisIconWidget::setResource(KoResourceSP resource)",
+        "method:KisIconWidget::setThumbnail(const QImage & thumbnail)",
+        "method:KisIconWidget::~KisIconWidget()"
       ]
     },
     {
