@@ -2,15 +2,22 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-15 19:17 JST
+- 更新日時: 2026-09-15 19:24 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
-- 完了: 第733便でdelegated toolの公開11 APIを契約へ追加し、対応済みを29,612件へ進めた。
-- 次の作業: 第734便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
+- 完了: 第734便でbrush option widgetの公開11 APIを契約へ追加し、対応済みを29,623件へ進めた。
+- 次の作業: 第735便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
 - 検証: macOSの対象・反復・無作業再構築、公開API検査、`verify-quick`に成功した。旧不足報告をTrashへ移し、最新報告だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は本便の対象外である。
+
+### 第734便の結果
+
+- `plugins/paintops/libpaintop/kis_brush_option_widget.h`から既存`plugins/paintops/libpaintop/tests/KisBrushBasedPaintOpSchemaContractTest.cpp`へ公開11 API・新規1枠`brushOptionWidgetSchemaRemainStable`を追加した。brush option widgetがpaint option派生型としてflagsで構築・破棄でき、brush・image・設定・隠すoption・lightness・有効brush寸法・確定brush dataを扱う公開形式を固定する。
+- 公開header、製品source、CMakeを変更せず、既存targetのheader探索路とQt接続を再利用した。試験sourceは317行・20枠で、構築閉包は4工程・7入力（command SHA-256 `c11cff4a274a8270b3bfda4067f0b0cae708e06816af7d288bd81f85fea5b25b`、input SHA-256 `bc6df96aa0d228ce718d7b2cf35d9a0f4ec206f36cebbedddabab019ceae8f05`）を維持し、AUTOMOC `HEADERS=[]`、製品library・brush option widgetの未解決記号なしを確認した。
+- macOSで対象単発、全20枠20回（440成功）、追加枠20回（60成功）、無作業再構築、`clang-check`、`clang-format --dry-run --Werror`、公開API検査に成功した。正式不足報告`build/tdd-macos/public-api-missing-g734.json`は公開header 1,549、公開API 29,801、対応済み29,623、未対応178、47,931 bytes、SHA-256 `0f2e6572fa29a4e8140bad248960d166d41129a27198011e53ee432c02c0f96f`を記録する。
+- `verify-quick`に成功し、旧`build/tdd-macos/public-api-missing-g733.json`をTrashへ移した。主Ninja木、共有compiler cache、最新`build/tdd-macos/public-api-missing-g734.json`だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 
 ### 第733便の結果
 

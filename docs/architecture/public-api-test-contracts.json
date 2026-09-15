@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 189
+    "expectedMissingApis": 178
   },
   "contracts": [
     {
@@ -83312,6 +83312,26 @@
         "method:KisDelegatedTool::mousePressEvent(KoPointerEvent * event)",
         "method:KisDelegatedTool::mouseReleaseEvent(KoPointerEvent * event)",
         "method:KisDelegatedTool::paint(QPainter & painter,const KoViewConverter & converter)"
+      ]
+    },
+    {
+      "target": "KisBrushBasedPaintOpSchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisBrushBasedPaintOpSchemaContractTest.cpp",
+      "test": "KisBrushBasedPaintOpSchemaContractTest::brushOptionWidgetSchemaRemainStable",
+      "behavior": "brush option widgetはpaint option派生型としてflagsで構築・破棄でき、brush・image・設定・隠すoption・lightness・有効brush寸法・確定brush dataを扱う公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisBrushOptionWidget",
+        "method:KisBrushOptionWidget::KisBrushOptionWidget(KisBrushOptionWidgetFlags flags)",
+        "method:KisBrushOptionWidget::bakedBrushData() const",
+        "method:KisBrushOptionWidget::brush() const",
+        "method:KisBrushOptionWidget::effectiveBrushSize() const",
+        "method:KisBrushOptionWidget::hideOptions(const QStringList & options)",
+        "method:KisBrushOptionWidget::lightnessModeEnabled() const",
+        "method:KisBrushOptionWidget::readOptionSetting(const KisPropertiesConfigurationSP setting)",
+        "method:KisBrushOptionWidget::setImage(KisImageWSP image)",
+        "method:KisBrushOptionWidget::writeOptionSetting(KisPropertiesConfigurationSP setting) const",
+        "method:KisBrushOptionWidget::~KisBrushOptionWidget()"
       ]
     }
   ]
