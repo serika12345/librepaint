@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 315
+    "expectedMissingApis": 314
   },
   "contracts": [
     {
@@ -45135,6 +45135,16 @@
       "classification": "maintained",
       "apis": [
         "function:KisMultiChannelUtils::findChannel(const QVector<VirtualChannelInfo> & virtualChannels,const VirtualChannelInfo::Type & channelType)"
+      ]
+    },
+    {
+      "target": "KisMultiChannelUtilsSchemaContractTest",
+      "source": "plugins/filters/colorsfilters/tests/KisMultiChannelUtilsSchemaContractTest.cpp",
+      "test": "KisMultiChannelUtilsSchemaContractTest::perChannelTransformationSignatureRemainsStable",
+      "behavior": "multichannel utilityは色空間、channel別の16 bit transfer列、恒等transfer印を借用し、合成色変換を返す公開関数形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisMultiChannelUtils::createPerChannelTransformationFromTransfers(const KoColorSpace * cs,const QVector<QVector<quint16>> & transfers,const QList<bool> & transferIsIdentity)"
       ]
     },
     {

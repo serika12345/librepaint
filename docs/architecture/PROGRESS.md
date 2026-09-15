@@ -2,15 +2,22 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-15 16:43 JST
+- 更新日時: 2026-09-15 16:51 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
-- 完了: 第718便でmultichannel utilityのvirtual channel取得公開関数を契約へ追加し、対応済みを29,486件へ進めた。
-- 次の作業: 第719便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
+- 完了: 第719便でmultichannel utilityの合成色変換生成公開関数を契約へ追加し、対応済みを29,487件へ進めた。
+- 次の作業: 第720便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
 - 検証: macOSの対象・反復・無作業再構築、公開API検査、`verify-quick`に成功した。旧不足報告をTrashへ移し、最新報告だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は本便の対象外である。
+
+### 第719便の結果
+
+- `plugins/filters/colorsfilters/kis_multichannel_utils.h`から既存`plugins/filters/colorsfilters/tests/KisMultiChannelUtilsSchemaContractTest.cpp`へ公開1 API・新規1枠`perChannelTransformationSignatureRemainsStable`を追加した。公開header、製品source、CMakeを変更せず、色空間、channel別16 bit transfer列、恒等transfer印を借用し、合成色変換を返す公開関数形式を固定する。
+- 試験sourceは50行・3枠で、構築閉包は4工程・8入力（command SHA-256 `aa63f56033de85d870a7842b982bd5f475ad17efb8d5fac1620bbb90e87a1a64`、input SHA-256 `33c13d5f4638ec94de60bc3c1ee6460026956c56eba40f62b5d1f3831775aad2`）を維持し、AUTOMOC `HEADERS=[]`、製品library・対象関数の未解決記号なしを確認した。
+- macOSで対象単発、全3枠20回（100成功）、追加枠20回（60成功）、無作業再構築、`clang-check`、`clang-format --dry-run --Werror`、公開API検査に成功した。正式不足報告`build/tdd-macos/public-api-missing-g719.json`は公開header 1,549、公開API 29,801、対応済み29,487、未対応314、81,630 bytes、SHA-256 `fc9cfe31e8529db298639e6d8b59ca3421f9372fab254fd627da183c4cdaf71f`を記録する。
+- `verify-quick`に成功し、旧`build/tdd-macos/public-api-missing-g718.json`をTrashへ移した。主Ninja木、共有compiler cache、最新`build/tdd-macos/public-api-missing-g719.json`だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 
 ### 第718便の結果
 
