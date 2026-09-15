@@ -2,15 +2,22 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-15 19:04 JST
+- 更新日時: 2026-09-15 19:17 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
-- 完了: 第732便でExiv2 I/O adapterの公開27 APIを契約へ追加し、対応済みを29,601件へ進めた。
-- 次の作業: 第733便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
+- 完了: 第733便でdelegated toolの公開11 APIを契約へ追加し、対応済みを29,612件へ進めた。
+- 次の作業: 第734便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
 - 検証: macOSの対象・反復・無作業再構築、公開API検査、`verify-quick`に成功した。旧不足報告をTrashへ移し、最新報告だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は本便の対象外である。
+
+### 第733便の結果
+
+- `libs/tools/kis_delegated_tool.h`から既存`libs/tools/tests/KisToolSchemaContractTest.cpp`へ公開11 API・新規1枠`delegatedToolSchemaRemainStable`を追加した。delegated toolが具体的な基底toolとdelegate toolを組み合わせ、delegateへの借用参照、選択図形の起動・停止、pointer event転送、描画、option widget集合を提供する公開形式を固定する。
+- `libs/tools/tests/CMakeLists.txt`の同targetへwidgetutilsとcanvasのsource・生成済みheader探索路だけを追加した。最初の診断で`KisOptionCollectionWidget.h`、次の診断で`KisToolCanvas.h`の所有者を解決し、既存のQt接続と製品非接続を維持した。CMake再生成後に実行したのは同targetの自動MOC、2 object、linkであり、製品targetは構築していない。試験sourceは320行・18枠で、構築閉包は4工程・7入力（command SHA-256 `b7a700d0f0597249b15a997f9d3e7dd5001341a6e4bdae7b604e9956a15e2cdf`、input SHA-256 `2f8257b2476560a8e7dad4253b1116861782564fffe1e417c72ce6c7edf050c9`）となり、AUTOMOC `HEADERS=[]`、製品library・delegated tool・option collection widget・tool canvasの未解決記号なしを確認した。
+- macOSで対象単発、全18枠20回（400成功）、追加枠20回（60成功）、無作業再構築、`clang-check`、`clang-format --dry-run --Werror`、公開API検査に成功した。正式不足報告`build/tdd-macos/public-api-missing-g733.json`は公開header 1,549、公開API 29,801、対応済み29,612、未対応189、50,927 bytes、SHA-256 `8e1cf4f15a926155b2bf775c280526338e784db066c4bade11f4623c50988cfb`を記録する。
+- `verify-quick`に成功し、旧`build/tdd-macos/public-api-missing-g732.json`をTrashへ移した。主Ninja木、共有compiler cache、最新`build/tdd-macos/public-api-missing-g733.json`だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 
 ### 第732便の結果
 

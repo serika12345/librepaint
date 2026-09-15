@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 200
+    "expectedMissingApis": 189
   },
   "contracts": [
     {
@@ -83292,6 +83292,26 @@
         "method:KisExiv2IODevice::write(const Exiv2::byte * data,long wcount)",
         "method:KisExiv2IODevice::write(const Exiv2::byte * data,size_t wcount)",
         "method:KisExiv2IODevice::~KisExiv2IODevice()"
+      ]
+    },
+    {
+      "target": "KisToolSchemaContractTest",
+      "source": "libs/tools/tests/KisToolSchemaContractTest.cpp",
+      "test": "KisToolSchemaContractTest::delegatedToolSchemaRemainStable",
+      "behavior": "delegated toolは具体的な基底toolとdelegate toolを組み合わせ、delegateへの借用参照、選択図形の起動・停止、pointer event転送、描画、option widget集合の公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisDelegatedTool",
+        "method:KisDelegatedTool::KisDelegatedTool(KoCanvasBase * canvas,const QCursor & cursor,DelegateTool * delegateTool)",
+        "method:KisDelegatedTool::activate(const QSet<KoShape * > & shapes)",
+        "method:KisDelegatedTool::createOptionWidgets()",
+        "method:KisDelegatedTool::deactivate()",
+        "method:KisDelegatedTool::localTool() const",
+        "method:KisDelegatedTool::mouseDoubleClickEvent(KoPointerEvent * event)",
+        "method:KisDelegatedTool::mouseMoveEvent(KoPointerEvent * event)",
+        "method:KisDelegatedTool::mousePressEvent(KoPointerEvent * event)",
+        "method:KisDelegatedTool::mouseReleaseEvent(KoPointerEvent * event)",
+        "method:KisDelegatedTool::paint(QPainter & painter,const KoViewConverter & converter)"
       ]
     }
   ]
