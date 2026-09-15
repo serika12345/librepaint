@@ -3322,3 +3322,22 @@ kis_add_test(
         Qt${QT_MAJOR_VERSION}::Test
 )
 target_compile_definitions(KisStoryboardItemContractTest PRIVATE kritaui_EXPORTS)
+
+kis_add_test(
+    KisMaskManagerSchemaContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KisMaskManagerSchemaContractTest PRIVATE
+    ${kritauinodemanager_INCLUDE_DIRS}
+    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Widgets,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
+)
+target_compile_definitions(KisMaskManagerSchemaContractTest PRIVATE
+    kritaapplicationui_EXPORTS
+    kritaglobal_EXPORTS
+    kritaimage_EXPORTS
+    kritaui_EXPORTS
+    kritawidgetutils_EXPORTS
+)
