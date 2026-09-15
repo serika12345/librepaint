@@ -4,6 +4,7 @@
  */
 
 #include <tool/kis_selection_tool_helper.h>
+#include <tool/kis_tool_freehand.h>
 #include <tool/kis_tool_freehand_helper.h>
 #include <tool/kis_tool_select_ui_base.h>
 
@@ -54,6 +55,7 @@ private Q_SLOTS:
     void selectionHelperShortcutMenuAndModeSignaturesRemainStable();
     void freehandHelperTypeSmoothingAndRunningSchemaRemainStable();
     void freehandHelperPaintLifecycleAndOutlineSignaturesRemainStable();
+    void freehandToolPublicSchemaRemainsStable();
 };
 
 void KisToolSelectUiBaseSchemaContractTest::toolSelectUiTypeAliasAndConstructionSchemaRemainStable()
@@ -190,6 +192,21 @@ void KisToolSelectUiBaseSchemaContractTest::freehandHelperPaintLifecycleAndOutli
                                                                           KisPaintOpSettingsSP,
                                                                           KisPaintOpSettings::OutlineMode) const);
     ASSERT_FREEHAND_HELPER_SIGNATURE(requestExplicitUpdateOutline, void (Helper::*)());
+}
+
+void KisToolSelectUiBaseSchemaContractTest::freehandToolPublicSchemaRemainsStable()
+{
+    using Tool = KisToolFreehand;
+
+    static_assert(std::is_base_of_v<KisToolPaint, Tool>);
+    static_assert(std::is_constructible_v<Tool, KoCanvasBase *, const QCursor &, const KUndo2MagicString &, bool>);
+    static_assert(std::has_virtual_destructor_v<Tool>);
+    static_assert(std::is_same_v<decltype(&Tool::flags), int (Tool::*)() const>);
+    static_assert(std::is_same_v<decltype(&Tool::mouseMoveEvent), void (Tool::*)(KoPointerEvent *)>);
+    static_assert(std::is_same_v<decltype(&Tool::activate), void (Tool::*)(const QSet<KoShape *> &)>);
+    static_assert(std::is_same_v<decltype(&Tool::deactivate), void (Tool::*)()>);
+
+    QVERIFY(true);
 }
 
 #undef ASSERT_FREEHAND_HELPER_SIGNATURE
