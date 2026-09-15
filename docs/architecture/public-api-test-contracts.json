@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 559
+    "expectedMissingApis": 555
   },
   "contracts": [
     {
@@ -27214,6 +27214,19 @@
         "method:KisBrushBasedPaintopOptionWidget::brush()",
         "method:KisBrushBasedPaintopOptionWidget::effectiveBrushSize() const",
         "method:KisBrushBasedPaintopOptionWidget::~KisBrushBasedPaintopOptionWidget()"
+      ]
+    },
+    {
+      "target": "KisBrushBasedPaintOpSchemaContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisBrushBasedPaintOpSchemaContractTest.cpp",
+      "test": "KisBrushBasedPaintOpSchemaContractTest::lightnessStrengthOptionWidgetSchemaRemainStable",
+      "behavior": "lightness strength option widgetはcurve option widgetの公開派生型として対応するoptionデータの別名を公開し、option data cursorとlightness mode readerを受けて構築・破棄する形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisLightnessStrengthOptionWidget::data_type",
+        "class:KisLightnessStrengthOptionWidget",
+        "method:KisLightnessStrengthOptionWidget::KisLightnessStrengthOptionWidget(lager::cursor<KisLightnessStrengthOptionData> optionData,lager::reader<bool> lightnessModeEnabled)",
+        "method:KisLightnessStrengthOptionWidget::~KisLightnessStrengthOptionWidget()"
       ]
     },
     {
