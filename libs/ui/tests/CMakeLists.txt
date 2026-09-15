@@ -676,6 +676,34 @@ target_compile_definitions(KisOperationUIWidgetFactorySchemaContractTest PRIVATE
 )
 
 kis_add_test(
+    KisTransformToolActivationCommandSchemaContractTest.cpp
+    TEST_NAME KisTransformToolActivationCommandSchemaContractTest
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+        Boost::boost
+)
+target_include_directories(KisTransformToolActivationCommandSchemaContractTest PRIVATE
+    ${CMAKE_SOURCE_DIR}/libs
+    ${CMAKE_BINARY_DIR}/libs
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_CURRENT_SOURCE_DIR}/../widgets
+    ${CMAKE_CURRENT_BINARY_DIR}/../widgets
+    ${CMAKE_SOURCE_DIR}/libs/painting/undo
+    ${CMAKE_BINARY_DIR}/libs/painting/undo
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Widgets,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
+)
+target_compile_definitions(KisTransformToolActivationCommandSchemaContractTest PRIVATE
+    kritaglobal_EXPORTS
+    kritaui_EXPORTS
+    kritapaintingundo_EXPORTS
+)
+
+kis_add_test(
     KoDualColorButtonVariantSchemaContractTest.cpp
     LINK_LIBRARIES
         Qt${QT_MAJOR_VERSION}::Gui
