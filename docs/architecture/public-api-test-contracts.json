@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 16
+    "expectedMissingApis": 11
   },
   "contracts": [
     {
@@ -83710,6 +83710,20 @@
       "classification": "maintained",
       "apis": [
         "function:operator <<(QDebug & self,psd_compression_type type)"
+      ]
+    },
+    {
+      "target": "KisStandardUniformPropertiesValuesContractTest",
+      "source": "libs/image/tests/KisStandardUniformPropertiesValuesContractTest.cpp",
+      "test": "KisStandardUniformPropertiesValuesContractTest::standardPropertyIdentifiersRemainDistinctAndStable",
+      "behavior": "標準uniform paint-op propertyのsize、opacity、flow、angle、spacingは、それぞれ固有で安定した識別子を返す。",
+      "classification": "maintained",
+      "apis": [
+        "variable:KisStandardUniformPropertiesFactory::angle",
+        "variable:KisStandardUniformPropertiesFactory::flow",
+        "variable:KisStandardUniformPropertiesFactory::opacity",
+        "variable:KisStandardUniformPropertiesFactory::size",
+        "variable:KisStandardUniformPropertiesFactory::spacing"
       ]
     }
   ]

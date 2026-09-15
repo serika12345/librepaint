@@ -2,21 +2,23 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-15 23:28 JST
+- 更新日時: 2026-09-15 23:35 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
-- 完了: 第758便でPSDの旧Clang互換debug出力の公開1 APIを契約へ追加し、対応済みを29,785件へ進めた。
-- 次の作業: 第759便で、残るplatform限定APIを実行可能な対象契約へ分離する最小構成を設計し、画像factoryの製品閉包は契約追加より先に分割可能性を確認する。
+- 完了: 第759便で標準uniform paint-op propertyの公開`KoID`値5件を契約へ追加し、対応済みを29,790件へ進めた。
+- 次の作業: factory入口2件を製品閉包なしで実行できる所有単位へ分ける構造準備を評価し、AndroidとWindowsのplatform限定APIには実行可能な契約profileを設計する。
 - 検証: macOSの対象・反復・無作業再構築、公開API検査、`verify-quick`に成功した。第759便ではLinux実機で構築profileだけを監査し、製品target、全体build・`verify`、Nix再評価は実行していない。主Ninja木、共有compiler cache、最新不足報告だけを保持する。
 
 ### 第759便の構築範囲監査
 
-- 最新の不足16 APIは、`libs/image/brushengine/kis_standard_uniform_properties_factory.h`のfactory入口2件とheader内`KoID`値5件、`libs/global/KisAndroidCrashHandler.h`の初期化入口1件、`winquirks/unistd.h`のMSVC互換別名4件と関数4件に分かれる。factoryのheader内値は各翻訳単位で`KoID`と翻訳文字列を動的初期化するため、製品非接続の静的targetへincludeするだけで`KoID`・`KLocalizedString`の未解決記号になる。値を実行して観測するには画像製品閉包が必要であり、静的公開API targetへ製品library・objectを接続しない現在の境界に反するため、先にfactory責務を縮小できるかを確認する。
+- `libs/image/brushengine/kis_standard_uniform_properties_factory.h`のheader内`KoID`値5件を、新規`libs/image/tests/KisStandardUniformPropertiesValuesContractTest.cpp`の1枠へ対応付けた。`size`、`opacity`、`flow`、`angle`、`spacing`が相互に異なる安定した識別子を返すことを固定する。`libs/image/tests/CMakeLists.txt`は`KoID.cpp`だけを所有する既存`kritaglobalidobjects`を直接接続し、画像製品library・objectを接続しない。試験targetの閉包は5工程・12入力（command SHA-256 `d4b9fa321e7a4cb2948e73ff7c230f2fbdf7e4c3af9de88186c6b716198cea7f`、input SHA-256 `bd16f829eb227fd231f18e97a468d97961b0267c78cf1f6bd6a8479fa6e1f6fb`）であり、AUTOMOC `HEADERS=[]`、製品dylibなし、factory入口の未解決記号なしを確認した。
 - `ssh nixos`のx86_64 Linux実機でAndroidとWindowsのincremental profileを監査した。Androidの永続Ninja木`build/android/arm64-v8a/90a198c0b74ae170`は存在するが`BUILD_TESTING=OFF`で、接続済みAndroid deviceはない。Windows profileはx86_64-w64-mingw32で、Ninja木は未構成かつ配布構成の`BUILD_TESTING=OFF`である。現行profileにはWineがなく、MSVC専用`winquirks/unistd.h`の分岐をMinGWへ`_MSC_VER`だけ追加して構文確認すると、MinGW Windows SDK headerの`__uuidof`未対応で失敗する。したがって、MSVC分岐をMinGWの擬似定義で試験済みと扱わない。
 - factoryの5個の`KoID`値を実行する一時targetを`kritapigment`へ接続して実測したところ、直接追加は小さくても転移閉包が371工程・771入力へ広がり、`libkritapigment`と多数の製品dylibを動的接続した。静的公開API targetの停止線（5工程・11入力、製品library・object非接続）を大幅に超えるため、契約sourceとCMake定義を即時に元へ戻した。専用binary、object、AUTOMOC生成物1,112 KiBはTrashへ移し、主Ninja木と最新不足報告だけを保持する。
+- macOSで`KisStandardUniformPropertiesValuesContractTest`の対象単発、1枠20回（20成功）、追加枠60回（60成功）、無作業再構築2回、`clang-check`、`clang-format --dry-run --Werror`、公開API検査に成功した。正式不足報告`build/tdd-macos/public-api-missing-g759.json`は公開header 1,549、公開API 29,801、対応済み29,790、未対応11、2,610 bytes、SHA-256 `da89d1b63238cdc9052f562a264cd2cc74927c1bf429e3d82247e1b434e39e7b`を記録する。
+- `verify-quick`に成功し、旧`build/tdd-macos/public-api-missing-g758.json`をTrashへ移した。主Ninja木、共有compiler cache、最新`build/tdd-macos/public-api-missing-g759.json`だけを保持する。製品target、全体build・`verify`、Linux実機でのtest実行、Nix再評価は実行していない。
 - 次の構造準備は、Android実機実行または専用のplatform契約profileを用意してAndroid初期化入口を対象化し、Windowsは実MSVC互換実行環境を用意してから互換層の値・失敗・sleep挙動を固定することである。これらと独立して、factoryは既存の画像製品targetを構築せずに実行可能な所有単位へ分けられるかを直接依存から判断する。profile監査は構成・実行物を変更せず、Android/Windowsの全体構築は実行していない。
 
 ### 第758便の結果
