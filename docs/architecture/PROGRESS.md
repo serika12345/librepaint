@@ -2,15 +2,22 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-15 18:34 JST
+- 更新日時: 2026-09-15 18:42 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
-- 完了: 第728便で操作frameの公開5 APIを契約へ追加し、対応済みを29,549件へ進めた。
-- 次の作業: 第729便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
+- 完了: 第729便でproofing option widgetの公開8 APIを契約へ追加し、対応済みを29,557件へ進めた。
+- 次の作業: 第730便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
 - 検証: macOSの対象・反復・無作業再構築、公開API検査、`verify-quick`に成功した。旧不足報告をTrashへ移し、最新報告だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は本便の対象外である。
+
+### 第729便の結果
+
+- `libs/ui/widgets/KisProofingOptionsWidget.h`から既存`libs/ui/tests/KisDisplayConfigSchemaContractTest.cpp`へ公開8 API・新規1枠`proofingOptionsWidgetSchemaRemainsStable`を追加した。proofing option widgetが親widgetで構築・仮想破棄でき、proofing設定を取得・設定し、表示設定を受け、保留更新を停止して設定変更を通知する公開形式を固定する。
+- `libs/ui/tests/CMakeLists.txt`の同targetへQt Widgetsのheader探索路だけを追加した。公開headerが直接利用する`QWidget`を解決し、製品object・libraryのlinkは導入していない。試験sourceは309行・18枠で、構築閉包は4工程・7入力（command SHA-256 `ff4f628000baa6c57244d935e8cbc3fe8dfccd2b24091ac9a251db88668e71f8`、input SHA-256 `174dda9012da60b28eb16157cb78b4d2bf11d778e453a749e8a71fb3efc49e21`）を維持し、AUTOMOC `HEADERS=[]`、製品library・proofing option widgetの未解決記号なしを確認した。
+- macOSで対象単発、全18枠20回（400成功）、追加枠20回（60成功）、無作業再構築、`clang-check`、`clang-format --dry-run --Werror`、公開API検査に成功した。正式不足報告`build/tdd-macos/public-api-missing-g729.json`は公開header 1,549、公開API 29,801、対応済み29,557、未対応244、63,878 bytes、SHA-256 `80b364e937913e646dec8a6c9e38d6d7d0e9a31f033c46d53e73933fab16a62f`を記録する。
+- `verify-quick`に成功し、旧`build/tdd-macos/public-api-missing-g728.json`をTrashへ移した。主Ninja木、共有compiler cache、最新`build/tdd-macos/public-api-missing-g729.json`だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 
 ### 第728便の結果
 

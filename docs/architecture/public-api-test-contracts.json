@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 252
+    "expectedMissingApis": 244
   },
   "contracts": [
     {
@@ -82483,6 +82483,23 @@
         "method:KisRootSurfaceInfoProxy::rootSurfaceProfile() const",
         "method:KisRootSurfaceInfoProxy::sigRootSurfaceProfileChanged(const KoColorProfile * profile) const",
         "method:KisRootSurfaceInfoProxy::~KisRootSurfaceInfoProxy()"
+      ]
+    },
+    {
+      "target": "KisDisplayConfigSchemaContractTest",
+      "source": "libs/ui/tests/KisDisplayConfigSchemaContractTest.cpp",
+      "test": "KisDisplayConfigSchemaContractTest::proofingOptionsWidgetSchemaRemainsStable",
+      "behavior": "proofing option widgetは親widgetで構築・仮想破棄でき、proofing設定を取得・設定し、表示設定を受け、保留更新を停止して設定変更を通知する公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisProofingOptionsWidget",
+        "method:KisProofingOptionsWidget::KisProofingOptionsWidget(QWidget * parent)",
+        "method:KisProofingOptionsWidget::currentProofingConfig() const",
+        "method:KisProofingOptionsWidget::setDisplayConfigOptions(const KisDisplayConfig::Options & options)",
+        "method:KisProofingOptionsWidget::setProofingConfig(KisProofingConfigurationSP config)",
+        "method:KisProofingOptionsWidget::sigProofingConfigChanged(KisProofingConfigurationSP config)",
+        "method:KisProofingOptionsWidget::stopPendingUpdates()",
+        "method:KisProofingOptionsWidget::~KisProofingOptionsWidget()"
       ]
     },
     {
