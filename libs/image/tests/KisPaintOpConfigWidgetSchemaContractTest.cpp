@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "brushengine/kis_no_size_paintop_settings.h"
 #include "brushengine/kis_paintop_config_widget.h"
 #include "ui/kis_paintop_settings_widget.h"
 
@@ -60,6 +61,7 @@ private Q_SLOTS:
     void paintOpConfigWidgetContextAndScratchBoxSignaturesRemainStable();
     void paintOpSettingsWidgetTypeLifetimeAndOptionSignaturesRemainStable();
     void paintOpSettingsWidgetConfigurationLodAndContextSignaturesRemainStable();
+    void noSizePaintOpSettingsSchemaRemainStable();
 };
 
 void KisPaintOpConfigWidgetSchemaContractTest::configWidgetTypeAndLifetimeSchemaRemainStable()
@@ -173,6 +175,19 @@ void KisPaintOpConfigWidgetSchemaContractTest::paintOpSettingsWidgetConfiguratio
                                              void (KisPaintOpSettingsWidget::*)(KisResourcesInterfaceSP));
     ASSERT_PAINTOP_SETTINGS_WIDGET_SIGNATURE(setCanvasResourcesInterface,
                                              void (KisPaintOpSettingsWidget::*)(KoCanvasResourcesInterfaceSP));
+}
+
+void KisPaintOpConfigWidgetSchemaContractTest::noSizePaintOpSettingsSchemaRemainStable()
+{
+    using Settings = KisNoSizePaintOpSettings;
+
+    static_assert(std::is_class_v<Settings>);
+    static_assert(std::is_base_of_v<KisPaintOpSettings, Settings>);
+    static_assert(std::is_constructible_v<Settings, KisResourcesInterfaceSP>);
+    static_assert(std::is_same_v<decltype(&Settings::setPaintOpSize), void (Settings::*)(qreal)>);
+    static_assert(std::is_same_v<decltype(&Settings::paintOpSize), qreal (Settings::*)() const>);
+    static_assert(std::is_same_v<decltype(&Settings::setPaintOpAngle), void (Settings::*)(qreal)>);
+    static_assert(std::is_same_v<decltype(&Settings::paintOpAngle), qreal (Settings::*)() const>);
 }
 
 #undef ASSERT_PAINTOP_SETTINGS_WIDGET_SIGNATURE
