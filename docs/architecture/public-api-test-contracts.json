@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 270
+    "expectedMissingApis": 264
   },
   "contracts": [
     {
@@ -3109,6 +3109,21 @@
       "apis": [
         "alias:KisAnimationFrameCacheSP",
         "alias:KisAnimationFrameCacheWSP"
+      ]
+    },
+    {
+      "target": "KisDlgCreateNewDocumentSchemaContractTest",
+      "source": "libs/ui/tests/KisDlgCreateNewDocumentSchemaContractTest.cpp",
+      "test": "KisDlgCreateNewDocumentSchemaContractTest::createNewDocumentDialogSchemaRemainsStable",
+      "behavior": "新規文書作成dialogはopen pane派生型として親widgetで構築でき、新規文書・clipboard起点のページ値を保ち、選択ページを設定する公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisDlgCreateNewDocument",
+        "enum:KisDlgCreateNewDocument::Page",
+        "enumerator:KisDlgCreateNewDocument::Page::CreateFromClipboard",
+        "enumerator:KisDlgCreateNewDocument::Page::CreateNewDocument",
+        "method:KisDlgCreateNewDocument::KisDlgCreateNewDocument(QWidget * parent)",
+        "method:KisDlgCreateNewDocument::SelectPage(Page page)"
       ]
     },
     {
