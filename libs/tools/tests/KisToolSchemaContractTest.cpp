@@ -5,6 +5,7 @@
 
 #include <kis_tool.h>
 #include <kis_tool_paint_interaction.h>
+#include <tools/ui/kis_rectangle_constraint_widget.h>
 #include <tools/ui/kis_tool_options_popup.h>
 
 #include <QTest>
@@ -45,6 +46,7 @@ private Q_SLOTS:
     void paintInteractionTypeConstructionAndLifetimeSchemaRemainStable();
     void paintInteractionActivationFlagsAndPointerEventSchemaRemainStable();
     void paintInteractionNotificationSchemaRemainStable();
+    void rectangleConstraintWidgetSchemaRemainStable();
     void toolOptionsPopupSchemaRemainStable();
 };
 
@@ -158,6 +160,21 @@ void KisToolSchemaContractTest::paintInteractionNotificationSchemaRemainStable()
     ASSERT_PAINT_INTERACTION_SIGNATURE(sigPaintingFinished, void (KisToolPaintInteraction::*)());
 
     QVERIFY(true);
+}
+
+void KisToolSchemaContractTest::rectangleConstraintWidgetSchemaRemainStable()
+{
+    using Widget = KisRectangleConstraintWidget;
+
+    static_assert(std::is_class_v<Widget>);
+    static_assert(std::is_base_of_v<QWidget, Widget>);
+    static_assert(std::is_constructible_v<Widget, const QString &, bool>);
+    static_assert(std::has_virtual_destructor_v<Widget>);
+    static_assert(std::is_same_v<decltype(&Widget::setRectangle), void (Widget::*)(const QRectF &)>);
+    static_assert(std::is_same_v<decltype(&Widget::reloadConfig), void (Widget::*)()>);
+    static_assert(
+        std::is_same_v<decltype(&Widget::constraintsChanged), void (Widget::*)(bool, bool, bool, float, float, float)>);
+    static_assert(std::is_same_v<decltype(&Widget::roundCornersChanged), void (Widget::*)(int, int)>);
 }
 
 void KisToolSchemaContractTest::toolOptionsPopupSchemaRemainStable()
