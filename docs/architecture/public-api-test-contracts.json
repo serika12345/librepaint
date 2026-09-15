@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 169
+    "expectedMissingApis": 160
   },
   "contracts": [
     {
@@ -83338,7 +83338,7 @@
       "target": "KisBrushBasedPaintOpSchemaContractTest",
       "source": "plugins/paintops/libpaintop/tests/KisBrushBasedPaintOpSchemaContractTest.cpp",
       "test": "KisBrushBasedPaintOpSchemaContractTest::brushOptionPropertiesSchemaRemainStable",
-      "behavior": "brush option propertiesはcanvas resource対応paintop properties派生型としてbrushを保持し、設定の読込・書込、linked・embedded resource準備、brush適用方針、text brush判定の公開形式を維持する。",
+      "behavior": "brush option propertiesはcanvas resource対応paintop properties派生型としてbrushを保持し、設定の読込・書込、linked・embedded resource準備、brush適用方針、text brush判定を提供する公開形式を維持する。",
       "classification": "maintained",
       "apis": [
         "class:KisBrushOptionProperties",
@@ -83350,6 +83350,24 @@
         "method:KisBrushOptionProperties::readOptionSettingResourceImpl(const KisPropertiesConfiguration * setting,KisResourcesInterfaceSP resourcesInterface,KoCanvasResourcesInterfaceSP canvasResourcesInterface)",
         "method:KisBrushOptionProperties::setBrush(KisBrushSP brush)",
         "method:KisBrushOptionProperties::writeOptionSettingImpl(KisPropertiesConfiguration * setting) const"
+      ]
+    },
+    {
+      "target": "KisDisplayConfigSchemaContractTest",
+      "source": "libs/ui/tests/KisDisplayConfigSchemaContractTest.cpp",
+      "test": "KisDisplayConfigSchemaContractTest::seExprScriptChooserSchemaRemainsStable",
+      "behavior": "SeExpr script chooserはframe派生型として親widgetで構築・破棄でき、現在resourceの照会、script・item・preview方向の設定、resource選択とitem寸法更新の通知を提供する公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisSeExprScriptChooser",
+        "method:KisSeExprScriptChooser::KisSeExprScriptChooser(QWidget * parent=0)",
+        "method:KisSeExprScriptChooser::currentResource()",
+        "method:KisSeExprScriptChooser::resourceSelected(KoResourceSP resource)",
+        "method:KisSeExprScriptChooser::setCurrentItem(int row)",
+        "method:KisSeExprScriptChooser::setCurrentScript(KoResourceSP resource)",
+        "method:KisSeExprScriptChooser::setPreviewOrientation(Qt::Orientation orientation)",
+        "method:KisSeExprScriptChooser::updateItemSize()",
+        "method:KisSeExprScriptChooser::~KisSeExprScriptChooser()"
       ]
     }
   ]

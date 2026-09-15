@@ -2,15 +2,22 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-15 19:31 JST
+- 更新日時: 2026-09-15 19:43 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
-- 完了: 第735便でbrush option propertiesの公開9 APIを契約へ追加し、対応済みを29,632件へ進めた。
-- 次の作業: 第736便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
+- 完了: 第736便でSeExpr script chooserの公開9 APIを契約へ追加し、対応済みを29,641件へ進めた。
+- 次の作業: 第737便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
 - 検証: macOSの対象・反復・無作業再構築、公開API検査、`verify-quick`に成功した。旧不足報告をTrashへ移し、最新報告だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は本便の対象外である。
+
+### 第736便の結果
+
+- `libs/ui/widgets/kis_seexpr_script_chooser.h`から既存`libs/ui/tests/KisDisplayConfigSchemaContractTest.cpp`へ公開9 API・新規1枠`seExprScriptChooserSchemaRemainsStable`を追加した。SeExpr script chooserがframe派生型として親widgetで構築・破棄でき、現在resourceの照会、script・item・preview方向の設定、resource選択とitem寸法更新の通知を提供する公開形式を固定する。
+- `libs/ui/tests/CMakeLists.txt`の同targetへresources・resource UIのsource・生成済みheaderとKF WidgetsAddonsのheader探索路だけを追加した。`KisResourceItemChooser`と`KSqueezedTextLabel`を公開headerの推移として解決し、製品object・libraryのlinkは導入していない。CMake再生成後に実行したのは同targetの自動MOC、2 object、linkであり、製品targetは構築していない。試験sourceは342行・19枠で、構築閉包は4工程・7入力（command SHA-256 `a8cca9e5ef2dc8a6a5ea439d22ca6ffe7feb2ea0dcfabd0c1ea77f5ca6751cea`、input SHA-256 `174dda9012da60b28eb16157cb78b4d2bf11d778e453a749e8a71fb3efc49e21`）となり、AUTOMOC `HEADERS=[]`、製品library・SeExpr script chooser・resource item chooserの未解決記号なしを確認した。
+- macOSで対象単発、全19枠20回（380成功）、追加枠60回（60成功）、無作業再構築、`clang-check`、`clang-format --dry-run --Werror`、公開API検査に成功した。正式不足報告`build/tdd-macos/public-api-missing-g736.json`は公開header 1,549、公開API 29,801、対応済み29,641、未対応160、42,418 bytes、SHA-256 `9a7588e8a6c88a6db44d63dae5f46231604ac9af9b29dc43e933231ab8212429`を記録する。
+- `verify-quick`に成功し、旧`build/tdd-macos/public-api-missing-g735.json`をTrashへ移した。主Ninja木、共有compiler cache、最新`build/tdd-macos/public-api-missing-g736.json`だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 
 ### 第735便の結果
 
