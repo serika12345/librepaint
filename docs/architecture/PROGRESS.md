@@ -2,15 +2,22 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-15 15:23 JST
+- 更新日時: 2026-09-15 15:33 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
-- 完了: 第710便でresource server providerの公開型・構築・singleton・workspace・window layout・session server・破棄APIを契約へ追加し、対応済みを29,449件へ進めた。
-- 次の作業: 第711便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
+- 完了: 第711便でsession resourceの公開型・別名・構築・clone・window保存・既定拡張子・代入禁止・破棄APIを契約へ追加し、対応済みを29,458件へ進めた。
+- 次の作業: 第712便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
 - 検証: macOSの対象・反復・無作業再構築、公開API検査、`verify-quick`に成功した。旧不足報告をTrashへ移し、最新報告だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は本便の対象外である。
+
+### 第711便の結果
+
+- `libs/application/ui/workspace/KisSessionResource.h`から既存`libs/application/tests/KisPartSchemaContractTest.cpp`へ公開9 API・新規1枠`sessionResourceSchemaRemainStable`を追加した。公開headerと製品sourceを変更せず、session resourceがwindow layout resource派生型としてファイル名または同型resourceから構築でき、clone・現在windowの保存・既定拡張子を提供し、代入を禁止する公開形式を固定する。
+- `libs/application/tests/CMakeLists.txt`は変更せず、第710便で同試験targetに追加済みの探索路・export定義を再利用した。試験sourceは166行・7枠で、構築閉包は4工程・8入力（command SHA-256 `8746e329aa7202959c93de17a97821d5908b400b7bae0defbf7536e706986a91`、input SHA-256 `f3b91adc1e7c910ba01400ae87b13e94a09cdc87272704907b26b82ed94754a2`）を維持し、AUTOMOC `HEADERS=[]`、製品library・対象resourceの未解決記号なしを確認した。
+- macOSで対象単発、全7枠20回（180成功）、追加枠20回（60成功）、無作業再構築、`clang-check`、`clang-format --dry-run --Werror`、公開API検査に成功した。正式不足報告`build/tdd-macos/public-api-missing-g711.json`は公開header 1,549、公開API 29,801、対応済み29,458、未対応343、89,213 bytes、SHA-256 `c106191da7f9bc7da4f8a196e6700fa47eeecaa8f436a532cb8bd29c051e26fa`を記録する。
+- `verify-quick`に成功し、旧`build/tdd-macos/public-api-missing-g710.json`をTrashへ移した。主Ninja木、共有compiler cache、最新`build/tdd-macos/public-api-missing-g711.json`だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 
 ### 第710便の結果
 
