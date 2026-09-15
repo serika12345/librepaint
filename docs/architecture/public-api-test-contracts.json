@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 277
+    "expectedMissingApis": 270
   },
   "contracts": [
     {
@@ -60942,6 +60942,22 @@
         "method:KisInputProfileManager::saveProfile(KisInputProfile * profile,QString storagePath)",
         "method:KisInputProfileManager::saveProfiles()",
         "method:KisInputProfileManager::setProfileLocations(const QStringList & profileFiles,const QString & profileStorageDirectory)"
+      ]
+    },
+    {
+      "target": "KisInputProfileManagerSchemaContractTest",
+      "source": "libs/input/ui/tests/KisInputProfileManagerSchemaContractTest.cpp",
+      "test": "KisInputProfileManagerSchemaContractTest::inputConfigurationPageSchemaRemainsStable",
+      "behavior": "入力設定ページは親widgetとwindow flagsで構築・仮想破棄でき、設定の保存・復元・既定化とscroller状態変更を受ける公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisInputConfigurationPage",
+        "method:KisInputConfigurationPage::KisInputConfigurationPage(QWidget * parent=0,Qt::WindowFlags f=Qt::WindowFlags ())",
+        "method:KisInputConfigurationPage::revertChanges()",
+        "method:KisInputConfigurationPage::saveChanges()",
+        "method:KisInputConfigurationPage::setDefaults()",
+        "method:KisInputConfigurationPage::slotScrollerStateChanged(QScroller::State state)",
+        "method:KisInputConfigurationPage::~KisInputConfigurationPage()"
       ]
     },
     {

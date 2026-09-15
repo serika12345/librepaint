@@ -2,15 +2,22 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-15 18:00 JST
+- 更新日時: 2026-09-15 18:08 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
-- 完了: 第724便でspacing選択widgetの公開8 APIを契約へ追加し、対応済みを29,524件へ進めた。
-- 次の作業: 第725便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
+- 完了: 第725便で入力設定ページの公開7 APIを契約へ追加し、対応済みを29,531件へ進めた。
+- 次の作業: 第726便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
 - 検証: macOSの対象・反復・無作業再構築、公開API検査、`verify-quick`に成功した。旧不足報告をTrashへ移し、最新報告だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は本便の対象外である。
+
+### 第725便の結果
+
+- `libs/input/ui/config/kis_input_configuration_page.h`から既存`libs/input/ui/tests/KisInputProfileManagerSchemaContractTest.cpp`へ公開7 API・新規1枠`inputConfigurationPageSchemaRemainsStable`を追加した。入力設定ページが親widgetとwindow flagsで構築・仮想破棄でき、設定の保存・復元・既定化とscroller状態変更を受ける公開形式を固定する。
+- `libs/input/ui/tests/CMakeLists.txt`の同targetへwidgetutilsのsource・生成済みheaderとQt Widgetsのheader探索路だけを追加した。公開headerが直接利用する`KisKineticScroller`と`QWidget`を解決し、製品object・libraryのlinkは導入していない。試験sourceは124行・6枠で、構築閉包は4工程・7入力（command SHA-256 `9a45f3be13b970e73304a1c8d1cb59b3b47c5ada7e186ac5c644460cd891f006`、input SHA-256 `63d1e9808644edd4b9ff775121378fe578af1e948985d25ed693e1d7f130d31b`）を維持し、AUTOMOC `HEADERS=[]`、製品library・入力設定ページ・kinetic scrollerの未解決記号なしを確認した。
+- macOSで対象単発、全6枠20回（160成功）、追加枠20回（60成功）、無作業再構築、`clang-check`、`clang-format --dry-run --Werror`、公開API検査に成功した。正式不足報告`build/tdd-macos/public-api-missing-g725.json`は公開header 1,549、公開API 29,801、対応済み29,531、未対応270、70,715 bytes、SHA-256 `f6162e920405dc24b04fdf5245693e9e7e41f788837af333dcb9a2f0d777124c`を記録する。
+- `verify-quick`に成功し、旧`build/tdd-macos/public-api-missing-g724.json`をTrashへ移した。主Ninja木、共有compiler cache、最新`build/tdd-macos/public-api-missing-g725.json`だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 
 ### 第724便の結果
 
