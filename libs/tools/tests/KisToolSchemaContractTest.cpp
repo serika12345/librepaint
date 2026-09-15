@@ -8,6 +8,7 @@
 #include <kis_tool_paint_interaction.h>
 #include <operations/kis_operation_ui_widget.h>
 #include <tool/kis_painting_information_builder_adapters.h>
+#include <tool/kis_tool_paint.h>
 #include <tools/ui/KisPaintResourceServerProvider.h>
 #include <tools/ui/kis_paintop_list_widget.h>
 #include <tools/ui/kis_rectangle_constraint_widget.h>
@@ -66,6 +67,7 @@ private Q_SLOTS:
     void operationUiWidgetSchemaRemainStable();
     void rectangleConstraintWidgetSchemaRemainStable();
     void toolOptionsPopupSchemaRemainStable();
+    void toolPaintSchemaRemainStable();
 };
 
 #define ASSERT_KIS_TOOL_SIGNATURE(Method, Signature)                                                                   \
@@ -157,8 +159,6 @@ void KisToolSchemaContractTest::paintInteractionTypeConstructionAndLifetimeSchem
     static_assert(std::is_abstract_v<KisToolPaintInteraction>);
     static_assert(std::is_constructible_v<PaintInteractionConstructorProbe, KoCanvasBase *, const QCursor &>);
     static_assert(std::has_virtual_destructor_v<KisToolPaintInteraction>);
-
-    QVERIFY(true);
 }
 
 void KisToolSchemaContractTest::paintInteractionActivationFlagsAndPointerEventSchemaRemainStable()
@@ -169,15 +169,11 @@ void KisToolSchemaContractTest::paintInteractionActivationFlagsAndPointerEventSc
     ASSERT_PAINT_INTERACTION_SIGNATURE(mousePressEvent, void (KisToolPaintInteraction::*)(KoPointerEvent *));
     ASSERT_PAINT_INTERACTION_SIGNATURE(mouseReleaseEvent, void (KisToolPaintInteraction::*)(KoPointerEvent *));
     ASSERT_PAINT_INTERACTION_SIGNATURE(mouseMoveEvent, void (KisToolPaintInteraction::*)(KoPointerEvent *));
-
-    QVERIFY(true);
 }
 
 void KisToolSchemaContractTest::paintInteractionNotificationSchemaRemainStable()
 {
     ASSERT_PAINT_INTERACTION_SIGNATURE(sigPaintingFinished, void (KisToolPaintInteraction::*)());
-
-    QVERIFY(true);
 }
 
 void KisToolSchemaContractTest::paintOpListWidgetSchemaRemainStable()
@@ -273,6 +269,19 @@ void KisToolSchemaContractTest::toolOptionsPopupSchemaRemainStable()
     static_assert(std::has_virtual_destructor_v<Popup>);
     static_assert(
         std::is_same_v<decltype(&Popup::newOptionWidgets), void (Popup::*)(const QList<QPointer<QWidget>> &)>);
+}
+
+void KisToolSchemaContractTest::toolPaintSchemaRemainStable()
+{
+    using Tool = KisToolPaint;
+
+    static_assert(std::is_class_v<Tool>);
+    static_assert(std::is_base_of_v<KisToolPaintInteraction, Tool>);
+    static_assert(std::is_constructible_v<Tool, KoCanvasBase *, const QCursor &>);
+    static_assert(std::has_virtual_destructor_v<Tool>);
+    static_assert(std::is_same_v<decltype(&Tool::popupWidget), KisPopupWidgetInterface *(Tool::*)()>);
+    static_assert(std::is_same_v<decltype(&Tool::activate), void (Tool::*)(const QSet<KoShape *> &)>);
+    static_assert(std::is_same_v<decltype(&Tool::deactivate), void (Tool::*)()>);
 }
 
 #undef ASSERT_KIS_TOOL_SIGNATURE
