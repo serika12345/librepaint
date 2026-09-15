@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 36
+    "expectedMissingApis": 30
   },
   "contracts": [
     {
@@ -83645,6 +83645,21 @@
         "method:KisSplashScreen::repaint()",
         "method:KisSplashScreen::setLoadingText(QString text)",
         "method:KisSplashScreen::show()"
+      ]
+    },
+    {
+      "target": "KisDisplayConfigSchemaContractTest",
+      "source": "libs/ui/tests/KisDisplayConfigSchemaContractTest.cpp",
+      "test": "KisDisplayConfigSchemaContractTest::welcomePageWidgetSchemaRemainsStable",
+      "behavior": "Welcome Page Widgetはwidget派生型として親widgetで構築・破棄でき、main windowの設定、document drop領域の表示、theme色更新を提供する公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisWelcomePageWidget",
+        "method:KisWelcomePageWidget::KisWelcomePageWidget(QWidget * parent)",
+        "method:KisWelcomePageWidget::setMainWindow(KisMainWindow * m_mainWindow)",
+        "method:KisWelcomePageWidget::showDropAreaIndicator(bool show)",
+        "method:KisWelcomePageWidget::slotUpdateThemeColors()",
+        "method:KisWelcomePageWidget::~KisWelcomePageWidget()"
       ]
     }
   ]

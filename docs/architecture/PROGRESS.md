@@ -2,15 +2,22 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-15 22:20 JST
+- 更新日時: 2026-09-15 22:28 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
-- 完了: 第753便でSplash Screenの公開8 APIを契約へ追加し、対応済みを29,765件へ進めた。
-- 次の作業: 第754便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
+- 完了: 第754便でWelcome Page Widgetの公開6 APIを契約へ追加し、対応済みを29,771件へ進めた。
+- 次の作業: 第755便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
 - 検証: macOSの対象・反復・無作業再構築、公開API検査、`verify-quick`に成功した。旧不足報告をTrashへ移し、最新報告だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は本便の対象外である。
+
+### 第754便の結果
+
+- `libs/application/ui/workspace/KisWelcomePageWidget.h`から既存`libs/ui/tests/KisDisplayConfigSchemaContractTest.cpp`へpublic 6 API・新規1枠`welcomePageWidgetSchemaRemainsStable`を追加した。Welcome Page Widgetがwidget派生型として親widgetで構築・破棄でき、main windowの設定、document drop領域の表示、theme色更新を提供する公開形式を固定する。
+- `libs/ui/tests/CMakeLists.txt`の同targetで`KisWelcomePage.ui`を生成し、`KisViewManager`が参照するfloating messageのUI header探索路だけを追加した。既存のapplication・widgetutils・Qt Widgetsのheader探索路を再利用し、製品object・libraryのlinkは導入していない。CMake再生成後に実行したのは同targetの自動MOC、追加UI生成、test object、linkであり、製品targetは構築していない。試験sourceは494行・27枠で、構築閉包は11工程・22入力（command SHA-256 `9622aeb19e03dcd91c6c5f426c4b7a2a14179a59020d79c2d426bdb7b9d1d128`、input SHA-256 `351a30be1b902e504f2cad9e2c324da6facf25b21a167114ecb54526e9af13bb`）となり、AUTOMOC `HEADERS=[]`、製品library・Welcome Page Widget・View Manager・Kinetic Scrollerの未解決記号なしを確認した。
+- macOSで対象単発、全27枠20回（540成功）、追加枠60回（60成功）、無作業再構築2回、`clang-check`、`clang-format --dry-run --Werror`、公開API検査に成功した。正式不足報告`build/tdd-macos/public-api-missing-g754.json`は公開header 1,549、公開API 29,801、対応済み29,771、未対応30、7,558 bytes、SHA-256 `bbc99ff7438ec5d63228c17e048df8c444eb86c62c4edf967a921fdb210965ee`を記録する。
+- `verify-quick`に成功し、旧`build/tdd-macos/public-api-missing-g753.json`をTrashへ移した。主Ninja木、共有compiler cache、最新`build/tdd-macos/public-api-missing-g754.json`だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 
 ### 第753便の結果
 
