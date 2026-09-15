@@ -8,6 +8,7 @@
 #include <kis_tool_paint_interaction.h>
 #include <operations/kis_operation_ui_widget.h>
 #include <tool/kis_painting_information_builder_adapters.h>
+#include <tool/kis_tool_multihand_helper.h>
 #include <tool/kis_tool_paint.h>
 #include <tools/ui/KisPaintResourceServerProvider.h>
 #include <tools/ui/kis_paintop_list_widget.h>
@@ -67,6 +68,7 @@ private Q_SLOTS:
     void operationUiWidgetSchemaRemainStable();
     void rectangleConstraintWidgetSchemaRemainStable();
     void toolOptionsPopupSchemaRemainStable();
+    void toolMultihandHelperSchemaRemainStable();
     void toolPaintSchemaRemainStable();
 };
 
@@ -179,7 +181,6 @@ void KisToolSchemaContractTest::paintInteractionNotificationSchemaRemainStable()
 void KisToolSchemaContractTest::paintOpListWidgetSchemaRemainStable()
 {
     using Widget = KisPaintOpListWidget;
-
     static_assert(std::is_class_v<Widget>);
     static_assert(std::is_base_of_v<KisCategorizedListView, Widget>);
     static_assert(std::is_default_constructible_v<Widget>);
@@ -208,7 +209,6 @@ void KisToolSchemaContractTest::paintingInformationBuilderAdaptersSchemaRemainSt
 void KisToolSchemaContractTest::paintingInformationBuilderRemainderSchemaRemainStable()
 {
     using Builder = KisPaintingInformationBuilder;
-
     static_assert(std::has_virtual_destructor_v<Builder>);
     static_assert(
         std::is_same_v<decltype(&Builder::continueStroke), KisPaintInformation (Builder::*)(KoPointerEvent *, int)>);
@@ -218,7 +218,6 @@ void KisToolSchemaContractTest::paintingInformationBuilderRemainderSchemaRemainS
 void KisToolSchemaContractTest::paintResourceServerProviderSchemaRemainStable()
 {
     using Provider = KisPaintResourceServerProvider;
-
     static_assert(std::is_same_v<KisPaintOpPresetResourceServer, KoResourceServer<KisPaintOpPreset>>);
     static_assert(std::is_class_v<Provider>);
     static_assert(std::is_base_of_v<QObject, Provider>);
@@ -234,7 +233,6 @@ void KisToolSchemaContractTest::paintResourceServerProviderSchemaRemainStable()
 void KisToolSchemaContractTest::operationUiWidgetSchemaRemainStable()
 {
     using Widget = KisOperationUIWidget;
-
     static_assert(std::is_class_v<Widget>);
     static_assert(std::is_base_of_v<QWidget, Widget>);
     static_assert(std::is_abstract_v<Widget>);
@@ -247,7 +245,6 @@ void KisToolSchemaContractTest::operationUiWidgetSchemaRemainStable()
 void KisToolSchemaContractTest::rectangleConstraintWidgetSchemaRemainStable()
 {
     using Widget = KisRectangleConstraintWidget;
-
     static_assert(std::is_class_v<Widget>);
     static_assert(std::is_base_of_v<QWidget, Widget>);
     static_assert(std::is_constructible_v<Widget, const QString &, bool>);
@@ -262,7 +259,6 @@ void KisToolSchemaContractTest::rectangleConstraintWidgetSchemaRemainStable()
 void KisToolSchemaContractTest::toolOptionsPopupSchemaRemainStable()
 {
     using Popup = KisToolOptionsPopup;
-
     static_assert(std::is_class_v<Popup>);
     static_assert(std::is_base_of_v<QWidget, Popup>);
     static_assert(std::is_constructible_v<Popup, const QFont &>);
@@ -274,7 +270,6 @@ void KisToolSchemaContractTest::toolOptionsPopupSchemaRemainStable()
 void KisToolSchemaContractTest::toolPaintSchemaRemainStable()
 {
     using Tool = KisToolPaint;
-
     static_assert(std::is_class_v<Tool>);
     static_assert(std::is_base_of_v<KisToolPaintInteraction, Tool>);
     static_assert(std::is_constructible_v<Tool, KoCanvasBase *, const QCursor &>);
@@ -284,9 +279,21 @@ void KisToolSchemaContractTest::toolPaintSchemaRemainStable()
     static_assert(std::is_same_v<decltype(&Tool::deactivate), void (Tool::*)()>);
 }
 
+void KisToolSchemaContractTest::toolMultihandHelperSchemaRemainStable()
+{
+    using Helper = KisToolMultihandHelper;
+    static_assert(std::is_class_v<Helper>);
+    static_assert(std::is_base_of_v<KisToolFreehandHelper, Helper>);
+    static_assert(std::is_constructible_v<Helper,
+                                          KisPaintingInformationBuilder *,
+                                          KoCanvasResourceProvider *,
+                                          const KUndo2MagicString &>);
+    static_assert(std::has_virtual_destructor_v<Helper>);
+    static_assert(
+        std::is_same_v<decltype(&Helper::setupTransformations), void (Helper::*)(const QVector<QTransform> &)>);
+}
+
 #undef ASSERT_KIS_TOOL_SIGNATURE
 #undef ASSERT_PAINT_INTERACTION_SIGNATURE
-
 QTEST_GUILESS_MAIN(KisToolSchemaContractTest)
-
 #include "KisToolSchemaContractTest.moc"

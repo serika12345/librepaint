@@ -99,12 +99,15 @@ target_include_directories(KisToolSchemaContractTest PRIVATE
     ${CMAKE_SOURCE_DIR}/libs/pigment/resources
     ${CMAKE_SOURCE_DIR}/libs/resources
     ${CMAKE_BINARY_DIR}/libs/resources
+    ${CMAKE_SOURCE_DIR}/libs/painting/undo
+    ${CMAKE_BINARY_DIR}/libs/painting/undo
 )
 target_compile_definitions(KisToolSchemaContractTest PRIVATE
     kritaflake_EXPORTS
     kritaglobal_EXPORTS
     kritaimage_EXPORTS
     kritapigment_EXPORTS
+    kritapaintingundo_EXPORTS
     kritaresources_EXPORTS
     kritatools_EXPORTS
 )
