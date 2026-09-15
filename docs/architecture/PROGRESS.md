@@ -2,15 +2,22 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-15 16:04 JST
+- 更新日時: 2026-09-15 16:18 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
-- 完了: 第714便でtoolbox dock factoryの公開型・構築・破棄・識別子・既定位置・dock作成APIを契約へ追加し、対応済みを29,474件へ進めた。
-- 次の作業: 第715便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
+- 完了: 第715便でpaint toolの公開型・構築・破棄・popup widget・有効化・無効化APIを契約へ追加し、対応済みを29,480件へ進めた。
+- 次の作業: 第716便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
 - 検証: macOSの対象・反復・無作業再構築、公開API検査、`verify-quick`に成功した。旧不足報告をTrashへ移し、最新報告だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は本便の対象外である。
+
+### 第715便の結果
+
+- `libs/ui/tool/kis_tool_paint.h`から既存`libs/tools/tests/KisToolSchemaContractTest.cpp`へ公開6 API・新規1枠`toolPaintSchemaRemainStable`を追加した。公開headerと製品sourceを変更せず、paint toolがpaint interaction基底型としてcanvasとcursorで構築・破棄でき、popup widget、tool activation、deactivationを提供する公開形式を固定する。
+- `libs/tools/tests/CMakeLists.txt`の同試験targetへ`libs/ui/tool`と`libs/ui/widgets`の探索路だけを追加した。前者は公開headerが直接includeする`KisAsyncColorSamplerHelper.h`、後者はpopup widget型の解決に必要であり、実行・製品linkは導入していない。試験sourceは292行・16枠で、構築閉包は4工程・8入力（command SHA-256 `64b23fcfc8b94ca0b7824c5741867d6d323cc2ed6d140b611d1f66879cff96b7`、input SHA-256 `f2467da36c35df9f69e1a05f8471b1b7e2513fbdabefea6e9bf5aecf79e7544d`）を維持し、AUTOMOC `HEADERS=[]`、製品library・対象paint toolの未解決記号なしを確認した。
+- macOSで対象単発、全16枠20回（360成功）、追加枠20回（60成功）、無作業再構築、`clang-check`、`clang-format --dry-run --Werror`、公開API検査に成功した。正式不足報告`build/tdd-macos/public-api-missing-g715.json`は公開header 1,549、公開API 29,801、対応済み29,480、未対応321、84,332 bytes、SHA-256 `88f185680bdf6d326add5b88be1438e9699417e2082a9d26cff61195ad79e926`を記録する。
+- `verify-quick`に成功し、旧`build/tdd-macos/public-api-missing-g714.json`をTrashへ移した。主Ninja木、共有compiler cache、最新`build/tdd-macos/public-api-missing-g715.json`だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 
 ### 第714便の結果
 
