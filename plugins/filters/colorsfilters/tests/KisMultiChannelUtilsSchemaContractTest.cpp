@@ -16,6 +16,7 @@ class KisMultiChannelUtilsSchemaContractTest : public QObject
 
 private Q_SLOTS:
     void findChannelSignatureRemainsStable();
+    void perChannelTransformationSignatureRemainsStable();
     void virtualChannelsSignatureRemainsStable();
 };
 
@@ -25,6 +26,15 @@ void KisMultiChannelUtilsSchemaContractTest::findChannelSignatureRemainsStable()
 
     static_assert(std::is_same_v<decltype(&KisMultiChannelUtils::findChannel), FindChannel>);
     QVERIFY(true);
+}
+
+void KisMultiChannelUtilsSchemaContractTest::perChannelTransformationSignatureRemainsStable()
+{
+    using CreateTransformation =
+        KoColorTransformation *(*)(const KoColorSpace *, const QVector<QVector<quint16>> &, const QList<bool> &);
+
+    static_assert(std::is_same_v<decltype(&KisMultiChannelUtils::createPerChannelTransformationFromTransfers),
+                                 CreateTransformation>);
 }
 
 void KisMultiChannelUtilsSchemaContractTest::virtualChannelsSignatureRemainsStable()
