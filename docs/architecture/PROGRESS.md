@@ -2,15 +2,22 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-15 19:43 JST
+- 更新日時: 2026-09-15 19:50 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
-- 完了: 第736便でSeExpr script chooserの公開9 APIを契約へ追加し、対応済みを29,641件へ進めた。
-- 次の作業: 第737便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
+- 完了: 第737便でmetadata Exiv2変換関数の公開5 APIを契約へ追加し、対応済みを29,646件へ進めた。
+- 次の作業: 第738便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
 - 検証: macOSの対象・反復・無作業再構築、公開API検査、`verify-quick`に成功した。旧不足報告をTrashへ移し、最新報告だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は本便の対象外である。
+
+### 第737便の結果
+
+- `plugins/metadata/common/kis_exiv2_common.h`から既存`plugins/metadata/tests/KisExiv2IODeviceSchemaContractTest.cpp`へ公開5 API・新規1枠`metadataConversionFunctionSchemaRemainsStable`を追加した。metadataのExiv2変換関数がExiv値・Qt variant・metadata値・XMP値・配列値を相互変換する公開形式を固定する。
+- `plugins/metadata/tests/CMakeLists.txt`の同targetへpainting metadataのsource・生成済みheader探索路だけを追加した。公開型`KisMetaData::Value`を解決し、製品object・libraryとExiv2 libraryのlinkは導入していない。CMake再生成後に実行したのは同targetの自動MOC、2 object、linkであり、製品targetは構築していない。試験sourceは121行・4枠で、構築閉包は4工程・7入力（command SHA-256 `0145ab4c06191a81c9950e1dec783346e6a9c7c951fd2d3d6d68f28ee5b9fd8d`、input SHA-256 `191c22fb9cd9c322c073c13be477a2d7cf90d6fefe437e75990b1b649d990827`）を維持し、AUTOMOC `HEADERS=[]`、製品library・Exiv2変換関数・`KisMetaData::Value`の未解決記号なしを確認した。
+- macOSで対象単発、全4枠20回（80成功）、追加枠60回（60成功）、無作業再構築、`clang-check`、`clang-format --dry-run --Werror`、公開API検査に成功した。公開header本文に既存の符号比較1件とQt 6非推奨・列挙比較6件の警告があるが、試験sourceの診断はない。正式不足報告`build/tdd-macos/public-api-missing-g737.json`は公開header 1,549、公開API 29,801、対応済み29,646、未対応155、40,823 bytes、SHA-256 `34cb7972dbb7fb6efbc6d43aa7eda8ae2953fa4b984ba0070529f4bc17bacf02`を記録する。
+- `verify-quick`に成功し、旧`build/tdd-macos/public-api-missing-g736.json`をTrashへ移した。主Ninja木、共有compiler cache、最新`build/tdd-macos/public-api-missing-g737.json`だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 
 ### 第736便の結果
 

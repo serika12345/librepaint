@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 160
+    "expectedMissingApis": 155
   },
   "contracts": [
     {
@@ -83368,6 +83368,20 @@
         "method:KisSeExprScriptChooser::setPreviewOrientation(Qt::Orientation orientation)",
         "method:KisSeExprScriptChooser::updateItemSize()",
         "method:KisSeExprScriptChooser::~KisSeExprScriptChooser()"
+      ]
+    },
+    {
+      "target": "KisExiv2IODeviceSchemaContractTest",
+      "source": "plugins/metadata/tests/KisExiv2IODeviceSchemaContractTest.cpp",
+      "test": "KisExiv2IODeviceSchemaContractTest::metadataConversionFunctionSchemaRemainsStable",
+      "behavior": "metadataのExiv2変換関数がExiv値・Qt variant・metadata値・XMP値・配列値を相互変換する公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:arrayToExivValue(const KisMetaData::Value & value)",
+        "function:exivValueToKMDValue(const Exiv2::Value::UniquePtr & value,bool forceSeq,KisMetaData::Value::ValueType arrayType=KisMetaData::Value::UnorderedArray)",
+        "function:kmdValueToExivValue(const KisMetaData::Value & value,Exiv2::TypeId type)",
+        "function:kmdValueToExivXmpValue(const KisMetaData::Value & value)",
+        "function:variantToExivValue(const QVariant & variant,Exiv2::TypeId type)"
       ]
     }
   ]
