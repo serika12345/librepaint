@@ -10,6 +10,7 @@
 #include <canvas/kis_display_color_converter.h>
 #include <theme/thememanager.h>
 #include <widgets/KisProofingOptionsWidget.h>
+#include <widgets/kis_seexpr_script_chooser.h>
 
 #include <surfacecolormanagement/KisSurfaceColorimetry.h>
 
@@ -51,6 +52,7 @@ private Q_SLOTS:
     void rootSurfaceInfoProxySchemaRemainStable();
     void proofingOptionsWidgetSchemaRemainsStable();
     void themeManagerSchemaRemainsStable();
+    void seExprScriptChooserSchemaRemainsStable();
 };
 
 void KisDisplayConfigSchemaContractTest::displayConfigTypeAndConstructionSchemaRemainsStable()
@@ -315,6 +317,21 @@ void KisDisplayConfigSchemaContractTest::themeManagerSchemaRemainsStable()
     static_assert(std::is_same_v<decltype(&Manager::setThemeMenuAction), void (Manager::*)(KActionMenu *const)>);
     static_assert(std::is_same_v<decltype(&Manager::registerThemeActions), void (Manager::*)(KisKActionCollection *)>);
     static_assert(std::is_same_v<decltype(&Manager::signalThemeChanged), void (Manager::*)()>);
+}
+
+void KisDisplayConfigSchemaContractTest::seExprScriptChooserSchemaRemainsStable()
+{
+    using Chooser = KisSeExprScriptChooser;
+
+    static_assert(std::is_base_of_v<QFrame, Chooser>);
+    static_assert(std::is_constructible_v<Chooser, QWidget *>);
+    static_assert(std::has_virtual_destructor_v<Chooser>);
+    static_assert(std::is_same_v<decltype(&Chooser::currentResource), KoResourceSP (Chooser::*)()>);
+    static_assert(std::is_same_v<decltype(&Chooser::setCurrentScript), void (Chooser::*)(KoResourceSP)>);
+    static_assert(std::is_same_v<decltype(&Chooser::setCurrentItem), void (Chooser::*)(int)>);
+    static_assert(std::is_same_v<decltype(&Chooser::setPreviewOrientation), void (Chooser::*)(Qt::Orientation)>);
+    static_assert(std::is_same_v<decltype(&Chooser::resourceSelected), void (Chooser::*)(KoResourceSP)>);
+    static_assert(std::is_same_v<decltype(&Chooser::updateItemSize), void (Chooser::*)()>);
 }
 
 #undef ASSERT_DISPLAY_COLOR_CONVERTER_SIGNATURE

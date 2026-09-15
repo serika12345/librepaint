@@ -1467,10 +1467,15 @@ target_include_directories(KisDisplayConfigSchemaContractTest PRIVATE
     ${CMAKE_BINARY_DIR}/libs/image
     ${CMAKE_SOURCE_DIR}/libs/pigment
     ${CMAKE_BINARY_DIR}/libs/pigment
+    ${CMAKE_SOURCE_DIR}/libs/resources
+    ${CMAKE_BINARY_DIR}/libs/resources
+    ${CMAKE_SOURCE_DIR}/libs/resources/ui
+    ${CMAKE_BINARY_DIR}/libs/resources/ui
     $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Gui,INTERFACE_INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Widgets,INTERFACE_INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:KF${KF_MAJOR}::ConfigCore,INTERFACE_INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:KF${KF_MAJOR}::WidgetsAddons,INTERFACE_INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:Imath::Imath,INTERFACE_INCLUDE_DIRECTORIES>
 )
 target_compile_definitions(KisDisplayConfigSchemaContractTest PRIVATE
@@ -1479,6 +1484,8 @@ target_compile_definitions(KisDisplayConfigSchemaContractTest PRIVATE
     kritaimage_EXPORTS
     kritaui_EXPORTS
     kritapigment_EXPORTS
+    kritaresourceui_EXPORTS
+    kritaresources_EXPORTS
     kritasurfacecolorimetry_EXPORTS
     kritawidgetutils_EXPORTS
 )
