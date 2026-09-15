@@ -3,6 +3,7 @@
  */
 
 #include <KisPaletteEditor.h>
+#include <dialogs/KisDlgPaletteEditor.h>
 
 #include <QTest>
 
@@ -27,6 +28,7 @@ private Q_SLOTS:
     void paletteEditorGroupIdentityAndLayoutSignaturesRemainStable();
     void paletteEditorEntryMutationSignaturesRemainStable();
     void paletteEditorEditingLifecycleSignaturesRemainStable();
+    void paletteEditorDialogSchemaRemainStable();
 };
 
 void KisPaletteEditorSchemaContractTest::paletteEditorTypeLifetimeAndContextSchemaRemainStable()
@@ -76,6 +78,18 @@ void KisPaletteEditorSchemaContractTest::paletteEditorEditingLifecycleSignatures
     ASSERT_PALETTE_EDITOR_SIGNATURE(isModified, bool (Editor::*)() const);
     ASSERT_PALETTE_EDITOR_SIGNATURE(startEditing, void (Editor::*)());
     static_assert(std::is_same_v<decltype(std::declval<Editor &>().endEditing()), void>);
+}
+
+void KisPaletteEditorSchemaContractTest::paletteEditorDialogSchemaRemainStable()
+{
+    using Dialog = KisDlgPaletteEditor;
+
+    static_assert(std::is_class_v<Dialog>);
+    static_assert(std::is_base_of_v<QDialog, Dialog>);
+    static_assert(std::is_constructible_v<Dialog, KisPaletteEditor *, QWidget *, Qt::WindowFlags>);
+    static_assert(std::has_virtual_destructor_v<Dialog>);
+    static_assert(std::is_same_v<decltype(&Dialog::initialize), void (Dialog::*)(KisPaletteModel *)>);
+    static_assert(std::is_same_v<decltype(&Dialog::palette), KoColorSetSP (Dialog::*)() const>);
 }
 
 QTEST_GUILESS_MAIN(KisPaletteEditorSchemaContractTest)
