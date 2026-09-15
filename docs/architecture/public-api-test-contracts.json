@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 316
+    "expectedMissingApis": 315
   },
   "contracts": [
     {
@@ -45135,6 +45135,16 @@
       "classification": "maintained",
       "apis": [
         "function:KisMultiChannelUtils::findChannel(const QVector<VirtualChannelInfo> & virtualChannels,const VirtualChannelInfo::Type & channelType)"
+      ]
+    },
+    {
+      "target": "KisMultiChannelUtilsSchemaContractTest",
+      "source": "plugins/filters/colorsfilters/tests/KisMultiChannelUtilsSchemaContractTest.cpp",
+      "test": "KisMultiChannelUtilsSchemaContractTest::virtualChannelsSignatureRemainsStable",
+      "behavior": "multichannel utilityは色空間への借用参照、channel数上限、明度・色相・彩度の対応可否を受け、virtual channel列を返す公開関数形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisMultiChannelUtils::getVirtualChannels(const KoColorSpace * cs,int maxChannels=-1,bool supportsLightness=true,bool supportsHue=true,bool supportSaturation=true)"
       ]
     },
     {
