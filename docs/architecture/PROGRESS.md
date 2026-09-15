@@ -2,15 +2,22 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-15 22:12 JST
+- 更新日時: 2026-09-15 22:20 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
-- 完了: 第752便でCustom Image Widgetの公開8 APIを契約へ追加し、対応済みを29,757件へ進めた。
-- 次の作業: 第753便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
+- 完了: 第753便でSplash Screenの公開8 APIを契約へ追加し、対応済みを29,765件へ進めた。
+- 次の作業: 第754便として、最新の不足一覧から責務が一致する軽量静的契約試験を選び、対象限定の構築閉包を監査する。
 - 検証: macOSの対象・反復・無作業再構築、公開API検査、`verify-quick`に成功した。旧不足報告をTrashへ移し、最新報告だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は本便の対象外である。
+
+### 第753便の結果
+
+- `libs/application/ui/workspace/kis_splash_screen.h`から既存`libs/ui/tests/KisDisplayConfigSchemaContractTest.cpp`へpublic 8 API・新規1枠`splashScreenSchemaRemainsStable`を追加した。Splash Screenがwidget派生型として親widgetとwindow flagsで構築でき、再描画、表示、link・recent file表示、loading text、画像resource pathを提供する公開形式を固定する。
+- `libs/ui/tests/CMakeLists.txt`の同targetで`libs/application/ui/workspace/wdgsplash.ui`を生成した。既存のapplication公開header探索路とQt Widgetsのheader探索路を再利用し、製品object・libraryのlinkは導入していない。CMake再生成後に実行したのは同targetの自動MOC、追加UI生成、test object、linkであり、製品targetは構築していない。試験sourceは480行・26枠で、構築閉包は10工程・19入力（command SHA-256 `e16b79c33e56ac86b6c92f2a648c9be8018a0ab300983cf1a9032bba0fce3d7b`、input SHA-256 `3ae54021464b47705fac48b82486b07ce0cddfe5437d4437e1f20a33014e871c`）となり、AUTOMOC `HEADERS=[]`、製品library・Splash Screenの未解決記号なしを確認した。
+- macOSで対象単発、全26枠20回（520成功）、追加枠60回（60成功）、無作業再構築2回、`clang-check`、`clang-format --dry-run --Werror`、公開API検査に成功した。正式不足報告`build/tdd-macos/public-api-missing-g753.json`は公開header 1,549、公開API 29,801、対応済み29,765、未対応36、9,064 bytes、SHA-256 `0d1b0874276fd8e107f850f1a0f886a88252b5ebd57f8c05ea91006a03a626d3`を記録する。
+- `verify-quick`に成功し、旧`build/tdd-macos/public-api-missing-g752.json`をTrashへ移した。主Ninja木、共有compiler cache、最新`build/tdd-macos/public-api-missing-g753.json`だけを保持する。製品target、全体build・`verify`、Linux、Nix再評価は実行していない。
 
 ### 第752便の結果
 

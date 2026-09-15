@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 44
+    "expectedMissingApis": 36
   },
   "contracts": [
     {
@@ -83628,6 +83628,23 @@
         "method:KisCustomImageWidget::KisCustomImageWidget(QWidget * parent,qint32 defWidth,qint32 defHeight,double resolution,const QString & defColorModel,const QString & defColorDepth,const QString & defColorProfile,const QString & imageName)",
         "method:KisCustomImageWidget::~KisCustomImageWidget()",
         "method:WdgNewImage::WdgNewImage(QWidget * parent)"
+      ]
+    },
+    {
+      "target": "KisDisplayConfigSchemaContractTest",
+      "source": "libs/ui/tests/KisDisplayConfigSchemaContractTest.cpp",
+      "test": "KisDisplayConfigSchemaContractTest::splashScreenSchemaRemainsStable",
+      "behavior": "Splash Screenはwidget派生型として親widgetとwindow flagsで構築でき、再描画、表示、link・recent file表示、loading text、画像resource pathを提供する公開形式を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisSplashScreen",
+        "method:KisSplashScreen::KisSplashScreen(QWidget * parent=nullptr,Qt::WindowFlags f=Qt::WindowFlags ())",
+        "method:KisSplashScreen::displayLinks(bool show)",
+        "method:KisSplashScreen::displayRecentFiles(bool show)",
+        "method:KisSplashScreen::imageResourcePath()",
+        "method:KisSplashScreen::repaint()",
+        "method:KisSplashScreen::setLoadingText(QString text)",
+        "method:KisSplashScreen::show()"
       ]
     }
   ]
