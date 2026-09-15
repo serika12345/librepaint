@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include <kis_delegated_tool.h>
 #include <kis_painting_information_builder.h>
 #include <kis_tool.h>
 #include <kis_tool_paint_interaction.h>
@@ -21,7 +22,7 @@
 
 namespace
 {
-class ConstructorProbe final : public KisTool
+class ConstructorProbe : public KisTool
 {
 public:
     using KisTool::KisTool;
@@ -70,6 +71,7 @@ private Q_SLOTS:
     void toolOptionsPopupSchemaRemainStable();
     void toolMultihandHelperSchemaRemainStable();
     void toolPaintSchemaRemainStable();
+    void delegatedToolSchemaRemainStable();
 };
 
 #define ASSERT_KIS_TOOL_SIGNATURE(Method, Signature)                                                                   \
@@ -277,6 +279,25 @@ void KisToolSchemaContractTest::toolPaintSchemaRemainStable()
     static_assert(std::is_same_v<decltype(&Tool::popupWidget), KisPopupWidgetInterface *(Tool::*)()>);
     static_assert(std::is_same_v<decltype(&Tool::activate), void (Tool::*)(const QSet<KoShape *> &)>);
     static_assert(std::is_same_v<decltype(&Tool::deactivate), void (Tool::*)()>);
+}
+
+void KisToolSchemaContractTest::delegatedToolSchemaRemainStable()
+{
+    using Delegated = KisDelegatedTool<ConstructorProbe, ConstructorProbe>;
+
+    static_assert(std::is_class_v<Delegated>);
+    static_assert(std::is_base_of_v<ConstructorProbe, Delegated>);
+    static_assert(std::is_constructible_v<Delegated, KoCanvasBase *, const QCursor &, ConstructorProbe *>);
+    static_assert(std::is_same_v<decltype(&Delegated::localTool), ConstructorProbe *(Delegated::*)() const>);
+    static_assert(std::is_same_v<decltype(&Delegated::activate), void (Delegated::*)(const QSet<KoShape *> &)>);
+    static_assert(std::is_same_v<decltype(&Delegated::deactivate), void (Delegated::*)()>);
+    static_assert(std::is_same_v<decltype(&Delegated::mousePressEvent), void (Delegated::*)(KoPointerEvent *)>);
+    static_assert(std::is_same_v<decltype(&Delegated::mouseDoubleClickEvent), void (Delegated::*)(KoPointerEvent *)>);
+    static_assert(std::is_same_v<decltype(&Delegated::mouseMoveEvent), void (Delegated::*)(KoPointerEvent *)>);
+    static_assert(std::is_same_v<decltype(&Delegated::mouseReleaseEvent), void (Delegated::*)(KoPointerEvent *)>);
+    static_assert(
+        std::is_same_v<decltype(&Delegated::paint), void (Delegated::*)(QPainter &, const KoViewConverter &)>);
+    static_assert(std::is_same_v<decltype(&Delegated::createOptionWidgets), QList<QPointer<QWidget>> (Delegated::*)()>);
 }
 
 void KisToolSchemaContractTest::toolMultihandHelperSchemaRemainStable()
