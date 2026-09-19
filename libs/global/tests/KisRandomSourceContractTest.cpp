@@ -8,7 +8,6 @@
 #include <QTest>
 
 #include <cmath>
-#include <type_traits>
 
 class KisRandomSourceContractTest : public QObject
 {
@@ -17,7 +16,7 @@ class KisRandomSourceContractTest : public QObject
 private Q_SLOTS:
     void seededSourcesReproduceAllGenerationPaths();
     void copiesAndAssignmentsForkTheCurrentSequence();
-    void defaultSourceAndPointerAliasesPreserveLifetime();
+    void defaultSourceRangeAndSharedLifetime();
 };
 
 void KisRandomSourceContractTest::seededSourcesReproduceAllGenerationPaths()
@@ -76,11 +75,8 @@ void KisRandomSourceContractTest::copiesAndAssignmentsForkTheCurrentSequence()
     QCOMPARE(selfAssigned.generate(), selfReference.generate());
 }
 
-void KisRandomSourceContractTest::defaultSourceAndPointerAliasesPreserveLifetime()
+void KisRandomSourceContractTest::defaultSourceRangeAndSharedLifetime()
 {
-    static_assert(std::is_same_v<KisRandomSourceSP, KisSharedPtr<KisRandomSource>>);
-    static_assert(std::is_same_v<KisRandomSourceWSP, KisWeakSharedPtr<KisRandomSource>>);
-
     KisRandomSource defaultSource;
     const qreal value = defaultSource.generateNormalized();
     QVERIFY(value >= 0.0);

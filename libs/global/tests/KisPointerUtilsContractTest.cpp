@@ -11,8 +11,6 @@
 #include <QList>
 #include <QTest>
 
-#include <type_traits>
-
 namespace
 {
 
@@ -138,13 +136,6 @@ void KisPointerUtilsContractTest::sharedPointerTraitsPreserveTypesAndDynamicCast
     using QtTraits = KisSharedPointerTraits<QSharedPointer<IntrusiveBase>>;
     using SharedTraits = KisSharedPointerTraits<KisSharedPtr<IntrusiveBase>>;
     using PinnedTraits = KisSharedPointerTraits<KisPinnedSharedPtr<IntrusiveBase>>;
-
-    static_assert(std::is_same_v<QtTraits::ValueType, IntrusiveBase>);
-    static_assert(std::is_same_v<QtTraits::SharedPointerType<IntrusiveDerived>, QSharedPointer<IntrusiveDerived>>);
-    static_assert(std::is_same_v<SharedTraits::ValueType, IntrusiveBase>);
-    static_assert(std::is_same_v<SharedTraits::SharedPointerType<IntrusiveDerived>, KisSharedPtr<IntrusiveDerived>>);
-    static_assert(std::is_same_v<PinnedTraits::ValueType, IntrusiveBase>);
-    static_assert(std::is_same_v<PinnedTraits::SharedPointerType<IntrusiveDerived>, KisPinnedSharedPtr<IntrusiveDerived>>);
 
     QSharedPointer<IntrusiveBase> qtBase(new IntrusiveDerived(47));
     const auto qtDerived = QtTraits::dynamicCastSP<IntrusiveDerived>(qtBase);

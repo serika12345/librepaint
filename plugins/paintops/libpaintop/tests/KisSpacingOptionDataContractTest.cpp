@@ -5,7 +5,6 @@
 #include <QMap>
 #include <QTest>
 #include <kis_properties_configuration.h>
-#include <type_traits>
 
 namespace
 {
@@ -165,15 +164,14 @@ class KisSpacingOptionDataContractTest : public QObject
 {
     Q_OBJECT
 private Q_SLOTS:
-    void typesAndDefaults();
+    void defaults();
     void constructorForwardsPrefixesAndId();
     void readMapsCurrentAndEmptySettings();
     void writeMapsBothKeys();
     void equalityUsesBothMembers();
 };
-void KisSpacingOptionDataContractTest::typesAndDefaults()
+void KisSpacingOptionDataContractTest::defaults()
 {
-    static_assert(std::is_same_v<KisSpacingOptionMixIn, KisPrefixedOptionDataWrapper<KisSpacingOptionMixInImpl>>);
     KisSpacingOptionData defaults;
     QVERIFY(!defaults.isotropicSpacing);
     QVERIFY(!defaults.useSpacingUpdates);

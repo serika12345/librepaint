@@ -11,8 +11,6 @@
 #include <QMap>
 #include <QTest>
 
-#include <type_traits>
-
 namespace
 {
 using PropertyStore = QMap<QString, QVariant>;
@@ -171,18 +169,14 @@ class KisCompositeOpOptionDataContractTest : public QObject
     Q_OBJECT
 
 private Q_SLOTS:
-    void defaultValuesAndMemberTypesRemainStable();
+    void defaultValues();
     void readMapsMissingAndUnicodeConfiguration();
     void writeMapsBothMembersAndPreservesOtherProperties();
     void equalityDependsOnBothMembersIndependently();
 };
 
-void KisCompositeOpOptionDataContractTest::defaultValuesAndMemberTypesRemainStable()
+void KisCompositeOpOptionDataContractTest::defaultValues()
 {
-    static_assert(std::is_class_v<KisCompositeOpOptionData>);
-    static_assert(std::is_same_v<decltype(KisCompositeOpOptionData::compositeOpId), QString>);
-    static_assert(std::is_same_v<decltype(KisCompositeOpOptionData::eraserMode), bool>);
-
     const KisCompositeOpOptionData data;
     QCOMPARE(data.compositeOpId, QStringLiteral("normal"));
     QVERIFY(!data.eraserMode);

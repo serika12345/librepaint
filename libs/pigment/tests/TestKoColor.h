@@ -26,6 +26,8 @@ private Q_SLOTS:
     void testComparisonQVariant();
 
     void testSVGParsing();
+    void testOpacityPreservesColorAndOriginalCopy();
+    void testMetadataCopyAndClear();
 };
 
 #endif

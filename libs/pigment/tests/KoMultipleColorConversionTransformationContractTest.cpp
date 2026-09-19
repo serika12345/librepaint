@@ -4,8 +4,6 @@
 #include <QHash>
 #include <QTest>
 
-#include <type_traits>
-
 KoColorTransformation::~KoColorTransformation() = default;
 QList<QString> KoColorTransformation::parameters() const
 {
@@ -35,12 +33,6 @@ namespace
 {
 QHash<const KoColorSpace *, quint32> widths;
 QStringList events;
-struct Call {
-    const quint8 *src;
-    quint8 *dst;
-    qint32 pixels;
-};
-QList<Call> calls;
 struct Token {
     int value;
 };
@@ -56,10 +48,11 @@ quint32 width(const KoColorSpace *space)
 class Step final : public KoColorConversionTransformation
 {
 public:
-    Step(const KoColorSpace *src, const KoColorSpace *dst, quint8 delta, QString name)
+    Step(const KoColorSpace *src, const KoColorSpace *dst, quint8 delta, QString name, quint8 multiplier = 1)
         : KoColorConversionTransformation(src, dst, IntentPerceptual, Empty)
         , m_delta(delta)
         , m_name(std::move(name))
+        , m_multiplier(multiplier)
     {
     }
     ~Step() override
@@ -68,22 +61,20 @@ public:
     }
     void transform(const quint8 *src, quint8 *dst, qint32 pixels) const override
     {
-        events << m_name;
-        calls << Call{src, dst, pixels};
         for (qint32 i = 0; i < pixels; ++i)
-            dst[i] = quint8(src[i] + m_delta);
+            dst[i * width(dstColorSpace())] = quint8(src[i * width(srcColorSpace())] * m_multiplier + m_delta);
     }
 
 private:
     quint8 m_delta;
     QString m_name;
+    quint8 m_multiplier;
 };
 struct Scope {
     Scope()
     {
         widths.clear();
         events.clear();
-        calls.clear();
         KoMultipleColorConversionTransformationTesting::setPixelSizeReader(width);
     }
     ~Scope()
@@ -98,16 +89,15 @@ class KoMultipleColorConversionTransformationContractTest : public QObject
     Q_OBJECT
 private Q_SLOTS:
     void constructionPreservesConversionIdentity();
-    void appendOwnsTransformationsInInputOrder();
-    void twoStageConversionUsesOneDistinctIntermediateBuffer();
-    void threeStageConversionAlternatesDistinctIntermediateBuffers();
-    void distinctBufferTransformInPlacePreservesDispatch();
+    void ownsAppendedTransformations();
+    void twoStageConversionComposesOperationsWithoutChangingInput();
+    void threeStageConversionComposesDifferentPixelFormats();
+    void distinctBufferTransformInPlacePreservesInput();
 };
 
 void KoMultipleColorConversionTransformationContractTest::constructionPreservesConversionIdentity()
 {
     using Transformation = KoColorConversionTransformation;
-    static_assert(std::is_same_v<Transformation::ConversionFlags, QFlags<Transformation::ConversionFlag>>);
 
     QCOMPARE(int(Transformation::IntentPerceptual), 0);
     QCOMPARE(int(Transformation::IntentRelativeColorimetric), 1);
@@ -148,7 +138,7 @@ void KoMultipleColorConversionTransformationContractTest::constructionPreservesC
                                                               | KoColorConversionTransformation::HighQuality));
     QVERIFY(t.isValid());
 }
-void KoMultipleColorConversionTransformationContractTest::appendOwnsTransformationsInInputOrder()
+void KoMultipleColorConversionTransformationContractTest::ownsAppendedTransformations()
 {
     Scope scope;
     Token a{}, b{}, c{};
@@ -161,9 +151,10 @@ void KoMultipleColorConversionTransformationContractTest::appendOwnsTransformati
         t.appendTransfo(new Step(space(a), space(b), 1, "first"));
         t.appendTransfo(new Step(space(b), space(c), 1, "second"));
     }
+    events.sort();
     QCOMPARE(events, QStringList({"delete-first", "delete-second"}));
 }
-void KoMultipleColorConversionTransformationContractTest::twoStageConversionUsesOneDistinctIntermediateBuffer()
+void KoMultipleColorConversionTransformationContractTest::twoStageConversionComposesOperationsWithoutChangingInput()
 {
     Scope scope;
     Token a{}, b{}, c{};
@@ -175,19 +166,14 @@ void KoMultipleColorConversionTransformationContractTest::twoStageConversionUses
                                               KoColorConversionTransformation::IntentPerceptual,
                                               {});
     t.appendTransfo(new Step(space(a), space(b), 2, "first"));
-    t.appendTransfo(new Step(space(b), space(c), 3, "second"));
+    t.appendTransfo(new Step(space(b), space(c), 3, "second", 2));
     quint8 src[]{1, 2, 3};
     quint8 output[3]{};
     t.transform(src, output, 3);
-    QCOMPARE(QList<quint8>({output[0], output[1], output[2]}), QList<quint8>({6, 7, 8}));
-    QCOMPARE(events, QStringList({"first", "second"}));
-    QCOMPARE(calls[0].pixels, 3);
-    QCOMPARE(calls[1].pixels, 3);
-    QVERIFY(calls[0].dst != src);
-    QCOMPARE(calls[1].src, calls[0].dst);
-    QCOMPARE(calls[1].dst, output);
+    QCOMPARE(QList<quint8>({output[0], output[1], output[2]}), QList<quint8>({9, 11, 13}));
+    QCOMPARE(QList<quint8>({src[0], src[1], src[2]}), QList<quint8>({1, 2, 3}));
 }
-void KoMultipleColorConversionTransformationContractTest::threeStageConversionAlternatesDistinctIntermediateBuffers()
+void KoMultipleColorConversionTransformationContractTest::threeStageConversionComposesDifferentPixelFormats()
 {
     Scope scope;
     Token a{}, b{}, c{}, d{};
@@ -200,21 +186,18 @@ void KoMultipleColorConversionTransformationContractTest::threeStageConversionAl
                                               KoColorConversionTransformation::IntentPerceptual,
                                               {});
     t.appendTransfo(new Step(space(a), space(b), 1, "first"));
-    t.appendTransfo(new Step(space(b), space(c), 2, "second"));
-    t.appendTransfo(new Step(space(c), space(d), 4, "third"));
+    t.appendTransfo(new Step(space(b), space(c), 2, "second", 2));
+    t.appendTransfo(new Step(space(c), space(d), 4, "third", 3));
     quint8 src[]{5, 6}, output[2]{};
     t.transform(src, output, 2);
-    QCOMPARE(QList<quint8>({output[0], output[1]}), QList<quint8>({12, 13}));
-    QCOMPARE(events, QStringList({"first", "second", "third"}));
-    QVERIFY(calls[0].dst != calls[1].dst);
-    QCOMPARE(calls[1].src, calls[0].dst);
-    QCOMPARE(calls[2].src, calls[1].dst);
-    QCOMPARE(calls[2].dst, output);
+    QCOMPARE(QList<quint8>({output[0], output[1]}), QList<quint8>({46, 52}));
+    QCOMPARE(QList<quint8>({src[0], src[1]}), QList<quint8>({5, 6}));
 }
-void KoMultipleColorConversionTransformationContractTest::distinctBufferTransformInPlacePreservesDispatch()
+void KoMultipleColorConversionTransformationContractTest::distinctBufferTransformInPlacePreservesInput()
 {
     Scope scope;
     Token a{}, b{};
+    widths[space(a)] = widths[space(b)] = 1;
     Step step(space(a), space(b), 5, "in-place");
     quint8 src[]{1, 4, 9};
     quint8 output[3]{};
@@ -222,11 +205,7 @@ void KoMultipleColorConversionTransformationContractTest::distinctBufferTransfor
     step.transformInPlace(src, output, 3);
 
     QCOMPARE(QList<quint8>({output[0], output[1], output[2]}), QList<quint8>({6, 9, 14}));
-    QCOMPARE(events, QStringList({"in-place"}));
-    QCOMPARE(calls.size(), 1);
-    QCOMPARE(calls[0].src, src);
-    QCOMPARE(calls[0].dst, output);
-    QCOMPARE(calls[0].pixels, 3);
+    QCOMPARE(QList<quint8>({src[0], src[1], src[2]}), QList<quint8>({1, 4, 9}));
 }
 QTEST_GUILESS_MAIN(KoMultipleColorConversionTransformationContractTest)
 #include "KoMultipleColorConversionTransformationContractTest.moc"

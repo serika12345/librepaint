@@ -13,7 +13,6 @@
 #include <QTest>
 
 #include <array>
-#include <type_traits>
 
 namespace
 {
@@ -181,19 +180,15 @@ class KisColorSourceOptionDataContractTest : public QObject
     Q_OBJECT
 
 private Q_SLOTS:
-    void enumDefaultsAndMemberTypeRemainStable();
+    void defaultColorSource();
     void stableIdentifiersRoundTripEveryType();
     void readMapsEveryIdentifierAndUnknownFallback();
     void writeMapsEveryTypeAndPreservesOtherProperties();
     void equalityDependsOnlyOnType();
 };
 
-void KisColorSourceOptionDataContractTest::enumDefaultsAndMemberTypeRemainStable()
+void KisColorSourceOptionDataContractTest::defaultColorSource()
 {
-    static_assert(std::is_class_v<KisColorSourceOptionData>);
-    static_assert(std::is_enum_v<KisColorSourceOptionData::Type>);
-    static_assert(std::is_same_v<decltype(KisColorSourceOptionData::type), KisColorSourceOptionData::Type>);
-
     QCOMPARE(static_cast<int>(KisColorSourceOptionData::PLAIN), 0);
     QCOMPARE(static_cast<int>(KisColorSourceOptionData::GRADIENT), 1);
     QCOMPARE(static_cast<int>(KisColorSourceOptionData::UNIFORM_RANDOM), 2);

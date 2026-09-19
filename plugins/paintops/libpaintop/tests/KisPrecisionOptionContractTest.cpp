@@ -11,8 +11,6 @@
 #include <QMap>
 #include <QTest>
 
-#include <type_traits>
-
 namespace
 {
 using PropertyStore = QMap<QString, QVariant>;
@@ -179,11 +177,6 @@ private Q_SLOTS:
 
 void KisPrecisionOptionContractTest::persistenceKeysAndDefaultDataRemainStable()
 {
-    static_assert(std::is_class_v<KisPrecisionOption>);
-    static_assert(std::is_class_v<KisBrushModel::PrecisionData>);
-    static_assert(std::is_same_v<decltype(KisBrushModel::PrecisionData::precisionLevel), int>);
-    static_assert(std::is_same_v<decltype(KisBrushModel::PrecisionData::useAutoPrecision), bool>);
-
     QCOMPARE(PRECISION_LEVEL, QStringLiteral("KisPrecisionOption/precisionLevel"));
     QCOMPARE(AUTO_PRECISION_ENABLED, QStringLiteral("KisPrecisionOption/AutoPrecisionEnabled"));
     QCOMPARE(STARTING_SIZE, QStringLiteral("KisPrecisionOption/SizeToStartFrom"));

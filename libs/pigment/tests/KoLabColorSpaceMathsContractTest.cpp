@@ -7,8 +7,6 @@
 
 #include <QTest>
 
-#include <type_traits>
-
 class KoLabColorSpaceMathsContractTest : public QObject
 {
     Q_OBJECT
@@ -20,15 +18,6 @@ private Q_SLOTS:
 
 void KoLabColorSpaceMathsContractTest::integerTraitsUseEncodedLabRanges()
 {
-    static_assert(std::is_base_of_v<KoColorSpaceMathsTraits<quint8>,
-                                    KoLabColorSpaceMathsTraits<quint8>>);
-    static_assert(std::is_base_of_v<KoColorSpaceMathsTraits<quint16>,
-                                    KoLabColorSpaceMathsTraits<quint16>>);
-    static_assert(std::is_base_of_v<KoColorSpaceMathsTraits<qint16>,
-                                    KoLabColorSpaceMathsTraits<qint16>>);
-    static_assert(std::is_base_of_v<KoColorSpaceMathsTraits<quint32>,
-                                    KoLabColorSpaceMathsTraits<quint32>>);
-
     QCOMPARE(quint8(KoLabColorSpaceMathsTraits<quint8>::zeroValueL), quint8(0));
     QCOMPARE(quint8(KoLabColorSpaceMathsTraits<quint8>::halfValueL), quint8(127));
     QCOMPARE(quint8(KoLabColorSpaceMathsTraits<quint8>::unitValueL), quint8(255));

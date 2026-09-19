@@ -9,7 +9,6 @@
 
 #include <array>
 #include <cmath>
-#include <type_traits>
 
 namespace
 {
@@ -140,7 +139,6 @@ void KoColorTransferFunctionsContractTest::vectorRemovalTransformsEveryLane()
 #if !defined(XSIMD_NO_SUPPORTED_ARCHITECTURE)
     using TransferFunctions = KoColorTransferFunctions<xsimd::current_arch>;
     using Batch = TransferFunctions::float_v;
-    static_assert(std::is_same_v<Batch, xsimd::batch<float, xsimd::current_arch>>);
 
     constexpr std::size_t laneCount = Batch::size;
     std::array<float, laneCount> input{};

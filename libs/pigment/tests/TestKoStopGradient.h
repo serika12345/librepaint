@@ -14,6 +14,7 @@ class TestKoStopGradient: public QObject
 public:
 private Q_SLOTS:
     void TestSVGStopGradientLoading();
+    void testInterpolatesBetweenStops();
 
 };
 

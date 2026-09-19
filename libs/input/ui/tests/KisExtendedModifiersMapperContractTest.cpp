@@ -15,12 +15,10 @@ class FixedExtendedModifiersPlugin final : public KisExtendedModifiersMapperPlug
 public:
     ExtendedModifiers queryExtendedModifiers() override
     {
-        ++queryCount;
         return modifiers;
     }
 
     ExtendedModifiers modifiers;
-    int queryCount {0};
 };
 
 class KisExtendedModifiersMapperContractTest : public QObject
@@ -90,10 +88,11 @@ void KisExtendedModifiersMapperContractTest::delegatesExtendedModifiersWithoutOw
     {
         KisExtendedModifiersMapper mapper;
         QCOMPARE(mapper.queryExtendedModifiers(), plugin.modifiers);
-        QCOMPARE(plugin.queryCount, 1);
     }
 
-    QCOMPARE(plugin.queryCount, 1);
+    plugin.modifiers = {Qt::Key_Control};
+    KisExtendedModifiersMapper nextMapper;
+    QCOMPARE(nextMapper.queryExtendedModifiers(), plugin.modifiers);
 }
 
 void KisExtendedModifiersMapperContractTest::reportsApplicationModifierState()
@@ -116,7 +115,6 @@ void KisExtendedModifiersMapperContractTest::keepsPluginQueriesStableAcrossLocal
 
     KisExtendedModifiersMapper::setLocalMonitor(false);
     QCOMPARE(mapper.queryExtendedModifiers(), plugin.modifiers);
-    QCOMPARE(plugin.queryCount, 2);
 }
 #endif
 

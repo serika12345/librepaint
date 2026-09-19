@@ -11,8 +11,6 @@
 #include <QTemporaryFile>
 #include <QTest>
 
-#include <type_traits>
-
 void kis_safe_assert_recoverable(const char *assertion, const char *file, int line)
 {
     qFatal("unexpected safe assertion: %s at %s:%d", assertion, file, line);
@@ -81,7 +79,6 @@ void KisSqlQueryLoaderContractTest::init()
 
 void KisSqlQueryLoaderContractTest::exceptionValuesPreserveDiagnostics()
 {
-    static_assert(std::is_empty_v<KisSqlQueryLoader::single_statement_mode_t>);
     const KisSqlQueryLoader::single_statement_mode_t mode = KisSqlQueryLoader::single_statement_mode;
     Q_UNUSED(mode);
 

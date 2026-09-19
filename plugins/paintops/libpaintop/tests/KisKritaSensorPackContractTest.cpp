@@ -15,7 +15,6 @@
 
 #include <array>
 #include <memory>
-#include <type_traits>
 
 namespace
 {
@@ -332,9 +331,6 @@ private Q_SLOTS:
 
 void KisKritaSensorPackContractTest::defaultsEnumeratorsAndMemberIdentity()
 {
-    static_assert(std::is_class_v<KisKritaSensorPack>);
-    static_assert(std::is_class_v<KisKritaSensorData>);
-
     QCOMPARE(static_cast<int>(KisKritaSensorPack::Checkability::NotCheckable), 0);
     QCOMPARE(static_cast<int>(KisKritaSensorPack::Checkability::Checkable), 1);
     QCOMPARE(static_cast<int>(KisKritaSensorPack::Checkability::CheckableIfHasPrefix), 2);

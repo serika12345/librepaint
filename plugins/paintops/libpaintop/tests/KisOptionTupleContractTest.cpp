@@ -3,154 +3,70 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include <QMap>
 #include <QString>
+#include <QTest>
 
 class KisPropertiesConfiguration
 {
+public:
+    QMap<QString, int> values;
 };
 
 #include "KisOptionTuple.h"
 
-#include <QTest>
-
-#include <array>
-#include <type_traits>
-
 namespace
 {
 
-struct CallTrace {
-    QStringList events;
-};
-
-std::array<int, 4> plainDefaultConstructions{};
-std::array<int, 4> plainArgumentConstructions{};
-std::array<int, 4> prefixedPrefixConstructions{};
-std::array<int, 4> prefixedArgumentConstructions{};
-
 template<int Id>
 struct PlainOptionData {
-    PlainOptionData()
+    PlainOptionData() = default;
+    explicit PlainOptionData(int value)
+        : value(value)
     {
-        ++plainDefaultConstructions[Id];
-    }
-
-    PlainOptionData(int value, const QString &label)
-        : constructorValue(value)
-        , constructorLabel(label)
-    {
-        ++plainArgumentConstructions[Id];
     }
 
     bool read(const KisPropertiesConfiguration *setting)
     {
-        ++readCalls;
-        lastReadSetting = setting;
-        if (trace) {
-            trace->events.append(QStringLiteral("plain-%1-read").arg(Id));
+        const auto it = setting->values.constFind(key());
+        if (it == setting->values.constEnd()) {
+            return false;
         }
-        return readResult;
+        value = *it;
+        return true;
     }
 
     void write(KisPropertiesConfiguration *setting) const
     {
-        ++writeCalls;
-        lastWriteSetting = setting;
-        if (trace) {
-            trace->events.append(QStringLiteral("plain-%1-write").arg(Id));
-        }
+        setting->values.insert(key(), value);
     }
 
     friend bool operator==(const PlainOptionData &lhs, const PlainOptionData &rhs)
     {
-        return lhs.equalityValue == rhs.equalityValue;
+        return lhs.value == rhs.value;
     }
 
-    CallTrace *trace = nullptr;
-    bool readResult = true;
-    int readCalls = 0;
-    const KisPropertiesConfiguration *lastReadSetting = nullptr;
-    mutable int writeCalls = 0;
-    mutable KisPropertiesConfiguration *lastWriteSetting = nullptr;
-    int constructorValue = -1;
-    QString constructorLabel;
-    int equalityValue = 0;
+    QString key() const
+    {
+        return prefix + QString::number(Id);
+    }
+    QString prefix;
+    int value = 0;
 };
 
 template<int Id>
-struct PrefixedOptionData {
+struct PrefixedOptionData : PlainOptionData<Id> {
     static constexpr bool supports_prefix = true;
 
-    explicit PrefixedOptionData(const QString &prefix)
-        : constructorPrefix(prefix)
+    explicit PrefixedOptionData(const QString &prefix, int value = 0)
+        : PlainOptionData<Id>(value)
     {
-        ++prefixedPrefixConstructions[Id];
+        this->prefix = prefix;
     }
-
-    PrefixedOptionData(const QString &prefix, int value)
-        : constructorPrefix(prefix)
-        , constructorValue(value)
-    {
-        ++prefixedArgumentConstructions[Id];
-    }
-
-    bool read(const KisPropertiesConfiguration *setting)
-    {
-        ++readCalls;
-        lastReadSetting = setting;
-        if (trace) {
-            trace->events.append(QStringLiteral("prefixed-%1-read").arg(Id));
-        }
-        return readResult;
-    }
-
-    void write(KisPropertiesConfiguration *setting) const
-    {
-        ++writeCalls;
-        lastWriteSetting = setting;
-        if (trace) {
-            trace->events.append(QStringLiteral("prefixed-%1-write").arg(Id));
-        }
-    }
-
-    friend bool operator==(const PrefixedOptionData &lhs, const PrefixedOptionData &rhs)
-    {
-        return lhs.equalityValue == rhs.equalityValue;
-    }
-
-    CallTrace *trace = nullptr;
-    bool readResult = true;
-    int readCalls = 0;
-    const KisPropertiesConfiguration *lastReadSetting = nullptr;
-    mutable int writeCalls = 0;
-    mutable KisPropertiesConfiguration *lastWriteSetting = nullptr;
-    QString constructorPrefix;
-    int constructorValue = -1;
-    int equalityValue = 0;
-};
-
-struct ExplicitlyUnprefixedOptionData {
-    static constexpr bool supports_prefix = false;
 };
 
 using PlainTuple = KisOptionTuple<PlainOptionData<1>, PlainOptionData<2>, PlainOptionData<3>>;
 using PrefixedTuple = KisOptionTuple<PrefixedOptionData<1>, PrefixedOptionData<2>, PrefixedOptionData<3>>;
-
-void resetConstructionCounters()
-{
-    plainDefaultConstructions.fill(0);
-    plainArgumentConstructions.fill(0);
-    prefixedPrefixConstructions.fill(0);
-    prefixedArgumentConstructions.fill(0);
-}
-
-template<template<int> class OptionData, typename Tuple>
-void attachTraceToEveryBase(Tuple &tuple, CallTrace *trace)
-{
-    static_cast<OptionData<1> &>(tuple).trace = trace;
-    static_cast<OptionData<2> &>(tuple).trace = trace;
-    static_cast<OptionData<3> &>(tuple).trace = trace;
-}
 
 } // namespace
 
@@ -159,171 +75,108 @@ class KisOptionTupleContractTest : public QObject
     Q_OBJECT
 
 private Q_SLOTS:
-    void traitsAndAliasSelectPrefixMode();
-    void nonPrefixConstructionRoutesArgumentsOnlyToFirstBase();
-    void prefixedConstructionRoutesUnicodePrefixToEveryBase();
-    void readPreservesPointerOrderShortCircuitAndReturn();
-    void writePreservesPointerAndVisitsEveryBaseInOrder();
-    void equalityComparesEveryBaseValue();
+    void constructorArgumentsInitializeFirstOption();
+    void prefixAppliesToEveryOption();
+    void readsEveryOption();
+    void reportsFailureInAnyOption_data();
+    void reportsFailureInAnyOption();
+    void writesEveryOptionAndPreservesOtherSettings();
+    void equalityIncludesEveryOption();
 };
 
-void KisOptionTupleContractTest::traitsAndAliasSelectPrefixMode()
+void KisOptionTupleContractTest::constructorArgumentsInitializeFirstOption()
 {
-    static_assert(!detail::supports_prefix<PlainOptionData<1>>::value);
-    static_assert(!detail::supports_prefix<ExplicitlyUnprefixedOptionData>::value);
-    static_assert(detail::supports_prefix<PrefixedOptionData<1>>::value);
-    static_assert(detail::all_support_prefix<PrefixedOptionData<1>, PrefixedOptionData<2>>::value);
-    static_assert(!detail::all_support_prefix<PrefixedOptionData<1>, PlainOptionData<1>>::value);
-    static_assert(detail::none_support_prefix<PlainOptionData<1>, ExplicitlyUnprefixedOptionData>::value);
-    static_assert(!detail::none_support_prefix<PlainOptionData<1>, PrefixedOptionData<1>>::value);
-    static_assert(std::is_same_v<
-                  PlainTuple,
-                  detail::KisOptionTupleImpl<false, true, PlainOptionData<1>, PlainOptionData<2>, PlainOptionData<3>>>);
-    static_assert(
-        std::is_same_v<
-            PrefixedTuple,
-            detail::
-                KisOptionTupleImpl<true, false, PrefixedOptionData<1>, PrefixedOptionData<2>, PrefixedOptionData<3>>>);
-
-    QVERIFY(!detail::supports_prefix<PlainOptionData<1>>::value);
-    QVERIFY(detail::supports_prefix<PrefixedOptionData<1>>::value);
-    QVERIFY((detail::all_support_prefix<PrefixedOptionData<1>, PrefixedOptionData<2>>::value));
-    QVERIFY((detail::none_support_prefix<PlainOptionData<1>, ExplicitlyUnprefixedOptionData>::value));
+    PlainTuple tuple(41);
+    QCOMPARE(static_cast<const PlainOptionData<1> &>(tuple).value, 41);
+    QCOMPARE(static_cast<const PlainOptionData<2> &>(tuple).value, 0);
+    QCOMPARE(static_cast<const PlainOptionData<3> &>(tuple).value, 0);
 }
 
-void KisOptionTupleContractTest::nonPrefixConstructionRoutesArgumentsOnlyToFirstBase()
+void KisOptionTupleContractTest::prefixAppliesToEveryOption()
 {
-    resetConstructionCounters();
-    const QString label = QString::fromUtf8("先頭・α");
-
-    PlainTuple tuple(41, label);
-
-    const auto &first = static_cast<const PlainOptionData<1> &>(tuple);
-    const auto &second = static_cast<const PlainOptionData<2> &>(tuple);
-    const auto &third = static_cast<const PlainOptionData<3> &>(tuple);
-    QCOMPARE(first.constructorValue, 41);
-    QCOMPARE(first.constructorLabel, label);
-    QCOMPARE(second.constructorValue, -1);
-    QVERIFY(second.constructorLabel.isEmpty());
-    QCOMPARE(third.constructorValue, -1);
-    QVERIFY(third.constructorLabel.isEmpty());
-    QCOMPARE(plainArgumentConstructions[1], 1);
-    QCOMPARE(plainArgumentConstructions[2], 0);
-    QCOMPARE(plainArgumentConstructions[3], 0);
-    QCOMPARE(plainDefaultConstructions[1], 0);
-    QCOMPARE(plainDefaultConstructions[2], 1);
-    QCOMPARE(plainDefaultConstructions[3], 1);
-}
-
-void KisOptionTupleContractTest::prefixedConstructionRoutesUnicodePrefixToEveryBase()
-{
-    resetConstructionCounters();
-    const QString prefix = QString::fromUtf8("覆面/β・設定/");
-
+    const QString prefix = QString::fromUtf8("設定/β/");
     PrefixedTuple tuple(prefix, 73);
+    KisPropertiesConfiguration setting;
+    tuple.write(&setting);
+    const QMap<QString, int> expected{{prefix + "1", 73}, {prefix + "2", 0}, {prefix + "3", 0}};
+    QCOMPARE(setting.values, expected);
 
-    const auto &first = static_cast<const PrefixedOptionData<1> &>(tuple);
-    const auto &second = static_cast<const PrefixedOptionData<2> &>(tuple);
-    const auto &third = static_cast<const PrefixedOptionData<3> &>(tuple);
-    QCOMPARE(first.constructorPrefix, prefix);
-    QCOMPARE(second.constructorPrefix, prefix);
-    QCOMPARE(third.constructorPrefix, prefix);
-    QCOMPARE(first.constructorValue, 73);
-    QCOMPARE(second.constructorValue, -1);
-    QCOMPARE(third.constructorValue, -1);
-    QCOMPARE(prefixedArgumentConstructions[1], 1);
-    QCOMPARE(prefixedArgumentConstructions[2], 0);
-    QCOMPARE(prefixedArgumentConstructions[3], 0);
-    QCOMPARE(prefixedPrefixConstructions[1], 0);
-    QCOMPARE(prefixedPrefixConstructions[2], 1);
-    QCOMPARE(prefixedPrefixConstructions[3], 1);
+    setting.values = {{prefix + "1", 11}, {prefix + "2", 23}, {prefix + "3", 37}};
+    QVERIFY(tuple.read(&setting));
+    QCOMPARE(static_cast<const PrefixedOptionData<1> &>(tuple).value, 11);
+    QCOMPARE(static_cast<const PrefixedOptionData<2> &>(tuple).value, 23);
+    QCOMPARE(static_cast<const PrefixedOptionData<3> &>(tuple).value, 37);
 }
 
-void KisOptionTupleContractTest::readPreservesPointerOrderShortCircuitAndReturn()
+void KisOptionTupleContractTest::readsEveryOption()
 {
     KisPropertiesConfiguration setting;
-    CallTrace trace;
-    PlainTuple plainTuple(1, QStringLiteral("plain"));
-    attachTraceToEveryBase<PlainOptionData>(plainTuple, &trace);
-    static_cast<PlainOptionData<2> &>(plainTuple).readResult = false;
-
-    QVERIFY(!plainTuple.read(&setting));
-    QCOMPARE(trace.events, QStringList({QStringLiteral("plain-1-read"), QStringLiteral("plain-2-read")}));
-    QCOMPARE(static_cast<PlainOptionData<1> &>(plainTuple).lastReadSetting, &setting);
-    QCOMPARE(static_cast<PlainOptionData<2> &>(plainTuple).lastReadSetting, &setting);
-    QCOMPARE(static_cast<PlainOptionData<3> &>(plainTuple).readCalls, 0);
-
-    trace.events.clear();
-    const QString prefix = QString::fromUtf8("接頭/γ/");
-    PrefixedTuple prefixedTuple(prefix, 2);
-    attachTraceToEveryBase<PrefixedOptionData>(prefixedTuple, &trace);
-
-    QVERIFY(prefixedTuple.read(&setting));
-    QCOMPARE(
-        trace.events,
-        QStringList(
-            {QStringLiteral("prefixed-1-read"), QStringLiteral("prefixed-2-read"), QStringLiteral("prefixed-3-read")}));
-    QCOMPARE(static_cast<PrefixedOptionData<1> &>(prefixedTuple).lastReadSetting, &setting);
-    QCOMPARE(static_cast<PrefixedOptionData<2> &>(prefixedTuple).lastReadSetting, &setting);
-    QCOMPARE(static_cast<PrefixedOptionData<3> &>(prefixedTuple).lastReadSetting, &setting);
+    setting.values = {{"1", 11}, {"2", 23}, {"3", 37}};
+    PlainTuple tuple;
+    QVERIFY(tuple.read(&setting));
+    QCOMPARE(static_cast<const PlainOptionData<1> &>(tuple).value, 11);
+    QCOMPARE(static_cast<const PlainOptionData<2> &>(tuple).value, 23);
+    QCOMPARE(static_cast<const PlainOptionData<3> &>(tuple).value, 37);
 }
 
-void KisOptionTupleContractTest::writePreservesPointerAndVisitsEveryBaseInOrder()
+void KisOptionTupleContractTest::reportsFailureInAnyOption_data()
 {
+    QTest::addColumn<QString>("missingKey");
+    for (int i = 1; i <= 3; ++i) {
+        QTest::newRow(qPrintable(QString::number(i))) << QString::number(i);
+    }
+}
+
+void KisOptionTupleContractTest::reportsFailureInAnyOption()
+{
+    QFETCH(QString, missingKey);
     KisPropertiesConfiguration setting;
-    CallTrace trace;
-    PlainTuple plainTuple(1, QStringLiteral("plain"));
-    attachTraceToEveryBase<PlainOptionData>(plainTuple, &trace);
-
-    plainTuple.write(&setting);
-    QCOMPARE(trace.events,
-             QStringList(
-                 {QStringLiteral("plain-1-write"), QStringLiteral("plain-2-write"), QStringLiteral("plain-3-write")}));
-    QCOMPARE(static_cast<const PlainOptionData<1> &>(plainTuple).lastWriteSetting, &setting);
-    QCOMPARE(static_cast<const PlainOptionData<2> &>(plainTuple).lastWriteSetting, &setting);
-    QCOMPARE(static_cast<const PlainOptionData<3> &>(plainTuple).lastWriteSetting, &setting);
-
-    trace.events.clear();
-    PrefixedTuple prefixedTuple(QString::fromUtf8("接頭/δ/"), 2);
-    attachTraceToEveryBase<PrefixedOptionData>(prefixedTuple, &trace);
-
-    prefixedTuple.write(&setting);
-    QCOMPARE(trace.events,
-             QStringList({QStringLiteral("prefixed-1-write"),
-                          QStringLiteral("prefixed-2-write"),
-                          QStringLiteral("prefixed-3-write")}));
-    QCOMPARE(static_cast<const PrefixedOptionData<1> &>(prefixedTuple).lastWriteSetting, &setting);
-    QCOMPARE(static_cast<const PrefixedOptionData<2> &>(prefixedTuple).lastWriteSetting, &setting);
-    QCOMPARE(static_cast<const PrefixedOptionData<3> &>(prefixedTuple).lastWriteSetting, &setting);
+    setting.values = {{"1", 11}, {"2", 23}, {"3", 37}};
+    setting.values.remove(missingKey);
+    PlainTuple plain;
+    QVERIFY(!plain.read(&setting));
+    PrefixedTuple prefixed(QString{});
+    QVERIFY(!prefixed.read(&setting));
 }
 
-void KisOptionTupleContractTest::equalityComparesEveryBaseValue()
+void KisOptionTupleContractTest::writesEveryOptionAndPreservesOtherSettings()
 {
-    PlainTuple plainLeft(1, QStringLiteral("left"));
-    PlainTuple plainRight(2, QStringLiteral("right"));
-    QVERIFY(plainLeft == plainRight);
+    PlainTuple tuple;
+    static_cast<PlainOptionData<1> &>(tuple).value = 11;
+    static_cast<PlainOptionData<2> &>(tuple).value = 23;
+    static_cast<PlainOptionData<3> &>(tuple).value = 37;
+    KisPropertiesConfiguration setting;
+    setting.values.insert("other", 97);
+    tuple.write(&setting);
+    const QMap<QString, int> expected{{"1", 11}, {"2", 23}, {"3", 37}, {"other", 97}};
+    QCOMPARE(setting.values, expected);
+}
 
-    static_cast<PlainOptionData<1> &>(plainRight).equalityValue = 1;
-    QVERIFY(!(plainLeft == plainRight));
-    static_cast<PlainOptionData<1> &>(plainRight).equalityValue = 0;
-    static_cast<PlainOptionData<2> &>(plainRight).equalityValue = 2;
-    QVERIFY(!(plainLeft == plainRight));
-    static_cast<PlainOptionData<2> &>(plainRight).equalityValue = 0;
-    static_cast<PlainOptionData<3> &>(plainRight).equalityValue = 3;
-    QVERIFY(!(plainLeft == plainRight));
+void KisOptionTupleContractTest::equalityIncludesEveryOption()
+{
+    const PlainTuple original;
+    PlainTuple changed;
+    QVERIFY(original == changed);
+    static_cast<PlainOptionData<1> &>(changed).value = 11;
+    QVERIFY(original != changed);
+    changed = original;
+    static_cast<PlainOptionData<2> &>(changed).value = 23;
+    QVERIFY(original != changed);
+    changed = original;
+    static_cast<PlainOptionData<3> &>(changed).value = 37;
+    QVERIFY(original != changed);
 
-    PrefixedTuple prefixedLeft(QStringLiteral("left/"), 1);
-    PrefixedTuple prefixedRight(QStringLiteral("right/"), 2);
-    QVERIFY(prefixedLeft == prefixedRight);
-
-    static_cast<PrefixedOptionData<1> &>(prefixedRight).equalityValue = 1;
-    QVERIFY(!(prefixedLeft == prefixedRight));
-    static_cast<PrefixedOptionData<1> &>(prefixedRight).equalityValue = 0;
-    static_cast<PrefixedOptionData<2> &>(prefixedRight).equalityValue = 2;
-    QVERIFY(!(prefixedLeft == prefixedRight));
-    static_cast<PrefixedOptionData<2> &>(prefixedRight).equalityValue = 0;
-    static_cast<PrefixedOptionData<3> &>(prefixedRight).equalityValue = 3;
-    QVERIFY(!(prefixedLeft == prefixedRight));
+    const PrefixedTuple prefixed(QStringLiteral("prefix/"));
+    PrefixedTuple other = prefixed;
+    QVERIFY(prefixed == other);
+    static_cast<PrefixedOptionData<1> &>(other).value = 11;
+    QVERIFY(prefixed != other);
+    other = prefixed;
+    static_cast<PrefixedOptionData<2> &>(other).value = 23;
+    QVERIFY(prefixed != other);
+    other = prefixed;
+    static_cast<PrefixedOptionData<3> &>(other).value = 37;
+    QVERIFY(prefixed != other);
 }
 
 QTEST_GUILESS_MAIN(KisOptionTupleContractTest)

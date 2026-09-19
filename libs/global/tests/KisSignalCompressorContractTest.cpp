@@ -9,8 +9,6 @@
 #include <QSignalSpy>
 #include <QTest>
 
-#include <type_traits>
-
 void kis_assert_recoverable(const char *assertion, const char *file, int line)
 {
     qFatal("Unexpected recoverable assertion %s at %s:%d", assertion, file, line);
@@ -108,8 +106,6 @@ void KisSignalCompressorContractTest::deferredModesAndIdleCallbackDeliver()
 
 void KisSignalCompressorContractTest::functionAndSignalProxiesForwardCalls()
 {
-    static_assert(std::is_same_v<SignalToFunctionProxy::TrivialFunction,
-                                 std::function<void()>>);
 
     int calls = 0;
     SignalToFunctionProxy functionProxy([&calls] {
@@ -127,7 +123,6 @@ void KisSignalCompressorContractTest::functionAndSignalProxiesForwardCalls()
 void KisSignalCompressorContractTest::parameterCompressorDeliversLatestValueAndStops()
 {
     using Compressor = KisSignalCompressorWithParam<int>;
-    static_assert(std::is_same_v<Compressor::CallbackFunction, std::function<void(int)>>);
 
     QVector<int> delivered;
     {

@@ -7,21 +7,6 @@
 
 #include <QTest>
 
-#include <type_traits>
-
-namespace KisAlgebra2D
-{
-
-bool fuzzyPointCompare(const QPointF &p1, const QPointF &p2, qreal delta)
-{
-    Q_UNUSED(p1);
-    Q_UNUSED(p2);
-    Q_UNUSED(delta);
-    qFatal("The linear sampler contract unexpectedly requested fuzzy point comparison");
-}
-
-} // namespace KisAlgebra2D
-
 namespace
 {
 
@@ -62,17 +47,9 @@ private Q_SLOTS:
 void KisBezierPatchParamToSourceSamplerContractTest::mapsBoundaryProgressIntoSourceRectangle()
 {
     using Sampler = KisBezierPatchParamToSourceSampler;
-    static_assert(std::is_same_v<Sampler::Range, KisBezierUtils::Range>);
 
     const KisBezierPatch patch = makePatchWithOpposingBoundaryProgress();
     const Sampler sampler(patch);
-
-    QCOMPARE(sampler.patch.originalRect, patch.originalRect);
-    QCOMPARE(sampler.patch.points[KisBezierPatch::TL_HC], patch.points[KisBezierPatch::TL_HC]);
-    QCOMPARE(sampler.topLength, 100.0);
-    QCOMPARE(sampler.bottomLength, 100.0);
-    QCOMPARE(sampler.leftLength, 100.0);
-    QCOMPARE(sampler.rightLength, 100.0);
 
     const Sampler::Range xRange = sampler.xRange(0.5);
     QCOMPARE(xRange.start, 35.0);

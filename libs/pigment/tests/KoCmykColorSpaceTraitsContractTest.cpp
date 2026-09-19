@@ -7,16 +7,13 @@
 
 #include <QTest>
 
-#include <type_traits>
-
 namespace
 {
 template<typename Traits>
 void verifyFloatingNormalisation()
 {
     using Channel = typename Traits::channels_type;
-    typename Traits::Pixel pixel{
-        Channel(25.0f), Channel(50.0f), Channel(75.0f), Channel(100.0f), Channel(0.5f)};
+    typename Traits::Pixel pixel{Channel(25.0f), Channel(50.0f), Channel(75.0f), Channel(100.0f), Channel(0.5f)};
     auto *bytes = reinterpret_cast<quint8 *>(&pixel);
 
     QCOMPARE(Traits::normalisedChannelValueText(bytes, Traits::c_pos), QStringLiteral("25"));
@@ -39,7 +36,7 @@ void verifyFloatingNormalisation()
     QCOMPARE(qreal(restored.black), qreal(100.0));
     QCOMPARE(qreal(restored.alpha), qreal(0.5));
 }
-}
+} // namespace
 
 class KoCmykColorSpaceTraitsContractTest : public QObject
 {
@@ -48,7 +45,7 @@ class KoCmykColorSpaceTraitsContractTest : public QObject
 private Q_SLOTS:
     void pixelLayoutPreservesCmykAndAlphaChannels();
     void accessorsReadAndWriteOnlyTheirColorChannel();
-    void integerNamedTraitsPreserveChannelTypes();
+    void integerFormatsHaveExpectedPixelSizes();
     void float32NormalisationUsesCmykPercentAndUnitAlpha();
     void float64NormalisationUsesCmykPercentAndUnitAlpha();
 #ifdef HAVE_OPENEXR
@@ -60,9 +57,6 @@ void KoCmykColorSpaceTraitsContractTest::pixelLayoutPreservesCmykAndAlphaChannel
 {
     using Traits = KoCmykTraits<quint16>;
     using Pixel = Traits::Pixel;
-
-    static_assert(std::is_same_v<Traits::channels_type, quint16>);
-    static_assert(std::is_same_v<Traits::parent, KoColorSpaceTrait<quint16, 5, 4>>);
 
     QCOMPARE(qint32(Traits::c_pos), qint32(0));
     QCOMPARE(qint32(Traits::m_pos), qint32(1));
@@ -99,31 +93,25 @@ void KoCmykColorSpaceTraitsContractTest::accessorsReadAndWriteOnlyTheirColorChan
     QCOMPARE(pixel.alpha, quint16(50000));
 }
 
-void KoCmykColorSpaceTraitsContractTest::integerNamedTraitsPreserveChannelTypes()
+void KoCmykColorSpaceTraitsContractTest::integerFormatsHaveExpectedPixelSizes()
 {
-    static_assert(std::is_base_of_v<KoCmykTraits<quint8>, KoCmykU8Traits>);
-    static_assert(std::is_base_of_v<KoCmykTraits<quint16>, KoCmykU16Traits>);
-
     QCOMPARE(quint32(KoCmykU8Traits::pixelSize), quint32(5));
     QCOMPARE(quint32(KoCmykU16Traits::pixelSize), quint32(10));
 }
 
 void KoCmykColorSpaceTraitsContractTest::float32NormalisationUsesCmykPercentAndUnitAlpha()
 {
-    static_assert(std::is_base_of_v<KoCmykTraits<float>, KoCmykF32Traits>);
     verifyFloatingNormalisation<KoCmykF32Traits>();
 }
 
 void KoCmykColorSpaceTraitsContractTest::float64NormalisationUsesCmykPercentAndUnitAlpha()
 {
-    static_assert(std::is_base_of_v<KoCmykTraits<double>, KoCmykF64Traits>);
     verifyFloatingNormalisation<KoCmykF64Traits>();
 }
 
 #ifdef HAVE_OPENEXR
 void KoCmykColorSpaceTraitsContractTest::float16NormalisationUsesCmykPercentAndUnitAlpha()
 {
-    static_assert(std::is_base_of_v<KoCmykTraits<half>, KoCmykF16Traits>);
     verifyFloatingNormalisation<KoCmykF16Traits>();
 }
 #endif

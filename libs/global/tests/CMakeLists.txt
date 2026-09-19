@@ -677,6 +677,7 @@ target_include_directories(KisBezierPatchParamSpaceUtilsContractTest PRIVATE
 kis_add_test(
     KisBezierPatchParamToSourceSamplerContractTest.cpp
     LINK_LIBRARIES
+        kritaglobalalgebradirectionobjects
         kritaglobalbeziercurvelengthobjects
         Qt${QT_MAJOR_VERSION}::Test
         Qt${QT_MAJOR_VERSION}::Gui

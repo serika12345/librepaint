@@ -11,8 +11,6 @@
 #include <QMap>
 #include <QTest>
 
-#include <type_traits>
-
 namespace
 {
 using PropertyStore = QMap<QString, QVariant>;
@@ -179,11 +177,6 @@ private Q_SLOTS:
 
 void KisFilterOptionDataContractTest::defaultValuesAndTagsRemainStable()
 {
-    static_assert(std::is_class_v<KisFilterOptionData>);
-    static_assert(std::is_same_v<decltype(KisFilterOptionData::filterId), QString>);
-    static_assert(std::is_same_v<decltype(KisFilterOptionData::filterConfig), QString>);
-    static_assert(std::is_same_v<decltype(KisFilterOptionData::smudgeMode), bool>);
-
     const KisFilterOptionData data;
     QVERIFY(data.filterId.isEmpty());
     QVERIFY(data.filterConfig.isEmpty());

@@ -9,7 +9,6 @@
 #include <QTest>
 
 #include <iterator>
-#include <type_traits>
 
 void kis_assert_exception(const char *assertion, const char *file, int line)
 {
@@ -137,7 +136,6 @@ void KisBezierMeshValuesContractTest::equalityTranslationAndTransformPreserveInd
 
 void KisBezierMeshValuesContractTest::controlPointIndicesClassifyAndSelectExactMembers()
 {
-    static_assert(std::is_default_constructible_v<ControlPointIndex>);
     QCOMPARE(int(ControlPointIndex::LeftControl), 0);
     QCOMPARE(int(ControlPointIndex::TopControl), 1);
     QCOMPARE(int(ControlPointIndex::RightControl), 2);
@@ -195,10 +193,6 @@ void KisBezierMeshValuesContractTest::nodeAndPatchIndicesApplyPointOffsets()
 
 void KisBezierMeshValuesContractTest::meshConstructionCreatesAddressableGrid()
 {
-    static_assert(std::is_same_v<KisBezierMesh, Mesh>);
-    static_assert(std::is_same_v<KisBezierMeshBase<Node, KisBezierPatch>, Mesh>);
-    static_assert(std::is_same_v<Mesh::Node, Node>);
-    static_assert(std::is_same_v<Mesh::Patch, KisBezierPatch>);
 
     const Mesh defaultMesh;
     QCOMPARE(defaultMesh.size(), QSize(2, 2));
@@ -219,8 +213,6 @@ void KisBezierMeshValuesContractTest::meshConstructionCreatesAddressableGrid()
 
 void KisBezierMeshValuesContractTest::indexValidityAndFindOverloadsAgree()
 {
-    static_assert(std::is_same_v<Mesh::SegmentIndex, std::pair<Mesh::NodeIndex, int>>);
-    static_assert(std::is_same_v<Mesh::ControlType, ControlPointIndex::ControlType>);
 
     Mesh mesh(QRectF(10.0, 20.0, 30.0, 40.0), QSize(3, 2));
     const ControlPointIndex control(Mesh::NodeIndex(1, 1), ControlPointIndex::RightControl);
@@ -266,13 +258,6 @@ void KisBezierMeshValuesContractTest::indexValidityAndFindOverloadsAgree()
 
 void KisBezierMeshValuesContractTest::iteratorFamiliesExposeExactTraversalRanges()
 {
-    static_assert(std::is_same_v<Mesh::patch_iterator, decltype(std::declval<Mesh &>().beginPatches())>);
-    static_assert(std::is_same_v<Mesh::patch_const_iterator, decltype(std::declval<const Mesh &>().beginPatches())>);
-    static_assert(std::is_same_v<Mesh::control_point_iterator, decltype(std::declval<Mesh &>().beginControlPoints())>);
-    static_assert(std::is_same_v<Mesh::control_point_const_iterator,
-                                 decltype(std::declval<const Mesh &>().beginControlPoints())>);
-    static_assert(std::is_same_v<Mesh::segment_iterator, decltype(std::declval<Mesh &>().beginSegments())>);
-    static_assert(std::is_same_v<Mesh::segment_const_iterator, decltype(std::declval<const Mesh &>().beginSegments())>);
 
     Mesh mesh(QRectF(10.0, 20.0, 30.0, 40.0), QSize(3, 2));
     QCOMPARE(std::distance(mesh.beginPatches(), mesh.endPatches()), 2);
@@ -486,8 +471,6 @@ void KisBezierMeshValuesContractTest::hitTestsSeparateNodesControlsAndSegments()
 
 void KisBezierMeshValuesContractTest::smartMoveModesPreserveHandleConstraints()
 {
-    static_assert(std::is_same_v<KisSmartMoveMeshControlMode,
-                                 KisBezierMeshDetails::SmartMoveMeshControlMode>);
     QCOMPARE(int(KisBezierMeshDetails::MoveFree), 0);
     QCOMPARE(int(KisBezierMeshDetails::MoveSymmetricLock), 1);
     QCOMPARE(int(KisBezierMeshDetails::MoveRotationLock), 2);

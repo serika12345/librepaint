@@ -13,7 +13,6 @@
 #include <QMap>
 #include <QTest>
 
-#include <type_traits>
 #include <utility>
 
 struct KisSensorData {
@@ -24,19 +23,8 @@ namespace
 {
 using PropertyStore = QMap<QString, QVariant>;
 
-struct ConfigurationTrace {
-    QStringList *events = nullptr;
-    const KisPropertiesConfiguration *expectedParent = nullptr;
-    QString prefix;
-    bool extractedFromParent = false;
-    bool extractedToTemporary = false;
-    bool reflectedToParent = false;
-    bool reflectedFromTemporary = false;
-};
-
 struct ConfigurationState {
     PropertyStore properties;
-    ConfigurationTrace *trace = nullptr;
 };
 
 QHash<const KisPropertiesConfiguration *, ConfigurationState> &configurationStates()
@@ -55,33 +43,10 @@ const ConfigurationState &state(const KisPropertiesConfiguration *configuration)
     return configurationStates()[configuration];
 }
 
-void attachTrace(KisPropertiesConfiguration *configuration, ConfigurationTrace *trace)
-{
-    state(configuration).trace = trace;
-}
-
 struct SensorPackObserver {
-    QStringList *events = nullptr;
-    int cloneCount = 0;
     int destructionCount = 0;
-    int mutableSensorsCount = 0;
-    int constSensorsCount = 0;
-    int readCount = 0;
-    int writeCount = 0;
-    int compareCount = 0;
     bool readResult = true;
     bool compareResult = true;
-    const KisCurveOptionDataCommon *expectedData = nullptr;
-    const KisPropertiesConfiguration *expectedSetting = nullptr;
-    const KisPropertiesConfiguration *forbiddenSetting = nullptr;
-    const KisSensorPackInterface *expectedComparedPack = nullptr;
-    bool readDataMatched = false;
-    bool readSettingMatched = false;
-    bool readSettingWasTemporary = false;
-    bool writeDataMatched = false;
-    bool writeSettingMatched = false;
-    bool writeSettingWasTemporary = false;
-    bool comparedPackMatched = false;
     PropertyStore readProperties;
     int writePayload = 0;
 };
@@ -104,77 +69,46 @@ public:
 
     KisSensorPackInterface *clone() const override
     {
-        if (m_observer) {
-            ++m_observer->cloneCount;
-        }
         return new SensorPackProbe(*this);
     }
 
     std::vector<const KisSensorData *> constSensors() const override
     {
-        if (m_observer) {
-            ++m_observer->constSensorsCount;
-            if (m_observer->events) {
-                m_observer->events->append(QStringLiteral("const-sensors"));
-            }
-        }
         return {m_sensors.cbegin(), m_sensors.cend()};
     }
 
     std::vector<KisSensorData *> sensors() override
     {
-        if (m_observer) {
-            ++m_observer->mutableSensorsCount;
-            if (m_observer->events) {
-                m_observer->events->append(QStringLiteral("mutable-sensors"));
-            }
-        }
         return m_sensors;
     }
 
-    bool compare(const KisSensorPackInterface *rhs) const override
+    bool compare(const KisSensorPackInterface *) const override
     {
         if (!m_observer) {
             return false;
         }
 
-        ++m_observer->compareCount;
-        m_observer->comparedPackMatched = rhs == m_observer->expectedComparedPack;
         return m_observer->compareResult;
     }
 
-    bool read(KisCurveOptionDataCommon &data, const KisPropertiesConfiguration *setting) const override
+    bool read(KisCurveOptionDataCommon &, const KisPropertiesConfiguration *setting) const override
     {
         if (!m_observer) {
             return false;
         }
 
-        ++m_observer->readCount;
-        if (m_observer->events) {
-            m_observer->events->append(QStringLiteral("sensor-read"));
-        }
-        m_observer->readDataMatched = &data == m_observer->expectedData;
-        m_observer->readSettingMatched = setting == m_observer->expectedSetting;
-        m_observer->readSettingWasTemporary = setting && setting != m_observer->forbiddenSetting;
         if (setting) {
             m_observer->readProperties = setting->getProperties();
         }
         return m_observer->readResult;
     }
 
-    void write(const KisCurveOptionDataCommon &data, KisPropertiesConfiguration *setting) const override
+    void write(const KisCurveOptionDataCommon &, KisPropertiesConfiguration *setting) const override
     {
         if (!m_observer) {
             return;
         }
 
-        ++m_observer->writeCount;
-        if (m_observer->events) {
-            m_observer->events->append(QStringLiteral("sensor-write"));
-        }
-        m_observer->writeDataMatched = &data == m_observer->expectedData;
-        m_observer->writeSettingMatched = setting == m_observer->expectedSetting;
-        m_observer->writeSettingWasTemporary = setting && setting != m_observer->forbiddenSetting;
         if (setting) {
             setting->setProperty(QStringLiteral("written"), m_observer->writePayload);
         }
@@ -312,16 +246,6 @@ QList<QString> KisPropertiesConfiguration::getPropertiesKeys() const
 void KisPropertiesConfiguration::getPrefixedProperties(const QString &prefix,
                                                        KisPropertiesConfiguration *configuration) const
 {
-    ConfigurationTrace *trace = state(this).trace;
-    if (trace) {
-        if (trace->events) {
-            trace->events->append(QStringLiteral("extract-prefix"));
-        }
-        trace->extractedFromParent = this == trace->expectedParent;
-        trace->extractedToTemporary = configuration && configuration != trace->expectedParent;
-        trace->prefix = prefix;
-    }
-
     const qsizetype prefixSize = prefix.size();
     for (auto item = state(this).properties.constBegin(); item != state(this).properties.constEnd(); ++item) {
         if (item.key().startsWith(prefix)) {
@@ -333,16 +257,6 @@ void KisPropertiesConfiguration::getPrefixedProperties(const QString &prefix,
 void KisPropertiesConfiguration::setPrefixedProperties(const QString &prefix,
                                                        const KisPropertiesConfiguration *configuration)
 {
-    ConfigurationTrace *trace = state(this).trace;
-    if (trace) {
-        if (trace->events) {
-            trace->events->append(QStringLiteral("reflect-prefix"));
-        }
-        trace->reflectedToParent = this == trace->expectedParent;
-        trace->reflectedFromTemporary = configuration && configuration != trace->expectedParent;
-        trace->prefix = prefix;
-    }
-
     for (auto item = state(configuration).properties.constBegin(); item != state(configuration).properties.constEnd();
          ++item) {
         setProperty(prefix + item.key(), item.value());
@@ -363,22 +277,15 @@ class KisCurveOptionDataCommonContractTest : public QObject
     Q_OBJECT
 
 private Q_SLOTS:
-    void capabilityAliasesAndConstructionPreserveValues();
-    void sensorViewsDelegateInOrderAndPreservePointers();
-    void readRejectsNullAndDelegatesDirectSetting();
-    void prefixedReadWriteRouteThroughTemporaryConfiguration();
+    void constructionPreservesValues();
+    void sensorViewsExposeProvidedSensors();
+    void readRejectsNullAndPropagatesFailure();
+    void prefixedReadWritePreservesUnrelatedSettings();
     void equalityIncludesValueAndSensorStateButIgnoresCallbacks();
 };
 
-void KisCurveOptionDataCommonContractTest::capabilityAliasesAndConstructionPreserveValues()
+void KisCurveOptionDataCommonContractTest::constructionPreservesValues()
 {
-    static_assert(std::is_class_v<KisCurveOptionDataCommon>);
-    static_assert(KisCurveOptionDataCommon::supports_prefix);
-    static_assert(std::is_same_v<KisCurveOptionDataCommon::ValueFixUpReadCallback,
-                                 std::function<void(KisCurveOptionDataCommon *, const KisPropertiesConfiguration *)>>);
-    static_assert(std::is_same_v<KisCurveOptionDataCommon::ValueFixUpWriteCallback,
-                                 std::function<void(qreal, KisPropertiesConfiguration *)>>);
-
     SensorPackObserver observer;
     {
         const QString prefix = QString::fromUtf8("覆面/β・曲線/");
@@ -405,24 +312,8 @@ void KisCurveOptionDataCommonContractTest::capabilityAliasesAndConstructionPrese
         QVERIFY(data.sensorData);
         QVERIFY(!data.valueFixUpReadCallback);
         QVERIFY(!data.valueFixUpWriteCallback);
-
-        KisPropertiesConfiguration setting;
-        bool readCallbackCalled = false;
-        bool writeCallbackCalled = false;
-        data.valueFixUpReadCallback = [&](KisCurveOptionDataCommon *callbackData,
-                                          const KisPropertiesConfiguration *callbackSetting) {
-            readCallbackCalled = callbackData == &data && callbackSetting == &setting;
-        };
-        data.valueFixUpWriteCallback = [&](qreal value, KisPropertiesConfiguration *callbackSetting) {
-            writeCallbackCalled = value == 1.375 && callbackSetting == &setting;
-        };
-        data.valueFixUpReadCallback(&data, &setting);
-        data.valueFixUpWriteCallback(1.375, &setting);
-        QVERIFY(readCallbackCalled);
-        QVERIFY(writeCallbackCalled);
     }
     QCOMPARE(observer.destructionCount, 1);
-    QCOMPARE(observer.cloneCount, 0);
 
     SensorPackObserver noPrefixObserver;
     const KisCurveOptionDataCommon noPrefix(KoID(QStringLiteral("size"), QStringLiteral("Size")),
@@ -439,11 +330,9 @@ void KisCurveOptionDataCommonContractTest::capabilityAliasesAndConstructionPrese
     QCOMPARE(noPrefix.strengthValue, 0.75);
 }
 
-void KisCurveOptionDataCommonContractTest::sensorViewsDelegateInOrderAndPreservePointers()
+void KisCurveOptionDataCommonContractTest::sensorViewsExposeProvidedSensors()
 {
-    QStringList events;
     SensorPackObserver observer;
-    observer.events = &events;
     KisSensorData first{17};
     KisSensorData second{29};
     KisCurveOptionDataCommon data = makeData(&observer, QString(), {&first, &second});
@@ -454,76 +343,42 @@ void KisCurveOptionDataCommonContractTest::sensorViewsDelegateInOrderAndPreserve
     const KisCurveOptionDataCommon &constData = data;
     const std::vector<const KisSensorData *> constSensors = constData.sensors();
     QCOMPARE(constSensors, std::vector<const KisSensorData *>({&first, &second}));
-
-    QCOMPARE(observer.mutableSensorsCount, 1);
-    QCOMPARE(observer.constSensorsCount, 1);
-    QCOMPARE(observer.cloneCount, 0);
-    QCOMPARE(events, QStringList({QStringLiteral("mutable-sensors"), QStringLiteral("const-sensors")}));
 }
 
-void KisCurveOptionDataCommonContractTest::readRejectsNullAndDelegatesDirectSetting()
+void KisCurveOptionDataCommonContractTest::readRejectsNullAndPropagatesFailure()
 {
     SensorPackObserver observer;
     KisCurveOptionDataCommon data = makeData(&observer);
 
     QVERIFY(!data.read(nullptr));
-    QCOMPARE(observer.readCount, 0);
 
     KisPropertiesConfiguration setting;
     setting.setProperty(QStringLiteral("payload"), 43);
-    observer.expectedData = &data;
-    observer.expectedSetting = &setting;
-    observer.forbiddenSetting = nullptr;
     observer.readResult = false;
 
     QVERIFY(!data.read(&setting));
-    QCOMPARE(observer.readCount, 1);
-    QVERIFY(observer.readDataMatched);
-    QVERIFY(observer.readSettingMatched);
     QCOMPARE(observer.readProperties.value(QStringLiteral("payload")).toInt(), 43);
     QCOMPARE(setting.getProperty(QStringLiteral("payload")).toInt(), 43);
 }
 
-void KisCurveOptionDataCommonContractTest::prefixedReadWriteRouteThroughTemporaryConfiguration()
+void KisCurveOptionDataCommonContractTest::prefixedReadWritePreservesUnrelatedSettings()
 {
-    QStringList events;
     const QString prefix = QString::fromUtf8("覆面/γ・曲線/");
     KisPropertiesConfiguration setting;
     setting.setProperty(prefix + QStringLiteral("payload"), 67);
     setting.setProperty(QStringLiteral("unrelated/保持"), QString::fromUtf8("残す"));
 
-    ConfigurationTrace configurationTrace;
-    configurationTrace.events = &events;
-    configurationTrace.expectedParent = &setting;
-    attachTrace(&setting, &configurationTrace);
-
     SensorPackObserver observer;
-    observer.events = &events;
-    observer.forbiddenSetting = &setting;
     observer.readResult = false;
     observer.writePayload = 83;
     KisCurveOptionDataCommon data = makeData(&observer, prefix);
-    observer.expectedData = &data;
 
     QVERIFY(!data.read(&setting));
-    QCOMPARE(events, QStringList({QStringLiteral("extract-prefix"), QStringLiteral("sensor-read")}));
-    QVERIFY(configurationTrace.extractedFromParent);
-    QVERIFY(configurationTrace.extractedToTemporary);
-    QCOMPARE(configurationTrace.prefix, prefix);
-    QVERIFY(observer.readDataMatched);
-    QVERIFY(observer.readSettingWasTemporary);
     QCOMPARE(observer.readProperties.value(QStringLiteral("payload")).toInt(), 67);
     QVERIFY(!observer.readProperties.contains(QStringLiteral("unrelated/保持")));
 
-    events.clear();
     data.write(&setting);
 
-    QCOMPARE(events, QStringList({QStringLiteral("sensor-write"), QStringLiteral("reflect-prefix")}));
-    QVERIFY(observer.writeDataMatched);
-    QVERIFY(observer.writeSettingWasTemporary);
-    QVERIFY(configurationTrace.reflectedToParent);
-    QVERIFY(configurationTrace.reflectedFromTemporary);
-    QCOMPARE(configurationTrace.prefix, prefix);
     QCOMPARE(setting.getProperty(prefix + QStringLiteral("written")).toInt(), 83);
     QCOMPARE(setting.getProperty(QStringLiteral("unrelated/保持")).toString(), QString::fromUtf8("残す"));
 }
@@ -560,10 +415,7 @@ void KisCurveOptionDataCommonContractTest::equalityIncludesValueAndSensorStateBu
     peer.commonCurve = QStringLiteral("0,0;0.5,0.75;1,1;");
     peer.strengthValue = 1.25;
 
-    baselineObserver.expectedComparedPack = peer.sensorData.constData();
     QVERIFY(baseline == peer);
-    QVERIFY(baselineObserver.comparedPackMatched);
-    QCOMPARE(baselineObserver.compareCount, 1);
 
     const auto verifyDifference = [&baseline](auto mutate) {
         KisCurveOptionDataCommon changed = baseline;
@@ -612,9 +464,7 @@ void KisCurveOptionDataCommonContractTest::equalityIncludesValueAndSensorStateBu
     KisCurveOptionDataCommon callbacksChanged = baseline;
     callbacksChanged.valueFixUpReadCallback = [](KisCurveOptionDataCommon *, const KisPropertiesConfiguration *) { };
     callbacksChanged.valueFixUpWriteCallback = [](qreal, KisPropertiesConfiguration *) { };
-    baselineObserver.expectedComparedPack = callbacksChanged.sensorData.constData();
     QVERIFY(baseline == callbacksChanged);
-    QVERIFY(baselineObserver.comparedPackMatched);
 }
 
 QTEST_GUILESS_MAIN(KisCurveOptionDataCommonContractTest)

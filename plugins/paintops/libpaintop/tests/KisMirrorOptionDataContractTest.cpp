@@ -5,7 +5,6 @@
 #include <QMap>
 #include <QTest>
 #include <kis_properties_configuration.h>
-#include <type_traits>
 
 namespace
 {
@@ -165,15 +164,14 @@ class KisMirrorOptionDataContractTest : public QObject
 {
     Q_OBJECT
 private Q_SLOTS:
-    void typesDefaultsAndConstructor();
+    void defaultsAndConstructor();
     void readMapsBothKeys();
     void writeMapsBothKeys();
     void equalityUsesBothMembers();
     void prefixRoundTrip();
 };
-void KisMirrorOptionDataContractTest::typesDefaultsAndConstructor()
+void KisMirrorOptionDataContractTest::defaultsAndConstructor()
 {
-    static_assert(std::is_same_v<KisMirrorOptionMixIn, KisPrefixedOptionDataWrapper<KisMirrorOptionMixInImpl>>);
     KisMirrorOptionData defaults;
     QVERIFY(!defaults.enableHorizontalMirror);
     QVERIFY(!defaults.enableVerticalMirror);

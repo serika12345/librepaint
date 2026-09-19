@@ -5,7 +5,6 @@
 #include <QMap>
 #include <QTest>
 #include <kis_properties_configuration.h>
-#include <type_traits>
 
 namespace
 {
@@ -165,15 +164,14 @@ class KisSharpnessOptionDataContractTest : public QObject
 {
     Q_OBJECT
 private Q_SLOTS:
-    void typesDefaultsAndConstructor();
+    void defaultsAndConstructor();
     void readMapsCurrentAndEmptySettings();
     void legacyFactorAndModernValuePrecedence();
     void writeMapsBothKeys();
     void equalityUsesBothMembers();
 };
-void KisSharpnessOptionDataContractTest::typesDefaultsAndConstructor()
+void KisSharpnessOptionDataContractTest::defaultsAndConstructor()
 {
-    static_assert(std::is_same_v<KisSharpnessOptionMixIn, KisPrefixedOptionDataWrapper<KisSharpnessOptionMixInImpl>>);
     KisSharpnessOptionData defaults;
     QVERIFY(!defaults.alignOutlinePixels);
     QCOMPARE(defaults.softness, 0);

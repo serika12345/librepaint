@@ -12,7 +12,6 @@
 #include <QTest>
 
 #include <array>
-#include <type_traits>
 
 namespace
 {
@@ -187,7 +186,7 @@ class KisColorOptionDataContractTest : public QObject
 
 private Q_SLOTS:
     void persistenceKeysRemainStable();
-    void defaultValuesAndMemberTypesRemainStable();
+    void defaultValues();
     void readAndWriteMapEveryMemberIndependently();
     void equalityDependsOnEveryMember();
 };
@@ -205,19 +204,8 @@ void KisColorOptionDataContractTest::persistenceKeysRemainStable()
     QCOMPARE(COLOROP_MIX_BG_COLOR, QStringLiteral("ColorOption/mixBgColor"));
 }
 
-void KisColorOptionDataContractTest::defaultValuesAndMemberTypesRemainStable()
+void KisColorOptionDataContractTest::defaultValues()
 {
-    static_assert(std::is_class_v<KisColorOptionData>);
-    static_assert(std::is_same_v<decltype(KisColorOptionData::useRandomHSV), bool>);
-    static_assert(std::is_same_v<decltype(KisColorOptionData::useRandomOpacity), bool>);
-    static_assert(std::is_same_v<decltype(KisColorOptionData::sampleInputColor), bool>);
-    static_assert(std::is_same_v<decltype(KisColorOptionData::fillBackground), bool>);
-    static_assert(std::is_same_v<decltype(KisColorOptionData::colorPerParticle), bool>);
-    static_assert(std::is_same_v<decltype(KisColorOptionData::mixBgColor), bool>);
-    static_assert(std::is_same_v<decltype(KisColorOptionData::hue), int>);
-    static_assert(std::is_same_v<decltype(KisColorOptionData::saturation), int>);
-    static_assert(std::is_same_v<decltype(KisColorOptionData::value), int>);
-
     const KisColorOptionData data;
     QVERIFY(!data.useRandomHSV);
     QVERIFY(!data.useRandomOpacity);

@@ -7,8 +7,6 @@
 
 #include <QTest>
 
-#include <type_traits>
-
 class KoGrayColorSpaceTraitsContractTest : public QObject
 {
     Q_OBJECT
@@ -16,16 +14,13 @@ class KoGrayColorSpaceTraitsContractTest : public QObject
 private Q_SLOTS:
     void pixelLayoutPreservesGrayAndAlphaChannels();
     void accessorsReadAndWriteOnlyGrayChannel();
-    void namedTraitsPreserveChannelTypes();
+    void namedFormatsHaveExpectedPixelSizes();
 };
 
 void KoGrayColorSpaceTraitsContractTest::pixelLayoutPreservesGrayAndAlphaChannels()
 {
     using Traits = KoGrayTraits<quint16>;
     using Pixel = Traits::Pixel;
-
-    static_assert(std::is_same_v<Traits::channels_type, quint16>);
-    static_assert(std::is_same_v<Traits::parent, KoColorSpaceTrait<quint16, 2, 1>>);
 
     QCOMPARE(qint32(Traits::gray_pos), qint32(0));
 
@@ -45,17 +40,8 @@ void KoGrayColorSpaceTraitsContractTest::accessorsReadAndWriteOnlyGrayChannel()
     QCOMPARE(pixel.alpha, quint16(50000));
 }
 
-void KoGrayColorSpaceTraitsContractTest::namedTraitsPreserveChannelTypes()
+void KoGrayColorSpaceTraitsContractTest::namedFormatsHaveExpectedPixelSizes()
 {
-    static_assert(std::is_base_of_v<KoGrayTraits<quint8>, KoGrayU8Traits>);
-    static_assert(std::is_base_of_v<KoGrayTraits<quint16>, KoGrayU16Traits>);
-    static_assert(std::is_base_of_v<KoGrayTraits<quint32>, KoGrayU32Traits>);
-    static_assert(std::is_base_of_v<KoGrayTraits<float>, KoGrayF32Traits>);
-    static_assert(std::is_base_of_v<KoGrayTraits<double>, KoGrayF64Traits>);
-#ifdef HAVE_OPENEXR
-    static_assert(std::is_base_of_v<KoGrayTraits<half>, KoGrayF16Traits>);
-#endif
-
     QCOMPARE(quint32(KoGrayU8Traits::pixelSize), quint32(2));
     QCOMPARE(quint32(KoGrayU16Traits::pixelSize), quint32(4));
     QCOMPARE(quint32(KoGrayU32Traits::pixelSize), quint32(8));

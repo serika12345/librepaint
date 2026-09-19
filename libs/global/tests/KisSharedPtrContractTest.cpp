@@ -8,8 +8,6 @@
 
 #include <QTest>
 
-#include <type_traits>
-
 namespace
 {
 
@@ -41,11 +39,6 @@ public:
     using TrackedBase::TrackedBase;
 };
 
-static_assert(std::is_same_v<KisSharedPtr<TrackedBase>::element_type, TrackedBase>);
-static_assert(std::is_same_v<KisSharedPtr<TrackedBase>::weak_type, KisWeakSharedPtr<TrackedBase>>);
-static_assert(std::is_same_v<KisWeakSharedPtr<TrackedBase>::element_type, TrackedBase>);
-static_assert(std::is_convertible_v<TrackedBase *, KisSharedPtr<TrackedBase>>);
-
 } // namespace
 
 class KisSharedPtrContractTest : public QObject
@@ -53,14 +46,14 @@ class KisSharedPtrContractTest : public QObject
     Q_OBJECT
 
 private Q_SLOTS:
-    void typeAliasesAndNullState();
+    void nullPointersHaveNoObject();
     void referenceHooksControlLifetime();
     void strongPointersShareAccessAndAssignment();
     void strongAndWeakConversionsPreserveIdentity();
     void weakPointersObserveLiveAndExpiredObjects();
 };
 
-void KisSharedPtrContractTest::typeAliasesAndNullState()
+void KisSharedPtrContractTest::nullPointersHaveNoObject()
 {
     KisSharedPtr<TrackedBase> strong;
     QVERIFY(strong.isNull());

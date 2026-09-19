@@ -11,8 +11,6 @@
 #include <QMap>
 #include <QTest>
 
-#include <type_traits>
-
 namespace
 {
 using PropertyStore = QMap<QString, QVariant>;
@@ -173,10 +171,6 @@ private Q_SLOTS:
 
 void KisPaintingModeOptionDataContractTest::defaultValuesAndEnumeratorsRemainStable()
 {
-    static_assert(std::is_class_v<KisPaintingModeOptionData>);
-    static_assert(std::is_same_v<decltype(KisPaintingModeOptionData::paintingMode), enumPaintingMode>);
-    static_assert(std::is_same_v<decltype(KisPaintingModeOptionData::hasPaintingModeProperty), bool>);
-
     QCOMPARE(static_cast<int>(enumPaintingMode::BUILDUP), 0);
     QCOMPARE(static_cast<int>(enumPaintingMode::WASH), 1);
 

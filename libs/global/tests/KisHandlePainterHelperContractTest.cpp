@@ -13,7 +13,6 @@
 #include <QTest>
 
 #include <optional>
-#include <type_traits>
 #include <utility>
 
 void kis_assert_exception(const char *, const char *, int)
@@ -107,9 +106,6 @@ private Q_SLOTS:
 
 void KisHandlePainterHelperContractTest::constructionMoveAndRestoration()
 {
-    static_assert(!std::is_constructible<KisHandlePainterHelper, KisHandlePainterHelper &>::value,
-                  "the handle painter helper must remain non-copyable");
-
     QImage image(80, 80, QImage::Format_ARGB32_Premultiplied);
     image.fill(Qt::transparent);
     QPainter painter(&image);

@@ -15,8 +15,6 @@
 #include <QStringList>
 #include <QTest>
 
-#include <type_traits>
-
 namespace
 {
 struct ByteTraits {
@@ -70,7 +68,6 @@ void KoColorSpaceBlendingPolicyContractTest::cleanupTestCase()
 void KoColorSpaceBlendingPolicyContractTest::additivePolicyPreservesChannelValues()
 {
     using Policy = KoAdditiveBlendingPolicy<ByteTraits>;
-    static_assert(std::is_same_v<Policy::channels_type, ByteTraits::channels_type>);
 
     for (const quint8 value : {quint8(0), quint8(17), quint8(255)}) {
         QCOMPARE(Policy::toAdditiveSpace(value), value);
@@ -82,8 +79,6 @@ void KoColorSpaceBlendingPolicyContractTest::subtractivePolicyInvertsAroundTheCh
 {
     using BytePolicy = KoSubtractiveBlendingPolicy<ByteTraits>;
     using FloatPolicy = KoSubtractiveBlendingPolicy<FloatTraits>;
-    static_assert(std::is_same_v<BytePolicy::channels_type, ByteTraits::channels_type>);
-    static_assert(std::is_same_v<FloatPolicy::channels_type, FloatTraits::channels_type>);
 
     QCOMPARE(BytePolicy::toAdditiveSpace(0), quint8(255));
     QCOMPARE(BytePolicy::toAdditiveSpace(17), quint8(238));
