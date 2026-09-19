@@ -192,16 +192,17 @@ target_compile_definitions(KisDoubleParseSpinBoxContractTest PRIVATE kritawidget
 
 
 kis_add_test(
-    KStandardActionEnumContractTest.cpp
+    KStandardActionCompatibilityTest.cpp
     LINK_LIBRARIES
+        kritawidgetutils
         Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Widgets
         KF${KF_MAJOR}::ConfigGui
 )
-target_include_directories(KStandardActionEnumContractTest PRIVATE
+target_include_directories(KStandardActionCompatibilityTest PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/../config
     ${CMAKE_CURRENT_BINARY_DIR}/..
 )
-target_compile_definitions(KStandardActionEnumContractTest PRIVATE kritawidgetutils_EXPORTS)
 
 
 kis_add_test(

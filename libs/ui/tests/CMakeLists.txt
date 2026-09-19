@@ -231,125 +231,6 @@ target_compile_definitions(KisPlaybackEngineSchemaContractTest PRIVATE
 
 
 kis_add_test(
-    KisToolSelectUiBaseSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Test
-        Boost::boost
-)
-target_include_directories(KisToolSelectUiBaseSchemaContractTest PRIVATE
-    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Gui,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Widgets,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:Eigen3::Eigen,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:KF${KF_MAJOR}::ConfigCore,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:Imath::Imath,INTERFACE_INCLUDE_DIRECTORIES>
-    ${CMAKE_SOURCE_DIR}/libs
-    ${CMAKE_SOURCE_DIR}/libs/tools
-    ${CMAKE_BINARY_DIR}/libs/tools
-    ${CMAKE_SOURCE_DIR}/libs/tools/ui
-    ${CMAKE_BINARY_DIR}/libs/tools/ui
-    ${CMAKE_SOURCE_DIR}/libs/ui
-    ${CMAKE_BINARY_DIR}/libs/ui
-    ${CMAKE_SOURCE_DIR}/libs/ui/tool
-    ${CMAKE_SOURCE_DIR}/libs/canvas
-    ${CMAKE_BINARY_DIR}/libs/canvas
-    ${CMAKE_SOURCE_DIR}/libs/flake
-    ${CMAKE_BINARY_DIR}/libs/flake
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-    ${CMAKE_SOURCE_DIR}/libs/image
-    ${CMAKE_BINARY_DIR}/libs/image
-    ${CMAKE_SOURCE_DIR}/libs/image/brushengine
-    ${CMAKE_SOURCE_DIR}/libs/image/filter
-    ${CMAKE_SOURCE_DIR}/libs/painting
-    ${CMAKE_BINARY_DIR}/libs/painting
-    ${CMAKE_SOURCE_DIR}/libs/painting/undo
-    ${CMAKE_BINARY_DIR}/libs/painting/undo
-    ${CMAKE_SOURCE_DIR}/libs/pigment
-    ${CMAKE_BINARY_DIR}/libs/pigment
-    ${CMAKE_SOURCE_DIR}/libs/pigment/compositeops
-    ${CMAKE_SOURCE_DIR}/libs/pigment/resources
-    ${CMAKE_SOURCE_DIR}/libs/psdutils
-    ${CMAKE_BINARY_DIR}/libs/psdutils
-    ${CMAKE_SOURCE_DIR}/libs/resources
-    ${CMAKE_BINARY_DIR}/libs/resources
-    ${CMAKE_SOURCE_DIR}/libs/widgets
-    ${CMAKE_BINARY_DIR}/libs/widgets
-    ${CMAKE_SOURCE_DIR}/libs/widgetutils
-    ${CMAKE_BINARY_DIR}/libs/widgetutils
-)
-target_compile_definitions(KisToolSelectUiBaseSchemaContractTest PRIVATE
-    kritacanvas_EXPORTS
-    kritaflake_EXPORTS
-    kritaglobal_EXPORTS
-    kritaimage_EXPORTS
-    kritapigment_EXPORTS
-    kritaresources_EXPORTS
-    kritatools_EXPORTS
-    kritatoolsui_EXPORTS
-    kritaui_EXPORTS
-    kritawidgets_EXPORTS
-    kritawidgetutils_EXPORTS
-)
-ki18n_wrap_ui(KisToolSelectUiBaseSchemaContractTest
-    ${CMAKE_CURRENT_SOURCE_DIR}/../forms/wdggeometryoptions.ui
-)
-
-
-
-kis_add_test(
-    KisCanvas2SchemaContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Gui
-        Qt${QT_MAJOR_VERSION}::Test
-        Boost::boost
-)
-target_include_directories(KisCanvas2SchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    ${CMAKE_CURRENT_SOURCE_DIR}/../canvas
-    ${CMAKE_CURRENT_BINARY_DIR}/../canvas
-    ${CMAKE_SOURCE_DIR}/libs
-    ${CMAKE_SOURCE_DIR}/libs/application
-    ${CMAKE_BINARY_DIR}/libs/application
-    ${CMAKE_SOURCE_DIR}/libs/flake
-    ${CMAKE_BINARY_DIR}/libs/flake
-    ${CMAKE_SOURCE_DIR}/libs/canvas
-    ${CMAKE_BINARY_DIR}/libs/canvas
-    ${CMAKE_SOURCE_DIR}/libs/image
-    ${CMAKE_BINARY_DIR}/libs/image
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-    ${CMAKE_SOURCE_DIR}/libs/resources
-    ${CMAKE_BINARY_DIR}/libs/resources
-    ${CMAKE_SOURCE_DIR}/libs/pigment
-    ${CMAKE_BINARY_DIR}/libs/pigment
-    ${CMAKE_SOURCE_DIR}/libs/widgetutils
-    ${CMAKE_BINARY_DIR}/libs/widgetutils
-    ${CMAKE_SOURCE_DIR}/libs/widgets
-    ${CMAKE_BINARY_DIR}/libs/widgets
-    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Widgets,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Xml,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:Eigen3::Eigen,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:KF${KF_MAJOR}::ConfigCore,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:Imath::Imath,INTERFACE_INCLUDE_DIRECTORIES>
-)
-target_compile_definitions(KisCanvas2SchemaContractTest PRIVATE
-    kritaapplication_EXPORTS
-    kritaui_EXPORTS
-    kritacanvas_EXPORTS
-    kritaflake_EXPORTS
-    kritaimage_EXPORTS
-    kritaglobal_EXPORTS
-    kritaresources_EXPORTS
-    kritapigment_EXPORTS
-    kritawidgetutils_EXPORTS
-    kritawidgets_EXPORTS
-)
-
-kis_add_test(
     KisReferenceImagesDecorationSchemaContractTest.cpp
     LINK_LIBRARIES
         Qt${QT_MAJOR_VERSION}::Gui
@@ -457,18 +338,40 @@ ki18n_wrap_ui(KisDitherWidgetSchemaContractTest
 
 
 kis_add_test(
-    KisCollapsibleButtonGroupSchemaContractTest.cpp
+    KisLodAvailabilityContractTest.cpp
+    ../widgets/KisLodAvailabilityData.cpp
+    ../widgets/KisLodAvailabilityModel.cpp
+    TEST_NAME KisLodAvailabilityContractTest
     LINK_LIBRARIES
+        kritaimage
+        lager
         Qt${QT_MAJOR_VERSION}::Core
         Qt${QT_MAJOR_VERSION}::Test
 )
-target_include_directories(KisCollapsibleButtonGroupSchemaContractTest PRIVATE
+target_include_directories(KisLodAvailabilityContractTest PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/..
     ${CMAKE_CURRENT_BINARY_DIR}/..
-    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Widgets,INTERFACE_INCLUDE_DIRECTORIES>
+    ${CMAKE_SOURCE_DIR}/libs
+    ${CMAKE_BINARY_DIR}/libs
+    ${CMAKE_SOURCE_DIR}/libs/ui/widgets
+    ${CMAKE_BINARY_DIR}/libs/ui/widgets
 )
-target_compile_definitions(KisCollapsibleButtonGroupSchemaContractTest PRIVATE
-    kritaui_EXPORTS
+
+kis_add_test(
+    KisLongPressEventFilterContractTest.cpp
+    ../events/KisLongPressEventFilter.cpp
+    TEST_NAME KisLongPressEventFilterContractTest
+    LINK_LIBRARIES
+        kritawidgetutils
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Widgets
+)
+target_include_directories(KisLongPressEventFilterContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs
+    ${CMAKE_BINARY_DIR}/libs
 )
 
 

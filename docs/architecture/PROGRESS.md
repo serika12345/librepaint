@@ -2,18 +2,19 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-20 00:51 JST
+- 更新日時: 2026-09-20 01:26 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19c 利用者から観測できる振る舞いを守るテストへの整理
 - 関連TODO: R2-G19a・R2-G19b完了、R2-G19cテスト整理、R2-G19d対象OS検証
 - ブランチ: `develop`
-- 開始コミット: `63fa8d4cbfd`。型特性と完全signatureによるAPI形状検査の機械整理を確定済み。
+- 開始コミット: `bd08b8556f`。宣言形状テストの再発防止検査を導入済み。
 - 目的: 残存するSchema試験を利用場面から判定し、根拠のない列挙値・内部型・役割番号の固定を除去する。意味論があるAPIは利用者が渡す値と観測できる結果で保護する。
 - 完了: 意味論を持たないSchema試験8件を削除した。角度選択APIは列挙値の順序からスクリプト文字列変換を分離した。ガイドと格子の設定は線種から描画ペンへの変換とXML往復へ統合し、Qt 6.4以降で色を復元できなかった不具合を修正した。マウスボタンから前景・背景色への対応試験は振る舞いを表す名称へ変更した。契約試験への型特性、コンパイル時形状検査、完全署名別名の再追加を拒否し、明示的な互換性試験には利用者と維持対象の記載を要求する高速検査を追加した。
-- 次の作業: `KisToolSelectUiBaseSchemaContractTest.cpp`、`KisCollapsibleButtonGroupSchemaContractTest.cpp`、`KisCanvas2SchemaContractTest.cpp`を利用場面から分類する。列挙値と内部識別子の固定は、保存形式や外部連携の根拠がある場合だけ保持する。
+- 完了: `KisToolSelectUiBaseSchemaContractTest.cpp`は、選択ツールの利用側が列挙値の整数値へ依存せず、設定は`sampleAllLayers`などの文字列で保存され、既存の`TestToolSettingsUiContract`が設定の往復結果を検証していることを確認した。利用者向け結果を持たない専用Schema試験と、その専用CTest・広いinclude・compile definition・UI生成定義を削除した。
+- 次の作業: 残存Schema試験を利用場面から監査し、R2-G19cの高速検査と対象CTestを再実行する。列挙値と内部識別子の固定は、保存形式や外部連携の根拠がある場合だけ保持する。
 - 検証: macOSで`TestAngleSelector`と全依存の構築、ガイド・格子設定試験、色役割試験が成功した。対象試験は3回連続成功し、CTest登録は925件になった。運用検査39件を含む`verify-quick`も成功した。
 - 再発防止検証: macOSで`KisSignalCompressorContractTest`、`KisBezierPatchContractTest`、
-  `KStandardActionEnumContractTest`の構築とCTestが成功した。新しい検査を含む運用検査45件と
+  `KStandardActionCompatibilityTest`の構築とCTestが成功した。新しい検査を含む運用検査45件と
   `verify-quick`が成功した。
 
 ## 現在の変更範囲
@@ -53,6 +54,21 @@
 既存のsignal compressorに残っていた列挙値の相違だけを調べる`static_assert`と、Bezier patchおよび
 standard action試験に残っていた完全署名別名を除去し、新しい検査条件を既存ソースへ適用した。
 
+`libs/ui/tests/KisToolSelectUiBaseSchemaContractTest.cpp`は、`SampleAllLayers`、
+`SampleCurrentLayer`、`SampleColorLabeledLayers`の整数値だけを固定していたため削除した。
+選択ツールの利用側は列挙子との比較で採取対象を選び、永続設定は
+`libs/tools/ui/kis_selection_tool_config_widget_helper.cpp`の文字列へ変換される。
+この意味論は`libs/tools/ui/tests/TestToolSettingsUiContract.cpp`の設定往復試験で保護する。
+
+`libs/ui/tests/KisCollapsibleButtonGroupSchemaContractTest.cpp`は、LOD設定構造体の既定値・等値演算と、
+長押し機能の内部property文字列を固定していた。LODの利用者は描画エンジン設定画面であり、
+しきい値による即時プレビュー可否、設定保存、未知の描画エンジン設定での状態保持を
+`KisLodAvailabilityContractTest.cpp`で検証する。長押しの利用者はコンテキストメニューを持つ画面部品であり、
+有効時のメニュー発生と無効時のメニュー抑止を`KisLongPressEventFilterContractTest.cpp`で検証する。
+内部実装は共有ライブラリーの非公開記号のため、試験は公開API化せず、所有する実装ソースを試験対象へ組み込み、
+必要な`kritaimage`と`kritawidgetutils`へ直接依存する。LODの設定読込は描画エンジン登録簿を利用するため
+`kritaimage`の依存閉包を保持し、長押し試験は`kritawidgetutils`だけで閉じる。
+
 `libs/resources/`、`libs/flake/`、`libs/widgets/`、`libs/image/`、`sdk/tests/`の所有対象から、
 別のヘッダーが偶然提供する完全型への依存を除去する。値で公開するQt型は公開ヘッダーで完結させ、
 共有ライブラリー境界を越えて利用する関数とクラスは所有ライブラリーから公開する。
@@ -85,6 +101,16 @@ standard action試験に残っていた完全署名別名を除去し、新し�
 - `libs/flake/KoShape.h`は値で公開するQt幾何型を直接取り込み、単独で利用できる公開ヘッダーにする。
 - `libs/flake/resources/`、`libs/widgets/`、`libs/image/`、`sdk/tests/`の各翻訳単位は、
   メンバー参照、値返却、共有ポインター操作に必要な完全型を所有ヘッダーから直接取り込む。
+
+`libs/ui/tests/KisCanvas2SchemaContractTest.cpp`は、InfinityManagerの内部登録名だけを固定していた。
+この名前はCanvas2内部の装飾登録・検索・表示切替にだけ使われ、保存形式、設定、プラグイン、スクリプト、
+外部連携の利用は確認できなかったため、意味論を持つ代替試験を追加せず、試験ファイルと専用CTest定義を削除した。
+
+`libs/widgetutils/tests/KStandardActionEnumContractTest.cpp`は、`KStandardAction::StandardAction`の
+整数値が連続することだけを固定していた。整数値を保存・通信・外部APIで利用する証拠はなく、
+`KStandardAction::name()`の値は`krita/kritamenu.action`、製品のアクション検索、タッチUIプラグインで
+外部識別子として利用されることを確認した。試験を`KStandardActionCompatibilityTest.cpp`へ改名し、
+識別子の一意性と主要な外部識別子、QAction生成結果、起動通知を実装ライブラリーで検証する。
 
 ## 構築と検証
 
@@ -120,13 +146,25 @@ Nixの評価済み環境へ入る`./scripts/run-shared-test-env`を利用する�
 
 ## 残る課題と再開条件
 
-機械的な型特性整理は完了した。次は`KisToolSelectUiBaseSchemaContractTest.cpp`を起点に残存Schema試験を読み、
+機械的な型特性整理は完了した。次は残存Schema試験を利用場面から監査し、
 実際の呼び出し側と永続形式から互換性要件を確認する。列挙値や識別子の固定は保存データや外部連携の
 根拠がある場合だけ残し、公開操作の結果を検証しない試験は振る舞いへ置き換えるか削除する。
 
 `KisResourceItemDelegateContractTest`の索引変換は試験内でresolverを再定義しているため、
 実際の資源モデルが返す索引と描画結果による検証へ移す。
 `KoDialog::showEvent()`の表示直後の破棄に関する既知不具合はTODOの独立項目で扱う。
+
+今回の対象では、`TestToolSettingsUiContract`の構築と
+`libs-tools-ui-TestToolSettingsUiContract`のCTestがmacOSで成功した。
+`KisLodAvailabilityContractTest`と`KisLongPressEventFilterContractTest`の構築および
+`libs-ui-KisLodAvailabilityContractTest`、`libs-ui-KisLongPressEventFilterContractTest`のCTestがmacOSで成功した。
+新しい試験の増分依存閉包は、生成済みNinjaグラフでそれぞれ約27053行と6449行であり、
+`kritaapplicationui`全体への依存を避けて、LODは`kritaimage`、長押しは`kritawidgetutils`へ限定した。
+`KStandardActionCompatibilityTest`の構築と`libs-widgetutils-KStandardActionCompatibilityTest`のCTestもmacOSで成功した。
+実装ライブラリーを利用する依存閉包は生成済みNinjaグラフで約6443行であり、既存の
+`KisDialogStateSaverTest`と同程度である。
+`python3 scripts/architecture/check_test_contracts.py`と`git diff --check`も成功した。
+Canvas2の削除後にInfinityManager識別子の利用箇所を再検索し、Canvas2とInfinityManagerの内部実装だけであることを確認した。
 
 主増分構築木`build/tdd-macos`と共有コンパイラーキャッシュを継続利用する。
 Qt 5、Linux、Windows、Android、実タブレット入力と全ネイティブ試験は未実施である。
