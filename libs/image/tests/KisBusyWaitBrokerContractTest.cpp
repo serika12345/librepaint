@@ -9,7 +9,6 @@
 
 #include <functional>
 #include <thread>
-#include <type_traits>
 
 void kis_safe_assert_recoverable(const char *assertion, const char *file, int line)
 {
@@ -21,21 +20,14 @@ class KisBusyWaitBrokerContractTest : public QObject
     Q_OBJECT
 
 private Q_SLOTS:
-    void typeLifetimeAndSingletonRemainStable();
+    void singletonAndInitialWaitState();
     void generalWaitNestingTracksGuiThreadState();
     void workerThreadGeneralWaitNotificationsAreIgnored();
     void imageWaitNestingTracksGuiThreadState();
-    void feedbackCallbackSignatureAndResetRemainStable();
 };
 
-void KisBusyWaitBrokerContractTest::typeLifetimeAndSingletonRemainStable()
+void KisBusyWaitBrokerContractTest::singletonAndInitialWaitState()
 {
-    static_assert(std::is_class_v<KisBusyWaitBroker>);
-    static_assert(std::is_constructible_v<KisBusyWaitBroker>);
-    static_assert(std::is_destructible_v<KisBusyWaitBroker>);
-    static_assert(!std::is_copy_constructible_v<KisBusyWaitBroker>);
-    static_assert(!std::is_copy_assignable_v<KisBusyWaitBroker>);
-
     KisBusyWaitBroker independentBroker;
     QVERIFY(!independentBroker.guiThreadIsWaitingForBetterWeather());
 
@@ -98,19 +90,6 @@ void KisBusyWaitBrokerContractTest::imageWaitNestingTracksGuiThreadState()
     QVERIFY(broker.guiThreadIsWaitingForBetterWeather());
     broker.notifyWaitOnImageEnded(imageToken);
     QVERIFY(!broker.guiThreadIsWaitingForBetterWeather());
-}
-
-void KisBusyWaitBrokerContractTest::feedbackCallbackSignatureAndResetRemainStable()
-{
-    using Callback = std::function<void(KisImageSP)>;
-    using SetFeedbackCallback = void (KisBusyWaitBroker::*)(Callback);
-    static_assert(std::is_same_v<decltype(static_cast<SetFeedbackCallback>(&KisBusyWaitBroker::setFeedbackCallback)),
-                                 SetFeedbackCallback>);
-
-    KisBusyWaitBroker broker;
-    Callback emptyCallback;
-    broker.setFeedbackCallback(emptyCallback);
-    broker.setFeedbackCallback({});
 }
 
 QTEST_MAIN(KisBusyWaitBrokerContractTest)

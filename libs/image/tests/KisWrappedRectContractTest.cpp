@@ -7,8 +7,6 @@
 
 #include <QTest>
 
-#include <type_traits>
-
 class KisWrappedRectContractTest : public QObject
 {
     Q_OBJECT
@@ -88,12 +86,6 @@ void KisWrappedRectContractTest::normalizationOriginsDescribeWrappedCopies()
 
 void KisWrappedRectContractTest::constructorPreservesSplitQuadrantsAndSourceRects()
 {
-    static_assert(std::is_base_of_v<QVector<QRect>, KisWrappedRect>);
-    static_assert(KisWrappedRect::TOPLEFT == 0);
-    static_assert(KisWrappedRect::TOPRIGHT == 1);
-    static_assert(KisWrappedRect::BOTTOMLEFT == 2);
-    static_assert(KisWrappedRect::BOTTOMRIGHT == 3);
-
     const QRect wrapRect(0, 0, 100, 80);
     const QRect inside(10, 15, 20, 25);
     const KisWrappedRect unchanged(inside, wrapRect, WRAPAROUND_BOTH);

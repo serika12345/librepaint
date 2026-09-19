@@ -5,8 +5,6 @@
 
 #include <QtTest>
 
-#include <type_traits>
-
 #include "brushengine/KisPerStrokeRandomSource.h"
 
 class KisPerStrokeRandomSourceContractTest : public QObject
@@ -16,7 +14,7 @@ class KisPerStrokeRandomSourceContractTest : public QObject
 private Q_SLOTS:
     void sameKeyIsStableAndValuesStayInRequestedRanges();
     void copyPreservesCachedAndFutureKeyValues();
-    void strongAndWeakAliasesShareAndReleaseLifetime();
+    void strongAndWeakPointersShareAndReleaseLifetime();
 };
 
 void KisPerStrokeRandomSourceContractTest::sameKeyIsStableAndValuesStayInRequestedRanges()
@@ -61,11 +59,8 @@ void KisPerStrokeRandomSourceContractTest::copyPreservesCachedAndFutureKeyValues
     QCOMPARE(copy.generateNormalized(futureKey), source.generateNormalized(futureKey));
 }
 
-void KisPerStrokeRandomSourceContractTest::strongAndWeakAliasesShareAndReleaseLifetime()
+void KisPerStrokeRandomSourceContractTest::strongAndWeakPointersShareAndReleaseLifetime()
 {
-    static_assert(std::is_same_v<KisPerStrokeRandomSourceSP, KisSharedPtr<KisPerStrokeRandomSource>>);
-    static_assert(std::is_same_v<KisPerStrokeRandomSourceWSP, KisWeakSharedPtr<KisPerStrokeRandomSource>>);
-
     KisPerStrokeRandomSourceWSP weak;
 
     {

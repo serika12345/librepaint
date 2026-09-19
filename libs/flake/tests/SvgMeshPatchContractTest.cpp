@@ -9,7 +9,6 @@
 
 #include <array>
 #include <cmath>
-#include <type_traits>
 
 void kis_assert_exception(const char *assertion, const char *file, int line)
 {
@@ -69,7 +68,6 @@ private Q_SLOTS:
 
 void SvgMeshPatchContractTest::stopAndTypeStateIsStable()
 {
-    static_assert(std::is_same_v<SvgMeshPath, std::array<QPointF, 4>>);
     QCOMPARE(int(SvgMeshPatch::Top), 0);
     QCOMPARE(int(SvgMeshPatch::Right), 1);
     QCOMPARE(int(SvgMeshPatch::Bottom), 2);

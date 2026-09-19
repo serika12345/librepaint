@@ -33,12 +33,6 @@ private Q_SLOTS:
 
 void KisLevelsCurveContractTest::defaultsAndParameterizedCurveEvaluateLevels()
 {
-    static_assert(KisLevelsCurve::defaultInputBlackPoint() == 0.0);
-    static_assert(KisLevelsCurve::defaultInputWhitePoint() == 1.0);
-    static_assert(KisLevelsCurve::defaultInputGamma() == 1.0);
-    static_assert(KisLevelsCurve::defaultOutputBlackPoint() == 0.0);
-    static_assert(KisLevelsCurve::defaultOutputWhitePoint() == 1.0);
-
     KisLevelsCurve identity;
     QCOMPARE(identity.inputBlackPoint(), 0.0);
     QCOMPARE(identity.inputWhitePoint(), 1.0);

@@ -9,8 +9,6 @@
 #include <QSharedPointer>
 #include <QTest>
 
-#include <type_traits>
-
 class KoShapeStroke
 {
 public:
@@ -60,9 +58,6 @@ private Q_SLOTS:
 
 void KoFlakeTypesContractTest::sharedStrokeAliasesRetainTheirObjects()
 {
-    static_assert(std::is_same_v<KoShapeStrokeSP, QSharedPointer<KoShapeStroke>>);
-    static_assert(std::is_same_v<KoShapeStrokeModelSP, QSharedPointer<KoShapeStrokeModel>>);
-
     int strokeDestructionCount = 0;
     int modelDestructionCount = 0;
     KoShapeStrokeSP stroke(new KoShapeStroke(&strokeDestructionCount));

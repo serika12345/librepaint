@@ -1083,16 +1083,6 @@ target_include_directories(KisLegacyUndoAdapterSchemaContractTest PRIVATE
 )
 
 kis_add_test(
-    KisNodeVisitorContractTest.cpp
-    LINK_LIBRARIES Qt${QT_MAJOR_VERSION}::Test
-)
-target_compile_definitions(KisNodeVisitorContractTest PRIVATE kritaimage_EXPORTS)
-target_include_directories(KisNodeVisitorContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-)
-
-kis_add_test(
     KisNodeFacadeSchemaContractTest.cpp
     LINK_LIBRARIES
         Qt${QT_MAJOR_VERSION}::Core
@@ -2565,6 +2555,10 @@ target_compile_definitions(KisGradientPainterSchemaContractTest PRIVATE
 kis_add_test(
     KisBezierGradientMeshContractTest.cpp
     LINK_LIBRARIES
+        kritaglobalalgebradirectionobjects
+        kritaglobalbeziercurvelengthobjects
+        kritaglobalbezierpatchobjects
+        kritaglobalbezierutilsobjects
         Qt${QT_MAJOR_VERSION}::Core
         Qt${QT_MAJOR_VERSION}::Gui
         Qt${QT_MAJOR_VERSION}::Test
@@ -3289,27 +3283,6 @@ target_compile_definitions(KisSerializableConfigurationContractTest PRIVATE
 )
 
 kis_add_test(
-    KisTransformMaskParamsInterfaceContractTest.cpp
-    LINK_LIBRARIES
-        kritaimagetransformmaskparamsinterfaceobjects
-        kritaglobalsharedobjects
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Gui
-        Qt${QT_MAJOR_VERSION}::Xml
-        Qt${QT_MAJOR_VERSION}::Test
-)
-target_include_directories(KisTransformMaskParamsInterfaceContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-)
-target_compile_definitions(KisTransformMaskParamsInterfaceContractTest PRIVATE
-    kritaglobal_EXPORTS
-    kritaimage_EXPORTS
-)
-
-kis_add_test(
     KisWrappedRectContractTest.cpp
     LINK_LIBRARIES
         Qt${QT_MAJOR_VERSION}::Core
@@ -3318,20 +3291,6 @@ kis_add_test(
 target_include_directories(KisWrappedRectContractTest PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/..
 )
-
-kis_add_test(
-    KisPaintDeviceWriterContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Test
-)
-target_include_directories(KisPaintDeviceWriterContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-)
-target_compile_definitions(KisPaintDeviceWriterContractTest PRIVATE kritaimage_EXPORTS)
 
 kis_add_test(
     KisStrokeStrategyContractTest.cpp

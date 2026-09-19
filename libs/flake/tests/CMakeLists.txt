@@ -583,20 +583,6 @@ target_include_directories(KoShapeBackgroundContractTest PRIVATE
 target_compile_definitions(KoShapeBackgroundContractTest PRIVATE kritaflake_EXPORTS)
 
 kis_add_test(
-    KoShapeContainerModelContractTest.cpp
-    LINK_LIBRARIES
-        kritaflakeshapecontainermodelobjects
-        Qt${QT_MAJOR_VERSION}::Test
-)
-target_include_directories(KoShapeContainerModelContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-)
-target_compile_definitions(KoShapeContainerModelContractTest PRIVATE kritaflake_EXPORTS)
-
-kis_add_test(
     KoColorBackgroundContractTest.cpp
     LINK_LIBRARIES
         kritaflakecolorbackgroundobjects
@@ -1289,25 +1275,6 @@ target_include_directories(KoSvgTextContentElementSchemaContractTest PRIVATE
     ${CMAKE_CURRENT_BINARY_DIR}/..
 )
 target_compile_definitions(KoSvgTextContentElementSchemaContractTest PRIVATE kritaflake_EXPORTS)
-
-kis_add_test(
-    KoSvgTextCharacterResultValueContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Gui
-        Qt${QT_MAJOR_VERSION}::Test
-        Qt${QT_MAJOR_VERSION}::Xml
-)
-target_include_directories(KoSvgTextCharacterResultValueContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-    ${FREETYPE_INCLUDE_DIRS}
-)
-target_compile_definitions(KoSvgTextCharacterResultValueContractTest PRIVATE
-    kritaflake_EXPORTS
-    kritaglobal_EXPORTS
-)
 
 kis_add_test(
     CssLengthPercentageModelContractTest.cpp

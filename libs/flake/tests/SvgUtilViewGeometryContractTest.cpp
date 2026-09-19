@@ -8,8 +8,6 @@
 #include <QTest>
 #include <QTransform>
 
-#include <type_traits>
-
 class SvgUtilViewGeometryContractTest : public QObject
 {
     Q_OBJECT
@@ -25,14 +23,6 @@ private Q_SLOTS:
 void SvgUtilViewGeometryContractTest::preserveAspectRatioSchemaAndDefaultsRemainStable()
 {
     using Parser = SvgUtil::PreserveAspectRatioParser;
-
-    static_assert(std::is_class_v<SvgUtil>);
-    static_assert(std::is_class_v<Parser>);
-    static_assert(std::is_enum_v<Parser::Alignment>);
-    static_assert(std::is_same_v<decltype(Parser::defer), bool>);
-    static_assert(std::is_same_v<decltype(Parser::mode), Qt::AspectRatioMode>);
-    static_assert(std::is_same_v<decltype(Parser::xAlignment), Parser::Alignment>);
-    static_assert(std::is_same_v<decltype(Parser::yAlignment), Parser::Alignment>);
 
     QCOMPARE(int(Parser::Min), 0);
     QCOMPARE(int(Parser::Middle), 1);

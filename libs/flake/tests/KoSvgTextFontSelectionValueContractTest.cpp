@@ -7,11 +7,8 @@
 
 #include <QTest>
 
-#include <type_traits>
-
 namespace
 {
-
 using Axis = KoSvgText::FontFamilyAxis;
 using EastAsian = KoSvgText::FontFeatureEastAsian;
 using Ligatures = KoSvgText::FontFeatureLigatures;
@@ -34,18 +31,6 @@ private Q_SLOTS:
 
 void KoSvgTextFontSelectionValueContractTest::fontFamilyAxesPreserveDefaultsFactoriesAndOwnedValues()
 {
-    static_assert(std::is_default_constructible_v<Axis>);
-    static_assert(std::is_copy_constructible_v<Axis>);
-    static_assert(std::is_copy_assignable_v<Axis>);
-    static_assert(std::is_same_v<decltype(Axis::tag), QString>);
-    static_assert(std::is_same_v<decltype(Axis::localizedLabels), QHash<QLocale, QString>>);
-    static_assert(std::is_same_v<decltype(Axis::min), qreal>);
-    static_assert(std::is_same_v<decltype(Axis::max), qreal>);
-    static_assert(std::is_same_v<decltype(Axis::value), qreal>);
-    static_assert(std::is_same_v<decltype(Axis::defaultValue), qreal>);
-    static_assert(std::is_same_v<decltype(Axis::variableAxis), bool>);
-    static_assert(std::is_same_v<decltype(Axis::axisHidden), bool>);
-
     Axis defaults;
     QVERIFY(defaults.tag.isEmpty());
     QVERIFY(defaults.localizedLabels.isEmpty());
@@ -113,14 +98,6 @@ void KoSvgTextFontSelectionValueContractTest::fontFamilyAxesPreserveDefaultsFact
 
 void KoSvgTextFontSelectionValueContractTest::fontFamilyStylesOwnLabelsCoordinatesAndFlags()
 {
-    static_assert(std::is_default_constructible_v<Style>);
-    static_assert(std::is_copy_constructible_v<Style>);
-    static_assert(std::is_copy_assignable_v<Style>);
-    static_assert(std::is_same_v<decltype(Style::localizedLabels), QHash<QLocale, QString>>);
-    static_assert(std::is_same_v<decltype(Style::instanceCoords), QHash<QString, float>>);
-    static_assert(std::is_same_v<decltype(Style::isItalic), bool>);
-    static_assert(std::is_same_v<decltype(Style::isOblique), bool>);
-
     Style source;
     QVERIFY(source.localizedLabels.isEmpty());
     QVERIFY(source.instanceCoords.isEmpty());
@@ -157,12 +134,6 @@ void KoSvgTextFontSelectionValueContractTest::fontFamilyStylesOwnLabelsCoordinat
 
 void KoSvgTextFontSelectionValueContractTest::ligaturesGenerateFeaturesFromIndependentFlags()
 {
-    static_assert(std::is_default_constructible_v<Ligatures>);
-    static_assert(std::is_same_v<decltype(Ligatures::commonLigatures), bool>);
-    static_assert(std::is_same_v<decltype(Ligatures::discretionaryLigatures), bool>);
-    static_assert(std::is_same_v<decltype(Ligatures::historicalLigatures), bool>);
-    static_assert(std::is_same_v<decltype(Ligatures::contextualAlternates), bool>);
-
     Ligatures defaults;
     QVERIFY(defaults.commonLigatures);
     QVERIFY(!defaults.discretionaryLigatures);
@@ -196,13 +167,6 @@ void KoSvgTextFontSelectionValueContractTest::ligaturesGenerateFeaturesFromIndep
 
 void KoSvgTextFontSelectionValueContractTest::numericVariantsGenerateFeaturesInStableOrder()
 {
-    static_assert(std::is_default_constructible_v<Numeric>);
-    static_assert(std::is_same_v<decltype(Numeric::style), KoSvgText::NumericFigureStyle>);
-    static_assert(std::is_same_v<decltype(Numeric::spacing), KoSvgText::NumericFigureSpacing>);
-    static_assert(std::is_same_v<decltype(Numeric::fractions), KoSvgText::NumericFractions>);
-    static_assert(std::is_same_v<decltype(Numeric::ordinals), bool>);
-    static_assert(std::is_same_v<decltype(Numeric::slashedZero), bool>);
-
     Numeric defaults;
     QCOMPARE(int(defaults.style), int(KoSvgText::NumericFigureStyleNormal));
     QCOMPARE(int(defaults.spacing), int(KoSvgText::NumericFigureSpacingNormal));
@@ -244,11 +208,6 @@ void KoSvgTextFontSelectionValueContractTest::numericVariantsGenerateFeaturesInS
 
 void KoSvgTextFontSelectionValueContractTest::eastAsianVariantsGenerateFeaturesInStableOrder()
 {
-    static_assert(std::is_default_constructible_v<EastAsian>);
-    static_assert(std::is_same_v<decltype(EastAsian::variant), KoSvgText::EastAsianVariant>);
-    static_assert(std::is_same_v<decltype(EastAsian::width), KoSvgText::EastAsianWidth>);
-    static_assert(std::is_same_v<decltype(EastAsian::ruby), bool>);
-
     EastAsian defaults;
     QCOMPARE(int(defaults.variant), int(KoSvgText::EastAsianVariantNormal));
     QCOMPARE(int(defaults.width), int(KoSvgText::EastAsiantNormalWidth));

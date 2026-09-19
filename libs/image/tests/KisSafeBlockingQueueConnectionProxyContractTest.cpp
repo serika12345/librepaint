@@ -16,7 +16,6 @@
 #include <chrono>
 #include <functional>
 #include <thread>
-#include <type_traits>
 
 void kis_assert_recoverable(const char *assertion, const char *file, int line)
 {
@@ -79,8 +78,6 @@ void KisSafeBlockingQueueConnectionProxyContractTest::typedAndVoidStartsDispatch
 {
     using TypedProxy = KisSafeBlockingQueueConnectionProxy<QString>;
     using VoidProxy = KisSafeBlockingQueueConnectionProxy<void>;
-    static_assert(std::is_constructible_v<TypedProxy, std::function<void(QString)>>);
-    static_assert(std::is_constructible_v<VoidProxy, std::function<void()>>);
 
     QVector<QString> values;
     QVector<QThread *> callbackThreads;

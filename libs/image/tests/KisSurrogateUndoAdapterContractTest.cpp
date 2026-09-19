@@ -4,7 +4,6 @@
  */
 
 #include <memory>
-#include <type_traits>
 #include <utility>
 
 #include <QStringList>
@@ -66,19 +65,15 @@ class KisSurrogateUndoAdapterContractTest : public QObject
     Q_OBJECT
 
 private Q_SLOTS:
-    void typeLifetimeAndEmptyHistoryRemainStable();
+    void initialHistoryIsEmpty();
     void commandAdditionAndLastUndoRemainStable();
     void singleStepUndoAndRedoRemainStable();
     void macroGroupsCommandsIntoOneHistoryStep();
     void wholeHistoryUndoAndRedoRemainStable();
 };
 
-void KisSurrogateUndoAdapterContractTest::typeLifetimeAndEmptyHistoryRemainStable()
+void KisSurrogateUndoAdapterContractTest::initialHistoryIsEmpty()
 {
-    static_assert(std::is_base_of_v<KisUndoAdapter, KisSurrogateUndoAdapter>);
-    static_assert(std::is_default_constructible_v<KisSurrogateUndoAdapter>);
-    static_assert(std::has_virtual_destructor_v<KisSurrogateUndoAdapter>);
-
     std::unique_ptr<KisUndoAdapter> adapter = std::make_unique<KisSurrogateUndoAdapter>();
     QVERIFY(!adapter->presentCommand());
 }

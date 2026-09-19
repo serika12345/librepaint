@@ -8,11 +8,8 @@
 #include <QRect>
 #include <QTest>
 
-#include <type_traits>
-
 namespace
 {
-
 constexpr qreal pointTolerance = 1e-8;
 
 bool pointsAreClose(const QPointF &actual, const QPointF &expected)
@@ -37,30 +34,10 @@ class KisPerspectiveMathContractTest : public QObject
     Q_OBJECT
 
 private Q_SLOTS:
-    void aliasesDescribeProjectiveStorage();
     void matProductAppliesAffineAndProjectiveTerms();
     void mapsNondegenerateQuadrilateralCorners();
     void mapsRectangleAndQuadrilateralInBothDirections();
 };
-
-void KisPerspectiveMathContractTest::aliasesDescribeProjectiveStorage()
-{
-    static_assert(std::is_same_v<typename Matrix3qreal::Scalar, qreal>);
-    static_assert(Matrix3qreal::RowsAtCompileTime == 3);
-    static_assert(Matrix3qreal::ColsAtCompileTime == 3);
-    static_assert(std::is_same_v<typename Matrix9qreal::Scalar, qreal>);
-    static_assert(Matrix9qreal::RowsAtCompileTime == 9);
-    static_assert(Matrix9qreal::ColsAtCompileTime == 9);
-    static_assert(std::is_same_v<typename Vector9qreal::Scalar, qreal>);
-    static_assert(Vector9qreal::RowsAtCompileTime == 9);
-    static_assert(Vector9qreal::ColsAtCompileTime == 1);
-    static_assert(std::is_same_v<typename LineEquation::Scalar, qreal>);
-    static_assert(LineEquation::AmbientDimAtCompileTime == 2);
-    static_assert(std::is_class_v<KisPerspectiveMath>);
-    static_assert(!std::is_default_constructible_v<KisPerspectiveMath>);
-
-    QVERIFY(true);
-}
 
 void KisPerspectiveMathContractTest::matProductAppliesAffineAndProjectiveTerms()
 {

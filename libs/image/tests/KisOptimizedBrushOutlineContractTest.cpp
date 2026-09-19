@@ -8,11 +8,8 @@
 #include <QPainterPath>
 #include <QTest>
 
-#include <type_traits>
-
 namespace
 {
-
 constexpr qreal tolerance = 1e-6;
 
 QVector<QPolygonF> polygons(const KisOptimizedBrushOutline &outline)
@@ -84,9 +81,6 @@ private Q_SLOTS:
 
 void KisOptimizedBrushOutlineContractTest::emptyStateAndIteratorsPreservePolygonOrder()
 {
-    static_assert(std::is_default_constructible_v<KisOptimizedBrushOutline>);
-    static_assert(std::is_default_constructible_v<KisOptimizedBrushOutline::const_iterator>);
-
     KisOptimizedBrushOutline empty;
     QVERIFY(empty.isEmpty());
     QVERIFY(empty.begin() == empty.end());

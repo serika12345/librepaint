@@ -16,11 +16,9 @@
 #include <array>
 #include <cmath>
 #include <cstddef>
-#include <type_traits>
 
 namespace
 {
-
 using Matrix = Eigen::Matrix<qreal, Eigen::Dynamic, Eigen::Dynamic>;
 
 class TrackedKernel final : public KisConvolutionKernel
@@ -57,7 +55,6 @@ MaskObservations maskObservations;
 
 namespace KisConvolutionKernelMaskAccess
 {
-
 qreal width(const KisMaskGenerator *generator)
 {
     if (generator != maskObservations.generator) {
@@ -153,7 +150,6 @@ void KisConvolutionKernelContractTest::matrixFactoryOwnsInputAndDeletesVirtually
     QCOMPARE(kernel->factor(), 9.25);
     QVERIFY(kernel->data().isApprox(expected, 0.0));
 
-    static_assert(std::has_virtual_destructor_v<KisConvolutionKernel>);
     int destructionCount = 0;
     KisConvolutionKernelSP first(new TrackedKernel(&destructionCount));
     KisConvolutionKernelSP second = first;

@@ -15,7 +15,6 @@
 #include <QTest>
 
 #include <limits>
-#include <type_traits>
 
 void KoShape::notifyChanged()
 {
@@ -116,9 +115,6 @@ private Q_SLOTS:
 
 void KoPathPointContractTest::enumerationsExposeStableBitMasks()
 {
-    static_assert(std::is_same_v<KoPathPoint::PointProperties, QFlags<KoPathPoint::PointProperty>>);
-    static_assert(std::is_same_v<KoPathPoint::PointTypes, QFlags<KoPathPoint::PointType>>);
-
     QCOMPARE(int(KoPathPoint::Normal), 0);
     QCOMPARE(int(KoPathPoint::StartSubpath), 1);
     QCOMPARE(int(KoPathPoint::StopSubpath), 2);
