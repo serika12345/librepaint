@@ -110,7 +110,6 @@ class PublicContractTests(unittest.TestCase):
             encoding="utf-8"
         )
         self.assertIn("check_public_contracts.py", verify_quick)
-        self.assertIn("check_public_api_contracts.py", verify_quick)
 
 
 if __name__ == "__main__":

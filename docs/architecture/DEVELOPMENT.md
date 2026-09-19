@@ -252,8 +252,6 @@ nix develop .#test --command \
   python3 scripts/architecture/check_package_boundaries.py
 nix develop .#test --command \
   python3 scripts/architecture/check_public_contracts.py
-nix develop .#test --command \
-  python3 scripts/architecture/check_public_api_contracts.py
 ```
 
 `docs/architecture/package-boundaries.json`は10責務、27の中核所有ターゲット、責務間で
@@ -265,29 +263,22 @@ nix develop .#test --command \
 兄弟JSON、ID、サービス種別、CMake所有者の対応を確認する。公開ヘッダーまたは
 プラグイン登録を変更したときに更新する生成台帳はない。
 
-公開API挙動契約の検査は、公開マクロを持つ製品ヘッダー、異なる製品部品から直接includeされる
-ヘッダー、公開ヘッダー構築契約から対象を決め、
-固定Nix環境のUniversal Ctagsでpublic宣言を採取する。
-`docs/architecture/public-api-test-contracts.json`は、公開面の指紋、移行中の未対応件数、
-CTest対象・試験関数・観測挙動・分類・API識別子の対応を保持する。公開宣言を変更したときは
-公開面の指紋を、挙動契約を追加したときは対応と未対応件数を同じ変更で更新する。
+### 既存テストの保守
 
-全未対応APIの作業用報告は構築ディレクトリーへ生成する。
+対象責務の呼び出し側、仕様、試験コード、CMake定義を読み、利用者が観測する保証を特定する。
+振る舞いを検証する試験を維持し、互換性検査には明示的な要件の根拠を持たせる。
+宣言形状や内部構造だけを固定する検証は、必要な意味論の検証状況を確認して削除する。
+不足する振る舞いだけを公開操作と観測結果による試験で補う。
 
-```sh
-nix develop .#test --command \
-  python3 scripts/architecture/check_public_api_contracts.py \
-    --report build/public-api-contracts/missing.json
-```
+変更前に対象の増分構築計画と直接依存を確認し、新設・拡張対象では空構築閉包も測定する。
+変更後は対象試験、影響範囲のCTest、`verify-quick`を実行する。
+レビュー説明に、保証する結果、削除する制約の理由、検証結果を記す。
+`PROGRESS.md`には現在の対象、次の作業、検証状況を記録する。
 
-報告は責務と構築対象ごとの次作業を選ぶ入力であり、契約の正本は製品ヘッダー、挙動試験、
-`public-api-test-contracts.json`である。対応追加前に対象CTestの変更なし計画、直接依存、
-空構築閉包を確認し、対象CTestと高速検査の成功後に未対応件数を縮小する。
+### 責務単位の並列実装
 
-### 公開API契約の並列実装
-
-公開API契約を並列実装するときは、一人の統合担当と最大三つの実装担当を使う。統合担当は
-未対応報告から、公開ヘッダー、製品実装、試験ソース、CMake定義が重ならない責務単位を選ぶ。
+並列実装を行うときは、一人の統合担当と最大三つの実装担当を使う。統合担当は
+現在の作業範囲から、公開ヘッダー、製品実装、試験ソース、CMake定義が重ならない責務単位を選ぶ。
 同じ試験ディレクトリーの単一`CMakeLists.txt`、同じ製品集約対象、同じ公開クラスを必要とする
 作業は一つの担当へまとめる。これにより、実装中の差分とCMake再生成を担当単位で判断できる。
 
@@ -320,10 +311,9 @@ Git作業ツリー、担当ブランチ、基準コミット、許可パスを�
 エージェントへの委任は、担当票の`追加委任`が`authorized`の場合だけ行う。
 
 `AGENTS.md`、`docs/architecture/TODO.md`、`docs/architecture/PROGRESS.md`、
-`docs/architecture/README.md`、`docs/architecture/DEVELOPMENT.md`、
-`docs/architecture/public-api-test-contracts.json`は統合担当が所有する。公開面や運用検査の
-共通処理も、担当票で明示的に移管した場合だけ実装担当が変更する。この中央所有により、
-未対応基準と現在の再開地点を一つの順序で更新できる。
+`docs/architecture/README.md`、`docs/architecture/DEVELOPMENT.md`は統合担当が所有する。
+運用検査の共通処理も、担当票で明示的に移管した場合だけ実装担当が変更する。
+この中央所有により、現在の再開地点を一つの順序で更新できる。
 
 明示的なブランチ作成権限がある場合、統合担当は基準コミットから担当ごとのGit作業ツリーを
 作成する。作業ツリーはリポジトリーの兄弟ディレクトリーとし、既存パスがないことを確認して
@@ -333,9 +323,9 @@ Git作業ツリー、担当ブランチ、基準コミット、許可パスを�
 task_primary_root="$(pwd -P)"
 task_base_commit="$(git rev-parse HEAD)"
 task_lane="<担当識別子>"
-task_worktree="$(dirname "$task_primary_root")/librepaint-r2-g19b-$task_lane"
+task_worktree="$(dirname "$task_primary_root")/librepaint-work-$task_lane"
 test ! -e "$task_worktree"
-git worktree add -b "work/r2-g19b-$task_lane" \
+git worktree add -b "work/$task_lane" \
   "$task_worktree" "$task_base_commit"
 ```
 
@@ -371,7 +361,7 @@ Linux検証はLinux担当票を受けた担当だけが`ssh nixos`の実機で�
 変更パス:
 構造変更の移動元と移動先:
 固定した挙動と分類:
-契約台帳へ追加する target/source/test/behavior/classification/apis:
+利用者から観測する結果と試験の対応:
 期待した最初の診断:
 変更前後の計画、直接依存、コマンド数、入力数:
 対象CTest、反復、影響範囲、高速検査の結果:
@@ -381,12 +371,12 @@ Linux検証はLinux担当票を受けた担当だけが`ssh nixos`の実機で�
 
 `Git操作権限`が`transport-commit`の場合、実装担当は担当票の許可パスだけを一つの引渡しコミットにまとめる。
 `uncommitted`の場合は担当作業ツリーを未コミットのまま保持し、`ready`または`blocked`で止める。
-引渡しコミットは中央台帳と進捗を含まないため、`develop`へ直接入れる完成変更ではない。
+引渡しコミットは統合後の文書と検証結果を含まないため、`develop`へ直接入れる完成変更ではない。
 
 統合担当は担当の差分が許可パス内に収まることと、基準コミット以後の統合済み変更との非重複を
-確認する。準備済みの担当を一つずつ現在の統合作業ツリーへ取り込み、契約台帳、README、TODO、
-PROGRESSを同じ差分へ追加する。その後、対象CTest、必要な隣接CTest、公開API契約報告、
-`verify-quick`を実行し、未対応件数の純減を確認する。一つの担当を一つのレビュー可能な変更として
+確認する。準備済みの担当を一つずつ現在の統合作業ツリーへ取り込み、README、TODO、
+PROGRESSの必要な更新を同じ差分へ追加する。その後、対象CTest、必要な隣接CTest、
+`verify-quick`を実行する。一つの担当を一つのレビュー可能な変更として
 完了してから、次の担当を統合する。
 
 担当は、許可パス外の変更、別担当との重複、新しい公開API、未割当て依存、巨大な構築閉包、
@@ -398,9 +388,9 @@ PROGRESSを同じ差分へ追加する。その後、対象CTest、必要な隣�
 除去するため、対象を`git worktree list`の登録済み絶対パスへ限定する。未統合または未コミットの担当は
 作業ツリーを保持する。作業ブランチ削除は、履歴の保存要否を確認する別の保守操作として扱う。
 
-統合担当は、代替成果の検査後に不要となった生成物を直ちに削除する。公開API契約作業は再利用する主Ninja木、
-共有コンパイラーキャッシュ、最新の未対応API一覧だけを保持する。新一覧の件数と統合試験の成功後に旧一覧を削除し、
-担当構築木をゴミ箱へ移した場合も対象経路を確認して容量を回収する。`PROGRESS.md`に保持容量と回収容量を記録する。
+統合担当は、統合試験の成功後に不要となった生成物を削除する。
+担当構築木をゴミ箱へ移した場合も対象経路を確認して容量を回収する。
+`PROGRESS.md`に継続利用する生成物と回収した生成物を記録する。
 利用中の主増分構築木、共有キャッシュ、利用者所有の成果物は保持する。
 
 CMake構成を変更したときは、対象プラットフォームの構成入口を実行する。

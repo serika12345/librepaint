@@ -174,11 +174,11 @@ another large Nix store source path. Work that changes the Nix development
 environment uses an explicitly assigned primary-worktree lane instead.
 
 The coordinator exclusively owns `AGENTS.md`, the architecture roadmap and
-progress documents, `docs/architecture/public-api-test-contracts.json`, and
-shared generated inventories unless a task packet explicitly transfers one of
-those files. A worker changes only its assigned production, test, fixture, and
-package-local CMake paths. It reports registry entries and documentation facts
-as structured handoff data instead of editing coordinator-owned files.
+progress documents, and shared generated artifacts unless a task packet
+explicitly transfers one of those files. A worker changes only its assigned
+production, test, fixture, and package-local CMake paths. It reports behavioral
+guarantees and documentation facts as structured handoff data instead of
+editing coordinator-owned files.
 
 Workers follow the complete implementation workflow within their lane,
 including the unchanged build plan, direct dependencies, clean command
@@ -191,29 +191,39 @@ another lane, changes an unassigned public API, needs an unassigned dependency,
 or exposes an ambiguous behavior classification.
 
 The coordinator inspects and integrates one ready lane at a time, synchronizes
-the central contract registry and architecture documents in the integrated
-change, reruns the affected contract and governance checks, and advances the
-missing-API baseline only after those checks pass. Lane commits are transport
-artifacts rather than completed `develop` changes. Commits, branch creation,
+architecture documents in the integrated change and reruns the affected
+contract and governance checks. Lane commits are transport artifacts rather
+than completed `develop` changes. Commits, branch creation,
 integration, worktree removal, and branch deletion still require the authority
 defined by the user and the Completion section below.
 
 The coordinator removes obsolete generated storage as soon as its replacement
 is verified. Completed lane worktrees include their lane-local build trees in
-the same removal. Public-API migration work keeps the reusable primary Ninja
-tree, shared compiler cache, and only the newest missing-API report; it removes
-the preceding report and any lane build moved to Trash immediately after the
-new report and integrated tests succeed. Record retained storage and reclaimed
-lane storage in the progress snapshot. Preserve user-owned artifacts and do not
+the same removal. Keep the reusable primary Ninja tree and shared compiler
+cache. Remove obsolete lane build artifacts after integrated tests succeed.
+Record retained storage and reclaimed lane storage in the progress snapshot.
+Preserve user-owned artifacts and do not
 discard the primary incremental tree or shared cache while they remain useful.
 
 The task-packet, worktree, handoff, and integration procedures live in the
-"公開API契約の並列実装" section of
+"責務単位の並列実装" section of
 `docs/architecture/DEVELOPMENT.md`.
 
 ## Test-Driven Development
 
 Tests protect behavior and governance checks protect structure.
+
+Existing tests are maintained from their source and CMake definitions. Review
+assertions against callers and explicit requirements. Each retained test must
+explain what breaks for a caller when it fails. Preserve observable results,
+state transitions, necessary notifications, effects, errors, and domain
+invariants. Compatibility tests require an explicit compatibility requirement.
+Remove declaration-shape and implementation-detail assertions when they carry
+no public guarantee; add a behavioral test only for a required observable
+contract that existing tests do not cover. API inventories and declaration
+coverage quotas are not maintained because they encourage fixing incidental
+implementation structure. Record decisions in review descriptions and current
+work in the progress snapshot.
 
 Use these layers:
 
