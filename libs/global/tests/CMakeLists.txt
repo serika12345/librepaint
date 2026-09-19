@@ -54,6 +54,20 @@ target_include_directories(KisGlobalValuesContractTest PRIVATE
 )
 target_compile_definitions(KisGlobalValuesContractTest PRIVATE kritaglobal_EXPORTS)
 
+if (UNIX AND NOT IOS)
+    kis_add_test(
+        KisCrashSignalHandlerSetupContractTest.cpp
+        LINK_LIBRARIES
+            kritaglobalcrashsignalhandlersetupobjects
+            Qt${QT_MAJOR_VERSION}::Test
+    )
+    target_include_directories(KisCrashSignalHandlerSetupContractTest PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/..
+        ${CMAKE_CURRENT_BINARY_DIR}/..
+    )
+    target_compile_definitions(KisCrashSignalHandlerSetupContractTest PRIVATE kritaglobal_EXPORTS)
+endif()
+
 kis_add_test(
     KisGlobalDiagnosticsSchemaContractTest.cpp
     LINK_LIBRARIES

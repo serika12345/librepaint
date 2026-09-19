@@ -781,6 +781,23 @@ set_target_properties(kritaglobalhandlepainterhelperobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+if (UNIX AND NOT IOS)
+    add_library(kritaglobalcrashsignalhandlersetupobjects OBJECT
+        KisCrashSignalHandlerSetup.cpp
+    )
+    target_compile_definitions(kritaglobalcrashsignalhandlersetupobjects PRIVATE kritaglobal_EXPORTS)
+    target_include_directories(kritaglobalcrashsignalhandlersetupobjects
+        PUBLIC
+            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+            $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    )
+    target_link_libraries(kritaglobalcrashsignalhandlersetupobjects PUBLIC Qt${QT_MAJOR_VERSION}::Core)
+    set_target_properties(kritaglobalcrashsignalhandlersetupobjects PROPERTIES
+        AUTOMOC OFF
+        POSITION_INDEPENDENT_CODE ON
+    )
+endif()
+
 set(kritaglobal_LIB_SRCS
     kis_assert.cpp
     kis_algebra_2d.cpp
@@ -791,6 +808,7 @@ set(kritaglobal_LIB_SRCS
 
 if (ANDROID)
     list(APPEND kritaglobal_LIB_SRCS
+        $<TARGET_OBJECTS:kritaglobalcrashsignalhandlersetupobjects>
         KisAndroidCrashHandler.cpp
         KisAndroidExitInfo.cpp
         KisAndroidLogHandler.cpp
