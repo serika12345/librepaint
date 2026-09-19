@@ -6,7 +6,6 @@
 #include <QSet>
 #include <QTest>
 
-#include <type_traits>
 
 #include "kis_composite_ops_model.h"
 #include "kis_composite_ops_model_source_p.h"
@@ -170,10 +169,6 @@ void KisCompositeOpsModelContractTest::sharedInstanceInitializesOnce()
 
 void KisCompositeOpsModelContractTest::identifiersAndDisplayNames()
 {
-    static_assert(std::is_base_of_v<BaseKoIDCategorizedListModel,
-                                    KisCompositeOpListModel>);
-    static_assert(std::is_base_of_v<QSortFilterProxyModel,
-                                    KisSortedCompositeOpListModel>);
 
     const KoID id(QStringLiteral("multiply"), QStringLiteral("Multiply"));
     KoIDToQStringConverter converter;

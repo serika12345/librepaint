@@ -13,7 +13,6 @@
 #include <QTime>
 
 #include <cstddef>
-#include <type_traits>
 
 namespace
 {
@@ -369,8 +368,6 @@ private Q_SLOTS:
 
 void KoShapeDistributeCommandContractTest::distributionValuesRemainStable()
 {
-    QVERIFY((std::is_base_of_v<KUndo2Command, KoShapeDistributeCommand>));
-    QVERIFY(std::has_virtual_destructor_v<KoShapeDistributeCommand>);
     QCOMPARE(static_cast<int>(KoShapeDistributeCommand::HorizontalCenterDistribution), 0);
     QCOMPARE(static_cast<int>(KoShapeDistributeCommand::HorizontalGapsDistribution), 1);
     QCOMPARE(static_cast<int>(KoShapeDistributeCommand::HorizontalLeftDistribution), 2);

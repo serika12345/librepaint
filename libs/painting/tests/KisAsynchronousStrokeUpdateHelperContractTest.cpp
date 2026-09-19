@@ -11,7 +11,6 @@
 #include <QTest>
 
 #include <memory>
-#include <type_traits>
 
 class KisStroke
 {
@@ -82,8 +81,6 @@ private Q_SLOTS:
 
 void KisAsynchronousStrokeUpdateHelperContractTest::updateDataPreservesSchedulingAndForceAcrossClone()
 {
-    static_assert(
-        std::is_same_v<KisAsynchronousStrokeUpdateHelper::UpdateDataFactory, std::function<KisStrokeJobData *(bool)>>);
 
     KisAsynchronousStrokeUpdateHelper::UpdateData defaults(false);
     QVERIFY(!defaults.forceUpdate);

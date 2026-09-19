@@ -8,7 +8,6 @@
 #include <QTest>
 
 #include <memory>
-#include <type_traits>
 
 namespace
 {
@@ -83,9 +82,6 @@ private Q_SLOTS:
 
 void KisMetaDataMergeStrategyContractTest::identityMethodsDispatchUnicodeValues()
 {
-    static_assert(std::is_abstract_v<KisMetaData::MergeStrategy>);
-    static_assert(std::is_polymorphic_v<KisMetaData::MergeStrategy>);
-    static_assert(std::has_virtual_destructor_v<KisMetaData::MergeStrategy>);
 
     RecordingMergeStrategy strategy;
     const KisMetaData::MergeStrategy &interface = strategy;

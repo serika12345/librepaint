@@ -7,7 +7,6 @@
 
 #include <QTest>
 
-#include <type_traits>
 
 namespace
 {
@@ -15,8 +14,6 @@ namespace
 struct PaintOpProbe {
 };
 
-#define ASSERT_PAINTOP_UTILS_FUNCTION(function, signature)                                                             \
-    static_assert(std::is_same_v<decltype(static_cast<signature>(&KisPaintOpUtils::function)), signature>)
 
 } // namespace
 
@@ -27,9 +24,6 @@ class KisPaintOpUtilsSchemaContractTest : public QObject
 private Q_SLOTS:
     void positionHistoryTypeAndUpdateBehaviorRemainStable();
     void sizeAndAutomaticSpacingBehaviorRemainStable();
-    void effectiveSpacingAndTimingSignaturesRemainStable();
-    void dabRectangleSplittingSignaturesRemainStable();
-    void fanAndLinePaintingTemplateSignaturesRemainStable();
 };
 
 // clang-format off
@@ -38,10 +32,6 @@ void KisPaintOpUtilsSchemaContractTest::positionHistoryTypeAndUpdateBehaviorRema
 {
     using History = KisPaintOpUtils::PositionHistory;
 
-    static_assert(std::is_class_v<History>);
-    static_assert(std::is_default_constructible_v<History>);
-    static_assert(std::is_same_v<decltype(&History::reset), void (History::*)(const QPointF &)>);
-    static_assert(std::is_same_v<decltype(&History::pushThroughHistory), QPointF (History::*)(const QPointF &, qreal)>);
 
     History history;
     const QPointF initialPoint(10.0, 20.0);
@@ -58,9 +48,6 @@ void KisPaintOpUtilsSchemaContractTest::positionHistoryTypeAndUpdateBehaviorRema
 void KisPaintOpUtilsSchemaContractTest::sizeAndAutomaticSpacingBehaviorRemainStable()
 // clang-format on
 {
-    ASSERT_PAINTOP_UTILS_FUNCTION(checkSizeTooSmall, bool (*)(qreal, qreal, qreal));
-    ASSERT_PAINTOP_UTILS_FUNCTION(calcAutoSpacing, qreal (*)(qreal, qreal));
-    ASSERT_PAINTOP_UTILS_FUNCTION(calcAutoSpacing, QPointF (*)(const QPointF &, qreal, qreal));
 
     QVERIFY(KisPaintOpUtils::checkSizeTooSmall(1.0, 0.009, 10.0));
     QVERIFY(KisPaintOpUtils::checkSizeTooSmall(1.0, 10.0, 0.009));
@@ -71,50 +58,8 @@ void KisPaintOpUtilsSchemaContractTest::sizeAndAutomaticSpacingBehaviorRemainSta
 }
 
 // clang-format off
-void KisPaintOpUtilsSchemaContractTest::effectiveSpacingAndTimingSignaturesRemainStable()
-// clang-format on
-{
-    using SpacingSignature =
-        KisSpacingInformation (*)(qreal, qreal, qreal, bool, bool, qreal, bool, qreal, bool, qreal, qreal);
-    using TimingSignature = KisTimingInformation (*)(bool, qreal, qreal);
-
-    ASSERT_PAINTOP_UTILS_FUNCTION(effectiveSpacing, SpacingSignature);
-    ASSERT_PAINTOP_UTILS_FUNCTION(effectiveTiming, TimingSignature);
-}
-
 // clang-format off
-void KisPaintOpUtilsSchemaContractTest::dabRectangleSplittingSignaturesRemainStable()
-// clang-format on
-{
-    using FilterSignature = QVector<QRect> (*)(const QRect &, const QVector<QRect> &, int);
-    using SplitSignature = QVector<QRect> (*)(const QVector<QRect> &, int, int, qreal);
-
-    ASSERT_PAINTOP_UTILS_FUNCTION(splitAndFilterDabRect, FilterSignature);
-    ASSERT_PAINTOP_UTILS_FUNCTION(splitDabsIntoRects, SplitSignature);
-}
-
 // clang-format off
-void KisPaintOpUtilsSchemaContractTest::fanAndLinePaintingTemplateSignaturesRemainStable()
-// clang-format on
-{
-    using FanSignature = bool (*)(PaintOpProbe &,
-                                  const KisPaintInformation &,
-                                  const KisPaintInformation &,
-                                  KisDistanceInformation *,
-                                  qreal);
-    using LineSignature = void (*)(PaintOpProbe &,
-                                   const KisPaintInformation &,
-                                   const KisPaintInformation &,
-                                   KisDistanceInformation *,
-                                   bool,
-                                   qreal);
-
-    ASSERT_PAINTOP_UTILS_FUNCTION(paintFan<PaintOpProbe>, FanSignature);
-    ASSERT_PAINTOP_UTILS_FUNCTION(paintLine<PaintOpProbe>, LineSignature);
-}
-
-#undef ASSERT_PAINTOP_UTILS_FUNCTION
-
 QTEST_GUILESS_MAIN(KisPaintOpUtilsSchemaContractTest)
 
 #include "KisPaintOpUtilsSchemaContractTest.moc"

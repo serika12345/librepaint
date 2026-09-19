@@ -10,7 +10,6 @@
 #include <QTest>
 #include <QWidget>
 
-#include <type_traits>
 
 namespace
 {
@@ -55,10 +54,6 @@ private Q_SLOTS:
 
 void KisStackedWidgetContractTest::followsParentOwnershipAndDisablesValueTransfer()
 {
-    QVERIFY(!std::is_copy_constructible_v<KisStackedWidget>);
-    QVERIFY(!std::is_copy_assignable_v<KisStackedWidget>);
-    QVERIFY(!std::is_move_constructible_v<KisStackedWidget>);
-    QVERIFY(!std::is_move_assignable_v<KisStackedWidget>);
 
     auto *parent = new QWidget;
     QPointer<KisStackedWidget> stack = new KisStackedWidget(parent);

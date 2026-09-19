@@ -8,7 +8,6 @@
 #include <QTest>
 
 #include <stdexcept>
-#include <type_traits>
 
 namespace
 {
@@ -21,22 +20,39 @@ enum ChannelCode {
 };
 
 template<typename T>
-struct ChannelCodeForType {
+struct ChannelCodeForType;
+
+template<>
+struct ChannelCodeForType<quint8> {
     int operator()(int offset) const
     {
-        if constexpr (std::is_same_v<T, quint8>) {
-            return ChannelU8 + offset;
-        } else if constexpr (std::is_same_v<T, quint16>) {
-            return ChannelU16 + offset;
-#ifdef HAVE_OPENEXR
-        } else if constexpr (std::is_same_v<T, half>) {
-            return ChannelF16 + offset;
-#endif
-        } else if constexpr (std::is_same_v<T, float>) {
-            return ChannelF32 + offset;
-        }
+        return ChannelU8 + offset;
+    }
+};
 
-        return -1;
+template<>
+struct ChannelCodeForType<quint16> {
+    int operator()(int offset) const
+    {
+        return ChannelU16 + offset;
+    }
+};
+
+#ifdef HAVE_OPENEXR
+template<>
+struct ChannelCodeForType<half> {
+    int operator()(int offset) const
+    {
+        return ChannelF16 + offset;
+    }
+};
+#endif
+
+template<>
+struct ChannelCodeForType<float> {
+    int operator()(int offset) const
+    {
+        return ChannelF32 + offset;
     }
 };
 

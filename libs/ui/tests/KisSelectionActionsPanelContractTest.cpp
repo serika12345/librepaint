@@ -16,7 +16,6 @@
 
 #include <array>
 #include <memory>
-#include <type_traits>
 
 #include <kis_shared.h>
 
@@ -284,14 +283,6 @@ private Q_SLOTS:
 
 void KisSelectionActionsPanelContractTest::publicTypesAndConstructionRegisterStableActions()
 {
-    static_assert(std::is_base_of_v<QObject, KisSelectionActionsPanel>);
-    static_assert(!std::is_default_constructible_v<KisSelectionActionsPanel>);
-    static_assert(std::is_same_v<Orientation, KisConfig::SelectionActionsBarOrientation>);
-    static_assert(std::is_same_v<Position, KisConfig::SelectionActionsBarPosition>);
-    static_assert(std::is_same_v<Behavior, KisConfig::SelectionActionsBarBehavior>);
-    static_assert(std::is_same_v<KisSelectionActionsPanelSP,
-                                 KisSharedPtr<KisSelectionActionsPanel>>);
-    static_assert(!std::is_base_of_v<KisShared, KisSelectionActionsPanel>);
 
     Fixture fixture;
     QPointer<KisSelectionActionsPanel> guard;

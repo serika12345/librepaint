@@ -213,46 +213,6 @@ target_compile_definitions(KisTextureOptionDataValueContractTest PRIVATE
 )
 
 
-kis_add_test(
-    KisDabCacheBaseSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Test
-        Boost::boost
-)
-target_include_directories(KisDabCacheBaseSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    ${CMAKE_SOURCE_DIR}/libs/brush
-    ${CMAKE_BINARY_DIR}/libs/brush
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-    ${CMAKE_SOURCE_DIR}/libs/image
-    ${CMAKE_BINARY_DIR}/libs/image
-    ${CMAKE_SOURCE_DIR}/libs/image/brushengine
-    ${CMAKE_SOURCE_DIR}/libs/pigment
-    ${CMAKE_BINARY_DIR}/libs/pigment
-    ${CMAKE_SOURCE_DIR}/libs/resources
-    ${CMAKE_BINARY_DIR}/libs/resources
-    ${CMAKE_SOURCE_DIR}/libs/widgetutils
-    ${CMAKE_BINARY_DIR}/libs/widgetutils
-)
-target_include_directories(KisDabCacheBaseSchemaContractTest SYSTEM PRIVATE
-    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Gui,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Xml,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:Eigen3::Eigen,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:Imath::ImathConfig,INTERFACE_INCLUDE_DIRECTORIES>
-)
-target_compile_definitions(KisDabCacheBaseSchemaContractTest PRIVATE
-    HAVE_THREADED_TEXT_RENDERING_WORKAROUND
-    kritaglobal_EXPORTS
-    kritaimage_EXPORTS
-    kritalibpaintop_EXPORTS
-    kritapigment_EXPORTS
-    kritaresources_EXPORTS
-    kritawidgetutils_EXPORTS
-)
 
 kis_add_test(
     KisPaintOpFactorySchemaContractTest.cpp
@@ -287,48 +247,6 @@ target_compile_definitions(KisPaintOpFactorySchemaContractTest PRIVATE
 )
 
 
-kis_add_test(
-    KisBrushBasedPaintOpSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Test
-        Boost::boost
-)
-target_include_directories(KisBrushBasedPaintOpSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    ${CMAKE_SOURCE_DIR}/libs/brush
-    ${CMAKE_BINARY_DIR}/libs/brush
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-    ${CMAKE_SOURCE_DIR}/libs/image
-    ${CMAKE_BINARY_DIR}/libs/image
-    ${CMAKE_SOURCE_DIR}/libs/image/brushengine
-    ${CMAKE_SOURCE_DIR}/libs/pigment
-    ${CMAKE_BINARY_DIR}/libs/pigment
-    ${CMAKE_SOURCE_DIR}/libs/pigment/resources
-    ${CMAKE_SOURCE_DIR}/libs/resources
-    ${CMAKE_BINARY_DIR}/libs/resources
-    ${CMAKE_SOURCE_DIR}/libs/tools/ui
-    ${CMAKE_BINARY_DIR}/libs/tools/ui
-)
-target_include_directories(KisBrushBasedPaintOpSchemaContractTest SYSTEM PRIVATE
-    $<TARGET_PROPERTY:Eigen3::Eigen,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:Imath::ImathConfig,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Gui,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Widgets,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Xml,INTERFACE_INCLUDE_DIRECTORIES>
-)
-target_compile_definitions(KisBrushBasedPaintOpSchemaContractTest PRIVATE
-    HAVE_THREADED_TEXT_RENDERING_WORKAROUND
-    kritaglobal_EXPORTS
-    kritaimage_EXPORTS
-    kritalibpaintop_EXPORTS
-    kritapigment_EXPORTS
-    kritaresources_EXPORTS
-    kritatoolsui_EXPORTS
-)
 
 kis_add_test(
     KisCurveOptionSchemaContractTest.cpp

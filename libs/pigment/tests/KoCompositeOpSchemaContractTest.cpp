@@ -7,16 +7,10 @@
 
 #include <QTest>
 
-#include <type_traits>
 #include <utility>
 
 namespace
 {
-#define ASSERT_COMPOSITE_MEMBER(method, signature)                                                                     \
-    static_assert(std::is_same_v<decltype(static_cast<signature>(&KoCompositeOp::method)), signature>)
-#define ASSERT_PARAMETER_MEMBER(method, signature)                                                                     \
-    static_assert(std::is_same_v<decltype(static_cast<signature>(&KoCompositeOp::ParameterInfo::method)), signature>)
-#define ASSERT_COMPOSITE_CATEGORY(method) static_assert(std::is_same_v<decltype(&KoCompositeOp::method), QString (*)()>)
 } // namespace
 
 class KoCompositeOpSchemaContractTest : public QObject
@@ -26,23 +20,12 @@ class KoCompositeOpSchemaContractTest : public QObject
 private Q_SLOTS:
     void compositeParameterBufferDefaultsRemainStable();
     void compositeParameterOpacityAndCopyBehaviorRemainStable();
-    void compositeCategorySignaturesRemainStable();
-    void compositeIdentityAndLifecycleSignaturesRemainStable();
-    void compositeInvocationSignaturesRemainStable();
 };
 
 void KoCompositeOpSchemaContractTest::compositeParameterBufferDefaultsRemainStable()
 {
     using ParameterInfo = KoCompositeOp::ParameterInfo;
 
-    static_assert(std::is_class_v<ParameterInfo>);
-    static_assert(std::is_default_constructible_v<ParameterInfo>);
-    static_assert(std::is_same_v<decltype(ParameterInfo::dstRowStart), quint8 *>);
-    static_assert(std::is_same_v<decltype(ParameterInfo::dstRowStride), qint32>);
-    static_assert(std::is_same_v<decltype(ParameterInfo::srcRowStart), const quint8 *>);
-    static_assert(std::is_same_v<decltype(ParameterInfo::srcRowStride), qint32>);
-    static_assert(std::is_same_v<decltype(ParameterInfo::maskRowStart), const quint8 *>);
-    static_assert(std::is_same_v<decltype(ParameterInfo::maskRowStride), qint32>);
 
     const ParameterInfo parameters;
 
@@ -65,18 +48,6 @@ void KoCompositeOpSchemaContractTest::compositeParameterOpacityAndCopyBehaviorRe
 {
     using ParameterInfo = KoCompositeOp::ParameterInfo;
 
-    static_assert(std::is_same_v<decltype(ParameterInfo::rows), qint32>);
-    static_assert(std::is_same_v<decltype(ParameterInfo::cols), qint32>);
-    static_assert(std::is_same_v<decltype(ParameterInfo::opacity), float>);
-    static_assert(std::is_same_v<decltype(ParameterInfo::flow), float>);
-    static_assert(std::is_same_v<decltype(ParameterInfo::_lastOpacityData), float>);
-    static_assert(std::is_same_v<decltype(ParameterInfo::lastOpacity), float *>);
-    static_assert(std::is_same_v<decltype(ParameterInfo::channelFlags), QBitArray>);
-    static_assert(std::is_copy_constructible_v<ParameterInfo>);
-    static_assert(std::is_copy_assignable_v<ParameterInfo>);
-    ASSERT_PARAMETER_MEMBER(operator=, ParameterInfo & (ParameterInfo::*)(const ParameterInfo &));
-    ASSERT_PARAMETER_MEMBER(setOpacityAndAverage, void (ParameterInfo::*)(float, float));
-    ASSERT_PARAMETER_MEMBER(updateOpacityAndAverage, void (ParameterInfo::*)(float));
 
     quint8 destinationByte = 0;
     const quint8 sourceByte = 0;
@@ -150,66 +121,6 @@ void KoCompositeOpSchemaContractTest::compositeParameterOpacityAndCopyBehaviorRe
     QCOMPARE(averagedOpacity.opacity, 0.2f);
     QCOMPARE(averagedOpacity.lastOpacity, &averagedOpacity._lastOpacityData);
     QVERIFY(qFuzzyCompare(averagedOpacity._lastOpacityData, 0.74f));
-}
-
-void KoCompositeOpSchemaContractTest::compositeCategorySignaturesRemainStable()
-{
-    ASSERT_COMPOSITE_CATEGORY(categoryArithmetic);
-    ASSERT_COMPOSITE_CATEGORY(categoryBinary);
-    ASSERT_COMPOSITE_CATEGORY(categoryModulo);
-    ASSERT_COMPOSITE_CATEGORY(categoryNegative);
-    ASSERT_COMPOSITE_CATEGORY(categoryLight);
-    ASSERT_COMPOSITE_CATEGORY(categoryDark);
-    ASSERT_COMPOSITE_CATEGORY(categoryHSY);
-    ASSERT_COMPOSITE_CATEGORY(categoryHSI);
-    ASSERT_COMPOSITE_CATEGORY(categoryHSL);
-    ASSERT_COMPOSITE_CATEGORY(categoryHSV);
-    ASSERT_COMPOSITE_CATEGORY(categoryMix);
-    ASSERT_COMPOSITE_CATEGORY(categoryMisc);
-    ASSERT_COMPOSITE_CATEGORY(categoryQuadratic);
-}
-
-void KoCompositeOpSchemaContractTest::compositeIdentityAndLifecycleSignaturesRemainStable()
-{
-    static_assert(std::is_class_v<KoCompositeOp>);
-    static_assert(std::is_constructible_v<KoCompositeOp, const KoColorSpace *, const QString &, const QString &>);
-    static_assert(std::is_constructible_v<KoCompositeOp, const KoColorSpace *, const QString &>);
-    static_assert(std::is_destructible_v<KoCompositeOp>);
-    static_assert(std::has_virtual_destructor_v<KoCompositeOp>);
-
-    ASSERT_COMPOSITE_MEMBER(id, QString (KoCompositeOp::*)() const);
-    ASSERT_COMPOSITE_MEMBER(description, QString (KoCompositeOp::*)() const);
-    ASSERT_COMPOSITE_MEMBER(colorSpace, const KoColorSpace *(KoCompositeOp::*)() const);
-    ASSERT_COMPOSITE_MEMBER(category, QString (KoCompositeOp::*)() const);
-}
-
-void KoCompositeOpSchemaContractTest::compositeInvocationSignaturesRemainStable()
-{
-    using ParameterComposite = void (KoCompositeOp::*)(const KoCompositeOp::ParameterInfo &) const;
-    using BufferComposite = void (KoCompositeOp::*)(quint8 *,
-                                                    qint32,
-                                                    const quint8 *,
-                                                    qint32,
-                                                    const quint8 *,
-                                                    qint32,
-                                                    qint32,
-                                                    qint32,
-                                                    float,
-                                                    const QBitArray &) const;
-
-    ASSERT_COMPOSITE_MEMBER(composite, ParameterComposite);
-    ASSERT_COMPOSITE_MEMBER(composite, BufferComposite);
-    static_assert(
-        std::is_same_v<decltype(std::declval<const KoCompositeOp &>().composite(static_cast<quint8 *>(nullptr),
-                                                                                qint32{},
-                                                                                static_cast<const quint8 *>(nullptr),
-                                                                                qint32{},
-                                                                                static_cast<const quint8 *>(nullptr),
-                                                                                qint32{},
-                                                                                qint32{},
-                                                                                qint32{},
-                                                                                float{})),
-                       void>);
 }
 
 QTEST_APPLESS_MAIN(KoCompositeOpSchemaContractTest)

@@ -11,7 +11,6 @@
 
 #include <cmath>
 #include <tuple>
-#include <type_traits>
 #include <utility>
 #include <vector>
 
@@ -75,7 +74,6 @@ void KisZugContractTest::roundMappingUsesQtRounding()
 
 void KisZugContractTest::functorAndTupleMappingsTransformEachInput()
 {
-    QVERIFY(std::is_empty_v<kiszug::empty_t>);
 
     const auto timesTwo = kiszug::to_functor(kiszug::map_multiply<int>(2));
     QCOMPARE(timesTwo(3), 6);

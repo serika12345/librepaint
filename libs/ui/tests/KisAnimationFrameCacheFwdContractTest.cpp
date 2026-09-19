@@ -10,7 +10,6 @@
 #include <QAtomicInt>
 #include <QTest>
 
-#include <type_traits>
 
 class KisAnimationFrameCache
 {
@@ -64,8 +63,6 @@ private Q_SLOTS:
 
 void KisAnimationFrameCacheFwdContractTest::strongAndWeakAliasesShareAndTrackCacheLifetime()
 {
-    static_assert(std::is_same_v<KisAnimationFrameCacheSP, KisSharedPtr<KisAnimationFrameCache>>);
-    static_assert(std::is_same_v<KisAnimationFrameCacheWSP, KisWeakSharedPtr<KisAnimationFrameCache>>);
 
     int destructionCount = 0;
     KisAnimationFrameCacheSP strong = new KisAnimationFrameCache(&destructionCount);

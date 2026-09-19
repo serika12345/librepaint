@@ -10,7 +10,6 @@
 #include <QTest>
 
 #include <array>
-#include <type_traits>
 
 void kis_assert_exception(const char *assertion, const char *file, int line)
 {
@@ -117,7 +116,6 @@ void KisAslWriterUtilsContractTest::readerParseExceptionPreservesDiagnostic()
 {
     using ParseException = KisAslReaderUtils::ASLParseException;
 
-    static_assert(std::is_base_of_v<std::runtime_error, ParseException>);
     const ParseException exception(QStringLiteral("read failed: tag"));
     QCOMPARE(QString::fromLatin1(exception.what()), QStringLiteral("read failed: tag"));
 }

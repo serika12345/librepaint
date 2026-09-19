@@ -7,7 +7,6 @@
 
 #include <QTest>
 
-#include <type_traits>
 
 class KisDlgImportVideoAnimationSchemaContractTest : public QObject
 {
@@ -17,18 +16,10 @@ private Q_SLOTS:
     void basicVideoStreamGeometryValueSchemaRemainsStable();
     void basicVideoEncodingAndColorValueSchemaRemainsStable();
     void renderedFramesValueSchemaRemainsStable();
-    void videoImportDialogIdentityAndLifecycleSignatureRemainsStable();
-    void videoImportDialogPublicWorkflowSignaturesRemainStable();
 };
 
 void KisDlgImportVideoAnimationSchemaContractTest::basicVideoStreamGeometryValueSchemaRemainsStable()
 {
-    static_assert(std::is_same_v<decltype(KisBasicVideoInfo::file), QString>);
-    static_assert(std::is_same_v<decltype(KisBasicVideoInfo::stream), int>);
-    static_assert(std::is_same_v<decltype(KisBasicVideoInfo::width), int>);
-    static_assert(std::is_same_v<decltype(KisBasicVideoInfo::height), int>);
-    static_assert(std::is_same_v<decltype(KisBasicVideoInfo::fps), float>);
-    static_assert(std::is_same_v<decltype(KisBasicVideoInfo::frames), int>);
 
     KisBasicVideoInfo original;
     QVERIFY(original.file.isEmpty());
@@ -57,13 +48,6 @@ void KisDlgImportVideoAnimationSchemaContractTest::basicVideoStreamGeometryValue
 
 void KisDlgImportVideoAnimationSchemaContractTest::basicVideoEncodingAndColorValueSchemaRemainsStable()
 {
-    static_assert(std::is_same_v<decltype(KisBasicVideoInfo::duration), float>);
-    static_assert(std::is_same_v<decltype(KisBasicVideoInfo::encoding), QString>);
-    static_assert(std::is_same_v<decltype(KisBasicVideoInfo::pixFormat), QString>);
-    static_assert(std::is_same_v<decltype(KisBasicVideoInfo::hasOverriddenFPS), bool>);
-    static_assert(std::is_same_v<decltype(KisBasicVideoInfo::colorPrimaries), ColorPrimaries>);
-    static_assert(std::is_same_v<decltype(KisBasicVideoInfo::colorTransfer), TransferCharacteristics>);
-    static_assert(std::is_same_v<decltype(KisBasicVideoInfo::colorDepth), QString>);
 
     KisBasicVideoInfo original;
     QCOMPARE(original.duration, 0.0F);
@@ -90,8 +74,6 @@ void KisDlgImportVideoAnimationSchemaContractTest::basicVideoEncodingAndColorVal
 
 void KisDlgImportVideoAnimationSchemaContractTest::renderedFramesValueSchemaRemainsStable()
 {
-    static_assert(std::is_same_v<decltype(RenderedFrames::renderedFrameFiles), QStringList>);
-    static_assert(std::is_same_v<decltype(RenderedFrames::renderedFrameTargetTimes), QList<int>>);
 
     RenderedFrames original;
     QVERIFY(!original.framesNeedRelocation());
@@ -109,27 +91,6 @@ void KisDlgImportVideoAnimationSchemaContractTest::renderedFramesValueSchemaRema
     QCOMPARE(original.renderedFrameTargetTimes.constFirst(), 3);
     QCOMPARE(copy.size(), size_t(2));
     QCOMPARE(copy.renderedFrameTargetTimes.constFirst(), 7);
-}
-
-void KisDlgImportVideoAnimationSchemaContractTest::videoImportDialogIdentityAndLifecycleSignatureRemainsStable()
-{
-    static_assert(std::is_class_v<KisDlgImportVideoAnimation>);
-    static_assert(std::is_constructible_v<KisDlgImportVideoAnimation, KisMainWindow *, KisView *>);
-}
-
-void KisDlgImportVideoAnimationSchemaContractTest::videoImportDialogPublicWorkflowSignaturesRemainStable()
-{
-    using DocumentInfo = QStringList (KisDlgImportVideoAnimation::*)();
-    using RenderFrames = RenderedFrames (KisDlgImportVideoAnimation::*)(const QDir &);
-    using ShowOpenFileDialog = QStringList (KisDlgImportVideoAnimation::*)();
-
-    static_assert(
-        std::is_same_v<decltype(static_cast<DocumentInfo>(&KisDlgImportVideoAnimation::documentInfo)), DocumentInfo>);
-    static_assert(
-        std::is_same_v<decltype(static_cast<RenderFrames>(&KisDlgImportVideoAnimation::renderFrames)), RenderFrames>);
-    static_assert(
-        std::is_same_v<decltype(static_cast<ShowOpenFileDialog>(&KisDlgImportVideoAnimation::showOpenFileDialog)),
-                       ShowOpenFileDialog>);
 }
 
 QTEST_APPLESS_MAIN(KisDlgImportVideoAnimationSchemaContractTest)

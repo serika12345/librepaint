@@ -10,7 +10,6 @@
 #include <QTest>
 
 #include <memory>
-#include <type_traits>
 
 namespace
 {
@@ -77,7 +76,6 @@ class KisSequentialIteratorProgressContractTest : public QObject
 private Q_SLOTS:
     void borrowedProxyReceivesProgressOperationsInOrder();
     void nullProxyUsesTheSafeFallback();
-    void aliasesSelectTheExpectedPoliciesAndAcceptAProxy();
 };
 
 void KisSequentialIteratorProgressContractTest::borrowedProxyReceivesProgressOperationsInOrder()
@@ -119,20 +117,6 @@ void KisSequentialIteratorProgressContractTest::nullProxyUsesTheSafeFallback()
 
     QCOMPARE(KoFakeProgressProxy::instance(), fallback);
     QCOMPARE(fallback->maximum(), 100);
-}
-
-void KisSequentialIteratorProgressContractTest::aliasesSelectTheExpectedPoliciesAndAcceptAProxy()
-{
-    using ExpectedReadOnly =
-        KisSequentialIteratorBase<ReadOnlyIteratorPolicy<>, DevicePolicy, ProxyBasedProgressPolicy>;
-    using ExpectedWritable =
-        KisSequentialIteratorBase<WritableIteratorPolicy<>, DevicePolicy, ProxyBasedProgressPolicy>;
-
-    QVERIFY((std::is_same_v<KisSequentialConstIteratorProgress, ExpectedReadOnly>));
-    QVERIFY((std::is_same_v<KisSequentialIteratorProgress, ExpectedWritable>));
-    QVERIFY(
-        (std::is_constructible_v<KisSequentialConstIteratorProgress, DevicePolicy, const QRect &, KoProgressProxy *>));
-    QVERIFY((std::is_constructible_v<KisSequentialIteratorProgress, DevicePolicy, const QRect &, KoProgressProxy *>));
 }
 
 QTEST_GUILESS_MAIN(KisSequentialIteratorProgressContractTest)

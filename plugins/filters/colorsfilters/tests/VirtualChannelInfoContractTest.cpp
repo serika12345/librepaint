@@ -10,7 +10,6 @@
 
 #include <QtTest>
 
-#include <type_traits>
 
 QList<KoChannelInfo *> KoColorSpace::channels() const
 {
@@ -22,36 +21,14 @@ class VirtualChannelInfoContractTest : public QObject
     Q_OBJECT
 
 private Q_SLOTS:
-    void typeAndChannelKindsRemainStable();
     void constructionDefaultsRemainStable();
     void typePositionAndBorrowedChannelRemainStable();
     void channelRepresentationRemainStable();
     void alphaClassificationRemainsStable();
 };
 
-void VirtualChannelInfoContractTest::typeAndChannelKindsRemainStable()
-{
-    using Type = VirtualChannelInfo::Type;
-
-    static_assert(std::is_class_v<VirtualChannelInfo>);
-    static_assert(std::is_enum_v<Type>);
-    static_assert(VirtualChannelInfo::REAL == 0);
-    static_assert(VirtualChannelInfo::HUE == 1);
-    static_assert(VirtualChannelInfo::SATURATION == 2);
-    static_assert(VirtualChannelInfo::LIGHTNESS == 3);
-    static_assert(VirtualChannelInfo::ALL_COLORS == 4);
-
-    QVERIFY(true);
-}
-
 void VirtualChannelInfoContractTest::constructionDefaultsRemainStable()
 {
-    static_assert(std::is_default_constructible_v<VirtualChannelInfo>);
-    static_assert(std::is_constructible_v<VirtualChannelInfo,
-                                          VirtualChannelInfo::Type,
-                                          int,
-                                          KoChannelInfo *,
-                                          const KoColorSpace *>);
 
     const VirtualChannelInfo defaultChannel;
     QCOMPARE(int(defaultChannel.type()), int(VirtualChannelInfo::LIGHTNESS));

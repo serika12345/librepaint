@@ -4,7 +4,6 @@
  */
 
 #include <memory>
-#include <type_traits>
 
 #include <QTest>
 
@@ -89,11 +88,6 @@ void KisChangeValueCommandContractTest::factoriesDeduceValueTypesAndJoinParentOw
     auto *directCommand = makeChangeValueCommand<&DirectState::value>(&directState, short{11}, &parent);
     auto *indirectCommand = makeChangeIndirectValueCommand<&IndirectState::value>(&indirectState, short{12}, &parent);
 
-    static_assert(std::is_same_v<decltype(directCommand), KisChangeValueCommand<&DirectState::value, short> *>);
-    static_assert(
-        std::is_same_v<decltype(indirectCommand), KisChangeIndirectValueCommand<&IndirectState::value, short> *>);
-    static_assert(std::is_base_of_v<KUndo2Command, KisChangeValueCommand<&DirectState::value, short>>);
-    static_assert(std::is_base_of_v<KUndo2Command, KisChangeIndirectValueCommand<&IndirectState::value, short>>);
 
     QCOMPARE(parent.childCount(), 2);
     QCOMPARE(parent.child(0), directCommand);

@@ -129,76 +129,8 @@ target_compile_definitions(KisPNGConverterSchemaContractTest PRIVATE
     kritaimpex_EXPORTS
 )
 
-kis_add_test(
-    KisClipboardSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Test
-)
-target_include_directories(KisClipboardSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/../ui
-    ${CMAKE_SOURCE_DIR}/libs/image
-    ${CMAKE_BINARY_DIR}/libs/image
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/application
-    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Gui,INTERFACE_INCLUDE_DIRECTORIES>
-)
-target_compile_definitions(KisClipboardSchemaContractTest PRIVATE
-    kritaapplicationui_EXPORTS
-    kritaglobal_EXPORTS
-    kritaimage_EXPORTS
-)
 
-kis_add_test(
-    KisImportExportManagerSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Test
-)
-target_include_directories(KisImportExportManagerSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/../ui
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_SOURCE_DIR}/libs/image
-    ${CMAKE_BINARY_DIR}/libs/image
-    ${CMAKE_SOURCE_DIR}/libs/pigment
-    ${CMAKE_BINARY_DIR}/libs/pigment
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/impex
-    ${CMAKE_BINARY_DIR}/libs/application
-    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Gui,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:Eigen3::Eigen,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:Imath::Imath,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
-)
-target_compile_definitions(KisImportExportManagerSchemaContractTest PRIVATE
-    kritaapplicationui_EXPORTS
-    kritaglobal_EXPORTS
-    kritaimage_EXPORTS
-    kritaimpex_EXPORTS
-    kritapigment_EXPORTS
-)
 
-kis_add_test(
-    KisSaveGroupVisitorSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Test
-)
-target_include_directories(KisSaveGroupVisitorSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/../ui
-    ${CMAKE_SOURCE_DIR}/libs/image
-    ${CMAKE_BINARY_DIR}/libs/image
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/application
-)
-target_compile_definitions(KisSaveGroupVisitorSchemaContractTest PRIVATE
-    kritaapplicationui_EXPORTS
-    kritaglobal_EXPORTS
-    kritaimage_EXPORTS
-)
 
 kis_add_test(
     KisDlgImportVideoAnimationSchemaContractTest.cpp

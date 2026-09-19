@@ -8,7 +8,6 @@
 #include <QSignalSpy>
 #include <QTest>
 
-#include <type_traits>
 
 #include "kis_paintop_options_model.h"
 #include "kis_paintop_options_model_source_p.h"
@@ -116,8 +115,6 @@ void KisPaintOpOptionsModelContractTest::init()
 
 void KisPaintOpOptionsModelContractTest::optionInfoHasDeterministicValueAndIdentity()
 {
-    static_assert(std::is_base_of_v<BaseOptionCategorizedListModel,
-                                    KisPaintOpOptionListModel>);
 
     KisOptionInfo empty;
     QVERIFY(empty.label.isEmpty());

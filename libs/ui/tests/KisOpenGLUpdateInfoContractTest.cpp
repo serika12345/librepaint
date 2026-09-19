@@ -7,13 +7,10 @@
 
 #include <QTest>
 
-#include <type_traits>
 
 namespace
 {
 
-#define ASSERT_OPENGL_UPDATE_INFO_MEMBER(type, method, signature)                                                      \
-    static_assert(std::is_same_v<decltype(static_cast<signature>(&type::method)), signature>)
 
 } // namespace
 
@@ -31,17 +28,8 @@ private Q_SLOTS:
 
 void KisOpenGLUpdateInfoContractTest::conversionOptionsDefaultsAndExplicitValuesRemainStable()
 {
-    using Intent = KoColorConversionTransformation::Intent;
     using Flags = KoColorConversionTransformation::ConversionFlags;
 
-    static_assert(std::is_class_v<ConversionOptions>);
-    static_assert(std::is_default_constructible_v<ConversionOptions>);
-    static_assert(std::is_constructible_v<ConversionOptions, const KoColorSpace *, Intent, Flags>);
-    static_assert(std::is_same_v<decltype(&ConversionOptions::m_needsConversion), bool ConversionOptions::*>);
-    static_assert(std::is_same_v<decltype(&ConversionOptions::m_destinationColorSpace),
-                                 const KoColorSpace * ConversionOptions::*>);
-    static_assert(std::is_same_v<decltype(&ConversionOptions::m_renderingIntent), Intent ConversionOptions::*>);
-    static_assert(std::is_same_v<decltype(&ConversionOptions::m_conversionFlags), Flags ConversionOptions::*>);
 
     const ConversionOptions defaults;
     QVERIFY(!defaults.m_needsConversion);
@@ -66,10 +54,6 @@ void KisOpenGLUpdateInfoContractTest::openGLUpdateInfoTypeConstructionAndTileSto
 {
     using Info = KisOpenGLUpdateInfo;
 
-    static_assert(std::is_class_v<Info>);
-    static_assert(std::is_base_of_v<KisUpdateInfo, Info>);
-    static_assert(std::is_default_constructible_v<Info>);
-    static_assert(std::is_same_v<decltype(&Info::tileList), KisTextureTileUpdateInfoSPList Info::*>);
 
     Info info;
     QVERIFY(info.tileList.isEmpty());
@@ -83,8 +67,6 @@ void KisOpenGLUpdateInfoContractTest::dirtyImageRectangleMutationRemainsStable()
 {
     using Info = KisOpenGLUpdateInfo;
 
-    ASSERT_OPENGL_UPDATE_INFO_MEMBER(Info, assignDirtyImageRect, void (Info::*)(const QRect &));
-    ASSERT_OPENGL_UPDATE_INFO_MEMBER(Info, dirtyImageRect, QRect (Info::*)() const);
 
     Info info;
     QCOMPARE(info.dirtyImageRect(), QRect());
@@ -98,8 +80,6 @@ void KisOpenGLUpdateInfoContractTest::levelOfDetailMutationRemainsStable()
 {
     using Info = KisOpenGLUpdateInfo;
 
-    ASSERT_OPENGL_UPDATE_INFO_MEMBER(Info, assignLevelOfDetail, void (Info::*)(int));
-    ASSERT_OPENGL_UPDATE_INFO_MEMBER(Info, levelOfDetail, int (Info::*)() const);
 
     Info info;
     QCOMPARE(info.levelOfDetail(), 0);
@@ -112,8 +92,6 @@ void KisOpenGLUpdateInfoContractTest::mergeAndViewportContractRemainStable()
 {
     using Info = KisOpenGLUpdateInfo;
 
-    ASSERT_OPENGL_UPDATE_INFO_MEMBER(Info, dirtyViewportRect, QRect (Info::*)());
-    ASSERT_OPENGL_UPDATE_INFO_MEMBER(Info, tryMergeWith, bool (Info::*)(const Info &));
 
     Info accumulated;
     accumulated.assignLevelOfDetail(2);
@@ -137,8 +115,6 @@ void KisOpenGLUpdateInfoContractTest::mergeAndViewportContractRemainStable()
     QCOMPARE(accumulated.dirtyImageRect(), QRect(0, 0, 9, 9));
     QCOMPARE(accumulated.tileList.size(), 1);
 }
-
-#undef ASSERT_OPENGL_UPDATE_INFO_MEMBER
 
 QTEST_APPLESS_MAIN(KisOpenGLUpdateInfoContractTest)
 

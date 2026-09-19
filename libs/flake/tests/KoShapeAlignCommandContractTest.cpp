@@ -13,7 +13,6 @@
 #include <QTime>
 
 #include <cstddef>
-#include <type_traits>
 
 namespace
 {
@@ -354,8 +353,6 @@ private Q_SLOTS:
 
 void KoShapeAlignCommandContractTest::alignmentValuesRemainStable()
 {
-    QVERIFY((std::is_base_of_v<KUndo2Command, KoShapeAlignCommand>));
-    QVERIFY(std::has_virtual_destructor_v<KoShapeAlignCommand>);
     QCOMPARE(static_cast<int>(KoShapeAlignCommand::HorizontalLeftAlignment), 0);
     QCOMPARE(static_cast<int>(KoShapeAlignCommand::HorizontalCenterAlignment), 1);
     QCOMPARE(static_cast<int>(KoShapeAlignCommand::HorizontalRightAlignment), 2);

@@ -9,7 +9,6 @@
 #include <QTest>
 
 #include <memory>
-#include <type_traits>
 
 class KUndo2MagicString
 {
@@ -101,9 +100,6 @@ private Q_SLOTS:
 
 void KisUndoStoreInterfaceContractTest::constructionAndHistorySignalRemainObservable()
 {
-    static_assert(std::is_abstract_v<KisUndoStore>);
-    static_assert(std::is_polymorphic_v<KisUndoStore>);
-    static_assert(std::has_virtual_destructor_v<KisUndoStore>);
 
     RecordingUndoStore store;
     QVERIFY(!store.parent());

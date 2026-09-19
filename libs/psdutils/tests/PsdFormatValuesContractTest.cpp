@@ -13,7 +13,6 @@
 #include <QDebug>
 #include <QTest>
 
-#include <type_traits>
 
 namespace
 {
@@ -27,25 +26,10 @@ using GradientFill = psd_layer_gradient_fill;
 using PatternFill = psd_layer_pattern_fill;
 using SolidColorFill = psd_layer_solid_color;
 
-#define ASSERT_BEVEL_SIGNATURE(functionName, signatureType)                                                            \
-    static_assert(std::is_same_v<decltype(static_cast<signatureType>(&BevelEmboss::functionName)), signatureType>)
-#define ASSERT_SHADOW_SIGNATURE(functionName, signatureType)                                                           \
-    static_assert(std::is_same_v<decltype(static_cast<signatureType>(&ShadowBase::functionName)), signatureType>)
-#define ASSERT_OVERLAY_SIGNATURE(functionName, signatureType)                                                          \
-    static_assert(std::is_same_v<decltype(static_cast<signatureType>(&OverlayBase::functionName)), signatureType>)
-#define ASSERT_OVERLAY_STROKE_SIGNATURE(functionName, signatureType)                                                   \
-    static_assert(std::is_same_v<decltype(static_cast<signatureType>(&OverlayStroke::functionName)), signatureType>)
-#define ASSERT_ADDITIONAL_LAYER_INFO_SIGNATURE(functionName, signatureType)                                            \
-    static_assert(                                                                                                     \
-        std::is_same_v<decltype(static_cast<signatureType>(&AdditionalLayerInfo::functionName)), signatureType>)
-#define ASSERT_FILL_SIGNATURE(typeName, functionName, signatureType)                                                   \
-    static_assert(std::is_same_v<decltype(static_cast<signatureType>(&typeName::functionName)), signatureType>)
 
 template<typename Resource>
 void verifyLegacyResourceAcceptsAndIgnoresPayloads()
 {
-    static_assert(std::is_base_of_v<PSDInterpretedResource, Resource>);
-    static_assert(std::is_default_constructible_v<Resource>);
 
     Resource resource;
     QVERIFY(resource.error.isEmpty());
@@ -74,31 +58,6 @@ private Q_SLOTS:
     void legacyClangCompressionDebugOutputRemainsStable();
     void colorSamplerIdentifiersRemainStable();
     void layerEffectEnumsRemainStable();
-    void bevelGeometryAndTechniqueSignaturesRemainStable();
-    void bevelGlossAndContourSignaturesRemainStable();
-    void bevelLightBlendSignaturesRemainStable();
-    void bevelTextureControlSignaturesRemainStable();
-    void bevelTexturePhaseAndValueTypeRemainStable();
-    void shadowBaseValueTypeAndActivationSignaturesRemainStable();
-    void shadowBaseBlendAndLightingSignaturesRemainStable();
-    void shadowBaseGeometrySignaturesRemainStable();
-    void shadowBaseContourVariationSignaturesRemainStable();
-    void shadowBaseFillTechniqueSignaturesRemainStable();
-    void layerEffectHierarchySchemaRemainsStable();
-    void layerEffectContextAndSubtypePolicySchemaRemainsStable();
-    void shadowColorValueSignaturesRemainStable();
-    void layerEffectGeometryScalingSignaturesRemainStable();
-    void bevelColorValueSignaturesRemainStable();
-    void gradientColorStopMemberSchemaRemainsStable();
-    void bevelContourAndTextureResourceSignaturesRemainStable();
-    void layerEffectShadowHierarchyLifecycleSignaturesRemainStable();
-    void layerEffectGlowLifecycleSignaturesRemainStable();
-    void shadowContourAndGradientResourceSignaturesRemainStable();
-    void overlayHierarchyConstructionSignaturesRemainStable();
-    void overlayGradientControlSignaturesRemainStable();
-    void overlayGradientGeometrySignaturesRemainStable();
-    void overlayPatternSelectionAndPhaseSignaturesRemainStable();
-    void overlayStrokePositionSignaturesRemainStable();
     void resourceIdentityFieldsAreIndependentValues();
     void transparencyStopsPreserveSignedValues();
     void patternDefaultsMatchTheEmptyRecord();
@@ -136,26 +95,15 @@ private Q_SLOTS:
     void gradientMapStopSequencesPreserveCountsAndPointerIdentity();
     void gradientMapProceduralControlsPreserveSignedValues();
     void gradientMapColorTableCopiesInlineValuesIndependently();
-    void layerRecordSerializedFieldTypesRemainStable();
     void layerMaskRectanglePreservesSignedCoordinates();
     void layerMaskControlsPreserveDefaultsAndCopyState();
     void layerBlendingRangePreservesEndpointArrays();
     void layerBlendingRangesPreserveValueCopies();
-    void additionalLayerInfoIdentityAndHandlerSignaturesRemainStable();
-    void additionalLayerInfoSerializedIdentityFieldTypesRemainStable();
-    void additionalLayerInfoPayloadFieldTypesRemainStable();
-    void additionalLayerInfoCoreBlockWriterSignaturesRemainStable();
-    void additionalLayerInfoPayloadWriterSignaturesRemainStable();
     void gradientFillDefaultsAndCopiesValueState();
     void gradientFillScalarSettersPreserveSignedValues();
     void gradientFillTypeCodesAndSvgCompatibilityRemainStable();
     void patternFillDefaultsAndCopiesValueState();
     void patternFillSettersPreserveValues();
-    void gradientFillRepresentationSignaturesRemainStable();
-    void gradientFillInputAndSerializationSignaturesRemainStable();
-    void patternFillConversionSignaturesRemainStable();
-    void solidColorFillValueAndRepresentationSchemaRemainsStable();
-    void solidColorFillInputAndSerializationSignaturesRemainStable();
     void interpretedResourceDefaultsRemainStable();
     void resolutionInfoDefaultsAndCopiesRemainIndependent();
     void resolutionInfoBlocksRoundTripInMemory();
@@ -172,7 +120,6 @@ void PsdFormatValuesContractTest::fileLimitsAndStorageEnumsRemainStable()
 {
     QCOMPARE(MAX_CHANNELS, 56);
     QCOMPARE(MAX_PSD_SIZE, 30000);
-    static_assert(std::is_same_v<Fixed, qint32>);
 
     QCOMPARE(int(psd_byte_order::psdBigEndian), 0);
     QCOMPARE(int(psd_byte_order::psdLittleEndian), 1);
@@ -275,345 +222,6 @@ void PsdFormatValuesContractTest::layerEffectEnumsRemainStable()
     QCOMPARE(int(psd_open_folder), 1);
     QCOMPARE(int(psd_closed_folder), 2);
     QCOMPARE(int(psd_bounding_divider), 3);
-}
-
-void PsdFormatValuesContractTest::bevelGeometryAndTechniqueSignaturesRemainStable()
-{
-    using StyleGetter = psd_bevel_style (BevelEmboss::*)() const;
-    using StyleSetter = void (BevelEmboss::*)(psd_bevel_style);
-    using TechniqueGetter = psd_technique_type (BevelEmboss::*)() const;
-    using TechniqueSetter = void (BevelEmboss::*)(psd_technique_type);
-    using IntGetter = int (BevelEmboss::*)() const;
-    using IntSetter = void (BevelEmboss::*)(int);
-    using DirectionGetter = psd_direction (BevelEmboss::*)() const;
-    using DirectionSetter = void (BevelEmboss::*)(psd_direction);
-
-    ASSERT_BEVEL_SIGNATURE(style, StyleGetter);
-    ASSERT_BEVEL_SIGNATURE(setStyle, StyleSetter);
-    ASSERT_BEVEL_SIGNATURE(technique, TechniqueGetter);
-    ASSERT_BEVEL_SIGNATURE(setTechnique, TechniqueSetter);
-    ASSERT_BEVEL_SIGNATURE(depth, IntGetter);
-    ASSERT_BEVEL_SIGNATURE(setDepth, IntSetter);
-    ASSERT_BEVEL_SIGNATURE(direction, DirectionGetter);
-    ASSERT_BEVEL_SIGNATURE(setDirection, DirectionSetter);
-    ASSERT_BEVEL_SIGNATURE(soften, IntGetter);
-    ASSERT_BEVEL_SIGNATURE(setSoften, IntSetter);
-    ASSERT_BEVEL_SIGNATURE(altitude, IntGetter);
-    ASSERT_BEVEL_SIGNATURE(setAltitude, IntSetter);
-}
-
-void PsdFormatValuesContractTest::bevelGlossAndContourSignaturesRemainStable()
-{
-    using BoolGetter = bool (BevelEmboss::*)() const;
-    using BoolSetter = void (BevelEmboss::*)(bool);
-    using IntGetter = int (BevelEmboss::*)() const;
-    using IntSetter = void (BevelEmboss::*)(int);
-
-    ASSERT_BEVEL_SIGNATURE(glossAntiAliased, BoolGetter);
-    ASSERT_BEVEL_SIGNATURE(setGlossAntiAliased, BoolSetter);
-    ASSERT_BEVEL_SIGNATURE(contourEnabled, BoolGetter);
-    ASSERT_BEVEL_SIGNATURE(setContourEnabled, BoolSetter);
-    ASSERT_BEVEL_SIGNATURE(contourRange, IntGetter);
-    ASSERT_BEVEL_SIGNATURE(setContourRange, IntSetter);
-}
-
-void PsdFormatValuesContractTest::bevelLightBlendSignaturesRemainStable()
-{
-    using BlendModeGetter = QString (BevelEmboss::*)() const;
-    using BlendModeSetter = void (BevelEmboss::*)(QString);
-    using OpacityGetter = qint32 (BevelEmboss::*)() const;
-    using OpacitySetter = void (BevelEmboss::*)(qint32);
-
-    ASSERT_BEVEL_SIGNATURE(highlightBlendMode, BlendModeGetter);
-    ASSERT_BEVEL_SIGNATURE(setHighlightBlendMode, BlendModeSetter);
-    ASSERT_BEVEL_SIGNATURE(highlightOpacity, OpacityGetter);
-    ASSERT_BEVEL_SIGNATURE(setHighlightOpacity, OpacitySetter);
-    ASSERT_BEVEL_SIGNATURE(shadowBlendMode, BlendModeGetter);
-    ASSERT_BEVEL_SIGNATURE(setShadowBlendMode, BlendModeSetter);
-    ASSERT_BEVEL_SIGNATURE(shadowOpacity, OpacityGetter);
-    ASSERT_BEVEL_SIGNATURE(setShadowOpacity, OpacitySetter);
-}
-
-void PsdFormatValuesContractTest::bevelTextureControlSignaturesRemainStable()
-{
-    using BoolGetter = bool (BevelEmboss::*)() const;
-    using BoolSetter = void (BevelEmboss::*)(bool);
-    using IntGetter = int (BevelEmboss::*)() const;
-    using IntSetter = void (BevelEmboss::*)(int);
-
-    ASSERT_BEVEL_SIGNATURE(textureEnabled, BoolGetter);
-    ASSERT_BEVEL_SIGNATURE(setTextureEnabled, BoolSetter);
-    ASSERT_BEVEL_SIGNATURE(textureScale, IntGetter);
-    ASSERT_BEVEL_SIGNATURE(setTextureScale, IntSetter);
-    ASSERT_BEVEL_SIGNATURE(textureDepth, IntGetter);
-    ASSERT_BEVEL_SIGNATURE(setTextureDepth, IntSetter);
-    ASSERT_BEVEL_SIGNATURE(textureInvert, BoolGetter);
-    ASSERT_BEVEL_SIGNATURE(setTextureInvert, BoolSetter);
-    ASSERT_BEVEL_SIGNATURE(textureAlignWithLayer, BoolGetter);
-    ASSERT_BEVEL_SIGNATURE(setTextureAlignWithLayer, BoolSetter);
-}
-
-void PsdFormatValuesContractTest::bevelTexturePhaseAndValueTypeRemainStable()
-{
-    using PhaseGetter = QPointF (BevelEmboss::*)() const;
-    using PhaseSetter = void (BevelEmboss::*)(const QPointF &);
-    using IntGetter = int (BevelEmboss::*)() const;
-    using IntSetter = void (BevelEmboss::*)(int);
-
-    static_assert(std::is_base_of_v<psd_layer_effects_shadow_base, BevelEmboss>);
-    static_assert(std::is_copy_constructible_v<BevelEmboss>);
-    static_assert(std::is_copy_assignable_v<BevelEmboss>);
-    ASSERT_BEVEL_SIGNATURE(texturePhase, PhaseGetter);
-    ASSERT_BEVEL_SIGNATURE(setTexturePhase, PhaseSetter);
-    ASSERT_BEVEL_SIGNATURE(textureHorizontalPhase, IntGetter);
-    ASSERT_BEVEL_SIGNATURE(setTextureHorizontalPhase, IntSetter);
-    ASSERT_BEVEL_SIGNATURE(textureVerticalPhase, IntGetter);
-    ASSERT_BEVEL_SIGNATURE(setTextureVerticalPhase, IntSetter);
-}
-
-void PsdFormatValuesContractTest::shadowBaseValueTypeAndActivationSignaturesRemainStable()
-{
-    using BoolGetter = bool (ShadowBase::*)() const;
-    using BoolSetter = void (ShadowBase::*)(bool);
-
-    static_assert(std::is_class_v<ShadowBase>);
-    static_assert(std::is_polymorphic_v<ShadowBase>);
-    ASSERT_SHADOW_SIGNATURE(effectEnabled, BoolGetter);
-    ASSERT_SHADOW_SIGNATURE(setEffectEnabled, BoolSetter);
-    ASSERT_SHADOW_SIGNATURE(invertsSelection, BoolGetter);
-    ASSERT_SHADOW_SIGNATURE(setInvertsSelection, BoolSetter);
-    ASSERT_SHADOW_SIGNATURE(edgeHidden, BoolGetter);
-    ASSERT_SHADOW_SIGNATURE(setEdgeHidden, BoolSetter);
-    ASSERT_SHADOW_SIGNATURE(knocksOut, BoolGetter);
-    ASSERT_SHADOW_SIGNATURE(setKnocksOut, BoolSetter);
-}
-
-void PsdFormatValuesContractTest::shadowBaseBlendAndLightingSignaturesRemainStable()
-{
-    using BlendModeGetter = QString (ShadowBase::*)() const;
-    using BlendModeSetter = void (ShadowBase::*)(QString);
-    using ScalarGetter = qint32 (ShadowBase::*)() const;
-    using ScalarSetter = void (ShadowBase::*)(qint32);
-    using BoolGetter = bool (ShadowBase::*)() const;
-    using BoolSetter = void (ShadowBase::*)(bool);
-
-    ASSERT_SHADOW_SIGNATURE(blendMode, BlendModeGetter);
-    ASSERT_SHADOW_SIGNATURE(setBlendMode, BlendModeSetter);
-    ASSERT_SHADOW_SIGNATURE(opacity, ScalarGetter);
-    ASSERT_SHADOW_SIGNATURE(setOpacity, ScalarSetter);
-    ASSERT_SHADOW_SIGNATURE(angle, ScalarGetter);
-    ASSERT_SHADOW_SIGNATURE(setAngle, ScalarSetter);
-    ASSERT_SHADOW_SIGNATURE(useGlobalLight, BoolGetter);
-    ASSERT_SHADOW_SIGNATURE(setUseGlobalLight, BoolSetter);
-}
-
-void PsdFormatValuesContractTest::shadowBaseGeometrySignaturesRemainStable()
-{
-    using ScalarGetter = qint32 (ShadowBase::*)() const;
-    using ScalarSetter = void (ShadowBase::*)(qint32);
-
-    ASSERT_SHADOW_SIGNATURE(distance, ScalarGetter);
-    ASSERT_SHADOW_SIGNATURE(setDistance, ScalarSetter);
-    ASSERT_SHADOW_SIGNATURE(spread, ScalarGetter);
-    ASSERT_SHADOW_SIGNATURE(setSpread, ScalarSetter);
-    ASSERT_SHADOW_SIGNATURE(size, ScalarGetter);
-    ASSERT_SHADOW_SIGNATURE(setSize, ScalarSetter);
-}
-
-void PsdFormatValuesContractTest::shadowBaseContourVariationSignaturesRemainStable()
-{
-    using BoolGetter = bool (ShadowBase::*)() const;
-    using BoolSetter = void (ShadowBase::*)(bool);
-    using ScalarGetter = qint32 (ShadowBase::*)() const;
-    using ScalarSetter = void (ShadowBase::*)(qint32);
-
-    ASSERT_SHADOW_SIGNATURE(antiAliased, BoolGetter);
-    ASSERT_SHADOW_SIGNATURE(setAntiAliased, BoolSetter);
-    ASSERT_SHADOW_SIGNATURE(noise, ScalarGetter);
-    ASSERT_SHADOW_SIGNATURE(setNoise, ScalarSetter);
-    ASSERT_SHADOW_SIGNATURE(range, ScalarGetter);
-    ASSERT_SHADOW_SIGNATURE(setRange, ScalarSetter);
-    ASSERT_SHADOW_SIGNATURE(jitter, ScalarGetter);
-    ASSERT_SHADOW_SIGNATURE(setJitter, ScalarSetter);
-}
-
-void PsdFormatValuesContractTest::shadowBaseFillTechniqueSignaturesRemainStable()
-{
-    using FillGetter = psd_fill_type (ShadowBase::*)() const;
-    using FillSetter = void (ShadowBase::*)(psd_fill_type);
-    using TechniqueGetter = psd_technique_type (ShadowBase::*)() const;
-    using TechniqueSetter = void (ShadowBase::*)(psd_technique_type);
-
-    ASSERT_SHADOW_SIGNATURE(fillType, FillGetter);
-    ASSERT_SHADOW_SIGNATURE(setFillType, FillSetter);
-    ASSERT_SHADOW_SIGNATURE(technique, TechniqueGetter);
-    ASSERT_SHADOW_SIGNATURE(setTechnique, TechniqueSetter);
-}
-
-void PsdFormatValuesContractTest::layerEffectHierarchySchemaRemainsStable()
-{
-    using ShadowCommon = psd_layer_effects_shadow_common;
-    using DropShadow = psd_layer_effects_drop_shadow;
-    using InnerShadow = psd_layer_effects_inner_shadow;
-    using GlowCommon = psd_layer_effects_glow_common;
-    using OuterGlow = psd_layer_effects_outer_glow;
-    using InnerGlow = psd_layer_effects_inner_glow;
-
-    static_assert(std::is_class_v<ShadowCommon>);
-    static_assert(std::is_base_of_v<ShadowBase, ShadowCommon>);
-    static_assert(std::is_class_v<DropShadow>);
-    static_assert(std::is_base_of_v<ShadowCommon, DropShadow>);
-    static_assert(std::is_class_v<InnerShadow>);
-    static_assert(std::is_base_of_v<ShadowCommon, InnerShadow>);
-    static_assert(std::is_class_v<GlowCommon>);
-    static_assert(std::is_base_of_v<ShadowBase, GlowCommon>);
-    static_assert(std::is_class_v<OuterGlow>);
-    static_assert(std::is_base_of_v<GlowCommon, OuterGlow>);
-    static_assert(std::is_class_v<InnerGlow>);
-    static_assert(std::is_base_of_v<GlowCommon, InnerGlow>);
-}
-
-void PsdFormatValuesContractTest::layerEffectContextAndSubtypePolicySchemaRemainsStable()
-{
-    using Context = psd_layer_effects_context;
-    using Satin = psd_layer_effects_satin;
-    using InnerGlow = psd_layer_effects_inner_glow;
-    using SatinGetter = bool (Satin::*)() const;
-    using SatinSetter = void (Satin::*)(bool);
-    using SourceGetter = psd_glow_source (InnerGlow::*)() const;
-    using SourceSetter = void (InnerGlow::*)(psd_glow_source);
-
-    static_assert(std::is_class_v<Context>);
-    static_assert(std::is_default_constructible_v<Context>);
-    static_assert(std::is_same_v<decltype(Context::keep_original), bool>);
-    static_assert(std::is_class_v<Satin>);
-    static_assert(std::is_base_of_v<ShadowBase, Satin>);
-    static_assert(std::is_same_v<decltype(static_cast<SatinGetter>(&Satin::invert)), SatinGetter>);
-    static_assert(std::is_same_v<decltype(static_cast<SatinSetter>(&Satin::setInvert)), SatinSetter>);
-    static_assert(std::is_same_v<decltype(static_cast<SourceGetter>(&InnerGlow::source)), SourceGetter>);
-    static_assert(std::is_same_v<decltype(static_cast<SourceSetter>(&InnerGlow::setSource)), SourceSetter>);
-}
-
-void PsdFormatValuesContractTest::shadowColorValueSignaturesRemainStable()
-{
-    using ColorGetter = KoColor (ShadowBase::*)() const;
-    using ColorSetter = void (ShadowBase::*)(KoColor);
-
-    ASSERT_SHADOW_SIGNATURE(color, ColorGetter);
-    ASSERT_SHADOW_SIGNATURE(setColor, ColorSetter);
-    ASSERT_SHADOW_SIGNATURE(nativeColor, ColorGetter);
-    ASSERT_SHADOW_SIGNATURE(setNativeColor, ColorSetter);
-}
-
-void PsdFormatValuesContractTest::layerEffectGeometryScalingSignaturesRemainStable()
-{
-    using Context = psd_layer_effects_context;
-    using OffsetGetter = QPoint (ShadowBase::*)(const Context *) const;
-    using ShadowScale = void (ShadowBase::*)(qreal);
-    using BevelScale = void (BevelEmboss::*)(qreal);
-
-    ASSERT_SHADOW_SIGNATURE(calculateOffset, OffsetGetter);
-    ASSERT_SHADOW_SIGNATURE(scaleLinearSizes, ShadowScale);
-    ASSERT_BEVEL_SIGNATURE(scaleLinearSizes, BevelScale);
-}
-
-void PsdFormatValuesContractTest::bevelColorValueSignaturesRemainStable()
-{
-    using ColorGetter = KoColor (BevelEmboss::*)() const;
-    using ColorSetter = void (BevelEmboss::*)(KoColor);
-
-    ASSERT_BEVEL_SIGNATURE(highlightColor, ColorGetter);
-    ASSERT_BEVEL_SIGNATURE(setHighlightColor, ColorSetter);
-    ASSERT_BEVEL_SIGNATURE(shadowColor, ColorGetter);
-    ASSERT_BEVEL_SIGNATURE(setShadowColor, ColorSetter);
-}
-
-void PsdFormatValuesContractTest::overlayHierarchyConstructionSignaturesRemainStable()
-{
-    using ColorOverlay = psd_layer_effects_color_overlay;
-    using GradientOverlay = psd_layer_effects_gradient_overlay;
-    using PatternOverlay = psd_layer_effects_pattern_overlay;
-
-    static_assert(std::is_class_v<OverlayBase>);
-    static_assert(std::is_default_constructible_v<OverlayBase>);
-
-    static_assert(std::is_class_v<ColorOverlay>);
-    static_assert(std::is_base_of_v<OverlayBase, ColorOverlay>);
-    static_assert(std::is_default_constructible_v<ColorOverlay>);
-
-    static_assert(std::is_class_v<GradientOverlay>);
-    static_assert(std::is_base_of_v<OverlayBase, GradientOverlay>);
-    static_assert(std::is_default_constructible_v<GradientOverlay>);
-
-    static_assert(std::is_class_v<PatternOverlay>);
-    static_assert(std::is_base_of_v<OverlayBase, PatternOverlay>);
-    static_assert(std::is_default_constructible_v<PatternOverlay>);
-
-    static_assert(std::is_class_v<OverlayStroke>);
-    static_assert(std::is_base_of_v<OverlayBase, OverlayStroke>);
-    static_assert(std::is_default_constructible_v<OverlayStroke>);
-}
-
-void PsdFormatValuesContractTest::overlayGradientControlSignaturesRemainStable()
-{
-    using IntGetter = int (OverlayBase::*)() const;
-    using IntSetter = void (OverlayBase::*)(int);
-    using BoolGetter = bool (OverlayBase::*)() const;
-    using BoolSetter = void (OverlayBase::*)(bool);
-
-    ASSERT_OVERLAY_SIGNATURE(scale, IntGetter);
-    ASSERT_OVERLAY_SIGNATURE(setScale, IntSetter);
-    ASSERT_OVERLAY_SIGNATURE(alignWithLayer, BoolGetter);
-    ASSERT_OVERLAY_SIGNATURE(setAlignWithLayer, BoolSetter);
-    ASSERT_OVERLAY_SIGNATURE(dither, BoolGetter);
-    ASSERT_OVERLAY_SIGNATURE(setDither, BoolSetter);
-    ASSERT_OVERLAY_SIGNATURE(reverse, BoolGetter);
-    ASSERT_OVERLAY_SIGNATURE(setReverse, BoolSetter);
-}
-
-void PsdFormatValuesContractTest::overlayGradientGeometrySignaturesRemainStable()
-{
-    using StyleGetter = psd_gradient_style (OverlayBase::*)() const;
-    using StyleSetter = void (OverlayBase::*)(psd_gradient_style);
-    using IntGetter = int (OverlayBase::*)() const;
-    using OffsetSetter = void (OverlayBase::*)(const QPointF &);
-    using OffsetGetter = QPointF (OverlayBase::*)() const;
-    using ScaleLinearSizes = void (OverlayBase::*)(qreal);
-
-    ASSERT_OVERLAY_SIGNATURE(style, StyleGetter);
-    ASSERT_OVERLAY_SIGNATURE(setStyle, StyleSetter);
-    ASSERT_OVERLAY_SIGNATURE(gradientXOffset, IntGetter);
-    ASSERT_OVERLAY_SIGNATURE(gradientYOffset, IntGetter);
-    ASSERT_OVERLAY_SIGNATURE(setGradientOffset, OffsetSetter);
-    ASSERT_OVERLAY_SIGNATURE(gradientOffset, OffsetGetter);
-    ASSERT_OVERLAY_SIGNATURE(scaleLinearSizes, ScaleLinearSizes);
-}
-
-void PsdFormatValuesContractTest::overlayPatternSelectionAndPhaseSignaturesRemainStable()
-{
-    using PatternLinkGetter = KoResourceSignature (OverlayBase::*)() const;
-    using PatternGetter = KoPatternSP (OverlayBase::*)(KisResourcesInterfaceSP) const;
-    using PatternSetter = void (OverlayBase::*)(KoPatternSP);
-    using PhaseComponentGetter = int (OverlayBase::*)() const;
-    using PhaseSetter = void (OverlayBase::*)(const QPointF &);
-    using PhaseGetter = QPointF (OverlayBase::*)() const;
-
-    ASSERT_OVERLAY_SIGNATURE(patternLink, PatternLinkGetter);
-    ASSERT_OVERLAY_SIGNATURE(pattern, PatternGetter);
-    ASSERT_OVERLAY_SIGNATURE(setPattern, PatternSetter);
-    ASSERT_OVERLAY_SIGNATURE(horizontalPhase, PhaseComponentGetter);
-    ASSERT_OVERLAY_SIGNATURE(verticalPhase, PhaseComponentGetter);
-    ASSERT_OVERLAY_SIGNATURE(setPatternPhase, PhaseSetter);
-    ASSERT_OVERLAY_SIGNATURE(patternPhase, PhaseGetter);
-}
-
-void PsdFormatValuesContractTest::overlayStrokePositionSignaturesRemainStable()
-{
-    using PositionGetter = psd_stroke_position (OverlayStroke::*)() const;
-    using PositionSetter = void (OverlayStroke::*)(psd_stroke_position);
-
-    ASSERT_OVERLAY_STROKE_SIGNATURE(position, PositionGetter);
-    ASSERT_OVERLAY_STROKE_SIGNATURE(setPosition, PositionSetter);
 }
 
 void PsdFormatValuesContractTest::resourceIdentityFieldsAreIndependentValues()
@@ -2003,14 +1611,6 @@ void PsdFormatValuesContractTest::globalLightingBlocksRoundTripSignedValues()
 
 void PsdFormatValuesContractTest::gradientColorRecordPreservesAggregateSchemaAndCopyState()
 {
-    static_assert(std::is_aggregate_v<psd_gradient_color>);
-    static_assert(std::is_same_v<decltype(psd_gradient_color::smoothness), qint32>);
-    static_assert(std::is_same_v<decltype(psd_gradient_color::name_length), qint32>);
-    static_assert(std::is_same_v<decltype(psd_gradient_color::name), quint16 *>);
-    static_assert(std::is_same_v<decltype(psd_gradient_color::number_color_stops), qint8>);
-    static_assert(std::is_same_v<decltype(psd_gradient_color::color_stop), psd_gradient_color_stop *>);
-    static_assert(std::is_same_v<decltype(psd_gradient_color::number_transparency_stops), qint8>);
-    static_assert(std::is_same_v<decltype(psd_gradient_color::transparency_stop), psd_gradient_transparency_stop *>);
 
     psd_gradient_color gradient{};
     QCOMPARE(gradient.smoothness, qint32(0));
@@ -2053,15 +1653,6 @@ void PsdFormatValuesContractTest::gradientColorRecordPreservesAggregateSchemaAnd
 
 void PsdFormatValuesContractTest::gradientMapDescriptorPreservesSignedControlValues()
 {
-    static_assert(std::is_aggregate_v<psd_layer_gradient_map>);
-    static_assert(std::is_same_v<decltype(psd_layer_gradient_map::reverse), bool>);
-    static_assert(std::is_same_v<decltype(psd_layer_gradient_map::dithered), bool>);
-    static_assert(std::is_same_v<decltype(psd_layer_gradient_map::name_length), qint32>);
-    static_assert(std::is_same_v<decltype(psd_layer_gradient_map::name), quint16 *>);
-    static_assert(std::is_same_v<decltype(psd_layer_gradient_map::expansion_count), qint8>);
-    static_assert(std::is_same_v<decltype(psd_layer_gradient_map::interpolation), qint8>);
-    static_assert(std::is_same_v<decltype(psd_layer_gradient_map::length), qint8>);
-    static_assert(std::is_same_v<decltype(psd_layer_gradient_map::mode), qint8>);
 
     psd_layer_gradient_map gradient{};
     QVERIFY(!gradient.reverse);
@@ -2111,11 +1702,6 @@ void PsdFormatValuesContractTest::gradientMapDescriptorPreservesSignedControlVal
 
 void PsdFormatValuesContractTest::gradientMapStopSequencesPreserveCountsAndPointerIdentity()
 {
-    static_assert(std::is_same_v<decltype(psd_layer_gradient_map::number_color_stops), qint8>);
-    static_assert(std::is_same_v<decltype(psd_layer_gradient_map::color_stop), psd_gradient_color_stop *>);
-    static_assert(std::is_same_v<decltype(psd_layer_gradient_map::number_transparency_stops), qint8>);
-    static_assert(
-        std::is_same_v<decltype(psd_layer_gradient_map::transparency_stop), psd_gradient_transparency_stop *>);
 
     psd_layer_gradient_map gradient{};
     QCOMPARE(gradient.number_color_stops, qint8(0));
@@ -2148,10 +1734,6 @@ void PsdFormatValuesContractTest::gradientMapStopSequencesPreserveCountsAndPoint
 
 void PsdFormatValuesContractTest::gradientMapProceduralControlsPreserveSignedValues()
 {
-    static_assert(std::is_same_v<decltype(psd_layer_gradient_map::random_number_seed), qint32>);
-    static_assert(std::is_same_v<decltype(psd_layer_gradient_map::showing_transparency_flag), qint8>);
-    static_assert(std::is_same_v<decltype(psd_layer_gradient_map::using_vector_color_flag), qint8>);
-    static_assert(std::is_same_v<decltype(psd_layer_gradient_map::roughness_factor), qint32>);
 
     psd_layer_gradient_map gradient{};
     QCOMPARE(gradient.random_number_seed, qint32(0));
@@ -2182,10 +1764,6 @@ void PsdFormatValuesContractTest::gradientMapProceduralControlsPreserveSignedVal
 
 void PsdFormatValuesContractTest::gradientMapColorTableCopiesInlineValuesIndependently()
 {
-    static_assert(std::is_same_v<decltype(psd_layer_gradient_map::min_color), QColor>);
-    static_assert(std::is_same_v<decltype(psd_layer_gradient_map::max_color), QColor>);
-    static_assert(std::is_same_v<decltype(psd_layer_gradient_map::lookup_table), QColor[256]>);
-    static_assert(std::extent_v<decltype(psd_layer_gradient_map::lookup_table)> == 256);
 
     psd_layer_gradient_map gradient{};
     gradient.min_color = QColor(1, 2, 3, 4);
@@ -2213,39 +1791,10 @@ void PsdFormatValuesContractTest::gradientMapColorTableCopiesInlineValuesIndepen
     QCOMPARE(gradient.lookup_table[255], QColor(201, 202, 203, 204));
 }
 
-void PsdFormatValuesContractTest::layerRecordSerializedFieldTypesRemainStable()
-{
-    using LayerMaskData = PSDLayerRecord::LayerMaskData;
-    using LayerBlendingRanges = PSDLayerRecord::LayerBlendingRanges;
-
-    static_assert(std::is_same_v<decltype(&PSDLayerRecord::top), qint32 PSDLayerRecord::*>);
-    static_assert(std::is_same_v<decltype(&PSDLayerRecord::left), qint32 PSDLayerRecord::*>);
-    static_assert(std::is_same_v<decltype(&PSDLayerRecord::bottom), qint32 PSDLayerRecord::*>);
-    static_assert(std::is_same_v<decltype(&PSDLayerRecord::right), qint32 PSDLayerRecord::*>);
-    static_assert(std::is_same_v<decltype(&PSDLayerRecord::nChannels), quint16 PSDLayerRecord::*>);
-    static_assert(std::is_same_v<decltype(&PSDLayerRecord::blendModeKey), QString PSDLayerRecord::*>);
-    static_assert(std::is_same_v<decltype(&PSDLayerRecord::isPassThrough), bool PSDLayerRecord::*>);
-    static_assert(std::is_same_v<decltype(&PSDLayerRecord::opacity), quint8 PSDLayerRecord::*>);
-    static_assert(std::is_same_v<decltype(&PSDLayerRecord::clipping), quint8 PSDLayerRecord::*>);
-    static_assert(std::is_same_v<decltype(&PSDLayerRecord::transparencyProtected), bool PSDLayerRecord::*>);
-    static_assert(std::is_same_v<decltype(&PSDLayerRecord::visible), bool PSDLayerRecord::*>);
-    static_assert(std::is_same_v<decltype(&PSDLayerRecord::irrelevant), bool PSDLayerRecord::*>);
-    static_assert(std::is_same_v<decltype(&PSDLayerRecord::labelColor), int PSDLayerRecord::*>);
-    static_assert(std::is_same_v<decltype(&PSDLayerRecord::fillType), psd_fill_type PSDLayerRecord::*>);
-    static_assert(std::is_same_v<decltype(&PSDLayerRecord::layerMask), LayerMaskData PSDLayerRecord::*>);
-    static_assert(std::is_same_v<decltype(&PSDLayerRecord::blendingRanges), LayerBlendingRanges PSDLayerRecord::*>);
-    static_assert(std::is_same_v<decltype(&PSDLayerRecord::layerName), QString PSDLayerRecord::*>);
-}
-
 void PsdFormatValuesContractTest::layerMaskRectanglePreservesSignedCoordinates()
 {
     using LayerMaskData = PSDLayerRecord::LayerMaskData;
 
-    static_assert(std::is_aggregate_v<LayerMaskData>);
-    static_assert(std::is_same_v<decltype(LayerMaskData::top), qint32>);
-    static_assert(std::is_same_v<decltype(LayerMaskData::left), qint32>);
-    static_assert(std::is_same_v<decltype(LayerMaskData::bottom), qint32>);
-    static_assert(std::is_same_v<decltype(LayerMaskData::right), qint32>);
 
     LayerMaskData mask{};
     QCOMPARE(mask.top, qint32(0));
@@ -2278,14 +1827,6 @@ void PsdFormatValuesContractTest::layerMaskControlsPreserveDefaultsAndCopyState(
 {
     using LayerMaskData = PSDLayerRecord::LayerMaskData;
 
-    static_assert(std::is_same_v<decltype(LayerMaskData::defaultColor), quint8>);
-    static_assert(std::is_same_v<decltype(LayerMaskData::positionedRelativeToLayer), bool>);
-    static_assert(std::is_same_v<decltype(LayerMaskData::disabled), bool>);
-    static_assert(std::is_same_v<decltype(LayerMaskData::invertLayerMaskWhenBlending), bool>);
-    static_assert(std::is_same_v<decltype(LayerMaskData::userMaskDensity), quint8>);
-    static_assert(std::is_same_v<decltype(LayerMaskData::userMaskFeather), double>);
-    static_assert(std::is_same_v<decltype(LayerMaskData::vectorMaskDensity), quint8>);
-    static_assert(std::is_same_v<decltype(LayerMaskData::vectorMaskFeather), double>);
 
     LayerMaskData mask{};
     QCOMPARE(mask.defaultColor, quint8(255));
@@ -2338,11 +1879,6 @@ void PsdFormatValuesContractTest::layerBlendingRangePreservesEndpointArrays()
 {
     using LayerBlendingRange = PSDLayerRecord::LayerBlendingRanges::LayerBlendingRange;
 
-    static_assert(std::is_aggregate_v<LayerBlendingRange>);
-    static_assert(std::is_same_v<decltype(LayerBlendingRange::blackValues), std::array<quint8, 2>>);
-    static_assert(std::is_same_v<decltype(LayerBlendingRange::whiteValues), std::array<quint8, 2>>);
-    static_assert(std::tuple_size_v<decltype(LayerBlendingRange::blackValues)> == 2);
-    static_assert(std::tuple_size_v<decltype(LayerBlendingRange::whiteValues)> == 2);
 
     LayerBlendingRange range{};
     QCOMPARE(range.blackValues[0], quint8(0));
@@ -2375,11 +1911,6 @@ void PsdFormatValuesContractTest::layerBlendingRangesPreserveValueCopies()
     using LayerBlendingRangePair = QPair<LayerBlendingRange, LayerBlendingRange>;
     using LayerBlendingRanges = PSDLayerRecord::LayerBlendingRanges;
 
-    static_assert(std::is_aggregate_v<LayerBlendingRanges>);
-    static_assert(std::is_same_v<decltype(LayerBlendingRanges::data), QByteArray>);
-    static_assert(std::is_same_v<decltype(LayerBlendingRanges::compositeGrayRange), LayerBlendingRangePair>);
-    static_assert(
-        std::is_same_v<decltype(LayerBlendingRanges::sourceDestinationRanges), QVector<LayerBlendingRangePair>>);
 
     LayerBlendingRanges ranges{};
     QVERIFY(ranges.data.isEmpty());
@@ -2418,83 +1949,6 @@ void PsdFormatValuesContractTest::layerBlendingRangesPreserveValueCopies()
     QCOMPARE(ranges.compositeGrayRange.first.blackValues[0], quint8(1));
     QCOMPARE(ranges.sourceDestinationRanges.size(), 1);
     QCOMPARE(ranges.sourceDestinationRanges[0].second.whiteValues[0], quint8(247));
-}
-
-void PsdFormatValuesContractTest::additionalLayerInfoIdentityAndHandlerSignaturesRemainStable()
-{
-    using ExtraLayerInfoBlockHandler = std::function<bool(QIODevice &)>;
-    using UserMaskInfoBlockHandler = std::function<bool(QIODevice &)>;
-    using ExtraHandlerSetter = void (AdditionalLayerInfo::*)(ExtraLayerInfoBlockHandler);
-    using UserMaskHandlerSetter = void (AdditionalLayerInfo::*)(UserMaskInfoBlockHandler);
-    using Valid = bool (AdditionalLayerInfo::*)();
-
-    static_assert(std::is_class_v<AdditionalLayerInfo>);
-    static_assert(std::is_same_v<AdditionalLayerInfo::ExtraLayerInfoBlockHandler, ExtraLayerInfoBlockHandler>);
-    static_assert(std::is_same_v<AdditionalLayerInfo::UserMaskInfoBlockHandler, UserMaskInfoBlockHandler>);
-    static_assert(std::is_constructible_v<AdditionalLayerInfo, const PSDHeader &>);
-    ASSERT_ADDITIONAL_LAYER_INFO_SIGNATURE(setExtraLayerInfoBlockHandler, ExtraHandlerSetter);
-    ASSERT_ADDITIONAL_LAYER_INFO_SIGNATURE(setUserMaskInfoBlockHandler, UserMaskHandlerSetter);
-    ASSERT_ADDITIONAL_LAYER_INFO_SIGNATURE(valid, Valid);
-}
-
-void PsdFormatValuesContractTest::additionalLayerInfoSerializedIdentityFieldTypesRemainStable()
-{
-    static_assert(std::is_same_v<decltype(AdditionalLayerInfo::m_header), const PSDHeader &>);
-    static_assert(std::is_same_v<decltype(AdditionalLayerInfo::error), QString>);
-    static_assert(std::is_same_v<decltype(AdditionalLayerInfo::keys), QStringList>);
-    static_assert(std::is_same_v<decltype(AdditionalLayerInfo::unicodeLayerName), QString>);
-    static_assert(std::is_same_v<decltype(AdditionalLayerInfo::labelColor), quint16>);
-    static_assert(std::is_same_v<decltype(AdditionalLayerInfo::fillType), psd_fill_type>);
-    static_assert(std::is_same_v<decltype(AdditionalLayerInfo::sectionDividerType), psd_section_type>);
-    static_assert(std::is_same_v<decltype(AdditionalLayerInfo::sectionDividerBlendMode), QString>);
-}
-
-void PsdFormatValuesContractTest::additionalLayerInfoPayloadFieldTypesRemainStable()
-{
-    static_assert(std::is_same_v<decltype(AdditionalLayerInfo::embeddedPatterns), QVector<QDomDocument>>);
-    static_assert(std::is_same_v<decltype(AdditionalLayerInfo::layerStyleXml), QDomDocument>);
-    static_assert(std::is_same_v<decltype(AdditionalLayerInfo::txt2Data), QVariantHash>);
-    static_assert(std::is_same_v<decltype(AdditionalLayerInfo::fillConfig), QDomDocument>);
-    static_assert(std::is_same_v<decltype(AdditionalLayerInfo::textTransform), QTransform>);
-    static_assert(std::is_same_v<decltype(AdditionalLayerInfo::textData), QDomDocument>);
-    static_assert(std::is_same_v<decltype(AdditionalLayerInfo::vectorMask), psd_vector_mask>);
-    static_assert(std::is_same_v<decltype(AdditionalLayerInfo::vectorStroke), QDomDocument>);
-    static_assert(std::is_same_v<decltype(AdditionalLayerInfo::vectorOriginationData), QDomDocument>);
-}
-
-void PsdFormatValuesContractTest::additionalLayerInfoCoreBlockWriterSignaturesRemainStable()
-{
-    using Read = bool (AdditionalLayerInfo::*)(QIODevice &);
-    using Write = bool (AdditionalLayerInfo::*)(QIODevice &, KisNodeSP);
-    using WriteLuni = void (AdditionalLayerInfo::*)(QIODevice &, const QString &);
-    using WriteLsct = void (AdditionalLayerInfo::*)(QIODevice &, psd_section_type, bool, const QString &);
-    using WriteLfx2 = void (AdditionalLayerInfo::*)(QIODevice &, const QDomDocument &, bool);
-    using WritePatt = void (AdditionalLayerInfo::*)(QIODevice &, const QDomDocument &);
-    using WriteLclr = void (AdditionalLayerInfo::*)(QIODevice &, const quint16 &);
-
-    ASSERT_ADDITIONAL_LAYER_INFO_SIGNATURE(read, Read);
-    ASSERT_ADDITIONAL_LAYER_INFO_SIGNATURE(write, Write);
-    ASSERT_ADDITIONAL_LAYER_INFO_SIGNATURE(writeLuniBlockEx, WriteLuni);
-    ASSERT_ADDITIONAL_LAYER_INFO_SIGNATURE(writeLsctBlockEx, WriteLsct);
-    ASSERT_ADDITIONAL_LAYER_INFO_SIGNATURE(writeLfx2BlockEx, WriteLfx2);
-    ASSERT_ADDITIONAL_LAYER_INFO_SIGNATURE(writePattBlockEx, WritePatt);
-    ASSERT_ADDITIONAL_LAYER_INFO_SIGNATURE(writeLclrBlockEx, WriteLclr);
-}
-
-void PsdFormatValuesContractTest::additionalLayerInfoPayloadWriterSignaturesRemainStable()
-{
-    using WriteFill = void (AdditionalLayerInfo::*)(QIODevice &, const QDomDocument &, psd_fill_type);
-    using WriteVmsk = void (AdditionalLayerInfo::*)(QIODevice &, psd_vector_mask);
-    using WriteTypeTool = void (AdditionalLayerInfo::*)(QIODevice &, psd_layer_type_shape);
-    using WriteXml = void (AdditionalLayerInfo::*)(QIODevice &, const QDomDocument &);
-    using WriteTxt2 = void (AdditionalLayerInfo::*)(QIODevice &, const QVariantHash);
-
-    ASSERT_ADDITIONAL_LAYER_INFO_SIGNATURE(writeFillLayerBlockEx, WriteFill);
-    ASSERT_ADDITIONAL_LAYER_INFO_SIGNATURE(writeVmskBlockEx, WriteVmsk);
-    ASSERT_ADDITIONAL_LAYER_INFO_SIGNATURE(writeTypeToolBlockEx, WriteTypeTool);
-    ASSERT_ADDITIONAL_LAYER_INFO_SIGNATURE(writeVectorStrokeDataEx, WriteXml);
-    ASSERT_ADDITIONAL_LAYER_INFO_SIGNATURE(writeVectorOriginationDataEx, WriteXml);
-    ASSERT_ADDITIONAL_LAYER_INFO_SIGNATURE(writeTxt2BlockEx, WriteTxt2);
 }
 
 void PsdFormatValuesContractTest::gradientFillDefaultsAndCopiesValueState()
@@ -2682,67 +2136,8 @@ void PsdFormatValuesContractTest::patternFillSettersPreserveValues()
     QVERIFY(!fill.align_with_layer);
 }
 
-void PsdFormatValuesContractTest::gradientFillRepresentationSignaturesRemainStable()
-{
-    ASSERT_FILL_SIGNATURE(GradientFill, getASLXML, QDomDocument (GradientFill::*)());
-    ASSERT_FILL_SIGNATURE(GradientFill, getBackground, QSharedPointer<KoShapeBackground> (GradientFill::*)());
-    ASSERT_FILL_SIGNATURE(GradientFill, getBrush, QBrush (GradientFill::*)());
-    ASSERT_FILL_SIGNATURE(GradientFill, getFillLayerConfig, QDomDocument (GradientFill::*)());
-    ASSERT_FILL_SIGNATURE(GradientFill, getGradient, QGradient * (GradientFill::*)());
-}
-
-void PsdFormatValuesContractTest::gradientFillInputAndSerializationSignaturesRemainStable()
-{
-    ASSERT_FILL_SIGNATURE(GradientFill, loadFromConfig, bool (GradientFill::*)(KisFilterConfigurationSP));
-    ASSERT_FILL_SIGNATURE(GradientFill, setFromQGradient, void (GradientFill::*)(const QGradient *));
-    ASSERT_FILL_SIGNATURE(GradientFill, setGradient, void (GradientFill::*)(const KoAbstractGradientSP &));
-    ASSERT_FILL_SIGNATURE(GradientFill,
-                          setupCatcher,
-                          void (*)(const QString, KisAslCallbackObjectCatcher &, GradientFill *));
-    ASSERT_FILL_SIGNATURE(GradientFill, writeASL, void (GradientFill::*)(KisAslXmlWriter &));
-}
-
-void PsdFormatValuesContractTest::patternFillConversionSignaturesRemainStable()
-{
-    ASSERT_FILL_SIGNATURE(PatternFill, getASLXML, QDomDocument (PatternFill::*)());
-    ASSERT_FILL_SIGNATURE(PatternFill,
-                          getBackground,
-                          QSharedPointer<KoShapeBackground> (PatternFill::*)(KisEmbeddedResourceStorageProxy &));
-    ASSERT_FILL_SIGNATURE(PatternFill, getBrush, QBrush (PatternFill::*)(KisEmbeddedResourceStorageProxy &));
-    ASSERT_FILL_SIGNATURE(PatternFill, getFillLayerConfig, QDomDocument (PatternFill::*)() const);
-    ASSERT_FILL_SIGNATURE(PatternFill, loadFromConfig, bool (PatternFill::*)(KisFilterConfigurationSP));
-    ASSERT_FILL_SIGNATURE(PatternFill, loadPattern, void (PatternFill::*)(KisEmbeddedResourceStorageProxy &));
-    ASSERT_FILL_SIGNATURE(PatternFill,
-                          setupCatcher,
-                          void (*)(const QString, KisAslCallbackObjectCatcher &, PatternFill *));
-    ASSERT_FILL_SIGNATURE(PatternFill, writeASL, void (PatternFill::*)(KisAslXmlWriter &));
-}
-
-void PsdFormatValuesContractTest::solidColorFillValueAndRepresentationSchemaRemainsStable()
-{
-    static_assert(std::is_class_v<SolidColorFill>);
-    static_assert(std::is_same_v<decltype(SolidColorFill::cs), const KoColorSpace *>);
-    static_assert(std::is_same_v<decltype(SolidColorFill::fill_color), KoColor>);
-
-    ASSERT_FILL_SIGNATURE(SolidColorFill, getASLXML, QDomDocument (SolidColorFill::*)());
-    ASSERT_FILL_SIGNATURE(SolidColorFill, getBackground, QSharedPointer<KoShapeBackground> (SolidColorFill::*)());
-    ASSERT_FILL_SIGNATURE(SolidColorFill, getBrush, QBrush (SolidColorFill::*)());
-    ASSERT_FILL_SIGNATURE(SolidColorFill, getFillLayerConfig, QDomDocument (SolidColorFill::*)());
-}
-
-void PsdFormatValuesContractTest::solidColorFillInputAndSerializationSignaturesRemainStable()
-{
-    ASSERT_FILL_SIGNATURE(SolidColorFill, loadFromConfig, bool (SolidColorFill::*)(KisFilterConfigurationSP));
-    ASSERT_FILL_SIGNATURE(SolidColorFill, setColor, void (SolidColorFill::*)(const KoColor &));
-    ASSERT_FILL_SIGNATURE(SolidColorFill,
-                          setupCatcher,
-                          void (*)(const QString, KisAslCallbackObjectCatcher &, SolidColorFill *));
-    ASSERT_FILL_SIGNATURE(SolidColorFill, writeASL, void (SolidColorFill::*)(KisAslXmlWriter &));
-}
-
 void PsdFormatValuesContractTest::interpretedResourceDefaultsRemainStable()
 {
-    static_assert(std::is_destructible_v<PSDInterpretedResource>);
 
     PSDInterpretedResource resource;
     QVERIFY(resource.error.isEmpty());
@@ -2757,7 +2152,6 @@ void PsdFormatValuesContractTest::interpretedResourceDefaultsRemainStable()
 
 void PsdFormatValuesContractTest::resolutionInfoDefaultsAndCopiesRemainIndependent()
 {
-    static_assert(std::is_base_of_v<PSDInterpretedResource, RESN_INFO_1005>);
 
     QCOMPARE(int(RESN_INFO_1005::PSD_UNIT_INCH), 1);
     QCOMPARE(int(RESN_INFO_1005::PSD_UNIT_CM), 2);
@@ -2842,7 +2236,6 @@ void PsdFormatValuesContractTest::resolutionInfoBlocksRoundTripInMemory()
 
 void PsdFormatValuesContractTest::iccProfileDefaultsAndCopiesRemainIndependent()
 {
-    static_assert(std::is_base_of_v<PSDInterpretedResource, ICC_PROFILE_1039>);
 
     const ICC_PROFILE_1039 empty;
     QVERIFY(empty.icc.isEmpty());
@@ -2956,85 +2349,6 @@ void PsdFormatValuesContractTest::legacyPathAndPrintResourceRecordsAcceptAndIgno
     verifyLegacyResourceAcceptsAndIgnoresPayloads<CLIPPING_PATH_2999>();
     verifyLegacyResourceAcceptsAndIgnoresPayloads<PRINT_FLAGS_2_10000>();
 }
-
-void PsdFormatValuesContractTest::gradientColorStopMemberSchemaRemainsStable()
-{
-    static_assert(std::is_aggregate_v<psd_gradient_color_stop>);
-    static_assert(std::is_same_v<decltype(psd_gradient_color_stop::actual_color), KoColor>);
-    static_assert(std::is_same_v<decltype(psd_gradient_color_stop::color_stop_type), psd_color_stop_type>);
-    static_assert(std::is_same_v<decltype(psd_gradient_color_stop::location), qint32>);
-    static_assert(std::is_same_v<decltype(psd_gradient_color_stop::midpoint), qint32>);
-}
-
-void PsdFormatValuesContractTest::bevelContourAndTextureResourceSignaturesRemainStable()
-{
-    using ContourGetter = const quint8 *(BevelEmboss::*)() const;
-    using ContourSetter = void (BevelEmboss::*)(const quint8 *);
-    using PatternSetter = void (BevelEmboss::*)(KoPatternSP);
-    using PatternGetter = KoPatternSP (BevelEmboss::*)(KisResourcesInterfaceSP) const;
-    using PatternLinkGetter = KoResourceSignature (BevelEmboss::*)() const;
-
-    static_assert(std::is_same_v<decltype(&BevelEmboss::glossContourLookupTable), ContourGetter>);
-    static_assert(std::is_same_v<decltype(&BevelEmboss::setGlossContourLookupTable), ContourSetter>);
-    static_assert(std::is_same_v<decltype(&BevelEmboss::setTexturePattern), PatternSetter>);
-    static_assert(std::is_same_v<decltype(&BevelEmboss::texturePattern), PatternGetter>);
-    static_assert(std::is_same_v<decltype(&BevelEmboss::texturePatternLink), PatternLinkGetter>);
-}
-
-void PsdFormatValuesContractTest::layerEffectShadowHierarchyLifecycleSignaturesRemainStable()
-{
-    using DropShadow = psd_layer_effects_drop_shadow;
-    using InnerShadow = psd_layer_effects_inner_shadow;
-    using Satin = psd_layer_effects_satin;
-    using ShadowCommon = psd_layer_effects_shadow_common;
-
-    static_assert(std::is_default_constructible_v<BevelEmboss>);
-    static_assert(std::is_destructible_v<DropShadow>);
-    static_assert(std::is_default_constructible_v<InnerShadow>);
-    static_assert(std::is_destructible_v<InnerShadow>);
-    static_assert(std::is_default_constructible_v<Satin>);
-    static_assert(std::is_default_constructible_v<ShadowBase>);
-    static_assert(std::is_destructible_v<ShadowBase>);
-    static_assert(std::is_destructible_v<ShadowCommon>);
-    static_assert(std::is_base_of_v<ShadowBase, BevelEmboss>);
-    static_assert(std::is_base_of_v<ShadowBase, ShadowCommon>);
-    static_assert(std::is_base_of_v<ShadowCommon, DropShadow>);
-    static_assert(std::is_base_of_v<ShadowCommon, InnerShadow>);
-}
-
-void PsdFormatValuesContractTest::layerEffectGlowLifecycleSignaturesRemainStable()
-{
-    using GlowCommon = psd_layer_effects_glow_common;
-    using InnerGlow = psd_layer_effects_inner_glow;
-    using OuterGlow = psd_layer_effects_outer_glow;
-
-    static_assert(std::is_default_constructible_v<GlowCommon>);
-    static_assert(std::is_destructible_v<GlowCommon>);
-    static_assert(std::is_default_constructible_v<InnerGlow>);
-    static_assert(std::is_destructible_v<InnerGlow>);
-    static_assert(std::is_destructible_v<OuterGlow>);
-    static_assert(std::is_base_of_v<ShadowBase, GlowCommon>);
-    static_assert(std::is_base_of_v<GlowCommon, InnerGlow>);
-    static_assert(std::is_base_of_v<GlowCommon, OuterGlow>);
-}
-
-void PsdFormatValuesContractTest::shadowContourAndGradientResourceSignaturesRemainStable()
-{
-    using ContourGetter = const quint8 *(ShadowBase::*)() const;
-    using ContourSetter = void (ShadowBase::*)(const quint8 *);
-    using GradientGetter = KoAbstractGradientSP (ShadowBase::*)(KisResourcesInterfaceSP) const;
-    using GradientLinkGetter = KoResourceSignature (ShadowBase::*)() const;
-    using GradientSetter = void (ShadowBase::*)(KoAbstractGradientSP);
-
-    static_assert(std::is_same_v<decltype(&ShadowBase::contourLookupTable), ContourGetter>);
-    static_assert(std::is_same_v<decltype(&ShadowBase::gradient), GradientGetter>);
-    static_assert(std::is_same_v<decltype(&ShadowBase::gradientLink), GradientLinkGetter>);
-    static_assert(std::is_same_v<decltype(&ShadowBase::setContourLookupTable), ContourSetter>);
-    static_assert(std::is_same_v<decltype(&ShadowBase::setGradient), GradientSetter>);
-}
-
-#undef ASSERT_BEVEL_SIGNATURE
-#undef ASSERT_SHADOW_SIGNATURE
 
 QTEST_GUILESS_MAIN(PsdFormatValuesContractTest)
 

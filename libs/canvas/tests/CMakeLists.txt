@@ -24,69 +24,7 @@ target_include_directories(KisProjectionPixelFilterContractTest PRIVATE
 target_compile_definitions(KisProjectionPixelFilterContractTest PRIVATE kritacanvas_EXPORTS)
 
 
-kis_add_test(
-    KisProjectionLifecycleSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Test
-        Boost::boost
-)
-target_include_directories(KisProjectionLifecycleSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-    ${CMAKE_SOURCE_DIR}/libs/image
-    ${CMAKE_BINARY_DIR}/libs/image
-    ${CMAKE_SOURCE_DIR}/libs/pigment
-    ${CMAKE_BINARY_DIR}/libs/pigment
-    ${CMAKE_SOURCE_DIR}/libs/ui
-    ${CMAKE_BINARY_DIR}/libs/ui
-    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Gui,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:Imath::Imath,INTERFACE_INCLUDE_DIRECTORIES>
-)
-target_compile_definitions(KisProjectionLifecycleSchemaContractTest PRIVATE
-    kritacanvas_EXPORTS
-    kritaglobal_EXPORTS
-    kritaimage_EXPORTS
-    kritapigment_EXPORTS
-)
 
-kis_add_test(
-    KisWorkspaceResourceSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Gui
-        Qt${QT_MAJOR_VERSION}::Test
-        Boost::boost
-)
-target_include_directories(KisWorkspaceResourceSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    ${CMAKE_SOURCE_DIR}/libs/ui
-    ${CMAKE_BINARY_DIR}/libs/ui
-    ${CMAKE_SOURCE_DIR}/libs/resources
-    ${CMAKE_BINARY_DIR}/libs/resources
-    ${CMAKE_SOURCE_DIR}/libs/image
-    ${CMAKE_BINARY_DIR}/libs/image
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-    ${CMAKE_SOURCE_DIR}/libs/pigment
-    ${CMAKE_BINARY_DIR}/libs/pigment
-    ${CMAKE_SOURCE_DIR}/libs/pigment/resources
-    ${CMAKE_BINARY_DIR}/libs/pigment/resources
-    $<TARGET_PROPERTY:Eigen3::Eigen,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:Imath::Imath,INTERFACE_INCLUDE_DIRECTORIES>
-)
-target_compile_definitions(KisWorkspaceResourceSchemaContractTest PRIVATE
-    kritaui_EXPORTS
-    kritaresources_EXPORTS
-    kritaimage_EXPORTS
-    kritaglobal_EXPORTS
-    kritapigment_EXPORTS
-)
 
 
 

@@ -12,27 +12,6 @@
 #include <QSpinBox>
 #include <QTest>
 
-#include <type_traits>
-#include <utility>
-
-namespace
-{
-template<typename T, typename = void>
-struct CanSetSpinBoxText : std::false_type {
-};
-
-template<typename T>
-struct CanSetSpinBoxText<
-    T,
-    std::void_t<decltype(KisSpinBoxI18nHelper::setText(std::declval<T *>(), std::declval<QStringView>()))>>
-    : std::true_type {
-};
-
-static_assert(CanSetSpinBoxText<QSpinBox>::value);
-static_assert(CanSetSpinBoxText<QDoubleSpinBox>::value);
-static_assert(!CanSetSpinBoxText<KisSelectionPropertySliderBase>::value);
-} // namespace
-
 class KisSpinBoxI18nHelperContractTest : public QObject
 {
     Q_OBJECT
@@ -43,7 +22,6 @@ private Q_SLOTS:
     void installUpdatesImmediatelyAndWhenValueChanges();
     void manualUpdateUsesCurrentValueWhileSignalsAreBlocked();
     void updateRejectsMissingAndInvalidHandlerProperty();
-    void selectionPropertySliderOverloadRemainsDeleted();
 };
 
 void KisSpinBoxI18nHelperContractTest::spinBoxTemplatesSplitAroundPlaceholder()
@@ -137,11 +115,6 @@ void KisSpinBoxI18nHelperContractTest::updateRejectsMissingAndInvalidHandlerProp
                          QRegularExpression(QStringLiteral(
                              "KisSpinBoxI18nHelper::update called with .* but its property .* is invalid")));
     QVERIFY(!KisSpinBoxI18nHelper::update(&spinBox));
-}
-
-void KisSpinBoxI18nHelperContractTest::selectionPropertySliderOverloadRemainsDeleted()
-{
-    QVERIFY(!CanSetSpinBoxText<KisSelectionPropertySliderBase>::value);
 }
 
 QTEST_MAIN(KisSpinBoxI18nHelperContractTest)

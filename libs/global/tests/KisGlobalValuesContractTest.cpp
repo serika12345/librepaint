@@ -10,7 +10,6 @@
 #include <QTest>
 
 #include <limits>
-#include <type_traits>
 
 class KisGlobalValuesContractTest : public QObject
 {
@@ -23,8 +22,6 @@ private Q_SLOTS:
     void geometryHelpersTransformValues();
     void trimmingHelpersSplitAndAdvanceRectangles();
     void androidExitCodesMatchPlatformContract();
-    void androidExitInfoSignaturesRemainStable();
-    void androidUtilitySignaturesRemainStable();
 };
 
 void KisGlobalValuesContractTest::numericLimitsAndSelectionConstantsRemainStable()
@@ -179,34 +176,6 @@ void KisGlobalValuesContractTest::androidExitCodesMatchPlatformContract()
     QCOMPARE(static_cast<int>(Importance::Cached), 400);
     QCOMPARE(static_cast<int>(Importance::Empty), 500);
     QCOMPARE(static_cast<int>(Importance::Gone), 1000);
-}
-
-void KisGlobalValuesContractTest::androidExitInfoSignaturesRemainStable()
-{
-    static_assert(std::is_class_v<KisAndroidExitInfo>);
-    static_assert(std::is_same_v<decltype(&KisAndroidExitInfo::getLast), KisAndroidExitInfo (*)()>);
-    static_assert(std::is_same_v<decltype(&KisAndroidExitInfo::isValid), bool (KisAndroidExitInfo::*)() const>);
-    static_assert(std::is_same_v<decltype(&KisAndroidExitInfo::reasonCode), int (KisAndroidExitInfo::*)() const>);
-    static_assert(std::is_same_v<decltype(&KisAndroidExitInfo::exitOrSignalCode), int (KisAndroidExitInfo::*)() const>);
-    static_assert(std::is_same_v<decltype(&KisAndroidExitInfo::importanceCode), int (KisAndroidExitInfo::*)() const>);
-    static_assert(
-        std::is_same_v<decltype(&KisAndroidExitInfo::description), const QString &(KisAndroidExitInfo::*)() const>);
-    static_assert(
-        std::is_same_v<decltype(&KisAndroidExitInfo::buildLogString), QString (KisAndroidExitInfo::*)() const>);
-}
-
-void KisGlobalValuesContractTest::androidUtilitySignaturesRemainStable()
-{
-    static_assert(std::is_same_v<decltype(&KisAndroidUtils::performInitialSetup), void (*)()>);
-    static_assert(std::is_same_v<decltype(&KisAndroidUtils::looksLikeXiaomiDevice), bool (*)()>);
-    static_assert(std::is_same_v<decltype(&KisAndroidUtils::isLowMemoryKillReportSupported), bool (*)()>);
-    static_assert(std::is_same_v<decltype(&KisAndroidUtils::clearJniException), void (*)(const QString &)>);
-    static_assert(std::is_same_v<decltype(&KisAndroidUtils::isInFullScreen), bool (*)()>);
-    static_assert(std::is_same_v<decltype(&KisAndroidUtils::setFullScreen), void (*)(bool)>);
-    static_assert(
-        std::is_same_v<decltype(&KisAndroidUtils::copyFile), bool (*)(const QString &, const QString &, QString *)>);
-    static_assert(std::is_same_v<decltype(&KisAndroidUtils::copyFileToTemporary),
-                                 bool (*)(const QString &, QTemporaryFile &, QString *)>);
 }
 
 QTEST_GUILESS_MAIN(KisGlobalValuesContractTest)

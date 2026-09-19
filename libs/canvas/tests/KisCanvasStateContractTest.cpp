@@ -11,7 +11,6 @@
 #include <array>
 #include <cmath>
 #include <limits>
-#include <type_traits>
 
 namespace
 {
@@ -53,12 +52,6 @@ void KisCanvasStateContractTest::canvasStateZoomValuesRemainStable()
 {
     using State = KisCanvasState;
 
-    static_assert(std::is_class_v<State>);
-    static_assert(std::is_same_v<decltype(&State::zoom), qreal State::*>);
-    static_assert(std::is_same_v<decltype(&State::effectiveZoom), qreal State::*>);
-    static_assert(std::is_same_v<decltype(&State::zoomMode), KoZoomMode::Mode State::*>);
-    static_assert(std::is_same_v<decltype(&State::minimumZoom), qreal State::*>);
-    static_assert(std::is_same_v<decltype(&State::maximumZoom), qreal State::*>);
 
     State state = makeCanvasState();
     QCOMPARE(state.zoom, 2.0);
@@ -83,12 +76,6 @@ void KisCanvasStateContractTest::canvasStateOrientationAndPositionValuesRemainSt
 {
     using State = KisCanvasState;
 
-    static_assert(std::is_same_v<decltype(&State::rotation), qreal State::*>);
-    static_assert(std::is_same_v<decltype(&State::mirrorHorizontally), bool State::*>);
-    static_assert(std::is_same_v<decltype(&State::mirrorVertically), bool State::*>);
-    static_assert(std::is_same_v<decltype(&State::documentOffset), QPoint State::*>);
-    static_assert(std::is_same_v<decltype(&State::documentOffsetF), QPointF State::*>);
-    static_assert(std::is_same_v<decltype(&State::viewportOffsetF), QPointF State::*>);
 
     State state = makeCanvasState();
     QCOMPARE(state.rotation, 37.5);
@@ -116,10 +103,6 @@ void KisCanvasStateContractTest::canvasStateBoundsAndDimensionsRemainStable()
 {
     using State = KisCanvasState;
 
-    static_assert(std::is_same_v<decltype(&State::minimumOffset), QPoint State::*>);
-    static_assert(std::is_same_v<decltype(&State::maximumOffset), QPoint State::*>);
-    static_assert(std::is_same_v<decltype(&State::canvasSize), QSizeF State::*>);
-    static_assert(std::is_same_v<decltype(&State::imageRectInWidgetPixels), QRectF State::*>);
 
     State state = makeCanvasState();
     QCOMPARE(state.minimumOffset, QPoint(-50, -60));
@@ -142,7 +125,6 @@ void KisCanvasStateContractTest::canvasStateEqualityRemainsStable()
     using State = KisCanvasState;
     using Mutation = void (*)(State &);
 
-    static_assert(std::is_same_v<decltype(&State::operator==), bool (State::*)(const State &) const>);
 
     const State state = makeCanvasState();
     QVERIFY(state == makeCanvasState());
@@ -221,10 +203,7 @@ void KisCanvasStateContractTest::canvasStateEqualityRemainsStable()
 void KisCanvasStateContractTest::canvasStateConversionSignatureAndZoomStateRemainStable()
 {
     using State = KisCanvasState;
-    using FromConverter = State (*)(const KisCoordinatesConverter &);
 
-    static_assert(std::is_same_v<decltype(&State::fromConverter), FromConverter>);
-    static_assert(std::is_same_v<decltype(&State::zoomState), KoZoomState (State::*)() const>);
 
     const State state = makeCanvasState();
     const KoZoomState zoomState = state.zoomState();

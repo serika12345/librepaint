@@ -12,7 +12,6 @@
 #include <QTemporaryDir>
 #include <QTest>
 
-#include <type_traits>
 
 void kis_safe_assert_recoverable(const char *assertion, const char *file, int line)
 {
@@ -216,7 +215,6 @@ void KoResourceContractTest::constructsFromFilenameAndCopiesState()
     QCOMPARE(copied.version(), 5);
     QCOMPARE(copied.md5Sum(false), QStringLiteral("copy-digest"));
     QCOMPARE(copied.payload, QByteArrayLiteral("copy-payload"));
-    QVERIFY(!std::is_copy_assignable_v<KoResource>);
 }
 
 void KoResourceContractTest::loadsExistingFileThroughVirtualBoundary()

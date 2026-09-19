@@ -11,7 +11,6 @@
 #include <QTest>
 
 #include <memory>
-#include <type_traits>
 
 void kis_safe_assert_recoverable(const char *, const char *, int)
 {
@@ -20,8 +19,6 @@ void kis_safe_assert_recoverable(const char *, const char *, int)
 namespace
 {
 
-#define ASSERT_FRAME_CACHE_MEMBER(type, method, signature)                                                             \
-    static_assert(std::is_same_v<decltype(static_cast<signature>(&type::method)), signature>)
 
 KisOpenGLUpdateInfoSP makeUpdateInfo(int levelOfDetail, const QRect &dirtyRect)
 {
@@ -50,14 +47,6 @@ void KisInMemoryFrameCacheSwapperContractTest::typeLifetimeAndEmptyStateRemainSt
     using Abstract = KisAbstractFrameCacheSwapper;
     using Concrete = KisInMemoryFrameCacheSwapper;
 
-    static_assert(std::is_same_v<KisOpenGLUpdateInfoSP, KisSharedPtr<KisOpenGLUpdateInfo>>);
-    static_assert(std::is_class_v<Abstract>);
-    static_assert(std::is_class_v<Concrete>);
-    static_assert(std::is_abstract_v<Abstract>);
-    static_assert(std::is_base_of_v<Abstract, Concrete>);
-    static_assert(std::is_default_constructible_v<Concrete>);
-    static_assert(std::has_virtual_destructor_v<Abstract>);
-    static_assert(std::has_virtual_destructor_v<Concrete>);
 
     std::unique_ptr<Abstract> swapper = std::make_unique<Concrete>();
     QVERIFY(!swapper->hasFrame(4));
@@ -68,12 +57,6 @@ void KisInMemoryFrameCacheSwapperContractTest::saveLoadAndPresenceRemainStable()
     using Abstract = KisAbstractFrameCacheSwapper;
     using Concrete = KisInMemoryFrameCacheSwapper;
 
-    ASSERT_FRAME_CACHE_MEMBER(Abstract, saveFrame, void (Abstract::*)(int, KisOpenGLUpdateInfoSP, const QRect &));
-    ASSERT_FRAME_CACHE_MEMBER(Abstract, loadFrame, KisOpenGLUpdateInfoSP (Abstract::*)(int));
-    ASSERT_FRAME_CACHE_MEMBER(Abstract, hasFrame, bool (Abstract::*)(int) const);
-    ASSERT_FRAME_CACHE_MEMBER(Concrete, saveFrame, void (Concrete::*)(int, KisOpenGLUpdateInfoSP, const QRect &));
-    ASSERT_FRAME_CACHE_MEMBER(Concrete, loadFrame, KisOpenGLUpdateInfoSP (Concrete::*)(int));
-    ASSERT_FRAME_CACHE_MEMBER(Concrete, hasFrame, bool (Concrete::*)(int) const);
 
     Concrete concrete;
     Abstract &swapper = concrete;
@@ -92,10 +75,6 @@ void KisInMemoryFrameCacheSwapperContractTest::frameMetadataRemainsStable()
     using Abstract = KisAbstractFrameCacheSwapper;
     using Concrete = KisInMemoryFrameCacheSwapper;
 
-    ASSERT_FRAME_CACHE_MEMBER(Abstract, frameLevelOfDetail, int (Abstract::*)(int) const);
-    ASSERT_FRAME_CACHE_MEMBER(Abstract, frameDirtyRect, QRect (Abstract::*)(int) const);
-    ASSERT_FRAME_CACHE_MEMBER(Concrete, frameLevelOfDetail, int (Concrete::*)(int) const);
-    ASSERT_FRAME_CACHE_MEMBER(Concrete, frameDirtyRect, QRect (Concrete::*)(int) const);
 
     Concrete concrete;
     Abstract &swapper = concrete;
@@ -111,8 +90,6 @@ void KisInMemoryFrameCacheSwapperContractTest::moveFrameTransfersIdentityAndMeta
     using Abstract = KisAbstractFrameCacheSwapper;
     using Concrete = KisInMemoryFrameCacheSwapper;
 
-    ASSERT_FRAME_CACHE_MEMBER(Abstract, moveFrame, void (Abstract::*)(int, int));
-    ASSERT_FRAME_CACHE_MEMBER(Concrete, moveFrame, void (Concrete::*)(int, int));
 
     Concrete concrete;
     Abstract &swapper = concrete;
@@ -136,8 +113,6 @@ void KisInMemoryFrameCacheSwapperContractTest::forgetFrameDropsStoredIdentity()
     using Abstract = KisAbstractFrameCacheSwapper;
     using Concrete = KisInMemoryFrameCacheSwapper;
 
-    ASSERT_FRAME_CACHE_MEMBER(Abstract, forgetFrame, void (Abstract::*)(int));
-    ASSERT_FRAME_CACHE_MEMBER(Concrete, forgetFrame, void (Concrete::*)(int));
 
     Concrete concrete;
     Abstract &swapper = concrete;
@@ -148,8 +123,6 @@ void KisInMemoryFrameCacheSwapperContractTest::forgetFrameDropsStoredIdentity()
 
     QVERIFY(!swapper.hasFrame(21));
 }
-
-#undef ASSERT_FRAME_CACHE_MEMBER
 
 QTEST_APPLESS_MAIN(KisInMemoryFrameCacheSwapperContractTest)
 

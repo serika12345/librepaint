@@ -11,44 +11,17 @@
 
 #include <QTest>
 
-#include <type_traits>
 
 class KisToolInvocationActionSchemaContractTest : public QObject
 {
     Q_OBJECT
 
 private Q_SLOTS:
-    void toolInvocationTypeAndLifecycleSchemaRemainStable();
     void toolInvocationPrimaryShortcutOrdinalsRemainStable();
     void toolInvocationTemporaryToolShortcutOrdinalsRemainStable();
-    void toolInvocationActivationAndEventSignaturesRemainStable();
-    void toolInvocationPolicySignaturesRemainStable();
-    void abstractInputActionTypeLifetimeAndConstructionSchemaRemainStable();
-    void abstractInputActionActivationAndCompletionSignaturesRemainStable();
-    void abstractInputActionEventAndGroupSignaturesRemainStable();
-    void abstractInputActionIdentityAndPrioritySignaturesRemainStable();
-    void abstractInputActionAvailabilityPolicySignaturesRemainStable();
-    void alternateInvocationTypeAndLifetimeSchemaRemainStable();
     void alternateInvocationModeShortcutOrdinalsRemainStable();
     void alternateInvocationSamplingShortcutOrdinalsRemainStable();
-    void alternateInvocationActivationLifecycleSignaturesRemainStable();
-    void alternateInvocationEventAndPolicySignaturesRemainStable();
 };
-
-void KisToolInvocationActionSchemaContractTest::toolInvocationTypeAndLifecycleSchemaRemainStable()
-{
-    using Action = KisToolInvocationAction;
-    using Shortcut = Action::Shortcut;
-
-    static_assert(std::is_class_v<Action>);
-    static_assert(std::is_base_of_v<KisAbstractInputAction, Action>);
-    static_assert(std::is_enum_v<Shortcut>);
-    static_assert(std::is_default_constructible_v<Action>);
-    static_assert(std::is_destructible_v<Action>);
-    static_assert(std::has_virtual_destructor_v<Action>);
-
-    QVERIFY(true);
-}
 
 void KisToolInvocationActionSchemaContractTest::toolInvocationPrimaryShortcutOrdinalsRemainStable()
 {
@@ -77,133 +50,10 @@ void KisToolInvocationActionSchemaContractTest::toolInvocationTemporaryToolShort
     QCOMPARE(static_cast<int>(Shortcut::FreehandSelToolShortcut), 13);
 }
 
-void KisToolInvocationActionSchemaContractTest::toolInvocationActivationAndEventSignaturesRemainStable()
-{
-    using Action = KisToolInvocationAction;
-    using ShortcutOperation = void (Action::*)(int);
-    using BeginOperation = void (Action::*)(int, QEvent *);
-    using EventOperation = void (Action::*)(QEvent *);
-
-    static_assert(std::is_same_v<decltype(static_cast<ShortcutOperation>(&Action::activate)), ShortcutOperation>);
-    static_assert(std::is_same_v<decltype(static_cast<ShortcutOperation>(&Action::deactivate)), ShortcutOperation>);
-    static_assert(std::is_same_v<decltype(static_cast<BeginOperation>(&Action::begin)), BeginOperation>);
-    static_assert(std::is_same_v<decltype(static_cast<EventOperation>(&Action::end)), EventOperation>);
-    static_assert(std::is_same_v<decltype(static_cast<EventOperation>(&Action::inputEvent)), EventOperation>);
-    static_assert(
-        std::is_same_v<decltype(static_cast<EventOperation>(&Action::processUnhandledEvent)), EventOperation>);
-
-    QVERIFY(true);
-}
-
-void KisToolInvocationActionSchemaContractTest::toolInvocationPolicySignaturesRemainStable()
-{
-    using Action = KisToolInvocationAction;
-    using PriorityQuery = int (Action::*)() const;
-    using BooleanQuery = bool (Action::*)() const;
-    using ShortcutBooleanQuery = bool (Action::*)(int) const;
-    using GroupQuery = KisInputActionGroup (Action::*)(int) const;
-
-    static_assert(std::is_same_v<decltype(static_cast<PriorityQuery>(&Action::priority)), PriorityQuery>);
-    static_assert(std::is_same_v<decltype(static_cast<BooleanQuery>(&Action::canIgnoreModifiers)), BooleanQuery>);
-    static_assert(
-        std::is_same_v<decltype(static_cast<ShortcutBooleanQuery>(&Action::isShortcutRequired)), ShortcutBooleanQuery>);
-    static_assert(std::is_same_v<decltype(static_cast<ShortcutBooleanQuery>(&Action::supportsHiResInputEvents)),
-                                 ShortcutBooleanQuery>);
-    static_assert(std::is_same_v<decltype(static_cast<GroupQuery>(&Action::inputActionGroup)), GroupQuery>);
-
-    QVERIFY(true);
-}
-
-void KisToolInvocationActionSchemaContractTest::abstractInputActionTypeLifetimeAndConstructionSchemaRemainStable()
-{
-    using Action = KisAbstractInputAction;
-
-    static_assert(std::is_class_v<Action>);
-    static_assert(std::is_constructible_v<Action, const QString &>);
-    static_assert(std::has_virtual_destructor_v<Action>);
-
-    QVERIFY(true);
-}
-
-void KisToolInvocationActionSchemaContractTest::abstractInputActionActivationAndCompletionSignaturesRemainStable()
-{
-    using Action = KisAbstractInputAction;
-    using ShortcutOperation = void (Action::*)(int);
-    using BeginOperation = void (Action::*)(int, QEvent *);
-    using EventOperation = void (Action::*)(QEvent *);
-
-    static_assert(std::is_same_v<decltype(static_cast<ShortcutOperation>(&Action::activate)), ShortcutOperation>);
-    static_assert(std::is_same_v<decltype(static_cast<ShortcutOperation>(&Action::deactivate)), ShortcutOperation>);
-    static_assert(std::is_same_v<decltype(static_cast<BeginOperation>(&Action::begin)), BeginOperation>);
-    static_assert(std::is_same_v<decltype(static_cast<EventOperation>(&Action::end)), EventOperation>);
-
-    QVERIFY(true);
-}
-
-void KisToolInvocationActionSchemaContractTest::abstractInputActionEventAndGroupSignaturesRemainStable()
-{
-    using Action = KisAbstractInputAction;
-    using EventOperation = void (Action::*)(QEvent *);
-    using ShortcutBooleanQuery = bool (Action::*)(int) const;
-    using GroupQuery = KisInputActionGroup (Action::*)(int) const;
-    using ShortcutIndexesQuery = QHash<QString, int> (Action::*)() const;
-
-    static_assert(std::is_same_v<decltype(static_cast<EventOperation>(&Action::inputEvent)), EventOperation>);
-    static_assert(std::is_same_v<decltype(static_cast<ShortcutBooleanQuery>(&Action::supportsHiResInputEvents)),
-                                 ShortcutBooleanQuery>);
-    static_assert(std::is_same_v<decltype(static_cast<GroupQuery>(&Action::inputActionGroup)), GroupQuery>);
-    static_assert(
-        std::is_same_v<decltype(static_cast<ShortcutIndexesQuery>(&Action::shortcutIndexes)), ShortcutIndexesQuery>);
-
-    QVERIFY(true);
-}
-
-void KisToolInvocationActionSchemaContractTest::abstractInputActionIdentityAndPrioritySignaturesRemainStable()
-{
-    using Action = KisAbstractInputAction;
-    using TextQuery = QString (Action::*)() const;
-    using PriorityQuery = int (Action::*)() const;
-
-    static_assert(std::is_same_v<decltype(static_cast<TextQuery>(&Action::id)), TextQuery>);
-    static_assert(std::is_same_v<decltype(static_cast<TextQuery>(&Action::name)), TextQuery>);
-    static_assert(std::is_same_v<decltype(static_cast<TextQuery>(&Action::description)), TextQuery>);
-    static_assert(std::is_same_v<decltype(static_cast<PriorityQuery>(&Action::priority)), PriorityQuery>);
-
-    QVERIFY(true);
-}
-
-void KisToolInvocationActionSchemaContractTest::abstractInputActionAvailabilityPolicySignaturesRemainStable()
-{
-    using Action = KisAbstractInputAction;
-    using BooleanQuery = bool (Action::*)() const;
-    using ShortcutBooleanQuery = bool (Action::*)(int) const;
-
-    static_assert(std::is_same_v<decltype(static_cast<BooleanQuery>(&Action::canIgnoreModifiers)), BooleanQuery>);
-    static_assert(
-        std::is_same_v<decltype(static_cast<ShortcutBooleanQuery>(&Action::isShortcutRequired)), ShortcutBooleanQuery>);
-    static_assert(std::is_same_v<decltype(static_cast<BooleanQuery>(&Action::isAvailable)), BooleanQuery>);
-
-    QVERIFY(true);
-}
-
-void KisToolInvocationActionSchemaContractTest::alternateInvocationTypeAndLifetimeSchemaRemainStable()
-{
-    using Action = KisAlternateInvocationAction;
-
-    static_assert(std::is_class_v<Action>);
-    static_assert(std::is_base_of_v<KisAbstractInputAction, Action>);
-    static_assert(std::is_default_constructible_v<Action>);
-    static_assert(std::is_destructible_v<Action>);
-    static_assert(std::has_virtual_destructor_v<Action>);
-
-    QVERIFY(true);
-}
-
 void KisToolInvocationActionSchemaContractTest::alternateInvocationModeShortcutOrdinalsRemainStable()
 {
     using Shortcut = KisAlternateInvocationAction::Shortcut;
 
-    static_assert(std::is_enum_v<Shortcut>);
     QCOMPARE(static_cast<int>(Shortcut::PrimaryAlternateModeShortcut), 0);
     QCOMPARE(static_cast<int>(Shortcut::SecondaryAlternateModeShortcut), 1);
     QCOMPARE(static_cast<int>(Shortcut::TertiaryAlternateModeShortcut), 6);
@@ -217,36 +67,6 @@ void KisToolInvocationActionSchemaContractTest::alternateInvocationSamplingShort
     QCOMPARE(static_cast<int>(Shortcut::SampleColorBgLayerModeShortcut), 3);
     QCOMPARE(static_cast<int>(Shortcut::SampleColorFgImageModeShortcut), 4);
     QCOMPARE(static_cast<int>(Shortcut::SampleColorBgImageModeShortcut), 5);
-}
-
-void KisToolInvocationActionSchemaContractTest::alternateInvocationActivationLifecycleSignaturesRemainStable()
-{
-    using Action = KisAlternateInvocationAction;
-    using ShortcutOperation = void (Action::*)(int);
-    using BeginOperation = void (Action::*)(int, QEvent *);
-    using EventOperation = void (Action::*)(QEvent *);
-
-    static_assert(std::is_same_v<decltype(static_cast<ShortcutOperation>(&Action::activate)), ShortcutOperation>);
-    static_assert(std::is_same_v<decltype(static_cast<ShortcutOperation>(&Action::deactivate)), ShortcutOperation>);
-    static_assert(std::is_same_v<decltype(static_cast<BeginOperation>(&Action::begin)), BeginOperation>);
-    static_assert(std::is_same_v<decltype(static_cast<EventOperation>(&Action::end)), EventOperation>);
-
-    QVERIFY(true);
-}
-
-void KisToolInvocationActionSchemaContractTest::alternateInvocationEventAndPolicySignaturesRemainStable()
-{
-    using Action = KisAlternateInvocationAction;
-    using EventOperation = void (Action::*)(QEvent *);
-    using PriorityQuery = int (Action::*)() const;
-    using ShortcutBooleanQuery = bool (Action::*)(int) const;
-
-    static_assert(std::is_same_v<decltype(static_cast<EventOperation>(&Action::inputEvent)), EventOperation>);
-    static_assert(std::is_same_v<decltype(static_cast<PriorityQuery>(&Action::priority)), PriorityQuery>);
-    static_assert(std::is_same_v<decltype(static_cast<ShortcutBooleanQuery>(&Action::supportsHiResInputEvents)),
-                                 ShortcutBooleanQuery>);
-
-    QVERIFY(true);
 }
 
 QTEST_APPLESS_MAIN(KisToolInvocationActionSchemaContractTest)

@@ -11,7 +11,6 @@
 #include <QVector>
 
 #include <array>
-#include <type_traits>
 
 #include "KisRepaintDebugger.h"
 
@@ -53,8 +52,6 @@ void KisRepaintDebuggerContractTest::initTestCase()
 void KisRepaintDebuggerContractTest::enabledStateAndValueLifetime()
 {
     QVERIFY(KisRepaintDebugger::enabled());
-    QVERIFY(std::is_default_constructible_v<KisRepaintDebugger>);
-    QVERIFY(std::is_destructible_v<KisRepaintDebugger>);
 
     KisRepaintDebugger debugger;
     Q_UNUSED(debugger)

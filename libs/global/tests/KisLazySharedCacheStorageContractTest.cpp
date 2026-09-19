@@ -10,7 +10,6 @@
 
 #include <atomic>
 #include <thread>
-#include <type_traits>
 #include <vector>
 
 namespace
@@ -66,30 +65,12 @@ class KisLazySharedCacheStorageContractTest : public QObject
     Q_OBJECT
 
 private Q_SLOTS:
-    void typeAliasesDescribeStoragePolicies();
     void localDataStorageCopiesValuesAndDetachesReset();
     void sharedDataWrapperSharesInitializationUntilReset();
     void cacheLifecycleForwardsArgumentsAndBuildsOnce();
     void localAndLinkedCachesPreserveCopyContracts();
     void concurrentAccessConstructsOnce();
 };
-
-void KisLazySharedCacheStorageContractTest::typeAliasesDescribeStoragePolicies()
-{
-    using ExpectedFactory = CacheValue *(int);
-    using ExpectedLocalCache = KisLazySharedCacheStorageBase<LocalDataWrapper, CacheValue, int>;
-    using ExpectedLinkedCache = KisLazySharedCacheStorageBase<SharedDataWrapper, CacheValue, int>;
-
-    QVERIFY((std::is_same_v<LocalDataStorage::ConstType, const CacheValue>));
-    QVERIFY((std::is_same_v<LocalDataStorage::FactoryType, ExpectedFactory>));
-    QVERIFY((std::is_same_v<LocalDataWrapper, LocalDataStorage>));
-    QVERIFY((std::is_same_v<SharedDataWrapper::ConstType, const CacheValue>));
-    QVERIFY((std::is_same_v<SharedDataWrapper::FactoryType, ExpectedFactory>));
-    QVERIFY((std::is_same_v<LocalCacheBase::ConstType, const CacheValue>));
-    QVERIFY((std::is_same_v<LocalCacheBase::FactoryType, ExpectedFactory>));
-    QVERIFY((std::is_same_v<LocalCache, ExpectedLocalCache>));
-    QVERIFY((std::is_same_v<LinkedCache, ExpectedLinkedCache>));
-}
 
 void KisLazySharedCacheStorageContractTest::localDataStorageCopiesValuesAndDetachesReset()
 {

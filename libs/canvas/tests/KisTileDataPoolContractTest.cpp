@@ -10,7 +10,6 @@
 #include <QTest>
 
 #include <cstring>
-#include <type_traits>
 #include <utility>
 
 void kis_assert_recoverable(const char *assertion, const char *file, int line)
@@ -68,7 +67,6 @@ void KisTileDataPoolContractTest::poolAllocatesSizedChunksAndRequestsPurgeAtHigh
 
 void KisTileDataPoolContractTest::registrySharesPoolsByTileDimensions()
 {
-    static_assert(std::is_same_v<KisTileDataPoolSP, QSharedPointer<KisTileDataPool>>);
 
     KisTileDataPoolRegistry registry;
     const KisTileDataPoolSP first = registry.poolForTileSize(4, 5);

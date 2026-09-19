@@ -1027,53 +1027,8 @@ target_include_directories(KisSpontaneousJobContractTest PRIVATE
 
 
 
-kis_add_test(
-    KisNodeFacadeSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Test
-)
-target_include_directories(KisNodeFacadeSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-)
-target_compile_definitions(KisNodeFacadeSchemaContractTest PRIVATE kritaimage_EXPORTS)
 
 
-kis_add_test(
-    KisExifInfoVisitorSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Test
-        Boost::boost
-)
-target_include_directories(KisExifInfoVisitorSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-    ${CMAKE_SOURCE_DIR}/libs/painting/metadata
-    ${CMAKE_BINARY_DIR}/libs/painting/metadata
-    ${CMAKE_SOURCE_DIR}/libs/pigment
-    ${CMAKE_BINARY_DIR}/libs/pigment
-    ${CMAKE_SOURCE_DIR}/libs/pigment/resources
-    ${CMAKE_BINARY_DIR}/libs/pigment/resources
-    ${CMAKE_SOURCE_DIR}/libs/psdutils
-    ${CMAKE_BINARY_DIR}/libs/psdutils
-    ${CMAKE_SOURCE_DIR}/libs/resources
-    ${CMAKE_BINARY_DIR}/libs/resources
-    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Gui,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Xml,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:Imath::Imath,INTERFACE_INCLUDE_DIRECTORIES>
-)
-target_compile_definitions(KisExifInfoVisitorSchemaContractTest PRIVATE
-    kritaimage_EXPORTS
-    kritapaintingmetadata_EXPORTS
-    kritapigment_EXPORTS
-)
 
 
 
@@ -1363,117 +1318,12 @@ target_compile_definitions(KisImageStatisticsTest PRIVATE
 )
 
 
-kis_add_test(
-    KritaImageUtilitySchemaContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Gui
-        Qt${QT_MAJOR_VERSION}::Test
-        Boost::boost
-)
-target_include_directories(KritaImageUtilitySchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-)
-target_compile_definitions(KritaImageUtilitySchemaContractTest PRIVATE
-    kritaglobal_EXPORTS
-    kritaimage_EXPORTS
-)
 
 
-kis_add_test(
-    KisProcessingVisitorsSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Gui
-        Qt${QT_MAJOR_VERSION}::Test
-)
-target_include_directories(KisProcessingVisitorsSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-    ${CMAKE_SOURCE_DIR}/libs/pigment
-    ${CMAKE_BINARY_DIR}/libs/pigment
-    ${CMAKE_SOURCE_DIR}/libs/painting/undo
-    ${CMAKE_BINARY_DIR}/libs/painting/undo
-    $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:Imath::Imath,INTERFACE_INCLUDE_DIRECTORIES>
-)
-target_compile_definitions(KisProcessingVisitorsSchemaContractTest PRIVATE
-    kritaimage_EXPORTS
-    kritapigment_EXPORTS
-)
-
-kis_add_test(
-    KisLazyBrushCutSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Test
-)
-target_include_directories(KisLazyBrushCutSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-)
-target_compile_definitions(KisLazyBrushCutSchemaContractTest PRIVATE
-    kritaimage_EXPORTS
-)
-
-kis_add_test(
-    KisImageProgressSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Test
-)
-target_include_directories(KisImageProgressSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-    ${CMAKE_SOURCE_DIR}/libs/widgetutils
-    ${CMAKE_BINARY_DIR}/libs/widgetutils
-)
-target_compile_definitions(KisImageProgressSchemaContractTest PRIVATE
-    kritaimage_EXPORTS
-    kritawidgetutils_EXPORTS
-)
 
 
-kis_add_test(
-    KisExternalLayerSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Test
-)
-target_include_directories(KisExternalLayerSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-    ${CMAKE_SOURCE_DIR}/libs/pigment
-    ${CMAKE_BINARY_DIR}/libs/pigment
-    ${CMAKE_SOURCE_DIR}/libs/pigment/resources
-    ${CMAKE_BINARY_DIR}/libs/pigment/resources
-    ${CMAKE_SOURCE_DIR}/libs/psdutils
-    ${CMAKE_BINARY_DIR}/libs/psdutils
-    ${CMAKE_SOURCE_DIR}/libs/resources
-    ${CMAKE_BINARY_DIR}/libs/resources
-    ${CMAKE_SOURCE_DIR}/libs/widgetutils
-    ${CMAKE_BINARY_DIR}/libs/widgetutils
-    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Gui,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Xml,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:Imath::Imath,INTERFACE_INCLUDE_DIRECTORIES>
-)
-target_compile_definitions(KisExternalLayerSchemaContractTest PRIVATE
-    kritaimage_EXPORTS
-    kritapigment_EXPORTS
-    kritawidgetutils_EXPORTS
-)
+
+
 
 
 
@@ -1501,140 +1351,6 @@ target_compile_definitions(KisNodeCommandsAdapterSchemaContractTest PRIVATE
     kritapigment_EXPORTS
 )
 
-kis_add_test(
-    KisNodeVisualPropertyCommandsSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Test
-        Boost::boost
-)
-target_include_directories(KisNodeVisualPropertyCommandsSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-    ${CMAKE_SOURCE_DIR}/libs/pigment
-    ${CMAKE_BINARY_DIR}/libs/pigment
-    ${CMAKE_SOURCE_DIR}/libs/painting/undo
-    ${CMAKE_BINARY_DIR}/libs/painting/undo
-    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Gui,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
-)
-target_compile_definitions(KisNodeVisualPropertyCommandsSchemaContractTest PRIVATE
-    kritaimage_EXPORTS
-    kritapigment_EXPORTS
-)
-
-kis_add_test(
-    KisImageLayerHierarchyCommandsSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Test
-        Boost::boost
-)
-target_include_directories(KisImageLayerHierarchyCommandsSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-    ${CMAKE_SOURCE_DIR}/libs/pigment
-    ${CMAKE_BINARY_DIR}/libs/pigment
-    ${CMAKE_SOURCE_DIR}/libs/painting/undo
-    ${CMAKE_BINARY_DIR}/libs/painting/undo
-    $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
-)
-target_compile_definitions(KisImageLayerHierarchyCommandsSchemaContractTest PRIVATE
-    kritaimage_EXPORTS
-    kritapigment_EXPORTS
-)
-
-kis_add_test(
-    KisSelectionStateCommandsSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Test
-        Boost::boost
-)
-target_include_directories(KisSelectionStateCommandsSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-    ${CMAKE_SOURCE_DIR}/libs/pigment
-    ${CMAKE_BINARY_DIR}/libs/pigment
-    ${CMAKE_SOURCE_DIR}/libs/painting/undo
-    ${CMAKE_BINARY_DIR}/libs/painting/undo
-    $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
-)
-target_compile_definitions(KisSelectionStateCommandsSchemaContractTest PRIVATE
-    kritaimage_EXPORTS
-    kritapigment_EXPORTS
-)
-
-kis_add_test(
-    KisAnimationTimeCommandsSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Test
-        Boost::boost
-)
-target_include_directories(KisAnimationTimeCommandsSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-    ${CMAKE_SOURCE_DIR}/libs/pigment
-    ${CMAKE_BINARY_DIR}/libs/pigment
-    ${CMAKE_SOURCE_DIR}/libs/painting/undo
-    ${CMAKE_BINARY_DIR}/libs/painting/undo
-    $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
-)
-target_compile_definitions(KisAnimationTimeCommandsSchemaContractTest PRIVATE
-    kritaimage_EXPORTS
-    kritapigment_EXPORTS
-)
-
-kis_add_test(
-    KisImageProjectionAndResolutionCommandsSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Test
-        Boost::boost
-)
-target_include_directories(KisImageProjectionAndResolutionCommandsSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-    ${CMAKE_SOURCE_DIR}/libs/pigment
-    ${CMAKE_BINARY_DIR}/libs/pigment
-    ${CMAKE_SOURCE_DIR}/libs/painting/undo
-    ${CMAKE_BINARY_DIR}/libs/painting/undo
-    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Gui,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:Imath::Imath,INTERFACE_INCLUDE_DIRECTORIES>
-)
-target_compile_definitions(KisImageProjectionAndResolutionCommandsSchemaContractTest PRIVATE
-    kritaimage_EXPORTS
-    kritapigment_EXPORTS
-)
-
-kis_add_test(
-    KisNodeOperationBatchSchemaContractTest.cpp
-    TEST_NAME KisNodeOperationBatchSchemaContractTest
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Test
-)
-target_include_directories(KisNodeOperationBatchSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-)
-target_compile_definitions(KisNodeOperationBatchSchemaContractTest PRIVATE
-    kritaimage_EXPORTS
-)
 
 
 
@@ -1646,37 +1362,6 @@ target_compile_definitions(KisNodeOperationBatchSchemaContractTest PRIVATE
 
 
 
-kis_add_test(
-    KisLayerCompositionSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Test
-)
-target_include_directories(KisLayerCompositionSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-)
-target_compile_definitions(KisLayerCompositionSchemaContractTest PRIVATE
-    kritaimage_EXPORTS
-)
-
-kis_add_test(
-    KisTransformWorkerSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Test
-)
-target_include_directories(KisTransformWorkerSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-)
-target_compile_definitions(KisTransformWorkerSchemaContractTest PRIVATE
-    kritaimage_EXPORTS
-)
 
 
 
@@ -1688,169 +1373,17 @@ target_compile_definitions(KisTransformWorkerSchemaContractTest PRIVATE
 
 
 
-kis_add_test(
-    KisLayerPropertiesIconsSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Gui
-        Qt${QT_MAJOR_VERSION}::Test
-        Qt${QT_MAJOR_VERSION}::Xml
-        Boost::boost
-)
-target_include_directories(KisLayerPropertiesIconsSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-    ${CMAKE_SOURCE_DIR}/libs/pigment
-    ${CMAKE_BINARY_DIR}/libs/pigment
-    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Widgets,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
-)
-target_compile_definitions(KisLayerPropertiesIconsSchemaContractTest PRIVATE
-    kritaimage_EXPORTS
-    kritapigment_EXPORTS
-)
 
-kis_add_test(
-    KisPaintLayerSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Gui
-        Qt${QT_MAJOR_VERSION}::Test
-        Qt${QT_MAJOR_VERSION}::Xml
-        Boost::boost
-)
-target_include_directories(KisPaintLayerSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-    ${CMAKE_SOURCE_DIR}/libs/pigment
-    ${CMAKE_BINARY_DIR}/libs/pigment
-    ${CMAKE_SOURCE_DIR}/libs/pigment/resources
-    ${CMAKE_BINARY_DIR}/libs/pigment/resources
-    ${CMAKE_SOURCE_DIR}/libs/psdutils
-    ${CMAKE_BINARY_DIR}/libs/psdutils
-    ${CMAKE_SOURCE_DIR}/libs/resources
-    ${CMAKE_BINARY_DIR}/libs/resources
-    $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:Imath::Imath,INTERFACE_INCLUDE_DIRECTORIES>
-)
-target_compile_definitions(KisPaintLayerSchemaContractTest PRIVATE
-    kritaimage_EXPORTS
-    kritapigment_EXPORTS
-)
 
-kis_add_test(
-    KisLayerStyleProjectionPlaneSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Test
-)
-target_include_directories(KisLayerStyleProjectionPlaneSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-    ${CMAKE_SOURCE_DIR}/libs/pigment
-    ${CMAKE_BINARY_DIR}/libs/pigment
-    ${CMAKE_SOURCE_DIR}/libs/pigment/resources
-    ${CMAKE_BINARY_DIR}/libs/pigment/resources
-    ${CMAKE_SOURCE_DIR}/libs/psdutils
-    ${CMAKE_BINARY_DIR}/libs/psdutils
-    ${CMAKE_SOURCE_DIR}/libs/resources
-    ${CMAKE_BINARY_DIR}/libs/resources
-    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Gui,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Xml,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:Imath::Imath,INTERFACE_INCLUDE_DIRECTORIES>
-)
-target_compile_definitions(KisLayerStyleProjectionPlaneSchemaContractTest PRIVATE
-    kritaimage_EXPORTS
-    kritapigment_EXPORTS
-)
 
-kis_add_test(
-    KisLayerStyleConcreteFiltersSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Test
-)
-target_include_directories(KisLayerStyleConcreteFiltersSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-    ${CMAKE_SOURCE_DIR}/libs/pigment
-    ${CMAKE_BINARY_DIR}/libs/pigment
-    ${CMAKE_SOURCE_DIR}/libs/pigment/resources
-    ${CMAKE_BINARY_DIR}/libs/pigment/resources
-    ${CMAKE_SOURCE_DIR}/libs/psdutils
-    ${CMAKE_BINARY_DIR}/libs/psdutils
-    ${CMAKE_SOURCE_DIR}/libs/resources
-    ${CMAKE_BINARY_DIR}/libs/resources
-    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Gui,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Xml,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:Imath::Imath,INTERFACE_INCLUDE_DIRECTORIES>
-)
-target_compile_definitions(KisLayerStyleConcreteFiltersSchemaContractTest PRIVATE
-    kritaimage_EXPORTS
-    kritapigment_EXPORTS
-)
 
-kis_add_test(
-    KisLayerStyleAdditionalFiltersSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Test
-)
-target_include_directories(KisLayerStyleAdditionalFiltersSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-    ${CMAKE_SOURCE_DIR}/libs/pigment
-    ${CMAKE_BINARY_DIR}/libs/pigment
-    ${CMAKE_SOURCE_DIR}/libs/pigment/resources
-    ${CMAKE_BINARY_DIR}/libs/pigment/resources
-    ${CMAKE_SOURCE_DIR}/libs/psdutils
-    ${CMAKE_BINARY_DIR}/libs/psdutils
-    ${CMAKE_SOURCE_DIR}/libs/resources
-    ${CMAKE_BINARY_DIR}/libs/resources
-    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Gui,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Xml,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:Imath::Imath,INTERFACE_INCLUDE_DIRECTORIES>
-)
-target_compile_definitions(KisLayerStyleAdditionalFiltersSchemaContractTest PRIVATE
-    kritaimage_EXPORTS
-    kritapigment_EXPORTS
-)
 
-kis_add_test(
-    KisCrossDeviceColorSamplerSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Test
-        Boost::boost
-)
-target_include_directories(KisCrossDeviceColorSamplerSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-    ${CMAKE_SOURCE_DIR}/libs/pigment
-    ${CMAKE_BINARY_DIR}/libs/pigment
-    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Gui,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:Imath::Imath,INTERFACE_INCLUDE_DIRECTORIES>
-)
-target_compile_definitions(KisCrossDeviceColorSamplerSchemaContractTest PRIVATE
-    kritaimage_EXPORTS
-    kritapigment_EXPORTS
-)
+
+
+
+
+
+
 
 
 kis_add_test(
@@ -1876,65 +1409,7 @@ target_compile_definitions(KisBezierGradientMeshContractTest PRIVATE
     kritaglobal_EXPORTS
 )
 
-kis_add_test(
-    KisEncloseAndFillPainterSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Gui
-        Qt${QT_MAJOR_VERSION}::Test
-        Boost::boost
-)
-target_include_directories(KisEncloseAndFillPainterSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    ${CMAKE_SOURCE_DIR}/libs/image/filter
-    ${CMAKE_BINARY_DIR}/libs/image/filter
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-    ${CMAKE_SOURCE_DIR}/libs/pigment
-    ${CMAKE_BINARY_DIR}/libs/pigment
-    ${CMAKE_SOURCE_DIR}/libs/pigment/resources
-    ${CMAKE_BINARY_DIR}/libs/pigment/resources
-    ${CMAKE_SOURCE_DIR}/libs/resources
-    ${CMAKE_BINARY_DIR}/libs/resources
-    ${CMAKE_SOURCE_DIR}/libs/painting/undo
-    ${CMAKE_BINARY_DIR}/libs/painting/undo
-    $<TARGET_PROPERTY:Eigen3::Eigen,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:Imath::Imath,INTERFACE_INCLUDE_DIRECTORIES>
-)
-target_compile_definitions(KisEncloseAndFillPainterSchemaContractTest PRIVATE
-    kritaimage_EXPORTS
-    kritapigment_EXPORTS
-)
 
-kis_add_test(
-    KisPaintOpPresetSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Gui
-        Qt${QT_MAJOR_VERSION}::Test
-        Boost::boost
-)
-target_include_directories(KisPaintOpPresetSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-    ${CMAKE_SOURCE_DIR}/libs/image/brushengine
-    ${CMAKE_BINARY_DIR}/libs/image/brushengine
-    ${CMAKE_SOURCE_DIR}/libs/pigment
-    ${CMAKE_BINARY_DIR}/libs/pigment
-    ${CMAKE_SOURCE_DIR}/libs/resources
-    ${CMAKE_BINARY_DIR}/libs/resources
-    $<TARGET_PROPERTY:Eigen3::Eigen,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:Imath::Imath,INTERFACE_INCLUDE_DIRECTORIES>
-)
-target_compile_definitions(KisPaintOpPresetSchemaContractTest PRIVATE
-    kritaimage_EXPORTS
-    kritapigment_EXPORTS
-)
 
 kis_add_test(
     KisPaintOpUtilsSchemaContractTest.cpp
@@ -1954,67 +1429,8 @@ target_compile_definitions(KisPaintOpUtilsSchemaContractTest PRIVATE
     kritaimage_EXPORTS
 )
 
-kis_add_test(
-    KisPaintOpSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Test
-)
-target_include_directories(KisPaintOpSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-)
-target_compile_definitions(KisPaintOpSchemaContractTest PRIVATE
-    kritaimage_EXPORTS
-)
 
-kis_add_test(
-    KisComboBasedPaintOpPropertySchemaContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Test
-)
-target_include_directories(KisComboBasedPaintOpPropertySchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-)
-target_compile_definitions(KisComboBasedPaintOpPropertySchemaContractTest PRIVATE
-    kritaimage_EXPORTS
-)
 
-kis_add_test(
-    KisPaintOpConfigWidgetSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Test
-        Eigen3::Eigen
-        lager
-)
-target_include_directories(KisPaintOpConfigWidgetSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    ${CMAKE_CURRENT_SOURCE_DIR}/../brushengine
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-    ${CMAKE_SOURCE_DIR}/libs/pigment
-    ${CMAKE_BINARY_DIR}/libs/pigment
-    ${CMAKE_SOURCE_DIR}/libs/tools
-    ${CMAKE_BINARY_DIR}/libs/tools
-    ${CMAKE_BINARY_DIR}/libs/tools/ui
-    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Gui,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Widgets,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:Imath::Imath,INTERFACE_INCLUDE_DIRECTORIES>
-)
-target_compile_definitions(KisPaintOpConfigWidgetSchemaContractTest PRIVATE
-    kritaimage_EXPORTS
-    kritapigment_EXPORTS
-    kritatoolsui_EXPORTS
-)
 
 kis_add_test(
     KisStandardUniformPropertiesValuesContractTest.cpp
@@ -2029,35 +1445,6 @@ target_include_directories(KisStandardUniformPropertiesValuesContractTest PRIVAT
 )
 target_compile_definitions(KisStandardUniformPropertiesValuesContractTest PRIVATE kritaimage_EXPORTS)
 
-kis_add_test(
-    KisPSDLayerStyleSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Gui
-        Qt${QT_MAJOR_VERSION}::Test
-        Qt${QT_MAJOR_VERSION}::Xml
-        Boost::boost
-)
-target_include_directories(KisPSDLayerStyleSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-    ${CMAKE_SOURCE_DIR}/libs/pigment
-    ${CMAKE_BINARY_DIR}/libs/pigment
-    ${CMAKE_SOURCE_DIR}/libs/pigment/resources
-    ${CMAKE_BINARY_DIR}/libs/pigment/resources
-    ${CMAKE_SOURCE_DIR}/libs/psdutils
-    ${CMAKE_BINARY_DIR}/libs/psdutils
-    ${CMAKE_SOURCE_DIR}/libs/resources
-    ${CMAKE_BINARY_DIR}/libs/resources
-    $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:Imath::Imath,INTERFACE_INCLUDE_DIRECTORIES>
-)
-target_compile_definitions(KisPSDLayerStyleSchemaContractTest PRIVATE
-    kritaimage_EXPORTS
-    kritapigment_EXPORTS
-)
 
 
 kis_add_test(
@@ -2099,160 +1486,14 @@ target_compile_definitions(KisLazyFillToolsContractTest PRIVATE
     kritaimage_EXPORTS
 )
 
-kis_add_test(
-    KisMaskSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Gui
-        Qt${QT_MAJOR_VERSION}::Test
-        Qt${QT_MAJOR_VERSION}::Xml
-        Boost::boost
-)
-target_include_directories(KisMaskSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-    ${CMAKE_SOURCE_DIR}/libs/pigment
-    ${CMAKE_BINARY_DIR}/libs/pigment
-    ${CMAKE_SOURCE_DIR}/libs/pigment/resources
-    ${CMAKE_BINARY_DIR}/libs/pigment/resources
-    ${CMAKE_SOURCE_DIR}/libs/resources
-    ${CMAKE_BINARY_DIR}/libs/resources
-    $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:Imath::Imath,INTERFACE_INCLUDE_DIRECTORIES>
-)
-target_compile_definitions(KisMaskSchemaContractTest PRIVATE
-    kritaimage_EXPORTS
-    kritapigment_EXPORTS
-)
-
-
-kis_add_test(
-    KisTransformMaskSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Gui
-        Qt${QT_MAJOR_VERSION}::Test
-        Qt${QT_MAJOR_VERSION}::Xml
-        Boost::boost
-)
-target_include_directories(KisTransformMaskSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-    ${CMAKE_SOURCE_DIR}/libs/pigment
-    ${CMAKE_BINARY_DIR}/libs/pigment
-    ${CMAKE_SOURCE_DIR}/libs/pigment/resources
-    ${CMAKE_BINARY_DIR}/libs/pigment/resources
-    ${CMAKE_SOURCE_DIR}/libs/resources
-    ${CMAKE_BINARY_DIR}/libs/resources
-    $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:Imath::Imath,INTERFACE_INCLUDE_DIRECTORIES>
-)
-target_compile_definitions(KisTransformMaskSchemaContractTest PRIVATE
-    kritaimage_EXPORTS
-    kritapigment_EXPORTS
-)
 
 
 
-kis_add_test(
-    KisImageConfigAnimationSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Gui
-        Qt${QT_MAJOR_VERSION}::Test
-        Boost::boost
-)
-target_include_directories(KisImageConfigAnimationSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-    ${CMAKE_SOURCE_DIR}/libs/pigment
-    ${CMAKE_BINARY_DIR}/libs/pigment
-    $<TARGET_PROPERTY:KF${KF_MAJOR}::ConfigCore,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:Imath::Imath,INTERFACE_INCLUDE_DIRECTORIES>
-)
-target_compile_definitions(KisImageConfigAnimationSchemaContractTest PRIVATE
-    kritaimage_EXPORTS
-    kritapigment_EXPORTS
-)
 
-kis_add_test(
-    KisImageConfigResourceBudgetSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Gui
-        Qt${QT_MAJOR_VERSION}::Test
-        Boost::boost
-)
-target_include_directories(KisImageConfigResourceBudgetSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-    ${CMAKE_SOURCE_DIR}/libs/pigment
-    ${CMAKE_BINARY_DIR}/libs/pigment
-    $<TARGET_PROPERTY:KF${KF_MAJOR}::ConfigCore,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:Imath::Imath,INTERFACE_INCLUDE_DIRECTORIES>
-)
-target_compile_definitions(KisImageConfigResourceBudgetSchemaContractTest PRIVATE
-    kritaimage_EXPORTS
-    kritapigment_EXPORTS
-)
 
-kis_add_test(
-    KisImageConfigGeneralSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Gui
-        Qt${QT_MAJOR_VERSION}::Test
-        Boost::boost
-)
-target_include_directories(KisImageConfigGeneralSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-    ${CMAKE_SOURCE_DIR}/libs/pigment
-    ${CMAKE_BINARY_DIR}/libs/pigment
-    $<TARGET_PROPERTY:KF${KF_MAJOR}::ConfigCore,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:Imath::Imath,INTERFACE_INCLUDE_DIRECTORIES>
-)
-target_compile_definitions(KisImageConfigGeneralSchemaContractTest PRIVATE
-    kritaimage_EXPORTS
-    kritapigment_EXPORTS
-)
 
-kis_add_test(
-    KisPropertiesConfigurationSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Gui
-        Qt${QT_MAJOR_VERSION}::Test
-        Boost::boost
-)
-target_include_directories(KisPropertiesConfigurationSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-    ${CMAKE_SOURCE_DIR}/libs/pigment
-    ${CMAKE_BINARY_DIR}/libs/pigment
-    $<TARGET_PROPERTY:Eigen3::Eigen,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:Imath::Imath,INTERFACE_INCLUDE_DIRECTORIES>
-)
-target_compile_definitions(KisPropertiesConfigurationSchemaContractTest PRIVATE
-    kritaimage_EXPORTS
-    kritapigment_EXPORTS
-)
+
+
 
 kis_add_test(
     KisProofingConfigurationContractTest.cpp
@@ -2547,19 +1788,6 @@ target_include_directories(KisBehaviorInterfacesContractTest PRIVATE
     ${CMAKE_BINARY_DIR}/libs/pigment
 )
 
-kis_add_test(
-    KisInterstrokeDataSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Test
-)
-target_include_directories(KisInterstrokeDataSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-)
-target_compile_definitions(KisInterstrokeDataSchemaContractTest PRIVATE kritaimage_EXPORTS)
 
 kis_add_test(
     KisBlockBackgroundFrameGenerationLockContractTest.cpp

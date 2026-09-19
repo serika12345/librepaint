@@ -9,7 +9,6 @@
 
 #include <array>
 #include <functional>
-#include <type_traits>
 
 namespace
 {

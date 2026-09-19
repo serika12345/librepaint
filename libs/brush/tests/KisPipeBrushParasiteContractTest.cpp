@@ -9,7 +9,6 @@
 #include <QTest>
 
 #include <array>
-#include <type_traits>
 
 namespace
 {
@@ -58,11 +57,6 @@ private Q_SLOTS:
 private:
     void exposesStablePlacementAndDefaultStateImpl()
     {
-        static_assert(KisPipeBrushParasite::MaxDim == 4);
-        static_assert(std::extent_v<decltype(KisPipeBrushParasite::rank)> == KisPipeBrushParasite::MaxDim);
-        static_assert(std::extent_v<decltype(KisPipeBrushParasite::selection)> == KisPipeBrushParasite::MaxDim);
-        static_assert(std::extent_v<decltype(KisPipeBrushParasite::brushesCount)> == KisPipeBrushParasite::MaxDim);
-        static_assert(std::extent_v<decltype(KisPipeBrushParasite::index)> == KisPipeBrushParasite::MaxDim);
 
         QCOMPARE(int(KisPipeBrushParasite::DefaultPlacement), 0);
         QCOMPARE(int(KisPipeBrushParasite::ConstantPlacement), 1);

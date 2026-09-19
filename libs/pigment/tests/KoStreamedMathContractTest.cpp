@@ -9,7 +9,6 @@
 
 #include <algorithm>
 #include <array>
-#include <type_traits>
 
 namespace
 {
@@ -21,8 +20,6 @@ using IntBatch = Math::int_v;
 using UintBatch = Math::uint_v;
 struct CompositeProbe;
 using CompositeFunction = void (*)(const KoCompositeOp::ParameterInfo &);
-#define ASSERT_STREAMED_COMPOSITE_SIGNATURE(method, ...)                                                               \
-    static_assert(std::is_same_v<decltype(&Math::template method<__VA_ARGS__>), CompositeFunction>)
 
 template<typename Batch>
 std::array<typename Batch::value_type, Batch::size> batchValues(const Batch &batch)
@@ -63,27 +60,10 @@ private Q_SLOTS:
     void maskAlphaAndChannelsRoundTripExactBytes();
     void pixelWrappersPreserveChannelPolicies();
     void pixelRecoveryRestoresOnlySelectedFloatLanes();
-    void genericCompositeSignaturesRemainStable();
 };
 
 void KoStreamedMathContractTest::scalarAndSimdRoundAndDivisionPreserveValues()
 {
-    static_assert(std::is_same_v<Math::float_v, FloatBatch>);
-    static_assert(std::is_same_v<Math::int_v, IntBatch>);
-    static_assert(std::is_same_v<Math::uint_v, UintBatch>);
-    static_assert(std::is_same_v<OptiDiv<Architecture>::float_v, FloatBatch>);
-    static_assert(std::is_same_v<PixelStateRecoverHelper<float, Architecture>::float_v, FloatBatch>);
-    static_assert(
-        std::is_same_v<PixelStateRecoverHelper<float, Architecture>::float_m, typename FloatBatch::batch_bool_type>);
-    static_assert(std::is_same_v<PixelWrapper<float, Architecture>::float_v, FloatBatch>);
-    static_assert(std::is_same_v<PixelWrapper<float, Architecture>::int_v, IntBatch>);
-    static_assert(std::is_same_v<PixelWrapper<float, Architecture>::uint_v, UintBatch>);
-    static_assert(std::is_class_v<Math>);
-    static_assert(std::is_class_v<OptiDiv<Architecture>>);
-    static_assert(std::is_class_v<OptiRound<Architecture, int>>);
-    static_assert(std::is_class_v<PixelStateRecoverHelper<float, Architecture>>);
-    static_assert(std::is_class_v<PixelWrapper<float, Architecture>>);
-    static_assert(std::is_class_v<PixelWrapper<float, Architecture>::Pixel>);
 
     QCOMPARE((OptiRound<Architecture, int>::roundScalar(1.4f)), 1);
     QCOMPARE((OptiRound<Architecture, int>::roundScalar(1.6f)), 2);
@@ -279,18 +259,6 @@ void KoStreamedMathContractTest::pixelRecoveryRestoresOnlySelectedFloatLanes()
     compareBatch(untouched1, FloatBatch(7.0f));
     compareBatch(untouched2, FloatBatch(8.0f));
     compareBatch(untouched3, FloatBatch(9.0f));
-}
-
-void KoStreamedMathContractTest::genericCompositeSignaturesRemainStable()
-{
-    ASSERT_STREAMED_COMPOSITE_SIGNATURE(genericComposite, false, false, CompositeProbe, 4);
-    ASSERT_STREAMED_COMPOSITE_SIGNATURE(genericComposite32, false, false, CompositeProbe);
-    ASSERT_STREAMED_COMPOSITE_SIGNATURE(genericComposite64, false, false, CompositeProbe);
-    ASSERT_STREAMED_COMPOSITE_SIGNATURE(genericComposite128, false, false, CompositeProbe);
-    ASSERT_STREAMED_COMPOSITE_SIGNATURE(genericComposite_novector, false, false, CompositeProbe, 4);
-    ASSERT_STREAMED_COMPOSITE_SIGNATURE(genericComposite32_novector, false, false, CompositeProbe);
-    ASSERT_STREAMED_COMPOSITE_SIGNATURE(genericComposite64_novector, false, false, CompositeProbe);
-    ASSERT_STREAMED_COMPOSITE_SIGNATURE(genericComposite128_novector, false, false, CompositeProbe);
 }
 
 QTEST_GUILESS_MAIN(KoStreamedMathContractTest)

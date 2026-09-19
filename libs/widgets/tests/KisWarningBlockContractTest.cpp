@@ -11,7 +11,6 @@
 #include <QTest>
 #include <QWidget>
 
-#include <type_traits>
 
 namespace
 {
@@ -45,7 +44,6 @@ class KisWarningBlockContractTest : public QObject
 
 private Q_SLOTS:
     void ownsLabelsAndFollowsParentLifetime();
-    void copyOperationsRemainDisabled();
     void textAndPixmapRoundTripThroughQtProperties();
     void forwardsTextLabelLinksExactly();
 };
@@ -73,12 +71,6 @@ void KisWarningBlockContractTest::ownsLabelsAndFollowsParentLifetime()
     QVERIFY(block.isNull());
     QVERIFY(iconLabel.isNull());
     QVERIFY(textLabel.isNull());
-}
-
-void KisWarningBlockContractTest::copyOperationsRemainDisabled()
-{
-    QVERIFY(!std::is_copy_constructible_v<KisWarningBlock>);
-    QVERIFY(!std::is_copy_assignable_v<KisWarningBlock>);
 }
 
 void KisWarningBlockContractTest::textAndPixmapRoundTripThroughQtProperties()

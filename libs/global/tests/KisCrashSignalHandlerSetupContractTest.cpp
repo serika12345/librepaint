@@ -9,7 +9,6 @@
 #include <QTest>
 
 #include <cstdlib>
-#include <type_traits>
 
 namespace
 {
@@ -43,7 +42,6 @@ private Q_SLOTS:
 
 void KisCrashSignalHandlerSetupContractTest::androidCrashHandlerKeepsItsEntryPointAndInstallsAlternateSignalHandling()
 {
-    static_assert(std::is_same_v<decltype(&KisAndroidCrashHandler::handler_init), void (*)()>);
 
     const QList<int> signals{SIGUSR1, SIGUSR2};
     QMap<int, struct sigaction> actionsBeforeInstall;

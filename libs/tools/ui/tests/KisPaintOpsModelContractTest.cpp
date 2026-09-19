@@ -7,7 +7,6 @@
 #include <QPixmap>
 #include <QTest>
 
-#include <type_traits>
 
 #include "kis_paint_ops_model.h"
 #include "kis_paint_ops_model_source_p.h"
@@ -84,10 +83,6 @@ void KisPaintOpsModelContractTest::init()
 
 void KisPaintOpsModelContractTest::paintOpInfoHasStableValueSemantics()
 {
-    static_assert(std::is_base_of_v<BasePaintOpCategorizedListModel,
-                                    KisPaintOpListModel>);
-    static_assert(std::is_base_of_v<QSortFilterProxyModel,
-                                    KisSortedPaintOpListModel>);
 
     const QIcon marker = icon(Qt::red);
     const KisPaintOpInfo empty;

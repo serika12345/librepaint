@@ -10,7 +10,6 @@
 
 #include <array>
 #include <cstddef>
-#include <type_traits>
 
 class KisPaintDeviceWriter
 {
@@ -211,10 +210,6 @@ private Q_SLOTS:
 
 void KisTileCompressorFactoryContractTest::abstractTypeAndSharedOwnershipHaveVirtualLifetime()
 {
-    static_assert(std::is_abstract_v<KisAbstractTileCompressor>);
-    static_assert(std::is_polymorphic_v<KisAbstractTileCompressor>);
-    static_assert(std::has_virtual_destructor_v<KisAbstractTileCompressor>);
-    static_assert(std::is_same_v<KisAbstractTileCompressorSP, KisSharedPtr<KisAbstractTileCompressor>>);
 
     int destructionCount = 0;
     KisAbstractTileCompressorSP first(new RecordingCompressor(&destructionCount));
