@@ -691,6 +691,17 @@ target_include_directories(KoSvgTextWrappingContractTest PRIVATE
 )
 target_compile_definitions(KoSvgTextWrappingContractTest PRIVATE kritaflake_EXPORTS)
 
+kis_add_test(
+    KoSvgTextFontImportContractTest.cpp
+    LINK_LIBRARIES
+        kritaflake
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KoSvgTextFontImportContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+)
+target_compile_definitions(KoSvgTextFontImportContractTest PRIVATE kritaflake_EXPORTS)
 
 kis_add_test(
     KoSvgTextEnumConversionContractTest.cpp
@@ -703,19 +714,6 @@ target_include_directories(KoSvgTextEnumConversionContractTest PRIVATE
     ${CMAKE_CURRENT_BINARY_DIR}/..
 )
 target_compile_definitions(KoSvgTextEnumConversionContractTest PRIVATE kritaflake_EXPORTS)
-
-kis_add_test(
-    KoSvgTextFontSelectionValueContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Gui
-        Qt${QT_MAJOR_VERSION}::Test
-        Qt${QT_MAJOR_VERSION}::Xml
-)
-target_include_directories(KoSvgTextFontSelectionValueContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-)
-target_compile_definitions(KoSvgTextFontSelectionValueContractTest PRIVATE kritaflake_EXPORTS)
 
 kis_add_test(
     KoFFWWSConverterContractTest.cpp

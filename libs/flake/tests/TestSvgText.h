@@ -19,7 +19,6 @@ private Q_SLOTS:
     void testDefaultTextProperties();
     void testTextPropertiesDifference();
 
-    void testParseFontStyles();
     void testParseTextStyles();
 
 

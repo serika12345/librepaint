@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-20 08:37 JST
+- 更新日時: 2026-09-20 08:43 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19c 利用者から観測できる振る舞いを守るテストへの整理
 - 関連TODO: R2-G19a・R2-G19b完了、R2-G19cテスト整理、R2-G19d対象OS検証
@@ -23,8 +23,9 @@
 - 完了: `KoDocumentResourceManagerSchemaContractTest.cpp`を`KoDocumentResourceManagerContractTest.cpp`へ置き換えた。図形コントローラーが使う文書解像度とキャンバス領域の読取・変更通知、および形状ハンドルの安全な最小選択範囲を検証する。
 - 完了: `KoSvgTextEnumContractTest.cpp`を`KoSvgTextFontStretchContractTest.cpp`へ置き換えた。SVG/CSSの9種類の`font-stretch`キーワードについて、読込後の幅と再保存時のキーワードを検証する。
 - 完了: `KoSvgTextShapeMarkupConverterSchemaContractTest.cpp`を`KoSvgTextWrappingContractTest.cpp`へ置き換えた。SVGテキストの`white-space`と`inline-size`を文書編集後にも維持し、`pre-wrap`に有効な幅がない場合は`pre`へ正規化することを検証する。
-- 次の作業: 残存Schema試験を利用場面から監査する。次の`KoSvgTextFontSelectionValueContractTest.cpp`では、フォント分類用内部値のコピー・既定値と、実際のOpenType機能選択・描画結果を分ける。R2-G19cの高速検査と対象CTestを再実行する。列挙値と内部識別子の固定は、保存形式や外部連携の根拠がある場合だけ保持する。
-- 検証: macOSで`TestAngleSelector`と全依存の構築、ガイド・格子設定試験、色役割試験が成功した。対象試験は3回連続成功し、CTest登録は925件になった。運用検査39件を含む`verify-quick`も成功した。
+- 完了: `KoSvgTextFontSelectionValueContractTest.cpp`を削除し、既存のフォント読込試験を`KoSvgTextFontImportContractTest.cpp`へ分離した。SVGの`font-family`、幅、太さ、style、variant、装飾を解析すると、編集部品が読む解決済み文字属性へ反映されることを検証する。
+- 次の作業: 残存Schema試験を利用場面から監査する。次の`KoSvgTextPropertyDataContractTest.cpp`では、試験内で再定義した内部プロパティとコピー・既定値を、文書編集とSVG保存で観測できる結果から分離する。R2-G19cの高速検査と対象CTestを再実行する。列挙値と内部識別子の固定は、保存形式や外部連携の根拠がある場合だけ保持する。
+- 検証: macOSで`TestAngleSelector`と全依存の構築、ガイド・格子設定試験、色役割試験が成功した。対象試験の反復実行と`verify-quick`も成功した。
 - 再発防止検証: macOSで`KisSignalCompressorContractTest`、`KisBezierPatchContractTest`、
   `KStandardActionCompatibilityTest`の構築とCTestが成功した。新しい検査を含む運用検査45件と
   `verify-quick`が成功した。
@@ -180,6 +181,14 @@ Glyph Palette QMLは`openType`、`glyphLabel`、`childCount`というrole名で�
 観測するため、`KoSvgTextWrappingContractTest.cpp`はSVGから`QTextDocument`への変換と再保存を行い、
 `pre`、有効な`pre-wrap`、幅のない`pre-wrap`の保存結果を検証する。
 
+`libs/flake/tests/KoSvgTextFontSelectionValueContractTest.cpp`は、フォント分類軸、OpenType機能の
+内部既定値・コピー、および描画器へ渡すタグ文字列を固定していた。SVG/CSSのフォント指定は読込時の
+解決済み文字属性として利用者が観測するため、既存のフォント読込試験を
+`KoSvgTextFontImportContractTest.cpp`へ分離して通常のCTestへ登録した。`font-variant-*`のCSS値と
+OpenType機能の変換・再保存は既存の`KoSvgTextEnumConversionContractTest`が検証する。フォント機能の
+画素結果は`TestSvgText::testCssFontVariants()`が担うが、macOSの現行Fontconfig構成では比較基準と一致せず、
+従来どおり隔離した画像試験として維持する。
+
 ## 構築と検証
 
 Nixの評価済み環境へ入る`./scripts/run-shared-test-env`を利用する。
@@ -202,13 +211,13 @@ Nixの評価済み環境へ入る`./scripts/run-shared-test-env`を利用する�
 `./scripts/run-shared-test-env ./scripts/verify-quick`は、運用検査39件、依存境界、公開ヘッダー、
 プラグイン登録、文書、リンク、図の検証を含めて成功した。
 型特性専用試験の削除後にも同じ高速検査が成功した。
-`cmake --build --preset tdd-macos --target help`による再構成が成功し、
-`ctest --preset tdd-macos -N`は933件を登録した。
-混在試験の整理後に対象を含むCTest 96件がすべて成功した。残した95試験対象はコンパイル・リンクに成功した。
+`cmake --build --preset tdd-macos --target help`による再構成と、
+`ctest --preset tdd-macos -N`による対象CTestの登録確認が成功した。
+混在試験の整理後に、対象CTestの実行と残した試験対象のコンパイル・リンクが成功した。
 今回の`TestAngleSelector`構築では`kritalibkis`の完全な依存閉包を構築し、各翻訳単位が利用するQt事象型、
 画像型、設定型、領域型を直接取り込むように修正した。`kritaimpexui`の内側へ入れた補助オブジェクトが
 オブジェクトライブラリー境界を越えて伝播しなかったため、所有先の`kritaapplicationui`へ明示的に組み込んだ。
-その後、`TestAngleSelector`の構築と3回反復が成功した。CTest登録は928件である。
+その後、`TestAngleSelector`の構築と3回反復が成功した。
 `./scripts/run-shared-test-env ./scripts/verify-quick`は運用検査39件、依存境界、公開ヘッダー、
 プラグイン登録、文書、リンク、図の検証を含めて成功した。
 
@@ -250,6 +259,11 @@ macOSで成功した。`libs-flake-KoDocumentResourceManagerContractTest`も成�
 `libs-flake-KoSvgTextFontStretchContractTest`と`libs-flake-KoSvgTextWrappingContractTest`の構築とCTestが
 macOSで成功した。いずれも実装ライブラリーの`kritaflake`だけを追加依存とし、既存の文書リソース試験と
 同程度のNinja依存閉包（各12931行）に収まる。削除したSVG文字のSchema CTest登録も再構成後に残っていない。
+`KoSvgTextFontImportContractTest`の増分構築とCTestがmacOSで成功した。SVG読込の実装ライブラリーである
+`kritaflake`へ依存を限定し、フォント登録を伴う隔離済みの`TestSvgText`全体を通常CTestへ追加しない。
+生成済みNinjaグラフの依存閉包は12931行であり、既存のSVG文字契約試験と同程度に収まる。
+`testCssFontVariants`は同じ環境でFontconfig設定を読込めず、6件の文字画像比較基準と不一致になるため、
+この実行環境では通常CTestへ昇格できない。
 
 主増分構築木`build/tdd-macos`と共有コンパイラーキャッシュを継続利用する。
 Qt 5、Linux、Windows、Android、実タブレット入力と全ネイティブ試験は未実施である。
