@@ -39,6 +39,13 @@ kis_add_test(
 )
 
 kis_add_test(
+    KisTextPropertiesManagerContractTest.cpp
+    LINK_LIBRARIES
+        kritaapplicationui
+        kritatestsdk
+)
+
+kis_add_test(
     TestRemainingUiRootPublicHeaders.cpp
     TEST_NAME TestRemainingUiRootPublicHeaders
     LINK_LIBRARIES kritainputui kritaapplicationui kritalibkis kritatestsdk

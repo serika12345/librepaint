@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-20 08:43 JST
+- 更新日時: 2026-09-20 08:54 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19c 利用者から観測できる振る舞いを守るテストへの整理
 - 関連TODO: R2-G19a・R2-G19b完了、R2-G19cテスト整理、R2-G19d対象OS検証
@@ -24,7 +24,8 @@
 - 完了: `KoSvgTextEnumContractTest.cpp`を`KoSvgTextFontStretchContractTest.cpp`へ置き換えた。SVG/CSSの9種類の`font-stretch`キーワードについて、読込後の幅と再保存時のキーワードを検証する。
 - 完了: `KoSvgTextShapeMarkupConverterSchemaContractTest.cpp`を`KoSvgTextWrappingContractTest.cpp`へ置き換えた。SVGテキストの`white-space`と`inline-size`を文書編集後にも維持し、`pre-wrap`に有効な幅がない場合は`pre`へ正規化することを検証する。
 - 完了: `KoSvgTextFontSelectionValueContractTest.cpp`を削除し、既存のフォント読込試験を`KoSvgTextFontImportContractTest.cpp`へ分離した。SVGの`font-family`、幅、太さ、style、variant、装飾を解析すると、編集部品が読む解決済み文字属性へ反映されることを検証する。
-- 次の作業: 残存Schema試験を利用場面から監査する。次の`KoSvgTextPropertyDataContractTest.cpp`では、試験内で再定義した内部プロパティとコピー・既定値を、文書編集とSVG保存で観測できる結果から分離する。R2-G19cの高速検査と対象CTestを再実行する。列挙値と内部識別子の固定は、保存形式や外部連携の根拠がある場合だけ保持する。
+- 完了: `KoSvgTextPropertyDataContractTest.cpp`を削除し、`KisTextPropertiesManagerContractTest.cpp`へ置き換えた。混在する文字選択が文字プロパティdockerの状態となり、dockerの設定・解除がSVGテキストツールの選択へ反映されることを検証する。
+- 次の作業: 残存Schema試験を利用場面から監査する。次の`KoSvgTextPropertiesInterfaceContractTest.cpp`では、試験内の実装再定義と仮想呼出し順序を、SVGテキストツールと文字プロパティ管理の実際の状態遷移から分離する。R2-G19cの高速検査と対象CTestを再実行する。列挙値と内部識別子の固定は、保存形式や外部連携の根拠がある場合だけ保持する。
 - 検証: macOSで`TestAngleSelector`と全依存の構築、ガイド・格子設定試験、色役割試験が成功した。対象試験の反復実行と`verify-quick`も成功した。
 - 再発防止検証: macOSで`KisSignalCompressorContractTest`、`KisBezierPatchContractTest`、
   `KStandardActionCompatibilityTest`の構築とCTestが成功した。新しい検査を含む運用検査45件と
@@ -189,6 +190,13 @@ OpenType機能の変換・再保存は既存の`KoSvgTextEnumConversionContractT
 画素結果は`TestSvgText::testCssFontVariants()`が担うが、macOSの現行Fontconfig構成では比較基準と一致せず、
 従来どおり隔離した画像試験として維持する。
 
+`libs/flake/tests/KoSvgTextPropertyDataContractTest.cpp`は、実際の`KoSvgTextProperties`を試験内で
+再定義し、プロパティデータの既定値、コピー、等値比較、メタ型名、デバッグ出力順序を固定していた。
+文字プロパティdockerとSVGテキストツールは、`KisTextPropertiesManager`とキャンバス資源プロバイダーを通じて
+混在選択、設定、解除を利用する。`KisTextPropertiesManagerContractTest.cpp`は異なる太さの選択から混在状態を
+通知し、dockerが選んだ太さと解除操作を実際のツール境界へ渡すことを検証する。メタ型名とデバッグ書式に
+保存形式・プラグイン・スクリプトの互換性根拠はない。
+
 ## 構築と検証
 
 Nixの評価済み環境へ入る`./scripts/run-shared-test-env`を利用する。
@@ -264,6 +272,9 @@ macOSで成功した。いずれも実装ライブラリーの`kritaflake`だけ
 生成済みNinjaグラフの依存閉包は12931行であり、既存のSVG文字契約試験と同程度に収まる。
 `testCssFontVariants`は同じ環境でFontconfig設定を読込めず、6件の文字画像比較基準と不一致になるため、
 この実行環境では通常CTestへ昇格できない。
+`KisTextPropertiesManagerContractTest`の増分構築とCTestがmacOSで成功した。文字プロパティ状態を実際の
+キャンバス資源とツール境界へ渡す所有ライブラリー`kritaapplicationui`だけを直接依存とした。生成済みNinja
+グラフの依存閉包は70327行であり、同じUI所有ライブラリーを使う既存の文書状態試験（72368行）より小さい。
 
 主増分構築木`build/tdd-macos`と共有コンパイラーキャッシュを継続利用する。
 Qt 5、Linux、Windows、Android、実タブレット入力と全ネイティブ試験は未実施である。
