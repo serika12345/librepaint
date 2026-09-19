@@ -10,6 +10,7 @@
 #include <QStack>
 
 #include "kis_layer.h"
+#include "kis_paint_device.h"
 
 #include "kis_abstract_projection_plane.h"
 #include "kis_projection_leaf.h"
@@ -551,4 +552,3 @@ private:
 Q_DECLARE_OPERATORS_FOR_FLAGS(KisBaseRectsWalker::SubtreeVisitFlags);
 
 #endif /* __KIS_BASE_RECTS_WALKER_H */
-

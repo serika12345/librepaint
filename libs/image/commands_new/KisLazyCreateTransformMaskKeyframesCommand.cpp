@@ -7,6 +7,7 @@
 #include "KisLazyCreateTransformMaskKeyframesCommand.h"
 
 #include "kis_transform_mask.h"
+#include "kis_paint_device.h"
 #include "kis_scalar_keyframe_channel.h"
 
 KisLazyCreateTransformMaskKeyframesCommand::KisLazyCreateTransformMaskKeyframesCommand(KisTransformMaskSP mask, KUndo2Command *parent)

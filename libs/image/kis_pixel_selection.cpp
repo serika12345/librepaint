@@ -7,6 +7,7 @@
 
 #include "kis_pixel_selection.h"
 
+#include <KisRegion.h>
 
 #include <QImage>
 #include <QVector>
@@ -28,6 +29,7 @@
 #include <kis_iterator_ng.h>
 #include <kis_sequential_iterator.h>
 #include "kis_lod_transform.h"
+#include "kis_node.h"
 #include "krita_utils.h"
 #include "kundo2command.h"
 

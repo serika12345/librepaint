@@ -5,130 +5,173 @@
 
 #include "KisWidgetConnectionUtils.h"
 
+#include <QCheckBox>
+#include <QLineEdit>
+#include <QSpinBox>
 #include <QTest>
+#include <QWidget>
 
-#include <tuple>
+class WidgetModel : public QObject
+{
+    Q_OBJECT
+    Q_PROPERTY(bool checked READ checked WRITE setChecked NOTIFY checkedChanged)
+    Q_PROPERTY(int amount READ amount WRITE setAmount NOTIFY amountChanged)
+    Q_PROPERTY(QString text READ text WRITE setText NOTIFY textChanged)
+    Q_PROPERTY(IntSpinBoxState amountState READ amountState NOTIFY amountStateChanged)
+    Q_PROPERTY(bool controlEnabled READ controlEnabled WRITE setControlEnabled NOTIFY controlEnabledChanged)
+    Q_PROPERTY(bool controlVisible READ controlVisible WRITE setControlVisible NOTIFY controlVisibleChanged)
+
+public:
+    bool checked() const { return m_checked; }
+    int amount() const { return m_amount; }
+    QString text() const { return m_text; }
+    IntSpinBoxState amountState() const { return m_amountState; }
+    bool controlEnabled() const { return m_controlEnabled; }
+    bool controlVisible() const { return m_controlVisible; }
+
+    void setChecked(bool value)
+    {
+        if (m_checked == value) return;
+        m_checked = value;
+        Q_EMIT checkedChanged(value);
+    }
+
+    void setAmount(int value)
+    {
+        if (m_amount == value) return;
+        m_amount = value;
+        Q_EMIT amountChanged(value);
+    }
+
+    void setText(const QString &value)
+    {
+        if (m_text == value) return;
+        m_text = value;
+        Q_EMIT textChanged(value);
+    }
+
+    void setAmountState(const IntSpinBoxState &state)
+    {
+        m_amountState = state;
+        Q_EMIT amountStateChanged(state);
+    }
+
+    void setControlEnabled(bool value)
+    {
+        if (m_controlEnabled == value) return;
+        m_controlEnabled = value;
+        Q_EMIT controlEnabledChanged(value);
+    }
+
+    void setControlVisible(bool value)
+    {
+        if (m_controlVisible == value) return;
+        m_controlVisible = value;
+        Q_EMIT controlVisibleChanged(value);
+    }
+
+Q_SIGNALS:
+    void checkedChanged(bool value);
+    void amountChanged(int value);
+    void textChanged(const QString &value);
+    void amountStateChanged(IntSpinBoxState state);
+    void controlEnabledChanged(bool value);
+    void controlVisibleChanged(bool value);
+
+private:
+    bool m_checked = true;
+    int m_amount = 7;
+    QString m_text = QStringLiteral("initial");
+    IntSpinBoxState m_amountState {7, -4, 19, false};
+    bool m_controlEnabled = false;
+    bool m_controlVisible = false;
+};
 
 class KisWidgetConnectionStateContractTest : public QObject
 {
     Q_OBJECT
 
 private Q_SLOTS:
-    void controlStateDefaults();
-    void controlStateConversionPreservesValueAndEnabled();
-    void comboBoxStateDefaultsAndAssignedListsRemainStable();
-    void spacingStateDefaultsAndConversionRoundTripRemainStable();
-    void spinBoxStatesDefaultsAndConversion();
+    void valuesSynchronizeBetweenModelAndControls();
+    void stateConnectionAppliesControlStateAndWritesValue();
+    void enabledAndVisiblePropertiesFollowModel();
 };
 
-void KisWidgetConnectionStateContractTest::controlStateDefaults()
+void KisWidgetConnectionStateContractTest::valuesSynchronizeBetweenModelAndControls()
 {
-    using namespace KisWidgetConnectionUtils;
+    WidgetModel model;
+    QCheckBox checkBox;
+    QSpinBox spinBox;
+    QLineEdit lineEdit;
+    spinBox.setRange(-100, 100);
 
-    const CheckBoxState checkBoxDefaults;
-    QCOMPARE(checkBoxDefaults.value, false);
-    QCOMPARE(checkBoxDefaults.enabled, true);
+    KisWidgetConnectionUtils::connectControl(&checkBox, &model, "checked");
+    KisWidgetConnectionUtils::connectControl(&spinBox, &model, "amount");
+    KisWidgetConnectionUtils::connectControl(&lineEdit, &model, "text");
 
-    const ButtonGroupState buttonGroupDefaults;
-    QCOMPARE(buttonGroupDefaults.value, 0);
-    QCOMPARE(buttonGroupDefaults.enabled, true);
+    QVERIFY(checkBox.isChecked());
+    QCOMPARE(spinBox.value(), 7);
+    QCOMPARE(lineEdit.text(), QStringLiteral("initial"));
+
+    checkBox.setChecked(false);
+    spinBox.setValue(-12);
+    lineEdit.setText(QStringLiteral("利用者の入力"));
+    QCOMPARE(model.checked(), false);
+    QCOMPARE(model.amount(), -12);
+    QCOMPARE(model.text(), QStringLiteral("利用者の入力"));
+
+    model.setChecked(true);
+    model.setAmount(42);
+    model.setText(QStringLiteral("model update"));
+    QVERIFY(checkBox.isChecked());
+    QCOMPARE(spinBox.value(), 42);
+    QCOMPARE(lineEdit.text(), QStringLiteral("model update"));
 }
 
-void KisWidgetConnectionStateContractTest::controlStateConversionPreservesValueAndEnabled()
+void KisWidgetConnectionStateContractTest::stateConnectionAppliesControlStateAndWritesValue()
 {
-    using namespace KisWidgetConnectionUtils;
+    WidgetModel model;
+    QSpinBox spinBox;
 
-    int source = -17;
-    const auto fromLvalue = ToControlState{}(source, false);
-    QCOMPARE(fromLvalue.value, -17);
-    QCOMPARE(fromLvalue.enabled, false);
+    KisWidgetConnectionUtils::connectControlState(&spinBox, &model, "amountState", "amount");
 
-    source = 42;
-    QCOMPARE(fromLvalue.value, -17);
+    QCOMPARE(spinBox.minimum(), -4);
+    QCOMPARE(spinBox.maximum(), 19);
+    QCOMPARE(spinBox.value(), 7);
+    QVERIFY(!spinBox.isEnabled());
 
-    const auto fromRvalue = ToControlState{}(QStringLiteral("状態🌐"), true);
-    QCOMPARE(fromRvalue.value, QStringLiteral("状態🌐"));
-    QCOMPARE(fromRvalue.enabled, true);
+    model.setAmountState({12, 10, 15, true});
+    QCOMPARE(spinBox.minimum(), 10);
+    QCOMPARE(spinBox.maximum(), 15);
+    QCOMPARE(spinBox.value(), 12);
+    QVERIFY(spinBox.isEnabled());
+
+    spinBox.setValue(14);
+    QCOMPARE(model.amount(), 14);
 }
 
-void KisWidgetConnectionStateContractTest::comboBoxStateDefaultsAndAssignedListsRemainStable()
+void KisWidgetConnectionStateContractTest::enabledAndVisiblePropertiesFollowModel()
 {
-    using namespace KisWidgetConnectionUtils;
+    WidgetModel model;
+    QWidget widget;
 
-    const ComboBoxState defaults;
-    QVERIFY(defaults.items.isEmpty());
-    QCOMPARE(defaults.currentIndex, -1);
-    QCOMPARE(defaults.enabled, true);
-    QVERIFY(defaults.toolTips.isEmpty());
+    KisWidgetConnectionUtils::connectWidgetEnabledToProperty(&widget, &model, "controlEnabled");
+    KisWidgetConnectionUtils::connectWidgetVisibleToProperty(&widget, &model, "controlVisible");
 
-    ComboBoxState configured;
-    configured.items = {QStringLiteral("first"), QStringLiteral("二番目"), QStringLiteral("first")};
-    configured.currentIndex = 1;
-    configured.enabled = false;
-    configured.toolTips = {QStringLiteral("tip 1"), QStringLiteral("説明"), QString()};
+    QVERIFY(!widget.isEnabled());
+    QVERIFY(widget.isHidden());
 
-    QCOMPARE(configured.items,
-             QStringList({QStringLiteral("first"), QStringLiteral("二番目"), QStringLiteral("first")}));
-    QCOMPARE(configured.currentIndex, 1);
-    QCOMPARE(configured.enabled, false);
-    QCOMPARE(configured.toolTips, QStringList({QStringLiteral("tip 1"), QStringLiteral("説明"), QString()}));
+    model.setControlEnabled(true);
+    model.setControlVisible(true);
+    QVERIFY(widget.isEnabled());
+    QVERIFY(!widget.isHidden());
+
+    model.setControlEnabled(false);
+    model.setControlVisible(false);
+    QVERIFY(!widget.isEnabled());
+    QVERIFY(widget.isHidden());
 }
 
-void KisWidgetConnectionStateContractTest::spacingStateDefaultsAndConversionRoundTripRemainStable()
-{
-    using namespace KisWidgetConnectionUtils;
-
-    const SpacingState defaults;
-    QCOMPARE(defaults.spacing, qreal(0.05));
-    QCOMPARE(defaults.useAutoSpacing, false);
-    QCOMPARE(defaults.autoSpacingCoeff, qreal(1.0));
-
-    const SpacingState converted = ToSpacingState{}(-2.5, true, 0.125);
-    QCOMPARE(converted.spacing, qreal(-2.5));
-    QCOMPARE(converted.useAutoSpacing, true);
-    QCOMPARE(converted.autoSpacingCoeff, qreal(0.125));
-
-    const auto values = FromSpacingState{}(converted);
-    QCOMPARE(std::get<0>(values), qreal(-2.5));
-    QCOMPARE(std::get<1>(values), true);
-    QCOMPARE(std::get<2>(values), qreal(0.125));
-}
-
-void KisWidgetConnectionStateContractTest::spinBoxStatesDefaultsAndConversion()
-{
-    using namespace KisWidgetConnectionUtils;
-
-    const IntSpinBoxState intDefaults;
-    QCOMPARE(intDefaults.value, 0);
-    QCOMPARE(intDefaults.min, 0);
-    QCOMPARE(intDefaults.max, 0);
-    QCOMPARE(intDefaults.enabled, true);
-
-    const DoubleSpinBoxState realDefaults;
-    QCOMPARE(realDefaults.value, qreal(0));
-    QCOMPARE(realDefaults.min, qreal(0));
-    QCOMPARE(realDefaults.max, qreal(0));
-    QCOMPARE(realDefaults.enabled, true);
-
-    const auto intState = ToSpinBoxState{}(7, -4, 19, false);
-    QCOMPARE(intState.value, 7);
-    QCOMPARE(intState.min, -4);
-    QCOMPARE(intState.max, 19);
-    QCOMPARE(intState.enabled, false);
-
-    qreal value = 2.75;
-    qreal minimum = -1.5;
-    qreal maximum = 8.25;
-    const auto realState = ToSpinBoxState{}(value, minimum, maximum, true);
-    QCOMPARE(realState.value, qreal(2.75));
-    QCOMPARE(realState.min, qreal(-1.5));
-    QCOMPARE(realState.max, qreal(8.25));
-    QCOMPARE(realState.enabled, true);
-
-    value = 99.0;
-    QCOMPARE(realState.value, qreal(2.75));
-}
-
-QTEST_GUILESS_MAIN(KisWidgetConnectionStateContractTest)
+QTEST_MAIN(KisWidgetConnectionStateContractTest)
 
 #include "KisWidgetConnectionStateContractTest.moc"

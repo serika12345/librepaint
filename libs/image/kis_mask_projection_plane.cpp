@@ -9,6 +9,7 @@
 #include <KoColorSpace.h>
 #include <KoChannelInfo.h>
 #include "kis_painter.h"
+#include "kis_paint_device.h"
 #include "kis_mask.h"
 
 
@@ -85,4 +86,3 @@ QRect KisMaskProjectionPlane::looseUserVisibleBounds() const
     // so just return the extent of the mask
     return m_d->mask->extent();
 }
-

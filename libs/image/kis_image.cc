@@ -25,6 +25,7 @@
 #include "KoColor.h"
 #include "KoColorProfile.h"
 #include <KoCompositeOpRegistry.h>
+#include <KoUpdater.h>
 #include "KisProofingConfiguration.h"
 
 #include "kis_annotation.h"

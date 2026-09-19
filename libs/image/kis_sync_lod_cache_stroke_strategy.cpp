@@ -8,6 +8,10 @@
 
 #include <kis_image.h>
 #include <kundo2magicstring.h>
+#include "KisRegion.h"
+#include "kis_node.h"
+#include "kis_paint_device.h"
+#include "krita_container_utils.h"
 #include "krita_utils.h"
 #include "kis_layer_utils.h"
 #include "kis_pointer_utils.h"

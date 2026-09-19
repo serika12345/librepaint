@@ -5,6 +5,7 @@
  */
 #include "KoCssStylePreset.h"
 
+#include <KoPathShape.h>
 #include <KoShapePainter.h>
 #include <KoSvgTextShape.h>
 #include <KoDocumentResourceManager.h>

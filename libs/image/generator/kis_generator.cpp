@@ -9,6 +9,7 @@
 #include <QString>
 
 #include "kis_bookmarked_configuration_manager.h"
+#include "filter/kis_filter_configuration.h"
 #include "kis_processing_information.h"
 #include "kis_paint_device.h"
 #include "kis_types.h"

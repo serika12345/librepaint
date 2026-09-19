@@ -7,6 +7,7 @@
 #include "kis_simple_processing_visitor.h"
 
 #include "kis_group_layer.h"
+#include "kis_paint_device.h"
 #include "kis_paint_layer.h"
 #include "kis_adjustment_layer.h"
 #include "generator/kis_generator_layer.h"

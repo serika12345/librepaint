@@ -12,6 +12,7 @@
 
 
 #include "kis_image.h"
+#include "kis_node.h"
 
 
 KisImageLayerMoveCommand::KisImageLayerMoveCommand(KisImageWSP image, KisNodeSP layer, KisNodeSP newParent, KisNodeSP newAbove, bool doUpdates)

@@ -14,6 +14,7 @@
 #include <KoCompositeOpRegistry.h>
 
 #include "kis_image.h"
+#include "kis_paint_device.h"
 #include "filter/kis_filter_configuration.h"
 #include "filter/kis_filter_registry.h"
 #include "filter/kis_filter.h"
@@ -133,4 +134,3 @@ void KisAdjustmentLayer::setChannelFlags(const QBitArray & channelFlags)
     }
     KisLayer::setChannelFlags(channelFlags);
 }
-

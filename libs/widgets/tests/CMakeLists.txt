@@ -336,7 +336,10 @@ target_compile_definitions(KisTagSelectionWidgetSchemaContractTest PRIVATE
 
 kis_add_test(
     KisWidgetConnectionStateContractTest.cpp
-    LINK_LIBRARIES Qt${QT_MAJOR_VERSION}::Test
+    LINK_LIBRARIES
+        kritawidgets
+        Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Widgets
 )
 target_include_directories(KisWidgetConnectionStateContractTest PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/..

@@ -8,6 +8,8 @@
 
 #include "kis_suspend_projection_updates_stroke_strategy.h"
 
+#include <KisRegion.h>
+
 #include <kis_image.h>
 #include <krita_utils.h>
 #include <kis_projection_updates_filter.h>

@@ -7,6 +7,7 @@
 
 #include "kis_colorize_mask.h"
 
+#include <KisMpl.h>
 #include <QCoreApplication>
 #include <QStack>
 

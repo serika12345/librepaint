@@ -12,6 +12,7 @@
 #include "kis_image.h"
 #include "kis_layer_utils.h"
 #include "kis_node_operation_batch.h"
+#include "krita_container_utils.h"
 
 namespace KisNodeGroupOperations
 {

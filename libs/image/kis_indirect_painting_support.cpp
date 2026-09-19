@@ -7,6 +7,8 @@
 
 #include "kis_indirect_painting_support.h"
 
+#include <KisRegion.h>
+
 #include <QReadWriteLock>
 
 #include <KoCompositeOp.h>

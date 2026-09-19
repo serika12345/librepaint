@@ -6,10 +6,12 @@
 #ifndef KISRESOURCEMODELINDEXRESOLVER_H
 #define KISRESOURCEMODELINDEXRESOLVER_H
 
+#include "kritaresources_export.h"
+
 #include <QModelIndex>
 #include <QString>
 
-class KisResourceModelIndexResolver
+class KRITARESOURCES_EXPORT KisResourceModelIndexResolver
 {
 public:
     static QModelIndex resourceIndex(const QString &resourceType, int resourceId);
