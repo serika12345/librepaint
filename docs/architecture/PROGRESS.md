@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-20 08:30 JST
+- 更新日時: 2026-09-20 08:37 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19c 利用者から観測できる振る舞いを守るテストへの整理
 - 関連TODO: R2-G19a・R2-G19b完了、R2-G19cテスト整理、R2-G19d対象OS検証
@@ -21,7 +21,9 @@
 - 完了: `KoFontGlyphModelSchemaContractTest.cpp`を`KoFontGlyphModelCompatibilityTest.cpp`へ置き換えた。Glyph Palette QMLが使う`openType`、`glyphLabel`、`childCount`のモデルrole名を明示的な互換性要件として検証する。
 - 完了: `KoToolBaseSchemaContractTest.cpp`を削除した。ツールボックス区分は実行時に同じ定数を参照して並べ替える内部情報であり、保存形式・拡張記述子・スクリプトの互換性根拠はない。
 - 完了: `KoDocumentResourceManagerSchemaContractTest.cpp`を`KoDocumentResourceManagerContractTest.cpp`へ置き換えた。図形コントローラーが使う文書解像度とキャンバス領域の読取・変更通知、および形状ハンドルの安全な最小選択範囲を検証する。
-- 次の作業: 残存Schema試験を利用場面から監査する。次の`KoSvgTextEnumContractTest.cpp`では、SVG/CSSの保存・読込・描画で既に保護される変換と、内部値構造の固定を分ける。R2-G19cの高速検査と対象CTestを再実行する。列挙値と内部識別子の固定は、保存形式や外部連携の根拠がある場合だけ保持する。
+- 完了: `KoSvgTextEnumContractTest.cpp`を`KoSvgTextFontStretchContractTest.cpp`へ置き換えた。SVG/CSSの9種類の`font-stretch`キーワードについて、読込後の幅と再保存時のキーワードを検証する。
+- 完了: `KoSvgTextShapeMarkupConverterSchemaContractTest.cpp`を`KoSvgTextWrappingContractTest.cpp`へ置き換えた。SVGテキストの`white-space`と`inline-size`を文書編集後にも維持し、`pre-wrap`に有効な幅がない場合は`pre`へ正規化することを検証する。
+- 次の作業: 残存Schema試験を利用場面から監査する。次の`KoSvgTextFontSelectionValueContractTest.cpp`では、フォント分類用内部値のコピー・既定値と、実際のOpenType機能選択・描画結果を分ける。R2-G19cの高速検査と対象CTestを再実行する。列挙値と内部識別子の固定は、保存形式や外部連携の根拠がある場合だけ保持する。
 - 検証: macOSで`TestAngleSelector`と全依存の構築、ガイド・格子設定試験、色役割試験が成功した。対象試験は3回連続成功し、CTest登録は925件になった。運用検査39件を含む`verify-quick`も成功した。
 - 再発防止検証: macOSで`KisSignalCompressorContractTest`、`KisBezierPatchContractTest`、
   `KStandardActionCompatibilityTest`の構築とCTestが成功した。新しい検査を含む運用検査45件と
@@ -168,6 +170,16 @@ Glyph Palette QMLは`openType`、`glyphLabel`、`childCount`というrole名で�
 図形コントローラーと編集部品が利用する文書解像度・画素領域の更新、読取、`resourceChanged`通知、
 ハンドル選択範囲の下限を検証する。
 
+`libs/flake/tests/KoSvgTextEnumContractTest.cpp`は、SVG文字の内部値構造、比較演算、CSSキーワード配列の添字を
+固定していた。CSSの`font-stretch`はSVG読込・保存で利用者が観測する形式であるため、
+`KoSvgTextFontStretchContractTest.cpp`は全キーワードを実際に読込み、解決したQt幅と保存後のキーワードを検証する。
+他の構造体既定値・コピー・flag構成は、SVG/CSS変換と描画の既存試験で十分に表現できる内部詳細として削除した。
+
+`libs/flake/tests/KoSvgTextShapeMarkupConverterSchemaContractTest.cpp`は、文書内で一時的に使う折返し種別と
+`QTextFormat` property番号を固定していた。PSD変換、SVGテキスト編集、再保存は`white-space`と`inline-size`を
+観測するため、`KoSvgTextWrappingContractTest.cpp`はSVGから`QTextDocument`への変換と再保存を行い、
+`pre`、有効な`pre-wrap`、幅のない`pre-wrap`の保存結果を検証する。
+
 ## 構築と検証
 
 Nixの評価済み環境へ入る`./scripts/run-shared-test-env`を利用する。
@@ -235,6 +247,9 @@ Ninja依存閉包（70327行）に収まる。PNG-suite全体は、ICCプロフ�
 macOSで成功した。`libs-flake-KoDocumentResourceManagerContractTest`も成功し、生成済みNinjaグラフの
 依存閉包は既存の`TestResourceManager`と同程度（12931行、12934行）である。`KoToolBaseSchemaContractTest`の
 削除後、CMake再構成で削除済みCTest登録がないことを確認する。
+`libs-flake-KoSvgTextFontStretchContractTest`と`libs-flake-KoSvgTextWrappingContractTest`の構築とCTestが
+macOSで成功した。いずれも実装ライブラリーの`kritaflake`だけを追加依存とし、既存の文書リソース試験と
+同程度のNinja依存閉包（各12931行）に収まる。削除したSVG文字のSchema CTest登録も再構成後に残っていない。
 
 主増分構築木`build/tdd-macos`と共有コンパイラーキャッシュを継続利用する。
 Qt 5、Linux、Windows、Android、実タブレット入力と全ネイティブ試験は未実施である。
