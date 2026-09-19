@@ -899,6 +899,13 @@ Linuxの色管理は標準構成のダミー後段と`-DHAVE_DBUS=ON`のcolord�
 Qt DBus検出結果からcolord後段を自動選択するかは、標準Linuxの装置・プロファイル契約と配布要件を
 確定してから決める。
 
+- [ ] Android crash handlerとWindows `winquirks/unistd.h`の対象OS実行契約を完了する。Androidでは
+      `KisAndroidCrashHandler::handler_init()`のcallback・unwindstack統合を実機または許可済みemulatorで
+      実行する。Windowsでは実MSVC互換runnerで`gid_t`、`mode_t`、`pid_t`、`uid_t`、`geteuid()`、
+      `getuid()`、`readlink()`、`sleep()`の8 APIを実行する。開始条件は、各runner、現在の`develop`を
+      同期する手順、対象CTestの構築許可を揃えることである。MinGWクロス構成は配布構成の確認に用い、
+      MSVC分岐の実行契約は実MSVC互換runnerで判定する。
+
 完了条件は次のとおりとする。
 
 - [ ] 全public APIが一つ以上の具体的な挙動試験へ対応し、未対応件数がゼロである。

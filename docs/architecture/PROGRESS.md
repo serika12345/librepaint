@@ -2,15 +2,23 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-19 20:22 JST
+- 更新日時: 2026-09-19 21:05 JST
 - 状態: `paused`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
-- 完了: 第760便で標準uniform paint-op property factoryの公開入口2件を契約へ追加し、対応済みを29,792件へ進めた。
-- 次の作業: Android実機または許可済みemulatorと、実MSVC互換のWindows実行環境を用意し、現在の`develop`をその実行環境へ同期する方法を指定してから、残るAndroid初期化入口1件とWindows互換層8件を試験する。
-- 検証: macOSの対象・反復・無作業再構築、公開API検査、`verify-quick`に成功した。NixOS実機ではplatform構成と実行可否を監査し、製品target、全体build・`verify`、Nix再評価は実行していない。主Ninja木、共有compiler cache、最新不足報告だけを保持する。
+- 完了: 第763便でAndroid crash handlerの公開初期化入口1件を契約へ追加し、対応済みを29,793件へ進めた。
+- 次の作業: 実MSVC互換のWindows実行環境と現在の`develop`をその実行環境へ同期する方法を用意してから、残るWindows互換層8件を試験する。Android実機または許可済みemulatorでは、今回分離したhandler初期化のAndroid統合を別途確認する。
+- 検証: macOSの対象・反復・無作業再構築、公開API検査、`verify-quick`に成功した。R2-G19bの対象OS実行契約はTODOへ移し、今回の契約基盤作業を停止する。NixOS実機ではplatform構成と実行可否を監査し、製品target、全体build・`verify`、Nix再評価は実行していない。主Ninja木、共有compiler cache、最新不足報告だけを保持する。
+
+### 第763便のAndroid crash handler信号設定契約
+
+- `libs/global/KisAndroidCrashHandler.cpp`にあったalternate signal stackの確保、`SA_SIGINFO | SA_ONSTACK`のhandler設定、旧handlerの記録を、新規`libs/global/KisCrashSignalHandlerSetup_p.h`と`libs/global/KisCrashSignalHandlerSetup.cpp`のPOSIX設定所有者へ移した。Androidの公開`handler_init()`は既存の6 signal、crash callback、旧handler保管先をこの具体的所有者へ渡し、確保失敗時のAndroid logを維持する。`libs/global/KisAndroidCrashHandler.h`からは宣言に不要なJNI includeを除去した。
+- `libs/global/CMakeLists.txt`はPOSIX対象だけで`kritaglobalcrashsignalhandlersetupobjects`を定義し、Androidの`kritaglobal`へ同じobjectを入力として加える。新規`libs/global/tests/KisCrashSignalHandlerSetupContractTest.cpp`は安全なユーザーsignalを設定・検査・復元し、alternate stack、`SA_SIGINFO`、`SA_ONSTACK`、callback、置換前handlerを観測する。`libs/global/tests/CMakeLists.txt`はこのtestだけを新objectとQt Testへ接続する。公開入口の正確な関数型も同testで固定する。
+- macOS targetの閉包は5工程・11入力（command SHA-256 `5165480665dfc4ed3726681efbc793b4a64f2f3221f605eba998e982c0164ce9`、input SHA-256 `84a57a586d3f82447be9e9e673aba05ef5592bbb480870079e6859c3b97ff4d9`）である。AUTOMOC `HEADERS=[]`、製品dylibなし、crash handler・設定所有者・`kritaglobal`の未解決記号なしを確認した。Android構成での製品入力はCMake定義に固定したが、Android実機またはemulatorでのcallback・unwindstack統合実行は未確認である。
+- macOSで対象単発、全1枠20回（20成功）、追加枠60回（60成功）、無作業再構築2回、`clang-check`（設定所有者・試験）、`clang-format --dry-run --Werror`、公開API検査に成功した。正式不足報告`build/tdd-macos/public-api-missing-g763.json`は公開header 1,549、公開API 29,801、対応済み29,793、未対応8、1,366 bytes、SHA-256 `bc86ec34f9370125d6d9ef986a0f476dce811f31de9c5eb3e53975b83c4a3839`を記録する。
+- `verify-quick`に成功し、対象OS実行契約を`docs/architecture/TODO.md`へ記録した。旧`build/tdd-macos/public-api-missing-g760.json`をTrashへ移し、主Ninja木、共有compiler cache、最新`build/tdd-macos/public-api-missing-g763.json`だけを保持する。
 
 ### 第761便のplatform実行前提監査
 

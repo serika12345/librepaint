@@ -16,7 +16,7 @@
     "publicApiFingerprint": "31d6cb7c6f4e68aa94d6f6778111270a7a99862ef2381a4edb9376e7b30ac600"
   },
   "migration": {
-    "expectedMissingApis": 9
+    "expectedMissingApis": 8
   },
   "contracts": [
     {
@@ -83735,6 +83735,16 @@
       "apis": [
         "function:KisStandardUniformPropertiesFactory::createProperty(const KoID & id,KisPaintOpSettingsRestrictedSP settings,KisPaintOpPresetUpdateProxy * updateProxy)",
         "function:KisStandardUniformPropertiesFactory::createProperty(const QString & id,KisPaintOpSettingsRestrictedSP settings,KisPaintOpPresetUpdateProxy * updateProxy)"
+      ]
+    },
+    {
+      "target": "KisCrashSignalHandlerSetupContractTest",
+      "source": "libs/global/tests/KisCrashSignalHandlerSetupContractTest.cpp",
+      "test": "KisCrashSignalHandlerSetupContractTest::androidCrashHandlerKeepsItsEntryPointAndInstallsAlternateSignalHandling",
+      "behavior": "Android crash handlerは公開初期化入口を維持し、共通POSIX設定はalternate signal stackを導入して、指定signalごとにSA_SIGINFOとSA_ONSTACKを持つcallbackを設定し、置換前のhandlerを復元用に記録する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisAndroidCrashHandler::handler_init()"
       ]
     }
   ]
