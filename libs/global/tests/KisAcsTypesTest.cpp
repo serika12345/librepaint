@@ -7,32 +7,22 @@
 
 #include <QTest>
 
-
-namespace
-{
-class ResourceProviderProbe;
-class PaintDeviceHandleProbe;
-class IteratorProbe;
-} // namespace
-
-class KisAcsTypesSchemaContractTest : public QObject
+class KisAcsTypesTest : public QObject
 {
     Q_OBJECT
 
 private Q_SLOTS:
-    void colorRoleAndMouseButtonMappingRemainStable();
+    void mouseButtonsSelectTheActiveColor();
 };
 
-void KisAcsTypesSchemaContractTest::colorRoleAndMouseButtonMappingRemainStable()
+void KisAcsTypesTest::mouseButtonsSelectTheActiveColor()
 {
-
-
     QCOMPARE(Acs::buttonToRole(Qt::LeftButton), Acs::Foreground);
     QCOMPARE(Acs::buttonToRole(Qt::RightButton), Acs::Background);
     QCOMPARE(Acs::buttonsToRole(Qt::RightButton, Qt::LeftButton), Acs::Foreground);
     QCOMPARE(Acs::buttonsToRole(Qt::MiddleButton, Qt::RightButton), Acs::Background);
 }
 
-QTEST_GUILESS_MAIN(KisAcsTypesSchemaContractTest)
+QTEST_GUILESS_MAIN(KisAcsTypesTest)
 
-#include "KisAcsTypesSchemaContractTest.moc"
+#include "KisAcsTypesTest.moc"

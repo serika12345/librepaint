@@ -71,14 +71,14 @@ endif()
 
 
 kis_add_test(
-    KisAcsTypesSchemaContractTest.cpp
+    KisAcsTypesTest.cpp
     LINK_LIBRARIES
         Qt${QT_MAJOR_VERSION}::Core
         Qt${QT_MAJOR_VERSION}::Gui
         Qt${QT_MAJOR_VERSION}::Test
         Boost::boost
 )
-target_include_directories(KisAcsTypesSchemaContractTest PRIVATE
+target_include_directories(KisAcsTypesTest PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/..
     ${CMAKE_CURRENT_BINARY_DIR}/..
     ${CMAKE_SOURCE_DIR}/libs/pigment
@@ -86,7 +86,7 @@ target_include_directories(KisAcsTypesSchemaContractTest PRIVATE
     $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:Imath::Imath,INTERFACE_INCLUDE_DIRECTORIES>
 )
-target_compile_definitions(KisAcsTypesSchemaContractTest PRIVATE
+target_compile_definitions(KisAcsTypesTest PRIVATE
     kritaglobal_EXPORTS
     kritapigment_EXPORTS
 )

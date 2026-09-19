@@ -43,9 +43,18 @@ void KisGridConfigTest::testGridConfig()
 void KisGridConfigTest::testGuidesConfig()
 {
     KisGuidesConfig config;
+    config.setGuidesColor(QColor(12, 34, 56));
     config.setShowGuides(true);
     config.setLockGuides(true);
     config.setSnapToGuides(true);
+
+    config.setGuidesLineType(KisGuidesConfig::LINE_SOLID);
+    QCOMPARE(config.guidesPen().style(), Qt::SolidLine);
+    config.setGuidesLineType(KisGuidesConfig::LINE_DASHED);
+    QCOMPARE(config.guidesPen().style(), Qt::DashLine);
+    config.setGuidesLineType(KisGuidesConfig::LINE_DOTTED);
+    QCOMPARE(config.guidesPen().style(), Qt::DotLine);
+    QCOMPARE(config.guidesPen().color(), QColor(12, 34, 56));
 
     config.addGuideLine(Qt::Horizontal, 100.0);
     config.addGuideLine(Qt::Horizontal, 200.0);
@@ -68,8 +77,12 @@ void KisGridConfigTest::testGuidesConfig()
     QVERIFY(!config2.hasGuides());
     QVERIFY(config2.loadFromXml(el));
 
+    QCOMPARE(config2.guidesLineType(), config.guidesLineType());
+    QCOMPARE(config2.guidesColor(), config.guidesColor());
     QCOMPARE(config2, config);
     QVERIFY(config2.hasGuides());
+    QCOMPARE(config2.guidesPen().style(), Qt::DotLine);
+    QCOMPARE(config2.guidesPen().color(), QColor(12, 34, 56));
 }
 
 SIMPLE_TEST_MAIN(KisGridConfigTest)

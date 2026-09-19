@@ -279,7 +279,7 @@ bool loadValue(const QDomElement &e, QColor *value)
 #if QT_VERSION < QT_VERSION_CHECK(6, 4, 0)
     value->setNamedColor(e.attribute("value", "#FFFF0000"));
 #else
-    value->fromString(e.attribute("value", "#FFFF0000"));
+    *value = QColor::fromString(e.attribute("value", "#FFFF0000"));
 #endif
     return true;
 }

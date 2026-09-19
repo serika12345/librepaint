@@ -2,16 +2,16 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-20 00:33 JST
+- 更新日時: 2026-09-20 00:38 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19c 利用者から観測できる振る舞いを守るテストへの整理
 - 関連TODO: R2-G19a・R2-G19b完了、R2-G19cテスト整理、R2-G19d対象OS検証
 - ブランチ: `develop`
 - 開始コミット: `63fa8d4cbfd`。型特性と完全signatureによるAPI形状検査の機械整理を確定済み。
 - 目的: 残存するSchema試験を利用場面から判定し、根拠のない列挙値・内部型・役割番号の固定を除去する。意味論があるAPIは利用者が渡す値と観測できる結果で保護する。
-- 完了: 意味論を持たないSchema試験5件を削除した。スクリプト向け角度選択APIでは列挙値を配列添字として扱う実装を明示的な文字列変換へ直し、有効な名前の往復と無効な名前で状態を維持する契約を追加した。完全な依存構築で露出した直接include不足と、入出力UI補助オブジェクトが最終共有ライブラリーへ入らないCMake所有不備を修正した。
-- 次の作業: `KisGuidesConfigSchemaContractTest.cpp`から再開し、線種の数値ではなく公開設定から得られるペンと永続化結果を検証する。続いて`KisAcsTypesSchemaContractTest.cpp`と`KKeySequenceWidgetSchemaContractTest.cpp`を利用場面から分類する。
-- 検証: macOSで`TestAngleSelector`と全依存の構築が成功した。CTest登録は928件で、`libs-libkis-TestAngleSelector`は3回連続成功した。運用検査39件を含む`verify-quick`も成功した。
+- 完了: 意味論を持たないSchema試験7件を削除した。角度選択APIは列挙値の順序からスクリプト文字列変換を分離した。ガイド設定は線種から描画ペンへの変換とXML往復へ統合し、Qt 6.4以降で色を復元できなかった不具合を修正した。マウスボタンから前景・背景色への対応試験は振る舞いを表す名称へ変更した。
+- 次の作業: `KisGridConfigValueContractTest.cpp`を利用場面から分類し、線種・格子種別の数値固定を描画または永続化の契約へ集約する。内部計算用`TrigoCache`の値配置検査は削除候補として扱う。
+- 検証: macOSで`TestAngleSelector`と全依存の構築、ガイド設定試験、色役割試験が成功した。後二者は3回連続成功し、CTest登録は926件になった。運用検査39件を含む`verify-quick`も成功した。
 
 ## 現在の変更範囲
 
@@ -32,6 +32,13 @@
 `libs/widgets/tests/KisAngleSelectorSchemaContractTest.cpp`が固定していた列挙値にはスクリプト文字列との対応という
 利用者向け意味論があった。`libs/libkis/AngleSelector.cpp`の変換を列挙値の順序から分離し、
 `libs/libkis/tests/TestAngleSelector.cpp`で有効値の往復と無効値の無視を検証する。
+
+ガイド線種の数値だけを固定していた`libs/ui/tests/KisGuidesConfigSchemaContractTest.cpp`は削除し、
+既存の`kis_grid_config_test.cpp`で実際のペン種別、色、XML保存後の復元結果を検証する。
+この試験により、Qt 6.4以降で`QColor::fromString()`の戻り値を捨てて色を復元していなかった不具合を修正した。
+既定ショートカット種別のビット集合だけを固定していた`KKeySequenceWidgetSchemaContractTest.cpp`も削除した。
+`KisAcsTypesSchemaContractTest.cpp`は前景・背景色の選択という利用者向け結果を検証しているため、
+`KisAcsTypesTest.cpp`へ改名して保持した。
 
 `libs/resources/`、`libs/flake/`、`libs/widgets/`、`libs/image/`、`sdk/tests/`の所有対象から、
 別のヘッダーが偶然提供する完全型への依存を除去する。値で公開するQt型は公開ヘッダーで完結させ、
@@ -100,7 +107,7 @@ Nixの評価済み環境へ入る`./scripts/run-shared-test-env`を利用する�
 
 ## 残る課題と再開条件
 
-機械的な型特性整理は完了した。次は`KisGuidesConfigSchemaContractTest.cpp`を起点に残存Schema試験を読み、
+機械的な型特性整理は完了した。次は`KisGridConfigValueContractTest.cpp`を起点に残存Schema試験を読み、
 実際の呼び出し側と永続形式から互換性要件を確認する。列挙値や識別子の固定は保存データや外部連携の
 根拠がある場合だけ残し、公開操作の結果を検証しない試験は振る舞いへ置き換えるか削除する。
 
