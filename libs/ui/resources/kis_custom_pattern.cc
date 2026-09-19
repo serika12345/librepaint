@@ -18,6 +18,7 @@
 #include "document/KisDocument.h"
 #include "application/ui/workspace/KisViewManager.h"
 #include "kis_image.h"
+#include "kis_node.h"
 #include "kis_paint_device.h"
 #include "kis_selection.h"
 #include "kis_painter.h"
@@ -212,4 +213,3 @@ void KisCustomPattern::createPattern()
                                                                  KoColorConversionTransformation::internalRenderingIntent(),
                                                                  KoColorConversionTransformation::internalConversionFlags()), name, dir));
 }
-

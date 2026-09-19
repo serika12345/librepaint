@@ -13,6 +13,7 @@
 
 #include <kconfiggroup.h>
 #include <klocalizedstring.h>
+#include <KSharedConfig>
 
 #include <QDomDocument>
 #include <QDropEvent>

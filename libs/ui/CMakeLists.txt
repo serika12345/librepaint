@@ -2372,7 +2372,18 @@ target_sources(kritaapplicationui
   PRIVATE
     resources/kis_abstract_resources.h
     resources/kis_abstract_resources.cpp
+    $<TARGET_OBJECTS:kritaimpexuserfeedbackobjects>
+    $<TARGET_OBJECTS:kritaimpexremotefilefetcherobjects>
+    $<TARGET_OBJECTS:kritaimpexutilsobjects>
 )
+
+if(NOT IOS)
+    target_sources(kritaapplicationui PRIVATE
+        $<TARGET_OBJECTS:kritaimpexanimationoptionsstateobjects>
+        $<TARGET_OBJECTS:kritaimpexanimationoptionspersistenceobjects>
+        $<TARGET_OBJECTS:kritaimpexanimationrenderdimensionsobjects>
+    )
+endif()
 
 target_link_libraries(kritaapplicationui
     PUBLIC

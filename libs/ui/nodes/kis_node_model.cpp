@@ -28,6 +28,7 @@
 #include <kis_paint_layer.h>
 #include <kis_group_layer.h>
 #include <kis_projection_leaf.h>
+#include <filter/kis_filter_configuration.h>
 #include <kis_shape_controller.h>
 
 #include "kis_dummies_facade_base.h"

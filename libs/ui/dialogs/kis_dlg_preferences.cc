@@ -67,6 +67,7 @@
 #include <KoResourcePaths.h>
 #include <kformat.h>
 #include <klocalizedstring.h>
+#include <ksharedconfig.h>
 #include <kstandardguiitem.h>
 #include <kundo2stack.h>
 

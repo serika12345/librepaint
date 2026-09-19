@@ -8,6 +8,7 @@
 #include <QPainter>
 
 #include <KConfigGroup>
+#include <KSharedConfig>
 #include <KoCanvasBase.h>
 #include <KoActiveCanvasResourceDependencyKoResource.h>
 #include <KoID.h>

@@ -37,6 +37,7 @@ public:
     };
 
     KisMimeData(QList<KisNodeSP> nodes, KisImageSP image, bool forceCopy = false);
+    ~KisMimeData() override;
 
     /// return the node set on this mimedata object -- for internal use
     QList<KisNodeSP> nodes() const;

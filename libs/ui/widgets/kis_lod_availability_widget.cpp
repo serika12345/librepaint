@@ -19,6 +19,7 @@
 #include <QMenu>
 #include <events/KisLongPressEventFilter.h>
 #include <KisWidgetConnectionUtils.h>
+#include <KisMpl.h>
 
 #include "kis_signals_blocker.h"
 

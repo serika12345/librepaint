@@ -12,6 +12,7 @@
 #include <QtMath>
 
 #include "kis_global.h"
+#include "KisRegion.h"
 #include "kis_algebra_2d.h"
 
 #include "application/kis_config.h"

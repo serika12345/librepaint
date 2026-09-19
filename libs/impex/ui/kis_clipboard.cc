@@ -21,13 +21,16 @@
 #include <algorithm>
 #include <kis_assert.h>
 #include <kis_debug.h>
+#include <KisMpl.h>
 
 // Resource archive storage
+#include <KoColorProfile.h>
 #include <KoStore.h>
 
 // kritaimage
 #include <kis_annotation.h>
 #include <kis_layer_utils.h>
+#include <kis_node.h>
 #include <kis_paint_device.h>
 #include <kis_time_span.h>
 

@@ -7,6 +7,7 @@
 #include "animation/kis_animation_frame_cache.h"
 
 #include "kis_debug.h"
+#include "KisRegion.h"
 
 #include "kis_image.h"
 #include "kis_image_animation_interface.h"

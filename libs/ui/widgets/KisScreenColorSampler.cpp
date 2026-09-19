@@ -25,6 +25,7 @@
 #include "kis_shared_ptr.h"
 #include "kis_icon.h"
 #include "kis_image.h"
+#include "kis_paint_device.h"
 #include "kis_wrapped_rect.h"
 #include "document/KisDocument.h"
 #include "application/ui/orchestration/KisPart.h"

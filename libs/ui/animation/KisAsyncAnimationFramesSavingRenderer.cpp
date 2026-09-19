@@ -6,6 +6,7 @@
 
 #include "animation/KisAsyncAnimationFramesSavingRenderer.h"
 
+#include "KisRegion.h"
 #include "kis_image.h"
 #include "kis_paint_device.h"
 #include "KisImportExportFilter.h"

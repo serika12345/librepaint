@@ -16,6 +16,9 @@
 #include <QOpenGLContext>
 #include <QOpenGLFunctions>
 #include <QAction>
+#include <QMouseEvent>
+#include <QTabletEvent>
+#include <QTouchEvent>
 
 
 #include <kis_icon.h>

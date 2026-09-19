@@ -6,6 +6,7 @@
  */
 
 #include <QEvent>
+#include <QDomDocument>
 
 #include <kis_preset_live_preview_view.h>
 #include <QDebug>

@@ -6,7 +6,9 @@
 
 
 #include <QAction>
+#include <QMouseEvent>
 #include <QPainterPath>
+#include <QTabletEvent>
 
 #include <KoPointerEvent.h>
 #include <KoCanvasBase.h>

@@ -15,6 +15,7 @@
 #include <QListWidgetItem>
 #include <QSpinBox>
 #include <QStackedWidget>
+#include <QStandardPaths>
 #include <QTreeWidget>
 #include <QUuid>
 #include <QWidget>
@@ -22,6 +23,7 @@
 #include <KoColorPopupButton.h>
 #include <KoColorSpaceRegistry.h>
 #include <KoResourceServerProvider.h>
+#include <KoResourcePaths.h>
 #include <KoMD5Generator.h>
 #include <KisResourceLoaderRegistry.h>
 

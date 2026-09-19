@@ -8,6 +8,7 @@
 #include "animation/KisPlaybackEngine.h"
 
 #include "kis_canvas2.h"
+#include "kis_image.h"
 #include "KisCanvasAnimationState.h"
 #include "kis_image_animation_interface.h"
 #include "kis_keyframe_channel.h"

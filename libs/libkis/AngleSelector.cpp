@@ -8,17 +8,64 @@
 #include "kis_debug.h"
 
 
-const QList<QString> FlipOptionsMode = {
-    "NoFlipOptions",    // 0 = KisAngleSelector::FlipOptionsMode_NoFlipOptions
-    "MenuButton",       //     KisAngleSelector::FlipOptionsMode_MenuButton
-    "Buttons",          //     KisAngleSelector::FlipOptionsMode_Buttons
-    "ContextMenu"       //     KisAngleSelector::FlipOptionsMode_ContextMenu
-};
+namespace
+{
 
-const QList<QString> IncreasingDirection = {
-    "CounterClockwise", // 0 = KisAngleGauge::IncreasingDirection_CounterClockwise
-    "Clockwise"         //     KisAngleGauge::IncreasingDirection_Clockwise
-};
+QString flipOptionsModeName(KisAngleSelector::FlipOptionsMode mode)
+{
+    switch (mode) {
+    case KisAngleSelector::FlipOptionsMode_NoFlipOptions:
+        return QStringLiteral("NoFlipOptions");
+    case KisAngleSelector::FlipOptionsMode_MenuButton:
+        return QStringLiteral("MenuButton");
+    case KisAngleSelector::FlipOptionsMode_Buttons:
+        return QStringLiteral("Buttons");
+    case KisAngleSelector::FlipOptionsMode_ContextMenu:
+        return QStringLiteral("ContextMenu");
+    }
+    return {};
+}
+
+bool parseFlipOptionsMode(const QString &name, KisAngleSelector::FlipOptionsMode *mode)
+{
+    if (name == QLatin1String("NoFlipOptions")) {
+        *mode = KisAngleSelector::FlipOptionsMode_NoFlipOptions;
+    } else if (name == QLatin1String("MenuButton")) {
+        *mode = KisAngleSelector::FlipOptionsMode_MenuButton;
+    } else if (name == QLatin1String("Buttons")) {
+        *mode = KisAngleSelector::FlipOptionsMode_Buttons;
+    } else if (name == QLatin1String("ContextMenu")) {
+        *mode = KisAngleSelector::FlipOptionsMode_ContextMenu;
+    } else {
+        return false;
+    }
+    return true;
+}
+
+QString increasingDirectionName(KisAngleGauge::IncreasingDirection direction)
+{
+    switch (direction) {
+    case KisAngleGauge::IncreasingDirection_CounterClockwise:
+        return QStringLiteral("CounterClockwise");
+    case KisAngleGauge::IncreasingDirection_Clockwise:
+        return QStringLiteral("Clockwise");
+    }
+    return {};
+}
+
+bool parseIncreasingDirection(const QString &name, KisAngleGauge::IncreasingDirection *direction)
+{
+    if (name == QLatin1String("CounterClockwise")) {
+        *direction = KisAngleGauge::IncreasingDirection_CounterClockwise;
+    } else if (name == QLatin1String("Clockwise")) {
+        *direction = KisAngleGauge::IncreasingDirection_Clockwise;
+    } else {
+        return false;
+    }
+    return true;
+}
+
+} // namespace
 
 struct AngleSelector::Private {
     Private() {}
@@ -88,12 +135,12 @@ bool AngleSelector::wrapping() const
 
 QString AngleSelector::flipOptionsMode() const
 {
-    KisAngleSelector::FlipOptionsMode mode = d->widget->flipOptionsMode();
-    if (!(0 <= mode && mode <= FlipOptionsMode.size())) {
+    const KisAngleSelector::FlipOptionsMode mode = d->widget->flipOptionsMode();
+    const QString name = flipOptionsModeName(mode);
+    if (name.isEmpty()) {
         warnScript << "AngleSelector::flipOptionsMode() doesn't handle mode '" << mode << "'!";
-        return "";
     }
-    return FlipOptionsMode[mode];
+    return name;
 }
 
 int AngleSelector::widgetsHeight() const
@@ -103,12 +150,12 @@ int AngleSelector::widgetsHeight() const
 
 QString AngleSelector::increasingDirection() const
 {
-    KisAngleGauge::IncreasingDirection increasingDirection = d->widget->increasingDirection();
-    if (!(0 <= increasingDirection && increasingDirection <= IncreasingDirection.size())) {
-        warnScript << "AngleSelector::increasingDirection() doesn't handle mode '" << increasingDirection << "'!";
-        return "";
+    const KisAngleGauge::IncreasingDirection direction = d->widget->increasingDirection();
+    const QString name = increasingDirectionName(direction);
+    if (name.isEmpty()) {
+        warnScript << "AngleSelector::increasingDirection() doesn't handle mode '" << direction << "'!";
     }
-    return IncreasingDirection[increasingDirection];
+    return name;
 }
 
 bool AngleSelector::isUsingFlatSpinBox() const
@@ -163,12 +210,12 @@ void AngleSelector::setWrapping(bool newWrapping)
 
 void AngleSelector::setFlipOptionsMode(QString newMode)
 {
-    int index = FlipOptionsMode.indexOf(newMode);
-    if (index == -1) {
+    KisAngleSelector::FlipOptionsMode mode;
+    if (!parseFlipOptionsMode(newMode, &mode)) {
         dbgScript << "Script using AngleSelector.setFlipOptionsMode() passed invalid mode '" << newMode << "', ignoring.";
         return;
     }
-    d->widget->setFlipOptionsMode((KisAngleSelector::FlipOptionsMode) index);
+    d->widget->setFlipOptionsMode(mode);
 }
 
 void AngleSelector::setWidgetsHeight(int newHeight)
@@ -178,12 +225,12 @@ void AngleSelector::setWidgetsHeight(int newHeight)
 
 void AngleSelector::setIncreasingDirection(QString newIncreasingDirection)
 {
-    int index = IncreasingDirection.indexOf(newIncreasingDirection);
-    if (index == -1) {
+    KisAngleGauge::IncreasingDirection direction;
+    if (!parseIncreasingDirection(newIncreasingDirection, &direction)) {
         dbgScript << "Script using AngleSelector.setIncreasingDirection() passed invalid mode '" << newIncreasingDirection << "', ignoring.";
         return;
     }
-    d->widget->setIncreasingDirection((KisAngleGauge::IncreasingDirection) index);
+    d->widget->setIncreasingDirection(direction);
 }
 
 void AngleSelector::useFlatSpinBox(bool newUseFlatSpinBox)

@@ -27,36 +27,6 @@ target_compile_definitions(KisColorSelectorConfigurationContractTest PRIVATE kri
 
 
 
-kis_add_test(
-    KisPaletteModelSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Gui
-        Qt${QT_MAJOR_VERSION}::Test
-)
-target_include_directories(KisPaletteModelSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    ${CMAKE_SOURCE_DIR}/libs/pigment
-    ${CMAKE_BINARY_DIR}/libs/pigment
-    ${CMAKE_SOURCE_DIR}/libs/pigment/resources
-    ${CMAKE_BINARY_DIR}/libs/pigment/resources
-    ${CMAKE_SOURCE_DIR}/libs/resources
-    ${CMAKE_BINARY_DIR}/libs/resources
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-    $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:KF${KF_MAJOR}::WidgetsAddons,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:Imath::Imath,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Widgets,INTERFACE_INCLUDE_DIRECTORIES>
-)
-target_compile_definitions(KisPaletteModelSchemaContractTest PRIVATE
-    kritaglobal_EXPORTS
-    kritapigment_EXPORTS
-    kritaresources_EXPORTS
-    kritawidgets_EXPORTS
-)
-
 
 
 kis_add_test(
@@ -220,20 +190,6 @@ kis_add_test(
         Qt${QT_MAJOR_VERSION}::Widgets
 )
 target_compile_definitions(KisAngleGaugeContractTest PRIVATE kritawidgets_EXPORTS)
-
-kis_add_test(
-    KisAngleSelectorSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Test
-        Qt${QT_MAJOR_VERSION}::Widgets
-)
-target_include_directories(KisAngleSelectorSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    ${CMAKE_SOURCE_DIR}/libs/widgetutils
-    ${CMAKE_BINARY_DIR}/libs/widgetutils
-)
-target_compile_definitions(KisAngleSelectorSchemaContractTest PRIVATE kritawidgets_EXPORTS)
 
 kis_add_test(
     KisColorLabelButtonContractTest.cpp

@@ -7,6 +7,9 @@
 #include "kis_infinity_manager.h"
 
 #include <QPainter>
+#include <QEvent>
+#include <QMouseEvent>
+#include <QTabletEvent>
 
 #include <klocalizedstring.h>
 

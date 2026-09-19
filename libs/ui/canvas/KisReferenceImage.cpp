@@ -26,6 +26,7 @@
 #include <krita_utils.h>
 #include <kis_coordinates_converter.h>
 #include <kis_dom_utils.h>
+#include <kis_paint_device.h>
 #include <SvgUtil.h>
 #include <libs/flake/svg/parsers/SvgTransformParser.h>
 #include <libs/brush/kis_qimage_pyramid.h>

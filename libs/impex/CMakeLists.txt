@@ -404,23 +404,7 @@ if(ANDROID)
     )
 endif()
 
-# Import and export presentation sources form one ownership unit. Their object
-# implementation is incorporated into the application presentation library,
-# including entry points used only by dynamically loaded plugins.
-set(kritaimpexui_OBJECTS
-    $<TARGET_OBJECTS:kritaimpexuserfeedbackobjects>
-    $<TARGET_OBJECTS:kritaimpexremotefilefetcherobjects>
-    $<TARGET_OBJECTS:kritaimpexutilsobjects>
-)
-if(NOT IOS)
-    list(APPEND kritaimpexui_OBJECTS
-        $<TARGET_OBJECTS:kritaimpexanimationoptionsstateobjects>
-        $<TARGET_OBJECTS:kritaimpexanimationoptionspersistenceobjects>
-        $<TARGET_OBJECTS:kritaimpexanimationrenderdimensionsobjects>
-    )
-endif()
-
-kis_add_library(kritaimpexui OBJECT ${kritaimpexui_LIB_SRCS} ${kritaimpexui_OBJECTS})
+kis_add_library(kritaimpexui OBJECT ${kritaimpexui_LIB_SRCS})
 target_compile_definitions(kritaimpexui PRIVATE kritaapplicationui_EXPORTS)
 
 target_include_directories(kritaimpexui

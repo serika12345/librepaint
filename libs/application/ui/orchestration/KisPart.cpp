@@ -35,6 +35,7 @@
 #include <kactioncollection.h>
 #include <kconfig.h>
 #include <kconfiggroup.h>
+#include <ksharedconfig.h>
 
 #include <QApplication>
 #include <QGlobalStatic>

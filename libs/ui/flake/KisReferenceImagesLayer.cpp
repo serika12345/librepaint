@@ -13,6 +13,7 @@
 #include <kis_shape_layer_canvas.h>
 
 #include "kis_default_bounds.h"
+#include "kis_paint_device.h"
 #include "KisReferenceImagesLayer.h"
 #include "canvas/KisReferenceImage.h"
 #include "document/KisDocument.h"

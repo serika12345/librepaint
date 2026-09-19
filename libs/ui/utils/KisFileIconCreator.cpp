@@ -18,6 +18,7 @@
 #include <QFileInfo>
 
 #include <kis_painting_tweaks.h>
+#include <kis_paint_device.h>
 #include <kis_debug.h>
 #include <KisStaticInitializer.h>
 

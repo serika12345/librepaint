@@ -14,6 +14,8 @@
 #include <QMessageBox>
 #include <kactionmenu.h>
 #include <kactioncollection.h>
+#include <KConfigGroup>
+#include <KSharedConfig>
 
 #include <KoID.h>
 #include <application/ui/workspace/KisMainWindow.h>

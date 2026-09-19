@@ -20,6 +20,7 @@
 #include <KoColorSpaceEngine.h>
 #include <KoColorModelStandardIds.h>
 #include <KoID.h>
+#include <KoResourcePaths.h>
 
 #include <kis_filter_strategy.h>
 #include <kactioncollection.h>

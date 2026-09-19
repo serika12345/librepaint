@@ -21,6 +21,7 @@
 #include "KoViewConverter.h"
 #include "KoIcon.h"
 #include "KisColorSamplerStroke.h"
+#include "kis_paint_device.h"
 #include "kis_cursor.h"
 #include "kis_signal_compressor_with_param.h"
 #include "kis_canvas2.h"

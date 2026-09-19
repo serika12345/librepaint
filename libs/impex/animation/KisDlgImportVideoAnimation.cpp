@@ -18,6 +18,7 @@
 #include <KFormat>
 
 #include "KoColorProfileQuery.h"
+#include "KoColorProfile.h"
 #include "KoFileDialog.h"
 
 #include <document/KisDocument.h>

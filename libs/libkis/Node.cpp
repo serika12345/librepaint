@@ -8,6 +8,7 @@
 #include <QUuid>
 
 #include <KoColorSpace.h>
+#include <KoColorProfile.h>
 #include <KoColorSpaceRegistry.h>
 #include <KoColorTransformation.h>
 

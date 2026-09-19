@@ -27,6 +27,7 @@
 
 #include <kis_types.h>
 #include <kis_image.h>
+#include <kis_node.h>
 #include <kis_layer_utils.h>
 #include <kis_selection.h>
 #include <kis_paint_device.h>

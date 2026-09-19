@@ -11,6 +11,7 @@
 #include "kis_processing_visitor.h"
 #include "kis_grid_config.h"
 #include "kis_guides_config.h"
+#include "kis_paint_device.h"
 #include "canvas/kis_painting_assistant.h"
 #include "kis_default_bounds.h"
 

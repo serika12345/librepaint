@@ -21,6 +21,7 @@
 
 #include <kis_types.h>
 #include <kis_image.h>
+#include <kis_paint_device.h>
 #include <kis_icon.h>
 #include <KisImportExportManager.h>
 #include <KisMimeDatabase.h>

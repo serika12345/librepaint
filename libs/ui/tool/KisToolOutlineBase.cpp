@@ -9,7 +9,10 @@
  */
 
 #include <QAction>
+#include <QKeyEvent>
+#include <QMouseEvent>
 #include <QPainterPath>
+#include <QTabletEvent>
 
 #include <KoPointerEvent.h>
 #include <KoShapeController.h>

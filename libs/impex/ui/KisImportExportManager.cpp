@@ -47,6 +47,7 @@
 #include <kis_iterator_ng.h>
 #include <kis_layer_utils.h>
 #include <kis_paint_layer.h>
+#include <kis_paint_device.h>
 #include <kis_painter.h>
 
 #include "document/KisDocument.h"

@@ -7,6 +7,7 @@
 #include "kis_tool_rectangle_base.h"
 
 #include <QPainterPath>
+#include <QKeyEvent>
 
 #include "application/ui/workspace/KisViewManager.h"
 #include "kis_canvas2.h"

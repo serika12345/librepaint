@@ -49,6 +49,7 @@
 #include "canvas/kis_canvas_resource_provider.h"
 #include "kis_undo_adapter.h"
 #include "kis_pixel_selection.h"
+#include "kis_processing_applicator.h"
 #include "flake/kis_shape_selection.h"
 #include "commands/KisDeselectActiveSelectionCommand.h"
 #include "flake/kis_shape_layer.h"

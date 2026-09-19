@@ -7,7 +7,9 @@
 #include "kis_imagepipe_brush.h"
 #include "kis_pipebrush_parasite.h"
 #include "kis_brushes_pipe.h"
+#include "kis_paint_device.h"
 #include <KisOptimizedBrushOutline.h>
+#include <QIODevice>
 
 class KisImageBrushesPipe : public KisBrushesPipe<KisGbrBrush>
 {

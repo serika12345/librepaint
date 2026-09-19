@@ -12,6 +12,7 @@
 #include "commands_new/kis_update_command.h"
 #include "commands_new/kis_node_move_command2.h"
 #include "kis_layer_utils.h"
+#include "krita_container_utils.h"
 #include "krita_utils.h"
 
 #include "KisRunnableStrokeJobData.h"

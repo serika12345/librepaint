@@ -2,16 +2,16 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-19 23:54 JST
+- 更新日時: 2026-09-20 00:33 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19c 利用者から観測できる振る舞いを守るテストへの整理
 - 関連TODO: R2-G19a・R2-G19b完了、R2-G19cテスト整理、R2-G19d対象OS検証
 - ブランチ: `develop`
-- 開始コミット: `9f8373917d`。実行時検証を一つも持たない宣言形状専用試験251件の削除を確定済み。
-- 目的: 実行時検証と混在する型特性・完全signature検査を除去し、利用者から観測できる結果を検証する部分だけを残す。
-- 完了: 混在していた189件を再分類し、型特性しか検証しない91ファイルと空になった専用CMake対象を削除した。残した95ファイルから型特性検査、署名検査マクロ、空試験537件、未使用の型別名39件を除去した。`ContractTest.cpp`の`type_traits`利用は0件になった。
-- 次の作業: 残った試験を構成要素ごとに読み、列挙値などの明示的な互換性契約と、状態・結果・副作用を検証する振る舞い契約を分ける。失敗時の利用者影響を説明できない試験を削除する。
-- 検証: macOSのCMake再構成が成功し、CTest登録は933件になった。残存対象を含むCTest 96件が成功した。変更した試験対象はすべてコンパイル・リンクに成功した。
+- 開始コミット: `63fa8d4cbfd`。型特性と完全signatureによるAPI形状検査の機械整理を確定済み。
+- 目的: 残存するSchema試験を利用場面から判定し、根拠のない列挙値・内部型・役割番号の固定を除去する。意味論があるAPIは利用者が渡す値と観測できる結果で保護する。
+- 完了: 意味論を持たないSchema試験5件を削除した。スクリプト向け角度選択APIでは列挙値を配列添字として扱う実装を明示的な文字列変換へ直し、有効な名前の往復と無効な名前で状態を維持する契約を追加した。完全な依存構築で露出した直接include不足と、入出力UI補助オブジェクトが最終共有ライブラリーへ入らないCMake所有不備を修正した。
+- 次の作業: `KisGuidesConfigSchemaContractTest.cpp`から再開し、線種の数値ではなく公開設定から得られるペンと永続化結果を検証する。続いて`KisAcsTypesSchemaContractTest.cpp`と`KKeySequenceWidgetSchemaContractTest.cpp`を利用場面から分類する。
+- 検証: macOSで`TestAngleSelector`と全依存の構築が成功した。CTest登録は928件で、`libs-libkis-TestAngleSelector`は3回連続成功した。運用検査39件を含む`verify-quick`も成功した。
 
 ## 現在の変更範囲
 
@@ -20,6 +20,18 @@
 次の機械整理では、混在ファイルから型特性の文だけを除去し、値、状態、所有、通知、変換結果、失敗条件を
 検証する文を保持した。型特性の除去で空になった試験関数とファイル、専用CMake定義も削除した。
 通常の数値変換やテンプレート処理で型特性を利用する通常試験14件は、宣言形状検査ではないため対象外とした。
+
+列挙値、内部Traits、モデル役割番号だけを固定していた次のSchema試験を削除した。
+
+- `libs/ui/tests/KisDlgCreateNewDocumentSchemaContractTest.cpp`
+- `libs/flake/tests/KoSvgTextAddRemoveShapeCommandsSchemaContractTest.cpp`
+- `libs/resources/storage/tests/KoStoreSchemaContractTest.cpp`
+- `libs/canvas/tests/KisCoordinatesConverterSchemaContractTest.cpp`
+- `libs/widgets/tests/KisPaletteModelSchemaContractTest.cpp`
+
+`libs/widgets/tests/KisAngleSelectorSchemaContractTest.cpp`が固定していた列挙値にはスクリプト文字列との対応という
+利用者向け意味論があった。`libs/libkis/AngleSelector.cpp`の変換を列挙値の順序から分離し、
+`libs/libkis/tests/TestAngleSelector.cpp`で有効値の往復と無効値の無視を検証する。
 
 `libs/resources/`、`libs/flake/`、`libs/widgets/`、`libs/image/`、`sdk/tests/`の所有対象から、
 別のヘッダーが偶然提供する完全型への依存を除去する。値で公開するQt型は公開ヘッダーで完結させ、
@@ -79,14 +91,18 @@ Nixの評価済み環境へ入る`./scripts/run-shared-test-env`を利用する�
 `cmake --build --preset tdd-macos --target help`による再構成が成功し、
 `ctest --preset tdd-macos -N`は933件を登録した。
 混在試験の整理後に対象を含むCTest 96件がすべて成功した。残した95試験対象はコンパイル・リンクに成功した。
-一括構築の依存先では、今回の差分外にある`libs/painting/strokes/move_stroke_strategy.cpp`の
-`KritaUtils::filterContainer`未解決と、`libs/brush/kis_imagepipe_brush.cpp`の完全型不足が残っている。
+今回の`TestAngleSelector`構築では`kritalibkis`の完全な依存閉包を構築し、各翻訳単位が利用するQt事象型、
+画像型、設定型、領域型を直接取り込むように修正した。`kritaimpexui`の内側へ入れた補助オブジェクトが
+オブジェクトライブラリー境界を越えて伝播しなかったため、所有先の`kritaapplicationui`へ明示的に組み込んだ。
+その後、`TestAngleSelector`の構築と3回反復が成功した。CTest登録は928件である。
+`./scripts/run-shared-test-env ./scripts/verify-quick`は運用検査39件、依存境界、公開ヘッダー、
+プラグイン登録、文書、リンク、図の検証を含めて成功した。
 
 ## 残る課題と再開条件
 
-機械的な型特性整理は完了した。次は残存試験を構成要素ごとに読み、実際の呼び出し側と永続形式から
-互換性要件を確認する。列挙値や識別子の固定は保存データや外部連携の根拠がある場合だけ残し、
-公開操作の結果を検証しないSchema名の試験は振る舞いへ置き換えるか削除する。
+機械的な型特性整理は完了した。次は`KisGuidesConfigSchemaContractTest.cpp`を起点に残存Schema試験を読み、
+実際の呼び出し側と永続形式から互換性要件を確認する。列挙値や識別子の固定は保存データや外部連携の
+根拠がある場合だけ残し、公開操作の結果を検証しない試験は振る舞いへ置き換えるか削除する。
 
 `KisResourceItemDelegateContractTest`の索引変換は試験内でresolverを再定義しているため、
 実際の資源モデルが返す索引と描画結果による検証へ移す。

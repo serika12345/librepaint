@@ -8,6 +8,7 @@
 #include "ui_video_export_options_dialog.h"
 
 #include <KoID.h>
+#include <KisMpl.h>
 
 #include <ksharedconfig.h>
 #include <kconfiggroup.h>
