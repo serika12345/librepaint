@@ -2,15 +2,26 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-15 23:52 JST
-- 状態: `in_progress`
+- 更新日時: 2026-09-19 20:22 JST
+- 状態: `paused`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
 - 完了: 第760便で標準uniform paint-op property factoryの公開入口2件を契約へ追加し、対応済みを29,792件へ進めた。
-- 次の作業: 残るAndroid初期化入口1件とWindows互換層8件を実行可能なplatform契約profileへ分ける最小構成を設計する。
-- 検証: macOSの対象・反復・無作業再構築、公開API検査、`verify-quick`に成功した。第759便ではLinux実機で構築profileだけを監査し、製品target、全体build・`verify`、Nix再評価は実行していない。主Ninja木、共有compiler cache、最新不足報告だけを保持する。
+- 次の作業: Android実機または許可済みemulatorと、実MSVC互換のWindows実行環境を用意し、現在の`develop`をその実行環境へ同期する方法を指定してから、残るAndroid初期化入口1件とWindows互換層8件を試験する。
+- 検証: macOSの対象・反復・無作業再構築、公開API検査、`verify-quick`に成功した。NixOS実機ではplatform構成と実行可否を監査し、製品target、全体build・`verify`、Nix再評価は実行していない。主Ninja木、共有compiler cache、最新不足報告だけを保持する。
+
+### 第761便のplatform実行前提監査
+
+- `ssh nixos`で実機を再監査した。Androidの永続Ninja木`build/android/arm64-v8a/90a198c0b74ae170`とWindowsの永続Ninja木`build/windows/x86_64/b2d2f97a2f282df2/ninja`はいずれも`BUILD_TESTING=OFF`である。Android deviceは`adb devices`に存在せず、emulator・QEMUは導入されていない。Windows側はMinGWクロス構成で、Wine・QEMU・MSVC互換の実行環境がない。
+- Androidの`libs/global/KisAndroidCrashHandler.cpp`はalternate signal stackとAndroidのunwindstackを設定し、Windowsの`winquirks/unistd.h`は`_MSC_VER`分岐で互換別名とWin32 API呼出しを提供する。いずれも別OSのcross configureやMinGWへMSVC macroを加えるだけでは実行挙動を観測できない。配布profileの`BUILD_TESTING=ON`化だけでは、Androidのdevice deployとWindowsの実行runnerを供給しないため、契約試験の完了条件にならない。
+- NixOS上のリポジトリは`61b3f8e0e4`でcleanだが、現在の`develop`より古い。公開済みでない現在の変更をその作業treeへ反映する権限はない。再開には、Android実機接続またはemulator導入の許可、MSVC互換Windows runner、現在の`develop`を実行側へ同期する方法のいずれも必要である。
+
+### 第762便のNixOS到達性確認
+
+- `ssh nixos`の接続先は`nixos.local`であり、2026-09-19 20:22 JSTの再確認では名前解決に失敗した。既存のcontrol socketは存在しないため、NixOS実機のAndroid device、Windows runner、構築profileを再確認または操作できない。構築、同期、profile作成、実行物の変更は行っていない。
+- 再開条件は、`nixos.local`の到達性回復に加えて、Android実機または許可済みemulator、実MSVC互換Windows runner、現在の`develop`を実行側へ同期する方法を提供することである。
 
 ### 第760便のfactory設定所有者分離
 
